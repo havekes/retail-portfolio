@@ -1,5 +1,5 @@
-.pytest_cache
-.venv
-__pycache__
-frontend
-tests
+**/__pycache__/
+.pytest_cache/
+.venv/
+frontend/
+tests/
