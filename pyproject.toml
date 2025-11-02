@@ -1,0 +1,25 @@
+[project]
+name = "retail-portfolio-backend"
+version = "0.0.0"
+description = "A portfolio tracker designed for the retail investor"
+readme = "./README.md"
+requires-python = ">=3.14"
+dependencies = [
+    "alembic>=1.17.1",
+    "fastapi>=0.120.2",
+    "httpx>=0.28.1",
+    "psycopg2-binary>=2.9.11",
+    "sqlalchemy>=2.0.44",
+    "uvicorn>=0.38.0",
+]
+
+[dependency-groups]
+dev = [
+    "pylint>=4.0.2",
+    "pytest>=8.4.2",
+]
+
+[tool.pytest.ini_options]
+pythonpath = [
+  ".", "src",
+]
