@@ -13,6 +13,7 @@ services:
       - postgres
     environment:
       DATABASE_URL: postgresql://retail-portfolio-user:password@postgres:5432/retail-portfolio
+      UV_CACHE_DIR: /app/.cache/uv
 
   frontend:
     image: node:latest
