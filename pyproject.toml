@@ -18,6 +18,7 @@ dev = [
     "coverage>=7.11.0",
     "pylint>=4.0.2",
     "pytest>=8.4.2",
+    "ruff>=0.8.0",
 ]
 
 [tool.pytest.ini_options]
@@ -100,6 +101,13 @@ prepend_sys_path = [
 # type = "module"
 # module = "ruff"
 # options = "check --fix REVISION_SCRIPT_FILENAME"
+
+[tool.ruff]
+line-length = 88
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "C90", "I", "N", "UP", "YTT", "S", "BLE", "FBT", "B", "A", "COM", "C4", "DTZ", "T10", "DJ", "EM", "EXE", "FA", "ISC", "ICN", "G", "INP", "PIE", "T20", "PYI", "PT", "Q", "RSE", "RET", "SLF", "SLOT", "SIM", "TID", "TCH", "INT", "ARG", "PTH", "ERA", "PD", "PGH", "PL", "TRY", "FLY", "NPY", "AIR", "PERF", "FURB", "LOG", "RUF"]
+ignore = ["S101", "COM812", "ISC001", "TC003"]
 #
 # [[tool.alembic.post_write_hooks]]
 # Alternatively, use the exec runner to execute a binary found on your PATH
@@ -107,4 +115,3 @@ prepend_sys_path = [
 # type = "exec"
 # executable = "ruff"
 # options = "check --fix REVISION_SCRIPT_FILENAME"
-

@@ -20,4 +20,4 @@ A portfolio tracker designed for the retail investor
 
 - `source .venv/bin/activate` to activate the virtual environment
 - Run tests: `uv run pytest`
-- Lint code: `uv run pylint main.py`
+- Lint code: `uv run ruff check src/`
