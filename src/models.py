@@ -35,25 +35,29 @@ class ActionEnum(Enum):
 
 
 class User(Base):
-    __tablename__ = "user"
+    """User model."""
+
+    __tablename__ = "users"
 
     id: Mapped[UUID] = mapped_column(primary_key=True, default=uuid4)
     email: Mapped[str] = mapped_column(String, unique=True, index=True)
     password: Mapped[str] = mapped_column(String)
     is_active: Mapped[bool] = mapped_column(Boolean, default=True)
     last_login_at: Mapped[datetime] = mapped_column(DateTime, nullable=True)
-    created_at: Mapped[datetime] = mapped_column(DateTime, default=func.now())
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=func.now)  # pylint: disable=not-callable
 
     # Relationships
-    accounts: Mapped[list[Account]] = relationship(back_populates="user")
-    watchlists: Mapped[list[Watchlist]] = relationship(back_populates="user")
-    notes: Mapped[list[Note]] = relationship(back_populates="user")
-    reminders: Mapped[list[Reminder]] = relationship(back_populates="user")
-    action_items: Mapped[list[ActionItem]] = relationship(back_populates="user")
+    accounts: Mapped[list["Account"]] = relationship(back_populates="user")
+    watchlists: Mapped[list["Watchlist"]] = relationship(back_populates="user")
+    notes: Mapped[list["Note"]] = relationship(back_populates="user")
+    reminders: Mapped[list["Reminder"]] = relationship(back_populates="user")
+    action_items: Mapped[list["ActionItem"]] = relationship(back_populates="user")
 
 
 class AccountType(Base):
-    __tablename__ = "account_type"
+    """Account type model."""
+
+    __tablename__ = "account_types"
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
     name: Mapped[str] = mapped_column(String, unique=True)
@@ -61,11 +65,13 @@ class AccountType(Base):
     tax_advantaged: Mapped[bool] = mapped_column(Boolean)
 
     # Relationships
-    accounts: Mapped[list[Account]] = relationship(back_populates="account_type")
+    accounts: Mapped[list["Account"]] = relationship(back_populates="account_type")
 
 
 class Institution(Base):
-    __tablename__ = "institution"
+    """Institution model."""
+
+    __tablename__ = "institutions"
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
     name: Mapped[str] = mapped_column(String, unique=True)
@@ -74,17 +80,19 @@ class Institution(Base):
     is_active: Mapped[bool] = mapped_column(Boolean, default=True)
 
     # Relationships
-    accounts: Mapped[list[Account]] = relationship(back_populates="institution")
+    accounts: Mapped[list["Account"]] = relationship(back_populates="institution")
 
 
 class Account(Base):
-    __tablename__ = "account"
+    """Account model."""
+
+    __tablename__ = "accounts"
 
     id: Mapped[UUID] = mapped_column(primary_key=True, default=uuid4)
     name: Mapped[str] = mapped_column(String)
-    user_id: Mapped[UUID] = mapped_column(ForeignKey("user.id"))
-    account_type_id: Mapped[int] = mapped_column(ForeignKey("account_type.id"))
-    institution_id: Mapped[int] = mapped_column(ForeignKey("institution.id"))
+    user_id: Mapped[UUID] = mapped_column(ForeignKey("users.id"))
+    account_type_id: Mapped[int] = mapped_column(ForeignKey("account_types.id"))
+    institution_id: Mapped[int] = mapped_column(ForeignKey("institutions.id"))
     is_active: Mapped[bool] = mapped_column(Boolean, default=True)
     created_at: Mapped[datetime] = mapped_column(DateTime)
     deleted_at: Mapped[datetime] = mapped_column(DateTime, nullable=True)
@@ -100,14 +108,16 @@ class Account(Base):
     )
 
     # Relationships
-    user: Mapped[User] = relationship(back_populates="accounts")
-    account_type: Mapped[AccountType] = relationship(back_populates="accounts")
-    institution: Mapped[Institution] = relationship(back_populates="accounts")
-    notes: Mapped[list[Note]] = relationship(back_populates="account")
+    user: Mapped["User"] = relationship(back_populates="accounts")
+    account_type: Mapped["AccountType"] = relationship(back_populates="accounts")
+    institution: Mapped["Institution"] = relationship(back_populates="accounts")
+    notes: Mapped[list["Note"]] = relationship(back_populates="account")
 
 
-class Ticker(Base):
-    __tablename__ = "ticker"
+class Ticker(Base):  # pylint: disable=too-few-public-methods
+    """Ticker model."""
+
+    __tablename__ = "tickers"
 
     symbol: Mapped[str] = mapped_column(String, primary_key=True)
     name: Mapped[str] = mapped_column(String)
@@ -119,72 +129,84 @@ class Ticker(Base):
     is_active: Mapped[bool] = mapped_column(Boolean, default=True)
 
     # Relationships
-    watchlist_items: Mapped[list[WatchlistItem]] = relationship(back_populates="ticker")
-    notes: Mapped[list[Note]] = relationship(back_populates="ticker")
-    action_items: Mapped[list[ActionItem]] = relationship(back_populates="ticker")
+    watchlist_items: Mapped[list["WatchlistItem"]] = relationship(
+        back_populates="ticker"
+    )
+    notes: Mapped[list["Note"]] = relationship(back_populates="ticker")
+    action_items: Mapped[list["ActionItem"]] = relationship(back_populates="ticker")
 
 
 class Watchlist(Base):
-    __tablename__ = "watchlist"
+    """Watchlist model."""
+
+    __tablename__ = "watchlists"
 
     id: Mapped[UUID] = mapped_column(primary_key=True, default=uuid4)
-    user_id: Mapped[UUID] = mapped_column(ForeignKey("user.id"))
+    user_id: Mapped[UUID] = mapped_column(ForeignKey("users.id"))
     name: Mapped[str] = mapped_column(String, default="Main Watchlist")
-    created_at: Mapped[datetime] = mapped_column(DateTime, default=func.now())
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=func.now)  # pylint: disable=not-callable
 
     # Relationships
-    user: Mapped[User] = relationship(back_populates="watchlists")
-    watchlist_items: Mapped[list[WatchlistItem]] = relationship(
+    user: Mapped["User"] = relationship(back_populates="watchlists")
+    watchlist_items: Mapped[list["WatchlistItem"]] = relationship(
         back_populates="watchlist"
     )
 
 
 class WatchlistItem(Base):
-    __tablename__ = "watchlist_item"
+    """Watchlist item model."""
+
+    __tablename__ = "watchlist_items"
 
     watchlist_id: Mapped[UUID] = mapped_column(
-        ForeignKey("watchlist.id"), primary_key=True
+        ForeignKey("watchlists.id"), primary_key=True
     )
     ticker_symbol: Mapped[str] = mapped_column(
-        ForeignKey("ticker.symbol"), primary_key=True
+        ForeignKey("tickers.symbol"), primary_key=True
     )
-    added_at: Mapped[datetime] = mapped_column(DateTime, default=func.now())
+    added_at: Mapped[datetime] = mapped_column(DateTime, default=func.now)  # pylint: disable=not-callable
 
     # Relationships
-    watchlist: Mapped[Watchlist] = relationship(back_populates="watchlist_items")
-    ticker: Mapped[Ticker] = relationship(back_populates="watchlist_items")
+    watchlist: Mapped["Watchlist"] = relationship(back_populates="watchlist_items")
+    ticker: Mapped["Ticker"] = relationship(back_populates="watchlist_items")
 
 
-class Note(Base):
-    __tablename__ = "note"
+class Note(Base):  # pylint: disable=too-few-public-methods
+    """Note model."""
+
+    __tablename__ = "notes"
 
     id: Mapped[UUID] = mapped_column(primary_key=True, default=uuid4)
-    user_id: Mapped[UUID] = mapped_column(ForeignKey("user.id"))
+    user_id: Mapped[UUID] = mapped_column(ForeignKey("users.id"))
     date: Mapped[date] = mapped_column(Date)
     content: Mapped[str] = mapped_column(Text)
-    account_id: Mapped[UUID] = mapped_column(ForeignKey("account.id"), nullable=True)
+    account_id: Mapped[UUID] = mapped_column(ForeignKey("accounts.id"), nullable=True)
     ticker_symbol: Mapped[str] = mapped_column(
-        ForeignKey("ticker.symbol"), nullable=True
+        ForeignKey("tickers.symbol"), nullable=True
     )
-    created_at: Mapped[datetime] = mapped_column(DateTime, default=func.now())
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=func.now)  # pylint: disable=not-callable
     updated_at: Mapped[datetime] = mapped_column(
-        DateTime, default=func.now(), onupdate=func.now()
+        DateTime,
+        default=func.now,
+        onupdate=func.now,  # pylint: disable=not-callable
     )
 
     # Unique constraint on (user_id, date)
     __table_args__ = (UniqueConstraint("user_id", "date"),)
 
     # Relationships
-    user: Mapped[User] = relationship(back_populates="notes")
-    account: Mapped[Account] = relationship(back_populates="notes")
-    ticker: Mapped[Ticker] = relationship(back_populates="notes")
+    user: Mapped["User"] = relationship(back_populates="notes")
+    account: Mapped["Account"] = relationship(back_populates="notes")
+    ticker: Mapped["Ticker"] = relationship(back_populates="notes")
 
 
 class Reminder(Base):
-    __tablename__ = "reminder"
+    """Reminder model."""
+
+    __tablename__ = "reminders"
 
     id: Mapped[UUID] = mapped_column(primary_key=True, default=uuid4)
-    user_id: Mapped[UUID] = mapped_column(ForeignKey("user.id"))
+    user_id: Mapped[UUID] = mapped_column(ForeignKey("users.id"))
     title: Mapped[str] = mapped_column(String)
     description: Mapped[str] = mapped_column(Text, nullable=True)
     trigger_date: Mapped[datetime] = mapped_column(DateTime)
@@ -193,22 +215,24 @@ class Reminder(Base):
     is_active: Mapped[bool] = mapped_column(Boolean, default=True)
 
     # Relationships
-    user: Mapped[User] = relationship(back_populates="reminders")
+    user: Mapped["User"] = relationship(back_populates="reminders")
 
 
 class ActionItem(Base):
-    __tablename__ = "action_item"
+    """Action item model."""
+
+    __tablename__ = "action_items"
 
     id: Mapped[UUID] = mapped_column(primary_key=True, default=uuid4)
-    ticker_symbol: Mapped[str] = mapped_column(ForeignKey("ticker.symbol"))
-    user_id: Mapped[UUID] = mapped_column(ForeignKey("user.id"))
+    ticker_symbol: Mapped[str] = mapped_column(ForeignKey("tickers.symbol"))
+    user_id: Mapped[UUID] = mapped_column(ForeignKey("users.id"))
     action: Mapped[ActionEnum] = mapped_column(SAEnum(ActionEnum))
     reason: Mapped[str] = mapped_column(Text, nullable=True)
-    last_updated: Mapped[datetime] = mapped_column(DateTime, default=func.now())
+    last_updated: Mapped[datetime] = mapped_column(DateTime, default=func.now)  # pylint: disable=not-callable
 
     # Unique constraint on (user_id, ticker_symbol)
     __table_args__ = (UniqueConstraint("user_id", "ticker_symbol"),)
 
     # Relationships
-    ticker: Mapped[Ticker] = relationship(back_populates="action_items")
-    user: Mapped[User] = relationship(back_populates="action_items")
+    ticker: Mapped["Ticker"] = relationship(back_populates="action_items")
+    user: Mapped["User"] = relationship(back_populates="action_items")
