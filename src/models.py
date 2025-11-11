@@ -47,11 +47,11 @@ class User(Base):
     created_at: Mapped[datetime] = mapped_column(DateTime, default=func.now)  # pylint: disable=not-callable
 
     # Relationships
-    accounts: Mapped[list["Account"]] = relationship(back_populates="user")
-    watchlists: Mapped[list["Watchlist"]] = relationship(back_populates="user")
-    notes: Mapped[list["Note"]] = relationship(back_populates="user")
-    reminders: Mapped[list["Reminder"]] = relationship(back_populates="user")
-    action_items: Mapped[list["ActionItem"]] = relationship(back_populates="user")
+    accounts: Mapped[list[Account]] = relationship(back_populates="user")
+    watchlists: Mapped[list[Watchlist]] = relationship(back_populates="user")
+    notes: Mapped[list[Note]] = relationship(back_populates="user")
+    reminders: Mapped[list[Reminder]] = relationship(back_populates="user")
+    action_items: Mapped[list[ActionItem]] = relationship(back_populates="user")
 
 
 class AccountType(Base):
@@ -65,7 +65,7 @@ class AccountType(Base):
     tax_advantaged: Mapped[bool] = mapped_column(Boolean)
 
     # Relationships
-    accounts: Mapped[list["Account"]] = relationship(back_populates="account_type")
+    accounts: Mapped[list[Account]] = relationship(back_populates="account_type")
 
 
 class Institution(Base):
@@ -80,7 +80,7 @@ class Institution(Base):
     is_active: Mapped[bool] = mapped_column(Boolean, default=True)
 
     # Relationships
-    accounts: Mapped[list["Account"]] = relationship(back_populates="institution")
+    accounts: Mapped[list[Account]] = relationship(back_populates="institution")
 
 
 class Account(Base):
@@ -108,10 +108,29 @@ class Account(Base):
     )
 
     # Relationships
-    user: Mapped["User"] = relationship(back_populates="accounts")
-    account_type: Mapped["AccountType"] = relationship(back_populates="accounts")
-    institution: Mapped["Institution"] = relationship(back_populates="accounts")
-    notes: Mapped[list["Note"]] = relationship(back_populates="account")
+    user: Mapped[User] = relationship(back_populates="accounts")
+    account_type: Mapped[AccountType] = relationship(back_populates="accounts")
+    institution: Mapped[Institution] = relationship(back_populates="accounts")
+    positions: Mapped[list[Position]] = relationship(back_populates="account")
+    notes: Mapped[list[Note]] = relationship(back_populates="account")
+
+
+class Position(Base):
+    __tablename__ = "positions"
+
+    id: Mapped[UUID] = mapped_column(primary_key=True, default=uuid4)
+    account_id: Mapped[UUID] = mapped_column(ForeignKey("accounts.id"))
+    ticker_symbol: Mapped[str] = mapped_column(ForeignKey("tickers.symbol"))
+    quantity: Mapped[float] = mapped_column(Float)
+    average_cost: Mapped[float] = mapped_column(Float)
+    current_price: Mapped[float] = mapped_column(Float)
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime, default=func.now, onupdate=func.now
+    )
+
+    # Relationships
+    account: Mapped[Account] = relationship(back_populates="positions")
+    ticker: Mapped[Ticker] = relationship(back_populates="positions")
 
 
 class Ticker(Base):  # pylint: disable=too-few-public-methods
@@ -129,11 +148,10 @@ class Ticker(Base):  # pylint: disable=too-few-public-methods
     is_active: Mapped[bool] = mapped_column(Boolean, default=True)
 
     # Relationships
-    watchlist_items: Mapped[list["WatchlistItem"]] = relationship(
-        back_populates="ticker"
-    )
-    notes: Mapped[list["Note"]] = relationship(back_populates="ticker")
-    action_items: Mapped[list["ActionItem"]] = relationship(back_populates="ticker")
+    positions: Mapped[list[Position]] = relationship(back_populates="ticker")
+    watchlist_items: Mapped[list[WatchlistItem]] = relationship(back_populates="ticker")
+    notes: Mapped[list[Note]] = relationship(back_populates="ticker")
+    action_items: Mapped[list[ActionItem]] = relationship(back_populates="ticker")
 
 
 class Watchlist(Base):
@@ -147,8 +165,8 @@ class Watchlist(Base):
     created_at: Mapped[datetime] = mapped_column(DateTime, default=func.now)  # pylint: disable=not-callable
 
     # Relationships
-    user: Mapped["User"] = relationship(back_populates="watchlists")
-    watchlist_items: Mapped[list["WatchlistItem"]] = relationship(
+    user: Mapped[User] = relationship(back_populates="watchlists")
+    watchlist_items: Mapped[list[WatchlistItem]] = relationship(
         back_populates="watchlist"
     )
 
@@ -167,8 +185,8 @@ class WatchlistItem(Base):
     added_at: Mapped[datetime] = mapped_column(DateTime, default=func.now)  # pylint: disable=not-callable
 
     # Relationships
-    watchlist: Mapped["Watchlist"] = relationship(back_populates="watchlist_items")
-    ticker: Mapped["Ticker"] = relationship(back_populates="watchlist_items")
+    watchlist: Mapped[Watchlist] = relationship(back_populates="watchlist_items")
+    ticker: Mapped[Ticker] = relationship(back_populates="watchlist_items")
 
 
 class Note(Base):  # pylint: disable=too-few-public-methods
@@ -195,9 +213,9 @@ class Note(Base):  # pylint: disable=too-few-public-methods
     __table_args__ = (UniqueConstraint("user_id", "date"),)
 
     # Relationships
-    user: Mapped["User"] = relationship(back_populates="notes")
-    account: Mapped["Account"] = relationship(back_populates="notes")
-    ticker: Mapped["Ticker"] = relationship(back_populates="notes")
+    user: Mapped[User] = relationship(back_populates="notes")
+    account: Mapped[Account] = relationship(back_populates="notes")
+    ticker: Mapped[Ticker] = relationship(back_populates="notes")
 
 
 class Reminder(Base):
@@ -215,7 +233,7 @@ class Reminder(Base):
     is_active: Mapped[bool] = mapped_column(Boolean, default=True)
 
     # Relationships
-    user: Mapped["User"] = relationship(back_populates="reminders")
+    user: Mapped[User] = relationship(back_populates="reminders")
 
 
 class ActionItem(Base):
@@ -234,5 +252,5 @@ class ActionItem(Base):
     __table_args__ = (UniqueConstraint("user_id", "ticker_symbol"),)
 
     # Relationships
-    ticker: Mapped["Ticker"] = relationship(back_populates="action_items")
-    user: Mapped["User"] = relationship(back_populates="action_items")
+    ticker: Mapped[Ticker] = relationship(back_populates="action_items")
+    user: Mapped[User] = relationship(back_populates="action_items")
