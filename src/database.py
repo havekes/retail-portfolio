@@ -5,7 +5,7 @@ from sqlalchemy.orm import sessionmaker
 
 SQLALCHEMY_DATABASE_URL = os.environ.get(
     "DATABASE_URL",
-    "postgresql://retail-portfolio-user:password@localhost:5432/retail-portfolio",
+    "postgresql://retail-portfolio-user:password@postgres:5432/retail-portfolio",
 )
 
 engine = create_engine(SQLALCHEMY_DATABASE_URL)
