@@ -44,7 +44,7 @@ class User(Base):
     password: Mapped[str] = mapped_column(String)
     is_active: Mapped[bool] = mapped_column(Boolean, default=True)
     last_login_at: Mapped[datetime] = mapped_column(DateTime, nullable=True)
-    created_at: Mapped[datetime] = mapped_column(DateTime, default=func.now)  # pylint: disable=not-callable
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=func.now())
 
     # Relationships
     accounts: Mapped[list[Account]] = relationship(back_populates="user")
@@ -89,12 +89,13 @@ class Account(Base):
     __tablename__ = "accounts"
 
     id: Mapped[UUID] = mapped_column(primary_key=True, default=uuid4)
+    external_id: Mapped[str] = mapped_column(String)
     name: Mapped[str] = mapped_column(String)
     user_id: Mapped[UUID] = mapped_column(ForeignKey("users.id"))
     account_type_id: Mapped[int] = mapped_column(ForeignKey("account_types.id"))
     institution_id: Mapped[int] = mapped_column(ForeignKey("institutions.id"))
     is_active: Mapped[bool] = mapped_column(Boolean, default=True)
-    created_at: Mapped[datetime] = mapped_column(DateTime)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=func.now())
     deleted_at: Mapped[datetime] = mapped_column(DateTime, nullable=True)
 
     # Index on (user_id, institution_id, account_type_id)
@@ -106,6 +107,8 @@ class Account(Base):
             "account_type_id",
         ),
     )
+
+    # TODO add unique on institution_id and external_id
 
     # Relationships
     user: Mapped[User] = relationship(back_populates="accounts")
@@ -120,7 +123,7 @@ class Position(Base):
 
     id: Mapped[UUID] = mapped_column(primary_key=True, default=uuid4)
     account_id: Mapped[UUID] = mapped_column(ForeignKey("accounts.id"))
-    ticker_symbol: Mapped[str] = mapped_column(ForeignKey("tickers.symbol"))
+    security_symbol: Mapped[str] = mapped_column(ForeignKey("securities.symbol"))
     quantity: Mapped[float] = mapped_column(Float)
     average_cost: Mapped[float] = mapped_column(Float)
     current_price: Mapped[float] = mapped_column(Float)
@@ -129,14 +132,14 @@ class Position(Base):
     )
 
     # Relationships
-    account: Mapped[Account] = relationship(back_populates="positions")
-    ticker: Mapped[Ticker] = relationship(back_populates="positions")
+    account: Mapped[Account] = relationship("Account")
+    security: Mapped[Security] = relationship("Security")
 
 
-class Ticker(Base):  # pylint: disable=too-few-public-methods
-    """Ticker model."""
+class Security(Base):  # pylint: disable=too-few-public-methods
+    """Security model."""
 
-    __tablename__ = "tickers"
+    __tablename__ = "securities"
 
     symbol: Mapped[str] = mapped_column(String, primary_key=True)
     name: Mapped[str] = mapped_column(String)
@@ -148,10 +151,12 @@ class Ticker(Base):  # pylint: disable=too-few-public-methods
     is_active: Mapped[bool] = mapped_column(Boolean, default=True)
 
     # Relationships
-    positions: Mapped[list[Position]] = relationship(back_populates="ticker")
-    watchlist_items: Mapped[list[WatchlistItem]] = relationship(back_populates="ticker")
-    notes: Mapped[list[Note]] = relationship(back_populates="ticker")
-    action_items: Mapped[list[ActionItem]] = relationship(back_populates="ticker")
+    positions: Mapped[list[Position]] = relationship(back_populates="security")
+    watchlist_items: Mapped[list[WatchlistItem]] = relationship(
+        back_populates="security"
+    )
+    notes: Mapped[list[Note]] = relationship(back_populates="security")
+    action_items: Mapped[list[ActionItem]] = relationship(back_populates="security")
 
 
 class Watchlist(Base):
@@ -179,14 +184,14 @@ class WatchlistItem(Base):
     watchlist_id: Mapped[UUID] = mapped_column(
         ForeignKey("watchlists.id"), primary_key=True
     )
-    ticker_symbol: Mapped[str] = mapped_column(
-        ForeignKey("tickers.symbol"), primary_key=True
+    security_symbol: Mapped[str] = mapped_column(
+        ForeignKey("securities.symbol"), primary_key=True
     )
     added_at: Mapped[datetime] = mapped_column(DateTime, default=func.now)  # pylint: disable=not-callable
 
     # Relationships
     watchlist: Mapped[Watchlist] = relationship(back_populates="watchlist_items")
-    ticker: Mapped[Ticker] = relationship(back_populates="watchlist_items")
+    security: Mapped[Security] = relationship(back_populates="watchlist_items")
 
 
 class Note(Base):  # pylint: disable=too-few-public-methods
@@ -199,8 +204,8 @@ class Note(Base):  # pylint: disable=too-few-public-methods
     date: Mapped[date] = mapped_column(Date)
     content: Mapped[str] = mapped_column(Text)
     account_id: Mapped[UUID] = mapped_column(ForeignKey("accounts.id"), nullable=True)
-    ticker_symbol: Mapped[str] = mapped_column(
-        ForeignKey("tickers.symbol"), nullable=True
+    security_symbol: Mapped[str] = mapped_column(
+        ForeignKey("securities.symbol"), nullable=True
     )
     created_at: Mapped[datetime] = mapped_column(DateTime, default=func.now)  # pylint: disable=not-callable
     updated_at: Mapped[datetime] = mapped_column(
@@ -215,7 +220,7 @@ class Note(Base):  # pylint: disable=too-few-public-methods
     # Relationships
     user: Mapped[User] = relationship(back_populates="notes")
     account: Mapped[Account] = relationship(back_populates="notes")
-    ticker: Mapped[Ticker] = relationship(back_populates="notes")
+    security: Mapped[Security] = relationship(back_populates="notes")
 
 
 class Reminder(Base):
@@ -242,15 +247,15 @@ class ActionItem(Base):
     __tablename__ = "action_items"
 
     id: Mapped[UUID] = mapped_column(primary_key=True, default=uuid4)
-    ticker_symbol: Mapped[str] = mapped_column(ForeignKey("tickers.symbol"))
+    security_symbol: Mapped[str] = mapped_column(ForeignKey("securities.symbol"))
     user_id: Mapped[UUID] = mapped_column(ForeignKey("users.id"))
     action: Mapped[ActionEnum] = mapped_column(SAEnum(ActionEnum))
     reason: Mapped[str] = mapped_column(Text, nullable=True)
     last_updated: Mapped[datetime] = mapped_column(DateTime, default=func.now)  # pylint: disable=not-callable
 
-    # Unique constraint on (user_id, ticker_symbol)
-    __table_args__ = (UniqueConstraint("user_id", "ticker_symbol"),)
+    # Unique constraint on (user_id, security_symbol)
+    __table_args__ = (UniqueConstraint("user_id", "security_symbol"),)
 
     # Relationships
-    ticker: Mapped[Ticker] = relationship(back_populates="action_items")
+    security: Mapped[Security] = relationship(back_populates="action_items")
     user: Mapped[User] = relationship(back_populates="action_items")
