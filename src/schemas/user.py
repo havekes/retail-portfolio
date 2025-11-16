@@ -1,5 +1,4 @@
 from datetime import datetime
-from typing import Optional
 from uuid import UUID
 
 from pydantic import BaseModel, ConfigDict
@@ -12,5 +11,5 @@ class User(BaseModel):
     email: str
     password: str
     is_active: bool = True
-    last_login_at: Optional[datetime] = None
+    last_login_at: datetime | None = None
     created_at: datetime

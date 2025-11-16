@@ -1,5 +1,4 @@
 from datetime import datetime
-from typing import Optional
 from uuid import UUID
 
 from pydantic import BaseModel
@@ -12,6 +11,6 @@ class ActionItem(BaseModel):
     security_symbol: str
     user_id: UUID
     action: ActionEnum
-    reason: Optional[str] = None
+    reason: str | None = None
     last_updated: datetime
 

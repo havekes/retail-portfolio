@@ -21,7 +21,8 @@ async def get_user(session: AsyncSession) -> User:
     )
     user = (await session.execute(q)).scalar()
     if user is None:
-        raise Exception("User not found")
+        error = "User not found"
+        raise SystemError(error)
 
     return User.model_validate(user)
 
