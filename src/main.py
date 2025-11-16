@@ -1,6 +1,5 @@
 from fastapi import FastAPI
 
-import src.models  # noqa: F401  # Import models to ensure they are loaded
 from src.routers.external import router
 
 app = FastAPI()
