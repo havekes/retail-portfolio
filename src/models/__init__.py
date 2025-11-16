@@ -1,10 +1,5 @@
 from sqlalchemy.orm import DeclarativeBase
 
-
-class Base(DeclarativeBase):
-    pass
-
-
 # Import all models to ensure they are registered with SQLAlchemy
 from . import (
     account,
@@ -19,3 +14,7 @@ from . import (
     watchlist,
     watchlist_item,
 )
+
+
+class Base(DeclarativeBase):
+    pass
