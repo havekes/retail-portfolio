@@ -1,5 +1,4 @@
 from datetime import datetime
-from typing import Optional
 
 from pydantic import BaseModel
 
@@ -7,9 +6,9 @@ from pydantic import BaseModel
 class Security(BaseModel):
     symbol: str
     name: str
-    sector: Optional[str] = None
-    industry: Optional[str] = None
+    sector: str | None = None
+    industry: str | None = None
     market_cap: float
-    pe_ratio: Optional[float] = None
+    pe_ratio: float | None = None
     last_updated: datetime
     is_active: bool = True
