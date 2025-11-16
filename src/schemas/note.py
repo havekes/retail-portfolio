@@ -13,4 +13,3 @@ class Note(BaseModel):
     security_symbol: str | None = None
     created_at: datetime
     updated_at: datetime
-

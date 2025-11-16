@@ -9,4 +9,3 @@ class Watchlist(BaseModel):
     user_id: UUID
     name: str = "Main Watchlist"
     created_at: datetime
-

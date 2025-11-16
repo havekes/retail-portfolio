@@ -13,4 +13,3 @@ class ActionItem(BaseModel):
     action: ActionEnum
     reason: str | None = None
     last_updated: datetime
-

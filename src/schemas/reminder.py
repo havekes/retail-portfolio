@@ -13,4 +13,3 @@ class Reminder(BaseModel):
     is_recurring: bool = False
     recurring_type: str | None = None
     is_active: bool = True
-
