@@ -4,7 +4,7 @@ from datetime import datetime
 from typing import TYPE_CHECKING
 from uuid import UUID, uuid4
 
-from sqlalchemy import DateTime, Float, ForeignKey, func
+from sqlalchemy import DateTime, Float, ForeignKey, UniqueConstraint, func
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from . import Base
@@ -26,6 +26,8 @@ class Position(Base):
     updated_at: Mapped[datetime] = mapped_column(
         DateTime, default=func.now, onupdate=func.now
     )
+
+    __table_args__ = (UniqueConstraint("account_id", "security_symbol"),)
 
     # Relationships
     account: Mapped[Account] = relationship("Account")

@@ -9,6 +9,7 @@ from . import Base
 
 if TYPE_CHECKING:
     from .account import Account
+    from .external_user import ExternalUser
 
 
 class Institution(Base):
@@ -25,4 +26,7 @@ class Institution(Base):
     # Relationships
     accounts: Mapped[list[Account]] = relationship(
         "Account", back_populates="institution"
+    )
+    external_users: Mapped[list[ExternalUser]] = relationship(
+        "ExternalUser", back_populates="institution"
     )

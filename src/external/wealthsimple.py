@@ -1,3 +1,5 @@
+from uuid import UUID
+
 import keyring
 from ws_api import WealthsimpleAPI
 from ws_api.exceptions import (
@@ -8,6 +10,7 @@ from ws_api.exceptions import (
 from ws_api.session import WSAPISession
 
 from src.enums import AccountTypeEnum, InstitutionEnum
+from src.external.api_wrapper import ExternalAPIWrapper
 from src.external.exceptions import (
     AccountTypeUnkownError,
     IncorrectAccountError,
@@ -17,22 +20,17 @@ from src.external.exceptions import (
     SessionExpiredError,
     UnknownError,
 )
-from src.external.wrapper import ExternalAPIWrapper
-from src.schemas import Account, AccountType
+from src.schemas import Account, AccountType, FullExternalUser, Position
 
 
-class Wealthsimple(ExternalAPIWrapper):
+class WealthsimpleApiWrapper(ExternalAPIWrapper):
     _keyring_prefix: str = "retail_prtofolio_wealthsimple"
     _institution: InstitutionEnum = InstitutionEnum.WEALTHSIMPLE
 
-    _username: str
-    _ws_session: WSAPISession
-
-    @property
-    def _client(self) -> WealthsimpleAPI:
+    def _get_client(self, username: str) -> WealthsimpleAPI:
         return WealthsimpleAPI.from_token(
-            self._get_session(self._username),
-            username=self._username,
+            self._get_session(username),
+            username=username,
             persist_session_fct=self._save_session,
         )
 
@@ -79,9 +77,9 @@ class Wealthsimple(ExternalAPIWrapper):
 
         return account_type
 
-    async def _account_exists(self, ws_account_id: str) -> bool:
-        return await self._account_repository.exists_account_by_user_and_external_id(
-            self._user.id, ws_account_id
+    async def _account_exists(self, user_id: UUID, ws_account_id: str) -> bool:
+        return await self._account_repository.exists_by_user_and_external_id(
+            user_id, ws_account_id
         )
 
     def login(
@@ -119,19 +117,31 @@ class Wealthsimple(ExternalAPIWrapper):
 
         return True
 
-    async def import_accounts(self) -> list[Account]:
-        ws_accounts = self._client.get_accounts()
+    async def import_accounts(
+        self, external_user: FullExternalUser, account_ids: list[str] | None = None
+    ) -> list[Account]:
+        ws_client = self._get_client(external_user.external_user_id)
+        ws_accounts = ws_client.get_accounts()
         created_accounts = []
 
         for ws_account in ws_accounts:
+            # Filter by account IDs if provided
+            if account_ids is not None and ws_account["id"] not in account_ids:
+                continue
+
+            # Skip archived accounts
             account_archived = ws_account["archivedAt"] is not None
             if account_archived is True:
                 continue
 
-            account_exists = await self._account_exists(ws_account["id"])
+            # Skip existing accounts
+            account_exists = await self._account_exists(
+                external_user.user_id, ws_account["id"]
+            )
             if account_exists is True:
                 continue
 
+            # Only import known account types
             try:
                 account_type = await self._get_account_type(ws_account["type"])
             except AccountTypeUnkownError:
@@ -141,17 +151,10 @@ class Wealthsimple(ExternalAPIWrapper):
                 Account(
                     external_id=ws_account["id"],
                     name=ws_account["description"],
-                    user_id=self._user.id,
+                    user_id=external_user.user_id,
                     account_type_id=account_type.id,
                     institution_id=self._institution.value,
                 )
             )
 
         return created_accounts
-
-    async def import_positions(self, account: Account):
-        if account.user_id != self._user.id:
-            raise IncorrectAccountError
-
-        if account.institution_id != self._institution.value:
-            raise IncorrectAccountError

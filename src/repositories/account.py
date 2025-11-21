@@ -10,7 +10,7 @@ class AccountRepository(ABC):
         pass
 
     @abstractmethod
-    async def exists_account_by_user_and_external_id(
+    async def exists_by_user_and_external_id(
         self, user_id: UUID, external_id: str
     ) -> bool:
         pass

@@ -1,13 +1,50 @@
+import svcs
 from fastapi import FastAPI
+from sqlalchemy import select
+from sqlalchemy.ext.asyncio import AsyncSession
+from svcs.fastapi import DepContainer
 
+from src.database import sessionmanager
+from src.external.api_wrapper import ExternalAPIWrapper
+from src.external.wealthsimple import WealthsimpleApiWrapper
+from src.repositories.account import AccountRepository
+from src.repositories.account_type import AccountTypeRepository
+from src.repositories.external_user import ExternalUserRepository
+from src.repositories.sqlalchemy.sqlalchemy_account import SqlAlchemyAccountRepostory
+from src.repositories.sqlalchemy.sqlalchemy_account_type import (
+    SqlAlchemyAccountTypeRepository,
+)
+from src.repositories.sqlalchemy.sqlalchemy_external_user import (
+    SqlAlchemyExternalUserRepository,
+)
 from src.routers.external import router
+from src.services.user import UserService
 
-app = FastAPI()
 
+@svcs.fastapi.lifespan
+async def lifespan(app: FastAPI, registry: svcs.Registry):  # noqa: ARG001
+    registry.register_factory(AsyncSession, sessionmanager.session)
+
+    # Repositories
+    registry.register_factory(AccountRepository, SqlAlchemyAccountRepostory)
+    registry.register_factory(AccountTypeRepository, SqlAlchemyAccountTypeRepository)
+    registry.register_factory(ExternalUserRepository, SqlAlchemyExternalUserRepository)
+
+    # Services
+    registry.register_factory(UserService, UserService)
+
+    # External API Wrapper services
+    registry.register_factory(WealthsimpleApiWrapper, WealthsimpleApiWrapper)
+    yield
+
+
+app = FastAPI(lifespan=lifespan)
 app.include_router(router)
 
 
 @app.get("/api/ping")
-async def ping():
-    """Check server status"""
+async def ping(services: DepContainer):
+    """Server healthcheck"""
+    session = await services.aget(AsyncSession)
+    await session.execute(select(1))
     return {"ping": "pong"}

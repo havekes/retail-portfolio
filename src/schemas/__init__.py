@@ -1,6 +1,7 @@
 from .account import Account
 from .account_type import AccountType
 from .action_item import ActionItem
+from .external_user import FullExternalUser
 from .institution import Institution
 from .note import Note
 from .position import Position
@@ -22,4 +23,5 @@ __all__ = [
     "Note",
     "Reminder",
     "ActionItem",
+    "FullExternalUser",
 ]

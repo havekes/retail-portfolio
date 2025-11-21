@@ -10,6 +10,7 @@ from . import (  # noqa: E402
     account,
     account_type,
     action_item,
+    external_user,
     institution,
     note,
     position,
