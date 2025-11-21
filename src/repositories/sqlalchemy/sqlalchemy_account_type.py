@@ -6,13 +6,13 @@ from src.schemas.account_type import AccountType
 
 
 class SqlAlchemyAccountTypeRepository(AccountTypeRepository):
-    session: AsyncSession
+    _session: AsyncSession
 
     def __init__(self, session: AsyncSession):
-        self.session = session
+        self._session = session
 
     async def get_account_type(self, account_type_id: int) -> AccountType | None:
-        result = await self.session.get(AccountTypeModel, account_type_id)
+        result = await self._session.get(AccountTypeModel, account_type_id)
         if result:
             return AccountType.model_validate(result)
         return None

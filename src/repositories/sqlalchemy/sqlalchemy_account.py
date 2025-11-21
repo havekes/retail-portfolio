@@ -9,22 +9,22 @@ from src.schemas import Account
 
 
 class SqlAlchemyAccountRepostory(AccountRepository):
-    session: AsyncSession
+    _session: AsyncSession
 
     def __init__(self, session: AsyncSession) -> None:
-        self.session = session
+        self._session = session
 
     async def create_account(self, account: Account) -> Account:
         account_model = AccountModel(**account.model_dump())
-        self.session.add(account_model)
-        await self.session.commit()
+        self._session.add(account_model)
+        await self._session.commit()
         return account
 
-    async def exists_account_by_user_and_external_id(
+    async def exists_by_user_and_external_id(
         self, user_id: UUID, external_id: str
     ) -> bool:
         q = select(AccountModel).where(
             AccountModel.user_id == user_id, AccountModel.external_id == external_id
         )
 
-        return bool(await self.session.scalar(select(q.exists())))
+        return bool(await self._session.scalar(select(q.exists())))

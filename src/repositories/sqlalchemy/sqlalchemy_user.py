@@ -17,6 +17,8 @@ class SqlAlchemyUserRepository(UserRepository):
             select(UserModel).where(UserModel.email == email)
         )
         user_model = result.scalar_one_or_none()
+
         if user_model:
             return User.model_validate(user_model)
+
         return None

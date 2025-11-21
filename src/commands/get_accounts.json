@@ -1,0 +1,1199 @@
+[
+  {
+    "id": "tfsa-o5k5phih",
+    "archivedAt": null,
+    "branch": "TR",
+    "closedAt": null,
+    "createdAt": "2021-10-23T17:57:35.727559Z",
+    "cacheExpiredAt": "2025-03-17T21:20:32.809330Z",
+    "currency": "CAD",
+    "requiredIdentityVerification": "fintracVerification",
+    "unifiedAccountType": "SELF_DIRECTED_TFSA",
+    "supportedCurrencies": ["CAD"],
+    "nickname": null,
+    "status": "open",
+    "accountOwnerConfiguration": null,
+    "accountFeatures": [
+      {
+        "name": "OPTIONS_AUTOSELL",
+        "enabled": true,
+        "__typename": "AccountFeature"
+      },
+      {
+        "name": "OPTIONS_LEVEL_I",
+        "enabled": true,
+        "__typename": "AccountFeature"
+      },
+      {
+        "name": "FULLY_PAID_LENDING",
+        "enabled": true,
+        "__typename": "AccountFeature"
+      }
+    ],
+    "accountOwners": [
+      {
+        "accountId": "tfsa-o5k5phih",
+        "identityId": "identity-S5gG3a1OUs1t7pE8zCR9ETpqTVJ",
+        "accountNickname": null,
+        "clientCanonicalId": "user-9ysmognhfpy",
+        "accountOpeningAgreementsSigned": true,
+        "name": "Greg Havekes",
+        "email": "greg@havek.es",
+        "ownershipType": "primary",
+        "activeInvitation": null,
+        "sentInvitations": [],
+        "__typename": "AccountOwner"
+      }
+    ],
+    "type": "tfsa",
+    "__typename": "Account",
+    "linkedAccount": null,
+    "financials": {
+      "currentCombined": {
+        "id": "tfsa-o5k5phih-CAD",
+        "netLiquidationValue": {
+          "amount": "56639.2988973",
+          "cents": 5663930,
+          "currency": "CAD",
+          "__typename": "Money"
+        },
+        "netDeposits": {
+          "amount": "4225.84397941",
+          "cents": 422584,
+          "currency": "CAD",
+          "__typename": "Money"
+        },
+        "simpleReturns": {
+          "amount": {
+            "amount": "52413.45491789",
+            "cents": 5241345,
+            "currency": "CAD",
+            "__typename": "Money"
+          },
+          "asOf": null,
+          "rate": "12.403074",
+          "referenceDate": "1970-01-01",
+          "__typename": "SimpleReturns"
+        },
+        "totalDeposits": {
+          "amount": "59915.48206804",
+          "cents": 5991548,
+          "currency": "CAD",
+          "__typename": "Money"
+        },
+        "totalWithdrawals": {
+          "amount": "55689.63808863",
+          "cents": 5568964,
+          "currency": "CAD",
+          "__typename": "Money"
+        },
+        "__typename": "AccountCurrentFinancials"
+      },
+      "__typename": "AccountFinancials"
+    },
+    "custodianAccounts": [
+      {
+        "id": "HQ2MKC6K7CAD",
+        "branch": "TR",
+        "custodian": "so",
+        "status": "open",
+        "updatedAt": "2024-06-16T22:51:02.631492Z",
+        "__typename": "CustodianAccount",
+        "financials": {
+          "current": {
+            "deposits": {
+              "amount": "59915.48206804",
+              "cents": 5991548,
+              "currency": "CAD",
+              "__typename": "Money"
+            },
+            "earnings": {
+              "amount": "52413.45491789",
+              "cents": 5241345,
+              "currency": "CAD",
+              "__typename": "Money"
+            },
+            "netDeposits": {
+              "amount": "4225.84397941",
+              "cents": 422584,
+              "currency": "CAD",
+              "__typename": "Money"
+            },
+            "netLiquidationValue": {
+              "amount": "56639.2988973",
+              "cents": 5663930,
+              "currency": "CAD",
+              "__typename": "Money"
+            },
+            "withdrawals": {
+              "amount": "55689.63808863",
+              "cents": 5568964,
+              "currency": "CAD",
+              "__typename": "Money"
+            },
+            "__typename": "CustodianAccountCurrentFinancialValues"
+          },
+          "__typename": "CustodianAccountFinancialsSo"
+        }
+      }
+    ],
+    "number": "HQ2MKC6K7CAD",
+    "description": "TFSA: self-directed - CAD"
+  },
+  {
+    "id": "rrsp-j22jgzko",
+    "archivedAt": null,
+    "branch": "TR",
+    "closedAt": null,
+    "createdAt": "2022-01-18T23:39:39.249233Z",
+    "cacheExpiredAt": "2025-07-23T16:27:54.039054Z",
+    "currency": "CAD",
+    "requiredIdentityVerification": "fintracVerification",
+    "unifiedAccountType": "SELF_DIRECTED_RRSP",
+    "supportedCurrencies": ["CAD"],
+    "nickname": null,
+    "status": "open",
+    "accountOwnerConfiguration": null,
+    "accountFeatures": [
+      {
+        "name": "OPTIONS_LEVEL_I",
+        "enabled": true,
+        "__typename": "AccountFeature"
+      },
+      {
+        "name": "OPTIONS_AUTOSELL",
+        "enabled": true,
+        "__typename": "AccountFeature"
+      },
+      {
+        "name": "FULLY_PAID_LENDING",
+        "enabled": true,
+        "__typename": "AccountFeature"
+      }
+    ],
+    "accountOwners": [
+      {
+        "accountId": "rrsp-j22jgzko",
+        "identityId": "identity-S5gG3a1OUs1t7pE8zCR9ETpqTVJ",
+        "accountNickname": null,
+        "clientCanonicalId": "user-9ysmognhfpy",
+        "accountOpeningAgreementsSigned": true,
+        "name": "Greg Havekes",
+        "email": "greg@havek.es",
+        "ownershipType": "primary",
+        "activeInvitation": null,
+        "sentInvitations": [],
+        "__typename": "AccountOwner"
+      }
+    ],
+    "type": "rrsp",
+    "__typename": "Account",
+    "linkedAccount": null,
+    "financials": {
+      "currentCombined": {
+        "id": "rrsp-j22jgzko-CAD",
+        "netLiquidationValue": {
+          "amount": "30568.1447366",
+          "cents": 3056814,
+          "currency": "CAD",
+          "__typename": "Money"
+        },
+        "netDeposits": {
+          "amount": "23028.90927943",
+          "cents": 2302891,
+          "currency": "CAD",
+          "__typename": "Money"
+        },
+        "simpleReturns": {
+          "amount": {
+            "amount": "7539.23545717",
+            "cents": 753924,
+            "currency": "CAD",
+            "__typename": "Money"
+          },
+          "asOf": null,
+          "rate": "0.327381",
+          "referenceDate": "1970-01-01",
+          "__typename": "SimpleReturns"
+        },
+        "totalDeposits": {
+          "amount": "24359.14732231",
+          "cents": 2435915,
+          "currency": "CAD",
+          "__typename": "Money"
+        },
+        "totalWithdrawals": {
+          "amount": "1330.23804288",
+          "cents": 133024,
+          "currency": "CAD",
+          "__typename": "Money"
+        },
+        "__typename": "AccountCurrentFinancials"
+      },
+      "__typename": "AccountFinancials"
+    },
+    "custodianAccounts": [
+      {
+        "id": "HQ3FNJ649CAD",
+        "branch": "TR",
+        "custodian": "so",
+        "status": "open",
+        "updatedAt": "2024-06-17T03:45:04.177367Z",
+        "__typename": "CustodianAccount",
+        "financials": {
+          "current": {
+            "deposits": {
+              "amount": "24359.14732231",
+              "cents": 2435915,
+              "currency": "CAD",
+              "__typename": "Money"
+            },
+            "earnings": {
+              "amount": "7539.23545717",
+              "cents": 753924,
+              "currency": "CAD",
+              "__typename": "Money"
+            },
+            "netDeposits": {
+              "amount": "23028.90927943",
+              "cents": 2302891,
+              "currency": "CAD",
+              "__typename": "Money"
+            },
+            "netLiquidationValue": {
+              "amount": "30568.1447366",
+              "cents": 3056814,
+              "currency": "CAD",
+              "__typename": "Money"
+            },
+            "withdrawals": {
+              "amount": "1330.23804288",
+              "cents": 133024,
+              "currency": "CAD",
+              "__typename": "Money"
+            },
+            "__typename": "CustodianAccountCurrentFinancialValues"
+          },
+          "__typename": "CustodianAccountFinancialsSo"
+        }
+      }
+    ],
+    "number": "HQ3FNJ649CAD",
+    "description": "RRSP: self-directed - CAD"
+  },
+  {
+    "id": "ca-cash-Okvbp34Z-g",
+    "archivedAt": "2023-03-16T21:16:48.414450Z",
+    "branch": "WS",
+    "closedAt": null,
+    "createdAt": "2023-02-21T16:00:56.083606Z",
+    "cacheExpiredAt": "2024-06-20T00:29:49.641801Z",
+    "currency": "CAD",
+    "requiredIdentityVerification": "fintracVerification",
+    "unifiedAccountType": "MANAGED_SAVE",
+    "supportedCurrencies": ["CAD"],
+    "nickname": null,
+    "status": "open",
+    "accountOwnerConfiguration": null,
+    "accountFeatures": [],
+    "accountOwners": [
+      {
+        "accountId": "ca-cash-Okvbp34Z-g",
+        "identityId": "identity-S5gG3a1OUs1t7pE8zCR9ETpqTVJ",
+        "accountNickname": null,
+        "clientCanonicalId": "user-7ztvykvjrt3",
+        "accountOpeningAgreementsSigned": false,
+        "name": "Greg Havekes",
+        "email": "greg@havek.es",
+        "ownershipType": "primary",
+        "activeInvitation": null,
+        "sentInvitations": [],
+        "__typename": "AccountOwner"
+      }
+    ],
+    "type": "ca_cash",
+    "__typename": "Account",
+    "linkedAccount": null,
+    "financials": {
+      "currentCombined": {
+        "id": "ca-cash-Okvbp34Z-g-CAD",
+        "netLiquidationValue": {
+          "amount": "0",
+          "cents": 0,
+          "currency": "CAD",
+          "__typename": "Money"
+        },
+        "netDeposits": {
+          "amount": "0",
+          "cents": 0,
+          "currency": "CAD",
+          "__typename": "Money"
+        },
+        "simpleReturns": {
+          "amount": {
+            "amount": "0",
+            "cents": 0,
+            "currency": "CAD",
+            "__typename": "Money"
+          },
+          "asOf": null,
+          "rate": "0",
+          "referenceDate": "1970-01-01",
+          "__typename": "SimpleReturns"
+        },
+        "totalDeposits": {
+          "amount": "0",
+          "cents": 0,
+          "currency": "CAD",
+          "__typename": "Money"
+        },
+        "totalWithdrawals": {
+          "amount": "0",
+          "cents": 0,
+          "currency": "CAD",
+          "__typename": "Money"
+        },
+        "__typename": "AccountCurrentFinancials"
+      },
+      "__typename": "AccountFinancials"
+    },
+    "custodianAccounts": [
+      {
+        "id": "WK1HNN107CAD",
+        "branch": "WS",
+        "custodian": "so",
+        "status": "pending",
+        "updatedAt": "2024-06-20T00:29:49.634911Z",
+        "__typename": "CustodianAccount",
+        "financials": {
+          "current": {
+            "deposits": {
+              "amount": "0",
+              "cents": 0,
+              "currency": "CAD",
+              "__typename": "Money"
+            },
+            "earnings": {
+              "amount": "0",
+              "cents": 0,
+              "currency": "CAD",
+              "__typename": "Money"
+            },
+            "netDeposits": {
+              "amount": "0",
+              "cents": 0,
+              "currency": "CAD",
+              "__typename": "Money"
+            },
+            "netLiquidationValue": {
+              "amount": "0",
+              "cents": 0,
+              "currency": "CAD",
+              "__typename": "Money"
+            },
+            "withdrawals": {
+              "amount": "0",
+              "cents": 0,
+              "currency": "CAD",
+              "__typename": "Money"
+            },
+            "__typename": "CustodianAccountCurrentFinancialValues"
+          },
+          "__typename": "CustodianAccountFinancialsSo"
+        }
+      }
+    ],
+    "number": "ca-cash-Okvbp34Z-g",
+    "description": "MANAGED_SAVE"
+  },
+  {
+    "id": "non-registered-KMUtNE9kjw",
+    "archivedAt": "2023-03-16T21:21:33.547504Z",
+    "branch": "TR",
+    "closedAt": null,
+    "createdAt": "2023-03-16T21:17:27.346538Z",
+    "cacheExpiredAt": "2025-03-17T21:20:33.653137Z",
+    "currency": "CAD",
+    "requiredIdentityVerification": "fintracVerification",
+    "unifiedAccountType": "SELF_DIRECTED_NON_REGISTERED",
+    "supportedCurrencies": ["CAD"],
+    "nickname": null,
+    "status": "open",
+    "accountOwnerConfiguration": null,
+    "accountFeatures": [
+      {
+        "name": "OPTIONS_LEVEL_I",
+        "enabled": true,
+        "__typename": "AccountFeature"
+      },
+      {
+        "name": "FULLY_PAID_LENDING",
+        "enabled": true,
+        "__typename": "AccountFeature"
+      },
+      {
+        "name": "OPTIONS_AUTOSELL",
+        "enabled": true,
+        "__typename": "AccountFeature"
+      }
+    ],
+    "accountOwners": [
+      {
+        "accountId": "non-registered-KMUtNE9kjw",
+        "identityId": "identity-S5gG3a1OUs1t7pE8zCR9ETpqTVJ",
+        "accountNickname": null,
+        "clientCanonicalId": "user-9ysmognhfpy",
+        "accountOpeningAgreementsSigned": false,
+        "name": "Greg Havekes",
+        "email": "greg@havek.es",
+        "ownershipType": "primary",
+        "activeInvitation": null,
+        "sentInvitations": [],
+        "__typename": "AccountOwner"
+      }
+    ],
+    "type": "non_registered",
+    "__typename": "Account",
+    "linkedAccount": null,
+    "financials": {
+      "currentCombined": {
+        "id": "non-registered-KMUtNE9kjw-CAD",
+        "netLiquidationValue": {
+          "amount": "0",
+          "cents": 0,
+          "currency": "CAD",
+          "__typename": "Money"
+        },
+        "netDeposits": {
+          "amount": "0",
+          "cents": 0,
+          "currency": "CAD",
+          "__typename": "Money"
+        },
+        "simpleReturns": {
+          "amount": {
+            "amount": "0",
+            "cents": 0,
+            "currency": "CAD",
+            "__typename": "Money"
+          },
+          "asOf": null,
+          "rate": "0",
+          "referenceDate": "1970-01-01",
+          "__typename": "SimpleReturns"
+        },
+        "totalDeposits": {
+          "amount": "0",
+          "cents": 0,
+          "currency": "CAD",
+          "__typename": "Money"
+        },
+        "totalWithdrawals": {
+          "amount": "0",
+          "cents": 0,
+          "currency": "CAD",
+          "__typename": "Money"
+        },
+        "__typename": "AccountCurrentFinancials"
+      },
+      "__typename": "AccountFinancials"
+    },
+    "custodianAccounts": [
+      {
+        "id": "HQ4TH9T00CAD",
+        "branch": "TR",
+        "custodian": "so",
+        "status": "pending",
+        "updatedAt": "2024-06-17T19:56:03.878038Z",
+        "__typename": "CustodianAccount",
+        "financials": {
+          "current": {
+            "deposits": {
+              "amount": "0",
+              "cents": 0,
+              "currency": "CAD",
+              "__typename": "Money"
+            },
+            "earnings": {
+              "amount": "0",
+              "cents": 0,
+              "currency": "CAD",
+              "__typename": "Money"
+            },
+            "netDeposits": {
+              "amount": "0",
+              "cents": 0,
+              "currency": "CAD",
+              "__typename": "Money"
+            },
+            "netLiquidationValue": {
+              "amount": "0",
+              "cents": 0,
+              "currency": "CAD",
+              "__typename": "Money"
+            },
+            "withdrawals": {
+              "amount": "0",
+              "cents": 0,
+              "currency": "CAD",
+              "__typename": "Money"
+            },
+            "__typename": "CustodianAccountCurrentFinancialValues"
+          },
+          "__typename": "CustodianAccountFinancialsSo"
+        }
+      }
+    ],
+    "number": "non-registered-KMUtNE9kjw",
+    "description": "Non-registered: self-directed"
+  },
+  {
+    "id": "ca-cash-msb-3yQmNlZedw",
+    "archivedAt": null,
+    "branch": "WS",
+    "closedAt": null,
+    "createdAt": "2023-08-08T14:06:54.826534Z",
+    "cacheExpiredAt": "2024-10-24T15:37:21.350300Z",
+    "currency": "CAD",
+    "requiredIdentityVerification": "fintracVerification",
+    "unifiedAccountType": "CASH",
+    "supportedCurrencies": ["CAD"],
+    "nickname": null,
+    "status": "open",
+    "accountOwnerConfiguration": null,
+    "accountFeatures": [
+      { "name": "SPEND", "enabled": false, "__typename": "AccountFeature" },
+      { "name": "WALLET", "enabled": true, "__typename": "AccountFeature" }
+    ],
+    "accountOwners": [
+      {
+        "accountId": "ca-cash-msb-3yQmNlZedw",
+        "identityId": "identity-S5gG3a1OUs1t7pE8zCR9ETpqTVJ",
+        "accountNickname": null,
+        "clientCanonicalId": "user-7ztvykvjrt3",
+        "accountOpeningAgreementsSigned": true,
+        "name": "Greg Havekes",
+        "email": "greg@havek.es",
+        "ownershipType": "primary",
+        "activeInvitation": null,
+        "sentInvitations": [],
+        "__typename": "AccountOwner"
+      }
+    ],
+    "type": "ca_cash_msb",
+    "__typename": "Account",
+    "linkedAccount": null,
+    "financials": {
+      "currentCombined": {
+        "id": "ca-cash-msb-3yQmNlZedw-CAD",
+        "netLiquidationValue": {
+          "amount": "0",
+          "cents": 0,
+          "currency": "CAD",
+          "__typename": "Money"
+        },
+        "netDeposits": {
+          "amount": "-1.28",
+          "cents": -128,
+          "currency": "CAD",
+          "__typename": "Money"
+        },
+        "simpleReturns": {
+          "amount": {
+            "amount": "1.28",
+            "cents": 128,
+            "currency": "CAD",
+            "__typename": "Money"
+          },
+          "asOf": null,
+          "rate": null,
+          "referenceDate": "1970-01-01",
+          "__typename": "SimpleReturns"
+        },
+        "totalDeposits": {
+          "amount": "60365.33",
+          "cents": 6036533,
+          "currency": "CAD",
+          "__typename": "Money"
+        },
+        "totalWithdrawals": {
+          "amount": "60366.61",
+          "cents": 6036661,
+          "currency": "CAD",
+          "__typename": "Money"
+        },
+        "__typename": "AccountCurrentFinancials"
+      },
+      "__typename": "AccountFinancials"
+    },
+    "custodianAccounts": [
+      {
+        "id": "WK1Y82632CAD",
+        "branch": "WS",
+        "custodian": "so",
+        "status": "open",
+        "updatedAt": "2024-06-20T03:06:50.697045Z",
+        "__typename": "CustodianAccount",
+        "financials": {
+          "current": {
+            "deposits": {
+              "amount": "60365.33",
+              "cents": 6036533,
+              "currency": "CAD",
+              "__typename": "Money"
+            },
+            "earnings": {
+              "amount": "1.28",
+              "cents": 128,
+              "currency": "CAD",
+              "__typename": "Money"
+            },
+            "netDeposits": {
+              "amount": "-1.28",
+              "cents": -128,
+              "currency": "CAD",
+              "__typename": "Money"
+            },
+            "netLiquidationValue": {
+              "amount": "0",
+              "cents": 0,
+              "currency": "CAD",
+              "__typename": "Money"
+            },
+            "withdrawals": {
+              "amount": "60366.61",
+              "cents": 6036661,
+              "currency": "CAD",
+              "__typename": "Money"
+            },
+            "__typename": "CustodianAccountCurrentFinancialValues"
+          },
+          "__typename": "CustodianAccountFinancialsSo"
+        }
+      },
+      {
+        "id": "C112HRH21CAD",
+        "branch": "CH",
+        "custodian": "so",
+        "status": "open",
+        "updatedAt": "2024-06-14T04:06:07.517424Z",
+        "__typename": "CustodianAccount",
+        "financials": {
+          "current": {
+            "deposits": {
+              "amount": "0",
+              "cents": 0,
+              "currency": "CAD",
+              "__typename": "Money"
+            },
+            "earnings": {
+              "amount": "0",
+              "cents": 0,
+              "currency": "CAD",
+              "__typename": "Money"
+            },
+            "netDeposits": {
+              "amount": "0",
+              "cents": 0,
+              "currency": "CAD",
+              "__typename": "Money"
+            },
+            "netLiquidationValue": {
+              "amount": "0",
+              "cents": 0,
+              "currency": "CAD",
+              "__typename": "Money"
+            },
+            "withdrawals": {
+              "amount": "0",
+              "cents": 0,
+              "currency": "CAD",
+              "__typename": "Money"
+            },
+            "__typename": "CustodianAccountCurrentFinancialValues"
+          },
+          "__typename": "CustodianAccountFinancialsSo"
+        }
+      }
+    ],
+    "number": "WK1Y82632CAD",
+    "description": "Cash"
+  },
+  {
+    "id": "fhsa--EXSZy_OVQ",
+    "archivedAt": null,
+    "branch": "TR",
+    "closedAt": null,
+    "createdAt": "2024-02-28T18:51:18.156055Z",
+    "cacheExpiredAt": "2025-07-23T16:27:54.929156Z",
+    "currency": "CAD",
+    "requiredIdentityVerification": "fintracVerification",
+    "unifiedAccountType": "SELF_DIRECTED_FHSA",
+    "supportedCurrencies": ["CAD"],
+    "nickname": null,
+    "status": "open",
+    "accountOwnerConfiguration": null,
+    "accountFeatures": [
+      {
+        "name": "OPTIONS_AUTOSELL",
+        "enabled": true,
+        "__typename": "AccountFeature"
+      },
+      {
+        "name": "OPTIONS_LEVEL_I",
+        "enabled": true,
+        "__typename": "AccountFeature"
+      },
+      {
+        "name": "FULLY_PAID_LENDING",
+        "enabled": true,
+        "__typename": "AccountFeature"
+      }
+    ],
+    "accountOwners": [
+      {
+        "accountId": "fhsa--EXSZy_OVQ",
+        "identityId": "identity-S5gG3a1OUs1t7pE8zCR9ETpqTVJ",
+        "accountNickname": null,
+        "clientCanonicalId": "user-9ysmognhfpy",
+        "accountOpeningAgreementsSigned": true,
+        "name": "Greg Havekes",
+        "email": "greg@havek.es",
+        "ownershipType": "primary",
+        "activeInvitation": null,
+        "sentInvitations": [],
+        "__typename": "AccountOwner"
+      }
+    ],
+    "type": "fhsa",
+    "__typename": "Account",
+    "linkedAccount": null,
+    "financials": {
+      "currentCombined": {
+        "id": "fhsa--EXSZy_OVQ-CAD",
+        "netLiquidationValue": {
+          "amount": "9272.6628396",
+          "cents": 927266,
+          "currency": "CAD",
+          "__typename": "Money"
+        },
+        "netDeposits": {
+          "amount": "13600",
+          "cents": 1360000,
+          "currency": "CAD",
+          "__typename": "Money"
+        },
+        "simpleReturns": {
+          "amount": {
+            "amount": "-4327.3371604",
+            "cents": -432734,
+            "currency": "CAD",
+            "__typename": "Money"
+          },
+          "asOf": null,
+          "rate": "-0.318187",
+          "referenceDate": "1970-01-01",
+          "__typename": "SimpleReturns"
+        },
+        "totalDeposits": {
+          "amount": "13600",
+          "cents": 1360000,
+          "currency": "CAD",
+          "__typename": "Money"
+        },
+        "totalWithdrawals": {
+          "amount": "0",
+          "cents": 0,
+          "currency": "CAD",
+          "__typename": "Money"
+        },
+        "__typename": "AccountCurrentFinancials"
+      },
+      "__typename": "AccountFinancials"
+    },
+    "custodianAccounts": [
+      {
+        "id": "HQ5VQW962CAD",
+        "branch": "TR",
+        "custodian": "so",
+        "status": "open",
+        "updatedAt": "2024-06-18T04:02:33.513904Z",
+        "__typename": "CustodianAccount",
+        "financials": {
+          "current": {
+            "deposits": {
+              "amount": "13600",
+              "cents": 1360000,
+              "currency": "CAD",
+              "__typename": "Money"
+            },
+            "earnings": {
+              "amount": "-4327.3371604",
+              "cents": -432734,
+              "currency": "CAD",
+              "__typename": "Money"
+            },
+            "netDeposits": {
+              "amount": "13600",
+              "cents": 1360000,
+              "currency": "CAD",
+              "__typename": "Money"
+            },
+            "netLiquidationValue": {
+              "amount": "9272.6628396",
+              "cents": 927266,
+              "currency": "CAD",
+              "__typename": "Money"
+            },
+            "withdrawals": {
+              "amount": "0",
+              "cents": 0,
+              "currency": "CAD",
+              "__typename": "Money"
+            },
+            "__typename": "CustodianAccountCurrentFinancialValues"
+          },
+          "__typename": "CustodianAccountFinancialsSo"
+        }
+      }
+    ],
+    "number": "HQ5VQW962CAD",
+    "description": "SELF_DIRECTED_FHSA"
+  },
+  {
+    "id": "ca-cash-msb-Tmet8apE6A",
+    "archivedAt": null,
+    "branch": "WS",
+    "closedAt": null,
+    "createdAt": "2024-05-13T18:53:55.994292Z",
+    "cacheExpiredAt": "2025-07-02T22:09:12.380635Z",
+    "currency": "CAD",
+    "requiredIdentityVerification": "fintracVerification",
+    "unifiedAccountType": "CASH",
+    "supportedCurrencies": ["CAD"],
+    "nickname": "Joint",
+    "status": "open",
+    "accountOwnerConfiguration": "MULTI_OWNER",
+    "accountFeatures": [
+      { "name": "SPEND", "enabled": true, "__typename": "AccountFeature" },
+      { "name": "WALLET", "enabled": true, "__typename": "AccountFeature" }
+    ],
+    "accountOwners": [
+      {
+        "accountId": "ca-cash-msb-Tmet8apE6A",
+        "identityId": "identity-uPzUMmlDKp0ngxuourt82f6mElp",
+        "accountNickname": "\ud83c\udf31 Avenir ensemble",
+        "clientCanonicalId": "user-erqbkaofasb",
+        "accountOpeningAgreementsSigned": true,
+        "name": "Sophie Villemaire",
+        "email": "sophievillemaire@icloud.com",
+        "ownershipType": "secondary",
+        "activeInvitation": {
+          "id": "account_owner_invitation-ziha2vr5oxy7tg",
+          "createdAt": "2024-05-13T18:54:45.385454Z",
+          "inviteeName": "Sophie Villemaire",
+          "inviteeEmail": "sophievillemaire31@gmail.com",
+          "inviterName": "Greg Havekes",
+          "inviterEmail": "greg@havek.es",
+          "updatedAt": "2024-05-13T18:57:38.970141Z",
+          "sentAt": "2024-05-13T18:54:46.286688Z",
+          "status": "ACCEPTED",
+          "__typename": "AccountOwnerInvitation"
+        },
+        "sentInvitations": [],
+        "__typename": "AccountOwner"
+      },
+      {
+        "accountId": "ca-cash-msb-Tmet8apE6A",
+        "identityId": "identity-S5gG3a1OUs1t7pE8zCR9ETpqTVJ",
+        "accountNickname": "Joint",
+        "clientCanonicalId": "user-7ztvykvjrt3",
+        "accountOpeningAgreementsSigned": true,
+        "name": "Greg Havekes",
+        "email": "greg@havek.es",
+        "ownershipType": "primary",
+        "activeInvitation": null,
+        "sentInvitations": [
+          {
+            "id": "account_owner_invitation-ziha2vr5oxy7tg",
+            "createdAt": "2024-05-13T18:54:45.385454Z",
+            "inviteeName": "Sophie Villemaire",
+            "inviteeEmail": "sophievillemaire31@gmail.com",
+            "inviterName": "Greg Havekes",
+            "inviterEmail": "greg@havek.es",
+            "updatedAt": "2024-05-13T18:57:38.970141Z",
+            "sentAt": "2024-05-13T18:54:46.286688Z",
+            "status": "ACCEPTED",
+            "__typename": "AccountOwnerInvitation"
+          }
+        ],
+        "__typename": "AccountOwner"
+      }
+    ],
+    "type": "ca_cash_msb",
+    "__typename": "Account",
+    "linkedAccount": null,
+    "financials": {
+      "currentCombined": {
+        "id": "ca-cash-msb-Tmet8apE6A-CAD",
+        "netLiquidationValue": {
+          "amount": "3394.91",
+          "cents": 339491,
+          "currency": "CAD",
+          "__typename": "Money"
+        },
+        "netDeposits": {
+          "amount": "3171.16",
+          "cents": 317116,
+          "currency": "CAD",
+          "__typename": "Money"
+        },
+        "simpleReturns": {
+          "amount": {
+            "amount": "223.75",
+            "cents": 22375,
+            "currency": "CAD",
+            "__typename": "Money"
+          },
+          "asOf": null,
+          "rate": "0.070558",
+          "referenceDate": "1970-01-01",
+          "__typename": "SimpleReturns"
+        },
+        "totalDeposits": {
+          "amount": "222458.13",
+          "cents": 22245813,
+          "currency": "CAD",
+          "__typename": "Money"
+        },
+        "totalWithdrawals": {
+          "amount": "219286.97",
+          "cents": 21928697,
+          "currency": "CAD",
+          "__typename": "Money"
+        },
+        "__typename": "AccountCurrentFinancials"
+      },
+      "__typename": "AccountFinancials"
+    },
+    "custodianAccounts": [
+      {
+        "id": "WK2YRZ439CAD",
+        "branch": "WS",
+        "custodian": "so",
+        "status": "open",
+        "updatedAt": "2024-06-20T17:42:09.910974Z",
+        "__typename": "CustodianAccount",
+        "financials": {
+          "current": {
+            "deposits": {
+              "amount": "222458.13",
+              "cents": 22245813,
+              "currency": "CAD",
+              "__typename": "Money"
+            },
+            "earnings": {
+              "amount": "223.75",
+              "cents": 22375,
+              "currency": "CAD",
+              "__typename": "Money"
+            },
+            "netDeposits": {
+              "amount": "3171.16",
+              "cents": 317116,
+              "currency": "CAD",
+              "__typename": "Money"
+            },
+            "netLiquidationValue": {
+              "amount": "3394.91",
+              "cents": 339491,
+              "currency": "CAD",
+              "__typename": "Money"
+            },
+            "withdrawals": {
+              "amount": "219286.97",
+              "cents": 21928697,
+              "currency": "CAD",
+              "__typename": "Money"
+            },
+            "__typename": "CustodianAccountCurrentFinancialValues"
+          },
+          "__typename": "CustodianAccountFinancialsSo"
+        }
+      },
+      {
+        "id": "C11K94H21CAD",
+        "branch": "CH",
+        "custodian": "so",
+        "status": "open",
+        "updatedAt": "2024-06-14T08:50:42.131236Z",
+        "__typename": "CustodianAccount",
+        "financials": {
+          "current": {
+            "deposits": {
+              "amount": "0",
+              "cents": 0,
+              "currency": "CAD",
+              "__typename": "Money"
+            },
+            "earnings": {
+              "amount": "0",
+              "cents": 0,
+              "currency": "CAD",
+              "__typename": "Money"
+            },
+            "netDeposits": {
+              "amount": "0",
+              "cents": 0,
+              "currency": "CAD",
+              "__typename": "Money"
+            },
+            "netLiquidationValue": {
+              "amount": "0",
+              "cents": 0,
+              "currency": "CAD",
+              "__typename": "Money"
+            },
+            "withdrawals": {
+              "amount": "0",
+              "cents": 0,
+              "currency": "CAD",
+              "__typename": "Money"
+            },
+            "__typename": "CustodianAccountCurrentFinancialValues"
+          },
+          "__typename": "CustodianAccountFinancialsSo"
+        }
+      }
+    ],
+    "number": "WK2YRZ439CAD",
+    "description": "Joint"
+  },
+  {
+    "id": "ca-credit-card-SPGWMCpJag",
+    "archivedAt": null,
+    "branch": "WS",
+    "closedAt": null,
+    "createdAt": "2025-07-23T14:21:05.150788Z",
+    "cacheExpiredAt": "2025-07-23T14:25:50.003700Z",
+    "currency": "CAD",
+    "requiredIdentityVerification": "comprehensiveVerification",
+    "unifiedAccountType": "CREDIT_CARD",
+    "supportedCurrencies": ["CAD"],
+    "nickname": null,
+    "status": "open",
+    "accountOwnerConfiguration": null,
+    "accountFeatures": [
+      { "name": "CREDIT", "enabled": true, "__typename": "AccountFeature" }
+    ],
+    "accountOwners": [
+      {
+        "accountId": "ca-credit-card-SPGWMCpJag",
+        "identityId": "identity-S5gG3a1OUs1t7pE8zCR9ETpqTVJ",
+        "accountNickname": null,
+        "clientCanonicalId": "user-7ztvykvjrt3",
+        "accountOpeningAgreementsSigned": false,
+        "name": "Greg Havekes",
+        "email": "greg@havek.es",
+        "ownershipType": "primary",
+        "activeInvitation": null,
+        "sentInvitations": [],
+        "__typename": "AccountOwner"
+      }
+    ],
+    "type": "ca_credit_card",
+    "__typename": "Account",
+    "linkedAccount": null,
+    "financials": {
+      "currentCombined": {
+        "id": "ca-credit-card-SPGWMCpJag-CAD",
+        "netLiquidationValue": {
+          "amount": "0",
+          "cents": 0,
+          "currency": "CAD",
+          "__typename": "Money"
+        },
+        "netDeposits": {
+          "amount": "0",
+          "cents": 0,
+          "currency": "CAD",
+          "__typename": "Money"
+        },
+        "simpleReturns": {
+          "amount": {
+            "amount": "0",
+            "cents": 0,
+            "currency": "CAD",
+            "__typename": "Money"
+          },
+          "asOf": null,
+          "rate": "0",
+          "referenceDate": "1970-01-01",
+          "__typename": "SimpleReturns"
+        },
+        "totalDeposits": {
+          "amount": "0",
+          "cents": 0,
+          "currency": "CAD",
+          "__typename": "Money"
+        },
+        "totalWithdrawals": {
+          "amount": "0",
+          "cents": 0,
+          "currency": "CAD",
+          "__typename": "Money"
+        },
+        "__typename": "AccountCurrentFinancials"
+      },
+      "__typename": "AccountFinancials"
+    },
+    "custodianAccounts": [
+      {
+        "id": "C135JLV50CAD",
+        "branch": "CH",
+        "custodian": "so",
+        "status": "open",
+        "updatedAt": "2025-07-23T14:25:49.982546Z",
+        "__typename": "CustodianAccount",
+        "financials": {
+          "current": {
+            "deposits": {
+              "amount": "0",
+              "cents": 0,
+              "currency": "CAD",
+              "__typename": "Money"
+            },
+            "earnings": {
+              "amount": "0",
+              "cents": 0,
+              "currency": "CAD",
+              "__typename": "Money"
+            },
+            "netDeposits": {
+              "amount": "0",
+              "cents": 0,
+              "currency": "CAD",
+              "__typename": "Money"
+            },
+            "netLiquidationValue": {
+              "amount": "0",
+              "cents": 0,
+              "currency": "CAD",
+              "__typename": "Money"
+            },
+            "withdrawals": {
+              "amount": "0",
+              "cents": 0,
+              "currency": "CAD",
+              "__typename": "Money"
+            },
+            "__typename": "CustodianAccountCurrentFinancialValues"
+          },
+          "__typename": "CustodianAccountFinancialsSo"
+        }
+      }
+    ],
+    "number": "ca-credit-card-SPGWMCpJag",
+    "description": "Credit card"
+  }
+]
