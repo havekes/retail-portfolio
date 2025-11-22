@@ -30,4 +30,4 @@ jobs:
       - name: Run tests
         run: uv run pytest tests/
         env:
-          DATABASE_URL: sqlite+aiosqlite:///:memory:
+          DATABASE_URL: "sqlite+aiosqlite:///:memory:"
