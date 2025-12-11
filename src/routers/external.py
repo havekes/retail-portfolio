@@ -1,11 +1,15 @@
+from uuid import UUID
+
 from fastapi import APIRouter, HTTPException
 from svcs.fastapi import DepContainer
 
 from src.enums import InstitutionEnum
 from src.external import get_external_api_wrapper_class
+from src.repositories.account import AccountRepository
 from src.repositories.external_user import ExternalUserRepository
 from src.schemas.external import (
-    ExternalImportRequest,
+    ExternalImportAccountsRequest,
+    ExternalImportPositionsRequest,
     ExternalImportResponse,
     ExternalLoginRequest,
     ExternalLoginResponse,
@@ -25,11 +29,11 @@ async def get_external_users(
     Get all external users for the given institution.
     """
     institution = InstitutionEnum(institution_id)
-    user_serivce = await services.aget(UserService)
+    user_service = await services.aget(UserService)
     external_user_repository = await services.aget(ExternalUserRepository)
 
     external_users = await external_user_repository.get_by_user_and_institution(
-        user_id=(await user_serivce.get_current_user()).id,
+        user_id=(await user_service.get_current_user()).id,
         institution_id=institution.value,
     )
 
@@ -57,7 +61,7 @@ async def login(
     await external_user_service.get_or_create(
         user=await user_service.get_current_user(),
         institution=institution,
-        external_user_id=login_request.username,
+        username=login_request.username,
     )
 
     success = external_api_wrapper.login(
@@ -69,25 +73,22 @@ async def login(
     return ExternalLoginResponse(login_succes=success)
 
 
-@router.get("/{institution_id}/import/accounts")
+@router.post("/{institution_id}/import-accounts")
 async def import_accounts(
     institution_id: int,
-    import_request: ExternalImportRequest,
+    import_request: ExternalImportAccountsRequest,
     services: DepContainer,
 ) -> ExternalImportResponse:
     """
-    Import accounnts from an external institution.
+    Import accounts from an external institution.
     """
     institution = InstitutionEnum(institution_id)
-    user_service = await services.aget(UserService)
     external_user_repository = await services.aget(ExternalUserRepository)
     external_api_wrapper = await services.aget(
         get_external_api_wrapper_class(institution)
     )
 
-    external_user = await external_user_repository.get_unique(
-        user_id=(await user_service.get_current_user()).id,
-        institution_id=institution.value,
+    external_user = await external_user_repository.get(
         external_user_id=import_request.external_user_id,
     )
 
@@ -99,3 +100,39 @@ async def import_accounts(
     )
 
     return ExternalImportResponse(imported_count=len(imported_accounts))
+
+
+@router.post("/{institution_id}/import-positions")
+async def import_positions(
+    institution_id: int,
+    import_request: ExternalImportPositionsRequest,
+    services: DepContainer,
+) -> ExternalImportResponse:
+    """
+    Import positions from an external institution.
+    """
+    institution = InstitutionEnum(institution_id)
+    account_repository = await services.aget(AccountRepository)
+    external_user_repository = await services.aget(ExternalUserRepository)
+    external_api_wrapper = await services.aget(
+        get_external_api_wrapper_class(institution)
+    )
+
+    external_user = await external_user_repository.get(
+        external_user_id=import_request.external_user_id
+    )
+
+    if not external_user:
+        raise HTTPException(status_code=404, detail="External user not found")
+
+    account = await account_repository.get(import_request.account_id)
+
+    if not account:
+        raise HTTPException(status_code=404, detail="Account not found")
+
+    imported_positions = await external_api_wrapper.import_positions(
+        external_user=external_user,
+        account=account,
+    )
+
+    return ExternalImportResponse(imported_count=len(imported_positions))

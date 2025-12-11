@@ -172,7 +172,7 @@ class WealthsimpleApiWrapper(ExternalAPIWrapper):
         positions = []
 
         for ws_balance in ws_balances:
-            pass
+            print(ws_balance)
 
         return positions
 
