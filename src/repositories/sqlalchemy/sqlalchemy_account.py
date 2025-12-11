@@ -2,6 +2,7 @@ from uuid import UUID
 
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
+from svcs import Container
 
 from src.models.account import Account as AccountModel
 from src.repositories.account import AccountRepository
@@ -28,3 +29,9 @@ class SqlAlchemyAccountRepostory(AccountRepository):
         )
 
         return bool(await self._session.scalar(select(q.exists())))
+
+
+async def sqlalchemy_account_repository_factory(
+    container: Container,
+) -> SqlAlchemyAccountRepostory:
+    return SqlAlchemyAccountRepostory(session=await container.aget(AsyncSession))

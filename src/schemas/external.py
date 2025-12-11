@@ -14,7 +14,7 @@ class ExternalLoginResponse(BaseModel):
 
 
 class ExternalImportRequest(BaseModel):
-    external_user_uuid: UUID
+    external_user_id: str
 
 
 class ExternalImportResponse(BaseModel):
