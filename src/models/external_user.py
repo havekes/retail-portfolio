@@ -22,12 +22,15 @@ class ExternalUser(Base):
 
     __tablename__ = "external_users"
 
-    uuid: Mapped[UUID] = mapped_column(primary_key=True, default=uuid4)
-    user_id: Mapped[UUID] = mapped_column(ForeignKey("users.id"))
-    institution_id: Mapped[int] = mapped_column(ForeignKey("institutions.id"))
-    external_user_id: Mapped[str] = mapped_column(String)
+    user_id: Mapped[UUID] = mapped_column(ForeignKey("users.id"), primary_key=True)
+    institution_id: Mapped[int] = mapped_column(
+        ForeignKey("institutions.id"), primary_key=True
+    )
+    external_user_id: Mapped[str] = mapped_column(String, primary_key=True)
 
-    __table_args__ = (UniqueConstraint("user_id", "institution_id"),)
+    __table_args__ = (
+        UniqueConstraint("user_id", "institution_id", "external_user_id"),
+    )
 
     # Relationships
     user: Mapped[User] = relationship("User", back_populates="external_users")

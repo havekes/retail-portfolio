@@ -1,6 +1,8 @@
+from collections.abc import AsyncGenerator
 from uuid import UUID
 
 import keyring
+from svcs import Container
 from ws_api import WealthsimpleAPI
 from ws_api.exceptions import (
     LoginFailedException,
@@ -13,13 +15,15 @@ from src.enums import AccountTypeEnum, InstitutionEnum
 from src.external.api_wrapper import ExternalAPIWrapper
 from src.external.exceptions import (
     AccountTypeUnkownError,
-    IncorrectAccountError,
     LoginFailedError,
     OTPRequiredError,
     SessionDoesNotExistError,
     SessionExpiredError,
     UnknownError,
 )
+from src.repositories.account import AccountRepository
+from src.repositories.account_type import AccountTypeRepository
+from src.repositories.position import PositionRepository
 from src.schemas import Account, AccountType, FullExternalUser, Position
 
 
@@ -102,7 +106,7 @@ class WealthsimpleApiWrapper(ExternalAPIWrapper):
             # Attempt to get cached session
             self._get_session(username)
             # Test if session is still valid
-            self._client.get_accounts()
+            self._get_client(username).get_accounts()
         except SessionDoesNotExistError:
             try:
                 if password is None:
@@ -158,3 +162,26 @@ class WealthsimpleApiWrapper(ExternalAPIWrapper):
             )
 
         return created_accounts
+
+    async def import_positions(
+        self, external_user: FullExternalUser, account: Account
+    ) -> list[Position]:
+        ws_client = self._get_client(external_user.external_user_id)
+        ws_balances = ws_client.get_account_balances(account.external_id)
+
+        positions = []
+
+        for ws_balance in ws_balances:
+            pass
+
+        return positions
+
+
+async def wealthsimple_api_wrapper_factory(
+    container: Container,
+) -> AsyncGenerator[WealthsimpleApiWrapper]:
+    yield WealthsimpleApiWrapper(
+        account_repository=await container.aget(AccountRepository),
+        account_type_repository=await container.aget(AccountTypeRepository),
+        position_repository=await container.aget(PositionRepository),
+    )

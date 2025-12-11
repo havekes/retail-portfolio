@@ -1,4 +1,5 @@
 from sqlalchemy.ext.asyncio import AsyncSession
+from svcs import Container
 
 from src.models.account_type import AccountType as AccountTypeModel
 from src.repositories.account_type import AccountTypeRepository
@@ -16,3 +17,9 @@ class SqlAlchemyAccountTypeRepository(AccountTypeRepository):
         if result:
             return AccountType.model_validate(result)
         return None
+
+
+async def sqlalchemy_account_type_repository_factory(
+    container: Container,
+) -> SqlAlchemyAccountTypeRepository:
+    return SqlAlchemyAccountTypeRepository(session=await container.aget(AsyncSession))

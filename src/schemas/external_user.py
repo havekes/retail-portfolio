@@ -7,7 +7,6 @@ from ws_api.wealthsimple_api import uuid
 class FullExternalUser(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
-    uuid: UUID
     user_id: UUID
     institution_id: int
     external_user_id: str
@@ -16,6 +15,5 @@ class FullExternalUser(BaseModel):
 class PublicExternalUserRead(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
-    uuid: UUID
     user_id: UUID
     institution_id: int

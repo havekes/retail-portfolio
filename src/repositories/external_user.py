@@ -16,9 +16,13 @@ class ExternalUserRepository(ABC):
         pass
 
     @abstractmethod
-    async def get(self, uuid: UUID) -> FullExternalUser | None:
+    async def get_unique(
+        self, user_id: UUID, institution_id: int, external_user_id: str
+    ) -> FullExternalUser | None:
         pass
 
     @abstractmethod
-    async def exists(self, user_id: UUID, institution_id: int, username: str) -> bool:
+    async def exists(
+        self, user_id: UUID, institution_id: int, external_user_id: str
+    ) -> bool:
         pass

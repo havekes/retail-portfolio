@@ -1,22 +1,16 @@
 from fastapi import APIRouter, HTTPException
-from sqlalchemy import select
-from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy.orm import joinedload
 from svcs.fastapi import DepContainer
 
-from src.dependencies.core import DBSessionDep
 from src.enums import InstitutionEnum
 from src.external import get_external_api_wrapper_class
-from src.models.user import User as UserModel
 from src.repositories.external_user import ExternalUserRepository
-from src.schemas import User
 from src.schemas.external import (
     ExternalImportRequest,
     ExternalImportResponse,
     ExternalLoginRequest,
     ExternalLoginResponse,
 )
-from src.schemas.external_user import FullExternalUser, PublicExternalUserRead
+from src.schemas.external_user import PublicExternalUserRead
 from src.services.external_user import ExternalUserService
 from src.services.user import UserService
 
@@ -31,8 +25,8 @@ async def get_external_users(
     Get all external users for the given institution.
     """
     institution = InstitutionEnum(institution_id)
-    user_serivce = services.get(UserService)
-    external_user_repository = services.get(ExternalUserRepository)
+    user_serivce = await services.aget(UserService)
+    external_user_repository = await services.aget(ExternalUserRepository)
 
     external_users = await external_user_repository.get_by_user_and_institution(
         user_id=(await user_serivce.get_current_user()).id,
@@ -54,12 +48,14 @@ async def login(
     Will create or reuse an ExternalAccount record.
     """
     institution = InstitutionEnum(institution_id)
-    user_serivce = services.get(UserService)
-    external_user_service = services.get(ExternalUserService)
-    external_api_wrapper = services.get(get_external_api_wrapper_class(institution))
+    external_user_service = await services.aget(ExternalUserService)
+    external_api_wrapper = await services.aget(
+        get_external_api_wrapper_class(institution)
+    )
+    user_service = await services.aget(UserService)
 
     await external_user_service.get_or_create(
-        user=await user_serivce.get_current_user(),
+        user=await user_service.get_current_user(),
         institution=institution,
         external_user_id=login_request.username,
     )
@@ -83,11 +79,16 @@ async def import_accounts(
     Import accounnts from an external institution.
     """
     institution = InstitutionEnum(institution_id)
-    external_user_repository = services.get(ExternalUserRepository)
-    external_api_wrapper = services.get(get_external_api_wrapper_class(institution))
+    user_service = await services.aget(UserService)
+    external_user_repository = await services.aget(ExternalUserRepository)
+    external_api_wrapper = await services.aget(
+        get_external_api_wrapper_class(institution)
+    )
 
-    external_user = await external_user_repository.get(
-        uuid=import_request.external_user_uuid
+    external_user = await external_user_repository.get_unique(
+        user_id=(await user_service.get_current_user()).id,
+        institution_id=institution.value,
+        external_user_id=import_request.external_user_id,
     )
 
     if not external_user:

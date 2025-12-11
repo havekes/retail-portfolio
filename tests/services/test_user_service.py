@@ -80,7 +80,7 @@ async def test_get_current_user_external_account_ids():
     mock_user_repo.get_by_email = AsyncMock(return_value=user)
     mock_external_repo.get_by_user_and_institution = AsyncMock(return_value=accounts)
     service = UserService(mock_user_repo)
-    service.external_account_repository = mock_external_repo
+    service.external_user_repository = mock_external_repo
 
     institution = InstitutionEnum.WEALTHSIMPLE
     # Act
@@ -112,7 +112,7 @@ async def test_get_current_user_external_account_ids_no_accounts():
     mock_user_repo.get_by_email = AsyncMock(return_value=user)
     mock_external_repo.get_by_user_and_institution = AsyncMock(return_value=accounts)
     service = UserService(mock_user_repo)
-    service.external_account_repository = mock_external_repo
+    service.external_user_repository = mock_external_repo
 
     institution = InstitutionEnum.WEALTHSIMPLE
     # Act
