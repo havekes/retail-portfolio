@@ -13,8 +13,13 @@ class ExternalLoginResponse(BaseModel):
     login_succes: bool
 
 
-class ExternalImportRequest(BaseModel):
-    external_user_id: str
+class ExternalImportAccountsRequest(BaseModel):
+    external_user_id: UUID
+
+
+class ExternalImportPositionsRequest(BaseModel):
+    external_user_id: UUID
+    account_id: UUID
 
 
 class ExternalImportResponse(BaseModel):

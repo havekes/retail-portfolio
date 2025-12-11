@@ -1,4 +1,4 @@
-import uuid
+import logging
 
 import svcs
 from fastapi import FastAPI
@@ -16,49 +16,37 @@ from src.repositories.account_type import AccountTypeRepository
 from src.repositories.external_user import ExternalUserRepository
 from src.repositories.position import PositionRepository
 from src.repositories.sqlalchemy.sqlalchemy_account import (
-    SqlAlchemyAccountRepostory,
     sqlalchemy_account_repository_factory,
 )
 from src.repositories.sqlalchemy.sqlalchemy_account_type import (
-    SqlAlchemyAccountTypeRepository,
     sqlalchemy_account_type_repository_factory,
 )
 from src.repositories.sqlalchemy.sqlalchemy_external_user import (
-    SqlAlchemyExternalUserRepository,
     sqlalchemy_external_user_repository_factory,
 )
 from src.repositories.sqlalchemy.sqlalchemy_position import (
-    SqlAlchemyPositionRepository,
     sqlalchemy_position_repository_factory,
 )
 from src.repositories.sqlalchemy.sqlalchemy_user import (
-    SqlAlchemyUserRepository,
     sqlalchemy_user_repository_factory,
 )
 from src.repositories.user import UserRepository
-from src.routers.external import router
+from src.routers.account import router as account_router
+from src.routers.external import router as external_router
 from src.services.external_user import (
     ExternalUserService,
     external_user_service_factory,
 )
 from src.services.user import UserService, user_service_factory
 
+logging.basicConfig(
+    level=logging.DEBUG,
+    format="%(asctime)s [%(levelname)s] %(message)s",
+)
 
-@svcs.fastapi.lifespan
-async def lifespan(app: FastAPI, registry: svcs.Registry):  # noqa: ARG001
-    registry.register_factory(AsyncSession, sessionmanager.session)
-
-    # Repositories
-    registry.register_factory(AccountRepository, sqlalchemy_account_repository_factory)
-    registry.register_factory(
-        AccountTypeRepository, sqlalchemy_account_type_repository_factory
-    )
-    registry.register_factory(
-        ExternalUserRepository, sqlalchemy_external_user_repository_factory
-    )
-    registry.register_factory(
-        PositionRepository, sqlalchemy_position_repository_factory
-    )
+requests_logger = logging.getLogger("urllib3")
+requests_logger.setLevel(logging.DEBUG)
+requests_logger.propagate = True
 
 
 @svcs.fastapi.lifespan
@@ -88,7 +76,8 @@ async def lifespan(app: FastAPI, registry: svcs.Registry):  # noqa: ARG001
 
 
 app = FastAPI(lifespan=lifespan)
-app.include_router(router)
+app.include_router(external_router)
+app.include_router(account_router)
 
 
 @app.get("/api/ping")

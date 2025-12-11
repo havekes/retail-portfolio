@@ -22,6 +22,13 @@ class SqlAlchemyExternalUserRepository(ExternalUserRepository):
         await self._session.commit()
         return external_user
 
+    async def get(self, external_user_id: UUID) -> FullExternalUser | None:
+        q = select(ExternalUserModel).where(ExternalUserModel.id == external_user_id)
+        result = await self._session.scalar(q)
+        if result is None:
+            return None
+        return FullExternalUser.model_validate(result)
+
     async def get_by_user_and_institution(
         self, user_id: UUID, institution_id: int
     ) -> list[FullExternalUser]:
