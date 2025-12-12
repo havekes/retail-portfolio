@@ -15,6 +15,7 @@ from src.repositories.account import AccountRepository
 from src.repositories.account_type import AccountTypeRepository
 from src.repositories.external_user import ExternalUserRepository
 from src.repositories.position import PositionRepository
+from src.repositories.security import SecurityRepository
 from src.repositories.sqlalchemy.sqlalchemy_account import (
     sqlalchemy_account_repository_factory,
 )
@@ -27,12 +28,16 @@ from src.repositories.sqlalchemy.sqlalchemy_external_user import (
 from src.repositories.sqlalchemy.sqlalchemy_position import (
     sqlalchemy_position_repository_factory,
 )
+from src.repositories.sqlalchemy.sqlalchemy_security import (
+    sqlaclhemy_security_repository_factory,
+)
 from src.repositories.sqlalchemy.sqlalchemy_user import (
     sqlalchemy_user_repository_factory,
 )
 from src.repositories.user import UserRepository
 from src.routers.account import router as account_router
 from src.routers.external import router as external_router
+from src.routers.positions import router as positions_router
 from src.services.external_user import (
     ExternalUserService,
     external_user_service_factory,
@@ -65,6 +70,9 @@ async def lifespan(app: FastAPI, registry: svcs.Registry):  # noqa: ARG001
         PositionRepository, sqlalchemy_position_repository_factory
     )
     registry.register_factory(UserRepository, sqlalchemy_user_repository_factory)
+    registry.register_factory(
+        SecurityRepository, sqlaclhemy_security_repository_factory
+    )
 
     # Services
     registry.register_factory(ExternalUserService, external_user_service_factory)
@@ -78,6 +86,7 @@ async def lifespan(app: FastAPI, registry: svcs.Registry):  # noqa: ARG001
 app = FastAPI(lifespan=lifespan)
 app.include_router(external_router)
 app.include_router(account_router)
+app.include_router(positions_router)
 
 
 @app.get("/api/ping")

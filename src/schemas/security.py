@@ -1,14 +1,15 @@
 from datetime import datetime
 
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
 
 
 class Security(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
     symbol: str
     name: str
+    market_cap: float
     sector: str | None = None
     industry: str | None = None
-    market_cap: float
     pe_ratio: float | None = None
-    last_updated: datetime
     is_active: bool = True

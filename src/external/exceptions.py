@@ -32,3 +32,7 @@ class AccountTypeUnkownError(ExternalAPIError):
 
 class IncorrectAccountError(Exception):
     pass
+
+
+class UnsupportedSecurityError(Exception):
+    pass

@@ -22,7 +22,9 @@ class ExternalUserService:
             user.id, institution.value, username
         )
 
-        # TODO update last_used_at
+        if external_user:
+            external_user.last_used_at = datetime.now(UTC)
+            await self._external_user_repository.update_last_used_at(external_user)
 
         if not external_user:
             external_user = await self._external_user_repository.create(

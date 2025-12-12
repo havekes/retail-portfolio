@@ -1,7 +1,6 @@
-from typing import override
 from uuid import UUID
 
-from sqlalchemy import select
+from sqlalchemy import func, select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 from svcs import Container
 
@@ -43,27 +42,35 @@ class SqlAlchemyExternalUserRepository(ExternalUserRepository):
         ]
 
     async def get_unique(
-        self, user_id: UUID, institution_id: int, external_user_id: str
+        self, user_id: UUID, institution_id: int, username: str
     ) -> FullExternalUser | None:
         q = select(ExternalUserModel).where(
             ExternalUserModel.user_id == user_id,
             ExternalUserModel.institution_id == institution_id,
-            ExternalUserModel.external_user_id == external_user_id,
+            ExternalUserModel.external_user_id == username,
         )
         result = await self._session.scalar(q)
         if result is None:
             return None
         return FullExternalUser.model_validate(result)
 
-    async def exists(
-        self, user_id: UUID, institution_id: int, external_user_id: str
-    ) -> bool:
+    async def exists(self, user_id: UUID, institution_id: int, username: str) -> bool:
         q = select(ExternalUserModel).where(
             ExternalUserModel.user_id == user_id,
             ExternalUserModel.institution_id == institution_id,
-            ExternalUserModel.external_user_id == external_user_id,
+            ExternalUserModel.external_user_id == username,
         )
         return bool(await self._session.scalar(select(q.exists())))
+
+    async def update_last_used_at(self, external_user: FullExternalUser) -> None:
+        q = (
+            update(ExternalUserModel)
+            .where(ExternalUserModel.id == external_user.id)
+            .values(last_used_at=func.now())
+        )
+
+        await self._session.execute(q)
+        await self._session.commit()
 
 
 async def sqlalchemy_external_user_repository_factory(

@@ -21,10 +21,10 @@ class Position(Base):
     account_id: Mapped[UUID] = mapped_column(ForeignKey("accounts.id"))
     security_symbol: Mapped[str] = mapped_column(ForeignKey("securities.symbol"))
     quantity: Mapped[float] = mapped_column(Float)
-    average_cost: Mapped[float] = mapped_column(Float)
-    current_price: Mapped[float] = mapped_column(Float)
+    average_cost: Mapped[float | None] = mapped_column(Float, nullable=True)
+
     updated_at: Mapped[datetime] = mapped_column(
-        DateTime, default=func.now, onupdate=func.now
+        DateTime(timezone=True), default=func.now(), onupdate=func.now()
     )
 
     __table_args__ = (UniqueConstraint("account_id", "security_symbol"),)

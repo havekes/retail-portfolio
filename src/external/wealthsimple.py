@@ -1,9 +1,12 @@
+import json
+import logging
+import uuid
 from collections.abc import AsyncGenerator
 from uuid import UUID
 
 import keyring
 from svcs import Container
-from ws_api import WealthsimpleAPI
+from ws_api import WealthsimpleAPI, WSApiException
 from ws_api.exceptions import (
     LoginFailedException,
     ManualLoginRequired,
@@ -20,11 +23,15 @@ from src.external.exceptions import (
     SessionDoesNotExistError,
     SessionExpiredError,
     UnknownError,
+    UnsupportedSecurityError,
 )
 from src.repositories.account import AccountRepository
 from src.repositories.account_type import AccountTypeRepository
 from src.repositories.position import PositionRepository
-from src.schemas import Account, AccountType, FullExternalUser, Position
+from src.repositories.security import SecurityRepository
+from src.schemas import Account, AccountType, FullExternalUser, Position, Security
+
+logger = logging.getLogger(__name__)
 
 
 class WealthsimpleApiWrapper(ExternalAPIWrapper):
@@ -171,10 +178,105 @@ class WealthsimpleApiWrapper(ExternalAPIWrapper):
 
         positions = []
 
-        for ws_balance in ws_balances:
-            print(ws_balance)
+        for security_id, ws_balance in ws_balances.items():
+            # TODO handle cash
+            if security_id == "sec-c-cad":
+                logger.info("Skip importing cash amount")
+                continue
+
+            # Handle API bug
+            trimmed_security_id = security_id[1:-1]
+
+            ws_security_market_data = ws_client.get_security_market_data(
+                trimmed_security_id
+            )
+            if not isinstance(ws_security_market_data, dict):
+                logger.warning("Could not fetch security info: %s", trimmed_security_id)
+                continue  # TODO handle data not found
+
+            ws_positions = self._ws_get_identity_positions(
+                client=ws_client,
+                security_ids=[trimmed_security_id],
+            )
+            assert isinstance(ws_positions, list)
+            average_cost = self._get_average_cost(account, ws_positions)
+
+            try:
+                security = await self._import_security(ws_security_market_data)
+                position = await self._import_position(
+                    account, security, ws_balance, average_cost
+                )
+
+                positions.append(position)
+            except UnsupportedSecurityError:
+                continue
 
         return positions
+
+    async def _import_security(self, ws_security_market_data: dict) -> Security:
+        stock_info = ws_security_market_data["stock"]
+
+        if stock_info["primaryExchange"] is None:
+            raise UnsupportedSecurityError
+
+        symbol = f"{stock_info['primaryExchange']}:{stock_info['symbol']}"
+
+        return await self._security_repository.get_or_create(
+            Security(
+                symbol=symbol,
+                name=stock_info["name"],
+                market_cap=ws_security_market_data["fundamentals"]["marketCap"],
+            )
+        )
+
+    async def _import_position(
+        self,
+        account: Account,
+        security: Security,
+        balance: float,
+        average_cost: float | None,
+    ) -> Position:
+        return await self._position_repository.create_or_update(
+            Position(
+                id=uuid.uuid4(),
+                account_id=account.id,
+                security_symbol=security.symbol,
+                quantity=balance,
+                average_cost=average_cost,
+            )
+        )
+
+    def _ws_get_identity_positions(
+        self,
+        client: WealthsimpleAPI,
+        security_ids: list | None = None,
+        currency: str = "CAD",
+    ):
+        client.GRAPHQL_QUERIES["FetchIdentityPositions"] = (
+            "query FetchIdentityPositions($identityId: ID!, $currency: Currency!, $first: Int, $cursor: String, $accountIds: [ID!], $aggregated: Boolean, $currencyOverride: CurrencyOverride, $sort: PositionSort, $sortDirection: PositionSortDirection, $filter: PositionFilter, $since: PointInTime, $includeSecurity: Boolean = false, $includeAccountData: Boolean = false, $includeOneDayReturnsBaseline: Boolean = false) {\n  identity(id: $identityId) {\n    id\n    financials(filter: {accounts: $accountIds}) {\n      current(currency: $currency) {\n        id\n        positions(\n          first: $first\n          after: $cursor\n          aggregated: $aggregated\n          filter: $filter\n          sort: $sort\n          sortDirection: $sortDirection\n        ) {\n          edges {\n            node {\n              ...PositionV2\n              __typename\n            }\n            __typename\n          }\n          pageInfo {\n            hasNextPage\n            endCursor\n            __typename\n          }\n          totalCount\n          status\n          hasOptionsPosition\n          hasCryptoPositionsOnly\n          securityTypes\n          securityCurrencies\n          __typename\n        }\n        __typename\n      }\n      __typename\n    }\n    __typename\n  }\n}\n\nfragment SecuritySummary on Security {\n  ...SecuritySummaryDetails\n  stock {\n    ...StockSummary\n    __typename\n  }\n  quoteV2(currency: null) {\n    ...SecurityQuoteV2\n    __typename\n  }\n  optionDetails {\n    ...OptionSummary\n    __typename\n  }\n  __typename\n}\n\nfragment SecuritySummaryDetails on Security {\n  id\n  currency\n  inactiveDate\n  status\n  wsTradeEligible\n  equityTradingSessionType\n  securityType\n  active\n  securityGroups {\n    id\n    name\n    __typename\n  }\n  features\n  logoUrl\n  __typename\n}\n\nfragment StockSummary on Stock {\n  name\n  symbol\n  primaryMic\n  primaryExchange\n  __typename\n}\n\nfragment StreamedSecurityQuoteV2 on UnifiedQuote {\n  __typename\n  securityId\n  ask\n  bid\n  currency\n  price\n  sessionPrice\n  quotedAsOf\n  ... on EquityQuote {\n    marketStatus\n    askSize\n    bidSize\n    close\n    high\n    last\n    lastSize\n    low\n    open\n    mid\n    volume: vol\n    referenceClose\n    __typename\n  }\n  ... on OptionQuote {\n    marketStatus\n    askSize\n    bidSize\n    close\n    high\n    last\n    lastSize\n    low\n    open\n    mid\n    volume: vol\n    breakEven\n    inTheMoney\n    liquidityStatus\n    openInterest\n    underlyingSpot\n    __typename\n  }\n}\n\nfragment SecurityQuoteV2 on UnifiedQuote {\n  ...StreamedSecurityQuoteV2\n  previousBaseline\n  __typename\n}\n\nfragment OptionSummary on Option {\n  underlyingSecurity {\n    ...UnderlyingSecuritySummary\n    __typename\n  }\n  maturity\n  osiSymbol\n  expiryDate\n  multiplier\n  optionType\n  strikePrice\n  __typename\n}\n\nfragment UnderlyingSecuritySummary on Security {\n  id\n  stock {\n    name\n    primaryExchange\n    primaryMic\n    symbol\n    __typename\n  }\n  __typename\n}\n\nfragment PositionLeg on PositionLeg {\n  security {\n    id\n    ...SecuritySummary @include(if: $includeSecurity)\n    __typename\n  }\n  quantity\n  positionDirection\n  bookValue {\n    amount\n    currency\n    __typename\n  }\n  totalValue(currencyOverride: $currencyOverride) {\n    amount\n    currency\n    __typename\n  }\n  averagePrice {\n    amount\n    currency\n    __typename\n  }\n  percentageOfAccount\n  unrealizedReturns(since: $since) {\n    amount\n    currency\n    __typename\n  }\n  marketAveragePrice: averagePrice(currencyOverride: $currencyOverride) {\n    amount\n    currency\n    __typename\n  }\n  marketBookValue: bookValue(currencyOverride: $currencyOverride) {\n    amount\n    currency\n    __typename\n  }\n  marketUnrealizedReturns: unrealizedReturns(currencyOverride: $currencyOverride) {\n    amount\n    currency\n    __typename\n  }\n  oneDayReturnsBaselineV2(currencyOverride: $currencyOverride) @include(if: $includeOneDayReturnsBaseline) {\n    baseline {\n      currency\n      amount\n      __typename\n    }\n    useDailyPriceChange\n    __typename\n  }\n  __typename\n}\n\nfragment PositionV2 on PositionV2 {\n  id\n  quantity\n  accounts @include(if: $includeAccountData) {\n    id\n    __typename\n  }\n  percentageOfAccount\n  positionDirection\n  bookValue {\n    amount\n    currency\n    __typename\n  }\n  averagePrice {\n    amount\n    currency\n    __typename\n  }\n  marketAveragePrice: averagePrice(currencyOverride: $currencyOverride) {\n    amount\n    currency\n    __typename\n  }\n  marketBookValue: bookValue(currencyOverride: $currencyOverride) {\n    amount\n    currency\n    __typename\n  }\n  totalValue(currencyOverride: $currencyOverride) {\n    amount\n    currency\n    __typename\n  }\n  unrealizedReturns(since: $since) {\n    amount\n    currency\n    __typename\n  }\n  marketUnrealizedReturns: unrealizedReturns(currencyOverride: $currencyOverride) {\n    amount\n    currency\n    __typename\n  }\n  security {\n    id\n    ...SecuritySummary @include(if: $includeSecurity)\n    __typename\n  }\n  oneDayReturnsBaselineV2(currencyOverride: $currencyOverride) @include(if: $includeOneDayReturnsBaseline) {\n    baseline {\n      currency\n      amount\n      __typename\n    }\n    useDailyPriceChange\n    __typename\n  }\n  strategyType\n  legs {\n    ...PositionLeg\n    __typename\n  }\n  __typename\n}"
+        )
+
+        return client.do_graphql_query(
+            "FetchIdentityPositions",
+            {
+                "identityId": client.get_token_info().get("identity_canonical_id"),
+                "currency": currency,
+                "filter": {"securityIds": security_ids},
+                "includeAccountData": True,
+            },
+            "identity.financials.current.positions.edges",
+            "array",
+        )
+
+    def _get_average_cost(
+        self, account: Account, ws_positions: list[dict]
+    ) -> float | None:
+        average_cost = None
+        for ws_position in ws_positions:
+            if ws_position["accounts"][0]["id"] == account.external_id:
+                average_cost = ws_position["averagePrice"]["amount"]
+
+        return average_cost
 
 
 async def wealthsimple_api_wrapper_factory(
@@ -184,4 +286,5 @@ async def wealthsimple_api_wrapper_factory(
         account_repository=await container.aget(AccountRepository),
         account_type_repository=await container.aget(AccountTypeRepository),
         position_repository=await container.aget(PositionRepository),
+        security_repository=await container.aget(SecurityRepository),
     )
