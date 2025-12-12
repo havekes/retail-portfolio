@@ -8,3 +8,7 @@ class PositionRepository(ABC):
     @abstractmethod
     async def create_or_update(self, position: Position) -> Position:
         pass
+
+    @abstractmethod
+    async def get_by_account(self, account_id: UUID) -> list[Position]:
+        """Get all positions for a given account."""

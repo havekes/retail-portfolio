@@ -29,7 +29,7 @@ class ExternalUser(Base):
     institution_id: Mapped[int] = mapped_column(ForeignKey("institutions.id"))
     external_user_id: Mapped[str] = mapped_column(String)
     display_name: Mapped[str] = mapped_column(String)
-    last_used_at: Mapped[datetime] = mapped_column(DateTime)
+    last_used_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
 
     __table_args__ = (
         UniqueConstraint("user_id", "institution_id", "external_user_id"),

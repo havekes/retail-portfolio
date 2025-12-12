@@ -28,3 +28,7 @@ class ExternalUserRepository(ABC):
     @abstractmethod
     async def exists(self, user_id: UUID, institution_id: int, username: str) -> bool:
         pass
+
+    @abstractmethod
+    async def update_last_used_at(self, external_user: FullExternalUser) -> None:
+        pass
