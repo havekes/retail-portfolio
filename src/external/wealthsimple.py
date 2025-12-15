@@ -1,12 +1,23 @@
-import json
 import logging
+import sys
 import uuid
 from collections.abc import AsyncGenerator
+from datetime import UTC, datetime
 from uuid import UUID
 
 import keyring
 from svcs import Container
-from ws_api import WealthsimpleAPI, WSApiException
+
+from src.config.settings import settings
+
+# Force reload the ws_api module from local path during development
+if settings.envrionement == "dev":
+    sys.path.insert(0, "/app/modules/ws-api-python")
+    for module_name in list(sys.modules.keys()):
+        if module_name.startswith("ws_api"):
+            del sys.modules[module_name]
+
+from ws_api import WealthsimpleAPI
 from ws_api.exceptions import (
     LoginFailedException,
     ManualLoginRequired,
@@ -22,9 +33,9 @@ from src.external.exceptions import (
     OTPRequiredError,
     SessionDoesNotExistError,
     SessionExpiredError,
-    UnknownError,
     UnsupportedSecurityError,
 )
+from src.external.schemas.accounts import ExternalAccount
 from src.repositories.account import AccountRepository
 from src.repositories.account_type import AccountTypeRepository
 from src.repositories.position import PositionRepository
@@ -70,24 +81,6 @@ class WealthsimpleApiWrapper(ExternalAPIWrapper):
             persist_session_fct=self._save_session,
         )
 
-    async def _get_account_type(self, ws_account_type_name: str) -> AccountType:
-        try:
-            account_type_id = {
-                "tfsa": AccountTypeEnum.TFSA,
-                "rrsp": AccountTypeEnum.RRSP,
-            }[ws_account_type_name].value
-        except KeyError as e:
-            raise AccountTypeUnkownError(ws_account_type_name) from e
-
-        account_type = await self._account_type_repository.get_account_type(
-            account_type_id
-        )
-
-        if account_type is None:
-            raise UnknownError
-
-        return account_type
-
     async def _account_exists(self, user_id: UUID, ws_account_id: str) -> bool:
         return await self._account_repository.exists_by_user_and_external_id(
             user_id, ws_account_id
@@ -126,89 +119,155 @@ class WealthsimpleApiWrapper(ExternalAPIWrapper):
             except ManualLoginRequired as e:
                 raise SessionExpiredError from e
 
+        logger.info("User %s logged into Wealthsimple", username)
         return True
 
+    async def list_accounts(
+        self,
+        external_user: FullExternalUser,
+    ) -> list[ExternalAccount]:
+        ws_client = self._get_client(external_user.external_user_id)
+        ws_accounts = ws_client.get_accounts()
+        accounts = []
+
+        for ws_account in ws_accounts:
+            if ws_account["status"] != "open":
+                continue
+
+            account_type = self._get_from_unified_account_type(
+                ws_account["unifiedAccountType"]
+            )
+            custodian_account = ws_account["custodianAccounts"][0]
+            current_amount = float(
+                custodian_account["financials"]["current"]["netLiquidationValue"][
+                    "amount"
+                ]
+            )
+
+            if account_type is None:
+                continue  # Unsupported account
+
+            accounts.append(
+                ExternalAccount(
+                    id=ws_account["id"],
+                    type=account_type,
+                    currency=ws_account["currency"],
+                    display_name=custodian_account["id"],
+                    value=f"{current_amount:.2f}",
+                    created_at=datetime.strptime(
+                        ws_account["createdAt"], "%Y-%m-%dT%H:%M:%S.%fZ"
+                    ).astimezone(UTC),
+                )
+            )
+
+        return accounts
+
     async def import_accounts(
-        self, external_user: FullExternalUser, account_ids: list[str] | None = None
+        self,
+        external_user: FullExternalUser,
+        account_ids: list[str] | None = None,
     ) -> list[Account]:
         ws_client = self._get_client(external_user.external_user_id)
         ws_accounts = ws_client.get_accounts()
         created_accounts = []
 
         for ws_account in ws_accounts:
-            # Filter by account IDs if provided
-            if account_ids is not None and ws_account["id"] not in account_ids:
+            ws_account_id = ws_account["id"]
+
+            if account_ids is not None and ws_account_id not in account_ids:
+                logger.info(
+                    "Skipped importing account %s: not in list %s",
+                    ws_account_id,
+                    account_ids,
+                )
                 continue
 
-            # Skip archived accounts
-            account_archived = ws_account["archivedAt"] is not None
-            if account_archived is True:
+            if ws_account["status"] != "open":
+                logger.info(
+                    "Skipped importing account %s: status not open",
+                    ws_account_id,
+                )
                 continue
 
-            # Skip existing accounts
             account_exists = await self._account_exists(
-                external_user.user_id, ws_account["id"]
+                external_user.user_id,
+                ws_account["id"],
             )
             if account_exists is True:
+                logger.info(
+                    "Skipped importing account %s: already imported",
+                    ws_account_id,
+                )
                 continue
 
-            # Only import known account types
-            try:
-                account_type = await self._get_account_type(ws_account["type"])
-            except AccountTypeUnkownError:
-                continue
+            account_type = self._get_from_unified_account_type(
+                ws_account["unifiedAccountType"]
+            )
+            # Should not happen if account was returned by list method
+            if account_type is None:
+                raise AccountTypeUnkownError(ws_account["unifiedAccountType"])
 
             await self._account_repository.create_account(
                 Account(
                     external_id=ws_account["id"],
                     name=ws_account["description"],
                     user_id=external_user.user_id,
-                    account_type_id=account_type.id,
+                    account_type_id=account_type.value,
                     institution_id=self._institution.value,
                 )
+            )
+            logger.info(
+                "Imported account %s for user %s",
+                ws_account_id,
+                external_user.user_id,
             )
 
         return created_accounts
 
     async def import_positions(
-        self, external_user: FullExternalUser, account: Account
+        self,
+        external_user: FullExternalUser,
+        account: Account,
     ) -> list[Position]:
         ws_client = self._get_client(external_user.external_user_id)
         ws_balances = ws_client.get_account_balances(account.external_id)
-
         positions = []
 
         for security_id, ws_balance in ws_balances.items():
-            # TODO handle cash
             if security_id == "sec-c-cad":
-                logger.info("Skip importing cash amount")
+                logger.info("Skipping cash position: not yet supported")
                 continue
 
-            # Handle API bug
+            # Handle API bug where security id is wrapped in []
             trimmed_security_id = security_id[1:-1]
 
             ws_security_market_data = ws_client.get_security_market_data(
                 trimmed_security_id
             )
-            if not isinstance(ws_security_market_data, dict):
-                logger.warning("Could not fetch security info: %s", trimmed_security_id)
-                continue  # TODO handle data not found
+            assert isinstance(ws_security_market_data, dict)
 
             ws_positions = self._ws_get_identity_positions(
                 client=ws_client,
                 security_ids=[trimmed_security_id],
             )
             assert isinstance(ws_positions, list)
-            average_cost = self._get_average_cost(account, ws_positions)
 
             try:
+                average_cost = self._get_average_cost(account, ws_positions)
                 security = await self._import_security(ws_security_market_data)
                 position = await self._import_position(
                     account, security, ws_balance, average_cost
                 )
 
+                logger.info(
+                    "Imported position %s for account %s",
+                    trimmed_security_id,
+                    account.id,
+                )
+
                 positions.append(position)
             except UnsupportedSecurityError:
+                logger.warning("Skipped security %s: unsupported security")
                 continue
 
         return positions
@@ -225,7 +284,7 @@ class WealthsimpleApiWrapper(ExternalAPIWrapper):
             Security(
                 symbol=symbol,
                 name=stock_info["name"],
-                market_cap=ws_security_market_data["fundamentals"]["marketCap"],
+                market_cap=ws_security_market_data["fundamentals"]["marketCap"] or 0,
             )
         )
 
@@ -252,21 +311,7 @@ class WealthsimpleApiWrapper(ExternalAPIWrapper):
         security_ids: list | None = None,
         currency: str = "CAD",
     ):
-        client.GRAPHQL_QUERIES["FetchIdentityPositions"] = (
-            "query FetchIdentityPositions($identityId: ID!, $currency: Currency!, $first: Int, $cursor: String, $accountIds: [ID!], $aggregated: Boolean, $currencyOverride: CurrencyOverride, $sort: PositionSort, $sortDirection: PositionSortDirection, $filter: PositionFilter, $since: PointInTime, $includeSecurity: Boolean = false, $includeAccountData: Boolean = false, $includeOneDayReturnsBaseline: Boolean = false) {\n  identity(id: $identityId) {\n    id\n    financials(filter: {accounts: $accountIds}) {\n      current(currency: $currency) {\n        id\n        positions(\n          first: $first\n          after: $cursor\n          aggregated: $aggregated\n          filter: $filter\n          sort: $sort\n          sortDirection: $sortDirection\n        ) {\n          edges {\n            node {\n              ...PositionV2\n              __typename\n            }\n            __typename\n          }\n          pageInfo {\n            hasNextPage\n            endCursor\n            __typename\n          }\n          totalCount\n          status\n          hasOptionsPosition\n          hasCryptoPositionsOnly\n          securityTypes\n          securityCurrencies\n          __typename\n        }\n        __typename\n      }\n      __typename\n    }\n    __typename\n  }\n}\n\nfragment SecuritySummary on Security {\n  ...SecuritySummaryDetails\n  stock {\n    ...StockSummary\n    __typename\n  }\n  quoteV2(currency: null) {\n    ...SecurityQuoteV2\n    __typename\n  }\n  optionDetails {\n    ...OptionSummary\n    __typename\n  }\n  __typename\n}\n\nfragment SecuritySummaryDetails on Security {\n  id\n  currency\n  inactiveDate\n  status\n  wsTradeEligible\n  equityTradingSessionType\n  securityType\n  active\n  securityGroups {\n    id\n    name\n    __typename\n  }\n  features\n  logoUrl\n  __typename\n}\n\nfragment StockSummary on Stock {\n  name\n  symbol\n  primaryMic\n  primaryExchange\n  __typename\n}\n\nfragment StreamedSecurityQuoteV2 on UnifiedQuote {\n  __typename\n  securityId\n  ask\n  bid\n  currency\n  price\n  sessionPrice\n  quotedAsOf\n  ... on EquityQuote {\n    marketStatus\n    askSize\n    bidSize\n    close\n    high\n    last\n    lastSize\n    low\n    open\n    mid\n    volume: vol\n    referenceClose\n    __typename\n  }\n  ... on OptionQuote {\n    marketStatus\n    askSize\n    bidSize\n    close\n    high\n    last\n    lastSize\n    low\n    open\n    mid\n    volume: vol\n    breakEven\n    inTheMoney\n    liquidityStatus\n    openInterest\n    underlyingSpot\n    __typename\n  }\n}\n\nfragment SecurityQuoteV2 on UnifiedQuote {\n  ...StreamedSecurityQuoteV2\n  previousBaseline\n  __typename\n}\n\nfragment OptionSummary on Option {\n  underlyingSecurity {\n    ...UnderlyingSecuritySummary\n    __typename\n  }\n  maturity\n  osiSymbol\n  expiryDate\n  multiplier\n  optionType\n  strikePrice\n  __typename\n}\n\nfragment UnderlyingSecuritySummary on Security {\n  id\n  stock {\n    name\n    primaryExchange\n    primaryMic\n    symbol\n    __typename\n  }\n  __typename\n}\n\nfragment PositionLeg on PositionLeg {\n  security {\n    id\n    ...SecuritySummary @include(if: $includeSecurity)\n    __typename\n  }\n  quantity\n  positionDirection\n  bookValue {\n    amount\n    currency\n    __typename\n  }\n  totalValue(currencyOverride: $currencyOverride) {\n    amount\n    currency\n    __typename\n  }\n  averagePrice {\n    amount\n    currency\n    __typename\n  }\n  percentageOfAccount\n  unrealizedReturns(since: $since) {\n    amount\n    currency\n    __typename\n  }\n  marketAveragePrice: averagePrice(currencyOverride: $currencyOverride) {\n    amount\n    currency\n    __typename\n  }\n  marketBookValue: bookValue(currencyOverride: $currencyOverride) {\n    amount\n    currency\n    __typename\n  }\n  marketUnrealizedReturns: unrealizedReturns(currencyOverride: $currencyOverride) {\n    amount\n    currency\n    __typename\n  }\n  oneDayReturnsBaselineV2(currencyOverride: $currencyOverride) @include(if: $includeOneDayReturnsBaseline) {\n    baseline {\n      currency\n      amount\n      __typename\n    }\n    useDailyPriceChange\n    __typename\n  }\n  __typename\n}\n\nfragment PositionV2 on PositionV2 {\n  id\n  quantity\n  accounts @include(if: $includeAccountData) {\n    id\n    __typename\n  }\n  percentageOfAccount\n  positionDirection\n  bookValue {\n    amount\n    currency\n    __typename\n  }\n  averagePrice {\n    amount\n    currency\n    __typename\n  }\n  marketAveragePrice: averagePrice(currencyOverride: $currencyOverride) {\n    amount\n    currency\n    __typename\n  }\n  marketBookValue: bookValue(currencyOverride: $currencyOverride) {\n    amount\n    currency\n    __typename\n  }\n  totalValue(currencyOverride: $currencyOverride) {\n    amount\n    currency\n    __typename\n  }\n  unrealizedReturns(since: $since) {\n    amount\n    currency\n    __typename\n  }\n  marketUnrealizedReturns: unrealizedReturns(currencyOverride: $currencyOverride) {\n    amount\n    currency\n    __typename\n  }\n  security {\n    id\n    ...SecuritySummary @include(if: $includeSecurity)\n    __typename\n  }\n  oneDayReturnsBaselineV2(currencyOverride: $currencyOverride) @include(if: $includeOneDayReturnsBaseline) {\n    baseline {\n      currency\n      amount\n      __typename\n    }\n    useDailyPriceChange\n    __typename\n  }\n  strategyType\n  legs {\n    ...PositionLeg\n    __typename\n  }\n  __typename\n}"
-        )
-
-        return client.do_graphql_query(
-            "FetchIdentityPositions",
-            {
-                "identityId": client.get_token_info().get("identity_canonical_id"),
-                "currency": currency,
-                "filter": {"securityIds": security_ids},
-                "includeAccountData": True,
-            },
-            "identity.financials.current.positions.edges",
-            "array",
-        )
+        return client.get_identity_positions(security_ids, currency)
 
     def _get_average_cost(
         self, account: Account, ws_positions: list[dict]
@@ -277,6 +322,19 @@ class WealthsimpleApiWrapper(ExternalAPIWrapper):
                 average_cost = ws_position["averagePrice"]["amount"]
 
         return average_cost
+
+    def _get_from_unified_account_type(
+        self, ws_unified_account_type: str
+    ) -> AccountTypeEnum | None:
+        if ws_unified_account_type == "SELF_DIRECTED_TFSA":
+            return AccountTypeEnum.TFSA
+        if ws_unified_account_type == "SELF_DIRECTED_RRSP":
+            return AccountTypeEnum.RRSP
+        if ws_unified_account_type == "SELF_DIRECTED_FHSA":
+            return AccountTypeEnum.FHSA
+        if ws_unified_account_type == "SELF_DIRECTED_NON_REGISTERED":
+            return AccountTypeEnum.NON_REGISTERED
+        return None
 
 
 async def wealthsimple_api_wrapper_factory(

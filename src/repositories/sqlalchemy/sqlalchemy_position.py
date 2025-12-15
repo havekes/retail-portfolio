@@ -17,8 +17,8 @@ class SqlAlchemyPositionRepository(PositionRepository):
         self._session = session
 
     async def create_or_update(self, position: Position) -> Position:
-        values = position.model_dump()
-        await self._session.execute(
+        values = position.model_dump(exclude={"id"})
+        result = await self._session.execute(
             insert(PositionModel)
             .values(values)
             .on_conflict_do_update(
@@ -28,13 +28,18 @@ class SqlAlchemyPositionRepository(PositionRepository):
                     "average_cost": position.average_cost,
                 },
             )
+            .returning(
+                PositionModel.id,
+                PositionModel.account_id,
+                PositionModel.security_symbol,
+                PositionModel.quantity,
+                PositionModel.average_cost,
+            )
         )
-
-        position_model = await self._session.get(PositionModel, position.id)
-        assert position_model is not None
-        result = Position.model_validate(position_model)
+        row_data = result.mappings().first()
+        assert row_data is not None
         await self._session.commit()
-        return result
+        return Position.model_validate(dict(row_data))
 
     async def get_by_account(self, account_id: UUID) -> list[Position]:
         result = await self._session.execute(

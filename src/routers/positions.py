@@ -13,7 +13,7 @@ router = APIRouter(prefix="/api/positions")
 
 
 @router.get("/{account_id}", response_model=list[Position])
-async def get_positions_by_account(
+async def positions_by_account(
     account_id: UUID,
     services: DepContainer,
 ) -> list[Position]:

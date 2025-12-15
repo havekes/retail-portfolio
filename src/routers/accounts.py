@@ -9,7 +9,7 @@ router = APIRouter(prefix="/api/accounts")
 
 
 @router.get("/")
-async def get_accounts(services: DepContainer) -> list[Account]:
+async def accounts_list(services: DepContainer) -> list[Account]:
     """
     Get all accounts for the current user.
     """

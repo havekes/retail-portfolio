@@ -5,6 +5,7 @@ from keyrings.alt.file import PlaintextKeyring
 from svcs import Container
 
 from src.enums import InstitutionEnum
+from src.external.schemas.accounts import ExternalAccount
 from src.repositories.account import AccountRepository
 from src.repositories.account_type import AccountTypeRepository
 from src.repositories.position import PositionRepository
@@ -42,6 +43,12 @@ class ExternalAPIWrapper(ABC):
         password: str | None = None,
         otp: str | None = None,
     ) -> bool:
+        pass
+
+    @abstractmethod
+    async def list_accounts(
+        self, external_user: FullExternalUser
+    ) -> list[ExternalAccount]:
         pass
 
     @abstractmethod
