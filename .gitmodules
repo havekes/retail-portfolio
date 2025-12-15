@@ -1,0 +1,3 @@
+[submodule "modules/ws-api-python"]
+	path = modules/ws-api-python
+	url = git@github.com:havekes/ws-api-python.git

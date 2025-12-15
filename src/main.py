@@ -35,7 +35,7 @@ from src.repositories.sqlalchemy.sqlalchemy_user import (
     sqlalchemy_user_repository_factory,
 )
 from src.repositories.user import UserRepository
-from src.routers.account import router as account_router
+from src.routers.accounts import router as account_router
 from src.routers.external import router as external_router
 from src.routers.positions import router as positions_router
 from src.services.external_user import (
@@ -45,7 +45,7 @@ from src.services.external_user import (
 from src.services.user import UserService, user_service_factory
 
 logging.basicConfig(
-    level=logging.DEBUG,
+    level=logging.INFO,
     format="%(asctime)s [%(levelname)s] %(message)s",
 )
 
@@ -83,7 +83,11 @@ async def lifespan(app: FastAPI, registry: svcs.Registry):  # noqa: ARG001
     yield
 
 
-app = FastAPI(lifespan=lifespan)
+app = FastAPI(
+    lifespan=lifespan,
+    title="retail-portfolio",
+    version="0.0.0",
+)
 app.include_router(external_router)
 app.include_router(account_router)
 app.include_router(positions_router)

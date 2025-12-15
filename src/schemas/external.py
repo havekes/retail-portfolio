@@ -15,6 +15,7 @@ class ExternalLoginResponse(BaseModel):
 
 class ExternalImportAccountsRequest(BaseModel):
     external_user_id: UUID
+    external_account_ids: list[str]
 
 
 class ExternalImportPositionsRequest(BaseModel):
