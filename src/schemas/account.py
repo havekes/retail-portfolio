@@ -16,4 +16,5 @@ class Account(BaseModel):
     institution_id: int
     is_active: bool = True
     created_at: datetime | None = None
+    currency: str
     deleted_at: datetime | None = None
