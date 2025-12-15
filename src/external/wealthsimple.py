@@ -214,6 +214,7 @@ class WealthsimpleApiWrapper(ExternalAPIWrapper):
                     user_id=external_user.user_id,
                     account_type_id=account_type.value,
                     institution_id=self._institution.value,
+                    currency=ws_account["currency"],
                 )
             )
             logger.info(

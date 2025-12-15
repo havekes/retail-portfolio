@@ -35,6 +35,7 @@ class Account(Base):
     user_id: Mapped[UUID] = mapped_column(ForeignKey("users.id"))
     account_type_id: Mapped[int] = mapped_column(ForeignKey("account_types.id"))
     institution_id: Mapped[int] = mapped_column(ForeignKey("institutions.id"))
+    currency: Mapped[str] = mapped_column(String(3))
     is_active: Mapped[bool] = mapped_column(Boolean, default=True)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=func.now())
     deleted_at: Mapped[datetime] = mapped_column(DateTime, nullable=True)
