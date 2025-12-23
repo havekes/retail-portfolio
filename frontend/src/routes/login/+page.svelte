@@ -4,3 +4,8 @@
 <div class="flex h-screen w-full items-center justify-center px-4">
   <LoginForm />
 </div>
+<<<<<<< HEAD
+=======
+
+Test
+>>>>>>> 2217de9 (init vite with login view)

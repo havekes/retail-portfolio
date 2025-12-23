@@ -24,6 +24,7 @@ if config.config_file_name is not None:
 # my_important_option = config.get_main_option("my_important_option")
 # ... etc.
 
+<<<<<<< HEAD
 =======
 # Override from DATABASE_URL if set
 import os
@@ -31,6 +32,11 @@ database_url = os.environ.get("DATABASE_URL")
 if database_url:
     config.set_main_option("sqlalchemy.url", database_url)
 >>>>>>> 9a2516d (fix migrations + updqte view)
+=======
+database_url = os.environ.get("DATABASE_URL")
+if database_url:
+    config.set_main_option("sqlalchemy.url", database_url)
+>>>>>>> 2217de9 (init vite with login view)
 
 def run_migrations_offline() -> None:
     """Run migrations in 'offline' mode."""

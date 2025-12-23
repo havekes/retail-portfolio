@@ -23,7 +23,7 @@ services:
   frontend:
     image: node:latest
     restart: unless-stopped
-    user: 1000:1000
+    user: root
     ports:
       - "8100:8100"
     volumes:
