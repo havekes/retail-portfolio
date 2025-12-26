@@ -20,3 +20,6 @@ exit
 find /app -name "__pycache__" -type d -exec rm -rf {} +
 alembic upgrade head
 exit
+find /app -name "__pycache__" -type d -exec rm -rf {} +
+alembic upgrade head
+exit
