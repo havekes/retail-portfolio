@@ -23,6 +23,7 @@ exit
 find /app -name "__pycache__" -type d -exec rm -rf {} +
 alembic upgrade head
 exit
+<<<<<<< HEAD
 alembic upgrade head
 exit
 python -c "from src.controllers.auth import router"
@@ -49,3 +50,5 @@ cat .env
 exit
 cat .env
 exit
+=======
+>>>>>>> 6f98344 (add all front end elements)
