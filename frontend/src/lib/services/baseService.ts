@@ -34,7 +34,11 @@ export abstract class BaseService {
     if (!response.ok) {
       throw new Error(`POST ${endpoint} failed: ${response.statusText}`);
     }
+<<<<<<< HEAD
     
+=======
+
+>>>>>>> 6019a5f (setup front for login)
     return response.json();
   }
 }

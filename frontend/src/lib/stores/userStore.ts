@@ -1,4 +1,5 @@
 import { writable } from 'svelte/store';
+<<<<<<< HEAD
 import type { User } from '$lib/types/user';
 
 export interface AuthState {
@@ -55,5 +56,21 @@ export const userStore = (() => {
       })();
       return token;
     },
+=======
+
+export interface User {
+  id: number;
+  email: string;
+  name: string;
+}
+
+export const userStore = (() => {
+  const { subscribe, set, update } = writable<User | null>(null);
+
+  return {
+    subscribe,
+    setUser: (user: User) => set(user),
+    clearUser: () => set(null),
+>>>>>>> 6019a5f (setup front for login)
   };
 })();

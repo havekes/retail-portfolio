@@ -24,8 +24,14 @@
     error = null;
 
     try {
+<<<<<<< HEAD
       const response = await authService.login({ email, password });
       userStore.setUser(response.user, response.access_token);
+=======
+      const response = await authService.login(email, password);
+      userStore.setUser(response.user);
+      // Ici, tu peux rediriger ou gérer le succès, e.g., navigate('/dashboard');
+>>>>>>> 6019a5f (setup front for login)
     } catch (err) {
       error = 'Login failed. Please check your credentials.';
     } finally {
@@ -40,7 +46,11 @@
     <Card.Description>Enter your email below to login to your account</Card.Description>
   </Card.Header>
   <Card.Content>
+<<<<<<< HEAD
     <form onsubmit={handleSubmit}>
+=======
+    <form on:submit={handleSubmit}>
+>>>>>>> 6019a5f (setup front for login)
       <FieldGroup>
         <Field>
           <FieldLabel for="email-{id}">Email</FieldLabel>
