@@ -10,15 +10,25 @@ class ExternalUserRepository(ABC):
         pass
 
     @abstractmethod
+    async def get(self, external_user_id: UUID) -> FullExternalUser | None:
+        pass
+
+    @abstractmethod
     async def get_by_user_and_institution(
         self, user_id: UUID, institution_id: int
     ) -> list[FullExternalUser]:
         pass
 
     @abstractmethod
-    async def get(self, uuid: UUID) -> FullExternalUser | None:
+    async def get_unique(
+        self, user_id: UUID, institution_id: int, username: str
+    ) -> FullExternalUser | None:
         pass
 
     @abstractmethod
     async def exists(self, user_id: UUID, institution_id: int, username: str) -> bool:
+        pass
+
+    @abstractmethod
+    async def update_last_used_at(self, external_user: FullExternalUser) -> None:
         pass

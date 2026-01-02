@@ -1,11 +1,11 @@
-from enum import Enum
+from enum import Enum, IntEnum
 
 
-class InstitutionEnum(Enum):
+class InstitutionEnum(IntEnum):
     WEALTHSIMPLE = 1
 
 
-class AccountTypeEnum(Enum):
+class AccountTypeEnum(IntEnum):
     TFSA = 1
     RRSP = 2
     FHSA = 3

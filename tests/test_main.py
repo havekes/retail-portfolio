@@ -12,4 +12,6 @@ async def test_ping(client):
     """Test the /api/ping endpoint."""
     response = client.get("/api/ping")
     assert response.status_code == 200
-    assert response.json() == {"ping": "pong"}
+    data = response.json()
+    assert "database" in data
+    assert data["database"] in ["ok", "error"]

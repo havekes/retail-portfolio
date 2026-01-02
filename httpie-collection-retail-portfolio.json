@@ -1,0 +1,295 @@
+{
+  "meta": {
+    "format": "httpie",
+    "version": "1.0.0",
+    "contentType": "collection",
+    "schema": "https://schema.httpie.io/1.0.0.json",
+    "docs": "https://httpie.io/r/help/export-from-httpie",
+    "source": "HTTPie Desktop 2025.2.0"
+  },
+  "entry": {
+    "name": "retail-portfolio",
+    "icon": {
+      "name": "default",
+      "color": "blue"
+    },
+    "auth": {
+      "type": "none"
+    },
+    "requests": [
+      {
+        "name": "Ping",
+        "url": "localhost:8001/api/ping/",
+        "method": "GET",
+        "headers": [],
+        "queryParams": [],
+        "pathParams": [],
+        "auth": {
+          "type": "inherited"
+        },
+        "body": {
+          "type": "none",
+          "file": {
+            "name": ""
+          },
+          "text": {
+            "value": "",
+            "format": "application/json"
+          },
+          "form": {
+            "isMultipart": false,
+            "fields": []
+          },
+          "graphql": {
+            "query": "",
+            "variables": ""
+          }
+        }
+      },
+      {
+        "name": "Accounts - List",
+        "url": "localhost:8001/api/accounts/",
+        "method": "GET",
+        "headers": [],
+        "queryParams": [],
+        "pathParams": [],
+        "auth": {
+          "type": "inherited"
+        },
+        "body": {
+          "type": "none",
+          "file": {
+            "name": ""
+          },
+          "text": {
+            "value": "",
+            "format": "application/json"
+          },
+          "form": {
+            "isMultipart": false,
+            "fields": []
+          },
+          "graphql": {
+            "query": "",
+            "variables": ""
+          }
+        }
+      },
+      {
+        "name": "Positions - By account",
+        "url": "localhost:8001/api/positions/:accountId/",
+        "method": "GET",
+        "headers": [],
+        "queryParams": [],
+        "pathParams": [
+          {
+            "name": "accountId",
+            "value": "0e989dbe-d29d-41e6-ab21-61d876ec858a",
+            "enabled": true
+          }
+        ],
+        "auth": {
+          "type": "inherited"
+        },
+        "body": {
+          "type": "none",
+          "file": {
+            "name": ""
+          },
+          "text": {
+            "value": "",
+            "format": "application/json"
+          },
+          "form": {
+            "isMultipart": false,
+            "fields": []
+          },
+          "graphql": {
+            "query": "",
+            "variables": ""
+          }
+        }
+      },
+      {
+        "name": "External - List users",
+        "url": "localhost:8001/api/external/:institutionId/users",
+        "method": "GET",
+        "headers": [],
+        "queryParams": [],
+        "pathParams": [
+          {
+            "name": "institutionId",
+            "value": "1",
+            "enabled": true
+          }
+        ],
+        "auth": {
+          "type": "inherited"
+        },
+        "body": {
+          "type": "text",
+          "file": {
+            "name": ""
+          },
+          "text": {
+            "value": "",
+            "format": "application/json"
+          },
+          "form": {
+            "isMultipart": false,
+            "fields": []
+          },
+          "graphql": {
+            "query": "",
+            "variables": ""
+          }
+        }
+      },
+      {
+        "name": "External - Login",
+        "url": "localhost:8001/api/external/:institutionId/login",
+        "method": "POST",
+        "headers": [],
+        "queryParams": [],
+        "pathParams": [
+          {
+            "name": "institutionId",
+            "value": "1",
+            "enabled": true
+          }
+        ],
+        "auth": {
+          "type": "inherited"
+        },
+        "body": {
+          "type": "text",
+          "file": {
+            "name": ""
+          },
+          "text": {
+            "value": "{\n  \"username\": \"\",\n  \"password\": \"\"\n}",
+            "format": "application/json"
+          },
+          "form": {
+            "isMultipart": false,
+            "fields": []
+          },
+          "graphql": {
+            "query": "",
+            "variables": ""
+          }
+        }
+      },
+      {
+        "name": "External - List accounts",
+        "url": "localhost:8001/api/external/:institutionId/:externalUserId/accounts",
+        "method": "GET",
+        "headers": [],
+        "queryParams": [],
+        "pathParams": [
+          {
+            "name": "institutionId",
+            "value": "1",
+            "enabled": true
+          },
+          {
+            "name": "externalUserId",
+            "value": "8935e678-3c2a-45c9-8085-10aa66461aee",
+            "enabled": true
+          }
+        ],
+        "auth": {
+          "type": "inherited"
+        },
+        "body": {
+          "type": "text",
+          "file": {
+            "name": ""
+          },
+          "text": {
+            "value": "{\n  \"external_user_id\": \"b5a7d136-7c61-458d-a34b-ae41682c5283\"\n}",
+            "format": "application/json"
+          },
+          "form": {
+            "isMultipart": false,
+            "fields": []
+          },
+          "graphql": {
+            "query": "",
+            "variables": ""
+          }
+        }
+      },
+      {
+        "name": "External - Import accounts",
+        "url": "localhost:8001/api/external/:institutionId/accounts/import",
+        "method": "POST",
+        "headers": [],
+        "queryParams": [],
+        "pathParams": [
+          {
+            "name": "institutionId",
+            "value": "1",
+            "enabled": true
+          }
+        ],
+        "auth": {
+          "type": "inherited"
+        },
+        "body": {
+          "type": "text",
+          "file": {
+            "name": ""
+          },
+          "text": {
+            "value": "{\n  \"external_user_id\": \"8935e678-3c2a-45c9-8085-10aa66461aee\",\n  \"external_account_ids\": [\"tfsa-o5k5phih\", \"rrsp-j22jgzko\"]\n}",
+            "format": "application/json"
+          },
+          "form": {
+            "isMultipart": false,
+            "fields": []
+          },
+          "graphql": {
+            "query": "",
+            "variables": ""
+          }
+        }
+      },
+      {
+        "name": "External - Import positions",
+        "url": "localhost:8001/api/external/:institutionId/positions/import",
+        "method": "POST",
+        "headers": [],
+        "queryParams": [],
+        "pathParams": [
+          {
+            "name": "institutionId",
+            "value": "1",
+            "enabled": true
+          }
+        ],
+        "auth": {
+          "type": "inherited"
+        },
+        "body": {
+          "type": "text",
+          "file": {
+            "name": ""
+          },
+          "text": {
+            "value": "{\n  \"external_user_id\": \"8935e678-3c2a-45c9-8085-10aa66461aee\",\n  \"account_id\": \"0e989dbe-d29d-41e6-ab21-61d876ec858a\"\n}",
+            "format": "application/json"
+          },
+          "form": {
+            "isMultipart": false,
+            "fields": []
+          },
+          "graphql": {
+            "query": "",
+            "variables": ""
+          }
+        }
+      }
+    ]
+  }
+}
