@@ -750,7 +750,7 @@ requires-dist = [
     { name = "sqlalchemy", specifier = ">=2.0.44" },
     { name = "svcs", specifier = ">=25.1.0" },
     { name = "uvicorn", specifier = ">=0.38.0" },
-    { name = "ws-api", specifier = ">=0.22.0" },
+    { name = "ws-api", specifier = ">=0.25.0" },
 ]
 
 [package.metadata.requires-dev]
@@ -901,12 +901,12 @@ wheels = [
 
 [[package]]
 name = "ws-api"
-version = "0.24.0"
+version = "0.25.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "requests" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/7f/08/be62c910cb67bb9b7d6beb87e7b3d3cfee8b179b9bc0104d236c9e5b39c9/ws_api-0.24.0.tar.gz", hash = "sha256:e4607aae3ee6b6a543adea182c3a479ffc0c9af1ffec5526a642d7ebb577d0b3", size = 27777, upload-time = "2025-12-02T01:54:30.026Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/87/32/b042c614829679d5d42beb35f8af48dfe733c9c593c74688feb98bd23311/ws_api-0.25.0.tar.gz", hash = "sha256:a8b11aca619052d62a6f0bb82eac1fc1e0892533e46b79be186ea699d397cee2", size = 28981, upload-time = "2025-12-15T14:44:26.921Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/ab/e5/416d8d16e23cb7f328c8e7b5fbef8732ac76345e92485eebfa2afc6c5772/ws_api-0.24.0-py3-none-any.whl", hash = "sha256:f0773946387d97e2fdd91e8d7d1ee43f7cb9ecff0ac12757845ea15de7b576b2", size = 26207, upload-time = "2025-12-02T01:54:28.874Z" },
+    { url = "https://files.pythonhosted.org/packages/85/b2/4e0f38b6af4b8b4255ed08e739b2f632ddf7438fae1be63ddd584bc8b1ad/ws_api-0.25.0-py3-none-any.whl", hash = "sha256:da4ba9b21bf19cdf4eab61da2f64920c1c2dc952c461e90f08e9b0bff61db6b7", size = 27375, upload-time = "2025-12-15T14:44:25.358Z" },
 ]
