@@ -34,7 +34,7 @@ export abstract class BaseService {
     if (!response.ok) {
       throw new Error(`POST ${endpoint} failed: ${response.statusText}`);
     }
-
+    
     return response.json();
   }
 }

@@ -23,3 +23,29 @@ exit
 find /app -name "__pycache__" -type d -exec rm -rf {} +
 alembic upgrade head
 exit
+alembic upgrade head
+exit
+python -c "from src.controllers.auth import router"
+exit
+python -c "from src.controllers.auth import router"
+python -c "from src.controllers.auth import router"
+python -c "from src.controllers.auth import router"
+exit
+python -c "from src.controllers.auth import router"
+exit
+alembic upgrade head
+exit
+alembic upgrade head
+exit
+ls
+cd ..:
+cd ../
+ls
+cd ./app/
+ls
+cat .env 
+exit
+cat .env
+exit
+cat .env
+exit

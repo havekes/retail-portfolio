@@ -1,11 +1,12 @@
 import logging
-
+import os
 import svcs
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from svcs.fastapi import DepContainer
-
+from src.controllers.auth import router as auth_router
 from src.database import sessionmanager
 from src.external.wealthsimple import (
     WealthsimpleApiWrapper,
@@ -48,16 +49,13 @@ logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s [%(levelname)s] %(message)s",
 )
-
 requests_logger = logging.getLogger("urllib3")
 requests_logger.setLevel(logging.DEBUG)
 requests_logger.propagate = True
 
-
 @svcs.fastapi.lifespan
 async def lifespan(app: FastAPI, registry: svcs.Registry):  # noqa: ARG001
     registry.register_factory(AsyncSession, sessionmanager.session)
-
     # Repositories
     registry.register_factory(AccountRepository, sqlalchemy_account_repository_factory)
     registry.register_factory(
@@ -73,35 +71,41 @@ async def lifespan(app: FastAPI, registry: svcs.Registry):  # noqa: ARG001
     registry.register_factory(
         SecurityRepository, sqlaclhemy_security_repository_factory
     )
-
     # Services
     registry.register_factory(ExternalUserService, external_user_service_factory)
     registry.register_factory(UserService, user_service_factory)
-
     # External API Wrapper services
     registry.register_factory(WealthsimpleApiWrapper, wealthsimple_api_wrapper_factory)
     yield
-
 
 app = FastAPI(
     lifespan=lifespan,
     title="retail-portfolio",
     version="0.0.0",
 )
+
+cors_origins_str = os.getenv("CORS_ORIGINS", "http://localhost:8100")
+cors_origins = [origin.strip() for origin in cors_origins_str.split(",")]
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=cors_origins,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
 app.include_router(external_router)
 app.include_router(account_router)
 app.include_router(positions_router)
-
+app.include_router(auth_router, prefix="/auth", tags=["auth"])
 
 @app.get("/api/ping")
 async def ping(services: DepContainer) -> dict:
     """Server healthcheck"""
     session = await services.aget(AsyncSession)
-
     response = {}
     if (await session.execute(select(1))).scalar() == 1:
         response["database"] = "ok"
     else:
         response["database"] = "error"
-
     return response
