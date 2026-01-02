@@ -122,3 +122,7 @@ exclude = ["migrations", "tests", "modules"]
 [tool.ruff.lint]
 select = ["E", "F", "W", "C90", "I", "N", "UP", "YTT", "S", "BLE", "FBT", "B", "A", "COM", "C4", "DTZ", "T10", "DJ", "EM", "EXE", "FA", "ISC", "ICN", "G", "INP", "PIE", "T20", "PYI", "PT", "Q", "RSE", "RET", "SLF", "SLOT", "SIM", "TID", "TCH", "INT", "ARG", "PTH", "ERA", "PD", "PGH", "PL", "TRY", "FLY", "NPY", "AIR", "PERF", "FURB", "LOG", "RUF"]
 ignore = ["S101", "COM812", "ISC001", "TC001", "TC002", "TC003", "EXE002", "RUF022", "F401"]
+
+[tool.ruff.lint.extend-per-file-ignores]
+"src/controllers/auth.py" = ["B008"]
+"src/schemas/auth.py" = ["S105"]

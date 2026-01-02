@@ -24,7 +24,7 @@ class SqlAlchemyUserRepository(UserRepository):
 
         return None
 
-    async def create_user(self, email: str, hashed_password: str) -> UserSchema:
+    async def create_user(self, email: str, hashed_password: str) -> User:
         user_db = UserModel(email=email, password=hashed_password)
         self._session.add(user_db)
         await self._session.commit()

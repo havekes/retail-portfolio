@@ -1,11 +1,13 @@
 import logging
 import os
+
 import svcs
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from svcs.fastapi import DepContainer
+
 from src.controllers.auth import router as auth_router
 from src.database import sessionmanager
 from src.external.wealthsimple import (
@@ -53,6 +55,7 @@ requests_logger = logging.getLogger("urllib3")
 requests_logger.setLevel(logging.DEBUG)
 requests_logger.propagate = True
 
+
 @svcs.fastapi.lifespan
 async def lifespan(app: FastAPI, registry: svcs.Registry):  # noqa: ARG001
     registry.register_factory(AsyncSession, sessionmanager.session)
@@ -78,6 +81,7 @@ async def lifespan(app: FastAPI, registry: svcs.Registry):  # noqa: ARG001
     registry.register_factory(WealthsimpleApiWrapper, wealthsimple_api_wrapper_factory)
     yield
 
+
 app = FastAPI(
     lifespan=lifespan,
     title="retail-portfolio",
@@ -98,6 +102,7 @@ app.include_router(external_router)
 app.include_router(account_router)
 app.include_router(positions_router)
 app.include_router(auth_router, prefix="/auth", tags=["auth"])
+
 
 @app.get("/api/ping")
 async def ping(services: DepContainer) -> dict:
