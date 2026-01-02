@@ -49,6 +49,8 @@ logging.basicConfig(
     format="%(asctime)s [%(levelname)s] %(message)s",
 )
 
+logger = logging.getLogger(__name__)
+
 requests_logger = logging.getLogger("urllib3")
 requests_logger.setLevel(logging.DEBUG)
 requests_logger.propagate = True
@@ -105,8 +107,8 @@ async def ping(services: DepContainer) -> dict:
             response["database"] = "ok"
         else:
             response["database"] = "error"
-    except Exception as e:
-        logging.error(f"Ping DB check failed: {e}")
+    except Exception:
+        logger.exception("Ping DB check failed")
         response["database"] = "error"
 
     return response
