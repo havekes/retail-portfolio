@@ -4,6 +4,7 @@ from src.schemas.user import User
 
 DEFAULT_TOKEN_TYPE = "bearer"
 
+
 class SignupRequest(BaseModel):
     email: EmailStr
     password: str
