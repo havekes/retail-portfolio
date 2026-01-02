@@ -12,8 +12,8 @@ class FullExternalUser(BaseModel):
     user_id: UUID
     institution_id: int
     external_user_id: str
-    last_used_at: datetime | None
-    display_name: str | None
+    last_used_at: datetime | None = None
+    display_name: str | None = None
 
 
 class PublicExternalUserRead(BaseModel):
@@ -22,4 +22,4 @@ class PublicExternalUserRead(BaseModel):
     id: UUID
     user_id: UUID
     institution_id: int
-    display_name: str | None
+    display_name: str | None = None

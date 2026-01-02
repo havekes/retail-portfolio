@@ -99,9 +99,14 @@ async def ping(services: DepContainer) -> dict:
     session = await services.aget(AsyncSession)
 
     response = {}
-    if (await session.execute(select(1))).scalar() == 1:
-        response["database"] = "ok"
-    else:
+    response["ping"] = "pong"
+    try:
+        if (await session.execute(select(1))).scalar() == 1:
+            response["database"] = "ok"
+        else:
+            response["database"] = "error"
+    except Exception as e:
+        logging.error(f"Ping DB check failed: {e}")
         response["database"] = "error"
 
     return response
