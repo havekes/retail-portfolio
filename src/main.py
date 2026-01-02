@@ -1,4 +1,8 @@
 import logging
+<<<<<<< HEAD
+=======
+import os
+>>>>>>> 8c1903d (fix pipeline)
 
 import svcs
 from fastapi import FastAPI
@@ -6,6 +10,10 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from svcs.fastapi import DepContainer
 
+<<<<<<< HEAD
+=======
+from src.controllers.auth import router as auth_router
+>>>>>>> 8c1903d (fix pipeline)
 from src.database import sessionmanager
 from src.external.wealthsimple import (
     WealthsimpleApiWrapper,
@@ -95,6 +103,7 @@ app.include_router(account_router)
 app.include_router(positions_router)
 
 
+
 @app.get("/api/ping")
 async def ping(services: DepContainer) -> dict[str, str]:
     """Server healthcheck"""
@@ -110,5 +119,8 @@ async def ping(services: DepContainer) -> dict[str, str]:
     except Exception:
         logger.exception("Ping DB check failed")
         response["database"] = "error"
+<<<<<<< HEAD
 
+=======
+>>>>>>> 8c1903d (fix pipeline)
     return response

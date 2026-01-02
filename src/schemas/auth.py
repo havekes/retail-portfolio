@@ -4,7 +4,10 @@ from src.schemas.user import User
 
 DEFAULT_TOKEN_TYPE = "bearer"
 
+<<<<<<< HEAD
 
+=======
+>>>>>>> 8c1903d (fix pipeline)
 class SignupRequest(BaseModel):
     email: EmailStr
     password: str
