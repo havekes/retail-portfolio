@@ -5,3 +5,4 @@ frontend/
 node_modules/
 
 .coverage
+.bash_history

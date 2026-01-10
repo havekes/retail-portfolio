@@ -27,8 +27,9 @@ App available at `http://127.0.0.1:8001`.
 
 ## Development Workflow
 1. Activate venv: `source .venv/bin/activate`
-2. Run tests: `uv run pytest`
+2. Run `basedpyright` checks: `uv run basedpyright`
 3. Lint code: `uv run ruff check`
+4. Run tests: `uv run pytest`
 
 **MANDATORY**: When writing or editing code, **ALWAYS** run linting (`uv run ruff check`) and tests (`uv run pytest`) before submitting.
 
