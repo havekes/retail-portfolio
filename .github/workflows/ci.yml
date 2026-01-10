@@ -25,7 +25,7 @@ jobs:
         run: uv sync --dev
 
       - name: Check with basedpyright
-        run: uv run basedbyrightx
+        run: uv run basedpyright
 
       - name: Lint with ruff
         run: uv run ruff check src/ && uv run ruff format --check src/
