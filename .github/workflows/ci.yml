@@ -31,7 +31,7 @@ jobs:
       - name: Check with basedpyright
         run: |
           source .cache/venv/bin/activate
-          uv run basedpyright
+          uv run basedpyright src
 
       - name: Lint with ruff
         run: uv run ruff check src/ && uv run ruff format --check src/
