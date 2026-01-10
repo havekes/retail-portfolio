@@ -8,12 +8,16 @@ from sqlalchemy.ext.asyncio import (
     async_sessionmaker,
     create_async_engine,
 )
+from sqlalchemy.ext.asyncio.engine import AsyncEngine
 
 from src.config.settings import settings
 
 
 class DatabaseSessionManager:
-    def __init__(self, host: str, engine_kwargs: dict[str, Any] = {}):  # noqa: B006
+    _engine: AsyncEngine | None
+    _sessionmaker: async_sessionmaker[AsyncSession] | None
+
+    def __init__(self, host: str, engine_kwargs: dict[str, Any] = {}):  # noqa: B006  # pyright: ignore[reportExplicitAny, reportCallInDefaultInitializer]
         self._engine = create_async_engine(host, **engine_kwargs)
         self._sessionmaker = async_sessionmaker(autocommit=False, bind=self._engine)
 

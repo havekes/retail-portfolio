@@ -1,3 +1,5 @@
+from typing import override
+
 from sqlalchemy.ext.asyncio import AsyncSession
 from svcs import Container
 
@@ -12,6 +14,7 @@ class SqlAlchemyAccountTypeRepository(AccountTypeRepository):
     def __init__(self, session: AsyncSession):
         self._session = session
 
+    @override
     async def get_account_type(self, account_type_id: int) -> AccountType | None:
         result = await self._session.get(AccountTypeModel, account_type_id)
         if result:

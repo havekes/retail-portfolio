@@ -1,3 +1,4 @@
+from typing import override
 from uuid import UUID
 
 from sqlalchemy import func, select, update
@@ -15,12 +16,14 @@ class SqlAlchemyExternalUserRepository(ExternalUserRepository):
     def __init__(self, session: AsyncSession) -> None:
         self._session = session
 
+    @override
     async def create(self, external_user: FullExternalUser) -> FullExternalUser:
         external_user_model = ExternalUserModel(**external_user.model_dump())
         self._session.add(external_user_model)
         await self._session.commit()
         return external_user
 
+    @override
     async def get(self, external_user_id: UUID) -> FullExternalUser | None:
         q = select(ExternalUserModel).where(ExternalUserModel.id == external_user_id)
         result = await self._session.scalar(q)
@@ -28,6 +31,7 @@ class SqlAlchemyExternalUserRepository(ExternalUserRepository):
             return None
         return FullExternalUser.model_validate(result)
 
+    @override
     async def get_by_user_and_institution(
         self, user_id: UUID, institution_id: int
     ) -> list[FullExternalUser]:
@@ -41,6 +45,7 @@ class SqlAlchemyExternalUserRepository(ExternalUserRepository):
             for external_user in results.all()
         ]
 
+    @override
     async def get_unique(
         self, user_id: UUID, institution_id: int, username: str
     ) -> FullExternalUser | None:
@@ -54,6 +59,7 @@ class SqlAlchemyExternalUserRepository(ExternalUserRepository):
             return None
         return FullExternalUser.model_validate(result)
 
+    @override
     async def exists(self, user_id: UUID, institution_id: int, username: str) -> bool:
         q = select(ExternalUserModel).where(
             ExternalUserModel.user_id == user_id,
@@ -62,6 +68,7 @@ class SqlAlchemyExternalUserRepository(ExternalUserRepository):
         )
         return bool(await self._session.scalar(select(q.exists())))
 
+    @override
     async def update_last_used_at(self, external_user: FullExternalUser) -> None:
         q = (
             update(ExternalUserModel)
@@ -69,7 +76,7 @@ class SqlAlchemyExternalUserRepository(ExternalUserRepository):
             .values(last_used_at=func.now())
         )
 
-        await self._session.execute(q)
+        _ = await self._session.execute(q)
         await self._session.commit()
 
 

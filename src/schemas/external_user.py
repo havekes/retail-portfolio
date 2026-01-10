@@ -2,7 +2,6 @@ from datetime import datetime
 from uuid import UUID
 
 from pydantic import BaseModel, ConfigDict
-from ws_api.wealthsimple_api import uuid
 
 
 class FullExternalUser(BaseModel):

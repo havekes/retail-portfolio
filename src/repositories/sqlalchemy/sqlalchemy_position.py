@@ -1,3 +1,4 @@
+from typing import override
 from uuid import UUID
 
 from sqlalchemy import select
@@ -16,6 +17,7 @@ class SqlAlchemyPositionRepository(PositionRepository):
     def __init__(self, session: AsyncSession):
         self._session = session
 
+    @override
     async def create_or_update(self, position: Position) -> Position:
         values = position.model_dump(exclude={"id"})
         result = await self._session.execute(
@@ -41,6 +43,7 @@ class SqlAlchemyPositionRepository(PositionRepository):
         await self._session.commit()
         return Position.model_validate(dict(row_data))
 
+    @override
     async def get_by_account(self, account_id: UUID) -> list[Position]:
         result = await self._session.execute(
             select(PositionModel).where(PositionModel.account_id == account_id)

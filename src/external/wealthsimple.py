@@ -1,22 +1,12 @@
 import logging
-import sys
 import uuid
 from collections.abc import AsyncGenerator
 from datetime import UTC, datetime
+from typing import Any, cast, override
 from uuid import UUID
 
 import keyring
 from svcs import Container
-
-from src.config.settings import settings
-
-# Force reload the ws_api module from local path during development
-if settings.envrionement == "dev":
-    sys.path.insert(0, "/app/modules/ws-api-python")
-    for module_name in list(sys.modules.keys()):
-        if module_name.startswith("ws_api"):
-            del sys.modules[module_name]
-
 from ws_api import WealthsimpleAPI
 from ws_api.exceptions import (
     LoginFailedException,
@@ -40,12 +30,13 @@ from src.repositories.account import AccountRepository
 from src.repositories.account_type import AccountTypeRepository
 from src.repositories.position import PositionRepository
 from src.repositories.security import SecurityRepository
-from src.schemas import Account, AccountType, FullExternalUser, Position, Security
+from src.schemas import Account, FullExternalUser, Position, Security
 
 logger = logging.getLogger(__name__)
 
 
 class WealthsimpleApiWrapper(ExternalAPIWrapper):
+    _username: str
     _keyring_prefix: str = "retail_prtofolio_wealthsimple"
     _institution: InstitutionEnum = InstitutionEnum.WEALTHSIMPLE
 
@@ -73,8 +64,8 @@ class WealthsimpleApiWrapper(ExternalAPIWrapper):
     ) -> None:
         keyring.set_password(f"{self._keyring_prefix}.{username}", "session", session)
 
-    def _ws_login(self, username: str, password: str, otp: str | None) -> None:
-        WealthsimpleAPI.login(
+    def _ws_login(self, username: str, password: str, otp: str | None) -> WSAPISession:
+        return WealthsimpleAPI.login(
             username,
             password,
             otp,
@@ -86,6 +77,7 @@ class WealthsimpleApiWrapper(ExternalAPIWrapper):
             user_id, ws_account_id
         )
 
+    @override
     def login(
         self,
         username: str,
@@ -104,14 +96,14 @@ class WealthsimpleApiWrapper(ExternalAPIWrapper):
         try:
             self._username = username
             # Attempt to get cached session
-            self._get_session(username)
+            _ = self._get_session(username)
             # Test if session is still valid
             self._get_client(username).get_accounts()
         except SessionDoesNotExistError:
             try:
                 if password is None:
                     raise LoginFailedError
-                self._ws_login(username, password, otp)
+                _ = self._ws_login(username, password, otp)
             except LoginFailedException as e:
                 raise LoginFailedError from e
             except OTPRequiredException as e:
@@ -122,13 +114,14 @@ class WealthsimpleApiWrapper(ExternalAPIWrapper):
         logger.info("User %s logged into Wealthsimple", username)
         return True
 
+    @override
     async def list_accounts(
         self,
         external_user: FullExternalUser,
     ) -> list[ExternalAccount]:
         ws_client = self._get_client(external_user.external_user_id)
-        ws_accounts = ws_client.get_accounts()
-        accounts = []
+        ws_accounts = cast("list[dict[str, Any]]", ws_client.get_accounts())  # pyright: ignore[reportExplicitAny]
+        accounts: list[ExternalAccount] = []
 
         for ws_account in ws_accounts:
             if ws_account["status"] != "open":
@@ -162,14 +155,15 @@ class WealthsimpleApiWrapper(ExternalAPIWrapper):
 
         return accounts
 
+    @override
     async def import_accounts(
         self,
         external_user: FullExternalUser,
         account_ids: list[str] | None = None,
     ) -> list[Account]:
         ws_client = self._get_client(external_user.external_user_id)
-        ws_accounts = ws_client.get_accounts()
-        created_accounts = []
+        ws_accounts = cast("list[dict[str, Any]]", ws_client.get_accounts())  # pyright: ignore[reportExplicitAny]
+        created_accounts: list[Account] = []
 
         for ws_account in ws_accounts:
             ws_account_id = ws_account["id"]
@@ -207,7 +201,7 @@ class WealthsimpleApiWrapper(ExternalAPIWrapper):
             if account_type is None:
                 raise AccountTypeUnkownError(ws_account["unifiedAccountType"])
 
-            await self._account_repository.create_account(
+            account = await self._account_repository.create_account(
                 Account(
                     external_id=ws_account["id"],
                     name=ws_account["description"],
@@ -219,20 +213,23 @@ class WealthsimpleApiWrapper(ExternalAPIWrapper):
             )
             logger.info(
                 "Imported account %s for user %s",
-                ws_account_id,
+                account.external_id,
                 external_user.user_id,
             )
 
         return created_accounts
 
+    @override
     async def import_positions(
         self,
         external_user: FullExternalUser,
         account: Account,
     ) -> list[Position]:
         ws_client = self._get_client(external_user.external_user_id)
-        ws_balances = ws_client.get_account_balances(account.external_id)
-        positions = []
+        ws_balances = cast(
+            "dict[str, float]", ws_client.get_account_balances(account.external_id)
+        )
+        positions: list[Position] = []
 
         for security_id, ws_balance in ws_balances.items():
             if security_id == "sec-c-cad":
@@ -242,7 +239,7 @@ class WealthsimpleApiWrapper(ExternalAPIWrapper):
             # Handle API bug where security id is wrapped in []
             trimmed_security_id = security_id[1:-1]
 
-            ws_security_market_data = ws_client.get_security_market_data(
+            ws_security_market_data = ws_client.get_security_market_data(  # pyright: ignore[reportUnknownVariableType]
                 trimmed_security_id
             )
             assert isinstance(ws_security_market_data, dict)
@@ -273,19 +270,20 @@ class WealthsimpleApiWrapper(ExternalAPIWrapper):
 
         return positions
 
-    async def _import_security(self, ws_security_market_data: dict) -> Security:
-        stock_info = ws_security_market_data["stock"]
+    async def _import_security(self, ws_security_market_data: dict) -> Security:  # pyright: ignore[reportMissingTypeArgument, reportUnknownParameterType]
+        stock_info = cast("dict[str, Any]", ws_security_market_data["stock"])  # pyright: ignore[reportExplicitAny]
 
         if stock_info["primaryExchange"] is None:
             raise UnsupportedSecurityError
 
         symbol = f"{stock_info['primaryExchange']}:{stock_info['symbol']}"
+        market_cap = int(ws_security_market_data["fundamentals"]["marketCap"])  # pyright: ignore[reportUnknownArgumentType]
 
         return await self._security_repository.get_or_create(
             Security(
                 symbol=symbol,
                 name=stock_info["name"],
-                market_cap=ws_security_market_data["fundamentals"]["marketCap"] or 0,
+                market_cap=market_cap,
             )
         )
 
@@ -309,13 +307,15 @@ class WealthsimpleApiWrapper(ExternalAPIWrapper):
     def _ws_get_identity_positions(
         self,
         client: WealthsimpleAPI,
-        security_ids: list | None = None,
+        security_ids: list[str] | None = None,
         currency: str = "CAD",
     ):
         return client.get_identity_positions(security_ids, currency)
 
     def _get_average_cost(
-        self, account: Account, ws_positions: list[dict]
+        self,
+        account: Account,
+        ws_positions: list[dict[str, Any]],  # pyright: ignore[reportExplicitAny]
     ) -> float | None:
         average_cost = None
         for ws_position in ws_positions:

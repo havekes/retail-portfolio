@@ -10,12 +10,12 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 from . import Base
 
 if TYPE_CHECKING:
-    from models.account import Account
-    from models.action_item import ActionItem
-    from models.external_user import ExternalUser
-    from models.note import Note
-    from models.reminder import Reminder
-    from models.watchlist import Watchlist
+    from .account import Account
+    from .action_item import ActionItem
+    from .external_user import ExternalUser
+    from .note import Note
+    from .reminder import Reminder
+    from .watchlist import Watchlist
 
 
 class User(Base):

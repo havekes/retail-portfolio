@@ -7,4 +7,4 @@ class Settings(BaseSettings):
     echo_sql: bool = True
 
 
-settings = Settings()  # pyright: ignore[reportCallIssue]
+settings = Settings()

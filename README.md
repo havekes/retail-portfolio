@@ -56,3 +56,16 @@ Other modules:
 - Config
   - Application wide typed configuration schema
 - Commands
+
+### Code snippets
+
+#### Load local library only during dev
+
+```python
+# Force reload the ws_api module from local path during development
+if settings.envrionement == "dev":
+    sys.path.insert(0, "/app/modules/ws-api-python")
+    for module_name in list(sys.modules.keys()):
+        if module_name.startswith("ws_api"):
+            del sys.modules[module_name]
+```

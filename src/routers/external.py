@@ -1,4 +1,3 @@
-from typing import Annotated
 from uuid import UUID
 
 from fastapi import APIRouter, HTTPException
@@ -9,7 +8,6 @@ from src.external import get_external_api_wrapper_class
 from src.external.schemas.accounts import ExternalAccount
 from src.repositories.account import AccountRepository
 from src.repositories.external_user import ExternalUserRepository
-from src.schemas import FullExternalUser
 from src.schemas.external import (
     ExternalImportAccountsRequest,
     ExternalImportPositionsRequest,
@@ -62,7 +60,7 @@ async def external_login(
     )
     user_service = await services.aget(UserService)
 
-    await external_user_service.get_or_create(
+    _ = await external_user_service.get_or_create(
         user=await user_service.get_current_user(),
         institution=institution,
         username=login_request.username,
