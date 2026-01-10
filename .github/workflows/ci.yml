@@ -24,13 +24,14 @@ jobs:
       - name: Create venv
         run: |
           uv venv .cache/venv
-          source .cache/venv/bin/activate
 
       - name: Install dependencies
         run: uv sync --dev
 
       - name: Check with basedpyright
-        run: uv run basedpyright
+        run: |
+          source .cache/venv/bin/activate
+          uv run basedpyright
 
       - name: Lint with ruff
         run: uv run ruff check src/ && uv run ruff format --check src/
