@@ -26,12 +26,12 @@ jobs:
 
       - name: Check with basedpyright
         run: |
-          uv run basedpyright src
+          uv run basedpyright
 
       - name: Lint with ruff
-        run: uv run ruff check src/ && uv run ruff format --check src/
+        run: uv run ruff check && uv run ruff format --check
 
       - name: Run tests
-        run: uv run pytest tests/
+        run: uv run pytest
         env:
           DATABASE_URL: "sqlite+aiosqlite:///:memory:"
