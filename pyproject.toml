@@ -123,7 +123,7 @@ ignore = ["S101", "COM812", "ISC001", "TC001", "TC002", "TC003", "EXE002", "RUF0
 
 [tool.basedpyright]
 venvPath = ".cache/"
-venv = "container_venv"
+venv = "venv"
 exclude = [
     "**/__pycache__",
     "migrations",
