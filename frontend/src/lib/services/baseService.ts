@@ -2,7 +2,7 @@ export abstract class BaseService {
 	protected baseUrl: string;
 
 	constructor() {
-		this.baseUrl = import.meta.env.VITE_API_BASE_URL;
+		this.baseUrl = import.meta.env.VITE_API_BASE_URL + '/api';
 	}
 
 	protected async get<T>(endpoint: string, headers?: Record<string, string>): Promise<T> {

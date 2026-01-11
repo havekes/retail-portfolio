@@ -1,8 +1,8 @@
+from typing import TypedDict
+
 from pydantic import BaseModel, EmailStr
 
 from src.schemas.user import User
-
-DEFAULT_TOKEN_TYPE = "bearer"
 
 
 class SignupRequest(BaseModel):
@@ -17,5 +17,9 @@ class LoginRequest(BaseModel):
 
 class AuthResponse(BaseModel):
     access_token: str
-    token_type: str = DEFAULT_TOKEN_TYPE
     user: User
+
+
+class AccessTokenData(BaseModel):
+    sub: str
+    exp: str

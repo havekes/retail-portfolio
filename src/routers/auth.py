@@ -1,9 +1,6 @@
-from fastapi import APIRouter, Depends
-from sqlalchemy.ext.asyncio import AsyncSession
+from fastapi import APIRouter
 from svcs.fastapi import DepContainer
 
-from src.database import get_db_session
-from src.repositories.sqlalchemy.sqlalchemy_user import SqlAlchemyUserRepository
 from src.schemas.auth import AuthResponse, LoginRequest, SignupRequest
 from src.services.auth import AuthService
 

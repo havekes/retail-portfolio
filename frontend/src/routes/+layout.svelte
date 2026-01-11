@@ -1,30 +1,34 @@
 <script lang="ts">
-  import '../app.css';
-  // import favicon from '$lib/assets/favicon.svg';
-  import { goto } from '$app/navigation';
-  import { page } from '$app/stores'; // Pour accéder à l'URL actuelle
-  import { userStore } from '$lib/stores/userStore';
-  import type { User } from '$lib/types/user';
+	import '../app.css';
+	import { ModeWatcher } from 'mode-watcher';
 
-  let { children } = $props();
+	// import favicon from '$lib/assets/favicon.svg';
+	import { goto } from '$app/navigation';
+	import { page } from '$app/stores'; // Pour accéder à l'URL actuelle
+	import { userStore } from '$lib/stores/userStore';
+	import type { User } from '$lib/types/user';
 
-  let user: User | null = $state(null);
-  userStore.subscribe((u) => (user = u));
+	let { children } = $props();
 
-  function shouldRedirect() {
-    const currentPath = $page.url.pathname;
-    return !user && currentPath !== '/login' && currentPath !== '/signup';
-  }
+	let user: User | null = $state(null);
+	userStore.subscribe((u) => (user = u));
 
-  $effect(() => {
-    if (shouldRedirect()) {
-      goto('/login');
-    }
-  });
+	function shouldRedirect() {
+		const currentPath = $page.url.pathname;
+		return !user && currentPath !== '/login' && currentPath !== '/signup';
+	}
+
+	$effect(() => {
+		if (shouldRedirect()) {
+			goto('/login');
+		}
+	});
 </script>
 
 <svelte:head>
-  <!-- <link rel="icon" href={favicon} /> -->
+	<!-- <link rel="icon" href={favicon} /> -->
 </svelte:head>
+
+<ModeWatcher />
 
 {@render children()}

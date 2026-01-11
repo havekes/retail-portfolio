@@ -7,6 +7,7 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from svcs.fastapi import DepContainer
 
+from src.config.settings import settings
 from src.database import sessionmanager
 from src.external.wealthsimple import (
     WealthsimpleApiWrapper,
@@ -37,8 +38,10 @@ from src.repositories.sqlalchemy.sqlalchemy_user import (
 )
 from src.repositories.user import UserRepository
 from src.routers.accounts import router as account_router
+from src.routers.auth import router as auth_router
 from src.routers.external import router as external_router
 from src.routers.positions import router as positions_router
+from src.services.auth import AuthService, auth_service_factory
 from src.services.external_user import (
     ExternalUserService,
     external_user_service_factory,
@@ -76,6 +79,7 @@ async def lifespan(_: FastAPI, registry: svcs.Registry):
         SecurityRepository, sqlaclhemy_security_repository_factory
     )
     # Services
+    registry.register_factory(AuthService, auth_service_factory)
     registry.register_factory(ExternalUserService, external_user_service_factory)
     registry.register_factory(UserService, user_service_factory)
     # External API Wrapper services
@@ -89,20 +93,18 @@ app = FastAPI(
     version="0.0.0",
 )
 
-cors_origins_str = os.getenv("CORS_ORIGINS", "http://localhost:8100")
-cors_origins = [origin.strip() for origin in cors_origins_str.split(",")]
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=cors_origins,
+    allow_origins=[origin.strip() for origin in settings.cors_allow_origins.split(",")],
     allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
+    allow_methods=[origin.strip() for origin in settings.cors_allow_methods.split(",")],
+    allow_headers=[origin.strip() for origin in settings.cors_allow_headers.split(",")],
 )
 
 app.include_router(external_router)
 app.include_router(account_router)
 app.include_router(positions_router)
-app.include_router(auth_router, prefix="/auth", tags=["auth"])
+app.include_router(auth_router)
 
 
 @app.get("/api/ping")
