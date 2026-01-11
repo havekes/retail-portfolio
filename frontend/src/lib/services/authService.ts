@@ -20,13 +20,13 @@ export interface AuthResponse {
 
 export class AuthService extends BaseService {
 	async login(credentials: LoginRequest): Promise<AuthResponse> {
-		const response = await this.post<AuthResponse>('/auth/login', credentials);
+		const response = await this.post<AuthResponse, LoginRequest>('/auth/login', credentials);
 		userStore.setUser(response.user, response.access_token);
 		return response;
 	}
 
 	async signup(credentials: SignupRequest): Promise<AuthResponse> {
-		const response = await this.post<AuthResponse>('/auth/signup', credentials);
+		const response = await this.post<AuthResponse, SignupRequest>('/auth/signup', credentials);
 		userStore.setUser(response.user, response.access_token);
 		return response;
 	}

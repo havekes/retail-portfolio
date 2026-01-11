@@ -11,6 +11,7 @@ A portfolio tracker designed for the retail investor
 
 ### Running the app
 
+- Create Vite `.env`
 - Using Docker compose is the preferred way to run the application.
 - The app will be available at `http://127.0.0.1:8001`.
 - Test the ping endpoint at `http://127.0.0.1:8001/api/ping` (returns `{"ping": "pong"}`).
@@ -56,6 +57,11 @@ Other modules:
 - Config
   - Application wide typed configuration schema
 - Commands
+### Do's and don'ts
+
+#### Don't
+
+- Raise HTTPException from within a serice. Raise a custom exception and handle it in the router.
 
 ### Code snippets
 

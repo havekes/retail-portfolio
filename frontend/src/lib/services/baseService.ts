@@ -21,9 +21,9 @@ export abstract class BaseService {
 		return response.json();
 	}
 
-	protected async post<T>(
+	protected async post<T, R>(
 		endpoint: string,
-		body: any,
+		payload: R,
 		headers?: Record<string, string>
 	): Promise<T> {
 		const response = await fetch(`${this.baseUrl}${endpoint}`, {
@@ -32,7 +32,28 @@ export abstract class BaseService {
 				'Content-Type': 'application/json',
 				...headers
 			},
-			body: JSON.stringify(body)
+			body: JSON.stringify(payload)
+		});
+
+		if (!response.ok) {
+			throw new Error(`POST ${endpoint} failed: ${response.statusText}`);
+		}
+
+		return response.json();
+	}
+
+	protected async patch<T, R>(
+		endpoint: string,
+		payload: R,
+		headers?: Record<string, string>
+	): Promise<T> {
+		const response = await fetch(`${this.baseUrl}${endpoint}`, {
+			method: 'PATCH',
+			headers: {
+				'Content-Type': 'application/json',
+				...headers
+			},
+			body: JSON.stringify(payload)
 		});
 
 		if (!response.ok) {

@@ -51,6 +51,19 @@ class SqlAlchemyAccountRepository(AccountRepository):
             Account.model_validate(account_model) for account_model in account_models
         ]
 
+    @override
+    async def rename(self, account_id: UUID, new_name: str) -> Account:
+        account_model = await self._session.get(AccountModel, account_id)
+        if account_model is None:
+            error = f"Account with id {account_id} not found"
+            raise ValueError(error)
+
+        account_model.name = new_name
+        await self._session.commit()
+        await self._session.refresh(account_model)
+
+        return Account.model_validate(account_model)
+
 
 async def sqlalchemy_account_repository_factory(
     container: Container,

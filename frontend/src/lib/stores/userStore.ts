@@ -12,7 +12,7 @@ export const userStore = (() => {
 		token: null
 	};
 
-	// Charger depuis sessionStorage au démarrage
+	// Load from sessionStorage at startup
 	const storedToken = sessionStorage.getItem('auth_token');
 	const storedUser = sessionStorage.getItem('auth_user');
 	if (storedToken && storedUser) {
@@ -20,40 +20,46 @@ export const userStore = (() => {
 			initialState.token = storedToken;
 			initialState.user = JSON.parse(storedUser);
 		} catch (error) {
-			console.error('Erreur lors du chargement depuis sessionStorage:', error);
+			console.error('Error when parsing session stored user data', error);
 			sessionStorage.removeItem('auth_token');
 			sessionStorage.removeItem('auth_user');
 		}
 	}
 
-	const { subscribe, set, update } = writable<AuthState>(initialState);
+	const { subscribe, update } = writable<AuthState>(initialState);
+
+	const setUser = (user: User, token: string) => {
+		update((state) => {
+			state.user = user;
+			state.token = token;
+			sessionStorage.setItem('auth_token', token);
+			sessionStorage.setItem('auth_user', JSON.stringify(user));
+			return state;
+		});
+	};
+
+	const clearUser = () => {
+		update((state) => {
+			state.user = null;
+			state.token = null;
+			sessionStorage.removeItem('auth_token');
+			sessionStorage.removeItem('auth_user');
+			return state;
+		});
+	};
+
+	const getToken = () => {
+		let token: string | null = null;
+		subscribe((state) => {
+			token = state.token;
+		})();
+		return token;
+	};
 
 	return {
 		subscribe,
-		setUser: (user: User, token: string) => {
-			update((state) => {
-				state.user = user;
-				state.token = token;
-				sessionStorage.setItem('auth_token', token);
-				sessionStorage.setItem('auth_user', JSON.stringify(user));
-				return state;
-			});
-		},
-		clearUser: () => {
-			update((state) => {
-				state.user = null;
-				state.token = null;
-				sessionStorage.removeItem('auth_token');
-				sessionStorage.removeItem('auth_user');
-				return state;
-			});
-		},
-		getToken: () => {
-			let token: string | null = null;
-			subscribe((state) => {
-				token = state.token;
-			})();
-			return token;
-		}
+		setUser,
+		clearUser,
+		getToken
 	};
 })();

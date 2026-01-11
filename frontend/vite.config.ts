@@ -4,13 +4,13 @@ import { defineConfig } from 'vite';
 
 export default defineConfig({
 	plugins: [tailwindcss(), sveltekit()],
-	  resolve: {
+	resolve: {
 		alias: {
-			$lib: '/app/src/lib',  // Assurez-vous que ça pointe vers le bon chemin
-		},
+			$lib: '/app/src/lib' // Assurez-vous que ça pointe vers le bon chemin
+		}
 	},
 	server: {
 		host: '0.0.0.0',
-		port: 8100,
+		port: 8100
 	}
 });

@@ -1,5 +1,3 @@
-from typing import TypedDict
-
 from pydantic import BaseModel, EmailStr
 
 from src.schemas.user import User

@@ -46,6 +46,7 @@ from src.services.external_user import (
     ExternalUserService,
     external_user_service_factory,
 )
+from src.services.position import PositionService, position_service_factory
 from src.services.user import UserService, user_service_factory
 
 logging.basicConfig(
@@ -81,6 +82,7 @@ async def lifespan(_: FastAPI, registry: svcs.Registry):
     # Services
     registry.register_factory(AuthService, auth_service_factory)
     registry.register_factory(ExternalUserService, external_user_service_factory)
+    registry.register_factory(PositionService, position_service_factory)
     registry.register_factory(UserService, user_service_factory)
     # External API Wrapper services
     registry.register_factory(WealthsimpleApiWrapper, wealthsimple_api_wrapper_factory)

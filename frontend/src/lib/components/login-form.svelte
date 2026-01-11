@@ -1,15 +1,12 @@
 <script lang="ts">
+	import { goto } from '$app/navigation';
 	import { Button } from '$lib/components/ui/button/index.js';
 	import * as Card from '$lib/components/ui/card/index.js';
 	import { Input } from '$lib/components/ui/input/index.js';
-	import {
-		FieldGroup,
-		Field,
-		FieldLabel,
-		FieldDescription
-	} from '$lib/components/ui/field/index.js';
+	import { FieldGroup, Field, FieldDescription } from '$lib/components/ui/field/index.js';
 	import { authService } from '$lib/services/authService';
 	import { userStore } from '$lib/stores/userStore';
+	import { resolve } from '$app/paths';
 
 	const id = $props.id();
 
@@ -26,7 +23,8 @@
 		try {
 			const response = await authService.login({ email, password });
 			userStore.setUser(response.user, response.access_token);
-		} catch (err) {
+			goto(resolve('/'));
+		} catch {
 			error = 'Login failed. Please check your credentials.';
 		} finally {
 			isLoading = false;
@@ -43,20 +41,16 @@
 		<form onsubmit={handleSubmit}>
 			<FieldGroup>
 				<Field>
-					<FieldLabel for="email-{id}">Email</FieldLabel>
-					<Input
-						id="email-{id}"
-						type="email"
-						placeholder="m@example.com"
-						required
-						bind:value={email}
-					/>
+					<Input id="email-{id}" type="email" placeholder="Email" required bind:value={email} />
 				</Field>
 				<Field>
-					<div class="flex items-center">
-						<FieldLabel for="password-{id}">Password</FieldLabel>
-					</div>
-					<Input id="password-{id}" type="password" required bind:value={password} />
+					<Input
+						id="password-{id}"
+						type="password"
+						placeholder="Password"
+						required
+						bind:value={password}
+					/>
 				</Field>
 				{#if error}
 					<p class="text-sm text-red-500">{error}</p>
@@ -66,7 +60,7 @@
 						{isLoading ? 'Logging in...' : 'Login'}
 					</Button>
 					<FieldDescription class="text-center">
-						Don't have an account? <a href="/signup">Sign up</a>
+						Don't have an account? <a href={resolve('/signup')}>Sign up for free</a>
 					</FieldDescription>
 				</Field>
 			</FieldGroup>

@@ -21,6 +21,7 @@ dependencies = [
     "ws-api>=0.25.0",
     "PyJWT",
     "bcrypt",
+    "stockholm>=0.5.7",
 ]
 
 [dependency-groups]

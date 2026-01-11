@@ -18,8 +18,10 @@ ACCESS_TOKEN_EXPIRE_MINUTES = 30
 
 
 class AuthService:
+    _user_repository: UserRepository
+
     def __init__(self, user_repository: UserRepository):
-        self.user_repository = user_repository
+        self._user_repository = user_repository
 
     def verify_password(self, plain_password: str, hashed_password: str) -> bool:
         return bcrypt.checkpw(
@@ -50,19 +52,19 @@ class AuthService:
         )
 
     async def signup(self, email: str, password: str) -> AuthResponse:
-        existing_user = await self.user_repository.get_by_email(email)
+        existing_user = await self._user_repository.get_by_email(email)
 
         if existing_user is not None:
             raise AuthUserAlreadyExistsError
 
         hashed_password = self.hash_password(password)
-        user = await self.user_repository.create_user(email, hashed_password)
+        user = await self._user_repository.create_user(email, hashed_password)
         access_token = self.create_access_token(user.email)
 
         return AuthResponse(access_token=access_token, user=user)
 
     async def login(self, email: str, password: str) -> AuthResponse:
-        user = await self.user_repository.get_by_email(email)
+        user = await self._user_repository.get_by_email(email)
 
         if not user or not self.verify_password(password, user.password):
             raise AuthInvalidCredentialsError

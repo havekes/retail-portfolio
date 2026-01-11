@@ -1,26 +1,25 @@
 <script lang="ts">
 	import '../app.css';
 	import { ModeWatcher } from 'mode-watcher';
-
-	// import favicon from '$lib/assets/favicon.svg';
 	import { goto } from '$app/navigation';
-	import { page } from '$app/stores'; // Pour accéder à l'URL actuelle
+	import { page } from '$app/state';
 	import { userStore } from '$lib/stores/userStore';
 	import type { User } from '$lib/types/user';
+	import { resolve } from '$app/paths';
 
 	let { children } = $props();
 
 	let user: User | null = $state(null);
-	userStore.subscribe((u) => (user = u));
+	userStore.subscribe((authState) => (user = authState.user));
 
-	function shouldRedirect() {
-		const currentPath = $page.url.pathname;
+	const shouldRedirect = () => {
+		const currentPath = page.url.pathname;
 		return !user && currentPath !== '/login' && currentPath !== '/signup';
-	}
+	};
 
 	$effect(() => {
 		if (shouldRedirect()) {
-			goto('/login');
+			goto(resolve('/login'));
 		}
 	});
 </script>

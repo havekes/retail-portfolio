@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { goto } from '$app/navigation';
 	import { Button } from '$lib/components/ui/button/index.js';
 	import * as Card from '$lib/components/ui/card/index.js';
 	import { Input } from '$lib/components/ui/input/index.js';
@@ -10,6 +11,8 @@
 	} from '$lib/components/ui/field/index.js';
 	import { authService } from '$lib/services/authService';
 	import { userStore } from '$lib/stores/userStore';
+	import { resolve } from '$app/paths';
+
 	const id = $props.id();
 	let email = $state('');
 	let password = $state('');
@@ -28,7 +31,8 @@
 		try {
 			const response = await authService.signup({ email, password });
 			userStore.setUser(response.user, response.access_token);
-		} catch (err) {
+			goto(resolve('/'));
+		} catch {
 			error = 'Signup failed. Please try again.';
 		} finally {
 			isLoading = false;
@@ -70,7 +74,7 @@
 						{isLoading ? 'Signing up...' : 'Sign Up'}
 					</Button>
 					<FieldDescription class="text-center">
-						Already have an account? <a href="/login">Login</a>
+						Already have an account? <a href={resolve('/login')}>Login</a>
 					</FieldDescription>
 				</Field>
 			</FieldGroup>
