@@ -1,8 +1,6 @@
 from abc import ABC, abstractmethod
 from uuid import UUID
 
-from starlette.types import ASGIApp
-
 from src.schemas.account import Account
 
 

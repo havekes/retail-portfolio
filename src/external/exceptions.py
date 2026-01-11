@@ -1,3 +1,6 @@
+from typing import override
+
+
 class ExternalAPIError(Exception):
     pass
 
@@ -23,11 +26,15 @@ class UnknownError(ExternalAPIError):
 
 
 class AccountTypeUnkownError(ExternalAPIError):
-    def __init__(self, account_type: str) -> None:
-        self.account_type = account_type
+    _account_type: str
 
+    def __init__(self, account_type: str) -> None:
+        super().__init__()
+        self._account_type = account_type
+
+    @override
     def __repr__(self) -> str:
-        return f'Account type "{self.account_type}" unkown'
+        return f'Account type "{self._account_type}" unkown'
 
 
 class IncorrectAccountError(Exception):

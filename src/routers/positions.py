@@ -1,11 +1,10 @@
 from uuid import UUID
 
-from fastapi import APIRouter, Depends, HTTPException, Path
+from fastapi import APIRouter, HTTPException
 from svcs.fastapi import DepContainer
 
 from src.repositories.account import AccountRepository
 from src.repositories.position import PositionRepository
-from src.schemas.account import Account
 from src.schemas.position import Position
 from src.services.user import UserService
 

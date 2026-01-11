@@ -57,7 +57,7 @@ requests_logger.propagate = True
 
 
 @svcs.fastapi.lifespan
-async def lifespan(app: FastAPI, registry: svcs.Registry):  # noqa: ARG001
+async def lifespan(_: FastAPI, registry: svcs.Registry):
     registry.register_factory(AsyncSession, sessionmanager.session)
 
     # Repositories
@@ -96,11 +96,11 @@ app.include_router(positions_router)
 
 
 @app.get("/api/ping")
-async def ping(services: DepContainer) -> dict:
+async def ping(services: DepContainer) -> dict[str, str]:
     """Server healthcheck"""
     session = await services.aget(AsyncSession)
 
-    response = {}
+    response: dict[str, str] = {}
     response["ping"] = "pong"
     try:
         if (await session.execute(select(1))).scalar() == 1:

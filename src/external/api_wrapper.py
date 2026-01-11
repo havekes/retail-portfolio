@@ -2,7 +2,6 @@ from abc import ABC, abstractmethod
 
 import keyring
 from keyrings.alt.file import PlaintextKeyring
-from svcs import Container
 
 from src.enums import InstitutionEnum
 from src.external.schemas.accounts import ExternalAccount

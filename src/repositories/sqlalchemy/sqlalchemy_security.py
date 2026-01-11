@@ -1,3 +1,5 @@
+from typing import override
+
 from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.ext.asyncio import AsyncSession
 from svcs import Container
@@ -13,9 +15,10 @@ class SqlAlchemySecurityRepository(SecurityRepository):
     def __init__(self, session: AsyncSession):
         self._session = session
 
+    @override
     async def get_or_create(self, security: Security) -> Security:
         values = security.model_dump()
-        await self._session.execute(
+        _ = await self._session.execute(
             insert(SecurityModel).values(values).on_conflict_do_nothing()
         )
 
