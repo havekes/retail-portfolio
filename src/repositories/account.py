@@ -22,3 +22,7 @@ class AccountRepository(ABC):
     @abstractmethod
     async def get_by_user(self, user_id: UUID) -> list[Account]:
         pass
+
+    @abstractmethod
+    async def rename(self, account_id: UUID, new_name: str) -> Account:
+        pass

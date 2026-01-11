@@ -7,12 +7,15 @@ services:
       - "8001:8000"
     volumes:
       - ./:/app
+      - ./.env:/app/.env
     working_dir: /app
     command: sh -c "uv sync && uv run uvicorn src.main:app --reload --host 0.0.0.0 --port 8000"
     depends_on:
       - postgres
     environment:
       DATABASE_URL: postgresql+asyncpg://retail-portfolio-user:password@postgres:5432/retail-portfolio
+      SECRET_KEY: "c92b1362fe22a176b3a01009ebb87bbc641c5beecf169b0216eed560daa7b94d"
+      CORS_ORIGINS: http://localhost:8100
       UV_CACHE_DIR: /app/.cache/uv
       PATH: "/app/.cache/venv/bin:$PATH"
       HOME: /app
@@ -20,7 +23,7 @@ services:
   frontend:
     image: node:latest
     restart: unless-stopped
-    user: 1000:1000
+    user: root
     ports:
       - "8100:8100"
     volumes:

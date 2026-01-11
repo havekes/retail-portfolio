@@ -1,2 +1,16 @@
-<h1>Welcome to SvelteKit</h1>
-<p>Visit <a href="https://svelte.dev/docs/kit">svelte.dev/docs/kit</a> to read the documentation</p>
+<script lang="ts">
+	import AppSidebar from '@/components/app-sidebar.svelte';
+	import { SidebarProvider } from '$lib/components/ui/sidebar/index.js';
+	import AccountsList from '@/components/accounts/accounts-list.svelte';
+</script>
+
+<svelte:head>
+	<title>Portfolio dashboard</title>
+</svelte:head>
+
+<SidebarProvider>
+	<AppSidebar />
+	<main class="w-full">
+		<AccountsList></AccountsList>
+	</main>
+</SidebarProvider>
