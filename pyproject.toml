@@ -18,13 +18,9 @@ dependencies = [
     "sqlalchemy>=2.0.44",
     "svcs>=25.1.0",
     "uvicorn>=0.38.0",
-<<<<<<< HEAD
     "ws-api>=0.25.0",
-=======
-    "ws-api>=0.22.0",
     "PyJWT",
     "bcrypt",
->>>>>>> c45126e (finish login)
 ]
 
 [dependency-groups]

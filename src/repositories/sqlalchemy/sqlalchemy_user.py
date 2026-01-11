@@ -27,23 +27,13 @@ class SqlAlchemyUserRepository(UserRepository):
 
         return None
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
     async def create_user(self, email: str, hashed_password: str) -> User:
-=======
-    async def create_user(self, email: str, hashed_password: str) -> UserSchema:
->>>>>>> c45126e (finish login)
         user_db = UserModel(email=email, password=hashed_password)
         self._session.add(user_db)
         await self._session.commit()
         await self._session.refresh(user_db)
         return User.model_validate(user_db)
 
-<<<<<<< HEAD
->>>>>>> 8c1903d (fix pipeline)
-=======
->>>>>>> c45126e (finish login)
 
 async def sqlalchemy_user_repository_factory(
     container: Container,

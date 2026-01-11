@@ -1,119 +1,28 @@
-<<<<<<< HEAD
-import os
-from datetime import UTC, datetime, timedelta, timezone
-from typing import TYPE_CHECKING
+from fastapi import APIRouter, Depends
+from sqlalchemy.ext.asyncio import AsyncSession
 
-import bcrypt
-import jwt
-from dotenv import load_dotenv
-from fastapi import HTTPException, status
-
+from src.database import get_db_session
 from src.repositories.sqlalchemy.sqlalchemy_user import SqlAlchemyUserRepository
-=======
-from datetime import timedelta
-from typing import TYPE_CHECKING
-import jwt
-import bcrypt
-from fastapi import HTTPException, status
-from src.repositories.sqlalchemy.sqlalchemy_user import SqlAlchemyUserRepository
-from datetime import datetime, timedelta 
-import os
-from dotenv import load_dotenv
->>>>>>> c45126e (finish login)
+from src.schemas.auth import AuthResponse, LoginRequest, SignupRequest
+from src.services.auth import AuthService
 
-if TYPE_CHECKING:
-    from src.schemas.user import User
+router = APIRouter()
 
-SECRET_KEY = os.getenv("SECRET_KEY")
-ALGORITHM = "HS256"
-ACCESS_TOKEN_EXPIRE_MINUTES = 30
 
-<<<<<<< HEAD
+def get_auth_service(session: AsyncSession = Depends(get_db_session)) -> AuthService:
+    user_repo = SqlAlchemyUserRepository(session)
+    return AuthService(user_repo)
 
-class AuthService:
-    def __init__(self, user_repository: SqlAlchemyUserRepository):
-        self.user_repository = user_repository
 
-    def verify_password(self, plain_password: str, hashed_password: str) -> bool:
-        return bcrypt.checkpw(
-            plain_password.encode("utf-8"), hashed_password.encode("utf-8")
-        )
+@router.post("/signup", response_model=AuthResponse)
+async def signup(
+    request: SignupRequest, service: AuthService = Depends(get_auth_service)
+):
+    return await service.signup(request.email, request.password)
 
-    def hash_password(self, password: str) -> str:
-        password_bytes = password.encode("utf-8")[:72]
-        salt = bcrypt.gensalt()
-        hashed = bcrypt.hashpw(password_bytes, salt)
-        return hashed.decode("utf-8")
 
-    def create_access_token(self, data: dict, expires_delta: timedelta | None = None):
-        to_encode = data.copy()
-        expire = datetime.now(UTC) + (
-            expires_delta or timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
-        )
-=======
-class AuthService:
-    def __init__(self, user_repository: UserRepository):
-        self.user_repository = user_repository
-
-    def verify_password(self, plain_password: str, hashed_password: str) -> bool:
-        return bcrypt.checkpw(plain_password.encode('utf-8'), hashed_password.encode('utf-8'))
-
-    def hash_password(self, password: str) -> str:
-        password_bytes = password.encode('utf-8')[:72]
-        salt = bcrypt.gensalt()
-        hashed = bcrypt.hashpw(password_bytes, salt)
-        return hashed.decode('utf-8')
-
-    def create_access_token(self, data: dict, expires_delta: timedelta | None = None):
-        to_encode = data.copy()
-        expire = datetime.utcnow() + (expires_delta or timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES))
->>>>>>> c45126e (finish login)
-        to_encode.update({"exp": expire})
-        return jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
-
-    async def signup(self, email: str, password: str) -> dict:
-        existing_user = await self.user_repository.get_by_email(email)
-        if existing_user:
-<<<<<<< HEAD
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail="Email already registered",
-            )
-=======
-            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Email already registered")
->>>>>>> c45126e (finish login)
-
-        hashed_password = self.hash_password(password)
-        user = await self.user_repository.create_user(email, hashed_password)
-
-        access_token = self.create_access_token(data={"sub": user.email})
-<<<<<<< HEAD
-        return {"access_token": access_token, "token_type": "bearer", "user": user}
-=======
-        return {
-            "access_token": access_token,
-            "token_type": "bearer",
-            "user": user
-        }
->>>>>>> c45126e (finish login)
-
-    async def login(self, email: str, password: str) -> dict:
-        user = await self.user_repository.get_by_email(email)
-        if not user or not self.verify_password(password, user.password):
-<<<<<<< HEAD
-            raise HTTPException(
-                status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid credentials"
-            )
-
-        access_token = self.create_access_token(data={"sub": user.email})
-        return {"access_token": access_token, "token_type": "bearer", "user": user}
-=======
-            raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid credentials")
-
-        access_token = self.create_access_token(data={"sub": user.email})
-        return {
-            "access_token": access_token,
-            "token_type": "bearer",
-            "user": user
-        }
->>>>>>> c45126e (finish login)
+@router.post("/login", response_model=AuthResponse)
+async def login(
+    request: LoginRequest, service: AuthService = Depends(get_auth_service)
+):
+    return await service.login(request.email, request.password)

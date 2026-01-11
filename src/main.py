@@ -56,6 +56,7 @@ requests_logger = logging.getLogger("urllib3")
 requests_logger.setLevel(logging.DEBUG)
 requests_logger.propagate = True
 
+
 @svcs.fastapi.lifespan
 async def lifespan(_: FastAPI, registry: svcs.Registry):
     registry.register_factory(AsyncSession, sessionmanager.session)
@@ -80,6 +81,7 @@ async def lifespan(_: FastAPI, registry: svcs.Registry):
     # External API Wrapper services
     registry.register_factory(WealthsimpleApiWrapper, wealthsimple_api_wrapper_factory)
     yield
+
 
 app = FastAPI(
     lifespan=lifespan,
