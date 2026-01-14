@@ -39,9 +39,11 @@ class AuthService:
     ):
         access_token_data = AccessTokenData(
             sub=user_email,
-            exp=str(
-                datetime.now(UTC)
-                + (expires_delta or timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES))
+            exp=int(
+                (
+                    datetime.now(UTC)
+                    + (expires_delta or timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES))
+                ).timestamp()
             ),
         )
 

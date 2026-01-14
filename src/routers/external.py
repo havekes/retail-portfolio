@@ -1,13 +1,16 @@
+from typing import Annotated
 from uuid import UUID
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, Depends, HTTPException
 from svcs.fastapi import DepContainer
 
+from src.config.auth import current_user
 from src.enums import InstitutionEnum
 from src.external import get_external_api_wrapper_class
 from src.external.schemas.accounts import ExternalAccount
 from src.repositories.account import AccountRepository
 from src.repositories.external_user import ExternalUserRepository
+from src.schemas import User
 from src.schemas.external import (
     ExternalImportAccountsRequest,
     ExternalImportPositionsRequest,
@@ -16,24 +19,25 @@ from src.schemas.external import (
     ExternalLoginResponse,
 )
 from src.schemas.external_user import PublicExternalUserRead
+from src.services.authorization import AuthorizationService
 from src.services.external_user import ExternalUserService
-from src.services.user import UserService
 
 router = APIRouter(prefix="/api/external")
 
 
 @router.get("/{institution}/users")
 async def external_users(
-    institution: InstitutionEnum, services: DepContainer
+    institution: InstitutionEnum,
+    services: DepContainer,
+    user: Annotated[User, Depends(current_user)],
 ) -> list[PublicExternalUserRead]:
     """
     Get all saved external users for the given institution.
     """
-    user_service = await services.aget(UserService)
     external_user_repository = await services.aget(ExternalUserRepository)
 
     external_users = await external_user_repository.get_by_user_and_institution(
-        user_id=(await user_service.get_current_user()).id,
+        user_id=user.id,
         institution_id=institution.value,
     )
 
@@ -48,6 +52,7 @@ async def external_login(
     institution: InstitutionEnum,
     login_request: ExternalLoginRequest,
     services: DepContainer,
+    user: Annotated[User, Depends(current_user)],
 ) -> ExternalLoginResponse:
     """
     Login to an external institution with external username and password.
@@ -58,10 +63,9 @@ async def external_login(
     external_api_wrapper = await services.aget(
         get_external_api_wrapper_class(institution)
     )
-    user_service = await services.aget(UserService)
 
     _ = await external_user_service.get_or_create(
-        user=await user_service.get_current_user(),
+        user=user,
         institution=institution,
         username=login_request.username,
     )
@@ -80,14 +84,19 @@ async def external_accounts(
     institution: InstitutionEnum,
     external_user_id: UUID,
     services: DepContainer,
+    user: Annotated[User, Depends(current_user)],
 ) -> list[ExternalAccount]:
-    """List"""
+    """
+    List external accounts for the current user.
+    """
+    authorization_service = await services.aget(AuthorizationService)
     external_user_repository = await services.aget(ExternalUserRepository)
     external_api_wrapper = await services.aget(
         get_external_api_wrapper_class(institution)
     )
 
     external_user = await external_user_repository.get(external_user_id)
+    authorization_service.check_entity_owned_by_user(user, external_user)
 
     if not external_user:
         raise HTTPException(status_code=404, detail="External user not found")
@@ -100,11 +109,13 @@ async def external_import_accounts(
     institution: InstitutionEnum,
     import_request: ExternalImportAccountsRequest,
     services: DepContainer,
+    user: Annotated[User, Depends(current_user)],
 ) -> ExternalImportResponse:
     """
     Import accounts from an external institution.
-    You can pass a
+    You can pass a list of external account ids to selectively import.
     """
+    authorization_service = await services.aget(AuthorizationService)
     external_user_repository = await services.aget(ExternalUserRepository)
     external_api_wrapper = await services.aget(
         get_external_api_wrapper_class(institution)
@@ -113,6 +124,7 @@ async def external_import_accounts(
     external_user = await external_user_repository.get(
         external_user_id=import_request.external_user_id,
     )
+    authorization_service.check_entity_owned_by_user(user, external_user)
 
     if not external_user:
         raise HTTPException(status_code=404, detail="External user not found")
@@ -132,10 +144,12 @@ async def external_import_positions(
     institution: InstitutionEnum,
     import_request: ExternalImportPositionsRequest,
     services: DepContainer,
+    user: Annotated[User, Depends(current_user)],
 ) -> ExternalImportResponse:
     """
-    Import positions from an external institution.
+    Import positions from an external institution for a given account.
     """
+    authorization_service = await services.aget(AuthorizationService)
     account_repository = await services.aget(AccountRepository)
     external_user_repository = await services.aget(ExternalUserRepository)
     external_api_wrapper = await services.aget(
@@ -145,6 +159,7 @@ async def external_import_positions(
     external_user = await external_user_repository.get(
         external_user_id=import_request.external_user_id
     )
+    authorization_service.check_entity_owned_by_user(user, external_user)
 
     if not external_user:
         raise HTTPException(status_code=404, detail="External user not found")

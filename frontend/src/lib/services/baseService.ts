@@ -1,3 +1,5 @@
+import { userStore } from '@/stores/userStore';
+
 export abstract class BaseService {
 	protected baseUrl: string;
 
@@ -6,17 +8,16 @@ export abstract class BaseService {
 	}
 
 	protected async get<T>(endpoint: string, headers?: Record<string, string>): Promise<T> {
+		const token = userStore.getToken();
 		const response = await fetch(`${this.baseUrl}${endpoint}`, {
 			method: 'GET',
 			headers: {
 				'Content-Type': 'application/json',
+				Authorization: `Bearer ${token}`,
+
 				...headers
 			}
 		});
-
-		if (!response.ok) {
-			throw new Error(`GET ${endpoint} failed: ${response.statusText}`);
-		}
 
 		return response.json();
 	}
@@ -26,18 +27,16 @@ export abstract class BaseService {
 		payload: R,
 		headers?: Record<string, string>
 	): Promise<T> {
+		const token = userStore.getToken();
 		const response = await fetch(`${this.baseUrl}${endpoint}`, {
 			method: 'POST',
 			headers: {
 				'Content-Type': 'application/json',
+				Authorization: `Bearer ${token}`,
 				...headers
 			},
 			body: JSON.stringify(payload)
 		});
-
-		if (!response.ok) {
-			throw new Error(`POST ${endpoint} failed: ${response.statusText}`);
-		}
 
 		return response.json();
 	}
@@ -47,18 +46,17 @@ export abstract class BaseService {
 		payload: R,
 		headers?: Record<string, string>
 	): Promise<T> {
+		const token = userStore.getToken();
 		const response = await fetch(`${this.baseUrl}${endpoint}`, {
 			method: 'PATCH',
 			headers: {
 				'Content-Type': 'application/json',
+				Authorization: `Bearer ${token}`,
+
 				...headers
 			},
 			body: JSON.stringify(payload)
 		});
-
-		if (!response.ok) {
-			throw new Error(`POST ${endpoint} failed: ${response.statusText}`);
-		}
 
 		return response.json();
 	}
