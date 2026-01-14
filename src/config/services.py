@@ -2,7 +2,6 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from svcs import Registry
 
 from src.database import sessionmanager
-from src.external.api_ninjas import ApiNinjas, api_ninjas_factory
 from src.external.wealthsimple import (
     WealthsimpleApiWrapper,
     wealthsimple_api_wrapper_factory,
@@ -68,5 +67,4 @@ def register_services(registry: Registry) -> None:
     registry.register_factory(PositionService, position_service_factory)
     registry.register_factory(UserService, user_service_factory)
     # External API Wrapper services
-    registry.register_factory(ApiNinjas, api_ninjas_factory)
     registry.register_factory(WealthsimpleApiWrapper, wealthsimple_api_wrapper_factory)
