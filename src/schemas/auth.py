@@ -20,4 +20,4 @@ class AuthResponse(BaseModel):
 
 class AccessTokenData(BaseModel):
     sub: str
-    exp: str
+    exp: int

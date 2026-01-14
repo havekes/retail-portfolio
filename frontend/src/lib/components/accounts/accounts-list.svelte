@@ -1,12 +1,18 @@
 <script lang="ts">
-	import { accountService } from '@/services/accountService';
 	import AccountsListItem from './accounts-list-item.svelte';
 	import { Skeleton } from '../ui/skeleton';
 	import * as DropdownMenu from '../ui/dropdown-menu';
 	import Button from '../ui/button/button.svelte';
 	import ChevronDown from '@lucide/svelte/icons/chevron-down';
+	import type { Account } from '@/types/account';
+	import { onMount } from 'svelte';
+	import { accountService } from '@/services/accountService';
 
-	let accounts = accountService.getAccounts();
+	let accounts: Promise<Array<Account>> | null = null;
+
+	onMount(() => {
+		accounts = accountService.getAccounts();
+	});
 </script>
 
 <div class="accounts-list w-full space-y-4">

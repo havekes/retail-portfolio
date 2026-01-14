@@ -7,11 +7,11 @@ export class AccountService extends BaseService {
 	}
 
 	async renameAccount(id: string, name: string): Promise<void> {
-		await this.patch(`/accounts/${id}/rename`, { name });
+		return this.patch(`/accounts/${id}/rename`, { name });
 	}
 
 	async getAccountTotals(id: string): Promise<AccountTotals> {
-		return await this.get<AccountTotals>(`/accounts/${id}/totals`);
+		return this.get<AccountTotals>(`/accounts/${id}/totals`);
 	}
 }
 
