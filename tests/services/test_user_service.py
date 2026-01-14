@@ -1,5 +1,5 @@
 from datetime import UTC, datetime
-from unittest.mock import AsyncMock, Mock
+from unittest.mock import AsyncMock, Mock, patch
 from uuid import uuid4
 
 import pytest
@@ -24,14 +24,18 @@ async def test_get_current_user_success():
         password=PASSWORD,
         is_active=True,
         last_login_at=None,
-        created_at=datetime.now(UTC)
+        created_at=datetime.now(UTC),
     )
     mock_user_repo.get_by_email = AsyncMock(return_value=user)
     mock_external_user_repo = Mock(spec=ExternalUserRepository)
     service = UserService(mock_user_repo, mock_external_user_repo)
 
+    token = "valid_token"
+
     # Act
-    result = await service.get_current_user()
+    with patch("src.services.user.jwt.decode") as mock_decode:
+        mock_decode.return_value = {"sub": "greg@havek.es", "exp": 2000000000}
+        result = await service.get_current_user_from_token(token)
 
     # Assert
     assert result == user
@@ -46,9 +50,13 @@ async def test_get_current_user_not_found():
     mock_external_user_repo = Mock(spec=ExternalUserRepository)
     service = UserService(mock_user_repo, mock_external_user_repo)
 
+    token = "valid_token"
+
     # Act & Assert
-    with pytest.raises(SystemError, match="User not found"):
-        await service.get_current_user()
+    with patch("src.services.user.jwt.decode") as mock_decode:
+        mock_decode.return_value = {"sub": "greg@havek.es", "exp": 2000000000}
+        with pytest.raises(SystemError, match="User not found"):
+            await service.get_current_user_from_token(token)
     mock_user_repo.get_by_email.assert_called_once_with("greg@havek.es")
 
 
@@ -63,31 +71,34 @@ async def test_get_current_user_external_account_ids():
         password=PASSWORD,
         is_active=True,
         last_login_at=None,
-        created_at=datetime.now(UTC)
+        created_at=datetime.now(UTC),
     )
     accounts = [
         FullExternalUser(
             id=uuid4(),
             user_id=user.id,
             institution_id=InstitutionEnum.WEALTHSIMPLE.value,
-            external_user_id="123"
+            external_user_id="123",
         ),
         FullExternalUser(
             id=uuid4(),
             user_id=user.id,
             institution_id=InstitutionEnum.WEALTHSIMPLE.value,
-            external_user_id="456"
-        )
+            external_user_id="456",
+        ),
     ]
     mock_user_repo.get_by_email = AsyncMock(return_value=user)
     mock_external_repo.get_by_user_and_institution = AsyncMock(return_value=accounts)
-    mock_external_user_repo = Mock(spec=ExternalUserRepository)
-    service = UserService(mock_user_repo, mock_external_user_repo)
-    service.external_user_repository = mock_external_repo
+    service = UserService(mock_user_repo, mock_external_repo)
 
     institution = InstitutionEnum.WEALTHSIMPLE
+    token = "valid_token"
+
     # Act
-    result = await service.get_current_user_external_account_ids(institution)
+    with patch("src.services.user.jwt.decode") as mock_decode:
+        mock_decode.return_value = {"sub": "greg@havek.es", "exp": 2000000000}
+        user_result = await service.get_current_user_from_token(token)
+        result = await service.get_external_account_ids(user_result, institution)
 
     # Assert
     external_ids = list(result)
@@ -109,18 +120,21 @@ async def test_get_current_user_external_account_ids_no_accounts():
         password=PASSWORD,
         is_active=True,
         last_login_at=None,
-        created_at=datetime.now(UTC)
+        created_at=datetime.now(UTC),
     )
     accounts = []
     mock_user_repo.get_by_email = AsyncMock(return_value=user)
     mock_external_repo.get_by_user_and_institution = AsyncMock(return_value=accounts)
-    mock_external_user_repo = Mock(spec=ExternalUserRepository)
-    service = UserService(mock_user_repo, mock_external_user_repo)
-    service.external_user_repository = mock_external_repo
+    service = UserService(mock_user_repo, mock_external_repo)
 
     institution = InstitutionEnum.WEALTHSIMPLE
+    token = "valid_token"
+
     # Act
-    result = await service.get_current_user_external_account_ids(institution)
+    with patch("src.services.user.jwt.decode") as mock_decode:
+        mock_decode.return_value = {"sub": "greg@havek.es", "exp": 2000000000}
+        user_result = await service.get_current_user_from_token(token)
+        result = await service.get_external_account_ids(user_result, institution)
 
     # Assert
     external_ids = list(result)

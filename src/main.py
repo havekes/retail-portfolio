@@ -1,14 +1,12 @@
 import logging
-from typing import Annotated
 
 import svcs
-from fastapi import Depends, FastAPI
+from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from svcs.fastapi import DepContainer
 
-from src.config.auth import oauth2_scheme
 from src.config.logging import init_logging
 from src.config.services import register_services
 from src.config.settings import settings
@@ -43,9 +41,7 @@ init_routers(app)
 
 
 @app.get("/api/ping")
-async def ping(
-    services: DepContainer, _: Annotated[str, Depends(oauth2_scheme)]
-) -> dict[str, str]:
+async def ping(services: DepContainer) -> dict[str, str]:
     """Server healthcheck"""
     logger.debug(settings)
 
