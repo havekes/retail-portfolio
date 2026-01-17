@@ -1,27 +1,30 @@
 # retail-portfolio
 A portfolio tracker designed for the retail investor
 
-## Contributing
-
-### Prerequisites
-
-- Python 3.14 or higher
-- uv package manager
-- Docker and Docker Compose (for running with containers)
+## Contribution guidelines
 
 ### Running the app
 
-- Create Vite `.env`
-- Using Docker compose is the preferred way to run the application.
-- The app will be available at `http://127.0.0.1:8001`.
-- Test the ping endpoint at `http://127.0.0.1:8001/api/ping` (returns `{"ping": "pong"}`).
-- Interactive API documentation at `http://127.0.0.1:8001/redoc`.
+- Create backend `.env` by copying `.env.example`
+- Create frontend `./frontend/.env` by copying `./frontend/.env.example`
+
+Using Docker compose is the only supported way to run the application: `docker compose up -d`
+
+- The app will be available at `http://localhost:8001`
+- Test the ping endpoint at `http://localhost:8001/api/ping`
+- Interactive API documentation at `http://localhost:8001/redoc`
+- Frontend will be running at `http://localhost:8100/`
 
 ### During development
 
-- `source .venv/bin/activate` to activate the virtual environment
+It is recommend to always run commands from inside the container: `docker compose exec [backend|frontend] <command>`
+
 - Run tests: `uv run pytest`
+- Check format: `uv run ruff format --check`
 - Lint code: `uv run ruff check`
+- Type-check code: `uv run basedpyright src`
+
+- Run frontend format and lint `npm run lint`
 
 ### Backend application structure
 
@@ -57,11 +60,12 @@ Other modules:
 - Config
   - Application wide typed configuration schema
 - Commands
+
 ### Do's and don'ts
 
 #### Don't
 
-- Raise HTTPException from within a serice. Raise a custom exception and handle it in the router.
+- Raise HTTPException from within a serice (except Authorization service). Instead raise a custom exception and handle it in the router.
 
 ### Code snippets
 

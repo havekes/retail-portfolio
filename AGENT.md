@@ -4,34 +4,24 @@
 `retail-portfolio` is a portfolio tracker designed for the retail investor.
 
 **Tech Stack**:
-- Python 3.14+
+- Python 3.14
 - FastAPI backend
 - SQLAlchemy ORM
 - uv package manager
-- Docker & Docker Compose for deployment
-
-## Prerequisites
-- Python 3.14 or higher
-- [uv](https://docs.astral.sh/uv/) package manager
-- Docker and Docker Compose
-
-## Running the App
-**Preferred**: Use Docker Compose.
-```
-docker compose up
-```
-App available at `http://127.0.0.1:8001`.
-
-- Ping endpoint: `http://127.0.0.1:8001/api/ping` (returns `{"ping": "pong"}`)
-- Interactive API docs: `http://127.0.0.1:8001/redoc`
+- Docker Compose for dev environement
 
 ## Development Workflow
-1. Activate venv: `source .venv/bin/activate`
-2. Run `basedpyright` checks: `docker compose exec -T backend uv run basedpyright`
-3. Lint code: `docker compose exec backend -T uv run ruff check`
-4. Run tests: `docker compose exec backend -T uv run pytest`
 
-**MANDATORY**: When writing or editing code, **ALWAYS** run linting (`uv run ruff check`) and tests (`uv run pytest`) before submitting.
+**ALWAYS**: Execute commands in the correct docker container `docker compose exec backend`
+
+1. Write a feature or fix a bug
+2. Lint code: `docker compose exec backend -T uv run ruff check`
+3. Run type checks: `docker compose exec backend -T uv run basedpyright`
+4. Run tests: `docker compose exec backend -T uv run pytest`
+5. Format code: `docker compose exec backend -T uv run ruff format`
+
+**MANDATORY**: When writing or editing code, **ALWAYS** run linting, type checks, tests and format before submitting.
+**MANDATORY**: When editing a model, also generate the migrations using alembic (`docker compo)
 
 ## Backend Architecture Layers
 Modular structure with clear separation of concerns:
