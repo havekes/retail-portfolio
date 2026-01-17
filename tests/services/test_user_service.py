@@ -143,3 +143,20 @@ async def test_get_current_user_external_account_ids_no_accounts():
     mock_external_repo.get_by_user_and_institution.assert_called_once_with(
         user.id, institution.value
     )
+
+
+@pytest.mark.asyncio
+async def test_get_current_user_malformed_token():
+    # Arrange
+    mock_user_repo = Mock(spec=UserRepository)
+    mock_external_user_repo = Mock(spec=ExternalUserRepository)
+    service = UserService(mock_user_repo, mock_external_user_repo)
+
+    token = "malformed_token"
+
+    # Act & Assert
+    import jwt
+    with patch("src.services.user.jwt.decode") as mock_decode:
+        mock_decode.side_effect = jwt.DecodeError("Invalid token")
+        with pytest.raises(HTTPException, match="User unauthenticated or malformed token"):
+            await service.get_current_user_from_token(token)
