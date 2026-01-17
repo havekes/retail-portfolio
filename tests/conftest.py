@@ -3,7 +3,7 @@
 from collections.abc import AsyncGenerator
 from datetime import UTC, datetime
 from unittest.mock import AsyncMock, MagicMock
-from uuid import UUID, uuid4
+from uuid import uuid4
 
 import pytest
 import pytest_asyncio
@@ -11,8 +11,6 @@ from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
 from sqlalchemy.ext.asyncio.engine import AsyncEngine
 from svcs import Container, Registry
 
-from src.config.services import register_services
-from src.database import DatabaseSessionManager
 from src.enums import AccountTypeEnum, InstitutionEnum
 from src.models import Base
 from src.models.account import Account as AccountModel
@@ -443,3 +441,159 @@ async def other_user_external_user(
         display_name=external_user_model.display_name,
         last_used_at=external_user_model.last_used_at,
     )
+
+
+@pytest_asyncio.fixture
+async def test_registry(services_container: Container) -> AsyncGenerator[Registry]:
+    """Create a test registry with test services."""
+    # Extract the registry from the test services container
+    # The registry is already populated by services_container fixture
+    registry = Registry()
+
+    # Register the test session factory that returns our test database session
+    from sqlalchemy.ext.asyncio import AsyncSession
+
+    async def test_session_factory():
+        # Get session from services_container which uses test database
+        return await services_container.aget(AsyncSession)
+
+    registry.register_factory(AsyncSession, test_session_factory)
+
+    # Register all other services using register_factory from services_container
+    # by re-registering them
+    from src.repositories.account import AccountRepository
+    from src.repositories.account_type import AccountTypeRepository
+    from src.repositories.external_user import ExternalUserRepository
+    from src.repositories.position import PositionRepository
+    from src.repositories.security import SecurityRepository
+    from src.repositories.user import UserRepository
+    from src.repositories.sqlalchemy.sqlalchemy_account import (
+        sqlalchemy_account_repository_factory,
+    )
+    from src.repositories.sqlalchemy.sqlalchemy_account_type import (
+        sqlalchemy_account_type_repository_factory,
+    )
+    from src.repositories.sqlalchemy.sqlalchemy_external_user import (
+        sqlalchemy_external_user_repository_factory,
+    )
+    from src.repositories.sqlalchemy.sqlalchemy_position import (
+        sqlalchemy_position_repository_factory,
+    )
+    from src.repositories.sqlalchemy.sqlalchemy_security import (
+        sqlaclhemy_security_repository_factory,
+    )
+    from src.repositories.sqlalchemy.sqlalchemy_user import (
+        sqlalchemy_user_repository_factory,
+    )
+    from src.services.auth import AuthService, auth_service_factory
+    from src.services.authorization import (
+        AuthorizationService,
+        authorization_service_factory,
+    )
+    from src.services.external_user import (
+        ExternalUserService,
+        external_user_service_factory,
+    )
+    from src.services.position import PositionService, position_service_factory
+    from src.services.user import UserService, user_service_factory
+
+    # Repositories
+    registry.register_factory(AccountRepository, sqlalchemy_account_repository_factory)
+    registry.register_factory(
+        AccountTypeRepository, sqlalchemy_account_type_repository_factory
+    )
+    registry.register_factory(
+        ExternalUserRepository, sqlalchemy_external_user_repository_factory
+    )
+    registry.register_factory(
+        PositionRepository, sqlalchemy_position_repository_factory
+    )
+    registry.register_factory(UserRepository, sqlalchemy_user_repository_factory)
+    registry.register_factory(
+        SecurityRepository, sqlaclhemy_security_repository_factory
+    )
+
+    # Services
+    registry.register_factory(AuthService, auth_service_factory)
+    registry.register_factory(AuthorizationService, authorization_service_factory)
+    registry.register_factory(ExternalUserService, external_user_service_factory)
+    registry.register_factory(PositionService, position_service_factory)
+    registry.register_factory(UserService, user_service_factory)
+
+    # Mock external API wrapper
+    from unittest.mock import AsyncMock, MagicMock
+    from src.external.wealthsimple import WealthsimpleApiWrapper
+
+    async def mock_external_api_wrapper_factory(
+        container: Container,
+    ) -> AsyncGenerator[WealthsimpleApiWrapper]:
+        """Create a mock external API wrapper for testing."""
+        mock_wrapper = MagicMock(spec=WealthsimpleApiWrapper)
+        mock_wrapper.login = MagicMock(return_value=True)
+        mock_wrapper.list_accounts = AsyncMock(return_value=[])
+        mock_wrapper.import_accounts = AsyncMock(return_value=[])
+        mock_wrapper.import_positions = AsyncMock(return_value=[])
+        yield mock_wrapper
+
+    registry.register_factory(WealthsimpleApiWrapper, mock_external_api_wrapper_factory)
+
+    yield registry
+
+
+@pytest.fixture
+def auth_client(test_registry: Registry, test_user: User):
+    """Create an HTTP test client with auth token for test user."""
+    import asyncio
+
+    import svcs
+    from fastapi import FastAPI
+    from fastapi.middleware import Middleware
+    from fastapi.middleware.cors import CORSMiddleware
+    from fastapi.testclient import TestClient
+    from starlette.middleware.base import BaseHTTPMiddleware
+    from starlette.requests import Request
+
+    from src.config.settings import settings
+    from src.routers import init_routers
+    from src.services.auth import AuthService
+
+    # Create access token for test user
+    auth_service = asyncio.run(
+        svcs.Container(test_registry).aget(AuthService)
+    )
+    access_token = auth_service.create_access_token(test_user.email)
+
+    # Middleware that injects the test registry into request state
+    # This is necessary because svcs.fastapi.container expects the registry
+    # to be available in request.state.svcs_registry, which is normally set
+    # by the svcs lifespan decorator
+    class SVCSTestMiddleware(BaseHTTPMiddleware):
+        async def dispatch(self, request: Request, call_next):
+            request.state.svcs_registry = test_registry
+            response = await call_next(request)
+            return response
+
+    # Create test app with middleware to inject registry
+    test_app = FastAPI(
+        middleware=[
+            Middleware(SVCSTestMiddleware),
+            Middleware(
+                CORSMiddleware,
+                allow_origins=[origin.strip() for origin in settings.cors_allow_origins.split(",")],
+                allow_credentials=True,
+                allow_methods=[origin.strip() for origin in settings.cors_allow_methods.split(",")],
+                allow_headers=[origin.strip() for origin in settings.cors_allow_headers.split(",")],
+            ),
+        ]
+    )
+
+    # Initialize routers
+    init_routers(test_app)
+
+    # Create test client
+    client = TestClient(test_app)
+
+    # Add authorization header to all requests
+    client.headers.update({"Authorization": f"Bearer {access_token}"})
+
+    yield client
