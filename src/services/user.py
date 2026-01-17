@@ -14,20 +14,20 @@ from src.services import auth
 
 
 class UserService:
-    user_repository: UserRepository
-    external_user_repository: ExternalUserRepository
+    _user_repository: UserRepository
+    _external_user_repository: ExternalUserRepository
 
     def __init__(
         self,
         user_repository: UserRepository,
         external_user_repository: ExternalUserRepository,
     ):
-        self.user_repository = user_repository
-        self.external_user_repository = external_user_repository
+        self._user_repository = user_repository
+        self._external_user_repository = external_user_repository
 
     async def get_current_user_from_token(self, token: str) -> User:
-        token_data = self.decode_token(token)
-        user = await self.user_repository.get_by_email(token_data.sub)
+        token_data = self._decode_token(token)
+        user = await self._user_repository.get_by_email(token_data.sub)
 
         if not user:
             error = "User not found for provided token"
@@ -39,14 +39,14 @@ class UserService:
         self, user: User, institution: InstitutionEnum
     ) -> Generator[str]:
         external_accounts = (
-            await self.external_user_repository.get_by_user_and_institution(
+            await self._external_user_repository.get_by_user_and_institution(
                 user.id, institution.value
             )
         )
 
         return (account.external_user_id for account in external_accounts)
 
-    def decode_token(self, token: str) -> AccessTokenData:
+    def _decode_token(self, token: str) -> AccessTokenData:
         try:
             return AccessTokenData.model_validate(
                 jwt.decode(token, settings.secret_key, algorithms=[auth.ALGORITHM]),
