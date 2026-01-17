@@ -1,5 +1,6 @@
 services:
   backend:
+    container_name: retail-portfolio-backend
     image: ghcr.io/astral-sh/uv:python3.14-bookworm
     restart: unless-stopped
     user: 1000:1000
@@ -20,6 +21,7 @@ services:
       HOME: /app
 
   frontend:
+    container_name: retail-portfolio-frontend
     image: node:latest
     restart: unless-stopped
     user: root

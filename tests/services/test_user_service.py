@@ -4,6 +4,8 @@ from uuid import uuid4
 
 import pytest
 
+from fastapi import HTTPException
+
 from src.enums import InstitutionEnum
 from src.repositories.external_user import ExternalUserRepository
 from src.repositories.user import UserRepository

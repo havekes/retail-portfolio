@@ -12,13 +12,13 @@
 
 ## Development Workflow
 
-**ALWAYS**: Execute commands in the correct docker container `docker compose exec backend`
+**ALWAYS**: Execute commands in the correct docker container `docker exec retail-portfolio-backend`
 
 1. Write a feature or fix a bug
-2. Lint code: `docker compose exec backend -T uv run ruff check`
-3. Run type checks: `docker compose exec backend -T uv run basedpyright`
-4. Run tests: `docker compose exec backend -T uv run pytest`
-5. Format code: `docker compose exec backend -T uv run ruff format`
+2. Lint code: `docker exec retail-portfolio-backend uv run ruff check`
+3. Run type checks: `docker exec retail-portfolio-backend -T uv run basedpyright`
+4. Run tests: `docker exec retail-portfolio-backend -T uv run pytest`
+5. Format code: `docker exec retail-portfolio-backend -T uv run ruff format`
 
 **MANDATORY**: When writing or editing code, **ALWAYS** run linting, type checks, tests and format before submitting.
 **MANDATORY**: When editing a model, also generate the migrations using alembic (`docker compo)

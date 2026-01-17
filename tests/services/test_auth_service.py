@@ -58,7 +58,7 @@ class TestAuthService:
         data = args[0]
         assert data["sub"] == email
         assert "exp" in data
-        assert kwargs["key"] == "test_key"
+        assert args[1] == "test_key"
         assert kwargs["algorithm"] == "HS256"
 
     @patch("src.services.auth.jwt.encode")
@@ -76,7 +76,8 @@ class TestAuthService:
         # Can't check exact without freezing time, but called once
 
     @pytest.mark.asyncio
-    async def test_signup_success(self, auth_service, mock_user_repo):
+    @patch('src.services.auth.AuthService.hash_password', return_value='hashed')
+    async def test_signup_success(self, mock_hash_password, auth_service, mock_user_repo):
         """Test successful user signup."""
         email = "new@example.com"
         password = "pass"
@@ -90,7 +91,7 @@ class TestAuthService:
         assert result.user == user
         assert result.access_token is not None  # Mocked jwt
         mock_user_repo.get_by_email.assert_called_once_with(email)
-        mock_user_repo.create_user.assert_called_once_with(email, auth_service.hash_password(password))
+        mock_user_repo.create_user.assert_called_once_with(email, 'hashed')
 
     @pytest.mark.asyncio
     async def test_signup_user_exists(self, auth_service, mock_user_repo):

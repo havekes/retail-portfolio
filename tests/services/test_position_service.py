@@ -41,18 +41,16 @@ class TestPositionService:
             Position(
                 id=uuid4(),
                 account_id=account_id,
-                security_id=uuid4(),
+                security_symbol="AAPL",
                 quantity=10.0,
-                average_cost=20.0,
-                created_at="2023-01-01"
+                average_cost=20.0
             ),
             Position(
                 id=uuid4(),
                 account_id=account_id,
-                security_id=uuid4(),
+                security_symbol="GOOGL",
                 quantity=5.0,
-                average_cost=15.0,
-                created_at="2023-01-01"
+                average_cost=15.0
             ),
         ]
         mock_position_repo.get_by_account = AsyncMock(return_value=positions)
@@ -71,10 +69,9 @@ class TestPositionService:
             Position(
                 id=uuid4(),
                 account_id=account_id,
-                security_id=uuid4(),
+                security_symbol="AAPL",
                 quantity=10.0,
                 average_cost=None,  # Should treat as 0
-                created_at="2023-01-01"
             ),
         ]
         mock_position_repo.get_by_account = AsyncMock(return_value=positions)
@@ -92,18 +89,16 @@ class TestPositionService:
             Position(
                 id=uuid4(),
                 account_id=account_id,
-                security_id=uuid4(),
+                security_symbol="AAPL",
                 quantity=2.0,
-                average_cost=50.0,
-                created_at="2023-01-01"
+                average_cost=50.0
             ),
             Position(
                 id=uuid4(),
                 account_id=account_id,
-                security_id=uuid4(),
+                security_symbol="GOOGL",
                 quantity=3.0,
-                average_cost=None,
-                created_at="2023-01-01"
+                average_cost=None
             ),
         ]
         mock_position_repo.get_by_account = AsyncMock(return_value=positions)
@@ -125,10 +120,9 @@ class TestPositionService:
             Position(
                 id=uuid4(),
                 account_id=uuid4(),
-                security_id=uuid4(),
+                security_symbol="AAPL",
                 quantity=10.5,
-                average_cost=12.34,
-                created_at="2023-01-01"
+                average_cost=12.34
             ),
         ]
         result = position_service._compute_cost(positions)
@@ -138,8 +132,8 @@ class TestPositionService:
     def test_compute_cost_multiple_positions(self, position_service):
         """Test _compute_cost with multiple positions."""
         positions = [
-            Position(id=uuid4(), account_id=uuid4(), security_id=uuid4(), quantity=1, average_cost=10, created_at="2023-01-01"),
-            Position(id=uuid4(), account_id=uuid4(), security_id=uuid4(), quantity=2, average_cost=5, created_at="2023-01-01"),
+            Position(id=uuid4(), account_id=uuid4(), security_symbol="AAPL", quantity=1, average_cost=10),
+            Position(id=uuid4(), account_id=uuid4(), security_symbol="GOOGL", quantity=2, average_cost=5),
         ]
         result = position_service._compute_cost(positions)
         expected = Money(10 + 10, "CAD")  # 1*10 + 2*5 = 20
@@ -148,7 +142,7 @@ class TestPositionService:
     def test_compute_cost_with_none_cost(self, position_service):
         """Test _compute_cost handles None average_cost."""
         positions = [
-            Position(id=uuid4(), account_id=uuid4(), security_id=uuid4(), quantity=10, average_cost=None, created_at="2023-01-01"),
+            Position(id=uuid4(), account_id=uuid4(), security_symbol="AAPL", quantity=10, average_cost=None),
         ]
         result = position_service._compute_cost(positions)
         assert result == Money(0)
