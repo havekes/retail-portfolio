@@ -22,6 +22,17 @@ export enum AccountType {
 	NonRegistered = 4
 }
 
+export const accountTypeLabels: Record<AccountType, string> = {
+	[AccountType.TFSA]: 'TFSA',
+	[AccountType.RRSP]: 'RRSP',
+	[AccountType.FHSA]: 'FHSA',
+	[AccountType.NonRegistered]: 'Non-Registered'
+};
+
 export enum Institution {
 	Wealthsimple = 1
 }
+
+export const institutionLabels: Record<Institution, string> = {
+	[Institution.Wealthsimple]: 'Wealthsimple'
+};

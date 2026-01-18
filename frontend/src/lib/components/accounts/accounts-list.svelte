@@ -4,7 +4,7 @@
 	import * as DropdownMenu from '../ui/dropdown-menu';
 	import Button from '../ui/button/button.svelte';
 	import ChevronDown from '@lucide/svelte/icons/chevron-down';
-	import { AccountType, Institution, type Account } from '@/types/account';
+	import { AccountType, Institution, type Account, accountTypeLabels, institutionLabels } from '@/types/account';
 	import { onMount } from 'svelte';
 	import { accountService } from '@/services/accountService';
 
@@ -18,14 +18,7 @@
 		accountType: 'Account type'
 	};
 
-	const accountTypeLabels: Record<AccountType, string> = {
-		[AccountType.TFSA]: 'TFSA',
-		[AccountType.RRSP]: 'RRSP',
-		[AccountType.FHSA]: 'FHSA',
-		[AccountType.NonRegistered]: 'Non-Registered'
-	};
-
-	const getInstitutionLabel = (id: Institution): string => Institution[id] ?? 'Unknown';
+	const getInstitutionLabel = (id: Institution): string => institutionLabels[id] ?? 'Unknown';
 	const getAccountTypeLabel = (id: AccountType): string =>
 		accountTypeLabels[id] ?? 'Unknown';
 
