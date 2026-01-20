@@ -27,7 +27,7 @@
 			return [{ key: 'all', label: '', accounts: items }];
 		}
 
-		const groups = new Map<string, { key: string; label: string; accounts: Account[] }>();
+		const groups: Record<string, { key: string; label: string; accounts: Account[] }> = {};
 		for (const account of items) {
 			const key =
 				group === 'institution' ? String(account.institution_id) : String(account.account_type_id);
@@ -35,15 +35,15 @@
 				group === 'institution'
 					? getInstitutionLabel(account.institution_id)
 					: getAccountTypeLabel(account.account_type_id);
-			const existing = groups.get(key);
+			const existing = groups[key];
 			if (existing) {
 				existing.accounts.push(account);
 			} else {
-				groups.set(key, { key, label, accounts: [account] });
+				groups[key] = { key, label, accounts: [account] };
 			}
 		}
 
-		return Array.from(groups.values());
+		return Object.values(groups);
 	};
 
 	onMount(() => {
