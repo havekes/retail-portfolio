@@ -89,8 +89,8 @@
 						<DropdownMenu.RadioItem value="institution">Institution</DropdownMenu.RadioItem>
 						<DropdownMenu.RadioItem value="accountType">Account type</DropdownMenu.RadioItem>
 					</DropdownMenu.RadioGroup>
-			</DropdownMenu.Content>
-		</DropdownMenu.Root>
+				</DropdownMenu.Content>
+			</DropdownMenu.Root>
 		</div>
 	</div>
 
