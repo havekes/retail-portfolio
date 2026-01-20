@@ -9,9 +9,9 @@
 	import { onMount } from 'svelte';
 	import { accountService } from '@/services/accountService';
 
-	let accounts: Promise<Array<Account>> | null = null;
 	type GroupBy = 'none' | 'institution' | 'accountType';
 	let groupBy: GroupBy = 'none';
+	let accounts: Account[] = [];
 
 	const groupByLabels: Record<GroupBy, string> = {
 		none: 'None',
@@ -46,19 +46,10 @@
 		return Object.values(groups);
 	};
 
-	let groupedAccounts: ReturnType<typeof groupAccounts> = [];
-	let resolvedAccounts: Account[] = [];
+	$: groupedAccounts = groupAccounts(accounts, groupBy);
 
-	$: if (accounts) {
-		accounts.then((data) => {
-			resolvedAccounts = data;
-		});
-	}
-
-	$: groupedAccounts = groupAccounts(resolvedAccounts, groupBy);
-
-	onMount(() => {
-		accounts = accountService.getAccounts();
+	onMount(async () => {
+		accounts = await accountService.getAccounts();
 	});
 </script>
 
@@ -85,11 +76,11 @@
 	</div>
 
 	<div class="space-y-4 px-4">
-		{#await accounts}
+		{#if accounts.length === 0}
 			<Skeleton class="h-16 w-full rounded-md" />
 			<Skeleton class="h-16 w-full rounded-md" />
 			<Skeleton class="h-16 w-full rounded-md" />
-		{:then}
+		{:else}
 			{#each groupedAccounts as group (group.key)}
 				<div class="space-y-3">
 					{#if groupBy !== 'none'}
@@ -102,8 +93,6 @@
 					{/each}
 				</div>
 			{/each}
-		{:catch error}
-			<div class="error">Error: {error.message}</div>
-		{/await}
+		{/if}
 	</div>
 </div>
