@@ -30,9 +30,7 @@
 		const groups = new Map<string, { key: string; label: string; accounts: Account[] }>();
 		for (const account of items) {
 			const key =
-				group === 'institution'
-					? String(account.institution_id)
-					: String(account.account_type_id);
+				group === 'institution' ? String(account.institution_id) : String(account.account_type_id);
 			const label =
 				group === 'institution'
 					? getInstitutionLabel(account.institution_id)
@@ -84,7 +82,7 @@
 			{#each groupAccounts(accounts, groupBy) as group (group.key)}
 				<div class="space-y-3">
 					{#if groupBy !== 'none'}
-						<h3 class="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+						<h3 class="text-xs font-semibold tracking-wide text-muted-foreground uppercase">
 							{group.label}
 						</h3>
 					{/if}
