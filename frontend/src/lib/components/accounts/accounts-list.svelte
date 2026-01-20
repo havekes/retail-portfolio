@@ -19,8 +19,19 @@
 		accountType: 'Account type'
 	};
 
-	const getInstitutionLabel = (id: Institution): string => Institution[id] ?? 'Unknown';
-	const getAccountTypeLabel = (id: AccountType): string => AccountType[id] ?? 'Unknown';
+	const accountTypeLabels: Record<AccountType, string> = {
+		[AccountType.TFSA]: 'TFSA',
+		[AccountType.RRSP]: 'RRSP',
+		[AccountType.FHSA]: 'FHSA',
+		[AccountType.NonRegistered]: 'Non-Registered'
+	};
+
+	const institutionLabels: Record<Institution, string> = {
+		[Institution.Wealthsimple]: 'Wealthsimple'
+	};
+
+	const getInstitutionLabel = (id: Institution): string => institutionLabels[id] ?? 'Unknown';
+	const getAccountTypeLabel = (id: AccountType): string => accountTypeLabels[id] ?? 'Unknown';
 
 	const groupAccounts = (items: Account[], group: GroupBy) => {
 		if (group === 'none') {
