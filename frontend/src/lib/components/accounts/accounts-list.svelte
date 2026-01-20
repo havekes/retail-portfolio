@@ -47,11 +47,15 @@
 	};
 
 	let groupedAccounts: ReturnType<typeof groupAccounts> = [];
+	let resolvedAccounts: Account[] = [];
+
 	$: if (accounts) {
-		accounts.then((resolvedAccounts) => {
-			groupedAccounts = groupAccounts(resolvedAccounts, groupBy);
+		accounts.then((data) => {
+			resolvedAccounts = data;
 		});
 	}
+
+	$: groupedAccounts = groupAccounts(resolvedAccounts, groupBy);
 
 	onMount(() => {
 		accounts = accountService.getAccounts();
@@ -85,7 +89,7 @@
 			<Skeleton class="h-16 w-full rounded-md" />
 			<Skeleton class="h-16 w-full rounded-md" />
 			<Skeleton class="h-16 w-full rounded-md" />
-		{:then accounts}
+		{:then}
 			{#each groupedAccounts as group (group.key)}
 				<div class="space-y-3">
 					{#if groupBy !== 'none'}
