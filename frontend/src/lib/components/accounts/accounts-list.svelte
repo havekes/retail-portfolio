@@ -12,6 +12,8 @@
 	type GroupBy = 'none' | 'institution' | 'accountType';
 	let groupBy: GroupBy = 'none';
 	let accounts: Account[] = [];
+	let isLoading = true;
+	let error: string | null = null;
 
 	const groupByLabels: Record<GroupBy, string> = {
 		none: 'None',
@@ -60,7 +62,13 @@
 	$: groupedAccounts = groupAccounts(accounts, groupBy);
 
 	onMount(async () => {
-		accounts = await accountService.getAccounts();
+		try {
+			accounts = await accountService.getAccounts();
+		} catch (err) {
+			error = err instanceof Error ? err.message : 'Failed to load accounts';
+		} finally {
+			isLoading = false;
+		}
 	});
 </script>
 
@@ -81,16 +89,20 @@
 						<DropdownMenu.RadioItem value="institution">Institution</DropdownMenu.RadioItem>
 						<DropdownMenu.RadioItem value="accountType">Account type</DropdownMenu.RadioItem>
 					</DropdownMenu.RadioGroup>
-				</DropdownMenu.Content>
-			</DropdownMenu.Root>
+			</DropdownMenu.Content>
+		</DropdownMenu.Root>
 		</div>
 	</div>
 
 	<div class="space-y-4 px-4">
-		{#if accounts.length === 0}
+		{#if isLoading}
 			<Skeleton class="h-16 w-full rounded-md" />
 			<Skeleton class="h-16 w-full rounded-md" />
 			<Skeleton class="h-16 w-full rounded-md" />
+		{:else if error}
+			<div class="rounded-md bg-red-50 p-4 text-sm text-red-800">{error}</div>
+		{:else if accounts.length === 0}
+			<p class="text-center text-sm text-muted-foreground">No accounts found</p>
 		{:else}
 			{#each groupedAccounts as group (group.key)}
 				<div class="space-y-3">
