@@ -4,16 +4,13 @@
 	import * as DropdownMenu from '../ui/dropdown-menu';
 	import Button from '../ui/button/button.svelte';
 	import ChevronDown from '@lucide/svelte/icons/chevron-down';
-	import type { Account } from '@/types/account';
 	import { AccountType, Institution } from '@/types/account';
-	import { onMount } from 'svelte';
+	import { groupAccounts } from '@/utils/group';
 	import { accountService } from '@/services/accountService';
 
 	type GroupBy = 'none' | 'institution' | 'accountType';
 	let groupBy: GroupBy = 'none';
-	let accounts: Account[] = [];
-	let isLoading = true;
-	let error: string | null = null;
+	let accountsPromise = accountService.getAccounts();
 
 	const groupByLabels: Record<GroupBy, string> = {
 		none: 'None',
@@ -32,44 +29,7 @@
 		[Institution.Wealthsimple]: 'Wealthsimple'
 	};
 
-	const getInstitutionLabel = (id: Institution): string => institutionLabels[id] ?? 'Unknown';
-	const getAccountTypeLabel = (id: AccountType): string => accountTypeLabels[id] ?? 'Unknown';
-
-	const groupAccounts = (items: Account[], group: GroupBy) => {
-		if (group === 'none') {
-			return [{ key: 'all', label: '', accounts: items }];
-		}
-
-		const groups: Record<string, { key: string; label: string; accounts: Account[] }> = {};
-		for (const account of items) {
-			const key =
-				group === 'institution' ? String(account.institution_id) : String(account.account_type_id);
-			const label =
-				group === 'institution'
-					? getInstitutionLabel(account.institution_id)
-					: getAccountTypeLabel(account.account_type_id);
-			const existing = groups[key];
-			if (existing) {
-				existing.accounts.push(account);
-			} else {
-				groups[key] = { key, label, accounts: [account] };
-			}
-		}
-
-		return Object.values(groups);
-	};
-
-	$: groupedAccounts = groupAccounts(accounts, groupBy);
-
-	onMount(async () => {
-		try {
-			accounts = await accountService.getAccounts();
-		} catch (err) {
-			error = err instanceof Error ? err.message : 'Failed to load accounts';
-		} finally {
-			isLoading = false;
-		}
-	});
+	const getLabelMap = () => groupBy === 'institution' ? institutionLabels : accountTypeLabels;
 </script>
 
 <div class="accounts-list w-full space-y-4">
@@ -95,27 +55,35 @@
 	</div>
 
 	<div class="space-y-4 px-4">
-		{#if isLoading}
+		{#await accountsPromise}
 			<Skeleton class="h-16 w-full rounded-md" />
 			<Skeleton class="h-16 w-full rounded-md" />
 			<Skeleton class="h-16 w-full rounded-md" />
-		{:else if error}
-			<div class="rounded-md bg-red-50 p-4 text-sm text-red-800">{error}</div>
-		{:else if accounts.length === 0}
-			<p class="text-center text-sm text-muted-foreground">No accounts found</p>
-		{:else}
-			{#each groupedAccounts as group (group.key)}
-				<div class="space-y-3">
-					{#if groupBy !== 'none'}
-						<h3 class="text-xs font-semibold tracking-wide text-muted-foreground uppercase">
-							{group.label}
-						</h3>
-					{/if}
-					{#each group.accounts as account (account.id)}
-						<AccountsListItem {account} />
+		{:catch error}
+			<div class="rounded-md bg-red-50 p-4 text-sm text-red-800">
+				{error instanceof Error ? error.message : 'Failed to load accounts'}
+			</div>
+		{:then accounts}
+			{#if accounts.length === 0}
+				<p class="text-center text-sm text-muted-foreground">No accounts found</p>
+			{:else}
+				{@const labelMap = getLabelMap()}
+				{@const grouped = accounts.length > 0 ? groupAccounts(Promise.resolve(accounts), groupBy, labelMap) : Promise.resolve([])}
+				{#await grouped then groups}
+					{#each groups as group (group.key)}
+						<div class="space-y-3">
+							{#if groupBy !== 'none'}
+								<h3 class="text-xs font-semibold tracking-wide text-muted-foreground uppercase">
+									{group.label}
+								</h3>
+							{/if}
+							{#each group.accounts as account (account.id)}
+								<AccountsListItem {account} />
+							{/each}
+						</div>
 					{/each}
-				</div>
-			{/each}
-		{/if}
+				{/await}
+			{/if}
+		{/await}
 	</div>
 </div>
