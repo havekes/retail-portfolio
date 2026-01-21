@@ -11,9 +11,7 @@
 	let { account } = $props();
 
 	let accountName = $state(account.name);
-	let accountTotals = $derived.by(
-		() => accountService.getAccountTotals(account.id)
-	);
+	let accountTotals = $derived.by(() => accountService.getAccountTotals(account.id));
 
 	$effect.pre(() => {
 		accountName = account.name;
