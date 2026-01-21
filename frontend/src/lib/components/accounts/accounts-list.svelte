@@ -29,7 +29,7 @@
 		[Institution.Wealthsimple]: 'Wealthsimple'
 	};
 
-	const getLabelMap = () => groupBy === 'institution' ? institutionLabels : accountTypeLabels;
+	const getLabelMap = () => (groupBy === 'institution' ? institutionLabels : accountTypeLabels);
 </script>
 
 <div class="accounts-list w-full space-y-4">
@@ -59,16 +59,15 @@
 			<Skeleton class="h-16 w-full rounded-md" />
 			<Skeleton class="h-16 w-full rounded-md" />
 			<Skeleton class="h-16 w-full rounded-md" />
-		{:catch error}
-			<div class="rounded-md bg-red-50 p-4 text-sm text-red-800">
-				{error instanceof Error ? error.message : 'Failed to load accounts'}
-			</div>
 		{:then accounts}
 			{#if accounts.length === 0}
 				<p class="text-center text-sm text-muted-foreground">No accounts found</p>
 			{:else}
 				{@const labelMap = getLabelMap()}
-				{@const grouped = accounts.length > 0 ? groupAccounts(Promise.resolve(accounts), groupBy, labelMap) : Promise.resolve([])}
+				{@const grouped =
+					accounts.length > 0
+						? groupAccounts(Promise.resolve(accounts), groupBy, labelMap)
+						: Promise.resolve([])}
 				{#await grouped then groups}
 					{#each groups as group (group.key)}
 						<div class="space-y-3">
@@ -84,6 +83,10 @@
 					{/each}
 				{/await}
 			{/if}
+		{:catch error}
+			<div class="rounded-md bg-red-50 p-4 text-sm text-red-800">
+				{error instanceof Error ? error.message : 'Failed to load accounts'}
+			</div>
 		{/await}
 	</div>
 </div>

@@ -23,9 +23,7 @@ export const groupAccounts = async (
 
 	for (const account of accounts) {
 		const key =
-			groupBy === 'institution'
-				? String(account.institution_id)
-				: String(account.account_type_id);
+			groupBy === 'institution' ? String(account.institution_id) : String(account.account_type_id);
 		const label = labelMap[key] ?? 'Unknown';
 
 		if (groups[key]) {
