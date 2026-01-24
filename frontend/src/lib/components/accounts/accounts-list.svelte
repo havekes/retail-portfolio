@@ -8,17 +8,58 @@
 	import { onMount } from 'svelte';
 	import { accountService } from '@/services/accountService';
 
-	let accounts: Promise<Array<Account>> | null = null;
+	let accounts = $state<Promise<Array<Account>> | null>(null);
+	let selectionMode = $state(false);
+    let selectedAccounts = $state<string[]>([]);
 
 	onMount(() => {
 		accounts = accountService.getAccounts();
 	});
+
+    function toggleSelectionMode() {
+        selectionMode = true;
+    }
+    
+    function cancelSelection() {
+        selectionMode = false;
+        selectedAccounts = [];
+    }
+    
+    function createPortfolio() {
+		console.log(selectedAccounts);
+        selectionMode = false;
+        selectedAccounts = [];
+    }
+    
+    function isCreatePortfolioDisabled() {
+        return selectionMode && selectedAccounts.length === 0;
+    }
+    
+    function handleCreatePortfolioClick() {
+        if (selectionMode) {
+            createPortfolio();
+
+			return;
+        }
+		
+		toggleSelectionMode();
+    }
 </script>
 
 <div class="accounts-list w-full space-y-4">
 	<div class="flex items-center border-b px-4 py-2">
 		<h2>Accounts</h2>
 		<div class="ms-auto">
+			{#if selectionMode}
+                <Button variant="outline" onclick={cancelSelection}>Cancel</Button>
+            {/if}
+            <Button 
+                variant="outline" 
+                disabled={isCreatePortfolioDisabled()} 
+                onclick={handleCreatePortfolioClick}
+            >
+                Create portfolio
+            </Button>
 			<DropdownMenu.Root>
 				<DropdownMenu.Trigger>
 					<Button variant="outline">
@@ -42,7 +83,7 @@
 			<Skeleton class="h-16 w-full rounded-md" />
 		{:then accounts}
 			{#each accounts as account (account.id)}
-				<AccountsListItem {account} />
+				<AccountsListItem {account} {selectionMode} bind:selectedAccounts  />
 			{/each}
 		{:catch error}
 			<div class="error">Error: {error.message}</div>
