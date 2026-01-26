@@ -11,6 +11,8 @@ export interface Account {
 	created_at: Date;
 }
 
+export type AccountGroupKeys = 'account_type_id' | 'institution_id';
+
 export interface AccountTotals {
 	cost: Money;
 }
@@ -21,6 +23,11 @@ export enum AccountType {
 	FHSA = 3,
 	NonRegistered = 4
 }
+
+// Add method to compute label here using translations
+// (account_type: AccountType) => {
+// 	return $t('account_type_label', { type: account_type });
+// };
 
 export enum Institution {
 	Wealthsimple = 1
