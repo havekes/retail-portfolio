@@ -1,5 +1,4 @@
 import type { Account } from '@/types/account';
-import { AccountType, Institution } from '@/types/account';
 
 export type GroupBy = 'none' | 'institution' | 'accountType';
 
@@ -9,35 +8,32 @@ export type AccountGroup = {
 	accounts: Account[];
 };
 
-const getInstitutionLabel = (id: Institution): string => Institution[id] ?? `Institution ${id}`;
-const getAccountTypeLabel = (id: AccountType): string => AccountType[id] ?? `Account type ${id}`;
+export type GroupReturnType<T> = Promise<Map<any, Array<T>>>;
 
-export const groupAccounts = async (
-	list: Promise<Account[]>,
-	groupBy: GroupBy
-): Promise<AccountGroup[]> => {
+export const group = async <T, R extends keyof T>(
+	list: Promise<Array<T>>,
+	groupByKey: R | null
+): GroupReturnType<T> => {
 	const data = await list;
 
-	if (groupBy === 'none') {
-		return [{ key: 'all', label: '', accounts: data }];
+	if (groupByKey === null) {
+		return new Map<null, Array<T>>([[null, data]]);
 	}
 
-	const groups = new Map<string, AccountGroup>();
-	for (const account of data) {
-		const key =
-			groupBy === 'institution' ? String(account.institution_id) : String(account.account_type_id);
-		const label =
-			groupBy === 'institution'
-				? getInstitutionLabel(account.institution_id)
-				: getAccountTypeLabel(account.account_type_id);
+	const groups = new Map<any, Array<T>>();
 
-		const existing = groups.get(key);
+	for (const item of data) {
+		const keyValue = item[groupByKey];
+
+		const existing = groups.get(keyValue);
+
 		if (existing) {
-			existing.accounts.push(account);
+			existing.push(item);
+			groups.set(keyValue, existing);
 		} else {
-			groups.set(key, { key, label, accounts: [account] });
+			groups.set(keyValue, [item]);
 		}
 	}
 
-	return Array.from(groups.values());
+	return groups;
 };
