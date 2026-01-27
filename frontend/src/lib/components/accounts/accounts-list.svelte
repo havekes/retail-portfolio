@@ -4,11 +4,14 @@
 	import * as DropdownMenu from '../ui/dropdown-menu';
 	import Button from '../ui/button/button.svelte';
 	import ChevronDown from '@lucide/svelte/icons/chevron-down';
-	import type { Account } from '@/types/account';
+	import { AccountGroupKeys, type Account } from '@/types/account';
 	import { onMount } from 'svelte';
 	import { accountService } from '@/services/accountService';
+	import { group, groupAccounts, type GroupBy } from '@/group';
 
-	let accounts: Promise<Array<Account>> | null = null;
+	let accounts = <Promise<Array<Account>> | null>null;
+	let groupByKey = null;
+	$: groupedAccounts = accounts ? group<Account, AccountGroupKeys>(accounts, groupByKey) : null;
 
 	onMount(() => {
 		accounts = accountService.getAccounts();
@@ -22,14 +25,20 @@
 			<DropdownMenu.Root>
 				<DropdownMenu.Trigger>
 					<Button variant="outline">
-						Group by
+						Group by: {groupByLabels[groupBy]}
 						<ChevronDown />
 					</Button>
 				</DropdownMenu.Trigger>
 				<DropdownMenu.Content>
-					<DropdownMenu.Item>None</DropdownMenu.Item>
-					<DropdownMenu.Item>Institution</DropdownMenu.Item>
-					<DropdownMenu.Item>Account type</DropdownMenu.Item>
+					<DropdownMenu.RadioGroup bind:value={groupBy}>
+						<DropdownMenu.RadioItem value="none">{groupByLabels.none}</DropdownMenu.RadioItem>
+						<DropdownMenu.RadioItem value="institution">
+							{groupByLabels.institution}
+						</DropdownMenu.RadioItem>
+						<DropdownMenu.RadioItem value="accountType">
+							{groupByLabels.accountType}
+						</DropdownMenu.RadioItem>
+					</DropdownMenu.RadioGroup>
 				</DropdownMenu.Content>
 			</DropdownMenu.Root>
 		</div>
@@ -40,10 +49,28 @@
 			<Skeleton class="h-16 w-full rounded-md" />
 			<Skeleton class="h-16 w-full rounded-md" />
 			<Skeleton class="h-16 w-full rounded-md" />
-		{:then accounts}
-			{#each accounts as account (account.id)}
-				<AccountsListItem {account} />
-			{/each}
+		{:then}
+			{#await groupedAccounts}
+				<Skeleton class="h-16 w-full rounded-md" />
+				<Skeleton class="h-16 w-full rounded-md" />
+				<Skeleton class="h-16 w-full rounded-md" />
+			{:then groups}
+				{#each groups as group (group.key)}
+					<div class="space-y-3">
+						{#if groupBy !== 'none'}
+							<h3 class="text-xs font-semibold tracking-wide text-muted-foreground uppercase">
+								{group.label}
+								<!-- Call method to compute label using key value -->
+							</h3>
+						{/if}
+						{#each group.accounts as account (account.id)}
+							<AccountsListItem {account} />
+						{/each}
+					</div>
+				{/each}
+			{:catch error}
+				<div class="error">Error: {error.message}</div>
+			{/await}
 		{:catch error}
 			<div class="error">Error: {error.message}</div>
 		{/await}
