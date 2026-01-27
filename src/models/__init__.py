@@ -14,6 +14,8 @@ from . import (  # noqa: E402
     external_user,  # pyright: ignore[reportUnusedImport]
     institution,  # pyright: ignore[reportUnusedImport]
     note,  # pyright: ignore[reportUnusedImport]
+    portfolio,  # pyright: ignore[reportUnusedImport]
+    portfolio_account,  # pyright: ignore[reportUnusedImport]
     position,  # pyright: ignore[reportUnusedImport]
     reminder,  # pyright: ignore[reportUnusedImport]
     security,  # pyright: ignore[reportUnusedImport]

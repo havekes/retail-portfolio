@@ -20,6 +20,7 @@ if TYPE_CHECKING:
     from .account_type import AccountType
     from .institution import Institution
     from .note import Note
+    from .portfolio_account import PortfolioAccount
     from .position import Position
     from .user import User
 
@@ -64,3 +65,6 @@ class Account(Base):
         "Position", back_populates="account"
     )
     notes: Mapped[list[Note]] = relationship("Note", back_populates="account")
+    portfolio_accounts: Mapped[list[PortfolioAccount]] = relationship(
+        "PortfolioAccount", back_populates="account"
+    )

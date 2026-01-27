@@ -16,7 +16,7 @@
 
 1. Write a feature or fix a bug
 2. Lint code: `docker exec retail-portfolio-backend uv run ruff check`
-3. Run type checks: `docker exec retail-portfolio-backend -T uv run basedpyright`
+3. Run type checks: `docker exec retail-portfolio-backend -T uv run basedpyright src`
 4. Run tests: `docker exec retail-portfolio-backend -T uv run pytest`
 5. Format code: `docker exec retail-portfolio-backend -T uv run ruff format`
 
