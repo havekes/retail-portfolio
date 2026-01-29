@@ -1,4 +1,5 @@
-from datetime import datetime
+from datetime import date, datetime
+from decimal import Decimal
 from uuid import UUID
 
 from pydantic import BaseModel
@@ -16,3 +17,16 @@ class Security(BaseModel):
     isin: str | None
     is_active: bool
     updated_at: datetime
+
+
+class Price(BaseModel):
+    id: int
+    security_id: int
+    date: date
+    open: Decimal
+    high: Decimal
+    low: Decimal
+    close: Decimal
+    adjusted_close: Decimal
+    volume: Decimal
+    currency: Currency
