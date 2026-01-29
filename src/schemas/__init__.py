@@ -4,6 +4,12 @@ from .action_item import ActionItem
 from .external_user import FullExternalUser
 from .institution import Institution
 from .note import Note
+from .portfolio import (
+    PortfolioAccountRead,
+    PortfolioAccountWrite,
+    PortfolioRead,
+    PortfolioWrite,
+)
 from .position import Position
 from .reminder import Reminder
 from .security import Security
@@ -24,4 +30,8 @@ __all__ = [
     "Reminder",
     "ActionItem",
     "FullExternalUser",
+    "PortfolioRead",
+    "PortfolioWrite",
+    "PortfolioAccountRead",
+    "PortfolioAccountWrite",
 ]
