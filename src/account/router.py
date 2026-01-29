@@ -4,24 +4,28 @@ from uuid import UUID
 from fastapi import APIRouter, Depends
 from svcs.fastapi import DepContainer
 
+from src.account.api_types import AccountRenameRequest, AccountTotals
+from src.account.repository import AccountRepository
+from src.account.repository_sqlalchemy import sqlalchemy_account_repository_factory
+from src.account.schema import AccountSchema
 from src.config.auth import current_user
-from src.repositories.account import AccountRepository
 from src.schemas import User
-from src.schemas.account import Account, AccountRenameRequest
 from src.services.authorization import AuthorizationService
 from src.services.position import PositionService
 
-router = APIRouter(prefix="/api/accounts")
+router = APIRouter(prefix="/api/account")
 
 
 @router.get("/")
-async def accounts_list(
-    services: DepContainer, user: Annotated[User, Depends(current_user)]
-) -> list[Account]:
+async def user_accounts(
+    user: Annotated[User, Depends(current_user)],
+    account_repository: Annotated[
+        AccountRepository, sqlalchemy_account_repository_factory
+    ],
+) -> list[AccountSchema]:
     """
     Get all accounts for the current user.
     """
-    account_repository = await services.aget(AccountRepository)
 
     return await account_repository.get_by_user(user.id)
 
@@ -32,12 +36,14 @@ async def account_rename(
     account_rename_request: AccountRenameRequest,
     services: DepContainer,
     user: Annotated[User, Depends(current_user)],
-) -> Account:
+    account_repository: Annotated[
+        AccountRepository, sqlalchemy_account_repository_factory
+    ],
+) -> AccountSchema:
     """
     Rename an existing account of the current user.
     """
     authorization_service = await services.aget(AuthorizationService)
-    account_repository = await services.aget(AccountRepository)
 
     account = await account_repository.get(account_id)
     authorization_service.check_entity_owned_by_user(user, account)
@@ -50,15 +56,17 @@ async def account_totals(
     account_id: UUID,
     services: DepContainer,
     user: Annotated[User, Depends(current_user)],
-):
+    account_repository: Annotated[
+        AccountRepository, sqlalchemy_account_repository_factory
+    ],
+) -> AccountTotals:
     """
     Get accounts totals such as cost and price.
     """
     authorization_service = await services.aget(AuthorizationService)
-    account_repository = await services.aget(AccountRepository)
     position_service = await services.aget(PositionService)
 
     account = await account_repository.get(account_id)
     authorization_service.check_entity_owned_by_user(user, account)
 
-    return await position_service.get_total_for_account(account_id)
+    return await position_service.get_total_for_account(account_id, currency="CAD")
