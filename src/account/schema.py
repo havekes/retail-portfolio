@@ -28,7 +28,7 @@ class AccountSchema(BaseModel):
     deleted_at: datetime | None = None
 
 
-class AccountType(BaseModel):
+class AccountTypeSchema(BaseModel):
     id: AccountTypeEnum
     name: str
     country: str
@@ -36,7 +36,7 @@ class AccountType(BaseModel):
     is_active: bool
 
 
-class Institution(BaseModel):
+class InstitutionSchema(BaseModel):
     id: InstitutionEnum
     name: str
     country: str
@@ -44,7 +44,7 @@ class Institution(BaseModel):
     is_active: bool
 
 
-class Position(BaseModel):
+class PositionSchema(BaseModel):
     id: PositionId
     account_id: AccountId
     security_id: SecurityId

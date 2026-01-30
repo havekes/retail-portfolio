@@ -7,14 +7,13 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from svcs.fastapi import DepContainer
 
+from src.account.router import account_router
+from src.auth.router import auth_router
 from src.config.logging import init_logging
 from src.config.services import register_services
 from src.config.settings import settings
-from src.routers import init_routers
-
-logger = logging.getLogger(__name__)
-
-init_logging()
+from src.integration.router import integration_router
+from src.market.router import market_router
 
 
 @svcs.fastapi.lifespan
@@ -23,12 +22,13 @@ async def lifespan(_: FastAPI, registry: svcs.Registry):
     yield
 
 
+logger = logging.getLogger(__name__)
+
 app = FastAPI(
     lifespan=lifespan,
     title="retail-portfolio",
     version="0.0.0",
 )
-
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[origin.strip() for origin in settings.cors_allow_origins.split(",")],
@@ -37,7 +37,11 @@ app.add_middleware(
     allow_headers=[origin.strip() for origin in settings.cors_allow_headers.split(",")],
 )
 
-init_routers(app)
+init_logging()
+app.include_router(account_router)
+app.include_router(auth_router)
+app.include_router(integration_router)
+app.include_router(market_router)
 
 
 @app.get("/api/ping")

@@ -2,7 +2,7 @@ from abc import ABC, abstractmethod
 from uuid import UUID
 
 from src.account.api_types import AccountId
-from src.account.schema import AccountSchema
+from src.account.schema import AccountSchema, PositionSchema
 
 
 class AccountRepository(ABC):
@@ -26,4 +26,10 @@ class AccountRepository(ABC):
 
     @abstractmethod
     async def get_by_user(self, user_id: UUID) -> list[AccountSchema]:
+        pass
+
+
+class PositionRepository(ABC):
+    @abstractmethod
+    async def get_by_account(self, account_id: AccountId) -> list[PositionSchema]:
         pass

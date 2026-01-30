@@ -6,9 +6,9 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from svcs import Container
 
 from src.account.api_types import AccountId
-from src.account.model import AccountModel
-from src.account.repository import AccountRepository
-from src.account.schema import AccountSchema
+from src.account.model import AccountModel, PositionModel
+from src.account.repository import AccountRepository, PositionRepository
+from src.account.schema import AccountSchema, PositionSchema
 
 
 class SqlAlchemyAccountRepository(AccountRepository):
@@ -71,3 +71,29 @@ async def sqlalchemy_account_repository_factory(
     container: Container,
 ) -> SqlAlchemyAccountRepository:
     return SqlAlchemyAccountRepository(session=await container.aget(AsyncSession))
+
+
+class SqlAlchemyPositionRepository(PositionRepository):
+    _session: AsyncSession
+
+    def __init__(self, session: AsyncSession) -> None:
+        self._session = session
+
+    @override
+    @override
+    async def get_by_account(self, account_id: AccountId) -> list[PositionSchema]:
+        query = select(PositionModel).where(
+            PositionModel.account_id == account_id,
+        )
+        result = await self._session.execute(query)
+        position_models = result.scalars().all()
+        return [
+            PositionSchema.model_validate(position_model)
+            for position_model in position_models
+        ]
+
+
+async def sqlalchemy_position_repository_factory(
+    container: Container,
+) -> SqlAlchemyPositionRepository:
+    return SqlAlchemyPositionRepository(session=await container.aget(AsyncSession))

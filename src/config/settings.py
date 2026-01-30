@@ -12,5 +12,7 @@ class Settings(BaseSettings):
     cors_allow_methods: str = "*"
     cors_allow_headers: str = "*"
 
+    eodhd_api_key: str = ""
+
 
 settings = Settings()

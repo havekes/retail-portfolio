@@ -2,17 +2,17 @@ from typing import Annotated
 
 from fastapi import APIRouter, Depends
 
+from src.auth.api_types import User
 from src.config.auth import current_user
 from src.market.api_types import Price, SecurityId
 from src.market.repository import PriceRepository, SecurityRepository
 from src.market.repository_eodhd import eodhd_price_repository_factory
 from src.market.repository_sqlalchemy import sqlalchemy_security_repository_factory
-from src.schemas import User
 
-router = APIRouter(prefix="/api/market")
+market_router = APIRouter(prefix="/api/market")
 
 
-@router.get("/prices/{security_id}/last-close")
+@market_router.get("/prices/{security_id}/last-close")
 async def get_last_close_prices(
     _: Annotated[User, Depends(current_user)],
     price_repository: Annotated[
