@@ -20,28 +20,29 @@
 		}
 	});
 
-    function toggleSelection() {
+	function toggleSelection() {
 		if (selectedAccounts.includes(account.id)) {
-			selectedAccounts = selectedAccounts.filter(id => id !== account.id);
+			selectedAccounts = selectedAccounts.filter((id) => id !== account.id);
 
 			return;
-		} 
+		}
 
 		selectedAccounts = [...selectedAccounts, account.id];
-    }
+	}
 </script>
 
 <div class="account-list-item group px flex space-x-4 rounded-lg bg-muted p-4">
-    {#if selectionMode}
-        <div class="px-4 py-2 border-r flex">
+	{#if selectionMode}
+		<div class="flex border-r py-2 pr-4">
 			<div class="m-auto">
-				<Checkbox 
-					checked={selectedAccounts.includes(account.id)} 
+				<Checkbox
+					class="cursor-pointer"
+					checked={selectedAccounts.includes(account.id)}
 					onCheckedChange={toggleSelection}
 				/>
 			</div>
-        </div>
-    {/if}
+		</div>
+	{/if}
 
 	<div class="flex-1 space-y-2">
 		<EditableHeader bind:value={accountName} />
