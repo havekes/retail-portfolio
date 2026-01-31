@@ -3,6 +3,7 @@ from uuid import UUID
 from pydantic import BaseModel
 
 from src.account.api_types import AccountId
+from src.account.enum import InstitutionEnum
 from src.auth.api_types import UserId
 
 type IntegrationUserId = UUID
@@ -11,7 +12,7 @@ type IntegrationUserId = UUID
 class IntegrationUser(BaseModel):
     id: IntegrationUserId
     user_id: UserId
-    institution_id: int
+    institution_id: InstitutionEnum
     display_name: str | None = None
 
 

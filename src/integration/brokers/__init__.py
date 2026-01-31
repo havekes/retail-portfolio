@@ -3,7 +3,7 @@ from abc import ABC, abstractmethod
 import keyring
 from keyrings.alt.file import PlaintextKeyring
 
-from src.account.api_types import InstitutionEnum
+from src.account.enum import InstitutionEnum
 from src.integration.brokers.api_types import (
     BrokerAccount,
     BrokerAccountId,

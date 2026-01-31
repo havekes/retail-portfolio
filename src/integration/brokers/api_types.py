@@ -5,7 +5,8 @@ from decimal import Decimal
 from pydantic import BaseModel
 from stockholm import Currency
 
-from src.account.api_types import AccountId, AccountTypeEnum, InstitutionEnum, Position
+from src.account.api_types import AccountId, Position
+from src.account.enum import AccountTypeEnum, InstitutionEnum
 from src.market.api_types import SecurityId
 
 type BrokerAccountId = str

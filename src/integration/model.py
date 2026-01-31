@@ -1,5 +1,5 @@
 from datetime import datetime
-from uuid import UUID, uuid4
+from uuid import uuid4
 
 from sqlalchemy import (
     DateTime,
@@ -11,6 +11,7 @@ from sqlalchemy import (
 )
 from sqlalchemy.orm import Mapped, mapped_column
 
+from src.auth.api_types import UserId
 from src.config.database import BaseModel
 from src.integration.api_types import IntegrationUserId
 
@@ -21,7 +22,7 @@ class IntegrationUserModel(BaseModel):
     __tablename__ = "integration_users"
 
     id: Mapped[IntegrationUserId] = mapped_column(Uuid, primary_key=True, default=uuid4)
-    user_id: Mapped[UUID] = mapped_column(Uuid, ForeignKey("auth_users.id"))
+    user_id: Mapped[UserId] = mapped_column(Uuid, ForeignKey("auth_users.id"))
     institution_id: Mapped[int] = mapped_column(Integer, ForeignKey("institutions.id"))
     external_user_id: Mapped[str] = mapped_column(String)
     display_name: Mapped[str] = mapped_column(String)

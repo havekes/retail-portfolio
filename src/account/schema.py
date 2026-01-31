@@ -8,10 +8,9 @@ from stockholm import Currency
 
 from src.account.api_types import (
     AccountId,
-    AccountTypeEnum,
-    InstitutionEnum,
     PositionId,
 )
+from src.account.enum import AccountTypeEnum, InstitutionEnum
 from src.auth.api_types import UserId
 from src.integration.brokers.api_types import BrokerAccount, BrokerAccountId
 from src.market.api_types import SecurityId

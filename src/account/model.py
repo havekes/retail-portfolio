@@ -2,15 +2,17 @@ from __future__ import annotations
 
 from datetime import datetime
 from decimal import Decimal
-from uuid import UUID, uuid4
+from uuid import uuid4
 
 from sqlalchemy import (
     DECIMAL,
+    BigInteger,
     Boolean,
     DateTime,
     Float,
     ForeignKey,
     String,
+    Uuid,
     func,
 )
 from sqlalchemy.orm import Mapped, mapped_column, relationship
@@ -19,13 +21,13 @@ from stockholm import Currency
 
 from src.account.api_types import (
     AccountId,
-    AccountTypeEnum,
-    InstitutionEnum,
     PositionId,
 )
+from src.account.enum import AccountTypeEnum, InstitutionEnum
+from src.auth.api_types import UserId
 from src.config.database import BaseModel
+from src.integration.brokers.api_types import BrokerAccountId
 from src.market.api_types import SecurityId
-from src.utils import CurrencyType, EnumAsInteger
 
 
 class AccountModel(BaseModel):
@@ -34,14 +36,16 @@ class AccountModel(BaseModel):
     __tablename__ = "accounts"
 
     id: Mapped[AccountId] = mapped_column(primary_key=True, default=uuid4)
-    external_id: Mapped[str] = mapped_column(String)
+    external_id: Mapped[BrokerAccountId] = mapped_column(String)
     name: Mapped[str] = mapped_column(String)
-    user_id: Mapped[UUID] = mapped_column(ForeignKey("auth_users.id"))
+    user_id: Mapped[UserId] = mapped_column(Uuid, ForeignKey("auth_users.id"))
     account_type_id: Mapped[AccountTypeEnum] = mapped_column(
         ForeignKey("account_types.id")
     )
-    institution_id: Mapped[int] = mapped_column(ForeignKey("institutions.id"))
-    currency: Mapped[Currency] = mapped_column(CurrencyType)
+    institution_id: Mapped[InstitutionEnum] = mapped_column(
+        ForeignKey("institutions.id")
+    )
+    currency: Mapped[Currency] = mapped_column()
     is_active: Mapped[bool] = mapped_column(Boolean, default=True)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=func.now())
     updated_at: Mapped[datetime] = mapped_column(DateTime, default=func.now())
@@ -66,11 +70,9 @@ class AccountTypeModel(BaseModel):
 
     __tablename__ = "account_types"
 
-    id: Mapped[AccountTypeEnum] = mapped_column(
-        EnumAsInteger(AccountTypeEnum), primary_key=True, autoincrement=True
-    )
+    id: Mapped[AccountTypeEnum] = mapped_column(primary_key=True, autoincrement=True)
     name: Mapped[str] = mapped_column(String)
-    country: Mapped[str] = mapped_column(String(2))
+    country: Mapped[str] = mapped_column(String)
     tax_advantaged: Mapped[bool] = mapped_column(Boolean)
     is_active: Mapped[bool] = mapped_column(Boolean, default=True)
 
@@ -87,11 +89,9 @@ class InstitutionModel(BaseModel):
 
     __tablename__ = "institutions"
 
-    id: Mapped[InstitutionEnum] = mapped_column(
-        EnumAsInteger(InstitutionEnum), primary_key=True, autoincrement=True
-    )
+    id: Mapped[InstitutionEnum] = mapped_column(primary_key=True)
     name: Mapped[str] = mapped_column(String)
-    country: Mapped[str] = mapped_column(String(2))
+    country: Mapped[str] = mapped_column(String)
     website: Mapped[str | None] = mapped_column(String, nullable=True)
     is_active: Mapped[bool] = mapped_column(Boolean, default=True)
 
@@ -106,9 +106,11 @@ class InstitutionModel(BaseModel):
 class PositionModel(BaseModel):
     __tablename__ = "positions"
 
-    id: Mapped[PositionId] = mapped_column(primary_key=True, default=uuid4)
-    account_id: Mapped[AccountId] = mapped_column(ForeignKey("accounts.id"))
-    security_id: Mapped[SecurityId] = mapped_column(ForeignKey("market_securities.id"))
+    id: Mapped[PositionId] = mapped_column(BigInteger, primary_key=True, default=uuid4)
+    account_id: Mapped[AccountId] = mapped_column(Uuid, ForeignKey("accounts.id"))
+    security_id: Mapped[SecurityId] = mapped_column(
+        Uuid, ForeignKey("market_securities.id")
+    )
     quantity: Mapped[Decimal] = mapped_column(DECIMAL(16, 8))
     average_cost: Mapped[Decimal | None] = mapped_column(Float, nullable=True)
 

@@ -12,7 +12,7 @@ from ws_api.exceptions import (
 )
 from ws_api.session import WSAPISession
 
-from src.account.api_types import AccountTypeEnum, InstitutionEnum
+from src.account.enum import AccountTypeEnum, InstitutionEnum
 from src.integration.brokers import BrokerApiGateway
 from src.integration.brokers.api_types import (
     BrokerAccount,

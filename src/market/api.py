@@ -4,7 +4,7 @@ from datetime import UTC, datetime
 from stockholm import Money
 from svcs.fastapi import DepContainer
 
-from src.account.api_types import InstitutionEnum
+from src.account.enum import InstitutionEnum
 from src.market.api_types import Security, SecurityId
 from src.market.eodhd import EodhdGateway, eodhd_gateway_factory
 from src.market.repository import (

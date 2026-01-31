@@ -4,7 +4,7 @@ from sqlalchemy import func, select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 from svcs.fastapi import DepContainer
 
-from src.account.api_types import InstitutionEnum
+from src.account.enum import InstitutionEnum
 from src.auth.api_types import UserId
 from src.integration.api_types import IntegrationUserId
 from src.integration.model import IntegrationUserModel

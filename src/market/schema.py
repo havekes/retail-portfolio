@@ -4,7 +4,7 @@ from typing import Self
 
 from pydantic import BaseModel, ConfigDict
 
-from src.account.api_types import InstitutionEnum
+from src.account.enum import InstitutionEnum
 from src.market.api_types import EodhdSearchResult, HistoricalPrice, SecurityId
 
 

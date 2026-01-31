@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from datetime import date, datetime
 from decimal import Decimal
-from uuid import UUID, uuid4
+from uuid import uuid4
 
 from sqlalchemy import (
     DECIMAL,
@@ -19,10 +19,9 @@ from sqlalchemy import (
 )
 from sqlalchemy.orm import Mapped, mapped_column
 
-from src.account.api_types import InstitutionEnum
+from src.account.enum import InstitutionEnum
 from src.config.database import BaseModel
 from src.market.api_types import EodhdSearchResult, SecurityId
-from src.utils import EnumAsInteger
 
 
 class SecurityModel(BaseModel):  # pylint: disable=too-few-public-methods
@@ -30,7 +29,7 @@ class SecurityModel(BaseModel):  # pylint: disable=too-few-public-methods
 
     __tablename__ = "market_securities"
 
-    id: Mapped[UUID] = mapped_column(primary_key=True, default=uuid4)
+    id: Mapped[SecurityId] = mapped_column(Uuid, primary_key=True, default=uuid4)
     symbol: Mapped[str] = mapped_column(String)
     exchange: Mapped[str] = mapped_column(String)
     currency: Mapped[str] = mapped_column(String)
@@ -52,9 +51,7 @@ class SecurityBrokerModel(BaseModel):
     __tablename__ = "market_securities_broker"
 
     id: Mapped[int] = mapped_column(BigInteger, primary_key=True)
-    institution_id: Mapped[InstitutionEnum] = mapped_column(
-        EnumAsInteger[InstitutionEnum]
-    )
+    institution_id: Mapped[InstitutionEnum] = mapped_column()
     broker_symbol: Mapped[str] = mapped_column(String)
     broker_exchange: Mapped[str] = mapped_column(String)
     broker_name: Mapped[str] = mapped_column(String)

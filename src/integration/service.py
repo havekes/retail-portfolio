@@ -3,7 +3,7 @@ from uuid import uuid4
 
 from svcs.fastapi import DepContainer
 
-from src.account.api_types import InstitutionEnum
+from src.account.enum import InstitutionEnum
 from src.auth.api_types import User
 from src.integration.api_types import IntegrationUser
 from src.integration.repository import IntegrationUserRepository

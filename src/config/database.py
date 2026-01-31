@@ -1,7 +1,8 @@
 import contextlib
 from collections.abc import AsyncIterator
-from typing import Any
+from typing import Any, ClassVar
 
+from sqlalchemy import Integer, String
 from sqlalchemy.ext.asyncio import (
     AsyncConnection,
     AsyncSession,
@@ -10,7 +11,9 @@ from sqlalchemy.ext.asyncio import (
 )
 from sqlalchemy.ext.asyncio.engine import AsyncEngine
 from sqlalchemy.orm import DeclarativeBase
+from stockholm import Currency
 
+from src.account.enum import AccountTypeEnum, InstitutionEnum
 from src.config.settings import settings
 
 
@@ -71,4 +74,8 @@ async def get_db_session():
 
 
 class BaseModel(DeclarativeBase):
-    pass
+    type_annotation_map: ClassVar = {
+        InstitutionEnum: Integer,
+        AccountTypeEnum: Integer,
+        Currency: String,
+    }

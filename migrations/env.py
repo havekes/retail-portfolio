@@ -4,6 +4,8 @@ from alembic import context
 from sqlalchemy import engine_from_config, pool
 
 # Import all domain models to ensure they're registered with BaseModel.metadata
+# add your model's MetaData object here
+# for 'autogenerate' support
 from src.account.model import (
     AccountModel,
     AccountTypeModel,
@@ -11,9 +13,6 @@ from src.account.model import (
     PositionModel,
 )
 from src.auth.model import UserModel
-
-# add your model's MetaData object here
-# for 'autogenerate' support
 from src.config.database import BaseModel
 from src.integration.model import IntegrationUserModel
 from src.market.model import PriceModel, SecurityModel

@@ -1,26 +1,15 @@
 from decimal import Decimal
-from enum import IntEnum
 from uuid import UUID
 
 from pydantic import BaseModel
 from stockholm import Currency, Money
 
+from src.account.enum import AccountTypeEnum
 from src.auth.api_types import UserId
 from src.market.api_types import SecurityId
 
 type AccountId = UUID
 type PositionId = UUID
-
-
-class InstitutionEnum(IntEnum):
-    WEALTHSIMPLE = 1
-
-
-class AccountTypeEnum(IntEnum):
-    TFSA = 1
-    RRSP = 2
-    FHSA = 3
-    NON_REGISTERED = 4
 
 
 class Account(BaseModel):

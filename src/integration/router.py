@@ -4,7 +4,8 @@ from fastapi import APIRouter, Depends, HTTPException
 from svcs.fastapi import DepContainer
 
 from src.account.api import AccountApi, PositionApi
-from src.account.api_types import InstitutionEnum, Position
+from src.account.api_types import Position
+from src.account.enum import InstitutionEnum
 from src.auth.api import AuthorizationApi, current_user
 from src.auth.api_types import User
 from src.integration.api import get_broker_gateway_class

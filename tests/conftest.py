@@ -13,7 +13,7 @@ from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_asyn
 from sqlalchemy.ext.asyncio.engine import AsyncEngine
 from svcs import Container, Registry
 
-from src.account.api_types import AccountTypeEnum, InstitutionEnum
+from src.account.api_types import AccountTypeEnum
 from src.account.model import (
     AccountModel,
     AccountTypeModel,
@@ -27,6 +27,7 @@ from src.config.database import BaseModel
 from src.integration.model import IntegrationUserModel
 from src.integration.schema import IntegrationUserSchema
 from src.main import app
+from src.market.enum import InstitutionEnum
 from src.market.model import SecurityModel
 from src.market.schema import SecuritySchema
 
@@ -214,7 +215,7 @@ async def test_accounts(db_session: AsyncSession, test_user: UserSchema) -> Acco
         name="Test Account",
         user_id=test_user.id,
         account_type_id=AccountTypeEnum.TFSA.value,
-        institution_id=InstitutionEnum.WEALTHSIMPLE.value,
+        institution_id=InstitutionEnum.WEALTHSIMPLE,
         currency="CAD",
         is_active=True,
         created_at=datetime.now(UTC),
@@ -343,7 +344,7 @@ async def test_integration_user(
     integration_user_model = IntegrationUserModel(
         id=uuid4(),
         user_id=test_user.id,
-        institution_id=InstitutionEnum.WEALTHSIMPLE.value,
+        institution_id=InstitutionEnum.WEALTHSIMPLE,
         external_user_id="ext_user_123",
         display_name="John Doe",
         last_used_at=datetime.now(UTC),
