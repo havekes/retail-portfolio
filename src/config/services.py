@@ -3,7 +3,7 @@ from svcs import Registry
 
 from src.account import register_account_apis
 from src.auth import register_auth_api
-from src.database import sessionmanager
+from src.config.database import sessionmanager
 from src.market import register_api_services
 
 

@@ -21,7 +21,7 @@ class IntegrationUserModel(BaseModel):
     __tablename__ = "integration_users"
 
     id: Mapped[IntegrationUserId] = mapped_column(Uuid, primary_key=True, default=uuid4)
-    user_id: Mapped[UUID] = mapped_column(Uuid, ForeignKey("users.id"))
+    user_id: Mapped[UUID] = mapped_column(Uuid, ForeignKey("auth_users.id"))
     institution_id: Mapped[int] = mapped_column(Integer, ForeignKey("institutions.id"))
     external_user_id: Mapped[str] = mapped_column(String)
     display_name: Mapped[str] = mapped_column(String)

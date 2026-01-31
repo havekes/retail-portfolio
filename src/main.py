@@ -1,4 +1,6 @@
 import logging
+from collections.abc import AsyncIterator
+from contextlib import asynccontextmanager
 
 import svcs
 from fastapi import FastAPI
@@ -17,7 +19,8 @@ from src.market.router import market_router
 
 
 @svcs.fastapi.lifespan
-async def lifespan(_: FastAPI, registry: svcs.Registry):
+@asynccontextmanager
+async def lifespan(_: FastAPI, registry: svcs.Registry) -> AsyncIterator[None]:
     register_services(registry)
     yield
 

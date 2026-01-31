@@ -3,8 +3,9 @@ from enum import IntEnum
 from uuid import UUID
 
 from pydantic import BaseModel
-from stockholm import Money
+from stockholm import Currency, Money
 
+from src.auth.api_types import UserId
 from src.market.api_types import SecurityId
 
 type AccountId = UUID
@@ -25,10 +26,10 @@ class AccountTypeEnum(IntEnum):
 class Account(BaseModel):
     id: AccountId
     name: str
-    user_id: UUID
+    user_id: UserId
     account_type_id: AccountTypeEnum
     institution_id: int
-    currency: str
+    currency: Currency
     is_active: bool = True
 
 

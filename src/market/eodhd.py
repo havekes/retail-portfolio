@@ -1,37 +1,11 @@
 from datetime import date
-from decimal import Decimal
-from typing import TypedDict
 
 import requests
 from eodhd.apiclient import APIClient
-from pydantic import BaseModel
 
 from src.config.settings import settings
-from src.market.api_types import SecurityId
+from src.market.api_types import EodhdSearchResult, HistoricalPrice
 from src.market.schema import SecuritySchema
-
-
-class EodhdSearchResult(TypedDict):
-    Code: str
-    Currency: str
-    Exchange: str
-    Name: str
-    Type: str
-    Country: str
-    ISIN: str
-    isPrimary: str
-    previousClose: str
-    previousCloseDate: str
-
-
-class HistoricalPrice(BaseModel):
-    security_id: SecurityId
-    date: date
-    open: Decimal
-    high: Decimal
-    low: Decimal
-    close: Decimal
-    volume: int
 
 
 class EodhdGateway:
@@ -67,6 +41,7 @@ class EodhdGateway:
                 high=price["high"],  # pyright: ignore[reportUnknownArgumentType]
                 low=price["low"],  # pyright: ignore[reportUnknownArgumentType]
                 close=price["close"],  # pyright: ignore[reportUnknownArgumentType]
+                adjusted_close=price["adjusted_close"],  # pyright: ignore[reportUnknownArgumentType]
                 volume=price["volume"],  # pyright: ignore[reportUnknownArgumentType]
             )
         except IndexError:
@@ -92,6 +67,7 @@ class EodhdGateway:
                     high=price["high"],  # pyright: ignore[reportArgumentType]
                     low=price["low"],  # pyright: ignore[reportArgumentType]
                     close=price["close"],  # pyright: ignore[reportArgumentType]
+                    adjusted_close=price["adjusted_close"],  # pyright: ignore[reportArgumentType]
                     volume=price["volume"],  # pyright: ignore[reportArgumentType]
                 )
             )

@@ -7,7 +7,7 @@ import jwt
 from fastapi import Depends, HTTPException
 from fastapi.security import OAuth2PasswordBearer
 from pydantic import BaseModel
-from svcs import Container
+from svcs.fastapi import DepContainer
 
 from src.auth.api_types import AccessTokenData, AuthResponse, User
 from src.auth.exceptions import AuthInvalidCredentialsError, AuthUserAlreadyExistsError
@@ -112,7 +112,7 @@ class UserApi:
 
 
 async def user_api_factory(
-    container: Container,
+    container: DepContainer,
 ) -> UserApi:
     return UserApi(
         user_repository=await container.aget(UserRepository),
@@ -140,7 +140,7 @@ class AuthorizationApi:
 
 
 async def authorization_api_factory(
-    container: Container,
+    container: DepContainer,
 ) -> AuthorizationApi:
     return AuthorizationApi(
         user_service=await user_api_factory(container),

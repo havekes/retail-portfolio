@@ -2,7 +2,11 @@ from abc import ABC, abstractmethod
 from datetime import date
 
 from src.market.api_types import SecurityId
-from src.market.schema import PriceSchema, SecuritySchema, SecurityWrite
+from src.market.schema import (
+    PriceSchema,
+    SecurityBrokerSchema,
+    SecuritySchema,
+)
 
 
 class SecurityRepository(ABC):
@@ -11,7 +15,15 @@ class SecurityRepository(ABC):
         pass
 
     @abstractmethod
-    async def get_or_create(self, security: SecurityWrite) -> SecuritySchema:
+    async def get_or_create(self, security: SecuritySchema) -> SecuritySchema:
+        pass
+
+
+class SecurityBrokerRepository(ABC):
+    @abstractmethod
+    async def get_or_create(
+        self, security_broker: SecurityBrokerSchema
+    ) -> SecurityBrokerSchema:
         pass
 
 

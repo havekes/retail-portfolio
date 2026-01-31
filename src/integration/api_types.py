@@ -2,6 +2,7 @@ from uuid import UUID
 
 from pydantic import BaseModel
 
+from src.account.api_types import AccountId
 from src.auth.api_types import UserId
 
 type IntegrationUserId = UUID
@@ -25,13 +26,13 @@ class IntegrationLoginResponse(BaseModel):
 
 
 class IntegrationImportAccountsRequest(BaseModel):
-    external_user_id: UUID
+    external_user_id: IntegrationUserId
     external_account_ids: list[str]
 
 
 class IntegrationImportPositionsRequest(BaseModel):
-    external_user_id: UUID
-    account_id: UUID
+    external_user_id: IntegrationUserId
+    account_id: AccountId
 
 
 class IntegrationImportResponse(BaseModel):

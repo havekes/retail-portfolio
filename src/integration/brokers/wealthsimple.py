@@ -1,12 +1,9 @@
 import logging
-import uuid
-from collections.abc import AsyncGenerator
 from datetime import UTC, datetime
+from decimal import Decimal
 from typing import Any, cast, override
-from uuid import UUID
 
 import keyring
-from svcs import Container
 from ws_api import WealthsimpleAPI
 from ws_api.exceptions import (
     LoginFailedException,
@@ -15,27 +12,31 @@ from ws_api.exceptions import (
 )
 from ws_api.session import WSAPISession
 
-from src.enums import AccountTypeEnum, InstitutionEnum
-from src.external.api_wrapper import ExternalAPIWrapper
-from src.external.eodhd import EodhdApiWrapper
-from src.external.exceptions import (
+from src.account.api_types import AccountTypeEnum, InstitutionEnum
+from src.integration.brokers import BrokerApiGateway
+from src.integration.brokers.api_types import (
+    BrokerAccount,
+    BrokerAccountId,
+    BrokerPosition,
+)
+from src.integration.brokers.exceptions import (
     AccountTypeUnkownError,
     LoginFailedError,
     OTPRequiredError,
     SessionDoesNotExistError,
     SessionExpiredError,
-    UnsupportedSecurityError,
 )
-from src.external.schemas.accounts import ExternalAccount
-from src.integration.brokers import BrokerApiGateway
-from src.repositories.account import AccountRepository
-from src.repositories.account_type import AccountTypeRepository
-from src.repositories.position import PositionRepository
-from src.repositories.security import SecurityRepository
-from src.schemas import Account, FullExternalUser, Position, Security
-from src.schemas.security import SecurityWrite
+from src.integration.schema import IntegrationUserSchema
 
 logger = logging.getLogger(__name__)
+
+
+_wealthsimple_account_type_map = {
+    "SELF_DIRECTED_TFSA": AccountTypeEnum.TFSA,
+    "SELF_DIRECTED_RRSP": AccountTypeEnum.RRSP,
+    "SELF_DIRECTED_FHSA": AccountTypeEnum.FHSA,
+    "SELF_DIRECTED_NON_REGISTERED": AccountTypeEnum.NON_REGISTERED,
+}
 
 
 class WealthsimpleApiGateway(BrokerApiGateway):
@@ -73,11 +74,6 @@ class WealthsimpleApiGateway(BrokerApiGateway):
             password,
             otp,
             persist_session_fct=self._save_session,
-        )
-
-    async def _account_exists(self, user_id: UUID, ws_account_id: str) -> bool:
-        return await self._account_repository.exists_by_user_and_external_id(
-            user_id, ws_account_id
         )
 
     @override
@@ -118,200 +114,114 @@ class WealthsimpleApiGateway(BrokerApiGateway):
         return True
 
     @override
-    async def list_accounts(
+    async def get_accounts(
         self,
-        external_user: FullExternalUser,
-    ) -> list[ExternalAccount]:
-        ws_client = self._get_client(external_user.external_user_id)
+        integration_user: IntegrationUserSchema,
+    ) -> list[BrokerAccount]:
+        ws_client = self._get_client(integration_user.external_user_id)
         ws_accounts = cast("list[dict[str, Any]]", ws_client.get_accounts())  # pyright: ignore[reportExplicitAny]
-        accounts: list[ExternalAccount] = []
+        accounts: list[BrokerAccount] = []
 
         for ws_account in ws_accounts:
-            if ws_account["status"] != "open":
-                continue
-
-            account_type = self._get_from_unified_account_type(
-                ws_account["unifiedAccountType"]
-            )
-            custodian_account = ws_account["custodianAccounts"][0]
-            current_amount = float(
-                custodian_account["financials"]["current"]["netLiquidationValue"][
-                    "amount"
-                ]
-            )
-
-            if account_type is None:
-                continue  # Unsupported account
-
-            accounts.append(
-                ExternalAccount(
-                    id=ws_account["id"],
-                    type=account_type,
-                    currency=ws_account["currency"],
-                    display_name=custodian_account["id"],
-                    value=f"{current_amount:.2f}",
-                    created_at=datetime.strptime(
-                        ws_account["createdAt"], "%Y-%m-%dT%H:%M:%S.%fZ"
-                    ).astimezone(UTC),
-                )
-            )
+            account = self._parse_account(ws_account)
+            if account is not None:
+                accounts.append(account)
 
         return accounts
 
     @override
-    async def import_accounts(
+    async def get_positions_by_account(
         self,
-        external_user: FullExternalUser,
-        account_ids: list[str] | None = None,
-    ) -> list[Account]:
-        ws_client = self._get_client(external_user.external_user_id)
-        ws_accounts = cast("list[dict[str, Any]]", ws_client.get_accounts())  # pyright: ignore[reportExplicitAny]
-        created_accounts: list[Account] = []
-
-        for ws_account in ws_accounts:
-            ws_account_id = ws_account["id"]
-
-            if account_ids is not None and ws_account_id not in account_ids:
-                logger.info(
-                    "Skipped importing account %s: not in list %s",
-                    ws_account_id,
-                    account_ids,
-                )
-                continue
-
-            if ws_account["status"] != "open":
-                logger.info(
-                    "Skipped importing account %s: status not open",
-                    ws_account_id,
-                )
-                continue
-
-            account_exists = await self._account_exists(
-                external_user.user_id,
-                ws_account["id"],
-            )
-            if account_exists is True:
-                logger.info(
-                    "Skipped importing account %s: already imported",
-                    ws_account_id,
-                )
-                continue
-
-            account_type = self._get_from_unified_account_type(
-                ws_account["unifiedAccountType"]
-            )
-            # Should not happen if account was returned by list method
-            if account_type is None:
-                raise AccountTypeUnkownError(ws_account["unifiedAccountType"])
-
-            account = await self._account_repository.create_account(
-                Account(
-                    external_id=ws_account["id"],
-                    name=ws_account["description"],
-                    user_id=external_user.user_id,
-                    account_type_id=account_type.value,
-                    institution_id=self._institution.value,
-                    currency=ws_account["currency"],
-                )
-            )
-            logger.info(
-                "Imported account %s for user %s",
-                account.external_id,
-                external_user.user_id,
-            )
-
-        return created_accounts
-
-    @override
-    async def import_positions(
-        self,
-        external_user: FullExternalUser,
-        account: Account,
-    ) -> list[Position]:
-        ws_client = self._get_client(external_user.external_user_id)
+        integration_user: IntegrationUserSchema,
+        broker_account_id: BrokerAccountId,
+    ) -> list[BrokerPosition]:
+        ws_client = self._get_client(integration_user.external_user_id)
         ws_balances = cast(
-            "dict[str, float]", ws_client.get_account_balances(account.external_id)
+            "dict[str, float]", ws_client.get_account_balances(broker_account_id)
         )
-        positions: list[Position] = []
-        _ = await self._position_repository.delete_by_account(account.id)
+        positions: list[BrokerPosition] = []
 
         for security_id, ws_balance in ws_balances.items():
-            if security_id == "sec-c-cad":
-                logger.info("Skipping cash position: not yet supported")
-                continue
-
-            # Handle API bug where security id is wrapped in []
-            trimmed_security_id = security_id[1:-1]
-
-            ws_security_market_data = ws_client.get_security_market_data(  # pyright: ignore[reportUnknownVariableType]
-                trimmed_security_id
+            position = self._parse_position(
+                ws_client=ws_client,
+                broker_account_id=broker_account_id,
+                security_id=security_id,
+                ws_balance=ws_balance,
             )
-            assert isinstance(ws_security_market_data, dict)
-
-            ws_positions = self._ws_get_identity_positions(
-                client=ws_client,
-                security_ids=[trimmed_security_id],
-            )
-            assert isinstance(ws_positions, list)
-
-            try:
-                average_cost = self._get_average_cost(account, ws_positions)
-                security = await self._import_security(ws_security_market_data)
-                position = await self._import_position(
-                    account, security, ws_balance, average_cost
-                )
-
-                logger.info(
-                    "Imported position %s for account %s",
-                    trimmed_security_id,
-                    account.id,
-                )
-
+            if position is not None:
                 positions.append(position)
-            except UnsupportedSecurityError:
-                logger.warning("Skipped security %s: unsupported security")
-                continue
 
         return positions
 
-    async def _import_security(self, ws_security_market_data: dict) -> Security:  # pyright: ignore[reportMissingTypeArgument, reportUnknownParameterType]
+    def _parse_account(self, ws_account: dict[str, Any]) -> BrokerAccount | None:  # pyright: ignore[reportExplicitAny]
+        if ws_account["status"] != "open":
+            return None
+
+        ws_account_type = ws_account["unifiedAccountType"]
+        try:
+            account_type = self._get_account_type(ws_account_type)
+        except AccountTypeUnkownError:
+            logger.warning("Unsupported account type %s", ws_account_type)
+            return None
+
+        custodian_account = ws_account["custodianAccounts"][0]
+        current_amount = Decimal(
+            custodian_account["financials"]["current"]["netLiquidationValue"]["amount"]
+        )
+
+        return BrokerAccount(
+            id=ws_account["id"],
+            type=account_type,
+            institution=InstitutionEnum.WEALTHSIMPLE,
+            currency=ws_account["currency"],
+            display_name=custodian_account["id"],
+            value=current_amount,
+            created_at=datetime.strptime(
+                ws_account["createdAt"], "%Y-%m-%dT%H:%M:%S.%fZ"
+            ).astimezone(UTC),
+        )
+
+    def _parse_position(
+        self,
+        ws_client: WealthsimpleAPI,
+        broker_account_id: BrokerAccountId,
+        security_id: str,
+        ws_balance: float,
+    ) -> BrokerPosition | None:
+        if security_id == "sec-c-cad":
+            logger.info("Skipping cash position: not yet supported")
+            return None
+
+        # Handle API bug where security id is wrapped in []
+        trimmed_security_id = security_id[1:-1]
+
+        ws_security_market_data = ws_client.get_security_market_data(  # pyright: ignore[reportUnknownVariableType]
+            trimmed_security_id
+        )
+        assert isinstance(ws_security_market_data, dict)
+
+        ws_positions = self._ws_get_identity_positions(
+            client=ws_client,
+            security_ids=[trimmed_security_id],
+        )
+        assert isinstance(ws_positions, list)
+
+        average_cost = Decimal(
+            self._get_average_cost(broker_account_id, ws_positions) or 0
+        )
         stock_info = cast("dict[str, Any]", ws_security_market_data["stock"])  # pyright: ignore[reportExplicitAny]
 
         if stock_info["primaryExchange"] is None:
-            raise UnsupportedSecurityError
+            logger.warning("Skipped security %s: unsupported security")
+            return None
 
-        market_cap = float(ws_security_market_data["fundamentals"]["marketCap"])  # pyright: ignore[reportUnknownArgumentType]
-
-        eodhd_symbol = self._map_eodhd_symbol(stock_info["symbol"])
-        eodhd_exchange = self._map_eodhd_exchange(stock_info["primaryExchange"])
-        eodhd_result = self._eodhd.search(f"{eodhd_symbol}.{eodhd_exchange}")[0]
-
-        return await self._security_repository.get_or_create(
-            SecurityWrite(
-                symbol=eodhd_result["Code"],
-                name=eodhd_result["Name"],
-                market_cap=market_cap,
-                isin=eodhd_result["ISIN"] or "",
-                currency=eodhd_result["Currency"],
-                exchange=eodhd_result["Exchange"],
-            )
-        )
-
-    async def _import_position(
-        self,
-        account: Account,
-        security: Security,
-        balance: float,
-        average_cost: float | None,
-    ) -> Position:
-        return await self._position_repository.create_or_update(
-            Position(
-                id=uuid.uuid4(),
-                account_id=account.id,
-                security_id=security.id,
-                quantity=balance,
-                average_cost=average_cost,
-            )
+        return BrokerPosition(
+            broker_account_id=broker_account_id,
+            name=stock_info["name"],
+            symbol=stock_info["symbol"],
+            exchange=stock_info["primaryExchange"],
+            quantity=Decimal(ws_balance),
+            average_cost=average_cost,
         )
 
     def _ws_get_identity_positions(
@@ -324,28 +234,20 @@ class WealthsimpleApiGateway(BrokerApiGateway):
 
     def _get_average_cost(
         self,
-        account: Account,
+        broker_account_id: BrokerAccountId,
         ws_positions: list[dict[str, Any]],  # pyright: ignore[reportExplicitAny]
-    ) -> float | None:
-        average_cost = None
+    ) -> Decimal | None:
         for ws_position in ws_positions:
-            if ws_position["accounts"][0]["id"] == account.external_id:
-                average_cost = ws_position["averagePrice"]["amount"]
+            if ws_position["accounts"][0]["id"] == broker_account_id:
+                return ws_position["averagePrice"]["amount"]
 
-        return average_cost
-
-    def _get_from_unified_account_type(
-        self, ws_unified_account_type: str
-    ) -> AccountTypeEnum | None:
-        if ws_unified_account_type == "SELF_DIRECTED_TFSA":
-            return AccountTypeEnum.TFSA
-        if ws_unified_account_type == "SELF_DIRECTED_RRSP":
-            return AccountTypeEnum.RRSP
-        if ws_unified_account_type == "SELF_DIRECTED_FHSA":
-            return AccountTypeEnum.FHSA
-        if ws_unified_account_type == "SELF_DIRECTED_NON_REGISTERED":
-            return AccountTypeEnum.NON_REGISTERED
         return None
+
+    def _get_account_type(self, ws_unified_account_type: str) -> AccountTypeEnum:
+        try:
+            return _wealthsimple_account_type_map[ws_unified_account_type]
+        except KeyError as e:
+            raise AccountTypeUnkownError(ws_unified_account_type) from e
 
     def _map_eodhd_symbol(self, ws_symbol: str) -> str:
         return ws_symbol.replace(".", "-")
@@ -359,13 +261,5 @@ class WealthsimpleApiGateway(BrokerApiGateway):
         }[ws_primary_exchange]
 
 
-async def wealthsimple_api_wrapper_factory(
-    container: Container,
-) -> AsyncGenerator[WealthsimpleApiWrapper]:
-    yield WealthsimpleApiWrapper(
-        account_repository=await container.aget(AccountRepository),
-        account_type_repository=await container.aget(AccountTypeRepository),
-        position_repository=await container.aget(PositionRepository),
-        security_repository=await container.aget(SecurityRepository),
-        eodhd=container.get(EodhdApiWrapper),
-    )
+async def wealthsimple_api_wrapper_factory() -> WealthsimpleApiGateway:
+    return WealthsimpleApiGateway()

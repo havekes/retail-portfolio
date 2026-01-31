@@ -2,7 +2,7 @@
 
 from uuid import uuid4
 
-from src.enums import InstitutionEnum
+from src.account.api_types import InstitutionEnum
 
 
 def test_external_users_empty(auth_client, seed_reference_data):

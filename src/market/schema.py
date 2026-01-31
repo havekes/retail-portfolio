@@ -1,15 +1,17 @@
 from datetime import date, datetime
 from decimal import Decimal
-from uuid import UUID
+from typing import Self
 
 from pydantic import BaseModel, ConfigDict
-from stockholm import Currency
+
+from src.account.api_types import InstitutionEnum
+from src.market.api_types import EodhdSearchResult, HistoricalPrice, SecurityId
 
 
 class SecuritySchema(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
-    id: UUID
+    id: SecurityId
     symbol: str
     exchange: str
     currency: str
@@ -22,26 +24,41 @@ class SecuritySchema(BaseModel):
         return f"{self.symbol}.{self.exchange}"
 
 
-class SecurityWrite(BaseModel):
-    symbol: str
-    exchange: str
-    currency: str
-    name: str
-    isin: str | None
-    market_cap: float
-    is_active: bool = True
+class SecurityBrokerSchema(BaseModel):
+    id: int | None = None
+    institution_id: InstitutionEnum
+    broker_symbol: str
+    mapped_symbol: str
+    broker_exchange: str
+    mapped_exchange: str
+    broker_name: str
+    security_id: SecurityId
+    search_results: list[EodhdSearchResult]
+    created_at: datetime | None = None
 
 
 class PriceSchema(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
-    id: int | None
-    security_id: int
+    id: int | None = None
+    security_id: SecurityId
     date: date
     open: Decimal
     high: Decimal
     low: Decimal
     close: Decimal
     adjusted_close: Decimal
-    volume: Decimal
-    currency: Currency
+    volume: int
+
+    @classmethod
+    def from_historical_price(cls, historical_price: HistoricalPrice) -> Self:
+        return cls(
+            security_id=historical_price.security_id,
+            date=historical_price.date,
+            open=historical_price.open,
+            high=historical_price.high,
+            low=historical_price.low,
+            close=historical_price.close,
+            adjusted_close=historical_price.adjusted_close,
+            volume=historical_price.volume,
+        )

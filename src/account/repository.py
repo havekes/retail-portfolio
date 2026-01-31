@@ -1,8 +1,9 @@
 from abc import ABC, abstractmethod
-from uuid import UUID
 
 from src.account.api_types import AccountId
 from src.account.schema import AccountSchema, PositionSchema
+from src.auth.api_types import UserId
+from src.integration.brokers.api_types import BrokerAccountId
 
 
 class AccountRepository(ABC):
@@ -19,13 +20,13 @@ class AccountRepository(ABC):
         pass
 
     @abstractmethod
-    async def exists_by_user_and_external_id(
-        self, user_id: UUID, external_id: str
+    async def exists_by_user_and_broker_id(
+        self, user_id: UserId, broker_id: BrokerAccountId
     ) -> bool:
         pass
 
     @abstractmethod
-    async def get_by_user(self, user_id: UUID) -> list[AccountSchema]:
+    async def get_by_user(self, user_id: UserId) -> list[AccountSchema]:
         pass
 
 

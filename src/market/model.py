@@ -6,6 +6,7 @@ from uuid import UUID, uuid4
 
 from sqlalchemy import (
     DECIMAL,
+    JSON,
     BigInteger,
     Boolean,
     Date,
@@ -13,17 +14,18 @@ from sqlalchemy import (
     ForeignKey,
     String,
     UniqueConstraint,
+    Uuid,
     func,
 )
-from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
-from stockholm import Currency
+from sqlalchemy.orm import Mapped, mapped_column
+
+from src.account.api_types import InstitutionEnum
+from src.config.database import BaseModel
+from src.market.api_types import EodhdSearchResult, SecurityId
+from src.utils import EnumAsInteger
 
 
-class Base(DeclarativeBase):
-    pass
-
-
-class SecurityModel(Base):  # pylint: disable=too-few-public-methods
+class SecurityModel(BaseModel):  # pylint: disable=too-few-public-methods
     """Security holds generic data about a security"""
 
     __tablename__ = "market_securities"
@@ -46,13 +48,34 @@ class SecurityModel(Base):  # pylint: disable=too-few-public-methods
     )
 
 
-class PriceModel(Base):
+class SecurityBrokerModel(BaseModel):
+    __tablename__ = "market_securities_broker"
+
+    id: Mapped[int] = mapped_column(BigInteger, primary_key=True)
+    institution_id: Mapped[InstitutionEnum] = mapped_column(
+        EnumAsInteger[InstitutionEnum]
+    )
+    broker_symbol: Mapped[str] = mapped_column(String)
+    broker_exchange: Mapped[str] = mapped_column(String)
+    broker_name: Mapped[str] = mapped_column(String)
+    security_id: Mapped[SecurityId] = mapped_column(
+        Uuid, ForeignKey("market_securities.id")
+    )
+    search_results: Mapped[list[EodhdSearchResult]] = mapped_column(JSON)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), default=func.now()
+    )
+
+
+class PriceModel(BaseModel):
     """Security model."""
 
     __tablename__ = "market_prices"
 
     id: Mapped[int] = mapped_column(BigInteger, primary_key=True)
-    security_id: Mapped[UUID] = mapped_column(ForeignKey("market_securities.id"))
+    security_id: Mapped[SecurityId] = mapped_column(
+        Uuid, ForeignKey("market_securities.id")
+    )
     date: Mapped[date] = mapped_column(Date)
     open: Mapped[Decimal] = mapped_column(DECIMAL(16, 8))
     high: Mapped[Decimal] = mapped_column(DECIMAL(16, 8))
@@ -60,4 +83,3 @@ class PriceModel(Base):
     close: Mapped[Decimal] = mapped_column(DECIMAL(16, 8))
     adjusted_close: Mapped[Decimal] = mapped_column(DECIMAL(16, 8))
     volume: Mapped[int] = mapped_column(BigInteger)
-    currency: Mapped[Currency] = mapped_column(String)

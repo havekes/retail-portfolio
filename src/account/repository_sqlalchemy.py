@@ -1,14 +1,15 @@
 from typing import override
-from uuid import UUID
 
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
-from svcs import Container
+from svcs.fastapi import DepContainer
 
 from src.account.api_types import AccountId
 from src.account.model import AccountModel, PositionModel
 from src.account.repository import AccountRepository, PositionRepository
 from src.account.schema import AccountSchema, PositionSchema
+from src.auth.api_types import UserId
+from src.integration.brokers.api_types import BrokerAccountId
 
 
 class SqlAlchemyAccountRepository(AccountRepository):
@@ -47,17 +48,17 @@ class SqlAlchemyAccountRepository(AccountRepository):
         return AccountSchema.model_validate(account_model)
 
     @override
-    async def exists_by_user_and_external_id(
-        self, user_id: UUID, external_id: str
+    async def exists_by_user_and_broker_id(
+        self, user_id: UserId, broker_id: BrokerAccountId
     ) -> bool:
         q = select(AccountModel).where(
-            AccountModel.user_id == user_id, AccountModel.external_id == external_id
+            AccountModel.user_id == user_id, AccountModel.external_id == broker_id
         )
 
         return bool(await self._session.scalar(select(q.exists())))
 
     @override
-    async def get_by_user(self, user_id: UUID) -> list[AccountSchema]:
+    async def get_by_user(self, user_id: UserId) -> list[AccountSchema]:
         q = select(AccountModel).where(AccountModel.user_id == user_id)
         result = await self._session.execute(q)
         account_models = result.scalars().all()
@@ -68,7 +69,7 @@ class SqlAlchemyAccountRepository(AccountRepository):
 
 
 async def sqlalchemy_account_repository_factory(
-    container: Container,
+    container: DepContainer,
 ) -> SqlAlchemyAccountRepository:
     return SqlAlchemyAccountRepository(session=await container.aget(AsyncSession))
 
@@ -94,6 +95,6 @@ class SqlAlchemyPositionRepository(PositionRepository):
 
 
 async def sqlalchemy_position_repository_factory(
-    container: Container,
+    container: DepContainer,
 ) -> SqlAlchemyPositionRepository:
     return SqlAlchemyPositionRepository(session=await container.aget(AsyncSession))

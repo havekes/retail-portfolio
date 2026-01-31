@@ -2,8 +2,8 @@ from typing import Annotated
 
 from fastapi import APIRouter, Depends
 
+from src.auth.api import current_user
 from src.auth.api_types import User
-from src.config.auth import current_user
 from src.market.api_types import Price, SecurityId
 from src.market.repository import PriceRepository, SecurityRepository
 from src.market.repository_eodhd import eodhd_price_repository_factory

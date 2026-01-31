@@ -1,23 +1,21 @@
 from typing import Annotated
-from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException
 from svcs.fastapi import DepContainer
 
-from src.account.api_types import AccountRenameRequest, AccountTotals
+from src.account.api_types import AccountId, AccountRenameRequest, AccountTotals
 from src.account.repository import AccountRepository
 from src.account.repository_sqlalchemy import sqlalchemy_account_repository_factory
 from src.account.schema import AccountSchema
 from src.account.service import PositionService, position_service_factory
-from src.auth.api import AuthorizationApi
+from src.auth.api import AuthorizationApi, current_user
 from src.auth.api_types import User
-from src.config.auth import current_user
 
 account_router = APIRouter(prefix="/api/account")
 
 
 @account_router.get("/")
-async def user_accounts(
+async def accounts_list(
     user: Annotated[User, Depends(current_user)],
     account_repository: Annotated[
         AccountRepository, Depends(sqlalchemy_account_repository_factory)
@@ -32,13 +30,13 @@ async def user_accounts(
 
 @account_router.patch("/{account_id}/rename")
 async def account_rename(
-    account_id: UUID,
+    account_id: AccountId,
     account_rename_request: AccountRenameRequest,
-    services: DepContainer,
     user: Annotated[User, Depends(current_user)],
     account_repository: Annotated[
         AccountRepository, Depends(sqlalchemy_account_repository_factory)
     ],
+    services: DepContainer,
 ) -> AccountSchema:
     """
     Rename an existing account of the current user.
@@ -53,13 +51,13 @@ async def account_rename(
 
 @account_router.get("/{account_id}/totals")
 async def account_totals(
-    account_id: UUID,
-    services: DepContainer,
+    account_id: AccountId,
     user: Annotated[User, Depends(current_user)],
     account_repository: Annotated[
         AccountRepository, Depends(sqlalchemy_account_repository_factory)
     ],
     position_service: Annotated[PositionService, Depends(position_service_factory)],
+    services: DepContainer,
 ) -> AccountTotals:
     """
     Get accounts totals such as cost and price.

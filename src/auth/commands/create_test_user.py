@@ -1,13 +1,13 @@
 from asyncio import run
 
-from src.database import sessionmanager
-from src.models.user import User
+from src.auth.model import UserModel
+from src.config.database import sessionmanager
 
 
 async def main():
     async with sessionmanager.session() as session:
         email = input("User email: ")
-        user = User(email=email, password="")
+        user = UserModel(email=email)
         session.add(user)
         await session.commit()
 

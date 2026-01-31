@@ -4,16 +4,13 @@ from datetime import datetime
 from uuid import uuid4
 
 from sqlalchemy import Boolean, DateTime, String, Uuid, func
-from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
+from sqlalchemy.orm import Mapped, mapped_column
 
 from src.auth.api_types import UserId
+from src.config.database import BaseModel
 
 
-class Base(DeclarativeBase):
-    pass
-
-
-class UserModel(Base):
+class UserModel(BaseModel):
     """User model."""
 
     __tablename__ = "auth_users"

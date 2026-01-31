@@ -13,7 +13,7 @@ from sqlalchemy import (
     String,
     func,
 )
-from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlalchemy.sql.schema import UniqueConstraint
 from stockholm import Currency
 
@@ -23,15 +23,12 @@ from src.account.api_types import (
     InstitutionEnum,
     PositionId,
 )
+from src.config.database import BaseModel
 from src.market.api_types import SecurityId
-from src.utils import EnumAsInteger
+from src.utils import CurrencyType, EnumAsInteger
 
 
-class Base(DeclarativeBase):
-    pass
-
-
-class AccountModel(Base):
+class AccountModel(BaseModel):
     """Account model."""
 
     __tablename__ = "accounts"
@@ -39,12 +36,12 @@ class AccountModel(Base):
     id: Mapped[AccountId] = mapped_column(primary_key=True, default=uuid4)
     external_id: Mapped[str] = mapped_column(String)
     name: Mapped[str] = mapped_column(String)
-    user_id: Mapped[UUID] = mapped_column(ForeignKey("users.id"))
+    user_id: Mapped[UUID] = mapped_column(ForeignKey("auth_users.id"))
     account_type_id: Mapped[AccountTypeEnum] = mapped_column(
         ForeignKey("account_types.id")
     )
     institution_id: Mapped[int] = mapped_column(ForeignKey("institutions.id"))
-    currency: Mapped[Currency] = mapped_column(String(3))
+    currency: Mapped[Currency] = mapped_column(CurrencyType)
     is_active: Mapped[bool] = mapped_column(Boolean, default=True)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=func.now())
     updated_at: Mapped[datetime] = mapped_column(DateTime, default=func.now())
@@ -54,17 +51,17 @@ class AccountModel(Base):
 
     # Relationships
     account_type: Mapped[AccountTypeModel] = relationship(
-        "AccountType", back_populates="accounts"
+        "AccountTypeModel", back_populates="accounts"
     )
     institution: Mapped[InstitutionModel] = relationship(
-        "Institution", back_populates="accounts"
+        "InstitutionModel", back_populates="accounts"
     )
-    positions: Mapped[PositionModel] = relationship(
-        "Position", back_populates="accounts"
+    positions: Mapped[list[PositionModel]] = relationship(
+        "PositionModel", back_populates="account"
     )
 
 
-class AccountTypeModel(Base):
+class AccountTypeModel(BaseModel):
     """Account type model."""
 
     __tablename__ = "account_types"
@@ -81,11 +78,11 @@ class AccountTypeModel(Base):
 
     # Relationships
     accounts: Mapped[list[AccountModel]] = relationship(
-        "Account", back_populates="account_type"
+        "AccountModel", back_populates="account_type"
     )
 
 
-class InstitutionModel(Base):
+class InstitutionModel(BaseModel):
     """Institution model."""
 
     __tablename__ = "institutions"
@@ -102,16 +99,16 @@ class InstitutionModel(Base):
 
     # Relationships
     accounts: Mapped[list[AccountModel]] = relationship(
-        "Account", back_populates="institution"
+        "AccountModel", back_populates="institution"
     )
 
 
-class PositionModel(Base):
+class PositionModel(BaseModel):
     __tablename__ = "positions"
 
     id: Mapped[PositionId] = mapped_column(primary_key=True, default=uuid4)
     account_id: Mapped[AccountId] = mapped_column(ForeignKey("accounts.id"))
-    security_id: Mapped[SecurityId] = mapped_column(ForeignKey("securities.id"))
+    security_id: Mapped[SecurityId] = mapped_column(ForeignKey("market_securities.id"))
     quantity: Mapped[Decimal] = mapped_column(DECIMAL(16, 8))
     average_cost: Mapped[Decimal | None] = mapped_column(Float, nullable=True)
 
@@ -122,4 +119,7 @@ class PositionModel(Base):
     __table_args__ = (UniqueConstraint("account_id", "security_id"),)
 
     # Relationships
-    account: Mapped[AccountModel] = relationship("Account")
+    account: Mapped[AccountModel] = relationship(
+        "AccountModel",
+        back_populates="positions",
+    )

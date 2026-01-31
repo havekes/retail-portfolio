@@ -4,12 +4,16 @@ from typing import override
 from sqlalchemy import select
 from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.ext.asyncio import AsyncSession
-from svcs import Container
+from svcs.fastapi import DepContainer
 
 from src.market.api_types import SecurityId
 from src.market.model import PriceModel, SecurityModel
-from src.market.repository import PriceRepository, SecurityRepository
-from src.market.schema import PriceSchema, SecuritySchema, SecurityWrite
+from src.market.repository import (
+    PriceRepository,
+    SecurityBrokerRepository,
+    SecurityRepository,
+)
+from src.market.schema import PriceSchema, SecurityBrokerSchema, SecuritySchema
 
 
 class SqlAlchemySecurityRepository(SecurityRepository):
@@ -27,7 +31,7 @@ class SqlAlchemySecurityRepository(SecurityRepository):
         return result
 
     @override
-    async def get_or_create(self, security: SecurityWrite) -> SecuritySchema:
+    async def get_or_create(self, security: SecuritySchema) -> SecuritySchema:
         # First check if a security exists with this symbol and exchange
         existing = await self._session.execute(
             select(SecurityModel)
@@ -61,9 +65,30 @@ class SqlAlchemySecurityRepository(SecurityRepository):
 
 
 async def sqlalchemy_security_repository_factory(
-    container: Container,
+    container: DepContainer,
 ) -> SqlAlchemySecurityRepository:
     return SqlAlchemySecurityRepository(session=await container.aget(AsyncSession))
+
+
+class SqlAlchemySecurityBrokerRepository(SecurityBrokerRepository):
+    _session: AsyncSession
+
+    def __init__(self, session: AsyncSession):
+        self._session = session
+
+    @override
+    async def get_or_create(
+        self, security_broker: SecurityBrokerSchema
+    ) -> SecurityBrokerSchema:
+        raise NotImplementedError
+
+
+async def sqlalchemy_security_broker_repository_factory(
+    container: DepContainer,
+) -> SqlAlchemySecurityBrokerRepository:
+    return SqlAlchemySecurityBrokerRepository(
+        session=await container.aget(AsyncSession)
+    )
 
 
 class SqlAlchemyPriceRepository(PriceRepository):
@@ -132,7 +157,7 @@ class SqlAlchemyPriceRepository(PriceRepository):
 
 
 async def sqlalchemy_price_repository_factory(
-    container: Container,
+    container: DepContainer,
 ) -> SqlAlchemyPriceRepository:
     return SqlAlchemyPriceRepository(
         session=await container.aget(AsyncSession),

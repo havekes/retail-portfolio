@@ -1,8 +1,10 @@
+import uuid
 from datetime import datetime
 from decimal import Decimal
-from uuid import UUID
+from typing import Self
 
 from pydantic import BaseModel, ConfigDict
+from stockholm import Currency
 
 from src.account.api_types import (
     AccountId,
@@ -10,6 +12,8 @@ from src.account.api_types import (
     InstitutionEnum,
     PositionId,
 )
+from src.auth.api_types import UserId
+from src.integration.brokers.api_types import BrokerAccount, BrokerAccountId
 from src.market.api_types import SecurityId
 
 
@@ -17,15 +21,27 @@ class AccountSchema(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
     id: AccountId
-    external_id: str
+    external_id: BrokerAccountId
     name: str
-    user_id: UUID
+    user_id: UserId
     account_type_id: AccountTypeEnum
-    institution_id: int
-    currency: str
+    institution_id: InstitutionEnum
+    currency: Currency
     is_active: bool = True
     created_at: datetime | None = None
     deleted_at: datetime | None = None
+
+    @classmethod
+    def from_broker(cls, broker_account: BrokerAccount, user_id: UserId) -> Self:
+        return cls(
+            id=uuid.uuid4(),
+            external_id=broker_account.id,
+            name=broker_account.display_name,
+            user_id=user_id,
+            account_type_id=broker_account.type,
+            institution_id=broker_account.institution,
+            currency=broker_account.currency,
+        )
 
 
 class AccountTypeSchema(BaseModel):
@@ -50,4 +66,4 @@ class PositionSchema(BaseModel):
     security_id: SecurityId
     quantity: Decimal
     average_cost: Decimal | None
-    updated_at: datetime
+    updated_at: datetime | None = None

@@ -1,8 +1,9 @@
 from enum import Enum
 from typing import Any, TypeVar, override
 
-from sqlalchemy import Dialect, Integer
+from sqlalchemy import Dialect, Integer, String
 from sqlalchemy.types import TypeDecorator
+from stockholm import Currency
 
 T = TypeVar("T", bound=Enum)
 
@@ -29,3 +30,20 @@ class EnumAsInteger(TypeDecorator[T]):
         if value is None:
             return None
         return self.enum_class(value)
+
+
+class CurrencyType(TypeDecorator[object]):
+    impl = String(3)
+    cache_ok = True
+
+    @override
+    def process_bind_param(self, value: object, dialect: Dialect) -> str | None:
+        if value is None:
+            return None
+        return str(value)
+
+    @override
+    def process_result_value(self, value: str | None, dialect: Dialect) -> object:
+        if value is None:
+            return None
+        return Currency(value)

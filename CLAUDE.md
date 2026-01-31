@@ -16,9 +16,9 @@
 
 1. Write a feature or fix a bug
 2. Lint code: `docker exec retail-portfolio-backend uv run ruff check`
-3. Run type checks: `docker exec retail-portfolio-backend -T uv run basedpyright src`
-4. Run tests: `docker exec retail-portfolio-backend -T uv run pytest`
-5. Format code: `docker exec retail-portfolio-backend -T uv run ruff format`
+3. Run type checks: `docker exec retail-portfolio-backend uv run basedpyright src`
+4. Run tests: `docker exec retail-portfolio-backend uv run pytest`
+5. Format code: `docker exec retail-portfolio-backend uv run ruff format`
 
 **MANDATORY**: When writing or editing code, **ALWAYS** run linting, type checks, tests and format before submitting.
 **MANDATORY**: When editing a model, also generate the migrations using alembic (`docker compo)

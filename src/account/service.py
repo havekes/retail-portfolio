@@ -1,10 +1,9 @@
-from uuid import UUID
-
 from currency_converter import CurrencyConverter
 from stockholm import Money
-from svcs import Container
+from stockholm.currency import BaseCurrency
+from svcs.fastapi import DepContainer
 
-from src.account.api_types import AccountTotals
+from src.account.api_types import AccountId, AccountTotals
 from src.account.repository import PositionRepository
 from src.account.repository_sqlalchemy import sqlalchemy_position_repository_factory
 from src.account.schema import PositionSchema
@@ -31,7 +30,7 @@ class PositionService:
         self._security_service = security_service
 
     async def get_total_for_account(
-        self, account_id: UUID, currency: str
+        self, account_id: AccountId, currency: BaseCurrency
     ) -> AccountTotals:
         positions = await self._position_repository.get_by_account(account_id)
 
@@ -43,9 +42,11 @@ class PositionService:
             unconverted_cost = self._compute_cost(position, security)
             unconverted_price = await self._compute_price(position, security)
 
-            total_cost = total_cost + self._currency_convert(unconverted_cost, currency)
+            total_cost = total_cost + self._currency_convert(
+                unconverted_cost, str(currency)
+            )
             total_price = total_price + self._currency_convert(
-                unconverted_price, currency
+                unconverted_price, str(currency)
             )
 
         return AccountTotals(
@@ -82,7 +83,7 @@ class PositionService:
         return Money(converted, to_currency)
 
 
-async def position_service_factory(container: Container) -> PositionService:
+async def position_service_factory(container: DepContainer) -> PositionService:
     return PositionService(
         fx_rates=CurrencyConverter(),
         market_prices=await container.aget(MarketPricesApi),

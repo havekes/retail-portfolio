@@ -1,7 +1,7 @@
 from datetime import UTC, date, datetime, timedelta
 from typing import override
 
-from svcs import Container
+from svcs.fastapi import DepContainer
 
 from src.market.eodhd import EodhdGateway, eodhd_gateway_factory
 from src.market.repository import PriceRepository
@@ -30,7 +30,9 @@ class EodhdPriceRepository(PriceRepository):
             return existing_prices
 
         new_prices_eodhd = self._eodhd.get_prices(security, from_date, to_date)
-        new_prices = [PriceSchema.model_validate(price) for price in new_prices_eodhd]
+        new_prices = [
+            PriceSchema.from_historical_price(price) for price in new_prices_eodhd
+        ]
         return await self._db_repository.save_prices(new_prices)
 
     @override
@@ -73,7 +75,7 @@ class EodhdPriceRepository(PriceRepository):
 
 
 async def eodhd_price_repository_factory(
-    container: Container,
+    container: DepContainer,
 ) -> EodhdPriceRepository:
     return EodhdPriceRepository(
         db_repository=await sqlalchemy_price_repository_factory(container),
