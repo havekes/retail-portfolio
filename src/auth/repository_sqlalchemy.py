@@ -28,8 +28,8 @@ class SqlAlchemyUserRepository(UserRepository):
         return None
 
     @override
-    async def create_user(self, email: str, hashed_password: str) -> UserSchema:
-        user_db = UserModel(email=email, password=hashed_password)
+    async def create_user(self, email: str, plain_text_password: str) -> UserSchema:
+        user_db = UserModel(email=email, password=plain_text_password)
         self._session.add(user_db)
         await self._session.commit()
         await self._session.refresh(user_db)

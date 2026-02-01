@@ -3,13 +3,15 @@ from decimal import Decimal
 from typing import TypedDict
 from uuid import UUID
 
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
 from stockholm.currency import Currency
 
 type SecurityId = UUID
 
 
 class Security(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
     id: SecurityId
     symbol: str
     exchange: str

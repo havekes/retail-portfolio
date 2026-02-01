@@ -9,5 +9,5 @@ class UserRepository(ABC):
         pass
 
     @abstractmethod
-    async def create_user(self, email: str, hashed_password: str) -> UserSchema:
+    async def create_user(self, email: str, plain_text_password: str) -> UserSchema:
         pass

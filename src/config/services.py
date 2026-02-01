@@ -4,6 +4,7 @@ from svcs import Registry
 from src.account import register_account_apis
 from src.auth import register_auth_api
 from src.config.database import sessionmanager
+from src.integration import register_integration_services
 from src.market import register_api_services
 
 
@@ -13,3 +14,4 @@ def register_services(registry: Registry) -> None:
     register_account_apis(registry)
     register_auth_api(registry)
     register_api_services(registry)
+    register_integration_services(registry)

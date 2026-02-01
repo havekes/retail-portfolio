@@ -6,7 +6,7 @@ from svcs.fastapi import DepContainer
 from src.account.api_types import AccountId, AccountTotals
 from src.account.repository import PositionRepository
 from src.account.repository_sqlalchemy import sqlalchemy_position_repository_factory
-from src.account.schema import PositionSchema
+from src.account.schema import PositionRead, PositionSchema
 from src.market.api import MarketPricesApi, SecurityApi
 from src.market.api_types import Security
 
@@ -28,6 +28,30 @@ class PositionService:
         self._market_prices = market_prices
         self._position_repository = position_repository
         self._security_service = security_service
+
+    async def get_positions_by_account_with_security(
+        self, account_id: AccountId
+    ) -> list[PositionRead]:
+        """Get positions for an account enriched with security data."""
+        positions = await self._position_repository.get_by_account(account_id)
+
+        result: list[PositionRead] = []
+        for position in positions:
+            security = await self._security_service.get_by_id(position.security_id)
+            result.append(
+                PositionRead(
+                    id=position.id,
+                    account_id=position.account_id,
+                    security_id=position.security_id,
+                    security_symbol=security.symbol if security else "UNKNOWN",
+                    quantity=float(position.quantity),
+                    average_cost=float(position.average_cost)
+                    if position.average_cost
+                    else None,
+                    updated_at=position.updated_at,
+                )
+            )
+        return result
 
     async def get_total_for_account(
         self, account_id: AccountId, currency: BaseCurrency

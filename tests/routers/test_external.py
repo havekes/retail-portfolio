@@ -2,12 +2,17 @@
 
 from uuid import uuid4
 
+import pytest
+
 from src.account.enum import InstitutionEnum
 
 
-def test_external_users_empty(auth_client, seed_reference_data):
+@pytest.mark.anyio
+async def test_external_users_empty(auth_client, seed_reference_data):
     """Test external_users returns empty list when user has no external users."""
-    response = auth_client.get(f"/api/external/{InstitutionEnum.WEALTHSIMPLE}/users")
+    response = await auth_client.get(
+        f"/api/external/{InstitutionEnum.WEALTHSIMPLE}/users"
+    )
 
     assert response.status_code == 200
     result = response.json()
@@ -15,9 +20,12 @@ def test_external_users_empty(auth_client, seed_reference_data):
     assert result == []
 
 
-def test_external_users_success(auth_client, test_external_user):
+@pytest.mark.anyio
+async def test_external_users_success(auth_client, test_external_user):
     """Test external_users returns user's external users."""
-    response = auth_client.get(f"/api/external/{InstitutionEnum.WEALTHSIMPLE}/users")
+    response = await auth_client.get(
+        f"/api/external/{InstitutionEnum.WEALTHSIMPLE}/users"
+    )
 
     assert response.status_code == 200
     result = response.json()
@@ -27,7 +35,8 @@ def test_external_users_success(auth_client, test_external_user):
     assert result[0]["display_name"] == test_external_user.display_name
 
 
-def test_external_login_success(auth_client, seed_reference_data):
+@pytest.mark.anyio
+async def test_external_login_success(auth_client, seed_reference_data):
     """Test external_login successfully logs into external institution."""
     login_request = {
         "username": "testuser",
@@ -35,7 +44,7 @@ def test_external_login_success(auth_client, seed_reference_data):
         "otp": None,
     }
 
-    response = auth_client.post(
+    response = await auth_client.post(
         f"/api/external/{InstitutionEnum.WEALTHSIMPLE}/login", json=login_request
     )
 
@@ -45,9 +54,10 @@ def test_external_login_success(auth_client, seed_reference_data):
     assert result["login_succes"] is True
 
 
-def test_external_accounts_success(auth_client, test_external_user):
+@pytest.mark.anyio
+async def test_external_accounts_success(auth_client, test_external_user):
     """Test external_accounts returns list of external accounts."""
-    response = auth_client.get(
+    response = await auth_client.get(
         f"/api/external/{InstitutionEnum.WEALTHSIMPLE}/{test_external_user.id}/accounts"
     )
 
@@ -59,34 +69,37 @@ def test_external_accounts_success(auth_client, test_external_user):
     assert isinstance(result, list)
 
 
-def test_external_accounts_not_found(auth_client):
+@pytest.mark.anyio
+async def test_external_accounts_not_found(auth_client):
     """Test external_accounts raises 404 for non-existent external user."""
     fake_id = uuid4()
 
-    response = auth_client.get(
+    response = await auth_client.get(
         f"/api/external/{InstitutionEnum.WEALTHSIMPLE}/{fake_id}/accounts"
     )
 
     assert response.status_code == 404
 
 
-def test_external_accounts_not_owned(auth_client, other_user_external_user):
+@pytest.mark.anyio
+async def test_external_accounts_not_owned(auth_client, other_user_external_user):
     """Test external_accounts raises 404 for non-owned external user."""
-    response = auth_client.get(
+    response = await auth_client.get(
         f"/api/external/{InstitutionEnum.WEALTHSIMPLE}/{other_user_external_user.id}/accounts"
     )
 
     assert response.status_code == 404
 
 
-def test_external_import_accounts_success(auth_client, test_external_user):
+@pytest.mark.anyio
+async def test_external_import_accounts_success(auth_client, test_external_user):
     """Test external_import_accounts successfully imports accounts."""
     import_request = {
         "external_user_id": str(test_external_user.id),
         "external_account_ids": ["ext_acc_1"],
     }
 
-    response = auth_client.post(
+    response = await auth_client.post(
         f"/api/external/{InstitutionEnum.WEALTHSIMPLE}/accounts/import",
         json=import_request,
     )
@@ -100,14 +113,15 @@ def test_external_import_accounts_success(auth_client, test_external_user):
     assert isinstance(result["imported_count"], int)
 
 
-def test_external_import_accounts_no_selection(auth_client, test_external_user):
+@pytest.mark.anyio
+async def test_external_import_accounts_no_selection(auth_client, test_external_user):
     """Test external_import_accounts with no specific account selection."""
     import_request = {
         "external_user_id": str(test_external_user.id),
         "external_account_ids": [],
     }
 
-    response = auth_client.post(
+    response = await auth_client.post(
         f"/api/external/{InstitutionEnum.WEALTHSIMPLE}/accounts/import",
         json=import_request,
     )
@@ -121,7 +135,8 @@ def test_external_import_accounts_no_selection(auth_client, test_external_user):
     assert isinstance(result["imported_count"], int)
 
 
-def test_external_import_accounts_not_found(auth_client):
+@pytest.mark.anyio
+async def test_external_import_accounts_not_found(auth_client):
     """Test external_import_accounts raises 404 for non-existent external user."""
     fake_id = uuid4()
     import_request = {
@@ -129,7 +144,7 @@ def test_external_import_accounts_not_found(auth_client):
         "external_account_ids": [],
     }
 
-    response = auth_client.post(
+    response = await auth_client.post(
         f"/api/external/{InstitutionEnum.WEALTHSIMPLE}/accounts/import",
         json=import_request,
     )
@@ -137,14 +152,17 @@ def test_external_import_accounts_not_found(auth_client):
     assert response.status_code == 404
 
 
-def test_external_import_accounts_not_owned(auth_client, other_user_external_user):
+@pytest.mark.anyio
+async def test_external_import_accounts_not_owned(
+    auth_client, other_user_external_user
+):
     """Test external_import_accounts raises 404 for non-owned external user."""
     import_request = {
         "external_user_id": str(other_user_external_user.id),
         "external_account_ids": [],
     }
 
-    response = auth_client.post(
+    response = await auth_client.post(
         f"/api/external/{InstitutionEnum.WEALTHSIMPLE}/accounts/import",
         json=import_request,
     )
@@ -152,7 +170,8 @@ def test_external_import_accounts_not_owned(auth_client, other_user_external_use
     assert response.status_code == 404
 
 
-def test_external_import_positions_success(
+@pytest.mark.anyio
+async def test_external_import_positions_success(
     auth_client, test_external_user, test_accounts
 ):
     """Test external_import_positions successfully imports positions."""
@@ -161,7 +180,7 @@ def test_external_import_positions_success(
         "account_id": str(test_accounts[0].id),
     }
 
-    response = auth_client.post(
+    response = await auth_client.post(
         f"/api/external/{InstitutionEnum.WEALTHSIMPLE}/positions/import",
         json=import_request,
     )
@@ -175,7 +194,8 @@ def test_external_import_positions_success(
     assert isinstance(result["imported_count"], int)
 
 
-def test_external_import_positions_external_user_not_found(
+@pytest.mark.anyio
+async def test_external_import_positions_external_user_not_found(
     auth_client, test_accounts
 ):
     """Test external_import_positions raises 404 for non-existent external user."""
@@ -185,7 +205,7 @@ def test_external_import_positions_external_user_not_found(
         "account_id": str(test_accounts[0].id),
     }
 
-    response = auth_client.post(
+    response = await auth_client.post(
         f"/api/external/{InstitutionEnum.WEALTHSIMPLE}/positions/import",
         json=import_request,
     )
@@ -193,7 +213,8 @@ def test_external_import_positions_external_user_not_found(
     assert response.status_code == 404
 
 
-def test_external_import_positions_account_not_found(
+@pytest.mark.anyio
+async def test_external_import_positions_account_not_found(
     auth_client, test_external_user
 ):
     """Test external_import_positions raises 404 for non-existent account."""
@@ -203,7 +224,7 @@ def test_external_import_positions_account_not_found(
         "account_id": str(fake_account_id),
     }
 
-    response = auth_client.post(
+    response = await auth_client.post(
         f"/api/external/{InstitutionEnum.WEALTHSIMPLE}/positions/import",
         json=import_request,
     )
@@ -211,7 +232,8 @@ def test_external_import_positions_account_not_found(
     assert response.status_code == 404
 
 
-def test_external_import_positions_not_owned(
+@pytest.mark.anyio
+async def test_external_import_positions_not_owned(
     auth_client, other_user_external_user, test_accounts
 ):
     """Test external_import_positions raises 404 for non-owned external user."""
@@ -220,7 +242,7 @@ def test_external_import_positions_not_owned(
         "account_id": str(test_accounts[0].id),
     }
 
-    response = auth_client.post(
+    response = await auth_client.post(
         f"/api/external/{InstitutionEnum.WEALTHSIMPLE}/positions/import",
         json=import_request,
     )

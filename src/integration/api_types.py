@@ -1,6 +1,6 @@
 from uuid import UUID
 
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
 
 from src.account.api_types import AccountId
 from src.account.enum import InstitutionEnum
@@ -10,6 +10,8 @@ type IntegrationUserId = UUID
 
 
 class IntegrationUser(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
     id: IntegrationUserId
     user_id: UserId
     institution_id: InstitutionEnum

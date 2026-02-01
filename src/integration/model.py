@@ -3,7 +3,6 @@ from uuid import uuid4
 
 from sqlalchemy import (
     DateTime,
-    ForeignKey,
     Integer,
     String,
     UniqueConstraint,
@@ -22,8 +21,8 @@ class IntegrationUserModel(BaseModel):
     __tablename__ = "integration_users"
 
     id: Mapped[IntegrationUserId] = mapped_column(Uuid, primary_key=True, default=uuid4)
-    user_id: Mapped[UserId] = mapped_column(Uuid, ForeignKey("auth_users.id"))
-    institution_id: Mapped[int] = mapped_column(Integer, ForeignKey("institutions.id"))
+    user_id: Mapped[UserId] = mapped_column(Uuid)
+    institution_id: Mapped[int] = mapped_column(Integer)
     external_user_id: Mapped[str] = mapped_column(String)
     display_name: Mapped[str] = mapped_column(String)
     last_used_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))

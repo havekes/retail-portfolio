@@ -2,7 +2,6 @@ from collections.abc import AsyncGenerator
 from datetime import UTC, datetime, timedelta
 from typing import Annotated
 
-import bcrypt
 import jwt
 from fastapi import Depends, HTTPException
 from fastapi.security import OAuth2PasswordBearer
@@ -12,6 +11,7 @@ from svcs.fastapi import DepContainer
 from src.auth.api_types import AccessTokenData, AuthResponse, User
 from src.auth.exceptions import AuthInvalidCredentialsError, AuthUserAlreadyExistsError
 from src.auth.repository import UserRepository
+from src.auth.repository_sqlalchemy import sqlalchemy_user_repository_factory
 from src.auth.schema import UserSchema
 from src.config.settings import settings
 
@@ -34,25 +34,17 @@ class UserApi:
         self._user_repository = user_repository
 
     async def get_current_user_from_token(self, token: str) -> User:
-        token_data = self._decode_token(token)
+        try:
+            token_data = self._decode_token(token)
+        except jwt.ExpiredSignatureError as e:
+            raise HTTPException(403, "Token expired") from e
+
         user = await self._user_repository.get_by_email(token_data.sub)
 
         if not user:
-            error = "User not found for provided token"
-            raise SystemError(error)
+            raise HTTPException(403, "User not found for provided token")
 
-        return User.model_validate(user)
-
-    def verify_password(self, plain_password: str, hashed_password: str) -> bool:
-        return bcrypt.checkpw(
-            plain_password.encode("utf-8"), hashed_password.encode("utf-8")
-        )
-
-    def hash_password(self, password: str) -> str:
-        password_bytes = password.encode("utf-8")[:72]
-        hashed = bcrypt.hashpw(password_bytes, bcrypt.gensalt())
-
-        return hashed.decode("utf-8")
+        return User(id=user.id, email=user.email)
 
     def create_access_token(
         self, user_email: str, expires_delta: timedelta | None = None
@@ -73,32 +65,36 @@ class UserApi:
             algorithm=_ALGORITHM,
         )
 
-    async def signup(self, email: str, password: str) -> AuthResponse:
+    async def signup(self, email: str, plain_text_password: str) -> AuthResponse:
         existing_user = await self._user_repository.get_by_email(email)
 
         if existing_user is not None:
             raise AuthUserAlreadyExistsError
 
-        hashed_password = self.hash_password(password)
-        user = await self._user_repository.create_user(email, hashed_password)
+        user = await self._user_repository.create_user(email, plain_text_password)
         access_token = self.create_access_token(user.email)
 
         return AuthResponse(
             access_token=access_token,
-            user=User.model_validate(user),
+            user=User(**user.model_dump()),
         )
 
-    async def login(self, email: str, password: str) -> AuthResponse:
+    async def login(self, email: str, plain_text_password: str) -> AuthResponse:
         user = await self._user_repository.get_by_email(email)
 
-        if not user or not self.verify_password(password, user.password):
+        if not user:
+            raise AuthInvalidCredentialsError
+
+        result = user.verify_password(plain_text_password)
+
+        if not result:
             raise AuthInvalidCredentialsError
 
         access_token = self.create_access_token(user.email)
 
         return AuthResponse(
             access_token=access_token,
-            user=User.model_validate(user),
+            user=User(**user.model_dump()),
         )
 
     def _decode_token(self, token: str) -> AccessTokenData:
@@ -115,7 +111,7 @@ async def user_api_factory(
     container: DepContainer,
 ) -> UserApi:
     return UserApi(
-        user_repository=await container.aget(UserRepository),
+        user_repository=await sqlalchemy_user_repository_factory(container),
     )
 
 

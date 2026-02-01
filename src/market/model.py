@@ -12,6 +12,7 @@ from sqlalchemy import (
     Date,
     DateTime,
     ForeignKey,
+    Integer,
     String,
     UniqueConstraint,
     Uuid,
@@ -19,7 +20,6 @@ from sqlalchemy import (
 )
 from sqlalchemy.orm import Mapped, mapped_column
 
-from src.account.enum import InstitutionEnum
 from src.config.database import BaseModel
 from src.market.api_types import EodhdSearchResult, SecurityId
 
@@ -51,7 +51,7 @@ class SecurityBrokerModel(BaseModel):
     __tablename__ = "market_securities_broker"
 
     id: Mapped[int] = mapped_column(BigInteger, primary_key=True)
-    institution_id: Mapped[InstitutionEnum] = mapped_column()
+    institution_id: Mapped[int] = mapped_column(Integer)
     broker_symbol: Mapped[str] = mapped_column(String)
     broker_exchange: Mapped[str] = mapped_column(String)
     broker_name: Mapped[str] = mapped_column(String)

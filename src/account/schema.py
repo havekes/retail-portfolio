@@ -60,9 +60,21 @@ class InstitutionSchema(BaseModel):
 
 
 class PositionSchema(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
     id: PositionId
     account_id: AccountId
     security_id: SecurityId
     quantity: Decimal
     average_cost: Decimal | None
+    updated_at: datetime | None = None
+
+
+class PositionRead(BaseModel):
+    id: PositionId
+    account_id: AccountId
+    security_id: SecurityId
+    security_symbol: str
+    quantity: float
+    average_cost: float | None
     updated_at: datetime | None = None
