@@ -6,10 +6,8 @@ from uuid import uuid4
 
 from sqlalchemy import (
     DECIMAL,
-    BigInteger,
     Boolean,
     DateTime,
-    Enum,
     Float,
     ForeignKey,
     Integer,
@@ -19,7 +17,6 @@ from sqlalchemy import (
 )
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlalchemy.sql.schema import UniqueConstraint
-from stockholm import Currency
 
 from src.account.api_types import (
     AccountId,
@@ -107,7 +104,7 @@ class InstitutionModel(BaseModel):
 class PositionModel(BaseModel):
     __tablename__ = "account_positions"
 
-    id: Mapped[PositionId] = mapped_column(BigInteger, primary_key=True, default=uuid4)
+    id: Mapped[PositionId] = mapped_column(Uuid, primary_key=True, default=uuid4)
     account_id: Mapped[AccountId] = mapped_column(Uuid, ForeignKey("accounts.id"))
     security_id: Mapped[SecurityId] = mapped_column(Uuid)
     quantity: Mapped[Decimal] = mapped_column(DECIMAL(16, 8))

@@ -409,6 +409,36 @@ async def test_positions(
 
 
 @pytest.fixture
+async def test_position_for_first_account(
+    db_session: AsyncSession,
+    test_accounts: list[AccountSchema],
+    test_security: SecuritySchema,
+) -> PositionSchema:
+    """Create and persist a test position for the first test account."""
+    from decimal import Decimal
+
+    position_model = PositionModel(
+        id=uuid4(),
+        account_id=test_accounts[0].id,
+        security_id=test_security.id,
+        quantity=Decimal("10.0"),
+        average_cost=Decimal("150.0"),
+    )
+    db_session.add(position_model)
+    await db_session.commit()
+    await db_session.refresh(position_model)
+
+    return PositionSchema(
+        id=position_model.id,
+        account_id=position_model.account_id,
+        security_id=position_model.security_id,
+        quantity=position_model.quantity,
+        average_cost=position_model.average_cost,
+        updated_at=position_model.updated_at,
+    )
+
+
+@pytest.fixture
 async def test_integration_user(
     db_session: AsyncSession, test_user: UserSchema
 ) -> IntegrationUserSchema:

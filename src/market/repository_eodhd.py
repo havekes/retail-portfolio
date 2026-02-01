@@ -26,7 +26,7 @@ class EodhdPriceRepository(PriceRepository):
         )
 
         # TODO make it smarter to account for non-trading days
-        if existing_prices[-1].date == to_date:
+        if existing_prices and existing_prices[-1].date == to_date:
             return existing_prices
 
         new_prices_eodhd = self._eodhd.get_prices(security, from_date, to_date)
@@ -50,7 +50,7 @@ class EodhdPriceRepository(PriceRepository):
             to_date=latest_close_date,
         )
 
-        return prices[-1]
+        return prices[-1] if prices else None
 
     @override
     async def get_price_on_date(
