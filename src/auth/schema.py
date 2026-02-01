@@ -1,9 +1,11 @@
 from datetime import datetime
 
+from argon2 import PasswordHasher
 from pydantic import BaseModel, ConfigDict
 
 from src.auth.api_types import UserId
-from src.auth.model import _password_hasher
+
+_password_hasher = PasswordHasher()
 
 
 class UserSchema(BaseModel):

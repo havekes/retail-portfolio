@@ -5,7 +5,6 @@ import jwt
 from rich import print as rprint
 
 from src.auth.api_types import AccessTokenData
-from src.auth.model import UserModel
 from src.config.database import sessionmanager
 from src.config.settings import settings
 
