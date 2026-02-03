@@ -3,11 +3,21 @@ from logging.config import fileConfig
 from alembic import context
 from sqlalchemy import engine_from_config, pool
 
+# Import all domain models to ensure they're registered with BaseModel.metadata
 # add your model's MetaData object here
 # for 'autogenerate' support
-from src.models import Base
+from src.account.model import (
+    AccountModel,
+    AccountTypeModel,
+    InstitutionModel,
+    PositionModel,
+)
+from src.auth.model import UserModel
+from src.config.database import BaseModel
+from src.integration.model import IntegrationUserModel
+from src.market.model import PriceModel, SecurityModel
 
-target_metadata = Base.metadata
+target_metadata = BaseModel.metadata
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
 config = context.config
