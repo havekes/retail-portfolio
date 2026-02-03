@@ -69,7 +69,7 @@ class PriceModel(BaseModel):
 
     __tablename__ = "market_prices"
 
-    id: Mapped[int] = mapped_column(BigInteger, primary_key=True)
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
     security_id: Mapped[SecurityId] = mapped_column(
         Uuid, ForeignKey("market_securities.id")
     )

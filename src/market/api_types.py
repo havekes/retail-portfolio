@@ -49,6 +49,7 @@ class EodhdSearchResult(TypedDict):
 
 
 class HistoricalPrice(BaseModel):
+    id: int | None = None
     security_id: SecurityId
     date: date
     open: Decimal

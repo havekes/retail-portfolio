@@ -146,6 +146,7 @@ class SqlAlchemyPriceRepository(PriceRepository):
         price_model = PriceModel(**price.model_dump())
         self._session.add(price_model)
         await self._session.commit()
+        await self._session.refresh(price_model)
         return PriceSchema.model_validate(price_model)
 
     @override
@@ -153,6 +154,8 @@ class SqlAlchemyPriceRepository(PriceRepository):
         price_models = [PriceModel(**price.model_dump()) for price in prices]
         self._session.add_all(price_models)
         await self._session.commit()
+        for price_model in price_models:
+            await self._session.refresh(price_model)
         return [PriceSchema.model_validate(price_model) for price_model in price_models]
 
 
