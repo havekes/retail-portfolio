@@ -1,11 +1,11 @@
-# Coding Agent Guide: retail-portfolio
+ Coding Agent Guide: retail-portfolio
 
 ## Project Overview
 `retail-portfolio` is a portfolio tracker designed for the retail investor.
 
 **Tech Stack**:
 - Python 3.14
-- FastAPI backend with svcs (dependency injection)
+- FastAPI
 - SQLAlchemy ORM with async support
 - Pydantic for data validation and serialization
 - uv package manager
@@ -27,7 +27,7 @@
 5. Format code: `docker exec retail-portfolio-backend uv run ruff format`
 
 **MANDATORY**: When writing or editing code, **ALWAYS** run linting, type checks, tests and format before submitting.
-**MANDATORY**: When editing a model, also generate the migrations using alembic (`docker compo)
+**MANDATORY**: When editing a model, also generate the migrations using alembic
 
 ## Backend Architecture
 
@@ -55,11 +55,11 @@ domain/
 ├── schema.py                 # Pydantic models for data transfer
 ├── repository.py             # Abstract repository interfaces
 ├── repository_sqlalchemy.py  # Concrete SQLAlchemy implementations
-├── repository_*.py           # Alternative implementations (external APIs, etc.)
+├── repository_*.py           # Alternative implementations (external APIs, cache, etc.)
 ├── api.py                    # Public APIs for inter-domain communication
 ├── service.py                # Business logic (orchestration, calculations)
 ├── router.py                 # FastAPI route handlers
-├── api_types.py              # Public type definitions
+├── api_types.py              # Public type definitions (for cross domain communcation)
 └── enum.py                   # Domain-specific enums
 ```
 
@@ -71,7 +71,8 @@ domain/
 
 **Schemas** → Pydantic models for all data transfer
 - **Repositories ALWAYS return schemas, never models**
-- Used between routers, services, and domain boundaries
+- Used between routers and services
+- **Do not ouse outside the domain** (use API type instead)
 - Naming conventions:
   - `*Read` suffix: Data returned from GET endpoints
   - `*Write` suffix: Data accepted by POST/PATCH endpoints
@@ -80,13 +81,12 @@ domain/
 - Abstract interfaces define the contract
 - Multiple implementations support different backends:
   - `repository_sqlalchemy.py` - Database access
-  - `repository_eodhd.py` - External API (EODHD)
-  - `repository_wealthsimple.py` - External API (Wealthsimple)
+  - `repository_cache.py` - Cached access
+  - `repository_*.py` - Other implementation (ex: external apis)
 - Always return schemas for consistency
 
 **Services** → Business logic & orchestration
 - Handle complex operations spanning multiple repositories
-- Calculate derived values (e.g., account totals, currency conversion)
 - Depend on repositories for data access
 - Can depend on other domain APIs
 
@@ -94,44 +94,18 @@ domain/
 - Each domain exposes public APIs (e.g., `AccountApi`, `MarketPricesApi`)
 - Other domains call these APIs rather than accessing repositories directly
 - Enables loose coupling and clear domain boundaries
-- Injected as dependencies via the service container
+- Injected as dependencies via the `svcs` service container
+
+**API types** → Public schemas for inter-domain communication
+- Types exposed for cross-domain communcation
+- Expose this instead of a schema
 
 **Routers** → FastAPI HTTP endpoints
 - Define route parameters, payloads, return types
 - Validate requests via Pydantic schemas
-- Delegate to services or APIs for business logic
+- Delegate to services or APIs for complex business logic
 - Depend on `current_user` for authentication
 - Use `AuthorizationApi` to verify user ownership of resources
-
-### Key Domains
-
-**Account Domain** (`src/account/`)
-- Manages investment accounts and positions
-- `AccountApi` and `PositionApi` expose position data
-- `PositionService` calculates account totals by fetching prices from market data
-
-**Auth Domain** (`src/auth/`)
-- User authentication and authorization
-- `UserApi` handles login/signup/token validation
-- `AuthorizationApi` verifies user ownership of resources
-
-**Market Domain** (`src/market/`)
-- Securities data and current pricing
-- `SecurityApi` resolves securities and their details
-- `MarketPricesApi` fetches current prices (from EODHD or cache)
-- `EodhdGateway` wraps the EODHD external API
-
-**Integration Domain** (`src/integration/`)
-- Integrates with external brokers (Wealthsimple, etc.)
-- `IntegrationUserService` manages user broker credentials
-- Broker gateways implement `BrokerApiGateway` interface
-- Syncs accounts and positions to Account domain
-
-**Config Module** (`src/config/`)
-- `settings.py` - Environment configuration with Pydantic Settings
-- `services.py` - Service container registration and dependency injection
-- `database.py` - Async SQLAlchemy session management
-- `logging.py` - Logging configuration
 
 ### Dependency Injection & Service Container
 
@@ -158,10 +132,14 @@ When calculating account totals:
 3. For each position, queries `SecurityApi` and `MarketPricesApi` for pricing
 4. Computes totals with current prices
 
+### Do's and don'ts
+
+- **Do** use custom types for entity `Ids` (ex: `type AccountId = UUID`)
+- **Don't** raise HTTPException from within a service (except Authorization service). Instead raise a custom exception and handle it in the router.
+
 ### Critical Rules
 
 - **Always return schemas from repositories** - Never expose ORM models
-- **Use APIs for cross-domain access** - Don't call other domains' repositories directly
+- **Use APIs and API types for cross-domain access** - Don't call other domains' repositories directly
 - **Factories register services** - Never create service instances manually
 - **Type everything** - Use Pydantic models and type hints consistently
-- **Test in isolation** - Mock dependencies, test one layer at a time

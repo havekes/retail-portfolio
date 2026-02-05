@@ -3,6 +3,8 @@ A portfolio tracker designed for the retail investor
 
 ## Contribution guidelines
 
+Read the [AGENTS.md](./AGENTS.md) file for an overview of the architecture.
+
 ### Running the app
 
 - Create backend `.env` by copying `.env.example`
@@ -25,47 +27,6 @@ It is recommend to always run commands from inside the container: `docker compos
 - Type-check code: `uv run basedpyright src`
 
 - Run frontend format and lint `npm run lint`
-
-### Backend application structure
-
-The following abstraction layers are used (each in their own modules):
-
-- Routers
-  - FastAPI route handlers
-  - Define the route parameters, payload, return type and validation logic
-  - Delegate business logic to services and/or repositories for simple crud operations
-- Services
-  - Business logic layer
-  - Handle complex logic
-  - Use repositories for data access
-- Repositories
-  - Data access abstraction layer
-  - Abstract class defining the interface
-  - Always return schemas (not models)
-  - SQL Alchemy implementation
-- Schemas
-  - Data structure definition for all communications accross the app
-  - By convention:
-    - `Read` suffix for `GET` enpoints return types
-    - `Write` suffix for `POST`/`PATCH` endpoints payload types
-- Models
-  - Reflect database structure
-  - Used to generate migrations
-- External
-  - External API wrappers
-  - Params/returns are schemas
-  - Can be used as services by the app
-  
-Other modules:
-- Config
-  - Application wide typed configuration schema
-- Commands
-
-### Do's and don'ts
-
-#### Don't
-
-- Raise HTTPException from within a serice (except Authorization service). Instead raise a custom exception and handle it in the router.
 
 ### Code snippets
 
