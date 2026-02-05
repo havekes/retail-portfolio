@@ -1,17 +1,98 @@
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Response
 from svcs.fastapi import DepContainer
 
-from src.account.api_types import AccountId, AccountRenameRequest, AccountTotals
+from src.account.api_types import (
+    AccountId,
+    AccountRenameRequest,
+    AccountTotals,
+    PortfolioId,
+)
 from src.account.repository import AccountRepository
 from src.account.repository_sqlalchemy import sqlalchemy_account_repository_factory
-from src.account.schema import AccountSchema, PositionRead
-from src.account.service import PositionService, position_service_factory
+from src.account.schema import (
+    AccountSchema,
+    PortfolioAccountUpdate,
+    PortfolioCreate,
+    PortfolioRead,
+    PositionRead,
+)
+from src.account.service import (
+    PortfolioService,
+    PositionService,
+    portfolio_service_factory,
+    position_service_factory,
+)
 from src.auth.api import AuthorizationApi, current_user
 from src.auth.api_types import User
 
 account_router = APIRouter(prefix="/api/accounts")
+portfolio_router = APIRouter(prefix="/api/portfolios")
+
+
+@portfolio_router.get("/")
+async def portfolios_list(
+    user: Annotated[User, Depends(current_user)],
+    portfolio_service: Annotated[PortfolioService, Depends(portfolio_service_factory)],
+) -> list[PortfolioRead]:
+    """
+    Get all portfolios for the current user.
+    """
+    return await portfolio_service.get_portfolios_by_user(user.id)
+
+
+@portfolio_router.post("/")
+async def portfolio_create(
+    portfolio_create_request: PortfolioCreate,
+    user: Annotated[User, Depends(current_user)],
+    portfolio_service: Annotated[PortfolioService, Depends(portfolio_service_factory)],
+) -> PortfolioRead:
+    """
+    Create a new portfolio for the current user.
+    """
+    return await portfolio_service.create_portfolio(user.id, portfolio_create_request)
+
+
+@portfolio_router.put("/{portfolio_id}/accounts")
+async def portfolio_accounts_update(
+    portfolio_id: PortfolioId,
+    portfolio_account_update_request: PortfolioAccountUpdate,
+    user: Annotated[User, Depends(current_user)],
+    portfolio_service: Annotated[PortfolioService, Depends(portfolio_service_factory)],
+    services: DepContainer,
+) -> PortfolioRead:
+    """
+    Update the list of accounts associated with a portfolio.
+    """
+    authorization_api = await services.aget(AuthorizationApi)
+
+    portfolio = await portfolio_service.get_portfolio(user.id, portfolio_id)
+    authorization_api.check_entity_owned_by_user(user, portfolio)
+
+    return await portfolio_service.update_portfolio_accounts(
+        user.id, portfolio_id, portfolio_account_update_request
+    )
+
+
+@portfolio_router.delete("/{portfolio_id}")
+async def portfolio_delete(
+    portfolio_id: PortfolioId,
+    user: Annotated[User, Depends(current_user)],
+    portfolio_service: Annotated[PortfolioService, Depends(portfolio_service_factory)],
+    services: DepContainer,
+) -> Response:
+    """
+    Delete a portfolio.
+    """
+    authorization_api = await services.aget(AuthorizationApi)
+
+    portfolio = await portfolio_service.get_portfolio(user.id, portfolio_id)
+    authorization_api.check_entity_owned_by_user(user, portfolio)
+
+    await portfolio_service.delete_portfolio(user.id, portfolio_id)
+
+    return Response(status_code=204)
 
 
 @account_router.get("/")

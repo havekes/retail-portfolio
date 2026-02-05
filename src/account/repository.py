@@ -1,7 +1,12 @@
 from abc import ABC, abstractmethod
 
-from src.account.api_types import AccountId
-from src.account.schema import AccountSchema, PositionSchema
+from src.account.api_types import AccountId, PortfolioId
+from src.account.schema import (
+    AccountSchema,
+    PortfolioCreate,
+    PortfolioRead,
+    PositionSchema,
+)
 from src.auth.api_types import UserId
 from src.integration.brokers.api_types import BrokerAccountId
 
@@ -33,4 +38,30 @@ class AccountRepository(ABC):
 class PositionRepository(ABC):
     @abstractmethod
     async def get_by_account(self, account_id: AccountId) -> list[PositionSchema]:
+        pass
+
+
+class PortfolioRepository(ABC):
+    @abstractmethod
+    async def get(self, portfolio_id: PortfolioId) -> PortfolioRead | None:
+        pass
+
+    @abstractmethod
+    async def get_by_user(self, user_id: UserId) -> list[PortfolioRead]:
+        pass
+
+    @abstractmethod
+    async def create(
+        self, user_id: UserId, portfolio_create: PortfolioCreate
+    ) -> PortfolioRead:
+        pass
+
+    @abstractmethod
+    async def update_accounts(
+        self, portfolio_id: PortfolioId, account_ids: list[AccountId]
+    ) -> PortfolioRead:
+        pass
+
+    @abstractmethod
+    async def delete(self, portfolio_id: PortfolioId) -> None:
         pass

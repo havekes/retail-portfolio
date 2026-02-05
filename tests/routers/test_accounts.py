@@ -24,9 +24,10 @@ async def test_accounts_list_success(auth_client, test_accounts):
     assert response.status_code == 200
     result = response.json()
 
-    assert len(result) == 2
+    assert len(result) == 3
     assert result[0]["name"] == "Test Account 0"
     assert result[1]["name"] == "Test Account 1"
+    assert result[2]["name"] == "Test Account 2"
 
 
 @pytest.mark.anyio

@@ -10,7 +10,7 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from svcs.fastapi import DepContainer
 
-from src.account.router import account_router
+from src.account.router import account_router, portfolio_router
 from src.auth.router import auth_router
 from src.config.logging import init_logging
 from src.config.services import register_services
@@ -43,6 +43,7 @@ app.add_middleware(
 
 init_logging()
 app.include_router(account_router)
+app.include_router(portfolio_router)
 app.include_router(auth_router)
 app.include_router(integration_router)
 app.include_router(market_router)

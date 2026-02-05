@@ -10,6 +10,7 @@ from src.market.api_types import SecurityId
 
 type AccountId = UUID
 type PositionId = UUID
+type PortfolioId = UUID
 
 
 class Account(BaseModel):

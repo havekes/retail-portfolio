@@ -8,6 +8,7 @@ from stockholm import Currency
 
 from src.account.api_types import (
     AccountId,
+    PortfolioId,
     PositionId,
 )
 from src.account.enum import AccountTypeEnum, InstitutionEnum
@@ -78,3 +79,32 @@ class PositionRead(BaseModel):
     quantity: float
     average_cost: float | None
     updated_at: datetime | None = None
+
+
+class PortfolioAccountSchema(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    account_id: AccountId
+
+
+class PortfolioSchema(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: PortfolioId
+    user_id: UserId
+    name: str
+    created_at: datetime | None = None
+    deleted_at: datetime | None = None
+
+
+class PortfolioCreate(BaseModel):
+    name: str
+    accounts: list[AccountId]
+
+
+class PortfolioRead(PortfolioSchema):
+    accounts: list[AccountSchema]
+
+
+class PortfolioAccountUpdate(BaseModel):
+    accounts: list[AccountId]
