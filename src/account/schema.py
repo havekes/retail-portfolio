@@ -106,5 +106,5 @@ class PortfolioRead(PortfolioSchema):
     accounts: list[AccountSchema]
 
 
-class PortfolioAccountUpdate(BaseModel):
+class PortfolioAccountUpdateRequest(BaseModel):
     accounts: list[AccountId]

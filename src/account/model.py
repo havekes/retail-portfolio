@@ -76,7 +76,11 @@ class PortfolioModel(BaseModel):
     user_id: Mapped[UserId] = mapped_column(Uuid)
     name: Mapped[str] = mapped_column(String)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=func.now())
-    updated_at: Mapped[datetime] = mapped_column(DateTime, default=func.now(), onupdate=func.now())
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime,
+        default=func.now(),
+        onupdate=func.now(),
+    )
     deleted_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
 
     __table_args__ = (UniqueConstraint("user_id", "name"),)

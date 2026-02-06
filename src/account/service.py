@@ -5,7 +5,7 @@ from stockholm.currency import BaseCurrency
 from svcs.fastapi import DepContainer
 
 from src.account.api_types import AccountId, AccountTotals, PortfolioId
-from src.account.exception import PortfolioNotFoundException
+from src.account.exception import AccountsDoNotBelongToUserError, PortfolioNotFoundError
 from src.account.repository import (
     AccountRepository,
     PortfolioRepository,
@@ -17,7 +17,7 @@ from src.account.repository_sqlalchemy import (
     sqlalchemy_position_repository_factory,
 )
 from src.account.schema import (
-    PortfolioAccountUpdate,
+    PortfolioAccountUpdateRequest,
     PortfolioCreate,
     PortfolioRead,
     PositionRead,
@@ -26,6 +26,33 @@ from src.account.schema import (
 from src.auth.api_types import UserId
 from src.market.api import MarketPricesApi, SecurityApi
 from src.market.api_types import Security
+
+
+class AccountService:
+    _account_repository: AccountRepository
+
+    def __init__(
+        self,
+        account_repository: AccountRepository,
+    ):
+        self._account_repository = account_repository
+
+    async def check_accounts_belong_to_user(
+        self,
+        account_ids: list[AccountId],
+        user_id: UserId,
+    ) -> None:
+        # Validate that all account_ids belong to the user
+        user_accounts = await self._account_repository.get_by_user(user_id)
+        user_account_ids = {account.id for account in user_accounts}
+        if not user_account_ids.issuperset(set(account_ids)):
+            raise AccountsDoNotBelongToUserError(account_ids=account_ids)
+
+
+async def account_service_factory(container: DepContainer) -> AccountService:
+    return AccountService(
+        account_repository=await sqlalchemy_account_repository_factory(container),
+    )
 
 
 class PositionService:
@@ -133,7 +160,6 @@ async def position_service_factory(container: DepContainer) -> PositionService:
     )
 
 
-
 class PortfolioService:
     _portfolio_repository: PortfolioRepository
     _account_repository: AccountRepository
@@ -146,12 +172,10 @@ class PortfolioService:
         self._portfolio_repository = portfolio_repository
         self._account_repository = account_repository
 
-    async def get_portfolio(
-        self, portfolio_id: PortfolioId
-    ) -> PortfolioRead:
+    async def get_portfolio(self, portfolio_id: PortfolioId) -> PortfolioRead:
         portfolio = await self._portfolio_repository.get(portfolio_id)
         if not portfolio:
-            raise PortfolioNotFoundException(portfolio_id)
+            raise PortfolioNotFoundError(portfolio_id)
         return portfolio
 
     async def get_portfolios_by_user(self, user_id: UserId) -> list[PortfolioRead]:
@@ -174,22 +198,20 @@ class PortfolioService:
     async def sync_portfolio_accounts(
         self,
         portfolio_id: PortfolioId,
-        portfolio_account_update: PortfolioAccountUpdate,
+        portfolio_account_update: PortfolioAccountUpdateRequest,
     ) -> PortfolioRead:
         portfolio = await self._portfolio_repository.get(portfolio_id)
         if not portfolio:
-            raise PortfolioNotFoundException(portfolio_id)
+            raise PortfolioNotFoundError(portfolio_id)
 
         return await self._portfolio_repository.sync_accounts(
             portfolio_id, portfolio_account_update.accounts
         )
 
-    async def delete_portfolio(
-        self, portfolio_id: PortfolioId
-    ) -> None:
+    async def delete_portfolio(self, portfolio_id: PortfolioId) -> None:
         portfolio = await self._portfolio_repository.get(portfolio_id)
         if not portfolio:
-            raise PortfolioNotFoundException(portfolio_id)
+            raise PortfolioNotFoundError(portfolio_id)
         await self._portfolio_repository.delete(portfolio_id)
 
 

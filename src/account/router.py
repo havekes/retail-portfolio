@@ -13,12 +13,13 @@ from src.account.repository import AccountRepository
 from src.account.repository_sqlalchemy import sqlalchemy_account_repository_factory
 from src.account.schema import (
     AccountSchema,
-    PortfolioAccountUpdate,
+    PortfolioAccountUpdateRequest,
     PortfolioCreate,
     PortfolioRead,
     PositionRead,
 )
 from src.account.service import (
+    AccountService,
     PortfolioService,
     PositionService,
     portfolio_service_factory,
@@ -55,30 +56,26 @@ async def portfolio_create(
 
 
 @portfolio_router.put("/{portfolio_id}/accounts")
-async def portfolio_accounts_update(
+async def portfolio_accounts_sync(
     portfolio_id: PortfolioId,
-    portfolio_account_update_request: PortfolioAccountUpdate,
+    portfolio_account_update_request: PortfolioAccountUpdateRequest,
     user: Annotated[User, Depends(current_user)],
-    portfolio_service: Annotated[PortfolioService, Depends(portfolio_service_factory)],
-    account_repository: Annotated[AccountRepository, Depends(sqlalchemy_account_repository_factory)],
     services: DepContainer,
 ) -> PortfolioRead:
     """
-    Update the list of accounts associated with a portfolio.
+    Sync the list of accounts associated with a portfolio.
     """
     authorization_api = await services.aget(AuthorizationApi)
-
-    # Validate that all account_ids belong to the user
-    user_accounts = await account_repository.get_by_user(user.id)
-    user_account_ids = {account.id for account in user_accounts}
-    if not user_account_ids.issuperset(set(portfolio_account_update_request.accounts)):
-        raise HTTPException(
-            status_code=400,
-            detail="One or more accounts do not belong to the user",
-        )
+    portfolio_service = await services.aget(PortfolioService)
+    account_service = await services.aget(AccountService)
 
     portfolio = await portfolio_service.get_portfolio(portfolio_id)
     authorization_api.check_entity_owned_by_user(user, portfolio)
+
+    await account_service.check_accounts_belong_to_user(
+        account_ids=portfolio_account_update_request.accounts,
+        user_id=user.id,
+    )
 
     return await portfolio_service.sync_portfolio_accounts(
         portfolio_id, portfolio_account_update_request
