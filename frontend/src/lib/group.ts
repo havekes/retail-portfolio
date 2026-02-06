@@ -8,7 +8,7 @@ export type AccountGroup = {
 	accounts: Account[];
 };
 
-export type GroupReturnType<T> = Promise<Map<any, Array<T>>>;
+export type GroupReturnType<T> = Promise<Map<T[keyof T], Array<T>>>;
 
 export const group = async <T, R extends keyof T>(
 	list: Promise<Array<T>>,
