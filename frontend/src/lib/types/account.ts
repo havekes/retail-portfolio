@@ -31,7 +31,7 @@ export const getAccountTypeLabel = (
 	if (translate) {
 		return translate('account_type_label', { type });
 	}
-	
+
 	const labels: Record<AccountType, string> = {
 		[AccountType.TFSA]: 'TFSA',
 		[AccountType.RRSP]: 'RRSP',
@@ -53,7 +53,7 @@ export const getInstitutionLabel = (
 	if (translate) {
 		return translate('institution_label', { institution });
 	}
-	
+
 	const labels: Record<Institution, string> = {
 		[Institution.Wealthsimple]: 'Wealthsimple',
 		[Institution.Questrade]: 'Questrade'
