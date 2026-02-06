@@ -2,8 +2,9 @@ import logging
 from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
 
+from fastapi.responses import JSONResponse
 import svcs
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -14,6 +15,7 @@ from src.auth.router import auth_router
 from src.config.logging import init_logging
 from src.config.services import register_services
 from src.config.settings import settings
+from src.exception import EntityNotFoundException
 from src.integration.router import integration_router
 from src.market.router import market_router
 
@@ -67,3 +69,8 @@ async def ping(services: DepContainer) -> dict[str, str]:
         response["database"] = "error"
 
     return response
+
+@app.exception_handler(EntityNotFoundException)
+async def generic_exception_handler(request: Request, exc: EntityNotFoundException):
+    logger.info("Entity not found")
+    return JSONResponse(status_code=404, content={"error": exc.get_message()})

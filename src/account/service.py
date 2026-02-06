@@ -5,6 +5,7 @@ from stockholm.currency import BaseCurrency
 from svcs.fastapi import DepContainer
 
 from src.account.api_types import AccountId, AccountTotals, PortfolioId
+from src.account.exception import PortfolioNotFoundException
 from src.account.repository import (
     AccountRepository,
     PortfolioRepository,
@@ -132,12 +133,6 @@ async def position_service_factory(container: DepContainer) -> PositionService:
     )
 
 
-async def portfolio_service_factory(container: DepContainer) -> PortfolioService:
-    return PortfolioService(
-        portfolio_repository=await sqlalchemy_portfolio_repository_factory(container),
-        account_repository=await sqlalchemy_account_repository_factory(container),
-    )
-
 
 class PortfolioService:
     _portfolio_repository: PortfolioRepository
@@ -152,13 +147,11 @@ class PortfolioService:
         self._account_repository = account_repository
 
     async def get_portfolio(
-        self, user_id: UserId, portfolio_id: PortfolioId
+        self, portfolio_id: PortfolioId
     ) -> PortfolioRead:
         portfolio = await self._portfolio_repository.get(portfolio_id)
-        if not portfolio or portfolio.user_id != user_id:
-            raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND, detail="Portfolio not found"
-            )
+        if not portfolio:
+            raise PortfolioNotFoundException(portfolio_id)
         return portfolio
 
     async def get_portfolios_by_user(self, user_id: UserId) -> list[PortfolioRead]:
@@ -178,37 +171,30 @@ class PortfolioService:
 
         return await self._portfolio_repository.create(user_id, portfolio_create)
 
-    async def update_portfolio_accounts(
+    async def sync_portfolio_accounts(
         self,
-        user_id: UserId,
         portfolio_id: PortfolioId,
         portfolio_account_update: PortfolioAccountUpdate,
     ) -> PortfolioRead:
         portfolio = await self._portfolio_repository.get(portfolio_id)
-        if not portfolio or portfolio.user_id != user_id:
-            raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND, detail="Portfolio not found"
-            )
+        if not portfolio:
+            raise PortfolioNotFoundException(portfolio_id)
 
-        # Validate that all account_ids belong to the user
-        user_accounts = await self._account_repository.get_by_user(user_id)
-        user_account_ids = {acc.id for acc in user_accounts}
-        if not user_account_ids.issuperset(set(portfolio_account_update.accounts)):
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail="One or more accounts do not belong to the user",
-            )
-
-        return await self._portfolio_repository.update_accounts(
+        return await self._portfolio_repository.sync_accounts(
             portfolio_id, portfolio_account_update.accounts
         )
 
     async def delete_portfolio(
-        self, user_id: UserId, portfolio_id: PortfolioId
+        self, portfolio_id: PortfolioId
     ) -> None:
         portfolio = await self._portfolio_repository.get(portfolio_id)
-        if not portfolio or portfolio.user_id != user_id:
-            raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND, detail="Portfolio not found"
-            )
+        if not portfolio:
+            raise PortfolioNotFoundException(portfolio_id)
         await self._portfolio_repository.delete(portfolio_id)
+
+
+async def portfolio_service_factory(container: DepContainer) -> PortfolioService:
+    return PortfolioService(
+        portfolio_repository=await sqlalchemy_portfolio_repository_factory(container),
+        account_repository=await sqlalchemy_account_repository_factory(container),
+    )
