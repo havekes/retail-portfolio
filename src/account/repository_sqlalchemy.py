@@ -3,7 +3,7 @@ from typing import override
 from sqlalchemy import delete, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
-from svcs.fastapi import DepContainer
+from svcs import Container
 
 from src.account.api_types import AccountId, PortfolioId
 from src.account.model import (
@@ -84,7 +84,7 @@ class SqlAlchemyAccountRepository(AccountRepository):
 
 
 async def sqlalchemy_account_repository_factory(
-    container: DepContainer,
+    container: Container,
 ) -> SqlAlchemyAccountRepository:
     return SqlAlchemyAccountRepository(session=await container.aget(AsyncSession))
 
@@ -109,7 +109,7 @@ class SqlAlchemyPositionRepository(PositionRepository):
 
 
 async def sqlalchemy_position_repository_factory(
-    container: DepContainer,
+    container: Container,
 ) -> SqlAlchemyPositionRepository:
     return SqlAlchemyPositionRepository(session=await container.aget(AsyncSession))
 
@@ -185,7 +185,7 @@ class SqlAlchemyPortfolioRepository(PortfolioRepository):
         await self._session.execute(q)
 
         # Add new portfolio accounts
-        for account_id in account_ids:
+        for account_id in set(account_ids):
             portfolio_account = PortfolioAccountModel(
                 portfolio_id=portfolio_id, account_id=account_id
             )
@@ -221,6 +221,6 @@ class SqlAlchemyPortfolioRepository(PortfolioRepository):
 
 
 async def sqlalchemy_portfolio_repository_factory(
-    container: DepContainer,
+    container: Container,
 ) -> SqlAlchemyPortfolioRepository:
     return SqlAlchemyPortfolioRepository(session=await container.aget(AsyncSession))

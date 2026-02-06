@@ -87,7 +87,9 @@ class PortfolioModel(BaseModel):
 
     # Relationships
     portfolio_accounts: Mapped[list[PortfolioAccountModel]] = relationship(
-        "PortfolioAccountModel", back_populates="portfolio"
+        "PortfolioAccountModel",
+        back_populates="portfolio",
+        cascade="all, delete-orphan",
     )
 
 
