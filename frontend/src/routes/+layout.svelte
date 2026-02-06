@@ -7,6 +7,9 @@
 	import type { User } from '$lib/types/user';
 	import { resolve } from '$app/paths';
 	import { setBrokerService } from '$lib/components/brokers/brokerService.svelte';
+	import * as Command from '@/components/ui/command';
+	import { debounce } from '@/utils';
+	import { marketService } from '@/services/marketService';
 
 	let { children } = $props();
 
@@ -31,7 +34,29 @@
 			goto(resolve('/auth/login'));
 		}
 	});
+
+	let globalSearchOpen = $state(false);
+	let globalSearchValue = $state('');
+
+	function handleKeydown(e: KeyboardEvent) {
+		if (e.key === 'k' && (e.metaKey || e.ctrlKey)) {
+			e.preventDefault();
+			globalSearchOpen = !globalSearchOpen;
+		}
+	}
+
+	$effect(() => {
+		if (globalSearchValue.length > 0) {
+			search(globalSearchValue);
+		}
+	});
+
+	const search = debounce((query: string) => {
+		marketService.search(query);
+	}, 300);
 </script>
+
+<svelte:document onkeydown={handleKeydown} />
 
 <svelte:head>
 	<!-- <link rel="icon" href={favicon} /> -->
@@ -40,3 +65,21 @@
 <ModeWatcher />
 
 {@render children()}
+
+<Command.Dialog bind:open={globalSearchOpen}>
+	<Command.Input bind:value={globalSearchValue} placeholder="Search for a symbol..." />
+	<Command.List>
+		<Command.Empty>No results found.</Command.Empty>
+		<Command.Group heading="Symbols">
+			<Command.Item>
+				<span>Calendar</span>
+			</Command.Item>
+			<Command.Item>
+				<span>Search Emoji</span>
+			</Command.Item>
+			<Command.Item>
+				<span>Calculator</span>
+			</Command.Item>
+		</Command.Group>
+	</Command.List>
+</Command.Dialog>

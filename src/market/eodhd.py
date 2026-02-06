@@ -29,7 +29,7 @@ class EodhdGateway(MarketGateway):
 
     def search(self, query: str) -> list[SecuritySearchResult]:
         url = f"https://eodhd.com/api/search/{query}?api_token={self._api_key}&fmt=json"
-        data: list[EodhdSearchResult] = requests.get(url, timeout=10).json()
+        results = requests.get(url, timeout=10).json()
 
         return [
             SecuritySearchResult(
