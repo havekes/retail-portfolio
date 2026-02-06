@@ -2,7 +2,7 @@ from typing import override
 
 from sqlalchemy import func, select, update
 from sqlalchemy.ext.asyncio import AsyncSession
-from svcs.fastapi import DepContainer
+from svcs import Container
 
 from src.account.enum import InstitutionEnum
 from src.auth.api_types import UserId
@@ -93,7 +93,7 @@ class SqlAlchemyIntegrationUserRepository(IntegrationUserRepository):
 
 
 async def sqlalchemy_integration_user_repository_factory(
-    container: DepContainer,
+    container: Container,
 ) -> IntegrationUserRepository:
     return SqlAlchemyIntegrationUserRepository(
         session=await container.aget(AsyncSession)

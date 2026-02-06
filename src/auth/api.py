@@ -6,7 +6,7 @@ import jwt
 from fastapi import Depends, HTTPException
 from fastapi.security import OAuth2PasswordBearer
 from pydantic import BaseModel
-from svcs.fastapi import DepContainer
+from svcs import Container
 
 from src.auth.api_types import AccessTokenData, AuthResponse, User
 from src.auth.exceptions import AuthInvalidCredentialsError, AuthUserAlreadyExistsError
@@ -108,7 +108,7 @@ class UserApi:
 
 
 async def user_api_factory(
-    container: DepContainer,
+    container: Container,
 ) -> UserApi:
     return UserApi(
         user_repository=await sqlalchemy_user_repository_factory(container),
@@ -136,7 +136,7 @@ class AuthorizationApi:
 
 
 async def authorization_api_factory(
-    container: DepContainer,
+    container: Container,
 ) -> AuthorizationApi:
     return AuthorizationApi(
         user_service=await user_api_factory(container),

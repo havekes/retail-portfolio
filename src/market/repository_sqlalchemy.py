@@ -4,7 +4,7 @@ from typing import override
 from sqlalchemy import select
 from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.ext.asyncio import AsyncSession
-from svcs.fastapi import DepContainer
+from svcs import Container
 
 from src.market.api_types import SecurityId
 from src.market.model import PriceModel, SecurityModel
@@ -65,7 +65,7 @@ class SqlAlchemySecurityRepository(SecurityRepository):
 
 
 async def sqlalchemy_security_repository_factory(
-    container: DepContainer,
+    container: Container,
 ) -> SqlAlchemySecurityRepository:
     return SqlAlchemySecurityRepository(session=await container.aget(AsyncSession))
 
@@ -84,7 +84,7 @@ class SqlAlchemySecurityBrokerRepository(SecurityBrokerRepository):
 
 
 async def sqlalchemy_security_broker_repository_factory(
-    container: DepContainer,
+    container: Container,
 ) -> SqlAlchemySecurityBrokerRepository:
     return SqlAlchemySecurityBrokerRepository(
         session=await container.aget(AsyncSession)
@@ -160,7 +160,7 @@ class SqlAlchemyPriceRepository(PriceRepository):
 
 
 async def sqlalchemy_price_repository_factory(
-    container: DepContainer,
+    container: Container,
 ) -> SqlAlchemyPriceRepository:
     return SqlAlchemyPriceRepository(
         session=await container.aget(AsyncSession),

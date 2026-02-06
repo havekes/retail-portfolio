@@ -20,12 +20,8 @@ from src.integration.api_types import (
 )
 from src.integration.brokers.api_types import BrokerAccount
 from src.integration.repository import IntegrationUserRepository
-from src.integration.repository_sqlalchemy import (
-    sqlalchemy_integration_user_repository_factory,
-)
 from src.integration.service import (
     IntegrationUserService,
-    integration_user_service_factory,
 )
 from src.market.api import SecurityApi
 
@@ -36,14 +32,12 @@ integration_router = APIRouter(prefix="/api/external")
 async def external_users(
     institution: InstitutionEnum,
     user: Annotated[User, Depends(current_user)],
-    integration_user_repository: Annotated[
-        IntegrationUserRepository,
-        Depends(sqlalchemy_integration_user_repository_factory),
-    ],
+    services: DepContainer,
 ) -> list[IntegrationUser]:
     """
     Get all saved external users for the given institution.
     """
+    integration_user_repository = await services.aget(IntegrationUserRepository)
     integration_users = await integration_user_repository.get_by_user_and_institution(
         user_id=user.id,
         institution=institution,
@@ -61,9 +55,6 @@ async def external_login(
     login_request: IntegrationLoginRequest,
     services: DepContainer,
     user: Annotated[User, Depends(current_user)],
-    integration_user_service: Annotated[
-        IntegrationUserService, Depends(integration_user_service_factory)
-    ],
 ) -> IntegrationLoginResponse:
     """
     Login to an external institution with external username and password.
@@ -71,6 +62,7 @@ async def external_login(
     External password is never saved and external username will stay on the backend
     """
     broker = await services.aget(get_broker_gateway_class(institution))
+    integration_user_service = await services.aget(IntegrationUserService)
 
     _ = await integration_user_service.get_or_create(
         user=user,
@@ -93,16 +85,13 @@ async def external_accounts(
     external_user_id: IntegrationUserId,
     services: DepContainer,
     user: Annotated[User, Depends(current_user)],
-    integration_user_repository: Annotated[
-        IntegrationUserRepository,
-        Depends(sqlalchemy_integration_user_repository_factory),
-    ],
 ) -> list[BrokerAccount]:
     """
     List external accounts for the current user.
     """
     authorization_service = await services.aget(AuthorizationApi)
     broker = await services.aget(get_broker_gateway_class(institution))
+    integration_user_repository = await services.aget(IntegrationUserRepository)
 
     integration_user = await integration_user_repository.get(external_user_id)
     authorization_service.check_entity_owned_by_user(user, integration_user)
@@ -119,10 +108,6 @@ async def external_import_accounts(
     import_request: IntegrationImportAccountsRequest,
     services: DepContainer,
     user: Annotated[User, Depends(current_user)],
-    integration_user_repository: Annotated[
-        IntegrationUserRepository,
-        Depends(sqlalchemy_integration_user_repository_factory),
-    ],
 ) -> IntegrationImportResponse:
     """
     Import accounts from an external institution.
@@ -131,6 +116,7 @@ async def external_import_accounts(
     authorization_service = await services.aget(AuthorizationApi)
     broker = await services.aget(get_broker_gateway_class(institution))
     account_api = await services.aget(AccountApi)
+    integration_user_repository = await services.aget(IntegrationUserRepository)
 
     integration_user = await integration_user_repository.get(
         import_request.external_user_id
@@ -155,10 +141,6 @@ async def external_import_positions(
     import_request: IntegrationImportPositionsRequest,
     services: DepContainer,
     user: Annotated[User, Depends(current_user)],
-    integration_user_repository: Annotated[
-        IntegrationUserRepository,
-        Depends(sqlalchemy_integration_user_repository_factory),
-    ],
 ) -> IntegrationImportResponse:
     """
     Import positions from an external institution for a given account.
@@ -168,6 +150,7 @@ async def external_import_positions(
     security_api = await services.aget(SecurityApi)
     position_api = await services.aget(PositionApi)
     broker = await services.aget(get_broker_gateway_class(institution_id))
+    integration_user_repository = await services.aget(IntegrationUserRepository)
 
     integration_user = await integration_user_repository.get(
         integration_user_id=import_request.external_user_id
