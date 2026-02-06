@@ -49,7 +49,7 @@
 		account_type_id: 'Account Type'
 	};
 
-	const getGroupLabel = (groupKey: AccountGroupKeys | null, value: any): string => {
+	const getGroupLabel = (groupKey: AccountGroupKeys | null, value: string | number): string => {
 		if (groupKey === null || value === null) {
 			return '';
 		}

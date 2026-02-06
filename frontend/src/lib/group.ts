@@ -20,10 +20,10 @@ export const group = async <T, R extends keyof T>(
 		return new Map<null, Array<T>>([[null, data]]);
 	}
 
-	const groups = new Map<any, Array<T>>();
+	const groups = new Map<T[keyof T], Array<T>>();
 
 	for (const item of data) {
-		const keyValue = item[groupByKey];
+		const keyValue: T[keyof T] = item[groupByKey as keyof T];
 
 		const existing = groups.get(keyValue);
 
