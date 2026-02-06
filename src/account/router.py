@@ -10,7 +10,6 @@ from src.account.api_types import (
     PortfolioId,
 )
 from src.account.repository import AccountRepository
-from src.account.repository_sqlalchemy import sqlalchemy_account_repository_factory
 from src.account.schema import (
     AccountSchema,
     PortfolioAccountUpdateRequest,
@@ -22,8 +21,6 @@ from src.account.service import (
     AccountService,
     PortfolioService,
     PositionService,
-    portfolio_service_factory,
-    position_service_factory,
 )
 from src.auth.api import AuthorizationApi, current_user
 from src.auth.api_types import User
@@ -35,11 +32,12 @@ portfolio_router = APIRouter(prefix="/api/portfolios")
 @portfolio_router.get("/")
 async def portfolios_list(
     user: Annotated[User, Depends(current_user)],
-    portfolio_service: Annotated[PortfolioService, Depends(portfolio_service_factory)],
+    services: DepContainer,
 ) -> list[PortfolioRead]:
     """
     Get all portfolios for the current user.
     """
+    portfolio_service = await services.aget(PortfolioService)
     return await portfolio_service.get_portfolios_by_user(user.id)
 
 
@@ -47,11 +45,12 @@ async def portfolios_list(
 async def portfolio_create(
     portfolio_create_request: PortfolioCreate,
     user: Annotated[User, Depends(current_user)],
-    portfolio_service: Annotated[PortfolioService, Depends(portfolio_service_factory)],
+    services: DepContainer,
 ) -> PortfolioRead:
     """
     Create a new portfolio for the current user.
     """
+    portfolio_service = await services.aget(PortfolioService)
     return await portfolio_service.create_portfolio(user.id, portfolio_create_request)
 
 
@@ -86,13 +85,13 @@ async def portfolio_accounts_sync(
 async def portfolio_delete(
     portfolio_id: PortfolioId,
     user: Annotated[User, Depends(current_user)],
-    portfolio_service: Annotated[PortfolioService, Depends(portfolio_service_factory)],
     services: DepContainer,
 ) -> Response:
     """
     Delete a portfolio.
     """
     authorization_api = await services.aget(AuthorizationApi)
+    portfolio_service = await services.aget(PortfolioService)
 
     portfolio = await portfolio_service.get_portfolio(portfolio_id)
     authorization_api.check_entity_owned_by_user(user, portfolio)
@@ -105,14 +104,12 @@ async def portfolio_delete(
 @account_router.get("/")
 async def accounts_list(
     user: Annotated[User, Depends(current_user)],
-    account_repository: Annotated[
-        AccountRepository, Depends(sqlalchemy_account_repository_factory)
-    ],
+    services: DepContainer,
 ) -> list[AccountSchema]:
     """
     Get all accounts for the current user.
     """
-
+    account_repository = await services.aget(AccountRepository)
     return await account_repository.get_by_user(user.id)
 
 
@@ -121,15 +118,13 @@ async def account_rename(
     account_id: AccountId,
     account_rename_request: AccountRenameRequest,
     user: Annotated[User, Depends(current_user)],
-    account_repository: Annotated[
-        AccountRepository, Depends(sqlalchemy_account_repository_factory)
-    ],
     services: DepContainer,
 ) -> AccountSchema:
     """
     Rename an existing account of the current user.
     """
     authorization_api = await services.aget(AuthorizationApi)
+    account_repository = await services.aget(AccountRepository)
 
     account = await account_repository.get(account_id)
     authorization_api.check_entity_owned_by_user(user, account)
@@ -141,16 +136,14 @@ async def account_rename(
 async def account_totals(
     account_id: AccountId,
     user: Annotated[User, Depends(current_user)],
-    account_repository: Annotated[
-        AccountRepository, Depends(sqlalchemy_account_repository_factory)
-    ],
-    position_service: Annotated[PositionService, Depends(position_service_factory)],
     services: DepContainer,
 ) -> AccountTotals:
     """
     Get accounts totals such as cost and price.
     """
     authorization_api = await services.aget(AuthorizationApi)
+    account_repository = await services.aget(AccountRepository)
+    position_service = await services.aget(PositionService)
 
     account = await account_repository.get(account_id)
     authorization_api.check_entity_owned_by_user(user, account)
@@ -165,14 +158,12 @@ async def account_totals(
 async def positions_by_account(
     account_id: AccountId,
     user: Annotated[User, Depends(current_user)],
-    account_repository: Annotated[
-        AccountRepository, Depends(sqlalchemy_account_repository_factory)
-    ],
-    position_service: Annotated[PositionService, Depends(position_service_factory)],
     services: DepContainer,
 ) -> list[PositionRead]:
     """Get all positions for a specific account owned by the current user."""
     authorization_api = await services.aget(AuthorizationApi)
+    account_repository = await services.aget(AccountRepository)
+    position_service = await services.aget(PositionService)
 
     account = await account_repository.get(account_id)
     authorization_api.check_entity_owned_by_user(user, account)
