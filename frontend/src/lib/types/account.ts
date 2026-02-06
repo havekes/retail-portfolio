@@ -24,11 +24,39 @@ export enum AccountType {
 	NonRegistered = 4
 }
 
-// Add method to compute label here using translations
-// (account_type: AccountType) => {
-// 	return $t('account_type_label', { type: account_type });
-// };
+export const getAccountTypeLabel = (
+	type: AccountType,
+	translate?: (key: string, options?: Record<string, unknown>) => string
+): string => {
+	if (translate) {
+		return translate('account_type_label', { type });
+	}
+	
+	const labels: Record<AccountType, string> = {
+		[AccountType.TFSA]: 'TFSA',
+		[AccountType.RRSP]: 'RRSP',
+		[AccountType.FHSA]: 'FHSA',
+		[AccountType.NonRegistered]: 'Non-Registered'
+	};
+	return labels[type];
+};
 
 export enum Institution {
-	Wealthsimple = 1
+	Wealthsimple = 1,
+	Questrade = 2
 }
+
+export const getInstitutionLabel = (
+	institution: Institution,
+	translate?: (key: string, options?: Record<string, unknown>) => string
+): string => {
+	if (translate) {
+		return translate('institution_label', { institution });
+	}
+	
+	const labels: Record<Institution, string> = {
+		[Institution.Wealthsimple]: 'Wealthsimple',
+		[Institution.Questrade]: 'Questrade'
+	};
+	return labels[institution];
+};
