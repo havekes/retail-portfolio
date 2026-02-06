@@ -1,0 +1,39 @@
+import type { Account } from '@/types/account';
+
+export type GroupBy = 'none' | 'institution' | 'accountType';
+
+export type AccountGroup = {
+	key: string;
+	label: string;
+	accounts: Account[];
+};
+
+export type GroupReturnType<T> = Promise<Map<T[keyof T], Array<T>>>;
+
+export const group = async <T, R extends keyof T>(
+	list: Promise<Array<T>>,
+	groupByKey: R | null
+): GroupReturnType<T> => {
+	const data = await list;
+
+	if (groupByKey === null) {
+		return new Map<null, Array<T>>([[null, data]]);
+	}
+
+	const groups = new Map<T[keyof T], Array<T>>();
+
+	for (const item of data) {
+		const keyValue: T[keyof T] = item[groupByKey as keyof T];
+
+		const existing = groups.get(keyValue);
+
+		if (existing) {
+			existing.push(item);
+			groups.set(keyValue, existing);
+		} else {
+			groups.set(keyValue, [item]);
+		}
+	}
+
+	return groups;
+};
