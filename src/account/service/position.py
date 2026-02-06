@@ -1,12 +1,16 @@
 from currency_converter import CurrencyConverter
 from stockholm import Money
 from stockholm.currency import BaseCurrency
-from svcs.fastapi import DepContainer
+from svcs import Container
 
 from src.account.api_types import AccountId, AccountTotals
-from src.account.repository import PositionRepository
-from src.account.repository_sqlalchemy import sqlalchemy_position_repository_factory
-from src.account.schema import PositionRead, PositionSchema
+from src.account.repository import (
+    PositionRepository,
+)
+from src.account.schema import (
+    PositionRead,
+    PositionSchema,
+)
 from src.market.api import MarketPricesApi, SecurityApi
 from src.market.api_types import Security
 
@@ -107,10 +111,10 @@ class PositionService:
         return Money(converted, to_currency)
 
 
-async def position_service_factory(container: DepContainer) -> PositionService:
+async def position_service_factory(container: Container) -> PositionService:
     return PositionService(
         fx_rates=CurrencyConverter(),
         market_prices=await container.aget(MarketPricesApi),
-        position_repository=await sqlalchemy_position_repository_factory(container),
+        position_repository=await container.aget(PositionRepository),
         security_service=await container.aget(SecurityApi),
     )

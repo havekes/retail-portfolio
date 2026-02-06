@@ -144,3 +144,4 @@ reportMissingTypeStubs = false
 reportUnknownMemberType = false
 reportAny = false
 reportUnannotatedClassAttribute = false
+reportUnusedCallResult = false
