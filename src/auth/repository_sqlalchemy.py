@@ -2,7 +2,7 @@ from typing import override
 
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
-from svcs.fastapi import DepContainer
+from svcs import Container
 
 from src.auth.model import UserModel
 from src.auth.repository import UserRepository
@@ -37,6 +37,6 @@ class SqlAlchemyUserRepository(UserRepository):
 
 
 async def sqlalchemy_user_repository_factory(
-    container: DepContainer,
+    container: Container,
 ) -> SqlAlchemyUserRepository:
     return SqlAlchemyUserRepository(session=await container.aget(AsyncSession))

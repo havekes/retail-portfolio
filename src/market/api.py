@@ -2,7 +2,7 @@ import uuid
 from datetime import UTC, datetime
 
 from stockholm import Money
-from svcs.fastapi import DepContainer
+from svcs import Container
 
 from src.account.enum import InstitutionEnum
 from src.market.api_types import Security, SecurityId
@@ -45,7 +45,7 @@ class MarketPricesApi:
         return Money(latest_price.close, security.currency)
 
 
-async def market_prices_factory(container: DepContainer) -> MarketPricesApi:
+async def market_prices_factory(container: Container) -> MarketPricesApi:
     return MarketPricesApi(
         eodhd=eodhd_gateway_factory(),
         price_repository=await eodhd_price_repository_factory(container),
@@ -134,7 +134,7 @@ class SecurityApi:
             return broker_exchange
 
 
-async def security_api_factory(container: DepContainer) -> SecurityApi:
+async def security_api_factory(container: Container) -> SecurityApi:
     return SecurityApi(
         eodhd=eodhd_gateway_factory(),
         market_prices_api=await market_prices_factory(container),

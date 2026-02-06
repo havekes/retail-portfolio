@@ -1,7 +1,7 @@
 from datetime import UTC, date, datetime, timedelta
 from typing import override
 
-from svcs.fastapi import DepContainer
+from svcs import Container
 
 from src.market.eodhd import EodhdGateway, eodhd_gateway_factory
 from src.market.repository import PriceRepository
@@ -75,7 +75,7 @@ class EodhdPriceRepository(PriceRepository):
 
 
 async def eodhd_price_repository_factory(
-    container: DepContainer,
+    container: Container,
 ) -> EodhdPriceRepository:
     return EodhdPriceRepository(
         db_repository=await sqlalchemy_price_repository_factory(container),
