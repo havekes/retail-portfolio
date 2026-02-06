@@ -57,7 +57,7 @@ class PortfolioRepository(ABC):
         pass
 
     @abstractmethod
-    async def update_accounts(
+    async def sync_accounts(
         self, portfolio_id: PortfolioId, account_ids: list[AccountId]
     ) -> PortfolioRead:
         pass

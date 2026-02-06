@@ -1,6 +1,6 @@
 from typing import override
 
-from sqlalchemy import select
+from sqlalchemy import delete, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 from svcs.fastapi import DepContainer
@@ -175,18 +175,14 @@ class SqlAlchemyPortfolioRepository(PortfolioRepository):
         return portfolio
 
     @override
-    async def update_accounts(
+    async def sync_accounts(
         self, portfolio_id: PortfolioId, account_ids: list[AccountId]
     ) -> PortfolioRead:
         # Delete existing portfolio accounts
-        await self._session.run_sync(
-            lambda session: (
-                _ := session.query(PortfolioAccountModel)
-                .filter(PortfolioAccountModel.portfolio_id == portfolio_id)
-                .delete(),
-                None,
-            )[1]
+        q = delete(PortfolioAccountModel).where(
+            PortfolioAccountModel.portfolio_id == portfolio_id
         )
+        await self._session.execute(q)
 
         # Add new portfolio accounts
         for account_id in account_ids:

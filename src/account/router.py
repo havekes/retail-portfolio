@@ -60,6 +60,7 @@ async def portfolio_accounts_update(
     portfolio_account_update_request: PortfolioAccountUpdate,
     user: Annotated[User, Depends(current_user)],
     portfolio_service: Annotated[PortfolioService, Depends(portfolio_service_factory)],
+    account_repository: Annotated[AccountRepository, Depends(sqlalchemy_account_repository_factory)],
     services: DepContainer,
 ) -> PortfolioRead:
     """
@@ -67,11 +68,20 @@ async def portfolio_accounts_update(
     """
     authorization_api = await services.aget(AuthorizationApi)
 
-    portfolio = await portfolio_service.get_portfolio(user.id, portfolio_id)
+    # Validate that all account_ids belong to the user
+    user_accounts = await account_repository.get_by_user(user.id)
+    user_account_ids = {account.id for account in user_accounts}
+    if not user_account_ids.issuperset(set(portfolio_account_update_request.accounts)):
+        raise HTTPException(
+            status_code=400,
+            detail="One or more accounts do not belong to the user",
+        )
+
+    portfolio = await portfolio_service.get_portfolio(portfolio_id)
     authorization_api.check_entity_owned_by_user(user, portfolio)
 
-    return await portfolio_service.update_portfolio_accounts(
-        user.id, portfolio_id, portfolio_account_update_request
+    return await portfolio_service.sync_portfolio_accounts(
+        portfolio_id, portfolio_account_update_request
     )
 
 
@@ -87,10 +97,10 @@ async def portfolio_delete(
     """
     authorization_api = await services.aget(AuthorizationApi)
 
-    portfolio = await portfolio_service.get_portfolio(user.id, portfolio_id)
+    portfolio = await portfolio_service.get_portfolio(portfolio_id)
     authorization_api.check_entity_owned_by_user(user, portfolio)
 
-    await portfolio_service.delete_portfolio(user.id, portfolio_id)
+    await portfolio_service.delete_portfolio(portfolio_id)
 
     return Response(status_code=204)
 
