@@ -8,7 +8,7 @@
 	import { onMount } from 'svelte';
 	import { accountService } from '@/services/accountService';
 
-	let accounts = $state<Promise<Array<Account>> | null>(null);
+	let accounts = $state<Promise<Set<Account>> | null>(new Set());
 	let selectionMode = $state(false);
 	let selectedAccounts = $state<string[]>([]);
 	let isCreatePortfolioDisabled = $derived(selectionMode && selectedAccounts.length === 0);
@@ -51,7 +51,7 @@
 				<Button variant="outline" onclick={cancelSelection}>Cancel</Button>
 			{/if}
 			<Button disabled={isCreatePortfolioDisabled} onclick={handleCreatePortfolioClick}>
-				Create portfolio
+			    {selectionMode ? 'Confirm Selection' : 'Create portfolio'}
 			</Button>
 			<DropdownMenu.Root>
 				<DropdownMenu.Trigger>
