@@ -8,7 +8,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
-from svcs.fastapi import DepContainer, lifespan
+from svcs.fastapi import DepContainer
 
 from src.account.router import account_router
 from src.auth.router import auth_router
@@ -19,7 +19,7 @@ from src.integration.router import integration_router
 from src.market.router import market_router
 
 
-@lifespan
+@svcs.fastapi.lifespan  # type: ignore warning[possibly-missing-attribute]
 @asynccontextmanager
 async def lifespan_context(_: FastAPI, registry: svcs.Registry) -> AsyncIterator[None]:
     register_services(registry)

@@ -60,10 +60,11 @@ class EodhdGateway:
 
         prices: list[HistoricalPrice] = []
         for index, price in data.iterrows():
+            assert type(index) is date
             prices.append(
                 HistoricalPrice(
                     security_id=security.id,
-                    date=index.date(),  # type: ignore[attr-defined]
+                    date=index.date(),
                     open=Decimal(str(price["open"])),
                     high=Decimal(str(price["high"])),
                     low=Decimal(str(price["low"])),
