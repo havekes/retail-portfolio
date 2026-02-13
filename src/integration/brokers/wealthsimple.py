@@ -121,6 +121,7 @@ class WealthsimpleApiGateway(BrokerApiGateway):
         ws_client = self._get_client(integration_user.external_user_id)
         ws_accounts = cast("list[dict[str, Any]]", ws_client.get_accounts())
 
+        accounts: list[BrokerAccount] = []
         for ws_account in ws_accounts:
             account = self._parse_account(ws_account)
             if account is not None:
