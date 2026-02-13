@@ -24,7 +24,7 @@ It is recommend to always run commands from inside the container: `docker compos
 - Run tests: `uv run pytest`
 - Check format: `uv run ruff format --check`
 - Lint code: `uv run ruff check`
-- Type-check code: `uv run basedpyright src`
+- Type-check code: `uv run ty check`
 
 - Run frontend format and lint `npm run lint`
 

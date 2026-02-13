@@ -1,4 +1,5 @@
 from datetime import date
+from decimal import Decimal
 
 import requests
 from eodhd.apiclient import APIClient
@@ -33,16 +34,16 @@ class EodhdGateway:
         )
 
         try:
-            price = data.iloc[0]  # pyright: ignore[reportUnknownVariableType]
+            price = data.iloc[0]
             return HistoricalPrice(
                 security_id=security.id,
                 date=date,
-                open=price["open"],  # pyright: ignore[reportUnknownArgumentType]
-                high=price["high"],  # pyright: ignore[reportUnknownArgumentType]
-                low=price["low"],  # pyright: ignore[reportUnknownArgumentType]
-                close=price["close"],  # pyright: ignore[reportUnknownArgumentType]
-                adjusted_close=price["adjusted_close"],  # pyright: ignore[reportUnknownArgumentType]
-                volume=price["volume"],  # pyright: ignore[reportUnknownArgumentType]
+                open=Decimal(str(price["open"])),
+                high=Decimal(str(price["high"])),
+                low=Decimal(str(price["low"])),
+                close=Decimal(str(price["close"])),
+                adjusted_close=Decimal(str(price["adjusted_close"])),
+                volume=int(price["volume"]),
             )
         except IndexError:
             return None
@@ -59,16 +60,17 @@ class EodhdGateway:
 
         prices: list[HistoricalPrice] = []
         for index, price in data.iterrows():
+            assert type(index) is date
             prices.append(
                 HistoricalPrice(
                     security_id=security.id,
-                    date=index,  # pyright: ignore[reportArgumentType]
-                    open=price["open"],  # pyright: ignore[reportArgumentType]
-                    high=price["high"],  # pyright: ignore[reportArgumentType]
-                    low=price["low"],  # pyright: ignore[reportArgumentType]
-                    close=price["close"],  # pyright: ignore[reportArgumentType]
-                    adjusted_close=price["adjusted_close"],  # pyright: ignore[reportArgumentType]
-                    volume=price["volume"],  # pyright: ignore[reportArgumentType]
+                    date=index.date(),
+                    open=Decimal(str(price["open"])),
+                    high=Decimal(str(price["high"])),
+                    low=Decimal(str(price["low"])),
+                    close=Decimal(str(price["close"])),
+                    adjusted_close=Decimal(str(price["adjusted_close"])),
+                    volume=int(price["volume"]),
                 )
             )
 

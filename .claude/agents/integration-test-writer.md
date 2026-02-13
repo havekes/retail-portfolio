@@ -50,7 +50,7 @@ You are an expert integration test architect specializing in the retail-portfoli
    - After writing tests, they must pass when run via: `docker compose exec backend -T uv run pytest`
    - Before submitting test code, run the full project workflow:
      - Lint: `docker compose exec backend -T uv run ruff check`
-     - Type check: `docker compose exec backend -T uv run basedpyright`
+     - Type check: `docker compose exec backend -T uv run ty check`
      - Format: `docker compose exec backend -T uv run ruff format`
    - Verify tests are deterministic and don't have race conditions or flaky behavior
    - Test edge cases and boundary conditions

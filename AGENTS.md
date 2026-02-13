@@ -10,7 +10,7 @@
 - Pydantic for data validation and serialization
 - uv package manager
 - Docker Compose for dev environment
-- basedpyright for type checking
+- ty for type checking
 - ruff for linting and formatting
 - pytest for testing
 
@@ -22,7 +22,7 @@
 
 1. Write a feature or fix a bug
 2. Lint code: `docker exec retail-portfolio-backend uv run ruff check`
-3. Run type checks: `docker exec retail-portfolio-backend uv run basedpyright src`
+3. Run type checks: `docker exec retail-portfolio-backend uv run ty check`
 4. Run tests: `docker exec retail-portfolio-backend uv run pytest`
 5. Format code: `docker exec retail-portfolio-backend uv run ruff format`
 

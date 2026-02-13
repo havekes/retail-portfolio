@@ -42,18 +42,7 @@ async def test_account(
     await db_session.commit()
     await db_session.refresh(account_model)
 
-    return AccountSchema(
-        id=account_model.id,
-        external_id=account_model.external_id,
-        name=account_model.name,
-        user_id=account_model.user_id,
-        account_type_id=account_model.account_type_id,
-        institution_id=account_model.institution_id,
-        currency=account_model.currency,
-        is_active=account_model.is_active,
-        created_at=account_model.created_at,
-        deleted_at=account_model.deleted_at,
-    )
+    return AccountSchema.model_validate(account_model)
 
 
 @pytest.fixture
@@ -79,20 +68,7 @@ async def test_accounts(
         await db_session.flush()
         await db_session.refresh(account_model)
 
-        accounts.append(
-            AccountSchema(
-                id=account_model.id,
-                external_id=account_model.external_id,
-                name=account_model.name,
-                user_id=account_model.user_id,
-                account_type_id=account_model.account_type_id,
-                institution_id=account_model.institution_id,
-                currency=account_model.currency,
-                is_active=account_model.is_active,
-                created_at=account_model.created_at,
-                deleted_at=account_model.deleted_at,
-            )
-        )
+        accounts.append(AccountSchema.model_validate(account_model))
 
     await db_session.commit()
     return accounts
@@ -120,18 +96,7 @@ async def other_user_account(
     await db_session.commit()
     await db_session.refresh(account_model)
 
-    return AccountSchema(
-        id=account_model.id,
-        external_id=account_model.external_id,
-        name=account_model.name,
-        user_id=account_model.user_id,
-        account_type_id=account_model.account_type_id,
-        institution_id=account_model.institution_id,
-        currency=account_model.currency,
-        is_active=account_model.is_active,
-        created_at=account_model.created_at,
-        deleted_at=account_model.deleted_at,
-    )
+    return AccountSchema.model_validate(account_model)
 
 
 @pytest.fixture
@@ -267,14 +232,7 @@ async def test_integration_user(
     await db_session.commit()
     await db_session.refresh(integration_user_model)
 
-    return IntegrationUserSchema(
-        id=integration_user_model.id,
-        user_id=integration_user_model.user_id,
-        institution_id=integration_user_model.institution_id,
-        external_user_id=integration_user_model.external_user_id,
-        display_name=integration_user_model.display_name,
-        last_used_at=integration_user_model.last_used_at,
-    )
+    return IntegrationUserSchema.model_validate(integration_user_model)
 
 
 @pytest.fixture
@@ -295,14 +253,7 @@ async def test_external_user(
     await db_session.commit()
     await db_session.refresh(integration_user_model)
 
-    return IntegrationUserSchema(
-        id=integration_user_model.id,
-        user_id=integration_user_model.user_id,
-        institution_id=integration_user_model.institution_id,
-        external_user_id=integration_user_model.external_user_id,
-        display_name=integration_user_model.display_name,
-        last_used_at=integration_user_model.last_used_at,
-    )
+    return IntegrationUserSchema.model_validate(integration_user_model)
 
 
 @pytest.fixture
@@ -323,11 +274,4 @@ async def other_user_external_user(
     await db_session.commit()
     await db_session.refresh(integration_user_model)
 
-    return IntegrationUserSchema(
-        id=integration_user_model.id,
-        user_id=integration_user_model.user_id,
-        institution_id=integration_user_model.institution_id,
-        external_user_id=integration_user_model.external_user_id,
-        display_name=integration_user_model.display_name,
-        last_used_at=integration_user_model.last_used_at,
-    )
+    return IntegrationUserSchema.model_validate(integration_user_model)

@@ -96,7 +96,7 @@ class PositionService:
             return value
 
         converted = round(
-            self._fx_rates.convert(  # pyright: ignore[reportUnknownArgumentType]
+            self._fx_rates.convert(
                 amount=value.amount,
                 currency=value.currency_code,
                 new_currency=to_currency,

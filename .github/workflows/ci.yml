@@ -29,14 +29,14 @@ jobs:
       - name: Install dependencies
         run: uv sync --dev
 
-      - name: Check with basedpyright
+      - name: Type check
         run: |
-          uv run basedpyright src
+          uv run ty check
 
-      - name: Lint with ruff
+      - name: Lint
         run: uv run ruff check && uv run ruff format --check
 
-      - name: Run tests
+      - name: Test
         run: uv run pytest
         env:
           DATABASE_URL: "sqlite+aiosqlite:///:memory:"
