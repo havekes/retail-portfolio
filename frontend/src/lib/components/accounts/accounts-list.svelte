@@ -22,7 +22,7 @@
 		institution: 'Institution',
 		accountType: 'Account type'
 	};
-	let accounts = <Promise<Set<Account>> | null>(Set(null));
+	let accounts = <Promise<Set<Account>> | null>Set(null);
 	let groupByKey = null;
 	$: groupedAccounts = accounts ? group<Account, AccountGroupKeys>(accounts, groupByKey) : null;
 
@@ -64,7 +64,7 @@
 				<Button variant="outline" onclick={cancelSelection}>Cancel</Button>
 			{/if}
 			<Button disabled={isCreatePortfolioDisabled} onclick={handleCreatePortfolioClick}>
-			    {selectionMode ? 'Confirm Selection' : 'Create portfolio'}
+				{selectionMode ? 'Confirm Selection' : 'Create portfolio'}
 			</Button>
 			<DropdownMenu.Root>
 				<DropdownMenu.Trigger>
@@ -108,7 +108,7 @@
 							</h3>
 						{/if}
 						{#each group.accounts as account (account.id)}
-		                       <AccountsListItem {account} {selectionMode} bind:selectedAccounts />
+							<AccountsListItem {account} {selectionMode} bind:selectedAccounts />
 						{/each}
 					</div>
 				{/each}
