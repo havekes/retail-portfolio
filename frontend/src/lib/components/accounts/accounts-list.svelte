@@ -51,7 +51,7 @@
 				<Button variant="outline" onclick={cancelSelection}>Cancel</Button>
 			{/if}
 			<Button disabled={isCreatePortfolioDisabled} onclick={handleCreatePortfolioClick}>
-			    {selectionMode ? 'Confirm Selection' : 'Create portfolio'}
+				{selectionMode ? 'Confirm Selection' : 'Create portfolio'}
 			</Button>
 			<DropdownMenu.Root>
 				<DropdownMenu.Trigger>
