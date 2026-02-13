@@ -1,6 +1,7 @@
 from __future__ import annotations
 
-from datetime import date, datetime
+from datetime import date as dt_date
+from datetime import datetime
 from decimal import Decimal
 from uuid import uuid4
 
@@ -73,7 +74,7 @@ class PriceModel(BaseModel):
     security_id: Mapped[SecurityId] = mapped_column(
         Uuid, ForeignKey("market_securities.id")
     )
-    date: Mapped[date] = mapped_column(Date)
+    date: Mapped[dt_date] = mapped_column(Date)
     open: Mapped[Decimal] = mapped_column(DECIMAL(16, 8))
     high: Mapped[Decimal] = mapped_column(DECIMAL(16, 8))
     low: Mapped[Decimal] = mapped_column(DECIMAL(16, 8))

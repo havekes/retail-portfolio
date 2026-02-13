@@ -119,8 +119,7 @@ class WealthsimpleApiGateway(BrokerApiGateway):
         integration_user: IntegrationUserSchema,
     ) -> list[BrokerAccount]:
         ws_client = self._get_client(integration_user.external_user_id)
-        ws_accounts = cast("list[dict[str, Any]]", ws_client.get_accounts())  # pyright: ignore[reportExplicitAny]
-        accounts: list[BrokerAccount] = []
+        ws_accounts = cast("list[dict[str, Any]]", ws_client.get_accounts())
 
         for ws_account in ws_accounts:
             account = self._parse_account(ws_account)
@@ -153,7 +152,7 @@ class WealthsimpleApiGateway(BrokerApiGateway):
 
         return positions
 
-    def _parse_account(self, ws_account: dict[str, Any]) -> BrokerAccount | None:  # pyright: ignore[reportExplicitAny]
+    def _parse_account(self, ws_account: dict[str, Any]) -> BrokerAccount | None:
         if ws_account["status"] != "open":
             return None
 
@@ -195,7 +194,7 @@ class WealthsimpleApiGateway(BrokerApiGateway):
         # Handle API bug where security id is wrapped in []
         trimmed_security_id = security_id[1:-1]
 
-        ws_security_market_data = ws_client.get_security_market_data(  # pyright: ignore[reportUnknownVariableType]
+        ws_security_market_data = ws_client.get_security_market_data(
             trimmed_security_id
         )
         assert isinstance(ws_security_market_data, dict)
@@ -209,7 +208,7 @@ class WealthsimpleApiGateway(BrokerApiGateway):
         average_cost = Decimal(
             self._get_average_cost(broker_account_id, ws_positions) or 0
         )
-        stock_info = cast("dict[str, Any]", ws_security_market_data["stock"])  # pyright: ignore[reportExplicitAny]
+        stock_info = cast("dict[str, Any]", ws_security_market_data["stock"])
 
         if stock_info["primaryExchange"] is None:
             logger.warning("Skipped security %s: unsupported security")
@@ -235,7 +234,7 @@ class WealthsimpleApiGateway(BrokerApiGateway):
     def _get_average_cost(
         self,
         broker_account_id: BrokerAccountId,
-        ws_positions: list[dict[str, Any]],  # pyright: ignore[reportExplicitAny]
+        ws_positions: list[dict[str, Any]],
     ) -> Decimal | None:
         for ws_position in ws_positions:
             if ws_position["accounts"][0]["id"] == broker_account_id:

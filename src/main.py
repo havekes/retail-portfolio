@@ -1,13 +1,14 @@
 import logging
 from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
+from typing import Any, cast
 
 import svcs
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
-from svcs.fastapi import DepContainer
+from svcs.fastapi import DepContainer, lifespan
 
 from src.account.router import account_router
 from src.auth.router import auth_router
@@ -18,9 +19,9 @@ from src.integration.router import integration_router
 from src.market.router import market_router
 
 
-@svcs.fastapi.lifespan
+@lifespan
 @asynccontextmanager
-async def lifespan(_: FastAPI, registry: svcs.Registry) -> AsyncIterator[None]:
+async def lifespan_context(_: FastAPI, registry: svcs.Registry) -> AsyncIterator[None]:
     register_services(registry)
     yield
 
@@ -28,12 +29,12 @@ async def lifespan(_: FastAPI, registry: svcs.Registry) -> AsyncIterator[None]:
 logger = logging.getLogger(__name__)
 
 app = FastAPI(
-    lifespan=lifespan,
+    lifespan=lifespan_context,
     title="retail-portfolio",
     version="0.0.0",
 )
 app.add_middleware(
-    CORSMiddleware,
+    cast("Any", CORSMiddleware),
     allow_origins=[origin.strip() for origin in settings.cors_allow_origins.split(",")],
     allow_credentials=True,
     allow_methods=[origin.strip() for origin in settings.cors_allow_methods.split(",")],

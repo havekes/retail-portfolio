@@ -18,7 +18,7 @@ class DatabaseSessionManager:
     _engine: AsyncEngine | None
     _sessionmaker: async_sessionmaker[AsyncSession] | None
 
-    def __init__(self, host: str, engine_kwargs: dict[str, Any] = {}):  # noqa: B006  # pyright: ignore[reportExplicitAny, reportCallInDefaultInitializer]
+    def __init__(self, host: str, engine_kwargs: dict[str, Any] = {}):  # noqa: B006
         self._engine = create_async_engine(host, **engine_kwargs)
         self._sessionmaker = async_sessionmaker(autocommit=False, bind=self._engine)
 
