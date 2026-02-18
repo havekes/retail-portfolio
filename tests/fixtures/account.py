@@ -1,4 +1,4 @@
-"""Account, position, and security fixtures."""
+"""Account, portfolio, position, and security fixtures."""
 
 from datetime import UTC, datetime
 from decimal import Decimal
@@ -11,9 +11,16 @@ from src.account.api_types import AccountTypeEnum
 from src.account.enum import InstitutionEnum
 from src.account.model import (
     AccountModel,
+    PortfolioAccountModel,
+    PortfolioModel,
     PositionModel,
 )
-from src.account.schema import AccountSchema, PositionSchema
+from src.account.schema import (
+    AccountSchema,
+    PortfolioAccountSchema,
+    PortfolioSchema,
+    PositionSchema,
+)
 from src.auth.schema import UserSchema
 from src.integration.model import IntegrationUserModel
 from src.integration.schema import IntegrationUserSchema
@@ -21,6 +28,7 @@ from src.market.model import SecurityModel
 from src.market.schema import SecuritySchema
 
 
+# Account fixtures
 @pytest.fixture
 async def test_account(
     db_session: AsyncSession, test_user: UserSchema
@@ -49,9 +57,9 @@ async def test_account(
 async def test_accounts(
     db_session: AsyncSession, test_user: UserSchema
 ) -> list[AccountSchema]:
-    """Create and persist two test accounts for the test user."""
+    """Create and persist three test accounts for the test user."""
     accounts = []
-    for i in range(2):
+    for i in range(3):
         account_model = AccountModel(
             id=uuid4(),
             external_id=f"ext_id_{i}",
@@ -99,6 +107,134 @@ async def other_user_account(
     return AccountSchema.model_validate(account_model)
 
 
+# Portfolio fixtures
+@pytest.fixture
+async def test_portfolio(
+    db_session: AsyncSession, test_user: UserSchema
+) -> PortfolioSchema:
+    """Create and persist a single test portfolio for the test user."""
+    portfolio_model = PortfolioModel(
+        id=uuid4(),
+        user_id=test_user.id,
+        name="Test Portfolio",
+        created_at=datetime.now(UTC),
+        deleted_at=None,
+    )
+    db_session.add(portfolio_model)
+    await db_session.commit()
+    await db_session.refresh(portfolio_model)
+
+    return PortfolioSchema(
+        id=portfolio_model.id,
+        user_id=portfolio_model.user_id,
+        name=portfolio_model.name,
+        created_at=portfolio_model.created_at,
+        deleted_at=portfolio_model.deleted_at,
+    )
+
+
+@pytest.fixture
+async def test_portfolios(
+    db_session: AsyncSession, test_user: UserSchema
+) -> list[PortfolioSchema]:
+    """Create and persist two test portfolios for the test user."""
+    portfolios = []
+    for i in range(2):
+        portfolio_model = PortfolioModel(
+            id=uuid4(),
+            user_id=test_user.id,
+            name=f"Test Portfolio {i}",
+            created_at=datetime.now(UTC),
+            deleted_at=None,
+        )
+        db_session.add(portfolio_model)
+        await db_session.flush()
+        await db_session.refresh(portfolio_model)
+
+        portfolios.append(
+            PortfolioSchema(
+                id=portfolio_model.id,
+                user_id=portfolio_model.user_id,
+                name=portfolio_model.name,
+                created_at=portfolio_model.created_at,
+                deleted_at=portfolio_model.deleted_at,
+            )
+        )
+
+    await db_session.commit()
+    return portfolios
+
+
+@pytest.fixture
+async def other_user_portfolio(
+    db_session: AsyncSession, other_user: UserSchema
+) -> PortfolioSchema:
+    """Create and persist a portfolio owned by a different user."""
+    portfolio_model = PortfolioModel(
+        id=uuid4(),
+        user_id=other_user.id,
+        name="Other Portfolio",
+        created_at=datetime.now(UTC),
+        deleted_at=None,
+    )
+
+    db_session.add(portfolio_model)
+    await db_session.commit()
+    await db_session.refresh(portfolio_model)
+
+    return PortfolioSchema(
+        id=portfolio_model.id,
+        user_id=portfolio_model.user_id,
+        name=portfolio_model.name,
+        created_at=portfolio_model.created_at,
+        deleted_at=portfolio_model.deleted_at,
+    )
+
+
+@pytest.fixture
+async def test_portfolio_with_accounts(
+    db_session: AsyncSession,
+    test_user: UserSchema,
+    test_accounts: list[AccountSchema],
+) -> PortfolioSchema:
+    """Create and persist a test portfolio with accounts."""
+    portfolio_model = PortfolioModel(
+        id=uuid4(),
+        user_id=test_user.id,
+        name="Portfolio with Accounts",
+        created_at=datetime.now(UTC),
+        deleted_at=None,
+    )
+    db_session.add(portfolio_model)
+    await db_session.flush()
+    await db_session.refresh(portfolio_model)
+
+    # Add account associations
+    account_schemas = [
+        PortfolioAccountSchema(account_id=acc.id)
+        for acc in test_accounts[:2]  # Only use first 2 accounts
+    ]
+
+    for acc_schema in account_schemas:
+        portfolio_account_model = PortfolioAccountModel(
+            portfolio_id=portfolio_model.id,
+            account_id=acc_schema.account_id,
+        )
+        db_session.add(portfolio_account_model)
+
+    await db_session.commit()
+    await db_session.refresh(portfolio_model)
+
+    return PortfolioSchema(
+        id=portfolio_model.id,
+        user_id=portfolio_model.user_id,
+        name=portfolio_model.name,
+        created_at=portfolio_model.created_at,
+        deleted_at=portfolio_model.deleted_at,
+    )
+
+
+# Position fixtures
 @pytest.fixture
 async def test_security(db_session: AsyncSession) -> SecuritySchema:
     """Create and persist a test security."""
@@ -214,6 +350,7 @@ async def test_position_for_first_account(
     )
 
 
+# Integration user fixtures
 @pytest.fixture
 async def test_integration_user(
     db_session: AsyncSession, test_user: UserSchema

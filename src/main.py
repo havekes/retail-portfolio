@@ -6,15 +6,17 @@ from typing import Any, cast
 import svcs
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from svcs.fastapi import DepContainer
 
-from src.account.router import account_router
+from src.account.router import account_router, portfolio_router
 from src.auth.router import auth_router
 from src.config.logging import init_logging
 from src.config.services import register_services
 from src.config.settings import settings
+from src.exception import AuthorizationError, EntityNotFoundError
 from src.integration.router import integration_router
 from src.market.router import market_router
 
@@ -43,6 +45,7 @@ app.add_middleware(
 
 init_logging()
 app.include_router(account_router)
+app.include_router(portfolio_router)
 app.include_router(auth_router)
 app.include_router(integration_router)
 app.include_router(market_router)
@@ -67,3 +70,15 @@ async def ping(services: DepContainer) -> dict[str, str]:
         response["database"] = "error"
 
     return response
+
+
+@app.exception_handler(EntityNotFoundError)
+async def entity_not_found_error_handler(_, error: EntityNotFoundError):
+    logger.info(str(error))
+    return JSONResponse(status_code=404, content={"error": str(error)})
+
+
+@app.exception_handler(AuthorizationError)
+async def authorization_error_handler(_, error: AuthorizationError):
+    logger.warning(error.log_message())
+    return JSONResponse(status_code=404, content={"error": str(error)})

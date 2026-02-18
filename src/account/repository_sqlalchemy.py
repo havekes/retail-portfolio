@@ -1,13 +1,28 @@
 from typing import override
 
-from sqlalchemy import select
+from sqlalchemy import delete, select
 from sqlalchemy.ext.asyncio import AsyncSession
-from svcs.fastapi import DepContainer
+from sqlalchemy.orm import selectinload
+from svcs import Container
 
-from src.account.api_types import AccountId
-from src.account.model import AccountModel, PositionModel
-from src.account.repository import AccountRepository, PositionRepository
-from src.account.schema import AccountSchema, PositionSchema
+from src.account.api_types import AccountId, PortfolioId
+from src.account.model import (
+    AccountModel,
+    PortfolioAccountModel,
+    PortfolioModel,
+    PositionModel,
+)
+from src.account.repository import (
+    AccountRepository,
+    PortfolioRepository,
+    PositionRepository,
+)
+from src.account.schema import (
+    AccountSchema,
+    PortfolioCreate,
+    PortfolioRead,
+    PositionSchema,
+)
 from src.auth.api_types import UserId
 from src.integration.brokers.api_types import BrokerAccountId
 
@@ -69,7 +84,7 @@ class SqlAlchemyAccountRepository(AccountRepository):
 
 
 async def sqlalchemy_account_repository_factory(
-    container: DepContainer,
+    container: Container,
 ) -> SqlAlchemyAccountRepository:
     return SqlAlchemyAccountRepository(session=await container.aget(AsyncSession))
 
@@ -80,7 +95,6 @@ class SqlAlchemyPositionRepository(PositionRepository):
     def __init__(self, session: AsyncSession) -> None:
         self._session = session
 
-    @override
     @override
     async def get_by_account(self, account_id: AccountId) -> list[PositionSchema]:
         query = select(PositionModel).where(
@@ -95,6 +109,120 @@ class SqlAlchemyPositionRepository(PositionRepository):
 
 
 async def sqlalchemy_position_repository_factory(
-    container: DepContainer,
+    container: Container,
 ) -> SqlAlchemyPositionRepository:
     return SqlAlchemyPositionRepository(session=await container.aget(AsyncSession))
+
+
+class SqlAlchemyPortfolioRepository(PortfolioRepository):
+    _session: AsyncSession
+
+    def __init__(self, session: AsyncSession) -> None:
+        self._session = session
+
+    @override
+    async def get(self, portfolio_id: PortfolioId) -> PortfolioRead | None:
+        q = (
+            select(PortfolioModel)
+            .where(PortfolioModel.id == portfolio_id)
+            .options(
+                selectinload(PortfolioModel.portfolio_accounts).selectinload(
+                    PortfolioAccountModel.account
+                )
+            )
+        )
+        result = await self._session.execute(q)
+        portfolio_model = result.scalar_one_or_none()
+        if portfolio_model is None:
+            return None
+        return self._to_portfolio_read_schema(portfolio_model)
+
+    @override
+    async def get_by_user(self, user_id: UserId) -> list[PortfolioRead]:
+        q = (
+            select(PortfolioModel)
+            .where(PortfolioModel.user_id == user_id)
+            .options(
+                selectinload(PortfolioModel.portfolio_accounts).selectinload(
+                    PortfolioAccountModel.account
+                )
+            )
+        )
+        result = await self._session.execute(q)
+        portfolio_models = result.scalars().all()
+        return [self._to_portfolio_read_schema(pm) for pm in portfolio_models]
+
+    @override
+    async def create(
+        self, user_id: UserId, portfolio_create: PortfolioCreate
+    ) -> PortfolioRead:
+        portfolio_model = PortfolioModel(user_id=user_id, name=portfolio_create.name)
+        self._session.add(portfolio_model)
+        await self._session.flush()  # To get portfolio_model.id
+
+        for account_id in set(portfolio_create.accounts):
+            portfolio_account = PortfolioAccountModel(
+                portfolio_id=portfolio_model.id, account_id=account_id
+            )
+            self._session.add(portfolio_account)
+
+        await self._session.commit()
+
+        # Refresh to load DB-generated values
+        await self._session.refresh(portfolio_model)
+
+        # Fetch the newly created portfolio with its accounts
+        portfolio = await self.get(portfolio_model.id)
+        assert portfolio is not None, "Portfolio should exist after creation"
+        return portfolio
+
+    @override
+    async def sync_accounts(
+        self, portfolio_id: PortfolioId, account_ids: list[AccountId]
+    ) -> PortfolioRead:
+        # Delete existing portfolio accounts
+        q = delete(PortfolioAccountModel).where(
+            PortfolioAccountModel.portfolio_id == portfolio_id
+        )
+        await self._session.execute(q)
+
+        # Add new portfolio accounts
+        for account_id in set(account_ids):
+            portfolio_account = PortfolioAccountModel(
+                portfolio_id=portfolio_id, account_id=account_id
+            )
+            self._session.add(portfolio_account)
+
+        await self._session.commit()
+        portfolio = await self.get(portfolio_id)
+        assert portfolio is not None, "Portfolio should exist after update"
+        return portfolio
+
+    @override
+    async def delete(self, portfolio_id: PortfolioId) -> None:
+        portfolio_model = await self._session.get(PortfolioModel, portfolio_id)
+        if portfolio_model:
+            await self._session.delete(portfolio_model)
+            await self._session.commit()
+
+    def _to_portfolio_read_schema(
+        self, portfolio_model: PortfolioModel
+    ) -> PortfolioRead:
+        accounts = [
+            AccountSchema.model_validate(pa.account)
+            for pa in portfolio_model.portfolio_accounts
+        ]
+        return PortfolioRead(
+            id=portfolio_model.id,
+            user_id=portfolio_model.user_id,
+            name=portfolio_model.name,
+            created_at=portfolio_model.created_at,
+            deleted_at=portfolio_model.deleted_at,
+            accounts=accounts,
+        )
+
+
+async def sqlalchemy_portfolio_repository_factory(
+    container: Container,
+) -> SqlAlchemyPortfolioRepository:
+    return SqlAlchemyPortfolioRepository(session=await container.aget(AsyncSession))

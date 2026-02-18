@@ -1,11 +1,7 @@
-from svcs.fastapi import DepContainer
+from svcs import Container
 
-from src.account.api_types import Account, AccountId, Position
-from src.account.repository import AccountRepository, PositionRepository
-from src.account.repository_sqlalchemy import (
-    sqlalchemy_account_repository_factory,
-    sqlalchemy_position_repository_factory,
-)
+from src.account.api_types import Account, AccountId
+from src.account.repository import AccountRepository
 from src.account.schema import AccountSchema
 from src.auth.api_types import UserId
 from src.integration.brokers.api_types import BrokerAccount
@@ -49,23 +45,7 @@ class AccountApi:
         return accounts
 
 
-async def account_api_factory(container: DepContainer) -> AccountApi:
+async def account_api_factory(container: Container) -> AccountApi:
     return AccountApi(
-        account_repository=await sqlalchemy_account_repository_factory(container),
-    )
-
-
-class PositionApi:
-    _position_repository: PositionRepository
-
-    def __init__(self, position_repository: PositionRepository) -> None:
-        self._position_repository = position_repository
-
-    def create(self, positions: list[Position]) -> list[Position]:
-        return positions
-
-
-async def position_api_factory(container: DepContainer) -> PositionApi:
-    return PositionApi(
-        position_repository=await sqlalchemy_position_repository_factory(container),
+        account_repository=await container.aget(AccountRepository),
     )

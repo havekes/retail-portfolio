@@ -17,7 +17,8 @@ services:
       SECRET_KEY: "c92b1362fe22a176b3a01009ebb87bbc641c5beecf169b0216eed560daa7b94d"
       CORS_ORIGINS: http://localhost:8100
       UV_CACHE_DIR: /app/.cache/uv
-      PATH: "/app/.venv/bin:$PATH"
+      UV_PROJECT_ENVIRONMENT: /app/.cache/container_venv
+      PATH: "/app/.cache/container_venv/bin:$PATH"
       HOME: /app
 
   frontend:
