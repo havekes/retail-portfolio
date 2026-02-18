@@ -12,11 +12,6 @@ from src.market.repository import (
     SecurityBrokerRepository,
     SecurityRepository,
 )
-from src.market.repository_eodhd import eodhd_price_repository_factory
-from src.market.repository_sqlalchemy import (
-    sqlalchemy_security_broker_repository_factory,
-    sqlalchemy_security_repository_factory,
-)
 from src.market.schema import SecurityBrokerSchema, SecuritySchema
 
 
@@ -48,8 +43,8 @@ class MarketPricesApi:
 async def market_prices_factory(container: Container) -> MarketPricesApi:
     return MarketPricesApi(
         eodhd=eodhd_gateway_factory(),
-        price_repository=await eodhd_price_repository_factory(container),
-        security_repository=await sqlalchemy_security_repository_factory(container),
+        price_repository=await container.aget(PriceRepository),
+        security_repository=await container.aget(SecurityRepository),
     )
 
 
@@ -137,9 +132,7 @@ class SecurityApi:
 async def security_api_factory(container: Container) -> SecurityApi:
     return SecurityApi(
         eodhd=eodhd_gateway_factory(),
-        market_prices_api=await market_prices_factory(container),
-        security_broker_repository=await sqlalchemy_security_broker_repository_factory(
-            container
-        ),
-        security_repository=await sqlalchemy_security_repository_factory(container),
+        market_prices_api=await container.aget(MarketPricesApi),
+        security_broker_repository=await container.aget(SecurityBrokerRepository),
+        security_repository=await container.aget(SecurityRepository),
     )
