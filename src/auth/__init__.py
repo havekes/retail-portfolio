@@ -12,7 +12,7 @@ from src.auth.repository_sqlalchemy import (
 )
 
 
-def register_auth_api(registry: Registry) -> None:
+def register_auth_services(registry: Registry) -> None:
     registry.register_factory(UserRepository, sqlalchemy_user_repository_factory)
-    registry.register_factory(UserApi, user_api_factory)
     registry.register_factory(AuthorizationApi, authorization_api_factory)
+    registry.register_factory(UserApi, user_api_factory)

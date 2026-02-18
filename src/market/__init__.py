@@ -8,6 +8,6 @@ from src.market.api import (
 )
 
 
-def register_api_services(registry: Registry) -> None:
+def register_market_services(registry: Registry) -> None:
     registry.register_factory(MarketPricesApi, market_prices_factory)
     registry.register_factory(SecurityApi, security_api_factory)

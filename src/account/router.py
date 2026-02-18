@@ -77,7 +77,9 @@ async def portfolio_accounts_sync(
     )
 
     return await portfolio_service.sync_portfolio_accounts(
-        portfolio_id, portfolio_account_update_request
+        user_id=user.id,
+        portfolio_id=portfolio_id,
+        portfolio_account_update=portfolio_account_update_request,
     )
 
 

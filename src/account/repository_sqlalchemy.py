@@ -160,14 +160,16 @@ class SqlAlchemyPortfolioRepository(PortfolioRepository):
         self._session.add(portfolio_model)
         await self._session.flush()  # To get portfolio_model.id
 
-        for account_id in portfolio_create.accounts:
+        for account_id in set(portfolio_create.accounts):
             portfolio_account = PortfolioAccountModel(
                 portfolio_id=portfolio_model.id, account_id=account_id
             )
             self._session.add(portfolio_account)
 
         await self._session.commit()
-        await self._session.refresh(portfolio_model)  # Refresh to load relationships
+
+        # Refresh to load DB-generated values
+        await self._session.refresh(portfolio_model)
 
         # Fetch the newly created portfolio with its accounts
         portfolio = await self.get(portfolio_model.id)
