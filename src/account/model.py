@@ -6,6 +6,7 @@ from uuid import uuid4
 
 from sqlalchemy import (
     DECIMAL,
+    BigInteger,
     Boolean,
     DateTime,
     Float,
@@ -159,7 +160,7 @@ class InstitutionModel(BaseModel):
 class PositionModel(BaseModel):
     __tablename__ = "account_positions"
 
-    id: Mapped[PositionId] = mapped_column(Uuid, primary_key=True, default=uuid4)
+    id: Mapped[int] = mapped_column(BigInteger, primary_key=True, autoincrement=True)
     account_id: Mapped[AccountId] = mapped_column(Uuid, ForeignKey("accounts.id"))
     security_id: Mapped[SecurityId] = mapped_column(Uuid)
     quantity: Mapped[Decimal] = mapped_column(DECIMAL(16, 8))

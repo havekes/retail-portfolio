@@ -9,7 +9,7 @@ from src.auth.api_types import UserId
 from src.market.api_types import SecurityId
 
 type AccountId = UUID
-type PositionId = UUID
+type PositionId = int
 type PortfolioId = UUID
 
 

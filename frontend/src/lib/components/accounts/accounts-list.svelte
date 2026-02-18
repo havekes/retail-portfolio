@@ -4,27 +4,53 @@
 	import * as DropdownMenu from '../ui/dropdown-menu';
 	import Button from '../ui/button/button.svelte';
 	import ChevronDown from '@lucide/svelte/icons/chevron-down';
-	import { AccountGroupKeys, type Account } from '@/types/account';
+	import { type Account, type AccountGroupKeys, getInstitutionLabel, getAccountTypeLabel, Institution, AccountType } from '@/types/account';
 	import { onMount } from 'svelte';
 	import { accountService } from '@/services/accountService';
-	import { group, groupAccounts, type GroupBy } from '@/group';
+	import { group, type GroupBy } from '@/group';
 
-	let accounts = $state<Promise<Set<Account>> | null>(new Set());
 	let selectionMode = $state(false);
 	let selectedAccounts = $state<string[]>([]);
 	let isCreatePortfolioDisabled = $derived(selectionMode && selectedAccounts.length === 0);
-
-	let groupBy = <GroupBy>'none';
-	$: groupedAccounts = accounts ? groupAccounts(accounts, groupBy) : null;
 
 	const groupByLabels: Record<GroupBy, string> = {
 		none: 'None',
 		institution: 'Institution',
 		accountType: 'Account type'
 	};
-	let accounts = <Promise<Set<Account>> | null>Set(null);
-	let groupByKey = null;
-	$: groupedAccounts = accounts ? group<Account, AccountGroupKeys>(accounts, groupByKey) : null;
+	let accounts = $state<Promise<Account[]> | null>(null);
+	let groupBy = $state<GroupBy>('none');
+
+	let groupedAccounts = $derived.by(async () => {
+		if (!accounts) return [];
+		const accountList = await accounts;
+
+		let key: AccountGroupKeys | null = null;
+		if (groupBy === 'institution') key = 'institution_id';
+		else if (groupBy === 'accountType') key = 'account_type_id';
+
+		// Re-wrap accountList in a Promise because group expects Promise<Array<T>>
+		const groupsMap = await group(Promise.resolve(accountList), key);
+		
+		const result = [];
+		for (const [keyValue, groupAccounts] of groupsMap) {
+			let label = 'Other';
+			if (groupBy === 'institution' && keyValue !== null) {
+				label = getInstitutionLabel(keyValue as Institution);
+			} else if (groupBy === 'accountType' && keyValue !== null) {
+				label = getAccountTypeLabel(keyValue as AccountType);
+			} else {
+				label = 'All Accounts';
+			}
+
+			result.push({
+				key: keyValue,
+				label,
+				accounts: groupAccounts
+			});
+		}
+		return result;
+	});
 
 	onMount(() => {
 		accounts = accountService.getAccounts();
