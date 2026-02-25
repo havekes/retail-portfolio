@@ -36,7 +36,7 @@ async def test_account(
     """Create and persist a single test account for the test user."""
     account_model = AccountModel(
         id=uuid4(),
-        external_id="ext_id_0",
+        external_id=uuid4(),
         name="Test Account",
         user_id=test_user.id,
         account_type_id=AccountTypeEnum.TFSA.value,
@@ -62,7 +62,7 @@ async def test_accounts(
     for i in range(3):
         account_model = AccountModel(
             id=uuid4(),
-            external_id=f"ext_id_{i}",
+            external_id=uuid4(),
             name=f"Test Account {i}",
             user_id=test_user.id,
             account_type_id=AccountTypeEnum.TFSA.value,
@@ -89,7 +89,7 @@ async def other_user_account(
     """Create and persist an account owned by a different user."""
     account_model = AccountModel(
         id=uuid4(),
-        external_id="other_ext_id",
+        external_id=uuid4(),
         name="Other Account",
         user_id=other_user.id,
         account_type_id=AccountTypeEnum.RRSP.value,
@@ -272,7 +272,7 @@ async def test_position(
 ) -> PositionSchema:
     """Create and persist a test position."""
     position_model = PositionModel(
-        id=uuid4(),
+        id=123,
         account_id=test_account.id,
         security_id=test_security.id,
         quantity=Decimal("10.0"),
@@ -300,7 +300,7 @@ async def test_positions(
 ) -> list[PositionSchema]:
     """Create and persist test positions for the first test account."""
     position_model = PositionModel(
-        id=uuid4(),
+        id=456,
         account_id=test_accounts[0].id,
         security_id=test_security.id,
         quantity=Decimal("10.0"),
@@ -330,7 +330,7 @@ async def test_position_for_first_account(
 ) -> PositionSchema:
     """Create and persist a test position for the first test account."""
     position_model = PositionModel(
-        id=uuid4(),
+        id=789,
         account_id=test_accounts[0].id,
         security_id=test_security.id,
         quantity=Decimal("10.0"),

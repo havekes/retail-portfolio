@@ -74,7 +74,11 @@ class SqlAlchemyAccountRepository(AccountRepository):
 
     @override
     async def get_by_user(self, user_id: UserId) -> list[AccountSchema]:
-        q = select(AccountModel).where(AccountModel.user_id == user_id)
+        q = (
+            select(AccountModel)
+            .where(AccountModel.user_id == user_id)
+            .order_by(AccountModel.name)
+        )
         result = await self._session.execute(q)
         account_models = result.scalars().all()
         return [

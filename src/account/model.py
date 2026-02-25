@@ -36,7 +36,7 @@ class AccountModel(BaseModel):
     __tablename__ = "accounts"
 
     id: Mapped[AccountId] = mapped_column(primary_key=True, default=uuid4)
-    external_id: Mapped[BrokerAccountId] = mapped_column(String)
+    external_id: Mapped[BrokerAccountId] = mapped_column(Uuid)
     name: Mapped[str] = mapped_column(String)
     user_id: Mapped[UserId] = mapped_column(Uuid)
     account_type_id: Mapped[int] = mapped_column(

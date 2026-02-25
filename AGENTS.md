@@ -60,7 +60,8 @@ domain/
 ├── service.py                # Business logic (orchestration, calculations)
 ├── router.py                 # FastAPI route handlers
 ├── api_types.py              # Public type definitions (for cross domain communcation)
-└── enum.py                   # Domain-specific enums
+├── enum.py                   # Domain-specific enums
+└── commands/                 # CLI commands (seeding, etc.)
 ```
 
 ### Layering Principles
@@ -135,6 +136,7 @@ When calculating account totals:
 ### Do's and don'ts
 
 - **Do** use custom types for entity `Ids` (ex: `type AccountId = UUID`)
+- **Do** use `rich.print` (aliased as `rprint`) for terminal output in CLI commands to avoid linting issues.
 - **Don't** raise HTTPException from within a service (except Authorization service). Instead raise a custom exception and handle it in the router.
 
 ### Critical Rules

@@ -3,6 +3,7 @@ import uuid
 from datetime import UTC, datetime
 from decimal import Decimal
 
+from rich import print as rprint
 from sqlalchemy import select
 
 from src.account.enum import AccountTypeEnum, InstitutionEnum
@@ -20,9 +21,9 @@ from src.market.model import SecurityModel
 
 
 async def _seed_user(session):
-    print("Seeding user...")
+    rprint("Seeding user...")
     user_email = "test@example.com"
-    user_password = "test"
+    user_password = "test"  # noqa: S105
 
     result = await session.execute(
         select(UserModel).where(UserModel.email == user_email)
@@ -38,14 +39,14 @@ async def _seed_user(session):
         user.password = user_password
         session.add(user)
         await session.flush()
-        print(f"Created user: {user_email}")
+        rprint(f"Created user: {user_email}")
     else:
-        print(f"User {user_email} already exists")
+        rprint(f"User {user_email} already exists")
     return user
 
 
 async def _seed_account_types(session):
-    print("Seeding account types...")
+    rprint("Seeding account types...")
     account_types_data = [
         {
             "id": AccountTypeEnum.RRSP,
@@ -95,12 +96,12 @@ async def _seed_account_types(session):
             await session.flush()
 
         account_types[at_data["id"]] = at
-    print(f"Seeded {len(account_types)} account types")
+    rprint(f"Seeded {len(account_types)} account types")
     return account_types
 
 
 async def _seed_institutions(session):
-    print("Seeding institutions...")
+    rprint("Seeding institutions...")
     institutions_data = [
         {
             "id": InstitutionEnum.QUESTRADE,
@@ -137,12 +138,12 @@ async def _seed_institutions(session):
             session.add(inst)
             await session.flush()
         institutions[inst_data["id"]] = inst
-    print(f"Seeded {len(institutions)} institutions")
+    rprint(f"Seeded {len(institutions)} institutions")
     return institutions
 
 
 async def _seed_securities(session):
-    print("Seeding securities...")
+    rprint("Seeding securities...")
     securities_data = [
         {
             "symbol": "AAPL",
@@ -184,15 +185,15 @@ async def _seed_securities(session):
             session.add(sec)
             await session.flush()
         securities[sec_data["symbol"]] = sec
-    print(f"Seeded {len(securities)} securities")
+    rprint(f"Seeded {len(securities)} securities")
     return securities
 
 
 async def _seed_accounts(session, user, account_types, institutions):
-    print("Seeding accounts...")
+    rprint("Seeding accounts...")
     accounts_data = [
         {
-            "external_id": "ACC-001",
+            "external_id": uuid.UUID("00000000-0000-0000-0000-000000000001"),
             "name": "My RRSP",
             "user_id": user.id,
             "account_type_id": account_types[AccountTypeEnum.RRSP].id,
@@ -200,7 +201,7 @@ async def _seed_accounts(session, user, account_types, institutions):
             "currency": "CAD",
         },
         {
-            "external_id": "ACC-002",
+            "external_id": uuid.UUID("00000000-0000-0000-0000-000000000002"),
             "name": "Main TFSA",
             "user_id": user.id,
             "account_type_id": account_types[AccountTypeEnum.TFSA].id,
@@ -208,7 +209,7 @@ async def _seed_accounts(session, user, account_types, institutions):
             "currency": "CAD",
         },
         {
-            "external_id": "ACC-003",
+            "external_id": uuid.UUID("00000000-0000-0000-0000-000000000003"),
             "name": "Side Trading",
             "user_id": user.id,
             "account_type_id": account_types[AccountTypeEnum.NON_REGISTERED].id,
@@ -232,12 +233,12 @@ async def _seed_accounts(session, user, account_types, institutions):
             session.add(acc)
             await session.flush()
         accounts.append(acc)
-    print(f"Seeded {len(accounts)} accounts")
+    rprint(f"Seeded {len(accounts)} accounts")
     return accounts
 
 
 async def _seed_positions(session, accounts, securities):
-    print("Seeding positions...")
+    rprint("Seeding positions...")
     positions_to_add = [
         {
             "account_id": accounts[0].id,
@@ -282,11 +283,11 @@ async def _seed_positions(session, accounts, securities):
         if not pos:
             pos = PositionModel(**pos_data)
             session.add(pos)
-    print(f"Seeded {len(positions_to_add)} positions")
+    rprint(f"Seeded {len(positions_to_add)} positions")
 
 
 async def _seed_portfolios(session, user, accounts):
-    print("Seeding portfolios...")
+    rprint("Seeding portfolios...")
     portfolios_data = [
         {"name": "Long Term Retirement", "user_id": user.id},
         {"name": "Tech Speculation", "user_id": user.id},
@@ -325,7 +326,7 @@ async def _seed_portfolios(session, user, accounts):
             link = PortfolioAccountModel(**link_data)
             session.add(link)
 
-    print(f"Seeded {len(seeded_portfolios)} portfolios and linked them to accounts")
+    rprint(f"Seeded {len(seeded_portfolios)} portfolios and linked them to accounts")
 
 
 async def seed_data():
@@ -339,7 +340,7 @@ async def seed_data():
         await _seed_portfolios(session, user, accounts)
 
         await session.commit()
-        print("Seeding completed successfully!")
+        rprint("Seeding completed successfully!")
 
 
 if __name__ == "__main__":
