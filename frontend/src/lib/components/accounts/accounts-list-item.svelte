@@ -11,8 +11,8 @@
 
 	let { account, selectionMode, selectedAccounts = $bindable() } = $props();
 
-	let accountName = $state(account.name);
-	let accountTotals = accountService.getAccountTotals(account.id);
+	let accountName = $derived(account.name);
+	let accountTotals = $derived(accountService.getAccountTotals(account.id));
 
 	$effect(() => {
 		if (accountName !== account.name) {
@@ -22,7 +22,7 @@
 
 	function toggleSelection() {
 		if (selectedAccounts.includes(account.id)) {
-			selectedAccounts = selectedAccounts.filter((id) => id !== account.id);
+			selectedAccounts = selectedAccounts.filter((id: string) => id !== account.id);
 
 			return;
 		}
