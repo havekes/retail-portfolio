@@ -9,7 +9,7 @@ from src.account.api_types import AccountId, Position
 from src.account.enum import AccountTypeEnum, InstitutionEnum
 from src.market.api_types import SecurityId
 
-type BrokerAccountId = str
+type BrokerAccountId = uuid.UUID
 type BrokerUserId = str
 
 
@@ -37,7 +37,7 @@ class BrokerPosition(BaseModel):
         security_id: SecurityId,
     ) -> Position:
         return Position(
-            id=uuid.uuid4(),
+            id=0,
             account_id=account_id,
             security_id=security_id,
             quantity=self.quantity,

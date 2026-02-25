@@ -1,8 +1,9 @@
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, HTTPException
+from svcs.fastapi import DepContainer
 
-from src.auth.api import UserApi, user_api_factory
+from src.auth.api import UserApi
 from src.auth.api_types import AuthResponse, LoginRequest, SignupRequest
 from src.auth.exceptions import AuthInvalidCredentialsError, AuthUserAlreadyExistsError
 
@@ -12,8 +13,9 @@ auth_router = APIRouter(prefix="/api/auth")
 @auth_router.post("/signup", response_model=AuthResponse)
 async def signup(
     request: SignupRequest,
-    user_service: Annotated[UserApi, Depends(user_api_factory)],
+    services: DepContainer,
 ) -> AuthResponse:
+    user_service = await services.aget(UserApi)
     try:
         return await user_service.signup(request.email, request.password)
     except AuthUserAlreadyExistsError as e:
@@ -23,8 +25,9 @@ async def signup(
 @auth_router.post("/login", response_model=AuthResponse)
 async def login(
     request: LoginRequest,
-    user_service: Annotated[UserApi, Depends(user_api_factory)],
+    services: DepContainer,
 ) -> AuthResponse:
+    user_service = await services.aget(UserApi)
     try:
         return await user_service.login(request.email, request.password)
     except AuthInvalidCredentialsError as e:

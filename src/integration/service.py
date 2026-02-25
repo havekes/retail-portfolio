@@ -1,7 +1,7 @@
 from datetime import UTC, datetime
 from uuid import uuid4
 
-from svcs.fastapi import DepContainer
+from svcs import Container
 
 from src.account.enum import InstitutionEnum
 from src.auth.api_types import User
@@ -48,7 +48,7 @@ class IntegrationUserService:
 
 
 async def integration_user_service_factory(
-    container: DepContainer,
+    container: Container,
 ) -> IntegrationUserService:
     return IntegrationUserService(
         integration_user_repository=await sqlalchemy_integration_user_repository_factory(  # noqa: E501
