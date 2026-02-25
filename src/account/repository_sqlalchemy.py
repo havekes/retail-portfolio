@@ -38,7 +38,9 @@ class SqlAlchemyInstitutionRepository(InstitutionRepository):
 
     @override
     async def get_all_enabled_integrations(self) -> list[InstitutionSchema]:
-        q = select(InstitutionModel).where(InstitutionModel.integration_enabled == True)  # noqa: E712
+        q = select(InstitutionModel).where(
+            InstitutionModel.integration_enabled.is_(True)
+        )
         result = await self._session.execute(q)
         institution_models = result.scalars().all()
         return [
