@@ -4,7 +4,14 @@
 	import * as DropdownMenu from '../ui/dropdown-menu';
 	import Button from '../ui/button/button.svelte';
 	import ChevronDown from '@lucide/svelte/icons/chevron-down';
-	import { type Account, type AccountGroupKeys, getInstitutionLabel, getAccountTypeLabel, Institution, AccountType } from '@/types/account';
+	import {
+		type Account,
+		type AccountGroupKeys,
+		getInstitutionLabel,
+		getAccountTypeLabel,
+		Institution,
+		AccountType
+	} from '@/types/account';
 	import { onMount } from 'svelte';
 	import { accountService } from '@/services/accountService';
 	import { group, type GroupBy } from '@/group';
@@ -31,7 +38,7 @@
 
 		// Re-wrap accountList in a Promise because group expects Promise<Array<T>>
 		const groupsMap = await group(Promise.resolve(accountList), key);
-		
+
 		const result = [];
 		for (const [keyValue, groupAccounts] of groupsMap) {
 			let label = 'Other';
