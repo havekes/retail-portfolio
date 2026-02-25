@@ -4,7 +4,7 @@ from uuid import UUID
 from pydantic import BaseModel
 from stockholm import Currency, Money
 
-from src.account.enum import AccountTypeEnum
+from src.account.enum import AccountTypeEnum, InstitutionEnum
 from src.auth.api_types import UserId
 from src.market.api_types import SecurityId
 
@@ -37,3 +37,12 @@ class AccountTotals(BaseModel):
 
 class AccountRenameRequest(BaseModel):
     name: str
+
+
+class Institution(BaseModel):
+    id: InstitutionEnum
+    name: str
+    country: str
+    website: str | None
+    is_active: bool
+    integration_enabled: bool

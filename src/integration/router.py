@@ -3,8 +3,8 @@ from typing import Annotated
 from fastapi import APIRouter, Depends, HTTPException
 from svcs.fastapi import DepContainer
 
-from src.account.api import AccountApi, PositionApi
-from src.account.api_types import Position
+from src.account.api import AccountApi, InstitutionApi, PositionApi
+from src.account.api_types import Institution, Position
 from src.account.enum import InstitutionEnum
 from src.auth.api import AuthorizationApi, current_user
 from src.auth.api_types import User
@@ -26,6 +26,19 @@ from src.integration.service import (
 from src.market.api import SecurityApi
 
 integration_router = APIRouter(prefix="/api/external")
+institutions_router = APIRouter(prefix="/api/integration")
+
+
+@institutions_router.get("/institutions")
+async def institutions_list(
+    services: DepContainer,
+    _user: Annotated[User, Depends(current_user)],
+) -> list[Institution]:
+    """
+    Get all institutions with enabled integrations.
+    """
+    institution_api = await services.aget(InstitutionApi)
+    return await institution_api.get_all_enabled_integrations()
 
 
 @integration_router.get("/{institution}/users")

@@ -3,12 +3,19 @@ from abc import ABC, abstractmethod
 from src.account.api_types import AccountId, PortfolioId
 from src.account.schema import (
     AccountSchema,
+    InstitutionSchema,
     PortfolioCreate,
     PortfolioRead,
     PositionSchema,
 )
 from src.auth.api_types import UserId
 from src.integration.brokers.api_types import BrokerAccountId
+
+
+class InstitutionRepository(ABC):
+    @abstractmethod
+    async def get_all_enabled_integrations(self) -> list[InstitutionSchema]:
+        pass
 
 
 class AccountRepository(ABC):
