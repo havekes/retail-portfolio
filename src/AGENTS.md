@@ -1,33 +1,37 @@
- Coding Agent Guide: retail-portfolio
+Coding Agent Guide: retail-portfolio (Backend)
 
 ## Project Overview
 `retail-portfolio` is a portfolio tracker designed for the retail investor.
 
-**Tech Stack**:
+**Backend Tech Stack**:
 - Python 3.14
 - FastAPI
 - SQLAlchemy ORM with async support
+- PostgreSQL
 - Pydantic for data validation and serialization
 - uv package manager
-- Docker Compose for dev environment
 - ty for type checking
 - ruff for linting and formatting
 - pytest for testing
 
-**Architecture Pattern**: Domain-Driven Design with layered internal structure
+**Infrastructure**:
+- Docker Compose for dev environment
+
+**Architecture Pattern**: Domain-Driven Design with layered internal structure (Backend)
 
 ## Development Workflow
 
-**ALWAYS**: Execute commands in the correct docker container `docker exec retail-portfolio-backend`
+**ALWAYS**: Execute backend commands in `retail-portfolio-backend`.
 
-1. Write a feature or fix a bug
-2. Lint code: `docker exec retail-portfolio-backend uv run ruff check`
-3. Run type checks: `docker exec retail-portfolio-backend uv run ty check`
-4. Run tests: `docker exec retail-portfolio-backend uv run pytest`
-5. Format code: `docker exec retail-portfolio-backend uv run ruff format`
+**Backend Workflow (`docker exec retail-portfolio-backend`)**:
+1. Lint code: `uv run ruff check`
+2. Run type checks: `uv run ty check`
+3. Run tests: `uv run pytest`
+4. Format code: `uv run ruff format`
+5. Generate migrations: `uv run alembic revision --autogenerate -m "message"`
 
 **MANDATORY**: When writing or editing code, **ALWAYS** run linting, type checks, tests and format before submitting.
-**MANDATORY**: When editing a model, also generate the migrations using alembic
+**MANDATORY**: When editing a backend model, also generate the migrations using alembic
 
 ## Backend Architecture
 
