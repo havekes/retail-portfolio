@@ -148,6 +148,7 @@ class InstitutionModel(BaseModel):
     country: Mapped[str] = mapped_column(String)
     website: Mapped[str | None] = mapped_column(String, nullable=True)
     is_active: Mapped[bool] = mapped_column(Boolean, default=True)
+    integration_enabled: Mapped[bool] = mapped_column(Boolean, default=False)
 
     __table_args__ = (UniqueConstraint("name", "country"),)
 

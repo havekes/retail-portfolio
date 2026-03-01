@@ -1,6 +1,7 @@
 Coding Agent Guide: retail-portfolio (Backend)
 
 ## Project Overview
+
 `retail-portfolio` is a portfolio tracker designed for the retail investor.
 
 **Backend Tech Stack**:
@@ -71,10 +72,12 @@ domain/
 ### Layering Principles
 
 **Models** → SQLAlchemy ORM models for database schema
+
 - Used to generate Alembic migrations
 - Should never be returned to clients
 
 **Schemas** → Pydantic models for all data transfer
+
 - **Repositories ALWAYS return schemas, never models**
 - Used between routers and services
 - **Do not ouse outside the domain** (use API type instead)
@@ -83,6 +86,7 @@ domain/
   - `*Write` suffix: Data accepted by POST/PATCH endpoints
 
 **Repositories** → Data access abstraction layer
+
 - Abstract interfaces define the contract
 - Multiple implementations support different backends:
   - `repository_sqlalchemy.py` - Database access
@@ -91,21 +95,25 @@ domain/
 - Always return schemas for consistency
 
 **Services** → Business logic & orchestration
+
 - Handle complex operations spanning multiple repositories
 - Depend on repositories for data access
 - Can depend on other domain APIs
 
 **APIs** → Public domain interfaces for inter-domain communication
+
 - Each domain exposes public APIs (e.g., `AccountApi`, `MarketPricesApi`)
 - Other domains call these APIs rather than accessing repositories directly
 - Enables loose coupling and clear domain boundaries
 - Injected as dependencies via the `svcs` service container
 
 **API types** → Public schemas for inter-domain communication
+
 - Types exposed for cross-domain communcation
 - Expose this instead of a schema
 
 **Routers** → FastAPI HTTP endpoints
+
 - Define route parameters, payloads, return types
 - Validate requests via Pydantic schemas
 - Delegate to services or APIs for complex business logic
@@ -132,6 +140,7 @@ PositionService (account domain)
 ```
 
 When calculating account totals:
+
 1. Router calls `PositionService.get_account_totals()`
 2. Service fetches positions from repository
 3. For each position, queries `SecurityApi` and `MarketPricesApi` for pricing

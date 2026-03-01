@@ -53,11 +53,14 @@ class AccountTypeSchema(BaseModel):
 
 
 class InstitutionSchema(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
     id: InstitutionEnum
     name: str
     country: str
-    website: str
+    website: str | None
     is_active: bool
+    integration_enabled: bool
 
 
 class PositionSchema(BaseModel):

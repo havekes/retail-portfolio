@@ -17,7 +17,7 @@ from src.config.logging import init_logging
 from src.config.services import register_services
 from src.config.settings import settings
 from src.exception import AuthorizationError, EntityNotFoundError
-from src.integration.router import integration_router
+from src.integration.router import institutions_router, integration_router
 from src.market.router import market_router
 
 
@@ -47,6 +47,7 @@ init_logging()
 app.include_router(account_router)
 app.include_router(portfolio_router)
 app.include_router(auth_router)
+app.include_router(institutions_router)
 app.include_router(integration_router)
 app.include_router(market_router)
 

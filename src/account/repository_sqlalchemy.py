@@ -8,23 +8,51 @@ from svcs import Container
 from src.account.api_types import AccountId, PortfolioId
 from src.account.model import (
     AccountModel,
+    InstitutionModel,
     PortfolioAccountModel,
     PortfolioModel,
     PositionModel,
 )
 from src.account.repository import (
     AccountRepository,
+    InstitutionRepository,
     PortfolioRepository,
     PositionRepository,
 )
 from src.account.schema import (
     AccountSchema,
+    InstitutionSchema,
     PortfolioCreate,
     PortfolioRead,
     PositionSchema,
 )
 from src.auth.api_types import UserId
 from src.integration.brokers.api_types import BrokerAccountId
+
+
+class SqlAlchemyInstitutionRepository(InstitutionRepository):
+    _session: AsyncSession
+
+    def __init__(self, session: AsyncSession) -> None:
+        self._session = session
+
+    @override
+    async def get_all_enabled_integrations(self) -> list[InstitutionSchema]:
+        q = select(InstitutionModel).where(
+            InstitutionModel.integration_enabled.is_(True)
+        )
+        result = await self._session.execute(q)
+        institution_models = result.scalars().all()
+        return [
+            InstitutionSchema.model_validate(institution_model)
+            for institution_model in institution_models
+        ]
+
+
+async def sqlalchemy_institution_repository_factory(
+    container: Container,
+) -> SqlAlchemyInstitutionRepository:
+    return SqlAlchemyInstitutionRepository(session=await container.aget(AsyncSession))
 
 
 class SqlAlchemyAccountRepository(AccountRepository):
