@@ -63,6 +63,17 @@ class SqlAlchemySecurityRepository(SecurityRepository):
         await self._session.commit()
         return result
 
+    @override
+    async def get_all_active_securities(self) -> list[SecuritySchema]:
+        securities = await self._session.execute(
+            select(SecurityModel).where(SecurityModel.is_active)
+        )
+        result = [
+            SecuritySchema.model_validate(security) for security in securities.scalars()
+        ]
+        await self._session.commit()
+        return result
+
 
 async def sqlalchemy_security_repository_factory(
     container: Container,
@@ -151,12 +162,31 @@ class SqlAlchemyPriceRepository(PriceRepository):
 
     @override
     async def save_prices(self, prices: list[PriceSchema]) -> list[PriceSchema]:
-        price_models = [PriceModel(**price.model_dump()) for price in prices]
-        self._session.add_all(price_models)
+        if not prices:
+            return []
+
+        # We need to use postgresql insert with ON CONFLICT DO UPDATE
+        inserted_models = []
+        for price in prices:
+            stmt = insert(PriceModel).values(**price.model_dump())
+            stmt = stmt.on_conflict_do_update(
+                constraint="price_security_date_unique",
+                set_={
+                    "open": stmt.excluded.open,
+                    "high": stmt.excluded.high,
+                    "low": stmt.excluded.low,
+                    "close": stmt.excluded.close,
+                    "adjusted_close": stmt.excluded.adjusted_close,
+                    "volume": stmt.excluded.volume,
+                },
+            ).returning(PriceModel)
+
+            result = await self._session.execute(stmt)
+            inserted_models.append(result.scalar_one())
+
+        schemas = [PriceSchema.model_validate(model) for model in inserted_models]
         await self._session.commit()
-        for price_model in price_models:
-            await self._session.refresh(price_model)
-        return [PriceSchema.model_validate(price_model) for price_model in price_models]
+        return schemas
 
 
 async def sqlalchemy_price_repository_factory(

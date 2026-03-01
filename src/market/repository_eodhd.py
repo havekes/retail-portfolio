@@ -62,6 +62,8 @@ class EodhdPriceRepository(PriceRepository):
             return existing_price
 
         new_price_eodhd = self._eodhd.get_price_on_date(security, date)
+        if new_price_eodhd is None:
+            return None
         new_price = PriceSchema.model_validate(new_price_eodhd)
         return await self._db_repository.save_price(new_price)
 

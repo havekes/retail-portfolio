@@ -29,6 +29,7 @@ dependencies = [
     "uvloop>=0.22.1",
     "httptools>=0.7.1",
     "argon2-cffi>=25.1.0",
+    "python-crontab>=3.3.0",
 ]
 
 [dependency-groups]

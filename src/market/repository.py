@@ -18,6 +18,10 @@ class SecurityRepository(ABC):
     async def get_or_create(self, security: SecuritySchema) -> SecuritySchema:
         pass
 
+    @abstractmethod
+    async def get_all_active_securities(self) -> list[SecuritySchema]:
+        pass
+
 
 class SecurityBrokerRepository(ABC):
     @abstractmethod
