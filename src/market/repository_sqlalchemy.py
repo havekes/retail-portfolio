@@ -68,11 +68,9 @@ class SqlAlchemySecurityRepository(SecurityRepository):
         securities = await self._session.execute(
             select(SecurityModel).where(SecurityModel.is_active)
         )
-        result = [
+        return [
             SecuritySchema.model_validate(security) for security in securities.scalars()
         ]
-        await self._session.commit()
-        return result
 
 
 async def sqlalchemy_security_repository_factory(
@@ -165,26 +163,22 @@ class SqlAlchemyPriceRepository(PriceRepository):
         if not prices:
             return []
 
-        # We need to use postgresql insert with ON CONFLICT DO UPDATE
-        inserted_models = []
-        for price in prices:
-            stmt = insert(PriceModel).values(**price.model_dump())
-            stmt = stmt.on_conflict_do_update(
-                constraint="price_security_date_unique",
-                set_={
-                    "open": stmt.excluded.open,
-                    "high": stmt.excluded.high,
-                    "low": stmt.excluded.low,
-                    "close": stmt.excluded.close,
-                    "adjusted_close": stmt.excluded.adjusted_close,
-                    "volume": stmt.excluded.volume,
-                },
-            ).returning(PriceModel)
+        price_dicts = [p.model_dump() for p in prices]
+        stmt = insert(PriceModel).values(price_dicts)
+        stmt = stmt.on_conflict_do_update(
+            constraint="price_security_date_unique",
+            set_={
+                "open": stmt.excluded.open,
+                "high": stmt.excluded.high,
+                "low": stmt.excluded.low,
+                "close": stmt.excluded.close,
+                "adjusted_close": stmt.excluded.adjusted_close,
+                "volume": stmt.excluded.volume,
+            },
+        ).returning(PriceModel)
 
-            result = await self._session.execute(stmt)
-            inserted_models.append(result.scalar_one())
-
-        schemas = [PriceSchema.model_validate(model) for model in inserted_models]
+        result = await self._session.execute(stmt)
+        schemas = [PriceSchema.model_validate(model) for model in result.scalars()]
         await self._session.commit()
         return schemas
 
