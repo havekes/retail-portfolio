@@ -213,8 +213,7 @@ class SqlAlchemyWatchlistRepository(WatchlistRepository):
             .where(WatchlistModel.user_id == user_id)
         )
         return [
-            WatchlistRead.model_validate(watchlist)
-            for watchlist in result.scalars()
+            WatchlistRead.model_validate(watchlist) for watchlist in result.scalars()
         ]
 
 
