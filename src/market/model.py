@@ -19,10 +19,11 @@ from sqlalchemy import (
     Uuid,
     func,
 )
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 
+from src.auth.api_types import UserId
 from src.config.database import BaseModel
-from src.market.api_types import EodhdSearchResult, SecurityId
+from src.market.api_types import EodhdSearchResult, SecurityId, WatchlistId
 
 
 class SecurityModel(BaseModel):  # pylint: disable=too-few-public-methods
@@ -84,4 +85,28 @@ class PriceModel(BaseModel):
 
     __table_args__ = (
         UniqueConstraint("security_id", "date", name="price_security_date_unique"),
+    )
+
+
+class WatchlistsSecuritiesModel(BaseModel):
+    __tablename__ = "market_watchlists_securities"
+
+    watchlist_id: Mapped[WatchlistId] = mapped_column(
+        Uuid, ForeignKey("market_watchlists.id", ondelete="CASCADE"), primary_key=True
+    )
+    security_id: Mapped[SecurityId] = mapped_column(
+        Uuid, ForeignKey("market_securities.id", ondelete="CASCADE"), primary_key=True
+    )
+
+
+class WatchlistModel(BaseModel):
+    __tablename__ = "market_watchlists"
+
+    id: Mapped[WatchlistId] = mapped_column(Uuid, primary_key=True, default=uuid4)
+    user_id: Mapped[UserId] = mapped_column(Uuid)
+    name: Mapped[str] = mapped_column(String)
+
+    securities: Mapped[list[SecurityModel]] = relationship(
+        secondary="market_watchlists_securities",
+        lazy="selectin",
     )
