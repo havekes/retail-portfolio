@@ -16,6 +16,7 @@ from src.market.repository_sqlalchemy import (
     sqlalchemy_security_broker_repository_factory,
     sqlalchemy_security_repository_factory,
 )
+from src.market.service import MarketService, market_service_factory
 
 
 def register_market_services(registry: Registry) -> None:
@@ -28,3 +29,4 @@ def register_market_services(registry: Registry) -> None:
     )
     registry.register_factory(MarketPricesApi, market_prices_factory)
     registry.register_factory(SecurityApi, security_api_factory)
+    registry.register_factory(MarketService, market_service_factory)

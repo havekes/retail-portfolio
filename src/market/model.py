@@ -81,3 +81,7 @@ class PriceModel(BaseModel):
     close: Mapped[Decimal] = mapped_column(DECIMAL(16, 8))
     adjusted_close: Mapped[Decimal] = mapped_column(DECIMAL(16, 8))
     volume: Mapped[int] = mapped_column(BigInteger)
+
+    __table_args__ = (
+        UniqueConstraint("security_id", "date", name="price_security_date_unique"),
+    )
