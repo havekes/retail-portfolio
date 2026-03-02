@@ -5,7 +5,13 @@ from typing import Self
 from pydantic import BaseModel, ConfigDict
 
 from src.account.enum import InstitutionEnum
-from src.market.api_types import EodhdSearchResult, HistoricalPrice, SecurityId
+from src.auth.api_types import UserId
+from src.market.api_types import (
+    EodhdSearchResult,
+    HistoricalPrice,
+    SecurityId,
+    WatchlistId,
+)
 
 
 class SecuritySchema(BaseModel):
@@ -62,3 +68,15 @@ class PriceSchema(BaseModel):
             adjusted_close=historical_price.adjusted_close,
             volume=historical_price.volume,
         )
+
+
+class WatchlistSchema(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: WatchlistId
+    user_id: UserId
+    name: str
+
+
+class WatchlistRead(WatchlistSchema):
+    securities: list[SecuritySchema]

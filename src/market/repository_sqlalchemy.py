@@ -4,16 +4,24 @@ from typing import override
 from sqlalchemy import select
 from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import selectinload
 from svcs import Container
 
+from src.auth.api_types import UserId
 from src.market.api_types import SecurityId
-from src.market.model import PriceModel, SecurityModel
+from src.market.model import PriceModel, SecurityModel, WatchlistModel
 from src.market.repository import (
     PriceRepository,
     SecurityBrokerRepository,
     SecurityRepository,
+    WatchlistRepository,
 )
-from src.market.schema import PriceSchema, SecurityBrokerSchema, SecuritySchema
+from src.market.schema import (
+    PriceSchema,
+    SecurityBrokerSchema,
+    SecuritySchema,
+    WatchlistRead,
+)
 
 
 class SqlAlchemySecurityRepository(SecurityRepository):
@@ -187,5 +195,31 @@ async def sqlalchemy_price_repository_factory(
     container: Container,
 ) -> SqlAlchemyPriceRepository:
     return SqlAlchemyPriceRepository(
+        session=await container.aget(AsyncSession),
+    )
+
+
+class SqlAlchemyWatchlistRepository(WatchlistRepository):
+    _session: AsyncSession
+
+    def __init__(self, session: AsyncSession):
+        self._session = session
+
+    @override
+    async def get_all_for_user(self, user_id: UserId) -> list[WatchlistRead]:
+        result = await self._session.execute(
+            select(WatchlistModel)
+            .options(selectinload(WatchlistModel.securities))
+            .where(WatchlistModel.user_id == user_id)
+        )
+        return [
+            WatchlistRead.model_validate(watchlist) for watchlist in result.scalars()
+        ]
+
+
+async def sqlalchemy_watchlist_repository_factory(
+    container: Container,
+) -> SqlAlchemyWatchlistRepository:
+    return SqlAlchemyWatchlistRepository(
         session=await container.aget(AsyncSession),
     )

@@ -7,6 +7,7 @@ from pydantic import BaseModel, ConfigDict
 from stockholm.currency import Currency
 
 type SecurityId = UUID
+type WatchlistId = UUID
 
 
 class Security(BaseModel):

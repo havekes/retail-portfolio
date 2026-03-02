@@ -1,11 +1,13 @@
 from abc import ABC, abstractmethod
 from datetime import date
 
+from src.auth.api_types import UserId
 from src.market.api_types import SecurityId
 from src.market.schema import (
     PriceSchema,
     SecurityBrokerSchema,
     SecuritySchema,
+    WatchlistRead,
 )
 
 
@@ -54,4 +56,10 @@ class PriceRepository(ABC):
 
     @abstractmethod
     async def save_prices(self, prices: list[PriceSchema]) -> list[PriceSchema]:
+        pass
+
+
+class WatchlistRepository(ABC):
+    @abstractmethod
+    async def get_all_for_user(self, user_id: UserId) -> list[WatchlistRead]:
         pass
