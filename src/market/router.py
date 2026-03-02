@@ -33,7 +33,7 @@ async def get_last_close_prices(
     return Price.model_validate(price)
 
 
-@market_router.get("/watchlists/")
+@market_router.get("/watchlists")
 async def get_watchlists(
     user: Annotated[User, Depends(current_user)],
     services: DepContainer,
