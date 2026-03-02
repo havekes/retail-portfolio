@@ -15,6 +15,7 @@ class UserSchema(BaseModel):
     email: str
     password: str  # hashed
     is_active: bool = True
+    is_verified: bool = False
     last_login_at: datetime | None = None
     created_at: datetime
 
@@ -24,3 +25,14 @@ class UserSchema(BaseModel):
             return _password_hasher.verify(self.password, plain_text_password)
         except Exception:  # noqa: BLE001
             return False
+
+
+class VerificationTokenSchema(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: str
+    user_id: UserId
+    token: str
+    expires_at: datetime
+    is_used: bool = False
+    created_at: datetime

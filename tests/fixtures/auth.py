@@ -88,8 +88,17 @@ async def auth_client(
 ):
     """Create an HTTP test client with auth token and mocked EODHD API."""
     # Create UserApi to generate token
+    from src.auth.service import EmailService, EmailVerificationService
+    from src.auth.repository_sqlalchemy import SqlAlchemyVerificationTokenRepository
     user_repository = SqlAlchemyUserRepository(session=db_session)
-    user_api = UserApi(user_repository=user_repository)
+    token_repository = SqlAlchemyVerificationTokenRepository(session=db_session)
+    email_service = EmailService()
+    email_verification_service = EmailVerificationService(
+        user_repository=user_repository,
+        token_repository=token_repository,
+        email_service=email_service,
+    )
+    user_api = UserApi(user_repository=user_repository, email_verification_service=email_verification_service)
 
     # Generate access token for test user
     access_token = user_api.create_access_token(test_user.email)
@@ -126,6 +135,7 @@ async def test_user(db_session: AsyncSession, seed_reference_data: None) -> User
         email="test@example.com",
         _password_hash=hashed_password,
         is_active=True,
+        is_verified=True,
         last_login_at=None,
         created_at=datetime.now(UTC),
     )
@@ -139,6 +149,7 @@ async def test_user(db_session: AsyncSession, seed_reference_data: None) -> User
         email=user_model.email,
         password=user_model.password,
         is_active=user_model.is_active,
+        is_verified=user_model.is_verified,
         last_login_at=user_model.last_login_at,
         created_at=user_model.created_at,
     )
@@ -159,6 +170,7 @@ async def other_user(
         email="other@example.com",
         _password_hash=hashed_password,
         is_active=True,
+        is_verified=True,
         last_login_at=None,
         created_at=datetime.now(UTC),
     )
@@ -172,6 +184,7 @@ async def other_user(
         email=user_model.email,
         password=user_model.password,
         is_active=user_model.is_active,
+        is_verified=user_model.is_verified,
         last_login_at=user_model.last_login_at,
         created_at=user_model.created_at,
     )

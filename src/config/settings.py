@@ -14,5 +14,15 @@ class Settings(BaseSettings):
 
     eodhd_api_key: str = ""
 
+    # Email verification settings
+    smtp_host: str = "smtp.example.com"
+    smtp_port: int = 587
+    smtp_user: str = ""
+    smtp_password: str = ""
+    smtp_sender_email: str = "noreply@retail-portfolio.com"
+    email_verification_token_expiry_hours: int = 24
+
+    # Frontend URL for verification links
+    frontend_url: str = "http://localhost:8100"
 
 settings = Settings()

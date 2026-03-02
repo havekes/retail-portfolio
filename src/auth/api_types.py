@@ -20,6 +20,10 @@ class LoginRequest(BaseModel):
     password: str
 
 
+class SignupResponse(BaseModel):
+    message: str
+
+
 class AuthResponse(BaseModel):
     access_token: str
     user: User

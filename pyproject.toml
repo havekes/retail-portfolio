@@ -29,6 +29,7 @@ dependencies = [
     "httptools>=0.7.1",
     "argon2-cffi>=25.1.0",
     "apscheduler>=3.11.2",
+    "itsdangerous>=2.2.0",
 ]
 
 [dependency-groups]

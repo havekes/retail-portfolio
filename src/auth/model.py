@@ -22,6 +22,7 @@ class UserModel(BaseModel):
     email: Mapped[str] = mapped_column(String, unique=True, index=True)
     _password_hash: Mapped[str] = mapped_column(String)
     is_active: Mapped[bool] = mapped_column(Boolean, default=True)
+    is_verified: Mapped[bool] = mapped_column(Boolean, default=False)
     last_login_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), nullable=True
     )
@@ -45,3 +46,18 @@ class UserModel(BaseModel):
             return _password_hasher.verify(self._password_hash, plain_text_password)
         except Exception:  # noqa: BLE001
             return False
+
+
+class VerificationTokenModel(BaseModel):
+    """Email verification token model."""
+
+    __tablename__ = "auth_verification_tokens"
+
+    id: Mapped[str] = mapped_column(String, primary_key=True)  # Usually UUID string
+    user_id: Mapped[UserId] = mapped_column(Uuid, index=True)
+    token: Mapped[str] = mapped_column(String, unique=True, index=True)
+    expires_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+    is_used: Mapped[bool] = mapped_column(Boolean, default=False)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), default=func.now()
+    )
