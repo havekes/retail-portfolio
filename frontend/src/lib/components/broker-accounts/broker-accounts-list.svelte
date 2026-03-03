@@ -34,7 +34,9 @@
 				{/each}
 			{/if}
 		{:catch error}
-			<div class="error">Error: {error.message}</div>
+			<Alert>
+				<AlertDescription>Error: {error.message}</AlertDescription>
+			</Alert>
 		{/await}
 	</div>
 </div>
