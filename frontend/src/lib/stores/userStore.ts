@@ -13,7 +13,7 @@ export const userStore = (() => {
 	};
 
 	// Load from sessionStorage at startup
-	if (typeof sessionStorage !== 'undefined') {
+	if (browser) {
 		const storedToken = sessionStorage.getItem('auth_token');
 		const storedUser = sessionStorage.getItem('auth_user');
 		if (storedToken && storedUser) {
