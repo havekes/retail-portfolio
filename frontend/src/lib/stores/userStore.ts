@@ -1,5 +1,6 @@
 import { writable } from 'svelte/store';
 import type { User } from '$lib/types/user';
+import { browser } from '$app/environment';
 
 export interface AuthState {
 	user: User | null;
@@ -13,16 +14,18 @@ export const userStore = (() => {
 	};
 
 	// Load from sessionStorage at startup
-	const storedToken = sessionStorage.getItem('auth_token');
-	const storedUser = sessionStorage.getItem('auth_user');
-	if (storedToken && storedUser) {
-		try {
-			initialState.token = storedToken;
-			initialState.user = JSON.parse(storedUser);
-		} catch (error) {
-			console.error('Error when parsing session stored user data', error);
-			sessionStorage.removeItem('auth_token');
-			sessionStorage.removeItem('auth_user');
+	if (browser) {
+		const storedToken = sessionStorage.getItem('auth_token');
+		const storedUser = sessionStorage.getItem('auth_user');
+		if (storedToken && storedUser) {
+			try {
+				initialState.token = storedToken;
+				initialState.user = JSON.parse(storedUser);
+			} catch (error) {
+				console.error('Error when parsing session stored user data', error);
+				sessionStorage.removeItem('auth_token');
+				sessionStorage.removeItem('auth_user');
+			}
 		}
 	}
 

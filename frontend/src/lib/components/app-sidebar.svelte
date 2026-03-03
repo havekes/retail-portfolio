@@ -47,6 +47,9 @@
 						{/snippet}
 					</DropdownMenu.Trigger>
 					<DropdownMenu.Content side="top" class="w-(--bits-dropdown-menu-anchor-width)">
+						<DropdownMenu.Item onSelect={() => goto(resolve('/broker-accounts'))}>
+							Connected broker accounts
+						</DropdownMenu.Item>
 						<DropdownMenu.Item onSelect={() => goto(resolve('/logout'))}>
 							Sign out
 						</DropdownMenu.Item>

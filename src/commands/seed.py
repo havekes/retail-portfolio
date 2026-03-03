@@ -17,6 +17,7 @@ from src.account.model import (
 )
 from src.auth.model import UserModel
 from src.config.database import sessionmanager
+from src.integration.model import IntegrationUserModel
 from src.market.model import SecurityModel
 
 
@@ -108,12 +109,14 @@ async def _seed_institutions(session):
             "name": "Questrade",
             "country": "CA",
             "website": "https://www.questrade.com",
+            "integration_enabled": True,
         },
         {
             "id": InstitutionEnum.WEALTHSIMPLE,
             "name": "Wealthsimple",
             "country": "CA",
             "website": "https://www.wealthsimple.com",
+            "integration_enabled": True,
         },
     ]
 
@@ -137,6 +140,10 @@ async def _seed_institutions(session):
             inst = InstitutionModel(**inst_data)
             session.add(inst)
             await session.flush()
+        else:
+            inst.integration_enabled = True
+            inst.is_active = True
+
         institutions[inst_data["id"]] = inst
     rprint(f"Seeded {len(institutions)} institutions")
     return institutions
@@ -329,6 +336,47 @@ async def _seed_portfolios(session, user, accounts):
     rprint(f"Seeded {len(seeded_portfolios)} portfolios and linked them to accounts")
 
 
+async def _seed_integration_users(session, user, institutions):
+    rprint("Seeding integration users...")
+    integration_users_data = [
+        {
+            "id": uuid.UUID("00000000-0000-0000-0000-000000000010"),
+            "user_id": user.id,
+            "institution_id": institutions[InstitutionEnum.QUESTRADE].id,
+            "external_user_id": "qt_user_123",
+            "display_name": "Questrade API Connection",
+            "last_used_at": datetime.now(UTC),
+        },
+        {
+            "id": uuid.UUID("00000000-0000-0000-0000-000000000011"),
+            "user_id": user.id,
+            "institution_id": institutions[InstitutionEnum.WEALTHSIMPLE].id,
+            "external_user_id": "ws_user_456",
+            "display_name": "Wealthsimple Connection",
+            "last_used_at": datetime.now(UTC),
+        },
+    ]
+
+    integration_users = []
+    for data in integration_users_data:
+        result = await session.execute(
+            select(IntegrationUserModel).where(
+                IntegrationUserModel.user_id == data["user_id"],
+                IntegrationUserModel.institution_id == data["institution_id"],
+                IntegrationUserModel.external_user_id == data["external_user_id"],
+            )
+        )
+        integration_user = result.scalar_one_or_none()
+        if not integration_user:
+            integration_user = IntegrationUserModel(**data)
+            session.add(integration_user)
+            await session.flush()
+        integration_users.append(integration_user)
+
+    rprint(f"Seeded {len(integration_users)} integration users")
+    return integration_users
+
+
 async def seed_data():
     async with sessionmanager.session() as session:
         user = await _seed_user(session)
@@ -338,6 +386,7 @@ async def seed_data():
         accounts = await _seed_accounts(session, user, account_types, institutions)
         await _seed_positions(session, accounts, securities)
         await _seed_portfolios(session, user, accounts)
+        await _seed_integration_users(session, user, institutions)
 
         await session.commit()
         rprint("Seeding completed successfully!")
