@@ -4,6 +4,7 @@
 	import type { BrokerUser } from '@/types/broker/broker';
 	import BrokerAccountsListItem from './broker-accounts-list-item.svelte';
 	import { Skeleton } from '../ui/skeleton';
+	import { Alert, AlertDescription } from '../ui/alert';
 
 	let brokerUsers = $state<Promise<BrokerUser[]> | null>(null);
 
@@ -26,6 +27,10 @@
 			{#if users}
 				{#each users as user (user.id)}
 					<BrokerAccountsListItem brokerUser={user} />
+				{:else}
+					<Alert>
+						<AlertDescription>No connected broker accounts.</AlertDescription>
+					</Alert>
 				{/each}
 			{/if}
 		{:catch error}
