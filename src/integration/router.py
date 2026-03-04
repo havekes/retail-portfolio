@@ -19,6 +19,7 @@ from src.integration.api_types import (
     IntegrationUserId,
 )
 from src.integration.brokers.api_types import BrokerAccount
+from src.integration.brokers.exceptions import OTPRequiredError
 from src.integration.repository import IntegrationUserRepository
 from src.integration.service import (
     IntegrationUserService,
@@ -112,7 +113,10 @@ async def external_accounts(
     if not integration_user:
         raise HTTPException(status_code=404, detail="External user not found")
 
-    return await broker.get_accounts(integration_user)
+    try:
+        return await broker.get_accounts(integration_user)
+    except OTPRequiredError as e:
+        raise HTTPException(status_code=403, detail="OTP_REQUIRED") from e
 
 
 @integration_router.post("/{institution}/accounts/import")

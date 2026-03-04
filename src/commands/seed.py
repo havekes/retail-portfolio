@@ -355,6 +355,14 @@ async def _seed_integration_users(session, user, institutions):
             "display_name": "Wealthsimple Connection",
             "last_used_at": datetime.now(UTC),
         },
+        {
+            "id": uuid.UUID("00000000-0000-0000-0000-000000000012"),
+            "user_id": user.id,
+            "institution_id": institutions[InstitutionEnum.WEALTHSIMPLE].id,
+            "external_user_id": "ws_user_2fa",
+            "display_name": "Wealthsimple 2FA Connection",
+            "last_used_at": datetime.now(UTC),
+        },
     ]
 
     integration_users = []

@@ -43,6 +43,7 @@
 		"vite": "^7.1.10"
 	},
 	"dependencies": {
+		"lucide-svelte": "^0.576.0",
 		"mode-watcher": "^1.1.0"
 	}
 }
