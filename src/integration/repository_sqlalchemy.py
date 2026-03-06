@@ -91,6 +91,19 @@ class SqlAlchemyIntegrationUserRepository(IntegrationUserRepository):
         _ = await self._session.execute(query)
         await self._session.commit()
 
+    @override
+    async def update_display_name(
+        self, integration_user_id: IntegrationUserId, display_name: str
+    ) -> None:
+        query = (
+            update(IntegrationUserModel)
+            .where(IntegrationUserModel.id == integration_user_id)
+            .values(display_name=display_name)
+        )
+
+        _ = await self._session.execute(query)
+        await self._session.commit()
+
 
 async def sqlalchemy_integration_user_repository_factory(
     container: Container,

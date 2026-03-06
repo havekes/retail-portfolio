@@ -13,6 +13,10 @@ export class AccountService extends BaseService {
 	async getAccountTotals(id: string): Promise<AccountTotals> {
 		return this.get<AccountTotals>(`/accounts/${id}/totals`);
 	}
+
+	async deleteAccount(id: string): Promise<void> {
+		return this.delete(`/accounts/${id}`);
+	}
 }
 
 export const accountService = new AccountService();

@@ -41,6 +41,10 @@ class AccountRepository(ABC):
     async def get_by_user(self, user_id: UserId) -> list[AccountSchema]:
         pass
 
+    @abstractmethod
+    async def delete(self, account_id: AccountId) -> None:
+        pass
+
 
 class PositionRepository(ABC):
     @abstractmethod

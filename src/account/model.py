@@ -36,7 +36,7 @@ class AccountModel(BaseModel):
     __tablename__ = "accounts"
 
     id: Mapped[AccountId] = mapped_column(primary_key=True, default=uuid4)
-    external_id: Mapped[BrokerAccountId] = mapped_column(Uuid)
+    external_id: Mapped[BrokerAccountId] = mapped_column(String)
     name: Mapped[str] = mapped_column(String)
     user_id: Mapped[UserId] = mapped_column(Uuid)
     account_type_id: Mapped[int] = mapped_column(
@@ -63,10 +63,14 @@ class AccountModel(BaseModel):
         "InstitutionModel", back_populates="accounts"
     )
     positions: Mapped[list[PositionModel]] = relationship(
-        "PositionModel", back_populates="account"
+        "PositionModel",
+        back_populates="account",
+        cascade="all, delete-orphan",
     )
     portfolio_accounts: Mapped[list[PortfolioAccountModel]] = relationship(
-        "PortfolioAccountModel", back_populates="account"
+        "PortfolioAccountModel",
+        back_populates="account",
+        cascade="all, delete-orphan",
     )
 
 

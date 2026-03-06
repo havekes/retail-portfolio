@@ -114,6 +114,13 @@ class SqlAlchemyAccountRepository(AccountRepository):
             for account_model in account_models
         ]
 
+    @override
+    async def delete(self, account_id: AccountId) -> None:
+        account_model = await self._session.get(AccountModel, account_id)
+        if account_model:
+            await self._session.delete(account_model)
+            await self._session.commit()
+
 
 async def sqlalchemy_account_repository_factory(
     container: Container,

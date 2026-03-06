@@ -2,7 +2,7 @@
 	import { Institution } from '@/types/account';
 	import Badge from '../ui/badge/badge.svelte';
 	import Checkbox from '../ui/checkbox/checkbox.svelte';
-	import EditableHeader from '../form/editable-header.svelte';
+	import EditableTitle from '../form/editable-title.svelte';
 	import { accountService } from '@/services/accountService';
 	import Skeleton from '../ui/skeleton/skeleton.svelte';
 	import { money } from '@/types/money';
@@ -11,14 +11,7 @@
 
 	let { account, selectionMode, selectedAccounts = $bindable() } = $props();
 
-	let accountName = $derived(account.name);
 	let accountTotals = $derived(accountService.getAccountTotals(account.id));
-
-	$effect(() => {
-		if (accountName !== account.name) {
-			accountService.renameAccount(account.id, accountName);
-		}
-	});
 
 	function toggleSelection() {
 		if (selectedAccounts.includes(account.id)) {
@@ -45,7 +38,10 @@
 	{/if}
 
 	<div class="flex-1 space-y-2">
-		<EditableHeader bind:value={accountName} />
+		<EditableTitle
+			bind:value={account.name}
+			onSave={(val) => accountService.renameAccount(account.id, val)}
+		/>
 		<div class="flex gap-x-2 text-sm">
 			<Badge variant="outline">{account.currency}</Badge>
 			<span>{Institution[account.institution_id]}</span>

@@ -97,4 +97,20 @@ export abstract class BaseService {
 
 		return response.json();
 	}
+
+	protected async delete(endpoint: string, headers?: Record<string, string>): Promise<void> {
+		const token = userStore.getToken();
+		const response = await fetch(`${this.baseUrl}${endpoint}`, {
+			method: 'DELETE',
+			headers: {
+				'Content-Type': 'application/json',
+				Authorization: `Bearer ${token}`,
+				...headers
+			}
+		});
+
+		if (!response.ok) {
+			throw new Error(`DELETE request failed: ${response.statusText}`);
+		}
+	}
 }
