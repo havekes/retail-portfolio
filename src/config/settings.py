@@ -23,6 +23,6 @@ class Settings(BaseSettings):
     email_verification_token_expiry_hours: int = 24
 
     # Frontend URL for verification links
-    frontend_url: str = "http://localhost:8100"
+    frontend_url: str = "http://localhost:8101"
 
 settings = Settings()

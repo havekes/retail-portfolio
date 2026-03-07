@@ -50,7 +50,7 @@
 						<DropdownMenu.Item onSelect={() => goto(resolve('/broker-accounts'))}>
 							Connected broker accounts
 						</DropdownMenu.Item>
-						<DropdownMenu.Item onSelect={() => goto(resolve('/logout'))}>
+						<DropdownMenu.Item onSelect={() => goto(resolve('/auth/logout'))}>
 							Sign out
 						</DropdownMenu.Item>
 					</DropdownMenu.Content>

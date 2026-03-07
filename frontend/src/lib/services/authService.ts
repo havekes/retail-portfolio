@@ -12,10 +12,22 @@ export interface SignupRequest {
 	password: string;
 }
 
+export interface VerifyEmailRequest {
+	token: string;
+}
+
+export interface MessageResponse {
+	message: string;
+}
+
 export interface AuthResponse {
 	access_token: string;
 	token_type: string;
 	user: User;
+}
+
+export interface SignupResponse {
+	message: string;
 }
 
 export class AuthService extends BaseService {
@@ -25,10 +37,12 @@ export class AuthService extends BaseService {
 		return response;
 	}
 
-	async signup(credentials: SignupRequest): Promise<AuthResponse> {
-		const response = await this.post<AuthResponse, SignupRequest>('/auth/signup', credentials);
-		userStore.setUser(response.user, response.access_token);
-		return response;
+	async signup(credentials: SignupRequest): Promise<SignupResponse> {
+		return this.post<SignupResponse, SignupRequest>('/auth/signup', credentials);
+	}
+
+	async verifyEmail(token: string): Promise<MessageResponse> {
+		return this.post<MessageResponse, VerifyEmailRequest>('/auth/verify-email', { token });
 	}
 
 	logout(): void {

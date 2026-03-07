@@ -1,33 +1,63 @@
+import logging
+import smtplib
+import os
 from datetime import UTC, datetime, timedelta
+from email.message import EmailMessage
 from typing import Any
 from uuid import uuid4
 
 from fastapi import HTTPException
 from itsdangerous import URLSafeTimedSerializer
+from jinja2 import Environment, FileSystemLoader
 
 from src.auth.api_types import UserId
 from src.auth.repository import UserRepository, VerificationTokenRepository
 from src.config.settings import settings
 
+logger = logging.getLogger(__name__)
+
+# Initialize Jinja2 environment
+template_dir = os.path.join(os.path.dirname(os.path.dirname(__file__)), "templates", "email")
+jinja_env = Environment(loader=FileSystemLoader(template_dir))
+
 
 class EmailService:
     def send_verification_email(self, email: str, token: str) -> None:
         """
-        Send an email verification token.
-        In development, we just print it to the console.
+        Send an email verification token using Jinja2 templates.
         """
-        link = f"{settings.frontend_url}/verify-email?token={token}"
-        if settings.environment == "dev" or not settings.smtp_host:
-            print(f"==========================================")
-            print(f"MOCK EMAIL TO: {email}")
-            print(f"SUBJECT: Verify your email")
-            print(f"LINK: {link}")
-            print(f"==========================================")
-        else:
-            # Here you would typically integrate with smtplib or an email service provider
-            # This is a stub for real email sending
-            print(f"Sending email via SMTP to {email} with link {link}")
-            pass
+        link = f"{settings.frontend_url}/auth/verify-email?token={token}"
+
+        # Render templates
+        template_html = jinja_env.get_template("verify_email.html")
+        template_text = jinja_env.get_template("verify_email.txt")
+        
+        html_content = template_html.render(link=link)
+        text_content = template_text.render(link=link)
+
+        msg = EmailMessage()
+        msg["Subject"] = "Verify your email"
+        msg["From"] = settings.smtp_sender_email
+        msg["To"] = email
+        
+        # Set plain text as the main content, then add HTML alternative
+        msg.set_content(text_content)
+        msg.add_alternative(html_content, subtype='html')
+
+        logger.info(
+            "Sending email via SMTP to %s at %s:%s",
+            email,
+            settings.smtp_host,
+            settings.smtp_port,
+        )
+        try:
+            with smtplib.SMTP(settings.smtp_host, settings.smtp_port) as server:
+                if settings.smtp_user and settings.smtp_password:
+                    server.login(settings.smtp_user, settings.smtp_password)
+                server.send_message(msg)
+        except Exception:
+            logger.exception("Failed to send email")
+
 
 
 class EmailVerificationService:
@@ -48,7 +78,8 @@ class EmailVerificationService:
         self._serializer = URLSafeTimedSerializer(settings.secret_key)
 
     def _generate_token(self, email: str) -> str:
-        # Add a random uuid string so the token is always unique even if the same email is signed up/resent immediately
+        # Add a random uuid string so the token is always unique
+        # even if the same email is signed up/resent immediately
         payload = {"email": email, "nonce": str(uuid4())}
         return self._serializer.dumps(payload, salt="email-verification")
 
@@ -89,7 +120,7 @@ class EmailVerificationService:
             payload = self._serializer.loads(
                 token,
                 salt="email-verification",
-                max_age=settings.email_verification_token_expiry_hours * 3600
+                max_age=settings.email_verification_token_expiry_hours * 3600,
             )
             email = payload["email"]
         except Exception as e:
@@ -104,12 +135,9 @@ class EmailVerificationService:
 
     async def resend_verification(self, email: str) -> None:
         user = await self._user_repository.get_by_email(email)
-        if not user:
+        if not user or user.is_verified:
             # Silently succeed to prevent email enumeration
             return
-
-        if user.is_verified:
-            raise HTTPException(400, "User is already verified")
 
         # Optional: You could check if a valid token already exists and just resend that
         # Or generate a new one, invalidating old ones (by ignoring them)

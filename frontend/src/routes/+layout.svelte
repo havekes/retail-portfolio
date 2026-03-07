@@ -14,12 +14,16 @@
 
 	const shouldRedirect = () => {
 		const currentPath = page.url.pathname;
-		return !user && currentPath !== '/login' && currentPath !== '/signup';
+		return !user 
+			&& currentPath !== '/auth/login' 
+			&& currentPath !== '/auth/signup' 
+			&& currentPath !== '/auth/signup/confirmation'
+			&& currentPath !== '/auth/verify-email';
 	};
 
 	$effect(() => {
 		if (shouldRedirect()) {
-			goto(resolve('/login'));
+			goto(resolve('/auth/login'));
 		}
 	});
 </script>

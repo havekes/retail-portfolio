@@ -41,7 +41,7 @@
 
 		const result = [];
 		for (const [keyValue, groupAccounts] of groupsMap) {
-			let label = 'Other';
+			let label;
 			if (groupBy === 'institution' && keyValue !== null) {
 				label = getInstitutionLabel(keyValue as Institution);
 			} else if (groupBy === 'accountType' && keyValue !== null) {
@@ -101,10 +101,12 @@
 			</Button>
 			<DropdownMenu.Root>
 				<DropdownMenu.Trigger>
-					<Button variant="outline">
-						Group by: {groupByLabels[groupBy]}
-						<ChevronDown />
-					</Button>
+					{#snippet child({ props })}
+						<Button {...props} variant="outline">
+							Group by: {groupByLabels[groupBy]}
+							<ChevronDown />
+						</Button>
+					{/snippet}
 				</DropdownMenu.Trigger>
 				<DropdownMenu.Content>
 					<DropdownMenu.RadioGroup bind:value={groupBy}>

@@ -1,7 +1,7 @@
 from typing import Annotated
 
-from pydantic import BaseModel, EmailStr
 from fastapi import APIRouter, HTTPException
+from pydantic import BaseModel, EmailStr
 from svcs.fastapi import DepContainer
 
 from src.auth.api import UserApi
@@ -70,4 +70,6 @@ async def resend_verification(
 ) -> MessageResponse:
     user_service = await services.aget(UserApi)
     await user_service.resend_verification(request.email)
-    return MessageResponse(message="Verification email sent if user exists and is unverified")
+    return MessageResponse(
+        message="Verification email sent if user exists and is unverified"
+    )

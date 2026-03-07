@@ -1,5 +1,16 @@
 import { userStore } from '@/stores/userStore';
 
+export class APIError extends Error {
+	constructor(
+		public status: number,
+		public message: string,
+		public response?: Response
+	) {
+		super(message);
+		this.name = 'APIError';
+	}
+}
+
 export abstract class BaseService {
 	protected baseUrl: string;
 
@@ -18,6 +29,10 @@ export abstract class BaseService {
 				...headers
 			}
 		});
+
+		if (!response.ok) {
+			throw new APIError(response.status, `Request failed with status ${response.status}`, response);
+		}
 
 		return response.json();
 	}
@@ -38,6 +53,10 @@ export abstract class BaseService {
 			body: JSON.stringify(payload)
 		});
 
+		if (!response.ok) {
+			throw new APIError(response.status, `Request failed with status ${response.status}`, response);
+		}
+
 		return response.json();
 	}
 
@@ -57,6 +76,10 @@ export abstract class BaseService {
 			},
 			body: JSON.stringify(payload)
 		});
+
+		if (!response.ok) {
+			throw new APIError(response.status, `Request failed with status ${response.status}`, response);
+		}
 
 		return response.json();
 	}

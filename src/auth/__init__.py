@@ -6,8 +6,7 @@ from src.auth.api import (
     authorization_api_factory,
     user_api_factory,
 )
-from src.auth.repository import UserRepository
-from src.auth.repository import VerificationTokenRepository
+from src.auth.repository import UserRepository, VerificationTokenRepository
 from src.auth.repository_sqlalchemy import (
     sqlalchemy_user_repository_factory,
     sqlalchemy_verification_token_repository_factory,
@@ -15,7 +14,9 @@ from src.auth.repository_sqlalchemy import (
 from src.auth.service import EmailService, EmailVerificationService
 
 
-async def email_verification_service_factory(container: Container) -> EmailVerificationService:
+async def email_verification_service_factory(
+    container: Container,
+) -> EmailVerificationService:
     return EmailVerificationService(
         user_repository=await container.aget(UserRepository),
         token_repository=await container.aget(VerificationTokenRepository),

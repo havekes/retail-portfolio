@@ -5,7 +5,7 @@ services:
     restart: unless-stopped
     user: 1000:1000
     ports:
-      - "8001:8000"
+      - "8100:8000"
     volumes:
       - ./:/app
     working_dir: /app
@@ -15,11 +15,13 @@ services:
     environment:
       DATABASE_URL: postgresql+asyncpg://retail-portfolio-user:password@postgres:5432/retail-portfolio
       SECRET_KEY: "c92b1362fe22a176b3a01009ebb87bbc641c5beecf169b0216eed560daa7b94d"
-      CORS_ORIGINS: http://localhost:8100
+      CORS_ORIGINS: http://localhost:8101
       UV_CACHE_DIR: /app/.cache/uv
       UV_PROJECT_ENVIRONMENT: /app/.cache/container_venv
       PATH: "/app/.cache/container_venv/bin:$PATH"
       HOME: /app
+      SMTP_HOST: mailcrab
+      SMTP_PORT: 1025
 
   frontend:
     container_name: retail-portfolio-frontend
@@ -27,7 +29,7 @@ services:
     restart: unless-stopped
     user: root
     ports:
-      - "8100:8100"
+      - "8101:8100"
     volumes:
       - ./frontend:/app
     working_dir: /app
@@ -44,6 +46,14 @@ services:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/18/docker
+
+  mailcrab:
+    image: marlonb/mailcrab:latest
+    container_name: retail-portfolio-mailcrab
+    restart: unless-stopped
+    ports:
+      - "8102:1080"
+      - "1025:1025"
 
 volumes:
   postgres_data:

@@ -116,8 +116,8 @@ async def test_resend_verification_already_verified(auth_client, test_user):
     """Test resending verification email for verified user raises 400."""
     response = await auth_client.post("/api/auth/resend-verification", json={"email": test_user.email})
 
-    assert response.status_code == 400
-    assert response.json()["detail"] == "User is already verified"
+    assert response.status_code == 200
+    assert response.json()["message"] == "Verification email sent if user exists and is unverified"
 
 
 @pytest.mark.anyio
