@@ -14,7 +14,6 @@ services:
       - postgres
     environment:
       DATABASE_URL: postgresql+asyncpg://retail-portfolio-user:password@postgres:5432/retail-portfolio
-      SECRET_KEY: "c92b1362fe22a176b3a01009ebb87bbc641c5beecf169b0216eed560daa7b94d"
       CORS_ORIGINS: http://localhost:8101
       UV_CACHE_DIR: /app/.cache/uv
       UV_PROJECT_ENVIRONMENT: /app/.cache/container_venv
