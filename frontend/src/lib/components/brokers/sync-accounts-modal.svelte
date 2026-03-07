@@ -1,8 +1,14 @@
 <script lang="ts">
-	import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '../ui/dialog';
+	import {
+		Dialog,
+		DialogContent,
+		DialogHeader,
+		DialogTitle,
+		DialogDescription
+	} from '../ui/dialog';
 	import { Button } from '../ui/button';
 	import { Checkbox } from '../ui/checkbox';
-	import { Loader2 } from 'lucide-svelte';
+	import Loader2 from '@lucide/svelte/icons/loader-2';
 	import type { BrokerUser } from '@/types/broker/broker';
 	import type { Account } from '@/types/account';
 	import { getAccountTypeLabel, getInstitutionLabel } from '@/types/account';
@@ -40,7 +46,9 @@
 		if (open) {
 			const newCheckedState: Record<string, boolean> = {};
 			availableAccounts.forEach((acc: any) => {
-				const isCurrentlySynced = internalAccounts.some((iAcc: Account) => iAcc.external_id === acc.id);
+				const isCurrentlySynced = internalAccounts.some(
+					(iAcc: Account) => iAcc.external_id === acc.id
+				);
 				newCheckedState[acc.id] = isCurrentlySynced;
 			});
 			checkedState = newCheckedState;
@@ -70,10 +78,10 @@
 			// Import newly checked accounts
 			if (checkedExternalIds.length > 0) {
 				await brokerService.importAccounts(
-brokerUser.institution_id,
-brokerUser.id,
-checkedExternalIds
-);
+					brokerUser.institution_id,
+					brokerUser.id,
+					checkedExternalIds
+				);
 			}
 
 			// Delete unchecked accounts
@@ -100,7 +108,7 @@ checkedExternalIds
 		</DialogHeader>
 
 		<div class="py-4">
-			<div class="max-h-[60vh] w-full overflow-y-auto overflow-x-hidden">
+			<div class="max-h-[60vh] w-full overflow-x-hidden overflow-y-auto">
 				<div class="space-y-4 pr-2">
 					{#each availableAccounts as act}
 						<!-- svelte-ignore a11y_click_events_have_key_events -->
@@ -113,12 +121,9 @@ checkedExternalIds
 							}}
 						>
 							<div class="flex items-center space-x-4">
-								<Checkbox
-									id="sync-{act.id}"
-									bind:checked={checkedState[act.id]}
-								/>
+								<Checkbox id="sync-{act.id}" bind:checked={checkedState[act.id]} />
 								<div class="flex-1 space-y-1">
-									<div class="text-sm font-medium leading-none">
+									<div class="text-sm leading-none font-medium">
 										{act.type ? getAccountTypeLabel(act.type) : 'Unknown'}
 									</div>
 									<div class="text-sm text-muted-foreground">
@@ -126,7 +131,7 @@ checkedExternalIds
 									</div>
 								</div>
 							</div>
-							<div class="text-sm font-medium text-muted-foreground whitespace-nowrap">
+							<div class="text-sm font-medium whitespace-nowrap text-muted-foreground">
 								{act.currency}
 							</div>
 						</div>
@@ -161,7 +166,8 @@ checkedExternalIds
 				{/each}
 			</ul>
 			<p>
-				This will permanently delete all associated positions and portfolio data for these accounts on this platform. This action cannot be undone. Are you sure you want to proceed?
+				This will permanently delete all associated positions and portfolio data for these accounts
+				on this platform. This action cannot be undone. Are you sure you want to proceed?
 			</p>
 		</div>
 		<div class="mt-4 flex justify-end space-x-2">
