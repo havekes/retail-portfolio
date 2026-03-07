@@ -5,17 +5,29 @@
 	import BrokerAccountsListItem from './broker-accounts-list-item.svelte';
 	import { Skeleton } from '../ui/skeleton';
 	import { Alert, AlertDescription } from '../ui/alert';
+	import { Button } from '../ui/button';
+	import ConnectBrokerModal from './connect-broker-modal.svelte';
 
 	let brokerUsers = $state<Promise<BrokerUser[]> | null>(null);
+	let isModalOpen = $state(false);
+
+	function loadUsers() {
+		brokerUsers = brokerService.getBrokerUsers();
+	}
 
 	onMount(() => {
-		brokerUsers = brokerService.getBrokerUsers();
+		loadUsers();
 	});
 </script>
 
+<ConnectBrokerModal bind:open={isModalOpen} onSuccess={loadUsers} />
+
 <div class="broker-accounts-list w-full space-y-4">
 	<div class="flex items-center border-b px-4 py-2">
-		<h2>Connected broker accounts</h2>
+		<h2>Connected brokers</h2>
+		<div class="ms-auto">
+			<Button onclick={() => (isModalOpen = true)}>Connect broker</Button>
+		</div>
 	</div>
 
 	<div class="space-y-4 px-4">
@@ -28,9 +40,12 @@
 				{#each users as user (user.id)}
 					<BrokerAccountsListItem brokerUser={user} />
 				{:else}
-					<Alert>
-						<AlertDescription>No connected broker accounts.</AlertDescription>
-					</Alert>
+					<div class="flex flex-col items-center justify-center space-y-4 py-12">
+						<Alert class="w-fit">
+							<AlertDescription>No connected broker accounts.</AlertDescription>
+						</Alert>
+						<Button onclick={() => (isModalOpen = true)}>Connect broker</Button>
+					</div>
 				{/each}
 			{/if}
 		{:catch error}

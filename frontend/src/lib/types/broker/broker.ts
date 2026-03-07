@@ -7,3 +7,11 @@ export interface BrokerUser {
 	accounts_synced: number;
 	accounts_total: number;
 }
+
+export interface BackendInstitution {
+	id: string;
+	name: string;
+	logo: string | null;
+	auth_type: string;
+	created_at: string;
+}

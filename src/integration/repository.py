@@ -42,3 +42,9 @@ class IntegrationUserRepository(ABC):
         self, integration_user: IntegrationUserSchema
     ) -> None:
         pass
+
+    @abstractmethod
+    async def update_display_name(
+        self, integration_user_id: IntegrationUserId, display_name: str
+    ) -> None:
+        pass

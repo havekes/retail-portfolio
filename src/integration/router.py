@@ -17,8 +17,10 @@ from src.integration.api_types import (
     IntegrationLoginResponse,
     IntegrationUser,
     IntegrationUserId,
+    IntegrationUserUpdateDisplayNameRequest,
 )
 from src.integration.brokers.api_types import BrokerAccount
+from src.integration.brokers.exceptions import LoginFailedError, OTPRequiredError
 from src.integration.repository import IntegrationUserRepository
 from src.integration.service import (
     IntegrationUserService,
@@ -62,6 +64,34 @@ async def external_users(
     ]
 
 
+@integration_router.patch("/{institution}/users/{external_user_id}/display_name")
+async def update_external_user_display_name(
+    external_user_id: IntegrationUserId,
+    update_request: IntegrationUserUpdateDisplayNameRequest,
+    services: DepContainer,
+    user: Annotated[User, Depends(current_user)],
+) -> IntegrationUser:
+    """
+    Update the display name of an external user.
+    """
+    authorization_service = await services.aget(AuthorizationApi)
+    integration_user_repository = await services.aget(IntegrationUserRepository)
+
+    integration_user = await integration_user_repository.get(external_user_id)
+    if not integration_user:
+        raise HTTPException(status_code=404, detail="External user not found")
+
+    authorization_service.check_entity_owned_by_user(user, integration_user)
+
+    await integration_user_repository.update_display_name(
+        integration_user_id=external_user_id,
+        display_name=update_request.display_name,
+    )
+
+    integration_user.display_name = update_request.display_name
+    return IntegrationUser.model_validate(integration_user)
+
+
 @integration_router.post("/{institution}/login")
 async def external_login(
     institution: InstitutionEnum,
@@ -83,11 +113,16 @@ async def external_login(
         username=login_request.username,
     )
 
-    success = broker.login(
-        username=login_request.username,
-        password=login_request.password,
-        otp=login_request.otp,
-    )
+    try:
+        success = broker.login(
+            username=login_request.username,
+            password=login_request.password,
+            otp=login_request.otp,
+        )
+    except OTPRequiredError as e:
+        raise HTTPException(status_code=400, detail="OTP_REQUIRED") from e
+    except LoginFailedError as e:
+        raise HTTPException(status_code=401, detail="INVALID_CREDENTIALS") from e
 
     return IntegrationLoginResponse(login_succes=success)
 
