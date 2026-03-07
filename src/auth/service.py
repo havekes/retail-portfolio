@@ -3,7 +3,6 @@ import smtplib
 import os
 from datetime import UTC, datetime, timedelta
 from email.message import EmailMessage
-from typing import Any
 from uuid import uuid4
 
 from fastapi import HTTPException
