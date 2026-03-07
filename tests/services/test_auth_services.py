@@ -88,7 +88,7 @@ class MockEmailService(EmailService):
 class FailingEmailService(EmailService):
     """Simulates an SMTP failure."""
 
-    def send_verification_email(self, _email: str, _token: str) -> None:
+    def send_verification_email(self, email: str, token: str) -> None:  # noqa: ARG002
         msg = "Simulated SMTP failure"
         raise EmailSendError(msg)
 
