@@ -1,10 +1,32 @@
 import { userStore } from '@/stores/userStore';
 
+export class APIError extends Error {
+	constructor(
+		public status: number,
+		public message: string,
+		public response?: Response
+	) {
+		super(message);
+		this.name = 'APIError';
+	}
+}
+
 export abstract class BaseService {
 	protected baseUrl: string;
 
 	constructor() {
 		this.baseUrl = import.meta.env.VITE_API_BASE_URL + '/api';
+	}
+
+	private async extractErrorMessage(response: Response): Promise<string> {
+		const fallback = `Request failed with status ${response.status}`;
+		try {
+			const data = await response.json();
+			if (data && data.detail) return String(data.detail);
+		} catch {
+			// Response body is not JSON or is empty
+		}
+		return fallback;
 	}
 
 	protected async get<T>(endpoint: string, headers?: Record<string, string>): Promise<T> {
@@ -18,6 +40,11 @@ export abstract class BaseService {
 				...headers
 			}
 		});
+
+		if (!response.ok) {
+			const message = await this.extractErrorMessage(response);
+			throw new APIError(response.status, message, response);
+		}
 
 		return response.json();
 	}
@@ -38,6 +65,11 @@ export abstract class BaseService {
 			body: JSON.stringify(payload)
 		});
 
+		if (!response.ok) {
+			const message = await this.extractErrorMessage(response);
+			throw new APIError(response.status, message, response);
+		}
+
 		return response.json();
 	}
 
@@ -57,6 +89,11 @@ export abstract class BaseService {
 			},
 			body: JSON.stringify(payload)
 		});
+
+		if (!response.ok) {
+			const message = await this.extractErrorMessage(response);
+			throw new APIError(response.status, message, response);
+		}
 
 		return response.json();
 	}

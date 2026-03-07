@@ -4,3 +4,11 @@ class AuthUserAlreadyExistsError(Exception):
 
 class AuthInvalidCredentialsError(Exception):
     pass
+
+
+class AuthUserUnverifiedError(Exception):
+    pass
+
+
+class EmailSendError(Exception):
+    pass

@@ -1,0 +1,7 @@
+Verify your email address
+
+Welcome to Retail Portfolio! Please confirm your email address to complete your registration by visiting the link below:
+
+{{ link }}
+
+If you didn't create an account, you can safely ignore this email.

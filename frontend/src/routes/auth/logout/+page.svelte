@@ -5,5 +5,5 @@
 
 	userStore.clearUser();
 
-	goto(resolve('/login'));
+	goto(resolve('/auth/login'));
 </script>

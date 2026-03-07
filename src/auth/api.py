@@ -9,11 +9,16 @@ from pydantic import BaseModel
 from svcs import Container
 from svcs.fastapi import DepContainer
 
-from src.auth.api_types import AccessTokenData, AuthResponse, User
-from src.auth.exceptions import AuthInvalidCredentialsError, AuthUserAlreadyExistsError
+from src.auth.api_types import AccessTokenData, AuthResponse, SignupResponse, User
+from src.auth.exceptions import (
+    AuthInvalidCredentialsError,
+    AuthUserAlreadyExistsError,
+    AuthUserUnverifiedError,
+)
 from src.auth.repository import UserRepository
 from src.auth.repository_sqlalchemy import sqlalchemy_user_repository_factory
 from src.auth.schema import UserSchema
+from src.auth.service import EmailVerificationService
 from src.config.settings import settings
 
 _ALGORITHM = "HS256"
@@ -30,9 +35,15 @@ class AuthService:
 
 class UserApi:
     _user_repository: UserRepository
+    _email_verification_service: EmailVerificationService
 
-    def __init__(self, user_repository: UserRepository):
+    def __init__(
+        self,
+        user_repository: UserRepository,
+        email_verification_service: EmailVerificationService,
+    ):
         self._user_repository = user_repository
+        self._email_verification_service = email_verification_service
 
     async def get_current_user_from_token(self, token: str) -> User:
         try:
@@ -66,18 +77,20 @@ class UserApi:
             algorithm=_ALGORITHM,
         )
 
-    async def signup(self, email: str, plain_text_password: str) -> AuthResponse:
+    async def signup(self, email: str, plain_text_password: str) -> SignupResponse:
         existing_user = await self._user_repository.get_by_email(email)
 
         if existing_user is not None:
             raise AuthUserAlreadyExistsError
 
         user = await self._user_repository.create_user(email, plain_text_password)
-        access_token = self.create_access_token(user.email)
 
-        return AuthResponse(
-            access_token=access_token,
-            user=User(**user.model_dump()),
+        await self._email_verification_service.generate_and_send_verification(
+            user.email, user.id
+        )
+
+        return SignupResponse(
+            message="User created. Please verify your email before logging in."
         )
 
     async def login(self, email: str, plain_text_password: str) -> AuthResponse:
@@ -90,6 +103,9 @@ class UserApi:
 
         if not result:
             raise AuthInvalidCredentialsError
+
+        if not user.is_verified:
+            raise AuthUserUnverifiedError
 
         access_token = self.create_access_token(user.email)
 
@@ -107,12 +123,19 @@ class UserApi:
             message = "User unauthenticated or malformed token"
             raise HTTPException(401, message) from e
 
+    async def verify_email(self, token: str) -> None:
+        await self._email_verification_service.verify_token(token)
+
+    async def resend_verification(self, email: str) -> None:
+        await self._email_verification_service.resend_verification(email)
+
 
 async def user_api_factory(
     container: Container,
 ) -> UserApi:
     return UserApi(
         user_repository=await sqlalchemy_user_repository_factory(container),
+        email_verification_service=await container.aget(EmailVerificationService),
     )
 
 
