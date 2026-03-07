@@ -8,7 +8,7 @@
 	import { Button } from '../ui/button';
 	import EditableTitle from '../form/editable-title.svelte';
 	import SyncAccountsModal from './sync-accounts-modal.svelte';
-	import { RefreshCw } from 'lucide-svelte';
+	import RefreshCw from '@lucide/svelte/icons/refresh-cw';
 
 	let { brokerUser } = $props<{ brokerUser: BrokerUser }>();
 
@@ -33,7 +33,7 @@
 	}
 </script>
 
-<div class="broker-accounts-list-item group flex space-x-4 rounded-lg bg-muted p-4">
+<div class="brokers-list-item group flex space-x-4 rounded-lg bg-muted p-4">
 	<div class="flex-1 space-y-2">
 		<EditableTitle
 			bind:value={brokerUser.name}

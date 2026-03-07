@@ -2,7 +2,7 @@
 	import { onMount } from 'svelte';
 	import { brokerService } from '@/services/broker/brokerService';
 	import type { BrokerUser } from '@/types/broker/broker';
-	import BrokerAccountsListItem from './broker-accounts-list-item.svelte';
+	import BrokersListItem from './brokers-list-item.svelte';
 	import { Skeleton } from '../ui/skeleton';
 	import { Alert, AlertDescription } from '../ui/alert';
 	import { Button } from '../ui/button';
@@ -22,7 +22,7 @@
 
 <ConnectBrokerModal bind:open={isModalOpen} onSuccess={loadUsers} />
 
-<div class="broker-accounts-list w-full space-y-4">
+<div class="brokers-list w-full space-y-4">
 	<div class="flex items-center border-b px-4 py-2">
 		<h2>Connected brokers</h2>
 		<div class="ms-auto">
@@ -38,11 +38,11 @@
 		{:then users}
 			{#if users}
 				{#each users as user (user.id)}
-					<BrokerAccountsListItem brokerUser={user} />
+					<BrokersListItem brokerUser={user} />
 				{:else}
 					<div class="flex flex-col items-center justify-center space-y-4 py-12">
 						<Alert class="w-fit">
-							<AlertDescription>No connected broker accounts.</AlertDescription>
+							<AlertDescription>No connected brokers.</AlertDescription>
 						</Alert>
 						<Button onclick={() => (isModalOpen = true)}>Connect broker</Button>
 					</div>
