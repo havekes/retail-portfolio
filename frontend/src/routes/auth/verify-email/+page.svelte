@@ -23,9 +23,11 @@
 			const response = await authService.verifyEmail(token);
 			status = 'success';
 			message = response.message || 'Your email has been successfully verified!';
-		} catch (e: any) {
+		} catch (e) {
 			status = 'error';
-			message = e.message || 'Verification failed. The link may be expired or invalid.';
+			message =
+				(e instanceof Error ? e.message : '') ||
+				'Verification failed. The link may be expired or invalid.';
 		}
 	});
 </script>
@@ -37,41 +39,37 @@
 <main class="flex min-h-screen flex-col items-center justify-center p-4">
 	<Card.Root class="w-full max-w-md shadow-lg">
 		{#if status === 'loading'}
-			<Card.Header class="items-center text-center pb-2">
-				<Loader2 class="h-12 w-12 animate-spin text-primary mb-4" />
+			<Card.Header class="items-center pb-2 text-center">
+				<Loader2 class="mb-4 h-12 w-12 animate-spin text-primary" />
 				<Card.Title class="text-2xl font-semibold">Verifying...</Card.Title>
 			</Card.Header>
-			<Card.Content class="text-center text-sm text-muted-foreground pb-6">
+			<Card.Content class="pb-6 text-center text-sm text-muted-foreground">
 				{message}
 			</Card.Content>
 		{:else if status === 'success'}
-			<Card.Header class="items-center text-center pb-2">
-				<CheckCircle2 class="h-12 w-12 text-green-500 mb-4" />
+			<Card.Header class="items-center pb-2 text-center">
+				<CheckCircle2 class="mb-4 h-12 w-12 text-green-500" />
 				<Card.Title class="text-2xl font-semibold text-green-500">Success!</Card.Title>
 			</Card.Header>
-			<Card.Content class="text-center text-sm text-muted-foreground pb-6">
+			<Card.Content class="pb-6 text-center text-sm text-muted-foreground">
 				{message}
 			</Card.Content>
 			<Card.Footer>
-				<Button href={resolve('/auth/login')} class="w-full">
-					Go to Login
-				</Button>
+				<Button href={resolve('/auth/login')} class="w-full">Go to Login</Button>
 			</Card.Footer>
 		{:else}
-			<Card.Header class="items-center text-center pb-2">
-				<XCircle class="h-12 w-12 text-destructive mb-4" />
+			<Card.Header class="items-center pb-2 text-center">
+				<XCircle class="mb-4 h-12 w-12 text-destructive" />
 				<Card.Title class="text-2xl font-semibold text-destructive">Verification Failed</Card.Title>
 			</Card.Header>
-			<Card.Content class="text-center text-sm text-muted-foreground pb-6">
+			<Card.Content class="pb-6 text-center text-sm text-muted-foreground">
 				{message}
 			</Card.Content>
 			<Card.Footer class="flex-col gap-2">
 				<Button href={resolve('/auth/signup')} variant="outline" class="w-full">
 					Back to Signup
 				</Button>
-				<Button href={resolve('/auth/login')} variant="ghost" class="w-full">
-					Go to Login
-				</Button>
+				<Button href={resolve('/auth/login')} variant="ghost" class="w-full">Go to Login</Button>
 			</Card.Footer>
 		{/if}
 	</Card.Root>

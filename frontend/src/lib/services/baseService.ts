@@ -31,7 +31,11 @@ export abstract class BaseService {
 		});
 
 		if (!response.ok) {
-			throw new APIError(response.status, `Request failed with status ${response.status}`, response);
+			throw new APIError(
+				response.status,
+				`Request failed with status ${response.status}`,
+				response
+			);
 		}
 
 		return response.json();
@@ -54,7 +58,11 @@ export abstract class BaseService {
 		});
 
 		if (!response.ok) {
-			throw new APIError(response.status, `Request failed with status ${response.status}`, response);
+			throw new APIError(
+				response.status,
+				`Request failed with status ${response.status}`,
+				response
+			);
 		}
 
 		return response.json();
@@ -78,7 +86,11 @@ export abstract class BaseService {
 		});
 
 		if (!response.ok) {
-			throw new APIError(response.status, `Request failed with status ${response.status}`, response);
+			throw new APIError(
+				response.status,
+				`Request failed with status ${response.status}`,
+				response
+			);
 		}
 
 		return response.json();

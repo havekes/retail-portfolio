@@ -21,7 +21,18 @@ class MockUserRepository(UserRepository):
         return self.users.get(email)
 
     async def create_user(self, email: str, plain_text_password: str) -> UserSchema:
-        pass
+        user_id = uuid4()
+        user = UserSchema(
+            id=user_id,
+            email=email,
+            password=f"hashed_{plain_text_password}",
+            is_active=True,
+            is_verified=False,
+            last_login_at=None,
+            created_at=datetime.now(UTC),
+        )
+        self.users[email] = user
+        return user
 
     async def mark_as_verified(self, user_id: UserId) -> None:
         self.verified_users.add(user_id)

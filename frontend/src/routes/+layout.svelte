@@ -14,11 +14,13 @@
 
 	const shouldRedirect = () => {
 		const currentPath = page.url.pathname;
-		return !user 
-			&& currentPath !== '/auth/login' 
-			&& currentPath !== '/auth/signup' 
-			&& currentPath !== '/auth/signup/confirmation'
-			&& currentPath !== '/auth/verify-email';
+		return (
+			!user &&
+			currentPath !== '/auth/login' &&
+			currentPath !== '/auth/signup' &&
+			currentPath !== '/auth/signup/confirmation' &&
+			currentPath !== '/auth/verify-email'
+		);
 	};
 
 	$effect(() => {

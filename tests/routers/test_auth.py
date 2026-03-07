@@ -74,6 +74,7 @@ async def test_verify_email_success(auth_client, db_session):
     await auth_client.post("/api/auth/signup", json={"email": email, "password": "pass"})
 
     user = await user_repo.get_by_email(email)
+    assert user is not None
     await svc.generate_and_send_verification(email, user.id)
 
     # Get the token generated
