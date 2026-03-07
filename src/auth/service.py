@@ -61,7 +61,6 @@ class EmailService:
             logger.exception("Failed to send email")
 
 
-
 class EmailVerificationService:
     _user_repository: UserRepository
     _token_repository: VerificationTokenRepository
