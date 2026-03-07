@@ -17,6 +17,7 @@ class Settings(BaseSettings):
     # Email verification settings
     smtp_host: str = "smtp.example.com"
     smtp_port: int = 587
+    smtp_use_tls: bool = True
     smtp_user: str = ""
     smtp_password: str = ""
     smtp_sender_email: str = "noreply@retail-portfolio.com"

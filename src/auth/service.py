@@ -55,9 +55,10 @@ class EmailService:
         )
         try:
             with smtplib.SMTP(settings.smtp_host, settings.smtp_port) as server:
-                server.ehlo()
-                server.starttls()
-                server.ehlo()
+                if settings.smtp_use_tls:
+                    server.ehlo()
+                    server.starttls()
+                    server.ehlo()
                 if settings.smtp_user and settings.smtp_password:
                     server.login(settings.smtp_user, settings.smtp_password)
                 server.send_message(msg)
