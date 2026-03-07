@@ -18,6 +18,17 @@ export abstract class BaseService {
 		this.baseUrl = import.meta.env.VITE_API_BASE_URL + '/api';
 	}
 
+	private async extractErrorMessage(response: Response): Promise<string> {
+		const fallback = `Request failed with status ${response.status}`;
+		try {
+			const data = await response.json();
+			if (data && data.detail) return String(data.detail);
+		} catch {
+			// Response body is not JSON or is empty
+		}
+		return fallback;
+	}
+
 	protected async get<T>(endpoint: string, headers?: Record<string, string>): Promise<T> {
 		const token = userStore.getToken();
 		const response = await fetch(`${this.baseUrl}${endpoint}`, {
@@ -31,11 +42,8 @@ export abstract class BaseService {
 		});
 
 		if (!response.ok) {
-			throw new APIError(
-				response.status,
-				`Request failed with status ${response.status}`,
-				response
-			);
+			const message = await this.extractErrorMessage(response);
+			throw new APIError(response.status, message, response);
 		}
 
 		return response.json();
@@ -58,11 +66,8 @@ export abstract class BaseService {
 		});
 
 		if (!response.ok) {
-			throw new APIError(
-				response.status,
-				`Request failed with status ${response.status}`,
-				response
-			);
+			const message = await this.extractErrorMessage(response);
+			throw new APIError(response.status, message, response);
 		}
 
 		return response.json();
@@ -86,11 +91,8 @@ export abstract class BaseService {
 		});
 
 		if (!response.ok) {
-			throw new APIError(
-				response.status,
-				`Request failed with status ${response.status}`,
-				response
-			);
+			const message = await this.extractErrorMessage(response);
+			throw new APIError(response.status, message, response);
 		}
 
 		return response.json();

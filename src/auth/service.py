@@ -6,10 +6,11 @@ from pathlib import Path
 from uuid import uuid4
 
 from fastapi import HTTPException
-from itsdangerous import URLSafeTimedSerializer
+from itsdangerous import BadData, URLSafeTimedSerializer
 from jinja2 import Environment, FileSystemLoader
 
 from src.auth.api_types import UserId
+from src.auth.exceptions import EmailSendError
 from src.auth.repository import UserRepository, VerificationTokenRepository
 from src.config.settings import settings
 
@@ -54,11 +55,16 @@ class EmailService:
         )
         try:
             with smtplib.SMTP(settings.smtp_host, settings.smtp_port) as server:
+                server.ehlo()
+                server.starttls()
+                server.ehlo()
                 if settings.smtp_user and settings.smtp_password:
                     server.login(settings.smtp_user, settings.smtp_password)
                 server.send_message(msg)
-        except Exception:
+        except Exception as exc:
             logger.exception("Failed to send email")
+            msg = "Failed to send verification email"
+            raise EmailSendError(msg) from exc
 
 
 class EmailVerificationService:
@@ -123,9 +129,12 @@ class EmailVerificationService:
                 salt="email-verification",
                 max_age=settings.email_verification_token_expiry_hours * 3600,
             )
-            email = payload["email"]
-        except Exception as e:
+        except BadData as e:
             raise HTTPException(400, "Invalid token") from e
+
+        email = payload.get("email")
+        if not email:
+            raise HTTPException(400, "Invalid token")
 
         user = await self._user_repository.get_by_email(email)
         if not user or user.id != token_record.user_id:

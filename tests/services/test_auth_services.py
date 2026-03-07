@@ -6,6 +6,7 @@ from fastapi import HTTPException
 from itsdangerous import URLSafeTimedSerializer
 
 from src.auth.api_types import UserId
+from src.auth.exceptions import EmailSendError
 from src.auth.repository import UserRepository, VerificationTokenRepository
 from src.auth.schema import UserSchema, VerificationTokenSchema
 from src.auth.service import EmailService, EmailVerificationService
@@ -84,6 +85,14 @@ class MockEmailService(EmailService):
         self.sent_emails.append((email, token))
 
 
+class FailingEmailService(EmailService):
+    """Simulates an SMTP failure."""
+
+    def send_verification_email(self, _email: str, _token: str) -> None:
+        msg = "Simulated SMTP failure"
+        raise EmailSendError(msg)
+
+
 @pytest.fixture
 def mock_user_repo():
     return MockUserRepository()
@@ -134,7 +143,7 @@ async def test_verify_token_success(
     mock_user_repo.users[email] = UserSchema(
         id=user_id,
         email=email,
-        password="hashed",
+        password="hashed",  # noqa: S106
         is_active=True,
         is_verified=False,
         last_login_at=None,
@@ -142,7 +151,7 @@ async def test_verify_token_success(
     )
 
     await verification_service.generate_and_send_verification(email, user_id)
-    sent_email, sent_token = mock_email_service.sent_emails[0]
+    _sent_email, sent_token = mock_email_service.sent_emails[0]
 
     await verification_service.verify_token(sent_token)
 
@@ -153,12 +162,9 @@ async def test_verify_token_success(
 
 
 @pytest.mark.asyncio
-async def test_verify_token_expired(
-    verification_service, mock_user_repo, mock_token_repo
-):
+async def test_verify_token_expired(verification_service, mock_token_repo):
     user_id = uuid4()
-    email = "test@example.com"
-    token = "some-token"
+    token = "some-token"  # noqa: S105
 
     # Create expired token
     mock_token_repo.tokens[token] = VerificationTokenSchema(
@@ -172,5 +178,21 @@ async def test_verify_token_expired(
 
     with pytest.raises(HTTPException) as exc:
         await verification_service.verify_token(token)
-    assert exc.value.status_code == 400
+    assert exc.value.status_code == 400  # noqa: PLR2004
     assert "Token has expired" in str(exc.value.detail)
+
+
+@pytest.mark.asyncio
+async def test_email_send_failure_propagates(mock_user_repo, mock_token_repo):
+    """EmailSendError must propagate out of generate_and_send_verification."""
+    failing_service = FailingEmailService()
+    verification_service = EmailVerificationService(
+        user_repository=mock_user_repo,
+        token_repository=mock_token_repo,
+        email_service=failing_service,
+    )
+    user_id = uuid4()
+    with pytest.raises(EmailSendError):
+        await verification_service.generate_and_send_verification(
+            "user@example.com", user_id
+        )

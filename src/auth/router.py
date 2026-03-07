@@ -10,6 +10,7 @@ from src.auth.exceptions import (
     AuthInvalidCredentialsError,
     AuthUserAlreadyExistsError,
     AuthUserUnverifiedError,
+    EmailSendError,
 )
 
 auth_router = APIRouter(prefix="/api/auth")
@@ -37,6 +38,12 @@ async def signup(
         return await user_service.signup(request.email, request.password)
     except AuthUserAlreadyExistsError as e:
         raise HTTPException(409, "User with email already exists") from e
+    except EmailSendError as e:
+        raise HTTPException(
+            502,
+            "Account created but verification email failed to send. "
+            "Please use resend-verification to try again.",
+        ) from e
 
 
 @auth_router.post("/login", response_model=AuthResponse)
@@ -69,7 +76,13 @@ async def resend_verification(
     services: DepContainer,
 ) -> MessageResponse:
     user_service = await services.aget(UserApi)
-    await user_service.resend_verification(request.email)
+    try:
+        await user_service.resend_verification(request.email)
+    except EmailSendError as e:
+        raise HTTPException(
+            502,
+            "Failed to send verification email. Please try again later.",
+        ) from e
     return MessageResponse(
         message="Verification email sent if user exists and is unverified"
     )

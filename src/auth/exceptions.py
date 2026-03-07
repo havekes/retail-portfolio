@@ -8,3 +8,7 @@ class AuthInvalidCredentialsError(Exception):
 
 class AuthUserUnverifiedError(Exception):
     pass
+
+
+class EmailSendError(Exception):
+    pass
