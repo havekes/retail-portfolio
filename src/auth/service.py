@@ -1,8 +1,8 @@
 import logging
 import smtplib
-import os
 from datetime import UTC, datetime, timedelta
 from email.message import EmailMessage
+from pathlib import Path
 from uuid import uuid4
 
 from fastapi import HTTPException
@@ -16,8 +16,11 @@ from src.config.settings import settings
 logger = logging.getLogger(__name__)
 
 # Initialize Jinja2 environment
-template_dir = os.path.join(os.path.dirname(os.path.dirname(__file__)), "templates", "email")
-jinja_env = Environment(loader=FileSystemLoader(template_dir))
+template_dir = Path(__file__).parent.parent / "templates" / "email"
+jinja_env = Environment(
+    loader=FileSystemLoader(template_dir),
+    autoescape=True,
+)
 
 
 class EmailService:
@@ -30,7 +33,7 @@ class EmailService:
         # Render templates
         template_html = jinja_env.get_template("verify_email.html")
         template_text = jinja_env.get_template("verify_email.txt")
-        
+
         html_content = template_html.render(link=link)
         text_content = template_text.render(link=link)
 
@@ -38,10 +41,10 @@ class EmailService:
         msg["Subject"] = "Verify your email"
         msg["From"] = settings.smtp_sender_email
         msg["To"] = email
-        
+
         # Set plain text as the main content, then add HTML alternative
         msg.set_content(text_content)
-        msg.add_alternative(html_content, subtype='html')
+        msg.add_alternative(html_content, subtype="html")
 
         logger.info(
             "Sending email via SMTP to %s at %s:%s",

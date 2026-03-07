@@ -41,9 +41,7 @@ class SqlAlchemyUserRepository(UserRepository):
     @override
     async def mark_as_verified(self, user_id: UserId) -> None:
         await self._session.execute(
-            update(UserModel)
-            .where(UserModel.id == user_id)
-            .values(is_verified=True)
+            update(UserModel).where(UserModel.id == user_id).values(is_verified=True)
         )
         await self._session.commit()
 

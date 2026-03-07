@@ -25,4 +25,5 @@ class Settings(BaseSettings):
     # Frontend URL for verification links
     frontend_url: str = "http://localhost:8101"
 
+
 settings = Settings()
