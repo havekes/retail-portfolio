@@ -23,7 +23,7 @@
 			const response = await authService.verifyEmail(token);
 			status = 'success';
 			message = response.message || 'Your email has been successfully verified!';
-		} catch (e) {
+		} catch (e: unknown) {
 			status = 'error';
 			message =
 				(e instanceof Error ? e.message : '') ||

@@ -54,18 +54,21 @@ class EmailService:
             settings.smtp_port,
         )
         try:
-            with smtplib.SMTP(settings.smtp_host, settings.smtp_port) as server:
-                if settings.smtp_use_tls:
-                    server.ehlo()
-                    server.starttls()
-                    server.ehlo()
-                if settings.smtp_user and settings.smtp_password:
-                    server.login(settings.smtp_user, settings.smtp_password)
-                server.send_message(msg)
+            if settings.environment != "dev" and settings.smtp_host:
+                with smtplib.SMTP(settings.smtp_host, settings.smtp_port) as server:
+                    if settings.smtp_use_tls:
+                        server.ehlo()
+                        server.starttls()
+                        server.ehlo()
+                    if settings.smtp_user and settings.smtp_password:
+                        server.login(settings.smtp_user, settings.smtp_password)
+                    server.send_message(msg)
+            else:
+                logger.info("Skipped sending email (dev environment or no SMTP host)")
         except Exception as exc:
             logger.exception("Failed to send email")
-            msg = "Failed to send verification email"
-            raise EmailSendError(msg) from exc
+            err_msg = "Failed to send verification email"
+            raise EmailSendError(err_msg) from exc
 
 
 class EmailVerificationService:

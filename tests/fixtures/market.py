@@ -44,6 +44,6 @@ async def test_watchlists(
         await db_session.flush()
         await db_session.refresh(watchlist_model)
         watchlists.append(WatchlistSchema.model_validate(watchlist_model))
-        
+
     await db_session.commit()
     return watchlists

@@ -31,7 +31,7 @@ async def test_watchlists_list_not_owned(auth_client, other_user, db_session):
     """Test get_watchlists does not return other user's watchlists."""
     from uuid import uuid4
     from src.market.model import WatchlistModel
-    
+
     # Create a watchlist for another user
     watchlist_model = WatchlistModel(
         id=uuid4(),
@@ -40,7 +40,7 @@ async def test_watchlists_list_not_owned(auth_client, other_user, db_session):
     )
     db_session.add(watchlist_model)
     await db_session.commit()
-    
+
     response = await auth_client.get("/api/market/watchlists")
 
     assert response.status_code == 200

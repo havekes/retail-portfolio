@@ -104,16 +104,12 @@ async def auth_client(
     access_token = user_api.create_access_token(test_user.email)
 
     # Patch the EODHD gateway factory to return the mock gateway
+    # (These imports are already at the top of the file)
+    # from src.market import api, repository_eodhd
+
     monkeypatch.setattr(api, "eodhd_gateway_factory", lambda: mock_eodhd_gateway)
     monkeypatch.setattr(
         repository_eodhd, "eodhd_gateway_factory", lambda: mock_eodhd_gateway
-    )
-
-    # Patch EmailService so router tests never touch a real SMTP server
-    monkeypatch.setattr(
-        EmailService,
-        "send_verification_email",
-        lambda self, email, token: None,  # noqa: ARG005
     )
 
     # Create test client with the real app and authorization header
