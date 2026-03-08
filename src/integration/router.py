@@ -25,6 +25,7 @@ from src.integration.repository import IntegrationUserRepository
 from src.integration.service import (
     IntegrationUserService,
 )
+from src.integration.tasks import sync_positions_task
 from src.market.api import SecurityApi
 
 integration_router = APIRouter(prefix="/api/external")
@@ -32,7 +33,7 @@ institutions_router = APIRouter(prefix="/api/integration")
 
 
 @institutions_router.get("/institutions")
-async def institutions_list(
+async def integration_institutions(
     services: DepContainer,
     _user: Annotated[User, Depends(current_user)],
 ) -> list[Institution]:
@@ -44,7 +45,7 @@ async def institutions_list(
 
 
 @integration_router.get("/users")
-async def external_accounts(
+async def integration_users(
     user: Annotated[User, Depends(current_user)],
     services: DepContainer,
 ) -> list[IntegrationUser]:
@@ -63,7 +64,7 @@ async def external_accounts(
 
 
 @integration_router.patch("/users/{external_user_id}/display_name")
-async def update_external_user_display_name(
+async def integration_update_user_display_name(
     external_user_id: IntegrationUserId,
     update_request: IntegrationUserUpdateDisplayNameRequest,
     services: DepContainer,
@@ -91,7 +92,7 @@ async def update_external_user_display_name(
 
 
 @integration_router.post("/{institution}/login")
-async def external_login(
+async def integration_login(
     institution: InstitutionEnum,
     login_request: IntegrationLoginRequest,
     services: DepContainer,
@@ -126,7 +127,7 @@ async def external_login(
 
 
 @integration_router.get("/users/{external_user_id}/accounts")
-async def external_sub_accounts(
+async def integration_accounts(
     external_user_id: IntegrationUserId,
     services: DepContainer,
     user: Annotated[User, Depends(current_user)],
@@ -151,7 +152,7 @@ async def external_sub_accounts(
 
 
 @integration_router.post("/accounts/import")
-async def external_import_accounts(
+async def integration_import_accounts(
     import_request: IntegrationImportAccountsRequest,
     services: DepContainer,
     user: Annotated[User, Depends(current_user)],
@@ -159,6 +160,7 @@ async def external_import_accounts(
     """
     Import accounts from an external institution.
     You can pass a list of external account ids to selectively import.
+    Position syncing is delegated to the Huey task queue (huey-worker).
     """
     integration_user_repository = await services.aget(IntegrationUserRepository)
     authorization_service = await services.aget(AuthorizationApi)
@@ -180,13 +182,23 @@ async def external_import_accounts(
         integration_user=integration_user,
     )
 
+    broker_accounts = [
+        acc for acc in broker_accounts if acc.id in import_request.external_account_ids
+    ]
+
     imported_accounts = await account_api.import_from_broker(broker_accounts, user.id)
+
+    sync_positions_task(
+        user.id,
+        integration_user.id,
+        [acc.id for acc in imported_accounts],
+    )
 
     return IntegrationImportResponse(imported_count=len(imported_accounts))
 
 
 @integration_router.post("/positions/import")
-async def external_import_positions(
+async def integration_import_positions(
     import_request: IntegrationImportPositionsRequest,
     services: DepContainer,
     user: Annotated[User, Depends(current_user)],

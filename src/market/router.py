@@ -17,7 +17,7 @@ market_router = APIRouter(prefix="/api/market")
 
 
 @market_router.get("/prices/{security_id}/last-close")
-async def get_last_close_prices(
+async def market_last_close_price(
     _: Annotated[User, Depends(current_user)],
     security_id: SecurityId,
     services: DepContainer,
@@ -34,7 +34,7 @@ async def get_last_close_prices(
 
 
 @market_router.get("/watchlists")
-async def get_watchlists(
+async def market_watchlists(
     user: Annotated[User, Depends(current_user)],
     services: DepContainer,
 ) -> list[WatchlistRead]:

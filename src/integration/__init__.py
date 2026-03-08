@@ -1,5 +1,6 @@
 from svcs import Registry
 
+from src.integration.api import IntegrationApi, integration_api_factory
 from src.integration.brokers.wealthsimple import (
     WealthsimpleApiGateway,
     wealthsimple_api_wrapper_factory,
@@ -20,3 +21,4 @@ def register_integration_services(registry: Registry) -> None:
         IntegrationUserRepository, sqlalchemy_integration_user_repository_factory
     )
     registry.register_factory(IntegrationUserService, integration_user_service_factory)
+    registry.register_factory(IntegrationApi, integration_api_factory)

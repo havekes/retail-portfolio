@@ -18,6 +18,9 @@ class MockUserRepository(UserRepository):
         self.users = {}
         self.verified_users = set()
 
+    async def get_by_id(self, user_id: UserId) -> UserSchema | None:
+        return next((u for u in self.users.values() if u.id == user_id), None)
+
     async def get_by_email(self, email: str) -> UserSchema | None:
         return self.users.get(email)
 
