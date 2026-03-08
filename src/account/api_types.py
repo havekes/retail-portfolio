@@ -1,7 +1,7 @@
 from decimal import Decimal
 from uuid import UUID
 
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
 from stockholm import Currency, Money
 
 from src.account.enum import AccountTypeEnum, InstitutionEnum
@@ -14,6 +14,8 @@ type PortfolioId = UUID
 
 
 class Account(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
     id: AccountId
     name: str
     user_id: UserId

@@ -19,6 +19,18 @@ class SqlAlchemyUserRepository(UserRepository):
         self._session = session
 
     @override
+    async def get_by_id(self, user_id: UserId) -> UserSchema | None:
+        result = await self._session.execute(
+            select(UserModel).where(UserModel.id == user_id)
+        )
+        user_model = result.scalar_one_or_none()
+
+        if user_model:
+            return UserSchema.model_validate(user_model)
+
+        return None
+
+    @override
     async def get_by_email(self, email: str) -> UserSchema | None:
         result = await self._session.execute(
             select(UserModel).where(UserModel.email == email)
