@@ -7,6 +7,7 @@ export interface Account {
 	account_type_id: AccountType;
 	institution_id: Institution;
 	currency: string;
+	broker_display_name?: string;
 	is_active: boolean;
 	created_at: Date;
 }

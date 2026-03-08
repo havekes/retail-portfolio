@@ -20,6 +20,7 @@ class Account(BaseModel):
     account_type_id: AccountTypeEnum
     institution_id: int
     currency: Currency
+    broker_display_name: str | None = None
     is_active: bool = True
 
 

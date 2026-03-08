@@ -75,6 +75,7 @@ class SqlAlchemyAccountRepository(AccountRepository):
         account_model = AccountModel(**account.model_dump())
         self._session.add(account_model)
         await self._session.commit()
+        await self._session.refresh(account_model)
         return AccountSchema.model_validate(account_model)
 
     @override

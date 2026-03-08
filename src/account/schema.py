@@ -3,7 +3,7 @@ from datetime import datetime
 from decimal import Decimal
 from typing import Self
 
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel, ConfigDict, field_serializer
 from stockholm import Currency
 
 from src.account.api_types import (
@@ -27,9 +27,14 @@ class AccountSchema(BaseModel):
     account_type_id: AccountTypeEnum
     institution_id: InstitutionEnum
     currency: Currency
+    broker_display_name: str | None = None
     is_active: bool = True
     created_at: datetime | None = None
     deleted_at: datetime | None = None
+
+    @field_serializer("currency")
+    def serialize_currency(self, currency: Currency) -> str:
+        return str(currency)
 
     @classmethod
     def from_broker(cls, broker_account: BrokerAccount, user_id: UserId) -> Self:
@@ -41,6 +46,7 @@ class AccountSchema(BaseModel):
             account_type_id=broker_account.type,
             institution_id=broker_account.institution,
             currency=broker_account.currency,
+            broker_display_name=broker_account.broker_display_name,
         )
 
 

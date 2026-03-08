@@ -19,6 +19,7 @@ class BrokerAccount(BaseModel):
     institution: InstitutionEnum
     currency: Currency
     display_name: str
+    broker_display_name: str | None = None
     value: Decimal
     created_at: datetime
 

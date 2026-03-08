@@ -1,0 +1,71 @@
+Loading svelte-check in workspace: /home/greg/projects/retail-portfolio/frontend
+Getting Svelte diagnostics...
+
+/home/greg/projects/retail-portfolio/frontend/src/lib/api/brokerClient.ts:2:15
+Error: Module '"./brokerOld"' declares 'LoginCredentials' locally, but it is not exported. 
+import { BaseClient } from './baseClient';
+import type { LoginCredentials } from './brokerOld';
+import type { Institution } from './types/broker';
+
+/home/greg/projects/retail-portfolio/frontend/src/lib/components/brokers/brokerService.svelte.ts:1:29
+Error: Module '"@/api/brokerOld"' declares 'LoginCredentials' locally, but it is not exported. 
+import { brokerClient, type LoginCredentials } from '@/api/brokerOld';
+import type { BrokerAccount } from '@/api/brokerOld';
+
+/home/greg/projects/retail-portfolio/frontend/src/lib/components/brokers/brokerService.svelte.ts:2:15
+Error: Module '"@/api/brokerOld"' declares 'BrokerAccount' locally, but it is not exported. 
+import { brokerClient, type LoginCredentials } from '@/api/brokerOld';
+import type { BrokerAccount } from '@/api/brokerOld';
+import type { Institution } from '@/types/account';
+
+/home/greg/projects/retail-portfolio/frontend/src/lib/components/brokers/brokerService.svelte.ts:15:23
+Error: Expected 1 arguments, but got 0. 
+	async getBrokerUsers(): Promise<BrokerUser[]> {
+		return brokerClient.getBrokerUsers();
+	}
+
+/home/greg/projects/retail-portfolio/frontend/src/lib/components/brokers/brokerService.svelte.ts:22:45
+Error: Argument of type 'string | Institution' is not assignable to parameter of type 'Institution'.
+  Type 'string' is not assignable to type 'Institution'. 
+	): Promise<BrokerAccount[]> {
+		return brokerClient.getBrokerUserAccounts(institutionId, userId);
+	}
+
+/home/greg/projects/retail-portfolio/frontend/src/lib/components/brokers/brokerService.svelte.ts:26:29
+Error: Argument of type 'string | Institution' is not assignable to parameter of type 'Institution'.
+  Type 'string' is not assignable to type 'Institution'. 
+	async login(institutionId: Institution | string, credentials: LoginCredentials): Promise<void> {
+		return brokerClient.login(institutionId, credentials);
+	}
+
+/home/greg/projects/retail-portfolio/frontend/src/lib/components/brokers/brokerService.svelte.ts:34:40
+Error: Argument of type 'string | Institution' is not assignable to parameter of type 'Institution'.
+  Type 'string' is not assignable to type 'Institution'. 
+	): Promise<void> {
+		return brokerClient.renameBrokerUser(institutionId, userId, name);
+	}
+
+/home/greg/projects/retail-portfolio/frontend/src/lib/components/brokers/brokerService.svelte.ts:42:38
+Error: Argument of type 'string | Institution' is not assignable to parameter of type 'Institution'.
+  Type 'string' is not assignable to type 'Institution'. 
+	): Promise<void> {
+		return brokerClient.importAccounts(institutionId, userId, externalIds);
+	}
+
+/home/greg/projects/retail-portfolio/frontend/src/lib/components/brokers/brokers-list-item.svelte.ts:6:15
+Error: Module '"@/api/brokerOld"' declares 'BrokerAccount' locally, but it is not exported. 
+import type { Account } from '@/types/account';
+import type { BrokerAccount } from '@/api/brokerOld';
+
+/home/greg/projects/retail-portfolio/frontend/src/lib/components/brokers/sync-accounts-modal.svelte.ts:5:15
+Error: Module '"@/api/brokerOld"' declares 'BrokerAccount' locally, but it is not exported. 
+import type { Account } from '@/types/account';
+import type { BrokerAccount } from '@/api/brokerOld';
+
+/home/greg/projects/retail-portfolio/frontend/src/lib/components/brokers/sync-accounts-modal.svelte:16:37
+Error: Cannot find module '@/api/broker' or its corresponding type declarations. (ts)
+	import { getAccountTypeLabel, getInstitutionLabel } from '@/types/account';
+	import type { BrokerAccount } from '@/api/broker';
+
+====================================
+svelte-check found 11 errors and 0 warnings in 5 files
