@@ -3,8 +3,10 @@ from svcs import Registry
 from src.account.api import (
     AccountApi,
     InstitutionApi,
+    PositionApi,
     account_api_factory,
     institution_api_factory,
+    position_api_factory,
 )
 from src.account.repository import (
     AccountRepository,
@@ -41,6 +43,7 @@ def register_account_services(registry: Registry):
     )
     registry.register_factory(AccountApi, account_api_factory)
     registry.register_factory(InstitutionApi, institution_api_factory)
+    registry.register_factory(PositionApi, position_api_factory)
     registry.register_factory(AccountService, account_service_factory)
     registry.register_factory(PortfolioService, portfolio_service_factory)
     registry.register_factory(PositionService, position_service_factory)

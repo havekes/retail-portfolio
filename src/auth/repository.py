@@ -7,6 +7,10 @@ from src.auth.schema import UserSchema, VerificationTokenSchema
 
 class UserRepository(ABC):
     @abstractmethod
+    async def get_by_id(self, user_id: UserId) -> UserSchema | None:
+        pass
+
+    @abstractmethod
     async def get_by_email(self, email: str) -> UserSchema | None:
         pass
 

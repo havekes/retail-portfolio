@@ -6,9 +6,13 @@ from src.auth import register_auth_services
 from src.config.database import sessionmanager
 from src.integration import register_integration_services
 from src.market import register_market_services
+from src.config.database import DatabaseSessionManager, sessionmanager
 
 
-def register_services(registry: Registry) -> None:
+def register_services(
+    registry: Registry,
+    sessionmanager: DatabaseSessionManager,
+) -> None:
     registry.register_factory(AsyncSession, sessionmanager.session)
 
     # Account APIs and Repositories
