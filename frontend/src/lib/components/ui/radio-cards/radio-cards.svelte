@@ -1,14 +1,14 @@
-<script lang="ts">
+<script lang="ts" generics="T extends { id: string; name: string }">
 	import { cn } from '$lib/utils';
 	import type { Snippet } from 'svelte';
 
 	interface Props {
-		items: Array<{ id: string; name: string }>;
+		items: Array<T>;
 		onSelect: (id: string) => void;
 		selectedId?: string | null;
 		class?: string;
 		itemClass?: string;
-		children?: Snippet<[any]>;
+		children?: Snippet<[T]>;
 	}
 
 	let {

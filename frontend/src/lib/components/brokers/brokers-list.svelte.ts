@@ -1,0 +1,27 @@
+import { brokerService } from './brokerService.svelte';
+import type { BrokerUser } from '@/types/broker/broker';
+
+export class BrokersListState {
+	users = $state<BrokerUser[]>([]);
+	isLoading = $state(false);
+	errorMessage = $state<string | null>(null);
+	isModalOpen = $state(false);
+
+	constructor() {}
+
+	loadUsers = async () => {
+		this.isLoading = true;
+		this.errorMessage = null;
+		try {
+			this.users = await brokerService.getBrokerUsers();
+		} catch (error) {
+			this.errorMessage = error instanceof Error ? error.message : 'Unknown error';
+		} finally {
+			this.isLoading = false;
+		}
+	};
+
+	openModal = () => {
+		this.isModalOpen = true;
+	};
+}

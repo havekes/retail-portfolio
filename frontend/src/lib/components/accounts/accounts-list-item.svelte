@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { Institution } from '@/types/account';
+	import { getAccountTypeLabel, getInstitutionLabel } from '@/types/account';
 	import Badge from '../ui/badge/badge.svelte';
 	import Checkbox from '../ui/checkbox/checkbox.svelte';
 	import EditableTitle from '../form/editable-title.svelte';
@@ -42,9 +42,17 @@
 			bind:value={account.name}
 			onSave={(val) => accountService.renameAccount(account.id, val)}
 		/>
-		<div class="flex gap-x-2 text-sm">
-			<Badge variant="outline">{account.currency}</Badge>
-			<span>{Institution[account.institution_id]}</span>
+		<div class="flex gap-x-2 text-sm text-muted-foreground">
+			<span>{getAccountTypeLabel(account.account_type_id)}</span>
+			<span>•</span>
+			<Badge variant="outline" class="text-foreground">{account.currency}</Badge>
+			<span>•</span>
+			<span>
+				{getInstitutionLabel(account.institution_id)}
+				{#if account.broker_display_name}
+					({account.broker_display_name})
+				{/if}
+			</span>
 		</div>
 	</div>
 	<div>

@@ -6,29 +6,29 @@
 		DialogTitle,
 		DialogDescription
 	} from '$lib/components/ui/dialog';
-	import { brokerService } from '@/services/broker/brokerService';
+	import { ConnectBrokerModalState } from './connect-broker-modal.svelte.js';
 	import type { BackendInstitution } from '@/types/broker/broker';
 	import { onMount } from 'svelte';
 	import BrokerLoginModal from './broker-login-modal.svelte';
 	import { RadioCards } from '$lib/components/ui/radio-cards';
+	import { Alert, AlertDescription, AlertTitle } from '$lib/components/ui/alert';
+	import { AlertCircle } from '@lucide/svelte';
 
-	export let open = false;
-	export let onSuccess: () => void;
+	let { open = $bindable(false), onSuccess } = $props<{
+		open: boolean;
+		onSuccess: () => void;
+	}>();
 
-	let institutions: BackendInstitution[] = [];
-	let selectedInstitution: BackendInstitution | null = null;
-	let isLoginModalOpen = false;
+	const state = new ConnectBrokerModalState((val) => (open = val));
 
-	$: if (open) {
-		selectedInstitution = null;
-	}
-
-	onMount(async () => {
-		try {
-			institutions = await brokerService.getInstitutions();
-		} catch (e) {
-			console.error('Failed to load institutions', e);
+	$effect(() => {
+		if (open) {
+			state.reset();
 		}
+	});
+
+	onMount(() => {
+		state.loadInstitutions();
 	});
 </script>
 
@@ -40,16 +40,21 @@
 		</DialogHeader>
 
 		<div class="max-h-[60vh] overflow-y-auto px-1 py-4">
+			{#if state.errorMessage}
+				<div class="mb-4">
+					<Alert variant="destructive">
+						<AlertCircle class="h-4 w-4" />
+						<AlertTitle>Error</AlertTitle>
+						<AlertDescription>
+							{state.errorMessage}
+						</AlertDescription>
+					</Alert>
+				</div>
+			{/if}
+
 			<RadioCards
-				items={institutions}
-				onSelect={(id: string) => {
-					const inst = institutions.find((i) => i.id === id);
-					if (inst) {
-						selectedInstitution = inst;
-						open = false;
-						isLoginModalOpen = true;
-					}
-				}}
+				items={state.institutions}
+				onSelect={state.handleSelect}
 				class="grid-cols-2"
 				itemClass="hover:bg-accent hover:text-accent-foreground"
 			>
@@ -66,4 +71,8 @@
 	</DialogContent>
 </Dialog>
 
-<BrokerLoginModal bind:open={isLoginModalOpen} institution={selectedInstitution} {onSuccess} />
+<BrokerLoginModal
+	bind:open={state.isLoginModalOpen}
+	institution={state.selectedInstitution}
+	{onSuccess}
+/>

@@ -123,7 +123,7 @@ class WealthsimpleApiGateway(BrokerApiGateway):
 
         accounts: list[BrokerAccount] = []
         for ws_account in ws_accounts:
-            account = self._parse_account(ws_account)
+            account = self._parse_account(ws_account, integration_user.display_name)
             if account is not None:
                 accounts.append(account)
 
@@ -153,7 +153,11 @@ class WealthsimpleApiGateway(BrokerApiGateway):
 
         return positions
 
-    def _parse_account(self, ws_account: dict[str, Any]) -> BrokerAccount | None:
+    def _parse_account(
+        self,
+        ws_account: dict[str, Any],
+        broker_display_name: str | None = None,
+    ) -> BrokerAccount | None:
         if ws_account["status"] != "open":
             return None
 
@@ -175,6 +179,7 @@ class WealthsimpleApiGateway(BrokerApiGateway):
             institution=InstitutionEnum.WEALTHSIMPLE,
             currency=ws_account["currency"],
             display_name=custodian_account["id"],
+            broker_display_name=broker_display_name,
             value=current_amount,
             created_at=datetime.strptime(
                 ws_account["createdAt"], "%Y-%m-%dT%H:%M:%S.%fZ"

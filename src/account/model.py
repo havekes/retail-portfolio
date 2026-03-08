@@ -46,6 +46,7 @@ class AccountModel(BaseModel):
         Integer, ForeignKey("account_institutions.id")
     )
     currency: Mapped[str] = mapped_column(String)
+    broker_display_name: Mapped[str | None] = mapped_column(String, nullable=True)
     is_active: Mapped[bool] = mapped_column(Boolean, default=True)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=func.now())
     updated_at: Mapped[datetime] = mapped_column(
