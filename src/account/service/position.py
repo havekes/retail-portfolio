@@ -3,14 +3,18 @@ from stockholm import Money
 from stockholm.currency import BaseCurrency
 from svcs import Container
 
-from src.account.api_types import AccountId, AccountTotals
+from src.account.api_types import Account, AccountId, AccountTotals
+from src.account.exception import AccountNotFoundError
 from src.account.repository import (
+    AccountRepository,
     PositionRepository,
 )
 from src.account.schema import (
     PositionRead,
     PositionSchema,
 )
+from src.auth.api_types import UserId
+from src.integration.api import IntegrationAccountApi, IntegrationUserApi
 from src.market.api import MarketPricesApi, SecurityApi
 from src.market.api_types import Security
 
@@ -20,18 +24,49 @@ class PositionService:
     _market_prices: MarketPricesApi
     _position_repository: PositionRepository
     _security_service: SecurityApi
+    _account_repository: AccountRepository
+    _integration_user_api: IntegrationUserApi
+    _integration_account_api: IntegrationAccountApi
 
-    def __init__(
+    def __init__(  # noqa: PLR0913
         self,
         fx_rates: CurrencyConverter,
         market_prices: MarketPricesApi,
         position_repository: PositionRepository,
         security_service: SecurityApi,
+        account_repository: AccountRepository,
+        integration_user_api: IntegrationUserApi,
+        integration_account_api: IntegrationAccountApi,
     ):
         self._fx_rates = fx_rates
         self._market_prices = market_prices
         self._position_repository = position_repository
         self._security_service = security_service
+        self._account_repository = account_repository
+        self._integration_user_api = integration_user_api
+        self._integration_account_api = integration_account_api
+
+    async def sync_account_positions(
+        self, user_id: UserId, account_id: AccountId
+    ) -> None:
+        # Check that account exists
+        account = await self._account_repository.get(account_id)
+        if account is None:
+            raise AccountNotFoundError(account_id)
+
+        if account.integration_user_id is None:
+            # Nothing to do since the account was not imported from broker
+            return
+
+        # Check that the account's integration user exists
+        await self._integration_user_api.get_by_id(account.integration_user_id)
+
+        # Sync positions
+        await self._integration_account_api.sync_account_positions(
+            user_id=user_id,
+            account=Account.model_validate(account),
+            broker_account_id=account.external_id,
+        )
 
     async def get_positions_by_account_with_security(
         self, account_id: AccountId
@@ -117,4 +152,7 @@ async def position_service_factory(container: Container) -> PositionService:
         market_prices=await container.aget(MarketPricesApi),
         position_repository=await container.aget(PositionRepository),
         security_service=await container.aget(SecurityApi),
+        account_repository=await container.aget(AccountRepository),
+        integration_user_api=await container.aget(IntegrationUserApi),
+        integration_account_api=await container.aget(IntegrationAccountApi),
     )

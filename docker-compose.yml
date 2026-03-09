@@ -32,7 +32,7 @@ services:
     volumes:
       - ./:/app
     working_dir: /app
-    command: sh -c "uv sync && uv run huey_consumer src.task_queue.huey -w 2 --worker-type thread"
+    command: sh -c "uv sync && uv run huey_consumer src.worker.huey -w 2 --worker-type thread"
     depends_on:
       - postgres
       - redis

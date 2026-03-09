@@ -13,6 +13,7 @@ from src.account.api_types import (
 )
 from src.account.enum import AccountTypeEnum, InstitutionEnum
 from src.auth.api_types import UserId
+from src.integration.api_types import IntegrationUserId
 from src.integration.brokers.api_types import BrokerAccount, BrokerAccountId
 from src.market.api_types import SecurityId
 
@@ -24,6 +25,7 @@ class AccountSchema(BaseModel):
     external_id: BrokerAccountId
     name: str
     user_id: UserId
+    integration_user_id: IntegrationUserId | None = None
     account_type_id: AccountTypeEnum
     institution_id: InstitutionEnum
     currency: Currency
@@ -37,12 +39,18 @@ class AccountSchema(BaseModel):
         return str(currency)
 
     @classmethod
-    def from_broker(cls, broker_account: BrokerAccount, user_id: UserId) -> Self:
+    def from_broker(
+        cls,
+        broker_account: BrokerAccount,
+        user_id: UserId,
+        integration_user_id: IntegrationUserId,
+    ) -> Self:
         return cls(
             id=uuid.uuid4(),
             external_id=broker_account.id,
             name=broker_account.display_name,
             user_id=user_id,
+            integration_user_id=integration_user_id,
             account_type_id=broker_account.type,
             institution_id=broker_account.institution,
             currency=broker_account.currency,

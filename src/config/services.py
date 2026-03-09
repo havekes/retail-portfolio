@@ -1,12 +1,11 @@
 from sqlalchemy.ext.asyncio import AsyncSession
 from svcs import Registry
 
-from src.account import register_account_services
+from src.account.registry import register_account_services
 from src.auth import register_auth_services
-from src.config.database import sessionmanager
-from src.integration import register_integration_services
+from src.config.database import DatabaseSessionManager
+from src.integration.registry import register_integration_services
 from src.market import register_market_services
-from src.config.database import DatabaseSessionManager, sessionmanager
 
 
 def register_services(

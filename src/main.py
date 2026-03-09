@@ -1,4 +1,3 @@
-from src.config.database import sessionmanager
 import logging
 from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
@@ -14,6 +13,7 @@ from svcs.fastapi import DepContainer
 
 from src.account.router import account_router, portfolio_router
 from src.auth.router import auth_router
+from src.config.database import sessionmanager
 from src.config.logging import init_logging
 from src.config.services import register_services
 from src.config.settings import settings
