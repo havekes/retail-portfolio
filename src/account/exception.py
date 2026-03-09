@@ -1,7 +1,18 @@
 from typing import override
 
 from src.account.api_types import AccountId, PortfolioId
+from src.account.enum import InstitutionEnum
 from src.exception import AuthorizationError, EntityNotFoundError
+
+
+class AccountNotFoundError(EntityNotFoundError):
+    """Raised when an account is not found."""
+
+    def __init__(self, account_id: AccountId):
+        self.entity_id = str(account_id)
+        self.entity_name = "Account"
+
+        super().__init__(str(self))
 
 
 class AccountsDoNotBelongToUserError(AuthorizationError):

@@ -1,9 +1,13 @@
+from uuid import UUID
+
 from svcs import Container
 
 from src.account.api_types import Account, AccountId
+from src.account.exception import AccountNotFoundError
 from src.account.repository import AccountRepository
 from src.account.schema import AccountSchema
 from src.auth.api_types import UserId
+from src.integration.api_types import IntegrationUserId
 from src.integration.brokers.api_types import BrokerAccount
 
 
@@ -13,22 +17,30 @@ class AccountApi:
     def __init__(self, account_repository: AccountRepository) -> None:
         self._account_repository = account_repository
 
-    async def get_by_id(self, account_id: AccountId) -> Account | None:
+    async def get_by_id(self, account_id: AccountId) -> Account:
         account = await self._account_repository.get(account_id)
+
         if account is None:
-            return None
+            raise AccountNotFoundError(account_id)
+
         return Account.model_validate(account)
 
-    async def get_broker_id_by_id(self, account_id: AccountId):
+    async def get_broker_id_by_id(self, account_id: AccountId) -> str:
         account = await self._account_repository.get(account_id)
+
         if account is None:
-            return None
+            raise AccountNotFoundError(account_id)
+
         return account.external_id
 
     async def import_from_broker(
-        self, broker_accounts: list[BrokerAccount], user_id: UserId
+        self,
+        broker_accounts: list[BrokerAccount],
+        user_id: UserId,
+        integration_user_id: IntegrationUserId,
     ) -> list[Account]:
         accounts: list[Account] = []
+
         for broker_account in broker_accounts:
             exists = await self._account_repository.exists_by_user_and_broker_id(
                 user_id=user_id,
@@ -37,7 +49,9 @@ class AccountApi:
             if exists is True:
                 continue
 
-            account = AccountSchema.from_broker(broker_account, user_id)
+            account = AccountSchema.from_broker(
+                broker_account, user_id, integration_user_id
+            )
             accounts.append(
                 Account.model_validate(await self._account_repository.create(account))
             )

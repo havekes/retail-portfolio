@@ -3,7 +3,9 @@ from typing import Annotated
 from fastapi import APIRouter, Depends, HTTPException
 from svcs.fastapi import DepContainer
 
-from src.account.api import AccountApi, InstitutionApi, PositionApi
+from src.account.api.account import AccountApi
+from src.account.api.institution import InstitutionApi
+from src.account.api.position import PositionApi
 from src.account.api_types import Institution, Position
 from src.account.enum import InstitutionEnum
 from src.auth.api import AuthorizationApi, current_user
@@ -25,7 +27,7 @@ from src.integration.repository import IntegrationUserRepository
 from src.integration.service import (
     IntegrationUserService,
 )
-from src.integration.tasks import sync_positions_task
+from src.integration.task import sync_account_positions_task
 from src.market.api import SecurityApi
 
 integration_router = APIRouter(prefix="/api/external")
@@ -186,9 +188,11 @@ async def integration_import_accounts(
         acc for acc in broker_accounts if acc.id in import_request.external_account_ids
     ]
 
-    imported_accounts = await account_api.import_from_broker(broker_accounts, user.id)
+    imported_accounts = await account_api.import_from_broker(
+        broker_accounts, user.id, integration_user.id
+    )
 
-    sync_positions_task(
+    sync_account_positions_task(
         user.id,
         integration_user.id,
         [acc.id for acc in imported_accounts],

@@ -19,6 +19,7 @@ class Account(BaseModel):
     id: AccountId
     name: str
     user_id: UserId
+    integration_user_id: UUID | None = None
     account_type_id: AccountTypeEnum
     institution_id: int
     currency: Currency

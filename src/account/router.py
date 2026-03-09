@@ -9,7 +9,7 @@ from src.account.api_types import (
     AccountTotals,
     PortfolioId,
 )
-from src.account.exception import NoIntegrationUserError
+from src.account.exception import AccountNotFoundError
 from src.account.repository import AccountRepository
 from src.account.schema import (
     AccountSchema,
@@ -18,11 +18,9 @@ from src.account.schema import (
     PortfolioRead,
     PositionRead,
 )
-from src.account.service import (
-    AccountService,
-    PortfolioService,
-    PositionService,
-)
+from src.account.service.account import AccountService
+from src.account.service.portfolio import PortfolioService
+from src.account.service.position import PositionService
 from src.auth.api import AuthorizationApi, current_user
 from src.auth.api_types import User
 
@@ -216,7 +214,7 @@ async def account_sync_positions(
 
     try:
         await position_service.sync_account_positions(user.id, account_id)
-    except NoIntegrationUserError as e:
+    except AccountNotFoundError as e:
         raise HTTPException(status_code=404, detail=str(e)) from e
 
     return {"accepted": True}
