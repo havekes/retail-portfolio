@@ -57,6 +57,8 @@ class SecurityBrokerModel(BaseModel):
     broker_symbol: Mapped[str] = mapped_column(String)
     broker_exchange: Mapped[str] = mapped_column(String)
     broker_name: Mapped[str] = mapped_column(String)
+    mapped_symbol: Mapped[str] = mapped_column(String)
+    mapped_exchange: Mapped[str] = mapped_column(String)
     security_id: Mapped[SecurityId] = mapped_column(
         Uuid, ForeignKey("market_securities.id")
     )
