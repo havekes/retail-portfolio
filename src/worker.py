@@ -1,4 +1,5 @@
 from huey import RedisHuey
+from sqlalchemy.pool import NullPool
 from svcs import Container, Registry
 
 from src.config.settings import settings
@@ -14,11 +15,18 @@ huey = HueyWithRegistry("retail-portfolio", url=settings.redis_url)
 
 @huey.on_startup()
 def setup_worker_services():
-    from src.config.database import sessionmanager  # noqa: PLC0415
+    from src.config.database import DatabaseSessionManager  # noqa: PLC0415
     from src.config.services import register_services  # noqa: PLC0415
 
+    # Use NullPool for the worker to avoid "operation in progress" errors
+    # during asyncio.run() task cycles.
+    worker_sessionmanager = DatabaseSessionManager(
+        str(settings.database_url),
+        {"echo": settings.echo_sql, "poolclass": NullPool},
+    )
+
     registry = Registry()
-    register_services(registry, sessionmanager)
+    register_services(registry, worker_sessionmanager)
     huey.svcs_registry = registry
     huey.svcs_container = Container(registry)
 

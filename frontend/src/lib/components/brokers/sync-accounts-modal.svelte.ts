@@ -1,5 +1,5 @@
 import { brokerService } from './brokerService.svelte';
-import { accountService } from '@/services/accountService';
+import { accountClient } from '$lib/api/accountClient';
 import type { BrokerUser } from '@/types/broker/broker';
 import type { Account } from '@/types/account';
 import type { BrokerAccount } from '@/api/types/broker';
@@ -74,7 +74,7 @@ export class SyncAccountsModalState {
 			}
 
 			for (const acc of this.accountsToUnsync) {
-				await accountService.deleteAccount(acc.id);
+				await accountClient.deleteAccount(acc.id);
 			}
 
 			this.setOpen(false);

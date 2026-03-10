@@ -20,14 +20,20 @@ from src.config.settings import settings
 from src.exception import AuthorizationError, EntityNotFoundError
 from src.integration.router import institutions_router, integration_router
 from src.market.router import market_router
+from src.ws.manager import ws_manager
 from src.ws.router import ws_router
 
 
 @svcs.fastapi.lifespan  # type: ignore warning[possibly-missing-attribute]
 @asynccontextmanager
-async def lifespan_context(_: FastAPI, registry: svcs.Registry) -> AsyncIterator[None]:
+async def lifespan_context(
+    app: FastAPI, registry: svcs.Registry
+) -> AsyncIterator[None]:
+    app.state.svcs_registry = registry
     register_services(registry, sessionmanager)
+    await ws_manager.init_redis(settings.redis_url)
     yield
+    await ws_manager.close()
 
 
 logger = logging.getLogger(__name__)

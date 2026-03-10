@@ -1,6 +1,6 @@
 import { SvelteSet } from 'svelte/reactivity';
 import { brokerService } from './brokerService.svelte';
-import { accountService } from '@/services/accountService';
+import { accountClient } from '$lib/api/accountClient';
 import type { BrokerUser } from '@/types/broker/broker';
 import type { Account } from '@/types/account';
 import type { BrokerAccount } from '@/api/types/broker';
@@ -20,7 +20,7 @@ export class BrokersListItemState {
 
 	get internalAccountsPromise() {
 		void this.fetchTrigger;
-		return accountService.getAccounts();
+		return accountClient.getAccounts();
 	}
 
 	getSyncedCount = (available: BrokerAccount[], internal: Account[]) => {
