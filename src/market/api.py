@@ -31,7 +31,7 @@ class MarketPricesApi:
         self._security_repository = security_repository
 
     async def get_latest_close(self, security_id: SecurityId) -> Money | None:
-        security = await self._security_repository.get_by_id(security_id)
+        security = await self._security_repository.get_by_id_or_fail(security_id)
         latest_price = await self._price_repository.get_latest_price(security)
 
         if latest_price is None:
@@ -67,7 +67,7 @@ class SecurityApi:
         self._security_repository = security_repository
 
     async def get_by_id(self, security_id: SecurityId) -> Security:
-        security = await self._security_repository.get_by_id(security_id)
+        security = await self._security_repository.get_by_id_or_fail(security_id)
         return Security.model_validate(security)
 
     async def get_or_create_from_broker(

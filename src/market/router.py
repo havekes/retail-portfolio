@@ -27,7 +27,7 @@ async def market_last_close_price(
     """
     price_repository = await services.aget(PriceRepository)
     security_repository = await services.aget(SecurityRepository)
-    security = await security_repository.get_by_id(security_id)
+    security = await security_repository.get_by_id_or_fail(security_id)
     price = await price_repository.get_latest_price(security)
 
     return Price.model_validate(price)

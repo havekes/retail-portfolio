@@ -44,8 +44,8 @@ class EodhdSearchResult(TypedDict):
     Type: str
     Country: str
     ISIN: str
-    isPrimary: str
-    previousClose: str
+    isPrimary: bool
+    previousClose: float
     previousCloseDate: str
 
 

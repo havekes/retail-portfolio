@@ -13,7 +13,7 @@ from src.market.schema import (
 
 class SecurityRepository(ABC):
     @abstractmethod
-    async def get_by_id(self, security_id: SecurityId) -> SecuritySchema:
+    async def get_by_id_or_fail(self, security_id: SecurityId) -> SecuritySchema:
         pass
 
     @abstractmethod
