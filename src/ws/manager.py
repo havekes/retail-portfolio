@@ -21,25 +21,27 @@ class ConnectionManager:
         self._pubsub_task: asyncio.Task | None = None
         self._loop: asyncio.AbstractEventLoop | None = None
 
-    async def init_redis(
-        self, redis_url: str, *, run_listener: bool = True
-    ):
+    async def init_redis(self, redis_url: str, *, run_listener: bool = True):
         """Initialize Redis connection and optionally start listening for messages."""
         current_loop = asyncio.get_running_loop()
-        
+
         # If loop changed or redis not initialized, (re)initialize
         if self._redis is None or self._loop != current_loop:
             if self._redis is not None:
                 with contextlib.suppress(Exception):
-                    await self._redis.close()
-            
+                    await self._redis.aclose()
+
             self._redis = aioredis.from_url(redis_url, decode_responses=True)
             self._loop = current_loop
-            logger.info("ConnectionManager Redis client initialized (loop: %s)", current_loop)
+            logger.info(
+                "ConnectionManager Redis client initialized (loop: %s)", current_loop
+            )
 
         if run_listener and (self._pubsub_task is None or self._pubsub_task.done()):
             if self._pubsub_task and self._pubsub_task.done():
-                logger.warning("ConnectionManager Pub/Sub listener task was done. Restarting...")
+                logger.warning(
+                    "ConnectionManager Pub/Sub listener task was done. Restarting..."
+                )
             self._pubsub_task = asyncio.create_task(self._listen_for_messages())
             logger.info("ConnectionManager Pub/Sub listener started")
 
@@ -50,7 +52,7 @@ class ConnectionManager:
             with contextlib.suppress(asyncio.CancelledError):
                 await self._pubsub_task
         if self._redis:
-            await self._redis.close()
+            await self._redis.aclose()
             self._redis = None
             self._loop = None
 
@@ -70,14 +72,18 @@ class ConnectionManager:
                         data = json.loads(message["data"])
                         user_id = UUID(data["user_id"])
                         msg_payload = data["message"]
-                        logger.debug("Received message from Redis for user %s: %s", user_id, msg_payload)
+                        logger.debug(
+                            "Received message from Redis for user %s: %s",
+                            user_id,
+                            msg_payload,
+                        )
                         await self._send_to_local_connections(user_id, msg_payload)
                     except Exception:
                         logger.exception("Failed to process message from Redis")
         except asyncio.CancelledError:
             logger.debug("Redis Pub/Sub listener cancelled")
             await pubsub.unsubscribe("ws_messages")
-            await pubsub.close()
+            await pubsub.aclose()
         except Exception:
             logger.exception("Redis Pub/Sub listener encountered an error")
             # Restart after a delay
@@ -89,7 +95,11 @@ class ConnectionManager:
         if user_id not in self.active_connections:
             self.active_connections[user_id] = []
         self.active_connections[user_id].append(websocket)
-        logger.info("WebSocket connected for user %s. Total connections for user: %d", user_id, len(self.active_connections[user_id]))
+        logger.info(
+            "WebSocket connected for user %s. Total connections for user: %d",
+            user_id,
+            len(self.active_connections[user_id]),
+        )
 
     def disconnect(self, websocket: WebSocket, user_id: UserId):
         if user_id in self.active_connections:
@@ -107,7 +117,11 @@ class ConnectionManager:
         """Send a message to local WebSocket connections for a user."""
         if user_id in self.active_connections:
             connections = self.active_connections[user_id]
-            logger.debug("Sending message to %d local connections for user %s", len(connections), user_id)
+            logger.debug(
+                "Sending message to %d local connections for user %s",
+                len(connections),
+                user_id,
+            )
             for connection in connections:
                 if connection.client_state == WebSocketState.CONNECTED:
                     try:
@@ -122,7 +136,7 @@ class ConnectionManager:
         current_loop = asyncio.get_running_loop()
         if self._redis is None or self._loop != current_loop:
             try:
-                from src.config.settings import settings
+                from src.config.settings import settings  # noqa: PLC0415
 
                 await self.init_redis(settings.redis_url, run_listener=False)
             except Exception:
@@ -136,9 +150,15 @@ class ConnectionManager:
             "user_id": str(user_id),
             "message": message,
         }
+
+        redis = self._redis
+        if redis is None:
+            await self._send_to_local_connections(user_id, message)
+            return
+
         try:
             logger.debug("Publishing to Redis 'ws_messages': payload=%s", payload)
-            await self._redis.publish("ws_messages", json.dumps(payload))
+            await redis.publish("ws_messages", json.dumps(payload))
         except Exception:
             logger.exception("Failed to publish message to Redis: payload=%s", payload)
             await self._send_to_local_connections(user_id, message)
