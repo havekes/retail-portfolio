@@ -1,3 +1,4 @@
+import uuid
 from datetime import date
 from typing import override
 
@@ -9,7 +10,13 @@ from svcs import Container
 
 from src.auth.api_types import UserId
 from src.market.api_types import SecurityId
-from src.market.model import PriceModel, SecurityModel, WatchlistModel
+from src.market.exception import SecurityNotFoundError
+from src.market.model import (
+    PriceModel,
+    SecurityBrokerModel,
+    SecurityModel,
+    WatchlistModel,
+)
 from src.market.repository import (
     PriceRepository,
     SecurityBrokerRepository,
@@ -31,11 +38,15 @@ class SqlAlchemySecurityRepository(SecurityRepository):
         self._session = session
 
     @override
-    async def get_by_id(self, security_id: SecurityId) -> SecuritySchema:
+    async def get_by_id_or_fail(self, security_id: SecurityId) -> SecuritySchema:
         security_model = await self._session.get(SecurityModel, security_id)
-        assert security_model is not None
+
+        if security_model is None:
+            raise SecurityNotFoundError(security_id)
+
         result = SecuritySchema.model_validate(security_model)
         await self._session.commit()
+
         return result
 
     @override
@@ -56,6 +67,8 @@ class SqlAlchemySecurityRepository(SecurityRepository):
 
         # If not exists, insert the new security
         values = security.model_dump()
+        if values.get("id") is None:
+            values["id"] = uuid.uuid4()
         _ = await self._session.execute(insert(SecurityModel).values(values))
         await self._session.commit()
 
@@ -97,7 +110,50 @@ class SqlAlchemySecurityBrokerRepository(SecurityBrokerRepository):
     async def get_or_create(
         self, security_broker: SecurityBrokerSchema
     ) -> SecurityBrokerSchema:
-        raise NotImplementedError
+        existing = await self._session.execute(
+            select(SecurityBrokerModel)
+            .where(
+                SecurityBrokerModel.institution_id
+                == security_broker.institution_id.value
+            )
+            .where(SecurityBrokerModel.broker_symbol == security_broker.broker_symbol)
+            .where(
+                SecurityBrokerModel.broker_exchange == security_broker.broker_exchange
+            )
+            .limit(1)
+        )
+        existing_broker = existing.scalar_one_or_none()
+
+        if existing_broker:
+            result = SecurityBrokerSchema.model_validate(existing_broker)
+            await self._session.commit()
+            return result
+
+        values = {
+            k: v
+            for k, v in security_broker.model_dump().items()
+            if k not in ("id", "created_at")
+        }
+        values["institution_id"] = security_broker.institution_id.value
+        await self._session.execute(insert(SecurityBrokerModel).values(values))
+        await self._session.commit()
+
+        security_broker_model = await self._session.execute(
+            select(SecurityBrokerModel)
+            .where(
+                SecurityBrokerModel.institution_id
+                == security_broker.institution_id.value
+            )
+            .where(SecurityBrokerModel.broker_symbol == security_broker.broker_symbol)
+            .where(
+                SecurityBrokerModel.broker_exchange == security_broker.broker_exchange
+            )
+            .limit(1)
+        )
+        security_broker_model = security_broker_model.scalar_one()
+        result = SecurityBrokerSchema.model_validate(security_broker_model)
+        await self._session.commit()
+        return result
 
 
 async def sqlalchemy_security_broker_repository_factory(
@@ -160,7 +216,8 @@ class SqlAlchemyPriceRepository(PriceRepository):
 
     @override
     async def save_price(self, price: PriceSchema) -> PriceSchema:
-        price_model = PriceModel(**price.model_dump())
+        price_dict = {k: v for k, v in price.model_dump().items() if k != "id"}
+        price_model = PriceModel(**price_dict)
         self._session.add(price_model)
         await self._session.commit()
         await self._session.refresh(price_model)
@@ -171,7 +228,9 @@ class SqlAlchemyPriceRepository(PriceRepository):
         if not prices:
             return []
 
-        price_dicts = [p.model_dump() for p in prices]
+        price_dicts = [
+            {k: v for k, v in p.model_dump().items() if k != "id"} for p in prices
+        ]
         stmt = insert(PriceModel).values(price_dicts)
         stmt = stmt.on_conflict_do_update(
             constraint="price_security_date_unique",
