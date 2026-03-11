@@ -1,6 +1,9 @@
+import json
+import logging
 import uuid
 from datetime import UTC, datetime
 
+from pydantic import ValidationError
 from stockholm import Money
 from svcs import Container
 
@@ -13,6 +16,8 @@ from src.market.repository import (
     SecurityRepository,
 )
 from src.market.schema import SecurityBrokerSchema, SecuritySchema
+
+logger = logging.getLogger(__name__)
 
 
 class MarketPricesApi:
@@ -80,25 +85,43 @@ class SecurityApi:
         mapped_symbol = self._map_eodhd_symbol(broker_symbol)
         mapped_exchange = self._map_eodhd_exchange(broker_exchange)
         search_results = self._eodhd.search(query=f"{mapped_symbol}.{mapped_exchange}")
+        logger.debug(
+            "Search results for %s.%s (%s): %s",
+            mapped_symbol,
+            mapped_exchange,
+            broker_name,
+            json.dumps(search_results),
+        )
+
+        if len(search_results) == 0:
+            msg = f"No search results for {mapped_symbol}.{mapped_exchange} ({broker_name})"  # noqa: E501
+            raise ValueError(msg)
 
         result = search_results[0]
 
-        security = await self._security_repository.get_or_create(
-            SecuritySchema(
-                id=uuid.uuid4(),
-                symbol=result["Code"],
-                exchange=result["Exchange"],
-                currency="USD",
-                name=result["Name"],
-                isin=result["ISIN"],
-                updated_at=datetime.now(UTC),
+        try:
+            security = await self._security_repository.get_or_create(
+                SecuritySchema(
+                    id=uuid.uuid4(),
+                    symbol=result["Code"],
+                    exchange=result["Exchange"],
+                    currency="USD",
+                    name=result["Name"],
+                    isin=result["ISIN"],
+                    updated_at=datetime.now(UTC),
+                )
             )
-        )
+        except ValidationError:
+            logger.exception(
+                "Failed to create security from search results: %s",
+                json.dumps(result),
+            )
+            raise
 
         _ = await self._market_prices_api.get_latest_close(security.id)
 
-        _ = await self._security_broker_repository.get_or_create(
-            SecurityBrokerSchema(
+        try:
+            security_broker = SecurityBrokerSchema(
                 institution_id=institution_id,
                 broker_symbol=broker_symbol,
                 mapped_symbol=mapped_symbol,
@@ -108,7 +131,14 @@ class SecurityApi:
                 security_id=security.id,
                 search_results=search_results,
             )
-        )
+        except ValidationError:
+            logger.exception(
+                "Failed to create security broker from search results: %s",
+                json.dumps(search_results),
+            )
+            raise
+
+        _ = await self._security_broker_repository.get_or_create(security_broker)
 
         return Security.model_validate(security)
 

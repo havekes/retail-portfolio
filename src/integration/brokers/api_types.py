@@ -37,7 +37,6 @@ class BrokerPosition(BaseModel):
         security_id: SecurityId,
     ) -> Position:
         return Position(
-            id=0,
             account_id=account_id,
             security_id=security_id,
             quantity=self.quantity,

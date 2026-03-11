@@ -28,7 +28,7 @@ class Account(BaseModel):
 
 
 class Position(BaseModel):
-    id: PositionId
+    id: PositionId | None = None
     account_id: AccountId
     security_id: SecurityId
     quantity: Decimal

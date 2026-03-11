@@ -51,6 +51,12 @@ class PositionRepository(ABC):
     async def get_by_account(self, account_id: AccountId) -> list[PositionSchema]:
         pass
 
+    @abstractmethod
+    async def sync_by_account(
+        self, account_id: AccountId, positions: list[PositionSchema]
+    ) -> None:
+        pass
+
 
 class PortfolioRepository(ABC):
     @abstractmethod
