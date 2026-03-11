@@ -38,6 +38,50 @@ def sync_account_positions_task(
     )
 
 
+async def _do_sync_positions(
+    account: Account,
+    broker_account_id: BrokerAccountId,
+    broker_class: type[BrokerApiGateway],
+    svcs_container: Container,
+) -> None:
+    security_api = await svcs_container.aget(SecurityApi)
+    integration_user_repository = await svcs_container.aget(IntegrationUserRepository)
+
+    if account.integration_user_id is None:
+        msg = "Account does not have an integration user"
+        raise AccountPositionsSyncError(msg)
+
+    integration_user = await integration_user_repository.get(
+        account.integration_user_id,
+    )
+
+    if integration_user is None:
+        raise IntegrationUserNotFoundError(account.integration_user_id)
+
+    broker = await svcs_container.aget(broker_class)
+    broker_positions = await broker.get_positions_by_account(
+        integration_user=integration_user,
+        broker_account_id=broker_account_id,
+    )
+
+    positions = []
+    for broker_position in broker_positions:
+        security = await security_api.get_or_create_from_broker(
+            institution_id=integration_user.institution_id,
+            broker_symbol=broker_position.symbol,
+            broker_exchange=broker_position.exchange,
+            broker_name=broker_position.name,
+        )
+
+        positions.append(
+            broker_position.to_position(account_id=account.id, security_id=security.id)
+        )
+
+    # TODO breaks domain boundary. Task should be refactored
+    position_repository = await svcs_container.aget(PositionRepository)
+    await position_repository.sync_by_account(account.id, positions)
+
+
 async def _sync_account_positions_task(
     user_id: UserId,
     account: Account,
@@ -60,46 +104,9 @@ async def _sync_account_positions_task(
             user_id,
         )
 
-        security_api = await huey.svcs_container.aget(SecurityApi)
-        integration_user_repository = await huey.svcs_container.aget(
-            IntegrationUserRepository
+        await _do_sync_positions(
+            account, broker_account_id, broker_class, huey.svcs_container
         )
-
-        if account.integration_user_id is None:
-            msg = "Account does not have an integration user"
-            raise AccountPositionsSyncError(msg)
-
-        integration_user = await integration_user_repository.get(
-            account.integration_user_id,
-        )
-
-        if integration_user is None:
-            raise IntegrationUserNotFoundError(account.integration_user_id)
-
-        broker = await huey.svcs_container.aget(broker_class)
-        broker_positions = await broker.get_positions_by_account(
-            integration_user=integration_user,
-            broker_account_id=broker_account_id,
-        )
-
-        positions = []
-        for broker_position in broker_positions:
-            security = await security_api.get_or_create_from_broker(
-                institution_id=integration_user.institution_id,
-                broker_symbol=broker_position.symbol,
-                broker_exchange=broker_position.exchange,
-                broker_name=broker_position.name,
-            )
-
-            positions.append(
-                broker_position.to_position(
-                    account_id=account.id, security_id=security.id
-                )
-            )
-
-        # TODO breaks domain boundary. Task should be refactored
-        position_repository = await huey.svcs_container.aget(PositionRepository)
-        await position_repository.sync_by_account(account.id, positions)
 
         # Send sync_finished websocket message
         await ws_manager.send_personal_message(

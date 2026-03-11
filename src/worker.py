@@ -16,7 +16,10 @@ huey = HueyWithRegistry("retail-portfolio", url=settings.redis_url)
 @huey.on_startup()
 def setup_worker_services():
     from src.config.database import DatabaseSessionManager  # noqa: PLC0415
+    from src.config.logging import init_logging  # noqa: PLC0415
     from src.config.services import register_services  # noqa: PLC0415
+
+    init_logging()
 
     # Use NullPool for the worker to avoid "operation in progress" errors
     # during asyncio.run() task cycles.
