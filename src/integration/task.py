@@ -4,6 +4,7 @@ import logging
 from svcs import Container
 
 from src.account.api_types import Account
+from src.account.repository import PositionRepository
 from src.auth.api_types import UserId
 from src.integration.brokers import BrokerApiGateway
 from src.integration.brokers.api_types import BrokerAccountId
@@ -95,6 +96,10 @@ async def _sync_account_positions_task(
                     account_id=account.id, security_id=security.id
                 )
             )
+
+        # TODO breaks domain boundary. Task should be refactored
+        position_repository = await huey.svcs_container.aget(PositionRepository)
+        await position_repository.sync_by_account(account.id, positions)
 
         # Send sync_finished websocket message
         await ws_manager.send_personal_message(

@@ -1,12 +1,16 @@
+import logging
 from datetime import date
 from decimal import Decimal
 
 import requests
 from eodhd.apiclient import APIClient
+from pandas import Timestamp
 
 from src.config.settings import settings
 from src.market.api_types import EodhdSearchResult, HistoricalPrice
 from src.market.schema import SecuritySchema
+
+logger = logging.getLogger(__name__)
 
 
 class EodhdGateway:
@@ -51,6 +55,8 @@ class EodhdGateway:
     def get_prices(
         self, security: SecuritySchema, from_date: date, to_date: date
     ) -> list[HistoricalPrice]:
+        logger.info("Fetching data for security: %s", security.symbol)
+
         data = self._client.get_historical_data(
             symbol=security.get_eodhd_symbol(),
             interval="d",
@@ -60,7 +66,13 @@ class EodhdGateway:
 
         prices: list[HistoricalPrice] = []
         for index, price in data.iterrows():
-            assert type(index) is date
+            if type(index) is not Timestamp:
+                logger.error(
+                    "Historical data index should be pandas.Timestamp but is: %s",
+                    type(index),
+                )
+                continue
+
             prices.append(
                 HistoricalPrice(
                     security_id=security.id,

@@ -35,7 +35,7 @@ def main():
         exchange="US",
         currency="USD",
         name="",
-        isin="",
+        isin=None,
         updated_at=datetime.now(UTC),
     )
 

@@ -147,6 +147,19 @@ class SqlAlchemyPositionRepository(PositionRepository):
             for position_model in position_models
         ]
 
+    @override
+    async def sync_by_account(
+        self, account_id: AccountId, positions: list[PositionSchema]
+    ) -> None:
+        q = delete(PositionModel).where(PositionModel.account_id == account_id)
+        await self._session.execute(q)
+
+        for position in positions:
+            position_model = PositionModel(**position.model_dump())
+            self._session.add(position_model)
+
+        await self._session.commit()
+
 
 async def sqlalchemy_position_repository_factory(
     container: Container,
