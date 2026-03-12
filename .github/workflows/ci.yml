@@ -13,6 +13,12 @@ jobs:
   backend:
     runs-on: ubuntu-latest
 
+    services:
+      redis:
+        image: redis:7-alpine
+        ports:
+          - 6379:6379
+
     steps:
       - uses: actions/checkout@v4
 
@@ -40,6 +46,7 @@ jobs:
         run: uv run pytest
         env:
           DATABASE_URL: "sqlite+aiosqlite:///:memory:"
+          REDIS_URL: "redis://localhost:6379/0"
 
   frontend:
     runs-on: ubuntu-latest

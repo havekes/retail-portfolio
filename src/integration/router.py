@@ -3,7 +3,9 @@ from typing import Annotated
 from fastapi import APIRouter, Depends, HTTPException
 from svcs.fastapi import DepContainer
 
-from src.account.api import AccountApi, InstitutionApi, PositionApi
+from src.account.api.account import AccountApi
+from src.account.api.institution import InstitutionApi
+from src.account.api.position import PositionApi
 from src.account.api_types import Institution, Position
 from src.account.enum import InstitutionEnum
 from src.auth.api import AuthorizationApi, current_user
@@ -25,6 +27,7 @@ from src.integration.repository import IntegrationUserRepository
 from src.integration.service import (
     IntegrationUserService,
 )
+from src.integration.task import sync_account_positions_task
 from src.market.api import SecurityApi
 
 integration_router = APIRouter(prefix="/api/external")
@@ -32,7 +35,7 @@ institutions_router = APIRouter(prefix="/api/integration")
 
 
 @institutions_router.get("/institutions")
-async def institutions_list(
+async def integration_institutions(
     services: DepContainer,
     _user: Annotated[User, Depends(current_user)],
 ) -> list[Institution]:
@@ -43,19 +46,17 @@ async def institutions_list(
     return await institution_api.get_all_enabled_integrations()
 
 
-@integration_router.get("/{institution}/users")
-async def external_users(
-    institution: InstitutionEnum,
+@integration_router.get("/users")
+async def integration_users(
     user: Annotated[User, Depends(current_user)],
     services: DepContainer,
 ) -> list[IntegrationUser]:
     """
-    Get all saved external users for the given institution.
+    Get all saved external users for all supported institutions.
     """
     integration_user_repository = await services.aget(IntegrationUserRepository)
-    integration_users = await integration_user_repository.get_by_user_and_institution(
+    integration_users = await integration_user_repository.get_by_user(
         user_id=user.id,
-        institution=institution,
     )
 
     return [
@@ -64,8 +65,8 @@ async def external_users(
     ]
 
 
-@integration_router.patch("/{institution}/users/{external_user_id}/display_name")
-async def update_external_user_display_name(
+@integration_router.patch("/users/{external_user_id}/display_name")
+async def integration_update_user_display_name(
     external_user_id: IntegrationUserId,
     update_request: IntegrationUserUpdateDisplayNameRequest,
     services: DepContainer,
@@ -93,7 +94,7 @@ async def update_external_user_display_name(
 
 
 @integration_router.post("/{institution}/login")
-async def external_login(
+async def integration_login(
     institution: InstitutionEnum,
     login_request: IntegrationLoginRequest,
     services: DepContainer,
@@ -127,9 +128,8 @@ async def external_login(
     return IntegrationLoginResponse(login_succes=success)
 
 
-@integration_router.get("/{institution}/{external_user_id}/accounts")
-async def external_accounts(
-    institution: InstitutionEnum,
+@integration_router.get("/users/{external_user_id}/accounts")
+async def integration_accounts(
     external_user_id: IntegrationUserId,
     services: DepContainer,
     user: Annotated[User, Depends(current_user)],
@@ -138,21 +138,23 @@ async def external_accounts(
     List external accounts for the current user.
     """
     authorization_service = await services.aget(AuthorizationApi)
-    broker = await services.aget(get_broker_gateway_class(institution))
     integration_user_repository = await services.aget(IntegrationUserRepository)
 
     integration_user = await integration_user_repository.get(external_user_id)
-    authorization_service.check_entity_owned_by_user(user, integration_user)
-
     if not integration_user:
         raise HTTPException(status_code=404, detail="External user not found")
+
+    authorization_service.check_entity_owned_by_user(user, integration_user)
+
+    broker = await services.aget(
+        get_broker_gateway_class(integration_user.institution_id)
+    )
 
     return await broker.get_accounts(integration_user)
 
 
-@integration_router.post("/{institution}/accounts/import")
-async def external_import_accounts(
-    institution: InstitutionEnum,
+@integration_router.post("/accounts/import")
+async def integration_import_accounts(
     import_request: IntegrationImportAccountsRequest,
     services: DepContainer,
     user: Annotated[User, Depends(current_user)],
@@ -160,32 +162,49 @@ async def external_import_accounts(
     """
     Import accounts from an external institution.
     You can pass a list of external account ids to selectively import.
+    Position syncing is delegated to the Huey task queue (huey-worker).
     """
-    authorization_service = await services.aget(AuthorizationApi)
-    broker = await services.aget(get_broker_gateway_class(institution))
-    account_api = await services.aget(AccountApi)
     integration_user_repository = await services.aget(IntegrationUserRepository)
+    authorization_service = await services.aget(AuthorizationApi)
+    account_api = await services.aget(AccountApi)
 
     integration_user = await integration_user_repository.get(
         import_request.external_user_id
     )
-    authorization_service.check_entity_owned_by_user(user, integration_user)
-
     if not integration_user:
         raise HTTPException(status_code=404, detail="External user not found")
+
+    authorization_service.check_entity_owned_by_user(user, integration_user)
+
+    broker = await services.aget(
+        get_broker_gateway_class(integration_user.institution_id)
+    )
 
     broker_accounts = await broker.get_accounts(
         integration_user=integration_user,
     )
 
-    imported_accounts = await account_api.import_from_broker(broker_accounts, user.id)
+    broker_accounts = [
+        acc for acc in broker_accounts if acc.id in import_request.external_account_ids
+    ]
+
+    imported_accounts = await account_api.import_from_broker(
+        broker_accounts, user.id, integration_user.id
+    )
+
+    for account in imported_accounts:
+        sync_account_positions_task.delay(
+            user.id,
+            account,
+            account.external_id,
+            get_broker_gateway_class(integration_user.institution_id),
+        )
 
     return IntegrationImportResponse(imported_count=len(imported_accounts))
 
 
-@integration_router.post("/{institution}/positions/import")
-async def external_import_positions(
-    institution_id: InstitutionEnum,
+@integration_router.post("/positions/import")
+async def integration_import_positions(
     import_request: IntegrationImportPositionsRequest,
     services: DepContainer,
     user: Annotated[User, Depends(current_user)],
@@ -193,20 +212,23 @@ async def external_import_positions(
     """
     Import positions from an external institution for a given account.
     """
+    integration_user_repository = await services.aget(IntegrationUserRepository)
     authorization_service = await services.aget(AuthorizationApi)
     account_api = await services.aget(AccountApi)
     security_api = await services.aget(SecurityApi)
     position_api = await services.aget(PositionApi)
-    broker = await services.aget(get_broker_gateway_class(institution_id))
-    integration_user_repository = await services.aget(IntegrationUserRepository)
 
     integration_user = await integration_user_repository.get(
         integration_user_id=import_request.external_user_id
     )
-    authorization_service.check_entity_owned_by_user(user, integration_user)
-
     if not integration_user:
         raise HTTPException(status_code=404, detail="External user not found")
+
+    authorization_service.check_entity_owned_by_user(user, integration_user)
+
+    broker = await services.aget(
+        get_broker_gateway_class(integration_user.institution_id)
+    )
 
     account = await account_api.get_by_id(import_request.account_id)
     broker_account_id = await account_api.get_broker_id_by_id(import_request.account_id)
@@ -222,7 +244,7 @@ async def external_import_positions(
     positions: list[Position] = []
     for broker_position in broker_positions:
         security = await security_api.get_or_create_from_broker(
-            institution_id=institution_id,
+            institution_id=integration_user.institution_id,
             broker_symbol=broker_position.symbol,
             broker_exchange=broker_position.exchange,
             broker_name=broker_position.name,

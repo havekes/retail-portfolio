@@ -31,6 +31,8 @@ class SecuritySchema(BaseModel):
 
 
 class SecurityBrokerSchema(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
     id: int | None = None
     institution_id: InstitutionEnum
     broker_symbol: str

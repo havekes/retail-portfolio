@@ -13,19 +13,27 @@ from svcs.fastapi import DepContainer
 
 from src.account.router import account_router, portfolio_router
 from src.auth.router import auth_router
+from src.config.database import sessionmanager
 from src.config.logging import init_logging
 from src.config.services import register_services
 from src.config.settings import settings
 from src.exception import AuthorizationError, EntityNotFoundError
 from src.integration.router import institutions_router, integration_router
 from src.market.router import market_router
+from src.ws.manager import ws_manager
+from src.ws.router import ws_router
 
 
 @svcs.fastapi.lifespan  # type: ignore warning[possibly-missing-attribute]
 @asynccontextmanager
-async def lifespan_context(_: FastAPI, registry: svcs.Registry) -> AsyncIterator[None]:
-    register_services(registry)
+async def lifespan_context(
+    app: FastAPI, registry: svcs.Registry
+) -> AsyncIterator[None]:
+    app.state.svcs_registry = registry
+    register_services(registry, sessionmanager)
+    await ws_manager.init_redis(settings.redis_url)
     yield
+    await ws_manager.close()
 
 
 logger = logging.getLogger(__name__)
@@ -50,6 +58,7 @@ app.include_router(auth_router)
 app.include_router(institutions_router)
 app.include_router(integration_router)
 app.include_router(market_router)
+app.include_router(ws_router)
 
 
 @app.get("/api/ping")

@@ -25,6 +25,7 @@ class SqlAlchemyIntegrationUserRepository(IntegrationUserRepository):
         integration_user_model = IntegrationUserModel(**integration_user.model_dump())
         self._session.add(integration_user_model)
         await self._session.commit()
+        await self._session.refresh(integration_user_model)
         return IntegrationUserSchema.model_validate(integration_user_model)
 
     @override
@@ -38,6 +39,17 @@ class SqlAlchemyIntegrationUserRepository(IntegrationUserRepository):
         if integration_user_model is None:
             return None
         return IntegrationUserSchema.model_validate(integration_user_model)
+
+    @override
+    async def get_by_user(self, user_id: UserId) -> list[IntegrationUserSchema]:
+        query = select(IntegrationUserModel).where(
+            IntegrationUserModel.user_id == user_id
+        )
+        integration_user_models = await self._session.scalars(query)
+        return [
+            IntegrationUserSchema.model_validate(integration_user_model)
+            for integration_user_model in integration_user_models.all()
+        ]
 
     @override
     async def get_by_user_and_institution(

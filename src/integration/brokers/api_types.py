@@ -1,4 +1,3 @@
-import uuid
 from datetime import datetime
 from decimal import Decimal
 
@@ -19,6 +18,7 @@ class BrokerAccount(BaseModel):
     institution: InstitutionEnum
     currency: Currency
     display_name: str
+    broker_display_name: str | None = None
     value: Decimal
     created_at: datetime
 
@@ -37,7 +37,6 @@ class BrokerPosition(BaseModel):
         security_id: SecurityId,
     ) -> Position:
         return Position(
-            id=0,
             account_id=account_id,
             security_id=security_id,
             quantity=self.quantity,

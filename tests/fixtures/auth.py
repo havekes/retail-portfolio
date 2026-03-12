@@ -34,8 +34,8 @@ class MockEodhdGateway:
                 "Type": "Common Stock",
                 "Country": "USA",
                 "ISIN": "US0378331005",
-                "isPrimary": "true",
-                "previousClose": "170.00",
+                "isPrimary": True,
+                "previousClose": 170.00,
                 "previousCloseDate": "2024-01-01",
             }
         ]

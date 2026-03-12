@@ -1,7 +1,7 @@
 from decimal import Decimal
 from uuid import UUID
 
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
 from stockholm import Currency, Money
 
 from src.account.enum import AccountTypeEnum, InstitutionEnum
@@ -14,17 +14,22 @@ type PortfolioId = UUID
 
 
 class Account(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
     id: AccountId
+    external_id: str
     name: str
     user_id: UserId
+    integration_user_id: UUID | None = None
     account_type_id: AccountTypeEnum
     institution_id: int
     currency: Currency
+    broker_display_name: str | None = None
     is_active: bool = True
 
 
 class Position(BaseModel):
-    id: PositionId
+    id: PositionId | None = None
     account_id: AccountId
     security_id: SecurityId
     quantity: Decimal

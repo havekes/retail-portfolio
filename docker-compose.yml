@@ -12,6 +12,8 @@ services:
     command: sh -c "uv sync && uv run uvicorn src.main:app --reload --host 0.0.0.0 --port 8000"
     depends_on:
       - postgres
+      - redis
+      - mailcrab
     environment:
       DATABASE_URL: postgresql+asyncpg://retail-portfolio-user:password@postgres:5432/retail-portfolio
       CORS_ORIGINS: http://localhost:8101
@@ -21,11 +23,38 @@ services:
       HOME: /app
       SMTP_HOST: mailcrab
       SMTP_PORT: 1025
+      REDIS_URL: redis://redis:6379/0
+
+  worker:
+    container_name: retail-portfolio-worker
+    image: ghcr.io/astral-sh/uv:python3.14-bookworm
+    restart: unless-stopped
+    user: 1000:1000
+    volumes:
+      - ./:/app
+    working_dir: /app
+    command: sh -c "uv sync && uv run huey_consumer src.worker.huey -w 2 --worker-type thread"
+    depends_on:
+      - postgres
+      - redis
+      - mailcrab
+    environment:
+      DATABASE_URL: postgresql+asyncpg://retail-portfolio-user:password@postgres:5432/retail-portfolio
+      UV_CACHE_DIR: /app/.cache/uv
+      UV_PROJECT_ENVIRONMENT: /app/.cache/container_venv
+      PATH: "/app/.cache/container_venv/bin:$PATH"
+      HOME: /app
+      SMTP_HOST: mailcrab
+      SMTP_PORT: 1025
+      REDIS_URL: redis://redis:6379/0
 
   frontend:
     container_name: retail-portfolio-frontend
     image: node:latest
     restart: unless-stopped
+    depends_on:
+      - backend
+      - worker
     user: 1000:1000
     ports:
       - "8101:8100"
@@ -45,6 +74,13 @@ services:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/18/docker
+
+  redis:
+    image: redis:7-alpine
+    container_name: retail-portfolio-redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
 
   mailcrab:
     image: marlonb/mailcrab:latest

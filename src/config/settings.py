@@ -14,7 +14,10 @@ class Settings(BaseSettings):
 
     eodhd_api_key: str = ""
 
-    # Email verification settings
+    # Redis
+    redis_url: str = "redis://localhost:6379/0"
+
+    # Email
     smtp_host: str = "smtp.example.com"
     smtp_port: int = 587
     smtp_use_tls: bool = True

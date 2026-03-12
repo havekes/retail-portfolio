@@ -29,7 +29,7 @@ class MessageResponse(BaseModel):
 
 
 @auth_router.post("/signup", response_model=SignupResponse)
-async def signup(
+async def auth_signup(
     request: SignupRequest,
     services: DepContainer,
 ) -> SignupResponse:
@@ -47,7 +47,7 @@ async def signup(
 
 
 @auth_router.post("/login", response_model=AuthResponse)
-async def login(
+async def auth_login(
     request: LoginRequest,
     services: DepContainer,
 ) -> AuthResponse:
@@ -61,7 +61,7 @@ async def login(
 
 
 @auth_router.post("/verify-email", response_model=MessageResponse)
-async def verify_email(
+async def auth_verify_email(
     request: VerifyEmailRequest,
     services: DepContainer,
 ) -> MessageResponse:
@@ -71,7 +71,7 @@ async def verify_email(
 
 
 @auth_router.post("/resend-verification", response_model=MessageResponse)
-async def resend_verification(
+async def auth_resend_verification(
     request: ResendVerificationRequest,
     services: DepContainer,
 ) -> MessageResponse:

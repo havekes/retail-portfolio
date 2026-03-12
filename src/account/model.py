@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from datetime import datetime
 from decimal import Decimal
-from uuid import uuid4
+from uuid import UUID, uuid4
 
 from sqlalchemy import (
     DECIMAL,
@@ -26,7 +26,6 @@ from src.account.api_types import (
 )
 from src.auth.api_types import UserId
 from src.config.database import BaseModel
-from src.integration.brokers.api_types import BrokerAccountId
 from src.market.api_types import SecurityId
 
 
@@ -36,7 +35,10 @@ class AccountModel(BaseModel):
     __tablename__ = "accounts"
 
     id: Mapped[AccountId] = mapped_column(primary_key=True, default=uuid4)
-    external_id: Mapped[BrokerAccountId] = mapped_column(String)
+    external_id: Mapped[str] = mapped_column(String)
+    integration_user_id: Mapped[UUID | None] = mapped_column(
+        Uuid, ForeignKey("integration_users.id"), nullable=True
+    )
     name: Mapped[str] = mapped_column(String)
     user_id: Mapped[UserId] = mapped_column(Uuid)
     account_type_id: Mapped[int] = mapped_column(
@@ -46,6 +48,7 @@ class AccountModel(BaseModel):
         Integer, ForeignKey("account_institutions.id")
     )
     currency: Mapped[str] = mapped_column(String)
+    broker_display_name: Mapped[str | None] = mapped_column(String, nullable=True)
     is_active: Mapped[bool] = mapped_column(Boolean, default=True)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=func.now())
     updated_at: Mapped[datetime] = mapped_column(

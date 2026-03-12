@@ -25,11 +25,11 @@ from src.integration.brokers.exceptions import (
     OTPRequiredError,
     SessionDoesNotExistError,
     SessionExpiredError,
+    UnknownError,
 )
 from src.integration.schema import IntegrationUserSchema
 
 logger = logging.getLogger(__name__)
-
 
 _wealthsimple_account_type_map = {
     "SELF_DIRECTED_TFSA": AccountTypeEnum.TFSA,
@@ -45,6 +45,8 @@ class WealthsimpleApiGateway(BrokerApiGateway):
     _institution: InstitutionEnum = InstitutionEnum.WEALTHSIMPLE
 
     def _get_client(self, username: str) -> WealthsimpleAPI:
+        logger.debug("Getting Wealthsimple client from session for user: %s", username)
+
         return WealthsimpleAPI.from_token(
             self._get_session(username),
             username=username,
@@ -52,6 +54,8 @@ class WealthsimpleApiGateway(BrokerApiGateway):
         )
 
     def _get_session(self, username: str) -> WSAPISession:
+        logger.debug("Getting Wealthsimple session from keyring for user: %s", username)
+
         session_str = keyring.get_password(
             f"{self._keyring_prefix}.{username}", "session"
         )
@@ -66,9 +70,13 @@ class WealthsimpleApiGateway(BrokerApiGateway):
         session: str,
         username: str,
     ) -> None:
+        logger.debug("Saving Wealthsimple session tp keyring for user: %s", username)
+
         keyring.set_password(f"{self._keyring_prefix}.{username}", "session", session)
 
     def _ws_login(self, username: str, password: str, otp: str | None) -> WSAPISession:
+        logger.debug("Logging in Wealthsimple for user: %s", username)
+
         return WealthsimpleAPI.login(
             username,
             password,
@@ -123,9 +131,15 @@ class WealthsimpleApiGateway(BrokerApiGateway):
 
         accounts: list[BrokerAccount] = []
         for ws_account in ws_accounts:
-            account = self._parse_account(ws_account)
+            account = self._parse_account(ws_account, integration_user.display_name)
             if account is not None:
                 accounts.append(account)
+
+        logger.info(
+            "Parsed %d Wealthsimple accounts for user: %s",
+            len(accounts),
+            integration_user.external_user_id,
+        )
 
         return accounts
 
@@ -149,19 +163,39 @@ class WealthsimpleApiGateway(BrokerApiGateway):
                 ws_balance=ws_balance,
             )
             if position is not None:
+                logger.info(
+                    "Fetched position: %s.%s",
+                    position.symbol,
+                    position.exchange,
+                )
                 positions.append(position)
+            else:
+                logger.warning(
+                    "Could not parse position: %s",
+                    security_id,
+                )
 
+        logger.info(
+            "Parsed %d Wealthsimple positions for account: %s",
+            len(positions),
+            broker_account_id,
+        )
         return positions
 
-    def _parse_account(self, ws_account: dict[str, Any]) -> BrokerAccount | None:
+    def _parse_account(
+        self,
+        ws_account: dict[str, Any],
+        broker_display_name: str | None = None,
+    ) -> BrokerAccount | None:
         if ws_account["status"] != "open":
+            logger.debug("Skipping closed Wealthsimple account: %s", ws_account["id"])
             return None
 
         ws_account_type = ws_account["unifiedAccountType"]
         try:
             account_type = self._get_account_type(ws_account_type)
         except AccountTypeUnkownError:
-            logger.warning("Unsupported account type %s", ws_account_type)
+            logger.info("Unsupported account type %s", ws_account_type)
             return None
 
         custodian_account = ws_account["custodianAccounts"][0]
@@ -169,12 +203,15 @@ class WealthsimpleApiGateway(BrokerApiGateway):
             custodian_account["financials"]["current"]["netLiquidationValue"]["amount"]
         )
 
+        logger.debug("Parsed Wealthsimple account: %s", ws_account["id"])
+
         return BrokerAccount(
             id=ws_account["id"],
             type=account_type,
             institution=InstitutionEnum.WEALTHSIMPLE,
             currency=ws_account["currency"],
             display_name=custodian_account["id"],
+            broker_display_name=broker_display_name,
             value=current_amount,
             created_at=datetime.strptime(
                 ws_account["createdAt"], "%Y-%m-%dT%H:%M:%S.%fZ"
@@ -198,21 +235,34 @@ class WealthsimpleApiGateway(BrokerApiGateway):
         ws_security_market_data = ws_client.get_security_market_data(
             trimmed_security_id
         )
-        assert isinstance(ws_security_market_data, dict)
+        if not isinstance(ws_security_market_data, dict):
+            logger.error(
+                "Malformed security market data: %s",
+                ws_security_market_data,
+            )
+            raise UnknownError
 
         ws_positions = self._ws_get_identity_positions(
             client=ws_client,
             security_ids=[trimmed_security_id],
         )
-        assert isinstance(ws_positions, list)
+        if not isinstance(ws_positions, list):
+            logger.error(
+                "Malformed identity potitions: %s",
+                ws_positions,
+            )
+            raise UnknownError
 
         average_cost = Decimal(
             self._get_average_cost(broker_account_id, ws_positions) or 0
         )
-        stock_info = cast("dict[str, Any]", ws_security_market_data["stock"])
+        stock_info = cast("dict[str, Any]", ws_security_market_data.get("stock", {}))
 
         if stock_info["primaryExchange"] is None:
-            logger.warning("Skipped security %s: unsupported security")
+            logger.info(
+                "Skipped unsupported security: %s",
+                trimmed_security_id,
+            )
             return None
 
         return BrokerPosition(
@@ -241,6 +291,10 @@ class WealthsimpleApiGateway(BrokerApiGateway):
             if ws_position["accounts"][0]["id"] == broker_account_id:
                 return ws_position["averagePrice"]["amount"]
 
+        logger.warning(
+            "Could not compute average cost for account: %s",
+            broker_account_id,
+        )
         return None
 
     def _get_account_type(self, ws_unified_account_type: str) -> AccountTypeEnum:

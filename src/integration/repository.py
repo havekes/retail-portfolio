@@ -20,6 +20,10 @@ class IntegrationUserRepository(ABC):
         pass
 
     @abstractmethod
+    async def get_by_user(self, user_id: UserId) -> list[IntegrationUserSchema]:
+        pass
+
+    @abstractmethod
     async def get_by_user_and_institution(
         self, user_id: UserId, institution: InstitutionEnum
     ) -> list[IntegrationUserSchema]:

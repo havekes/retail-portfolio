@@ -17,7 +17,7 @@ class MockSecurityRepository(SecurityRepository):
         self.securities = securities
 
     @override
-    async def get_by_id(self, security_id: SecurityId) -> SecuritySchema:
+    async def get_by_id_or_fail(self, security_id: SecurityId) -> SecuritySchema:
         for security in self.securities:
             if security.id == security_id:
                 return security

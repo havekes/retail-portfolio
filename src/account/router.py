@@ -9,6 +9,7 @@ from src.account.api_types import (
     AccountTotals,
     PortfolioId,
 )
+from src.account.exception import AccountNotFoundError
 from src.account.repository import AccountRepository
 from src.account.schema import (
     AccountSchema,
@@ -17,11 +18,9 @@ from src.account.schema import (
     PortfolioRead,
     PositionRead,
 )
-from src.account.service import (
-    AccountService,
-    PortfolioService,
-    PositionService,
-)
+from src.account.service.account import AccountService
+from src.account.service.portfolio import PortfolioService
+from src.account.service.position import PositionService
 from src.auth.api import AuthorizationApi, current_user
 from src.auth.api_types import User
 
@@ -30,7 +29,7 @@ portfolio_router = APIRouter(prefix="/api/portfolios")
 
 
 @portfolio_router.get("/")
-async def portfolios_list(
+async def portfolios(
     user: Annotated[User, Depends(current_user)],
     services: DepContainer,
 ) -> list[PortfolioRead]:
@@ -104,7 +103,7 @@ async def portfolio_delete(
 
 
 @account_router.get("/")
-async def accounts_list(
+async def accounts(
     user: Annotated[User, Depends(current_user)],
     services: DepContainer,
 ) -> list[AccountSchema]:
@@ -178,7 +177,7 @@ async def account_totals(
 
 
 @account_router.get("/{account_id}/positions")
-async def positions_by_account(
+async def account_positions(
     account_id: AccountId,
     user: Annotated[User, Depends(current_user)],
     services: DepContainer,
@@ -192,3 +191,30 @@ async def positions_by_account(
     authorization_api.check_entity_owned_by_user(user, account)
 
     return await position_service.get_positions_by_account_with_security(account_id)
+
+
+@account_router.post("/{account_id}/sync")
+async def account_sync_positions(
+    account_id: AccountId,
+    user: Annotated[User, Depends(current_user)],
+    services: DepContainer,
+) -> dict:
+    """
+    Enqueue a background task to sync positions for the given account.
+    """
+    authorization_api = await services.aget(AuthorizationApi)
+    account_repository = await services.aget(AccountRepository)
+    position_service = await services.aget(PositionService)
+
+    account = await account_repository.get(account_id)
+    if account is None:
+        raise HTTPException(status_code=404, detail="Account not found")
+
+    authorization_api.check_entity_owned_by_user(user, account)
+
+    try:
+        await position_service.sync_account_positions(user.id, account_id)
+    except AccountNotFoundError as e:
+        raise HTTPException(status_code=404, detail=str(e)) from e
+
+    return {"accepted": True}

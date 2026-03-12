@@ -36,7 +36,7 @@ class SecurityModel(BaseModel):  # pylint: disable=too-few-public-methods
     exchange: Mapped[str] = mapped_column(String)
     currency: Mapped[str] = mapped_column(String)
     name: Mapped[str] = mapped_column(String)
-    isin: Mapped[str] = mapped_column(String, nullable=True)
+    isin: Mapped[str | None] = mapped_column(String, nullable=True)
     is_active: Mapped[bool] = mapped_column(Boolean, default=True)
     updated_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), default=func.now(), onupdate=func.now()
@@ -57,6 +57,8 @@ class SecurityBrokerModel(BaseModel):
     broker_symbol: Mapped[str] = mapped_column(String)
     broker_exchange: Mapped[str] = mapped_column(String)
     broker_name: Mapped[str] = mapped_column(String)
+    mapped_symbol: Mapped[str] = mapped_column(String)
+    mapped_exchange: Mapped[str] = mapped_column(String)
     security_id: Mapped[SecurityId] = mapped_column(
         Uuid, ForeignKey("market_securities.id")
     )
