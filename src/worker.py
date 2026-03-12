@@ -7,7 +7,6 @@ from src.config.settings import settings
 
 class HueyWithRegistry(RedisHuey):
     svcs_registry: Registry | None = None
-    svcs_container: Container | None = None
 
 
 huey = HueyWithRegistry("retail-portfolio", url=settings.redis_url)
@@ -31,15 +30,12 @@ def setup_worker_services():
     registry = Registry()
     register_services(registry, worker_sessionmanager)
     huey.svcs_registry = registry
-    huey.svcs_container = Container(registry)
 
 
 @huey.on_shutdown()
 def teardown_worker_services():
     if huey.svcs_registry is not None:
         huey.svcs_registry.close()
-    if huey.svcs_container is not None:
-        huey.svcs_container.close()
 
 
 # Import tasks to ensure they are registered with Huey
