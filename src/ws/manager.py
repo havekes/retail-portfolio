@@ -90,8 +90,10 @@ class ConnectionManager:
             await asyncio.sleep(5)
             self._pubsub_task = asyncio.create_task(self._listen_for_messages())
 
-    async def connect(self, websocket: WebSocket, user_id: UserId):
-        await websocket.accept()
+    async def connect(
+        self, websocket: WebSocket, user_id: UserId, subprotocol: str | None = None
+    ):
+        await websocket.accept(subprotocol=subprotocol)
         if user_id not in self.active_connections:
             self.active_connections[user_id] = []
         self.active_connections[user_id].append(websocket)

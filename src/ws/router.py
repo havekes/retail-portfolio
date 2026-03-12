@@ -10,8 +10,12 @@ ws_router = APIRouter()
 @ws_router.websocket("/api/ws")
 async def websocket_endpoint(
     websocket: WebSocket,
-    token: str,
 ):
+    token = websocket.headers.get("sec-websocket-protocol")
+    if not token:
+        await websocket.close(code=1008)
+        return
+
     registry = websocket.app.state.svcs_registry
     async with svcs.Container(registry) as services:
         user_api = await services.aget(UserApi)
@@ -21,7 +25,7 @@ async def websocket_endpoint(
             await websocket.close(code=1008)
             return
 
-        await ws_manager.connect(websocket, user.id)
+        await ws_manager.connect(websocket, user.id, subprotocol=token)
         try:
             while True:
                 # We just want to keep the connection alive

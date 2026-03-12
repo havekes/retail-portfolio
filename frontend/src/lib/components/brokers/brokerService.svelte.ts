@@ -2,6 +2,7 @@ import { brokerClient } from '@/api/brokerClient';
 import type { BrokerAccount, LoginCredentials } from '@/api/types/broker';
 import type { BrokerUser, BackendInstitution } from '@/types/broker/broker';
 import { Institution } from '@/types/account';
+import { getContext, setContext } from 'svelte';
 
 export class BrokerService {
 	isLoading = $state(false);
@@ -44,4 +45,14 @@ export class BrokerService {
 	}
 }
 
-export const brokerService = new BrokerService();
+const BROKER_SERVICE_KEY = Symbol('broker-service');
+
+export function setBrokerService() {
+	const service = new BrokerService();
+	setContext(BROKER_SERVICE_KEY, service);
+	return service;
+}
+
+export function getBrokerService() {
+	return getContext<BrokerService>(BROKER_SERVICE_KEY);
+}

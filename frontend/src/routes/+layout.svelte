@@ -6,8 +6,11 @@
 	import { userStore } from '$lib/stores/userStore';
 	import type { User } from '$lib/types/user';
 	import { resolve } from '$app/paths';
+	import { setBrokerService } from '$lib/components/brokers/brokerService.svelte';
 
 	let { children } = $props();
+
+	setBrokerService();
 
 	let user: User | null = $state(null);
 	userStore.subscribe((authState) => (user = authState.user));

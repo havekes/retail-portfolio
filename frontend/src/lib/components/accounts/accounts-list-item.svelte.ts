@@ -35,18 +35,4 @@ export class AccountsListItemState {
 			throw error;
 		}
 	}
-
-	async syncPositions(id: string) {
-		try {
-			// Eagerly set syncing state to improve responsiveness
-			// We rely on the parent (AccountsListState) which manages the syncing set.
-			// But since we don't have direct access here easily (without props or context),
-			// let's just make sure the backend call is made.
-			// Wait, the parent has syncingAccountIds. I should really update it there.
-			await accountClient.syncPositions(id);
-		} catch (error) {
-			console.error('Failed to sync positions', error);
-			throw error;
-		}
-	}
 }

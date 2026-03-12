@@ -1,4 +1,4 @@
-import { brokerService } from './brokerService.svelte';
+import { getBrokerService, type BrokerService } from './brokerService.svelte';
 import { accountClient } from '$lib/api/accountClient';
 import type { BrokerUser } from '@/types/broker/broker';
 import type { Account } from '@/types/account';
@@ -19,10 +19,14 @@ export class SyncAccountsModalState {
 	accountsToUnsync = $state<Account[]>([]);
 	errorMessage = $state<string | null>(null);
 
+	private brokerService: BrokerService;
+
 	constructor(
 		private getProps: () => SyncAccountsModalProps,
 		private setOpen: (val: boolean) => void
-	) {}
+	) {
+		this.brokerService = getBrokerService();
+	}
 
 	initCheckedState = () => {
 		const props = this.getProps();
@@ -70,7 +74,7 @@ export class SyncAccountsModalState {
 		const props = this.getProps();
 		try {
 			if (checkedExternalIds.length > 0) {
-				await brokerService.importBrokerAccounts(props.brokerUser.id, checkedExternalIds);
+				await this.brokerService.importBrokerAccounts(props.brokerUser.id, checkedExternalIds);
 			}
 
 			for (const acc of this.accountsToUnsync) {

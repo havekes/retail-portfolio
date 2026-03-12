@@ -28,6 +28,7 @@ from src.worker import huey
 def mock_account():
     return Account(
         id=uuid4(),
+        external_id="external-account-id",
         name="Test Account",
         user_id=uuid4(),
         integration_user_id=uuid4(),

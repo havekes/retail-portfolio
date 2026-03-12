@@ -1,4 +1,4 @@
-import { brokerService } from './brokerService.svelte';
+import { getBrokerService, type BrokerService } from './brokerService.svelte';
 import type { BrokerUser } from '@/types/broker/broker';
 
 export class BrokersListState {
@@ -7,13 +7,17 @@ export class BrokersListState {
 	errorMessage = $state<string | null>(null);
 	isModalOpen = $state(false);
 
-	constructor() {}
+	private brokerService: BrokerService;
+
+	constructor() {
+		this.brokerService = getBrokerService();
+	}
 
 	loadUsers = async () => {
 		this.isLoading = true;
 		this.errorMessage = null;
 		try {
-			this.users = await brokerService.getBrokerUsers();
+			this.users = await this.brokerService.getBrokerUsers();
 		} catch (error) {
 			this.errorMessage = error instanceof Error ? error.message : 'Unknown error';
 		} finally {
