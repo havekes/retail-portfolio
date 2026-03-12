@@ -17,6 +17,7 @@ class Account(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
     id: AccountId
+    external_id: str
     name: str
     user_id: UserId
     integration_user_id: UUID | None = None

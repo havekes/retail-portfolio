@@ -1,5 +1,5 @@
 import { SvelteSet } from 'svelte/reactivity';
-import { brokerService } from './brokerService.svelte';
+import { getBrokerService, type BrokerService } from './brokerService.svelte';
 import { accountClient } from '$lib/api/accountClient';
 import type { BrokerUser } from '@/types/broker/broker';
 import type { Account } from '@/types/account';
@@ -9,13 +9,17 @@ export class BrokersListItemState {
 	isSyncModalOpen = $state(false);
 	fetchTrigger = $state(0);
 
-	constructor(private getBrokerUser: () => BrokerUser) {}
+	private brokerService: BrokerService;
+
+	constructor(private getBrokerUser: () => BrokerUser) {
+		this.brokerService = getBrokerService();
+	}
 
 	get accountsPromise() {
 		const user = this.getBrokerUser();
 		// Trigger dependency on fetchTrigger
 		void this.fetchTrigger;
-		return brokerService.getBrokerUserAccounts(user.id);
+		return this.brokerService.getBrokerUserAccounts(user.id);
 	}
 
 	get internalAccountsPromise() {
@@ -34,6 +38,6 @@ export class BrokersListItemState {
 
 	renameBrokerUser = async (val: string) => {
 		const user = this.getBrokerUser();
-		await brokerService.updateBrokerUserDisplayName(user.id, val);
+		await this.brokerService.updateBrokerUserDisplayName(user.id, val);
 	};
 }

@@ -192,11 +192,13 @@ async def integration_import_accounts(
         broker_accounts, user.id, integration_user.id
     )
 
-    sync_account_positions_task(
-        user.id,
-        integration_user.id,
-        [acc.id for acc in imported_accounts],
-    )
+    for account in imported_accounts:
+        sync_account_positions_task.delay(
+            user.id,
+            account,
+            account.external_id,
+            get_broker_gateway_class(integration_user.institution_id),
+        )
 
     return IntegrationImportResponse(imported_count=len(imported_accounts))
 

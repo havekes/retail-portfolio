@@ -52,14 +52,14 @@ export class AccountsListState {
 			const isHttps = apiBaseUrl.startsWith('https');
 			const protocol = isHttps ? 'wss:' : 'ws:';
 			const host = apiBaseUrl.replace(/^https?:\/\//, '').split('/')[0];
-			wsUrl = `${protocol}//${host}/api/ws?token=${token}`;
+			wsUrl = `${protocol}//${host}/api/ws`;
 		} else {
 			const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-			wsUrl = `${protocol}//${window.location.host}/api/ws?token=${token}`;
+			wsUrl = `${protocol}//${window.location.host}/api/ws`;
 		}
 
 		console.log('Connecting to WebSocket:', wsUrl);
-		this.ws = new WebSocket(wsUrl);
+		this.ws = new WebSocket(wsUrl, [token]);
 
 		this.ws.onopen = () => {
 			this.wsConnected = true;

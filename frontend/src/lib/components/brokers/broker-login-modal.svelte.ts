@@ -1,4 +1,4 @@
-import { brokerService } from './brokerService.svelte';
+import { getBrokerService, type BrokerService } from './brokerService.svelte';
 import type { BackendInstitution } from '@/types/broker/broker';
 
 export class BrokerLoginModalState {
@@ -9,11 +9,15 @@ export class BrokerLoginModalState {
 	error = $state<string | null>(null);
 	requiresOtp = $state(false);
 
+	private brokerService: BrokerService;
+
 	constructor(
 		private getInstitution: () => BackendInstitution | null,
 		private onSuccess: () => void,
 		private close: () => void
-	) {}
+	) {
+		this.brokerService = getBrokerService();
+	}
 
 	reset = () => {
 		this.username = '';
@@ -32,7 +36,7 @@ export class BrokerLoginModalState {
 		this.error = null;
 
 		try {
-			await brokerService.login(institution.id, {
+			await this.brokerService.login(institution.id, {
 				username: this.username,
 				password: this.password ? this.password : undefined,
 				otp: this.requiresOtp ? this.otp : undefined

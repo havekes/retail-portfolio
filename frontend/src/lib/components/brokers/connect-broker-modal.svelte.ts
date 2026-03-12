@@ -1,4 +1,4 @@
-import { brokerService } from './brokerService.svelte';
+import { getBrokerService, type BrokerService } from './brokerService.svelte';
 import type { BackendInstitution } from '@/types/broker/broker';
 
 export class ConnectBrokerModalState {
@@ -7,7 +7,11 @@ export class ConnectBrokerModalState {
 	isLoginModalOpen = $state(false);
 	errorMessage = $state<string | null>(null);
 
-	constructor(private setOpen: (val: boolean) => void) {}
+	private brokerService: BrokerService;
+
+	constructor(private setOpen: (val: boolean) => void) {
+		this.brokerService = getBrokerService();
+	}
 
 	reset = () => {
 		this.selectedInstitution = null;
@@ -17,7 +21,7 @@ export class ConnectBrokerModalState {
 	loadInstitutions = async () => {
 		this.errorMessage = null;
 		try {
-			this.institutions = await brokerService.getAvailableInstitutions();
+			this.institutions = await this.brokerService.getAvailableInstitutions();
 		} catch (e) {
 			console.error('Failed to load institutions', e);
 			this.errorMessage =
