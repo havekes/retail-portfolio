@@ -91,37 +91,38 @@ async def _sync_account_positions_task(
     """
     Async implementation of sync_positions_task.
     """
-    if huey.svcs_container is None:
+    if huey.svcs_registry is None:
         msg = "Worker registry not initialized"
         raise RuntimeError(msg)
 
-    try:
-        # Send sync_started websocket message
-        await ws_manager.send_personal_message(
-            AccountSyncMessage(
-                type=WsEventType.ACCOUNT_SYNC_STARTED, account_id=account.id
-            ).model_dump(mode="json"),
-            user_id,
-        )
+    async with Container(huey.svcs_registry) as svcs_container:
+        try:
+            # Send sync_started websocket message
+            await ws_manager.send_personal_message(
+                AccountSyncMessage(
+                    type=WsEventType.ACCOUNT_SYNC_STARTED, account_id=account.id
+                ).model_dump(mode="json"),
+                user_id,
+            )
 
-        await _do_sync_positions(
-            account, broker_account_id, broker_class, huey.svcs_container
-        )
+            await _do_sync_positions(
+                account, broker_account_id, broker_class, svcs_container
+            )
 
-        # Send sync_finished websocket message
-        await ws_manager.send_personal_message(
-            AccountSyncMessage(
-                type=WsEventType.ACCOUNT_SYNC_FINISHED, account_id=account.id
-            ).model_dump(mode="json"),
-            user_id,
-        )
-    except Exception:
-        logger.exception("Failed to sync positions for account %s", account.id)
-        # Send sync_failed websocket message
-        await ws_manager.send_personal_message(
-            AccountSyncMessage(
-                type=WsEventType.ACCOUNT_SYNC_FAILED, account_id=account.id
-            ).model_dump(mode="json"),
-            user_id,
-        )
-        raise
+            # Send sync_finished websocket message
+            await ws_manager.send_personal_message(
+                AccountSyncMessage(
+                    type=WsEventType.ACCOUNT_SYNC_FINISHED, account_id=account.id
+                ).model_dump(mode="json"),
+                user_id,
+            )
+        except Exception:
+            logger.exception("Failed to sync positions for account %s", account.id)
+            # Send sync_failed websocket message
+            await ws_manager.send_personal_message(
+                AccountSyncMessage(
+                    type=WsEventType.ACCOUNT_SYNC_FAILED, account_id=account.id
+                ).model_dump(mode="json"),
+                user_id,
+            )
+            raise

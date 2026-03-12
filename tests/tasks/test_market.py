@@ -1,5 +1,5 @@
 import asyncio
-from unittest.mock import AsyncMock, patch
+from unittest.mock import AsyncMock, patch, MagicMock
 
 import pytest
 
@@ -18,8 +18,12 @@ async def test_daily_price_update_success():
 
     mock_container = AsyncMock()
     mock_container.aget.return_value = mock_market_service
+    mock_container.__aenter__.return_value = mock_container
 
-    with patch("src.market.task.huey.svcs_container", mock_container):
+    with (
+        patch("src.market.task.huey.svcs_registry", MagicMock()),
+        patch("src.market.task.Container", return_value=mock_container),
+    ):
         await _daily_price_update()
 
         mock_container.aget.assert_awaited_once_with(MarketService)
@@ -36,9 +40,11 @@ async def test_daily_price_update_logs_results():
 
     mock_container = AsyncMock()
     mock_container.aget.return_value = mock_market_service
+    mock_container.__aenter__.return_value = mock_container
 
     with (
-        patch("src.market.task.huey.svcs_container", mock_container),
+        patch("src.market.task.huey.svcs_registry", MagicMock()),
+        patch("src.market.task.Container", return_value=mock_container),
         patch("src.market.task.logger") as mock_logger,
     ):
         await _daily_price_update()
@@ -51,7 +57,7 @@ async def test_daily_price_update_logs_results():
 @pytest.mark.asyncio
 async def test_daily_price_update_raises_if_no_container():
     """Verify that _daily_price_update raises an error if worker registry is not initialized."""
-    with patch("src.market.task.huey.svcs_container", None):
+    with patch("src.market.task.huey.svcs_registry", None):
         with pytest.raises(RuntimeError, match="Worker registry not initialized"):
             await _daily_price_update()
 
