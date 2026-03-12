@@ -44,10 +44,7 @@ class SqlAlchemySecurityRepository(SecurityRepository):
         if security_model is None:
             raise SecurityNotFoundError(security_id)
 
-        result = SecuritySchema.model_validate(security_model)
-        await self._session.commit()
-
-        return result
+        return SecuritySchema.model_validate(security_model)
 
     @override
     async def get_or_create(self, security: SecuritySchema) -> SecuritySchema:
@@ -61,9 +58,7 @@ class SqlAlchemySecurityRepository(SecurityRepository):
         existing_security = existing.scalar_one_or_none()
 
         if existing_security:
-            result = SecuritySchema.model_validate(existing_security)
-            await self._session.commit()
-            return result
+            return SecuritySchema.model_validate(existing_security)
 
         # If not exists, insert the new security
         values = security.model_dump()
@@ -80,9 +75,7 @@ class SqlAlchemySecurityRepository(SecurityRepository):
             .limit(1)
         )
         security_model = security_model.scalar_one()
-        result = SecuritySchema.model_validate(security_model)
-        await self._session.commit()
-        return result
+        return SecuritySchema.model_validate(security_model)
 
     @override
     async def get_all_active_securities(self) -> list[SecuritySchema]:
@@ -125,9 +118,7 @@ class SqlAlchemySecurityBrokerRepository(SecurityBrokerRepository):
         existing_broker = existing.scalar_one_or_none()
 
         if existing_broker:
-            result = SecurityBrokerSchema.model_validate(existing_broker)
-            await self._session.commit()
-            return result
+            return SecurityBrokerSchema.model_validate(existing_broker)
 
         values = {
             k: v
@@ -151,9 +142,7 @@ class SqlAlchemySecurityBrokerRepository(SecurityBrokerRepository):
             .limit(1)
         )
         security_broker_model = security_broker_model.scalar_one()
-        result = SecurityBrokerSchema.model_validate(security_broker_model)
-        await self._session.commit()
-        return result
+        return SecurityBrokerSchema.model_validate(security_broker_model)
 
 
 async def sqlalchemy_security_broker_repository_factory(
@@ -181,9 +170,7 @@ class SqlAlchemyPriceRepository(PriceRepository):
             .where(PriceModel.date <= to_date)
             .order_by(PriceModel.date)
         )
-        result = [PriceSchema.model_validate(price) for price in prices.scalars()]
-        await self._session.commit()
-        return result
+        return [PriceSchema.model_validate(price) for price in prices.scalars()]
 
     @override
     async def get_price_on_date(
@@ -195,7 +182,6 @@ class SqlAlchemyPriceRepository(PriceRepository):
             .where(PriceModel.date == date)
         )
         result = price.scalar_one_or_none()
-        await self._session.commit()
         if result is None:
             return None
         return PriceSchema.model_validate(result)
@@ -209,7 +195,6 @@ class SqlAlchemyPriceRepository(PriceRepository):
             .limit(1)
         )
         result = price.scalar_one_or_none()
-        await self._session.commit()
         if result is None:
             return None
         return PriceSchema.model_validate(result)
