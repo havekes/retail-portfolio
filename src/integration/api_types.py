@@ -40,3 +40,7 @@ class IntegrationImportPositionsRequest(BaseModel):
 
 class IntegrationImportResponse(BaseModel):
     imported_count: int
+
+
+class IntegrationUserUpdateDisplayNameRequest(BaseModel):
+    display_name: str

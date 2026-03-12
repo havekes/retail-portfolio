@@ -28,6 +28,9 @@ class AccountService:
         if not user_account_ids.issuperset(set(account_ids)):
             raise AccountsDoNotBelongToUserError(account_ids=account_ids)
 
+    async def delete_account(self, account_id: AccountId) -> None:
+        await self._account_repository.delete(account_id)
+
 
 async def account_service_factory(container: Container) -> AccountService:
     return AccountService(

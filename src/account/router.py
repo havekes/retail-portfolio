@@ -134,6 +134,27 @@ async def account_rename(
     return await account_repository.rename(account_id, account_rename_request.name)
 
 
+@account_router.delete("/{account_id}")
+async def account_delete(
+    account_id: AccountId,
+    user: Annotated[User, Depends(current_user)],
+    services: DepContainer,
+) -> Response:
+    """
+    Delete an account.
+    """
+    authorization_api = await services.aget(AuthorizationApi)
+    account_repository = await services.aget(AccountRepository)
+    account_service = await services.aget(AccountService)
+
+    account = await account_repository.get(account_id)
+    authorization_api.check_entity_owned_by_user(user, account)
+
+    await account_service.delete_account(account_id)
+
+    return Response(status_code=204)
+
+
 @account_router.get("/{account_id}/totals")
 async def account_totals(
     account_id: AccountId,

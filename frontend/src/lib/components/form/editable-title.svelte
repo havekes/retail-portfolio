@@ -4,7 +4,17 @@
 	import Input from '../ui/input/input.svelte';
 	import Button from '../ui/button/button.svelte';
 
-	let { value = $bindable() }: { value: string } = $props();
+	let {
+		value = $bindable(),
+		onSave,
+		containerClass = '',
+		textClass = 'font-semibold text-lg'
+	}: {
+		value: string;
+		onSave?: (newValue: string) => void;
+		containerClass?: string;
+		textClass?: string;
+	} = $props();
 	let isEditing = $state(false);
 	let tempValue = $state(value);
 
@@ -14,32 +24,34 @@
 		}
 
 		e.preventDefault();
-		value = tempValue;
+		if (value !== tempValue) {
+			value = tempValue;
+			if (onSave) onSave(tempValue);
+		}
 		isEditing = false;
 	};
 </script>
 
-<div class="group flex items-center">
+<div class="flex items-center gap-2 {containerClass}">
 	{#if isEditing}
 		<Input bind:value={tempValue} onkeydown={save} />
 		<Button
 			variant="ghost"
+			size="icon-sm"
 			onclick={save}
-			class="cursor-pointer text-muted-foreground hover:text-accent-foreground"
+			class="shrink-0 cursor-pointer text-muted-foreground hover:text-accent-foreground"
 		>
 			<Save size={14} />
 		</Button>
 	{:else}
-		<h3 class="font-semibold">{value}</h3>
+		<div class={textClass}>{value}</div>
 		<Button
 			variant="ghost"
+			size="icon-sm"
 			onclick={() => (isEditing = !isEditing)}
-			class="cursor-pointer text-muted-foreground hover:text-accent-foreground"
+			class="shrink-0 cursor-pointer text-muted-foreground hover:text-foreground"
 		>
-			<Pencil
-				size={14}
-				class="hidden opacity-0 transition-opacity group-hover:block group-hover:opacity-100"
-			/>
+			<Pencil size={14} />
 		</Button>
 	{/if}
 </div>
