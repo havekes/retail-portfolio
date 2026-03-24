@@ -19,11 +19,26 @@ from src.account.model import (
     InstitutionModel,
 )
 from src.config.database import BaseModel, sessionmanager
+from src.ws.manager import ws_manager
 
 # Import all fixtures from modules
 from tests.fixtures.auth import *  # noqa: F401, F403
 from tests.fixtures.account import *  # noqa: F401, F403
 from tests.fixtures.market import *  # noqa: F401, F403
+
+
+# Mock Redis for all tests
+@pytest.fixture(autouse=True)
+def mock_redis(monkeypatch):
+    """Mock Redis connection manager to avoid connecting to real Redis during tests."""
+
+    async def mock_async(*args, **kwargs):  # noqa: ARG001
+        return None
+
+    monkeypatch.setattr(ws_manager, "init_redis", mock_async)
+    monkeypatch.setattr(ws_manager, "close", mock_async)
+    monkeypatch.setattr(ws_manager, "send_personal_message", mock_async)
+    monkeypatch.setattr(ws_manager, "send_personal_message_sync", lambda *args, **kwargs: None)
 
 
 @pytest.fixture(scope="session")
