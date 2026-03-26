@@ -11,6 +11,8 @@ from sqlalchemy.ext.asyncio.engine import AsyncEngine
 # Override database URL before importing app
 os.environ["DATABASE_URL"] = "sqlite+aiosqlite:///:memory:"
 os.environ["SECRET_KEY"] = "7bb26bc4200000a69d07fa542933ef7256c1e47462f9c5a2f9c1dcf562b482f9"
+os.environ["ENVIRONMENT"] = "test"
+os.environ["STUB_EXTERNAL_API"] = "true"
 
 from src.account.api_types import AccountTypeEnum
 from src.account.enum import InstitutionEnum

@@ -1,6 +1,7 @@
 from huey import RedisHuey
+from huey_dashboard import init_worker_signals
 from sqlalchemy.pool import NullPool
-from svcs import Container, Registry
+from svcs import Registry
 
 from src.config.settings import settings
 
@@ -19,6 +20,12 @@ def setup_worker_services():
     from src.config.services import register_services  # noqa: PLC0415
 
     init_logging()
+
+    init_worker_signals(
+        huey=huey,
+        db_url=settings.database_url,
+        redis_url=settings.redis_url,
+    )
 
     # Use NullPool for the worker to avoid "operation in progress" errors
     # during asyncio.run() task cycles.

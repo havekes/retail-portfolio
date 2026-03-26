@@ -90,4 +90,8 @@ class EodhdGateway:
 
 
 def eodhd_gateway_factory():
+    if settings.stub_external_api:
+        from src.stubs.eodhd import StubEodhdGateway  # noqa: PLC0415
+
+        return StubEodhdGateway(api_key=settings.eodhd_api_key)
     return EodhdGateway(api_key=settings.eodhd_api_key)
