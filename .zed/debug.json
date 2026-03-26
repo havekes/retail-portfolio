@@ -1,0 +1,32 @@
+[
+    {
+        "label": "Attach to backend",
+        "adapter": "Debugpy",
+        "request": "attach",
+        "host": "10.0.0.10",
+        "port": 8090,
+        "mode": "remote-attach",
+        "pathMappings": [
+            {
+                "localRoot": "${workspaceFolder}",
+                "remoteRoot": "/app"
+            }
+        ],
+        "justMyCode": false
+    },
+    {
+        "label": "Attach to worker",
+        "adapter": "Debugpy",
+        "request": "attach",
+        "host": "10.0.0.10",
+        "port": 8091,
+        "mode": "remote-attach",
+        "pathMappings": [
+            {
+                "localRoot": "${workspaceFolder}",
+                "remoteRoot": "/app"
+            }
+        ],
+        "justMyCode": false
+    }
+]

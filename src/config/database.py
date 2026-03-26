@@ -33,6 +33,10 @@ class DatabaseSessionManager:
         self._engine = None
         self._sessionmaker = None
 
+    @property
+    def engine(self) -> AsyncEngine | None:
+        return self._engine
+
     @contextlib.asynccontextmanager
     async def connect(self) -> AsyncIterator[AsyncConnection]:
         if self._engine is None:

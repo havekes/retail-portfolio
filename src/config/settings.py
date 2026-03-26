@@ -14,6 +14,9 @@ class Settings(BaseSettings):
 
     eodhd_api_key: str = ""
 
+    # Stub external APIs for testing/local development
+    stub_external_api: bool = False
+
     # Redis
     redis_url: str = "redis://localhost:6379/0"
 
