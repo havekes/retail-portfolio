@@ -4,10 +4,16 @@ import random
 from datetime import date, timedelta
 from decimal import Decimal
 from typing import Any
+from uuid import UUID
 
 import pandas as pd
 
-from src.market.api_types import EodhdSearchResult, HistoricalPrice
+from src.market.api_types import (
+    EodhdSearchResult,
+    HistoricalPrice,
+    SecuritySearchResult,
+)
+from src.market.gateway import MarketGateway
 from src.market.schema import SecuritySchema
 
 
@@ -85,7 +91,7 @@ class StubEodhdAPIClient:
         return data
 
 
-class StubEodhdGateway:
+class StubEodhdGateway(MarketGateway):
     """Stub EODHD gateway for testing."""
 
     _client: StubEodhdAPIClient
@@ -95,53 +101,50 @@ class StubEodhdGateway:
         self._api_key = api_key
         self._client = StubEodhdAPIClient(api_key)
 
-    def search(self, _query: str) -> list[EodhdSearchResult]:
+    def search(self, query: str) -> list[SecuritySearchResult]:
         """Search for securities."""
+        _ = query  # Unused in stub mode
         return [
-            {
-                "Code": "AAPL",
-                "Currency": "USD",
-                "Exchange": "NASDAQ",
-                "Name": "Apple Inc.",
-                "Type": "Common Stock",
-                "Country": "US",
-                "ISIN": "US0378331005",
-                "isPrimary": True,
-                "previousClose": 175.0,
-                "previousCloseDate": "2024-01-15",
-            },
-            {
-                "Code": "MSFT",
-                "Currency": "USD",
-                "Exchange": "NASDAQ",
-                "Name": "Microsoft Corporation",
-                "Type": "Common Stock",
-                "Country": "US",
-                "ISIN": "US5949181045",
-                "isPrimary": True,
-                "previousClose": 380.0,
-                "previousCloseDate": "2024-01-15",
-            },
-            {
-                "Code": "RY",
-                "Currency": "CAD",
-                "Exchange": "TSX",
-                "Name": "Royal Bank of Canada",
-                "Type": "Common Stock",
-                "Country": "CA",
-                "ISIN": "CA7800625089",
-                "isPrimary": True,
-                "previousClose": 120.0,
-                "previousCloseDate": "2024-01-15",
-            },
+            SecuritySearchResult(
+                code="AAPL",
+                exchange="NASDAQ",
+                name="Apple Inc.",
+                currency="USD",
+                security_type="Common Stock",
+                isin="US0378331005",
+                country="US",
+            ),
+            SecuritySearchResult(
+                code="MSFT",
+                exchange="NASDAQ",
+                name="Microsoft Corporation",
+                currency="USD",
+                security_type="Common Stock",
+                isin="US5949181045",
+                country="US",
+            ),
+            SecuritySearchResult(
+                code="RY",
+                exchange="TSX",
+                name="Royal Bank of Canada",
+                currency="CAD",
+                security_type="Common Stock",
+                isin="CA7800625089",
+                country="CA",
+            ),
         ]
 
     def get_price_on_date(
-        self, security: SecuritySchema, date: date
+        self,
+        security_id: UUID,
+        symbol: str,
+        exchange: str,
+        date: date,
     ) -> HistoricalPrice | None:
         """Get price for a security on a specific date."""
+        eodhd_symbol = f"{symbol}.{exchange}"
         data = self._client.get_historical_data(
-            symbol=security.get_eodhd_symbol(),
+            symbol=eodhd_symbol,
             interval="d",
             iso8601_start=date.isoformat(),
             iso8601_end=date.isoformat(),
@@ -150,7 +153,7 @@ class StubEodhdGateway:
         try:
             price = data.iloc[0]
             return HistoricalPrice(
-                security_id=security.id,
+                security_id=security_id,
                 date=date,
                 open=Decimal(str(price["open"])),
                 high=Decimal(str(price["high"])),
@@ -163,11 +166,17 @@ class StubEodhdGateway:
             return None
 
     def get_prices(
-        self, security: SecuritySchema, from_date: date, to_date: date
+        self,
+        security_id: UUID,
+        symbol: str,
+        exchange: str,
+        from_date: date,
+        to_date: date,
     ) -> list[HistoricalPrice]:
         """Get historical prices for a security."""
+        eodhd_symbol = f"{symbol}.{exchange}"
         data = self._client.get_historical_data(
-            symbol=security.get_eodhd_symbol(),
+            symbol=eodhd_symbol,
             interval="d",
             iso8601_start=from_date.isoformat(),
             iso8601_end=to_date.isoformat(),
@@ -182,7 +191,7 @@ class StubEodhdGateway:
             )
             prices.append(
                 HistoricalPrice(
-                    security_id=security.id,
+                    security_id=security_id,
                     date=price_date,
                     open=Decimal(str(row["open"])),
                     high=Decimal(str(row["high"])),

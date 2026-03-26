@@ -3,7 +3,8 @@ from typing import override
 
 from svcs import Container
 
-from src.market.eodhd import EodhdGateway, eodhd_gateway_factory
+from src.market.eodhd import eodhd_gateway_factory
+from src.market.gateway import MarketGateway
 from src.market.repository import PriceRepository
 from src.market.repository_sqlalchemy import sqlalchemy_price_repository_factory
 from src.market.schema import PriceSchema, SecuritySchema
@@ -11,11 +12,11 @@ from src.market.schema import PriceSchema, SecuritySchema
 
 class EodhdPriceRepository(PriceRepository):
     _db_repository: PriceRepository
-    _eodhd: EodhdGateway
+    _gateway: MarketGateway
 
-    def __init__(self, db_repository: PriceRepository, eodhd: EodhdGateway):
+    def __init__(self, db_repository: PriceRepository, gateway: MarketGateway):
         self._db_repository = db_repository
-        self._eodhd = eodhd
+        self._gateway = gateway
 
     @override
     async def get_prices(
@@ -29,7 +30,9 @@ class EodhdPriceRepository(PriceRepository):
         if existing_prices and existing_prices[-1].date == to_date:
             return existing_prices
 
-        new_prices_eodhd = self._eodhd.get_prices(security, from_date, to_date)
+        new_prices_eodhd = self._gateway.get_prices(
+            security.id, security.symbol, security.exchange, from_date, to_date
+        )
         new_prices = [
             PriceSchema.from_historical_price(price) for price in new_prices_eodhd
         ]
@@ -61,7 +64,9 @@ class EodhdPriceRepository(PriceRepository):
         if existing_price is not None:
             return existing_price
 
-        new_price_eodhd = self._eodhd.get_price_on_date(security, date)
+        new_price_eodhd = self._gateway.get_price_on_date(
+            security.id, security.symbol, security.exchange, date
+        )
         if new_price_eodhd is None:
             return None
         new_price = PriceSchema.model_validate(new_price_eodhd)
@@ -81,5 +86,5 @@ async def eodhd_price_repository_factory(
 ) -> EodhdPriceRepository:
     return EodhdPriceRepository(
         db_repository=await sqlalchemy_price_repository_factory(container),
-        eodhd=eodhd_gateway_factory(),
+        gateway=eodhd_gateway_factory(),
     )

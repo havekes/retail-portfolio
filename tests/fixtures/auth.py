@@ -16,36 +16,44 @@ from src.auth.repository_sqlalchemy import SqlAlchemyUserRepository
 from src.auth.schema import UserSchema
 from src.main import app
 from src.market import api, repository_eodhd
-from src.market.api_types import EodhdSearchResult, HistoricalPrice
+from src.market.api_types import (
+    EodhdSearchResult,
+    HistoricalPrice,
+    SecuritySearchResult,
+)
+from src.market.gateway import MarketGateway
 from src.market.schema import SecuritySchema
+from uuid import UUID
 
 
-class MockEodhdGateway:
+class MockEodhdGateway(MarketGateway):
     """Mock implementation of EodhdGateway for testing."""
 
-    def search(self, query: str) -> list[EodhdSearchResult]:  # noqa: ARG002
+    def search(self, query: str) -> list[SecuritySearchResult]:  # noqa: ARG002
         """Return a mock search result."""
         return [
-            {
-                "Code": "AAPL",
-                "Currency": "USD",
-                "Exchange": "US",
-                "Name": "Apple Inc",
-                "Type": "Common Stock",
-                "Country": "USA",
-                "ISIN": "US0378331005",
-                "isPrimary": True,
-                "previousClose": 170.00,
-                "previousCloseDate": "2024-01-01",
-            }
+            SecuritySearchResult(
+                code="AAPL",
+                exchange="NASDAQ",
+                name="Apple Inc",
+                currency="USD",
+                security_type="Common Stock",
+                isin="US0378331005",
+                country="US",
+            )
         ]
 
     def get_price_on_date(
-        self, security: SecuritySchema, date: date  # noqa: ARG002
+        self,
+        security_id: UUID,
+        symbol: str,
+        exchange: str,
+        date: date,
     ) -> HistoricalPrice | None:
         """Return a mock price result."""
+        _ = symbol, exchange  # Unused in mock
         return HistoricalPrice(
-            security_id=security.id,
+            security_id=security_id,
             date=date,
             open=Decimal("150.0"),
             high=Decimal("155.0"),
@@ -56,12 +64,18 @@ class MockEodhdGateway:
         )
 
     def get_prices(
-        self, security: SecuritySchema, from_date: date, to_date: date  # noqa: ARG002
+        self,
+        security_id: UUID,
+        symbol: str,
+        exchange: str,
+        from_date: date,
+        to_date: date,
     ) -> list[HistoricalPrice]:
         """Return a mock price list."""
+        _ = symbol, exchange, to_date  # Unused in mock
         return [
             HistoricalPrice(
-                security_id=security.id,
+                security_id=security_id,
                 date=from_date,
                 open=Decimal("150.0"),
                 high=Decimal("155.0"),
@@ -90,6 +104,7 @@ async def auth_client(
     # Create UserApi to generate token
     from src.auth.service import EmailService, EmailVerificationService
     from src.auth.repository_sqlalchemy import SqlAlchemyVerificationTokenRepository
+
     user_repository = SqlAlchemyUserRepository(session=db_session)
     token_repository = SqlAlchemyVerificationTokenRepository(session=db_session)
     email_service = EmailService()
@@ -98,7 +113,10 @@ async def auth_client(
         token_repository=token_repository,
         email_service=email_service,
     )
-    user_api = UserApi(user_repository=user_repository, email_verification_service=email_verification_service)
+    user_api = UserApi(
+        user_repository=user_repository,
+        email_verification_service=email_verification_service,
+    )
 
     # Generate access token for test user
     access_token = user_api.create_access_token(test_user.email)

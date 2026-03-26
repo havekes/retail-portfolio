@@ -6,9 +6,9 @@ from uuid import uuid4
 import pytest
 
 from src.market.api_types import HistoricalPrice, SecurityId
+from src.market.gateway import MarketGateway
 from src.market.schema import PriceSchema, SecuritySchema
 from src.market.service import MarketService
-from src.market.eodhd import EodhdGateway
 from src.market.repository import PriceRepository, SecurityRepository
 
 
@@ -39,7 +39,7 @@ class MockPriceRepository(PriceRepository):
     @override
     async def get_prices(self, security, from_date, to_date):
         return []
-        
+
     @override
     async def get_latest_price(self, security):
         return None
@@ -59,9 +59,8 @@ class MockPriceRepository(PriceRepository):
         return prices
 
 
-class MockEodhdGateway(EodhdGateway):
+class MockEodhdGateway(MarketGateway):
     def __init__(self, should_fail: bool = False):
-        super().__init__(api_key="demo")
         self.should_fail = should_fail
 
     @override
@@ -69,13 +68,17 @@ class MockEodhdGateway(EodhdGateway):
         return []
 
     @override
-    def get_prices(self, security, from_date, to_date):
+    def get_price_on_date(self, security_id, symbol, exchange, date):
+        return None
+
+    @override
+    def get_prices(self, security_id, symbol, exchange, from_date, to_date):
         if self.should_fail:
             raise RuntimeError("API Error")
-            
+
         return [
             HistoricalPrice(
-                security_id=security.id,
+                security_id=security_id,
                 date=to_date,
                 open=Decimal("100.0"),
                 high=Decimal("105.0"),
@@ -106,13 +109,13 @@ async def test_update_daily_prices_for_all_securities():
     eodhd_gateway = MockEodhdGateway()
 
     service = MarketService(
-        eodhd=eodhd_gateway,
+        gateway=eodhd_gateway,
         price_repository=price_repo,
         security_repository=security_repo,
     )
 
     result = await service.update_daily_prices_for_all_securities()
-    
+
     assert result == {"success": 1, "failure": 0}
     assert len(price_repo.saved_prices) == 1
     assert price_repo.saved_prices[0].security_id == securities[0].id
@@ -140,24 +143,28 @@ async def test_update_daily_prices_failure_continues():
             isin="US111",
             is_active=True,
             updated_at=datetime.now(UTC),
-        )
+        ),
     ]
     security_repo = MockSecurityRepository(securities)
     price_repo = MockPriceRepository()
-    
+
     class FlakyGateway(MockEodhdGateway):
         @override
         def search(self, query):
             return []
 
         @override
-        def get_prices(self, security, from_date, to_date):
-            if security.symbol == "BAD":
+        def get_price_on_date(self, security_id, symbol, exchange, date):
+            return None
+
+        @override
+        def get_prices(self, security_id, symbol, exchange, from_date, to_date):
+            if symbol == "BAD":
                 raise RuntimeError("API Error")
-            
+
             return [
                 HistoricalPrice(
-                    security_id=security.id,
+                    security_id=security_id,
                     date=to_date,
                     open=Decimal("10.0"),
                     high=Decimal("15.0"),
@@ -167,19 +174,18 @@ async def test_update_daily_prices_failure_continues():
                     volume=100,
                 )
             ]
-            
+
     eodhd_gateway = FlakyGateway()
 
     service = MarketService(
-        eodhd=eodhd_gateway,
+        gateway=eodhd_gateway,
         price_repository=price_repo,
         security_repository=security_repo,
     )
 
     result = await service.update_daily_prices_for_all_securities()
-    
+
     # Expect 1 success and 1 failure
     assert result == {"success": 1, "failure": 1}
     assert len(price_repo.saved_prices) == 1
     assert price_repo.saved_prices[0].security_id == securities[1].id
-

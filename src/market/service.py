@@ -4,7 +4,8 @@ from datetime import UTC, date, datetime, timedelta
 
 from svcs import Container
 
-from src.market.eodhd import EodhdGateway, eodhd_gateway_factory
+from src.market.eodhd import eodhd_gateway_factory
+from src.market.gateway import MarketGateway
 from src.market.repository import PriceRepository, SecurityRepository
 from src.market.schema import PriceSchema, SecuritySchema
 
@@ -12,17 +13,17 @@ logger = logging.getLogger(__name__)
 
 
 class MarketService:
-    _eodhd: EodhdGateway
+    _gateway: MarketGateway
     _price_repository: PriceRepository
     _security_repository: SecurityRepository
 
     def __init__(
         self,
-        eodhd: EodhdGateway,
+        gateway: MarketGateway,
         price_repository: PriceRepository,
         security_repository: SecurityRepository,
     ):
-        self._eodhd = eodhd
+        self._gateway = gateway
         self._price_repository = price_repository
         self._security_repository = security_repository
 
@@ -30,9 +31,13 @@ class MarketService:
         self, security: SecuritySchema, from_date: date, to_date: date
     ) -> bool:
         try:
-            # EODHD Gateway returns a list of HistoricalPrice
-            prices = self._eodhd.get_prices(
-                security, from_date=from_date, to_date=to_date
+            # Gateway returns a list of HistoricalPrice
+            prices = self._gateway.get_prices(
+                security.id,
+                security.symbol,
+                security.exchange,
+                from_date=from_date,
+                to_date=to_date,
             )
         except Exception:
             # Catching general Exception to prevent one failure from stopping jobs
@@ -70,7 +75,7 @@ class MarketService:
 
 async def market_service_factory(container: Container) -> MarketService:
     return MarketService(
-        eodhd=eodhd_gateway_factory(),
+        gateway=eodhd_gateway_factory(),
         price_repository=await container.aget(PriceRepository),
         security_repository=await container.aget(SecurityRepository),
     )

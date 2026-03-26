@@ -8,8 +8,14 @@ from stockholm import Money
 from svcs import Container
 
 from src.account.enum import InstitutionEnum
-from src.market.api_types import Security, SecurityId
-from src.market.eodhd import EodhdGateway, eodhd_gateway_factory
+from src.market.api_types import (
+    EodhdSearchResult,
+    Security,
+    SecurityId,
+    SecuritySearchResult,
+)
+from src.market.eodhd import eodhd_gateway_factory
+from src.market.gateway import MarketGateway
 from src.market.repository import (
     PriceRepository,
     SecurityBrokerRepository,
@@ -21,17 +27,17 @@ logger = logging.getLogger(__name__)
 
 
 class MarketPricesApi:
-    _eodhd: EodhdGateway
+    _gateway: MarketGateway
     _price_repository: PriceRepository
     _security_repository: SecurityRepository
 
     def __init__(
         self,
-        eodhd: EodhdGateway,
+        gateway: MarketGateway,
         price_repository: PriceRepository,
         security_repository: SecurityRepository,
     ):
-        self._eodhd = eodhd
+        self._gateway = gateway
         self._price_repository = price_repository
         self._security_repository = security_repository
 
@@ -47,26 +53,26 @@ class MarketPricesApi:
 
 async def market_prices_factory(container: Container) -> MarketPricesApi:
     return MarketPricesApi(
-        eodhd=eodhd_gateway_factory(),
+        gateway=eodhd_gateway_factory(),
         price_repository=await container.aget(PriceRepository),
         security_repository=await container.aget(SecurityRepository),
     )
 
 
 class SecurityApi:
-    _eodhd: EodhdGateway
+    _gateway: MarketGateway
     _market_prices_api: MarketPricesApi
     _security_broker_repository: SecurityBrokerRepository
     _security_repository: SecurityRepository
 
     def __init__(
         self,
-        eodhd: EodhdGateway,
+        gateway: MarketGateway,
         market_prices_api: MarketPricesApi,
         security_broker_repository: SecurityBrokerRepository,
         security_repository: SecurityRepository,
     ) -> None:
-        self._eodhd = eodhd
+        self._gateway = gateway
         self._market_prices_api = market_prices_api
         self._security_broker_repository = security_broker_repository
         self._security_repository = security_repository
@@ -84,13 +90,15 @@ class SecurityApi:
     ) -> Security:
         mapped_symbol = self._map_eodhd_symbol(broker_symbol)
         mapped_exchange = self._map_eodhd_exchange(broker_exchange)
-        search_results = self._eodhd.search(query=f"{mapped_symbol}.{mapped_exchange}")
+        search_results = self._gateway.search(
+            query=f"{mapped_symbol}.{mapped_exchange}"
+        )
         logger.debug(
             "Search results for %s.%s (%s): %s",
             mapped_symbol,
             mapped_exchange,
             broker_name,
-            json.dumps(search_results),
+            json.dumps([r.model_dump() for r in search_results]),
         )
 
         if len(search_results) == 0:
@@ -103,18 +111,18 @@ class SecurityApi:
             security = await self._security_repository.get_or_create(
                 SecuritySchema(
                     id=uuid.uuid4(),
-                    symbol=result["Code"],
-                    exchange=result["Exchange"],
-                    currency="USD",
-                    name=result["Name"],
-                    isin=result["ISIN"],
+                    symbol=result.code,
+                    exchange=result.exchange,
+                    currency=result.currency,
+                    name=result.name,
+                    isin=result.isin,
                     updated_at=datetime.now(UTC),
                 )
             )
         except ValidationError:
             logger.exception(
                 "Failed to create security from search results: %s",
-                json.dumps(result),
+                json.dumps(result.model_dump()),
             )
             raise
 
@@ -129,12 +137,26 @@ class SecurityApi:
                 mapped_exchange=mapped_exchange,
                 broker_name=broker_name,
                 security_id=security.id,
-                search_results=search_results,
+                search_results=[
+                    EodhdSearchResult(
+                        Code=r.code,
+                        Currency=r.currency,
+                        Exchange=r.exchange,
+                        Name=r.name,
+                        Type=r.security_type,
+                        Country=r.country,
+                        ISIN=r.isin,
+                        isPrimary=True,
+                        previousClose=0.0,
+                        previousCloseDate="",
+                    )
+                    for r in search_results
+                ],
             )
         except ValidationError:
             logger.exception(
                 "Failed to create security broker from search results: %s",
-                json.dumps(search_results),
+                json.dumps([r.model_dump() for r in search_results]),
             )
             raise
 
@@ -153,15 +175,12 @@ class SecurityApi:
             "NASDAQ": "US",
         }
 
-        try:
-            return replacements[broker_exchange]
-        except KeyError:
-            return broker_exchange
+        return replacements.get(broker_exchange, broker_exchange)
 
 
 async def security_api_factory(container: Container) -> SecurityApi:
     return SecurityApi(
-        eodhd=eodhd_gateway_factory(),
+        gateway=eodhd_gateway_factory(),
         market_prices_api=await container.aget(MarketPricesApi),
         security_broker_repository=await container.aget(SecurityBrokerRepository),
         security_repository=await container.aget(SecurityRepository),
