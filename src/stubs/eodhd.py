@@ -159,7 +159,7 @@ class StubEodhdGateway:
                 adjusted_close=Decimal(str(price["adjusted_close"])),
                 volume=int(price["volume"]),
             )
-        except IndexError, KeyError:
+        except (IndexError, KeyError):
             return None
 
     def get_prices(

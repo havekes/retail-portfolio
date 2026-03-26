@@ -8,7 +8,7 @@
         "mode": "remote-attach",
         "pathMappings": [
             {
-                "localRoot": "/home/greg/projects/retail-portfolio",
+                "localRoot": "${workspaceFolder}",
                 "remoteRoot": "/app"
             }
         ],
@@ -23,7 +23,7 @@
         "mode": "remote-attach",
         "pathMappings": [
             {
-                "localRoot": "/home/greg/projects/retail-portfolio",
+                "localRoot": "${workspaceFolder}",
                 "remoteRoot": "/app"
             }
         ],
