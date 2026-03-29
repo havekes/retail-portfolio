@@ -9,7 +9,6 @@ from svcs.fastapi import DepContainer
 from src.auth.api import current_user
 from src.auth.api_types import User
 from src.market.api_types import Price, SecurityId, SecuritySearchResult
-
 from src.market.gateway import MarketGateway
 from src.market.repository import (
     PriceRepository,
