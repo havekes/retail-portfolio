@@ -9,7 +9,6 @@ from svcs import Container
 
 from src.account.enum import InstitutionEnum
 from src.market.api_types import (
-    EodhdSearchResult,
     Security,
     SecurityId,
     SecuritySearchResult,
@@ -137,21 +136,7 @@ class SecurityApi:
                 mapped_exchange=mapped_exchange,
                 broker_name=broker_name,
                 security_id=security.id,
-                search_results=[
-                    EodhdSearchResult(
-                        Code=r.code,
-                        Currency=r.currency,
-                        Exchange=r.exchange,
-                        Name=r.name,
-                        Type=r.security_type,
-                        Country=r.country,
-                        ISIN=r.isin,
-                        isPrimary=True,
-                        previousClose=0.0,
-                        previousCloseDate="",
-                    )
-                    for r in search_results
-                ],
+                search_results=search_results,
             )
         except ValidationError:
             logger.exception(

@@ -6,6 +6,8 @@ from src.market.api import (
     market_prices_factory,
     security_api_factory,
 )
+from src.market.eodhd import eodhd_gateway_factory
+from src.market.gateway import MarketGateway
 from src.market.repository import (
     PriceRepository,
     SecurityBrokerRepository,
@@ -22,6 +24,7 @@ from src.market.service import MarketService, market_service_factory
 
 
 def register_market_services(registry: Registry) -> None:
+    registry.register_factory(MarketGateway, eodhd_gateway_factory)
     registry.register_factory(PriceRepository, eodhd_price_repository_factory)
     registry.register_factory(
         SecurityBrokerRepository, sqlalchemy_security_broker_repository_factory

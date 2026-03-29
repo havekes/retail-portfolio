@@ -9,7 +9,8 @@ from svcs.fastapi import DepContainer
 from src.auth.api import current_user
 from src.auth.api_types import User
 from src.market.api_types import Price, SecurityId, SecuritySearchResult
-from src.market.eodhd import eodhd_gateway_factory
+
+from src.market.gateway import MarketGateway
 from src.market.repository import (
     PriceRepository,
     SecurityRepository,
@@ -45,11 +46,12 @@ async def market_last_close_price(
 async def market_search(
     _: Annotated[User, Depends(current_user)],
     q: Annotated[str, Query(description="Search query", min_length=1, max_length=100)],
+    services: DepContainer,
 ) -> list[SecuritySearchResult]:
     """
     Search for securities by query string
     """
-    gateway = eodhd_gateway_factory()
+    gateway = services.get(MarketGateway)
     results = gateway.search(q)
     logger.info(
         "Searched for securities with query: %s, found %d results", q, len(results)
