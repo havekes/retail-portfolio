@@ -7,13 +7,19 @@ from eodhd.apiclient import APIClient
 from pandas import Timestamp
 
 from src.config.settings import settings
-from src.market.api_types import EodhdSearchResult, HistoricalPrice
+from src.market.api_types import (
+    EodhdSearchResult,
+    HistoricalPrice,
+    SecurityId,
+    SecuritySearchResult,
+)
+from src.market.gateway import MarketGateway
 from src.market.schema import SecuritySchema
 
 logger = logging.getLogger(__name__)
 
 
-class EodhdGateway:
+class EodhdGateway(MarketGateway):
     _client: APIClient
     _api_key: str
 
@@ -21,17 +27,33 @@ class EodhdGateway:
         self._api_key = api_key
         self._client = APIClient(api_key)
 
-    def search(self, query: str) -> list[EodhdSearchResult]:
+    def search(self, query: str) -> list[SecuritySearchResult]:
         url = f"https://eodhd.com/api/search/{query}?api_token={self._api_key}&fmt=json"
         data: list[EodhdSearchResult] = requests.get(url, timeout=10).json()
 
-        return data
+        return [
+            SecuritySearchResult(
+                code=result["Code"],
+                exchange=result["Exchange"],
+                name=result["Name"],
+                currency=result["Currency"],
+                security_type=result["Type"],
+                isin=result.get("ISIN"),
+                country=result["Country"],
+            )
+            for result in data
+        ]
 
     def get_price_on_date(
-        self, security: SecuritySchema, date: date
+        self,
+        security_id: SecurityId,
+        symbol: str,
+        exchange: str,
+        date: date,
     ) -> HistoricalPrice | None:
+        eodhd_symbol = f"{symbol}.{exchange}"
         data = self._client.get_historical_data(
-            symbol=security.get_eodhd_symbol(),
+            symbol=eodhd_symbol,
             interval="d",
             iso8601_start=date.isoformat(),
             iso8601_end=date.isoformat(),
@@ -40,7 +62,7 @@ class EodhdGateway:
         try:
             price = data.iloc[0]
             return HistoricalPrice(
-                security_id=security.id,
+                security_id=security_id,
                 date=date,
                 open=Decimal(str(price["open"])),
                 high=Decimal(str(price["high"])),
@@ -53,12 +75,18 @@ class EodhdGateway:
             return None
 
     def get_prices(
-        self, security: SecuritySchema, from_date: date, to_date: date
+        self,
+        security_id: SecurityId,
+        symbol: str,
+        exchange: str,
+        from_date: date,
+        to_date: date,
     ) -> list[HistoricalPrice]:
-        logger.info("Fetching data for security: %s", security.symbol)
+        eodhd_symbol = f"{symbol}.{exchange}"
+        logger.info("Fetching data for security: %s", eodhd_symbol)
 
         data = self._client.get_historical_data(
-            symbol=security.get_eodhd_symbol(),
+            symbol=eodhd_symbol,
             interval="d",
             iso8601_start=from_date.isoformat(),
             iso8601_end=to_date.isoformat(),
@@ -75,7 +103,7 @@ class EodhdGateway:
 
             prices.append(
                 HistoricalPrice(
-                    security_id=security.id,
+                    security_id=security_id,
                     date=index.date(),
                     open=Decimal(str(price["open"])),
                     high=Decimal(str(price["high"])),

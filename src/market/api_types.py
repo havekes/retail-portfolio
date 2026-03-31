@@ -59,3 +59,15 @@ class HistoricalPrice(BaseModel):
     close: Decimal
     adjusted_close: Decimal
     volume: int
+
+
+class SecuritySearchResult(BaseModel):
+    """Public-facing security search result."""
+
+    code: str
+    exchange: str
+    name: str
+    currency: str
+    security_type: str
+    isin: str | None
+    country: str

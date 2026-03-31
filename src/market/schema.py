@@ -7,9 +7,10 @@ from pydantic import BaseModel, ConfigDict
 from src.account.enum import InstitutionEnum
 from src.auth.api_types import UserId
 from src.market.api_types import (
-    EodhdSearchResult,
     HistoricalPrice,
+    Price,
     SecurityId,
+    SecuritySearchResult,
     WatchlistId,
 )
 
@@ -41,7 +42,7 @@ class SecurityBrokerSchema(BaseModel):
     mapped_exchange: str
     broker_name: str
     security_id: SecurityId
-    search_results: list[EodhdSearchResult]
+    search_results: list[SecuritySearchResult]
     created_at: datetime | None = None
 
 
@@ -82,3 +83,12 @@ class WatchlistSchema(BaseModel):
 
 class WatchlistRead(WatchlistSchema):
     securities: list[SecuritySchema]
+
+
+class PriceHistoryRead(BaseModel):
+    """Response schema for price history endpoint."""
+
+    security_id: SecurityId
+    from_date: date
+    to_date: date
+    prices: list[Price]
