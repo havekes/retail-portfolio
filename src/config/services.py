@@ -66,6 +66,8 @@ def register_market_stub_services(registry: Registry) -> None:
         market_prices_factory,
         security_api_factory,
     )
+    from src.market.eodhd import eodhd_gateway_factory  # noqa: PLC0415
+    from src.market.gateway import MarketGateway  # noqa: PLC0415
     from src.market.repository import (  # noqa: PLC0415
         PriceRepository,
         SecurityBrokerRepository,
@@ -85,6 +87,7 @@ def register_market_stub_services(registry: Registry) -> None:
         market_service_factory,
     )
 
+    registry.register_factory(MarketGateway, eodhd_gateway_factory)
     registry.register_factory(PriceRepository, eodhd_price_repository_factory)
     registry.register_factory(
         SecurityBrokerRepository, sqlalchemy_security_broker_repository_factory

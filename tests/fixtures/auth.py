@@ -122,10 +122,11 @@ async def auth_client(
     access_token = user_api.create_access_token(test_user.email)
 
     # Patch the EODHD gateway factory to return the mock gateway
-    monkeypatch.setattr(api, "eodhd_gateway_factory", lambda: mock_eodhd_gateway)
-    monkeypatch.setattr(
-        repository_eodhd, "eodhd_gateway_factory", lambda: mock_eodhd_gateway
-    )
+    # Must patch in the source module (src.market.eodhd) where it's defined,
+    # since src/market/__init__.py imports from there for DI registration
+    from src.market import eodhd
+
+    monkeypatch.setattr(eodhd, "eodhd_gateway_factory", lambda: mock_eodhd_gateway)
 
     # Patch EmailService so router tests never touch a real SMTP server
     monkeypatch.setattr(

@@ -75,7 +75,7 @@ class MarketService:
 
 async def market_service_factory(container: Container) -> MarketService:
     return MarketService(
-        gateway=eodhd_gateway_factory(),
+        gateway=await container.aget(MarketGateway),
         price_repository=await container.aget(PriceRepository),
         security_repository=await container.aget(SecurityRepository),
     )

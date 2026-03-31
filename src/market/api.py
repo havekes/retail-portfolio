@@ -52,7 +52,7 @@ class MarketPricesApi:
 
 async def market_prices_factory(container: Container) -> MarketPricesApi:
     return MarketPricesApi(
-        gateway=eodhd_gateway_factory(),
+        gateway=await container.aget(MarketGateway),
         price_repository=await container.aget(PriceRepository),
         security_repository=await container.aget(SecurityRepository),
     )
@@ -165,7 +165,7 @@ class SecurityApi:
 
 async def security_api_factory(container: Container) -> SecurityApi:
     return SecurityApi(
-        gateway=eodhd_gateway_factory(),
+        gateway=await container.aget(MarketGateway),
         market_prices_api=await container.aget(MarketPricesApi),
         security_broker_repository=await container.aget(SecurityBrokerRepository),
         security_repository=await container.aget(SecurityRepository),

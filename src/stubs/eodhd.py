@@ -183,12 +183,8 @@ class StubEodhdGateway(MarketGateway):
         )
 
         prices: list[HistoricalPrice] = []
-        for index, row in data.iterrows():
-            price_date = (
-                pd.Timestamp(index).date()
-                if isinstance(index, pd.Timestamp)
-                else date.fromisoformat(str(index))
-            )
+        for _, row in data.iterrows():
+            price_date = date.fromisoformat(row["date"])
             prices.append(
                 HistoricalPrice(
                     security_id=security_id,
