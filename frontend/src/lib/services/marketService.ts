@@ -18,19 +18,30 @@ export interface MarketPrice {
 	currency: string;
 }
 
-export interface MarketPriceRequest {
+export interface MarketPriceHistory {
 	security_id: string;
 	from_date: string;
 	to_date: string;
+	prices: MarketPrice[];
 }
 
 export class MarketService extends BaseService {
 	async search(query: string): Promise<MarketSearchResult[]> {
-		return await this.get<MarketSearchResult[]>(`/market/search?query=${query}`);
+		return await this.get<MarketSearchResult[]>(`/market/search?q=${query}`);
 	}
 
-	async getPrices(request: MarketPriceRequest): Promise<MarketPrice> {
-		return await this.post<MarketPrice, MarketPriceRequest>('/market/prices', request);
+	async getPrices(
+		securityId: string,
+		from_date: string,
+		to_date: string
+	): Promise<MarketPriceHistory> {
+		return await this.get<MarketPriceHistory>(
+			`/market/prices/${securityId}?from_date=${from_date}&to_date=${to_date}`
+		);
+	}
+
+	async getLastClosePrice(securityId: string): Promise<MarketPrice> {
+		return await this.get<MarketPrice>(`/market/prices/${securityId}/last-close`);
 	}
 }
 

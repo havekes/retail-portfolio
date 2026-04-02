@@ -8,14 +8,14 @@ from svcs.fastapi import DepContainer
 
 from src.auth.api import current_user
 from src.auth.api_types import User
-from src.market.api_types import Price, SecurityId, SecuritySearchResult
+from src.market.api_types import SecurityId, SecuritySearchResult
 from src.market.gateway import MarketGateway
 from src.market.repository import (
     PriceRepository,
     SecurityRepository,
     WatchlistRepository,
 )
-from src.market.schema import PriceHistoryRead, WatchlistRead
+from src.market.schema import PriceHistoryRead, PriceSchema, WatchlistRead
 
 logger = logging.getLogger(__name__)
 
@@ -27,7 +27,7 @@ async def market_last_close_price(
     _: Annotated[User, Depends(current_user)],
     security_id: SecurityId,
     services: DepContainer,
-) -> Price:
+) -> PriceSchema:
     """
     Get last close OHLC price for a security
     """
@@ -38,7 +38,7 @@ async def market_last_close_price(
 
     logger.info("Retrieved last close price for security %s", security_id)
 
-    return Price.model_validate(price)
+    return PriceSchema.model_validate(price)
 
 
 @market_router.get("/search")
@@ -92,7 +92,7 @@ async def market_get_prices(
         security_id=security_id,
         from_date=from_date,
         to_date=to_date,
-        prices=[Price.model_validate(price) for price in prices],
+        prices=[PriceSchema.model_validate(price) for price in prices],
     )
 
 

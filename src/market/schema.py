@@ -91,4 +91,4 @@ class PriceHistoryRead(BaseModel):
     security_id: SecurityId
     from_date: date
     to_date: date
-    prices: list[Price]
+    prices: list[PriceSchema]
