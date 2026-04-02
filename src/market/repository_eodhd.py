@@ -26,17 +26,22 @@ class EodhdPriceRepository(PriceRepository):
             security, from_date, to_date
         )
 
-        # TODO make it smarter to account for non-trading days
-        if existing_prices and existing_prices[-1].date == to_date:
-            return existing_prices
-
         new_prices_eodhd = self._gateway.get_prices(
             security.id, security.symbol, security.exchange, from_date, to_date
         )
         new_prices = [
             PriceSchema.from_historical_price(price) for price in new_prices_eodhd
         ]
-        return await self._db_repository.save_prices(new_prices)
+
+        merged = {p.date: p for p in new_prices}
+        for p in existing_prices:
+            if p.date not in merged:
+                merged[p.date] = p
+
+        all_prices = list(merged.values())
+        await self._db_repository.save_prices(all_prices)
+
+        return sorted(all_prices, key=lambda p: p.date)
 
     @override
     async def get_latest_price(self, security: SecuritySchema) -> PriceSchema | None:

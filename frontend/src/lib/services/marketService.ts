@@ -25,6 +25,17 @@ export interface MarketPriceHistory {
 	prices: MarketPrice[];
 }
 
+export interface SecuritySchema {
+	id: string;
+	symbol: string;
+	exchange: string;
+	currency: string;
+	name: string;
+	isin: string | null;
+	is_active: boolean;
+	updated_at: string;
+}
+
 export class MarketService extends BaseService {
 	async search(query: string): Promise<MarketSearchResult[]> {
 		return await this.get<MarketSearchResult[]>(`/market/search?q=${query}`);
@@ -42,6 +53,10 @@ export class MarketService extends BaseService {
 
 	async getLastClosePrice(securityId: string): Promise<MarketPrice> {
 		return await this.get<MarketPrice>(`/market/prices/${securityId}/last-close`);
+	}
+
+	async getSecurity(securityId: string): Promise<SecuritySchema> {
+		return await this.get<SecuritySchema>(`/market/securities/${securityId}`);
 	}
 }
 

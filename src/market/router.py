@@ -15,7 +15,12 @@ from src.market.repository import (
     SecurityRepository,
     WatchlistRepository,
 )
-from src.market.schema import PriceHistoryRead, PriceSchema, WatchlistRead
+from src.market.schema import (
+    PriceHistoryRead,
+    PriceSchema,
+    SecuritySchema,
+    WatchlistRead,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -94,6 +99,20 @@ async def market_get_prices(
         to_date=to_date,
         prices=[PriceSchema.model_validate(price) for price in prices],
     )
+
+
+@market_router.get("/securities/{security_id}")
+async def market_get_security(
+    _: Annotated[User, Depends(current_user)],
+    security_id: SecurityId,
+    services: DepContainer,
+) -> SecuritySchema:
+    """
+    Get security details by ID
+    """
+    security_repository = await services.aget(SecurityRepository)
+    security = await security_repository.get_by_id_or_fail(security_id)
+    return SecuritySchema.model_validate(security)
 
 
 @market_router.get("/watchlists")
