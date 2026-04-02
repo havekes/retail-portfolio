@@ -38,6 +38,6 @@ def init_logging() -> None:
     )
 
     # Suppress verbose third-party loggers
-    for logger_name in ["urllib3", "httpx", "aiosqlite", "watchfiles", "faker"]:
+    for logger_name in ["urllib3", "httpx", "aiosqlite", "watchfiles", "faker", "svcs"]:
         logger = logging.getLogger(logger_name)
         logger.setLevel(logging.INFO)
