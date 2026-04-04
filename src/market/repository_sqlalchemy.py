@@ -86,6 +86,21 @@ class SqlAlchemySecurityRepository(SecurityRepository):
             SecuritySchema.model_validate(security) for security in securities.scalars()
         ]
 
+    @override
+    async def get_by_code_and_exchange(
+        self, code: str, exchange: str
+    ) -> SecuritySchema | None:
+        result = await self._session.execute(
+            select(SecurityModel)
+            .where(SecurityModel.symbol == code)
+            .where(SecurityModel.exchange == exchange)
+            .limit(1)
+        )
+        security_model = result.scalar_one_or_none()
+        if security_model is None:
+            return None
+        return SecuritySchema.model_validate(security_model)
+
 
 async def sqlalchemy_security_repository_factory(
     container: Container,

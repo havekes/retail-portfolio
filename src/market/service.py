@@ -1,6 +1,7 @@
 import asyncio
 import logging
 from datetime import UTC, date, datetime, timedelta
+from typing import Self
 
 from svcs import Container
 
@@ -71,6 +72,39 @@ class MarketService:
         failure_count = sum(1 for result in results if not result)
 
         return {"success": success_count, "failure": failure_count}
+
+    async def fetch_and_save_price_history(self, security: SecuritySchema) -> bool:
+        """
+        Fetch price history for a security from 2000-01-03 to today and save it.
+        Returns True if successful, False otherwise.
+        """
+        try:
+            from_date = date(2000, 1, 3)
+            to_date = datetime.now(UTC).date()
+
+            prices = self._gateway.get_prices(
+                security.id,
+                security.symbol,
+                security.exchange,
+                from_date=from_date,
+                to_date=to_date,
+            )
+
+            if prices:
+                price_schemas = [PriceSchema.from_historical_price(p) for p in prices]
+                await self._price_repository.save_prices(price_schemas)
+                logger.info(
+                    "Fetched and saved %d prices for security %s",
+                    len(prices),
+                    security.symbol,
+                )
+                return True
+        except Exception:
+            logger.exception(
+                "Failed to fetch and save price history for security %s",
+                security.symbol,
+            )
+        return False
 
 
 async def market_service_factory(container: Container) -> MarketService:

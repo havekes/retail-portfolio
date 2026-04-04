@@ -8,6 +8,7 @@ from svcs.fastapi import DepContainer
 
 from src.auth.api import current_user
 from src.auth.api_types import User
+from src.market.api import SecurityApi
 from src.market.api_types import SecurityId, SecuritySearchResult
 from src.market.gateway import MarketGateway
 from src.market.repository import (
@@ -18,6 +19,8 @@ from src.market.repository import (
 from src.market.schema import (
     PriceHistoryRead,
     PriceSchema,
+    SecurityCreateRequest,
+    SecurityCreateResponse,
     SecuritySchema,
     WatchlistRead,
 )
@@ -125,3 +128,27 @@ async def market_watchlists(
     """
     watchlist_repository = await services.aget(WatchlistRepository)
     return await watchlist_repository.get_all_for_user(user.id)
+
+
+@market_router.post("/security")
+async def market_create_or_get_security(
+    _: Annotated[User, Depends(current_user)],
+    request: SecurityCreateRequest,
+    services: DepContainer,
+) -> SecurityCreateResponse:
+    """
+    Create a new security or return existing one based on code + exchange.
+    Fetches price history if security was newly created.
+    """
+    security_api = await services.aget(SecurityApi)
+    result = await security_api.create_or_get_from_search(request)
+
+    logger.info(
+        "Created or retrieved security %s (%s.%s), has_price_data=%s",
+        result.security_id,
+        result.symbol,
+        result.exchange,
+        result.has_price_data,
+    )
+
+    return result

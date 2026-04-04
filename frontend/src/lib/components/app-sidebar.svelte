@@ -1,15 +1,20 @@
 <script lang="ts">
 	import * as Sidebar from '$lib/components/ui/sidebar/index.js';
 	import * as DropdownMenu from '$lib/components/ui/dropdown-menu/index.js';
+	import { Kbd, KbdGroup } from '$lib/components/ui/kbd/index.js';
 	import { goto } from '$app/navigation';
 	import { userStore } from '@/stores/userStore';
 	import type { User } from '@/types/user';
+	import { getContext } from 'svelte';
 	import ChevronUp from '@lucide/svelte/icons/chevron-up';
 	import { resolve } from '$app/paths';
 	import ChartCandlestick from '@lucide/svelte/icons/chart-candlestick';
+	import Search from '@lucide/svelte/icons/search';
 
 	let user: User | null = $state(null);
 	userStore.subscribe((authState) => (user = authState.user));
+
+	const toggleGlobalSearch = getContext<() => void>('toggleGlobalSearch');
 </script>
 
 <Sidebar.Root>
@@ -22,6 +27,24 @@
 							<ChartCandlestick />
 							<span class="text-base font-semibold">Portfolio dashboard</span>
 						</a>
+					{/snippet}
+				</Sidebar.MenuButton>
+			</Sidebar.MenuItem>
+			<Sidebar.MenuItem>
+				<Sidebar.MenuButton>
+					{#snippet child({ props })}
+						<button
+							type="button"
+							{...props}
+							onclick={() => toggleGlobalSearch?.()}
+							class="flex w-full items-center gap-2 rounded-md p-2 transition-colors hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
+						>
+							<Search class="h-4 w-4" />
+							<span class="text-base">Search</span>
+							<Kbd class="text-sidebar-muted-foreground ml-auto text-xs">
+								<KbdGroup>Cmd</KbdGroup><span>+</span><KbdGroup>P</KbdGroup>
+							</Kbd>
+						</button>
 					{/snippet}
 				</Sidebar.MenuButton>
 			</Sidebar.MenuItem>

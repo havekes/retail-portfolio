@@ -46,7 +46,9 @@ export abstract class BaseService {
 			throw new APIError(response.status, message, response);
 		}
 
-		return response.json();
+		const data = await response.json();
+		console.log(`GET ${endpoint} response:`, data, 'type:', Array.isArray(data) ? 'array' : typeof data);
+		return data;
 	}
 
 	protected async post<T, R>(

@@ -3,6 +3,7 @@ import { BaseService } from './baseService';
 export interface MarketSearchResult {
 	code: string;
 	name: string;
+	exchange: string;
 }
 
 export interface MarketPrice {
@@ -36,9 +37,29 @@ export interface SecuritySchema {
 	updated_at: string;
 }
 
+export interface SecurityCreateRequest {
+	code: string;
+	exchange: string;
+	name: string;
+	currency: string;
+	isin?: string | null;
+}
+
+export interface SecurityCreateResponse {
+	security_id: string;
+	symbol: string;
+	exchange: string;
+	name: string;
+	has_price_data: boolean;
+}
+
 export class MarketService extends BaseService {
 	async search(query: string): Promise<MarketSearchResult[]> {
-		return await this.get<MarketSearchResult[]>(`/market/search?q=${query}`);
+		const url = `/market/search?q=${query}`;
+		console.log('MarketService.search calling:', this.baseUrl + url);
+		const results = await this.get<MarketSearchResult[]>(url);
+		console.log('MarketService.search got results:', results);
+		return results;
 	}
 
 	async getPrices(
@@ -57,6 +78,13 @@ export class MarketService extends BaseService {
 
 	async getSecurity(securityId: string): Promise<SecuritySchema> {
 		return await this.get<SecuritySchema>(`/market/securities/${securityId}`);
+	}
+
+	async createOrUpdateSecurity(request: SecurityCreateRequest): Promise<SecurityCreateResponse> {
+		return await this.post<SecurityCreateResponse, SecurityCreateRequest>(
+			'/market/security',
+			request
+		);
 	}
 }
 

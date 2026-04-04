@@ -24,6 +24,12 @@ class SecurityRepository(ABC):
     async def get_all_active_securities(self) -> list[SecuritySchema]:
         pass
 
+    @abstractmethod
+    async def get_by_code_and_exchange(
+        self, code: str, exchange: str
+    ) -> SecuritySchema | None:
+        pass
+
 
 class SecurityBrokerRepository(ABC):
     @abstractmethod

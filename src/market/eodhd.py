@@ -41,7 +41,7 @@ class EodhdGateway(MarketGateway):
                 isin=result.get("ISIN"),
                 country=result["Country"],
             )
-            for result in data
+            for result in results
         ]
 
     def get_price_on_date(

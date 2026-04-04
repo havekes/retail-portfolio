@@ -92,3 +92,25 @@ class PriceHistoryRead(BaseModel):
     from_date: date
     to_date: date
     prices: list[PriceSchema]
+
+
+class SecurityCreateRequest(BaseModel):
+    """Request schema for creating a security from search results."""
+
+    code: str
+    exchange: str
+    name: str
+    currency: str
+    isin: str | None = None
+
+
+class SecurityCreateResponse(BaseModel):
+    """Response schema for security creation endpoint."""
+
+    model_config = ConfigDict(from_attributes=True)
+
+    security_id: SecurityId
+    symbol: str
+    exchange: str
+    name: str
+    has_price_data: bool
