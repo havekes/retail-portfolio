@@ -1,5 +1,5 @@
 <script lang="ts">
-	import AppSidebar from '@/components/app-sidebar.svelte';
+	import AppSidebar from '@/components/layout/app-sidebar.svelte';
 	import { SidebarProvider } from '$lib/components/ui/sidebar/index.js';
 	import AccountsList from '@/components/accounts/accounts-list.svelte';
 </script>

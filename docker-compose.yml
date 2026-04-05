@@ -83,8 +83,6 @@ services:
     image: redis:7-alpine
     container_name: retail-portfolio-redis
     restart: unless-stopped
-    ports:
-      - "6379:6379"
 
   mailcrab:
     image: marlonb/mailcrab:latest
