@@ -7,18 +7,23 @@
 	import type { User } from '@/types/user';
 	import { getContext } from 'svelte';
 	import ChevronUp from '@lucide/svelte/icons/chevron-up';
+	import ChevronLeft from '@lucide/svelte/icons/chevron-left';
+	import ChevronRight from '@lucide/svelte/icons/chevron-right';
+	import CircleUser from '@lucide/svelte/icons/circle-user';
 	import { resolve } from '$app/paths';
 	import ChartCandlestick from '@lucide/svelte/icons/chart-candlestick';
 	import Search from '@lucide/svelte/icons/search';
+	import { useSidebar } from '$lib/components/ui/sidebar/context.svelte.js';
 
 	let user: User | null = $state(null);
 	userStore.subscribe((authState) => (user = authState.user));
 
 	const toggleGlobalSearch = getContext<() => void>('toggleGlobalSearch');
+	const sidebar = useSidebar();
 </script>
 
-<Sidebar.Root>
-	<Sidebar.Header class="border-b py-2.5">
+<Sidebar.Root collapsible="icon">
+	<Sidebar.Header class="border-b py-2">
 		<Sidebar.Menu>
 			<Sidebar.MenuItem>
 				<Sidebar.MenuButton>
@@ -63,7 +68,11 @@
 								{...props}
 								class="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
 							>
-								{user?.email}
+								{#if sidebar.state === 'collapsed'}
+									<CircleUser class="h-4 w-4" />
+								{:else}
+									{user?.email}
+								{/if}
 								<ChevronUp class="ms-auto" />
 							</Sidebar.MenuButton>
 						{/snippet}
@@ -80,4 +89,15 @@
 			</Sidebar.MenuItem>
 		</Sidebar.Menu>
 	</Sidebar.Footer>
+	<Sidebar.Rail class="group/rail">
+		<div
+			class="absolute top-1/2 left-1/2 z-50 flex h-6 w-6 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full border border-sidebar-border bg-background text-foreground opacity-0 shadow-sm transition-all group-hover/rail:opacity-100 hover:scale-110"
+		>
+			{#if sidebar.state === 'expanded'}
+				<ChevronLeft class="h-4 w-4" />
+			{:else}
+				<ChevronRight class="h-4 w-4" />
+			{/if}
+		</div>
+	</Sidebar.Rail>
 </Sidebar.Root>

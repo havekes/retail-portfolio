@@ -3,7 +3,7 @@
 	import type { Snippet } from 'svelte';
 
 	interface Props {
-		items: Array<T>;
+		items: T[];
 		onSelect: (id: string) => void;
 		selectedId?: string | null;
 		class?: string;

@@ -123,7 +123,7 @@ export class AccountsListState {
 		if (this.groupBy === 'institution') key = 'institution_id';
 		else if (this.groupBy === 'accountType') key = 'account_type_id';
 
-		// Re-wrap accountList in a Promise because group expects Promise<Array<T>>
+		// Re-wrap accountList in a Promise because group expects Promise<T[]>
 		const groupsMap = await group(Promise.resolve(this.accounts), key);
 
 		const result = [];

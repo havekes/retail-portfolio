@@ -1,6 +1,6 @@
 <script lang="ts">
-	import AppSidebar from '@/components/app-sidebar.svelte';
-	import { SidebarProvider } from '$lib/components/ui/sidebar/index.js';
+	import AppSidebar from '@/components/layout/app-sidebar.svelte';
+	import * as Sidebar from '$lib/components/ui/sidebar/index.js';
 	import BrokersList from '@/components/brokers/brokers-list.svelte';
 </script>
 
@@ -8,9 +8,9 @@
 	<title>Connected brokers</title>
 </svelte:head>
 
-<SidebarProvider>
+<Sidebar.Provider>
 	<AppSidebar />
-	<main class="w-full">
+	<Sidebar.Inset>
 		<BrokersList></BrokersList>
-	</main>
-</SidebarProvider>
+	</Sidebar.Inset>
+</Sidebar.Provider>

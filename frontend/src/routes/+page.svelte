@@ -1,6 +1,6 @@
 <script lang="ts">
 	import AppSidebar from '@/components/layout/app-sidebar.svelte';
-	import { SidebarProvider } from '$lib/components/ui/sidebar/index.js';
+	import * as Sidebar from '$lib/components/ui/sidebar/index.js';
 	import AccountsList from '@/components/accounts/accounts-list.svelte';
 </script>
 
@@ -8,9 +8,9 @@
 	<title>Portfolio dashboard</title>
 </svelte:head>
 
-<SidebarProvider>
+<Sidebar.Provider>
 	<AppSidebar />
-	<main class="w-full">
+	<Sidebar.Inset>
 		<AccountsList></AccountsList>
-	</main>
-</SidebarProvider>
+	</Sidebar.Inset>
+</Sidebar.Provider>

@@ -2,7 +2,7 @@
 	import { getAccountTypeLabel, getInstitutionLabel } from '@/types/account';
 	import Badge from '../ui/badge/badge.svelte';
 	import Checkbox from '../ui/checkbox/checkbox.svelte';
-	import EditableTitle from '../form/editable-title.svelte';
+	import EditableTitle from '../forms/editable-title.svelte';
 	import Skeleton from '../ui/skeleton/skeleton.svelte';
 	import { money } from '@/types/money';
 	import * as Tooltip from '../ui/tooltip';
