@@ -1,9 +1,9 @@
-export type GroupReturnType<T, R extends keyof T> = Promise<Map<T[R] | null, Array<T>>>;
+export type GroupReturnType<T, R extends keyof T> = Promise<Map<T[R] | null, T[]>>;
 
 export type GroupBy = 'none' | 'institution' | 'accountType';
 
 export const group = async <T, R extends keyof T>(
-	list: Promise<Array<T>>,
+	list: Promise<T[]>,
 	groupByKey: R | null
 ): GroupReturnType<T, R> => {
 	const data = await list;
@@ -12,7 +12,7 @@ export const group = async <T, R extends keyof T>(
 		return new Map([[null, data]]);
 	}
 
-	const groups = new Map<T[R], Array<T>>();
+	const groups = new Map<T[R], T[]>();
 
 	for (const item of data) {
 		const keyValue = item[groupByKey];

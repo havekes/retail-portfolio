@@ -14,3 +14,12 @@ export function getDateRange(daysBack: number): { from: string; to: string } {
 		to: formatDateToISO(today)
 	};
 }
+
+export function formatDate(dateString: string | Date): string {
+	const date = typeof dateString === 'string' ? new Date(dateString) : dateString;
+	return date.toLocaleDateString('en-US', {
+		month: 'short',
+		day: 'numeric',
+		year: 'numeric'
+	});
+}

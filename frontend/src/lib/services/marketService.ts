@@ -4,6 +4,7 @@ export interface MarketSearchResult {
 	code: string;
 	name: string;
 	exchange: string;
+	security_type: string;
 }
 
 export interface MarketPrice {

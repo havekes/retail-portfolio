@@ -47,7 +47,6 @@ export abstract class BaseService {
 		}
 
 		const data = await response.json();
-		console.log(`GET ${endpoint} response:`, data, 'type:', Array.isArray(data) ? 'array' : typeof data);
 		return data;
 	}
 
