@@ -22,6 +22,9 @@ class Settings(BaseSettings):
     cors_allow_methods: str = "*"
     cors_allow_headers: str = "*"
 
+    # File uploads
+    upload_path: str = "data/uploads"
+
     # Market API (Eodhd)
     eodhd_api_key: str = ""
 

@@ -28,19 +28,36 @@ from tests.fixtures.auth import *  # noqa: F401, F403
 from tests.fixtures.account import *  # noqa: F401, F403
 from tests.fixtures.market import *  # noqa: F401, F403
 
+from unittest.mock import AsyncMock, MagicMock, patch
 
-# Mock Redis for all tests
-@pytest.fixture(autouse=True)
-def mock_redis(monkeypatch):
-    """Mock Redis connection manager to avoid connecting to real Redis during tests."""
+# Global mocks to prevent 4s teardown delay from Redis/Huey.
+# These are applied once for the entire test session.
+@pytest.fixture(scope="session", autouse=True)
+def global_mocks():
+    """Mock external dependencies (Redis, Huey) during tests.
 
-    async def mock_async(*args, **kwargs):  # noqa: ARG001
-        return None
+    The critical fix here is patching `src.main.init_huey_dashboard` — NOT
+    `huey_dashboard.init_huey_dashboard`. Because main.py binds the name at
+    import time via `from huey_dashboard import init_huey_dashboard`, patching
+    the original module has no effect. The real function creates a real
+    AsyncRedis connection whose aclose() times out ~4 seconds per test.
+    """
+    from src.worker import huey
 
-    monkeypatch.setattr(ws_manager, "init_redis", mock_async)
-    monkeypatch.setattr(ws_manager, "close", mock_async)
-    monkeypatch.setattr(ws_manager, "send_personal_message", mock_async)
-    monkeypatch.setattr(ws_manager, "send_personal_message_sync", lambda *args, **kwargs: None)
+    # Force Huey into immediate mode so tasks run synchronously without Redis
+    huey.immediate = True
+
+    with (
+        # Patch ws_manager methods on the singleton object
+        patch.object(ws_manager, "init_redis", new=AsyncMock(return_value=None)),
+        patch.object(ws_manager, "close", new=AsyncMock(return_value=None)),
+        patch.object(ws_manager, "send_personal_message", new=AsyncMock(return_value=None)),
+        patch.object(ws_manager, "send_personal_message_sync", return_value=None),
+        # Patch the locally-bound name in src.main (this is what actually runs)
+        patch("src.main.init_huey_dashboard", return_value=None),
+    ):
+        yield
+
 
 
 @pytest.fixture(scope="session")

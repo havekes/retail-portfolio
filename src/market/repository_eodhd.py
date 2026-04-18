@@ -1,8 +1,10 @@
 from datetime import UTC, date, datetime, timedelta
 from typing import override
 
+import holidays
 from svcs import Container
 
+from src.market.api_types import SecurityId
 from src.market.eodhd import eodhd_gateway_factory
 from src.market.gateway import MarketGateway
 from src.market.repository import PriceRepository
@@ -17,6 +19,10 @@ class EodhdPriceRepository(PriceRepository):
     def __init__(self, db_repository: PriceRepository, gateway: MarketGateway):
         self._db_repository = db_repository
         self._gateway = gateway
+
+    @override
+    async def get_by_security(self, security_id: SecurityId) -> list[PriceSchema]:
+        return await self._db_repository.get_by_security(security_id)
 
     @override
     async def get_prices(
@@ -46,10 +52,17 @@ class EodhdPriceRepository(PriceRepository):
     @override
     async def get_latest_price(self, security: SecuritySchema) -> PriceSchema | None:
         latest_price = await self._db_repository.get_latest_price(security)
+
+        nyse_holidays = holidays.NYSE()  # ty: ignore[unresolved-attribute]
         latest_close_date = datetime.now(UTC).date() - timedelta(days=1)
 
-        # TODO make it smarter to account for non-trading days
-        if latest_price is not None and latest_price.date == latest_close_date:
+        while (
+            latest_close_date.weekday() >= 5  # noqa: PLR2004
+            or latest_close_date in nyse_holidays
+        ):
+            latest_close_date -= timedelta(days=1)
+
+        if latest_price is not None and latest_price.date >= latest_close_date:
             return latest_price
 
         prices = await self.get_prices(

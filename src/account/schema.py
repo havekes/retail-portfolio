@@ -98,6 +98,15 @@ class PositionRead(BaseModel):
     updated_at: datetime | None = None
 
 
+class AccountHoldingRead(BaseModel):
+    account_id: AccountId
+    account_name: str
+    quantity: float
+    average_cost: float | None = None
+    total_value: float
+    currency: str
+
+
 class PortfolioAccountSchema(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 

@@ -60,17 +60,26 @@ def register_integration_stub_services(registry: Registry) -> None:
 
 def register_market_stub_services(registry: Registry) -> None:
     """Register stub services for market domain."""
+    from src.market.ai_service import AIService  # noqa: PLC0415
     from src.market.api import (  # noqa: PLC0415
         MarketPricesApi,
         SecurityApi,
         market_prices_factory,
         security_api_factory,
     )
+    from src.market.cache import (  # noqa: PLC0415
+        IndicatorCache,
+        indicator_cache_factory,
+    )
     from src.market.eodhd import eodhd_gateway_factory  # noqa: PLC0415
     from src.market.gateway import MarketGateway  # noqa: PLC0415
     from src.market.repository import (  # noqa: PLC0415
+        IndicatorPreferencesRepository,
+        PriceAlertRepository,
         PriceRepository,
         SecurityBrokerRepository,
+        SecurityDocumentRepository,
+        SecurityNoteRepository,
         SecurityRepository,
         WatchlistRepository,
     )
@@ -78,7 +87,11 @@ def register_market_stub_services(registry: Registry) -> None:
         eodhd_price_repository_factory,
     )
     from src.market.repository_sqlalchemy import (  # noqa: PLC0415
+        sqlalchemy_indicator_preferences_repository_factory,
+        sqlalchemy_price_alert_repository_factory,
         sqlalchemy_security_broker_repository_factory,
+        sqlalchemy_security_document_repository_factory,
+        sqlalchemy_security_note_repository_factory,
         sqlalchemy_security_repository_factory,
         sqlalchemy_watchlist_repository_factory,
     )
@@ -86,6 +99,7 @@ def register_market_stub_services(registry: Registry) -> None:
         MarketService,
         market_service_factory,
     )
+    from src.stubs.ai import StubAIService  # noqa: PLC0415
 
     registry.register_factory(MarketGateway, eodhd_gateway_factory)
     registry.register_factory(PriceRepository, eodhd_price_repository_factory)
@@ -98,6 +112,21 @@ def register_market_stub_services(registry: Registry) -> None:
     registry.register_factory(
         WatchlistRepository, sqlalchemy_watchlist_repository_factory
     )
+    registry.register_factory(
+        PriceAlertRepository, sqlalchemy_price_alert_repository_factory
+    )
+    registry.register_factory(
+        SecurityNoteRepository, sqlalchemy_security_note_repository_factory
+    )
+    registry.register_factory(
+        SecurityDocumentRepository, sqlalchemy_security_document_repository_factory
+    )
+    registry.register_factory(
+        IndicatorPreferencesRepository,
+        sqlalchemy_indicator_preferences_repository_factory,
+    )
+    registry.register_factory(IndicatorCache, indicator_cache_factory)
     registry.register_factory(MarketPricesApi, market_prices_factory)
     registry.register_factory(SecurityApi, security_api_factory)
     registry.register_factory(MarketService, market_service_factory)
+    registry.register_factory(AIService, StubAIService)

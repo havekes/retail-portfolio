@@ -1,4 +1,5 @@
 from typing import Annotated
+from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, Response
 from svcs.fastapi import DepContainer
@@ -12,6 +13,7 @@ from src.account.api_types import (
 from src.account.exception import AccountNotFoundError
 from src.account.repository import AccountRepository
 from src.account.schema import (
+    AccountHoldingRead,
     AccountSchema,
     PortfolioAccountUpdateRequest,
     PortfolioCreate,
@@ -174,6 +176,17 @@ async def account_totals(
         raise HTTPException(404)
 
     return await position_service.get_total_for_account(account_id, account.currency)
+
+
+@account_router.get("/holdings/{security_id}")
+async def account_holdings(
+    security_id: UUID,
+    user: Annotated[User, Depends(current_user)],
+    services: DepContainer,
+) -> list[AccountHoldingRead]:
+    """Get all holdings for a specific security across user accounts."""
+    position_service = await services.aget(PositionService)
+    return await position_service.get_holdings_by_security(security_id, user.id)
 
 
 @account_router.get("/{account_id}/positions")

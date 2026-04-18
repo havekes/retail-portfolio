@@ -10,13 +10,15 @@ from src.account.repository import (
     PositionRepository,
 )
 from src.account.schema import (
+    AccountHoldingRead,
     PositionRead,
     PositionSchema,
 )
 from src.auth.api_types import UserId
 from src.integration.api import IntegrationAccountApi, IntegrationUserApi
 from src.market.api import MarketPricesApi, SecurityApi
-from src.market.api_types import Security
+from src.market.api_types import Security, SecurityId
+from src.market.exception import SecurityNotFoundError
 
 
 class PositionService:
@@ -91,6 +93,33 @@ class PositionService:
                 )
             )
         return result
+
+    async def get_holdings_by_security(
+        self, security_id: SecurityId, user_id: UserId
+    ) -> list[AccountHoldingRead]:
+        holdings = await self._position_repository.get_holdings_by_security(
+            security_id, user_id
+        )
+
+        try:
+            security = await self._security_service.get_by_id(security_id)
+        except SecurityNotFoundError:
+            return []
+
+        latest_price_money = await self._market_prices.get_latest_close(security_id)
+        latest_price = float(latest_price_money.amount) if latest_price_money else 0.0
+
+        return [
+            AccountHoldingRead(
+                account_id=h.account_id,
+                account_name=h.account_name,
+                quantity=float(h.quantity),
+                average_cost=h.average_cost,
+                total_value=float(h.quantity) * latest_price,
+                currency=str(security.currency),
+            )
+            for h in holdings
+        ]
 
     async def get_total_for_account(
         self, account_id: AccountId, currency: BaseCurrency

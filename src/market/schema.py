@@ -114,3 +114,107 @@ class SecurityCreateResponse(BaseModel):
     exchange: str
     name: str
     has_price_data: bool
+
+
+class PriceAlertRead(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: int
+    security_id: SecurityId
+    user_id: UserId
+    target_price: Decimal
+    condition: str
+    triggered_at: datetime | None
+    created_at: datetime
+
+
+class PriceAlertWrite(BaseModel):
+    target_price: Decimal
+    condition: str
+
+
+class SecurityNoteRead(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: int
+    security_id: SecurityId
+    user_id: UserId
+    title: str | None = None
+    content: str
+    created_at: datetime
+    updated_at: datetime
+
+
+class SecurityNoteWrite(BaseModel):
+    title: str | None = None
+    content: str
+
+
+class SecurityDocumentWrite(BaseModel):
+    filename: str
+    file_path: str
+    file_size: int
+    file_type: str
+
+
+class SecurityDocumentRead(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: int
+    security_id: SecurityId
+    user_id: UserId
+    filename: str
+    file_path: str
+    file_size: int
+    file_type: str
+    created_at: datetime
+
+
+class IndicatorPreferencesRead(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: int
+    security_id: SecurityId
+    user_id: UserId
+    indicators_json: dict
+    updated_at: datetime
+
+
+class IndicatorPreferencesWrite(BaseModel):
+    indicators_json: dict
+
+
+class MAPoint(BaseModel):
+    date: date
+    value: float
+
+
+class MACDPoint(BaseModel):
+    date: date
+    macd: float
+    signal: float
+    histogram: float
+
+
+class RSIPoint(BaseModel):
+    date: date
+    rsi: float
+
+
+class TechnicalIndicatorsRead(BaseModel):
+    security_id: SecurityId
+    ma_50_day: list[MAPoint] | None = None
+    ma_200_day: list[MAPoint] | None = None
+    ma_50_week: list[MAPoint] | None = None
+    ma_200_week: list[MAPoint] | None = None
+    macd: list[MACDPoint] | None = None
+    rsi: list[RSIPoint] | None = None
+
+
+class AIAnalysisRequest(BaseModel):
+    portfolio_context: str | None = None
+
+
+class AIAnalysisResponse(BaseModel):
+    content: str
+    generated_at: str

@@ -1,4 +1,4 @@
-from huey import RedisHuey
+from huey import MemoryHuey, RedisHuey
 from huey_dashboard import init_worker_signals
 from sqlalchemy.pool import NullPool
 from svcs import Registry
@@ -6,11 +6,22 @@ from svcs import Registry
 from src.config.settings import settings
 
 
-class HueyWithRegistry(RedisHuey):
+class HueyWithRegistry:
     svcs_registry: Registry | None = None
 
 
-huey = HueyWithRegistry("retail-portfolio", url=settings.redis_url)
+class RedisHueyWithRegistry(RedisHuey, HueyWithRegistry):
+    pass
+
+
+class MemoryHueyWithRegistry(MemoryHuey, HueyWithRegistry):
+    pass
+
+
+if settings.environment == "test":
+    huey = MemoryHueyWithRegistry("retail-portfolio")
+else:
+    huey = RedisHueyWithRegistry("retail-portfolio", url=settings.redis_url)
 
 
 @huey.on_startup()
@@ -22,7 +33,7 @@ def setup_worker_services():
     init_logging()
 
     init_worker_signals(
-        huey=huey,
+        huey=huey,  # ty: ignore[invalid-argument-type]
         db_url=settings.database_url,
         redis_url=settings.redis_url,
     )

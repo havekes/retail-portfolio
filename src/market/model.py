@@ -112,3 +112,74 @@ class WatchlistModel(BaseModel):
         secondary="market_watchlists_securities",
         lazy="selectin",
     )
+
+
+class PriceAlertModel(BaseModel):
+    __tablename__ = "market_price_alerts"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    security_id: Mapped[SecurityId] = mapped_column(
+        Uuid, ForeignKey("market_securities.id", ondelete="CASCADE")
+    )
+    user_id: Mapped[UserId] = mapped_column(Uuid)
+    target_price: Mapped[Decimal] = mapped_column(DECIMAL(16, 8))
+    condition: Mapped[str] = mapped_column(String)
+    triggered_at: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True), nullable=True
+    )
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), default=func.now()
+    )
+
+
+class SecurityNoteModel(BaseModel):
+    __tablename__ = "market_security_notes"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    security_id: Mapped[SecurityId] = mapped_column(
+        Uuid, ForeignKey("market_securities.id", ondelete="CASCADE")
+    )
+    user_id: Mapped[UserId] = mapped_column(Uuid)
+    title: Mapped[str | None] = mapped_column(String, nullable=True)
+    content: Mapped[str] = mapped_column(String)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), default=func.now()
+    )
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), default=func.now(), onupdate=func.now()
+    )
+
+
+class SecurityDocumentModel(BaseModel):
+    __tablename__ = "market_security_documents"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    security_id: Mapped[SecurityId] = mapped_column(
+        Uuid, ForeignKey("market_securities.id", ondelete="CASCADE")
+    )
+    user_id: Mapped[UserId] = mapped_column(Uuid)
+    filename: Mapped[str] = mapped_column(String)
+    file_path: Mapped[str] = mapped_column(String)
+    file_size: Mapped[int] = mapped_column(Integer)
+    file_type: Mapped[str] = mapped_column(String)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), default=func.now()
+    )
+
+
+class IndicatorPreferencesModel(BaseModel):
+    __tablename__ = "market_indicator_preferences"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    security_id: Mapped[SecurityId] = mapped_column(
+        Uuid, ForeignKey("market_securities.id", ondelete="CASCADE")
+    )
+    user_id: Mapped[UserId] = mapped_column(Uuid)
+    indicators_json: Mapped[dict] = mapped_column(JSON)
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), default=func.now(), onupdate=func.now()
+    )
+
+    __table_args__ = (
+        UniqueConstraint("security_id", "user_id", name="indicator_prefs_unique"),
+    )

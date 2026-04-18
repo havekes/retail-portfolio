@@ -15,7 +15,14 @@ from src.account.model import (
 from src.auth.model import UserModel
 from src.config.database import BaseModel
 from src.integration.model import IntegrationUserModel
-from src.market.model import PriceModel, SecurityModel
+from src.market.model import (
+    IndicatorPreferencesModel,
+    PriceAlertModel,
+    PriceModel,
+    SecurityDocumentModel,
+    SecurityModel,
+    SecurityNoteModel,
+)
 
 target_metadata = BaseModel.metadata
 # this is the Alembic Config object, which provides

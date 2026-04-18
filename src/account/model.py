@@ -168,7 +168,7 @@ class InstitutionModel(BaseModel):
 class PositionModel(BaseModel):
     __tablename__ = "account_positions"
 
-    id: Mapped[int] = mapped_column(BigInteger, primary_key=True, autoincrement=True)
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
     account_id: Mapped[AccountId] = mapped_column(Uuid, ForeignKey("accounts.id"))
     security_id: Mapped[SecurityId] = mapped_column(Uuid)
     quantity: Mapped[Decimal] = mapped_column(DECIMAL(16, 8))

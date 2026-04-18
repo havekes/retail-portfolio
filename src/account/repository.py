@@ -2,6 +2,7 @@ from abc import ABC, abstractmethod
 
 from src.account.api_types import AccountId, PortfolioId
 from src.account.schema import (
+    AccountHoldingRead,
     AccountSchema,
     InstitutionSchema,
     PortfolioCreate,
@@ -10,6 +11,7 @@ from src.account.schema import (
 )
 from src.auth.api_types import UserId
 from src.integration.brokers.api_types import BrokerAccountId
+from src.market.api_types import SecurityId
 
 
 class InstitutionRepository(ABC):
@@ -49,6 +51,12 @@ class AccountRepository(ABC):
 class PositionRepository(ABC):
     @abstractmethod
     async def get_by_account(self, account_id: AccountId) -> list[PositionSchema]:
+        pass
+
+    @abstractmethod
+    async def get_holdings_by_security(
+        self, security_id: SecurityId, user_id: UserId
+    ) -> list[AccountHoldingRead]:
         pass
 
     @abstractmethod
