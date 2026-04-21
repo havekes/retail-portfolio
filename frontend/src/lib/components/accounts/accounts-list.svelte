@@ -21,7 +21,7 @@
 </script>
 
 <div class="accounts-list w-full space-y-4">
-	<div class="flex items-center border-b px-4 py-2">
+	<div class="flex h-[49px] items-center border-b px-4 py-2">
 		<h2>Accounts</h2>
 		<div class="ms-4 flex items-center gap-2 text-xs">
 			<div class="h-2 w-2 rounded-full {state.wsConnected ? 'bg-green-500' : 'bg-red-500'}"></div>

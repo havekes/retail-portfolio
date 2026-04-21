@@ -1,5 +1,5 @@
 import uuid
-from datetime import datetime
+from datetime import date, datetime
 from decimal import Decimal
 from typing import Self
 
@@ -30,6 +30,7 @@ class AccountSchema(BaseModel):
     institution_id: InstitutionEnum
     currency: Currency
     broker_display_name: str | None = None
+    net_deposits: float | None = None
     is_active: bool = True
     created_at: datetime | None = None
     deleted_at: datetime | None = None
@@ -55,6 +56,11 @@ class AccountSchema(BaseModel):
             institution_id=broker_account.institution,
             currency=broker_account.currency,
             broker_display_name=broker_account.broker_display_name,
+            net_deposits=(
+                float(broker_account.net_deposits)
+                if broker_account.net_deposits
+                else None
+            ),
         )
 
 
@@ -85,6 +91,7 @@ class PositionSchema(BaseModel):
     security_id: SecurityId
     quantity: Decimal
     average_cost: Decimal | None
+    currency: str | None = None
     updated_at: datetime | None = None
 
 
@@ -95,6 +102,7 @@ class PositionRead(BaseModel):
     security_symbol: str
     quantity: float
     average_cost: float | None
+    currency: str | None = None
     updated_at: datetime | None = None
 
 
@@ -104,6 +112,37 @@ class AccountHoldingRead(BaseModel):
     quantity: float
     average_cost: float | None = None
     total_value: float
+    currency: str
+
+
+class HoldingRead(BaseModel):
+    id: PositionId
+    security_id: SecurityId
+    security_symbol: str
+    security_name: str
+    quantity: float
+    average_cost: float | None
+    total_value: float
+    profit_loss: float | None
+    currency: str
+    security_currency: str
+    unconverted_total_value: float
+    converted_average_cost: float | None = None
+    converted_latest_price: float | None = None
+    unconverted_profit_loss: float | None = None
+    latest_price: float | None = None
+    price_date: date | None = None
+    updated_at: datetime | None = None
+
+
+class AccountHoldingsRead(BaseModel):
+    account_id: AccountId
+    account_name: str
+    holdings: list[HoldingRead]
+    total_value: float
+    total_profit_loss: float
+    total_profit_loss_percent: float | None = None
+    net_deposits: float | None = None
     currency: str
 
 

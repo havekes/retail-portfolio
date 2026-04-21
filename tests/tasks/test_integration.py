@@ -78,6 +78,7 @@ async def test_sync_account_positions_task_success(mock_account, mock_integratio
         exchange="NASDAQ",
         quantity=Decimal("10"),
         average_cost=Decimal("150"),
+        currency="USD",
     )
     mock_broker.get_positions_by_account.return_value = [mock_broker_position]
 

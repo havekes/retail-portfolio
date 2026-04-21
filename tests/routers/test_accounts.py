@@ -86,11 +86,12 @@ async def test_account_totals_success(auth_client, test_accounts, test_positions
     assert response.status_code == 200
     result = response.json()
 
-    # Verify the response contains cost totals
+    # Verify the response contains cost and value totals
     assert "cost" in result
+    assert "value" in result
     # Note: The actual value depends on market data service which may query external APIs
-    assert "value" in result["cost"]
     assert result["cost"]["value"].endswith(" CAD")
+    assert result["value"]["value"].endswith(" CAD")
 
 
 @pytest.mark.anyio
@@ -113,52 +114,6 @@ async def test_account_totals_not_owned(auth_client, other_user_account):
     assert response.status_code == 404
 
 
-@pytest.mark.anyio
-async def test_positions_by_account_success(
-    auth_client, test_accounts, test_position_for_first_account
-):
-    """Test positions_by_account returns positions for an account."""
-    account_id = test_accounts[0].id
-
-    response = await auth_client.get(f"/api/accounts/{account_id}/positions")
-    assert response.status_code == 200
-    result = response.json()
-
-    assert len(result) == 1
-    assert result[0]["account_id"] == str(account_id)
-    assert result[0]["security_id"] == str(test_position_for_first_account.security_id)
-
-
-@pytest.mark.anyio
-async def test_positions_by_account_not_found(auth_client):
-    """Test positions_by_account raises 404 for non-existent account."""
-    fake_id = uuid4()
-
-    response = await auth_client.get(f"/api/accounts/{fake_id}/positions")
-
-    assert response.status_code == 404
-
-
-@pytest.mark.anyio
-async def test_positions_by_account_not_owned(auth_client, other_user_account):
-    """Test positions_by_account raises 404 for account not owned by user."""
-    account_id = other_user_account.id
-
-    response = await auth_client.get(f"/api/accounts/{account_id}/positions")
-
-    assert response.status_code == 404
-
-
-@pytest.mark.anyio
-async def test_positions_by_account_empty(auth_client, test_accounts):
-    """Test positions_by_account returns empty list when account has no positions."""
-    account_id = test_accounts[1].id
-
-    response = await auth_client.get(f"/api/accounts/{account_id}/positions")
-
-    assert response.status_code == 200
-    result = response.json()
-    assert result == []
 
 
 @pytest.mark.anyio
@@ -175,10 +130,10 @@ async def test_account_rename_invalid_body(auth_client, test_accounts):
 
 
 @pytest.mark.anyio
-async def test_account_holdings_success(
+async def test_security_holdings_success(
     auth_client, test_accounts, test_position_for_first_account
 ):
-    """Test account_holdings returns holdings across user accounts."""
+    """Test security_holdings returns holdings across user accounts."""
     security_id = test_position_for_first_account.security_id
     response = await auth_client.get(f"/api/accounts/holdings/{security_id}")
 
@@ -205,3 +160,27 @@ async def test_account_holdings_isolation(
 
     assert response.status_code == 200
     assert response.json() == []
+
+
+@pytest.mark.anyio
+async def test_account_holdings_success(
+    auth_client, test_accounts, test_position_for_first_account
+):
+    """Test account_holdings returns detailed holdings for an account."""
+    account_id = test_accounts[0].id
+
+    response = await auth_client.get(f"/api/accounts/{account_id}/holdings")
+    assert response.status_code == 200
+    result = response.json()
+
+    assert result["account_id"] == str(account_id)
+    assert result["account_name"] == test_accounts[0].name
+    assert len(result["holdings"]) == 1
+    assert result["holdings"][0]["id"] == test_position_for_first_account.id
+    assert result["holdings"][0]["security_id"] == str(
+        test_position_for_first_account.security_id
+    )
+    assert "total_value" in result
+    assert "total_profit_loss" in result
+    assert "currency" in result
+    assert "updated_at" in result["holdings"][0]

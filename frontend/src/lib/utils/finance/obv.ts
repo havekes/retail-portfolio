@@ -1,5 +1,5 @@
 import type { Candle } from './candle';
-import type { IndicatorConfig, IndicatorSettings } from '@/services/indicatorsService';
+import type { IndicatorConfig, IndicatorSettings } from '@/api/indicatorsService';
 
 export type OBVSettings = IndicatorSettings;
 

@@ -19,6 +19,10 @@ export class AccountsListItemState {
 		}
 	}
 
+	invalidateCache(id: string) {
+		delete this.totalsCache[id];
+	}
+
 	totals = $derived.by(() => {
 		return this.fetchAccountTotals(this.getAccountId());
 	});

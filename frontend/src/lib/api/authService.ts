@@ -1,6 +1,5 @@
-import { BaseService } from './baseService';
-import { userStore } from '$lib/stores/userStore';
-import type { User } from '$lib/types/user';
+import { ApiClient } from './apiClient';
+import type { User } from '@/types/user';
 
 export interface LoginRequest {
 	email: string;
@@ -30,11 +29,9 @@ export interface SignupResponse {
 	message: string;
 }
 
-export class AuthService extends BaseService {
+export class AuthService extends ApiClient {
 	async login(credentials: LoginRequest): Promise<AuthResponse> {
-		const response = await this.post<AuthResponse, LoginRequest>('/auth/login', credentials);
-		userStore.setUser(response.user, response.access_token);
-		return response;
+		return this.post<AuthResponse, LoginRequest>('/auth/login', credentials);
 	}
 
 	async signup(credentials: SignupRequest): Promise<SignupResponse> {
@@ -45,8 +42,8 @@ export class AuthService extends BaseService {
 		return this.post<MessageResponse, VerifyEmailRequest>('/auth/verify-email', { token });
 	}
 
-	logout(): void {
-		userStore.clearUser();
+	async logout(): Promise<void> {
+		await this.post('/auth/logout', {});
 	}
 }
 

@@ -34,10 +34,12 @@ class Position(BaseModel):
     security_id: SecurityId
     quantity: Decimal
     average_cost: Decimal | None
+    currency: str | None = None
 
 
 class AccountTotals(BaseModel):
     cost: Money
+    value: Money
 
 
 class AccountRenameRequest(BaseModel):

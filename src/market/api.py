@@ -21,6 +21,7 @@ from src.market.repository import (
     SecurityRepository,
 )
 from src.market.schema import (
+    PriceSchema,
     SecurityBrokerSchema,
     SecurityCreateRequest,
     SecurityCreateResponse,
@@ -54,6 +55,10 @@ class MarketPricesApi:
             return None
 
         return Money(latest_price.close, security.currency)
+
+    async def get_latest_price(self, security_id: SecurityId) -> PriceSchema | None:
+        security = await self._security_repository.get_by_id_or_fail(security_id)
+        return await self._price_repository.get_latest_price(security)
 
 
 async def market_prices_factory(container: Container) -> MarketPricesApi:

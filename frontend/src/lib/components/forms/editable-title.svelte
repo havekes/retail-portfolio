@@ -8,12 +8,14 @@
 		value = $bindable(),
 		onSave,
 		containerClass = '',
-		textClass = 'font-semibold text-lg'
+		textClass = 'font-semibold text-lg',
+		href
 	}: {
 		value: string;
 		onSave?: (newValue: string) => void;
 		containerClass?: string;
 		textClass?: string;
+		href?: string;
 	} = $props();
 	let isEditing = $state(false);
 	let tempValue = $state(value);
@@ -44,7 +46,11 @@
 			<Save size={14} />
 		</Button>
 	{:else}
-		<div class={textClass}>{value}</div>
+		{#if href}
+			<a {href} class="hover:underline {textClass}">{value}</a>
+		{:else}
+			<div class={textClass}>{value}</div>
+		{/if}
 		<Button
 			variant="ghost"
 			size="icon-sm"

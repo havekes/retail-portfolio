@@ -1,0 +1,43 @@
+services:
+  backend:
+    build: .
+    container_name: retail-portfolio-backend
+    restart: always
+    ports:
+      - "8000:8000"
+    depends_on:
+      - postgres
+      - redis
+
+  worker:
+    build: .
+    container_name: retail-portfolio-worker
+    restart: always
+    command: huey_consumer src.worker.huey -w 2 --worker-type thread
+    depends_on:
+      - postgres
+      - redis
+
+  frontend:
+    build: ./frontend
+    container_name: retail-portfolio-frontend
+    restart: always
+    ports:
+      - "80:3000"
+    depends_on:
+      - backend
+
+  postgres:
+    image: postgres:18
+    container_name: retail-portfolio-postgres
+    restart: always
+    volumes:
+      - postgres_data:/var/lib/postgresql/18/docker
+
+  redis:
+    image: redis:7-alpine
+    container_name: retail-portfolio-redis
+    restart: always
+
+volumes:
+  postgres_data:

@@ -1,6 +1,6 @@
 import { goto } from '$app/navigation';
-import { authService } from '$lib/services/authService';
-import { APIError } from '$lib/services/baseService';
+import { authService } from '$lib/api/authService';
+import { ApiError } from '$lib/api/apiClient';
 import { resolve } from '$app/paths';
 
 export class SignupFormState {
@@ -25,7 +25,7 @@ export class SignupFormState {
 			await authService.signup({ email: this.email, password: this.password });
 			goto(resolve('/auth/signup/confirmation'));
 		} catch (error) {
-			if (error instanceof APIError && error.status === 409) {
+			if (error instanceof ApiError && error.status === 409) {
 				this.error = 'Account with this email already exists.';
 			} else {
 				this.error = 'Signup failed. Please try again.';

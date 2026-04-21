@@ -193,7 +193,7 @@ async def integration_import_accounts(
     )
 
     for account in imported_accounts:
-        sync_account_positions_task.delay(
+        sync_account_positions_task(
             user.id,
             account,
             account.external_id,

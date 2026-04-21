@@ -18,7 +18,7 @@
 <ConnectBrokerModal bind:open={state.isModalOpen} onSuccess={state.loadUsers} />
 
 <div class="brokers-list w-full space-y-4">
-	<div class="flex items-center border-b px-4 py-2">
+	<div class="flex h-[49px] items-center border-b px-4 py-2">
 		<h2>Connected brokers</h2>
 		{#if state.users.length > 0}
 			<div class="ms-auto">

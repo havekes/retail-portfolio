@@ -1,4 +1,4 @@
-import { BaseService } from './baseService';
+import { ApiClient } from './apiClient';
 
 export interface MarketSearchResult {
 	code: string;
@@ -54,13 +54,9 @@ export interface SecurityCreateResponse {
 	has_price_data: boolean;
 }
 
-export class MarketService extends BaseService {
+export class MarketService extends ApiClient {
 	async search(query: string): Promise<MarketSearchResult[]> {
-		const url = `/market/search?q=${query}`;
-		console.log('MarketService.search calling:', this.baseUrl + url);
-		const results = await this.get<MarketSearchResult[]>(url);
-		console.log('MarketService.search got results:', results);
-		return results;
+		return await this.get<MarketSearchResult[]>(`/market/search?q=${query}`);
 	}
 
 	async getPrices(

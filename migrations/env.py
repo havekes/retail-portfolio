@@ -1,6 +1,8 @@
 from logging.config import fileConfig
+import os
 
 from alembic import context
+
 from sqlalchemy import engine_from_config, pool
 
 # Import all domain models to ensure they're registered with BaseModel.metadata
@@ -28,6 +30,13 @@ target_metadata = BaseModel.metadata
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
 config = context.config
+
+# Override sqlalchemy.url if DATABASE_URL environment variable is set
+db_url = os.environ.get("DATABASE_URL")
+if db_url:
+    # Alembic migrations run synchronously; replace asyncpg with psycopg2 if present
+    db_url = db_url.replace("postgresql+asyncpg://", "postgresql://")
+    config.set_main_option("sqlalchemy.url", db_url)
 
 # Interpret the config file for Python logging.
 # This line sets up loggers basically.

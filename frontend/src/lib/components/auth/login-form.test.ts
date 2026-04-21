@@ -3,9 +3,12 @@ import userEvent from '@testing-library/user-event';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import LoginForm from './login-form.svelte';
 import { LoginFormState } from './login-form.svelte.js';
-import { authService, type AuthResponse } from '$lib/services/authService';
-import { userStore } from '$lib/stores/userStore';
-import { goto } from '$app/navigation';
+import { authService, type AuthResponse } from '$lib/api/authService';
+
+// Mock window.location
+const originalLocation = window.location;
+delete (window as any).location;
+(window as any).location = { ...originalLocation, href: '' };
 
 vi.mock('$app/navigation', () => ({
 	goto: vi.fn()
@@ -15,21 +18,16 @@ vi.mock('$app/paths', () => ({
 	resolve: (path: string) => path
 }));
 
-vi.mock('$lib/services/authService', () => ({
+vi.mock('$lib/api/authService', () => ({
 	authService: {
 		login: vi.fn()
-	}
-}));
-
-vi.mock('$lib/stores/userStore', () => ({
-	userStore: {
-		setUser: vi.fn()
 	}
 }));
 
 describe('LoginForm Component', () => {
 	beforeEach(() => {
 		vi.clearAllMocks();
+		window.location.href = '';
 	});
 
 	it('renders login form properly', () => {
@@ -58,9 +56,9 @@ describe('LoginForm Component', () => {
 		expect(submitButton).toBeDisabled();
 	});
 
-	it('navigates to home and sets user context on successful login', async () => {
+	it('reloads page on successful login', async () => {
 		const mockResponse: AuthResponse = {
-			user: { id: 1, email: 'test@example.com' },
+			user: { id: '1', email: 'test@example.com' },
 			access_token: 'token-abc',
 			token_type: 'bearer'
 		};
@@ -83,8 +81,7 @@ describe('LoginForm Component', () => {
 			email: 'test@example.com',
 			password: 'password123'
 		});
-		expect(userStore.setUser).toHaveBeenCalledWith(mockResponse.user, mockResponse.access_token);
-		expect(goto).toHaveBeenCalledWith('/');
+		expect(window.location.href).toBe('/');
 	});
 
 	it('shows error when login fails', async () => {

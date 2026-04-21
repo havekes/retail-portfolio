@@ -3,9 +3,8 @@ import userEvent from '@testing-library/user-event';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import SignupForm from './signup-form.svelte';
 import { SignupFormState } from './signup-form.svelte.js';
-import { authService, type SignupResponse } from '$lib/services/authService';
-import { APIError } from '$lib/services/baseService';
-import { userStore } from '$lib/stores/userStore';
+import { authService, type SignupResponse } from '$lib/api/authService';
+import { ApiError } from '$lib/api/apiClient';
 import { goto } from '$app/navigation';
 
 vi.mock('$app/navigation', () => ({
@@ -16,15 +15,9 @@ vi.mock('$app/paths', () => ({
 	resolve: (path: string) => path
 }));
 
-vi.mock('$lib/services/authService', () => ({
+vi.mock('$lib/api/authService', () => ({
 	authService: {
 		signup: vi.fn()
-	}
-}));
-
-vi.mock('$lib/stores/userStore', () => ({
-	userStore: {
-		setUser: vi.fn()
 	}
 }));
 
@@ -105,7 +98,6 @@ describe('SignupForm Component', () => {
 			email: 'test@example.com',
 			password: 'password123'
 		});
-		expect(userStore.setUser).not.toHaveBeenCalled();
 		expect(goto).toHaveBeenCalledWith('/auth/signup/confirmation');
 	});
 
@@ -127,7 +119,7 @@ describe('SignupForm Component', () => {
 		expect(await screen.findByText('Signup failed. Please try again.')).toBeInTheDocument();
 	});
 	it('shows specific error when email already exists (409)', async () => {
-		const apiError = new APIError(409, 'Conflict');
+		const apiError = new ApiError(409, 'Conflict');
 		vi.mocked(authService.signup).mockRejectedValueOnce(apiError);
 
 		render(SignupForm);

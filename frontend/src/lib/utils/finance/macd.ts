@@ -1,6 +1,6 @@
 import type { Candle } from './candle';
 import { calculateEMA } from './moving-average';
-import type { IndicatorConfig, IndicatorSettings } from '@/services/indicatorsService';
+import type { IndicatorConfig, IndicatorSettings } from '@/api/indicatorsService';
 
 export type MACDSettings = IndicatorSettings & {
 	fast: number;

@@ -2,15 +2,26 @@
 	import { Skeleton } from '$lib/components/ui/skeleton/index.js';
 	import * as Alert from '$lib/components/ui/alert/index.js';
 
-	export let title: string = '';
-	export let subtitle: string = '';
-	export let isLoading: boolean = false;
-	export let error: string | null = null;
+	let {
+		title = '',
+		subtitle = '',
+		isLoading = false,
+		error = null,
+		titleSlot,
+		actions
+	}: {
+		title?: string;
+		subtitle?: string;
+		isLoading?: boolean;
+		error?: string | null;
+		titleSlot?: import('svelte').Snippet;
+		actions?: import('svelte').Snippet;
+	} = $props();
 </script>
 
-<div class="flex items-center border-b px-4 py-2">
+<div class="flex h-[49px] items-center border-b px-4 py-2">
 	{#if isLoading}
-		<div class="space-y-1">
+		<div class="flex items-center gap-2">
 			<Skeleton class="h-6 w-32" />
 			<Skeleton class="h-4 w-48" />
 		</div>
@@ -20,11 +31,19 @@
 		</Alert.Root>
 	{:else}
 		<div class="flex items-center gap-2">
-			<h2 class="text-lg font-semibold">{title}</h2>
+			{#if titleSlot}
+				{@render titleSlot()}
+			{:else}
+				<h2 class="text-lg font-semibold">{title}</h2>
+			{/if}
 			{#if subtitle}
 				<p class="text-sm text-muted-foreground">{subtitle}</p>
 			{/if}
 		</div>
 	{/if}
-	<slot name="actions" />
+	{#if actions}
+		<div class="ml-auto">
+			{@render actions()}
+		</div>
+	{/if}
 </div>

@@ -105,13 +105,6 @@ async def _seed_institutions(session):
     rprint("Seeding institutions...")
     institutions_data = [
         {
-            "id": InstitutionEnum.QUESTRADE,
-            "name": "Questrade",
-            "country": "CA",
-            "website": "https://www.questrade.com",
-            "integration_enabled": True,
-        },
-        {
             "id": InstitutionEnum.WEALTHSIMPLE,
             "name": "Wealthsimple",
             "country": "CA",
@@ -204,7 +197,7 @@ async def _seed_accounts(session, user, account_types, institutions):
             "name": "My RRSP",
             "user_id": user.id,
             "account_type_id": account_types[AccountTypeEnum.RRSP].id,
-            "institution_id": institutions[InstitutionEnum.QUESTRADE].id,
+            "institution_id": institutions[InstitutionEnum.WEALTHSIMPLE].id,
             "currency": "CAD",
         },
         {
@@ -220,7 +213,7 @@ async def _seed_accounts(session, user, account_types, institutions):
             "name": "Side Trading",
             "user_id": user.id,
             "account_type_id": account_types[AccountTypeEnum.NON_REGISTERED].id,
-            "institution_id": institutions[InstitutionEnum.QUESTRADE].id,
+            "institution_id": institutions[InstitutionEnum.WEALTHSIMPLE].id,
             "currency": "USD",
         },
     ]
@@ -339,14 +332,6 @@ async def _seed_portfolios(session, user, accounts):
 async def _seed_integration_users(session, user, institutions):
     rprint("Seeding integration users...")
     integration_users_data = [
-        {
-            "id": uuid.UUID("00000000-0000-0000-0000-000000000010"),
-            "user_id": user.id,
-            "institution_id": institutions[InstitutionEnum.QUESTRADE].id,
-            "external_user_id": "qt_user_123",
-            "display_name": "Questrade API Connection",
-            "last_used_at": datetime.now(UTC),
-        },
         {
             "id": uuid.UUID("00000000-0000-0000-0000-000000000011"),
             "user_id": user.id,

@@ -3,7 +3,6 @@ from enum import IntEnum
 
 class InstitutionEnum(IntEnum):
     WEALTHSIMPLE = 1
-    QUESTRADE = 2
 
 
 class AccountTypeEnum(IntEnum):

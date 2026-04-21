@@ -1,3 +1,4 @@
+import { browser } from '$app/environment';
 import { accountClient } from '$lib/api/accountClient';
 import {
 	type Account,
@@ -7,7 +8,6 @@ import {
 	type Institution,
 	type AccountType
 } from '@/types/account';
-import { userStore } from '@/stores/userStore';
 import { SvelteSet } from 'svelte/reactivity';
 import { group, type GroupBy } from '@/group';
 import { WsEventType, type AccountSyncMessage } from '@/types/websocket';
@@ -38,13 +38,12 @@ export class AccountsListState {
 	private ws: WebSocket | null = null;
 
 	constructor() {
-		this.initWebSocket();
+		if (browser) {
+			this.initWebSocket();
+		}
 	}
 
 	private initWebSocket() {
-		const token = userStore.getToken();
-		if (!token) return;
-
 		let wsUrl: string;
 		const apiBaseUrl = import.meta.env.VITE_API_BASE_URL;
 
@@ -59,7 +58,8 @@ export class AccountsListState {
 		}
 
 		console.log('Connecting to WebSocket:', wsUrl);
-		this.ws = new WebSocket(wsUrl, [token]);
+		// Browsers will send the auth_token cookie automatically if it's the same domain
+		this.ws = new WebSocket(wsUrl);
 
 		this.ws.onopen = () => {
 			this.wsConnected = true;

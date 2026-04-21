@@ -1,7 +1,7 @@
-import { BaseClient } from './baseClient';
-import type { Account, AccountTotals } from '@/types/account';
+import { ApiClient } from './apiClient';
+import type { Account, AccountHoldings, AccountTotals } from '@/types/account';
 
-export class AccountClient extends BaseClient {
+export class AccountClient extends ApiClient {
 	async getAccounts(): Promise<Account[]> {
 		return this.get<Account[]>('/accounts/');
 	}
@@ -12,6 +12,10 @@ export class AccountClient extends BaseClient {
 
 	async getAccountTotals(id: string): Promise<AccountTotals> {
 		return this.get<AccountTotals>(`/accounts/${id}/totals`);
+	}
+
+	async getAccountHoldings(id: string, token?: string | null): Promise<AccountHoldings> {
+		return this.get<AccountHoldings>(`/accounts/${id}/holdings`, {}, token);
 	}
 
 	async deleteAccount(id: string): Promise<void> {

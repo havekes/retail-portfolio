@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 	import { page } from '$app/state';
-	import { authService } from '$lib/services/authService';
+	import { authService } from '$lib/api/authService';
 	import { Button } from '$lib/components/ui/button';
 	import * as Card from '$lib/components/ui/card';
 	import { CheckCircle2, XCircle, Loader2 } from '@lucide/svelte';

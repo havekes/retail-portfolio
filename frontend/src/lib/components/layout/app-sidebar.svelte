@@ -3,8 +3,7 @@
 	import * as DropdownMenu from '$lib/components/ui/dropdown-menu/index.js';
 	import * as Kbd from '$lib/components/ui/kbd/index.js';
 	import { goto } from '$app/navigation';
-	import { userStore } from '@/stores/userStore';
-	import type { User } from '@/types/user';
+	import { page } from '$app/stores';
 	import { getContext } from 'svelte';
 	import ChevronUp from '@lucide/svelte/icons/chevron-up';
 	import ChevronLeft from '@lucide/svelte/icons/chevron-left';
@@ -15,11 +14,9 @@
 	import Search from '@lucide/svelte/icons/search';
 	import { useSidebar } from '$lib/components/ui/sidebar/context.svelte.js';
 
-	let user: User | null = $state(null);
-	userStore.subscribe((authState) => (user = authState.user));
-
 	const toggleGlobalSearch = getContext<() => void>('toggleGlobalSearch');
 	const sidebar = useSidebar();
+	const user = $derived($page.data.user);
 </script>
 
 <Sidebar.Root collapsible="icon">
