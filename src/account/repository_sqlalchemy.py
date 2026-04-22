@@ -1,3 +1,4 @@
+from decimal import Decimal
 from typing import override
 
 from sqlalchemy import delete, select
@@ -122,6 +123,17 @@ class SqlAlchemyAccountRepository(AccountRepository):
         account_model = await self._session.get(AccountModel, account_id)
         if account_model:
             await self._session.delete(account_model)
+            await self._session.commit()
+
+    @override
+    async def update_net_deposits(
+        self, account_id: AccountId, net_deposits: float | None
+    ) -> None:
+        account_model = await self._session.get(AccountModel, account_id)
+        if account_model:
+            account_model.net_deposits = (
+                Decimal(str(net_deposits)) if net_deposits is not None else None
+            )
             await self._session.commit()
 
 

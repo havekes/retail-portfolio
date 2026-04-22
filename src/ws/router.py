@@ -1,9 +1,12 @@
+import logging
+
 import svcs
 from fastapi import APIRouter, WebSocket, WebSocketDisconnect
 
 from src.auth.api import UserApi
 from src.ws.manager import ws_manager
 
+logger = logging.getLogger(__name__)
 ws_router = APIRouter()
 
 
@@ -11,7 +14,9 @@ ws_router = APIRouter()
 async def websocket_endpoint(
     websocket: WebSocket,
 ):
-    token = websocket.headers.get("sec-websocket-protocol")
+    token = websocket.cookies.get("auth_token") or websocket.headers.get(
+        "sec-websocket-protocol"
+    )
     if not token:
         await websocket.close(code=1008)
         return
@@ -25,7 +30,13 @@ async def websocket_endpoint(
             await websocket.close(code=1008)
             return
 
-        await ws_manager.connect(websocket, user.id, subprotocol=token)
+        await ws_manager.connect(
+            websocket,
+            user.id,
+            subprotocol=token
+            if websocket.headers.get("sec-websocket-protocol")
+            else None,
+        )
         try:
             while True:
                 # We just want to keep the connection alive

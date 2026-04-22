@@ -47,6 +47,12 @@ class AccountRepository(ABC):
     async def delete(self, account_id: AccountId) -> None:
         pass
 
+    @abstractmethod
+    async def update_net_deposits(
+        self, account_id: AccountId, net_deposits: float | None
+    ) -> None:
+        pass
+
 
 class PositionRepository(ABC):
     @abstractmethod

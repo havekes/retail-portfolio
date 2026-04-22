@@ -1,4 +1,4 @@
-from src.exception import EntityNotFoundError
+from src.core.exception import EntityNotFoundError
 from src.market.api_types import SecurityId
 
 

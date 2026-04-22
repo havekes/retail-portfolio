@@ -119,7 +119,7 @@ async def auth_client(
     )
 
     # Generate access token for test user
-    access_token = user_api.create_access_token(test_user.email)
+    access_token = user_api.create_access_token(test_user.email, test_user.id)
 
     # Patch the EODHD gateway factory to return the mock gateway
     # Must patch in the source module (src.market.eodhd) where it's defined,

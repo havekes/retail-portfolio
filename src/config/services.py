@@ -5,6 +5,7 @@ from src.account.registry import register_account_services
 from src.auth import register_auth_services
 from src.config.database import DatabaseSessionManager
 from src.config.settings import settings
+from src.core.registry import register_core_services
 from src.integration.registry import register_integration_services
 from src.market import register_market_services
 from src.stubs.wealthsimple import StubWealthsimpleApiGateway
@@ -15,6 +16,9 @@ def register_services(
     sessionmanager: DatabaseSessionManager,
 ) -> None:
     registry.register_factory(AsyncSession, sessionmanager.session)
+
+    # Core services
+    register_core_services(registry)
 
     # Account APIs and Repositories
     register_account_services(registry)

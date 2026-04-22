@@ -17,6 +17,7 @@ from src.account.model import (
 )
 from src.auth.model import UserModel
 from src.config.database import sessionmanager
+from src.config.settings import settings
 from src.integration.model import IntegrationUserModel
 from src.market.model import SecurityModel
 
@@ -364,14 +365,20 @@ async def _seed_integration_users(session, user, institutions):
 
 async def seed_data():
     async with sessionmanager.session() as session:
-        user = await _seed_user(session)
+        rprint(f"Running seed in {settings.environment} environment")
+
         account_types = await _seed_account_types(session)
         institutions = await _seed_institutions(session)
-        securities = await _seed_securities(session)
-        accounts = await _seed_accounts(session, user, account_types, institutions)
-        await _seed_positions(session, accounts, securities)
-        await _seed_portfolios(session, user, accounts)
-        await _seed_integration_users(session, user, institutions)
+
+        if settings.environment == "dev":
+            user = await _seed_user(session)
+            securities = await _seed_securities(session)
+            accounts = await _seed_accounts(session, user, account_types, institutions)
+            await _seed_positions(session, accounts, securities)
+            await _seed_portfolios(session, user, accounts)
+            await _seed_integration_users(session, user, institutions)
+        else:
+            rprint("Skipping dev-only seeding (users, securities, accounts, etc.)")
 
         await session.commit()
         rprint("Seeding completed successfully!")

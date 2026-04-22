@@ -86,7 +86,7 @@ class InstitutionSchema(BaseModel):
 class PositionSchema(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
-    id: PositionId
+    id: PositionId | None = None
     account_id: AccountId
     security_id: SecurityId
     quantity: Decimal
