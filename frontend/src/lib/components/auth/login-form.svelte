@@ -40,7 +40,13 @@
 					/>
 				</Field>
 				<Field>
-					<Input id="password-{id}" name="password" type="password" placeholder="Password" required />
+					<Input
+						id="password-{id}"
+						name="password"
+						type="password"
+						placeholder="Password"
+						required
+					/>
 				</Field>
 				{#if form?.message}
 					<p class="text-sm text-red-500">{form.message}</p>

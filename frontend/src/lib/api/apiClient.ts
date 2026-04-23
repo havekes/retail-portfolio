@@ -17,7 +17,7 @@ export abstract class ApiClient {
 
 	constructor(customFetch?: typeof fetch) {
 		const base = browser
-			? (import.meta.env.VITE_API_BASE_URL || '')
+			? import.meta.env.VITE_API_BASE_URL || ''
 			: (import.meta.env.VITE_INTERNAL_API_URL ?? import.meta.env.VITE_API_BASE_URL ?? '');
 		this.baseUrl = (base.endsWith('/') ? base.slice(0, -1) : base) + '/api';
 		this.fetch = customFetch || fetch;

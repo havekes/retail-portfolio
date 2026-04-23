@@ -4,7 +4,7 @@ import type { PageServerLoad, Actions } from './$types';
 const logout = (cookies: any) => {
 	// Be very aggressive about deleting the cookie
 	cookies.delete('auth_token', { path: '/' });
-	
+
 	// Also set it to empty with immediate expiration just in case
 	cookies.set('auth_token', '', {
 		path: '/',

@@ -32,7 +32,7 @@ export const actions: Actions = {
 		if (typeof name !== 'string' || !name) {
 			return fail(400, { message: 'Name is required' });
 		}
-		
+
 		if (typeof id !== 'string' || !id) {
 			return fail(400, { message: 'Account ID is required' });
 		}
