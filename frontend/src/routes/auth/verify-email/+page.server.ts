@@ -19,10 +19,12 @@ export const load: PageServerLoad = async ({ url, fetch }) => {
 			status: 'success',
 			message: response.message || 'Your email has been successfully verified!'
 		};
-	} catch (e: any) {
+	} catch (e) {
+		const message =
+			e instanceof Error ? e.message : 'Verification failed. The link may be expired or invalid.';
 		return {
 			status: 'error',
-			message: e.message || 'Verification failed. The link may be expired or invalid.'
+			message
 		};
 	}
 };

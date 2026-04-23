@@ -21,6 +21,9 @@ export default defineConfig(({ mode }) => {
 		},
 		test: {
 			environment: 'jsdom',
+			environmentOptions: {
+				url: 'http://localhost/'
+			},
 			setupFiles: ['./src/setupTest.ts'],
 			include: ['src/**/*.{test,spec}.{js,ts}']
 		}

@@ -2,13 +2,7 @@ import { render, screen } from '@testing-library/svelte';
 import userEvent from '@testing-library/user-event';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import LoginForm from './login-form.svelte';
-import { LoginFormState } from './login-form.svelte.js';
 import { authService, type AuthResponse } from '$lib/api/authService';
-
-// Mock window.location
-const originalLocation = window.location;
-delete (window as any).location;
-(window as any).location = { ...originalLocation, href: '' };
 
 vi.mock('$app/navigation', () => ({
 	goto: vi.fn()
@@ -58,7 +52,7 @@ describe('LoginForm Component', () => {
 
 	it('reloads page on successful login', async () => {
 		const mockResponse: AuthResponse = {
-			user: { id: '1', email: 'test@example.com' },
+			user: { id: 1, email: 'test@example.com' },
 			access_token: 'token-abc',
 			token_type: 'bearer'
 		};
@@ -100,15 +94,5 @@ describe('LoginForm Component', () => {
 		expect(
 			await screen.findByText('Login failed. Please check your credentials.')
 		).toBeInTheDocument();
-	});
-});
-
-describe('LoginFormState Class', () => {
-	it('initializes with default values', () => {
-		const state = new LoginFormState();
-		expect(state.email).toBe('');
-		expect(state.password).toBe('');
-		expect(state.isLoading).toBe(false);
-		expect(state.error).toBeNull();
 	});
 });

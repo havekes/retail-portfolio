@@ -7,7 +7,7 @@
 	import Label from '@/components/ui/label/label.svelte';
 	import Button from '@/components/ui/button/button.svelte';
 	import { alertsService, type PriceAlertCreateRequest } from '$lib/api/alertsService';
-	import { marketService, type SecuritySchema } from '$lib/api/marketService';
+	import { type SecuritySchema } from '$lib/api/marketService';
 	import type { ModalState } from '@/utils/modal-state.svelte';
 
 	let { modalState, onCreated } = $props<{

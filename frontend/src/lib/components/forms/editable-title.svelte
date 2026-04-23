@@ -4,6 +4,7 @@
 	import Input from '../ui/input/input.svelte';
 	import Button from '../ui/button/button.svelte';
 	import { enhance } from '$app/forms';
+	import { resolve } from '$app/paths';
 
 	let {
 		value = $bindable(),
@@ -97,7 +98,9 @@
 		{/if}
 	{:else}
 		{#if href}
-			<a {href} class="hover:underline {textClass}">{value}</a>
+			<a href={resolve(href as unknown as '/')} class="hover:underline {textClass}">
+				{value}
+			</a>
 		{:else}
 			<div class={textClass}>{value}</div>
 		{/if}

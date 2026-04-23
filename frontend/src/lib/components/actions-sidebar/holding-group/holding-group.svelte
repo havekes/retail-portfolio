@@ -4,6 +4,7 @@
 	import Skeleton from '@/components/ui/skeleton/skeleton.svelte';
 	import SidebarError from '../sidebar-error.svelte';
 	import { accountService, type AccountHoldingRead } from '@/api/accountService';
+	import { resolve } from '$app/paths';
 
 	let { securityId, expanded = $bindable(true) } = $props<{
 		securityId: string;
@@ -61,7 +62,7 @@
 				<div class="space-y-1 py-2 text-sm">
 					{#each holdings as holding (holding.account_id)}
 						<a
-							href="/accounts/{holding.account_id}"
+							href={resolve(`/accounts/${holding.account_id}`)}
 							class="flex flex-col rounded-md px-2 py-1.5 no-underline hover:bg-muted/50"
 						>
 							<div class="flex justify-between">

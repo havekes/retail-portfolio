@@ -1,8 +1,6 @@
 <script lang="ts">
 	import AppSidebar from '@/components/layout/app-sidebar.svelte';
-	import { marketService } from '@/api/marketService';
 	import { convertToHeikinAshi } from '@/utils/finance/candle';
-	import { page } from '$app/state';
 	import { resolve } from '$app/paths';
 	import type { Candle } from '@/utils/finance/candle';
 	import PageHeader from '@/components/layout/app-header.svelte';
@@ -22,6 +20,7 @@
 	import { calculateOBV } from '@/utils/finance/obv';
 	import HoldingsGroup from '@/components/actions-sidebar/holding-group/holding-group.svelte';
 	import { accountService, type AccountHoldingRead } from '@/api/accountService';
+	import type { IndicatorData } from '$lib/components/charts/security-chart.svelte';
 
 	let { data } = $props();
 
@@ -31,20 +30,54 @@
 	let security = $state<SecuritySchema | null>(data.security);
 	let haCandles = $state<Candle[]>([]);
 	let securityChart = $state<unknown | null>(null);
-	let chartRef = $state<any>(null);
+
+	interface LocalIndicatorConfig {
+		label: string;
+		color: string;
+		period: number;
+		enabled: boolean;
+		fast?: number;
+		slow?: number;
+		signal?: number;
+		stdDev?: number;
+		settings: Record<string, unknown>;
+	}
+
+	interface ChartInstance {
+		addIndicator: (indicator: IndicatorData) => void;
+		removeIndicator: (indicatorId: string) => void;
+	}
+
+	let chartRef = $state<ChartInstance | null>(null);
 	let alerts = $state<PriceAlert[]>([]);
 
-	let indicatorConfigs = $state<Record<string, any>>({
-		ma50: { label: '50 Day MA', color: '#3b82f6', period: 50 },
-		ma200: { label: '200 Day MA', color: '#8b5cf6', period: 200 },
-		ma50w: { label: '50 Week MA', color: '#10b981', period: 250 },
-		ma200w: { label: '200 Week MA', color: '#f59e0b', period: 1000 },
-		volume: { label: 'Volume', color: '#64748b', period: 0 },
-		obv: { label: 'OBV', color: '#f59e0b', period: 0 },
-		rsi: { label: 'RSI', color: '#06b6d4', period: 14 },
-		macd: { label: 'MACD', color: '#ef4444', period: 0, fast: 12, slow: 26, signal: 9 },
-		bb: { label: 'Bollinger Bands', color: '#8b5cf6', period: 20, stdDev: 2 },
-		avgPrice: { label: 'Avg Price', color: '#f59e0b', period: 0, enabled: true }
+	let indicatorConfigs = $state<Record<string, LocalIndicatorConfig>>({
+		ma50: { label: '50 Day MA', color: '#3b82f6', period: 50, enabled: false, settings: {} },
+		ma200: { label: '200 Day MA', color: '#8b5cf6', period: 200, enabled: false, settings: {} },
+		ma50w: { label: '50 Week MA', color: '#10b981', period: 250, enabled: false, settings: {} },
+		ma200w: { label: '200 Week MA', color: '#f59e0b', period: 1000, enabled: false, settings: {} },
+		volume: { label: 'Volume', color: '#64748b', period: 0, enabled: false, settings: {} },
+		obv: { label: 'OBV', color: '#f59e0b', period: 0, enabled: false, settings: {} },
+		rsi: { label: 'RSI', color: '#06b6d4', period: 14, enabled: false, settings: {} },
+		macd: {
+			label: 'MACD',
+			color: '#ef4444',
+			period: 0,
+			fast: 12,
+			slow: 26,
+			signal: 9,
+			enabled: false,
+			settings: {}
+		},
+		bb: {
+			label: 'Bollinger Bands',
+			color: '#8b5cf6',
+			period: 20,
+			stdDev: 2,
+			enabled: false,
+			settings: {}
+		},
+		avgPrice: { label: 'Avg Price', color: '#f59e0b', period: 0, enabled: true, settings: {} }
 	});
 
 	let holdings = $state<AccountHoldingRead[]>([]);
@@ -56,7 +89,7 @@
 		return totalCost / totalQuantity;
 	});
 
-	function onIndicatorConfigChange(indicatorId: string, newConfig: any) {
+	function onIndicatorConfigChange(indicatorId: string, newConfig: Partial<LocalIndicatorConfig>) {
 		indicatorConfigs[indicatorId] = { ...indicatorConfigs[indicatorId], ...newConfig };
 		// Handle avgPrice specifically since it's a prop not a generic indicator
 		if (indicatorId === 'avgPrice') return;
@@ -137,17 +170,18 @@
 		} else if (indicatorId === 'rsi') {
 			data = calculateRSI(haCandles, { period: config.period });
 		} else if (indicatorId === 'macd') {
-			// eslint-disable-next-line @typescript-eslint/no-explicit-any
-			const mconfig = config as any;
+			const mconfig = config as LocalIndicatorConfig;
 			data = calculateMACD(haCandles, {
-				fast: mconfig.fast,
-				slow: mconfig.slow,
-				signal: mconfig.signal
+				fast: mconfig.fast || 12,
+				slow: mconfig.slow || 26,
+				signal: mconfig.signal || 9
 			});
 		} else if (indicatorId === 'bb') {
-			// eslint-disable-next-line @typescript-eslint/no-explicit-any
-			const bconfig = config as any;
-			data = calculateBollingerBands(haCandles, { period: bconfig.period, stdDev: bconfig.stdDev });
+			const bconfig = config as LocalIndicatorConfig;
+			data = calculateBollingerBands(haCandles, {
+				period: bconfig.period,
+				stdDev: bconfig.stdDev || 2
+			});
 		} else {
 			data = calculateSMA(haCandles, config.period);
 		}

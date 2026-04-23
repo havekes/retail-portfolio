@@ -1,6 +1,7 @@
 <script lang="ts">
 	import * as Sidebar from '$lib/components/ui/sidebar/index.js';
 	import { notesService } from '$lib/api/notesService';
+	import { ApiError } from '$lib/api/apiClient';
 	import NoteCreationDialog from './note-creation-dialog.svelte';
 	import NoteViewDialog from './note-view-dialog.svelte';
 	import NoteListItem from './note-list-item.svelte';
@@ -32,7 +33,7 @@
 			notes = await notesService.getNotes(securityId);
 			notes.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
 		} catch (err) {
-			const status = err && typeof err === 'object' && 'status' in err ? (err as any).status : null;
+			const status = err instanceof ApiError ? err.status : null;
 			if (status === 404) {
 				notes = [];
 			} else {

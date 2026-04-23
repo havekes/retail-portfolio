@@ -5,6 +5,7 @@
 	import ChevronUp from '@lucide/svelte/icons/chevron-up';
 	import ChevronDown from '@lucide/svelte/icons/chevron-down';
 	import * as Tooltip from '$lib/components/ui/tooltip/index.js';
+	import { resolve } from '$app/paths';
 
 	let { holdings, totalAccountValue }: { holdings: Holding[]; totalAccountValue: number } =
 		$props();
@@ -20,12 +21,10 @@
 			if (aVal === null || aVal === undefined) return 1;
 			if (bVal === null || bVal === undefined) return -1;
 
-			let comparison = 0;
-			if (typeof aVal === 'string' && typeof bVal === 'string') {
-				comparison = aVal.localeCompare(bVal);
-			} else {
-				comparison = (aVal as number) - (bVal as number);
-			}
+			const comparison =
+				typeof aVal === 'string' && typeof bVal === 'string'
+					? aVal.localeCompare(bVal)
+					: (aVal as number) - (bVal as number);
 
 			return sortDirection === 'asc' ? comparison : -comparison;
 		});
@@ -150,7 +149,7 @@
 					class="group border-b-muted/10 transition-all even:bg-muted/30 hover:bg-muted/10"
 				>
 					<Table.Cell class="px-8 py-2">
-						<a href={`/security/${holding.security_id}`} class="group flex w-fit flex-col">
+						<a href={resolve(`/security/${holding.security_id}`)} class="group flex w-fit flex-col">
 							<span
 								class="inline-block text-sm leading-tight font-semibold text-primary group-hover:underline"
 							>

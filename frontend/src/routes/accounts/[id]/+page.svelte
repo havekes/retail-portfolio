@@ -5,7 +5,6 @@
 	import HoldingsTable from '@/components/accounts/holdings-table.svelte';
 	import { Badge } from '$lib/components/ui/badge/index.js';
 	import EditableTitle from '@/components/forms/editable-title.svelte';
-	import { accountClient } from '$lib/api/accountClient';
 
 	let { data } = $props();
 

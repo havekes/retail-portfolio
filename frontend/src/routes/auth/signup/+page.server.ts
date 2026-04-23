@@ -1,4 +1,5 @@
 import { AuthService } from '$lib/api/authService';
+import { ApiError } from '$lib/api/apiClient';
 import { fail, redirect } from '@sveltejs/kit';
 import type { Actions } from './$types';
 
@@ -28,12 +29,16 @@ export const actions: Actions = {
 
 		try {
 			await authService.signup({ email, password });
-		} catch (err: any) {
+		} catch (err) {
 			let message = 'Signup failed. Please try again.';
-			if (err.status === 409) {
-				message = 'Account with this email already exists.';
+			let status = 500;
+			if (err instanceof ApiError) {
+				status = err.status;
+				if (err.status === 409) {
+					message = 'Account with this email already exists.';
+				}
 			}
-			return fail(err.status || 500, {
+			return fail(status, {
 				email,
 				message
 			});

@@ -30,6 +30,12 @@
 	let activeFormat = $state<ColorFormat>(defaultFormat);
 	let isDragging = $state(false);
 
+	$effect.pre(() => {
+		if (activeFormat === undefined) {
+			activeFormat = defaultFormat;
+		}
+	});
+
 	let sbRef: HTMLDivElement | undefined = $state();
 	let hueRef: HTMLDivElement | undefined = $state();
 	let alphaRef: HTMLDivElement | undefined = $state();
@@ -131,26 +137,25 @@
 		b /= 255;
 		const max = Math.max(r, g, b),
 			min = Math.min(r, g, b);
-		let h = 0,
-			s = 0,
-			v = max;
+		let h_hsv = 0;
+		const v_hsv = max;
 		const d = max - min;
-		s = max === 0 ? 0 : d / max;
+		const s_hsv = max === 0 ? 0 : d / max;
 		if (max !== min) {
 			switch (max) {
 				case r:
-					h = (g - b) / d + (g < b ? 6 : 0);
+					h_hsv = (g - b) / d + (g < b ? 6 : 0);
 					break;
 				case g:
-					h = (b - r) / d + 2;
+					h_hsv = (b - r) / d + 2;
 					break;
 				case b:
-					h = (r - g) / d + 4;
+					h_hsv = (r - g) / d + 4;
 					break;
 			}
-			h /= 6;
+			h_hsv /= 6;
 		}
-		return { h: h * 360, s: s * 100, v: v * 100 };
+		return { h: h_hsv * 360, s: s_hsv * 100, v: v_hsv * 100 };
 	}
 
 	function hsvToRgb(h: number, s: number, v: number) {
@@ -220,11 +225,11 @@
 
 		const l = 0.4122214708 * r + 0.5363325363 * g + 0.0514459929 * b;
 		const m = 0.2119034982 * r + 0.6806995451 * g + 0.1073969566 * b;
-		const s = 0.0883024619 * r + 0.2817188376 * g + 0.6299787005 * b;
+		const s_lin = 0.0883024619 * r + 0.2817188376 * g + 0.6299787005 * b;
 
 		const l_ = Math.cbrt(l),
 			m_ = Math.cbrt(m),
-			s_ = Math.cbrt(s);
+			s_ = Math.cbrt(s_lin);
 
 		const L = 0.2104542553 * l_ + 0.793617785 * m_ - 0.0040720468 * s_;
 		const A = 1.9779984951 * l_ - 2.428592205 * m_ + 0.4505937099 * s_;
@@ -382,7 +387,7 @@
 			<div
 				bind:this={hueRef}
 				class="relative h-3 w-full cursor-pointer rounded-full shadow-sm ring-1 ring-black/5 touch-none"
-				style:background={'linear-gradient(to right, #f00 0%, #ff0 17%, #0f0 33%, #0ff 50%, #00f 67%, #f0f 83%, #f00 100%)'}
+				style:background="linear-gradient(to right, #f00 0%, #ff0 17%, #0f0 33%, #0ff 50%, #00f 67%, #f0f 83%, #f00 100%)"
 				role="slider"
 				aria-valuenow={h}
 				tabindex="0"
@@ -437,7 +442,7 @@
 					<Command.Root>
 						<Command.List>
 							<Command.Group>
-								{#each ['hex', 'rgb', 'hsl', 'oklch'] as fmt}
+								{#each ['hex', 'rgb', 'hsl', 'oklch'] as fmt (fmt)}
 									<Command.Item
 										value={fmt}
 										onSelect={() => setFormat(fmt as ColorFormat)}

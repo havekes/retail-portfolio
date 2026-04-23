@@ -1,7 +1,7 @@
-import { redirect } from '@sveltejs/kit';
+import { redirect, type Cookies } from '@sveltejs/kit';
 import type { PageServerLoad, Actions } from './$types';
 
-const logout = (cookies: any) => {
+const logout = (cookies: Cookies) => {
 	// Be very aggressive about deleting the cookie
 	cookies.delete('auth_token', { path: '/' });
 

@@ -1,4 +1,5 @@
 import { AuthService } from '$lib/api/authService';
+import { ApiError } from '$lib/api/apiClient';
 import { fail, redirect } from '@sveltejs/kit';
 import type { Actions } from './$types';
 
@@ -25,12 +26,16 @@ export const actions: Actions = {
 				secure: false, // Set to true in prod
 				maxAge: 60 * 60 * 24 * 7 // 1 week
 			});
-		} catch (err: any) {
+		} catch (err) {
 			let message = 'Login failed. Please check your credentials.';
-			if (err.status === 403) {
-				message = 'Email not verified. Please check your inbox for a verification link.';
+			let status = 500;
+			if (err instanceof ApiError) {
+				status = err.status;
+				if (err.status === 403) {
+					message = 'Email not verified. Please check your inbox for a verification link.';
+				}
 			}
-			return fail(err.status || 500, {
+			return fail(status, {
 				email,
 				message
 			});

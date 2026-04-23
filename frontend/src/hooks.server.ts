@@ -7,15 +7,17 @@ function parseJwt(token: string) {
 		const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
 		const jsonPayload = Buffer.from(base64, 'base64').toString();
 		return JSON.parse(jsonPayload);
-	} catch (e) {
+	} catch {
 		return null;
 	}
 }
 
 export const handle: Handle = async ({ event, resolve }) => {
+	event.locals.user = null;
+
 	if (event.url.searchParams.get('clear_session') === 'true') {
 		event.cookies.delete('auth_token', { path: '/' });
-		event.locals.user = undefined;
+		event.locals.user = null;
 	} else {
 		const token = event.cookies.get('auth_token');
 

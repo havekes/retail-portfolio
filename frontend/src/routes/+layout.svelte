@@ -1,7 +1,6 @@
 <script lang="ts">
 	import '../app.css';
 	import { ModeWatcher } from 'mode-watcher';
-	import { page } from '$app/stores';
 	import { setBrokerService } from '$lib/components/brokers/brokerService.svelte';
 	import { setContext } from 'svelte';
 	import GlobalSearch from '$lib/components/global-search.svelte';
@@ -9,8 +8,6 @@
 	let { children } = $props();
 
 	setBrokerService();
-
-	let user = $derived($page.data.user);
 
 	setContext('toggleGlobalSearch', () => (globalSearchOpen = !globalSearchOpen));
 

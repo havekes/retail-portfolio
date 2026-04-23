@@ -9,6 +9,16 @@ import type {
 	IChartApi
 } from 'lightweight-charts';
 
+interface BitmapScope {
+	context: CanvasRenderingContext2D;
+	horizontalPixelRatio: number;
+	verticalPixelRatio: number;
+}
+
+interface CanvasTarget {
+	useBitmapCoordinateSpace: (cb: (scope: BitmapScope) => void) => void;
+}
+
 export interface BandData {
 	time: string;
 	upper: number;
@@ -22,7 +32,6 @@ export class BandsIndicator implements ISeriesPrimitive {
 		this._paneView = new BandPaneView(data, color);
 	}
 
-	// eslint-disable-next-line @typescript-eslint/no-unused-vars
 	attached(param: SeriesAttachedParameter<Time, SeriesType>) {
 		this._paneView.attach(param.chart, param.series);
 		param.requestUpdate();
@@ -91,11 +100,10 @@ class BandRenderer implements IPrimitivePaneRenderer {
 		this._series = series;
 	}
 
-	// eslint-disable-next-line @typescript-eslint/no-explicit-any
-	draw(target: any) {
+	draw(target: CanvasTarget) {
 		if (!this._chart || !this._series || this._data.length === 0) return;
 
-		target.useBitmapCoordinateSpace((scope: any) => {
+		target.useBitmapCoordinateSpace((scope: BitmapScope) => {
 			const ctx = scope.context;
 			const timeScale = this._chart!.timeScale();
 			let started = false;

@@ -18,21 +18,21 @@ describe('ApiClient', () => {
 	});
 
 	it('should throw ApiError on 401', async () => {
-		(global.fetch as any).mockResolvedValue({
+		vi.mocked(global.fetch).mockResolvedValue({
 			ok: false,
 			status: 401,
 			json: async () => ({ detail: 'Unauthorized' })
-		});
+		} as Response);
 
 		await expect(client.testGet()).rejects.toThrow(ApiError);
 	});
 
 	it('should throw ApiError on 404', async () => {
-		(global.fetch as any).mockResolvedValue({
+		vi.mocked(global.fetch).mockResolvedValue({
 			ok: false,
 			status: 404,
 			json: async () => ({ detail: 'Not Found' })
-		});
+		} as Response);
 
 		await expect(client.testGet()).rejects.toThrow(ApiError);
 	});

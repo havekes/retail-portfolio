@@ -64,6 +64,11 @@ jobs:
           cd frontend
           npm install
 
+      - name: Run type checks
+        run: |
+          cd frontend
+          npm run check
+
       - name: Run ESLint and Prettier checks
         run: |
           cd frontend

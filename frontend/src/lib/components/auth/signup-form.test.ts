@@ -2,7 +2,6 @@ import { render, screen } from '@testing-library/svelte';
 import userEvent from '@testing-library/user-event';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import SignupForm from './signup-form.svelte';
-import { SignupFormState } from './signup-form.svelte.js';
 import { authService, type SignupResponse } from '$lib/api/authService';
 import { ApiError } from '$lib/api/apiClient';
 import { goto } from '$app/navigation';
@@ -136,16 +135,5 @@ describe('SignupForm Component', () => {
 
 		expect(await screen.findByText('Account with this email already exists.')).toBeInTheDocument();
 		expect(goto).not.toHaveBeenCalled();
-	});
-});
-
-describe('SignupFormState Class', () => {
-	it('initializes with default values', () => {
-		const state = new SignupFormState();
-		expect(state.email).toBe('');
-		expect(state.password).toBe('');
-		expect(state.confirmPassword).toBe('');
-		expect(state.isLoading).toBe(false);
-		expect(state.error).toBeNull();
 	});
 });

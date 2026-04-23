@@ -5,7 +5,6 @@
 	import { ModalState } from '@/utils/modal-state.svelte';
 	import { Button } from '@/components/ui/button/index.js';
 	import { Textarea } from '@/components/ui/textarea/index.js';
-	import { Label } from '@/components/ui/label/index.js';
 	import { Kbd } from '@/components/ui/kbd';
 
 	let { securityId, modalState, onCreated } = $props<{

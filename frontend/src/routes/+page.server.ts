@@ -40,8 +40,11 @@ export const actions: Actions = {
 		const accountClient = getAccountClient(fetch);
 		try {
 			await accountClient.renameAccount(id, name);
-		} catch (err: any) {
-			return fail(err.status || 500, { message: err.message || 'Failed to rename account' });
+		} catch (err) {
+			if (err instanceof ApiError) {
+				return fail(err.status, { message: err.message });
+			}
+			return fail(500, { message: 'Failed to rename account' });
 		}
 
 		return { success: true };

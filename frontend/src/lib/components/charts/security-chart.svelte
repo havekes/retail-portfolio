@@ -1,25 +1,56 @@
 <script lang="ts">
 	import { CandlestickSeries, createChart, LineSeries, HistogramSeries } from 'lightweight-charts';
+	import type { IChartApi, ISeriesApi, IPriceLine, SeriesType } from 'lightweight-charts';
 	import { onMount } from 'svelte';
 	import type { Candle } from '@/utils/finance/candle';
 	import { BandsIndicator } from './plugins/bands-indicator';
 	import { UserPriceAlerts } from './plugins/user-price-alerts/user-price-alerts';
+	import type { UserAlertInfo } from './plugins/user-price-alerts/state';
 	import type { PriceAlert } from '$lib/api/alertsService';
+
+	interface MacdDataItem {
+		time: string;
+		histogram: number;
+		macd: number;
+		signal: number;
+	}
+
+	interface BbDataItem {
+		time: string;
+		upper: number;
+		middle: number;
+		lower: number;
+	}
 
 	export interface IndicatorData {
 		type: string;
 		label: string;
 		color: string;
-		data: { time: string; value: number }[];
+		data: ({ time: string; value: number } | MacdDataItem | BbDataItem)[];
 	}
 
 	let containerRef = $state<HTMLDivElement | null>(null);
 	let bottomContainerRef = $state<HTMLDivElement | null>(null);
-	let chartInstance = $state<ReturnType<typeof createChart> | null>(null);
-	let bottomChartInstance = $state<ReturnType<typeof createChart> | null>(null);
-	// eslint-disable-next-line @typescript-eslint/no-explicit-any
-	let seriesInstance = $state<any>(null);
-	let indicatorSeries = $state<Map<string, any>>(new Map());
+	let chartInstance = $state<IChartApi | null>(null);
+	let bottomChartInstance = $state<IChartApi | null>(null);
+	let seriesInstance = $state<ISeriesApi<'Candlestick'> | null>(null);
+
+	interface MacdSeries {
+		histogram: ISeriesApi<'Histogram'>;
+		macdLine: ISeriesApi<'Line'>;
+		signalLine: ISeriesApi<'Line'>;
+	}
+
+	interface BbSeries {
+		upper: ISeriesApi<'Line'>;
+		middle: ISeriesApi<'Line'>;
+		lower: ISeriesApi<'Line'>;
+		bandsPrimitive: BandsIndicator;
+	}
+
+	let indicatorSeries = $state<Map<string, ISeriesApi<SeriesType> | MacdSeries | BbSeries>>(
+		new Map()
+	);
 	let activeIndicators = $state<{ type: string; label: string; color?: string }[]>([]);
 	let userAlertsPrimitive = $state<UserPriceAlerts | null>(null);
 
@@ -31,6 +62,8 @@
 		candles = [],
 		containerId = 'main-chart',
 		alerts = [],
+		onAddAlert,
+		onRemoveAlert,
 		averagePrice = 0,
 		showAveragePrice = false
 	} = $props<{
@@ -43,7 +76,7 @@
 		showAveragePrice?: boolean;
 	}>();
 
-	let avgPriceLine: any = null;
+	let avgPriceLine: IPriceLine | null = null;
 
 	$effect(() => {
 		if (!seriesInstance) return;
@@ -86,12 +119,11 @@
 
 	$effect(() => {
 		if (userAlertsPrimitive && alerts) {
-			const alertInfos = (alerts as PriceAlert[]).map((a: PriceAlert) => ({
+			const alertInfos: UserAlertInfo[] = (alerts as PriceAlert[]).map((a: PriceAlert) => ({
 				id: a.id.toString(),
 				price: a.target_price
 			}));
-			// eslint-disable-next-line @typescript-eslint/no-explicit-any
-			(userAlertsPrimitive as any).setAlerts(alertInfos);
+			userAlertsPrimitive.setAlerts(alertInfos);
 		}
 	});
 
@@ -163,7 +195,7 @@
 		userAlertsPrimitive.setSymbolName('Price');
 		seriesInstance.attachPrimitive(userAlertsPrimitive);
 
-		userAlertsPrimitive.alertAdded().subscribe((alert: any) => {
+		userAlertsPrimitive.alertAdded().subscribe((alert: UserAlertInfo) => {
 			const currentPrice = candles[candles.length - 1]?.close ?? 0;
 			const condition = alert.price > currentPrice ? 'above' : 'below';
 			if (onAddAlert) {
@@ -248,7 +280,7 @@
 					lineWidth: 2
 				});
 				indicatorSeries.set('rsi', series);
-				if (indicator.data.length > 0) series.setData(indicator.data as any);
+				if (indicator.data.length > 0) series.setData(indicator.data);
 			} else if (indicator.type === 'macd') {
 				const histogram = bottomChartInstance.addSeries(HistogramSeries, { base: 0 });
 				const macdLineColor = indicator.color || '#2962FF';
@@ -261,21 +293,22 @@
 					lineWidth: 1
 				});
 
-				indicatorSeries.set('macd', { histogram, macdLine, signalLine });
+				const macdSeries: MacdSeries = { histogram, macdLine, signalLine };
+				indicatorSeries.set('macd', macdSeries);
 
 				if (indicator.data.length > 0) {
 					histogram.setData(
-						(indicator.data as any).map((d: any) => ({
+						(indicator.data as MacdDataItem[]).map((d) => ({
 							time: d.time,
 							value: d.histogram,
 							color: d.histogram >= 0 ? '#26a69a80' : '#ef535080'
 						}))
 					);
 					macdLine.setData(
-						(indicator.data as any).map((d: any) => ({ time: d.time, value: d.macd }))
+						(indicator.data as MacdDataItem[]).map((d) => ({ time: d.time, value: d.macd }))
 					);
 					signalLine.setData(
-						(indicator.data as any).map((d: any) => ({ time: d.time, value: d.signal }))
+						(indicator.data as MacdDataItem[]).map((d) => ({ time: d.time, value: d.signal }))
 					);
 				}
 			} else if (indicator.type === 'obv') {
@@ -285,7 +318,7 @@
 					priceScaleId: 'left'
 				});
 				indicatorSeries.set('obv', series);
-				if (indicator.data.length > 0) series.setData(indicator.data as any);
+				if (indicator.data.length > 0) series.setData(indicator.data);
 				bottomChartInstance.priceScale('left').applyOptions({ visible: true });
 			}
 
@@ -332,17 +365,25 @@
 				priceLineVisible: false
 			});
 
-			const bandsPrimitive = new BandsIndicator(indicator.data as any, hexToRgba(color, 0.15));
+			const bandsPrimitive = new BandsIndicator(
+				indicator.data as BbDataItem[],
+				hexToRgba(color, 0.15)
+			);
 			middle.attachPrimitive(bandsPrimitive);
 
-			indicatorSeries.set('bb', { upper, middle, lower, bandsPrimitive });
+			const bbSeries: BbSeries = { upper, middle, lower, bandsPrimitive };
+			indicatorSeries.set('bb', bbSeries);
 
 			if (indicator.data.length > 0) {
-				upper.setData((indicator.data as any).map((d: any) => ({ time: d.time, value: d.upper })));
-				middle.setData(
-					(indicator.data as any).map((d: any) => ({ time: d.time, value: d.middle }))
+				upper.setData(
+					(indicator.data as BbDataItem[]).map((d) => ({ time: d.time, value: d.upper }))
 				);
-				lower.setData((indicator.data as any).map((d: any) => ({ time: d.time, value: d.lower })));
+				middle.setData(
+					(indicator.data as BbDataItem[]).map((d) => ({ time: d.time, value: d.middle }))
+				);
+				lower.setData(
+					(indicator.data as BbDataItem[]).map((d) => ({ time: d.time, value: d.lower }))
+				);
 			}
 
 			activeIndicators = [
@@ -370,7 +411,7 @@
 			});
 		}
 
-		const series = chartInstance.addSeries(seriesType, options as any);
+		const series = chartInstance.addSeries(seriesType, options as never);
 
 		if (isVolume) {
 			series.priceScale().applyOptions({
@@ -390,7 +431,7 @@
 		];
 
 		if (indicator.data.length > 0) {
-			series.setData(indicator.data as any);
+			series.setData(indicator.data as { time: string; value: number }[]);
 		}
 	}
 
@@ -408,23 +449,26 @@
 		}
 
 		const series = indicatorSeries.get(type);
+		if (!series) return;
 
 		if (type === 'macd' && bottomChartInstance) {
-			bottomChartInstance.removeSeries(series.histogram);
-			bottomChartInstance.removeSeries(series.macdLine);
-			bottomChartInstance.removeSeries(series.signalLine);
+			const s = series as MacdSeries;
+			bottomChartInstance.removeSeries(s.histogram);
+			bottomChartInstance.removeSeries(s.macdLine);
+			bottomChartInstance.removeSeries(s.signalLine);
 		} else if ((type === 'rsi' || type === 'obv') && bottomChartInstance) {
 			if (type === 'obv') {
 				bottomChartInstance.priceScale('left').applyOptions({ visible: false });
 			}
-			bottomChartInstance.removeSeries(series as any);
+			bottomChartInstance.removeSeries(series as ISeriesApi<SeriesType>);
 		} else if (type === 'bb' && chartInstance) {
-			series.middle.detachPrimitive(series.bandsPrimitive);
-			chartInstance.removeSeries(series.upper);
-			chartInstance.removeSeries(series.middle);
-			chartInstance.removeSeries(series.lower);
+			const s = series as BbSeries;
+			s.middle.detachPrimitive(s.bandsPrimitive);
+			chartInstance.removeSeries(s.upper);
+			chartInstance.removeSeries(s.middle);
+			chartInstance.removeSeries(s.lower);
 		} else {
-			chartInstance.removeSeries(series as any);
+			chartInstance.removeSeries(series as ISeriesApi<SeriesType>);
 		}
 
 		indicatorSeries.delete(type);
@@ -434,9 +478,11 @@
 	export function updateIndicatorData(indicator: IndicatorData) {
 		const series = indicatorSeries.get(indicator.type);
 		if (series) {
-			(series as unknown as { setData: (data: { time: string; value: number }[]) => void }).setData(
-				indicator.data
-			);
+			if ('setData' in series && typeof series.setData === 'function') {
+				(series as ISeriesApi<SeriesType>).setData(
+					indicator.data as Parameters<ISeriesApi<SeriesType>['setData']>[0]
+				);
+			}
 		} else {
 			addIndicator(indicator);
 		}

@@ -17,7 +17,7 @@
 	} = $props<{
 		expanded: boolean;
 		securityId: string;
-		indicatorConfigs?: Record<string, any>;
+		indicatorConfigs?: Record<string, IndicatorConfig | undefined>;
 		onIndicatorToggle?: (indicatorId: string, enabled: boolean) => void;
 		onPreferencesLoaded?: (prefs: IndicatorPreferences) => void;
 		onIndicatorConfigChange?: (indicatorId: string, newConfig: IndicatorConfig) => void;
@@ -33,7 +33,7 @@
 		fast?: number;
 		slow?: number;
 		signal?: number;
-		[key: string]: any;
+		[key: string]: unknown;
 	}
 
 	const indicators = [
@@ -67,7 +67,7 @@
 		isSettingsOpen = true;
 	}
 
-	function saveSettings(id: string, newConfig: any) {
+	function saveSettings(id: string, newConfig: unknown) {
 		if (onIndicatorConfigChange) {
 			onIndicatorConfigChange(id, newConfig as IndicatorConfig);
 		}

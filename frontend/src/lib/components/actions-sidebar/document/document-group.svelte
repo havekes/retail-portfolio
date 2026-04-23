@@ -1,6 +1,7 @@
 <script lang="ts">
 	import * as Sidebar from '$lib/components/ui/sidebar/index.js';
 	import { documentsService } from '$lib/api/documentsService';
+	import { ApiError } from '$lib/api/apiClient';
 	import DocumentUploadDialog from './document-upload-dialog.svelte';
 	import DocumentViewDialog from './document-view-dialog.svelte';
 	import DocumentListItem from './document-list-item.svelte';
@@ -31,7 +32,7 @@
 		try {
 			documents = await documentsService.getDocuments(securityId);
 		} catch (err) {
-			const status = err && typeof err === 'object' && 'status' in err ? (err as any).status : null;
+			const status = err instanceof ApiError ? err.status : null;
 			if (status === 404) {
 				documents = [];
 			} else {

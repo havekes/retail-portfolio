@@ -2,10 +2,6 @@
 	import * as Dialog from '$lib/components/ui/dialog/index.js';
 	import { Button } from '$lib/components/ui/button/index.js';
 	import { notesService, type SecurityNote } from '$lib/api/notesService';
-	import Trash2 from '@lucide/svelte/icons/trash-2';
-	import Edit2 from '@lucide/svelte/icons/edit-2';
-	import Save from '@lucide/svelte/icons/save';
-	import X from '@lucide/svelte/icons/x';
 	import { ModalState } from '@/utils/modal-state.svelte';
 	import { formatDate } from '@/utils/date';
 	import { Textarea } from '@/components/ui/textarea/index.js';
