@@ -1,36 +1,26 @@
 import { redirect, type Handle } from '@sveltejs/kit';
-
-function parseJwt(token: string) {
-	try {
-		const base64Url = token.split('.')[1];
-		if (!base64Url) return null;
-		const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
-		const jsonPayload = Buffer.from(base64, 'base64').toString();
-		return JSON.parse(jsonPayload);
-	} catch {
-		return null;
-	}
-}
+import { jwtVerify } from 'jose';
+import { JWT_SECRET } from '$env/static/private';
 
 export const handle: Handle = async ({ event, resolve }) => {
 	event.locals.user = null;
 
-	if (event.url.searchParams.get('clear_session') === 'true') {
-		event.cookies.delete('auth_token', { path: '/' });
-		event.locals.user = null;
-	} else {
-		const token = event.cookies.get('auth_token');
+	const token = event.cookies.get('auth_token');
 
-		if (token) {
-			const payload = parseJwt(token);
-			if (payload && payload.exp > Date.now() / 1000) {
+	if (token) {
+		try {
+			const secret = new TextEncoder().encode(JWT_SECRET);
+			const { payload } = await jwtVerify(token, secret, { algorithms: ['HS256'] });
+			if (payload.exp && payload.exp > Date.now() / 1000) {
 				event.locals.user = {
-					id: payload.user_id,
-					email: payload.sub
+					id: payload.user_id as string,
+					email: payload.sub as string
 				};
 			} else {
 				event.cookies.delete('auth_token', { path: '/' });
 			}
+		} catch {
+			event.cookies.delete('auth_token', { path: '/' });
 		}
 	}
 

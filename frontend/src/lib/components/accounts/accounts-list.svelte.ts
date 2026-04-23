@@ -43,7 +43,7 @@ export class AccountsListState {
 		}
 	}
 
-	private initWebSocket() {
+	private async initWebSocket() {
 		let wsUrl: string;
 		const apiBaseUrl = import.meta.env.VITE_API_BASE_URL;
 
@@ -58,16 +58,20 @@ export class AccountsListState {
 		}
 
 		console.log('Connecting to WebSocket:', wsUrl);
-		// Browsers will send the auth_token cookie automatically if it's the same domain
-		// For cross-origin/dev mode, we pass it in the protocols (if HttpOnly is disabled)
-		const token = browser
-			? document.cookie
-					.split('; ')
-					.find((row) => row.startsWith('auth_token='))
-					?.split('=')[1]
-			: null;
+		const ticket = await fetch('/api/auth/ws-ticket')
+			.then((res) => {
+				if (!res.ok) return null;
+				return res.json();
+			})
+			.then((data) => data?.ticket ?? null)
+			.catch(() => null);
 
-		this.ws = token ? new WebSocket(wsUrl, [token]) : new WebSocket(wsUrl);
+		if (!ticket) {
+			console.warn('Failed to obtain WebSocket ticket. Aborting connection.');
+			return;
+		}
+
+		this.ws = new WebSocket(`${wsUrl}?ticket=${encodeURIComponent(ticket)}`);
 
 		this.ws.onopen = () => {
 			this.wsConnected = true;

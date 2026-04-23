@@ -50,6 +50,7 @@
 		"vitest": "^4.1.2"
 	},
 	"dependencies": {
+		"jose": "^6.2.2",
 		"lightweight-charts": "^5.1.0",
 		"mode-watcher": "^1.1.0"
 	}

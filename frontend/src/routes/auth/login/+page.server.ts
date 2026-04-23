@@ -1,3 +1,4 @@
+import { dev } from '$app/environment';
 import { AuthService } from '$lib/api/authService';
 import { ApiError } from '$lib/api/apiClient';
 import { fail, redirect } from '@sveltejs/kit';
@@ -23,7 +24,7 @@ export const actions: Actions = {
 				path: '/',
 				httpOnly: true, // Should be true for security
 				sameSite: 'lax',
-				secure: false, // Set to true in prod
+				secure: !dev,
 				maxAge: 60 * 60 * 24 * 7 // 1 week
 			});
 		} catch (err) {

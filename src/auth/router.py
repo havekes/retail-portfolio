@@ -1,6 +1,10 @@
+import json
+import uuid
 from typing import Annotated
 
-from fastapi import APIRouter, HTTPException, Response
+from fastapi import APIRouter, Cookie, HTTPException, Response
+from fastapi.responses import JSONResponse
+from itsdangerous import URLSafeTimedSerializer
 from pydantic import BaseModel
 from svcs.fastapi import DepContainer
 
@@ -104,3 +108,21 @@ async def auth_resend_verification(
     return MessageResponse(
         message="Verification email sent if user exists and is unverified"
     )
+
+
+@auth_router.post("/ws-ticket")
+async def auth_ws_ticket(
+    services: DepContainer,
+    token: str = Cookie(default=None, alias="auth_token"),
+) -> JSONResponse:
+    if not token:
+        raise HTTPException(401, "Not authenticated")
+
+    user_service = await services.aget(UserApi)
+    user = await user_service.get_current_user_from_token(token)
+
+    serializer = URLSafeTimedSerializer(settings.secret_key)
+    payload = json.dumps({"user_id": str(user.id), "jti": str(uuid.uuid4())})
+    ticket = serializer.dumps(payload, salt="ws-ticket")
+
+    return JSONResponse({"ticket": ticket})
