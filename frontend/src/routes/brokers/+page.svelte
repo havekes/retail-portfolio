@@ -2,6 +2,8 @@
 	import AppSidebar from '@/components/layout/app-sidebar.svelte';
 	import * as Sidebar from '$lib/components/ui/sidebar/index.js';
 	import BrokersList from '@/components/brokers/brokers-list.svelte';
+
+	let { data } = $props();
 </script>
 
 <svelte:head>
@@ -11,6 +13,6 @@
 <Sidebar.Provider>
 	<AppSidebar />
 	<Sidebar.Inset>
-		<BrokersList></BrokersList>
+		<BrokersList users={data.users}></BrokersList>
 	</Sidebar.Inset>
 </Sidebar.Provider>

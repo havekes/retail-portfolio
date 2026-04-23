@@ -62,19 +62,22 @@ export class MarketService extends ApiClient {
 	async getPrices(
 		securityId: string,
 		from_date: string,
-		to_date: string
+		to_date: string,
+		token?: string | null
 	): Promise<MarketPriceHistory> {
 		return await this.get<MarketPriceHistory>(
-			`/market/prices/${securityId}?from_date=${from_date}&to_date=${to_date}`
+			`/market/prices/${securityId}?from_date=${from_date}&to_date=${to_date}`,
+			{},
+			token
 		);
 	}
 
-	async getLastClosePrice(securityId: string): Promise<MarketPrice> {
-		return await this.get<MarketPrice>(`/market/prices/${securityId}/last-close`);
+	async getLastClosePrice(securityId: string, token?: string | null): Promise<MarketPrice> {
+		return await this.get<MarketPrice>(`/market/prices/${securityId}/last-close`, {}, token);
 	}
 
-	async getSecurity(securityId: string): Promise<SecuritySchema> {
-		return await this.get<SecuritySchema>(`/market/securities/${securityId}`);
+	async getSecurity(securityId: string, token?: string | null): Promise<SecuritySchema> {
+		return await this.get<SecuritySchema>(`/market/securities/${securityId}`, {}, token);
 	}
 
 	async createOrUpdateSecurity(request: SecurityCreateRequest): Promise<SecurityCreateResponse> {
@@ -85,4 +88,6 @@ export class MarketService extends ApiClient {
 	}
 }
 
-export const marketService = new MarketService();
+export const getMarketService = (customFetch?: typeof fetch) => new MarketService(customFetch);
+export const marketService = getMarketService();
+

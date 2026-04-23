@@ -2,8 +2,8 @@ import { ApiClient } from './apiClient';
 import type { Account, AccountHoldings, AccountTotals } from '@/types/account';
 
 export class AccountClient extends ApiClient {
-	async getAccounts(): Promise<Account[]> {
-		return this.get<Account[]>('/accounts/');
+	async getAccounts(token?: string | null): Promise<Account[]> {
+		return this.get<Account[]>('/accounts/', {}, token);
 	}
 
 	async renameAccount(id: string, name: string): Promise<Account> {
@@ -27,4 +27,5 @@ export class AccountClient extends ApiClient {
 	}
 }
 
-export const accountClient = new AccountClient();
+export const getAccountClient = (customFetch?: typeof fetch) => new AccountClient(customFetch);
+export const accountClient = getAccountClient();

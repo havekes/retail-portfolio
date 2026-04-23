@@ -6,12 +6,13 @@
 	import ChevronDown from '@lucide/svelte/icons/chevron-down';
 	import { onMount } from 'svelte';
 	import { AccountsListState } from './accounts-list.svelte.js';
+	import type { Account } from '@/types/account';
 
-	const state = new AccountsListState();
+	let { accounts = [] }: { accounts?: Account[] } = $props();
+
+	const state = new AccountsListState(accounts);
 
 	onMount(() => {
-		state.fetchAccounts();
-
 		return () => state.destroy();
 	});
 

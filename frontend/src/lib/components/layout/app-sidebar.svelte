@@ -78,9 +78,11 @@
 						<DropdownMenu.Item onSelect={() => goto(resolve('/brokers'))}>
 							Connected brokers
 						</DropdownMenu.Item>
-						<DropdownMenu.Item onSelect={() => goto(resolve('/auth/logout'))}>
-							Sign out
-						</DropdownMenu.Item>
+						<form method="POST" action={resolve('/auth/logout')}>
+							<button type="submit" class="w-full">
+								<DropdownMenu.Item>Sign out</DropdownMenu.Item>
+							</button>
+						</form>
 					</DropdownMenu.Content>
 				</DropdownMenu.Root>
 			</Sidebar.MenuItem>

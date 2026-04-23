@@ -254,6 +254,6 @@ async def integration_import_positions(
             broker_position.to_position(account_id=account.id, security_id=security.id)
         )
 
-    imported_positions = position_api.create(positions)
+    imported_positions = await position_api.create(positions)
 
     return IntegrationImportResponse(imported_count=len(imported_positions))

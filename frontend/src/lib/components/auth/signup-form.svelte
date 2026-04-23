@@ -9,10 +9,11 @@
 		FieldDescription
 	} from '$lib/components/ui/field/index.js';
 	import { resolve } from '$app/paths';
-	import { SignupFormState } from './signup-form.svelte.js';
+	import { enhance } from '$app/forms';
 
+	let { form } = $props();
 	const id = $props.id();
-	const state = new SignupFormState();
+	let isLoading = $state(false);
 </script>
 
 <Card.Root class="mx-auto w-full max-w-sm">
@@ -21,37 +22,42 @@
 		<Card.Description>Create an account to get started</Card.Description>
 	</Card.Header>
 	<Card.Content>
-		<form onsubmit={state.handleSubmit}>
+		<form
+			method="POST"
+			use:enhance={() => {
+				isLoading = true;
+				return async ({ update }) => {
+					isLoading = false;
+					await update();
+				};
+			}}
+		>
 			<FieldGroup>
 				<Field>
 					<FieldLabel for="email-{id}">Email</FieldLabel>
 					<Input
 						id="email-{id}"
+						name="email"
 						type="email"
 						placeholder="m@example.com"
 						required
-						bind:value={state.email}
+						value={form?.email ?? ''}
 					/>
 				</Field>
 				<Field>
 					<FieldLabel for="password-{id}">Password</FieldLabel>
-					<Input id="password-{id}" type="password" required bind:value={state.password} />
+					<Input id="password-{id}" name="password" type="password" required />
 				</Field>
 				<Field>
 					<FieldLabel for="confirmPassword-{id}">Confirm Password</FieldLabel>
-					<Input
-						id="confirmPassword-{id}"
-						type="password"
-						required
-						bind:value={state.confirmPassword}
-					/>
+					<Input id="confirmPassword-{id}" name="confirmPassword" type="password" required />
 				</Field>
-				{#if state.error}
-					<p class="text-sm text-red-500">{state.error}</p>
+				{#if form?.message}
+					<p class="text-sm text-red-500">{form.message}</p>
 				{/if}
 				<Field>
-					<Button type="submit" class="w-full" disabled={state.isLoading}>
-						{state.isLoading ? 'Signing up...' : 'Sign Up'}
+					<Button type="submit" class="w-full" disabled={isLoading}>
+						{isLoading ? 'Signing up...' : 'Sign Up'}
 					</Button>
 					<FieldDescription class="text-center">
 						Already have an account? <a href={resolve('/auth/login')}>Login</a>

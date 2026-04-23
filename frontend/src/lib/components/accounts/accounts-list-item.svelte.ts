@@ -30,13 +30,4 @@ export class AccountsListItemState {
 	getAccountTotals(id: string): AccountTotals | undefined {
 		return this.totalsCache[id];
 	}
-
-	async renameAccount(id: string, name: string) {
-		try {
-			await accountClient.renameAccount(id, name);
-		} catch (error) {
-			console.error('Failed to rename account', error);
-			throw error;
-		}
-	}
 }

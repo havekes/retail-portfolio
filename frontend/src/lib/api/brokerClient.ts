@@ -12,8 +12,8 @@ export class BrokerClient extends ApiClient {
 		return this.get<Institution[]>('/integration/institutions');
 	}
 
-	async getBrokerUsers(): Promise<BrokerUser[]> {
-		return this.get<BrokerUser[]>('/external/users');
+	async getBrokerUsers(token?: string | null): Promise<BrokerUser[]> {
+		return this.get<BrokerUser[]>('/external/users', {}, token);
 	}
 
 	async getBrokerUserAccounts(brokerUserId: string): Promise<BrokerAccount[]> {
@@ -48,4 +48,5 @@ export class BrokerClient extends ApiClient {
 	}
 }
 
-export const brokerClient = new BrokerClient();
+export const getBrokerClient = (customFetch?: typeof fetch) => new BrokerClient(customFetch);
+export const brokerClient = getBrokerClient();

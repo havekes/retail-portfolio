@@ -15,7 +15,6 @@ import { WsEventType, type AccountSyncMessage } from '@/types/websocket';
 export class AccountsListState {
 	accounts = $state<Account[]>([]);
 	isLoading = $state(false);
-	errorMessage = $state<string | null>(null);
 
 	selectionMode = $state(false);
 	selectedAccounts = $state<string[]>([]);
@@ -37,7 +36,8 @@ export class AccountsListState {
 
 	private ws: WebSocket | null = null;
 
-	constructor() {
+	constructor(initialAccounts: Account[] = []) {
+		this.accounts = initialAccounts;
 		if (browser) {
 			this.initWebSocket();
 		}
@@ -59,7 +59,15 @@ export class AccountsListState {
 
 		console.log('Connecting to WebSocket:', wsUrl);
 		// Browsers will send the auth_token cookie automatically if it's the same domain
-		this.ws = new WebSocket(wsUrl);
+		// For cross-origin/dev mode, we pass it in the protocols (if HttpOnly is disabled)
+		const token = browser
+			? document.cookie
+					.split('; ')
+					.find((row) => row.startsWith('auth_token='))
+					?.split('=')[1]
+			: null;
+
+		this.ws = token ? new WebSocket(wsUrl, [token]) : new WebSocket(wsUrl);
 
 		this.ws.onopen = () => {
 			this.wsConnected = true;
@@ -106,11 +114,8 @@ export class AccountsListState {
 
 	async fetchAccounts() {
 		this.isLoading = true;
-		this.errorMessage = null;
 		try {
 			this.accounts = await accountClient.getAccounts();
-		} catch (error) {
-			this.errorMessage = error instanceof Error ? error.message : 'Unknown error';
 		} finally {
 			this.isLoading = false;
 		}

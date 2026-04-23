@@ -35,7 +35,8 @@
 		<div class="flex justify-between">
 			<EditableTitle
 				bind:value={account.name}
-				onSave={(val) => state.renameAccount(account.id, val)}
+				action="?/renameAccount"
+				id={account.id}
 				href={`/accounts/${account.id}`}
 			/>
 			<div>

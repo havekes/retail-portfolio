@@ -94,7 +94,9 @@ async def cors_exception_middleware(request: Request, call_next: Any) -> Any:
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             content={
                 "detail": "Internal Server Error",
-                "error": str(exc) if settings.environment != "prod" else "Internal Error",
+                "error": str(exc)
+                if settings.environment != "prod"
+                else "Internal Error",
             },
         )
 

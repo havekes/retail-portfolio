@@ -15,4 +15,5 @@ export class AccountService extends ApiClient {
 	}
 }
 
-export const accountService = new AccountService();
+export const getAccountService = (customFetch?: typeof fetch) => new AccountService(customFetch);
+export const accountService = getAccountService();
