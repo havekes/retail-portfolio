@@ -24,7 +24,17 @@
 	<Card.Content>
 		<form
 			method="POST"
-			use:enhance={() => {
+			use:enhance={({ formData, cancel }) => {
+				const password = formData.get('password');
+				const confirmPassword = formData.get('confirmPassword');
+
+				if (password !== confirmPassword) {
+					if (!form) form = { email: formData.get('email') as string, message: '' };
+					form.message = 'Passwords do not match.';
+					cancel();
+					return;
+				}
+
 				isLoading = true;
 				return async ({ update }) => {
 					isLoading = false;
