@@ -12,9 +12,9 @@ describe('ApiClient', () => {
 	let client: TestClient;
 
 	beforeEach(() => {
-		client = new TestClient();
 		vi.clearAllMocks();
 		global.fetch = vi.fn();
+		client = new TestClient();
 	});
 
 	it('should throw ApiError on 401', async () => {
