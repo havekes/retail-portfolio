@@ -33,7 +33,7 @@ describe('LoginForm Component', () => {
 				e.preventDefault();
 				if (submit) {
 					// @ts-expect-error - simplified mock for testing
-					const updateFunc = await submit({
+					await submit({
 						formElement: node,
 						formData: new FormData(node),
 						action: new URL(node.action),
