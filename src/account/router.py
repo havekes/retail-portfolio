@@ -1,4 +1,5 @@
 from typing import Annotated
+from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, Response
 from svcs.fastapi import DepContainer
@@ -12,11 +13,12 @@ from src.account.api_types import (
 from src.account.exception import AccountNotFoundError
 from src.account.repository import AccountRepository
 from src.account.schema import (
+    AccountHoldingRead,
+    AccountHoldingsRead,
     AccountSchema,
     PortfolioAccountUpdateRequest,
     PortfolioCreate,
     PortfolioRead,
-    PositionRead,
 )
 from src.account.service.account import AccountService
 from src.account.service.portfolio import PortfolioService
@@ -176,13 +178,24 @@ async def account_totals(
     return await position_service.get_total_for_account(account_id, account.currency)
 
 
-@account_router.get("/{account_id}/positions")
-async def account_positions(
+@account_router.get("/holdings/{security_id}")
+async def security_holdings(
+    security_id: UUID,
+    user: Annotated[User, Depends(current_user)],
+    services: DepContainer,
+) -> list[AccountHoldingRead]:
+    """Get all holdings for a specific security across user accounts."""
+    position_service = await services.aget(PositionService)
+    return await position_service.get_holdings_by_security(security_id, user.id)
+
+
+@account_router.get("/{account_id}/holdings")
+async def account_holdings(
     account_id: AccountId,
     user: Annotated[User, Depends(current_user)],
     services: DepContainer,
-) -> list[PositionRead]:
-    """Get all positions for a specific account owned by the current user."""
+) -> AccountHoldingsRead:
+    """Get detailed holdings for a specific account."""
     authorization_api = await services.aget(AuthorizationApi)
     account_repository = await services.aget(AccountRepository)
     position_service = await services.aget(PositionService)
@@ -190,7 +203,7 @@ async def account_positions(
     account = await account_repository.get(account_id)
     authorization_api.check_entity_owned_by_user(user, account)
 
-    return await position_service.get_positions_by_account_with_security(account_id)
+    return await position_service.get_account_holdings(account_id)
 
 
 @account_router.post("/{account_id}/sync")

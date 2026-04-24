@@ -1,5 +1,4 @@
 <script lang="ts">
-	import { onMount } from 'svelte';
 	import { BrokersListState } from './brokers-list.svelte.js';
 	import BrokersListItem from './brokers-list-item.svelte';
 	import { Skeleton } from '../ui/skeleton/index.js';
@@ -7,18 +6,17 @@
 	import { Button } from '../ui/button/index.js';
 	import ConnectBrokerModal from './connect-broker-modal.svelte';
 	import { CircleAlert } from '@lucide/svelte';
+	import type { BrokerUser } from '@/types/broker/broker';
 
-	const state = new BrokersListState();
+	let { users = [] }: { users?: BrokerUser[] } = $props();
 
-	onMount(() => {
-		state.loadUsers();
-	});
+	const state = new BrokersListState(users);
 </script>
 
 <ConnectBrokerModal bind:open={state.isModalOpen} onSuccess={state.loadUsers} />
 
 <div class="brokers-list w-full space-y-4">
-	<div class="flex items-center border-b px-4 py-2">
+	<div class="flex h-[49px] items-center border-b px-4 py-2">
 		<h2>Connected brokers</h2>
 		{#if state.users.length > 0}
 			<div class="ms-auto">
@@ -28,12 +26,6 @@
 	</div>
 
 	<div class="space-y-4 px-4">
-		{#if state.errorMessage}
-			<Alert.Root variant="destructive">
-				<Alert.Description>Error: {state.errorMessage}</Alert.Description>
-			</Alert.Root>
-		{/if}
-
 		{#if state.isLoading}
 			<Skeleton class="h-16 w-full rounded-md" />
 			<Skeleton class="h-16 w-full rounded-md" />

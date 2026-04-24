@@ -2,7 +2,7 @@ import uuid
 from datetime import date
 from typing import override
 
-from sqlalchemy import select
+from sqlalchemy import delete, select
 from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
@@ -12,20 +12,36 @@ from src.auth.api_types import UserId
 from src.market.api_types import SecurityId
 from src.market.exception import SecurityNotFoundError
 from src.market.model import (
+    IndicatorPreferencesModel,
+    PriceAlertModel,
     PriceModel,
     SecurityBrokerModel,
+    SecurityDocumentModel,
     SecurityModel,
+    SecurityNoteModel,
     WatchlistModel,
 )
 from src.market.repository import (
+    IndicatorPreferencesRepository,
+    PriceAlertRepository,
     PriceRepository,
     SecurityBrokerRepository,
+    SecurityDocumentRepository,
+    SecurityNoteRepository,
     SecurityRepository,
     WatchlistRepository,
 )
 from src.market.schema import (
+    IndicatorPreferencesRead,
+    IndicatorPreferencesWrite,
+    PriceAlertRead,
+    PriceAlertWrite,
     PriceSchema,
     SecurityBrokerSchema,
+    SecurityDocumentRead,
+    SecurityDocumentWrite,
+    SecurityNoteRead,
+    SecurityNoteWrite,
     SecuritySchema,
     WatchlistRead,
 )
@@ -85,6 +101,21 @@ class SqlAlchemySecurityRepository(SecurityRepository):
         return [
             SecuritySchema.model_validate(security) for security in securities.scalars()
         ]
+
+    @override
+    async def get_by_code_and_exchange(
+        self, code: str, exchange: str
+    ) -> SecuritySchema | None:
+        result = await self._session.execute(
+            select(SecurityModel)
+            .where(SecurityModel.symbol == code)
+            .where(SecurityModel.exchange == exchange)
+            .limit(1)
+        )
+        security_model = result.scalar_one_or_none()
+        if security_model is None:
+            return None
+        return SecuritySchema.model_validate(security_model)
 
 
 async def sqlalchemy_security_repository_factory(
@@ -173,6 +204,15 @@ class SqlAlchemyPriceRepository(PriceRepository):
         return [PriceSchema.model_validate(price) for price in prices.scalars()]
 
     @override
+    async def get_by_security(self, security_id: SecurityId) -> list[PriceSchema]:
+        prices = await self._session.execute(
+            select(PriceModel)
+            .where(PriceModel.security_id == security_id)
+            .order_by(PriceModel.date)
+        )
+        return [PriceSchema.model_validate(price) for price in prices.scalars()]
+
+    @override
     async def get_price_on_date(
         self, security: SecuritySchema, date: date
     ) -> PriceSchema | None:
@@ -216,21 +256,29 @@ class SqlAlchemyPriceRepository(PriceRepository):
         price_dicts = [
             {k: v for k, v in p.model_dump().items() if k != "id"} for p in prices
         ]
-        stmt = insert(PriceModel).values(price_dicts)
-        stmt = stmt.on_conflict_do_update(
-            constraint="price_security_date_unique",
-            set_={
-                "open": stmt.excluded.open,
-                "high": stmt.excluded.high,
-                "low": stmt.excluded.low,
-                "close": stmt.excluded.close,
-                "adjusted_close": stmt.excluded.adjusted_close,
-                "volume": stmt.excluded.volume,
-            },
-        ).returning(PriceModel)
 
-        result = await self._session.execute(stmt)
-        schemas = [PriceSchema.model_validate(model) for model in result.scalars()]
+        chunk_size = 1000
+        schemas = []
+        for i in range(0, len(price_dicts), chunk_size):
+            chunk = price_dicts[i : i + chunk_size]
+            stmt = insert(PriceModel).values(chunk)
+            stmt = stmt.on_conflict_do_update(
+                constraint="price_security_date_unique",
+                set_={
+                    "open": stmt.excluded.open,
+                    "high": stmt.excluded.high,
+                    "low": stmt.excluded.low,
+                    "close": stmt.excluded.close,
+                    "adjusted_close": stmt.excluded.adjusted_close,
+                    "volume": stmt.excluded.volume,
+                },
+            ).returning(PriceModel)
+
+            result = await self._session.execute(stmt)
+            schemas.extend(
+                [PriceSchema.model_validate(model) for model in result.scalars()]
+            )
+
         await self._session.commit()
         return schemas
 
@@ -250,7 +298,7 @@ class SqlAlchemyWatchlistRepository(WatchlistRepository):
         self._session = session
 
     @override
-    async def get_all_for_user(self, user_id: UserId) -> list[WatchlistRead]:
+    async def get_by_user(self, user_id: UserId) -> list[WatchlistRead]:
         result = await self._session.execute(
             select(WatchlistModel)
             .options(selectinload(WatchlistModel.securities))
@@ -265,5 +313,257 @@ async def sqlalchemy_watchlist_repository_factory(
     container: Container,
 ) -> SqlAlchemyWatchlistRepository:
     return SqlAlchemyWatchlistRepository(
+        session=await container.aget(AsyncSession),
+    )
+
+
+class SqlAlchemyPriceAlertRepository(PriceAlertRepository):
+    _session: AsyncSession
+
+    def __init__(self, session: AsyncSession):
+        self._session = session
+
+    @override
+    async def get_by_security_and_user(
+        self, security_id: SecurityId, user_id: UserId
+    ) -> list[PriceAlertRead]:
+        result = await self._session.execute(
+            select(PriceAlertModel)
+            .where(PriceAlertModel.security_id == security_id)
+            .where(PriceAlertModel.user_id == user_id)
+            .order_by(PriceAlertModel.created_at.desc())
+        )
+        return [PriceAlertRead.model_validate(alert) for alert in result.scalars()]
+
+    @override
+    async def create(
+        self, alert: PriceAlertWrite, security_id: SecurityId, user_id: UserId
+    ) -> PriceAlertRead:
+        alert_model = PriceAlertModel(
+            security_id=security_id,
+            user_id=user_id,
+            target_price=alert.target_price,
+            condition=alert.condition,
+        )
+        self._session.add(alert_model)
+        await self._session.commit()
+        await self._session.refresh(alert_model)
+        return PriceAlertRead.model_validate(alert_model)
+
+    @override
+    async def delete(self, alert_id: int, user_id: UserId) -> None:
+        await self._session.execute(
+            delete(PriceAlertModel)
+            .where(PriceAlertModel.id == alert_id)
+            .where(PriceAlertModel.user_id == user_id)
+        )
+        await self._session.commit()
+
+
+async def sqlalchemy_price_alert_repository_factory(
+    container: Container,
+) -> SqlAlchemyPriceAlertRepository:
+    return SqlAlchemyPriceAlertRepository(
+        session=await container.aget(AsyncSession),
+    )
+
+
+class SqlAlchemySecurityNoteRepository(SecurityNoteRepository):
+    _session: AsyncSession
+
+    def __init__(self, session: AsyncSession):
+        self._session = session
+
+    @override
+    async def get_by_security_and_user(
+        self, security_id: SecurityId, user_id: UserId
+    ) -> list[SecurityNoteRead]:
+        result = await self._session.execute(
+            select(SecurityNoteModel)
+            .where(SecurityNoteModel.security_id == security_id)
+            .where(SecurityNoteModel.user_id == user_id)
+            .order_by(SecurityNoteModel.created_at.desc())
+        )
+        return [SecurityNoteRead.model_validate(note) for note in result.scalars()]
+
+    @override
+    async def get_by_id(self, note_id: int) -> SecurityNoteRead | None:
+        result = await self._session.execute(
+            select(SecurityNoteModel).where(SecurityNoteModel.id == note_id)
+        )
+        note = result.scalar_one_or_none()
+        return SecurityNoteRead.model_validate(note) if note else None
+
+    @override
+    async def create(
+        self, note: SecurityNoteWrite, security_id: SecurityId, user_id: UserId
+    ) -> SecurityNoteRead:
+        note_model = SecurityNoteModel(
+            security_id=security_id,
+            user_id=user_id,
+            title=note.title,
+            content=note.content,
+        )
+        self._session.add(note_model)
+        await self._session.commit()
+        await self._session.refresh(note_model)
+        return SecurityNoteRead.model_validate(note_model)
+
+    @override
+    async def update(
+        self, note_id: int, note: SecurityNoteWrite, user_id: UserId
+    ) -> SecurityNoteRead:
+        result = await self._session.execute(
+            select(SecurityNoteModel)
+            .where(SecurityNoteModel.id == note_id)
+            .where(SecurityNoteModel.user_id == user_id)
+        )
+        note_model = result.scalar_one_or_none()
+        if note_model is None:
+            msg = f"Note {note_id} not found"
+            raise ValueError(msg)
+        if note.title is not None:
+            note_model.title = note.title
+        note_model.content = note.content
+        await self._session.commit()
+        await self._session.refresh(note_model)
+        return SecurityNoteRead.model_validate(note_model)
+
+    @override
+    async def update_title(self, note_id: int, title: str) -> None:
+        result = await self._session.execute(
+            select(SecurityNoteModel).where(SecurityNoteModel.id == note_id)
+        )
+        note_model = result.scalar_one_or_none()
+        if note_model:
+            note_model.title = title
+            await self._session.commit()
+
+    @override
+    async def delete(self, note_id: int, user_id: UserId) -> None:
+        await self._session.execute(
+            delete(SecurityNoteModel)
+            .where(SecurityNoteModel.id == note_id)
+            .where(SecurityNoteModel.user_id == user_id)
+        )
+        await self._session.commit()
+
+
+async def sqlalchemy_security_note_repository_factory(
+    container: Container,
+) -> SqlAlchemySecurityNoteRepository:
+    return SqlAlchemySecurityNoteRepository(
+        session=await container.aget(AsyncSession),
+    )
+
+
+class SqlAlchemySecurityDocumentRepository(SecurityDocumentRepository):
+    _session: AsyncSession
+
+    def __init__(self, session: AsyncSession):
+        self._session = session
+
+    @override
+    async def get_by_security_and_user(
+        self, security_id: SecurityId, user_id: UserId
+    ) -> list[SecurityDocumentRead]:
+        result = await self._session.execute(
+            select(SecurityDocumentModel)
+            .where(SecurityDocumentModel.security_id == security_id)
+            .where(SecurityDocumentModel.user_id == user_id)
+            .order_by(SecurityDocumentModel.created_at.desc())
+        )
+        return [SecurityDocumentRead.model_validate(doc) for doc in result.scalars()]
+
+    @override
+    async def create(
+        self,
+        document: SecurityDocumentWrite,
+        security_id: SecurityId,
+        user_id: UserId,
+    ) -> SecurityDocumentRead:
+        doc_model = SecurityDocumentModel(
+            security_id=security_id,
+            user_id=user_id,
+            filename=document.filename,
+            file_path=document.file_path,
+            file_size=document.file_size,
+            file_type=document.file_type,
+        )
+        self._session.add(doc_model)
+        await self._session.commit()
+        await self._session.refresh(doc_model)
+        return SecurityDocumentRead.model_validate(doc_model)
+
+    @override
+    async def delete(self, document_id: int, user_id: UserId) -> None:
+        await self._session.execute(
+            delete(SecurityDocumentModel)
+            .where(SecurityDocumentModel.id == document_id)
+            .where(SecurityDocumentModel.user_id == user_id)
+        )
+        await self._session.commit()
+
+
+async def sqlalchemy_security_document_repository_factory(
+    container: Container,
+) -> SqlAlchemySecurityDocumentRepository:
+    return SqlAlchemySecurityDocumentRepository(
+        session=await container.aget(AsyncSession),
+    )
+
+
+class SqlAlchemyIndicatorPreferencesRepository(IndicatorPreferencesRepository):
+    _session: AsyncSession
+
+    def __init__(self, session: AsyncSession):
+        self._session = session
+
+    @override
+    async def get_for_security_and_user(
+        self, security_id: SecurityId, user_id: UserId
+    ) -> IndicatorPreferencesRead | None:
+        result = await self._session.execute(
+            select(IndicatorPreferencesModel)
+            .where(IndicatorPreferencesModel.security_id == security_id)
+            .where(IndicatorPreferencesModel.user_id == user_id)
+        )
+        model = result.scalar_one_or_none()
+        if model is None:
+            return None
+        return IndicatorPreferencesRead.model_validate(model)
+
+    @override
+    async def save(
+        self,
+        preferences: IndicatorPreferencesWrite,
+        security_id: SecurityId,
+        user_id: UserId,
+    ) -> IndicatorPreferencesRead:
+        existing = await self.get_for_security_and_user(security_id, user_id)
+        if existing:
+            result = await self._session.execute(
+                select(IndicatorPreferencesModel)
+                .where(IndicatorPreferencesModel.security_id == security_id)
+                .where(IndicatorPreferencesModel.user_id == user_id)
+            )
+            model = result.scalar_one()
+            model.indicators_json = preferences.indicators_json
+        else:
+            model = IndicatorPreferencesModel(
+                security_id=security_id,
+                user_id=user_id,
+                indicators_json=preferences.indicators_json,
+            )
+            self._session.add(model)
+        await self._session.commit()
+        await self._session.refresh(model)
+        return IndicatorPreferencesRead.model_validate(model)
+
+
+async def sqlalchemy_indicator_preferences_repository_factory(
+    container: Container,
+) -> SqlAlchemyIndicatorPreferencesRepository:
+    return SqlAlchemyIndicatorPreferencesRepository(
         session=await container.aget(AsyncSession),
     )

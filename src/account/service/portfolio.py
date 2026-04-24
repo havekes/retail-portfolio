@@ -28,17 +28,20 @@ class PortfolioService:
         self._account_service = account_service
 
     async def get_portfolio(self, portfolio_id: PortfolioId) -> PortfolioRead:
+        """Get a portfolio by its ID."""
         portfolio = await self._portfolio_repository.get(portfolio_id)
         if not portfolio:
             raise PortfolioNotFoundError(portfolio_id)
         return portfolio
 
     async def get_portfolios_by_user(self, user_id: UserId) -> list[PortfolioRead]:
+        """Get all portfolios associated with a specific user."""
         return await self._portfolio_repository.get_by_user(user_id)
 
     async def create_portfolio(
         self, user_id: UserId, portfolio_create: PortfolioCreate
     ) -> PortfolioRead:
+        """Create a new portfolio for a user."""
         # Validate that all account_ids belong to the user
         await self._account_service.check_accounts_belong_to_user(
             account_ids=portfolio_create.accounts, user_id=user_id
@@ -52,6 +55,8 @@ class PortfolioService:
         portfolio_id: PortfolioId,
         portfolio_account_update: PortfolioAccountUpdateRequest,
     ) -> PortfolioRead:
+        """Update the accounts associated with a portfolio."""
+        # Validate that the portfolio exists
         await self.get_portfolio(portfolio_id)
 
         # Validate that all account_ids belong to the user
@@ -64,7 +69,10 @@ class PortfolioService:
         )
 
     async def delete_portfolio(self, portfolio_id: PortfolioId) -> None:
+        """Delete a portfolio by its ID."""
+        # Validate that the portfolio exists
         await self.get_portfolio(portfolio_id)
+
         await self._portfolio_repository.delete(portfolio_id)
 
 

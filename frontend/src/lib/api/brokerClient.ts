@@ -1,4 +1,4 @@
-import { BaseClient } from './baseClient';
+import { ApiClient } from './apiClient';
 import type {
 	Institution,
 	BrokerUser,
@@ -7,13 +7,13 @@ import type {
 	ImportBrokerAccountsResponse
 } from './types/broker';
 
-export class BrokerClient extends BaseClient {
+export class BrokerClient extends ApiClient {
 	async getAvailableInstitutions(): Promise<Institution[]> {
 		return this.get<Institution[]>('/integration/institutions');
 	}
 
-	async getBrokerUsers(): Promise<BrokerUser[]> {
-		return this.get<BrokerUser[]>('/external/users');
+	async getBrokerUsers(token?: string | null): Promise<BrokerUser[]> {
+		return this.get<BrokerUser[]>('/external/users', {}, token);
 	}
 
 	async getBrokerUserAccounts(brokerUserId: string): Promise<BrokerAccount[]> {
@@ -48,4 +48,5 @@ export class BrokerClient extends BaseClient {
 	}
 }
 
-export const brokerClient = new BrokerClient();
+export const getBrokerClient = (customFetch?: typeof fetch) => new BrokerClient(customFetch);
+export const brokerClient = getBrokerClient();

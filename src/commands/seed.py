@@ -17,6 +17,7 @@ from src.account.model import (
 )
 from src.auth.model import UserModel
 from src.config.database import sessionmanager
+from src.config.settings import settings
 from src.integration.model import IntegrationUserModel
 from src.market.model import SecurityModel
 
@@ -104,13 +105,6 @@ async def _seed_account_types(session):
 async def _seed_institutions(session):
     rprint("Seeding institutions...")
     institutions_data = [
-        {
-            "id": InstitutionEnum.QUESTRADE,
-            "name": "Questrade",
-            "country": "CA",
-            "website": "https://www.questrade.com",
-            "integration_enabled": True,
-        },
         {
             "id": InstitutionEnum.WEALTHSIMPLE,
             "name": "Wealthsimple",
@@ -204,7 +198,7 @@ async def _seed_accounts(session, user, account_types, institutions):
             "name": "My RRSP",
             "user_id": user.id,
             "account_type_id": account_types[AccountTypeEnum.RRSP].id,
-            "institution_id": institutions[InstitutionEnum.QUESTRADE].id,
+            "institution_id": institutions[InstitutionEnum.WEALTHSIMPLE].id,
             "currency": "CAD",
         },
         {
@@ -220,7 +214,7 @@ async def _seed_accounts(session, user, account_types, institutions):
             "name": "Side Trading",
             "user_id": user.id,
             "account_type_id": account_types[AccountTypeEnum.NON_REGISTERED].id,
-            "institution_id": institutions[InstitutionEnum.QUESTRADE].id,
+            "institution_id": institutions[InstitutionEnum.WEALTHSIMPLE].id,
             "currency": "USD",
         },
     ]
@@ -340,14 +334,6 @@ async def _seed_integration_users(session, user, institutions):
     rprint("Seeding integration users...")
     integration_users_data = [
         {
-            "id": uuid.UUID("00000000-0000-0000-0000-000000000010"),
-            "user_id": user.id,
-            "institution_id": institutions[InstitutionEnum.QUESTRADE].id,
-            "external_user_id": "qt_user_123",
-            "display_name": "Questrade API Connection",
-            "last_used_at": datetime.now(UTC),
-        },
-        {
             "id": uuid.UUID("00000000-0000-0000-0000-000000000011"),
             "user_id": user.id,
             "institution_id": institutions[InstitutionEnum.WEALTHSIMPLE].id,
@@ -379,14 +365,20 @@ async def _seed_integration_users(session, user, institutions):
 
 async def seed_data():
     async with sessionmanager.session() as session:
-        user = await _seed_user(session)
+        rprint(f"Running seed in {settings.environment} environment")
+
         account_types = await _seed_account_types(session)
         institutions = await _seed_institutions(session)
-        securities = await _seed_securities(session)
-        accounts = await _seed_accounts(session, user, account_types, institutions)
-        await _seed_positions(session, accounts, securities)
-        await _seed_portfolios(session, user, accounts)
-        await _seed_integration_users(session, user, institutions)
+
+        if settings.environment == "dev":
+            user = await _seed_user(session)
+            securities = await _seed_securities(session)
+            accounts = await _seed_accounts(session, user, account_types, institutions)
+            await _seed_positions(session, accounts, securities)
+            await _seed_portfolios(session, user, accounts)
+            await _seed_integration_users(session, user, institutions)
+        else:
+            rprint("Skipping dev-only seeding (users, securities, accounts, etc.)")
 
         await session.commit()
         rprint("Seeding completed successfully!")

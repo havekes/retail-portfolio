@@ -2,29 +2,15 @@ import { render, screen } from '@testing-library/svelte';
 import userEvent from '@testing-library/user-event';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import LoginForm from './login-form.svelte';
-import { LoginFormState } from './login-form.svelte.js';
-import { authService, type AuthResponse } from '$lib/services/authService';
-import { userStore } from '$lib/stores/userStore';
-import { goto } from '$app/navigation';
 
-vi.mock('$app/navigation', () => ({
-	goto: vi.fn()
+vi.mock('$app/forms', () => ({
+	enhance: vi.fn(() => ({
+		destroy: vi.fn()
+	}))
 }));
 
 vi.mock('$app/paths', () => ({
 	resolve: (path: string) => path
-}));
-
-vi.mock('$lib/services/authService', () => ({
-	authService: {
-		login: vi.fn()
-	}
-}));
-
-vi.mock('$lib/stores/userStore', () => ({
-	userStore: {
-		setUser: vi.fn()
-	}
 }));
 
 describe('LoginForm Component', () => {
@@ -40,9 +26,28 @@ describe('LoginForm Component', () => {
 	});
 
 	it('shows loading state during submission', async () => {
-		vi.mocked(authService.login).mockImplementation(
-			() => new Promise((resolve) => setTimeout(resolve, 100))
-		);
+		// Mock enhance to simulate loading state
+		const { enhance } = await import('$app/forms');
+		vi.mocked(enhance).mockImplementation((node, submit) => {
+			const handler = async (e: Event) => {
+				e.preventDefault();
+				if (submit) {
+					// @ts-expect-error - simplified mock for testing
+					await submit({
+						formElement: node,
+						formData: new FormData(node),
+						action: new URL(node.action),
+						cancel: () => {}
+					});
+					// We don't call updateFunc here to stay in loading state
+				}
+			};
+			node.addEventListener('submit', handler);
+			return {
+				destroy: () => node.removeEventListener('submit', handler)
+			};
+		});
+
 		render(LoginForm);
 
 		const emailInput = screen.getByPlaceholderText('Email');
@@ -58,60 +63,13 @@ describe('LoginForm Component', () => {
 		expect(submitButton).toBeDisabled();
 	});
 
-	it('navigates to home and sets user context on successful login', async () => {
-		const mockResponse: AuthResponse = {
-			user: { id: 1, email: 'test@example.com' },
-			access_token: 'token-abc',
-			token_type: 'bearer'
-		};
-		vi.mocked(authService.login).mockResolvedValueOnce(mockResponse);
-
-		render(LoginForm);
-		const emailInput = screen.getByPlaceholderText('Email');
-		const passwordInput = screen.getByPlaceholderText('Password');
-		const submitButton = screen.getByRole('button', { name: 'Login' });
-
-		const user = userEvent.setup();
-		await user.type(emailInput, 'test@example.com');
-		await user.type(passwordInput, 'password123');
-		await user.click(submitButton);
-
-		// Await for assertions
-		await vi.waitUntil(() => vi.mocked(authService.login).mock.calls.length > 0);
-
-		expect(authService.login).toHaveBeenCalledWith({
-			email: 'test@example.com',
-			password: 'password123'
-		});
-		expect(userStore.setUser).toHaveBeenCalledWith(mockResponse.user, mockResponse.access_token);
-		expect(goto).toHaveBeenCalledWith('/');
-	});
-
 	it('shows error when login fails', async () => {
-		vi.mocked(authService.login).mockRejectedValueOnce(new Error('Auth failed'));
+		render(LoginForm, {
+			props: {
+				form: { message: 'Login failed. Please check your credentials.' }
+			}
+		});
 
-		render(LoginForm);
-		const emailInput = screen.getByPlaceholderText('Email');
-		const passwordInput = screen.getByPlaceholderText('Password');
-		const submitButton = screen.getByRole('button', { name: 'Login' });
-
-		const user = userEvent.setup();
-		await user.type(emailInput, 'test@example.com');
-		await user.type(passwordInput, 'password123');
-		await user.click(submitButton);
-
-		expect(
-			await screen.findByText('Login failed. Please check your credentials.')
-		).toBeInTheDocument();
-	});
-});
-
-describe('LoginFormState Class', () => {
-	it('initializes with default values', () => {
-		const state = new LoginFormState();
-		expect(state.email).toBe('');
-		expect(state.password).toBe('');
-		expect(state.isLoading).toBe(false);
-		expect(state.error).toBeNull();
+		expect(screen.getByText('Login failed. Please check your credentials.')).toBeInTheDocument();
 	});
 });

@@ -8,6 +8,7 @@ from typing import cast
 import pytest
 from stockholm import Currency
 
+from src.account.api.position import PositionApi
 from src.account.api_types import Account
 from src.account.enum import AccountTypeEnum, InstitutionEnum
 from src.account.repository import PositionRepository
@@ -54,7 +55,7 @@ async def test_sync_account_positions_task_success(mock_account, mock_integratio
 
     mock_security_api = AsyncMock(spec=SecurityApi)
     mock_integration_user_repo = AsyncMock(spec=IntegrationUserRepository)
-    mock_position_repo = AsyncMock(spec=PositionRepository)
+    mock_position_api = AsyncMock(spec=PositionApi)
     mock_broker = AsyncMock()
 
     mock_integration_user_repo.get.return_value = mock_integration_user
@@ -78,6 +79,7 @@ async def test_sync_account_positions_task_success(mock_account, mock_integratio
         exchange="NASDAQ",
         quantity=Decimal("10"),
         average_cost=Decimal("150"),
+        currency="USD",
     )
     mock_broker.get_positions_by_account.return_value = [mock_broker_position]
 
@@ -87,8 +89,8 @@ async def test_sync_account_positions_task_success(mock_account, mock_integratio
             return mock_security_api
         if clazz == IntegrationUserRepository:
             return mock_integration_user_repo
-        if clazz == PositionRepository:
-            return mock_position_repo
+        if clazz == PositionApi:
+            return mock_position_api
         if clazz == broker_class:
             return mock_broker
         return None

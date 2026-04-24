@@ -25,7 +25,7 @@ class Security(BaseModel):
 
 class Price(BaseModel):
     id: int
-    security_id: int
+    security_id: SecurityId
     date: date
     open: Decimal
     high: Decimal
@@ -36,17 +36,17 @@ class Price(BaseModel):
     currency: Currency
 
 
-class EodhdSearchResult(TypedDict):
-    Code: str
-    Currency: str
-    Exchange: str
-    Name: str
-    Type: str
-    Country: str
-    ISIN: str | None
-    isPrimary: bool
-    previousClose: float
-    previousCloseDate: str
+class EodhdSearchResult(BaseModel):
+    code: str
+    currency: str
+    exchange: str
+    name: str
+    type: str
+    country: str
+    isin: str
+    is_primary: str
+    previous_close: str
+    previous_close_date: str
 
 
 class HistoricalPrice(BaseModel):

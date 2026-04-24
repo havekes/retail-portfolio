@@ -31,10 +31,23 @@ class MockSecurityRepository(SecurityRepository):
     async def get_all_active_securities(self) -> list[SecuritySchema]:
         return [s for s in self.securities if s.is_active]
 
+    @override
+    async def get_by_code_and_exchange(
+        self, code: str, exchange: str
+    ) -> SecuritySchema | None:
+        for security in self.securities:
+            if security.symbol == code and security.exchange == exchange:
+                return security
+        return None
+
 
 class MockPriceRepository(PriceRepository):
     def __init__(self):
         self.saved_prices = []
+
+    @override
+    async def get_by_security(self, security_id):
+        return []
 
     @override
     async def get_prices(self, security, from_date, to_date):

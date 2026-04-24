@@ -212,3 +212,5 @@ __marimo__/
 
 .bash_history
 .env
+data
+build_and_push.sh

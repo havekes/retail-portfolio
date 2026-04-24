@@ -1,4 +1,4 @@
-import { brokerClient } from '@/api/brokerClient';
+import { getBrokerClient, type BrokerClient } from '@/api/brokerClient';
 import type { BrokerAccount, LoginCredentials } from '@/api/types/broker';
 import type { BrokerUser, BackendInstitution } from '@/types/broker/broker';
 import { Institution } from '@/types/account';
@@ -7,13 +7,18 @@ import { getContext, setContext } from 'svelte';
 export class BrokerService {
 	isLoading = $state(false);
 	error = $state<string | null>(null);
+	private client: BrokerClient;
 
-	async getAvailableInstitutions(): Promise<BackendInstitution[]> {
-		return brokerClient.getAvailableInstitutions();
+	constructor(customFetch?: typeof fetch) {
+		this.client = getBrokerClient(customFetch);
 	}
 
-	async getBrokerUsers(): Promise<BrokerUser[]> {
-		const users = await brokerClient.getBrokerUsers();
+	async getAvailableInstitutions(): Promise<BackendInstitution[]> {
+		return this.client.getAvailableInstitutions();
+	}
+
+	async getBrokerUsers(token?: string | null): Promise<BrokerUser[]> {
+		const users = await this.client.getBrokerUsers(token);
 		return users.map((u) => {
 			const fallbackName =
 				typeof u.institution_id === 'number'
@@ -29,19 +34,19 @@ export class BrokerService {
 	}
 
 	async getBrokerUserAccounts(brokerUserId: string): Promise<BrokerAccount[]> {
-		return brokerClient.getBrokerUserAccounts(brokerUserId);
+		return this.client.getBrokerUserAccounts(brokerUserId);
 	}
 
 	async login(institutionId: string, credentials: LoginCredentials): Promise<void> {
-		return brokerClient.brokerLogin(institutionId, credentials);
+		return this.client.brokerLogin(institutionId, credentials);
 	}
 
 	async updateBrokerUserDisplayName(userId: string, name: string): Promise<void> {
-		await brokerClient.updateBrokerUserDisplayName(userId, name);
+		await this.client.updateBrokerUserDisplayName(userId, name);
 	}
 
 	async importBrokerAccounts(userId: string, externalIds: string[]): Promise<void> {
-		await brokerClient.importBrokerAccounts(userId, externalIds);
+		await this.client.importBrokerAccounts(userId, externalIds);
 	}
 }
 
@@ -53,6 +58,9 @@ export function setBrokerService() {
 	return service;
 }
 
-export function getBrokerService() {
+export function getBrokerService(customFetch?: typeof fetch) {
+	if (customFetch) {
+		return new BrokerService(customFetch);
+	}
 	return getContext<BrokerService>(BROKER_SERVICE_KEY);
 }

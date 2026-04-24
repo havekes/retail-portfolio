@@ -49,6 +49,7 @@ class AccountModel(BaseModel):
     )
     currency: Mapped[str] = mapped_column(String)
     broker_display_name: Mapped[str | None] = mapped_column(String, nullable=True)
+    net_deposits: Mapped[Decimal | None] = mapped_column(Float, nullable=True)
     is_active: Mapped[bool] = mapped_column(Boolean, default=True)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=func.now())
     updated_at: Mapped[datetime] = mapped_column(
@@ -168,11 +169,12 @@ class InstitutionModel(BaseModel):
 class PositionModel(BaseModel):
     __tablename__ = "account_positions"
 
-    id: Mapped[int] = mapped_column(BigInteger, primary_key=True, autoincrement=True)
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
     account_id: Mapped[AccountId] = mapped_column(Uuid, ForeignKey("accounts.id"))
     security_id: Mapped[SecurityId] = mapped_column(Uuid)
     quantity: Mapped[Decimal] = mapped_column(DECIMAL(16, 8))
     average_cost: Mapped[Decimal | None] = mapped_column(Float, nullable=True)
+    currency: Mapped[str] = mapped_column(String(3), nullable=True)
 
     updated_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), default=func.now(), onupdate=func.now()

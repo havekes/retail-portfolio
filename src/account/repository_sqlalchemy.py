@@ -1,3 +1,4 @@
+from decimal import Decimal
 from typing import override
 
 from sqlalchemy import delete, select
@@ -20,6 +21,7 @@ from src.account.repository import (
     PositionRepository,
 )
 from src.account.schema import (
+    AccountHoldingRead,
     AccountSchema,
     InstitutionSchema,
     PortfolioCreate,
@@ -28,6 +30,7 @@ from src.account.schema import (
 )
 from src.auth.api_types import UserId
 from src.integration.brokers.api_types import BrokerAccountId
+from src.market.api_types import SecurityId
 
 
 class SqlAlchemyInstitutionRepository(InstitutionRepository):
@@ -122,6 +125,17 @@ class SqlAlchemyAccountRepository(AccountRepository):
             await self._session.delete(account_model)
             await self._session.commit()
 
+    @override
+    async def update_net_deposits(
+        self, account_id: AccountId, net_deposits: float | None
+    ) -> None:
+        account_model = await self._session.get(AccountModel, account_id)
+        if account_model:
+            account_model.net_deposits = (
+                Decimal(str(net_deposits)) if net_deposits is not None else None
+            )
+            await self._session.commit()
+
 
 async def sqlalchemy_account_repository_factory(
     container: Container,
@@ -145,6 +159,36 @@ class SqlAlchemyPositionRepository(PositionRepository):
         return [
             PositionSchema.model_validate(position_model)
             for position_model in position_models
+        ]
+
+    @override
+    async def get_holdings_by_security(
+        self, security_id: SecurityId, user_id: UserId
+    ) -> list[AccountHoldingRead]:
+        query = (
+            select(
+                PositionModel.account_id,
+                AccountModel.name.label("account_name"),
+                PositionModel.quantity,
+                PositionModel.average_cost,
+            )
+            .join(AccountModel, PositionModel.account_id == AccountModel.id)
+            .where(
+                PositionModel.security_id == security_id,
+                AccountModel.user_id == user_id,
+            )
+        )
+        result = await self._session.execute(query)
+        return [
+            AccountHoldingRead(
+                account_id=row.account_id,
+                account_name=row.account_name,
+                quantity=float(row.quantity),
+                average_cost=float(row.average_cost) if row.average_cost else None,
+                total_value=0.0,  # Populated by service layer
+                currency="",  # Populated by service layer
+            )
+            for row in result.all()
         ]
 
     @override

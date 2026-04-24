@@ -12,9 +12,14 @@ from src.config.settings import settings
 async def main():
     async with sessionmanager.session():
         email = input("User email: ")
+        user_id = (
+            input("User UUID (optional, press enter for dummy): ")
+            or "00000000-0000-0000-0000-000000000000"
+        )
 
         access_token_data = AccessTokenData(
             sub=email,
+            user_id=user_id,
             exp=int((datetime.now(UTC) + timedelta(days=365)).timestamp()),
         )
 

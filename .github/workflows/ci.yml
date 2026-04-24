@@ -64,6 +64,14 @@ jobs:
           cd frontend
           npm install
 
+      - name: Prepare env file
+        run: cp frontend/.env.example frontend/.env
+
+      - name: Run type checks
+        run: |
+          cd frontend
+          npm run check
+
       - name: Run ESLint and Prettier checks
         run: |
           cd frontend

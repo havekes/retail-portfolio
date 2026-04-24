@@ -20,7 +20,14 @@ from src.market.repository import (
     SecurityBrokerRepository,
     SecurityRepository,
 )
-from src.market.schema import SecurityBrokerSchema, SecuritySchema
+from src.market.schema import (
+    PriceSchema,
+    SecurityBrokerSchema,
+    SecurityCreateRequest,
+    SecurityCreateResponse,
+    SecuritySchema,
+)
+from src.market.service import MarketService
 
 logger = logging.getLogger(__name__)
 
@@ -49,6 +56,10 @@ class MarketPricesApi:
 
         return Money(latest_price.close, security.currency)
 
+    async def get_latest_price(self, security_id: SecurityId) -> PriceSchema | None:
+        security = await self._security_repository.get_by_id_or_fail(security_id)
+        return await self._price_repository.get_latest_price(security)
+
 
 async def market_prices_factory(container: Container) -> MarketPricesApi:
     return MarketPricesApi(
@@ -59,20 +70,19 @@ async def market_prices_factory(container: Container) -> MarketPricesApi:
 
 
 class SecurityApi:
-    _gateway: MarketGateway
-    _market_prices_api: MarketPricesApi
-    _security_broker_repository: SecurityBrokerRepository
-    _security_repository: SecurityRepository
-
-    def __init__(
+    def __init__(  # noqa: PLR0913
         self,
         gateway: MarketGateway,
         market_prices_api: MarketPricesApi,
+        market_service: MarketService,
+        price_repository: PriceRepository,
         security_broker_repository: SecurityBrokerRepository,
         security_repository: SecurityRepository,
     ) -> None:
         self._gateway = gateway
         self._market_prices_api = market_prices_api
+        self._market_service = market_service
+        self._price_repository = price_repository
         self._security_broker_repository = security_broker_repository
         self._security_repository = security_repository
 
@@ -162,11 +172,64 @@ class SecurityApi:
 
         return replacements.get(broker_exchange, broker_exchange)
 
+    async def create_or_get_from_search(
+        self, request: SecurityCreateRequest
+    ) -> SecurityCreateResponse:
+        """
+        Create a new security or return existing one based on code + exchange.
+        Fetches price history if security was newly created.
+        """
+        existing_security = await self._security_repository.get_by_code_and_exchange(
+            request.code, request.exchange
+        )
+
+        if existing_security:
+            has_price_data = await self._has_price_data(existing_security.id)
+            return SecurityCreateResponse(
+                security_id=existing_security.id,
+                symbol=existing_security.symbol,
+                exchange=existing_security.exchange,
+                name=existing_security.name,
+                has_price_data=has_price_data,
+            )
+
+        new_security = await self._security_repository.get_or_create(
+            SecuritySchema(
+                id=uuid.uuid4(),
+                symbol=request.code,
+                exchange=request.exchange,
+                currency=request.currency,
+                name=request.name,
+                isin=request.isin,
+                updated_at=datetime.now(UTC),
+            )
+        )
+
+        has_price_data = await self._market_service.fetch_and_save_price_history(
+            new_security
+        )
+
+        return SecurityCreateResponse(
+            security_id=new_security.id,
+            symbol=new_security.symbol,
+            exchange=new_security.exchange,
+            name=new_security.name,
+            has_price_data=has_price_data,
+        )
+
+    async def _has_price_data(self, security_id: SecurityId) -> bool:
+        """Check if a security has any price data in the database."""
+        security = await self._security_repository.get_by_id_or_fail(security_id)
+        latest_price = await self._price_repository.get_latest_price(security)
+        return latest_price is not None
+
 
 async def security_api_factory(container: Container) -> SecurityApi:
     return SecurityApi(
         gateway=await container.aget(MarketGateway),
         market_prices_api=await container.aget(MarketPricesApi),
+        market_service=await container.aget(MarketService),
+        price_repository=await container.aget(PriceRepository),
         security_broker_repository=await container.aget(SecurityBrokerRepository),
         security_repository=await container.aget(SecurityRepository),
     )

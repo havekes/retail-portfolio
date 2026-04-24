@@ -1,4 +1,6 @@
+import { browser } from '$app/environment';
 import { accountClient } from '$lib/api/accountClient';
+import { authService } from '$lib/api/authService';
 import {
 	type Account,
 	type AccountGroupKeys,
@@ -7,7 +9,6 @@ import {
 	type Institution,
 	type AccountType
 } from '@/types/account';
-import { userStore } from '@/stores/userStore';
 import { SvelteSet } from 'svelte/reactivity';
 import { group, type GroupBy } from '@/group';
 import { WsEventType, type AccountSyncMessage } from '@/types/websocket';
@@ -15,7 +16,6 @@ import { WsEventType, type AccountSyncMessage } from '@/types/websocket';
 export class AccountsListState {
 	accounts = $state<Account[]>([]);
 	isLoading = $state(false);
-	errorMessage = $state<string | null>(null);
 
 	selectionMode = $state(false);
 	selectedAccounts = $state<string[]>([]);
@@ -37,14 +37,14 @@ export class AccountsListState {
 
 	private ws: WebSocket | null = null;
 
-	constructor() {
-		this.initWebSocket();
+	constructor(initialAccounts: Account[] = []) {
+		this.accounts = initialAccounts;
+		if (browser) {
+			this.initWebSocket();
+		}
 	}
 
-	private initWebSocket() {
-		const token = userStore.getToken();
-		if (!token) return;
-
+	private async initWebSocket() {
 		let wsUrl: string;
 		const apiBaseUrl = import.meta.env.VITE_API_BASE_URL;
 
@@ -59,7 +59,17 @@ export class AccountsListState {
 		}
 
 		console.log('Connecting to WebSocket:', wsUrl);
-		this.ws = new WebSocket(wsUrl, [token]);
+		const ticket = await authService
+			.getWsTicket()
+			.then((data) => data?.ticket ?? null)
+			.catch(() => null);
+
+		if (!ticket) {
+			console.warn('Failed to obtain WebSocket ticket. Aborting connection.');
+			return;
+		}
+
+		this.ws = new WebSocket(`${wsUrl}?ticket=${encodeURIComponent(ticket)}`);
 
 		this.ws.onopen = () => {
 			this.wsConnected = true;
@@ -106,11 +116,8 @@ export class AccountsListState {
 
 	async fetchAccounts() {
 		this.isLoading = true;
-		this.errorMessage = null;
 		try {
 			this.accounts = await accountClient.getAccounts();
-		} catch (error) {
-			this.errorMessage = error instanceof Error ? error.message : 'Unknown error';
 		} finally {
 			this.isLoading = false;
 		}
@@ -123,7 +130,7 @@ export class AccountsListState {
 		if (this.groupBy === 'institution') key = 'institution_id';
 		else if (this.groupBy === 'accountType') key = 'account_type_id';
 
-		// Re-wrap accountList in a Promise because group expects Promise<Array<T>>
+		// Re-wrap accountList in a Promise because group expects Promise<T[]>
 		const groupsMap = await group(Promise.resolve(this.accounts), key);
 
 		const result = [];

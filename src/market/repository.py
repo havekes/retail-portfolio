@@ -4,8 +4,16 @@ from datetime import date
 from src.auth.api_types import UserId
 from src.market.api_types import SecurityId
 from src.market.schema import (
+    IndicatorPreferencesRead,
+    IndicatorPreferencesWrite,
+    PriceAlertRead,
+    PriceAlertWrite,
     PriceSchema,
     SecurityBrokerSchema,
+    SecurityDocumentRead,
+    SecurityDocumentWrite,
+    SecurityNoteRead,
+    SecurityNoteWrite,
     SecuritySchema,
     WatchlistRead,
 )
@@ -24,6 +32,12 @@ class SecurityRepository(ABC):
     async def get_all_active_securities(self) -> list[SecuritySchema]:
         pass
 
+    @abstractmethod
+    async def get_by_code_and_exchange(
+        self, code: str, exchange: str
+    ) -> SecuritySchema | None:
+        pass
+
 
 class SecurityBrokerRepository(ABC):
     @abstractmethod
@@ -38,6 +52,10 @@ class PriceRepository(ABC):
     async def get_prices(
         self, security: SecuritySchema, from_date: date, to_date: date
     ) -> list[PriceSchema]:
+        pass
+
+    @abstractmethod
+    async def get_by_security(self, security_id: SecurityId) -> list[PriceSchema]:
         pass
 
     @abstractmethod
@@ -61,5 +79,93 @@ class PriceRepository(ABC):
 
 class WatchlistRepository(ABC):
     @abstractmethod
-    async def get_all_for_user(self, user_id: UserId) -> list[WatchlistRead]:
+    async def get_by_user(self, user_id: UserId) -> list[WatchlistRead]:
+        pass
+
+
+class PriceAlertRepository(ABC):
+    @abstractmethod
+    async def get_by_security_and_user(
+        self, security_id: SecurityId, user_id: UserId
+    ) -> list[PriceAlertRead]:
+        pass
+
+    @abstractmethod
+    async def create(
+        self, alert: PriceAlertWrite, security_id: SecurityId, user_id: UserId
+    ) -> PriceAlertRead:
+        pass
+
+    @abstractmethod
+    async def delete(self, alert_id: int, user_id: UserId) -> None:
+        pass
+
+
+class SecurityNoteRepository(ABC):
+    @abstractmethod
+    async def get_by_security_and_user(
+        self, security_id: SecurityId, user_id: UserId
+    ) -> list[SecurityNoteRead]:
+        pass
+
+    @abstractmethod
+    async def get_by_id(self, note_id: int) -> SecurityNoteRead | None:
+        pass
+
+    @abstractmethod
+    async def create(
+        self, note: SecurityNoteWrite, security_id: SecurityId, user_id: UserId
+    ) -> SecurityNoteRead:
+        pass
+
+    @abstractmethod
+    async def update(
+        self, note_id: int, note: SecurityNoteWrite, user_id: UserId
+    ) -> SecurityNoteRead:
+        pass
+
+    @abstractmethod
+    async def update_title(self, note_id: int, title: str) -> None:
+        pass
+
+    @abstractmethod
+    async def delete(self, note_id: int, user_id: UserId) -> None:
+        pass
+
+
+class SecurityDocumentRepository(ABC):
+    @abstractmethod
+    async def get_by_security_and_user(
+        self, security_id: SecurityId, user_id: UserId
+    ) -> list[SecurityDocumentRead]:
+        pass
+
+    @abstractmethod
+    async def create(
+        self,
+        document: SecurityDocumentWrite,
+        security_id: SecurityId,
+        user_id: UserId,
+    ) -> SecurityDocumentRead:
+        pass
+
+    @abstractmethod
+    async def delete(self, document_id: int, user_id: UserId) -> None:
+        pass
+
+
+class IndicatorPreferencesRepository(ABC):
+    @abstractmethod
+    async def get_for_security_and_user(
+        self, security_id: SecurityId, user_id: UserId
+    ) -> IndicatorPreferencesRead | None:
+        pass
+
+    @abstractmethod
+    async def save(
+        self,
+        preferences: IndicatorPreferencesWrite,
+        security_id: SecurityId,
+        user_id: UserId,
+    ) -> IndicatorPreferencesRead:
         pass

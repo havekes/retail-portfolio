@@ -60,35 +60,32 @@ class StubEodhdAPIClient:
         }
 
         base_price = base_prices.get(symbol, 100.0)
+        days = (end_date - start_date).days + 1
 
-        data = []
-        current_date = start_date
+        # Pre-seed for deterministic but varied-looking data
+        prices = []
         current_price = base_price
 
-        while current_date <= end_date:
-            volatility = 0.02
-            change = random.uniform(-volatility, volatility)  # noqa: S311
+        for i in range(days):
+            current_date = start_date + timedelta(days=i)
+            # Use deterministic pseudo-randomness based on index for speed
+            # but still allow some "movement"
+            change = (hash(f"{symbol}-{i}") % 100 - 50) / 2500.0  # +/- 2%
             current_price *= 1 + change
 
-            high = current_price * (1 + random.uniform(0, 0.01))  # noqa: S311
-            low = current_price * (1 - random.uniform(0, 0.01))  # noqa: S311
-            open_price = current_price * (1 + random.uniform(-0.005, 0.005))  # noqa: S311
-
-            data.append(
+            prices.append(
                 {
                     "date": current_date.isoformat(),
-                    "open": round(open_price, 2),
-                    "high": round(high, 2),
-                    "low": round(low, 2),
+                    "open": round(current_price * 0.995, 2),
+                    "high": round(current_price * 1.01, 2),
+                    "low": round(current_price * 0.99, 2),
                     "close": round(current_price, 2),
                     "adjusted_close": round(current_price, 2),
-                    "volume": random.randint(500000, 5000000),  # noqa: S311
+                    "volume": 1000000 + (hash(f"{symbol}-{i}") % 1000000),
                 }
             )
 
-            current_date = current_date + timedelta(days=1)
-
-        return data
+        return prices
 
 
 class StubEodhdGateway(MarketGateway):

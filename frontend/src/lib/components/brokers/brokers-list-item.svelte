@@ -4,7 +4,7 @@
 	import { BrokersListItemState } from './brokers-list-item.svelte.js';
 	import { Skeleton } from '../ui/skeleton/index.js';
 	import { Button } from '../ui/button/index.js';
-	import EditableTitle from '../form/editable-title.svelte';
+	import EditableTitle from '../forms/editable-title.svelte';
 	import SyncAccountsModal from './sync-accounts-modal.svelte';
 	import RefreshCw from '@lucide/svelte/icons/refresh-cw';
 

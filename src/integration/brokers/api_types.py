@@ -20,6 +20,7 @@ class BrokerAccount(BaseModel):
     display_name: str
     broker_display_name: str | None = None
     value: Decimal
+    net_deposits: Decimal | None = None
     created_at: datetime
 
 
@@ -30,6 +31,7 @@ class BrokerPosition(BaseModel):
     exchange: str
     quantity: Decimal
     average_cost: Decimal | None
+    currency: str | None = None
 
     def to_position(
         self,
@@ -41,4 +43,5 @@ class BrokerPosition(BaseModel):
             security_id=security_id,
             quantity=self.quantity,
             average_cost=self.average_cost,
+            currency=self.currency,
         )

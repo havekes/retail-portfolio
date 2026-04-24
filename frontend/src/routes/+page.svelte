@@ -1,16 +1,18 @@
 <script lang="ts">
-	import AppSidebar from '@/components/app-sidebar.svelte';
-	import { SidebarProvider } from '$lib/components/ui/sidebar/index.js';
+	import AppSidebar from '@/components/layout/app-sidebar.svelte';
+	import * as Sidebar from '$lib/components/ui/sidebar/index.js';
 	import AccountsList from '@/components/accounts/accounts-list.svelte';
+
+	let { data } = $props();
 </script>
 
 <svelte:head>
 	<title>Portfolio dashboard</title>
 </svelte:head>
 
-<SidebarProvider>
+<Sidebar.Provider>
 	<AppSidebar />
-	<main class="w-full">
-		<AccountsList></AccountsList>
-	</main>
-</SidebarProvider>
+	<Sidebar.Inset>
+		<AccountsList accounts={data.accounts}></AccountsList>
+	</Sidebar.Inset>
+</Sidebar.Provider>

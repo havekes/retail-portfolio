@@ -1,9 +1,9 @@
-import { BaseClient } from './baseClient';
-import type { Account, AccountTotals } from '@/types/account';
+import { ApiClient } from './apiClient';
+import type { Account, AccountHoldings, AccountTotals } from '@/types/account';
 
-export class AccountClient extends BaseClient {
-	async getAccounts(): Promise<Account[]> {
-		return this.get<Account[]>('/accounts/');
+export class AccountClient extends ApiClient {
+	async getAccounts(token?: string | null): Promise<Account[]> {
+		return this.get<Account[]>('/accounts/', {}, token);
 	}
 
 	async renameAccount(id: string, name: string): Promise<Account> {
@@ -12,6 +12,10 @@ export class AccountClient extends BaseClient {
 
 	async getAccountTotals(id: string): Promise<AccountTotals> {
 		return this.get<AccountTotals>(`/accounts/${id}/totals`);
+	}
+
+	async getAccountHoldings(id: string, token?: string | null): Promise<AccountHoldings> {
+		return this.get<AccountHoldings>(`/accounts/${id}/holdings`, {}, token);
 	}
 
 	async deleteAccount(id: string): Promise<void> {
@@ -23,4 +27,5 @@ export class AccountClient extends BaseClient {
 	}
 }
 
-export const accountClient = new AccountClient();
+export const getAccountClient = (customFetch?: typeof fetch) => new AccountClient(customFetch);
+export const accountClient = getAccountClient();

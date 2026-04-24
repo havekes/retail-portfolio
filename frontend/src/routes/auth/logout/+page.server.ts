@@ -1,0 +1,24 @@
+import { dev } from '$app/environment';
+import { redirect, type Cookies } from '@sveltejs/kit';
+import type { Actions } from './$types';
+
+const logout = (cookies: Cookies) => {
+	// Be very aggressive about deleting the cookie
+	cookies.delete('auth_token', { path: '/' });
+
+	// Also set it to empty with immediate expiration just in case
+	cookies.set('auth_token', '', {
+		path: '/',
+		expires: new Date(0),
+		httpOnly: true,
+		sameSite: 'lax',
+		secure: !dev
+	});
+};
+
+export const actions: Actions = {
+	default: async ({ cookies }) => {
+		logout(cookies);
+		throw redirect(303, '/auth/login');
+	}
+};

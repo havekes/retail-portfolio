@@ -19,20 +19,15 @@ export class AccountsListItemState {
 		}
 	}
 
+	invalidateCache(id: string) {
+		delete this.totalsCache[id];
+	}
+
 	totals = $derived.by(() => {
 		return this.fetchAccountTotals(this.getAccountId());
 	});
 
 	getAccountTotals(id: string): AccountTotals | undefined {
 		return this.totalsCache[id];
-	}
-
-	async renameAccount(id: string, name: string) {
-		try {
-			await accountClient.renameAccount(id, name);
-		} catch (error) {
-			console.error('Failed to rename account', error);
-			throw error;
-		}
 	}
 }

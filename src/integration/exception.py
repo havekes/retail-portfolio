@@ -1,4 +1,4 @@
-from src.exception import EntityNotFoundError
+from src.core.exception import EntityNotFoundError
 from src.integration.api_types import IntegrationUserId
 
 

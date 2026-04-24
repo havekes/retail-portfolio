@@ -11,3 +11,25 @@ export type WithoutChild<T> = T extends { child?: any } ? Omit<T, 'child'> : T;
 export type WithoutChildren<T> = T extends { children?: any } ? Omit<T, 'children'> : T;
 export type WithoutChildrenOrChild<T> = WithoutChildren<WithoutChild<T>>;
 export type WithElementRef<T, U extends HTMLElement = HTMLElement> = T & { ref?: U | null };
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export function debounce<T extends (...args: any[]) => void>(
+	func: T,
+	wait: number
+): (...args: Parameters<T>) => void {
+	let timeoutId: ReturnType<typeof setTimeout> | null = null;
+
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
+	return function (this: any, ...args: Parameters<T>): void {
+		// eslint-disable-next-line @typescript-eslint/no-this-alias
+		const context = this;
+
+		if (timeoutId !== null) {
+			clearTimeout(timeoutId);
+		}
+
+		timeoutId = setTimeout(() => {
+			func.apply(context, args);
+		}, wait);
+	};
+}

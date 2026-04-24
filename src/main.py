@@ -5,7 +5,7 @@ from typing import Any, cast
 
 import redis
 import svcs
-from fastapi import FastAPI
+from fastapi import FastAPI, Request, status
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from huey_dashboard import init_huey_dashboard
@@ -19,7 +19,7 @@ from src.config.database import sessionmanager
 from src.config.logging import init_logging
 from src.config.services import register_services
 from src.config.settings import settings
-from src.exception import AuthorizationError, EntityNotFoundError
+from src.core.exception import AuthorizationError, EntityNotFoundError
 from src.integration.router import institutions_router, integration_router
 from src.market.router import market_router
 from src.ws.manager import ws_manager
@@ -41,7 +41,7 @@ async def lifespan_context(app: FastAPI):
     # Initialize Huey dashboard
     init_huey_dashboard(
         app,
-        huey=huey,
+        huey=huey,  # ty: ignore[invalid-argument-type]
         db_url=settings.database_url,
         redis_url=settings.redis_url,
         api_prefix="/worker/api",
@@ -72,9 +72,48 @@ app = FastAPI(
     version="0.0.0",
     debug=settings.environment != "prod",
 )
+
+
+@app.middleware("http")
+async def cors_exception_middleware(request: Request, call_next: Any) -> Any:
+    """
+    Middleware to ensure CORS headers are present even on unhandled 500 errors.
+    This acts as a safety net for exceptions that escape the normal FastAPI handlers.
+    """
+    try:
+        return await call_next(request)
+    except Exception as exc:
+        logger.exception("Unhandled exception in middleware safety net:")
+
+        allowed_origins = [
+            origin.strip() for origin in settings.cors_allow_origins.split(",")
+        ]
+        origin = request.headers.get("origin")
+
+        response = JSONResponse(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            content={
+                "detail": "Internal Server Error",
+                "error": str(exc)
+                if settings.environment != "prod"
+                else "Internal Error",
+            },
+        )
+
+        # Manually inject CORS headers if the origin is allowed
+        if origin and (origin in allowed_origins or "*" in allowed_origins):
+            response.headers["Access-Control-Allow-Origin"] = origin
+            response.headers["Access-Control-Allow-Credentials"] = "true"
+        elif "*" in allowed_origins:
+            response.headers["Access-Control-Allow-Origin"] = "*"
+
+        return response
+
+
 app.add_middleware(
-    cast("Any", CORSMiddleware),
+    CORSMiddleware,
     allow_origins=[origin.strip() for origin in settings.cors_allow_origins.split(",")],
+    allow_origin_regex=r"https?://.*" if settings.environment != "prod" else None,
     allow_credentials=True,
     allow_methods=[origin.strip() for origin in settings.cors_allow_methods.split(",")],
     allow_headers=[origin.strip() for origin in settings.cors_allow_headers.split(",")],
@@ -91,13 +130,11 @@ app.include_router(ws_router)
 
 
 @app.get("/api/ping")
-async def ping(services: DepContainer) -> dict[str, str]:
+async def ping(services: DepContainer) -> dict[str, Any]:
     """Server healthcheck"""
-    logger.debug(settings)
-
     session = await services.aget(AsyncSession)
 
-    response: dict[str, str] = {}
+    response: dict[str, Any] = {}
     response["ping"] = "pong"
     try:
         if (await session.execute(select(1))).scalar() == 1:
@@ -109,6 +146,19 @@ async def ping(services: DepContainer) -> dict[str, str]:
         response["database"] = "error"
 
     return response
+
+
+@app.exception_handler(Exception)
+async def catch_all_exception_handler(_: Request, exc: Exception):
+    # Use a safer logging call to avoid potential formatting errors
+    logger.exception("Unhandled exception caught by FastAPI handler:")
+    return JSONResponse(
+        status_code=500,
+        content={
+            "detail": "Internal Server Error",
+            "error": str(exc) if settings.environment != "prod" else "Internal Error",
+        },
+    )
 
 
 @app.exception_handler(EntityNotFoundError)

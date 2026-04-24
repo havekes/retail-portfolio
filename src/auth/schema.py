@@ -1,7 +1,7 @@
 from datetime import datetime
 
 from argon2 import PasswordHasher
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel, ConfigDict, EmailStr
 
 from src.auth.api_types import UserId
 
@@ -36,3 +36,15 @@ class VerificationTokenSchema(BaseModel):
     expires_at: datetime
     is_used: bool = False
     created_at: datetime
+
+
+class VerifyEmailRequest(BaseModel):
+    token: str
+
+
+class ResendVerificationRequest(BaseModel):
+    email: EmailStr
+
+
+class MessageResponse(BaseModel):
+    message: str

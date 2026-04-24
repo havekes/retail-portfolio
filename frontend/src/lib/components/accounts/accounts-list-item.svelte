@@ -1,8 +1,8 @@
 <script lang="ts">
 	import { getAccountTypeLabel, getInstitutionLabel } from '@/types/account';
-	import Badge from '../ui/badge/badge.svelte';
-	import Checkbox from '../ui/checkbox/checkbox.svelte';
-	import EditableTitle from '../form/editable-title.svelte';
+	import { Badge } from '$lib/components/ui/badge/index.js';
+	import { Checkbox } from '$lib/components/ui/checkbox/index.js';
+	import EditableTitle from '../forms/editable-title.svelte';
 	import Skeleton from '../ui/skeleton/skeleton.svelte';
 	import { money } from '@/types/money';
 	import * as Tooltip from '../ui/tooltip';
@@ -14,6 +14,12 @@
 		$props();
 
 	const state = new AccountsListItemState(() => account.id);
+
+	$effect(() => {
+		if (!isSyncing) {
+			state.invalidateCache(account.id);
+		}
+	});
 </script>
 
 <div class="account-list-item group px flex space-x-4 rounded-lg bg-muted p-4">
@@ -29,7 +35,9 @@
 		<div class="flex justify-between">
 			<EditableTitle
 				bind:value={account.name}
-				onSave={(val) => state.renameAccount(account.id, val)}
+				action="?/renameAccount"
+				id={account.id}
+				href={`/accounts/${account.id}`}
 			/>
 			<div>
 				{#await state.totals}
@@ -68,10 +76,11 @@
 						<Tooltip.Provider>
 							<Tooltip.Root>
 								<Tooltip.Trigger class={buttonVariants({ variant: 'outline' })}>
-									{money(totals.cost)}
+									{money(totals.value)}
 								</Tooltip.Trigger>
 								<Tooltip.Content>
-									<p>Total cost</p>
+									<p>Total value: {money(totals.value)}</p>
+									<p>Total cost: {money(totals.cost)}</p>
 								</Tooltip.Content>
 							</Tooltip.Root>
 						</Tooltip.Provider>
@@ -85,7 +94,12 @@
 			<div class="flex items-center gap-x-2">
 				<span>{getAccountTypeLabel(account.account_type_id)}</span>
 				<span>•</span>
-				<Badge variant="outline" class="text-foreground">{account.currency}</Badge>
+				<Badge
+					variant="outline"
+					class="border-muted-foreground/30 px-1.5 py-0 text-[10px] font-medium text-muted-foreground"
+				>
+					{account.currency}
+				</Badge>
 				<span>•</span>
 				<span>
 					{getInstitutionLabel(account.institution_id)}

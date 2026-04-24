@@ -1,58 +1,70 @@
+import logging
+from decimal import Decimal
+from typing import cast
+
 from currency_converter import CurrencyConverter
 from stockholm import Money
 from stockholm.currency import BaseCurrency
 from svcs import Container
 
-from src.account.api_types import Account, AccountId, AccountTotals
+from src.account.api_types import Account, AccountId, AccountTotals, PositionId
 from src.account.exception import AccountNotFoundError
 from src.account.repository import (
     AccountRepository,
     PositionRepository,
 )
 from src.account.schema import (
+    AccountHoldingRead,
+    AccountHoldingsRead,
+    AccountSchema,
+    HoldingRead,
     PositionRead,
     PositionSchema,
 )
+from src.account.service.account import AccountService
 from src.auth.api_types import UserId
 from src.integration.api import IntegrationAccountApi, IntegrationUserApi
 from src.market.api import MarketPricesApi, SecurityApi
-from src.market.api_types import Security
+from src.market.api_types import Security, SecurityId
+from src.market.exception import SecurityNotFoundError
+from src.market.schema import PriceSchema
+
+logger = logging.getLogger(__name__)
 
 
 class PositionService:
+    _account_service: AccountService
     _fx_rates: CurrencyConverter
+    _integration_account_api: IntegrationAccountApi
+    _integration_user_api: IntegrationUserApi
     _market_prices: MarketPricesApi
     _position_repository: PositionRepository
     _security_service: SecurityApi
-    _account_repository: AccountRepository
-    _integration_user_api: IntegrationUserApi
-    _integration_account_api: IntegrationAccountApi
 
     def __init__(  # noqa: PLR0913
         self,
+        account_service: AccountService,
         fx_rates: CurrencyConverter,
+        integration_account_api: IntegrationAccountApi,
+        integration_user_api: IntegrationUserApi,
         market_prices: MarketPricesApi,
         position_repository: PositionRepository,
         security_service: SecurityApi,
-        account_repository: AccountRepository,
-        integration_user_api: IntegrationUserApi,
-        integration_account_api: IntegrationAccountApi,
     ):
+        self._account_service = account_service
         self._fx_rates = fx_rates
+        self._integration_account_api = integration_account_api
+        self._integration_user_api = integration_user_api
         self._market_prices = market_prices
         self._position_repository = position_repository
         self._security_service = security_service
-        self._account_repository = account_repository
-        self._integration_user_api = integration_user_api
-        self._integration_account_api = integration_account_api
 
     async def sync_account_positions(
         self, user_id: UserId, account_id: AccountId
     ) -> None:
+        """Sync positions for an account from the broker."""
         # Check that account exists
-        account = await self._account_repository.get(account_id)
-        if account is None:
-            raise AccountNotFoundError(account_id)
+        account = await self._account_service.get_account(account_id)
 
         if account.integration_user_id is None:
             # Nothing to do since the account was not imported from broker
@@ -68,33 +80,70 @@ class PositionService:
             broker_account_id=account.external_id,
         )
 
-    async def get_positions_by_account_with_security(
-        self, account_id: AccountId
-    ) -> list[PositionRead]:
-        """Get positions for an account enriched with security data."""
+    async def get_holdings_by_security(
+        self, security_id: SecurityId, user_id: UserId
+    ) -> list[AccountHoldingRead]:
+        """Get holdings for a specific security across all user accounts."""
+        holdings = await self._position_repository.get_holdings_by_security(
+            security_id, user_id
+        )
+
+        # TODO propagate security not found error instead of returning
+        # empty list which is ambiguous with "no holdings"
+        try:
+            security = await self._security_service.get_by_id(security_id)
+        except SecurityNotFoundError:
+            return []
+
+        latest_price_money = await self._market_prices.get_latest_close(security_id)
+        latest_price = float(latest_price_money.amount) if latest_price_money else 0.0
+
+        return [
+            AccountHoldingRead(
+                account_id=h.account_id,
+                account_name=h.account_name,
+                quantity=float(h.quantity),
+                average_cost=h.average_cost,
+                total_value=float(h.quantity) * latest_price,
+                currency=str(security.currency),
+            )
+            for h in holdings
+        ]
+
+    async def get_account_holdings(self, account_id: AccountId) -> AccountHoldingsRead:
+        """Get detailed holdings and totals for a specific account."""
+        account = await self._account_service.get_account(account_id)
         positions = await self._position_repository.get_by_account(account_id)
 
-        result: list[PositionRead] = []
-        for position in positions:
-            security = await self._security_service.get_by_id(position.security_id)
-            result.append(
-                PositionRead(
-                    id=position.id,
-                    account_id=position.account_id,
-                    security_id=position.security_id,
-                    security_symbol=security.symbol if security else "UNKNOWN",
-                    quantity=float(position.quantity),
-                    average_cost=float(position.average_cost)
-                    if position.average_cost
-                    else None,
-                    updated_at=position.updated_at,
-                )
+        holdings, total_value, total_profit_loss = await self._calculate_holdings(
+            account, positions
+        )
+
+        total_profit_loss_percent = None
+        if account.net_deposits is not None:
+            total_profit_loss = total_value - Money(
+                account.net_deposits, account.currency
             )
-        return result
+            if account.net_deposits != 0:
+                total_profit_loss_percent = (
+                    float(total_profit_loss.amount) / float(account.net_deposits)
+                ) * 100
+
+        return AccountHoldingsRead(
+            account_id=account.id,
+            account_name=account.name,
+            holdings=holdings,
+            total_value=float(total_value.amount),
+            total_profit_loss=float(total_profit_loss.amount),
+            total_profit_loss_percent=total_profit_loss_percent,
+            net_deposits=account.net_deposits,
+            currency=str(account.currency),
+        )
 
     async def get_total_for_account(
         self, account_id: AccountId, currency: BaseCurrency
     ) -> AccountTotals:
+        """Calculate total cost and current value for an account in a currency."""
         positions = await self._position_repository.get_by_account(account_id)
 
         total_cost = Money(0, currency)
@@ -114,23 +163,63 @@ class PositionService:
 
         return AccountTotals(
             cost=total_cost,
+            value=total_price,
         )
 
-    def _compute_cost(self, position: PositionSchema, security: Security) -> Money:
-        cost = round(position.quantity * (position.average_cost or 0), 2)
+    async def _calculate_holdings(
+        self, account: AccountSchema, positions: list[PositionSchema]
+    ) -> tuple[list[HoldingRead], Money, Money]:
+        """Calculate aggregated holdings, total value, and total P/L for an account."""
+        holdings: list[HoldingRead] = []
+        total_value = Money(0, account.currency)
+        total_profit_loss = Money(0, account.currency)
 
-        return Money(cost, security.currency)
+        for position in positions:
+            security = await self._security_service.get_by_id(position.security_id)
+            if not security:
+                logger.error(
+                    "Security not found for position %s with security_id %s",
+                    position.id,
+                    position.security_id,
+                )
+                continue
+
+            latest_price = await self._market_prices.get_latest_price(security.id)
+            current_price_money = (
+                Money(latest_price.close, security.currency)
+                if latest_price
+                else Money(0, security.currency)
+            )
+
+            holding, value_money, pl_money = self._calculate_holding(
+                account, position, security, current_price_money, latest_price
+            )
+
+            total_value += value_money
+            total_profit_loss += pl_money
+            holdings.append(holding)
+
+        return holdings, total_value, total_profit_loss
 
     async def _compute_price(
         self, position: PositionSchema, security: Security
     ) -> Money:
+        """Compute the current market value for a position."""
         security_price = await self._market_prices.get_latest_close(security.id)
 
-        return round(
-            security_price or Money(0, security.currency) * position.quantity, 2
-        )
+        if security_price is None:
+            return Money(0, security.currency)
+
+        return round(security_price * position.quantity, 2)
+
+    def _compute_cost(self, position: PositionSchema, security: Security) -> Money:
+        """Compute the total cost for a position based on quantity and average cost."""
+        cost = round(position.quantity * (position.average_cost or 0), 2)
+
+        return Money(cost, security.currency)
 
     def _currency_convert(self, value: Money, to_currency: str) -> Money:
+        """Convert a Money amount to the specified target currency."""
         if value.currency_code == to_currency:
             return value
 
@@ -145,6 +234,71 @@ class PositionService:
 
         return Money(converted, to_currency)
 
+    def _calculate_holding(
+        self,
+        account: AccountSchema,
+        position: PositionSchema,
+        security: Security,
+        current_price_money: Money,
+        latest_price_schema: PriceSchema | None = None,
+    ) -> tuple[HoldingRead, Money, Money]:
+        """Calculate holding details, value, and profit/loss for a single position."""
+        quantity = position.quantity
+        avg_cost = position.average_cost or Decimal(0)
+        # Use position's currency if available, fallback to security currency
+        position_currency = position.currency or str(security.currency)
+
+        # Base values in native stock currency
+        unconverted_total_value = round(current_price_money * quantity, 2)
+        unconverted_cost = Money(round(quantity * avg_cost, 2), position_currency)
+        unconverted_pl = unconverted_total_value - unconverted_cost
+
+        # Converted values in account currency
+        value_money = self._currency_convert(
+            unconverted_total_value,
+            str(account.currency),
+        )
+
+        cost_money = self._currency_convert(
+            unconverted_cost,
+            str(account.currency),
+        )
+
+        pl_money = value_money - cost_money
+
+        # Extra converted prices for UI
+        converted_average_cost = self._currency_convert(
+            Money(avg_cost, position_currency),
+            str(account.currency),
+        )
+        converted_latest_price = self._currency_convert(
+            current_price_money,
+            str(account.currency),
+        )
+
+        holding = HoldingRead(
+            id=cast("PositionId", position.id),
+            security_id=security.id,
+            security_symbol=security.symbol,
+            security_name=security.name,
+            quantity=float(quantity),
+            average_cost=float(avg_cost),
+            total_value=float(value_money.amount),
+            profit_loss=float(pl_money.amount),
+            currency=str(account.currency),
+            security_currency=position_currency,
+            unconverted_total_value=float(unconverted_total_value.amount),
+            converted_average_cost=float(converted_average_cost.amount),
+            converted_latest_price=float(converted_latest_price.amount),
+            unconverted_profit_loss=float(unconverted_pl.amount),
+            latest_price=float(latest_price_schema.close)
+            if latest_price_schema
+            else 0.0,
+            price_date=latest_price_schema.date if latest_price_schema else None,
+            updated_at=position.updated_at,
+        )
+        return holding, value_money, pl_money
+
 
 async def position_service_factory(container: Container) -> PositionService:
     return PositionService(
@@ -152,7 +306,7 @@ async def position_service_factory(container: Container) -> PositionService:
         market_prices=await container.aget(MarketPricesApi),
         position_repository=await container.aget(PositionRepository),
         security_service=await container.aget(SecurityApi),
-        account_repository=await container.aget(AccountRepository),
+        account_service=await container.aget(AccountService),
         integration_user_api=await container.aget(IntegrationUserApi),
         integration_account_api=await container.aget(IntegrationAccountApi),
     )

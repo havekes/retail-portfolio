@@ -25,6 +25,7 @@ dependencies = [
     "eodhd>=1.0.32",
     "currencyconverter>=0.18.14",
     "requests>=2.32.5",
+    "openai",
     "rich>=14.3.1",
     "httptools>=0.7.1",
     "argon2-cffi>=25.1.0",
@@ -35,6 +36,8 @@ dependencies = [
     "pytest-xdist>=3.8.0",
     "greenlet>=3.3.1",
     "huey-dashboard>=0.0.1",
+    "holidays>=0.93",
+    "python-multipart>=0.0.24",
 ]
 
 [dependency-groups]

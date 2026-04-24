@@ -6,11 +6,11 @@ from fastapi import HTTPException
 from itsdangerous import URLSafeTimedSerializer
 
 from src.auth.api_types import UserId
-from src.auth.exceptions import EmailSendError
 from src.auth.repository import UserRepository, VerificationTokenRepository
 from src.auth.schema import UserSchema, VerificationTokenSchema
-from src.auth.service import EmailService, EmailVerificationService
+from src.auth.service import EmailVerificationService
 from src.config.settings import settings
+from src.core.email import EmailSendError, EmailService
 
 
 class MockUserRepository(UserRepository):

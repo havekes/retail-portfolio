@@ -3,8 +3,9 @@ import logging
 
 from svcs import Container
 
+from src.account.api.position import PositionApi
 from src.account.api_types import Account
-from src.account.repository import PositionRepository
+from src.account.repository import AccountRepository
 from src.auth.api_types import UserId
 from src.integration.brokers import BrokerApiGateway
 from src.integration.brokers.api_types import BrokerAccountId
@@ -64,7 +65,9 @@ async def _do_sync_positions(
         broker_account_id=broker_account_id,
     )
 
-    positions = []
+    position_api = await svcs_container.aget(PositionApi)
+
+    positions_api_types = []
     for broker_position in broker_positions:
         security = await security_api.get_or_create_from_broker(
             institution_id=integration_user.institution_id,
@@ -73,13 +76,23 @@ async def _do_sync_positions(
             broker_name=broker_position.name,
         )
 
-        positions.append(
+        positions_api_types.append(
             broker_position.to_position(account_id=account.id, security_id=security.id)
         )
 
-    # TODO breaks domain boundary. Task should be refactored
-    position_repository = await svcs_container.aget(PositionRepository)
-    await position_repository.sync_by_account(account.id, positions)
+    await position_api.create(positions_api_types)
+
+    # Sync account details (net_deposits)
+    broker_accounts = await broker.get_accounts(integration_user)
+    broker_account = next(
+        (a for a in broker_accounts if a.id == broker_account_id), None
+    )
+    if broker_account:
+        account_repository = await svcs_container.aget(AccountRepository)
+        await account_repository.update_net_deposits(
+            account.id,
+            float(broker_account.net_deposits) if broker_account.net_deposits else None,
+        )
 
 
 async def _sync_account_positions_task(

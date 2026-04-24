@@ -6,12 +6,13 @@
 	import ChevronDown from '@lucide/svelte/icons/chevron-down';
 	import { onMount } from 'svelte';
 	import { AccountsListState } from './accounts-list.svelte.js';
+	import type { Account } from '@/types/account';
 
-	const state = new AccountsListState();
+	let { accounts = [] }: { accounts?: Account[] } = $props();
+
+	const state = new AccountsListState(accounts);
 
 	onMount(() => {
-		state.fetchAccounts();
-
 		return () => state.destroy();
 	});
 
@@ -21,7 +22,7 @@
 </script>
 
 <div class="accounts-list w-full space-y-4">
-	<div class="flex items-center border-b px-4 py-2">
+	<div class="flex h-[49px] items-center border-b px-4 py-2">
 		<h2>Accounts</h2>
 		<div class="ms-4 flex items-center gap-2 text-xs">
 			<div class="h-2 w-2 rounded-full {state.wsConnected ? 'bg-green-500' : 'bg-red-500'}"></div>

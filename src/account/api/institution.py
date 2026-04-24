@@ -11,6 +11,7 @@ class InstitutionApi:
         self._institution_repository = institution_repository
 
     async def get_all_enabled_integrations(self) -> list[Institution]:
+        """Retrieve a list of all enabled integrations."""
         institutions = await self._institution_repository.get_all_enabled_integrations()
         return [
             Institution(

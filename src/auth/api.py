@@ -1,11 +1,12 @@
 from collections.abc import AsyncGenerator
 from datetime import UTC, datetime, timedelta
 from typing import Annotated
+from uuid import UUID
 
 import jwt
-from fastapi import Depends, HTTPException
+from fastapi import Depends, HTTPException, Request
 from fastapi.security import OAuth2PasswordBearer
-from pydantic import BaseModel
+from pydantic import BaseModel, ValidationError
 from svcs import Container
 from svcs.fastapi import DepContainer
 
@@ -23,14 +24,7 @@ from src.config.settings import settings
 
 _ALGORITHM = "HS256"
 _ACCESS_TOKEN_EXPIRE_MINUTES = 24 * 60
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
-
-
-class AuthService:
-    _user_repository: UserRepository
-
-    def __init__(self, user_repository: UserRepository):
-        self._user_repository = user_repository
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token", auto_error=False)
 
 
 class UserApi:
@@ -46,6 +40,7 @@ class UserApi:
         self._email_verification_service = email_verification_service
 
     async def get_current_user_from_token(self, token: str) -> User:
+        """Retrieve the current user from the provided JWT token."""
         try:
             token_data = self._decode_token(token)
         except jwt.ExpiredSignatureError as e:
@@ -54,15 +49,20 @@ class UserApi:
         user = await self._user_repository.get_by_email(token_data.sub)
 
         if not user:
-            raise HTTPException(403, "User not found for provided token")
+            raise HTTPException(403, "Token invalid")
 
         return User(id=user.id, email=user.email)
 
     def create_access_token(
-        self, user_email: str, expires_delta: timedelta | None = None
+        self,
+        user_email: str,
+        user_id: UUID,
+        expires_delta: timedelta | None = None,
     ):
+        """Create a JWT access token for the user."""
         access_token_data = AccessTokenData(
             sub=user_email,
+            user_id=str(user_id),
             exp=int(
                 (
                     datetime.now(UTC)
@@ -78,6 +78,7 @@ class UserApi:
         )
 
     async def signup(self, email: str, plain_text_password: str) -> SignupResponse:
+        """Register a new user and send a verification email."""
         existing_user = await self._user_repository.get_by_email(email)
 
         if existing_user is not None:
@@ -94,6 +95,7 @@ class UserApi:
         )
 
     async def login(self, email: str, plain_text_password: str) -> AuthResponse:
+        """Authenticate a user and return an access token."""
         user = await self._user_repository.get_by_email(email)
 
         if not user:
@@ -107,27 +109,30 @@ class UserApi:
         if not user.is_verified:
             raise AuthUserUnverifiedError
 
-        access_token = self.create_access_token(user.email)
+        access_token = self.create_access_token(user.email, user.id)
 
         return AuthResponse(
             access_token=access_token,
             user=User(**user.model_dump()),
         )
 
+    async def verify_email(self, token: str) -> None:
+        """Verify a user's email address using the provided token."""
+        await self._email_verification_service.verify_token(token)
+
+    async def resend_verification(self, email: str) -> None:
+        """Resend the email verification token to the specified email address."""
+        await self._email_verification_service.resend_verification(email)
+
     def _decode_token(self, token: str) -> AccessTokenData:
+        """Decode and validate a JWT token."""
         try:
             return AccessTokenData.model_validate(
                 jwt.decode(token, settings.secret_key, algorithms=[_ALGORITHM]),
             )
-        except jwt.DecodeError as e:
+        except (jwt.DecodeError, ValidationError) as e:
             message = "User unauthenticated or malformed token"
             raise HTTPException(401, message) from e
-
-    async def verify_email(self, token: str) -> None:
-        await self._email_verification_service.verify_token(token)
-
-    async def resend_verification(self, email: str) -> None:
-        await self._email_verification_service.resend_verification(email)
 
 
 async def user_api_factory(
@@ -148,6 +153,7 @@ class AuthorizationApi:
     def check_entity_owned_by_user(
         self, user: User | UserSchema, entity: BaseModel | None, field: str = "user_id"
     ):
+        """Verify that the given entity is owned by the user."""
         if entity is None or user.id != getattr(entity, field):
             # Hide entity existance for security reasons
             raise HTTPException(404, "Entity does not exist")
@@ -155,6 +161,7 @@ class AuthorizationApi:
     async def check_entity_owned_by_user_from_token(
         self, token: str, entity: BaseModel | None, field: str = "user_id"
     ):
+        """Verify that the given entity is owned by the user identified by the token."""
         user = await self._user_service.get_current_user_from_token(token)
         self.check_entity_owned_by_user(user, entity, field)
 
@@ -167,8 +174,18 @@ async def authorization_api_factory(
     )
 
 
+async def get_token(
+    request: Request,
+    token_from_header: Annotated[str | None, Depends(oauth2_scheme)] = None,
+) -> str:
+    token = request.cookies.get("auth_token") or token_from_header
+    if not token:
+        raise HTTPException(401, "Not authenticated")
+    return token
+
+
 async def current_user(
-    token: Annotated[str, Depends(oauth2_scheme)],
+    token: Annotated[str, Depends(get_token)],
     services: DepContainer,
 ) -> AsyncGenerator[User]:
     user_service = await services.aget(UserApi)
