@@ -124,4 +124,44 @@ export abstract class ApiClient {
 
 		await this.handleResponse(response);
 	}
+
+	protected async postFormData<T>(
+		endpoint: string,
+		formData: FormData,
+		headers?: Record<string, string>,
+		tokenOverride?: string | null
+	): Promise<T> {
+		const response = await this.fetch(`${this.baseUrl}${endpoint}`, {
+			method: 'POST',
+			credentials: 'include',
+			headers: {
+				...(tokenOverride ? { Authorization: `Bearer ${tokenOverride}` } : {}),
+				...headers
+			},
+			body: formData
+		});
+
+		await this.handleResponse(response);
+
+		return response.json();
+	}
+
+	protected async getBlob(
+		endpoint: string,
+		headers?: Record<string, string>,
+		tokenOverride?: string | null
+	): Promise<Blob> {
+		const response = await this.fetch(`${this.baseUrl}${endpoint}`, {
+			method: 'GET',
+			credentials: 'include',
+			headers: {
+				...(tokenOverride ? { Authorization: `Bearer ${tokenOverride}` } : {}),
+				...headers
+			}
+		});
+
+		await this.handleResponse(response);
+
+		return response.blob();
+	}
 }

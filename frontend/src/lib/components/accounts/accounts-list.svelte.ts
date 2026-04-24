@@ -1,5 +1,6 @@
 import { browser } from '$app/environment';
 import { accountClient } from '$lib/api/accountClient';
+import { authService } from '$lib/api/authService';
 import {
 	type Account,
 	type AccountGroupKeys,
@@ -58,11 +59,8 @@ export class AccountsListState {
 		}
 
 		console.log('Connecting to WebSocket:', wsUrl);
-		const ticket = await fetch('/api/auth/ws-ticket')
-			.then((res) => {
-				if (!res.ok) return null;
-				return res.json();
-			})
+		const ticket = await authService
+			.getWsTicket()
 			.then((data) => data?.ticket ?? null)
 			.catch(() => null);
 

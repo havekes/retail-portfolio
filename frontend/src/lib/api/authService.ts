@@ -45,6 +45,10 @@ export class AuthService extends ApiClient {
 	async logout(): Promise<void> {
 		await this.post('/auth/logout', {});
 	}
+
+	async getWsTicket(): Promise<{ ticket: string }> {
+		return this.post<{ ticket: string }, Record<string, never>>('/auth/ws-ticket', {});
+	}
 }
 
 export const authService = new AuthService();

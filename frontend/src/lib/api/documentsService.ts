@@ -28,34 +28,16 @@ export class DocumentsService extends ApiClient {
 		const formData = new FormData();
 		formData.append('file', file);
 
-		const response = await fetch(`${this.baseUrl}/market/securities/${securityId}/documents`, {
-			method: 'POST',
-			credentials: 'include',
-			body: formData
-		});
-
-		if (!response.ok) {
-			const errorData = await response.json().catch(() => ({ detail: response.statusText }));
-			throw new Error(errorData.detail || 'Failed to upload document');
-		}
-
-		return response.json();
+		return await this.postFormData<DocumentUploadResponse>(
+			`/market/securities/${securityId}/documents`,
+			formData
+		);
 	}
 
 	async downloadDocument(securityId: string, documentId: number): Promise<Blob> {
-		const response = await fetch(
-			`${this.baseUrl}/market/securities/${securityId}/documents/${documentId}/download`,
-			{
-				method: 'GET',
-				credentials: 'include'
-			}
+		return await this.getBlob(
+			`/market/securities/${securityId}/documents/${documentId}/download`
 		);
-
-		if (!response.ok) {
-			throw new Error('Failed to download document');
-		}
-
-		return response.blob();
 	}
 
 	async deleteDocument(securityId: string, documentId: number): Promise<void> {
