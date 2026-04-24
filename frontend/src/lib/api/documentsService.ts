@@ -35,9 +35,7 @@ export class DocumentsService extends ApiClient {
 	}
 
 	async downloadDocument(securityId: string, documentId: number): Promise<Blob> {
-		return await this.getBlob(
-			`/market/securities/${securityId}/documents/${documentId}/download`
-		);
+		return await this.getBlob(`/market/securities/${securityId}/documents/${documentId}/download`);
 	}
 
 	async deleteDocument(securityId: string, documentId: number): Promise<void> {
