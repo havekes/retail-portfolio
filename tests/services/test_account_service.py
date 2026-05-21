@@ -54,6 +54,10 @@ class MockAccountRepository(AccountRepository):
     ) -> None:
         pass
 
+    @override
+    async def update_last_sync_at(self, account_id: AccountId) -> None:
+        pass
+
 
 @pytest.mark.anyio
 async def test_get_account_success():

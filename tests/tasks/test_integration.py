@@ -11,7 +11,7 @@ from stockholm import Currency
 from src.account.api.position import PositionApi
 from src.account.api_types import Account
 from src.account.enum import AccountTypeEnum, InstitutionEnum
-from src.account.repository import PositionRepository
+from src.account.repository import AccountRepository, PositionRepository
 from src.integration.brokers import BrokerApiGateway
 from src.integration.brokers.api_types import BrokerPosition
 from src.integration.exception import (
@@ -56,6 +56,7 @@ async def test_sync_account_positions_task_success(mock_account, mock_integratio
     mock_security_api = AsyncMock(spec=SecurityApi)
     mock_integration_user_repo = AsyncMock(spec=IntegrationUserRepository)
     mock_position_api = AsyncMock(spec=PositionApi)
+    mock_account_repo = AsyncMock(spec=AccountRepository)
     mock_broker = AsyncMock()
 
     mock_integration_user_repo.get.return_value = mock_integration_user
@@ -91,6 +92,8 @@ async def test_sync_account_positions_task_success(mock_account, mock_integratio
             return mock_integration_user_repo
         if clazz == PositionApi:
             return mock_position_api
+        if clazz == AccountRepository:
+            return mock_account_repo
         if clazz == broker_class:
             return mock_broker
         return None

@@ -53,6 +53,10 @@ class AccountRepository(ABC):
     ) -> None:
         pass
 
+    @abstractmethod
+    async def update_last_sync_at(self, account_id: AccountId) -> None:
+        pass
+
 
 class PositionRepository(ABC):
     @abstractmethod
