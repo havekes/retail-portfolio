@@ -35,7 +35,7 @@ def calculate_sma(prices: list[PriceSchema], period: int) -> list[MovingAverageP
     if len(prices) < period:
         return []
 
-    result = []
+    result: list[MovingAveragePoint] = []
     for i in range(period - 1, len(prices)):
         window = prices[i - period + 1 : i + 1]
         total = sum(Decimal(str(p.close)) for p in window)
@@ -68,9 +68,9 @@ def calculate_weekly_closes(prices: list[PriceSchema]) -> list[PriceSchema]:
     if not prices:
         return []
 
-    weekly_prices = []
+    weekly_prices: list[PriceSchema] = []
     current_week = None
-    current_close = None
+    current_close: PriceSchema | None = None
 
     for price in prices:
         week = price.date.isocalendar()[1]
@@ -80,6 +80,7 @@ def calculate_weekly_closes(prices: list[PriceSchema]) -> list[PriceSchema]:
             current_week = (year, week)
             current_close = price
         elif (year, week) != current_week:
+            assert current_close is not None
             weekly_prices.append(current_close)
             current_week = (year, week)
             current_close = price
@@ -140,7 +141,7 @@ def calculate_macd(
 
     signal_line = calculate_ema(macd_line, signal_period)
 
-    result = []
+    result: list[MACDPoint] = []
     start_idx = len(prices) - len(signal_line)
     for i, sig in enumerate(signal_line):
         macd_val = macd_line[i]
@@ -217,7 +218,7 @@ def calculate_rsi(prices: list[PriceSchema], period: int = 14) -> list[RSIPoint]
     avg_gain = sum(gains[:period]) / period
     avg_loss = sum(losses[:period]) / period
 
-    result = []
+    result: list[RSIPoint] = []
 
     for i in range(period, len(gains)):
         if i > period:

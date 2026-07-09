@@ -53,7 +53,7 @@ class EodhdPriceRepository(PriceRepository):
     async def get_latest_price(self, security: SecuritySchema) -> PriceSchema | None:
         latest_price = await self._db_repository.get_latest_price(security)
 
-        nyse_holidays = holidays.NYSE()  # ty: ignore[unresolved-attribute]
+        nyse_holidays = holidays.NYSE()
         latest_close_date = datetime.now(UTC).date() - timedelta(days=1)
 
         while (
