@@ -9,8 +9,8 @@ from rich.traceback import install
 
 
 def init_logging() -> None:
-    # Attempt to get terminal width, defaulting to 100 if detection fails
-    width = shutil.get_terminal_size(fallback=(100, 24)).columns
+    # Attempt to get terminal width, defaulting to 120 if detection fails
+    width = shutil.get_terminal_size(fallback=(120, 24)).columns
     # If running in Docker/CI, COLUMNS might be set
     if "COLUMNS" in os.environ:
         with contextlib.suppress(ValueError):

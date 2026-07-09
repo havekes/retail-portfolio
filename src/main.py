@@ -1,3 +1,4 @@
+import asyncio
 import logging
 from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
@@ -5,6 +6,8 @@ from typing import Any, cast
 
 import redis
 import svcs
+from alembic import command
+from alembic.config import Config
 from fastapi import FastAPI, Request, status
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
@@ -28,8 +31,18 @@ from src.ws.router import ws_router
 from .worker import huey
 
 
+def run_migrations():
+    """Run Alembic migrations synchronously."""
+    logger.info("Running DB migrations")
+    alembic_cfg = Config("alembic.ini")
+    command.upgrade(alembic_cfg, "head")
+
+
 @asynccontextmanager
 async def lifespan_context(app: FastAPI):
+    # Run migrations
+    await asyncio.to_thread(run_migrations)
+
     # Initialize services
     registry = svcs.Registry()
     app.state.svcs_registry = registry
