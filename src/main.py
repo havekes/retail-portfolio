@@ -40,8 +40,9 @@ def run_migrations():
 
 @asynccontextmanager
 async def lifespan_context(app: FastAPI):
-    # Run migrations
-    await asyncio.to_thread(run_migrations)
+    # Run migrations (skip in test env — tables created via metadata.create_all)
+    if settings.environment != "test":
+        await asyncio.to_thread(run_migrations)
 
     # Initialize services
     registry = svcs.Registry()
