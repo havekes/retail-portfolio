@@ -1,6 +1,7 @@
 from typing import Annotated
 from uuid import UUID
 
+import redis
 from fastapi import APIRouter, Depends, HTTPException, Response
 from svcs.fastapi import DepContainer
 
@@ -25,6 +26,7 @@ from src.account.service.portfolio import PortfolioService
 from src.account.service.position import PositionService
 from src.auth.api import AuthorizationApi, current_user
 from src.auth.api_types import User
+from src.integration.sync_status import get_active_syncs
 
 account_router = APIRouter(prefix="/api/accounts")
 portfolio_router = APIRouter(prefix="/api/portfolios")
@@ -114,6 +116,18 @@ async def accounts(
     """
     account_repository = await services.aget(AccountRepository)
     return await account_repository.get_by_user(user.id)
+
+
+@account_router.get("/sync-status")
+async def account_sync_status(
+    user: Annotated[User, Depends(current_user)],
+) -> dict[str, list[str]]:
+    """Return the IDs of accounts that currently have an active sync job."""
+    try:
+        active_ids = await get_active_syncs(user.id)
+        return {"account_ids": [str(aid) for aid in active_ids]}
+    except redis.RedisError:
+        return {"account_ids": []}
 
 
 @account_router.patch("/{account_id}/rename")

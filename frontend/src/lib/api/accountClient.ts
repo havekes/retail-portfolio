@@ -25,6 +25,10 @@ export class AccountClient extends ApiClient {
 	async syncPositions(id: string): Promise<void> {
 		await this.post<{ accepted: boolean }, undefined>(`/accounts/${id}/sync`, undefined);
 	}
+
+	async getSyncStatus(): Promise<{ account_ids: string[] }> {
+		return this.get<{ account_ids: string[] }>('/accounts/sync-status');
+	}
 }
 
 export const getAccountClient = (customFetch?: typeof fetch) => new AccountClient(customFetch);

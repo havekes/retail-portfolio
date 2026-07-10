@@ -121,6 +121,8 @@ async def test_sync_account_positions_task_success(mock_account, mock_integratio
         patch("src.integration.task.huey.svcs_registry", MagicMock()),
         patch("src.integration.task.Container", return_value=mock_container),
         patch("src.integration.task.ws_manager", AsyncMock()) as mock_ws,
+        patch("src.integration.task.mark_sync_started", AsyncMock()),
+        patch("src.integration.task.mark_sync_finished", AsyncMock()),
     ):
         await _sync_account_positions_task(
             user_id, mock_account, broker_account_id, broker_class
@@ -162,6 +164,8 @@ async def test_sync_account_positions_task_raises_if_no_integration_user_id(mock
     with (
         patch("src.integration.task.huey.svcs_registry", MagicMock()),
         patch("src.integration.task.Container", return_value=mock_container),
+        patch("src.integration.task.mark_sync_started", AsyncMock()),
+        patch("src.integration.task.mark_sync_finished", AsyncMock()),
     ):
         with pytest.raises(AccountPositionsSyncError, match="Account does not have an integration user"):
             await _sync_account_positions_task(
@@ -184,6 +188,8 @@ async def test_sync_account_positions_task_raises_if_integration_user_not_found(
     with (
         patch("src.integration.task.huey.svcs_registry", MagicMock()),
         patch("src.integration.task.Container", return_value=mock_container),
+        patch("src.integration.task.mark_sync_started", AsyncMock()),
+        patch("src.integration.task.mark_sync_finished", AsyncMock()),
     ):
         with pytest.raises(IntegrationUserNotFoundError):
             await _sync_account_positions_task(
@@ -205,3 +211,118 @@ def test_sync_account_positions_task_calls_async_logic():
         args[0].close()
 
     huey.immediate = False
+
+
+@pytest.mark.asyncio
+async def test_sync_task_marks_sync_status_on_success(mock_account, mock_integration_user):
+    user_id = mock_account.user_id
+    broker_account_id = "broker-account-id"
+    broker_class = cast(type[BrokerApiGateway], MagicMock())
+
+    mock_security_api = AsyncMock(spec=SecurityApi)
+    mock_integration_user_repo = AsyncMock(spec=IntegrationUserRepository)
+    mock_position_api = AsyncMock(spec=PositionApi)
+    mock_broker = AsyncMock()
+
+    mock_integration_user_repo.get.return_value = mock_integration_user
+
+    mock_security = Security(
+        id=uuid4(),
+        symbol="AAPL",
+        exchange="NASDAQ",
+        name="Apple Inc.",
+        currency=Currency.USD,
+        isin=None,
+        is_active=True,
+        updated_at=datetime.now(UTC)
+    )
+    mock_security_api.get_or_create_from_broker.return_value = mock_security
+
+    mock_broker_position = BrokerPosition(
+        broker_account_id=broker_account_id,
+        name="Apple Inc.",
+        symbol="AAPL",
+        exchange="NASDAQ",
+        quantity=Decimal("10"),
+        average_cost=Decimal("150"),
+        currency="USD",
+    )
+    mock_broker.get_positions_by_account.return_value = [mock_broker_position]
+
+    mock_container = AsyncMock()
+    async def mock_aget(clazz):
+        if clazz == SecurityApi:
+            return mock_security_api
+        if clazz == IntegrationUserRepository:
+            return mock_integration_user_repo
+        if clazz == PositionApi:
+            return mock_position_api
+        if clazz == broker_class:
+            return mock_broker
+        return None
+    mock_container.aget.side_effect = mock_aget
+    mock_container.__aenter__.return_value = mock_container
+
+    mock_mark_started = AsyncMock()
+    mock_mark_finished = AsyncMock()
+
+    with (
+        patch("src.integration.task.huey.svcs_registry", MagicMock()),
+        patch("src.integration.task.Container", return_value=mock_container),
+        patch("src.integration.task.ws_manager", AsyncMock()),
+        patch("src.integration.task.mark_sync_started", mock_mark_started),
+        patch("src.integration.task.mark_sync_finished", mock_mark_finished),
+    ):
+        await _sync_account_positions_task(
+            user_id, mock_account, broker_account_id, broker_class
+        )
+
+        mock_mark_started.assert_awaited_once_with(user_id, mock_account.id)
+        mock_mark_finished.assert_awaited_once_with(user_id, mock_account.id)
+
+
+@pytest.mark.asyncio
+async def test_sync_task_marks_sync_finished_on_failure(mock_account, mock_integration_user):
+    user_id = mock_account.user_id
+    broker_account_id = "broker-account-id"
+    broker_class = cast(type[BrokerApiGateway], MagicMock())
+
+    mock_security_api = AsyncMock(spec=SecurityApi)
+    mock_integration_user_repo = AsyncMock(spec=IntegrationUserRepository)
+    mock_position_api = AsyncMock(spec=PositionApi)
+    mock_broker = AsyncMock()
+
+    mock_integration_user_repo.get.return_value = mock_integration_user
+    mock_broker.get_positions_by_account.side_effect = Exception("Broker error")
+
+    mock_container = AsyncMock()
+    async def mock_aget(clazz):
+        if clazz == SecurityApi:
+            return mock_security_api
+        if clazz == IntegrationUserRepository:
+            return mock_integration_user_repo
+        if clazz == PositionApi:
+            return mock_position_api
+        if clazz == broker_class:
+            return mock_broker
+        return None
+    mock_container.aget.side_effect = mock_aget
+    mock_container.__aenter__.return_value = mock_container
+
+    mock_mark_started = AsyncMock()
+    mock_mark_finished = AsyncMock()
+
+    with (
+        patch("src.integration.task.huey.svcs_registry", MagicMock()),
+        patch("src.integration.task.Container", return_value=mock_container),
+        patch("src.integration.task.ws_manager", AsyncMock()),
+        patch("src.integration.task.mark_sync_started", mock_mark_started),
+        patch("src.integration.task.mark_sync_finished", mock_mark_finished),
+    ):
+        with pytest.raises(Exception, match="Broker error"):
+            await _sync_account_positions_task(
+                user_id, mock_account, broker_account_id, broker_class
+            )
+
+        mock_mark_started.assert_awaited_once_with(user_id, mock_account.id)
+        mock_mark_finished.assert_awaited_once_with(user_id, mock_account.id)

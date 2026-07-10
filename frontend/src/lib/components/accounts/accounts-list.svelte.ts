@@ -36,6 +36,7 @@ export class AccountsListState {
 	wsConnected = $state(false);
 
 	private ws: WebSocket | null = null;
+	private syncStatusHydrated = false;
 
 	constructor(initialAccounts: Account[] = []) {
 		this.accounts = initialAccounts;
@@ -74,6 +75,7 @@ export class AccountsListState {
 		this.ws.onopen = () => {
 			this.wsConnected = true;
 			console.log('WebSocket connected');
+			this.hydrateSyncStatus();
 		};
 
 		this.ws.onmessage = async (event) => {
@@ -101,6 +103,7 @@ export class AccountsListState {
 
 		this.ws.onclose = () => {
 			this.wsConnected = false;
+			this.syncStatusHydrated = false;
 			console.log('WebSocket disconnected');
 			// Reconnect logic
 			setTimeout(() => this.initWebSocket(), 5000);
@@ -111,6 +114,21 @@ export class AccountsListState {
 		if (this.ws) {
 			this.ws.close();
 			this.ws = null;
+		}
+	}
+
+	private async hydrateSyncStatus() {
+		if (this.syncStatusHydrated) {
+			return;
+		}
+		this.syncStatusHydrated = true;
+		try {
+			const { account_ids } = await accountClient.getSyncStatus();
+			for (const id of account_ids) {
+				this.syncingAccountIds.add(id);
+			}
+		} catch (error) {
+			console.error('Failed to hydrate sync status', error);
 		}
 	}
 
@@ -191,10 +209,34 @@ export class AccountsListState {
 		this.syncErrors[id] = null;
 		try {
 			await accountClient.syncPositions(id);
+			// Verify the job completed; WS message may be lost if Redis pub/sub fails
+			await this.waitForSyncFinish(id);
 		} catch (error) {
 			this.syncingAccountIds.delete(id);
 			this.syncErrors[id] = 'Request failed. Please check your connection.';
 			console.error('Failed to sync positions', error);
 		}
+	}
+
+	private async waitForSyncFinish(id: string, timeoutMs = 60000, intervalMs = 1500) {
+		const deadline = Date.now() + timeoutMs;
+		while (Date.now() < deadline) {
+			await new Promise((r) => setTimeout(r, intervalMs));
+			try {
+				const { account_ids } = await accountClient.getSyncStatus();
+				if (!account_ids.includes(id)) {
+					// Sync finished on backend but no WS message arrived yet.
+					// Don't clear state here — let the WS message (SYNC_FINISHED or
+					// SYNC_FAILED) be the source of truth for success/failure.
+					// If the WS never delivers a message, the timeout below will fire.
+					return;
+				}
+			} catch {
+				// If status endpoint is unavailable, keep waiting
+			}
+		}
+		// Timeout — WS never delivered a finish/failure message. Show an error
+		// but keep the spinner so the user knows the outcome is uncertain.
+		this.syncErrors[id] = 'Sync took too long. Check account status.';
 	}
 }

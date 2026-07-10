@@ -36,6 +36,7 @@ class Settings(BaseSettings):
 
     # Redis
     redis_url: str = "redis://localhost:6379/0"
+    sync_ttl_seconds: int = 300
 
     # Email
     smtp_host: str = "smtp.example.com"

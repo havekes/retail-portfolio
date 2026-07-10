@@ -14,6 +14,7 @@ from src.integration.exception import (
     IntegrationUserNotFoundError,
 )
 from src.integration.repository import IntegrationUserRepository
+from src.integration.sync_status import mark_sync_finished, mark_sync_started
 from src.market.api import SecurityApi
 from src.worker import huey
 from src.ws.api_types import AccountSyncMessage, WsEventType
@@ -110,6 +111,7 @@ async def _sync_account_positions_task(
         raise RuntimeError(msg)
 
     async with Container(huey.svcs_registry) as svcs_container:
+        await mark_sync_started(user_id, account.id)
         try:
             # Send sync_started websocket message
             await ws_manager.send_personal_message(
@@ -140,3 +142,5 @@ async def _sync_account_positions_task(
                 user_id,
             )
             raise
+        finally:
+            await mark_sync_finished(user_id, account.id)
