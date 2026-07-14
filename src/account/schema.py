@@ -34,6 +34,7 @@ class AccountSchema(BaseModel):
     is_active: bool = True
     created_at: datetime | None = None
     deleted_at: datetime | None = None
+    last_sync_at: datetime | None = None
 
     @field_serializer("currency")
     def serialize_currency(self, currency: Currency) -> str:

@@ -1,3 +1,4 @@
+from datetime import datetime
 from decimal import Decimal
 from uuid import UUID
 
@@ -26,6 +27,7 @@ class Account(BaseModel):
     currency: Currency
     broker_display_name: str | None = None
     is_active: bool = True
+    last_sync_at: datetime | None = None
 
 
 class Position(BaseModel):

@@ -1,7 +1,7 @@
 from decimal import Decimal
 from typing import override
 
-from sqlalchemy import delete, select
+from sqlalchemy import delete, func, select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 from svcs import Container
@@ -135,6 +135,16 @@ class SqlAlchemyAccountRepository(AccountRepository):
                 Decimal(str(net_deposits)) if net_deposits is not None else None
             )
             await self._session.commit()
+
+    @override
+    async def update_last_sync_at(self, account_id: AccountId) -> None:
+        stmt = (
+            update(AccountModel)
+            .where(AccountModel.id == account_id)
+            .values(last_sync_at=func.now())
+        )
+        await self._session.execute(stmt)
+        await self._session.commit()
 
 
 async def sqlalchemy_account_repository_factory(

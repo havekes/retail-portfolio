@@ -56,6 +56,7 @@ class AccountModel(BaseModel):
         DateTime, default=func.now(), onupdate=func.now()
     )
     deleted_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
+    last_sync_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
 
     __table_args__ = (UniqueConstraint("user_id", "institution_id", "external_id"),)
 
