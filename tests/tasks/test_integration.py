@@ -1,9 +1,9 @@
 import asyncio
-from unittest.mock import AsyncMock, patch, MagicMock
-from uuid import uuid4
-from datetime import datetime, UTC
+from datetime import UTC, datetime
 from decimal import Decimal
 from typing import cast
+from unittest.mock import AsyncMock, MagicMock, patch
+from uuid import uuid4
 
 import pytest
 from stockholm import Currency
@@ -11,19 +11,23 @@ from stockholm import Currency
 from src.account.api.position import PositionApi
 from src.account.api_types import Account
 from src.account.enum import AccountTypeEnum, InstitutionEnum
-from src.account.repository import AccountRepository, PositionRepository
+from src.account.repository import AccountRepository
 from src.integration.brokers import BrokerApiGateway
-from src.integration.brokers.api_types import BrokerPosition
+from src.integration.brokers.api_types import BrokerAccount, BrokerPosition
 from src.integration.exception import (
     AccountPositionsSyncError,
     IntegrationUserNotFoundError,
 )
 from src.integration.repository import IntegrationUserRepository
 from src.integration.schema import IntegrationUserSchema
-from src.integration.task import _sync_account_positions_task, sync_account_positions_task
+from src.integration.task import (
+    _sync_account_positions_task,
+    sync_account_positions_task,
+)
 from src.market.api import SecurityApi
 from src.market.api_types import Security
 from src.worker import huey
+
 
 @pytest.fixture
 def mock_account():
@@ -51,7 +55,7 @@ def mock_integration_user(mock_account):
 async def test_sync_account_positions_task_success(mock_account, mock_integration_user):
     user_id = mock_account.user_id
     broker_account_id = "broker-account-id"
-    broker_class = cast(type[BrokerApiGateway], MagicMock())
+    broker_class = cast("type[BrokerApiGateway]", MagicMock())
 
     mock_security_api = AsyncMock(spec=SecurityApi)
     mock_integration_user_repo = AsyncMock(spec=IntegrationUserRepository)
@@ -60,7 +64,7 @@ async def test_sync_account_positions_task_success(mock_account, mock_integratio
     mock_broker = AsyncMock()
 
     mock_integration_user_repo.get.return_value = mock_integration_user
-    
+
     mock_security = Security(
         id=uuid4(),
         symbol="AAPL",
@@ -78,11 +82,24 @@ async def test_sync_account_positions_task_success(mock_account, mock_integratio
         name="Apple Inc.",
         symbol="AAPL",
         exchange="NASDAQ",
-        quantity=Decimal("10"),
-        average_cost=Decimal("150"),
+        quantity=Decimal(10),
+        average_cost=Decimal(150),
         currency="USD",
     )
     mock_broker.get_positions_by_account.return_value = [mock_broker_position]
+
+    mock_broker_account = BrokerAccount(
+        id=broker_account_id,
+        type=AccountTypeEnum.TFSA,
+        institution=InstitutionEnum.WEALTHSIMPLE,
+        currency=Currency.CAD,
+        display_name="Test Account",
+        broker_display_name="Test",
+        value=Decimal(10000),
+        net_deposits=Decimal(5000),
+        created_at=datetime.now(UTC),
+    )
+    mock_broker.get_accounts.return_value = [mock_broker_account]
 
     mock_container = AsyncMock()
     async def mock_aget(clazz):
@@ -117,7 +134,11 @@ async def test_sync_account_positions_task_success(mock_account, mock_integratio
             broker_account_id=broker_account_id,
         )
         mock_security_api.get_or_create_from_broker.assert_awaited_once()
-        
+        mock_account_repo.update_net_deposits.assert_awaited_once_with(
+            mock_account.id, 5000.0
+        )
+        mock_account_repo.update_last_sync_at.assert_awaited_once_with(mock_account.id)
+
         # Verify websocket messages
         assert mock_ws.send_personal_message.await_count == 2
         calls = mock_ws.send_personal_message.await_args_list
@@ -129,7 +150,7 @@ async def test_sync_account_positions_task_raises_if_no_container():
     with patch("src.integration.task.huey.svcs_registry", None):
         with pytest.raises(RuntimeError, match="Worker registry not initialized"):
             await _sync_account_positions_task(
-                uuid4(), cast(Account, MagicMock()), "broker-id", cast(type[BrokerApiGateway], MagicMock())
+                uuid4(), cast("Account", MagicMock()), "broker-id", cast("type[BrokerApiGateway]", MagicMock())
             )
 
 @pytest.mark.asyncio
@@ -137,21 +158,21 @@ async def test_sync_account_positions_task_raises_if_no_integration_user_id(mock
     mock_account.integration_user_id = None
     mock_container = AsyncMock()
     mock_container.__aenter__.return_value = mock_container
-    
+
     with (
         patch("src.integration.task.huey.svcs_registry", MagicMock()),
         patch("src.integration.task.Container", return_value=mock_container),
     ):
         with pytest.raises(AccountPositionsSyncError, match="Account does not have an integration user"):
             await _sync_account_positions_task(
-                mock_account.user_id, mock_account, "broker-id", cast(type[BrokerApiGateway], MagicMock())
+                mock_account.user_id, mock_account, "broker-id", cast("type[BrokerApiGateway]", MagicMock())
             )
 
 @pytest.mark.asyncio
 async def test_sync_account_positions_task_raises_if_integration_user_not_found(mock_account):
     mock_integration_user_repo = AsyncMock(spec=IntegrationUserRepository)
     mock_integration_user_repo.get.return_value = None
-    
+
     mock_container = AsyncMock()
     async def mock_aget(clazz):
         if clazz == IntegrationUserRepository:
@@ -166,7 +187,7 @@ async def test_sync_account_positions_task_raises_if_integration_user_not_found(
     ):
         with pytest.raises(IntegrationUserNotFoundError):
             await _sync_account_positions_task(
-                mock_account.user_id, mock_account, "broker-id", cast(type[BrokerApiGateway], MagicMock())
+                mock_account.user_id, mock_account, "broker-id", cast("type[BrokerApiGateway]", MagicMock())
             )
 
 def test_sync_account_positions_task_calls_async_logic():
@@ -174,7 +195,7 @@ def test_sync_account_positions_task_calls_async_logic():
     user_id = uuid4()
     account = MagicMock(spec=Account)
     broker_account_id = "broker-id"
-    broker_class = cast(type[BrokerApiGateway], MagicMock())
+    broker_class = cast("type[BrokerApiGateway]", MagicMock())
 
     with patch("src.integration.task.asyncio.run") as mock_run:
         sync_account_positions_task(user_id, account, broker_account_id, broker_class)

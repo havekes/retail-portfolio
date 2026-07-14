@@ -93,8 +93,7 @@ async def _do_sync_positions(
             account.id,
             float(broker_account.net_deposits) if broker_account.net_deposits else None,
         )
-
-    await account_repository.update_last_sync_at(account.id)
+        await account_repository.update_last_sync_at(account.id)
 
 
 async def _sync_account_positions_task(
