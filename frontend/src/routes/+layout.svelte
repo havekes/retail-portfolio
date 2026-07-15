@@ -2,12 +2,20 @@
 	import '../app.css';
 	import { ModeWatcher } from 'mode-watcher';
 	import { setBrokerService } from '$lib/components/brokers/brokerService.svelte';
+	import { setWatchlistService } from '$lib/components/watchlist/watchlistService.svelte';
 	import { setContext } from 'svelte';
 	import GlobalSearch from '$lib/components/global-search.svelte';
 
-	let { children } = $props();
+	let { children, data } = $props();
 
 	setBrokerService();
+	const watchlistService = setWatchlistService();
+
+	$effect(() => {
+		if (data.user) {
+			watchlistService.loadWatchlists();
+		}
+	});
 
 	setContext('toggleGlobalSearch', () => (globalSearchOpen = !globalSearchOpen));
 

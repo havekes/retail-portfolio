@@ -82,6 +82,23 @@ class WatchlistRepository(ABC):
     async def get_by_user(self, user_id: UserId) -> list[WatchlistRead]:
         pass
 
+    @abstractmethod
+    async def create_default(self, user_id: UserId) -> WatchlistRead:
+        pass
+
+    @abstractmethod
+    async def add_security(
+        self, user_id: UserId, security_id: SecurityId
+    ) -> WatchlistRead:
+        pass
+
+    @abstractmethod
+    async def remove_security(
+        self, user_id: UserId, security_id: SecurityId
+    ) -> WatchlistRead:
+        pass
+
+
 
 class PriceAlertRepository(ABC):
     @abstractmethod
