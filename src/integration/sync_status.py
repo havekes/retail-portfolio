@@ -1,3 +1,4 @@
+import asyncio
 import contextlib
 import uuid
 from collections.abc import AsyncIterator
@@ -10,23 +11,36 @@ from src.config.settings import settings
 
 
 class RedisManager:
-    _client: aioredis.Redis | None
+    _redis_url: str
+    _clients: dict[asyncio.AbstractEventLoop, aioredis.Redis]
 
     def __init__(self, redis_url: str) -> None:
-        self._client = aioredis.from_url(redis_url, decode_responses=True)
+        self._redis_url = redis_url
+        self._clients = {}
 
     async def close(self) -> None:
-        if self._client is not None:
-            await self._client.aclose()
-            self._client = None
+        for client in list(self._clients.values()):
+            await client.aclose()
+        self._clients.clear()
 
     @contextlib.asynccontextmanager
     async def client(self) -> AsyncIterator[aioredis.Redis]:
-        if self._client is None:
-            error = "RedisManager is not initialized"
-            raise SystemError(error)
+        loop = asyncio.get_running_loop()
 
-        yield self._client
+        # Clean up closed loops to prevent memory/connection leaks
+        for l in list(self._clients.keys()):
+            if l.is_closed():
+                client_to_close = self._clients.pop(l, None)
+                if client_to_close is not None:
+                    try:
+                        await client_to_close.aclose()
+                    except Exception:
+                        pass
+
+        if loop not in self._clients:
+            self._clients[loop] = aioredis.from_url(self._redis_url, decode_responses=True)
+
+        yield self._clients[loop]
 
 
 redis_manager = RedisManager(settings.redis_url)
