@@ -17,22 +17,44 @@ logger = logging.getLogger(__name__)
 class ConnectionManager:
     def __init__(self):
         self.active_connections: dict[UserId, list[WebSocket]] = {}
-        self._redis: aioredis.Redis | None = None
+        self._clients: dict[asyncio.AbstractEventLoop, aioredis.Redis] = {}
+        self._redis_url: str | None = None
         self._pubsub_task: asyncio.Task | None = None
-        self._loop: asyncio.AbstractEventLoop | None = None
+
+    def get_redis_client(self) -> aioredis.Redis | None:
+        """Resolve Redis client for the current event loop, cleaning up closed loops."""
+        try:
+            current_loop = asyncio.get_running_loop()
+        except RuntimeError:
+            return None
+
+        # Clean up any closed loops to prevent memory/connection leaks
+        for l in list(self._clients.keys()):
+            if l.is_closed():
+                client_to_close = self._clients.pop(l, None)
+                if client_to_close is not None:
+                    # Cleanly close the client using the current running loop
+                    async def safe_close(c):
+                        with contextlib.suppress(Exception):
+                            await c.aclose()
+                    current_loop.create_task(safe_close(client_to_close))
+
+        if current_loop not in self._clients:
+            if self._redis_url is None:
+                return None
+            self._clients[current_loop] = aioredis.from_url(self._redis_url, decode_responses=True)
+
+        return self._clients[current_loop]
 
     async def init_redis(self, redis_url: str, *, run_listener: bool = True):
         """Initialize Redis connection and optionally start listening for messages."""
+        self._redis_url = redis_url
         current_loop = asyncio.get_running_loop()
 
-        # If loop changed or redis not initialized, (re)initialize
-        if self._redis is None or self._loop != current_loop:
-            if self._redis is not None:
-                with contextlib.suppress(Exception):
-                    await self._redis.aclose()
-
-            self._redis = aioredis.from_url(redis_url, decode_responses=True)
-            self._loop = current_loop
+        client = self._clients.get(current_loop)
+        if client is None:
+            client = aioredis.from_url(redis_url, decode_responses=True)
+            self._clients[current_loop] = client
             logger.info(
                 "ConnectionManager Redis client initialized (loop: %s)", current_loop
             )
@@ -51,17 +73,19 @@ class ConnectionManager:
             self._pubsub_task.cancel()
             with contextlib.suppress(asyncio.CancelledError):
                 await self._pubsub_task
-        if self._redis:
-            await self._redis.aclose()
-            self._redis = None
-            self._loop = None
+        
+        for client in list(self._clients.values()):
+            with contextlib.suppress(Exception):
+                await client.aclose()
+        self._clients.clear()
 
     async def _listen_for_messages(self):
         """Background task to listen for messages from Redis Pub/Sub."""
-        if self._redis is None:
+        redis = self.get_redis_client()
+        if redis is None:
             return
 
-        pubsub = self._redis.pubsub()
+        pubsub = redis.pubsub()
         await pubsub.subscribe("ws_messages")
         logger.debug("Subscribed to Redis channel 'ws_messages'")
 
@@ -136,11 +160,13 @@ class ConnectionManager:
     async def send_personal_message(self, message: dict[str, Any], user_id: UserId):
         """Publish a message to Redis Pub/Sub to be delivered by any process."""
         current_loop = asyncio.get_running_loop()
-        if self._redis is None or self._loop != current_loop:
+        redis = self.get_redis_client()
+        if redis is None:
             try:
                 from src.config.settings import settings  # noqa: PLC0415
 
                 await self.init_redis(settings.redis_url, run_listener=False)
+                redis = self.get_redis_client()
             except Exception:
                 logger.exception(
                     "Failed to lazily initialize Redis in send_personal_message"
@@ -153,7 +179,6 @@ class ConnectionManager:
             "message": message,
         }
 
-        redis = self._redis
         if redis is None:
             await self._send_to_local_connections(user_id, message)
             return
