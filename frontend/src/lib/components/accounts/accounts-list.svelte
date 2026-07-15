@@ -7,6 +7,7 @@
 	import { onMount } from 'svelte';
 	import { AccountsListState } from './accounts-list.svelte.js';
 	import type { Account } from '@/types/account';
+	import CreatePortfolioModal from './create-portfolio-modal.svelte';
 
 	let { accounts = [] }: { accounts?: Account[] } = $props();
 
@@ -101,3 +102,8 @@
 		{/if}
 	</div>
 </div>
+
+<CreatePortfolioModal
+	modalState={state.createPortfolioModal}
+	onCreated={() => state.cancelSelection()}
+/>
