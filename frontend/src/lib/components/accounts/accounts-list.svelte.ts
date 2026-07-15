@@ -12,6 +12,7 @@ import {
 import { SvelteSet } from 'svelte/reactivity';
 import { group, type GroupBy } from '@/group';
 import { WsEventType, type AccountSyncMessage } from '@/types/websocket';
+import { ModalState } from '@/utils/modal-state.svelte';
 
 export class AccountsListState {
 	accounts = $state<Account[]>([]);
@@ -20,6 +21,7 @@ export class AccountsListState {
 	selectionMode = $state(false);
 	selectedAccounts = $state<string[]>([]);
 	groupBy = $state<GroupBy>('none');
+	createPortfolioModal = new ModalState<string[]>();
 
 	// Track which accounts are currently syncing
 	syncingAccountIds = $state(new SvelteSet<string>());
@@ -181,9 +183,7 @@ export class AccountsListState {
 	}
 
 	createPortfolio() {
-		console.log(this.selectedAccounts);
-		this.selectionMode = false;
-		this.selectedAccounts = [];
+		this.createPortfolioModal.open(this.selectedAccounts);
 	}
 
 	handleCreatePortfolioClick() {
