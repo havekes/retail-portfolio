@@ -214,3 +214,5 @@ __marimo__/
 .env
 data
 build_and_push.sh
+
+.opencode/plans/

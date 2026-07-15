@@ -24,6 +24,7 @@ from src.config.services import register_services
 from src.config.settings import settings
 from src.core.exception import AuthorizationError, EntityNotFoundError
 from src.integration.router import institutions_router, integration_router
+from src.integration.sync_status import redis_manager
 from src.market.router import market_router
 from src.ws.manager import ws_manager
 from src.ws.router import ws_router
@@ -69,6 +70,7 @@ async def lifespan_context(app: FastAPI):
         logger.exception("Lifespan yield failed:")
 
     await ws_manager.close()
+    await redis_manager.close()
 
 
 logger = logging.getLogger(__name__)
