@@ -12,11 +12,18 @@
 	import { resolve } from '$app/paths';
 	import ChartCandlestick from '@lucide/svelte/icons/chart-candlestick';
 	import Search from '@lucide/svelte/icons/search';
+	import Star from '@lucide/svelte/icons/star';
 	import { useSidebar } from '$lib/components/ui/sidebar/context.svelte.js';
+	import { getWatchlistService } from '$lib/components/watchlist/watchlistService.svelte';
 
 	const toggleGlobalSearch = getContext<() => void>('toggleGlobalSearch');
 	const sidebar = useSidebar();
 	const user = $derived($page.data.user);
+	const watchlistService = getWatchlistService();
+	const defaultWatchlist = $derived(
+		watchlistService?.watchlists?.find((w) => w.name === 'Default')
+	);
+	const securities = $derived(defaultWatchlist?.securities || []);
 </script>
 
 <Sidebar.Root collapsible="icon">
@@ -54,6 +61,31 @@
 				</Sidebar.MenuItem>
 			</Sidebar.Menu>
 		</Sidebar.Group>
+
+		{#if securities.length > 0}
+			<Sidebar.Group>
+				<Sidebar.GroupLabel>Watchlist</Sidebar.GroupLabel>
+				<Sidebar.GroupContent>
+					<Sidebar.Menu>
+						{#each securities as security (security.id)}
+							<Sidebar.MenuItem>
+								<Sidebar.MenuButton tooltipContent={`${security.symbol} - ${security.name}`}>
+									{#snippet child({ props })}
+										<a href={resolve(`/security/${security.id}`)} {...props}>
+											<Star class="h-4 w-4 shrink-0 fill-amber-400 stroke-amber-500" />
+											<span>{security.symbol}</span>
+											<span class="ml-1 truncate text-xs font-normal text-muted-foreground"
+												>{security.name}</span
+											>
+										</a>
+									{/snippet}
+								</Sidebar.MenuButton>
+							</Sidebar.MenuItem>
+						{/each}
+					</Sidebar.Menu>
+				</Sidebar.GroupContent>
+			</Sidebar.Group>
+		{/if}
 	</Sidebar.Content>
 	<Sidebar.Footer>
 		<Sidebar.Menu>

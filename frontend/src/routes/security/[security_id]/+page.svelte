@@ -21,8 +21,12 @@
 	import HoldingsGroup from '@/components/actions-sidebar/holding-group/holding-group.svelte';
 	import { accountService, type AccountHoldingRead } from '@/api/accountService';
 	import type { IndicatorData } from '$lib/components/charts/security-chart.svelte';
+	import Star from '@lucide/svelte/icons/star';
+	import { getWatchlistService } from '$lib/components/watchlist/watchlistService.svelte';
 
 	let { data } = $props();
+
+	const watchlistService = getWatchlistService();
 
 	let isLoading = $state(false);
 	let error = $state<string | null>(null);
@@ -237,12 +241,27 @@
 	<AppSidebar />
 	<Sidebar.Inset class="flex h-screen">
 		<div class="flex flex-1 flex-col overflow-hidden">
-			<PageHeader
-				title={security?.symbol ?? ''}
-				subtitle={security?.name ?? ''}
-				{isLoading}
-				{error}
-			/>
+			<PageHeader {isLoading} {error} subtitle={security?.name ?? ''}>
+				{#snippet titleSlot()}
+					<div class="flex items-center gap-2">
+						<h2 class="text-lg font-semibold">{security?.symbol ?? ''}</h2>
+						{#if security}
+							<button
+								type="button"
+								onclick={() => watchlistService.toggleSecurity(security.id)}
+								class="rounded-sm p-1 hover:bg-muted focus:outline-hidden"
+								aria-label="Toggle watchlist"
+							>
+								{#if watchlistService.hasSecurity(security.id)}
+									<Star class="h-4 w-4 fill-amber-400 stroke-amber-500" />
+								{:else}
+									<Star class="h-4 w-4 text-muted-foreground hover:text-amber-500" />
+								{/if}
+							</button>
+						{/if}
+					</div>
+				{/snippet}
+			</PageHeader>
 
 			{#if isLoading}
 				<div class="flex flex-1 items-center justify-center overflow-hidden">

@@ -54,6 +54,13 @@ export interface SecurityCreateResponse {
 	has_price_data: boolean;
 }
 
+export interface WatchlistRead {
+	id: string;
+	user_id: string;
+	name: string;
+	securities: SecuritySchema[];
+}
+
 export class MarketService extends ApiClient {
 	async search(query: string): Promise<MarketSearchResult[]> {
 		return await this.get<MarketSearchResult[]>(`/market/search?q=${query}`);
@@ -85,6 +92,23 @@ export class MarketService extends ApiClient {
 			'/market/security',
 			request
 		);
+	}
+
+	async getWatchlists(token?: string | null): Promise<WatchlistRead[]> {
+		return await this.get<WatchlistRead[]>('/market/watchlists', {}, token);
+	}
+
+	async addToWatchlist(securityId: string, token?: string | null): Promise<WatchlistRead> {
+		return await this.post<WatchlistRead, Record<string, never>>(
+			`/market/watchlists/securities/${securityId}`,
+			{},
+			{},
+			token
+		);
+	}
+
+	async removeFromWatchlist(securityId: string, token?: string | null): Promise<void> {
+		await this.delete(`/market/watchlists/securities/${securityId}`, {}, token);
 	}
 }
 
