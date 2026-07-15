@@ -218,17 +218,27 @@ export class AccountsListState {
 		}
 	}
 
-	private async waitForSyncFinish(id: string, timeoutMs = 60000, intervalMs = 1500) {
+	private async waitForSyncFinish(
+		id: string,
+		timeoutMs = 60000,
+		intervalMs = 1500,
+		gracePeriodMs = 5000
+	) {
 		const deadline = Date.now() + timeoutMs;
 		while (Date.now() < deadline) {
 			await new Promise((r) => setTimeout(r, intervalMs));
 			try {
 				const { account_ids } = await accountClient.getSyncStatus();
 				if (!account_ids.includes(id)) {
-					// Sync finished on backend but no WS message arrived yet.
-					// Don't clear state here — let the WS message (SYNC_FINISHED or
-					// SYNC_FAILED) be the source of truth for success/failure.
-					// If the WS never delivers a message, the timeout below will fire.
+					// Backend finished — wait a grace period for the WS message.
+					await new Promise((r) => setTimeout(r, gracePeriodMs));
+
+					// WS message still hasn't arrived; clear state and refetch.
+					if (this.syncingAccountIds.has(id)) {
+						this.syncingAccountIds.delete(id);
+						this.syncErrors[id] = null;
+						await this.fetchAccounts();
+					}
 					return;
 				}
 			} catch {
