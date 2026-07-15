@@ -126,8 +126,11 @@ async def account_sync_status(
     try:
         active_ids = await get_active_syncs(user.id)
         return {"account_ids": [str(aid) for aid in active_ids]}
-    except redis.RedisError:
-        return {"account_ids": []}
+    except redis.RedisError as e:
+        raise HTTPException(
+            status_code=503,
+            detail="Sync status service unavailable",
+        ) from e
 
 
 @account_router.patch("/{account_id}/rename")

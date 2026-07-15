@@ -111,7 +111,10 @@ async def _sync_account_positions_task(
         raise RuntimeError(msg)
 
     async with Container(huey.svcs_registry) as svcs_container:
-        await mark_sync_started(user_id, account.id)
+        try:
+            await mark_sync_started(user_id, account.id)
+        except Exception:
+            logger.exception("Failed to mark sync started for account %s", account.id)
         try:
             # Send sync_started websocket message
             await ws_manager.send_personal_message(

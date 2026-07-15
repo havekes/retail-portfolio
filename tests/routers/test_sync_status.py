@@ -4,6 +4,7 @@ from unittest.mock import AsyncMock, patch
 from uuid import uuid4
 
 import pytest
+import redis
 
 
 @pytest.mark.anyio
@@ -58,3 +59,15 @@ async def test_sync_status_unauthorized():
             response = await client.get("/api/accounts/sync-status")
 
     assert response.status_code in (401, 403)
+
+
+@pytest.mark.anyio
+async def test_sync_status_redis_unavailable(auth_client):
+    """Test sync_status returns 503 when Redis is down."""
+    with patch(
+        "src.account.router.get_active_syncs",
+        new=AsyncMock(side_effect=redis.RedisError("Connection refused")),
+    ):
+        response = await auth_client.get("/api/accounts/sync-status")
+
+    assert response.status_code == 503

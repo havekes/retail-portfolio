@@ -121,12 +121,12 @@ export class AccountsListState {
 		if (this.syncStatusHydrated) {
 			return;
 		}
-		this.syncStatusHydrated = true;
 		try {
 			const { account_ids } = await accountClient.getSyncStatus();
 			for (const id of account_ids) {
 				this.syncingAccountIds.add(id);
 			}
+			this.syncStatusHydrated = true;
 		} catch (error) {
 			console.error('Failed to hydrate sync status', error);
 		}
@@ -235,8 +235,8 @@ export class AccountsListState {
 				// If status endpoint is unavailable, keep waiting
 			}
 		}
-		// Timeout — WS never delivered a finish/failure message. Show an error
-		// but keep the spinner so the user knows the outcome is uncertain.
+		// Timeout — WS never delivered a finish/failure message.
+		this.syncingAccountIds.delete(id);
 		this.syncErrors[id] = 'Sync took too long. Check account status.';
 	}
 }

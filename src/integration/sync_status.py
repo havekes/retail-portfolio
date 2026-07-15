@@ -38,16 +38,16 @@ def _key(user_id: UserId) -> str:
 
 async def mark_sync_started(user_id: UserId, account_id: AccountId) -> None:
     async with redis_manager.client() as client:
-        await client.sadd(_key(user_id), str(account_id))  # ty: ignore[invalid-await]
+        await client.sadd(_key(user_id), str(account_id))
         await client.expire(_key(user_id), settings.sync_ttl_seconds)
 
 
 async def mark_sync_finished(user_id: UserId, account_id: AccountId) -> None:
     async with redis_manager.client() as client:
-        await client.srem(_key(user_id), str(account_id))  # ty: ignore[invalid-await]
+        await client.srem(_key(user_id), str(account_id))
 
 
 async def get_active_syncs(user_id: UserId) -> list[AccountId]:
     async with redis_manager.client() as client:
-        members = await client.smembers(_key(user_id))  # ty: ignore[invalid-await]
-        return [uuid.UUID(m) for m in members]
+        members = await client.smembers(_key(user_id))
+        return [uuid.UUID(str(m)) for m in members]
