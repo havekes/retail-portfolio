@@ -108,7 +108,11 @@ export class MarketService extends ApiClient {
 	}
 
 	async removeFromWatchlist(securityId: string, token?: string | null): Promise<WatchlistRead> {
-		return await this.delete<WatchlistRead>(`/market/watchlists/securities/${securityId}`, {}, token);
+		return await this.delete<WatchlistRead>(
+			`/market/watchlists/securities/${securityId}`,
+			{},
+			token
+		);
 	}
 }
 
