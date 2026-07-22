@@ -65,7 +65,7 @@
 <Dialog.Root bind:open={modalState.isOpen}>
 	<Dialog.Portal>
 		<Dialog.Overlay />
-		<Dialog.Content onkeydown={handleKeyDown}>
+		<Dialog.Content>
 			<Dialog.Header>
 				<Dialog.Title>Create portfolio</Dialog.Title>
 				<Dialog.Description>
@@ -87,6 +87,7 @@
 						bind:value={name}
 						placeholder="Enter portfolio name"
 						disabled={isSubmitting}
+						onkeydown={handleKeyDown}
 					/>
 				</div>
 			</div>
