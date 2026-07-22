@@ -66,7 +66,6 @@ class RedisManager:
         yield res_client
 
 
-
 redis_manager = RedisManager(settings.redis_url)
 
 
