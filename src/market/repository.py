@@ -99,7 +99,6 @@ class WatchlistRepository(ABC):
         pass
 
 
-
 class PriceAlertRepository(ABC):
     @abstractmethod
     async def get_by_security_and_user(

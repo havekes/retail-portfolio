@@ -189,7 +189,6 @@ async def market_remove_from_watchlist(
     return await watchlist_repository.remove_security(user.id, security_id)
 
 
-
 @market_router.post("/security")
 async def market_create_or_get_security(
     _: Annotated[User, Depends(current_user)],

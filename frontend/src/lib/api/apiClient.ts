@@ -107,11 +107,11 @@ export abstract class ApiClient {
 		return response.json();
 	}
 
-	protected async delete(
+	protected async delete<T = void>(
 		endpoint: string,
 		headers?: Record<string, string>,
 		tokenOverride?: string | null
-	): Promise<void> {
+	): Promise<T> {
 		const response = await this.fetch(`${this.baseUrl}${endpoint}`, {
 			method: 'DELETE',
 			credentials: 'include',
@@ -123,6 +123,10 @@ export abstract class ApiClient {
 		});
 
 		await this.handleResponse(response);
+		if (response.status === 204) {
+			return undefined as T;
+		}
+		return response.json();
 	}
 
 	protected async postFormData<T>(
