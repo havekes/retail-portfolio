@@ -8,6 +8,10 @@ from src.integration.sync_status import RedisManager
 from src.ws.manager import ConnectionManager
 
 
+_orig_init_redis = ConnectionManager.init_redis
+_orig_close = ConnectionManager.close
+
+
 @pytest.mark.asyncio
 async def test_redis_manager_concurrency():
     """Verify that RedisManager manages loop-scoped clients and cleans up closed loops."""
@@ -84,8 +88,8 @@ async def test_connection_manager_concurrency():
         return mock_client
 
     with (
-        patch.object(ConnectionManager, "init_redis", ConnectionManager.orig_init_redis),
-        patch.object(ConnectionManager, "close", ConnectionManager.orig_close),
+        patch.object(ConnectionManager, "init_redis", _orig_init_redis),
+        patch.object(ConnectionManager, "close", _orig_close),
         patch("redis.asyncio.from_url", side_effect=mock_from_url),
     ):
         # 1. Run in two different threads/event loops

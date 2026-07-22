@@ -2,6 +2,7 @@ import asyncio
 import contextlib
 import json
 import logging
+import threading
 from typing import Any
 from uuid import UUID
 
@@ -15,13 +16,11 @@ logger = logging.getLogger(__name__)
 
 
 class ConnectionManager:
-    orig_init_redis: Any = None
-    orig_close: Any = None
-
     def __init__(self):
         self.active_connections: dict[UserId, list[WebSocket]] = {}
         self._clients: dict[asyncio.AbstractEventLoop, aioredis.Redis] = {}
         self._pubsub_task: asyncio.Task | None = None
+        self._lock = threading.Lock()
 
     def get_redis_client(self) -> aioredis.Redis | None:
         """Get the Redis client for current running loop, cleaning up closed loops."""
@@ -30,30 +29,42 @@ class ConnectionManager:
         except RuntimeError:
             return None
 
-        for loop in list(self._clients.keys()):
-            if loop.is_closed():
-                self._clients.pop(loop, None)
+        with self._lock:
+            for loop in list(self._clients.keys()):
+                if loop.is_closed():
+                    self._clients.pop(loop, None)
 
-        return self._clients.get(current_loop)
+            return self._clients.get(current_loop)
 
     async def init_redis(self, redis_url: str, *, run_listener: bool = True):
         """Initialize Redis connection for current event loop and optional listener."""
         current_loop = asyncio.get_running_loop()
 
-        for loop in list(self._clients.keys()):
-            if loop.is_closed():
-                client = self._clients.pop(loop, None)
-                if client is not None:
-                    with contextlib.suppress(Exception):
-                        await client.aclose()
+        clients_to_close: list[aioredis.Redis] = []
+        with self._lock:
+            for loop in list(self._clients.keys()):
+                if loop.is_closed():
+                    client = self._clients.pop(loop, None)
+                    if client is not None:
+                        clients_to_close.append(client)
 
-        if current_loop not in self._clients:
-            self._clients[current_loop] = aioredis.from_url(
-                redis_url, decode_responses=True
-            )
-            logger.info(
-                "ConnectionManager Redis client initialized (loop: %s)", current_loop
-            )
+        for client in clients_to_close:
+            try:
+                await client.aclose()
+            except Exception:  # noqa: BLE001
+                logger.debug(
+                    "Failed to close Redis client for closed loop", exc_info=True
+                )
+
+        with self._lock:
+            if current_loop not in self._clients:
+                self._clients[current_loop] = aioredis.from_url(
+                    redis_url, decode_responses=True
+                )
+                logger.info(
+                    "ConnectionManager Redis client initialized (loop: %s)",
+                    current_loop,
+                )
 
         if run_listener and (self._pubsub_task is None or self._pubsub_task.done()):
             if self._pubsub_task and self._pubsub_task.done():
@@ -71,10 +82,18 @@ class ConnectionManager:
                 await self._pubsub_task
             self._pubsub_task = None
 
-        for client in list(self._clients.values()):
-            with contextlib.suppress(Exception):
+        with self._lock:
+            clients = list(self._clients.values())
+            self._clients.clear()
+
+        for client in clients:
+            try:
                 await client.aclose()
-        self._clients.clear()
+            except Exception:  # noqa: BLE001
+                logger.debug(
+                    "Failed to close Redis client during ConnectionManager.close",
+                    exc_info=True,
+                )
 
     async def _listen_for_messages(self):
         """Background task to listen for messages from Redis Pub/Sub."""
@@ -194,11 +213,10 @@ class ConnectionManager:
             loop = None
 
         if loop and loop.is_running():
-            loop.create_task(ws_manager.send_personal_message(message, user_id))
+            loop.create_task(self.send_personal_message(message, user_id))
         else:
-            asyncio.run(ws_manager.send_personal_message(message, user_id))
+            asyncio.run(self.send_personal_message(message, user_id))
 
 
 ws_manager = ConnectionManager()
-ConnectionManager.orig_init_redis = ConnectionManager.init_redis
-ConnectionManager.orig_close = ConnectionManager.close
+
