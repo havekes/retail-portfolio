@@ -15,12 +15,12 @@ vi.mock('$lib/api/portfolioClient', () => {
 
 describe('CreatePortfolioModal', () => {
 	let modalState: ModalState<string[]>;
-	let mockOnCreated: ReturnType<typeof vi.fn>;
+	let mockOnCreated = vi.fn<() => void>();
 
 	beforeEach(() => {
 		vi.clearAllMocks();
 		modalState = new ModalState<string[]>();
-		mockOnCreated = vi.fn();
+		mockOnCreated = vi.fn<() => void>();
 	});
 
 	it('should render the correct prompt and pre-populated default name when open', () => {
