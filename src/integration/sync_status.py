@@ -28,14 +28,12 @@ class RedisManager:
         loop = asyncio.get_running_loop()
 
         # Clean up closed loops to prevent memory/connection leaks
-        for l in list(self._clients.keys()):
-            if l.is_closed():
-                client_to_close = self._clients.pop(l, None)
+        for active_loop in list(self._clients.keys()):
+            if active_loop.is_closed():
+                client_to_close = self._clients.pop(active_loop, None)
                 if client_to_close is not None:
-                    try:
+                    with contextlib.suppress(Exception):
                         await client_to_close.aclose()
-                    except Exception:
-                        pass
 
         if loop not in self._clients:
             self._clients[loop] = aioredis.from_url(
