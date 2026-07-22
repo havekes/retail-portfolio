@@ -38,7 +38,9 @@ class RedisManager:
                         pass
 
         if loop not in self._clients:
-            self._clients[loop] = aioredis.from_url(self._redis_url, decode_responses=True)
+            self._clients[loop] = aioredis.from_url(
+                self._redis_url, decode_responses=True
+            )
 
         yield self._clients[loop]
 
