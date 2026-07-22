@@ -121,9 +121,6 @@ async def test_connection_manager_concurrency():
         assert current_loop in manager._clients
         assert manager._clients[current_loop] is current_client
 
-        # Allow time for tasks to complete safe_close
-        await asyncio.sleep(0.1)
-
         # Verify that aclose was called on the closed loops' clients
         for client in mock_client_instances:
             if client is not current_client:
@@ -131,3 +128,5 @@ async def test_connection_manager_concurrency():
 
         await manager.close()
         assert len(manager._clients) == 0
+
+
