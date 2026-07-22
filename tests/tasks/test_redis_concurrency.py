@@ -84,8 +84,8 @@ async def test_connection_manager_concurrency():
         return mock_client
 
     with (
-        patch.object(ConnectionManager, "init_redis", ConnectionManager._orig_init_redis),
-        patch.object(ConnectionManager, "close", ConnectionManager._orig_close),
+        patch.object(ConnectionManager, "init_redis", ConnectionManager.orig_init_redis),
+        patch.object(ConnectionManager, "close", ConnectionManager.orig_close),
         patch("redis.asyncio.from_url", side_effect=mock_from_url),
     ):
         # 1. Run in two different threads/event loops
