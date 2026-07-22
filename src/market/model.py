@@ -113,6 +113,10 @@ class WatchlistModel(BaseModel):
         lazy="selectin",
     )
 
+    __table_args__ = (
+        UniqueConstraint("user_id", "name", name="watchlist_user_name_unique"),
+    )
+
 
 class PriceAlertModel(BaseModel):
     __tablename__ = "market_price_alerts"

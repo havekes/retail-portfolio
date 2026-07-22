@@ -34,12 +34,10 @@ export class WatchlistService {
 		const isAdded = this.hasSecurity(securityId);
 		try {
 			if (isAdded) {
-				await this.client.removeFromWatchlist(securityId, token);
-				const defaultWatchlist = this.watchlists.find((w) => w.name === 'Default');
-				if (defaultWatchlist) {
-					defaultWatchlist.securities = defaultWatchlist.securities.filter(
-						(s) => s.id !== securityId
-					);
+				const updatedWatchlist = await this.client.removeFromWatchlist(securityId, token);
+				const defaultIndex = this.watchlists.findIndex((w) => w.name === 'Default');
+				if (defaultIndex !== -1) {
+					this.watchlists[defaultIndex] = updatedWatchlist;
 				}
 			} else {
 				const updatedWatchlist = await this.client.addToWatchlist(securityId, token);

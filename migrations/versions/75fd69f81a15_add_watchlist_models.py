@@ -27,6 +27,7 @@ def upgrade() -> None:
         sa.Column("user_id", sa.Uuid(), nullable=False),
         sa.Column("name", sa.String(), nullable=False),
         sa.PrimaryKeyConstraint("id"),
+        sa.UniqueConstraint("user_id", "name", name="watchlist_user_name_unique"),
     )
     op.create_table(
         "market_watchlists_securities",
