@@ -15,13 +15,16 @@ logger = logging.getLogger(__name__)
 
 
 class ConnectionManager:
+    _orig_init_redis: Any = None
+    _orig_close: Any = None
+
     def __init__(self):
         self.active_connections: dict[UserId, list[WebSocket]] = {}
         self._clients: dict[asyncio.AbstractEventLoop, aioredis.Redis] = {}
         self._pubsub_task: asyncio.Task | None = None
 
     def get_redis_client(self) -> aioredis.Redis | None:
-        """Get the Redis client for the current running event loop, cleaning up closed loops."""
+        """Get the Redis client for current running loop, cleaning up closed loops."""
         try:
             current_loop = asyncio.get_running_loop()
         except RuntimeError:
@@ -34,7 +37,7 @@ class ConnectionManager:
         return self._clients.get(current_loop)
 
     async def init_redis(self, redis_url: str, *, run_listener: bool = True):
-        """Initialize Redis connection for current event loop and optionally start listening for messages."""
+        """Initialize Redis connection for current event loop and optional listener."""
         current_loop = asyncio.get_running_loop()
 
         for loop in list(self._clients.keys()):
@@ -197,5 +200,5 @@ class ConnectionManager:
 
 
 ws_manager = ConnectionManager()
-
-
+ConnectionManager._orig_init_redis = ConnectionManager.init_redis
+ConnectionManager._orig_close = ConnectionManager.close
