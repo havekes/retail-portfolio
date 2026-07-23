@@ -47,12 +47,14 @@ def global_mocks():
     # Force Huey into immediate mode so tasks run synchronously without Redis
     huey.immediate = True
 
+    from src.ws.manager import ConnectionManager
+
     with (
-        # Patch ws_manager methods on the singleton object
-        patch.object(ws_manager, "init_redis", new=AsyncMock(return_value=None)),
-        patch.object(ws_manager, "close", new=AsyncMock(return_value=None)),
-        patch.object(ws_manager, "send_personal_message", new=AsyncMock(return_value=None)),
-        patch.object(ws_manager, "send_personal_message_sync", return_value=None),
+        # Patch ConnectionManager class methods so all loop-scoped instances are mocked
+        patch.object(ConnectionManager, "init_redis", new=AsyncMock(return_value=None)),
+        patch.object(ConnectionManager, "close", new=AsyncMock(return_value=None)),
+        patch.object(ConnectionManager, "send_personal_message", new=AsyncMock(return_value=None)),
+        patch.object(ConnectionManager, "send_personal_message_sync", return_value=None),
         # Patch the locally-bound name in src.main (this is what actually runs)
         patch("src.main.init_huey_dashboard", return_value=None),
     ):
