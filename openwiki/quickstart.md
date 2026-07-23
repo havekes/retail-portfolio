@@ -31,10 +31,14 @@ The only supported local run path is Docker Compose.
 Run backend commands inside the container:
 
 ```bash
-docker compose exec backend uv run pytest
-docker compose exec backend uv run ruff check
-docker compose exec backend uv run ty check
+# Database migrations
 docker compose exec backend uv run alembic revision --autogenerate -m "message"
+# Linting
+docker compose exec backend uv run ruff check
+# Type checking
+docker compose exec backend uv run ty check
+# Tests
+docker compose exec backend uv run pytest
 ```
 
 Frontend commands are run inside `frontend/`:
