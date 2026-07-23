@@ -2,7 +2,7 @@ import json
 import uuid
 from typing import Annotated
 
-from fastapi import APIRouter, Cookie, HTTPException, Response
+from fastapi import APIRouter, Cookie, HTTPException, Request, Response
 from fastapi.responses import JSONResponse
 from itsdangerous import URLSafeTimedSerializer
 from pydantic import BaseModel
@@ -20,6 +20,7 @@ from src.auth.schema import (
     ResendVerificationRequest,
     VerifyEmailRequest,
 )
+from src.config.limiter import limiter
 from src.config.settings import settings
 from src.core.email import EmailSendError
 
@@ -27,13 +28,16 @@ auth_router = APIRouter(prefix="/api/auth")
 
 
 @auth_router.post("/signup")
+@limiter.limit("5/minute")
 async def auth_signup(
-    request: SignupRequest,
+    request: Request,  # noqa: ARG001
+    response: Response,  # noqa: ARG001
+    signup_data: SignupRequest,
     services: DepContainer,
 ) -> SignupResponse:
     user_service = await services.aget(UserApi)
     try:
-        return await user_service.signup(request.email, request.password)
+        return await user_service.signup(signup_data.email, signup_data.password)
     except AuthUserAlreadyExistsError as e:
         raise HTTPException(409, "User with email already exists") from e
     except EmailSendError as e:
@@ -45,14 +49,16 @@ async def auth_signup(
 
 
 @auth_router.post("/login")
+@limiter.limit("10/minute")
 async def auth_login(
-    request: LoginRequest,
-    services: DepContainer,
+    request: Request,  # noqa: ARG001
     response: Response,
+    login_data: LoginRequest,
+    services: DepContainer,
 ) -> AuthResponse:
     user_service = await services.aget(UserApi)
     try:
-        auth_data = await user_service.login(request.email, request.password)
+        auth_data = await user_service.login(login_data.email, login_data.password)
     except AuthInvalidCredentialsError as e:
         raise HTTPException(401, "Invalid credentials") from e
     except AuthUserUnverifiedError as e:
@@ -93,13 +99,16 @@ async def auth_verify_email(
 
 
 @auth_router.post("/resend-verification")
+@limiter.limit("3/minute")
 async def auth_resend_verification(
-    request: ResendVerificationRequest,
+    request: Request,  # noqa: ARG001
+    response: Response,  # noqa: ARG001
+    resend_data: ResendVerificationRequest,
     services: DepContainer,
 ) -> MessageResponse:
     user_service = await services.aget(UserApi)
     try:
-        await user_service.resend_verification(request.email)
+        await user_service.resend_verification(resend_data.email)
     except EmailSendError as e:
         raise HTTPException(
             502,

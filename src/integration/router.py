@@ -1,6 +1,6 @@
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Request, Response
 from svcs.fastapi import DepContainer
 
 from src.account.api.account import AccountApi
@@ -10,6 +10,7 @@ from src.account.api_types import Institution, Position
 from src.account.enum import InstitutionEnum
 from src.auth.api import AuthorizationApi, current_user
 from src.auth.api_types import User
+from src.config.limiter import limiter
 from src.integration.api import get_broker_gateway_class
 from src.integration.api_types import (
     IntegrationImportAccountsRequest,
@@ -154,7 +155,10 @@ async def integration_accounts(
 
 
 @integration_router.post("/accounts/import")
+@limiter.limit("3/minute")
 async def integration_import_accounts(
+    request: Request,  # noqa: ARG001
+    response: Response,  # noqa: ARG001
     import_request: IntegrationImportAccountsRequest,
     services: DepContainer,
     user: Annotated[User, Depends(current_user)],
@@ -204,7 +208,10 @@ async def integration_import_accounts(
 
 
 @integration_router.post("/positions/import")
+@limiter.limit("3/minute")
 async def integration_import_positions(
+    request: Request,  # noqa: ARG001
+    response: Response,  # noqa: ARG001
     import_request: IntegrationImportPositionsRequest,
     services: DepContainer,
     user: Annotated[User, Depends(current_user)],

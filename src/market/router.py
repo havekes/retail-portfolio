@@ -4,12 +4,13 @@ from datetime import UTC, date, datetime, timezone
 from pathlib import Path
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, File, Query, UploadFile
+from fastapi import APIRouter, Depends, File, Query, Request, Response, UploadFile
 from fastapi.exceptions import HTTPException
 from svcs.fastapi import DepContainer
 
 from src.auth.api import current_user
 from src.auth.api_types import User
+from src.config.limiter import limiter
 from src.config.settings import settings
 from src.market.ai_service import AIService
 from src.market.api import SecurityApi
@@ -530,7 +531,10 @@ async def market_get_technical_indicators(  # noqa: C901
 
 # AI Analysis endpoints
 @market_router.post("/securities/{security_id}/ai/fundamentals")
+@limiter.limit("5/minute")
 async def market_ai_fundamentals(
+    request: Request,  # noqa: ARG001
+    response: Response,  # noqa: ARG001
     user: Annotated[User, Depends(current_user)],
     security_id: SecurityId,
     services: DepContainer,
@@ -551,7 +555,10 @@ async def market_ai_fundamentals(
 
 
 @market_router.post("/securities/{security_id}/ai/summarize-notes")
+@limiter.limit("5/minute")
 async def market_ai_summarize_notes(
+    request: Request,  # noqa: ARG001
+    response: Response,  # noqa: ARG001
     user: Annotated[User, Depends(current_user)],
     security_id: SecurityId,
     services: DepContainer,
@@ -572,10 +579,13 @@ async def market_ai_summarize_notes(
 
 
 @market_router.post("/securities/{security_id}/ai/portfolio-debate")
-async def market_ai_portfolio_debate(
+@limiter.limit("5/minute")
+async def market_ai_portfolio_debate(  # noqa: PLR0913
+    request: Request,  # noqa: ARG001
+    response: Response,  # noqa: ARG001
     user: Annotated[User, Depends(current_user)],
     security_id: SecurityId,
-    request: AIAnalysisRequest,
+    ai_request: AIAnalysisRequest,
     services: DepContainer,
 ) -> AIAnalysisResponse:
     """
@@ -584,7 +594,7 @@ async def market_ai_portfolio_debate(
     ai_service = await services.aget(AIService)
     try:
         portfolio_context = (
-            request.portfolio_context or "No portfolio context provided."
+            ai_request.portfolio_context or "No portfolio context provided."
         )
         content = await ai_service.analyze_portfolio_fit(
             security_id, user.id, portfolio_context
