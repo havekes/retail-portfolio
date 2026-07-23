@@ -48,3 +48,43 @@ async def test_watchlists_list_not_owned(auth_client, other_user, db_session):
 
     # Should still be empty for the authenticated user
     assert result == []
+
+
+@pytest.mark.anyio
+async def test_watchlist_add_security(auth_client, test_security):
+    """Test POST /watchlists/securities/{security_id} adds a security to the watchlist."""
+    response = await auth_client.post(f"/api/market/watchlists/securities/{test_security.id}")
+    
+    assert response.status_code == 200
+    result = response.json()
+    assert result["name"] == "Default"
+    assert len(result["securities"]) == 1
+    assert result["securities"][0]["id"] == str(test_security.id)
+    assert result["securities"][0]["symbol"] == test_security.symbol
+
+
+@pytest.mark.anyio
+async def test_watchlist_remove_security(auth_client, test_security):
+    """Test DELETE /watchlists/securities/{security_id} removes a security from the watchlist."""
+    # First add it
+    await auth_client.post(f"/api/market/watchlists/securities/{test_security.id}")
+    
+    # Now remove it
+    response = await auth_client.delete(f"/api/market/watchlists/securities/{test_security.id}")
+    
+    assert response.status_code == 200
+    result = response.json()
+    assert result["name"] == "Default"
+    assert len(result["securities"]) == 0
+
+
+@pytest.mark.anyio
+async def test_watchlist_add_security_not_found(auth_client):
+    """Test POST /watchlists/securities/{security_id} returns 404 if security not found."""
+    from uuid import uuid4
+    fake_id = uuid4()
+    response = await auth_client.post(f"/api/market/watchlists/securities/{fake_id}")
+    
+    assert response.status_code == 404
+    assert "not found" in response.json()["error"].lower()
+
