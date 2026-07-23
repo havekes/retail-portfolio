@@ -12,6 +12,9 @@ from fastapi import FastAPI, Request, status
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from huey_dashboard import init_huey_dashboard
+from slowapi import _rate_limit_exceeded_handler
+from slowapi.errors import RateLimitExceeded
+from slowapi.middleware import SlowAPIMiddleware
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from svcs.fastapi import DepContainer
@@ -19,6 +22,7 @@ from svcs.fastapi import DepContainer
 from src.account.router import account_router, portfolio_router
 from src.auth.router import auth_router
 from src.config.database import sessionmanager
+from src.config.limiter import limiter
 from src.config.logging import init_logging
 from src.config.services import register_services
 from src.config.settings import settings
@@ -88,6 +92,16 @@ app = FastAPI(
     version="0.0.0",
     debug=settings.environment != "prod",
 )
+app.state.limiter = limiter
+app.add_exception_handler(RateLimitExceeded, cast("Any", _rate_limit_exceeded_handler))
+app.add_middleware(SlowAPIMiddleware)
+
+
+@app.middleware("http")
+async def reset_rate_limit_state_middleware(request: Request, call_next: Any) -> Any:
+    if hasattr(request.state, "_rate_limiting_complete"):
+        delattr(request.state, "_rate_limiting_complete")
+    return await call_next(request)
 
 
 @app.middleware("http")

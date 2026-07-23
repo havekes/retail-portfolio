@@ -2,7 +2,7 @@ from typing import Annotated
 from uuid import UUID
 
 import redis
-from fastapi import APIRouter, Depends, HTTPException, Response
+from fastapi import APIRouter, Depends, HTTPException, Request, Response
 from svcs.fastapi import DepContainer
 
 from src.account.api_types import (
@@ -26,6 +26,7 @@ from src.account.service.portfolio import PortfolioService
 from src.account.service.position import PositionService
 from src.auth.api import AuthorizationApi, current_user
 from src.auth.api_types import User
+from src.config.limiter import limiter
 from src.integration.sync_status import get_active_syncs
 
 account_router = APIRouter(prefix="/api/accounts")
@@ -224,7 +225,10 @@ async def account_holdings(
 
 
 @account_router.post("/{account_id}/sync")
+@limiter.limit("3/minute")
 async def account_sync_positions(
+    request: Request,  # noqa: ARG001
+    response: Response,  # noqa: ARG001
     account_id: AccountId,
     user: Annotated[User, Depends(current_user)],
     services: DepContainer,
