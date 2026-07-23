@@ -4,6 +4,7 @@ from typing import override
 
 from sqlalchemy import delete, select
 from sqlalchemy.dialects.postgresql import insert
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 from svcs import Container
@@ -318,7 +319,7 @@ class SqlAlchemyWatchlistRepository(WatchlistRepository):
         )
         self._session.add(watchlist)
         await self._session.commit()
-        
+
         # reload to load relationships correctly
         result = await self._session.execute(
             select(WatchlistModel)
@@ -352,19 +353,22 @@ class SqlAlchemyWatchlistRepository(WatchlistRepository):
                 securities=[],
             )
             self._session.add(watchlist_model)
-            await self._session.commit()
-            
-            result = await self._session.execute(
-                select(WatchlistModel)
-                .options(selectinload(WatchlistModel.securities))
-                .where(WatchlistModel.id == watchlist_model.id)
-            )
-            watchlist_model = result.scalar_one()
+            try:
+                await self._session.flush()
+            except IntegrityError:
+                await self._session.rollback()
+                result = await self._session.execute(
+                    select(WatchlistModel)
+                    .options(selectinload(WatchlistModel.securities))
+                    .where(WatchlistModel.user_id == user_id)
+                    .where(WatchlistModel.name == "Default")
+                    .limit(1)
+                )
+                watchlist_model = result.scalar_one()
 
         if security_model not in watchlist_model.securities:
             watchlist_model.securities.append(security_model)
             await self._session.commit()
-            await self._session.refresh(watchlist_model)
 
         return WatchlistRead.model_validate(watchlist_model)
 
@@ -390,10 +394,8 @@ class SqlAlchemyWatchlistRepository(WatchlistRepository):
         if security_model in watchlist_model.securities:
             watchlist_model.securities.remove(security_model)
             await self._session.commit()
-            await self._session.refresh(watchlist_model)
 
         return WatchlistRead.model_validate(watchlist_model)
-
 
 
 async def sqlalchemy_watchlist_repository_factory(
