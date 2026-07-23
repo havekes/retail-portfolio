@@ -1,15 +1,14 @@
-"""Integration test fixtures using in-memory SQLite database."""
+"""Integration test fixtures using PostgreSQL database."""
 
-from collections.abc import AsyncGenerator
-from datetime import UTC, datetime
+from collections.abc import AsyncGenerator, Generator
 import os
 
 import pytest
+from sqlalchemy import make_url
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 from sqlalchemy.ext.asyncio.engine import AsyncEngine
 
-# Override database URL before importing app
-os.environ["DATABASE_URL"] = "sqlite+aiosqlite:///:memory:"
+# Set default env vars before importing app
 os.environ["SECRET_KEY"] = "7bb26bc4200000a69d07fa542933ef7256c1e47462f9c5a2f9c1dcf562b482f9"
 os.environ["ENVIRONMENT"] = "test"
 os.environ["STUB_EXTERNAL_API"] = "true"
@@ -61,21 +60,37 @@ def global_mocks():
         yield
 
 
+@pytest.fixture(scope="session")
+def postgres_service() -> Generator[str, None, None]:
+    """Provide PostgreSQL connection URL, spinning up testcontainers if needed."""
+    db_url = os.environ.get("DATABASE_URL")
+    if db_url and ("postgresql" in db_url or "postgres" in db_url):
+        yield db_url
+    else:
+        from testcontainers.postgres import PostgresContainer
+
+        with PostgresContainer("postgres:17-alpine") as postgres:
+            url = make_url(postgres.get_connection_url()).set(drivername="postgresql+asyncpg").render_as_string(hide_password=False)
+            os.environ["DATABASE_URL"] = url
+            yield url
+
 
 @pytest.fixture(scope="session")
-def test_db_url() -> str:
-    """Return in-memory SQLite database URL for testing."""
-    return "sqlite+aiosqlite:///:memory:"
+def test_db_url(postgres_service: str) -> str:
+    """Return PostgreSQL database URL for testing."""
+    return postgres_service
 
 
 @pytest.fixture(scope="function")
-async def test_engine(test_db_url: str) -> AsyncGenerator[AsyncEngine]:
+async def test_engine(test_db_url: str) -> AsyncGenerator[AsyncEngine, None]:
     """Create test database engine and sync with sessionmanager."""
-    # Use the sessionmanager's engine if it exists and is test database
-    if sessionmanager._engine and "sqlite" in str(sessionmanager._engine.url):
-        engine = sessionmanager._engine
-    else:
-        engine = create_async_engine(test_db_url, echo=False)
+    engine = create_async_engine(test_db_url, echo=False)
+
+    # Rebind sessionmanager's engine and sessionmaker to point to the active test engine
+    sessionmanager._engine = engine
+    sessionmanager._sessionmaker = async_sessionmaker(
+        autocommit=False, bind=engine, expire_on_commit=False
+    )
 
     # Create all tables
     async with engine.begin() as conn:
@@ -83,9 +98,11 @@ async def test_engine(test_db_url: str) -> AsyncGenerator[AsyncEngine]:
 
     yield engine
 
-    # Drop all tables (don't dispose since sessionmanager might still use it)
+    # Drop all tables
     async with engine.begin() as conn:
         await conn.run_sync(BaseModel.metadata.drop_all)
+
+    await engine.dispose()
 
 
 @pytest.fixture(scope="function")

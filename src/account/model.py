@@ -51,12 +51,18 @@ class AccountModel(BaseModel):
     broker_display_name: Mapped[str | None] = mapped_column(String, nullable=True)
     net_deposits: Mapped[Decimal | None] = mapped_column(Float, nullable=True)
     is_active: Mapped[bool] = mapped_column(Boolean, default=True)
-    created_at: Mapped[datetime] = mapped_column(DateTime, default=func.now())
-    updated_at: Mapped[datetime] = mapped_column(
-        DateTime, default=func.now(), onupdate=func.now()
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), default=func.now()
     )
-    deleted_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
-    last_sync_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), default=func.now(), onupdate=func.now()
+    )
+    deleted_at: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True), nullable=True
+    )
+    last_sync_at: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True), nullable=True
+    )
 
     __table_args__ = (UniqueConstraint("user_id", "institution_id", "external_id"),)
 
@@ -87,13 +93,17 @@ class PortfolioModel(BaseModel):
     id: Mapped[PortfolioId] = mapped_column(Uuid, primary_key=True, default=uuid4)
     user_id: Mapped[UserId] = mapped_column(Uuid)
     name: Mapped[str] = mapped_column(String)
-    created_at: Mapped[datetime] = mapped_column(DateTime, default=func.now())
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), default=func.now()
+    )
     updated_at: Mapped[datetime] = mapped_column(
-        DateTime,
+        DateTime(timezone=True),
         default=func.now(),
         onupdate=func.now(),
     )
-    deleted_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
+    deleted_at: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True), nullable=True
+    )
 
     __table_args__ = (UniqueConstraint("user_id", "name"),)
 
@@ -116,7 +126,9 @@ class PortfolioAccountModel(BaseModel):
     account_id: Mapped[AccountId] = mapped_column(
         Uuid, ForeignKey("accounts.id"), primary_key=True
     )
-    created_at: Mapped[datetime] = mapped_column(DateTime, default=func.now())
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), default=func.now()
+    )
 
     # Relationships
     portfolio: Mapped[PortfolioModel] = relationship(
