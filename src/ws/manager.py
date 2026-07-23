@@ -15,8 +15,8 @@ logger = logging.getLogger(__name__)
 
 
 class ConnectionManager:
-    _orig_init_redis: Any = None
-    _orig_close: Any = None
+    orig_init_redis: Any = None
+    orig_close: Any = None
 
     def __init__(self):
         self.active_connections: dict[UserId, list[WebSocket]] = {}
@@ -200,5 +200,5 @@ class ConnectionManager:
 
 
 ws_manager = ConnectionManager()
-ConnectionManager._orig_init_redis = ConnectionManager.init_redis
-ConnectionManager._orig_close = ConnectionManager.close
+ConnectionManager.orig_init_redis = ConnectionManager.init_redis
+ConnectionManager.orig_close = ConnectionManager.close
