@@ -1,10 +1,12 @@
 import asyncio
 import logging
+import uuid
 from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
 from typing import Any, cast
 
 import redis
+import structlog
 import svcs
 from alembic import command
 from alembic.config import Config
@@ -134,6 +136,15 @@ app.add_middleware(
     allow_methods=[origin.strip() for origin in settings.cors_allow_methods.split(",")],
     allow_headers=[origin.strip() for origin in settings.cors_allow_headers.split(",")],
 )
+
+@app.middleware("http")
+async def structlog_middleware(request: Request, call_next: Any) -> Any:
+    structlog.contextvars.clear_contextvars()
+    request_id = request.headers.get("X-Request-ID", str(uuid.uuid4()))
+    structlog.contextvars.bind_contextvars(
+        request_id=request_id,
+    )
+    return await call_next(request)
 
 init_logging()
 app.include_router(account_router)

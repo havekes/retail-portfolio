@@ -1507,6 +1507,7 @@ dependencies = [
     { name = "rich" },
     { name = "sqlalchemy" },
     { name = "stockholm" },
+    { name = "structlog" },
     { name = "svcs" },
     { name = "uvicorn" },
     { name = "ws-api" },
@@ -1558,6 +1559,7 @@ requires-dist = [
     { name = "rich", specifier = ">=14.3.1" },
     { name = "sqlalchemy", specifier = ">=2.0.44" },
     { name = "stockholm", specifier = ">=0.5.7" },
+    { name = "structlog", specifier = ">=26.1.0" },
     { name = "svcs", specifier = ">=25.1.0" },
     { name = "uvicorn", specifier = ">=0.38.0" },
     { name = "ws-api", specifier = ">=0.25.0" },
@@ -1698,6 +1700,15 @@ source = { registry = "https://pypi.org/simple" }
 sdist = { url = "https://files.pythonhosted.org/packages/2b/0c/2bf69ec49a1303512d65c4ea953facd0e0486d94603cabaee85be824738d/stockholm-0.5.7.tar.gz", hash = "sha256:1ac3ee160cec7d2834f13b76e44ae7cc61bd68168c3db4456325818ee3b51333", size = 38536, upload-time = "2023-11-23T22:48:07.568Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/e3/87/c4c4543781c9459af89942847037a1bfe3ac6843b7e8b1a22507d89606ed/stockholm-0.5.7-py3-none-any.whl", hash = "sha256:49ca18676b14b2845b084f9f2d43448d15e895a2fcb107717026e5b55ef2b860", size = 31653, upload-time = "2023-11-23T22:48:04.157Z" },
+]
+
+[[package]]
+name = "structlog"
+version = "26.1.0"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/5e/89/b4a0bcfdf4f71a3dea31379f095929613d7e4528a0996bca6aa964cd0dca/structlog-26.1.0.tar.gz", hash = "sha256:f63a716cbd1b1291cf7661de7794b455acfa4c43c5bcf1630e6ad5ddc1adb3b7", size = 1459881, upload-time = "2026-06-06T07:33:39.348Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/a9/18/489c97b834dfff9cf2fc2507cede4bcd4b11e67f84bc462acd1992496f86/structlog-26.1.0-py3-none-any.whl", hash = "sha256:e081a26d6c373e6d201eca24eede26d8ffab07f88f477822e679183428d3d91e", size = 73764, upload-time = "2026-06-06T07:33:38.046Z" },
 ]
 
 [[package]]

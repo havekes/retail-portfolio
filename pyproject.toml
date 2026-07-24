@@ -38,6 +38,7 @@ dependencies = [
     "huey-dashboard>=0.0.1",
     "holidays>=0.93",
     "python-multipart>=0.0.24",
+    "structlog>=26.1.0",
 ]
 
 [dependency-groups]
