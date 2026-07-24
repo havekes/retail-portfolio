@@ -27,6 +27,7 @@ from src.config.logging import init_logging
 from src.config.services import register_services
 from src.config.settings import settings
 from src.core.exception import AuthorizationError, EntityNotFoundError
+from src.core.middleware import RequestIdMiddleware
 from src.integration.router import institutions_router, integration_router
 from src.integration.sync_status import redis_manager
 from src.market.router import market_router
@@ -92,7 +93,9 @@ app = FastAPI(
     version="0.0.0",
     debug=settings.environment != "prod",
 )
+app.add_middleware(RequestIdMiddleware)
 app.state.limiter = limiter
+
 app.add_exception_handler(RateLimitExceeded, cast("Any", _rate_limit_exceeded_handler))
 app.add_middleware(SlowAPIMiddleware)
 

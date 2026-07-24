@@ -3,6 +3,7 @@ from svcs import Container
 from src.account.api_types import Account, AccountId
 from src.account.enum import InstitutionEnum
 from src.auth.api_types import UserId
+from src.core.context import get_request_id
 from src.integration.api_types import IntegrationUser, IntegrationUserId
 from src.integration.brokers import BrokerApiGateway
 from src.integration.brokers.api_types import BrokerAccountId
@@ -49,6 +50,7 @@ class IntegrationAccountApi:
             account,
             broker_account_id,
             get_broker_gateway_class(InstitutionEnum(account.institution_id)),
+            request_id=get_request_id(),
         )
 
 

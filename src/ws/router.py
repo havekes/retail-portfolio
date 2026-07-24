@@ -1,6 +1,7 @@
 import hashlib
 import json
 import logging
+import uuid
 from uuid import UUID
 
 import redis.asyncio as aioredis
@@ -10,6 +11,7 @@ from itsdangerous import URLSafeTimedSerializer
 
 from src.auth.api import UserApi
 from src.config.settings import settings
+from src.core.context import request_id_ctx_var, set_request_id
 from src.ws.manager import ws_manager
 
 logger = logging.getLogger(__name__)
@@ -39,49 +41,60 @@ async def _check_ticket_not_replayed(ticket: str, redis_url: str) -> bool:
 async def websocket_endpoint(
     websocket: WebSocket,
 ):
-    ticket = websocket.query_params.get("ticket")
-    token = websocket.cookies.get("auth_token") or websocket.headers.get(
-        "sec-websocket-protocol"
-    )
+    header_request_id = websocket.headers.get("X-Request-ID")
+    request_id = header_request_id or str(uuid.uuid4())
+    req_token = set_request_id(request_id)
 
-    user_id: UUID | None = None
+    try:
+        ticket = websocket.query_params.get("ticket")
+        token = websocket.cookies.get("auth_token") or websocket.headers.get(
+            "sec-websocket-protocol"
+        )
 
-    if ticket:
-        if not await _check_ticket_not_replayed(ticket, settings.redis_url):
-            logger.warning("WebSocket ticket replay attempt detected")
-            await websocket.close(code=1008)
-            return
+        user_id: UUID | None = None
 
-        serializer = URLSafeTimedSerializer(settings.secret_key)
-        try:
-            payload = json.loads(serializer.loads(ticket, max_age=30, salt="ws-ticket"))
-            user_id = UUID(str(payload["user_id"]))
-        except Exception:  # noqa: BLE001
-            await websocket.close(code=1008)
-            return
-    elif token:
-        registry = websocket.app.state.svcs_registry
-        async with svcs.Container(registry) as services:
-            user_api = await services.aget(UserApi)
-            try:
-                user = await user_api.get_current_user_from_token(token)
-                user_id = user.id
-            except Exception:  # noqa: BLE001
+        if ticket:
+            if not await _check_ticket_not_replayed(ticket, settings.redis_url):
+                logger.warning("WebSocket ticket replay attempt detected")
                 await websocket.close(code=1008)
                 return
 
-    if not user_id:
-        await websocket.close(code=1008)
-        return
+            serializer = URLSafeTimedSerializer(settings.secret_key)
+            try:
+                payload = json.loads(
+                    serializer.loads(ticket, max_age=30, salt="ws-ticket")
+                )
+                user_id = UUID(str(payload["user_id"]))
+            except Exception:  # noqa: BLE001
+                await websocket.close(code=1008)
+                return
+        elif token:
+            registry = websocket.app.state.svcs_registry
+            async with svcs.Container(registry) as services:
+                user_api = await services.aget(UserApi)
+                try:
+                    user = await user_api.get_current_user_from_token(token)
+                    user_id = user.id
+                except Exception:  # noqa: BLE001
+                    await websocket.close(code=1008)
+                    return
 
-    await ws_manager.connect(
-        websocket,
-        user_id,
-        subprotocol=token if websocket.headers.get("sec-websocket-protocol") else None,
-    )
-    try:
-        while True:
-            # We just want to keep the connection alive
-            await websocket.receive_text()
-    except WebSocketDisconnect:
-        ws_manager.disconnect(websocket, user_id)
+        if not user_id:
+            await websocket.close(code=1008)
+            return
+
+        subprotocol = token if websocket.headers.get("sec-websocket-protocol") else None
+        await ws_manager.connect(
+            websocket,
+            user_id,
+            subprotocol=subprotocol,
+        )
+
+        try:
+            while True:
+                # We just want to keep the connection alive
+                await websocket.receive_text()
+        except WebSocketDisconnect:
+            ws_manager.disconnect(websocket, user_id)
+    finally:
+        request_id_ctx_var.reset(req_token)

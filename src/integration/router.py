@@ -11,6 +11,7 @@ from src.account.enum import InstitutionEnum
 from src.auth.api import AuthorizationApi, current_user
 from src.auth.api_types import User
 from src.config.limiter import limiter
+from src.core.context import get_request_id
 from src.integration.api import get_broker_gateway_class
 from src.integration.api_types import (
     IntegrationImportAccountsRequest,
@@ -202,6 +203,7 @@ async def integration_import_accounts(
             account,
             account.external_id,
             get_broker_gateway_class(integration_user.institution_id),
+            request_id=get_request_id(),
         )
 
     return IntegrationImportResponse(imported_count=len(imported_accounts))
