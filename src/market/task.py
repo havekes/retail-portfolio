@@ -4,6 +4,7 @@ import logging
 from huey import crontab
 from svcs import Container
 
+from src.core.context import get_request_id, request_id_ctx_var, set_request_id
 from src.market.ai_service import AIService
 from src.market.repository import SecurityNoteRepository
 from src.market.service import MarketService
@@ -13,29 +14,38 @@ logger = logging.getLogger(__name__)
 
 
 @huey.task()
-def generate_note_title_task(note_id: int) -> None:
+def generate_note_title_task(note_id: int, request_id: str | None = None) -> None:
     """Huey task to generate note title using AI."""
-    asyncio.run(_generate_note_title(note_id))
+    if request_id is None:
+        request_id = get_request_id()
+
+    asyncio.run(_generate_note_title(note_id, request_id=request_id))
 
 
-async def _generate_note_title(note_id: int) -> None:
+async def _generate_note_title(note_id: int, request_id: str | None = None) -> None:
     if huey.svcs_registry is None:
         return
 
-    async with Container(huey.svcs_registry) as svcs_container:
-        note_repository: SecurityNoteRepository = await svcs_container.aget(
-            SecurityNoteRepository
-        )
-        ai_service: AIService = await svcs_container.aget(AIService)
+    req_token = set_request_id(request_id) if request_id else None
 
-        note = await note_repository.get_by_id(note_id)
-        if not note:
-            logger.warning("Note %d not found for title generation", note_id)
-            return
+    try:
+        async with Container(huey.svcs_registry) as svcs_container:
+            note_repository: SecurityNoteRepository = await svcs_container.aget(
+                SecurityNoteRepository
+            )
+            ai_service: AIService = await svcs_container.aget(AIService)
 
-        title = await ai_service.generate_note_title(note.content)
-        await note_repository.update_title(note_id, title)
-        logger.info("Generated title for note %d: %s", note_id, title)
+            note = await note_repository.get_by_id(note_id)
+            if not note:
+                logger.warning("Note %d not found for title generation", note_id)
+                return
+
+            title = await ai_service.generate_note_title(note.content)
+            await note_repository.update_title(note_id, title)
+            logger.info("Generated title for note %d: %s", note_id, title)
+    finally:
+        if req_token is not None:
+            request_id_ctx_var.reset(req_token)
 
 
 @huey.periodic_task(crontab(hour="0", minute="0"))

@@ -7,6 +7,16 @@ from rich.console import Console
 from rich.logging import RichHandler
 from rich.traceback import install
 
+from src.core.context import get_request_id
+
+
+class RequestIdFilter(logging.Filter):
+    """Filter that injects request_id from contextvars into log records."""
+
+    def filter(self, record: logging.LogRecord) -> bool:
+        record.request_id = get_request_id() or "-"
+        return True
+
 
 def init_logging() -> None:
     # Attempt to get terminal width, defaulting to 120 if detection fails
@@ -22,18 +32,19 @@ def init_logging() -> None:
     # Install rich traceback handler
     install(console=console, show_locals=True)
 
+    handler = RichHandler(
+        console=console,
+        rich_tracebacks=True,
+        show_path=True,
+        enable_link_path=True,
+    )
+    handler.addFilter(RequestIdFilter())
+
     logging.basicConfig(
         level=logging.DEBUG,
-        format="%(message)s",
+        format="[%(request_id)s] %(message)s",
         datefmt="[%X]",
-        handlers=[
-            RichHandler(
-                console=console,
-                rich_tracebacks=True,
-                show_path=True,
-                enable_link_path=True,
-            )
-        ],
+        handlers=[handler],
         force=True,
     )
 
