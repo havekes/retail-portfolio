@@ -24,7 +24,7 @@ from src.config.limiter import limiter
 from src.config.settings import settings
 from src.core.email import EmailSendError
 
-auth_router = APIRouter(prefix="/api/auth")
+auth_router = APIRouter(prefix="/auth")
 
 
 @auth_router.post("/signup")

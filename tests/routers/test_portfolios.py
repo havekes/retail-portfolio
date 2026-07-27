@@ -8,7 +8,7 @@ import pytest
 @pytest.mark.anyio
 async def test_portfolios_list_empty(auth_client):
     """Test portfolios_list returns empty list when user has no portfolios."""
-    response = await auth_client.get("/api/portfolios/")
+    response = await auth_client.get("/api/v1/portfolios/")
 
     assert response.status_code == 200
     result = response.json()
@@ -19,7 +19,7 @@ async def test_portfolios_list_empty(auth_client):
 @pytest.mark.anyio
 async def test_portfolios_list_success(auth_client, test_portfolios):
     """Test portfolios_list returns user's portfolios."""
-    response = await auth_client.get("/api/portfolios/")
+    response = await auth_client.get("/api/v1/portfolios/")
 
     assert response.status_code == 200
     result = response.json()
@@ -36,7 +36,7 @@ async def test_portfolio_create_success(auth_client, test_accounts):
         "name": "New Portfolio",
         "accounts": [str(test_accounts[0].id)],
     }
-    response = await auth_client.post("/api/portfolios/", json=portfolio_request)
+    response = await auth_client.post("/api/v1/portfolios/", json=portfolio_request)
 
     assert response.status_code == 200
     result = response.json()
@@ -55,7 +55,7 @@ async def test_portfolio_create_with_multiple_accounts(auth_client, test_account
         "name": "Portfolio with Multiple Accounts",
         "accounts": account_ids,
     }
-    response = await auth_client.post("/api/portfolios/", json=portfolio_request)
+    response = await auth_client.post("/api/v1/portfolios/", json=portfolio_request)
 
     assert response.status_code == 200
     result = response.json()
@@ -70,7 +70,7 @@ async def test_portfolio_create_with_multiple_accounts(auth_client, test_account
 async def test_portfolio_create_missing_name(auth_client):
     """Test portfolio_create raises 422 for missing name field."""
     portfolio_request = {"accounts": []}
-    response = await auth_client.post("/api/portfolios/", json=portfolio_request)
+    response = await auth_client.post("/api/v1/portfolios/", json=portfolio_request)
 
     assert response.status_code == 422
 
@@ -79,7 +79,7 @@ async def test_portfolio_create_missing_name(auth_client):
 async def test_portfolio_create_missing_accounts(auth_client):
     """Test portfolio_create raises 422 for missing accounts field."""
     portfolio_request = {"name": "Test Portfolio"}
-    response = await auth_client.post("/api/portfolios/", json=portfolio_request)
+    response = await auth_client.post("/api/v1/portfolios/", json=portfolio_request)
 
     assert response.status_code == 422
 
@@ -95,7 +95,7 @@ async def test_portfolio_accounts_update_success(
 
     update_request = {"accounts": account_ids}
     response = await auth_client.put(
-        f"/api/portfolios/{portfolio_id}/accounts", json=update_request
+        f"/api/v1/portfolios/{portfolio_id}/accounts", json=update_request
     )
 
     assert response.status_code == 200
@@ -119,7 +119,7 @@ async def test_portfolio_accounts_update_add_accounts(
 
     update_request = {"accounts": account_ids}
     response = await auth_client.put(
-        f"/api/portfolios/{portfolio_id}/accounts", json=update_request
+        f"/api/v1/portfolios/{portfolio_id}/accounts", json=update_request
     )
 
     assert response.status_code == 200
@@ -144,7 +144,7 @@ async def test_portfolio_accounts_update_remove_accounts(
 
     update_request = {"accounts": account_ids}
     response = await auth_client.put(
-        f"/api/portfolios/{portfolio_id}/accounts", json=update_request
+        f"/api/v1/portfolios/{portfolio_id}/accounts", json=update_request
     )
 
     assert response.status_code == 200
@@ -163,7 +163,7 @@ async def test_portfolio_accounts_update_not_found(auth_client):
     update_request = {"accounts": []}
 
     response = await auth_client.put(
-        f"/api/portfolios/{fake_id}/accounts", json=update_request
+        f"/api/v1/portfolios/{fake_id}/accounts", json=update_request
     )
 
     assert response.status_code == 404
@@ -178,7 +178,7 @@ async def test_portfolio_accounts_update_not_owned(
     update_request = {"accounts": [str(test_accounts[0].id)]}
 
     response = await auth_client.put(
-        f"/api/portfolios/{portfolio_id}/accounts", json=update_request
+        f"/api/v1/portfolios/{portfolio_id}/accounts", json=update_request
     )
 
     assert response.status_code == 404
@@ -189,12 +189,12 @@ async def test_portfolio_delete_success(auth_client, test_portfolios):
     """Test portfolio_delete successfully deletes a portfolio."""
     portfolio_id = test_portfolios[0].id
 
-    response = await auth_client.delete(f"/api/portfolios/{portfolio_id}")
+    response = await auth_client.delete(f"/api/v1/portfolios/{portfolio_id}")
 
     assert response.status_code == 204
 
     # Verify portfolio is deleted
-    response = await auth_client.get("/api/portfolios/")
+    response = await auth_client.get("/api/v1/portfolios/")
     assert response.status_code == 200
     result = response.json()
     assert len(result) == 1
@@ -206,7 +206,7 @@ async def test_portfolio_delete_not_found(auth_client):
     """Test portfolio_delete raises 404 for non-existent portfolio."""
     fake_id = uuid4()
 
-    response = await auth_client.delete(f"/api/portfolios/{fake_id}")
+    response = await auth_client.delete(f"/api/v1/portfolios/{fake_id}")
 
     assert response.status_code == 404
 
@@ -216,7 +216,7 @@ async def test_portfolio_delete_not_owned(auth_client, other_user_portfolio):
     """Test portfolio_delete raises 404 for portfolio not owned by user."""
     portfolio_id = other_user_portfolio.id
 
-    response = await auth_client.delete(f"/api/portfolios/{portfolio_id}")
+    response = await auth_client.delete(f"/api/v1/portfolios/{portfolio_id}")
 
     assert response.status_code == 404
 
@@ -228,7 +228,7 @@ async def test_portfolio_accounts_update_empty(auth_client, test_portfolios):
 
     update_request = {"accounts": []}
     response = await auth_client.put(
-        f"/api/portfolios/{portfolio_id}/accounts", json=update_request
+        f"/api/v1/portfolios/{portfolio_id}/accounts", json=update_request
     )
 
     assert response.status_code == 200
