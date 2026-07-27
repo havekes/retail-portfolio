@@ -8,7 +8,7 @@ import redis
 import svcs
 from alembic import command
 from alembic.config import Config
-from fastapi import FastAPI, Request, status, APIRouter
+from fastapi import APIRouter, FastAPI, Request, status
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from huey_dashboard import init_huey_dashboard
