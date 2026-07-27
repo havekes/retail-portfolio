@@ -63,7 +63,7 @@ from src.worker import huey
 
 logger = logging.getLogger(__name__)
 
-market_router = APIRouter(prefix="/api/market")
+market_router = APIRouter(prefix="/market")
 
 
 @market_router.get("/prices/{security_id}/last-close")

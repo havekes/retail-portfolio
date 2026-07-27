@@ -51,7 +51,7 @@ async def test_create_note_triggers_title_generation(auth_client, test_security,
     ):
         note_data = {"content": "This is a test note content"}
         response = await auth_client.post(
-            f"/api/market/securities/{test_security.id}/notes",
+            f"/api/v1/market/securities/{test_security.id}/notes",
             json=note_data
         )
         
@@ -65,7 +65,7 @@ async def test_create_note_triggers_title_generation(auth_client, test_security,
         await _generate_note_title(created_note_id)
         
         # Fetch notes to verify title was generated
-        response = await auth_client.get(f"/api/market/securities/{test_security.id}/notes")
+        response = await auth_client.get(f"/api/v1/market/securities/{test_security.id}/notes")
         assert response.status_code == 200
         notes = response.json()
         assert len(notes["items"]) == 1
@@ -77,7 +77,7 @@ async def test_update_note_triggers_title_generation(auth_client, test_security,
     with patch("src.market.router.generate_note_title_task"):
         note_data = {"content": "Initial content"}
         response = await auth_client.post(
-            f"/api/market/securities/{test_security.id}/notes",
+            f"/api/v1/market/securities/{test_security.id}/notes",
             json=note_data
         )
     assert response.status_code == 200
@@ -111,7 +111,7 @@ async def test_update_note_triggers_title_generation(auth_client, test_security,
     ):
         update_data = {"content": "Updated content"}
         response = await auth_client.put(
-            f"/api/market/securities/{test_security.id}/notes/{note_id}",
+            f"/api/v1/market/securities/{test_security.id}/notes/{note_id}",
             json=update_data
         )
         assert response.status_code == 200
@@ -123,7 +123,7 @@ async def test_update_note_triggers_title_generation(auth_client, test_security,
         await _generate_note_title(note_id)
         
         # Fetch notes to verify title was updated
-        response = await auth_client.get(f"/api/market/securities/{test_security.id}/notes")
+        response = await auth_client.get(f"/api/v1/market/securities/{test_security.id}/notes")
         assert response.status_code == 200
         notes = response.json()
         assert len(notes["items"]) == 1

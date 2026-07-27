@@ -32,8 +32,8 @@ from src.integration.service import (
 from src.integration.task import sync_account_positions_task
 from src.market.api import SecurityApi
 
-integration_router = APIRouter(prefix="/api/external")
-institutions_router = APIRouter(prefix="/api/integration")
+integration_router = APIRouter(prefix="/external")
+institutions_router = APIRouter(prefix="/integration")
 
 
 @institutions_router.get("/institutions")

@@ -8,7 +8,7 @@ import redis
 import svcs
 from alembic import command
 from alembic.config import Config
-from fastapi import FastAPI, Request, status
+from fastapi import FastAPI, Request, status, APIRouter
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from huey_dashboard import init_huey_dashboard
@@ -153,12 +153,16 @@ app.add_middleware(
 )
 
 init_logging()
-app.include_router(account_router)
-app.include_router(portfolio_router)
-app.include_router(auth_router)
-app.include_router(institutions_router)
-app.include_router(integration_router)
-app.include_router(market_router)
+
+v1 = APIRouter(prefix="/api/v1")
+v1.include_router(account_router)
+v1.include_router(portfolio_router)
+v1.include_router(auth_router)
+v1.include_router(institutions_router)
+v1.include_router(integration_router)
+v1.include_router(market_router)
+
+app.include_router(v1)
 app.include_router(ws_router)
 
 

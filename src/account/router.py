@@ -30,8 +30,8 @@ from src.config.limiter import limiter
 from src.core.pagination import PaginatedResponse, PaginationParams
 from src.integration.sync_status import get_active_syncs
 
-account_router = APIRouter(prefix="/api/accounts")
-portfolio_router = APIRouter(prefix="/api/portfolios")
+account_router = APIRouter(prefix="/accounts")
+portfolio_router = APIRouter(prefix="/portfolios")
 
 
 @portfolio_router.get("/")

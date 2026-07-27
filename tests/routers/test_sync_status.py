@@ -11,7 +11,7 @@ import redis
 async def test_sync_status_returns_empty(auth_client):
     """Test sync_status returns empty list when no active syncs."""
     with patch("src.account.router.get_active_syncs", new=AsyncMock(return_value=[])):
-        response = await auth_client.get("/api/accounts/sync-status")
+        response = await auth_client.get("/api/v1/accounts/sync-status")
 
     assert response.status_code == 200
     result = response.json()
@@ -23,7 +23,7 @@ async def test_sync_status_returns_active_accounts(auth_client):
     """Test sync_status returns active sync account IDs."""
     active_id = uuid4()
     with patch("src.account.router.get_active_syncs", new=AsyncMock(return_value=[active_id])):
-        response = await auth_client.get("/api/accounts/sync-status")
+        response = await auth_client.get("/api/v1/accounts/sync-status")
 
     assert response.status_code == 200
     result = response.json()
@@ -37,7 +37,7 @@ async def test_sync_status_scoped_to_authenticated_user(auth_client, test_user):
     mock_get = AsyncMock(return_value=[active_id])
 
     with patch("src.account.router.get_active_syncs", mock_get):
-        response = await auth_client.get("/api/accounts/sync-status")
+        response = await auth_client.get("/api/v1/accounts/sync-status")
 
     assert response.status_code == 200
     mock_get.assert_awaited_once_with(test_user.id)
@@ -56,7 +56,7 @@ async def test_sync_status_unauthorized():
             transport=ASGITransport(app=manager.app),
             base_url="http://test",
         ) as client:
-            response = await client.get("/api/accounts/sync-status")
+            response = await client.get("/api/v1/accounts/sync-status")
 
     assert response.status_code in (401, 403)
 
@@ -68,6 +68,6 @@ async def test_sync_status_redis_unavailable(auth_client):
         "src.account.router.get_active_syncs",
         new=AsyncMock(side_effect=redis.RedisError("Connection refused")),
     ):
-        response = await auth_client.get("/api/accounts/sync-status")
+        response = await auth_client.get("/api/v1/accounts/sync-status")
 
     assert response.status_code == 503
