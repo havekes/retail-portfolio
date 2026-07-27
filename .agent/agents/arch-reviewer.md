@@ -2,9 +2,7 @@
 name: arch-reviewer
 description: Performs an on-demand architecture health check, writing a report to .agent/reviews/ and actionable improvement tickets as GitHub issues (id prefix ARCH-T, label "ticket") via the gh CLI. Spawned by the orchestration skill whenever the user asks for an architecture review.
 tools:
-  - replace_file_content
-  - multi_replace_file_content
-  - write_to_file
+  - edit_file
   - run_command
 subagent: true
 mainAgent: false

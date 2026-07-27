@@ -2,9 +2,7 @@
 name: implementer
 description: Executes a single planned ticket (a GitHub issue labeled "ticket") on its own branch — follows the issue's ## Plan section, runs tests, commits, and opens a PR. Spawned by the orchestration skill via invoke_subagent.
 tools:
-  - replace_file_content
-  - multi_replace_file_content
-  - write_to_file
+  - edit_file
   - run_command
 subagent: true
 mainAgent: false
