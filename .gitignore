@@ -211,6 +211,7 @@ __marimo__/
 .vault/
 .local/
 
+.DS_Store
 .bash_history
 .env
 data
