@@ -136,10 +136,11 @@ class HoldingRead(BaseModel):
     updated_at: datetime | None = None
 
 
-class AccountHoldingsRead(BaseModel):
+from src.core.pagination import PaginatedResponse
+
+class AccountHoldingsRead(PaginatedResponse[HoldingRead]):
     account_id: AccountId
     account_name: str
-    holdings: list[HoldingRead]
     total_value: float
     total_profit_loss: float
     total_profit_loss_percent: float | None = None

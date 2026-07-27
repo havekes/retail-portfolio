@@ -81,11 +81,11 @@ class PositionService:
         )
 
     async def get_holdings_by_security(
-        self, security_id: SecurityId, user_id: UserId
-    ) -> list[AccountHoldingRead]:
+        self, security_id: SecurityId, user_id: UserId, offset: int = 0, limit: int = 50
+    ) -> tuple[list[AccountHoldingRead], int]:
         """Get holdings for a specific security across all user accounts."""
-        holdings = await self._position_repository.get_holdings_by_security(
-            security_id, user_id
+        holdings, total = await self._position_repository.get_holdings_by_security(
+            security_id, user_id, offset, limit
         )
 
         # TODO propagate security not found error instead of returning
@@ -93,7 +93,7 @@ class PositionService:
         try:
             security = await self._security_service.get_by_id(security_id)
         except SecurityNotFoundError:
-            return []
+            return [], 0
 
         latest_price_money = await self._market_prices.get_latest_close(security_id)
         latest_price = float(latest_price_money.amount) if latest_price_money else 0.0
@@ -108,16 +108,25 @@ class PositionService:
                 currency=str(security.currency),
             )
             for h in holdings
-        ]
+        ], total
 
-    async def get_account_holdings(self, account_id: AccountId) -> AccountHoldingsRead:
+    async def get_account_holdings(self, account_id: AccountId, offset: int = 0, limit: int = 50) -> AccountHoldingsRead:
         """Get detailed holdings and totals for a specific account."""
         account = await self._account_service.get_account(account_id)
-        positions = await self._position_repository.get_by_account(account_id)
-
-        holdings, total_value, total_profit_loss = await self._calculate_holdings(
+        
+        # Calculate totals over all positions
+        all_positions, _ = await self._position_repository.get_by_account(account_id)
+        _, total_value, total_profit_loss = await self._calculate_holdings(
+            account, all_positions
+        )
+        
+        # Fetch paginated positions
+        positions, total = await self._position_repository.get_by_account(account_id, offset=offset, limit=limit)
+        
+        holdings, _, _ = await self._calculate_holdings(
             account, positions
         )
+
 
         total_profit_loss_percent = None
         if account.net_deposits is not None:
@@ -130,9 +139,12 @@ class PositionService:
                 ) * 100
 
         return AccountHoldingsRead(
+            items=holdings,
+            total=total,
+            offset=offset,
+            limit=limit,
             account_id=account.id,
             account_name=account.name,
-            holdings=holdings,
             total_value=float(total_value.amount),
             total_profit_loss=float(total_profit_loss.amount),
             total_profit_loss_percent=total_profit_loss_percent,
@@ -144,7 +156,7 @@ class PositionService:
         self, account_id: AccountId, currency: BaseCurrency
     ) -> AccountTotals:
         """Calculate total cost and current value for an account in a currency."""
-        positions = await self._position_repository.get_by_account(account_id)
+        positions, _ = await self._position_repository.get_by_account(account_id)
 
         total_cost = Money(0, currency)
         total_price = Money(0, currency)

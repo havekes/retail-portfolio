@@ -1,4 +1,5 @@
 import { ApiClient } from './apiClient';
+import type { PaginatedResponse } from '../types/pagination';
 
 export interface SecurityNote {
 	id: number;
@@ -19,8 +20,8 @@ export interface SecurityNoteUpdateRequest {
 }
 
 export class NotesService extends ApiClient {
-	async getNotes(securityId: string): Promise<SecurityNote[]> {
-		return await this.get<SecurityNote[]>(`/market/securities/${securityId}/notes`);
+	async getNotes(securityId: string): Promise<PaginatedResponse<SecurityNote>> {
+		return await this.get<PaginatedResponse<SecurityNote>>(`/market/securities/${securityId}/notes`);
 	}
 
 	async createNote(securityId: string, request: SecurityNoteCreateRequest): Promise<SecurityNote> {

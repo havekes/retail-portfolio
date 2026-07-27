@@ -20,10 +20,7 @@
 	const sidebar = useSidebar();
 	const user = $derived($page.data.user);
 	const watchlistService = getWatchlistService();
-	const defaultWatchlist = $derived(
-		watchlistService?.watchlists?.find((w) => w.name === 'Default')
-	);
-	const securities = $derived(defaultWatchlist?.securities || []);
+	const securities = $derived(watchlistService?.defaultWatchlistSecurities || []);
 </script>
 
 <Sidebar.Root collapsible="icon">

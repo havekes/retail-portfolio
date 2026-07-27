@@ -1,4 +1,5 @@
 import { ApiClient } from './apiClient';
+import type { PaginatedResponse } from '../types/pagination';
 
 export interface PriceAlert {
 	id: number;
@@ -16,8 +17,8 @@ export interface PriceAlertCreateRequest {
 }
 
 export class AlertsService extends ApiClient {
-	async getAlerts(securityId: string): Promise<PriceAlert[]> {
-		return await this.get<PriceAlert[]>(`/market/securities/${securityId}/alerts`);
+	async getAlerts(securityId: string): Promise<PaginatedResponse<PriceAlert>> {
+		return await this.get<PaginatedResponse<PriceAlert>>(`/market/securities/${securityId}/alerts`);
 	}
 
 	async createAlert(securityId: string, request: PriceAlertCreateRequest): Promise<PriceAlert> {

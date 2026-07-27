@@ -17,9 +17,8 @@
 	const watchlistService = getWatchlistService();
 
 	function getWatchlistSecurity(result: MarketSearchResult) {
-		const defaultWatchlist = watchlistService?.watchlists?.find((w) => w.name === 'Default');
-		if (!defaultWatchlist) return null;
-		return defaultWatchlist.securities.find(
+		if (!watchlistService) return null;
+		return watchlistService.defaultWatchlistSecurities.find(
 			(s) =>
 				s.symbol.toLowerCase() === result.code.toLowerCase() &&
 				s.exchange.toLowerCase() === result.exchange.toLowerCase()

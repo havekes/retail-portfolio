@@ -13,9 +13,10 @@ from src.auth.api_types import User
 from src.config.limiter import limiter
 from src.config.settings import settings
 from src.core.context import get_request_id
+from src.core.pagination import PaginationParams, PaginatedResponse
 from src.market.ai_service import AIService
 from src.market.api import SecurityApi
-from src.market.api_types import SecurityId, SecuritySearchResult
+from src.market.api_types import SecurityId, SecuritySearchResult, WatchlistId
 from src.market.cache import IndicatorCache
 from src.market.gateway import MarketGateway
 from src.market.indicators import (
@@ -107,6 +108,7 @@ async def market_get_prices(
     security_id: SecurityId,
     from_date: Annotated[date, Query(description="Start date (ISO 8601)")],
     to_date: Annotated[date, Query(description="End date (ISO 8601)")],
+    pagination: Annotated[PaginationParams, Depends()],
     services: DepContainer,
 ) -> PriceHistoryRead:
     """
@@ -121,7 +123,7 @@ async def market_get_prices(
     price_repository = await services.aget(PriceRepository)
     security_repository = await services.aget(SecurityRepository)
     security = await security_repository.get_by_id_or_fail(security_id)
-    prices = await price_repository.get_prices(security, from_date, to_date)
+    prices, total = await price_repository.get_prices(security, from_date, to_date, offset=pagination.offset, limit=pagination.limit)
 
     logger.info(
         "Retrieved %d prices for security %s from %s to %s",
@@ -132,10 +134,13 @@ async def market_get_prices(
     )
 
     return PriceHistoryRead(
+        items=[PriceSchema.model_validate(price) for price in prices],
+        total=total,
+        offset=pagination.offset,
+        limit=pagination.limit,
         security_id=security_id,
         from_date=from_date,
         to_date=to_date,
-        prices=[PriceSchema.model_validate(price) for price in prices],
     )
 
 
@@ -163,6 +168,21 @@ async def market_watchlists(
     """
     watchlist_repository = await services.aget(WatchlistRepository)
     return await watchlist_repository.get_by_user(user.id)
+
+
+@market_router.get("/watchlists/{watchlist_id}/securities")
+async def market_watchlist_securities(
+    user: Annotated[User, Depends(current_user)],
+    watchlist_id: WatchlistId,
+    pagination: Annotated[PaginationParams, Depends()],
+    services: DepContainer,
+) -> PaginatedResponse[SecuritySchema]:
+    """
+    Get all securities for a watchlist
+    """
+    watchlist_repository = await services.aget(WatchlistRepository)
+    securities, total = await watchlist_repository.get_securities(watchlist_id, user.id, offset=pagination.offset, limit=pagination.limit)
+    return PaginatedResponse(items=securities, total=total, offset=pagination.offset, limit=pagination.limit)
 
 
 @market_router.post("/watchlists/securities/{security_id}")
@@ -220,15 +240,16 @@ async def market_create_or_get_security(
 async def market_get_alerts(
     user: Annotated[User, Depends(current_user)],
     security_id: SecurityId,
+    pagination: Annotated[PaginationParams, Depends()],
     services: DepContainer,
-) -> list[PriceAlertRead]:
+) -> PaginatedResponse[PriceAlertRead]:
     """
     Get all price alerts for a security
     """
     alert_repository = await services.aget(PriceAlertRepository)
-    alerts = await alert_repository.get_by_security_and_user(security_id, user.id)
+    alerts, total = await alert_repository.get_by_security_and_user(security_id, user.id, offset=pagination.offset, limit=pagination.limit)
     logger.info("Retrieved %d alerts for security %s", len(alerts), security_id)
-    return alerts
+    return PaginatedResponse(items=alerts, total=total, offset=pagination.offset, limit=pagination.limit)
 
 
 @market_router.post("/securities/{security_id}/alerts")
@@ -267,15 +288,16 @@ async def market_delete_alert(
 async def market_get_notes(
     user: Annotated[User, Depends(current_user)],
     security_id: SecurityId,
+    pagination: Annotated[PaginationParams, Depends()],
     services: DepContainer,
-) -> list[SecurityNoteRead]:
+) -> PaginatedResponse[SecurityNoteRead]:
     """
     Get all notes for a security
     """
     note_repository = await services.aget(SecurityNoteRepository)
-    notes = await note_repository.get_by_security_and_user(security_id, user.id)
+    notes, total = await note_repository.get_by_security_and_user(security_id, user.id, offset=pagination.offset, limit=pagination.limit)
     logger.info("Retrieved %d notes for security %s", len(notes), security_id)
-    return notes
+    return PaginatedResponse(items=notes, total=total, offset=pagination.offset, limit=pagination.limit)
 
 
 @market_router.post("/securities/{security_id}/notes")

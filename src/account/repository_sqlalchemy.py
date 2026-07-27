@@ -160,22 +160,28 @@ class SqlAlchemyPositionRepository(PositionRepository):
         self._session = session
 
     @override
-    async def get_by_account(self, account_id: AccountId) -> list[PositionSchema]:
-        query = select(PositionModel).where(
+    async def get_by_account(self, account_id: AccountId, offset: int = 0, limit: int | None = None) -> tuple[list[PositionSchema], int]:
+        base_query = select(PositionModel).where(
             PositionModel.account_id == account_id,
         )
+        total = await self._session.scalar(select(func.count()).select_from(base_query.subquery()))
+        
+        query = base_query
+        if limit is not None:
+            query = query.offset(offset).limit(limit)
+            
         result = await self._session.execute(query)
         position_models = result.scalars().all()
         return [
             PositionSchema.model_validate(position_model)
             for position_model in position_models
-        ]
+        ], total or 0
 
     @override
     async def get_holdings_by_security(
-        self, security_id: SecurityId, user_id: UserId
-    ) -> list[AccountHoldingRead]:
-        query = (
+        self, security_id: SecurityId, user_id: UserId, offset: int = 0, limit: int = 50
+    ) -> tuple[list[AccountHoldingRead], int]:
+        base_query = (
             select(
                 PositionModel.account_id,
                 AccountModel.name.label("account_name"),
@@ -188,7 +194,9 @@ class SqlAlchemyPositionRepository(PositionRepository):
                 AccountModel.user_id == user_id,
             )
         )
-        result = await self._session.execute(query)
+        total = await self._session.scalar(select(func.count()).select_from(base_query.subquery()))
+        
+        result = await self._session.execute(base_query.offset(offset).limit(limit))
         return [
             AccountHoldingRead(
                 account_id=row.account_id,
@@ -198,8 +206,8 @@ class SqlAlchemyPositionRepository(PositionRepository):
                 total_value=0.0,  # Populated by service layer
                 currency="",  # Populated by service layer
             )
-            for row in result.all()
-        ]
+            for row in result
+        ], total or 0
 
     @override
     async def sync_by_account(

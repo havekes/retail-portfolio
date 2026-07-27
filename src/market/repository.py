@@ -1,4 +1,5 @@
 from abc import ABC, abstractmethod
+import uuid
 from datetime import date
 
 from src.auth.api_types import UserId
@@ -50,8 +51,8 @@ class SecurityBrokerRepository(ABC):
 class PriceRepository(ABC):
     @abstractmethod
     async def get_prices(
-        self, security: SecuritySchema, from_date: date, to_date: date
-    ) -> list[PriceSchema]:
+        self, security: SecuritySchema, from_date: date, to_date: date, offset: int = 0, limit: int = 50
+    ) -> tuple[list[PriceSchema], int]:
         pass
 
     @abstractmethod
@@ -98,12 +99,18 @@ class WatchlistRepository(ABC):
     ) -> WatchlistRead:
         pass
 
+    @abstractmethod
+    async def get_securities(
+        self, watchlist_id: uuid.UUID, user_id: UserId, offset: int = 0, limit: int = 50
+    ) -> tuple[list[SecuritySchema], int]:
+        pass
+
 
 class PriceAlertRepository(ABC):
     @abstractmethod
     async def get_by_security_and_user(
-        self, security_id: SecurityId, user_id: UserId
-    ) -> list[PriceAlertRead]:
+        self, security_id: SecurityId, user_id: UserId, offset: int = 0, limit: int = 50
+    ) -> tuple[list[PriceAlertRead], int]:
         pass
 
     @abstractmethod
@@ -120,8 +127,8 @@ class PriceAlertRepository(ABC):
 class SecurityNoteRepository(ABC):
     @abstractmethod
     async def get_by_security_and_user(
-        self, security_id: SecurityId, user_id: UserId
-    ) -> list[SecurityNoteRead]:
+        self, security_id: SecurityId, user_id: UserId, offset: int = 0, limit: int = 50
+    ) -> tuple[list[SecurityNoteRead], int]:
         pass
 
     @abstractmethod

@@ -26,10 +26,10 @@ class EodhdPriceRepository(PriceRepository):
 
     @override
     async def get_prices(
-        self, security: SecuritySchema, from_date: date, to_date: date
-    ) -> list[PriceSchema]:
-        existing_prices = await self._db_repository.get_prices(
-            security, from_date, to_date
+        self, security: SecuritySchema, from_date: date, to_date: date, offset: int = 0, limit: int = 50
+    ) -> tuple[list[PriceSchema], int]:
+        existing_prices, total = await self._db_repository.get_prices(
+            security, from_date, to_date, offset, limit
         )
 
         new_prices_eodhd = self._gateway.get_prices(
@@ -47,7 +47,7 @@ class EodhdPriceRepository(PriceRepository):
         all_prices = list(merged.values())
         await self._db_repository.save_prices(all_prices)
 
-        return sorted(all_prices, key=lambda p: p.date)
+        return sorted(all_prices, key=lambda p: p.date), len(all_prices)
 
     @override
     async def get_latest_price(self, security: SecuritySchema) -> PriceSchema | None:
@@ -65,7 +65,7 @@ class EodhdPriceRepository(PriceRepository):
         if latest_price is not None and latest_price.date >= latest_close_date:
             return latest_price
 
-        prices = await self.get_prices(
+        prices, _ = await self.get_prices(
             security,
             from_date=datetime.now(UTC).date() - timedelta(days=7),
             to_date=latest_close_date,

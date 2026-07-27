@@ -1,4 +1,5 @@
 import { ApiClient } from './apiClient';
+import type { PaginatedResponse } from '../types/pagination';
 
 export interface MarketSearchResult {
 	code: string;
@@ -20,11 +21,10 @@ export interface MarketPrice {
 	currency: string;
 }
 
-export interface MarketPriceHistory {
+export interface MarketPriceHistory extends PaginatedResponse<MarketPrice> {
 	security_id: string;
 	from_date: string;
 	to_date: string;
-	prices: MarketPrice[];
 }
 
 export interface SecuritySchema {
@@ -58,7 +58,6 @@ export interface WatchlistRead {
 	id: string;
 	user_id: string;
 	name: string;
-	securities: SecuritySchema[];
 }
 
 export class MarketService extends ApiClient {
@@ -96,6 +95,10 @@ export class MarketService extends ApiClient {
 
 	async getWatchlists(token?: string | null): Promise<WatchlistRead[]> {
 		return await this.get<WatchlistRead[]>('/market/watchlists', {}, token);
+	}
+
+	async getWatchlistSecurities(watchlistId: string, token?: string | null): Promise<PaginatedResponse<SecuritySchema>> {
+		return await this.get<PaginatedResponse<SecuritySchema>>(`/market/watchlists/${watchlistId}/securities`, {}, token);
 	}
 
 	async addToWatchlist(securityId: string, token?: string | null): Promise<WatchlistRead> {

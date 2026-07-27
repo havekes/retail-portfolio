@@ -84,10 +84,11 @@ export interface Holding {
 	updated_at?: string;
 }
 
-export interface AccountHoldings {
+import type { PaginatedResponse } from './pagination';
+
+export interface AccountHoldings extends PaginatedResponse<Holding> {
 	account_id: string;
 	account_name: string;
-	holdings: Holding[];
 	total_value: number;
 	total_profit_loss: number;
 	total_profit_loss_percent: number | null;

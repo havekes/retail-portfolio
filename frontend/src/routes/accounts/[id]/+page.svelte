@@ -87,12 +87,12 @@
 			</PageHeader>
 
 			<main class="flex-1 overflow-y-auto">
-				<div class="animate-in duration-500 fade-in">
+				{#if data.holdings && data.holdings.items.length > 0}
 					<HoldingsTable
-						holdings={data.holdings.holdings}
+						holdings={data.holdings.items}
 						totalAccountValue={data.holdings.total_value}
 					/>
-				</div>
+				{/if}
 			</main>
 		</div>
 	</Sidebar.Inset>

@@ -20,7 +20,8 @@
 		isLoading = true;
 		error = null;
 		try {
-			holdings = await accountService.getHoldings(securityId);
+			const res = await accountService.getHoldings(securityId);
+			holdings = res.items;
 		} catch (err) {
 			console.error('Failed to fetch holdings:', err);
 			error = 'Failed to load holdings';

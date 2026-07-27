@@ -70,8 +70,8 @@ class AIService:
         security = await self._security_repository.get_by_id_or_fail(security_id)
         latest_price = await self._price_repository.get_latest_price(security)
 
-        notes = await self._notes_repository.get_by_security_and_user(
-            security_id, user_id
+        notes, _ = await self._notes_repository.get_by_security_and_user(
+            security_id, user_id, limit=50
         )
 
         today = datetime.now(tz=UTC).date()

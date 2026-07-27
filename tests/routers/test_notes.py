@@ -68,8 +68,8 @@ async def test_create_note_triggers_title_generation(auth_client, test_security,
         response = await auth_client.get(f"/api/market/securities/{test_security.id}/notes")
         assert response.status_code == 200
         notes = response.json()
-        assert len(notes) == 1
-        assert notes[0]["title"] == mock_title
+        assert len(notes["items"]) == 1
+        assert notes["items"][0]["title"] == mock_title
 
 @pytest.mark.anyio
 async def test_update_note_triggers_title_generation(auth_client, test_security, db_session):
@@ -126,5 +126,5 @@ async def test_update_note_triggers_title_generation(auth_client, test_security,
         response = await auth_client.get(f"/api/market/securities/{test_security.id}/notes")
         assert response.status_code == 200
         notes = response.json()
-        assert len(notes) == 1
-        assert notes[0]["title"] == mock_title
+        assert len(notes["items"]) == 1
+        assert notes["items"][0]["title"] == mock_title

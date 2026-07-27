@@ -1,0 +1,41 @@
+import re
+
+with open('issue74.body', 'r') as f:
+    body = f.read()
+
+plan_text = """## Plan
+
+**Approach:** 
+Introduce `PaginationParams` (FastAPI dependency) and `PaginatedResponse` in a new `src/core/pagination.py` module. Update the target endpoints (Prices, Notes, Alerts, Holdings, Watchlists) to accept these parameters and return the paginated schema. At the repository level, modify corresponding fetch methods to accept `offset` and `limit`, executing a scalar `count()` query alongside the data fetch to populate the `total` field.
+
+**Files:**
+- `src/core/pagination.py` — create: Define `PaginationParams` and `PaginatedResponse` models as specified.
+- `src/market/router.py` — modify: Update `market_get_prices`, `market_get_notes`, `market_get_alerts`, and `market_watchlists` to inject `PaginationParams` and return `PaginatedResponse`.
+- `src/market/repository.py` & `src/market/repository_sqlalchemy.py` — modify: Add `offset`/`limit` to `PriceRepository.get_prices`, `SecurityNoteRepository.get_by_security_and_user`, `PriceAlertRepository.get_by_security_and_user`, and `WatchlistRepository.get_by_user` (and/or add a new method/endpoint for paginated watchlist securities). Implement `.offset()`, `.limit()`, and a `count()` query.
+- `src/account/router.py` — modify: Update `security_holdings` and `account_holdings` endpoints to inject `PaginationParams` and return `PaginatedResponse`.
+- `src/account/repository.py` & `src/account/service/position.py` — modify: Pass `offset` and `limit` down to `PositionRepository.get_holdings_by_security` and `get_account_holdings`, returning data + total.
+
+**Steps:**
+1. Create `src/core/pagination.py` with `PaginationParams` and `PaginatedResponse`.
+2. Update `src/market/repository.py` and `src/market/repository_sqlalchemy.py` to support `offset` and `limit` (returning total counts) for prices, notes, alerts, and watchlists.
+3. Update `src/account/repository.py` and `src/account/service/position.py` to support `offset` and `limit` for holdings/positions.
+4. Update `src/market/router.py` endpoints to use `PaginationParams` and return `PaginatedResponse`.
+5. Update `src/account/router.py` endpoints to use `PaginationParams` and return `PaginatedResponse`.
+6. Update frontend API clients/components to handle `PaginatedResponse.items` and pass `offset`/`limit`.
+
+**Verification:**
+- Run backend tests to ensure repository layer returns limited results and correct totals.
+- Verify `GET /api/market/prices/{security_id}?limit=50` returns a `PaginatedResponse` with `items`, `total`, `offset`, and `limit`.
+- Verify the same for notes, holdings, alerts, and watchlists.
+- Confirm frontend successfully renders list views using the nested `items` array.
+
+**Risks / watch-outs:**
+- **Nested Lists & Metadata**: `PriceHistoryRead`, `AccountHoldingsRead`, and `WatchlistRead` currently embed their lists alongside metadata (e.g., `AccountHoldingsRead.total_value`). The executor may need to subclass `PaginatedResponse` (e.g. `class PaginatedAccountHoldings(PaginatedResponse[HoldingRead])`) to preserve these top-level metadata fields or extract them into separate endpoints.
+- **Watchlist Items vs Watchlists**: The scope says "Watchlist items", but the current endpoint `/api/market/watchlists` returns a list of watchlists (which embed their securities). Paginating the endpoint will paginate the watchlists, not the securities inside them. To prevent unbounded payloads from a large watchlist, the executor will likely need to introduce a new `/api/market/watchlists/{id}/securities` endpoint.
+"""
+
+# Replace the ## Plan section
+new_body = re.sub(r'## Plan\n<!-- To be populated by planner -->', plan_text, body)
+
+with open('issue74_new.body', 'w') as f:
+    f.write(new_body)
