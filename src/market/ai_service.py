@@ -77,7 +77,7 @@ class AIService:
         today = datetime.now(tz=UTC).date()
         from_date = today.replace(day=1) - timedelta(days=90)
 
-        recent_prices = await self._price_repository.get_prices(
+        recent_prices, _ = await self._price_repository.get_prices(
             security, from_date=from_date, to_date=today
         )
 

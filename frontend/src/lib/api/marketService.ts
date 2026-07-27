@@ -97,8 +97,15 @@ export class MarketService extends ApiClient {
 		return await this.get<WatchlistRead[]>('/market/watchlists', {}, token);
 	}
 
-	async getWatchlistSecurities(watchlistId: string, token?: string | null): Promise<PaginatedResponse<SecuritySchema>> {
-		return await this.get<PaginatedResponse<SecuritySchema>>(`/market/watchlists/${watchlistId}/securities`, {}, token);
+	async getWatchlistSecurities(
+		watchlistId: string,
+		token?: string | null
+	): Promise<PaginatedResponse<SecuritySchema>> {
+		return await this.get<PaginatedResponse<SecuritySchema>>(
+			`/market/watchlists/${watchlistId}/securities`,
+			{},
+			token
+		);
 	}
 
 	async addToWatchlist(securityId: string, token?: string | null): Promise<WatchlistRead> {

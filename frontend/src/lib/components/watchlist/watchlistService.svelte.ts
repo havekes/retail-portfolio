@@ -1,4 +1,9 @@
-import { getMarketService, type MarketService, type WatchlistRead, type SecuritySchema } from '@/api/marketService';
+import {
+	getMarketService,
+	type MarketService,
+	type WatchlistRead,
+	type SecuritySchema
+} from '@/api/marketService';
 import { getContext, setContext } from 'svelte';
 
 export class WatchlistService {
@@ -39,7 +44,9 @@ export class WatchlistService {
 		try {
 			if (isAdded) {
 				await this.client.removeFromWatchlist(securityId, token);
-				this.defaultWatchlistSecurities = this.defaultWatchlistSecurities.filter((s) => s.id !== securityId);
+				this.defaultWatchlistSecurities = this.defaultWatchlistSecurities.filter(
+					(s) => s.id !== securityId
+				);
 			} else {
 				await this.client.addToWatchlist(securityId, token);
 				// To get the full security schema, we just reload the watchlist securities

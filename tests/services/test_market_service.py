@@ -50,8 +50,8 @@ class MockPriceRepository(PriceRepository):
         return []
 
     @override
-    async def get_prices(self, security, from_date, to_date):
-        return []
+    async def get_prices(self, security, from_date, to_date, offset: int = 0, limit: int = 50):
+        return [], 0
 
     @override
     async def get_latest_price(self, security):

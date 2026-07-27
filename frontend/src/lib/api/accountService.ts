@@ -12,7 +12,9 @@ export interface AccountHoldingRead {
 
 export class AccountService extends ApiClient {
 	async getHoldings(securityId: string): Promise<PaginatedResponse<AccountHoldingRead>> {
-		return await this.get<PaginatedResponse<AccountHoldingRead>>(`/accounts/holdings/${securityId}`);
+		return await this.get<PaginatedResponse<AccountHoldingRead>>(
+			`/accounts/holdings/${securityId}`
+		);
 	}
 }
 
