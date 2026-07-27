@@ -160,16 +160,20 @@ class SqlAlchemyPositionRepository(PositionRepository):
         self._session = session
 
     @override
-    async def get_by_account(self, account_id: AccountId, offset: int = 0, limit: int | None = None) -> tuple[list[PositionSchema], int]:
+    async def get_by_account(
+        self, account_id: AccountId, offset: int = 0, limit: int | None = None
+    ) -> tuple[list[PositionSchema], int]:
         base_query = select(PositionModel).where(
             PositionModel.account_id == account_id,
         )
-        total = await self._session.scalar(select(func.count()).select_from(base_query.subquery()))
-        
+        total = await self._session.scalar(
+            select(func.count()).select_from(base_query.subquery())
+        )
+
         query = base_query
         if limit is not None:
             query = query.offset(offset).limit(limit)
-            
+
         result = await self._session.execute(query)
         position_models = result.scalars().all()
         return [
@@ -194,8 +198,10 @@ class SqlAlchemyPositionRepository(PositionRepository):
                 AccountModel.user_id == user_id,
             )
         )
-        total = await self._session.scalar(select(func.count()).select_from(base_query.subquery()))
-        
+        total = await self._session.scalar(
+            select(func.count()).select_from(base_query.subquery())
+        )
+
         result = await self._session.execute(base_query.offset(offset).limit(limit))
         return [
             AccountHoldingRead(

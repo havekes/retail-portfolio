@@ -60,7 +60,9 @@ class AccountRepository(ABC):
 
 class PositionRepository(ABC):
     @abstractmethod
-    async def get_by_account(self, account_id: AccountId, offset: int = 0, limit: int | None = None) -> tuple[list[PositionSchema], int]:
+    async def get_by_account(
+        self, account_id: AccountId, offset: int = 0, limit: int | None = None
+    ) -> tuple[list[PositionSchema], int]:
         pass
 
     @abstractmethod
