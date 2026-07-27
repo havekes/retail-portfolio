@@ -38,8 +38,13 @@ class JsonFormatter(logging.Formatter):
 
         if record.exc_info:
             log_dict["exc_info"] = self.formatException(record.exc_info)
+        elif record.exc_text:
+            log_dict["exc_info"] = record.exc_text
 
-        return json.dumps(log_dict)
+        if record.stack_info:
+            log_dict["stack_info"] = self.formatStack(record.stack_info)
+
+        return json.dumps(log_dict, default=str)
 
 
 def init_logging() -> None:
