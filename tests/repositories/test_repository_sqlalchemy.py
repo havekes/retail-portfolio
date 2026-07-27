@@ -74,7 +74,7 @@ async def test_save_prices_upserts_correctly(db_session: AsyncSession):
     assert saved_updated[0].volume == 2000
     
     # Verify that we didn't just append a new row, but updated the existing one
-    prices_on_date = await price_repo.get_prices(security, from_date=test_date, to_date=test_date)
+    prices_on_date, _ = await price_repo.get_prices(security, from_date=test_date, to_date=test_date)
     assert len(prices_on_date) == 1
     assert prices_on_date[0].close == Decimal("108.0")
 
@@ -127,9 +127,10 @@ async def test_save_prices_large_batch(db_session: AsyncSession):
     assert len(saved_prices) == num_rows
 
     # Verify a few records
-    prices_in_db = await price_repo.get_prices(
+    prices_in_db, _ = await price_repo.get_prices(
         security,
         from_date=base_date,
         to_date=base_date + datetime.timedelta(days=num_rows - 1),
+        limit=10000
     )
     assert len(prices_in_db) == num_rows

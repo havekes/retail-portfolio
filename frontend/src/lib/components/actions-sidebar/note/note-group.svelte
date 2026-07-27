@@ -30,7 +30,8 @@
 		isLoading = true;
 		error = null;
 		try {
-			notes = await notesService.getNotes(securityId);
+			const res = await notesService.getNotes(securityId);
+			notes = res.items;
 			notes.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
 		} catch (err) {
 			const status = err instanceof ApiError ? err.status : null;

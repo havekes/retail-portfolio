@@ -111,7 +111,8 @@
 	async function loadAlerts() {
 		if (!security?.id) return;
 		try {
-			alerts = await alertsService.getAlerts(security.id);
+			const res = await alertsService.getAlerts(security.id);
+			alerts = res.items;
 		} catch (err) {
 			console.error('Failed to load alerts:', err);
 		}
@@ -120,7 +121,8 @@
 	async function loadHoldings() {
 		if (!security?.id) return;
 		try {
-			holdings = await accountService.getHoldings(security.id);
+			const res = await accountService.getHoldings(security.id);
+			holdings = res.items;
 		} catch (err) {
 			console.error('Failed to load holdings:', err);
 		}
@@ -210,12 +212,13 @@
 
 	$effect(() => {
 		(async () => {
-			if (!data.prices || data.prices.length === 0) {
+			if (!data.items || data.items.length === 0) {
 				error = 'No price data available for this security';
 				return;
 			}
 
-			const rawCandles: Candle[] = data.prices.map((p) => ({
+			// Convert to lightweight-charts format and sort properly (oldest to newest)
+			const rawCandles: Candle[] = data.items.map((p) => ({
 				time: p.date,
 				open: Number(p.open),
 				high: Number(p.high),

@@ -22,13 +22,13 @@ export const load: PageServerLoad = async ({ params, fetch, cookies }) => {
 			marketService.getPrices(security_id, from, to, token)
 		]);
 
-		if (!priceResponse.prices || priceResponse.prices.length === 0) {
+		if (!priceResponse.items || priceResponse.items.length === 0) {
 			throw error(404, 'No price data available for this security');
 		}
 
 		return {
 			security,
-			prices: priceResponse.prices
+			items: priceResponse.items
 		};
 	} catch (err) {
 		if (err instanceof ApiError) {

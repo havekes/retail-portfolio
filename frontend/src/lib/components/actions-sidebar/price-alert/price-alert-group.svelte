@@ -56,7 +56,8 @@
 		isLoading = true;
 		error = null;
 		try {
-			alerts = await alertsService.getAlerts(security.id);
+			const res = await alertsService.getAlerts(security.id);
+			alerts = res.items;
 		} catch (err) {
 			console.error('Failed to fetch alerts:', err);
 			error = 'Failed to load alerts';

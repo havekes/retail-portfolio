@@ -13,6 +13,7 @@ from src.account.api_types import (
 )
 from src.account.enum import AccountTypeEnum, InstitutionEnum
 from src.auth.api_types import UserId
+from src.core.pagination import PaginatedResponse
 from src.integration.api_types import IntegrationUserId
 from src.integration.brokers.api_types import BrokerAccount, BrokerAccountId
 from src.market.api_types import SecurityId
@@ -136,10 +137,9 @@ class HoldingRead(BaseModel):
     updated_at: datetime | None = None
 
 
-class AccountHoldingsRead(BaseModel):
+class AccountHoldingsRead(PaginatedResponse[HoldingRead]):
     account_id: AccountId
     account_name: str
-    holdings: list[HoldingRead]
     total_value: float
     total_profit_loss: float
     total_profit_loss_percent: float | None = None

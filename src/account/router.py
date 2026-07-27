@@ -27,6 +27,7 @@ from src.account.service.position import PositionService
 from src.auth.api import AuthorizationApi, current_user
 from src.auth.api_types import User
 from src.config.limiter import limiter
+from src.core.pagination import PaginatedResponse, PaginationParams
 from src.integration.sync_status import get_active_syncs
 
 account_router = APIRouter(prefix="/api/accounts")
@@ -200,17 +201,24 @@ async def account_totals(
 async def security_holdings(
     security_id: UUID,
     user: Annotated[User, Depends(current_user)],
+    pagination: Annotated[PaginationParams, Depends()],
     services: DepContainer,
-) -> list[AccountHoldingRead]:
+) -> PaginatedResponse[AccountHoldingRead]:
     """Get all holdings for a specific security across user accounts."""
     position_service = await services.aget(PositionService)
-    return await position_service.get_holdings_by_security(security_id, user.id)
+    holdings, total = await position_service.get_holdings_by_security(
+        security_id, user.id, offset=pagination.offset, limit=pagination.limit
+    )
+    return PaginatedResponse(
+        items=holdings, total=total, offset=pagination.offset, limit=pagination.limit
+    )
 
 
 @account_router.get("/{account_id}/holdings")
 async def account_holdings(
     account_id: AccountId,
     user: Annotated[User, Depends(current_user)],
+    pagination: Annotated[PaginationParams, Depends()],
     services: DepContainer,
 ) -> AccountHoldingsRead:
     """Get detailed holdings for a specific account."""
@@ -221,7 +229,9 @@ async def account_holdings(
     account = await account_repository.get(account_id)
     authorization_api.check_entity_owned_by_user(user, account)
 
-    return await position_service.get_account_holdings(account_id)
+    return await position_service.get_account_holdings(
+        account_id, offset=pagination.offset, limit=pagination.limit
+    )
 
 
 @account_router.post("/{account_id}/sync")

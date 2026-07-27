@@ -6,6 +6,7 @@ from pydantic import BaseModel, ConfigDict
 
 from src.account.enum import InstitutionEnum
 from src.auth.api_types import UserId
+from src.core.pagination import PaginatedResponse
 from src.market.api_types import (
     HistoricalPrice,
     Price,
@@ -82,16 +83,15 @@ class WatchlistSchema(BaseModel):
 
 
 class WatchlistRead(WatchlistSchema):
-    securities: list[SecuritySchema]
+    pass
 
 
-class PriceHistoryRead(BaseModel):
+class PriceHistoryRead(PaginatedResponse[PriceSchema]):
     """Response schema for price history endpoint."""
 
     security_id: SecurityId
     from_date: date
     to_date: date
-    prices: list[PriceSchema]
 
 
 class SecurityCreateRequest(BaseModel):

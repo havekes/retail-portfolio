@@ -139,12 +139,12 @@ async def test_security_holdings_success(
 
     assert response.status_code == 200
     result = response.json()
-    assert len(result) == 1
-    assert result[0]["account_id"] == str(test_accounts[0].id)
-    assert result[0]["quantity"] == float(test_position_for_first_account.quantity)
-    assert result[0]["account_name"] == test_accounts[0].name
-    assert "total_value" in result[0]
-    assert "currency" in result[0]
+    assert len(result["items"]) == 1
+    assert result["items"][0]["account_id"] == str(test_accounts[0].id)
+    assert result["items"][0]["quantity"] == float(test_position_for_first_account.quantity)
+    assert result["items"][0]["account_name"] == test_accounts[0].name
+    assert "total_value" in result["items"][0]
+    assert "currency" in result["items"][0]
 
 
 @pytest.mark.anyio
@@ -159,7 +159,7 @@ async def test_account_holdings_isolation(
     response = await auth_client.get(f"/api/accounts/holdings/{fake_id}")
 
     assert response.status_code == 200
-    assert response.json() == []
+    assert response.json()["items"] == []
 
 
 @pytest.mark.anyio
@@ -175,12 +175,12 @@ async def test_account_holdings_success(
 
     assert result["account_id"] == str(account_id)
     assert result["account_name"] == test_accounts[0].name
-    assert len(result["holdings"]) == 1
-    assert result["holdings"][0]["id"] == test_position_for_first_account.id
-    assert result["holdings"][0]["security_id"] == str(
+    assert len(result["items"]) == 1
+    assert result["items"][0]["id"] == test_position_for_first_account.id
+    assert result["items"][0]["security_id"] == str(
         test_position_for_first_account.security_id
     )
     assert "total_value" in result
     assert "total_profit_loss" in result
     assert "currency" in result
-    assert "updated_at" in result["holdings"][0]
+    assert "updated_at" in result["items"][0]

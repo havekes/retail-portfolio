@@ -60,13 +60,15 @@ class AccountRepository(ABC):
 
 class PositionRepository(ABC):
     @abstractmethod
-    async def get_by_account(self, account_id: AccountId) -> list[PositionSchema]:
+    async def get_by_account(
+        self, account_id: AccountId, offset: int = 0, limit: int | None = None
+    ) -> tuple[list[PositionSchema], int]:
         pass
 
     @abstractmethod
     async def get_holdings_by_security(
-        self, security_id: SecurityId, user_id: UserId
-    ) -> list[AccountHoldingRead]:
+        self, security_id: SecurityId, user_id: UserId, offset: int = 0, limit: int = 50
+    ) -> tuple[list[AccountHoldingRead], int]:
         pass
 
     @abstractmethod

@@ -1,4 +1,5 @@
 import { ApiClient } from './apiClient';
+import type { PaginatedResponse } from '../types/pagination';
 
 export interface AccountHoldingRead {
 	account_id: string;
@@ -10,8 +11,10 @@ export interface AccountHoldingRead {
 }
 
 export class AccountService extends ApiClient {
-	async getHoldings(securityId: string): Promise<AccountHoldingRead[]> {
-		return await this.get<AccountHoldingRead[]>(`/accounts/holdings/${securityId}`);
+	async getHoldings(securityId: string): Promise<PaginatedResponse<AccountHoldingRead>> {
+		return await this.get<PaginatedResponse<AccountHoldingRead>>(
+			`/accounts/holdings/${securityId}`
+		);
 	}
 }
 

@@ -22,9 +22,16 @@ async def test_watchlists_list_success(auth_client, test_watchlists):
 
     assert len(result) == 2
     assert result[0]["name"] == "Test Watchlist 0"
-    assert "securities" in result[0]
     assert result[1]["name"] == "Test Watchlist 1"
-    assert "securities" in result[1]
+    
+    # Test new securities endpoint
+    watchlist_id = result[0]["id"]
+    response = await auth_client.get(f"/api/market/watchlists/{watchlist_id}/securities")
+    assert response.status_code == 200
+    securities_result = response.json()
+    assert "items" in securities_result
+    assert "total" in securities_result
+    assert len(securities_result["items"]) >= 0
 
 @pytest.mark.anyio
 async def test_watchlists_list_not_owned(auth_client, other_user, db_session):
@@ -58,9 +65,14 @@ async def test_watchlist_add_security(auth_client, test_security):
     assert response.status_code == 200
     result = response.json()
     assert result["name"] == "Default"
-    assert len(result["securities"]) == 1
-    assert result["securities"][0]["id"] == str(test_security.id)
-    assert result["securities"][0]["symbol"] == test_security.symbol
+    
+    # Check securities using the new endpoint
+    watchlist_id = result["id"]
+    securities_response = await auth_client.get(f"/api/market/watchlists/{watchlist_id}/securities")
+    securities_result = securities_response.json()
+    assert len(securities_result["items"]) == 1
+    assert securities_result["items"][0]["id"] == str(test_security.id)
+    assert securities_result["items"][0]["symbol"] == test_security.symbol
 
 
 @pytest.mark.anyio
@@ -75,7 +87,12 @@ async def test_watchlist_remove_security(auth_client, test_security):
     assert response.status_code == 200
     result = response.json()
     assert result["name"] == "Default"
-    assert len(result["securities"]) == 0
+    
+    # Check securities using the new endpoint
+    watchlist_id = result["id"]
+    securities_response = await auth_client.get(f"/api/market/watchlists/{watchlist_id}/securities")
+    securities_result = securities_response.json()
+    assert len(securities_result["items"]) == 0
 
 
 @pytest.mark.anyio
