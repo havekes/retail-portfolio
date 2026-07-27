@@ -162,6 +162,33 @@ app.include_router(market_router)
 app.include_router(ws_router)
 
 
+@app.get("/health/live")
+async def liveness() -> dict[str, str]:
+    return {"status": "alive"}
+
+@app.get("/health/ready")
+async def readiness(services: DepContainer) -> JSONResponse:
+    checks = {}
+    try:
+        session = await services.aget(AsyncSession)
+        await session.execute(select(1))
+        checks["database"] = "ok"
+    except Exception:
+        checks["database"] = "error"
+        
+    try:
+        async with redis_manager.client() as client:
+            await client.ping()
+        checks["redis"] = "ok"
+    except Exception:
+        checks["redis"] = "error"
+
+    healthy = all(v == "ok" for v in checks.values())
+    return JSONResponse(
+        status_code=200 if healthy else 503,
+        content={"status": "ready" if healthy else "degraded", **checks}
+    )
+
 @app.get("/api/ping")
 async def ping(services: DepContainer) -> dict[str, Any]:
     """Server healthcheck"""
