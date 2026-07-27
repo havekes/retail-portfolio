@@ -4,10 +4,9 @@ from typing import Self
 
 from pydantic import BaseModel, ConfigDict
 
-from src.core.pagination import PaginatedResponse
-
 from src.account.enum import InstitutionEnum
 from src.auth.api_types import UserId
+from src.core.pagination import PaginatedResponse
 from src.market.api_types import (
     HistoricalPrice,
     Price,

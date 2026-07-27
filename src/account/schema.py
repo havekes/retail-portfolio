@@ -13,6 +13,7 @@ from src.account.api_types import (
 )
 from src.account.enum import AccountTypeEnum, InstitutionEnum
 from src.auth.api_types import UserId
+from src.core.pagination import PaginatedResponse
 from src.integration.api_types import IntegrationUserId
 from src.integration.brokers.api_types import BrokerAccount, BrokerAccountId
 from src.market.api_types import SecurityId
@@ -135,8 +136,6 @@ class HoldingRead(BaseModel):
     price_date: date | None = None
     updated_at: datetime | None = None
 
-
-from src.core.pagination import PaginatedResponse
 
 class AccountHoldingsRead(PaginatedResponse[HoldingRead]):
     account_id: AccountId

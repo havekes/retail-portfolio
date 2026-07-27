@@ -1,5 +1,5 @@
-from abc import ABC, abstractmethod
 import uuid
+from abc import ABC, abstractmethod
 from datetime import date
 
 from src.auth.api_types import UserId
@@ -51,7 +51,12 @@ class SecurityBrokerRepository(ABC):
 class PriceRepository(ABC):
     @abstractmethod
     async def get_prices(
-        self, security: SecuritySchema, from_date: date, to_date: date, offset: int = 0, limit: int = 50
+        self,
+        security: SecuritySchema,
+        from_date: date,
+        to_date: date,
+        offset: int = 0,
+        limit: int = 50,
     ) -> tuple[list[PriceSchema], int]:
         pass
 

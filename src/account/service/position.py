@@ -110,23 +110,24 @@ class PositionService:
             for h in holdings
         ], total
 
-    async def get_account_holdings(self, account_id: AccountId, offset: int = 0, limit: int = 50) -> AccountHoldingsRead:
+    async def get_account_holdings(
+        self, account_id: AccountId, offset: int = 0, limit: int = 50
+    ) -> AccountHoldingsRead:
         """Get detailed holdings and totals for a specific account."""
         account = await self._account_service.get_account(account_id)
-        
+
         # Calculate totals over all positions
         all_positions, _ = await self._position_repository.get_by_account(account_id)
         _, total_value, total_profit_loss = await self._calculate_holdings(
             account, all_positions
         )
-        
+
         # Fetch paginated positions
-        positions, total = await self._position_repository.get_by_account(account_id, offset=offset, limit=limit)
-        
-        holdings, _, _ = await self._calculate_holdings(
-            account, positions
+        positions, total = await self._position_repository.get_by_account(
+            account_id, offset=offset, limit=limit
         )
 
+        holdings, _, _ = await self._calculate_holdings(account, positions)
 
         total_profit_loss_percent = None
         if account.net_deposits is not None:

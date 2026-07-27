@@ -2,7 +2,7 @@ import uuid
 from datetime import date
 from typing import override
 
-from sqlalchemy import delete, select, func
+from sqlalchemy import delete, func, select
 from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -193,7 +193,12 @@ class SqlAlchemyPriceRepository(PriceRepository):
 
     @override
     async def get_prices(
-        self, security: SecuritySchema, from_date: date, to_date: date, offset: int = 0, limit: int = 50
+        self,
+        security: SecuritySchema,
+        from_date: date,
+        to_date: date,
+        offset: int = 0,
+        limit: int = 50,
     ) -> tuple[list[PriceSchema], int]:
         base_query = (
             select(PriceModel)
@@ -201,11 +206,15 @@ class SqlAlchemyPriceRepository(PriceRepository):
             .where(PriceModel.date >= from_date)
             .where(PriceModel.date <= to_date)
         )
-        total = await self._session.scalar(select(func.count()).select_from(base_query.subquery()))
+        total = await self._session.scalar(
+            select(func.count()).select_from(base_query.subquery())
+        )
         prices = await self._session.execute(
             base_query.order_by(PriceModel.date).offset(offset).limit(limit)
         )
-        return [PriceSchema.model_validate(price) for price in prices.scalars()], total or 0
+        return [
+            PriceSchema.model_validate(price) for price in prices.scalars()
+        ], total or 0
 
     @override
     async def get_by_security(self, security_id: SecurityId) -> list[PriceSchema]:
@@ -414,18 +423,21 @@ class SqlAlchemyWatchlistRepository(WatchlistRepository):
         found_watchlist_id = result.scalar_one_or_none()
         if not found_watchlist_id:
             raise WatchlistNotFoundError(watchlist_id)
-            
+
         base_query = (
             select(SecurityModel)
             .join(WatchlistModel.securities)
             .where(WatchlistModel.id == found_watchlist_id)
         )
-        total = await self._session.scalar(select(func.count()).select_from(base_query.subquery()))
+        total = await self._session.scalar(
+            select(func.count()).select_from(base_query.subquery())
+        )
         securities = await self._session.execute(
             base_query.order_by(SecurityModel.symbol).offset(offset).limit(limit)
         )
-        return [SecuritySchema.model_validate(sec) for sec in securities.scalars()], total or 0
-
+        return [
+            SecuritySchema.model_validate(sec) for sec in securities.scalars()
+        ], total or 0
 
 
 async def sqlalchemy_watchlist_repository_factory(
@@ -451,11 +463,17 @@ class SqlAlchemyPriceAlertRepository(PriceAlertRepository):
             .where(PriceAlertModel.security_id == security_id)
             .where(PriceAlertModel.user_id == user_id)
         )
-        total = await self._session.scalar(select(func.count()).select_from(base_query.subquery()))
-        result = await self._session.execute(
-            base_query.order_by(PriceAlertModel.created_at.desc()).offset(offset).limit(limit)
+        total = await self._session.scalar(
+            select(func.count()).select_from(base_query.subquery())
         )
-        return [PriceAlertRead.model_validate(alert) for alert in result.scalars()], total or 0
+        result = await self._session.execute(
+            base_query.order_by(PriceAlertModel.created_at.desc())
+            .offset(offset)
+            .limit(limit)
+        )
+        return [
+            PriceAlertRead.model_validate(alert) for alert in result.scalars()
+        ], total or 0
 
     @override
     async def create(
@@ -505,11 +523,17 @@ class SqlAlchemySecurityNoteRepository(SecurityNoteRepository):
             .where(SecurityNoteModel.security_id == security_id)
             .where(SecurityNoteModel.user_id == user_id)
         )
-        total = await self._session.scalar(select(func.count()).select_from(base_query.subquery()))
-        result = await self._session.execute(
-            base_query.order_by(SecurityNoteModel.created_at.desc()).offset(offset).limit(limit)
+        total = await self._session.scalar(
+            select(func.count()).select_from(base_query.subquery())
         )
-        return [SecurityNoteRead.model_validate(note) for note in result.scalars()], total or 0
+        result = await self._session.execute(
+            base_query.order_by(SecurityNoteModel.created_at.desc())
+            .offset(offset)
+            .limit(limit)
+        )
+        return [
+            SecurityNoteRead.model_validate(note) for note in result.scalars()
+        ], total or 0
 
     @override
     async def get_by_id(self, note_id: int) -> SecurityNoteRead | None:

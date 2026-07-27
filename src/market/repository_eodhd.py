@@ -26,9 +26,14 @@ class EodhdPriceRepository(PriceRepository):
 
     @override
     async def get_prices(
-        self, security: SecuritySchema, from_date: date, to_date: date, offset: int = 0, limit: int = 50
+        self,
+        security: SecuritySchema,
+        from_date: date,
+        to_date: date,
+        offset: int = 0,
+        limit: int = 50,
     ) -> tuple[list[PriceSchema], int]:
-        existing_prices, total = await self._db_repository.get_prices(
+        existing_prices, _total = await self._db_repository.get_prices(
             security, from_date, to_date, offset, limit
         )
 
