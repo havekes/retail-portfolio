@@ -211,3 +211,22 @@ async def other_user(
         last_login_at=user_model.last_login_at,
         created_at=user_model.created_at,
     )
+
+@pytest.fixture
+async def client(
+    mock_eodhd_gateway: MockEodhdGateway,
+    db_session: AsyncSession,
+    monkeypatch,
+):
+    from src.market import eodhd
+    monkeypatch.setattr(eodhd, "eodhd_gateway_factory", lambda: mock_eodhd_gateway)
+
+    from src.auth.service import EmailService
+    monkeypatch.setattr(EmailService, "send_verification_email", lambda self, email, token: None)
+
+    async with LifespanManager(app) as manager:
+        async with AsyncClient(
+            transport=ASGITransport(app=manager.app),
+            base_url="http://test",
+        ) as client:
+            yield client

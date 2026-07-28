@@ -2,6 +2,12 @@ services:
   backend:
     build: .
     container_name: retail-portfolio-backend
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health/live')"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 5s
     stop_grace_period: 30s
     restart: always
     ports:
