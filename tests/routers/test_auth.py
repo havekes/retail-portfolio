@@ -1,5 +1,6 @@
 """Integration tests for auth router."""
 
+import logging
 import pytest
 
 
@@ -131,8 +132,9 @@ async def test_resend_verification_nonexistent_user(auth_client):
 
 
 @pytest.mark.anyio
-async def test_login_invalid_credentials(auth_client, other_user):
+async def test_login_invalid_credentials(auth_client, other_user, caplog):
     """Test login with wrong credentials raises 401."""
+    caplog.set_level(logging.WARNING, logger="src.auth.router")
     login_request = {"email": other_user.email, "password": "wrongpass"}
 
     response = await auth_client.post("/api/v1/auth/login", json=login_request)
@@ -141,11 +143,13 @@ async def test_login_invalid_credentials(auth_client, other_user):
     result = response.json()
 
     assert result["detail"] == "Invalid credentials"
+    assert f"Login failed for {login_request['email']}: Invalid credentials" in caplog.text
 
 
 @pytest.mark.anyio
-async def test_login_nonexistent_user(auth_client):
+async def test_login_nonexistent_user(auth_client, caplog):
     """Test login with non-existent email raises 401."""
+    caplog.set_level(logging.WARNING, logger="src.auth.router")
     login_request = {"email": "nonexistent@example.com", "password": "somepass"}
 
     response = await auth_client.post("/api/v1/auth/login", json=login_request)
@@ -154,3 +158,4 @@ async def test_login_nonexistent_user(auth_client):
     result = response.json()
 
     assert result["detail"] == "Invalid credentials"
+    assert f"Login failed for {login_request['email']}: Invalid credentials" in caplog.text
