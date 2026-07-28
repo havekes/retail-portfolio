@@ -24,7 +24,7 @@ from src.integration.api_types import (
     IntegrationUserUpdateDisplayNameRequest,
 )
 from src.integration.brokers.api_types import BrokerAccount
-from src.integration.brokers.exceptions import LoginFailedError, OTPRequiredError
+from src.integration.brokers.exception import LoginFailedError, OTPRequiredError
 from src.integration.repository import IntegrationUserRepository
 from src.integration.service import (
     IntegrationUserService,

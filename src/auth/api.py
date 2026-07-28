@@ -11,7 +11,7 @@ from svcs import Container
 from svcs.fastapi import DepContainer
 
 from src.auth.api_types import AccessTokenData, AuthResponse, SignupResponse, User
-from src.auth.exceptions import (
+from src.auth.exception import (
     AuthInvalidCredentialsError,
     AuthUserAlreadyExistsError,
     AuthUserUnverifiedError,
