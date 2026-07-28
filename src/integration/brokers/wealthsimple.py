@@ -44,7 +44,7 @@ _wealthsimple_account_type_map = {
 
 class WealthsimpleApiGateway(BrokerApiGateway):
     _username: str
-    _keyring_prefix: str = "retail_prtofolio_wealthsimple"
+    _keyring_prefix: str = "retail_portfolio_wealthsimple"
     _institution: InstitutionEnum = InstitutionEnum.WEALTHSIMPLE
     debug_api_responses: bool = False
     debug_dump_path: str | None = None
@@ -99,13 +99,13 @@ class WealthsimpleApiGateway(BrokerApiGateway):
                 otp,
                 persist_session_fct=self._save_session,
             )
-        except UnexpectedException:
+        except UnexpectedException as e:
             last_response = getattr(ws, "_last_response", "No response captured")
             logger.exception(
                 "Wealthsimple login failed with UnexpectedException. Last Response: %s",
                 last_response,
             )
-            raise
+            raise UnknownError from e
 
     @override
     def login(
@@ -140,6 +140,8 @@ class WealthsimpleApiGateway(BrokerApiGateway):
                 raise OTPRequiredError from e
             except ManualLoginRequired as e:
                 raise SessionExpiredError from e
+            except UnexpectedException as e:
+                raise UnknownError from e
 
         logger.info("User %s logged into Wealthsimple", username)
         return True
