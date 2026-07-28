@@ -2,6 +2,7 @@ services:
   backend:
     build: .
     container_name: retail-portfolio-backend
+    stop_grace_period: 30s
     restart: always
     ports:
       - "8000:8000"
@@ -12,6 +13,7 @@ services:
   worker:
     build: .
     container_name: retail-portfolio-worker
+    stop_grace_period: 60s
     restart: always
     command: huey_consumer src.worker.huey -w 2 --worker-type thread
     depends_on:
