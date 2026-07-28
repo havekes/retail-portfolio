@@ -48,6 +48,11 @@ def global_mocks():
 
     from src.ws.manager import ConnectionManager
 
+    ConnectionManager._orig_init_redis = ConnectionManager.init_redis
+    ConnectionManager._orig_close = ConnectionManager.close
+    ConnectionManager._orig_send_personal_message = ConnectionManager.send_personal_message
+    ConnectionManager._orig_send_personal_message_sync = ConnectionManager.send_personal_message_sync
+
     with (
         # Patch ConnectionManager class methods so all loop-scoped instances are mocked
         patch.object(ConnectionManager, "init_redis", new=AsyncMock(return_value=None)),
