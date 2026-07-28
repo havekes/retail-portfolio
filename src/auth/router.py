@@ -63,10 +63,10 @@ async def auth_login(
     try:
         auth_data = await user_service.login(login_data.email, login_data.password)
     except AuthInvalidCredentialsError as e:
-        logger.warning(f"Login failed for {login_data.email}: Invalid credentials")
+        logger.warning("Login failed for %s: Invalid credentials", login_data.email)
         raise HTTPException(401, "Invalid credentials") from e
     except AuthUserUnverifiedError as e:
-        logger.warning(f"Login failed for {login_data.email}: Email not verified")
+        logger.warning("Login failed for %s: Email not verified", login_data.email)
         raise HTTPException(403, "Email not verified") from e
     else:
         response.set_cookie(
