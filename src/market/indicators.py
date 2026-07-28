@@ -198,7 +198,7 @@ def calculate_rsi(prices: list[PriceSchema], period: int = 14) -> list[RSIPoint]
     Returns:
         List of RSIPoint with date and RSI value
     """
-    if len(prices) < 2:
+    if len(prices) < period + 1:
         return []
 
     closes = [float(p.close) for p in prices]
@@ -213,9 +213,6 @@ def calculate_rsi(prices: list[PriceSchema], period: int = 14) -> list[RSIPoint]
         else:
             gains.append(0)
             losses.append(abs(change))
-
-    if len(gains) < period:
-        return []
 
     avg_gain = sum(gains[:period]) / period
     avg_loss = sum(losses[:period]) / period

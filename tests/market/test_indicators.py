@@ -96,52 +96,25 @@ def test_calculate_sma(
 # ============================================================================
 
 
-def test_calculate_50_day_ma_insufficient_data():
-    prices = make_price_history([100.0] * 49)
-    assert calculate_50_day_ma(prices) == []
-
-
-def test_calculate_50_day_ma_sufficient_data():
-    prices = make_price_history([100.0] * 52)
-    result = calculate_50_day_ma(prices)
-    assert len(result) == 3
-    assert result[0]["value"] == pytest.approx(100.0)
-
-
-def test_calculate_200_day_ma_insufficient_data():
-    prices = make_price_history([100.0] * 199)
-    assert calculate_200_day_ma(prices) == []
-
-
-def test_calculate_200_day_ma_sufficient_data():
-    prices = make_price_history([100.0] * 202)
-    result = calculate_200_day_ma(prices)
-    assert len(result) == 3
-    assert result[0]["value"] == pytest.approx(100.0)
-
-
-def test_calculate_50_week_ma_insufficient_data():
-    prices = make_price_history([100.0] * 200, step_days=1)
-    assert calculate_50_week_ma(prices) == []
-
-
-def test_calculate_50_week_ma_sufficient_data():
-    prices = make_price_history([100.0] * 52, step_days=7)
-    result = calculate_50_week_ma(prices)
-    assert len(result) == 3
-    assert result[0]["value"] == pytest.approx(100.0)
-
-
-def test_calculate_200_week_ma_insufficient_data():
-    prices = make_price_history([100.0] * 100, step_days=7)
-    assert calculate_200_week_ma(prices) == []
-
-
-def test_calculate_200_week_ma_sufficient_data():
-    prices = make_price_history([100.0] * 202, step_days=7)
-    result = calculate_200_week_ma(prices)
-    assert len(result) == 3
-    assert result[0]["value"] == pytest.approx(100.0)
+@pytest.mark.parametrize(
+    "func, count, step_days, expected_len",
+    [
+        (calculate_50_day_ma, 49, 1, 0),
+        (calculate_50_day_ma, 52, 1, 3),
+        (calculate_200_day_ma, 199, 1, 0),
+        (calculate_200_day_ma, 202, 1, 3),
+        (calculate_50_week_ma, 200, 1, 0),
+        (calculate_50_week_ma, 52, 7, 3),
+        (calculate_200_week_ma, 100, 7, 0),
+        (calculate_200_week_ma, 202, 7, 3),
+    ],
+)
+def test_moving_average_wrappers(func, count: int, step_days: int, expected_len: int):
+    prices = make_price_history([100.0] * count, step_days=step_days)
+    result = func(prices)
+    assert len(result) == expected_len
+    if expected_len > 0:
+        assert result[0]["value"] == pytest.approx(100.0)
 
 
 # ============================================================================
@@ -149,19 +122,40 @@ def test_calculate_200_week_ma_sufficient_data():
 # ============================================================================
 
 
-def test_calculate_weekly_closes_empty():
-    assert calculate_weekly_closes([]) == []
-
-
-def test_calculate_weekly_closes_grouping():
+@pytest.mark.parametrize(
+    "dates, closes, expected_dates, expected_closes",
+    [
+        # Empty input
+        ([], [], [], []),
+        # Weekly grouping across multiple days/weeks
+        (
+            [
+                date(2025, 1, 1),
+                date(2025, 1, 2),
+                date(2025, 1, 3),
+                date(2025, 1, 6),
+                date(2025, 1, 7),
+            ],
+            [10.0, 11.0, 12.0, 20.0, 21.0],
+            [date(2025, 1, 3), date(2025, 1, 7)],
+            [12.0, 21.0],
+        ),
+        # Year boundary week transition
+        (
+            [date(2024, 12, 29), date(2024, 12, 30)],
+            [10.0, 20.0],
+            [date(2024, 12, 29), date(2024, 12, 30)],
+            [10.0, 20.0],
+        ),
+    ],
+)
+def test_calculate_weekly_closes(
+    dates: list[date],
+    closes: list[float],
+    expected_dates: list[date],
+    expected_closes: list[float],
+):
     sec_id = uuid4()
-    dates = [
-        date(2025, 1, 1),
-        date(2025, 1, 2),
-        date(2025, 1, 3),
-        date(2025, 1, 6),
-        date(2025, 1, 7),
-    ]
     prices = [
         PriceSchema(
             security_id=sec_id,
@@ -173,33 +167,13 @@ def test_calculate_weekly_closes_grouping():
             adjusted_close=Decimal(str(p)),
             volume=1000,
         )
-        for d, p in zip(dates, [10.0, 11.0, 12.0, 20.0, 21.0], strict=True)
+        for d, p in zip(dates, closes, strict=True)
     ]
-
     weekly = calculate_weekly_closes(prices)
-    assert len(weekly) == 2
-    assert weekly[0].date == date(2025, 1, 3)
-    assert float(weekly[0].close) == pytest.approx(12.0)
-    assert weekly[1].date == date(2025, 1, 7)
-    assert float(weekly[1].close) == pytest.approx(21.0)
-
-
-def test_calculate_weekly_closes_year_boundary():
-    d1 = date(2024, 12, 29)
-    d2 = date(2024, 12, 30)
-    sec_id = uuid4()
-    p1 = PriceSchema(
-        security_id=sec_id, date=d1, open=Decimal("10"), high=Decimal("10"),
-        low=Decimal("10"), close=Decimal("10"), adjusted_close=Decimal("10"), volume=100
-    )
-    p2 = PriceSchema(
-        security_id=sec_id, date=d2, open=Decimal("20"), high=Decimal("20"),
-        low=Decimal("20"), close=Decimal("20"), adjusted_close=Decimal("20"), volume=100
-    )
-    weekly = calculate_weekly_closes([p1, p2])
-    assert len(weekly) == 2
-    assert weekly[0].date == d1
-    assert weekly[1].date == d2
+    assert len(weekly) == len(expected_dates)
+    for w, exp_d, exp_c in zip(weekly, expected_dates, expected_closes, strict=True):
+        assert w.date == exp_d
+        assert float(w.close) == pytest.approx(exp_c)
 
 
 # ============================================================================
@@ -207,58 +181,61 @@ def test_calculate_weekly_closes_year_boundary():
 # ============================================================================
 
 
-def test_calculate_macd_prices_less_than_max_period():
-    prices = make_price_history([10.0] * 5)
-    # 5 prices < max(12, 26) -> []
-    assert calculate_macd(prices) == []
-
-
-def test_calculate_macd_insufficient_data_for_signal():
-    prices = make_price_history([10.0] * 33)
-    # Default slow=26, signal=9 -> 33 prices gives 8 MACD points < 9 signal_period -> []
-    assert calculate_macd(prices) == []
-
-
-def test_calculate_macd_sufficient_data():
-    prices = make_price_history([100.0] * 40)
-    result = calculate_macd(prices)
-    assert len(result) == 7
-    for point in result:
-        assert point["macd"] == pytest.approx(0.0)
-        assert point["signal"] == pytest.approx(0.0)
-        assert point["histogram"] == pytest.approx(0.0)
-        assert point["histogram"] == pytest.approx(point["macd"] - point["signal"])
-
-
-def test_calculate_macd_varying_prices():
-    prices_val = [float(i) for i in range(1, 45)]
-    prices = make_price_history(prices_val)
-    result = calculate_macd(prices)
-    assert len(result) > 0
-    for point in result:
-        assert point["histogram"] == pytest.approx(point["macd"] - point["signal"])
-
-
-def test_calculate_macd_equal_fast_and_slow_periods():
-    # Covers equal period fast_ema and slow_ema alignment (neither > nor <)
-    prices = make_price_history([10.0] * 20)
-    result = calculate_macd(prices, fast_period=5, slow_period=5, signal_period=5)
-    assert len(result) == 12
-    for point in result:
-        assert point["macd"] == pytest.approx(0.0)
-
-
-def test_calculate_macd_slow_period_larger_than_fast_slicing():
-    # fast=20, slow=10, signal=5, len(prices)=20 -> slow_ema length 11 > fast_ema length 1 -> slow_ema sliced
-    prices = make_price_history([10.0] * 20)
-    result = calculate_macd(prices, fast_period=20, slow_period=10, signal_period=5)
-    assert result == []
-
-
-def test_calculate_macd_line_shorter_than_signal_period():
-    prices = make_price_history([10.0] * 15)
-    result = calculate_macd(prices, fast_period=5, slow_period=10, signal_period=10)
-    assert result == []
+@pytest.mark.parametrize(
+    "close_prices, kwargs, expected_len, check_histogram_diff, expected_macd_zero",
+    [
+        # Insufficient data for max(fast, slow)
+        ([10.0] * 5, {}, 0, False, False),
+        # Insufficient data for signal line (slow=26, signal=9 -> 33 prices gives 8 macd points < 9 signal_period)
+        ([10.0] * 33, {}, 0, False, False),
+        # Sufficient data with constant prices
+        ([100.0] * 40, {}, 7, True, True),
+        # Varying prices
+        ([float(i) for i in range(1, 45)], {}, 11, True, False),
+        # Equal fast and slow periods
+        (
+            [10.0] * 20,
+            {"fast_period": 5, "slow_period": 5, "signal_period": 5},
+            12,
+            True,
+            True,
+        ),
+        # Fast period larger than slow period causing slow_ema slicing
+        (
+            [10.0] * 20,
+            {"fast_period": 20, "slow_period": 10, "signal_period": 5},
+            0,
+            False,
+            False,
+        ),
+        # MACD line shorter than signal period
+        (
+            [10.0] * 15,
+            {"fast_period": 5, "slow_period": 10, "signal_period": 10},
+            0,
+            False,
+            False,
+        ),
+    ],
+)
+def test_calculate_macd(
+    close_prices: list[float],
+    kwargs: dict,
+    expected_len: int,
+    check_histogram_diff: bool,
+    expected_macd_zero: bool,
+):
+    prices = make_price_history(close_prices)
+    result = calculate_macd(prices, **kwargs)
+    assert len(result) == expected_len
+    if check_histogram_diff:
+        for point in result:
+            assert point["histogram"] == pytest.approx(
+                point["macd"] - point["signal"]
+            )
+            if expected_macd_zero:
+                assert point["macd"] == pytest.approx(0.0)
+                assert point["signal"] == pytest.approx(0.0)
 
 
 # ============================================================================
@@ -266,30 +243,58 @@ def test_calculate_macd_line_shorter_than_signal_period():
 # ============================================================================
 
 
-def test_calculate_rsi_fewer_than_two_prices():
-    prices = make_price_history([10.0])
-    assert calculate_rsi(prices, period=14) == []
-
-
-def test_calculate_rsi_insufficient_data():
-    prices = make_price_history([10.0] * 14)
-    assert calculate_rsi(prices, period=14) == []
-
-
-def test_calculate_rsi_strictly_increasing():
-    prices_val = [float(10 + i) for i in range(20)]
-    prices = make_price_history(prices_val)
-    result = calculate_rsi(prices, period=14)
-    assert len(result) == 5
+@pytest.mark.parametrize(
+    "close_prices, period, expected_len, expected_rsi_val, check_bounds",
+    [
+        # Fewer than two prices
+        ([10.0], 14, 0, None, False),
+        # Insufficient data for RSI period
+        ([10.0] * 14, 14, 0, None, False),
+        # Strictly increasing prices (avg_loss == 0 edge case -> RSI 100)
+        ([float(10 + i) for i in range(20)], 14, 5, 100.0, False),
+        # Varying prices
+        (
+            [
+                10.0,
+                12.0,
+                11.0,
+                13.0,
+                12.0,
+                14.0,
+                13.0,
+                15.0,
+                14.0,
+                16.0,
+                15.0,
+                17.0,
+                16.0,
+                18.0,
+                17.0,
+                19.0,
+                18.0,
+                20.0,
+                19.0,
+                21.0,
+            ],
+            14,
+            5,
+            None,
+            True,
+        ),
+    ],
+)
+def test_calculate_rsi(
+    close_prices: list[float],
+    period: int,
+    expected_len: int,
+    expected_rsi_val: float | None,
+    check_bounds: bool,
+):
+    prices = make_price_history(close_prices)
+    result = calculate_rsi(prices, period=period)
+    assert len(result) == expected_len
     for point in result:
-        assert point["rsi"] == pytest.approx(100.0)
-
-
-def test_calculate_rsi_varying_prices():
-    prices_val = [10.0, 12.0, 11.0, 13.0, 12.0, 14.0, 13.0, 15.0, 14.0, 16.0,
-                  15.0, 17.0, 16.0, 18.0, 17.0, 19.0, 18.0, 20.0, 19.0, 21.0]
-    prices = make_price_history(prices_val)
-    result = calculate_rsi(prices, period=14)
-    assert len(result) == 5
-    for point in result:
-        assert 0.0 <= point["rsi"] <= 100.0
+        if expected_rsi_val is not None:
+            assert point["rsi"] == pytest.approx(expected_rsi_val)
+        if check_bounds:
+            assert 0.0 <= point["rsi"] <= 100.0
