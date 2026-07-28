@@ -33,7 +33,6 @@ class FallbackRichHandler(RichHandler):
                 pass
 
 
-
 class RequestIdFilter(logging.Filter):
     """Filter that injects request_id from contextvars into log records."""
 
