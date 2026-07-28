@@ -1,5 +1,5 @@
 import uuid
-from datetime import date
+from datetime import date, datetime
 from typing import override
 
 from sqlalchemy import delete, func, select
@@ -14,6 +14,7 @@ from src.market.api_types import SecurityId
 from src.market.exception import SecurityNotFoundError, WatchlistNotFoundError
 from src.market.model import (
     IndicatorPreferencesModel,
+    IntradayPriceModel,
     PriceAlertModel,
     PriceModel,
     SecurityBrokerModel,
@@ -24,6 +25,7 @@ from src.market.model import (
 )
 from src.market.repository import (
     IndicatorPreferencesRepository,
+    IntradayPriceRepository,
     PriceAlertRepository,
     PriceRepository,
     SecurityBrokerRepository,
@@ -35,6 +37,7 @@ from src.market.repository import (
 from src.market.schema import (
     IndicatorPreferencesRead,
     IndicatorPreferencesWrite,
+    IntradayPriceSchema,
     PriceAlertRead,
     PriceAlertWrite,
     PriceSchema,
@@ -300,6 +303,82 @@ async def sqlalchemy_price_repository_factory(
     container: Container,
 ) -> SqlAlchemyPriceRepository:
     return SqlAlchemyPriceRepository(
+        session=await container.aget(AsyncSession),
+    )
+
+
+class SqlAlchemyIntradayPriceRepository(IntradayPriceRepository):
+    _session: AsyncSession
+
+    def __init__(self, session: AsyncSession):
+        self._session = session
+
+    @override
+    async def get_intraday_prices(
+        self,
+        security_id: SecurityId,
+        start_time: datetime | None = None,
+        end_time: datetime | None = None,
+    ) -> list[IntradayPriceSchema]:
+        stmt = select(IntradayPriceModel).where(
+            IntradayPriceModel.security_id == security_id
+        )
+        if start_time is not None:
+            stmt = stmt.where(IntradayPriceModel.timestamp >= start_time)
+        if end_time is not None:
+            stmt = stmt.where(IntradayPriceModel.timestamp <= end_time)
+        stmt = stmt.order_by(IntradayPriceModel.timestamp.asc())
+        result = await self._session.execute(stmt)
+        return [IntradayPriceSchema.model_validate(model) for model in result.scalars()]
+
+    @override
+    async def save_intraday_price(
+        self, price: IntradayPriceSchema
+    ) -> IntradayPriceSchema:
+        saved = await self.save_intraday_prices([price])
+        return saved[0]
+
+    @override
+    async def save_intraday_prices(
+        self, prices: list[IntradayPriceSchema]
+    ) -> list[IntradayPriceSchema]:
+        if not prices:
+            return []
+
+        price_dicts = [p.model_dump(exclude={"id"}) for p in prices]
+
+        chunk_size = 1000
+        schemas = []
+        for i in range(0, len(price_dicts), chunk_size):
+            chunk = price_dicts[i : i + chunk_size]
+            stmt = insert(IntradayPriceModel).values(chunk)
+            stmt = stmt.on_conflict_do_update(
+                constraint="intraday_price_security_timestamp_unique",
+                set_={
+                    "open": stmt.excluded.open,
+                    "high": stmt.excluded.high,
+                    "low": stmt.excluded.low,
+                    "close": stmt.excluded.close,
+                    "volume": stmt.excluded.volume,
+                },
+            ).returning(IntradayPriceModel)
+
+            result = await self._session.execute(stmt)
+            schemas.extend(
+                [
+                    IntradayPriceSchema.model_validate(model)
+                    for model in result.scalars()
+                ]
+            )
+
+        await self._session.commit()
+        return schemas
+
+
+async def sqlalchemy_intraday_price_repository_factory(
+    container: Container,
+) -> SqlAlchemyIntradayPriceRepository:
+    return SqlAlchemyIntradayPriceRepository(
         session=await container.aget(AsyncSession),
     )
 

@@ -2,13 +2,14 @@ from datetime import date, datetime
 from decimal import Decimal
 from typing import Self
 
-from pydantic import BaseModel, ConfigDict
+from pydantic import AwareDatetime, BaseModel, ConfigDict
 
 from src.account.enum import InstitutionEnum
 from src.auth.api_types import UserId
 from src.core.pagination import PaginatedResponse
 from src.market.api_types import (
     HistoricalPrice,
+    IntradayPrice,
     Price,
     SecurityId,
     SecuritySearchResult,
@@ -72,6 +73,19 @@ class PriceSchema(BaseModel):
             adjusted_close=historical_price.adjusted_close,
             volume=historical_price.volume,
         )
+
+
+class IntradayPriceSchema(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: int | None = None
+    security_id: SecurityId
+    timestamp: AwareDatetime
+    open: Decimal
+    high: Decimal
+    low: Decimal
+    close: Decimal
+    volume: int
 
 
 class WatchlistSchema(BaseModel):
