@@ -7,7 +7,6 @@ import pytest
 from src.integration.sync_status import RedisManager
 from src.ws.manager import ConnectionManager
 
-
 _orig_init_redis = ConnectionManager.init_redis
 _orig_close = ConnectionManager.close
 
@@ -30,7 +29,9 @@ async def test_redis_manager_concurrency():
         def run_in_thread():
             async def task():
                 async with manager.client() as client:
-                    return client, asyncio.get_running_loop()
+                    loop = asyncio.get_running_loop()
+                    assert loop in manager._clients
+                    return client, loop
 
             return asyncio.run(task())
 
@@ -46,10 +47,6 @@ async def test_redis_manager_concurrency():
         # Verify that they got different client instances
         assert client1 is not client2
         assert len(mock_client_instances) == 2
-
-        # Verify both loop clients are initially stored in manager._clients
-        assert loop1 in manager._clients
-        assert loop2 in manager._clients
 
         # Since these threads finished, their loops are closed.
         assert loop1.is_closed()
@@ -97,7 +94,9 @@ async def test_connection_manager_concurrency():
             async def task():
                 await manager.init_redis(redis_url, run_listener=False)
                 client = manager.get_redis_client()
-                return client, asyncio.get_running_loop()
+                loop = asyncio.get_running_loop()
+                assert loop in manager._clients
+                return client, loop
 
             return asyncio.run(task())
 
@@ -111,9 +110,6 @@ async def test_connection_manager_concurrency():
         assert loop1 is not loop2
         assert client1 is not client2
         assert len(mock_client_instances) == 2
-
-        assert loop1 in manager._clients
-        assert loop2 in manager._clients
 
         assert loop1.is_closed()
         assert loop2.is_closed()
@@ -136,5 +132,3 @@ async def test_connection_manager_concurrency():
 
         await manager.close()
         assert len(manager._clients) == 0
-
-

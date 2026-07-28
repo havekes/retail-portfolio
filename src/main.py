@@ -170,6 +170,7 @@ app.include_router(ws_router)
 async def liveness() -> dict[str, str]:
     return {"status": "alive"}
 
+
 @app.get("/health/ready")
 async def readiness(services: DepContainer) -> JSONResponse:
     checks = {}
@@ -177,21 +178,22 @@ async def readiness(services: DepContainer) -> JSONResponse:
         session = await services.aget(AsyncSession)
         await session.execute(select(1))
         checks["database"] = "ok"
-    except Exception:
+    except Exception:  # noqa: BLE001
         checks["database"] = "error"
-        
+
     try:
         async with redis_manager.client() as client:
             await client.ping()
         checks["redis"] = "ok"
-    except Exception:
+    except Exception:  # noqa: BLE001
         checks["redis"] = "error"
 
     healthy = all(v == "ok" for v in checks.values())
     return JSONResponse(
         status_code=200 if healthy else 503,
-        content={"status": "ready" if healthy else "degraded", **checks}
+        content={"status": "ready" if healthy else "degraded", **checks},
     )
+
 
 @app.get("/api/ping")
 async def ping(services: DepContainer) -> dict[str, Any]:
