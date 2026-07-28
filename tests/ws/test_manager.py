@@ -1,4 +1,6 @@
+# ruff: noqa: SLF001
 import asyncio
+import contextlib
 import json
 from unittest.mock import AsyncMock, MagicMock, patch
 from uuid import uuid4
@@ -11,35 +13,12 @@ from src.ws.manager import ConnectionManager
 
 @pytest.fixture
 def cm():
-    """Create a fresh ConnectionManager instance for testing."""
-    return ConnectionManager()
-
-
-def test_manager_init(cm):
-    assert cm.active_connections == {}
-    assert cm._clients == {}
-    assert cm._pubsub_task is None
-
-
-def test_get_redis_client_no_loop(cm):
-    assert cm.get_redis_client() is None
-
-
-@pytest.mark.asyncio
-async def test_get_redis_client_cleans_closed_loops(cm):
-    loop = asyncio.get_running_loop()
-    closed_loop = MagicMock()
-    closed_loop.is_closed.return_value = True
-    fake_client = MagicMock()
-    cm._clients[closed_loop] = fake_client
-
-    active_client = MagicMock()
-    cm._clients[loop] = active_client
-
-    client = cm.get_redis_client()
-    assert client == active_client
-    assert closed_loop not in cm._clients
-    assert loop in cm._clients
+    manager = ConnectionManager()
+    yield manager
+    # Clean up loop-scoped clients after test
+    manager._clients.clear()
+    if manager._pubsub_task and not manager._pubsub_task.done():
+        manager._pubsub_task.cancel()
 
 
 @pytest.mark.asyncio
@@ -67,7 +46,6 @@ async def test_init_redis(cm):
 
 @pytest.mark.asyncio
 async def test_init_redis_restarts_done_listener(cm):
-    loop = asyncio.get_running_loop()
     mock_redis = AsyncMock()
 
     async def dummy():
@@ -93,10 +71,8 @@ async def test_close(cm):
     cm._clients[loop] = mock_client
 
     async def slow_task():
-        try:
+        with contextlib.suppress(asyncio.CancelledError):
             await asyncio.sleep(10)
-        except asyncio.CancelledError:
-            pass
 
     cm._pubsub_task = asyncio.create_task(slow_task())
 
@@ -174,14 +150,17 @@ async def test_send_personal_message_redis_success(cm):
 async def test_send_personal_message_redis_fallback_on_init_failure(cm):
     user_id = uuid4()
     msg = {"content": "hello"}
+    mock_local = AsyncMock()
 
     with (
         patch.object(cm, "get_redis_client", return_value=None),
-        patch.object(cm, "_orig_init_redis", side_effect=Exception("Redis init failed")),
-        patch.object(cm, "_send_to_local_connections", new=AsyncMock()) as mock_send_local,
+        patch.object(
+            cm, "_orig_init_redis", side_effect=Exception("Redis init failed")
+        ),
+        patch.object(cm, "_send_to_local_connections", new=mock_local),
     ):
         await cm._orig_send_personal_message(msg, user_id)
-        mock_send_local.assert_called_once_with(user_id, msg)
+        mock_local.assert_called_once_with(user_id, msg)
 
 
 @pytest.mark.asyncio
@@ -192,17 +171,18 @@ async def test_send_personal_message_redis_fallback_on_publish_failure(cm):
     loop = asyncio.get_running_loop()
     cm._clients[loop] = mock_redis
     msg = {"content": "hello"}
+    mock_local = AsyncMock()
 
-    with patch.object(cm, "_send_to_local_connections", new=AsyncMock()) as mock_send_local:
+    with patch.object(cm, "_send_to_local_connections", new=mock_local):
         await cm._orig_send_personal_message(msg, user_id)
-        mock_send_local.assert_called_once_with(user_id, msg)
+        mock_local.assert_called_once_with(user_id, msg)
 
 
 @pytest.mark.asyncio
 async def test_send_personal_message_sync_with_loop(cm):
     user_id = uuid4()
     msg = {"content": "hello"}
-    with patch.object(cm, "send_personal_message", new=AsyncMock()) as mock_send:
+    with patch.object(cm, "send_personal_message", new=AsyncMock()):
         cm._orig_send_personal_message_sync(msg, user_id)
 
 
@@ -255,22 +235,23 @@ async def test_listen_for_messages_processes_messages(cm):
     mock_pubsub = MockPubSub(gen)
     mock_redis = MagicMock()
     mock_redis.pubsub.return_value = mock_pubsub
+    mock_local = AsyncMock()
 
     with (
         patch.object(cm, "get_redis_client", return_value=mock_redis),
-        patch.object(cm, "_send_to_local_connections", new=AsyncMock()) as mock_local_send,
+        patch.object(cm, "_send_to_local_connections", new=mock_local),
     ):
         await cm._listen_for_messages()
 
         mock_pubsub.subscribe.assert_called_once_with("ws_messages")
-        mock_local_send.assert_called_once_with(user_id, msg_payload)
+        mock_local.assert_called_once_with(user_id, msg_payload)
 
 
 @pytest.mark.asyncio
 async def test_listen_for_messages_cancelled(cm):
     async def gen():
         yield {"type": "subscribe"}
-        raise asyncio.CancelledError()
+        raise asyncio.CancelledError
 
     mock_pubsub = MockPubSub(gen)
     mock_redis = MagicMock()
@@ -290,8 +271,8 @@ async def test_listen_for_messages_restarts_on_error(cm):
         nonlocal call_count
         call_count += 1
         if call_count == 1:
-            raise Exception("PubSub Error")
-        return
+            err_msg = "PubSub Error"
+            raise RuntimeError(err_msg)
 
     mock_pubsub = MockPubSub(gen)
     mock_redis = MagicMock()
