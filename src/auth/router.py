@@ -10,7 +10,7 @@ from svcs.fastapi import DepContainer
 
 from src.auth.api import UserApi
 from src.auth.api_types import AuthResponse, LoginRequest, SignupRequest, SignupResponse
-from src.auth.exceptions import (
+from src.auth.exception import (
     AuthInvalidCredentialsError,
     AuthUserAlreadyExistsError,
     AuthUserUnverifiedError,
@@ -24,7 +24,7 @@ from src.config.limiter import limiter
 from src.config.settings import settings
 from src.core.email import EmailSendError
 
-auth_router = APIRouter(prefix="/api/auth")
+auth_router = APIRouter(prefix="/auth")
 
 
 @auth_router.post("/signup")

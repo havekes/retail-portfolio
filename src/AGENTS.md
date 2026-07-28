@@ -32,7 +32,8 @@ Coding Agent Guide: retail-portfolio (Backend)
 5. Generate migrations: `uv run alembic revision --autogenerate -m "message"`
 
 **MANDATORY**: When writing or editing code, **ALWAYS** run linting, type checks, tests and format before submitting.
-**MANDATORY**: When editing a backend model, also generate the migrations using alembic
+**MANDATORY**: When editing a backend model, also generate the migrations using alembic.
+**MANDATORY**: All migration files MUST follow the Alembic standard `<hash>_<description>.py` naming. For manual SQL migrations, create a standard revision using the autogenerate command and use `op.execute()` inside it.
 
 ## Backend Architecture
 

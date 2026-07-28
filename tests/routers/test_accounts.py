@@ -8,7 +8,7 @@ import pytest
 @pytest.mark.anyio
 async def test_accounts_list_empty(auth_client):
     """Test accounts_list returns empty list when user has no accounts."""
-    response = await auth_client.get("/api/accounts/")
+    response = await auth_client.get("/api/v1/accounts/")
 
     assert response.status_code == 200
     result = response.json()
@@ -19,7 +19,7 @@ async def test_accounts_list_empty(auth_client):
 @pytest.mark.anyio
 async def test_accounts_list_success(auth_client, test_accounts):
     """Test accounts_list returns user's accounts."""
-    response = await auth_client.get("/api/accounts/")
+    response = await auth_client.get("/api/v1/accounts/")
 
     assert response.status_code == 200
     result = response.json()
@@ -38,7 +38,7 @@ async def test_account_rename_success(auth_client, test_accounts):
     rename_request = {"name": new_name}
 
     response = await auth_client.patch(
-        f"/api/accounts/{account_id}/rename", json=rename_request
+        f"/api/v1/accounts/{account_id}/rename", json=rename_request
     )
 
     assert response.status_code == 200
@@ -56,7 +56,7 @@ async def test_account_rename_not_found(auth_client):
     rename_request = {"name": new_name}
 
     response = await auth_client.patch(
-        f"/api/accounts/{fake_id}/rename", json=rename_request
+        f"/api/v1/accounts/{fake_id}/rename", json=rename_request
     )
 
     assert response.status_code == 404
@@ -70,7 +70,7 @@ async def test_account_rename_not_owned(auth_client, other_user_account):
     rename_request = {"name": new_name}
 
     response = await auth_client.patch(
-        f"/api/accounts/{account_id}/rename", json=rename_request
+        f"/api/v1/accounts/{account_id}/rename", json=rename_request
     )
 
     assert response.status_code == 404
@@ -81,7 +81,7 @@ async def test_account_totals_success(auth_client, test_accounts, test_positions
     """Test account_totals returns totals for an account."""
     account_id = test_accounts[0].id
 
-    response = await auth_client.get(f"/api/accounts/{account_id}/totals")
+    response = await auth_client.get(f"/api/v1/accounts/{account_id}/totals")
 
     assert response.status_code == 200
     result = response.json()
@@ -99,7 +99,7 @@ async def test_account_totals_not_found(auth_client):
     """Test account_totals raises 404 for non-existent account."""
     fake_id = uuid4()
 
-    response = await auth_client.get(f"/api/accounts/{fake_id}/totals")
+    response = await auth_client.get(f"/api/v1/accounts/{fake_id}/totals")
 
     assert response.status_code == 404
 
@@ -109,7 +109,7 @@ async def test_account_totals_not_owned(auth_client, other_user_account):
     """Test account_totals raises 404 for account not owned by user."""
     account_id = other_user_account.id
 
-    response = await auth_client.get(f"/api/accounts/{account_id}/totals")
+    response = await auth_client.get(f"/api/v1/accounts/{account_id}/totals")
 
     assert response.status_code == 404
 
@@ -123,7 +123,7 @@ async def test_account_rename_invalid_body(auth_client, test_accounts):
     rename_request = {}  # Missing "name" field
 
     response = await auth_client.patch(
-        f"/api/accounts/{account_id}/rename", json=rename_request
+        f"/api/v1/accounts/{account_id}/rename", json=rename_request
     )
 
     assert response.status_code == 422
@@ -135,7 +135,7 @@ async def test_security_holdings_success(
 ):
     """Test security_holdings returns holdings across user accounts."""
     security_id = test_position_for_first_account.security_id
-    response = await auth_client.get(f"/api/accounts/holdings/{security_id}")
+    response = await auth_client.get(f"/api/v1/accounts/holdings/{security_id}")
 
     assert response.status_code == 200
     result = response.json()
@@ -156,7 +156,7 @@ async def test_account_holdings_isolation(
     # To test isolation, we just ensure it only returns holdings for the logged in user.
     # We can query a security ID that the user doesn't own.
     fake_id = uuid4()
-    response = await auth_client.get(f"/api/accounts/holdings/{fake_id}")
+    response = await auth_client.get(f"/api/v1/accounts/holdings/{fake_id}")
 
     assert response.status_code == 200
     assert response.json()["items"] == []
@@ -169,7 +169,7 @@ async def test_account_holdings_success(
     """Test account_holdings returns detailed holdings for an account."""
     account_id = test_accounts[0].id
 
-    response = await auth_client.get(f"/api/accounts/{account_id}/holdings")
+    response = await auth_client.get(f"/api/v1/accounts/{account_id}/holdings")
     assert response.status_code == 200
     result = response.json()
 

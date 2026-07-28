@@ -5,7 +5,7 @@ from src.account.enum import InstitutionEnum
 @pytest.mark.anyio
 async def test_get_institutions_empty(auth_client):
     """Test get institutions returns empty list when no integrations enabled."""
-    response = await auth_client.get("/api/integration/institutions")
+    response = await auth_client.get("/api/v1/integration/institutions")
     assert response.status_code == 200
     data = response.json()
     assert data == []
@@ -21,7 +21,7 @@ async def test_get_institutions_success(auth_client, db_session):
     )
     await db_session.commit()
 
-    response = await auth_client.get("/api/integration/institutions")
+    response = await auth_client.get("/api/v1/integration/institutions")
     assert response.status_code == 200
     data = response.json()
 

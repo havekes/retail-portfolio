@@ -24,7 +24,7 @@ from src.integration.api_types import (
     IntegrationUserUpdateDisplayNameRequest,
 )
 from src.integration.brokers.api_types import BrokerAccount
-from src.integration.brokers.exceptions import LoginFailedError, OTPRequiredError
+from src.integration.brokers.exception import LoginFailedError, OTPRequiredError
 from src.integration.repository import IntegrationUserRepository
 from src.integration.service import (
     IntegrationUserService,
@@ -32,8 +32,8 @@ from src.integration.service import (
 from src.integration.task import sync_account_positions_task
 from src.market.api import SecurityApi
 
-integration_router = APIRouter(prefix="/api/external")
-institutions_router = APIRouter(prefix="/api/integration")
+integration_router = APIRouter(prefix="/external")
+institutions_router = APIRouter(prefix="/integration")
 
 
 @institutions_router.get("/institutions")

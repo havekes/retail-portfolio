@@ -1,6 +1,7 @@
 import asyncio
 import logging
 
+from huey import signals
 from svcs import Container
 
 from src.account.api.position import PositionApi
@@ -164,3 +165,22 @@ async def _sync_account_positions_task(
     finally:
         if req_token is not None:
             request_id_ctx_var.reset(req_token)
+
+
+@huey.signal(signals.SIGNAL_INTERRUPTED)
+def handle_interrupted_task(signal, task, exc=None):
+    _ = signal
+    _ = exc
+    if task.name == "sync_account_positions_task":
+        try:
+            user_id = task.args[0]
+            account = task.args[1]
+            asyncio.run(mark_sync_finished(user_id, account.id))
+            logger.info(
+                "Cleaned up sync status for interrupted task %s (user=%s, account=%s)",
+                task.id,
+                user_id,
+                account.id,
+            )
+        except Exception:
+            logger.exception("Failed to clean up interrupted task %s", task.id)

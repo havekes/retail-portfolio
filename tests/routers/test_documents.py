@@ -23,7 +23,7 @@ async def test_upload_document_success(auth_client, db_session, test_user):
 
     # Perform upload
     response = await auth_client.post(
-        f"/api/market/securities/{security_id}/documents",
+        f"/api/v1/market/securities/{security_id}/documents",
         files=files
     )
 
@@ -55,12 +55,12 @@ async def test_get_documents_success(auth_client, db_session, test_user):
     file_content = b"test content"
     files = {"file": ("test.txt", file_content, "text/plain")}
     await auth_client.post(
-        f"/api/market/securities/{security_id}/documents",
+        f"/api/v1/market/securities/{security_id}/documents",
         files=files
     )
 
     # Get documents
-    response = await auth_client.get(f"/api/market/securities/{security_id}/documents")
+    response = await auth_client.get(f"/api/v1/market/securities/{security_id}/documents")
     assert response.status_code == 200
     result = response.json()
     assert len(result) == 1

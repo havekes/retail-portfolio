@@ -22,7 +22,7 @@ from src.integration.brokers.api_types import (
     BrokerAccountId,
     BrokerPosition,
 )
-from src.integration.brokers.exceptions import (
+from src.integration.brokers.exception import (
     AccountTypeUnkownError,
     LoginFailedError,
     OTPRequiredError,
