@@ -1,12 +1,13 @@
 import uuid
 from abc import ABC, abstractmethod
-from datetime import date
+from datetime import date, datetime
 
 from src.auth.api_types import UserId
 from src.market.api_types import SecurityId
 from src.market.schema import (
     IndicatorPreferencesRead,
     IndicatorPreferencesWrite,
+    IntradayPriceSchema,
     PriceAlertRead,
     PriceAlertWrite,
     PriceSchema,
@@ -80,6 +81,29 @@ class PriceRepository(ABC):
 
     @abstractmethod
     async def save_prices(self, prices: list[PriceSchema]) -> list[PriceSchema]:
+        pass
+
+
+class IntradayPriceRepository(ABC):
+    @abstractmethod
+    async def get_intraday_prices(
+        self,
+        security_id: SecurityId,
+        start_time: datetime | None = None,
+        end_time: datetime | None = None,
+    ) -> list[IntradayPriceSchema]:
+        pass
+
+    @abstractmethod
+    async def save_intraday_price(
+        self, price: IntradayPriceSchema
+    ) -> IntradayPriceSchema:
+        pass
+
+    @abstractmethod
+    async def save_intraday_prices(
+        self, prices: list[IntradayPriceSchema]
+    ) -> list[IntradayPriceSchema]:
         pass
 
 

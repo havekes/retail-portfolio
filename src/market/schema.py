@@ -9,6 +9,7 @@ from src.auth.api_types import UserId
 from src.core.pagination import PaginatedResponse
 from src.market.api_types import (
     HistoricalPrice,
+    IntradayPrice,
     Price,
     SecurityId,
     SecuritySearchResult,
@@ -72,6 +73,19 @@ class PriceSchema(BaseModel):
             adjusted_close=historical_price.adjusted_close,
             volume=historical_price.volume,
         )
+
+
+class IntradayPriceSchema(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: int | None = None
+    security_id: SecurityId
+    timestamp: datetime
+    open: Decimal
+    high: Decimal
+    low: Decimal
+    close: Decimal
+    volume: int
 
 
 class WatchlistSchema(BaseModel):

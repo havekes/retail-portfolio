@@ -90,6 +90,29 @@ class PriceModel(BaseModel):
     )
 
 
+class IntradayPriceModel(BaseModel):
+    """Intraday security price model for 1-hour resolution candles."""
+
+    __tablename__ = "market_intraday_prices"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    security_id: Mapped[SecurityId] = mapped_column(
+        Uuid, ForeignKey("market_securities.id")
+    )
+    timestamp: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+    open: Mapped[Decimal] = mapped_column(DECIMAL(16, 8))
+    high: Mapped[Decimal] = mapped_column(DECIMAL(16, 8))
+    low: Mapped[Decimal] = mapped_column(DECIMAL(16, 8))
+    close: Mapped[Decimal] = mapped_column(DECIMAL(16, 8))
+    volume: Mapped[int] = mapped_column(BigInteger)
+
+    __table_args__ = (
+        UniqueConstraint(
+            "security_id", "timestamp", name="intraday_price_security_timestamp_unique"
+        ),
+    )
+
+
 class WatchlistsSecuritiesModel(BaseModel):
     __tablename__ = "market_watchlists_securities"
 

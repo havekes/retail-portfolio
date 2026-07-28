@@ -61,6 +61,19 @@ class HistoricalPrice(BaseModel):
     volume: int
 
 
+class IntradayPrice(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: int | None = None
+    security_id: SecurityId
+    timestamp: datetime
+    open: Decimal
+    high: Decimal
+    low: Decimal
+    close: Decimal
+    volume: int
+
+
 class SecuritySearchResult(BaseModel):
     """Public-facing security search result."""
 
