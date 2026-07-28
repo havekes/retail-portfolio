@@ -67,7 +67,7 @@ branch = true
 omit = [
     "tests/*",
     "migrations/*",
-    "src/commands/*",
+    "src/**/commands/*",
 ]
 
 [tool.coverage.report]
