@@ -2,7 +2,7 @@ from datetime import date, datetime
 from decimal import Decimal
 from typing import Self
 
-from pydantic import BaseModel, ConfigDict
+from pydantic import AwareDatetime, BaseModel, ConfigDict
 
 from src.account.enum import InstitutionEnum
 from src.auth.api_types import UserId
@@ -80,7 +80,7 @@ class IntradayPriceSchema(BaseModel):
 
     id: int | None = None
     security_id: SecurityId
-    timestamp: datetime
+    timestamp: AwareDatetime
     open: Decimal
     high: Decimal
     low: Decimal

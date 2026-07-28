@@ -335,12 +335,8 @@ class SqlAlchemyIntradayPriceRepository(IntradayPriceRepository):
     async def save_intraday_price(
         self, price: IntradayPriceSchema
     ) -> IntradayPriceSchema:
-        price_dict = {k: v for k, v in price.model_dump().items() if k != "id"}
-        price_model = IntradayPriceModel(**price_dict)
-        self._session.add(price_model)
-        await self._session.commit()
-        await self._session.refresh(price_model)
-        return IntradayPriceSchema.model_validate(price_model)
+        saved = await self.save_intraday_prices([price])
+        return saved[0]
 
     @override
     async def save_intraday_prices(
@@ -349,9 +345,7 @@ class SqlAlchemyIntradayPriceRepository(IntradayPriceRepository):
         if not prices:
             return []
 
-        price_dicts = [
-            {k: v for k, v in p.model_dump().items() if k != "id"} for p in prices
-        ]
+        price_dicts = [p.model_dump(exclude={"id"}) for p in prices]
 
         chunk_size = 1000
         schemas = []

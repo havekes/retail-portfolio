@@ -3,8 +3,10 @@ import uuid
 from decimal import Decimal
 
 import pytest
+from pydantic import ValidationError
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from src.market.api_types import IntradayPrice
 from src.market.repository_sqlalchemy import (
     SqlAlchemyIntradayPriceRepository,
     SqlAlchemyPriceRepository,
@@ -313,3 +315,83 @@ async def test_intraday_and_daily_price_isolation(db_session: AsyncSession):
     intraday_prices = await intraday_repo.get_intraday_prices(security.id)
     assert len(intraday_prices) == 1
     assert intraday_prices[0].close == Decimal("508.0")
+
+
+def test_intraday_schema_requires_timezone_aware_datetime():
+    """Test that IntradayPriceSchema and IntradayPrice reject naive datetimes."""
+    security_id = uuid.uuid4()
+    naive_dt = datetime.datetime(2026, 1, 15, 9, 30)  # noqa: DTZ001
+
+    with pytest.raises(ValidationError):
+        IntradayPriceSchema(
+            security_id=security_id,
+            timestamp=naive_dt,
+            open=Decimal("100.0"),
+            high=Decimal("105.0"),
+            low=Decimal("99.0"),
+            close=Decimal("102.0"),
+            volume=1000,
+        )
+
+    with pytest.raises(ValidationError):
+        IntradayPrice(
+            security_id=security_id,
+            timestamp=naive_dt,
+            open=Decimal("100.0"),
+            high=Decimal("105.0"),
+            low=Decimal("99.0"),
+            close=Decimal("102.0"),
+            volume=1000,
+        )
+
+
+@pytest.mark.anyio
+async def test_intraday_repository_single_save_upsert(db_session: AsyncSession):
+    """Test that save_intraday_price gracefully updates existing records on conflict."""
+    security_repo = SqlAlchemySecurityRepository(db_session)
+    intraday_repo = SqlAlchemyIntradayPriceRepository(db_session)
+
+    security = await security_repo.get_or_create(
+        SecuritySchema(
+            id=uuid.uuid4(),
+            symbol="AMZN",
+            exchange="US",
+            currency="USD",
+            name="Amazon.com Inc",
+            isin=None,
+            is_active=True,
+            updated_at=datetime.datetime.now(datetime.UTC),
+        )
+    )
+
+    test_time = datetime.datetime(2026, 2, 10, 11, 0, tzinfo=datetime.UTC)
+
+    candle_v1 = IntradayPriceSchema(
+        security_id=security.id,
+        timestamp=test_time,
+        open=Decimal("180.0"),
+        high=Decimal("185.0"),
+        low=Decimal("179.0"),
+        close=Decimal("182.0"),
+        volume=5000,
+    )
+    saved1 = await intraday_repo.save_intraday_price(candle_v1)
+    assert saved1.close == Decimal("182.0")
+
+    candle_v2 = IntradayPriceSchema(
+        security_id=security.id,
+        timestamp=test_time,
+        open=Decimal("180.0"),
+        high=Decimal("188.0"),
+        low=Decimal("179.0"),
+        close=Decimal("187.0"),
+        volume=8000,
+    )
+    saved2 = await intraday_repo.save_intraday_price(candle_v2)
+    assert saved2.close == Decimal("187.0")
+
+    candles_in_db = await intraday_repo.get_intraday_prices(security.id)
+    assert len(candles_in_db) == 1
+    assert candles_in_db[0].close == Decimal("187.0")
+    assert candles_in_db[0].high == Decimal("188.0")
+

@@ -3,7 +3,7 @@ from decimal import Decimal
 from typing import TypedDict
 from uuid import UUID
 
-from pydantic import BaseModel, ConfigDict
+from pydantic import AwareDatetime, BaseModel, ConfigDict
 from stockholm.currency import Currency
 
 type SecurityId = UUID
@@ -66,7 +66,7 @@ class IntradayPrice(BaseModel):
 
     id: int | None = None
     security_id: SecurityId
-    timestamp: datetime
+    timestamp: AwareDatetime
     open: Decimal
     high: Decimal
     low: Decimal
