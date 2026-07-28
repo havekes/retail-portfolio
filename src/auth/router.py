@@ -1,4 +1,5 @@
 import json
+import logging
 import uuid
 from typing import Annotated
 
@@ -23,6 +24,8 @@ from src.auth.schema import (
 from src.config.limiter import limiter
 from src.config.settings import settings
 from src.core.email import EmailSendError
+
+logger = logging.getLogger(__name__)
 
 auth_router = APIRouter(prefix="/auth")
 
@@ -60,6 +63,7 @@ async def auth_login(
     try:
         auth_data = await user_service.login(login_data.email, login_data.password)
     except AuthInvalidCredentialsError as e:
+        logger.warning(f"Login failed for {login_data.email}: Invalid credentials")
         raise HTTPException(401, "Invalid credentials") from e
     except AuthUserUnverifiedError as e:
         raise HTTPException(403, "Email not verified") from e
