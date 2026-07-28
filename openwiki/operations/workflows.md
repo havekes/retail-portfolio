@@ -58,6 +58,7 @@ uv run alembic revision --autogenerate -m "message"
 ```
 
 When editing a model, generate an Alembic migration and include it in the change. `src/AGENTS.md` flags this as mandatory.
+All migration files MUST follow the Alembic standard `<hash>_<description>.py` naming. For manual SQL migrations, create a standard revision using the autogenerate command and use `op.execute()` inside it.
 
 ## Frontend commands
 
