@@ -1,6 +1,6 @@
 """Add last_sync_at to accounts
 
-Revision ID: manual_add_last_sync_at
+Revision ID: cb09d71c3f7d
 Revises: 800ed0b7013a
 Create Date: 2024-05-01 00:00:00.000000
 
@@ -12,7 +12,7 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision: str = 'manual_add_last_sync_at'
+revision: str = 'cb09d71c3f7d'
 down_revision: Union[str, None] = '800ed0b7013a'
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
