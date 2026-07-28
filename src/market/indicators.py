@@ -87,8 +87,8 @@ def calculate_weekly_closes(prices: list[PriceSchema]) -> list[PriceSchema]:
         else:
             current_close = price
 
-    if current_close:
-        weekly_prices.append(current_close)
+    assert current_close is not None
+    weekly_prices.append(current_close)
 
     return weekly_prices
 
@@ -123,7 +123,7 @@ def calculate_macd(
     Returns:
         List of MACDPoint with date, macd, signal, and histogram values
     """
-    if len(prices) < slow_period + signal_period:
+    if len(prices) < max(fast_period, slow_period):
         return []
 
     closes = [float(p.close) for p in prices]
@@ -131,8 +131,10 @@ def calculate_macd(
     fast_ema = calculate_ema(closes, fast_period)
     slow_ema = calculate_ema(closes, slow_period)
 
-    if len(fast_ema) < len(slow_ema):
+    if len(fast_ema) > len(slow_ema):
         fast_ema = fast_ema[-len(slow_ema) :]
+    elif len(slow_ema) > len(fast_ema):
+        slow_ema = slow_ema[-len(fast_ema) :]
 
     macd_line = [f - s for f, s in zip(fast_ema, slow_ema, strict=True)]
 
@@ -211,9 +213,6 @@ def calculate_rsi(prices: list[PriceSchema], period: int = 14) -> list[RSIPoint]
         else:
             gains.append(0)
             losses.append(abs(change))
-
-    if len(gains) < period:
-        return []
 
     avg_gain = sum(gains[:period]) / period
     avg_loss = sum(losses[:period]) / period
