@@ -16,7 +16,9 @@ async def test_signup_success(auth_client):
 
     assert "access_token" not in result
     assert "message" in result
-    assert result["message"] == "User created. Please verify your email before logging in."
+    assert (
+        result["message"] == "User created. Please verify your email before logging in."
+    )
 
 
 @pytest.mark.anyio
@@ -47,8 +49,9 @@ async def test_login_success(auth_client, test_user):
 
 
 @pytest.mark.anyio
-async def test_login_unverified_user(auth_client):
+async def test_login_unverified_user(auth_client, caplog):
     """Test login with unverified user raises 403."""
+    caplog.set_level(logging.WARNING, logger="src.auth.router")
     signup_request = {"email": "unverified@example.com", "password": "newpass"}
     await auth_client.post("/api/v1/auth/signup", json=signup_request)
 
@@ -58,13 +61,19 @@ async def test_login_unverified_user(auth_client):
     assert response.status_code == 403
     result = response.json()
     assert result["detail"] == "Email not verified"
+    assert (
+        f"Login failed for {login_request['email']}: Email not verified" in caplog.text
+    )
 
 
 @pytest.mark.anyio
 async def test_verify_email_success(auth_client, db_session):
     """Test verifying an email with a valid token."""
     from src.auth.service import EmailService, EmailVerificationService
-    from src.auth.repository_sqlalchemy import SqlAlchemyUserRepository, SqlAlchemyVerificationTokenRepository
+    from src.auth.repository_sqlalchemy import (
+        SqlAlchemyUserRepository,
+        SqlAlchemyVerificationTokenRepository,
+    )
 
     user_repo = SqlAlchemyUserRepository(db_session)
     token_repo = SqlAlchemyVerificationTokenRepository(db_session)
@@ -72,7 +81,9 @@ async def test_verify_email_success(auth_client, db_session):
     svc = EmailVerificationService(user_repo, token_repo, email_service)
 
     email = "toverify@example.com"
-    await auth_client.post("/api/v1/auth/signup", json={"email": email, "password": "pass"})
+    await auth_client.post(
+        "/api/v1/auth/signup", json={"email": email, "password": "pass"}
+    )
 
     user = await user_repo.get_by_email(email)
     assert user is not None
@@ -82,20 +93,26 @@ async def test_verify_email_success(auth_client, db_session):
     token_record = await token_repo.get_by_user(user.id)
     assert token_record is not None
 
-    response = await auth_client.post("/api/v1/auth/verify-email", json={"token": token_record.token})
+    response = await auth_client.post(
+        "/api/v1/auth/verify-email", json={"token": token_record.token}
+    )
 
     assert response.status_code == 200
     assert response.json()["message"] == "Email verified successfully"
 
     # Login should now work
-    login_response = await auth_client.post("/api/v1/auth/login", json={"email": email, "password": "pass"})
+    login_response = await auth_client.post(
+        "/api/v1/auth/login", json={"email": email, "password": "pass"}
+    )
     assert login_response.status_code == 200
 
 
 @pytest.mark.anyio
 async def test_verify_email_invalid_token(auth_client):
     """Test verifying an email with an invalid token."""
-    response = await auth_client.post("/api/v1/auth/verify-email", json={"token": "invalid-token-string"})
+    response = await auth_client.post(
+        "/api/v1/auth/verify-email", json={"token": "invalid-token-string"}
+    )
 
     assert response.status_code == 400
     assert response.json()["detail"] == "Invalid or expired verification token"
@@ -105,30 +122,47 @@ async def test_verify_email_invalid_token(auth_client):
 async def test_resend_verification_success(auth_client):
     """Test resending verification email."""
     email = "resend@example.com"
-    await auth_client.post("/api/v1/auth/signup", json={"email": email, "password": "pass"})
+    await auth_client.post(
+        "/api/v1/auth/signup", json={"email": email, "password": "pass"}
+    )
 
-    response = await auth_client.post("/api/v1/auth/resend-verification", json={"email": email})
+    response = await auth_client.post(
+        "/api/v1/auth/resend-verification", json={"email": email}
+    )
 
     assert response.status_code == 200
-    assert response.json()["message"] == "Verification email sent if user exists and is unverified"
+    assert (
+        response.json()["message"]
+        == "Verification email sent if user exists and is unverified"
+    )
 
 
 @pytest.mark.anyio
 async def test_resend_verification_already_verified(auth_client, test_user):
     """Test resending verification email for verified user raises 400."""
-    response = await auth_client.post("/api/v1/auth/resend-verification", json={"email": test_user.email})
+    response = await auth_client.post(
+        "/api/v1/auth/resend-verification", json={"email": test_user.email}
+    )
 
     assert response.status_code == 200
-    assert response.json()["message"] == "Verification email sent if user exists and is unverified"
+    assert (
+        response.json()["message"]
+        == "Verification email sent if user exists and is unverified"
+    )
 
 
 @pytest.mark.anyio
 async def test_resend_verification_nonexistent_user(auth_client):
     """Test resending verification email for nonexistent user succeeds silently."""
-    response = await auth_client.post("/api/v1/auth/resend-verification", json={"email": "nobody@example.com"})
+    response = await auth_client.post(
+        "/api/v1/auth/resend-verification", json={"email": "nobody@example.com"}
+    )
 
     assert response.status_code == 200
-    assert response.json()["message"] == "Verification email sent if user exists and is unverified"
+    assert (
+        response.json()["message"]
+        == "Verification email sent if user exists and is unverified"
+    )
 
 
 @pytest.mark.anyio
@@ -143,7 +177,9 @@ async def test_login_invalid_credentials(auth_client, other_user, caplog):
     result = response.json()
 
     assert result["detail"] == "Invalid credentials"
-    assert f"Login failed for {login_request['email']}: Invalid credentials" in caplog.text
+    assert (
+        f"Login failed for {login_request['email']}: Invalid credentials" in caplog.text
+    )
 
 
 @pytest.mark.anyio
@@ -158,4 +194,6 @@ async def test_login_nonexistent_user(auth_client, caplog):
     result = response.json()
 
     assert result["detail"] == "Invalid credentials"
-    assert f"Login failed for {login_request['email']}: Invalid credentials" in caplog.text
+    assert (
+        f"Login failed for {login_request['email']}: Invalid credentials" in caplog.text
+    )
