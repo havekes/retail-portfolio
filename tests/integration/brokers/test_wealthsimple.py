@@ -54,7 +54,7 @@ def test_save_session(gateway: WealthsimpleApiGateway) -> None:
     with patch("keyring.set_password") as mock_set_pw:
         gateway._save_session("dummy_session_data", "user@example.com")
         mock_set_pw.assert_called_once_with(
-            "retail_prtofolio_wealthsimple.user@example.com",
+            "retail_portfolio_wealthsimple.user@example.com",
             "session",
             "dummy_session_data",
         )
@@ -105,9 +105,12 @@ def test_login_no_session_no_password(gateway: WealthsimpleApiGateway) -> None:
 def test_login_no_session_successful_credentials(gateway: WealthsimpleApiGateway) -> None:
     """Test login succeeds with credentials when no session exists."""
     stub_session = StubWSAPISession()
+    mock_client = MagicMock()
+    mock_client.get_accounts.return_value = []
 
     with (
         patch("keyring.get_password", return_value=None),
+        patch.object(gateway, "_get_client", return_value=mock_client),
         patch.object(gateway, "_ws_login", return_value=stub_session) as mock_ws_login,
     ):
         result = gateway.login("user@example.com", password="password123", otp="123456")
@@ -121,6 +124,7 @@ def test_login_no_session_successful_credentials(gateway: WealthsimpleApiGateway
         (LoginFailedException("Failed"), LoginFailedError),
         (OTPRequiredException("OTP needed"), OTPRequiredError),
         (ManualLoginRequired("Manual required"), SessionExpiredError),
+        (UnexpectedException("API Error"), UnknownError),
     ],
 )
 def test_login_credentials_exceptions(
@@ -162,12 +166,12 @@ def test_ws_login_internal_call(gateway: WealthsimpleApiGateway) -> None:
 
 
 def test_ws_login_unexpected_exception(gateway: WealthsimpleApiGateway) -> None:
-    """Test _ws_login re-raises UnexpectedException."""
+    """Test _ws_login raises UnknownError on UnexpectedException."""
     mock_ws = MagicMock()
     mock_ws.login_internal.side_effect = UnexpectedException("API Error")
 
     with patch("src.integration.brokers.wealthsimple.WealthsimpleAPI", return_value=mock_ws):
-        with pytest.raises(UnexpectedException):
+        with pytest.raises(UnknownError):
             gateway._ws_login("user@example.com", "secret", None)
 
 
