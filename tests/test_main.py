@@ -1,5 +1,6 @@
 import pytest
-from unittest.mock import AsyncMock, patch
+from unittest.mock import AsyncMock
+from contextlib import asynccontextmanager
 
 @pytest.mark.anyio
 async def test_health_live(client):
@@ -8,12 +9,16 @@ async def test_health_live(client):
     assert response.json() == {"status": "alive"}
 
 @pytest.mark.anyio
-@patch("src.main.redis_manager.client")
-async def test_health_ready(mock_redis_client, client):
+async def test_health_ready(monkeypatch, client):
     # Setup mock for redis client context manager
     mock_redis = AsyncMock()
     mock_redis.ping.return_value = True
-    mock_redis_client.return_value.__aenter__.return_value = mock_redis
+
+    @asynccontextmanager
+    async def mock_client():
+        yield mock_redis
+
+    monkeypatch.setattr("src.main.redis_manager.client", mock_client)
     
     response = await client.get("/health/ready")
     assert response.status_code == 200
