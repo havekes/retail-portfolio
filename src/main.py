@@ -116,7 +116,12 @@ async def cors_exception_middleware(request: Request, call_next: Any) -> Any:
     try:
         return await call_next(request)
     except Exception as exc:
-        logger.exception("Unhandled exception in middleware safety net:")
+        if settings.environment == "dev":
+            logger.exception(
+                "Unhandled exception in middleware safety net:", exc_info=exc
+            )
+        else:
+            logger.exception("Unhandled exception in middleware safety net:")
 
         allowed_origins = [
             origin.strip() for origin in settings.cors_allow_origins.split(",")
@@ -217,7 +222,10 @@ async def ping(services: DepContainer) -> dict[str, Any]:
 @app.exception_handler(Exception)
 async def catch_all_exception_handler(_: Request, exc: Exception):
     # Use a safer logging call to avoid potential formatting errors
-    logger.exception("Unhandled exception caught by FastAPI handler:")
+    if settings.environment == "dev":
+        logger.exception("Unhandled exception caught by FastAPI handler:", exc_info=exc)
+    else:
+        logger.exception("Unhandled exception caught by FastAPI handler:")
     return JSONResponse(
         status_code=500,
         content={
@@ -230,12 +238,18 @@ async def catch_all_exception_handler(_: Request, exc: Exception):
 @app.exception_handler(EntityNotFoundError)
 async def entity_not_found_error_handler(_, error: EntityNotFoundError):
     if settings.environment != "prod":
-        logger.exception(str(error))
+        if settings.environment == "dev":
+            logger.exception(str(error), exc_info=error)
+        else:
+            logger.exception(str(error))
     return JSONResponse(status_code=404, content={"error": str(error)})
 
 
 @app.exception_handler(AuthorizationError)
 async def authorization_error_handler(_, error: AuthorizationError):
     if settings.environment != "prod":
-        logger.exception(error.log_message())
+        if settings.environment == "dev":
+            logger.exception(error.log_message(), exc_info=error)
+        else:
+            logger.exception(error.log_message())
     return JSONResponse(status_code=404, content={"error": str(error)})
