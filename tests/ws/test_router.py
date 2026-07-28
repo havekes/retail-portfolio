@@ -40,9 +40,6 @@ def dummy_user(user_id):
     return User(
         id=user_id,
         email="test@example.com",
-        first_name="Test",
-        last_name="User",
-        is_active=True,
     )
 
 

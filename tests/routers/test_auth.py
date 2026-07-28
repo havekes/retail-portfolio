@@ -47,8 +47,9 @@ async def test_login_success(auth_client, test_user):
 
 
 @pytest.mark.anyio
-async def test_login_unverified_user(auth_client):
+async def test_login_unverified_user(auth_client, caplog):
     """Test login with unverified user raises 403."""
+    caplog.set_level(logging.WARNING, logger="src.auth.router")
     signup_request = {"email": "unverified@example.com", "password": "newpass"}
     await auth_client.post("/api/v1/auth/signup", json=signup_request)
 
@@ -58,6 +59,9 @@ async def test_login_unverified_user(auth_client):
     assert response.status_code == 403
     result = response.json()
     assert result["detail"] == "Email not verified"
+    assert (
+        f"Login failed for {login_request['email']}: Email not verified" in caplog.text
+    )
 
 
 @pytest.mark.anyio
