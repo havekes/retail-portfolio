@@ -194,7 +194,7 @@ async def _seed_accounts(session, user, account_types, institutions):
     rprint("Seeding accounts...")
     accounts_data = [
         {
-            "external_id": uuid.UUID("00000000-0000-0000-0000-000000000001"),
+            "external_id": "00000000-0000-0000-0000-000000000001",
             "name": "My RRSP",
             "user_id": user.id,
             "account_type_id": account_types[AccountTypeEnum.RRSP].id,
@@ -202,7 +202,7 @@ async def _seed_accounts(session, user, account_types, institutions):
             "currency": "CAD",
         },
         {
-            "external_id": uuid.UUID("00000000-0000-0000-0000-000000000002"),
+            "external_id": "00000000-0000-0000-0000-000000000002",
             "name": "Main TFSA",
             "user_id": user.id,
             "account_type_id": account_types[AccountTypeEnum.TFSA].id,
@@ -210,7 +210,7 @@ async def _seed_accounts(session, user, account_types, institutions):
             "currency": "CAD",
         },
         {
-            "external_id": uuid.UUID("00000000-0000-0000-0000-000000000003"),
+            "external_id": "00000000-0000-0000-0000-000000000003",
             "name": "Side Trading",
             "user_id": user.id,
             "account_type_id": account_types[AccountTypeEnum.NON_REGISTERED].id,
