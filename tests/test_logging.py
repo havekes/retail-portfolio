@@ -126,3 +126,67 @@ def test_json_formatter_unserializable_extra():
     data = json.loads(formatted)
     
     assert data["user_id"] == "<unserializable>"
+
+
+from unittest.mock import MagicMock, patch
+from src.config.logging import FallbackRichHandler, init_logging
+
+
+def test_fallback_rich_handler_success():
+    handler = FallbackRichHandler()
+    record = logging.LogRecord(
+        name="test_logger",
+        level=logging.INFO,
+        pathname="test.py",
+        lineno=10,
+        msg="Success message",
+        args=(),
+        exc_info=None,
+    )
+    with patch("rich.logging.RichHandler.emit") as mock_super_emit:
+        handler.emit(record)
+        mock_super_emit.assert_called_once_with(record)
+
+
+def test_fallback_rich_handler_failure(capsys):
+    handler = FallbackRichHandler()
+    record = logging.LogRecord(
+        name="test_logger",
+        level=logging.INFO,
+        pathname="test.py",
+        lineno=10,
+        msg="Failure test message",
+        args=(),
+        exc_info=None,
+    )
+    with patch("rich.logging.RichHandler.emit", side_effect=RuntimeError("Rich error")):
+        handler.emit(record)
+
+    captured = capsys.readouterr()
+    assert "[FALLBACK] INFO: Failure test message" in captured.err
+
+
+def test_fallback_rich_handler_double_failure():
+    handler = FallbackRichHandler()
+    record = logging.LogRecord(
+        name="test_logger",
+        level=logging.INFO,
+        pathname="test.py",
+        lineno=10,
+        msg="Double failure test message",
+        args=(),
+        exc_info=None,
+    )
+    with patch("rich.logging.RichHandler.emit", side_effect=RuntimeError("Rich error")),          patch("logging.StreamHandler.emit", side_effect=RuntimeError("Fallback error")):
+        # Should catch all exceptions and not raise
+        handler.emit(record)
+
+
+def test_init_logging_dev_mode():
+    with patch("src.config.logging.settings.environment", "dev"),          patch("logging.basicConfig") as mock_basic_config:
+        init_logging()
+        assert mock_basic_config.called
+        kwargs = mock_basic_config.call_args.kwargs
+        assert "handlers" in kwargs
+        assert len(kwargs["handlers"]) == 1
+        assert isinstance(kwargs["handlers"][0], FallbackRichHandler)

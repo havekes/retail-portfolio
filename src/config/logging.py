@@ -3,6 +3,7 @@ import json
 import logging
 import os
 import shutil
+import sys
 
 from rich.console import Console
 from rich.logging import RichHandler
@@ -10,6 +11,27 @@ from rich.traceback import install
 
 from src.config.settings import settings
 from src.core.context import get_request_id
+
+
+class FallbackRichHandler(RichHandler):
+    """RichHandler wrapper that falls back to standard StreamHandler.
+
+    Used when formatting or rendering errors occur.
+    """
+
+    def emit(self, record: logging.LogRecord) -> None:
+        try:
+            super().emit(record)
+        except Exception:  # noqa: BLE001
+            try:
+                fallback_handler = logging.StreamHandler(sys.stderr)
+                fallback_handler.setFormatter(
+                    logging.Formatter("[FALLBACK] %(levelname)s: %(message)s")
+                )
+                fallback_handler.emit(record)
+            except Exception:  # noqa: BLE001, S110
+                pass
+
 
 
 class RequestIdFilter(logging.Filter):
@@ -72,7 +94,7 @@ def init_logging() -> None:
         # Install rich traceback handler
         install(console=console, show_locals=True)
 
-        handler = RichHandler(
+        handler = FallbackRichHandler(
             console=console,
             rich_tracebacks=True,
             show_path=True,
