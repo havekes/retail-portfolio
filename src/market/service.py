@@ -150,7 +150,6 @@ class PriceAggregationService:
         return aggregate_4h_candles(candles)
 
 
-
 class MarketService:
     _gateway: MarketGateway
     _price_repository: PriceRepository
