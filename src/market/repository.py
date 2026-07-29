@@ -91,7 +91,9 @@ class IntradayPriceRepository(ABC):
         security_id: SecurityId,
         start_time: datetime | None = None,
         end_time: datetime | None = None,
-    ) -> list[IntradayPriceSchema]:
+        offset: int | None = None,
+        limit: int | None = None,
+    ) -> tuple[list[IntradayPriceSchema], int]:
         pass
 
     @abstractmethod

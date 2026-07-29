@@ -319,17 +319,32 @@ class SqlAlchemyIntradayPriceRepository(IntradayPriceRepository):
         security_id: SecurityId,
         start_time: datetime | None = None,
         end_time: datetime | None = None,
-    ) -> list[IntradayPriceSchema]:
-        stmt = select(IntradayPriceModel).where(
+        offset: int | None = None,
+        limit: int | None = None,
+    ) -> tuple[list[IntradayPriceSchema], int]:
+        base_query = select(IntradayPriceModel).where(
             IntradayPriceModel.security_id == security_id
         )
         if start_time is not None:
-            stmt = stmt.where(IntradayPriceModel.timestamp >= start_time)
+            base_query = base_query.where(IntradayPriceModel.timestamp >= start_time)
         if end_time is not None:
-            stmt = stmt.where(IntradayPriceModel.timestamp <= end_time)
-        stmt = stmt.order_by(IntradayPriceModel.timestamp.asc())
+            base_query = base_query.where(IntradayPriceModel.timestamp <= end_time)
+
+        total = await self._session.scalar(
+            select(func.count()).select_from(base_query.subquery())
+        )
+
+        stmt = base_query.order_by(IntradayPriceModel.timestamp.asc())
+        if offset is not None:
+            stmt = stmt.offset(offset)
+        if limit is not None:
+            stmt = stmt.limit(limit)
+
         result = await self._session.execute(stmt)
-        return [IntradayPriceSchema.model_validate(model) for model in result.scalars()]
+        return (
+            [IntradayPriceSchema.model_validate(model) for model in result.scalars()],
+            total or 0,
+        )
 
     @override
     async def save_intraday_price(

@@ -108,6 +108,15 @@ class PriceHistoryRead(PaginatedResponse[PriceSchema]):
     to_date: date
 
 
+class IntradayPriceHistoryRead(PaginatedResponse[IntradayPriceSchema]):
+    """Response schema for intraday price history endpoint."""
+
+    security_id: SecurityId
+    interval: str
+    from_datetime: AwareDatetime | None = None
+    to_datetime: AwareDatetime | None = None
+
+
 class SecurityCreateRequest(BaseModel):
     """Request schema for creating a security from search results."""
 

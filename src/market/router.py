@@ -1,3 +1,4 @@
+from pydantic import AwareDatetime
 import logging
 import uuid
 from datetime import UTC, date, datetime, timezone
@@ -29,6 +30,7 @@ from src.market.indicators import (
 )
 from src.market.repository import (
     IndicatorPreferencesRepository,
+    IntradayPriceRepository,
     PriceAlertRepository,
     PriceRepository,
     SecurityDocumentRepository,
@@ -38,6 +40,11 @@ from src.market.repository import (
 )
 from src.market.schema import (
     AIAnalysisRequest,
+    AIAnalysisResponse,
+    IndicatorPreferencesRead,
+    IndicatorPreferencesWrite,
+    IntradayPriceHistoryRead,
+    IntradayPriceSchema,
     AIAnalysisResponse,
     IndicatorPreferencesRead,
     IndicatorPreferencesWrite,
@@ -100,6 +107,112 @@ async def market_search(
         "Searched for securities with query: %s, found %d results", q, len(results)
     )
     return results
+
+
+def aggregate_1h_to_4h(candles: list[IntradayPriceSchema]) -> list[IntradayPriceSchema]:
+    """Aggregate 1-hour intraday candles into 4-hour candles."""
+    if not candles:
+        return []
+
+    buckets: dict[datetime, list[IntradayPriceSchema]] = {}
+    for candle in candles:
+        ts = candle.timestamp
+        bucket_ts = ts.replace(
+            hour=(ts.hour // 4) * 4, minute=0, second=0, microsecond=0
+        )
+        if bucket_ts not in buckets:
+            buckets[bucket_ts] = []
+        buckets[bucket_ts].append(candle)
+
+    aggregated: list[IntradayPriceSchema] = []
+    for bucket_ts, group in buckets.items():
+        aggregated.append(
+            IntradayPriceSchema(
+                security_id=group[0].security_id,
+                timestamp=bucket_ts,
+                open=group[0].open,
+                high=max(c.high for c in group),
+                low=min(c.low for c in group),
+                close=group[-1].close,
+                volume=sum(c.volume for c in group),
+            )
+        )
+    return aggregated
+
+
+@market_router.get("/prices/{security_id}/intraday")
+async def market_get_intraday_prices(
+    _: Annotated[User, Depends(current_user)],
+    security_id: SecurityId,
+    services: DepContainer,
+    pagination: Annotated[PaginationParams, Depends()],
+    from_datetime: Annotated[
+        AwareDatetime | None, Query(description="Start datetime (ISO 8601)")
+    ] = None,
+    to_datetime: Annotated[
+        AwareDatetime | None, Query(description="End datetime (ISO 8601)")
+    ] = None,
+    interval: Annotated[str, Query(description="Candle interval (1h or 4h)")] = "1h",
+) -> IntradayPriceHistoryRead:
+    """
+    Get intraday prices for a security within a datetime range
+    """
+    if interval not in ("1h", "4h"):
+        raise HTTPException(
+            status_code=422,
+            detail="Invalid interval. Must be '1h' or '4h'.",
+        )
+
+    if from_datetime and to_datetime and from_datetime > to_datetime:
+        raise HTTPException(
+            status_code=422,
+            detail="from_datetime must be less than or equal to to_datetime",
+        )
+
+    security_repository = await services.aget(SecurityRepository)
+    intraday_repository = await services.aget(IntradayPriceRepository)
+
+    security = await security_repository.get_by_id_or_fail(security_id)
+
+    if interval == "1h":
+        prices, total = await intraday_repository.get_intraday_prices(
+            security_id=security.id,
+            start_time=from_datetime,
+            end_time=to_datetime,
+            offset=pagination.offset,
+            limit=pagination.limit,
+        )
+    else:  # interval == "4h"
+        all_1h_prices, _ = await intraday_repository.get_intraday_prices(
+            security_id=security.id,
+            start_time=from_datetime,
+            end_time=to_datetime,
+            offset=None,
+            limit=None,
+        )
+        aggregated = aggregate_1h_to_4h(all_1h_prices)
+        total = len(aggregated)
+        prices = aggregated[pagination.offset : pagination.offset + pagination.limit]
+
+    logger.info(
+        "Retrieved %d %s intraday prices for security %s from %s to %s",
+        len(prices),
+        interval,
+        security.id,
+        from_datetime,
+        to_datetime,
+    )
+
+    return IntradayPriceHistoryRead(
+        items=prices,
+        total=total,
+        offset=pagination.offset,
+        limit=pagination.limit,
+        security_id=security.id,
+        interval=interval,
+        from_datetime=from_datetime,
+        to_datetime=to_datetime,
+    )
 
 
 @market_router.get("/prices/{security_id}")

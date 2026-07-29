@@ -105,3 +105,175 @@ async def test_watchlist_add_security_not_found(auth_client):
     assert response.status_code == 404
     assert "not found" in response.json()["error"].lower()
 
+
+
+@pytest.mark.anyio
+async def test_get_intraday_prices_1h_default(auth_client, db_session):
+    """Test GET /prices/{security_id}/intraday returns 1h candles by default."""
+    from uuid import uuid4
+    from datetime import datetime, timezone
+    from decimal import Decimal
+    from src.market.repository_sqlalchemy import (
+        SqlAlchemySecurityRepository,
+        SqlAlchemyIntradayPriceRepository,
+    )
+    from src.market.schema import SecuritySchema, IntradayPriceSchema
+
+    security_repo = SqlAlchemySecurityRepository(db_session)
+    intraday_repo = SqlAlchemyIntradayPriceRepository(db_session)
+
+    security = await security_repo.get_or_create(
+        SecuritySchema(
+            id=uuid4(),
+            symbol="AAPL",
+            exchange="US",
+            currency="USD",
+            name="Apple Inc",
+            isin=None,
+            is_active=True,
+            updated_at=datetime.now(timezone.utc),
+        )
+    )
+
+    base_time = datetime(2026, 1, 15, 8, 0, tzinfo=timezone.utc)
+    candles = [
+        IntradayPriceSchema(
+            security_id=security.id,
+            timestamp=base_time,
+            open=Decimal("100.0"),
+            high=Decimal("105.0"),
+            low=Decimal("98.0"),
+            close=Decimal("102.0"),
+            volume=1000,
+        ),
+        IntradayPriceSchema(
+            security_id=security.id,
+            timestamp=datetime(2026, 1, 15, 9, 0, tzinfo=timezone.utc),
+            open=Decimal("102.0"),
+            high=Decimal("108.0"),
+            low=Decimal("101.0"),
+            close=Decimal("107.0"),
+            volume=1500,
+        ),
+    ]
+    await intraday_repo.save_intraday_prices(candles)
+
+    response = await auth_client.get(f"/api/v1/market/prices/{security.id}/intraday")
+    assert response.status_code == 200
+    data = response.json()
+    assert data["interval"] == "1h"
+    assert data["total"] == 2
+    assert len(data["items"]) == 2
+    assert Decimal(str(data["items"][0]["open"])) == Decimal("100.0")
+
+
+@pytest.mark.anyio
+async def test_get_intraday_prices_4h_aggregation(auth_client, db_session):
+    """Test GET /prices/{security_id}/intraday?interval=4h aggregates 1h candles into 4h candles."""
+    from uuid import uuid4
+    from datetime import datetime, timezone
+    from decimal import Decimal
+    from src.market.repository_sqlalchemy import (
+        SqlAlchemySecurityRepository,
+        SqlAlchemyIntradayPriceRepository,
+    )
+    from src.market.schema import SecuritySchema, IntradayPriceSchema
+
+    security_repo = SqlAlchemySecurityRepository(db_session)
+    intraday_repo = SqlAlchemyIntradayPriceRepository(db_session)
+
+    security = await security_repo.get_or_create(
+        SecuritySchema(
+            id=uuid4(),
+            symbol="MSFT",
+            exchange="US",
+            currency="USD",
+            name="Microsoft Corp",
+            isin=None,
+            is_active=True,
+            updated_at=datetime.now(timezone.utc),
+        )
+    )
+
+    candles = [
+        IntradayPriceSchema(
+            security_id=security.id,
+            timestamp=datetime(2026, 1, 15, 8, 0, tzinfo=timezone.utc),
+            open=Decimal("100.0"),
+            high=Decimal("105.0"),
+            low=Decimal("98.0"),
+            close=Decimal("102.0"),
+            volume=1000,
+        ),
+        IntradayPriceSchema(
+            security_id=security.id,
+            timestamp=datetime(2026, 1, 15, 9, 0, tzinfo=timezone.utc),
+            open=Decimal("102.0"),
+            high=Decimal("108.0"),
+            low=Decimal("101.0"),
+            close=Decimal("107.0"),
+            volume=1500,
+        ),
+        IntradayPriceSchema(
+            security_id=security.id,
+            timestamp=datetime(2026, 1, 15, 10, 0, tzinfo=timezone.utc),
+            open=Decimal("107.0"),
+            high=Decimal("109.0"),
+            low=Decimal("104.0"),
+            close=Decimal("105.0"),
+            volume=1200,
+        ),
+        IntradayPriceSchema(
+            security_id=security.id,
+            timestamp=datetime(2026, 1, 15, 12, 0, tzinfo=timezone.utc),
+            open=Decimal("105.0"),
+            high=Decimal("110.0"),
+            low=Decimal("103.0"),
+            close=Decimal("108.0"),
+            volume=800,
+        ),
+    ]
+    await intraday_repo.save_intraday_prices(candles)
+
+    response = await auth_client.get(
+        f"/api/v1/market/prices/{security.id}/intraday?interval=4h"
+    )
+    assert response.status_code == 200
+    data = response.json()
+    assert data["interval"] == "4h"
+    assert data["total"] == 2
+    assert len(data["items"]) == 2
+
+    bucket1 = data["items"][0]
+    assert Decimal(str(bucket1["open"])) == Decimal("100.0")
+    assert Decimal(str(bucket1["high"])) == Decimal("109.0")
+    assert Decimal(str(bucket1["low"])) == Decimal("98.0")
+    assert Decimal(str(bucket1["close"])) == Decimal("105.0")
+    assert bucket1["volume"] == 3700
+
+    bucket2 = data["items"][1]
+    assert Decimal(str(bucket2["open"])) == Decimal("105.0")
+    assert Decimal(str(bucket2["high"])) == Decimal("110.0")
+    assert Decimal(str(bucket2["low"])) == Decimal("103.0")
+    assert Decimal(str(bucket2["close"])) == Decimal("108.0")
+    assert bucket2["volume"] == 800
+
+
+@pytest.mark.anyio
+async def test_get_intraday_prices_validation_and_not_found(auth_client, test_security):
+    """Test validation errors (422) and missing security (404)."""
+    from uuid import uuid4
+
+    resp = await auth_client.get(
+        f"/api/v1/market/prices/{test_security.id}/intraday?interval=2h"
+    )
+    assert resp.status_code == 422
+
+    resp = await auth_client.get(
+        f"/api/v1/market/prices/{test_security.id}/intraday?from_datetime=2026-01-16T00:00:00Z&to_datetime=2026-01-15T00:00:00Z"
+    )
+    assert resp.status_code == 422
+
+    missing_id = uuid4()
+    resp = await auth_client.get(f"/api/v1/market/prices/{missing_id}/intraday")
+    assert resp.status_code == 404

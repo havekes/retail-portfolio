@@ -193,16 +193,18 @@ async def test_intraday_repository_save_and_retrieve(db_session: AsyncSession):
     assert len(saved_batch) == 4
 
     # Query all intraday prices for security
-    all_candles = await intraday_repo.get_intraday_prices(security.id)
+    all_candles, total_count = await intraday_repo.get_intraday_prices(security.id)
+    assert total_count == 5
     assert len(all_candles) == 5
     assert all_candles[0].timestamp == base_time
 
     # Query range
     start_range = base_time + datetime.timedelta(hours=1)
     end_range = base_time + datetime.timedelta(hours=3)
-    ranged_candles = await intraday_repo.get_intraday_prices(
+    ranged_candles, total_count = await intraday_repo.get_intraday_prices(
         security.id, start_time=start_range, end_time=end_range
     )
+    assert total_count == 3
     assert len(ranged_candles) == 3
     assert ranged_candles[0].timestamp == start_range
     assert ranged_candles[-1].timestamp == end_range
@@ -256,7 +258,7 @@ async def test_intraday_repository_unique_constraint(db_session: AsyncSession):
     assert updated[0].close == Decimal("309.0")
     assert updated[0].volume == 15000
 
-    candles_in_db = await intraday_repo.get_intraday_prices(security.id)
+    candles_in_db, _ = await intraday_repo.get_intraday_prices(security.id)
     assert len(candles_in_db) == 1
     assert candles_in_db[0].close == Decimal("309.0")
 
@@ -312,7 +314,7 @@ async def test_intraday_and_daily_price_isolation(db_session: AsyncSession):
     assert len(daily_prices) == 1
     assert daily_prices[0].close == Decimal("515.0")
 
-    intraday_prices = await intraday_repo.get_intraday_prices(security.id)
+    intraday_prices, _ = await intraday_repo.get_intraday_prices(security.id)
     assert len(intraday_prices) == 1
     assert intraday_prices[0].close == Decimal("508.0")
 
@@ -390,7 +392,7 @@ async def test_intraday_repository_single_save_upsert(db_session: AsyncSession):
     saved2 = await intraday_repo.save_intraday_price(candle_v2)
     assert saved2.close == Decimal("187.0")
 
-    candles_in_db = await intraday_repo.get_intraday_prices(security.id)
+    candles_in_db, _ = await intraday_repo.get_intraday_prices(security.id)
     assert len(candles_in_db) == 1
     assert candles_in_db[0].close == Decimal("187.0")
     assert candles_in_db[0].high == Decimal("188.0")
