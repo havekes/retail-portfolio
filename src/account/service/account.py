@@ -40,6 +40,10 @@ class AccountService:
         """Delete an account by its ID."""
         await self._account_repository.delete(account_id)
 
+    async def get_all_accounts(self) -> list[AccountSchema]:
+        """Get all accounts."""
+        return await self._account_repository.get_all()
+
 
 async def account_service_factory(container: Container) -> AccountService:
     return AccountService(

@@ -45,6 +45,10 @@ class MockAccountRepository(AccountRepository):
         return []
 
     @override
+    async def get_all(self) -> list[AccountSchema]:
+        return self.accounts
+
+    @override
     async def delete(self, account_id: AccountId) -> None:
         self.accounts = [a for a in self.accounts if a.id != account_id]
 
@@ -87,3 +91,22 @@ async def test_get_account_not_found():
 
     with pytest.raises(AccountNotFoundError):
         await service.get_account(account_id)
+
+
+@pytest.mark.anyio
+async def test_get_all_accounts():
+    account = AccountSchema(
+        id=uuid4(),
+        external_id="broker-123",
+        name="Test Account",
+        user_id=uuid4(),
+        account_type_id=AccountTypeEnum.TFSA,
+        institution_id=InstitutionEnum.WEALTHSIMPLE,
+        currency=Currency.USD,
+    )
+    repo = MockAccountRepository([account])
+    service = AccountService(account_repository=repo)
+
+    result = await service.get_all_accounts()
+
+    assert result == [account]

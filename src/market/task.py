@@ -4,11 +4,15 @@ import logging
 from huey import crontab
 from svcs import Container
 
+from src.account.service.account import AccountService
+from src.account.service.position import PositionService
 from src.core.context import get_request_id, request_id_ctx_var, set_request_id
 from src.market.ai_service import AIService
 from src.market.repository import SecurityNoteRepository
 from src.market.service import MarketService
 from src.worker import huey
+from src.ws.api_types import AccountTotalsUpdatedMessage
+from src.ws.manager import ws_manager
 
 logger = logging.getLogger(__name__)
 
@@ -111,3 +115,25 @@ async def _hourly_intraday_price_update() -> None:
             success,
             failure,
         )
+
+        account_service: AccountService = await svcs_container.aget(AccountService)
+        position_service: PositionService = await svcs_container.aget(PositionService)
+
+        accounts = await account_service.get_all_accounts()
+        for account in accounts:
+            try:
+                totals = await position_service.get_total_for_account(
+                    account.id, account.currency
+                )
+                msg = AccountTotalsUpdatedMessage(
+                    account_id=account.id,
+                    totals=totals,
+                )
+                await ws_manager.send_personal_message(
+                    msg.model_dump(mode="json"), account.user_id
+                )
+            except Exception:
+                logger.exception(
+                    "Failed to update totals and send WS message for account %s",
+                    account.id,
+                )

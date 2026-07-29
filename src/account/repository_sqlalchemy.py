@@ -119,6 +119,16 @@ class SqlAlchemyAccountRepository(AccountRepository):
         ]
 
     @override
+    async def get_all(self) -> list[AccountSchema]:
+        q = select(AccountModel).order_by(AccountModel.name)
+        result = await self._session.execute(q)
+        account_models = result.scalars().all()
+        return [
+            AccountSchema.model_validate(account_model)
+            for account_model in account_models
+        ]
+
+    @override
     async def delete(self, account_id: AccountId) -> None:
         account_model = await self._session.get(AccountModel, account_id)
         if account_model:
