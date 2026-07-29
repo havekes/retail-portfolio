@@ -1,3 +1,5 @@
+from src.market.router import _aggregate_weekly_prices, _aggregate_monthly_prices
+from src.market.schema import PriceSchema
 from datetime import date, datetime, timezone
 from decimal import Decimal
 from src.market.model import IntradayPriceModel, PriceModel
@@ -263,3 +265,117 @@ async def test_get_prices_security_not_found_returns_404(auth_client):
         f"/api/v1/market/prices/{fake_id}?from_date=2026-01-01&to_date=2026-01-31"
     )
     assert response.status_code == 404
+
+
+@pytest.mark.anyio
+async def test_get_prices_1w_weekly_aggregation(auth_client, test_security):
+    """Test GET /market/prices/{security_id} with interval=1w aggregates daily prices into weekly candles."""
+    response = await auth_client.get(
+        f"/api/v1/market/prices/{test_security.id}?interval=1w&from_date=2026-01-01&to_date=2026-01-31"
+    )
+
+    assert response.status_code == 200
+    result = response.json()
+    assert result["security_id"] == str(test_security.id)
+    assert result["total"] == 5
+    assert len(result["items"]) == 5
+    assert result["items"][0]["date"] < result["items"][1]["date"]
+
+
+@pytest.mark.anyio
+async def test_get_prices_1m_monthly_aggregation(auth_client, test_security):
+    """Test GET /market/prices/{security_id} with interval=1m aggregates daily prices into monthly candles."""
+    response = await auth_client.get(
+        f"/api/v1/market/prices/{test_security.id}?interval=1m&from_date=2026-01-01&to_date=2026-02-28"
+    )
+
+    assert response.status_code == 200
+    result = response.json()
+    assert result["security_id"] == str(test_security.id)
+    assert result["total"] == 2
+    assert len(result["items"]) == 2
+    assert result["items"][0]["date"] == "2026-01-01"
+    assert result["items"][1]["date"].startswith("2026-02-")
+
+
+def test_aggregate_weekly_prices_unit():
+    """Test unit logic of _aggregate_weekly_prices."""
+    from uuid import uuid4
+    sec_id = uuid4()
+    prices = [
+        PriceSchema(
+            security_id=sec_id,
+            date=date(2026, 1, 12),
+            open=Decimal("100.00"),
+            high=Decimal("105.00"),
+            low=Decimal("99.00"),
+            close=Decimal("102.00"),
+            adjusted_close=Decimal("102.00"),
+            volume=1000,
+        ),
+        PriceSchema(
+            security_id=sec_id,
+            date=date(2026, 1, 13),
+            open=Decimal("102.00"),
+            high=Decimal("108.00"),
+            low=Decimal("101.00"),
+            close=Decimal("107.00"),
+            adjusted_close=Decimal("107.00"),
+            volume=1500,
+        ),
+        PriceSchema(
+            security_id=sec_id,
+            date=date(2026, 1, 19),
+            open=Decimal("107.00"),
+            high=Decimal("110.00"),
+            low=Decimal("105.00"),
+            close=Decimal("109.00"),
+            adjusted_close=Decimal("109.00"),
+            volume=2000,
+        ),
+    ]
+    weekly = _aggregate_weekly_prices(prices)
+    assert len(weekly) == 2
+    assert weekly[0].date == date(2026, 1, 12)
+    assert weekly[0].open == Decimal("100.00")
+    assert weekly[0].high == Decimal("108.00")
+    assert weekly[0].low == Decimal("99.00")
+    assert weekly[0].close == Decimal("107.00")
+    assert weekly[0].volume == 2500
+
+    assert weekly[1].date == date(2026, 1, 19)
+    assert weekly[1].volume == 2000
+
+
+def test_aggregate_monthly_prices_unit():
+    """Test unit logic of _aggregate_monthly_prices."""
+    from uuid import uuid4
+    sec_id = uuid4()
+    prices = [
+        PriceSchema(
+            security_id=sec_id,
+            date=date(2026, 1, 15),
+            open=Decimal("100.00"),
+            high=Decimal("120.00"),
+            low=Decimal("95.00"),
+            close=Decimal("115.00"),
+            adjusted_close=Decimal("115.00"),
+            volume=5000,
+        ),
+        PriceSchema(
+            security_id=sec_id,
+            date=date(2026, 2, 10),
+            open=Decimal("115.00"),
+            high=Decimal("130.00"),
+            low=Decimal("110.00"),
+            close=Decimal("125.00"),
+            adjusted_close=Decimal("125.00"),
+            volume=6000,
+        ),
+    ]
+    monthly = _aggregate_monthly_prices(prices)
+    assert len(monthly) == 2
+    assert monthly[0].date == date(2026, 1, 15)
+    assert monthly[0].close == Decimal("115.00")
+    assert monthly[1].date == date(2026, 2, 10)
+    assert monthly[1].close == Decimal("125.00")

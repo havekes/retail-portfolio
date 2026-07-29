@@ -18,6 +18,7 @@ from src.market.ai_service import AIService
 from src.market.api import SecurityApi
 from src.market.api_types import SecurityId, SecuritySearchResult, WatchlistId
 from src.market.cache import IndicatorCache
+from src.market.enum import PriceInterval
 from src.market.gateway import MarketGateway
 from src.market.indicators import (
     calculate_50_day_ma,
@@ -132,6 +133,75 @@ def _to_datetime_range(
     return from_dt, to_dt
 
 
+def _aggregate_weekly_prices(prices: list[PriceSchema]) -> list[PriceSchema]:
+    """
+    Aggregate daily prices into weekly candles.
+    Group daily prices by ISO year and week, setting open to first candle open,
+    high to max high, low to min low, close to last candle close, adjusted_close
+    to last candle adjusted_close, and summing volume.
+    """
+    if not prices:
+        return []
+
+    sorted_prices = sorted(prices, key=lambda p: p.date)
+    grouped: dict[tuple[int, int], list[PriceSchema]] = {}
+
+    for price in sorted_prices:
+        iso_year, iso_week, _ = price.date.isocalendar()
+        key = (iso_year, iso_week)
+        if key not in grouped:
+            grouped[key] = []
+        grouped[key].append(price)
+
+    return [
+        PriceSchema(
+            security_id=group[0].security_id,
+            date=group[0].date,
+            open=group[0].open,
+            high=max(p.high for p in group),
+            low=min(p.low for p in group),
+            close=group[-1].close,
+            adjusted_close=group[-1].adjusted_close,
+            volume=sum(p.volume for p in group),
+        )
+        for group in grouped.values()
+    ]
+
+
+def _aggregate_monthly_prices(prices: list[PriceSchema]) -> list[PriceSchema]:
+    """
+    Aggregate daily prices into monthly candles.
+    Group daily prices by year and month, setting open to first candle open,
+    high to max high, low to min low, close to last candle close, adjusted_close
+    to last candle adjusted_close, and summing volume.
+    """
+    if not prices:
+        return []
+
+    sorted_prices = sorted(prices, key=lambda p: p.date)
+    grouped: dict[tuple[int, int], list[PriceSchema]] = {}
+
+    for price in sorted_prices:
+        key = (price.date.year, price.date.month)
+        if key not in grouped:
+            grouped[key] = []
+        grouped[key].append(price)
+
+    return [
+        PriceSchema(
+            security_id=group[0].security_id,
+            date=group[0].date,
+            open=group[0].open,
+            high=max(p.high for p in group),
+            low=min(p.low for p in group),
+            close=group[-1].close,
+            adjusted_close=group[-1].adjusted_close,
+            volume=sum(p.volume for p in group),
+        )
+        for group in grouped.values()
+    ]
+
+
 def _aggregate_4h_candles(
     candles: list[IntradayPriceSchema],
 ) -> list[IntradayPriceSchema]:
@@ -187,23 +257,23 @@ async def market_get_prices(  # noqa: PLR0913, PLR0917
         Query(description="End date or datetime (ISO 8601)"),
     ] = None,
     interval: Annotated[
-        str, Query(description="Candle length interval (1d, 1h, 4h)")
-    ] = "1d",
+        PriceInterval,
+        Query(description="Candle length interval (1d, 1w, 1m, 1h, 4h)"),
+    ] = PriceInterval.ONE_DAY,
 ) -> PriceHistoryRead | IntradayPriceHistoryRead:
     """
-    Get historical prices for a security (daily or intraday)
+    Get historical prices for a security (daily, weekly, monthly, or intraday)
     """
-    if interval not in ("1d", "1h", "4h"):
-        raise HTTPException(
-            status_code=422,
-            detail="Invalid interval. Must be one of: 1d, 1h, 4h",
-        )
-
-    if interval == "1d":
+    if interval in (
+        PriceInterval.ONE_DAY,
+        PriceInterval.ONE_WEEK,
+        PriceInterval.ONE_MONTH,
+    ):
         if from_date is None or to_date is None:
+            msg = f"from_date and to_date are required for interval={interval.value}"
             raise HTTPException(
                 status_code=422,
-                detail="from_date and to_date are required for interval=1d",
+                detail=msg,
             )
 
         f_date = from_date.date() if isinstance(from_date, datetime) else from_date
@@ -219,20 +289,38 @@ async def market_get_prices(  # noqa: PLR0913, PLR0917
         security = await security_repository.get_by_id_or_fail(security_id)
 
         price_repository = await services.aget(PriceRepository)
-        prices, total = await price_repository.get_prices(
-            security, f_date, t_date, offset=pagination.offset, limit=pagination.limit
-        )
+
+        if interval == PriceInterval.ONE_DAY:
+            prices, total = await price_repository.get_prices(
+                security,
+                f_date,
+                t_date,
+                offset=pagination.offset,
+                limit=pagination.limit,
+            )
+            items = [PriceSchema.model_validate(price) for price in prices]
+        else:
+            all_prices, _ = await price_repository.get_prices(
+                security, f_date, t_date, offset=0, limit=100000
+            )
+            if interval == PriceInterval.ONE_WEEK:
+                aggregated = _aggregate_weekly_prices(all_prices)
+            else:
+                aggregated = _aggregate_monthly_prices(all_prices)
+            total = len(aggregated)
+            items = aggregated[pagination.offset : pagination.offset + pagination.limit]
 
         logger.info(
-            "Retrieved %d prices for security %s from %s to %s",
-            len(prices),
+            "Retrieved %d prices (%s) for security %s from %s to %s",
+            len(items),
+            interval.value,
             security_id,
             f_date,
             t_date,
         )
 
         return PriceHistoryRead(
-            items=[PriceSchema.model_validate(price) for price in prices],
+            items=items,
             total=total,
             offset=pagination.offset,
             limit=pagination.limit,
@@ -257,7 +345,7 @@ async def market_get_prices(  # noqa: PLR0913, PLR0917
         security_id, start_time=from_dt, end_time=to_dt
     )
 
-    if interval == "4h":
+    if interval == PriceInterval.FOUR_HOURS:
         candles = _aggregate_4h_candles(candles)
 
     total = len(candles)
@@ -268,7 +356,7 @@ async def market_get_prices(  # noqa: PLR0913, PLR0917
     logger.info(
         "Retrieved %d intraday (%s) prices for security %s",
         len(paginated_candles),
-        interval,
+        interval.value,
         security_id,
     )
 

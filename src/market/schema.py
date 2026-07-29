@@ -15,6 +15,7 @@ from src.market.api_types import (
     SecuritySearchResult,
     WatchlistId,
 )
+from src.market.enum import PriceInterval
 
 
 class SecuritySchema(BaseModel):

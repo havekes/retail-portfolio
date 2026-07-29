@@ -8,6 +8,7 @@ from src.market.api import (
     security_api_factory,
 )
 from src.market.cache import IndicatorCache, indicator_cache_factory
+from src.market.enum import PriceInterval
 from src.market.eodhd import eodhd_gateway_factory
 from src.market.gateway import MarketGateway
 from src.market.repository import (
