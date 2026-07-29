@@ -348,3 +348,160 @@ async def test_update_intraday_prices_failure_continues():
     assert result == {"success": 1, "failure": 1}
     assert len(intraday_price_repo.saved_prices) == 1
     assert intraday_price_repo.saved_prices[0].security_id == securities[1].id
+
+
+def test_aggregate_weekly_prices_unit():
+    """Test unit logic of aggregate_weekly_prices in service."""
+    from dateutil.parser import parse
+    from datetime import date
+    from decimal import Decimal
+    from uuid import uuid4
+    from src.market.schema import PriceSchema
+    from src.market.service import aggregate_weekly_prices, PriceAggregationService
+
+    sec_id = uuid4()
+    prices = [
+        PriceSchema(
+            security_id=sec_id,
+            date=date(2026, 1, 12),
+            open=Decimal("100.00"),
+            high=Decimal("105.00"),
+            low=Decimal("99.00"),
+            close=Decimal("102.00"),
+            adjusted_close=Decimal("102.00"),
+            volume=1000,
+        ),
+        PriceSchema(
+            security_id=sec_id,
+            date=date(2026, 1, 13),
+            open=Decimal("102.00"),
+            high=Decimal("108.00"),
+            low=Decimal("101.00"),
+            close=Decimal("107.00"),
+            adjusted_close=Decimal("107.00"),
+            volume=1500,
+        ),
+        PriceSchema(
+            security_id=sec_id,
+            date=date(2026, 1, 19),
+            open=Decimal("107.00"),
+            high=Decimal("110.00"),
+            low=Decimal("105.00"),
+            close=Decimal("109.00"),
+            adjusted_close=Decimal("109.00"),
+            volume=2000,
+        ),
+    ]
+    weekly = aggregate_weekly_prices(prices)
+    assert len(weekly) == 2
+    assert weekly[0].date == date(2026, 1, 12)
+    assert weekly[0].open == Decimal("100.00")
+    assert weekly[0].high == Decimal("108.00")
+    assert weekly[0].low == Decimal("99.00")
+    assert weekly[0].close == Decimal("107.00")
+    assert weekly[0].volume == 2500
+
+    assert weekly[1].date == date(2026, 1, 19)
+    assert weekly[1].volume == 2000
+
+    # Also test via PriceAggregationService static method
+    weekly_svc = PriceAggregationService.aggregate_weekly_prices(prices)
+    assert len(weekly_svc) == 2
+
+
+def test_aggregate_monthly_prices_unit():
+    """Test unit logic of aggregate_monthly_prices in service."""
+    from datetime import date
+    from decimal import Decimal
+    from uuid import uuid4
+    from src.market.schema import PriceSchema
+    from src.market.service import aggregate_monthly_prices, PriceAggregationService
+
+    sec_id = uuid4()
+    prices = [
+        PriceSchema(
+            security_id=sec_id,
+            date=date(2026, 1, 15),
+            open=Decimal("100.00"),
+            high=Decimal("120.00"),
+            low=Decimal("95.00"),
+            close=Decimal("115.00"),
+            adjusted_close=Decimal("115.00"),
+            volume=5000,
+        ),
+        PriceSchema(
+            security_id=sec_id,
+            date=date(2026, 2, 10),
+            open=Decimal("115.00"),
+            high=Decimal("130.00"),
+            low=Decimal("110.00"),
+            close=Decimal("125.00"),
+            adjusted_close=Decimal("125.00"),
+            volume=6000,
+        ),
+    ]
+    monthly = aggregate_monthly_prices(prices)
+    assert len(monthly) == 2
+    assert monthly[0].date == date(2026, 1, 15)
+    assert monthly[0].close == Decimal("115.00")
+    assert monthly[1].date == date(2026, 2, 10)
+    assert monthly[1].close == Decimal("125.00")
+
+    # Also test via PriceAggregationService static method
+    monthly_svc = PriceAggregationService.aggregate_monthly_prices(prices)
+    assert len(monthly_svc) == 2
+
+
+def test_aggregate_4h_candles_unit():
+    """Test unit logic of aggregate_4h_candles in service."""
+    from datetime import UTC, datetime
+    from decimal import Decimal
+    from uuid import uuid4
+    from src.market.schema import IntradayPriceSchema
+    from src.market.service import aggregate_4h_candles, PriceAggregationService
+
+    sec_id = uuid4()
+    candles = [
+        IntradayPriceSchema(
+            security_id=sec_id,
+            timestamp=datetime(2026, 1, 15, 9, 30, tzinfo=UTC),
+            open=Decimal("100.00"),
+            high=Decimal("102.00"),
+            low=Decimal("99.00"),
+            close=Decimal("101.00"),
+            volume=100,
+        ),
+        IntradayPriceSchema(
+            security_id=sec_id,
+            timestamp=datetime(2026, 1, 15, 10, 30, tzinfo=UTC),
+            open=Decimal("101.00"),
+            high=Decimal("105.00"),
+            low=Decimal("100.00"),
+            close=Decimal("104.00"),
+            volume=200,
+        ),
+        IntradayPriceSchema(
+            security_id=sec_id,
+            timestamp=datetime(2026, 1, 15, 13, 0, tzinfo=UTC),
+            open=Decimal("104.00"),
+            high=Decimal("106.00"),
+            low=Decimal("103.00"),
+            close=Decimal("105.00"),
+            volume=150,
+        ),
+    ]
+    aggregated = aggregate_4h_candles(candles)
+    assert len(aggregated) == 2
+    assert aggregated[0].timestamp == datetime(2026, 1, 15, 8, 0, tzinfo=UTC)
+    assert aggregated[0].open == Decimal("100.00")
+    assert aggregated[0].high == Decimal("105.00")
+    assert aggregated[0].low == Decimal("99.00")
+    assert aggregated[0].close == Decimal("104.00")
+    assert aggregated[0].volume == 300
+
+    assert aggregated[1].timestamp == datetime(2026, 1, 15, 12, 0, tzinfo=UTC)
+    assert aggregated[1].volume == 150
+
+    # Also test via PriceAggregationService static method
+    agg_svc = PriceAggregationService.aggregate_4h_candles(candles)
+    assert len(agg_svc) == 2

@@ -1,10 +1,12 @@
 import asyncio
 import logging
+from collections.abc import Sequence
 from datetime import UTC, date, datetime, timedelta
 
 from svcs import Container
 
 from src.market.gateway import MarketGateway
+from src.market.model import IntradayPriceModel, PriceModel
 from src.market.repository import (
     IntradayPriceRepository,
     PriceRepository,
@@ -13,6 +15,140 @@ from src.market.repository import (
 from src.market.schema import IntradayPriceSchema, PriceSchema, SecuritySchema
 
 logger = logging.getLogger(__name__)
+
+
+def aggregate_weekly_prices(
+    prices: Sequence[PriceSchema | PriceModel],
+) -> list[PriceSchema]:
+    """
+    Aggregate daily prices into weekly candles.
+    Group daily prices by ISO year and week, setting open to first candle open,
+    high to max high, low to min low, close to last candle close, adjusted_close
+    to last candle adjusted_close, and summing volume.
+    """
+    if not prices:
+        return []
+
+    sorted_prices = sorted(prices, key=lambda p: p.date)
+    grouped: dict[tuple[int, int], list[PriceSchema | PriceModel]] = {}
+
+    for price in sorted_prices:
+        iso_year, iso_week, _ = price.date.isocalendar()
+        key = (iso_year, iso_week)
+        if key not in grouped:
+            grouped[key] = []
+        grouped[key].append(price)
+
+    return [
+        PriceSchema(
+            security_id=group[0].security_id,
+            date=group[0].date,
+            open=group[0].open,
+            high=max(p.high for p in group),
+            low=min(p.low for p in group),
+            close=group[-1].close,
+            adjusted_close=group[-1].adjusted_close,
+            volume=sum(p.volume for p in group),
+        )
+        for group in grouped.values()
+    ]
+
+
+def aggregate_monthly_prices(
+    prices: Sequence[PriceSchema | PriceModel],
+) -> list[PriceSchema]:
+    """
+    Aggregate daily prices into monthly candles.
+    Group daily prices by year and month, setting open to first candle open,
+    high to max high, low to min low, close to last candle close, adjusted_close
+    to last candle adjusted_close, and summing volume.
+    """
+    if not prices:
+        return []
+
+    sorted_prices = sorted(prices, key=lambda p: p.date)
+    grouped: dict[tuple[int, int], list[PriceSchema | PriceModel]] = {}
+
+    for price in sorted_prices:
+        key = (price.date.year, price.date.month)
+        if key not in grouped:
+            grouped[key] = []
+        grouped[key].append(price)
+
+    return [
+        PriceSchema(
+            security_id=group[0].security_id,
+            date=group[0].date,
+            open=group[0].open,
+            high=max(p.high for p in group),
+            low=min(p.low for p in group),
+            close=group[-1].close,
+            adjusted_close=group[-1].adjusted_close,
+            volume=sum(p.volume for p in group),
+        )
+        for group in grouped.values()
+    ]
+
+
+def aggregate_4h_candles(
+    candles: Sequence[IntradayPriceSchema | IntradayPriceModel],
+) -> list[IntradayPriceSchema]:
+    """
+    Aggregate 1-hour candles into 4-hour candles.
+    Group 1h candles into 4-hour buckets, setting open to first candle open,
+    high to max high, low to min low, close to last candle close, and summing volume.
+    """
+    if not candles:
+        return []
+
+    sorted_candles = sorted(candles, key=lambda c: c.timestamp)
+    grouped: dict[datetime, list[IntradayPriceSchema | IntradayPriceModel]] = {}
+
+    for candle in sorted_candles:
+        ts = candle.timestamp
+        bucket_ts = ts.replace(
+            hour=(ts.hour // 4) * 4, minute=0, second=0, microsecond=0
+        )
+        if bucket_ts not in grouped:
+            grouped[bucket_ts] = []
+        grouped[bucket_ts].append(candle)
+
+    aggregated: list[IntradayPriceSchema] = []
+    for bucket_ts, group in grouped.items():
+        aggregated.append(
+            IntradayPriceSchema(
+                security_id=group[0].security_id,
+                timestamp=bucket_ts,
+                open=group[0].open,
+                high=max(c.high for c in group),
+                low=min(c.low for c in group),
+                close=group[-1].close,
+                volume=sum(c.volume for c in group),
+            )
+        )
+
+    return aggregated
+
+
+class PriceAggregationService:
+    @staticmethod
+    def aggregate_weekly_prices(
+        prices: Sequence[PriceSchema | PriceModel],
+    ) -> list[PriceSchema]:
+        return aggregate_weekly_prices(prices)
+
+    @staticmethod
+    def aggregate_monthly_prices(
+        prices: Sequence[PriceSchema | PriceModel],
+    ) -> list[PriceSchema]:
+        return aggregate_monthly_prices(prices)
+
+    @staticmethod
+    def aggregate_4h_candles(
+        candles: Sequence[IntradayPriceSchema | IntradayPriceModel],
+    ) -> list[IntradayPriceSchema]:
+        return aggregate_4h_candles(candles)
+
 
 
 class MarketService:
