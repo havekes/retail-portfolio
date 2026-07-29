@@ -362,7 +362,7 @@
 						<div class="flex items-center justify-between border-b bg-sidebar/50 px-4 py-2">
 							<div class="flex items-center gap-1">
 								<span class="mr-2 text-xs font-medium text-muted-foreground">Timeframe:</span>
-								{#each ['1h', '4h', '1d', '1w', '1m'] as tf}
+								{#each ['1h', '4h', '1d', '1w', '1m'] as tf (tf)}
 									<button
 										type="button"
 										onclick={() => changeTimeframe(tf)}
