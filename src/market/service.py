@@ -1,14 +1,16 @@
 import asyncio
 import logging
 from datetime import UTC, date, datetime, timedelta
-from typing import Self
 
 from svcs import Container
 
-from src.market.eodhd import eodhd_gateway_factory
 from src.market.gateway import MarketGateway
-from src.market.repository import PriceRepository, SecurityRepository
-from src.market.schema import PriceSchema, SecuritySchema
+from src.market.repository import (
+    IntradayPriceRepository,
+    PriceRepository,
+    SecurityRepository,
+)
+from src.market.schema import IntradayPriceSchema, PriceSchema, SecuritySchema
 
 logger = logging.getLogger(__name__)
 
@@ -17,23 +19,27 @@ class MarketService:
     _gateway: MarketGateway
     _price_repository: PriceRepository
     _security_repository: SecurityRepository
+    _intraday_price_repository: IntradayPriceRepository
 
     def __init__(
         self,
         gateway: MarketGateway,
         price_repository: PriceRepository,
         security_repository: SecurityRepository,
+        intraday_price_repository: IntradayPriceRepository,
     ):
         self._gateway = gateway
         self._price_repository = price_repository
         self._security_repository = security_repository
+        self._intraday_price_repository = intraday_price_repository
 
     async def _update_security_prices(
         self, security: SecuritySchema, from_date: date, to_date: date
     ) -> bool:
         try:
             # Gateway returns a list of HistoricalPrice
-            prices = self._gateway.get_prices(
+            prices = await asyncio.to_thread(
+                self._gateway.get_prices,
                 security.id,
                 security.symbol,
                 security.exchange,
@@ -51,8 +57,8 @@ class MarketService:
             return True
 
     async def update_daily_prices_for_all_securities(self) -> dict[str, int]:
-        """
-        Fetches all securities and updates their prices for the last year.
+        """Fetches all securities and updates their prices for the last year.
+
         Returns a dict containing 'success' and 'failure' counts.
         """
         securities = await self._security_repository.get_all_active_securities()
@@ -73,9 +79,62 @@ class MarketService:
 
         return {"success": success_count, "failure": failure_count}
 
-    async def fetch_and_save_price_history(self, security: SecuritySchema) -> bool:
+    async def _update_security_intraday_prices(
+        self, security: SecuritySchema, from_datetime: datetime, to_datetime: datetime
+    ) -> bool:
+        try:
+            prices = await asyncio.to_thread(
+                self._gateway.get_intraday_prices,
+                security.id,
+                security.symbol,
+                security.exchange,
+                from_datetime=from_datetime,
+                to_datetime=to_datetime,
+                interval="1h",
+            )
+        except Exception:
+            logger.exception(
+                "Failed to update intraday prices for security %s", security.symbol
+            )
+            return False
+        else:
+            if prices:
+                price_schemas = [
+                    IntradayPriceSchema.model_validate(p, from_attributes=True)
+                    for p in prices
+                ]
+                await self._intraday_price_repository.save_intraday_prices(
+                    price_schemas
+                )
+            return True
+
+    async def update_intraday_prices_for_all_securities(self) -> dict[str, int]:
+        """Fetches active securities and updates 1h intraday prices for last 7 days.
+
+        Returns a dict containing 'success' and 'failure' counts.
         """
-        Fetch price history for a security from 2000-01-03 to today and save it.
+        securities = await self._security_repository.get_all_active_securities()
+
+        to_datetime = datetime.now(UTC)
+        from_datetime = to_datetime - timedelta(days=7)
+
+        results = await asyncio.gather(
+            *(
+                self._update_security_intraday_prices(
+                    security, from_datetime, to_datetime
+                )
+                for security in securities
+            )
+        )
+
+        success_count = sum(1 for result in results if result)
+        failure_count = sum(1 for result in results if not result)
+
+        return {"success": success_count, "failure": failure_count}
+
+    async def fetch_and_save_price_history(self, security: SecuritySchema) -> bool:
+        """Fetch price history for a security from 2000-01-03 to today and save it.
+
         Returns True if successful, False otherwise.
         """
         try:
@@ -112,4 +171,5 @@ async def market_service_factory(container: Container) -> MarketService:
         gateway=await container.aget(MarketGateway),
         price_repository=await container.aget(PriceRepository),
         security_repository=await container.aget(SecurityRepository),
+        intraday_price_repository=await container.aget(IntradayPriceRepository),
     )
