@@ -1,5 +1,7 @@
 <script lang="ts">
+	import type { Time, UTCTimestamp } from 'lightweight-charts';
 	import AppSidebar from '@/components/layout/app-sidebar.svelte';
+	import { getMarketService } from '$lib/api/marketService';
 	import { convertToHeikinAshi } from '@/utils/finance/candle';
 	import { resolve } from '$app/paths';
 	import type { Candle } from '@/utils/finance/candle';
@@ -33,6 +35,66 @@
 
 	let security = $state<SecuritySchema | null>(data.security);
 	let haCandles = $state<Candle[]>([]);
+	let selectedInterval = $state('1d');
+	let isChangingTimeframe = $state(false);
+
+	async function changeTimeframe(interval: string) {
+		if (!security?.id || isChangingTimeframe || selectedInterval === interval) return;
+		selectedInterval = interval;
+		isChangingTimeframe = true;
+
+		try {
+			const isIntraday = interval === '1h' || interval === '4h';
+			const from = isIntraday ? undefined : '2000-01-03';
+			const to = isIntraday ? undefined : new Date().toISOString().split('T')[0];
+
+			const marketService = getMarketService();
+			const priceResponse = await marketService.getPrices(security.id, from, to, interval);
+
+			if (!priceResponse.items || priceResponse.items.length === 0) {
+				error = 'No price data available for this timeframe';
+				return;
+			}
+			error = null;
+
+			const rawCandles: Candle[] = priceResponse.items.map((p) => {
+				const timeVal =
+					isIntraday && p.timestamp
+						? (Math.floor(new Date(p.timestamp).getTime() / 1000) as UTCTimestamp)
+						: ((p.date ?? '') as Time);
+				return {
+					time: timeVal,
+					open: Number(p.open),
+					high: Number(p.high),
+					low: Number(p.low),
+					close: Number(p.close),
+					volume: Number(p.volume)
+				};
+			});
+
+			rawCandles.sort((a, b) => {
+				if (typeof a.time === 'number' && typeof b.time === 'number') {
+					return a.time - b.time;
+				}
+				return String(a.time).localeCompare(String(b.time));
+			});
+
+			haCandles = convertToHeikinAshi(rawCandles);
+
+			setTimeout(() => {
+				for (const [id, config] of Object.entries(indicatorConfigs)) {
+					if (config.enabled && id !== 'avgPrice' && chartRef) {
+						chartRef.removeIndicator(id);
+						onIndicatorToggle(id, true);
+					}
+				}
+			}, 20);
+		} catch (err) {
+			console.error('Failed to change timeframe:', err);
+		} finally {
+			isChangingTimeframe = false;
+		}
+	}
 	let securityChart = $state<unknown | null>(null);
 
 	interface LocalIndicatorConfig {
@@ -219,7 +281,9 @@
 
 			// Convert to lightweight-charts format and sort properly (oldest to newest)
 			const rawCandles: Candle[] = data.items.map((p) => ({
-				time: p.date,
+				time: p.timestamp
+					? (Math.floor(new Date(p.timestamp).getTime() / 1000) as UTCTimestamp)
+					: ((p.date ?? '') as Time),
 				open: Number(p.open),
 				high: Number(p.high),
 				low: Number(p.low),
@@ -294,16 +358,36 @@
 				{@const ChartComponent =
 					securityChart as typeof import('$lib/components/charts/security-chart.svelte').default}
 				<div class="flex flex-1 overflow-hidden">
-					<div class="flex-1 overflow-hidden">
-						<ChartComponent
-							candles={haCandles}
-							bind:this={chartRef}
-							{alerts}
-							onAddAlert={handleCreateAlert}
-							onRemoveAlert={handleDeleteAlert}
-							averagePrice={averageBuyingPrice}
-							showAveragePrice={indicatorConfigs.avgPrice.enabled}
-						/>
+					<div class="flex flex-1 flex-col overflow-hidden">
+						<div class="flex items-center justify-between border-b bg-sidebar/50 px-4 py-2">
+							<div class="flex items-center gap-1">
+								<span class="mr-2 text-xs font-medium text-muted-foreground">Timeframe:</span>
+								{#each ['1h', '4h', '1d', '1w', '1m'] as tf (tf)}
+									<button
+										type="button"
+										onclick={() => changeTimeframe(tf)}
+										disabled={isChangingTimeframe}
+										class="rounded px-2.5 py-1 text-xs font-medium transition-colors {selectedInterval ===
+										tf
+											? 'bg-primary text-primary-foreground shadow-sm'
+											: 'text-muted-foreground hover:bg-muted hover:text-foreground'}"
+									>
+										{tf.toUpperCase()}
+									</button>
+								{/each}
+							</div>
+						</div>
+						<div class="flex-1 overflow-hidden">
+							<ChartComponent
+								candles={haCandles}
+								bind:this={chartRef}
+								{alerts}
+								onAddAlert={handleCreateAlert}
+								onRemoveAlert={handleDeleteAlert}
+								averagePrice={averageBuyingPrice}
+								showAveragePrice={indicatorConfigs.avgPrice.enabled}
+							/>
+						</div>
 					</div>
 					<div class="flex h-full w-64 flex-col border-l bg-sidebar text-sidebar-foreground">
 						<Sidebar.Content class="overflow-y-auto">

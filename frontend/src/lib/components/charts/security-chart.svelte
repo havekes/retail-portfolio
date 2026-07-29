@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { CandlestickSeries, createChart, LineSeries, HistogramSeries } from 'lightweight-charts';
-	import type { IChartApi, ISeriesApi, IPriceLine, SeriesType } from 'lightweight-charts';
+	import type { Time, IChartApi, ISeriesApi, IPriceLine, SeriesType } from 'lightweight-charts';
 	import { onMount } from 'svelte';
 	import type { Candle } from '@/utils/finance/candle';
 	import { BandsIndicator } from './plugins/bands-indicator';
@@ -9,14 +9,14 @@
 	import type { PriceAlert } from '$lib/api/alertsService';
 
 	interface MacdDataItem {
-		time: string;
+		time: Time;
 		histogram: number;
 		macd: number;
 		signal: number;
 	}
 
 	interface BbDataItem {
-		time: string;
+		time: Time;
 		upper: number;
 		middle: number;
 		lower: number;
@@ -26,7 +26,7 @@
 		type: string;
 		label: string;
 		color: string;
-		data: ({ time: string; value: number } | MacdDataItem | BbDataItem)[];
+		data: ({ time: Time; value: number } | MacdDataItem | BbDataItem)[];
 	}
 
 	let containerRef = $state<HTMLDivElement | null>(null);
@@ -124,6 +124,15 @@
 				price: a.target_price
 			}));
 			userAlertsPrimitive.setAlerts(alertInfos);
+		}
+	});
+
+	$effect(() => {
+		if (seriesInstance && candles && candles.length > 0) {
+			seriesInstance.setData(candles);
+			if (chartInstance) {
+				chartInstance.timeScale().fitContent();
+			}
 		}
 	});
 
@@ -431,7 +440,7 @@
 		];
 
 		if (indicator.data.length > 0) {
-			series.setData(indicator.data as { time: string; value: number }[]);
+			series.setData(indicator.data as { time: Time; value: number }[]);
 		}
 	}
 

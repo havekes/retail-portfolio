@@ -20,7 +20,7 @@ interface CanvasTarget {
 }
 
 export interface BandData {
-	time: string;
+	time: Time;
 	upper: number;
 	lower: number;
 }

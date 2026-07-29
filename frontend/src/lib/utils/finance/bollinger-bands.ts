@@ -1,3 +1,4 @@
+import type { Time } from 'lightweight-charts';
 import type { Candle } from './candle';
 import type { IndicatorConfig, IndicatorSettings } from '@/api/indicatorsService';
 
@@ -20,7 +21,7 @@ export const defaultBBConfig: BBConfig = {
 };
 
 export type BBValue = {
-	time: string;
+	time: Time;
 	middle: number;
 	upper: number;
 	lower: number;

@@ -19,7 +19,7 @@ export const load: PageServerLoad = async ({ params, fetch, cookies }) => {
 
 		const [security, priceResponse] = await Promise.all([
 			marketService.getSecurity(security_id, token),
-			marketService.getPrices(security_id, from, to, token)
+			marketService.getPrices(security_id, from, to, '1d', token)
 		]);
 
 		if (!priceResponse.items || priceResponse.items.length === 0) {

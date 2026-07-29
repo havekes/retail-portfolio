@@ -1,3 +1,4 @@
+import type { Time } from 'lightweight-charts';
 import type { Candle } from './candle';
 import { calculateEMA } from './moving-average';
 import type { IndicatorConfig, IndicatorSettings } from '@/api/indicatorsService';
@@ -23,7 +24,7 @@ export const defaultMACDConfig: MACDConfig = {
 };
 
 export type MACDValue = {
-	time: string;
+	time: Time;
 	macd: number;
 	signal: number;
 	histogram: number;
