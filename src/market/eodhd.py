@@ -1,5 +1,5 @@
 import logging
-from datetime import date
+from datetime import UTC, date, datetime
 from decimal import Decimal
 
 import requests
@@ -10,6 +10,7 @@ from src.config.settings import settings
 from src.market.api_types import (
     EodhdSearchResult,
     HistoricalPrice,
+    IntradayHistoricalPrice,
     SecurityId,
     SecuritySearchResult,
 )
@@ -113,6 +114,85 @@ class EodhdGateway(MarketGateway):
                     volume=int(price["volume"]),
                 )
             )
+
+        return prices
+
+    def get_intraday_prices(  # noqa: PLR0913, PLR0917, PLR0912, C901
+        self,
+        security_id: SecurityId,
+        symbol: str,
+        exchange: str,
+        from_datetime: datetime,
+        to_datetime: datetime,
+        interval: str = "1h",
+    ) -> list[IntradayHistoricalPrice]:
+        if interval != "1h":
+            msg = f"Unsupported interval '{interval}'. Only '1h' interval is supported."
+            raise ValueError(msg)
+
+        eodhd_symbol = f"{symbol}.{exchange}"
+        logger.info("Fetching intraday data for security: %s", eodhd_symbol)
+
+        if from_datetime.tzinfo is None:
+            from_datetime = from_datetime.replace(tzinfo=UTC)
+        if to_datetime.tzinfo is None:
+            to_datetime = to_datetime.replace(tzinfo=UTC)
+
+        from_unix = int(from_datetime.timestamp())
+        to_unix = int(to_datetime.timestamp())
+
+        data = self._client.get_intraday_historical_data(
+            symbol=eodhd_symbol,
+            interval=interval,
+            from_unix_time=from_unix,
+            to_unix_time=to_unix,
+        )
+
+        prices: list[IntradayHistoricalPrice] = []
+        if isinstance(data, list):
+            for row in data:
+                if "timestamp" in row and row["timestamp"] is not None:
+                    dt = datetime.fromtimestamp(int(row["timestamp"]), tz=UTC)
+                else:
+                    dt = datetime.fromisoformat(str(row["datetime"]))
+                    if dt.tzinfo is None:
+                        dt = dt.replace(tzinfo=UTC)
+
+                prices.append(
+                    IntradayHistoricalPrice(
+                        security_id=security_id,
+                        timestamp=dt,
+                        open=Decimal(str(row["open"])),
+                        high=Decimal(str(row["high"])),
+                        low=Decimal(str(row["low"])),
+                        close=Decimal(str(row["close"])),
+                        volume=int(row["volume"]),
+                    )
+                )
+        elif hasattr(data, "iterrows"):
+            for index, row in data.iterrows():
+                if "timestamp" in row and row["timestamp"] is not None:
+                    dt = datetime.fromtimestamp(int(row["timestamp"]), tz=UTC)
+                elif isinstance(index, Timestamp):
+                    dt = index.to_pydatetime()
+                    if dt.tzinfo is None:
+                        dt = dt.replace(tzinfo=UTC)
+                else:
+                    dt = datetime.fromisoformat(str(row["datetime"]))
+                    if dt.tzinfo is None:
+                        dt = dt.replace(tzinfo=UTC)
+
+                prices.append(
+                    IntradayHistoricalPrice(
+                        security_id=security_id,
+                        timestamp=dt,
+                        open=Decimal(str(row["open"])),
+                        high=Decimal(str(row["high"])),
+                        low=Decimal(str(row["low"])),
+                        close=Decimal(str(row["close"])),
+                        volume=int(row["volume"]),
+                    )
+                )
 
         return prices
 
