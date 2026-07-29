@@ -1,5 +1,6 @@
 import logging
 import uuid
+from collections.abc import Sequence
 from datetime import UTC, date, datetime, time, timezone
 from pathlib import Path
 from typing import Annotated
@@ -28,6 +29,7 @@ from src.market.indicators import (
     calculate_macd,
     calculate_rsi,
 )
+from src.market.model import IntradayPriceModel, PriceModel
 from src.market.repository import (
     IndicatorPreferencesRepository,
     IntradayPriceRepository,
@@ -133,7 +135,9 @@ def _to_datetime_range(
     return from_dt, to_dt
 
 
-def _aggregate_weekly_prices(prices: list[PriceSchema]) -> list[PriceSchema]:
+def _aggregate_weekly_prices(
+    prices: Sequence[PriceSchema | PriceModel],
+) -> list[PriceSchema]:
     """
     Aggregate daily prices into weekly candles.
     Group daily prices by ISO year and week, setting open to first candle open,
@@ -144,7 +148,7 @@ def _aggregate_weekly_prices(prices: list[PriceSchema]) -> list[PriceSchema]:
         return []
 
     sorted_prices = sorted(prices, key=lambda p: p.date)
-    grouped: dict[tuple[int, int], list[PriceSchema]] = {}
+    grouped: dict[tuple[int, int], list[PriceSchema | PriceModel]] = {}
 
     for price in sorted_prices:
         iso_year, iso_week, _ = price.date.isocalendar()
@@ -168,7 +172,9 @@ def _aggregate_weekly_prices(prices: list[PriceSchema]) -> list[PriceSchema]:
     ]
 
 
-def _aggregate_monthly_prices(prices: list[PriceSchema]) -> list[PriceSchema]:
+def _aggregate_monthly_prices(
+    prices: Sequence[PriceSchema | PriceModel],
+) -> list[PriceSchema]:
     """
     Aggregate daily prices into monthly candles.
     Group daily prices by year and month, setting open to first candle open,
@@ -179,7 +185,7 @@ def _aggregate_monthly_prices(prices: list[PriceSchema]) -> list[PriceSchema]:
         return []
 
     sorted_prices = sorted(prices, key=lambda p: p.date)
-    grouped: dict[tuple[int, int], list[PriceSchema]] = {}
+    grouped: dict[tuple[int, int], list[PriceSchema | PriceModel]] = {}
 
     for price in sorted_prices:
         key = (price.date.year, price.date.month)
@@ -203,7 +209,7 @@ def _aggregate_monthly_prices(prices: list[PriceSchema]) -> list[PriceSchema]:
 
 
 def _aggregate_4h_candles(
-    candles: list[IntradayPriceSchema],
+    candles: Sequence[IntradayPriceSchema | IntradayPriceModel],
 ) -> list[IntradayPriceSchema]:
     """
     Aggregate 1-hour candles into 4-hour candles.
@@ -214,7 +220,7 @@ def _aggregate_4h_candles(
         return []
 
     sorted_candles = sorted(candles, key=lambda c: c.timestamp)
-    grouped: dict[datetime, list[IntradayPriceSchema]] = {}
+    grouped: dict[datetime, list[IntradayPriceSchema | IntradayPriceModel]] = {}
 
     for candle in sorted_candles:
         ts = candle.timestamp
@@ -300,7 +306,7 @@ async def market_get_prices(  # noqa: PLR0913, PLR0917
             )
             items = [PriceSchema.model_validate(price) for price in prices]
         else:
-            all_prices, _ = await price_repository.get_prices(
+            all_prices, _total = await price_repository.get_prices(
                 security, f_date, t_date, offset=0, limit=100000
             )
             if interval == PriceInterval.ONE_WEEK:
