@@ -8,6 +8,7 @@ from src.market.api import (
     security_api_factory,
 )
 from src.market.cache import IndicatorCache, indicator_cache_factory
+from src.market.enum import PriceInterval
 from src.market.eodhd import eodhd_gateway_factory
 from src.market.gateway import MarketGateway
 from src.market.repository import (
@@ -32,7 +33,14 @@ from src.market.repository_sqlalchemy import (
     sqlalchemy_security_repository_factory,
     sqlalchemy_watchlist_repository_factory,
 )
-from src.market.service import MarketService, market_service_factory
+from src.market.service import (
+    MarketService,
+    PriceAggregationService,
+    aggregate_4h_candles,
+    aggregate_monthly_prices,
+    aggregate_weekly_prices,
+    market_service_factory,
+)
 
 
 def register_market_services(registry: Registry) -> None:

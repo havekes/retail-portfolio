@@ -15,6 +15,7 @@ from src.market.api_types import (
     SecuritySearchResult,
     WatchlistId,
 )
+from src.market.enum import PriceInterval
 
 
 class SecuritySchema(BaseModel):
@@ -106,6 +107,14 @@ class PriceHistoryRead(PaginatedResponse[PriceSchema]):
     security_id: SecurityId
     from_date: date
     to_date: date
+
+
+class IntradayPriceHistoryRead(PaginatedResponse[IntradayPriceSchema]):
+    """Response schema for intraday price history endpoint."""
+
+    security_id: SecurityId
+    from_date: datetime | date | None = None
+    to_date: datetime | date | None = None
 
 
 class SecurityCreateRequest(BaseModel):

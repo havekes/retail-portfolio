@@ -1,6 +1,7 @@
 import logging
 import uuid
-from datetime import UTC, date, datetime, timezone
+from collections.abc import Sequence
+from datetime import UTC, date, datetime, time, timezone
 from pathlib import Path
 from typing import Annotated
 
@@ -18,6 +19,7 @@ from src.market.ai_service import AIService
 from src.market.api import SecurityApi
 from src.market.api_types import SecurityId, SecuritySearchResult, WatchlistId
 from src.market.cache import IndicatorCache
+from src.market.enum import PriceInterval
 from src.market.gateway import MarketGateway
 from src.market.indicators import (
     calculate_50_day_ma,
@@ -27,8 +29,10 @@ from src.market.indicators import (
     calculate_macd,
     calculate_rsi,
 )
+from src.market.model import IntradayPriceModel, PriceModel
 from src.market.repository import (
     IndicatorPreferencesRepository,
+    IntradayPriceRepository,
     PriceAlertRepository,
     PriceRepository,
     SecurityDocumentRepository,
@@ -41,6 +45,8 @@ from src.market.schema import (
     AIAnalysisResponse,
     IndicatorPreferencesRead,
     IndicatorPreferencesWrite,
+    IntradayPriceHistoryRead,
+    IntradayPriceSchema,
     MACDPoint,
     MAPoint,
     PriceAlertRead,
@@ -57,6 +63,11 @@ from src.market.schema import (
     SecuritySchema,
     TechnicalIndicatorsRead,
     WatchlistRead,
+)
+from src.market.service import (
+    aggregate_4h_candles,
+    aggregate_monthly_prices,
+    aggregate_weekly_prices,
 )
 from src.market.task import generate_note_title_task
 from src.worker import huey
@@ -102,41 +113,153 @@ async def market_search(
     return results
 
 
+def _to_datetime_range(
+    from_date: datetime | date | None,
+    to_date: datetime | date | None,
+) -> tuple[datetime | None, datetime | None]:
+    from_dt: datetime | None = None
+    if from_date is not None:
+        if isinstance(from_date, datetime):
+            from_dt = (
+                from_date
+                if from_date.tzinfo is not None
+                else from_date.replace(tzinfo=UTC)
+            )
+        else:
+            from_dt = datetime.combine(from_date, time.min, tzinfo=UTC)
+
+    to_dt: datetime | None = None
+    if to_date is not None:
+        if isinstance(to_date, datetime):
+            to_dt = (
+                to_date if to_date.tzinfo is not None else to_date.replace(tzinfo=UTC)
+            )
+        else:
+            to_dt = datetime.combine(to_date, time.max, tzinfo=UTC)
+
+    return from_dt, to_dt
+
+
 @market_router.get("/prices/{security_id}")
-async def market_get_prices(
+async def market_get_prices(  # noqa: PLR0913, PLR0917
     _: Annotated[User, Depends(current_user)],
     security_id: SecurityId,
-    from_date: Annotated[date, Query(description="Start date (ISO 8601)")],
-    to_date: Annotated[date, Query(description="End date (ISO 8601)")],
     pagination: Annotated[PaginationParams, Depends()],
     services: DepContainer,
-) -> PriceHistoryRead:
+    from_date: Annotated[
+        datetime | date | None,
+        Query(description="Start date or datetime (ISO 8601)"),
+    ] = None,
+    to_date: Annotated[
+        datetime | date | None,
+        Query(description="End date or datetime (ISO 8601)"),
+    ] = None,
+    interval: Annotated[
+        PriceInterval,
+        Query(description="Candle length interval (1d, 1w, 1m, 1h, 4h)"),
+    ] = PriceInterval.ONE_DAY,
+) -> PriceHistoryRead | IntradayPriceHistoryRead:
     """
-    Get historical prices for a security within a date range
+    Get historical prices for a security (daily, weekly, monthly, or intraday)
     """
-    if from_date > to_date:
+    if interval in (
+        PriceInterval.ONE_DAY,
+        PriceInterval.ONE_WEEK,
+        PriceInterval.ONE_MONTH,
+    ):
+        if from_date is None or to_date is None:
+            msg = f"from_date and to_date are required for interval={interval.value}"
+            raise HTTPException(
+                status_code=422,
+                detail=msg,
+            )
+
+        f_date = from_date.date() if isinstance(from_date, datetime) else from_date
+        t_date = to_date.date() if isinstance(to_date, datetime) else to_date
+
+        if f_date > t_date:
+            raise HTTPException(
+                status_code=422,
+                detail="from_date must be less than or equal to to_date",
+            )
+
+        security_repository = await services.aget(SecurityRepository)
+        security = await security_repository.get_by_id_or_fail(security_id)
+
+        price_repository = await services.aget(PriceRepository)
+
+        if interval == PriceInterval.ONE_DAY:
+            prices, total = await price_repository.get_prices(
+                security,
+                f_date,
+                t_date,
+                offset=pagination.offset,
+                limit=pagination.limit,
+            )
+            items = [PriceSchema.model_validate(price) for price in prices]
+        else:
+            all_prices, _total = await price_repository.get_prices(
+                security, f_date, t_date, offset=0, limit=100000
+            )
+            if interval == PriceInterval.ONE_WEEK:
+                aggregated = aggregate_weekly_prices(all_prices)
+            else:
+                aggregated = aggregate_monthly_prices(all_prices)
+            total = len(aggregated)
+            items = aggregated[pagination.offset : pagination.offset + pagination.limit]
+
+        logger.info(
+            "Retrieved %d prices (%s) for security %s from %s to %s",
+            len(items),
+            interval.value,
+            security_id,
+            f_date,
+            t_date,
+        )
+
+        return PriceHistoryRead(
+            items=items,
+            total=total,
+            offset=pagination.offset,
+            limit=pagination.limit,
+            security_id=security_id,
+            from_date=f_date,
+            to_date=t_date,
+        )
+
+    from_dt, to_dt = _to_datetime_range(from_date, to_date)
+
+    if from_dt is not None and to_dt is not None and from_dt > to_dt:
         raise HTTPException(
             status_code=422,
             detail="from_date must be less than or equal to to_date",
         )
 
-    price_repository = await services.aget(PriceRepository)
     security_repository = await services.aget(SecurityRepository)
-    security = await security_repository.get_by_id_or_fail(security_id)
-    prices, total = await price_repository.get_prices(
-        security, from_date, to_date, offset=pagination.offset, limit=pagination.limit
+    await security_repository.get_by_id_or_fail(security_id)
+
+    intraday_repository = await services.aget(IntradayPriceRepository)
+    candles = await intraday_repository.get_intraday_prices(
+        security_id, start_time=from_dt, end_time=to_dt
     )
+
+    if interval == PriceInterval.FOUR_HOURS:
+        candles = aggregate_4h_candles(candles)
+
+    total = len(candles)
+    paginated_candles = candles[
+        pagination.offset : pagination.offset + pagination.limit
+    ]
 
     logger.info(
-        "Retrieved %d prices for security %s from %s to %s",
-        len(prices),
+        "Retrieved %d intraday (%s) prices for security %s",
+        len(paginated_candles),
+        interval.value,
         security_id,
-        from_date,
-        to_date,
     )
 
-    return PriceHistoryRead(
-        items=[PriceSchema.model_validate(price) for price in prices],
+    return IntradayPriceHistoryRead(
+        items=paginated_candles,
         total=total,
         offset=pagination.offset,
         limit=pagination.limit,
