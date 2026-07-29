@@ -7,8 +7,12 @@ import pytest
 
 from src.market.api_types import HistoricalPrice, IntradayHistoricalPrice, SecurityId
 from src.market.gateway import MarketGateway
-from src.market.repository import PriceRepository, SecurityRepository
-from src.market.schema import PriceSchema, SecuritySchema
+from src.market.repository import (
+    IntradayPriceRepository,
+    PriceRepository,
+    SecurityRepository,
+)
+from src.market.schema import IntradayPriceSchema, PriceSchema, SecuritySchema
 from src.market.service import MarketService
 
 
@@ -71,6 +75,34 @@ class MockPriceRepository(PriceRepository):
 
     @override
     async def save_prices(self, prices: list[PriceSchema]):
+        self.saved_prices.extend(prices)
+        return prices
+
+
+class MockIntradayPriceRepository(IntradayPriceRepository):
+    def __init__(self):
+        self.saved_prices: list[IntradayPriceSchema] = []
+
+    @override
+    async def get_intraday_prices(
+        self,
+        security_id: SecurityId,
+        start_time: datetime | None = None,
+        end_time: datetime | None = None,
+    ) -> list[IntradayPriceSchema]:
+        return [p for p in self.saved_prices if p.security_id == security_id]
+
+    @override
+    async def save_intraday_price(
+        self, price: IntradayPriceSchema
+    ) -> IntradayPriceSchema:
+        self.saved_prices.append(price)
+        return price
+
+    @override
+    async def save_intraday_prices(
+        self, prices: list[IntradayPriceSchema]
+    ) -> list[IntradayPriceSchema]:
         self.saved_prices.extend(prices)
         return prices
 
@@ -156,12 +188,14 @@ async def test_update_daily_prices_for_all_securities():
     ]
     security_repo = MockSecurityRepository(securities)
     price_repo = MockPriceRepository()
+    intraday_price_repo = MockIntradayPriceRepository()
     eodhd_gateway = MockEodhdGateway()
 
     service = MarketService(
         gateway=eodhd_gateway,
         price_repository=price_repo,
         security_repository=security_repo,
+        intraday_price_repository=intraday_price_repo,
     )
 
     result = await service.update_daily_prices_for_all_securities()
@@ -197,46 +231,120 @@ async def test_update_daily_prices_failure_continues():
     ]
     security_repo = MockSecurityRepository(securities)
     price_repo = MockPriceRepository()
+    intraday_price_repo = MockIntradayPriceRepository()
 
     class FlakyGateway(MockEodhdGateway):
-        @override
-        def search(self, query):
-            return []
-
-        @override
-        def get_price_on_date(self, security_id, symbol, exchange, date):
-            return None
-
         @override
         def get_prices(self, security_id, symbol, exchange, from_date, to_date):
             if symbol == "BAD":
                 msg = "API Error"
                 raise RuntimeError(msg)
+            return super().get_prices(
+                security_id, symbol, exchange, from_date, to_date
+            )
 
-            return [
-                HistoricalPrice(
-                    security_id=security_id,
-                    date=to_date,
-                    open=Decimal("10.0"),
-                    high=Decimal("15.0"),
-                    low=Decimal("5.0"),
-                    close=Decimal("12.0"),
-                    adjusted_close=Decimal("12.0"),
-                    volume=100,
-                )
-            ]
+    service = MarketService(
+        gateway=FlakyGateway(),
+        price_repository=price_repo,
+        security_repository=security_repo,
+        intraday_price_repository=intraday_price_repo,
+    )
 
-    eodhd_gateway = FlakyGateway()
+    result = await service.update_daily_prices_for_all_securities()
+
+    assert result == {"success": 1, "failure": 1}
+    assert len(price_repo.saved_prices) == 1
+    assert price_repo.saved_prices[0].security_id == securities[1].id
+
+
+@pytest.mark.anyio
+async def test_update_intraday_prices_for_all_securities():
+    securities = [
+        SecuritySchema(
+            id=uuid4(),
+            symbol="AAPL",
+            exchange="US",
+            currency="USD",
+            name="Apple",
+            isin="US0378331005",
+            is_active=True,
+            updated_at=datetime.now(UTC),
+        )
+    ]
+    security_repo = MockSecurityRepository(securities)
+    price_repo = MockPriceRepository()
+    intraday_price_repo = MockIntradayPriceRepository()
+    eodhd_gateway = MockEodhdGateway()
 
     service = MarketService(
         gateway=eodhd_gateway,
         price_repository=price_repo,
         security_repository=security_repo,
+        intraday_price_repository=intraday_price_repo,
     )
 
-    result = await service.update_daily_prices_for_all_securities()
+    result = await service.update_intraday_prices_for_all_securities()
 
-    # Expect 1 success and 1 failure
+    assert result == {"success": 1, "failure": 0}
+    assert len(intraday_price_repo.saved_prices) == 1
+    assert intraday_price_repo.saved_prices[0].security_id == securities[0].id
+
+
+@pytest.mark.anyio
+async def test_update_intraday_prices_failure_continues():
+    securities = [
+        SecuritySchema(
+            id=uuid4(),
+            symbol="BAD",
+            exchange="US",
+            currency="USD",
+            name="Bad",
+            isin="US000",
+            is_active=True,
+            updated_at=datetime.now(UTC),
+        ),
+        SecuritySchema(
+            id=uuid4(),
+            symbol="GOOD",
+            exchange="US",
+            currency="USD",
+            name="Good",
+            isin="US111",
+            is_active=True,
+            updated_at=datetime.now(UTC),
+        ),
+    ]
+    security_repo = MockSecurityRepository(securities)
+    price_repo = MockPriceRepository()
+    intraday_price_repo = MockIntradayPriceRepository()
+
+    class FlakyIntradayGateway(MockEodhdGateway):
+        @override
+        def get_intraday_prices(
+            self,
+            security_id,
+            symbol,
+            exchange,
+            from_datetime,
+            to_datetime,
+            interval="1h",
+        ):
+            if symbol == "BAD":
+                msg = "API Error"
+                raise RuntimeError(msg)
+            return super().get_intraday_prices(
+                security_id, symbol, exchange, from_datetime, to_datetime, interval
+            )
+
+    service = MarketService(
+        gateway=FlakyIntradayGateway(),
+        price_repository=price_repo,
+        security_repository=security_repo,
+        intraday_price_repository=intraday_price_repo,
+    )
+
+    result = await service.update_intraday_prices_for_all_securities()
+
     assert result == {"success": 1, "failure": 1}
-    assert len(price_repo.saved_prices) == 1
-    assert price_repo.saved_prices[0].security_id == securities[1].id
+    assert len(intraday_price_repo.saved_prices) == 1
+    assert intraday_price_repo.saved_prices[0].security_id == securities[1].id

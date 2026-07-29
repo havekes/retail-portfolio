@@ -77,3 +77,37 @@ async def _daily_price_update() -> None:
             success,
             failure,
         )
+
+
+@huey.periodic_task(crontab(minute="0"))
+def hourly_intraday_price_update() -> None:
+    """Huey periodic task to run hourly intraday price updates.
+
+    Runs in the huey-worker process via thread workers.
+    Uses asyncio.run() to execute the async business logic.
+    """
+    asyncio.run(_hourly_intraday_price_update())
+
+
+async def _hourly_intraday_price_update() -> None:
+    if huey.svcs_registry is None:
+        msg = "Worker registry not initialized"
+        raise RuntimeError(msg)
+
+    async with Container(huey.svcs_registry) as svcs_container:
+        market_service: MarketService = await svcs_container.aget(MarketService)
+
+        logger.info(
+            "Starting hourly intraday price update for all active securities..."
+        )
+        result = await market_service.update_intraday_prices_for_all_securities()
+
+        success = result.get("success", 0)
+        failure = result.get("failure", 0)
+
+        logger.info(
+            "Hourly intraday price update completed. Successfully updated: %s | "
+            "Failed: %s",
+            success,
+            failure,
+        )
