@@ -38,7 +38,8 @@ class MarketService:
     ) -> bool:
         try:
             # Gateway returns a list of HistoricalPrice
-            prices = self._gateway.get_prices(
+            prices = await asyncio.to_thread(
+                self._gateway.get_prices,
                 security.id,
                 security.symbol,
                 security.exchange,
@@ -82,7 +83,8 @@ class MarketService:
         self, security: SecuritySchema, from_datetime: datetime, to_datetime: datetime
     ) -> bool:
         try:
-            prices = self._gateway.get_intraday_prices(
+            prices = await asyncio.to_thread(
+                self._gateway.get_intraday_prices,
                 security.id,
                 security.symbol,
                 security.exchange,
