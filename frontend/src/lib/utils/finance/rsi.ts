@@ -1,3 +1,4 @@
+import type { Time } from 'lightweight-charts';
 import type { Candle } from './candle';
 import type { IndicatorConfig, IndicatorSettings } from '@/api/indicatorsService';
 
@@ -18,7 +19,7 @@ export const defaultRSIConfig: RsiConfig = {
 };
 
 export type RSIValue = {
-	time: string;
+	time: Time;
 	value: number;
 };
 

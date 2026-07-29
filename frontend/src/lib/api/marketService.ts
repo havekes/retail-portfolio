@@ -9,22 +9,24 @@ export interface MarketSearchResult {
 }
 
 export interface MarketPrice {
-	id: number;
-	security_id: string;
-	date: string;
+	id?: number;
+	security_id?: string;
+	date?: string;
+	timestamp?: string;
 	open: number;
 	high: number;
 	low: number;
 	close: number;
-	adjusted_clost: number;
+	adjusted_close?: number;
+	adjusted_clost?: number;
 	volume: number;
-	currency: string;
+	currency?: string;
 }
 
 export interface MarketPriceHistory extends PaginatedResponse<MarketPrice> {
 	security_id: string;
-	from_date: string;
-	to_date: string;
+	from_date?: string;
+	to_date?: string;
 }
 
 export interface SecuritySchema {
@@ -67,15 +69,19 @@ export class MarketService extends ApiClient {
 
 	async getPrices(
 		securityId: string,
-		from_date: string,
-		to_date: string,
+		from_date?: string,
+		to_date?: string,
+		interval: string = "1d",
 		token?: string | null
 	): Promise<MarketPriceHistory> {
-		return await this.get<MarketPriceHistory>(
-			`/market/prices/${securityId}?from_date=${from_date}&to_date=${to_date}`,
-			{},
-			token
-		);
+		let url = `/market/prices/${securityId}?interval=${interval}`;
+		if (from_date) {
+			url += `&from_date=${from_date}`;
+		}
+		if (to_date) {
+			url += `&to_date=${to_date}`;
+		}
+		return await this.get<MarketPriceHistory>(url, {}, token);
 	}
 
 	async getLastClosePrice(securityId: string, token?: string | null): Promise<MarketPrice> {

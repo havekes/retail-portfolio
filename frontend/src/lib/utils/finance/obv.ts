@@ -1,3 +1,4 @@
+import type { Time } from 'lightweight-charts';
 import type { Candle } from './candle';
 import type { IndicatorConfig, IndicatorSettings } from '@/api/indicatorsService';
 
@@ -14,7 +15,7 @@ export const defaultOBVConfig: OBVConfig = {
 };
 
 export type OBVValue = {
-	time: string;
+	time: Time;
 	value: number;
 };
 
