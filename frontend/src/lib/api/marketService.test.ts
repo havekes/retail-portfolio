@@ -28,7 +28,9 @@ describe('MarketService', () => {
 		await service.getPrices('sec-123', '2026-01-01', '2026-07-29');
 
 		expect(global.fetch).toHaveBeenCalledWith(
-			'/api/v1/market/prices/sec-123?interval=1d&from_date=2026-01-01&to_date=2026-07-29',
+			expect.stringContaining(
+				'/api/v1/market/prices/sec-123?interval=1d&from_date=2026-01-01&to_date=2026-07-29'
+			),
 			expect.objectContaining({ method: 'GET' })
 		);
 	});
@@ -60,7 +62,7 @@ describe('MarketService', () => {
 		const result = await service.getPrices('sec-123', undefined, undefined, '1h');
 
 		expect(global.fetch).toHaveBeenCalledWith(
-			'/api/v1/market/prices/sec-123?interval=1h',
+			expect.stringContaining('/api/v1/market/prices/sec-123?interval=1h'),
 			expect.objectContaining({ method: 'GET' })
 		);
 		expect(result.items.length).toBe(1);
@@ -83,7 +85,7 @@ describe('MarketService', () => {
 		await service.getPrices('sec-123', undefined, undefined, '4h');
 
 		expect(global.fetch).toHaveBeenCalledWith(
-			'/api/v1/market/prices/sec-123?interval=4h',
+			expect.stringContaining('/api/v1/market/prices/sec-123?interval=4h'),
 			expect.objectContaining({ method: 'GET' })
 		);
 	});
@@ -106,8 +108,38 @@ describe('MarketService', () => {
 		await service.getPrices('sec-123', '2020-01-01', '2026-07-29', '1w');
 
 		expect(global.fetch).toHaveBeenCalledWith(
-			'/api/v1/market/prices/sec-123?interval=1w&from_date=2020-01-01&to_date=2026-07-29',
+			expect.stringContaining(
+				'/api/v1/market/prices/sec-123?interval=1w&from_date=2020-01-01&to_date=2026-07-29'
+			),
 			expect.objectContaining({ method: 'GET' })
+		);
+	});
+
+	it('should call getPrices with token as 5th argument', async () => {
+		vi.mocked(global.fetch).mockResolvedValue({
+			ok: true,
+			status: 200,
+			json: async () => ({
+				security_id: 'sec-123',
+				items: [],
+				total: 0,
+				offset: 0,
+				limit: 50
+			})
+		} as Response);
+
+		await service.getPrices('sec-123', '2026-01-01', '2026-07-29', '1d', 'test-token');
+
+		expect(global.fetch).toHaveBeenCalledWith(
+			expect.stringContaining(
+				'/api/v1/market/prices/sec-123?interval=1d&from_date=2026-01-01&to_date=2026-07-29'
+			),
+			expect.objectContaining({
+				method: 'GET',
+				headers: expect.objectContaining({
+					Authorization: 'Bearer test-token'
+				})
+			})
 		);
 	});
 });
