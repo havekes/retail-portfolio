@@ -21,7 +21,8 @@ class MockSecurityRepository(SecurityRepository):
         for security in self.securities:
             if security.id == security_id:
                 return security
-        raise ValueError("Not found")
+        msg = "Not found"
+        raise ValueError(msg)
 
     @override
     async def get_or_create(self, security: SecuritySchema) -> SecuritySchema:
@@ -75,7 +76,7 @@ class MockPriceRepository(PriceRepository):
 
 
 class MockEodhdGateway(MarketGateway):
-    def __init__(self, should_fail: bool = False):
+    def __init__(self, should_fail: bool = False):  # noqa: FBT001, FBT002
         self.should_fail = should_fail
 
     @override
@@ -89,7 +90,8 @@ class MockEodhdGateway(MarketGateway):
     @override
     def get_prices(self, security_id, symbol, exchange, from_date, to_date):
         if self.should_fail:
-            raise RuntimeError("API Error")
+            msg = "API Error"
+            raise RuntimeError(msg)
 
         return [
             HistoricalPrice(
@@ -115,7 +117,8 @@ class MockEodhdGateway(MarketGateway):
         interval="1h",
     ):
         if self.should_fail:
-            raise RuntimeError("API Error")
+            msg = "API Error"
+            raise RuntimeError(msg)
 
         dt = (
             from_datetime
@@ -207,7 +210,8 @@ async def test_update_daily_prices_failure_continues():
         @override
         def get_prices(self, security_id, symbol, exchange, from_date, to_date):
             if symbol == "BAD":
-                raise RuntimeError("API Error")
+                msg = "API Error"
+                raise RuntimeError(msg)
 
             return [
                 HistoricalPrice(

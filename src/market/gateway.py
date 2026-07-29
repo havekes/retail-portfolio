@@ -41,7 +41,7 @@ class MarketGateway(ABC):
         ...
 
     @abstractmethod
-    def get_intraday_prices(
+    def get_intraday_prices(  # noqa: PLR0913, PLR0917
         self,
         security_id: SecurityId,
         symbol: str,

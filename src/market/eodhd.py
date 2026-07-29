@@ -1,5 +1,5 @@
 import logging
-from datetime import date, datetime, timezone
+from datetime import UTC, date, datetime
 from decimal import Decimal
 
 import requests
@@ -117,7 +117,7 @@ class EodhdGateway(MarketGateway):
 
         return prices
 
-    def get_intraday_prices(
+    def get_intraday_prices(  # noqa: PLR0913, PLR0917, PLR0912, C901
         self,
         security_id: SecurityId,
         symbol: str,
@@ -127,17 +127,16 @@ class EodhdGateway(MarketGateway):
         interval: str = "1h",
     ) -> list[IntradayHistoricalPrice]:
         if interval != "1h":
-            raise ValueError(
-                f"Unsupported interval '{interval}'. Only '1h' interval is supported."
-            )
+            msg = f"Unsupported interval '{interval}'. Only '1h' interval is supported."
+            raise ValueError(msg)
 
         eodhd_symbol = f"{symbol}.{exchange}"
         logger.info("Fetching intraday data for security: %s", eodhd_symbol)
 
         if from_datetime.tzinfo is None:
-            from_datetime = from_datetime.replace(tzinfo=timezone.utc)
+            from_datetime = from_datetime.replace(tzinfo=UTC)
         if to_datetime.tzinfo is None:
-            to_datetime = to_datetime.replace(tzinfo=timezone.utc)
+            to_datetime = to_datetime.replace(tzinfo=UTC)
 
         from_unix = int(from_datetime.timestamp())
         to_unix = int(to_datetime.timestamp())
@@ -153,11 +152,11 @@ class EodhdGateway(MarketGateway):
         if isinstance(data, list):
             for row in data:
                 if "timestamp" in row and row["timestamp"] is not None:
-                    dt = datetime.fromtimestamp(int(row["timestamp"]), tz=timezone.utc)
+                    dt = datetime.fromtimestamp(int(row["timestamp"]), tz=UTC)
                 else:
                     dt = datetime.fromisoformat(str(row["datetime"]))
                     if dt.tzinfo is None:
-                        dt = dt.replace(tzinfo=timezone.utc)
+                        dt = dt.replace(tzinfo=UTC)
 
                 prices.append(
                     IntradayHistoricalPrice(
@@ -173,15 +172,15 @@ class EodhdGateway(MarketGateway):
         elif hasattr(data, "iterrows"):
             for index, row in data.iterrows():
                 if "timestamp" in row and row["timestamp"] is not None:
-                    dt = datetime.fromtimestamp(int(row["timestamp"]), tz=timezone.utc)
+                    dt = datetime.fromtimestamp(int(row["timestamp"]), tz=UTC)
                 elif isinstance(index, Timestamp):
                     dt = index.to_pydatetime()
                     if dt.tzinfo is None:
-                        dt = dt.replace(tzinfo=timezone.utc)
+                        dt = dt.replace(tzinfo=UTC)
                 else:
                     dt = datetime.fromisoformat(str(row["datetime"]))
                     if dt.tzinfo is None:
-                        dt = dt.replace(tzinfo=timezone.utc)
+                        dt = dt.replace(tzinfo=UTC)
 
                 prices.append(
                     IntradayHistoricalPrice(

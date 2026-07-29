@@ -1,7 +1,7 @@
 """EODHD API stubs for testing and local development."""
 
 import random
-from datetime import date, datetime, timedelta, timezone
+from datetime import UTC, date, datetime, timedelta
 from decimal import Decimal
 from typing import Any
 from uuid import UUID
@@ -16,6 +16,8 @@ from src.market.api_types import (
 )
 from src.market.gateway import MarketGateway
 from src.market.schema import SecuritySchema
+
+MAX_INTRADAY_STEPS = 10000
 
 
 class StubEodhdAPIClient:
@@ -99,15 +101,15 @@ class StubEodhdAPIClient:
         _ = interval
         if from_unix_time is not None:
             start_ts = int(from_unix_time)
-            start_dt = datetime.fromtimestamp(start_ts, tz=timezone.utc)
+            start_dt = datetime.fromtimestamp(start_ts, tz=UTC)
         else:
-            start_dt = datetime.now(tz=timezone.utc) - timedelta(days=7)
+            start_dt = datetime.now(tz=UTC) - timedelta(days=7)
 
         if to_unix_time is not None:
             end_ts = int(to_unix_time)
-            end_dt = datetime.fromtimestamp(end_ts, tz=timezone.utc)
+            end_dt = datetime.fromtimestamp(end_ts, tz=UTC)
         else:
-            end_dt = datetime.now(tz=timezone.utc)
+            end_dt = datetime.now(tz=UTC)
 
         return self._generate_intraday_price_data(symbol, start_dt, end_dt)
 
@@ -156,7 +158,7 @@ class StubEodhdAPIClient:
             )
             current_dt += timedelta(hours=1)
             step_count += 1
-            if step_count > 10000:
+            if step_count > MAX_INTRADAY_STEPS:
                 break
 
         return prices
@@ -271,7 +273,7 @@ class StubEodhdGateway(MarketGateway):
 
         return prices
 
-    def get_intraday_prices(
+    def get_intraday_prices(  # noqa: PLR0913, PLR0917
         self,
         security_id: UUID,
         symbol: str,
@@ -282,15 +284,14 @@ class StubEodhdGateway(MarketGateway):
     ) -> list[IntradayHistoricalPrice]:
         """Get intraday prices for a security."""
         if interval != "1h":
-            raise ValueError(
-                f"Unsupported interval '{interval}'. Only '1h' interval is supported."
-            )
+            msg = f"Unsupported interval '{interval}'. Only '1h' interval is supported."
+            raise ValueError(msg)
 
         eodhd_symbol = f"{symbol}.{exchange}"
         if from_datetime.tzinfo is None:
-            from_datetime = from_datetime.replace(tzinfo=timezone.utc)
+            from_datetime = from_datetime.replace(tzinfo=UTC)
         if to_datetime.tzinfo is None:
-            to_datetime = to_datetime.replace(tzinfo=timezone.utc)
+            to_datetime = to_datetime.replace(tzinfo=UTC)
 
         from_unix = int(from_datetime.timestamp())
         to_unix = int(to_datetime.timestamp())
@@ -304,7 +305,7 @@ class StubEodhdGateway(MarketGateway):
 
         prices: list[IntradayHistoricalPrice] = []
         for row in data:
-            dt = datetime.fromtimestamp(int(row["timestamp"]), tz=timezone.utc)
+            dt = datetime.fromtimestamp(int(row["timestamp"]), tz=UTC)
             prices.append(
                 IntradayHistoricalPrice(
                     security_id=security_id,

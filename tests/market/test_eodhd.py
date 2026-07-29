@@ -1,3 +1,4 @@
+# ruff: noqa: PLR2004, SLF001
 """Tests for EODHD gateway and stub intraday price data fetching."""
 
 from datetime import UTC, datetime, timedelta
