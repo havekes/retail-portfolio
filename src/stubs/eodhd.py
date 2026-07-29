@@ -1,7 +1,7 @@
 """EODHD API stubs for testing and local development."""
 
 import random
-from datetime import date, timedelta
+from datetime import date, datetime, timedelta, timezone
 from decimal import Decimal
 from typing import Any
 from uuid import UUID
@@ -11,6 +11,7 @@ import pandas as pd
 from src.market.api_types import (
     EodhdSearchResult,
     HistoricalPrice,
+    IntradayHistoricalPrice,
     SecuritySearchResult,
 )
 from src.market.gateway import MarketGateway
@@ -84,6 +85,79 @@ class StubEodhdAPIClient:
                     "volume": 1000000 + (hash(f"{symbol}-{i}") % 1000000),
                 }
             )
+
+        return prices
+
+    def get_intraday_historical_data(
+        self,
+        symbol: str,
+        interval: str = "1h",
+        from_unix_time: int | str | None = None,
+        to_unix_time: int | str | None = None,
+    ) -> list[dict[str, Any]]:
+        """Get intraday 1-hour resolution price data for a symbol."""
+        _ = interval
+        if from_unix_time is not None:
+            start_ts = int(from_unix_time)
+            start_dt = datetime.fromtimestamp(start_ts, tz=timezone.utc)
+        else:
+            start_dt = datetime.now(tz=timezone.utc) - timedelta(days=7)
+
+        if to_unix_time is not None:
+            end_ts = int(to_unix_time)
+            end_dt = datetime.fromtimestamp(end_ts, tz=timezone.utc)
+        else:
+            end_dt = datetime.now(tz=timezone.utc)
+
+        return self._generate_intraday_price_data(symbol, start_dt, end_dt)
+
+    def _generate_intraday_price_data(
+        self, symbol: str, start_dt: datetime, end_dt: datetime
+    ) -> list[dict[str, Any]]:
+        """Generate realistic 1-hour intraday candle data for a symbol."""
+        base_prices = {
+            "US:AAPL": 175.0,
+            "AAPL.US": 175.0,
+            "US:MSFT": 380.0,
+            "MSFT.US": 380.0,
+            "US:NFLX": 450.0,
+            "TO:RY": 120.0,
+            "RY.TSX": 120.0,
+            "TO:XYR": 120.50,
+            "TO:RYT": 95.0,
+            "US:GOOGL": 140.0,
+            "US:TSLA": 200.0,
+            "US:AMZN": 180.0,
+            "TO:TD": 85.0,
+        }
+        base_price = base_prices.get(symbol, 100.0)
+
+        current_dt = start_dt.replace(minute=0, second=0, microsecond=0)
+        prices = []
+        current_price = base_price
+
+        step_count = 0
+        while current_dt <= end_dt:
+            ts = int(current_dt.timestamp())
+            change = (hash(f"{symbol}-{ts}") % 100 - 50) / 2500.0
+            current_price *= 1 + change
+
+            prices.append(
+                {
+                    "timestamp": ts,
+                    "gmtoffset": 0,
+                    "datetime": current_dt.strftime("%Y-%m-%d %H:%M:%S"),
+                    "open": round(current_price * 0.998, 2),
+                    "high": round(current_price * 1.005, 2),
+                    "low": round(current_price * 0.995, 2),
+                    "close": round(current_price, 2),
+                    "volume": 10000 + (hash(f"{symbol}-{ts}") % 50000),
+                }
+            )
+            current_dt += timedelta(hours=1)
+            step_count += 1
+            if step_count > 10000:
+                break
 
         return prices
 
@@ -192,6 +266,54 @@ class StubEodhdGateway(MarketGateway):
                     close=Decimal(str(row["close"])),
                     adjusted_close=Decimal(str(row["adjusted_close"])),
                     volume=int(float(row["volume"])),
+                )
+            )
+
+        return prices
+
+    def get_intraday_prices(
+        self,
+        security_id: UUID,
+        symbol: str,
+        exchange: str,
+        from_datetime: datetime,
+        to_datetime: datetime,
+        interval: str = "1h",
+    ) -> list[IntradayHistoricalPrice]:
+        """Get intraday prices for a security."""
+        if interval != "1h":
+            raise ValueError(
+                f"Unsupported interval '{interval}'. Only '1h' interval is supported."
+            )
+
+        eodhd_symbol = f"{symbol}.{exchange}"
+        if from_datetime.tzinfo is None:
+            from_datetime = from_datetime.replace(tzinfo=timezone.utc)
+        if to_datetime.tzinfo is None:
+            to_datetime = to_datetime.replace(tzinfo=timezone.utc)
+
+        from_unix = int(from_datetime.timestamp())
+        to_unix = int(to_datetime.timestamp())
+
+        data = self._client.get_intraday_historical_data(
+            symbol=eodhd_symbol,
+            interval=interval,
+            from_unix_time=from_unix,
+            to_unix_time=to_unix,
+        )
+
+        prices: list[IntradayHistoricalPrice] = []
+        for row in data:
+            dt = datetime.fromtimestamp(int(row["timestamp"]), tz=timezone.utc)
+            prices.append(
+                IntradayHistoricalPrice(
+                    security_id=security_id,
+                    timestamp=dt,
+                    open=Decimal(str(row["open"])),
+                    high=Decimal(str(row["high"])),
+                    low=Decimal(str(row["low"])),
+                    close=Decimal(str(row["close"])),
+                    volume=int(row["volume"]),
                 )
             )
 
