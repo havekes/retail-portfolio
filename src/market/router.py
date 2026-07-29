@@ -180,7 +180,7 @@ async def market_get_intraday_prices(  # noqa: PLR0913, PLR0917
             limit=pagination.limit,
         )
     else:  # interval == "4h"
-        all_1h_prices, _ = await intraday_repository.get_intraday_prices(
+        all_1h_prices, _total = await intraday_repository.get_intraday_prices(
             security_id=security.id,
             start_time=from_datetime,
             end_time=to_datetime,
