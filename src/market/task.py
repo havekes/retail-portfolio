@@ -121,6 +121,8 @@ async def _hourly_intraday_price_update() -> None:
 
         accounts = await account_service.get_all_accounts()
         for account in accounts:
+            if not account.is_active:
+                continue
             try:
                 totals = await position_service.get_total_for_account(
                     account.id, account.currency

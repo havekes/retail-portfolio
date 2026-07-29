@@ -169,9 +169,19 @@ async def test_hourly_intraday_price_update_recalculates_totals_and_sends_ws_mes
     fake_account.id = uuid4()
     fake_account.user_id = uuid4()
     fake_account.currency = Currency.USD
+    fake_account.is_active = True
+
+    fake_inactive_account = MagicMock()
+    fake_inactive_account.id = uuid4()
+    fake_inactive_account.user_id = uuid4()
+    fake_inactive_account.currency = Currency.USD
+    fake_inactive_account.is_active = False
 
     mock_account_service = AsyncMock(spec=AccountService)
-    mock_account_service.get_all_accounts.return_value = [fake_account]
+    mock_account_service.get_all_accounts.return_value = [
+        fake_account,
+        fake_inactive_account,
+    ]
 
     fake_totals = AccountTotals(
         cost=Money(100, Currency.USD),
