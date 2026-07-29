@@ -1,6 +1,6 @@
 import logging
 import uuid
-from datetime import UTC, date, datetime, timezone
+from datetime import UTC, date, datetime, time, timezone
 from pathlib import Path
 from typing import Annotated
 
@@ -29,6 +29,7 @@ from src.market.indicators import (
 )
 from src.market.repository import (
     IndicatorPreferencesRepository,
+    IntradayPriceRepository,
     PriceAlertRepository,
     PriceRepository,
     SecurityDocumentRepository,
@@ -41,6 +42,8 @@ from src.market.schema import (
     AIAnalysisResponse,
     IndicatorPreferencesRead,
     IndicatorPreferencesWrite,
+    IntradayPriceHistoryRead,
+    IntradayPriceSchema,
     MACDPoint,
     MAPoint,
     PriceAlertRead,
@@ -102,41 +105,175 @@ async def market_search(
     return results
 
 
+def _to_datetime_range(
+    from_date: datetime | date | None,
+    to_date: datetime | date | None,
+) -> tuple[datetime | None, datetime | None]:
+    from_dt: datetime | None = None
+    if from_date is not None:
+        if isinstance(from_date, datetime):
+            from_dt = (
+                from_date
+                if from_date.tzinfo is not None
+                else from_date.replace(tzinfo=UTC)
+            )
+        else:
+            from_dt = datetime.combine(from_date, time.min, tzinfo=UTC)
+
+    to_dt: datetime | None = None
+    if to_date is not None:
+        if isinstance(to_date, datetime):
+            to_dt = (
+                to_date if to_date.tzinfo is not None else to_date.replace(tzinfo=UTC)
+            )
+        else:
+            to_dt = datetime.combine(to_date, time.max, tzinfo=UTC)
+
+    return from_dt, to_dt
+
+
+def _aggregate_4h_candles(
+    candles: list[IntradayPriceSchema],
+) -> list[IntradayPriceSchema]:
+    """
+    Aggregate 1-hour candles into 4-hour candles.
+    Group 1h candles into 4-hour buckets, setting open to first candle open,
+    high to max high, low to min low, close to last candle close, and summing volume.
+    """
+    if not candles:
+        return []
+
+    sorted_candles = sorted(candles, key=lambda c: c.timestamp)
+    grouped: dict[datetime, list[IntradayPriceSchema]] = {}
+
+    for candle in sorted_candles:
+        ts = candle.timestamp
+        bucket_ts = ts.replace(
+            hour=(ts.hour // 4) * 4, minute=0, second=0, microsecond=0
+        )
+        if bucket_ts not in grouped:
+            grouped[bucket_ts] = []
+        grouped[bucket_ts].append(candle)
+
+    aggregated: list[IntradayPriceSchema] = []
+    for bucket_ts, group in grouped.items():
+        aggregated.append(
+            IntradayPriceSchema(
+                security_id=group[0].security_id,
+                timestamp=bucket_ts,
+                open=group[0].open,
+                high=max(c.high for c in group),
+                low=min(c.low for c in group),
+                close=group[-1].close,
+                volume=sum(c.volume for c in group),
+            )
+        )
+
+    return aggregated
+
+
 @market_router.get("/prices/{security_id}")
-async def market_get_prices(
+async def market_get_prices(  # noqa: PLR0913, PLR0917
     _: Annotated[User, Depends(current_user)],
     security_id: SecurityId,
-    from_date: Annotated[date, Query(description="Start date (ISO 8601)")],
-    to_date: Annotated[date, Query(description="End date (ISO 8601)")],
     pagination: Annotated[PaginationParams, Depends()],
     services: DepContainer,
-) -> PriceHistoryRead:
+    from_date: Annotated[
+        datetime | date | None,
+        Query(description="Start date or datetime (ISO 8601)"),
+    ] = None,
+    to_date: Annotated[
+        datetime | date | None,
+        Query(description="End date or datetime (ISO 8601)"),
+    ] = None,
+    interval: Annotated[
+        str, Query(description="Candle length interval (1d, 1h, 4h)")
+    ] = "1d",
+) -> PriceHistoryRead | IntradayPriceHistoryRead:
     """
-    Get historical prices for a security within a date range
+    Get historical prices for a security (daily or intraday)
     """
-    if from_date > to_date:
+    if interval not in ("1d", "1h", "4h"):
+        raise HTTPException(
+            status_code=422,
+            detail="Invalid interval. Must be one of: 1d, 1h, 4h",
+        )
+
+    if interval == "1d":
+        if from_date is None or to_date is None:
+            raise HTTPException(
+                status_code=422,
+                detail="from_date and to_date are required for interval=1d",
+            )
+
+        f_date = from_date.date() if isinstance(from_date, datetime) else from_date
+        t_date = to_date.date() if isinstance(to_date, datetime) else to_date
+
+        if f_date > t_date:
+            raise HTTPException(
+                status_code=422,
+                detail="from_date must be less than or equal to to_date",
+            )
+
+        security_repository = await services.aget(SecurityRepository)
+        security = await security_repository.get_by_id_or_fail(security_id)
+
+        price_repository = await services.aget(PriceRepository)
+        prices, total = await price_repository.get_prices(
+            security, f_date, t_date, offset=pagination.offset, limit=pagination.limit
+        )
+
+        logger.info(
+            "Retrieved %d prices for security %s from %s to %s",
+            len(prices),
+            security_id,
+            f_date,
+            t_date,
+        )
+
+        return PriceHistoryRead(
+            items=[PriceSchema.model_validate(price) for price in prices],
+            total=total,
+            offset=pagination.offset,
+            limit=pagination.limit,
+            security_id=security_id,
+            from_date=f_date,
+            to_date=t_date,
+        )
+
+    from_dt, to_dt = _to_datetime_range(from_date, to_date)
+
+    if from_dt is not None and to_dt is not None and from_dt > to_dt:
         raise HTTPException(
             status_code=422,
             detail="from_date must be less than or equal to to_date",
         )
 
-    price_repository = await services.aget(PriceRepository)
     security_repository = await services.aget(SecurityRepository)
-    security = await security_repository.get_by_id_or_fail(security_id)
-    prices, total = await price_repository.get_prices(
-        security, from_date, to_date, offset=pagination.offset, limit=pagination.limit
+    await security_repository.get_by_id_or_fail(security_id)
+
+    intraday_repository = await services.aget(IntradayPriceRepository)
+    candles = await intraday_repository.get_intraday_prices(
+        security_id, start_time=from_dt, end_time=to_dt
     )
+
+    if interval == "4h":
+        candles = _aggregate_4h_candles(candles)
+
+    total = len(candles)
+    paginated_candles = candles[
+        pagination.offset : pagination.offset + pagination.limit
+    ]
 
     logger.info(
-        "Retrieved %d prices for security %s from %s to %s",
-        len(prices),
+        "Retrieved %d intraday (%s) prices for security %s",
+        len(paginated_candles),
+        interval,
         security_id,
-        from_date,
-        to_date,
     )
 
-    return PriceHistoryRead(
-        items=[PriceSchema.model_validate(price) for price in prices],
+    return IntradayPriceHistoryRead(
+        items=paginated_candles,
         total=total,
         offset=pagination.offset,
         limit=pagination.limit,
