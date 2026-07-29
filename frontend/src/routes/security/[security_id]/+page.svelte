@@ -35,7 +35,7 @@
 
 	let security = $state<SecuritySchema | null>(data.security);
 	let haCandles = $state<Candle[]>([]);
-	let selectedInterval = $state("1d");
+	let selectedInterval = $state('1d');
 	let isChangingTimeframe = $state(false);
 
 	async function changeTimeframe(interval: string) {
@@ -44,15 +44,15 @@
 		isChangingTimeframe = true;
 
 		try {
-			const isIntraday = interval === "1h" || interval === "4h";
-			const from = isIntraday ? undefined : "2000-01-03";
-			const to = isIntraday ? undefined : new Date().toISOString().split("T")[0];
+			const isIntraday = interval === '1h' || interval === '4h';
+			const from = isIntraday ? undefined : '2000-01-03';
+			const to = isIntraday ? undefined : new Date().toISOString().split('T')[0];
 
 			const marketService = getMarketService();
 			const priceResponse = await marketService.getPrices(security.id, from, to, interval);
 
 			if (!priceResponse.items || priceResponse.items.length === 0) {
-				error = "No price data available for this timeframe";
+				error = 'No price data available for this timeframe';
 				return;
 			}
 			error = null;
@@ -61,7 +61,7 @@
 				const timeVal =
 					isIntraday && p.timestamp
 						? (Math.floor(new Date(p.timestamp).getTime() / 1000) as UTCTimestamp)
-						: ((p.date ?? "") as Time);
+						: ((p.date ?? '') as Time);
 				return {
 					time: timeVal,
 					open: Number(p.open),
@@ -73,7 +73,7 @@
 			});
 
 			rawCandles.sort((a, b) => {
-				if (typeof a.time === "number" && typeof b.time === "number") {
+				if (typeof a.time === 'number' && typeof b.time === 'number') {
 					return a.time - b.time;
 				}
 				return String(a.time).localeCompare(String(b.time));
@@ -83,14 +83,14 @@
 
 			setTimeout(() => {
 				for (const [id, config] of Object.entries(indicatorConfigs)) {
-					if (config.enabled && id !== "avgPrice" && chartRef) {
+					if (config.enabled && id !== 'avgPrice' && chartRef) {
 						chartRef.removeIndicator(id);
 						onIndicatorToggle(id, true);
 					}
 				}
 			}, 20);
 		} catch (err) {
-			console.error("Failed to change timeframe:", err);
+			console.error('Failed to change timeframe:', err);
 		} finally {
 			isChangingTimeframe = false;
 		}
@@ -283,7 +283,7 @@
 			const rawCandles: Candle[] = data.items.map((p) => ({
 				time: p.timestamp
 					? (Math.floor(new Date(p.timestamp).getTime() / 1000) as UTCTimestamp)
-					: ((p.date ?? "") as Time),
+					: ((p.date ?? '') as Time),
 				open: Number(p.open),
 				high: Number(p.high),
 				low: Number(p.low),
@@ -359,15 +359,16 @@
 					securityChart as typeof import('$lib/components/charts/security-chart.svelte').default}
 				<div class="flex flex-1 overflow-hidden">
 					<div class="flex flex-1 flex-col overflow-hidden">
-						<div class="flex items-center justify-between border-b px-4 py-2 bg-sidebar/50">
+						<div class="flex items-center justify-between border-b bg-sidebar/50 px-4 py-2">
 							<div class="flex items-center gap-1">
 								<span class="mr-2 text-xs font-medium text-muted-foreground">Timeframe:</span>
-								{#each ["1h", "4h", "1d", "1w", "1m"] as tf}
+								{#each ['1h', '4h', '1d', '1w', '1m'] as tf}
 									<button
 										type="button"
 										onclick={() => changeTimeframe(tf)}
 										disabled={isChangingTimeframe}
-										class="rounded px-2.5 py-1 text-xs font-medium transition-colors {selectedInterval === tf
+										class="rounded px-2.5 py-1 text-xs font-medium transition-colors {selectedInterval ===
+										tf
 											? 'bg-primary text-primary-foreground shadow-sm'
 											: 'text-muted-foreground hover:bg-muted hover:text-foreground'}"
 									>

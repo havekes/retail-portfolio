@@ -71,7 +71,7 @@ export class MarketService extends ApiClient {
 		securityId: string,
 		from_date?: string,
 		to_date?: string,
-		interval: string = "1d",
+		interval: string = '1d',
 		token?: string | null
 	): Promise<MarketPriceHistory> {
 		let url = `/market/prices/${securityId}?interval=${interval}`;
