@@ -61,6 +61,17 @@ class HistoricalPrice(BaseModel):
     volume: int
 
 
+class IntradayHistoricalPrice(BaseModel):
+    id: int | None = None
+    security_id: SecurityId
+    timestamp: AwareDatetime
+    open: Decimal
+    high: Decimal
+    low: Decimal
+    close: Decimal
+    volume: int
+
+
 class IntradayPrice(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 

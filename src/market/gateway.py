@@ -1,7 +1,12 @@
 from abc import ABC, abstractmethod
-from datetime import date
+from datetime import date, datetime
 
-from src.market.api_types import HistoricalPrice, SecurityId, SecuritySearchResult
+from src.market.api_types import (
+    HistoricalPrice,
+    IntradayHistoricalPrice,
+    SecurityId,
+    SecuritySearchResult,
+)
 
 
 class MarketGateway(ABC):
@@ -33,4 +38,17 @@ class MarketGateway(ABC):
         to_date: date,
     ) -> list[HistoricalPrice]:
         """Get historical prices for a security within a date range."""
+        ...
+
+    @abstractmethod
+    def get_intraday_prices(
+        self,
+        security_id: SecurityId,
+        symbol: str,
+        exchange: str,
+        from_datetime: datetime,
+        to_datetime: datetime,
+        interval: str = "1h",
+    ) -> list[IntradayHistoricalPrice]:
+        """Get intraday prices for a security within a datetime range."""
         ...
