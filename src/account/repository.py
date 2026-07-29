@@ -44,6 +44,10 @@ class AccountRepository(ABC):
         pass
 
     @abstractmethod
+    async def get_all(self) -> list[AccountSchema]:
+        pass
+
+    @abstractmethod
     async def delete(self, account_id: AccountId) -> None:
         pass
 
