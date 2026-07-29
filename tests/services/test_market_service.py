@@ -5,11 +5,11 @@ from uuid import uuid4
 
 import pytest
 
-from src.market.api_types import HistoricalPrice, SecurityId
+from src.market.api_types import HistoricalPrice, IntradayHistoricalPrice, SecurityId
 from src.market.gateway import MarketGateway
+from src.market.repository import PriceRepository, SecurityRepository
 from src.market.schema import PriceSchema, SecuritySchema
 from src.market.service import MarketService
-from src.market.repository import PriceRepository, SecurityRepository
 
 
 class MockSecurityRepository(SecurityRepository):
@@ -50,7 +50,9 @@ class MockPriceRepository(PriceRepository):
         return []
 
     @override
-    async def get_prices(self, security, from_date, to_date, offset: int = 0, limit: int = 50):
+    async def get_prices(
+        self, security, from_date, to_date, offset: int = 0, limit: int = 50
+    ):
         return [], 0
 
     @override
@@ -98,6 +100,38 @@ class MockEodhdGateway(MarketGateway):
                 low=Decimal("95.0"),
                 close=Decimal("102.0"),
                 adjusted_close=Decimal("102.0"),
+                volume=1000,
+            )
+        ]
+
+    @override
+    def get_intraday_prices(
+        self,
+        security_id,
+        symbol,
+        exchange,
+        from_datetime,
+        to_datetime,
+        interval="1h",
+    ):
+        if self.should_fail:
+            raise RuntimeError("API Error")
+
+        dt = (
+            from_datetime
+            if from_datetime.tzinfo
+            else from_datetime.replace(
+                tzinfo=from_datetime.tzinfo or datetime.now().astimezone().tzinfo
+            )
+        )
+        return [
+            IntradayHistoricalPrice(
+                security_id=security_id,
+                timestamp=dt,
+                open=Decimal("100.0"),
+                high=Decimal("105.0"),
+                low=Decimal("95.0"),
+                close=Decimal("102.0"),
                 volume=1000,
             )
         ]

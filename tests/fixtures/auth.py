@@ -2,7 +2,7 @@
 
 from datetime import UTC, date, datetime
 from decimal import Decimal
-from uuid import uuid4
+from uuid import UUID, uuid4
 
 import pytest
 from asgi_lifespan import LifespanManager
@@ -10,8 +10,7 @@ from httpx import ASGITransport, AsyncClient
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.auth.api import UserApi
-from src.auth.model import _password_hasher
-from src.auth.model import UserModel
+from src.auth.model import UserModel, _password_hasher
 from src.auth.repository_sqlalchemy import SqlAlchemyUserRepository
 from src.auth.schema import UserSchema
 from src.main import app
@@ -19,11 +18,11 @@ from src.market import api, repository_eodhd
 from src.market.api_types import (
     EodhdSearchResult,
     HistoricalPrice,
+    IntradayHistoricalPrice,
     SecuritySearchResult,
 )
 from src.market.gateway import MarketGateway
 from src.market.schema import SecuritySchema
-from uuid import UUID
 
 
 class MockEodhdGateway(MarketGateway):
@@ -86,6 +85,32 @@ class MockEodhdGateway(MarketGateway):
             )
         ]
 
+    def get_intraday_prices(
+        self,
+        security_id: UUID,
+        symbol: str,
+        exchange: str,
+        from_datetime: datetime,
+        to_datetime: datetime,
+        interval: str = "1h",
+    ) -> list[IntradayHistoricalPrice]:
+        """Return a mock intraday price list."""
+        _ = symbol, exchange, to_datetime, interval
+        dt = (
+            from_datetime if from_datetime.tzinfo else from_datetime.replace(tzinfo=UTC)
+        )
+        return [
+            IntradayHistoricalPrice(
+                security_id=security_id,
+                timestamp=dt,
+                open=Decimal("150.0"),
+                high=Decimal("155.0"),
+                low=Decimal("149.0"),
+                close=Decimal("154.0"),
+                volume=1000000,
+            )
+        ]
+
 
 @pytest.fixture
 def mock_eodhd_gateway() -> MockEodhdGateway:
@@ -102,8 +127,8 @@ async def auth_client(
 ):
     """Create an HTTP test client with auth token and mocked EODHD API."""
     # Create UserApi to generate token
-    from src.auth.service import EmailService, EmailVerificationService
     from src.auth.repository_sqlalchemy import SqlAlchemyVerificationTokenRepository
+    from src.auth.service import EmailService, EmailVerificationService
 
     user_repository = SqlAlchemyUserRepository(session=db_session)
     token_repository = SqlAlchemyVerificationTokenRepository(session=db_session)
@@ -212,6 +237,7 @@ async def other_user(
         created_at=user_model.created_at,
     )
 
+
 @pytest.fixture
 async def client(
     mock_eodhd_gateway: MockEodhdGateway,
@@ -219,10 +245,14 @@ async def client(
     monkeypatch,
 ):
     from src.market import eodhd
+
     monkeypatch.setattr(eodhd, "eodhd_gateway_factory", lambda: mock_eodhd_gateway)
 
     from src.auth.service import EmailService
-    monkeypatch.setattr(EmailService, "send_verification_email", lambda self, email, token: None)
+
+    monkeypatch.setattr(
+        EmailService, "send_verification_email", lambda self, email, token: None
+    )
 
     async with LifespanManager(app) as manager:
         async with AsyncClient(
