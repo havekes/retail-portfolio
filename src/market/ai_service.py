@@ -36,7 +36,7 @@ class AIResponse(TypedDict):
 class AIService:
     """Service for AI-powered analysis of securities."""
 
-    def __init__(  # noqa: PLR0913
+    def __init__(  # noqa: PLR0913, PLR0917
         self,
         security_repository: SecurityRepository,
         price_repository: PriceRepository,

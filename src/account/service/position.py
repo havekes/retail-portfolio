@@ -41,7 +41,7 @@ class PositionService:
     _position_repository: PositionRepository
     _security_service: SecurityApi
 
-    def __init__(  # noqa: PLR0913
+    def __init__(  # noqa: PLR0913, PLR0917
         self,
         account_service: AccountService,
         fx_rates: CurrencyConverter,

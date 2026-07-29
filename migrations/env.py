@@ -1,4 +1,3 @@
-from logging.config import fileConfig
 import os
 
 from alembic import context
@@ -37,16 +36,6 @@ if db_url:
     # Alembic migrations run synchronously; replace asyncpg with psycopg2 if present
     db_url = db_url.replace("postgresql+asyncpg://", "postgresql://")
     config.set_main_option("sqlalchemy.url", db_url)
-
-# Interpret the config file for Python logging.
-# This line sets up loggers basically.
-if config.config_file_name is not None:
-    fileConfig(config.config_file_name)
-
-# other values from the config, defined by the needs of env.py,
-# can be acquired:
-# my_important_option = config.get_main_option("my_important_option")
-# ... etc.
 
 
 def run_migrations_offline() -> None:

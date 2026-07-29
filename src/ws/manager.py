@@ -51,7 +51,7 @@ class ConnectionManager:
         for client in clients_to_close:
             try:
                 await client.aclose()
-            except Exception:  # noqa: BLE001
+            except Exception:
                 logger.debug(
                     "Failed to close Redis client for closed loop", exc_info=True
                 )
@@ -89,7 +89,7 @@ class ConnectionManager:
         for client in clients:
             try:
                 await client.aclose()
-            except Exception:  # noqa: BLE001
+            except Exception:
                 logger.debug(
                     "Failed to close Redis client during ConnectionManager.close",
                     exc_info=True,

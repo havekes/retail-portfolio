@@ -110,6 +110,26 @@ def init_logging() -> None:
         )
 
     # Suppress verbose third-party loggers
-    for logger_name in ["urllib3", "httpx", "watchfiles", "faker", "svcs"]:
+    for logger_name in [
+        "urllib3",
+        "httpx",
+        "watchfiles",
+        "faker",
+        "svcs",
+        "redis",
+    ]:
         logger = logging.getLogger(logger_name)
         logger.setLevel(logging.INFO)
+
+    # Intercept all loggers to route them to our root logger handlers
+    for logger_obj in logging.root.manager.loggerDict.values():
+        if isinstance(logger_obj, logging.Logger):
+            logger_obj.handlers.clear()
+            logger_obj.propagate = True
+
+    # Disable Uvicorn's default access logger to prevent double logging
+    # (middleware.py handles request logs)
+    uvicorn_access = logging.getLogger("uvicorn.access")
+    uvicorn_access.handlers.clear()
+    uvicorn_access.propagate = False
+    uvicorn_access.disabled = True

@@ -5,10 +5,10 @@
 Tests live in `/tests` and use `pytest` with in-memory SQLite (`sqlite+aiosqlite:///:memory:`). `tests/conftest.py` sets required environment variables before the app is imported:
 
 ```python
-DATABASE_URL="sqlite+aiosqlite:///:memory:"
-SECRET_KEY="..."
-ENVIRONMENT="test"
-STUB_EXTERNAL_API="true"
+DATABASE_URL = "sqlite+aiosqlite:///:memory:"
+SECRET_KEY = "..."
+ENVIRONMENT = "test"
+STUB_EXTERNAL_API = "true"
 ```
 
 ### Test layout

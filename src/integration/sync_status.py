@@ -30,7 +30,7 @@ class RedisManager:
         for client in clients:
             try:
                 await client.aclose()
-            except Exception:  # noqa: BLE001
+            except Exception:
                 logger.debug(
                     "Failed to close Redis client during RedisManager.close",
                     exc_info=True,
@@ -51,7 +51,7 @@ class RedisManager:
         for client_to_close in clients_to_close:
             try:
                 await client_to_close.aclose()
-            except Exception:  # noqa: BLE001
+            except Exception:
                 logger.debug(
                     "Failed to close Redis client for closed loop", exc_info=True
                 )

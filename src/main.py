@@ -4,7 +4,6 @@ from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
 from typing import Any, cast
 
-import redis
 import svcs
 from alembic import command
 from alembic.config import Config
@@ -158,6 +157,8 @@ app.add_middleware(
 )
 
 init_logging()
+logger.info("Starting application")
+logger.info("ENVIRONMENT: %s", settings.environment)
 
 v1 = APIRouter(prefix="/api/v1")
 v1.include_router(account_router)
@@ -223,9 +224,9 @@ async def ping(services: DepContainer) -> dict[str, Any]:
 async def catch_all_exception_handler(_: Request, exc: Exception):
     # Use a safer logging call to avoid potential formatting errors
     if settings.environment == "dev":
-        logger.exception("Unhandled exception caught by FastAPI handler:", exc_info=exc)
+        logger.exception("Unhandled exception caught by FastAPI handler:", exc_info=exc)  # noqa: LOG004
     else:
-        logger.exception("Unhandled exception caught by FastAPI handler:")
+        logger.exception("Unhandled exception caught by FastAPI handler:")  # noqa: LOG004
     return JSONResponse(
         status_code=500,
         content={
@@ -239,9 +240,9 @@ async def catch_all_exception_handler(_: Request, exc: Exception):
 async def entity_not_found_error_handler(_, error: EntityNotFoundError):
     if settings.environment != "prod":
         if settings.environment == "dev":
-            logger.exception(str(error), exc_info=error)
+            logger.exception(str(error), exc_info=error)  # noqa: LOG004
         else:
-            logger.exception(str(error))
+            logger.exception(str(error))  # noqa: LOG004
     return JSONResponse(status_code=404, content={"error": str(error)})
 
 
@@ -249,7 +250,7 @@ async def entity_not_found_error_handler(_, error: EntityNotFoundError):
 async def authorization_error_handler(_, error: AuthorizationError):
     if settings.environment != "prod":
         if settings.environment == "dev":
-            logger.exception(error.log_message(), exc_info=error)
+            logger.exception(error.log_message(), exc_info=error)  # noqa: LOG004
         else:
-            logger.exception(error.log_message())
+            logger.exception(error.log_message())  # noqa: LOG004
     return JSONResponse(status_code=404, content={"error": str(error)})

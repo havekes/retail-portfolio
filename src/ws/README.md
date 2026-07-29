@@ -56,8 +56,7 @@ from src.ws.api_types import AccountSyncMessage, WsEventType
 
 await ws_manager.send_personal_message(
     AccountSyncMessage(
-        type=WsEventType.ACCOUNT_SYNC_STARTED, 
-        account_id=account.id
+        type=WsEventType.ACCOUNT_SYNC_STARTED, account_id=account.id
     ).model_dump(mode="json"),
     user_id,
 )

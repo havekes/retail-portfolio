@@ -617,7 +617,7 @@ async def market_ai_summarize_notes(
 
 @market_router.post("/securities/{security_id}/ai/portfolio-debate")
 @limiter.limit("5/minute")
-async def market_ai_portfolio_debate(  # noqa: PLR0913
+async def market_ai_portfolio_debate(  # noqa: PLR0913, PLR0917
     request: Request,  # noqa: ARG001
     response: Response,  # noqa: ARG001
     user: Annotated[User, Depends(current_user)],

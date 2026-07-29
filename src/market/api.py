@@ -70,7 +70,7 @@ async def market_prices_factory(container: Container) -> MarketPricesApi:
 
 
 class SecurityApi:
-    def __init__(  # noqa: PLR0913
+    def __init__(  # noqa: PLR0913, PLR0917
         self,
         gateway: MarketGateway,
         market_prices_api: MarketPricesApi,
