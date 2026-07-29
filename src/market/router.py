@@ -1,4 +1,3 @@
-from pydantic import AwareDatetime
 import logging
 import uuid
 from datetime import UTC, date, datetime, timezone
@@ -7,6 +6,7 @@ from typing import Annotated
 
 from fastapi import APIRouter, Depends, File, Query, Request, Response, UploadFile
 from fastapi.exceptions import HTTPException
+from pydantic import AwareDatetime
 from svcs.fastapi import DepContainer
 
 from src.auth.api import current_user
@@ -45,9 +45,6 @@ from src.market.schema import (
     IndicatorPreferencesWrite,
     IntradayPriceHistoryRead,
     IntradayPriceSchema,
-    AIAnalysisResponse,
-    IndicatorPreferencesRead,
-    IndicatorPreferencesWrite,
     MACDPoint,
     MAPoint,
     PriceAlertRead,
@@ -141,7 +138,7 @@ def aggregate_1h_to_4h(candles: list[IntradayPriceSchema]) -> list[IntradayPrice
 
 
 @market_router.get("/prices/{security_id}/intraday")
-async def market_get_intraday_prices(
+async def market_get_intraday_prices(  # noqa: PLR0913, PLR0917
     _: Annotated[User, Depends(current_user)],
     security_id: SecurityId,
     services: DepContainer,
