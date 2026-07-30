@@ -110,12 +110,12 @@ class MockIntradayPriceRepository(IntradayPriceRepository):
     async def get_latest_intraday_close_by_security(
         self,
     ) -> dict[SecurityId, Decimal]:
-        result: dict[SecurityId, Decimal] = {}
+        intermediate: dict[SecurityId, tuple[datetime, Decimal]] = {}
         for p in self.saved_prices:
-            existing = result.get(p.security_id)
+            existing = intermediate.get(p.security_id)
             if existing is None or p.timestamp > existing[0]:
-                result[p.security_id] = (p.timestamp, p.close)
-        return {sid: close for sid, (_, close) in result.items()}
+                intermediate[p.security_id] = (p.timestamp, p.close)
+        return {sid: close for sid, (_, close) in intermediate.items()}
 
 
 class MockEodhdGateway(MarketGateway):
