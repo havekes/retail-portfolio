@@ -6,6 +6,7 @@
 	import { Settings2 } from '@lucide/svelte';
 	import IndicatorConfigDialog from '@/components/actions-sidebar/indicator/indicator-config-modal.svelte';
 	import GroupTitle from '../group-title.svelte';
+	import { AVG_PRICE_LINE_COLOR } from '$lib/components/charts/colors';
 
 	let {
 		expanded = $bindable(true),
@@ -38,7 +39,7 @@
 
 	const indicators = [
 		{ id: 'volume', label: 'Volume', color: '#64748b' },
-		{ id: 'avgPrice', label: 'Avg Price', color: '#f59e0b' },
+		{ id: 'avgPrice', label: 'Avg Price', color: AVG_PRICE_LINE_COLOR },
 		{ id: 'ma50', label: '50 Day MA', color: '#3b82f6' },
 		{ id: 'ma200', label: '200 Day MA', color: '#8b5cf6' },
 		{ id: 'ma50w', label: '50 Week MA', color: '#10b981' },
