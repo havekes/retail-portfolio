@@ -20,6 +20,7 @@
 	import { calculateMACD } from '@/utils/finance/macd';
 	import { calculateBollingerBands } from '@/utils/finance/bollinger-bands';
 	import { calculateOBV } from '@/utils/finance/obv';
+	import { blendedAverageCost } from '@/utils/finance/average-cost';
 	import { AVG_PRICE_LINE_COLOR } from '$lib/components/charts/colors';
 	import HoldingsGroup from '@/components/actions-sidebar/holding-group/holding-group.svelte';
 	import { accountService, type AccountHoldingRead } from '@/api/accountService';
@@ -154,13 +155,7 @@
 	});
 
 	let holdings = $state<AccountHoldingRead[]>([]);
-	let averageBuyingPrice = $derived.by(() => {
-		if (holdings.length === 0) return 0;
-		const totalQuantity = holdings.reduce((sum, h) => sum + h.quantity, 0);
-		if (totalQuantity === 0) return 0;
-		const totalCost = holdings.reduce((sum, h) => sum + h.quantity * (h.average_cost ?? 0), 0);
-		return totalCost / totalQuantity;
-	});
+	let averageBuyingPrice = $derived(blendedAverageCost(holdings));
 
 	function onIndicatorConfigChange(indicatorId: string, newConfig: Partial<LocalIndicatorConfig>) {
 		indicatorConfigs[indicatorId] = { ...indicatorConfigs[indicatorId], ...newConfig };

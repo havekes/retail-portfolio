@@ -4,6 +4,7 @@
 	import Skeleton from '@/components/ui/skeleton/skeleton.svelte';
 	import SidebarError from '../sidebar-error.svelte';
 	import { accountService, type AccountHoldingRead } from '@/api/accountService';
+	import { blendedAverageCost } from '@/utils/finance/average-cost';
 	import { resolve } from '$app/paths';
 
 	let { securityId, expanded = $bindable(true) } = $props<{
@@ -76,10 +77,23 @@
 								</span>
 							</div>
 							<div class="text-xs text-muted-foreground">
-								{holding.quantity} shares
+								{holding.quantity} shares · Avg
+								{new Intl.NumberFormat('en-US', {
+									style: 'currency',
+									currency: holding.currency
+								}).format(holding.average_cost ?? 0)}
 							</div>
 						</a>
 					{/each}
+					<div class="mt-1 flex justify-between rounded-md border-t border-border px-2 py-1.5">
+						<span class="text-xs text-muted-foreground">Portfolio avg</span>
+						<span class="text-xs font-medium text-foreground">
+							{new Intl.NumberFormat('en-US', {
+								style: 'currency',
+								currency: holdings[0]?.currency ?? 'USD'
+							}).format(blendedAverageCost(holdings))}
+						</span>
+					</div>
 				</div>
 			{/if}
 		</Sidebar.GroupContent>
