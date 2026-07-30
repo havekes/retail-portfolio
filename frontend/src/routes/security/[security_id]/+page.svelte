@@ -20,6 +20,7 @@
 	import { calculateMACD } from '@/utils/finance/macd';
 	import { calculateBollingerBands } from '@/utils/finance/bollinger-bands';
 	import { calculateOBV } from '@/utils/finance/obv';
+	import { AVG_PRICE_LINE_COLOR } from '$lib/components/charts/colors';
 	import HoldingsGroup from '@/components/actions-sidebar/holding-group/holding-group.svelte';
 	import { accountService, type AccountHoldingRead } from '@/api/accountService';
 	import type { IndicatorData } from '$lib/components/charts/security-chart.svelte';
@@ -143,7 +144,13 @@
 			enabled: false,
 			settings: {}
 		},
-		avgPrice: { label: 'Avg Price', color: '#f59e0b', period: 0, enabled: true, settings: {} }
+		avgPrice: {
+			label: 'Avg Price',
+			color: AVG_PRICE_LINE_COLOR,
+			period: 0,
+			enabled: true,
+			settings: {}
+		}
 	});
 
 	let holdings = $state<AccountHoldingRead[]>([]);

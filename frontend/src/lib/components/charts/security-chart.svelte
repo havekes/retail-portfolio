@@ -4,6 +4,7 @@
 	import { onMount } from 'svelte';
 	import type { Candle } from '@/utils/finance/candle';
 	import { BandsIndicator } from './plugins/bands-indicator';
+	import { AVG_PRICE_LINE_COLOR } from './colors';
 	import { UserPriceAlerts } from './plugins/user-price-alerts/user-price-alerts';
 	import type { UserAlertInfo } from './plugins/user-price-alerts/state';
 	import type { PriceAlert } from '$lib/api/alertsService';
@@ -87,7 +88,7 @@
 			}
 			avgPriceLine = seriesInstance.createPriceLine({
 				price: averagePrice,
-				color: '#f59e0b',
+				color: AVG_PRICE_LINE_COLOR,
 				lineWidth: 2,
 				lineStyle: 2, // Dashed
 				axisLabelVisible: true,
