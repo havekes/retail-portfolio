@@ -3,7 +3,7 @@ from datetime import UTC, date, datetime
 from decimal import Decimal
 from typing import override
 
-from sqlalchemy import delete, func, select
+from sqlalchemy import delete, func, select, update
 from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -36,6 +36,7 @@ from src.market.repository import (
     WatchlistRepository,
 )
 from src.market.schema import (
+    AlertForEvaluation,
     IndicatorPreferencesRead,
     IndicatorPreferencesWrite,
     IntradayPriceSchema,
@@ -377,32 +378,19 @@ class SqlAlchemyIntradayPriceRepository(IntradayPriceRepository):
 
     @override
     async def get_latest_intraday_close_by_security(
-        self, security_ids: list[SecurityId]
+        self,
     ) -> dict[SecurityId, Decimal]:
-        if not security_ids:
-            return {}
-
-        # Get the latest timestamp per security
-        subq = (
-            select(
-                IntradayPriceModel.security_id,
-                func.max(IntradayPriceModel.timestamp).label("max_ts"),
-            )
-            .where(IntradayPriceModel.security_id.in_(security_ids))
-            .group_by(IntradayPriceModel.security_id)
-            .subquery()
-        )
-
-        # Join back to get the full row (and its close price)
+        # DISTINCT ON guarantees one row per security even if two bars
+        # share the same timestamp.
         stmt = (
             select(
                 IntradayPriceModel.security_id,
                 IntradayPriceModel.close,
             )
-            .join(
-                subq,
-                (IntradayPriceModel.security_id == subq.c.security_id)
-                & (IntradayPriceModel.timestamp == subq.c.max_ts),
+            .distinct(IntradayPriceModel.security_id)
+            .order_by(
+                IntradayPriceModel.security_id,
+                IntradayPriceModel.timestamp.desc(),
             )
         )
 
@@ -617,24 +605,44 @@ class SqlAlchemyPriceAlertRepository(PriceAlertRepository):
         await self._session.commit()
 
     @override
-    async def get_active_alerts_for_evaluation(self) -> list[PriceAlertRead]:
+    async def get_active_alerts_for_evaluation(self) -> list[AlertForEvaluation]:
         result = await self._session.execute(
-            select(PriceAlertModel)
+            select(
+                PriceAlertModel.id,
+                PriceAlertModel.security_id,
+                PriceAlertModel.user_id,
+                PriceAlertModel.target_price,
+                PriceAlertModel.condition,
+                SecurityModel.symbol,
+                SecurityModel.name,
+            )
+            .join(
+                SecurityModel,
+                PriceAlertModel.security_id == SecurityModel.id,
+            )
             .where(PriceAlertModel.triggered_at.is_(None))
         )
         return [
-            PriceAlertRead.model_validate(alert) for alert in result.scalars()
+            AlertForEvaluation(
+                alert_id=row.id,
+                security_id=row.security_id,
+                security_symbol=row.symbol,
+                security_name=row.name,
+                user_id=row.user_id,
+                target_price=row.target_price,
+                condition=row.condition,
+            )
+            for row in result.mappings().all()
         ]
 
     @override
-    async def mark_triggered(self, alert_id: int) -> None:
-        result = await self._session.execute(
-            select(PriceAlertModel).where(PriceAlertModel.id == alert_id)
+    async def mark_triggered(self, alert_id: int, at: datetime) -> None:
+        await self._session.execute(
+            update(PriceAlertModel)
+            .where(PriceAlertModel.id == alert_id)
+            .values(triggered_at=at)
         )
-        alert = result.scalar_one_or_none()
-        if alert is not None:
-            alert.triggered_at = datetime.now(UTC)
-            await self._session.commit()
+        await self._session.commit()
 
     @override
     async def get_by_id(self, alert_id: int) -> PriceAlertRead | None:

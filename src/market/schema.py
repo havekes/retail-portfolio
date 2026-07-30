@@ -139,6 +139,22 @@ class SecurityCreateResponse(BaseModel):
     has_price_data: bool
 
 
+class AlertForEvaluation(BaseModel):
+    """Alert row joined with security info for evaluation in Stage 2.
+
+    Carries only the fields needed for price comparison — no triggered_at
+    (the DB filter already ensures triggered_at IS NULL).
+    """
+
+    alert_id: int
+    security_id: SecurityId
+    security_symbol: str
+    security_name: str
+    user_id: UserId
+    target_price: Decimal
+    condition: str
+
+
 class PriceAlertRead(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 

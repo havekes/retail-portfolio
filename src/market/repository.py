@@ -6,6 +6,7 @@ from decimal import Decimal
 from src.auth.api_types import UserId
 from src.market.api_types import SecurityId
 from src.market.schema import (
+    AlertForEvaluation,
     IndicatorPreferencesRead,
     IndicatorPreferencesWrite,
     IntradayPriceSchema,
@@ -109,11 +110,13 @@ class IntradayPriceRepository(ABC):
 
     @abstractmethod
     async def get_latest_intraday_close_by_security(
-        self, security_ids: list[SecurityId]
+        self,
     ) -> dict[SecurityId, Decimal]:
-        """Return the latest intraday close price for each security in the list.
+        """Return the latest intraday close price for every security.
 
         Securities without any intraday price data are omitted from the result.
+        Uses DISTINCT ON to guarantee one row per security even if two bars
+        share the same timestamp.
         """
 
 
@@ -163,12 +166,12 @@ class PriceAlertRepository(ABC):
         pass
 
     @abstractmethod
-    async def get_active_alerts_for_evaluation(self) -> list[PriceAlertRead]:
-        """Return all alerts that have not yet been triggered (triggered_at IS NULL)."""
+    async def get_active_alerts_for_evaluation(self) -> list[AlertForEvaluation]:
+        """Return all alerts with triggered_at IS NULL, joined to Security."""
 
     @abstractmethod
-    async def mark_triggered(self, alert_id: int) -> None:
-        """Set triggered_at to now for the given alert."""
+    async def mark_triggered(self, alert_id: int, at: datetime) -> None:
+        """Set triggered_at to the given timestamp for the alert (single UPDATE)."""
 
     @abstractmethod
     async def get_by_id(self, alert_id: int) -> PriceAlertRead | None:
