@@ -9,7 +9,7 @@ from src.account.service.account import AccountService
 from src.account.service.position import PositionService
 from src.auth.repository import UserRepository
 from src.core.context import get_request_id, request_id_ctx_var, set_request_id
-from src.core.email import EmailService
+from src.core.email import EmailService, PriceAlertEmailData
 from src.market.ai_service import AIService
 from src.market.repository import (
     IntradayPriceRepository,
@@ -207,12 +207,10 @@ async def _check_and_dispatch_price_alerts() -> None:
 
                 # Evaluate condition (inclusive boundary)
                 above_triggered = (
-                    alert.condition == "above"
-                    and latest_price >= alert.target_price
+                    alert.condition == "above" and latest_price >= alert.target_price
                 )
                 below_triggered = (
-                    alert.condition == "below"
-                    and latest_price <= alert.target_price
+                    alert.condition == "below" and latest_price <= alert.target_price
                 )
                 triggered = above_triggered or below_triggered
 
@@ -310,15 +308,18 @@ async def _alert_email_dispatch(alert_id: int, run_ts: datetime) -> None:
         # Email-then-mark: send FIRST, only mark on success.
         # Sync SMTP bridged via asyncio.to_thread (EmailService stays sync smtplib).
         try:
-            await asyncio.to_thread(
-                email_service.send_price_alert_email,
-                recipient=user.email,
-                security_name=security.name,
+            alert_data = PriceAlertEmailData(
+                security_id=alert.security_id,
                 security_symbol=security.symbol,
+                security_name=security.name,
                 condition=alert.condition,
                 target_price=alert.target_price,
                 latest_price=latest_price,
-                security_id=alert.security_id,
+            )
+            await asyncio.to_thread(
+                email_service.send_price_alert_email,
+                recipient=user.email,
+                alert=alert_data,
             )
         except Exception:
             logger.exception(

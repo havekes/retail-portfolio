@@ -1,7 +1,10 @@
 import logging
 import smtplib
+from dataclasses import dataclass
+from decimal import Decimal
 from email.message import EmailMessage
 from pathlib import Path
+from uuid import UUID
 
 from jinja2 import Environment, FileSystemLoader
 
@@ -18,6 +21,18 @@ jinja_env = Environment(
 
 class EmailSendError(Exception):
     pass
+
+
+@dataclass
+class PriceAlertEmailData:
+    """Data bundle for price alert email parameters."""
+
+    security_id: UUID
+    security_symbol: str
+    security_name: str
+    condition: str
+    target_price: Decimal
+    latest_price: Decimal
 
 
 class EmailService:
@@ -79,7 +94,8 @@ class EmailService:
                 server.send_message(msg)
         except Exception as exc:
             logger.exception("Failed to send email")
-            raise EmailSendError("Failed to send email") from exc
+            error_msg = "Failed to send email"
+            raise EmailSendError(error_msg) from exc
 
     def send_verification_email(self, email: str, token: str) -> None:
         """Send email verification link. Thin wrapper over send_email."""
@@ -95,43 +111,29 @@ class EmailService:
     def send_price_alert_email(
         self,
         recipient: str,
-        security_name: str,
-        security_symbol: str,
-        condition: str,
-        target_price,
-        latest_price,
-        security_id,
+        alert: PriceAlertEmailData,
     ) -> None:
         """Send a price alert notification email.
 
         Args:
             recipient: user's email address.
-            security_name: full security name (e.g. "Apple Inc").
-            security_symbol: ticker symbol (e.g. "AAPL").
-            condition: alert condition ("above" or "below").
-            target_price: the target price the user set.
-            latest_price: the latest intraday close price.
-            security_id: UUID of the security for the deeplink.
+            alert: bundled price alert data (security info, condition, prices).
         """
-        # Humanize the condition text
-        if condition == "above":
-            condition_text = "rose above"
-        else:
-            condition_text = "fell below"
+        condition_text = "rose above" if alert.condition == "above" else "fell below"
 
-        deeplink = f"{settings.frontend_url}/security/{security_id}"
+        deeplink = f"{settings.frontend_url}/security/{alert.security_id}"
 
         self.send_email(
             recipient,
-            f"Price Alert: {security_name} ({security_symbol})",
+            f"Price Alert: {alert.security_name} ({alert.security_symbol})",
             html_template="price_alert.html",
             text_template="price_alert.txt",
             context={
-                "security_name": security_name,
-                "security_symbol": security_symbol,
+                "security_name": alert.security_name,
+                "security_symbol": alert.security_symbol,
                 "condition_text": condition_text,
-                "target_price": str(target_price),
-                "latest_price": str(latest_price),
+                "target_price": str(alert.target_price),
+                "latest_price": str(alert.latest_price),
                 "deeplink": deeplink,
             },
         )

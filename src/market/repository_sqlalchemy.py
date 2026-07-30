@@ -395,10 +395,7 @@ class SqlAlchemyIntradayPriceRepository(IntradayPriceRepository):
         )
 
         result = await self._session.execute(stmt)
-        return {
-            row.security_id: row.close
-            for row in result.mappings().all()
-        }
+        return {row.security_id: row.close for row in result.mappings().all()}
 
 
 async def sqlalchemy_intraday_price_repository_factory(

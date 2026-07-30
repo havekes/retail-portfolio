@@ -9,7 +9,7 @@ from uuid import uuid4
 import pytest
 
 from src.auth.repository import UserRepository
-from src.core.email import EmailService
+from src.core.email import EmailService, PriceAlertEmailData
 from src.market.repository import (
     IntradayPriceRepository,
     PriceAlertRepository,
@@ -53,10 +53,9 @@ def _make_security(*, symbol: str = "AAPL", name: str = "Apple Inc"):
     )
 
 
-def _mock_container(
-    alert_repo, security_repo, user_repo, email_service, intraday_repo
-):
+def _mock_container(alert_repo, security_repo, user_repo, email_service, intraday_repo):
     """Build a mock svcs container returning the given services."""
+
     async def aget(cls):
         if cls is PriceAlertRepository:
             return alert_repo
@@ -87,9 +86,7 @@ async def test_stage3_already_triggered_is_noop():
     alert_repo = AsyncMock(spec=PriceAlertRepository)
     alert_repo.get_by_id = AsyncMock(return_value=alert)
 
-    mc = _mock_container(
-        alert_repo, AsyncMock(), AsyncMock(), AsyncMock(), AsyncMock()
-    )
+    mc = _mock_container(alert_repo, AsyncMock(), AsyncMock(), AsyncMock(), AsyncMock())
 
     with (
         patch("src.market.task.huey.svcs_registry", MagicMock()),
@@ -108,9 +105,7 @@ async def test_stage3_alert_not_found_is_noop():
     alert_repo = AsyncMock(spec=PriceAlertRepository)
     alert_repo.get_by_id = AsyncMock(return_value=None)
 
-    mc = _mock_container(
-        alert_repo, AsyncMock(), AsyncMock(), AsyncMock(), AsyncMock()
-    )
+    mc = _mock_container(alert_repo, AsyncMock(), AsyncMock(), AsyncMock(), AsyncMock())
 
     with (
         patch("src.market.task.huey.svcs_registry", MagicMock()),
@@ -171,14 +166,17 @@ async def test_stage3_sends_email_and_marks_triggered():
         await _alert_email_dispatch(alert.id, run_ts)
 
     # Email was sent with correct params
-    email_service.send_price_alert_email.assert_called_once_with(
-        recipient=user.email,
-        security_name=security.name,
+    expected_alert = PriceAlertEmailData(
+        security_id=alert.security_id,
         security_symbol=security.symbol,
+        security_name=security.name,
         condition=alert.condition,
         target_price=alert.target_price,
         latest_price=latest_price,
-        security_id=alert.security_id,
+    )
+    email_service.send_price_alert_email.assert_called_once_with(
+        recipient=user.email,
+        alert=expected_alert,
     )
 
     # Alert was marked triggered with the run_ts
@@ -198,9 +196,7 @@ async def test_stage3_security_missing_skips():
     alert_repo.get_by_id = AsyncMock(return_value=alert)
 
     security_repo = AsyncMock(spec=SecurityRepository)
-    security_repo.get_by_id_or_fail = AsyncMock(
-        side_effect=Exception("not found")
-    )
+    security_repo.get_by_id_or_fail = AsyncMock(side_effect=Exception("not found"))
 
     mc = _mock_container(
         alert_repo, security_repo, AsyncMock(), AsyncMock(), AsyncMock()
@@ -233,9 +229,7 @@ async def test_stage3_user_missing_skips():
     user_repo = AsyncMock(spec=UserRepository)
     user_repo.get_by_id = AsyncMock(return_value=None)
 
-    mc = _mock_container(
-        alert_repo, security_repo, user_repo, AsyncMock(), AsyncMock()
-    )
+    mc = _mock_container(alert_repo, security_repo, user_repo, AsyncMock(), AsyncMock())
 
     with (
         patch("src.market.task.huey.svcs_registry", MagicMock()),
@@ -267,9 +261,7 @@ async def test_stage3_no_intraday_price_at_dispatch_skips():
     user_repo.get_by_id = AsyncMock(return_value=user)
 
     intraday_repo = AsyncMock(spec=IntradayPriceRepository)
-    intraday_repo.get_latest_intraday_close_by_security = AsyncMock(
-        return_value={}
-    )
+    intraday_repo.get_latest_intraday_close_by_security = AsyncMock(return_value={})
 
     mc = _mock_container(
         alert_repo, security_repo, user_repo, AsyncMock(), intraday_repo
@@ -306,9 +298,7 @@ async def test_stage3_send_exception_propagates_for_retry():
 
     email_service = MagicMock(spec=EmailService)
     smtp_error = RuntimeError("SMTP down")
-    email_service.send_price_alert_email = MagicMock(
-        side_effect=smtp_error
-    )
+    email_service.send_price_alert_email = MagicMock(side_effect=smtp_error)
 
     intraday_repo = AsyncMock(spec=IntradayPriceRepository)
     intraday_repo.get_latest_intraday_close_by_security = AsyncMock(

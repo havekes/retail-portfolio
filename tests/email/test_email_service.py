@@ -153,6 +153,8 @@ class TestSendPriceAlertEmail:
         from decimal import Decimal
         from uuid import uuid4
 
+        from src.core.email import PriceAlertEmailData
+
         sec_id = uuid4()
         with (
             patch("src.core.email.settings") as mock_settings,
@@ -170,14 +172,17 @@ class TestSendPriceAlertEmail:
             mock_smtp_cls.return_value.__enter__ = MagicMock(return_value=mock_server)
             mock_smtp_cls.return_value.__exit__ = MagicMock(return_value=False)
 
-            email_service.send_price_alert_email(
-                recipient="user@test.com",
-                security_name="Apple Inc",
+            alert = PriceAlertEmailData(
+                security_id=sec_id,
                 security_symbol="AAPL",
+                security_name="Apple Inc",
                 condition="above",
                 target_price=Decimal("150.00"),
                 latest_price=Decimal("152.50"),
-                security_id=sec_id,
+            )
+            email_service.send_price_alert_email(
+                recipient="user@test.com",
+                alert=alert,
             )
 
             msg = mock_server.send_message.call_args[0][0]
@@ -200,6 +205,8 @@ class TestSendPriceAlertEmail:
         from decimal import Decimal
         from uuid import uuid4
 
+        from src.core.email import PriceAlertEmailData
+
         sec_id = uuid4()
         with (
             patch("src.core.email.settings") as mock_settings,
@@ -217,14 +224,17 @@ class TestSendPriceAlertEmail:
             mock_smtp_cls.return_value.__enter__ = MagicMock(return_value=mock_server)
             mock_smtp_cls.return_value.__exit__ = MagicMock(return_value=False)
 
-            email_service.send_price_alert_email(
-                recipient="user@test.com",
-                security_name="Microsoft Corp",
+            alert = PriceAlertEmailData(
+                security_id=sec_id,
                 security_symbol="MSFT",
+                security_name="Microsoft Corp",
                 condition="below",
                 target_price=Decimal("300.00"),
                 latest_price=Decimal("298.00"),
-                security_id=sec_id,
+            )
+            email_service.send_price_alert_email(
+                recipient="user@test.com",
+                alert=alert,
             )
 
             msg = mock_server.send_message.call_args[0][0]
@@ -237,6 +247,8 @@ class TestSendPriceAlertEmail:
     def test_send_price_alert_email_raises_on_smtp_failure(self, email_service):
         from decimal import Decimal
         from uuid import uuid4
+
+        from src.core.email import PriceAlertEmailData
 
         with (
             patch("src.core.email.settings") as mock_settings,
@@ -251,13 +263,16 @@ class TestSendPriceAlertEmail:
             mock_settings.smtp_sender_email = "alerts@test.com"
             mock_smtp_cls.side_effect = ConnectionRefusedError("refused")
 
+            alert = PriceAlertEmailData(
+                security_id=uuid4(),
+                security_symbol="TST",
+                security_name="Test",
+                condition="above",
+                target_price=Decimal("100"),
+                latest_price=Decimal("101"),
+            )
             with pytest.raises(EmailSendError):
                 email_service.send_price_alert_email(
                     "user@test.com",
-                    "Test",
-                    "TST",
-                    "above",
-                    Decimal("100"),
-                    Decimal("101"),
-                    uuid4(),
+                    alert=alert,
                 )
