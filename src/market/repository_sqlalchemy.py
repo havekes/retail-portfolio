@@ -1,5 +1,6 @@
 import uuid
-from datetime import date, datetime
+from datetime import UTC, date, datetime
+from decimal import Decimal
 from typing import override
 
 from sqlalchemy import delete, func, select
@@ -374,6 +375,43 @@ class SqlAlchemyIntradayPriceRepository(IntradayPriceRepository):
         await self._session.commit()
         return schemas
 
+    @override
+    async def get_latest_intraday_close_by_security(
+        self, security_ids: list[SecurityId]
+    ) -> dict[SecurityId, Decimal]:
+        if not security_ids:
+            return {}
+
+        # Get the latest timestamp per security
+        subq = (
+            select(
+                IntradayPriceModel.security_id,
+                func.max(IntradayPriceModel.timestamp).label("max_ts"),
+            )
+            .where(IntradayPriceModel.security_id.in_(security_ids))
+            .group_by(IntradayPriceModel.security_id)
+            .subquery()
+        )
+
+        # Join back to get the full row (and its close price)
+        stmt = (
+            select(
+                IntradayPriceModel.security_id,
+                IntradayPriceModel.close,
+            )
+            .join(
+                subq,
+                (IntradayPriceModel.security_id == subq.c.security_id)
+                & (IntradayPriceModel.timestamp == subq.c.max_ts),
+            )
+        )
+
+        result = await self._session.execute(stmt)
+        return {
+            row.security_id: row.close
+            for row in result.mappings().all()
+        }
+
 
 async def sqlalchemy_intraday_price_repository_factory(
     container: Container,
@@ -577,6 +615,36 @@ class SqlAlchemyPriceAlertRepository(PriceAlertRepository):
             .where(PriceAlertModel.user_id == user_id)
         )
         await self._session.commit()
+
+    @override
+    async def get_active_alerts_for_evaluation(self) -> list[PriceAlertRead]:
+        result = await self._session.execute(
+            select(PriceAlertModel)
+            .where(PriceAlertModel.triggered_at.is_(None))
+        )
+        return [
+            PriceAlertRead.model_validate(alert) for alert in result.scalars()
+        ]
+
+    @override
+    async def mark_triggered(self, alert_id: int) -> None:
+        result = await self._session.execute(
+            select(PriceAlertModel).where(PriceAlertModel.id == alert_id)
+        )
+        alert = result.scalar_one_or_none()
+        if alert is not None:
+            alert.triggered_at = datetime.now(UTC)
+            await self._session.commit()
+
+    @override
+    async def get_by_id(self, alert_id: int) -> PriceAlertRead | None:
+        result = await self._session.execute(
+            select(PriceAlertModel).where(PriceAlertModel.id == alert_id)
+        )
+        alert = result.scalar_one_or_none()
+        if alert is None:
+            return None
+        return PriceAlertRead.model_validate(alert)
 
 
 async def sqlalchemy_price_alert_repository_factory(

@@ -1,6 +1,7 @@
 import uuid
 from abc import ABC, abstractmethod
 from datetime import date, datetime
+from decimal import Decimal
 
 from src.auth.api_types import UserId
 from src.market.api_types import SecurityId
@@ -106,6 +107,15 @@ class IntradayPriceRepository(ABC):
     ) -> list[IntradayPriceSchema]:
         pass
 
+    @abstractmethod
+    async def get_latest_intraday_close_by_security(
+        self, security_ids: list[SecurityId]
+    ) -> dict[SecurityId, Decimal]:
+        """Return the latest intraday close price for each security in the list.
+
+        Securities without any intraday price data are omitted from the result.
+        """
+
 
 class WatchlistRepository(ABC):
     @abstractmethod
@@ -151,6 +161,18 @@ class PriceAlertRepository(ABC):
     @abstractmethod
     async def delete(self, alert_id: int, user_id: UserId) -> None:
         pass
+
+    @abstractmethod
+    async def get_active_alerts_for_evaluation(self) -> list[PriceAlertRead]:
+        """Return all alerts that have not yet been triggered (triggered_at IS NULL)."""
+
+    @abstractmethod
+    async def mark_triggered(self, alert_id: int) -> None:
+        """Set triggered_at to now for the given alert."""
+
+    @abstractmethod
+    async def get_by_id(self, alert_id: int) -> PriceAlertRead | None:
+        """Get a single alert by its integer ID."""
 
 
 class SecurityNoteRepository(ABC):

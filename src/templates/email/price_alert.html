@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+{% block title %}Price Alert{% endblock %}
+{% block content %}
+<h1>Price Alert: {{ security_name }} ({{ security_symbol }})</h1>
+<p>The price {{ condition_text }} ${{ target_price }} for {{ security_name }} ({{ security_symbol }}).</p>
+<p>
+    Target: ${{ target_price }}<br>
+    Latest price: ${{ latest_price }}
+</p>
+<a href="{{ deeplink }}" class="button">View {{ security_name }}</a>
+{% endblock %}
+{% block footer %}
+<p>This is an automated notification from Retail Portfolio.</p>
+{% endblock %}

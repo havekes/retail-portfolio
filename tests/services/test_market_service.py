@@ -106,6 +106,18 @@ class MockIntradayPriceRepository(IntradayPriceRepository):
         self.saved_prices.extend(prices)
         return prices
 
+    @override
+    async def get_latest_intraday_close_by_security(
+        self, security_ids: list[SecurityId]
+    ) -> dict[SecurityId, Decimal]:
+        result: dict[SecurityId, Decimal] = {}
+        for sid in security_ids:
+            matching = [p for p in self.saved_prices if p.security_id == sid]
+            if matching:
+                latest = max(matching, key=lambda p: p.timestamp)
+                result[sid] = latest.close
+        return result
+
 
 class MockEodhdGateway(MarketGateway):
     def __init__(self, should_fail: bool = False):  # noqa: FBT001, FBT002
