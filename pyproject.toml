@@ -39,6 +39,7 @@ dependencies = [
     "holidays>=0.93",
     "python-multipart>=0.0.24",
     "slowapi>=0.1.9",
+    "aiosmtplib>=5.1.2",
 ]
 
 [dependency-groups]

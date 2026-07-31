@@ -1,14 +1,21 @@
 import asyncio
 import logging
+from datetime import UTC, datetime
 
 from huey import crontab
 from svcs import Container
 
 from src.account.service.account import AccountService
 from src.account.service.position import PositionService
+from src.auth.repository import UserRepository
 from src.core.context import get_request_id, request_id_ctx_var, set_request_id
 from src.market.ai_service import AIService
-from src.market.repository import SecurityNoteRepository
+from src.market.alert_service import AlertEvaluationService
+from src.market.repository import (
+    IntradayPriceRepository,
+    PriceAlertRepository,
+    SecurityNoteRepository,
+)
 from src.market.service import MarketService
 from src.worker import huey
 from src.ws.api_types import AccountTotalsUpdatedMessage
@@ -139,3 +146,94 @@ async def _hourly_intraday_price_update() -> None:
                     "Failed to update totals and send WS message for account %s",
                     account.id,
                 )
+
+        # Enqueue Stage 2: price alert evaluation (isolated — failure doesn't abort)
+        if huey.svcs_registry is not None:
+            try:
+                check_and_dispatch_price_alerts()
+            except Exception:
+                logger.exception("Failed to enqueue check_and_dispatch_price_alerts")
+
+
+@huey.task()
+def check_and_dispatch_price_alerts() -> None:
+    """Stage 2: Evaluate all active price alerts and dispatch emails for triggered ones.
+
+    Called at the end of the hourly intraday price update (Stage 1).
+    Delegates evaluation to AlertEvaluationService.
+    """
+    asyncio.run(_check_and_dispatch_price_alerts())
+
+
+async def _check_and_dispatch_price_alerts() -> None:
+    if huey.svcs_registry is None:
+        return
+
+    run_ts = datetime.now(UTC)
+
+    async with Container(huey.svcs_registry) as svcs_container:
+        alert_service: AlertEvaluationService = await svcs_container.aget(
+            AlertEvaluationService
+        )
+        alert_repo: PriceAlertRepository = await svcs_container.aget(
+            PriceAlertRepository
+        )
+        intraday_repo: IntradayPriceRepository = await svcs_container.aget(
+            IntradayPriceRepository
+        )
+
+        # Fetch all active (not yet triggered) alerts — joined with security info
+        active_alerts = await alert_repo.get_active_alerts_for_evaluation()
+        if not active_alerts:
+            logger.info("No active price alerts to evaluate.")
+            return
+
+        logger.info("Evaluating %d active price alert(s).", len(active_alerts))
+
+        # Fetch latest intraday close for all securities (single query)
+        latest_prices = await intraday_repo.get_latest_intraday_close_by_security()
+
+        # Delegate evaluation to the service
+        triggered_alerts = alert_service.evaluate(active_alerts, latest_prices)
+
+        triggered_count = len(triggered_alerts)
+        enqueued_count = 0
+        for alert in triggered_alerts:
+            try:
+                # Enqueue Stage 3 email dispatch
+                alert_email_dispatch_task(alert.alert_id, run_ts)
+                enqueued_count += 1
+            except Exception:
+                logger.exception(
+                    "Failed to enqueue alert email dispatch for alert %d",
+                    alert.alert_id,
+                )
+                continue
+
+        logger.info(
+            "Price alert evaluation complete. evaluated=%d triggered=%d enqueued=%d",
+            len(active_alerts),
+            triggered_count,
+            enqueued_count,
+        )
+
+
+@huey.task(retries=3)
+def alert_email_dispatch_task(alert_id: int, run_ts: datetime) -> None:
+    """Stage 3: Send email for a triggered price alert, then mark as triggered.
+
+    Delegates to AlertEvaluationService.dispatch_alert_email.
+    retries=3: transient SMTP/DB failures are retried before giving up.
+    """
+    asyncio.run(_alert_email_dispatch(alert_id, run_ts))
+
+
+async def _alert_email_dispatch(alert_id: int, run_ts: datetime) -> None:
+    if huey.svcs_registry is None:
+        return
+
+    async with Container(huey.svcs_registry) as svcs_container:
+        alert_service: AlertEvaluationService = await svcs_container.aget(
+            AlertEvaluationService
+        )
+        await alert_service.dispatch_alert_email(alert_id, run_ts)

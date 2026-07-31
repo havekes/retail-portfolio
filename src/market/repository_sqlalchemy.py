@@ -1,8 +1,9 @@
 import uuid
-from datetime import date, datetime
+from datetime import UTC, date, datetime
+from decimal import Decimal
 from typing import override
 
-from sqlalchemy import delete, func, select
+from sqlalchemy import delete, func, select, update
 from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -35,6 +36,7 @@ from src.market.repository import (
     WatchlistRepository,
 )
 from src.market.schema import (
+    AlertForEvaluation,
     IndicatorPreferencesRead,
     IndicatorPreferencesWrite,
     IntradayPriceSchema,
@@ -374,6 +376,27 @@ class SqlAlchemyIntradayPriceRepository(IntradayPriceRepository):
         await self._session.commit()
         return schemas
 
+    @override
+    async def get_latest_intraday_close_by_security(
+        self,
+    ) -> dict[SecurityId, Decimal]:
+        # DISTINCT ON guarantees one row per security even if two bars
+        # share the same timestamp.
+        stmt = (
+            select(
+                IntradayPriceModel.security_id,
+                IntradayPriceModel.close,
+            )
+            .distinct(IntradayPriceModel.security_id)
+            .order_by(
+                IntradayPriceModel.security_id,
+                IntradayPriceModel.timestamp.desc(),
+            )
+        )
+
+        result = await self._session.execute(stmt)
+        return {row.security_id: row.close for row in result.mappings().all()}
+
 
 async def sqlalchemy_intraday_price_repository_factory(
     container: Container,
@@ -577,6 +600,56 @@ class SqlAlchemyPriceAlertRepository(PriceAlertRepository):
             .where(PriceAlertModel.user_id == user_id)
         )
         await self._session.commit()
+
+    @override
+    async def get_active_alerts_for_evaluation(self) -> list[AlertForEvaluation]:
+        result = await self._session.execute(
+            select(
+                PriceAlertModel.id,
+                PriceAlertModel.security_id,
+                PriceAlertModel.user_id,
+                PriceAlertModel.target_price,
+                PriceAlertModel.condition,
+                SecurityModel.symbol,
+                SecurityModel.name,
+            )
+            .join(
+                SecurityModel,
+                PriceAlertModel.security_id == SecurityModel.id,
+            )
+            .where(PriceAlertModel.triggered_at.is_(None))
+        )
+        return [
+            AlertForEvaluation(
+                alert_id=row.id,
+                security_id=row.security_id,
+                security_symbol=row.symbol,
+                security_name=row.name,
+                user_id=row.user_id,
+                target_price=row.target_price,
+                condition=row.condition,
+            )
+            for row in result.mappings().all()
+        ]
+
+    @override
+    async def mark_triggered(self, alert_id: int, at: datetime) -> None:
+        await self._session.execute(
+            update(PriceAlertModel)
+            .where(PriceAlertModel.id == alert_id)
+            .values(triggered_at=at)
+        )
+        await self._session.commit()
+
+    @override
+    async def get_by_id(self, alert_id: int) -> PriceAlertRead | None:
+        result = await self._session.execute(
+            select(PriceAlertModel).where(PriceAlertModel.id == alert_id)
+        )
+        alert = result.scalar_one_or_none()
+        if alert is None:
+            return None
+        return PriceAlertRead.model_validate(alert)
 
 
 async def sqlalchemy_price_alert_repository_factory(

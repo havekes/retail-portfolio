@@ -1,6 +1,10 @@
 from svcs import Registry
 
 from src.market.ai_service import AIService, ai_service_factory
+from src.market.alert_service import (
+    AlertEvaluationService,
+    alert_evaluation_service_factory,
+)
 from src.market.api import (
     MarketPricesApi,
     SecurityApi,
@@ -76,3 +80,4 @@ def register_market_services(registry: Registry) -> None:
     registry.register_factory(SecurityApi, security_api_factory)
     registry.register_factory(MarketService, market_service_factory)
     registry.register_factory(AIService, ai_service_factory)
+    registry.register_factory(AlertEvaluationService, alert_evaluation_service_factory)

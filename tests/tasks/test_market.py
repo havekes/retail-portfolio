@@ -249,3 +249,81 @@ def test_hourly_intraday_price_update_calls_async_logic():
         args[0].close()
 
     huey.immediate = False
+
+
+# -- Stage 1 enqueue isolation --
+
+
+@pytest.mark.asyncio
+async def test_hourly_intraday_price_update_enqueues_check_and_dispatch():
+    """Stage 1 enqueues check_and_dispatch_price_alerts at the end."""
+    mock_market_service = AsyncMock()
+    mock_market_service.update_intraday_prices_for_all_securities.return_value = {
+        "success": 1,
+        "failure": 0,
+    }
+    mock_account_service = AsyncMock()
+    mock_account_service.get_all_accounts.return_value = []
+    mock_position_service = AsyncMock()
+
+    async def mock_aget(service_type):
+        if service_type is MarketService:
+            return mock_market_service
+        if service_type is AccountService:
+            return mock_account_service
+        if service_type is PositionService:
+            return mock_position_service
+        return AsyncMock()
+
+    mock_container = AsyncMock()
+    mock_container.aget.side_effect = mock_aget
+    mock_container.__aenter__.return_value = mock_container
+
+    with (
+        patch("src.market.task.huey.svcs_registry", MagicMock()),
+        patch("src.market.task.Container", return_value=mock_container),
+        patch("src.market.task.check_and_dispatch_price_alerts") as mock_check,
+    ):
+        await _hourly_intraday_price_update()
+
+    mock_check.assert_called_once()
+
+
+@pytest.mark.asyncio
+async def test_hourly_intraday_price_update_check_dispatch_failure_doesnt_abort():
+    """If check_and_dispatch_price_alerts raises, Stage 1 still completes."""
+    mock_market_service = AsyncMock()
+    mock_market_service.update_intraday_prices_for_all_securities.return_value = {
+        "success": 1,
+        "failure": 0,
+    }
+    mock_account_service = AsyncMock()
+    mock_account_service.get_all_accounts.return_value = []
+    mock_position_service = AsyncMock()
+
+    async def mock_aget(service_type):
+        if service_type is MarketService:
+            return mock_market_service
+        if service_type is AccountService:
+            return mock_account_service
+        if service_type is PositionService:
+            return mock_position_service
+        return AsyncMock()
+
+    mock_container = AsyncMock()
+    mock_container.aget.side_effect = mock_aget
+    mock_container.__aenter__.return_value = mock_container
+
+    with (
+        patch("src.market.task.huey.svcs_registry", MagicMock()),
+        patch("src.market.task.Container", return_value=mock_container),
+        patch(
+            "src.market.task.check_and_dispatch_price_alerts",
+            side_effect=RuntimeError("enqueue failed"),
+        ),
+    ):
+        # Should NOT raise — the try/except isolates the enqueue
+        await _hourly_intraday_price_update()
+
+    # Market service was called despite enqueue failure
+    mock_market_service.update_intraday_prices_for_all_securities.assert_awaited_once()

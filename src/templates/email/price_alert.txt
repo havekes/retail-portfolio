@@ -1,0 +1,13 @@
+{% extends "base.txt" %}
+{% block content %}
+Price Alert: {{ security_name }} ({{ security_symbol }})
+
+The price {{ condition_text }} ${{ target_price }} for {{ security_name }} ({{ security_symbol }}).
+
+Target: ${{ target_price }}
+Latest price: ${{ latest_price }}
+
+View on Retail Portfolio: {{ deeplink }}
+
+This is an automated notification from Retail Portfolio.
+{% endblock %}

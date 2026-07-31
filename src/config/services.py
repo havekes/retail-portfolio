@@ -65,6 +65,10 @@ def register_integration_stub_services(registry: Registry) -> None:
 def register_market_stub_services(registry: Registry) -> None:
     """Register stub services for market domain."""
     from src.market.ai_service import AIService  # noqa: PLC0415
+    from src.market.alert_service import (  # noqa: PLC0415
+        AlertEvaluationService,
+        alert_evaluation_service_factory,
+    )
     from src.market.api import (  # noqa: PLC0415
         MarketPricesApi,
         SecurityApi,
@@ -139,3 +143,4 @@ def register_market_stub_services(registry: Registry) -> None:
     registry.register_factory(SecurityApi, security_api_factory)
     registry.register_factory(MarketService, market_service_factory)
     registry.register_factory(AIService, StubAIService)
+    registry.register_factory(AlertEvaluationService, alert_evaluation_service_factory)
