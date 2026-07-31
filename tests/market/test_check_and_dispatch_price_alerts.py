@@ -1,5 +1,9 @@
 # ruff: noqa: ARG001, PLR2004
-"""Tests for Stage 2: check_and_dispatch_price_alerts task."""
+"""Thin smoke tests for Stage 2 task wiring.
+
+Behavioral assertions live in test_alert_evaluation_service.py.
+These tests only verify the task delegates correctly to the service.
+"""
 
 from datetime import UTC, datetime
 from decimal import Decimal
@@ -8,6 +12,7 @@ from uuid import uuid4
 
 import pytest
 
+from src.market.alert_service import AlertEvaluationService
 from src.market.repository import IntradayPriceRepository, PriceAlertRepository
 from src.market.schema import AlertForEvaluation
 from src.market.task import _check_and_dispatch_price_alerts
@@ -32,27 +37,33 @@ def _make_alert(
     )
 
 
-def _mock_container(
-    alert_repo: PriceAlertRepository,
-    intraday_repo: IntradayPriceRepository,
-):
-    """Build a mock svcs container that returns the given repos."""
+def _mock_container(alert_repo, intraday_repo, alert_service):
+    """Build a mock svcs container that returns the given services."""
+
+    async def aget(t):
+        if t is PriceAlertRepository:
+            return alert_repo
+        if t is IntradayPriceRepository:
+            return intraday_repo
+        if t is AlertEvaluationService:
+            return alert_service
+        return AsyncMock()
+
     mock_container = AsyncMock()
-    mock_container.aget.side_effect = lambda t: (
-        alert_repo if t is PriceAlertRepository else intraday_repo
-    )
+    mock_container.aget.side_effect = aget
     mock_container.__aenter__.return_value = mock_container
     return mock_container
 
 
 @pytest.mark.asyncio
-async def test_stage2_no_active_alerts():
+async def test_stage2_no_active_alerts_returns_early():
     """When there are no active alerts, the task returns early."""
     alert_repo = AsyncMock(spec=PriceAlertRepository)
     alert_repo.get_active_alerts_for_evaluation = AsyncMock(return_value=[])
     intraday_repo = AsyncMock(spec=IntradayPriceRepository)
+    alert_service = AsyncMock(spec=AlertEvaluationService)
 
-    mock_container = _mock_container(alert_repo, intraday_repo)
+    mock_container = _mock_container(alert_repo, intraday_repo, alert_service)
 
     with (
         patch("src.market.task.huey.svcs_registry", MagicMock()),
@@ -63,17 +74,14 @@ async def test_stage2_no_active_alerts():
     alert_repo.get_active_alerts_for_evaluation.assert_awaited_once()
     # Intraday prices should NOT be fetched when there are no alerts
     intraday_repo.get_latest_intraday_close_by_security.assert_not_awaited()
+    alert_service.evaluate.assert_not_called()
 
 
 @pytest.mark.asyncio
-async def test_stage2_above_condition_triggered():
-    """Alert fires when latest_price >= target and condition is 'above'."""
+async def test_stage2_enqueues_one_per_triggered_alert():
+    """Stage 2 enqueues one Stage 3 task per triggered alert returned by service."""
     sec_id = uuid4()
-    alert = _make_alert(
-        security_id=sec_id,
-        target_price=Decimal("150.00"),
-        condition="above",
-    )
+    alert = _make_alert(security_id=sec_id)
 
     alert_repo = AsyncMock(spec=PriceAlertRepository)
     alert_repo.get_active_alerts_for_evaluation = AsyncMock(return_value=[alert])
@@ -83,7 +91,10 @@ async def test_stage2_above_condition_triggered():
         return_value={sec_id: Decimal("155.00")}
     )
 
-    mock_container = _mock_container(alert_repo, intraday_repo)
+    alert_service = AsyncMock(spec=AlertEvaluationService)
+    alert_service.evaluate = MagicMock(return_value=[alert])
+
+    mock_container = _mock_container(alert_repo, intraday_repo, alert_service)
 
     with (
         patch("src.market.task.huey.svcs_registry", MagicMock()),
@@ -92,6 +103,13 @@ async def test_stage2_above_condition_triggered():
     ):
         await _check_and_dispatch_price_alerts()
 
+    # Service.evaluate was called with the alerts and latest prices
+    alert_service.evaluate.assert_called_once()
+    eval_args = alert_service.evaluate.call_args
+    assert eval_args[0][0] == [alert]
+    assert eval_args[0][1] == {sec_id: Decimal("155.00")}
+
+    # One dispatch task enqueued per triggered alert
     mock_dispatch.assert_called_once()
     call_args = mock_dispatch.call_args
     assert call_args[0][0] == alert.alert_id
@@ -99,114 +117,23 @@ async def test_stage2_above_condition_triggered():
 
 
 @pytest.mark.asyncio
-async def test_stage2_below_condition_triggered():
-    """Alert fires when latest_price <= target and condition is 'below'."""
+async def test_stage2_zero_dispatches_when_no_alerts_triggered():
+    """Stage 2 enqueues zero Stage 3 tasks when service returns empty list."""
     sec_id = uuid4()
-    alert = _make_alert(
-        security_id=sec_id,
-        target_price=Decimal("150.00"),
-        condition="below",
-    )
+    alert = _make_alert(security_id=sec_id)
 
     alert_repo = AsyncMock(spec=PriceAlertRepository)
     alert_repo.get_active_alerts_for_evaluation = AsyncMock(return_value=[alert])
 
     intraday_repo = AsyncMock(spec=IntradayPriceRepository)
     intraday_repo.get_latest_intraday_close_by_security = AsyncMock(
-        return_value={sec_id: Decimal("145.00")}
+        return_value={sec_id: Decimal("100.00")}
     )
 
-    mock_container = _mock_container(alert_repo, intraday_repo)
+    alert_service = AsyncMock(spec=AlertEvaluationService)
+    alert_service.evaluate = MagicMock(return_value=[])
 
-    with (
-        patch("src.market.task.huey.svcs_registry", MagicMock()),
-        patch("src.market.task.Container", return_value=mock_container),
-        patch("src.market.task.alert_email_dispatch_task") as mock_dispatch,
-    ):
-        await _check_and_dispatch_price_alerts()
-
-    mock_dispatch.assert_called_once()
-
-
-@pytest.mark.asyncio
-async def test_stage2_boundary_inclusive_above():
-    """Price exactly at target triggers 'above' (inclusive boundary)."""
-    sec_id = uuid4()
-    alert = _make_alert(
-        security_id=sec_id,
-        target_price=Decimal("150.00"),
-        condition="above",
-    )
-
-    alert_repo = AsyncMock(spec=PriceAlertRepository)
-    alert_repo.get_active_alerts_for_evaluation = AsyncMock(return_value=[alert])
-
-    intraday_repo = AsyncMock(spec=IntradayPriceRepository)
-    intraday_repo.get_latest_intraday_close_by_security = AsyncMock(
-        return_value={sec_id: Decimal("150.00")}
-    )
-
-    mock_container = _mock_container(alert_repo, intraday_repo)
-
-    with (
-        patch("src.market.task.huey.svcs_registry", MagicMock()),
-        patch("src.market.task.Container", return_value=mock_container),
-        patch("src.market.task.alert_email_dispatch_task") as mock_dispatch,
-    ):
-        await _check_and_dispatch_price_alerts()
-
-    mock_dispatch.assert_called_once()
-
-
-@pytest.mark.asyncio
-async def test_stage2_boundary_inclusive_below():
-    """Price exactly at target triggers 'below' (inclusive boundary)."""
-    sec_id = uuid4()
-    alert = _make_alert(
-        security_id=sec_id,
-        target_price=Decimal("150.00"),
-        condition="below",
-    )
-
-    alert_repo = AsyncMock(spec=PriceAlertRepository)
-    alert_repo.get_active_alerts_for_evaluation = AsyncMock(return_value=[alert])
-
-    intraday_repo = AsyncMock(spec=IntradayPriceRepository)
-    intraday_repo.get_latest_intraday_close_by_security = AsyncMock(
-        return_value={sec_id: Decimal("150.00")}
-    )
-
-    mock_container = _mock_container(alert_repo, intraday_repo)
-
-    with (
-        patch("src.market.task.huey.svcs_registry", MagicMock()),
-        patch("src.market.task.Container", return_value=mock_container),
-        patch("src.market.task.alert_email_dispatch_task") as mock_dispatch,
-    ):
-        await _check_and_dispatch_price_alerts()
-
-    mock_dispatch.assert_called_once()
-
-
-@pytest.mark.asyncio
-async def test_stage2_not_triggered_when_price_not_reached():
-    """Alert does NOT fire when price hasn't crossed the threshold."""
-    sec_id = uuid4()
-    alert = _make_alert(
-        security_id=sec_id,
-        target_price=Decimal("200.00"),
-        condition="above",
-    )
-
-    alert_repo = AsyncMock(spec=PriceAlertRepository)
-    alert_repo.get_active_alerts_for_evaluation = AsyncMock(return_value=[alert])
-
-    intraday_repo = AsyncMock(spec=IntradayPriceRepository)
-    intraday_repo.get_latest_intraday_close_by_security = AsyncMock(
-        return_value={sec_id: Decimal("150.00")}
-    )
-
-    mock_container = _mock_container(alert_repo, intraday_repo)
+    mock_container = _mock_container(alert_repo, intraday_repo, alert_service)
 
     with (
         patch("src.market.task.huey.svcs_registry", MagicMock()),
@@ -219,52 +146,10 @@ async def test_stage2_not_triggered_when_price_not_reached():
 
 
 @pytest.mark.asyncio
-async def test_stage2_no_price_for_security_skips():
-    """Alert with no intraday price for its security is skipped."""
-    sec_id = uuid4()
-    alert = _make_alert(
-        security_id=sec_id,
-        target_price=Decimal("150.00"),
-        condition="above",
-    )
-
-    alert_repo = AsyncMock(spec=PriceAlertRepository)
-    alert_repo.get_active_alerts_for_evaluation = AsyncMock(return_value=[alert])
-
-    intraday_repo = AsyncMock(spec=IntradayPriceRepository)
-    intraday_repo.get_latest_intraday_close_by_security = AsyncMock(
-        return_value={}
-    )
-
-    mock_container = _mock_container(alert_repo, intraday_repo)
-
-    with (
-        patch("src.market.task.huey.svcs_registry", MagicMock()),
-        patch("src.market.task.Container", return_value=mock_container),
-        patch("src.market.task.alert_email_dispatch_task") as mock_dispatch,
-    ):
-        await _check_and_dispatch_price_alerts()
-
-    mock_dispatch.assert_not_called()
-
-
-@pytest.mark.asyncio
-async def test_stage2_single_alert_dispatch_failure_doesnt_abort_others():
+async def test_stage2_enqueue_failure_isolated():
     """If dispatching one alert raises, the rest are still processed."""
-    sec_id_1 = uuid4()
-    sec_id_2 = uuid4()
-    alert_1 = _make_alert(
-        alert_id=1,
-        security_id=sec_id_1,
-        target_price=Decimal("150.00"),
-        condition="above",
-    )
-    alert_2 = _make_alert(
-        alert_id=2,
-        security_id=sec_id_2,
-        target_price=Decimal("150.00"),
-        condition="above",
-    )
+    alert_1 = _make_alert(alert_id=1)
+    alert_2 = _make_alert(alert_id=2)
 
     alert_repo = AsyncMock(spec=PriceAlertRepository)
     alert_repo.get_active_alerts_for_evaluation = AsyncMock(
@@ -272,14 +157,12 @@ async def test_stage2_single_alert_dispatch_failure_doesnt_abort_others():
     )
 
     intraday_repo = AsyncMock(spec=IntradayPriceRepository)
-    intraday_repo.get_latest_intraday_close_by_security = AsyncMock(
-        return_value={
-            sec_id_1: Decimal("155.00"),
-            sec_id_2: Decimal("160.00"),
-        }
-    )
+    intraday_repo.get_latest_intraday_close_by_security = AsyncMock(return_value={})
 
-    mock_container = _mock_container(alert_repo, intraday_repo)
+    alert_service = AsyncMock(spec=AlertEvaluationService)
+    alert_service.evaluate = MagicMock(return_value=[alert_1, alert_2])
+
+    mock_container = _mock_container(alert_repo, intraday_repo, alert_service)
 
     dispatch_call_count = 0
 
@@ -307,8 +190,6 @@ async def test_stage2_single_alert_dispatch_failure_doesnt_abort_others():
 @pytest.mark.asyncio
 async def test_stage2_no_registry_returns_early():
     """When huey.svcs_registry is None, the task returns without error."""
-    with (
-        patch("src.market.task.huey.svcs_registry", None),
-    ):
+    with patch("src.market.task.huey.svcs_registry", None):
         await _check_and_dispatch_price_alerts()
     # Should not raise

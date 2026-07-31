@@ -9,13 +9,12 @@ from src.account.service.account import AccountService
 from src.account.service.position import PositionService
 from src.auth.repository import UserRepository
 from src.core.context import get_request_id, request_id_ctx_var, set_request_id
-from src.core.email import EmailService, PriceAlertEmailData
 from src.market.ai_service import AIService
+from src.market.alert_service import AlertEvaluationService
 from src.market.repository import (
     IntradayPriceRepository,
     PriceAlertRepository,
     SecurityNoteRepository,
-    SecurityRepository,
 )
 from src.market.service import MarketService
 from src.worker import huey
@@ -161,8 +160,7 @@ def check_and_dispatch_price_alerts() -> None:
     """Stage 2: Evaluate all active price alerts and dispatch emails for triggered ones.
 
     Called at the end of the hourly intraday price update (Stage 1).
-    Uses split-query approach: fetch all active alerts and all latest prices
-    separately, then map in memory.
+    Delegates evaluation to AlertEvaluationService.
     """
     asyncio.run(_check_and_dispatch_price_alerts())
 
@@ -174,6 +172,9 @@ async def _check_and_dispatch_price_alerts() -> None:
     run_ts = datetime.now(UTC)
 
     async with Container(huey.svcs_registry) as svcs_container:
+        alert_service: AlertEvaluationService = await svcs_container.aget(
+            AlertEvaluationService
+        )
         alert_repo: PriceAlertRepository = await svcs_container.aget(
             PriceAlertRepository
         )
@@ -192,43 +193,21 @@ async def _check_and_dispatch_price_alerts() -> None:
         # Fetch latest intraday close for all securities (single query)
         latest_prices = await intraday_repo.get_latest_intraday_close_by_security()
 
-        triggered_count = 0
+        # Delegate evaluation to the service
+        triggered_alerts = alert_service.evaluate(active_alerts, latest_prices)
+
+        triggered_count = len(triggered_alerts)
         enqueued_count = 0
-        for alert in active_alerts:
+        for alert in triggered_alerts:
             try:
-                latest_price = latest_prices.get(alert.security_id)
-                if latest_price is None:
-                    logger.info(
-                        "No intraday price for security %s (alert %d), skipping.",
-                        alert.security_symbol,
-                        alert.alert_id,
-                    )
-                    continue
-
-                # Evaluate condition (inclusive boundary)
-                above_triggered = (
-                    alert.condition == "above" and latest_price >= alert.target_price
-                )
-                below_triggered = (
-                    alert.condition == "below" and latest_price <= alert.target_price
-                )
-                triggered = above_triggered or below_triggered
-
-                if triggered:
-                    logger.info(
-                        "Alert %d triggered: %s %s (latest: %s, target: %s)",
-                        alert.alert_id,
-                        alert.condition,
-                        alert.security_symbol,
-                        latest_price,
-                        alert.target_price,
-                    )
-                    # Enqueue Stage 3 email dispatch
-                    alert_email_dispatch_task(alert.alert_id, run_ts)
-                    triggered_count += 1
-                    enqueued_count += 1
+                # Enqueue Stage 3 email dispatch
+                alert_email_dispatch_task(alert.alert_id, run_ts)
+                enqueued_count += 1
             except Exception:
-                logger.exception("Failed to evaluate/enqueue alert %d", alert.alert_id)
+                logger.exception(
+                    "Failed to enqueue alert email dispatch for alert %d",
+                    alert.alert_id,
+                )
                 continue
 
         logger.info(
@@ -243,8 +222,7 @@ async def _check_and_dispatch_price_alerts() -> None:
 def alert_email_dispatch_task(alert_id: int, run_ts: datetime) -> None:
     """Stage 3: Send email for a triggered price alert, then mark as triggered.
 
-    Email-then-mark pattern: send email first, only mark_triggered on success.
-    Failed dispatch leaves triggered_at IS NULL so Stage 2 re-enqueues next hour.
+    Delegates to AlertEvaluationService.dispatch_alert_email.
     retries=3: transient SMTP/DB failures are retried before giving up.
     """
     asyncio.run(_alert_email_dispatch(alert_id, run_ts))
@@ -255,80 +233,7 @@ async def _alert_email_dispatch(alert_id: int, run_ts: datetime) -> None:
         return
 
     async with Container(huey.svcs_registry) as svcs_container:
-        alert_repo: PriceAlertRepository = await svcs_container.aget(
-            PriceAlertRepository
+        alert_service: AlertEvaluationService = await svcs_container.aget(
+            AlertEvaluationService
         )
-        security_repo: SecurityRepository = await svcs_container.aget(
-            SecurityRepository
-        )
-        user_repo: UserRepository = await svcs_container.aget(UserRepository)
-        email_service: EmailService = await svcs_container.aget(EmailService)
-        intraday_repo: IntradayPriceRepository = await svcs_container.aget(
-            IntradayPriceRepository
-        )
-
-        # Fresh fetch — idempotency guard against duplicate dispatch from retry
-        alert = await alert_repo.get_by_id(alert_id)
-        if alert is None or alert.triggered_at is not None:
-            logger.info("Alert %d inactive/already-triggered; no-op", alert_id)
-            return
-
-        # Fetch security for name/symbol
-        try:
-            security = await security_repo.get_by_id_or_fail(alert.security_id)
-        except Exception:
-            logger.exception(
-                "Security %s not found for alert %d, skipping email.",
-                alert.security_id,
-                alert_id,
-            )
-            return
-
-        # Re-resolve latest price at dispatch time (not stale snapshot from Stage 2)
-        latest_map = await intraday_repo.get_latest_intraday_close_by_security()
-        latest_price = latest_map.get(alert.security_id)
-        if latest_price is None:
-            logger.info(
-                "No intraday price for security %s at dispatch; skipping alert %d",
-                security.symbol,
-                alert_id,
-            )
-            return
-
-        # Resolve user email — user_id is a bare Uuid with NO FK to auth_users
-        user = await user_repo.get_by_id(alert.user_id)
-        if user is None:
-            logger.warning(
-                "User %s not found for alert %d, skipping email.",
-                alert.user_id,
-                alert_id,
-            )
-            return
-
-        # Email-then-mark: send FIRST, only mark on success.
-        try:
-            alert_data = PriceAlertEmailData(
-                security_id=alert.security_id,
-                security_symbol=security.symbol,
-                security_name=security.name,
-                condition=alert.condition,
-                target_price=alert.target_price,
-                latest_price=latest_price,
-            )
-            await email_service.send_price_alert_email(
-                recipient=user.email,
-                alert=alert_data,
-            )
-        except Exception:
-            logger.exception(
-                "Failed to send price alert email for alert %d (user %s).",
-                alert_id,
-                alert.user_id,
-            )
-            raise  # re-raise so huey retries (retries=3); do NOT mark_triggered
-
-        # Only mark triggered after successful send — exception propagates for retry
-        await alert_repo.mark_triggered(alert_id, run_ts)
-        logger.info(
-            "Price alert email sent and marked triggered for alert %d.", alert_id
-        )
+        await alert_service.dispatch_alert_email(alert_id, run_ts)
