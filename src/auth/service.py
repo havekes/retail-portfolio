@@ -48,7 +48,7 @@ class EmailVerificationService:
             expires_at=expires_at,
         )
 
-        self._email_service.send_verification_email(email, token)
+        await self._email_service.send_verification_email(email, token)
 
     async def verify_token(self, token: str) -> None:
         token_record = await self._token_repository.get_by_token(token)

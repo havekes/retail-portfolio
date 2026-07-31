@@ -1,11 +1,11 @@
 import logging
-import smtplib
 from dataclasses import dataclass
 from decimal import Decimal
 from email.message import EmailMessage
 from pathlib import Path
 from uuid import UUID
 
+import aiosmtplib
 from jinja2 import Environment, FileSystemLoader
 
 from src.config.settings import settings
@@ -36,13 +36,12 @@ class PriceAlertEmailData:
 
 
 class EmailService:
-    """Synchronous email service using smtplib.
+    """Async email service using aiosmtplib.
 
-    All send methods are synchronous (blocking smtplib). Async callers
-    (e.g. Huey tasks) should bridge via asyncio.to_thread().
+    All send methods are async coroutines.
     """
 
-    def send_email(
+    async def send_email(
         self,
         recipient: str,
         subject: str,
@@ -51,7 +50,7 @@ class EmailService:
         text_template: str,
         context: dict,
     ) -> None:
-        """Generic email send: renders templates and SMTP-sends.
+        """Generic email send: renders templates and SMTP-sends asynchronously.
 
         Args:
             recipient: destination email address.
@@ -84,23 +83,27 @@ class EmailService:
             settings.smtp_port,
         )
         try:
-            with smtplib.SMTP(settings.smtp_host, settings.smtp_port) as server:
-                if settings.smtp_use_tls:
-                    server.ehlo()
-                    server.starttls()
-                    server.ehlo()
-                if settings.smtp_user and settings.smtp_password:
-                    server.login(settings.smtp_user, settings.smtp_password)
-                server.send_message(msg)
+            # TODO: Consider connection pooling if hourly alert volume justifies it.
+            smtp = aiosmtplib.SMTP(
+                hostname=settings.smtp_host,
+                port=settings.smtp_port,
+            )
+            await smtp.connect()
+            if settings.smtp_use_tls:
+                await smtp.starttls()
+            if settings.smtp_user and settings.smtp_password:
+                await smtp.login(settings.smtp_user, settings.smtp_password)
+            await smtp.send_message(msg)
+            await smtp.quit()
         except Exception as exc:
             logger.exception("Failed to send email")
             error_msg = "Failed to send email"
             raise EmailSendError(error_msg) from exc
 
-    def send_verification_email(self, email: str, token: str) -> None:
+    async def send_verification_email(self, email: str, token: str) -> None:
         """Send email verification link. Thin wrapper over send_email."""
         link = f"{settings.frontend_url}/auth/verify-email?token={token}"
-        self.send_email(
+        await self.send_email(
             email,
             "Verify your email",
             html_template="verify_email.html",
@@ -108,7 +111,7 @@ class EmailService:
             context={"link": link},
         )
 
-    def send_price_alert_email(
+    async def send_price_alert_email(
         self,
         recipient: str,
         alert: PriceAlertEmailData,
@@ -123,7 +126,7 @@ class EmailService:
 
         deeplink = f"{settings.frontend_url}/security/{alert.security_id}"
 
-        self.send_email(
+        await self.send_email(
             recipient,
             f"Price Alert: {alert.security_name} ({alert.security_symbol})",
             html_template="price_alert.html",
