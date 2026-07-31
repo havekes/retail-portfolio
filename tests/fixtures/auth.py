@@ -155,10 +155,13 @@ async def auth_client(
     monkeypatch.setattr(eodhd, "eodhd_gateway_factory", lambda: mock_eodhd_gateway)
 
     # Patch EmailService so router tests never touch a real SMTP server
+    async def _noop_send_verification_email(*args, **kwargs):
+        pass
+
     monkeypatch.setattr(
         EmailService,
         "send_verification_email",
-        lambda *args, **kwargs: None,
+        _noop_send_verification_email,
     )
 
     # Create test client with the real app and authorization header
@@ -251,8 +254,11 @@ async def client(
 
     from src.auth.service import EmailService
 
+    async def _noop_send_verification_email(*args, **kwargs):
+        pass
+
     monkeypatch.setattr(
-        EmailService, "send_verification_email", lambda *args, **kwargs: None
+        EmailService, "send_verification_email", _noop_send_verification_email
     )
 
     async with LifespanManager(app) as manager:

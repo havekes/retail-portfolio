@@ -84,14 +84,14 @@ class MockEmailService(EmailService):
     def __init__(self):
         self.sent_emails = []
 
-    def send_verification_email(self, email: str, token: str) -> None:
+    async def send_verification_email(self, email: str, token: str) -> None:
         self.sent_emails.append((email, token))
 
 
 class FailingEmailService(EmailService):
     """Simulates an SMTP failure."""
 
-    def send_verification_email(self, email: str, token: str) -> None:  # noqa: ARG002
+    async def send_verification_email(self, email: str, token: str) -> None:  # noqa: ARG002
         msg = "Simulated SMTP failure"
         raise EmailSendError(msg)
 

@@ -143,8 +143,8 @@ async def test_stage3_sends_email_and_marks_triggered():
     user_repo = AsyncMock(spec=UserRepository)
     user_repo.get_by_id = AsyncMock(return_value=user)
 
-    email_service = MagicMock(spec=EmailService)
-    email_service.send_price_alert_email = MagicMock()
+    email_service = AsyncMock(spec=EmailService)
+    email_service.send_price_alert_email = AsyncMock()
 
     intraday_repo = AsyncMock(spec=IntradayPriceRepository)
     intraday_repo.get_latest_intraday_close_by_security = AsyncMock(
@@ -158,10 +158,6 @@ async def test_stage3_sends_email_and_marks_triggered():
     with (
         patch("src.market.task.huey.svcs_registry", MagicMock()),
         patch("src.market.task.Container", return_value=mc),
-        patch(
-            "src.market.task.asyncio.to_thread",
-            new=AsyncMock(side_effect=lambda fn, *a, **kw: fn(*a, **kw)),
-        ),
     ):
         await _alert_email_dispatch(alert.id, run_ts)
 
@@ -296,9 +292,9 @@ async def test_stage3_send_exception_propagates_for_retry():
     user_repo = AsyncMock(spec=UserRepository)
     user_repo.get_by_id = AsyncMock(return_value=user)
 
-    email_service = MagicMock(spec=EmailService)
+    email_service = AsyncMock(spec=EmailService)
     smtp_error = RuntimeError("SMTP down")
-    email_service.send_price_alert_email = MagicMock(side_effect=smtp_error)
+    email_service.send_price_alert_email = AsyncMock(side_effect=smtp_error)
 
     intraday_repo = AsyncMock(spec=IntradayPriceRepository)
     intraday_repo.get_latest_intraday_close_by_security = AsyncMock(
@@ -312,10 +308,6 @@ async def test_stage3_send_exception_propagates_for_retry():
     with (
         patch("src.market.task.huey.svcs_registry", MagicMock()),
         patch("src.market.task.Container", return_value=mc),
-        patch(
-            "src.market.task.asyncio.to_thread",
-            new=AsyncMock(side_effect=lambda fn, *a, **kw: fn(*a, **kw)),
-        ),
         pytest.raises(RuntimeError, match="SMTP down"),
     ):
         await _alert_email_dispatch(alert.id, datetime.now(UTC))

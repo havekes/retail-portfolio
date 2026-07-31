@@ -306,7 +306,6 @@ async def _alert_email_dispatch(alert_id: int, run_ts: datetime) -> None:
             return
 
         # Email-then-mark: send FIRST, only mark on success.
-        # Sync SMTP bridged via asyncio.to_thread (EmailService stays sync smtplib).
         try:
             alert_data = PriceAlertEmailData(
                 security_id=alert.security_id,
@@ -316,8 +315,7 @@ async def _alert_email_dispatch(alert_id: int, run_ts: datetime) -> None:
                 target_price=alert.target_price,
                 latest_price=latest_price,
             )
-            await asyncio.to_thread(
-                email_service.send_price_alert_email,
+            await email_service.send_price_alert_email(
                 recipient=user.email,
                 alert=alert_data,
             )
