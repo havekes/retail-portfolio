@@ -1,0 +1,24 @@
+{
+  "$schema": "https://opencode.ai/config.json",
+  "default_agent": "orchestrator",
+  "agent": {
+    "arch-reviewer": {
+      "model": "opencode-go/kimi-k3"
+    },
+    "implementer": {
+      "model": "ai.havek.es/Qwopus3.6-27B-Coder"
+    },
+    "orchestrator": {
+      "model": "opencode-go/glm-5.2"
+    },
+    "planner": {
+      "model": "opencode-go/glm-5.2"
+    },
+    "pr-reviewer": {
+      "model": "opencode-go/glm-5.2"
+    },
+    "ticket-writer": {
+      "model": "opencode-go/glm-5.2"
+    }
+  }
+}
