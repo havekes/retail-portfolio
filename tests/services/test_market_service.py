@@ -300,6 +300,12 @@ async def test_update_intraday_prices_for_all_securities():
     assert len(intraday_price_repo.saved_prices) == 1
     assert intraday_price_repo.saved_prices[0].security_id == securities[0].id
 
+    # Verify populated-then-retrieved path: the repository returns rows
+    # when queried for the security (end-to-end coverage for issue #140)
+    retrieved = await intraday_price_repo.get_intraday_prices(securities[0].id)
+    assert len(retrieved) == 1
+    assert retrieved[0].security_id == securities[0].id
+
 
 @pytest.mark.anyio
 async def test_update_intraday_prices_failure_continues():

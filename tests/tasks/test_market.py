@@ -1,8 +1,10 @@
 import asyncio
+from pathlib import Path
 from unittest.mock import AsyncMock, MagicMock, patch
 from uuid import uuid4
 
 import pytest
+import yaml
 from stockholm import Currency, Money
 
 from src.account.api_types import AccountTotals
@@ -119,7 +121,24 @@ async def test_hourly_intraday_price_update_success():
     ):
         await _hourly_intraday_price_update()
 
-        mock_market_service.update_intraday_prices_for_all_securities.assert_awaited_once()
+    mock_market_service.update_intraday_prices_for_all_securities.assert_awaited_once()
+
+
+def test_worker_command_enables_periodic_scheduling():
+    """The worker consumer command in docker-compose.yml must include --periodic.
+
+    Without --periodic, Huey ignores periodic task schedules entirely — daily
+    and hourly price updates never fire. This is the regression that caused
+    issue #140 (intraday prices table empty because the hourly task never ran).
+    """
+    with Path("docker-compose.yml").open() as f:
+        compose = yaml.safe_load(f)
+    cmd = compose["services"]["worker"]["command"]
+    assert "huey_consumer" in cmd, "worker consumer command must invoke huey_consumer"
+    assert "--periodic" in cmd, (
+        "worker consumer command must include --periodic or periodic tasks "
+        "(daily/hourly price updates) will never be scheduled. See #140."
+    )
 
 
 @pytest.mark.asyncio
@@ -235,6 +254,29 @@ async def test_hourly_intraday_price_update_raises_if_no_container():
 def test_hourly_intraday_price_update_is_periodic_task():
     assert hasattr(hourly_intraday_price_update, "orig_fn") or callable(
         hourly_intraday_price_update
+    )
+
+
+def test_hourly_intraday_price_update_in_huey_periodic_tasks():
+    """The hourly intraday task must be registered as a periodic task on the Huey instance.
+
+    This test ensures the task appears in huey._registry.periodic_tasks — if it's
+    missing, the worker will never schedule it even with --periodic, and intraday
+    prices stay empty. See issue #140.
+    """
+    task_names = {item.name for item in huey._registry.periodic_tasks}
+    assert "hourly_intraday_price_update" in task_names, (
+        "hourly_intraday_price_update is not in huey._registry.periodic_tasks; "
+        "the worker will never schedule it. Check that @huey.periodic_task "
+        "decorator is used and src.market.task is imported where Huey is defined."
+    )
+
+
+def test_daily_price_update_in_huey_periodic_tasks():
+    """The daily price update task must be registered as a periodic task."""
+    task_names = {item.name for item in huey._registry.periodic_tasks}
+    assert "daily_price_update" in task_names, (
+        "daily_price_update is not in huey._registry.periodic_tasks"
     )
 
 
