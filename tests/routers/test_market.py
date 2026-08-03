@@ -229,6 +229,37 @@ async def test_get_prices_4h_intraday_aggregation(auth_client, test_security, db
 
 
 @pytest.mark.anyio
+async def test_get_prices_1h_intraday_no_date_range(auth_client, test_security, db_session):
+    """Test 1h intraday endpoint with no from_date/to_date (the actual repro from #140).
+
+    When the table is populated, a request without date bounds should return data
+    instead of an empty list.
+    """
+    candle = IntradayPriceModel(
+        security_id=test_security.id,
+        timestamp=datetime(2026, 1, 15, 9, 0, tzinfo=timezone.utc),
+        open=Decimal("150.00"),
+        high=Decimal("152.00"),
+        low=Decimal("149.50"),
+        close=Decimal("151.00"),
+        volume=10000,
+    )
+    db_session.add(candle)
+    await db_session.commit()
+
+    response = await auth_client.get(
+        f"/api/v1/market/prices/{test_security.id}?interval=1h"
+    )
+
+    assert response.status_code == 200
+    result = response.json()
+    assert result["security_id"] == str(test_security.id)
+    assert result["total"] >= 1
+    assert len(result["items"]) >= 1
+    assert Decimal(result["items"][0]["close"]) == Decimal("151.00")
+
+
+@pytest.mark.anyio
 async def test_get_prices_invalid_interval_returns_422(auth_client, test_security):
     """Test GET /market/prices/{security_id} with invalid interval returns 422."""
     response = await auth_client.get(
