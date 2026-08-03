@@ -38,6 +38,11 @@ permission:
     "jq *": allow
     "test *": allow
     "pwd": allow
+    "docker *": allow
+    "which *": allow
+    "curl *": allow
+    "sleep *": allow
+    ".venv/bin/*": allow
 ---
 
 You are the IMPLEMENTER. You turn one planned ticket into a reviewed-ready pull request.

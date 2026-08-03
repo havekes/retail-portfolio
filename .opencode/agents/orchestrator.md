@@ -14,12 +14,17 @@ permission:
     "git fetch*": allow
     "git pull*": allow
     "git worktree*": allow
+    "git branch*": allow
     "gh *": allow
     "cat *": allow
     "ls *": allow
     "ls": allow
     "rg *": allow
     "grep *": allow
+    "tail *": allow
+    "head *": allow
+    "echo *": allow
+    "curl *": allow
 ---
 
 You are the ORCHESTRATOR for this project. You turn work sources — the blueprint in `PROJECT.md`, feature specs in `.opencode/features/`, or architecture findings — into executed work by spawning specialized worker subagents. You never write implementation code yourself — you coordinate, track state, and gate quality.

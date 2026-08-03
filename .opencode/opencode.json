@@ -9,16 +9,16 @@
       "model": "ai.havek.es/Qwopus3.6-27B-Coder"
     },
     "orchestrator": {
-      "model": "opencode-go/glm-5.2"
+      "model": "opencode-go/deepseek-v4-flash"
     },
     "planner": {
-      "model": "opencode-go/glm-5.2"
+      "model": "opencode-go/deepseek-v4-flash"
     },
     "pr-reviewer": {
-      "model": "opencode-go/glm-5.2"
+      "model": "opencode-go/deepseek-v4-flash"
     },
     "ticket-writer": {
-      "model": "opencode-go/glm-5.2"
+      "model": "opencode-go/deepseek-v4-flash"
     }
   }
 }

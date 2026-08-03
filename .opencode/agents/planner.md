@@ -13,6 +13,16 @@ permission:
     "rg *": allow
     "grep *": allow
     "find *": allow
+    "head *": allow
+    "tail *": allow
+    "wc *": allow
+    "echo *": allow
+    "git status*": allow
+    "git log*": allow
+    "git branch*": allow
+    "git show*": allow
+    "gh pr view*": allow
+    "gh pr list*": allow
 ---
 
 You are the PLANNER. You turn one ticket (a GitHub issue) into an executable implementation plan.
