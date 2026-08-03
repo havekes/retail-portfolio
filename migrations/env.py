@@ -17,6 +17,7 @@ from src.auth.model import UserModel
 from src.config.database import BaseModel
 from src.integration.model import IntegrationUserModel
 from src.market.model import (
+    IntradayPriceModel,
     IndicatorPreferencesModel,
     PriceAlertModel,
     PriceModel,
