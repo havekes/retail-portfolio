@@ -241,12 +241,13 @@ def test_hourly_intraday_price_update_is_periodic_task():
 def test_hourly_intraday_price_update_in_huey_periodic_tasks():
     """The hourly intraday task must be registered as a periodic task on the Huey instance.
 
-    This test ensures the task appears in huey.periodic_tasks — if it's missing, the
-    worker will never schedule it even with --periodic, and intraday prices stay empty.
-    See issue #140.
+    This test ensures the task appears in huey._registry.periodic_tasks — if it's
+    missing, the worker will never schedule it even with --periodic, and intraday
+    prices stay empty. See issue #140.
     """
-    assert hourly_intraday_price_update in huey.periodic_tasks, (
-        "hourly_intraday_price_update is not in huey.periodic_tasks; "
+    task_names = {item.name for item in huey._registry.periodic_tasks}
+    assert "hourly_intraday_price_update" in task_names, (
+        "hourly_intraday_price_update is not in huey._registry.periodic_tasks; "
         "the worker will never schedule it. Check that @huey.periodic_task "
         "decorator is used and src.market.task is imported where Huey is defined."
     )
@@ -254,8 +255,9 @@ def test_hourly_intraday_price_update_in_huey_periodic_tasks():
 
 def test_daily_price_update_in_huey_periodic_tasks():
     """The daily price update task must be registered as a periodic task."""
-    assert daily_price_update in huey.periodic_tasks, (
-        "daily_price_update is not in huey.periodic_tasks"
+    task_names = {item.name for item in huey._registry.periodic_tasks}
+    assert "daily_price_update" in task_names, (
+        "daily_price_update is not in huey._registry.periodic_tasks"
     )
 
 
