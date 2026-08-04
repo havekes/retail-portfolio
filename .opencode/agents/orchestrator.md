@@ -15,6 +15,12 @@ permission:
     "git pull*": allow
     "git worktree*": allow
     "git branch*": allow
+    "git checkout*": allow
+    "git switch*": allow
+    "git rev-parse*": allow
+    "git remote*": allow
+    "git config*": allow
+    "git ls-files*": allow
     "gh *": allow
     "cat *": allow
     "ls *": allow
@@ -23,8 +29,24 @@ permission:
     "grep *": allow
     "tail *": allow
     "head *": allow
+    "wc *": allow
     "echo *": allow
+    "echo": allow
     "curl *": allow
+    "pwd": allow
+    "mkdir *": allow
+    "find *": allow
+    "tree *": allow
+    "fd *": allow
+    "sed *": allow
+    "awk *": allow
+    "jq *": allow
+    "sort *": allow
+    "uniq *": allow
+    "test *": allow
+    "date *": allow
+    "sleep *": allow
+    "which *": allow
 ---
 
 You are the ORCHESTRATOR for this project. You turn work sources — the blueprint in `PROJECT.md`, feature specs in `.opencode/features/`, or architecture findings — into executed work by spawning specialized worker subagents. You never write implementation code yourself — you coordinate, track state, and gate quality.
