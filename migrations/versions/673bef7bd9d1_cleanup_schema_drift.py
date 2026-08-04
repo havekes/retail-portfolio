@@ -12,23 +12,28 @@ earlier Huey configuration.
 Residual drift between the models and the migration history was spotted
 via `alembic revision --autogenerate` after migration 4d2535bc952f.
 
+The `watchlist_user_name_unique` drift previously emitted by autogenerate
+was an artifact of incomplete metadata (the `WatchlistModel` was not
+imported in `migrations/env.py`); it vanishes once all model modules are
+imported, and migration `75fd69f81a15` already creates that constraint —
+so no `op.create_unique_constraint` is emitted here.
+
 Revision ID: 673bef7bd9d1
 Revises: 4d2535bc952f
 Create Date: 2026-08-04 02:33:34.467445
 
 """
 
-from collections.abc import Sequence
-from typing import Union
+from typing import Sequence, Union
 
 import sqlalchemy as sa
 from alembic import op
 
 # revision identifiers, used by Alembic.
 revision: str = "673bef7bd9d1"
-down_revision: str | Sequence[str] | None = "4d2535bc952f"
-branch_labels: str | Sequence[str] | None = None
-depends_on: str | Sequence[str] | None = None
+down_revision: Union[str, Sequence[str], None] = "4d2535bc952f"
+branch_labels: Union[str, Sequence[str], None] = None
+depends_on: Union[str, Sequence[str], None] = None
 
 
 def upgrade() -> None:

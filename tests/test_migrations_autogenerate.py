@@ -6,19 +6,12 @@ import subprocess
 import sys
 from pathlib import Path
 
-import pytest
 from sqlalchemy import create_engine, text
 
 from src.config.database import BaseModel
 
 
-@pytest.fixture(scope="module")
-def test_db_url(postgres_service):
-    """Return PostgreSQL database URL for testing (same fixture as conftest)."""
-    return postgres_service
-
-
-def test_autogenerate_detects_no_drift(test_db_url):
+def test_autogenerate_detects_no_drift(postgres_service):
     """Run all migrations from scratch, then verify autogenerate is empty.
 
     The test drops all tables and clears the alembic_version table to ensure
@@ -31,12 +24,12 @@ def test_autogenerate_detects_no_drift(test_db_url):
 
     # Convert asyncpg URL to sync postgresql:// for the sync SQLAlchemy engine
     # used to clean up the DB.
-    sync_db_url = test_db_url.replace("postgresql+asyncpg://", "postgresql://")
+    sync_db_url = postgres_service.replace("postgresql+asyncpg://", "postgresql://")
 
     # Pass the async URL — env.py converts it to sync internally.
     # The app's DatabaseSessionManager needs an async driver, so we
     # must keep the asyncpg dialect in DATABASE_URL for the subprocess.
-    db_url = test_db_url
+    db_url = postgres_service
 
     env = {
         **os.environ,
@@ -49,7 +42,7 @@ def test_autogenerate_detects_no_drift(test_db_url):
         engine = create_engine(sync_db_url)
         with engine.begin() as conn:
             BaseModel.metadata.drop_all(conn)
-            conn.execute(text("DELETE FROM alembic_version"))
+            conn.execute(text("DROP TABLE IF EXISTS alembic_version"))
         engine.dispose()
 
         # Run all migrations to head
