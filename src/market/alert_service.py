@@ -10,7 +10,7 @@ from decimal import Decimal
 
 from svcs import Container
 
-from src.auth.repository import UserRepository
+from src.auth.api import UserApi
 from src.core.email import EmailService, PriceAlertEmailData
 from src.market.api_types import SecurityId
 from src.market.repository import (
@@ -35,13 +35,13 @@ class AlertEvaluationService:
         alert_repo: PriceAlertRepository,
         security_repo: SecurityRepository,
         intraday_repo: IntradayPriceRepository,
-        user_repo: UserRepository,
+        user_api: UserApi,
         email_service: EmailService,
     ) -> None:
         self._alert_repo = alert_repo
         self._security_repo = security_repo
         self._intraday_repo = intraday_repo
-        self._user_repo = user_repo
+        self._user_api = user_api
         self._email_service = email_service
 
     # ------------------------------------------------------------------ #
@@ -141,9 +141,9 @@ class AlertEvaluationService:
             )
             return
 
-        # Resolve user email
-        user = await self._user_repo.get_by_id(alert.user_id)
-        if user is None:
+        # Resolve user email via auth API facade
+        email = await self._user_api.get_email_for_user(alert.user_id)
+        if email is None:
             logger.warning(
                 "User %s not found for alert %d, skipping email.",
                 alert.user_id,
@@ -162,7 +162,7 @@ class AlertEvaluationService:
                 latest_price=latest_price,
             )
             await self._email_service.send_price_alert_email(
-                recipient=user.email,
+                recipient=email,
                 alert=alert_data,
             )
         except Exception:
@@ -188,6 +188,6 @@ async def alert_evaluation_service_factory(
         alert_repo=await container.aget(PriceAlertRepository),
         security_repo=await container.aget(SecurityRepository),
         intraday_repo=await container.aget(IntradayPriceRepository),
-        user_repo=await container.aget(UserRepository),
+        user_api=await container.aget(UserApi),
         email_service=await container.aget(EmailService),
     )

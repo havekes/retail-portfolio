@@ -8,7 +8,7 @@ from uuid import uuid4
 
 import pytest
 
-from src.auth.repository import UserRepository
+from src.auth.api import UserApi
 from src.core.email import EmailService, PriceAlertEmailData
 from src.market.alert_service import AlertEvaluationService
 from src.market.repository import (
@@ -85,14 +85,14 @@ def _make_service(
     alert_repo=None,
     security_repo=None,
     intraday_repo=None,
-    user_repo=None,
+    user_api=None,
     email_service=None,
 ) -> AlertEvaluationService:
     return AlertEvaluationService(
         alert_repo=alert_repo or AsyncMock(spec=PriceAlertRepository),
         security_repo=security_repo or AsyncMock(spec=SecurityRepository),
         intraday_repo=intraday_repo or AsyncMock(spec=IntradayPriceRepository),
-        user_repo=user_repo or AsyncMock(spec=UserRepository),
+        user_api=user_api or AsyncMock(spec=UserApi),
         email_service=email_service or AsyncMock(spec=EmailService),
     )
 
@@ -252,8 +252,8 @@ class TestDispatchAlertEmail:
             target_price=Decimal("200.00"),
             condition="above",
         )
-        user = MagicMock()
-        user.email = "trader@example.com"
+        user_api = AsyncMock(spec=UserApi)
+        user_api.get_email_for_user = AsyncMock(return_value="trader@example.com")
 
         run_ts = datetime(2026, 7, 15, 10, 0, 0, tzinfo=UTC)
         latest_price = Decimal("205.00")
@@ -263,9 +263,6 @@ class TestDispatchAlertEmail:
 
         security_repo = AsyncMock(spec=SecurityRepository)
         security_repo.get_by_id_or_fail = AsyncMock(return_value=security)
-
-        user_repo = AsyncMock(spec=UserRepository)
-        user_repo.get_by_id = AsyncMock(return_value=user)
 
         email_service = AsyncMock(spec=EmailService)
         email_service.send_price_alert_email = AsyncMock()
@@ -279,7 +276,7 @@ class TestDispatchAlertEmail:
             alert_repo=alert_repo,
             security_repo=security_repo,
             intraday_repo=intraday_repo,
-            user_repo=user_repo,
+            user_api=user_api,
             email_service=email_service,
         )
         await svc.dispatch_alert_email(alert.id, run_ts)
@@ -294,7 +291,7 @@ class TestDispatchAlertEmail:
             latest_price=latest_price,
         )
         email_service.send_price_alert_email.assert_called_once_with(
-            recipient=user.email,
+            recipient="trader@example.com",
             alert=expected_alert,
         )
 
@@ -311,9 +308,7 @@ class TestDispatchAlertEmail:
         alert_repo.get_by_id = AsyncMock(return_value=alert)
 
         security_repo = AsyncMock(spec=SecurityRepository)
-        security_repo.get_by_id_or_fail = AsyncMock(
-            side_effect=Exception("not found")
-        )
+        security_repo.get_by_id_or_fail = AsyncMock(side_effect=Exception("not found"))
 
         svc = _make_service(alert_repo=alert_repo, security_repo=security_repo)
         await svc.dispatch_alert_email(alert.id, datetime.now(UTC))
@@ -332,13 +327,13 @@ class TestDispatchAlertEmail:
         security_repo = AsyncMock(spec=SecurityRepository)
         security_repo.get_by_id_or_fail = AsyncMock(return_value=security)
 
-        user_repo = AsyncMock(spec=UserRepository)
-        user_repo.get_by_id = AsyncMock(return_value=None)
+        user_api = AsyncMock(spec=UserApi)
+        user_api.get_email_for_user = AsyncMock(return_value=None)
 
         svc = _make_service(
             alert_repo=alert_repo,
             security_repo=security_repo,
-            user_repo=user_repo,
+            user_api=user_api,
         )
         await svc.dispatch_alert_email(alert.id, datetime.now(UTC))
 
@@ -349,8 +344,8 @@ class TestDispatchAlertEmail:
         """If no intraday price exists at dispatch time, skip (no mark)."""
         security = _make_security()
         alert = _make_db_alert(security_id=security.id)
-        user = MagicMock()
-        user.email = "trader@example.com"
+        user_api = AsyncMock(spec=UserApi)
+        user_api.get_email_for_user = AsyncMock(return_value="trader@example.com")
 
         alert_repo = AsyncMock(spec=PriceAlertRepository)
         alert_repo.get_by_id = AsyncMock(return_value=alert)
@@ -358,18 +353,13 @@ class TestDispatchAlertEmail:
         security_repo = AsyncMock(spec=SecurityRepository)
         security_repo.get_by_id_or_fail = AsyncMock(return_value=security)
 
-        user_repo = AsyncMock(spec=UserRepository)
-        user_repo.get_by_id = AsyncMock(return_value=user)
-
         intraday_repo = AsyncMock(spec=IntradayPriceRepository)
-        intraday_repo.get_latest_intraday_close_by_security = AsyncMock(
-            return_value={}
-        )
+        intraday_repo.get_latest_intraday_close_by_security = AsyncMock(return_value={})
 
         svc = _make_service(
             alert_repo=alert_repo,
             security_repo=security_repo,
-            user_repo=user_repo,
+            user_api=user_api,
             intraday_repo=intraday_repo,
         )
         await svc.dispatch_alert_email(alert.id, datetime.now(UTC))
@@ -381,17 +371,14 @@ class TestDispatchAlertEmail:
         """If email send raises, the exception propagates (for huey retry)."""
         security = _make_security()
         alert = _make_db_alert(security_id=security.id)
-        user = MagicMock()
-        user.email = "trader@example.com"
+        user_api = AsyncMock(spec=UserApi)
+        user_api.get_email_for_user = AsyncMock(return_value="trader@example.com")
 
         alert_repo = AsyncMock(spec=PriceAlertRepository)
         alert_repo.get_by_id = AsyncMock(return_value=alert)
 
         security_repo = AsyncMock(spec=SecurityRepository)
         security_repo.get_by_id_or_fail = AsyncMock(return_value=security)
-
-        user_repo = AsyncMock(spec=UserRepository)
-        user_repo.get_by_id = AsyncMock(return_value=user)
 
         email_service = AsyncMock(spec=EmailService)
         smtp_error = RuntimeError("SMTP down")
@@ -405,7 +392,7 @@ class TestDispatchAlertEmail:
         svc = _make_service(
             alert_repo=alert_repo,
             security_repo=security_repo,
-            user_repo=user_repo,
+            user_api=user_api,
             email_service=email_service,
             intraday_repo=intraday_repo,
         )
