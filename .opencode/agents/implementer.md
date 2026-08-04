@@ -51,7 +51,7 @@ First, load the `ticket-execution` skill and follow its procedure exactly (branc
 
 Inputs you receive from the orchestrator:
 - The ticket's GitHub issue number — read it fully with `gh issue view <N> --comments`: the `## Plan` section is your contract for the **how**; also read any `## Review feedback` from prior review cycles.
-- The repo root and, for parallel runs, the worktree path to use.
+- The repo root and, for parallel runs, the worktree path to use (where you will run `scripts/setup-agent-worktree.sh`).
 
 Hard rules:
 - Work only on the ticket's branch (`branch:` in the issue's `## Meta` section), based on up-to-date `main`. Never touch `main` directly, never merge, never force-push.

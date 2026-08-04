@@ -68,8 +68,9 @@ def global_mocks():
 @pytest.fixture(scope="session")
 def postgres_service() -> Generator[str, None, None]:
     """Provide PostgreSQL connection URL, spinning up testcontainers if needed."""
-    db_url = os.environ.get("DATABASE_URL")
+    db_url = os.environ.get("TEST_DATABASE_URL")
     if db_url and ("postgresql" in db_url or "postgres" in db_url):
+        os.environ["DATABASE_URL"] = db_url
         yield db_url
     else:
         from testcontainers.postgres import PostgresContainer

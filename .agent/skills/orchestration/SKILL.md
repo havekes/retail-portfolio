@@ -82,7 +82,7 @@ gh issue list --label ticket --state open --limit 100 --json number,title,labels
    - If the planner flags the ticket as mis-sized, ambiguous, or blocked on unmerged dependencies: pause it and ask the user before proceeding.
 4. **TICKET EXECUTION** — For each `status:planned` ticket:
    - Swap the label to `status:in-progress`.
-   - Spawn `implementer` with the issue number. Independent tickets may run **in parallel**, but then each parallel implementer MUST get its own git worktree (`../price-tracker-<ticket-id>`) — sequential work uses the main checkout. (Alternatively, use `invoke_subagent`'s `branch` workspace option so each parallel implementer gets an isolated git worktree natively; then tell the implementer to work in its assigned workspace and skip the manual `git worktree add`.)
+   - Spawn `implementer` with the issue number. Independent tickets may run **in parallel**, but then each parallel implementer MUST get its own git worktree (`../price-tracker-<ticket-id>`) and run `scripts/setup-agent-worktree.sh` to avoid Docker conflicts — sequential work uses the main checkout. (Alternatively, use `invoke_subagent`'s `branch` workspace option so each parallel implementer gets an isolated git worktree natively; then tell the implementer to work in its assigned workspace, skip the manual `git worktree add`, but still run the `.env` port assignment logic.)
    - On success: record the PR number on the issue (`gh issue comment <N> --body "PR: <url>"`), swap the label to `status:in-review`. On failure: report to the user and pause that ticket.
 5. **PR REVIEW** — Spawn `pr-reviewer` with PR number + issue number.
    - `APPROVE` → swap the label to `status:approved`.

@@ -13,7 +13,7 @@ Turn one planned ticket into one clean pull request. The issue's `## Plan` secti
 - If the issue body has **no `## Plan` section or it is empty**, stop and report back — the ticket-planning step was skipped; the orchestrator must run it first.
 - The branch name is in the issue's `## Meta` section (`branch:`). Base work on current `main`:
   - Sequential run (main checkout): `git fetch origin && git checkout -b <branch> origin/main`
-  - Parallel run (orchestrator assigned a worktree): `git fetch origin && git worktree add <worktree-path> -b <branch> origin/main`, then work **only inside that worktree**. If you were spawned with an isolated worktree workspace by `invoke_subagent`, use that workspace instead and skip the `git worktree add`.
+  - Parallel run (orchestrator assigned a worktree): use `scripts/setup-agent-worktree.sh <worktree-path> <branch>` (which creates the worktree and a dynamic `.env`), then `cd <worktree-path> && docker compose up -d`, and work **only inside that worktree's isolated containers**. If you were spawned with an isolated worktree workspace by `invoke_subagent`, use that workspace instead and ensure the unique `.env` logic is applied before running `docker compose up -d`.
 - Never commit on `main`.
 
 ## 2. Execute the plan
