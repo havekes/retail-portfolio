@@ -1,5 +1,6 @@
 """Tests for UserApi facade methods."""
 
+from datetime import UTC, datetime
 from unittest.mock import AsyncMock
 from uuid import uuid4
 
@@ -21,7 +22,7 @@ class MockUserRepository(UserRepository):
     async def get_by_id(self, user_id: UserId) -> UserSchema | None:
         return self._users.get(user_id)
 
-    async def get_by_email(self, _email: str) -> UserSchema | None:
+    async def get_by_email(self, email: str) -> UserSchema | None:  # noqa: ARG002
         return None
 
     async def create_user(self, email: str, plain_text_password: str) -> UserSchema:
@@ -40,7 +41,7 @@ class TestGetEmailForUser:
             email="trader@example.com",
             password="hashed_password",  # noqa: S106
             is_verified=True,
-            created_at=__import__("datetime").datetime.now(),
+            created_at=datetime.now(UTC),
         )
         user_repo = MockUserRepository({user_id: user})
         api = UserApi(

@@ -3,7 +3,7 @@
 
 from datetime import UTC, datetime
 from decimal import Decimal
-from unittest.mock import AsyncMock, MagicMock
+from unittest.mock import AsyncMock
 from uuid import uuid4
 
 import pytest
@@ -330,10 +330,16 @@ class TestDispatchAlertEmail:
         user_api = AsyncMock(spec=UserApi)
         user_api.get_email_for_user = AsyncMock(return_value=None)
 
+        intraday_repo = AsyncMock(spec=IntradayPriceRepository)
+        intraday_repo.get_latest_intraday_close_by_security = AsyncMock(
+            return_value={security.id: Decimal("200.00")}
+        )
+
         svc = _make_service(
             alert_repo=alert_repo,
             security_repo=security_repo,
             user_api=user_api,
+            intraday_repo=intraday_repo,
         )
         await svc.dispatch_alert_email(alert.id, datetime.now(UTC))
 
