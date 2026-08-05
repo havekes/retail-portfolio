@@ -1,11 +1,11 @@
 <script lang="ts">
+	import { resolve } from '$app/paths';
 	import type { Holding } from '@/types/account';
 	import * as Table from '$lib/components/ui/table/index.js';
 	import ArrowUpDown from '@lucide/svelte/icons/arrow-up-down';
 	import ChevronUp from '@lucide/svelte/icons/chevron-up';
 	import ChevronDown from '@lucide/svelte/icons/chevron-down';
 	import * as Tooltip from '$lib/components/ui/tooltip/index.js';
-	import { resolve } from '$app/paths';
 
 	let { holdings, totalAccountValue }: { holdings: Holding[]; totalAccountValue: number } =
 		$props();

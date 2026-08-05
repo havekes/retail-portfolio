@@ -2,7 +2,6 @@
 	import { Button } from '$lib/components/ui/button';
 	import * as Card from '$lib/components/ui/card';
 	import { CheckCircle2, XCircle } from '@lucide/svelte';
-	import { resolve } from '$app/paths';
 
 	let { data } = $props();
 </script>
@@ -22,7 +21,7 @@
 				{data.message}
 			</Card.Content>
 			<Card.Footer>
-				<Button href={resolve('/auth/login')} class="w-full">Go to Login</Button>
+				<Button href="/auth/login" class="w-full">Go to Login</Button>
 			</Card.Footer>
 		{:else}
 			<Card.Header class="items-center pb-2 text-center">
@@ -33,10 +32,8 @@
 				{data.message}
 			</Card.Content>
 			<Card.Footer class="flex-col gap-2">
-				<Button href={resolve('/auth/signup')} variant="outline" class="w-full">
-					Back to Signup
-				</Button>
-				<Button href={resolve('/auth/login')} variant="ghost" class="w-full">Go to Login</Button>
+				<Button href="/auth/signup" variant="outline" class="w-full">Back to Signup</Button>
+				<Button href="/auth/login" variant="ghost" class="w-full">Go to Login</Button>
 			</Card.Footer>
 		{/if}
 	</Card.Root>
