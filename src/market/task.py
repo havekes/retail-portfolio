@@ -7,7 +7,6 @@ from svcs import Container
 
 from src.account.service.account import AccountService
 from src.account.service.position import PositionService
-from src.auth.repository import UserRepository
 from src.core.context import get_request_id, request_id_ctx_var, set_request_id
 from src.market.ai_service import AIService
 from src.market.alert_service import AlertEvaluationService

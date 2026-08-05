@@ -10,7 +10,13 @@ from pydantic import BaseModel, ValidationError
 from svcs import Container
 from svcs.fastapi import DepContainer
 
-from src.auth.api_types import AccessTokenData, AuthResponse, SignupResponse, User
+from src.auth.api_types import (
+    AccessTokenData,
+    AuthResponse,
+    SignupResponse,
+    User,
+    UserId,
+)
 from src.auth.exception import (
     AuthInvalidCredentialsError,
     AuthUserAlreadyExistsError,
@@ -123,6 +129,11 @@ class UserApi:
     async def resend_verification(self, email: str) -> None:
         """Resend the email verification token to the specified email address."""
         await self._email_verification_service.resend_verification(email)
+
+    async def get_email_for_user(self, user_id: UserId) -> str | None:
+        """Look up a user's email by user ID, returning None if not found."""
+        user = await self._user_repository.get_by_id(user_id)
+        return user.email if user else None
 
     def _decode_token(self, token: str) -> AccessTokenData:
         """Decode and validate a JWT token."""
