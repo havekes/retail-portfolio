@@ -1,3 +1,4 @@
+from pydantic import field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 from rich import print as rprint
 
@@ -44,8 +45,15 @@ class Settings(BaseSettings):
     smtp_use_tls: bool = True
     smtp_user: str = ""
     smtp_password: str = ""
-    smtp_sender_email: str = "noreply@retail-portfolio.com"
+    smtp_sender_email: str = "noreply@retail-portfolio.local"
     email_verification_token_expiry_hours: int = 24
+
+    @field_validator("smtp_sender_email", mode="before")
+    @classmethod
+    def validate_smtp_sender_email(cls, v: str | None) -> str:
+        if not v or (isinstance(v, str) and not v.strip()):
+            return "noreply@retail-portfolio.local"
+        return v
 
 
 settings = Settings()

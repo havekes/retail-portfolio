@@ -50,3 +50,20 @@ def test_env_var_overrides_env_file(monkeypatch, tmp_path):
 
     s = Settings()
     assert s.environment == "staging"
+
+
+def test_smtp_sender_email_fallback_when_empty(monkeypatch, tmp_path):
+    monkeypatch.chdir(tmp_path)
+    monkeypatch.setenv("SMTP_SENDER_EMAIL", "")
+
+    s = Settings()
+    assert s.smtp_sender_email == "noreply@retail-portfolio.local"
+
+
+def test_smtp_sender_email_custom_value(monkeypatch, tmp_path):
+    monkeypatch.chdir(tmp_path)
+    monkeypatch.setenv("SMTP_SENDER_EMAIL", "custom@example.com")
+
+    s = Settings()
+    assert s.smtp_sender_email == "custom@example.com"
+
