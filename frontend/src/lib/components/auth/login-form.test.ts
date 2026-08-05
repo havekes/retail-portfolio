@@ -9,6 +9,10 @@ vi.mock('$app/forms', () => ({
 	}))
 }));
 
+vi.mock('$app/paths', () => ({
+	resolve: (path: string) => path
+}));
+
 describe('LoginForm Component', () => {
 	beforeEach(() => {
 		vi.clearAllMocks();

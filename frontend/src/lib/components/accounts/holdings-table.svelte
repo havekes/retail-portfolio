@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { resolve } from '$app/paths';
 	import type { Holding } from '@/types/account';
 	import * as Table from '$lib/components/ui/table/index.js';
 	import ArrowUpDown from '@lucide/svelte/icons/arrow-up-down';
@@ -148,7 +149,7 @@
 					class="group border-b-muted/10 transition-all even:bg-muted/30 hover:bg-muted/10"
 				>
 					<Table.Cell class="px-8 py-2">
-						<a href={`/security/${holding.security_id}`} class="group flex w-fit flex-col">
+						<a href={resolve(`/security/${holding.security_id}`)} class="group flex w-fit flex-col">
 							<span
 								class="inline-block text-sm leading-tight font-semibold text-primary group-hover:underline"
 							>

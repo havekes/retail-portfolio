@@ -4,6 +4,7 @@
 	import { Input } from '$lib/components/ui/input/index.js';
 	import { FieldGroup, Field, FieldDescription } from '$lib/components/ui/field/index.js';
 	import { enhance } from '$app/forms';
+	import { resolve } from '$app/paths';
 
 	let { form } = $props();
 	const id = $props.id();
@@ -55,7 +56,7 @@
 						{isLoading ? 'Logging in...' : 'Login'}
 					</Button>
 					<FieldDescription class="text-center">
-						Don't have an account? <a href="/auth/signup">Sign up for free</a>
+						Don't have an account? <a href={resolve('/auth/signup')}>Sign up for free</a>
 					</FieldDescription>
 				</Field>
 			</FieldGroup>

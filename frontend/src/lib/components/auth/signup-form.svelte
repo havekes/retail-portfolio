@@ -8,6 +8,7 @@
 		FieldLabel,
 		FieldDescription
 	} from '$lib/components/ui/field/index.js';
+	import { resolve } from '$app/paths';
 	import { enhance } from '$app/forms';
 
 	let { form } = $props();
@@ -69,7 +70,7 @@
 						{isLoading ? 'Signing up...' : 'Sign Up'}
 					</Button>
 					<FieldDescription class="text-center">
-						Already have an account? <a href="/auth/login">Login</a>
+						Already have an account? <a href={resolve('/auth/login')}>Login</a>
 					</FieldDescription>
 				</Field>
 			</FieldGroup>
