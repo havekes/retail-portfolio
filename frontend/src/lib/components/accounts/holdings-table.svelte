@@ -5,7 +5,6 @@
 	import ChevronUp from '@lucide/svelte/icons/chevron-up';
 	import ChevronDown from '@lucide/svelte/icons/chevron-down';
 	import * as Tooltip from '$lib/components/ui/tooltip/index.js';
-	import { resolve } from '$app/paths';
 
 	let { holdings, totalAccountValue }: { holdings: Holding[]; totalAccountValue: number } =
 		$props();
@@ -149,7 +148,7 @@
 					class="group border-b-muted/10 transition-all even:bg-muted/30 hover:bg-muted/10"
 				>
 					<Table.Cell class="px-8 py-2">
-						<a href={resolve(`/security/${holding.security_id}`)} class="group flex w-fit flex-col">
+						<a href={`/security/${holding.security_id}`} class="group flex w-fit flex-col">
 							<span
 								class="inline-block text-sm leading-tight font-semibold text-primary group-hover:underline"
 							>

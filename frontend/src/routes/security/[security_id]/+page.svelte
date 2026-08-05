@@ -3,7 +3,6 @@
 	import AppSidebar from '@/components/layout/app-sidebar.svelte';
 	import { getMarketService } from '$lib/api/marketService';
 	import { convertToHeikinAshi } from '@/utils/finance/candle';
-	import { resolve } from '$app/paths';
 	import type { Candle } from '@/utils/finance/candle';
 	import PageHeader from '@/components/layout/app-header.svelte';
 	import type { SecuritySchema } from '@/api/marketService';
@@ -348,7 +347,7 @@
 							</h2>
 							<p class="mb-4 text-gray-600 dark:text-gray-400">{error}</p>
 							<a
-								href={resolve('/')}
+								href="/"
 								class="inline-block rounded-md bg-blue-600 px-4 py-2 text-white transition-colors hover:bg-blue-700"
 							>
 								Back to Dashboard

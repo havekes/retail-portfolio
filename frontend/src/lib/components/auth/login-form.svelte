@@ -3,7 +3,6 @@
 	import * as Card from '$lib/components/ui/card/index.js';
 	import { Input } from '$lib/components/ui/input/index.js';
 	import { FieldGroup, Field, FieldDescription } from '$lib/components/ui/field/index.js';
-	import { resolve } from '$app/paths';
 	import { enhance } from '$app/forms';
 
 	let { form } = $props();
@@ -56,7 +55,7 @@
 						{isLoading ? 'Logging in...' : 'Login'}
 					</Button>
 					<FieldDescription class="text-center">
-						Don't have an account? <a href={resolve('/auth/signup')}>Sign up for free</a>
+						Don't have an account? <a href="/auth/signup">Sign up for free</a>
 					</FieldDescription>
 				</Field>
 			</FieldGroup>

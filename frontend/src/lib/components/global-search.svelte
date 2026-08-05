@@ -1,6 +1,5 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
-	import { resolve } from '$app/paths';
 	import * as Command from '@/components/ui/command';
 	import { marketService } from '@/api/marketService';
 	import type { MarketSearchResult } from '@/api/marketService';
@@ -72,7 +71,7 @@
 			});
 
 			open = false;
-			await goto(resolve(`/security/${response.security_id}`));
+			await goto(`/security/${response.security_id}`);
 		} catch (error) {
 			console.error('Failed to select security:', error);
 		}

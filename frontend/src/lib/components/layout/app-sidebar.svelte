@@ -9,7 +9,6 @@
 	import ChevronLeft from '@lucide/svelte/icons/chevron-left';
 	import ChevronRight from '@lucide/svelte/icons/chevron-right';
 	import CircleUser from '@lucide/svelte/icons/circle-user';
-	import { resolve } from '$app/paths';
 	import ChartCandlestick from '@lucide/svelte/icons/chart-candlestick';
 	import Search from '@lucide/svelte/icons/search';
 	import Star from '@lucide/svelte/icons/star';
@@ -29,7 +28,7 @@
 			<Sidebar.MenuItem>
 				<Sidebar.MenuButton>
 					{#snippet child({ props })}
-						<a href={resolve('/')} {...props}>
+						<a href="/" {...props}>
 							<ChartCandlestick />
 							<span class="text-base font-semibold">Portfolio dashboard</span>
 						</a>
@@ -68,7 +67,7 @@
 							<Sidebar.MenuItem>
 								<Sidebar.MenuButton tooltipContent={`${security.symbol} - ${security.name}`}>
 									{#snippet child({ props })}
-										<a href={resolve(`/security/${security.id}`)} {...props}>
+										<a href={`/security/${security.id}`} {...props}>
 											<Star class="h-4 w-4 shrink-0 fill-amber-400 stroke-amber-500" />
 											<span>{security.symbol}</span>
 											<span class="ml-1 truncate text-xs font-normal text-muted-foreground"
@@ -104,10 +103,10 @@
 						{/snippet}
 					</DropdownMenu.Trigger>
 					<DropdownMenu.Content side="top" class="w-(--bits-dropdown-menu-anchor-width)">
-						<DropdownMenu.Item onSelect={() => goto(resolve('/brokers'))}>
+						<DropdownMenu.Item onSelect={() => goto('/brokers')}>
 							Connected brokers
 						</DropdownMenu.Item>
-						<form method="POST" action={resolve('/auth/logout')}>
+						<form method="POST" action="/auth/logout">
 							<button type="submit" class="w-full">
 								<DropdownMenu.Item>Sign out</DropdownMenu.Item>
 							</button>
