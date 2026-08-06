@@ -1,10 +1,14 @@
-from src.market.schema import PriceSchema
 from datetime import date, datetime, timezone
 from decimal import Decimal
-from src.market.model import IntradayPriceModel, PriceModel
-"""Integration tests for market router."""
+from unittest.mock import AsyncMock, patch
 
 import pytest
+
+from src.market.model import IntradayPriceModel, PriceModel
+from src.market.schema import PriceSchema
+from src.market.service import MarketService
+
+"""Integration tests for market router."""
 
 @pytest.mark.anyio
 async def test_watchlists_list_empty(auth_client):
@@ -257,6 +261,96 @@ async def test_get_prices_1h_intraday_no_date_range(auth_client, test_security, 
     assert result["total"] >= 1
     assert len(result["items"]) >= 1
     assert Decimal(result["items"][0]["close"]) == Decimal("151.00")
+
+
+@pytest.mark.anyio
+async def test_get_prices_1h_on_the_fly_fetch(auth_client, test_security, db_session):
+    """Test GET /market/prices/{security_id} with interval=1h fetches prices on the fly when none exist."""
+    async def mock_fetch(security, days=30, from_datetime=None, to_datetime=None):
+        candle = IntradayPriceModel(
+            security_id=test_security.id,
+            timestamp=datetime(2026, 1, 15, 9, 0, tzinfo=timezone.utc),
+            open=Decimal("150.00"),
+            high=Decimal("152.00"),
+            low=Decimal("149.50"),
+            close=Decimal("151.00"),
+            volume=10000,
+        )
+        db_session.add(candle)
+        await db_session.commit()
+        return True
+
+    with patch.object(MarketService, "fetch_and_save_intraday_prices", side_effect=mock_fetch) as mock_fetch_svc:
+        response = await auth_client.get(
+            f"/api/v1/market/prices/{test_security.id}?interval=1h&from_date=2026-01-15T00:00:00Z&to_date=2026-01-15T23:59:59Z"
+        )
+
+    assert response.status_code == 200
+    mock_fetch_svc.assert_called_once()
+    result = response.json()
+    assert result["security_id"] == str(test_security.id)
+    assert result["total"] == 1
+    assert len(result["items"]) == 1
+    assert Decimal(result["items"][0]["close"]) == Decimal("151.00")
+
+
+@pytest.mark.anyio
+async def test_get_prices_4h_on_the_fly_fetch(auth_client, test_security, db_session):
+    """Test GET /market/prices/{security_id} with interval=4h fetches prices on the fly and aggregates them."""
+    async def mock_fetch(security, days=30, from_datetime=None, to_datetime=None):
+        candles = [
+            IntradayPriceModel(
+                security_id=test_security.id,
+                timestamp=datetime(2026, 1, 15, 8, 0, tzinfo=timezone.utc),
+                open=Decimal("100.00"),
+                high=Decimal("105.00"),
+                low=Decimal("98.00"),
+                close=Decimal("102.00"),
+                volume=1000,
+            ),
+            IntradayPriceModel(
+                security_id=test_security.id,
+                timestamp=datetime(2026, 1, 15, 9, 0, tzinfo=timezone.utc),
+                open=Decimal("102.00"),
+                high=Decimal("108.00"),
+                low=Decimal("101.00"),
+                close=Decimal("107.00"),
+                volume=1500,
+            ),
+        ]
+        db_session.add_all(candles)
+        await db_session.commit()
+        return True
+
+    with patch.object(MarketService, "fetch_and_save_intraday_prices", side_effect=mock_fetch) as mock_fetch_svc:
+        response = await auth_client.get(
+            f"/api/v1/market/prices/{test_security.id}?interval=4h&from_date=2026-01-15T00:00:00Z&to_date=2026-01-15T23:59:59Z"
+        )
+
+    assert response.status_code == 200
+    mock_fetch_svc.assert_called_once()
+    result = response.json()
+    assert result["security_id"] == str(test_security.id)
+    assert result["total"] == 1
+    assert len(result["items"]) == 1
+    assert Decimal(result["items"][0]["open"]) == Decimal("100.00")
+    assert Decimal(result["items"][0]["close"]) == Decimal("107.00")
+
+
+@pytest.mark.anyio
+async def test_get_prices_intraday_on_the_fly_no_data(auth_client, test_security):
+    """Test GET /market/prices/{security_id} cleanly returns empty list when on-demand fetch finds no data."""
+    with patch.object(MarketService, "fetch_and_save_intraday_prices", AsyncMock(return_value=False)) as mock_fetch_svc:
+        response = await auth_client.get(
+            f"/api/v1/market/prices/{test_security.id}?interval=1h"
+        )
+
+    assert response.status_code == 200
+    mock_fetch_svc.assert_called_once()
+    result = response.json()
+    assert result["security_id"] == str(test_security.id)
+    assert result["total"] == 0
+    assert result["items"] == []
 
 
 @pytest.mark.anyio
