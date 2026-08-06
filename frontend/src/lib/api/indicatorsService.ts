@@ -26,27 +26,29 @@ export interface IndicatorData {
 
 export class IndicatorsService extends ApiClient {
 	async getPreferences(securityId: string): Promise<IndicatorPreferences> {
-		return await this.get<IndicatorPreferences>(`/securities/${securityId}/indicator-preferences`);
+		return await this.get<IndicatorPreferences>(
+			`/market/securities/${securityId}/indicator-preferences`
+		);
 	}
 
 	async savePreferences(
 		securityId: string,
 		preferences: Omit<IndicatorPreferences, 'updated_at'>
 	): Promise<IndicatorPreferences> {
-		return await this.patch<IndicatorPreferences, typeof preferences>(
-			`/securities/${securityId}/indicator-preferences`,
+		return await this.put<IndicatorPreferences, typeof preferences>(
+			`/market/securities/${securityId}/indicator-preferences`,
 			preferences
 		);
 	}
 
 	async getIndicatorData(securityId: string, indicatorType: string): Promise<IndicatorData> {
 		return await this.get<IndicatorData>(
-			`/securities/${securityId}/indicators?type=${indicatorType}`
+			`/market/securities/${securityId}/indicators?type=${indicatorType}`
 		);
 	}
 
 	async getAllIndicatorData(securityId: string): Promise<IndicatorData[]> {
-		return await this.get<IndicatorData[]>(`/securities/${securityId}/indicators`);
+		return await this.get<IndicatorData[]>(`/market/securities/${securityId}/indicators`);
 	}
 }
 
