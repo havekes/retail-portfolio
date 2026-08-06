@@ -24,7 +24,7 @@ export const load: PageServerLoad = async ({ fetch, cookies }) => {
 };
 
 export const actions: Actions = {
-	renameAccount: async ({ request, fetch }) => {
+	renameAccount: async ({ request, fetch, cookies }) => {
 		const data = await request.formData();
 		const name = data.get('name');
 		const id = data.get('id'); // We need the id if we are on the home page
@@ -37,9 +37,10 @@ export const actions: Actions = {
 			return fail(400, { message: 'Account ID is required' });
 		}
 
+		const token = cookies.get('auth_token');
 		const accountClient = getAccountClient(fetch);
 		try {
-			await accountClient.renameAccount(id, name);
+			await accountClient.renameAccount(id, name, token);
 		} catch (err) {
 			if (err instanceof ApiError) {
 				return fail(err.status, { message: err.message });
