@@ -17,6 +17,7 @@ class MockUserRepository(UserRepository):
     def __init__(self):
         self.users = {}
         self.verified_users = set()
+        self.preferences: dict[UserId, dict] = {}
 
     async def get_by_id(self, user_id: UserId) -> UserSchema | None:
         return next((u for u in self.users.values() if u.id == user_id), None)
@@ -40,6 +41,12 @@ class MockUserRepository(UserRepository):
 
     async def mark_as_verified(self, user_id: UserId) -> None:
         self.verified_users.add(user_id)
+
+    async def get_preferences(self, user_id: UserId) -> dict | None:
+        return self.preferences.get(user_id)
+
+    async def save_preferences(self, user_id: UserId, preferences: dict) -> None:
+        self.preferences[user_id] = preferences
 
 
 class MockVerificationTokenRepository(VerificationTokenRepository):

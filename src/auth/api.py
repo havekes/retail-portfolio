@@ -119,7 +119,7 @@ class UserApi:
 
         return AuthResponse(
             access_token=access_token,
-            user=User(**user.model_dump()),
+            user=User(id=user.id, email=user.email),
         )
 
     async def verify_email(self, token: str) -> None:

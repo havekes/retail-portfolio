@@ -155,6 +155,7 @@ async def put_preferences(
 ) -> dict:
     """Store the current user's chart preferences."""
     user_api = await services.aget(UserApi)
+    # exclude_none=True: explicit null fields are dropped; server does not store them
     await user_api.save_preferences(user.id, payload.model_dump(exclude_none=True))
     return await user_api.get_preferences(user.id) or {}
 

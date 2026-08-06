@@ -114,8 +114,6 @@ async def test_account_totals_not_owned(auth_client, other_user_account):
     assert response.status_code == 404
 
 
-
-
 @pytest.mark.anyio
 async def test_account_rename_invalid_body(auth_client, test_accounts):
     """Test account_rename raises 422 for invalid request body."""
@@ -141,7 +139,9 @@ async def test_security_holdings_success(
     result = response.json()
     assert len(result["items"]) == 1
     assert result["items"][0]["account_id"] == str(test_accounts[0].id)
-    assert result["items"][0]["quantity"] == float(test_position_for_first_account.quantity)
+    assert result["items"][0]["quantity"] == float(
+        test_position_for_first_account.quantity
+    )
     assert result["items"][0]["account_name"] == test_accounts[0].name
     assert "total_value" in result["items"][0]
     assert "currency" in result["items"][0]
@@ -200,7 +200,9 @@ async def test_preferences_roundtrip(auth_client):
     payload = {
         "timeframe": "1d",
         "chart_style": "heikin_ashi",
-        "indicators": {"rsi": {"enabled": True, "color": "#FF0000", "settings": {"period": 14}}},
+        "indicators": {
+            "rsi": {"enabled": True, "color": "#FF0000", "settings": {"period": 14}}
+        },
     }
     put_resp = await auth_client.put("/api/v1/accounts/me/preferences", json=payload)
     assert put_resp.status_code == 200
@@ -225,26 +227,29 @@ async def test_preferences_partial_update(auth_client):
 
 
 @pytest.mark.anyio
-async def test_preferences_isolated(auth_client, other_user, db_session):
-    """User A's preferences are not visible to user B."""
-    # test_user (auth_client) saves preferences
+async def test_preferences_isolated(auth_client, other_user, client):
+    """User A's preferences are not visible to user B — verified via the API."""
     payload = {"timeframe": "1d", "chart_style": "candlestick"}
+
+    # test_user saves preferences via auth_client
     put_resp = await auth_client.put("/api/v1/accounts/me/preferences", json=payload)
     assert put_resp.status_code == 200
 
-    # Verify via the database that only test_user has preferences saved
-    from src.auth.api import UserApi
-    from src.auth.repository_sqlalchemy import SqlAlchemyUserRepository
-
-    user_repo = SqlAlchemyUserRepository(session=db_session)
-    api = UserApi(
-        user_repository=user_repo,
-        email_verification_service=None,  # not needed for get_preferences
+    # Log in as other_user via the API
+    login_resp = await client.post(
+        "/api/v1/auth/login",
+        json={"email": "other@example.com", "password": "otherpass"},
     )
+    assert login_resp.status_code == 200
+    other_token = login_resp.json()["access_token"]
 
-    # other_user should have no preferences
-    other_prefs = await api.get_preferences(other_user.id)
-    assert other_prefs is None
+    # other_user GETs their own preferences — should be empty
+    get_other = await client.get(
+        "/api/v1/accounts/me/preferences",
+        headers={"Authorization": f"Bearer {other_token}"},
+    )
+    assert get_other.status_code == 200
+    assert get_other.json() == {}
 
     # test_user still sees their own preferences
     get_resp = await auth_client.get("/api/v1/accounts/me/preferences")
