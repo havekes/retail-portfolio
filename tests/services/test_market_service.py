@@ -367,6 +367,168 @@ async def test_update_intraday_prices_failure_continues():
     assert intraday_price_repo.saved_prices[0].security_id == securities[1].id
 
 
+@pytest.mark.anyio
+async def test_fetch_and_save_intraday_prices_success():
+    security = SecuritySchema(
+        id=uuid4(),
+        symbol="AAPL",
+        exchange="US",
+        currency="USD",
+        name="Apple",
+        isin="US0378331005",
+        is_active=True,
+        updated_at=datetime.now(UTC),
+    )
+    security_repo = MockSecurityRepository([security])
+    price_repo = MockPriceRepository()
+    intraday_price_repo = MockIntradayPriceRepository()
+    gateway = MockEodhdGateway()
+
+    service = MarketService(
+        gateway=gateway,
+        price_repository=price_repo,
+        security_repository=security_repo,
+        intraday_price_repository=intraday_price_repo,
+    )
+
+    result = await service.fetch_and_save_intraday_prices(security)
+
+    assert result is True
+    assert len(intraday_price_repo.saved_prices) == 1
+    assert intraday_price_repo.saved_prices[0].security_id == security.id
+
+
+@pytest.mark.anyio
+async def test_fetch_and_save_intraday_prices_custom_range():
+    security = SecuritySchema(
+        id=uuid4(),
+        symbol="AAPL",
+        exchange="US",
+        currency="USD",
+        name="Apple",
+        isin="US0378331005",
+        is_active=True,
+        updated_at=datetime.now(UTC),
+    )
+    security_repo = MockSecurityRepository([security])
+    price_repo = MockPriceRepository()
+    intraday_price_repo = MockIntradayPriceRepository()
+
+    class CustomGateway(MockEodhdGateway):
+        def __init__(self):
+            super().__init__()
+            self.captured_from_datetime = None
+            self.captured_to_datetime = None
+
+        @override
+        def get_intraday_prices(
+            self,
+            security_id,
+            symbol,
+            exchange,
+            from_datetime,
+            to_datetime,
+            interval="1h",
+        ):
+            self.captured_from_datetime = from_datetime
+            self.captured_to_datetime = to_datetime
+            return super().get_intraday_prices(
+                security_id, symbol, exchange, from_datetime, to_datetime, interval
+            )
+
+    gateway = CustomGateway()
+    service = MarketService(
+        gateway=gateway,
+        price_repository=price_repo,
+        security_repository=security_repo,
+        intraday_price_repository=intraday_price_repo,
+    )
+
+    from_dt = datetime(2026, 1, 1, 0, 0, tzinfo=UTC)
+    to_dt = datetime(2026, 1, 10, 0, 0, tzinfo=UTC)
+
+    result = await service.fetch_and_save_intraday_prices(
+        security, from_datetime=from_dt, to_datetime=to_dt
+    )
+
+    assert result is True
+    assert gateway.captured_from_datetime == from_dt
+    assert gateway.captured_to_datetime == to_dt
+
+
+@pytest.mark.anyio
+async def test_fetch_and_save_intraday_prices_empty():
+    security = SecuritySchema(
+        id=uuid4(),
+        symbol="AAPL",
+        exchange="US",
+        currency="USD",
+        name="Apple",
+        isin="US0378331005",
+        is_active=True,
+        updated_at=datetime.now(UTC),
+    )
+    security_repo = MockSecurityRepository([security])
+    price_repo = MockPriceRepository()
+    intraday_price_repo = MockIntradayPriceRepository()
+
+    class EmptyIntradayGateway(MockEodhdGateway):
+        @override
+        def get_intraday_prices(
+            self,
+            security_id,
+            symbol,
+            exchange,
+            from_datetime,
+            to_datetime,
+            interval="1h",
+        ):
+            return []
+
+    service = MarketService(
+        gateway=EmptyIntradayGateway(),
+        price_repository=price_repo,
+        security_repository=security_repo,
+        intraday_price_repository=intraday_price_repo,
+    )
+
+    result = await service.fetch_and_save_intraday_prices(security)
+
+    assert result is True
+    assert len(intraday_price_repo.saved_prices) == 0
+
+
+@pytest.mark.anyio
+async def test_fetch_and_save_intraday_prices_gateway_error():
+    security = SecuritySchema(
+        id=uuid4(),
+        symbol="BAD",
+        exchange="US",
+        currency="USD",
+        name="Bad",
+        isin="US000",
+        is_active=True,
+        updated_at=datetime.now(UTC),
+    )
+    security_repo = MockSecurityRepository([security])
+    price_repo = MockPriceRepository()
+    intraday_price_repo = MockIntradayPriceRepository()
+
+    gateway = MockEodhdGateway(should_fail=True)
+
+    service = MarketService(
+        gateway=gateway,
+        price_repository=price_repo,
+        security_repository=security_repo,
+        intraday_price_repository=intraday_price_repo,
+    )
+
+    result = await service.fetch_and_save_intraday_prices(security)
+
+    assert result is False
+    assert len(intraday_price_repo.saved_prices) == 0
+
+
 def test_aggregate_weekly_prices_unit():
     """Test unit logic of aggregate_weekly_prices in service."""
     from dateutil.parser import parse
