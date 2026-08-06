@@ -46,7 +46,8 @@ class RequestIdMiddleware(BaseHTTPMiddleware):
         else:
             process_time = time.time() - start_time
             host = request.client.host if request.client else "unknown"
-            logger.info(
+            log_fn = logger.warning if 400 <= response.status_code < 500 else logger.info
+            log_fn(
                 '%s - "%s %s" %d - %.3fs',
                 host,
                 request.method,
