@@ -57,6 +57,23 @@ class SqlAlchemyUserRepository(UserRepository):
         )
         await self._session.commit()
 
+    @override
+    async def get_preferences(self, user_id: UserId) -> dict | None:
+        result = await self._session.execute(
+            select(UserModel.preferences).where(UserModel.id == user_id)
+        )
+        return result.scalar_one_or_none()
+
+    @override
+    async def save_preferences(self, user_id: UserId, preferences: dict) -> None:
+        stmt = (
+            update(UserModel)
+            .where(UserModel.id == user_id)
+            .values(preferences=preferences)
+        )
+        await self._session.execute(stmt)
+        await self._session.commit()
+
 
 class SqlAlchemyVerificationTokenRepository(VerificationTokenRepository):
     _session: AsyncSession
