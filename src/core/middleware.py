@@ -3,6 +3,7 @@ import time
 import uuid
 from typing import Any
 
+from starlette import status
 from starlette.middleware.base import BaseHTTPMiddleware, RequestResponseEndpoint
 from starlette.requests import Request
 from starlette.responses import Response
@@ -46,7 +47,12 @@ class RequestIdMiddleware(BaseHTTPMiddleware):
         else:
             process_time = time.time() - start_time
             host = request.client.host if request.client else "unknown"
-            log_fn = logger.warning if 400 <= response.status_code < 500 else logger.info
+            is_4xx = (
+                status.HTTP_400_BAD_REQUEST
+                <= response.status_code
+                < status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+            log_fn = logger.warning if is_4xx else logger.info
             log_fn(
                 '%s - "%s %s" %d - %.3fs',
                 host,
