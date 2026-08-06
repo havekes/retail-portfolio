@@ -267,6 +267,17 @@ class MarketService:
 
         return {"success": success_count, "failure": failure_count}
 
+    async def fetch_and_save_intraday_prices(
+        self,
+        security: SecuritySchema,
+        days: int = 30,
+        from_datetime: datetime | None = None,
+        to_datetime: datetime | None = None,
+    ) -> bool:
+        to_dt = to_datetime or datetime.now(UTC)
+        from_dt = from_datetime or (to_dt - timedelta(days=days))
+        return await self._update_security_intraday_prices(security, from_dt, to_dt)
+
     async def fetch_and_save_price_history(self, security: SecuritySchema) -> bool:
         """Fetch price history for a security from 2000-01-03 to today and save it.
 
