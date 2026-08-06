@@ -16,8 +16,9 @@ from src.auth.service import EmailVerificationService
 class MockUserRepository(UserRepository):
     """Minimal in-memory UserRepository for UserApi facade tests."""
 
-    def __init__(self, users: dict[UserId, UserSchema] | None = None) -> None:
+    def __init__(self, users: dict[UserId, UserSchema] | None = None, prefs: dict[UserId, dict] | None = None) -> None:
         self._users = users or {}
+        self._prefs = prefs or {}
 
     async def get_by_id(self, user_id: UserId) -> UserSchema | None:
         return self._users.get(user_id)
@@ -35,10 +36,6 @@ class MockUserRepository(UserRepository):
 
     async def save_preferences(self, user_id: UserId, preferences: dict) -> None:
         self._prefs[user_id] = preferences
-
-    def __init__(self, users: dict[UserId, UserSchema] | None = None, prefs: dict[UserId, dict] | None = None) -> None:
-        self._users = users or {}
-        self._prefs = prefs or {}
 
 
 class TestGetEmailForUser:
