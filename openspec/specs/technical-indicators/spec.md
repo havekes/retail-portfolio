@@ -55,16 +55,16 @@ The system SHALL support Relative Strength Index (RSI) indicator.
 - **THEN** the RSI line oscillates between 0 and 100
 
 ### Requirement: Indicator persistence
-The system SHALL remember user's indicator preferences per security.
+The system SHALL remember the user's indicator preferences as a single user-global set applied to every security's chart, persisted via the user-level preferences API (`GET` / `PUT /accounts/me/preferences`).
 
 #### Scenario: Return to security
-- **WHEN** user navigates away and returns to the same security
-- **THEN** previously enabled indicators are restored
+- **WHEN** user navigates away and returns to a security
+- **THEN** the user's saved indicators are restored
 - **THEN** indicator settings and styling are preserved
 
 #### Scenario: New security
 - **WHEN** user navigates to a different security
-- **THEN** that security's saved indicators are loaded
+- **THEN** the same saved indicator preferences are applied to that security's chart
 - **THEN** if no saved preferences exist, defaults are shown
 
 ### Requirement: Indicator performance
