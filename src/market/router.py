@@ -65,6 +65,7 @@ from src.market.schema import (
     WatchlistRead,
 )
 from src.market.service import (
+    MarketService,
     aggregate_4h_candles,
     aggregate_monthly_prices,
     aggregate_weekly_prices,
@@ -236,12 +237,22 @@ async def market_get_prices(  # noqa: PLR0913, PLR0917
         )
 
     security_repository = await services.aget(SecurityRepository)
-    await security_repository.get_by_id_or_fail(security_id)
+    security = await security_repository.get_by_id_or_fail(security_id)
 
     intraday_repository = await services.aget(IntradayPriceRepository)
     candles = await intraday_repository.get_intraday_prices(
         security_id, start_time=from_dt, end_time=to_dt
     )
+
+    if not candles:
+        market_service = await services.aget(MarketService)
+        fetched = await market_service.fetch_and_save_intraday_prices(
+            security, from_datetime=from_dt, to_datetime=to_dt
+        )
+        if fetched:
+            candles = await intraday_repository.get_intraday_prices(
+                security_id, start_time=from_dt, end_time=to_dt
+            )
 
     if interval == PriceInterval.FOUR_HOURS:
         candles = aggregate_4h_candles(candles)
