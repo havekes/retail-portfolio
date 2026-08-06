@@ -16,8 +16,9 @@ from src.auth.service import EmailVerificationService
 class MockUserRepository(UserRepository):
     """Minimal in-memory UserRepository for UserApi facade tests."""
 
-    def __init__(self, users: dict[UserId, UserSchema] | None = None) -> None:
+    def __init__(self, users: dict[UserId, UserSchema] | None = None, prefs: dict[UserId, dict] | None = None) -> None:
         self._users = users or {}
+        self._prefs = prefs or {}
 
     async def get_by_id(self, user_id: UserId) -> UserSchema | None:
         return self._users.get(user_id)
@@ -29,6 +30,12 @@ class MockUserRepository(UserRepository):
         raise NotImplementedError
 
     async def mark_as_verified(self, user_id: UserId) -> None: ...
+
+    async def get_preferences(self, user_id: UserId) -> dict | None:
+        return self._prefs.get(user_id)
+
+    async def save_preferences(self, user_id: UserId, preferences: dict) -> None:
+        self._prefs[user_id] = preferences
 
 
 class TestGetEmailForUser:
@@ -61,3 +68,31 @@ class TestGetEmailForUser:
         )
         email = await api.get_email_for_user(uuid4())
         assert email is None
+
+
+class TestPreferences:
+    @pytest.mark.asyncio
+    async def test_get_preferences_returns_none_when_not_saved(self):
+        """get_preferences returns None when no preferences saved."""
+        user_id = uuid4()
+        user_repo = MockUserRepository()
+        api = UserApi(
+            user_repository=user_repo,
+            email_verification_service=AsyncMock(spec=EmailVerificationService),
+        )
+        prefs = await api.get_preferences(user_id)
+        assert prefs is None
+
+    @pytest.mark.asyncio
+    async def test_save_then_get_preferences_roundtrip(self):
+        """Save preferences then retrieve — round-trip through the facade."""
+        user_id = uuid4()
+        payload = {"timeframe": "1d", "chart_style": "candlestick", "indicators": {"rsi": {"enabled": True}}}
+        user_repo = MockUserRepository()
+        api = UserApi(
+            user_repository=user_repo,
+            email_verification_service=AsyncMock(spec=EmailVerificationService),
+        )
+        await api.save_preferences(user_id, payload)
+        prefs = await api.get_preferences(user_id)
+        assert prefs == payload

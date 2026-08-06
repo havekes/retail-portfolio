@@ -10,6 +10,7 @@ from src.account.api_types import (
     AccountRenameRequest,
     AccountTotals,
     PortfolioId,
+    UserPreferences,
 )
 from src.account.exception import AccountNotFoundError
 from src.account.repository import AccountRepository
@@ -24,7 +25,7 @@ from src.account.schema import (
 from src.account.service.account import AccountService
 from src.account.service.portfolio import PortfolioService
 from src.account.service.position import PositionService
-from src.auth.api import AuthorizationApi, current_user
+from src.auth.api import AuthorizationApi, UserApi, current_user
 from src.auth.api_types import User
 from src.config.limiter import limiter
 from src.core.pagination import PaginatedResponse, PaginationParams
@@ -133,6 +134,30 @@ async def account_sync_status(
             status_code=503,
             detail="Sync status service unavailable",
         ) from e
+
+
+@account_router.get("/me/preferences")
+async def get_preferences(
+    user: Annotated[User, Depends(current_user)],
+    services: DepContainer,
+) -> dict:
+    """Return the current user's chart preferences."""
+    user_api = await services.aget(UserApi)
+    prefs = await user_api.get_preferences(user.id)
+    return prefs if prefs is not None else {}
+
+
+@account_router.put("/me/preferences")
+async def put_preferences(
+    payload: UserPreferences,
+    user: Annotated[User, Depends(current_user)],
+    services: DepContainer,
+) -> dict:
+    """Store the current user's chart preferences."""
+    user_api = await services.aget(UserApi)
+    # exclude_none=True: explicit null fields are dropped; server does not store them
+    await user_api.save_preferences(user.id, payload.model_dump(exclude_none=True))
+    return await user_api.get_preferences(user.id) or {}
 
 
 @account_router.patch("/{account_id}/rename")

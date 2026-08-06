@@ -22,6 +22,14 @@ class UserRepository(ABC):
     async def mark_as_verified(self, user_id: UserId) -> None:
         pass
 
+    @abstractmethod
+    async def get_preferences(self, user_id: UserId) -> dict | None:
+        pass
+
+    @abstractmethod
+    async def save_preferences(self, user_id: UserId, preferences: dict) -> None:
+        pass
+
 
 class VerificationTokenRepository(ABC):
     @abstractmethod

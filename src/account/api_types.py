@@ -1,5 +1,6 @@
 from datetime import datetime
 from decimal import Decimal
+from typing import Any
 from uuid import UUID
 
 from pydantic import BaseModel, ConfigDict
@@ -55,3 +56,13 @@ class Institution(BaseModel):
     website: str | None
     is_active: bool
     integration_enabled: bool
+
+
+class UserPreferences(BaseModel):
+    """Permissive user chart preferences — server passes through."""
+
+    timeframe: str | None = None
+    chart_style: str | None = None
+    indicators: dict[str, Any] | None = None
+
+    model_config = ConfigDict(extra="allow")

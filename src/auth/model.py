@@ -4,7 +4,7 @@ from datetime import datetime
 from uuid import uuid4
 
 from argon2 import PasswordHasher
-from sqlalchemy import Boolean, DateTime, String, Uuid, func
+from sqlalchemy import JSON, Boolean, DateTime, String, Uuid, func
 from sqlalchemy.orm import Mapped, mapped_column
 
 from src.auth.api_types import UserId
@@ -25,6 +25,9 @@ class UserModel(BaseModel):
     is_verified: Mapped[bool] = mapped_column(Boolean, default=False)
     last_login_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), nullable=True
+    )
+    preferences: Mapped[dict | None] = mapped_column(
+        JSON, nullable=True
     )
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), default=func.now()

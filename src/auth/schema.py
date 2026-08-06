@@ -17,6 +17,7 @@ class UserSchema(BaseModel):
     is_active: bool = True
     is_verified: bool = False
     last_login_at: datetime | None = None
+    preferences: dict | None = None
     created_at: datetime
 
     def verify_password(self, plain_text_password: str) -> bool:

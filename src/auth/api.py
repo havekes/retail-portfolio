@@ -119,7 +119,7 @@ class UserApi:
 
         return AuthResponse(
             access_token=access_token,
-            user=User(**user.model_dump()),
+            user=User(id=user.id, email=user.email),
         )
 
     async def verify_email(self, token: str) -> None:
@@ -134,6 +134,14 @@ class UserApi:
         """Look up a user's email by user ID, returning None if not found."""
         user = await self._user_repository.get_by_id(user_id)
         return user.email if user else None
+
+    async def get_preferences(self, user_id: UserId) -> dict | None:
+        """Retrieve the user's stored preferences, returning None if not saved."""
+        return await self._user_repository.get_preferences(user_id)
+
+    async def save_preferences(self, user_id: UserId, preferences: dict) -> None:
+        """Store the user's preferences."""
+        await self._user_repository.save_preferences(user_id, preferences)
 
     def _decode_token(self, token: str) -> AccessTokenData:
         """Decode and validate a JWT token."""
