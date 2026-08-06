@@ -194,8 +194,8 @@ async def market_get_prices(  # noqa: PLR0913, PLR0917
                 security,
                 f_date,
                 t_date,
-                offset=pagination.offset,
-                limit=pagination.limit,
+                offset=0,
+                limit=100000,
             )
             items = [PriceSchema.model_validate(price) for price in prices]
         else:
@@ -207,7 +207,7 @@ async def market_get_prices(  # noqa: PLR0913, PLR0917
             else:
                 aggregated = aggregate_monthly_prices(all_prices)
             total = len(aggregated)
-            items = aggregated[pagination.offset : pagination.offset + pagination.limit]
+            items = aggregated
 
         logger.info(
             "Retrieved %d prices (%s) for security %s from %s to %s",
@@ -221,8 +221,8 @@ async def market_get_prices(  # noqa: PLR0913, PLR0917
         return PriceHistoryRead(
             items=items,
             total=total,
-            offset=pagination.offset,
-            limit=pagination.limit,
+            offset=0,
+            limit=total,
             security_id=security_id,
             from_date=f_date,
             to_date=t_date,
@@ -258,9 +258,7 @@ async def market_get_prices(  # noqa: PLR0913, PLR0917
         candles = aggregate_4h_candles(candles)
 
     total = len(candles)
-    paginated_candles = candles[
-        pagination.offset : pagination.offset + pagination.limit
-    ]
+    paginated_candles = candles
 
     logger.info(
         "Retrieved %d intraday (%s) prices for security %s",
@@ -272,8 +270,8 @@ async def market_get_prices(  # noqa: PLR0913, PLR0917
     return IntradayPriceHistoryRead(
         items=paginated_candles,
         total=total,
-        offset=pagination.offset,
-        limit=pagination.limit,
+        offset=0,
+        limit=total,
         security_id=security_id,
         from_date=from_date,
         to_date=to_date,
