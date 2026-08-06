@@ -25,7 +25,7 @@ export const load: PageServerLoad = async ({ params, cookies, fetch }) => {
 };
 
 export const actions: Actions = {
-	renameAccount: async ({ params, request, fetch }) => {
+	renameAccount: async ({ params, request, fetch, cookies }) => {
 		const data = await request.formData();
 		const name = data.get('name');
 
@@ -33,9 +33,10 @@ export const actions: Actions = {
 			return fail(400, { message: 'Name is required' });
 		}
 
+		const token = cookies.get('auth_token');
 		const accountClient = getAccountClient(fetch);
 		try {
-			await accountClient.renameAccount(params.id, name);
+			await accountClient.renameAccount(params.id, name, token);
 		} catch (err) {
 			if (err instanceof ApiError) {
 				return fail(err.status, { message: err.message });

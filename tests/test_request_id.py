@@ -67,3 +67,20 @@ def test_contextvar_manual_binding():
         from src.core.context import request_id_ctx_var
 
         request_id_ctx_var.reset(token)
+
+
+@pytest.mark.anyio
+async def test_request_id_log_4xx_warning(caplog):
+    """Verify that 4xx HTTP responses are logged as warning in RequestIdMiddleware."""
+    async with LifespanManager(app) as manager:
+        with caplog.at_level(logging.WARNING):
+            async with AsyncClient(
+                transport=ASGITransport(app=manager.app), base_url="http://test"
+            ) as client:
+                response = await client.get("/api/nonexistent-test-route-404")
+                assert response.status_code == 404
+
+    warning_records = [r for r in caplog.records if r.levelname == "WARNING"]
+    assert len(warning_records) >= 1
+    assert any("404" in r.message for r in warning_records)
+
