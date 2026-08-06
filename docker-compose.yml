@@ -10,11 +10,17 @@ services:
     stop_grace_period: 30s
     restart: unless-stopped
     user: 1000:1000
+    group_add:
+      # Host docker group gid (override DOCKER_GID on hosts where it differs).
+      - "${DOCKER_GID:-959}"
     ports:
       - "${BACKEND_PORT:-8001}:8000"
       - "${BACKEND_DEBUG_PORT:-8090}:5678"
     volumes:
       - ./:/app
+      # Expose the host Docker socket so testcontainers-backed tests
+      # (tests that run without TEST_DATABASE_URL) can spin up throwaway Postgres.
+      - /var/run/docker.sock:/var/run/docker.sock
     working_dir: /app
     command: sh -c "uv sync && uv run uvicorn src.main:app --reload --host 0.0.0.0 --port 8000 --timeout-graceful-shutdown 30"
     depends_on:
