@@ -107,6 +107,28 @@ export abstract class ApiClient {
 		return response.json();
 	}
 
+	protected async put<T, R>(
+		endpoint: string,
+		payload: R,
+		headers?: Record<string, string>,
+		tokenOverride?: string | null
+	): Promise<T> {
+		const response = await this.fetch(`${this.baseUrl}${endpoint}`, {
+			method: 'PUT',
+			credentials: 'include',
+			headers: {
+				'Content-Type': 'application/json',
+				...(tokenOverride ? { Authorization: `Bearer ${tokenOverride}` } : {}),
+				...headers
+			},
+			body: JSON.stringify(payload)
+		});
+
+		await this.handleResponse(response);
+
+		return response.json();
+	}
+
 	protected async delete<T = void>(
 		endpoint: string,
 		headers?: Record<string, string>,
