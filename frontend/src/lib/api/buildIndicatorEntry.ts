@@ -37,8 +37,10 @@ function buildSettings(
 	newConfig: IndicatorConfigInput,
 	current: IndicatorConfig | undefined
 ): IndicatorSettings {
-	const base: IndicatorSettings = current?.settings ?? {};
-	const result: IndicatorSettings = { ...base };
+	const result: IndicatorSettings = {
+		...(newConfig.settings ?? {}),
+		...(current?.settings ?? {}),
+	};
 
 	if (newConfig.period !== undefined) result.period = newConfig.period;
 	if (newConfig.stdDev !== undefined) result.stdDev = newConfig.stdDev;

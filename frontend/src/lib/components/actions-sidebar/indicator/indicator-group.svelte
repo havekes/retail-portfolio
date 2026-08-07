@@ -21,7 +21,7 @@
 		indicatorConfigs?: Record<string, IndicatorConfig | undefined>;
 		onIndicatorToggle?: (indicatorId: string, enabled: boolean) => void;
 		onPreferencesLoaded?: (prefs: UserPreferences) => void;
-		onIndicatorConfigChange?: (indicatorId: string, newConfig: IndicatorConfig) => void;
+		onIndicatorConfigChange?: (indicatorId: string, newConfig: Partial<IndicatorConfig>) => void;
 	}>();
 
 	interface IndicatorUIProps {
