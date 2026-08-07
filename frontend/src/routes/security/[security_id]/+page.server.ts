@@ -1,4 +1,5 @@
 import { getMarketService } from '@/api/marketService';
+import { deleteAuthCookie } from '$lib/server/auth-cookie';
 import { error, redirect } from '@sveltejs/kit';
 import { ApiError } from '$lib/api/apiClient';
 import type { PageServerLoad } from './$types';
@@ -33,7 +34,7 @@ export const load: PageServerLoad = async ({ params, fetch, cookies }) => {
 	} catch (err) {
 		if (err instanceof ApiError) {
 			if (err.status === 401) {
-				cookies.delete('auth_token', { path: '/' });
+				deleteAuthCookie(cookies);
 				throw redirect(303, '/auth/login?clear_session=true');
 			}
 			throw error(err.status, err.message);
