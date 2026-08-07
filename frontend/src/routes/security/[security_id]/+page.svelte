@@ -53,11 +53,15 @@
 		});
 	}
 
-	async function changeTimeframe(interval: string, { persist = true }: { persist?: boolean } = {}) {
-		if (!security?.id || isChangingTimeframe || selectedInterval === interval) return;
+	async function changeTimeframe(
+		interval: string,
+		{ persist = true, force = false }: { persist?: boolean; force?: boolean } = {}
+	) {
+		if (!security?.id || isChangingTimeframe || (!force && selectedInterval === interval)) return;
 		selectedInterval = interval;
 		isChangingTimeframe = true;
 
+		let fetchOk = false;
 		try {
 			const isIntraday = interval === '1h' || interval === '4h';
 			const from = isIntraday ? undefined : '2000-01-03';
@@ -106,13 +110,21 @@
 				}
 			}, 20);
 
-			if (persist) {
-				await updateChartPreferences({ timeframe: interval });
-			}
+			fetchOk = true;
 		} catch (err) {
 			console.error('Failed to change timeframe:', err);
 		} finally {
 			isChangingTimeframe = false;
+		}
+
+		// Persist outside the fetch try/catch so save failures don't obscure fetch errors
+		// and isChangingTimeframe isn't held during the extra PUT.
+		if (persist && fetchOk) {
+			try {
+				await updateChartPreferences({ timeframe: interval });
+			} catch (err) {
+				console.error('Failed to persist timeframe preference:', err);
+			}
 		}
 	}
 	let securityChart = $state<unknown | null>(null);
@@ -337,6 +349,11 @@
 				volume: Number(p.volume)
 			}));
 
+			// On soft nav (component reused across /security/A → /security/B),
+			// update the security ref from the current page data so changeTimeframe
+			// uses the correct security id.
+			security = data.security;
+
 			rawCandles = mappedCandles;
 			haCandles = convertToHeikinAshi(rawCandles);
 			await Promise.all([loadAlerts(), loadHoldings()]);
@@ -345,9 +362,10 @@
 			securityChart = module.default;
 
 			// Soft-navigation reconcile: server always loads '1d' series; if we're on a different
-			// timeframe, refetch to keep the displayed series in sync.
+			// timeframe, force-refetch to keep the displayed series in sync with the active
+			// timeframe for the new security.
 			if (selectedInterval !== '1d') {
-				await changeTimeframe(selectedInterval, { persist: false });
+				await changeTimeframe(selectedInterval, { persist: false, force: true });
 			}
 		})();
 	});
@@ -433,9 +451,13 @@
 								<span class="mr-2 text-xs font-medium text-muted-foreground">Style:</span>
 								<button
 									type="button"
-									onclick={() => {
+									onclick={async () => {
 										chartStyle = 'heikin_ashi';
-										updateChartPreferences({ chart_style: 'heikin_ashi' });
+										try {
+											await updateChartPreferences({ chart_style: 'heikin_ashi' });
+										} catch (err) {
+											console.error('Failed to persist chart style:', err);
+										}
 									}}
 									disabled={isChangingTimeframe}
 									class="rounded px-2.5 py-1 text-xs font-medium transition-colors {chartStyle ===
@@ -448,9 +470,13 @@
 								</button>
 								<button
 									type="button"
-									onclick={() => {
+									onclick={async () => {
 										chartStyle = 'candlestick';
-										updateChartPreferences({ chart_style: 'candlestick' });
+										try {
+											await updateChartPreferences({ chart_style: 'candlestick' });
+										} catch (err) {
+											console.error('Failed to persist chart style:', err);
+										}
 									}}
 									disabled={isChangingTimeframe}
 									class="rounded px-2.5 py-1 text-xs font-medium transition-colors {chartStyle ===
