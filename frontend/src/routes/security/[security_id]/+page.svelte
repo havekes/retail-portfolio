@@ -14,6 +14,7 @@
 	import DocumentsGroup from '@/components/actions-sidebar/document/document-group.svelte';
 	import AIAnalysisGroup from '$lib/components/actions-sidebar/ai/ai-analysis-group.svelte';
 	import type { UserPreferences } from '$lib/api/userPreferencesService';
+	import { userPreferencesService, type ChartStyle } from '$lib/api/userPreferencesService';
 	import { alertsService, type PriceAlert } from '$lib/api/alertsService';
 	import { calculateSMA } from '@/utils/finance/moving-average';
 	import { calculateRSI } from '@/utils/finance/rsi';
@@ -38,9 +39,21 @@
 	let security = $state<SecuritySchema | null>(data.security);
 	let haCandles = $state<Candle[]>([]);
 	let selectedInterval = $state('1d');
+	let chartStyle = $state<ChartStyle>('heikin_ashi');
+	let rawCandles = $state<Candle[]>([]);
+	let displayCandles = $derived(chartStyle === 'heikin_ashi' ? haCandles : rawCandles);
 	let isChangingTimeframe = $state(false);
 
-	async function changeTimeframe(interval: string) {
+	async function updateChartPreferences(partial: Partial<UserPreferences>) {
+		const prefs = await userPreferencesService.getPreferences();
+		await userPreferencesService.savePreferences({
+			...prefs,
+			indicators: prefs.indicators ?? {},
+			...partial
+		});
+	}
+
+	async function changeTimeframe(interval: string, { persist = true }: { persist?: boolean } = {}) {
 		if (!security?.id || isChangingTimeframe || selectedInterval === interval) return;
 		selectedInterval = interval;
 		isChangingTimeframe = true;
@@ -59,7 +72,7 @@
 			}
 			error = null;
 
-			const rawCandles: Candle[] = priceResponse.items.map((p) => {
+			const mappedCandles: Candle[] = priceResponse.items.map((p) => {
 				const timeVal =
 					isIntraday && p.timestamp
 						? (Math.floor(new Date(p.timestamp).getTime() / 1000) as UTCTimestamp)
@@ -74,13 +87,14 @@
 				};
 			});
 
-			rawCandles.sort((a, b) => {
+			mappedCandles.sort((a, b) => {
 				if (typeof a.time === 'number' && typeof b.time === 'number') {
 					return a.time - b.time;
 				}
 				return String(a.time).localeCompare(String(b.time));
 			});
 
+			rawCandles = mappedCandles;
 			haCandles = convertToHeikinAshi(rawCandles);
 
 			setTimeout(() => {
@@ -91,6 +105,10 @@
 					}
 				}
 			}, 20);
+
+			if (persist) {
+				await updateChartPreferences({ timeframe: interval });
+			}
 		} catch (err) {
 			console.error('Failed to change timeframe:', err);
 		} finally {
@@ -264,7 +282,16 @@
 		});
 	}
 
-	function onPreferencesLoaded(prefs: UserPreferences) {
+	async function onPreferencesLoaded(prefs: UserPreferences) {
+		// (a) Apply chart style
+		chartStyle = (prefs.chart_style as ChartStyle | undefined) ?? 'heikin_ashi';
+
+		// (b) Apply saved timeframe — no persist on load
+		if (prefs.timeframe && prefs.timeframe !== selectedInterval) {
+			await changeTimeframe(prefs.timeframe, { persist: false });
+		}
+
+		// (c) Apply indicator preferences
 		if (!prefs?.indicators) return;
 		for (const [id, config] of Object.entries(prefs.indicators)) {
 			if (id === 'avgPrice') {
@@ -299,7 +326,7 @@
 			}
 
 			// Convert to lightweight-charts format and sort properly (oldest to newest)
-			const rawCandles: Candle[] = data.items.map((p) => ({
+			const mappedCandles: Candle[] = data.items.map((p) => ({
 				time: p.timestamp
 					? (Math.floor(new Date(p.timestamp).getTime() / 1000) as UTCTimestamp)
 					: ((p.date ?? '') as Time),
@@ -310,11 +337,18 @@
 				volume: Number(p.volume)
 			}));
 
+			rawCandles = mappedCandles;
 			haCandles = convertToHeikinAshi(rawCandles);
 			await Promise.all([loadAlerts(), loadHoldings()]);
 
 			const module = await import('$lib/components/charts/security-chart.svelte');
 			securityChart = module.default;
+
+			// Soft-navigation reconcile: server always loads '1d' series; if we're on a different
+			// timeframe, refetch to keep the displayed series in sync.
+			if (selectedInterval !== '1d') {
+				await changeTimeframe(selectedInterval, { persist: false });
+			}
 		})();
 	});
 </script>
@@ -395,10 +429,43 @@
 									</button>
 								{/each}
 							</div>
+							<div class="flex items-center gap-1">
+								<span class="mr-2 text-xs font-medium text-muted-foreground">Style:</span>
+								<button
+									type="button"
+									onclick={() => {
+										chartStyle = 'heikin_ashi';
+										updateChartPreferences({ chart_style: 'heikin_ashi' });
+									}}
+									disabled={isChangingTimeframe}
+									class="rounded px-2.5 py-1 text-xs font-medium transition-colors {chartStyle ===
+									'heikin_ashi'
+										? 'bg-primary text-primary-foreground shadow-sm'
+										: 'text-muted-foreground hover:bg-muted hover:text-foreground'}"
+									aria-label="Toggle Heikin-Ashi chart style"
+								>
+									Heikin-Ashi
+								</button>
+								<button
+									type="button"
+									onclick={() => {
+										chartStyle = 'candlestick';
+										updateChartPreferences({ chart_style: 'candlestick' });
+									}}
+									disabled={isChangingTimeframe}
+									class="rounded px-2.5 py-1 text-xs font-medium transition-colors {chartStyle ===
+									'candlestick'
+										? 'bg-primary text-primary-foreground shadow-sm'
+										: 'text-muted-foreground hover:bg-muted hover:text-foreground'}"
+									aria-label="Toggle Candlestick chart style"
+								>
+									Candlestick
+								</button>
+							</div>
 						</div>
 						<div class="flex-1 overflow-hidden">
 							<ChartComponent
-								candles={haCandles}
+								candles={displayCandles}
 								bind:this={chartRef}
 								{alerts}
 								onAddAlert={handleCreateAlert}
