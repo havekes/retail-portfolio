@@ -14,6 +14,7 @@
 	import DocumentsGroup from '@/components/actions-sidebar/document/document-group.svelte';
 	import AIAnalysisGroup from '$lib/components/actions-sidebar/ai/ai-analysis-group.svelte';
 	import type { UserPreferences } from '$lib/api/userPreferencesService';
+	import { userPreferencesService, type ChartStyle } from '$lib/api/userPreferencesService';
 	import { alertsService, type PriceAlert } from '$lib/api/alertsService';
 	import { calculateSMA } from '@/utils/finance/moving-average';
 	import { calculateRSI } from '@/utils/finance/rsi';
@@ -27,6 +28,11 @@
 	import type { IndicatorData } from '$lib/components/charts/security-chart.svelte';
 	import Star from '@lucide/svelte/icons/star';
 	import { getWatchlistService } from '$lib/components/watchlist/watchlistService.svelte';
+	import {
+		mergeChartPreferences,
+		displayCandlesFor,
+		shouldForceRefetch
+	} from '$lib/chart-preferences';
 
 	let { data } = $props();
 
@@ -38,13 +44,30 @@
 	let security = $state<SecuritySchema | null>(data.security);
 	let haCandles = $state<Candle[]>([]);
 	let selectedInterval = $state('1d');
+	let chartStyle = $state<ChartStyle>('heikin_ashi');
+	let rawCandles = $state<Candle[]>([]);
+	let displayCandles = $derived(displayCandlesFor(chartStyle, rawCandles, haCandles));
 	let isChangingTimeframe = $state(false);
 
-	async function changeTimeframe(interval: string) {
-		if (!security?.id || isChangingTimeframe || selectedInterval === interval) return;
+	async function updateChartPreferences(partial: Partial<UserPreferences>) {
+		const prefs = await userPreferencesService.getPreferences();
+		await userPreferencesService.savePreferences(mergeChartPreferences(prefs, partial));
+	}
+
+	async function changeTimeframe(
+		interval: string,
+		{ persist = true, force = false }: { persist?: boolean; force?: boolean } = {}
+	) {
+		if (
+			!security?.id ||
+			isChangingTimeframe ||
+			!shouldForceRefetch(selectedInterval, interval, force)
+		)
+			return;
 		selectedInterval = interval;
 		isChangingTimeframe = true;
 
+		let fetchOk = false;
 		try {
 			const isIntraday = interval === '1h' || interval === '4h';
 			const from = isIntraday ? undefined : '2000-01-03';
@@ -59,7 +82,7 @@
 			}
 			error = null;
 
-			const rawCandles: Candle[] = priceResponse.items.map((p) => {
+			const mappedCandles: Candle[] = priceResponse.items.map((p) => {
 				const timeVal =
 					isIntraday && p.timestamp
 						? (Math.floor(new Date(p.timestamp).getTime() / 1000) as UTCTimestamp)
@@ -74,13 +97,14 @@
 				};
 			});
 
-			rawCandles.sort((a, b) => {
+			mappedCandles.sort((a, b) => {
 				if (typeof a.time === 'number' && typeof b.time === 'number') {
 					return a.time - b.time;
 				}
 				return String(a.time).localeCompare(String(b.time));
 			});
 
+			rawCandles = mappedCandles;
 			haCandles = convertToHeikinAshi(rawCandles);
 
 			setTimeout(() => {
@@ -91,10 +115,22 @@
 					}
 				}
 			}, 20);
+
+			fetchOk = true;
 		} catch (err) {
 			console.error('Failed to change timeframe:', err);
 		} finally {
 			isChangingTimeframe = false;
+		}
+
+		// Persist outside the fetch try/catch so save failures don't obscure fetch errors
+		// and isChangingTimeframe isn't held during the extra PUT.
+		if (persist && fetchOk) {
+			try {
+				await updateChartPreferences({ timeframe: interval });
+			} catch (err) {
+				console.error('Failed to persist timeframe preference:', err);
+			}
 		}
 	}
 	let securityChart = $state<unknown | null>(null);
@@ -264,7 +300,16 @@
 		});
 	}
 
-	function onPreferencesLoaded(prefs: UserPreferences) {
+	async function onPreferencesLoaded(prefs: UserPreferences) {
+		// (a) Apply chart style
+		chartStyle = (prefs.chart_style as ChartStyle | undefined) ?? 'heikin_ashi';
+
+		// (b) Apply saved timeframe — no persist on load
+		if (prefs.timeframe && prefs.timeframe !== selectedInterval) {
+			await changeTimeframe(prefs.timeframe, { persist: false });
+		}
+
+		// (c) Apply indicator preferences
 		if (!prefs?.indicators) return;
 		for (const [id, config] of Object.entries(prefs.indicators)) {
 			if (id === 'avgPrice') {
@@ -299,7 +344,7 @@
 			}
 
 			// Convert to lightweight-charts format and sort properly (oldest to newest)
-			const rawCandles: Candle[] = data.items.map((p) => ({
+			const mappedCandles: Candle[] = data.items.map((p) => ({
 				time: p.timestamp
 					? (Math.floor(new Date(p.timestamp).getTime() / 1000) as UTCTimestamp)
 					: ((p.date ?? '') as Time),
@@ -310,11 +355,25 @@
 				volume: Number(p.volume)
 			}));
 
+			// On soft nav (component reused across /security/A → /security/B),
+			// update the security ref from the current page data so changeTimeframe
+			// uses the correct security id.
+			security = data.security;
+
+			rawCandles = mappedCandles;
 			haCandles = convertToHeikinAshi(rawCandles);
 			await Promise.all([loadAlerts(), loadHoldings()]);
 
 			const module = await import('$lib/components/charts/security-chart.svelte');
 			securityChart = module.default;
+
+			// Soft-navigation reconcile: server always loads '1d' series; if we're on a different
+			// timeframe, force-refetch to keep the displayed series in sync with the active
+			// timeframe for the new security. Gate on !isChangingTimeframe to avoid a
+			// redundant refetch when a saved timeframe ≠ 1d (onPreferencesLoaded is still running).
+			if (!isChangingTimeframe && selectedInterval !== '1d') {
+				await changeTimeframe(selectedInterval, { persist: false, force: true });
+			}
 		})();
 	});
 </script>
@@ -332,13 +391,14 @@
 					<div class="flex items-center gap-2">
 						<h2 class="text-lg font-semibold">{security?.symbol ?? ''}</h2>
 						{#if security}
+							{@const currentSecurity = security}
 							<button
 								type="button"
-								onclick={() => watchlistService.toggleSecurity(security.id)}
+								onclick={() => watchlistService.toggleSecurity(currentSecurity.id)}
 								class="rounded-sm p-1 hover:bg-muted focus:outline-hidden"
 								aria-label="Toggle watchlist"
 							>
-								{#if watchlistService.hasSecurity(security.id)}
+								{#if watchlistService.hasSecurity(currentSecurity.id)}
 									<Star class="h-4 w-4 fill-amber-400 stroke-amber-500" />
 								{:else}
 									<Star class="h-4 w-4 text-muted-foreground hover:text-amber-500" />
@@ -395,10 +455,51 @@
 									</button>
 								{/each}
 							</div>
+							<div class="flex items-center gap-1">
+								<span class="mr-2 text-xs font-medium text-muted-foreground">Style:</span>
+								<button
+									type="button"
+									onclick={async () => {
+										chartStyle = 'heikin_ashi';
+										try {
+											await updateChartPreferences({ chart_style: 'heikin_ashi' });
+										} catch (err) {
+											console.error('Failed to persist chart style:', err);
+										}
+									}}
+									disabled={isChangingTimeframe}
+									class="rounded px-2.5 py-1 text-xs font-medium transition-colors {chartStyle ===
+									'heikin_ashi'
+										? 'bg-primary text-primary-foreground shadow-sm'
+										: 'text-muted-foreground hover:bg-muted hover:text-foreground'}"
+									aria-label="Toggle Heikin-Ashi chart style"
+								>
+									Heikin-Ashi
+								</button>
+								<button
+									type="button"
+									onclick={async () => {
+										chartStyle = 'candlestick';
+										try {
+											await updateChartPreferences({ chart_style: 'candlestick' });
+										} catch (err) {
+											console.error('Failed to persist chart style:', err);
+										}
+									}}
+									disabled={isChangingTimeframe}
+									class="rounded px-2.5 py-1 text-xs font-medium transition-colors {chartStyle ===
+									'candlestick'
+										? 'bg-primary text-primary-foreground shadow-sm'
+										: 'text-muted-foreground hover:bg-muted hover:text-foreground'}"
+									aria-label="Toggle Candlestick chart style"
+								>
+									Candlestick
+								</button>
+							</div>
 						</div>
 						<div class="flex-1 overflow-hidden">
 							<ChartComponent
-								candles={haCandles}
+								candles={displayCandles}
 								bind:this={chartRef}
 								{alerts}
 								onAddAlert={handleCreateAlert}

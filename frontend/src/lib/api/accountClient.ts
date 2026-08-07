@@ -7,7 +7,12 @@ export class AccountClient extends ApiClient {
 	}
 
 	async renameAccount(id: string, name: string, token?: string | null): Promise<Account> {
-		return this.patch<Account, { name: string }>(`/accounts/${id}/rename`, { name }, undefined, token);
+		return this.patch<Account, { name: string }>(
+			`/accounts/${id}/rename`,
+			{ name },
+			undefined,
+			token
+		);
 	}
 
 	async getAccountTotals(id: string): Promise<AccountTotals> {

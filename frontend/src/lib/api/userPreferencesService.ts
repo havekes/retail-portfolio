@@ -1,9 +1,11 @@
 import { ApiClient } from './apiClient';
 import type { IndicatorConfig } from './indicatorsService';
 
+export type ChartStyle = 'heikin_ashi' | 'candlestick';
+
 export interface UserPreferences {
 	timeframe?: string | null;
-	chart_style?: string | null;
+	chart_style?: ChartStyle | null;
 	indicators?: Record<string, IndicatorConfig> | null;
 }
 

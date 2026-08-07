@@ -39,7 +39,7 @@ function buildSettings(
 ): IndicatorSettings {
 	const result: IndicatorSettings = {
 		...(newConfig.settings ?? {}),
-		...(current?.settings ?? {}),
+		...(current?.settings ?? {})
 	};
 
 	if (newConfig.period !== undefined) result.period = newConfig.period;
