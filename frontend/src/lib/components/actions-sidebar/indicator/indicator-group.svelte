@@ -1,8 +1,10 @@
 <script lang="ts">
 	import * as Sidebar from '$lib/components/ui/sidebar/index.js';
 	import { Checkbox } from '$lib/components/ui/checkbox/index.js';
-	import { indicatorsService } from '$lib/api/indicatorsService';
-	import type { IndicatorConfig, IndicatorPreferences } from '$lib/api/indicatorsService';
+	import { userPreferencesService } from '$lib/api/userPreferencesService';
+	import type { IndicatorConfig } from '$lib/api/indicatorsService';
+	import type { UserPreferences } from '$lib/api/userPreferencesService';
+	import { buildIndicatorEntry, buildToggleEntry } from '$lib/api/buildIndicatorEntry';
 	import { Settings2 } from '@lucide/svelte';
 	import IndicatorConfigDialog from '@/components/actions-sidebar/indicator/indicator-config-modal.svelte';
 	import GroupTitle from '../group-title.svelte';
@@ -10,18 +12,16 @@
 
 	let {
 		expanded = $bindable(true),
-		securityId,
 		indicatorConfigs,
 		onIndicatorToggle,
 		onPreferencesLoaded,
 		onIndicatorConfigChange
 	} = $props<{
 		expanded: boolean;
-		securityId: string;
 		indicatorConfigs?: Record<string, IndicatorConfig | undefined>;
 		onIndicatorToggle?: (indicatorId: string, enabled: boolean) => void;
-		onPreferencesLoaded?: (prefs: IndicatorPreferences) => void;
-		onIndicatorConfigChange?: (indicatorId: string, newConfig: IndicatorConfig) => void;
+		onPreferencesLoaded?: (prefs: UserPreferences) => void;
+		onIndicatorConfigChange?: (indicatorId: string, newConfig: Partial<IndicatorConfig>) => void;
 	}>();
 
 	interface IndicatorUIProps {
@@ -50,7 +50,7 @@
 		{ id: 'obv', label: 'OBV', color: '#f59e0b' }
 	];
 
-	let preferences = $state<IndicatorPreferences | null>(null);
+	let preferences = $state<UserPreferences | null>(null);
 
 	// use expanded directly
 	let isSettingsOpen = $state(false);
@@ -68,29 +68,40 @@
 		isSettingsOpen = true;
 	}
 
-	function saveSettings(id: string, newConfig: unknown) {
+	async function saveSettings(id: string, newConfig: unknown) {
 		if (onIndicatorConfigChange) {
-			onIndicatorConfigChange(id, newConfig as IndicatorConfig);
+			onIndicatorConfigChange(id, newConfig as Partial<IndicatorConfig>);
+		}
+		if (!preferences) return;
+
+		const nc = newConfig as Partial<IndicatorConfig> & {
+			period?: number;
+			stdDev?: number;
+			fast?: number;
+			slow?: number;
+			signal?: number;
+		};
+		const current = preferences.indicators?.[id];
+		preferences.indicators = {
+			...preferences.indicators,
+			[id]: buildIndicatorEntry(nc, current)
+		};
+		try {
+			await userPreferencesService.savePreferences({ ...preferences });
+		} catch (err) {
+			console.error('Failed to save preferences:', err);
 		}
 	}
 
 	async function loadPreferences() {
 		try {
-			const res = await indicatorsService.getPreferences(securityId);
-			preferences = res || {
-				security_id: securityId,
-				user_id: '',
-				indicators: {}
-			};
-			if (!preferences.indicators) {
-				preferences.indicators = {};
-			}
-		} catch {
+			const res = await userPreferencesService.getPreferences();
 			preferences = {
-				security_id: securityId,
-				user_id: '',
-				indicators: {}
+				...res,
+				indicators: res.indicators ?? {}
 			};
+		} catch {
+			preferences = { indicators: {} };
 		}
 		if (onPreferencesLoaded && preferences) {
 			onPreferencesLoaded(preferences);
@@ -100,27 +111,28 @@
 	async function toggleIndicator(indicatorId: string) {
 		if (!preferences) return;
 
-		const current = preferences.indicators[indicatorId];
-		const currentEnabled = current?.enabled ?? indicatorConfigs?.[indicatorId]?.enabled;
-		const newEnabled = !currentEnabled;
+		const current = preferences.indicators?.[indicatorId];
+		const newEntry = buildToggleEntry(
+			current,
+			indicatorConfigs?.[indicatorId]?.color || '',
+			indicatorConfigs?.[indicatorId]?.enabled
+		);
 
 		const newPreferences = {
 			...preferences,
 			indicators: {
 				...preferences.indicators,
-				[indicatorId]: {
-					enabled: newEnabled,
-					color: current?.color || '',
-					settings: current?.settings || {}
-				}
+				[indicatorId]: newEntry
 			}
 		};
 
+		// Assign local state before the network await to avoid lost-update races
+		preferences = newPreferences;
+
 		try {
-			// await indicatorsService.savePreferences(securityId, newPreferences);
-			preferences = newPreferences;
+			await userPreferencesService.savePreferences(newPreferences);
 			if (onIndicatorToggle) {
-				onIndicatorToggle(indicatorId, newEnabled);
+				onIndicatorToggle(indicatorId, newEntry.enabled);
 			}
 		} catch (err) {
 			console.error('Failed to save preferences:', err);
@@ -128,9 +140,7 @@
 	}
 
 	$effect(() => {
-		if (securityId) {
-			loadPreferences();
-		}
+		loadPreferences();
 	});
 </script>
 
@@ -165,7 +175,7 @@
 						{/if}
 						<div class="pointer-events-none">
 							<Checkbox
-								checked={preferences?.indicators[indicator.id]?.enabled ??
+								checked={preferences?.indicators?.[indicator.id]?.enabled ??
 									indicatorConfigs?.[indicator.id]?.enabled}
 							/>
 						</div>

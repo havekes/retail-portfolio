@@ -13,7 +13,7 @@
 	import NotesGroup from '@/components/actions-sidebar/note/note-group.svelte';
 	import DocumentsGroup from '@/components/actions-sidebar/document/document-group.svelte';
 	import AIAnalysisGroup from '$lib/components/actions-sidebar/ai/ai-analysis-group.svelte';
-	import type { IndicatorPreferences } from '$lib/api/indicatorsService';
+	import type { UserPreferences } from '$lib/api/userPreferencesService';
 	import { alertsService, type PriceAlert } from '$lib/api/alertsService';
 	import { calculateSMA } from '@/utils/finance/moving-average';
 	import { calculateRSI } from '@/utils/finance/rsi';
@@ -264,12 +264,29 @@
 		});
 	}
 
-	function onPreferencesLoaded(prefs: IndicatorPreferences) {
+	function onPreferencesLoaded(prefs: UserPreferences) {
 		if (!prefs?.indicators) return;
 		for (const [id, config] of Object.entries(prefs.indicators)) {
-			if (config.enabled) {
-				// setTimeout ensures chartRef is bound
-				setTimeout(() => onIndicatorToggle(id, true), 100);
+			if (id === 'avgPrice') {
+				indicatorConfigs.avgPrice.enabled = config.enabled;
+				if (config.enabled) {
+					setTimeout(() => onIndicatorToggle(id, true), 100);
+				}
+			} else if (indicatorConfigs[id]) {
+				indicatorConfigs[id].enabled = config.enabled;
+				if (config.color) indicatorConfigs[id].color = config.color;
+				if (config.settings) {
+					const s = config.settings;
+					if ('period' in s) indicatorConfigs[id].period = s.period as number;
+					if ('stdDev' in s) indicatorConfigs[id].stdDev = s.stdDev as number;
+					if ('fast' in s) indicatorConfigs[id].fast = s.fast as number;
+					if ('slow' in s) indicatorConfigs[id].slow = s.slow as number;
+					if ('signal' in s) indicatorConfigs[id].signal = s.signal as number;
+				}
+				if (config.enabled) {
+					// setTimeout ensures chartRef is bound
+					setTimeout(() => onIndicatorToggle(id, true), 100);
+				}
 			}
 		}
 	}
@@ -396,7 +413,6 @@
 							<HoldingsGroup securityId={security.id} expanded={true} />
 							<IndicatorsGroup
 								expanded={true}
-								securityId={security.id}
 								{indicatorConfigs}
 								{onIndicatorToggle}
 								{onPreferencesLoaded}
