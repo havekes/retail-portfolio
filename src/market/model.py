@@ -192,21 +192,3 @@ class SecurityDocumentModel(BaseModel):
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), default=func.now()
     )
-
-
-class IndicatorPreferencesModel(BaseModel):
-    __tablename__ = "market_indicator_preferences"
-
-    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
-    security_id: Mapped[SecurityId] = mapped_column(
-        Uuid, ForeignKey("market_securities.id", ondelete="CASCADE")
-    )
-    user_id: Mapped[UserId] = mapped_column(Uuid)
-    indicators_json: Mapped[dict] = mapped_column(JSON)
-    updated_at: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True), default=func.now(), onupdate=func.now()
-    )
-
-    __table_args__ = (
-        UniqueConstraint("security_id", "user_id", name="indicator_prefs_unique"),
-    )

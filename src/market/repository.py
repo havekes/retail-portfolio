@@ -7,8 +7,6 @@ from src.auth.api_types import UserId
 from src.market.api_types import SecurityId
 from src.market.schema import (
     AlertForEvaluation,
-    IndicatorPreferencesRead,
-    IndicatorPreferencesWrite,
     IntradayPriceSchema,
     PriceAlertRead,
     PriceAlertWrite,
@@ -228,21 +226,4 @@ class SecurityDocumentRepository(ABC):
 
     @abstractmethod
     async def delete(self, document_id: int, user_id: UserId) -> None:
-        pass
-
-
-class IndicatorPreferencesRepository(ABC):
-    @abstractmethod
-    async def get_for_security_and_user(
-        self, security_id: SecurityId, user_id: UserId
-    ) -> IndicatorPreferencesRead | None:
-        pass
-
-    @abstractmethod
-    async def save(
-        self,
-        preferences: IndicatorPreferencesWrite,
-        security_id: SecurityId,
-        user_id: UserId,
-    ) -> IndicatorPreferencesRead:
         pass
