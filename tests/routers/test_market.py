@@ -392,6 +392,25 @@ async def test_get_prices_security_not_found_returns_404(auth_client):
 
 
 @pytest.mark.anyio
+async def test_indicator_preferences_endpoints_return_404(auth_client, test_security):
+    """Test GET and PUT /securities/{id}/indicator-preferences return 404 after removal.
+
+    Regression test: the per-security indicator-preferences endpoints were deleted
+    (F-user-chart-preferences-T04). FastAPI returns 404 for unregistered routes.
+    """
+    get_resp = await auth_client.get(
+        f"/api/v1/market/securities/{test_security.id}/indicator-preferences"
+    )
+    assert get_resp.status_code == 404
+
+    put_resp = await auth_client.put(
+        f"/api/v1/market/securities/{test_security.id}/indicator-preferences",
+        json={"indicators_json": {}},
+    )
+    assert put_resp.status_code == 404
+
+
+@pytest.mark.anyio
 async def test_get_prices_1w_weekly_aggregation(auth_client, test_security):
     """Test GET /market/prices/{security_id} with interval=1w aggregates daily prices into weekly candles."""
     response = await auth_client.get(

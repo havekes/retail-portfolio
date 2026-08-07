@@ -26,9 +26,7 @@ class UserModel(BaseModel):
     last_login_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), nullable=True
     )
-    preferences: Mapped[dict | None] = mapped_column(
-        JSON, nullable=True
-    )
+    preferences: Mapped[dict | None] = mapped_column(JSON, nullable=True)
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), default=func.now()
     )

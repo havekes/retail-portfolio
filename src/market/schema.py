@@ -209,20 +209,6 @@ class SecurityDocumentRead(BaseModel):
     created_at: datetime
 
 
-class IndicatorPreferencesRead(BaseModel):
-    model_config = ConfigDict(from_attributes=True)
-
-    id: int
-    security_id: SecurityId
-    user_id: UserId
-    indicators_json: dict
-    updated_at: datetime
-
-
-class IndicatorPreferencesWrite(BaseModel):
-    indicators_json: dict
-
-
 class MAPoint(BaseModel):
     date: date
     value: float

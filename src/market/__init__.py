@@ -16,7 +16,6 @@ from src.market.enum import PriceInterval
 from src.market.eodhd import eodhd_gateway_factory
 from src.market.gateway import MarketGateway
 from src.market.repository import (
-    IndicatorPreferencesRepository,
     IntradayPriceRepository,
     PriceAlertRepository,
     PriceRepository,
@@ -28,7 +27,6 @@ from src.market.repository import (
 )
 from src.market.repository_eodhd import eodhd_price_repository_factory
 from src.market.repository_sqlalchemy import (
-    sqlalchemy_indicator_preferences_repository_factory,
     sqlalchemy_intraday_price_repository_factory,
     sqlalchemy_price_alert_repository_factory,
     sqlalchemy_security_broker_repository_factory,
@@ -70,10 +68,6 @@ def register_market_services(registry: Registry) -> None:
     )
     registry.register_factory(
         SecurityDocumentRepository, sqlalchemy_security_document_repository_factory
-    )
-    registry.register_factory(
-        IndicatorPreferencesRepository,
-        sqlalchemy_indicator_preferences_repository_factory,
     )
     registry.register_factory(IndicatorCache, indicator_cache_factory)
     registry.register_factory(MarketPricesApi, market_prices_factory)

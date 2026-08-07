@@ -14,7 +14,6 @@ from src.auth.api_types import UserId
 from src.market.api_types import SecurityId
 from src.market.exception import SecurityNotFoundError, WatchlistNotFoundError
 from src.market.model import (
-    IndicatorPreferencesModel,
     IntradayPriceModel,
     PriceAlertModel,
     PriceModel,
@@ -25,7 +24,6 @@ from src.market.model import (
     WatchlistModel,
 )
 from src.market.repository import (
-    IndicatorPreferencesRepository,
     IntradayPriceRepository,
     PriceAlertRepository,
     PriceRepository,
@@ -37,8 +35,6 @@ from src.market.repository import (
 )
 from src.market.schema import (
     AlertForEvaluation,
-    IndicatorPreferencesRead,
-    IndicatorPreferencesWrite,
     IntradayPriceSchema,
     PriceAlertRead,
     PriceAlertWrite,
@@ -810,61 +806,5 @@ async def sqlalchemy_security_document_repository_factory(
     container: Container,
 ) -> SqlAlchemySecurityDocumentRepository:
     return SqlAlchemySecurityDocumentRepository(
-        session=await container.aget(AsyncSession),
-    )
-
-
-class SqlAlchemyIndicatorPreferencesRepository(IndicatorPreferencesRepository):
-    _session: AsyncSession
-
-    def __init__(self, session: AsyncSession):
-        self._session = session
-
-    @override
-    async def get_for_security_and_user(
-        self, security_id: SecurityId, user_id: UserId
-    ) -> IndicatorPreferencesRead | None:
-        result = await self._session.execute(
-            select(IndicatorPreferencesModel)
-            .where(IndicatorPreferencesModel.security_id == security_id)
-            .where(IndicatorPreferencesModel.user_id == user_id)
-        )
-        model = result.scalar_one_or_none()
-        if model is None:
-            return None
-        return IndicatorPreferencesRead.model_validate(model)
-
-    @override
-    async def save(
-        self,
-        preferences: IndicatorPreferencesWrite,
-        security_id: SecurityId,
-        user_id: UserId,
-    ) -> IndicatorPreferencesRead:
-        existing = await self.get_for_security_and_user(security_id, user_id)
-        if existing:
-            result = await self._session.execute(
-                select(IndicatorPreferencesModel)
-                .where(IndicatorPreferencesModel.security_id == security_id)
-                .where(IndicatorPreferencesModel.user_id == user_id)
-            )
-            model = result.scalar_one()
-            model.indicators_json = preferences.indicators_json
-        else:
-            model = IndicatorPreferencesModel(
-                security_id=security_id,
-                user_id=user_id,
-                indicators_json=preferences.indicators_json,
-            )
-            self._session.add(model)
-        await self._session.commit()
-        await self._session.refresh(model)
-        return IndicatorPreferencesRead.model_validate(model)
-
-
-async def sqlalchemy_indicator_preferences_repository_factory(
-    container: Container,
-) -> SqlAlchemyIndicatorPreferencesRepository:
-    return SqlAlchemyIndicatorPreferencesRepository(
         session=await container.aget(AsyncSession),
     )

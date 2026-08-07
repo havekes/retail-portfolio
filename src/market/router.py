@@ -31,7 +31,6 @@ from src.market.indicators import (
 )
 from src.market.model import IntradayPriceModel, PriceModel
 from src.market.repository import (
-    IndicatorPreferencesRepository,
     IntradayPriceRepository,
     PriceAlertRepository,
     PriceRepository,
@@ -43,8 +42,6 @@ from src.market.repository import (
 from src.market.schema import (
     AIAnalysisRequest,
     AIAnalysisResponse,
-    IndicatorPreferencesRead,
-    IndicatorPreferencesWrite,
     IntradayPriceHistoryRead,
     IntradayPriceSchema,
     MACDPoint,
@@ -142,10 +139,10 @@ def _to_datetime_range(
 
 
 @market_router.get("/prices/{security_id}")
-async def market_get_prices(  # noqa: PLR0913, PLR0917
+async def market_get_prices(
     _: Annotated[User, Depends(current_user)],
     security_id: SecurityId,
-    pagination: Annotated[PaginationParams, Depends()],
+    _pagination: Annotated[PaginationParams, Depends()],
     services: DepContainer,
     from_date: Annotated[
         datetime | date | None,
@@ -567,38 +564,6 @@ async def market_delete_document(
     doc_repository = await services.aget(SecurityDocumentRepository)
     await doc_repository.delete(doc_id, user.id)
     logger.info("Deleted document %d for security %s", doc_id, security_id)
-
-
-# Indicator Preferences endpoints
-@market_router.get("/securities/{security_id}/indicator-preferences")
-async def market_get_indicator_preferences(
-    user: Annotated[User, Depends(current_user)],
-    security_id: SecurityId,
-    services: DepContainer,
-) -> IndicatorPreferencesRead | None:
-    """
-    Get indicator preferences for a security
-    """
-    prefs_repository = await services.aget(IndicatorPreferencesRepository)
-    prefs = await prefs_repository.get_for_security_and_user(security_id, user.id)
-    logger.info("Retrieved indicator preferences for security %s", security_id)
-    return prefs
-
-
-@market_router.put("/securities/{security_id}/indicator-preferences")
-async def market_save_indicator_preferences(
-    user: Annotated[User, Depends(current_user)],
-    security_id: SecurityId,
-    preferences: IndicatorPreferencesWrite,
-    services: DepContainer,
-) -> IndicatorPreferencesRead:
-    """
-    Save indicator preferences for a security
-    """
-    prefs_repository = await services.aget(IndicatorPreferencesRepository)
-    saved_prefs = await prefs_repository.save(preferences, security_id, user.id)
-    logger.info("Saved indicator preferences for security %s", security_id)
-    return saved_prefs
 
 
 @market_router.get("/securities/{security_id}/indicators")
