@@ -28,6 +28,11 @@
 	import type { IndicatorData } from '$lib/components/charts/security-chart.svelte';
 	import Star from '@lucide/svelte/icons/star';
 	import { getWatchlistService } from '$lib/components/watchlist/watchlistService.svelte';
+	import {
+		mergeChartPreferences,
+		displayCandlesFor,
+		shouldForceRefetch
+	} from '$lib/chart-preferences';
 
 	let { data } = $props();
 
@@ -41,23 +46,24 @@
 	let selectedInterval = $state('1d');
 	let chartStyle = $state<ChartStyle>('heikin_ashi');
 	let rawCandles = $state<Candle[]>([]);
-	let displayCandles = $derived(chartStyle === 'heikin_ashi' ? haCandles : rawCandles);
+	let displayCandles = $derived(displayCandlesFor(chartStyle, rawCandles, haCandles));
 	let isChangingTimeframe = $state(false);
 
 	async function updateChartPreferences(partial: Partial<UserPreferences>) {
 		const prefs = await userPreferencesService.getPreferences();
-		await userPreferencesService.savePreferences({
-			...prefs,
-			indicators: prefs.indicators ?? {},
-			...partial
-		});
+		await userPreferencesService.savePreferences(mergeChartPreferences(prefs, partial));
 	}
 
 	async function changeTimeframe(
 		interval: string,
 		{ persist = true, force = false }: { persist?: boolean; force?: boolean } = {}
 	) {
-		if (!security?.id || isChangingTimeframe || (!force && selectedInterval === interval)) return;
+		if (
+			!security?.id ||
+			isChangingTimeframe ||
+			!shouldForceRefetch(selectedInterval, interval, force)
+		)
+			return;
 		selectedInterval = interval;
 		isChangingTimeframe = true;
 
@@ -363,8 +369,9 @@
 
 			// Soft-navigation reconcile: server always loads '1d' series; if we're on a different
 			// timeframe, force-refetch to keep the displayed series in sync with the active
-			// timeframe for the new security.
-			if (selectedInterval !== '1d') {
+			// timeframe for the new security. Gate on !isChangingTimeframe to avoid a
+			// redundant refetch when a saved timeframe ≠ 1d (onPreferencesLoaded is still running).
+			if (!isChangingTimeframe && selectedInterval !== '1d') {
 				await changeTimeframe(selectedInterval, { persist: false, force: true });
 			}
 		})();
