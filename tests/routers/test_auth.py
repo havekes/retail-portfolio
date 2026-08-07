@@ -1,7 +1,12 @@
 """Integration tests for auth router."""
 
 import logging
+from datetime import UTC, datetime, timedelta
+
+import jwt
 import pytest
+
+from src.config.settings import settings
 
 
 @pytest.mark.anyio
@@ -163,3 +168,47 @@ async def test_login_nonexistent_user(auth_client, caplog):
 
     assert result["detail"] == "Invalid credentials"
     assert f"Login failed for {login_request['email']}: Invalid credentials" in caplog.text
+
+
+@pytest.mark.anyio
+async def test_expired_token_returns_401(auth_client):
+    """Test expired token on a protected endpoint returns 401, not 403."""
+    expired_token = jwt.encode(
+        {
+            "sub": "test@example.com",
+            "user_id": "00000000-0000-0000-0000-000000000000",
+            "exp": int((datetime.now(UTC) - timedelta(hours=1)).timestamp()),
+        },
+        settings.secret_key,
+        algorithm="HS256",
+    )
+
+    response = await auth_client.get(
+        "/api/v1/accounts/sync-status",
+        headers={"Authorization": f"Bearer {expired_token}"},
+    )
+
+    assert response.status_code == 401
+    assert response.json()["detail"] == "Token expired"
+
+
+@pytest.mark.anyio
+async def test_invalid_token_unknown_user_returns_401(auth_client):
+    """Test valid-signed token for a user not in the DB returns 401, not 403."""
+    ghost_token = jwt.encode(
+        {
+            "sub": "ghost@example.com",
+            "user_id": "00000000-0000-0000-0000-000000000000",
+            "exp": int((datetime.now(UTC) + timedelta(hours=1)).timestamp()),
+        },
+        settings.secret_key,
+        algorithm="HS256",
+    )
+
+    response = await auth_client.get(
+        "/api/v1/accounts/sync-status",
+        headers={"Authorization": f"Bearer {ghost_token}"},
+    )
+
+    assert response.status_code == 401
+    assert response.json()["detail"] == "Token invalid"

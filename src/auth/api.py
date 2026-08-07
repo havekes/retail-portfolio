@@ -50,12 +50,12 @@ class UserApi:
         try:
             token_data = self._decode_token(token)
         except jwt.ExpiredSignatureError as e:
-            raise HTTPException(403, "Token expired") from e
+            raise HTTPException(401, "Token expired") from e
 
         user = await self._user_repository.get_by_email(token_data.sub)
 
         if not user:
-            raise HTTPException(403, "Token invalid")
+            raise HTTPException(401, "Token invalid")
 
         return User(id=user.id, email=user.email)
 
