@@ -139,10 +139,10 @@ def _to_datetime_range(
 
 
 @market_router.get("/prices/{security_id}")
-async def market_get_prices(  # noqa: PLR0913, PLR0917
+async def market_get_prices(
     _: Annotated[User, Depends(current_user)],
     security_id: SecurityId,
-    pagination: Annotated[PaginationParams, Depends()],
+    _pagination: Annotated[PaginationParams, Depends()],
     services: DepContainer,
     from_date: Annotated[
         datetime | date | None,

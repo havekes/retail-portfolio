@@ -1,7 +1,7 @@
 """drop_market_indicator_preferences_table
 
 Revision ID: 65b4bef42c13
-Revises: 
+Revises: 1548d7b88af5
 Create Date: 2026-08-07 01:16:54.336005
 
 """
@@ -26,21 +26,17 @@ def upgrade() -> None:
 def downgrade() -> None:
     """Recreate the per-security indicator preferences table."""
     op.create_table(
-        "market_indicator_preferences",
-        sa.Column("id", sa.Integer(), autoincrement=True, nullable=False),
-        sa.Column("security_id", sa.Uuid(), nullable=False),
-        sa.Column("user_id", sa.Uuid(), nullable=False),
-        sa.Column("indicators_json", sa.JSON(), nullable=False),
-        sa.Column(
-            "updated_at",
-            sa.DateTime(timezone=True),
-            nullable=False,
-        ),
+        'market_indicator_preferences',
+        sa.Column('id', sa.Integer(), autoincrement=True, nullable=False),
+        sa.Column('security_id', sa.Uuid(), nullable=False),
+        sa.Column('user_id', sa.Uuid(), nullable=False),
+        sa.Column('indicators_json', sa.JSON(), nullable=False),
+        sa.Column('updated_at', sa.DateTime(timezone=True), nullable=False),
         sa.ForeignKeyConstraint(
-            ["security_id"], ["market_securities.id"], ondelete="CASCADE"
+            ['security_id'], ['market_securities.id'], ondelete='CASCADE'
         ),
-        sa.PrimaryKeyConstraint("id"),
+        sa.PrimaryKeyConstraint('id'),
         sa.UniqueConstraint(
-            "security_id", "user_id", name="indicator_prefs_unique"
+            'security_id', 'user_id', name='indicator_prefs_unique'
         ),
     )
