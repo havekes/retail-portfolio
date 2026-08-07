@@ -4,6 +4,7 @@
 	import { userPreferencesService } from '$lib/api/userPreferencesService';
 	import type { IndicatorConfig } from '$lib/api/indicatorsService';
 	import type { UserPreferences } from '$lib/api/userPreferencesService';
+	import { buildIndicatorEntry, buildToggleEntry } from '$lib/api/buildIndicatorEntry';
 	import { Settings2 } from '@lucide/svelte';
 	import IndicatorConfigDialog from '@/components/actions-sidebar/indicator/indicator-config-modal.svelte';
 	import GroupTitle from '../group-title.svelte';
@@ -69,19 +70,21 @@
 
 	async function saveSettings(id: string, newConfig: unknown) {
 		if (onIndicatorConfigChange) {
-			onIndicatorConfigChange(id, newConfig as IndicatorConfig);
+			onIndicatorConfigChange(id, newConfig as Partial<IndicatorConfig>);
 		}
 		if (!preferences) return;
 
-		const nc = newConfig as IndicatorConfig;
+		const nc = newConfig as Partial<IndicatorConfig> & {
+			period?: number;
+			stdDev?: number;
+			fast?: number;
+			slow?: number;
+			signal?: number;
+		};
 		const current = preferences.indicators?.[id];
 		preferences.indicators = {
 			...preferences.indicators,
-			[id]: {
-				enabled: current?.enabled ?? nc.enabled ?? indicatorConfigs?.[id]?.enabled ?? false,
-				color: nc.color ?? current?.color ?? indicatorConfigs?.[id]?.color ?? '',
-				settings: nc.settings ?? current?.settings ?? {}
-			}
+			[id]: buildIndicatorEntry(nc, current)
 		};
 		try {
 			await userPreferencesService.savePreferences({ ...preferences });
@@ -108,28 +111,28 @@
 	async function toggleIndicator(indicatorId: string) {
 		if (!preferences) return;
 
-		const indicators = preferences.indicators ?? {};
-		const current = indicators[indicatorId];
-		const currentEnabled = current?.enabled ?? indicatorConfigs?.[indicatorId]?.enabled;
-		const newEnabled = !currentEnabled;
+		const current = preferences.indicators?.[indicatorId];
+		const newEntry = buildToggleEntry(
+			current,
+			indicatorConfigs?.[indicatorId]?.color || '',
+			indicatorConfigs?.[indicatorId]?.enabled
+		);
 
 		const newPreferences = {
 			...preferences,
 			indicators: {
 				...preferences.indicators,
-				[indicatorId]: {
-					enabled: newEnabled,
-					color: current?.color || indicatorConfigs?.[indicatorId]?.color || '',
-					settings: current?.settings || {}
-				}
+				[indicatorId]: newEntry
 			}
 		};
 
+		// Assign local state before the network await to avoid lost-update races
+		preferences = newPreferences;
+
 		try {
 			await userPreferencesService.savePreferences(newPreferences);
-			preferences = newPreferences;
 			if (onIndicatorToggle) {
-				onIndicatorToggle(indicatorId, newEnabled);
+				onIndicatorToggle(indicatorId, newEntry.enabled);
 			}
 		} catch (err) {
 			console.error('Failed to save preferences:', err);
