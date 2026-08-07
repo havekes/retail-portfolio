@@ -391,13 +391,14 @@
 					<div class="flex items-center gap-2">
 						<h2 class="text-lg font-semibold">{security?.symbol ?? ''}</h2>
 						{#if security}
+							{@const currentSecurity = security}
 							<button
 								type="button"
-								onclick={() => watchlistService.toggleSecurity(security.id)}
+								onclick={() => watchlistService.toggleSecurity(currentSecurity.id)}
 								class="rounded-sm p-1 hover:bg-muted focus:outline-hidden"
 								aria-label="Toggle watchlist"
 							>
-								{#if watchlistService.hasSecurity(security.id)}
+								{#if watchlistService.hasSecurity(currentSecurity.id)}
 									<Star class="h-4 w-4 fill-amber-400 stroke-amber-500" />
 								{:else}
 									<Star class="h-4 w-4 text-muted-foreground hover:text-amber-500" />
