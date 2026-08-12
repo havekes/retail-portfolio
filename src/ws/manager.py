@@ -23,17 +23,13 @@ class ConnectionManager:
         self._lock = threading.Lock()
 
     def get_redis_client(self) -> aioredis.Redis | None:
-        """Get the Redis client for current running loop, cleaning up closed loops."""
+        """Get the Redis client for current running loop."""
         try:
             current_loop = asyncio.get_running_loop()
         except RuntimeError:
             return None
 
         with self._lock:
-            for loop in list(self._clients.keys()):
-                if loop.is_closed():
-                    self._clients.pop(loop, None)
-
             return self._clients.get(current_loop)
 
     async def init_redis(self, redis_url: str, *, run_listener: bool = True):
