@@ -23,3 +23,23 @@ export function formatDate(dateString: string | Date): string {
 		year: 'numeric'
 	});
 }
+
+export function getChartDateWindow(
+	endDate: Date,
+	interval: string
+): { from: string; to: string } {
+	const isIntraday = interval === '1h' || interval === '4h';
+	const fromDate = new Date(endDate);
+
+	if (isIntraday) {
+		fromDate.setDate(fromDate.getDate() - 30);
+	} else {
+		fromDate.setFullYear(fromDate.getFullYear() - 2);
+	}
+
+	return {
+		from: formatDateToISO(fromDate),
+		to: formatDateToISO(endDate)
+	};
+}
+
