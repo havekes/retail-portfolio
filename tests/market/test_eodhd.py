@@ -71,7 +71,7 @@ def test_stub_eodhd_gateway_get_intraday_prices():
 
 
 def test_get_intraday_prices_filters_flat_candles():
-    gateway = EodhdGateway(api_key="test_key")
+    gateway = EodhdGateway(api_key="demo")
     gateway._client = MagicMock()
 
     ts1 = int(datetime(2026, 7, 28, 14, 0, tzinfo=UTC).timestamp())
