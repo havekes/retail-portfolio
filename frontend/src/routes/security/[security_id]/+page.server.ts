@@ -1,5 +1,6 @@
 import { getMarketService } from '@/api/marketService';
 import { deleteAuthCookie } from '$lib/server/auth-cookie';
+import { getChartDateWindow } from '$lib/utils/date';
 import { error, redirect } from '@sveltejs/kit';
 import { ApiError } from '$lib/api/apiClient';
 import type { PageServerLoad } from './$types';
@@ -15,8 +16,7 @@ export const load: PageServerLoad = async ({ params, fetch, cookies }) => {
 	const token = cookies.get('auth_token');
 
 	try {
-		const from = '2000-01-03';
-		const to = new Date().toISOString().split('T')[0];
+		const { from, to } = getChartDateWindow(new Date(), '1d');
 
 		const [security, priceResponse] = await Promise.all([
 			marketService.getSecurity(security_id, token),

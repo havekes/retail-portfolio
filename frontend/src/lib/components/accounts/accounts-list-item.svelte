@@ -10,8 +10,16 @@
 	import { AccountsListItemState } from './accounts-list-item.svelte.js';
 	import RefreshCw from '@lucide/svelte/icons/refresh-cw';
 
-	let { account, selectionMode, isSelected, onToggleSelection, isSyncing, onSync, syncError, onRename } =
-		$props();
+	let {
+		account,
+		selectionMode,
+		isSelected,
+		onToggleSelection,
+		isSyncing,
+		onSync,
+		syncError,
+		onRename
+	} = $props();
 
 	const state = new AccountsListItemState(() => account.id);
 

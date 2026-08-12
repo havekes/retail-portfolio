@@ -6,7 +6,6 @@
 	import { resolve } from '$app/paths';
 	import type { Candle } from '@/utils/finance/candle';
 	import PageHeader from '@/components/layout/app-header.svelte';
-	import type { SecuritySchema } from '@/api/marketService';
 	import * as Sidebar from '$lib/components/ui/sidebar/index.js';
 	import IndicatorsGroup from '@/components/actions-sidebar/indicator/indicator-group.svelte';
 	import PriceAlertsGroup from '@/components/actions-sidebar/price-alert/price-alert-group.svelte';
@@ -33,6 +32,7 @@
 		displayCandlesFor,
 		shouldForceRefetch
 	} from '$lib/chart-preferences';
+	import { getChartDateWindow } from '$lib/utils/date';
 
 	let { data } = $props();
 
@@ -70,8 +70,7 @@
 		let fetchOk = false;
 		try {
 			const isIntraday = interval === '1h' || interval === '4h';
-			const from = isIntraday ? undefined : '2000-01-03';
-			const to = isIntraday ? undefined : new Date().toISOString().split('T')[0];
+			const { from, to } = getChartDateWindow(new Date(), interval);
 
 			const marketService = getMarketService();
 			const priceResponse = await marketService.getPrices(security.id, from, to, interval);
