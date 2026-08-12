@@ -62,6 +62,7 @@ vi.mock('lightweight-charts', () => {
 import type { Component } from 'svelte';
 import type { Candle } from '$lib/utils/finance/candle';
 import { render } from '@testing-library/svelte';
+import { createChart } from 'lightweight-charts';
 
 describe('SecurityChart - Infinite Scroll & Logical Range', () => {
 	/* eslint-disable-next-line @typescript-eslint/no-explicit-any */
@@ -166,5 +167,23 @@ describe('SecurityChart - Infinite Scroll & Logical Range', () => {
 			from: 7,
 			to: 27
 		});
+	});
+
+	it('initializes charts with localization and tickMarkFormatter options', () => {
+		render(SecurityChart, {
+			props: {
+				candles: initialCandles
+			}
+		});
+
+		expect(createChart).toHaveBeenCalled();
+		const calls = vi.mocked(createChart).mock.calls;
+		expect(calls.length).toBeGreaterThanOrEqual(1);
+
+		const mainChartOptions = calls[0][1];
+		expect(mainChartOptions?.localization?.timeFormatter).toBeDefined();
+		expect(typeof mainChartOptions?.localization?.timeFormatter).toBe('function');
+		expect(mainChartOptions?.timeScale?.tickMarkFormatter).toBeDefined();
+		expect(typeof mainChartOptions?.timeScale?.tickMarkFormatter).toBe('function');
 	});
 });
