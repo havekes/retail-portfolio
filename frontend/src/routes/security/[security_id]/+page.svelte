@@ -41,7 +41,7 @@
 	let isLoading = $state(false);
 	let error = $state<string | null>(null);
 
-	let security = $state<SecuritySchema | null>(data.security);
+	let security = $derived(data.security);
 	let haCandles = $state<Candle[]>([]);
 	let selectedInterval = $state('1d');
 	let chartStyle = $state<ChartStyle>('heikin_ashi');
@@ -105,7 +105,7 @@
 			});
 
 			rawCandles = mappedCandles;
-			haCandles = convertToHeikinAshi(rawCandles);
+			haCandles = convertToHeikinAshi(mappedCandles);
 
 			setTimeout(() => {
 				for (const [id, config] of Object.entries(indicatorConfigs)) {
@@ -355,13 +355,8 @@
 				volume: Number(p.volume)
 			}));
 
-			// On soft nav (component reused across /security/A → /security/B),
-			// update the security ref from the current page data so changeTimeframe
-			// uses the correct security id.
-			security = data.security;
-
 			rawCandles = mappedCandles;
-			haCandles = convertToHeikinAshi(rawCandles);
+			haCandles = convertToHeikinAshi(mappedCandles);
 			await Promise.all([loadAlerts(), loadHoldings()]);
 
 			const module = await import('$lib/components/charts/security-chart.svelte');

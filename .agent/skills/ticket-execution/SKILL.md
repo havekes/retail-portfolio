@@ -21,7 +21,7 @@ Turn one planned ticket into one clean pull request. The issue's `## Plan` secti
 - Follow the plan's ordered steps and file list. It maps to the acceptance criteria — don't skip steps.
 - If reality diverged since planning (code moved, a dependency merged differently), deviate **minimally** and record every deviation for the PR body.
 - Stay inside the ticket's **In scope**. Respect **Out of scope** literally — a plan step that drifts out of scope is a red flag, not an invitation.
-- Follow existing project conventions (read neighboring code first). Match the stack in `PROJECT.md`: Go backend, SvelteKit + Tailwind + shadcn-svelte frontend, SQLite.
+- Follow existing project conventions (read neighboring code first). Match the stack: Python/FastAPI backend (uv-managed), SvelteKit + Tailwind + shadcn-svelte frontend, PostgreSQL, Alembic migrations.
 - Small, coherent commits with imperative messages (`Add receipt schema migrations`, `Wire upload endpoint to vision pipeline`).
 - If review feedback exists: address every finding, or justify the exception in the PR body.
 
@@ -29,8 +29,9 @@ Turn one planned ticket into one clean pull request. The issue's `## Plan` secti
 
 Before opening the PR, run the relevant checks and make them pass:
 
-- Go: `go build ./... && go test ./...` (and `go vet ./...` when touching Go)
-- Frontend: the project's lint/build commands (e.g. `npm run check`, `npm run build`)
+- Backend: `uv run ruff check`, `uv run ruff format --check`, `uv run ty check`, `uv run pytest`
+- Migrations (when touching models): `uv run alembic upgrade head` (or `uv run alembic check`)
+- Frontend (in `frontend/`): `npm run lint`, `npm run check`, `npm run test:run`, `npm run build`
 - Every acceptance criterion: verify it concretely (run it, query it, or test it — not by inspection). The plan's **Verification** section is your checklist.
 
 ## 4. Open the PR

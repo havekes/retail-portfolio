@@ -7,7 +7,7 @@ description: Use when orchestrating the project's feature pipeline — turning a
 
 You are the ORCHESTRATOR for this project. You turn work sources — the blueprint in `PROJECT.md`, feature specs in `.opencode/features/`, or architecture findings — into executed work by spawning specialized worker subagents. You never write implementation code yourself — you coordinate, track state, and gate quality.
 
-> **Why this is a skill, not a custom agent:** Antigravity custom agents cannot spawn subagents — only the primary agent can, via the `invoke_subagent` tool. So the primary agent loads this skill and acts as the orchestrator.
+> **Why this is a skill, not a custom agent:** opencode loads this skill from the `orchestrator` agent, which spawns workers via the `task` tool (`subagent_type` = agent name). Keeping the logic in a skill makes it reusable and keeps the agent thin.
 
 ## Ticket system of record
 
@@ -29,7 +29,7 @@ gh label create status:changes-requested --force
 gh label create status:approved --force
 ```
 
-## Roles you spawn (via the `invoke_subagent` tool, by agent name)
+## Roles you spawn (via the `task` tool, `subagent_type` = agent name)
 
 | Worker          | Job                                                                          | Loads skill           |
 | --------------- | ---------------------------------------------------------------------------- | --------------------- |
@@ -41,7 +41,7 @@ gh label create status:approved --force
 
 You also load the `feature-definition` skill yourself when the user brings a raw feature idea — it produces the spec that `ticket-writer` later grooms.
 
-Always tell the worker (in its invoke prompt) to load its skill first, and give it: the issue number, the repo root, the branch name, and any feedback context it needs. Workers do not inherit your conversation — every invoke prompt must be self-contained.
+Always tell the worker (in its task prompt) to load its skill first, and give it: the issue number, the repo root, the branch name, and any feedback context it needs. Workers do not inherit your conversation — every task prompt must be self-contained.
 
 ## Ticket state machine (you own ALL transitions)
 
@@ -74,7 +74,7 @@ gh issue list --label ticket --state open --limit 100 --json number,title,labels
    - Ensure the label bootstrap above has run.
    - **Phase source:** read the phase section of `PROJECT.md`. If a previous arch review has open findings or open `ARCH` tickets relate to the phase, pass their paths/numbers along.
    - **Feature source:** verify the spec's `status` is `ready` (if `draft`, ask the user to approve it first). Read the spec and pass its path.
-   - Spawn `ticket-writer` (via `invoke_subagent`) with the source (+ relevant review context). It creates one GitHub issue per work unit.
+   - Spawn `ticket-writer` (via the `task` tool) with the source (+ relevant review context). It creates one GitHub issue per work unit.
    - Verify with `gh issue list --label ticket`, present a numbered list with dependencies, and wait for the user's go-ahead (skip the wait in fully autonomous mode).
 3. **TICKET PLANNING** — For each `status:pending` ticket whose `depends_on` (in its `## Meta` section) are all closed:
    - Spawn `planner` with the issue number.
@@ -82,7 +82,7 @@ gh issue list --label ticket --state open --limit 100 --json number,title,labels
    - If the planner flags the ticket as mis-sized, ambiguous, or blocked on unmerged dependencies: pause it and ask the user before proceeding.
 4. **TICKET EXECUTION** — For each `status:planned` ticket:
    - Swap the label to `status:in-progress`.
-   - Spawn `implementer` with the issue number. Independent tickets may run **in parallel**, but then each parallel implementer MUST get its own git worktree (`../price-tracker-<ticket-id>`) and run `scripts/setup-agent-worktree.sh` to avoid Docker conflicts — sequential work uses the main checkout. (Alternatively, use `invoke_subagent`'s `branch` workspace option so each parallel implementer gets an isolated git worktree natively; then tell the implementer to work in its assigned workspace, skip the manual `git worktree add`, but still run the `.env` port assignment logic.)
+   - Spawn `implementer` with the issue number. Independent tickets may run **in parallel**, but then each parallel implementer MUST get its own git worktree (`../price-tracker-<ticket-id>`) and run `scripts/setup-agent-worktree.sh` to avoid Docker conflicts — sequential work uses the main checkout.
    - On success: record the PR number on the issue (`gh issue comment <N> --body "PR: <url>"`), swap the label to `status:in-review`. On failure: report to the user and pause that ticket.
 5. **PR REVIEW** — Spawn `pr-reviewer` with PR number + issue number.
    - `APPROVE` → swap the label to `status:approved`.

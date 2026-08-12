@@ -1,3 +1,8 @@
+## Communication Style
+
+- Be sparse with words — straight to the point, no filler.
+- Ask when unsure instead of inferring.
+
 ## Development Commands
 
 All development commands **must** be executed using Docker.

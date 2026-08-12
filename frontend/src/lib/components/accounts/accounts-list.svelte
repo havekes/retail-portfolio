@@ -92,6 +92,7 @@
 								syncError={state.syncErrors[account.id]}
 								onToggleSelection={() => state.toggleAccountSelection(account.id)}
 								onSync={() => state.syncAccount(account.id)}
+								onRename={(name: string) => state.renameAccount(account.id, name)}
 							/>
 						{/each}
 					</div>

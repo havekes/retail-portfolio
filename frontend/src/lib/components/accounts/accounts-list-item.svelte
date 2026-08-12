@@ -10,7 +10,7 @@
 	import { AccountsListItemState } from './accounts-list-item.svelte.js';
 	import RefreshCw from '@lucide/svelte/icons/refresh-cw';
 
-	let { account, selectionMode, isSelected, onToggleSelection, isSyncing, onSync, syncError } =
+	let { account, selectionMode, isSelected, onToggleSelection, isSyncing, onSync, syncError, onRename } =
 		$props();
 
 	const state = new AccountsListItemState(() => account.id);
@@ -34,7 +34,8 @@
 	<div class="flex-1 space-y-2">
 		<div class="flex justify-between">
 			<EditableTitle
-				bind:value={account.name}
+				value={account.name}
+				onSave={onRename}
 				action="?/renameAccount"
 				id={account.id}
 				href={`/accounts/${account.id}`}

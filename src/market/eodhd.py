@@ -166,7 +166,9 @@ class EodhdGateway(MarketGateway):
                         high=Decimal(str(row["high"])),
                         low=Decimal(str(row["low"])),
                         close=Decimal(str(row["close"])),
-                        volume=int(row["volume"]),
+                        volume=int(row["volume"])
+                        if row.get("volume") is not None
+                        else 0,
                     )
                 )
         elif hasattr(data, "iterrows"):
@@ -190,7 +192,9 @@ class EodhdGateway(MarketGateway):
                         high=Decimal(str(row["high"])),
                         low=Decimal(str(row["low"])),
                         close=Decimal(str(row["close"])),
-                        volume=int(row["volume"]),
+                        volume=int(row["volume"])
+                        if row.get("volume") is not None
+                        else 0,
                     )
                 )
 

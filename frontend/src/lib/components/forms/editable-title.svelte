@@ -61,6 +61,7 @@
 					return async ({ result, update }) => {
 						if (result.type === 'success') {
 							value = tempValue;
+							if (onSave) onSave(tempValue);
 							isEditing = false;
 						}
 						await update();

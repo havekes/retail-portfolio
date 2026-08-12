@@ -249,4 +249,11 @@ export class AccountsListState {
 		this.syncingAccountIds.delete(id);
 		this.syncErrors[id] = 'Sync took too long. Check account status.';
 	}
+
+	renameAccount(id: string, newName: string) {
+		const account = this.accounts.find((a) => a.id === id);
+		if (account) {
+			account.name = newName;
+		}
+	}
 }
