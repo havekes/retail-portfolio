@@ -66,7 +66,7 @@ describe('formatLocalTime', () => {
 
 	it('should handle BusinessDay object input', () => {
 		const obj = { year: 2024, month: 1, day: 10 };
-		expect(formatLocalTime(obj as never)).toBe(JSON.stringify(obj));
+		expect(formatLocalTime(obj as never)).toBe('2024-01-10');
 	});
 });
 

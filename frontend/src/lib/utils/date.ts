@@ -44,7 +44,8 @@ export function getChartDateWindow(endDate: Date, interval: string): { from: str
 
 export function formatLocalTime(time: Time): string {
 	if (typeof time !== 'number') {
-		return typeof time === 'string' ? time : JSON.stringify(time);
+		if (typeof time === 'string') return time;
+		return `${time.year}-${String(time.month).padStart(2, '0')}-${String(time.day).padStart(2, '0')}`;
 	}
 
 	const date = new Date(time * 1000);
