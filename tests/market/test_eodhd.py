@@ -70,6 +70,97 @@ def test_stub_eodhd_gateway_get_intraday_prices():
         assert isinstance(price.volume, int)
 
 
+def test_get_intraday_prices_filters_flat_candles():
+    gateway = EodhdGateway(api_key="test_key")
+    gateway._client = MagicMock()
+
+    ts1 = int(datetime(2026, 7, 28, 14, 0, tzinfo=UTC).timestamp())
+    ts2 = int(datetime(2026, 7, 28, 15, 0, tzinfo=UTC).timestamp())
+    ts3 = int(datetime(2026, 7, 28, 16, 0, tzinfo=UTC).timestamp())
+
+    mock_data_list = [
+        {
+            "timestamp": ts1,
+            "datetime": "2026-07-28 14:00:00",
+            "open": 100.0,
+            "high": 105.0,
+            "low": 99.0,
+            "close": 102.0,
+            "volume": 1000,
+        },
+        {
+            "timestamp": ts2,
+            "datetime": "2026-07-28 15:00:00",
+            "open": 102.0,
+            "high": 102.0,
+            "low": 102.0,
+            "close": 102.0,
+            "volume": 50,
+        },
+        {
+            "timestamp": ts3,
+            "datetime": "2026-07-28 16:00:00",
+            "open": 102.0,
+            "high": 102.0,
+            "low": 102.0,
+            "close": 102.0,
+            "volume": 0,
+        },
+    ]
+    gateway._client.get_intraday_historical_data.return_value = mock_data_list
+
+    sec_id = uuid4()
+    prices = gateway.get_intraday_prices(
+        security_id=sec_id,
+        symbol="AAPL",
+        exchange="US",
+        from_datetime=datetime(2026, 7, 28, 14, 0, tzinfo=UTC),
+        to_datetime=datetime(2026, 7, 28, 16, 0, tzinfo=UTC),
+    )
+
+    assert len(prices) == 2
+    assert prices[0].open == Decimal("100.0")
+    assert prices[0].volume == 1000
+    assert prices[1].open == Decimal("102.0")
+    assert prices[1].volume == 50
+
+    # Also test pandas DataFrame response branch
+    df_data = pd.DataFrame(mock_data_list)
+    gateway._client.get_intraday_historical_data.return_value = df_data
+
+    prices_df = gateway.get_intraday_prices(
+        security_id=sec_id,
+        symbol="AAPL",
+        exchange="US",
+        from_datetime=datetime(2026, 7, 28, 14, 0, tzinfo=UTC),
+        to_datetime=datetime(2026, 7, 28, 16, 0, tzinfo=UTC),
+    )
+
+    assert len(prices_df) == 2
+    assert prices_df[0].open == Decimal("100.0")
+    assert prices_df[1].open == Decimal("102.0")
+
+
+def test_stub_eodhd_gateway_filters_end_of_day_flat_candle():
+    gateway = StubEodhdGateway(api_key="stub_key")
+    sec_id = uuid4()
+    start_dt = datetime(2026, 7, 28, 9, 0, tzinfo=UTC)
+    end_dt = datetime(2026, 7, 28, 16, 0, tzinfo=UTC)
+
+    prices = gateway.get_intraday_prices(
+        security_id=sec_id,
+        symbol="AAPL",
+        exchange="US",
+        from_datetime=start_dt,
+        to_datetime=end_dt,
+        interval="1h",
+    )
+
+    assert len(prices) == 7
+    assert all(p.timestamp.hour != 16 for p in prices)
+
+
+
 def test_stub_eodhd_gateway_invalid_interval():
     gateway = StubEodhdGateway(api_key="stub_key")
     sec_id = uuid4()

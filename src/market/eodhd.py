@@ -158,17 +158,24 @@ class EodhdGateway(MarketGateway):
                     if dt.tzinfo is None:
                         dt = dt.replace(tzinfo=UTC)
 
+                open_val = Decimal(str(row["open"]))
+                high_val = Decimal(str(row["high"]))
+                low_val = Decimal(str(row["low"]))
+                close_val = Decimal(str(row["close"]))
+                volume_val = int(row["volume"]) if row.get("volume") is not None else 0
+
+                if open_val == high_val == low_val == close_val and volume_val == 0:
+                    continue
+
                 prices.append(
                     IntradayHistoricalPrice(
                         security_id=security_id,
                         timestamp=dt,
-                        open=Decimal(str(row["open"])),
-                        high=Decimal(str(row["high"])),
-                        low=Decimal(str(row["low"])),
-                        close=Decimal(str(row["close"])),
-                        volume=int(row["volume"])
-                        if row.get("volume") is not None
-                        else 0,
+                        open=open_val,
+                        high=high_val,
+                        low=low_val,
+                        close=close_val,
+                        volume=volume_val,
                     )
                 )
         elif hasattr(data, "iterrows"):
@@ -184,17 +191,24 @@ class EodhdGateway(MarketGateway):
                     if dt.tzinfo is None:
                         dt = dt.replace(tzinfo=UTC)
 
+                open_val = Decimal(str(row["open"]))
+                high_val = Decimal(str(row["high"]))
+                low_val = Decimal(str(row["low"]))
+                close_val = Decimal(str(row["close"]))
+                volume_val = int(row["volume"]) if row.get("volume") is not None else 0
+
+                if open_val == high_val == low_val == close_val and volume_val == 0:
+                    continue
+
                 prices.append(
                     IntradayHistoricalPrice(
                         security_id=security_id,
                         timestamp=dt,
-                        open=Decimal(str(row["open"])),
-                        high=Decimal(str(row["high"])),
-                        low=Decimal(str(row["low"])),
-                        close=Decimal(str(row["close"])),
-                        volume=int(row["volume"])
-                        if row.get("volume") is not None
-                        else 0,
+                        open=open_val,
+                        high=high_val,
+                        low=low_val,
+                        close=close_val,
+                        volume=volume_val,
                     )
                 )
 
