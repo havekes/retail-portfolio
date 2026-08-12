@@ -3,6 +3,7 @@
 	import type { Time, IChartApi, ISeriesApi, IPriceLine, SeriesType } from 'lightweight-charts';
 	import { onMount } from 'svelte';
 	import type { Candle } from '@/utils/finance/candle';
+	import { formatLocalTime, formatLocalTickMark } from '@/utils/date';
 	import { BandsIndicator } from './plugins/bands-indicator';
 	import { AVG_PRICE_LINE_COLOR } from './colors';
 	import { UserPriceAlerts } from './plugins/user-price-alerts/user-price-alerts';
@@ -214,9 +215,13 @@
 				vertLines: { color: '#40404020' },
 				horzLines: { color: '#40404020' }
 			},
+			localization: {
+				timeFormatter: formatLocalTime
+			},
 			timeScale: {
 				timeVisible: true,
-				borderVisible: false
+				borderVisible: false,
+				tickMarkFormatter: formatLocalTickMark
 			},
 			leftPriceScale: {
 				visible: false
@@ -234,9 +239,13 @@
 				vertLines: { color: '#40404020' },
 				horzLines: { color: '#40404020' }
 			},
+			localization: {
+				timeFormatter: formatLocalTime
+			},
 			timeScale: {
 				timeVisible: false,
-				borderVisible: false
+				borderVisible: false,
+				tickMarkFormatter: formatLocalTickMark
 			}
 		});
 

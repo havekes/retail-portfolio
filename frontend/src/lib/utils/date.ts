@@ -1,3 +1,5 @@
+import { TickMarkType, type Time } from 'lightweight-charts';
+
 export function formatDateToISO(date: Date): string {
 	const year = date.getFullYear();
 	const month = String(date.getMonth() + 1).padStart(2, '0');
@@ -38,4 +40,50 @@ export function getChartDateWindow(endDate: Date, interval: string): { from: str
 		from: formatDateToISO(fromDate),
 		to: formatDateToISO(endDate)
 	};
+}
+
+export function formatLocalTime(time: Time): string {
+	if (typeof time !== 'number') {
+		return typeof time === 'string' ? time : JSON.stringify(time);
+	}
+
+	const date = new Date(time * 1000);
+	const year = date.getFullYear();
+	const month = String(date.getMonth() + 1).padStart(2, '0');
+	const day = String(date.getDate()).padStart(2, '0');
+	const hours = String(date.getHours()).padStart(2, '0');
+	const minutes = String(date.getMinutes()).padStart(2, '0');
+
+	return `${year}-${month}-${day} ${hours}:${minutes}`;
+}
+
+export function formatLocalTickMark(
+	time: Time,
+	tickMarkType: TickMarkType,
+	locale: string
+): string | null {
+	if (typeof time !== 'number') {
+		return null;
+	}
+
+	const date = new Date(time * 1000);
+
+	switch (tickMarkType) {
+		case TickMarkType.Year:
+			return date.toLocaleDateString(locale, { year: 'numeric' });
+		case TickMarkType.Month:
+			return date.toLocaleDateString(locale, { month: 'short' });
+		case TickMarkType.DayOfMonth:
+			return date.toLocaleDateString(locale, { month: 'short', day: 'numeric' });
+		case TickMarkType.Time:
+			return date.toLocaleTimeString(locale, { hour: '2-digit', minute: '2-digit' });
+		case TickMarkType.TimeWithSeconds:
+			return date.toLocaleTimeString(locale, {
+				hour: '2-digit',
+				minute: '2-digit',
+				second: '2-digit'
+			});
+		default:
+			return date.toLocaleString(locale);
+	}
 }
