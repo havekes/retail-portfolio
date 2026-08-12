@@ -24,10 +24,7 @@ export function formatDate(dateString: string | Date): string {
 	});
 }
 
-export function getChartDateWindow(
-	endDate: Date,
-	interval: string
-): { from: string; to: string } {
+export function getChartDateWindow(endDate: Date, interval: string): { from: string; to: string } {
 	const isIntraday = interval === '1h' || interval === '4h';
 	const fromDate = new Date(endDate);
 
@@ -42,4 +39,3 @@ export function getChartDateWindow(
 		to: formatDateToISO(endDate)
 	};
 }
-

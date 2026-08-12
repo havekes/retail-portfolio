@@ -1,5 +1,5 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen, fireEvent, waitFor } from '@testing-library/svelte';
+import { describe, it, expect, vi } from 'vitest';
+import { render, screen, fireEvent } from '@testing-library/svelte';
 import AccountsListItem from './accounts-list-item.svelte';
 import { Institution, AccountType } from '@/types/account';
 
@@ -18,7 +18,7 @@ describe('AccountsListItem', () => {
 		const onToggleSelectionMock = vi.fn();
 		const onSyncMock = vi.fn();
 
-		const { component } = render(AccountsListItem, {
+		render(AccountsListItem, {
 			props: {
 				account: mockAccount,
 				selectionMode: false,
@@ -48,7 +48,7 @@ describe('AccountsListItem', () => {
 
 		// Change the input value
 		await fireEvent.input(input, { target: { value: 'Updated Account Name' } });
-		
+
 		// Wait for the action to complete/enhance form
 		// Instead of testing form enhancement (since it's tricky to mock SvelteKit's enhance action in JSDOM easily),
 		// we can test the fallback 'save' button or keypress. Wait, EditableTitle renders a form if 'action' is present.
