@@ -66,7 +66,9 @@
 		onAddAlert,
 		onRemoveAlert,
 		averagePrice = 0,
-		showAveragePrice = false
+		showAveragePrice = false,
+		hasMoreData = true,
+		onLoadMoreData
 	} = $props<{
 		candles?: Candle[];
 		containerId?: string;
@@ -75,9 +77,27 @@
 		onRemoveAlert?: (alertId: number) => void;
 		averagePrice?: number;
 		showAveragePrice?: boolean;
+		hasMoreData?: boolean;
+		onLoadMoreData?: () => void;
 	}>();
 
 	let avgPriceLine: IPriceLine | null = null;
+	let isLoadingMore = $state(false);
+	let previousFirstCandleTime = $state<Time | null>(null);
+
+	function getTimeValue(t: Time): string | number {
+		if (typeof t === 'string' || typeof t === 'number') return t;
+		if (typeof t === 'object' && t !== null && 'year' in t) {
+			return `${t.year}-${String(t.month).padStart(2, '0')}-${String(t.day).padStart(2, '0')}`;
+		}
+		return String(t);
+	}
+
+	$effect(() => {
+		if (!hasMoreData) {
+			isLoadingMore = false;
+		}
+	});
 
 	$effect(() => {
 		if (!seriesInstance) return;
@@ -130,10 +150,52 @@
 
 	$effect(() => {
 		if (seriesInstance && candles && candles.length > 0) {
-			seriesInstance.setData(candles);
-			if (chartInstance) {
-				chartInstance.timeScale().fitContent();
+			const firstCandle = candles[0];
+			const isPrepending =
+				previousFirstCandleTime !== null &&
+				getTimeValue(firstCandle.time) < getTimeValue(previousFirstCandleTime);
+
+			let addedCandles = 0;
+			let currentRange: { from: number; to: number } | null = null;
+
+			if (isPrepending && previousFirstCandleTime !== null) {
+				const prevIndex = candles.findIndex(
+					(c: Candle) => getTimeValue(c.time) === getTimeValue(previousFirstCandleTime!)
+				);
+				if (prevIndex > 0) {
+					addedCandles = prevIndex;
+				}
+				if (chartInstance) {
+					const range = chartInstance.timeScale().getVisibleLogicalRange();
+					if (range) {
+						currentRange = { from: range.from, to: range.to };
+					}
+				}
 			}
+
+			seriesInstance.setData(candles);
+
+			if (chartInstance) {
+				if (isPrepending && currentRange && addedCandles > 0) {
+					chartInstance.timeScale().setVisibleLogicalRange({
+						from: currentRange.from + addedCandles,
+						to: currentRange.to + addedCandles
+					});
+				} else if (previousFirstCandleTime === null) {
+					const visibleDays = 250;
+					if (candles.length > visibleDays) {
+						chartInstance.timeScale().setVisibleLogicalRange({
+							from: candles.length - visibleDays,
+							to: candles.length - 1
+						});
+					} else {
+						chartInstance.timeScale().fitContent();
+					}
+				}
+			}
+
+			previousFirstCandleTime = firstCandle.time;
+			isLoadingMore = false;
 		}
 	});
 
@@ -181,6 +243,10 @@
 			if (showBottomPane && bottomChartInstance && range) {
 				bottomChartInstance.timeScale().setVisibleLogicalRange(range);
 			}
+			if (range && range.from <= 10 && !isLoadingMore && hasMoreData) {
+				isLoadingMore = true;
+				onLoadMoreData?.();
+			}
 		});
 
 		bottomChartInstance.timeScale().subscribeVisibleLogicalRangeChange((range) => {
@@ -219,20 +285,6 @@
 				onRemoveAlert(id);
 			}
 		});
-
-		if (candles.length > 0) {
-			seriesInstance.setData(candles);
-
-			const visibleDays = 250;
-			if (candles.length > visibleDays) {
-				chartInstance.timeScale().setVisibleLogicalRange({
-					from: candles.length - visibleDays,
-					to: candles.length - 1
-				});
-			} else {
-				chartInstance.timeScale().fitContent();
-			}
-		}
 
 		const resizeObserver = new ResizeObserver(() => {
 			if (containerRef && chartInstance) {
