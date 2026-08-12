@@ -30,7 +30,10 @@
 	import {
 		mergeChartPreferences,
 		displayCandlesFor,
-		shouldForceRefetch
+		shouldForceRefetch,
+		parseCandleTime,
+		mergeCandles,
+		shouldFetchMoreData
 	} from '$lib/chart-preferences';
 	import { getChartDateWindow } from '$lib/utils/date';
 
@@ -48,6 +51,8 @@
 	let rawCandles = $state<Candle[]>([]);
 	let displayCandles = $derived(displayCandlesFor(chartStyle, rawCandles, haCandles));
 	let isChangingTimeframe = $state(false);
+	let hasMoreData = $state(true);
+	let isLoadingMore = $state(false);
 
 	async function updateChartPreferences(partial: Partial<UserPreferences>) {
 		const prefs = await userPreferencesService.getPreferences();
@@ -66,6 +71,8 @@
 			return;
 		selectedInterval = interval;
 		isChangingTimeframe = true;
+		hasMoreData = true;
+		isLoadingMore = false;
 
 		let fetchOk = false;
 		try {
@@ -130,6 +137,73 @@
 			} catch (err) {
 				console.error('Failed to persist timeframe preference:', err);
 			}
+		}
+	}
+
+	async function handleLoadMoreData() {
+		if (!shouldFetchMoreData(isLoadingMore, hasMoreData, security?.id, rawCandles.length)) {
+			return;
+		}
+
+		isLoadingMore = true;
+		try {
+			const oldestCandle = rawCandles[0];
+			const oldestDate = parseCandleTime(oldestCandle.time);
+			const { from, to } = getChartDateWindow(oldestDate, selectedInterval);
+
+			const marketService = getMarketService();
+			const priceResponse = await marketService.getPrices(security.id, from, to, selectedInterval);
+
+			if (!priceResponse.items || priceResponse.items.length === 0) {
+				hasMoreData = false;
+				return;
+			}
+
+			const isIntraday = selectedInterval === '1h' || selectedInterval === '4h';
+			const mappedCandles: Candle[] = priceResponse.items.map((p) => {
+				const timeVal =
+					isIntraday && p.timestamp
+						? (Math.floor(new Date(p.timestamp).getTime() / 1000) as UTCTimestamp)
+						: ((p.date ?? '') as Time);
+				return {
+					time: timeVal,
+					open: Number(p.open),
+					high: Number(p.high),
+					low: Number(p.low),
+					close: Number(p.close),
+					volume: Number(p.volume)
+				};
+			});
+
+			mappedCandles.sort((a, b) => {
+				if (typeof a.time === 'number' && typeof b.time === 'number') {
+					return a.time - b.time;
+				}
+				return String(a.time).localeCompare(String(b.time));
+			});
+
+			const { merged, addedCount } = mergeCandles(rawCandles, mappedCandles);
+
+			if (addedCount === 0) {
+				hasMoreData = false;
+				return;
+			}
+
+			rawCandles = merged;
+			haCandles = convertToHeikinAshi(rawCandles);
+
+			setTimeout(() => {
+				for (const [id, config] of Object.entries(indicatorConfigs)) {
+					if (config.enabled && id !== 'avgPrice' && chartRef) {
+						chartRef.removeIndicator(id);
+						onIndicatorToggle(id, true);
+					}
+				}
+			}, 20);
+		} catch (err) {
+			console.error('Failed to load more chart data:', err);
+		} finally {
+			isLoadingMore = false;
 		}
 	}
 	let securityChart = $state<unknown | null>(null);
@@ -354,6 +428,8 @@
 				volume: Number(p.volume)
 			}));
 
+			hasMoreData = true;
+			isLoadingMore = false;
 			rawCandles = mappedCandles;
 			haCandles = convertToHeikinAshi(mappedCandles);
 			await Promise.all([loadAlerts(), loadHoldings()]);
@@ -500,6 +576,9 @@
 								onRemoveAlert={handleDeleteAlert}
 								averagePrice={averageBuyingPrice}
 								showAveragePrice={indicatorConfigs.avgPrice.enabled}
+								{hasMoreData}
+								{isLoadingMore}
+								onLoadMoreData={handleLoadMoreData}
 							/>
 						</div>
 					</div>

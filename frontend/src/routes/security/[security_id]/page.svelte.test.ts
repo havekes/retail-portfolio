@@ -1,5 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import type { Candle } from '@/utils/finance/candle';
+import type { Time } from 'lightweight-charts';
 import type { UserPreferences } from '$lib/api/userPreferencesService';
 import type { IndicatorConfig } from '$lib/api/indicatorsService';
 
@@ -9,7 +10,10 @@ import type { IndicatorConfig } from '$lib/api/indicatorsService';
 import {
 	mergeChartPreferences,
 	displayCandlesFor,
-	shouldForceRefetch
+	shouldForceRefetch,
+	parseCandleTime,
+	mergeCandles,
+	shouldFetchMoreData
 } from '$lib/chart-preferences';
 
 // ---------------------------------------------------------------------------
@@ -145,5 +149,103 @@ describe('shouldForceRefetch', () => {
 	it('forces refetch when intervals differ regardless of force flag', () => {
 		expect(shouldForceRefetch('1d', '1h', false)).toBe(true);
 		expect(shouldForceRefetch('1d', '1h', true)).toBe(true);
+	});
+});
+
+// ---------------------------------------------------------------------------
+// parseCandleTime — convert Lightweight Charts Time to Date
+// ---------------------------------------------------------------------------
+describe('parseCandleTime', () => {
+	it('converts Unix timestamp in seconds to Date', () => {
+		const date = parseCandleTime(1700000000 as unknown as Time);
+		expect(date.getTime()).toBe(1700000000 * 1000);
+	});
+
+	it('converts YYYY-MM-DD string to Date', () => {
+		const date = parseCandleTime('2024-01-15');
+		expect(date.getFullYear()).toBe(2024);
+		expect(date.getMonth()).toBe(0);
+		expect(date.getDate()).toBe(15);
+	});
+
+	it('converts BusinessDay object to Date', () => {
+		const date = parseCandleTime({ year: 2024, month: 2, day: 20 });
+		expect(date.getFullYear()).toBe(2024);
+		expect(date.getMonth()).toBe(1);
+		expect(date.getDate()).toBe(20);
+	});
+});
+
+// ---------------------------------------------------------------------------
+// mergeCandles — prepending & deduplicating historical price chunks
+// ---------------------------------------------------------------------------
+describe('mergeCandles', () => {
+	it('prepends new older candles to existing candles', () => {
+		const existing: Candle[] = [
+			{ time: '2024-01-03', open: 10, high: 11, low: 9, close: 10 },
+			{ time: '2024-01-04', open: 10, high: 12, low: 10, close: 11 }
+		];
+		const incoming: Candle[] = [
+			{ time: '2024-01-01', open: 8, high: 9, low: 7, close: 8 },
+			{ time: '2024-01-02', open: 9, high: 10, low: 8, close: 9 }
+		];
+
+		const { merged, addedCount } = mergeCandles(existing, incoming);
+		expect(addedCount).toBe(2);
+		expect(merged.length).toBe(4);
+		expect(merged[0].time).toBe('2024-01-01');
+		expect(merged[1].time).toBe('2024-01-02');
+		expect(merged[2].time).toBe('2024-01-03');
+		expect(merged[3].time).toBe('2024-01-04');
+	});
+
+	it('deduplicates candles with overlapping dates', () => {
+		const existing: Candle[] = [
+			{ time: '2024-01-02', open: 9, high: 10, low: 8, close: 9 },
+			{ time: '2024-01-03', open: 10, high: 11, low: 9, close: 10 }
+		];
+		const incoming: Candle[] = [
+			{ time: '2024-01-01', open: 8, high: 9, low: 7, close: 8 },
+			{ time: '2024-01-02', open: 9, high: 10, low: 8, close: 9 } // duplicate
+		];
+
+		const { merged, addedCount } = mergeCandles(existing, incoming);
+		expect(addedCount).toBe(1);
+		expect(merged.length).toBe(3);
+		expect(merged[0].time).toBe('2024-01-01');
+	});
+
+	it('returns addedCount = 0 when all incoming candles are duplicates or empty', () => {
+		const existing: Candle[] = [{ time: '2024-01-01', open: 8, high: 9, low: 7, close: 8 }];
+
+		const resEmpty = mergeCandles(existing, []);
+		expect(resEmpty.addedCount).toBe(0);
+		expect(resEmpty.merged).toEqual(existing);
+
+		const resDuplicates = mergeCandles(existing, existing);
+		expect(resDuplicates.addedCount).toBe(0);
+		expect(resDuplicates.merged).toEqual(existing);
+	});
+});
+
+// ---------------------------------------------------------------------------
+// shouldFetchMoreData — pagination gate logic
+// ---------------------------------------------------------------------------
+describe('shouldFetchMoreData', () => {
+	it('allows fetching when not loading, hasMoreData is true, securityId and candles exist', () => {
+		expect(shouldFetchMoreData(false, true, 'sec-123', 50)).toBe(true);
+	});
+
+	it('prevents fetching when isLoadingMore is true', () => {
+		expect(shouldFetchMoreData(true, true, 'sec-123', 50)).toBe(false);
+	});
+
+	it('prevents fetching when hasMoreData is false', () => {
+		expect(shouldFetchMoreData(false, false, 'sec-123', 50)).toBe(false);
+	});
+
+	it('prevents fetching when securityId is missing or candles count is 0', () => {
+		expect(shouldFetchMoreData(false, true, undefined, 50)).toBe(false);
+		expect(shouldFetchMoreData(false, true, 'sec-123', 0)).toBe(false);
 	});
 });
