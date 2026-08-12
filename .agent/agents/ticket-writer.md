@@ -25,4 +25,10 @@ Output:
 - One GitHub issue per work unit, created with `gh issue create` using the skill's title convention, labels (`ticket` + `status:pending`), and body template.
 - Your final message: a numbered list of the tickets you wrote (id, issue number + URL, title, depends_on) plus one line each on why it is sized the way it is.
 
-Shell discipline: you may run `gh issue`/`gh label` commands and read-only inspection commands (`git log`, `git show`, file listing). Never write code, never run git mutations, never touch issue state labels — tickets start as `status:pending`, the orchestrator owns state from there.
+Shell discipline: only these command forms are auto-approved — anything else prompts for confirmation and stalls the run.
+
+- Discovery: `find <dir> -type f`, `rg [-l|-n] <pattern> <dir>`, `grep -R`, `git ls-files`, `git log --oneline`, `git show <ref>`.
+- Reading: `sed -n '<a>,<b>p' <file>`, `head -n N <file>`, `tail -n +N <file>`, `cat <file>`.
+- `gh issue` / `gh label` for ticket creation only.
+
+Never pass a dynamic-route path containing `[` or `]` (e.g. `frontend/src/routes/security/[security_id]/`) into any command — bracket globs defeat the permission matcher and force a confirmation. Discover such files with `find`/`rg`/`git ls-files` first, then read the concrete path. Never use compound commands (heredocs, `&&`, `;`, `$()`, pipes) or `rm`/`kill`/`sudo`. Never write code, never run git mutations, never touch issue state labels — tickets start as `status:pending`, the orchestrator owns state from there.

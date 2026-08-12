@@ -31,6 +31,10 @@ For feature sources, groom from the spec's `## What needs to be done`, `## Scope
 - **~100–400 changed lines** is the sweet spot. If a ticket drafts bigger, split it. If two tickets are trivially small and tightly coupled, merge them.
 - **Explicit seams.** A ticket that introduces an interface/boundary used by later tickets comes first and defines the contract in its acceptance criteria.
 
+## Exploration discipline
+
+Reading the repo is read-only and must stay within auto-approved forms: `find`, `rg`, `grep -R`, `git ls-files`, `sed -n 'a,bp'`, `head`, `tail`, `cat`, `gh`. SvelteKit dynamic-route dirs contain `[` and `]` in their names — never paste such a path into a command (it triggers a permission prompt). Resolve files under those dirs with `find`/`rg`/`git ls-files`, then read the concrete result.
+
 ## Dependency analysis
 
 - For every ticket, set `depends_on` (in `## Meta`) to the minimal list of ticket ids that must merge first.
