@@ -59,7 +59,7 @@
 		activeIndicators.some((i) => i.type === 'rsi' || i.type === 'macd' || i.type === 'obv')
 	);
 
-	const {
+	let {
 		candles = [],
 		containerId = 'main-chart',
 		alerts = [],
@@ -68,6 +68,7 @@
 		averagePrice = 0,
 		showAveragePrice = false,
 		hasMoreData = true,
+		isLoadingMore = $bindable(false),
 		onLoadMoreData
 	} = $props<{
 		candles?: Candle[];
@@ -78,11 +79,11 @@
 		averagePrice?: number;
 		showAveragePrice?: boolean;
 		hasMoreData?: boolean;
+		isLoadingMore?: boolean;
 		onLoadMoreData?: () => void;
 	}>();
 
 	let avgPriceLine: IPriceLine | null = null;
-	let isLoadingMore = $state(false);
 	let previousFirstCandleTime = $state<Time | null>(null);
 
 	function getTimeValue(t: Time): string | number {
