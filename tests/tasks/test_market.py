@@ -118,6 +118,7 @@ async def test_hourly_intraday_price_update_success():
     with (
         patch("src.market.task.huey.svcs_registry", MagicMock()),
         patch("src.market.task.Container", return_value=mock_container),
+        patch("src.market.task.check_and_dispatch_price_alerts"),
     ):
         await _hourly_intraday_price_update()
 
@@ -169,6 +170,7 @@ async def test_hourly_intraday_price_update_logs_results():
         patch("src.market.task.huey.svcs_registry", MagicMock()),
         patch("src.market.task.Container", return_value=mock_container),
         patch("src.market.task.logger") as mock_logger,
+        patch("src.market.task.check_and_dispatch_price_alerts"),
     ):
         await _hourly_intraday_price_update()
 
@@ -226,6 +228,7 @@ async def test_hourly_intraday_price_update_recalculates_totals_and_sends_ws_mes
         patch("src.market.task.huey.svcs_registry", MagicMock()),
         patch("src.market.task.Container", return_value=mock_container),
         patch("src.market.task.ws_manager") as mock_ws_manager,
+        patch("src.market.task.check_and_dispatch_price_alerts"),
     ):
         mock_ws_manager.send_personal_message = AsyncMock()
         await _hourly_intraday_price_update()

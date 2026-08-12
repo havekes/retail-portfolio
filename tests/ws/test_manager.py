@@ -184,6 +184,7 @@ async def test_send_personal_message_sync_with_loop(cm):
     msg = {"content": "hello"}
     with patch.object(cm, "send_personal_message", new=AsyncMock()):
         cm._orig_send_personal_message_sync(msg, user_id)
+        await asyncio.sleep(0)
 
 
 def test_send_personal_message_sync_no_loop(cm):
@@ -195,6 +196,9 @@ def test_send_personal_message_sync_no_loop(cm):
     ):
         cm._orig_send_personal_message_sync(msg, user_id)
         assert mock_asyncio_run.called
+        args = mock_asyncio_run.call_args[0]
+        if args and asyncio.iscoroutine(args[0]):
+            args[0].close()
 
 
 @pytest.mark.asyncio
@@ -273,6 +277,7 @@ async def test_listen_for_messages_restarts_on_error(cm):
         if call_count == 1:
             err_msg = "PubSub Error"
             raise RuntimeError(err_msg)
+        yield {"type": "dummy"}
 
     mock_pubsub = MockPubSub(gen)
     mock_redis = MagicMock()
@@ -287,6 +292,4 @@ async def test_listen_for_messages_restarts_on_error(cm):
         assert cm._pubsub_task is not None
         # Clean up created task
         if cm._pubsub_task:
-            cm._pubsub_task.cancel()
-            with pytest.raises(asyncio.CancelledError):
-                await cm._pubsub_task
+            await cm._pubsub_task

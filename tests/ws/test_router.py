@@ -139,11 +139,10 @@ def test_websocket_token_cookie_valid(client, dummy_user):
     mock_user_api.get_current_user_from_token.return_value = dummy_user
     mock_container = make_mock_svcs_container(mock_user_api)
 
+    client.cookies = {"auth_token": "valid_token"}
     with (
         patch("svcs.Container", return_value=mock_container),
-        client.websocket_connect(
-            "/api/ws", cookies={"auth_token": "valid_token"}
-        ) as websocket,
+        client.websocket_connect("/api/ws") as websocket,
     ):
         assert websocket is not None
     mock_user_api.get_current_user_from_token.assert_called_once_with("valid_token")
@@ -170,10 +169,11 @@ def test_websocket_token_invalid(client):
     mock_user_api.get_current_user_from_token.side_effect = Exception("Invalid token")
     mock_container = make_mock_svcs_container(mock_user_api)
 
+    client.cookies = {"auth_token": "bad_token"}
     with (
         patch("svcs.Container", return_value=mock_container),
         pytest.raises(WebSocketDisconnect) as exc_info,
-        client.websocket_connect("/api/ws", cookies={"auth_token": "bad_token"}),
+        client.websocket_connect("/api/ws"),
     ):
         pass
     assert exc_info.value.code == WS_POLICY_VIOLATION

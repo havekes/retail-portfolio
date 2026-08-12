@@ -61,6 +61,9 @@ dev = [
 pythonpath = [".", "src"]
 cache_dir = "./.cache/pytest"
 addopts = "--cov=src --cov-report=term-missing --cov-report=json:coverage.json"
+filterwarnings = [
+    "ignore::DeprecationWarning:slowapi.*",
+]
 
 [tool.coverage.run]
 source = ["src"]
