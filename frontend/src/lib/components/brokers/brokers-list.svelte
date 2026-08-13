@@ -6,11 +6,14 @@
 	import { Button } from '../ui/button/index.js';
 	import ConnectBrokerModal from './connect-broker-modal.svelte';
 	import { CircleAlert } from '@lucide/svelte';
+	import { untrack } from 'svelte';
 	import type { BrokerUser } from '@/types/broker/broker';
 
 	let { users = [] }: { users?: BrokerUser[] } = $props();
 
-	const state = new BrokersListState(users);
+	// Seed the state from the initial users prop; the state class owns the
+	// list afterwards (loadUsers refresh), so only the initial value matters.
+	const state = new BrokersListState(untrack(() => users));
 </script>
 
 <ConnectBrokerModal bind:open={state.isModalOpen} onSuccess={state.loadUsers} />

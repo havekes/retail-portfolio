@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { cn } from '$lib/utils';
+	import { untrack } from 'svelte';
 	import { Button } from '$lib/components/ui/button';
 	import { ChevronDown } from '@lucide/svelte';
 	import * as Popover from '$lib/components/ui/popover';
@@ -27,7 +28,9 @@
 	let s = $state(0);
 	let v = $state(0);
 	let a = $state(1);
-	let activeFormat = $state<ColorFormat>(defaultFormat);
+	// Capture the initial defaultFormat — activeFormat is only seeded from the
+	// prop once; afterwards it follows the value's format (see sync effect below).
+	let activeFormat = $state<ColorFormat>(untrack(() => defaultFormat));
 	let isDragging = $state(false);
 
 	$effect.pre(() => {
@@ -367,20 +370,20 @@
 		onmousedown={(e) => handleDragStart(e, handleSbChange)}
 		ontouchstart={(e) => handleDragStart(e, handleSbChange)}
 	>
-		<div class="absolute inset-0 bg-gradient-to-r from-white to-transparent pointer-events-none" />
-		<div class="absolute inset-0 bg-gradient-to-t from-black to-transparent pointer-events-none" />
+		<div class="absolute inset-0 bg-gradient-to-r from-white to-transparent pointer-events-none"></div>
+		<div class="absolute inset-0 bg-gradient-to-t from-black to-transparent pointer-events-none"></div>
 		<div
 			class="absolute h-3 w-3 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-white shadow-sm ring-1 ring-black/20 pointer-events-none"
 			style:left={`${s}%`}
 			style:top={`${100 - v}%`}
-		/>
+		></div>
 	</div>
 
 	<div class="flex gap-3 items-center">
 		<div
 			class="h-8 w-8 shrink-0 rounded-md border shadow-sm relative overflow-hidden mt-1 bg-[url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAMUlEQVQ4T2NkYGAQYcAP3uCTZhw1gGGYhAGBZIA/nYDCgBDAm9BGDWAAJyRCgLaBCAAgXwixzAS0pgAAAABJRU5ErkJggg==')]"
 		>
-			<div class="absolute inset-0" style:background-color={hsvToHex(h, s, v, a)} />
+			<div class="absolute inset-0" style:background-color={hsvToHex(h, s, v, a)}></div>
 		</div>
 
 		<div class="flex flex-1 flex-col gap-3 justify-center">
@@ -397,7 +400,7 @@
 				<div
 					class="absolute top-1/2 h-3 w-3 -translate-x-1/2 -translate-y-1/2 rounded-full bg-white pointer-events-none"
 					style:left={`${(h / 360) * 100}%`}
-				/>
+				></div>
 			</div>
 
 			{#if allowOpacity}
@@ -413,11 +416,11 @@
 					<div
 						class="absolute inset-0 rounded-full"
 						style:background={`linear-gradient(to right, transparent, ${hsvToHex(h, s, v, 1)})`}
-					/>
+					></div>
 					<div
 						class="absolute top-1/2 h-3 w-3 -translate-x-1/2 -translate-y-1/2 rounded-full bg-white pointer-events-none"
 						style:left={`${a * 100}%`}
-					/>
+					></div>
 				</div>
 			{/if}
 		</div>
