@@ -73,7 +73,7 @@ def postgres_service() -> Generator[str, None, None]:
         os.environ["DATABASE_URL"] = db_url
         yield db_url
     else:
-        from testcontainers.postgres import PostgresContainer
+        from testcontainers.community.postgres import PostgresContainer
 
         with PostgresContainer("postgres:17-alpine") as postgres:
             url = make_url(postgres.get_connection_url()).set(drivername="postgresql+asyncpg").render_as_string(hide_password=False)

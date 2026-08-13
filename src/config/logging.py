@@ -69,13 +69,20 @@ class JsonFormatter(logging.Formatter):
 
 
 def init_logging() -> None:
+    if settings.log_level:
+        log_level = getattr(logging, settings.log_level.upper(), logging.DEBUG)
+    elif settings.environment == "test":
+        log_level = logging.WARNING
+    else:
+        log_level = logging.DEBUG
+
     if settings.environment == "prod":
         handler = logging.StreamHandler()
         handler.setFormatter(JsonFormatter())
         handler.addFilter(RequestIdFilter())
 
         logging.basicConfig(
-            level=logging.DEBUG,
+            level=log_level,
             handlers=[handler],
             force=True,
         )
@@ -102,7 +109,7 @@ def init_logging() -> None:
         handler.addFilter(RequestIdFilter())
 
         logging.basicConfig(
-            level=logging.DEBUG,
+            level=log_level,
             format="[%(request_id)s] %(message)s",
             datefmt="[%X]",
             handlers=[handler],
