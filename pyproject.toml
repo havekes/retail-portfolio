@@ -63,6 +63,7 @@ cache_dir = "./.cache/pytest"
 addopts = "--cov=src --cov-report=term-missing --cov-report=json:coverage.json"
 filterwarnings = [
     "ignore::DeprecationWarning:slowapi.*",
+    "ignore:Using `httpx` with `starlette.testclient` is deprecated",
 ]
 
 [tool.coverage.run]
