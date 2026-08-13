@@ -1,6 +1,8 @@
 import json
 import logging
-from src.config.logging import JsonFormatter
+from unittest.mock import MagicMock, patch
+
+from src.config.logging import FallbackRichHandler, JsonFormatter, init_logging
 
 
 def test_json_formatter_basic():
@@ -135,10 +137,6 @@ def test_json_formatter_unserializable_extra():
     assert data["user_id"] == "<unserializable>"
 
 
-from unittest.mock import MagicMock, patch
-from src.config.logging import FallbackRichHandler, init_logging
-
-
 def test_fallback_rich_handler_success():
     handler = FallbackRichHandler()
     record = logging.LogRecord(
@@ -195,6 +193,7 @@ def test_fallback_rich_handler_double_failure():
 def test_init_logging_dev_mode():
     with (
         patch("src.config.logging.settings.environment", "dev"),
+        patch("src.config.logging.settings.log_level", None),
         patch("logging.basicConfig") as mock_basic_config,
     ):
         init_logging()
@@ -203,3 +202,28 @@ def test_init_logging_dev_mode():
         assert "handlers" in kwargs
         assert len(kwargs["handlers"]) == 1
         assert isinstance(kwargs["handlers"][0], FallbackRichHandler)
+        assert kwargs["level"] == logging.DEBUG
+
+
+def test_init_logging_test_mode():
+    with (
+        patch("src.config.logging.settings.environment", "test"),
+        patch("src.config.logging.settings.log_level", None),
+        patch("logging.basicConfig") as mock_basic_config,
+    ):
+        init_logging()
+        assert mock_basic_config.called
+        kwargs = mock_basic_config.call_args.kwargs
+        assert kwargs["level"] == logging.WARNING
+
+
+def test_init_logging_custom_log_level():
+    with (
+        patch("src.config.logging.settings.environment", "test"),
+        patch("src.config.logging.settings.log_level", "INFO"),
+        patch("logging.basicConfig") as mock_basic_config,
+    ):
+        init_logging()
+        assert mock_basic_config.called
+        kwargs = mock_basic_config.call_args.kwargs
+        assert kwargs["level"] == logging.INFO
