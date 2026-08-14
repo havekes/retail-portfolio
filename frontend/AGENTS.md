@@ -18,16 +18,17 @@ Coding Agent Guide: retail-portfolio (Frontend)
 
 ## Development Workflow
 
-**ALWAYS**: Execute frontend commands in `retail-portfolio-frontend`.
+**ALWAYS**: Execute frontend commands in the frontend service (`docker compose exec frontend`).
 
-**Frontend Workflow (`docker exec retail-portfolio-frontend`)**:
+**Frontend Workflow**:
 
 1. Install dependencies: `npm install`
 2. Lint and format code: `npm run lint`
 3. Run type checks: `npm run check`
-4. Format code: `npm run format`
+4. Run tests (vitest): `npm run test:run`
+5. Format code: `npm run format`
 
-**MANDATORY**: When writing or editing code, **ALWAYS** run linting, type checks, and format before submitting.
+**MANDATORY**: When writing or editing code, **ALWAYS** run linting, type checks, tests and format before submitting.
 
 ## Testing
 

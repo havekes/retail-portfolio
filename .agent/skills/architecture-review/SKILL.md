@@ -1,19 +1,19 @@
 ---
 name: architecture-review
-description: Use when performing an on-demand architecture health check of the codebase — evaluating structure, boundaries, data model, and tech choices against PROJECT.md goals, writing a report to .agent/reviews/, and emitting actionable architectural improvement tickets as GitHub issues (id prefix ARCH-T) via the gh CLI.
+description: Use when performing an on-demand architecture health check of the codebase — evaluating structure, boundaries, data model, and tech choices against the documented architecture (openwiki/, AGENTS.md), writing a report to .agent/reviews/, and emitting actionable architectural improvement tickets as GitHub issues (id prefix ARCH-T) via the gh CLI.
 ---
 
 # Architecture Review
 
 Run when the user asks for an architecture review — decoupled from phases, repeatable any time. Goal: keep the project on rails by detecting architectural drift early and converting it into **executable tickets**, not just observations.
 
-You assess the whole codebase (or the focus area the user named), not a single PR — line-level code quality is PR review's job.
+You assess the whole codebase (or the focus area the user named), not a single PR — line-level code quality is the pr-review step's job.
 
 ## Evaluation axes
 
-1. **Blueprint alignment** — does what exists match the PROJECT.md trajectory? Any drift that later phases will pay for?
-2. **Module boundaries** — are concerns separated (ingestion / persistence / API / UI)? Are dependencies one-directional, or is coupling creeping in?
-3. **Data model fit** — does the schema support what later phases need (price history queries, cross-marketplace linking, unit normalization)? Migrations manageable?
+1. **Documentation alignment** — does what exists match the architecture described in `openwiki/` and the `AGENTS.md` conventions (domain layering, schema/repository/service/API boundaries)? Any drift that upcoming features will pay for?
+2. **Module boundaries** — are concerns separated (domain logic / persistence / API / UI)? Are dependencies one-directional, or is coupling creeping in?
+3. **Data model fit** — does the schema support what upcoming features need (portfolio valuation, price history, broker sync)? Migrations manageable?
 4. **Contracts** — are API shapes, internal interfaces, and JSON schemas stable and documented enough for upcoming tickets to build on?
 5. **Cross-cutting concerns** — configuration, error handling strategy, logging, test strategy. Consistent or ad-hoc per ticket?
 6. **Technical debt** — shortcuts taken under ticket scope pressure. Classify by interest rate: what compounds vs. what's inert?
@@ -21,7 +21,7 @@ You assess the whole codebase (or the focus area the user named), not a single P
 
 ## Method
 
-- Read `PROJECT.md` (the trajectory), open ticket issues (`gh issue list --label ticket --state open`), and merged history since the last review (`git log`/`git show` on merge commits).
+- Read the documented intent (`openwiki/quickstart.md` + its architecture pages, and the `AGENTS.md` files), open ticket issues (`gh issue list --label ticket --state open`), and merged history since the last review (`git log`/`git show` on merge commits).
 - Read the actual code structure — judge what exists, not what was planned.
 - Every finding cites concrete files/modules. No vague "could be cleaner".
 

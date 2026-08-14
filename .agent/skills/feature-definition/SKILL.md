@@ -16,7 +16,7 @@ Take a raw idea ("wouldn't it be cool if...", a one-liner, a pain point) and sha
 
 Before writing anything, look at what exists — the spec must be honest about the gap between idea and reality:
 
-1. Read `PROJECT.md` — where this idea fits (or deliberately deviates from) the blueprint trajectory.
+1. Read `README.md` and `openwiki/quickstart.md` — where this idea fits (or deliberately deviates from) the current project.
 2. Scan the relevant code structure — does a foundation for this already exist? What does the current UX/data model look like in the affected area?
 3. Scan open ticket issues (`gh issue list --label ticket --state open`) and `.agent/reviews/` — in-flight or completed work that overlaps; arch-review findings that constrain the feature.
 

@@ -22,14 +22,14 @@ Coding Agent Guide: retail-portfolio (Backend)
 
 ## Development Workflow
 
-**ALWAYS**: Execute backend commands in `retail-portfolio-backend`.
+**ALWAYS**: Execute backend commands in the backend service (`docker compose exec backend`).
 
-**Backend Workflow (`docker exec retail-portfolio-backend`)**:
-1. Lint code: `uv run ruff check`
-2. Run type checks: `uv run ty check`
-3. Run tests: `uv run pytest`
-4. Format code: `uv run ruff format`
-5. Generate migrations: `uv run alembic revision --autogenerate -m "message"`
+**Backend Workflow**:
+1. Lint code: `docker compose exec backend uv run ruff check`
+2. Run type checks: `docker compose exec backend uv run ty check`
+3. Run tests: `docker compose exec backend uv run pytest`
+4. Format code: `docker compose exec backend uv run ruff format`
+5. Generate migrations: `docker compose exec backend uv run alembic revision --autogenerate -m "message"`
 
 **MANDATORY**: When writing or editing code, **ALWAYS** run linting, type checks, tests and format before submitting.
 **MANDATORY**: When editing a backend model, also generate the migrations using alembic.
@@ -65,7 +65,7 @@ domain/
 ├── api.py                    # Public APIs for inter-domain communication
 ├── service.py                # Business logic (orchestration, calculations)
 ├── router.py                 # FastAPI route handlers
-├── api_types.py              # Public type definitions (for cross domain communcation)
+├── api_types.py              # Public type definitions (for cross domain communication)
 ├── enum.py                   # Domain-specific enums
 └── commands/                 # CLI commands (seeding, etc.)
 ```
@@ -81,7 +81,7 @@ domain/
 
 - **Repositories ALWAYS return schemas, never models**
 - Used between routers and services
-- **Do not ouse outside the domain** (use API type instead)
+- **Do not use outside the domain** (use API type instead)
 - Naming conventions:
   - `*Read` suffix: Data returned from GET endpoints
   - `*Write` suffix: Data accepted by POST/PATCH endpoints
@@ -110,7 +110,7 @@ domain/
 
 **API types** → Public schemas for inter-domain communication
 
-- Types exposed for cross-domain communcation
+- Types exposed for cross-domain communication
 - Expose this instead of a schema
 
 **Routers** → FastAPI HTTP endpoints

@@ -3,7 +3,7 @@ A portfolio tracker designed for the retail investor
 
 ## Contribution guidelines
 
-Read the [AGENTS.md](./AGENTS.md) file for an overview of the architecture.
+Read the [AGENTS.md](./AGENTS.md) file for agent guidelines and [openwiki/quickstart.md](./openwiki/quickstart.md) for an architecture overview.
 
 ### Running the app
 
@@ -19,7 +19,7 @@ Using Docker compose is the only supported way to run the application: `docker c
 
 ### During development
 
-It is recommend to always run commands from inside the container: `docker compose exec [backend|frontend] <command>`
+It is recommended to always run commands from inside the container: `docker compose exec [backend|frontend] <command>`
 
 - Run tests: `uv run pytest`
 - Check format: `uv run ruff format --check`
@@ -34,7 +34,7 @@ It is recommend to always run commands from inside the container: `docker compos
 
 ```python
 # Force reload the ws_api module from local path during development
-if settings.envrionement == "dev":
+if settings.environment == "dev":
     sys.path.insert(0, "/app/modules/ws-api-python")
     for module_name in list(sys.modules.keys()):
         if module_name.startswith("ws_api"):

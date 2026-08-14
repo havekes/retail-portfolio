@@ -19,7 +19,7 @@ Review the PR against its ticket — the ticket's acceptance criteria are the co
 3. **Scope discipline** — diff contains only what the ticket scoped. Flag unrelated changes as `scope` findings (they belong in a follow-up ticket).
 4. **Tests/verification** — new behavior is covered or the PR body shows concrete verification. Untested critical paths = at least a `major`. Tests must ALWAYS mock external APIs and never make real network calls.
 5. **Security & data safety** — SQL injection, missing input validation on endpoints, secrets in code, unsafe file handling (upload endpoint!), path traversal.
-6. **Conventions & fit** — matches existing project patterns and the PROJECT.md stack; migrations are idempotent/auto-applied as the blueprint requires; API shapes match what later frontend tickets will consume.
+6. **Conventions & fit** — matches existing project patterns and the documented stack (`AGENTS.md` guides); migrations are idempotent/auto-applied as the plan requires; API shapes match what later tickets will consume.
 7. **Clarity** — names, structure, comments where non-obvious. Don't nitpick style that tooling should own.
 
 ## Severity levels

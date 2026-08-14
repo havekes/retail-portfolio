@@ -1,27 +1,27 @@
 ---
 name: ticket-writing
-description: Use when breaking down a project phase, blueprint section, PROJECT.md phase, or a feature spec from .opencode/features/ into small implementation tickets created as GitHub issues via the gh CLI. Covers ticket sizing rules, dependency analysis, ordering, the issue title/label conventions, and the issue body template.
+description: Use when shaping a rough feature idea or a feature spec from .opencode/features/ into small implementation tickets created as GitHub issues via the gh CLI. Covers clarifying requirements against the current codebase, ticket sizing rules, dependency analysis, ordering, the issue title/label conventions, and the issue body template.
 ---
 
 # Ticket Writing
 
-Distill one source of work — a phase of `PROJECT.md` **or** a feature spec from `.opencode/features/` (produced by the `feature-definition` skill, status `ready`) — into the smallest set of tickets that fully delivers its goal. Each ticket is a **GitHub issue** created with `gh issue create`.
+Distill one source of work — a rough feature idea **or** a feature spec from `.opencode/features/` (produced by the `feature-definition` skill, status `ready`) — into the smallest set of tickets that fully delivers its goal. Each ticket is a **GitHub issue** created with `gh issue create`.
 
 You describe **what** each ticket must achieve. The **how** is decided later, per ticket, by the `ticket-planning` step — so keep `## Technical notes` to constraints and pointers, not implementation plans.
 
 ## Sources and naming
 
-| | Phase source | Feature source |
+| | Idea source | Feature source |
 | --- | --- | --- |
-| Input | Phase number + exact text of `PROJECT.md` | Path to `.opencode/features/<slug>.md` |
-| Ticket id prefix | `P<N>` | `F-<slug>` |
-| `source:` meta field | `"PROJECT.md → Phase <N> → <Task ref>"` | `".opencode/features/<slug>.md"` |
+| Input | The user's rough idea text | Path to `.opencode/features/<slug>.md` |
+| Ticket id prefix | `F-<slug>` | `F-<slug>` |
+| `source:` meta field | `"idea: <one-line summary>"` | `".opencode/features/<slug>.md"` |
 
-(A third ticket origin exists — `ARCH-T` tickets created directly by the `architecture-review` skill. You never groom those.)
+(One further ticket origin exists — `ARCH-T` tickets created directly by the `architecture-review` skill. You never groom those.)
 
-Branch names follow the lowercase prefix pattern: `feat/p<n>-t<nn>-<slug>` or `feat/f-<slug>-t<nn>-<slug>`.
+Branch names follow the lowercase prefix pattern: `feat/f-<slug>-t<nn>-<slug>`.
 
-For feature sources, groom from the spec's `## What needs to be done`, `## Scope`, and `## Definition of done` sections; treat its `## Open questions` defaults as decisions unless the user says otherwise.
+For feature sources, groom from the spec's `## What needs to be done`, `## Scope`, and `## Definition of done` sections; treat its `## Open questions` defaults as decisions unless the user says otherwise. For idea sources, ground the idea in the actual codebase before writing anything (see procedure).
 
 ## Sizing rules
 
@@ -43,10 +43,11 @@ If the orchestrator gave you a previous architecture review: its open findings/c
 
 ## Procedure
 
-1. Read the full source text (phase section or feature spec) and its goal.
-2. Read the carry-over/findings section of the previous arch review (if provided).
-3. List candidate work units; apply the sizing rules; determine dependencies.
-4. Create one GitHub issue per ticket, in execution order (`NN` = zero-padded execution order):
+1. Read the full source text (idea or feature spec) and its goal.
+2. Ground it in the current codebase: read the domains, routes, components, and tests it touches. If requirements stay ambiguous after reading the code, STOP and return your clarifying questions in your final message instead of guessing — the orchestrator relays the answers back to you.
+3. Read the carry-over/findings section of the previous arch review (if provided).
+4. List candidate work units; apply the sizing rules; determine dependencies.
+5. Create one GitHub issue per ticket, in execution order (`NN` = zero-padded execution order):
 
    ```bash
    gh issue create \
@@ -56,7 +57,7 @@ If the orchestrator gave you a previous architecture review: its open findings/c
    ```
 
    If the labels don't exist yet, create them first: `gh label create ticket --force` and `gh label create status:pending --force`.
-5. Final message: numbered ticket list (id, issue number + URL, title, depends_on) + one sizing rationale line each.
+6. Final message: numbered ticket list (id, issue number + URL, title, depends_on) + one sizing rationale line each.
 
 ## Issue body template
 
@@ -65,7 +66,7 @@ If the orchestrator gave you a previous architecture review: its open findings/c
 - id: <PREFIX>-T<NN>
 - depends_on: []            # ticket ids that must be closed first
 - branch: feat/<prefix-lowercase>-t<nn>-<short-slug>
-- source: "PROJECT.md → Phase <N> → <Task ref>"   # or ".opencode/features/<slug>.md" or ".opencode/reviews/<date>-architecture.md"
+- source: "idea: <one-line summary>"   # or ".opencode/features/<slug>.md" or ".opencode/reviews/<date>-architecture.md"
 
 ## Objective
 

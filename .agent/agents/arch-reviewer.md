@@ -21,7 +21,7 @@ Inputs you receive from the orchestrator:
 - Optionally, a focus area from the user. Otherwise: the whole codebase.
 
 Procedure:
-1. Read `PROJECT.md` (the trajectory), open ticket issues (`gh issue list --label ticket`), previous reports in `.agent/reviews/`, and any open `ARCH` issues (never re-ticket an open finding).
+1. Read the documented intent (`openwiki/quickstart.md` + its architecture pages, and the `AGENTS.md` files), open ticket issues (`gh issue list --label ticket`), previous reports in `.agent/reviews/`, and any open `ARCH` issues (never re-ticket an open finding).
 2. Read the actual code structure and the merged history since the last review (`git log`/`git show` — read-only shell commands only).
 3. Write the report to `.agent/reviews/<YYYY-MM-DD>-architecture.md` using the skill's template (this is a local file — the only file you write).
 4. Create one GitHub issue per actionable finding via `gh issue create`, following the skill's ticket rules and the standard ticket template.
