@@ -29,6 +29,32 @@ Coding Agent Guide: retail-portfolio (Frontend)
 
 **MANDATORY**: When writing or editing code, **ALWAYS** run linting, type checks, and format before submitting.
 
+## Testing
+
+**MANDATORY**: **ALWAYS** mock **ALL** API calls in frontend tests. Tests must never hit a real backend or perform real network requests.
+
+Rationale: CI runs without a backend, so any unmocked fetch fails with `ECONNREFUSED` and makes the suite flaky (e.g. `Failed to fetch account totals [TypeError: fetch failed]`).
+
+- Mock every API client module the component under test depends on, and stub **every** method it calls:
+
+  ```typescript
+  vi.mock('$lib/api/accountClient', () => ({
+  	accountClient: { getAccountTotals: vi.fn() }
+  }));
+
+  import { accountClient } from '$lib/api/accountClient';
+
+  beforeEach(() => {
+  	vi.mocked(accountClient.getAccountTotals).mockResolvedValue({
+  		value: { value: '100', units: 100, nanos: 0, currencyCode: 'CAD' },
+  		cost: { value: '50', units: 50, nanos: 0, currencyCode: 'CAD' }
+  	});
+  });
+  ```
+
+- Also mock framework and third-party modules that make network or browser calls (`$app/forms`, `$app/paths`, `lightweight-charts`, etc.).
+- A test that performs a real `fetch()`/XHR is broken by definition: it fails on CI and depends on a running backend locally. If you see a real network call from a test, mock it — do not "fix" it by expecting the backend to be up.
+
 ## Architecture Guidelines
 
 ### 1. Layer 1: The UI Layer (`.svelte` files)

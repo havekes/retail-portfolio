@@ -1,5 +1,5 @@
 import '@testing-library/jest-dom/vitest';
-import { vi } from 'vitest';
+import { afterAll, vi } from 'vitest';
 
 // bits-ui's dismissible-layer (used by Dialog, Popover, etc.) schedules
 // `afterSleep` timers that read derived state after the layer's effects have
@@ -14,6 +14,17 @@ vi.spyOn(console, 'warn').mockImplementation((...args: unknown[]) => {
 		return;
 	}
 	originalWarn(...args);
+});
+
+// bits-ui's body-scroll-lock (used by Dialog.Content) schedules a short
+// `setTimeout` (~24ms) to restore the body style when the last lock is released
+// on unmount. If the timer is still pending when vitest tears down the jsdom
+// environment, its callback throws `ReferenceError: document is not defined`
+// and vitest fails the run. This is a race that shows up on slow CI machines.
+// Waiting in afterAll (after testing-library's cleanup unmounted everything,
+// but before the environment is destroyed) lets the timer fire safely.
+afterAll(() => {
+	return new Promise((resolve) => setTimeout(resolve, 50));
 });
 
 // Mock window.location
