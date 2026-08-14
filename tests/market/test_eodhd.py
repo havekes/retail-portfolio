@@ -3,7 +3,7 @@
 
 from datetime import UTC, datetime, timedelta
 from decimal import Decimal
-from unittest.mock import MagicMock
+from unittest.mock import MagicMock, patch
 from uuid import uuid4
 
 import pandas as pd
@@ -70,6 +70,98 @@ def test_stub_eodhd_gateway_get_intraday_prices():
         assert isinstance(price.volume, int)
 
 
+@patch("src.market.eodhd.APIClient")
+def test_get_intraday_prices_filters_flat_candles(mock_api_client_cls):
+    gateway = EodhdGateway(api_key="test_key")
+    gateway._client = mock_api_client_cls.return_value
+
+    ts1 = int(datetime(2026, 7, 28, 14, 0, tzinfo=UTC).timestamp())
+    ts2 = int(datetime(2026, 7, 28, 15, 0, tzinfo=UTC).timestamp())
+    ts3 = int(datetime(2026, 7, 28, 16, 0, tzinfo=UTC).timestamp())
+
+    mock_data_list = [
+        {
+            "timestamp": ts1,
+            "datetime": "2026-07-28 14:00:00",
+            "open": 100.0,
+            "high": 105.0,
+            "low": 99.0,
+            "close": 102.0,
+            "volume": 1000,
+        },
+        {
+            "timestamp": ts2,
+            "datetime": "2026-07-28 15:00:00",
+            "open": 102.0,
+            "high": 102.0,
+            "low": 102.0,
+            "close": 102.0,
+            "volume": 50,
+        },
+        {
+            "timestamp": ts3,
+            "datetime": "2026-07-28 16:00:00",
+            "open": 102.0,
+            "high": 102.0,
+            "low": 102.0,
+            "close": 102.0,
+            "volume": 0,
+        },
+    ]
+    gateway._client.get_intraday_historical_data.return_value = mock_data_list
+
+    sec_id = uuid4()
+    prices = gateway.get_intraday_prices(
+        security_id=sec_id,
+        symbol="AAPL",
+        exchange="US",
+        from_datetime=datetime(2026, 7, 28, 14, 0, tzinfo=UTC),
+        to_datetime=datetime(2026, 7, 28, 16, 0, tzinfo=UTC),
+    )
+
+    assert len(prices) == 2
+    assert prices[0].open == Decimal("100.0")
+    assert prices[0].volume == 1000
+    assert prices[1].open == Decimal("102.0")
+    assert prices[1].volume == 50
+
+    # Also test pandas DataFrame response branch
+    df_data = pd.DataFrame(mock_data_list)
+    gateway._client.get_intraday_historical_data.return_value = df_data
+
+    prices_df = gateway.get_intraday_prices(
+        security_id=sec_id,
+        symbol="AAPL",
+        exchange="US",
+        from_datetime=datetime(2026, 7, 28, 14, 0, tzinfo=UTC),
+        to_datetime=datetime(2026, 7, 28, 16, 0, tzinfo=UTC),
+    )
+
+    assert len(prices_df) == 2
+    assert prices_df[0].open == Decimal("100.0")
+    assert prices_df[1].open == Decimal("102.0")
+
+
+def test_stub_eodhd_gateway_filters_end_of_day_flat_candle():
+    gateway = StubEodhdGateway(api_key="stub_key")
+    sec_id = uuid4()
+    start_dt = datetime(2026, 7, 28, 9, 0, tzinfo=UTC)
+    end_dt = datetime(2026, 7, 28, 16, 0, tzinfo=UTC)
+
+    prices = gateway.get_intraday_prices(
+        security_id=sec_id,
+        symbol="AAPL",
+        exchange="US",
+        from_datetime=start_dt,
+        to_datetime=end_dt,
+        interval="1h",
+    )
+
+    assert len(prices) == 7
+    assert all(p.timestamp.hour != 16 for p in prices)
+
+
+
 def test_stub_eodhd_gateway_invalid_interval():
     gateway = StubEodhdGateway(api_key="stub_key")
     sec_id = uuid4()
@@ -87,9 +179,10 @@ def test_stub_eodhd_gateway_invalid_interval():
         )
 
 
-def test_eodhd_gateway_get_intraday_prices_list_response():
-    gateway = EodhdGateway(api_key="demo")
-    gateway._client = MagicMock()
+@patch("src.market.eodhd.APIClient")
+def test_eodhd_gateway_get_intraday_prices_list_response(mock_api_client_cls):
+    gateway = EodhdGateway(api_key="test_key")
+    gateway._client = mock_api_client_cls.return_value
 
     mock_ts = 1775050200
     gateway._client.get_intraday_historical_data.return_value = [
@@ -136,9 +229,10 @@ def test_eodhd_gateway_get_intraday_prices_list_response():
     assert price.volume == 5000
 
 
-def test_eodhd_gateway_get_intraday_prices_dataframe_response():
-    gateway = EodhdGateway(api_key="demo")
-    gateway._client = MagicMock()
+@patch("src.market.eodhd.APIClient")
+def test_eodhd_gateway_get_intraday_prices_dataframe_response(mock_api_client_cls):
+    gateway = EodhdGateway(api_key="test_key")
+    gateway._client = mock_api_client_cls.return_value
 
     mock_ts = 1775050200
     df = pd.DataFrame(
@@ -178,8 +272,9 @@ def test_eodhd_gateway_get_intraday_prices_dataframe_response():
     assert price.volume == 12000
 
 
-def test_eodhd_gateway_invalid_interval():
-    gateway = EodhdGateway(api_key="demo")
+@patch("src.market.eodhd.APIClient")
+def test_eodhd_gateway_invalid_interval(mock_api_client_cls):
+    gateway = EodhdGateway(api_key="test_key")
     sec_id = uuid4()
     from_dt = datetime.now(tz=UTC)
     to_dt = datetime.now(tz=UTC)

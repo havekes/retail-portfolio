@@ -48,7 +48,7 @@ class IndicatorCache:
         ]
         key_string = "|".join(key_parts)
         digest = hashlib.md5(key_string.encode(), usedforsecurity=False).hexdigest()
-        return f"indicators:{digest}"
+        return f"indicators:{security_id}:{digest}"
 
     async def get(
         self, security_id: str, indicators: list[str], price_count: int
@@ -131,6 +131,24 @@ class IndicatorCache:
             logger.debug("Invalidated cache for security %s", security_id)
         except Exception as e:  # noqa: BLE001
             logger.warning("Cache invalidation error: %s", e)
+
+    async def flush_all(self) -> None:
+        """
+        Flush all cached indicator entries.
+        """
+        try:
+            cursor = 0
+            while True:
+                cursor, keys = await self._redis.scan(
+                    cursor, match="indicators:*", count=100
+                )
+                if keys:
+                    await self._redis.delete(*keys)
+                if cursor == 0:
+                    break
+            logger.debug("Flushed all indicator cache entries")
+        except Exception as e:  # noqa: BLE001
+            logger.warning("Cache flush error: %s", e)
 
 
 async def indicator_cache_factory() -> IndicatorCache:

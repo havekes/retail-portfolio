@@ -18,6 +18,7 @@ from src.market.gateway import MarketGateway
 from src.market.schema import SecuritySchema
 
 MAX_INTRADAY_STEPS = 10000
+MARKET_CLOSE_HOUR = 16
 
 
 class StubEodhdAPIClient:
@@ -144,18 +145,32 @@ class StubEodhdAPIClient:
             change = (hash(f"{symbol}-{ts}") % 100 - 50) / 2500.0
             current_price *= 1 + change
 
-            prices.append(
-                {
-                    "timestamp": ts,
-                    "gmtoffset": 0,
-                    "datetime": current_dt.strftime("%Y-%m-%d %H:%M:%S"),
-                    "open": round(current_price * 0.998, 2),
-                    "high": round(current_price * 1.005, 2),
-                    "low": round(current_price * 0.995, 2),
-                    "close": round(current_price, 2),
-                    "volume": 10000 + (hash(f"{symbol}-{ts}") % 50000),
-                }
-            )
+            if current_dt.hour == MARKET_CLOSE_HOUR:
+                prices.append(
+                    {
+                        "timestamp": ts,
+                        "gmtoffset": 0,
+                        "datetime": current_dt.strftime("%Y-%m-%d %H:%M:%S"),
+                        "open": round(current_price, 2),
+                        "high": round(current_price, 2),
+                        "low": round(current_price, 2),
+                        "close": round(current_price, 2),
+                        "volume": 0,
+                    }
+                )
+            else:
+                prices.append(
+                    {
+                        "timestamp": ts,
+                        "gmtoffset": 0,
+                        "datetime": current_dt.strftime("%Y-%m-%d %H:%M:%S"),
+                        "open": round(current_price * 0.998, 2),
+                        "high": round(current_price * 1.005, 2),
+                        "low": round(current_price * 0.995, 2),
+                        "close": round(current_price, 2),
+                        "volume": 10000 + (hash(f"{symbol}-{ts}") % 50000),
+                    }
+                )
             current_dt += timedelta(hours=1)
             step_count += 1
             if step_count > MAX_INTRADAY_STEPS:
@@ -306,15 +321,22 @@ class StubEodhdGateway(MarketGateway):
         prices: list[IntradayHistoricalPrice] = []
         for row in data:
             dt = datetime.fromtimestamp(int(row["timestamp"]), tz=UTC)
+            open_val = Decimal(str(row["open"]))
+            high_val = Decimal(str(row["high"]))
+            low_val = Decimal(str(row["low"]))
+            close_val = Decimal(str(row["close"]))
+            volume_val = int(row["volume"])
+            if open_val == high_val == low_val == close_val and volume_val == 0:
+                continue
             prices.append(
                 IntradayHistoricalPrice(
                     security_id=security_id,
                     timestamp=dt,
-                    open=Decimal(str(row["open"])),
-                    high=Decimal(str(row["high"])),
-                    low=Decimal(str(row["low"])),
-                    close=Decimal(str(row["close"])),
-                    volume=int(row["volume"]),
+                    open=open_val,
+                    high=high_val,
+                    low=low_val,
+                    close=close_val,
+                    volume=volume_val,
                 )
             )
 

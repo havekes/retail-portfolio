@@ -5,13 +5,16 @@
 	import Button from '../ui/button/button.svelte';
 	import ChevronDown from '@lucide/svelte/icons/chevron-down';
 	import { onMount } from 'svelte';
+	import { untrack } from 'svelte';
 	import { AccountsListState } from './accounts-list.svelte.js';
 	import type { Account } from '@/types/account';
 	import CreatePortfolioModal from './create-portfolio-modal.svelte';
 
 	let { accounts = [] }: { accounts?: Account[] } = $props();
 
-	const state = new AccountsListState(accounts);
+	// Seed the state from the initial accounts prop; the state class owns the
+	// list afterwards (websocket syncs, fetches), so only the initial value matters.
+	const state = new AccountsListState(untrack(() => accounts));
 
 	onMount(() => {
 		return () => state.destroy();

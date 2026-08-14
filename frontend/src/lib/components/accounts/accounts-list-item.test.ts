@@ -1,7 +1,19 @@
-import { describe, it, expect, vi } from 'vitest';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/svelte';
 import AccountsListItem from './accounts-list-item.svelte';
 import { Institution, AccountType } from '@/types/account';
+
+// The component fetches account totals on render — mock the API client so tests
+// don't make real network calls (which fail on CI where no backend is running).
+vi.mock('$lib/api/accountClient', () => {
+	return {
+		accountClient: {
+			getAccountTotals: vi.fn()
+		}
+	};
+});
+
+import { accountClient } from '$lib/api/accountClient';
 
 describe('AccountsListItem', () => {
 	const mockAccount = {
@@ -12,6 +24,13 @@ describe('AccountsListItem', () => {
 		currency: 'CAD',
 		broker_display_name: 'Broker'
 	};
+
+	beforeEach(() => {
+		vi.mocked(accountClient.getAccountTotals).mockResolvedValue({
+			value: { value: '100', units: 100, nanos: 0, currencyCode: 'CAD' },
+			cost: { value: '50', units: 50, nanos: 0, currencyCode: 'CAD' }
+		});
+	});
 
 	it('should render the account name and allow renaming without mutating unbound props directly', async () => {
 		const onRenameMock = vi.fn();
