@@ -164,4 +164,25 @@ describe('UserPreferencesService', () => {
 		closedState.open = true;
 		expect(closedState.open).toBe(true);
 	});
+
+	it('GlobalSidebarState triggers onOpenChange callback when setOpen is called', () => {
+		const onOpenChange = vi.fn();
+		const state = new GlobalSidebarState(true, onOpenChange);
+
+		state.setOpen(false);
+		expect(state.open).toBe(false);
+		expect(onOpenChange).toHaveBeenCalledTimes(1);
+		expect(onOpenChange).toHaveBeenCalledWith(false);
+
+		state.setOpen(true);
+		expect(state.open).toBe(true);
+		expect(onOpenChange).toHaveBeenCalledTimes(2);
+		expect(onOpenChange).toHaveBeenCalledWith(true);
+	});
+
+	it('GlobalSidebarState setOpen works without onOpenChange callback', () => {
+		const state = new GlobalSidebarState(true);
+		state.setOpen(false);
+		expect(state.open).toBe(false);
+	});
 });

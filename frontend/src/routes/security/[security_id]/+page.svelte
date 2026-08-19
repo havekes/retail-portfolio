@@ -454,7 +454,7 @@
 	<title>{security ? `${security.symbol} - Security Chart` : 'Security Chart'}</title>
 </svelte:head>
 
-<Sidebar.Provider bind:open={sidebarState.open}>
+<Sidebar.Provider bind:open={sidebarState.open} onOpenChange={sidebarState.setOpen}>
 	<AppSidebar />
 	<Sidebar.Inset class="flex h-screen">
 		<div class="flex flex-1 flex-col overflow-hidden">
