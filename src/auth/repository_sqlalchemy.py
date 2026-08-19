@@ -2,7 +2,8 @@ from datetime import datetime
 from typing import override
 from uuid import uuid4
 
-from sqlalchemy import select, update
+from sqlalchemy import cast, func, select, update
+from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.ext.asyncio import AsyncSession
 from svcs import Container
 
@@ -73,6 +74,24 @@ class SqlAlchemyUserRepository(UserRepository):
         )
         await self._session.execute(stmt)
         await self._session.commit()
+
+    @override
+    async def patch_preferences(self, user_id: UserId, preferences: dict) -> dict:
+        stmt = (
+            update(UserModel)
+            .where(UserModel.id == user_id)
+            .values(
+                preferences=func.coalesce(
+                    cast(UserModel.preferences, JSONB),
+                    cast({}, JSONB),
+                ).op("||")(cast(preferences, JSONB))
+            )
+            .returning(UserModel.preferences)
+        )
+        result = await self._session.execute(stmt)
+        await self._session.commit()
+        updated = result.scalar_one_or_none()
+        return updated if updated is not None else {}
 
 
 class SqlAlchemyVerificationTokenRepository(VerificationTokenRepository):

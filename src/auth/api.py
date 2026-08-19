@@ -143,6 +143,10 @@ class UserApi:
         """Store the user's preferences."""
         await self._user_repository.save_preferences(user_id, preferences)
 
+    async def patch_preferences(self, user_id: UserId, preferences: dict) -> dict:
+        """Partially update and retrieve the user's stored preferences."""
+        return await self._user_repository.patch_preferences(user_id, preferences)
+
     def _decode_token(self, token: str) -> AccessTokenData:
         """Decode and validate a JWT token."""
         try:

@@ -160,6 +160,21 @@ async def put_preferences(
     return await user_api.get_preferences(user.id) or {}
 
 
+@account_router.patch("/me/preferences")
+async def patch_preferences(
+    payload: UserPreferences,
+    user: Annotated[User, Depends(current_user)],
+    services: DepContainer,
+) -> dict:
+    """Partially update the current user's preferences."""
+    user_api = await services.aget(UserApi)
+    # exclude_none=True: explicit null fields are dropped;
+    # server only updates provided fields
+    return await user_api.patch_preferences(
+        user.id, payload.model_dump(exclude_none=True)
+    )
+
+
 @account_router.patch("/{account_id}/rename")
 async def account_rename(
     account_id: AccountId,

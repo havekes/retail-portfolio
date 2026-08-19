@@ -27,7 +27,6 @@
 	import Star from '@lucide/svelte/icons/star';
 	import { getWatchlistService } from '$lib/components/watchlist/watchlistService.svelte';
 	import {
-		mergeChartPreferences,
 		displayCandlesFor,
 		shouldForceRefetch,
 		parseCandleTime,
@@ -54,8 +53,7 @@
 	let isLoadingMore = $state(false);
 
 	async function updateChartPreferences(partial: Partial<UserPreferences>) {
-		const prefs = await userPreferencesService.getPreferences();
-		await userPreferencesService.savePreferences(mergeChartPreferences(prefs, partial));
+		await userPreferencesService.patchPreferences(partial);
 	}
 
 	async function changeTimeframe(

@@ -27,3 +27,11 @@ async def test_preferences_put_unauth():
         assert response.status_code == 401
 
 
+@pytest.mark.anyio
+async def test_preferences_patch_unauth():
+    """PATCH /me/preferences returns 401 without auth."""
+    async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as ac:
+        response = await ac.patch("/api/v1/accounts/me/preferences", json={"timeframe": "1d"})
+        assert response.status_code == 401
+
+

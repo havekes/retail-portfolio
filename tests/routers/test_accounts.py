@@ -317,8 +317,141 @@ async def test_preferences_sidebar_open_isolated(auth_client, other_user, client
         headers={"Authorization": f"Bearer {other_token}"},
     )
     assert get_other.status_code == 200
-    assert get_other.json() == {}
+    get_resp = await auth_client.get("/api/v1/accounts/me/preferences")
+    assert get_resp.status_code == 200
+    assert get_resp.json() == {"sidebar_open": False}
+
+
+@pytest.mark.anyio
+async def test_preferences_patch_from_empty(auth_client):
+    """PATCH /me/preferences works when user has no prior preferences saved."""
+    patch_payload = {"sidebar_open": False}
+    patch_resp = await auth_client.patch(
+        "/api/v1/accounts/me/preferences", json=patch_payload
+    )
+    assert patch_resp.status_code == 200
+    assert patch_resp.json() == {"sidebar_open": False}
 
     get_resp = await auth_client.get("/api/v1/accounts/me/preferences")
     assert get_resp.status_code == 200
     assert get_resp.json() == {"sidebar_open": False}
+
+
+@pytest.mark.anyio
+async def test_preferences_patch_partial_merge(auth_client):
+    """PATCH /me/preferences partially updates fields without overwriting unmentioned keys."""
+    initial = {
+        "timeframe": "1d",
+        "chart_style": "heikin_ashi",
+        "indicators": {
+            "rsi": {"enabled": True, "color": "#FF0000", "settings": {"period": 14}}
+        },
+        "sidebar_open": True,
+    }
+    put_resp = await auth_client.put("/api/v1/accounts/me/preferences", json=initial)
+    assert put_resp.status_code == 200
+
+    # Patch only sidebar_open
+    patch_resp = await auth_client.patch(
+        "/api/v1/accounts/me/preferences", json={"sidebar_open": False}
+    )
+    assert patch_resp.status_code == 200
+    expected = {
+        "timeframe": "1d",
+        "chart_style": "heikin_ashi",
+        "indicators": {
+            "rsi": {"enabled": True, "color": "#FF0000", "settings": {"period": 14}}
+        },
+        "sidebar_open": False,
+    }
+    assert patch_resp.json() == expected
+
+    # Verify GET returns the merged state
+    get_resp = await auth_client.get("/api/v1/accounts/me/preferences")
+    assert get_resp.status_code == 200
+    assert get_resp.json() == expected
+
+
+@pytest.mark.anyio
+async def test_preferences_patch_cross_component_isolation(auth_client):
+    """Simulate independent component updates via PATCH without clobbering each other."""
+    # 1. Layout toggles sidebar
+    r1 = await auth_client.patch(
+        "/api/v1/accounts/me/preferences", json={"sidebar_open": False}
+    )
+    assert r1.status_code == 200
+    assert r1.json() == {"sidebar_open": False}
+
+    # 2. Security page sets timeframe
+    r2 = await auth_client.patch(
+        "/api/v1/accounts/me/preferences", json={"timeframe": "4h"}
+    )
+    assert r2.status_code == 200
+    assert r2.json() == {"sidebar_open": False, "timeframe": "4h"}
+
+    # 3. Chart style toggled
+    r3 = await auth_client.patch(
+        "/api/v1/accounts/me/preferences", json={"chart_style": "candlestick"}
+    )
+    assert r3.status_code == 200
+    assert r3.json() == {
+        "sidebar_open": False,
+        "timeframe": "4h",
+        "chart_style": "candlestick",
+    }
+
+    # 4. Indicator group saves indicator settings
+    indicator_data = {
+        "rsi": {"enabled": True, "color": "#06b6d4", "settings": {"period": 14}}
+    }
+    r4 = await auth_client.patch(
+        "/api/v1/accounts/me/preferences", json={"indicators": indicator_data}
+    )
+    assert r4.status_code == 200
+    assert r4.json() == {
+        "sidebar_open": False,
+        "timeframe": "4h",
+        "chart_style": "candlestick",
+        "indicators": indicator_data,
+    }
+
+    # 5. Layout toggles sidebar back to True
+    r5 = await auth_client.patch(
+        "/api/v1/accounts/me/preferences", json={"sidebar_open": True}
+    )
+    assert r5.status_code == 200
+    assert r5.json() == {
+        "sidebar_open": True,
+        "timeframe": "4h",
+        "chart_style": "candlestick",
+        "indicators": indicator_data,
+    }
+
+
+@pytest.mark.anyio
+async def test_preferences_patch_isolated_across_users(auth_client, other_user, client):
+    """User A's PATCH preferences does not leak to or affect user B."""
+    await auth_client.patch(
+        "/api/v1/accounts/me/preferences", json={"sidebar_open": False, "timeframe": "1w"}
+    )
+
+    login_resp = await client.post(
+        "/api/v1/auth/login",
+        json={"email": "other@example.com", "password": "otherpass"},
+    )
+    assert login_resp.status_code == 200
+    other_token = login_resp.json()["access_token"]
+
+    # User B patches their own preference
+    other_patch = await client.patch(
+        "/api/v1/accounts/me/preferences",
+        json={"chart_style": "heikin_ashi"},
+        headers={"Authorization": f"Bearer {other_token}"},
+    )
+    assert other_patch.status_code == 200
+    assert other_patch.json() == {"chart_style": "heikin_ashi"}
+
+    # User A's preferences are unchanged
+    get_a = await auth_client.get("/api/v1/accounts/me/preferences")
+    assert get_a.status_code == 200
+    assert get_a.json() == {"sidebar_open": False, "timeframe": "1w"}
