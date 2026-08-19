@@ -64,5 +64,6 @@ class UserPreferences(BaseModel):
     timeframe: str | None = None
     chart_style: str | None = None
     indicators: dict[str, Any] | None = None
+    sidebar_open: bool | None = None
 
     model_config = ConfigDict(extra="allow")

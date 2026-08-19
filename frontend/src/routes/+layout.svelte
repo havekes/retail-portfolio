@@ -3,6 +3,7 @@
 	import { ModeWatcher } from 'mode-watcher';
 	import { setBrokerService } from '$lib/components/brokers/brokerService.svelte';
 	import { setWatchlistService } from '$lib/components/watchlist/watchlistService.svelte';
+	import { setSidebarState } from '$lib/components/ui/sidebar/index.js';
 	import { setContext } from 'svelte';
 	import GlobalSearch from '$lib/components/global-search.svelte';
 
@@ -10,6 +11,7 @@
 
 	setBrokerService();
 	const watchlistService = setWatchlistService();
+	setSidebarState(() => data.sidebar_open ?? true);
 
 	$effect(() => {
 		if (data.user) {
