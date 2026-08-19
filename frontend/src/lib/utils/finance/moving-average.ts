@@ -1,6 +1,5 @@
 import type { Time } from 'lightweight-charts';
 import type { Candle } from './candle';
-import { parseCandleTime } from '$lib/chart-preferences';
 
 export type TimeframeMAUnit = 'day' | 'week';
 
@@ -16,30 +15,6 @@ export type MAValue = {
 };
 
 export type MASeries = MAValue[];
-
-/**
- * Returns a YYYY-MM-DD string representation of a Date in local time.
- */
-export function getDayKey(date: Date): string {
-	const year = date.getFullYear();
-	const month = String(date.getMonth() + 1).padStart(2, '0');
-	const day = String(date.getDate()).padStart(2, '0');
-	return `${year}-${month}-${day}`;
-}
-
-/**
- * Returns a YYYY-MM-DD string of the Monday anchoring the ISO week for a given Date.
- */
-export function getWeekKey(date: Date): string {
-	const dayOfWeek = date.getDay();
-	// ISO week: Monday is day 1, Sunday is day 7 (getDay() returns 0 for Sunday)
-	const dayShift = (dayOfWeek + 6) % 7;
-	const monday = new Date(date.getFullYear(), date.getMonth(), date.getDate() - dayShift);
-	const year = monday.getFullYear();
-	const month = String(monday.getMonth() + 1).padStart(2, '0');
-	const day = String(monday.getDate()).padStart(2, '0');
-	return `${year}-${month}-${day}`;
-}
 
 export function calculateSMA(data: Candle[], period: number): MASeries {
 	if (!data || data.length < period || period <= 0) {
@@ -76,72 +51,10 @@ export function calculateEMA(data: Candle[], period: number): number[] {
 }
 
 /**
- * Aggregates candles into calendar-based groups (days or weeks), calculates SMA across
- * the group close prices, and projects the calculated MA values onto each candle in the group.
- */
-function calculateGroupedMA(
-	candles: Candle[],
-	period: number,
-	getKey: (date: Date) => string
-): MASeries {
-	if (!candles || candles.length === 0 || period <= 0) {
-		return [];
-	}
-
-	interface Group {
-		key: string;
-		candles: Candle[];
-		close: number;
-	}
-
-	const groups: Group[] = [];
-	let currentGroup: Group | null = null;
-
-	for (const candle of candles) {
-		const date = parseCandleTime(candle.time);
-		const key = getKey(date);
-
-		if (!currentGroup || currentGroup.key !== key) {
-			currentGroup = {
-				key,
-				candles: [candle],
-				close: candle.close
-			};
-			groups.push(currentGroup);
-		} else {
-			currentGroup.candles.push(candle);
-			currentGroup.close = candle.close;
-		}
-	}
-
-	if (groups.length < period) {
-		return [];
-	}
-
-	const result: MASeries = [];
-
-	for (let i = period - 1; i < groups.length; i++) {
-		let sum = 0;
-		for (let j = 0; j < period; j++) {
-			sum += groups[i - j].close;
-		}
-		const maValue = sum / period;
-
-		for (const candle of groups[i].candles) {
-			result.push({
-				time: candle.time,
-				value: maValue
-			});
-		}
-	}
-
-	return result;
-}
-
-/**
- * Calculates moving averages adapted to any target chart timeframe (1h, 4h, 1d, 1w, 1m).
- * Uses calendar-based aggregation for sub-unit intervals (e.g. projecting daily closes onto 1h bars)
- * and scaled periods for super-unit intervals (e.g. 50-day MA on 1w charts).
+ * Calculates continuous rolling moving averages adapted to target chart timeframes (1h, 4h, 1d, 1w, 1m).
+ * Scales the target period into equivalent candle counts based on trading sessions:
+ * - Day MAs (unit: 'day'): 1h -> period * 7, 4h -> period * 2, 1d -> period, 1w -> round(period / 5), 1m -> round(period / 21)
+ * - Week MAs (unit: 'week'): 1h -> period * 35, 4h -> period * 10, 1d -> period * 5, 1w -> period, 1m -> round(period * 12 / 52)
  */
 export function calculateTimeframeMA(candles: Candle[], options: TimeframeMAOptions): MASeries {
 	const { interval, period, unit = 'day' } = options;
@@ -151,50 +64,54 @@ export function calculateTimeframeMA(candles: Candle[], options: TimeframeMAOpti
 	}
 
 	const normInterval = (interval ?? '').toLowerCase();
+	let effectivePeriod: number;
 
 	if (unit === 'week') {
 		switch (normInterval) {
 			case '1h':
+				effectivePeriod = period * 35;
+				break;
 			case '4h':
+				effectivePeriod = period * 10;
+				break;
 			case '1d':
-				return calculateGroupedMA(candles, period, getWeekKey);
+				effectivePeriod = period * 5;
+				break;
 			case '1w':
-				return calculateSMA(candles, period);
+				effectivePeriod = period;
+				break;
 			case '1m':
-				return calculateSMA(candles, Math.max(1, Math.round((period * 12) / 52)));
+				effectivePeriod = Math.max(1, Math.round((period * 12) / 52));
+				break;
 			default:
-				if (
-					normInterval.endsWith('h') ||
-					(normInterval.endsWith('m') && normInterval !== '1m') ||
-					normInterval.endsWith('s')
-				) {
-					return calculateGroupedMA(candles, period, getWeekKey);
-				}
-				return calculateSMA(candles, period);
+				effectivePeriod = period;
+				break;
+		}
+	} else {
+		// Default: unit === 'day'
+		switch (normInterval) {
+			case '1h':
+				effectivePeriod = period * 7;
+				break;
+			case '4h':
+				effectivePeriod = period * 2;
+				break;
+			case '1d':
+				effectivePeriod = period;
+				break;
+			case '1w':
+				effectivePeriod = Math.max(1, Math.round(period / 5));
+				break;
+			case '1m':
+				effectivePeriod = Math.max(1, Math.round(period / 21));
+				break;
+			default:
+				effectivePeriod = period;
+				break;
 		}
 	}
 
-	// Default: unit === 'day'
-	switch (normInterval) {
-		case '1h':
-		case '4h':
-			return calculateGroupedMA(candles, period, getDayKey);
-		case '1d':
-			return calculateSMA(candles, period);
-		case '1w':
-			return calculateSMA(candles, Math.max(1, Math.round(period / 5)));
-		case '1m':
-			return calculateSMA(candles, Math.max(1, Math.round(period / 21)));
-		default:
-			if (
-				normInterval.endsWith('h') ||
-				(normInterval.endsWith('m') && normInterval !== '1m') ||
-				normInterval.endsWith('s')
-			) {
-				return calculateGroupedMA(candles, period, getDayKey);
-			}
-			return calculateSMA(candles, period);
-	}
+	return calculateSMA(candles, effectivePeriod);
 }
 
 export function calculateDayMA(candles: Candle[], interval: string, period: number): MASeries {

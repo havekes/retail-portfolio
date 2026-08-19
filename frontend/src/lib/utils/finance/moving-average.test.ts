@@ -4,8 +4,6 @@ import type { Candle } from './candle';
 import {
 	calculateSMA,
 	calculateEMA,
-	getDayKey,
-	getWeekKey,
 	calculateTimeframeMA,
 	calculateDayMA,
 	calculateWeekMA,
@@ -72,96 +70,45 @@ describe('calculateSMA & calculateEMA (backward compatibility)', () => {
 	});
 });
 
-describe('getDayKey & getWeekKey helpers', () => {
-	it('extracts day keys consistently across timestamp types', () => {
-		// String date
-		expect(getDayKey(new Date(2024, 0, 15))).toBe('2024-01-15');
-		// Month padding
-		expect(getDayKey(new Date(2024, 8, 5))).toBe('2024-09-05');
-	});
-
-	it('extracts Monday-anchored ISO week keys across all days of the week', () => {
-		// Monday Jan 15, 2024
-		expect(getWeekKey(new Date(2024, 0, 15))).toBe('2024-01-15');
-		// Tuesday Jan 16, 2024
-		expect(getWeekKey(new Date(2024, 0, 16))).toBe('2024-01-15');
-		// Wednesday Jan 17, 2024
-		expect(getWeekKey(new Date(2024, 0, 17))).toBe('2024-01-15');
-		// Friday Jan 19, 2024
-		expect(getWeekKey(new Date(2024, 0, 19))).toBe('2024-01-15');
-		// Saturday Jan 20, 2024
-		expect(getWeekKey(new Date(2024, 0, 20))).toBe('2024-01-15');
-		// Sunday Jan 21, 2024 (belongs to week of Mon Jan 15)
-		expect(getWeekKey(new Date(2024, 0, 21))).toBe('2024-01-15');
-		// Following Monday Jan 22, 2024
-		expect(getWeekKey(new Date(2024, 0, 22))).toBe('2024-01-22');
-	});
-
-	it('handles year boundary week calculations correctly', () => {
-		// Sunday Dec 31, 2023 -> belongs to Monday Dec 25, 2023
-		expect(getWeekKey(new Date(2023, 11, 31))).toBe('2023-12-25');
-		// Monday Jan 1, 2024 -> belongs to Monday Jan 1, 2024
-		expect(getWeekKey(new Date(2024, 0, 1))).toBe('2024-01-01');
-	});
-});
-
 describe('Day-based moving averages (unit: "day")', () => {
-	it('projects daily MA onto intraday 1h candles with Unix second timestamps', () => {
-		// 3 days of 1h data, 3 bars per day (e.g. 10:00, 11:00, 12:00)
-		// Day 1: 2024-01-15 (closes: 10, 12, 14 -> daily close = 14)
-		// Day 2: 2024-01-16 (closes: 20, 22, 24 -> daily close = 24)
-		// Day 3: 2024-01-17 (closes: 30, 32, 34 -> daily close = 34)
-		const d1_base = Math.floor(new Date(2024, 0, 15, 10, 0, 0).getTime() / 1000);
-		const d2_base = Math.floor(new Date(2024, 0, 16, 10, 0, 0).getTime() / 1000);
-		const d3_base = Math.floor(new Date(2024, 0, 17, 10, 0, 0).getTime() / 1000);
+	it('calculates smooth rolling SMA on 1h interval (7 bars/day)', () => {
+		// 16 hourly candles; with period = 2 days (14 hourly bars), produces 3 points (indices 13, 14, 15)
+		const baseTime = 1704067200; // Mon Jan 01 2024 00:00:00 GMT
+		const candles: Candle[] = Array.from({ length: 16 }, (_, i) =>
+			createCandle((baseTime + i * 3600) as unknown as Time, (i + 1) * 10)
+		);
 
-		const candles: Candle[] = [
-			createCandle(d1_base as unknown as Time, 10),
-			createCandle((d1_base + 3600) as unknown as Time, 12),
-			createCandle((d1_base + 7200) as unknown as Time, 14),
-
-			createCandle(d2_base as unknown as Time, 20),
-			createCandle((d2_base + 3600) as unknown as Time, 22),
-			createCandle((d2_base + 7200) as unknown as Time, 24),
-
-			createCandle(d3_base as unknown as Time, 30),
-			createCandle((d3_base + 3600) as unknown as Time, 32),
-			createCandle((d3_base + 7200) as unknown as Time, 34)
-		];
-
-		// 2-day MA on 1h interval
 		const result = calculateDayMA(candles, '1h', 2);
 
-		// Day 1: (only 1 day of history) -> omitted
-		// Day 2: (14 + 24) / 2 = 19 -> projected onto all 3 candles of Day 2
-		// Day 3: (24 + 34) / 2 = 29 -> projected onto all 3 candles of Day 3
-		expect(result).toHaveLength(6);
+		expect(result).toHaveLength(3);
+		// index 13: avg(10..140) = (10 + 140) / 2 = 75
+		expect(result[0]).toEqual({ time: (baseTime + 13 * 3600) as unknown as Time, value: 75 });
+		// index 14: avg(20..150) = (20 + 150) / 2 = 85
+		expect(result[1]).toEqual({ time: (baseTime + 14 * 3600) as unknown as Time, value: 85 });
+		// index 15: avg(30..160) = (30 + 160) / 2 = 95
+		expect(result[2]).toEqual({ time: (baseTime + 15 * 3600) as unknown as Time, value: 95 });
 
-		expect(result[0]).toEqual({ time: d2_base as unknown as Time, value: 19 });
-		expect(result[1]).toEqual({ time: (d2_base + 3600) as unknown as Time, value: 19 });
-		expect(result[2]).toEqual({ time: (d2_base + 7200) as unknown as Time, value: 19 });
-
-		expect(result[3]).toEqual({ time: d3_base as unknown as Time, value: 29 });
-		expect(result[4]).toEqual({ time: (d3_base + 3600) as unknown as Time, value: 29 });
-		expect(result[5]).toEqual({ time: (d3_base + 7200) as unknown as Time, value: 29 });
+		// Verify continuous rolling transition (no flat steps)
+		expect(result[0].value).not.toBe(result[1].value);
+		expect(result[1].value).not.toBe(result[2].value);
 	});
 
-	it('projects daily MA onto intraday 4h candles', () => {
-		const d1_base = Math.floor(new Date(2024, 0, 15, 9, 30, 0).getTime() / 1000);
-		const d2_base = Math.floor(new Date(2024, 0, 16, 9, 30, 0).getTime() / 1000);
-
-		const candles: Candle[] = [
-			createCandle(d1_base as unknown as Time, 100),
-			createCandle((d1_base + 14400) as unknown as Time, 110),
-			createCandle(d2_base as unknown as Time, 120),
-			createCandle((d2_base + 14400) as unknown as Time, 130)
-		];
+	it('calculates smooth rolling SMA on 4h interval (2 bars/day)', () => {
+		// 6 four-hour candles; with period = 2 days (4 bars), produces 3 points (indices 3, 4, 5)
+		const baseTime = 1704067200;
+		const candles: Candle[] = Array.from({ length: 6 }, (_, i) =>
+			createCandle((baseTime + i * 14400) as unknown as Time, (i + 1) * 10)
+		);
 
 		const result = calculateDayMA(candles, '4h', 2);
-		// Daily closes: Day 1 = 110, Day 2 = 130 -> 2-day MA = 120
-		expect(result).toHaveLength(2);
-		expect(result[0]).toEqual({ time: d2_base as unknown as Time, value: 120 });
-		expect(result[1]).toEqual({ time: (d2_base + 14400) as unknown as Time, value: 120 });
+
+		expect(result).toHaveLength(3);
+		// index 3: avg(10, 20, 30, 40) = 25
+		expect(result[0]).toEqual({ time: (baseTime + 3 * 14400) as unknown as Time, value: 25 });
+		// index 4: avg(20, 30, 40, 50) = 35
+		expect(result[1]).toEqual({ time: (baseTime + 4 * 14400) as unknown as Time, value: 35 });
+		// index 5: avg(30, 40, 50, 60) = 45
+		expect(result[2]).toEqual({ time: (baseTime + 5 * 14400) as unknown as Time, value: 45 });
 	});
 
 	it('computes standard SMA on 1d series', () => {
@@ -178,18 +125,18 @@ describe('Day-based moving averages (unit: "day")', () => {
 	});
 
 	it('scales period appropriately for 1w series (period / 5)', () => {
-		// 50-day MA on 1w -> 10 weeks
+		// 50-day MA on 1w -> Math.round(50 / 5) = 10 weeks
 		const candles: Candle[] = Array.from({ length: 15 }, (_, i) =>
 			createCandle(`2024-W${i + 1}`, (i + 1) * 10)
 		);
 
 		const result = calculate50DayMA(candles, '1w');
-		// 50 / 5 = 10 period SMA on 15 candles -> 6 values
+		// 10-period SMA on 15 candles -> 6 values
 		expect(result).toHaveLength(6);
 		// 10-period SMA for 10..100 -> average is 55
 		expect(result[0].value).toBe(55);
 
-		// 200-day MA on 1w -> 40 weeks
+		// 200-day MA on 1w -> Math.round(200 / 5) = 40 weeks
 		const candles200: Candle[] = Array.from({ length: 45 }, (_, i) =>
 			createCandle(`2024-W${i + 1}`, 100)
 		);
@@ -223,67 +170,61 @@ describe('Day-based moving averages (unit: "day")', () => {
 });
 
 describe('Week-based moving averages (unit: "week")', () => {
-	it('groups daily 1d candles by week and projects weekly MA onto daily candles', () => {
-		// 3 weeks of daily trading days (Mon-Fri)
-		// Week 1 (Jan 15 - Jan 19): daily closes 10, 11, 12, 13, 14 -> weekly close = 14
-		// Week 2 (Jan 22 - Jan 26): daily closes 20, 21, 22, 23, 24 -> weekly close = 24
-		// Week 3 (Jan 29 - Feb 02): daily closes 30, 31, 32, 33, 34 -> weekly close = 34
-		const candles: Candle[] = [
-			// Week 1
-			createCandle('2024-01-15', 10),
-			createCandle('2024-01-16', 11),
-			createCandle('2024-01-17', 12),
-			createCandle('2024-01-18', 13),
-			createCandle('2024-01-19', 14),
-			// Week 2
-			createCandle('2024-01-22', 20),
-			createCandle('2024-01-23', 21),
-			createCandle('2024-01-24', 22),
-			createCandle('2024-01-25', 23),
-			createCandle('2024-01-26', 24),
-			// Week 3
-			createCandle('2024-01-29', 30),
-			createCandle('2024-01-30', 31),
-			createCandle('2024-01-31', 32),
-			createCandle('2024-02-01', 33),
-			createCandle('2024-02-02', 34)
-		];
+	it('calculates smooth rolling SMA on 1d interval (5 bars/week)', () => {
+		// 12 daily candles; with period = 2 weeks (10 daily bars), produces 3 points (indices 9, 10, 11)
+		const candles: Candle[] = Array.from({ length: 12 }, (_, i) =>
+			createCandle(`2024-01-${String(i + 1).padStart(2, '0')}`, (i + 1) * 10)
+		);
 
-		// 2-week MA on 1d interval
 		const result = calculateWeekMA(candles, '1d', 2);
 
-		// Week 1: omitted
-		// Week 2: (14 + 24) / 2 = 19 -> projected onto all 5 days of Week 2
-		// Week 3: (24 + 34) / 2 = 29 -> projected onto all 5 days of Week 3
-		expect(result).toHaveLength(10);
-		expect(result.slice(0, 5).every((pt) => pt.value === 19)).toBe(true);
-		expect(result.slice(5, 10).every((pt) => pt.value === 29)).toBe(true);
-		expect(result[0].time).toBe('2024-01-22');
-		expect(result[4].time).toBe('2024-01-26');
-		expect(result[5].time).toBe('2024-01-29');
-		expect(result[9].time).toBe('2024-02-02');
+		expect(result).toHaveLength(3);
+		// index 9: avg(10..100) = 55
+		expect(result[0]).toEqual({ time: '2024-01-10', value: 55 });
+		// index 10: avg(20..110) = 65
+		expect(result[1]).toEqual({ time: '2024-01-11', value: 65 });
+		// index 11: avg(30..120) = 75
+		expect(result[2]).toEqual({ time: '2024-01-12', value: 75 });
+
+		// Verify continuous rolling transition (no flat staircase)
+		expect(result[0].value).not.toBe(result[1].value);
+		expect(result[1].value).not.toBe(result[2].value);
 	});
 
-	it('groups intraday 1h candles by week and projects weekly MA onto intraday bars', () => {
-		// Week 1 (Mon Jan 15): 2 bars, close of last bar = 50
-		// Week 2 (Mon Jan 22): 2 bars, close of last bar = 70
-		const w1_t1 = Math.floor(new Date(2024, 0, 15, 10, 0).getTime() / 1000);
-		const w1_t2 = Math.floor(new Date(2024, 0, 15, 11, 0).getTime() / 1000);
-		const w2_t1 = Math.floor(new Date(2024, 0, 22, 10, 0).getTime() / 1000);
-		const w2_t2 = Math.floor(new Date(2024, 0, 22, 11, 0).getTime() / 1000);
-
-		const candles: Candle[] = [
-			createCandle(w1_t1 as unknown as Time, 40),
-			createCandle(w1_t2 as unknown as Time, 50),
-			createCandle(w2_t1 as unknown as Time, 60),
-			createCandle(w2_t2 as unknown as Time, 70)
-		];
+	it('calculates smooth rolling SMA on 1h interval (35 bars/week)', () => {
+		// 72 hourly candles; with period = 2 weeks (70 hourly bars), produces 3 points (indices 69, 70, 71)
+		const baseTime = 1704067200;
+		const candles: Candle[] = Array.from({ length: 72 }, (_, i) =>
+			createCandle((baseTime + i * 3600) as unknown as Time, (i + 1) * 10)
+		);
 
 		const result = calculateWeekMA(candles, '1h', 2);
-		// 2-week MA: Week 1 close = 50, Week 2 close = 70 -> MA = 60
-		expect(result).toHaveLength(2);
-		expect(result[0]).toEqual({ time: w2_t1 as unknown as Time, value: 60 });
-		expect(result[1]).toEqual({ time: w2_t2 as unknown as Time, value: 60 });
+
+		expect(result).toHaveLength(3);
+		// index 69: avg(10..700) = 355
+		expect(result[0]).toEqual({ time: (baseTime + 69 * 3600) as unknown as Time, value: 355 });
+		// index 70: avg(20..710) = 365
+		expect(result[1]).toEqual({ time: (baseTime + 70 * 3600) as unknown as Time, value: 365 });
+		// index 71: avg(30..720) = 375
+		expect(result[2]).toEqual({ time: (baseTime + 71 * 3600) as unknown as Time, value: 375 });
+	});
+
+	it('calculates smooth rolling SMA on 4h interval (10 bars/week)', () => {
+		// 22 four-hour candles; with period = 2 weeks (20 bars), produces 3 points (indices 19, 20, 21)
+		const baseTime = 1704067200;
+		const candles: Candle[] = Array.from({ length: 22 }, (_, i) =>
+			createCandle((baseTime + i * 14400) as unknown as Time, (i + 1) * 10)
+		);
+
+		const result = calculateWeekMA(candles, '4h', 2);
+
+		expect(result).toHaveLength(3);
+		// index 19: avg(10..200) = 105
+		expect(result[0]).toEqual({ time: (baseTime + 19 * 14400) as unknown as Time, value: 105 });
+		// index 20: avg(20..210) = 115
+		expect(result[1]).toEqual({ time: (baseTime + 20 * 14400) as unknown as Time, value: 115 });
+		// index 21: avg(30..220) = 125
+		expect(result[2]).toEqual({ time: (baseTime + 21 * 14400) as unknown as Time, value: 125 });
 	});
 
 	it('computes standard SMA on 1w series for 50-week and 200-week MAs', () => {
@@ -331,7 +272,7 @@ describe('Lightweight Charts Time format support', () => {
 			createCandle({ year: 2024, month: 1, day: 17 } as unknown as Time, 30)
 		];
 
-		const result = calculateDayMA(candles, '1h', 2);
+		const result = calculateDayMA(candles, '1d', 2);
 		expect(result).toHaveLength(2);
 		expect(result[0]).toEqual({
 			time: { year: 2024, month: 1, day: 16 } as unknown as Time,
@@ -345,17 +286,19 @@ describe('Lightweight Charts Time format support', () => {
 });
 
 describe('Edge cases and error handling', () => {
-	it('returns empty array when candle series has fewer unique days/weeks than required period', () => {
-		// 30 days of 1h data
+	it('returns empty array when candle series has fewer candles than effective period', () => {
+		// 30 candles of 1h data
 		const candles: Candle[] = Array.from({ length: 30 }, (_, i) => {
 			const d = Math.floor(new Date(2024, 0, i + 1, 10, 0).getTime() / 1000);
 			return createCandle(d as unknown as Time, 100);
 		});
 
-		// 50-day MA requires 50 distinct days
+		// 50-day MA on 1h requires 50 * 7 = 350 candles
 		expect(calculate50DayMA(candles, '1h')).toEqual([]);
-		// 50-week MA requires 50 distinct weeks
+		// 50-week MA on 1d requires 50 * 5 = 250 candles
 		expect(calculate50WeekMA(candles, '1d')).toEqual([]);
+		// 50-week MA on 1h requires 50 * 35 = 1750 candles
+		expect(calculate50WeekMA(candles, '1h')).toEqual([]);
 	});
 
 	it('returns empty array on empty candles or invalid options', () => {
@@ -368,17 +311,17 @@ describe('Edge cases and error handling', () => {
 		).toEqual([]);
 	});
 
-	it('correctly groups across holiday-shortened weeks', () => {
-		// Week 1: Only Mon and Tue (holiday Wed-Fri), closes = 10, 20 -> weekly close = 20
-		// Week 2: Only Mon (holiday Tue-Fri), closes = 40 -> weekly close = 40
+	it('falls back to exact period for unrecognized interval', () => {
 		const candles: Candle[] = [
-			createCandle('2024-01-15', 10), // Mon
-			createCandle('2024-01-16', 20), // Tue
-			createCandle('2024-01-22', 40) // Mon (Week 2)
+			createCandle('2024-01-01', 10),
+			createCandle('2024-01-02', 20),
+			createCandle('2024-01-03', 30)
 		];
 
-		const result = calculateWeekMA(candles, '1d', 2);
-		// 2-week MA: (20 + 40) / 2 = 30 for Week 2
-		expect(result).toEqual([{ time: '2024-01-22', value: 30 }]);
+		const result = calculateTimeframeMA(candles, { interval: 'unknown', period: 2, unit: 'day' });
+		expect(result).toEqual([
+			{ time: '2024-01-02', value: 15 },
+			{ time: '2024-01-03', value: 25 }
+		]);
 	});
 });

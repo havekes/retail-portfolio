@@ -255,21 +255,6 @@ describe('shouldFetchMoreData', () => {
 // computeIndicatorData — timeframe-aware Day MA (ma50 / ma200)
 // ---------------------------------------------------------------------------
 describe('computeIndicatorData — Day Moving Averages (ma50 / ma200)', () => {
-	function makeIntradayCandles(): Candle[] {
-		// 3 days of 1h intraday data (2 bars per day)
-		// Day 1 (2024-01-01): 1704067200, 1704070800 (close: 10, 10)
-		// Day 2 (2024-01-02): 1704153600, 1704157200 (close: 20, 20)
-		// Day 3 (2024-01-03): 1704240000, 1704243600 (close: 30, 30)
-		return [
-			{ time: 1704067200 as unknown as Time, open: 10, high: 12, low: 9, close: 10, volume: 100 },
-			{ time: 1704070800 as unknown as Time, open: 10, high: 12, low: 9, close: 10, volume: 100 },
-			{ time: 1704153600 as unknown as Time, open: 20, high: 22, low: 19, close: 20, volume: 200 },
-			{ time: 1704157200 as unknown as Time, open: 20, high: 22, low: 19, close: 20, volume: 200 },
-			{ time: 1704240000 as unknown as Time, open: 30, high: 32, low: 29, close: 30, volume: 300 },
-			{ time: 1704243600 as unknown as Time, open: 30, high: 32, low: 29, close: 30, volume: 300 }
-		];
-	}
-
 	function makeDailyCandles(): Candle[] {
 		return [
 			{ time: '2024-01-01', open: 10, high: 12, low: 9, close: 10, volume: 100 },
@@ -280,31 +265,42 @@ describe('computeIndicatorData — Day Moving Averages (ma50 / ma200)', () => {
 		];
 	}
 
-	it('computes Day MA on 1h interval by calendar-day aggregation', () => {
-		const candles = makeIntradayCandles();
+	it('computes Day MA on 1h interval using scaled rolling SMA (period * 7)', () => {
+		const candles: Candle[] = Array.from({ length: 15 }, (_, i) => ({
+			time: (1704067200 + i * 3600) as unknown as Time,
+			open: 10,
+			high: 12,
+			low: 9,
+			close: (i + 1) * 10,
+			volume: 100
+		}));
 		const result = computeIndicatorData('ma50', { period: 2 }, candles, '1h') as {
 			time: Time;
 			value: number;
 		}[];
-		// 2-day period across 3 days yields 4 intraday points (2 for Day 2, 2 for Day 3)
-		expect(result.length).toBe(4);
-		// Day 2 points: average of Day 1 (10) and Day 2 (20) = 15
-		expect(result[0]).toEqual({ time: 1704153600, value: 15 });
-		expect(result[1]).toEqual({ time: 1704157200, value: 15 });
-		// Day 3 points: average of Day 2 (20) and Day 3 (30) = 25
-		expect(result[2]).toEqual({ time: 1704240000, value: 25 });
-		expect(result[3]).toEqual({ time: 1704243600, value: 25 });
+		// 2-day MA on 1h -> effective period 14 bars. 15 candles -> 2 points (indices 13, 14)
+		expect(result.length).toBe(2);
+		expect(result[0]).toEqual({ time: 1704067200 + 13 * 3600, value: 75 });
+		expect(result[1]).toEqual({ time: 1704067200 + 14 * 3600, value: 85 });
 	});
 
-	it('computes Day MA on 4h interval by calendar-day aggregation', () => {
-		const candles = makeIntradayCandles();
+	it('computes Day MA on 4h interval using scaled rolling SMA (period * 2)', () => {
+		const candles: Candle[] = Array.from({ length: 5 }, (_, i) => ({
+			time: (1704067200 + i * 14400) as unknown as Time,
+			open: 10,
+			high: 12,
+			low: 9,
+			close: (i + 1) * 10,
+			volume: 100
+		}));
 		const result = computeIndicatorData('ma200', { period: 2 }, candles, '4h') as {
 			time: Time;
 			value: number;
 		}[];
-		expect(result.length).toBe(4);
-		expect(result[0].value).toBe(15);
-		expect(result[2].value).toBe(25);
+		// 2-day MA on 4h -> effective period 4 bars. 5 candles -> 2 points (indices 3, 4)
+		expect(result.length).toBe(2);
+		expect(result[0]).toEqual({ time: 1704067200 + 3 * 14400, value: 25 });
+		expect(result[1]).toEqual({ time: 1704067200 + 4 * 14400, value: 35 });
 	});
 
 	it('computes Day MA on 1d interval using direct daily candles', () => {
@@ -368,66 +364,64 @@ describe('computeIndicatorData — Day Moving Averages (ma50 / ma200)', () => {
 // computeIndicatorData — timeframe-aware Week MA (ma50w / ma200w)
 // ---------------------------------------------------------------------------
 describe('computeIndicatorData — Week Moving Averages (ma50w / ma200w)', () => {
-	function makeMultiWeekDailyCandles(): Candle[] {
-		// Week 1 (Jan 1-2, 2024 - Mon/Tue): close 10, 20 (week close = 20)
-		// Week 2 (Jan 8-9, 2024 - Mon/Tue): close 30, 40 (week close = 40)
-		// Week 3 (Jan 15-16, 2024 - Mon/Tue): close 50, 60 (week close = 60)
-		return [
-			{ time: '2024-01-01', open: 10, high: 11, low: 9, close: 10, volume: 100 },
-			{ time: '2024-01-02', open: 15, high: 21, low: 14, close: 20, volume: 100 },
-			{ time: '2024-01-08', open: 25, high: 31, low: 24, close: 30, volume: 100 },
-			{ time: '2024-01-09', open: 35, high: 41, low: 34, close: 40, volume: 100 },
-			{ time: '2024-01-15', open: 45, high: 51, low: 44, close: 50, volume: 100 },
-			{ time: '2024-01-16', open: 55, high: 61, low: 54, close: 60, volume: 100 }
-		];
-	}
-
-	it('computes Week MA on 1d interval by calendar-week grouping', () => {
-		const candles = makeMultiWeekDailyCandles();
+	it('computes Week MA on 1d interval using scaled rolling SMA (period * 5)', () => {
+		const candles: Candle[] = Array.from({ length: 12 }, (_, i) => ({
+			time: `2024-01-${String(i + 1).padStart(2, '0')}`,
+			open: 10,
+			high: 12,
+			low: 9,
+			close: (i + 1) * 10,
+			volume: 100
+		}));
 		const result = computeIndicatorData('ma50w', { period: 2 }, candles, '1d') as {
 			time: Time;
 			value: number;
 		}[];
-		// 2-week MA across 3 weeks yields 4 daily points (2 for Week 2, 2 for Week 3)
-		expect(result.length).toBe(4);
-		// Week 2: average of Week 1 close (20) and Week 2 close (40) = 30
-		expect(result[0]).toEqual({ time: '2024-01-08', value: 30 });
-		expect(result[1]).toEqual({ time: '2024-01-09', value: 30 });
-		// Week 3: average of Week 2 close (40) and Week 3 close (60) = 50
-		expect(result[2]).toEqual({ time: '2024-01-15', value: 50 });
-		expect(result[3]).toEqual({ time: '2024-01-16', value: 50 });
+		// 2-week MA on 1d -> effective period 10 bars. 12 candles -> 3 points (indices 9, 10, 11)
+		expect(result.length).toBe(3);
+		expect(result[0]).toEqual({ time: '2024-01-10', value: 55 });
+		expect(result[1]).toEqual({ time: '2024-01-11', value: 65 });
+		expect(result[2]).toEqual({ time: '2024-01-12', value: 75 });
 	});
 
-	it('computes Week MA on 1h interval by calendar-week grouping', () => {
-		// 2 weeks of 1h timestamps
-		const candles: Candle[] = [
-			// Week 1 (Mon Jan 1, 2024)
-			{ time: 1704067200 as unknown as Time, open: 10, high: 11, low: 9, close: 10, volume: 100 },
-			{ time: 1704070800 as unknown as Time, open: 15, high: 21, low: 14, close: 20, volume: 100 },
-			// Week 2 (Mon Jan 8, 2024)
-			{ time: 1704672000 as unknown as Time, open: 25, high: 31, low: 24, close: 30, volume: 100 },
-			{ time: 1704675600 as unknown as Time, open: 35, high: 41, low: 34, close: 40, volume: 100 }
-		];
+	it('computes Week MA on 1h interval using scaled rolling SMA (period * 35)', () => {
+		const candles: Candle[] = Array.from({ length: 72 }, (_, i) => ({
+			time: (1704067200 + i * 3600) as unknown as Time,
+			open: 10,
+			high: 12,
+			low: 9,
+			close: (i + 1) * 10,
+			volume: 100
+		}));
 		const result = computeIndicatorData('ma50w', { period: 2 }, candles, '1h') as {
 			time: Time;
 			value: number;
 		}[];
-		expect(result.length).toBe(2);
-		expect(result[0]).toEqual({ time: 1704672000, value: 30 });
-		expect(result[1]).toEqual({ time: 1704675600, value: 30 });
+		// 2-week MA on 1h -> effective period 70 bars. 72 candles -> 3 points (indices 69, 70, 71)
+		expect(result.length).toBe(3);
+		expect(result[0]).toEqual({ time: 1704067200 + 69 * 3600, value: 355 });
+		expect(result[1]).toEqual({ time: 1704067200 + 70 * 3600, value: 365 });
+		expect(result[2]).toEqual({ time: 1704067200 + 71 * 3600, value: 375 });
 	});
 
-	it('computes Week MA on 4h interval by calendar-week grouping', () => {
-		const candles: Candle[] = [
-			{ time: 1704067200 as unknown as Time, open: 10, high: 11, low: 9, close: 20, volume: 100 },
-			{ time: 1704672000 as unknown as Time, open: 25, high: 31, low: 24, close: 40, volume: 100 }
-		];
+	it('computes Week MA on 4h interval using scaled rolling SMA (period * 10)', () => {
+		const candles: Candle[] = Array.from({ length: 22 }, (_, i) => ({
+			time: (1704067200 + i * 14400) as unknown as Time,
+			open: 10,
+			high: 12,
+			low: 9,
+			close: (i + 1) * 10,
+			volume: 100
+		}));
 		const result = computeIndicatorData('ma200w', { period: 2 }, candles, '4h') as {
 			time: Time;
 			value: number;
 		}[];
-		expect(result.length).toBe(1);
-		expect(result[0]).toEqual({ time: 1704672000, value: 30 });
+		// 2-week MA on 4h -> effective period 20 bars. 22 candles -> 3 points (indices 19, 20, 21)
+		expect(result.length).toBe(3);
+		expect(result[0]).toEqual({ time: 1704067200 + 19 * 14400, value: 105 });
+		expect(result[1]).toEqual({ time: 1704067200 + 20 * 14400, value: 115 });
+		expect(result[2]).toEqual({ time: 1704067200 + 21 * 14400, value: 125 });
 	});
 
 	it('computes Week MA on 1w interval directly with SMA', () => {
@@ -468,16 +462,21 @@ describe('computeIndicatorData — Week Moving Averages (ma50w / ma200w)', () =>
 // ---------------------------------------------------------------------------
 describe('computeIndicatorData — Timestamp format preservation', () => {
 	it('preserves UTCTimestamp seconds format for intraday series', () => {
-		const candles: Candle[] = [
-			{ time: 1704067200 as unknown as Time, open: 10, high: 11, low: 9, close: 10, volume: 100 },
-			{ time: 1704153600 as unknown as Time, open: 20, high: 21, low: 19, close: 20, volume: 100 }
-		];
+		const candles: Candle[] = Array.from({ length: 14 }, (_, i) => ({
+			time: (1704067200 + i * 3600) as unknown as Time,
+			open: 10,
+			high: 11,
+			low: 9,
+			close: 10 + i,
+			volume: 100
+		}));
 		const result = computeIndicatorData('ma50', { period: 2 }, candles, '1h') as {
 			time: Time;
 			value: number;
 		}[];
+		expect(result.length).toBe(1);
 		expect(typeof result[0].time).toBe('number');
-		expect(result[0].time).toBe(1704153600);
+		expect(result[0].time).toBe(1704067200 + 13 * 3600);
 	});
 
 	it('preserves ISO date strings for daily/weekly/monthly series', () => {
