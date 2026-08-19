@@ -1,14 +1,10 @@
 <script lang="ts">
-	import AppSidebar from '@/components/layout/app-sidebar.svelte';
 	import PageHeader from '@/components/layout/app-header.svelte';
-	import * as Sidebar from '$lib/components/ui/sidebar/index.js';
 	import HoldingsTable from '@/components/accounts/holdings-table.svelte';
 	import { Badge } from '$lib/components/ui/badge/index.js';
 	import EditableTitle from '@/components/forms/editable-title.svelte';
-	import { getSidebarState } from '$lib/components/ui/sidebar/index.js';
 
 	let { data } = $props();
-	const sidebarState = getSidebarState();
 
 	const formatCurrency = (amount: number, currency: string) => {
 		return new Intl.NumberFormat('en-CA', {
@@ -22,83 +18,72 @@
 	<title>{data.holdings.account_name} - Account Details</title>
 </svelte:head>
 
-<Sidebar.Provider bind:open={sidebarState.open} onOpenChange={sidebarState.setOpen}>
-	<AppSidebar />
-	<Sidebar.Inset>
-		<div class="flex flex-1 flex-col overflow-hidden bg-background">
-			<PageHeader subtitle="Account Holdings">
-				{#snippet titleSlot()}
-					<div class="flex items-center gap-3">
-						<EditableTitle
-							bind:value={data.holdings.account_name}
-							action="?/renameAccount"
-							id={data.holdings.account_id}
-							textClass="text-lg font-semibold"
-						/>
-						<Badge
-							variant="outline"
-							class="border-muted-foreground/30 px-1.5 py-0 text-[10px] font-medium text-muted-foreground"
-						>
-							{data.holdings.currency}
-						</Badge>
-					</div>
-				{/snippet}
+<div class="flex flex-1 flex-col overflow-hidden bg-background">
+	<PageHeader subtitle="Account Holdings">
+		{#snippet titleSlot()}
+			<div class="flex items-center gap-3">
+				<EditableTitle
+					bind:value={data.holdings.account_name}
+					action="?/renameAccount"
+					id={data.holdings.account_id}
+					textClass="text-lg font-semibold"
+				/>
+				<Badge
+					variant="outline"
+					class="border-muted-foreground/30 px-1.5 py-0 text-[10px] font-medium text-muted-foreground"
+				>
+					{data.holdings.currency}
+				</Badge>
+			</div>
+		{/snippet}
 
-				{#snippet actions()}
-					<div class="flex items-center gap-6">
-						<div class="flex flex-col items-end">
-							<span class="text-[10px] tracking-tight text-muted-foreground uppercase"
-								>Total Value</span
-							>
-							<span class="text-base font-semibold text-foreground tabular-nums">
-								{formatCurrency(data.holdings.total_value, data.holdings.currency)}
+		{#snippet actions()}
+			<div class="flex items-center gap-6">
+				<div class="flex flex-col items-end">
+					<span class="text-[10px] tracking-tight text-muted-foreground uppercase">Total Value</span
+					>
+					<span class="text-base font-semibold text-foreground tabular-nums">
+						{formatCurrency(data.holdings.total_value, data.holdings.currency)}
+					</span>
+				</div>
+				<div class="flex flex-col items-end">
+					<span class="text-[10px] tracking-tight text-muted-foreground uppercase"
+						>Net Deposits</span
+					>
+					<span class="text-base font-semibold text-foreground/80 tabular-nums">
+						{data.holdings.net_deposits !== null
+							? formatCurrency(data.holdings.net_deposits, data.holdings.currency)
+							: '—'}
+					</span>
+				</div>
+				<div class="flex flex-col items-end">
+					<span class="text-[10px] tracking-tight text-muted-foreground uppercase">Total P/L</span>
+					<span
+						class={`text-base font-semibold tabular-nums ${data.holdings.total_profit_loss >= 0 ? 'text-emerald-600' : 'text-rose-600'}`}
+					>
+						{data.holdings.total_profit_loss >= 0 ? '+' : ''}{formatCurrency(
+							data.holdings.total_profit_loss,
+							data.holdings.currency
+						)}
+						{#if data.holdings.total_profit_loss_percent !== null}
+							<span class="ml-1 text-sm font-medium">
+								({data.holdings.total_profit_loss_percent >= 0
+									? '+'
+									: ''}{data.holdings.total_profit_loss_percent.toFixed(2)}%)
 							</span>
-						</div>
-						<div class="flex flex-col items-end">
-							<span class="text-[10px] tracking-tight text-muted-foreground uppercase"
-								>Net Deposits</span
-							>
-							<span class="text-base font-semibold text-foreground/80 tabular-nums">
-								{data.holdings.net_deposits !== null
-									? formatCurrency(data.holdings.net_deposits, data.holdings.currency)
-									: '—'}
-							</span>
-						</div>
-						<div class="flex flex-col items-end">
-							<span class="text-[10px] tracking-tight text-muted-foreground uppercase"
-								>Total P/L</span
-							>
-							<span
-								class={`text-base font-semibold tabular-nums ${data.holdings.total_profit_loss >= 0 ? 'text-emerald-600' : 'text-rose-600'}`}
-							>
-								{data.holdings.total_profit_loss >= 0 ? '+' : ''}{formatCurrency(
-									data.holdings.total_profit_loss,
-									data.holdings.currency
-								)}
-								{#if data.holdings.total_profit_loss_percent !== null}
-									<span class="ml-1 text-sm font-medium">
-										({data.holdings.total_profit_loss_percent >= 0
-											? '+'
-											: ''}{data.holdings.total_profit_loss_percent.toFixed(2)}%)
-									</span>
-								{/if}
-							</span>
-						</div>
-					</div>
-				{/snippet}
-			</PageHeader>
+						{/if}
+					</span>
+				</div>
+			</div>
+		{/snippet}
+	</PageHeader>
 
-			<main class="flex-1 overflow-y-auto">
-				{#if data.holdings && data.holdings.items.length > 0}
-					<HoldingsTable
-						holdings={data.holdings.items}
-						totalAccountValue={data.holdings.total_value}
-					/>
-				{/if}
-			</main>
-		</div>
-	</Sidebar.Inset>
-</Sidebar.Provider>
+	<main class="flex-1 overflow-y-auto">
+		{#if data.holdings && data.holdings.items.length > 0}
+			<HoldingsTable holdings={data.holdings.items} totalAccountValue={data.holdings.total_value} />
+		{/if}
+	</main>
+</div>
 
 <style>
 	:global(.animate-in) {

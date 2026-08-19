@@ -5,7 +5,6 @@ import {
 	type UserPreferences
 } from './userPreferencesService';
 import { mergeChartPreferences } from '$lib/chart-preferences';
-import { GlobalSidebarState } from '$lib/components/ui/sidebar/context.svelte';
 
 describe('UserPreferencesService', () => {
 	beforeEach(() => {
@@ -152,37 +151,5 @@ describe('UserPreferencesService', () => {
 		expect(updated.timeframe).toBe('1d');
 		expect(updated.chart_style).toBe('heikin_ashi');
 		expect(updated.indicators?.rsi?.enabled).toBe(true);
-	});
-
-	it('GlobalSidebarState initializes with provided value or defaults to true', () => {
-		const defaultState = new GlobalSidebarState();
-		expect(defaultState.open).toBe(true);
-
-		const closedState = new GlobalSidebarState(false);
-		expect(closedState.open).toBe(false);
-
-		closedState.open = true;
-		expect(closedState.open).toBe(true);
-	});
-
-	it('GlobalSidebarState triggers onOpenChange callback when setOpen is called', () => {
-		const onOpenChange = vi.fn();
-		const state = new GlobalSidebarState(true, onOpenChange);
-
-		state.setOpen(false);
-		expect(state.open).toBe(false);
-		expect(onOpenChange).toHaveBeenCalledTimes(1);
-		expect(onOpenChange).toHaveBeenCalledWith(false);
-
-		state.setOpen(true);
-		expect(state.open).toBe(true);
-		expect(onOpenChange).toHaveBeenCalledTimes(2);
-		expect(onOpenChange).toHaveBeenCalledWith(true);
-	});
-
-	it('GlobalSidebarState setOpen works without onOpenChange callback', () => {
-		const state = new GlobalSidebarState(true);
-		state.setOpen(false);
-		expect(state.open).toBe(false);
 	});
 });
