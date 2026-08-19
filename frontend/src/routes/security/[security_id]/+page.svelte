@@ -14,11 +14,6 @@
 	import type { UserPreferences } from '$lib/api/userPreferencesService';
 	import { userPreferencesService, type ChartStyle } from '$lib/api/userPreferencesService';
 	import { alertsService, type PriceAlert } from '$lib/api/alertsService';
-	import { calculateSMA } from '@/utils/finance/moving-average';
-	import { calculateRSI } from '@/utils/finance/rsi';
-	import { calculateMACD } from '@/utils/finance/macd';
-	import { calculateBollingerBands } from '@/utils/finance/bollinger-bands';
-	import { calculateOBV } from '@/utils/finance/obv';
 	import { blendedAverageCost } from '@/utils/finance/average-cost';
 	import { AVG_PRICE_LINE_COLOR } from '$lib/components/charts/colors';
 	import HoldingsGroup from '@/components/actions-sidebar/holding-group/holding-group.svelte';
@@ -31,7 +26,8 @@
 		shouldForceRefetch,
 		parseCandleTime,
 		mergeCandles,
-		shouldFetchMoreData
+		shouldFetchMoreData,
+		computeIndicatorData
 	} from '$lib/chart-preferences';
 	import { getChartDateWindow } from '$lib/utils/date';
 
@@ -110,14 +106,7 @@
 			rawCandles = mappedCandles;
 			haCandles = convertToHeikinAshi(mappedCandles);
 
-			setTimeout(() => {
-				for (const [id, config] of Object.entries(indicatorConfigs)) {
-					if (config.enabled && id !== 'avgPrice' && chartRef) {
-						chartRef.removeIndicator(id);
-						onIndicatorToggle(id, true);
-					}
-				}
-			}, 20);
+			refreshActiveIndicators();
 
 			fetchOk = true;
 		} catch (err) {
@@ -189,14 +178,7 @@
 			rawCandles = merged;
 			haCandles = convertToHeikinAshi(rawCandles);
 
-			setTimeout(() => {
-				for (const [id, config] of Object.entries(indicatorConfigs)) {
-					if (config.enabled && id !== 'avgPrice' && chartRef) {
-						chartRef.removeIndicator(id);
-						onIndicatorToggle(id, true);
-					}
-				}
-			}, 20);
+			refreshActiveIndicators();
 		} catch (err) {
 			console.error('Failed to load more chart data:', err);
 		} finally {
@@ -228,8 +210,8 @@
 	let indicatorConfigs = $state<Record<string, LocalIndicatorConfig>>({
 		ma50: { label: '50 Day MA', color: '#3b82f6', period: 50, enabled: false, settings: {} },
 		ma200: { label: '200 Day MA', color: '#8b5cf6', period: 200, enabled: false, settings: {} },
-		ma50w: { label: '50 Week MA', color: '#10b981', period: 250, enabled: false, settings: {} },
-		ma200w: { label: '200 Week MA', color: '#f59e0b', period: 1000, enabled: false, settings: {} },
+		ma50w: { label: '50 Week MA', color: '#10b981', period: 50, enabled: false, settings: {} },
+		ma200w: { label: '200 Week MA', color: '#f59e0b', period: 200, enabled: false, settings: {} },
 		volume: { label: 'Volume', color: '#64748b', period: 0, enabled: false, settings: {} },
 		obv: { label: 'OBV', color: '#f59e0b', period: 0, enabled: false, settings: {} },
 		rsi: { label: 'RSI', color: '#06b6d4', period: 14, enabled: false, settings: {} },
@@ -262,6 +244,19 @@
 
 	let holdings = $state<AccountHoldingRead[]>([]);
 	let averageBuyingPrice = $derived(blendedAverageCost(holdings));
+
+	function refreshActiveIndicators() {
+		if (!chartRef) return;
+		setTimeout(() => {
+			if (!chartRef) return;
+			for (const [id, config] of Object.entries(indicatorConfigs)) {
+				if (config.enabled && id !== 'avgPrice') {
+					chartRef.removeIndicator(id);
+					onIndicatorToggle(id, true);
+				}
+			}
+		}, 20);
+	}
 
 	function onIndicatorConfigChange(indicatorId: string, newConfig: Partial<LocalIndicatorConfig>) {
 		indicatorConfigs[indicatorId] = { ...indicatorConfigs[indicatorId], ...newConfig };
@@ -334,39 +329,13 @@
 		const config = indicatorConfigs[indicatorId as keyof typeof indicatorConfigs];
 		if (!config) return;
 
-		let data;
-		if (indicatorId === 'volume') {
-			data = haCandles.map((c) => ({
-				time: c.time,
-				value: c.volume || 0,
-				color: c.close >= c.open ? '#26a69a80' : '#ef535080' // Add some transparency
-			}));
-		} else if (indicatorId === 'obv') {
-			data = calculateOBV(haCandles);
-		} else if (indicatorId === 'rsi') {
-			data = calculateRSI(haCandles, { period: config.period });
-		} else if (indicatorId === 'macd') {
-			const mconfig = config as LocalIndicatorConfig;
-			data = calculateMACD(haCandles, {
-				fast: mconfig.fast || 12,
-				slow: mconfig.slow || 26,
-				signal: mconfig.signal || 9
-			});
-		} else if (indicatorId === 'bb') {
-			const bconfig = config as LocalIndicatorConfig;
-			data = calculateBollingerBands(haCandles, {
-				period: bconfig.period,
-				stdDev: bconfig.stdDev || 2
-			});
-		} else {
-			data = calculateSMA(haCandles, config.period);
-		}
+		const data = computeIndicatorData(indicatorId, config, displayCandles, selectedInterval);
 
 		chartRef.addIndicator({
 			type: indicatorId,
 			label: config.label,
 			color: config.color,
-			data: data
+			data: data as IndicatorData['data']
 		});
 	}
 
@@ -525,6 +494,7 @@
 							type="button"
 							onclick={async () => {
 								chartStyle = 'heikin_ashi';
+								refreshActiveIndicators();
 								try {
 									await updateChartPreferences({ chart_style: 'heikin_ashi' });
 								} catch (err) {
@@ -544,6 +514,7 @@
 							type="button"
 							onclick={async () => {
 								chartStyle = 'candlestick';
+								refreshActiveIndicators();
 								try {
 									await updateChartPreferences({ chart_style: 'candlestick' });
 								} catch (err) {

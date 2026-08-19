@@ -1,6 +1,110 @@
 import type { ChartStyle, UserPreferences } from '$lib/api/userPreferencesService';
 import type { Candle } from '@/utils/finance/candle';
 import type { Time } from 'lightweight-charts';
+import {
+	calculateDayMA,
+	calculateWeekMA,
+	calculateSMA,
+	type MASeries
+} from '$lib/utils/finance/moving-average';
+import { calculateOBV, type OBVSeries } from '$lib/utils/finance/obv';
+import { calculateRSI, type RSISeries } from '$lib/utils/finance/rsi';
+import { calculateMACD, type MACDSeries } from '$lib/utils/finance/macd';
+import { calculateBollingerBands, type BBSeries } from '$lib/utils/finance/bollinger-bands';
+
+export interface IndicatorComputeConfig {
+	period?: number;
+	fast?: number;
+	slow?: number;
+	signal?: number;
+	stdDev?: number;
+	settings?: Record<string, unknown>;
+}
+
+export type VolumeSeriesItem = {
+	time: Time;
+	value: number;
+	color: string;
+};
+
+export type IndicatorSeriesData =
+	MASeries | OBVSeries | RSISeries | MACDSeries | BBSeries | VolumeSeriesItem[];
+
+/**
+ * Computes chart-compatible series data for any supported indicator ID,
+ * applying timeframe-aware moving averages (calculateDayMA / calculateWeekMA)
+ * and user-supplied or default configurations.
+ */
+export function computeIndicatorData(
+	indicatorId: string,
+	config: Partial<IndicatorComputeConfig> | undefined,
+	candles: Candle[],
+	interval: string = '1d'
+): IndicatorSeriesData {
+	if (!candles || candles.length === 0) {
+		return [];
+	}
+
+	const period =
+		(config?.period as number | undefined) ?? (config?.settings?.period as number | undefined);
+
+	switch (indicatorId) {
+		case 'volume':
+			return candles.map((c) => ({
+				time: c.time,
+				value: c.volume || 0,
+				color: c.close >= c.open ? '#26a69a80' : '#ef535080'
+			}));
+
+		case 'obv':
+			return calculateOBV(candles);
+
+		case 'rsi':
+			return calculateRSI(candles, { period: period ?? 14 });
+
+		case 'macd': {
+			const fast =
+				(config?.fast as number | undefined) ??
+				(config?.settings?.fast as number | undefined) ??
+				12;
+			const slow =
+				(config?.slow as number | undefined) ??
+				(config?.settings?.slow as number | undefined) ??
+				26;
+			const signal =
+				(config?.signal as number | undefined) ??
+				(config?.settings?.signal as number | undefined) ??
+				9;
+			return calculateMACD(candles, { fast, slow, signal });
+		}
+
+		case 'bb': {
+			const stdDev =
+				(config?.stdDev as number | undefined) ??
+				(config?.settings?.stdDev as number | undefined) ??
+				2;
+			return calculateBollingerBands(candles, {
+				period: period ?? 20,
+				stdDev
+			});
+		}
+
+		case 'ma50':
+			return calculateDayMA(candles, interval, period ?? 50);
+
+		case 'ma200':
+			return calculateDayMA(candles, interval, period ?? 200);
+
+		case 'ma50w':
+			return calculateWeekMA(candles, interval, period ?? 50);
+
+		case 'ma200w':
+			return calculateWeekMA(candles, interval, period ?? 200);
+
+		default:
+			return calculateSMA(candles, period ?? 14);
+	}
+}
 
 /**
  * Merges a partial preferences update into the full blob, preserving
