@@ -87,7 +87,7 @@
 			[id]: buildIndicatorEntry(nc, current)
 		};
 		try {
-			await userPreferencesService.savePreferences({ ...preferences });
+			await userPreferencesService.patchPreferences({ indicators: preferences.indicators });
 		} catch (err) {
 			console.error('Failed to save preferences:', err);
 		}
@@ -130,7 +130,7 @@
 		preferences = newPreferences;
 
 		try {
-			await userPreferencesService.savePreferences(newPreferences);
+			await userPreferencesService.patchPreferences({ indicators: newPreferences.indicators });
 			if (onIndicatorToggle) {
 				onIndicatorToggle(indicatorId, newEntry.enabled);
 			}

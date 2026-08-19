@@ -37,6 +37,12 @@ class MockUserRepository(UserRepository):
     async def save_preferences(self, user_id: UserId, preferences: dict) -> None:
         self._prefs[user_id] = preferences
 
+    async def patch_preferences(self, user_id: UserId, preferences: dict) -> dict:
+        current = self._prefs.get(user_id) or {}
+        updated = {**current, **preferences}
+        self._prefs[user_id] = updated
+        return updated
+
 
 class TestGetEmailForUser:
     @pytest.mark.asyncio
@@ -96,3 +102,18 @@ class TestPreferences:
         await api.save_preferences(user_id, payload)
         prefs = await api.get_preferences(user_id)
         assert prefs == payload
+
+    @pytest.mark.asyncio
+    async def test_patch_preferences_updates_and_returns_merged_dict(self):
+        """Patch preferences merges with existing and returns the updated preferences."""
+        user_id = uuid4()
+        initial = {"timeframe": "1d", "chart_style": "candlestick"}
+        user_repo = MockUserRepository(prefs={user_id: initial})
+        api = UserApi(
+            user_repository=user_repo,
+            email_verification_service=AsyncMock(spec=EmailVerificationService),
+        )
+        patch = {"sidebar_open": False, "timeframe": "4h"}
+        res = await api.patch_preferences(user_id, patch)
+        assert res == {"timeframe": "4h", "chart_style": "candlestick", "sidebar_open": False}
+        assert await api.get_preferences(user_id) == res

@@ -48,6 +48,12 @@ class MockUserRepository(UserRepository):
     async def save_preferences(self, user_id: UserId, preferences: dict) -> None:
         self.preferences[user_id] = preferences
 
+    async def patch_preferences(self, user_id: UserId, preferences: dict) -> dict:
+        current = self.preferences.get(user_id) or {}
+        updated = {**current, **preferences}
+        self.preferences[user_id] = updated
+        return updated
+
 
 class MockVerificationTokenRepository(VerificationTokenRepository):
     def __init__(self):

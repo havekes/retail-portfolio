@@ -8,7 +8,6 @@
 	import { setContext, untrack } from 'svelte';
 	import GlobalSearch from '$lib/components/global-search.svelte';
 	import { userPreferencesService } from '$lib/api/userPreferencesService.js';
-	import { mergeChartPreferences } from '$lib/chart-preferences.js';
 
 	let { children, data } = $props();
 
@@ -19,14 +18,7 @@
 
 	function handleSidebarOpenChange(open: boolean) {
 		if (data.user) {
-			userPreferencesService
-				.getPreferences()
-				.then((prefs) =>
-					userPreferencesService.savePreferences(
-						mergeChartPreferences(prefs, { sidebar_open: open })
-					)
-				)
-				.catch(console.error);
+			userPreferencesService.patchPreferences({ sidebar_open: open }).catch(console.error);
 		}
 	}
 

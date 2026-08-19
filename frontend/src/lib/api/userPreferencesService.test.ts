@@ -152,4 +152,56 @@ describe('UserPreferencesService', () => {
 		expect(updated.chart_style).toBe('heikin_ashi');
 		expect(updated.indicators?.rsi?.enabled).toBe(true);
 	});
+
+	it('patchPreferences sends PATCH request with partial body to /accounts/me/preferences', async () => {
+		const patchPayload: Partial<UserPreferences> = {
+			sidebar_open: false
+		};
+		const mockResponse: UserPreferences = {
+			timeframe: '1d',
+			chart_style: 'candlestick',
+			sidebar_open: false
+		};
+
+		vi.mocked(global.fetch).mockResolvedValue({
+			ok: true,
+			json: async () => mockResponse
+		} as Response);
+
+		const service = new UserPreferencesService();
+		const res = await service.patchPreferences(patchPayload);
+
+		expect(global.fetch).toHaveBeenCalledWith(
+			expect.stringContaining('/accounts/me/preferences'),
+			expect.objectContaining({
+				method: 'PATCH',
+				body: JSON.stringify(patchPayload)
+			})
+		);
+		expect(res).toEqual(mockResponse);
+		expect(res.sidebar_open).toBe(false);
+	});
+
+	it('patchPreferences supports tokenOverride header', async () => {
+		const patchPayload: Partial<UserPreferences> = { timeframe: '4h' };
+		const mockResponse: UserPreferences = { timeframe: '4h' };
+
+		vi.mocked(global.fetch).mockResolvedValue({
+			ok: true,
+			json: async () => mockResponse
+		} as Response);
+
+		const service = new UserPreferencesService();
+		await service.patchPreferences(patchPayload, 'patch-token-789');
+
+		expect(global.fetch).toHaveBeenCalledWith(
+			expect.stringContaining('/accounts/me/preferences'),
+			expect.objectContaining({
+				method: 'PATCH',
+				headers: expect.objectContaining({
+					Authorization: 'Bearer patch-token-789'
+				})
+			})
+		);
+	});
 });

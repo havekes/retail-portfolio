@@ -30,6 +30,10 @@ class UserRepository(ABC):
     async def save_preferences(self, user_id: UserId, preferences: dict) -> None:
         pass
 
+    @abstractmethod
+    async def patch_preferences(self, user_id: UserId, preferences: dict) -> dict:
+        pass
+
 
 class VerificationTokenRepository(ABC):
     @abstractmethod

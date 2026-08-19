@@ -26,6 +26,18 @@ export class UserPreferencesService extends ApiClient {
 			tokenOverride
 		);
 	}
+
+	async patchPreferences(
+		prefs: Partial<UserPreferences>,
+		tokenOverride?: string | null
+	): Promise<UserPreferences> {
+		return await this.patch<UserPreferences, Partial<UserPreferences>>(
+			'/accounts/me/preferences',
+			prefs,
+			undefined,
+			tokenOverride
+		);
+	}
 }
 
 export const getUserPreferencesService = (customFetch?: typeof fetch) =>
