@@ -5,8 +5,10 @@
 	import HoldingsTable from '@/components/accounts/holdings-table.svelte';
 	import { Badge } from '$lib/components/ui/badge/index.js';
 	import EditableTitle from '@/components/forms/editable-title.svelte';
+	import { getSidebarState } from '$lib/components/ui/sidebar/index.js';
 
 	let { data } = $props();
+	const sidebarState = getSidebarState();
 
 	const formatCurrency = (amount: number, currency: string) => {
 		return new Intl.NumberFormat('en-CA', {
@@ -20,7 +22,7 @@
 	<title>{data.holdings.account_name} - Account Details</title>
 </svelte:head>
 
-<Sidebar.Provider>
+<Sidebar.Provider bind:open={sidebarState.open}>
 	<AppSidebar />
 	<Sidebar.Inset>
 		<div class="flex flex-1 flex-col overflow-hidden bg-background">

@@ -7,15 +7,24 @@ export interface UserPreferences {
 	timeframe?: string | null;
 	chart_style?: ChartStyle | null;
 	indicators?: Record<string, IndicatorConfig> | null;
+	sidebar_open?: boolean | null;
 }
 
 export class UserPreferencesService extends ApiClient {
-	async getPreferences(): Promise<UserPreferences> {
-		return await this.get<UserPreferences>('/accounts/me/preferences');
+	async getPreferences(tokenOverride?: string | null): Promise<UserPreferences> {
+		return await this.get<UserPreferences>('/accounts/me/preferences', undefined, tokenOverride);
 	}
 
-	async savePreferences(prefs: UserPreferences): Promise<UserPreferences> {
-		return await this.put<UserPreferences, UserPreferences>('/accounts/me/preferences', prefs);
+	async savePreferences(
+		prefs: UserPreferences,
+		tokenOverride?: string | null
+	): Promise<UserPreferences> {
+		return await this.put<UserPreferences, UserPreferences>(
+			'/accounts/me/preferences',
+			prefs,
+			undefined,
+			tokenOverride
+		);
 	}
 }
 

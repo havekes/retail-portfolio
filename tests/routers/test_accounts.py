@@ -255,3 +255,70 @@ async def test_preferences_isolated(auth_client, other_user, client):
     get_resp = await auth_client.get("/api/v1/accounts/me/preferences")
     assert get_resp.status_code == 200
     assert get_resp.json() == payload
+
+
+@pytest.mark.anyio
+async def test_preferences_sidebar_open_roundtrip(auth_client):
+    """PUT then GET returns sidebar_open boolean."""
+    payload = {"sidebar_open": False}
+    put_resp = await auth_client.put("/api/v1/accounts/me/preferences", json=payload)
+    assert put_resp.status_code == 200
+    assert put_resp.json() == {"sidebar_open": False}
+
+    get_resp = await auth_client.get("/api/v1/accounts/me/preferences")
+    assert get_resp.status_code == 200
+    assert get_resp.json() == {"sidebar_open": False}
+
+    # Update to True
+    payload_true = {"sidebar_open": True}
+    put_resp_true = await auth_client.put(
+        "/api/v1/accounts/me/preferences", json=payload_true
+    )
+    assert put_resp_true.status_code == 200
+    assert put_resp_true.json() == {"sidebar_open": True}
+
+
+@pytest.mark.anyio
+async def test_preferences_sidebar_open_with_chart_preferences(auth_client):
+    """Verify sidebar_open persists alongside timeframe, chart_style, and indicators."""
+    payload = {
+        "timeframe": "4h",
+        "chart_style": "candlestick",
+        "indicators": {
+            "rsi": {"enabled": True, "color": "#00FF00", "settings": {"period": 14}}
+        },
+        "sidebar_open": False,
+    }
+    put_resp = await auth_client.put("/api/v1/accounts/me/preferences", json=payload)
+    assert put_resp.status_code == 200
+    assert put_resp.json() == payload
+
+    get_resp = await auth_client.get("/api/v1/accounts/me/preferences")
+    assert get_resp.status_code == 200
+    assert get_resp.json() == payload
+
+
+@pytest.mark.anyio
+async def test_preferences_sidebar_open_isolated(auth_client, other_user, client):
+    """User A's sidebar_open preference is isolated from user B."""
+    payload = {"sidebar_open": False}
+    put_resp = await auth_client.put("/api/v1/accounts/me/preferences", json=payload)
+    assert put_resp.status_code == 200
+
+    login_resp = await client.post(
+        "/api/v1/auth/login",
+        json={"email": "other@example.com", "password": "otherpass"},
+    )
+    assert login_resp.status_code == 200
+    other_token = login_resp.json()["access_token"]
+
+    get_other = await client.get(
+        "/api/v1/accounts/me/preferences",
+        headers={"Authorization": f"Bearer {other_token}"},
+    )
+    assert get_other.status_code == 200
+    assert get_other.json() == {}
+
+    get_resp = await auth_client.get("/api/v1/accounts/me/preferences")
+    assert get_resp.status_code == 200
+    assert get_resp.json() == {"sidebar_open": False}

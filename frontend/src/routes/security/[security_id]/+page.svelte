@@ -7,6 +7,7 @@
 	import type { Candle } from '@/utils/finance/candle';
 	import PageHeader from '@/components/layout/app-header.svelte';
 	import * as Sidebar from '$lib/components/ui/sidebar/index.js';
+	import { getSidebarState } from '$lib/components/ui/sidebar/index.js';
 	import IndicatorsGroup from '@/components/actions-sidebar/indicator/indicator-group.svelte';
 	import PriceAlertsGroup from '@/components/actions-sidebar/price-alert/price-alert-group.svelte';
 	import NotesGroup from '@/components/actions-sidebar/note/note-group.svelte';
@@ -38,6 +39,7 @@
 	import { getChartDateWindow } from '$lib/utils/date';
 
 	let { data } = $props();
+	const sidebarState = getSidebarState();
 
 	const watchlistService = getWatchlistService();
 
@@ -452,7 +454,7 @@
 	<title>{security ? `${security.symbol} - Security Chart` : 'Security Chart'}</title>
 </svelte:head>
 
-<Sidebar.Provider>
+<Sidebar.Provider bind:open={sidebarState.open}>
 	<AppSidebar />
 	<Sidebar.Inset class="flex h-screen">
 		<div class="flex flex-1 flex-col overflow-hidden">

@@ -79,3 +79,30 @@ export function setSidebar(props: SidebarStateProps): SidebarState {
 export function useSidebar(): SidebarState {
 	return getContext(Symbol.for(SYMBOL_KEY));
 }
+
+const GLOBAL_SIDEBAR_STATE_KEY = "sidebarState";
+
+export class GlobalSidebarState {
+	open = $state(true);
+
+	constructor(initialOpen: boolean | (() => boolean) = true) {
+		if (typeof initialOpen === "function") {
+			this.open = initialOpen();
+		} else {
+			this.open = initialOpen;
+		}
+	}
+}
+
+export function setSidebarState(
+	initialOpen: boolean | (() => boolean) = true
+): GlobalSidebarState {
+	const state = new GlobalSidebarState(initialOpen);
+	setContext(GLOBAL_SIDEBAR_STATE_KEY, state);
+	return state;
+}
+
+export function getSidebarState(): GlobalSidebarState {
+	const state = getContext<GlobalSidebarState | undefined>(GLOBAL_SIDEBAR_STATE_KEY);
+	return state ?? new GlobalSidebarState(true);
+}
