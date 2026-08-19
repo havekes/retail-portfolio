@@ -5,6 +5,7 @@ tools:
   - run_command
 subagent: true
 mainAgent: false
+model: flash
 commandExecutionPolicy: sandbox
 skills:
   - skills/ticket-planning
