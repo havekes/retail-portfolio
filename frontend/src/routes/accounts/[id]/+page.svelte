@@ -22,7 +22,7 @@
 	<title>{data.holdings.account_name} - Account Details</title>
 </svelte:head>
 
-<Sidebar.Provider bind:open={sidebarState.open}>
+<Sidebar.Provider bind:open={sidebarState.open} onOpenChange={sidebarState.setOpen}>
 	<AppSidebar />
 	<Sidebar.Inset>
 		<div class="flex flex-1 flex-col overflow-hidden bg-background">

@@ -12,7 +12,7 @@
 	<title>Portfolio dashboard</title>
 </svelte:head>
 
-<Sidebar.Provider bind:open={sidebarState.open}>
+<Sidebar.Provider bind:open={sidebarState.open} onOpenChange={sidebarState.setOpen}>
 	<AppSidebar />
 	<Sidebar.Inset>
 		<AccountsList accounts={data.accounts}></AccountsList>

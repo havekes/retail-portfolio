@@ -6,12 +6,28 @@
 	import { setSidebarState } from '$lib/components/ui/sidebar/index.js';
 	import { setContext } from 'svelte';
 	import GlobalSearch from '$lib/components/global-search.svelte';
+	import { userPreferencesService } from '$lib/api/userPreferencesService.js';
+	import { mergeChartPreferences } from '$lib/chart-preferences.js';
 
 	let { children, data } = $props();
 
 	setBrokerService();
 	const watchlistService = setWatchlistService();
-	setSidebarState(() => data.sidebar_open ?? true);
+	setSidebarState(
+		() => data.sidebar_open ?? true,
+		(open) => {
+			if (data.user) {
+				userPreferencesService
+					.getPreferences()
+					.then((prefs) =>
+						userPreferencesService.savePreferences(
+							mergeChartPreferences(prefs, { sidebar_open: open })
+						)
+					)
+					.catch(console.error);
+			}
+		}
+	);
 
 	$effect(() => {
 		if (data.user) {

@@ -84,20 +84,31 @@ const GLOBAL_SIDEBAR_STATE_KEY = "sidebarState";
 
 export class GlobalSidebarState {
 	open = $state(true);
+	onOpenChange?: (open: boolean) => void;
 
-	constructor(initialOpen: boolean | (() => boolean) = true) {
+	constructor(
+		initialOpen: boolean | (() => boolean) = true,
+		onOpenChange?: (open: boolean) => void
+	) {
 		if (typeof initialOpen === "function") {
 			this.open = initialOpen();
 		} else {
 			this.open = initialOpen;
 		}
+		this.onOpenChange = onOpenChange;
 	}
+
+	setOpen = (value: boolean) => {
+		this.open = value;
+		this.onOpenChange?.(value);
+	};
 }
 
 export function setSidebarState(
-	initialOpen: boolean | (() => boolean) = true
+	initialOpen: boolean | (() => boolean) = true,
+	onOpenChange?: (open: boolean) => void
 ): GlobalSidebarState {
-	const state = new GlobalSidebarState(initialOpen);
+	const state = new GlobalSidebarState(initialOpen, onOpenChange);
 	setContext(GLOBAL_SIDEBAR_STATE_KEY, state);
 	return state;
 }

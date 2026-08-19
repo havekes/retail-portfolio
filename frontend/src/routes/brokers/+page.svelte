@@ -12,7 +12,7 @@
 	<title>Connected brokers</title>
 </svelte:head>
 
-<Sidebar.Provider bind:open={sidebarState.open}>
+<Sidebar.Provider bind:open={sidebarState.open} onOpenChange={sidebarState.setOpen}>
 	<AppSidebar />
 	<Sidebar.Inset>
 		<BrokersList users={data.users}></BrokersList>
