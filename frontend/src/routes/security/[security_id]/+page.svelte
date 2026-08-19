@@ -1,13 +1,11 @@
 <script lang="ts">
 	import type { Time, UTCTimestamp } from 'lightweight-charts';
-	import AppSidebar from '@/components/layout/app-sidebar.svelte';
 	import { getMarketService } from '$lib/api/marketService';
 	import { convertToHeikinAshi } from '@/utils/finance/candle';
 	import { resolve } from '$app/paths';
 	import type { Candle } from '@/utils/finance/candle';
 	import PageHeader from '@/components/layout/app-header.svelte';
 	import * as Sidebar from '$lib/components/ui/sidebar/index.js';
-	import { getSidebarState } from '$lib/components/ui/sidebar/index.js';
 	import IndicatorsGroup from '@/components/actions-sidebar/indicator/indicator-group.svelte';
 	import PriceAlertsGroup from '@/components/actions-sidebar/price-alert/price-alert-group.svelte';
 	import NotesGroup from '@/components/actions-sidebar/note/note-group.svelte';
@@ -39,7 +37,6 @@
 	import { getChartDateWindow } from '$lib/utils/date';
 
 	let { data } = $props();
-	const sidebarState = getSidebarState();
 
 	const watchlistService = getWatchlistService();
 
@@ -454,154 +451,149 @@
 	<title>{security ? `${security.symbol} - Security Chart` : 'Security Chart'}</title>
 </svelte:head>
 
-<Sidebar.Provider bind:open={sidebarState.open} onOpenChange={sidebarState.setOpen}>
-	<AppSidebar />
-	<Sidebar.Inset class="flex h-screen">
-		<div class="flex flex-1 flex-col overflow-hidden">
-			<PageHeader {isLoading} {error} subtitle={security?.name ?? ''}>
-				{#snippet titleSlot()}
-					<div class="flex items-center gap-2">
-						<h2 class="text-lg font-semibold">{security?.symbol ?? ''}</h2>
-						{#if security}
-							{@const currentSecurity = security}
+<div class="flex flex-1 flex-col overflow-hidden">
+	<PageHeader {isLoading} {error} subtitle={security?.name ?? ''}>
+		{#snippet titleSlot()}
+			<div class="flex items-center gap-2">
+				<h2 class="text-lg font-semibold">{security?.symbol ?? ''}</h2>
+				{#if security}
+					{@const currentSecurity = security}
+					<button
+						type="button"
+						onclick={() => watchlistService.toggleSecurity(currentSecurity.id)}
+						class="rounded-sm p-1 hover:bg-muted focus:outline-hidden"
+						aria-label="Toggle watchlist"
+					>
+						{#if watchlistService.hasSecurity(currentSecurity.id)}
+							<Star class="h-4 w-4 fill-amber-400 stroke-amber-500" />
+						{:else}
+							<Star class="h-4 w-4 text-muted-foreground hover:text-amber-500" />
+						{/if}
+					</button>
+				{/if}
+			</div>
+		{/snippet}
+	</PageHeader>
+
+	{#if isLoading}
+		<div class="flex flex-1 items-center justify-center overflow-hidden">
+			<p class="text-gray-500">Loading chart data...</p>
+		</div>
+	{:else if error}
+		<div class="flex flex-1 items-center justify-center overflow-hidden">
+			<div
+				class="card error-card w-full max-w-md rounded-lg border border-red-200 bg-white p-8 shadow-lg dark:border-red-800 dark:bg-gray-800"
+			>
+				<div class="text-center">
+					<div class="mb-4 text-4xl">⚠️</div>
+					<h2 class="mb-2 text-xl font-semibold text-gray-900 dark:text-gray-100">
+						Failed to Load Chart
+					</h2>
+					<p class="mb-4 text-gray-600 dark:text-gray-400">{error}</p>
+					<a
+						href={resolve('/')}
+						class="inline-block rounded-md bg-blue-600 px-4 py-2 text-white transition-colors hover:bg-blue-700"
+					>
+						Back to Dashboard
+					</a>
+				</div>
+			</div>
+		</div>
+	{:else if securityChart && security}
+		{@const ChartComponent =
+			securityChart as typeof import('$lib/components/charts/security-chart.svelte').default}
+		<div class="flex flex-1 overflow-hidden">
+			<div class="flex flex-1 flex-col overflow-hidden">
+				<div class="flex items-center justify-between border-b bg-sidebar/50 px-4 py-2">
+					<div class="flex items-center gap-1">
+						<span class="mr-2 text-xs font-medium text-muted-foreground">Timeframe:</span>
+						{#each ['1h', '4h', '1d', '1w', '1m'] as tf (tf)}
 							<button
 								type="button"
-								onclick={() => watchlistService.toggleSecurity(currentSecurity.id)}
-								class="rounded-sm p-1 hover:bg-muted focus:outline-hidden"
-								aria-label="Toggle watchlist"
+								onclick={() => changeTimeframe(tf)}
+								disabled={isChangingTimeframe}
+								class="rounded px-2.5 py-1 text-xs font-medium transition-colors {selectedInterval ===
+								tf
+									? 'bg-primary text-primary-foreground shadow-sm'
+									: 'text-muted-foreground hover:bg-muted hover:text-foreground'}"
 							>
-								{#if watchlistService.hasSecurity(currentSecurity.id)}
-									<Star class="h-4 w-4 fill-amber-400 stroke-amber-500" />
-								{:else}
-									<Star class="h-4 w-4 text-muted-foreground hover:text-amber-500" />
-								{/if}
+								{tf.toUpperCase()}
 							</button>
-						{/if}
+						{/each}
 					</div>
-				{/snippet}
-			</PageHeader>
-
-			{#if isLoading}
-				<div class="flex flex-1 items-center justify-center overflow-hidden">
-					<p class="text-gray-500">Loading chart data...</p>
-				</div>
-			{:else if error}
-				<div class="flex flex-1 items-center justify-center overflow-hidden">
-					<div
-						class="card error-card w-full max-w-md rounded-lg border border-red-200 bg-white p-8 shadow-lg dark:border-red-800 dark:bg-gray-800"
-					>
-						<div class="text-center">
-							<div class="mb-4 text-4xl">⚠️</div>
-							<h2 class="mb-2 text-xl font-semibold text-gray-900 dark:text-gray-100">
-								Failed to Load Chart
-							</h2>
-							<p class="mb-4 text-gray-600 dark:text-gray-400">{error}</p>
-							<a
-								href={resolve('/')}
-								class="inline-block rounded-md bg-blue-600 px-4 py-2 text-white transition-colors hover:bg-blue-700"
-							>
-								Back to Dashboard
-							</a>
-						</div>
-					</div>
-				</div>
-			{:else if securityChart && security}
-				{@const ChartComponent =
-					securityChart as typeof import('$lib/components/charts/security-chart.svelte').default}
-				<div class="flex flex-1 overflow-hidden">
-					<div class="flex flex-1 flex-col overflow-hidden">
-						<div class="flex items-center justify-between border-b bg-sidebar/50 px-4 py-2">
-							<div class="flex items-center gap-1">
-								<span class="mr-2 text-xs font-medium text-muted-foreground">Timeframe:</span>
-								{#each ['1h', '4h', '1d', '1w', '1m'] as tf (tf)}
-									<button
-										type="button"
-										onclick={() => changeTimeframe(tf)}
-										disabled={isChangingTimeframe}
-										class="rounded px-2.5 py-1 text-xs font-medium transition-colors {selectedInterval ===
-										tf
-											? 'bg-primary text-primary-foreground shadow-sm'
-											: 'text-muted-foreground hover:bg-muted hover:text-foreground'}"
-									>
-										{tf.toUpperCase()}
-									</button>
-								{/each}
-							</div>
-							<div class="flex items-center gap-1">
-								<span class="mr-2 text-xs font-medium text-muted-foreground">Style:</span>
-								<button
-									type="button"
-									onclick={async () => {
-										chartStyle = 'heikin_ashi';
-										try {
-											await updateChartPreferences({ chart_style: 'heikin_ashi' });
-										} catch (err) {
-											console.error('Failed to persist chart style:', err);
-										}
-									}}
-									disabled={isChangingTimeframe}
-									class="rounded px-2.5 py-1 text-xs font-medium transition-colors {chartStyle ===
-									'heikin_ashi'
-										? 'bg-primary text-primary-foreground shadow-sm'
-										: 'text-muted-foreground hover:bg-muted hover:text-foreground'}"
-									aria-label="Toggle Heikin-Ashi chart style"
-								>
-									Heikin-Ashi
-								</button>
-								<button
-									type="button"
-									onclick={async () => {
-										chartStyle = 'candlestick';
-										try {
-											await updateChartPreferences({ chart_style: 'candlestick' });
-										} catch (err) {
-											console.error('Failed to persist chart style:', err);
-										}
-									}}
-									disabled={isChangingTimeframe}
-									class="rounded px-2.5 py-1 text-xs font-medium transition-colors {chartStyle ===
-									'candlestick'
-										? 'bg-primary text-primary-foreground shadow-sm'
-										: 'text-muted-foreground hover:bg-muted hover:text-foreground'}"
-									aria-label="Toggle Candlestick chart style"
-								>
-									Candlestick
-								</button>
-							</div>
-						</div>
-						<div class="flex-1 overflow-hidden">
-							<ChartComponent
-								candles={displayCandles}
-								bind:this={chartRef}
-								{alerts}
-								onAddAlert={handleCreateAlert}
-								onRemoveAlert={handleDeleteAlert}
-								averagePrice={averageBuyingPrice}
-								showAveragePrice={indicatorConfigs.avgPrice.enabled}
-								{hasMoreData}
-								{isLoadingMore}
-								onLoadMoreData={handleLoadMoreData}
-							/>
-						</div>
-					</div>
-					<div class="flex h-full w-64 flex-col border-l bg-sidebar text-sidebar-foreground">
-						<Sidebar.Content class="overflow-y-auto">
-							<HoldingsGroup securityId={security.id} expanded={true} />
-							<IndicatorsGroup
-								expanded={true}
-								{indicatorConfigs}
-								{onIndicatorToggle}
-								{onPreferencesLoaded}
-								{onIndicatorConfigChange}
-							/>
-							<PriceAlertsGroup {security} expanded={true} {alerts} />
-							<NotesGroup securityId={security.id} expanded={true} />
-							<DocumentsGroup securityId={security.id} expanded={true} />
-							<AIAnalysisGroup securityId={security.id} expanded={true} />
-						</Sidebar.Content>
+					<div class="flex items-center gap-1">
+						<span class="mr-2 text-xs font-medium text-muted-foreground">Style:</span>
+						<button
+							type="button"
+							onclick={async () => {
+								chartStyle = 'heikin_ashi';
+								try {
+									await updateChartPreferences({ chart_style: 'heikin_ashi' });
+								} catch (err) {
+									console.error('Failed to persist chart style:', err);
+								}
+							}}
+							disabled={isChangingTimeframe}
+							class="rounded px-2.5 py-1 text-xs font-medium transition-colors {chartStyle ===
+							'heikin_ashi'
+								? 'bg-primary text-primary-foreground shadow-sm'
+								: 'text-muted-foreground hover:bg-muted hover:text-foreground'}"
+							aria-label="Toggle Heikin-Ashi chart style"
+						>
+							Heikin-Ashi
+						</button>
+						<button
+							type="button"
+							onclick={async () => {
+								chartStyle = 'candlestick';
+								try {
+									await updateChartPreferences({ chart_style: 'candlestick' });
+								} catch (err) {
+									console.error('Failed to persist chart style:', err);
+								}
+							}}
+							disabled={isChangingTimeframe}
+							class="rounded px-2.5 py-1 text-xs font-medium transition-colors {chartStyle ===
+							'candlestick'
+								? 'bg-primary text-primary-foreground shadow-sm'
+								: 'text-muted-foreground hover:bg-muted hover:text-foreground'}"
+							aria-label="Toggle Candlestick chart style"
+						>
+							Candlestick
+						</button>
 					</div>
 				</div>
-			{/if}
+				<div class="flex-1 overflow-hidden">
+					<ChartComponent
+						candles={displayCandles}
+						bind:this={chartRef}
+						{alerts}
+						onAddAlert={handleCreateAlert}
+						onRemoveAlert={handleDeleteAlert}
+						averagePrice={averageBuyingPrice}
+						showAveragePrice={indicatorConfigs.avgPrice.enabled}
+						{hasMoreData}
+						{isLoadingMore}
+						onLoadMoreData={handleLoadMoreData}
+					/>
+				</div>
+			</div>
+			<div class="flex h-full w-64 flex-col border-l bg-sidebar text-sidebar-foreground">
+				<Sidebar.Content class="overflow-y-auto">
+					<HoldingsGroup securityId={security.id} expanded={true} />
+					<IndicatorsGroup
+						expanded={true}
+						{indicatorConfigs}
+						{onIndicatorToggle}
+						{onPreferencesLoaded}
+						{onIndicatorConfigChange}
+					/>
+					<PriceAlertsGroup {security} expanded={true} {alerts} />
+					<NotesGroup securityId={security.id} expanded={true} />
+					<DocumentsGroup securityId={security.id} expanded={true} />
+					<AIAnalysisGroup securityId={security.id} expanded={true} />
+				</Sidebar.Content>
+			</div>
 		</div>
-	</Sidebar.Inset>
-</Sidebar.Provider>
+	{/if}
+</div>

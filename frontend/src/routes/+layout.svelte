@@ -3,8 +3,9 @@
 	import { ModeWatcher } from 'mode-watcher';
 	import { setBrokerService } from '$lib/components/brokers/brokerService.svelte';
 	import { setWatchlistService } from '$lib/components/watchlist/watchlistService.svelte';
-	import { setSidebarState } from '$lib/components/ui/sidebar/index.js';
-	import { setContext } from 'svelte';
+	import * as Sidebar from '$lib/components/ui/sidebar/index.js';
+	import AppSidebar from '$lib/components/layout/app-sidebar.svelte';
+	import { setContext, untrack } from 'svelte';
 	import GlobalSearch from '$lib/components/global-search.svelte';
 	import { userPreferencesService } from '$lib/api/userPreferencesService.js';
 	import { mergeChartPreferences } from '$lib/chart-preferences.js';
@@ -13,21 +14,21 @@
 
 	setBrokerService();
 	const watchlistService = setWatchlistService();
-	setSidebarState(
-		() => data.sidebar_open ?? true,
-		(open) => {
-			if (data.user) {
-				userPreferencesService
-					.getPreferences()
-					.then((prefs) =>
-						userPreferencesService.savePreferences(
-							mergeChartPreferences(prefs, { sidebar_open: open })
-						)
+
+	let sidebarOpen = $state(untrack(() => data.sidebar_open ?? true));
+
+	function handleSidebarOpenChange(open: boolean) {
+		if (data.user) {
+			userPreferencesService
+				.getPreferences()
+				.then((prefs) =>
+					userPreferencesService.savePreferences(
+						mergeChartPreferences(prefs, { sidebar_open: open })
 					)
-					.catch(console.error);
-			}
+				)
+				.catch(console.error);
 		}
-	);
+	}
 
 	$effect(() => {
 		if (data.user) {
@@ -55,6 +56,15 @@
 
 <ModeWatcher />
 
-{@render children()}
+{#if data.user}
+	<Sidebar.Provider bind:open={sidebarOpen} onOpenChange={handleSidebarOpenChange}>
+		<AppSidebar />
+		<Sidebar.Inset>
+			{@render children()}
+		</Sidebar.Inset>
+	</Sidebar.Provider>
+{:else}
+	{@render children()}
+{/if}
 
 <GlobalSearch bind:open={globalSearchOpen} />
