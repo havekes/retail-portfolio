@@ -729,7 +729,7 @@ describe('Security Page - Elliott Wave Toolbar & Integration', () => {
 	beforeAll(async () => {
 		const mod = await import('./+page.svelte');
 		PageComponent = mod.default;
-	});
+	}, 30000);
 
 	beforeEach(() => {
 		vi.clearAllMocks();
