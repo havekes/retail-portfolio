@@ -549,7 +549,7 @@
 			</div>
 			<div class="flex h-full w-64 flex-col border-l bg-sidebar text-sidebar-foreground">
 				<Sidebar.Content class="overflow-y-auto">
-					<HoldingsGroup securityId={security.id} expanded={true} />
+					<HoldingsGroup securityId={security.id} {security} candles={rawCandles} expanded={true} />
 					<IndicatorsGroup
 						expanded={true}
 						{indicatorConfigs}

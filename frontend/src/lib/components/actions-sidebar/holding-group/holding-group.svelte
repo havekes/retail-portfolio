@@ -6,22 +6,42 @@
 	import { accountService, type AccountHoldingRead } from '@/api/accountService';
 	import { blendedAverageCost } from '@/utils/finance/average-cost';
 	import { resolve } from '$app/paths';
+	import Maximize2 from '@lucide/svelte/icons/maximize-2';
+	import HoldingsModal from './holdings-modal.svelte';
+	import { ModalState } from '$lib/utils/modal-state.svelte';
+	import type { SecuritySchema } from '@/api/marketService';
+	import type { Candle } from '@/utils/finance/candle';
 
-	let { securityId, expanded = $bindable(true) } = $props<{
-		securityId: string;
+	let {
+		securityId,
+		security,
+		candles = [],
+		expanded = $bindable(true)
+	} = $props<{
+		securityId?: string;
+		security?: SecuritySchema | { id?: string; symbol?: string; name?: string; currency?: string };
+		candles?: Candle[];
 		expanded?: boolean;
 	}>();
+
+	const effectiveSecurityId = $derived(securityId ?? security?.id);
 
 	let holdings = $state<AccountHoldingRead[]>([]);
 	let isLoading = $state(false);
 	let error = $state<string | null>(null);
 
+	const holdingsModalState = new ModalState<SecuritySchema>();
+
+	const handleExpandModal = () => {
+		holdingsModalState.open(security as SecuritySchema);
+	};
+
 	const fetchHoldings = async () => {
-		if (!securityId) return;
+		if (!effectiveSecurityId) return;
 		isLoading = true;
 		error = null;
 		try {
-			const res = await accountService.getHoldings(securityId);
+			const res = await accountService.getHoldings(effectiveSecurityId);
 			holdings = res.items;
 		} catch (err) {
 			console.error('Failed to fetch holdings:', err);
@@ -32,7 +52,7 @@
 	};
 
 	$effect(() => {
-		if (expanded && securityId) {
+		if (expanded && effectiveSecurityId) {
 			fetchHoldings();
 		}
 	});
@@ -42,8 +62,24 @@
 	};
 </script>
 
+<HoldingsModal
+	modalState={holdingsModalState}
+	securityId={effectiveSecurityId}
+	{security}
+	{holdings}
+	{candles}
+/>
+
 <Sidebar.Group>
-	<GroupTitle {expanded} onToggle={handleExpandToggle}>Your Holdings</GroupTitle>
+	<GroupTitle
+		{expanded}
+		onToggle={handleExpandToggle}
+		actionIcon={Maximize2}
+		actionTitle="Expand holdings breakdown"
+		onAction={handleExpandModal}
+	>
+		Your Holdings
+	</GroupTitle>
 
 	{#if expanded}
 		<Sidebar.GroupContent>
