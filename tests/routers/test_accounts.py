@@ -631,3 +631,74 @@ async def test_preferences_holdings_period_patch(auth_client):
     get_resp = await auth_client.get("/api/v1/accounts/me/preferences")
     assert get_resp.status_code == 200
     assert get_resp.json() == {"timeframe": "1d", "holdings_period": "1Y"}
+
+
+@pytest.mark.anyio
+async def test_preferences_elliott_waves_roundtrip(auth_client):
+    """Verify elliott_waves preferences persist through PUT, GET, and PATCH."""
+    payload = {
+        "elliott_waves": {
+            "sec-1": {
+                "cycle": {
+                    "points": [
+                        {"wave": 1, "time": "2024-01-01", "price": 100.0},
+                        {"wave": 2, "time": "2024-01-02", "price": 80.0},
+                        {"wave": 3, "time": "2024-01-03", "price": 150.0},
+                        {"wave": 4, "time": "2024-01-04", "price": 120.0},
+                        {"wave": 5, "time": "2024-01-05", "price": 200.0},
+                    ],
+                    "wave3Target": 150.0,
+                    "wave5Target": 200.0,
+                },
+                "primary": None,
+            }
+        }
+    }
+    put_resp = await auth_client.put("/api/v1/accounts/me/preferences", json=payload)
+    assert put_resp.status_code == 200
+    assert put_resp.json() == payload
+
+    get_resp = await auth_client.get("/api/v1/accounts/me/preferences")
+    assert get_resp.status_code == 200
+    assert get_resp.json() == payload
+
+    # Test PATCH
+    patch_payload = {
+        "elliott_waves": {
+            "sec-1": {
+                "cycle": {
+                    "points": [
+                        {"wave": 1, "time": "2024-01-01", "price": 100.0},
+                        {"wave": 2, "time": "2024-01-02", "price": 80.0},
+                        {"wave": 3, "time": "2024-01-03", "price": 160.0},
+                        {"wave": 4, "time": "2024-01-04", "price": 120.0},
+                        {"wave": 5, "time": "2024-01-05", "price": 220.0},
+                    ],
+                    "wave3Target": 160.0,
+                    "wave5Target": 220.0,
+                },
+                "primary": {
+                    "points": [
+                        {"wave": 1, "time": "2024-01-01", "price": 10.0},
+                    ],
+                    "wave3Target": None,
+                    "wave5Target": None,
+                },
+            }
+        }
+    }
+    patch_resp = await auth_client.patch(
+        "/api/v1/accounts/me/preferences", json=patch_payload
+    )
+    assert patch_resp.status_code == 200
+    assert (
+        patch_resp.json()["elliott_waves"]["sec-1"]["cycle"]["wave3Target"]
+        == 160.0
+    )
+    assert (
+        patch_resp.json()["elliott_waves"]["sec-1"]["primary"]["points"][0][
+            "price"
+        ]
+        == 10.0
+    )
+

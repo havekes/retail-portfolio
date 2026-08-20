@@ -1,7 +1,16 @@
 import { ApiClient } from './apiClient';
 import type { IndicatorConfig } from './indicatorsService';
+import type {
+	DegreeWaveCount,
+	SecurityElliottWaves,
+	TargetWave,
+	WaveDegree,
+	WavePoint
+} from '$lib/utils/finance/elliott-wave';
 
 export type ChartStyle = 'heikin_ashi' | 'candlestick';
+
+export type { DegreeWaveCount, SecurityElliottWaves, TargetWave, WaveDegree, WavePoint };
 
 export interface UserPreferences {
 	timeframe?: string | null;
@@ -9,6 +18,7 @@ export interface UserPreferences {
 	indicators?: Record<string, IndicatorConfig> | null;
 	sidebar_open?: boolean | null;
 	holdings_period?: string | null;
+	elliott_waves?: Record<string, SecurityElliottWaves> | null;
 }
 
 export class UserPreferencesService extends ApiClient {
