@@ -67,7 +67,9 @@ function createMockChartAndSeries() {
 
 	const chart = {
 		chartElement: vi.fn(() => mockChartElement),
-		timeScale: vi.fn(() => timeScale)
+		timeScale: vi.fn(() => timeScale),
+		options: vi.fn(() => ({ handleScroll: { pressedMouseMove: true } })),
+		applyOptions: vi.fn()
 	} as unknown as IChartApi;
 
 	return { chart, series, mockChartElement, timeScale, priceScale };
@@ -128,8 +130,11 @@ describe('Elliott Wave Plugin', () => {
 		it('defines Cycle and Primary visual styles with distinct formatting and colors', () => {
 			expect(CYCLE_STYLE.degree).toBe('cycle');
 			expect(CYCLE_STYLE.color).toBe('#3b82f6');
-			expect(CYCLE_STYLE.formatLabel(1)).toBe('(1)');
-			expect(CYCLE_STYLE.formatLabel(5)).toBe('(5)');
+			expect(CYCLE_STYLE.formatLabel(1)).toBe('I');
+			expect(CYCLE_STYLE.formatLabel(2)).toBe('II');
+			expect(CYCLE_STYLE.formatLabel(3)).toBe('III');
+			expect(CYCLE_STYLE.formatLabel(4)).toBe('IV');
+			expect(CYCLE_STYLE.formatLabel(5)).toBe('V');
 
 			expect(PRIMARY_STYLE.degree).toBe('primary');
 			expect(PRIMARY_STYLE.color).toBe('#10b981');
@@ -322,7 +327,7 @@ describe('Elliott Wave Plugin', () => {
 			renderer = new ElliottWavePaneRenderer();
 		});
 
-		it('renders connecting lines and node badges for Cycle degree (omits label for wave 0)', () => {
+		it('renders node badges for Cycle degree with Roman numerals and no connecting lines (omits label for wave 0)', () => {
 			const { target, drawCalls } = createMockCanvasTarget();
 
 			renderer.update({
@@ -352,22 +357,22 @@ describe('Elliott Wave Plugin', () => {
 
 			expect(target.useBitmapCoordinateSpace).toHaveBeenCalled();
 
-			// Should have line drawing calls (moveTo, lineTo) connecting all 4 points (3 line segments)
-			const moveCalls = drawCalls.filter((c) => c.type === 'moveTo');
+			// No connecting lines should be drawn between wave points (preview is null)
 			const lineCalls = drawCalls.filter((c) => c.type === 'lineTo');
-			expect(moveCalls.length).toBeGreaterThanOrEqual(1);
-			expect(lineCalls.length).toBeGreaterThanOrEqual(3);
+			const moveCalls = drawCalls.filter((c) => c.type === 'moveTo');
+			expect(lineCalls).toHaveLength(0);
+			expect(moveCalls).toHaveLength(0);
 
 			// Should render node badge circles for all 4 points (at least 4 arc calls)
 			const arcCalls = drawCalls.filter((c) => c.type === 'arc');
 			expect(arcCalls.length).toBeGreaterThanOrEqual(4);
 
-			// Should render text badges "(1)", "(2)", "(3)" for Cycle, but NOT for wave 0
+			// Should render Roman numeral text badges "I", "II", "III" for Cycle, but NOT for wave 0
 			const textCalls = drawCalls.filter((c) => c.type === 'fillText');
 			const labels = textCalls.map((c) => c.args[0]);
-			expect(labels).toContain('(1)');
-			expect(labels).toContain('(2)');
-			expect(labels).toContain('(3)');
+			expect(labels).toContain('I');
+			expect(labels).toContain('II');
+			expect(labels).toContain('III');
 			expect(labels).not.toContain('(0)');
 			expect(labels).not.toContain('0');
 		});
@@ -484,7 +489,7 @@ describe('Elliott Wave Plugin', () => {
 
 			const textCalls = drawCalls.filter((c) => c.type === 'fillText');
 			const labels = textCalls.map((c) => c.args[0]);
-			expect(labels).toContain('(1)'); // Ghost badge for next wave
+			expect(labels).toContain('I'); // Ghost badge for next wave (Cycle = Roman numeral)
 		});
 
 		it('handles empty or null data gracefully without crashing', () => {
@@ -585,6 +590,11 @@ describe('Elliott Wave Plugin', () => {
 			expect(mouseHandlers.isDragging()).toBe(true);
 			expect(onDragStart).toHaveBeenCalledWith({ degree: 'cycle', wave: 2 });
 
+			// Disabling chart scroll/panning while dragging (pressedMouseMove off)
+			expect(mockData.chart.applyOptions).toHaveBeenCalledWith({
+				handleScroll: { pressedMouseMove: false }
+			});
+
 			// 2. Mousemove to new position
 			mockData.mockChartElement.dispatchEvent(
 				new MouseEvent('mousemove', { clientX: 175, clientY: 230 })
@@ -595,10 +605,13 @@ describe('Elliott Wave Plugin', () => {
 			expect(onDrag.mock.calls[0][0].time).toBeDefined();
 			expect(onDrag.mock.calls[0][0].price).toBeDefined();
 
-			// 3. Mouseup on window or chart
+			// 3. Mouseup on window or chart restores chart scrolling
 			window.dispatchEvent(new MouseEvent('mouseup'));
 			expect(mouseHandlers.isDragging()).toBe(false);
 			expect(onDragEnd).toHaveBeenCalledWith({ degree: 'cycle', wave: 2 });
+			expect(mockData.chart.applyOptions).toHaveBeenCalledWith({
+				handleScroll: { pressedMouseMove: true }
+			});
 		});
 
 		it('fires chartClicked in drawing mode when user clicks chart plot area', () => {

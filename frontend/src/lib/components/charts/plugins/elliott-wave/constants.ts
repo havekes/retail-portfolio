@@ -1,5 +1,14 @@
 import type { WaveDegree } from '$lib/utils/finance/elliott-wave';
 
+// Roman numerals for Cycle degree wave badges (TradingView convention).
+const CYCLE_ROMAN_NUMERALS: Record<number, string> = {
+	1: 'I',
+	2: 'II',
+	3: 'III',
+	4: 'IV',
+	5: 'V'
+};
+
 export interface DegreeVisualConfig {
 	degree: WaveDegree;
 	name: string;
@@ -23,7 +32,7 @@ export const CYCLE_STYLE: DegreeVisualConfig = {
 	hoverRingColor: 'rgba(59, 130, 246, 0.4)',
 	lineWidth: 2,
 	nodeRadius: 10,
-	formatLabel: (wave: number) => `(${wave})`
+	formatLabel: (wave: number) => CYCLE_ROMAN_NUMERALS[wave] ?? ''
 };
 
 export const PRIMARY_STYLE: DegreeVisualConfig = {

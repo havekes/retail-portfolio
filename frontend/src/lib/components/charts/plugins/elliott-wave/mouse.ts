@@ -32,6 +32,7 @@ export class MouseHandlers {
 	private _isDragging: boolean = false;
 	private _dragTarget: PointTarget | null = null;
 	private _lastMousePosition: MousePosition | null = null;
+	private _savedPressedMouseMove: boolean | undefined = undefined;
 
 	private _mouseMoved: Delegate<MousePosition | null> = new Delegate();
 	private _chartClicked: Delegate<{ time: Time; price: number; x: number; y: number }> =
@@ -74,6 +75,7 @@ export class MouseHandlers {
 	}
 
 	public detached(): void {
+		this._restoreChartScroll();
 		this._chart = undefined;
 		this._series = undefined;
 		this._projectedPoints = [];
@@ -104,7 +106,35 @@ export class MouseHandlers {
 		if (isDrawing && this._isDragging) {
 			this._isDragging = false;
 			this._dragTarget = null;
+			this._restoreChartScroll();
 		}
+	}
+
+	/**
+	 * Prevents the underlying chart from panning while a wave point is being
+	 * dragged (pressed mouse move scroll). Chart scrolling is restored on drag
+	 * end so normal pan/scroll behaviour is unaffected otherwise.
+	 */
+	private _disableChartScroll(): void {
+		if (!this._chart) return;
+		if (this._savedPressedMouseMove === undefined) {
+			const handleScroll = this._chart.options()?.handleScroll;
+			this._savedPressedMouseMove =
+				typeof handleScroll === 'object' && handleScroll !== null
+					? handleScroll.pressedMouseMove
+					: handleScroll !== false; // boolean shorthand; default (true) enables pressed-move scroll
+		}
+		this._chart.applyOptions({ handleScroll: { pressedMouseMove: false } });
+	}
+
+	private _restoreChartScroll(): void {
+		if (!this._chart) return;
+		if (this._savedPressedMouseMove !== undefined) {
+			this._chart.applyOptions({
+				handleScroll: { pressedMouseMove: this._savedPressedMouseMove }
+			});
+		}
+		this._savedPressedMouseMove = undefined;
 	}
 
 	public getLastMousePosition(): MousePosition | null {
@@ -251,6 +281,7 @@ export class MouseHandlers {
 		if (hit) {
 			this._isDragging = true;
 			this._dragTarget = { degree: hit.degree, wave: hit.wave };
+			this._disableChartScroll();
 			this._dragStarted.fire(this._dragTarget);
 		}
 	}
@@ -260,6 +291,7 @@ export class MouseHandlers {
 			const target = this._dragTarget;
 			this._isDragging = false;
 			this._dragTarget = null;
+			this._restoreChartScroll();
 			this._dragEnded.fire(target);
 		}
 	}

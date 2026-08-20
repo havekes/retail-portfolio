@@ -47,49 +47,16 @@ export class ElliottWavePaneRenderer implements IPrimitivePaneRenderer {
 			const hpr = scope.horizontalPixelRatio;
 			const vpr = scope.verticalPixelRatio;
 
-			// 1. Draw connecting lines for each degree
-			for (const degreeData of this._data.degrees) {
-				this._drawConnectingLines(ctx, degreeData, hpr, vpr);
-			}
-
-			// 2. Draw drawing preview (dashed line to mouse and ghost badge)
+			// 1. Draw drawing preview (dashed guide line to mouse and ghost badge)
 			if (this._data.preview && this._data.preview.currentMouse) {
 				this._drawDrawingPreview(ctx, this._data.preview, hpr, vpr);
 			}
 
-			// 3. Draw numbered wave node badges for each degree
+			// 2. Draw numbered wave node badges for each degree
 			for (const degreeData of this._data.degrees) {
 				this._drawWaveBadges(ctx, degreeData, hpr, vpr);
 			}
 		});
-	}
-
-	private _drawConnectingLines(
-		ctx: CanvasRenderingContext2D,
-		degreeData: DegreeRenderData,
-		hpr: number,
-		vpr: number
-	): void {
-		if (degreeData.points.length < 2) return;
-
-		const sortedPoints = [...degreeData.points].sort((a, b) => a.wave - b.wave);
-
-		ctx.save();
-		try {
-			ctx.beginPath();
-			ctx.strokeStyle = degreeData.config.color;
-			ctx.lineWidth = degreeData.config.lineWidth * hpr;
-			ctx.lineCap = 'round';
-			ctx.lineJoin = 'round';
-
-			ctx.moveTo(sortedPoints[0].x * hpr, sortedPoints[0].y * vpr);
-			for (let i = 1; i < sortedPoints.length; i++) {
-				ctx.lineTo(sortedPoints[i].x * hpr, sortedPoints[i].y * vpr);
-			}
-			ctx.stroke();
-		} finally {
-			ctx.restore();
-		}
 	}
 
 	private _drawWaveBadges(
