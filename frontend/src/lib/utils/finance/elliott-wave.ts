@@ -5,7 +5,7 @@ export type WaveDegree = 'cycle' | 'primary';
 export type TargetWave = 'wave3' | 'wave5';
 
 export interface WavePoint {
-	wave: 1 | 2 | 3 | 4 | 5;
+	wave: 0 | 1 | 2 | 3 | 4 | 5;
 	time: Time;
 	price: number;
 }

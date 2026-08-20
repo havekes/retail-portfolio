@@ -27,9 +27,11 @@ vi.mock('$app/paths', () => ({
 	resolve: (path: string) => path
 }));
 
+const mockGetPrices = vi.fn().mockResolvedValue({ items: [] });
+
 vi.mock('$lib/api/marketService', () => ({
 	getMarketService: () => ({
-		getPrices: vi.fn().mockResolvedValue({ items: [] })
+		getPrices: mockGetPrices
 	})
 }));
 
@@ -796,6 +798,33 @@ describe('Security Page - Elliott Wave Toolbar & Integration', () => {
 					})
 				})
 			})
+		);
+	});
+
+	it('clearing a wave does not re-fetch market prices', async () => {
+		mockGetPrices.mockClear();
+		render(PageComponent, { props: { data: mockData } });
+
+		const clearBtn = await screen.findByRole('button', { name: /Clear wave count/i });
+		await fireEvent.click(clearBtn);
+
+		// Clearing wave should NOT invoke getPrices
+		expect(mockGetPrices).not.toHaveBeenCalled();
+	});
+
+	it('drawing mode remains active when wave updates occur during sequential drawing', async () => {
+		render(PageComponent, { props: { data: mockData } });
+
+		const drawBtn = await screen.findByRole('button', { name: /Toggle drawing wave/i });
+		await fireEvent.click(drawBtn);
+		expect(drawBtn.textContent?.trim()).toBe('Drawing...');
+
+		// Simulate wave point update / preference mutation occurring while in drawing mode
+		vi.mocked(userPreferencesService.patchPreferences).mockResolvedValueOnce({});
+
+		// Verify drawing mode remains active
+		expect(screen.getByRole('button', { name: /Toggle drawing wave/i }).textContent?.trim()).toBe(
+			'Drawing...'
 		);
 	});
 

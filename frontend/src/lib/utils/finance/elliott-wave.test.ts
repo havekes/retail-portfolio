@@ -13,11 +13,12 @@ import {
 describe('elliott-wave finance utilities', () => {
 	const sampleWaveCount: DegreeWaveCount = {
 		points: [
-			{ wave: 1, time: '2024-01-01', price: 100 },
-			{ wave: 2, time: '2024-01-02', price: 80 },
-			{ wave: 3, time: '2024-01-03', price: 150 },
-			{ wave: 4, time: '2024-01-04', price: 120 },
-			{ wave: 5, time: '2024-01-05', price: 200 }
+			{ wave: 0, time: '2024-01-01', price: 50 },
+			{ wave: 1, time: '2024-01-02', price: 100 },
+			{ wave: 2, time: '2024-01-03', price: 80 },
+			{ wave: 3, time: '2024-01-04', price: 150 },
+			{ wave: 4, time: '2024-01-05', price: 120 },
+			{ wave: 5, time: '2024-01-06', price: 200 }
 		]
 	};
 
@@ -259,11 +260,12 @@ describe('elliott-wave finance utilities', () => {
 		it('returns true for identical wave counts', () => {
 			const duplicate: DegreeWaveCount = {
 				points: [
-					{ wave: 1, time: '2024-01-01', price: 100 },
-					{ wave: 2, time: '2024-01-02', price: 80 },
-					{ wave: 3, time: '2024-01-03', price: 150 },
-					{ wave: 4, time: '2024-01-04', price: 120 },
-					{ wave: 5, time: '2024-01-05', price: 200 }
+					{ wave: 0, time: '2024-01-01', price: 50 },
+					{ wave: 1, time: '2024-01-02', price: 100 },
+					{ wave: 2, time: '2024-01-03', price: 80 },
+					{ wave: 3, time: '2024-01-04', price: 150 },
+					{ wave: 4, time: '2024-01-05', price: 120 },
+					{ wave: 5, time: '2024-01-06', price: 200 }
 				]
 			};
 			expect(areWaveCountsEqual(sampleWaveCount, duplicate)).toBe(true);
@@ -271,7 +273,7 @@ describe('elliott-wave finance utilities', () => {
 
 		it('returns false if point lengths differ', () => {
 			const partial: DegreeWaveCount = {
-				points: [{ wave: 1, time: '2024-01-01', price: 100 }]
+				points: [{ wave: 0, time: '2024-01-01', price: 50 }]
 			};
 			expect(areWaveCountsEqual(sampleWaveCount, partial)).toBe(false);
 		});
@@ -279,14 +281,29 @@ describe('elliott-wave finance utilities', () => {
 		it('returns false if point values differ', () => {
 			const modified: DegreeWaveCount = {
 				points: [
-					{ wave: 1, time: '2024-01-01', price: 105 }, // different price
-					{ wave: 2, time: '2024-01-02', price: 80 },
-					{ wave: 3, time: '2024-01-03', price: 150 },
-					{ wave: 4, time: '2024-01-04', price: 120 },
-					{ wave: 5, time: '2024-01-05', price: 200 }
+					{ wave: 0, time: '2024-01-01', price: 50 },
+					{ wave: 1, time: '2024-01-02', price: 105 }, // different price
+					{ wave: 2, time: '2024-01-03', price: 80 },
+					{ wave: 3, time: '2024-01-04', price: 150 },
+					{ wave: 4, time: '2024-01-05', price: 120 },
+					{ wave: 5, time: '2024-01-06', price: 200 }
 				]
 			};
 			expect(areWaveCountsEqual(sampleWaveCount, modified)).toBe(false);
+		});
+
+		it('returns false if point 0 differs', () => {
+			const modifiedPoint0: DegreeWaveCount = {
+				points: [
+					{ wave: 0, time: '2024-01-01', price: 55 }, // different point 0 price
+					{ wave: 1, time: '2024-01-02', price: 100 },
+					{ wave: 2, time: '2024-01-03', price: 80 },
+					{ wave: 3, time: '2024-01-04', price: 150 },
+					{ wave: 4, time: '2024-01-05', price: 120 },
+					{ wave: 5, time: '2024-01-06', price: 200 }
+				]
+			};
+			expect(areWaveCountsEqual(sampleWaveCount, modifiedPoint0)).toBe(false);
 		});
 
 		it('returns false if wave target overrides differ', () => {

@@ -14,7 +14,7 @@ export interface MousePosition {
 
 export interface ProjectedPointWithTarget {
 	degree: WaveDegree;
-	wave: 1 | 2 | 3 | 4 | 5;
+	wave: 0 | 1 | 2 | 3 | 4 | 5;
 	x: number;
 	y: number;
 	originalPoint: WavePoint;
@@ -38,14 +38,14 @@ export class MouseHandlers {
 		new Delegate();
 	private _pointClicked: Delegate<{
 		degree: WaveDegree;
-		wave: 1 | 2 | 3 | 4 | 5;
+		wave: 0 | 1 | 2 | 3 | 4 | 5;
 		point: WavePoint;
 	}> = new Delegate();
 	private _pointHovered: Delegate<PointTarget | null> = new Delegate();
 	private _dragStarted: Delegate<PointTarget> = new Delegate();
 	private _pointDragged: Delegate<{
 		degree: WaveDegree;
-		wave: 1 | 2 | 3 | 4 | 5;
+		wave: 0 | 1 | 2 | 3 | 4 | 5;
 		time: Time;
 		price: number;
 		x: number;
@@ -129,7 +129,7 @@ export class MouseHandlers {
 
 	public pointClicked(): ISubscription<{
 		degree: WaveDegree;
-		wave: 1 | 2 | 3 | 4 | 5;
+		wave: 0 | 1 | 2 | 3 | 4 | 5;
 		point: WavePoint;
 	}> {
 		return this._pointClicked;
@@ -145,7 +145,7 @@ export class MouseHandlers {
 
 	public pointDragged(): ISubscription<{
 		degree: WaveDegree;
-		wave: 1 | 2 | 3 | 4 | 5;
+		wave: 0 | 1 | 2 | 3 | 4 | 5;
 		time: Time;
 		price: number;
 		x: number;

@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { untrack } from 'svelte';
 	import type { Time, UTCTimestamp } from 'lightweight-charts';
 	import { getMarketService } from '$lib/api/marketService';
 	import { convertToHeikinAshi } from '@/utils/finance/candle';
@@ -416,53 +417,58 @@
 	}
 
 	$effect(() => {
-		(async () => {
-			if (!data.items || data.items.length === 0) {
-				error = 'No price data available for this security';
-				return;
-			}
+		const items = data.items;
+		void security?.id;
 
+		if (!items || items.length === 0) {
+			error = 'No price data available for this security';
+			return;
+		}
+
+		untrack(() => {
 			// Reset drawing mode on route transition / security change
 			isDrawingWave = false;
 
-			if (!userPreferences) {
-				try {
-					const prefs = await userPreferencesService.getPreferences();
-					userPreferences = prefs;
-				} catch (err) {
-					console.error('Failed to load user preferences:', err);
+			(async () => {
+				if (!userPreferences) {
+					try {
+						const prefs = await userPreferencesService.getPreferences();
+						userPreferences = prefs;
+					} catch (err) {
+						console.error('Failed to load user preferences:', err);
+					}
 				}
-			}
 
-			// Convert to lightweight-charts format and sort properly (oldest to newest)
-			const mappedCandles: Candle[] = data.items.map((p) => ({
-				time: p.timestamp
-					? (Math.floor(new Date(p.timestamp).getTime() / 1000) as UTCTimestamp)
-					: ((p.date ?? '') as Time),
-				open: Number(p.open),
-				high: Number(p.high),
-				low: Number(p.low),
-				close: Number(p.close),
-				volume: Number(p.volume)
-			}));
+				// Convert to lightweight-charts format and sort properly (oldest to newest)
+				const mappedCandles: Candle[] = items.map((p) => ({
+					time: p.timestamp
+						? (Math.floor(new Date(p.timestamp).getTime() / 1000) as UTCTimestamp)
+						: ((p.date ?? '') as Time),
+					open: Number(p.open),
+					high: Number(p.high),
+					low: Number(p.low),
+					close: Number(p.close),
+					volume: Number(p.volume)
+				}));
 
-			hasMoreData = true;
-			isLoadingMore = false;
-			rawCandles = mappedCandles;
-			haCandles = convertToHeikinAshi(mappedCandles);
-			await Promise.all([loadAlerts(), loadHoldings()]);
+				hasMoreData = true;
+				isLoadingMore = false;
+				rawCandles = mappedCandles;
+				haCandles = convertToHeikinAshi(mappedCandles);
+				await Promise.all([loadAlerts(), loadHoldings()]);
 
-			const module = await import('$lib/components/charts/security-chart.svelte');
-			securityChart = module.default;
+				const module = await import('$lib/components/charts/security-chart.svelte');
+				securityChart = module.default;
 
-			// Soft-navigation reconcile: server always loads '1d' series; if we're on a different
-			// timeframe, force-refetch to keep the displayed series in sync with the active
-			// timeframe for the new security. Gate on !isChangingTimeframe to avoid a
-			// redundant refetch when a saved timeframe ≠ 1d (onPreferencesLoaded is still running).
-			if (!isChangingTimeframe && selectedInterval !== '1d') {
-				await changeTimeframe(selectedInterval, { persist: false, force: true });
-			}
-		})();
+				// Soft-navigation reconcile: server always loads '1d' series; if we're on a different
+				// timeframe, force-refetch to keep the displayed series in sync with the active
+				// timeframe for the new security. Gate on !isChangingTimeframe to avoid a
+				// redundant refetch when a saved timeframe ≠ 1d (onPreferencesLoaded is still running).
+				if (!isChangingTimeframe && selectedInterval !== '1d') {
+					await changeTimeframe(selectedInterval, { persist: false, force: true });
+				}
+			})();
+		});
 	});
 </script>
 

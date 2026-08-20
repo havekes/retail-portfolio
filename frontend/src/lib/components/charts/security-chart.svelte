@@ -105,7 +105,8 @@
 	}>();
 
 	let avgPriceLine: IPriceLine | null = null;
-	let previousFirstCandleTime = $state<Time | null>(null);
+	let previousFirstCandleTime: Time | null = null;
+	let lastCandlesRef: Candle[] | null = null;
 
 	function getTimeValue(t: Time): string | number {
 		if (typeof t === 'string' || typeof t === 'number') return t;
@@ -201,6 +202,11 @@
 
 	$effect(() => {
 		if (seriesInstance && candles && candles.length > 0) {
+			if (candles === lastCandlesRef) {
+				return;
+			}
+			lastCandlesRef = candles;
+
 			const firstCandle = candles[0];
 			const isPrepending =
 				previousFirstCandleTime !== null &&
@@ -397,6 +403,7 @@
 
 	export function updateData(newCandles: Candle[]) {
 		if (seriesInstance) {
+			lastCandlesRef = newCandles;
 			seriesInstance.setData(newCandles);
 
 			const visibleDays = 250;

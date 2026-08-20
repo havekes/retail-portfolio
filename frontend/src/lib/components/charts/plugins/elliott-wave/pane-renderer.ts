@@ -4,7 +4,7 @@ import type { WaveDegree } from '$lib/utils/finance/elliott-wave';
 import { type DegreeVisualConfig, PREVIEW_ALPHA } from './constants';
 
 export interface ProjectedWavePoint {
-	wave: 1 | 2 | 3 | 4 | 5;
+	wave: 0 | 1 | 2 | 3 | 4 | 5;
 	x: number;
 	y: number;
 	time: Time;
@@ -23,7 +23,7 @@ export interface DegreeRenderData {
 export interface DrawingPreviewData {
 	degree: WaveDegree;
 	config: DegreeVisualConfig;
-	nextWave: 1 | 2 | 3 | 4 | 5;
+	nextWave: 0 | 1 | 2 | 3 | 4 | 5;
 	lastPoint: ProjectedWavePoint | null;
 	currentMouse: { x: number; y: number } | null;
 }
@@ -130,14 +130,16 @@ export class ElliottWavePaneRenderer implements IPrimitivePaneRenderer {
 				ctx.strokeStyle = degreeData.config.badgeBorderColor;
 				ctx.stroke();
 
-				// Centered wave label
-				const label = degreeData.config.formatLabel(point.wave);
-				const fontSize = Math.max(9, Math.round(11 * vpr));
-				ctx.font = `bold ${fontSize}px sans-serif`;
-				ctx.fillStyle = degreeData.config.badgeTextColor;
-				ctx.textAlign = 'center';
-				ctx.textBaseline = 'middle';
-				ctx.fillText(label, px, py);
+				// Centered wave label (omit text for wave 0 anchor point)
+				if (point.wave !== 0) {
+					const label = degreeData.config.formatLabel(point.wave);
+					const fontSize = Math.max(9, Math.round(11 * vpr));
+					ctx.font = `bold ${fontSize}px sans-serif`;
+					ctx.fillStyle = degreeData.config.badgeTextColor;
+					ctx.textAlign = 'center';
+					ctx.textBaseline = 'middle';
+					ctx.fillText(label, px, py);
+				}
 			} finally {
 				ctx.restore();
 			}
@@ -190,13 +192,15 @@ export class ElliottWavePaneRenderer implements IPrimitivePaneRenderer {
 			ctx.strokeStyle = preview.config.badgeBorderColor;
 			ctx.stroke();
 
-			const label = preview.config.formatLabel(preview.nextWave);
-			const fontSize = Math.max(9, Math.round(11 * vpr));
-			ctx.font = `bold ${fontSize}px sans-serif`;
-			ctx.fillStyle = preview.config.badgeTextColor;
-			ctx.textAlign = 'center';
-			ctx.textBaseline = 'middle';
-			ctx.fillText(label, mouseX, mouseY);
+			if (preview.nextWave !== 0) {
+				const label = preview.config.formatLabel(preview.nextWave);
+				const fontSize = Math.max(9, Math.round(11 * vpr));
+				ctx.font = `bold ${fontSize}px sans-serif`;
+				ctx.fillStyle = preview.config.badgeTextColor;
+				ctx.textAlign = 'center';
+				ctx.textBaseline = 'middle';
+				ctx.fillText(label, mouseX, mouseY);
+			}
 		} finally {
 			ctx.restore();
 		}

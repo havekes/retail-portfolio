@@ -207,7 +207,7 @@ export class ElliottWavesPrimitive implements ISeriesPrimitive<Time> {
 	}
 
 	public updatePoint(
-		wave: 1 | 2 | 3 | 4 | 5,
+		wave: 0 | 1 | 2 | 3 | 4 | 5,
 		updateOrPrice: { time?: Time; price?: number } | number,
 		timeOrDegree?: Time | WaveDegree,
 		maybeDegree?: WaveDegree
@@ -326,7 +326,7 @@ export class ElliottWavesPrimitive implements ISeriesPrimitive<Time> {
 			const activePoints = activeDegreeData?.points ?? [];
 
 			if (activePoints.length < MAX_WAVE_POINTS) {
-				const nextWave = (activePoints.length + 1) as 1 | 2 | 3 | 4 | 5;
+				const nextWave = activePoints.length as 0 | 1 | 2 | 3 | 4 | 5;
 				const lastPoint = activePoints.length > 0 ? activePoints[activePoints.length - 1] : null;
 				const lastMouse = this._mouseHandlers.getLastMousePosition();
 

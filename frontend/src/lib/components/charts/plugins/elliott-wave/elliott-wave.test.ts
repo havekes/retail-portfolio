@@ -139,7 +139,7 @@ describe('Elliott Wave Plugin', () => {
 			expect(DEGREE_STYLES.cycle).toBe(CYCLE_STYLE);
 			expect(DEGREE_STYLES.primary).toBe(PRIMARY_STYLE);
 			expect(HIT_TEST_RADIUS).toBe(14);
-			expect(MAX_WAVE_POINTS).toBe(5);
+			expect(MAX_WAVE_POINTS).toBe(6);
 		});
 	});
 
@@ -187,7 +187,7 @@ describe('Elliott Wave Plugin', () => {
 			expect(onDrawingChanged).toHaveBeenCalledWith(false);
 		});
 
-		it('sequentially adds points 1 to 5 to the active degree and completes drawing mode', () => {
+		it('sequentially adds points 0 to 5 to the active degree and completes drawing mode', () => {
 			const onPointsChanged = vi.fn();
 			const onDrawingChanged = vi.fn();
 			state.wavePointsChanged().subscribe(onPointsChanged);
@@ -195,25 +195,26 @@ describe('Elliott Wave Plugin', () => {
 
 			state.setDrawingMode(true);
 
-			// Add Wave 1
-			const p1 = state.addPoint({ time: '2024-01-01' as Time, price: 100 });
-			expect(p1.wave).toBe(1);
-			expect(p1.price).toBe(100);
+			// Add Wave 0 (Anchor origin point)
+			const p0 = state.addPoint({ time: '2024-01-01' as Time, price: 50 });
+			expect(p0.wave).toBe(0);
+			expect(p0.price).toBe(50);
 			expect(state.getPoints('cycle').length).toBe(1);
 			expect(state.isDrawingMode()).toBe(true);
 
-			// Add Wave 2, 3, 4
-			state.addPoint({ time: '2024-01-02' as Time, price: 90 });
-			state.addPoint({ time: '2024-01-03' as Time, price: 150 });
-			state.addPoint({ time: '2024-01-04' as Time, price: 120 });
+			// Add Wave 1, 2, 3, 4
+			state.addPoint({ time: '2024-01-02' as Time, price: 100 });
+			state.addPoint({ time: '2024-01-03' as Time, price: 90 });
+			state.addPoint({ time: '2024-01-04' as Time, price: 150 });
+			state.addPoint({ time: '2024-01-05' as Time, price: 120 });
 
-			expect(state.getPoints('cycle').length).toBe(4);
+			expect(state.getPoints('cycle').length).toBe(5);
 			expect(state.isDrawingMode()).toBe(true);
 
 			// Add Wave 5 -> Should auto-complete drawing mode
-			const p5 = state.addPoint({ time: '2024-01-05' as Time, price: 200 });
+			const p5 = state.addPoint({ time: '2024-01-06' as Time, price: 200 });
 			expect(p5.wave).toBe(5);
-			expect(state.getPoints('cycle').length).toBe(5);
+			expect(state.getPoints('cycle').length).toBe(6);
 			expect(state.isDrawingMode()).toBe(false);
 			expect(onDrawingChanged).toHaveBeenCalledWith(false);
 
@@ -222,30 +223,37 @@ describe('Elliott Wave Plugin', () => {
 			expect(waveCount?.wave5Target).toBe(200);
 		});
 
-		it('restarts point sequence if adding a point when 5 points already exist', () => {
-			for (let i = 1; i <= 5; i++) {
-				state.addPoint({ time: `2024-01-0${i}` as Time, price: 100 + i * 10 });
+		it('restarts point sequence if adding a point when 6 points already exist', () => {
+			for (let i = 0; i <= 5; i++) {
+				state.addPoint({ time: `2024-01-0${i + 1}` as Time, price: 100 + i * 10 });
 			}
-			expect(state.getPoints('cycle').length).toBe(5);
+			expect(state.getPoints('cycle').length).toBe(6);
 
-			// Adding 6th point resets to 1 point
+			// Adding 7th point resets to 1 point with wave 0
 			const nextPoint = state.addPoint({ time: '2024-01-10' as Time, price: 300 });
-			expect(nextPoint.wave).toBe(1);
+			expect(nextPoint.wave).toBe(0);
 			expect(state.getPoints('cycle').length).toBe(1);
 			expect(state.getPoints('cycle')[0].price).toBe(300);
 		});
 
-		it('updates specific point coordinates in place', () => {
-			state.addPoint({ time: '2024-01-01' as Time, price: 100 });
-			state.addPoint({ time: '2024-01-02' as Time, price: 90 });
-			state.addPoint({ time: '2024-01-03' as Time, price: 150 });
+		it('updates specific point coordinates in place including point 0', () => {
+			state.addPoint({ time: '2024-01-01' as Time, price: 50 });
+			state.addPoint({ time: '2024-01-02' as Time, price: 100 });
+			state.addPoint({ time: '2024-01-03' as Time, price: 90 });
+			state.addPoint({ time: '2024-01-04' as Time, price: 150 });
 
 			const onPointsChanged = vi.fn();
 			state.wavePointsChanged().subscribe(onPointsChanged);
 
-			const updated = state.updatePoint(2, { price: 95, time: '2024-01-02' as Time });
-			expect(updated).toBe(true);
-			expect(state.getPoints('cycle')[1].price).toBe(95);
+			// Update point 0
+			const updated0 = state.updatePoint(0, { price: 55, time: '2024-01-01' as Time });
+			expect(updated0).toBe(true);
+			expect(state.getPoints('cycle')[0].price).toBe(55);
+
+			// Update point 2
+			const updated2 = state.updatePoint(2, { price: 95, time: '2024-01-03' as Time });
+			expect(updated2).toBe(true);
+			expect(state.getPoints('cycle')[2].price).toBe(95);
 			expect(onPointsChanged).toHaveBeenCalled();
 
 			// Updating non-existent wave returns false
@@ -314,7 +322,7 @@ describe('Elliott Wave Plugin', () => {
 			renderer = new ElliottWavePaneRenderer();
 		});
 
-		it('renders connecting lines and node badges for Cycle degree', () => {
+		it('renders connecting lines and node badges for Cycle degree (omits label for wave 0)', () => {
 			const { target, drawCalls } = createMockCanvasTarget();
 
 			renderer.update({
@@ -324,9 +332,10 @@ describe('Elliott Wave Plugin', () => {
 						config: CYCLE_STYLE,
 						isActiveDegree: true,
 						points: [
-							{ wave: 1, x: 100, y: 300, time: '2024-01-01' as Time, price: 100 },
-							{ wave: 2, x: 150, y: 350, time: '2024-01-02' as Time, price: 80 },
-							{ wave: 3, x: 200, y: 200, time: '2024-01-03' as Time, price: 150 }
+							{ wave: 0, x: 50, y: 320, time: '2024-01-01' as Time, price: 90 },
+							{ wave: 1, x: 100, y: 300, time: '2024-01-02' as Time, price: 100 },
+							{ wave: 2, x: 150, y: 350, time: '2024-01-03' as Time, price: 80 },
+							{ wave: 3, x: 200, y: 200, time: '2024-01-04' as Time, price: 150 }
 						]
 					},
 					{
@@ -343,21 +352,27 @@ describe('Elliott Wave Plugin', () => {
 
 			expect(target.useBitmapCoordinateSpace).toHaveBeenCalled();
 
-			// Should have line drawing calls (moveTo, lineTo)
+			// Should have line drawing calls (moveTo, lineTo) connecting all 4 points (3 line segments)
 			const moveCalls = drawCalls.filter((c) => c.type === 'moveTo');
 			const lineCalls = drawCalls.filter((c) => c.type === 'lineTo');
 			expect(moveCalls.length).toBeGreaterThanOrEqual(1);
-			expect(lineCalls.length).toBeGreaterThanOrEqual(2);
+			expect(lineCalls.length).toBeGreaterThanOrEqual(3);
 
-			// Should render text badges "(1)", "(2)", "(3)" for Cycle
+			// Should render node badge circles for all 4 points (at least 4 arc calls)
+			const arcCalls = drawCalls.filter((c) => c.type === 'arc');
+			expect(arcCalls.length).toBeGreaterThanOrEqual(4);
+
+			// Should render text badges "(1)", "(2)", "(3)" for Cycle, but NOT for wave 0
 			const textCalls = drawCalls.filter((c) => c.type === 'fillText');
 			const labels = textCalls.map((c) => c.args[0]);
 			expect(labels).toContain('(1)');
 			expect(labels).toContain('(2)');
 			expect(labels).toContain('(3)');
+			expect(labels).not.toContain('(0)');
+			expect(labels).not.toContain('0');
 		});
 
-		it('renders Primary degree badges formatted as "1", "2", "3"', () => {
+		it('renders Primary degree badges formatted as "1", "2", "3" (omits wave 0 label)', () => {
 			const { target, drawCalls } = createMockCanvasTarget();
 
 			renderer.update({
@@ -367,8 +382,9 @@ describe('Elliott Wave Plugin', () => {
 						config: PRIMARY_STYLE,
 						isActiveDegree: true,
 						points: [
-							{ wave: 1, x: 100, y: 300, time: '2024-01-01' as Time, price: 100 },
-							{ wave: 2, x: 150, y: 350, time: '2024-01-02' as Time, price: 80 }
+							{ wave: 0, x: 50, y: 320, time: '2024-01-01' as Time, price: 90 },
+							{ wave: 1, x: 100, y: 300, time: '2024-01-02' as Time, price: 100 },
+							{ wave: 2, x: 150, y: 350, time: '2024-01-03' as Time, price: 80 }
 						]
 					}
 				],
@@ -381,9 +397,10 @@ describe('Elliott Wave Plugin', () => {
 			const labels = textCalls.map((c) => c.args[0]);
 			expect(labels).toContain('1');
 			expect(labels).toContain('2');
+			expect(labels).not.toContain('0');
 		});
 
-		it('renders highlight ring when a point is hovered or dragged', () => {
+		it('renders highlight ring when a point (including wave 0) is hovered or dragged', () => {
 			const { target, drawCalls } = createMockCanvasTarget();
 
 			renderer.update({
@@ -393,7 +410,7 @@ describe('Elliott Wave Plugin', () => {
 						config: CYCLE_STYLE,
 						isActiveDegree: true,
 						points: [
-							{ wave: 1, x: 100, y: 300, time: '2024-01-01' as Time, price: 100, isHovered: true }
+							{ wave: 0, x: 100, y: 300, time: '2024-01-01' as Time, price: 100, isHovered: true }
 						]
 					}
 				],
@@ -407,7 +424,7 @@ describe('Elliott Wave Plugin', () => {
 			expect(arcCalls.length).toBeGreaterThanOrEqual(2);
 		});
 
-		it('renders drawing preview dashed line and ghost badge', () => {
+		it('renders drawing preview for wave 0 without text badge', () => {
 			const { target, drawCalls } = createMockCanvasTarget();
 
 			renderer.update({
@@ -416,14 +433,46 @@ describe('Elliott Wave Plugin', () => {
 						degree: 'cycle',
 						config: CYCLE_STYLE,
 						isActiveDegree: true,
-						points: [{ wave: 1, x: 100, y: 300, time: '2024-01-01' as Time, price: 100 }]
+						points: []
 					}
 				],
 				preview: {
 					degree: 'cycle',
 					config: CYCLE_STYLE,
-					nextWave: 2,
-					lastPoint: { wave: 1, x: 100, y: 300, time: '2024-01-01' as Time, price: 100 },
+					nextWave: 0,
+					lastPoint: null,
+					currentMouse: { x: 100, y: 200 }
+				}
+			});
+
+			renderer.draw(target);
+
+			// Ghost circle is drawn (arc call)
+			const arcCalls = drawCalls.filter((c) => c.type === 'arc');
+			expect(arcCalls.length).toBeGreaterThanOrEqual(1);
+
+			// But no text label is drawn for nextWave 0
+			const textCalls = drawCalls.filter((c) => c.type === 'fillText');
+			expect(textCalls.length).toBe(0);
+		});
+
+		it('renders drawing preview dashed line and ghost badge for wave 1', () => {
+			const { target, drawCalls } = createMockCanvasTarget();
+
+			renderer.update({
+				degrees: [
+					{
+						degree: 'cycle',
+						config: CYCLE_STYLE,
+						isActiveDegree: true,
+						points: [{ wave: 0, x: 100, y: 300, time: '2024-01-01' as Time, price: 100 }]
+					}
+				],
+				preview: {
+					degree: 'cycle',
+					config: CYCLE_STYLE,
+					nextWave: 1,
+					lastPoint: { wave: 0, x: 100, y: 300, time: '2024-01-01' as Time, price: 100 },
 					currentMouse: { x: 160, y: 250 }
 				}
 			});
@@ -435,7 +484,7 @@ describe('Elliott Wave Plugin', () => {
 
 			const textCalls = drawCalls.filter((c) => c.type === 'fillText');
 			const labels = textCalls.map((c) => c.args[0]);
-			expect(labels).toContain('(2)'); // Ghost badge for next wave
+			expect(labels).toContain('(1)'); // Ghost badge for next wave
 		});
 
 		it('handles empty or null data gracefully without crashing', () => {
@@ -641,29 +690,33 @@ describe('Elliott Wave Plugin', () => {
 			expect(hit?.cursorStyle === 'grab' || hit === null).toBe(true);
 		});
 
-		it('handles sequential drawing mode clicks adding points 1 to 5', () => {
+		it('handles sequential drawing mode clicks adding points 0 to 5', () => {
 			primitive.setDrawingMode(true);
 			expect(primitive.isDrawingMode()).toBe(true);
 
-			// Click 5 times in chart
-			for (let i = 1; i <= 5; i++) {
+			// Click 6 times in chart (points 0, 1, 2, 3, 4, 5)
+			for (let i = 0; i <= 5; i++) {
+				if (i < 5) {
+					// Drawing mode should remain active through clicks 0, 1, 2, 3, 4
+					expect(primitive.isDrawingMode()).toBe(true);
+				}
 				mockData.mockChartElement.dispatchEvent(
 					new MouseEvent('click', { clientX: 50 + i * 40, clientY: 200 - i * 20 })
 				);
 			}
 
 			const points = primitive.getPoints('cycle');
-			expect(points).toHaveLength(5);
-			expect(points.map((p) => p.wave)).toEqual([1, 2, 3, 4, 5]);
-			// Drawing mode should auto-complete on 5th point
+			expect(points).toHaveLength(6);
+			expect(points.map((p) => p.wave)).toEqual([0, 1, 2, 3, 4, 5]);
+			// Drawing mode should auto-complete on 6th point (wave 5)
 			expect(primitive.isDrawingMode()).toBe(false);
 		});
 
-		it('supports interactive point dragging to modify wave coordinates', () => {
-			primitive.addPoint(120, '2024-01-05' as Time, 'cycle'); // wave 1: x = 100, y = 400
+		it('supports interactive point dragging to modify wave coordinates including point 0', () => {
+			primitive.addPoint(120, '2024-01-05' as Time, 'cycle'); // wave 0: x = 100, y = 400
 			primitive.updateAllViews();
 
-			// Start dragging wave 1
+			// Start dragging wave 0
 			mockData.mockChartElement.dispatchEvent(
 				new MouseEvent('mousedown', { clientX: 100, clientY: 400 })
 			);
@@ -675,9 +728,10 @@ describe('Elliott Wave Plugin', () => {
 				new MouseEvent('mousemove', { clientX: 150, clientY: 350 })
 			);
 
-			const wave1 = primitive.getPoints('cycle')[0];
-			expect(wave1.time).toBe('2024-01-07');
-			expect(wave1.price).toBe(130);
+			const wave0 = primitive.getPoints('cycle')[0];
+			expect(wave0.wave).toBe(0);
+			expect(wave0.time).toBe('2024-01-07');
+			expect(wave0.price).toBe(130);
 
 			// Release drag
 			window.dispatchEvent(new MouseEvent('mouseup'));
