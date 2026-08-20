@@ -5,6 +5,7 @@ import { ModalState } from '$lib/utils/modal-state.svelte';
 import type { AccountHoldingRead } from '$lib/api/accountService';
 import type { Candle } from '$lib/utils/finance/candle';
 import type { SecuritySchema } from '$lib/api/marketService';
+import type { SecurityElliottWaves } from '$lib/utils/finance/elliott-wave';
 
 vi.mock('$app/paths', () => ({
 	resolve: (path: string) => path
@@ -416,6 +417,232 @@ describe('HoldingsModal Component', () => {
 
 			await waitFor(() => {
 				expect(screen.getByText('Tax-Free Savings')).toBeInTheDocument();
+			});
+		});
+	});
+
+	describe('Elliott Wave Targets panel', () => {
+		const mockElliottWaves: Record<string, SecurityElliottWaves> = {
+			'sec-123': {
+				cycle: {
+					points: [
+						{ wave: 1, time: '2025-01-01', price: 100 },
+						{ wave: 2, time: '2025-03-01', price: 80 },
+						{ wave: 3, time: '2025-06-01', price: 200 },
+						{ wave: 4, time: '2025-08-01', price: 160 },
+						{ wave: 5, time: '2025-12-01', price: 250 }
+					],
+					wave3Target: 220,
+					wave5Target: 300
+				},
+				primary: {
+					points: [
+						{ wave: 1, time: '2026-01-01', price: 120 },
+						{ wave: 2, time: '2026-02-01', price: 110 },
+						{ wave: 3, time: '2026-04-01', price: 180 },
+						{ wave: 4, time: '2026-05-01', price: 150 },
+						{ wave: 5, time: '2026-07-01', price: 190 }
+					],
+					wave3Target: 130, // Target < Current Price (150) -> Negative upside / downside (-13.33%)
+					wave5Target: 175
+				}
+			}
+		};
+
+		it('renders Elliott Wave Targets panel with degree and target wave selectors', async () => {
+			vi.mocked(userPreferencesService.getPreferences).mockResolvedValue({
+				holdings_period: 'ALL',
+				elliott_waves: mockElliottWaves
+			});
+
+			render(HoldingsModal, {
+				props: {
+					open: true,
+					security: mockSecurity,
+					holdings: mockHoldings,
+					candles: mockCandles,
+					currentPrice: 150
+				}
+			});
+
+			expect(screen.getByText('Elliott Wave Targets')).toBeInTheDocument();
+			expect(screen.getByRole('group', { name: 'Wave degree' })).toBeInTheDocument();
+			expect(screen.getByRole('group', { name: 'Target wave' })).toBeInTheDocument();
+			expect(screen.getByRole('button', { name: 'Cycle' })).toBeInTheDocument();
+			expect(screen.getByRole('button', { name: 'Primary' })).toBeInTheDocument();
+			expect(screen.getByRole('button', { name: 'Wave 3' })).toBeInTheDocument();
+			expect(screen.getByRole('button', { name: 'Wave 5' })).toBeInTheDocument();
+		});
+
+		it('displays target price, current price, and positive upside % with emerald styling', async () => {
+			vi.mocked(userPreferencesService.getPreferences).mockResolvedValue({
+				holdings_period: 'ALL',
+				elliott_waves: mockElliottWaves
+			});
+
+			render(HoldingsModal, {
+				props: {
+					open: true,
+					security: mockSecurity,
+					holdings: mockHoldings,
+					candles: mockCandles,
+					currentPrice: 150
+				}
+			});
+
+			// Cycle degree, Wave 3 target = 220, current = 150 -> +46.67%
+			await waitFor(() => {
+				const targetPriceEl = screen.getByTestId('wave-target-price');
+				expect(targetPriceEl).toHaveTextContent('$220.00');
+			});
+
+			const currentPriceEl = screen.getByTestId('wave-current-price');
+			expect(currentPriceEl).toHaveTextContent('$150.00');
+
+			const upsideEl = screen.getByTestId('wave-upside-percent');
+			expect(upsideEl).toHaveTextContent('+46.67%');
+
+			const positiveSpan = upsideEl.querySelector('span');
+			expect(positiveSpan).toHaveClass('text-emerald-600');
+		});
+
+		it('displays negative downside % with rose styling when target < current price', async () => {
+			vi.mocked(userPreferencesService.getPreferences).mockResolvedValue({
+				holdings_period: 'ALL',
+				elliott_waves: mockElliottWaves
+			});
+
+			render(HoldingsModal, {
+				props: {
+					open: true,
+					security: mockSecurity,
+					holdings: mockHoldings,
+					candles: mockCandles,
+					currentPrice: 150
+				}
+			});
+
+			// Switch to Primary degree (Wave 3 target = 130, current = 150 -> -13.33%)
+			const primaryBtn = screen.getByRole('button', { name: 'Primary' });
+			await fireEvent.click(primaryBtn);
+
+			await waitFor(() => {
+				const targetPriceEl = screen.getByTestId('wave-target-price');
+				expect(targetPriceEl).toHaveTextContent('$130.00');
+			});
+
+			const upsideEl = screen.getByTestId('wave-upside-percent');
+			expect(upsideEl).toHaveTextContent('-13.33%');
+
+			const negativeSpan = upsideEl.querySelector('span');
+			expect(negativeSpan).toHaveClass('text-rose-600');
+		});
+
+		it('updates target price and upside % when switching between Wave 3 and Wave 5', async () => {
+			vi.mocked(userPreferencesService.getPreferences).mockResolvedValue({
+				holdings_period: 'ALL',
+				elliott_waves: mockElliottWaves
+			});
+
+			render(HoldingsModal, {
+				props: {
+					open: true,
+					security: mockSecurity,
+					holdings: mockHoldings,
+					candles: mockCandles,
+					currentPrice: 150
+				}
+			});
+
+			await waitFor(() => {
+				expect(screen.getByTestId('wave-target-price')).toHaveTextContent('$220.00');
+			});
+
+			// Switch to Wave 5 (target = 300, current = 150 -> +100.00%)
+			const wave5Btn = screen.getByRole('button', { name: 'Wave 5' });
+			await fireEvent.click(wave5Btn);
+
+			await waitFor(() => {
+				expect(screen.getByTestId('wave-target-price')).toHaveTextContent('$300.00');
+				expect(screen.getByTestId('wave-upside-percent')).toHaveTextContent('+100.00%');
+			});
+			expect(wave5Btn).toHaveAttribute('aria-pressed', 'true');
+		});
+
+		it('updates target price and upside % when switching degrees', async () => {
+			vi.mocked(userPreferencesService.getPreferences).mockResolvedValue({
+				holdings_period: 'ALL',
+				elliott_waves: mockElliottWaves
+			});
+
+			render(HoldingsModal, {
+				props: {
+					open: true,
+					security: mockSecurity,
+					holdings: mockHoldings,
+					candles: mockCandles,
+					currentPrice: 150
+				}
+			});
+
+			await waitFor(() => {
+				expect(screen.getByTestId('wave-target-price')).toHaveTextContent('$220.00');
+			});
+
+			// Switch to Primary degree (Wave 3 target = 130)
+			const primaryBtn = screen.getByRole('button', { name: 'Primary' });
+			await fireEvent.click(primaryBtn);
+
+			await waitFor(() => {
+				expect(screen.getByTestId('wave-target-price')).toHaveTextContent('$130.00');
+				expect(screen.getByTestId('wave-upside-percent')).toHaveTextContent('-13.33%');
+			});
+			expect(primaryBtn).toHaveAttribute('aria-pressed', 'true');
+
+			// Switch back to Cycle degree
+			const cycleBtn = screen.getByRole('button', { name: 'Cycle' });
+			await fireEvent.click(cycleBtn);
+
+			await waitFor(() => {
+				expect(screen.getByTestId('wave-target-price')).toHaveTextContent('$220.00');
+				expect(screen.getByTestId('wave-upside-percent')).toHaveTextContent('+46.67%');
+			});
+			expect(cycleBtn).toHaveAttribute('aria-pressed', 'true');
+		});
+
+		it('renders empty state when no wave count is configured for security or selected degree', async () => {
+			vi.mocked(userPreferencesService.getPreferences).mockResolvedValue({
+				holdings_period: 'ALL',
+				elliott_waves: {
+					'sec-123': {
+						cycle: null,
+						primary: null
+					}
+				}
+			});
+
+			render(HoldingsModal, {
+				props: {
+					open: true,
+					security: mockSecurity,
+					holdings: mockHoldings,
+					candles: mockCandles,
+					currentPrice: 150
+				}
+			});
+
+			await waitFor(() => {
+				expect(screen.getByTestId('elliott-wave-empty-state')).toBeInTheDocument();
+				expect(screen.getByText(/No wave count configured for Cycle degree/)).toBeInTheDocument();
+			});
+
+			// Switch to Primary degree - still shows empty state for Primary
+			const primaryBtn = screen.getByRole('button', { name: 'Primary' });
+			await fireEvent.click(primaryBtn);
+
+			await waitFor(() => {
+				expect(screen.getByTestId('elliott-wave-empty-state')).toBeInTheDocument();
+				expect(screen.getByText(/No wave count configured for Primary degree/)).toBeInTheDocument();
 			});
 		});
 	});
