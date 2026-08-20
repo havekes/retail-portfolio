@@ -9,6 +9,13 @@
 	import { UserPriceAlerts } from './plugins/user-price-alerts/user-price-alerts';
 	import type { UserAlertInfo } from './plugins/user-price-alerts/state';
 	import type { PriceAlert } from '$lib/api/alertsService';
+	import { ElliottWavesPrimitive } from './plugins/elliott-wave/elliott-wave';
+	import type {
+		DegreeWaveCount,
+		SecurityElliottWaves,
+		WaveDegree
+	} from '$lib/utils/finance/elliott-wave';
+	import { areWaveCountsEqual } from '$lib/utils/finance/elliott-wave';
 
 	interface MacdDataItem {
 		time: Time;
@@ -55,6 +62,7 @@
 	);
 	let activeIndicators = $state<{ type: string; label: string; color?: string }[]>([]);
 	let userAlertsPrimitive = $state<UserPriceAlerts | null>(null);
+	let elliottWavesPrimitive = $state<ElliottWavesPrimitive | null>(null);
 
 	let showBottomPane = $derived(
 		activeIndicators.some((i) => i.type === 'rsi' || i.type === 'macd' || i.type === 'obv')
@@ -70,7 +78,13 @@
 		showAveragePrice = false,
 		hasMoreData = true,
 		isLoadingMore = $bindable(false),
-		onLoadMoreData
+		onLoadMoreData,
+		elliottWaves = null,
+		activeDegree = 'cycle',
+		isDrawingWave = false,
+		onWaveChange,
+		onDrawingModeChange,
+		onDegreeChange
 	} = $props<{
 		candles?: Candle[];
 		containerId?: string;
@@ -82,6 +96,12 @@
 		hasMoreData?: boolean;
 		isLoadingMore?: boolean;
 		onLoadMoreData?: () => void;
+		elliottWaves?: SecurityElliottWaves | null;
+		activeDegree?: WaveDegree;
+		isDrawingWave?: boolean;
+		onWaveChange?: (degree: WaveDegree, waveCount: DegreeWaveCount | null) => void;
+		onDrawingModeChange?: (isDrawing: boolean) => void;
+		onDegreeChange?: (degree: WaveDegree) => void;
 	}>();
 
 	let avgPriceLine: IPriceLine | null = null;
@@ -147,6 +167,35 @@
 				price: a.target_price
 			}));
 			userAlertsPrimitive.setAlerts(alertInfos);
+		}
+	});
+
+	$effect(() => {
+		if (!elliottWavesPrimitive) return;
+		if (activeDegree && elliottWavesPrimitive.getActiveDegree() !== activeDegree) {
+			elliottWavesPrimitive.setActiveDegree(activeDegree);
+		}
+	});
+
+	$effect(() => {
+		if (!elliottWavesPrimitive) return;
+		if (isDrawingWave !== undefined && elliottWavesPrimitive.isDrawingMode() !== isDrawingWave) {
+			elliottWavesPrimitive.setDrawingMode(isDrawingWave);
+		}
+	});
+
+	$effect(() => {
+		if (!elliottWavesPrimitive) return;
+		const currentCycle = elliottWavesPrimitive.getWaveCount('cycle');
+		const currentPrimary = elliottWavesPrimitive.getWaveCount('primary');
+		const nextCycle = elliottWaves?.cycle ?? null;
+		const nextPrimary = elliottWaves?.primary ?? null;
+
+		if (!areWaveCountsEqual(currentCycle, nextCycle)) {
+			elliottWavesPrimitive.setWaveCount('cycle', nextCycle);
+		}
+		if (!areWaveCountsEqual(currentPrimary, nextPrimary)) {
+			elliottWavesPrimitive.setWaveCount('primary', nextPrimary);
 		}
 	});
 
@@ -296,6 +345,30 @@
 			}
 		});
 
+		elliottWavesPrimitive = new ElliottWavesPrimitive({
+			activeDegree,
+			waves: {
+				cycle: elliottWaves?.cycle ?? null,
+				primary: elliottWaves?.primary ?? null
+			}
+		});
+		if (isDrawingWave) {
+			elliottWavesPrimitive.setDrawingMode(isDrawingWave);
+		}
+		seriesInstance.attachPrimitive(elliottWavesPrimitive);
+
+		elliottWavesPrimitive.wavePointsChanged().subscribe(({ degree, waveCount }) => {
+			onWaveChange?.(degree, waveCount);
+		});
+
+		elliottWavesPrimitive.drawingModeChanged().subscribe((isDrawing) => {
+			onDrawingModeChange?.(isDrawing);
+		});
+
+		elliottWavesPrimitive.degreeChanged().subscribe((degree) => {
+			onDegreeChange?.(degree);
+		});
+
 		const resizeObserver = new ResizeObserver(() => {
 			if (containerRef && chartInstance) {
 				chartInstance.applyOptions({
@@ -316,6 +389,7 @@
 
 		return () => {
 			resizeObserver.disconnect();
+			elliottWavesPrimitive?.destroy();
 			chartInstance?.remove();
 			bottomChartInstance?.remove();
 		};
@@ -558,6 +632,14 @@
 		} else {
 			addIndicator(indicator);
 		}
+	}
+
+	export function clearWave(degree?: WaveDegree) {
+		elliottWavesPrimitive?.clearWave(degree);
+	}
+
+	export function getElliottWavesPrimitive(): ElliottWavesPrimitive | null {
+		return elliottWavesPrimitive;
 	}
 </script>
 

@@ -4,6 +4,7 @@ import {
 	calculateUpsidePercentage,
 	updateSecurityElliottWaves,
 	getSecurityDegreeWaveCount,
+	areWaveCountsEqual,
 	type DegreeWaveCount,
 	type SecurityElliottWaves,
 	type WaveDegree
@@ -240,6 +241,58 @@ describe('elliott-wave finance utilities', () => {
 				'sec-1': { cycle: sampleWaveCount }
 			};
 			expect(getSecurityDegreeWaveCount(waves, 'sec-1', 'cycle')).toEqual(sampleWaveCount);
+		});
+	});
+
+	describe('areWaveCountsEqual', () => {
+		it('returns true when both are null or undefined', () => {
+			expect(areWaveCountsEqual(null, null)).toBe(true);
+			expect(areWaveCountsEqual(undefined, undefined)).toBe(true);
+			expect(areWaveCountsEqual(null, undefined)).toBe(true);
+		});
+
+		it('returns false when one is null and the other is not', () => {
+			expect(areWaveCountsEqual(sampleWaveCount, null)).toBe(false);
+			expect(areWaveCountsEqual(null, sampleWaveCount)).toBe(false);
+		});
+
+		it('returns true for identical wave counts', () => {
+			const duplicate: DegreeWaveCount = {
+				points: [
+					{ wave: 1, time: '2024-01-01', price: 100 },
+					{ wave: 2, time: '2024-01-02', price: 80 },
+					{ wave: 3, time: '2024-01-03', price: 150 },
+					{ wave: 4, time: '2024-01-04', price: 120 },
+					{ wave: 5, time: '2024-01-05', price: 200 }
+				]
+			};
+			expect(areWaveCountsEqual(sampleWaveCount, duplicate)).toBe(true);
+		});
+
+		it('returns false if point lengths differ', () => {
+			const partial: DegreeWaveCount = {
+				points: [{ wave: 1, time: '2024-01-01', price: 100 }]
+			};
+			expect(areWaveCountsEqual(sampleWaveCount, partial)).toBe(false);
+		});
+
+		it('returns false if point values differ', () => {
+			const modified: DegreeWaveCount = {
+				points: [
+					{ wave: 1, time: '2024-01-01', price: 105 }, // different price
+					{ wave: 2, time: '2024-01-02', price: 80 },
+					{ wave: 3, time: '2024-01-03', price: 150 },
+					{ wave: 4, time: '2024-01-04', price: 120 },
+					{ wave: 5, time: '2024-01-05', price: 200 }
+				]
+			};
+			expect(areWaveCountsEqual(sampleWaveCount, modified)).toBe(false);
+		});
+
+		it('returns false if wave target overrides differ', () => {
+			const target1: DegreeWaveCount = { ...sampleWaveCount, wave3Target: 175 };
+			const target2: DegreeWaveCount = { ...sampleWaveCount, wave3Target: 180 };
+			expect(areWaveCountsEqual(target1, target2)).toBe(false);
 		});
 	});
 });

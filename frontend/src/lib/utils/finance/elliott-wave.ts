@@ -123,3 +123,31 @@ export function getSecurityDegreeWaveCount(
 
 	return securityWaves[degree] ?? null;
 }
+
+/**
+ * Compares two DegreeWaveCount objects for structural equality.
+ */
+export function areWaveCountsEqual(
+	a: DegreeWaveCount | null | undefined,
+	b: DegreeWaveCount | null | undefined
+): boolean {
+	if (!a && !b) return true;
+	if (!a || !b) return false;
+	if (a.wave3Target !== b.wave3Target || a.wave5Target !== b.wave5Target) {
+		return false;
+	}
+	const aPoints = a.points || [];
+	const bPoints = b.points || [];
+	if (aPoints.length !== bPoints.length) {
+		return false;
+	}
+	for (let i = 0; i < aPoints.length; i++) {
+		const pA = aPoints[i];
+		const pB = bPoints[i];
+		if (!pA || !pB) return false;
+		if (pA.wave !== pB.wave || pA.price !== pB.price || String(pA.time) !== String(pB.time)) {
+			return false;
+		}
+	}
+	return true;
+}
