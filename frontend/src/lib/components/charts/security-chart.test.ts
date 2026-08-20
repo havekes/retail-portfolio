@@ -21,12 +21,35 @@ const mockGetVisibleLogicalRange = vi.fn();
 const mockSetVisibleLogicalRange = vi.fn();
 const mockFitContent = vi.fn();
 const mockSetData = vi.fn();
+const mockAttachPrimitive = vi.fn((primitive) => {
+	primitive?.attached?.({
+		chart: {
+			chartElement: () => document.createElement('div'),
+			timeScale: () => ({
+				timeToCoordinate: () => 100,
+				coordinateToTime: () => '2024-01-01',
+				height: () => 30,
+				width: () => 750
+			}),
+			priceScale: () => ({
+				width: () => 50,
+				applyOptions: vi.fn()
+			})
+		},
+		series: {
+			priceToCoordinate: () => 100,
+			coordinateToPrice: () => 100
+		},
+		requestUpdate: vi.fn()
+	});
+});
 
 let rangeCallbacks: ((range: { from: number; to: number } | null) => void)[] = [];
 
 vi.mock('lightweight-charts', () => {
 	return {
 		createChart: vi.fn(() => ({
+			chartElement: vi.fn(() => document.createElement('div')),
 			timeScale: vi.fn(() => ({
 				subscribeVisibleLogicalRangeChange: vi.fn((cb) => {
 					rangeCallbacks.push(cb);
@@ -35,20 +58,28 @@ vi.mock('lightweight-charts', () => {
 				}),
 				getVisibleLogicalRange: mockGetVisibleLogicalRange,
 				setVisibleLogicalRange: mockSetVisibleLogicalRange,
-				fitContent: mockFitContent
+				fitContent: mockFitContent,
+				timeToCoordinate: vi.fn(() => 100),
+				coordinateToTime: vi.fn(() => '2024-01-01'),
+				height: vi.fn(() => 30),
+				width: vi.fn(() => 750)
 			})),
 			addSeries: vi.fn(() => ({
 				setData: mockSetData,
 				priceScale: vi.fn(() => ({
-					applyOptions: vi.fn()
+					applyOptions: vi.fn(),
+					width: vi.fn(() => 50)
 				})),
-				attachPrimitive: vi.fn(),
+				attachPrimitive: mockAttachPrimitive,
 				createPriceLine: vi.fn(),
-				removePriceLine: vi.fn()
+				removePriceLine: vi.fn(),
+				priceToCoordinate: vi.fn(() => 100),
+				coordinateToPrice: vi.fn(() => 100)
 			})),
 			applyOptions: vi.fn(),
 			priceScale: vi.fn(() => ({
-				applyOptions: vi.fn()
+				applyOptions: vi.fn(),
+				width: vi.fn(() => 50)
 			})),
 			removeSeries: vi.fn(),
 			remove: vi.fn()
@@ -61,8 +92,10 @@ vi.mock('lightweight-charts', () => {
 
 import type { Component } from 'svelte';
 import type { Candle } from '$lib/utils/finance/candle';
+import type { SecurityElliottWaves } from '$lib/utils/finance/elliott-wave';
 import { render } from '@testing-library/svelte';
 import { createChart } from 'lightweight-charts';
+import { ElliottWavesPrimitive } from './plugins/elliott-wave/elliott-wave';
 
 describe('SecurityChart - Infinite Scroll & Logical Range', () => {
 	/* eslint-disable-next-line @typescript-eslint/no-explicit-any */
@@ -185,5 +218,174 @@ describe('SecurityChart - Infinite Scroll & Logical Range', () => {
 		expect(typeof mainChartOptions?.localization?.timeFormatter).toBe('function');
 		expect(mainChartOptions?.timeScale?.tickMarkFormatter).toBeDefined();
 		expect(typeof mainChartOptions?.timeScale?.tickMarkFormatter).toBe('function');
+	});
+});
+
+describe('SecurityChart - Elliott Wave Integration', () => {
+	/* eslint-disable-next-line @typescript-eslint/no-explicit-any */
+	let SecurityChart: Component<any>;
+
+	const initialCandles: Candle[] = [
+		{ time: '2024-01-10', open: 10, high: 12, low: 9, close: 11 },
+		{ time: '2024-01-11', open: 11, high: 13, low: 10, close: 12 }
+	];
+
+	beforeAll(async () => {
+		const mod = await import('./security-chart.svelte');
+		SecurityChart = mod.default;
+	});
+
+	beforeEach(() => {
+		vi.clearAllMocks();
+	});
+
+	it('attaches ElliottWavesPrimitive to candlestick series on mount with initial props', () => {
+		render(SecurityChart, {
+			props: {
+				candles: initialCandles,
+				activeDegree: 'primary',
+				isDrawingWave: true
+			}
+		});
+
+		const elliottPrimitive = mockAttachPrimitive.mock.calls.find(
+			(c) => c[0] instanceof ElliottWavesPrimitive
+		)?.[0] as ElliottWavesPrimitive;
+
+		expect(elliottPrimitive).toBeDefined();
+		expect(elliottPrimitive.getActiveDegree()).toBe('primary');
+		expect(elliottPrimitive.isDrawingMode()).toBe(true);
+	});
+
+	it('syncs activeDegree prop changes to ElliottWavesPrimitive', async () => {
+		const { rerender } = render(SecurityChart, {
+			props: {
+				candles: initialCandles,
+				activeDegree: 'cycle'
+			}
+		});
+
+		const elliottPrimitive = mockAttachPrimitive.mock.calls.find(
+			(c) => c[0] instanceof ElliottWavesPrimitive
+		)?.[0] as ElliottWavesPrimitive;
+
+		expect(elliottPrimitive.getActiveDegree()).toBe('cycle');
+
+		await rerender({
+			candles: initialCandles,
+			activeDegree: 'primary'
+		});
+
+		expect(elliottPrimitive.getActiveDegree()).toBe('primary');
+	});
+
+	it('syncs isDrawingWave prop changes to ElliottWavesPrimitive', async () => {
+		const { rerender } = render(SecurityChart, {
+			props: {
+				candles: initialCandles,
+				isDrawingWave: false
+			}
+		});
+
+		const elliottPrimitive = mockAttachPrimitive.mock.calls.find(
+			(c) => c[0] instanceof ElliottWavesPrimitive
+		)?.[0] as ElliottWavesPrimitive;
+
+		expect(elliottPrimitive.isDrawingMode()).toBe(false);
+
+		await rerender({
+			candles: initialCandles,
+			isDrawingWave: true
+		});
+
+		expect(elliottPrimitive.isDrawingMode()).toBe(true);
+	});
+
+	it('syncs elliottWaves prop changes to ElliottWavesPrimitive', async () => {
+		const sampleWaves: SecurityElliottWaves = {
+			cycle: {
+				points: [{ wave: 1, time: '2024-01-10', price: 10 }]
+			},
+			primary: null
+		};
+
+		const { rerender } = render(SecurityChart, {
+			props: {
+				candles: initialCandles,
+				elliottWaves: sampleWaves
+			}
+		});
+
+		const elliottPrimitive = mockAttachPrimitive.mock.calls.find(
+			(c) => c[0] instanceof ElliottWavesPrimitive
+		)?.[0] as ElliottWavesPrimitive;
+
+		expect(elliottPrimitive.getWaveCount('cycle')).toEqual(sampleWaves.cycle);
+
+		const updatedWaves: SecurityElliottWaves = {
+			cycle: sampleWaves.cycle,
+			primary: {
+				points: [{ wave: 1, time: '2024-01-11', price: 12 }]
+			}
+		};
+
+		await rerender({
+			candles: initialCandles,
+			elliottWaves: updatedWaves
+		});
+
+		expect(elliottPrimitive.getWaveCount('primary')).toEqual(updatedWaves.primary);
+	});
+
+	it('forwards primitive events to delegate callbacks', () => {
+		const onWaveChange = vi.fn();
+		const onDrawingModeChange = vi.fn();
+		const onDegreeChange = vi.fn();
+
+		render(SecurityChart, {
+			props: {
+				candles: initialCandles,
+				onWaveChange,
+				onDrawingModeChange,
+				onDegreeChange
+			}
+		});
+
+		const elliottPrimitive = mockAttachPrimitive.mock.calls.find(
+			(c) => c[0] instanceof ElliottWavesPrimitive
+		)?.[0] as ElliottWavesPrimitive;
+
+		// Trigger wave points change via primitive API
+		elliottPrimitive.addPoint({ time: '2024-01-10', price: 15 }, 'cycle');
+		expect(onWaveChange).toHaveBeenCalledWith(
+			'cycle',
+			expect.objectContaining({
+				points: expect.arrayContaining([expect.objectContaining({ wave: 1, price: 15 })])
+			})
+		);
+
+		// Trigger drawing mode change
+		elliottPrimitive.setDrawingMode(true);
+		expect(onDrawingModeChange).toHaveBeenCalledWith(true);
+
+		// Trigger degree change
+		elliottPrimitive.setActiveDegree('primary');
+		expect(onDegreeChange).toHaveBeenCalledWith('primary');
+	});
+
+	it('destroys ElliottWavesPrimitive when component is unmounted', () => {
+		const { unmount } = render(SecurityChart, {
+			props: {
+				candles: initialCandles
+			}
+		});
+
+		const elliottPrimitive = mockAttachPrimitive.mock.calls.find(
+			(c) => c[0] instanceof ElliottWavesPrimitive
+		)?.[0] as ElliottWavesPrimitive;
+
+		const destroySpy = vi.spyOn(elliottPrimitive, 'destroy');
+		unmount();
+		expect(destroySpy).toHaveBeenCalled();
 	});
 });

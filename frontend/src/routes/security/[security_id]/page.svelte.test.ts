@@ -1,8 +1,96 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi, beforeEach, beforeAll } from 'vitest';
+import { render, screen, fireEvent, waitFor } from '@testing-library/svelte';
+import type { Component } from 'svelte';
 import type { Candle } from '@/utils/finance/candle';
 import type { Time } from 'lightweight-charts';
 import type { UserPreferences } from '$lib/api/userPreferencesService';
 import type { IndicatorConfig } from '$lib/api/indicatorsService';
+import type { DegreeWaveCount, SecurityElliottWaves } from '$lib/utils/finance/elliott-wave';
+import { updateSecurityElliottWaves } from '$lib/utils/finance/elliott-wave';
+if (typeof globalThis.Path2D === 'undefined') {
+	/* eslint-disable-next-line @typescript-eslint/no-explicit-any */
+	(globalThis as any).Path2D = class Path2D {
+		addPath() {}
+	};
+}
+
+if (typeof globalThis.ResizeObserver === 'undefined') {
+	/* eslint-disable-next-line @typescript-eslint/no-explicit-any */
+	(globalThis as any).ResizeObserver = class ResizeObserver {
+		observe() {}
+		unobserve() {}
+		disconnect() {}
+	};
+}
+
+vi.mock('$app/paths', () => ({
+	resolve: (path: string) => path
+}));
+
+vi.mock('$lib/api/marketService', () => ({
+	getMarketService: () => ({
+		getPrices: vi.fn().mockResolvedValue({ items: [] })
+	})
+}));
+
+vi.mock('$lib/api/userPreferencesService', () => {
+	const mockGetPreferences = vi.fn().mockResolvedValue({});
+	const mockPatchPreferences = vi.fn().mockResolvedValue({});
+	const mockSavePreferences = vi.fn().mockResolvedValue({});
+	return {
+		userPreferencesService: {
+			getPreferences: mockGetPreferences,
+			patchPreferences: mockPatchPreferences,
+			savePreferences: mockSavePreferences
+		},
+		getUserPreferencesService: () => ({
+			getPreferences: mockGetPreferences,
+			patchPreferences: mockPatchPreferences,
+			savePreferences: mockSavePreferences
+		})
+	};
+});
+
+vi.mock('$lib/api/alertsService', () => ({
+	alertsService: {
+		getAlerts: vi.fn().mockResolvedValue({ items: [] }),
+		createAlert: vi.fn().mockResolvedValue({}),
+		deleteAlert: vi.fn().mockResolvedValue({})
+	}
+}));
+
+vi.mock('$lib/api/notesService', () => ({
+	notesService: {
+		getNotes: vi.fn().mockResolvedValue({ items: [] })
+	}
+}));
+
+vi.mock('$lib/api/documentsService', () => ({
+	documentsService: {
+		getDocuments: vi.fn().mockResolvedValue({ items: [] })
+	}
+}));
+
+vi.mock('@/api/accountService', () => ({
+	accountService: {
+		getHoldings: vi.fn().mockResolvedValue({ items: [] })
+	}
+}));
+
+vi.mock('$lib/components/watchlist/watchlistService.svelte', () => ({
+	getWatchlistService: () => ({
+		hasSecurity: vi.fn().mockReturnValue(false),
+		toggleSecurity: vi.fn()
+	})
+}));
+
+vi.mock('$lib/components/charts/security-chart.svelte', () => {
+	return {
+		default: () => null
+	};
+});
+
+import { userPreferencesService } from '$lib/api/userPreferencesService';
 
 // ---------------------------------------------------------------------------
 // Helpers under test — imported directly from the real module the page uses
@@ -583,5 +671,158 @@ describe('computeIndicatorData — Non-MA indicators', () => {
 		expect(computeIndicatorData('bb', {}, [], '1d')).toEqual([]);
 		expect(computeIndicatorData('ma50', {}, [], '1d')).toEqual([]);
 		expect(computeIndicatorData('ma50w', {}, [], '1d')).toEqual([]);
+	});
+});
+
+describe('Elliott Wave Preferences Serialization', () => {
+	const sampleWaveCount: DegreeWaveCount = {
+		points: [
+			{ wave: 1, time: '2024-01-01', price: 100 },
+			{ wave: 2, time: '2024-01-02', price: 80 },
+			{ wave: 3, time: '2024-01-03', price: 150 },
+			{ wave: 4, time: '2024-01-04', price: 120 },
+			{ wave: 5, time: '2024-01-05', price: 200 }
+		]
+	};
+
+	it('persists cycle wave counts under specific security id', () => {
+		const updated = updateSecurityElliottWaves(null, 'sec-100', 'cycle', sampleWaveCount);
+		expect(updated['sec-100'].cycle).toEqual(sampleWaveCount);
+		expect(updated['sec-100'].primary).toBeUndefined();
+	});
+
+	it('persists primary wave count without clobbering cycle wave count', () => {
+		const initial: Record<string, SecurityElliottWaves> = {
+			'sec-100': { cycle: sampleWaveCount }
+		};
+		const primaryWave: DegreeWaveCount = {
+			points: [{ wave: 1, time: '2024-02-01', price: 250 }]
+		};
+		const updated = updateSecurityElliottWaves(initial, 'sec-100', 'primary', primaryWave);
+		expect(updated['sec-100'].cycle).toEqual(sampleWaveCount);
+		expect(updated['sec-100'].primary).toEqual(primaryWave);
+	});
+
+	it('clears active degree wave count by setting to null', () => {
+		const initial: Record<string, SecurityElliottWaves> = {
+			'sec-100': { cycle: sampleWaveCount, primary: sampleWaveCount }
+		};
+		const updated = updateSecurityElliottWaves(initial, 'sec-100', 'cycle', null);
+		expect(updated['sec-100'].cycle).toBeNull();
+		expect(updated['sec-100'].primary).toEqual(sampleWaveCount);
+	});
+});
+
+describe('Security Page - Elliott Wave Toolbar & Integration', () => {
+	/* eslint-disable-next-line @typescript-eslint/no-explicit-any */
+	let PageComponent: Component<any>;
+
+	const mockData = {
+		security: {
+			id: 'sec-1',
+			symbol: 'AAPL',
+			name: 'Apple Inc.'
+		},
+		items: [{ date: '2024-01-01', open: 100, high: 110, low: 95, close: 105, volume: 1000 }]
+	};
+
+	beforeAll(async () => {
+		const mod = await import('./+page.svelte');
+		PageComponent = mod.default;
+	}, 30000);
+
+	beforeEach(() => {
+		vi.clearAllMocks();
+		vi.mocked(userPreferencesService.getPreferences).mockResolvedValue({
+			elliott_waves: {
+				'sec-1': {
+					cycle: { points: [{ wave: 1, time: '2024-01-01', price: 100 }] },
+					primary: null
+				}
+			}
+		});
+	});
+
+	it('renders Elliott Wave toolbar with Cycle, Primary, Draw Wave, and Clear buttons', async () => {
+		render(PageComponent, { props: { data: mockData } });
+
+		expect(await screen.findByRole('button', { name: /Select Cycle degree/i })).toBeInTheDocument();
+		expect(screen.getByRole('button', { name: /Select Primary degree/i })).toBeInTheDocument();
+		expect(screen.getByRole('button', { name: /Toggle drawing wave/i })).toBeInTheDocument();
+		expect(screen.getByRole('button', { name: /Clear wave count/i })).toBeInTheDocument();
+	});
+
+	it('allows toggling between Cycle and Primary degrees', async () => {
+		render(PageComponent, { props: { data: mockData } });
+
+		const cycleBtn = await screen.findByRole('button', { name: /Select Cycle degree/i });
+		const primaryBtn = screen.getByRole('button', { name: /Select Primary degree/i });
+
+		// Initially Cycle is active (has active styling)
+		expect(cycleBtn.className).toContain('bg-primary');
+		expect(primaryBtn.className).not.toContain('bg-primary');
+
+		await fireEvent.click(primaryBtn);
+
+		expect(primaryBtn.className).toContain('bg-primary');
+		expect(cycleBtn.className).not.toContain('bg-primary');
+	});
+
+	it('toggles drawing mode on and off when Draw Wave button is clicked', async () => {
+		render(PageComponent, { props: { data: mockData } });
+
+		const drawBtn = await screen.findByRole('button', { name: /Toggle drawing wave/i });
+		expect(drawBtn.textContent?.trim()).toBe('Draw Wave');
+
+		await fireEvent.click(drawBtn);
+		expect(drawBtn.textContent?.trim()).toBe('Drawing...');
+		expect(drawBtn.className).toContain('bg-primary');
+
+		await fireEvent.click(drawBtn);
+		expect(drawBtn.textContent?.trim()).toBe('Draw Wave');
+	});
+
+	it('persists cleared wave count when Clear button is clicked', async () => {
+		render(PageComponent, { props: { data: mockData } });
+
+		const clearBtn = await screen.findByRole('button', { name: /Clear wave count/i });
+		await fireEvent.click(clearBtn);
+
+		expect(userPreferencesService.patchPreferences).toHaveBeenCalledWith(
+			expect.objectContaining({
+				elliott_waves: expect.objectContaining({
+					'sec-1': expect.objectContaining({
+						cycle: null
+					})
+				})
+			})
+		);
+	});
+
+	it('resets drawing mode on soft navigation to a different security', async () => {
+		const { rerender } = render(PageComponent, { props: { data: mockData } });
+
+		const drawBtn = await screen.findByRole('button', { name: /Toggle drawing wave/i });
+		await fireEvent.click(drawBtn);
+		expect(drawBtn.textContent?.trim()).toBe('Drawing...');
+
+		// Soft navigate to another security
+		const newSecurityData = {
+			security: {
+				id: 'sec-2',
+				symbol: 'MSFT',
+				name: 'Microsoft Corp.'
+			},
+			items: [{ date: '2024-01-01', open: 200, high: 210, low: 195, close: 205, volume: 2000 }]
+		};
+
+		await rerender({ data: newSecurityData });
+
+		// Wait for soft navigation effect to execute and reset drawing mode
+		await waitFor(() => {
+			expect(screen.getByRole('button', { name: /Toggle drawing wave/i }).textContent?.trim()).toBe(
+				'Draw Wave'
+			);
+		});
 	});
 });

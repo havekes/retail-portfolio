@@ -30,6 +30,12 @@
 		computeIndicatorData
 	} from '$lib/chart-preferences';
 	import { getChartDateWindow } from '$lib/utils/date';
+	import type {
+		DegreeWaveCount,
+		SecurityElliottWaves,
+		WaveDegree
+	} from '$lib/utils/finance/elliott-wave';
+	import { updateSecurityElliottWaves } from '$lib/utils/finance/elliott-wave';
 
 	let { data } = $props();
 
@@ -48,8 +54,40 @@
 	let hasMoreData = $state(true);
 	let isLoadingMore = $state(false);
 
+	let userPreferences = $state<UserPreferences | null>(null);
+	let activeWaveDegree = $state<WaveDegree>('cycle');
+	let isDrawingWave = $state(false);
+	let securityElliottWaves = $derived<SecurityElliottWaves>(
+		(security?.id && userPreferences?.elliott_waves?.[security.id]) || {}
+	);
+
 	async function updateChartPreferences(partial: Partial<UserPreferences>) {
 		await userPreferencesService.patchPreferences(partial);
+	}
+
+	async function handleWaveChange(degree: WaveDegree, waveCount: DegreeWaveCount | null) {
+		if (!security?.id) return;
+		const updatedAllWaves = updateSecurityElliottWaves(
+			userPreferences?.elliott_waves,
+			security.id,
+			degree,
+			waveCount
+		);
+		userPreferences = {
+			...(userPreferences ?? {}),
+			elliott_waves: updatedAllWaves
+		};
+		try {
+			await userPreferencesService.patchPreferences({
+				elliott_waves: updatedAllWaves
+			});
+		} catch (err) {
+			console.error('Failed to persist elliott waves preference:', err);
+		}
+	}
+
+	async function handleClearWave(degree: WaveDegree) {
+		await handleWaveChange(degree, null);
 	}
 
 	async function changeTimeframe(
@@ -340,6 +378,8 @@
 	}
 
 	async function onPreferencesLoaded(prefs: UserPreferences) {
+		userPreferences = prefs;
+
 		// (a) Apply chart style
 		chartStyle = (prefs.chart_style as ChartStyle | undefined) ?? 'heikin_ashi';
 
@@ -380,6 +420,18 @@
 			if (!data.items || data.items.length === 0) {
 				error = 'No price data available for this security';
 				return;
+			}
+
+			// Reset drawing mode on route transition / security change
+			isDrawingWave = false;
+
+			if (!userPreferences) {
+				try {
+					const prefs = await userPreferencesService.getPreferences();
+					userPreferences = prefs;
+				} catch (err) {
+					console.error('Failed to load user preferences:', err);
+				}
 			}
 
 			// Convert to lightweight-charts format and sort properly (oldest to newest)
@@ -471,7 +523,9 @@
 			securityChart as typeof import('$lib/components/charts/security-chart.svelte').default}
 		<div class="flex flex-1 overflow-hidden">
 			<div class="flex flex-1 flex-col overflow-hidden">
-				<div class="flex items-center justify-between border-b bg-sidebar/50 px-4 py-2">
+				<div
+					class="flex flex-wrap items-center justify-between gap-2 border-b bg-sidebar/50 px-4 py-2"
+				>
 					<div class="flex items-center gap-1">
 						<span class="mr-2 text-xs font-medium text-muted-foreground">Timeframe:</span>
 						{#each ['1h', '4h', '1d', '1w', '1m'] as tf (tf)}
@@ -487,6 +541,49 @@
 								{tf.toUpperCase()}
 							</button>
 						{/each}
+					</div>
+					<div class="flex items-center gap-1">
+						<span class="mr-2 text-xs font-medium text-muted-foreground">Waves:</span>
+						<button
+							type="button"
+							onclick={() => (activeWaveDegree = 'cycle')}
+							class="rounded px-2.5 py-1 text-xs font-medium transition-colors {activeWaveDegree ===
+							'cycle'
+								? 'bg-primary text-primary-foreground shadow-sm'
+								: 'text-muted-foreground hover:bg-muted hover:text-foreground'}"
+							aria-label="Select Cycle degree"
+						>
+							Cycle
+						</button>
+						<button
+							type="button"
+							onclick={() => (activeWaveDegree = 'primary')}
+							class="rounded px-2.5 py-1 text-xs font-medium transition-colors {activeWaveDegree ===
+							'primary'
+								? 'bg-primary text-primary-foreground shadow-sm'
+								: 'text-muted-foreground hover:bg-muted hover:text-foreground'}"
+							aria-label="Select Primary degree"
+						>
+							Primary
+						</button>
+						<button
+							type="button"
+							onclick={() => (isDrawingWave = !isDrawingWave)}
+							class="rounded px-2.5 py-1 text-xs font-medium transition-colors {isDrawingWave
+								? 'bg-primary text-primary-foreground shadow-sm'
+								: 'text-muted-foreground hover:bg-muted hover:text-foreground'}"
+							aria-label="Toggle drawing wave"
+						>
+							{isDrawingWave ? 'Drawing...' : 'Draw Wave'}
+						</button>
+						<button
+							type="button"
+							onclick={() => handleClearWave(activeWaveDegree)}
+							class="rounded px-2.5 py-1 text-xs font-medium text-muted-foreground transition-colors hover:bg-destructive/10 hover:text-destructive"
+							aria-label="Clear wave count"
+						>
+							Clear
+						</button>
 					</div>
 					<div class="flex items-center gap-1">
 						<span class="mr-2 text-xs font-medium text-muted-foreground">Style:</span>
@@ -544,6 +641,12 @@
 						{hasMoreData}
 						{isLoadingMore}
 						onLoadMoreData={handleLoadMoreData}
+						elliottWaves={securityElliottWaves}
+						activeDegree={activeWaveDegree}
+						{isDrawingWave}
+						onWaveChange={handleWaveChange}
+						onDrawingModeChange={(isDrawing) => (isDrawingWave = isDrawing)}
+						onDegreeChange={(degree) => (activeWaveDegree = degree)}
 					/>
 				</div>
 			</div>
