@@ -66,5 +66,6 @@ class UserPreferences(BaseModel):
     indicators: dict[str, Any] | None = None
     sidebar_open: bool | None = None
     holdings_period: str | None = None
+    elliott_waves: dict[str, Any] | None = None
 
     model_config = ConfigDict(extra="allow")
