@@ -8,6 +8,8 @@ export interface AccountHoldingRead {
 	average_cost?: number;
 	total_value: number;
 	currency: string;
+	account_total_value?: number;
+	account_percentage?: number;
 }
 
 export class AccountService extends ApiClient {

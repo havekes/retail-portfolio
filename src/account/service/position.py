@@ -98,17 +98,37 @@ class PositionService:
         latest_price_money = await self._market_prices.get_latest_close(security_id)
         latest_price = float(latest_price_money.amount) if latest_price_money else 0.0
 
-        return [
-            AccountHoldingRead(
-                account_id=h.account_id,
-                account_name=h.account_name,
-                quantity=float(h.quantity),
-                average_cost=h.average_cost,
-                total_value=float(h.quantity) * latest_price,
-                currency=str(security.currency),
+        result_items: list[AccountHoldingRead] = []
+        for h in holdings:
+            holding_total_value = float(h.quantity) * latest_price
+            account = await self._account_service.get_account(h.account_id)
+            totals = await self.get_total_for_account(h.account_id, account.currency)
+            account_total_value = float(totals.value.amount)
+
+            account_percentage = None
+            if account_total_value > 0:
+                holding_money = Money(round(holding_total_value, 2), security.currency)
+                converted_holding_money = self._currency_convert(
+                    holding_money, str(account.currency)
+                )
+                account_percentage = (
+                    float(converted_holding_money.amount) / account_total_value
+                ) * 100
+
+            result_items.append(
+                AccountHoldingRead(
+                    account_id=h.account_id,
+                    account_name=h.account_name,
+                    quantity=float(h.quantity),
+                    average_cost=h.average_cost,
+                    total_value=holding_total_value,
+                    currency=str(security.currency),
+                    account_total_value=account_total_value,
+                    account_percentage=account_percentage,
+                )
             )
-            for h in holdings
-        ], total
+
+        return result_items, total
 
     async def get_account_holdings(
         self, account_id: AccountId, offset: int = 0, limit: int = 50

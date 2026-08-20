@@ -115,6 +115,8 @@ class AccountHoldingRead(BaseModel):
     average_cost: float | None = None
     total_value: float
     currency: str
+    account_total_value: float | None = None
+    account_percentage: float | None = None
 
 
 class HoldingRead(BaseModel):
