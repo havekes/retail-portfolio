@@ -14,6 +14,14 @@
 		calculateHoldingGain,
 		filterCandlesForPeriod
 	} from '$lib/utils/finance/holdings-metrics';
+	import {
+		type WaveDegree,
+		type TargetWave,
+		type SecurityElliottWaves,
+		getWaveTargetPrice,
+		calculateUpsidePercentage,
+		getSecurityDegreeWaveCount
+	} from '$lib/utils/finance/elliott-wave';
 	import { blendedAverageCost } from '$lib/utils/finance/average-cost';
 	import type { ModalState } from '$lib/utils/modal-state.svelte';
 	import { resolve } from '$app/paths';
@@ -40,6 +48,9 @@
 
 	let isOpen = $state(false);
 	let selectedPeriod = $state<HoldingsPeriod>('ALL');
+	let selectedDegree = $state<WaveDegree>('cycle');
+	let selectedTargetWave = $state<TargetWave>('wave3');
+	let elliottWaves = $state<Record<string, SecurityElliottWaves> | null>(null);
 	let fetchedHoldings = $state<AccountHoldingRead[]>([]);
 	let isLoading = $state(false);
 	let error = $state<string | null>(null);
@@ -90,11 +101,25 @@
 		return 0;
 	});
 
+	const currentDegreeWaveCount = $derived.by(() => {
+		if (!effectiveSecurityId) return null;
+		return getSecurityDegreeWaveCount(elliottWaves, effectiveSecurityId, selectedDegree);
+	});
+
+	const waveTargetPrice = $derived.by(() => {
+		return getWaveTargetPrice(currentDegreeWaveCount, selectedTargetWave);
+	});
+
+	const waveUpsidePercentage = $derived.by(() => {
+		return calculateUpsidePercentage(waveTargetPrice, resolvedCurrentPrice);
+	});
+
 	const sparklineCandles = $derived(filterCandlesForPeriod(candles, selectedPeriod));
 
 	const loadPreferences = async () => {
 		try {
 			const prefs = await userPreferencesService.getPreferences();
+			elliottWaves = prefs?.elliott_waves ?? null;
 			if (hasUserChangedPeriod) return;
 			if (prefs?.holdings_period && PERIODS.includes(prefs.holdings_period as HoldingsPeriod)) {
 				selectedPeriod = prefs.holdings_period as HoldingsPeriod;
@@ -103,6 +128,7 @@
 			}
 		} catch (err) {
 			console.error('Failed to load holdings period preference:', err);
+			elliottWaves = null;
 			if (!hasUserChangedPeriod) {
 				selectedPeriod = 'ALL';
 			}
@@ -260,6 +286,129 @@
 					</div>
 				</div>
 			</Dialog.Header>
+
+			<!-- Elliott Wave Targets Panel -->
+			<div
+				class="rounded-lg border bg-muted/20 p-3.5 text-card-foreground"
+				data-testid="elliott-wave-panel"
+			>
+				<div
+					class="flex flex-col gap-2.5 border-b pb-2.5 sm:flex-row sm:items-center sm:justify-between"
+				>
+					<div>
+						<h3 class="text-sm font-semibold">Elliott Wave Targets</h3>
+						<p class="text-xs text-muted-foreground">
+							Price targets and upside potential based on wave counts
+						</p>
+					</div>
+					<div class="flex flex-wrap items-center gap-2">
+						<!-- Degree Selector -->
+						<div
+							class="flex items-center gap-1 rounded-lg border bg-muted/30 p-1"
+							role="group"
+							aria-label="Wave degree"
+						>
+							<button
+								type="button"
+								onclick={() => (selectedDegree = 'cycle')}
+								class="rounded px-2.5 py-1 text-xs font-medium transition-colors {selectedDegree ===
+								'cycle'
+									? 'bg-primary text-primary-foreground shadow-sm'
+									: 'text-muted-foreground hover:bg-muted hover:text-foreground'}"
+								aria-pressed={selectedDegree === 'cycle'}
+							>
+								Cycle
+							</button>
+							<button
+								type="button"
+								onclick={() => (selectedDegree = 'primary')}
+								class="rounded px-2.5 py-1 text-xs font-medium transition-colors {selectedDegree ===
+								'primary'
+									? 'bg-primary text-primary-foreground shadow-sm'
+									: 'text-muted-foreground hover:bg-muted hover:text-foreground'}"
+								aria-pressed={selectedDegree === 'primary'}
+							>
+								Primary
+							</button>
+						</div>
+
+						<!-- Target Wave Selector -->
+						<div
+							class="flex items-center gap-1 rounded-lg border bg-muted/30 p-1"
+							role="group"
+							aria-label="Target wave"
+						>
+							<button
+								type="button"
+								onclick={() => (selectedTargetWave = 'wave3')}
+								class="rounded px-2.5 py-1 text-xs font-medium transition-colors {selectedTargetWave ===
+								'wave3'
+									? 'bg-primary text-primary-foreground shadow-sm'
+									: 'text-muted-foreground hover:bg-muted hover:text-foreground'}"
+								aria-pressed={selectedTargetWave === 'wave3'}
+							>
+								Wave 3
+							</button>
+							<button
+								type="button"
+								onclick={() => (selectedTargetWave = 'wave5')}
+								class="rounded px-2.5 py-1 text-xs font-medium transition-colors {selectedTargetWave ===
+								'wave5'
+									? 'bg-primary text-primary-foreground shadow-sm'
+									: 'text-muted-foreground hover:bg-muted hover:text-foreground'}"
+								aria-pressed={selectedTargetWave === 'wave5'}
+							>
+								Wave 5
+							</button>
+						</div>
+					</div>
+				</div>
+
+				{#if waveTargetPrice !== null}
+					<div class="grid grid-cols-1 gap-3 pt-3 sm:grid-cols-3">
+						<div class="flex flex-col">
+							<span class="text-xs text-muted-foreground">
+								Target Price ({selectedTargetWave === 'wave3' ? 'Wave 3' : 'Wave 5'})
+							</span>
+							<span class="text-base font-semibold tabular-nums" data-testid="wave-target-price">
+								{formatCurrency(waveTargetPrice, primaryCurrency)}
+							</span>
+						</div>
+						<div class="flex flex-col">
+							<span class="text-xs text-muted-foreground">Current Price</span>
+							<span class="text-base font-semibold tabular-nums" data-testid="wave-current-price">
+								{formatCurrency(resolvedCurrentPrice, primaryCurrency)}
+							</span>
+						</div>
+						<div class="flex flex-col">
+							<span class="text-xs text-muted-foreground">Upside / Potential</span>
+							<div class="text-base font-semibold tabular-nums" data-testid="wave-upside-percent">
+								{#if waveUpsidePercentage !== null}
+									<span
+										class={waveUpsidePercentage >= 0
+											? 'text-emerald-600 dark:text-emerald-400'
+											: 'text-rose-600 dark:text-rose-400'}
+									>
+										{waveUpsidePercentage >= 0 ? '+' : ''}{waveUpsidePercentage.toFixed(2)}%
+									</span>
+								{:else}
+									<span class="text-muted-foreground">-</span>
+								{/if}
+							</div>
+						</div>
+					</div>
+				{:else}
+					<div
+						class="flex flex-col items-center justify-center py-3 text-center text-muted-foreground"
+						data-testid="elliott-wave-empty-state"
+					>
+						<p class="text-xs">
+							No wave count configured for {selectedDegree === 'cycle' ? 'Cycle' : 'Primary'} degree.
+							Draw wave counts on the security chart to view price targets.
+						</p>
+					</div>
+				{/if}
+			</div>
 
 			{#if isLoading}
 				<div class="space-y-3 py-6" data-testid="holdings-loading-skeleton">
