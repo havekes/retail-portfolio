@@ -65,5 +65,6 @@ class UserPreferences(BaseModel):
     chart_style: str | None = None
     indicators: dict[str, Any] | None = None
     sidebar_open: bool | None = None
+    holdings_period: str | None = None
 
     model_config = ConfigDict(extra="allow")

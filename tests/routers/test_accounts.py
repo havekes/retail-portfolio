@@ -1,8 +1,13 @@
 """Integration tests for accounts router."""
 
+from datetime import UTC, date, datetime
+from decimal import Decimal
 from uuid import uuid4
 
 import pytest
+
+from src.account.model import PositionModel
+from src.market.model import PriceModel, SecurityModel
 
 
 @pytest.mark.anyio
@@ -145,6 +150,146 @@ async def test_security_holdings_success(
     assert result["items"][0]["account_name"] == test_accounts[0].name
     assert "total_value" in result["items"][0]
     assert "currency" in result["items"][0]
+    assert "account_total_value" in result["items"][0]
+    assert "account_percentage" in result["items"][0]
+
+
+@pytest.mark.anyio
+async def test_security_holdings_calculated_values_single_position(
+    auth_client,
+    test_accounts,
+    test_position_for_first_account,
+    test_security,
+    db_session,
+):
+    """Test account_total_value and account_percentage calculations with single position."""
+    today = datetime.now(UTC).date()
+    price = PriceModel(
+        security_id=test_security.id,
+        date=today,
+        open=Decimal("150.00"),
+        high=Decimal("155.00"),
+        low=Decimal("149.00"),
+        close=Decimal("150.00"),
+        adjusted_close=Decimal("150.00"),
+        volume=1000,
+    )
+    db_session.add(price)
+    await db_session.commit()
+
+    security_id = test_position_for_first_account.security_id
+    response = await auth_client.get(f"/api/v1/accounts/holdings/{security_id}")
+
+    assert response.status_code == 200
+    result = response.json()
+    assert len(result["items"]) == 1
+    item = result["items"][0]
+    assert item["total_value"] == 1500.0  # 10 shares * 150.0 USD
+    assert item["account_total_value"] > 0
+    assert item["account_percentage"] == pytest.approx(100.0)
+
+
+@pytest.mark.anyio
+async def test_security_holdings_calculated_values_multiple_positions(
+    auth_client,
+    test_accounts,
+    test_position_for_first_account,
+    test_security,
+    db_session,
+):
+    """Test account_total_value and account_percentage with multiple positions in an account."""
+    today = datetime.now(UTC).date()
+    # Price for first security (AAPL: 10 shares * $100 = $1000 USD)
+    price1 = PriceModel(
+        security_id=test_security.id,
+        date=today,
+        open=Decimal("100.00"),
+        high=Decimal("100.00"),
+        low=Decimal("100.00"),
+        close=Decimal("100.00"),
+        adjusted_close=Decimal("100.00"),
+        volume=1000,
+    )
+    db_session.add(price1)
+
+    # Second security (MSFT: 10 shares * $100 = $1000 USD)
+    sec2 = SecurityModel(
+        id=uuid4(),
+        symbol="MSFT",
+        exchange="NASDAQ",
+        currency="USD",
+        name="Microsoft Corporation",
+        isin="US5949181045",
+        is_active=True,
+    )
+    db_session.add(sec2)
+    await db_session.flush()
+
+    pos2 = PositionModel(
+        id=999,
+        account_id=test_accounts[0].id,
+        security_id=sec2.id,
+        quantity=Decimal("10.0"),
+        average_cost=Decimal("100.0"),
+    )
+    db_session.add(pos2)
+
+    price2 = PriceModel(
+        security_id=sec2.id,
+        date=today,
+        open=Decimal("100.00"),
+        high=Decimal("100.00"),
+        low=Decimal("100.00"),
+        close=Decimal("100.00"),
+        adjusted_close=Decimal("100.00"),
+        volume=1000,
+    )
+    db_session.add(price2)
+    await db_session.commit()
+
+    security_id = test_position_for_first_account.security_id
+    response = await auth_client.get(f"/api/v1/accounts/holdings/{security_id}")
+
+    assert response.status_code == 200
+    result = response.json()
+    assert len(result["items"]) == 1
+    item = result["items"][0]
+    assert item["total_value"] == 1000.0  # 10 * 100
+    assert item["account_percentage"] == pytest.approx(50.0, rel=1e-2)
+
+
+@pytest.mark.anyio
+async def test_security_holdings_zero_value_safely_defaults_none(
+    auth_client,
+    test_accounts,
+    test_position_for_first_account,
+    test_security,
+    db_session,
+):
+    """Test account_percentage safely defaults to None when account total value is zero."""
+    today = datetime.now(UTC).date()
+    price = PriceModel(
+        security_id=test_security.id,
+        date=today,
+        open=Decimal("0.00"),
+        high=Decimal("0.00"),
+        low=Decimal("0.00"),
+        close=Decimal("0.00"),
+        adjusted_close=Decimal("0.00"),
+        volume=0,
+    )
+    db_session.add(price)
+    await db_session.commit()
+
+    security_id = test_position_for_first_account.security_id
+    response = await auth_client.get(f"/api/v1/accounts/holdings/{security_id}")
+
+    assert response.status_code == 200
+    result = response.json()
+    assert len(result["items"]) == 1
+    item = result["items"][0]
+    assert item["account_total_value"] == 0.0
+    assert item["account_percentage"] is None
 
 
 @pytest.mark.anyio
@@ -455,3 +600,34 @@ async def test_preferences_patch_isolated_across_users(auth_client, other_user, 
     get_a = await auth_client.get("/api/v1/accounts/me/preferences")
     assert get_a.status_code == 200
     assert get_a.json() == {"sidebar_open": False, "timeframe": "1w"}
+
+
+@pytest.mark.anyio
+async def test_preferences_holdings_period_roundtrip(auth_client):
+    """Verify holdings_period persists in preferences roundtrip."""
+    payload = {"holdings_period": "1M"}
+    put_resp = await auth_client.put("/api/v1/accounts/me/preferences", json=payload)
+    assert put_resp.status_code == 200
+    assert put_resp.json() == {"holdings_period": "1M"}
+
+    get_resp = await auth_client.get("/api/v1/accounts/me/preferences")
+    assert get_resp.status_code == 200
+    assert get_resp.json() == {"holdings_period": "1M"}
+
+
+@pytest.mark.anyio
+async def test_preferences_holdings_period_patch(auth_client):
+    """Verify holdings_period can be updated via PATCH."""
+    initial = {"timeframe": "1d", "holdings_period": "all"}
+    put_resp = await auth_client.put("/api/v1/accounts/me/preferences", json=initial)
+    assert put_resp.status_code == 200
+
+    patch_resp = await auth_client.patch(
+        "/api/v1/accounts/me/preferences", json={"holdings_period": "1Y"}
+    )
+    assert patch_resp.status_code == 200
+    assert patch_resp.json() == {"timeframe": "1d", "holdings_period": "1Y"}
+
+    get_resp = await auth_client.get("/api/v1/accounts/me/preferences")
+    assert get_resp.status_code == 200
+    assert get_resp.json() == {"timeframe": "1d", "holdings_period": "1Y"}

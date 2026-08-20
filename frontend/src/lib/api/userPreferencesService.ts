@@ -8,6 +8,7 @@ export interface UserPreferences {
 	chart_style?: ChartStyle | null;
 	indicators?: Record<string, IndicatorConfig> | null;
 	sidebar_open?: boolean | null;
+	holdings_period?: string | null;
 }
 
 export class UserPreferencesService extends ApiClient {
