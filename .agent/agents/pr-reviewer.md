@@ -3,6 +3,7 @@ name: pr-reviewer
 description: Reviews a pull request against its ticket's (GitHub issue's) acceptance criteria and returns an APPROVE or REQUEST_CHANGES verdict with findings. Spawned by the orchestration skill via invoke_subagent. Read-only — never modifies code, issues, or PRs.
 tools:
   - run_command
+  - call_mcp_tool
 subagent: true
 mainAgent: false
 commandExecutionPolicy: sandbox
