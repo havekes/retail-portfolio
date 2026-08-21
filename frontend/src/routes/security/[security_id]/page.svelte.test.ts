@@ -92,13 +92,20 @@ vi.mock('$lib/components/watchlist/watchlistService.svelte', () => ({
 	})
 }));
 
+let mockChartProps: Record<string, unknown> | null = null;
+
 vi.mock('$lib/components/charts/security-chart.svelte', () => {
 	return {
-		default: () => null
+		/* eslint-disable-next-line @typescript-eslint/no-explicit-any */
+		default: (...args: any[]) => {
+			mockChartProps = args[1] ?? args[0];
+			return null;
+		}
 	};
 });
 
 import { userPreferencesService } from '$lib/api/userPreferencesService';
+import { alertsService } from '$lib/api/alertsService';
 
 // ---------------------------------------------------------------------------
 // Helpers under test — imported directly from the real module the page uses
@@ -741,6 +748,7 @@ describe('Security Page - Elliott Wave Toolbar & Integration', () => {
 
 	beforeEach(() => {
 		vi.clearAllMocks();
+		mockChartProps = null;
 		vi.mocked(userPreferencesService.getPreferences).mockResolvedValue({
 			elliott_waves: {
 				'sec-1': {
@@ -1148,5 +1156,310 @@ describe('Security Page - Viewport Containment & Scrolling Layout', () => {
 		expect(sidebarContent).not.toBeNull();
 		expect(sidebarContent?.className).toContain('min-h-0');
 		expect(sidebarContent?.className).toContain('overflow-y-auto');
+	});
+});
+
+describe('Security Page - Wave Target Alert Reconcile', () => {
+	/* eslint-disable-next-line @typescript-eslint/no-explicit-any */
+	let PageComponent: Component<any>;
+
+	const mockData = {
+		security: {
+			id: 'sec-1',
+			symbol: 'AAPL',
+			name: 'Apple Inc.'
+		},
+		items: [
+			{ date: '2024-01-01', open: 100, high: 110, low: 95, close: 100, volume: 1000 },
+			{ date: '2024-01-02', open: 100, high: 120, low: 95, close: 100, volume: 1000 }
+		]
+	};
+
+	// Cycle: wave3 target 150, wave5 target 200; primary: wave3 target 120, wave5 target 160.
+	const fullWaves: Record<string, SecurityElliottWaves> = {
+		'sec-1': {
+			cycle: {
+				points: [
+					{ wave: 0, time: '2024-01-01', price: 50 },
+					{ wave: 1, time: '2024-01-02', price: 100 },
+					{ wave: 2, time: '2024-01-03', price: 80 },
+					{ wave: 3, time: '2024-01-04', price: 150 },
+					{ wave: 4, time: '2024-01-05', price: 120 },
+					{ wave: 5, time: '2024-01-06', price: 200 }
+				]
+			},
+			primary: {
+				points: [
+					{ wave: 0, time: '2024-02-01', price: 40 },
+					{ wave: 1, time: '2024-02-02', price: 90 },
+					{ wave: 2, time: '2024-02-03', price: 70 },
+					{ wave: 3, time: '2024-02-04', price: 120 },
+					{ wave: 4, time: '2024-02-05', price: 100 },
+					{ wave: 5, time: '2024-02-06', price: 160 }
+				]
+			}
+		}
+	};
+
+	const bothDegreesPercents = {
+		cycle: { wave3: 90, wave5: 90 },
+		primary: { wave3: 50, wave5: 50 }
+	};
+
+	function waveAlert(
+		over: Partial<import('$lib/api/alertsService').PriceAlert>
+	): import('$lib/api/alertsService').PriceAlert {
+		return {
+			id: 1,
+			security_id: 'sec-1',
+			user_id: 'user-1',
+			target_price: 135,
+			condition: 'above',
+			source: 'wave',
+			triggered_at: null,
+			created_at: '2024-01-01',
+			...over
+		};
+	}
+
+	beforeAll(async () => {
+		const mod = await import('./+page.svelte');
+		PageComponent = mod.default;
+	}, 30000);
+
+	beforeEach(() => {
+		vi.clearAllMocks();
+		mockChartProps = null;
+		vi.mocked(alertsService.getAlerts).mockResolvedValue({
+			items: [],
+			total: 0,
+			offset: 0,
+			limit: 50
+		});
+		vi.mocked(alertsService.createAlert).mockResolvedValue({} as never);
+		vi.mocked(alertsService.deleteAlert).mockResolvedValue(undefined);
+	});
+
+	it('drawing points 3 and 5 creates wave-source alerts for every configured degree', async () => {
+		vi.mocked(userPreferencesService.getPreferences).mockResolvedValue({
+			elliott_waves: fullWaves,
+			wave_settings: { alert_percents: bothDegreesPercents }
+		});
+
+		render(PageComponent, { props: { data: mockData } });
+		await screen.findByRole('button', { name: /Select Cycle degree/i });
+
+		// currentPrice = last candle close = 100
+		await waitFor(() => {
+			expect(mockChartProps).not.toBeNull();
+		});
+
+		// Simulate the chart's wave change events
+		await vi.waitFor(() => {
+			// @ts-expect-error - mockChartProps typed as Record
+			mockChartProps.onWaveChange?.('cycle', {
+				points: [
+					{ wave: 3, price: 150 },
+					{ wave: 5, price: 200 }
+				]
+			});
+			// @ts-expect-error - mockChartProps typed as Record
+			mockChartProps.onWaveChange?.('primary', {
+				points: [
+					{ wave: 3, price: 120 },
+					{ wave: 5, price: 160 }
+				]
+			});
+		});
+
+		await waitFor(() => {
+			expect(alertsService.createAlert).toHaveBeenCalledWith('sec-1', {
+				target_price: 135,
+				condition: 'above',
+				source: 'wave'
+			});
+		});
+
+		expect(alertsService.createAlert).toHaveBeenCalledWith('sec-1', {
+			target_price: 180,
+			condition: 'above',
+			source: 'wave'
+		});
+		expect(alertsService.createAlert).toHaveBeenCalledWith('sec-1', {
+			target_price: 60,
+			condition: 'below',
+			source: 'wave'
+		});
+		expect(alertsService.createAlert).toHaveBeenCalledWith('sec-1', {
+			target_price: 80,
+			condition: 'below',
+			source: 'wave'
+		});
+	});
+
+	it('clearing waves deletes only wave-source alerts; manual alerts untouched', async () => {
+		vi.mocked(userPreferencesService.getPreferences).mockResolvedValue({
+			elliott_waves: fullWaves,
+			wave_settings: { alert_percents: bothDegreesPercents }
+		});
+		vi.mocked(alertsService.getAlerts).mockResolvedValue({
+			items: [
+				waveAlert({ id: 10, target_price: 135, condition: 'above', source: 'wave' }),
+				waveAlert({ id: 11, target_price: 180, condition: 'above', source: 'wave' }),
+				waveAlert({ id: 20, target_price: 135, condition: 'above', source: 'manual' })
+			],
+			total: 3,
+			offset: 0,
+			limit: 50
+		});
+
+		render(PageComponent, { props: { data: mockData } });
+
+		const clearBtn = await screen.findByRole('button', { name: /Clear wave count/i });
+		await fireEvent.click(clearBtn);
+
+		// Clearing cycle deletes the two wave-source alerts, never the manual one.
+		await waitFor(() => {
+			expect(alertsService.deleteAlert).toHaveBeenCalledWith('sec-1', 10);
+			expect(alertsService.deleteAlert).toHaveBeenCalledWith('sec-1', 11);
+		});
+		const manualIdCalls = vi
+			.mocked(alertsService.deleteAlert)
+			.mock.calls.filter(([, id]) => id === 20);
+		expect(manualIdCalls).toHaveLength(0);
+	});
+
+	it('initial load with matching pre-existing wave alerts is a no-op (idempotent)', async () => {
+		vi.mocked(userPreferencesService.getPreferences).mockResolvedValue({
+			elliott_waves: fullWaves,
+			wave_settings: { alert_percents: bothDegreesPercents }
+		});
+		vi.mocked(alertsService.getAlerts).mockResolvedValue({
+			items: [
+				waveAlert({ id: 1, target_price: 135, condition: 'above', source: 'wave' }),
+				waveAlert({ id: 2, target_price: 180, condition: 'above', source: 'wave' }),
+				waveAlert({ id: 3, target_price: 60, condition: 'below', source: 'wave' }),
+				waveAlert({ id: 4, target_price: 80, condition: 'below', source: 'wave' })
+			],
+			total: 4,
+			offset: 0,
+			limit: 50
+		});
+
+		render(PageComponent, { props: { data: mockData } });
+		await screen.findByRole('button', { name: /Select Cycle degree/i });
+
+		await waitFor(() => {
+			expect(mockChartProps).not.toBeNull();
+		});
+
+		// Give any (nonexistent) reconcile a chance to run.
+		await new Promise((r) => setTimeout(r, 50));
+
+		expect(alertsService.createAlert).not.toHaveBeenCalled();
+		expect(alertsService.deleteAlert).not.toHaveBeenCalled();
+	});
+
+	it('percent change regenerates: deletes stale levels and creates new ones; manual untouched', async () => {
+		// Load with percents A, whose alerts exist.
+		vi.mocked(userPreferencesService.getPreferences).mockResolvedValue({
+			elliott_waves: fullWaves,
+			wave_settings: { alert_percents: bothDegreesPercents }
+		});
+		vi.mocked(alertsService.getAlerts).mockResolvedValue({
+			items: [
+				waveAlert({ id: 1, target_price: 135, condition: 'above', source: 'wave' }),
+				waveAlert({ id: 2, target_price: 180, condition: 'above', source: 'wave' }),
+				waveAlert({ id: 3, target_price: 60, condition: 'below', source: 'wave' }),
+				waveAlert({ id: 4, target_price: 80, condition: 'below', source: 'wave' }),
+				waveAlert({ id: 20, target_price: 135, condition: 'above', source: 'manual' })
+			],
+			total: 5,
+			offset: 0,
+			limit: 50
+		});
+
+		const { unmount } = render(PageComponent, { props: { data: mockData } });
+		await screen.findByRole('button', { name: /Select Cycle degree/i });
+		await waitFor(() => {
+			expect(mockChartProps).not.toBeNull();
+		});
+
+		// Reconcile on initial load is a no-op (alerts match percents A). Now remount with
+		// percents B (e.g. cycle wave3 80 → 120, wave5 70 → 140) and stale A alerts present.
+		unmount();
+		vi.clearAllMocks();
+		mockChartProps = null;
+		vi.mocked(alertsService.getAlerts).mockResolvedValue({
+			items: [
+				waveAlert({ id: 1, target_price: 135, condition: 'above', source: 'wave' }),
+				waveAlert({ id: 2, target_price: 180, condition: 'above', source: 'wave' }),
+				waveAlert({ id: 20, target_price: 135, condition: 'above', source: 'manual' })
+			],
+			total: 3,
+			offset: 0,
+			limit: 50
+		});
+		vi.mocked(userPreferencesService.getPreferences).mockResolvedValue({
+			elliott_waves: fullWaves,
+			wave_settings: {
+				alert_percents: {
+					cycle: { wave3: 80, wave5: 70 },
+					primary: { wave3: null, wave5: null }
+				}
+			}
+		});
+		vi.mocked(alertsService.createAlert).mockResolvedValue({} as never);
+		vi.mocked(alertsService.deleteAlert).mockResolvedValue(undefined);
+
+		render(PageComponent, { props: { data: mockData } });
+		await screen.findByRole('button', { name: /Select Cycle degree/i });
+		await waitFor(() => {
+			expect(mockChartProps).not.toBeNull();
+		});
+
+		await waitFor(() => {
+			expect(alertsService.deleteAlert).toHaveBeenCalledWith('sec-1', 1);
+			expect(alertsService.deleteAlert).toHaveBeenCalledWith('sec-1', 2);
+		});
+		// New desired: cycle wave3 150×80%=120 (above), wave5 200×70%=140 (above)
+		expect(alertsService.createAlert).toHaveBeenCalledWith('sec-1', {
+			target_price: 120,
+			condition: 'above',
+			source: 'wave'
+		});
+		expect(alertsService.createAlert).toHaveBeenCalledWith('sec-1', {
+			target_price: 140,
+			condition: 'above',
+			source: 'wave'
+		});
+		// Manual alert never deleted nor re-created.
+		const manualIdCalls = vi
+			.mocked(alertsService.deleteAlert)
+			.mock.calls.filter(([, id]) => id === 20);
+		expect(manualIdCalls).toHaveLength(0);
+	});
+
+	it('all percents null with waves present → no alerts created', async () => {
+		vi.mocked(userPreferencesService.getPreferences).mockResolvedValue({
+			elliott_waves: fullWaves,
+			wave_settings: {
+				alert_percents: {
+					cycle: { wave3: null, wave5: null },
+					primary: { wave3: null, wave5: null }
+				}
+			}
+		});
+
+		render(PageComponent, { props: { data: mockData } });
+		await screen.findByRole('button', { name: /Select Cycle degree/i });
+		await waitFor(() => {
+			expect(mockChartProps).not.toBeNull();
+		});
+
+		await new Promise((r) => setTimeout(r, 50));
+
+		expect(alertsService.createAlert).not.toHaveBeenCalled();
+		expect(alertsService.deleteAlert).not.toHaveBeenCalled();
 	});
 });

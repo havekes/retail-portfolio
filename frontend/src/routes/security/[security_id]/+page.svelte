@@ -34,9 +34,14 @@
 	import type {
 		DegreeWaveCount,
 		SecurityElliottWaves,
-		WaveDegree
+		WaveDegree,
+		WaveSettings
 	} from '$lib/utils/finance/elliott-wave';
-	import { updateSecurityElliottWaves } from '$lib/utils/finance/elliott-wave';
+	import {
+		updateSecurityElliottWaves,
+		DEFAULT_WAVE_SETTINGS
+	} from '$lib/utils/finance/elliott-wave';
+	import { computeWaveAlertLevels, reconcileWaveAlerts } from '$lib/utils/finance/wave-alerts';
 	import FibonacciSettingsDialog from '$lib/components/charts/fibonacci-settings-dialog.svelte';
 	import {
 		type FibToolType,
@@ -99,6 +104,7 @@
 		} catch (err) {
 			console.error('Failed to persist elliott waves preference:', err);
 		}
+		scheduleWaveAlertsReconcile();
 	}
 
 	async function handleClearWave(degree: WaveDegree) {
@@ -422,6 +428,65 @@
 		}
 	}
 
+	// Serialized reconcile chain — `onWaveChange` fires per point while drawing, and concurrent
+	// reconciles reading stale `alerts` would double-create. Chaining onto a single promise keeps
+	// every run sequential so each sees the previous run's applied state.
+	let waveAlertsReconcileSeq: Promise<void> = Promise.resolve();
+
+	function scheduleWaveAlertsReconcile() {
+		waveAlertsReconcileSeq = waveAlertsReconcileSeq
+			.then(() => reconcileWaveAlertsForSecurity())
+			.catch(() => {});
+		return waveAlertsReconcileSeq;
+	}
+
+	async function reconcileWaveAlertsForSecurity() {
+		if (!security?.id) return;
+		const settings = userPreferences?.wave_settings ?? DEFAULT_WAVE_SETTINGS;
+		const lastCandle = displayCandles[displayCandles.length - 1];
+		const currentPrice = lastCandle?.close;
+		const desired = computeWaveAlertLevels(settings, securityElliottWaves, currentPrice);
+		const { toCreate, toDelete } = reconcileWaveAlerts(alerts, desired);
+		try {
+			await Promise.all(toDelete.map((alert) => alertsService.deleteAlert(security.id, alert.id)));
+			await Promise.all(
+				toCreate.map((level) =>
+					alertsService.createAlert(security.id, {
+						target_price: level.level,
+						condition: level.condition,
+						source: 'wave'
+					})
+				)
+			);
+			if (toDelete.length > 0 || toCreate.length > 0) {
+				await loadAlerts();
+			}
+		} catch (err) {
+			// Never break drawing on reconcile failure — self-heals via the next reconcile.
+			console.error('Failed to reconcile wave target alerts:', err);
+		}
+	}
+
+	/**
+	 * T05 seam: updates wave settings and reconciles wave-target alerts. No caller until the
+	 * wave settings modal exists.
+	 */
+	// eslint-disable-next-line @typescript-eslint/no-unused-vars
+	async function handleWaveSettingsChange(settings: WaveSettings) {
+		userPreferences = {
+			...(userPreferences ?? {}),
+			wave_settings: settings
+		};
+		try {
+			// PATCH replaces the whole key — always send the full object.
+			await userPreferencesService.patchPreferences({ wave_settings: settings });
+		} catch (err) {
+			console.error('Failed to persist wave settings:', err);
+		}
+		scheduleWaveAlertsReconcile();
+	}
+	// TODO(T05, #224): wire to the wave settings modal
+
 	async function handleCreateAlert(price: number, condition: 'above' | 'below') {
 		if (!security?.id) return;
 		try {
@@ -547,6 +612,12 @@
 				rawCandles = mappedCandles;
 				haCandles = convertToHeikinAshi(mappedCandles);
 				await Promise.all([loadAlerts(), loadHoldings()]);
+
+				// Initial-load reconcile: gated on preferences being loaded so a failed fetch never
+				// mass-deletes wave alerts. Soft navigation re-runs the effect per security.
+				if (userPreferences !== null) {
+					scheduleWaveAlertsReconcile();
+				}
 
 				const module = await import('$lib/components/charts/security-chart.svelte');
 				securityChart = module.default;
