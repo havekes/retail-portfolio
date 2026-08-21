@@ -10,4 +10,5 @@ export const DEFAULT_HANDLE_COLOR = '#2962FF';
 export const DEFAULT_HANDLE_BORDER_COLOR = '#ffffff';
 export const DEFAULT_HOVER_RING_COLOR = 'rgba(41, 98, 255, 0.35)';
 export const DEFAULT_DRAG_RING_COLOR = 'rgba(41, 98, 255, 0.6)';
+export const DEFAULT_SELECTED_RING_COLOR = 'rgba(41, 98, 255, 0.6)';
 export const DEFAULT_TRENDLINE_COLOR = '#787B86';

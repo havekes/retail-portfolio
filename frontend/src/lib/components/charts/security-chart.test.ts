@@ -94,7 +94,7 @@ import type { Component } from 'svelte';
 import { tick } from 'svelte';
 import type { Candle } from '$lib/utils/finance/candle';
 import type { SecurityElliottWaves, WaveDegree } from '$lib/utils/finance/elliott-wave';
-import type { SecurityFibonacciTools } from '$lib/utils/finance/fibonacci';
+import type { SecurityFibonacciTools, FibToolType } from '$lib/utils/finance/fibonacci';
 import type { IndicatorData } from './security-chart.svelte';
 import { render } from '@testing-library/svelte';
 import { createChart } from 'lightweight-charts';
@@ -108,6 +108,8 @@ interface SecurityChartInstance {
 	updateData: (candles: Candle[]) => void;
 	getSelectedWaveDegree: () => WaveDegree | null;
 	setSelectedWaveDegree: (degree: WaveDegree | null) => void;
+	getSelectedFibTool: () => FibToolType | null;
+	setSelectedFibTool: (tool: FibToolType | null) => void;
 }
 
 describe('SecurityChart - Infinite Scroll & Logical Range', () => {
@@ -780,6 +782,80 @@ describe('SecurityChart - Fibonacci Integration', () => {
 		const destroySpy = vi.spyOn(fibPrimitive, 'destroy');
 		unmount();
 		expect(destroySpy).toHaveBeenCalled();
+	});
+
+	it('initializes FibonacciPrimitive with selectedFibTool prop', () => {
+		render(SecurityChart, {
+			props: {
+				candles: initialCandles,
+				selectedFibTool: 'retracement'
+			}
+		});
+
+		const fibPrimitive = mockAttachPrimitive.mock.calls.find(
+			(c) => c[0] instanceof FibonacciPrimitive
+		)?.[0] as FibonacciPrimitive;
+
+		expect(fibPrimitive.getSelectedTool()).toBe('retracement');
+	});
+
+	it('syncs selectedFibTool prop changes to FibonacciPrimitive', async () => {
+		const { rerender } = render(SecurityChart, {
+			props: {
+				candles: initialCandles,
+				selectedFibTool: null
+			}
+		});
+
+		const fibPrimitive = mockAttachPrimitive.mock.calls.find(
+			(c) => c[0] instanceof FibonacciPrimitive
+		)?.[0] as FibonacciPrimitive;
+
+		expect(fibPrimitive.getSelectedTool()).toBeNull();
+
+		await rerender({
+			candles: initialCandles,
+			selectedFibTool: 'extension'
+		});
+
+		expect(fibPrimitive.getSelectedTool()).toBe('extension');
+	});
+
+	it('forwards primitive selection changes to onFibSelect callback', () => {
+		const onFibSelect = vi.fn();
+		render(SecurityChart, {
+			props: {
+				candles: initialCandles,
+				onFibSelect
+			}
+		});
+
+		const fibPrimitive = mockAttachPrimitive.mock.calls.find(
+			(c) => c[0] instanceof FibonacciPrimitive
+		)?.[0] as FibonacciPrimitive;
+
+		fibPrimitive.setSelectedTool('retracement');
+		expect(onFibSelect).toHaveBeenCalledWith('retracement');
+
+		fibPrimitive.setSelectedTool(null);
+		expect(onFibSelect).toHaveBeenCalledWith(null);
+	});
+
+	it('supports getSelectedFibTool and setSelectedFibTool component methods', () => {
+		const { component: comp } = render(SecurityChart, {
+			props: {
+				candles: initialCandles
+			}
+		});
+		const component = comp as unknown as SecurityChartInstance;
+
+		expect(component.getSelectedFibTool()).toBeNull();
+
+		component.setSelectedFibTool('extension');
+		expect(component.getSelectedFibTool()).toBe('extension');
+
+		component.setSelectedFibTool(null);
+		expect(component.getSelectedFibTool()).toBeNull();
 	});
 });
 

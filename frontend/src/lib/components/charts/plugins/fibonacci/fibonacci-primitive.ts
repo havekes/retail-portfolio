@@ -48,6 +48,7 @@ export class FibonacciPrimitive implements ISeriesPrimitive<Time> {
 		activeTool?: FibToolType | null;
 		drawings?: SecurityFibonacciTools;
 		isDrawingMode?: boolean;
+		selectedTool?: FibToolType | null;
 	}) {
 		this._state = new FibonacciToolState();
 		this._mouseHandlers = new MouseHandlers();
@@ -62,6 +63,9 @@ export class FibonacciPrimitive implements ISeriesPrimitive<Time> {
 		}
 		if (initialState?.isDrawingMode !== undefined) {
 			this._state.setDrawingMode(initialState.isDrawingMode);
+		}
+		if (initialState?.selectedTool !== undefined) {
+			this._state.setSelectedTool(initialState.selectedTool);
 		}
 	}
 
@@ -87,6 +91,10 @@ export class FibonacciPrimitive implements ISeriesPrimitive<Time> {
 			this._requestUpdate?.();
 		}, this);
 
+		this._state.selectionChanged().subscribe(() => {
+			this._requestUpdate?.();
+		}, this);
+
 		this._state.hoverChanged().subscribe(() => {
 			this._requestUpdate?.();
 		}, this);
@@ -96,6 +104,16 @@ export class FibonacciPrimitive implements ISeriesPrimitive<Time> {
 		}, this);
 
 		this._mouseHandlers.mouseMoved().subscribe(() => {
+			this._requestUpdate?.();
+		}, this);
+
+		this._mouseHandlers.pointClicked().subscribe((hit) => {
+			this._state.setSelectedTool(hit.tool);
+			this._requestUpdate?.();
+		}, this);
+
+		this._mouseHandlers.emptyAreaClicked().subscribe(() => {
+			this._state.setSelectedTool(null);
 			this._requestUpdate?.();
 		}, this);
 
@@ -139,10 +157,13 @@ export class FibonacciPrimitive implements ISeriesPrimitive<Time> {
 		this._state.drawingsChanged().unsubscribeAll(this);
 		this._state.drawingModeChanged().unsubscribeAll(this);
 		this._state.toolChanged().unsubscribeAll(this);
+		this._state.selectionChanged().unsubscribeAll(this);
 		this._state.hoverChanged().unsubscribeAll(this);
 		this._state.dragChanged().unsubscribeAll(this);
 
 		this._mouseHandlers.mouseMoved().unsubscribeAll(this);
+		this._mouseHandlers.pointClicked().unsubscribeAll(this);
+		this._mouseHandlers.emptyAreaClicked().unsubscribeAll(this);
 		this._mouseHandlers.pointHovered().unsubscribeAll(this);
 		this._mouseHandlers.dragStarted().unsubscribeAll(this);
 		this._mouseHandlers.pointDragged().unsubscribeAll(this);
@@ -240,6 +261,18 @@ export class FibonacciPrimitive implements ISeriesPrimitive<Time> {
 		this._state.clear(tool);
 	}
 
+	public getSelectedTool(): FibToolType | null {
+		return this._state.getSelectedTool();
+	}
+
+	public setSelectedTool(tool: FibToolType | null): void {
+		this._state.setSelectedTool(tool);
+	}
+
+	public selectionChanged(): ISubscription<FibToolType | null> {
+		return this._state.selectionChanged();
+	}
+
 	public getHoveredPoint(): FibPointTarget | null {
 		return this._state.getHoveredPoint();
 	}
@@ -297,6 +330,9 @@ export class FibonacciPrimitive implements ISeriesPrimitive<Time> {
 		const allProjectedPointsForMouse: ProjectedFibPointWithTarget[] = [];
 		const hovered = this._state.getHoveredPoint();
 		const dragging = this._state.getDraggingPoint();
+		const selectedTool = this._state.getSelectedTool();
+		const isRetracementSelected = selectedTool === 'retracement';
+		const isExtensionSelected = selectedTool === 'extension';
 
 		// 1. Retracement calculation
 		let retracementRenderData: RetracementRenderData | null = null;
@@ -321,7 +357,8 @@ export class FibonacciPrimitive implements ISeriesPrimitive<Time> {
 					time: retracement.p1.time,
 					price: retracement.p1.price,
 					isHovered: isP1Hovered,
-					isDragging: isP1Dragging
+					isDragging: isP1Dragging,
+					isSelected: isRetracementSelected
 				};
 
 				const p2Projected: ProjectedFibPoint = {
@@ -331,7 +368,8 @@ export class FibonacciPrimitive implements ISeriesPrimitive<Time> {
 					time: retracement.p2.time,
 					price: retracement.p2.price,
 					isHovered: isP2Hovered,
-					isDragging: isP2Dragging
+					isDragging: isP2Dragging,
+					isSelected: isRetracementSelected
 				};
 
 				allProjectedPointsForMouse.push({
@@ -376,7 +414,8 @@ export class FibonacciPrimitive implements ISeriesPrimitive<Time> {
 					p2: p2Projected,
 					levels: projectedLevels,
 					extendLines: retracement.extendLines,
-					visible: retracement.visible
+					visible: retracement.visible,
+					isSelected: isRetracementSelected
 				};
 			}
 		}
@@ -408,7 +447,8 @@ export class FibonacciPrimitive implements ISeriesPrimitive<Time> {
 					time: extension.p1.time,
 					price: extension.p1.price,
 					isHovered: isP1Hovered,
-					isDragging: isP1Dragging
+					isDragging: isP1Dragging,
+					isSelected: isExtensionSelected
 				};
 
 				const p2Projected: ProjectedFibPoint = {
@@ -418,7 +458,8 @@ export class FibonacciPrimitive implements ISeriesPrimitive<Time> {
 					time: extension.p2.time,
 					price: extension.p2.price,
 					isHovered: isP2Hovered,
-					isDragging: isP2Dragging
+					isDragging: isP2Dragging,
+					isSelected: isExtensionSelected
 				};
 
 				const p3Projected: ProjectedFibPoint = {
@@ -428,7 +469,8 @@ export class FibonacciPrimitive implements ISeriesPrimitive<Time> {
 					time: extension.p3.time,
 					price: extension.p3.price,
 					isHovered: isP3Hovered,
-					isDragging: isP3Dragging
+					isDragging: isP3Dragging,
+					isSelected: isExtensionSelected
 				};
 
 				allProjectedPointsForMouse.push({
@@ -482,7 +524,8 @@ export class FibonacciPrimitive implements ISeriesPrimitive<Time> {
 					p3: p3Projected,
 					levels: projectedLevels,
 					extendLines: extension.extendLines,
-					visible: extension.visible
+					visible: extension.visible,
+					isSelected: isExtensionSelected
 				};
 			}
 		}

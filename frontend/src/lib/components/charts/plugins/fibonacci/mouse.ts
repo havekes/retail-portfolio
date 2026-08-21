@@ -32,6 +32,7 @@ export class MouseHandlers {
 	private _projectedPoints: ProjectedFibPointWithTarget[] = [];
 	private _isDrawingMode: boolean = false;
 	private _isDragging: boolean = false;
+	private _dragHappened: boolean = false;
 	private _dragTarget: FibPointTarget | null = null;
 	private _lastMousePosition: MousePosition | null = null;
 	private _savedPressedMouseMove: boolean | undefined = undefined;
@@ -44,6 +45,7 @@ export class MouseHandlers {
 		pointIndex: 0 | 1 | 2;
 		point: FibPoint;
 	}> = new Delegate();
+	private _emptyAreaClicked: Delegate<void> = new Delegate();
 	private _pointHovered: Delegate<FibPointTarget | null> = new Delegate();
 	private _dragStarted: Delegate<FibPointTarget> = new Delegate();
 	private _pointDragged: Delegate<{
@@ -93,6 +95,7 @@ export class MouseHandlers {
 		this._mouseMoved.destroy();
 		this._chartClicked.destroy();
 		this._pointClicked.destroy();
+		this._emptyAreaClicked.destroy();
 		this._pointHovered.destroy();
 		this._dragStarted.destroy();
 		this._pointDragged.destroy();
@@ -167,6 +170,10 @@ export class MouseHandlers {
 		return this._pointClicked;
 	}
 
+	public emptyAreaClicked(): ISubscription<void> {
+		return this._emptyAreaClicked;
+	}
+
 	public pointHovered(): ISubscription<FibPointTarget | null> {
 		return this._pointHovered;
 	}
@@ -239,7 +246,7 @@ export class MouseHandlers {
 
 		for (const pt of this._projectedPoints) {
 			const dist = Math.hypot(x - pt.x, y - pt.y);
-			if (dist <= closestDist) {
+			if (dist < closestDist) {
 				closestDist = dist;
 				closestPoint = pt;
 			}
@@ -258,6 +265,7 @@ export class MouseHandlers {
 		}
 
 		if (this._isDragging && this._dragTarget) {
+			this._dragHappened = true;
 			if (pos.time !== null && pos.price !== null) {
 				this._pointDragged.fire({
 					tool: this._dragTarget.tool,
@@ -280,6 +288,7 @@ export class MouseHandlers {
 
 	private _onMouseDown(event: MouseEvent): void {
 		if (this._isDrawingMode) return;
+		this._dragHappened = false;
 		const pos = this._determineMousePosition(event);
 		if (!pos) return;
 
@@ -303,6 +312,11 @@ export class MouseHandlers {
 	}
 
 	private _onClick(event: MouseEvent): void {
+		if (this._dragHappened) {
+			this._dragHappened = false;
+			return;
+		}
+
 		const pos = this._determineMousePosition(event);
 		if (!pos) return;
 
@@ -323,6 +337,8 @@ export class MouseHandlers {
 					pointIndex: hit.pointIndex,
 					point: hit.originalPoint
 				});
+			} else if (pos.insidePlotArea) {
+				this._emptyAreaClicked.fire();
 			}
 		}
 	}

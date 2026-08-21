@@ -82,6 +82,7 @@
 
 	let activeFibTool = $state<FibToolType>('retracement');
 	let isDrawingFib = $state(false);
+	let selectedFibTool = $state<FibToolType | null>(null);
 	let isChartSettingsOpen = $state(false);
 	let securityFibonacciTools = $derived<SecurityFibonacciTools>(
 		(security?.id && userPreferences?.fibonacci_tools?.[security.id]) || {}
@@ -106,10 +107,18 @@
 				const degreeToClear = selectedWaveDegree;
 				selectedWaveDegree = null;
 				handleClearWave(degreeToClear);
+			} else if (selectedFibTool) {
+				event.preventDefault();
+				const toolToClear = selectedFibTool;
+				selectedFibTool = null;
+				handleClearFib(toolToClear);
 			}
 		} else if (event.key === 'Escape') {
 			if (selectedWaveDegree) {
 				selectedWaveDegree = null;
+			}
+			if (selectedFibTool) {
+				selectedFibTool = null;
 			}
 			if (isDrawingWave) {
 				isDrawingWave = false;
@@ -171,6 +180,31 @@
 		} catch (err) {
 			console.error('Failed to persist fibonacci tools preference:', err);
 		}
+	}
+
+	async function handleClearFib(tool?: FibToolType | null) {
+		if (tool && selectedFibTool === tool) {
+			selectedFibTool = null;
+		} else if (!tool) {
+			selectedFibTool = null;
+		}
+		if (!security?.id) return;
+		const currentTools = userPreferences?.fibonacci_tools?.[security.id];
+		const updatedSecurityTools: SecurityFibonacciTools = {
+			retracement:
+				tool === 'retracement'
+					? null
+					: tool === 'extension'
+						? (currentTools?.retracement ?? null)
+						: null,
+			extension:
+				tool === 'extension'
+					? null
+					: tool === 'retracement'
+						? (currentTools?.extension ?? null)
+						: null
+		};
+		await handleFibChange(updatedSecurityTools);
 	}
 
 	async function handleFibLevelsChange(tool: FibToolType, levels: FibLevelConfig[]) {
@@ -600,6 +634,7 @@
 			isDrawingWave = false;
 			isDrawingFib = false;
 			selectedWaveDegree = null;
+			selectedFibTool = null;
 
 			(async () => {
 				if (!userPreferences) {
@@ -855,10 +890,14 @@
 								if (isDrawing) isDrawingFib = false;
 							}}
 							onDegreeChange={(degree) => (activeWaveDegree = degree)}
-							onWaveSelect={(degree) => (selectedWaveDegree = degree)}
+							onWaveSelect={(degree) => {
+								selectedWaveDegree = degree;
+								if (degree) selectedFibTool = null;
+							}}
 							fibonacciTools={securityFibonacciTools}
 							{activeFibTool}
 							{isDrawingFib}
+							bind:selectedFibTool
 							onFibChange={handleFibChange}
 							onFibDrawingModeChange={(isDrawing) => {
 								isDrawingFib = isDrawing;
@@ -866,6 +905,10 @@
 							}}
 							onFibToolChange={(tool) => {
 								if (tool) activeFibTool = tool;
+							}}
+							onFibSelect={(tool) => {
+								selectedFibTool = tool;
+								if (tool) selectedWaveDegree = null;
 							}}
 						/>
 						<ChartSettingsModal

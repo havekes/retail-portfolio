@@ -338,6 +338,58 @@ describe('Fibonacci Chart Primitive Plugin', () => {
 			state.setDraggingPoint(null);
 			expect(state.getDraggingPoint()).toBeNull();
 		});
+
+		it('tracks selected tool, fires selectionChanged delegate, and auto-clears on clear, drawing mode, or drawing reset', () => {
+			const selectionHandler = vi.fn();
+			state.selectionChanged().subscribe(selectionHandler);
+
+			expect(state.getSelectedTool()).toBeNull();
+
+			// Select retracement
+			state.setSelectedTool('retracement');
+			expect(state.getSelectedTool()).toBe('retracement');
+			expect(selectionHandler).toHaveBeenCalledWith('retracement');
+
+			// Re-selecting same tool does not re-fire
+			selectionHandler.mockClear();
+			state.setSelectedTool('retracement');
+			expect(selectionHandler).not.toHaveBeenCalled();
+
+			// Select extension
+			state.setSelectedTool('extension');
+			expect(state.getSelectedTool()).toBe('extension');
+			expect(selectionHandler).toHaveBeenCalledWith('extension');
+
+			// Entering drawing mode auto-clears selection
+			state.setDrawingMode(true);
+			expect(state.getSelectedTool()).toBeNull();
+			expect(selectionHandler).toHaveBeenCalledWith(null);
+
+			// Clearing selected drawing auto-clears selection
+			state.setDrawingMode(false);
+			state.setSelectedTool('retracement');
+			expect(state.getSelectedTool()).toBe('retracement');
+			state.clear('retracement');
+			expect(state.getSelectedTool()).toBeNull();
+
+			state.setSelectedTool('extension');
+			expect(state.getSelectedTool()).toBe('extension');
+			state.clear();
+			expect(state.getSelectedTool()).toBeNull();
+
+			// Setting null drawing directly auto-clears selection
+			state.setSelectedTool('retracement');
+			state.setRetracement(null);
+			expect(state.getSelectedTool()).toBeNull();
+
+			state.setSelectedTool('extension');
+			state.setExtension(null);
+			expect(state.getSelectedTool()).toBeNull();
+
+			state.setSelectedTool('retracement');
+			state.setDrawings({ retracement: null, extension: null });
+			expect(state.getSelectedTool()).toBeNull();
+		});
 	});
 
 	describe('MouseHandlers', () => {
@@ -382,6 +434,32 @@ describe('Fibonacci Chart Primitive Plugin', () => {
 			// Out of radius
 			const miss = mouse.hitTestPoint(500, 500);
 			expect(miss).toBeNull();
+		});
+
+		it('retracement wins over extension when anchors share the same pixel position', () => {
+			// Retracement P1 and extension P1 at the exact same coordinates — a common
+			// real-world pattern where both tools are drawn over the same swing.
+			mouse.setProjectedPoints([
+				{
+					tool: 'retracement',
+					pointIndex: 0,
+					x: 100,
+					y: 200,
+					originalPoint: { time: '2024-01-05' as Time, price: 160 }
+				},
+				{
+					tool: 'extension',
+					pointIndex: 0,
+					x: 100,
+					y: 200,
+					originalPoint: { time: '2024-01-05' as Time, price: 160 }
+				}
+			]);
+
+			const hit = mouse.hitTestPoint(100, 200);
+			expect(hit).not.toBeNull();
+			// Retracement is first in the array; strict-< means first match wins
+			expect(hit?.tool).toBe('retracement');
 		});
 
 		it('dispatches hover events on mouse move when not in drawing mode', () => {
@@ -524,6 +602,69 @@ describe('Fibonacci Chart Primitive Plugin', () => {
 			});
 			expect(chartClickHandler).not.toHaveBeenCalled();
 		});
+
+		it('dispatches emptyAreaClicked on plot area click outside anchor handles', () => {
+			const emptyAreaHandler = vi.fn();
+			const pointClickHandler = vi.fn();
+
+			mouse.emptyAreaClicked().subscribe(emptyAreaHandler);
+			mouse.pointClicked().subscribe(pointClickHandler);
+
+			mouse.setProjectedPoints([
+				{
+					tool: 'retracement',
+					pointIndex: 0,
+					x: 100,
+					y: 200,
+					originalPoint: { time: '2024-01-05' as Time, price: 160 }
+				}
+			]);
+
+			// Click on empty space (x: 400, y: 300)
+			const emptyClick = new MouseEvent('click', { clientX: 400, clientY: 300 });
+			mockData.mockChartElement.dispatchEvent(emptyClick);
+
+			expect(emptyAreaHandler).toHaveBeenCalledTimes(1);
+			expect(pointClickHandler).not.toHaveBeenCalled();
+		});
+
+		it('suppresses click firing when a drag gesture occurred', () => {
+			const pointClickHandler = vi.fn();
+			const emptyAreaHandler = vi.fn();
+
+			mouse.pointClicked().subscribe(pointClickHandler);
+			mouse.emptyAreaClicked().subscribe(emptyAreaHandler);
+
+			mouse.setProjectedPoints([
+				{
+					tool: 'retracement',
+					pointIndex: 0,
+					x: 100,
+					y: 200,
+					originalPoint: { time: '2024-01-05' as Time, price: 160 }
+				}
+			]);
+
+			// Mouse down
+			mockData.mockChartElement.dispatchEvent(
+				new MouseEvent('mousedown', { clientX: 100, clientY: 200 })
+			);
+			// Drag move
+			mockData.mockChartElement.dispatchEvent(
+				new MouseEvent('mousemove', { clientX: 150, clientY: 250 })
+			);
+			// Mouse up
+			mockData.mockChartElement.dispatchEvent(
+				new MouseEvent('mouseup', { clientX: 150, clientY: 250 })
+			);
+			// Subsequent click event from browser
+			mockData.mockChartElement.dispatchEvent(
+				new MouseEvent('click', { clientX: 150, clientY: 250 })
+			);
+
+			expect(pointClickHandler).not.toHaveBeenCalled();
+			expect(emptyAreaHandler).not.toHaveBeenCalled();
+		});
 	});
 
 	describe('FibonacciPaneRenderer', () => {
@@ -650,6 +791,40 @@ describe('Fibonacci Chart Primitive Plugin', () => {
 			// Each handle with hover/drag gets 1 ring + 1 circle = 4 arc calls
 			expect(arcCalls.length).toBe(4);
 		});
+
+		it('renders selection ring around anchor handles when drawing is selected', () => {
+			const renderData: FibonacciRendererData = {
+				retracement: {
+					p1: {
+						pointIndex: 0,
+						x: 100,
+						y: 300,
+						time: '2024-01-05' as Time,
+						price: 140,
+						isSelected: true
+					},
+					p2: {
+						pointIndex: 1,
+						x: 250,
+						y: 100,
+						time: '2024-01-11' as Time,
+						price: 180,
+						isSelected: true
+					},
+					levels: [],
+					isSelected: true
+				},
+				extension: null,
+				preview: null
+			};
+
+			renderer.update(renderData);
+			renderer.draw(mockCanvas.target);
+
+			const arcCalls = mockCanvas.drawCalls.filter((c) => c.type === 'arc');
+			// Each selected handle gets 1 selection ring + 1 circle = 4 arc calls
+			expect(arcCalls.length).toBe(4);
+		});
 	});
 
 	describe('FibonacciPrimitive Integration', () => {
@@ -675,6 +850,53 @@ describe('Fibonacci Chart Primitive Plugin', () => {
 			expect(views).toHaveLength(1);
 			expect(views[0]?.zOrder?.()).toBe('top');
 			expect(views[0]).toBeInstanceOf(FibonacciPaneView);
+		});
+
+		it('initializes selectedTool from constructor and updates via setSelectedTool', () => {
+			const defaultPrimitive = new FibonacciPrimitive();
+			expect(defaultPrimitive.getSelectedTool()).toBeNull();
+
+			const selectedPrimitive = new FibonacciPrimitive({ selectedTool: 'extension' });
+			expect(selectedPrimitive.getSelectedTool()).toBe('extension');
+
+			selectedPrimitive.setSelectedTool('retracement');
+			expect(selectedPrimitive.getSelectedTool()).toBe('retracement');
+
+			selectedPrimitive.setSelectedTool(null);
+			expect(selectedPrimitive.getSelectedTool()).toBeNull();
+		});
+
+		it('selects tool on point click and deselects on empty space click', () => {
+			primitive.setRetracement({
+				p1: { time: '2024-01-05' as Time, price: 160 },
+				p2: { time: '2024-01-13' as Time, price: 170 }
+			});
+			primitive.updateAllViews();
+
+			expect(primitive.getSelectedTool()).toBeNull();
+
+			// Click on retracement P1 (x: 100, y: 200)
+			mockData.mockChartElement.dispatchEvent(
+				new MouseEvent('click', { clientX: 100, clientY: 200 })
+			);
+			expect(primitive.getSelectedTool()).toBe('retracement');
+
+			// Click on empty space (x: 400, y: 300)
+			mockData.mockChartElement.dispatchEvent(
+				new MouseEvent('click', { clientX: 400, clientY: 300 })
+			);
+			expect(primitive.getSelectedTool()).toBeNull();
+		});
+
+		it('fires selectionChanged subscription when selected tool changes', () => {
+			const onSelectionChanged = vi.fn();
+			primitive.selectionChanged().subscribe(onSelectionChanged);
+
+			primitive.setSelectedTool('retracement');
+			expect(onSelectionChanged).toHaveBeenCalledWith('retracement');
+
+			primitive.setSelectedTool(null);
+			expect(onSelectionChanged).toHaveBeenCalledWith(null);
 		});
 
 		it('updates cursor styling and hitTest based on mode and interaction state', () => {

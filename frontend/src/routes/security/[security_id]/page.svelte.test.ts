@@ -1337,6 +1337,289 @@ describe('Security Page - Fibonacci Toolbar & Integration', () => {
 	});
 });
 
+describe('Security Page - Fibonacci Selection & Keyboard Deletion', () => {
+	/* eslint-disable-next-line @typescript-eslint/no-explicit-any */
+	let PageComponent: Component<any>;
+
+	const mockData = {
+		security: {
+			id: 'sec-1',
+			symbol: 'AAPL',
+			name: 'Apple Inc.'
+		},
+		items: [{ date: '2024-01-01', open: 100, high: 110, low: 95, close: 105, volume: 1000 }]
+	};
+
+	beforeAll(async () => {
+		const mod = await import('./+page.svelte');
+		PageComponent = mod.default;
+	}, 30000);
+
+	beforeEach(() => {
+		vi.clearAllMocks();
+		mockChartProps = null;
+		vi.mocked(userPreferencesService.getPreferences).mockResolvedValue({
+			fibonacci_tools: {
+				'sec-1': {
+					retracement: {
+						p1: { time: '2024-01-01', price: 100 },
+						p2: { time: '2024-01-02', price: 200 },
+						visible: true
+					},
+					extension: {
+						p1: { time: '2024-01-01', price: 100 },
+						p2: { time: '2024-01-02', price: 200 },
+						p3: { time: '2024-01-03', price: 150 },
+						visible: true
+					}
+				}
+			},
+			elliott_waves: {
+				'sec-1': {
+					cycle: {
+						points: [
+							{ wave: 0, time: '2024-01-01', price: 100 },
+							{ wave: 1, time: '2024-01-02', price: 110 }
+						]
+					},
+					primary: null
+				}
+			}
+		});
+	});
+
+	it('selects fib tool when chart triggers onFibSelect and passes selectedFibTool to chart', async () => {
+		render(PageComponent, { props: { data: mockData } });
+		await screen.findByRole('button', { name: /Toggle Fib Retrace drawing/i });
+
+		await waitFor(() => {
+			expect(mockChartProps).not.toBeNull();
+		});
+
+		// Simulate selecting 'retracement'
+		// @ts-expect-error - mockChartProps typed as Record
+		mockChartProps.onFibSelect?.('retracement');
+
+		await waitFor(() => {
+			// @ts-expect-error - mockChartProps typed as Record
+			expect(mockChartProps.selectedFibTool).toBe('retracement');
+		});
+	});
+
+	it('clears selected fib retracement on Delete key press and patches user preferences', async () => {
+		render(PageComponent, { props: { data: mockData } });
+		await screen.findByRole('button', { name: /Toggle Fib Retrace drawing/i });
+
+		await waitFor(() => {
+			expect(mockChartProps).not.toBeNull();
+		});
+
+		// Select retracement
+		// @ts-expect-error - mockChartProps typed as Record
+		mockChartProps.onFibSelect?.('retracement');
+
+		// Press Delete on window
+		await fireEvent.keyDown(window, { key: 'Delete' });
+
+		// Preferences patched with retracement = null while preserving extension
+		await waitFor(() => {
+			expect(userPreferencesService.patchPreferences).toHaveBeenCalledWith(
+				expect.objectContaining({
+					fibonacci_tools: expect.objectContaining({
+						'sec-1': expect.objectContaining({
+							retracement: null,
+							extension: expect.any(Object)
+						})
+					})
+				})
+			);
+		});
+
+		// Selection is reset to null
+		// @ts-expect-error - mockChartProps typed as Record
+		expect(mockChartProps.selectedFibTool).toBeNull();
+	});
+
+	it('clears selected fib extension on Delete key press and patches user preferences', async () => {
+		render(PageComponent, { props: { data: mockData } });
+		await screen.findByRole('button', { name: /Toggle Fib Retrace drawing/i });
+
+		await waitFor(() => {
+			expect(mockChartProps).not.toBeNull();
+		});
+
+		// Select extension
+		// @ts-expect-error - mockChartProps typed as Record
+		mockChartProps.onFibSelect?.('extension');
+
+		// Press Delete on window
+		await fireEvent.keyDown(window, { key: 'Delete' });
+
+		// Preferences patched with extension = null while preserving retracement
+		await waitFor(() => {
+			expect(userPreferencesService.patchPreferences).toHaveBeenCalledWith(
+				expect.objectContaining({
+					fibonacci_tools: expect.objectContaining({
+						'sec-1': expect.objectContaining({
+							retracement: expect.any(Object),
+							extension: null
+						})
+					})
+				})
+			);
+		});
+
+		// Selection is reset to null
+		// @ts-expect-error - mockChartProps typed as Record
+		expect(mockChartProps.selectedFibTool).toBeNull();
+	});
+
+	it('clears selected fib tool on Backspace key press', async () => {
+		render(PageComponent, { props: { data: mockData } });
+		await screen.findByRole('button', { name: /Toggle Fib Retrace drawing/i });
+
+		await waitFor(() => {
+			expect(mockChartProps).not.toBeNull();
+		});
+
+		// Select retracement
+		// @ts-expect-error - mockChartProps typed as Record
+		mockChartProps.onFibSelect?.('retracement');
+
+		// Press Backspace on window
+		await fireEvent.keyDown(window, { key: 'Backspace' });
+
+		await waitFor(() => {
+			expect(userPreferencesService.patchPreferences).toHaveBeenCalledWith(
+				expect.objectContaining({
+					fibonacci_tools: expect.objectContaining({
+						'sec-1': expect.objectContaining({
+							retracement: null
+						})
+					})
+				})
+			);
+		});
+
+		// @ts-expect-error - mockChartProps typed as Record
+		expect(mockChartProps.selectedFibTool).toBeNull();
+	});
+
+	it('deselects fib tool and exits drawing mode on Escape key press', async () => {
+		render(PageComponent, { props: { data: mockData } });
+		const retraceBtn = await screen.findByRole('button', { name: /Toggle Fib Retrace drawing/i });
+
+		await waitFor(() => {
+			expect(mockChartProps).not.toBeNull();
+		});
+
+		// Enter drawing mode and select a fib tool
+		await fireEvent.click(retraceBtn);
+		expect(retraceBtn.className).toContain('bg-primary');
+
+		// @ts-expect-error - mockChartProps typed as Record
+		mockChartProps.onFibSelect?.('retracement');
+
+		// Press Escape on window
+		await fireEvent.keyDown(window, { key: 'Escape' });
+
+		// Drawing mode should be exited and selected fib tool cleared
+		expect(retraceBtn.className).not.toContain('bg-primary');
+		// @ts-expect-error - mockChartProps typed as Record
+		expect(mockChartProps.selectedFibTool).toBeNull();
+	});
+
+	it('clears selection when chart emits onFibSelect(null)', async () => {
+		render(PageComponent, { props: { data: mockData } });
+		await screen.findByRole('button', { name: /Toggle Fib Retrace drawing/i });
+
+		await waitFor(() => {
+			expect(mockChartProps).not.toBeNull();
+		});
+
+		// @ts-expect-error - mockChartProps typed as Record
+		mockChartProps.onFibSelect?.('retracement');
+		// @ts-expect-error - mockChartProps typed as Record
+		expect(mockChartProps.selectedFibTool).toBe('retracement');
+
+		// Click empty space
+		// @ts-expect-error - mockChartProps typed as Record
+		mockChartProps.onFibSelect?.(null);
+		// @ts-expect-error - mockChartProps typed as Record
+		expect(mockChartProps.selectedFibTool).toBeNull();
+	});
+
+	it('does not delete fib tool on Delete or Backspace when typing in an input element', async () => {
+		render(PageComponent, { props: { data: mockData } });
+		await screen.findByRole('button', { name: /Toggle Fib Retrace drawing/i });
+
+		await waitFor(() => {
+			expect(mockChartProps).not.toBeNull();
+		});
+
+		// Select retracement
+		// @ts-expect-error - mockChartProps typed as Record
+		mockChartProps.onFibSelect?.('retracement');
+
+		// Create dummy input element
+		const inputEl = document.createElement('input');
+		document.body.appendChild(inputEl);
+		inputEl.focus();
+
+		// Trigger Delete and Backspace on input element
+		await fireEvent.keyDown(inputEl, { key: 'Delete' });
+		await fireEvent.keyDown(inputEl, { key: 'Backspace' });
+
+		// Should NOT have triggered preferences patch for clearing fib tool
+		expect(userPreferencesService.patchPreferences).not.toHaveBeenCalled();
+
+		// Selection is preserved
+		// @ts-expect-error - mockChartProps typed as Record
+		expect(mockChartProps.selectedFibTool).toBe('retracement');
+
+		document.body.removeChild(inputEl);
+	});
+
+	it('maintains mutual exclusivity between wave selection and fib tool selection', async () => {
+		render(PageComponent, { props: { data: mockData } });
+		await screen.findByRole('button', { name: /Toggle Fib Retrace drawing/i });
+
+		await waitFor(() => {
+			expect(mockChartProps).not.toBeNull();
+		});
+
+		// 1. Select wave degree
+		// @ts-expect-error - mockChartProps typed as Record
+		mockChartProps.onWaveSelect?.('cycle');
+		await waitFor(() => {
+			// @ts-expect-error - mockChartProps typed as Record
+			expect(mockChartProps.selectedWaveDegree).toBe('cycle');
+			// @ts-expect-error - mockChartProps typed as Record
+			expect(mockChartProps.selectedFibTool).toBeNull();
+		});
+
+		// 2. Select fib tool -> should clear wave degree
+		// @ts-expect-error - mockChartProps typed as Record
+		mockChartProps.onFibSelect?.('retracement');
+		await waitFor(() => {
+			// @ts-expect-error - mockChartProps typed as Record
+			expect(mockChartProps.selectedFibTool).toBe('retracement');
+			// @ts-expect-error - mockChartProps typed as Record
+			expect(mockChartProps.selectedWaveDegree).toBeNull();
+		});
+
+		// 3. Select wave degree again -> should clear fib tool
+		// @ts-expect-error - mockChartProps typed as Record
+		mockChartProps.onWaveSelect?.('primary');
+		await waitFor(() => {
+			// @ts-expect-error - mockChartProps typed as Record
+			expect(mockChartProps.selectedWaveDegree).toBe('primary');
+			// @ts-expect-error - mockChartProps typed as Record
+			expect(mockChartProps.selectedFibTool).toBeNull();
+		});
+	});
+});
+
 describe('Security Page - Viewport Containment & Scrolling Layout', () => {
 	/* eslint-disable-next-line @typescript-eslint/no-explicit-any */
 	let PageComponent: Component<any>;

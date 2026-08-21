@@ -95,9 +95,11 @@
 		fibonacciTools = null,
 		activeFibTool = 'retracement',
 		isDrawingFib = false,
+		selectedFibTool = $bindable<FibToolType | null>(null),
 		onFibChange,
 		onFibDrawingModeChange,
-		onFibToolChange
+		onFibToolChange,
+		onFibSelect
 	} = $props<{
 		candles?: Candle[];
 		containerId?: string;
@@ -121,9 +123,11 @@
 		fibonacciTools?: SecurityFibonacciTools | null;
 		activeFibTool?: FibToolType | null;
 		isDrawingFib?: boolean;
+		selectedFibTool?: FibToolType | null;
 		onFibChange?: (tools: SecurityFibonacciTools) => void;
 		onFibDrawingModeChange?: (isDrawing: boolean) => void;
 		onFibToolChange?: (tool: FibToolType | null) => void;
+		onFibSelect?: (tool: FibToolType | null) => void;
 	}>();
 
 	let avgPriceLine: IPriceLine | null = null;
@@ -263,6 +267,13 @@
 		if (!fibonacciPrimitive) return;
 		if (isDrawingFib !== undefined && fibonacciPrimitive.isDrawingMode() !== isDrawingFib) {
 			fibonacciPrimitive.setDrawingMode(isDrawingFib);
+		}
+	});
+
+	$effect(() => {
+		if (!fibonacciPrimitive) return;
+		if (selectedFibTool !== undefined && fibonacciPrimitive.getSelectedTool() !== selectedFibTool) {
+			fibonacciPrimitive.setSelectedTool(selectedFibTool);
 		}
 	});
 
@@ -468,7 +479,8 @@
 		fibonacciPrimitive = new FibonacciPrimitive({
 			activeTool: activeFibTool,
 			drawings: fibonacciTools ?? undefined,
-			isDrawingMode: isDrawingFib
+			isDrawingMode: isDrawingFib,
+			selectedTool: selectedFibTool
 		});
 		seriesInstance.attachPrimitive(fibonacciPrimitive);
 
@@ -482,6 +494,13 @@
 
 		fibonacciPrimitive.toolChanged().subscribe((tool) => {
 			onFibToolChange?.(tool);
+		});
+
+		fibonacciPrimitive.selectionChanged().subscribe((tool) => {
+			if (selectedFibTool !== tool) {
+				selectedFibTool = tool;
+			}
+			onFibSelect?.(tool);
 		});
 
 		const resizeObserver = new ResizeObserver(() => {
@@ -774,6 +793,14 @@
 
 	export function clearFibonacci(tool?: FibToolType) {
 		fibonacciPrimitive?.clear(tool);
+	}
+
+	export function getSelectedFibTool(): FibToolType | null {
+		return fibonacciPrimitive?.getSelectedTool() ?? null;
+	}
+
+	export function setSelectedFibTool(tool: FibToolType | null) {
+		fibonacciPrimitive?.setSelectedTool(tool);
 	}
 
 	export function getFibonacciPrimitive(): FibonacciPrimitive | null {
