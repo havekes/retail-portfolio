@@ -759,95 +759,96 @@ describe('Security Page - Elliott Wave Toolbar & Integration', () => {
 		});
 	});
 
-	it('renders Elliott Wave toolbar with Cycle, Primary, Draw Wave, and Clear buttons', async () => {
+	it('renders Elliott Wave button in left drawing toolbar and omits legacy top toolbar controls', async () => {
 		render(PageComponent, { props: { data: mockData } });
 
-		expect(await screen.findByRole('button', { name: /Select Cycle degree/i })).toBeInTheDocument();
-		expect(screen.getByRole('button', { name: /Select Primary degree/i })).toBeInTheDocument();
-		expect(screen.getByRole('button', { name: /Toggle drawing wave/i })).toBeInTheDocument();
-		expect(screen.getByRole('button', { name: /Clear wave count/i })).toBeInTheDocument();
+		expect(await screen.findByRole('button', { name: 'Elliott Wave' })).toBeInTheDocument();
+		expect(screen.queryByRole('button', { name: /Select Cycle degree/i })).not.toBeInTheDocument();
+		expect(
+			screen.queryByRole('button', { name: /Select Primary degree/i })
+		).not.toBeInTheDocument();
+		expect(screen.queryByRole('button', { name: /Toggle drawing wave/i })).not.toBeInTheDocument();
+		expect(screen.queryByRole('button', { name: /Clear wave count/i })).not.toBeInTheDocument();
+		expect(screen.queryByText(/Waves:/i)).not.toBeInTheDocument();
 	});
 
-	it('allows toggling between Cycle and Primary degrees', async () => {
+	it('opens dropdown menu with Cycle Degree and Primary Degree options when Elliott Wave button is clicked', async () => {
 		render(PageComponent, { props: { data: mockData } });
 
-		const cycleBtn = await screen.findByRole('button', { name: /Select Cycle degree/i });
-		const primaryBtn = screen.getByRole('button', { name: /Select Primary degree/i });
+		const waveBtn = await screen.findByRole('button', { name: 'Elliott Wave' });
+		await fireEvent.click(waveBtn);
 
-		// Initially Cycle is active (has active styling)
-		expect(cycleBtn.className).toContain('bg-primary');
-		expect(primaryBtn.className).not.toContain('bg-primary');
-
-		await fireEvent.click(primaryBtn);
-
-		expect(primaryBtn.className).toContain('bg-primary');
-		expect(cycleBtn.className).not.toContain('bg-primary');
+		expect(await screen.findByText('Cycle Degree')).toBeInTheDocument();
+		expect(screen.getByText('Primary Degree')).toBeInTheDocument();
 	});
 
-	it('toggles drawing mode on and off when Draw Wave button is clicked', async () => {
+	it('selecting Cycle Degree activates drawing mode with cycle degree and active highlighting', async () => {
 		render(PageComponent, { props: { data: mockData } });
 
-		const drawBtn = await screen.findByRole('button', { name: /Toggle drawing wave/i });
-		expect(drawBtn.textContent?.trim()).toBe('Draw Wave');
+		const waveBtn = await screen.findByRole('button', { name: 'Elliott Wave' });
+		expect(waveBtn.className).not.toContain('bg-primary');
 
-		await fireEvent.click(drawBtn);
-		expect(drawBtn.textContent?.trim()).toBe('Drawing...');
-		expect(drawBtn.className).toContain('bg-primary');
+		await fireEvent.click(waveBtn);
+		const cycleOption = await screen.findByText('Cycle Degree');
+		await fireEvent.click(cycleOption);
 
-		await fireEvent.click(drawBtn);
-		expect(drawBtn.textContent?.trim()).toBe('Draw Wave');
+		expect(waveBtn.className).toContain('bg-primary');
+		await waitFor(() => {
+			expect(mockChartProps).not.toBeNull();
+			// @ts-expect-error - mockChartProps typed as Record
+			expect(mockChartProps.isDrawingWave).toBe(true);
+			// @ts-expect-error - mockChartProps typed as Record
+			expect(mockChartProps.activeDegree).toBe('cycle');
+		});
 	});
 
-	it('persists cleared wave count when Clear button is clicked', async () => {
+	it('selecting Primary Degree activates drawing mode with primary degree and active highlighting', async () => {
 		render(PageComponent, { props: { data: mockData } });
 
-		const clearBtn = await screen.findByRole('button', { name: /Clear wave count/i });
-		await fireEvent.click(clearBtn);
+		const waveBtn = await screen.findByRole('button', { name: 'Elliott Wave' });
+		expect(waveBtn.className).not.toContain('bg-primary');
 
-		expect(userPreferencesService.patchPreferences).toHaveBeenCalledWith(
-			expect.objectContaining({
-				elliott_waves: expect.objectContaining({
-					'sec-1': expect.objectContaining({
-						cycle: null
-					})
-				})
-			})
-		);
+		await fireEvent.click(waveBtn);
+		const primaryOption = await screen.findByText('Primary Degree');
+		await fireEvent.click(primaryOption);
+
+		expect(waveBtn.className).toContain('bg-primary');
+		await waitFor(() => {
+			expect(mockChartProps).not.toBeNull();
+			// @ts-expect-error - mockChartProps typed as Record
+			expect(mockChartProps.isDrawingWave).toBe(true);
+			// @ts-expect-error - mockChartProps typed as Record
+			expect(mockChartProps.activeDegree).toBe('primary');
+		});
 	});
 
-	it('clearing a wave does not re-fetch market prices', async () => {
-		mockGetPrices.mockClear();
+	it('selecting wave degree cancels active Fibonacci drawing mode', async () => {
 		render(PageComponent, { props: { data: mockData } });
 
-		const clearBtn = await screen.findByRole('button', { name: /Clear wave count/i });
-		await fireEvent.click(clearBtn);
+		const retraceBtn = await screen.findByRole('button', { name: /Toggle Fib Retrace drawing/i });
+		const waveBtn = screen.getByRole('button', { name: 'Elliott Wave' });
 
-		// Clearing wave should NOT invoke getPrices
-		expect(mockGetPrices).not.toHaveBeenCalled();
-	});
+		// Activate Fib Retrace
+		await fireEvent.click(retraceBtn);
+		expect(retraceBtn.className).toContain('bg-primary');
 
-	it('drawing mode remains active when wave updates occur during sequential drawing', async () => {
-		render(PageComponent, { props: { data: mockData } });
+		// Select wave degree -> cancels fib drawing
+		await fireEvent.click(waveBtn);
+		const cycleOption = await screen.findByText('Cycle Degree');
+		await fireEvent.click(cycleOption);
 
-		const drawBtn = await screen.findByRole('button', { name: /Toggle drawing wave/i });
-		await fireEvent.click(drawBtn);
-		expect(drawBtn.textContent?.trim()).toBe('Drawing...');
-
-		// Simulate wave point update / preference mutation occurring while in drawing mode
-		vi.mocked(userPreferencesService.patchPreferences).mockResolvedValueOnce({});
-
-		// Verify drawing mode remains active
-		expect(screen.getByRole('button', { name: /Toggle drawing wave/i }).textContent?.trim()).toBe(
-			'Drawing...'
-		);
+		expect(waveBtn.className).toContain('bg-primary');
+		expect(retraceBtn.className).not.toContain('bg-primary');
 	});
 
 	it('resets drawing mode on soft navigation to a different security', async () => {
 		const { rerender } = render(PageComponent, { props: { data: mockData } });
 
-		const drawBtn = await screen.findByRole('button', { name: /Toggle drawing wave/i });
-		await fireEvent.click(drawBtn);
-		expect(drawBtn.textContent?.trim()).toBe('Drawing...');
+		const waveBtn = await screen.findByRole('button', { name: 'Elliott Wave' });
+		await fireEvent.click(waveBtn);
+		const cycleOption = await screen.findByText('Cycle Degree');
+		await fireEvent.click(cycleOption);
+		expect(waveBtn.className).toContain('bg-primary');
 
 		// Soft navigate to another security
 		const newSecurityData = {
@@ -863,8 +864,8 @@ describe('Security Page - Elliott Wave Toolbar & Integration', () => {
 
 		// Wait for soft navigation effect to execute and reset drawing mode
 		await waitFor(() => {
-			expect(screen.getByRole('button', { name: /Toggle drawing wave/i }).textContent?.trim()).toBe(
-				'Draw Wave'
+			expect(screen.getByRole('button', { name: 'Elliott Wave' }).className).not.toContain(
+				'bg-primary'
 			);
 		});
 	});
@@ -944,7 +945,7 @@ describe('Security Page - Wave Selection & Keyboard Deletion', () => {
 
 	it('selects wave degree when chart triggers onWaveSelect and passes selectedWaveDegree to chart', async () => {
 		render(PageComponent, { props: { data: mockData } });
-		await screen.findByRole('button', { name: /Select Cycle degree/i });
+		await screen.findByRole('button', { name: 'Elliott Wave' });
 
 		await waitFor(() => {
 			expect(mockChartProps).not.toBeNull();
@@ -962,7 +963,7 @@ describe('Security Page - Wave Selection & Keyboard Deletion', () => {
 
 	it('clears selected wave on Delete key press, patches user preferences, and reconciles alerts', async () => {
 		render(PageComponent, { props: { data: mockData } });
-		await screen.findByRole('button', { name: /Select Cycle degree/i });
+		await screen.findByRole('button', { name: 'Elliott Wave' });
 
 		await waitFor(() => {
 			expect(mockChartProps).not.toBeNull();
@@ -1001,7 +1002,7 @@ describe('Security Page - Wave Selection & Keyboard Deletion', () => {
 
 	it('clears selected wave on Backspace key press', async () => {
 		render(PageComponent, { props: { data: mockData } });
-		await screen.findByRole('button', { name: /Select Cycle degree/i });
+		await screen.findByRole('button', { name: 'Elliott Wave' });
 
 		await waitFor(() => {
 			expect(mockChartProps).not.toBeNull();
@@ -1032,15 +1033,17 @@ describe('Security Page - Wave Selection & Keyboard Deletion', () => {
 
 	it('deselects wave and exits drawing mode on Escape key press', async () => {
 		render(PageComponent, { props: { data: mockData } });
-		const drawBtn = await screen.findByRole('button', { name: /Toggle drawing wave/i });
+		const waveBtn = await screen.findByRole('button', { name: 'Elliott Wave' });
 
 		await waitFor(() => {
 			expect(mockChartProps).not.toBeNull();
 		});
 
 		// Enter drawing mode and select a wave
-		await fireEvent.click(drawBtn);
-		expect(drawBtn.textContent?.trim()).toBe('Drawing...');
+		await fireEvent.click(waveBtn);
+		const cycleOption = await screen.findByText('Cycle Degree');
+		await fireEvent.click(cycleOption);
+		expect(waveBtn.className).toContain('bg-primary');
 
 		// @ts-expect-error - mockChartProps typed as Record
 		mockChartProps.onWaveSelect?.('cycle');
@@ -1049,14 +1052,14 @@ describe('Security Page - Wave Selection & Keyboard Deletion', () => {
 		await fireEvent.keyDown(window, { key: 'Escape' });
 
 		// Drawing mode should be exited and selected wave cleared
-		expect(drawBtn.textContent?.trim()).toBe('Draw Wave');
+		expect(waveBtn.className).not.toContain('bg-primary');
 		// @ts-expect-error - mockChartProps typed as Record
 		expect(mockChartProps.selectedWaveDegree).toBeNull();
 	});
 
 	it('clears selection when chart emits onWaveSelect(null)', async () => {
 		render(PageComponent, { props: { data: mockData } });
-		await screen.findByRole('button', { name: /Select Cycle degree/i });
+		await screen.findByRole('button', { name: 'Elliott Wave' });
 
 		await waitFor(() => {
 			expect(mockChartProps).not.toBeNull();
@@ -1076,7 +1079,7 @@ describe('Security Page - Wave Selection & Keyboard Deletion', () => {
 
 	it('does not delete wave on Delete or Backspace when typing in an input element', async () => {
 		render(PageComponent, { props: { data: mockData } });
-		await screen.findByRole('button', { name: /Select Cycle degree/i });
+		await screen.findByRole('button', { name: 'Elliott Wave' });
 
 		await waitFor(() => {
 			expect(mockChartProps).not.toBeNull();
@@ -1188,31 +1191,36 @@ describe('Security Page - Fibonacci Toolbar & Integration', () => {
 		});
 	});
 
-	it('renders Fibonacci toolbar with Fib Retrace, Fib Extend, and Clear buttons, and Chart Settings icon button', async () => {
+	it('renders Fibonacci toolbar with Fib Retrace and Fib Extend buttons, and Chart Settings icon button', async () => {
 		render(PageComponent, { props: { data: mockData } });
 
 		expect(
 			await screen.findByRole('button', { name: /Toggle Fib Retrace drawing/i })
 		).toBeInTheDocument();
 		expect(screen.getByRole('button', { name: /Toggle Fib Extend drawing/i })).toBeInTheDocument();
-		expect(screen.getByRole('button', { name: /Clear Fibonacci drawing/i })).toBeInTheDocument();
 		expect(screen.getByRole('button', { name: /Open chart settings/i })).toBeInTheDocument();
+		expect(
+			screen.queryByRole('button', { name: /Clear Fibonacci drawing/i })
+		).not.toBeInTheDocument();
+		expect(screen.queryByText(/Fibonacci:/i)).not.toBeInTheDocument();
 	});
 
 	it('toggles drawing mode on and off when Fib Retrace button is clicked and cancels wave drawing mode', async () => {
 		render(PageComponent, { props: { data: mockData } });
 
 		const retraceBtn = await screen.findByRole('button', { name: /Toggle Fib Retrace drawing/i });
-		const drawWaveBtn = screen.getByRole('button', { name: /Toggle drawing wave/i });
+		const waveBtn = screen.getByRole('button', { name: 'Elliott Wave' });
 
 		// Engage wave drawing first
-		await fireEvent.click(drawWaveBtn);
-		expect(drawWaveBtn.className).toContain('bg-primary');
+		await fireEvent.click(waveBtn);
+		const cycleOption = await screen.findByText('Cycle Degree');
+		await fireEvent.click(cycleOption);
+		expect(waveBtn.className).toContain('bg-primary');
 
 		// Click Fib Retrace -> engages retracement and cancels wave drawing
 		await fireEvent.click(retraceBtn);
 		expect(retraceBtn.className).toContain('bg-primary');
-		expect(drawWaveBtn.className).not.toContain('bg-primary');
+		expect(waveBtn.className).not.toContain('bg-primary');
 
 		// Click Fib Retrace again -> toggles off
 		await fireEvent.click(retraceBtn);
@@ -1223,19 +1231,38 @@ describe('Security Page - Fibonacci Toolbar & Integration', () => {
 		render(PageComponent, { props: { data: mockData } });
 
 		const extendBtn = await screen.findByRole('button', { name: /Toggle Fib Extend drawing/i });
-		const drawWaveBtn = screen.getByRole('button', { name: /Toggle drawing wave/i });
+		const waveBtn = screen.getByRole('button', { name: 'Elliott Wave' });
 
 		// Engage wave drawing first
-		await fireEvent.click(drawWaveBtn);
-		expect(drawWaveBtn.className).toContain('bg-primary');
+		await fireEvent.click(waveBtn);
+		const cycleOption = await screen.findByText('Cycle Degree');
+		await fireEvent.click(cycleOption);
+		expect(waveBtn.className).toContain('bg-primary');
 
 		// Click Fib Extend -> engages extension and cancels wave drawing
 		await fireEvent.click(extendBtn);
 		expect(extendBtn.className).toContain('bg-primary');
-		expect(drawWaveBtn.className).not.toContain('bg-primary');
+		expect(waveBtn.className).not.toContain('bg-primary');
 
 		// Click Fib Extend again -> toggles off
 		await fireEvent.click(extendBtn);
+		expect(extendBtn.className).not.toContain('bg-primary');
+	});
+
+	it('activating Fib Retrace while Fib Extend is active switches tool and maintains Fibonacci drawing mode', async () => {
+		render(PageComponent, { props: { data: mockData } });
+
+		const extendBtn = await screen.findByRole('button', { name: /Toggle Fib Extend drawing/i });
+		const retraceBtn = screen.getByRole('button', { name: /Toggle Fib Retrace drawing/i });
+
+		// Activate Fib Extend
+		await fireEvent.click(extendBtn);
+		expect(extendBtn.className).toContain('bg-primary');
+		expect(retraceBtn.className).not.toContain('bg-primary');
+
+		// Click Fib Retrace -> switches active tool and maintains drawing mode
+		await fireEvent.click(retraceBtn);
+		expect(retraceBtn.className).toContain('bg-primary');
 		expect(extendBtn.className).not.toContain('bg-primary');
 	});
 
@@ -1281,33 +1308,6 @@ describe('Security Page - Fibonacci Toolbar & Integration', () => {
 				})
 			})
 		);
-	});
-
-	it('persists cleared Fibonacci drawing when Clear button is clicked', async () => {
-		render(PageComponent, { props: { data: mockData } });
-
-		const clearBtn = await screen.findByRole('button', { name: /Clear Fibonacci drawing/i });
-		await fireEvent.click(clearBtn);
-
-		expect(userPreferencesService.patchPreferences).toHaveBeenCalledWith(
-			expect.objectContaining({
-				fibonacci_tools: expect.objectContaining({
-					'sec-1': expect.objectContaining({
-						retracement: null
-					})
-				})
-			})
-		);
-	});
-
-	it('clearing Fibonacci drawing does not re-fetch market prices', async () => {
-		mockGetPrices.mockClear();
-		render(PageComponent, { props: { data: mockData } });
-
-		const clearBtn = await screen.findByRole('button', { name: /Clear Fibonacci drawing/i });
-		await fireEvent.click(clearBtn);
-
-		expect(mockGetPrices).not.toHaveBeenCalled();
 	});
 
 	it('resets Fibonacci drawing mode on soft navigation to a different security', async () => {
@@ -1369,20 +1369,20 @@ describe('Security Page - Viewport Containment & Scrolling Layout', () => {
 		expect(rootDiv.className).toContain('overflow-hidden');
 	});
 
-	it('pins timeframe, waves, and style toolbar with shrink-0', async () => {
+	it('pins timeframe and style toolbar with shrink-0', async () => {
 		render(PageComponent, { props: { data: mockData } });
-		await screen.findByRole('button', { name: /Select Cycle degree/i });
-		const cycleBtn = screen.getByRole('button', { name: /Select Cycle degree/i });
-		const toolbar = cycleBtn.closest('div.border-b');
+		await screen.findByRole('button', { name: '1D' });
+		const tfBtn = screen.getByRole('button', { name: '1D' });
+		const toolbar = tfBtn.closest('div.border-b');
 		expect(toolbar).not.toBeNull();
 		expect(toolbar?.className).toContain('shrink-0');
 	});
 
 	it('constrains chart column and chart container to min-h-0 overflow-hidden', async () => {
 		render(PageComponent, { props: { data: mockData } });
-		await screen.findByRole('button', { name: /Select Cycle degree/i });
-		const cycleBtn = screen.getByRole('button', { name: /Select Cycle degree/i });
-		const chartColumn = cycleBtn.closest('div.flex-col');
+		await screen.findByRole('button', { name: '1D' });
+		const tfBtn = screen.getByRole('button', { name: '1D' });
+		const chartColumn = tfBtn.closest('div.flex-col');
 		expect(chartColumn).not.toBeNull();
 		expect(chartColumn?.className).toContain('min-h-0');
 		expect(chartColumn?.className).toContain('flex-1');
@@ -1391,7 +1391,7 @@ describe('Security Page - Viewport Containment & Scrolling Layout', () => {
 
 	it('constrains right actions sidebar to min-h-0 and configures Sidebar.Content with overflow-y-auto', async () => {
 		const { container } = render(PageComponent, { props: { data: mockData } });
-		await screen.findByRole('button', { name: /Select Cycle degree/i });
+		await screen.findByRole('button', { name: '1D' });
 		const rightSidebar = container.querySelector('div.w-64');
 		expect(rightSidebar).not.toBeNull();
 		expect(rightSidebar?.className).toContain('min-h-0');
@@ -1492,7 +1492,7 @@ describe('Security Page - Wave Target Alert Reconcile', () => {
 		});
 
 		render(PageComponent, { props: { data: mockData } });
-		await screen.findByRole('button', { name: /Select Cycle degree/i });
+		await screen.findByRole('button', { name: '1D' });
 
 		// currentPrice = last candle close = 100
 		await waitFor(() => {
@@ -1559,9 +1559,15 @@ describe('Security Page - Wave Target Alert Reconcile', () => {
 		});
 
 		render(PageComponent, { props: { data: mockData } });
+		await screen.findByRole('button', { name: '1D' });
+		await waitFor(() => {
+			expect(mockChartProps).not.toBeNull();
+		});
 
-		const clearBtn = await screen.findByRole('button', { name: /Clear wave count/i });
-		await fireEvent.click(clearBtn);
+		// Select cycle wave and press Delete to clear wave
+		// @ts-expect-error - mockChartProps typed as Record
+		mockChartProps.onWaveSelect?.('cycle');
+		await fireEvent.keyDown(window, { key: 'Delete' });
 
 		// Clearing cycle deletes the two wave-source alerts, never the manual one.
 		await waitFor(() => {
@@ -1592,7 +1598,7 @@ describe('Security Page - Wave Target Alert Reconcile', () => {
 		});
 
 		render(PageComponent, { props: { data: mockData } });
-		await screen.findByRole('button', { name: /Select Cycle degree/i });
+		await screen.findByRole('button', { name: '1D' });
 
 		await waitFor(() => {
 			expect(mockChartProps).not.toBeNull();
@@ -1625,7 +1631,7 @@ describe('Security Page - Wave Target Alert Reconcile', () => {
 		});
 
 		const { unmount } = render(PageComponent, { props: { data: mockData } });
-		await screen.findByRole('button', { name: /Select Cycle degree/i });
+		await screen.findByRole('button', { name: '1D' });
 		await waitFor(() => {
 			expect(mockChartProps).not.toBeNull();
 		});
@@ -1658,7 +1664,7 @@ describe('Security Page - Wave Target Alert Reconcile', () => {
 		vi.mocked(alertsService.deleteAlert).mockResolvedValue(undefined);
 
 		render(PageComponent, { props: { data: mockData } });
-		await screen.findByRole('button', { name: /Select Cycle degree/i });
+		await screen.findByRole('button', { name: '1D' });
 		await waitFor(() => {
 			expect(mockChartProps).not.toBeNull();
 		});
@@ -1697,7 +1703,7 @@ describe('Security Page - Wave Target Alert Reconcile', () => {
 		});
 
 		render(PageComponent, { props: { data: mockData } });
-		await screen.findByRole('button', { name: /Select Cycle degree/i });
+		await screen.findByRole('button', { name: '1D' });
 		await waitFor(() => {
 			expect(mockChartProps).not.toBeNull();
 		});
@@ -1889,7 +1895,7 @@ describe('Security Page - Top Toolbar', () => {
 		expect(screen.queryByText(/Style:/i)).not.toBeInTheDocument();
 	});
 
-	it('renders Candlestick and Heikin-Ashi icon buttons with aria-label and title', async () => {
+	it('renders Candlestick, Heikin-Ashi, and Chart Settings icon buttons with aria-label and title', async () => {
 		render(PageComponent, { props: { data: mockData } });
 
 		const candleBtn = await screen.findByRole('button', { name: 'Candlestick' });
@@ -1899,6 +1905,10 @@ describe('Security Page - Top Toolbar', () => {
 		const haBtn = screen.getByRole('button', { name: 'Heikin-Ashi' });
 		expect(haBtn).toBeInTheDocument();
 		expect(haBtn).toHaveAttribute('title', 'Heikin-Ashi');
+
+		const settingsBtn = screen.getByRole('button', { name: /Open chart settings/i });
+		expect(settingsBtn).toBeInTheDocument();
+		expect(settingsBtn).toHaveAttribute('title', 'Chart Settings');
 	});
 
 	it('clicking Candlestick icon button sets chartStyle to candlestick and persists preference', async () => {
