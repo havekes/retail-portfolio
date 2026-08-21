@@ -441,8 +441,6 @@ async def test_get_prices_1m_monthly_aggregation(auth_client, test_security):
     assert result["items"][1]["date"].startswith("2026-02-")
 
 
-
-
 @pytest.mark.anyio
 async def test_create_alert_with_wave_source(auth_client, test_security):
     """POST alert with source='wave' persists and GET lists it as 'wave'."""
