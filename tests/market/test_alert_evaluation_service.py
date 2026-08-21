@@ -76,6 +76,7 @@ def _make_db_alert(
         user_id=user_id or uuid4(),
         target_price=target_price,
         condition=condition,
+        source="manual",
         triggered_at=triggered_at,
         created_at=datetime.now(UTC),
     )

@@ -441,3 +441,44 @@ async def test_get_prices_1m_monthly_aggregation(auth_client, test_security):
     assert result["items"][1]["date"].startswith("2026-02-")
 
 
+
+
+@pytest.mark.anyio
+async def test_create_alert_with_wave_source(auth_client, test_security):
+    """POST alert with source='wave' persists and GET lists it as 'wave'."""
+    create_response = await auth_client.post(
+        f"/api/v1/market/securities/{test_security.id}/alerts",
+        json={"target_price": "100.00", "condition": "above", "source": "wave"},
+    )
+    assert create_response.status_code == 200
+    created = create_response.json()
+    assert created["source"] == "wave"
+
+    get_response = await auth_client.get(
+        f"/api/v1/market/securities/{test_security.id}/alerts"
+    )
+    assert get_response.status_code == 200
+    items = get_response.json()["items"]
+    assert any(a["id"] == created["id"] and a["source"] == "wave" for a in items)
+
+
+@pytest.mark.anyio
+async def test_create_alert_defaults_to_manual_source(auth_client, test_security):
+    """POST alert without source defaults to 'manual'."""
+    create_response = await auth_client.post(
+        f"/api/v1/market/securities/{test_security.id}/alerts",
+        json={"target_price": "100.00", "condition": "above"},
+    )
+    assert create_response.status_code == 200
+    created = create_response.json()
+    assert created["source"] == "manual"
+
+
+@pytest.mark.anyio
+async def test_create_alert_invalid_source_returns_422(auth_client, test_security):
+    """POST alert with invalid source returns 422."""
+    response = await auth_client.post(
+        f"/api/v1/market/securities/{test_security.id}/alerts",
+        json={"target_price": "100.00", "condition": "above", "source": "bogus"},
+    )
+    assert response.status_code == 422

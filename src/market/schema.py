@@ -1,6 +1,6 @@
 from datetime import date, datetime
 from decimal import Decimal
-from typing import Self
+from typing import Literal, Self
 
 from pydantic import AwareDatetime, BaseModel, ConfigDict
 
@@ -163,6 +163,7 @@ class PriceAlertRead(BaseModel):
     user_id: UserId
     target_price: Decimal
     condition: str
+    source: str
     triggered_at: datetime | None
     created_at: datetime
 
@@ -170,6 +171,7 @@ class PriceAlertRead(BaseModel):
 class PriceAlertWrite(BaseModel):
     target_price: Decimal
     condition: str
+    source: Literal["manual", "wave"] = "manual"
 
 
 class SecurityNoteRead(BaseModel):
