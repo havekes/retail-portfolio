@@ -36,6 +36,7 @@ export class MouseHandlers {
 	private _snapToWicks: boolean = false;
 	private _candleLookup: Map<number, Candle> = new Map();
 	private _isDragging: boolean = false;
+	private _dragHappened: boolean = false;
 	private _dragTarget: PointTarget | null = null;
 	private _lastMousePosition: MousePosition | null = null;
 	private _savedPressedMouseMove: boolean | undefined = undefined;
@@ -48,6 +49,7 @@ export class MouseHandlers {
 		wave: 0 | 1 | 2 | 3 | 4 | 5;
 		point: WavePoint;
 	}> = new Delegate();
+	private _emptyAreaClicked: Delegate<void> = new Delegate();
 	private _pointHovered: Delegate<PointTarget | null> = new Delegate();
 	private _dragStarted: Delegate<PointTarget> = new Delegate();
 	private _pointDragged: Delegate<{
@@ -97,6 +99,7 @@ export class MouseHandlers {
 		this._mouseMoved.destroy();
 		this._chartClicked.destroy();
 		this._pointClicked.destroy();
+		this._emptyAreaClicked.destroy();
 		this._pointHovered.destroy();
 		this._dragStarted.destroy();
 		this._pointDragged.destroy();
@@ -186,6 +189,10 @@ export class MouseHandlers {
 		point: WavePoint;
 	}> {
 		return this._pointClicked;
+	}
+
+	public emptyAreaClicked(): ISubscription<void> {
+		return this._emptyAreaClicked;
 	}
 
 	public pointHovered(): ISubscription<PointTarget | null> {
@@ -279,6 +286,7 @@ export class MouseHandlers {
 		}
 
 		if (this._isDragging && this._dragTarget) {
+			this._dragHappened = true;
 			if (pos.time !== null && pos.price !== null) {
 				let price = pos.price;
 				let y = pos.y;
@@ -315,6 +323,7 @@ export class MouseHandlers {
 
 	private _onMouseDown(event: MouseEvent): void {
 		if (this._isDrawingMode) return;
+		this._dragHappened = false;
 		const pos = this._determineMousePosition(event);
 		if (!pos) return;
 
@@ -338,6 +347,11 @@ export class MouseHandlers {
 	}
 
 	private _onClick(event: MouseEvent): void {
+		if (this._dragHappened) {
+			this._dragHappened = false;
+			return;
+		}
+
 		const pos = this._determineMousePosition(event);
 		if (!pos) return;
 
@@ -372,6 +386,8 @@ export class MouseHandlers {
 					wave: hit.wave,
 					point: hit.originalPoint
 				});
+			} else if (pos.insidePlotArea) {
+				this._emptyAreaClicked.fire();
 			}
 		}
 	}

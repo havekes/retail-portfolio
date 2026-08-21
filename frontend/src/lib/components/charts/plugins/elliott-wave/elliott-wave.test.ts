@@ -357,6 +357,44 @@ describe('Elliott Wave Plugin', () => {
 			expect(state.getHoveredPoint()).toBeNull();
 			expect(state.getDraggingPoint()).toBeNull();
 		});
+
+		it('tracks selected degree, fires selectionChanged delegate, and auto-clears on clearWave and setDrawingMode', () => {
+			const onSelectionChanged = vi.fn();
+			state.selectionChanged().subscribe(onSelectionChanged);
+
+			expect(state.getSelectedDegree()).toBeNull();
+
+			state.setSelectedDegree('cycle');
+			expect(state.getSelectedDegree()).toBe('cycle');
+			expect(onSelectionChanged).toHaveBeenCalledWith('cycle');
+
+			// Setting same degree again does not re-fire
+			onSelectionChanged.mockClear();
+			state.setSelectedDegree('cycle');
+			expect(onSelectionChanged).not.toHaveBeenCalled();
+
+			// Switch to primary
+			state.setSelectedDegree('primary');
+			expect(state.getSelectedDegree()).toBe('primary');
+			expect(onSelectionChanged).toHaveBeenCalledWith('primary');
+
+			// Entering drawing mode auto-clears selection
+			state.setDrawingMode(true);
+			expect(state.getSelectedDegree()).toBeNull();
+			expect(onSelectionChanged).toHaveBeenCalledWith(null);
+			state.setDrawingMode(false);
+
+			// Clearing a selected wave auto-clears selection
+			state.setSelectedDegree('cycle');
+			expect(state.getSelectedDegree()).toBe('cycle');
+			state.clearWave('cycle');
+			expect(state.getSelectedDegree()).toBeNull();
+
+			// Clearing a different wave does not clear selection
+			state.setSelectedDegree('primary');
+			state.clearWave('cycle');
+			expect(state.getSelectedDegree()).toBe('primary');
+		});
 	});
 
 	describe('ElliottWavePaneRenderer (Canvas Drawing)', () => {
@@ -466,6 +504,33 @@ describe('Elliott Wave Plugin', () => {
 			// Should have at least 2 arc calls (1 for highlight ring, 1 for badge circle)
 			const arcCalls = drawCalls.filter((c) => c.type === 'arc');
 			expect(arcCalls.length).toBeGreaterThanOrEqual(2);
+		});
+
+		it('renders selection ring around node badges when wave degree is selected', () => {
+			const { target, drawCalls, context } = createMockCanvasTarget();
+
+			renderer.update({
+				degrees: [
+					{
+						degree: 'cycle',
+						config: CYCLE_STYLE,
+						isActiveDegree: true,
+						isSelected: true,
+						points: [
+							{ wave: 0, x: 100, y: 300, time: '2024-01-01' as Time, price: 100, isSelected: true },
+							{ wave: 1, x: 150, y: 250, time: '2024-01-02' as Time, price: 120, isSelected: true }
+						]
+					}
+				],
+				preview: null
+			});
+
+			renderer.draw(target);
+
+			// Should have 2 arc calls per point (1 for selection halo, 1 for badge circle) -> total 4 arc calls
+			const arcCalls = drawCalls.filter((c) => c.type === 'arc');
+			expect(arcCalls.length).toBeGreaterThanOrEqual(4);
+			expect(context.fillStyle).toBeDefined();
 		});
 
 		it('renders drawing preview for wave 0 without text badge', () => {
@@ -688,6 +753,92 @@ describe('Elliott Wave Plugin', () => {
 				new MouseEvent('click', { clientX: 200, clientY: 485 })
 			);
 			expect(onChartClicked).not.toHaveBeenCalled();
+		});
+
+		it('fires pointClicked when clicking a wave point in non-drawing mode', () => {
+			const onPointClicked = vi.fn();
+			const onEmptyAreaClicked = vi.fn();
+			mouseHandlers.pointClicked().subscribe(onPointClicked);
+			mouseHandlers.emptyAreaClicked().subscribe(onEmptyAreaClicked);
+
+			mouseHandlers.setProjectedPoints([
+				{
+					degree: 'cycle',
+					wave: 1,
+					x: 100,
+					y: 200,
+					originalPoint: { wave: 1, time: '2024-01-01' as Time, price: 100 }
+				}
+			]);
+
+			mockData.mockChartElement.dispatchEvent(
+				new MouseEvent('click', { clientX: 102, clientY: 202 })
+			);
+
+			expect(onPointClicked).toHaveBeenCalledWith(
+				expect.objectContaining({
+					degree: 'cycle',
+					wave: 1
+				})
+			);
+			expect(onEmptyAreaClicked).not.toHaveBeenCalled();
+		});
+
+		it('fires emptyAreaClicked when clicking empty space in plot area in non-drawing mode', () => {
+			const onPointClicked = vi.fn();
+			const onEmptyAreaClicked = vi.fn();
+			mouseHandlers.pointClicked().subscribe(onPointClicked);
+			mouseHandlers.emptyAreaClicked().subscribe(onEmptyAreaClicked);
+
+			mouseHandlers.setProjectedPoints([
+				{
+					degree: 'cycle',
+					wave: 1,
+					x: 100,
+					y: 200,
+					originalPoint: { wave: 1, time: '2024-01-01' as Time, price: 100 }
+				}
+			]);
+
+			// Click in empty space (x = 300, y = 300)
+			mockData.mockChartElement.dispatchEvent(
+				new MouseEvent('click', { clientX: 300, clientY: 300 })
+			);
+
+			expect(onEmptyAreaClicked).toHaveBeenCalledTimes(1);
+			expect(onPointClicked).not.toHaveBeenCalled();
+		});
+
+		it('does not fire emptyAreaClicked when dragging a point finishes', () => {
+			const onEmptyAreaClicked = vi.fn();
+			mouseHandlers.emptyAreaClicked().subscribe(onEmptyAreaClicked);
+
+			mouseHandlers.setProjectedPoints([
+				{
+					degree: 'cycle',
+					wave: 1,
+					x: 100,
+					y: 200,
+					originalPoint: { wave: 1, time: '2024-01-01' as Time, price: 100 }
+				}
+			]);
+
+			// 1. Mousedown on point 1
+			mockData.mockChartElement.dispatchEvent(
+				new MouseEvent('mousedown', { clientX: 100, clientY: 200 })
+			);
+			// 2. Mousemove to drag
+			mockData.mockChartElement.dispatchEvent(
+				new MouseEvent('mousemove', { clientX: 150, clientY: 250 })
+			);
+			// 3. Mouseup to release
+			window.dispatchEvent(new MouseEvent('mouseup'));
+			// 4. Click event following mouseup
+			mockData.mockChartElement.dispatchEvent(
+				new MouseEvent('click', { clientX: 150, clientY: 250 })
+			);
+
+			expect(onEmptyAreaClicked).not.toHaveBeenCalled();
 		});
 	});
 
@@ -1316,6 +1467,72 @@ describe('Elliott Wave Plugin', () => {
 					x: 750,
 					y: 460
 				});
+			});
+		});
+
+		describe('ElliottWavesPrimitive Selection Integration', () => {
+			let primitive: ElliottWavesPrimitive;
+			let mockData: ReturnType<typeof createMockChartAndSeries>;
+			let mockRequestUpdate: () => void;
+
+			beforeEach(() => {
+				primitive = new ElliottWavesPrimitive({
+					activeDegree: 'cycle'
+				});
+				mockData = createMockChartAndSeries();
+				mockRequestUpdate = vi.fn();
+
+				primitive.attached({
+					chart: mockData.chart,
+					series: mockData.series,
+					requestUpdate: mockRequestUpdate,
+					horzScaleBehavior: {} as never
+				});
+			});
+
+			it('initializes selectedDegree from constructor and updates via setSelectedDegree', () => {
+				const defaultPrimitive = new ElliottWavesPrimitive();
+				expect(defaultPrimitive.getSelectedDegree()).toBeNull();
+
+				const selectedPrimitive = new ElliottWavesPrimitive({ selectedDegree: 'primary' });
+				expect(selectedPrimitive.getSelectedDegree()).toBe('primary');
+
+				selectedPrimitive.setSelectedDegree('cycle');
+				expect(selectedPrimitive.getSelectedDegree()).toBe('cycle');
+
+				selectedPrimitive.setSelectedDegree(null);
+				expect(selectedPrimitive.getSelectedDegree()).toBeNull();
+			});
+
+			it('selects wave degree on point click and deselects on empty space click', () => {
+				primitive.addPoint(100, '2024-01-05' as Time, 'cycle');
+				primitive.addPoint(120, '2024-01-06' as Time, 'primary');
+				primitive.updateAllViews();
+
+				expect(primitive.getSelectedDegree()).toBeNull();
+
+				// Click on cycle point 0 (x: 100, y: 500)
+				mockData.mockChartElement.dispatchEvent(
+					new MouseEvent('click', { clientX: 100, clientY: 500 })
+				);
+				expect(primitive.getSelectedDegree()).toBe('cycle');
+
+				// Click on empty space (x: 300, y: 300)
+				mockData.mockChartElement.dispatchEvent(
+					new MouseEvent('click', { clientX: 300, clientY: 300 })
+				);
+				expect(primitive.getSelectedDegree()).toBeNull();
+			});
+
+			it('fires selectionChanged subscription when selected degree changes', () => {
+				const onSelectionChanged = vi.fn();
+				primitive.selectionChanged().subscribe(onSelectionChanged);
+
+				primitive.setSelectedDegree('cycle');
+				expect(onSelectionChanged).toHaveBeenCalledWith('cycle');
+
+				primitive.setSelectedDegree(null);
+				expect(onSelectionChanged).toHaveBeenCalledWith(null);
 			});
 		});
 	});
