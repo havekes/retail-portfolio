@@ -144,11 +144,24 @@
 	});
 
 	$effect(() => {
+		const isBottomActive = showBottomPane;
+
 		if (
-			showBottomPane &&
+			containerRef &&
+			chartInstance &&
+			(containerRef.clientWidth > 0 || containerRef.clientHeight > 0)
+		) {
+			chartInstance.applyOptions({
+				width: containerRef.clientWidth,
+				height: containerRef.clientHeight
+			});
+		}
+
+		if (
+			isBottomActive &&
 			bottomChartInstance &&
 			bottomContainerRef &&
-			bottomContainerRef.clientHeight > 0
+			(bottomContainerRef.clientWidth > 0 || bottomContainerRef.clientHeight > 0)
 		) {
 			bottomChartInstance.applyOptions({
 				width: bottomContainerRef.clientWidth,
@@ -377,13 +390,22 @@
 		});
 
 		const resizeObserver = new ResizeObserver(() => {
-			if (containerRef && chartInstance) {
+			if (
+				containerRef &&
+				chartInstance &&
+				(containerRef.clientWidth > 0 || containerRef.clientHeight > 0)
+			) {
 				chartInstance.applyOptions({
 					width: containerRef.clientWidth,
 					height: containerRef.clientHeight
 				});
 			}
-			if (bottomContainerRef && bottomChartInstance && showBottomPane) {
+			if (
+				bottomContainerRef &&
+				bottomChartInstance &&
+				showBottomPane &&
+				(bottomContainerRef.clientWidth > 0 || bottomContainerRef.clientHeight > 0)
+			) {
 				bottomChartInstance.applyOptions({
 					width: bottomContainerRef.clientWidth,
 					height: bottomContainerRef.clientHeight
@@ -596,10 +618,6 @@
 			seriesInstance.priceScale().applyOptions({
 				scaleMargins: { top: 0.1, bottom: 0.1 }
 			});
-		} else if (type === 'obv') {
-			chartInstance.priceScale('left').applyOptions({
-				visible: false
-			});
 		}
 
 		const series = indicatorSeries.get(type);
@@ -651,19 +669,19 @@
 	}
 </script>
 
-<div class="relative flex h-full w-full flex-col">
+<div class="relative flex h-full min-h-0 w-full flex-1 flex-col overflow-hidden">
 	<!-- Container dynamically scales based on whether bottom pane is active -->
 	<div
 		bind:this={containerRef}
 		id={containerId}
-		class="w-full transition-all duration-300"
+		class="min-h-0 w-full overflow-hidden"
 		style="height: {showBottomPane ? '70%' : '100%'}"
 	></div>
 
 	<!-- Secondary chart placeholder for oscillators like RSI and MACD -->
 	<div
 		bind:this={bottomContainerRef}
-		class="w-full border-t border-border transition-all duration-300"
+		class="min-h-0 w-full overflow-hidden {showBottomPane ? 'border-t border-border' : ''}"
 		style="height: {showBottomPane ? '30%' : '0'}; display: {showBottomPane ? 'block' : 'none'}"
 	></div>
 

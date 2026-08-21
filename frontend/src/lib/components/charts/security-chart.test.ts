@@ -91,11 +91,20 @@ vi.mock('lightweight-charts', () => {
 });
 
 import type { Component } from 'svelte';
+import { tick } from 'svelte';
 import type { Candle } from '$lib/utils/finance/candle';
 import type { SecurityElliottWaves } from '$lib/utils/finance/elliott-wave';
+import type { IndicatorData } from './security-chart.svelte';
 import { render } from '@testing-library/svelte';
 import { createChart } from 'lightweight-charts';
 import { ElliottWavesPrimitive } from './plugins/elliott-wave/elliott-wave';
+
+interface SecurityChartInstance {
+	addIndicator: (indicator: IndicatorData) => void;
+	removeIndicator: (type: string) => void;
+	updateIndicatorData: (indicator: IndicatorData) => void;
+	updateData: (candles: Candle[]) => void;
+}
 
 describe('SecurityChart - Infinite Scroll & Logical Range', () => {
 	/* eslint-disable-next-line @typescript-eslint/no-explicit-any */
@@ -415,5 +424,267 @@ describe('SecurityChart - Elliott Wave Integration', () => {
 		const destroySpy = vi.spyOn(elliottPrimitive, 'destroy');
 		unmount();
 		expect(destroySpy).toHaveBeenCalled();
+	});
+});
+
+describe('SecurityChart - Bottom Pane & Oscillator Sizing', () => {
+	/* eslint-disable-next-line @typescript-eslint/no-explicit-any */
+	let SecurityChart: Component<any>;
+
+	const initialCandles: Candle[] = [
+		{ time: '2024-01-10', open: 10, high: 12, low: 9, close: 11 },
+		{ time: '2024-01-11', open: 11, high: 13, low: 10, close: 12 }
+	];
+
+	beforeAll(async () => {
+		const mod = await import('./security-chart.svelte');
+		SecurityChart = mod.default;
+	});
+
+	beforeEach(() => {
+		vi.clearAllMocks();
+		rangeCallbacks = [];
+		mockGetVisibleLogicalRange.mockReturnValue({ from: 10, to: 50 });
+	});
+
+	it('renders root and chart containers with min-h-0 and overflow-hidden classes', () => {
+		const { container } = render(SecurityChart, {
+			props: {
+				candles: initialCandles
+			}
+		});
+
+		const rootEl = container.firstElementChild as HTMLElement;
+		expect(rootEl.className).toContain('min-h-0');
+		expect(rootEl.className).toContain('flex-1');
+		expect(rootEl.className).toContain('overflow-hidden');
+
+		const mainContainer = rootEl.querySelector('#main-chart') as HTMLElement;
+		expect(mainContainer).toBeDefined();
+		expect(mainContainer.className).toContain('min-h-0');
+		expect(mainContainer.className).toContain('overflow-hidden');
+		expect(mainContainer.className).not.toContain('transition-all');
+		expect(mainContainer.style.height).toBe('100%');
+
+		const bottomContainer = mainContainer.nextElementSibling as HTMLElement;
+		expect(bottomContainer).toBeDefined();
+		expect(bottomContainer.className).toContain('min-h-0');
+		expect(bottomContainer.className).toContain('overflow-hidden');
+		expect(bottomContainer.className).not.toContain('transition-all');
+		expect(bottomContainer.style.height).toBe('0px');
+		expect(bottomContainer.style.display).toBe('none');
+	});
+
+	it('adjusts main and bottom container heights when RSI indicator is added', async () => {
+		const { container, component: comp } = render(SecurityChart, {
+			props: {
+				candles: initialCandles
+			}
+		});
+		const component = comp as unknown as SecurityChartInstance;
+
+		const mainContainer = container.querySelector('#main-chart') as HTMLElement;
+		const bottomContainer = mainContainer.nextElementSibling as HTMLElement;
+
+		component.addIndicator({
+			type: 'rsi',
+			label: 'RSI (14)',
+			color: '#7e57c2',
+			data: [{ time: '2024-01-10', value: 55 }]
+		});
+		await tick();
+
+		expect(mainContainer.style.height).toBe('70%');
+		expect(bottomContainer.style.height).toBe('30%');
+		expect(bottomContainer.style.display).toBe('block');
+		expect(bottomContainer.className).toContain('border-t');
+		expect(bottomContainer.className).toContain('border-border');
+	});
+
+	it('adjusts main and bottom container heights when MACD indicator is added', async () => {
+		const { container, component: comp } = render(SecurityChart, {
+			props: {
+				candles: initialCandles
+			}
+		});
+		const component = comp as unknown as SecurityChartInstance;
+
+		const mainContainer = container.querySelector('#main-chart') as HTMLElement;
+		const bottomContainer = mainContainer.nextElementSibling as HTMLElement;
+
+		component.addIndicator({
+			type: 'macd',
+			label: 'MACD (12, 26, 9)',
+			color: '#2962FF',
+			data: [{ time: '2024-01-10', histogram: 0.5, macd: 1.2, signal: 0.7 }]
+		});
+		await tick();
+
+		expect(mainContainer.style.height).toBe('70%');
+		expect(bottomContainer.style.height).toBe('30%');
+		expect(bottomContainer.style.display).toBe('block');
+	});
+
+	it('adjusts main and bottom container heights when OBV indicator is added', async () => {
+		const { container, component: comp } = render(SecurityChart, {
+			props: {
+				candles: initialCandles
+			}
+		});
+		const component = comp as unknown as SecurityChartInstance;
+
+		const mainContainer = container.querySelector('#main-chart') as HTMLElement;
+		const bottomContainer = mainContainer.nextElementSibling as HTMLElement;
+
+		component.addIndicator({
+			type: 'obv',
+			label: 'OBV',
+			color: '#26a69a',
+			data: [{ time: '2024-01-10', value: 1000 }]
+		});
+		await tick();
+
+		expect(mainContainer.style.height).toBe('70%');
+		expect(bottomContainer.style.height).toBe('30%');
+		expect(bottomContainer.style.display).toBe('block');
+	});
+
+	it('restores 100% height to main container and hides bottom pane when bottom indicators are removed', async () => {
+		const { container, component: comp } = render(SecurityChart, {
+			props: {
+				candles: initialCandles
+			}
+		});
+		const component = comp as unknown as SecurityChartInstance;
+
+		const mainContainer = container.querySelector('#main-chart') as HTMLElement;
+		const bottomContainer = mainContainer.nextElementSibling as HTMLElement;
+
+		// Add multiple bottom indicators
+		component.addIndicator({
+			type: 'rsi',
+			label: 'RSI (14)',
+			color: '#7e57c2',
+			data: [{ time: '2024-01-10', value: 55 }]
+		});
+		component.addIndicator({
+			type: 'macd',
+			label: 'MACD (12, 26, 9)',
+			color: '#2962FF',
+			data: [{ time: '2024-01-10', histogram: 0.5, macd: 1.2, signal: 0.7 }]
+		});
+		await tick();
+
+		expect(mainContainer.style.height).toBe('70%');
+		expect(bottomContainer.style.height).toBe('30%');
+
+		// Remove RSI, MACD still active -> bottom pane stays active
+		component.removeIndicator('rsi');
+		await tick();
+		expect(mainContainer.style.height).toBe('70%');
+		expect(bottomContainer.style.height).toBe('30%');
+
+		// Remove MACD -> all bottom indicators gone -> restores 100% height
+		component.removeIndicator('macd');
+		await tick();
+		expect(mainContainer.style.height).toBe('100%');
+		expect(bottomContainer.style.height).toBe('0px');
+		expect(bottomContainer.style.display).toBe('none');
+	});
+
+	it('invokes applyOptions on chart instances when bottom pane is toggled and dimensions exist', async () => {
+		const { container, component: comp } = render(SecurityChart, {
+			props: {
+				candles: initialCandles
+			}
+		});
+		const component = comp as unknown as SecurityChartInstance;
+
+		const mainContainer = container.querySelector('#main-chart') as HTMLElement;
+		const bottomContainer = mainContainer.nextElementSibling as HTMLElement;
+
+		Object.defineProperty(mainContainer, 'clientWidth', { value: 800, configurable: true });
+		Object.defineProperty(mainContainer, 'clientHeight', { value: 420, configurable: true });
+		Object.defineProperty(bottomContainer, 'clientWidth', { value: 800, configurable: true });
+		Object.defineProperty(bottomContainer, 'clientHeight', { value: 180, configurable: true });
+
+		const createdCharts = vi.mocked(createChart).mock.results.map((r) => r.value);
+		const mainChart = createdCharts[0];
+		const bottomChart = createdCharts[1];
+
+		// Clear initial createChart / mount applyOptions calls
+		vi.mocked(mainChart.applyOptions).mockClear();
+		vi.mocked(bottomChart.applyOptions).mockClear();
+
+		// Activate bottom pane
+		component.addIndicator({
+			type: 'rsi',
+			label: 'RSI',
+			color: '#7e57c2',
+			data: [{ time: '2024-01-10', value: 50 }]
+		});
+		await tick();
+
+		expect(mainChart.applyOptions).toHaveBeenCalledWith({
+			width: 800,
+			height: 420
+		});
+		expect(bottomChart.applyOptions).toHaveBeenCalledWith({
+			width: 800,
+			height: 180
+		});
+
+		// Remove indicator and verify main chart is resized back
+		vi.mocked(mainChart.applyOptions).mockClear();
+		Object.defineProperty(mainContainer, 'clientHeight', { value: 600, configurable: true });
+
+		component.removeIndicator('rsi');
+		await tick();
+		expect(mainChart.applyOptions).toHaveBeenCalledWith({
+			width: 800,
+			height: 600
+		});
+	});
+
+	it('synchronizes visible logical range between main chart and bottom chart', async () => {
+		const { container, component: comp } = render(SecurityChart, {
+			props: {
+				candles: initialCandles
+			}
+		});
+		const component = comp as unknown as SecurityChartInstance;
+
+		const mainContainer = container.querySelector('#main-chart') as HTMLElement;
+		const bottomContainer = mainContainer.nextElementSibling as HTMLElement;
+
+		Object.defineProperty(mainContainer, 'clientWidth', { value: 800, configurable: true });
+		Object.defineProperty(mainContainer, 'clientHeight', { value: 420, configurable: true });
+		Object.defineProperty(bottomContainer, 'clientWidth', { value: 800, configurable: true });
+		Object.defineProperty(bottomContainer, 'clientHeight', { value: 180, configurable: true });
+
+		mockGetVisibleLogicalRange.mockReturnValue({ from: 15, to: 45 });
+
+		// Activate bottom pane
+		component.addIndicator({
+			type: 'rsi',
+			label: 'RSI',
+			color: '#7e57c2',
+			data: [{ time: '2024-01-10', value: 50 }]
+		});
+		await tick();
+
+		// Bottom chart should sync initial logical range from main chart
+		expect(mockSetVisibleLogicalRange).toHaveBeenCalledWith({ from: 15, to: 45 });
+
+		// Main chart time scale subscription triggers bottom chart sync
+		mockSetVisibleLogicalRange.mockClear();
+		// callback 0 is main chart listener, callback 1 is bottom chart listener
+		rangeCallbacks[0]({ from: 20, to: 60 });
+		expect(mockSetVisibleLogicalRange).toHaveBeenCalledWith({ from: 20, to: 60 });
+
+		// Bottom chart time scale subscription triggers main chart sync
+		mockSetVisibleLogicalRange.mockClear();
+		rangeCallbacks[1]({ from: 25, to: 65 });
+		expect(mockSetVisibleLogicalRange).toHaveBeenCalledWith({ from: 25, to: 65 });
 	});
 });
