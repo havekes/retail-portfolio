@@ -10,6 +10,7 @@ import type {
 } from 'lightweight-charts';
 import type { ISubscription } from '../helpers/delegate';
 import type { DegreeWaveCount, WaveDegree, WavePoint } from '$lib/utils/finance/elliott-wave';
+import type { Candle } from '$lib/utils/finance/candle';
 import { DEGREE_STYLES, MAX_WAVE_POINTS } from './constants';
 import { MouseHandlers, type ProjectedPointWithTarget } from './mouse';
 import {
@@ -20,6 +21,7 @@ import {
 } from './pane-renderer';
 import { ElliottWavePaneView } from './pane-view';
 import { ElliottWaveState } from './state';
+import { TimeProjector } from './time-projector';
 
 export class ElliottWavesPrimitive implements ISeriesPrimitive<Time> {
 	private _chart: IChartApi | undefined = undefined;
@@ -28,6 +30,7 @@ export class ElliottWavesPrimitive implements ISeriesPrimitive<Time> {
 
 	private readonly _state: ElliottWaveState;
 	private readonly _mouseHandlers: MouseHandlers;
+	private readonly _timeProjector: TimeProjector;
 	private readonly _paneViews: [ElliottWavePaneView];
 
 	private _currentCursor: string | null = null;
@@ -38,6 +41,7 @@ export class ElliottWavesPrimitive implements ISeriesPrimitive<Time> {
 	}) {
 		this._state = new ElliottWaveState();
 		this._mouseHandlers = new MouseHandlers();
+		this._timeProjector = new TimeProjector();
 		this._paneViews = [new ElliottWavePaneView()];
 
 		if (initialState?.activeDegree) {
@@ -53,7 +57,8 @@ export class ElliottWavesPrimitive implements ISeriesPrimitive<Time> {
 		this._series = series;
 		this._requestUpdate = requestUpdate;
 
-		this._mouseHandlers.attached(chart, series);
+		this._timeProjector.attach(chart);
+		this._mouseHandlers.attached(chart, series, this._timeProjector);
 		this._mouseHandlers.setDrawingMode(this._state.isDrawingMode());
 
 		this._state.wavePointsChanged().subscribe(() => {
@@ -185,6 +190,15 @@ export class ElliottWavesPrimitive implements ISeriesPrimitive<Time> {
 		this._state.setAllWaveCounts(waves);
 	}
 
+	/**
+	 * Provide the latest candle data so future (beyond last data point) wave
+	 * times can be extrapolated for placement, dragging, and rendering.
+	 */
+	public setCandles(candles: Candle[]): void {
+		this._timeProjector.updateCandles(candles);
+		this._requestUpdate?.();
+	}
+
 	public getPoints(degree?: WaveDegree): WavePoint[] {
 		return this._state.getPoints(degree);
 	}
@@ -207,7 +221,7 @@ export class ElliottWavesPrimitive implements ISeriesPrimitive<Time> {
 	}
 
 	public updatePoint(
-		wave: 1 | 2 | 3 | 4 | 5,
+		wave: 0 | 1 | 2 | 3 | 4 | 5,
 		updateOrPrice: { time?: Time; price?: number } | number,
 		timeOrDegree?: Time | WaveDegree,
 		maybeDegree?: WaveDegree
@@ -263,7 +277,6 @@ export class ElliottWavesPrimitive implements ISeriesPrimitive<Time> {
 	private _calculateRendererData(): ElliottWaveRendererData | null {
 		if (!this._chart || !this._series) return null;
 
-		const timeScale = this._chart.timeScale();
 		const series = this._series;
 		const degrees: WaveDegree[] = ['cycle', 'primary'];
 
@@ -281,7 +294,7 @@ export class ElliottWavesPrimitive implements ISeriesPrimitive<Time> {
 			const projectedPoints: ProjectedWavePoint[] = [];
 
 			for (const pt of points) {
-				const x = timeScale.timeToCoordinate(pt.time);
+				const x = this._timeProjector.timeToCoordinate(pt.time);
 				const y = series.priceToCoordinate(pt.price);
 
 				if (x !== null && y !== null) {
@@ -326,7 +339,7 @@ export class ElliottWavesPrimitive implements ISeriesPrimitive<Time> {
 			const activePoints = activeDegreeData?.points ?? [];
 
 			if (activePoints.length < MAX_WAVE_POINTS) {
-				const nextWave = (activePoints.length + 1) as 1 | 2 | 3 | 4 | 5;
+				const nextWave = activePoints.length as 0 | 1 | 2 | 3 | 4 | 5;
 				const lastPoint = activePoints.length > 0 ? activePoints[activePoints.length - 1] : null;
 				const lastMouse = this._mouseHandlers.getLastMousePosition();
 

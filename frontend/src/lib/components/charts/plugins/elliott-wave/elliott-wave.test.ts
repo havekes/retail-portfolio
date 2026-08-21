@@ -10,9 +10,38 @@ import {
 	PRIMARY_STYLE,
 	DEGREE_STYLES,
 	HIT_TEST_RADIUS,
-	MAX_WAVE_POINTS
+	MAX_WAVE_POINTS,
+	TimeProjector,
+	computeIntervalSeconds,
+	addIntervalToTime
 } from './index';
 import type { DegreeWaveCount } from '$lib/utils/finance/elliott-wave';
+import type { Candle } from '$lib/utils/finance/candle';
+
+// Helper to build daily candles for future-coordinate tests.
+function createDailyCandles(count = 30): Candle[] {
+	return Array.from({ length: count }, (_, i) => {
+		const day = i + 1;
+		return {
+			time: `2024-01-${String(day).padStart(2, '0')}` as Time,
+			open: 100 + i,
+			high: 110 + i,
+			low: 95 + i,
+			close: 105 + i
+		};
+	});
+}
+
+// Helper to configure a TimeProjector with the default mock chart + daily candles.
+function configureFutureProjector(
+	mockData: ReturnType<typeof createMockChartAndSeries>,
+	candleCount = 30
+): TimeProjector {
+	const projector = new TimeProjector();
+	projector.attach(mockData.chart);
+	projector.updateCandles(createDailyCandles(candleCount));
+	return projector;
+}
 
 // Helper to create mock Chart and Series APIs
 function createMockChartAndSeries() {
@@ -34,8 +63,10 @@ function createMockChartAndSeries() {
 
 	const timeScale = {
 		coordinateToTime: vi.fn((x: number) => {
-			if (x < 0 || x > 750) return null;
-			return `2024-01-${String(Math.min(30, Math.max(1, Math.floor(x / 25) + 1))).padStart(2, '0')}` as Time;
+			// Last candle (day 30) sits at x = 725; beyond that is the future area
+			if (x < 0 || x > 725) return null;
+			const day = Math.floor(x / 25) + 1;
+			return `2024-01-${String(Math.min(30, Math.max(1, day))).padStart(2, '0')}` as Time;
 		}),
 		timeToCoordinate: vi.fn((time: Time) => {
 			if (typeof time === 'string' && time.startsWith('2024-01-')) {
@@ -44,6 +75,11 @@ function createMockChartAndSeries() {
 			}
 			return null;
 		}),
+		coordinateToLogical: vi.fn((x: number) => {
+			if (x < 0 || x > 1500) return null;
+			return x / 25;
+		}),
+		logicalToCoordinate: vi.fn((logical: number) => logical * 25),
 		height: vi.fn(() => 30),
 		width: vi.fn(() => 750)
 	};
@@ -67,7 +103,9 @@ function createMockChartAndSeries() {
 
 	const chart = {
 		chartElement: vi.fn(() => mockChartElement),
-		timeScale: vi.fn(() => timeScale)
+		timeScale: vi.fn(() => timeScale),
+		options: vi.fn(() => ({ handleScroll: { pressedMouseMove: true } })),
+		applyOptions: vi.fn()
 	} as unknown as IChartApi;
 
 	return { chart, series, mockChartElement, timeScale, priceScale };
@@ -128,8 +166,11 @@ describe('Elliott Wave Plugin', () => {
 		it('defines Cycle and Primary visual styles with distinct formatting and colors', () => {
 			expect(CYCLE_STYLE.degree).toBe('cycle');
 			expect(CYCLE_STYLE.color).toBe('#3b82f6');
-			expect(CYCLE_STYLE.formatLabel(1)).toBe('(1)');
-			expect(CYCLE_STYLE.formatLabel(5)).toBe('(5)');
+			expect(CYCLE_STYLE.formatLabel(1)).toBe('I');
+			expect(CYCLE_STYLE.formatLabel(2)).toBe('II');
+			expect(CYCLE_STYLE.formatLabel(3)).toBe('III');
+			expect(CYCLE_STYLE.formatLabel(4)).toBe('IV');
+			expect(CYCLE_STYLE.formatLabel(5)).toBe('V');
 
 			expect(PRIMARY_STYLE.degree).toBe('primary');
 			expect(PRIMARY_STYLE.color).toBe('#10b981');
@@ -139,7 +180,7 @@ describe('Elliott Wave Plugin', () => {
 			expect(DEGREE_STYLES.cycle).toBe(CYCLE_STYLE);
 			expect(DEGREE_STYLES.primary).toBe(PRIMARY_STYLE);
 			expect(HIT_TEST_RADIUS).toBe(14);
-			expect(MAX_WAVE_POINTS).toBe(5);
+			expect(MAX_WAVE_POINTS).toBe(6);
 		});
 	});
 
@@ -187,7 +228,7 @@ describe('Elliott Wave Plugin', () => {
 			expect(onDrawingChanged).toHaveBeenCalledWith(false);
 		});
 
-		it('sequentially adds points 1 to 5 to the active degree and completes drawing mode', () => {
+		it('sequentially adds points 0 to 5 to the active degree and completes drawing mode', () => {
 			const onPointsChanged = vi.fn();
 			const onDrawingChanged = vi.fn();
 			state.wavePointsChanged().subscribe(onPointsChanged);
@@ -195,25 +236,26 @@ describe('Elliott Wave Plugin', () => {
 
 			state.setDrawingMode(true);
 
-			// Add Wave 1
-			const p1 = state.addPoint({ time: '2024-01-01' as Time, price: 100 });
-			expect(p1.wave).toBe(1);
-			expect(p1.price).toBe(100);
+			// Add Wave 0 (Anchor origin point)
+			const p0 = state.addPoint({ time: '2024-01-01' as Time, price: 50 });
+			expect(p0.wave).toBe(0);
+			expect(p0.price).toBe(50);
 			expect(state.getPoints('cycle').length).toBe(1);
 			expect(state.isDrawingMode()).toBe(true);
 
-			// Add Wave 2, 3, 4
-			state.addPoint({ time: '2024-01-02' as Time, price: 90 });
-			state.addPoint({ time: '2024-01-03' as Time, price: 150 });
-			state.addPoint({ time: '2024-01-04' as Time, price: 120 });
+			// Add Wave 1, 2, 3, 4
+			state.addPoint({ time: '2024-01-02' as Time, price: 100 });
+			state.addPoint({ time: '2024-01-03' as Time, price: 90 });
+			state.addPoint({ time: '2024-01-04' as Time, price: 150 });
+			state.addPoint({ time: '2024-01-05' as Time, price: 120 });
 
-			expect(state.getPoints('cycle').length).toBe(4);
+			expect(state.getPoints('cycle').length).toBe(5);
 			expect(state.isDrawingMode()).toBe(true);
 
 			// Add Wave 5 -> Should auto-complete drawing mode
-			const p5 = state.addPoint({ time: '2024-01-05' as Time, price: 200 });
+			const p5 = state.addPoint({ time: '2024-01-06' as Time, price: 200 });
 			expect(p5.wave).toBe(5);
-			expect(state.getPoints('cycle').length).toBe(5);
+			expect(state.getPoints('cycle').length).toBe(6);
 			expect(state.isDrawingMode()).toBe(false);
 			expect(onDrawingChanged).toHaveBeenCalledWith(false);
 
@@ -222,30 +264,37 @@ describe('Elliott Wave Plugin', () => {
 			expect(waveCount?.wave5Target).toBe(200);
 		});
 
-		it('restarts point sequence if adding a point when 5 points already exist', () => {
-			for (let i = 1; i <= 5; i++) {
-				state.addPoint({ time: `2024-01-0${i}` as Time, price: 100 + i * 10 });
+		it('restarts point sequence if adding a point when 6 points already exist', () => {
+			for (let i = 0; i <= 5; i++) {
+				state.addPoint({ time: `2024-01-0${i + 1}` as Time, price: 100 + i * 10 });
 			}
-			expect(state.getPoints('cycle').length).toBe(5);
+			expect(state.getPoints('cycle').length).toBe(6);
 
-			// Adding 6th point resets to 1 point
+			// Adding 7th point resets to 1 point with wave 0
 			const nextPoint = state.addPoint({ time: '2024-01-10' as Time, price: 300 });
-			expect(nextPoint.wave).toBe(1);
+			expect(nextPoint.wave).toBe(0);
 			expect(state.getPoints('cycle').length).toBe(1);
 			expect(state.getPoints('cycle')[0].price).toBe(300);
 		});
 
-		it('updates specific point coordinates in place', () => {
-			state.addPoint({ time: '2024-01-01' as Time, price: 100 });
-			state.addPoint({ time: '2024-01-02' as Time, price: 90 });
-			state.addPoint({ time: '2024-01-03' as Time, price: 150 });
+		it('updates specific point coordinates in place including point 0', () => {
+			state.addPoint({ time: '2024-01-01' as Time, price: 50 });
+			state.addPoint({ time: '2024-01-02' as Time, price: 100 });
+			state.addPoint({ time: '2024-01-03' as Time, price: 90 });
+			state.addPoint({ time: '2024-01-04' as Time, price: 150 });
 
 			const onPointsChanged = vi.fn();
 			state.wavePointsChanged().subscribe(onPointsChanged);
 
-			const updated = state.updatePoint(2, { price: 95, time: '2024-01-02' as Time });
-			expect(updated).toBe(true);
-			expect(state.getPoints('cycle')[1].price).toBe(95);
+			// Update point 0
+			const updated0 = state.updatePoint(0, { price: 55, time: '2024-01-01' as Time });
+			expect(updated0).toBe(true);
+			expect(state.getPoints('cycle')[0].price).toBe(55);
+
+			// Update point 2
+			const updated2 = state.updatePoint(2, { price: 95, time: '2024-01-03' as Time });
+			expect(updated2).toBe(true);
+			expect(state.getPoints('cycle')[2].price).toBe(95);
 			expect(onPointsChanged).toHaveBeenCalled();
 
 			// Updating non-existent wave returns false
@@ -314,7 +363,7 @@ describe('Elliott Wave Plugin', () => {
 			renderer = new ElliottWavePaneRenderer();
 		});
 
-		it('renders connecting lines and node badges for Cycle degree', () => {
+		it('renders node badges for Cycle degree with Roman numerals and no connecting lines (omits label for wave 0)', () => {
 			const { target, drawCalls } = createMockCanvasTarget();
 
 			renderer.update({
@@ -324,9 +373,10 @@ describe('Elliott Wave Plugin', () => {
 						config: CYCLE_STYLE,
 						isActiveDegree: true,
 						points: [
-							{ wave: 1, x: 100, y: 300, time: '2024-01-01' as Time, price: 100 },
-							{ wave: 2, x: 150, y: 350, time: '2024-01-02' as Time, price: 80 },
-							{ wave: 3, x: 200, y: 200, time: '2024-01-03' as Time, price: 150 }
+							{ wave: 0, x: 50, y: 320, time: '2024-01-01' as Time, price: 90 },
+							{ wave: 1, x: 100, y: 300, time: '2024-01-02' as Time, price: 100 },
+							{ wave: 2, x: 150, y: 350, time: '2024-01-03' as Time, price: 80 },
+							{ wave: 3, x: 200, y: 200, time: '2024-01-04' as Time, price: 150 }
 						]
 					},
 					{
@@ -343,21 +393,27 @@ describe('Elliott Wave Plugin', () => {
 
 			expect(target.useBitmapCoordinateSpace).toHaveBeenCalled();
 
-			// Should have line drawing calls (moveTo, lineTo)
-			const moveCalls = drawCalls.filter((c) => c.type === 'moveTo');
+			// No connecting lines should be drawn between wave points (preview is null)
 			const lineCalls = drawCalls.filter((c) => c.type === 'lineTo');
-			expect(moveCalls.length).toBeGreaterThanOrEqual(1);
-			expect(lineCalls.length).toBeGreaterThanOrEqual(2);
+			const moveCalls = drawCalls.filter((c) => c.type === 'moveTo');
+			expect(lineCalls).toHaveLength(0);
+			expect(moveCalls).toHaveLength(0);
 
-			// Should render text badges "(1)", "(2)", "(3)" for Cycle
+			// Should render node badge circles for all 4 points (at least 4 arc calls)
+			const arcCalls = drawCalls.filter((c) => c.type === 'arc');
+			expect(arcCalls.length).toBeGreaterThanOrEqual(4);
+
+			// Should render Roman numeral text badges "I", "II", "III" for Cycle, but NOT for wave 0
 			const textCalls = drawCalls.filter((c) => c.type === 'fillText');
 			const labels = textCalls.map((c) => c.args[0]);
-			expect(labels).toContain('(1)');
-			expect(labels).toContain('(2)');
-			expect(labels).toContain('(3)');
+			expect(labels).toContain('I');
+			expect(labels).toContain('II');
+			expect(labels).toContain('III');
+			expect(labels).not.toContain('(0)');
+			expect(labels).not.toContain('0');
 		});
 
-		it('renders Primary degree badges formatted as "1", "2", "3"', () => {
+		it('renders Primary degree badges formatted as "1", "2", "3" (omits wave 0 label)', () => {
 			const { target, drawCalls } = createMockCanvasTarget();
 
 			renderer.update({
@@ -367,8 +423,9 @@ describe('Elliott Wave Plugin', () => {
 						config: PRIMARY_STYLE,
 						isActiveDegree: true,
 						points: [
-							{ wave: 1, x: 100, y: 300, time: '2024-01-01' as Time, price: 100 },
-							{ wave: 2, x: 150, y: 350, time: '2024-01-02' as Time, price: 80 }
+							{ wave: 0, x: 50, y: 320, time: '2024-01-01' as Time, price: 90 },
+							{ wave: 1, x: 100, y: 300, time: '2024-01-02' as Time, price: 100 },
+							{ wave: 2, x: 150, y: 350, time: '2024-01-03' as Time, price: 80 }
 						]
 					}
 				],
@@ -381,9 +438,10 @@ describe('Elliott Wave Plugin', () => {
 			const labels = textCalls.map((c) => c.args[0]);
 			expect(labels).toContain('1');
 			expect(labels).toContain('2');
+			expect(labels).not.toContain('0');
 		});
 
-		it('renders highlight ring when a point is hovered or dragged', () => {
+		it('renders highlight ring when a point (including wave 0) is hovered or dragged', () => {
 			const { target, drawCalls } = createMockCanvasTarget();
 
 			renderer.update({
@@ -393,7 +451,7 @@ describe('Elliott Wave Plugin', () => {
 						config: CYCLE_STYLE,
 						isActiveDegree: true,
 						points: [
-							{ wave: 1, x: 100, y: 300, time: '2024-01-01' as Time, price: 100, isHovered: true }
+							{ wave: 0, x: 100, y: 300, time: '2024-01-01' as Time, price: 100, isHovered: true }
 						]
 					}
 				],
@@ -407,7 +465,7 @@ describe('Elliott Wave Plugin', () => {
 			expect(arcCalls.length).toBeGreaterThanOrEqual(2);
 		});
 
-		it('renders drawing preview dashed line and ghost badge', () => {
+		it('renders drawing preview for wave 0 without text badge', () => {
 			const { target, drawCalls } = createMockCanvasTarget();
 
 			renderer.update({
@@ -416,14 +474,46 @@ describe('Elliott Wave Plugin', () => {
 						degree: 'cycle',
 						config: CYCLE_STYLE,
 						isActiveDegree: true,
-						points: [{ wave: 1, x: 100, y: 300, time: '2024-01-01' as Time, price: 100 }]
+						points: []
 					}
 				],
 				preview: {
 					degree: 'cycle',
 					config: CYCLE_STYLE,
-					nextWave: 2,
-					lastPoint: { wave: 1, x: 100, y: 300, time: '2024-01-01' as Time, price: 100 },
+					nextWave: 0,
+					lastPoint: null,
+					currentMouse: { x: 100, y: 200 }
+				}
+			});
+
+			renderer.draw(target);
+
+			// Ghost circle is drawn (arc call)
+			const arcCalls = drawCalls.filter((c) => c.type === 'arc');
+			expect(arcCalls.length).toBeGreaterThanOrEqual(1);
+
+			// But no text label is drawn for nextWave 0
+			const textCalls = drawCalls.filter((c) => c.type === 'fillText');
+			expect(textCalls.length).toBe(0);
+		});
+
+		it('renders drawing preview dashed line and ghost badge for wave 1', () => {
+			const { target, drawCalls } = createMockCanvasTarget();
+
+			renderer.update({
+				degrees: [
+					{
+						degree: 'cycle',
+						config: CYCLE_STYLE,
+						isActiveDegree: true,
+						points: [{ wave: 0, x: 100, y: 300, time: '2024-01-01' as Time, price: 100 }]
+					}
+				],
+				preview: {
+					degree: 'cycle',
+					config: CYCLE_STYLE,
+					nextWave: 1,
+					lastPoint: { wave: 0, x: 100, y: 300, time: '2024-01-01' as Time, price: 100 },
 					currentMouse: { x: 160, y: 250 }
 				}
 			});
@@ -435,7 +525,7 @@ describe('Elliott Wave Plugin', () => {
 
 			const textCalls = drawCalls.filter((c) => c.type === 'fillText');
 			const labels = textCalls.map((c) => c.args[0]);
-			expect(labels).toContain('(2)'); // Ghost badge for next wave
+			expect(labels).toContain('I'); // Ghost badge for next wave (Cycle = Roman numeral)
 		});
 
 		it('handles empty or null data gracefully without crashing', () => {
@@ -536,6 +626,11 @@ describe('Elliott Wave Plugin', () => {
 			expect(mouseHandlers.isDragging()).toBe(true);
 			expect(onDragStart).toHaveBeenCalledWith({ degree: 'cycle', wave: 2 });
 
+			// Disabling chart scroll/panning while dragging (pressedMouseMove off)
+			expect(mockData.chart.applyOptions).toHaveBeenCalledWith({
+				handleScroll: { pressedMouseMove: false }
+			});
+
 			// 2. Mousemove to new position
 			mockData.mockChartElement.dispatchEvent(
 				new MouseEvent('mousemove', { clientX: 175, clientY: 230 })
@@ -546,10 +641,13 @@ describe('Elliott Wave Plugin', () => {
 			expect(onDrag.mock.calls[0][0].time).toBeDefined();
 			expect(onDrag.mock.calls[0][0].price).toBeDefined();
 
-			// 3. Mouseup on window or chart
+			// 3. Mouseup on window or chart restores chart scrolling
 			window.dispatchEvent(new MouseEvent('mouseup'));
 			expect(mouseHandlers.isDragging()).toBe(false);
 			expect(onDragEnd).toHaveBeenCalledWith({ degree: 'cycle', wave: 2 });
+			expect(mockData.chart.applyOptions).toHaveBeenCalledWith({
+				handleScroll: { pressedMouseMove: true }
+			});
 		});
 
 		it('fires chartClicked in drawing mode when user clicks chart plot area', () => {
@@ -641,29 +739,33 @@ describe('Elliott Wave Plugin', () => {
 			expect(hit?.cursorStyle === 'grab' || hit === null).toBe(true);
 		});
 
-		it('handles sequential drawing mode clicks adding points 1 to 5', () => {
+		it('handles sequential drawing mode clicks adding points 0 to 5', () => {
 			primitive.setDrawingMode(true);
 			expect(primitive.isDrawingMode()).toBe(true);
 
-			// Click 5 times in chart
-			for (let i = 1; i <= 5; i++) {
+			// Click 6 times in chart (points 0, 1, 2, 3, 4, 5)
+			for (let i = 0; i <= 5; i++) {
+				if (i < 5) {
+					// Drawing mode should remain active through clicks 0, 1, 2, 3, 4
+					expect(primitive.isDrawingMode()).toBe(true);
+				}
 				mockData.mockChartElement.dispatchEvent(
 					new MouseEvent('click', { clientX: 50 + i * 40, clientY: 200 - i * 20 })
 				);
 			}
 
 			const points = primitive.getPoints('cycle');
-			expect(points).toHaveLength(5);
-			expect(points.map((p) => p.wave)).toEqual([1, 2, 3, 4, 5]);
-			// Drawing mode should auto-complete on 5th point
+			expect(points).toHaveLength(6);
+			expect(points.map((p) => p.wave)).toEqual([0, 1, 2, 3, 4, 5]);
+			// Drawing mode should auto-complete on 6th point (wave 5)
 			expect(primitive.isDrawingMode()).toBe(false);
 		});
 
-		it('supports interactive point dragging to modify wave coordinates', () => {
-			primitive.addPoint(120, '2024-01-05' as Time, 'cycle'); // wave 1: x = 100, y = 400
+		it('supports interactive point dragging to modify wave coordinates including point 0', () => {
+			primitive.addPoint(120, '2024-01-05' as Time, 'cycle'); // wave 0: x = 100, y = 400
 			primitive.updateAllViews();
 
-			// Start dragging wave 1
+			// Start dragging wave 0
 			mockData.mockChartElement.dispatchEvent(
 				new MouseEvent('mousedown', { clientX: 100, clientY: 400 })
 			);
@@ -675,9 +777,10 @@ describe('Elliott Wave Plugin', () => {
 				new MouseEvent('mousemove', { clientX: 150, clientY: 350 })
 			);
 
-			const wave1 = primitive.getPoints('cycle')[0];
-			expect(wave1.time).toBe('2024-01-07');
-			expect(wave1.price).toBe(130);
+			const wave0 = primitive.getPoints('cycle')[0];
+			expect(wave0.wave).toBe(0);
+			expect(wave0.time).toBe('2024-01-07');
+			expect(wave0.price).toBe(130);
 
 			// Release drag
 			window.dispatchEvent(new MouseEvent('mouseup'));
@@ -745,6 +848,150 @@ describe('Elliott Wave Plugin', () => {
 
 		it('cleans up and destroys primitive resources cleanly', () => {
 			expect(() => primitive.destroy()).not.toThrow();
+		});
+	});
+
+	describe('Future Wave Points (beyond last candle)', () => {
+		describe('TimeProjector', () => {
+			it('derives the bar interval from median candle spacing', () => {
+				const candles = createDailyCandles(10);
+				expect(computeIntervalSeconds(candles)).toBe(86400);
+			});
+
+			it('addIntervalToTime preserves the reference time format', () => {
+				expect(addIntervalToTime('2024-01-30', 3, 86400)).toBe('2024-02-02');
+				expect(addIntervalToTime(1706601600 as Time, 2, 3600)).toBe(1706608800);
+			});
+
+			it('projects a future coordinate to an extrapolated future time', () => {
+				const mockData = createMockChartAndSeries();
+				const projector = configureFutureProjector(mockData);
+				mockData.timeScale.coordinateToTime.mockReturnValue(null); // force future path
+
+				// x = 800 -> logical 32 -> 3 bars beyond last (index 29) -> +3 days
+				const time = projector.coordinateToTime(800);
+				expect(time).toBe('2024-02-02');
+			});
+
+			it('projects a future time to an extrapolated x coordinate', () => {
+				const mockData = createMockChartAndSeries();
+				const projector = configureFutureProjector(mockData);
+				mockData.timeScale.timeToCoordinate.mockReturnValue(null); // force future path
+
+				// '2024-02-02' is 3 days beyond '2024-01-30' -> logical 32 -> x = 800
+				const x = projector.timeToCoordinate('2024-02-02' as Time);
+				expect(x).toBe(800);
+			});
+
+			it('falls back to the time scale answer within historical data', () => {
+				const mockData = createMockChartAndSeries();
+				const projector = configureFutureProjector(mockData);
+
+				// x = 200 is within data (coordinateToTime returns '2024-01-09')
+				expect(projector.coordinateToTime(200)).toBe('2024-01-09');
+				// historical time maps back through the time scale
+				expect(projector.timeToCoordinate('2024-01-05' as Time)).toBe(100);
+			});
+
+			it('returns null when no candle data has been provided', () => {
+				const mockData = createMockChartAndSeries();
+				const projector = new TimeProjector();
+				projector.attach(mockData.chart);
+				mockData.timeScale.coordinateToTime.mockReturnValue(null);
+
+				expect(projector.coordinateToTime(800)).toBeNull();
+				expect(projector.timeToCoordinate('2024-02-02' as Time)).toBeNull();
+			});
+		});
+
+		it('fires chartClicked with an extrapolated future time when clicking in the future area', () => {
+			const mouseHandlers = new MouseHandlers();
+			const mockData = createMockChartAndSeries();
+			const projector = configureFutureProjector(mockData);
+			mouseHandlers.attached(mockData.chart, mockData.series, projector);
+
+			const onChartClicked = vi.fn();
+			mouseHandlers.chartClicked().subscribe(onChartClicked);
+			mouseHandlers.setDrawingMode(true);
+
+			// x = 750 is one whole bar beyond the last candle (x > 725) but still
+			// inside the plot area (<= 750) -> future placement
+			mockData.mockChartElement.dispatchEvent(
+				new MouseEvent('click', { clientX: 750, clientY: 150 })
+			);
+
+			expect(onChartClicked).toHaveBeenCalledWith(
+				expect.objectContaining({
+					x: 750,
+					time: '2024-01-31',
+					price: expect.any(Number)
+				})
+			);
+		});
+
+		it('fires pointDragged with an extrapolated future time when dragging a point into the future area', () => {
+			const mouseHandlers = new MouseHandlers();
+			const mockData = createMockChartAndSeries();
+			const projector = configureFutureProjector(mockData);
+			mouseHandlers.attached(mockData.chart, mockData.series, projector);
+
+			const onDrag = vi.fn();
+			mouseHandlers.pointDragged().subscribe(onDrag);
+
+			mouseHandlers.setProjectedPoints([
+				{
+					degree: 'cycle',
+					wave: 1,
+					x: 100,
+					y: 200,
+					originalPoint: { wave: 1, time: '2024-01-05' as Time, price: 100 }
+				}
+			]);
+
+			// mousedown on the point, then drag into the future area (x = 750)
+			mockData.mockChartElement.dispatchEvent(
+				new MouseEvent('mousedown', { clientX: 100, clientY: 200 })
+			);
+			mockData.mockChartElement.dispatchEvent(
+				new MouseEvent('mousemove', { clientX: 750, clientY: 230 })
+			);
+
+			expect(onDrag).toHaveBeenCalledWith(
+				expect.objectContaining({
+					degree: 'cycle',
+					wave: 1,
+					time: '2024-01-31'
+				})
+			);
+		});
+
+		it('renders a wave point at its future position via logical projection', () => {
+			const primitive = new ElliottWavesPrimitive({ activeDegree: 'cycle' });
+			const mockData = createMockChartAndSeries();
+			const mockRequestUpdate = vi.fn();
+			primitive.attached({
+				chart: mockData.chart,
+				series: mockData.series,
+				requestUpdate: mockRequestUpdate,
+				horzScaleBehavior: {} as never
+			});
+			primitive.setCandles(createDailyCandles(30));
+
+			// Add a point at a genuinely future time (beyond the '2024-01-*' data
+			// so the time scale returns null and the projector extrapolates).
+			primitive.addPoint(150, '2024-02-02' as Time, 'cycle');
+
+			primitive.updateAllViews();
+			// '2024-02-02' is 3 days beyond '2024-01-30' -> logical 32 -> x = 800
+			expect(mockData.timeScale.logicalToCoordinate).toHaveBeenCalled();
+			const projected = (
+				primitive as unknown as {
+					_paneViews: { renderer(): { _data: unknown } }[];
+				}
+			)._paneViews[0].renderer()._data as {
+				degrees: { points: { x: number }[] }[];
+			};
+			expect(projected.degrees[0].points[0].x).toBe(800);
 		});
 	});
 });

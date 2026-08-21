@@ -3,6 +3,7 @@ import { Delegate, type ISubscription } from '../helpers/delegate';
 import type { WaveDegree, WavePoint } from '$lib/utils/finance/elliott-wave';
 import { HIT_TEST_RADIUS } from './constants';
 import type { PointTarget } from './state';
+import type { TimeProjector } from './time-projector';
 
 export interface MousePosition {
 	x: number;
@@ -14,7 +15,7 @@ export interface MousePosition {
 
 export interface ProjectedPointWithTarget {
 	degree: WaveDegree;
-	wave: 1 | 2 | 3 | 4 | 5;
+	wave: 0 | 1 | 2 | 3 | 4 | 5;
 	x: number;
 	y: number;
 	originalPoint: WavePoint;
@@ -25,6 +26,7 @@ type Unsubscriber = () => void;
 export class MouseHandlers {
 	private _chart: IChartApi | undefined = undefined;
 	private _series: ISeriesApi<SeriesType> | undefined = undefined;
+	private _timeProjector: TimeProjector | undefined = undefined;
 	private _unsubscribers: Unsubscriber[] = [];
 
 	private _projectedPoints: ProjectedPointWithTarget[] = [];
@@ -32,20 +34,21 @@ export class MouseHandlers {
 	private _isDragging: boolean = false;
 	private _dragTarget: PointTarget | null = null;
 	private _lastMousePosition: MousePosition | null = null;
+	private _savedPressedMouseMove: boolean | undefined = undefined;
 
 	private _mouseMoved: Delegate<MousePosition | null> = new Delegate();
 	private _chartClicked: Delegate<{ time: Time; price: number; x: number; y: number }> =
 		new Delegate();
 	private _pointClicked: Delegate<{
 		degree: WaveDegree;
-		wave: 1 | 2 | 3 | 4 | 5;
+		wave: 0 | 1 | 2 | 3 | 4 | 5;
 		point: WavePoint;
 	}> = new Delegate();
 	private _pointHovered: Delegate<PointTarget | null> = new Delegate();
 	private _dragStarted: Delegate<PointTarget> = new Delegate();
 	private _pointDragged: Delegate<{
 		degree: WaveDegree;
-		wave: 1 | 2 | 3 | 4 | 5;
+		wave: 0 | 1 | 2 | 3 | 4 | 5;
 		time: Time;
 		price: number;
 		x: number;
@@ -53,9 +56,14 @@ export class MouseHandlers {
 	}> = new Delegate();
 	private _dragEnded: Delegate<PointTarget> = new Delegate();
 
-	public attached(chart: IChartApi, series: ISeriesApi<SeriesType>): void {
+	public attached(
+		chart: IChartApi,
+		series: ISeriesApi<SeriesType>,
+		timeProjector?: TimeProjector
+	): void {
 		this._chart = chart;
 		this._series = series;
+		this._timeProjector = timeProjector;
 		const container = chart.chartElement();
 
 		this._addDOMListener(container, 'mousemove', this._onMouseMove.bind(this));
@@ -74,6 +82,7 @@ export class MouseHandlers {
 	}
 
 	public detached(): void {
+		this._restoreChartScroll();
 		this._chart = undefined;
 		this._series = undefined;
 		this._projectedPoints = [];
@@ -104,7 +113,35 @@ export class MouseHandlers {
 		if (isDrawing && this._isDragging) {
 			this._isDragging = false;
 			this._dragTarget = null;
+			this._restoreChartScroll();
 		}
+	}
+
+	/**
+	 * Prevents the underlying chart from panning while a wave point is being
+	 * dragged (pressed mouse move scroll). Chart scrolling is restored on drag
+	 * end so normal pan/scroll behaviour is unaffected otherwise.
+	 */
+	private _disableChartScroll(): void {
+		if (!this._chart) return;
+		if (this._savedPressedMouseMove === undefined) {
+			const handleScroll = this._chart.options()?.handleScroll;
+			this._savedPressedMouseMove =
+				typeof handleScroll === 'object' && handleScroll !== null
+					? handleScroll.pressedMouseMove
+					: handleScroll !== false; // boolean shorthand; default (true) enables pressed-move scroll
+		}
+		this._chart.applyOptions({ handleScroll: { pressedMouseMove: false } });
+	}
+
+	private _restoreChartScroll(): void {
+		if (!this._chart) return;
+		if (this._savedPressedMouseMove !== undefined) {
+			this._chart.applyOptions({
+				handleScroll: { pressedMouseMove: this._savedPressedMouseMove }
+			});
+		}
+		this._savedPressedMouseMove = undefined;
 	}
 
 	public getLastMousePosition(): MousePosition | null {
@@ -129,7 +166,7 @@ export class MouseHandlers {
 
 	public pointClicked(): ISubscription<{
 		degree: WaveDegree;
-		wave: 1 | 2 | 3 | 4 | 5;
+		wave: 0 | 1 | 2 | 3 | 4 | 5;
 		point: WavePoint;
 	}> {
 		return this._pointClicked;
@@ -145,7 +182,7 @@ export class MouseHandlers {
 
 	public pointDragged(): ISubscription<{
 		degree: WaveDegree;
-		wave: 1 | 2 | 3 | 4 | 5;
+		wave: 0 | 1 | 2 | 3 | 4 | 5;
 		time: Time;
 		price: number;
 		x: number;
@@ -185,7 +222,11 @@ export class MouseHandlers {
 			y >= 0 &&
 			y <= element.clientHeight - timeScaleHeight;
 
-		const time = insidePlotArea ? this._chart.timeScale().coordinateToTime(x) : null;
+		const time = insidePlotArea
+			? this._timeProjector
+				? this._timeProjector.coordinateToTime(x)
+				: this._chart.timeScale().coordinateToTime(x)
+			: null;
 		const price = insidePlotArea ? this._series.coordinateToPrice(y) : null;
 
 		return {
@@ -251,6 +292,7 @@ export class MouseHandlers {
 		if (hit) {
 			this._isDragging = true;
 			this._dragTarget = { degree: hit.degree, wave: hit.wave };
+			this._disableChartScroll();
 			this._dragStarted.fire(this._dragTarget);
 		}
 	}
@@ -260,6 +302,7 @@ export class MouseHandlers {
 			const target = this._dragTarget;
 			this._isDragging = false;
 			this._dragTarget = null;
+			this._restoreChartScroll();
 			this._dragEnded.fire(target);
 		}
 	}

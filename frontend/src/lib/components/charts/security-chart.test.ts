@@ -355,12 +355,12 @@ describe('SecurityChart - Elliott Wave Integration', () => {
 			(c) => c[0] instanceof ElliottWavesPrimitive
 		)?.[0] as ElliottWavesPrimitive;
 
-		// Trigger wave points change via primitive API
+		// Trigger wave points change via primitive API (first point is wave 0)
 		elliottPrimitive.addPoint({ time: '2024-01-10', price: 15 }, 'cycle');
 		expect(onWaveChange).toHaveBeenCalledWith(
 			'cycle',
 			expect.objectContaining({
-				points: expect.arrayContaining([expect.objectContaining({ wave: 1, price: 15 })])
+				points: expect.arrayContaining([expect.objectContaining({ wave: 0, price: 15 })])
 			})
 		);
 
@@ -371,6 +371,34 @@ describe('SecurityChart - Elliott Wave Integration', () => {
 		// Trigger degree change
 		elliottPrimitive.setActiveDegree('primary');
 		expect(onDegreeChange).toHaveBeenCalledWith('primary');
+	});
+
+	it('preserves visible logical range and avoids resetting candles when elliottWaves prop updates', async () => {
+		const { rerender } = render(SecurityChart, {
+			props: {
+				candles: initialCandles,
+				elliottWaves: null
+			}
+		});
+
+		// Initial setData called once for candles
+		const initialSetDataCalls = mockSetData.mock.calls.length;
+
+		// Update elliottWaves prop (e.g. user draws or clears wave)
+		await rerender({
+			candles: initialCandles,
+			elliottWaves: {
+				cycle: {
+					points: [
+						{ wave: 0, time: '2024-01-10', price: 10 },
+						{ wave: 1, time: '2024-01-11', price: 12 }
+					]
+				}
+			}
+		});
+
+		// setData should NOT have been re-called because candles array reference didn't change
+		expect(mockSetData.mock.calls.length).toBe(initialSetDataCalls);
 	});
 
 	it('destroys ElliottWavesPrimitive when component is unmounted', () => {

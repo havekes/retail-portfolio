@@ -5,7 +5,7 @@ import { MAX_WAVE_POINTS } from './constants';
 
 export interface PointTarget {
 	degree: WaveDegree;
-	wave: 1 | 2 | 3 | 4 | 5;
+	wave: 0 | 1 | 2 | 3 | 4 | 5;
 }
 
 export class ElliottWaveState {
@@ -109,11 +109,12 @@ export class ElliottWaveState {
 		const targetDegree = degree ?? this._activeDegree;
 		const existingPoints = [...this.getPoints(targetDegree)];
 
-		if (existingPoints.length >= MAX_WAVE_POINTS) {
+		const isResetting = existingPoints.length >= MAX_WAVE_POINTS;
+		if (isResetting) {
 			existingPoints.length = 0;
 		}
 
-		const nextWave = (existingPoints.length + 1) as 1 | 2 | 3 | 4 | 5;
+		const nextWave = existingPoints.length as 0 | 1 | 2 | 3 | 4 | 5;
 		const newPoint: WavePoint = {
 			wave: nextWave,
 			time: point.time,
@@ -122,7 +123,7 @@ export class ElliottWaveState {
 
 		existingPoints.push(newPoint);
 
-		const currentCount = this._waveCounts[targetDegree];
+		const currentCount = isResetting ? null : this._waveCounts[targetDegree];
 		const updatedCount: DegreeWaveCount = {
 			points: existingPoints,
 			wave3Target: currentCount?.wave3Target ?? (nextWave === 3 ? point.price : null),
@@ -140,7 +141,7 @@ export class ElliottWaveState {
 	}
 
 	public updatePoint(
-		wave: 1 | 2 | 3 | 4 | 5,
+		wave: 0 | 1 | 2 | 3 | 4 | 5,
 		update: { time?: Time; price?: number },
 		degree?: WaveDegree
 	): boolean {
@@ -165,7 +166,11 @@ export class ElliottWaveState {
 
 		const updatedCount: DegreeWaveCount = {
 			...currentCount,
-			points
+			points,
+			wave3Target:
+				wave === 3 && update.price !== undefined ? update.price : currentCount.wave3Target,
+			wave5Target:
+				wave === 5 && update.price !== undefined ? update.price : currentCount.wave5Target
 		};
 
 		this._waveCounts[targetDegree] = updatedCount;
