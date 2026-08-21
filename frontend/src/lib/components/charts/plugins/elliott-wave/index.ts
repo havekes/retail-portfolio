@@ -25,3 +25,4 @@ export {
 	epochSecondsToTime,
 	timeToEpochSeconds
 } from './time';
+export { snapPriceToWick, buildCandleLookup, findCandleByTime } from './snap';

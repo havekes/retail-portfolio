@@ -86,6 +86,7 @@
 		elliottWaves = null,
 		activeDegree = 'cycle',
 		isDrawingWave = false,
+		snapToWicks = false,
 		onWaveChange,
 		onDrawingModeChange,
 		onDegreeChange,
@@ -109,6 +110,7 @@
 		elliottWaves?: SecurityElliottWaves | null;
 		activeDegree?: WaveDegree;
 		isDrawingWave?: boolean;
+		snapToWicks?: boolean;
 		onWaveChange?: (degree: WaveDegree, waveCount: DegreeWaveCount | null) => void;
 		onDrawingModeChange?: (isDrawing: boolean) => void;
 		onDegreeChange?: (degree: WaveDegree) => void;
@@ -211,6 +213,13 @@
 		if (!elliottWavesPrimitive) return;
 		if (isDrawingWave !== undefined && elliottWavesPrimitive.isDrawingMode() !== isDrawingWave) {
 			elliottWavesPrimitive.setDrawingMode(isDrawingWave);
+		}
+	});
+
+	$effect(() => {
+		if (!elliottWavesPrimitive) return;
+		if (snapToWicks !== undefined && elliottWavesPrimitive.getSnapToWicks() !== snapToWicks) {
+			elliottWavesPrimitive.setSnapToWicks(snapToWicks);
 		}
 	});
 
@@ -414,7 +423,8 @@
 			waves: {
 				cycle: elliottWaves?.cycle ?? null,
 				primary: elliottWaves?.primary ?? null
-			}
+			},
+			snapToWicks
 		});
 		if (isDrawingWave) {
 			elliottWavesPrimitive.setDrawingMode(isDrawingWave);
