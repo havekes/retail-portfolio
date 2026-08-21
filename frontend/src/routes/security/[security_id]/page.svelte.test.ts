@@ -855,3 +855,70 @@ describe('Security Page - Elliott Wave Toolbar & Integration', () => {
 		});
 	});
 });
+
+describe('Security Page - Viewport Containment & Scrolling Layout', () => {
+	/* eslint-disable-next-line @typescript-eslint/no-explicit-any */
+	let PageComponent: Component<any>;
+
+	const mockData = {
+		security: {
+			id: 'sec-1',
+			symbol: 'AAPL',
+			name: 'Apple Inc.'
+		},
+		items: [{ date: '2024-01-01', open: 100, high: 110, low: 95, close: 105, volume: 1000 }]
+	};
+
+	beforeAll(async () => {
+		const mod = await import('./+page.svelte');
+		PageComponent = mod.default;
+	}, 30000);
+
+	beforeEach(() => {
+		vi.clearAllMocks();
+	});
+
+	it('constrains root container to viewport height preventing page vertical scrolling', async () => {
+		const { container } = render(PageComponent, { props: { data: mockData } });
+		const rootDiv = container.firstElementChild as HTMLElement;
+		expect(rootDiv).not.toBeNull();
+		expect(rootDiv.className).toContain('h-svh');
+		expect(rootDiv.className).toContain('max-h-svh');
+		expect(rootDiv.className).toContain('min-h-0');
+		expect(rootDiv.className).toContain('overflow-hidden');
+	});
+
+	it('pins timeframe, waves, and style toolbar with shrink-0', async () => {
+		render(PageComponent, { props: { data: mockData } });
+		await screen.findByRole('button', { name: /Select Cycle degree/i });
+		const cycleBtn = screen.getByRole('button', { name: /Select Cycle degree/i });
+		const toolbar = cycleBtn.closest('div.border-b');
+		expect(toolbar).not.toBeNull();
+		expect(toolbar?.className).toContain('shrink-0');
+	});
+
+	it('constrains chart column and chart container to min-h-0 overflow-hidden', async () => {
+		render(PageComponent, { props: { data: mockData } });
+		await screen.findByRole('button', { name: /Select Cycle degree/i });
+		const cycleBtn = screen.getByRole('button', { name: /Select Cycle degree/i });
+		const chartColumn = cycleBtn.closest('div.flex-col');
+		expect(chartColumn).not.toBeNull();
+		expect(chartColumn?.className).toContain('min-h-0');
+		expect(chartColumn?.className).toContain('flex-1');
+		expect(chartColumn?.className).toContain('overflow-hidden');
+	});
+
+	it('constrains right actions sidebar to min-h-0 and configures Sidebar.Content with overflow-y-auto', async () => {
+		const { container } = render(PageComponent, { props: { data: mockData } });
+		await screen.findByRole('button', { name: /Select Cycle degree/i });
+		const rightSidebar = container.querySelector('div.w-64');
+		expect(rightSidebar).not.toBeNull();
+		expect(rightSidebar?.className).toContain('min-h-0');
+		expect(rightSidebar?.className).toContain('h-full');
+
+		const sidebarContent = rightSidebar?.querySelector('[data-slot="sidebar-content"]');
+		expect(sidebarContent).not.toBeNull();
+		expect(sidebarContent?.className).toContain('min-h-0');
+		expect(sidebarContent?.className).toContain('overflow-y-auto');
+	});
+});

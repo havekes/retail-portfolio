@@ -476,7 +476,7 @@
 	<title>{security ? `${security.symbol} - Security Chart` : 'Security Chart'}</title>
 </svelte:head>
 
-<div class="flex flex-1 flex-col overflow-hidden">
+<div class="flex h-svh max-h-svh min-h-0 flex-1 flex-col overflow-hidden">
 	<PageHeader {isLoading} {error} subtitle={security?.name ?? ''}>
 		{#snippet titleSlot()}
 			<div class="flex items-center gap-2">
@@ -501,11 +501,11 @@
 	</PageHeader>
 
 	{#if isLoading}
-		<div class="flex flex-1 items-center justify-center overflow-hidden">
+		<div class="flex min-h-0 flex-1 items-center justify-center overflow-hidden">
 			<p class="text-gray-500">Loading chart data...</p>
 		</div>
 	{:else if error}
-		<div class="flex flex-1 items-center justify-center overflow-hidden">
+		<div class="flex min-h-0 flex-1 items-center justify-center overflow-hidden">
 			<div
 				class="card error-card w-full max-w-md rounded-lg border border-red-200 bg-white p-8 shadow-lg dark:border-red-800 dark:bg-gray-800"
 			>
@@ -527,10 +527,10 @@
 	{:else if securityChart && security}
 		{@const ChartComponent =
 			securityChart as typeof import('$lib/components/charts/security-chart.svelte').default}
-		<div class="flex flex-1 overflow-hidden">
-			<div class="flex flex-1 flex-col overflow-hidden">
+		<div class="flex min-h-0 flex-1 overflow-hidden">
+			<div class="flex min-h-0 flex-1 flex-col overflow-hidden">
 				<div
-					class="flex flex-wrap items-center justify-between gap-2 border-b bg-sidebar/50 px-4 py-2"
+					class="flex shrink-0 flex-wrap items-center justify-between gap-2 border-b bg-sidebar/50 px-4 py-2"
 				>
 					<div class="flex items-center gap-1">
 						<span class="mr-2 text-xs font-medium text-muted-foreground">Timeframe:</span>
@@ -635,7 +635,7 @@
 						</button>
 					</div>
 				</div>
-				<div class="flex-1 overflow-hidden">
+				<div class="min-h-0 flex-1 overflow-hidden">
 					<ChartComponent
 						candles={displayCandles}
 						bind:this={chartRef}
@@ -656,8 +656,8 @@
 					/>
 				</div>
 			</div>
-			<div class="flex h-full w-64 flex-col border-l bg-sidebar text-sidebar-foreground">
-				<Sidebar.Content class="overflow-y-auto">
+			<div class="flex h-full min-h-0 w-64 flex-col border-l bg-sidebar text-sidebar-foreground">
+				<Sidebar.Content class="min-h-0 flex-1 overflow-y-auto">
 					<HoldingsGroup securityId={security.id} {security} candles={rawCandles} expanded={true} />
 					<IndicatorsGroup
 						expanded={true}

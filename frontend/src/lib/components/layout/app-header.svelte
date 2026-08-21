@@ -19,7 +19,7 @@
 	} = $props();
 </script>
 
-<div class="flex h-[49px] items-center border-b px-4 py-2">
+<div class="flex h-[49px] shrink-0 items-center border-b px-4 py-2">
 	{#if isLoading}
 		<div class="flex items-center gap-2">
 			<Skeleton class="h-6 w-32" />
