@@ -70,11 +70,15 @@
 		primaryWave5Str = waveSettings?.alert_percents?.primary?.wave5 ?? '';
 	}
 
-	let prevWaveSettingsProp: WaveSettings | null | undefined = undefined;
+	let prevWaveSettingsKey: string | undefined;
 	$effect(() => {
-		if (waveSettings !== prevWaveSettingsProp) {
+		// Compare serialized snapshots, not proxy identities: `waveSettings` is a `$state`
+		// proxy that gets re-created on parent re-renders, so `!==` on the object itself
+		// trips Svelte's state_proxy_equality_mismatch and resyncs spuriously.
+		const key = JSON.stringify(waveSettings) ?? '';
+		if (key !== prevWaveSettingsKey) {
 			syncWavesFromProps();
-			prevWaveSettingsProp = waveSettings;
+			prevWaveSettingsKey = key;
 		}
 	});
 
@@ -177,28 +181,30 @@
 		untrack(() => cloneLevels(extensionLevels ?? DEFAULT_FIB_EXTENSION_LEVELS))
 	);
 
-	let prevRetracementProp: FibLevelConfig[] | null | undefined = undefined;
-	let prevExtensionProp: FibLevelConfig[] | null | undefined = undefined;
+	let prevRetracementKey: string | undefined;
+	let prevExtensionKey: string | undefined;
 
 	$effect(() => {
-		if (retracementLevels !== prevRetracementProp) {
+		const key = JSON.stringify(retracementLevels) ?? '';
+		if (key !== prevRetracementKey) {
 			if (retracementLevels) {
 				currentRetracementLevels = cloneLevels(retracementLevels);
 			} else {
 				currentRetracementLevels = cloneLevels(DEFAULT_FIB_RETRACEMENT_LEVELS);
 			}
-			prevRetracementProp = retracementLevels;
+			prevRetracementKey = key;
 		}
 	});
 
 	$effect(() => {
-		if (extensionLevels !== prevExtensionProp) {
+		const key = JSON.stringify(extensionLevels) ?? '';
+		if (key !== prevExtensionKey) {
 			if (extensionLevels) {
 				currentExtensionLevels = cloneLevels(extensionLevels);
 			} else {
 				currentExtensionLevels = cloneLevels(DEFAULT_FIB_EXTENSION_LEVELS);
 			}
-			prevExtensionProp = extensionLevels;
+			prevExtensionKey = key;
 		}
 	});
 

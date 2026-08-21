@@ -24,6 +24,19 @@ vi.mock('$app/stores', async () => {
 	};
 });
 
+vi.mock('$lib/api/marketService', () => ({
+	getMarketService: () => ({
+		getWatchlists: vi.fn().mockResolvedValue([]),
+		getWatchlistSecurities: vi.fn().mockResolvedValue({ items: [] })
+	})
+}));
+
+vi.mock('$lib/api/userPreferencesService', () => ({
+	userPreferencesService: {
+		patchPreferences: vi.fn().mockResolvedValue({})
+	}
+}));
+
 if (typeof window !== 'undefined') {
 	Object.defineProperty(window, 'matchMedia', {
 		writable: true,

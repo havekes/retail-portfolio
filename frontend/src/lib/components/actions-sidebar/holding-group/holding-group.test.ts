@@ -253,6 +253,7 @@ describe('HoldingGroup Component', () => {
 		});
 
 		it('shows error state on failure and retries on retry button click', async () => {
+			const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
 			vi.mocked(accountService.getHoldings).mockRejectedValueOnce(new Error('Network failure'));
 
 			render(HoldingGroup, {
@@ -280,6 +281,7 @@ describe('HoldingGroup Component', () => {
 			await waitFor(() => {
 				expect(screen.getByText('Tax-Free Savings')).toBeInTheDocument();
 			});
+			errorSpy.mockRestore();
 		});
 	});
 });

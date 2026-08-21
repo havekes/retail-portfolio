@@ -399,6 +399,7 @@ describe('HoldingsModal Component', () => {
 		});
 
 		it('shows error state with retry button on API failure and retries on click', async () => {
+			const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
 			vi.mocked(accountService.getHoldings).mockRejectedValueOnce(new Error('Network error'));
 
 			render(HoldingsModal, {
@@ -427,6 +428,7 @@ describe('HoldingsModal Component', () => {
 			await waitFor(() => {
 				expect(screen.getByText('Tax-Free Savings')).toBeInTheDocument();
 			});
+			errorSpy.mockRestore();
 		});
 	});
 
