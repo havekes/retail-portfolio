@@ -434,7 +434,9 @@
 	let waveAlertsReconcileSeq: Promise<void> = Promise.resolve();
 
 	function scheduleWaveAlertsReconcile() {
-		waveAlertsReconcileSeq = waveAlertsReconcileSeq.then(() => reconcileWaveAlertsForSecurity());
+		waveAlertsReconcileSeq = waveAlertsReconcileSeq
+			.then(() => reconcileWaveAlertsForSecurity())
+			.catch(() => {});
 		return waveAlertsReconcileSeq;
 	}
 
@@ -446,16 +448,16 @@
 		const desired = computeWaveAlertLevels(settings, securityElliottWaves, currentPrice);
 		const { toCreate, toDelete } = reconcileWaveAlerts(alerts, desired);
 		try {
-			for (const alert of toDelete) {
-				await alertsService.deleteAlert(security.id, alert.id);
-			}
-			for (const level of toCreate) {
-				await alertsService.createAlert(security.id, {
-					target_price: level.level,
-					condition: level.condition,
-					source: 'wave'
-				});
-			}
+			await Promise.all(toDelete.map((alert) => alertsService.deleteAlert(security.id, alert.id)));
+			await Promise.all(
+				toCreate.map((level) =>
+					alertsService.createAlert(security.id, {
+						target_price: level.level,
+						condition: level.condition,
+						source: 'wave'
+					})
+				)
+			);
 			if (toDelete.length > 0 || toCreate.length > 0) {
 				await loadAlerts();
 			}
