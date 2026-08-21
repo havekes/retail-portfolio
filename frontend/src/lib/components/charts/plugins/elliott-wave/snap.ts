@@ -1,6 +1,6 @@
 import type { Time } from 'lightweight-charts';
 import type { Candle } from '$lib/utils/finance/candle';
-import { timeToEpochSeconds } from './time';
+import { timeToEpochSeconds } from '../helpers/time/time';
 
 /**
  * Snaps a given price to the nearest wick (high or low) of a candle.

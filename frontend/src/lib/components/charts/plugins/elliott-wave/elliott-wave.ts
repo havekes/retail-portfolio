@@ -22,7 +22,7 @@ import {
 import { ElliottWavePaneView } from './pane-view';
 import { buildCandleLookup, findCandleByTime, snapPriceToWick } from './snap';
 import { ElliottWaveState } from './state';
-import { TimeProjector } from './time-projector';
+import { TimeProjector } from '../helpers/time/time-projector';
 
 export class ElliottWavesPrimitive implements ISeriesPrimitive<Time> {
 	private _chart: IChartApi | undefined = undefined;

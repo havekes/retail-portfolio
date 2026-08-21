@@ -17,7 +17,7 @@ import {
 	type FibonacciRendererData
 } from './index';
 import type { Candle } from '$lib/utils/finance/candle';
-import { TimeProjector } from '../elliott-wave/time-projector';
+import { TimeProjector } from '../helpers/time/time-projector';
 
 function createDailyCandles(count = 30): Candle[] {
 	return Array.from({ length: count }, (_, i) => {

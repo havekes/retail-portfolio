@@ -3,7 +3,7 @@ import { Delegate, type ISubscription } from '../helpers/delegate';
 import type { FibPoint, FibToolType } from '$lib/utils/finance/fibonacci';
 import { HIT_TEST_RADIUS } from './constants';
 import type { FibPointTarget } from './state';
-import type { TimeProjector } from '../elliott-wave/time-projector';
+import type { TimeProjector } from '../helpers/time/time-projector';
 
 export interface MousePosition {
 	x: number;

@@ -5,7 +5,7 @@ import type { Candle } from '$lib/utils/finance/candle';
 import { HIT_TEST_RADIUS } from './constants';
 import { buildCandleLookup, findCandleByTime, snapPriceToWick } from './snap';
 import type { PointTarget } from './state';
-import type { TimeProjector } from './time-projector';
+import type { TimeProjector } from '../helpers/time/time-projector';
 
 export interface MousePosition {
 	x: number;
