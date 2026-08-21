@@ -21,6 +21,7 @@
 	import { accountService, type AccountHoldingRead } from '@/api/accountService';
 	import type { IndicatorData } from '$lib/components/charts/security-chart.svelte';
 	import Star from '@lucide/svelte/icons/star';
+	import Settings from '@lucide/svelte/icons/settings';
 	import { getWatchlistService } from '$lib/components/watchlist/watchlistService.svelte';
 	import {
 		displayCandlesFor,
@@ -42,7 +43,7 @@
 		DEFAULT_WAVE_SETTINGS
 	} from '$lib/utils/finance/elliott-wave';
 	import { computeWaveAlertLevels, reconcileWaveAlerts } from '$lib/utils/finance/wave-alerts';
-	import FibonacciSettingsDialog from '$lib/components/charts/fibonacci-settings-dialog.svelte';
+	import ChartSettingsModal from '$lib/components/charts/chart-settings-modal.svelte';
 	import {
 		type FibToolType,
 		type FibLevelConfig,
@@ -76,7 +77,7 @@
 
 	let activeFibTool = $state<FibToolType>('retracement');
 	let isDrawingFib = $state(false);
-	let isFibSettingsOpen = $state(false);
+	let isChartSettingsOpen = $state(false);
 	let securityFibonacciTools = $derived<SecurityFibonacciTools>(
 		(security?.id && userPreferences?.fibonacci_tools?.[security.id]) || {}
 	);
@@ -467,11 +468,6 @@
 		}
 	}
 
-	/**
-	 * T05 seam: updates wave settings and reconciles wave-target alerts. No caller until the
-	 * wave settings modal exists.
-	 */
-	// eslint-disable-next-line @typescript-eslint/no-unused-vars
 	async function handleWaveSettingsChange(settings: WaveSettings) {
 		userPreferences = {
 			...(userPreferences ?? {}),
@@ -485,7 +481,6 @@
 		}
 		scheduleWaveAlertsReconcile();
 	}
-	// TODO(T05, #224): wire to the wave settings modal
 
 	async function handleCreateAlert(price: number, condition: 'above' | 'below') {
 		if (!security?.id) return;
@@ -800,14 +795,6 @@
 						</button>
 						<button
 							type="button"
-							onclick={() => (isFibSettingsOpen = true)}
-							class="rounded px-2.5 py-1 text-xs font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
-							aria-label="Open Fibonacci settings"
-						>
-							Settings
-						</button>
-						<button
-							type="button"
 							onclick={() => handleClearFib(activeFibTool)}
 							class="rounded px-2.5 py-1 text-xs font-medium text-muted-foreground transition-colors hover:bg-destructive/10 hover:text-destructive"
 							aria-label="Clear Fibonacci drawing"
@@ -858,6 +845,17 @@
 							Candlestick
 						</button>
 					</div>
+					<div class="flex items-center gap-1">
+						<button
+							type="button"
+							onclick={() => (isChartSettingsOpen = true)}
+							class="rounded p-1.5 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+							aria-label="Open chart settings"
+							title="Chart Settings"
+						>
+							<Settings class="h-4 w-4" />
+						</button>
+					</div>
 				</div>
 				<div class="min-h-0 flex-1 overflow-hidden">
 					<ChartComponent
@@ -874,6 +872,7 @@
 						elliottWaves={securityElliottWaves}
 						activeDegree={activeWaveDegree}
 						{isDrawingWave}
+						snapToWicks={userPreferences?.wave_settings?.snap_to_wicks ?? false}
 						onWaveChange={handleWaveChange}
 						onDrawingModeChange={(isDrawing) => {
 							isDrawingWave = isDrawing;
@@ -892,15 +891,17 @@
 							if (tool) activeFibTool = tool;
 						}}
 					/>
-					<FibonacciSettingsDialog
-						bind:open={isFibSettingsOpen}
+					<ChartSettingsModal
+						bind:open={isChartSettingsOpen}
+						waveSettings={userPreferences?.wave_settings}
+						onSaveWaveSettings={handleWaveSettingsChange}
 						activeTool={activeFibTool}
 						retracementLevels={securityFibonacciTools?.retracement?.levels}
 						extensionLevels={securityFibonacciTools?.extension?.levels}
 						hasActiveDrawing={Boolean(
 							securityFibonacciTools?.retracement || securityFibonacciTools?.extension
 						)}
-						onLevelsChange={handleFibLevelsChange}
+						onFibLevelsChange={handleFibLevelsChange}
 					/>
 				</div>
 			</div>

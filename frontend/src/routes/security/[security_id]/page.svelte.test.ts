@@ -952,15 +952,15 @@ describe('Security Page - Fibonacci Toolbar & Integration', () => {
 		});
 	});
 
-	it('renders Fibonacci toolbar with Fib Retrace, Fib Extend, Settings, and Clear buttons', async () => {
+	it('renders Fibonacci toolbar with Fib Retrace, Fib Extend, and Clear buttons, and Chart Settings icon button', async () => {
 		render(PageComponent, { props: { data: mockData } });
 
 		expect(
 			await screen.findByRole('button', { name: /Toggle Fib Retrace drawing/i })
 		).toBeInTheDocument();
 		expect(screen.getByRole('button', { name: /Toggle Fib Extend drawing/i })).toBeInTheDocument();
-		expect(screen.getByRole('button', { name: /Open Fibonacci settings/i })).toBeInTheDocument();
 		expect(screen.getByRole('button', { name: /Clear Fibonacci drawing/i })).toBeInTheDocument();
+		expect(screen.getByRole('button', { name: /Open chart settings/i })).toBeInTheDocument();
 	});
 
 	it('toggles drawing mode on and off when Fib Retrace button is clicked and cancels wave drawing mode', async () => {
@@ -1003,22 +1003,31 @@ describe('Security Page - Fibonacci Toolbar & Integration', () => {
 		expect(extendBtn.className).not.toContain('bg-primary');
 	});
 
-	it('opens Fibonacci settings dialog when Settings button is clicked', async () => {
+	it('opens Fibonacci settings inside modal when Settings button is clicked and tab is selected', async () => {
 		render(PageComponent, { props: { data: mockData } });
 
-		const settingsBtn = await screen.findByRole('button', { name: /Open Fibonacci settings/i });
+		const settingsBtn = await screen.findByRole('button', { name: /Open chart settings/i });
 		await fireEvent.click(settingsBtn);
 
-		expect(screen.getByText('Fibonacci Settings')).toBeInTheDocument();
+		expect(screen.getByText('Chart Settings')).toBeInTheDocument();
+
+		const fibTab = screen.getByRole('tab', { name: 'Fibonacci' });
+		await fireEvent.click(fibTab);
+
+		expect(screen.getByTestId('fibonacci-settings-panel')).toBeInTheDocument();
+		expect(screen.getByTestId('fib-level-row-0.618')).toBeInTheDocument();
 	});
 
-	it('persists updated levels when settings dialog toggles a level', async () => {
+	it('persists updated levels when settings dialog toggles a level in Fibonacci tab', async () => {
 		render(PageComponent, { props: { data: mockData } });
 
-		const settingsBtn = await screen.findByRole('button', { name: /Open Fibonacci settings/i });
+		const settingsBtn = await screen.findByRole('button', { name: /Open chart settings/i });
 		await fireEvent.click(settingsBtn);
 
-		expect(screen.getByText('Fibonacci Settings')).toBeInTheDocument();
+		expect(screen.getByText('Chart Settings')).toBeInTheDocument();
+
+		const fibTab = screen.getByRole('tab', { name: 'Fibonacci' });
+		await fireEvent.click(fibTab);
 
 		const row0618 = screen.getByTestId('fib-level-row-0.618');
 		await fireEvent.click(row0618);
@@ -1461,5 +1470,142 @@ describe('Security Page - Wave Target Alert Reconcile', () => {
 
 		expect(alertsService.createAlert).not.toHaveBeenCalled();
 		expect(alertsService.deleteAlert).not.toHaveBeenCalled();
+	});
+});
+
+describe('Security Page - Chart Settings Modal & Wave Settings Integration', () => {
+	/* eslint-disable-next-line @typescript-eslint/no-explicit-any */
+	let PageComponent: Component<any>;
+
+	const mockData = {
+		security: {
+			id: 'sec-1',
+			symbol: 'AAPL',
+			name: 'Apple Inc.'
+		},
+		items: [
+			{ date: '2024-01-01', open: 100, high: 110, low: 95, close: 100, volume: 1000 },
+			{ date: '2024-01-02', open: 100, high: 120, low: 95, close: 100, volume: 1000 }
+		]
+	};
+
+	const fullWaves: Record<string, SecurityElliottWaves> = {
+		'sec-1': {
+			cycle: {
+				points: [
+					{ wave: 0, time: '2024-01-01', price: 50 },
+					{ wave: 1, time: '2024-01-02', price: 100 },
+					{ wave: 2, time: '2024-01-03', price: 80 },
+					{ wave: 3, time: '2024-01-04', price: 150 },
+					{ wave: 4, time: '2024-01-05', price: 120 },
+					{ wave: 5, time: '2024-01-06', price: 200 }
+				]
+			}
+		}
+	};
+
+	beforeAll(async () => {
+		const mod = await import('./+page.svelte');
+		PageComponent = mod.default;
+	}, 30000);
+
+	beforeEach(() => {
+		vi.clearAllMocks();
+		mockChartProps = null;
+		vi.mocked(userPreferencesService.getPreferences).mockResolvedValue({
+			elliott_waves: fullWaves,
+			wave_settings: {
+				snap_to_wicks: false,
+				alert_percents: {
+					cycle: { wave3: null, wave5: null },
+					primary: { wave3: null, wave5: null }
+				}
+			}
+		});
+		vi.mocked(alertsService.getAlerts).mockResolvedValue({
+			items: [],
+			total: 0,
+			offset: 0,
+			limit: 50
+		});
+		vi.mocked(alertsService.createAlert).mockResolvedValue({} as never);
+		vi.mocked(alertsService.deleteAlert).mockResolvedValue(undefined);
+	});
+
+	it('opens Chart Settings modal on Settings icon button click', async () => {
+		render(PageComponent, { props: { data: mockData } });
+
+		const settingsBtn = await screen.findByRole('button', { name: /Open chart settings/i });
+		await fireEvent.click(settingsBtn);
+
+		expect(screen.getByText('Chart Settings')).toBeInTheDocument();
+		expect(screen.getByTestId('waves-settings-panel')).toBeInTheDocument();
+	});
+
+	it('persists wave settings and propagates snapToWicks prop to SecurityChart', async () => {
+		render(PageComponent, { props: { data: mockData } });
+
+		await screen.findByRole('button', { name: /Open chart settings/i });
+		await waitFor(() => {
+			expect(mockChartProps).not.toBeNull();
+		});
+		// @ts-expect-error - mockChartProps typed as Record
+		expect(mockChartProps.snapToWicks).toBe(false);
+
+		const settingsBtn = screen.getByRole('button', { name: /Open chart settings/i });
+		await fireEvent.click(settingsBtn);
+
+		const snapCheckbox = screen.getByTestId('snap-to-wicks-checkbox');
+		await fireEvent.click(snapCheckbox);
+
+		const saveBtn = screen.getByTestId('save-waves-btn');
+		await fireEvent.click(saveBtn);
+
+		expect(userPreferencesService.patchPreferences).toHaveBeenCalledWith({
+			wave_settings: {
+				snap_to_wicks: true,
+				alert_percents: {
+					cycle: { wave3: null, wave5: null },
+					primary: { wave3: null, wave5: null }
+				}
+			}
+		});
+
+		await waitFor(() => {
+			// @ts-expect-error - mockChartProps typed as Record
+			expect(mockChartProps.snapToWicks).toBe(true);
+		});
+	});
+
+	it('saving wave alert percents in settings modal triggers scheduleWaveAlertsReconcile to create wave alerts', async () => {
+		render(PageComponent, { props: { data: mockData } });
+
+		const settingsBtn = await screen.findByRole('button', { name: /Open chart settings/i });
+		await fireEvent.click(settingsBtn);
+
+		const cycle3Input = screen.getByTestId('cycle-wave3-input');
+		await fireEvent.input(cycle3Input, { target: { value: '90' } });
+
+		const saveBtn = screen.getByTestId('save-waves-btn');
+		await fireEvent.click(saveBtn);
+
+		expect(userPreferencesService.patchPreferences).toHaveBeenCalledWith({
+			wave_settings: {
+				snap_to_wicks: false,
+				alert_percents: {
+					cycle: { wave3: 90, wave5: null },
+					primary: { wave3: null, wave5: null }
+				}
+			}
+		});
+
+		// 150 * 0.9 = 135 (above current price 100)
+		await waitFor(() => {
+			expect(alertsService.createAlert).toHaveBeenCalledWith('sec-1', {
+				target_price: 135,
+				condition: 'above',
+				source: 'wave'
+			});
+		});
 	});
 });
