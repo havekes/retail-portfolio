@@ -151,6 +151,7 @@ class PriceAlertModel(BaseModel):
     user_id: Mapped[UserId] = mapped_column(Uuid)
     target_price: Mapped[Decimal] = mapped_column(DECIMAL(16, 8))
     condition: Mapped[str] = mapped_column(String)
+    source: Mapped[str] = mapped_column(String, default="manual")
     triggered_at: Mapped[datetime | None] = mapped_column(
         DateTime(timezone=True), nullable=True
     )

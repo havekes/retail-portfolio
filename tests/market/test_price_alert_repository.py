@@ -10,6 +10,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.market.model import PriceAlertModel, SecurityModel
 from src.market.repository_sqlalchemy import SqlAlchemyPriceAlertRepository
+from src.market.schema import PriceAlertWrite
 
 
 @pytest.fixture
@@ -181,3 +182,46 @@ async def test_get_by_id_returns_full_alert(
     assert result.id == active_alert.id
     assert result.triggered_at is None
     assert result.target_price == active_alert.target_price
+
+
+@pytest.mark.anyio
+async def test_create_persists_wave_source(
+    repo,
+    _test_security,
+    _test_user_id,
+):
+    """create with source='wave' round-trips via get_by_id."""
+    created = await repo.create(
+        PriceAlertWrite(
+            target_price=Decimal("100.00"),
+            condition="above",
+            source="wave",
+        ),
+        security_id=_test_security.id,
+        user_id=_test_user_id,
+    )
+    assert created.source == "wave"
+    persisted = await repo.get_by_id(created.id)
+    assert persisted is not None
+    assert persisted.source == "wave"
+
+
+@pytest.mark.anyio
+async def test_create_defaults_to_manual_source(
+    repo,
+    _test_security,
+    _test_user_id,
+):
+    """create without source defaults to 'manual'."""
+    created = await repo.create(
+        PriceAlertWrite(
+            target_price=Decimal("100.00"),
+            condition="above",
+        ),
+        security_id=_test_security.id,
+        user_id=_test_user_id,
+    )
+    assert created.source == "manual"
+    persisted = await repo.get_by_id(created.id)
+    assert persisted is not None
+    assert persisted.source == "manual"

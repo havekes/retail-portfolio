@@ -582,6 +582,7 @@ class SqlAlchemyPriceAlertRepository(PriceAlertRepository):
             user_id=user_id,
             target_price=alert.target_price,
             condition=alert.condition,
+            source=alert.source,
         )
         self._session.add(alert_model)
         await self._session.commit()

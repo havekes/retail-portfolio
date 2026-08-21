@@ -7,6 +7,7 @@ export interface PriceAlert {
 	user_id: string;
 	target_price: number;
 	condition: 'above' | 'below';
+	source: 'manual' | 'wave';
 	triggered_at: string | null;
 	created_at: string;
 }
@@ -14,6 +15,7 @@ export interface PriceAlert {
 export interface PriceAlertCreateRequest {
 	target_price: number;
 	condition: 'above' | 'below';
+	source?: 'manual' | 'wave';
 }
 
 export class AlertsService extends ApiClient {
