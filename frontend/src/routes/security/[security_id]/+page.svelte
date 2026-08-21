@@ -73,6 +73,7 @@
 	let userPreferences = $state<UserPreferences | null>(null);
 	let activeWaveDegree = $state<WaveDegree>('cycle');
 	let isDrawingWave = $state(false);
+	let selectedWaveDegree = $state<WaveDegree | null>(null);
 	let securityElliottWaves = $derived<SecurityElliottWaves>(
 		(security?.id && userPreferences?.elliott_waves?.[security.id]) || {}
 	);
@@ -83,6 +84,39 @@
 	let securityFibonacciTools = $derived<SecurityFibonacciTools>(
 		(security?.id && userPreferences?.fibonacci_tools?.[security.id]) || {}
 	);
+
+	function handleKeyDown(event: KeyboardEvent) {
+		const target = event.target as HTMLElement | null;
+		if (
+			target &&
+			typeof target.closest === 'function' &&
+			(target.tagName === 'INPUT' ||
+				target.tagName === 'TEXTAREA' ||
+				target.isContentEditable ||
+				target.closest('input, textarea, [contenteditable="true"]'))
+		) {
+			return;
+		}
+
+		if (event.key === 'Delete' || event.key === 'Backspace') {
+			if (selectedWaveDegree) {
+				event.preventDefault();
+				const degreeToClear = selectedWaveDegree;
+				selectedWaveDegree = null;
+				handleClearWave(degreeToClear);
+			}
+		} else if (event.key === 'Escape') {
+			if (selectedWaveDegree) {
+				selectedWaveDegree = null;
+			}
+			if (isDrawingWave) {
+				isDrawingWave = false;
+			}
+			if (isDrawingFib) {
+				isDrawingFib = false;
+			}
+		}
+	}
 
 	async function updateChartPreferences(partial: Partial<UserPreferences>) {
 		await userPreferencesService.patchPreferences(partial);
@@ -111,6 +145,9 @@
 	}
 
 	async function handleClearWave(degree: WaveDegree) {
+		if (selectedWaveDegree === degree) {
+			selectedWaveDegree = null;
+		}
 		await handleWaveChange(degree, null);
 	}
 
@@ -581,6 +618,7 @@
 			// Reset drawing mode on route transition / security change
 			isDrawingWave = false;
 			isDrawingFib = false;
+			selectedWaveDegree = null;
 
 			(async () => {
 				if (!userPreferences) {
@@ -630,6 +668,8 @@
 		});
 	});
 </script>
+
+<svelte:window onkeydown={handleKeyDown} />
 
 <svelte:head>
 	<title>{security ? `${security.symbol} - Security Chart` : 'Security Chart'}</title>
@@ -872,6 +912,7 @@
 						elliottWaves={securityElliottWaves}
 						activeDegree={activeWaveDegree}
 						{isDrawingWave}
+						bind:selectedWaveDegree
 						snapToWicks={userPreferences?.wave_settings?.snap_to_wicks ?? false}
 						onWaveChange={handleWaveChange}
 						onDrawingModeChange={(isDrawing) => {
@@ -879,6 +920,7 @@
 							if (isDrawing) isDrawingFib = false;
 						}}
 						onDegreeChange={(degree) => (activeWaveDegree = degree)}
+						onWaveSelect={(degree) => (selectedWaveDegree = degree)}
 						fibonacciTools={securityFibonacciTools}
 						{activeFibTool}
 						{isDrawingFib}
