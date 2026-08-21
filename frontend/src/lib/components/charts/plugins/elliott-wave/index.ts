@@ -17,12 +17,12 @@ export {
 } from './pane-renderer';
 export { ElliottWavePaneView } from './pane-view';
 export { MouseHandlers, type MousePosition, type ProjectedPointWithTarget } from './mouse';
-export { TimeProjector } from './time-projector';
+export { TimeProjector } from '../helpers/time/time-projector';
 export {
 	addIntervalToTime,
 	barsBetweenTimes,
 	computeIntervalSeconds,
 	epochSecondsToTime,
 	timeToEpochSeconds
-} from './time';
+} from '../helpers/time/time';
 export { snapPriceToWick, buildCandleLookup, findCandleByTime } from './snap';

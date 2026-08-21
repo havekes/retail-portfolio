@@ -30,7 +30,7 @@ import {
 } from './pane-renderer';
 import { FibonacciPaneView } from './pane-view';
 import { FibonacciToolState, type FibPointTarget } from './state';
-import { TimeProjector } from '../elliott-wave/time-projector';
+import { TimeProjector } from '../helpers/time/time-projector';
 
 export class FibonacciPrimitive implements ISeriesPrimitive<Time> {
 	private _chart: IChartApi | undefined = undefined;
