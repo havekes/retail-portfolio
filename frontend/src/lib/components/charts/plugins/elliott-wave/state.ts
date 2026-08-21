@@ -15,6 +15,7 @@ export class ElliottWaveState {
 		primary: null
 	};
 	private _isDrawingMode: boolean = false;
+	private _selectedDegree: WaveDegree | null = null;
 	private _hoveredPoint: PointTarget | null = null;
 	private _draggingPoint: PointTarget | null = null;
 
@@ -22,6 +23,7 @@ export class ElliottWaveState {
 		new Delegate();
 	private _drawingModeChanged: Delegate<boolean> = new Delegate();
 	private _degreeChanged: Delegate<WaveDegree> = new Delegate();
+	private _selectionChanged: Delegate<WaveDegree | null> = new Delegate();
 	private _hoverChanged: Delegate<PointTarget | null> = new Delegate();
 	private _dragChanged: Delegate<PointTarget | null> = new Delegate();
 
@@ -38,6 +40,10 @@ export class ElliottWaveState {
 
 	public degreeChanged(): ISubscription<WaveDegree> {
 		return this._degreeChanged;
+	}
+
+	public selectionChanged(): ISubscription<WaveDegree | null> {
+		return this._selectionChanged;
 	}
 
 	public hoverChanged(): ISubscription<PointTarget | null> {
@@ -59,6 +65,17 @@ export class ElliottWaveState {
 		}
 	}
 
+	public getSelectedDegree(): WaveDegree | null {
+		return this._selectedDegree;
+	}
+
+	public setSelectedDegree(degree: WaveDegree | null): void {
+		if (this._selectedDegree !== degree) {
+			this._selectedDegree = degree;
+			this._selectionChanged.fire(degree);
+		}
+	}
+
 	public isDrawingMode(): boolean {
 		return this._isDrawingMode;
 	}
@@ -66,6 +83,9 @@ export class ElliottWaveState {
 	public setDrawingMode(enabled: boolean): void {
 		if (this._isDrawingMode !== enabled) {
 			this._isDrawingMode = enabled;
+			if (enabled && this._selectedDegree !== null) {
+				this.setSelectedDegree(null);
+			}
 			this._drawingModeChanged.fire(enabled);
 		}
 	}
@@ -76,6 +96,9 @@ export class ElliottWaveState {
 	}
 
 	public setWaveCount(degree: WaveDegree, waveCount: DegreeWaveCount | null): void {
+		if (!waveCount && this._selectedDegree === degree) {
+			this.setSelectedDegree(null);
+		}
 		this._waveCounts[degree] = waveCount
 			? {
 					...waveCount,
@@ -180,6 +203,9 @@ export class ElliottWaveState {
 
 	public clearWave(degree?: WaveDegree): void {
 		const targetDegree = degree ?? this._activeDegree;
+		if (this._selectedDegree === targetDegree) {
+			this.setSelectedDegree(null);
+		}
 		this._waveCounts[targetDegree] = null;
 		this._wavePointsChanged.fire({ degree: targetDegree, waveCount: null });
 	}
@@ -214,6 +240,7 @@ export class ElliottWaveState {
 		this._wavePointsChanged.destroy();
 		this._drawingModeChanged.destroy();
 		this._degreeChanged.destroy();
+		this._selectionChanged.destroy();
 		this._hoverChanged.destroy();
 		this._dragChanged.destroy();
 	}

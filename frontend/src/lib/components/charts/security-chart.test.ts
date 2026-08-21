@@ -93,7 +93,7 @@ vi.mock('lightweight-charts', () => {
 import type { Component } from 'svelte';
 import { tick } from 'svelte';
 import type { Candle } from '$lib/utils/finance/candle';
-import type { SecurityElliottWaves } from '$lib/utils/finance/elliott-wave';
+import type { SecurityElliottWaves, WaveDegree } from '$lib/utils/finance/elliott-wave';
 import type { SecurityFibonacciTools } from '$lib/utils/finance/fibonacci';
 import type { IndicatorData } from './security-chart.svelte';
 import { render } from '@testing-library/svelte';
@@ -106,6 +106,8 @@ interface SecurityChartInstance {
 	removeIndicator: (type: string) => void;
 	updateIndicatorData: (indicator: IndicatorData) => void;
 	updateData: (candles: Candle[]) => void;
+	getSelectedWaveDegree: () => WaveDegree | null;
+	setSelectedWaveDegree: (degree: WaveDegree | null) => void;
 }
 
 describe('SecurityChart - Infinite Scroll & Logical Range', () => {
@@ -464,6 +466,82 @@ describe('SecurityChart - Elliott Wave Integration', () => {
 		});
 
 		expect(elliottPrimitive.getSnapToWicks()).toBe(true);
+	});
+
+	it('initializes ElliottWavesPrimitive with selectedWaveDegree prop', () => {
+		render(SecurityChart, {
+			props: {
+				candles: initialCandles,
+				selectedWaveDegree: 'cycle'
+			}
+		});
+
+		const elliottPrimitive = mockAttachPrimitive.mock.calls.find(
+			(c) => c[0] instanceof ElliottWavesPrimitive
+		)?.[0] as ElliottWavesPrimitive;
+
+		expect(elliottPrimitive).toBeDefined();
+		expect(elliottPrimitive.getSelectedDegree()).toBe('cycle');
+	});
+
+	it('syncs selectedWaveDegree prop changes to ElliottWavesPrimitive', async () => {
+		const { rerender } = render(SecurityChart, {
+			props: {
+				candles: initialCandles,
+				selectedWaveDegree: null
+			}
+		});
+
+		const elliottPrimitive = mockAttachPrimitive.mock.calls.find(
+			(c) => c[0] instanceof ElliottWavesPrimitive
+		)?.[0] as ElliottWavesPrimitive;
+
+		expect(elliottPrimitive.getSelectedDegree()).toBeNull();
+
+		await rerender({
+			candles: initialCandles,
+			selectedWaveDegree: 'primary'
+		});
+
+		expect(elliottPrimitive.getSelectedDegree()).toBe('primary');
+	});
+
+	it('forwards selection changes to onWaveSelect callback', () => {
+		const onWaveSelect = vi.fn();
+
+		render(SecurityChart, {
+			props: {
+				candles: initialCandles,
+				onWaveSelect
+			}
+		});
+
+		const elliottPrimitive = mockAttachPrimitive.mock.calls.find(
+			(c) => c[0] instanceof ElliottWavesPrimitive
+		)?.[0] as ElliottWavesPrimitive;
+
+		elliottPrimitive.setSelectedDegree('cycle');
+		expect(onWaveSelect).toHaveBeenCalledWith('cycle');
+
+		elliottPrimitive.setSelectedDegree(null);
+		expect(onWaveSelect).toHaveBeenCalledWith(null);
+	});
+
+	it('supports getSelectedWaveDegree and setSelectedWaveDegree component methods', () => {
+		const { component: comp } = render(SecurityChart, {
+			props: {
+				candles: initialCandles
+			}
+		});
+		const component = comp as unknown as SecurityChartInstance;
+
+		expect(component.getSelectedWaveDegree()).toBeNull();
+
+		component.setSelectedWaveDegree('primary');
+		expect(component.getSelectedWaveDegree()).toBe('primary');
+
+		component.setSelectedWaveDegree(null);
+		expect(component.getSelectedWaveDegree()).toBeNull();
 	});
 });
 

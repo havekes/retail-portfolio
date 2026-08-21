@@ -86,10 +86,12 @@
 		elliottWaves = null,
 		activeDegree = 'cycle',
 		isDrawingWave = false,
+		selectedWaveDegree = $bindable<WaveDegree | null>(null),
 		snapToWicks = false,
 		onWaveChange,
 		onDrawingModeChange,
 		onDegreeChange,
+		onWaveSelect,
 		fibonacciTools = null,
 		activeFibTool = 'retracement',
 		isDrawingFib = false,
@@ -110,10 +112,12 @@
 		elliottWaves?: SecurityElliottWaves | null;
 		activeDegree?: WaveDegree;
 		isDrawingWave?: boolean;
+		selectedWaveDegree?: WaveDegree | null;
 		snapToWicks?: boolean;
 		onWaveChange?: (degree: WaveDegree, waveCount: DegreeWaveCount | null) => void;
 		onDrawingModeChange?: (isDrawing: boolean) => void;
 		onDegreeChange?: (degree: WaveDegree) => void;
+		onWaveSelect?: (degree: WaveDegree | null) => void;
 		fibonacciTools?: SecurityFibonacciTools | null;
 		activeFibTool?: FibToolType | null;
 		isDrawingFib?: boolean;
@@ -220,6 +224,16 @@
 		if (!elliottWavesPrimitive) return;
 		if (snapToWicks !== undefined && elliottWavesPrimitive.getSnapToWicks() !== snapToWicks) {
 			elliottWavesPrimitive.setSnapToWicks(snapToWicks);
+		}
+	});
+
+	$effect(() => {
+		if (!elliottWavesPrimitive) return;
+		if (
+			selectedWaveDegree !== undefined &&
+			elliottWavesPrimitive.getSelectedDegree() !== selectedWaveDegree
+		) {
+			elliottWavesPrimitive.setSelectedDegree(selectedWaveDegree);
 		}
 	});
 
@@ -424,7 +438,8 @@
 				cycle: elliottWaves?.cycle ?? null,
 				primary: elliottWaves?.primary ?? null
 			},
-			snapToWicks
+			snapToWicks,
+			selectedDegree: selectedWaveDegree
 		});
 		if (isDrawingWave) {
 			elliottWavesPrimitive.setDrawingMode(isDrawingWave);
@@ -441,6 +456,13 @@
 
 		elliottWavesPrimitive.degreeChanged().subscribe((degree) => {
 			onDegreeChange?.(degree);
+		});
+
+		elliottWavesPrimitive.selectionChanged().subscribe((degree) => {
+			if (selectedWaveDegree !== degree) {
+				selectedWaveDegree = degree;
+			}
+			onWaveSelect?.(degree);
 		});
 
 		fibonacciPrimitive = new FibonacciPrimitive({
@@ -736,6 +758,14 @@
 
 	export function clearWave(degree?: WaveDegree) {
 		elliottWavesPrimitive?.clearWave(degree);
+	}
+
+	export function getSelectedWaveDegree(): WaveDegree | null {
+		return elliottWavesPrimitive?.getSelectedDegree() ?? null;
+	}
+
+	export function setSelectedWaveDegree(degree: WaveDegree | null) {
+		elliottWavesPrimitive?.setSelectedDegree(degree);
 	}
 
 	export function getElliottWavesPrimitive(): ElliottWavesPrimitive | null {

@@ -42,6 +42,7 @@ export class ElliottWavesPrimitive implements ISeriesPrimitive<Time> {
 		activeDegree?: WaveDegree;
 		waves?: Record<WaveDegree, DegreeWaveCount | null>;
 		snapToWicks?: boolean;
+		selectedDegree?: WaveDegree | null;
 	}) {
 		this._state = new ElliottWaveState();
 		this._mouseHandlers = new MouseHandlers();
@@ -57,6 +58,9 @@ export class ElliottWavesPrimitive implements ISeriesPrimitive<Time> {
 		if (initialState?.snapToWicks !== undefined) {
 			this._snapToWicks = initialState.snapToWicks;
 			this._mouseHandlers.setSnapToWicks(this._snapToWicks);
+		}
+		if (initialState?.selectedDegree !== undefined) {
+			this._state.setSelectedDegree(initialState.selectedDegree);
 		}
 	}
 
@@ -82,7 +86,21 @@ export class ElliottWavesPrimitive implements ISeriesPrimitive<Time> {
 			this._requestUpdate?.();
 		}, this);
 
+		this._state.selectionChanged().subscribe(() => {
+			this._requestUpdate?.();
+		}, this);
+
 		this._mouseHandlers.mouseMoved().subscribe(() => {
+			this._requestUpdate?.();
+		}, this);
+
+		this._mouseHandlers.pointClicked().subscribe((hit) => {
+			this._state.setSelectedDegree(hit.degree);
+			this._requestUpdate?.();
+		}, this);
+
+		this._mouseHandlers.emptyAreaClicked().subscribe(() => {
+			this._state.setSelectedDegree(null);
 			this._requestUpdate?.();
 		}, this);
 
@@ -127,8 +145,11 @@ export class ElliottWavesPrimitive implements ISeriesPrimitive<Time> {
 		this._state.wavePointsChanged().unsubscribeAll(this);
 		this._state.drawingModeChanged().unsubscribeAll(this);
 		this._state.degreeChanged().unsubscribeAll(this);
+		this._state.selectionChanged().unsubscribeAll(this);
 
 		this._mouseHandlers.mouseMoved().unsubscribeAll(this);
+		this._mouseHandlers.pointClicked().unsubscribeAll(this);
+		this._mouseHandlers.emptyAreaClicked().unsubscribeAll(this);
 		this._mouseHandlers.pointHovered().unsubscribeAll(this);
 		this._mouseHandlers.dragStarted().unsubscribeAll(this);
 		this._mouseHandlers.pointDragged().unsubscribeAll(this);
@@ -263,6 +284,18 @@ export class ElliottWavesPrimitive implements ISeriesPrimitive<Time> {
 		this._state.clearWave(degree);
 	}
 
+	public getSelectedDegree(): WaveDegree | null {
+		return this._state.getSelectedDegree();
+	}
+
+	public setSelectedDegree(degree: WaveDegree | null): void {
+		this._state.setSelectedDegree(degree);
+	}
+
+	public selectionChanged(): ISubscription<WaveDegree | null> {
+		return this._state.selectionChanged();
+	}
+
 	public wavePointsChanged(): ISubscription<{
 		degree: WaveDegree;
 		waveCount: DegreeWaveCount | null;
@@ -307,12 +340,14 @@ export class ElliottWavesPrimitive implements ISeriesPrimitive<Time> {
 		const hovered = this._state.getHoveredPoint();
 		const dragging = this._state.getDraggingPoint();
 		const activeDegree = this._state.getActiveDegree();
+		const selectedDegree = this._state.getSelectedDegree();
 
 		for (const degree of degrees) {
 			const config = DEGREE_STYLES[degree];
 			const waveCount = this._state.getWaveCount(degree);
 			const points = waveCount?.points ?? [];
 			const projectedPoints: ProjectedWavePoint[] = [];
+			const isDegreeSelected = degree === selectedDegree;
 
 			for (const pt of points) {
 				const x = this._timeProjector.timeToCoordinate(pt.time);
@@ -329,7 +364,8 @@ export class ElliottWavesPrimitive implements ISeriesPrimitive<Time> {
 						time: pt.time,
 						price: pt.price,
 						isHovered,
-						isDragging
+						isDragging,
+						isSelected: isDegreeSelected
 					};
 
 					projectedPoints.push(projectedPoint);
@@ -347,7 +383,8 @@ export class ElliottWavesPrimitive implements ISeriesPrimitive<Time> {
 				degree,
 				config,
 				points: projectedPoints,
-				isActiveDegree: degree === activeDegree
+				isActiveDegree: degree === activeDegree,
+				isSelected: isDegreeSelected
 			});
 		}
 

@@ -870,6 +870,242 @@ describe('Security Page - Elliott Wave Toolbar & Integration', () => {
 	});
 });
 
+describe('Security Page - Wave Selection & Keyboard Deletion', () => {
+	/* eslint-disable-next-line @typescript-eslint/no-explicit-any */
+	let PageComponent: Component<any>;
+
+	const mockData = {
+		security: {
+			id: 'sec-1',
+			symbol: 'AAPL',
+			name: 'Apple Inc.'
+		},
+		items: [{ date: '2024-01-01', open: 100, high: 110, low: 95, close: 105, volume: 1000 }]
+	};
+
+	const initialWaves: Record<string, SecurityElliottWaves> = {
+		'sec-1': {
+			cycle: {
+				points: [
+					{ wave: 0, time: '2024-01-01', price: 50 },
+					{ wave: 1, time: '2024-01-02', price: 100 },
+					{ wave: 2, time: '2024-01-03', price: 80 },
+					{ wave: 3, time: '2024-01-04', price: 150 },
+					{ wave: 4, time: '2024-01-05', price: 120 },
+					{ wave: 5, time: '2024-01-06', price: 200 }
+				]
+			},
+			primary: {
+				points: [
+					{ wave: 0, time: '2024-01-01', price: 60 },
+					{ wave: 1, time: '2024-01-02', price: 110 }
+				]
+			}
+		}
+	};
+
+	beforeAll(async () => {
+		const mod = await import('./+page.svelte');
+		PageComponent = mod.default;
+	}, 30000);
+
+	beforeEach(() => {
+		vi.clearAllMocks();
+		mockChartProps = null;
+		vi.mocked(userPreferencesService.getPreferences).mockResolvedValue({
+			elliott_waves: initialWaves,
+			wave_settings: {
+				alert_percents: {
+					cycle: { wave3: 90, wave5: 90 },
+					primary: { wave3: null, wave5: null }
+				}
+			}
+		});
+		vi.mocked(alertsService.getAlerts).mockResolvedValue({
+			items: [
+				{
+					id: 101,
+					security_id: 'sec-1',
+					user_id: 'user-1',
+					target_price: 135,
+					condition: 'above',
+					source: 'wave',
+					triggered_at: null,
+					created_at: '2024-01-01'
+				}
+			],
+			total: 1,
+			offset: 0,
+			limit: 50
+		});
+		vi.mocked(alertsService.createAlert).mockResolvedValue({} as never);
+		vi.mocked(alertsService.deleteAlert).mockResolvedValue(undefined);
+	});
+
+	it('selects wave degree when chart triggers onWaveSelect and passes selectedWaveDegree to chart', async () => {
+		render(PageComponent, { props: { data: mockData } });
+		await screen.findByRole('button', { name: /Select Cycle degree/i });
+
+		await waitFor(() => {
+			expect(mockChartProps).not.toBeNull();
+		});
+
+		// Simulate selecting 'cycle'
+		// @ts-expect-error - mockChartProps typed as Record
+		mockChartProps.onWaveSelect?.('cycle');
+
+		await waitFor(() => {
+			// @ts-expect-error - mockChartProps typed as Record
+			expect(mockChartProps.selectedWaveDegree).toBe('cycle');
+		});
+	});
+
+	it('clears selected wave on Delete key press, patches user preferences, and reconciles alerts', async () => {
+		render(PageComponent, { props: { data: mockData } });
+		await screen.findByRole('button', { name: /Select Cycle degree/i });
+
+		await waitFor(() => {
+			expect(mockChartProps).not.toBeNull();
+		});
+
+		// Select cycle wave
+		// @ts-expect-error - mockChartProps typed as Record
+		mockChartProps.onWaveSelect?.('cycle');
+
+		// Press Delete on window
+		await fireEvent.keyDown(window, { key: 'Delete' });
+
+		// Preferences patched with cycle = null
+		await waitFor(() => {
+			expect(userPreferencesService.patchPreferences).toHaveBeenCalledWith(
+				expect.objectContaining({
+					elliott_waves: expect.objectContaining({
+						'sec-1': expect.objectContaining({
+							cycle: null,
+							primary: expect.any(Object)
+						})
+					})
+				})
+			);
+		});
+
+		// Alert reconciliation should have deleted the wave-source alert (id: 101)
+		await waitFor(() => {
+			expect(alertsService.deleteAlert).toHaveBeenCalledWith('sec-1', 101);
+		});
+
+		// Selection is reset to null
+		// @ts-expect-error - mockChartProps typed as Record
+		expect(mockChartProps.selectedWaveDegree).toBeNull();
+	});
+
+	it('clears selected wave on Backspace key press', async () => {
+		render(PageComponent, { props: { data: mockData } });
+		await screen.findByRole('button', { name: /Select Cycle degree/i });
+
+		await waitFor(() => {
+			expect(mockChartProps).not.toBeNull();
+		});
+
+		// Select primary wave
+		// @ts-expect-error - mockChartProps typed as Record
+		mockChartProps.onWaveSelect?.('primary');
+
+		// Press Backspace on window
+		await fireEvent.keyDown(window, { key: 'Backspace' });
+
+		await waitFor(() => {
+			expect(userPreferencesService.patchPreferences).toHaveBeenCalledWith(
+				expect.objectContaining({
+					elliott_waves: expect.objectContaining({
+						'sec-1': expect.objectContaining({
+							primary: null
+						})
+					})
+				})
+			);
+		});
+
+		// @ts-expect-error - mockChartProps typed as Record
+		expect(mockChartProps.selectedWaveDegree).toBeNull();
+	});
+
+	it('deselects wave and exits drawing mode on Escape key press', async () => {
+		render(PageComponent, { props: { data: mockData } });
+		const drawBtn = await screen.findByRole('button', { name: /Toggle drawing wave/i });
+
+		await waitFor(() => {
+			expect(mockChartProps).not.toBeNull();
+		});
+
+		// Enter drawing mode and select a wave
+		await fireEvent.click(drawBtn);
+		expect(drawBtn.textContent?.trim()).toBe('Drawing...');
+
+		// @ts-expect-error - mockChartProps typed as Record
+		mockChartProps.onWaveSelect?.('cycle');
+
+		// Press Escape on window
+		await fireEvent.keyDown(window, { key: 'Escape' });
+
+		// Drawing mode should be exited and selected wave cleared
+		expect(drawBtn.textContent?.trim()).toBe('Draw Wave');
+		// @ts-expect-error - mockChartProps typed as Record
+		expect(mockChartProps.selectedWaveDegree).toBeNull();
+	});
+
+	it('clears selection when chart emits onWaveSelect(null)', async () => {
+		render(PageComponent, { props: { data: mockData } });
+		await screen.findByRole('button', { name: /Select Cycle degree/i });
+
+		await waitFor(() => {
+			expect(mockChartProps).not.toBeNull();
+		});
+
+		// @ts-expect-error - mockChartProps typed as Record
+		mockChartProps.onWaveSelect?.('cycle');
+		// @ts-expect-error - mockChartProps typed as Record
+		expect(mockChartProps.selectedWaveDegree).toBe('cycle');
+
+		// Click empty space
+		// @ts-expect-error - mockChartProps typed as Record
+		mockChartProps.onWaveSelect?.(null);
+		// @ts-expect-error - mockChartProps typed as Record
+		expect(mockChartProps.selectedWaveDegree).toBeNull();
+	});
+
+	it('does not delete wave on Delete or Backspace when typing in an input element', async () => {
+		render(PageComponent, { props: { data: mockData } });
+		await screen.findByRole('button', { name: /Select Cycle degree/i });
+
+		await waitFor(() => {
+			expect(mockChartProps).not.toBeNull();
+		});
+
+		// Select cycle wave
+		// @ts-expect-error - mockChartProps typed as Record
+		mockChartProps.onWaveSelect?.('cycle');
+
+		// Create dummy input element
+		const inputEl = document.createElement('input');
+		document.body.appendChild(inputEl);
+		inputEl.focus();
+
+		// Trigger Delete and Backspace on input element
+		await fireEvent.keyDown(inputEl, { key: 'Delete' });
+		await fireEvent.keyDown(inputEl, { key: 'Backspace' });
+
+		// Should NOT have triggered preferences patch for clearing wave
+		expect(userPreferencesService.patchPreferences).not.toHaveBeenCalled();
+
+		// Selection is preserved
+		// @ts-expect-error - mockChartProps typed as Record
+		expect(mockChartProps.selectedWaveDegree).toBe('cycle');
+
+		document.body.removeChild(inputEl);
+	});
+});
+
 describe('Fibonacci Preferences Serialization', () => {
 	const sampleRetracement: FibRetracementDrawing = {
 		p1: { time: '2024-01-01', price: 100 },

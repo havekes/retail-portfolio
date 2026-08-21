@@ -17,6 +17,7 @@ export interface DegreeVisualConfig {
 	badgeTextColor: string;
 	badgeBorderColor: string;
 	hoverRingColor: string;
+	selectedRingColor?: string;
 	lineWidth: number;
 	nodeRadius: number;
 	formatLabel: (wave: number) => string;
@@ -30,6 +31,7 @@ export const CYCLE_STYLE: DegreeVisualConfig = {
 	badgeTextColor: '#ffffff',
 	badgeBorderColor: '#93c5fd',
 	hoverRingColor: 'rgba(59, 130, 246, 0.4)',
+	selectedRingColor: 'rgba(59, 130, 246, 0.7)',
 	lineWidth: 2,
 	nodeRadius: 10,
 	formatLabel: (wave: number) => CYCLE_ROMAN_NUMERALS[wave] ?? ''
@@ -43,6 +45,7 @@ export const PRIMARY_STYLE: DegreeVisualConfig = {
 	badgeTextColor: '#ffffff',
 	badgeBorderColor: '#6ee7b7',
 	hoverRingColor: 'rgba(16, 185, 129, 0.4)',
+	selectedRingColor: 'rgba(16, 185, 129, 0.7)',
 	lineWidth: 2,
 	nodeRadius: 9,
 	formatLabel: (wave: number) => `${wave}`

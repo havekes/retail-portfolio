@@ -11,6 +11,7 @@ export interface ProjectedWavePoint {
 	price: number;
 	isHovered?: boolean;
 	isDragging?: boolean;
+	isSelected?: boolean;
 }
 
 export interface DegreeRenderData {
@@ -18,6 +19,7 @@ export interface DegreeRenderData {
 	config: DegreeVisualConfig;
 	points: ProjectedWavePoint[];
 	isActiveDegree: boolean;
+	isSelected?: boolean;
 }
 
 export interface DrawingPreviewData {
@@ -70,13 +72,17 @@ export class ElliottWavePaneRenderer implements IPrimitivePaneRenderer {
 			const py = point.y * vpr;
 			const radius = degreeData.config.nodeRadius * hpr;
 
-			// Highlight ring on hover or drag
-			if (point.isHovered || point.isDragging) {
+			// Highlight ring on hover, drag, or selection
+			if (point.isHovered || point.isDragging || degreeData.isSelected || point.isSelected) {
+				const ringColor =
+					point.isHovered || point.isDragging
+						? degreeData.config.hoverRingColor
+						: (degreeData.config.selectedRingColor ?? degreeData.config.hoverRingColor);
 				ctx.save();
 				try {
 					ctx.beginPath();
 					ctx.arc(px, py, radius + 4 * hpr, 0, Math.PI * 2);
-					ctx.fillStyle = degreeData.config.hoverRingColor;
+					ctx.fillStyle = ringColor;
 					ctx.fill();
 					ctx.lineWidth = 1.5 * hpr;
 					ctx.strokeStyle = degreeData.config.color;
