@@ -7,6 +7,12 @@ import type { UserPreferences } from '$lib/api/userPreferencesService';
 import type { IndicatorConfig } from '$lib/api/indicatorsService';
 import type { DegreeWaveCount, SecurityElliottWaves } from '$lib/utils/finance/elliott-wave';
 import { updateSecurityElliottWaves } from '$lib/utils/finance/elliott-wave';
+import type {
+	FibRetracementDrawing,
+	FibExtensionDrawing,
+	SecurityFibonacciTools
+} from '$lib/utils/finance/fibonacci';
+import { updateSecurityFibonacciTools } from '$lib/utils/finance/fibonacci';
 if (typeof globalThis.Path2D === 'undefined') {
 	/* eslint-disable-next-line @typescript-eslint/no-explicit-any */
 	(globalThis as any).Path2D = class Path2D {
@@ -852,6 +858,228 @@ describe('Security Page - Elliott Wave Toolbar & Integration', () => {
 			expect(screen.getByRole('button', { name: /Toggle drawing wave/i }).textContent?.trim()).toBe(
 				'Draw Wave'
 			);
+		});
+	});
+});
+
+describe('Fibonacci Preferences Serialization', () => {
+	const sampleRetracement: FibRetracementDrawing = {
+		p1: { time: '2024-01-01', price: 100 },
+		p2: { time: '2024-01-02', price: 200 },
+		visible: true
+	};
+
+	const sampleExtension: FibExtensionDrawing = {
+		p1: { time: '2024-01-01', price: 100 },
+		p2: { time: '2024-01-02', price: 200 },
+		p3: { time: '2024-01-03', price: 150 },
+		visible: true
+	};
+
+	it('persists retracement drawing under specific security id', () => {
+		const updated = updateSecurityFibonacciTools(null, 'sec-100', 'retracement', sampleRetracement);
+		expect(updated['sec-100'].retracement).toEqual(sampleRetracement);
+		expect(updated['sec-100'].extension).toBeUndefined();
+	});
+
+	it('persists extension drawing without clobbering retracement drawing', () => {
+		const initial: Record<string, SecurityFibonacciTools> = {
+			'sec-100': { retracement: sampleRetracement }
+		};
+		const updated = updateSecurityFibonacciTools(initial, 'sec-100', 'extension', sampleExtension);
+		expect(updated['sec-100'].retracement).toEqual(sampleRetracement);
+		expect(updated['sec-100'].extension).toEqual(sampleExtension);
+	});
+
+	it('clears specific tool drawing by setting to null', () => {
+		const initial: Record<string, SecurityFibonacciTools> = {
+			'sec-100': { retracement: sampleRetracement, extension: sampleExtension }
+		};
+		const updated = updateSecurityFibonacciTools(initial, 'sec-100', 'retracement', null);
+		expect(updated['sec-100'].retracement).toBeNull();
+		expect(updated['sec-100'].extension).toEqual(sampleExtension);
+	});
+
+	it('clears all tools for security when null is passed', () => {
+		const initial: Record<string, SecurityFibonacciTools> = {
+			'sec-100': { retracement: sampleRetracement, extension: sampleExtension }
+		};
+		const updated = updateSecurityFibonacciTools(initial, 'sec-100', null);
+		expect(updated['sec-100'].retracement).toBeNull();
+		expect(updated['sec-100'].extension).toBeNull();
+	});
+});
+
+describe('Security Page - Fibonacci Toolbar & Integration', () => {
+	/* eslint-disable-next-line @typescript-eslint/no-explicit-any */
+	let PageComponent: Component<any>;
+
+	const mockData = {
+		security: {
+			id: 'sec-1',
+			symbol: 'AAPL',
+			name: 'Apple Inc.'
+		},
+		items: [{ date: '2024-01-01', open: 100, high: 110, low: 95, close: 105, volume: 1000 }]
+	};
+
+	beforeAll(async () => {
+		const mod = await import('./+page.svelte');
+		PageComponent = mod.default;
+	}, 30000);
+
+	beforeEach(() => {
+		vi.clearAllMocks();
+		vi.mocked(userPreferencesService.getPreferences).mockResolvedValue({
+			fibonacci_tools: {
+				'sec-1': {
+					retracement: {
+						p1: { time: '2024-01-01', price: 100 },
+						p2: { time: '2024-01-02', price: 200 },
+						visible: true
+					},
+					extension: null
+				}
+			}
+		});
+	});
+
+	it('renders Fibonacci toolbar with Fib Retrace, Fib Extend, Settings, and Clear buttons', async () => {
+		render(PageComponent, { props: { data: mockData } });
+
+		expect(
+			await screen.findByRole('button', { name: /Toggle Fib Retrace drawing/i })
+		).toBeInTheDocument();
+		expect(screen.getByRole('button', { name: /Toggle Fib Extend drawing/i })).toBeInTheDocument();
+		expect(screen.getByRole('button', { name: /Open Fibonacci settings/i })).toBeInTheDocument();
+		expect(screen.getByRole('button', { name: /Clear Fibonacci drawing/i })).toBeInTheDocument();
+	});
+
+	it('toggles drawing mode on and off when Fib Retrace button is clicked and cancels wave drawing mode', async () => {
+		render(PageComponent, { props: { data: mockData } });
+
+		const retraceBtn = await screen.findByRole('button', { name: /Toggle Fib Retrace drawing/i });
+		const drawWaveBtn = screen.getByRole('button', { name: /Toggle drawing wave/i });
+
+		// Engage wave drawing first
+		await fireEvent.click(drawWaveBtn);
+		expect(drawWaveBtn.className).toContain('bg-primary');
+
+		// Click Fib Retrace -> engages retracement and cancels wave drawing
+		await fireEvent.click(retraceBtn);
+		expect(retraceBtn.className).toContain('bg-primary');
+		expect(drawWaveBtn.className).not.toContain('bg-primary');
+
+		// Click Fib Retrace again -> toggles off
+		await fireEvent.click(retraceBtn);
+		expect(retraceBtn.className).not.toContain('bg-primary');
+	});
+
+	it('toggles drawing mode on and off when Fib Extend button is clicked and cancels wave drawing mode', async () => {
+		render(PageComponent, { props: { data: mockData } });
+
+		const extendBtn = await screen.findByRole('button', { name: /Toggle Fib Extend drawing/i });
+		const drawWaveBtn = screen.getByRole('button', { name: /Toggle drawing wave/i });
+
+		// Engage wave drawing first
+		await fireEvent.click(drawWaveBtn);
+		expect(drawWaveBtn.className).toContain('bg-primary');
+
+		// Click Fib Extend -> engages extension and cancels wave drawing
+		await fireEvent.click(extendBtn);
+		expect(extendBtn.className).toContain('bg-primary');
+		expect(drawWaveBtn.className).not.toContain('bg-primary');
+
+		// Click Fib Extend again -> toggles off
+		await fireEvent.click(extendBtn);
+		expect(extendBtn.className).not.toContain('bg-primary');
+	});
+
+	it('opens Fibonacci settings dialog when Settings button is clicked', async () => {
+		render(PageComponent, { props: { data: mockData } });
+
+		const settingsBtn = await screen.findByRole('button', { name: /Open Fibonacci settings/i });
+		await fireEvent.click(settingsBtn);
+
+		expect(screen.getByText('Fibonacci Settings')).toBeInTheDocument();
+	});
+
+	it('persists updated levels when settings dialog toggles a level', async () => {
+		render(PageComponent, { props: { data: mockData } });
+
+		const settingsBtn = await screen.findByRole('button', { name: /Open Fibonacci settings/i });
+		await fireEvent.click(settingsBtn);
+
+		expect(screen.getByText('Fibonacci Settings')).toBeInTheDocument();
+
+		const row0618 = screen.getByTestId('fib-level-row-0.618');
+		await fireEvent.click(row0618);
+
+		expect(userPreferencesService.patchPreferences).toHaveBeenCalledWith(
+			expect.objectContaining({
+				fibonacci_tools: expect.objectContaining({
+					'sec-1': expect.objectContaining({
+						retracement: expect.objectContaining({
+							levels: expect.arrayContaining([
+								expect.objectContaining({ ratio: 0.618, enabled: false })
+							])
+						})
+					})
+				})
+			})
+		);
+	});
+
+	it('persists cleared Fibonacci drawing when Clear button is clicked', async () => {
+		render(PageComponent, { props: { data: mockData } });
+
+		const clearBtn = await screen.findByRole('button', { name: /Clear Fibonacci drawing/i });
+		await fireEvent.click(clearBtn);
+
+		expect(userPreferencesService.patchPreferences).toHaveBeenCalledWith(
+			expect.objectContaining({
+				fibonacci_tools: expect.objectContaining({
+					'sec-1': expect.objectContaining({
+						retracement: null
+					})
+				})
+			})
+		);
+	});
+
+	it('clearing Fibonacci drawing does not re-fetch market prices', async () => {
+		mockGetPrices.mockClear();
+		render(PageComponent, { props: { data: mockData } });
+
+		const clearBtn = await screen.findByRole('button', { name: /Clear Fibonacci drawing/i });
+		await fireEvent.click(clearBtn);
+
+		expect(mockGetPrices).not.toHaveBeenCalled();
+	});
+
+	it('resets Fibonacci drawing mode on soft navigation to a different security', async () => {
+		const { rerender } = render(PageComponent, { props: { data: mockData } });
+
+		const retraceBtn = await screen.findByRole('button', { name: /Toggle Fib Retrace drawing/i });
+		await fireEvent.click(retraceBtn);
+		expect(retraceBtn.className).toContain('bg-primary');
+
+		// Soft navigate to another security
+		const newSecurityData = {
+			security: {
+				id: 'sec-2',
+				symbol: 'MSFT',
+				name: 'Microsoft Corp.'
+			},
+			items: [{ date: '2024-01-01', open: 200, high: 210, low: 195, close: 205, volume: 2000 }]
+		};
+
+		await rerender({ data: newSecurityData });
+
+		await waitFor(() => {
+			expect(
+				screen.getByRole('button', { name: /Toggle Fib Retrace drawing/i }).className
+			).not.toContain('bg-primary');
 		});
 	});
 });

@@ -37,6 +37,13 @@
 		WaveDegree
 	} from '$lib/utils/finance/elliott-wave';
 	import { updateSecurityElliottWaves } from '$lib/utils/finance/elliott-wave';
+	import FibonacciSettingsDialog from '$lib/components/charts/fibonacci-settings-dialog.svelte';
+	import {
+		type FibToolType,
+		type FibLevelConfig,
+		type SecurityFibonacciTools,
+		updateSecurityFibonacciTools
+	} from '$lib/utils/finance/fibonacci';
 
 	let { data } = $props();
 
@@ -60,6 +67,13 @@
 	let isDrawingWave = $state(false);
 	let securityElliottWaves = $derived<SecurityElliottWaves>(
 		(security?.id && userPreferences?.elliott_waves?.[security.id]) || {}
+	);
+
+	let activeFibTool = $state<FibToolType>('retracement');
+	let isDrawingFib = $state(false);
+	let isFibSettingsOpen = $state(false);
+	let securityFibonacciTools = $derived<SecurityFibonacciTools>(
+		(security?.id && userPreferences?.fibonacci_tools?.[security.id]) || {}
 	);
 
 	async function updateChartPreferences(partial: Partial<UserPreferences>) {
@@ -89,6 +103,82 @@
 
 	async function handleClearWave(degree: WaveDegree) {
 		await handleWaveChange(degree, null);
+	}
+
+	async function handleFibChange(drawings: SecurityFibonacciTools) {
+		if (!security?.id) return;
+		const updatedAllTools = updateSecurityFibonacciTools(
+			userPreferences?.fibonacci_tools,
+			security.id,
+			drawings
+		);
+		userPreferences = {
+			...(userPreferences ?? {}),
+			fibonacci_tools: updatedAllTools
+		};
+		try {
+			await userPreferencesService.patchPreferences({
+				fibonacci_tools: updatedAllTools
+			});
+		} catch (err) {
+			console.error('Failed to persist fibonacci tools preference:', err);
+		}
+	}
+
+	async function handleFibLevelsChange(tool: FibToolType, levels: FibLevelConfig[]) {
+		if (!security?.id) return;
+		const currentTools = userPreferences?.fibonacci_tools?.[security.id];
+		let updatedSecurityTools: SecurityFibonacciTools;
+		if (tool === 'retracement') {
+			const currentDrawing = currentTools?.retracement;
+			updatedSecurityTools = {
+				...currentTools,
+				retracement: currentDrawing ? { ...currentDrawing, levels } : null
+			};
+		} else {
+			const currentDrawing = currentTools?.extension;
+			updatedSecurityTools = {
+				...currentTools,
+				extension: currentDrawing ? { ...currentDrawing, levels } : null
+			};
+		}
+		const updatedAllTools = updateSecurityFibonacciTools(
+			userPreferences?.fibonacci_tools,
+			security.id,
+			updatedSecurityTools
+		);
+		userPreferences = {
+			...(userPreferences ?? {}),
+			fibonacci_tools: updatedAllTools
+		};
+		try {
+			await userPreferencesService.patchPreferences({
+				fibonacci_tools: updatedAllTools
+			});
+		} catch (err) {
+			console.error('Failed to persist fibonacci tools preference:', err);
+		}
+	}
+
+	async function handleClearFib(tool?: FibToolType | null) {
+		if (!security?.id) return;
+		const updatedAllTools = updateSecurityFibonacciTools(
+			userPreferences?.fibonacci_tools,
+			security.id,
+			tool !== undefined ? tool : null,
+			null
+		);
+		userPreferences = {
+			...(userPreferences ?? {}),
+			fibonacci_tools: updatedAllTools
+		};
+		try {
+			await userPreferencesService.patchPreferences({
+				fibonacci_tools: updatedAllTools
+			});
+		} catch (err) {
+			console.error('Failed to persist fibonacci tools preference:', err);
+		}
 	}
 
 	async function changeTimeframe(
@@ -428,6 +518,7 @@
 		untrack(() => {
 			// Reset drawing mode on route transition / security change
 			isDrawingWave = false;
+			isDrawingFib = false;
 
 			(async () => {
 				if (!userPreferences) {
@@ -574,7 +665,12 @@
 						</button>
 						<button
 							type="button"
-							onclick={() => (isDrawingWave = !isDrawingWave)}
+							onclick={() => {
+								isDrawingWave = !isDrawingWave;
+								if (isDrawingWave) {
+									isDrawingFib = false;
+								}
+							}}
 							class="rounded px-2.5 py-1 text-xs font-medium transition-colors {isDrawingWave
 								? 'bg-primary text-primary-foreground shadow-sm'
 								: 'text-muted-foreground hover:bg-muted hover:text-foreground'}"
@@ -587,6 +683,63 @@
 							onclick={() => handleClearWave(activeWaveDegree)}
 							class="rounded px-2.5 py-1 text-xs font-medium text-muted-foreground transition-colors hover:bg-destructive/10 hover:text-destructive"
 							aria-label="Clear wave count"
+						>
+							Clear
+						</button>
+					</div>
+					<div class="flex items-center gap-1">
+						<span class="mr-2 text-xs font-medium text-muted-foreground">Fibonacci:</span>
+						<button
+							type="button"
+							onclick={() => {
+								if (isDrawingFib && activeFibTool === 'retracement') {
+									isDrawingFib = false;
+								} else {
+									activeFibTool = 'retracement';
+									isDrawingFib = true;
+									isDrawingWave = false;
+								}
+							}}
+							class="rounded px-2.5 py-1 text-xs font-medium transition-colors {isDrawingFib &&
+							activeFibTool === 'retracement'
+								? 'bg-primary text-primary-foreground shadow-sm'
+								: 'text-muted-foreground hover:bg-muted hover:text-foreground'}"
+							aria-label="Toggle Fib Retrace drawing"
+						>
+							Fib Retrace
+						</button>
+						<button
+							type="button"
+							onclick={() => {
+								if (isDrawingFib && activeFibTool === 'extension') {
+									isDrawingFib = false;
+								} else {
+									activeFibTool = 'extension';
+									isDrawingFib = true;
+									isDrawingWave = false;
+								}
+							}}
+							class="rounded px-2.5 py-1 text-xs font-medium transition-colors {isDrawingFib &&
+							activeFibTool === 'extension'
+								? 'bg-primary text-primary-foreground shadow-sm'
+								: 'text-muted-foreground hover:bg-muted hover:text-foreground'}"
+							aria-label="Toggle Fib Extend drawing"
+						>
+							Fib Extend
+						</button>
+						<button
+							type="button"
+							onclick={() => (isFibSettingsOpen = true)}
+							class="rounded px-2.5 py-1 text-xs font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+							aria-label="Open Fibonacci settings"
+						>
+							Settings
+						</button>
+						<button
+							type="button"
+							onclick={() => handleClearFib(activeFibTool)}
+							class="rounded px-2.5 py-1 text-xs font-medium text-muted-foreground transition-colors hover:bg-destructive/10 hover:text-destructive"
+							aria-label="Clear Fibonacci drawing"
 						>
 							Clear
 						</button>
@@ -651,8 +804,32 @@
 						activeDegree={activeWaveDegree}
 						{isDrawingWave}
 						onWaveChange={handleWaveChange}
-						onDrawingModeChange={(isDrawing) => (isDrawingWave = isDrawing)}
+						onDrawingModeChange={(isDrawing) => {
+							isDrawingWave = isDrawing;
+							if (isDrawing) isDrawingFib = false;
+						}}
 						onDegreeChange={(degree) => (activeWaveDegree = degree)}
+						fibonacciTools={securityFibonacciTools}
+						{activeFibTool}
+						{isDrawingFib}
+						onFibChange={handleFibChange}
+						onFibDrawingModeChange={(isDrawing) => {
+							isDrawingFib = isDrawing;
+							if (isDrawing) isDrawingWave = false;
+						}}
+						onFibToolChange={(tool) => {
+							if (tool) activeFibTool = tool;
+						}}
+					/>
+					<FibonacciSettingsDialog
+						bind:open={isFibSettingsOpen}
+						activeTool={activeFibTool}
+						retracementLevels={securityFibonacciTools?.retracement?.levels}
+						extensionLevels={securityFibonacciTools?.extension?.levels}
+						hasActiveDrawing={Boolean(
+							securityFibonacciTools?.retracement || securityFibonacciTools?.extension
+						)}
+						onLevelsChange={handleFibLevelsChange}
 					/>
 				</div>
 			</div>
