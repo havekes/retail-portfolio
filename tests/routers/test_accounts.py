@@ -786,3 +786,44 @@ async def test_preferences_fibonacci_tools_roundtrip(auth_client):
     )
 
 
+@pytest.mark.anyio
+async def test_preferences_wave_settings_roundtrip(auth_client):
+    """Verify wave_settings preferences persist through PUT, GET, and PATCH."""
+    payload = {
+        "wave_settings": {
+            "snap_to_wicks": True,
+            "alert_percents": {
+                "cycle": {"wave3": 5.0, "wave5": 10.0},
+                "primary": {"wave3": 15.0, "wave5": None},
+            },
+        }
+    }
+    put_resp = await auth_client.put("/api/v1/accounts/me/preferences", json=payload)
+    assert put_resp.status_code == 200
+    assert put_resp.json() == payload
+
+    get_resp = await auth_client.get("/api/v1/accounts/me/preferences")
+    assert get_resp.status_code == 200
+    assert get_resp.json() == payload
+
+    # Test PATCH — the top-level wave_settings key is replaced entirely by the JSONB || merge.
+    patch_payload = {
+        "wave_settings": {
+            "snap_to_wicks": False,
+            "alert_percents": {
+                "cycle": {"wave3": 7.5, "wave5": None},
+                "primary": {"wave3": None, "wave5": None},
+            },
+        }
+    }
+    patch_resp = await auth_client.patch(
+        "/api/v1/accounts/me/preferences", json=patch_payload
+    )
+    assert patch_resp.status_code == 200
+    assert patch_resp.json()["wave_settings"] == patch_payload["wave_settings"]
+
+    get_after_patch = await auth_client.get("/api/v1/accounts/me/preferences")
+    assert get_after_patch.status_code == 200
+    assert get_after_patch.json()["wave_settings"] == patch_payload["wave_settings"]
+
+

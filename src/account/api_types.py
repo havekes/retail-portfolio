@@ -68,5 +68,6 @@ class UserPreferences(BaseModel):
     holdings_period: str | None = None
     elliott_waves: dict[str, Any] | None = None
     fibonacci_tools: dict[str, Any] | None = None
+    wave_settings: dict[str, Any] | None = None
 
     model_config = ConfigDict(extra="allow")

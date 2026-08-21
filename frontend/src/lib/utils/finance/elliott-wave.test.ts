@@ -5,9 +5,13 @@ import {
 	updateSecurityElliottWaves,
 	getSecurityDegreeWaveCount,
 	areWaveCountsEqual,
+	getWaveAlertPercent,
+	areWaveSettingsEqual,
+	DEFAULT_WAVE_SETTINGS,
 	type DegreeWaveCount,
 	type SecurityElliottWaves,
-	type WaveDegree
+	type WaveDegree,
+	type WaveSettings
 } from './elliott-wave';
 
 describe('elliott-wave finance utilities', () => {
@@ -310,6 +314,173 @@ describe('elliott-wave finance utilities', () => {
 			const target1: DegreeWaveCount = { ...sampleWaveCount, wave3Target: 175 };
 			const target2: DegreeWaveCount = { ...sampleWaveCount, wave3Target: 180 };
 			expect(areWaveCountsEqual(target1, target2)).toBe(false);
+		});
+	});
+
+	describe('DEFAULT_WAVE_SETTINGS', () => {
+		it('has snap-to-wick off and all alert percents null', () => {
+			expect(DEFAULT_WAVE_SETTINGS.snap_to_wicks).toBe(null);
+			expect(DEFAULT_WAVE_SETTINGS.alert_percents).toEqual({
+				cycle: { wave3: null, wave5: null },
+				primary: { wave3: null, wave5: null }
+			});
+		});
+	});
+
+	describe('areWaveSettingsEqual', () => {
+		const fullSettings: WaveSettings = {
+			snap_to_wicks: true,
+			alert_percents: {
+				cycle: { wave3: 5, wave5: 10 },
+				primary: { wave3: 15, wave5: 20 }
+			}
+		};
+
+		it('returns true when both are null or undefined', () => {
+			expect(areWaveSettingsEqual(null, null)).toBe(true);
+			expect(areWaveSettingsEqual(undefined, undefined)).toBe(true);
+			expect(areWaveSettingsEqual(null, undefined)).toBe(true);
+		});
+
+		it('returns false when one is nullish and the other is not', () => {
+			expect(areWaveSettingsEqual(fullSettings, null)).toBe(false);
+			expect(areWaveSettingsEqual(undefined, fullSettings)).toBe(false);
+		});
+
+		it('returns true for identical nested settings', () => {
+			expect(
+				areWaveSettingsEqual(fullSettings, {
+					snap_to_wicks: true,
+					alert_percents: {
+						cycle: { wave3: 5, wave5: 10 },
+						primary: { wave3: 15, wave5: 20 }
+					}
+				})
+			).toBe(true);
+		});
+
+		it('returns false when snap_to_wicks differs', () => {
+			const other = { ...fullSettings, snap_to_wicks: false };
+			expect(areWaveSettingsEqual(fullSettings, other)).toBe(false);
+		});
+
+		it('returns false when each alert percent slot differs', () => {
+			expect(
+				areWaveSettingsEqual(fullSettings, {
+					...fullSettings,
+					alert_percents: {
+						cycle: { wave3: 6, wave5: 10 },
+						primary: { wave3: 15, wave5: 20 }
+					}
+				})
+			).toBe(false);
+			expect(
+				areWaveSettingsEqual(fullSettings, {
+					...fullSettings,
+					alert_percents: {
+						cycle: { wave3: 5, wave5: 11 },
+						primary: { wave3: 15, wave5: 20 }
+					}
+				})
+			).toBe(false);
+			expect(
+				areWaveSettingsEqual(fullSettings, {
+					...fullSettings,
+					alert_percents: {
+						cycle: { wave3: 5, wave5: 10 },
+						primary: { wave3: 16, wave5: 20 }
+					}
+				})
+			).toBe(false);
+			expect(
+				areWaveSettingsEqual(fullSettings, {
+					...fullSettings,
+					alert_percents: {
+						cycle: { wave3: 5, wave5: 10 },
+						primary: { wave3: 15, wave5: 21 }
+					}
+				})
+			).toBe(false);
+		});
+
+		it('returns true when null and undefined field values both mean off', () => {
+			const withNull: WaveSettings = {
+				snap_to_wicks: null,
+				alert_percents: {
+					cycle: { wave3: null, wave5: null },
+					primary: { wave3: null, wave5: null }
+				}
+			};
+			expect(
+				areWaveSettingsEqual(
+					{ snap_to_wicks: undefined, alert_percents: withNull.alert_percents },
+					withNull
+				)
+			).toBe(true);
+			expect(areWaveSettingsEqual({ snap_to_wicks: undefined }, {})).toBe(true);
+			expect(areWaveSettingsEqual(DEFAULT_WAVE_SETTINGS, withNull)).toBe(true);
+		});
+
+		it('returns false when alert_percents is null vs populated', () => {
+			expect(areWaveSettingsEqual({ snap_to_wicks: true }, fullSettings)).toBe(false);
+		});
+	});
+
+	describe('getWaveAlertPercent', () => {
+		const configured: WaveSettings = {
+			snap_to_wicks: true,
+			alert_percents: {
+				cycle: { wave3: 5, wave5: 10 },
+				primary: { wave3: 15, wave5: 20 }
+			}
+		};
+
+		it('returns the configured value for each degree+wave combination', () => {
+			expect(getWaveAlertPercent(configured, 'cycle', 'wave3')).toBe(5);
+			expect(getWaveAlertPercent(configured, 'cycle', 'wave5')).toBe(10);
+			expect(getWaveAlertPercent(configured, 'primary', 'wave3')).toBe(15);
+			expect(getWaveAlertPercent(configured, 'primary', 'wave5')).toBe(20);
+		});
+
+		it('returns null for nullish settings', () => {
+			expect(getWaveAlertPercent(null, 'cycle', 'wave3')).toBe(null);
+			expect(getWaveAlertPercent(undefined, 'primary', 'wave5')).toBe(null);
+		});
+
+		it('returns null when alert_percents is null or missing', () => {
+			expect(getWaveAlertPercent({ snap_to_wicks: true }, 'cycle', 'wave3')).toBe(null);
+			expect(
+				getWaveAlertPercent({ snap_to_wicks: true, alert_percents: null }, 'cycle', 'wave3')
+			).toBe(null);
+		});
+
+		it('returns null when a degree entry or wave slot is missing', () => {
+			const missingDegree = {
+				snap_to_wicks: null,
+				alert_percents: { cycle: { wave3: 5, wave5: null } }
+			} as unknown as WaveSettings;
+			expect(getWaveAlertPercent(missingDegree, 'primary', 'wave3')).toBe(null);
+
+			const missingWave = {
+				snap_to_wicks: null,
+				alert_percents: {
+					cycle: { wave3: 5 },
+					primary: { wave3: null, wave5: null }
+				}
+			} as unknown as WaveSettings;
+			expect(getWaveAlertPercent(missingWave, 'cycle', 'wave5')).toBe(null);
+		});
+
+		it('returns null for non-finite values', () => {
+			const nonFinite: WaveSettings = {
+				snap_to_wicks: null,
+				alert_percents: {
+					cycle: { wave3: NaN, wave5: Infinity },
+					primary: { wave3: null, wave5: null }
+				}
+			};
+			expect(getWaveAlertPercent(nonFinite, 'cycle', 'wave3')).toBe(null);
+			expect(getWaveAlertPercent(nonFinite, 'cycle', 'wave5')).toBe(null);
 		});
 	});
 });

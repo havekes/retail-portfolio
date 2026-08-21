@@ -5,7 +5,9 @@ import type {
 	SecurityElliottWaves,
 	TargetWave,
 	WaveDegree,
-	WavePoint
+	WavePoint,
+	WaveAlertPercents,
+	WaveSettings
 } from '$lib/utils/finance/elliott-wave';
 import type {
 	FibPoint,
@@ -26,6 +28,8 @@ export type {
 	TargetWave,
 	WaveDegree,
 	WavePoint,
+	WaveAlertPercents,
+	WaveSettings,
 	FibPoint,
 	FibLevelConfig,
 	FibRetracementDrawing,
@@ -44,6 +48,7 @@ export interface UserPreferences {
 	holdings_period?: string | null;
 	elliott_waves?: Record<string, SecurityElliottWaves> | null;
 	fibonacci_tools?: Record<string, SecurityFibonacciTools> | null;
+	wave_settings?: WaveSettings | null;
 }
 
 export class UserPreferencesService extends ApiClient {
