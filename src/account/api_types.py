@@ -67,5 +67,6 @@ class UserPreferences(BaseModel):
     sidebar_open: bool | None = None
     holdings_period: str | None = None
     elliott_waves: dict[str, Any] | None = None
+    fibonacci_tools: dict[str, Any] | None = None
 
     model_config = ConfigDict(extra="allow")

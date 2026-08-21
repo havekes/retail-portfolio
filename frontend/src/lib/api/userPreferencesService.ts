@@ -7,10 +7,34 @@ import type {
 	WaveDegree,
 	WavePoint
 } from '$lib/utils/finance/elliott-wave';
+import type {
+	FibPoint,
+	FibLevelConfig,
+	FibRetracementDrawing,
+	FibExtensionDrawing,
+	SecurityFibonacciTools,
+	FibonacciPreferences,
+	FibComputedLevel,
+	FibToolType
+} from '$lib/utils/finance/fibonacci';
 
 export type ChartStyle = 'heikin_ashi' | 'candlestick';
 
-export type { DegreeWaveCount, SecurityElliottWaves, TargetWave, WaveDegree, WavePoint };
+export type {
+	DegreeWaveCount,
+	SecurityElliottWaves,
+	TargetWave,
+	WaveDegree,
+	WavePoint,
+	FibPoint,
+	FibLevelConfig,
+	FibRetracementDrawing,
+	FibExtensionDrawing,
+	SecurityFibonacciTools,
+	FibonacciPreferences,
+	FibComputedLevel,
+	FibToolType
+};
 
 export interface UserPreferences {
 	timeframe?: string | null;
@@ -19,6 +43,7 @@ export interface UserPreferences {
 	sidebar_open?: boolean | null;
 	holdings_period?: string | null;
 	elliott_waves?: Record<string, SecurityElliottWaves> | null;
+	fibonacci_tools?: Record<string, SecurityFibonacciTools> | null;
 }
 
 export class UserPreferencesService extends ApiClient {
