@@ -3,6 +3,7 @@ import { Delegate, type ISubscription } from '../helpers/delegate';
 import type { WaveDegree, WavePoint } from '$lib/utils/finance/elliott-wave';
 import { HIT_TEST_RADIUS } from './constants';
 import type { PointTarget } from './state';
+import type { TimeProjector } from './time-projector';
 
 export interface MousePosition {
 	x: number;
@@ -25,6 +26,7 @@ type Unsubscriber = () => void;
 export class MouseHandlers {
 	private _chart: IChartApi | undefined = undefined;
 	private _series: ISeriesApi<SeriesType> | undefined = undefined;
+	private _timeProjector: TimeProjector | undefined = undefined;
 	private _unsubscribers: Unsubscriber[] = [];
 
 	private _projectedPoints: ProjectedPointWithTarget[] = [];
@@ -54,9 +56,14 @@ export class MouseHandlers {
 	}> = new Delegate();
 	private _dragEnded: Delegate<PointTarget> = new Delegate();
 
-	public attached(chart: IChartApi, series: ISeriesApi<SeriesType>): void {
+	public attached(
+		chart: IChartApi,
+		series: ISeriesApi<SeriesType>,
+		timeProjector?: TimeProjector
+	): void {
 		this._chart = chart;
 		this._series = series;
+		this._timeProjector = timeProjector;
 		const container = chart.chartElement();
 
 		this._addDOMListener(container, 'mousemove', this._onMouseMove.bind(this));
@@ -215,7 +222,11 @@ export class MouseHandlers {
 			y >= 0 &&
 			y <= element.clientHeight - timeScaleHeight;
 
-		const time = insidePlotArea ? this._chart.timeScale().coordinateToTime(x) : null;
+		const time = insidePlotArea
+			? this._timeProjector
+				? this._timeProjector.coordinateToTime(x)
+				: this._chart.timeScale().coordinateToTime(x)
+			: null;
 		const price = insidePlotArea ? this._series.coordinateToPrice(y) : null;
 
 		return {

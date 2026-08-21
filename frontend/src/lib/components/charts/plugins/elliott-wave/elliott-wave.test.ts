@@ -10,9 +10,38 @@ import {
 	PRIMARY_STYLE,
 	DEGREE_STYLES,
 	HIT_TEST_RADIUS,
-	MAX_WAVE_POINTS
+	MAX_WAVE_POINTS,
+	TimeProjector,
+	computeIntervalSeconds,
+	addIntervalToTime
 } from './index';
 import type { DegreeWaveCount } from '$lib/utils/finance/elliott-wave';
+import type { Candle } from '$lib/utils/finance/candle';
+
+// Helper to build daily candles for future-coordinate tests.
+function createDailyCandles(count = 30): Candle[] {
+	return Array.from({ length: count }, (_, i) => {
+		const day = i + 1;
+		return {
+			time: `2024-01-${String(day).padStart(2, '0')}` as Time,
+			open: 100 + i,
+			high: 110 + i,
+			low: 95 + i,
+			close: 105 + i
+		};
+	});
+}
+
+// Helper to configure a TimeProjector with the default mock chart + daily candles.
+function configureFutureProjector(
+	mockData: ReturnType<typeof createMockChartAndSeries>,
+	candleCount = 30
+): TimeProjector {
+	const projector = new TimeProjector();
+	projector.attach(mockData.chart);
+	projector.updateCandles(createDailyCandles(candleCount));
+	return projector;
+}
 
 // Helper to create mock Chart and Series APIs
 function createMockChartAndSeries() {
@@ -34,8 +63,10 @@ function createMockChartAndSeries() {
 
 	const timeScale = {
 		coordinateToTime: vi.fn((x: number) => {
-			if (x < 0 || x > 750) return null;
-			return `2024-01-${String(Math.min(30, Math.max(1, Math.floor(x / 25) + 1))).padStart(2, '0')}` as Time;
+			// Last candle (day 30) sits at x = 725; beyond that is the future area
+			if (x < 0 || x > 725) return null;
+			const day = Math.floor(x / 25) + 1;
+			return `2024-01-${String(Math.min(30, Math.max(1, day))).padStart(2, '0')}` as Time;
 		}),
 		timeToCoordinate: vi.fn((time: Time) => {
 			if (typeof time === 'string' && time.startsWith('2024-01-')) {
@@ -44,6 +75,11 @@ function createMockChartAndSeries() {
 			}
 			return null;
 		}),
+		coordinateToLogical: vi.fn((x: number) => {
+			if (x < 0 || x > 1500) return null;
+			return x / 25;
+		}),
+		logicalToCoordinate: vi.fn((logical: number) => logical * 25),
 		height: vi.fn(() => 30),
 		width: vi.fn(() => 750)
 	};
@@ -812,6 +848,150 @@ describe('Elliott Wave Plugin', () => {
 
 		it('cleans up and destroys primitive resources cleanly', () => {
 			expect(() => primitive.destroy()).not.toThrow();
+		});
+	});
+
+	describe('Future Wave Points (beyond last candle)', () => {
+		describe('TimeProjector', () => {
+			it('derives the bar interval from median candle spacing', () => {
+				const candles = createDailyCandles(10);
+				expect(computeIntervalSeconds(candles)).toBe(86400);
+			});
+
+			it('addIntervalToTime preserves the reference time format', () => {
+				expect(addIntervalToTime('2024-01-30', 3, 86400)).toBe('2024-02-02');
+				expect(addIntervalToTime(1706601600 as Time, 2, 3600)).toBe(1706608800);
+			});
+
+			it('projects a future coordinate to an extrapolated future time', () => {
+				const mockData = createMockChartAndSeries();
+				const projector = configureFutureProjector(mockData);
+				mockData.timeScale.coordinateToTime.mockReturnValue(null); // force future path
+
+				// x = 800 -> logical 32 -> 3 bars beyond last (index 29) -> +3 days
+				const time = projector.coordinateToTime(800);
+				expect(time).toBe('2024-02-02');
+			});
+
+			it('projects a future time to an extrapolated x coordinate', () => {
+				const mockData = createMockChartAndSeries();
+				const projector = configureFutureProjector(mockData);
+				mockData.timeScale.timeToCoordinate.mockReturnValue(null); // force future path
+
+				// '2024-02-02' is 3 days beyond '2024-01-30' -> logical 32 -> x = 800
+				const x = projector.timeToCoordinate('2024-02-02' as Time);
+				expect(x).toBe(800);
+			});
+
+			it('falls back to the time scale answer within historical data', () => {
+				const mockData = createMockChartAndSeries();
+				const projector = configureFutureProjector(mockData);
+
+				// x = 200 is within data (coordinateToTime returns '2024-01-09')
+				expect(projector.coordinateToTime(200)).toBe('2024-01-09');
+				// historical time maps back through the time scale
+				expect(projector.timeToCoordinate('2024-01-05' as Time)).toBe(100);
+			});
+
+			it('returns null when no candle data has been provided', () => {
+				const mockData = createMockChartAndSeries();
+				const projector = new TimeProjector();
+				projector.attach(mockData.chart);
+				mockData.timeScale.coordinateToTime.mockReturnValue(null);
+
+				expect(projector.coordinateToTime(800)).toBeNull();
+				expect(projector.timeToCoordinate('2024-02-02' as Time)).toBeNull();
+			});
+		});
+
+		it('fires chartClicked with an extrapolated future time when clicking in the future area', () => {
+			const mouseHandlers = new MouseHandlers();
+			const mockData = createMockChartAndSeries();
+			const projector = configureFutureProjector(mockData);
+			mouseHandlers.attached(mockData.chart, mockData.series, projector);
+
+			const onChartClicked = vi.fn();
+			mouseHandlers.chartClicked().subscribe(onChartClicked);
+			mouseHandlers.setDrawingMode(true);
+
+			// x = 750 is one whole bar beyond the last candle (x > 725) but still
+			// inside the plot area (<= 750) -> future placement
+			mockData.mockChartElement.dispatchEvent(
+				new MouseEvent('click', { clientX: 750, clientY: 150 })
+			);
+
+			expect(onChartClicked).toHaveBeenCalledWith(
+				expect.objectContaining({
+					x: 750,
+					time: '2024-01-31',
+					price: expect.any(Number)
+				})
+			);
+		});
+
+		it('fires pointDragged with an extrapolated future time when dragging a point into the future area', () => {
+			const mouseHandlers = new MouseHandlers();
+			const mockData = createMockChartAndSeries();
+			const projector = configureFutureProjector(mockData);
+			mouseHandlers.attached(mockData.chart, mockData.series, projector);
+
+			const onDrag = vi.fn();
+			mouseHandlers.pointDragged().subscribe(onDrag);
+
+			mouseHandlers.setProjectedPoints([
+				{
+					degree: 'cycle',
+					wave: 1,
+					x: 100,
+					y: 200,
+					originalPoint: { wave: 1, time: '2024-01-05' as Time, price: 100 }
+				}
+			]);
+
+			// mousedown on the point, then drag into the future area (x = 750)
+			mockData.mockChartElement.dispatchEvent(
+				new MouseEvent('mousedown', { clientX: 100, clientY: 200 })
+			);
+			mockData.mockChartElement.dispatchEvent(
+				new MouseEvent('mousemove', { clientX: 750, clientY: 230 })
+			);
+
+			expect(onDrag).toHaveBeenCalledWith(
+				expect.objectContaining({
+					degree: 'cycle',
+					wave: 1,
+					time: '2024-01-31'
+				})
+			);
+		});
+
+		it('renders a wave point at its future position via logical projection', () => {
+			const primitive = new ElliottWavesPrimitive({ activeDegree: 'cycle' });
+			const mockData = createMockChartAndSeries();
+			const mockRequestUpdate = vi.fn();
+			primitive.attached({
+				chart: mockData.chart,
+				series: mockData.series,
+				requestUpdate: mockRequestUpdate,
+				horzScaleBehavior: {} as never
+			});
+			primitive.setCandles(createDailyCandles(30));
+
+			// Add a point at a genuinely future time (beyond the '2024-01-*' data
+			// so the time scale returns null and the projector extrapolates).
+			primitive.addPoint(150, '2024-02-02' as Time, 'cycle');
+
+			primitive.updateAllViews();
+			// '2024-02-02' is 3 days beyond '2024-01-30' -> logical 32 -> x = 800
+			expect(mockData.timeScale.logicalToCoordinate).toHaveBeenCalled();
+			const projected = (
+				primitive as unknown as {
+					_paneViews: { renderer(): { _data: unknown } }[];
+				}
+			)._paneViews[0].renderer()._data as {
+				degrees: { points: { x: number }[] }[];
+			};
+			expect(projected.degrees[0].points[0].x).toBe(800);
 		});
 	});
 });

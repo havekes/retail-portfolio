@@ -231,6 +231,7 @@
 			}
 
 			seriesInstance.setData(candles);
+			elliottWavesPrimitive?.setCandles(candles);
 
 			if (chartInstance) {
 				if (isPrepending && currentRange && addedCandles > 0) {
