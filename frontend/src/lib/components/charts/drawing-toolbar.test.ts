@@ -13,9 +13,18 @@ describe('DrawingToolbar Component', () => {
 			}
 		});
 
-		expect(screen.getByRole('button', { name: 'Elliott Wave' })).toBeInTheDocument();
-		expect(screen.getByRole('button', { name: /Toggle Fib Retrace drawing/i })).toBeInTheDocument();
-		expect(screen.getByRole('button', { name: /Toggle Fib Extend drawing/i })).toBeInTheDocument();
+		const waveBtn = screen.getByRole('button', { name: 'Elliott Wave' });
+		const retraceBtn = screen.getByRole('button', { name: /Toggle Fib Retrace drawing/i });
+		const extendBtn = screen.getByRole('button', { name: /Toggle Fib Extend drawing/i });
+
+		expect(waveBtn).toBeInTheDocument();
+		expect(waveBtn).toHaveAttribute('title', 'Elliott Wave');
+
+		expect(retraceBtn).toBeInTheDocument();
+		expect(retraceBtn).toHaveAttribute('title', 'Fibonacci Retracement');
+
+		expect(extendBtn).toBeInTheDocument();
+		expect(extendBtn).toHaveAttribute('title', 'Fibonacci Extension');
 	});
 
 	it('opens dropdown menu and triggers onSelectWaveDegree when Cycle Degree is selected', async () => {

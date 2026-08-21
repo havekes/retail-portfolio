@@ -1895,7 +1895,7 @@ describe('Security Page - Top Toolbar', () => {
 		expect(screen.queryByText(/Style:/i)).not.toBeInTheDocument();
 	});
 
-	it('renders Candlestick and Heikin-Ashi icon buttons with aria-label and title', async () => {
+	it('renders Candlestick, Heikin-Ashi, and Chart Settings icon buttons with aria-label and title', async () => {
 		render(PageComponent, { props: { data: mockData } });
 
 		const candleBtn = await screen.findByRole('button', { name: 'Candlestick' });
@@ -1905,6 +1905,10 @@ describe('Security Page - Top Toolbar', () => {
 		const haBtn = screen.getByRole('button', { name: 'Heikin-Ashi' });
 		expect(haBtn).toBeInTheDocument();
 		expect(haBtn).toHaveAttribute('title', 'Heikin-Ashi');
+
+		const settingsBtn = screen.getByRole('button', { name: /Open chart settings/i });
+		expect(settingsBtn).toBeInTheDocument();
+		expect(settingsBtn).toHaveAttribute('title', 'Chart Settings');
 	});
 
 	it('clicking Candlestick icon button sets chartStyle to candlestick and persists preference', async () => {

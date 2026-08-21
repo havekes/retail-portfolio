@@ -24,6 +24,7 @@
 	import Settings from '@lucide/svelte/icons/settings';
 	import CandlestickIcon from '$lib/components/icons/candlestick-icon.svelte';
 	import HeikinAshiIcon from '$lib/components/icons/heikin-ashi-icon.svelte';
+	import * as Tooltip from '$lib/components/ui/tooltip/index.js';
 	import { getWatchlistService } from '$lib/components/watchlist/watchlistService.svelte';
 	import {
 		displayCandlesFor,
@@ -726,57 +727,89 @@
 							</button>
 						{/each}
 					</div>
-					<div class="flex items-center gap-1">
-						<button
-							type="button"
-							onclick={async () => {
-								chartStyle = 'candlestick';
-								refreshActiveIndicators();
-								try {
-									await updateChartPreferences({ chart_style: 'candlestick' });
-								} catch (err) {
-									console.error('Failed to persist chart style:', err);
-								}
-							}}
-							disabled={isChangingTimeframe}
-							class="rounded p-1.5 transition-colors {chartStyle === 'candlestick'
-								? 'bg-primary text-primary-foreground shadow-sm'
-								: 'text-muted-foreground hover:bg-muted hover:text-foreground'}"
-							aria-label="Candlestick"
-							title="Candlestick"
-						>
-							<CandlestickIcon class="h-4 w-4" />
-						</button>
-						<button
-							type="button"
-							onclick={async () => {
-								chartStyle = 'heikin_ashi';
-								refreshActiveIndicators();
-								try {
-									await updateChartPreferences({ chart_style: 'heikin_ashi' });
-								} catch (err) {
-									console.error('Failed to persist chart style:', err);
-								}
-							}}
-							disabled={isChangingTimeframe}
-							class="rounded p-1.5 transition-colors {chartStyle === 'heikin_ashi'
-								? 'bg-primary text-primary-foreground shadow-sm'
-								: 'text-muted-foreground hover:bg-muted hover:text-foreground'}"
-							aria-label="Heikin-Ashi"
-							title="Heikin-Ashi"
-						>
-							<HeikinAshiIcon class="h-4 w-4" />
-						</button>
-						<button
-							type="button"
-							onclick={() => (isChartSettingsOpen = true)}
-							class="rounded p-1.5 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
-							aria-label="Open chart settings"
-							title="Chart Settings"
-						>
-							<Settings class="h-4 w-4" />
-						</button>
-					</div>
+					<Tooltip.Provider>
+						<div class="flex items-center gap-1">
+							<Tooltip.Root>
+								<Tooltip.Trigger>
+									{#snippet child({ props })}
+										<button
+											type="button"
+											{...props}
+											onclick={async () => {
+												chartStyle = 'candlestick';
+												refreshActiveIndicators();
+												try {
+													await updateChartPreferences({ chart_style: 'candlestick' });
+												} catch (err) {
+													console.error('Failed to persist chart style:', err);
+												}
+											}}
+											disabled={isChangingTimeframe}
+											class="rounded p-1.5 transition-colors {chartStyle === 'candlestick'
+												? 'bg-primary text-primary-foreground shadow-sm'
+												: 'text-muted-foreground hover:bg-muted hover:text-foreground'}"
+											aria-label="Candlestick"
+											title="Candlestick"
+										>
+											<CandlestickIcon class="h-4 w-4" />
+										</button>
+									{/snippet}
+								</Tooltip.Trigger>
+								<Tooltip.Content side="bottom">
+									<p>Candlestick</p>
+								</Tooltip.Content>
+							</Tooltip.Root>
+							<Tooltip.Root>
+								<Tooltip.Trigger>
+									{#snippet child({ props })}
+										<button
+											type="button"
+											{...props}
+											onclick={async () => {
+												chartStyle = 'heikin_ashi';
+												refreshActiveIndicators();
+												try {
+													await updateChartPreferences({ chart_style: 'heikin_ashi' });
+												} catch (err) {
+													console.error('Failed to persist chart style:', err);
+												}
+											}}
+											disabled={isChangingTimeframe}
+											class="rounded p-1.5 transition-colors {chartStyle === 'heikin_ashi'
+												? 'bg-primary text-primary-foreground shadow-sm'
+												: 'text-muted-foreground hover:bg-muted hover:text-foreground'}"
+											aria-label="Heikin-Ashi"
+											title="Heikin-Ashi"
+										>
+											<HeikinAshiIcon class="h-4 w-4" />
+										</button>
+									{/snippet}
+								</Tooltip.Trigger>
+								<Tooltip.Content side="bottom">
+									<p>Heikin-Ashi</p>
+								</Tooltip.Content>
+							</Tooltip.Root>
+							<Tooltip.Root>
+								<Tooltip.Trigger>
+									{#snippet child({ props })}
+										<button
+											type="button"
+											{...props}
+											onclick={() => (isChartSettingsOpen = true)}
+											class="rounded p-1.5 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+											aria-label="Open chart settings"
+											title="Chart Settings"
+										>
+											<Settings class="h-4 w-4" />
+										</button>
+									{/snippet}
+								</Tooltip.Trigger>
+								<Tooltip.Content side="bottom">
+									<p>Chart Settings</p>
+								</Tooltip.Content>
+							</Tooltip.Root>
+						</div>
+					</Tooltip.Provider>
 				</div>
 				<div class="flex min-h-0 flex-1 overflow-hidden">
 					<DrawingToolbar

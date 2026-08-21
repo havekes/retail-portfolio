@@ -23,5 +23,5 @@
 	class={className}
 	{...restProps}
 >
-	<path d="M3 18 L7 6 L12 15 L17 8 L21 16" />
+	<path d="M2 20 L6 13 L10 16 L15 7 L18 10 L22 4" />
 </svg>
