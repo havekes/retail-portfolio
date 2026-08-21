@@ -427,6 +427,44 @@ describe('SecurityChart - Elliott Wave Integration', () => {
 		unmount();
 		expect(destroySpy).toHaveBeenCalled();
 	});
+
+	it('initializes ElliottWavesPrimitive with snapToWicks prop', () => {
+		render(SecurityChart, {
+			props: {
+				candles: initialCandles,
+				snapToWicks: true
+			}
+		});
+
+		const elliottPrimitive = mockAttachPrimitive.mock.calls.find(
+			(c) => c[0] instanceof ElliottWavesPrimitive
+		)?.[0] as ElliottWavesPrimitive;
+
+		expect(elliottPrimitive).toBeDefined();
+		expect(elliottPrimitive.getSnapToWicks()).toBe(true);
+	});
+
+	it('syncs snapToWicks prop changes to ElliottWavesPrimitive', async () => {
+		const { rerender } = render(SecurityChart, {
+			props: {
+				candles: initialCandles,
+				snapToWicks: false
+			}
+		});
+
+		const elliottPrimitive = mockAttachPrimitive.mock.calls.find(
+			(c) => c[0] instanceof ElliottWavesPrimitive
+		)?.[0] as ElliottWavesPrimitive;
+
+		expect(elliottPrimitive.getSnapToWicks()).toBe(false);
+
+		await rerender({
+			candles: initialCandles,
+			snapToWicks: true
+		});
+
+		expect(elliottPrimitive.getSnapToWicks()).toBe(true);
+	});
 });
 
 describe('SecurityChart - Fibonacci Integration', () => {

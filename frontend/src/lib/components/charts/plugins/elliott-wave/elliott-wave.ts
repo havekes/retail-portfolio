@@ -20,6 +20,7 @@ import {
 	type ProjectedWavePoint
 } from './pane-renderer';
 import { ElliottWavePaneView } from './pane-view';
+import { buildCandleLookup, findCandleByTime, snapPriceToWick } from './snap';
 import { ElliottWaveState } from './state';
 import { TimeProjector } from './time-projector';
 
@@ -33,11 +34,14 @@ export class ElliottWavesPrimitive implements ISeriesPrimitive<Time> {
 	private readonly _timeProjector: TimeProjector;
 	private readonly _paneViews: [ElliottWavePaneView];
 
+	private _snapToWicks: boolean = false;
+	private _candleLookup: Map<number, Candle> = new Map();
 	private _currentCursor: string | null = null;
 
 	constructor(initialState?: {
 		activeDegree?: WaveDegree;
 		waves?: Record<WaveDegree, DegreeWaveCount | null>;
+		snapToWicks?: boolean;
 	}) {
 		this._state = new ElliottWaveState();
 		this._mouseHandlers = new MouseHandlers();
@@ -49,6 +53,10 @@ export class ElliottWavesPrimitive implements ISeriesPrimitive<Time> {
 		}
 		if (initialState?.waves) {
 			this._state.setAllWaveCounts(initialState.waves);
+		}
+		if (initialState?.snapToWicks !== undefined) {
+			this._snapToWicks = initialState.snapToWicks;
+			this._mouseHandlers.setSnapToWicks(this._snapToWicks);
 		}
 	}
 
@@ -192,10 +200,23 @@ export class ElliottWavesPrimitive implements ISeriesPrimitive<Time> {
 
 	/**
 	 * Provide the latest candle data so future (beyond last data point) wave
-	 * times can be extrapolated for placement, dragging, and rendering.
+	 * times can be extrapolated for placement, dragging, and rendering, and
+	 * wave points can snap to candle wicks when snapToWicks is enabled.
 	 */
 	public setCandles(candles: Candle[]): void {
+		this._candleLookup = buildCandleLookup(candles);
 		this._timeProjector.updateCandles(candles);
+		this._mouseHandlers.setCandles(candles);
+		this._requestUpdate?.();
+	}
+
+	public getSnapToWicks(): boolean {
+		return this._snapToWicks;
+	}
+
+	public setSnapToWicks(enabled: boolean): void {
+		this._snapToWicks = enabled;
+		this._mouseHandlers.setSnapToWicks(enabled);
 		this._requestUpdate?.();
 	}
 
@@ -343,13 +364,28 @@ export class ElliottWavesPrimitive implements ISeriesPrimitive<Time> {
 				const lastPoint = activePoints.length > 0 ? activePoints[activePoints.length - 1] : null;
 				const lastMouse = this._mouseHandlers.getLastMousePosition();
 
+				let currentMouse: { x: number; y: number } | null = null;
+				if (lastMouse && lastMouse.insidePlotArea) {
+					let y = lastMouse.y;
+					if (this._snapToWicks && lastMouse.time !== null && lastMouse.price !== null) {
+						const candle = findCandleByTime(this._candleLookup, lastMouse.time);
+						if (candle) {
+							const snappedPrice = snapPriceToWick(lastMouse.price, candle);
+							const snappedY = series.priceToCoordinate(snappedPrice);
+							if (snappedY !== null) {
+								y = snappedY;
+							}
+						}
+					}
+					currentMouse = { x: lastMouse.x, y };
+				}
+
 				preview = {
 					degree: activeDegree,
 					config: activeConfig,
 					nextWave,
 					lastPoint,
-					currentMouse:
-						lastMouse && lastMouse.insidePlotArea ? { x: lastMouse.x, y: lastMouse.y } : null
+					currentMouse
 				};
 			}
 		}

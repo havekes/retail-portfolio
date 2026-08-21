@@ -1,7 +1,9 @@
 import type { IChartApi, ISeriesApi, SeriesType, Time } from 'lightweight-charts';
 import { Delegate, type ISubscription } from '../helpers/delegate';
 import type { WaveDegree, WavePoint } from '$lib/utils/finance/elliott-wave';
+import type { Candle } from '$lib/utils/finance/candle';
 import { HIT_TEST_RADIUS } from './constants';
+import { buildCandleLookup, findCandleByTime, snapPriceToWick } from './snap';
 import type { PointTarget } from './state';
 import type { TimeProjector } from './time-projector';
 
@@ -31,6 +33,8 @@ export class MouseHandlers {
 
 	private _projectedPoints: ProjectedPointWithTarget[] = [];
 	private _isDrawingMode: boolean = false;
+	private _snapToWicks: boolean = false;
+	private _candleLookup: Map<number, Candle> = new Map();
 	private _isDragging: boolean = false;
 	private _dragTarget: PointTarget | null = null;
 	private _lastMousePosition: MousePosition | null = null;
@@ -115,6 +119,18 @@ export class MouseHandlers {
 			this._dragTarget = null;
 			this._restoreChartScroll();
 		}
+	}
+
+	public setSnapToWicks(enabled: boolean): void {
+		this._snapToWicks = enabled;
+	}
+
+	public getSnapToWicks(): boolean {
+		return this._snapToWicks;
+	}
+
+	public setCandles(candles: Candle[]): void {
+		this._candleLookup = buildCandleLookup(candles);
 	}
 
 	/**
@@ -264,13 +280,27 @@ export class MouseHandlers {
 
 		if (this._isDragging && this._dragTarget) {
 			if (pos.time !== null && pos.price !== null) {
+				let price = pos.price;
+				let y = pos.y;
+				if (this._snapToWicks) {
+					const candle = findCandleByTime(this._candleLookup, pos.time);
+					if (candle) {
+						price = snapPriceToWick(pos.price, candle);
+						if (this._series) {
+							const snappedY = this._series.priceToCoordinate(price);
+							if (snappedY !== null) {
+								y = snappedY;
+							}
+						}
+					}
+				}
 				this._pointDragged.fire({
 					degree: this._dragTarget.degree,
 					wave: this._dragTarget.wave,
 					time: pos.time,
-					price: pos.price,
+					price,
 					x: pos.x,
-					y: pos.y
+					y
 				});
 			}
 		} else if (!this._isDrawingMode) {
@@ -313,11 +343,25 @@ export class MouseHandlers {
 
 		if (this._isDrawingMode) {
 			if (pos.insidePlotArea && pos.time !== null && pos.price !== null) {
+				let price = pos.price;
+				let y = pos.y;
+				if (this._snapToWicks) {
+					const candle = findCandleByTime(this._candleLookup, pos.time);
+					if (candle) {
+						price = snapPriceToWick(pos.price, candle);
+						if (this._series) {
+							const snappedY = this._series.priceToCoordinate(price);
+							if (snappedY !== null) {
+								y = snappedY;
+							}
+						}
+					}
+				}
 				this._chartClicked.fire({
 					time: pos.time,
-					price: pos.price,
+					price,
 					x: pos.x,
-					y: pos.y
+					y
 				});
 			}
 		} else {

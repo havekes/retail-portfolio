@@ -13,7 +13,10 @@ import {
 	MAX_WAVE_POINTS,
 	TimeProjector,
 	computeIntervalSeconds,
-	addIntervalToTime
+	addIntervalToTime,
+	snapPriceToWick,
+	buildCandleLookup,
+	findCandleByTime
 } from './index';
 import type { DegreeWaveCount } from '$lib/utils/finance/elliott-wave';
 import type { Candle } from '$lib/utils/finance/candle';
@@ -992,6 +995,328 @@ describe('Elliott Wave Plugin', () => {
 				degrees: { points: { x: number }[] }[];
 			};
 			expect(projected.degrees[0].points[0].x).toBe(800);
+		});
+	});
+
+	describe('Snap to Candle Wicks', () => {
+		describe('snapPriceToWick', () => {
+			const candle: Candle = {
+				time: '2024-01-01',
+				open: 100,
+				high: 110,
+				low: 90,
+				close: 105
+			};
+
+			it('snaps to high wick when pointer is closer to high', () => {
+				expect(snapPriceToWick(106, candle)).toBe(110);
+			});
+
+			it('snaps to low wick when pointer is closer to low', () => {
+				expect(snapPriceToWick(94, candle)).toBe(90);
+			});
+
+			it('resolves exact midpoint tie to high wick', () => {
+				// Midpoint of 110 and 90 is 100 (distance = 10 to both)
+				expect(snapPriceToWick(100, candle)).toBe(110);
+			});
+
+			it('snaps to high wick when pointer price is above candle high', () => {
+				expect(snapPriceToWick(125, candle)).toBe(110);
+			});
+
+			it('snaps to low wick when pointer price is below candle low', () => {
+				expect(snapPriceToWick(75, candle)).toBe(90);
+			});
+
+			it('handles candle with equal high and low', () => {
+				const flatCandle: Candle = {
+					time: '2024-01-01',
+					open: 100,
+					high: 100,
+					low: 100,
+					close: 100
+				};
+				expect(snapPriceToWick(105, flatCandle)).toBe(100);
+				expect(snapPriceToWick(95, flatCandle)).toBe(100);
+			});
+		});
+
+		describe('buildCandleLookup & findCandleByTime', () => {
+			const candles = createDailyCandles(5);
+			const lookup = buildCandleLookup(candles);
+
+			it('finds candle by string date', () => {
+				const candle = findCandleByTime(lookup, '2024-01-03' as Time);
+				expect(candle).toBeDefined();
+				expect(candle?.time).toBe('2024-01-03');
+				expect(candle?.high).toBe(112);
+			});
+
+			it('finds candle by epoch seconds number', () => {
+				const epoch = Math.floor(new Date('2024-01-03T00:00:00Z').getTime() / 1000);
+				const candle = findCandleByTime(lookup, epoch as Time);
+				expect(candle).toBeDefined();
+				expect(candle?.time).toBe('2024-01-03');
+			});
+
+			it('finds candle by BusinessDay object', () => {
+				const busDay: Time = { year: 2024, month: 1, day: 3 } as never;
+				const candle = findCandleByTime(lookup, busDay);
+				expect(candle).toBeDefined();
+				expect(candle?.time).toBe('2024-01-03');
+			});
+
+			it('returns undefined for non-existent time, null, or undefined', () => {
+				expect(findCandleByTime(lookup, '2024-05-01' as Time)).toBeUndefined();
+				expect(findCandleByTime(lookup, null)).toBeUndefined();
+				expect(findCandleByTime(lookup, undefined)).toBeUndefined();
+			});
+		});
+
+		describe('MouseHandlers Wick Snapping', () => {
+			it('emits raw mouse price when snapToWicks is false (default)', () => {
+				const mouseHandlers = new MouseHandlers();
+				const mockData = createMockChartAndSeries();
+				const projector = configureFutureProjector(mockData);
+				mouseHandlers.attached(mockData.chart, mockData.series, projector);
+				mouseHandlers.setCandles(createDailyCandles(30));
+				mouseHandlers.setDrawingMode(true);
+
+				expect(mouseHandlers.getSnapToWicks()).toBe(false);
+
+				const onChartClicked = vi.fn();
+				mouseHandlers.chartClicked().subscribe(onChartClicked);
+
+				// clientX: 100 (day 5: high 114, low 99), clientY: 460 (price: 200 - 460*0.2 = 108)
+				mockData.mockChartElement.dispatchEvent(
+					new MouseEvent('click', { clientX: 100, clientY: 460 })
+				);
+
+				expect(onChartClicked).toHaveBeenCalledWith({
+					time: '2024-01-05',
+					price: 108,
+					x: 100,
+					y: 460
+				});
+			});
+
+			it('snaps placement click to nearest candle wick when snapToWicks is true', () => {
+				const mouseHandlers = new MouseHandlers();
+				const mockData = createMockChartAndSeries();
+				const projector = configureFutureProjector(mockData);
+				mouseHandlers.attached(mockData.chart, mockData.series, projector);
+				mouseHandlers.setCandles(createDailyCandles(30));
+				mouseHandlers.setDrawingMode(true);
+				mouseHandlers.setSnapToWicks(true);
+
+				expect(mouseHandlers.getSnapToWicks()).toBe(true);
+
+				const onChartClicked = vi.fn();
+				mouseHandlers.chartClicked().subscribe(onChartClicked);
+
+				// clientX: 350 (day 15: high 124, low 109), clientY: 390 (price: 200 - 390*0.2 = 122, closer to 124)
+				mockData.mockChartElement.dispatchEvent(
+					new MouseEvent('click', { clientX: 350, clientY: 390 })
+				);
+
+				expect(onChartClicked).toHaveBeenCalledWith({
+					time: '2024-01-15',
+					price: 124,
+					x: 350,
+					y: (200 - 124) / 0.2 // 380
+				});
+
+				// clientY: 440 (price: 112, closer to low 109)
+				mockData.mockChartElement.dispatchEvent(
+					new MouseEvent('click', { clientX: 350, clientY: 440 })
+				);
+
+				expect(onChartClicked).toHaveBeenCalledWith({
+					time: '2024-01-15',
+					price: 109,
+					x: 350,
+					y: (200 - 109) / 0.2 // 455
+				});
+			});
+
+			it('snaps drag moves to nearest candle wick when snapToWicks is true', () => {
+				const mouseHandlers = new MouseHandlers();
+				const mockData = createMockChartAndSeries();
+				const projector = configureFutureProjector(mockData);
+				mouseHandlers.attached(mockData.chart, mockData.series, projector);
+				mouseHandlers.setCandles(createDailyCandles(30));
+				mouseHandlers.setSnapToWicks(true);
+
+				const onPointDragged = vi.fn();
+				mouseHandlers.pointDragged().subscribe(onPointDragged);
+
+				mouseHandlers.setProjectedPoints([
+					{
+						degree: 'cycle',
+						wave: 1,
+						x: 50,
+						y: 100,
+						originalPoint: { wave: 1, time: '2024-01-03' as Time, price: 112 }
+					}
+				]);
+
+				// mousedown on point
+				mockData.mockChartElement.dispatchEvent(
+					new MouseEvent('mousedown', { clientX: 50, clientY: 100 })
+				);
+
+				// mousemove to day 15 (clientX: 350) with clientY: 390 (price 122 -> snaps to high 124)
+				mockData.mockChartElement.dispatchEvent(
+					new MouseEvent('mousemove', { clientX: 350, clientY: 390 })
+				);
+
+				expect(onPointDragged).toHaveBeenCalledWith({
+					degree: 'cycle',
+					wave: 1,
+					time: '2024-01-15',
+					price: 124,
+					x: 350,
+					y: (200 - 124) / 0.2
+				});
+			});
+
+			it('does not snap click or drag in the future projection area', () => {
+				const mouseHandlers = new MouseHandlers();
+				const mockData = createMockChartAndSeries();
+				const projector = configureFutureProjector(mockData);
+				mouseHandlers.attached(mockData.chart, mockData.series, projector);
+				mouseHandlers.setCandles(createDailyCandles(30));
+				mouseHandlers.setDrawingMode(true);
+				mouseHandlers.setSnapToWicks(true);
+
+				const onChartClicked = vi.fn();
+				mouseHandlers.chartClicked().subscribe(onChartClicked);
+
+				// clientX: 750 (future area -> '2024-01-31'), clientY: 460 (price: 108)
+				mockData.mockChartElement.dispatchEvent(
+					new MouseEvent('click', { clientX: 750, clientY: 460 })
+				);
+
+				expect(onChartClicked).toHaveBeenCalledWith({
+					time: '2024-01-31',
+					price: 108,
+					x: 750,
+					y: 460
+				});
+			});
+		});
+
+		describe('ElliottWavesPrimitive Snap and Preview Ghost', () => {
+			it('initializes snapToWicks from constructor and updates via setter', () => {
+				const defaultPrimitive = new ElliottWavesPrimitive();
+				expect(defaultPrimitive.getSnapToWicks()).toBe(false);
+
+				const snapPrimitive = new ElliottWavesPrimitive({ snapToWicks: true });
+				expect(snapPrimitive.getSnapToWicks()).toBe(true);
+
+				snapPrimitive.setSnapToWicks(false);
+				expect(snapPrimitive.getSnapToWicks()).toBe(false);
+			});
+
+			it('renders drawing preview currentMouse at raw pointer y when snapToWicks is false', () => {
+				const primitive = new ElliottWavesPrimitive({ activeDegree: 'cycle', snapToWicks: false });
+				const mockData = createMockChartAndSeries();
+				const mockRequestUpdate = vi.fn();
+				primitive.attached({
+					chart: mockData.chart,
+					series: mockData.series,
+					requestUpdate: mockRequestUpdate,
+					horzScaleBehavior: {} as never
+				});
+				primitive.setCandles(createDailyCandles(30));
+				primitive.setDrawingMode(true);
+
+				// Move mouse to day 5 (clientX: 100), clientY: 460 (price 108)
+				mockData.mockChartElement.dispatchEvent(
+					new MouseEvent('mousemove', { clientX: 100, clientY: 460 })
+				);
+
+				primitive.updateAllViews();
+				const rendererData = (
+					primitive as unknown as {
+						_paneViews: { renderer(): { _data: unknown } }[];
+					}
+				)._paneViews[0].renderer()._data as {
+					preview: { currentMouse: { x: number; y: number } };
+				};
+
+				expect(rendererData.preview.currentMouse).toEqual({
+					x: 100,
+					y: 460
+				});
+			});
+
+			it('renders drawing preview currentMouse at snapped wick y when snapToWicks is true', () => {
+				const primitive = new ElliottWavesPrimitive({ activeDegree: 'cycle', snapToWicks: true });
+				const mockData = createMockChartAndSeries();
+				const mockRequestUpdate = vi.fn();
+				primitive.attached({
+					chart: mockData.chart,
+					series: mockData.series,
+					requestUpdate: mockRequestUpdate,
+					horzScaleBehavior: {} as never
+				});
+				primitive.setCandles(createDailyCandles(30));
+				primitive.setDrawingMode(true);
+
+				// Move mouse to day 5 (clientX: 100, high 114, low 99), clientY: 460 (price 108 -> snaps to high 114)
+				mockData.mockChartElement.dispatchEvent(
+					new MouseEvent('mousemove', { clientX: 100, clientY: 460 })
+				);
+
+				primitive.updateAllViews();
+				const rendererData = (
+					primitive as unknown as {
+						_paneViews: { renderer(): { _data: unknown } }[];
+					}
+				)._paneViews[0].renderer()._data as {
+					preview: { currentMouse: { x: number; y: number } };
+				};
+
+				expect(rendererData.preview.currentMouse).toEqual({
+					x: 100,
+					y: (200 - 114) / 0.2 // 430
+				});
+			});
+
+			it('renders drawing preview currentMouse at raw y in future area even when snapToWicks is true', () => {
+				const primitive = new ElliottWavesPrimitive({ activeDegree: 'cycle', snapToWicks: true });
+				const mockData = createMockChartAndSeries();
+				const mockRequestUpdate = vi.fn();
+				primitive.attached({
+					chart: mockData.chart,
+					series: mockData.series,
+					requestUpdate: mockRequestUpdate,
+					horzScaleBehavior: {} as never
+				});
+				primitive.setCandles(createDailyCandles(30));
+				primitive.setDrawingMode(true);
+
+				// Move mouse to future area (clientX: 750), clientY: 460
+				mockData.mockChartElement.dispatchEvent(
+					new MouseEvent('mousemove', { clientX: 750, clientY: 460 })
+				);
+
+				primitive.updateAllViews();
+				const rendererData = (
+					primitive as unknown as {
+						_paneViews: { renderer(): { _data: unknown } }[];
+					}
+				)._paneViews[0].renderer()._data as {
+					preview: { currentMouse: { x: number; y: number } };
+				};
+
+				expect(rendererData.preview.currentMouse).toEqual({
+					x: 750,
+					y: 460
+				});
+			});
 		});
 	});
 });
