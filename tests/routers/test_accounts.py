@@ -702,3 +702,87 @@ async def test_preferences_elliott_waves_roundtrip(auth_client):
         == 10.0
     )
 
+
+@pytest.mark.anyio
+async def test_preferences_fibonacci_tools_roundtrip(auth_client):
+    """Verify fibonacci_tools preferences persist through PUT, GET, and PATCH."""
+    payload = {
+        "fibonacci_tools": {
+            "sec-1": {
+                "retracement": {
+                    "p1": {"time": "2024-01-01", "price": 100.0},
+                    "p2": {"time": "2024-01-02", "price": 200.0},
+                    "levels": [
+                        {"ratio": 0.0, "color": "#787B86", "enabled": True},
+                        {"ratio": 0.382, "color": "#FF9800", "enabled": True},
+                        {"ratio": 0.618, "color": "#089981", "enabled": True},
+                        {"ratio": 1.0, "color": "#787B86", "enabled": True},
+                    ],
+                    "extendLines": True,
+                    "visible": True,
+                },
+                "extension": None,
+            }
+        }
+    }
+    put_resp = await auth_client.put("/api/v1/accounts/me/preferences", json=payload)
+    assert put_resp.status_code == 200
+    assert put_resp.json() == payload
+
+    get_resp = await auth_client.get("/api/v1/accounts/me/preferences")
+    assert get_resp.status_code == 200
+    assert get_resp.json() == payload
+
+    # Test PATCH
+    patch_payload = {
+        "fibonacci_tools": {
+            "sec-1": {
+                "retracement": {
+                    "p1": {"time": "2024-01-01", "price": 100.0},
+                    "p2": {"time": "2024-01-02", "price": 220.0},
+                    "levels": [
+                        {"ratio": 0.0, "color": "#787B86", "enabled": True},
+                        {"ratio": 0.5, "color": "#4CAF50", "enabled": True},
+                        {"ratio": 1.0, "color": "#787B86", "enabled": True},
+                    ],
+                    "extendLines": False,
+                    "visible": True,
+                },
+                "extension": {
+                    "p1": {"time": "2024-01-01", "price": 100.0},
+                    "p2": {"time": "2024-01-02", "price": 200.0},
+                    "p3": {"time": "2024-01-03", "price": 150.0},
+                    "levels": None,
+                    "extendLines": True,
+                    "visible": True,
+                },
+            }
+        }
+    }
+    patch_resp = await auth_client.patch(
+        "/api/v1/accounts/me/preferences", json=patch_payload
+    )
+    assert patch_resp.status_code == 200
+    assert (
+        patch_resp.json()["fibonacci_tools"]["sec-1"]["retracement"]["p2"][
+            "price"
+        ]
+        == 220.0
+    )
+    assert (
+        patch_resp.json()["fibonacci_tools"]["sec-1"]["extension"]["p3"][
+            "price"
+        ]
+        == 150.0
+    )
+
+    get_after_patch = await auth_client.get("/api/v1/accounts/me/preferences")
+    assert get_after_patch.status_code == 200
+    assert (
+        get_after_patch.json()["fibonacci_tools"]["sec-1"]["retracement"][
+            "levels"
+        ][1]["ratio"]
+        == 0.5
+    )
+
+
