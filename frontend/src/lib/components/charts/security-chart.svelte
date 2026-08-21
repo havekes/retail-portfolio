@@ -16,6 +16,9 @@
 		WaveDegree
 	} from '$lib/utils/finance/elliott-wave';
 	import { areWaveCountsEqual } from '$lib/utils/finance/elliott-wave';
+	import { FibonacciPrimitive } from './plugins/fibonacci/fibonacci-primitive';
+	import type { FibToolType, SecurityFibonacciTools } from '$lib/utils/finance/fibonacci';
+	import { areFibonacciToolsEqual } from '$lib/utils/finance/fibonacci';
 
 	interface MacdDataItem {
 		time: Time;
@@ -63,6 +66,7 @@
 	let activeIndicators = $state<{ type: string; label: string; color?: string }[]>([]);
 	let userAlertsPrimitive = $state<UserPriceAlerts | null>(null);
 	let elliottWavesPrimitive = $state<ElliottWavesPrimitive | null>(null);
+	let fibonacciPrimitive = $state<FibonacciPrimitive | null>(null);
 
 	let showBottomPane = $derived(
 		activeIndicators.some((i) => i.type === 'rsi' || i.type === 'macd' || i.type === 'obv')
@@ -84,7 +88,13 @@
 		isDrawingWave = false,
 		onWaveChange,
 		onDrawingModeChange,
-		onDegreeChange
+		onDegreeChange,
+		fibonacciTools = null,
+		activeFibTool = 'retracement',
+		isDrawingFib = false,
+		onFibChange,
+		onFibDrawingModeChange,
+		onFibToolChange
 	} = $props<{
 		candles?: Candle[];
 		containerId?: string;
@@ -102,6 +112,12 @@
 		onWaveChange?: (degree: WaveDegree, waveCount: DegreeWaveCount | null) => void;
 		onDrawingModeChange?: (isDrawing: boolean) => void;
 		onDegreeChange?: (degree: WaveDegree) => void;
+		fibonacciTools?: SecurityFibonacciTools | null;
+		activeFibTool?: FibToolType | null;
+		isDrawingFib?: boolean;
+		onFibChange?: (tools: SecurityFibonacciTools) => void;
+		onFibDrawingModeChange?: (isDrawing: boolean) => void;
+		onFibToolChange?: (tool: FibToolType | null) => void;
 	}>();
 
 	let avgPriceLine: IPriceLine | null = null;
@@ -214,6 +230,33 @@
 	});
 
 	$effect(() => {
+		if (!fibonacciPrimitive) return;
+		if (activeFibTool !== undefined && fibonacciPrimitive.getActiveTool() !== activeFibTool) {
+			fibonacciPrimitive.setActiveTool(activeFibTool);
+		}
+	});
+
+	$effect(() => {
+		if (!fibonacciPrimitive) return;
+		if (isDrawingFib !== undefined && fibonacciPrimitive.isDrawingMode() !== isDrawingFib) {
+			fibonacciPrimitive.setDrawingMode(isDrawingFib);
+		}
+	});
+
+	$effect(() => {
+		if (!fibonacciPrimitive) return;
+		const currentDrawings = fibonacciPrimitive.getDrawings();
+		const nextDrawings: SecurityFibonacciTools = fibonacciTools ?? {
+			retracement: null,
+			extension: null
+		};
+
+		if (!areFibonacciToolsEqual(currentDrawings, nextDrawings)) {
+			fibonacciPrimitive.setDrawings(nextDrawings);
+		}
+	});
+
+	$effect(() => {
 		if (seriesInstance && candles && candles.length > 0) {
 			if (candles === lastCandlesRef) {
 				return;
@@ -245,6 +288,7 @@
 
 			seriesInstance.setData(candles);
 			elliottWavesPrimitive?.setCandles(candles);
+			fibonacciPrimitive?.setCandles(candles);
 
 			if (chartInstance) {
 				if (isPrepending && currentRange && addedCandles > 0) {
@@ -389,6 +433,25 @@
 			onDegreeChange?.(degree);
 		});
 
+		fibonacciPrimitive = new FibonacciPrimitive({
+			activeTool: activeFibTool,
+			drawings: fibonacciTools ?? undefined,
+			isDrawingMode: isDrawingFib
+		});
+		seriesInstance.attachPrimitive(fibonacciPrimitive);
+
+		fibonacciPrimitive.drawingsChanged().subscribe((drawings) => {
+			onFibChange?.(drawings);
+		});
+
+		fibonacciPrimitive.drawingModeChanged().subscribe((isDrawing) => {
+			onFibDrawingModeChange?.(isDrawing);
+		});
+
+		fibonacciPrimitive.toolChanged().subscribe((tool) => {
+			onFibToolChange?.(tool);
+		});
+
 		const resizeObserver = new ResizeObserver(() => {
 			if (
 				containerRef &&
@@ -419,6 +482,7 @@
 		return () => {
 			resizeObserver.disconnect();
 			elliottWavesPrimitive?.destroy();
+			fibonacciPrimitive?.destroy();
 			chartInstance?.remove();
 			bottomChartInstance?.remove();
 		};
@@ -666,6 +730,14 @@
 
 	export function getElliottWavesPrimitive(): ElliottWavesPrimitive | null {
 		return elliottWavesPrimitive;
+	}
+
+	export function clearFibonacci(tool?: FibToolType) {
+		fibonacciPrimitive?.clear(tool);
+	}
+
+	export function getFibonacciPrimitive(): FibonacciPrimitive | null {
+		return fibonacciPrimitive;
 	}
 </script>
 

@@ -94,10 +94,12 @@ import type { Component } from 'svelte';
 import { tick } from 'svelte';
 import type { Candle } from '$lib/utils/finance/candle';
 import type { SecurityElliottWaves } from '$lib/utils/finance/elliott-wave';
+import type { SecurityFibonacciTools } from '$lib/utils/finance/fibonacci';
 import type { IndicatorData } from './security-chart.svelte';
 import { render } from '@testing-library/svelte';
 import { createChart } from 'lightweight-charts';
 import { ElliottWavesPrimitive } from './plugins/elliott-wave/elliott-wave';
+import { FibonacciPrimitive } from './plugins/fibonacci/fibonacci-primitive';
 
 interface SecurityChartInstance {
 	addIndicator: (indicator: IndicatorData) => void;
@@ -422,6 +424,244 @@ describe('SecurityChart - Elliott Wave Integration', () => {
 		)?.[0] as ElliottWavesPrimitive;
 
 		const destroySpy = vi.spyOn(elliottPrimitive, 'destroy');
+		unmount();
+		expect(destroySpy).toHaveBeenCalled();
+	});
+});
+
+describe('SecurityChart - Fibonacci Integration', () => {
+	/* eslint-disable-next-line @typescript-eslint/no-explicit-any */
+	let SecurityChart: Component<any>;
+
+	const initialCandles: Candle[] = [
+		{ time: '2024-01-10', open: 10, high: 12, low: 9, close: 11 },
+		{ time: '2024-01-11', open: 11, high: 13, low: 10, close: 12 }
+	];
+
+	beforeAll(async () => {
+		const mod = await import('./security-chart.svelte');
+		SecurityChart = mod.default;
+	});
+
+	beforeEach(() => {
+		vi.clearAllMocks();
+	});
+
+	it('attaches FibonacciPrimitive to candlestick series on mount with initial props', () => {
+		const initialTools: SecurityFibonacciTools = {
+			retracement: {
+				p1: { time: '2024-01-10', price: 10 },
+				p2: { time: '2024-01-11', price: 20 },
+				visible: true
+			},
+			extension: null
+		};
+
+		render(SecurityChart, {
+			props: {
+				candles: initialCandles,
+				activeFibTool: 'extension',
+				isDrawingFib: true,
+				fibonacciTools: initialTools
+			}
+		});
+
+		const fibPrimitive = mockAttachPrimitive.mock.calls.find(
+			(c) => c[0] instanceof FibonacciPrimitive
+		)?.[0] as FibonacciPrimitive;
+
+		expect(fibPrimitive).toBeDefined();
+		expect(fibPrimitive.getActiveTool()).toBe('extension');
+		expect(fibPrimitive.isDrawingMode()).toBe(true);
+		expect(fibPrimitive.getRetracement()).toEqual(initialTools.retracement);
+	});
+
+	it('syncs activeFibTool prop changes to FibonacciPrimitive', async () => {
+		const { rerender } = render(SecurityChart, {
+			props: {
+				candles: initialCandles,
+				activeFibTool: 'retracement'
+			}
+		});
+
+		const fibPrimitive = mockAttachPrimitive.mock.calls.find(
+			(c) => c[0] instanceof FibonacciPrimitive
+		)?.[0] as FibonacciPrimitive;
+
+		expect(fibPrimitive.getActiveTool()).toBe('retracement');
+
+		await rerender({
+			candles: initialCandles,
+			activeFibTool: 'extension'
+		});
+
+		expect(fibPrimitive.getActiveTool()).toBe('extension');
+	});
+
+	it('syncs isDrawingFib prop changes to FibonacciPrimitive', async () => {
+		const { rerender } = render(SecurityChart, {
+			props: {
+				candles: initialCandles,
+				isDrawingFib: false
+			}
+		});
+
+		const fibPrimitive = mockAttachPrimitive.mock.calls.find(
+			(c) => c[0] instanceof FibonacciPrimitive
+		)?.[0] as FibonacciPrimitive;
+
+		expect(fibPrimitive.isDrawingMode()).toBe(false);
+
+		await rerender({
+			candles: initialCandles,
+			isDrawingFib: true
+		});
+
+		expect(fibPrimitive.isDrawingMode()).toBe(true);
+	});
+
+	it('syncs fibonacciTools prop changes to FibonacciPrimitive', async () => {
+		const sampleTools: SecurityFibonacciTools = {
+			retracement: {
+				p1: { time: '2024-01-10', price: 10 },
+				p2: { time: '2024-01-11', price: 15 }
+			},
+			extension: null
+		};
+
+		const { rerender } = render(SecurityChart, {
+			props: {
+				candles: initialCandles,
+				fibonacciTools: sampleTools
+			}
+		});
+
+		const fibPrimitive = mockAttachPrimitive.mock.calls.find(
+			(c) => c[0] instanceof FibonacciPrimitive
+		)?.[0] as FibonacciPrimitive;
+
+		expect(fibPrimitive.getRetracement()).toEqual(sampleTools.retracement);
+
+		const updatedTools: SecurityFibonacciTools = {
+			retracement: sampleTools.retracement,
+			extension: {
+				p1: { time: '2024-01-10', price: 10 },
+				p2: { time: '2024-01-11', price: 15 },
+				p3: { time: '2024-01-12', price: 12 }
+			}
+		};
+
+		await rerender({
+			candles: initialCandles,
+			fibonacciTools: updatedTools
+		});
+
+		expect(fibPrimitive.getExtension()).toEqual(updatedTools.extension);
+	});
+
+	it('forwards primitive delegate events to onFibChange, onFibDrawingModeChange, and onFibToolChange', () => {
+		const onFibChange = vi.fn();
+		const onFibDrawingModeChange = vi.fn();
+		const onFibToolChange = vi.fn();
+
+		render(SecurityChart, {
+			props: {
+				candles: initialCandles,
+				onFibChange,
+				onFibDrawingModeChange,
+				onFibToolChange
+			}
+		});
+
+		const fibPrimitive = mockAttachPrimitive.mock.calls.find(
+			(c) => c[0] instanceof FibonacciPrimitive
+		)?.[0] as FibonacciPrimitive;
+
+		// Trigger drawings change via adding 2 retracement points
+		fibPrimitive.setDrawingMode(true);
+		fibPrimitive.setActiveTool('retracement');
+		fibPrimitive.addPoint({ time: '2024-01-10', price: 10 }, 'retracement');
+		fibPrimitive.addPoint({ time: '2024-01-11', price: 20 }, 'retracement');
+
+		expect(onFibChange).toHaveBeenCalledWith(
+			expect.objectContaining({
+				retracement: expect.objectContaining({
+					p1: { time: '2024-01-10', price: 10 },
+					p2: { time: '2024-01-11', price: 20 }
+				})
+			})
+		);
+
+		// Trigger drawing mode change
+		fibPrimitive.setDrawingMode(true);
+		expect(onFibDrawingModeChange).toHaveBeenCalledWith(true);
+
+		// Trigger tool change
+		fibPrimitive.setActiveTool('extension');
+		expect(onFibToolChange).toHaveBeenCalledWith('extension');
+	});
+
+	it('preserves visible logical range and avoids resetting candles when fibonacciTools prop updates', async () => {
+		const { rerender } = render(SecurityChart, {
+			props: {
+				candles: initialCandles,
+				fibonacciTools: null
+			}
+		});
+
+		const initialSetDataCalls = mockSetData.mock.calls.length;
+
+		await rerender({
+			candles: initialCandles,
+			fibonacciTools: {
+				retracement: {
+					p1: { time: '2024-01-10', price: 10 },
+					p2: { time: '2024-01-11', price: 20 }
+				},
+				extension: null
+			}
+		});
+
+		expect(mockSetData.mock.calls.length).toBe(initialSetDataCalls);
+	});
+
+	it('forwards candle updates to FibonacciPrimitive', async () => {
+		const { rerender } = render(SecurityChart, {
+			props: {
+				candles: initialCandles
+			}
+		});
+
+		const fibPrimitive = mockAttachPrimitive.mock.calls.find(
+			(c) => c[0] instanceof FibonacciPrimitive
+		)?.[0] as FibonacciPrimitive;
+
+		const setCandlesSpy = vi.spyOn(fibPrimitive, 'setCandles');
+
+		const newCandles: Candle[] = [
+			...initialCandles,
+			{ time: '2024-01-12', open: 12, high: 14, low: 11, close: 13 }
+		];
+
+		await rerender({
+			candles: newCandles
+		});
+
+		expect(setCandlesSpy).toHaveBeenCalledWith(newCandles);
+	});
+
+	it('destroys FibonacciPrimitive when component is unmounted', () => {
+		const { unmount } = render(SecurityChart, {
+			props: {
+				candles: initialCandles
+			}
+		});
+
+		const fibPrimitive = mockAttachPrimitive.mock.calls.find(
+			(c) => c[0] instanceof FibonacciPrimitive
+		)?.[0] as FibonacciPrimitive;
+
+		const destroySpy = vi.spyOn(fibPrimitive, 'destroy');
 		unmount();
 		expect(destroySpy).toHaveBeenCalled();
 	});
