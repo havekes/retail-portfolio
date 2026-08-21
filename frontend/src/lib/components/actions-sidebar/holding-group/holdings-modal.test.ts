@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { render, screen, fireEvent, waitFor } from '@testing-library/svelte';
 import HoldingsModal from './holdings-modal.svelte';
 import { ModalState } from '$lib/utils/modal-state.svelte';
@@ -97,6 +97,11 @@ describe('HoldingsModal Component', () => {
 
 	beforeEach(() => {
 		vi.clearAllMocks();
+		// Pin "now" to 2026-08-20 so period-window calculations (1D/1W/1M/1Y/YTD)
+		// against the mock candles ending 2026-08-20 stay deterministic regardless of
+		// when the suite runs (prevents date-rollover flakes). Only Date is faked, so
+		// waitFor/fireEvent keep using real timers.
+		vi.useFakeTimers({ now: new Date('2026-08-20T12:00:00Z'), toFake: ['Date'] });
 		vi.mocked(userPreferencesService.getPreferences).mockResolvedValue({
 			holdings_period: 'ALL'
 		});
@@ -107,6 +112,10 @@ describe('HoldingsModal Component', () => {
 			offset: 0,
 			limit: 10
 		});
+	});
+
+	afterEach(() => {
+		vi.useRealTimers();
 	});
 
 	describe('Dialog accessibility & open/close', () => {
