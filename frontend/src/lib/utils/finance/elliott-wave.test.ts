@@ -403,6 +403,41 @@ describe('elliott-wave finance utilities', () => {
 			).toBe(false);
 		});
 
+		it('compares equal when a degree entry is missing instead of throwing', () => {
+			const missingPrimaryDegree = {
+				snap_to_wicks: null,
+				alert_percents: { cycle: { wave3: 5, wave5: 10 } }
+			} as unknown as WaveSettings;
+			const nullShapedPrimary = {
+				snap_to_wicks: null,
+				alert_percents: {
+					cycle: { wave3: 5, wave5: 10 },
+					primary: { wave3: null, wave5: null }
+				}
+			} as WaveSettings;
+			// A stored settings object missing the `primary` degree key (possible via the
+			// permissive backend schema) must not throw and must compare equal to the
+			// equivalent null-shaped settings (missing degree == all null for that degree).
+			expect(() => areWaveSettingsEqual(missingPrimaryDegree, nullShapedPrimary)).not.toThrow();
+			expect(areWaveSettingsEqual(missingPrimaryDegree, nullShapedPrimary)).toBe(true);
+			expect(areWaveSettingsEqual(nullShapedPrimary, missingPrimaryDegree)).toBe(true);
+
+			const missingCycleDegree = {
+				snap_to_wicks: null,
+				alert_percents: { primary: { wave3: 15, wave5: 20 } }
+			} as unknown as WaveSettings;
+			const nullShapedCycle = {
+				snap_to_wicks: null,
+				alert_percents: {
+					cycle: { wave3: null, wave5: null },
+					primary: { wave3: 15, wave5: 20 }
+				}
+			} as WaveSettings;
+			expect(() => areWaveSettingsEqual(missingCycleDegree, nullShapedCycle)).not.toThrow();
+			expect(areWaveSettingsEqual(missingCycleDegree, nullShapedCycle)).toBe(true);
+			expect(areWaveSettingsEqual(nullShapedCycle, missingCycleDegree)).toBe(true);
+		});
+
 		it('returns true when null and undefined field values both mean off', () => {
 			const withNull: WaveSettings = {
 				snap_to_wicks: null,

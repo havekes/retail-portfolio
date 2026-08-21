@@ -35,6 +35,10 @@ export interface WaveSettings {
 	alert_percents?: WaveAlertPercents | null;
 }
 
+/**
+ * App-wide default wave settings. Treat as read-only — do not mutate; consumers should
+ * clone or spread this constant when building modified settings.
+ */
 export const DEFAULT_WAVE_SETTINGS: WaveSettings = {
 	snap_to_wicks: null,
 	alert_percents: {
@@ -221,9 +225,9 @@ export function areWaveSettingsEqual(
 	if (!aPercents || !bPercents) return false;
 
 	return (
-		(aPercents.cycle.wave3 ?? null) === (bPercents.cycle.wave3 ?? null) &&
-		(aPercents.cycle.wave5 ?? null) === (bPercents.cycle.wave5 ?? null) &&
-		(aPercents.primary.wave3 ?? null) === (bPercents.primary.wave3 ?? null) &&
-		(aPercents.primary.wave5 ?? null) === (bPercents.primary.wave5 ?? null)
+		(aPercents.cycle?.wave3 ?? null) === (bPercents.cycle?.wave3 ?? null) &&
+		(aPercents.cycle?.wave5 ?? null) === (bPercents.cycle?.wave5 ?? null) &&
+		(aPercents.primary?.wave3 ?? null) === (bPercents.primary?.wave3 ?? null) &&
+		(aPercents.primary?.wave5 ?? null) === (bPercents.primary?.wave5 ?? null)
 	);
 }
