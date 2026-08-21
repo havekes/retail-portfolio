@@ -22,6 +22,32 @@ export interface SecurityElliottWaves {
 }
 
 /**
+ * Per-degree, per-wave alert percent settings (user-global). Each slot is `number | null`;
+ * `null` disables that degree's wave-target alerts. Keys are snake_case for JSON parity.
+ */
+export interface WaveAlertPercents {
+	cycle: { wave3: number | null; wave5: number | null };
+	primary: { wave3: number | null; wave5: number | null };
+}
+
+export interface WaveSettings {
+	snap_to_wicks?: boolean | null;
+	alert_percents?: WaveAlertPercents | null;
+}
+
+/**
+ * App-wide default wave settings. Treat as read-only — do not mutate; consumers should
+ * clone or spread this constant when building modified settings.
+ */
+export const DEFAULT_WAVE_SETTINGS: WaveSettings = {
+	snap_to_wicks: null,
+	alert_percents: {
+		cycle: { wave3: null, wave5: null },
+		primary: { wave3: null, wave5: null }
+	}
+};
+
+/**
  * Extracts the peak price of Wave 3 or Wave 5, respecting explicit wave3Target/wave5Target
  * overrides when set, or finding the corresponding wave point.
  */
@@ -125,6 +151,32 @@ export function getSecurityDegreeWaveCount(
 }
 
 /**
+ * Returns the configured alert percent for a degree+wave, or null when the setting is
+ * missing, disabled, or not a finite number.
+ */
+export function getWaveAlertPercent(
+	settings: WaveSettings | null | undefined,
+	degree: WaveDegree,
+	targetWave: TargetWave
+): number | null {
+	if (!settings || !settings.alert_percents) {
+		return null;
+	}
+
+	const degreePercents = settings.alert_percents[degree];
+	if (!degreePercents) {
+		return null;
+	}
+
+	const percent = degreePercents[targetWave];
+	if (typeof percent !== 'number' || !isFinite(percent)) {
+		return null;
+	}
+
+	return percent;
+}
+
+/**
  * Compares two DegreeWaveCount objects for structural equality.
  */
 export function areWaveCountsEqual(
@@ -150,4 +202,32 @@ export function areWaveCountsEqual(
 		}
 	}
 	return true;
+}
+
+/**
+ * Compares two WaveSettings objects for structural equality. Optional fields are compared
+ * nullish-normalized, so `undefined` and `null` (both meaning "off") compare equal.
+ */
+export function areWaveSettingsEqual(
+	a: WaveSettings | null | undefined,
+	b: WaveSettings | null | undefined
+): boolean {
+	if (!a && !b) return true;
+	if (!a || !b) return false;
+
+	if ((a.snap_to_wicks ?? null) !== (b.snap_to_wicks ?? null)) {
+		return false;
+	}
+
+	const aPercents = a.alert_percents ?? null;
+	const bPercents = b.alert_percents ?? null;
+	if (!aPercents && !bPercents) return true;
+	if (!aPercents || !bPercents) return false;
+
+	return (
+		(aPercents.cycle?.wave3 ?? null) === (bPercents.cycle?.wave3 ?? null) &&
+		(aPercents.cycle?.wave5 ?? null) === (bPercents.cycle?.wave5 ?? null) &&
+		(aPercents.primary?.wave3 ?? null) === (bPercents.primary?.wave3 ?? null) &&
+		(aPercents.primary?.wave5 ?? null) === (bPercents.primary?.wave5 ?? null)
+	);
 }

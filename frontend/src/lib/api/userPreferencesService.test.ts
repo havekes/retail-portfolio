@@ -204,4 +204,53 @@ describe('UserPreferencesService', () => {
 			})
 		);
 	});
+
+	it('patchPreferences sends wave_settings nested body to /accounts/me/preferences', async () => {
+		const waveSettings = {
+			snap_to_wicks: true,
+			alert_percents: {
+				cycle: { wave3: 5, wave5: 10 },
+				primary: { wave3: null, wave5: 15 }
+			}
+		};
+		const patchPayload: Partial<UserPreferences> = { wave_settings: waveSettings };
+
+		vi.mocked(global.fetch).mockResolvedValue({
+			ok: true,
+			json: async () => patchPayload
+		} as Response);
+
+		const service = new UserPreferencesService();
+		const res = await service.patchPreferences(patchPayload);
+
+		expect(global.fetch).toHaveBeenCalledWith(
+			expect.stringContaining('/accounts/me/preferences'),
+			expect.objectContaining({
+				method: 'PATCH',
+				body: JSON.stringify(patchPayload)
+			})
+		);
+		expect(res.wave_settings).toEqual(waveSettings);
+	});
+
+	it('getPreferences returns wave_settings unchanged', async () => {
+		const waveSettings = {
+			snap_to_wicks: false,
+			alert_percents: {
+				cycle: { wave3: 7.5, wave5: null },
+				primary: { wave3: null, wave5: null }
+			}
+		};
+		const mockPrefs: UserPreferences = { wave_settings: waveSettings };
+
+		vi.mocked(global.fetch).mockResolvedValue({
+			ok: true,
+			json: async () => mockPrefs
+		} as Response);
+
+		const service = getUserPreferencesService();
+		const res = await service.getPreferences();
+
+		expect(res.wave_settings).toEqual(waveSettings);
+	});
 });
