@@ -22,6 +22,8 @@
 	import type { IndicatorData } from '$lib/components/charts/security-chart.svelte';
 	import Star from '@lucide/svelte/icons/star';
 	import Settings from '@lucide/svelte/icons/settings';
+	import CandlestickIcon from '$lib/components/icons/candlestick-icon.svelte';
+	import HeikinAshiIcon from '$lib/components/icons/heikin-ashi-icon.svelte';
 	import { getWatchlistService } from '$lib/components/watchlist/watchlistService.svelte';
 	import {
 		displayCandlesFor,
@@ -690,7 +692,6 @@
 					class="flex shrink-0 flex-wrap items-center justify-between gap-2 border-b bg-sidebar/50 px-4 py-2"
 				>
 					<div class="flex items-center gap-1">
-						<span class="mr-2 text-xs font-medium text-muted-foreground">Timeframe:</span>
 						{#each ['1h', '4h', '1d', '1w', '1m'] as tf (tf)}
 							<button
 								type="button"
@@ -803,27 +804,6 @@
 						</button>
 					</div>
 					<div class="flex items-center gap-1">
-						<span class="mr-2 text-xs font-medium text-muted-foreground">Style:</span>
-						<button
-							type="button"
-							onclick={async () => {
-								chartStyle = 'heikin_ashi';
-								refreshActiveIndicators();
-								try {
-									await updateChartPreferences({ chart_style: 'heikin_ashi' });
-								} catch (err) {
-									console.error('Failed to persist chart style:', err);
-								}
-							}}
-							disabled={isChangingTimeframe}
-							class="rounded px-2.5 py-1 text-xs font-medium transition-colors {chartStyle ===
-							'heikin_ashi'
-								? 'bg-primary text-primary-foreground shadow-sm'
-								: 'text-muted-foreground hover:bg-muted hover:text-foreground'}"
-							aria-label="Toggle Heikin-Ashi chart style"
-						>
-							Heikin-Ashi
-						</button>
 						<button
 							type="button"
 							onclick={async () => {
@@ -836,13 +816,33 @@
 								}
 							}}
 							disabled={isChangingTimeframe}
-							class="rounded px-2.5 py-1 text-xs font-medium transition-colors {chartStyle ===
-							'candlestick'
+							class="rounded p-1.5 transition-colors {chartStyle === 'candlestick'
 								? 'bg-primary text-primary-foreground shadow-sm'
 								: 'text-muted-foreground hover:bg-muted hover:text-foreground'}"
-							aria-label="Toggle Candlestick chart style"
+							aria-label="Candlestick"
+							title="Candlestick"
 						>
-							Candlestick
+							<CandlestickIcon class="h-4 w-4" />
+						</button>
+						<button
+							type="button"
+							onclick={async () => {
+								chartStyle = 'heikin_ashi';
+								refreshActiveIndicators();
+								try {
+									await updateChartPreferences({ chart_style: 'heikin_ashi' });
+								} catch (err) {
+									console.error('Failed to persist chart style:', err);
+								}
+							}}
+							disabled={isChangingTimeframe}
+							class="rounded p-1.5 transition-colors {chartStyle === 'heikin_ashi'
+								? 'bg-primary text-primary-foreground shadow-sm'
+								: 'text-muted-foreground hover:bg-muted hover:text-foreground'}"
+							aria-label="Heikin-Ashi"
+							title="Heikin-Ashi"
+						>
+							<HeikinAshiIcon class="h-4 w-4" />
 						</button>
 					</div>
 					<div class="flex items-center gap-1">

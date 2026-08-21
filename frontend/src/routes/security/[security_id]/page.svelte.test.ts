@@ -1609,3 +1609,100 @@ describe('Security Page - Chart Settings Modal & Wave Settings Integration', () 
 		});
 	});
 });
+
+describe('Security Page - Top Toolbar', () => {
+	/* eslint-disable-next-line @typescript-eslint/no-explicit-any */
+	let PageComponent: Component<any>;
+
+	const mockData = {
+		security: {
+			id: 'sec-1',
+			symbol: 'AAPL',
+			name: 'Apple Inc.'
+		},
+		items: [{ date: '2024-01-01', open: 100, high: 110, low: 95, close: 105, volume: 1000 }]
+	};
+
+	beforeAll(async () => {
+		const mod = await import('./+page.svelte');
+		PageComponent = mod.default;
+	}, 30000);
+
+	beforeEach(() => {
+		vi.clearAllMocks();
+		mockChartProps = null;
+		vi.mocked(userPreferencesService.getPreferences).mockResolvedValue({});
+	});
+
+	it('renders timeframe buttons without "Timeframe:" text label', async () => {
+		render(PageComponent, { props: { data: mockData } });
+
+		expect(await screen.findByRole('button', { name: '1H' })).toBeInTheDocument();
+		expect(screen.getByRole('button', { name: '4H' })).toBeInTheDocument();
+		expect(screen.getByRole('button', { name: '1D' })).toBeInTheDocument();
+		expect(screen.getByRole('button', { name: '1W' })).toBeInTheDocument();
+		expect(screen.getByRole('button', { name: '1M' })).toBeInTheDocument();
+
+		expect(screen.queryByText(/Timeframe:/i)).not.toBeInTheDocument();
+	});
+
+	it('renders toolbar without "Style:" text label', async () => {
+		render(PageComponent, { props: { data: mockData } });
+
+		await screen.findByRole('button', { name: '1D' });
+		expect(screen.queryByText(/Style:/i)).not.toBeInTheDocument();
+	});
+
+	it('renders Candlestick and Heikin-Ashi icon buttons with aria-label and title', async () => {
+		render(PageComponent, { props: { data: mockData } });
+
+		const candleBtn = await screen.findByRole('button', { name: 'Candlestick' });
+		expect(candleBtn).toBeInTheDocument();
+		expect(candleBtn).toHaveAttribute('title', 'Candlestick');
+
+		const haBtn = screen.getByRole('button', { name: 'Heikin-Ashi' });
+		expect(haBtn).toBeInTheDocument();
+		expect(haBtn).toHaveAttribute('title', 'Heikin-Ashi');
+	});
+
+	it('clicking Candlestick icon button sets chartStyle to candlestick and persists preference', async () => {
+		render(PageComponent, { props: { data: mockData } });
+
+		const candleBtn = await screen.findByRole('button', { name: 'Candlestick' });
+		const haBtn = screen.getByRole('button', { name: 'Heikin-Ashi' });
+
+		// Initial state is heikin_ashi
+		expect(haBtn.className).toContain('bg-primary');
+		expect(candleBtn.className).not.toContain('bg-primary');
+
+		await fireEvent.click(candleBtn);
+
+		expect(userPreferencesService.patchPreferences).toHaveBeenCalledWith({
+			chart_style: 'candlestick'
+		});
+		expect(candleBtn.className).toContain('bg-primary');
+		expect(haBtn.className).not.toContain('bg-primary');
+	});
+
+	it('clicking Heikin-Ashi icon button sets chartStyle to heikin_ashi and persists preference', async () => {
+		render(PageComponent, { props: { data: mockData } });
+
+		const candleBtn = await screen.findByRole('button', { name: 'Candlestick' });
+		const haBtn = screen.getByRole('button', { name: 'Heikin-Ashi' });
+
+		// First switch to candlestick
+		await fireEvent.click(candleBtn);
+		expect(candleBtn.className).toContain('bg-primary');
+
+		vi.clearAllMocks();
+
+		// Then switch back to heikin_ashi
+		await fireEvent.click(haBtn);
+
+		expect(userPreferencesService.patchPreferences).toHaveBeenCalledWith({
+			chart_style: 'heikin_ashi'
+		});
+		expect(haBtn.className).toContain('bg-primary');
+		expect(candleBtn.className).not.toContain('bg-primary');
+	});
+});
