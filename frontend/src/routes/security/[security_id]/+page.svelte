@@ -46,6 +46,7 @@
 	} from '$lib/utils/finance/elliott-wave';
 	import { computeWaveAlertLevels, reconcileWaveAlerts } from '$lib/utils/finance/wave-alerts';
 	import ChartSettingsModal from '$lib/components/charts/chart-settings-modal.svelte';
+	import DrawingToolbar from '$lib/components/charts/drawing-toolbar.svelte';
 	import {
 		type FibToolType,
 		type FibLevelConfig,
@@ -192,27 +193,6 @@
 			userPreferences?.fibonacci_tools,
 			security.id,
 			updatedSecurityTools
-		);
-		userPreferences = {
-			...(userPreferences ?? {}),
-			fibonacci_tools: updatedAllTools
-		};
-		try {
-			await userPreferencesService.patchPreferences({
-				fibonacci_tools: updatedAllTools
-			});
-		} catch (err) {
-			console.error('Failed to persist fibonacci tools preference:', err);
-		}
-	}
-
-	async function handleClearFib(tool?: FibToolType | null) {
-		if (!security?.id) return;
-		const updatedAllTools = updateSecurityFibonacciTools(
-			userPreferences?.fibonacci_tools,
-			security.id,
-			tool !== undefined ? tool : null,
-			null
 		);
 		userPreferences = {
 			...(userPreferences ?? {}),
@@ -747,103 +727,6 @@
 						{/each}
 					</div>
 					<div class="flex items-center gap-1">
-						<span class="mr-2 text-xs font-medium text-muted-foreground">Waves:</span>
-						<button
-							type="button"
-							onclick={() => (activeWaveDegree = 'cycle')}
-							class="rounded px-2.5 py-1 text-xs font-medium transition-colors {activeWaveDegree ===
-							'cycle'
-								? 'bg-primary text-primary-foreground shadow-sm'
-								: 'text-muted-foreground hover:bg-muted hover:text-foreground'}"
-							aria-label="Select Cycle degree"
-						>
-							Cycle
-						</button>
-						<button
-							type="button"
-							onclick={() => (activeWaveDegree = 'primary')}
-							class="rounded px-2.5 py-1 text-xs font-medium transition-colors {activeWaveDegree ===
-							'primary'
-								? 'bg-primary text-primary-foreground shadow-sm'
-								: 'text-muted-foreground hover:bg-muted hover:text-foreground'}"
-							aria-label="Select Primary degree"
-						>
-							Primary
-						</button>
-						<button
-							type="button"
-							onclick={() => {
-								isDrawingWave = !isDrawingWave;
-								if (isDrawingWave) {
-									isDrawingFib = false;
-								}
-							}}
-							class="rounded px-2.5 py-1 text-xs font-medium transition-colors {isDrawingWave
-								? 'bg-primary text-primary-foreground shadow-sm'
-								: 'text-muted-foreground hover:bg-muted hover:text-foreground'}"
-							aria-label="Toggle drawing wave"
-						>
-							{isDrawingWave ? 'Drawing...' : 'Draw Wave'}
-						</button>
-						<button
-							type="button"
-							onclick={() => handleClearWave(activeWaveDegree)}
-							class="rounded px-2.5 py-1 text-xs font-medium text-muted-foreground transition-colors hover:bg-destructive/10 hover:text-destructive"
-							aria-label="Clear wave count"
-						>
-							Clear
-						</button>
-					</div>
-					<div class="flex items-center gap-1">
-						<span class="mr-2 text-xs font-medium text-muted-foreground">Fibonacci:</span>
-						<button
-							type="button"
-							onclick={() => {
-								if (isDrawingFib && activeFibTool === 'retracement') {
-									isDrawingFib = false;
-								} else {
-									activeFibTool = 'retracement';
-									isDrawingFib = true;
-									isDrawingWave = false;
-								}
-							}}
-							class="rounded px-2.5 py-1 text-xs font-medium transition-colors {isDrawingFib &&
-							activeFibTool === 'retracement'
-								? 'bg-primary text-primary-foreground shadow-sm'
-								: 'text-muted-foreground hover:bg-muted hover:text-foreground'}"
-							aria-label="Toggle Fib Retrace drawing"
-						>
-							Fib Retrace
-						</button>
-						<button
-							type="button"
-							onclick={() => {
-								if (isDrawingFib && activeFibTool === 'extension') {
-									isDrawingFib = false;
-								} else {
-									activeFibTool = 'extension';
-									isDrawingFib = true;
-									isDrawingWave = false;
-								}
-							}}
-							class="rounded px-2.5 py-1 text-xs font-medium transition-colors {isDrawingFib &&
-							activeFibTool === 'extension'
-								? 'bg-primary text-primary-foreground shadow-sm'
-								: 'text-muted-foreground hover:bg-muted hover:text-foreground'}"
-							aria-label="Toggle Fib Extend drawing"
-						>
-							Fib Extend
-						</button>
-						<button
-							type="button"
-							onclick={() => handleClearFib(activeFibTool)}
-							class="rounded px-2.5 py-1 text-xs font-medium text-muted-foreground transition-colors hover:bg-destructive/10 hover:text-destructive"
-							aria-label="Clear Fibonacci drawing"
-						>
-							Clear
-						</button>
-					</div>
-					<div class="flex items-center gap-1">
 						<button
 							type="button"
 							onclick={async () => {
@@ -884,8 +767,6 @@
 						>
 							<HeikinAshiIcon class="h-4 w-4" />
 						</button>
-					</div>
-					<div class="flex items-center gap-1">
 						<button
 							type="button"
 							onclick={() => (isChartSettingsOpen = true)}
@@ -897,54 +778,76 @@
 						</button>
 					</div>
 				</div>
-				<div class="min-h-0 flex-1 overflow-hidden">
-					<ChartComponent
-						candles={displayCandles}
-						bind:this={chartRef}
-						{alerts}
-						onAddAlert={handleCreateAlert}
-						onRemoveAlert={handleDeleteAlert}
-						averagePrice={averageBuyingPrice}
-						showAveragePrice={indicatorConfigs.avgPrice.enabled}
-						{hasMoreData}
-						{isLoadingMore}
-						onLoadMoreData={handleLoadMoreData}
-						elliottWaves={securityElliottWaves}
-						activeDegree={activeWaveDegree}
+				<div class="flex min-h-0 flex-1 overflow-hidden">
+					<DrawingToolbar
+						{activeWaveDegree}
 						{isDrawingWave}
-						bind:selectedWaveDegree
-						snapToWicks={userPreferences?.wave_settings?.snap_to_wicks ?? false}
-						onWaveChange={handleWaveChange}
-						onDrawingModeChange={(isDrawing) => {
-							isDrawingWave = isDrawing;
-							if (isDrawing) isDrawingFib = false;
-						}}
-						onDegreeChange={(degree) => (activeWaveDegree = degree)}
-						onWaveSelect={(degree) => (selectedWaveDegree = degree)}
-						fibonacciTools={securityFibonacciTools}
 						{activeFibTool}
 						{isDrawingFib}
-						onFibChange={handleFibChange}
-						onFibDrawingModeChange={(isDrawing) => {
-							isDrawingFib = isDrawing;
-							if (isDrawing) isDrawingWave = false;
+						onSelectWaveDegree={(degree) => {
+							activeWaveDegree = degree;
+							isDrawingWave = true;
+							isDrawingFib = false;
 						}}
-						onFibToolChange={(tool) => {
-							if (tool) activeFibTool = tool;
+						onToggleFib={(tool) => {
+							if (isDrawingFib && activeFibTool === tool) {
+								isDrawingFib = false;
+							} else {
+								activeFibTool = tool;
+								isDrawingFib = true;
+								isDrawingWave = false;
+							}
 						}}
 					/>
-					<ChartSettingsModal
-						bind:open={isChartSettingsOpen}
-						waveSettings={userPreferences?.wave_settings}
-						onSaveWaveSettings={handleWaveSettingsChange}
-						activeTool={activeFibTool}
-						retracementLevels={securityFibonacciTools?.retracement?.levels}
-						extensionLevels={securityFibonacciTools?.extension?.levels}
-						hasActiveDrawing={Boolean(
-							securityFibonacciTools?.retracement || securityFibonacciTools?.extension
-						)}
-						onFibLevelsChange={handleFibLevelsChange}
-					/>
+					<div class="min-h-0 flex-1 overflow-hidden">
+						<ChartComponent
+							candles={displayCandles}
+							bind:this={chartRef}
+							{alerts}
+							onAddAlert={handleCreateAlert}
+							onRemoveAlert={handleDeleteAlert}
+							averagePrice={averageBuyingPrice}
+							showAveragePrice={indicatorConfigs.avgPrice.enabled}
+							{hasMoreData}
+							{isLoadingMore}
+							onLoadMoreData={handleLoadMoreData}
+							elliottWaves={securityElliottWaves}
+							activeDegree={activeWaveDegree}
+							{isDrawingWave}
+							bind:selectedWaveDegree
+							snapToWicks={userPreferences?.wave_settings?.snap_to_wicks ?? false}
+							onWaveChange={handleWaveChange}
+							onDrawingModeChange={(isDrawing) => {
+								isDrawingWave = isDrawing;
+								if (isDrawing) isDrawingFib = false;
+							}}
+							onDegreeChange={(degree) => (activeWaveDegree = degree)}
+							onWaveSelect={(degree) => (selectedWaveDegree = degree)}
+							fibonacciTools={securityFibonacciTools}
+							{activeFibTool}
+							{isDrawingFib}
+							onFibChange={handleFibChange}
+							onFibDrawingModeChange={(isDrawing) => {
+								isDrawingFib = isDrawing;
+								if (isDrawing) isDrawingWave = false;
+							}}
+							onFibToolChange={(tool) => {
+								if (tool) activeFibTool = tool;
+							}}
+						/>
+						<ChartSettingsModal
+							bind:open={isChartSettingsOpen}
+							waveSettings={userPreferences?.wave_settings}
+							onSaveWaveSettings={handleWaveSettingsChange}
+							activeTool={activeFibTool}
+							retracementLevels={securityFibonacciTools?.retracement?.levels}
+							extensionLevels={securityFibonacciTools?.extension?.levels}
+							hasActiveDrawing={Boolean(
+								securityFibonacciTools?.retracement || securityFibonacciTools?.extension
+							)}
+							onFibLevelsChange={handleFibLevelsChange}
+						/>
+					</div>
 				</div>
 			</div>
 			<div class="flex h-full min-h-0 w-64 flex-col border-l bg-sidebar text-sidebar-foreground">
