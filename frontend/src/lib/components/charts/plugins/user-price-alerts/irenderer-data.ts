@@ -15,6 +15,7 @@ interface NoHoverData {
 }
 
 interface AlertRendererDataBase {
+	id?: string;
 	y: number;
 	showHover: boolean;
 	text?: string;

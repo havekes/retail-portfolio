@@ -210,52 +210,67 @@ describe('User Price Alerts Plugin', () => {
 			]);
 		});
 
-		it('provides alertChanged delegate and unregisters subscribers on destroy', () => {
-			expect(state.alertChanged()).toBeDefined();
-			expect(() => state.destroy()).not.toThrow();
+		it('provides alertChanged delegate and cleans up all delegates and alerts on destroy', () => {
+			const alertAddedHandler = vi.fn();
+			const alertRemovedHandler = vi.fn();
+			const alertChangedHandler = vi.fn();
+			const alertsChangedHandler = vi.fn();
+
+			state.alertAdded().subscribe(alertAddedHandler);
+			state.alertRemoved().subscribe(alertRemovedHandler);
+			state.alertChanged().subscribe(alertChangedHandler);
+			state.alertsChanged().subscribe(alertsChangedHandler);
+
+			state.addAlert(150);
+			expect(state.alerts()).toHaveLength(1);
+
+			state.destroy();
+
+			expect(state.alerts()).toHaveLength(0);
+			expect(state.alertAdded().hasListeners()).toBe(false);
+			expect(state.alertRemoved().hasListeners()).toBe(false);
+			expect(state.alertChanged().hasListeners()).toBe(false);
+			expect(state.alertsChanged().hasListeners()).toBe(false);
 		});
 
 		/**
-		 * DEFECT REGRESSION PIN TEST:
+		 * DEFECT REGRESSION FIXED TEST:
 		 *
-		 * Current Behavior:
-		 * UserAlertsState generates hex string IDs (e.g., Math.round(Math.random() * 1000000).toString(16)).
-		 * When security-chart.svelte:440 listens to alertRemoved, it parses the ID with:
-		 *   `const id = Number(idStr); if (!isNaN(id) && onRemoveAlert) { onRemoveAlert(id); }`
-		 * For any hex ID containing letters [a-f], `Number(idStr)` evaluates to `NaN`, preventing
-		 * `onRemoveAlert` from being invoked.
+		 * Previous defect:
+		 * UserAlertsState generated hex string IDs (e.g., toString(16)).
+		 * When security-chart.svelte:440 parsed the ID with `Number(idStr)`, hex letters [a-f] evaluated to NaN.
 		 *
-		 * ARCH-T05 will fix this defect in the ID schema and parsing.
-		 * This test pins the exact current behavior:
-		 * - addAlert returns a hex string ID
-		 * - alertRemoved emits that hex string ID
-		 * - Number(hexId) evaluates to NaN when non-numeric hex characters are present
+		 * ARCH-T05 fixed behavior:
+		 * UserAlertsState generates decimal numeric string IDs, so Number(idStr) produces a valid number.
 		 */
-		it('defect pin: hex string IDs evaluate to NaN when converted with Number()', () => {
+		it('generates decimal numeric string IDs that evaluate to valid finite numbers when parsed with Number()', () => {
 			const alertRemovedHandler = vi.fn();
 			state.alertRemoved().subscribe(alertRemovedHandler);
 
-			// Add multiple alerts to guarantee hex character coverage
+			// Add multiple alerts to verify generated decimal numeric string IDs
 			const ids: string[] = [];
 			for (let i = 0; i < 20; i++) {
 				ids.push(state.addAlert(100 + i));
 			}
 
-			// Validate all generated IDs are valid hex strings
-			expect(ids.every((id) => /^[0-9a-f]+$/i.test(id))).toBe(true);
+			// Validate all generated IDs are pure numeric strings
+			expect(ids.every((id) => /^\d+$/.test(id))).toBe(true);
 
-			// Pick an ID containing non-decimal hex characters [a-f] or test a representative hex string
-			const hexWithAlpha = ids.find((id) => /[a-f]/i.test(id)) ?? '1a3f';
-			state.setAlerts([{ id: hexWithAlpha, price: 150 }]);
+			// Verify each ID parses to a valid finite positive integer Number
+			expect(ids.every((id) => Number.isFinite(Number(id)) && !Number.isNaN(Number(id)))).toBe(
+				true
+			);
 
-			state.removeAlert(hexWithAlpha);
-			expect(alertRemovedHandler).toHaveBeenCalledWith(hexWithAlpha);
+			// Verify removal fires alertRemoved with numeric string that Number() successfully parses
+			const testId = ids[0];
+			state.removeAlert(testId);
+			expect(alertRemovedHandler).toHaveBeenCalledWith(testId);
 
 			const receivedId = alertRemovedHandler.mock.calls[0][0];
 			const parsedNumber = Number(receivedId);
-
-			// Pinned defect assertion: Number(hexStringWithLetters) evaluates to NaN
-			expect(Number.isNaN(parsedNumber)).toBe(true);
+			expect(Number.isNaN(parsedNumber)).toBe(false);
+			expect(Number.isFinite(parsedNumber)).toBe(true);
+			expect(parsedNumber).toBeGreaterThan(0);
 		});
 	});
 
@@ -555,6 +570,46 @@ describe('User Price Alerts Plugin', () => {
 				zOrder: 'top'
 			});
 		});
+
+		it('does not mutate _hoveringID or instance fields during _calculateRendererData', () => {
+			const alertInfo: UserAlertInfo = { id: 'alert-123', price: 300 };
+			const timescaleWidth = 750;
+			const textLength = 'AAPL crossing 300.00'.length;
+			const labelWidth =
+				centreLabelInlinePadding * 2 + removeButtonWidth + textLength * averageWidthPerCharacter;
+			const buttonCentreX = (timescaleWidth + labelWidth - removeButtonWidth) * 0.5;
+
+			const mousePos: MousePosition = {
+				x: buttonCentreX,
+				y: 200,
+				xPositionRelativeToPriceScale: 300,
+				overPriceScale: false,
+				overTimeScale: false
+			};
+
+			// Initial state
+			// @ts-expect-error accessing private field for side-effect assertion
+			expect(alertsPlugin._hoveringID).toBe('');
+
+			// Calling _calculateRendererData directly calculates hover data without mutating _hoveringID
+			const data = alertsPlugin._calculateRendererData([alertInfo], mousePos);
+			expect(data?.alerts[0].showHover).toBe(true);
+			if (data?.alerts[0].showHover) {
+				expect(data.alerts[0].hoverRemove).toBe(true);
+			}
+
+			// @ts-expect-error accessing private field for side-effect assertion
+			expect(alertsPlugin._hoveringID).toBe('');
+
+			// _hoveringID is updated only when updateAllViews() is called
+			alertsPlugin.setAlerts([alertInfo]);
+			mockData.mockChartElement.dispatchEvent(
+				new MouseEvent('mousemove', { clientX: Math.round(buttonCentreX), clientY: 200 })
+			);
+			alertsPlugin.updateAllViews();
+			// @ts-expect-error accessing private field for side-effect assertion
+			expect(alertsPlugin._hoveringID).toBe('alert-123');
+		});
 	});
 
 	describe('UserPriceAlerts Interaction and Lifecycle', () => {
@@ -638,6 +693,33 @@ describe('User Price Alerts Plugin', () => {
 			);
 
 			expect(requestUpdate).not.toHaveBeenCalled();
+		});
+
+		it('delegates alerts state methods via composition', () => {
+			expect(alertsPlugin.alerts()).toEqual([]);
+
+			const id = alertsPlugin.addAlert(200);
+			expect(typeof id).toBe('string');
+			expect(alertsPlugin.alerts()).toEqual([{ id, price: 200 }]);
+
+			alertsPlugin.setAlerts([{ id: '999', price: 400 }]);
+			expect(alertsPlugin.alerts()).toEqual([{ id: '999', price: 400 }]);
+
+			alertsPlugin.removeAlert('999');
+			expect(alertsPlugin.alerts()).toEqual([]);
+		});
+
+		it('cleans up detached listeners and destroys internal state on destroy()', () => {
+			const alertAddedHandler = vi.fn();
+			alertsPlugin.alertAdded().subscribe(alertAddedHandler);
+
+			alertsPlugin.destroy();
+
+			expect(alertsPlugin.alertAdded().hasListeners()).toBe(false);
+			expect(alertsPlugin.alertRemoved().hasListeners()).toBe(false);
+			expect(alertsPlugin.alertChanged().hasListeners()).toBe(false);
+			expect(alertsPlugin.alertsChanged().hasListeners()).toBe(false);
+			expect(alertsPlugin.alerts()).toEqual([]);
 		});
 	});
 
