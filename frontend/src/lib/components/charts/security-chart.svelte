@@ -532,6 +532,7 @@
 
 		return () => {
 			resizeObserver.disconnect();
+			userAlertsPrimitive?.destroy();
 			elliottWavesPrimitive?.destroy();
 			fibonacciPrimitive?.destroy();
 			chartInstance?.remove();

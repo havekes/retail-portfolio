@@ -1,6 +1,9 @@
 import type { BitmapCoordinatesRenderingScope, CanvasRenderingTarget2D } from 'fancy-canvas';
 import { PaneRendererBase } from './renderer-base';
 import {
+	ALERT_LABEL_BG_COLOR,
+	ALERT_LABEL_BORDER_COLOR,
+	ALERT_LABEL_TEXT_COLOR,
 	averageWidthPerCharacter,
 	buttonHeight,
 	buttonWidth,
@@ -9,10 +12,14 @@ import {
 	clockIconViewBoxSize,
 	crossPath,
 	crossViewBoxSize,
+	ICON_FILL_COLOR,
 	iconPadding,
 	iconPaddingAlertTop,
 	iconSize,
 	labelHeight,
+	REMOVE_BUTTON_DIVIDER_COLOR,
+	REMOVE_BUTTON_HOVER_BG_COLOR,
+	REMOVE_BUTTON_ICON_COLOR,
 	removeButtonWidth
 } from './constants';
 import { positionsLine } from '../helpers/dimensions/positions';
@@ -127,7 +134,7 @@ export class PaneRenderer extends PaneRendererBase {
 				yDimensions.length,
 				radius
 			);
-			ctx.fillStyle = '#FFFFFF';
+			ctx.fillStyle = ALERT_LABEL_BG_COLOR;
 			ctx.fill();
 
 			const removeButtonStartX =
@@ -145,7 +152,7 @@ export class PaneRenderer extends PaneRendererBase {
 					yDimensions.length,
 					[0, radius, radius, 0]
 				);
-				ctx.fillStyle = '#F0F3FA';
+				ctx.fillStyle = REMOVE_BUTTON_HOVER_BG_COLOR;
 				ctx.fill();
 			}
 
@@ -156,7 +163,7 @@ export class PaneRenderer extends PaneRendererBase {
 				scope.horizontalPixelRatio,
 				1
 			);
-			ctx.fillStyle = '#F1F3FB';
+			ctx.fillStyle = REMOVE_BUTTON_DIVIDER_COLOR;
 			ctx.fillRect(
 				dividerDimensions.position,
 				yDimensions.position,
@@ -173,13 +180,13 @@ export class PaneRenderer extends PaneRendererBase {
 				yDimensions.length,
 				radius
 			);
-			ctx.strokeStyle = '#131722';
+			ctx.strokeStyle = ALERT_LABEL_BORDER_COLOR;
 			ctx.lineWidth = 1 * scope.horizontalPixelRatio;
 			ctx.stroke();
 
 			// write text
 			ctx.beginPath();
-			ctx.fillStyle = '#131722';
+			ctx.fillStyle = ALERT_LABEL_TEXT_COLOR;
 			ctx.textBaseline = 'middle';
 			ctx.font = `${Math.round(12 * scope.verticalPixelRatio)}px sans-serif`;
 			ctx.fillText(
@@ -197,7 +204,7 @@ export class PaneRenderer extends PaneRendererBase {
 			);
 			const scaling = (iconSize / crossViewBoxSize) * scope.horizontalPixelRatio;
 			ctx.scale(scaling, scaling);
-			ctx.fillStyle = '#131722';
+			ctx.fillStyle = REMOVE_BUTTON_ICON_COLOR;
 			ctx.fill(crossPath, 'evenodd');
 		} finally {
 			ctx.restore();
@@ -271,7 +278,7 @@ export class PaneRenderer extends PaneRendererBase {
 				data.iconScaling * scope.horizontalPixelRatio,
 				data.iconScaling * scope.verticalPixelRatio
 			);
-			ctx.fillStyle = '#FFFFFF';
+			ctx.fillStyle = ICON_FILL_COLOR;
 			data.icon.forEach((path) => {
 				ctx.beginPath();
 				ctx.fill(path, 'evenodd');

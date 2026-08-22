@@ -20,8 +20,13 @@ export class UserAlertsState {
 	}
 
 	destroy() {
-		// TODO: add more destroying 💥
 		this._alertsChanged.unsubscribeAll(this);
+		this._alertAdded.destroy();
+		this._alertRemoved.destroy();
+		this._alertChanged.destroy();
+		this._alertsChanged.destroy();
+		this._alerts.clear();
+		this._alertsArray = [];
 	}
 
 	alertAdded(): Delegate<UserAlertInfo> {
@@ -77,9 +82,9 @@ export class UserAlertsState {
 	}
 
 	private _getNewId(): string {
-		let id = Math.round(Math.random() * 1000000).toString(16);
+		let id = Math.floor(100000 + Math.random() * 900000).toString();
 		while (this._alerts.has(id)) {
-			id = Math.round(Math.random() * 1000000).toString(16);
+			id = Math.floor(100000 + Math.random() * 900000).toString();
 		}
 		return id;
 	}

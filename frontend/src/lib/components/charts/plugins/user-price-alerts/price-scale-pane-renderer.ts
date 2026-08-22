@@ -1,6 +1,6 @@
 import type { BitmapCoordinatesRenderingScope, CanvasRenderingTarget2D } from 'fancy-canvas';
 import { PaneRendererBase } from './renderer-base';
-import { buttonHeight } from './constants';
+import { buttonHeight, PRICE_SCALE_LABEL_TEXT_COLOR } from './constants';
 import { positionsLine } from '../helpers/dimensions/positions';
 
 export class PriceScalePaneRenderer extends PaneRendererBase {
@@ -34,7 +34,7 @@ export class PriceScalePaneRenderer extends PaneRendererBase {
 			]);
 			ctx.fill();
 			ctx.beginPath();
-			ctx.fillStyle = '#FFFFFF';
+			ctx.fillStyle = PRICE_SCALE_LABEL_TEXT_COLOR;
 			ctx.textBaseline = 'middle';
 			ctx.textAlign = 'right';
 			ctx.font = `${Math.round(12 * scope.verticalPixelRatio)}px sans-serif`;

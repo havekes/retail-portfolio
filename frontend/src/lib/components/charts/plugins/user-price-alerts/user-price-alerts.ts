@@ -8,6 +8,7 @@ import type {
 	SeriesType,
 	Time
 } from 'lightweight-charts';
+import type { Delegate } from '../helpers/delegate';
 import {
 	averageWidthPerCharacter,
 	buttonWidth,
@@ -15,6 +16,8 @@ import {
 	centreLabelInlinePadding,
 	clockIconPaths,
 	clockPlusIconPaths,
+	DEFAULT_ALERT_COLOR,
+	DEFAULT_BUTTON_HOVER_COLOR,
 	removeButtonWidth,
 	showCentreLabelDistance
 } from './constants';
@@ -23,7 +26,8 @@ import { MouseHandlers, type MousePosition } from './mouse';
 import { UserAlertPricePaneView } from './pane-view';
 import { type UserAlertInfo, UserAlertsState } from './state';
 
-export class UserPriceAlerts extends UserAlertsState implements ISeriesPrimitive<Time> {
+export class UserPriceAlerts implements ISeriesPrimitive<Time> {
+	private _state: UserAlertsState;
 	private _chart: IChartApi | undefined = undefined;
 	private _series: ISeriesApi<SeriesType> | undefined = undefined;
 	private _mouseHandlers: MouseHandlers;
@@ -35,10 +39,48 @@ export class UserPriceAlerts extends UserAlertsState implements ISeriesPrimitive
 	private _currentCursor: string | null = null;
 
 	private _symbolName: string = '';
+	private _hoveringID: string = '';
 
 	constructor() {
-		super();
+		this._state = new UserAlertsState();
 		this._mouseHandlers = new MouseHandlers();
+	}
+
+	alertAdded(): Delegate<UserAlertInfo> {
+		return this._state.alertAdded();
+	}
+
+	alertRemoved(): Delegate<string> {
+		return this._state.alertRemoved();
+	}
+
+	alertChanged(): Delegate<UserAlertInfo> {
+		return this._state.alertChanged();
+	}
+
+	alertsChanged(): Delegate {
+		return this._state.alertsChanged();
+	}
+
+	addAlert(price: number): string {
+		return this._state.addAlert(price);
+	}
+
+	removeAlert(id: string): void {
+		this._state.removeAlert(id);
+	}
+
+	alerts(): UserAlertInfo[] {
+		return this._state.alerts();
+	}
+
+	setAlerts(alertsInfo: UserAlertInfo[]): void {
+		this._state.setAlerts(alertsInfo);
+	}
+
+	public destroy(): void {
+		this.detached();
+		this._state.destroy();
 	}
 
 	attached({ chart, series, requestUpdate }: SeriesAttachedParameter<Time>) {
@@ -90,12 +132,18 @@ export class UserPriceAlerts extends UserAlertsState implements ISeriesPrimitive
 	updateAllViews(): void {
 		const alerts = this.alerts();
 		const rendererData = this._calculateRendererData(alerts, this._lastMouseUpdate);
+		this._hoveringID = '';
 		this._currentCursor = null;
-		if (
-			rendererData?.button?.hovering ||
-			rendererData?.alerts.some((alert) => alert.showHover && alert.hoverRemove)
-		) {
-			this._currentCursor = 'pointer';
+		if (rendererData) {
+			const hoveringAlert = rendererData.alerts.find(
+				(alert) => alert.showHover && alert.hoverRemove
+			);
+			if (hoveringAlert?.id) {
+				this._hoveringID = hoveringAlert.id;
+			}
+			if (rendererData.button?.hovering || hoveringAlert) {
+				this._currentCursor = 'pointer';
+			}
 		}
 		this._paneViews.forEach((pv) => pv.update(rendererData));
 		this._pricePaneViews.forEach((pv) => pv.update(rendererData));
@@ -138,8 +186,6 @@ export class UserPriceAlerts extends UserAlertsState implements ISeriesPrimitive
 		return distanceX <= removeButtonWidth / 2;
 	}
 
-	private _hoveringID: string = '';
-
 	/**
 	 * We are calculating this here instead of within a view
 	 * because the data is identical for both Renderers so lets
@@ -178,7 +224,6 @@ export class UserPriceAlerts extends UserAlertsState implements ISeriesPrimitive
 				};
 			}
 		);
-		this._hoveringID = '';
 		if (closestIndex >= 0 && closestDistance < showCentreLabelDistance) {
 			const timescaleWidth = this._chart?.timeScale().width() ?? 0;
 			const a = alerts[closestIndex];
@@ -195,7 +240,6 @@ export class UserPriceAlerts extends UserAlertsState implements ISeriesPrimitive
 				text,
 				hoverRemove
 			};
-			if (hoverRemove) this._hoveringID = a.id;
 		}
 		return {
 			alertIcon: clockIconPaths,
@@ -203,11 +247,11 @@ export class UserPriceAlerts extends UserAlertsState implements ISeriesPrimitive
 			button: showButton
 				? {
 						hovering: this._isHovering(mousePosition),
-						hoverColor: '#50535E',
+						hoverColor: DEFAULT_BUTTON_HOVER_COLOR,
 						crosshairLabelIcon: clockPlusIconPaths
 					}
 				: null,
-			color: '#131722',
+			color: DEFAULT_ALERT_COLOR,
 			crosshair: showCrosshair
 				? {
 						y: mousePosition.y,
