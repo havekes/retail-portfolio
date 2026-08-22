@@ -1,13 +1,4 @@
-import type {
-	IChartApi,
-	ISeriesApi,
-	ISeriesPrimitive,
-	IPrimitivePaneView,
-	PrimitiveHoveredItem,
-	SeriesAttachedParameter,
-	SeriesType,
-	Time
-} from 'lightweight-charts';
+import type { Time } from 'lightweight-charts';
 import type { ISubscription } from '../helpers/delegate';
 import type { DegreeWaveCount, WaveDegree, WavePoint } from '$lib/utils/finance/elliott-wave';
 import type { Candle } from '$lib/utils/finance/candle';
@@ -21,22 +12,19 @@ import {
 } from './pane-renderer';
 import { ElliottWavePaneView } from './pane-view';
 import { buildCandleLookup, findCandleByTime, snapPriceToWick } from './snap';
-import { ElliottWaveState } from './state';
-import { TimeProjector } from '../helpers/time/time-projector';
+import { ElliottWaveState, type PointTarget } from './state';
+import { DrawingPrimitiveBase } from '../helpers/primitive/drawing-primitive-base';
 
-export class ElliottWavesPrimitive implements ISeriesPrimitive<Time> {
-	private _chart: IChartApi | undefined = undefined;
-	private _series: ISeriesApi<SeriesType> | undefined = undefined;
-	private _requestUpdate: (() => void) | undefined = undefined;
-
-	private readonly _state: ElliottWaveState;
-	private readonly _mouseHandlers: MouseHandlers;
-	private readonly _timeProjector: TimeProjector;
-	private readonly _paneViews: [ElliottWavePaneView];
-
+export class ElliottWavesPrimitive extends DrawingPrimitiveBase<
+	ElliottWaveRendererData,
+	ElliottWavePaneView,
+	ElliottWaveState,
+	MouseHandlers,
+	PointTarget,
+	PointTarget
+> {
 	private _snapToWicks: boolean = false;
 	private _candleLookup: Map<number, Candle> = new Map();
-	private _currentCursor: string | null = null;
 
 	constructor(initialState?: {
 		activeDegree?: WaveDegree;
@@ -44,157 +32,61 @@ export class ElliottWavesPrimitive implements ISeriesPrimitive<Time> {
 		snapToWicks?: boolean;
 		selectedDegree?: WaveDegree | null;
 	}) {
-		this._state = new ElliottWaveState();
-		this._mouseHandlers = new MouseHandlers();
-		this._timeProjector = new TimeProjector();
-		this._paneViews = [new ElliottWavePaneView()];
+		const state = new ElliottWaveState();
+		const mouseHandlers = new MouseHandlers();
+		const paneView = new ElliottWavePaneView();
 
 		if (initialState?.activeDegree) {
-			this._state.setActiveDegree(initialState.activeDegree);
+			state.setActiveDegree(initialState.activeDegree);
 		}
 		if (initialState?.waves) {
-			this._state.setAllWaveCounts(initialState.waves);
+			state.setAllWaveCounts(initialState.waves);
 		}
 		if (initialState?.snapToWicks !== undefined) {
-			this._snapToWicks = initialState.snapToWicks;
-			this._mouseHandlers.setSnapToWicks(this._snapToWicks);
+			mouseHandlers.setSnapToWicks(initialState.snapToWicks);
 		}
 		if (initialState?.selectedDegree !== undefined) {
-			this._state.setSelectedDegree(initialState.selectedDegree);
+			state.setSelectedDegree(initialState.selectedDegree);
+		}
+
+		super({
+			externalId: 'elliott-waves-primitive',
+			state,
+			mouseHandlers,
+			paneView
+		});
+
+		if (initialState?.snapToWicks !== undefined) {
+			this._snapToWicks = initialState.snapToWicks;
 		}
 	}
 
-	public attached({ chart, series, requestUpdate }: SeriesAttachedParameter<Time>): void {
-		this._chart = chart;
-		this._series = series;
-		this._requestUpdate = requestUpdate;
+	protected override _setupSubscriptions(): void {
+		this._subscribeToUpdate(this._state.wavePointsChanged());
+		this._subscribeToUpdate(this._state.degreeChanged());
+		this._subscribeToUpdate(this._state.selectionChanged());
 
-		this._timeProjector.attach(chart);
-		this._mouseHandlers.attached(chart, series, this._timeProjector);
-		this._mouseHandlers.setDrawingMode(this._state.isDrawingMode());
-
-		this._state.wavePointsChanged().subscribe(() => {
-			this._requestUpdate?.();
-		}, this);
-
-		this._state.drawingModeChanged().subscribe((isDrawing) => {
-			this._mouseHandlers.setDrawingMode(isDrawing);
-			this._requestUpdate?.();
-		}, this);
-
-		this._state.degreeChanged().subscribe(() => {
-			this._requestUpdate?.();
-		}, this);
-
-		this._state.selectionChanged().subscribe(() => {
-			this._requestUpdate?.();
-		}, this);
-
-		this._mouseHandlers.mouseMoved().subscribe(() => {
-			this._requestUpdate?.();
-		}, this);
-
-		this._mouseHandlers.pointClicked().subscribe((hit) => {
+		this._subscribe(this._mouseHandlers.pointClicked(), (hit) => {
 			this._state.setSelectedDegree(hit.degree);
 			this._requestUpdate?.();
-		}, this);
+		});
 
-		this._mouseHandlers.emptyAreaClicked().subscribe(() => {
+		this._subscribe(this._mouseHandlers.emptyAreaClicked(), () => {
 			this._state.setSelectedDegree(null);
 			this._requestUpdate?.();
-		}, this);
+		});
 
-		this._mouseHandlers.pointHovered().subscribe((target) => {
-			this._state.setHoveredPoint(target);
-			this._requestUpdate?.();
-		}, this);
-
-		this._mouseHandlers.dragStarted().subscribe((target) => {
-			this._state.setDraggingPoint(target);
-			this._requestUpdate?.();
-		}, this);
-
-		this._mouseHandlers.pointDragged().subscribe((dragEvent) => {
+		this._subscribe(this._mouseHandlers.pointDragged(), (dragEvent) => {
 			this._state.updatePoint(
 				dragEvent.wave,
 				{ time: dragEvent.time, price: dragEvent.price },
 				dragEvent.degree
 			);
 			this._requestUpdate?.();
-		}, this);
-
-		this._mouseHandlers.dragEnded().subscribe(() => {
-			this._state.setDraggingPoint(null);
-			this._requestUpdate?.();
-		}, this);
-
-		this._mouseHandlers.chartClicked().subscribe((clickEvent) => {
-			if (this._state.isDrawingMode()) {
-				this._state.addPoint({
-					time: clickEvent.time,
-					price: clickEvent.price
-				});
-				this._requestUpdate?.();
-			}
-		}, this);
-
-		this._requestUpdate();
-	}
-
-	public detached(): void {
-		this._state.wavePointsChanged().unsubscribeAll(this);
-		this._state.drawingModeChanged().unsubscribeAll(this);
-		this._state.degreeChanged().unsubscribeAll(this);
-		this._state.selectionChanged().unsubscribeAll(this);
-
-		this._mouseHandlers.mouseMoved().unsubscribeAll(this);
-		this._mouseHandlers.pointClicked().unsubscribeAll(this);
-		this._mouseHandlers.emptyAreaClicked().unsubscribeAll(this);
-		this._mouseHandlers.pointHovered().unsubscribeAll(this);
-		this._mouseHandlers.dragStarted().unsubscribeAll(this);
-		this._mouseHandlers.pointDragged().unsubscribeAll(this);
-		this._mouseHandlers.dragEnded().unsubscribeAll(this);
-		this._mouseHandlers.chartClicked().unsubscribeAll(this);
-
-		this._mouseHandlers.detached();
-		this._chart = undefined;
-		this._series = undefined;
-		this._requestUpdate = undefined;
-	}
-
-	public paneViews(): readonly IPrimitivePaneView[] {
-		return this._paneViews;
-	}
-
-	public updateAllViews(): void {
-		if (!this._chart || !this._series) {
-			this._paneViews[0].update(null);
-			return;
-		}
-
-		const rendererData = this._calculateRendererData();
-		this._updateCursor();
-		this._paneViews[0].update(rendererData);
-	}
-
-	public hitTest(): PrimitiveHoveredItem | null {
-		if (!this._currentCursor) return null;
-		return {
-			cursorStyle: this._currentCursor,
-			externalId: 'elliott-waves-primitive',
-			zOrder: 'top'
-		};
+		});
 	}
 
 	// State and Public API Accessors
-	public isDrawingMode(): boolean {
-		return this._state.isDrawingMode();
-	}
-
-	public setDrawingMode(enabled: boolean): void {
-		this._state.setDrawingMode(enabled);
-	}
-
 	public getActiveDegree(): WaveDegree {
 		return this._state.getActiveDegree();
 	}
@@ -224,11 +116,10 @@ export class ElliottWavesPrimitive implements ISeriesPrimitive<Time> {
 	 * times can be extrapolated for placement, dragging, and rendering, and
 	 * wave points can snap to candle wicks when snapToWicks is enabled.
 	 */
-	public setCandles(candles: Candle[]): void {
+	public override setCandles(candles: Candle[]): void {
 		this._candleLookup = buildCandleLookup(candles);
-		this._timeProjector.updateCandles(candles);
 		this._mouseHandlers.setCandles(candles);
-		this._requestUpdate?.();
+		super.setCandles(candles);
 	}
 
 	public getSnapToWicks(): boolean {
@@ -303,32 +194,11 @@ export class ElliottWavesPrimitive implements ISeriesPrimitive<Time> {
 		return this._state.wavePointsChanged();
 	}
 
-	public drawingModeChanged(): ISubscription<boolean> {
-		return this._state.drawingModeChanged();
-	}
-
 	public degreeChanged(): ISubscription<WaveDegree> {
 		return this._state.degreeChanged();
 	}
 
-	public destroy(): void {
-		this.detached();
-		this._state.destroy();
-	}
-
-	private _updateCursor(): void {
-		if (this._state.getDraggingPoint()) {
-			this._currentCursor = 'grabbing';
-		} else if (this._state.isDrawingMode()) {
-			this._currentCursor = 'crosshair';
-		} else if (this._state.getHoveredPoint()) {
-			this._currentCursor = 'grab';
-		} else {
-			this._currentCursor = null;
-		}
-	}
-
-	private _calculateRendererData(): ElliottWaveRendererData | null {
+	protected override _calculateRendererData(): ElliottWaveRendererData | null {
 		if (!this._chart || !this._series) return null;
 
 		const series = this._series;

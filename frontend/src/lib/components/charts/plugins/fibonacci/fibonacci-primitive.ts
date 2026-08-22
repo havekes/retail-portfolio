@@ -1,24 +1,15 @@
-import type {
-	IChartApi,
-	ISeriesApi,
-	ISeriesPrimitive,
-	IPrimitivePaneView,
-	PrimitiveHoveredItem,
-	SeriesAttachedParameter,
-	SeriesType,
-	Time
-} from 'lightweight-charts';
+import type { ISeriesApi, SeriesType, Time } from 'lightweight-charts';
 import type { ISubscription } from '../helpers/delegate';
 import {
 	calculateExtensionLevels,
 	calculateRetracementLevels,
+	type FibComputedLevel,
 	type FibExtensionDrawing,
 	type FibPoint,
 	type FibRetracementDrawing,
 	type FibToolType,
 	type SecurityFibonacciTools
 } from '$lib/utils/finance/fibonacci';
-import type { Candle } from '$lib/utils/finance/candle';
 import { MouseHandlers, type ProjectedFibPointWithTarget } from './mouse';
 import {
 	type ExtensionRenderData,
@@ -30,185 +21,96 @@ import {
 } from './pane-renderer';
 import { FibonacciPaneView } from './pane-view';
 import { FibonacciToolState, type FibPointTarget } from './state';
-import { TimeProjector } from '../helpers/time/time-projector';
+import { DrawingPrimitiveBase } from '../helpers/primitive/drawing-primitive-base';
 
-export class FibonacciPrimitive implements ISeriesPrimitive<Time> {
-	private _chart: IChartApi | undefined = undefined;
-	private _series: ISeriesApi<SeriesType> | undefined = undefined;
-	private _requestUpdate: (() => void) | undefined = undefined;
+function projectLevels(
+	computedLevels: FibComputedLevel[],
+	series: ISeriesApi<SeriesType>
+): ProjectedFibLevel[] {
+	const projectedLevels: ProjectedFibLevel[] = [];
+	for (const lvl of computedLevels) {
+		const y = series.priceToCoordinate(lvl.price);
+		if (y !== null) {
+			projectedLevels.push({
+				ratio: lvl.ratio,
+				price: lvl.price,
+				y,
+				formattedPrice: lvl.formattedPrice,
+				label: lvl.label,
+				color: lvl.color,
+				enabled: lvl.enabled
+			});
+		}
+	}
+	return projectedLevels;
+}
 
-	private readonly _state: FibonacciToolState;
-	private readonly _mouseHandlers: MouseHandlers;
-	private readonly _timeProjector: TimeProjector;
-	private readonly _paneViews: [FibonacciPaneView];
-
-	private _currentCursor: string | null = null;
-
+export class FibonacciPrimitive extends DrawingPrimitiveBase<
+	FibonacciRendererData,
+	FibonacciPaneView,
+	FibonacciToolState,
+	MouseHandlers,
+	FibPointTarget,
+	FibPointTarget
+> {
 	constructor(initialState?: {
 		activeTool?: FibToolType | null;
 		drawings?: SecurityFibonacciTools;
 		isDrawingMode?: boolean;
 		selectedTool?: FibToolType | null;
 	}) {
-		this._state = new FibonacciToolState();
-		this._mouseHandlers = new MouseHandlers();
-		this._timeProjector = new TimeProjector();
-		this._paneViews = [new FibonacciPaneView()];
+		const state = new FibonacciToolState();
+		const mouseHandlers = new MouseHandlers();
+		const paneView = new FibonacciPaneView();
 
 		if (initialState?.activeTool !== undefined) {
-			this._state.setActiveTool(initialState.activeTool);
+			state.setActiveTool(initialState.activeTool);
 		}
 		if (initialState?.drawings) {
-			this._state.setDrawings(initialState.drawings);
+			state.setDrawings(initialState.drawings);
 		}
 		if (initialState?.isDrawingMode !== undefined) {
-			this._state.setDrawingMode(initialState.isDrawingMode);
+			state.setDrawingMode(initialState.isDrawingMode);
 		}
 		if (initialState?.selectedTool !== undefined) {
-			this._state.setSelectedTool(initialState.selectedTool);
+			state.setSelectedTool(initialState.selectedTool);
 		}
+
+		super({
+			externalId: 'fibonacci-primitive',
+			state,
+			mouseHandlers,
+			paneView
+		});
 	}
 
-	public attached({ chart, series, requestUpdate }: SeriesAttachedParameter<Time>): void {
-		this._chart = chart;
-		this._series = series;
-		this._requestUpdate = requestUpdate;
+	protected override _setupSubscriptions(): void {
+		this._subscribeToUpdate(this._state.drawingsChanged());
+		this._subscribeToUpdate(this._state.toolChanged());
+		this._subscribeToUpdate(this._state.selectionChanged());
+		this._subscribeToUpdate(this._state.hoverChanged());
+		this._subscribeToUpdate(this._state.dragChanged());
 
-		this._timeProjector.attach(chart);
-		this._mouseHandlers.attached(chart, series, this._timeProjector);
-		this._mouseHandlers.setDrawingMode(this._state.isDrawingMode());
-
-		this._state.drawingsChanged().subscribe(() => {
-			this._requestUpdate?.();
-		}, this);
-
-		this._state.drawingModeChanged().subscribe((isDrawing) => {
-			this._mouseHandlers.setDrawingMode(isDrawing);
-			this._requestUpdate?.();
-		}, this);
-
-		this._state.toolChanged().subscribe(() => {
-			this._requestUpdate?.();
-		}, this);
-
-		this._state.selectionChanged().subscribe(() => {
-			this._requestUpdate?.();
-		}, this);
-
-		this._state.hoverChanged().subscribe(() => {
-			this._requestUpdate?.();
-		}, this);
-
-		this._state.dragChanged().subscribe(() => {
-			this._requestUpdate?.();
-		}, this);
-
-		this._mouseHandlers.mouseMoved().subscribe(() => {
-			this._requestUpdate?.();
-		}, this);
-
-		this._mouseHandlers.pointClicked().subscribe((hit) => {
+		this._subscribe(this._mouseHandlers.pointClicked(), (hit) => {
 			this._state.setSelectedTool(hit.tool);
 			this._requestUpdate?.();
-		}, this);
+		});
 
-		this._mouseHandlers.emptyAreaClicked().subscribe(() => {
+		this._subscribe(this._mouseHandlers.emptyAreaClicked(), () => {
 			this._state.setSelectedTool(null);
 			this._requestUpdate?.();
-		}, this);
+		});
 
-		this._mouseHandlers.pointHovered().subscribe((target) => {
-			this._state.setHoveredPoint(target);
-			this._requestUpdate?.();
-		}, this);
-
-		this._mouseHandlers.dragStarted().subscribe((target) => {
-			this._state.setDraggingPoint(target);
-			this._requestUpdate?.();
-		}, this);
-
-		this._mouseHandlers.pointDragged().subscribe((dragEvent) => {
+		this._subscribe(this._mouseHandlers.pointDragged(), (dragEvent) => {
 			this._state.updatePoint(dragEvent.tool, dragEvent.pointIndex, {
 				time: dragEvent.time,
 				price: dragEvent.price
 			});
 			this._requestUpdate?.();
-		}, this);
-
-		this._mouseHandlers.dragEnded().subscribe(() => {
-			this._state.setDraggingPoint(null);
-			this._requestUpdate?.();
-		}, this);
-
-		this._mouseHandlers.chartClicked().subscribe((clickEvent) => {
-			if (this._state.isDrawingMode()) {
-				this._state.addPoint({
-					time: clickEvent.time,
-					price: clickEvent.price
-				});
-				this._requestUpdate?.();
-			}
-		}, this);
-
-		this._requestUpdate?.();
-	}
-
-	public detached(): void {
-		this._state.drawingsChanged().unsubscribeAll(this);
-		this._state.drawingModeChanged().unsubscribeAll(this);
-		this._state.toolChanged().unsubscribeAll(this);
-		this._state.selectionChanged().unsubscribeAll(this);
-		this._state.hoverChanged().unsubscribeAll(this);
-		this._state.dragChanged().unsubscribeAll(this);
-
-		this._mouseHandlers.mouseMoved().unsubscribeAll(this);
-		this._mouseHandlers.pointClicked().unsubscribeAll(this);
-		this._mouseHandlers.emptyAreaClicked().unsubscribeAll(this);
-		this._mouseHandlers.pointHovered().unsubscribeAll(this);
-		this._mouseHandlers.dragStarted().unsubscribeAll(this);
-		this._mouseHandlers.pointDragged().unsubscribeAll(this);
-		this._mouseHandlers.dragEnded().unsubscribeAll(this);
-		this._mouseHandlers.chartClicked().unsubscribeAll(this);
-
-		this._mouseHandlers.detached();
-		this._chart = undefined;
-		this._series = undefined;
-		this._requestUpdate = undefined;
-	}
-
-	public paneViews(): readonly IPrimitivePaneView[] {
-		return this._paneViews;
-	}
-
-	public updateAllViews(): void {
-		if (!this._chart || !this._series) {
-			this._paneViews[0].update(null);
-			return;
-		}
-
-		const rendererData = this._calculateRendererData();
-		this._updateCursor();
-		this._paneViews[0].update(rendererData);
-	}
-
-	public hitTest(): PrimitiveHoveredItem | null {
-		if (!this._currentCursor) return null;
-		return {
-			cursorStyle: this._currentCursor,
-			externalId: 'fibonacci-primitive',
-			zOrder: 'top'
-		};
+		});
 	}
 
 	// State and Public API Accessors
-	public isDrawingMode(): boolean {
-		return this._state.isDrawingMode();
-	}
-
-	public setDrawingMode(enabled: boolean): void {
-		this._state.setDrawingMode(enabled);
-	}
-
 	public getActiveTool(): FibToolType | null {
 		return this._state.getActiveTool();
 	}
@@ -281,17 +183,8 @@ export class FibonacciPrimitive implements ISeriesPrimitive<Time> {
 		return this._state.getDraggingPoint();
 	}
 
-	public setCandles(candles: Candle[]): void {
-		this._timeProjector.updateCandles(candles);
-		this._requestUpdate?.();
-	}
-
 	public drawingsChanged(): ISubscription<SecurityFibonacciTools> {
 		return this._state.drawingsChanged();
-	}
-
-	public drawingModeChanged(): ISubscription<boolean> {
-		return this._state.drawingModeChanged();
 	}
 
 	public toolChanged(): ISubscription<FibToolType | null> {
@@ -306,24 +199,7 @@ export class FibonacciPrimitive implements ISeriesPrimitive<Time> {
 		return this._state.dragChanged();
 	}
 
-	public destroy(): void {
-		this.detached();
-		this._state.destroy();
-	}
-
-	private _updateCursor(): void {
-		if (this._state.getDraggingPoint()) {
-			this._currentCursor = 'grabbing';
-		} else if (this._state.isDrawingMode()) {
-			this._currentCursor = 'crosshair';
-		} else if (this._state.getHoveredPoint()) {
-			this._currentCursor = 'grab';
-		} else {
-			this._currentCursor = null;
-		}
-	}
-
-	private _calculateRendererData(): FibonacciRendererData | null {
+	protected override _calculateRendererData(): FibonacciRendererData | null {
 		if (!this._chart || !this._series) return null;
 
 		const series = this._series;
@@ -393,21 +269,7 @@ export class FibonacciPrimitive implements ISeriesPrimitive<Time> {
 					retracement.levels
 				);
 
-				const projectedLevels: ProjectedFibLevel[] = [];
-				for (const lvl of computedLevels) {
-					const y = series.priceToCoordinate(lvl.price);
-					if (y !== null) {
-						projectedLevels.push({
-							ratio: lvl.ratio,
-							price: lvl.price,
-							y,
-							formattedPrice: lvl.formattedPrice,
-							label: lvl.label,
-							color: lvl.color,
-							enabled: lvl.enabled
-						});
-					}
-				}
+				const projectedLevels = projectLevels(computedLevels, series);
 
 				retracementRenderData = {
 					p1: p1Projected,
@@ -502,21 +364,7 @@ export class FibonacciPrimitive implements ISeriesPrimitive<Time> {
 					extension.levels
 				);
 
-				const projectedLevels: ProjectedFibLevel[] = [];
-				for (const lvl of computedLevels) {
-					const y = series.priceToCoordinate(lvl.price);
-					if (y !== null) {
-						projectedLevels.push({
-							ratio: lvl.ratio,
-							price: lvl.price,
-							y,
-							formattedPrice: lvl.formattedPrice,
-							label: lvl.label,
-							color: lvl.color,
-							enabled: lvl.enabled
-						});
-					}
-				}
+				const projectedLevels = projectLevels(computedLevels, series);
 
 				extensionRenderData = {
 					p1: p1Projected,
@@ -577,22 +425,7 @@ export class FibonacciPrimitive implements ISeriesPrimitive<Time> {
 						},
 						null
 					);
-					const lvls: ProjectedFibLevel[] = [];
-					for (const lvl of previewComputed) {
-						const y = series.priceToCoordinate(lvl.price);
-						if (y !== null) {
-							lvls.push({
-								ratio: lvl.ratio,
-								price: lvl.price,
-								y,
-								formattedPrice: lvl.formattedPrice,
-								label: lvl.label,
-								color: lvl.color,
-								enabled: lvl.enabled
-							});
-						}
-					}
-					previewLevels = lvls;
+					previewLevels = projectLevels(previewComputed, series);
 				} else if (activeTool === 'extension' && pending.length === 2) {
 					const previewComputed = calculateExtensionLevels(
 						pending[0],
@@ -603,22 +436,7 @@ export class FibonacciPrimitive implements ISeriesPrimitive<Time> {
 						},
 						null
 					);
-					const lvls: ProjectedFibLevel[] = [];
-					for (const lvl of previewComputed) {
-						const y = series.priceToCoordinate(lvl.price);
-						if (y !== null) {
-							lvls.push({
-								ratio: lvl.ratio,
-								price: lvl.price,
-								y,
-								formattedPrice: lvl.formattedPrice,
-								label: lvl.label,
-								color: lvl.color,
-								enabled: lvl.enabled
-							});
-						}
-					}
-					previewLevels = lvls;
+					previewLevels = projectLevels(previewComputed, series);
 				}
 			}
 
