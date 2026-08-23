@@ -148,14 +148,30 @@
 		return String(t);
 	}
 
-	function isSameTimeRange(
-		r1: { from: Time; to: Time } | null,
-		r2: { from: Time; to: Time } | null
+	function isSameLogicalRange(
+		r1: { from: number; to: number } | null,
+		r2: { from: number; to: number } | null
 	): boolean {
 		if (!r1 || !r2) return false;
-		return (
-			getTimeValue(r1.from) === getTimeValue(r2.from) && getTimeValue(r1.to) === getTimeValue(r2.to)
-		);
+		return Math.abs(r1.from - r2.from) < 0.0001 && Math.abs(r1.to - r2.to) < 0.0001;
+	}
+
+	function padIndicatorData<T extends { time: Time }>(
+		data: T[],
+		candlesList: Candle[]
+	): (T | { time: Time })[] {
+		if (!candlesList || candlesList.length === 0) return data;
+		if (!data || data.length === 0) {
+			return candlesList.map((c) => ({ time: c.time }));
+		}
+		const firstDataTime = getTimeValue(data[0].time);
+		const firstIndex = candlesList.findIndex((c) => getTimeValue(c.time) === firstDataTime);
+		if (firstIndex <= 0) return data;
+
+		const padding: { time: Time }[] = candlesList
+			.slice(0, firstIndex)
+			.map((c) => ({ time: c.time }));
+		return [...padding, ...data];
 	}
 
 	function syncPriceScaleWidths() {
@@ -176,7 +192,7 @@
 		if (!data) return 0;
 		const targetTimeVal = getTimeValue(time);
 		const item = data.find((d) => getTimeValue(d.time) === targetTimeVal);
-		if (item && 'value' in item) {
+		if (item && 'value' in item && typeof item.value === 'number') {
 			return item.value;
 		}
 		return 0;
@@ -234,11 +250,11 @@
 				height: bottomContainerRef.clientHeight
 			});
 			if (chartInstance) {
-				const sourceRange = chartInstance.timeScale().getVisibleRange();
+				const sourceRange = chartInstance.timeScale().getVisibleLogicalRange();
 				if (sourceRange) {
-					const targetRange = bottomChartInstance.timeScale().getVisibleRange();
-					if (!isSameTimeRange(sourceRange, targetRange)) {
-						bottomChartInstance.timeScale().setVisibleRange(sourceRange);
+					const targetRange = bottomChartInstance.timeScale().getVisibleLogicalRange();
+					if (!isSameLogicalRange(sourceRange, targetRange)) {
+						bottomChartInstance.timeScale().setVisibleLogicalRange(sourceRange);
 					}
 				}
 				syncPriceScaleWidths();
@@ -455,11 +471,11 @@
 
 		chartInstance.timeScale().subscribeVisibleLogicalRangeChange((range) => {
 			if (showBottomPane && chartInstance && bottomChartInstance) {
-				const sourceRange = chartInstance.timeScale().getVisibleRange();
+				const sourceRange = range ?? chartInstance.timeScale().getVisibleLogicalRange();
 				if (sourceRange) {
-					const targetRange = bottomChartInstance.timeScale().getVisibleRange();
-					if (!isSameTimeRange(sourceRange, targetRange)) {
-						bottomChartInstance.timeScale().setVisibleRange(sourceRange);
+					const targetRange = bottomChartInstance.timeScale().getVisibleLogicalRange();
+					if (!isSameLogicalRange(sourceRange, targetRange)) {
+						bottomChartInstance.timeScale().setVisibleLogicalRange(sourceRange);
 					}
 				}
 				syncPriceScaleWidths();
@@ -470,13 +486,13 @@
 			}
 		});
 
-		bottomChartInstance.timeScale().subscribeVisibleLogicalRangeChange(() => {
+		bottomChartInstance.timeScale().subscribeVisibleLogicalRangeChange((range) => {
 			if (showBottomPane && chartInstance && bottomChartInstance) {
-				const sourceRange = bottomChartInstance.timeScale().getVisibleRange();
+				const sourceRange = range ?? bottomChartInstance.timeScale().getVisibleLogicalRange();
 				if (sourceRange) {
-					const targetRange = chartInstance.timeScale().getVisibleRange();
-					if (!isSameTimeRange(sourceRange, targetRange)) {
-						chartInstance.timeScale().setVisibleRange(sourceRange);
+					const targetRange = chartInstance.timeScale().getVisibleLogicalRange();
+					if (!isSameLogicalRange(sourceRange, targetRange)) {
+						chartInstance.timeScale().setVisibleLogicalRange(sourceRange);
 					}
 				}
 				syncPriceScaleWidths();
@@ -661,10 +677,15 @@
 		const isVolume = indicator.type === 'volume';
 		const isBottomPane =
 			indicator.type === 'rsi' || indicator.type === 'macd' || indicator.type === 'obv';
+		const currentCandles = candles && candles.length > 0 ? candles : (lastCandlesRef ?? []);
 
 		if (isBottomPane && bottomChartInstance) {
 			let series;
 			if (indicator.type === 'rsi') {
+				const paddedData = padIndicatorData(
+					indicator.data as { time: Time; value: number }[],
+					currentCandles
+				);
 				series = bottomChartInstance.addSeries(LineSeries, {
 					color: indicator.color,
 					lineWidth: 2
@@ -672,10 +693,11 @@
 				indicatorSeries.set('rsi', series);
 				bottomIndicatorData.set(
 					'rsi',
-					indicator.data as ({ time: Time; value: number } | MacdDataItem)[]
+					paddedData as ({ time: Time; value: number } | MacdDataItem)[]
 				);
-				if (indicator.data.length > 0) series.setData(indicator.data);
+				if (paddedData.length > 0) series.setData(paddedData as never);
 			} else if (indicator.type === 'macd') {
+				const paddedData = padIndicatorData(indicator.data as MacdDataItem[], currentCandles);
 				const histogram = bottomChartInstance.addSeries(HistogramSeries, { base: 0 });
 				const macdLineColor = indicator.color || '#2962FF';
 				const macdLine = bottomChartInstance.addSeries(LineSeries, {
@@ -691,41 +713,67 @@
 				indicatorSeries.set('macd', macdSeries);
 				bottomIndicatorData.set(
 					'macd',
-					indicator.data as ({ time: Time; value: number } | MacdDataItem)[]
+					paddedData as ({ time: Time; value: number } | MacdDataItem)[]
 				);
 
-				if (indicator.data.length > 0) {
+				if (paddedData.length > 0) {
 					histogram.setData(
-						(indicator.data as MacdDataItem[]).map((d) => ({
-							time: d.time,
-							value: d.histogram,
-							color: d.histogram >= 0 ? '#26a69a80' : '#ef535080'
-						}))
+						paddedData.map((d) =>
+							'histogram' in d && typeof d.histogram === 'number'
+								? {
+										time: d.time,
+										value: d.histogram,
+										color: d.histogram >= 0 ? '#26a69a80' : '#ef535080'
+									}
+								: { time: d.time }
+						) as never
 					);
 					macdLine.setData(
-						(indicator.data as MacdDataItem[]).map((d) => ({ time: d.time, value: d.macd }))
+						paddedData.map((d) =>
+							'macd' in d && typeof d.macd === 'number'
+								? { time: d.time, value: d.macd }
+								: { time: d.time }
+						) as never
 					);
 					signalLine.setData(
-						(indicator.data as MacdDataItem[]).map((d) => ({ time: d.time, value: d.signal }))
+						paddedData.map((d) =>
+							'signal' in d && typeof d.signal === 'number'
+								? { time: d.time, value: d.signal }
+								: { time: d.time }
+						) as never
 					);
 				}
 			} else if (indicator.type === 'obv') {
+				const paddedData = padIndicatorData(
+					indicator.data as { time: Time; value: number }[],
+					currentCandles
+				);
 				series = bottomChartInstance.addSeries(LineSeries, {
 					color: indicator.color,
-					lineWidth: 2
+					lineWidth: 2,
+					priceFormat: {
+						type: 'custom',
+						formatter: (val: number) => `${(val / 1_000_000).toFixed(1)}M`
+					}
 				});
 				indicatorSeries.set('obv', series);
 				bottomIndicatorData.set(
 					'obv',
-					indicator.data as ({ time: Time; value: number } | MacdDataItem)[]
+					paddedData as ({ time: Time; value: number } | MacdDataItem)[]
 				);
-				if (indicator.data.length > 0) series.setData(indicator.data);
+				if (paddedData.length > 0) series.setData(paddedData as never);
 			}
 
 			activeIndicators = [
 				...activeIndicators,
 				{ type: indicator.type, label: indicator.label, color: indicator.color }
 			];
+			if (chartInstance) {
+				const sourceRange = chartInstance.timeScale().getVisibleLogicalRange();
+				if (sourceRange) {
+					bottomChartInstance.timeScale().setVisibleLogicalRange(sourceRange);
+				}
+			}
 			syncPriceScaleWidths();
 			return;
 		}
@@ -881,13 +929,52 @@
 	export function updateIndicatorData(indicator: IndicatorData) {
 		const series = indicatorSeries.get(indicator.type);
 		if (series) {
-			if (indicator.type === 'rsi' || indicator.type === 'macd' || indicator.type === 'obv') {
+			const currentCandles = candles && candles.length > 0 ? candles : (lastCandlesRef ?? []);
+			if (indicator.type === 'rsi' || indicator.type === 'obv') {
+				const paddedData = padIndicatorData(
+					indicator.data as { time: Time; value: number }[],
+					currentCandles
+				);
 				bottomIndicatorData.set(
 					indicator.type,
-					indicator.data as ({ time: Time; value: number } | MacdDataItem)[]
+					paddedData as ({ time: Time; value: number } | MacdDataItem)[]
 				);
-			}
-			if ('setData' in series && typeof series.setData === 'function') {
+				if ('setData' in series && typeof series.setData === 'function') {
+					(series as ISeriesApi<SeriesType>).setData(paddedData as never);
+				}
+			} else if (indicator.type === 'macd') {
+				const paddedData = padIndicatorData(indicator.data as MacdDataItem[], currentCandles);
+				bottomIndicatorData.set(
+					'macd',
+					paddedData as ({ time: Time; value: number } | MacdDataItem)[]
+				);
+				const macdSeries = series as MacdSeries;
+				macdSeries.histogram.setData(
+					paddedData.map((d) =>
+						'histogram' in d && typeof d.histogram === 'number'
+							? {
+									time: d.time,
+									value: d.histogram,
+									color: d.histogram >= 0 ? '#26a69a80' : '#ef535080'
+								}
+							: { time: d.time }
+					) as never
+				);
+				macdSeries.macdLine.setData(
+					paddedData.map((d) =>
+						'macd' in d && typeof d.macd === 'number'
+							? { time: d.time, value: d.macd }
+							: { time: d.time }
+					) as never
+				);
+				macdSeries.signalLine.setData(
+					paddedData.map((d) =>
+						'signal' in d && typeof d.signal === 'number'
+							? { time: d.time, value: d.signal }
+							: { time: d.time }
+					) as never
+				);
+			} else if ('setData' in series && typeof series.setData === 'function') {
 				(series as ISeriesApi<SeriesType>).setData(
 					indicator.data as Parameters<ISeriesApi<SeriesType>['setData']>[0]
 				);
