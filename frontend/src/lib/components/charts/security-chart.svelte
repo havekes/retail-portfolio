@@ -137,6 +137,9 @@
 	let previousFirstCandleTime: Time | null = null;
 	let lastCandlesRef: Candle[] | null = null;
 
+	const DEFAULT_PRICE_SCALE_MIN_WIDTH = 75;
+	let syncedPriceScaleWidth = DEFAULT_PRICE_SCALE_MIN_WIDTH;
+
 	function getTimeValue(t: Time): string | number {
 		if (typeof t === 'string' || typeof t === 'number') return t;
 		if (typeof t === 'object' && t !== null && 'year' in t) {
@@ -153,6 +156,18 @@
 		return (
 			getTimeValue(r1.from) === getTimeValue(r2.from) && getTimeValue(r1.to) === getTimeValue(r2.to)
 		);
+	}
+
+	function syncPriceScaleWidths() {
+		if (!chartInstance || !bottomChartInstance || !showBottomPane) return;
+		const mainWidth = chartInstance.priceScale('right').width();
+		const bottomWidth = bottomChartInstance.priceScale('right').width();
+		const maxWidth = Math.max(mainWidth, bottomWidth, DEFAULT_PRICE_SCALE_MIN_WIDTH);
+		if (maxWidth !== syncedPriceScaleWidth) {
+			syncedPriceScaleWidth = maxWidth;
+			chartInstance.priceScale('right').applyOptions({ minimumWidth: maxWidth });
+			bottomChartInstance.priceScale('right').applyOptions({ minimumWidth: maxWidth });
+		}
 	}
 
 	function getBottomIndicatorValueAtTime(type: string, time: Time): number {
@@ -226,6 +241,7 @@
 						bottomChartInstance.timeScale().setVisibleRange(sourceRange);
 					}
 				}
+				syncPriceScaleWidths();
 			}
 		}
 	});
@@ -402,6 +418,10 @@
 			},
 			leftPriceScale: {
 				visible: false
+			},
+			rightPriceScale: {
+				visible: true,
+				minimumWidth: DEFAULT_PRICE_SCALE_MIN_WIDTH
 			}
 		});
 
@@ -423,6 +443,13 @@
 				timeVisible: false,
 				borderVisible: false,
 				tickMarkFormatter: formatLocalTickMark
+			},
+			leftPriceScale: {
+				visible: false
+			},
+			rightPriceScale: {
+				visible: true,
+				minimumWidth: DEFAULT_PRICE_SCALE_MIN_WIDTH
 			}
 		});
 
@@ -435,6 +462,7 @@
 						bottomChartInstance.timeScale().setVisibleRange(sourceRange);
 					}
 				}
+				syncPriceScaleWidths();
 			}
 			if (range && range.from <= 10 && !isLoadingMore && hasMoreData) {
 				isLoadingMore = true;
@@ -451,6 +479,7 @@
 						chartInstance.timeScale().setVisibleRange(sourceRange);
 					}
 				}
+				syncPriceScaleWidths();
 			}
 		});
 
@@ -592,6 +621,7 @@
 					width: bottomContainerRef.clientWidth,
 					height: bottomContainerRef.clientHeight
 				});
+				syncPriceScaleWidths();
 			}
 		});
 
@@ -682,8 +712,7 @@
 			} else if (indicator.type === 'obv') {
 				series = bottomChartInstance.addSeries(LineSeries, {
 					color: indicator.color,
-					lineWidth: 2,
-					priceScaleId: 'left'
+					lineWidth: 2
 				});
 				indicatorSeries.set('obv', series);
 				bottomIndicatorData.set(
@@ -691,13 +720,13 @@
 					indicator.data as ({ time: Time; value: number } | MacdDataItem)[]
 				);
 				if (indicator.data.length > 0) series.setData(indicator.data);
-				bottomChartInstance.priceScale('left').applyOptions({ visible: true });
 			}
 
 			activeIndicators = [
 				...activeIndicators,
 				{ type: indicator.type, label: indicator.label, color: indicator.color }
 			];
+			syncPriceScaleWidths();
 			return;
 		}
 
@@ -825,9 +854,6 @@
 			bottomChartInstance.removeSeries(s.macdLine);
 			bottomChartInstance.removeSeries(s.signalLine);
 		} else if ((type === 'rsi' || type === 'obv') && bottomChartInstance) {
-			if (type === 'obv') {
-				bottomChartInstance.priceScale('left').applyOptions({ visible: false });
-			}
 			bottomChartInstance.removeSeries(series as ISeriesApi<SeriesType>);
 		} else if (type === 'bb' && chartInstance) {
 			const s = series as BbSeries;
@@ -842,6 +868,14 @@
 		indicatorSeries.delete(type);
 		bottomIndicatorData.delete(type);
 		activeIndicators = activeIndicators.filter((i) => i.type !== type);
+		if (!activeIndicators.some((i) => i.type === 'rsi' || i.type === 'macd' || i.type === 'obv')) {
+			syncedPriceScaleWidth = DEFAULT_PRICE_SCALE_MIN_WIDTH;
+			chartInstance
+				.priceScale('right')
+				.applyOptions({ minimumWidth: DEFAULT_PRICE_SCALE_MIN_WIDTH });
+		} else {
+			syncPriceScaleWidths();
+		}
 	}
 
 	export function updateIndicatorData(indicator: IndicatorData) {
@@ -858,6 +892,7 @@
 					indicator.data as Parameters<ISeriesApi<SeriesType>['setData']>[0]
 				);
 			}
+			syncPriceScaleWidths();
 		} else {
 			addIndicator(indicator);
 		}
