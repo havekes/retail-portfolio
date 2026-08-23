@@ -63,6 +63,9 @@
 	let indicatorSeries = $state<Map<string, ISeriesApi<SeriesType> | MacdSeries | BbSeries>>(
 		new Map()
 	);
+	let bottomIndicatorData = $state<Map<string, ({ time: Time; value: number } | MacdDataItem)[]>>(
+		new Map()
+	);
 	let activeIndicators = $state<{ type: string; label: string; color?: string }[]>([]);
 	let userAlertsPrimitive = $state<UserPriceAlerts | null>(null);
 	let elliottWavesPrimitive = $state<ElliottWavesPrimitive | null>(null);
@@ -142,6 +145,28 @@
 		return String(t);
 	}
 
+	function isSameTimeRange(
+		r1: { from: Time; to: Time } | null,
+		r2: { from: Time; to: Time } | null
+	): boolean {
+		if (!r1 || !r2) return false;
+		return (
+			getTimeValue(r1.from) === getTimeValue(r2.from) && getTimeValue(r1.to) === getTimeValue(r2.to)
+		);
+	}
+
+	function getBottomIndicatorValueAtTime(type: string, time: Time): number {
+		if (type === 'macd') return 0;
+		const data = bottomIndicatorData.get(type);
+		if (!data) return 0;
+		const targetTimeVal = getTimeValue(time);
+		const item = data.find((d) => getTimeValue(d.time) === targetTimeVal);
+		if (item && 'value' in item) {
+			return item.value;
+		}
+		return 0;
+	}
+
 	$effect(() => {
 		if (!hasMoreData) {
 			isLoadingMore = false;
@@ -194,8 +219,13 @@
 				height: bottomContainerRef.clientHeight
 			});
 			if (chartInstance) {
-				const range = chartInstance.timeScale().getVisibleLogicalRange();
-				if (range) bottomChartInstance.timeScale().setVisibleLogicalRange(range);
+				const sourceRange = chartInstance.timeScale().getVisibleRange();
+				if (sourceRange) {
+					const targetRange = bottomChartInstance.timeScale().getVisibleRange();
+					if (!isSameTimeRange(sourceRange, targetRange)) {
+						bottomChartInstance.timeScale().setVisibleRange(sourceRange);
+					}
+				}
 			}
 		}
 	});
@@ -397,8 +427,14 @@
 		});
 
 		chartInstance.timeScale().subscribeVisibleLogicalRangeChange((range) => {
-			if (showBottomPane && bottomChartInstance && range) {
-				bottomChartInstance.timeScale().setVisibleLogicalRange(range);
+			if (showBottomPane && chartInstance && bottomChartInstance) {
+				const sourceRange = chartInstance.timeScale().getVisibleRange();
+				if (sourceRange) {
+					const targetRange = bottomChartInstance.timeScale().getVisibleRange();
+					if (!isSameTimeRange(sourceRange, targetRange)) {
+						bottomChartInstance.timeScale().setVisibleRange(sourceRange);
+					}
+				}
 			}
 			if (range && range.from <= 10 && !isLoadingMore && hasMoreData) {
 				isLoadingMore = true;
@@ -406,10 +442,42 @@
 			}
 		});
 
-		bottomChartInstance.timeScale().subscribeVisibleLogicalRangeChange((range) => {
-			if (showBottomPane && chartInstance && range) {
-				chartInstance.timeScale().setVisibleLogicalRange(range);
+		bottomChartInstance.timeScale().subscribeVisibleLogicalRangeChange(() => {
+			if (showBottomPane && chartInstance && bottomChartInstance) {
+				const sourceRange = bottomChartInstance.timeScale().getVisibleRange();
+				if (sourceRange) {
+					const targetRange = chartInstance.timeScale().getVisibleRange();
+					if (!isSameTimeRange(sourceRange, targetRange)) {
+						chartInstance.timeScale().setVisibleRange(sourceRange);
+					}
+				}
 			}
+		});
+
+		chartInstance.subscribeCrosshairMove((param) => {
+			if (!showBottomPane || !bottomChartInstance || !chartInstance) return;
+			if (param.time === undefined || param.point === undefined) {
+				bottomChartInstance.clearCrosshairPosition();
+				return;
+			}
+
+			const activeBottom = activeIndicators.find(
+				(i) => i.type === 'rsi' || i.type === 'macd' || i.type === 'obv'
+			);
+			if (!activeBottom) return;
+
+			let targetSeries: ISeriesApi<SeriesType> | undefined;
+			if (activeBottom.type === 'rsi' || activeBottom.type === 'obv') {
+				targetSeries = indicatorSeries.get(activeBottom.type) as ISeriesApi<SeriesType> | undefined;
+			} else if (activeBottom.type === 'macd') {
+				const macdSeries = indicatorSeries.get('macd') as MacdSeries | undefined;
+				targetSeries = macdSeries?.histogram;
+			}
+
+			if (!targetSeries) return;
+
+			const price = getBottomIndicatorValueAtTime(activeBottom.type, param.time);
+			bottomChartInstance.setCrosshairPosition(price, param.time, targetSeries);
 		});
 
 		seriesInstance = chartInstance.addSeries(CandlestickSeries, {
@@ -572,6 +640,10 @@
 					lineWidth: 2
 				});
 				indicatorSeries.set('rsi', series);
+				bottomIndicatorData.set(
+					'rsi',
+					indicator.data as ({ time: Time; value: number } | MacdDataItem)[]
+				);
 				if (indicator.data.length > 0) series.setData(indicator.data);
 			} else if (indicator.type === 'macd') {
 				const histogram = bottomChartInstance.addSeries(HistogramSeries, { base: 0 });
@@ -587,6 +659,10 @@
 
 				const macdSeries: MacdSeries = { histogram, macdLine, signalLine };
 				indicatorSeries.set('macd', macdSeries);
+				bottomIndicatorData.set(
+					'macd',
+					indicator.data as ({ time: Time; value: number } | MacdDataItem)[]
+				);
 
 				if (indicator.data.length > 0) {
 					histogram.setData(
@@ -610,6 +686,10 @@
 					priceScaleId: 'left'
 				});
 				indicatorSeries.set('obv', series);
+				bottomIndicatorData.set(
+					'obv',
+					indicator.data as ({ time: Time; value: number } | MacdDataItem)[]
+				);
 				if (indicator.data.length > 0) series.setData(indicator.data);
 				bottomChartInstance.priceScale('left').applyOptions({ visible: true });
 			}
@@ -760,12 +840,19 @@
 		}
 
 		indicatorSeries.delete(type);
+		bottomIndicatorData.delete(type);
 		activeIndicators = activeIndicators.filter((i) => i.type !== type);
 	}
 
 	export function updateIndicatorData(indicator: IndicatorData) {
 		const series = indicatorSeries.get(indicator.type);
 		if (series) {
+			if (indicator.type === 'rsi' || indicator.type === 'macd' || indicator.type === 'obv') {
+				bottomIndicatorData.set(
+					indicator.type,
+					indicator.data as ({ time: Time; value: number } | MacdDataItem)[]
+				);
+			}
 			if ('setData' in series && typeof series.setData === 'function') {
 				(series as ISeriesApi<SeriesType>).setData(
 					indicator.data as Parameters<ISeriesApi<SeriesType>['setData']>[0]
