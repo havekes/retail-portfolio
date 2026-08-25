@@ -107,6 +107,9 @@
 						<DropdownMenu.Item onSelect={() => goto(resolve('/brokers'))}>
 							Connected brokers
 						</DropdownMenu.Item>
+						<DropdownMenu.Item onSelect={() => goto(resolve('/settings/security'))}>
+							Security settings
+						</DropdownMenu.Item>
 						<form method="POST" action={resolve('/auth/logout')}>
 							<button type="submit" class="w-full">
 								<DropdownMenu.Item>Sign out</DropdownMenu.Item>
