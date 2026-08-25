@@ -11,7 +11,7 @@ from stockholm import Currency
 from src.account.api.position import PositionApi
 from src.account.api_types import Account
 from src.core.enum import AccountTypeEnum, InstitutionEnum
-from src.account.repository import AccountRepository
+from src.account.api.account import AccountApi
 from src.integration.brokers import BrokerApiGateway
 from src.integration.brokers.api_types import BrokerAccount, BrokerPosition
 from src.integration.exception import (
@@ -60,7 +60,7 @@ async def test_sync_account_positions_task_success(mock_account, mock_integratio
     mock_security_api = AsyncMock(spec=SecurityApi)
     mock_integration_user_repo = AsyncMock(spec=IntegrationUserRepository)
     mock_position_api = AsyncMock(spec=PositionApi)
-    mock_account_repo = AsyncMock(spec=AccountRepository)
+    mock_account_api = AsyncMock(spec=AccountApi)
     mock_broker = AsyncMock()
 
     mock_integration_user_repo.get.return_value = mock_integration_user
@@ -109,8 +109,8 @@ async def test_sync_account_positions_task_success(mock_account, mock_integratio
             return mock_integration_user_repo
         if clazz == PositionApi:
             return mock_position_api
-        if clazz == AccountRepository:
-            return mock_account_repo
+        if clazz == AccountApi:
+            return mock_account_api
         if clazz == broker_class:
             return mock_broker
         return None
@@ -136,10 +136,10 @@ async def test_sync_account_positions_task_success(mock_account, mock_integratio
             broker_account_id=broker_account_id,
         )
         mock_security_api.get_or_create_from_broker.assert_awaited_once()
-        mock_account_repo.update_net_deposits.assert_awaited_once_with(
+        mock_account_api.update_net_deposits.assert_awaited_once_with(
             mock_account.id, 5000.0
         )
-        mock_account_repo.update_last_sync_at.assert_awaited_once_with(mock_account.id)
+        mock_account_api.update_last_sync_at.assert_awaited_once_with(mock_account.id)
 
         # Verify websocket messages
         assert mock_ws.send_personal_message.await_count == 2
@@ -222,6 +222,7 @@ async def test_sync_task_marks_sync_status_on_success(mock_account, mock_integra
     mock_security_api = AsyncMock(spec=SecurityApi)
     mock_integration_user_repo = AsyncMock(spec=IntegrationUserRepository)
     mock_position_api = AsyncMock(spec=PositionApi)
+    mock_account_api = AsyncMock(spec=AccountApi)
     mock_broker = AsyncMock()
 
     mock_integration_user_repo.get.return_value = mock_integration_user
@@ -257,6 +258,8 @@ async def test_sync_task_marks_sync_status_on_success(mock_account, mock_integra
             return mock_integration_user_repo
         if clazz == PositionApi:
             return mock_position_api
+        if clazz == AccountApi:
+            return mock_account_api
         if clazz == broker_class:
             return mock_broker
         return None
@@ -290,6 +293,7 @@ async def test_sync_task_marks_sync_finished_on_failure(mock_account, mock_integ
     mock_security_api = AsyncMock(spec=SecurityApi)
     mock_integration_user_repo = AsyncMock(spec=IntegrationUserRepository)
     mock_position_api = AsyncMock(spec=PositionApi)
+    mock_account_api = AsyncMock(spec=AccountApi)
     mock_broker = AsyncMock()
 
     mock_integration_user_repo.get.return_value = mock_integration_user
@@ -303,6 +307,8 @@ async def test_sync_task_marks_sync_finished_on_failure(mock_account, mock_integ
             return mock_integration_user_repo
         if clazz == PositionApi:
             return mock_position_api
+        if clazz == AccountApi:
+            return mock_account_api
         if clazz == broker_class:
             return mock_broker
         return None

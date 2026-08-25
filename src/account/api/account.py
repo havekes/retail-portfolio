@@ -1,10 +1,6 @@
-import uuid
-from typing import cast
-
-import svcs
 from svcs import Container
 
-from src.account.api_types import Account
+from src.account.api_types import Account, AccountId
 from src.account.repository import AccountRepository
 from src.account.schema import AccountSchema
 from src.auth.api_types import UserId
@@ -25,20 +21,30 @@ class AccountApi:
             for a in await self._account_repository.get_by_user(user_id)
         ]
 
-    async def get_by_id(self, account_id: uuid.UUID) -> Account | None:
+    async def get_by_id(self, account_id: AccountId) -> Account | None:
         """Get an account by ID."""
         account = await self._account_repository.get(account_id)
         return Account.model_validate(account) if account else None
 
-    async def get_broker_id_by_id(self, account_id: uuid.UUID) -> str | None:
+    async def get_broker_id_by_id(self, account_id: AccountId) -> str | None:
         """Get the broker ID for an account."""
         account = await self._account_repository.get(account_id)
         return account.external_id if account else None
 
-    async def rename(self, account_id: uuid.UUID, name: str) -> Account:
+    async def rename(self, account_id: AccountId, name: str) -> Account:
         """Rename an account."""
         account = await self._account_repository.rename(account_id, name)
         return Account.model_validate(account)
+
+    async def update_net_deposits(
+        self, account_id: AccountId, net_deposits: float | None
+    ) -> None:
+        """Update net deposits for an account."""
+        await self._account_repository.update_net_deposits(account_id, net_deposits)
+
+    async def update_last_sync_at(self, account_id: AccountId) -> None:
+        """Update last sync timestamp for an account."""
+        await self._account_repository.update_last_sync_at(account_id)
 
     async def import_from_broker(
         self,

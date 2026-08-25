@@ -4,9 +4,9 @@ import logging
 from huey import signals
 from svcs import Container
 
+from src.account.api.account import AccountApi
 from src.account.api.position import PositionApi
 from src.account.api_types import Account
-from src.account.repository import AccountRepository
 from src.auth.api_types import UserId
 from src.core.context import get_request_id, request_id_ctx_var, set_request_id
 from src.integration.brokers import BrokerApiGateway
@@ -96,13 +96,13 @@ async def _do_sync_positions(
     broker_account = next(
         (a for a in broker_accounts if a.id == broker_account_id), None
     )
-    account_repository = await svcs_container.aget(AccountRepository)
+    account_api = await svcs_container.aget(AccountApi)
     if broker_account:
-        await account_repository.update_net_deposits(
+        await account_api.update_net_deposits(
             account.id,
             float(broker_account.net_deposits) if broker_account.net_deposits else None,
         )
-        await account_repository.update_last_sync_at(account.id)
+        await account_api.update_last_sync_at(account.id)
 
 
 async def _sync_account_positions_task(
