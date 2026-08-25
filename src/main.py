@@ -64,7 +64,7 @@ async def lifespan_context(app: FastAPI):
     # Initialize Huey dashboard
     await init_worker_dashboard(
         app,
-        huey=huey,  # ty: ignore[invalid-argument-type]
+        huey=huey,
         db_url=settings.database_url,
         redis_url=settings.redis_url,
         bind_signals=True,
