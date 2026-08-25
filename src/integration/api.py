@@ -1,9 +1,9 @@
 from svcs import Container
 
 from src.account.api_types import Account, AccountId
-from src.account.enum import InstitutionEnum
 from src.auth.api_types import UserId
 from src.core.context import get_request_id
+from src.core.enum import InstitutionEnum
 from src.integration.api_types import IntegrationUser, IntegrationUserId
 from src.integration.brokers import BrokerApiGateway
 from src.integration.brokers.api_types import BrokerAccountId

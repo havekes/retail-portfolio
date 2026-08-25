@@ -7,8 +7,8 @@ from uuid import uuid4
 import pytest
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from src.account.api_types import AccountTypeEnum
-from src.account.enum import InstitutionEnum
+from src.core.enum import AccountTypeEnum
+from src.core.enum import InstitutionEnum
 from src.account.model import (
     AccountModel,
     PortfolioAccountModel,

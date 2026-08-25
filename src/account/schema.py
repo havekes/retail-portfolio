@@ -11,8 +11,8 @@ from src.account.api_types import (
     PortfolioId,
     PositionId,
 )
-from src.account.enum import AccountTypeEnum, InstitutionEnum
 from src.auth.api_types import UserId
+from src.core.enum import AccountTypeEnum, InstitutionEnum
 from src.core.pagination import PaginatedResponse
 from src.integration.api_types import IntegrationUserId
 from src.integration.brokers.api_types import BrokerAccount, BrokerAccountId

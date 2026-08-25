@@ -3,8 +3,8 @@ from uuid import uuid4
 
 from svcs import Container
 
-from src.account.enum import InstitutionEnum
 from src.auth.api_types import User
+from src.core.enum import InstitutionEnum
 from src.integration.api_types import IntegrationUser
 from src.integration.repository import IntegrationUserRepository
 from src.integration.repository_sqlalchemy import (

@@ -4,8 +4,8 @@ from sqlalchemy import func, select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 from svcs import Container
 
-from src.account.enum import InstitutionEnum
 from src.auth.api_types import UserId
+from src.core.enum import InstitutionEnum
 from src.integration.api_types import IntegrationUserId
 from src.integration.model import IntegrationUserModel
 from src.integration.repository import IntegrationUserRepository

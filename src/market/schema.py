@@ -4,8 +4,8 @@ from typing import Literal, Self
 
 from pydantic import AwareDatetime, BaseModel, ConfigDict
 
-from src.account.enum import InstitutionEnum
 from src.auth.api_types import UserId
+from src.core.enum import InstitutionEnum
 from src.core.pagination import PaginatedResponse
 from src.market.api_types import (
     HistoricalPrice,

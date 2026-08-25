@@ -3,8 +3,8 @@ from uuid import UUID
 from pydantic import BaseModel, ConfigDict
 
 from src.account.api_types import AccountId
-from src.account.enum import InstitutionEnum
 from src.auth.api_types import UserId
+from src.core.enum import InstitutionEnum
 
 type IntegrationUserId = UUID
 

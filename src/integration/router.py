@@ -7,11 +7,11 @@ from src.account.api.account import AccountApi
 from src.account.api.institution import InstitutionApi
 from src.account.api.position import PositionApi
 from src.account.api_types import Institution, Position
-from src.account.enum import InstitutionEnum
 from src.auth.api import AuthorizationApi, current_user
 from src.auth.api_types import User
 from src.config.limiter import limiter
 from src.core.context import get_request_id
+from src.core.enum import InstitutionEnum
 from src.integration.api import get_broker_gateway_class
 from src.integration.api_types import (
     IntegrationImportAccountsRequest,

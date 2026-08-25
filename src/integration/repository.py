@@ -1,7 +1,7 @@
 from abc import ABC, abstractmethod
 
-from src.account.enum import InstitutionEnum
 from src.auth.api_types import UserId
+from src.core.enum import InstitutionEnum
 from src.integration.api_types import IntegrationUserId
 from src.integration.schema import IntegrationUserSchema
 

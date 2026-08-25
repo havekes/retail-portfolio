@@ -6,8 +6,8 @@ from uuid import UUID
 from pydantic import BaseModel, ConfigDict
 from stockholm import Currency, Money
 
-from src.account.enum import AccountTypeEnum, InstitutionEnum
 from src.auth.api_types import UserId
+from src.core.enum import AccountTypeEnum, InstitutionEnum
 from src.market.api_types import SecurityId
 
 type AccountId = UUID

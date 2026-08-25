@@ -6,7 +6,6 @@ from decimal import Decimal
 from rich import print as rprint
 from sqlalchemy import select
 
-from src.account.enum import AccountTypeEnum, InstitutionEnum
 from src.account.model import (
     AccountModel,
     AccountTypeModel,
@@ -18,6 +17,7 @@ from src.account.model import (
 from src.auth.model import UserModel
 from src.config.database import sessionmanager
 from src.config.settings import settings
+from src.core.enum import AccountTypeEnum, InstitutionEnum
 from src.integration.model import IntegrationUserModel
 from src.market.model import SecurityModel
 

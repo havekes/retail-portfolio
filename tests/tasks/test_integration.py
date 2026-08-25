@@ -10,7 +10,7 @@ from stockholm import Currency
 
 from src.account.api.position import PositionApi
 from src.account.api_types import Account
-from src.account.enum import AccountTypeEnum, InstitutionEnum
+from src.core.enum import AccountTypeEnum, InstitutionEnum
 from src.account.repository import AccountRepository
 from src.integration.brokers import BrokerApiGateway
 from src.integration.brokers.api_types import BrokerAccount, BrokerPosition

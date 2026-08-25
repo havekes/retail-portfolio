@@ -1,7 +1,7 @@
 from typing import override
 
 from src.account.api_types import AccountId, PortfolioId
-from src.account.enum import InstitutionEnum
+from src.core.enum import InstitutionEnum
 from src.core.exception import AuthorizationError, EntityNotFoundError
 
 

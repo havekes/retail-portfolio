@@ -2,8 +2,8 @@ from datetime import datetime
 
 from pydantic import BaseModel, ConfigDict
 
-from src.account.enum import InstitutionEnum
 from src.auth.api_types import UserId
+from src.core.enum import InstitutionEnum
 from src.integration.api_types import IntegrationUserId
 from src.integration.brokers.api_types import BrokerUserId
 
