@@ -1,6 +1,6 @@
 from svcs import Container
 
-from src.account.api_types import Account, AccountId
+from src.account.api_types import Account
 from src.auth.api_types import UserId
 from src.core.context import get_request_id
 from src.core.enum import InstitutionEnum
@@ -10,6 +10,7 @@ from src.integration.brokers.api_types import BrokerAccountId
 from src.integration.brokers.wealthsimple import WealthsimpleApiGateway
 from src.integration.exception import IntegrationUserNotFoundError
 from src.integration.repository import IntegrationUserRepository
+from src.integration.task import sync_account_positions_task
 
 
 class IntegrationUserApi:
@@ -43,8 +44,6 @@ class IntegrationAccountApi:
         account: Account,
         broker_account_id: BrokerAccountId,
     ) -> None:
-        from src.integration.task import sync_account_positions_task  # noqa: PLC0415
-
         sync_account_positions_task(
             user_id,
             account,

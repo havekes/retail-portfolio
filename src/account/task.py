@@ -3,8 +3,6 @@ import logging
 
 from svcs import Container
 
-from src.account.service.account import AccountService
-from src.account.service.position import PositionService
 from src.worker import huey
 from src.ws.api_types import AccountTotalsUpdatedMessage
 from src.ws.manager import ws_manager
@@ -27,6 +25,9 @@ async def _recalculate_all_account_totals() -> None:
     if huey.svcs_registry is None:
         msg = "Worker registry not initialized"
         raise RuntimeError(msg)
+
+    from src.account.service.account import AccountService  # noqa: PLC0415
+    from src.account.service.position import PositionService  # noqa: PLC0415
 
     async with Container(huey.svcs_registry) as svcs_container:
         account_service: AccountService = await svcs_container.aget(AccountService)
