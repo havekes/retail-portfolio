@@ -63,6 +63,9 @@
 	let indicatorSeries = $state<Map<string, ISeriesApi<SeriesType> | MacdSeries | BbSeries>>(
 		new Map()
 	);
+	let bottomIndicatorData = $state<Map<string, ({ time: Time; value: number } | MacdDataItem)[]>>(
+		new Map()
+	);
 	let activeIndicators = $state<{ type: string; label: string; color?: string }[]>([]);
 	let userAlertsPrimitive = $state<UserPriceAlerts | null>(null);
 	let elliottWavesPrimitive = $state<ElliottWavesPrimitive | null>(null);
@@ -134,12 +137,65 @@
 	let previousFirstCandleTime: Time | null = null;
 	let lastCandlesRef: Candle[] | null = null;
 
+	const DEFAULT_PRICE_SCALE_MIN_WIDTH = 75;
+	let syncedPriceScaleWidth = DEFAULT_PRICE_SCALE_MIN_WIDTH;
+
 	function getTimeValue(t: Time): string | number {
 		if (typeof t === 'string' || typeof t === 'number') return t;
 		if (typeof t === 'object' && t !== null && 'year' in t) {
 			return `${t.year}-${String(t.month).padStart(2, '0')}-${String(t.day).padStart(2, '0')}`;
 		}
 		return String(t);
+	}
+
+	function isSameLogicalRange(
+		r1: { from: number; to: number } | null,
+		r2: { from: number; to: number } | null
+	): boolean {
+		if (!r1 || !r2) return false;
+		return Math.abs(r1.from - r2.from) < 0.0001 && Math.abs(r1.to - r2.to) < 0.0001;
+	}
+
+	function padIndicatorData<T extends { time: Time }>(
+		data: T[],
+		candlesList: Candle[]
+	): (T | { time: Time })[] {
+		if (!candlesList || candlesList.length === 0) return data;
+		if (!data || data.length === 0) {
+			return candlesList.map((c) => ({ time: c.time }));
+		}
+		const firstDataTime = getTimeValue(data[0].time);
+		const firstIndex = candlesList.findIndex((c) => getTimeValue(c.time) === firstDataTime);
+		if (firstIndex <= 0) return data;
+
+		const padding: { time: Time }[] = candlesList
+			.slice(0, firstIndex)
+			.map((c) => ({ time: c.time }));
+		return [...padding, ...data];
+	}
+
+	function syncPriceScaleWidths() {
+		if (!chartInstance || !bottomChartInstance || !showBottomPane) return;
+		const mainWidth = chartInstance.priceScale('right').width();
+		const bottomWidth = bottomChartInstance.priceScale('right').width();
+		const maxWidth = Math.max(mainWidth, bottomWidth, DEFAULT_PRICE_SCALE_MIN_WIDTH);
+		if (maxWidth !== syncedPriceScaleWidth) {
+			syncedPriceScaleWidth = maxWidth;
+			chartInstance.priceScale('right').applyOptions({ minimumWidth: maxWidth });
+			bottomChartInstance.priceScale('right').applyOptions({ minimumWidth: maxWidth });
+		}
+	}
+
+	function getBottomIndicatorValueAtTime(type: string, time: Time): number {
+		if (type === 'macd') return 0;
+		const data = bottomIndicatorData.get(type);
+		if (!data) return 0;
+		const targetTimeVal = getTimeValue(time);
+		const item = data.find((d) => getTimeValue(d.time) === targetTimeVal);
+		if (item && 'value' in item && typeof item.value === 'number') {
+			return item.value;
+		}
+		return 0;
 	}
 
 	$effect(() => {
@@ -194,8 +250,14 @@
 				height: bottomContainerRef.clientHeight
 			});
 			if (chartInstance) {
-				const range = chartInstance.timeScale().getVisibleLogicalRange();
-				if (range) bottomChartInstance.timeScale().setVisibleLogicalRange(range);
+				const sourceRange = chartInstance.timeScale().getVisibleLogicalRange();
+				if (sourceRange) {
+					const targetRange = bottomChartInstance.timeScale().getVisibleLogicalRange();
+					if (!isSameLogicalRange(sourceRange, targetRange)) {
+						bottomChartInstance.timeScale().setVisibleLogicalRange(sourceRange);
+					}
+				}
+				syncPriceScaleWidths();
 			}
 		}
 	});
@@ -372,6 +434,10 @@
 			},
 			leftPriceScale: {
 				visible: false
+			},
+			rightPriceScale: {
+				visible: true,
+				minimumWidth: DEFAULT_PRICE_SCALE_MIN_WIDTH
 			}
 		});
 
@@ -393,12 +459,26 @@
 				timeVisible: false,
 				borderVisible: false,
 				tickMarkFormatter: formatLocalTickMark
+			},
+			leftPriceScale: {
+				visible: false
+			},
+			rightPriceScale: {
+				visible: true,
+				minimumWidth: DEFAULT_PRICE_SCALE_MIN_WIDTH
 			}
 		});
 
 		chartInstance.timeScale().subscribeVisibleLogicalRangeChange((range) => {
-			if (showBottomPane && bottomChartInstance && range) {
-				bottomChartInstance.timeScale().setVisibleLogicalRange(range);
+			if (showBottomPane && chartInstance && bottomChartInstance) {
+				const sourceRange = range ?? chartInstance.timeScale().getVisibleLogicalRange();
+				if (sourceRange) {
+					const targetRange = bottomChartInstance.timeScale().getVisibleLogicalRange();
+					if (!isSameLogicalRange(sourceRange, targetRange)) {
+						bottomChartInstance.timeScale().setVisibleLogicalRange(sourceRange);
+					}
+				}
+				syncPriceScaleWidths();
 			}
 			if (range && range.from <= 10 && !isLoadingMore && hasMoreData) {
 				isLoadingMore = true;
@@ -407,9 +487,42 @@
 		});
 
 		bottomChartInstance.timeScale().subscribeVisibleLogicalRangeChange((range) => {
-			if (showBottomPane && chartInstance && range) {
-				chartInstance.timeScale().setVisibleLogicalRange(range);
+			if (showBottomPane && chartInstance && bottomChartInstance) {
+				const sourceRange = range ?? bottomChartInstance.timeScale().getVisibleLogicalRange();
+				if (sourceRange) {
+					const targetRange = chartInstance.timeScale().getVisibleLogicalRange();
+					if (!isSameLogicalRange(sourceRange, targetRange)) {
+						chartInstance.timeScale().setVisibleLogicalRange(sourceRange);
+					}
+				}
+				syncPriceScaleWidths();
 			}
+		});
+
+		chartInstance.subscribeCrosshairMove((param) => {
+			if (!showBottomPane || !bottomChartInstance || !chartInstance) return;
+			if (param.time === undefined || param.point === undefined) {
+				bottomChartInstance.clearCrosshairPosition();
+				return;
+			}
+
+			const activeBottom = activeIndicators.find(
+				(i) => i.type === 'rsi' || i.type === 'macd' || i.type === 'obv'
+			);
+			if (!activeBottom) return;
+
+			let targetSeries: ISeriesApi<SeriesType> | undefined;
+			if (activeBottom.type === 'rsi' || activeBottom.type === 'obv') {
+				targetSeries = indicatorSeries.get(activeBottom.type) as ISeriesApi<SeriesType> | undefined;
+			} else if (activeBottom.type === 'macd') {
+				const macdSeries = indicatorSeries.get('macd') as MacdSeries | undefined;
+				targetSeries = macdSeries?.histogram;
+			}
+
+			if (!targetSeries) return;
+
+			const price = getBottomIndicatorValueAtTime(activeBottom.type, param.time);
+			bottomChartInstance.setCrosshairPosition(price, param.time, targetSeries);
 		});
 
 		seriesInstance = chartInstance.addSeries(CandlestickSeries, {
@@ -524,6 +637,7 @@
 					width: bottomContainerRef.clientWidth,
 					height: bottomContainerRef.clientHeight
 				});
+				syncPriceScaleWidths();
 			}
 		});
 
@@ -563,17 +677,27 @@
 		const isVolume = indicator.type === 'volume';
 		const isBottomPane =
 			indicator.type === 'rsi' || indicator.type === 'macd' || indicator.type === 'obv';
+		const currentCandles = candles && candles.length > 0 ? candles : (lastCandlesRef ?? []);
 
 		if (isBottomPane && bottomChartInstance) {
 			let series;
 			if (indicator.type === 'rsi') {
+				const paddedData = padIndicatorData(
+					indicator.data as { time: Time; value: number }[],
+					currentCandles
+				);
 				series = bottomChartInstance.addSeries(LineSeries, {
 					color: indicator.color,
 					lineWidth: 2
 				});
 				indicatorSeries.set('rsi', series);
-				if (indicator.data.length > 0) series.setData(indicator.data);
+				bottomIndicatorData.set(
+					'rsi',
+					paddedData as ({ time: Time; value: number } | MacdDataItem)[]
+				);
+				if (paddedData.length > 0) series.setData(paddedData as never);
 			} else if (indicator.type === 'macd') {
+				const paddedData = padIndicatorData(indicator.data as MacdDataItem[], currentCandles);
 				const histogram = bottomChartInstance.addSeries(HistogramSeries, { base: 0 });
 				const macdLineColor = indicator.color || '#2962FF';
 				const macdLine = bottomChartInstance.addSeries(LineSeries, {
@@ -587,37 +711,70 @@
 
 				const macdSeries: MacdSeries = { histogram, macdLine, signalLine };
 				indicatorSeries.set('macd', macdSeries);
+				bottomIndicatorData.set(
+					'macd',
+					paddedData as ({ time: Time; value: number } | MacdDataItem)[]
+				);
 
-				if (indicator.data.length > 0) {
+				if (paddedData.length > 0) {
 					histogram.setData(
-						(indicator.data as MacdDataItem[]).map((d) => ({
-							time: d.time,
-							value: d.histogram,
-							color: d.histogram >= 0 ? '#26a69a80' : '#ef535080'
-						}))
+						paddedData.map((d) =>
+							'histogram' in d && typeof d.histogram === 'number'
+								? {
+										time: d.time,
+										value: d.histogram,
+										color: d.histogram >= 0 ? '#26a69a80' : '#ef535080'
+									}
+								: { time: d.time }
+						) as never
 					);
 					macdLine.setData(
-						(indicator.data as MacdDataItem[]).map((d) => ({ time: d.time, value: d.macd }))
+						paddedData.map((d) =>
+							'macd' in d && typeof d.macd === 'number'
+								? { time: d.time, value: d.macd }
+								: { time: d.time }
+						) as never
 					);
 					signalLine.setData(
-						(indicator.data as MacdDataItem[]).map((d) => ({ time: d.time, value: d.signal }))
+						paddedData.map((d) =>
+							'signal' in d && typeof d.signal === 'number'
+								? { time: d.time, value: d.signal }
+								: { time: d.time }
+						) as never
 					);
 				}
 			} else if (indicator.type === 'obv') {
+				const paddedData = padIndicatorData(
+					indicator.data as { time: Time; value: number }[],
+					currentCandles
+				);
 				series = bottomChartInstance.addSeries(LineSeries, {
 					color: indicator.color,
 					lineWidth: 2,
-					priceScaleId: 'left'
+					priceFormat: {
+						type: 'custom',
+						formatter: (val: number) => `${(val / 1_000_000).toFixed(1)}M`
+					}
 				});
 				indicatorSeries.set('obv', series);
-				if (indicator.data.length > 0) series.setData(indicator.data);
-				bottomChartInstance.priceScale('left').applyOptions({ visible: true });
+				bottomIndicatorData.set(
+					'obv',
+					paddedData as ({ time: Time; value: number } | MacdDataItem)[]
+				);
+				if (paddedData.length > 0) series.setData(paddedData as never);
 			}
 
 			activeIndicators = [
 				...activeIndicators,
 				{ type: indicator.type, label: indicator.label, color: indicator.color }
 			];
+			if (chartInstance) {
+				const sourceRange = chartInstance.timeScale().getVisibleLogicalRange();
+				if (sourceRange) {
+					bottomChartInstance.timeScale().setVisibleLogicalRange(sourceRange);
+				}
+			}
+			syncPriceScaleWidths();
 			return;
 		}
 
@@ -745,9 +902,6 @@
 			bottomChartInstance.removeSeries(s.macdLine);
 			bottomChartInstance.removeSeries(s.signalLine);
 		} else if ((type === 'rsi' || type === 'obv') && bottomChartInstance) {
-			if (type === 'obv') {
-				bottomChartInstance.priceScale('left').applyOptions({ visible: false });
-			}
 			bottomChartInstance.removeSeries(series as ISeriesApi<SeriesType>);
 		} else if (type === 'bb' && chartInstance) {
 			const s = series as BbSeries;
@@ -760,17 +914,72 @@
 		}
 
 		indicatorSeries.delete(type);
+		bottomIndicatorData.delete(type);
 		activeIndicators = activeIndicators.filter((i) => i.type !== type);
+		if (!activeIndicators.some((i) => i.type === 'rsi' || i.type === 'macd' || i.type === 'obv')) {
+			syncedPriceScaleWidth = DEFAULT_PRICE_SCALE_MIN_WIDTH;
+			chartInstance
+				.priceScale('right')
+				.applyOptions({ minimumWidth: DEFAULT_PRICE_SCALE_MIN_WIDTH });
+		} else {
+			syncPriceScaleWidths();
+		}
 	}
 
 	export function updateIndicatorData(indicator: IndicatorData) {
 		const series = indicatorSeries.get(indicator.type);
 		if (series) {
-			if ('setData' in series && typeof series.setData === 'function') {
+			const currentCandles = candles && candles.length > 0 ? candles : (lastCandlesRef ?? []);
+			if (indicator.type === 'rsi' || indicator.type === 'obv') {
+				const paddedData = padIndicatorData(
+					indicator.data as { time: Time; value: number }[],
+					currentCandles
+				);
+				bottomIndicatorData.set(
+					indicator.type,
+					paddedData as ({ time: Time; value: number } | MacdDataItem)[]
+				);
+				if ('setData' in series && typeof series.setData === 'function') {
+					(series as ISeriesApi<SeriesType>).setData(paddedData as never);
+				}
+			} else if (indicator.type === 'macd') {
+				const paddedData = padIndicatorData(indicator.data as MacdDataItem[], currentCandles);
+				bottomIndicatorData.set(
+					'macd',
+					paddedData as ({ time: Time; value: number } | MacdDataItem)[]
+				);
+				const macdSeries = series as MacdSeries;
+				macdSeries.histogram.setData(
+					paddedData.map((d) =>
+						'histogram' in d && typeof d.histogram === 'number'
+							? {
+									time: d.time,
+									value: d.histogram,
+									color: d.histogram >= 0 ? '#26a69a80' : '#ef535080'
+								}
+							: { time: d.time }
+					) as never
+				);
+				macdSeries.macdLine.setData(
+					paddedData.map((d) =>
+						'macd' in d && typeof d.macd === 'number'
+							? { time: d.time, value: d.macd }
+							: { time: d.time }
+					) as never
+				);
+				macdSeries.signalLine.setData(
+					paddedData.map((d) =>
+						'signal' in d && typeof d.signal === 'number'
+							? { time: d.time, value: d.signal }
+							: { time: d.time }
+					) as never
+				);
+			} else if ('setData' in series && typeof series.setData === 'function') {
 				(series as ISeriesApi<SeriesType>).setData(
 					indicator.data as Parameters<ISeriesApi<SeriesType>['setData']>[0]
 				);
 			}
+			syncPriceScaleWidths();
 		} else {
 			addIndicator(indicator);
 		}

@@ -16,9 +16,16 @@ if (typeof globalThis.ResizeObserver === 'undefined') {
 	};
 }
 
+import type { Time } from 'lightweight-charts';
+
 const mockSubscribeVisibleLogicalRangeChange = vi.fn();
 const mockGetVisibleLogicalRange = vi.fn();
 const mockSetVisibleLogicalRange = vi.fn();
+const mockGetVisibleRange = vi.fn();
+const mockSetVisibleRange = vi.fn();
+const mockSetCrosshairPosition = vi.fn();
+const mockClearCrosshairPosition = vi.fn();
+const mockSubscribeCrosshairMove = vi.fn();
 const mockFitContent = vi.fn();
 const mockSetData = vi.fn();
 const mockAttachPrimitive = vi.fn((primitive) => {
@@ -45,45 +52,79 @@ const mockAttachPrimitive = vi.fn((primitive) => {
 });
 
 let rangeCallbacks: ((range: { from: number; to: number } | null) => void)[] = [];
+let crosshairCallbacks: ((param: { time?: Time; point?: { x: number; y: number } }) => void)[] = [];
 
 vi.mock('lightweight-charts', () => {
 	return {
-		createChart: vi.fn(() => ({
-			chartElement: vi.fn(() => document.createElement('div')),
-			timeScale: vi.fn(() => ({
+		createChart: vi.fn(() => {
+			let currentVisibleRange: { from: Time; to: Time } | null = null;
+			let currentVisibleLogicalRange: { from: number; to: number } | null = null;
+			const priceScales = new Map<
+				string,
+				{ applyOptions: ReturnType<typeof vi.fn>; width: ReturnType<typeof vi.fn> }
+			>();
+			const getPriceScale = (id: string = 'right') => {
+				if (!priceScales.has(id)) {
+					priceScales.set(id, {
+						applyOptions: vi.fn(),
+						width: vi.fn(() => 50)
+					});
+				}
+				return priceScales.get(id)!;
+			};
+			const timeScaleMock = {
 				subscribeVisibleLogicalRangeChange: vi.fn((cb) => {
 					rangeCallbacks.push(cb);
 					mockSubscribeVisibleLogicalRangeChange(cb);
 					return vi.fn();
 				}),
-				getVisibleLogicalRange: mockGetVisibleLogicalRange,
-				setVisibleLogicalRange: mockSetVisibleLogicalRange,
+				getVisibleLogicalRange: vi.fn(() => {
+					const val = mockGetVisibleLogicalRange();
+					return val !== undefined ? val : currentVisibleLogicalRange;
+				}),
+				setVisibleLogicalRange: vi.fn((r: { from: number; to: number }) => {
+					currentVisibleLogicalRange = r;
+					mockSetVisibleLogicalRange(r);
+				}),
+				getVisibleRange: vi.fn(() => {
+					const val = mockGetVisibleRange();
+					return val !== undefined ? val : currentVisibleRange;
+				}),
+				setVisibleRange: vi.fn((r: { from: Time; to: Time }) => {
+					currentVisibleRange = r;
+					mockSetVisibleRange(r);
+				}),
 				fitContent: mockFitContent,
 				timeToCoordinate: vi.fn(() => 100),
 				coordinateToTime: vi.fn(() => '2024-01-01'),
 				height: vi.fn(() => 30),
 				width: vi.fn(() => 750)
-			})),
-			addSeries: vi.fn(() => ({
-				setData: mockSetData,
-				priceScale: vi.fn(() => ({
-					applyOptions: vi.fn(),
-					width: vi.fn(() => 50)
+			};
+			return {
+				chartElement: vi.fn(() => document.createElement('div')),
+				timeScale: vi.fn(() => timeScaleMock),
+				addSeries: vi.fn(() => ({
+					setData: mockSetData,
+					priceScale: vi.fn(() => getPriceScale('right')),
+					attachPrimitive: mockAttachPrimitive,
+					createPriceLine: vi.fn(),
+					removePriceLine: vi.fn(),
+					priceToCoordinate: vi.fn(() => 100),
+					coordinateToPrice: vi.fn(() => 100)
 				})),
-				attachPrimitive: mockAttachPrimitive,
-				createPriceLine: vi.fn(),
-				removePriceLine: vi.fn(),
-				priceToCoordinate: vi.fn(() => 100),
-				coordinateToPrice: vi.fn(() => 100)
-			})),
-			applyOptions: vi.fn(),
-			priceScale: vi.fn(() => ({
 				applyOptions: vi.fn(),
-				width: vi.fn(() => 50)
-			})),
-			removeSeries: vi.fn(),
-			remove: vi.fn()
-		})),
+				priceScale: vi.fn((id: string = 'right') => getPriceScale(id)),
+				removeSeries: vi.fn(),
+				remove: vi.fn(),
+				subscribeCrosshairMove: vi.fn((cb) => {
+					crosshairCallbacks.push(cb);
+					mockSubscribeCrosshairMove(cb);
+					return vi.fn();
+				}),
+				setCrosshairPosition: mockSetCrosshairPosition,
+				clearCrosshairPosition: mockClearCrosshairPosition
+			};
+		}),
 		CandlestickSeries: 'CandlestickSeries',
 		LineSeries: 'LineSeries',
 		HistogramSeries: 'HistogramSeries'
@@ -129,7 +170,9 @@ describe('SecurityChart - Infinite Scroll & Logical Range', () => {
 	beforeEach(() => {
 		vi.clearAllMocks();
 		rangeCallbacks = [];
+		crosshairCallbacks = [];
 		mockGetVisibleLogicalRange.mockReturnValue({ from: 0, to: 1 });
+		mockGetVisibleRange.mockReturnValue(undefined);
 	});
 
 	it('invokes onLoadMoreData when visible logical range approaches left edge (from <= 10)', async () => {
@@ -233,6 +276,25 @@ describe('SecurityChart - Infinite Scroll & Logical Range', () => {
 		expect(typeof mainChartOptions?.localization?.timeFormatter).toBe('function');
 		expect(mainChartOptions?.timeScale?.tickMarkFormatter).toBeDefined();
 		expect(typeof mainChartOptions?.timeScale?.tickMarkFormatter).toBe('function');
+	});
+
+	it('initializes charts with consistent leftPriceScale visible false and rightPriceScale minimumWidth', () => {
+		render(SecurityChart, {
+			props: {
+				candles: initialCandles
+			}
+		});
+
+		expect(createChart).toHaveBeenCalledTimes(2);
+		const calls = vi.mocked(createChart).mock.calls;
+
+		const mainChartOptions = calls[0][1];
+		expect(mainChartOptions?.leftPriceScale).toEqual({ visible: false });
+		expect(mainChartOptions?.rightPriceScale).toEqual({ visible: true, minimumWidth: 75 });
+
+		const bottomChartOptions = calls[1][1];
+		expect(bottomChartOptions?.leftPriceScale).toEqual({ visible: false });
+		expect(bottomChartOptions?.rightPriceScale).toEqual({ visible: true, minimumWidth: 75 });
 	});
 });
 
@@ -876,7 +938,9 @@ describe('SecurityChart - Bottom Pane & Oscillator Sizing', () => {
 	beforeEach(() => {
 		vi.clearAllMocks();
 		rangeCallbacks = [];
-		mockGetVisibleLogicalRange.mockReturnValue({ from: 10, to: 50 });
+		crosshairCallbacks = [];
+		mockGetVisibleLogicalRange.mockReturnValue(undefined);
+		mockGetVisibleRange.mockReturnValue(undefined);
 	});
 
 	it('renders root and chart containers with min-h-0 and overflow-hidden classes', () => {
@@ -1094,7 +1158,12 @@ describe('SecurityChart - Bottom Pane & Oscillator Sizing', () => {
 		Object.defineProperty(bottomContainer, 'clientWidth', { value: 800, configurable: true });
 		Object.defineProperty(bottomContainer, 'clientHeight', { value: 180, configurable: true });
 
-		mockGetVisibleLogicalRange.mockReturnValue({ from: 15, to: 45 });
+		const createdCharts = vi.mocked(createChart).mock.results.map((r) => r.value);
+		const mainChart = createdCharts[0];
+		const bottomChart = createdCharts[1];
+
+		mainChart.timeScale().setVisibleLogicalRange({ from: 10, to: 40 });
+		mockSetVisibleLogicalRange.mockClear();
 
 		// Activate bottom pane
 		component.addIndicator({
@@ -1106,17 +1175,369 @@ describe('SecurityChart - Bottom Pane & Oscillator Sizing', () => {
 		await tick();
 
 		// Bottom chart should sync initial logical range from main chart
-		expect(mockSetVisibleLogicalRange).toHaveBeenCalledWith({ from: 15, to: 45 });
+		expect(mockSetVisibleLogicalRange).toHaveBeenCalledWith({ from: 10, to: 40 });
 
-		// Main chart time scale subscription triggers bottom chart sync
+		// Main chart logical range subscription triggers bottom chart sync
+		mockSetVisibleLogicalRange.mockClear();
+		mainChart.timeScale().setVisibleLogicalRange({ from: 20, to: 60 });
 		mockSetVisibleLogicalRange.mockClear();
 		// callback 0 is main chart listener, callback 1 is bottom chart listener
 		rangeCallbacks[0]({ from: 20, to: 60 });
 		expect(mockSetVisibleLogicalRange).toHaveBeenCalledWith({ from: 20, to: 60 });
 
-		// Bottom chart time scale subscription triggers main chart sync
+		// Bottom chart logical range subscription triggers main chart sync
+		mockSetVisibleLogicalRange.mockClear();
+		bottomChart.timeScale().setVisibleLogicalRange({ from: 25, to: 65 });
 		mockSetVisibleLogicalRange.mockClear();
 		rangeCallbacks[1]({ from: 25, to: 65 });
 		expect(mockSetVisibleLogicalRange).toHaveBeenCalledWith({ from: 25, to: 65 });
+	});
+
+	it('pads bottom indicator series data with whitespace for preceding candles', async () => {
+		const fiveCandles: Candle[] = [
+			{ time: '2024-01-01', open: 10, high: 12, low: 9, close: 11 },
+			{ time: '2024-01-02', open: 11, high: 13, low: 10, close: 12 },
+			{ time: '2024-01-03', open: 12, high: 14, low: 11, close: 13 },
+			{ time: '2024-01-04', open: 13, high: 15, low: 12, close: 14 },
+			{ time: '2024-01-05', open: 14, high: 16, low: 13, close: 15 }
+		];
+		const { component: comp } = render(SecurityChart, {
+			props: {
+				candles: fiveCandles
+			}
+		});
+		const component = comp as unknown as SecurityChartInstance;
+
+		mockSetData.mockClear();
+
+		// RSI starts on 2024-01-04 (warm-up omitted 2024-01-01..2024-01-03)
+		component.addIndicator({
+			type: 'rsi',
+			label: 'RSI',
+			color: '#7e57c2',
+			data: [
+				{ time: '2024-01-04', value: 60 },
+				{ time: '2024-01-05', value: 65 }
+			]
+		});
+		await tick();
+
+		expect(mockSetData).toHaveBeenCalledWith([
+			{ time: '2024-01-01' },
+			{ time: '2024-01-02' },
+			{ time: '2024-01-03' },
+			{ time: '2024-01-04', value: 60 },
+			{ time: '2024-01-05', value: 65 }
+		]);
+
+		// MACD starts on 2024-01-03
+		mockSetData.mockClear();
+		component.addIndicator({
+			type: 'macd',
+			label: 'MACD',
+			color: '#2962FF',
+			data: [
+				{ time: '2024-01-03', histogram: 0.5, macd: 1.2, signal: 0.7 },
+				{ time: '2024-01-04', histogram: 0.8, macd: 1.5, signal: 0.7 },
+				{ time: '2024-01-05', histogram: -0.2, macd: 1.0, signal: 1.2 }
+			]
+		});
+		await tick();
+
+		// Histogram data padded with whitespace for 01-01 and 01-02
+		expect(mockSetData).toHaveBeenCalledWith([
+			{ time: '2024-01-01' },
+			{ time: '2024-01-02' },
+			{ time: '2024-01-03', value: 0.5, color: '#26a69a80' },
+			{ time: '2024-01-04', value: 0.8, color: '#26a69a80' },
+			{ time: '2024-01-05', value: -0.2, color: '#ef535080' }
+		]);
+
+		// Update indicator data also preserves whitespace padding
+		mockSetData.mockClear();
+		component.updateIndicatorData({
+			type: 'rsi',
+			label: 'RSI',
+			color: '#7e57c2',
+			data: [
+				{ time: '2024-01-04', value: 62 },
+				{ time: '2024-01-05', value: 68 }
+			]
+		});
+		await tick();
+
+		expect(mockSetData).toHaveBeenCalledWith([
+			{ time: '2024-01-01' },
+			{ time: '2024-01-02' },
+			{ time: '2024-01-03' },
+			{ time: '2024-01-04', value: 62 },
+			{ time: '2024-01-05', value: 68 }
+		]);
+	});
+
+	it('synchronizes logical range during whitespace and future scrolling', async () => {
+		const { container, component: comp } = render(SecurityChart, {
+			props: {
+				candles: initialCandles
+			}
+		});
+		const component = comp as unknown as SecurityChartInstance;
+
+		const mainContainer = container.querySelector('#main-chart') as HTMLElement;
+		const bottomContainer = mainContainer.nextElementSibling as HTMLElement;
+
+		Object.defineProperty(mainContainer, 'clientWidth', { value: 800, configurable: true });
+		Object.defineProperty(mainContainer, 'clientHeight', { value: 420, configurable: true });
+		Object.defineProperty(bottomContainer, 'clientWidth', { value: 800, configurable: true });
+		Object.defineProperty(bottomContainer, 'clientHeight', { value: 180, configurable: true });
+
+		const createdCharts = vi.mocked(createChart).mock.results.map((r) => r.value);
+		const mainChart = createdCharts[0];
+
+		component.addIndicator({
+			type: 'rsi',
+			label: 'RSI',
+			color: '#7e57c2',
+			data: [{ time: '2024-01-10', value: 50 }]
+		});
+		await tick();
+
+		// Scroll far into future whitespace (beyond candle indices)
+		mockSetVisibleLogicalRange.mockClear();
+		mainChart.timeScale().setVisibleLogicalRange({ from: 50, to: 150 });
+		mockSetVisibleLogicalRange.mockClear();
+
+		rangeCallbacks[0]({ from: 50, to: 150 });
+		expect(mockSetVisibleLogicalRange).toHaveBeenCalledWith({ from: 50, to: 150 });
+
+		// Scroll into negative index whitespace (past the oldest candle)
+		mockSetVisibleLogicalRange.mockClear();
+		mainChart.timeScale().setVisibleLogicalRange({ from: -30, to: 10 });
+		mockSetVisibleLogicalRange.mockClear();
+
+		rangeCallbacks[0]({ from: -30, to: 10 });
+		expect(mockSetVisibleLogicalRange).toHaveBeenCalledWith({ from: -30, to: 10 });
+	});
+
+	it('guards against feedback loop when visible logical ranges already match', async () => {
+		const { container, component: comp } = render(SecurityChart, {
+			props: {
+				candles: initialCandles
+			}
+		});
+		const component = comp as unknown as SecurityChartInstance;
+
+		const mainContainer = container.querySelector('#main-chart') as HTMLElement;
+		const bottomContainer = mainContainer.nextElementSibling as HTMLElement;
+
+		Object.defineProperty(mainContainer, 'clientWidth', { value: 800, configurable: true });
+		Object.defineProperty(mainContainer, 'clientHeight', { value: 420, configurable: true });
+		Object.defineProperty(bottomContainer, 'clientWidth', { value: 800, configurable: true });
+		Object.defineProperty(bottomContainer, 'clientHeight', { value: 180, configurable: true });
+
+		const createdCharts = vi.mocked(createChart).mock.results.map((r) => r.value);
+		const mainChart = createdCharts[0];
+		const bottomChart = createdCharts[1];
+
+		// Activate bottom pane
+		component.addIndicator({
+			type: 'rsi',
+			label: 'RSI',
+			color: '#7e57c2',
+			data: [{ time: '2024-01-10', value: 50 }]
+		});
+		await tick();
+
+		// Both charts have the same visible logical range
+		mainChart.timeScale().setVisibleLogicalRange({ from: 10, to: 20 });
+		bottomChart.timeScale().setVisibleLogicalRange({ from: 10, to: 20 });
+		mockSetVisibleLogicalRange.mockClear();
+
+		// Firing main chart range callback should NOT call setVisibleLogicalRange on bottom chart
+		rangeCallbacks[0]({ from: 10, to: 20 });
+		expect(mockSetVisibleLogicalRange).not.toHaveBeenCalled();
+
+		// Firing bottom chart range callback should NOT call setVisibleLogicalRange on main chart
+		rangeCallbacks[1]({ from: 10, to: 20 });
+		expect(mockSetVisibleLogicalRange).not.toHaveBeenCalled();
+	});
+
+	it('mirrors crosshair position to bottom chart on main chart hover and clears on pointer exit', async () => {
+		const { container, component: comp } = render(SecurityChart, {
+			props: {
+				candles: initialCandles
+			}
+		});
+		const component = comp as unknown as SecurityChartInstance;
+
+		const mainContainer = container.querySelector('#main-chart') as HTMLElement;
+		const bottomContainer = mainContainer.nextElementSibling as HTMLElement;
+
+		Object.defineProperty(mainContainer, 'clientWidth', { value: 800, configurable: true });
+		Object.defineProperty(mainContainer, 'clientHeight', { value: 420, configurable: true });
+		Object.defineProperty(bottomContainer, 'clientWidth', { value: 800, configurable: true });
+		Object.defineProperty(bottomContainer, 'clientHeight', { value: 180, configurable: true });
+
+		// Activate bottom pane with RSI
+		component.addIndicator({
+			type: 'rsi',
+			label: 'RSI',
+			color: '#7e57c2',
+			data: [
+				{ time: '2024-01-10', value: 42.5 },
+				{ time: '2024-01-11', value: 58.2 }
+			]
+		});
+		await tick();
+
+		expect(crosshairCallbacks.length).toBeGreaterThan(0);
+		const mainCrosshairCallback = crosshairCallbacks[0];
+
+		// Hover over 2024-01-10 on main chart
+		mainCrosshairCallback({
+			time: '2024-01-10',
+			point: { x: 100, y: 150 }
+		});
+		expect(mockSetCrosshairPosition).toHaveBeenCalledWith(42.5, '2024-01-10', expect.anything());
+
+		// Hover over 2024-01-11 on main chart
+		mockSetCrosshairPosition.mockClear();
+		mainCrosshairCallback({
+			time: '2024-01-11',
+			point: { x: 200, y: 160 }
+		});
+		expect(mockSetCrosshairPosition).toHaveBeenCalledWith(58.2, '2024-01-11', expect.anything());
+
+		// Pointer leaves main chart
+		mockClearCrosshairPosition.mockClear();
+		mainCrosshairCallback({
+			time: undefined,
+			point: undefined
+		});
+		expect(mockClearCrosshairPosition).toHaveBeenCalledTimes(1);
+
+		// Switch to MACD indicator (baseline price should be 0)
+		component.removeIndicator('rsi');
+		component.addIndicator({
+			type: 'macd',
+			label: 'MACD',
+			color: '#2962FF',
+			data: [
+				{ time: '2024-01-10', histogram: 1.5, macd: 2.0, signal: 0.5 },
+				{ time: '2024-01-11', histogram: -0.8, macd: 1.2, signal: 2.0 }
+			]
+		});
+		await tick();
+
+		mockSetCrosshairPosition.mockClear();
+		mainCrosshairCallback({
+			time: '2024-01-10',
+			point: { x: 100, y: 150 }
+		});
+		expect(mockSetCrosshairPosition).toHaveBeenCalledWith(0, '2024-01-10', expect.anything());
+	});
+
+	it('attaches OBV indicator to right price scale and formats values in millions', async () => {
+		const { component: comp } = render(SecurityChart, {
+			props: {
+				candles: initialCandles
+			}
+		});
+		const component = comp as unknown as SecurityChartInstance;
+
+		const createdCharts = vi.mocked(createChart).mock.results.map((r) => r.value);
+		const bottomChart = createdCharts[1];
+
+		component.addIndicator({
+			type: 'obv',
+			label: 'OBV',
+			color: '#26a69a',
+			data: [{ time: '2024-01-10', value: 1500000 }]
+		});
+		await tick();
+
+		expect(bottomChart.addSeries).toHaveBeenCalledWith(
+			'LineSeries',
+			expect.objectContaining({
+				color: '#26a69a',
+				lineWidth: 2,
+				priceFormat: {
+					type: 'custom',
+					formatter: expect.any(Function)
+				}
+			})
+		);
+		const addSeriesCalls = vi.mocked(bottomChart.addSeries).mock.calls;
+		const obvCall = addSeriesCalls[addSeriesCalls.length - 1];
+		expect(obvCall[1]).not.toHaveProperty('priceScaleId', 'left');
+		expect(bottomChart.priceScale('left').applyOptions).not.toHaveBeenCalled();
+
+		// Verify custom price formatter abbreviation in millions with 1 decimal place
+		const formatter = obvCall[1]?.priceFormat?.formatter as (val: number) => string;
+		expect(formatter).toBeDefined();
+		expect(formatter(1_500_000)).toBe('1.5M');
+		expect(formatter(25_340_000)).toBe('25.3M');
+		expect(formatter(500_000)).toBe('0.5M');
+		expect(formatter(0)).toBe('0.0M');
+		expect(formatter(-1_200_000)).toBe('-1.2M');
+	});
+
+	it('synchronizes right price scale minimum width across main and bottom panes when price scale width expands', async () => {
+		const { component: comp } = render(SecurityChart, {
+			props: {
+				candles: initialCandles
+			}
+		});
+		const component = comp as unknown as SecurityChartInstance;
+
+		const createdCharts = vi.mocked(createChart).mock.results.map((r) => r.value);
+		const mainChart = createdCharts[0];
+		const bottomChart = createdCharts[1];
+
+		// Simulate main chart price scale expanding to 95px width
+		vi.mocked(mainChart.priceScale('right').width).mockReturnValue(95);
+		vi.mocked(bottomChart.priceScale('right').width).mockReturnValue(60);
+
+		// Activate bottom pane
+		component.addIndicator({
+			type: 'rsi',
+			label: 'RSI',
+			color: '#7e57c2',
+			data: [{ time: '2024-01-10', value: 50 }]
+		});
+		await tick();
+
+		expect(mainChart.priceScale('right').applyOptions).toHaveBeenCalledWith({ minimumWidth: 95 });
+		expect(bottomChart.priceScale('right').applyOptions).toHaveBeenCalledWith({ minimumWidth: 95 });
+	});
+
+	it('mirrors crosshair position to bottom chart when OBV indicator is active', async () => {
+		const { component: comp } = render(SecurityChart, {
+			props: {
+				candles: initialCandles
+			}
+		});
+		const component = comp as unknown as SecurityChartInstance;
+
+		component.addIndicator({
+			type: 'obv',
+			label: 'OBV',
+			color: '#26a69a',
+			data: [
+				{ time: '2024-01-10', value: 1500 },
+				{ time: '2024-01-11', value: 2200 }
+			]
+		});
+		await tick();
+
+		expect(crosshairCallbacks.length).toBeGreaterThan(0);
+		const mainCrosshairCallback = crosshairCallbacks[0];
+
+		mockSetCrosshairPosition.mockClear();
+		mainCrosshairCallback({
+			time: '2024-01-10',
+			point: { x: 100, y: 150 }
+		});
+		expect(mockSetCrosshairPosition).toHaveBeenCalledWith(1500, '2024-01-10', expect.anything());
 	});
 });
