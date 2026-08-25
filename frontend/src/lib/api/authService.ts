@@ -1,5 +1,9 @@
 import { ApiClient } from './apiClient';
 import type { User } from '@/types/user';
+import type {
+	PublicKeyCredentialRequestOptionsJSON,
+	AuthenticationResponseJSON
+} from '@simplewebauthn/browser';
 
 export interface LoginRequest {
 	email: string;
@@ -25,13 +29,54 @@ export interface AuthResponse {
 	user: User;
 }
 
+export interface LoginChallengeResponse {
+	requires_2fa: boolean;
+	mfa_token: string;
+}
+
+export type LoginResponse = AuthResponse | LoginChallengeResponse;
+
+export interface LoginVerify2FaRequest {
+	mfa_token: string;
+	code: string;
+}
+
+export interface PasskeyAuthenticateOptionsRequest {
+	email?: string;
+}
+
+export interface PasskeyAuthenticateVerifyRequest {
+	credential: AuthenticationResponseJSON | Record<string, unknown> | string;
+	email?: string;
+}
+
 export interface SignupResponse {
 	message: string;
 }
 
 export class AuthService extends ApiClient {
-	async login(credentials: LoginRequest): Promise<AuthResponse> {
-		return this.post<AuthResponse, LoginRequest>('/auth/login', credentials);
+	async login(credentials: LoginRequest): Promise<LoginResponse> {
+		return this.post<LoginResponse, LoginRequest>('/auth/login', credentials);
+	}
+
+	async loginVerify2Fa(request: LoginVerify2FaRequest): Promise<AuthResponse> {
+		return this.post<AuthResponse, LoginVerify2FaRequest>('/auth/2fa/login-verify', request);
+	}
+
+	async getPasskeyAuthOptions(
+		request?: PasskeyAuthenticateOptionsRequest
+	): Promise<PublicKeyCredentialRequestOptionsJSON> {
+		return this.post<PublicKeyCredentialRequestOptionsJSON, PasskeyAuthenticateOptionsRequest>(
+			'/auth/passkey/authenticate/options',
+			request ?? {}
+		);
+	}
+
+	async verifyPasskeyAuth(request: PasskeyAuthenticateVerifyRequest): Promise<AuthResponse> {
+		return this.post<AuthResponse, PasskeyAuthenticateVerifyRequest>(
+			'/auth/passkey/authenticate/verify',
+			request
+		);
 	}
 
 	async signup(credentials: SignupRequest): Promise<SignupResponse> {
