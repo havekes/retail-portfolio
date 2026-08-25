@@ -23,6 +23,8 @@ from src.auth.exception import (
     AuthUserUnverifiedError,
 )
 from src.auth.schema import (
+    LoginChallengeResponse,
+    LoginVerifyRequest,
     MessageResponse,
     ResendVerificationRequest,
     TotpActivateRequest,
@@ -71,7 +73,7 @@ async def auth_login(
     response: Response,
     login_data: LoginRequest,
     services: DepContainer,
-) -> AuthResponse:
+) -> AuthResponse | LoginChallengeResponse:
     user_service = await services.aget(UserApi)
     try:
         auth_data = await user_service.login(login_data.email, login_data.password)
@@ -82,6 +84,8 @@ async def auth_login(
         logger.warning("Login failed for %s: Email not verified", login_data.email)
         raise HTTPException(403, "Email not verified") from e
     else:
+        if isinstance(auth_data, LoginChallengeResponse):
+            return auth_data
         response.set_cookie(
             key="auth_token",
             value=auth_data.access_token,
@@ -91,6 +95,46 @@ async def auth_login(
             max_age=60 * 60 * 24 * 7,  # 7 days
         )
         return auth_data
+
+
+@auth_router.post("/2fa/login-verify")
+@limiter.limit("10/minute")
+async def auth_2fa_login_verify(
+    request: Request,  # noqa: ARG001
+    response: Response,
+    verify_data: LoginVerifyRequest,
+    services: DepContainer,
+) -> AuthResponse:
+    user_service = await services.aget(UserApi)
+    totp_service = await services.aget(TotpService)
+
+    token_data = user_service.verify_mfa_token(verify_data.mfa_token)
+    try:
+        user_id = uuid.UUID(token_data.user_id)
+    except ValueError as e:
+        raise HTTPException(401, "Token invalid") from e
+
+    user = await user_service.get_user_by_id(user_id)
+    if not user or not user.is_active:
+        raise HTTPException(401, "Token invalid")
+
+    is_valid = await totp_service.verify_2fa_login(user.id, verify_data.code)
+    if not is_valid:
+        raise HTTPException(401, "Invalid 2FA code")
+
+    access_token = user_service.create_access_token(user.email, user.id)
+    response.set_cookie(
+        key="auth_token",
+        value=access_token,
+        httponly=settings.environment == "prod",
+        secure=settings.environment == "prod",
+        samesite="lax",
+        max_age=60 * 60 * 24 * 7,  # 7 days
+    )
+    return AuthResponse(
+        access_token=access_token,
+        user=User(id=user.id, email=user.email),
+    )
 
 
 @auth_router.post("/logout")

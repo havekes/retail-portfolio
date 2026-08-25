@@ -1,6 +1,6 @@
-from datetime import datetime
+from datetime import UTC, datetime
 from typing import override
-from uuid import uuid4
+from uuid import UUID, uuid4
 
 from sqlalchemy import cast, delete, func, select, update
 from sqlalchemy.dialects.postgresql import JSONB
@@ -259,6 +259,27 @@ class SqlAlchemyRecoveryCodeRepository(RecoveryCodeRepository):
         return [
             RecoveryCodeSchema.model_validate(model) for model in result.scalars().all()
         ]
+
+    @override
+    async def get_active_by_user_id(self, user_id: UserId) -> list[RecoveryCodeSchema]:
+        result = await self._session.execute(
+            select(RecoveryCodeModel).where(
+                RecoveryCodeModel.user_id == user_id,
+                RecoveryCodeModel.is_used.is_(False),
+            )
+        )
+        return [
+            RecoveryCodeSchema.model_validate(model) for model in result.scalars().all()
+        ]
+
+    @override
+    async def mark_as_used(self, code_id: UUID) -> None:
+        await self._session.execute(
+            update(RecoveryCodeModel)
+            .where(RecoveryCodeModel.id == code_id)
+            .values(is_used=True, used_at=datetime.now(UTC))
+        )
+        await self._session.commit()
 
     @override
     async def count_active_by_user_id(self, user_id: UserId) -> int:

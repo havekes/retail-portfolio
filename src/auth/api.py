@@ -22,9 +22,12 @@ from src.auth.exception import (
     AuthUserAlreadyExistsError,
     AuthUserUnverifiedError,
 )
-from src.auth.repository import UserRepository
-from src.auth.repository_sqlalchemy import sqlalchemy_user_repository_factory
-from src.auth.schema import UserSchema
+from src.auth.repository import TotpRepository, UserRepository
+from src.auth.repository_sqlalchemy import (
+    sqlalchemy_totp_repository_factory,
+    sqlalchemy_user_repository_factory,
+)
+from src.auth.schema import LoginChallengeResponse, UserSchema
 from src.auth.service import EmailVerificationService
 from src.config.settings import settings
 
@@ -36,14 +39,17 @@ oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token", auto_error=False)
 class UserApi:
     _user_repository: UserRepository
     _email_verification_service: EmailVerificationService
+    _totp_repository: TotpRepository | None
 
     def __init__(
         self,
         user_repository: UserRepository,
         email_verification_service: EmailVerificationService,
+        totp_repository: TotpRepository | None = None,
     ):
         self._user_repository = user_repository
         self._email_verification_service = email_verification_service
+        self._totp_repository = totp_repository
 
     async def get_current_user_from_token(self, token: str) -> User:
         """Retrieve the current user from the provided JWT token."""
@@ -51,6 +57,9 @@ class UserApi:
             token_data = self._decode_token(token)
         except jwt.ExpiredSignatureError as e:
             raise HTTPException(401, "Token expired") from e
+
+        if token_data.scope != "access":
+            raise HTTPException(401, "Token invalid")
 
         user = await self._user_repository.get_by_email(token_data.sub)
 
@@ -64,7 +73,7 @@ class UserApi:
         user_email: str,
         user_id: UUID,
         expires_delta: timedelta | None = None,
-    ):
+    ) -> str:
         """Create a JWT access token for the user."""
         access_token_data = AccessTokenData(
             sub=user_email,
@@ -75,6 +84,7 @@ class UserApi:
                     + (expires_delta or timedelta(minutes=_ACCESS_TOKEN_EXPIRE_MINUTES))
                 ).timestamp()
             ),
+            scope="access",
         )
 
         return jwt.encode(
@@ -82,6 +92,37 @@ class UserApi:
             settings.secret_key,
             algorithm=_ALGORITHM,
         )
+
+    def create_mfa_token(
+        self,
+        user_email: str,
+        user_id: UUID,
+        expires_delta: timedelta | None = None,
+    ) -> str:
+        """Create a short-lived MFA token for 2FA challenge."""
+        mfa_token_data = AccessTokenData(
+            sub=user_email,
+            user_id=str(user_id),
+            exp=int(
+                (
+                    datetime.now(UTC) + (expires_delta or timedelta(minutes=5))
+                ).timestamp()
+            ),
+            scope="mfa_pending",
+        )
+
+        return jwt.encode(
+            mfa_token_data.model_dump(),
+            settings.secret_key,
+            algorithm=_ALGORITHM,
+        )
+
+    def verify_mfa_token(self, token: str) -> AccessTokenData:
+        """Decode MFA token, validate expiration and assert scope == 'mfa_pending'."""
+        token_data = self._decode_token(token)
+        if token_data.scope != "mfa_pending":
+            raise HTTPException(401, "Token invalid")
+        return token_data
 
     async def signup(self, email: str, plain_text_password: str) -> SignupResponse:
         """Register a new user and send a verification email."""
@@ -100,8 +141,10 @@ class UserApi:
             message="User created. Please verify your email before logging in."
         )
 
-    async def login(self, email: str, plain_text_password: str) -> AuthResponse:
-        """Authenticate a user and return an access token."""
+    async def login(
+        self, email: str, plain_text_password: str
+    ) -> AuthResponse | LoginChallengeResponse:
+        """Authenticate a user and return an access token or 2FA challenge."""
         user = await self._user_repository.get_by_email(email)
 
         if not user:
@@ -114,6 +157,12 @@ class UserApi:
 
         if not user.is_verified:
             raise AuthUserUnverifiedError
+
+        if self._totp_repository:
+            totp = await self._totp_repository.get_by_user_id(user.id)
+            if totp and totp.is_verified:
+                mfa_token = self.create_mfa_token(user.email, user.id)
+                return LoginChallengeResponse(requires_2fa=True, mfa_token=mfa_token)
 
         access_token = self.create_access_token(user.email, user.id)
 
@@ -129,6 +178,10 @@ class UserApi:
     async def resend_verification(self, email: str) -> None:
         """Resend the email verification token to the specified email address."""
         await self._email_verification_service.resend_verification(email)
+
+    async def get_user_by_id(self, user_id: UserId) -> UserSchema | None:
+        """Look up a user schema by user ID."""
+        return await self._user_repository.get_by_id(user_id)
 
     async def get_email_for_user(self, user_id: UserId) -> str | None:
         """Look up a user's email by user ID, returning None if not found."""
@@ -153,6 +206,8 @@ class UserApi:
             return AccessTokenData.model_validate(
                 jwt.decode(token, settings.secret_key, algorithms=[_ALGORITHM]),
             )
+        except jwt.ExpiredSignatureError as e:
+            raise HTTPException(401, "Token expired") from e
         except (jwt.DecodeError, ValidationError) as e:
             message = "User unauthenticated or malformed token"
             raise HTTPException(401, message) from e
@@ -164,6 +219,7 @@ async def user_api_factory(
     return UserApi(
         user_repository=await sqlalchemy_user_repository_factory(container),
         email_verification_service=await container.aget(EmailVerificationService),
+        totp_repository=await sqlalchemy_totp_repository_factory(container),
     )
 
 

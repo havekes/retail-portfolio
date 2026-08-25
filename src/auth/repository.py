@@ -1,5 +1,6 @@
 from abc import ABC, abstractmethod
 from datetime import datetime
+from uuid import UUID
 
 from src.auth.api_types import UserId
 from src.auth.schema import (
@@ -91,6 +92,14 @@ class RecoveryCodeRepository(ABC):
 
     @abstractmethod
     async def get_by_user_id(self, user_id: UserId) -> list[RecoveryCodeSchema]:
+        pass
+
+    @abstractmethod
+    async def get_active_by_user_id(self, user_id: UserId) -> list[RecoveryCodeSchema]:
+        pass
+
+    @abstractmethod
+    async def mark_as_used(self, code_id: UUID) -> None:
         pass
 
     @abstractmethod

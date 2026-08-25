@@ -33,3 +33,4 @@ class AccessTokenData(BaseModel):
     sub: str
     user_id: str
     exp: int
+    scope: str = "access"

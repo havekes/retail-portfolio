@@ -476,6 +476,43 @@ async def test_recovery_code_repository_crud(db_session: AsyncSession):
 
 
 @pytest.mark.anyio
+async def test_recovery_code_repository_active_and_mark_as_used(
+    db_session: AsyncSession,
+):
+    """Test get_active_by_user_id and mark_as_used methods."""
+    user_repo = SqlAlchemyUserRepository(db_session)
+    recovery_repo = SqlAlchemyRecoveryCodeRepository(db_session)
+
+    user = await user_repo.create_user("recovery_active_test@example.com", "password123")
+
+    fake_hashes = ["hash_1", "hash_2", "hash_3"]
+    created = await recovery_repo.create_recovery_codes(user.id, fake_hashes)
+    assert len(created) == 3
+
+    # Initially all 3 are active
+    active = await recovery_repo.get_active_by_user_id(user.id)
+    assert len(active) == 3
+    assert {c.code_hash for c in active} == {"hash_1", "hash_2", "hash_3"}
+
+    # Mark the first code as used
+    code_to_use = active[0]
+    await recovery_repo.mark_as_used(code_to_use.id)
+
+    # Active now only returns 2
+    active_after = await recovery_repo.get_active_by_user_id(user.id)
+    assert len(active_after) == 2
+    assert code_to_use.id not in [c.id for c in active_after]
+    assert await recovery_repo.count_active_by_user_id(user.id) == 2
+
+    # All codes still returns 3, with one marked used and timestamped
+    all_codes = await recovery_repo.get_by_user_id(user.id)
+    assert len(all_codes) == 3
+    used_code = next(c for c in all_codes if c.id == code_to_use.id)
+    assert used_code.is_used is True
+    assert used_code.used_at is not None
+
+
+@pytest.mark.anyio
 async def test_totp_and_recovery_cascade_on_user_delete(db_session: AsyncSession):
     """Test that deleting a user cascades to their TOTP and recovery codes."""
     from sqlalchemy import delete

@@ -124,6 +124,9 @@ async def email_verification_service_factory(
     )
 
 
+_TOTP_CODE_LENGTH = 6
+
+
 class TotpService:
     _totp_repository: TotpRepository
     _recovery_code_repository: RecoveryCodeRepository
@@ -226,6 +229,29 @@ class TotpService:
         await self._recovery_code_repository.create_recovery_codes(user_id, code_hashes)
 
         return TotpRegenerateCodesResponse(recovery_codes=recovery_codes)
+
+    async def verify_2fa_login(self, user_id: UserId, code: str) -> bool:
+        totp_record = await self._totp_repository.get_by_user_id(user_id)
+        if not totp_record or not totp_record.is_verified:
+            return False
+
+        cleaned_code = code.strip()
+        if cleaned_code.isdigit() and len(cleaned_code) == _TOTP_CODE_LENGTH:
+            totp = pyotp.totp.TOTP(totp_record.secret)
+            return bool(totp.verify(cleaned_code, valid_window=1))
+
+        active_codes = await self._recovery_code_repository.get_active_by_user_id(
+            user_id
+        )
+        for rc in active_codes:
+            try:
+                if _password_hasher.verify(rc.code_hash, cleaned_code):
+                    await self._recovery_code_repository.mark_as_used(rc.id)
+                    return True
+            except Exception:  # noqa: BLE001, S110
+                pass
+
+        return False
 
 
 async def totp_service_factory(
