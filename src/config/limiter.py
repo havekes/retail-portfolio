@@ -13,13 +13,14 @@ def user_or_ip_key_func(request: Request) -> str:
     """Return user identifier from auth token if available, else fallback to IP."""
     token = request.cookies.get("auth_token") or request.headers.get("authorization")
     if token:
-        token = token.removeprefix("Bearer ")
-        with contextlib.suppress(Exception):
-            payload = jwt.decode(token, options={"verify_signature": False})
-            user_id = payload.get("user_id") or payload.get("sub")
-            if user_id:
-                return f"user:{user_id}"
-        return token
+        if token.lower().startswith("bearer "):
+            token = token[7:].strip()
+        if token and settings.secret_key:
+            with contextlib.suppress(Exception):
+                payload = jwt.decode(token, settings.secret_key, algorithms=["HS256"])
+                user_id = payload.get("user_id") or payload.get("sub")
+                if user_id:
+                    return f"user:{user_id}"
     return get_remote_address(request)
 
 
