@@ -4,7 +4,17 @@ from datetime import datetime
 from uuid import UUID, uuid4
 
 from argon2 import PasswordHasher
-from sqlalchemy import JSON, Boolean, DateTime, ForeignKey, String, Uuid, func
+from sqlalchemy import (
+    JSON,
+    Boolean,
+    DateTime,
+    ForeignKey,
+    Integer,
+    LargeBinary,
+    String,
+    Uuid,
+    func,
+)
 from sqlalchemy.orm import Mapped, mapped_column
 
 from src.auth.api_types import UserId
@@ -101,4 +111,28 @@ class RecoveryCodeModel(BaseModel):
     )
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), default=func.now()
+    )
+
+
+class PasskeyModel(BaseModel):
+    """WebAuthn passkey credential model."""
+
+    __tablename__ = "auth_passkeys"
+
+    id: Mapped[UUID] = mapped_column(Uuid, primary_key=True, default=uuid4)
+    user_id: Mapped[UserId] = mapped_column(
+        Uuid,
+        ForeignKey("auth_users.id", ondelete="CASCADE"),
+        index=True,
+    )
+    credential_id: Mapped[bytes] = mapped_column(LargeBinary, unique=True, index=True)
+    public_key: Mapped[bytes] = mapped_column(LargeBinary)
+    sign_count: Mapped[int] = mapped_column(Integer, default=0)
+    name: Mapped[str] = mapped_column(String)
+    transports: Mapped[list[str] | None] = mapped_column(JSON, nullable=True)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), default=func.now()
+    )
+    last_used_at: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True), nullable=True
     )

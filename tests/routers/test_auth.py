@@ -1,12 +1,47 @@
 """Integration tests for auth router."""
 
+import base64
+import contextlib
 import logging
+import uuid
 from datetime import UTC, datetime, timedelta
+from unittest.mock import MagicMock, patch
 
 import jwt
 import pytest
+from webauthn.authentication.verify_authentication_response import VerifiedAuthentication
+from webauthn.helpers import bytes_to_base64url
+from webauthn.registration.verify_registration_response import VerifiedRegistration
 
 from src.config.settings import settings
+
+
+class RouterMockRedis:
+    def __init__(self):
+        self.data: dict[str, str] = {}
+
+    async def get(self, key: str) -> str | None:
+        return self.data.get(key)
+
+    async def setex(self, key: str, time: int, value: str) -> None:  # noqa: ARG002
+        self.data[key] = value
+
+    async def delete(self, *keys: str) -> None:
+        for k in keys:
+            self.data.pop(k, None)
+
+
+@pytest.fixture(autouse=True)
+def mock_redis_storage(monkeypatch):
+    storage = RouterMockRedis()
+
+    @contextlib.asynccontextmanager
+    async def _mock_client():
+        yield storage
+
+    monkeypatch.setattr("src.core.redis.redis_manager.client", _mock_client)
+    monkeypatch.setattr("src.auth.service.default_redis_manager.client", _mock_client)
+    return storage
 
 
 @pytest.mark.anyio
@@ -664,4 +699,312 @@ async def test_authenticated_endpoints_reject_mfa_token(auth_client, test_user):
     )
     assert response.status_code == 401
     assert response.json()["detail"] == "Token invalid"
+
+
+@pytest.mark.anyio
+async def test_passkey_register_options(auth_client, test_user, mock_redis_storage):
+    """Test POST /api/v1/auth/passkey/register/options generates valid options and saves challenge."""
+    response = await auth_client.post("/api/v1/auth/passkey/register/options")
+    assert response.status_code == 200
+    data = response.json()
+
+    assert data["rp"]["name"] == settings.webauthn_rp_name
+    assert data["rp"]["id"] == settings.webauthn_rp_id
+    assert data["user"]["name"] == test_user.email
+    assert "challenge" in data
+    assert "pubKeyCredParams" in data
+
+    # Check redis challenge
+    key = f"webauthn:challenge:reg:{test_user.id}"
+    assert mock_redis_storage.data.get(key) is not None
+
+
+@pytest.mark.anyio
+async def test_passkey_register_verify_success(
+    auth_client, test_user, mock_redis_storage  # noqa: ARG001
+):
+    """Test POST /api/v1/auth/passkey/register/verify successfully registers credential."""
+    # First get options
+    opts_resp = await auth_client.post("/api/v1/auth/passkey/register/options")
+    assert opts_resp.status_code == 200
+
+    fake_cred_id = b"credential_id_router_test_123"
+    fake_pub_key = b"public_key_router_test_456"
+
+    fake_verified = MagicMock(spec=VerifiedRegistration)
+    fake_verified.credential_id = fake_cred_id
+    fake_verified.credential_public_key = fake_pub_key
+    fake_verified.sign_count = 0
+
+    with patch(
+        "src.auth.service.webauthn.verify_registration_response",
+        return_value=fake_verified,
+    ):
+        verify_resp = await auth_client.post(
+            "/api/v1/auth/passkey/register/verify",
+            json={
+                "credential": {
+                    "id": "cred_id_str",
+                    "rawId": "raw_id_str",
+                    "response": {"transports": ["internal", "hybrid"]},
+                    "type": "public-key",
+                },
+                "name": "My MacBook Pro",
+            },
+        )
+        assert verify_resp.status_code == 200
+        result = verify_resp.json()
+        assert result["name"] == "My MacBook Pro"
+        assert result["transports"] == ["internal", "hybrid"]
+        assert "id" in result
+        assert "created_at" in result
+
+
+@pytest.mark.anyio
+async def test_passkey_register_verify_challenge_expired(auth_client):
+    """Test POST /api/v1/auth/passkey/register/verify returns 400 when challenge expired."""
+    verify_resp = await auth_client.post(
+        "/api/v1/auth/passkey/register/verify",
+        json={
+            "credential": {
+                "id": "cred_id_str",
+                "rawId": "raw_id_str",
+                "response": {},
+                "type": "public-key",
+            },
+            "name": "My Passkey",
+        },
+    )
+    assert verify_resp.status_code == 400
+    assert "Registration challenge expired or not found" in verify_resp.json()["detail"]
+
+
+@pytest.mark.anyio
+async def test_passkey_list_empty_and_populated(auth_client, test_user):  # noqa: ARG001
+    """Test GET /api/v1/auth/passkeys lists user's passkeys."""
+    # Initially empty
+    list_resp = await auth_client.get("/api/v1/auth/passkeys")
+    assert list_resp.status_code == 200
+    assert list_resp.json() == []
+
+    # Register a passkey
+    await auth_client.post("/api/v1/auth/passkey/register/options")
+    fake_verified = MagicMock(spec=VerifiedRegistration)
+    fake_verified.credential_id = b"cred_list_test"
+    fake_verified.credential_public_key = b"pubkey_list_test"
+    fake_verified.sign_count = 0
+
+    with patch(
+        "src.auth.service.webauthn.verify_registration_response",
+        return_value=fake_verified,
+    ):
+        await auth_client.post(
+            "/api/v1/auth/passkey/register/verify",
+            json={
+                "credential": {"id": "c", "rawId": "r", "response": {}},
+                "name": "List Key 1",
+            },
+        )
+
+    list_resp = await auth_client.get("/api/v1/auth/passkeys")
+    assert list_resp.status_code == 200
+    passkeys = list_resp.json()
+    assert len(passkeys) == 1
+    assert passkeys[0]["name"] == "List Key 1"
+
+
+@pytest.mark.anyio
+async def test_passkey_rename_and_delete(auth_client, test_user):  # noqa: ARG001
+    """Test PATCH and DELETE /api/v1/auth/passkeys/{passkey_id}."""
+    await auth_client.post("/api/v1/auth/passkey/register/options")
+    fake_verified = MagicMock(spec=VerifiedRegistration)
+    fake_verified.credential_id = b"cred_rename_test"
+    fake_verified.credential_public_key = b"pubkey_rename_test"
+    fake_verified.sign_count = 0
+
+    with patch(
+        "src.auth.service.webauthn.verify_registration_response",
+        return_value=fake_verified,
+    ):
+        reg_resp = await auth_client.post(
+            "/api/v1/auth/passkey/register/verify",
+            json={
+                "credential": {"id": "c", "rawId": "r", "response": {}},
+                "name": "Original Name",
+            },
+        )
+    passkey_id = reg_resp.json()["id"]
+
+    # Rename
+    patch_resp = await auth_client.patch(
+        f"/api/v1/auth/passkeys/{passkey_id}",
+        json={"name": "Renamed Key"},
+    )
+    assert patch_resp.status_code == 200
+    assert patch_resp.json()["name"] == "Renamed Key"
+
+    # Delete
+    del_resp = await auth_client.delete(f"/api/v1/auth/passkeys/{passkey_id}")
+    assert del_resp.status_code == 200
+    assert del_resp.json()["message"] == "Passkey deleted successfully"
+
+    # List is empty
+    list_resp = await auth_client.get("/api/v1/auth/passkeys")
+    assert list_resp.json() == []
+
+    # Deleting non-existent returns 404
+    del_404 = await auth_client.delete(f"/api/v1/auth/passkeys/{uuid.uuid4()}")
+    assert del_404.status_code == 404
+
+    # Renaming non-existent returns 404
+    patch_404 = await auth_client.patch(
+        f"/api/v1/auth/passkeys/{uuid.uuid4()}",
+        json={"name": "Does not exist"},
+    )
+    assert patch_404.status_code == 404
+
+
+@pytest.mark.anyio
+async def test_passkey_authenticate_options(client, test_user, auth_client):
+    """Test POST /api/v1/auth/passkey/authenticate/options unauthenticated."""
+    # Discoverable (no email)
+    resp = await client.post("/api/v1/auth/passkey/authenticate/options")
+    assert resp.status_code == 200
+    data = resp.json()
+    assert "challenge" in data
+    assert data["rpId"] == settings.webauthn_rp_id
+
+    # With email for user with registered passkey
+    await auth_client.post("/api/v1/auth/passkey/register/options")
+    fake_verified = MagicMock(spec=VerifiedRegistration)
+    fake_verified.credential_id = b"cred_for_auth_options"
+    fake_verified.credential_public_key = b"pubkey_for_auth_options"
+    fake_verified.sign_count = 0
+
+    with patch(
+        "src.auth.service.webauthn.verify_registration_response",
+        return_value=fake_verified,
+    ):
+        await auth_client.post(
+            "/api/v1/auth/passkey/register/verify",
+            json={
+                "credential": {"id": "c", "rawId": "r", "response": {}},
+                "name": "Auth Options Key",
+            },
+        )
+
+    resp_email = await client.post(
+        "/api/v1/auth/passkey/authenticate/options",
+        json={"email": test_user.email},
+    )
+    assert resp_email.status_code == 200
+    data_email = resp_email.json()
+    assert "allowCredentials" in data_email
+    assert len(data_email["allowCredentials"]) == 1
+
+
+@pytest.mark.anyio
+async def test_passkey_authenticate_verify_success(
+    client, test_user, auth_client, mock_redis_storage
+):
+    """Test POST /api/v1/auth/passkey/authenticate/verify logs user in and sets cookie."""
+    raw_cred_bytes = b"my_registered_passkey_cred_id"
+    raw_cred_b64 = bytes_to_base64url(raw_cred_bytes)
+
+    # Register passkey
+    await auth_client.post("/api/v1/auth/passkey/register/options")
+    fake_reg = MagicMock(spec=VerifiedRegistration)
+    fake_reg.credential_id = raw_cred_bytes
+    fake_reg.credential_public_key = b"my_registered_public_key"
+    fake_reg.sign_count = 0
+
+    with patch(
+        "src.auth.service.webauthn.verify_registration_response",
+        return_value=fake_reg,
+    ):
+        await auth_client.post(
+            "/api/v1/auth/passkey/register/verify",
+            json={
+                "credential": {"id": raw_cred_b64, "rawId": raw_cred_b64, "response": {}},
+                "name": "Auth Verify Key",
+            },
+        )
+
+    # Get authentication options
+    opts_resp = await client.post("/api/v1/auth/passkey/authenticate/options")
+    assert opts_resp.status_code == 200
+    challenge_b64 = opts_resp.json()["challenge"]
+
+    # Construct mock assertion
+    client_data_json = f'{{"type": "webauthn.get", "challenge": "{challenge_b64}", "origin": "{settings.webauthn_origin}"}}'
+    client_data_b64 = bytes_to_base64url(client_data_json.encode())
+    auth_data_b64 = bytes_to_base64url(b"auth_data")
+    signature_b64 = bytes_to_base64url(b"sig")
+
+    fake_auth = MagicMock(spec=VerifiedAuthentication)
+    fake_auth.new_sign_count = 1
+
+    with patch(
+        "src.auth.service.webauthn.verify_authentication_response",
+        return_value=fake_auth,
+    ):
+        verify_resp = await client.post(
+            "/api/v1/auth/passkey/authenticate/verify",
+            json={
+                "credential": {
+                    "id": raw_cred_b64,
+                    "rawId": raw_cred_b64,
+                    "response": {
+                        "clientDataJSON": client_data_b64,
+                        "authenticatorData": auth_data_b64,
+                        "signature": signature_b64,
+                    },
+                    "type": "public-key",
+                },
+            },
+        )
+        assert verify_resp.status_code == 200
+        result = verify_resp.json()
+        assert "access_token" in result
+        assert result["user"]["email"] == test_user.email
+        assert "auth_token" in verify_resp.cookies
+
+
+@pytest.mark.anyio
+async def test_passkey_authenticate_verify_unrecognized_passkey(client):
+    """Test POST /api/v1/auth/passkey/authenticate/verify with unknown credential raises 401."""
+    unknown_cred_b64 = bytes_to_base64url(b"unknown_credential_id")
+    client_data_json = '{"type": "webauthn.get", "challenge": "some_challenge", "origin": "http://localhost:8100"}'
+    client_data_b64 = bytes_to_base64url(client_data_json.encode())
+    auth_data_b64 = bytes_to_base64url(b"auth_data")
+    signature_b64 = bytes_to_base64url(b"sig")
+
+    resp = await client.post(
+        "/api/v1/auth/passkey/authenticate/verify",
+        json={
+            "credential": {
+                "id": unknown_cred_b64,
+                "rawId": unknown_cred_b64,
+                "response": {
+                    "clientDataJSON": client_data_b64,
+                    "authenticatorData": auth_data_b64,
+                    "signature": signature_b64,
+                },
+                "type": "public-key",
+            },
+        },
+    )
+    assert resp.status_code == 401
+    assert "Passkey not recognized" in resp.json()["detail"]
+
+
+@pytest.mark.anyio
+async def test_passkey_endpoints_require_auth(client):
+    """Test that passkey registration and management endpoints require authentication."""
+    assert (await client.get("/api/v1/auth/passkeys")).status_code == 401
+    assert (await client.post("/api/v1/auth/passkey/register/options")).status_code == 401
+    assert (await client.post("/api/v1/auth/passkey/register/verify")).status_code == 401
+    assert (await client.delete(f"/api/v1/auth/passkeys/{uuid.uuid4()}")).status_code == 401
+    assert (await client.patch(f"/api/v1/auth/passkeys/{uuid.uuid4()}")).status_code == 401
+
 

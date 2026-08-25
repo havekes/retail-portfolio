@@ -8,6 +8,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.auth.model import UserModel
 from src.auth.repository_sqlalchemy import (
+    SqlAlchemyPasskeyRepository,
     SqlAlchemyRecoveryCodeRepository,
     SqlAlchemyTotpRepository,
     SqlAlchemyUserRepository,
@@ -534,5 +535,102 @@ async def test_totp_and_recovery_cascade_on_user_delete(db_session: AsyncSession
 
     assert await totp_repo.get_by_user_id(user.id) is None
     assert await recovery_repo.count_active_by_user_id(user.id) == 0
+
+
+@pytest.mark.anyio
+async def test_passkey_repository_crud(db_session: AsyncSession):
+    """Test full CRUD operations on PasskeyRepository."""
+    user_repo = SqlAlchemyUserRepository(db_session)
+    passkey_repo = SqlAlchemyPasskeyRepository(db_session)
+
+    user = await user_repo.create_user("passkey_repo_test@example.com", "password123")
+
+    cred_id = b"test_credential_id_bytes_123"
+    pub_key = b"test_public_key_bytes_456"
+
+    # Create
+    created = await passkey_repo.create_passkey(
+        user.id,
+        credential_id=cred_id,
+        public_key=pub_key,
+        sign_count=0,
+        name="MacBook Touch ID",
+        transports=["internal", "hybrid"],
+    )
+    assert created.id is not None
+    assert created.user_id == user.id
+    assert created.credential_id == cred_id
+    assert created.public_key == pub_key
+    assert created.sign_count == 0
+    assert created.name == "MacBook Touch ID"
+    assert created.transports == ["internal", "hybrid"]
+    assert created.last_used_at is None
+
+    # Get by ID
+    by_id = await passkey_repo.get_by_id(created.id)
+    assert by_id is not None
+    assert by_id.id == created.id
+    assert by_id.name == "MacBook Touch ID"
+
+    # Get by credential ID
+    by_cred = await passkey_repo.get_by_credential_id(cred_id)
+    assert by_cred is not None
+    assert by_cred.id == created.id
+
+    # Get by user ID
+    user_passkeys = await passkey_repo.get_by_user_id(user.id)
+    assert len(user_passkeys) == 1
+    assert user_passkeys[0].id == created.id
+
+    # Update name
+    updated = await passkey_repo.update_name(created.id, "Work MacBook")
+    assert updated is not None
+    assert updated.name == "Work MacBook"
+
+    # Update sign count and last used
+    now = datetime.datetime.now(datetime.UTC)
+    await passkey_repo.update_sign_count_and_last_used(
+        created.id, sign_count=5, last_used_at=now
+    )
+    refreshed = await passkey_repo.get_by_id(created.id)
+    assert refreshed is not None
+    assert refreshed.sign_count == 5
+    assert refreshed.last_used_at is not None
+
+    # Delete with non-matching user returns False
+    fake_user_id = uuid.uuid4()
+    assert await passkey_repo.delete_by_id(created.id, fake_user_id) is False
+    assert await passkey_repo.get_by_id(created.id) is not None
+
+    # Delete with matching user returns True
+    assert await passkey_repo.delete_by_id(created.id, user.id) is True
+    assert await passkey_repo.get_by_id(created.id) is None
+
+
+@pytest.mark.anyio
+async def test_passkey_cascade_on_user_delete(db_session: AsyncSession):
+    """Test that deleting a user cascades to their passkeys."""
+    from sqlalchemy import delete
+
+    user_repo = SqlAlchemyUserRepository(db_session)
+    passkey_repo = SqlAlchemyPasskeyRepository(db_session)
+
+    user = await user_repo.create_user("passkey_cascade_test@example.com", "password123")
+    passkey = await passkey_repo.create_passkey(
+        user.id,
+        credential_id=b"cascade_cred_id",
+        public_key=b"cascade_pub_key",
+        sign_count=0,
+        name="YubiKey",
+    )
+
+    assert await passkey_repo.get_by_id(passkey.id) is not None
+
+    # Delete user
+    await db_session.execute(delete(UserModel).where(UserModel.id == user.id))
+    await db_session.commit()
+
+    assert await passkey_repo.get_by_id(passkey.id) is None
+
 
 
