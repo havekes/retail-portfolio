@@ -7,7 +7,7 @@ from pydantic import ValidationError
 from stockholm import Money
 from svcs import Container
 
-from src.account.enum import InstitutionEnum
+from src.core.enum import InstitutionEnum
 from src.market.api_types import (
     Security,
     SecurityId,

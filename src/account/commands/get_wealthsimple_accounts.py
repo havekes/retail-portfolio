@@ -5,7 +5,7 @@ import uuid
 
 from rich import print as rprint
 
-from src.account.enum import InstitutionEnum
+from src.core.enum import InstitutionEnum
 from src.integration.brokers.wealthsimple import wealthsimple_api_wrapper_factory
 from src.integration.schema import IntegrationUserSchema
 

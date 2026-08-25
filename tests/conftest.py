@@ -13,8 +13,8 @@ os.environ["SECRET_KEY"] = "7bb26bc4200000a69d07fa542933ef7256c1e47462f9c5a2f9c1
 os.environ["ENVIRONMENT"] = "test"
 os.environ["STUB_EXTERNAL_API"] = "true"
 
-from src.account.api_types import AccountTypeEnum
-from src.account.enum import InstitutionEnum
+from src.core.enum import AccountTypeEnum
+from src.core.enum import InstitutionEnum
 from src.account.model import (
     AccountTypeModel,
     InstitutionModel,

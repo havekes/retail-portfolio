@@ -5,7 +5,7 @@ import pytest
 from stockholm import Currency
 
 from src.account.api_types import AccountId
-from src.account.enum import AccountTypeEnum, InstitutionEnum
+from src.core.enum import AccountTypeEnum, InstitutionEnum
 from src.account.exception import AccountNotFoundError
 from src.account.repository import AccountRepository
 from src.account.schema import AccountSchema

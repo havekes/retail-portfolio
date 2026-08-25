@@ -1,6 +1,6 @@
 import pytest
 from sqlalchemy import text
-from src.account.enum import InstitutionEnum
+from src.core.enum import InstitutionEnum
 
 @pytest.mark.anyio
 async def test_get_institutions_empty(auth_client):

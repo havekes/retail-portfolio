@@ -13,7 +13,7 @@ from ws_api.exceptions import (
     UnexpectedException,
 )
 
-from src.account.enum import AccountTypeEnum, InstitutionEnum
+from src.core.enum import AccountTypeEnum, InstitutionEnum
 from src.integration.brokers.api_types import BrokerAccount, BrokerPosition
 from src.integration.brokers.exception import (
     AccountTypeUnkownError,

@@ -5,7 +5,7 @@ from datetime import UTC, datetime
 from decimal import Decimal
 from typing import Any
 
-from src.account.enum import AccountTypeEnum, InstitutionEnum
+from src.core.enum import AccountTypeEnum, InstitutionEnum
 from src.integration.brokers import BrokerApiGateway
 from src.integration.brokers.api_types import BrokerAccount, BrokerPosition
 from src.integration.schema import IntegrationUserSchema
