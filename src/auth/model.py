@@ -1,10 +1,10 @@
 from __future__ import annotations
 
 from datetime import datetime
-from uuid import uuid4
+from uuid import UUID, uuid4
 
 from argon2 import PasswordHasher
-from sqlalchemy import JSON, Boolean, DateTime, String, Uuid, func
+from sqlalchemy import JSON, Boolean, DateTime, ForeignKey, String, Uuid, func
 from sqlalchemy.orm import Mapped, mapped_column
 
 from src.auth.api_types import UserId
@@ -59,6 +59,46 @@ class VerificationTokenModel(BaseModel):
     token: Mapped[str] = mapped_column(String, unique=True, index=True)
     expires_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
     is_used: Mapped[bool] = mapped_column(Boolean, default=False)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), default=func.now()
+    )
+
+
+class TotpModel(BaseModel):
+    """TOTP two-factor authentication credentials model."""
+
+    __tablename__ = "auth_totp"
+
+    id: Mapped[UUID] = mapped_column(Uuid, primary_key=True, default=uuid4)
+    user_id: Mapped[UserId] = mapped_column(
+        Uuid,
+        ForeignKey("auth_users.id", ondelete="CASCADE"),
+        unique=True,
+        index=True,
+    )
+    secret: Mapped[str] = mapped_column(String)
+    is_verified: Mapped[bool] = mapped_column(Boolean, default=False)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), default=func.now()
+    )
+
+
+class RecoveryCodeModel(BaseModel):
+    """Backup recovery codes model."""
+
+    __tablename__ = "auth_recovery_codes"
+
+    id: Mapped[UUID] = mapped_column(Uuid, primary_key=True, default=uuid4)
+    user_id: Mapped[UserId] = mapped_column(
+        Uuid,
+        ForeignKey("auth_users.id", ondelete="CASCADE"),
+        index=True,
+    )
+    code_hash: Mapped[str] = mapped_column(String)
+    is_used: Mapped[bool] = mapped_column(Boolean, default=False)
+    used_at: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True), nullable=True
+    )
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), default=func.now()
     )

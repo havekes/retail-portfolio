@@ -2,15 +2,30 @@ from datetime import datetime
 from typing import override
 from uuid import uuid4
 
-from sqlalchemy import cast, func, select, update
+from sqlalchemy import cast, delete, func, select, update
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.ext.asyncio import AsyncSession
 from svcs import Container
 
 from src.auth.api_types import UserId
-from src.auth.model import UserModel, VerificationTokenModel
-from src.auth.repository import UserRepository, VerificationTokenRepository
-from src.auth.schema import UserSchema, VerificationTokenSchema
+from src.auth.model import (
+    RecoveryCodeModel,
+    TotpModel,
+    UserModel,
+    VerificationTokenModel,
+)
+from src.auth.repository import (
+    RecoveryCodeRepository,
+    TotpRepository,
+    UserRepository,
+    VerificationTokenRepository,
+)
+from src.auth.schema import (
+    RecoveryCodeSchema,
+    TotpSchema,
+    UserSchema,
+    VerificationTokenSchema,
+)
 
 
 class SqlAlchemyUserRepository(UserRepository):
@@ -157,6 +172,114 @@ class SqlAlchemyVerificationTokenRepository(VerificationTokenRepository):
         await self._session.commit()
 
 
+class SqlAlchemyTotpRepository(TotpRepository):
+    _session: AsyncSession
+
+    def __init__(self, session: AsyncSession):
+        self._session = session
+
+    @override
+    async def get_by_user_id(self, user_id: UserId) -> TotpSchema | None:
+        result = await self._session.execute(
+            select(TotpModel).where(TotpModel.user_id == user_id)
+        )
+        totp_model = result.scalar_one_or_none()
+        if totp_model:
+            return TotpSchema.model_validate(totp_model)
+        return None
+
+    @override
+    async def create_or_update(self, user_id: UserId, secret: str) -> TotpSchema:
+        result = await self._session.execute(
+            select(TotpModel).where(TotpModel.user_id == user_id)
+        )
+        totp_model = result.scalar_one_or_none()
+        if totp_model:
+            totp_model.secret = secret
+            totp_model.is_verified = False
+        else:
+            totp_model = TotpModel(
+                id=uuid4(),
+                user_id=user_id,
+                secret=secret,
+                is_verified=False,
+            )
+            self._session.add(totp_model)
+        await self._session.commit()
+        await self._session.refresh(totp_model)
+        return TotpSchema.model_validate(totp_model)
+
+    @override
+    async def mark_as_verified(self, user_id: UserId) -> None:
+        await self._session.execute(
+            update(TotpModel)
+            .where(TotpModel.user_id == user_id)
+            .values(is_verified=True)
+        )
+        await self._session.commit()
+
+    @override
+    async def delete_by_user_id(self, user_id: UserId) -> None:
+        await self._session.execute(
+            delete(TotpModel).where(TotpModel.user_id == user_id)
+        )
+        await self._session.commit()
+
+
+class SqlAlchemyRecoveryCodeRepository(RecoveryCodeRepository):
+    _session: AsyncSession
+
+    def __init__(self, session: AsyncSession):
+        self._session = session
+
+    @override
+    async def create_recovery_codes(
+        self, user_id: UserId, code_hashes: list[str]
+    ) -> list[RecoveryCodeSchema]:
+        models = [
+            RecoveryCodeModel(
+                id=uuid4(),
+                user_id=user_id,
+                code_hash=code_hash,
+                is_used=False,
+            )
+            for code_hash in code_hashes
+        ]
+        self._session.add_all(models)
+        await self._session.commit()
+        for m in models:
+            await self._session.refresh(m)
+        return [RecoveryCodeSchema.model_validate(m) for m in models]
+
+    @override
+    async def get_by_user_id(self, user_id: UserId) -> list[RecoveryCodeSchema]:
+        result = await self._session.execute(
+            select(RecoveryCodeModel).where(RecoveryCodeModel.user_id == user_id)
+        )
+        return [
+            RecoveryCodeSchema.model_validate(model) for model in result.scalars().all()
+        ]
+
+    @override
+    async def count_active_by_user_id(self, user_id: UserId) -> int:
+        result = await self._session.execute(
+            select(func.count())
+            .select_from(RecoveryCodeModel)
+            .where(
+                RecoveryCodeModel.user_id == user_id,
+                RecoveryCodeModel.is_used.is_(False),
+            )
+        )
+        return result.scalar() or 0
+
+    @override
+    async def delete_by_user_id(self, user_id: UserId) -> None:
+        await self._session.execute(
+            delete(RecoveryCodeModel).where(RecoveryCodeModel.user_id == user_id)
+        )
+        await self._session.commit()
+
+
 async def sqlalchemy_user_repository_factory(
     container: Container,
 ) -> SqlAlchemyUserRepository:
@@ -169,3 +292,15 @@ async def sqlalchemy_verification_token_repository_factory(
     return SqlAlchemyVerificationTokenRepository(
         session=await container.aget(AsyncSession)
     )
+
+
+async def sqlalchemy_totp_repository_factory(
+    container: Container,
+) -> SqlAlchemyTotpRepository:
+    return SqlAlchemyTotpRepository(session=await container.aget(AsyncSession))
+
+
+async def sqlalchemy_recovery_code_repository_factory(
+    container: Container,
+) -> SqlAlchemyRecoveryCodeRepository:
+    return SqlAlchemyRecoveryCodeRepository(session=await container.aget(AsyncSession))

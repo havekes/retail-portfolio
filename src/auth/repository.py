@@ -2,7 +2,12 @@ from abc import ABC, abstractmethod
 from datetime import datetime
 
 from src.auth.api_types import UserId
-from src.auth.schema import UserSchema, VerificationTokenSchema
+from src.auth.schema import (
+    RecoveryCodeSchema,
+    TotpSchema,
+    UserSchema,
+    VerificationTokenSchema,
+)
 
 
 class UserRepository(ABC):
@@ -56,4 +61,42 @@ class VerificationTokenRepository(ABC):
 
     @abstractmethod
     async def invalidate_tokens_for_user(self, user_id: UserId) -> None:
+        pass
+
+
+class TotpRepository(ABC):
+    @abstractmethod
+    async def get_by_user_id(self, user_id: UserId) -> TotpSchema | None:
+        pass
+
+    @abstractmethod
+    async def create_or_update(self, user_id: UserId, secret: str) -> TotpSchema:
+        pass
+
+    @abstractmethod
+    async def mark_as_verified(self, user_id: UserId) -> None:
+        pass
+
+    @abstractmethod
+    async def delete_by_user_id(self, user_id: UserId) -> None:
+        pass
+
+
+class RecoveryCodeRepository(ABC):
+    @abstractmethod
+    async def create_recovery_codes(
+        self, user_id: UserId, code_hashes: list[str]
+    ) -> list[RecoveryCodeSchema]:
+        pass
+
+    @abstractmethod
+    async def get_by_user_id(self, user_id: UserId) -> list[RecoveryCodeSchema]:
+        pass
+
+    @abstractmethod
+    async def count_active_by_user_id(self, user_id: UserId) -> int:
+        pass
+
+    @abstractmethod
+    async def delete_by_user_id(self, user_id: UserId) -> None:
         pass
