@@ -1,5 +1,5 @@
 from datetime import UTC, datetime, timedelta
-from uuid import uuid4
+from uuid import UUID, uuid4
 
 import pyotp
 import pytest
@@ -283,6 +283,22 @@ class MockRecoveryCodeRepository(RecoveryCodeRepository):
     async def get_by_user_id(self, user_id: UserId) -> list[RecoveryCodeSchema]:
         return self.codes.get(user_id, [])
 
+    async def get_active_by_user_id(self, user_id: UserId) -> list[RecoveryCodeSchema]:
+        return [c for c in self.codes.get(user_id, []) if not c.is_used]
+
+    async def mark_as_used(self, code_id: UUID) -> None:
+        for user_codes in self.codes.values():
+            for i, c in enumerate(user_codes):
+                if c.id == code_id:
+                    user_codes[i] = RecoveryCodeSchema(
+                        id=c.id,
+                        user_id=c.user_id,
+                        code_hash=c.code_hash,
+                        is_used=True,
+                        used_at=datetime.now(UTC),
+                        created_at=c.created_at,
+                    )
+
     async def count_active_by_user_id(self, user_id: UserId) -> int:
         return sum(1 for c in self.codes.get(user_id, []) if not c.is_used)
 
@@ -503,3 +519,74 @@ async def test_totp_disable_when_not_enabled(totp_service):
         await totp_service.disable_totp(user_id, code="123456")
     assert exc.value.status_code == 400
     assert "TOTP is not enabled" in exc.value.detail
+
+
+@pytest.mark.asyncio
+async def test_verify_2fa_login_when_disabled(totp_service):
+    user_id = uuid4()
+    assert await totp_service.verify_2fa_login(user_id, "123456") is False
+
+
+@pytest.mark.asyncio
+async def test_verify_2fa_login_valid_totp(totp_service):
+    user_id = uuid4()
+    setup_resp = await totp_service.setup_totp(user_id, "user@example.com")
+    totp = pyotp.TOTP(setup_resp.secret)
+    await totp_service.activate_totp(user_id, totp.now())
+
+    # Valid TOTP code returns True
+    assert await totp_service.verify_2fa_login(user_id, totp.now()) is True
+
+
+@pytest.mark.asyncio
+async def test_verify_2fa_login_invalid_totp(totp_service):
+    user_id = uuid4()
+    setup_resp = await totp_service.setup_totp(user_id, "user@example.com")
+    totp = pyotp.TOTP(setup_resp.secret)
+    await totp_service.activate_totp(user_id, totp.now())
+
+    # Invalid 6-digit code returns False
+    assert await totp_service.verify_2fa_login(user_id, "000000") is False
+
+
+@pytest.mark.asyncio
+async def test_verify_2fa_login_valid_recovery_code(totp_service):
+    user_id = uuid4()
+    setup_resp = await totp_service.setup_totp(user_id, "user@example.com")
+    totp = pyotp.TOTP(setup_resp.secret)
+    act_resp = await totp_service.activate_totp(user_id, totp.now())
+
+    recovery_code = act_resp.recovery_codes[0]
+
+    # Valid recovery code returns True and consumes code
+    assert await totp_service.verify_2fa_login(user_id, f"  {recovery_code}  ") is True
+
+    status = await totp_service.get_2fa_status(user_id)
+    assert status.recovery_codes_remaining == 7
+
+
+@pytest.mark.asyncio
+async def test_verify_2fa_login_reused_recovery_code(totp_service):
+    user_id = uuid4()
+    setup_resp = await totp_service.setup_totp(user_id, "user@example.com")
+    totp = pyotp.TOTP(setup_resp.secret)
+    act_resp = await totp_service.activate_totp(user_id, totp.now())
+
+    recovery_code = act_resp.recovery_codes[0]
+
+    # First use succeeds
+    assert await totp_service.verify_2fa_login(user_id, recovery_code) is True
+
+    # Reusing same recovery code fails
+    assert await totp_service.verify_2fa_login(user_id, recovery_code) is False
+
+
+@pytest.mark.asyncio
+async def test_verify_2fa_login_invalid_recovery_code(totp_service):
+    user_id = uuid4()
+    setup_resp = await totp_service.setup_totp(user_id, "user@example.com")
+    totp = pyotp.TOTP(setup_resp.secret)
+    await totp_service.activate_totp(user_id, totp.now())
+
+    # Completely wrong recovery code string
+    assert await totp_service.verify_2fa_login(user_id, "invalid-recovery-code") is False

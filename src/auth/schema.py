@@ -99,3 +99,13 @@ class TotpDisableRequest(BaseModel):
 
 class TotpRegenerateCodesResponse(BaseModel):
     recovery_codes: list[str]
+
+
+class LoginChallengeResponse(BaseModel):
+    requires_2fa: bool = True
+    mfa_token: str
+
+
+class LoginVerifyRequest(BaseModel):
+    mfa_token: str
+    code: str

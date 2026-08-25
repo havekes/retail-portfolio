@@ -49,6 +49,7 @@ async def test_login_success(auth_client, test_user):
 
     assert "access_token" in result
     assert result["user"]["email"] == test_user.email
+    assert "auth_token" in response.cookies
 
 
 @pytest.mark.anyio
@@ -419,4 +420,248 @@ async def test_totp_endpoints_require_auth(client):
     assert (
         await client.post("/api/v1/auth/2fa/totp/recovery-codes/regenerate")
     ).status_code == 401
+
+
+@pytest.mark.anyio
+async def test_login_with_2fa_enabled_returns_challenge_without_cookie(
+    auth_client, test_user
+):
+    """Test login with 2FA enabled returns LoginChallengeResponse without auth_token cookie."""
+    import pyotp
+
+    # 1. Setup and activate 2FA
+    setup_resp = await auth_client.post("/api/v1/auth/2fa/totp/setup")
+    assert setup_resp.status_code == 200
+    secret = setup_resp.json()["secret"]
+    totp = pyotp.TOTP(secret)
+
+    activate_resp = await auth_client.post(
+        "/api/v1/auth/2fa/totp/activate",
+        json={"code": totp.now()},
+    )
+    assert activate_resp.status_code == 200
+
+    # 2. Login now returns challenge
+    login_resp = await auth_client.post(
+        "/api/v1/auth/login",
+        json={"email": test_user.email, "password": "testpass"},
+    )
+    assert login_resp.status_code == 200
+    challenge_data = login_resp.json()
+    assert challenge_data["requires_2fa"] is True
+    assert "mfa_token" in challenge_data
+    assert "access_token" not in challenge_data
+    assert "auth_token" not in login_resp.cookies
+
+
+@pytest.mark.anyio
+async def test_login_verify_with_totp_code(auth_client, test_user):
+    """Test POST /auth/2fa/login-verify with valid TOTP code succeeds and sets session cookie."""
+    import pyotp
+
+    setup_resp = await auth_client.post("/api/v1/auth/2fa/totp/setup")
+    secret = setup_resp.json()["secret"]
+    totp = pyotp.TOTP(secret)
+
+    await auth_client.post(
+        "/api/v1/auth/2fa/totp/activate",
+        json={"code": totp.now()},
+    )
+
+    login_resp = await auth_client.post(
+        "/api/v1/auth/login",
+        json={"email": test_user.email, "password": "testpass"},
+    )
+    mfa_token = login_resp.json()["mfa_token"]
+
+    verify_resp = await auth_client.post(
+        "/api/v1/auth/2fa/login-verify",
+        json={"mfa_token": mfa_token, "code": totp.now()},
+    )
+    assert verify_resp.status_code == 200
+    verify_data = verify_resp.json()
+    assert "access_token" in verify_data
+    assert verify_data["user"]["email"] == test_user.email
+    assert "auth_token" in verify_resp.cookies
+
+
+@pytest.mark.anyio
+async def test_login_verify_with_recovery_code(auth_client, test_user):
+    """Test POST /auth/2fa/login-verify with valid recovery code succeeds, sets cookie, and consumes code."""
+    import pyotp
+
+    setup_resp = await auth_client.post("/api/v1/auth/2fa/totp/setup")
+    secret = setup_resp.json()["secret"]
+    totp = pyotp.TOTP(secret)
+
+    act_resp = await auth_client.post(
+        "/api/v1/auth/2fa/totp/activate",
+        json={"code": totp.now()},
+    )
+    recovery_code = act_resp.json()["recovery_codes"][0]
+
+    login_resp = await auth_client.post(
+        "/api/v1/auth/login",
+        json={"email": test_user.email, "password": "testpass"},
+    )
+    mfa_token = login_resp.json()["mfa_token"]
+
+    # Verify with recovery code
+    verify_resp = await auth_client.post(
+        "/api/v1/auth/2fa/login-verify",
+        json={"mfa_token": mfa_token, "code": recovery_code},
+    )
+    assert verify_resp.status_code == 200
+    assert "access_token" in verify_resp.json()
+    assert "auth_token" in verify_resp.cookies
+
+    # Recovery codes remaining should now be 7
+    status_resp = await auth_client.get(
+        "/api/v1/auth/2fa/status",
+        headers={"Authorization": f"Bearer {verify_resp.json()['access_token']}"},
+    )
+    assert status_resp.status_code == 200
+    assert status_resp.json()["recovery_codes_remaining"] == 7
+
+
+@pytest.mark.anyio
+async def test_login_verify_reused_recovery_code_rejected(auth_client, test_user):
+    """Test POST /auth/2fa/login-verify rejects already used recovery code with 401."""
+    import pyotp
+
+    setup_resp = await auth_client.post("/api/v1/auth/2fa/totp/setup")
+    secret = setup_resp.json()["secret"]
+    totp = pyotp.TOTP(secret)
+
+    act_resp = await auth_client.post(
+        "/api/v1/auth/2fa/totp/activate",
+        json={"code": totp.now()},
+    )
+    recovery_code = act_resp.json()["recovery_codes"][0]
+
+    login_resp = await auth_client.post(
+        "/api/v1/auth/login",
+        json={"email": test_user.email, "password": "testpass"},
+    )
+    mfa_token = login_resp.json()["mfa_token"]
+
+    # First use succeeds
+    v1 = await auth_client.post(
+        "/api/v1/auth/2fa/login-verify",
+        json={"mfa_token": mfa_token, "code": recovery_code},
+    )
+    assert v1.status_code == 200
+
+    # Get a new MFA token and try the same recovery code again
+    login_resp2 = await auth_client.post(
+        "/api/v1/auth/login",
+        json={"email": test_user.email, "password": "testpass"},
+    )
+    mfa_token2 = login_resp2.json()["mfa_token"]
+
+    v2 = await auth_client.post(
+        "/api/v1/auth/2fa/login-verify",
+        json={"mfa_token": mfa_token2, "code": recovery_code},
+    )
+    assert v2.status_code == 401
+    assert v2.json()["detail"] == "Invalid 2FA code"
+
+
+@pytest.mark.anyio
+async def test_login_verify_invalid_totp_code(auth_client, test_user):
+    """Test POST /auth/2fa/login-verify rejects invalid TOTP code with 401."""
+    import pyotp
+
+    setup_resp = await auth_client.post("/api/v1/auth/2fa/totp/setup")
+    secret = setup_resp.json()["secret"]
+    totp = pyotp.TOTP(secret)
+
+    await auth_client.post(
+        "/api/v1/auth/2fa/totp/activate",
+        json={"code": totp.now()},
+    )
+
+    login_resp = await auth_client.post(
+        "/api/v1/auth/login",
+        json={"email": test_user.email, "password": "testpass"},
+    )
+    mfa_token = login_resp.json()["mfa_token"]
+
+    verify_resp = await auth_client.post(
+        "/api/v1/auth/2fa/login-verify",
+        json={"mfa_token": mfa_token, "code": "000000"},
+    )
+    assert verify_resp.status_code == 401
+    assert verify_resp.json()["detail"] == "Invalid 2FA code"
+
+
+@pytest.mark.anyio
+async def test_login_verify_expired_mfa_token(auth_client, test_user):
+    """Test POST /auth/2fa/login-verify rejects expired mfa_token with 401."""
+    expired_token = jwt.encode(
+        {
+            "sub": test_user.email,
+            "user_id": str(test_user.id),
+            "exp": int((datetime.now(UTC) - timedelta(minutes=10)).timestamp()),
+            "scope": "mfa_pending",
+        },
+        settings.secret_key,
+        algorithm="HS256",
+    )
+
+    verify_resp = await auth_client.post(
+        "/api/v1/auth/2fa/login-verify",
+        json={"mfa_token": expired_token, "code": "123456"},
+    )
+    assert verify_resp.status_code == 401
+    assert verify_resp.json()["detail"] == "Token expired"
+
+
+@pytest.mark.anyio
+async def test_login_verify_forged_mfa_token(auth_client):
+    """Test POST /auth/2fa/login-verify rejects forged or malformed mfa_token with 401."""
+    forged_token = jwt.encode(
+        {
+            "sub": "someuser@example.com",
+            "user_id": "00000000-0000-0000-0000-000000000000",
+            "exp": int((datetime.now(UTC) + timedelta(minutes=5)).timestamp()),
+            "scope": "mfa_pending",
+        },
+        "wrong-secret-key",
+        algorithm="HS256",
+    )
+
+    verify_resp = await auth_client.post(
+        "/api/v1/auth/2fa/login-verify",
+        json={"mfa_token": forged_token, "code": "123456"},
+    )
+    assert verify_resp.status_code == 401
+
+
+@pytest.mark.anyio
+async def test_authenticated_endpoints_reject_mfa_token(auth_client, test_user):
+    """Test protected routes reject tokens with scope='mfa_pending' with 401 Token invalid."""
+    import pyotp
+
+    setup_resp = await auth_client.post("/api/v1/auth/2fa/totp/setup")
+    secret = setup_resp.json()["secret"]
+    totp = pyotp.TOTP(secret)
+
+    await auth_client.post(
+        "/api/v1/auth/2fa/totp/activate",
+        json={"code": totp.now()},
+    )
+
+    login_resp = await auth_client.post(
+        "/api/v1/auth/login",
+        json={"email": test_user.email, "password": "testpass"},
+    )
+    mfa_token = login_resp.json()["mfa_token"]
+
+    response = await auth_client.get(
+        "/api/v1/auth/2fa/status",
+        headers={"Authorization": f"Bearer {mfa_token}"},
+    )
+    assert response.status_code == 401
+    assert response.json()["detail"] == "Token invalid"
 
