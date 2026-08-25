@@ -6,6 +6,12 @@ import pytest
 from pydantic import ValidationError
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from src.auth.model import UserModel
+from src.auth.repository_sqlalchemy import (
+    SqlAlchemyRecoveryCodeRepository,
+    SqlAlchemyTotpRepository,
+    SqlAlchemyUserRepository,
+)
 from src.market.api_types import IntradayPrice
 from src.market.repository_sqlalchemy import (
     SqlAlchemyIntradayPriceRepository,
@@ -394,4 +400,102 @@ async def test_intraday_repository_single_save_upsert(db_session: AsyncSession):
     assert len(candles_in_db) == 1
     assert candles_in_db[0].close == Decimal("187.0")
     assert candles_in_db[0].high == Decimal("188.0")
+
+
+@pytest.mark.anyio
+async def test_totp_repository_crud(db_session: AsyncSession):
+    """Test CRUD operations for SqlAlchemyTotpRepository."""
+    user_repo = SqlAlchemyUserRepository(db_session)
+    totp_repo = SqlAlchemyTotpRepository(db_session)
+
+    user = await user_repo.create_user("totp_repo_test@example.com", "password123")
+
+    # Initial get returns None
+    assert await totp_repo.get_by_user_id(user.id) is None
+
+    # Create TOTP
+    secret = "JBSWY3DPEHPK3PXP"
+    created = await totp_repo.create_or_update(user.id, secret)
+    assert created.user_id == user.id
+    assert created.secret == secret
+    assert created.is_verified is False
+
+    # Get by user_id
+    retrieved = await totp_repo.get_by_user_id(user.id)
+    assert retrieved is not None
+    assert retrieved.secret == secret
+    assert retrieved.is_verified is False
+
+    # Mark as verified
+    await totp_repo.mark_as_verified(user.id)
+    verified = await totp_repo.get_by_user_id(user.id)
+    assert verified is not None
+    assert verified.is_verified is True
+
+    # Update secret (resets is_verified)
+    new_secret = "HXDMVJECJJWSRB3H"
+    updated = await totp_repo.create_or_update(user.id, new_secret)
+    assert updated.secret == new_secret
+    assert updated.is_verified is False
+
+    # Delete TOTP
+    await totp_repo.delete_by_user_id(user.id)
+    assert await totp_repo.get_by_user_id(user.id) is None
+
+
+@pytest.mark.anyio
+async def test_recovery_code_repository_crud(db_session: AsyncSession):
+    """Test CRUD operations for SqlAlchemyRecoveryCodeRepository."""
+    user_repo = SqlAlchemyUserRepository(db_session)
+    recovery_repo = SqlAlchemyRecoveryCodeRepository(db_session)
+
+    user = await user_repo.create_user("recovery_repo_test@example.com", "password123")
+
+    # Initially 0 active codes
+    assert await recovery_repo.count_active_by_user_id(user.id) == 0
+    assert await recovery_repo.get_by_user_id(user.id) == []
+
+    # Create recovery codes
+    fake_hashes = [f"hash_{i}" for i in range(8)]
+    created = await recovery_repo.create_recovery_codes(user.id, fake_hashes)
+    assert len(created) == 8
+    assert all(c.user_id == user.id for c in created)
+    assert all(c.is_used is False for c in created)
+
+    # Count active codes
+    assert await recovery_repo.count_active_by_user_id(user.id) == 8
+
+    # Get all by user id
+    all_codes = await recovery_repo.get_by_user_id(user.id)
+    assert len(all_codes) == 8
+
+    # Delete recovery codes
+    await recovery_repo.delete_by_user_id(user.id)
+    assert await recovery_repo.count_active_by_user_id(user.id) == 0
+    assert await recovery_repo.get_by_user_id(user.id) == []
+
+
+@pytest.mark.anyio
+async def test_totp_and_recovery_cascade_on_user_delete(db_session: AsyncSession):
+    """Test that deleting a user cascades to their TOTP and recovery codes."""
+    from sqlalchemy import delete
+
+    user_repo = SqlAlchemyUserRepository(db_session)
+    totp_repo = SqlAlchemyTotpRepository(db_session)
+    recovery_repo = SqlAlchemyRecoveryCodeRepository(db_session)
+
+    user = await user_repo.create_user("cascade_test@example.com", "password123")
+    await totp_repo.create_or_update(user.id, "JBSWY3DPEHPK3PXP")
+    await recovery_repo.create_recovery_codes(user.id, ["hash1", "hash2"])
+
+    assert await totp_repo.get_by_user_id(user.id) is not None
+    assert await recovery_repo.count_active_by_user_id(user.id) == 2
+
+    # Delete user directly
+    await db_session.execute(delete(UserModel).where(UserModel.id == user.id))
+    await db_session.commit()
+
+    assert await totp_repo.get_by_user_id(user.id) is None
+    assert await recovery_repo.count_active_by_user_id(user.id) == 0
+
 

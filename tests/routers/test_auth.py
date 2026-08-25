@@ -212,3 +212,211 @@ async def test_invalid_token_unknown_user_returns_401(auth_client):
 
     assert response.status_code == 401
     assert response.json()["detail"] == "Token invalid"
+
+
+@pytest.mark.anyio
+async def test_2fa_status_initial(auth_client):
+    """Test GET /2fa/status returns disabled by default."""
+    response = await auth_client.get("/api/v1/auth/2fa/status")
+
+    assert response.status_code == 200
+    result = response.json()
+    assert result["totp_enabled"] is False
+    assert result["recovery_codes_remaining"] == 0
+
+
+@pytest.mark.anyio
+async def test_2fa_status_unauthenticated(client):
+    """Test 2FA status requires authentication."""
+    response = await client.get("/api/v1/auth/2fa/status")
+    assert response.status_code == 401
+
+
+@pytest.mark.anyio
+async def test_totp_setup(auth_client):
+    """Test POST /2fa/totp/setup returns secret and otpauth URI."""
+    response = await auth_client.post("/api/v1/auth/2fa/totp/setup")
+
+    assert response.status_code == 200
+    result = response.json()
+    assert "secret" in result
+    assert len(result["secret"]) == 32
+    assert "provisioning_uri" in result
+    assert result["provisioning_uri"].startswith("otpauth://totp/")
+    assert "Retail" in result["provisioning_uri"]
+
+
+@pytest.mark.anyio
+async def test_totp_activate_flow_and_regenerate(auth_client):
+    """Test complete TOTP activation and recovery code regeneration flow."""
+    import pyotp
+
+    # 1. Setup
+    setup_resp = await auth_client.post("/api/v1/auth/2fa/totp/setup")
+    assert setup_resp.status_code == 200
+    secret = setup_resp.json()["secret"]
+
+    # 2. Activate with valid code
+    totp = pyotp.TOTP(secret)
+    activate_resp = await auth_client.post(
+        "/api/v1/auth/2fa/totp/activate",
+        json={"code": totp.now()},
+    )
+    assert activate_resp.status_code == 200
+    result = activate_resp.json()
+    assert "recovery_codes" in result
+    assert len(result["recovery_codes"]) == 8
+    first_codes = result["recovery_codes"]
+
+    # 3. Status should now be enabled with 8 codes
+    status_resp = await auth_client.get("/api/v1/auth/2fa/status")
+    assert status_resp.status_code == 200
+    assert status_resp.json()["totp_enabled"] is True
+    assert status_resp.json()["recovery_codes_remaining"] == 8
+
+    # 4. Regenerate recovery codes
+    regen_resp = await auth_client.post(
+        "/api/v1/auth/2fa/totp/recovery-codes/regenerate"
+    )
+    assert regen_resp.status_code == 200
+    new_codes = regen_resp.json()["recovery_codes"]
+    assert len(new_codes) == 8
+    assert new_codes != first_codes
+
+    # 5. Status check after regeneration
+    status_resp2 = await auth_client.get("/api/v1/auth/2fa/status")
+    assert status_resp2.status_code == 200
+    assert status_resp2.json()["recovery_codes_remaining"] == 8
+
+
+@pytest.mark.anyio
+async def test_totp_activate_invalid_code(auth_client):
+    """Test activating TOTP with invalid code returns 400."""
+    await auth_client.post("/api/v1/auth/2fa/totp/setup")
+    response = await auth_client.post(
+        "/api/v1/auth/2fa/totp/activate",
+        json={"code": "000000"},
+    )
+    assert response.status_code == 400
+    assert response.json()["detail"] == "Invalid TOTP code"
+
+
+@pytest.mark.anyio
+async def test_totp_disable_with_code(auth_client):
+    """Test disabling TOTP with valid 6-digit code."""
+    import pyotp
+
+    setup_resp = await auth_client.post("/api/v1/auth/2fa/totp/setup")
+    secret = setup_resp.json()["secret"]
+    totp = pyotp.TOTP(secret)
+
+    await auth_client.post(
+        "/api/v1/auth/2fa/totp/activate",
+        json={"code": totp.now()},
+    )
+
+    # Disable with code
+    disable_resp = await auth_client.post(
+        "/api/v1/auth/2fa/totp/disable",
+        json={"code": totp.now()},
+    )
+    assert disable_resp.status_code == 200
+    assert (
+        disable_resp.json()["message"]
+        == "TOTP two-factor authentication disabled successfully"
+    )
+
+    # Status should be disabled
+    status_resp = await auth_client.get("/api/v1/auth/2fa/status")
+    assert status_resp.json()["totp_enabled"] is False
+    assert status_resp.json()["recovery_codes_remaining"] == 0
+
+
+@pytest.mark.anyio
+async def test_totp_disable_with_password(auth_client):
+    """Test disabling TOTP with user password."""
+    import pyotp
+
+    setup_resp = await auth_client.post("/api/v1/auth/2fa/totp/setup")
+    secret = setup_resp.json()["secret"]
+    totp = pyotp.TOTP(secret)
+
+    await auth_client.post(
+        "/api/v1/auth/2fa/totp/activate",
+        json={"code": totp.now()},
+    )
+
+    # Disable with password
+    disable_resp = await auth_client.post(
+        "/api/v1/auth/2fa/totp/disable",
+        json={"password": "testpass"},
+    )
+    assert disable_resp.status_code == 200
+
+    # Status should be disabled
+    status_resp = await auth_client.get("/api/v1/auth/2fa/status")
+    assert status_resp.json()["totp_enabled"] is False
+    assert status_resp.json()["recovery_codes_remaining"] == 0
+
+
+@pytest.mark.anyio
+async def test_totp_disable_wrong_credentials(auth_client):
+    """Test disabling TOTP with invalid password or code raises 400."""
+    import pyotp
+
+    setup_resp = await auth_client.post("/api/v1/auth/2fa/totp/setup")
+    secret = setup_resp.json()["secret"]
+    totp = pyotp.TOTP(secret)
+
+    await auth_client.post(
+        "/api/v1/auth/2fa/totp/activate",
+        json={"code": totp.now()},
+    )
+
+    # Wrong password
+    resp1 = await auth_client.post(
+        "/api/v1/auth/2fa/totp/disable",
+        json={"password": "wrongpassword"},
+    )
+    assert resp1.status_code == 400
+    assert resp1.json()["detail"] == "Invalid password"
+
+    # Wrong code
+    resp2 = await auth_client.post(
+        "/api/v1/auth/2fa/totp/disable",
+        json={"code": "000000"},
+    )
+    assert resp2.status_code == 400
+    assert resp2.json()["detail"] == "Invalid TOTP code"
+
+    # Missing credentials
+    resp3 = await auth_client.post(
+        "/api/v1/auth/2fa/totp/disable",
+        json={},
+    )
+    assert resp3.status_code == 400
+    assert (
+        resp3.json()["detail"]
+        == "Either TOTP code or password is required to disable TOTP"
+    )
+
+
+@pytest.mark.anyio
+async def test_totp_endpoints_require_auth(client):
+    """Test all 2FA endpoints require authentication."""
+    assert (await client.get("/api/v1/auth/2fa/status")).status_code == 401
+    assert (await client.post("/api/v1/auth/2fa/totp/setup")).status_code == 401
+    assert (
+        await client.post(
+            "/api/v1/auth/2fa/totp/activate", json={"code": "123456"}
+        )
+    ).status_code == 401
+    assert (
+        await client.post(
+            "/api/v1/auth/2fa/totp/disable", json={"code": "123456"}
+        )
+    ).status_code == 401
+    assert (
+        await client.post("/api/v1/auth/2fa/totp/recovery-codes/regenerate")
+    ).status_code == 401
+

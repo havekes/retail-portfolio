@@ -1,4 +1,5 @@
 from datetime import datetime
+from uuid import UUID
 
 from argon2 import PasswordHasher
 from pydantic import BaseModel, ConfigDict, EmailStr
@@ -49,3 +50,52 @@ class ResendVerificationRequest(BaseModel):
 
 class MessageResponse(BaseModel):
     message: str
+
+
+class TotpSchema(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: UUID
+    user_id: UserId
+    secret: str
+    is_verified: bool
+    created_at: datetime
+
+
+class RecoveryCodeSchema(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: UUID
+    user_id: UserId
+    code_hash: str
+    is_used: bool
+    used_at: datetime | None = None
+    created_at: datetime
+
+
+class TwoFactorStatusResponse(BaseModel):
+    totp_enabled: bool
+    recovery_codes_remaining: int
+
+
+class TotpSetupResponse(BaseModel):
+    secret: str
+    provisioning_uri: str
+
+
+class TotpActivateRequest(BaseModel):
+    code: str
+
+
+class TotpActivateResponse(BaseModel):
+    recovery_codes: list[str]
+    message: str = "TOTP two-factor authentication enabled successfully"
+
+
+class TotpDisableRequest(BaseModel):
+    code: str | None = None
+    password: str | None = None
+
+
+class TotpRegenerateCodesResponse(BaseModel):
+    recovery_codes: list[str]
