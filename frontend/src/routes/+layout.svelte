@@ -2,6 +2,7 @@
 	import '../app.css';
 	import { ModeWatcher } from 'mode-watcher';
 	import { setBrokerService } from '$lib/components/brokers/brokerService.svelte';
+	import { setSecurityService } from '$lib/components/security/securityService.svelte';
 	import { setWatchlistService } from '$lib/components/watchlist/watchlistService.svelte';
 	import * as Sidebar from '$lib/components/ui/sidebar/index.js';
 	import AppSidebar from '$lib/components/layout/app-sidebar.svelte';
@@ -12,6 +13,7 @@
 	let { children, data } = $props();
 
 	setBrokerService();
+	setSecurityService();
 	const watchlistService = setWatchlistService();
 
 	let sidebarOpen = $state(untrack(() => data.sidebar_open ?? true));
