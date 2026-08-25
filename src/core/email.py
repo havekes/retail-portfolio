@@ -35,6 +35,16 @@ class PriceAlertEmailData:
     latest_price: Decimal
 
 
+@dataclass
+class ExternalAccountErrorEmailData:
+    """Data bundle for external account error email parameters."""
+
+    account_name: str
+    institution_name: str
+    error_message: str
+    deeplink: str
+
+
 class EmailService:
     """Async email service using aiosmtplib.
 
@@ -138,5 +148,30 @@ class EmailService:
                 "target_price": str(alert.target_price),
                 "latest_price": str(alert.latest_price),
                 "deeplink": deeplink,
+            },
+        )
+
+    async def send_external_account_error_email(
+        self,
+        recipient: str,
+        data: ExternalAccountErrorEmailData,
+    ) -> None:
+        """Send an external account error notification email.
+
+        Args:
+            recipient: user's email address.
+            data: bundled external account error data (account name,
+                institution, error message, deeplink).
+        """
+        await self.send_email(
+            recipient,
+            f"Sync Error: {data.account_name} ({data.institution_name})",
+            html_template="external_account_error.html",
+            text_template="external_account_error.txt",
+            context={
+                "account_name": data.account_name,
+                "institution_name": data.institution_name,
+                "error_message": data.error_message,
+                "deeplink": data.deeplink,
             },
         )

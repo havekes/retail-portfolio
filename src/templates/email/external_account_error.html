@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+{% block title %}External Account Sync Error{% endblock %}
+{% block content %}
+<h1>Sync Error: {{ account_name }} ({{ institution_name }})</h1>
+<p>We encountered an issue while syncing your account <strong>{{ account_name }}</strong> at <strong>{{ institution_name }}</strong>.</p>
+<p>
+    <strong>Error details:</strong><br>
+    {{ error_message }}
+</p>
+<a href="{{ deeplink }}" class="button">View Accounts</a>
+{% endblock %}
+{% block footer %}
+<p>This is an automated notification from Retail Portfolio.</p>
+{% endblock %}

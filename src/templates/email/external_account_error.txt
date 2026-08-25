@@ -1,0 +1,13 @@
+{% extends "base.txt" %}
+{% block content %}
+Sync Error: {{ account_name }} ({{ institution_name }})
+
+We encountered an issue while syncing your account {{ account_name }} at {{ institution_name }}.
+
+Error details:
+{{ error_message }}
+
+View Accounts on Retail Portfolio: {{ deeplink }}
+
+This is an automated notification from Retail Portfolio.
+{% endblock %}

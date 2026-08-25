@@ -134,3 +134,87 @@ class TestPriceAlertTemplates:
         assert "<html" not in text.lower()
         assert "<style" not in text.lower()
         assert "<div" not in text.lower()
+
+
+class TestExternalAccountErrorTemplates:
+    """External account error templates must render all context vars correctly."""
+
+    def test_external_account_error_html_contains_all_vars(self):
+        template = jinja_env.get_template("external_account_error.html")
+        context = {
+            "account_name": "TFSA Trading",
+            "institution_name": "Wealthsimple",
+            "error_message": "Invalid API credentials or session expired.",
+            "deeplink": "http://localhost:8101/accounts",
+        }
+        html = template.render(**context)
+
+        assert "TFSA Trading" in html
+        assert "Wealthsimple" in html
+        assert "Invalid API credentials or session expired." in html
+        assert "http://localhost:8101/accounts" in html
+        assert "View Accounts" in html
+        assert "Sync Error: TFSA Trading (Wealthsimple)" in html
+
+    def test_external_account_error_html_extends_base(self):
+        template = jinja_env.get_template("external_account_error.html")
+        context = {
+            "account_name": "Checking",
+            "institution_name": "Bank",
+            "error_message": "Network timeout",
+            "deeplink": "http://localhost:8101/accounts",
+        }
+        html = template.render(**context)
+
+        assert "<!DOCTYPE html>" in html
+        assert "class=\"container\"" in html
+        assert "class=\"card\"" in html
+        assert "Retail Portfolio" in html
+
+    def test_external_account_error_html_escapes_special_chars(self):
+        template = jinja_env.get_template("external_account_error.html")
+        context = {
+            "account_name": "Test <Account>",
+            "institution_name": "Bank & Co",
+            "error_message": "<script>alert('xss')</script> & error",
+            "deeplink": "http://localhost:8101/accounts?a=1&b=2",
+        }
+        html = template.render(**context)
+
+        assert "<script>" not in html
+        assert "&lt;script&gt;alert(&#39;xss&#39;)&lt;/script&gt; &amp; error" in html
+        assert "Test &lt;Account&gt;" in html
+        assert "Bank &amp; Co" in html
+
+    def test_external_account_error_text_contains_all_vars(self):
+        template = jinja_env.get_template("external_account_error.txt")
+        context = {
+            "account_name": "RRSP Investing",
+            "institution_name": "Questrade",
+            "error_message": "Rate limit exceeded. Please try again later.",
+            "deeplink": "http://localhost:8101/accounts",
+        }
+        text = template.render(**context)
+
+        assert "RRSP Investing" in text
+        assert "Questrade" in text
+        assert "Rate limit exceeded. Please try again later." in text
+        assert "http://localhost:8101/accounts" in text
+        assert "Sync Error: RRSP Investing (Questrade)" in text
+        assert "Retail Portfolio" in text
+
+    def test_external_account_error_text_no_html_tags(self):
+        template = jinja_env.get_template("external_account_error.txt")
+        context = {
+            "account_name": "Test",
+            "institution_name": "Bank",
+            "error_message": "Failed sync",
+            "deeplink": "http://localhost:8101/accounts",
+        }
+        text = template.render(**context)
+
+        assert "<html" not in text.lower()
+        assert "<style" not in text.lower()
+        assert "<div" not in text.lower()
+        assert "<a" not in text.lower()
+

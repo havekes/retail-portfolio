@@ -284,3 +284,89 @@ class TestSendPriceAlertEmail:
                     "user@test.com",
                     alert=alert,
                 )
+
+
+class TestSendExternalAccountErrorEmail:
+    """Test external account error email rendering and sending."""
+
+    @pytest.mark.anyio
+    async def test_send_external_account_error_email_success(self, email_service):
+        from src.core.email import ExternalAccountErrorEmailData
+
+        with (
+            patch("src.core.email.settings") as mock_settings,
+            patch("src.core.email.aiosmtplib.SMTP") as mock_smtp_cls,
+        ):
+            mock_settings.frontend_url = "http://localhost:8101"
+            mock_settings.smtp_host = "smtp.test.com"
+            mock_settings.smtp_port = 587
+            mock_settings.smtp_use_tls = False
+            mock_settings.smtp_user = ""
+            mock_settings.smtp_password = ""
+            mock_settings.smtp_sender_email = "alerts@test.com"
+
+            mock_smtp = AsyncMock()
+            mock_smtp_cls.return_value = mock_smtp
+
+            data = ExternalAccountErrorEmailData(
+                account_name="TFSA Trading",
+                institution_name="Wealthsimple",
+                error_message="Invalid credentials or session expired.",
+                deeplink="http://localhost:8101/accounts",
+            )
+            await email_service.send_external_account_error_email(
+                recipient="user@test.com",
+                data=data,
+            )
+
+            msg = mock_smtp.send_message.call_args[0][0]
+            assert msg["To"] == "user@test.com"
+            assert msg["Subject"] == "Sync Error: TFSA Trading (Wealthsimple)"
+
+            html_part = _get_html_part(msg)
+            assert html_part is not None
+            assert "TFSA Trading" in html_part
+            assert "Wealthsimple" in html_part
+            assert "Invalid credentials or session expired." in html_part
+            assert "http://localhost:8101/accounts" in html_part
+            assert "View Accounts" in html_part
+
+            text_part = _get_text_part(msg)
+            assert text_part is not None
+            assert "TFSA Trading" in text_part
+            assert "Wealthsimple" in text_part
+            assert "Invalid credentials or session expired." in text_part
+            assert "http://localhost:8101/accounts" in text_part
+
+    @pytest.mark.anyio
+    async def test_send_external_account_error_email_raises_on_smtp_failure(self, email_service):
+        from src.core.email import ExternalAccountErrorEmailData
+
+        with (
+            patch("src.core.email.settings") as mock_settings,
+            patch("src.core.email.aiosmtplib.SMTP") as mock_smtp_cls,
+        ):
+            mock_settings.frontend_url = "http://localhost:8101"
+            mock_settings.smtp_host = "bad.com"
+            mock_settings.smtp_port = 587
+            mock_settings.smtp_use_tls = False
+            mock_settings.smtp_user = ""
+            mock_settings.smtp_password = ""
+            mock_settings.smtp_sender_email = "alerts@test.com"
+
+            mock_smtp = AsyncMock()
+            mock_smtp_cls.return_value = mock_smtp
+            mock_smtp.connect.side_effect = ConnectionRefusedError("refused")
+
+            data = ExternalAccountErrorEmailData(
+                account_name="TFSA Trading",
+                institution_name="Wealthsimple",
+                error_message="Network timeout",
+                deeplink="http://localhost:8101/accounts",
+            )
+            with pytest.raises(EmailSendError):
+                await email_service.send_external_account_error_email(
+                    "user@test.com",
+                    data=data,
+                )
+
