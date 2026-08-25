@@ -57,5 +57,6 @@ def teardown_worker_services():
 
 
 # Import tasks to ensure they are registered with Huey
+import src.account.task  # noqa: E402
 import src.integration.task  # noqa: E402
 import src.market.task  # noqa: E402
