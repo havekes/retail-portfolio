@@ -1,6 +1,10 @@
-from pydantic import field_validator
+from typing import Self
+
+from pydantic import field_validator, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 from rich import print as rprint
+
+MIN_SECRET_KEY_LENGTH: int = 32
 
 
 class Settings(BaseSettings):
@@ -61,6 +65,20 @@ class Settings(BaseSettings):
         if not v or (isinstance(v, str) and not v.strip()):
             return "noreply@retail-portfolio.local"
         return v
+
+    @model_validator(mode="after")
+    def validate_secret_key(self) -> Self:
+        if self.environment.lower() not in ("dev", "test") and (
+            not self.secret_key or len(self.secret_key.strip()) < MIN_SECRET_KEY_LENGTH
+        ):
+            msg = (
+                "SECRET_KEY must be set and at least 32 characters long "
+                "when running outside dev/test environments. Generate a secure key "
+                "with: openssl rand -hex 32 or python -c "
+                '"import secrets; print(secrets.token_hex(32))"'
+            )
+            raise ValueError(msg)
+        return self
 
 
 settings = Settings()

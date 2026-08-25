@@ -1,5 +1,5 @@
-import os
-from pathlib import Path
+import pytest
+from pydantic import ValidationError
 
 from src.config.settings import Settings
 
@@ -66,4 +66,62 @@ def test_smtp_sender_email_custom_value(monkeypatch, tmp_path):
 
     s = Settings()
     assert s.smtp_sender_email == "custom@example.com"
+
+
+def test_secret_key_required_in_prod(monkeypatch, tmp_path):
+    monkeypatch.chdir(tmp_path)
+    monkeypatch.setenv("ENVIRONMENT", "prod")
+    monkeypatch.setenv("SECRET_KEY", "")
+
+    with pytest.raises(ValidationError, match="SECRET_KEY must be set and at least 32 characters long"):
+        Settings()
+
+
+def test_secret_key_too_short_in_prod(monkeypatch, tmp_path):
+    monkeypatch.chdir(tmp_path)
+    monkeypatch.setenv("ENVIRONMENT", "prod")
+    monkeypatch.setenv("SECRET_KEY", "short-key")
+
+    with pytest.raises(ValidationError, match="SECRET_KEY must be set and at least 32 characters long"):
+        Settings()
+
+
+def test_secret_key_required_in_staging(monkeypatch, tmp_path):
+    monkeypatch.chdir(tmp_path)
+    monkeypatch.setenv("ENVIRONMENT", "staging")
+    monkeypatch.setenv("SECRET_KEY", "")
+
+    with pytest.raises(ValidationError, match="SECRET_KEY must be set and at least 32 characters long"):
+        Settings()
+
+
+def test_secret_key_allowed_empty_in_dev(monkeypatch, tmp_path):
+    monkeypatch.chdir(tmp_path)
+    monkeypatch.setenv("ENVIRONMENT", "dev")
+    monkeypatch.setenv("SECRET_KEY", "")
+
+    s = Settings()
+    assert s.environment == "dev"
+    assert s.secret_key == ""
+
+
+def test_secret_key_allowed_empty_in_test(monkeypatch, tmp_path):
+    monkeypatch.chdir(tmp_path)
+    monkeypatch.setenv("ENVIRONMENT", "test")
+    monkeypatch.setenv("SECRET_KEY", "")
+
+    s = Settings()
+    assert s.environment == "test"
+    assert s.secret_key == ""
+
+
+def test_secret_key_valid_in_prod(monkeypatch, tmp_path):
+    monkeypatch.chdir(tmp_path)
+    monkeypatch.setenv("ENVIRONMENT", "prod")
+    monkeypatch.setenv("SECRET_KEY", "a" * 32)
+
+    s = Settings()
+    assert s.environment == "prod"
+    assert s.secret_key == "a" * 32
+
 
