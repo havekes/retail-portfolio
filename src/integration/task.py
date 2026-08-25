@@ -7,10 +7,21 @@ from svcs import Container
 from src.account.api.account import AccountApi
 from src.account.api.position import PositionApi
 from src.account.api_types import Account
+from src.auth.api import UserApi
 from src.auth.api_types import UserId
+from src.config.settings import settings
 from src.core.context import get_request_id, request_id_ctx_var, set_request_id
+from src.core.email import EmailService, ExternalAccountErrorEmailData
+from src.core.enum import InstitutionEnum
 from src.integration.brokers import BrokerApiGateway
 from src.integration.brokers.api_types import BrokerAccountId
+from src.integration.brokers.exception import (
+    ExternalAPIError,
+    LoginFailedError,
+    OTPRequiredError,
+    SessionDoesNotExistError,
+    SessionExpiredError,
+)
 from src.integration.exception import (
     AccountPositionsSyncError,
     IntegrationUserNotFoundError,
@@ -105,6 +116,108 @@ async def _do_sync_positions(
         await account_api.update_last_sync_at(account.id)
 
 
+_SYNC_ERROR_MESSAGE_MAPPING: tuple[tuple[type[Exception], str], ...] = (
+    (
+        SessionExpiredError,
+        (
+            "Your session with the institution has expired. Please log in to"
+            " your account settings to reconnect and re-authenticate your"
+            " external account."
+        ),
+    ),
+    (
+        SessionDoesNotExistError,
+        (
+            "No active session was found for your external account. Please log"
+            " in to your account settings to link and authenticate your"
+            " external account."
+        ),
+    ),
+    (
+        OTPRequiredError,
+        (
+            "A one-time verification code (OTP) or two-factor authentication"
+            " is required. Please log in to your account settings to complete"
+            " authentication."
+        ),
+    ),
+    (
+        LoginFailedError,
+        (
+            "Authentication with the external institution failed. Please check"
+            " your credentials and reconnect your external account."
+        ),
+    ),
+    (
+        IntegrationUserNotFoundError,
+        (
+            "Integration details for this external account could not be found."
+            " Please reconnect your external account."
+        ),
+    ),
+    (
+        ExternalAPIError,
+        (
+            "An error occurred while communicating with the external"
+            " institution. Please try again later."
+        ),
+    ),
+)
+
+
+def _format_sync_error_message(exc: Exception) -> str:
+    if isinstance(exc, AccountPositionsSyncError):
+        return str(exc) or (
+            "Failed to sync account positions. Please try again or reconnect"
+            " your external account."
+        )
+
+    for exc_cls, msg in _SYNC_ERROR_MESSAGE_MAPPING:
+        if isinstance(exc, exc_cls):
+            return msg
+
+    return (
+        "An unexpected error occurred while syncing your account positions."
+        " Please try again later."
+    )
+
+
+async def _send_sync_error_email(
+    user_id: UserId,
+    account: Account,
+    exc: Exception,
+    svcs_container: Container,
+) -> None:
+    user_api = await svcs_container.aget(UserApi)
+    email = await user_api.get_email_for_user(user_id)
+    if not email:
+        logger.warning(
+            "User %s has no email or not found; skipping sync error email",
+            user_id,
+        )
+        return
+
+    try:
+        institution_name = (
+            InstitutionEnum(account.institution_id).name.replace("_", " ").title()
+        )
+    except ValueError:
+        institution_name = str(account.institution_id)
+
+    email_data = ExternalAccountErrorEmailData(
+        account_name=account.name,
+        institution_name=institution_name,
+        error_message=_format_sync_error_message(exc),
+        deeplink=f"{settings.frontend_url}/accounts",
+    )
+
+    email_service = await svcs_container.aget(EmailService)
+    await email_service.send_external_account_error_email(
+        recipient=email,
+        data=email_data,
+    )
+
+
 async def _sync_account_positions_task(
     user_id: UserId,
     account: Account,
@@ -150,8 +263,16 @@ async def _sync_account_positions_task(
                     ).model_dump(mode="json"),
                     user_id,
                 )
-            except Exception:
+            except Exception as exc:
                 logger.exception("Failed to sync positions for account %s", account.id)
+                try:
+                    await _send_sync_error_email(user_id, account, exc, svcs_container)
+                except Exception:
+                    logger.exception(
+                        "Failed to send sync error email for account %s (user %s)",
+                        account.id,
+                        user_id,
+                    )
                 # Send sync_failed websocket message
                 await ws_manager.send_personal_message(
                     AccountSyncMessage(
