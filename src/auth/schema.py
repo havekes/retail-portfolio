@@ -109,3 +109,45 @@ class LoginChallengeResponse(BaseModel):
 class LoginVerifyRequest(BaseModel):
     mfa_token: str
     code: str
+
+
+class PasskeySchema(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: UUID
+    user_id: UserId
+    credential_id: bytes
+    public_key: bytes
+    sign_count: int
+    name: str
+    transports: list[str] | None = None
+    created_at: datetime
+    last_used_at: datetime | None = None
+
+
+class PasskeyResponse(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: UUID
+    name: str
+    created_at: datetime
+    last_used_at: datetime | None = None
+    transports: list[str] | None = None
+
+
+class PasskeyRegisterVerifyRequest(BaseModel):
+    credential: dict | str
+    name: str = "Passkey"
+
+
+class PasskeyAuthenticateOptionsRequest(BaseModel):
+    email: str | None = None
+
+
+class PasskeyAuthenticateVerifyRequest(BaseModel):
+    credential: dict | str
+    email: str | None = None
+
+
+class PasskeyUpdateRequest(BaseModel):
+    name: str

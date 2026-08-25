@@ -41,6 +41,7 @@ dependencies = [
     "aiosmtplib>=5.1.2",
     "httpx2>=2.10.0",
     "pyotp>=2.9.0",
+    "webauthn>=2.5.0",
 ]
 
 [dependency-groups]

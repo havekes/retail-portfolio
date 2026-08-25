@@ -9,18 +9,21 @@ from svcs import Container
 
 from src.auth.api_types import UserId
 from src.auth.model import (
+    PasskeyModel,
     RecoveryCodeModel,
     TotpModel,
     UserModel,
     VerificationTokenModel,
 )
 from src.auth.repository import (
+    PasskeyRepository,
     RecoveryCodeRepository,
     TotpRepository,
     UserRepository,
     VerificationTokenRepository,
 )
 from src.auth.schema import (
+    PasskeySchema,
     RecoveryCodeSchema,
     TotpSchema,
     UserSchema,
@@ -325,3 +328,109 @@ async def sqlalchemy_recovery_code_repository_factory(
     container: Container,
 ) -> SqlAlchemyRecoveryCodeRepository:
     return SqlAlchemyRecoveryCodeRepository(session=await container.aget(AsyncSession))
+
+
+class SqlAlchemyPasskeyRepository(PasskeyRepository):
+    _session: AsyncSession
+
+    def __init__(self, session: AsyncSession):
+        self._session = session
+
+    @override
+    async def create_passkey(
+        self,
+        user_id: UserId,
+        *,
+        credential_id: bytes,
+        public_key: bytes,
+        sign_count: int = 0,
+        name: str = "Passkey",
+        transports: list[str] | None = None,
+    ) -> PasskeySchema:
+        passkey = PasskeyModel(
+            id=uuid4(),
+            user_id=user_id,
+            credential_id=credential_id,
+            public_key=public_key,
+            sign_count=sign_count,
+            name=name,
+            transports=transports,
+        )
+        self._session.add(passkey)
+        await self._session.commit()
+        await self._session.refresh(passkey)
+        return PasskeySchema.model_validate(passkey)
+
+    @override
+    async def get_by_id(self, passkey_id: UUID) -> PasskeySchema | None:
+        result = await self._session.execute(
+            select(PasskeyModel).where(PasskeyModel.id == passkey_id)
+        )
+        passkey = result.scalar_one_or_none()
+        if passkey:
+            return PasskeySchema.model_validate(passkey)
+        return None
+
+    @override
+    async def get_by_credential_id(self, credential_id: bytes) -> PasskeySchema | None:
+        result = await self._session.execute(
+            select(PasskeyModel).where(PasskeyModel.credential_id == credential_id)
+        )
+        passkey = result.scalar_one_or_none()
+        if passkey:
+            return PasskeySchema.model_validate(passkey)
+        return None
+
+    @override
+    async def get_by_user_id(self, user_id: UserId) -> list[PasskeySchema]:
+        result = await self._session.execute(
+            select(PasskeyModel)
+            .where(PasskeyModel.user_id == user_id)
+            .order_by(PasskeyModel.created_at.desc())
+        )
+        return [PasskeySchema.model_validate(m) for m in result.scalars().all()]
+
+    @override
+    async def update_name(self, passkey_id: UUID, name: str) -> PasskeySchema | None:
+        result = await self._session.execute(
+            update(PasskeyModel)
+            .where(PasskeyModel.id == passkey_id)
+            .values(name=name)
+            .returning(PasskeyModel)
+        )
+        await self._session.commit()
+        passkey = result.scalar_one_or_none()
+        if passkey:
+            return PasskeySchema.model_validate(passkey)
+        return None
+
+    @override
+    async def update_sign_count_and_last_used(
+        self, passkey_id: UUID, sign_count: int, last_used_at: datetime | None = None
+    ) -> None:
+        ts = last_used_at or datetime.now(UTC)
+        await self._session.execute(
+            update(PasskeyModel)
+            .where(PasskeyModel.id == passkey_id)
+            .values(sign_count=sign_count, last_used_at=ts)
+        )
+        await self._session.commit()
+
+    @override
+    async def delete_by_id(self, passkey_id: UUID, user_id: UserId) -> bool:
+        result = await self._session.execute(
+            delete(PasskeyModel)
+            .where(
+                PasskeyModel.id == passkey_id,
+                PasskeyModel.user_id == user_id,
+            )
+            .returning(PasskeyModel.id)
+        )
+        await self._session.commit()
+        return result.scalar_one_or_none() is not None
+
+
+async def sqlalchemy_passkey_repository_factory(
+    container: Container,
+) -> SqlAlchemyPasskeyRepository:
+    return SqlAlchemyPasskeyRepository(session=await container.aget(AsyncSession))

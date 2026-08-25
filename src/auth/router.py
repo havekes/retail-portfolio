@@ -26,6 +26,11 @@ from src.auth.schema import (
     LoginChallengeResponse,
     LoginVerifyRequest,
     MessageResponse,
+    PasskeyAuthenticateOptionsRequest,
+    PasskeyAuthenticateVerifyRequest,
+    PasskeyRegisterVerifyRequest,
+    PasskeyResponse,
+    PasskeyUpdateRequest,
     ResendVerificationRequest,
     TotpActivateRequest,
     TotpActivateResponse,
@@ -35,7 +40,7 @@ from src.auth.schema import (
     TwoFactorStatusResponse,
     VerifyEmailRequest,
 )
-from src.auth.service import TotpService
+from src.auth.service import PasskeyService, TotpService
 from src.config.limiter import limiter
 from src.config.settings import settings
 from src.core.email import EmailSendError
@@ -249,3 +254,94 @@ async def auth_totp_regenerate_recovery_codes(
 ) -> TotpRegenerateCodesResponse:
     totp_service = await services.aget(TotpService)
     return await totp_service.regenerate_recovery_codes(user.id)
+
+
+@auth_router.post("/passkey/register/options")
+async def auth_passkey_register_options(
+    user: Annotated[User, Depends(current_user)],
+    services: DepContainer,
+) -> dict:
+    passkey_service = await services.aget(PasskeyService)
+    return await passkey_service.generate_registration_options(user.id, user.email)
+
+
+@auth_router.post("/passkey/register/verify")
+async def auth_passkey_register_verify(
+    request: PasskeyRegisterVerifyRequest,
+    user: Annotated[User, Depends(current_user)],
+    services: DepContainer,
+) -> PasskeyResponse:
+    passkey_service = await services.aget(PasskeyService)
+    return await passkey_service.verify_registration(user.id, request)
+
+
+@auth_router.get("/passkeys")
+async def auth_passkeys_list(
+    user: Annotated[User, Depends(current_user)],
+    services: DepContainer,
+) -> list[PasskeyResponse]:
+    passkey_service = await services.aget(PasskeyService)
+    return await passkey_service.list_passkeys(user.id)
+
+
+@auth_router.delete("/passkeys/{passkey_id}")
+async def auth_passkeys_delete(
+    passkey_id: uuid.UUID,
+    user: Annotated[User, Depends(current_user)],
+    services: DepContainer,
+) -> MessageResponse:
+    passkey_service = await services.aget(PasskeyService)
+    await passkey_service.delete_passkey(passkey_id, user.id)
+    return MessageResponse(message="Passkey deleted successfully")
+
+
+@auth_router.patch("/passkeys/{passkey_id}")
+async def auth_passkeys_patch(
+    passkey_id: uuid.UUID,
+    request: PasskeyUpdateRequest,
+    user: Annotated[User, Depends(current_user)],
+    services: DepContainer,
+) -> PasskeyResponse:
+    passkey_service = await services.aget(PasskeyService)
+    return await passkey_service.rename_passkey(passkey_id, user.id, request.name)
+
+
+@auth_router.post("/passkey/authenticate/options")
+@limiter.limit("10/minute")
+async def auth_passkey_authenticate_options(
+    request: Request,  # noqa: ARG001
+    response: Response,  # noqa: ARG001
+    services: DepContainer,
+    data: PasskeyAuthenticateOptionsRequest | None = None,
+) -> dict:
+    passkey_service = await services.aget(PasskeyService)
+    email = data.email if data else None
+    return await passkey_service.generate_authentication_options(email=email)
+
+
+@auth_router.post("/passkey/authenticate/verify")
+@limiter.limit("10/minute")
+async def auth_passkey_authenticate_verify(
+    request: Request,  # noqa: ARG001
+    response: Response,
+    verify_data: PasskeyAuthenticateVerifyRequest,
+    services: DepContainer,
+) -> AuthResponse:
+    user_service = await services.aget(UserApi)
+    passkey_service = await services.aget(PasskeyService)
+
+    user, _passkey = await passkey_service.verify_authentication(verify_data.credential)
+
+    access_token = user_service.create_access_token(user.email, user.id)
+    response.set_cookie(
+        key="auth_token",
+        value=access_token,
+        httponly=settings.environment == "prod",
+        secure=settings.environment == "prod",
+        samesite="lax",
+        max_age=60 * 60 * 24 * 7,  # 7 days
+    )
+    return AuthResponse(
+        access_token=access_token,
+        user=User(id=user.id, email=user.email),
+    )

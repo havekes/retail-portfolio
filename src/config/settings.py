@@ -40,6 +40,12 @@ class Settings(BaseSettings):
     redis_url: str = "redis://localhost:6379/0"
     sync_ttl_seconds: int = 300
 
+    # WebAuthn Passkeys
+    webauthn_rp_id: str = "localhost"
+    webauthn_rp_name: str = "Retail Portfolio"
+    webauthn_origin: str = "http://localhost:8100"
+    webauthn_challenge_ttl_seconds: int = 300
+
     # Email
     smtp_host: str = "smtp.example.com"
     smtp_port: int = 587

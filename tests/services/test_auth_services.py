@@ -1,4 +1,6 @@
+import contextlib
 from datetime import UTC, datetime, timedelta
+from unittest.mock import MagicMock, patch
 from uuid import UUID, uuid4
 
 import pyotp
@@ -6,21 +8,27 @@ import pytest
 from argon2 import PasswordHasher
 from fastapi import HTTPException
 from itsdangerous import URLSafeTimedSerializer
+from webauthn.authentication.verify_authentication_response import VerifiedAuthentication
+from webauthn.registration.verify_registration_response import VerifiedRegistration
 
 from src.auth.api_types import UserId
 from src.auth.repository import (
+    PasskeyRepository,
     RecoveryCodeRepository,
     TotpRepository,
     UserRepository,
     VerificationTokenRepository,
 )
 from src.auth.schema import (
+    PasskeyRegisterVerifyRequest,
+    PasskeyResponse,
+    PasskeySchema,
     RecoveryCodeSchema,
     TotpSchema,
     UserSchema,
     VerificationTokenSchema,
 )
-from src.auth.service import EmailVerificationService, TotpService
+from src.auth.service import EmailVerificationService, PasskeyService, TotpService
 from src.config.settings import settings
 from src.core.email import EmailSendError, EmailService
 
@@ -590,3 +598,464 @@ async def test_verify_2fa_login_invalid_recovery_code(totp_service):
 
     # Completely wrong recovery code string
     assert await totp_service.verify_2fa_login(user_id, "invalid-recovery-code") is False
+
+
+class MockPasskeyRepository(PasskeyRepository):
+    def __init__(self):
+        self.passkeys: dict[UUID, PasskeySchema] = {}
+
+    async def create_passkey(  # noqa: PLR0913
+        self,
+        user_id: UserId,
+        *,
+        credential_id: bytes,
+        public_key: bytes,
+        sign_count: int = 0,
+        name: str = "Passkey",
+        transports: list[str] | None = None,
+    ) -> PasskeySchema:
+        p_id = uuid4()
+        schema = PasskeySchema(
+            id=p_id,
+            user_id=user_id,
+            credential_id=credential_id,
+            public_key=public_key,
+            sign_count=sign_count,
+            name=name,
+            transports=transports,
+            created_at=datetime.now(UTC),
+            last_used_at=None,
+        )
+        self.passkeys[p_id] = schema
+        return schema
+
+    async def get_by_id(self, passkey_id: UUID) -> PasskeySchema | None:
+        return self.passkeys.get(passkey_id)
+
+    async def get_by_credential_id(self, credential_id: bytes) -> PasskeySchema | None:
+        return next(
+            (p for p in self.passkeys.values() if p.credential_id == credential_id),
+            None,
+        )
+
+    async def get_by_user_id(self, user_id: UserId) -> list[PasskeySchema]:
+        return [p for p in self.passkeys.values() if p.user_id == user_id]
+
+    async def update_name(self, passkey_id: UUID, name: str) -> PasskeySchema | None:
+        p = self.passkeys.get(passkey_id)
+        if not p:
+            return None
+        updated = p.model_copy(update={"name": name})
+        self.passkeys[passkey_id] = updated
+        return updated
+
+    async def update_sign_count_and_last_used(
+        self, passkey_id: UUID, sign_count: int, last_used_at: datetime | None = None
+    ) -> None:
+        p = self.passkeys.get(passkey_id)
+        if p:
+            ts = last_used_at or datetime.now(UTC)
+            self.passkeys[passkey_id] = p.model_copy(
+                update={"sign_count": sign_count, "last_used_at": ts}
+            )
+
+    async def delete_by_id(self, passkey_id: UUID, user_id: UserId) -> bool:
+        p = self.passkeys.get(passkey_id)
+        if p and p.user_id == user_id:
+            del self.passkeys[passkey_id]
+            return True
+        return False
+
+
+class MockRedis:
+    def __init__(self):
+        self.data: dict[str, str] = {}
+
+    async def get(self, key: str) -> str | None:
+        return self.data.get(key)
+
+    async def setex(self, key: str, time: int, value: str) -> None:  # noqa: ARG002
+        self.data[key] = value
+
+    async def delete(self, *keys: str) -> None:
+        for k in keys:
+            self.data.pop(k, None)
+
+
+class MockRedisManager:
+    def __init__(self):
+        self.redis = MockRedis()
+
+    @contextlib.asynccontextmanager
+    async def client(self):
+        yield self.redis
+
+
+@pytest.fixture
+def mock_passkey_repo():
+    return MockPasskeyRepository()
+
+
+@pytest.fixture
+def mock_redis_manager():
+    return MockRedisManager()
+
+
+@pytest.fixture
+def passkey_service(mock_passkey_repo, mock_user_repo, mock_redis_manager):
+    return PasskeyService(
+        passkey_repository=mock_passkey_repo,
+        user_repository=mock_user_repo,
+        redis_manager=mock_redis_manager,
+    )
+
+
+@pytest.mark.asyncio
+async def test_passkey_generate_registration_options(
+    passkey_service, mock_redis_manager, mock_passkey_repo
+):
+    user_id = uuid4()
+    email = "passkey_user@example.com"
+
+    # With no existing passkeys
+    options = await passkey_service.generate_registration_options(user_id, email)
+    assert options["rp"]["id"] == settings.webauthn_rp_id
+    assert options["user"]["name"] == email
+    assert "challenge" in options
+
+    challenge_key = f"webauthn:challenge:reg:{user_id}"
+    assert await mock_redis_manager.redis.get(challenge_key) is not None
+
+    # With existing passkey
+    await mock_passkey_repo.create_passkey(
+        user_id,
+        credential_id=b"existing_cred_1",
+        public_key=b"existing_pubkey_1",
+        sign_count=0,
+    )
+    options2 = await passkey_service.generate_registration_options(user_id, email)
+    assert len(options2.get("excludeCredentials", [])) == 1
+
+
+@pytest.mark.asyncio
+async def test_passkey_verify_registration_success(
+    passkey_service, mock_redis_manager, mock_passkey_repo
+):
+    user_id = uuid4()
+    email = "passkey_user@example.com"
+
+    options = await passkey_service.generate_registration_options(user_id, email)
+    challenge = options["challenge"]
+
+    fake_verified = MagicMock(spec=VerifiedRegistration)
+    fake_verified.credential_id = b"new_cred_id_123"
+    fake_verified.credential_public_key = b"new_pub_key_456"
+    fake_verified.sign_count = 0
+
+    with patch(
+        "src.auth.service.webauthn.verify_registration_response",
+        return_value=fake_verified,
+    ):
+        req = PasskeyRegisterVerifyRequest(
+            credential={
+                "id": "cred_id",
+                "rawId": "raw_id",
+                "response": {"transports": ["internal"]},
+                "type": "public-key",
+            },
+            name="My Mac Passkey",
+        )
+        resp = await passkey_service.verify_registration(user_id, req)
+        assert resp.name == "My Mac Passkey"
+        assert resp.transports == ["internal"]
+        assert await mock_redis_manager.redis.get(f"webauthn:challenge:reg:{user_id}") is None
+        assert await mock_passkey_repo.get_by_credential_id(b"new_cred_id_123") is not None
+
+
+@pytest.mark.asyncio
+async def test_passkey_verify_registration_missing_challenge(passkey_service):
+    user_id = uuid4()
+    req = PasskeyRegisterVerifyRequest(
+        credential={"id": "cred_id"},
+        name="My Passkey",
+    )
+    with pytest.raises(HTTPException) as exc:
+        await passkey_service.verify_registration(user_id, req)
+    assert exc.value.status_code == 400
+    assert "Registration challenge expired or not found" in exc.value.detail
+
+
+@pytest.mark.asyncio
+async def test_passkey_verify_registration_invalid_response(
+    passkey_service, mock_redis_manager
+):
+    user_id = uuid4()
+    await mock_redis_manager.redis.setex(
+        f"webauthn:challenge:reg:{user_id}", 300, "fake_challenge_b64"
+    )
+
+    with patch(
+        "src.auth.service.webauthn.verify_registration_response",
+        side_effect=Exception("Invalid signature"),
+    ):
+        req = PasskeyRegisterVerifyRequest(
+            credential={"id": "cred_id"},
+            name="My Passkey",
+        )
+        with pytest.raises(HTTPException) as exc:
+            await passkey_service.verify_registration(user_id, req)
+        assert exc.value.status_code == 400
+        assert "Invalid registration response" in exc.value.detail
+
+
+@pytest.mark.asyncio
+async def test_passkey_list_passkeys(passkey_service, mock_passkey_repo):
+    user_id = uuid4()
+    await mock_passkey_repo.create_passkey(
+        user_id,
+        credential_id=b"c1",
+        public_key=b"pk1",
+        name="Key 1",
+    )
+    await mock_passkey_repo.create_passkey(
+        user_id,
+        credential_id=b"c2",
+        public_key=b"pk2",
+        name="Key 2",
+    )
+
+    passkeys = await passkey_service.list_passkeys(user_id)
+    assert len(passkeys) == 2
+    assert {p.name for p in passkeys} == {"Key 1", "Key 2"}
+
+
+@pytest.mark.asyncio
+async def test_passkey_delete_passkey(passkey_service, mock_passkey_repo):
+    user_id = uuid4()
+    p = await mock_passkey_repo.create_passkey(
+        user_id,
+        credential_id=b"c1",
+        public_key=b"pk1",
+        name="Key 1",
+    )
+
+    # Deleting own passkey succeeds
+    await passkey_service.delete_passkey(p.id, user_id)
+    assert await mock_passkey_repo.get_by_id(p.id) is None
+
+    # Deleting non-existent passkey raises 404
+    with pytest.raises(HTTPException) as exc:
+        await passkey_service.delete_passkey(p.id, user_id)
+    assert exc.value.status_code == 404
+
+
+@pytest.mark.asyncio
+async def test_passkey_rename_passkey(passkey_service, mock_passkey_repo):
+    user_id = uuid4()
+    p = await mock_passkey_repo.create_passkey(
+        user_id,
+        credential_id=b"c1",
+        public_key=b"pk1",
+        name="Old Name",
+    )
+
+    renamed = await passkey_service.rename_passkey(p.id, user_id, "New Name")
+    assert renamed.name == "New Name"
+
+    with pytest.raises(HTTPException) as exc:
+        await passkey_service.rename_passkey(uuid4(), user_id, "Other")
+    assert exc.value.status_code == 404
+
+
+@pytest.mark.asyncio
+async def test_passkey_generate_authentication_options(
+    passkey_service, mock_user_repo, mock_passkey_repo, mock_redis_manager
+):
+    user_id = uuid4()
+    email = "auth_test@example.com"
+    mock_user_repo.users[email] = UserSchema(
+        id=user_id,
+        email=email,
+        password="hashed_password",
+        is_active=True,
+        is_verified=True,
+        last_login_at=None,
+        created_at=datetime.now(UTC),
+    )
+    await mock_passkey_repo.create_passkey(
+        user_id,
+        credential_id=b"cred_auth_1",
+        public_key=b"pk_auth_1",
+    )
+
+    # Without email (usernameless)
+    options = await passkey_service.generate_authentication_options()
+    assert "challenge" in options
+    challenge_key = f"webauthn:challenge:auth:{options['challenge']}"
+    assert await mock_redis_manager.redis.get(challenge_key) is not None
+
+    # With email (populates allowCredentials)
+    options_with_email = await passkey_service.generate_authentication_options(email)
+    assert len(options_with_email.get("allowCredentials", [])) == 1
+
+
+@pytest.mark.asyncio
+async def test_passkey_verify_authentication_success(
+    passkey_service, mock_user_repo, mock_passkey_repo, mock_redis_manager
+):
+    user_id = uuid4()
+    email = "passkey_login_user@example.com"
+    mock_user_repo.users[email] = UserSchema(
+        id=user_id,
+        email=email,
+        password="hashed_password",
+        is_active=True,
+        is_verified=True,
+        last_login_at=None,
+        created_at=datetime.now(UTC),
+    )
+    cred_id = b"auth_cred_bytes"
+    pub_key = b"auth_pubkey_bytes"
+    passkey = await mock_passkey_repo.create_passkey(
+        user_id,
+        credential_id=cred_id,
+        public_key=pub_key,
+        sign_count=1,
+    )
+
+    raw_cred_dict = {
+        "id": "base64_cred_id",
+        "rawId": "base64_cred_id",
+        "response": {
+            "clientDataJSON": "eyJjaGFsbGVuZ2UiOiAiY2hhbGxlbmdlIn0",
+            "authenticatorData": "auth_data",
+            "signature": "sig",
+        },
+        "type": "public-key",
+    }
+
+    mock_parsed_cred = MagicMock()
+    mock_parsed_cred.raw_id = cred_id
+    mock_parsed_cred.response.client_data_json = b"client_data_bytes"
+
+    mock_client_data = MagicMock()
+    mock_client_data.challenge = b"challenge_bytes"
+
+    # Seed challenge in redis
+    challenge_b64 = "Y2hhbGxlbmdlX2J5dGVz"
+    with patch(
+        "src.auth.service.bytes_to_base64url", return_value=challenge_b64
+    ):
+        await mock_redis_manager.redis.setex(
+            f"webauthn:challenge:auth:{challenge_b64}", 300, "1"
+        )
+
+    fake_verified_auth = MagicMock(spec=VerifiedAuthentication)
+    fake_verified_auth.new_sign_count = 2
+
+    with (
+        patch(
+            "src.auth.service.parse_authentication_credential_json",
+            return_value=mock_parsed_cred,
+        ),
+        patch(
+            "src.auth.service.parse_client_data_json",
+            return_value=mock_client_data,
+        ),
+        patch(
+            "src.auth.service.bytes_to_base64url",
+            return_value=challenge_b64,
+        ),
+        patch(
+            "src.auth.service.webauthn.verify_authentication_response",
+            return_value=fake_verified_auth,
+        ),
+    ):
+        user, verified_passkey = await passkey_service.verify_authentication(raw_cred_dict)
+        assert user.id == user_id
+        assert verified_passkey.id == passkey.id
+
+        updated = await mock_passkey_repo.get_by_id(passkey.id)
+        assert updated.sign_count == 2
+        assert updated.last_used_at is not None
+        assert await mock_redis_manager.redis.get(f"webauthn:challenge:auth:{challenge_b64}") is None
+
+
+@pytest.mark.asyncio
+async def test_passkey_verify_authentication_unrecognized_passkey(passkey_service):
+    mock_parsed_cred = MagicMock()
+    mock_parsed_cred.raw_id = b"unknown_cred_id"
+
+    with patch(
+        "src.auth.service.parse_authentication_credential_json",
+        return_value=mock_parsed_cred,
+    ):
+        with pytest.raises(HTTPException) as exc:
+            await passkey_service.verify_authentication({"id": "some_id"})
+        assert exc.value.status_code == 401
+        assert "Passkey not recognized" in exc.value.detail
+
+
+@pytest.mark.asyncio
+async def test_passkey_verify_authentication_user_inactive_or_unverified(
+    passkey_service, mock_user_repo, mock_passkey_repo
+):
+    user_id = uuid4()
+    email = "inactive_user@example.com"
+    mock_user_repo.users[email] = UserSchema(
+        id=user_id,
+        email=email,
+        password="hashed_password",
+        is_active=False,
+        is_verified=True,
+        last_login_at=None,
+        created_at=datetime.now(UTC),
+    )
+    cred_id = b"inactive_cred_id"
+    await mock_passkey_repo.create_passkey(
+        user_id,
+        credential_id=cred_id,
+        public_key=b"pk",
+    )
+
+    mock_parsed_cred = MagicMock()
+    mock_parsed_cred.raw_id = cred_id
+
+    with patch(
+        "src.auth.service.parse_authentication_credential_json",
+        return_value=mock_parsed_cred,
+    ):
+        with pytest.raises(HTTPException) as exc:
+            await passkey_service.verify_authentication({"id": "some_id"})
+        assert exc.value.status_code == 401
+        assert "User not found or inactive" in exc.value.detail
+
+    # Now unverified user
+    unverified_id = uuid4()
+    unverified_email = "unverified@example.com"
+    mock_user_repo.users[unverified_email] = UserSchema(
+        id=unverified_id,
+        email=unverified_email,
+        password="hashed_password",
+        is_active=True,
+        is_verified=False,
+        last_login_at=None,
+        created_at=datetime.now(UTC),
+    )
+    unverified_cred_id = b"unverified_cred_id"
+    await mock_passkey_repo.create_passkey(
+        unverified_id,
+        credential_id=unverified_cred_id,
+        public_key=b"pk",
+    )
+    mock_parsed_cred.raw_id = unverified_cred_id
+
+    with patch(
+        "src.auth.service.parse_authentication_credential_json",
+        return_value=mock_parsed_cred,
+    ):
+        with pytest.raises(HTTPException) as exc:
+            await passkey_service.verify_authentication({"id": "some_id"})
+        assert exc.value.status_code == 403
+        assert "Email not verified" in exc.value.detail
+
