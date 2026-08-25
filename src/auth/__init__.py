@@ -1,4 +1,4 @@
-from svcs import Container, Registry
+from svcs import Registry
 
 from src.auth.api import (
     AuthorizationApi,
@@ -18,28 +18,12 @@ from src.auth.repository_sqlalchemy import (
     sqlalchemy_user_repository_factory,
     sqlalchemy_verification_token_repository_factory,
 )
-from src.auth.service import EmailVerificationService, TotpService
-from src.core.email import EmailService
-
-
-async def email_verification_service_factory(
-    container: Container,
-) -> EmailVerificationService:
-    return EmailVerificationService(
-        user_repository=await container.aget(UserRepository),
-        token_repository=await container.aget(VerificationTokenRepository),
-        email_service=await container.aget(EmailService),
-    )
-
-
-async def totp_service_factory(
-    container: Container,
-) -> TotpService:
-    return TotpService(
-        totp_repository=await container.aget(TotpRepository),
-        recovery_code_repository=await container.aget(RecoveryCodeRepository),
-        user_repository=await container.aget(UserRepository),
-    )
+from src.auth.service import (
+    EmailVerificationService,
+    TotpService,
+    email_verification_service_factory,
+    totp_service_factory,
+)
 
 
 def register_auth_services(registry: Registry) -> None:

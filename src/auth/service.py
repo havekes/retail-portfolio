@@ -6,6 +6,7 @@ import pyotp
 from argon2 import PasswordHasher
 from fastapi import HTTPException
 from itsdangerous import BadData, URLSafeTimedSerializer
+from svcs import Container
 
 from src.auth.api_types import UserId
 from src.auth.repository import (
@@ -113,6 +114,16 @@ class EmailVerificationService:
         await self.generate_and_send_verification(user.email, user.id)
 
 
+async def email_verification_service_factory(
+    container: Container,
+) -> EmailVerificationService:
+    return EmailVerificationService(
+        user_repository=await container.aget(UserRepository),
+        token_repository=await container.aget(VerificationTokenRepository),
+        email_service=await container.aget(EmailService),
+    )
+
+
 class TotpService:
     _totp_repository: TotpRepository
     _recovery_code_repository: RecoveryCodeRepository
@@ -215,3 +226,13 @@ class TotpService:
         await self._recovery_code_repository.create_recovery_codes(user_id, code_hashes)
 
         return TotpRegenerateCodesResponse(recovery_codes=recovery_codes)
+
+
+async def totp_service_factory(
+    container: Container,
+) -> TotpService:
+    return TotpService(
+        totp_repository=await container.aget(TotpRepository),
+        recovery_code_repository=await container.aget(RecoveryCodeRepository),
+        user_repository=await container.aget(UserRepository),
+    )
