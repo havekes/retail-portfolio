@@ -109,6 +109,7 @@ vi.mock('lightweight-charts', () => {
 					attachPrimitive: mockAttachPrimitive,
 					createPriceLine: vi.fn(),
 					removePriceLine: vi.fn(),
+					applyOptions: vi.fn(),
 					priceToCoordinate: vi.fn(() => 100),
 					coordinateToPrice: vi.fn(() => 100)
 				})),
@@ -1187,5 +1188,114 @@ describe('SecurityChart - Oscillator Panes & Custom Price Scales', () => {
 		await tick();
 
 		expect(mainChart).toBeDefined();
+	});
+
+	describe('hideLabels prop', () => {
+		it('sets axisLabelVisible on averagePrice line based on !hideLabels', async () => {
+			const { rerender } = render(SecurityChart, {
+				props: {
+					candles: initialCandles,
+					showAveragePrice: true,
+					averagePrice: 100,
+					hideLabels: false
+				}
+			});
+			await tick();
+
+			const createdCharts = vi.mocked(createChart).mock.results.map((r) => r.value);
+			const mainChart = createdCharts[createdCharts.length - 1];
+			const candlestickSeries = mainChart.addSeries.mock.results[0].value;
+
+			expect(candlestickSeries.createPriceLine).toHaveBeenCalledWith(
+				expect.objectContaining({
+					axisLabelVisible: true,
+					title: 'Avg Price'
+				})
+			);
+
+			// Rerender with hideLabels: true
+			rerender({
+				candles: initialCandles,
+				showAveragePrice: true,
+				averagePrice: 100,
+				hideLabels: true
+			});
+			await tick();
+
+			expect(candlestickSeries.createPriceLine).toHaveBeenLastCalledWith(
+				expect.objectContaining({
+					axisLabelVisible: false,
+					title: 'Avg Price'
+				})
+			);
+		});
+
+		it('passes lastValueVisible and priceLineVisible to newly added indicator series', async () => {
+			const { component: comp } = render(SecurityChart, {
+				props: {
+					candles: initialCandles,
+					hideLabels: true
+				}
+			});
+			const component = comp as unknown as SecurityChartInstance;
+			const createdCharts = vi.mocked(createChart).mock.results.map((r) => r.value);
+			const mainChart = createdCharts[createdCharts.length - 1];
+
+			component.addIndicator({
+				type: 'ma50',
+				label: '50 Day MA',
+				color: '#2196F3',
+				data: [{ time: '2024-01-10', value: 10 }]
+			});
+			await tick();
+
+			expect(mainChart.addSeries).toHaveBeenCalledWith(
+				'LineSeries',
+				expect.objectContaining({
+					lastValueVisible: false,
+					priceLineVisible: false
+				})
+			);
+		});
+
+		it('dynamically calls applyOptions on existing indicator series when hideLabels changes', async () => {
+			const { component: comp, rerender } = render(SecurityChart, {
+				props: {
+					candles: initialCandles,
+					hideLabels: false
+				}
+			});
+			const component = comp as unknown as SecurityChartInstance;
+			const createdCharts = vi.mocked(createChart).mock.results.map((r) => r.value);
+			const mainChart = createdCharts[createdCharts.length - 1];
+
+			component.addIndicator({
+				type: 'ma50',
+				label: '50 Day MA',
+				color: '#2196F3',
+				data: [{ time: '2024-01-10', value: 10 }]
+			});
+			await tick();
+
+			// ma50 series is the second series created (first is candlestick)
+			const ma50Series = mainChart.addSeries.mock.results[1].value;
+			expect(ma50Series.applyOptions).not.toHaveBeenCalledWith(
+				expect.objectContaining({ lastValueVisible: false })
+			);
+
+			// Toggle hideLabels to true
+			rerender({
+				candles: initialCandles,
+				hideLabels: true
+			});
+			await tick();
+
+			expect(ma50Series.applyOptions).toHaveBeenCalledWith(
+				expect.objectContaining({
+					lastValueVisible: false,
+					priceLineVisible: false
+				})
+			);
+		});
 	});
 });

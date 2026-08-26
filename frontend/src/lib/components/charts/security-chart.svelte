@@ -75,6 +75,7 @@
 		onRemoveAlert,
 		averagePrice = 0,
 		showAveragePrice = false,
+		hideLabels = false,
 		hasMoreData = true,
 		isLoadingMore = $bindable(false),
 		onLoadMoreData,
@@ -105,6 +106,7 @@
 		onRemoveAlert?: (alertId: number) => void;
 		averagePrice?: number;
 		showAveragePrice?: boolean;
+		hideLabels?: boolean;
 		hasMoreData?: boolean;
 		isLoadingMore?: boolean;
 		onLoadMoreData?: () => void;
@@ -235,12 +237,33 @@
 				color: AVG_PRICE_LINE_COLOR,
 				lineWidth: 2,
 				lineStyle: 2, // Dashed
-				axisLabelVisible: true,
+				axisLabelVisible: !hideLabels,
 				title: 'Avg Price'
 			});
 		} else if (avgPriceLine) {
 			seriesInstance.removePriceLine(avgPriceLine);
 			avgPriceLine = null;
+		}
+	});
+
+	$effect(() => {
+		const visible = !hideLabels;
+		for (const [, s] of indicatorSeries.entries()) {
+			if (!s) continue;
+			if ('histogram' in s && 'macdLine' in s && 'signalLine' in s) {
+				s.histogram.applyOptions?.({ lastValueVisible: visible, priceLineVisible: visible });
+				s.macdLine.applyOptions?.({ lastValueVisible: visible, priceLineVisible: visible });
+				s.signalLine.applyOptions?.({ lastValueVisible: visible, priceLineVisible: visible });
+			} else if ('upper' in s && 'middle' in s && 'lower' in s) {
+				s.upper.applyOptions?.({ lastValueVisible: visible });
+				s.middle.applyOptions?.({ lastValueVisible: visible });
+				s.lower.applyOptions?.({ lastValueVisible: visible });
+			} else if ('applyOptions' in s && typeof s.applyOptions === 'function') {
+				s.applyOptions({
+					lastValueVisible: visible,
+					priceLineVisible: visible
+				});
+			}
 		}
 	});
 
@@ -599,7 +622,8 @@
 				priceScaleId: 'volume',
 				color: indicator.color,
 				priceFormat: { type: 'volume' },
-				priceLineVisible: false,
+				priceLineVisible: !hideLabels,
+				lastValueVisible: !hideLabels,
 				title: indicator.label
 			});
 			indicatorSeries.set('volume', series);
@@ -620,7 +644,8 @@
 				color: indicator.color,
 				lineWidth: 2,
 				crosshairMarkerVisible: true,
-				priceLineVisible: false,
+				priceLineVisible: !hideLabels,
+				lastValueVisible: !hideLabels,
 				title: indicator.label
 			});
 			indicatorSeries.set('rsi', series);
@@ -639,7 +664,8 @@
 			const histogram = chartInstance.addSeries(HistogramSeries, {
 				priceScaleId: 'macd',
 				base: 0,
-				priceLineVisible: false,
+				priceLineVisible: !hideLabels,
+				lastValueVisible: !hideLabels,
 				title: 'MACD Hist'
 			});
 			const macdLineColor = indicator.color || '#2962FF';
@@ -648,7 +674,8 @@
 				color: macdLineColor,
 				lineWidth: 1,
 				crosshairMarkerVisible: true,
-				priceLineVisible: false,
+				priceLineVisible: !hideLabels,
+				lastValueVisible: !hideLabels,
 				title: 'MACD'
 			});
 			const signalLine = chartInstance.addSeries(LineSeries, {
@@ -656,7 +683,8 @@
 				color: '#FF6D00',
 				lineWidth: 1,
 				crosshairMarkerVisible: true,
-				priceLineVisible: false,
+				priceLineVisible: !hideLabels,
+				lastValueVisible: !hideLabels,
 				title: 'Signal'
 			});
 
@@ -705,7 +733,8 @@
 				color: indicator.color,
 				lineWidth: 2,
 				crosshairMarkerVisible: true,
-				priceLineVisible: false,
+				priceLineVisible: !hideLabels,
+				lastValueVisible: !hideLabels,
 				title: indicator.label,
 				priceFormat: {
 					type: 'custom',
@@ -745,19 +774,22 @@
 				color: hexToRgba(color, 0.5),
 				lineWidth: 1,
 				crosshairMarkerVisible: true,
-				priceLineVisible: false
+				priceLineVisible: false,
+				lastValueVisible: !hideLabels
 			});
 			const middle = chartInstance.addSeries(LineSeries, {
 				color: hexToRgba(color, 1),
 				lineWidth: 1,
 				crosshairMarkerVisible: true,
-				priceLineVisible: false
+				priceLineVisible: false,
+				lastValueVisible: !hideLabels
 			});
 			const lower = chartInstance.addSeries(LineSeries, {
 				color: hexToRgba(color, 0.5),
 				lineWidth: 1,
 				crosshairMarkerVisible: true,
-				priceLineVisible: false
+				priceLineVisible: false,
+				lastValueVisible: !hideLabels
 			});
 
 			const bandsPrimitive = new BandsIndicator(
@@ -793,7 +825,8 @@
 			color: indicator.color,
 			lineWidth: 2,
 			crosshairMarkerVisible: true,
-			priceLineVisible: false,
+			priceLineVisible: !hideLabels,
+			lastValueVisible: !hideLabels,
 			title: indicator.label
 		});
 

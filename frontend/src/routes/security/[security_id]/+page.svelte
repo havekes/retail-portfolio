@@ -483,6 +483,18 @@
 		}
 	}
 
+	async function handleChartHideLabelsChange(hideLabels: boolean) {
+		userPreferences = {
+			...(userPreferences ?? {}),
+			chart_hide_labels: hideLabels
+		};
+		try {
+			await userPreferencesService.patchPreferences({ chart_hide_labels: hideLabels });
+		} catch (err) {
+			console.error('Failed to persist chart hide labels preference:', err);
+		}
+	}
+
 	async function handleWaveSettingsChange(settings: WaveSettings) {
 		userPreferences = {
 			...(userPreferences ?? {}),
@@ -841,6 +853,7 @@
 						<ChartComponent
 							candles={displayCandles}
 							bind:this={chartRef}
+							hideLabels={Boolean(userPreferences?.chart_hide_labels)}
 							{alerts}
 							onAddAlert={handleCreateAlert}
 							onRemoveAlert={handleDeleteAlert}
@@ -885,6 +898,8 @@
 						/>
 						<ChartSettingsModal
 							bind:open={isChartSettingsOpen}
+							chartHideLabels={Boolean(userPreferences?.chart_hide_labels)}
+							onSaveChartHideLabels={handleChartHideLabelsChange}
 							waveSettings={userPreferences?.wave_settings}
 							onSaveWaveSettings={handleWaveSettingsChange}
 							activeTool={activeFibTool}

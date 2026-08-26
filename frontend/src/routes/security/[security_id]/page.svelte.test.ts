@@ -2100,7 +2100,36 @@ describe('Security Page - Chart Settings Modal & Wave Settings Integration', () 
 		await fireEvent.click(settingsBtn);
 
 		expect(screen.getByText('Chart Settings')).toBeInTheDocument();
-		expect(screen.getByTestId('waves-settings-panel')).toBeInTheDocument();
+		expect(screen.getByTestId('general-settings-panel')).toBeInTheDocument();
+	});
+
+	it('persists chart hide labels preference and propagates hideLabels prop to SecurityChart', async () => {
+		render(PageComponent, { props: { data: mockData } });
+
+		await screen.findByRole('button', { name: /Open chart settings/i });
+		await waitFor(() => {
+			expect(mockChartProps).not.toBeNull();
+		});
+		// @ts-expect-error - mockChartProps typed as Record
+		expect(mockChartProps.hideLabels).toBe(false);
+
+		const settingsBtn = screen.getByRole('button', { name: /Open chart settings/i });
+		await fireEvent.click(settingsBtn);
+
+		const hideLabelsCheckbox = screen.getByTestId('hide-labels-checkbox');
+		await fireEvent.click(hideLabelsCheckbox);
+
+		const saveBtn = screen.getByTestId('save-general-btn');
+		await fireEvent.click(saveBtn);
+
+		expect(userPreferencesService.patchPreferences).toHaveBeenCalledWith({
+			chart_hide_labels: true
+		});
+
+		await waitFor(() => {
+			// @ts-expect-error - mockChartProps typed as Record
+			expect(mockChartProps.hideLabels).toBe(true);
+		});
 	});
 
 	it('persists wave settings and propagates snapToWicks prop to SecurityChart', async () => {
@@ -2115,6 +2144,9 @@ describe('Security Page - Chart Settings Modal & Wave Settings Integration', () 
 
 		const settingsBtn = screen.getByRole('button', { name: /Open chart settings/i });
 		await fireEvent.click(settingsBtn);
+
+		const wavesTab = screen.getByRole('tab', { name: 'Waves' });
+		await fireEvent.click(wavesTab);
 
 		const snapCheckbox = screen.getByTestId('snap-to-wicks-checkbox');
 		await fireEvent.click(snapCheckbox);
@@ -2143,6 +2175,9 @@ describe('Security Page - Chart Settings Modal & Wave Settings Integration', () 
 
 		const settingsBtn = await screen.findByRole('button', { name: /Open chart settings/i });
 		await fireEvent.click(settingsBtn);
+
+		const wavesTab = screen.getByRole('tab', { name: 'Waves' });
+		await fireEvent.click(wavesTab);
 
 		const cycle3Input = screen.getByTestId('cycle-wave3-input');
 		await fireEvent.input(cycle3Input, { target: { value: '90' } });
