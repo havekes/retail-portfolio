@@ -48,3 +48,7 @@ VERDICT: APPROVE | REQUEST_CHANGES
 ```
 
 Be specific and self-contained — the orchestrator pastes your findings into the ticket and the implementer works from them without seeing this conversation.
+
+## File output
+
+You write no persistent files — the verdict message is the output. If you capture diffs or notes to disk, put them in `.agent/scratch/` — never the repo root or `/tmp`.

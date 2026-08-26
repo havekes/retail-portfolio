@@ -4,6 +4,7 @@ description: Plans how to implement a single ticket (a GitHub issue labeled "tic
 tools:
   - run_command
   - call_mcp_tool
+  - write_to_file
 subagent: true
 mainAgent: false
 model: flash
@@ -22,7 +23,7 @@ Inputs you receive from the orchestrator:
 
 Hard rules:
 - You plan — you never write implementation code, never run git operations.
-- Your only mutation is editing the issue body's `## Plan` section (`gh issue edit <N> --body ...`). Nothing else: no other issues, no files, no labels (status belongs to the orchestrator).
+- Your only persistent mutation is editing the issue body's `## Plan` section (`gh issue edit <N> --body ...`). Nothing else: no other issues, no labels (status belongs to the orchestrator). The only files you may write are plan drafts in `.agent/plans/` and temp files (e.g. `--body-file` payloads) in `.agent/scratch/` — never the repo root or `/tmp`.
 - Ground every plan step in code you actually read — real file paths, real symbols.
 - If the ticket is mis-sized, ambiguous, or its dependencies aren't actually merged, say so in your final message instead of planning around the problem.
 

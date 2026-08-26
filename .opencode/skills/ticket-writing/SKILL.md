@@ -100,6 +100,10 @@ If the orchestrator gave you a previous architecture review: its open findings/c
 
 State is tracked by the single `status:*` label (owned by the orchestrator) — the body has no status field.
 
+## File output
+
+Tickets live only as GitHub issues — you create no persistent local files. Temp files (issue-body payloads for `gh issue create --body-file`, working notes) go to `.opencode/scratch/` — never the repo root or `/tmp`.
+
 ## Quality bar for your output
 
 - A stranger could implement each ticket without reading the source text.

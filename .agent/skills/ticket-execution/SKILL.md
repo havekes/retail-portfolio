@@ -68,6 +68,11 @@ Use `Refs #<issue-number>`, not `Closes` — the orchestrator closes the issue a
 
 Final message to the orchestrator with: branch name, PR URL, implementation summary (bullets), exact verification commands + results, out-of-scope observations. Do not touch the issue's labels or close it — the orchestrator owns state.
 
+## File output
+
+- Temp files (PR body payloads, captured verification logs) go to `.agent/scratch/` inside the checkout you are working in (main checkout or assigned worktree) — never the repo root or `/tmp`.
+- You produce no persistent local files — the branch, commits, and PR are the output.
+
 ## Never
 
 - No merges, no force-push, no rebasing onto anything but `origin/main`, no edits to other issues or their labels.

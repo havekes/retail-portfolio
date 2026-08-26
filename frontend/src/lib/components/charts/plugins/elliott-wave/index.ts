@@ -25,4 +25,4 @@ export {
 	epochSecondsToTime,
 	timeToEpochSeconds
 } from '../helpers/time/time';
-export { snapPriceToWick, buildCandleLookup, findCandleByTime } from './snap';
+export { snapPriceToWick, buildCandleLookup, findCandleByTime } from '../helpers/mouse/snap';

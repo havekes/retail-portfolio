@@ -41,12 +41,18 @@ Fetch the current body (`gh issue view <N> --json body -q .body`), replace the e
 - <edge cases, migration hazards, ordering constraints. Omit section if none.>
 ```
 
+## File output
+
+- The plan's permanent home is the issue body — never a repo file.
+- If you stage the plan as a local file first, write it to `.opencode/plans/<ticket-id>-plan.md`.
+- Temp files (e.g. a `--body-file` payload) go to `.opencode/scratch/` — never the repo root or `/tmp`. Prefer `gh issue edit <N> --body-file -` (stdin) when you don't need a local copy.
+
 ## Rules
 
 - The plan must cover **every** acceptance criterion — each criterion maps to at least one step and one verification.
 - Stay inside the ticket's scope. If planning reveals the ticket is mis-sized or its scope is wrong, do NOT expand the plan to compensate — flag it in your final message so the orchestrator can escalate.
 - No real code in the plan beyond short signatures or sketches; the executor writes the code.
-- Your **only** mutation is that one issue-body edit — no other sections (preserve them byte-for-byte), no other issues, no files, no labels (status belongs to the orchestrator), no git operations.
+- Your **only** persistent mutation is that one issue-body edit — no other sections (preserve them byte-for-byte), no other issues, no labels (status belongs to the orchestrator), no git operations. Local files only per the File output section above.
 
 ## Final message
 

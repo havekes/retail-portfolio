@@ -11,7 +11,7 @@ import {
 	type ProjectedWavePoint
 } from './pane-renderer';
 import { ElliottWavePaneView } from './pane-view';
-import { buildCandleLookup, findCandleByTime, snapPriceToWick } from './snap';
+import { buildCandleLookup, findCandleByTime, snapPriceToWick } from '../helpers/mouse/snap';
 import { ElliottWaveState, type PointTarget } from './state';
 import { DrawingPrimitiveBase } from '../helpers/primitive/drawing-primitive-base';
 

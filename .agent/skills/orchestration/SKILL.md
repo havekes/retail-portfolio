@@ -99,3 +99,4 @@ When the user asks for an architecture review ("run arch review", "check the pro
 - After every state transition, post a one-line status (ticket id + issue number + new status).
 - Verify `depends_on` tickets are actually closed before planning: `gh issue list --label ticket --state all --search "<ID> in:title"`.
 - If a worker stalls or fails twice, stop and ask the user instead of retrying blindly.
+- Write temp files (issue-body payloads for `gh issue edit`, captured command output) to `.agent/scratch/` and pipeline working notes to `.agent/plans/` — never the repo root or `/tmp`.
