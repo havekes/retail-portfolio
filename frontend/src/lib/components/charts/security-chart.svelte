@@ -13,7 +13,8 @@
 	import type {
 		DegreeWaveCount,
 		SecurityElliottWaves,
-		WaveDegree
+		WaveDegree,
+		WaveType
 	} from '$lib/utils/finance/elliott-wave';
 	import { areWaveCountsEqual } from '$lib/utils/finance/elliott-wave';
 	import { FibonacciPrimitive } from './plugins/fibonacci/fibonacci-primitive';
@@ -88,12 +89,14 @@
 		onLoadMoreData,
 		elliottWaves = null,
 		activeDegree = 'cycle',
+		activeWaveType = 'impulse',
 		isDrawingWave = false,
 		selectedWaveDegree = $bindable<WaveDegree | null>(null),
 		snapToWicks = false,
 		onWaveChange,
 		onDrawingModeChange,
 		onDegreeChange,
+		onWaveTypeChange,
 		onWaveSelect,
 		fibonacciTools = null,
 		activeFibTool = 'retracement',
@@ -116,12 +119,14 @@
 		onLoadMoreData?: () => void;
 		elliottWaves?: SecurityElliottWaves | null;
 		activeDegree?: WaveDegree;
+		activeWaveType?: WaveType;
 		isDrawingWave?: boolean;
 		selectedWaveDegree?: WaveDegree | null;
 		snapToWicks?: boolean;
 		onWaveChange?: (degree: WaveDegree, waveCount: DegreeWaveCount | null) => void;
 		onDrawingModeChange?: (isDrawing: boolean) => void;
 		onDegreeChange?: (degree: WaveDegree) => void;
+		onWaveTypeChange?: (type: WaveType) => void;
 		onWaveSelect?: (degree: WaveDegree | null) => void;
 		fibonacciTools?: SecurityFibonacciTools | null;
 		activeFibTool?: FibToolType | null;
@@ -281,6 +286,13 @@
 
 	$effect(() => {
 		if (!elliottWavesPrimitive) return;
+		if (activeWaveType && elliottWavesPrimitive.getActiveWaveType() !== activeWaveType) {
+			elliottWavesPrimitive.setActiveWaveType(activeWaveType);
+		}
+	});
+
+	$effect(() => {
+		if (!elliottWavesPrimitive) return;
 		if (isDrawingWave !== undefined && elliottWavesPrimitive.isDrawingMode() !== isDrawingWave) {
 			elliottWavesPrimitive.setDrawingMode(isDrawingWave);
 		}
@@ -307,14 +319,19 @@
 		if (!elliottWavesPrimitive) return;
 		const currentCycle = elliottWavesPrimitive.getWaveCount('cycle');
 		const currentPrimary = elliottWavesPrimitive.getWaveCount('primary');
+		const currentIntermediate = elliottWavesPrimitive.getWaveCount('intermediate');
 		const nextCycle = elliottWaves?.cycle ?? null;
 		const nextPrimary = elliottWaves?.primary ?? null;
+		const nextIntermediate = elliottWaves?.intermediate ?? null;
 
 		if (!areWaveCountsEqual(currentCycle, nextCycle)) {
 			elliottWavesPrimitive.setWaveCount('cycle', nextCycle);
 		}
 		if (!areWaveCountsEqual(currentPrimary, nextPrimary)) {
 			elliottWavesPrimitive.setWaveCount('primary', nextPrimary);
+		}
+		if (!areWaveCountsEqual(currentIntermediate, nextIntermediate)) {
+			elliottWavesPrimitive.setWaveCount('intermediate', nextIntermediate);
 		}
 	});
 
@@ -558,9 +575,11 @@
 
 		elliottWavesPrimitive = new ElliottWavesPrimitive({
 			activeDegree,
+			activeWaveType,
 			waves: {
 				cycle: elliottWaves?.cycle ?? null,
-				primary: elliottWaves?.primary ?? null
+				primary: elliottWaves?.primary ?? null,
+				intermediate: elliottWaves?.intermediate ?? null
 			},
 			snapToWicks,
 			selectedDegree: selectedWaveDegree
@@ -580,6 +599,10 @@
 
 		elliottWavesPrimitive.degreeChanged().subscribe((degree) => {
 			onDegreeChange?.(degree);
+		});
+
+		elliottWavesPrimitive.waveTypeChanged().subscribe((type) => {
+			onWaveTypeChange?.(type);
 		});
 
 		elliottWavesPrimitive.selectionChanged().subscribe((degree) => {

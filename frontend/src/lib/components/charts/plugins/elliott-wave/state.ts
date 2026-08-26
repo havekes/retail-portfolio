@@ -1,18 +1,26 @@
 import type { Time } from 'lightweight-charts';
 import { Delegate, type ISubscription } from '../helpers/delegate';
-import type { DegreeWaveCount, WaveDegree, WavePoint } from '$lib/utils/finance/elliott-wave';
-import { MAX_WAVE_POINTS } from './constants';
+import type {
+	DegreeWaveCount,
+	WaveDegree,
+	WavePoint,
+	WavePointId,
+	WaveType
+} from '$lib/utils/finance/elliott-wave';
+import { MAX_CORRECTIVE_POINTS, MAX_IMPULSE_POINTS } from './constants';
 
 export interface PointTarget {
 	degree: WaveDegree;
-	wave: 0 | 1 | 2 | 3 | 4 | 5;
+	wave: WavePointId;
 }
 
 export class ElliottWaveState {
 	private _activeDegree: WaveDegree = 'cycle';
+	private _activeWaveType: WaveType = 'impulse';
 	private _waveCounts: Record<WaveDegree, DegreeWaveCount | null> = {
 		cycle: null,
-		primary: null
+		primary: null,
+		intermediate: null
 	};
 	private _isDrawingMode: boolean = false;
 	private _selectedDegree: WaveDegree | null = null;
@@ -23,6 +31,7 @@ export class ElliottWaveState {
 		new Delegate();
 	private _drawingModeChanged: Delegate<boolean> = new Delegate();
 	private _degreeChanged: Delegate<WaveDegree> = new Delegate();
+	private _waveTypeChanged: Delegate<WaveType> = new Delegate();
 	private _selectionChanged: Delegate<WaveDegree | null> = new Delegate();
 	private _hoverChanged: Delegate<PointTarget | null> = new Delegate();
 	private _dragChanged: Delegate<PointTarget | null> = new Delegate();
@@ -40,6 +49,10 @@ export class ElliottWaveState {
 
 	public degreeChanged(): ISubscription<WaveDegree> {
 		return this._degreeChanged;
+	}
+
+	public waveTypeChanged(): ISubscription<WaveType> {
+		return this._waveTypeChanged;
 	}
 
 	public selectionChanged(): ISubscription<WaveDegree | null> {
@@ -62,6 +75,17 @@ export class ElliottWaveState {
 		if (this._activeDegree !== degree) {
 			this._activeDegree = degree;
 			this._degreeChanged.fire(degree);
+		}
+	}
+
+	public getActiveWaveType(): WaveType {
+		return this._activeWaveType;
+	}
+
+	public setActiveWaveType(type: WaveType): void {
+		if (this._activeWaveType !== type) {
+			this._activeWaveType = type;
+			this._waveTypeChanged.fire(type);
 		}
 	}
 
@@ -115,13 +139,17 @@ export class ElliottWaveState {
 				: null,
 			primary: this._waveCounts.primary
 				? { ...this._waveCounts.primary, points: [...this._waveCounts.primary.points] }
+				: null,
+			intermediate: this._waveCounts.intermediate
+				? { ...this._waveCounts.intermediate, points: [...this._waveCounts.intermediate.points] }
 				: null
 		};
 	}
 
-	public setAllWaveCounts(waves: Record<WaveDegree, DegreeWaveCount | null>): void {
+	public setAllWaveCounts(waves: Partial<Record<WaveDegree, DegreeWaveCount | null>>): void {
 		this.setWaveCount('cycle', waves.cycle ?? null);
 		this.setWaveCount('primary', waves.primary ?? null);
+		this.setWaveCount('intermediate', waves.intermediate ?? null);
 	}
 
 	public getPoints(degree?: WaveDegree): WavePoint[] {
@@ -130,14 +158,26 @@ export class ElliottWaveState {
 
 	public addPoint(point: { time: Time; price: number }, degree?: WaveDegree): WavePoint {
 		const targetDegree = degree ?? this._activeDegree;
+		const currentCount = this._waveCounts[targetDegree];
 		const existingPoints = [...this.getPoints(targetDegree)];
 
-		const isResetting = existingPoints.length >= MAX_WAVE_POINTS;
+		const isCorrective = this._activeWaveType === 'corrective';
+		const maxPoints = isCorrective ? MAX_CORRECTIVE_POINTS : MAX_IMPULSE_POINTS;
+
+		const typeMismatch = currentCount?.type && currentCount.type !== this._activeWaveType;
+		const isResetting = existingPoints.length >= maxPoints || typeMismatch;
 		if (isResetting) {
 			existingPoints.length = 0;
 		}
 
-		const nextWave = existingPoints.length as 0 | 1 | 2 | 3 | 4 | 5;
+		let nextWave: WavePointId;
+		if (isCorrective) {
+			const seq: WavePointId[] = [0, 'A', 'B', 'C'];
+			nextWave = seq[existingPoints.length] ?? 0;
+		} else {
+			nextWave = existingPoints.length as 0 | 1 | 2 | 3 | 4 | 5;
+		}
+
 		const newPoint: WavePoint = {
 			wave: nextWave,
 			time: point.time,
@@ -146,17 +186,18 @@ export class ElliottWaveState {
 
 		existingPoints.push(newPoint);
 
-		const currentCount = isResetting ? null : this._waveCounts[targetDegree];
+		const baseCount = isResetting ? null : currentCount;
 		const updatedCount: DegreeWaveCount = {
+			type: this._activeWaveType,
 			points: existingPoints,
-			wave3Target: currentCount?.wave3Target ?? (nextWave === 3 ? point.price : null),
-			wave5Target: currentCount?.wave5Target ?? (nextWave === 5 ? point.price : null)
+			wave3Target: baseCount?.wave3Target ?? (nextWave === 3 ? point.price : null),
+			wave5Target: baseCount?.wave5Target ?? (nextWave === 5 ? point.price : null)
 		};
 
 		this._waveCounts[targetDegree] = updatedCount;
 		this._wavePointsChanged.fire({ degree: targetDegree, waveCount: updatedCount });
 
-		if (existingPoints.length >= MAX_WAVE_POINTS) {
+		if (existingPoints.length >= maxPoints) {
 			this.setDrawingMode(false);
 		}
 
@@ -164,7 +205,7 @@ export class ElliottWaveState {
 	}
 
 	public updatePoint(
-		wave: 0 | 1 | 2 | 3 | 4 | 5,
+		wave: WavePointId,
 		update: { time?: Time; price?: number },
 		degree?: WaveDegree
 	): boolean {
@@ -240,6 +281,7 @@ export class ElliottWaveState {
 		this._wavePointsChanged.destroy();
 		this._drawingModeChanged.destroy();
 		this._degreeChanged.destroy();
+		this._waveTypeChanged.destroy();
 		this._selectionChanged.destroy();
 		this._hoverChanged.destroy();
 		this._dragChanged.destroy();

@@ -1,5 +1,5 @@
 import type { ISeriesApi, SeriesType } from 'lightweight-charts';
-import type { WaveDegree, WavePoint } from '$lib/utils/finance/elliott-wave';
+import type { WaveDegree, WavePoint, WavePointId } from '$lib/utils/finance/elliott-wave';
 import type { Candle } from '$lib/utils/finance/candle';
 import { HIT_TEST_RADIUS } from './constants';
 import { buildCandleLookup, findCandleByTime, snapPriceToWick } from '../helpers/mouse/snap';
@@ -11,7 +11,7 @@ export type { MousePosition } from '../helpers/mouse/mouse-position';
 
 export interface ProjectedPointWithTarget {
 	degree: WaveDegree;
-	wave: 0 | 1 | 2 | 3 | 4 | 5;
+	wave: WavePointId;
 	x: number;
 	y: number;
 	originalPoint: WavePoint;
