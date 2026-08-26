@@ -28,7 +28,7 @@ export class ElliottWavesPrimitive extends DrawingPrimitiveBase<
 
 	constructor(initialState?: {
 		activeDegree?: WaveDegree;
-		waves?: Record<WaveDegree, DegreeWaveCount | null>;
+		waves?: Partial<Record<WaveDegree, DegreeWaveCount | null>>;
 		snapToWicks?: boolean;
 		selectedDegree?: WaveDegree | null;
 	}) {
@@ -107,7 +107,7 @@ export class ElliottWavesPrimitive extends DrawingPrimitiveBase<
 		return this._state.getAllWaveCounts();
 	}
 
-	public setAllWaveCounts(waves: Record<WaveDegree, DegreeWaveCount | null>): void {
+	public setAllWaveCounts(waves: Partial<Record<WaveDegree, DegreeWaveCount | null>>): void {
 		this._state.setAllWaveCounts(waves);
 	}
 
@@ -202,7 +202,7 @@ export class ElliottWavesPrimitive extends DrawingPrimitiveBase<
 		if (!this._chart || !this._series) return null;
 
 		const series = this._series;
-		const degrees: WaveDegree[] = ['cycle', 'primary'];
+		const degrees: WaveDegree[] = ['cycle', 'primary', 'intermediate'];
 
 		const allProjectedPointsForMouse: ProjectedPointWithTarget[] = [];
 		const degreeRenderDataList: DegreeRenderData[] = [];

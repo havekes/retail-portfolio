@@ -307,14 +307,19 @@
 		if (!elliottWavesPrimitive) return;
 		const currentCycle = elliottWavesPrimitive.getWaveCount('cycle');
 		const currentPrimary = elliottWavesPrimitive.getWaveCount('primary');
+		const currentIntermediate = elliottWavesPrimitive.getWaveCount('intermediate');
 		const nextCycle = elliottWaves?.cycle ?? null;
 		const nextPrimary = elliottWaves?.primary ?? null;
+		const nextIntermediate = elliottWaves?.intermediate ?? null;
 
 		if (!areWaveCountsEqual(currentCycle, nextCycle)) {
 			elliottWavesPrimitive.setWaveCount('cycle', nextCycle);
 		}
 		if (!areWaveCountsEqual(currentPrimary, nextPrimary)) {
 			elliottWavesPrimitive.setWaveCount('primary', nextPrimary);
+		}
+		if (!areWaveCountsEqual(currentIntermediate, nextIntermediate)) {
+			elliottWavesPrimitive.setWaveCount('intermediate', nextIntermediate);
 		}
 	});
 
@@ -560,7 +565,8 @@
 			activeDegree,
 			waves: {
 				cycle: elliottWaves?.cycle ?? null,
-				primary: elliottWaves?.primary ?? null
+				primary: elliottWaves?.primary ?? null,
+				intermediate: elliottWaves?.intermediate ?? null
 			},
 			snapToWicks,
 			selectedDegree: selectedWaveDegree

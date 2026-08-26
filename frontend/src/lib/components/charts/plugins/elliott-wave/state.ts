@@ -12,7 +12,8 @@ export class ElliottWaveState {
 	private _activeDegree: WaveDegree = 'cycle';
 	private _waveCounts: Record<WaveDegree, DegreeWaveCount | null> = {
 		cycle: null,
-		primary: null
+		primary: null,
+		intermediate: null
 	};
 	private _isDrawingMode: boolean = false;
 	private _selectedDegree: WaveDegree | null = null;
@@ -115,13 +116,17 @@ export class ElliottWaveState {
 				: null,
 			primary: this._waveCounts.primary
 				? { ...this._waveCounts.primary, points: [...this._waveCounts.primary.points] }
+				: null,
+			intermediate: this._waveCounts.intermediate
+				? { ...this._waveCounts.intermediate, points: [...this._waveCounts.intermediate.points] }
 				: null
 		};
 	}
 
-	public setAllWaveCounts(waves: Record<WaveDegree, DegreeWaveCount | null>): void {
+	public setAllWaveCounts(waves: Partial<Record<WaveDegree, DegreeWaveCount | null>>): void {
 		this.setWaveCount('cycle', waves.cycle ?? null);
 		this.setWaveCount('primary', waves.primary ?? null);
+		this.setWaveCount('intermediate', waves.intermediate ?? null);
 	}
 
 	public getPoints(degree?: WaveDegree): WavePoint[] {

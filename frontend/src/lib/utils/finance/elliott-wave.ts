@@ -1,6 +1,6 @@
 import type { Time } from 'lightweight-charts';
 
-export type WaveDegree = 'cycle' | 'primary';
+export type WaveDegree = 'cycle' | 'primary' | 'intermediate';
 
 export type TargetWave = 'wave3' | 'wave5';
 
@@ -19,6 +19,7 @@ export interface DegreeWaveCount {
 export interface SecurityElliottWaves {
 	cycle?: DegreeWaveCount | null;
 	primary?: DegreeWaveCount | null;
+	intermediate?: DegreeWaveCount | null;
 }
 
 /**
@@ -28,6 +29,7 @@ export interface SecurityElliottWaves {
 export interface WaveAlertPercents {
 	cycle: { wave3: number | null; wave5: number | null };
 	primary: { wave3: number | null; wave5: number | null };
+	intermediate?: { wave3: number | null; wave5: number | null };
 }
 
 export interface WaveSettings {
@@ -43,7 +45,8 @@ export const DEFAULT_WAVE_SETTINGS: WaveSettings = {
 	snap_to_wicks: null,
 	alert_percents: {
 		cycle: { wave3: null, wave5: null },
-		primary: { wave3: null, wave5: null }
+		primary: { wave3: null, wave5: null },
+		intermediate: { wave3: null, wave5: null }
 	}
 };
 
@@ -228,6 +231,8 @@ export function areWaveSettingsEqual(
 		(aPercents.cycle?.wave3 ?? null) === (bPercents.cycle?.wave3 ?? null) &&
 		(aPercents.cycle?.wave5 ?? null) === (bPercents.cycle?.wave5 ?? null) &&
 		(aPercents.primary?.wave3 ?? null) === (bPercents.primary?.wave3 ?? null) &&
-		(aPercents.primary?.wave5 ?? null) === (bPercents.primary?.wave5 ?? null)
+		(aPercents.primary?.wave5 ?? null) === (bPercents.primary?.wave5 ?? null) &&
+		(aPercents.intermediate?.wave3 ?? null) === (bPercents.intermediate?.wave3 ?? null) &&
+		(aPercents.intermediate?.wave5 ?? null) === (bPercents.intermediate?.wave5 ?? null)
 	);
 }

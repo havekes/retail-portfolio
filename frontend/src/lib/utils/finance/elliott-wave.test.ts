@@ -322,7 +322,8 @@ describe('elliott-wave finance utilities', () => {
 			expect(DEFAULT_WAVE_SETTINGS.snap_to_wicks).toBe(null);
 			expect(DEFAULT_WAVE_SETTINGS.alert_percents).toEqual({
 				cycle: { wave3: null, wave5: null },
-				primary: { wave3: null, wave5: null }
+				primary: { wave3: null, wave5: null },
+				intermediate: { wave3: null, wave5: null }
 			});
 		});
 	});
@@ -332,7 +333,8 @@ describe('elliott-wave finance utilities', () => {
 			snap_to_wicks: true,
 			alert_percents: {
 				cycle: { wave3: 5, wave5: 10 },
-				primary: { wave3: 15, wave5: 20 }
+				primary: { wave3: 15, wave5: 20 },
+				intermediate: { wave3: 25, wave5: 30 }
 			}
 		};
 
@@ -353,7 +355,8 @@ describe('elliott-wave finance utilities', () => {
 					snap_to_wicks: true,
 					alert_percents: {
 						cycle: { wave3: 5, wave5: 10 },
-						primary: { wave3: 15, wave5: 20 }
+						primary: { wave3: 15, wave5: 20 },
+						intermediate: { wave3: 25, wave5: 30 }
 					}
 				})
 			).toBe(true);
@@ -370,7 +373,8 @@ describe('elliott-wave finance utilities', () => {
 					...fullSettings,
 					alert_percents: {
 						cycle: { wave3: 6, wave5: 10 },
-						primary: { wave3: 15, wave5: 20 }
+						primary: { wave3: 15, wave5: 20 },
+						intermediate: { wave3: 25, wave5: 30 }
 					}
 				})
 			).toBe(false);
@@ -379,7 +383,8 @@ describe('elliott-wave finance utilities', () => {
 					...fullSettings,
 					alert_percents: {
 						cycle: { wave3: 5, wave5: 11 },
-						primary: { wave3: 15, wave5: 20 }
+						primary: { wave3: 15, wave5: 20 },
+						intermediate: { wave3: 25, wave5: 30 }
 					}
 				})
 			).toBe(false);
@@ -388,7 +393,8 @@ describe('elliott-wave finance utilities', () => {
 					...fullSettings,
 					alert_percents: {
 						cycle: { wave3: 5, wave5: 10 },
-						primary: { wave3: 16, wave5: 20 }
+						primary: { wave3: 16, wave5: 20 },
+						intermediate: { wave3: 25, wave5: 30 }
 					}
 				})
 			).toBe(false);
@@ -397,7 +403,28 @@ describe('elliott-wave finance utilities', () => {
 					...fullSettings,
 					alert_percents: {
 						cycle: { wave3: 5, wave5: 10 },
-						primary: { wave3: 15, wave5: 21 }
+						primary: { wave3: 15, wave5: 21 },
+						intermediate: { wave3: 25, wave5: 30 }
+					}
+				})
+			).toBe(false);
+			expect(
+				areWaveSettingsEqual(fullSettings, {
+					...fullSettings,
+					alert_percents: {
+						cycle: { wave3: 5, wave5: 10 },
+						primary: { wave3: 15, wave5: 20 },
+						intermediate: { wave3: 26, wave5: 30 }
+					}
+				})
+			).toBe(false);
+			expect(
+				areWaveSettingsEqual(fullSettings, {
+					...fullSettings,
+					alert_percents: {
+						cycle: { wave3: 5, wave5: 10 },
+						primary: { wave3: 15, wave5: 20 },
+						intermediate: { wave3: 25, wave5: 31 }
 					}
 				})
 			).toBe(false);
@@ -412,7 +439,8 @@ describe('elliott-wave finance utilities', () => {
 				snap_to_wicks: null,
 				alert_percents: {
 					cycle: { wave3: 5, wave5: 10 },
-					primary: { wave3: null, wave5: null }
+					primary: { wave3: null, wave5: null },
+					intermediate: { wave3: null, wave5: null }
 				}
 			} as WaveSettings;
 			// A stored settings object missing the `primary` degree key (possible via the
@@ -430,12 +458,31 @@ describe('elliott-wave finance utilities', () => {
 				snap_to_wicks: null,
 				alert_percents: {
 					cycle: { wave3: null, wave5: null },
-					primary: { wave3: 15, wave5: 20 }
+					primary: { wave3: 15, wave5: 20 },
+					intermediate: { wave3: null, wave5: null }
 				}
 			} as WaveSettings;
 			expect(() => areWaveSettingsEqual(missingCycleDegree, nullShapedCycle)).not.toThrow();
 			expect(areWaveSettingsEqual(missingCycleDegree, nullShapedCycle)).toBe(true);
 			expect(areWaveSettingsEqual(nullShapedCycle, missingCycleDegree)).toBe(true);
+
+			const missingIntermediateDegree = {
+				snap_to_wicks: null,
+				alert_percents: { cycle: { wave3: 5, wave5: 10 }, primary: { wave3: 15, wave5: 20 } }
+			} as unknown as WaveSettings;
+			const nullShapedIntermediate = {
+				snap_to_wicks: null,
+				alert_percents: {
+					cycle: { wave3: 5, wave5: 10 },
+					primary: { wave3: 15, wave5: 20 },
+					intermediate: { wave3: null, wave5: null }
+				}
+			} as WaveSettings;
+			expect(() =>
+				areWaveSettingsEqual(missingIntermediateDegree, nullShapedIntermediate)
+			).not.toThrow();
+			expect(areWaveSettingsEqual(missingIntermediateDegree, nullShapedIntermediate)).toBe(true);
+			expect(areWaveSettingsEqual(nullShapedIntermediate, missingIntermediateDegree)).toBe(true);
 		});
 
 		it('returns true when null and undefined field values both mean off', () => {
@@ -443,7 +490,8 @@ describe('elliott-wave finance utilities', () => {
 				snap_to_wicks: null,
 				alert_percents: {
 					cycle: { wave3: null, wave5: null },
-					primary: { wave3: null, wave5: null }
+					primary: { wave3: null, wave5: null },
+					intermediate: { wave3: null, wave5: null }
 				}
 			};
 			expect(
@@ -466,7 +514,8 @@ describe('elliott-wave finance utilities', () => {
 			snap_to_wicks: true,
 			alert_percents: {
 				cycle: { wave3: 5, wave5: 10 },
-				primary: { wave3: 15, wave5: 20 }
+				primary: { wave3: 15, wave5: 20 },
+				intermediate: { wave3: 25, wave5: 30 }
 			}
 		};
 
@@ -475,11 +524,14 @@ describe('elliott-wave finance utilities', () => {
 			expect(getWaveAlertPercent(configured, 'cycle', 'wave5')).toBe(10);
 			expect(getWaveAlertPercent(configured, 'primary', 'wave3')).toBe(15);
 			expect(getWaveAlertPercent(configured, 'primary', 'wave5')).toBe(20);
+			expect(getWaveAlertPercent(configured, 'intermediate', 'wave3')).toBe(25);
+			expect(getWaveAlertPercent(configured, 'intermediate', 'wave5')).toBe(30);
 		});
 
 		it('returns null for nullish settings', () => {
 			expect(getWaveAlertPercent(null, 'cycle', 'wave3')).toBe(null);
 			expect(getWaveAlertPercent(undefined, 'primary', 'wave5')).toBe(null);
+			expect(getWaveAlertPercent(null, 'intermediate', 'wave3')).toBe(null);
 		});
 
 		it('returns null when alert_percents is null or missing', () => {

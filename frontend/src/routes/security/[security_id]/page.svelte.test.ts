@@ -772,14 +772,16 @@ describe('Security Page - Elliott Wave Toolbar & Integration', () => {
 		expect(screen.queryByText(/Waves:/i)).not.toBeInTheDocument();
 	});
 
-	it('opens dropdown menu with Cycle Degree and Primary Degree options when Elliott Wave button is clicked', async () => {
+	it('opens dropdown menu with Cycle, Primary, and Intermediate options when Elliott Wave button is clicked', async () => {
 		render(PageComponent, { props: { data: mockData } });
 
 		const waveBtn = await screen.findByRole('button', { name: 'Elliott Wave' });
 		await fireEvent.click(waveBtn);
 
-		expect(await screen.findByText('Cycle Degree')).toBeInTheDocument();
-		expect(screen.getByText('Primary Degree')).toBeInTheDocument();
+		expect(await screen.findByText('Degree')).toBeInTheDocument();
+		expect(await screen.findByText('Cycle (I, II, III)')).toBeInTheDocument();
+		expect(screen.getByText('Primary (①, ②, ③)')).toBeInTheDocument();
+		expect(screen.getByText('Intermediate ((1), (2), (3))')).toBeInTheDocument();
 	});
 
 	it('selecting Cycle Degree activates drawing mode with cycle degree and active highlighting', async () => {
@@ -789,7 +791,7 @@ describe('Security Page - Elliott Wave Toolbar & Integration', () => {
 		expect(waveBtn.className).not.toContain('bg-primary');
 
 		await fireEvent.click(waveBtn);
-		const cycleOption = await screen.findByText('Cycle Degree');
+		const cycleOption = await screen.findByText('Cycle (I, II, III)');
 		await fireEvent.click(cycleOption);
 
 		expect(waveBtn.className).toContain('bg-primary');
@@ -809,7 +811,7 @@ describe('Security Page - Elliott Wave Toolbar & Integration', () => {
 		expect(waveBtn.className).not.toContain('bg-primary');
 
 		await fireEvent.click(waveBtn);
-		const primaryOption = await screen.findByText('Primary Degree');
+		const primaryOption = await screen.findByText('Primary (①, ②, ③)');
 		await fireEvent.click(primaryOption);
 
 		expect(waveBtn.className).toContain('bg-primary');
@@ -834,7 +836,7 @@ describe('Security Page - Elliott Wave Toolbar & Integration', () => {
 
 		// Select wave degree -> cancels fib drawing
 		await fireEvent.click(waveBtn);
-		const cycleOption = await screen.findByText('Cycle Degree');
+		const cycleOption = await screen.findByText('Cycle (I, II, III)');
 		await fireEvent.click(cycleOption);
 
 		expect(waveBtn.className).toContain('bg-primary');
@@ -846,7 +848,7 @@ describe('Security Page - Elliott Wave Toolbar & Integration', () => {
 
 		const waveBtn = await screen.findByRole('button', { name: 'Elliott Wave' });
 		await fireEvent.click(waveBtn);
-		const cycleOption = await screen.findByText('Cycle Degree');
+		const cycleOption = await screen.findByText('Cycle (I, II, III)');
 		await fireEvent.click(cycleOption);
 		expect(waveBtn.className).toContain('bg-primary');
 
@@ -1041,7 +1043,7 @@ describe('Security Page - Wave Selection & Keyboard Deletion', () => {
 
 		// Enter drawing mode and select a wave
 		await fireEvent.click(waveBtn);
-		const cycleOption = await screen.findByText('Cycle Degree');
+		const cycleOption = await screen.findByText('Cycle (I, II, III)');
 		await fireEvent.click(cycleOption);
 		expect(waveBtn.className).toContain('bg-primary');
 
@@ -1213,7 +1215,7 @@ describe('Security Page - Fibonacci Toolbar & Integration', () => {
 
 		// Engage wave drawing first
 		await fireEvent.click(waveBtn);
-		const cycleOption = await screen.findByText('Cycle Degree');
+		const cycleOption = await screen.findByText('Cycle (I, II, III)');
 		await fireEvent.click(cycleOption);
 		expect(waveBtn.className).toContain('bg-primary');
 
@@ -1235,7 +1237,7 @@ describe('Security Page - Fibonacci Toolbar & Integration', () => {
 
 		// Engage wave drawing first
 		await fireEvent.click(waveBtn);
-		const cycleOption = await screen.findByText('Cycle Degree');
+		const cycleOption = await screen.findByText('Cycle (I, II, III)');
 		await fireEvent.click(cycleOption);
 		expect(waveBtn.className).toContain('bg-primary');
 

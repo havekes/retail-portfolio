@@ -9,6 +9,22 @@ const CYCLE_ROMAN_NUMERALS: Record<number, string> = {
 	5: 'V'
 };
 
+const PRIMARY_CIRCLED_NUMBERS: Record<number, string> = {
+	1: '①',
+	2: '②',
+	3: '③',
+	4: '④',
+	5: '⑤'
+};
+
+const INTERMEDIATE_PARENTHESES_NUMBERS: Record<number, string> = {
+	1: '(1)',
+	2: '(2)',
+	3: '(3)',
+	4: '(4)',
+	5: '(5)'
+};
+
 export interface DegreeVisualConfig {
 	degree: WaveDegree;
 	name: string;
@@ -48,12 +64,27 @@ export const PRIMARY_STYLE: DegreeVisualConfig = {
 	selectedRingColor: 'rgba(16, 185, 129, 0.7)',
 	lineWidth: 2,
 	nodeRadius: 9,
-	formatLabel: (wave: number) => `${wave}`
+	formatLabel: (wave: number) => PRIMARY_CIRCLED_NUMBERS[wave] ?? ''
+};
+
+export const INTERMEDIATE_STYLE: DegreeVisualConfig = {
+	degree: 'intermediate',
+	name: 'Intermediate',
+	color: '#f59e0b',
+	badgeBgColor: '#b45309',
+	badgeTextColor: '#ffffff',
+	badgeBorderColor: '#fcd34d',
+	hoverRingColor: 'rgba(245, 158, 11, 0.4)',
+	selectedRingColor: 'rgba(245, 158, 11, 0.7)',
+	lineWidth: 2,
+	nodeRadius: 9,
+	formatLabel: (wave: number) => INTERMEDIATE_PARENTHESES_NUMBERS[wave] ?? ''
 };
 
 export const DEGREE_STYLES: Record<WaveDegree, DegreeVisualConfig> = {
 	cycle: CYCLE_STYLE,
-	primary: PRIMARY_STYLE
+	primary: PRIMARY_STYLE,
+	intermediate: INTERMEDIATE_STYLE
 };
 
 export const HIT_TEST_RADIUS = 14;

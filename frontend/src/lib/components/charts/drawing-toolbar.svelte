@@ -52,20 +52,29 @@
 					<p>Elliott Wave</p>
 				</Tooltip.Content>
 			</Tooltip.Root>
-			<DropdownMenu.Content side="right" align="start" class="z-50 min-w-36">
+			<DropdownMenu.Content side="right" align="start" class="z-50 min-w-44">
+				<DropdownMenu.Label>Degree</DropdownMenu.Label>
+				<DropdownMenu.Separator />
 				<DropdownMenu.Item
 					onSelect={() => onSelectWaveDegree?.('cycle')}
 					onclick={() => onSelectWaveDegree?.('cycle')}
 					class={activeWaveDegree === 'cycle' ? 'font-medium' : ''}
 				>
-					Cycle Degree
+					Cycle (I, II, III)
 				</DropdownMenu.Item>
 				<DropdownMenu.Item
 					onSelect={() => onSelectWaveDegree?.('primary')}
 					onclick={() => onSelectWaveDegree?.('primary')}
 					class={activeWaveDegree === 'primary' ? 'font-medium' : ''}
 				>
-					Primary Degree
+					Primary (①, ②, ③)
+				</DropdownMenu.Item>
+				<DropdownMenu.Item
+					onSelect={() => onSelectWaveDegree?.('intermediate')}
+					onclick={() => onSelectWaveDegree?.('intermediate')}
+					class={activeWaveDegree === 'intermediate' ? 'font-medium' : ''}
+				>
+					Intermediate ((1), (2), (3))
 				</DropdownMenu.Item>
 			</DropdownMenu.Content>
 		</DropdownMenu.Root>

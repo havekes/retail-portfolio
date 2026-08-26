@@ -8,7 +8,10 @@ import {
 	MouseHandlers,
 	CYCLE_STYLE,
 	PRIMARY_STYLE,
+	INTERMEDIATE_STYLE,
 	DEGREE_STYLES,
+	IMPULSE_COLOR,
+	CORRECTIVE_COLOR,
 	HIT_TEST_RADIUS,
 	MAX_WAVE_POINTS,
 	TimeProjector,
@@ -166,7 +169,7 @@ function createMockCanvasTarget() {
 
 describe('Elliott Wave Plugin', () => {
 	describe('Constants & Degree Visual Configuration', () => {
-		it('defines Cycle and Primary visual styles with distinct formatting and colors', () => {
+		it('defines Cycle, Primary, and Intermediate visual styles with distinct formatting and colors', () => {
 			expect(CYCLE_STYLE.degree).toBe('cycle');
 			expect(CYCLE_STYLE.color).toBe('#3b82f6');
 			expect(CYCLE_STYLE.formatLabel(1)).toBe('I');
@@ -177,13 +180,26 @@ describe('Elliott Wave Plugin', () => {
 
 			expect(PRIMARY_STYLE.degree).toBe('primary');
 			expect(PRIMARY_STYLE.color).toBe('#10b981');
-			expect(PRIMARY_STYLE.formatLabel(1)).toBe('1');
-			expect(PRIMARY_STYLE.formatLabel(5)).toBe('5');
+			expect(PRIMARY_STYLE.formatLabel(1)).toBe('①');
+			expect(PRIMARY_STYLE.formatLabel(2)).toBe('②');
+			expect(PRIMARY_STYLE.formatLabel(3)).toBe('③');
+			expect(PRIMARY_STYLE.formatLabel(4)).toBe('④');
+			expect(PRIMARY_STYLE.formatLabel(5)).toBe('⑤');
+
+			expect(INTERMEDIATE_STYLE.degree).toBe('intermediate');
+			expect(INTERMEDIATE_STYLE.formatLabel(1)).toBe('(1)');
+			expect(INTERMEDIATE_STYLE.formatLabel(2)).toBe('(2)');
+			expect(INTERMEDIATE_STYLE.formatLabel(3)).toBe('(3)');
+			expect(INTERMEDIATE_STYLE.formatLabel(4)).toBe('(4)');
+			expect(INTERMEDIATE_STYLE.formatLabel(5)).toBe('(5)');
 
 			expect(DEGREE_STYLES.cycle).toBe(CYCLE_STYLE);
 			expect(DEGREE_STYLES.primary).toBe(PRIMARY_STYLE);
+			expect(DEGREE_STYLES.intermediate).toBe(INTERMEDIATE_STYLE);
 			expect(HIT_TEST_RADIUS).toBe(14);
 			expect(MAX_WAVE_POINTS).toBe(6);
+			expect(IMPULSE_COLOR).toBe('#22c55e');
+			expect(CORRECTIVE_COLOR).toBe('#ef4444');
 		});
 	});
 
@@ -199,6 +215,7 @@ describe('Elliott Wave Plugin', () => {
 			expect(state.isDrawingMode()).toBe(false);
 			expect(state.getWaveCount('cycle')).toBeNull();
 			expect(state.getWaveCount('primary')).toBeNull();
+			expect(state.getWaveCount('intermediate')).toBeNull();
 			expect(state.getPoints('cycle')).toEqual([]);
 			expect(state.getHoveredPoint()).toBeNull();
 			expect(state.getDraggingPoint()).toBeNull();
@@ -307,16 +324,22 @@ describe('Elliott Wave Plugin', () => {
 		it('clears wave count for specified or active degree', () => {
 			state.addPoint({ time: '2024-01-01' as Time, price: 100 }, 'cycle');
 			state.addPoint({ time: '2024-01-01' as Time, price: 100 }, 'primary');
+			state.addPoint({ time: '2024-01-01' as Time, price: 100 }, 'intermediate');
 
 			state.clearWave('cycle');
 			expect(state.getWaveCount('cycle')).toBeNull();
 			expect(state.getWaveCount('primary')).not.toBeNull();
+			expect(state.getWaveCount('intermediate')).not.toBeNull();
 
 			state.clearWave('primary');
 			expect(state.getWaveCount('primary')).toBeNull();
+			expect(state.getWaveCount('intermediate')).not.toBeNull();
+
+			state.clearWave('intermediate');
+			expect(state.getWaveCount('intermediate')).toBeNull();
 		});
 
-		it('sets and retrieves full wave counts for both degrees', () => {
+		it('sets and retrieves full wave counts for all degrees', () => {
 			const sampleCycle: DegreeWaveCount = {
 				points: [
 					{ wave: 1, time: '2024-01-01' as Time, price: 100 },
@@ -328,14 +351,24 @@ describe('Elliott Wave Plugin', () => {
 				points: [{ wave: 1, time: '2024-01-05' as Time, price: 110 }],
 				wave3Target: 160
 			};
+			const sampleIntermediate: DegreeWaveCount = {
+				points: [{ wave: 1, time: '2024-01-08' as Time, price: 120 }],
+				wave3Target: 170
+			};
 
-			state.setAllWaveCounts({ cycle: sampleCycle, primary: samplePrimary });
+			state.setAllWaveCounts({
+				cycle: sampleCycle,
+				primary: samplePrimary,
+				intermediate: sampleIntermediate
+			});
 
 			const all = state.getAllWaveCounts();
 			expect(all.cycle?.points.length).toBe(2);
 			expect(all.cycle?.wave3Target).toBe(180);
 			expect(all.primary?.points.length).toBe(1);
 			expect(all.primary?.wave3Target).toBe(160);
+			expect(all.intermediate?.points.length).toBe(1);
+			expect(all.intermediate?.wave3Target).toBe(170);
 		});
 
 		it('manages hover and drag targets and fires delegates', () => {
@@ -404,7 +437,7 @@ describe('Elliott Wave Plugin', () => {
 			renderer = new ElliottWavePaneRenderer();
 		});
 
-		it('renders node badges for Cycle degree with Roman numerals and no connecting lines (omits label for wave 0)', () => {
+		it('renders wave segments colored green for impulse and red for corrective, with Roman numerals for Cycle (omits label for wave 0, no badge background)', () => {
 			const { target, drawCalls } = createMockCanvasTarget();
 
 			renderer.update({
@@ -434,15 +467,15 @@ describe('Elliott Wave Plugin', () => {
 
 			expect(target.useBitmapCoordinateSpace).toHaveBeenCalled();
 
-			// No connecting lines should be drawn between wave points (preview is null)
+			// 3 connecting lines should be drawn between wave points (0->1, 1->2, 2->3)
 			const lineCalls = drawCalls.filter((c) => c.type === 'lineTo');
 			const moveCalls = drawCalls.filter((c) => c.type === 'moveTo');
-			expect(lineCalls).toHaveLength(0);
-			expect(moveCalls).toHaveLength(0);
+			expect(lineCalls).toHaveLength(3);
+			expect(moveCalls).toHaveLength(3);
 
-			// Should render node badge circles for all 4 points (at least 4 arc calls)
+			// Should render anchor dot only for wave 0, no badge background circles for points 1, 2, 3
 			const arcCalls = drawCalls.filter((c) => c.type === 'arc');
-			expect(arcCalls.length).toBeGreaterThanOrEqual(4);
+			expect(arcCalls).toHaveLength(1);
 
 			// Should render Roman numeral text badges "I", "II", "III" for Cycle, but NOT for wave 0
 			const textCalls = drawCalls.filter((c) => c.type === 'fillText');
@@ -454,7 +487,7 @@ describe('Elliott Wave Plugin', () => {
 			expect(labels).not.toContain('0');
 		});
 
-		it('renders Primary degree badges formatted as "1", "2", "3" (omits wave 0 label)', () => {
+		it('renders Primary degree badges formatted as circled numbers (omits wave 0 label)', () => {
 			const { target, drawCalls } = createMockCanvasTarget();
 
 			renderer.update({
@@ -475,11 +508,45 @@ describe('Elliott Wave Plugin', () => {
 
 			renderer.draw(target);
 
+			const lineCalls = drawCalls.filter((c) => c.type === 'lineTo');
+			expect(lineCalls).toHaveLength(2);
+
 			const textCalls = drawCalls.filter((c) => c.type === 'fillText');
 			const labels = textCalls.map((c) => c.args[0]);
-			expect(labels).toContain('1');
-			expect(labels).toContain('2');
+			expect(labels).toContain('①');
+			expect(labels).toContain('②');
 			expect(labels).not.toContain('0');
+		});
+
+		it('renders Intermediate degree badges formatted as "(1)", "(2)" (omits wave 0 label)', () => {
+			const { target, drawCalls } = createMockCanvasTarget();
+
+			renderer.update({
+				degrees: [
+					{
+						degree: 'intermediate',
+						config: INTERMEDIATE_STYLE,
+						isActiveDegree: true,
+						points: [
+							{ wave: 0, x: 50, y: 320, time: '2024-01-01' as Time, price: 90 },
+							{ wave: 1, x: 100, y: 300, time: '2024-01-02' as Time, price: 100 },
+							{ wave: 2, x: 150, y: 350, time: '2024-01-03' as Time, price: 80 }
+						]
+					}
+				],
+				preview: null
+			});
+
+			renderer.draw(target);
+
+			const lineCalls = drawCalls.filter((c) => c.type === 'lineTo');
+			expect(lineCalls).toHaveLength(2);
+
+			const textCalls = drawCalls.filter((c) => c.type === 'fillText');
+			const labels = textCalls.map((c) => c.args[0]);
+			expect(labels).toContain('(1)');
+			expect(labels).toContain('(2)');
+			expect(labels).not.toContain('(0)');
 		});
 
 		it('renders highlight ring when a point (including wave 0) is hovered or dragged', () => {
@@ -501,7 +568,7 @@ describe('Elliott Wave Plugin', () => {
 
 			renderer.draw(target);
 
-			// Should have at least 2 arc calls (1 for highlight ring, 1 for badge circle)
+			// Should have at least 2 arc calls (1 for highlight ring, 1 for anchor dot)
 			const arcCalls = drawCalls.filter((c) => c.type === 'arc');
 			expect(arcCalls.length).toBeGreaterThanOrEqual(2);
 		});
@@ -527,9 +594,9 @@ describe('Elliott Wave Plugin', () => {
 
 			renderer.draw(target);
 
-			// Should have 2 arc calls per point (1 for selection halo, 1 for badge circle) -> total 4 arc calls
+			// Should have selection halo for point 0 (1 ring + 1 dot = 2 arcs) and point 1 (1 ring = 1 arc) -> total 3 arcs
 			const arcCalls = drawCalls.filter((c) => c.type === 'arc');
-			expect(arcCalls.length).toBeGreaterThanOrEqual(4);
+			expect(arcCalls.length).toBeGreaterThanOrEqual(2);
 			expect(context.fillStyle).toBeDefined();
 		});
 
@@ -594,6 +661,40 @@ describe('Elliott Wave Plugin', () => {
 			const textCalls = drawCalls.filter((c) => c.type === 'fillText');
 			const labels = textCalls.map((c) => c.args[0]);
 			expect(labels).toContain('I'); // Ghost badge for next wave (Cycle = Roman numeral)
+		});
+
+		it('renders drawing preview dashed line and ghost badge for wave 2 with corrective red color', () => {
+			const { target, drawCalls } = createMockCanvasTarget();
+
+			renderer.update({
+				degrees: [
+					{
+						degree: 'cycle',
+						config: CYCLE_STYLE,
+						isActiveDegree: true,
+						points: [
+							{ wave: 0, x: 100, y: 300, time: '2024-01-01' as Time, price: 100 },
+							{ wave: 1, x: 150, y: 250, time: '2024-01-02' as Time, price: 120 }
+						]
+					}
+				],
+				preview: {
+					degree: 'cycle',
+					config: CYCLE_STYLE,
+					nextWave: 2,
+					lastPoint: { wave: 1, x: 150, y: 250, time: '2024-01-02' as Time, price: 120 },
+					currentMouse: { x: 200, y: 280 }
+				}
+			});
+
+			renderer.draw(target);
+
+			const dashCalls = drawCalls.filter((c) => c.type === 'setLineDash');
+			expect(dashCalls.length).toBeGreaterThanOrEqual(1);
+
+			const textCalls = drawCalls.filter((c) => c.type === 'fillText');
+			const labels = textCalls.map((c) => c.args[0]);
+			expect(labels).toContain('II');
 		});
 
 		it('handles empty or null data gracefully without crashing', () => {
@@ -942,7 +1043,7 @@ describe('Elliott Wave Plugin', () => {
 			expect(primitive.hitTest()?.cursorStyle).not.toBe('grabbing');
 		});
 
-		it('handles degree switching and separate wave points for Cycle and Primary', () => {
+		it('handles degree switching and separate wave points for Cycle, Primary, and Intermediate', () => {
 			primitive.setActiveDegree('cycle');
 			primitive.addPoint(100, '2024-01-01' as Time);
 			primitive.addPoint(120, '2024-01-02' as Time);
@@ -950,12 +1051,17 @@ describe('Elliott Wave Plugin', () => {
 			primitive.setActiveDegree('primary');
 			primitive.addPoint(50, '2024-01-10' as Time);
 
+			primitive.setActiveDegree('intermediate');
+			primitive.addPoint(70, '2024-01-15' as Time);
+
 			expect(primitive.getPoints('cycle')).toHaveLength(2);
 			expect(primitive.getPoints('primary')).toHaveLength(1);
+			expect(primitive.getPoints('intermediate')).toHaveLength(1);
 
 			const all = primitive.getAllWaveCounts();
 			expect(all.cycle?.points).toHaveLength(2);
 			expect(all.primary?.points).toHaveLength(1);
+			expect(all.intermediate?.points).toHaveLength(1);
 		});
 
 		it('handles unprojectable / off-screen points without throwing', () => {

@@ -27,7 +27,7 @@ describe('DrawingToolbar Component', () => {
 		expect(extendBtn).toHaveAttribute('title', 'Fibonacci Extension');
 	});
 
-	it('opens dropdown menu and triggers onSelectWaveDegree when Cycle Degree is selected', async () => {
+	it('opens dropdown menu with Degree title and triggers onSelectWaveDegree when Cycle is selected', async () => {
 		const onSelectWaveDegree = vi.fn();
 		render(DrawingToolbar, {
 			props: {
@@ -42,7 +42,9 @@ describe('DrawingToolbar Component', () => {
 		const waveBtn = screen.getByRole('button', { name: 'Elliott Wave' });
 		await fireEvent.click(waveBtn);
 
-		const cycleOption = await screen.findByText('Cycle Degree');
+		expect(await screen.findByText('Degree')).toBeInTheDocument();
+
+		const cycleOption = await screen.findByText('Cycle (I, II, III)');
 		await fireEvent.click(cycleOption);
 
 		expect(onSelectWaveDegree).toHaveBeenCalledWith('cycle');
@@ -63,10 +65,31 @@ describe('DrawingToolbar Component', () => {
 		const waveBtn = screen.getByRole('button', { name: 'Elliott Wave' });
 		await fireEvent.click(waveBtn);
 
-		const primaryOption = await screen.findByText('Primary Degree');
+		const primaryOption = await screen.findByText('Primary (①, ②, ③)');
 		await fireEvent.click(primaryOption);
 
 		expect(onSelectWaveDegree).toHaveBeenCalledWith('primary');
+	});
+
+	it('opens dropdown menu and triggers onSelectWaveDegree when Intermediate Degree is selected', async () => {
+		const onSelectWaveDegree = vi.fn();
+		render(DrawingToolbar, {
+			props: {
+				activeWaveDegree: 'cycle',
+				isDrawingWave: false,
+				activeFibTool: null,
+				isDrawingFib: false,
+				onSelectWaveDegree
+			}
+		});
+
+		const waveBtn = screen.getByRole('button', { name: 'Elliott Wave' });
+		await fireEvent.click(waveBtn);
+
+		const intermediateOption = await screen.findByText('Intermediate ((1), (2), (3))');
+		await fireEvent.click(intermediateOption);
+
+		expect(onSelectWaveDegree).toHaveBeenCalledWith('intermediate');
 	});
 
 	it('highlights Elliott Wave button when isDrawingWave is true', () => {
