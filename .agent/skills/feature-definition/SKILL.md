@@ -81,6 +81,10 @@ date: <YYYY-MM-DD>
 - `ready` — user approved; eligible input for ticket-writing.
 - Flip `status: ready` only on explicit user approval.
 
+## File output
+
+The spec in `.agent/features/` is the only persistent output. Temp/working files go to `.agent/scratch/` — never the repo root or `/tmp`.
+
 ## Quality bar
 
 - A reader who never heard the raw idea understands what is being built and why, without asking you anything.

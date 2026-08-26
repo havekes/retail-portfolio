@@ -211,6 +211,10 @@ __marimo__/
 .vault/
 .local/
 
+# Agent scratch (ephemeral temp files)
+.agent/scratch/
+.opencode/scratch/
+
 .DS_Store
 .bash_history
 .env

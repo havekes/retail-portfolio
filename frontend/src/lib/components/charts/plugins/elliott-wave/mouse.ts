@@ -2,7 +2,7 @@ import type { ISeriesApi, SeriesType } from 'lightweight-charts';
 import type { WaveDegree, WavePoint } from '$lib/utils/finance/elliott-wave';
 import type { Candle } from '$lib/utils/finance/candle';
 import { HIT_TEST_RADIUS } from './constants';
-import { buildCandleLookup, findCandleByTime, snapPriceToWick } from './snap';
+import { buildCandleLookup, findCandleByTime, snapPriceToWick } from '../helpers/mouse/snap';
 import type { PointTarget } from './state';
 import { ChartMouseHandlers } from '../helpers/mouse/chart-mouse-handlers';
 import type { MousePosition } from '../helpers/mouse/mouse-position';

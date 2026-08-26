@@ -34,3 +34,7 @@ Run quality checks (linting, type checking, tests) for backend, frontend, or bot
    - **Types**: Inspect `ty check` / `npm run check` errors and fix type signatures or annotations.
    - **Tests**: Inspect failure tracebacks from `pytest` / `npm run test:run` and fix root causes.
 4. **Re-verify**: Re-run targeted check commands until all pass with zero errors.
+
+## 3. File output
+
+If you capture check output or logs to disk, write them to `.opencode/scratch/` — never the repo root or `/tmp`.

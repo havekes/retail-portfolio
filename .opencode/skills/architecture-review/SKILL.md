@@ -79,3 +79,4 @@ Findings that are pure observations (no action worth a PR) stay in the report on
 - A `needs-remediation` verdict requires at least one ticket whose technical notes mark it as blocking upcoming work.
 - You write the report file and create the issues, then a summary as your final message: verdict, top findings, and the ticket list (id, issue number, title, depends_on).
 - You never change implementation code and never touch status labels — tickets start as `status:pending`, the orchestrator owns state from there.
+- Temp/working files go to `.opencode/scratch/` — never the repo root or `/tmp`. The report in `.opencode/reviews/` is your only persistent local file.
