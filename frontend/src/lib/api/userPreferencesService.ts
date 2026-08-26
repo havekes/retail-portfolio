@@ -49,6 +49,7 @@ export interface UserPreferences {
 	elliott_waves?: Record<string, SecurityElliottWaves> | null;
 	fibonacci_tools?: Record<string, SecurityFibonacciTools> | null;
 	wave_settings?: WaveSettings | null;
+	chart_hide_labels?: boolean | null;
 }
 
 export class UserPreferencesService extends ApiClient {
