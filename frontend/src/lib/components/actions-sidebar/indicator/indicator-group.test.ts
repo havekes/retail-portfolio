@@ -50,7 +50,7 @@ describe('IndicatorGroup Component', () => {
 	async function openRsiSettings() {
 		const rsiRow = screen.getByText('RSI').closest('[role="button"]');
 		expect(rsiRow).not.toBeNull();
-		const gearButton = within(rsiRow as HTMLElement).getByRole('button');
+		const gearButton = within(rsiRow as HTMLElement).getByRole('button', { name: /settings/i });
 		await fireEvent.click(gearButton);
 		await waitFor(() => expect(screen.getByText('RSI Settings')).toBeInTheDocument());
 	}
@@ -132,7 +132,9 @@ describe('IndicatorGroup Component', () => {
 
 		const macdRow = screen.getByText('MACD').closest('[role="button"]');
 		expect(macdRow).not.toBeNull();
-		await fireEvent.click(within(macdRow as HTMLElement).getByRole('button'));
+		await fireEvent.click(
+			within(macdRow as HTMLElement).getByRole('button', { name: /settings/i })
+		);
 		await waitFor(() => expect(screen.getByText('MACD Settings')).toBeInTheDocument());
 
 		await fireEvent.click(screen.getByTestId('reset-indicator-btn'));
@@ -170,7 +172,7 @@ describe('IndicatorGroup Component', () => {
 
 		const bbRow = screen.getByText('Bollinger Bands').closest('[role="button"]');
 		expect(bbRow).not.toBeNull();
-		await fireEvent.click(within(bbRow as HTMLElement).getByRole('button'));
+		await fireEvent.click(within(bbRow as HTMLElement).getByRole('button', { name: /settings/i }));
 		await waitFor(() => expect(screen.getByText('Bollinger Bands Settings')).toBeInTheDocument());
 
 		await fireEvent.click(screen.getByTestId('reset-indicator-btn'));
@@ -221,7 +223,7 @@ describe('IndicatorGroup Component', () => {
 
 		// Open bb settings (modal-bound config reads stale page state, enabled
 		// false) and Save.
-		await fireEvent.click(within(bbRow as HTMLElement).getByRole('button'));
+		await fireEvent.click(within(bbRow as HTMLElement).getByRole('button', { name: /settings/i }));
 		await waitFor(() => expect(screen.getByText('Bollinger Bands Settings')).toBeInTheDocument());
 		await fireEvent.click(screen.getByText('Save settings'));
 
@@ -233,6 +235,37 @@ describe('IndicatorGroup Component', () => {
 					bb: { enabled: true, color: '#8b5cf6', settings: { period: 20, stdDev: 2 } }
 				}
 			});
+		});
+	});
+
+	it('displays Info icon button for MACD, BB, RSI, OBV, and opens the educational help modal', async () => {
+		renderGroup();
+		await waitFor(() => expect(userPreferencesService.getPreferences).toHaveBeenCalled());
+
+		// Verify Info buttons exist for macd, bb, rsi, obv
+		expect(screen.getByTestId('help-macd-btn')).toBeInTheDocument();
+		expect(screen.getByTestId('help-bb-btn')).toBeInTheDocument();
+		expect(screen.getByTestId('help-rsi-btn')).toBeInTheDocument();
+		expect(screen.getByTestId('help-obv-btn')).toBeInTheDocument();
+
+		// Verify Info buttons do not exist for other indicators (e.g., volume, avgPrice, ma50)
+		expect(screen.queryByTestId('help-volume-btn')).toBeNull();
+		expect(screen.queryByTestId('help-avgPrice-btn')).toBeNull();
+		expect(screen.queryByTestId('help-ma50-btn')).toBeNull();
+
+		// Click MACD info button and verify educational modal opens with MACD content
+		await fireEvent.click(screen.getByTestId('help-macd-btn'));
+		await waitFor(() => {
+			expect(screen.getByText('Moving Average Convergence Divergence (MACD)')).toBeInTheDocument();
+		});
+
+		// Close modal
+		await fireEvent.click(screen.getByTestId('help-modal-close-btn'));
+
+		// Click RSI info button and verify educational modal opens with RSI content
+		await fireEvent.click(screen.getByTestId('help-rsi-btn'));
+		await waitFor(() => {
+			expect(screen.getByText('Relative Strength Index (RSI)')).toBeInTheDocument();
 		});
 	});
 });
