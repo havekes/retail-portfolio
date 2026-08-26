@@ -120,13 +120,17 @@ describe('IndicatorConfigModal Component', () => {
 
 		// Same right-alignment contract as the swatch row: each input lives in a
 		// `col-span-3 flex justify-end` wrapper, so the control sits on the
-		// right edge of the modal with its label on the left.
+		// right edge of the modal with its label on the left. The input is also
+		// compact (`w-24` overrides the shared Input's default `w-full` via
+		// tailwind-merge), so it does not stretch to fill the row.
 		const numberInputs = document.querySelectorAll('input[type="number"]');
 		expect(numberInputs).toHaveLength(inputs);
 		for (const input of numberInputs) {
 			const row = input.closest('.col-span-3');
 			if (!row) throw new Error('input row wrapper not found');
 			expect(row.className).toContain('justify-end');
+			expect(input.className).toContain('w-24');
+			expect(input.className).not.toContain('w-full');
 		}
 	});
 

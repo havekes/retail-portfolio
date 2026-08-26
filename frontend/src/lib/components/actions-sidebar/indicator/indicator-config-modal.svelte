@@ -81,7 +81,7 @@
 					<div class="grid grid-cols-4 items-center gap-2">
 						<Label>Period</Label>
 						<div class="col-span-3 flex justify-end">
-							<Input type="number" bind:value={config.period} />
+							<Input type="number" class="w-24" bind:value={config.period} />
 						</div>
 					</div>
 				{/if}
@@ -89,7 +89,7 @@
 					<div class="grid grid-cols-4 items-center gap-2">
 						<Label>Std Dev</Label>
 						<div class="col-span-3 flex justify-end">
-							<Input type="number" bind:value={config.stdDev} />
+							<Input type="number" class="w-24" bind:value={config.stdDev} />
 						</div>
 					</div>
 				{/if}
@@ -97,19 +97,19 @@
 					<div class="grid grid-cols-4 items-center gap-2">
 						<Label>Fast</Label>
 						<div class="col-span-3 flex justify-end">
-							<Input type="number" bind:value={config.fast} />
+							<Input type="number" class="w-24" bind:value={config.fast} />
 						</div>
 					</div>
 					<div class="grid grid-cols-4 items-center gap-2">
 						<Label>Slow</Label>
 						<div class="col-span-3 flex justify-end">
-							<Input type="number" bind:value={config.slow} />
+							<Input type="number" class="w-24" bind:value={config.slow} />
 						</div>
 					</div>
 					<div class="grid grid-cols-4 items-center gap-2">
 						<Label>Signal</Label>
 						<div class="col-span-3 flex justify-end">
-							<Input type="number" bind:value={config.signal} />
+							<Input type="number" class="w-24" bind:value={config.signal} />
 						</div>
 					</div>
 				{/if}
