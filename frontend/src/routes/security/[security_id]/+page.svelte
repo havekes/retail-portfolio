@@ -396,8 +396,9 @@
 		setTimeout(() => {
 			if (!chartRef) return;
 			for (const [id, config] of Object.entries(indicatorConfigs)) {
-				if (config.enabled && id !== 'avgPrice') {
-					chartRef.removeIndicator(id);
+				if (id === 'avgPrice') continue;
+				chartRef.removeIndicator(id);
+				if (config.enabled) {
 					onIndicatorToggle(id, true);
 				}
 			}

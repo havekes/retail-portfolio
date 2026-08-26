@@ -6,7 +6,9 @@
 	import type { UserPreferences } from '$lib/api/userPreferencesService';
 	import { buildIndicatorEntry, buildToggleEntry } from '$lib/api/buildIndicatorEntry';
 	import { Settings2 } from '@lucide/svelte';
+	import Info from '@lucide/svelte/icons/info';
 	import IndicatorConfigDialog from '@/components/actions-sidebar/indicator/indicator-config-modal.svelte';
+	import IndicatorHelpModal from './indicator-help-modal.svelte';
 	import GroupTitle from '../group-title.svelte';
 	import { INDICATOR_DEFAULTS, type IndicatorId } from '$lib/chart/indicator-defaults';
 
@@ -53,6 +55,9 @@
 	let isSettingsOpen = $state(false);
 	let selectedIndicatorSettings = $state<IndicatorUIProps | null>(null);
 
+	let isHelpOpen = $state(false);
+	let selectedHelpIndicatorId = $state<string | null>(null);
+
 	function openSettings(indicatorId: string, e: MouseEvent) {
 		e.stopPropagation();
 		if (!indicatorConfigs?.[indicatorId]) return;
@@ -63,6 +68,12 @@
 			...indicatorConfigs[indicatorId]
 		};
 		isSettingsOpen = true;
+	}
+
+	function openHelp(indicatorId: string, e: MouseEvent) {
+		e.stopPropagation();
+		selectedHelpIndicatorId = indicatorId;
+		isHelpOpen = true;
 	}
 
 	async function saveSettings(id: string, newConfig: unknown) {
@@ -223,10 +234,24 @@
 						<span class="cursor-default">{indicator.label}</span>
 					</div>
 					<div class="flex items-center gap-2">
+						{#if ['macd', 'bb', 'rsi', 'obv'].includes(indicator.id)}
+							<button
+								type="button"
+								class="rounded-md p-1 text-muted-foreground hover:text-foreground"
+								onclick={(e) => openHelp(indicator.id, e)}
+								aria-label={`About ${indicator.label}`}
+								data-testid={`help-${indicator.id}-btn`}
+							>
+								<Info class="h-4 w-4" />
+							</button>
+						{/if}
 						{#if indicator.id !== 'volume' && indicator.id !== 'avgPrice'}
 							<button
+								type="button"
 								class="rounded-md p-1 text-muted-foreground hover:text-foreground"
 								onclick={(e) => openSettings(indicator.id, e)}
+								aria-label={`${indicator.label} Settings`}
+								data-testid={`settings-${indicator.id}-btn`}
 							>
 								<Settings2 class="h-4 w-4" />
 							</button>
@@ -250,3 +275,5 @@
 	onSave={saveSettings}
 	onReset={resetSettings}
 />
+
+<IndicatorHelpModal bind:open={isHelpOpen} indicatorId={selectedHelpIndicatorId} />

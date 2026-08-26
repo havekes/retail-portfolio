@@ -43,9 +43,7 @@
 	}
 
 	let containerRef = $state<HTMLDivElement | null>(null);
-	let bottomContainerRef = $state<HTMLDivElement | null>(null);
 	let chartInstance = $state<IChartApi | null>(null);
-	let bottomChartInstance = $state<IChartApi | null>(null);
 	let seriesInstance = $state<ISeriesApi<'Candlestick'> | null>(null);
 
 	interface MacdSeries {
@@ -64,17 +62,10 @@
 	let indicatorSeries = $state<Map<string, ISeriesApi<SeriesType> | MacdSeries | BbSeries>>(
 		new Map()
 	);
-	let bottomIndicatorData = $state<Map<string, ({ time: Time; value: number } | MacdDataItem)[]>>(
-		new Map()
-	);
 	let activeIndicators = $state<{ type: string; label: string; color?: string }[]>([]);
 	let userAlertsPrimitive = $state<UserPriceAlerts | null>(null);
 	let elliottWavesPrimitive = $state<ElliottWavesPrimitive | null>(null);
 	let fibonacciPrimitive = $state<FibonacciPrimitive | null>(null);
-
-	let showBottomPane = $derived(
-		activeIndicators.some((i) => i.type === 'rsi' || i.type === 'macd' || i.type === 'obv')
-	);
 
 	let {
 		candles = [],
@@ -143,7 +134,80 @@
 	let lastCandlesRef: Candle[] | null = null;
 
 	const DEFAULT_PRICE_SCALE_MIN_WIDTH = 75;
-	let syncedPriceScaleWidth = DEFAULT_PRICE_SCALE_MIN_WIDTH;
+	const OSCILLATOR_ORDER = ['rsi', 'macd', 'obv'] as const;
+
+	function updatePanes() {
+		if (!chartInstance || !seriesInstance) return;
+
+		const activeOscillators = OSCILLATOR_ORDER.filter((type) => indicatorSeries.has(type));
+		const count = activeOscillators.length;
+		const hasVolume = indicatorSeries.has('volume');
+
+		if (count === 0) {
+			if (hasVolume) {
+				const volumeSeries = indicatorSeries.get('volume') as ISeriesApi<'Histogram'> | undefined;
+				volumeSeries?.priceScale().applyOptions({
+					scaleMargins: { top: 0.7, bottom: 0 }
+				});
+				seriesInstance.priceScale().applyOptions({
+					scaleMargins: { top: 0.1, bottom: 0.35 }
+				});
+			} else {
+				seriesInstance.priceScale().applyOptions({
+					scaleMargins: { top: 0.1, bottom: 0.1 }
+				});
+			}
+			return;
+		}
+
+		// When oscillators exist, allocate vertical space
+		const paneHeight = count === 1 ? 0.25 : count === 2 ? 0.18 : 0.14;
+		const gap = 0.02;
+		const totalOscillatorHeight = count * paneHeight + count * gap;
+		const mainAreaHeight = Math.max(0.3, 1.0 - totalOscillatorHeight);
+
+		// Configure main candlesticks and volume within [0, mainAreaHeight]
+		if (hasVolume) {
+			const volumeHeight = Math.round(mainAreaHeight * 0.25 * 10000) / 10000;
+			const volumeTop = Math.round((mainAreaHeight - volumeHeight) * 10000) / 10000;
+			const volumeBottom = Math.round((1.0 - mainAreaHeight) * 10000) / 10000;
+
+			const volumeSeries = indicatorSeries.get('volume') as ISeriesApi<'Histogram'> | undefined;
+			volumeSeries?.priceScale().applyOptions({
+				scaleMargins: {
+					top: volumeTop,
+					bottom: volumeBottom
+				}
+			});
+
+			seriesInstance.priceScale().applyOptions({
+				scaleMargins: {
+					top: 0.05,
+					bottom: Math.round((1.0 - mainAreaHeight + volumeHeight + 0.03) * 10000) / 10000
+				}
+			});
+		} else {
+			seriesInstance.priceScale().applyOptions({
+				scaleMargins: {
+					top: 0.05,
+					bottom: Math.round((1.0 - mainAreaHeight + 0.03) * 10000) / 10000
+				}
+			});
+		}
+
+		// Configure each oscillator pane
+		activeOscillators.forEach((type, idx) => {
+			const paneTop = Math.round((mainAreaHeight + gap + idx * (paneHeight + gap)) * 10000) / 10000;
+			const paneBottom = Math.max(0, Math.round((1.0 - (paneTop + paneHeight)) * 10000) / 10000);
+
+			chartInstance?.priceScale(type).applyOptions({
+				scaleMargins: {
+					top: paneTop,
+					bottom: paneBottom
+				}
+			});
+		});
+	}
 
 	function getTimeValue(t: Time): string | number {
 		if (typeof t === 'string' || typeof t === 'number') return t;
@@ -151,56 +215,6 @@
 			return `${t.year}-${String(t.month).padStart(2, '0')}-${String(t.day).padStart(2, '0')}`;
 		}
 		return String(t);
-	}
-
-	function isSameLogicalRange(
-		r1: { from: number; to: number } | null,
-		r2: { from: number; to: number } | null
-	): boolean {
-		if (!r1 || !r2) return false;
-		return Math.abs(r1.from - r2.from) < 0.0001 && Math.abs(r1.to - r2.to) < 0.0001;
-	}
-
-	function padIndicatorData<T extends { time: Time }>(
-		data: T[],
-		candlesList: Candle[]
-	): (T | { time: Time })[] {
-		if (!candlesList || candlesList.length === 0) return data;
-		if (!data || data.length === 0) {
-			return candlesList.map((c) => ({ time: c.time }));
-		}
-		const firstDataTime = getTimeValue(data[0].time);
-		const firstIndex = candlesList.findIndex((c) => getTimeValue(c.time) === firstDataTime);
-		if (firstIndex <= 0) return data;
-
-		const padding: { time: Time }[] = candlesList
-			.slice(0, firstIndex)
-			.map((c) => ({ time: c.time }));
-		return [...padding, ...data];
-	}
-
-	function syncPriceScaleWidths() {
-		if (!chartInstance || !bottomChartInstance || !showBottomPane) return;
-		const mainWidth = chartInstance.priceScale('right').width();
-		const bottomWidth = bottomChartInstance.priceScale('right').width();
-		const maxWidth = Math.max(mainWidth, bottomWidth, DEFAULT_PRICE_SCALE_MIN_WIDTH);
-		if (maxWidth !== syncedPriceScaleWidth) {
-			syncedPriceScaleWidth = maxWidth;
-			chartInstance.priceScale('right').applyOptions({ minimumWidth: maxWidth });
-			bottomChartInstance.priceScale('right').applyOptions({ minimumWidth: maxWidth });
-		}
-	}
-
-	function getBottomIndicatorValueAtTime(type: string, time: Time): number {
-		if (type === 'macd') return 0;
-		const data = bottomIndicatorData.get(type);
-		if (!data) return 0;
-		const targetTimeVal = getTimeValue(time);
-		const item = data.find((d) => getTimeValue(d.time) === targetTimeVal);
-		if (item && 'value' in item && typeof item.value === 'number') {
-			return item.value;
-		}
-		return 0;
 	}
 
 	$effect(() => {
@@ -231,8 +245,6 @@
 	});
 
 	$effect(() => {
-		const isBottomActive = showBottomPane;
-
 		if (
 			containerRef &&
 			chartInstance &&
@@ -242,28 +254,6 @@
 				width: containerRef.clientWidth,
 				height: containerRef.clientHeight
 			});
-		}
-
-		if (
-			isBottomActive &&
-			bottomChartInstance &&
-			bottomContainerRef &&
-			(bottomContainerRef.clientWidth > 0 || bottomContainerRef.clientHeight > 0)
-		) {
-			bottomChartInstance.applyOptions({
-				width: bottomContainerRef.clientWidth,
-				height: bottomContainerRef.clientHeight
-			});
-			if (chartInstance) {
-				const sourceRange = chartInstance.timeScale().getVisibleLogicalRange();
-				if (sourceRange) {
-					const targetRange = bottomChartInstance.timeScale().getVisibleLogicalRange();
-					if (!isSameLogicalRange(sourceRange, targetRange)) {
-						bottomChartInstance.timeScale().setVisibleLogicalRange(sourceRange);
-					}
-				}
-				syncPriceScaleWidths();
-			}
 		}
 	});
 
@@ -428,7 +418,7 @@
 	});
 
 	onMount(() => {
-		if (!containerRef || !bottomContainerRef) return;
+		if (!containerRef) return;
 
 		chartInstance = createChart(containerRef, {
 			width: containerRef.clientWidth,
@@ -458,88 +448,11 @@
 			}
 		});
 
-		bottomChartInstance = createChart(bottomContainerRef, {
-			width: bottomContainerRef.clientWidth,
-			height: bottomContainerRef.clientHeight,
-			layout: {
-				background: { color: 'transparent' },
-				textColor: '#888'
-			},
-			grid: {
-				vertLines: { color: '#40404020' },
-				horzLines: { color: '#40404020' }
-			},
-			localization: {
-				timeFormatter: formatLocalTime
-			},
-			timeScale: {
-				timeVisible: false,
-				borderVisible: false,
-				tickMarkFormatter: formatLocalTickMark
-			},
-			leftPriceScale: {
-				visible: false
-			},
-			rightPriceScale: {
-				visible: true,
-				minimumWidth: DEFAULT_PRICE_SCALE_MIN_WIDTH
-			}
-		});
-
 		chartInstance.timeScale().subscribeVisibleLogicalRangeChange((range) => {
-			if (showBottomPane && chartInstance && bottomChartInstance) {
-				const sourceRange = range ?? chartInstance.timeScale().getVisibleLogicalRange();
-				if (sourceRange) {
-					const targetRange = bottomChartInstance.timeScale().getVisibleLogicalRange();
-					if (!isSameLogicalRange(sourceRange, targetRange)) {
-						bottomChartInstance.timeScale().setVisibleLogicalRange(sourceRange);
-					}
-				}
-				syncPriceScaleWidths();
-			}
 			if (range && range.from <= 10 && !isLoadingMore && hasMoreData) {
 				isLoadingMore = true;
 				onLoadMoreData?.();
 			}
-		});
-
-		bottomChartInstance.timeScale().subscribeVisibleLogicalRangeChange((range) => {
-			if (showBottomPane && chartInstance && bottomChartInstance) {
-				const sourceRange = range ?? bottomChartInstance.timeScale().getVisibleLogicalRange();
-				if (sourceRange) {
-					const targetRange = chartInstance.timeScale().getVisibleLogicalRange();
-					if (!isSameLogicalRange(sourceRange, targetRange)) {
-						chartInstance.timeScale().setVisibleLogicalRange(sourceRange);
-					}
-				}
-				syncPriceScaleWidths();
-			}
-		});
-
-		chartInstance.subscribeCrosshairMove((param) => {
-			if (!showBottomPane || !bottomChartInstance || !chartInstance) return;
-			if (param.time === undefined || param.point === undefined) {
-				bottomChartInstance.clearCrosshairPosition();
-				return;
-			}
-
-			const activeBottom = activeIndicators.find(
-				(i) => i.type === 'rsi' || i.type === 'macd' || i.type === 'obv'
-			);
-			if (!activeBottom) return;
-
-			let targetSeries: ISeriesApi<SeriesType> | undefined;
-			if (activeBottom.type === 'rsi' || activeBottom.type === 'obv') {
-				targetSeries = indicatorSeries.get(activeBottom.type) as ISeriesApi<SeriesType> | undefined;
-			} else if (activeBottom.type === 'macd') {
-				const macdSeries = indicatorSeries.get('macd') as MacdSeries | undefined;
-				targetSeries = macdSeries?.histogram;
-			}
-
-			if (!targetSeries) return;
-
-			const price = getBottomIndicatorValueAtTime(activeBottom.type, param.time);
-			bottomChartInstance.setCrosshairPosition(price, param.time, targetSeries);
 		});
 
 		seriesInstance = chartInstance.addSeries(CandlestickSeries, {
@@ -550,9 +463,7 @@
 			wickDownColor: '#ef5350'
 		});
 
-		seriesInstance.priceScale().applyOptions({
-			scaleMargins: { top: 0.1, bottom: 0.1 }
-		});
+		updatePanes();
 
 		userAlertsPrimitive = new UserPriceAlerts();
 		userAlertsPrimitive.setSymbolName('Price');
@@ -650,22 +561,9 @@
 					height: containerRef.clientHeight
 				});
 			}
-			if (
-				bottomContainerRef &&
-				bottomChartInstance &&
-				showBottomPane &&
-				(bottomContainerRef.clientWidth > 0 || bottomContainerRef.clientHeight > 0)
-			) {
-				bottomChartInstance.applyOptions({
-					width: bottomContainerRef.clientWidth,
-					height: bottomContainerRef.clientHeight
-				});
-				syncPriceScaleWidths();
-			}
 		});
 
 		resizeObserver.observe(containerRef);
-		resizeObserver.observe(bottomContainerRef);
 
 		return () => {
 			resizeObserver.disconnect();
@@ -673,7 +571,6 @@
 			elliottWavesPrimitive?.destroy();
 			fibonacciPrimitive?.destroy();
 			chartInstance?.remove();
-			bottomChartInstance?.remove();
 		};
 	});
 
@@ -697,111 +594,137 @@
 	export function addIndicator(indicator: IndicatorData) {
 		if (!chartInstance || indicatorSeries.has(indicator.type)) return;
 
-		const isVolume = indicator.type === 'volume';
-		const isBottomPane =
-			indicator.type === 'rsi' || indicator.type === 'macd' || indicator.type === 'obv';
-		const currentCandles = candles && candles.length > 0 ? candles : (lastCandlesRef ?? []);
-
-		if (isBottomPane && bottomChartInstance) {
-			let series;
-			if (indicator.type === 'rsi') {
-				const paddedData = padIndicatorData(
-					indicator.data as { time: Time; value: number }[],
-					currentCandles
-				);
-				series = bottomChartInstance.addSeries(LineSeries, {
-					color: indicator.color,
-					lineWidth: 2
-				});
-				indicatorSeries.set('rsi', series);
-				bottomIndicatorData.set(
-					'rsi',
-					paddedData as ({ time: Time; value: number } | MacdDataItem)[]
-				);
-				if (paddedData.length > 0) series.setData(paddedData as never);
-			} else if (indicator.type === 'macd') {
-				const paddedData = padIndicatorData(indicator.data as MacdDataItem[], currentCandles);
-				const histogram = bottomChartInstance.addSeries(HistogramSeries, { base: 0 });
-				const macdLineColor = indicator.color || '#2962FF';
-				const macdLine = bottomChartInstance.addSeries(LineSeries, {
-					color: macdLineColor,
-					lineWidth: 1
-				});
-				const signalLine = bottomChartInstance.addSeries(LineSeries, {
-					color: '#FF6D00',
-					lineWidth: 1
-				});
-
-				const macdSeries: MacdSeries = { histogram, macdLine, signalLine };
-				indicatorSeries.set('macd', macdSeries);
-				bottomIndicatorData.set(
-					'macd',
-					paddedData as ({ time: Time; value: number } | MacdDataItem)[]
-				);
-
-				if (paddedData.length > 0) {
-					histogram.setData(
-						paddedData.map((d) =>
-							'histogram' in d && typeof d.histogram === 'number'
-								? {
-										time: d.time,
-										value: d.histogram,
-										color: d.histogram >= 0 ? '#26a69a80' : '#ef535080'
-									}
-								: { time: d.time }
-						) as never
-					);
-					macdLine.setData(
-						paddedData.map((d) =>
-							'macd' in d && typeof d.macd === 'number'
-								? { time: d.time, value: d.macd }
-								: { time: d.time }
-						) as never
-					);
-					signalLine.setData(
-						paddedData.map((d) =>
-							'signal' in d && typeof d.signal === 'number'
-								? { time: d.time, value: d.signal }
-								: { time: d.time }
-						) as never
-					);
-				}
-			} else if (indicator.type === 'obv') {
-				const paddedData = padIndicatorData(
-					indicator.data as { time: Time; value: number }[],
-					currentCandles
-				);
-				series = bottomChartInstance.addSeries(LineSeries, {
-					color: indicator.color,
-					lineWidth: 2,
-					priceFormat: {
-						type: 'custom',
-						formatter: (val: number) => `${(val / 1_000_000).toFixed(1)}M`
-					}
-				});
-				indicatorSeries.set('obv', series);
-				bottomIndicatorData.set(
-					'obv',
-					paddedData as ({ time: Time; value: number } | MacdDataItem)[]
-				);
-				if (paddedData.length > 0) series.setData(paddedData as never);
-			}
-
+		if (indicator.type === 'volume') {
+			const series = chartInstance.addSeries(HistogramSeries, {
+				priceScaleId: 'volume',
+				color: indicator.color,
+				priceFormat: { type: 'volume' },
+				priceLineVisible: false,
+				title: indicator.label
+			});
+			indicatorSeries.set('volume', series);
 			activeIndicators = [
 				...activeIndicators,
 				{ type: indicator.type, label: indicator.label, color: indicator.color }
 			];
-			if (chartInstance) {
-				const sourceRange = chartInstance.timeScale().getVisibleLogicalRange();
-				if (sourceRange) {
-					bottomChartInstance.timeScale().setVisibleLogicalRange(sourceRange);
-				}
+			if (indicator.data.length > 0) {
+				series.setData(indicator.data as { time: Time; value: number }[]);
 			}
-			syncPriceScaleWidths();
+			updatePanes();
 			return;
 		}
 
-		if (indicator.type === 'bb' && chartInstance) {
+		if (indicator.type === 'rsi') {
+			const series = chartInstance.addSeries(LineSeries, {
+				priceScaleId: 'rsi',
+				color: indicator.color,
+				lineWidth: 2,
+				crosshairMarkerVisible: true,
+				priceLineVisible: false,
+				title: indicator.label
+			});
+			indicatorSeries.set('rsi', series);
+			activeIndicators = [
+				...activeIndicators,
+				{ type: indicator.type, label: indicator.label, color: indicator.color }
+			];
+			if (indicator.data.length > 0) {
+				series.setData(indicator.data as { time: Time; value: number }[]);
+			}
+			updatePanes();
+			return;
+		}
+
+		if (indicator.type === 'macd') {
+			const histogram = chartInstance.addSeries(HistogramSeries, {
+				priceScaleId: 'macd',
+				base: 0,
+				priceLineVisible: false,
+				title: 'MACD Hist'
+			});
+			const macdLineColor = indicator.color || '#2962FF';
+			const macdLine = chartInstance.addSeries(LineSeries, {
+				priceScaleId: 'macd',
+				color: macdLineColor,
+				lineWidth: 1,
+				crosshairMarkerVisible: true,
+				priceLineVisible: false,
+				title: 'MACD'
+			});
+			const signalLine = chartInstance.addSeries(LineSeries, {
+				priceScaleId: 'macd',
+				color: '#FF6D00',
+				lineWidth: 1,
+				crosshairMarkerVisible: true,
+				priceLineVisible: false,
+				title: 'Signal'
+			});
+
+			const macdSeries: MacdSeries = { histogram, macdLine, signalLine };
+			indicatorSeries.set('macd', macdSeries);
+			activeIndicators = [
+				...activeIndicators,
+				{ type: indicator.type, label: indicator.label, color: indicator.color }
+			];
+
+			if (indicator.data.length > 0) {
+				const macdData = indicator.data as MacdDataItem[];
+				histogram.setData(
+					macdData.map((d) =>
+						'histogram' in d && typeof d.histogram === 'number'
+							? {
+									time: d.time,
+									value: d.histogram,
+									color: d.histogram >= 0 ? '#26a69a80' : '#ef535080'
+								}
+							: { time: d.time }
+					) as never
+				);
+				macdLine.setData(
+					macdData.map((d) =>
+						'macd' in d && typeof d.macd === 'number'
+							? { time: d.time, value: d.macd }
+							: { time: d.time }
+					) as never
+				);
+				signalLine.setData(
+					macdData.map((d) =>
+						'signal' in d && typeof d.signal === 'number'
+							? { time: d.time, value: d.signal }
+							: { time: d.time }
+					) as never
+				);
+			}
+			updatePanes();
+			return;
+		}
+
+		if (indicator.type === 'obv') {
+			const series = chartInstance.addSeries(LineSeries, {
+				priceScaleId: 'obv',
+				color: indicator.color,
+				lineWidth: 2,
+				crosshairMarkerVisible: true,
+				priceLineVisible: false,
+				title: indicator.label,
+				priceFormat: {
+					type: 'custom',
+					formatter: (val: number) => `${(val / 1_000_000).toFixed(1)}M`
+				}
+			});
+			indicatorSeries.set('obv', series);
+			activeIndicators = [
+				...activeIndicators,
+				{ type: indicator.type, label: indicator.label, color: indicator.color }
+			];
+			if (indicator.data.length > 0) {
+				series.setData(indicator.data as { time: Time; value: number }[]);
+			}
+			updatePanes();
+			return;
+		}
+
+		if (indicator.type === 'bb') {
 			const hexToRgba = (hex: string, alpha: number) => {
 				if (!hex) return `rgba(139, 92, 246, ${alpha})`;
 				hex = hex.replace('#', '');
@@ -865,36 +788,14 @@
 			return;
 		}
 
-		// Proceed with regular chart instance logic
-		const seriesType = isVolume ? HistogramSeries : LineSeries;
-
-		const options = {
+		// Proceed with regular overlays (MA50, MA200, etc.)
+		const series = chartInstance.addSeries(LineSeries, {
 			color: indicator.color,
 			lineWidth: 2,
 			crosshairMarkerVisible: true,
 			priceLineVisible: false,
 			title: indicator.label
-		};
-
-		if (isVolume) {
-			Object.assign(options, {
-				priceFormat: { type: 'volume' },
-				priceScaleId: ''
-			});
-		}
-
-		const series = chartInstance.addSeries(seriesType, options as never);
-
-		if (isVolume) {
-			series.priceScale().applyOptions({
-				scaleMargins: { top: 0.7, bottom: 0 }
-			});
-			if (seriesInstance) {
-				seriesInstance.priceScale().applyOptions({
-					scaleMargins: { top: 0.1, bottom: 0.35 }
-				});
-			}
-		}
+		});
 
 		indicatorSeries.set(indicator.type, series);
 		activeIndicators = [
@@ -910,23 +811,15 @@
 	export function removeIndicator(type: string) {
 		if (!chartInstance || !indicatorSeries.has(type)) return;
 
-		if (type === 'volume' && seriesInstance) {
-			seriesInstance.priceScale().applyOptions({
-				scaleMargins: { top: 0.1, bottom: 0.1 }
-			});
-		}
-
 		const series = indicatorSeries.get(type);
 		if (!series) return;
 
-		if (type === 'macd' && bottomChartInstance) {
+		if (type === 'macd') {
 			const s = series as MacdSeries;
-			bottomChartInstance.removeSeries(s.histogram);
-			bottomChartInstance.removeSeries(s.macdLine);
-			bottomChartInstance.removeSeries(s.signalLine);
-		} else if ((type === 'rsi' || type === 'obv') && bottomChartInstance) {
-			bottomChartInstance.removeSeries(series as ISeriesApi<SeriesType>);
-		} else if (type === 'bb' && chartInstance) {
+			chartInstance.removeSeries(s.histogram);
+			chartInstance.removeSeries(s.macdLine);
+			chartInstance.removeSeries(s.signalLine);
+		} else if (type === 'bb') {
 			const s = series as BbSeries;
 			s.middle.detachPrimitive(s.bandsPrimitive);
 			chartInstance.removeSeries(s.upper);
@@ -937,43 +830,24 @@
 		}
 
 		indicatorSeries.delete(type);
-		bottomIndicatorData.delete(type);
 		activeIndicators = activeIndicators.filter((i) => i.type !== type);
-		if (!activeIndicators.some((i) => i.type === 'rsi' || i.type === 'macd' || i.type === 'obv')) {
-			syncedPriceScaleWidth = DEFAULT_PRICE_SCALE_MIN_WIDTH;
-			chartInstance
-				.priceScale('right')
-				.applyOptions({ minimumWidth: DEFAULT_PRICE_SCALE_MIN_WIDTH });
-		} else {
-			syncPriceScaleWidths();
-		}
+		updatePanes();
 	}
 
 	export function updateIndicatorData(indicator: IndicatorData) {
 		const series = indicatorSeries.get(indicator.type);
 		if (series) {
-			const currentCandles = candles && candles.length > 0 ? candles : (lastCandlesRef ?? []);
 			if (indicator.type === 'rsi' || indicator.type === 'obv') {
-				const paddedData = padIndicatorData(
-					indicator.data as { time: Time; value: number }[],
-					currentCandles
-				);
-				bottomIndicatorData.set(
-					indicator.type,
-					paddedData as ({ time: Time; value: number } | MacdDataItem)[]
-				);
 				if ('setData' in series && typeof series.setData === 'function') {
-					(series as ISeriesApi<SeriesType>).setData(paddedData as never);
+					(series as ISeriesApi<SeriesType>).setData(
+						indicator.data as Parameters<ISeriesApi<SeriesType>['setData']>[0]
+					);
 				}
 			} else if (indicator.type === 'macd') {
-				const paddedData = padIndicatorData(indicator.data as MacdDataItem[], currentCandles);
-				bottomIndicatorData.set(
-					'macd',
-					paddedData as ({ time: Time; value: number } | MacdDataItem)[]
-				);
 				const macdSeries = series as MacdSeries;
+				const macdData = indicator.data as MacdDataItem[];
 				macdSeries.histogram.setData(
-					paddedData.map((d) =>
+					macdData.map((d) =>
 						'histogram' in d && typeof d.histogram === 'number'
 							? {
 									time: d.time,
@@ -984,25 +858,32 @@
 					) as never
 				);
 				macdSeries.macdLine.setData(
-					paddedData.map((d) =>
+					macdData.map((d) =>
 						'macd' in d && typeof d.macd === 'number'
 							? { time: d.time, value: d.macd }
 							: { time: d.time }
 					) as never
 				);
 				macdSeries.signalLine.setData(
-					paddedData.map((d) =>
+					macdData.map((d) =>
 						'signal' in d && typeof d.signal === 'number'
 							? { time: d.time, value: d.signal }
 							: { time: d.time }
 					) as never
 				);
+			} else if (indicator.type === 'bb') {
+				const s = series as BbSeries;
+				const bbData = indicator.data as BbDataItem[];
+				if (bbData.length > 0) {
+					s.upper.setData(bbData.map((d) => ({ time: d.time, value: d.upper })));
+					s.middle.setData(bbData.map((d) => ({ time: d.time, value: d.middle })));
+					s.lower.setData(bbData.map((d) => ({ time: d.time, value: d.lower })));
+				}
 			} else if ('setData' in series && typeof series.setData === 'function') {
 				(series as ISeriesApi<SeriesType>).setData(
 					indicator.data as Parameters<ISeriesApi<SeriesType>['setData']>[0]
 				);
 			}
-			syncPriceScaleWidths();
 		} else {
 			addIndicator(indicator);
 		}
@@ -1042,19 +923,10 @@
 </script>
 
 <div class="relative flex h-full min-h-0 w-full flex-1 flex-col overflow-hidden">
-	<!-- Container dynamically scales based on whether bottom pane is active -->
 	<div
 		bind:this={containerRef}
 		id={containerId}
-		class="min-h-0 w-full overflow-hidden"
-		style="height: {showBottomPane ? '70%' : '100%'}"
-	></div>
-
-	<!-- Secondary chart placeholder for oscillators like RSI and MACD -->
-	<div
-		bind:this={bottomContainerRef}
-		class="min-h-0 w-full overflow-hidden {showBottomPane ? 'border-t border-border' : ''}"
-		style="height: {showBottomPane ? '30%' : '0'}; display: {showBottomPane ? 'block' : 'none'}"
+		class="h-full min-h-0 w-full overflow-hidden"
 	></div>
 
 	{#if activeIndicators.length > 0}
