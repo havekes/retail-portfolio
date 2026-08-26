@@ -3,7 +3,7 @@ import { render, screen, fireEvent } from '@testing-library/svelte';
 import DrawingToolbar from './drawing-toolbar.svelte';
 
 describe('DrawingToolbar Component', () => {
-	it('renders Elliott Wave, Fib Retrace, and Fib Extend tool buttons', () => {
+	it('renders Impulse Wave, Corrective Wave, Fib Retrace, and Fib Extend tool buttons', () => {
 		render(DrawingToolbar, {
 			props: {
 				activeWaveDegree: 'cycle',
@@ -13,12 +13,16 @@ describe('DrawingToolbar Component', () => {
 			}
 		});
 
-		const waveBtn = screen.getByRole('button', { name: 'Elliott Wave' });
+		const impulseBtn = screen.getByRole('button', { name: 'Impulse Wave' });
+		const correctiveBtn = screen.getByRole('button', { name: 'Corrective Wave' });
 		const retraceBtn = screen.getByRole('button', { name: /Toggle Fib Retrace drawing/i });
 		const extendBtn = screen.getByRole('button', { name: /Toggle Fib Extend drawing/i });
 
-		expect(waveBtn).toBeInTheDocument();
-		expect(waveBtn).toHaveAttribute('title', 'Elliott Wave');
+		expect(impulseBtn).toBeInTheDocument();
+		expect(impulseBtn).toHaveAttribute('title', 'Impulse Wave');
+
+		expect(correctiveBtn).toBeInTheDocument();
+		expect(correctiveBtn).toHaveAttribute('title', 'Corrective Wave');
 
 		expect(retraceBtn).toBeInTheDocument();
 		expect(retraceBtn).toHaveAttribute('title', 'Fibonacci Retracement');
@@ -27,7 +31,7 @@ describe('DrawingToolbar Component', () => {
 		expect(extendBtn).toHaveAttribute('title', 'Fibonacci Extension');
 	});
 
-	it('opens dropdown menu with Degree title and triggers onSelectWaveDegree when Cycle is selected', async () => {
+	it('opens impulse wave dropdown menu with single-wave previews (I, ①, 1) and triggers onSelectWaveDegree', async () => {
 		const onSelectWaveDegree = vi.fn();
 		render(DrawingToolbar, {
 			props: {
@@ -39,18 +43,26 @@ describe('DrawingToolbar Component', () => {
 			}
 		});
 
-		const waveBtn = screen.getByRole('button', { name: 'Elliott Wave' });
-		await fireEvent.click(waveBtn);
+		const impulseBtn = screen.getByRole('button', { name: 'Impulse Wave' });
+		await fireEvent.click(impulseBtn);
 
 		expect(await screen.findByText('Degree')).toBeInTheDocument();
 
-		const cycleOption = await screen.findByText('Cycle (I, II, III)');
+		// Check right-aligned previews
+		expect(screen.getByText('Cycle')).toBeInTheDocument();
+		expect(screen.getByText('I')).toBeInTheDocument();
+		expect(screen.getByText('Primary')).toBeInTheDocument();
+		expect(screen.getByText('①')).toBeInTheDocument();
+		expect(screen.getByText('Intermediate')).toBeInTheDocument();
+		expect(screen.getByText('1')).toBeInTheDocument();
+
+		const cycleOption = screen.getByText('Cycle');
 		await fireEvent.click(cycleOption);
 
-		expect(onSelectWaveDegree).toHaveBeenCalledWith('cycle');
+		expect(onSelectWaveDegree).toHaveBeenCalledWith('cycle', 'impulse');
 	});
 
-	it('opens dropdown menu and triggers onSelectWaveDegree when Primary Degree is selected', async () => {
+	it('triggers onSelectWaveDegree when Primary Degree is selected from impulse dropdown', async () => {
 		const onSelectWaveDegree = vi.fn();
 		render(DrawingToolbar, {
 			props: {
@@ -62,16 +74,16 @@ describe('DrawingToolbar Component', () => {
 			}
 		});
 
-		const waveBtn = screen.getByRole('button', { name: 'Elliott Wave' });
-		await fireEvent.click(waveBtn);
+		const impulseBtn = screen.getByRole('button', { name: 'Impulse Wave' });
+		await fireEvent.click(impulseBtn);
 
-		const primaryOption = await screen.findByText('Primary (①, ②, ③)');
+		const primaryOption = await screen.findByText('Primary');
 		await fireEvent.click(primaryOption);
 
-		expect(onSelectWaveDegree).toHaveBeenCalledWith('primary');
+		expect(onSelectWaveDegree).toHaveBeenCalledWith('primary', 'impulse');
 	});
 
-	it('opens dropdown menu and triggers onSelectWaveDegree when Intermediate Degree is selected', async () => {
+	it('triggers onSelectWaveDegree when Intermediate Degree is selected from impulse dropdown', async () => {
 		const onSelectWaveDegree = vi.fn();
 		render(DrawingToolbar, {
 			props: {
@@ -83,27 +95,120 @@ describe('DrawingToolbar Component', () => {
 			}
 		});
 
-		const waveBtn = screen.getByRole('button', { name: 'Elliott Wave' });
-		await fireEvent.click(waveBtn);
+		const impulseBtn = screen.getByRole('button', { name: 'Impulse Wave' });
+		await fireEvent.click(impulseBtn);
 
-		const intermediateOption = await screen.findByText('Intermediate ((1), (2), (3))');
+		const intermediateOption = await screen.findByText('Intermediate');
 		await fireEvent.click(intermediateOption);
 
-		expect(onSelectWaveDegree).toHaveBeenCalledWith('intermediate');
+		expect(onSelectWaveDegree).toHaveBeenCalledWith('intermediate', 'impulse');
 	});
 
-	it('highlights Elliott Wave button when isDrawingWave is true', () => {
+	it('opens corrective wave dropdown menu with single-wave previews (A, Ⓐ, (A)) and triggers onSelectCorrectiveDegree', async () => {
+		const onSelectCorrectiveDegree = vi.fn();
 		render(DrawingToolbar, {
 			props: {
 				activeWaveDegree: 'cycle',
+				isDrawingWave: false,
+				activeFibTool: null,
+				isDrawingFib: false,
+				onSelectCorrectiveDegree
+			}
+		});
+
+		const correctiveBtn = screen.getByRole('button', { name: 'Corrective Wave' });
+		await fireEvent.click(correctiveBtn);
+
+		expect(await screen.findByText('Degree')).toBeInTheDocument();
+
+		// Check right-aligned corrective previews
+		expect(screen.getByText('Cycle')).toBeInTheDocument();
+		expect(screen.getByText('A')).toBeInTheDocument();
+		expect(screen.getByText('Primary')).toBeInTheDocument();
+		expect(screen.getByText('Ⓐ')).toBeInTheDocument();
+		expect(screen.getByText('Intermediate')).toBeInTheDocument();
+		expect(screen.getByText('(A)')).toBeInTheDocument();
+
+		const cycleOption = screen.getByText('Cycle');
+		await fireEvent.click(cycleOption);
+
+		expect(onSelectCorrectiveDegree).toHaveBeenCalledWith('cycle');
+	});
+
+	it('triggers onSelectCorrectiveDegree when Primary Degree is selected from corrective dropdown', async () => {
+		const onSelectCorrectiveDegree = vi.fn();
+		render(DrawingToolbar, {
+			props: {
+				activeWaveDegree: 'cycle',
+				isDrawingWave: false,
+				activeFibTool: null,
+				isDrawingFib: false,
+				onSelectCorrectiveDegree
+			}
+		});
+
+		const correctiveBtn = screen.getByRole('button', { name: 'Corrective Wave' });
+		await fireEvent.click(correctiveBtn);
+
+		const primaryOption = await screen.findByText('Primary');
+		await fireEvent.click(primaryOption);
+
+		expect(onSelectCorrectiveDegree).toHaveBeenCalledWith('primary');
+	});
+
+	it('triggers onSelectCorrectiveDegree when Intermediate Degree is selected from corrective dropdown', async () => {
+		const onSelectCorrectiveDegree = vi.fn();
+		render(DrawingToolbar, {
+			props: {
+				activeWaveDegree: 'cycle',
+				isDrawingWave: false,
+				activeFibTool: null,
+				isDrawingFib: false,
+				onSelectCorrectiveDegree
+			}
+		});
+
+		const correctiveBtn = screen.getByRole('button', { name: 'Corrective Wave' });
+		await fireEvent.click(correctiveBtn);
+
+		const intermediateOption = await screen.findByText('Intermediate');
+		await fireEvent.click(intermediateOption);
+
+		expect(onSelectCorrectiveDegree).toHaveBeenCalledWith('intermediate');
+	});
+
+	it('highlights Impulse Wave button when isDrawingWave is true and activeWaveType is impulse', () => {
+		render(DrawingToolbar, {
+			props: {
+				activeWaveDegree: 'cycle',
+				activeWaveType: 'impulse',
 				isDrawingWave: true,
 				activeFibTool: null,
 				isDrawingFib: false
 			}
 		});
 
-		const waveBtn = screen.getByRole('button', { name: 'Elliott Wave' });
-		expect(waveBtn.className).toContain('bg-primary');
+		const impulseBtn = screen.getByRole('button', { name: 'Impulse Wave' });
+		const correctiveBtn = screen.getByRole('button', { name: 'Corrective Wave' });
+		expect(impulseBtn.className).toContain('bg-primary');
+		expect(correctiveBtn.className).not.toContain('bg-primary');
+	});
+
+	it('highlights Corrective Wave button when isDrawingWave is true and activeWaveType is corrective', () => {
+		render(DrawingToolbar, {
+			props: {
+				activeWaveDegree: 'cycle',
+				activeWaveType: 'corrective',
+				isDrawingWave: true,
+				activeFibTool: null,
+				isDrawingFib: false
+			}
+		});
+
+		const impulseBtn = screen.getByRole('button', { name: 'Impulse Wave' });
+		const correctiveBtn = screen.getByRole('button', { name: 'Corrective Wave' });
+		expect(correctiveBtn.className).toContain('bg-primary');
+		expect(impulseBtn.className).not.toContain('bg-primary');
 	});
 
 	it('triggers onToggleFib with retracement when Fib Retrace button is clicked', async () => {

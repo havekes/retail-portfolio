@@ -12,7 +12,13 @@ import {
 	DEGREE_STYLES,
 	IMPULSE_COLOR,
 	CORRECTIVE_COLOR,
+	VERTICAL_LABEL_OFFSET,
+	getWaveColor,
+	getWaveLabelOffset,
+	getWaveOrder,
 	HIT_TEST_RADIUS,
+	MAX_IMPULSE_POINTS,
+	MAX_CORRECTIVE_POINTS,
 	MAX_WAVE_POINTS,
 	TimeProjector,
 	computeIntervalSeconds,
@@ -198,8 +204,80 @@ describe('Elliott Wave Plugin', () => {
 			expect(DEGREE_STYLES.intermediate).toBe(INTERMEDIATE_STYLE);
 			expect(HIT_TEST_RADIUS).toBe(14);
 			expect(MAX_WAVE_POINTS).toBe(6);
+			expect(MAX_IMPULSE_POINTS).toBe(6);
+			expect(MAX_CORRECTIVE_POINTS).toBe(4);
+			expect(VERTICAL_LABEL_OFFSET).toBe(14);
 			expect(IMPULSE_COLOR).toBe('#22c55e');
 			expect(CORRECTIVE_COLOR).toBe('#ef4444');
+		});
+
+		it('formats corrective waves for Cycle (A, B, C), Primary (Ⓐ, Ⓑ, Ⓒ), and Intermediate ((A), (B), (C))', () => {
+			expect(CYCLE_STYLE.formatLabel('A')).toBe('A');
+			expect(CYCLE_STYLE.formatLabel('B')).toBe('B');
+			expect(CYCLE_STYLE.formatLabel('C')).toBe('C');
+
+			expect(PRIMARY_STYLE.formatLabel('A')).toBe('Ⓐ');
+			expect(PRIMARY_STYLE.formatLabel('B')).toBe('Ⓑ');
+			expect(PRIMARY_STYLE.formatLabel('C')).toBe('Ⓒ');
+
+			expect(INTERMEDIATE_STYLE.formatLabel('A')).toBe('(A)');
+			expect(INTERMEDIATE_STYLE.formatLabel('B')).toBe('(B)');
+			expect(INTERMEDIATE_STYLE.formatLabel('C')).toBe('(C)');
+
+			// Numeric wave with type='corrective' mapping
+			expect(CYCLE_STYLE.formatLabel(1, 'corrective')).toBe('A');
+			expect(PRIMARY_STYLE.formatLabel(2, 'corrective')).toBe('Ⓑ');
+			expect(INTERMEDIATE_STYLE.formatLabel(3, 'corrective')).toBe('(C)');
+
+			// Wave 0 returns empty string
+			expect(CYCLE_STYLE.formatLabel(0)).toBe('');
+			expect(PRIMARY_STYLE.formatLabel(0)).toBe('');
+			expect(INTERMEDIATE_STYLE.formatLabel(0)).toBe('');
+		});
+
+		it('getWaveColor colors ALL impulse segments/waves green and ALL corrective red', () => {
+			// All impulse wave segments are green; waves 2 and 4 must NOT be red
+			expect(getWaveColor(1)).toBe(IMPULSE_COLOR);
+			expect(getWaveColor(2)).toBe(IMPULSE_COLOR);
+			expect(getWaveColor(3)).toBe(IMPULSE_COLOR);
+			expect(getWaveColor(4)).toBe(IMPULSE_COLOR);
+			expect(getWaveColor(5)).toBe(IMPULSE_COLOR);
+			expect(getWaveColor('impulse')).toBe(IMPULSE_COLOR);
+
+			// All corrective wave segments are red
+			expect(getWaveColor('A')).toBe(CORRECTIVE_COLOR);
+			expect(getWaveColor('B')).toBe(CORRECTIVE_COLOR);
+			expect(getWaveColor('C')).toBe(CORRECTIVE_COLOR);
+			expect(getWaveColor('corrective')).toBe(CORRECTIVE_COLOR);
+		});
+
+		it('getWaveLabelOffset returns top offset (-14) for peaks and bottom offset (+14) for troughs', () => {
+			// Peaks: 1, 3, 5, B -> top offset (-14)
+			expect(getWaveLabelOffset(1)).toBe(-14);
+			expect(getWaveLabelOffset(3)).toBe(-14);
+			expect(getWaveLabelOffset(5)).toBe(-14);
+			expect(getWaveLabelOffset('B')).toBe(-14);
+
+			// Troughs: 2, 4, A, C -> bottom offset (+14)
+			expect(getWaveLabelOffset(2)).toBe(14);
+			expect(getWaveLabelOffset(4)).toBe(14);
+			expect(getWaveLabelOffset('A')).toBe(14);
+			expect(getWaveLabelOffset('C')).toBe(14);
+
+			// Anchor point 0
+			expect(getWaveLabelOffset(0)).toBe(0);
+		});
+
+		it('getWaveOrder provides correct sequence for impulse and corrective waves', () => {
+			expect(getWaveOrder(0)).toBe(0);
+			expect(getWaveOrder(1)).toBe(1);
+			expect(getWaveOrder('A')).toBe(1);
+			expect(getWaveOrder(2)).toBe(2);
+			expect(getWaveOrder('B')).toBe(2);
+			expect(getWaveOrder(3)).toBe(3);
+			expect(getWaveOrder('C')).toBe(3);
+			expect(getWaveOrder(4)).toBe(4);
+			expect(getWaveOrder(5)).toBe(5);
 		});
 	});
 
@@ -295,6 +373,69 @@ describe('Elliott Wave Plugin', () => {
 			expect(nextPoint.wave).toBe(0);
 			expect(state.getPoints('cycle').length).toBe(1);
 			expect(state.getPoints('cycle')[0].price).toBe(300);
+		});
+
+		it('tracks activeWaveType and fires waveTypeChanged event', () => {
+			expect(state.getActiveWaveType()).toBe('impulse');
+
+			const onTypeChanged = vi.fn();
+			state.waveTypeChanged().subscribe(onTypeChanged);
+
+			state.setActiveWaveType('corrective');
+			expect(state.getActiveWaveType()).toBe('corrective');
+			expect(onTypeChanged).toHaveBeenCalledWith('corrective');
+
+			// Switching to same type does not refire
+			onTypeChanged.mockClear();
+			state.setActiveWaveType('corrective');
+			expect(onTypeChanged).not.toHaveBeenCalled();
+		});
+
+		it('draws corrective wave (0, A, B, C) and exits drawing mode after 4 points', () => {
+			state.setActiveWaveType('corrective');
+			state.setDrawingMode(true);
+
+			const p0 = state.addPoint({ time: '2024-01-01' as Time, price: 100 });
+			expect(p0.wave).toBe(0);
+			expect(state.isDrawingMode()).toBe(true);
+
+			const pA = state.addPoint({ time: '2024-01-02' as Time, price: 70 });
+			expect(pA.wave).toBe('A');
+			expect(state.isDrawingMode()).toBe(true);
+
+			const pB = state.addPoint({ time: '2024-01-03' as Time, price: 85 });
+			expect(pB.wave).toBe('B');
+			expect(state.isDrawingMode()).toBe(true);
+
+			const pC = state.addPoint({ time: '2024-01-04' as Time, price: 60 });
+			expect(pC.wave).toBe('C');
+
+			// 4 points placed -> drawing mode automatically ends
+			expect(state.isDrawingMode()).toBe(false);
+
+			const count = state.getWaveCount('cycle');
+			expect(count?.type).toBe('corrective');
+			expect(count?.points.map((p) => p.wave)).toEqual([0, 'A', 'B', 'C']);
+
+			// Adding a 5th point resets and starts a new corrective wave
+			const nextPoint = state.addPoint({ time: '2024-01-05' as Time, price: 90 });
+			expect(nextPoint.wave).toBe(0);
+			expect(state.getPoints('cycle').length).toBe(1);
+		});
+
+		it('resets points when switching between impulse and corrective wave types', () => {
+			// Start with an impulse wave point
+			state.setActiveWaveType('impulse');
+			state.addPoint({ time: '2024-01-01' as Time, price: 100 });
+			state.addPoint({ time: '2024-01-02' as Time, price: 120 });
+			expect(state.getPoints('cycle').length).toBe(2);
+
+			// Switch to corrective -> next point resets
+			state.setActiveWaveType('corrective');
+			const newP0 = state.addPoint({ time: '2024-01-03' as Time, price: 150 });
+			expect(newP0.wave).toBe(0);
+			expect(state.getPoints('cycle').length).toBe(1);
+			expect(state.getWaveCount('cycle')?.type).toBe('corrective');
 		});
 
 		it('updates specific point coordinates in place including point 0', () => {
@@ -663,7 +804,7 @@ describe('Elliott Wave Plugin', () => {
 			expect(labels).toContain('I'); // Ghost badge for next wave (Cycle = Roman numeral)
 		});
 
-		it('renders drawing preview dashed line and ghost badge for wave 2 with corrective red color', () => {
+		it('renders drawing preview dashed line and ghost badge for wave 2 (green for impulse)', () => {
 			const { target, drawCalls } = createMockCanvasTarget();
 
 			renderer.update({
@@ -695,6 +836,115 @@ describe('Elliott Wave Plugin', () => {
 			const textCalls = drawCalls.filter((c) => c.type === 'fillText');
 			const labels = textCalls.map((c) => c.args[0]);
 			expect(labels).toContain('II');
+		});
+
+		it('renders drawing preview dashed line and ghost badge for corrective wave A (red)', () => {
+			const { target, drawCalls } = createMockCanvasTarget();
+
+			renderer.update({
+				degrees: [
+					{
+						degree: 'cycle',
+						type: 'corrective',
+						config: CYCLE_STYLE,
+						isActiveDegree: true,
+						points: [{ wave: 0, x: 100, y: 300, time: '2024-01-01' as Time, price: 100 }]
+					}
+				],
+				preview: {
+					degree: 'cycle',
+					type: 'corrective',
+					config: CYCLE_STYLE,
+					nextWave: 'A',
+					lastPoint: { wave: 0, x: 100, y: 300, time: '2024-01-01' as Time, price: 100 },
+					currentMouse: { x: 160, y: 250 }
+				}
+			});
+
+			renderer.draw(target);
+
+			const dashCalls = drawCalls.filter((c) => c.type === 'setLineDash');
+			expect(dashCalls.length).toBeGreaterThanOrEqual(1);
+
+			const textCalls = drawCalls.filter((c) => c.type === 'fillText');
+			const labels = textCalls.map((c) => c.args[0]);
+			expect(labels).toContain('A');
+		});
+
+		it('renders wave labels with vertical offsets (-14 for peaks, +14 for troughs)', () => {
+			const { target, drawCalls } = createMockCanvasTarget();
+
+			renderer.update({
+				degrees: [
+					{
+						degree: 'cycle',
+						type: 'impulse',
+						config: CYCLE_STYLE,
+						isActiveDegree: true,
+						points: [
+							{ wave: 0, x: 50, y: 320, time: '2024-01-01' as Time, price: 90 },
+							{ wave: 1, x: 100, y: 300, time: '2024-01-02' as Time, price: 100 },
+							{ wave: 2, x: 150, y: 350, time: '2024-01-03' as Time, price: 80 },
+							{ wave: 3, x: 200, y: 200, time: '2024-01-04' as Time, price: 150 }
+						]
+					}
+				],
+				preview: null
+			});
+
+			renderer.draw(target);
+
+			const textCalls = drawCalls.filter((c) => c.type === 'fillText');
+			const label1 = textCalls.find((c) => c.args[0] === 'I');
+			const label2 = textCalls.find((c) => c.args[0] === 'II');
+			const label3 = textCalls.find((c) => c.args[0] === 'III');
+
+			// Peak wave 1: y = (300 - 14) * 2 = 572
+			expect(label1?.args[2]).toBe((300 - 14) * 2);
+			// Trough wave 2: y = (350 + 14) * 2 = 728
+			expect(label2?.args[2]).toBe((350 + 14) * 2);
+			// Peak wave 3: y = (200 - 14) * 2 = 372
+			expect(label3?.args[2]).toBe((200 - 14) * 2);
+		});
+
+		it('renders corrective wave (0, A, B, C) with red segments and offset labels (A below, B above, C below)', () => {
+			const { target, drawCalls } = createMockCanvasTarget();
+
+			renderer.update({
+				degrees: [
+					{
+						degree: 'cycle',
+						type: 'corrective',
+						config: CYCLE_STYLE,
+						isActiveDegree: true,
+						points: [
+							{ wave: 0, x: 50, y: 300, time: '2024-01-01' as Time, price: 100 },
+							{ wave: 'A', x: 100, y: 250, time: '2024-01-02' as Time, price: 70 },
+							{ wave: 'B', x: 150, y: 200, time: '2024-01-03' as Time, price: 85 },
+							{ wave: 'C', x: 200, y: 280, time: '2024-01-04' as Time, price: 60 }
+						]
+					}
+				],
+				preview: null
+			});
+
+			renderer.draw(target);
+
+			const textCalls = drawCalls.filter((c) => c.type === 'fillText');
+			const labelA = textCalls.find((c) => c.args[0] === 'A');
+			const labelB = textCalls.find((c) => c.args[0] === 'B');
+			const labelC = textCalls.find((c) => c.args[0] === 'C');
+
+			expect(labelA).toBeDefined();
+			expect(labelB).toBeDefined();
+			expect(labelC).toBeDefined();
+
+			// Wave A (trough): y = (250 + 14) * 2 = 528
+			expect(labelA?.args[2]).toBe((250 + 14) * 2);
+			// Wave B (peak): y = (200 - 14) * 2 = 372
+			expect(labelB?.args[2]).toBe((200 - 14) * 2);
+			// Wave C (trough): y = (280 + 14) * 2 = 588
+			expect(labelC?.args[2]).toBe((280 + 14) * 2);
 		});
 
 		it('handles empty or null data gracefully without crashing', () => {

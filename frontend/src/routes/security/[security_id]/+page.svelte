@@ -74,6 +74,7 @@
 
 	let userPreferences = $state<UserPreferences | null>(null);
 	let activeWaveDegree = $state<WaveDegree>('cycle');
+	let activeWaveType = $state<'impulse' | 'corrective'>('impulse');
 	let isDrawingWave = $state(false);
 	let selectedWaveDegree = $state<WaveDegree | null>(null);
 	let securityElliottWaves = $derived<SecurityElliottWaves>(
@@ -592,6 +593,7 @@
 			// Reset drawing mode on route transition / security change
 			isDrawingWave = false;
 			isDrawingFib = false;
+			activeWaveType = 'impulse';
 			selectedWaveDegree = null;
 			selectedFibTool = null;
 
@@ -808,11 +810,19 @@
 				<div class="flex min-h-0 flex-1 overflow-hidden">
 					<DrawingToolbar
 						{activeWaveDegree}
+						{activeWaveType}
 						{isDrawingWave}
 						{activeFibTool}
 						{isDrawingFib}
 						onSelectWaveDegree={(degree) => {
 							activeWaveDegree = degree;
+							activeWaveType = 'impulse';
+							isDrawingWave = true;
+							isDrawingFib = false;
+						}}
+						onSelectCorrectiveDegree={(degree) => {
+							activeWaveDegree = degree;
+							activeWaveType = 'corrective';
 							isDrawingWave = true;
 							isDrawingFib = false;
 						}}
@@ -840,6 +850,7 @@
 							onLoadMoreData={handleLoadMoreData}
 							elliottWaves={securityElliottWaves}
 							activeDegree={activeWaveDegree}
+							{activeWaveType}
 							{isDrawingWave}
 							bind:selectedWaveDegree
 							snapToWicks={userPreferences?.wave_settings?.snap_to_wicks ?? false}
@@ -849,6 +860,7 @@
 								if (isDrawing) isDrawingFib = false;
 							}}
 							onDegreeChange={(degree) => (activeWaveDegree = degree)}
+							onWaveTypeChange={(type) => (activeWaveType = type)}
 							onWaveSelect={(degree) => {
 								selectedWaveDegree = degree;
 								if (degree) selectedFibTool = null;

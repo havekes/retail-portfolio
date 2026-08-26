@@ -1,8 +1,14 @@
 import type { Time } from 'lightweight-charts';
 import type { ISubscription } from '../helpers/delegate';
-import type { DegreeWaveCount, WaveDegree, WavePoint } from '$lib/utils/finance/elliott-wave';
+import type {
+	DegreeWaveCount,
+	WaveDegree,
+	WavePoint,
+	WavePointId,
+	WaveType
+} from '$lib/utils/finance/elliott-wave';
 import type { Candle } from '$lib/utils/finance/candle';
-import { DEGREE_STYLES, MAX_WAVE_POINTS } from './constants';
+import { DEGREE_STYLES, MAX_CORRECTIVE_POINTS, MAX_IMPULSE_POINTS } from './constants';
 import { MouseHandlers, type ProjectedPointWithTarget } from './mouse';
 import {
 	type DegreeRenderData,
@@ -28,6 +34,7 @@ export class ElliottWavesPrimitive extends DrawingPrimitiveBase<
 
 	constructor(initialState?: {
 		activeDegree?: WaveDegree;
+		activeWaveType?: WaveType;
 		waves?: Partial<Record<WaveDegree, DegreeWaveCount | null>>;
 		snapToWicks?: boolean;
 		selectedDegree?: WaveDegree | null;
@@ -38,6 +45,9 @@ export class ElliottWavesPrimitive extends DrawingPrimitiveBase<
 
 		if (initialState?.activeDegree) {
 			state.setActiveDegree(initialState.activeDegree);
+		}
+		if (initialState?.activeWaveType) {
+			state.setActiveWaveType(initialState.activeWaveType);
 		}
 		if (initialState?.waves) {
 			state.setAllWaveCounts(initialState.waves);
@@ -64,6 +74,7 @@ export class ElliottWavesPrimitive extends DrawingPrimitiveBase<
 	protected override _setupSubscriptions(): void {
 		this._subscribeToUpdate(this._state.wavePointsChanged());
 		this._subscribeToUpdate(this._state.degreeChanged());
+		this._subscribeToUpdate(this._state.waveTypeChanged());
 		this._subscribeToUpdate(this._state.selectionChanged());
 
 		this._subscribe(this._mouseHandlers.pointClicked(), (hit) => {
@@ -93,6 +104,18 @@ export class ElliottWavesPrimitive extends DrawingPrimitiveBase<
 
 	public setActiveDegree(degree: WaveDegree): void {
 		this._state.setActiveDegree(degree);
+	}
+
+	public getActiveWaveType(): WaveType {
+		return this._state.getActiveWaveType();
+	}
+
+	public setActiveWaveType(type: WaveType): void {
+		this._state.setActiveWaveType(type);
+	}
+
+	public waveTypeChanged(): ISubscription<WaveType> {
+		return this._state.waveTypeChanged();
 	}
 
 	public getWaveCount(degree?: WaveDegree): DegreeWaveCount | null {
@@ -154,7 +177,7 @@ export class ElliottWavesPrimitive extends DrawingPrimitiveBase<
 	}
 
 	public updatePoint(
-		wave: 0 | 1 | 2 | 3 | 4 | 5,
+		wave: WavePointId,
 		updateOrPrice: { time?: Time; price?: number } | number,
 		timeOrDegree?: Time | WaveDegree,
 		maybeDegree?: WaveDegree
@@ -249,8 +272,15 @@ export class ElliottWavesPrimitive extends DrawingPrimitiveBase<
 				}
 			}
 
+			const waveType =
+				waveCount?.type ??
+				(points.some((p) => p.wave === 'A' || p.wave === 'B' || p.wave === 'C')
+					? 'corrective'
+					: 'impulse');
+
 			degreeRenderDataList.push({
 				degree,
+				type: waveType,
 				config,
 				points: projectedPoints,
 				isActiveDegree: degree === activeDegree,
@@ -262,12 +292,17 @@ export class ElliottWavesPrimitive extends DrawingPrimitiveBase<
 
 		let preview: DrawingPreviewData | null = null;
 		if (this._state.isDrawingMode()) {
+			const activeWaveType = this._state.getActiveWaveType();
+			const isCorrective = activeWaveType === 'corrective';
+			const maxPoints = isCorrective ? MAX_CORRECTIVE_POINTS : MAX_IMPULSE_POINTS;
 			const activeConfig = DEGREE_STYLES[activeDegree];
 			const activeDegreeData = degreeRenderDataList.find((d) => d.degree === activeDegree);
 			const activePoints = activeDegreeData?.points ?? [];
 
-			if (activePoints.length < MAX_WAVE_POINTS) {
-				const nextWave = activePoints.length as 0 | 1 | 2 | 3 | 4 | 5;
+			if (activePoints.length < maxPoints) {
+				const nextWave: WavePointId = isCorrective
+					? (([0, 'A', 'B', 'C'] as const)[activePoints.length] ?? 0)
+					: (activePoints.length as 0 | 1 | 2 | 3 | 4 | 5);
 				const lastPoint = activePoints.length > 0 ? activePoints[activePoints.length - 1] : null;
 				const lastMouse = this._mouseHandlers.getLastMousePosition();
 
@@ -289,6 +324,7 @@ export class ElliottWavesPrimitive extends DrawingPrimitiveBase<
 
 				preview = {
 					degree: activeDegree,
+					type: activeWaveType,
 					config: activeConfig,
 					nextWave,
 					lastPoint,

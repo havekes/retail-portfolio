@@ -2,15 +2,20 @@ import type { Time } from 'lightweight-charts';
 
 export type WaveDegree = 'cycle' | 'primary' | 'intermediate';
 
+export type WaveType = 'impulse' | 'corrective';
+
+export type WavePointId = 0 | 1 | 2 | 3 | 4 | 5 | 'A' | 'B' | 'C';
+
 export type TargetWave = 'wave3' | 'wave5';
 
 export interface WavePoint {
-	wave: 0 | 1 | 2 | 3 | 4 | 5;
+	wave: WavePointId;
 	time: Time;
 	price: number;
 }
 
 export interface DegreeWaveCount {
+	type?: WaveType;
 	points: WavePoint[];
 	wave3Target?: number | null;
 	wave5Target?: number | null;
@@ -188,6 +193,9 @@ export function areWaveCountsEqual(
 ): boolean {
 	if (!a && !b) return true;
 	if (!a || !b) return false;
+	if ((a.type ?? 'impulse') !== (b.type ?? 'impulse')) {
+		return false;
+	}
 	if (a.wave3Target !== b.wave3Target || a.wave5Target !== b.wave5Target) {
 		return false;
 	}

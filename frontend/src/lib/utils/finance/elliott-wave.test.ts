@@ -315,6 +315,51 @@ describe('elliott-wave finance utilities', () => {
 			const target2: DegreeWaveCount = { ...sampleWaveCount, wave3Target: 180 };
 			expect(areWaveCountsEqual(target1, target2)).toBe(false);
 		});
+
+		it('returns true for identical corrective wave counts with letters A, B, C', () => {
+			const corrective1: DegreeWaveCount = {
+				type: 'corrective',
+				points: [
+					{ wave: 0, time: '2024-01-01', price: 100 },
+					{ wave: 'A', time: '2024-01-02', price: 70 },
+					{ wave: 'B', time: '2024-01-03', price: 85 },
+					{ wave: 'C', time: '2024-01-04', price: 60 }
+				]
+			};
+			const corrective2: DegreeWaveCount = {
+				type: 'corrective',
+				points: [
+					{ wave: 0, time: '2024-01-01', price: 100 },
+					{ wave: 'A', time: '2024-01-02', price: 70 },
+					{ wave: 'B', time: '2024-01-03', price: 85 },
+					{ wave: 'C', time: '2024-01-04', price: 60 }
+				]
+			};
+			expect(areWaveCountsEqual(corrective1, corrective2)).toBe(true);
+		});
+
+		it('returns false when wave count types differ (impulse vs corrective)', () => {
+			const impulse: DegreeWaveCount = {
+				type: 'impulse',
+				points: [{ wave: 0, time: '2024-01-01', price: 100 }]
+			};
+			const corrective: DegreeWaveCount = {
+				type: 'corrective',
+				points: [{ wave: 0, time: '2024-01-01', price: 100 }]
+			};
+			expect(areWaveCountsEqual(impulse, corrective)).toBe(false);
+		});
+
+		it('treats undefined type as impulse when comparing to explicit impulse type', () => {
+			const legacy: DegreeWaveCount = {
+				points: [{ wave: 0, time: '2024-01-01', price: 100 }]
+			};
+			const explicitImpulse: DegreeWaveCount = {
+				type: 'impulse',
+				points: [{ wave: 0, time: '2024-01-01', price: 100 }]
+			};
+			expect(areWaveCountsEqual(legacy, explicitImpulse)).toBe(true);
+		});
 	});
 
 	describe('DEFAULT_WAVE_SETTINGS', () => {

@@ -759,10 +759,13 @@ describe('Security Page - Elliott Wave Toolbar & Integration', () => {
 		});
 	});
 
-	it('renders Elliott Wave button in left drawing toolbar and omits legacy top toolbar controls', async () => {
+	it('renders Elliott Wave / Impulse Wave and Corrective Wave buttons in left drawing toolbar and omits legacy top toolbar controls', async () => {
 		render(PageComponent, { props: { data: mockData } });
 
-		expect(await screen.findByRole('button', { name: 'Elliott Wave' })).toBeInTheDocument();
+		expect(
+			await screen.findByRole('button', { name: /Impulse Wave|Elliott Wave/i })
+		).toBeInTheDocument();
+		expect(screen.getByRole('button', { name: 'Corrective Wave' })).toBeInTheDocument();
 		expect(screen.queryByRole('button', { name: /Select Cycle degree/i })).not.toBeInTheDocument();
 		expect(
 			screen.queryByRole('button', { name: /Select Primary degree/i })
@@ -775,23 +778,26 @@ describe('Security Page - Elliott Wave Toolbar & Integration', () => {
 	it('opens dropdown menu with Cycle, Primary, and Intermediate options when Elliott Wave button is clicked', async () => {
 		render(PageComponent, { props: { data: mockData } });
 
-		const waveBtn = await screen.findByRole('button', { name: 'Elliott Wave' });
+		const waveBtn = await screen.findByRole('button', { name: /Impulse Wave|Elliott Wave/i });
 		await fireEvent.click(waveBtn);
 
 		expect(await screen.findByText('Degree')).toBeInTheDocument();
-		expect(await screen.findByText('Cycle (I, II, III)')).toBeInTheDocument();
-		expect(screen.getByText('Primary (①, ②, ③)')).toBeInTheDocument();
-		expect(screen.getByText('Intermediate ((1), (2), (3))')).toBeInTheDocument();
+		expect(await screen.findByText('Cycle')).toBeInTheDocument();
+		expect(screen.getByText('I')).toBeInTheDocument();
+		expect(screen.getByText('Primary')).toBeInTheDocument();
+		expect(screen.getByText('①')).toBeInTheDocument();
+		expect(screen.getByText('Intermediate')).toBeInTheDocument();
+		expect(screen.getByText('1')).toBeInTheDocument();
 	});
 
 	it('selecting Cycle Degree activates drawing mode with cycle degree and active highlighting', async () => {
 		render(PageComponent, { props: { data: mockData } });
 
-		const waveBtn = await screen.findByRole('button', { name: 'Elliott Wave' });
+		const waveBtn = await screen.findByRole('button', { name: /Impulse Wave|Elliott Wave/i });
 		expect(waveBtn.className).not.toContain('bg-primary');
 
 		await fireEvent.click(waveBtn);
-		const cycleOption = await screen.findByText('Cycle (I, II, III)');
+		const cycleOption = await screen.findByText('Cycle');
 		await fireEvent.click(cycleOption);
 
 		expect(waveBtn.className).toContain('bg-primary');
@@ -807,11 +813,11 @@ describe('Security Page - Elliott Wave Toolbar & Integration', () => {
 	it('selecting Primary Degree activates drawing mode with primary degree and active highlighting', async () => {
 		render(PageComponent, { props: { data: mockData } });
 
-		const waveBtn = await screen.findByRole('button', { name: 'Elliott Wave' });
+		const waveBtn = await screen.findByRole('button', { name: /Impulse Wave|Elliott Wave/i });
 		expect(waveBtn.className).not.toContain('bg-primary');
 
 		await fireEvent.click(waveBtn);
-		const primaryOption = await screen.findByText('Primary (①, ②, ③)');
+		const primaryOption = await screen.findByText('Primary');
 		await fireEvent.click(primaryOption);
 
 		expect(waveBtn.className).toContain('bg-primary');
@@ -828,7 +834,7 @@ describe('Security Page - Elliott Wave Toolbar & Integration', () => {
 		render(PageComponent, { props: { data: mockData } });
 
 		const retraceBtn = await screen.findByRole('button', { name: /Toggle Fib Retrace drawing/i });
-		const waveBtn = screen.getByRole('button', { name: 'Elliott Wave' });
+		const waveBtn = screen.getByRole('button', { name: /Impulse Wave|Elliott Wave/i });
 
 		// Activate Fib Retrace
 		await fireEvent.click(retraceBtn);
@@ -836,19 +842,47 @@ describe('Security Page - Elliott Wave Toolbar & Integration', () => {
 
 		// Select wave degree -> cancels fib drawing
 		await fireEvent.click(waveBtn);
-		const cycleOption = await screen.findByText('Cycle (I, II, III)');
+		const cycleOption = await screen.findByText('Cycle');
 		await fireEvent.click(cycleOption);
 
 		expect(waveBtn.className).toContain('bg-primary');
 		expect(retraceBtn.className).not.toContain('bg-primary');
 	});
 
+	it('opens dropdown menu and activates corrective drawing mode when Corrective Wave button is clicked', async () => {
+		render(PageComponent, { props: { data: mockData } });
+
+		const correctiveBtn = await screen.findByRole('button', { name: 'Corrective Wave' });
+		expect(correctiveBtn.className).not.toContain('bg-primary');
+
+		await fireEvent.click(correctiveBtn);
+
+		expect(await screen.findByText('Degree')).toBeInTheDocument();
+		expect(screen.getByText('A')).toBeInTheDocument();
+		expect(screen.getByText('Ⓐ')).toBeInTheDocument();
+		expect(screen.getByText('(A)')).toBeInTheDocument();
+
+		const cycleOption = screen.getByText('Cycle');
+		await fireEvent.click(cycleOption);
+
+		expect(correctiveBtn.className).toContain('bg-primary');
+		await waitFor(() => {
+			expect(mockChartProps).not.toBeNull();
+			// @ts-expect-error - mockChartProps typed as Record
+			expect(mockChartProps.isDrawingWave).toBe(true);
+			// @ts-expect-error - mockChartProps typed as Record
+			expect(mockChartProps.activeWaveType).toBe('corrective');
+			// @ts-expect-error - mockChartProps typed as Record
+			expect(mockChartProps.activeDegree).toBe('cycle');
+		});
+	});
+
 	it('resets drawing mode on soft navigation to a different security', async () => {
 		const { rerender } = render(PageComponent, { props: { data: mockData } });
 
-		const waveBtn = await screen.findByRole('button', { name: 'Elliott Wave' });
+		const waveBtn = await screen.findByRole('button', { name: /Impulse Wave|Elliott Wave/i });
 		await fireEvent.click(waveBtn);
-		const cycleOption = await screen.findByText('Cycle (I, II, III)');
+		const cycleOption = await screen.findByText('Cycle');
 		await fireEvent.click(cycleOption);
 		expect(waveBtn.className).toContain('bg-primary');
 
@@ -866,9 +900,9 @@ describe('Security Page - Elliott Wave Toolbar & Integration', () => {
 
 		// Wait for soft navigation effect to execute and reset drawing mode
 		await waitFor(() => {
-			expect(screen.getByRole('button', { name: 'Elliott Wave' }).className).not.toContain(
-				'bg-primary'
-			);
+			expect(
+				screen.getByRole('button', { name: /Impulse Wave|Elliott Wave/i }).className
+			).not.toContain('bg-primary');
 		});
 	});
 });
@@ -947,7 +981,7 @@ describe('Security Page - Wave Selection & Keyboard Deletion', () => {
 
 	it('selects wave degree when chart triggers onWaveSelect and passes selectedWaveDegree to chart', async () => {
 		render(PageComponent, { props: { data: mockData } });
-		await screen.findByRole('button', { name: 'Elliott Wave' });
+		await screen.findByRole('button', { name: /Impulse Wave|Elliott Wave/i });
 
 		await waitFor(() => {
 			expect(mockChartProps).not.toBeNull();
@@ -965,7 +999,7 @@ describe('Security Page - Wave Selection & Keyboard Deletion', () => {
 
 	it('clears selected wave on Delete key press, patches user preferences, and reconciles alerts', async () => {
 		render(PageComponent, { props: { data: mockData } });
-		await screen.findByRole('button', { name: 'Elliott Wave' });
+		await screen.findByRole('button', { name: /Impulse Wave|Elliott Wave/i });
 
 		await waitFor(() => {
 			expect(mockChartProps).not.toBeNull();
@@ -1004,7 +1038,7 @@ describe('Security Page - Wave Selection & Keyboard Deletion', () => {
 
 	it('clears selected wave on Backspace key press', async () => {
 		render(PageComponent, { props: { data: mockData } });
-		await screen.findByRole('button', { name: 'Elliott Wave' });
+		await screen.findByRole('button', { name: /Impulse Wave|Elliott Wave/i });
 
 		await waitFor(() => {
 			expect(mockChartProps).not.toBeNull();
@@ -1035,7 +1069,7 @@ describe('Security Page - Wave Selection & Keyboard Deletion', () => {
 
 	it('deselects wave and exits drawing mode on Escape key press', async () => {
 		render(PageComponent, { props: { data: mockData } });
-		const waveBtn = await screen.findByRole('button', { name: 'Elliott Wave' });
+		const waveBtn = await screen.findByRole('button', { name: /Impulse Wave|Elliott Wave/i });
 
 		await waitFor(() => {
 			expect(mockChartProps).not.toBeNull();
@@ -1043,7 +1077,7 @@ describe('Security Page - Wave Selection & Keyboard Deletion', () => {
 
 		// Enter drawing mode and select a wave
 		await fireEvent.click(waveBtn);
-		const cycleOption = await screen.findByText('Cycle (I, II, III)');
+		const cycleOption = await screen.findByText('Cycle');
 		await fireEvent.click(cycleOption);
 		expect(waveBtn.className).toContain('bg-primary');
 
@@ -1061,7 +1095,7 @@ describe('Security Page - Wave Selection & Keyboard Deletion', () => {
 
 	it('clears selection when chart emits onWaveSelect(null)', async () => {
 		render(PageComponent, { props: { data: mockData } });
-		await screen.findByRole('button', { name: 'Elliott Wave' });
+		await screen.findByRole('button', { name: /Impulse Wave|Elliott Wave/i });
 
 		await waitFor(() => {
 			expect(mockChartProps).not.toBeNull();
@@ -1081,7 +1115,7 @@ describe('Security Page - Wave Selection & Keyboard Deletion', () => {
 
 	it('does not delete wave on Delete or Backspace when typing in an input element', async () => {
 		render(PageComponent, { props: { data: mockData } });
-		await screen.findByRole('button', { name: 'Elliott Wave' });
+		await screen.findByRole('button', { name: /Impulse Wave|Elliott Wave/i });
 
 		await waitFor(() => {
 			expect(mockChartProps).not.toBeNull();
@@ -1211,11 +1245,11 @@ describe('Security Page - Fibonacci Toolbar & Integration', () => {
 		render(PageComponent, { props: { data: mockData } });
 
 		const retraceBtn = await screen.findByRole('button', { name: /Toggle Fib Retrace drawing/i });
-		const waveBtn = screen.getByRole('button', { name: 'Elliott Wave' });
+		const waveBtn = screen.getByRole('button', { name: /Impulse Wave|Elliott Wave/i });
 
 		// Engage wave drawing first
 		await fireEvent.click(waveBtn);
-		const cycleOption = await screen.findByText('Cycle (I, II, III)');
+		const cycleOption = await screen.findByText('Cycle');
 		await fireEvent.click(cycleOption);
 		expect(waveBtn.className).toContain('bg-primary');
 
@@ -1233,11 +1267,11 @@ describe('Security Page - Fibonacci Toolbar & Integration', () => {
 		render(PageComponent, { props: { data: mockData } });
 
 		const extendBtn = await screen.findByRole('button', { name: /Toggle Fib Extend drawing/i });
-		const waveBtn = screen.getByRole('button', { name: 'Elliott Wave' });
+		const waveBtn = screen.getByRole('button', { name: /Impulse Wave|Elliott Wave/i });
 
 		// Engage wave drawing first
 		await fireEvent.click(waveBtn);
-		const cycleOption = await screen.findByText('Cycle (I, II, III)');
+		const cycleOption = await screen.findByText('Cycle');
 		await fireEvent.click(cycleOption);
 		expect(waveBtn.className).toContain('bg-primary');
 

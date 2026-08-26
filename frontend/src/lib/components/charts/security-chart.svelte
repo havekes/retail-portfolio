@@ -13,7 +13,8 @@
 	import type {
 		DegreeWaveCount,
 		SecurityElliottWaves,
-		WaveDegree
+		WaveDegree,
+		WaveType
 	} from '$lib/utils/finance/elliott-wave';
 	import { areWaveCountsEqual } from '$lib/utils/finance/elliott-wave';
 	import { FibonacciPrimitive } from './plugins/fibonacci/fibonacci-primitive';
@@ -88,12 +89,14 @@
 		onLoadMoreData,
 		elliottWaves = null,
 		activeDegree = 'cycle',
+		activeWaveType = 'impulse',
 		isDrawingWave = false,
 		selectedWaveDegree = $bindable<WaveDegree | null>(null),
 		snapToWicks = false,
 		onWaveChange,
 		onDrawingModeChange,
 		onDegreeChange,
+		onWaveTypeChange,
 		onWaveSelect,
 		fibonacciTools = null,
 		activeFibTool = 'retracement',
@@ -116,12 +119,14 @@
 		onLoadMoreData?: () => void;
 		elliottWaves?: SecurityElliottWaves | null;
 		activeDegree?: WaveDegree;
+		activeWaveType?: WaveType;
 		isDrawingWave?: boolean;
 		selectedWaveDegree?: WaveDegree | null;
 		snapToWicks?: boolean;
 		onWaveChange?: (degree: WaveDegree, waveCount: DegreeWaveCount | null) => void;
 		onDrawingModeChange?: (isDrawing: boolean) => void;
 		onDegreeChange?: (degree: WaveDegree) => void;
+		onWaveTypeChange?: (type: WaveType) => void;
 		onWaveSelect?: (degree: WaveDegree | null) => void;
 		fibonacciTools?: SecurityFibonacciTools | null;
 		activeFibTool?: FibToolType | null;
@@ -276,6 +281,13 @@
 		if (!elliottWavesPrimitive) return;
 		if (activeDegree && elliottWavesPrimitive.getActiveDegree() !== activeDegree) {
 			elliottWavesPrimitive.setActiveDegree(activeDegree);
+		}
+	});
+
+	$effect(() => {
+		if (!elliottWavesPrimitive) return;
+		if (activeWaveType && elliottWavesPrimitive.getActiveWaveType() !== activeWaveType) {
+			elliottWavesPrimitive.setActiveWaveType(activeWaveType);
 		}
 	});
 
@@ -563,6 +575,7 @@
 
 		elliottWavesPrimitive = new ElliottWavesPrimitive({
 			activeDegree,
+			activeWaveType,
 			waves: {
 				cycle: elliottWaves?.cycle ?? null,
 				primary: elliottWaves?.primary ?? null,
@@ -586,6 +599,10 @@
 
 		elliottWavesPrimitive.degreeChanged().subscribe((degree) => {
 			onDegreeChange?.(degree);
+		});
+
+		elliottWavesPrimitive.waveTypeChanged().subscribe((type) => {
+			onWaveTypeChange?.(type);
 		});
 
 		elliottWavesPrimitive.selectionChanged().subscribe((degree) => {
