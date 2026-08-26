@@ -56,7 +56,7 @@
 			<div class="grid gap-4 py-4">
 				<div class="grid grid-cols-4 items-center gap-2">
 					<Label>Color</Label>
-					<div class="col-span-3">
+					<div class="col-span-3 flex justify-end">
 						<Popover.Root>
 							<Popover.Trigger>
 								{#snippet child({ props })}
@@ -70,7 +70,8 @@
 									></button>
 								{/snippet}
 							</Popover.Trigger>
-							<Popover.Content class="w-auto p-0" align="start">
+							<!-- bottom-start: popover's left edge aligns with the swatch's left edge, opening downward -->
+							<Popover.Content class="w-auto p-0" side="bottom" align="start">
 								<ColorPicker bind:value={config.color} />
 							</Popover.Content>
 						</Popover.Root>

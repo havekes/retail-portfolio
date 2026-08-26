@@ -76,6 +76,20 @@ describe('IndicatorConfigModal Component', () => {
 		expect(pickerInDom()).toBe(false);
 	});
 
+	it('right-aligns the color swatch control within the modal row', () => {
+		render(IndicatorConfigModal, {
+			props: { open: true, config: rsiConfig, onSave: mockOnSave, onReset: mockOnReset }
+		});
+
+		const swatch = screen.getByTestId('indicator-color-swatch');
+		// The swatch row spans the remaining grid columns (label left) and the
+		// control is pushed to the right edge of the modal. jsdom can't compute
+		// layout, so the right-alignment class is the verifiable contract.
+		const row = swatch.closest('.col-span-3');
+		if (!row) throw new Error('color row wrapper not found');
+		expect(row.className).toContain('justify-end');
+	});
+
 	it('opens the color picker dropdown when the swatch is clicked', async () => {
 		render(IndicatorConfigModal, {
 			props: { open: true, config: rsiConfig, onSave: mockOnSave, onReset: mockOnReset }
@@ -87,6 +101,17 @@ describe('IndicatorConfigModal Component', () => {
 
 		expect(pickerInDom()).toBe(true);
 		expect(screen.getByTestId('indicator-color-swatch').getAttribute('aria-expanded')).toBe('true');
+
+		// bits-ui applies the resolved floating-ui placement as data attributes
+		// on the portaled content. With side="bottom" + align="start" the
+		// placement is "bottom-start": the popover's left edge aligns with the
+		// swatch's left edge, opening downward below it.
+		await waitFor(() => {
+			const content = document.querySelector('[data-slot="popover-content"]');
+			if (!content) throw new Error('popover content not rendered');
+			expect(content.getAttribute('data-side')).toBe('bottom');
+			expect(content.getAttribute('data-align')).toBe('start');
+		});
 	});
 
 	it('updates the swatch color live when a new hex value is typed in the picker', async () => {
