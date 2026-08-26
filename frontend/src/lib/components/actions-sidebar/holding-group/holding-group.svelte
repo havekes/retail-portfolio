@@ -13,6 +13,7 @@
 	import { ModalState } from '$lib/utils/modal-state.svelte';
 	import type { SecuritySchema } from '@/api/marketService';
 	import type { Candle } from '@/utils/finance/candle';
+	import { moneyToNumber } from '$lib/types/money';
 
 	let {
 		securityId,
@@ -39,23 +40,6 @@
 		holdingsModalState.open(security as SecuritySchema);
 	};
 
-	const parseMoneyAmount = (val: unknown): number => {
-		if (!val) return 0;
-		if (typeof val === 'number') return val;
-		if (typeof val === 'string') return parseFloat(val) || 0;
-		if (typeof val === 'object') {
-			const m = val as Record<string, unknown>;
-			if (typeof m.amount === 'number') return m.amount;
-			if (typeof m.amount === 'string') return parseFloat(m.amount) || 0;
-			if (typeof m.value === 'number') return m.value;
-			if (typeof m.value === 'string') return parseFloat(m.value) || 0;
-			if (typeof m.units === 'number') {
-				return m.units + (typeof m.nanos === 'number' ? m.nanos / 1_000_000_000 : 0);
-			}
-		}
-		return 0;
-	};
-
 	const fetchHoldings = async () => {
 		if (!effectiveSecurityId) return;
 		if (holdings.length === 0) {
@@ -75,7 +59,7 @@
 
 			let totalPortfolioValue = 0;
 			for (const totals of totalsList) {
-				totalPortfolioValue += parseMoneyAmount(totals?.value);
+				totalPortfolioValue += moneyToNumber(totals?.value);
 			}
 
 			const totalSecurityValue = holdings.reduce((sum, h) => sum + (h.total_value ?? 0), 0);
