@@ -16,7 +16,6 @@
 	import { userPreferencesService, type ChartStyle } from '$lib/api/userPreferencesService';
 	import { alertsService, type PriceAlert } from '$lib/api/alertsService';
 	import { blendedAverageCost } from '@/utils/finance/average-cost';
-	import { AVG_PRICE_LINE_COLOR } from '$lib/components/charts/colors';
 	import HoldingsGroup from '@/components/actions-sidebar/holding-group/holding-group.svelte';
 	import { accountService, type AccountHoldingRead } from '@/api/accountService';
 	import type { IndicatorData } from '$lib/components/charts/security-chart.svelte';
@@ -34,6 +33,7 @@
 		shouldFetchMoreData,
 		computeIndicatorData
 	} from '$lib/chart-preferences';
+	import { INDICATOR_DEFAULTS, type IndicatorDefault } from '$lib/chart/indicator-defaults';
 	import { getChartDateWindow } from '$lib/utils/date';
 	import type {
 		DegreeWaveCount,
@@ -377,18 +377,6 @@
 	}
 	let securityChart = $state<unknown | null>(null);
 
-	interface LocalIndicatorConfig {
-		label: string;
-		color: string;
-		period: number;
-		enabled: boolean;
-		fast?: number;
-		slow?: number;
-		signal?: number;
-		stdDev?: number;
-		settings: Record<string, unknown>;
-	}
-
 	interface ChartInstance {
 		addIndicator: (indicator: IndicatorData) => void;
 		removeIndicator: (indicatorId: string) => void;
@@ -397,40 +385,14 @@
 	let chartRef = $state<ChartInstance | null>(null);
 	let alerts = $state<PriceAlert[]>([]);
 
-	let indicatorConfigs = $state<Record<string, LocalIndicatorConfig>>({
-		ma50: { label: '50 Day MA', color: '#3b82f6', period: 50, enabled: false, settings: {} },
-		ma200: { label: '200 Day MA', color: '#8b5cf6', period: 200, enabled: false, settings: {} },
-		ma50w: { label: '50 Week MA', color: '#10b981', period: 50, enabled: false, settings: {} },
-		ma200w: { label: '200 Week MA', color: '#f59e0b', period: 200, enabled: false, settings: {} },
-		volume: { label: 'Volume', color: '#64748b', period: 0, enabled: false, settings: {} },
-		obv: { label: 'OBV', color: '#f59e0b', period: 0, enabled: false, settings: {} },
-		rsi: { label: 'RSI', color: '#06b6d4', period: 14, enabled: false, settings: {} },
-		macd: {
-			label: 'MACD',
-			color: '#ef4444',
-			period: 0,
-			fast: 12,
-			slow: 26,
-			signal: 9,
-			enabled: false,
-			settings: {}
-		},
-		bb: {
-			label: 'Bollinger Bands',
-			color: '#8b5cf6',
-			period: 20,
-			stdDev: 2,
-			enabled: false,
-			settings: {}
-		},
-		avgPrice: {
-			label: 'Avg Price',
-			color: AVG_PRICE_LINE_COLOR,
-			period: 0,
-			enabled: true,
-			settings: {}
-		}
-	});
+	let indicatorConfigs = $state<Record<string, IndicatorDefault>>(
+		Object.fromEntries(
+			Object.entries(INDICATOR_DEFAULTS).map(([id, d]) => [
+				id,
+				{ ...d, settings: { ...d.settings } }
+			])
+		)
+	);
 
 	let holdings = $state<AccountHoldingRead[]>([]);
 	let averageBuyingPrice = $derived(blendedAverageCost(holdings));
@@ -448,7 +410,7 @@
 		}, 20);
 	}
 
-	function onIndicatorConfigChange(indicatorId: string, newConfig: Partial<LocalIndicatorConfig>) {
+	function onIndicatorConfigChange(indicatorId: string, newConfig: Partial<IndicatorDefault>) {
 		indicatorConfigs[indicatorId] = { ...indicatorConfigs[indicatorId], ...newConfig };
 		// Handle avgPrice specifically since it's a prop not a generic indicator
 		if (indicatorId === 'avgPrice') return;
