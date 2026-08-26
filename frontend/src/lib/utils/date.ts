@@ -31,7 +31,7 @@ export function getChartDateWindow(endDate: Date, interval: string): { from: str
 	const fromDate = new Date(endDate);
 
 	if (isIntraday) {
-		fromDate.setDate(fromDate.getDate() - 180);
+		fromDate.setDate(fromDate.getDate() - 30);
 	} else {
 		fromDate.setFullYear(fromDate.getFullYear() - 2);
 	}
