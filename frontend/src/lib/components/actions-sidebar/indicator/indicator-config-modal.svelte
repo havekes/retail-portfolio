@@ -1,5 +1,6 @@
 <script lang="ts">
 	import * as Dialog from '$lib/components/ui/dialog/index.js';
+	import * as Popover from '$lib/components/ui/popover/index.js';
 	import { Root as ColorPicker } from '$lib/components/ui/color-picker/index.js';
 	import { Input } from '$lib/components/ui/input/index.js';
 	import { Label } from '$lib/components/ui/label/index.js';
@@ -55,34 +56,61 @@
 			<div class="grid gap-4 py-4">
 				<div class="grid grid-cols-4 items-center gap-2">
 					<Label>Color</Label>
-					<div class="col-span-3">
-						<ColorPicker bind:value={config.color} class="w-full" />
+					<div class="col-span-3 flex justify-end">
+						<Popover.Root>
+							<Popover.Trigger>
+								{#snippet child({ props })}
+									<button
+										{...props}
+										type="button"
+										style:background-color={config.color}
+										aria-label="Color"
+										data-testid="indicator-color-swatch"
+										class="size-9 rounded-md border"
+									></button>
+								{/snippet}
+							</Popover.Trigger>
+							<!-- bottom-end: popover's right edge aligns with the swatch's right edge, extending leftward below the button -->
+							<Popover.Content class="w-auto p-0" side="bottom" align="end">
+								<ColorPicker bind:value={config.color} />
+							</Popover.Content>
+						</Popover.Root>
 					</div>
 				</div>
 				{#if config.id === 'rsi' || config.id === 'bb'}
 					<div class="grid grid-cols-4 items-center gap-2">
 						<Label>Period</Label>
-						<Input type="number" bind:value={config.period} />
+						<div class="col-span-3 flex justify-end">
+							<Input type="number" class="w-24" bind:value={config.period} />
+						</div>
 					</div>
 				{/if}
 				{#if config.id === 'bb'}
 					<div class="grid grid-cols-4 items-center gap-2">
 						<Label>Std Dev</Label>
-						<Input type="number" bind:value={config.stdDev} />
+						<div class="col-span-3 flex justify-end">
+							<Input type="number" class="w-24" bind:value={config.stdDev} />
+						</div>
 					</div>
 				{/if}
 				{#if config.id === 'macd'}
 					<div class="grid grid-cols-4 items-center gap-2">
 						<Label>Fast</Label>
-						<Input type="number" bind:value={config.fast} />
+						<div class="col-span-3 flex justify-end">
+							<Input type="number" class="w-24" bind:value={config.fast} />
+						</div>
 					</div>
 					<div class="grid grid-cols-4 items-center gap-2">
 						<Label>Slow</Label>
-						<Input type="number" bind:value={config.slow} />
+						<div class="col-span-3 flex justify-end">
+							<Input type="number" class="w-24" bind:value={config.slow} />
+						</div>
 					</div>
 					<div class="grid grid-cols-4 items-center gap-2">
 						<Label>Signal</Label>
-						<Input type="number" bind:value={config.signal} />
+						<div class="col-span-3 flex justify-end">
+							<Input type="number" class="w-24" bind:value={config.signal} />
+						</div>
 					</div>
 				{/if}
 			</div>
