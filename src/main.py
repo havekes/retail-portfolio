@@ -10,7 +10,6 @@ from alembic.config import Config
 from fastapi import APIRouter, FastAPI, Request, status
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
-from huey_dashboard import init_huey_dashboard
 from slowapi import _rate_limit_exceeded_handler
 from slowapi.errors import RateLimitExceeded
 from slowapi.middleware import SlowAPIMiddleware
@@ -30,6 +29,11 @@ from src.core.middleware import RequestIdMiddleware
 from src.integration.router import institutions_router, integration_router
 from src.integration.sync_status import redis_manager
 from src.market.router import market_router
+from src.worker_dashboard import (
+    close_worker_dashboard,
+    init_worker_dashboard,
+    worker_dashboard_router,
+)
 from src.ws.manager import ws_manager
 from src.ws.router import ws_router
 
@@ -58,12 +62,11 @@ async def lifespan_context(app: FastAPI):
     await ws_manager.init_redis(settings.redis_url)
 
     # Initialize Huey dashboard
-    init_huey_dashboard(
+    await init_worker_dashboard(
         app,
-        huey=huey,  # ty: ignore[invalid-argument-type]
+        huey=huey,
         db_url=settings.database_url,
         redis_url=settings.redis_url,
-        api_prefix="/worker/api",
         bind_signals=True,
     )
 
@@ -73,6 +76,7 @@ async def lifespan_context(app: FastAPI):
     except Exception:
         logger.exception("Lifespan yield failed:")
 
+    await close_worker_dashboard(app)
     await ws_manager.close()
     await redis_manager.close()
 
@@ -170,6 +174,7 @@ v1.include_router(market_router)
 
 app.include_router(v1)
 app.include_router(ws_router)
+app.include_router(worker_dashboard_router)
 
 
 @app.get("/health/live")

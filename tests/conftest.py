@@ -9,7 +9,9 @@ from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_asyn
 from sqlalchemy.ext.asyncio.engine import AsyncEngine
 
 # Set default env vars before importing app
-os.environ["SECRET_KEY"] = "7bb26bc4200000a69d07fa542933ef7256c1e47462f9c5a2f9c1dcf562b482f9"
+os.environ["SECRET_KEY"] = (
+    "7bb26bc4200000a69d07fa542933ef7256c1e47462f9c5a2f9c1dcf562b482f9"
+)
 os.environ["ENVIRONMENT"] = "test"
 os.environ["STUB_EXTERNAL_API"] = "true"
 
@@ -29,17 +31,17 @@ from tests.fixtures.market import *  # noqa: F401, F403
 
 from unittest.mock import AsyncMock, MagicMock, patch
 
+
 # Global mocks to prevent 4s teardown delay from Redis/Huey.
 # These are applied once for the entire test session.
 @pytest.fixture(scope="session", autouse=True)
 def global_mocks():
     """Mock external dependencies (Redis, Huey) during tests.
 
-    The critical fix here is patching `src.main.init_huey_dashboard` — NOT
-    `huey_dashboard.init_huey_dashboard`. Because main.py binds the name at
-    import time via `from huey_dashboard import init_huey_dashboard`, patching
-    the original module has no effect. The real function creates a real
-    AsyncRedis connection whose aclose() times out ~4 seconds per test.
+    The critical fix here is patching `src.main.init_worker_dashboard` and
+    `src.main.close_worker_dashboard`. Because main.py binds these names at
+    import time, patching them prevents creating real AsyncRedis connections
+    whose aclose() times out ~4 seconds per test.
     """
     from src.worker import huey
 
@@ -48,19 +50,32 @@ def global_mocks():
 
     from src.ws.manager import ConnectionManager
 
-    ConnectionManager._orig_init_redis = ConnectionManager.init_redis  # type: ignore
-    ConnectionManager._orig_close = ConnectionManager.close  # type: ignore
-    ConnectionManager._orig_send_personal_message = ConnectionManager.send_personal_message  # type: ignore
-    ConnectionManager._orig_send_personal_message_sync = ConnectionManager.send_personal_message_sync  # type: ignore
+    setattr(ConnectionManager, "_orig_init_redis", ConnectionManager.init_redis)
+    setattr(ConnectionManager, "_orig_close", ConnectionManager.close)
+    setattr(
+        ConnectionManager,
+        "_orig_send_personal_message",
+        ConnectionManager.send_personal_message,
+    )
+    setattr(
+        ConnectionManager,
+        "_orig_send_personal_message_sync",
+        ConnectionManager.send_personal_message_sync,
+    )
 
     with (
         # Patch ConnectionManager class methods so all loop-scoped instances are mocked
         patch.object(ConnectionManager, "init_redis", new=AsyncMock(return_value=None)),
         patch.object(ConnectionManager, "close", new=AsyncMock(return_value=None)),
-        patch.object(ConnectionManager, "send_personal_message", new=AsyncMock(return_value=None)),
-        patch.object(ConnectionManager, "send_personal_message_sync", return_value=None),
-        # Patch the locally-bound name in src.main (this is what actually runs)
-        patch("src.main.init_huey_dashboard", return_value=None),
+        patch.object(
+            ConnectionManager, "send_personal_message", new=AsyncMock(return_value=None)
+        ),
+        patch.object(
+            ConnectionManager, "send_personal_message_sync", return_value=None
+        ),
+        # Patch the locally-bound names in src.main (this is what actually runs)
+        patch("src.main.init_worker_dashboard", new=AsyncMock(return_value=None)),
+        patch("src.main.close_worker_dashboard", new=AsyncMock(return_value=None)),
     ):
         yield
 
@@ -76,7 +91,11 @@ def postgres_service() -> Generator[str, None, None]:
         from testcontainers.community.postgres import PostgresContainer
 
         with PostgresContainer("postgres:17-alpine") as postgres:
-            url = make_url(postgres.get_connection_url()).set(drivername="postgresql+asyncpg").render_as_string(hide_password=False)
+            url = (
+                make_url(postgres.get_connection_url())
+                .set(drivername="postgresql+asyncpg")
+                .render_as_string(hide_password=False)
+            )
             os.environ["DATABASE_URL"] = url
             yield url
 
