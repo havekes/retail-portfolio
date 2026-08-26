@@ -1,4 +1,5 @@
 import type { ISeriesApi, SeriesType, Time } from 'lightweight-charts';
+import type { Candle } from '$lib/utils/finance/candle';
 import type { ISubscription } from '../helpers/delegate';
 import {
 	calculateExtensionLevels,
@@ -197,6 +198,10 @@ export class FibonacciPrimitive extends DrawingPrimitiveBase<
 
 	public dragChanged(): ISubscription<FibPointTarget | null> {
 		return this._state.dragChanged();
+	}
+
+	public setCandles(candles: Candle[]): void {
+		this._mouseHandlers.setCandles(candles);
 	}
 
 	protected override _calculateRendererData(): FibonacciRendererData | null {
