@@ -685,7 +685,8 @@ describe('Fibonacci Chart Primitive Plugin', () => {
 						{ ratio: 0.0, price: 180, y: 100, formattedPrice: '180.00', label: '0.0 (180.00)' },
 						{ ratio: 0.5, price: 160, y: 200, formattedPrice: '160.00', label: '0.5 (160.00)' },
 						{ ratio: 1.0, price: 140, y: 300, formattedPrice: '140.00', label: '1.0 (140.00)' }
-					]
+					],
+					isSelected: true
 				},
 				extension: null,
 				preview: null
@@ -718,7 +719,8 @@ describe('Fibonacci Chart Primitive Plugin', () => {
 					levels: [
 						{ ratio: 0.0, price: 160, y: 200, formattedPrice: '160.00', label: '0.0 (160.00)' },
 						{ ratio: 1.0, price: 200, y: 0, formattedPrice: '200.00', label: '1.0 (200.00)' }
-					]
+					],
+					isSelected: true
 				},
 				preview: null
 			};
@@ -945,20 +947,20 @@ describe('Fibonacci Chart Primitive Plugin', () => {
 			primitive.setActiveTool('retracement');
 			primitive.setDrawingMode(true);
 
-			// Click point 1 (day 5 -> x=100, y=200 -> price=160)
+			// Click point 1 (day 5 -> x=100, y=200 -> price=160, snaps to high=114)
 			const click1 = new MouseEvent('click', { clientX: 100, clientY: 200 });
 			mockData.mockChartElement.dispatchEvent(click1);
 			expect(primitive.isDrawingMode()).toBe(true);
 
-			// Click point 2 (day 13 -> x=300, y=100 -> price=180)
+			// Click point 2 (day 13 -> x=300, y=100 -> price=180, snaps to high=122)
 			const click2 = new MouseEvent('click', { clientX: 300, clientY: 100 });
 			mockData.mockChartElement.dispatchEvent(click2);
 
 			expect(primitive.isDrawingMode()).toBe(false);
 			const retracement = primitive.getRetracement();
 			expect(retracement).not.toBeNull();
-			expect(retracement?.p1.price).toBe(160);
-			expect(retracement?.p2.price).toBe(180);
+			expect(retracement?.p1.price).toBe(114);
+			expect(retracement?.p2.price).toBe(122);
 		});
 
 		it('supports dragging anchor handles to reposition drawing in real time', () => {
@@ -973,12 +975,12 @@ describe('Fibonacci Chart Primitive Plugin', () => {
 				new MouseEvent('mousedown', { clientX: 100, clientY: 200 })
 			);
 
-			// Drag P1 to x=150 (day 7), y=250 (price=150)
+			// Drag P1 to x=150 (day 7), y=250 (price=150, snaps to high=116)
 			mockData.mockChartElement.dispatchEvent(
 				new MouseEvent('mousemove', { clientX: 150, clientY: 250 })
 			);
 
-			expect(primitive.getRetracement()?.p1.price).toBe(150);
+			expect(primitive.getRetracement()?.p1.price).toBe(116);
 			expect(primitive.getRetracement()?.p1.time).toBe('2024-01-07');
 
 			// Mouseup
