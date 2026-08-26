@@ -15,6 +15,25 @@ describe('IndicatorConfigModal Component', () => {
 		enabled: true
 	};
 
+	const bbConfig = {
+		id: 'bb',
+		label: 'Bollinger Bands',
+		color: '#06b6d4',
+		period: 20,
+		stdDev: 2,
+		enabled: true
+	};
+
+	const macdConfig = {
+		id: 'macd',
+		label: 'MACD',
+		color: '#06b6d4',
+		fast: 12,
+		slow: 26,
+		signal: 9,
+		enabled: true
+	};
+
 	// DOM-presence check for the picker: bits-ui's floating layer hides portaled
 	// content with `visibility: hidden` under jsdom (floating-ui can't measure
 	// layout), so `queryByRole` (which filters by accessibility visibility) is
@@ -90,6 +109,27 @@ describe('IndicatorConfigModal Component', () => {
 		expect(row.className).toContain('justify-end');
 	});
 
+	it.each([
+		{ config: { ...rsiConfig }, inputs: 1 },
+		{ config: { ...bbConfig }, inputs: 2 },
+		{ config: { ...macdConfig }, inputs: 3 }
+	])('right-aligns the text/number input rows ($inputs inputs)', ({ config, inputs }) => {
+		render(IndicatorConfigModal, {
+			props: { open: true, config, onSave: mockOnSave, onReset: mockOnReset }
+		});
+
+		// Same right-alignment contract as the swatch row: each input lives in a
+		// `col-span-3 flex justify-end` wrapper, so the control sits on the
+		// right edge of the modal with its label on the left.
+		const numberInputs = document.querySelectorAll('input[type="number"]');
+		expect(numberInputs).toHaveLength(inputs);
+		for (const input of numberInputs) {
+			const row = input.closest('.col-span-3');
+			if (!row) throw new Error('input row wrapper not found');
+			expect(row.className).toContain('justify-end');
+		}
+	});
+
 	it('opens the color picker dropdown when the swatch is clicked', async () => {
 		render(IndicatorConfigModal, {
 			props: { open: true, config: rsiConfig, onSave: mockOnSave, onReset: mockOnReset }
@@ -103,14 +143,14 @@ describe('IndicatorConfigModal Component', () => {
 		expect(screen.getByTestId('indicator-color-swatch').getAttribute('aria-expanded')).toBe('true');
 
 		// bits-ui applies the resolved floating-ui placement as data attributes
-		// on the portaled content. With side="bottom" + align="start" the
-		// placement is "bottom-start": the popover's left edge aligns with the
-		// swatch's left edge, opening downward below it.
+		// on the portaled content. With side="bottom" + align="end" the
+		// placement is "bottom-end": the popover's right edge aligns with the
+		// swatch's right edge, extending leftward below the button.
 		await waitFor(() => {
 			const content = document.querySelector('[data-slot="popover-content"]');
 			if (!content) throw new Error('popover content not rendered');
 			expect(content.getAttribute('data-side')).toBe('bottom');
-			expect(content.getAttribute('data-align')).toBe('start');
+			expect(content.getAttribute('data-align')).toBe('end');
 		});
 	});
 

@@ -70,8 +70,8 @@
 									></button>
 								{/snippet}
 							</Popover.Trigger>
-							<!-- bottom-start: popover's left edge aligns with the swatch's left edge, opening downward -->
-							<Popover.Content class="w-auto p-0" side="bottom" align="start">
+							<!-- bottom-end: popover's right edge aligns with the swatch's right edge, extending leftward below the button -->
+							<Popover.Content class="w-auto p-0" side="bottom" align="end">
 								<ColorPicker bind:value={config.color} />
 							</Popover.Content>
 						</Popover.Root>
@@ -80,27 +80,37 @@
 				{#if config.id === 'rsi' || config.id === 'bb'}
 					<div class="grid grid-cols-4 items-center gap-2">
 						<Label>Period</Label>
-						<Input type="number" bind:value={config.period} />
+						<div class="col-span-3 flex justify-end">
+							<Input type="number" bind:value={config.period} />
+						</div>
 					</div>
 				{/if}
 				{#if config.id === 'bb'}
 					<div class="grid grid-cols-4 items-center gap-2">
 						<Label>Std Dev</Label>
-						<Input type="number" bind:value={config.stdDev} />
+						<div class="col-span-3 flex justify-end">
+							<Input type="number" bind:value={config.stdDev} />
+						</div>
 					</div>
 				{/if}
 				{#if config.id === 'macd'}
 					<div class="grid grid-cols-4 items-center gap-2">
 						<Label>Fast</Label>
-						<Input type="number" bind:value={config.fast} />
+						<div class="col-span-3 flex justify-end">
+							<Input type="number" bind:value={config.fast} />
+						</div>
 					</div>
 					<div class="grid grid-cols-4 items-center gap-2">
 						<Label>Slow</Label>
-						<Input type="number" bind:value={config.slow} />
+						<div class="col-span-3 flex justify-end">
+							<Input type="number" bind:value={config.slow} />
+						</div>
 					</div>
 					<div class="grid grid-cols-4 items-center gap-2">
 						<Label>Signal</Label>
-						<Input type="number" bind:value={config.signal} />
+						<div class="col-span-3 flex justify-end">
+							<Input type="number" bind:value={config.signal} />
+						</div>
 					</div>
 				{/if}
 			</div>
