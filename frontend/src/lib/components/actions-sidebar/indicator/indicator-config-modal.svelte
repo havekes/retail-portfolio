@@ -64,14 +64,18 @@
 										{...props}
 										type="button"
 										style:background-color={config.color}
-										aria-label="Color"
+										aria-label={`Change color (current color: ${config.color})`}
 										data-testid="indicator-color-swatch"
 										class="size-9 rounded-md border"
 									></button>
 								{/snippet}
 							</Popover.Trigger>
 							<!-- bottom-end: popover's right edge aligns with the swatch's right edge, extending leftward below the button -->
-							<Popover.Content class="w-auto p-0" side="bottom" align="end">
+							<Popover.Content
+								class="w-auto bg-transparent p-0 shadow-none ring-0"
+								side="bottom"
+								align="end"
+							>
 								<ColorPicker bind:value={config.color} />
 							</Popover.Content>
 						</Popover.Root>

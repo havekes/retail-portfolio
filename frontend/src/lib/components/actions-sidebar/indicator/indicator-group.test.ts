@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent, waitFor, within } from '@testing-library/svelte';
 import IndicatorGroup from './indicator-group.svelte';
-import { INDICATOR_DEFAULTS } from '$lib/chart/indicator-defaults';
+import { createIndicatorConfigs } from '$lib/chart/indicator-defaults';
 
 vi.mock('$app/paths', () => ({
 	resolve: (path: string) => path
@@ -23,9 +23,7 @@ describe('IndicatorGroup Component', () => {
 
 	// Default-derived page state; rsi stays disabled here, mirroring the stale
 	// page `indicatorConfigs` that is NOT updated when the sidebar toggle flips.
-	const indicatorConfigs = Object.fromEntries(
-		Object.entries(INDICATOR_DEFAULTS).map(([id, d]) => [id, { ...d, settings: { ...d.settings } }])
-	);
+	const indicatorConfigs = createIndicatorConfigs();
 
 	beforeEach(() => {
 		vi.clearAllMocks();
@@ -155,6 +153,84 @@ describe('IndicatorGroup Component', () => {
 						// consistent with the existing save path (harmless).
 						settings: { fast: 12, slow: 26, signal: 9, period: 0 }
 					}
+				}
+			});
+		});
+	});
+
+	it('restores Bollinger Bands color/period/stdDev defaults and keeps enabled from preferences', async () => {
+		vi.mocked(userPreferencesService.getPreferences).mockResolvedValue({
+			indicators: {
+				bb: { enabled: true, color: '#111111', settings: { period: 10, stdDev: 3 } }
+			}
+		});
+
+		renderGroup();
+		await waitFor(() => expect(userPreferencesService.getPreferences).toHaveBeenCalled());
+
+		const bbRow = screen.getByText('Bollinger Bands').closest('[role="button"]');
+		expect(bbRow).not.toBeNull();
+		await fireEvent.click(within(bbRow as HTMLElement).getByRole('button'));
+		await waitFor(() => expect(screen.getByText('Bollinger Bands Settings')).toBeInTheDocument());
+
+		await fireEvent.click(screen.getByTestId('reset-indicator-btn'));
+
+		expect(mockOnIndicatorConfigChange).toHaveBeenCalledWith(
+			'bb',
+			expect.objectContaining({ color: '#8b5cf6', period: 20, stdDev: 2 }),
+			true
+		);
+
+		await waitFor(() => {
+			expect(userPreferencesService.patchPreferences).toHaveBeenCalledWith({
+				indicators: {
+					bb: { enabled: true, color: '#8b5cf6', settings: { period: 20, stdDev: 2 } }
+				}
+			});
+		});
+	});
+
+	it('does not clobber a sidebar-toggle enabled flag when saving settings', async () => {
+		// bb starts disabled in preferences, mirroring the stale page
+		// indicatorConfigs (bb.enabled === false from defaults).
+		vi.mocked(userPreferencesService.getPreferences).mockResolvedValue({
+			indicators: {
+				bb: { enabled: false, color: '#111111', settings: { period: 10, stdDev: 3 } }
+			}
+		});
+
+		renderGroup();
+		await waitFor(() => expect(userPreferencesService.getPreferences).toHaveBeenCalled());
+
+		// Toggle bb on by clicking the row wrapper (not the gear). This flips
+		// the live preference to enabled: true, but the page indicatorConfigs
+		// (and therefore the modal-bound config) stays stale at false.
+		const bbRow = screen.getByText('Bollinger Bands').closest('[role="button"]');
+		expect(bbRow).not.toBeNull();
+		await fireEvent.click(bbRow as HTMLElement);
+		await waitFor(() =>
+			expect(userPreferencesService.patchPreferences).toHaveBeenCalledWith({
+				indicators: {
+					bb: { enabled: true, color: '#111111', settings: { period: 10, stdDev: 3 } }
+				}
+			})
+		);
+
+		// Clear the toggle patch so the Save assertion only sees the save call.
+		vi.mocked(userPreferencesService.patchPreferences).mockClear();
+
+		// Open bb settings (modal-bound config reads stale page state, enabled
+		// false) and Save.
+		await fireEvent.click(within(bbRow as HTMLElement).getByRole('button'));
+		await waitFor(() => expect(screen.getByText('Bollinger Bands Settings')).toBeInTheDocument());
+		await fireEvent.click(screen.getByText('Save settings'));
+
+		// The saved entry must keep enabled: true (from live preferences), not
+		// be clobbered back to the stale modal config's false.
+		await waitFor(() => {
+			expect(userPreferencesService.patchPreferences).toHaveBeenCalledWith({
+				indicators: {
+					bb: { enabled: true, color: '#8b5cf6', settings: { period: 20, stdDev: 2 } }
 				}
 			});
 		});

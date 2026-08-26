@@ -33,7 +33,7 @@
 		shouldFetchMoreData,
 		computeIndicatorData
 	} from '$lib/chart-preferences';
-	import { INDICATOR_DEFAULTS, type IndicatorDefault } from '$lib/chart/indicator-defaults';
+	import { createIndicatorConfigs, type IndicatorDefault } from '$lib/chart/indicator-defaults';
 	import { getChartDateWindow } from '$lib/utils/date';
 	import type {
 		DegreeWaveCount,
@@ -385,14 +385,7 @@
 	let chartRef = $state<ChartInstance | null>(null);
 	let alerts = $state<PriceAlert[]>([]);
 
-	let indicatorConfigs = $state<Record<string, IndicatorDefault>>(
-		Object.fromEntries(
-			Object.entries(INDICATOR_DEFAULTS).map(([id, d]) => [
-				id,
-				{ ...d, settings: { ...d.settings } }
-			])
-		)
-	);
+	let indicatorConfigs = $state<Record<string, IndicatorDefault>>(createIndicatorConfigs());
 
 	let holdings = $state<AccountHoldingRead[]>([]);
 	let averageBuyingPrice = $derived(blendedAverageCost(holdings));

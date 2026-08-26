@@ -466,6 +466,7 @@
 		{/if}
 		<Input
 			class="h-9 font-mono text-[10px] uppercase flex-1"
+			aria-label="Hex color"
 			{value}
 			oninput={(e) => {
 				const parsed = parseColor(e.currentTarget.value);

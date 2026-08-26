@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { INDICATOR_DEFAULTS, type IndicatorId } from './indicator-defaults';
+import { INDICATOR_DEFAULTS, createIndicatorConfigs, type IndicatorId } from './indicator-defaults';
 
 const ALL_IDS: IndicatorId[] = [
 	'volume',
@@ -50,5 +50,37 @@ describe('INDICATOR_DEFAULTS', () => {
 		for (const config of Object.values(INDICATOR_DEFAULTS)) {
 			expect(config.settings).toEqual({});
 		}
+	});
+
+	it('deep-freezes the record, every entry, and every entry settings record', () => {
+		expect(Object.isFrozen(INDICATOR_DEFAULTS)).toBe(true);
+		expect(Object.isFrozen(INDICATOR_DEFAULTS.bb)).toBe(true);
+		expect(Object.isFrozen(INDICATOR_DEFAULTS.bb.settings)).toBe(true);
+	});
+
+	it('throws when mutating a frozen default entry', () => {
+		expect(() => {
+			INDICATOR_DEFAULTS.bb.color = '#000000';
+		}).toThrow();
+	});
+});
+
+describe('createIndicatorConfigs', () => {
+	it('returns a fully independent copy of the defaults', () => {
+		const cfg = createIndicatorConfigs();
+
+		// Mutate the returned copy — including a nested settings field — and
+		// assert the frozen defaults are left untouched.
+		cfg.bb.color = '#000000';
+		cfg.bb.period = 999;
+		cfg.bb.settings = { ...cfg.bb.settings, custom: 'mutated' };
+
+		expect(INDICATOR_DEFAULTS.bb.color).toBe('#8b5cf6');
+		expect(INDICATOR_DEFAULTS.bb.period).toBe(20);
+		expect(INDICATOR_DEFAULTS.bb.settings).toEqual({});
+	});
+
+	it('produces a copy with the same key set and order as the defaults', () => {
+		expect(Object.keys(createIndicatorConfigs())).toEqual(Object.keys(INDICATOR_DEFAULTS));
 	});
 });

@@ -168,7 +168,7 @@ describe('IndicatorConfigModal Component', () => {
 		});
 
 		await fireEvent.click(screen.getByTestId('indicator-color-swatch'));
-		const hexInput = screen.getByDisplayValue('#06b6d4');
+		const hexInput = screen.getByRole('textbox', { name: 'Hex color' });
 		await fireEvent.input(hexInput, { target: { value: '#ff0000' } });
 
 		// The swatch reflects the new color live (jsdom normalizes to rgb()).

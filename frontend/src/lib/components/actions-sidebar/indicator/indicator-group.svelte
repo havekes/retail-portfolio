@@ -66,11 +66,6 @@
 	}
 
 	async function saveSettings(id: string, newConfig: unknown) {
-		if (onIndicatorConfigChange) {
-			onIndicatorConfigChange(id, newConfig as Partial<IndicatorConfig>);
-		}
-		if (!preferences) return;
-
 		const nc = newConfig as Partial<IndicatorConfig> & {
 			period?: number;
 			stdDev?: number;
@@ -78,10 +73,22 @@
 			slow?: number;
 			signal?: number;
 		};
+
+		// enabled source of truth is the persisted preference — the page's
+		// indicatorConfigs[id].enabled is stale after a sidebar toggle.
+		const isEnabled =
+			preferences?.indicators?.[id]?.enabled ?? indicatorConfigs?.[id]?.enabled ?? false;
+		const resolved = { ...nc, enabled: isEnabled };
+
+		if (onIndicatorConfigChange) {
+			onIndicatorConfigChange(id, resolved as Partial<IndicatorConfig>);
+		}
+		if (!preferences) return;
+
 		const current = preferences.indicators?.[id];
 		preferences.indicators = {
 			...preferences.indicators,
-			[id]: buildIndicatorEntry(nc, current)
+			[id]: buildIndicatorEntry(resolved, current)
 		};
 		try {
 			await userPreferencesService.patchPreferences({ indicators: preferences.indicators });
