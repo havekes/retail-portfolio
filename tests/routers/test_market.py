@@ -354,6 +354,52 @@ async def test_get_prices_intraday_on_the_fly_no_data(auth_client, test_security
 
 
 @pytest.mark.anyio
+async def test_get_prices_intraday_on_the_fly_when_prior_data_missing(
+    auth_client, test_security, db_session
+):
+    """Test on-the-fly fetch is triggered when DB has recent intraday candles but earlier requested data is missing."""
+    existing_candle = IntradayPriceModel(
+        security_id=test_security.id,
+        timestamp=datetime(2026, 2, 15, 9, 0, tzinfo=timezone.utc),
+        open=Decimal("160.00"),
+        high=Decimal("162.00"),
+        low=Decimal("159.00"),
+        close=Decimal("161.00"),
+        volume=12000,
+    )
+    db_session.add(existing_candle)
+    await db_session.commit()
+
+    async def mock_fetch(security, days=30, from_datetime=None, to_datetime=None):
+        earlier_candle = IntradayPriceModel(
+            security_id=test_security.id,
+            timestamp=datetime(2026, 1, 15, 9, 0, tzinfo=timezone.utc),
+            open=Decimal("150.00"),
+            high=Decimal("152.00"),
+            low=Decimal("149.50"),
+            close=Decimal("151.00"),
+            volume=10000,
+        )
+        db_session.add(earlier_candle)
+        await db_session.commit()
+        return True
+
+    with patch.object(MarketService, "fetch_and_save_intraday_prices", side_effect=mock_fetch) as mock_fetch_svc:
+        response = await auth_client.get(
+            f"/api/v1/market/prices/{test_security.id}?interval=1h&from_date=2026-01-01T00:00:00Z&to_date=2026-02-15T23:59:59Z"
+        )
+
+    assert response.status_code == 200
+    mock_fetch_svc.assert_called_once()
+    result = response.json()
+    assert result["security_id"] == str(test_security.id)
+    assert result["total"] == 2
+    assert len(result["items"]) == 2
+    assert Decimal(result["items"][0]["close"]) == Decimal("151.00")
+    assert Decimal(result["items"][1]["close"]) == Decimal("161.00")
+
+
+@pytest.mark.anyio
 async def test_get_prices_invalid_interval_returns_422(auth_client, test_security):
     """Test GET /market/prices/{security_id} with invalid interval returns 422."""
     response = await auth_client.get(

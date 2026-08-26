@@ -1,7 +1,7 @@
 import logging
 import uuid
 from collections.abc import Sequence
-from datetime import UTC, date, datetime, time, timezone
+from datetime import UTC, date, datetime, time, timedelta, timezone
 from pathlib import Path
 from typing import Annotated
 
@@ -241,7 +241,7 @@ async def market_get_prices(
         security_id, start_time=from_dt, end_time=to_dt
     )
 
-    if not candles:
+    if not candles or (from_dt and candles[0].timestamp > from_dt + timedelta(days=4)):
         market_service = await services.aget(MarketService)
         fetched = await market_service.fetch_and_save_intraday_prices(
             security, from_datetime=from_dt, to_datetime=to_dt
