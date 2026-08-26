@@ -69,15 +69,18 @@ describe('createIndicatorConfigs', () => {
 	it('returns a fully independent copy of the defaults', () => {
 		const cfg = createIndicatorConfigs();
 
-		// Mutate the returned copy — including a nested settings field — and
-		// assert the frozen defaults are left untouched.
+		// Mutate the returned copy in place — including a nested settings field —
+		// and assert the frozen defaults are left untouched. An in-place write to
+		// `cfg.bb.settings` throws if `createIndicatorConfigs()` aliased the frozen
+		// `INDICATOR_DEFAULTS.bb.settings` instead of copying it.
 		cfg.bb.color = '#000000';
 		cfg.bb.period = 999;
-		cfg.bb.settings = { ...cfg.bb.settings, custom: 'mutated' };
+		cfg.bb.settings.custom = 'mutated';
 
 		expect(INDICATOR_DEFAULTS.bb.color).toBe('#8b5cf6');
 		expect(INDICATOR_DEFAULTS.bb.period).toBe(20);
 		expect(INDICATOR_DEFAULTS.bb.settings).toEqual({});
+		expect(cfg.bb.settings).toEqual({ custom: 'mutated' });
 	});
 
 	it('produces a copy with the same key set and order as the defaults', () => {

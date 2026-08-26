@@ -34,10 +34,10 @@ describe('IndicatorConfigModal Component', () => {
 		enabled: true
 	};
 
-	// DOM-presence check for the picker: bits-ui's floating layer hides portaled
-	// content with `visibility: hidden` under jsdom (floating-ui can't measure
-	// layout), so `queryByRole` (which filters by accessibility visibility) is
-	// unreliable here. The elements are present in the DOM regardless.
+	// DOM-presence check for the picker: bits-ui unmounts the popover content
+	// when it closes (no forceMount here), so the sliders leave the DOM entirely.
+	// `queryByRole` filters by accessibility visibility and is unreliable under
+	// jsdom, so check raw DOM presence instead.
 	const pickerInDom = () =>
 		!!document.querySelector('[role="slider"][aria-label="Saturation and Brightness"]');
 
