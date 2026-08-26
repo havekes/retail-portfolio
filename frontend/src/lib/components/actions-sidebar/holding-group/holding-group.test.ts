@@ -4,6 +4,7 @@ import HoldingGroup from './holding-group.svelte';
 import type { AccountHoldingRead } from '$lib/api/accountService';
 import type { Candle } from '$lib/utils/finance/candle';
 import type { SecuritySchema } from '$lib/api/marketService';
+import { AccountType, Institution, type Account } from '$lib/types/account';
 
 vi.mock('$app/paths', () => ({
 	resolve: (path: string) => path
@@ -15,6 +16,13 @@ vi.mock('$lib/api/accountService', () => ({
 	}
 }));
 
+vi.mock('$lib/api/accountClient', () => ({
+	accountClient: {
+		getAccounts: vi.fn(),
+		getAccountTotals: vi.fn()
+	}
+}));
+
 vi.mock('$lib/api/userPreferencesService', () => ({
 	userPreferencesService: {
 		getPreferences: vi.fn(),
@@ -23,6 +31,7 @@ vi.mock('$lib/api/userPreferencesService', () => ({
 }));
 
 import { accountService } from '$lib/api/accountService';
+import { accountClient } from '$lib/api/accountClient';
 import { userPreferencesService } from '$lib/api/userPreferencesService';
 
 describe('HoldingGroup Component', () => {
@@ -77,6 +86,29 @@ describe('HoldingGroup Component', () => {
 		}
 	];
 
+	const mockAccounts: Account[] = [
+		{
+			id: 'acc-1',
+			name: 'Tax-Free Savings',
+			external_id: 'ext-1',
+			account_type_id: AccountType.TFSA,
+			institution_id: Institution.Wealthsimple,
+			currency: 'USD',
+			is_active: true,
+			created_at: new Date('2026-01-01')
+		},
+		{
+			id: 'acc-2',
+			name: 'Non-Registered',
+			external_id: 'ext-2',
+			account_type_id: AccountType.NonRegistered,
+			institution_id: Institution.Wealthsimple,
+			currency: 'USD',
+			is_active: true,
+			created_at: new Date('2026-01-01')
+		}
+	];
+
 	beforeEach(() => {
 		vi.clearAllMocks();
 		vi.mocked(userPreferencesService.getPreferences).mockResolvedValue({
@@ -88,6 +120,19 @@ describe('HoldingGroup Component', () => {
 			total: 2,
 			offset: 0,
 			limit: 10
+		});
+		vi.mocked(accountClient.getAccounts).mockResolvedValue(mockAccounts);
+		vi.mocked(accountClient.getAccountTotals).mockImplementation(async (id: string) => {
+			if (id === 'acc-1') {
+				return {
+					cost: { value: '1000', units: 1000, nanos: 0, currencyCode: 'USD' },
+					value: { value: '5000', units: 5000, nanos: 0, currencyCode: 'USD' }
+				};
+			}
+			return {
+				cost: { value: '2000', units: 2000, nanos: 0, currencyCode: 'USD' },
+				value: { value: '5000', units: 5000, nanos: 0, currencyCode: 'USD' }
+			};
 		});
 	});
 
@@ -185,7 +230,9 @@ describe('HoldingGroup Component', () => {
 
 			// Both modal and sidebar content exist
 			expect(screen.getByText('Holdings Breakdown')).toBeInTheDocument();
-			expect(screen.getAllByText('Tax-Free Savings').length).toBe(2);
+			await waitFor(() => {
+				expect(screen.getAllByText('Tax-Free Savings').length).toBe(2);
+			});
 
 			// Collapse sidebar again - modal stays open
 			await fireEvent.click(toggleButton);
@@ -195,7 +242,7 @@ describe('HoldingGroup Component', () => {
 	});
 
 	describe('Holdings List rendering', () => {
-		it('renders holdings accounts, quantities, values, and portfolio avg', async () => {
+		it('renders holdings accounts, quantities, values, average, and % of portfolio', async () => {
 			render(HoldingGroup, {
 				props: {
 					securityId: 'sec-123',
@@ -208,15 +255,38 @@ describe('HoldingGroup Component', () => {
 				expect(screen.getByText('Non-Registered')).toBeInTheDocument();
 			});
 
+			expect(screen.getByText('Average')).toBeInTheDocument();
+			expect(screen.getByText('$113.33')).toBeInTheDocument();
+			expect(screen.getByText('% of Portfolio')).toBeInTheDocument();
+			expect(screen.getByText('45.00%')).toBeInTheDocument();
+			expect(screen.queryByText('Portfolio avg')).not.toBeInTheDocument();
+
 			expect(screen.getByText('$1,500.00')).toBeInTheDocument();
 			expect(screen.getByText('$3,000.00')).toBeInTheDocument();
 			expect(screen.getByText('10 shares · Avg $100.00')).toBeInTheDocument();
 			expect(screen.getByText('20 shares · Avg $120.00')).toBeInTheDocument();
-			expect(screen.getByText('Portfolio avg')).toBeInTheDocument();
-			expect(screen.getByText('$113.33')).toBeInTheDocument();
 
 			const link1 = screen.getByRole('link', { name: /Tax-Free Savings/ });
 			expect(link1).toHaveAttribute('href', '/accounts/acc-1');
+		});
+
+		it('handles zero portfolio value gracefully by displaying 0.00%', async () => {
+			vi.mocked(accountClient.getAccounts).mockResolvedValue([]);
+
+			render(HoldingGroup, {
+				props: {
+					securityId: 'sec-123',
+					security: mockSecurity
+				}
+			});
+
+			await waitFor(() => {
+				expect(screen.getByText('Tax-Free Savings')).toBeInTheDocument();
+			});
+
+			expect(screen.getByText('Average')).toBeInTheDocument();
+			expect(screen.getByText('% of Portfolio')).toBeInTheDocument();
+			expect(screen.getByText('0.00%')).toBeInTheDocument();
 		});
 	});
 
