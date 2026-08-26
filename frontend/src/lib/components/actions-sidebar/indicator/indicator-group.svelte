@@ -8,7 +8,7 @@
 	import { Settings2 } from '@lucide/svelte';
 	import IndicatorConfigDialog from '@/components/actions-sidebar/indicator/indicator-config-modal.svelte';
 	import GroupTitle from '../group-title.svelte';
-	import { INDICATOR_DEFAULTS } from '$lib/chart/indicator-defaults';
+	import { INDICATOR_DEFAULTS, type IndicatorId } from '$lib/chart/indicator-defaults';
 
 	let {
 		expanded = $bindable(true),
@@ -21,7 +21,11 @@
 		indicatorConfigs?: Record<string, IndicatorConfig | undefined>;
 		onIndicatorToggle?: (indicatorId: string, enabled: boolean) => void;
 		onPreferencesLoaded?: (prefs: UserPreferences) => void;
-		onIndicatorConfigChange?: (indicatorId: string, newConfig: Partial<IndicatorConfig>) => void;
+		onIndicatorConfigChange?: (
+			indicatorId: string,
+			newConfig: Partial<IndicatorConfig>,
+			reRender?: boolean
+		) => void;
 	}>();
 
 	interface IndicatorUIProps {
@@ -78,6 +82,60 @@
 		preferences.indicators = {
 			...preferences.indicators,
 			[id]: buildIndicatorEntry(nc, current)
+		};
+		try {
+			await userPreferencesService.patchPreferences({ indicators: preferences.indicators });
+		} catch (err) {
+			console.error('Failed to save preferences:', err);
+		}
+	}
+
+	/**
+	 * Reset a single indicator's color and numeric settings to the canonical
+	 * defaults. The enabled/disabled toggle state is deliberately preserved.
+	 */
+	async function resetSettings(id: string) {
+		if (!preferences) return;
+		const defaults = INDICATOR_DEFAULTS[id as IndicatorId];
+		if (!defaults) return;
+
+		const resetConfig: Partial<IndicatorConfig> & {
+			period?: number;
+			stdDev?: number;
+			fast?: number;
+			slow?: number;
+			signal?: number;
+		} = { color: defaults.color };
+		if (defaults.period !== undefined) resetConfig.period = defaults.period;
+		if (defaults.stdDev !== undefined) resetConfig.stdDev = defaults.stdDev;
+		if (defaults.fast !== undefined) resetConfig.fast = defaults.fast;
+		if (defaults.slow !== undefined) resetConfig.slow = defaults.slow;
+		if (defaults.signal !== undefined) resetConfig.signal = defaults.signal;
+
+		// Update the open modal's bound config so the inputs reflect the restored values.
+		if (selectedIndicatorSettings?.id === id) {
+			selectedIndicatorSettings = {
+				...selectedIndicatorSettings,
+				color: defaults.color,
+				...(resetConfig.period !== undefined && { period: resetConfig.period }),
+				...(resetConfig.stdDev !== undefined && { stdDev: resetConfig.stdDev }),
+				...(resetConfig.fast !== undefined && { fast: resetConfig.fast }),
+				...(resetConfig.slow !== undefined && { slow: resetConfig.slow }),
+				...(resetConfig.signal !== undefined && { signal: resetConfig.signal })
+			};
+		}
+
+		// enabled source of truth is the persisted preference — the page's
+		// indicatorConfigs[id].enabled is stale after a sidebar toggle.
+		const isEnabled =
+			preferences.indicators?.[id]?.enabled ?? indicatorConfigs?.[id]?.enabled ?? false;
+
+		onIndicatorConfigChange?.(id, resetConfig, isEnabled);
+
+		const current = preferences.indicators?.[id];
+		preferences.indicators = {
+			...preferences.indicators,
+			[id]: buildIndicatorEntry(resetConfig, current)
 		};
 		try {
 			await userPreferencesService.patchPreferences({ indicators: preferences.indicators });
@@ -183,4 +241,5 @@
 	bind:open={isSettingsOpen}
 	bind:config={selectedIndicatorSettings}
 	onSave={saveSettings}
+	onReset={resetSettings}
 />

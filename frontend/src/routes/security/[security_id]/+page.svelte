@@ -410,13 +410,17 @@
 		}, 20);
 	}
 
-	function onIndicatorConfigChange(indicatorId: string, newConfig: Partial<IndicatorDefault>) {
+	function onIndicatorConfigChange(
+		indicatorId: string,
+		newConfig: Partial<IndicatorDefault>,
+		reRender = true
+	) {
 		indicatorConfigs[indicatorId] = { ...indicatorConfigs[indicatorId], ...newConfig };
 		// Handle avgPrice specifically since it's a prop not a generic indicator
 		if (indicatorId === 'avgPrice') return;
 
 		// Trigger a re-render by removing and re-adding if it's currently on chart
-		if (chartRef) {
+		if (chartRef && reRender) {
 			chartRef.removeIndicator(indicatorId);
 			// setTimeout to give chartRef time to process removal before adding it back
 			setTimeout(() => {

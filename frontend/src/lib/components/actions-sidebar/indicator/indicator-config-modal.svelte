@@ -4,17 +4,20 @@
 	import { Input } from '$lib/components/ui/input/index.js';
 	import { Label } from '$lib/components/ui/label/index.js';
 	import { Button } from '$lib/components/ui/button/index.js';
+	import RotateCcw from '@lucide/svelte/icons/rotate-ccw';
 
 	import type { IndicatorSettings } from '$lib/api/indicatorsService';
 
 	let {
 		open = $bindable(false),
 		config = $bindable(null),
-		onSave
+		onSave,
+		onReset
 	} = $props<{
 		open: boolean;
 		config: IndicatorSettings | null;
 		onSave: (id: string, updatedConfig: IndicatorSettings) => void;
+		onReset: (id: string) => void;
 	}>();
 
 	function handleSave() {
@@ -31,6 +34,14 @@
 			onSave(id, newConfig);
 		}
 		open = false;
+	}
+
+	function handleReset() {
+		if (config) {
+			const { id } = config;
+			onReset(id);
+		}
+		// Deliberately does NOT close the dialog — the restored values stay visible.
 	}
 </script>
 
@@ -75,7 +86,18 @@
 					</div>
 				{/if}
 			</div>
-			<Dialog.Footer>
+			<Dialog.Footer class="sm:justify-between">
+				<Button
+					type="button"
+					variant="ghost"
+					size="sm"
+					onclick={handleReset}
+					class="text-muted-foreground hover:text-foreground"
+					data-testid="reset-indicator-btn"
+				>
+					<RotateCcw class="mr-1 size-3" />
+					Reset to defaults
+				</Button>
 				<Button type="button" onclick={handleSave}>Save settings</Button>
 			</Dialog.Footer>
 		{/if}
