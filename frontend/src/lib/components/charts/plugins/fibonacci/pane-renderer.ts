@@ -110,32 +110,39 @@ export class FibonacciPaneRenderer implements IPrimitivePaneRenderer {
 	): void {
 		const { p1, p2, levels, extendLines } = data;
 
-		// 1. Trendline connecting p1 to p2
-		ctx.save();
-		try {
-			ctx.beginPath();
-			ctx.strokeStyle = DEFAULT_TRENDLINE_COLOR;
-			ctx.lineWidth = DEFAULT_TRENDLINE_WIDTH * hpr;
-			const dash = 3 * hpr;
-			ctx.setLineDash([dash, dash]);
-			ctx.moveTo(p1.x * hpr, p1.y * vpr);
-			ctx.lineTo(p2.x * hpr, p2.y * vpr);
-			ctx.stroke();
-		} finally {
-			ctx.restore();
+		const showHandles =
+			data.isSelected || p1.isHovered || p1.isDragging || p2.isHovered || p2.isDragging;
+
+		// 1. Trendline connecting p1 to p2 (only when hovered/dragged/selected)
+		if (showHandles) {
+			ctx.save();
+			try {
+				ctx.beginPath();
+				ctx.strokeStyle = DEFAULT_TRENDLINE_COLOR;
+				ctx.lineWidth = DEFAULT_TRENDLINE_WIDTH * hpr;
+				const dash = 3 * hpr;
+				ctx.setLineDash([dash, dash]);
+				ctx.moveTo(p1.x * hpr, p1.y * vpr);
+				ctx.lineTo(p2.x * hpr, p2.y * vpr);
+				ctx.stroke();
+			} finally {
+				ctx.restore();
+			}
 		}
 
 		// 2. Horizontal Fibonacci level lines & text labels
 		const xMin = Math.min(p1.x, p2.x);
 		const xMax = Math.max(p1.x, p2.x);
-		const xStart = extendLines ? 0 : xMin;
+		const xStart = xMin;
 		const xEnd = extendLines ? width : xMax - xMin < 30 ? xMin + 50 : xMax;
 
 		this._drawLevelLines(ctx, levels, xStart, xEnd, hpr, vpr);
 
-		// 3. Anchor handles
-		this._drawAnchorHandle(ctx, p1, hpr, vpr);
-		this._drawAnchorHandle(ctx, p2, hpr, vpr);
+		// 3. Anchor handles (only when hovered/dragged/selected)
+		if (showHandles) {
+			this._drawAnchorHandle(ctx, p1, hpr, vpr);
+			this._drawAnchorHandle(ctx, p2, hpr, vpr);
+		}
 	}
 
 	private _drawExtension(
@@ -147,34 +154,47 @@ export class FibonacciPaneRenderer implements IPrimitivePaneRenderer {
 	): void {
 		const { p1, p2, p3, levels, extendLines } = data;
 
-		// 1. Trendlines connecting p1 -> p2 -> p3
-		ctx.save();
-		try {
-			ctx.beginPath();
-			ctx.strokeStyle = DEFAULT_TRENDLINE_COLOR;
-			ctx.lineWidth = DEFAULT_TRENDLINE_WIDTH * hpr;
-			const dash = 3 * hpr;
-			ctx.setLineDash([dash, dash]);
-			ctx.moveTo(p1.x * hpr, p1.y * vpr);
-			ctx.lineTo(p2.x * hpr, p2.y * vpr);
-			ctx.lineTo(p3.x * hpr, p3.y * vpr);
-			ctx.stroke();
-		} finally {
-			ctx.restore();
+		const showHandles =
+			data.isSelected ||
+			p1.isHovered ||
+			p1.isDragging ||
+			p2.isHovered ||
+			p2.isDragging ||
+			p3.isHovered ||
+			p3.isDragging;
+
+		// 1. Trendlines connecting p1 -> p2 -> p3 (only when hovered/dragged/selected)
+		if (showHandles) {
+			ctx.save();
+			try {
+				ctx.beginPath();
+				ctx.strokeStyle = DEFAULT_TRENDLINE_COLOR;
+				ctx.lineWidth = DEFAULT_TRENDLINE_WIDTH * hpr;
+				const dash = 3 * hpr;
+				ctx.setLineDash([dash, dash]);
+				ctx.moveTo(p1.x * hpr, p1.y * vpr);
+				ctx.lineTo(p2.x * hpr, p2.y * vpr);
+				ctx.lineTo(p3.x * hpr, p3.y * vpr);
+				ctx.stroke();
+			} finally {
+				ctx.restore();
+			}
 		}
 
 		// 2. Horizontal Fibonacci level lines & text labels
 		const xMin = Math.min(p1.x, p2.x, p3.x);
 		const xMax = Math.max(p1.x, p2.x, p3.x);
-		const xStart = extendLines ? 0 : xMin;
+		const xStart = xMin;
 		const xEnd = extendLines ? width : xMax - xMin < 30 ? xMin + 50 : xMax;
 
 		this._drawLevelLines(ctx, levels, xStart, xEnd, hpr, vpr);
 
-		// 3. Anchor handles
-		this._drawAnchorHandle(ctx, p1, hpr, vpr);
-		this._drawAnchorHandle(ctx, p2, hpr, vpr);
-		this._drawAnchorHandle(ctx, p3, hpr, vpr);
+		// 3. Anchor handles (only when hovered/dragged/selected)
+		if (showHandles) {
+			this._drawAnchorHandle(ctx, p1, hpr, vpr);
+			this._drawAnchorHandle(ctx, p2, hpr, vpr);
+			this._drawAnchorHandle(ctx, p3, hpr, vpr);
+		}
 	}
 
 	private _drawLevelLines(
