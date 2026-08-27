@@ -19,6 +19,7 @@ import type {
 	FibComputedLevel,
 	FibToolType
 } from '$lib/utils/finance/fibonacci';
+import type { RewindDataWindow, RewindDrawings, RewindSnapshot } from '$lib/utils/finance/rewind';
 
 export type ChartStyle = 'heikin_ashi' | 'candlestick';
 
@@ -37,7 +38,10 @@ export type {
 	SecurityFibonacciTools,
 	FibonacciPreferences,
 	FibComputedLevel,
-	FibToolType
+	FibToolType,
+	RewindDataWindow,
+	RewindDrawings,
+	RewindSnapshot
 };
 
 export interface UserPreferences {
@@ -50,6 +54,7 @@ export interface UserPreferences {
 	fibonacci_tools?: Record<string, SecurityFibonacciTools> | null;
 	wave_settings?: WaveSettings | null;
 	chart_hide_labels?: boolean | null;
+	rewind_snapshots?: Record<string, RewindSnapshot[]> | null;
 }
 
 export class UserPreferencesService extends ApiClient {
