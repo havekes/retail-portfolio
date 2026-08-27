@@ -2623,3 +2623,377 @@ describe('Rewind Save Snapshot', () => {
 		expect(screen.queryByTestId('rewind-timeline')).not.toBeInTheDocument();
 	});
 });
+
+describe('Rewind Scrub and Drawing Restore', () => {
+	/* eslint-disable-next-line @typescript-eslint/no-explicit-any */
+	let PageComponent: Component<any>;
+
+	const threeCandlesData = {
+		security: {
+			id: 'sec-1',
+			symbol: 'AAPL',
+			name: 'Apple Inc.'
+		},
+		items: [
+			{ date: '2024-01-01', open: 100, high: 110, low: 95, close: 105, volume: 1000 },
+			{ date: '2024-01-02', open: 105, high: 115, low: 100, close: 112, volume: 1200 },
+			{ date: '2024-01-03', open: 112, high: 120, low: 108, close: 118, volume: 1500 }
+		]
+	};
+
+	const snap1: RewindSnapshot = {
+		id: 'snap-1',
+		captured_at: '2024-01-01T12:00:00.000Z',
+		drawings: {
+			elliott_waves: {},
+			fibonacci_tools: {}
+		},
+		data_window: {
+			first: '2024-01-01',
+			last: '2024-01-01'
+		}
+	};
+
+	const snap2: RewindSnapshot = {
+		id: 'snap-2',
+		captured_at: '2024-01-02T12:00:00.000Z',
+		drawings: {
+			elliott_waves: {
+				cycle: {
+					type: 'impulse',
+					points: [
+						{ wave: 0, time: '2024-01-01', price: 100 },
+						{ wave: 1, time: '2024-01-02', price: 120 }
+					],
+					wave3Target: 150,
+					wave5Target: 180
+				}
+			},
+			fibonacci_tools: {
+				retracement: {
+					id: 'fib-1',
+					p1: { time: '2024-01-01', price: 100 },
+					p2: { time: '2024-01-02', price: 120 },
+					levels: [{ ratio: 0.618, color: '#089981', enabled: true }]
+				},
+				extension: null
+			}
+		},
+		data_window: {
+			first: '2024-01-01',
+			last: '2024-01-02'
+		}
+	};
+
+	const liveElliottWaves: Record<string, SecurityElliottWaves> = {
+		'sec-1': {
+			cycle: {
+				type: 'impulse',
+				points: [
+					{ wave: 0, time: '2024-01-01', price: 100 },
+					{ wave: 1, time: '2024-01-02', price: 120 },
+					{ wave: 2, time: '2024-01-03', price: 110 }
+				],
+				wave3Target: 160,
+				wave5Target: 190
+			}
+		}
+	};
+
+	const liveFibTools: Record<string, SecurityFibonacciTools> = {
+		'sec-1': {
+			retracement: {
+				id: 'fib-live',
+				p1: { time: '2024-01-01', price: 100 },
+				p2: { time: '2024-01-03', price: 118 },
+				levels: [{ ratio: 0.5, color: '#2962ff', enabled: true }]
+			},
+			extension: null
+		}
+	};
+
+	beforeAll(async () => {
+		const mod = await import('./+page.svelte');
+		PageComponent = mod.default;
+	}, 30000);
+
+	beforeEach(() => {
+		vi.clearAllMocks();
+		mockChartProps = null;
+		vi.mocked(userPreferencesService.getPreferences).mockResolvedValue({});
+	});
+
+	it('renders only candles with time <= T on the chart and recomputes indicators', async () => {
+		vi.mocked(userPreferencesService.getPreferences).mockResolvedValue({
+			rewind_snapshots: {
+				'sec-1': [snap2]
+			}
+		});
+
+		render(PageComponent, { props: { data: threeCandlesData } });
+
+		await waitFor(() => {
+			expect(mockChartProps).not.toBeNull();
+			// @ts-expect-error - mockChartProps typed as Record
+			expect(mockChartProps.candles).toHaveLength(3);
+		});
+
+		const toggleBtn = await screen.findByRole('button', { name: 'Toggle rewind timeline' });
+		await fireEvent.click(toggleBtn);
+		expect(screen.getByTestId('rewind-timeline')).toBeInTheDocument();
+
+		const snapshotMarker = screen.getByTestId('rewind-snapshot-point');
+		await fireEvent.click(snapshotMarker);
+
+		await waitFor(() => {
+			// @ts-expect-error - mockChartProps typed as Record
+			const candles = mockChartProps.candles as Candle[];
+			expect(candles).toHaveLength(2);
+			expect(candles[0].time).toBe('2024-01-01');
+			expect(candles[1].time).toBe('2024-01-02');
+		});
+	});
+
+	it('shows drawings of the most recent snapshot at or before T, and empty drawings when before first snapshot', async () => {
+		vi.mocked(userPreferencesService.getPreferences).mockResolvedValue({
+			elliott_waves: liveElliottWaves,
+			fibonacci_tools: liveFibTools,
+			rewind_snapshots: {
+				'sec-1': [snap1, snap2]
+			}
+		});
+
+		render(PageComponent, { props: { data: threeCandlesData } });
+
+		await waitFor(() => {
+			expect(mockChartProps).not.toBeNull();
+			// @ts-expect-error - mockChartProps typed as Record
+			expect(mockChartProps.elliottWaves).toEqual(liveElliottWaves['sec-1']);
+			// @ts-expect-error - mockChartProps typed as Record
+			expect(mockChartProps.fibonacciTools).toEqual(liveFibTools['sec-1']);
+		});
+
+		const toggleBtn = await screen.findByRole('button', { name: 'Toggle rewind timeline' });
+		await fireEvent.click(toggleBtn);
+
+		const markers = screen.getAllByTestId('rewind-snapshot-point');
+		expect(markers).toHaveLength(2);
+
+		// Click snap2 marker (captured_at 2024-01-02T12:00:00.000Z)
+		await fireEvent.click(markers[1]);
+
+		await waitFor(() => {
+			// @ts-expect-error - mockChartProps typed as Record
+			expect(mockChartProps.elliottWaves).toEqual(snap2.drawings.elliott_waves);
+			// @ts-expect-error - mockChartProps typed as Record
+			expect(mockChartProps.fibonacciTools).toEqual(snap2.drawings.fibonacci_tools);
+		});
+
+		// Click snap1 marker (captured_at 2024-01-01T12:00:00.000Z, empty drawings)
+		await fireEvent.click(markers[0]);
+
+		await waitFor(() => {
+			// @ts-expect-error - mockChartProps typed as Record
+			expect(mockChartProps.elliottWaves).toEqual({});
+			// @ts-expect-error - mockChartProps typed as Record
+			expect(mockChartProps.fibonacciTools).toEqual({});
+		});
+	});
+
+	it('scrubbing performs no preferences write and does not trigger wave alert reconcile', async () => {
+		vi.mocked(userPreferencesService.getPreferences).mockResolvedValue({
+			elliott_waves: liveElliottWaves,
+			fibonacci_tools: liveFibTools,
+			wave_settings: { snap_to_wicks: true },
+			rewind_snapshots: {
+				'sec-1': [snap2]
+			}
+		});
+
+		render(PageComponent, { props: { data: threeCandlesData } });
+
+		await waitFor(() => {
+			expect(mockChartProps).not.toBeNull();
+		});
+
+		// Clear mocks recorded during initial load
+		vi.mocked(userPreferencesService.patchPreferences).mockClear();
+		vi.mocked(alertsService.createAlert).mockClear();
+		vi.mocked(alertsService.deleteAlert).mockClear();
+
+		const toggleBtn = await screen.findByRole('button', { name: 'Toggle rewind timeline' });
+		await fireEvent.click(toggleBtn);
+
+		const marker = screen.getByTestId('rewind-snapshot-point');
+		await fireEvent.click(marker);
+
+		// Verify no preferences write occurred from scrubbing
+		expect(userPreferencesService.patchPreferences).not.toHaveBeenCalled();
+		expect(alertsService.createAlert).not.toHaveBeenCalled();
+		expect(alertsService.deleteAlert).not.toHaveBeenCalled();
+
+		// Simulate wave change callback from chart while rewound
+		// @ts-expect-error - mockChartProps typed as Record
+		await mockChartProps.onWaveChange?.('cycle', {
+			points: [{ wave: 1, time: '2024-01-01', price: 100 }]
+		});
+		expect(userPreferencesService.patchPreferences).not.toHaveBeenCalled();
+
+		// Simulate Delete key while rewound
+		const event = new KeyboardEvent('keydown', { key: 'Delete', bubbles: true });
+		window.dispatchEvent(event);
+		expect(userPreferencesService.patchPreferences).not.toHaveBeenCalled();
+	});
+
+	it('restores the full candle set and the live drawings when returning to now', async () => {
+		vi.mocked(userPreferencesService.getPreferences).mockResolvedValue({
+			elliott_waves: liveElliottWaves,
+			fibonacci_tools: liveFibTools,
+			rewind_snapshots: {
+				'sec-1': [snap2]
+			}
+		});
+
+		render(PageComponent, { props: { data: threeCandlesData } });
+
+		await waitFor(() => {
+			expect(mockChartProps).not.toBeNull();
+			// @ts-expect-error - mockChartProps typed as Record
+			expect(mockChartProps.candles).toHaveLength(3);
+			// @ts-expect-error - mockChartProps typed as Record
+			expect(mockChartProps.elliottWaves).toEqual(liveElliottWaves['sec-1']);
+		});
+
+		const toggleBtn = await screen.findByRole('button', { name: 'Toggle rewind timeline' });
+		await fireEvent.click(toggleBtn);
+
+		const marker = screen.getByTestId('rewind-snapshot-point');
+		await fireEvent.click(marker);
+
+		await waitFor(() => {
+			// @ts-expect-error - mockChartProps typed as Record
+			expect(mockChartProps.candles).toHaveLength(2);
+			// @ts-expect-error - mockChartProps typed as Record
+			expect(mockChartProps.elliottWaves).toEqual(snap2.drawings.elliott_waves);
+		});
+
+		// 1. Click "Back to now" button
+		const backToNowBtn = screen.getByTestId('rewind-back-to-now');
+		await fireEvent.click(backToNowBtn);
+
+		await waitFor(() => {
+			// @ts-expect-error - mockChartProps typed as Record
+			expect(mockChartProps.candles).toHaveLength(3);
+			// @ts-expect-error - mockChartProps typed as Record
+			expect(mockChartProps.elliottWaves).toEqual(liveElliottWaves['sec-1']);
+		});
+
+		// Rewind again
+		await fireEvent.click(marker);
+		await waitFor(() => {
+			// @ts-expect-error - mockChartProps typed as Record
+			expect(mockChartProps.candles).toHaveLength(2);
+		});
+
+		// 2. Click "Now" label button
+		const nowBtn = screen.getByTestId('rewind-end-label');
+		await fireEvent.click(nowBtn);
+
+		await waitFor(() => {
+			// @ts-expect-error - mockChartProps typed as Record
+			expect(mockChartProps.candles).toHaveLength(3);
+			// @ts-expect-error - mockChartProps typed as Record
+			expect(mockChartProps.elliottWaves).toEqual(liveElliottWaves['sec-1']);
+		});
+	});
+
+	it('entering a drawing tool while rewound auto-returns to now and activates tool on live data', async () => {
+		vi.mocked(userPreferencesService.getPreferences).mockResolvedValue({
+			elliott_waves: liveElliottWaves,
+			fibonacci_tools: liveFibTools,
+			rewind_snapshots: {
+				'sec-1': [snap2]
+			}
+		});
+
+		render(PageComponent, { props: { data: threeCandlesData } });
+
+		await waitFor(() => {
+			expect(mockChartProps).not.toBeNull();
+			// @ts-expect-error - mockChartProps typed as Record
+			expect(mockChartProps.candles).toHaveLength(3);
+		});
+
+		const toggleBtn = await screen.findByRole('button', { name: 'Toggle rewind timeline' });
+		await fireEvent.click(toggleBtn);
+
+		const marker = screen.getByTestId('rewind-snapshot-point');
+		await fireEvent.click(marker);
+
+		await waitFor(() => {
+			// @ts-expect-error - mockChartProps typed as Record
+			expect(mockChartProps.candles).toHaveLength(2);
+			// @ts-expect-error - mockChartProps typed as Record
+			expect(mockChartProps.isDrawingWave).toBe(false);
+		});
+
+		// Click Impulse Wave dropdown button on DrawingToolbar -> select Cycle
+		const waveBtn = await screen.findByRole('button', { name: /Impulse Wave|Elliott Wave/i });
+		await fireEvent.click(waveBtn);
+		const cycleOption = await screen.findByText('Cycle');
+		await fireEvent.click(cycleOption);
+
+		await waitFor(() => {
+			// @ts-expect-error - mockChartProps typed as Record
+			expect(mockChartProps.candles).toHaveLength(3); // restored to live data
+			// @ts-expect-error - mockChartProps typed as Record
+			expect(mockChartProps.isDrawingWave).toBe(true); // drawing active
+			// @ts-expect-error - mockChartProps typed as Record
+			expect(mockChartProps.activeDegree).toBe('cycle');
+		});
+	});
+
+	it('a rewound chart never triggers load-more pagination', async () => {
+		vi.mocked(userPreferencesService.getPreferences).mockResolvedValue({
+			rewind_snapshots: {
+				'sec-1': [snap2]
+			}
+		});
+
+		render(PageComponent, { props: { data: threeCandlesData } });
+
+		await waitFor(() => {
+			expect(mockChartProps).not.toBeNull();
+			// @ts-expect-error - mockChartProps typed as Record
+			expect(mockChartProps.hasMoreData).toBe(true);
+		});
+
+		const toggleBtn = await screen.findByRole('button', { name: 'Toggle rewind timeline' });
+		await fireEvent.click(toggleBtn);
+
+		const marker = screen.getByTestId('rewind-snapshot-point');
+		await fireEvent.click(marker);
+
+		await waitFor(() => {
+			// @ts-expect-error - mockChartProps typed as Record
+			expect(mockChartProps.hasMoreData).toBe(false);
+		});
+
+		mockGetPrices.mockClear();
+
+		// Simulate chart firing onLoadMoreData
+		// @ts-expect-error - mockChartProps typed as Record
+		await mockChartProps.onLoadMoreData?.();
+
+		expect(mockGetPrices).not.toHaveBeenCalled();
+
+		// Return to now restores hasMoreData
+		const backToNowBtn = screen.getByTestId('rewind-back-to-now');
+		await fireEvent.click(backToNowBtn);
+
+		await waitFor(() => {
+			// @ts-expect-error - mockChartProps typed as Record
+			expect(mockChartProps.hasMoreData).toBe(true);
+		});
+	});
+});

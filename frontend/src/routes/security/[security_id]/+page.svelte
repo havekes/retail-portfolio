@@ -59,11 +59,13 @@
 		appendSnapshot,
 		getSnapshots,
 		areSnapshotsEqual,
+		findSnapshotAtOrBefore,
 		type RewindDrawings,
 		type RewindDataWindow,
 		type RewindSnapshot
 	} from '$lib/utils/finance/rewind';
 	import RewindTimeline from '$lib/components/charts/rewind-timeline.svelte';
+	import { sliceCandlesBefore } from '$lib/components/charts/rewind-timeline';
 
 	let { data } = $props();
 
@@ -77,7 +79,7 @@
 	let selectedInterval = $state('1d');
 	let chartStyle = $state<ChartStyle>('heikin_ashi');
 	let rawCandles = $state<Candle[]>([]);
-	let displayCandles = $derived(displayCandlesFor(chartStyle, rawCandles, haCandles));
+	let allDisplayCandles = $derived(displayCandlesFor(chartStyle, rawCandles, haCandles));
 	let isChangingTimeframe = $state(false);
 	let hasMoreData = $state(true);
 	let isLoadingMore = $state(false);
@@ -104,12 +106,34 @@
 	let securitySnapshots: RewindSnapshot[] = $derived(
 		getSnapshots(userPreferences?.rewind_snapshots, security?.id)
 	);
+	let timelinePosition = $state<Date | null>(null);
+	let isRewound = $derived(timelinePosition !== null);
+	let displayCandles = $derived(
+		isRewound ? sliceCandlesBefore(allDisplayCandles, timelinePosition) : allDisplayCandles
+	);
 	let timelineNow = $derived(
-		displayCandles.length > 0
-			? parseCandleTime(displayCandles[displayCandles.length - 1].time)
+		allDisplayCandles.length > 0
+			? parseCandleTime(allDisplayCandles[allDisplayCandles.length - 1].time)
 			: new Date()
 	);
-	let timelinePosition = $state<Date | null>(null);
+	let activeSnapshot = $derived<RewindSnapshot | null>(
+		isRewound && security?.id && timelinePosition
+			? findSnapshotAtOrBefore(userPreferences?.rewind_snapshots, security.id, timelinePosition)
+			: null
+	);
+	let effectiveElliottWaves = $derived<SecurityElliottWaves>(
+		isRewound ? (activeSnapshot?.drawings?.elliott_waves ?? {}) : securityElliottWaves
+	);
+	let effectiveFibonacciTools = $derived<SecurityFibonacciTools>(
+		isRewound ? (activeSnapshot?.drawings?.fibonacci_tools ?? {}) : securityFibonacciTools
+	);
+
+	$effect(() => {
+		void timelinePosition;
+		untrack(() => {
+			refreshActiveIndicators();
+		});
+	});
 
 	onDestroy(() => {
 		if (saveFeedbackTimer) {
@@ -138,6 +162,7 @@
 	}
 
 	async function handleSaveSnapshot() {
+		if (isRewound) return;
 		if (!security?.id) return;
 		if (!displayCandles.length) return;
 
@@ -203,6 +228,7 @@
 		}
 
 		if (event.key === 'Delete' || event.key === 'Backspace') {
+			if (isRewound) return;
 			if (selectedWaveDegree) {
 				event.preventDefault();
 				const degreeToClear = selectedWaveDegree;
@@ -229,6 +255,7 @@
 			}
 		} else if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === 's') {
 			event.preventDefault();
+			if (isRewound) return;
 			void handleSaveSnapshot();
 		}
 	}
@@ -238,6 +265,7 @@
 	}
 
 	async function handleWaveChange(degree: WaveDegree, waveCount: DegreeWaveCount | null) {
+		if (isRewound) return;
 		if (!security?.id) return;
 		const updatedAllWaves = updateSecurityElliottWaves(
 			userPreferences?.elliott_waves,
@@ -260,6 +288,7 @@
 	}
 
 	async function handleClearWave(degree: WaveDegree) {
+		if (isRewound) return;
 		if (selectedWaveDegree === degree) {
 			selectedWaveDegree = null;
 		}
@@ -267,6 +296,7 @@
 	}
 
 	async function handleFibChange(drawings: SecurityFibonacciTools) {
+		if (isRewound) return;
 		if (!security?.id) return;
 		const updatedAllTools = updateSecurityFibonacciTools(
 			userPreferences?.fibonacci_tools,
@@ -287,6 +317,7 @@
 	}
 
 	async function handleClearFib(tool?: FibToolType | null) {
+		if (isRewound) return;
 		if (tool && selectedFibTool === tool) {
 			selectedFibTool = null;
 		} else if (!tool) {
@@ -312,6 +343,7 @@
 	}
 
 	async function handleFibLevelsChange(tool: FibToolType, levels: FibLevelConfig[]) {
+		if (isRewound) return;
 		if (!security?.id) return;
 		const currentTools = userPreferences?.fibonacci_tools?.[security.id];
 		let updatedSecurityTools: SecurityFibonacciTools;
@@ -421,6 +453,7 @@
 	}
 
 	async function handleLoadMoreData() {
+		if (isRewound) return;
 		if (!shouldFetchMoreData(isLoadingMore, hasMoreData, security?.id, rawCandles.length)) {
 			return;
 		}
@@ -553,6 +586,7 @@
 	let waveAlertsReconcileSeq: Promise<void> = Promise.resolve();
 
 	function scheduleWaveAlertsReconcile() {
+		if (isRewound) return waveAlertsReconcileSeq;
 		waveAlertsReconcileSeq = waveAlertsReconcileSeq
 			.then(() => reconcileWaveAlertsForSecurity())
 			.catch(() => {});
@@ -560,6 +594,7 @@
 	}
 
 	async function reconcileWaveAlertsForSecurity() {
+		if (isRewound) return;
 		if (!security?.id) return;
 		const settings = userPreferences?.wave_settings ?? DEFAULT_WAVE_SETTINGS;
 		const lastCandle = displayCandles[displayCandles.length - 1];
@@ -927,26 +962,29 @@
 					<DrawingToolbar
 						{activeWaveDegree}
 						{activeWaveType}
-						{isDrawingWave}
+						isDrawingWave={isRewound ? false : isDrawingWave}
 						{activeFibTool}
-						{isDrawingFib}
+						isDrawingFib={isRewound ? false : isDrawingFib}
 						{isTimelineVisible}
 						onToggleTimeline={() => (isTimelineVisible = !isTimelineVisible)}
 						onSave={handleSaveSnapshot}
 						{saveFeedback}
 						onSelectWaveDegree={(degree) => {
+							if (isRewound) timelinePosition = null;
 							activeWaveDegree = degree;
 							activeWaveType = 'impulse';
 							isDrawingWave = true;
 							isDrawingFib = false;
 						}}
 						onSelectCorrectiveDegree={(degree) => {
+							if (isRewound) timelinePosition = null;
 							activeWaveDegree = degree;
 							activeWaveType = 'corrective';
 							isDrawingWave = true;
 							isDrawingFib = false;
 						}}
 						onToggleFib={(tool) => {
+							if (isRewound) timelinePosition = null;
 							if (isDrawingFib && activeFibTool === tool) {
 								isDrawingFib = false;
 							} else {
@@ -967,17 +1005,18 @@
 								onRemoveAlert={handleDeleteAlert}
 								averagePrice={averageBuyingPrice}
 								showAveragePrice={indicatorConfigs.avgPrice.enabled}
-								{hasMoreData}
+								hasMoreData={!isRewound && hasMoreData}
 								{isLoadingMore}
 								onLoadMoreData={handleLoadMoreData}
-								elliottWaves={securityElliottWaves}
+								elliottWaves={effectiveElliottWaves}
 								activeDegree={activeWaveDegree}
 								{activeWaveType}
-								{isDrawingWave}
+								isDrawingWave={isRewound ? false : isDrawingWave}
 								bind:selectedWaveDegree
 								snapToWicks={userPreferences?.wave_settings?.snap_to_wicks ?? false}
 								onWaveChange={handleWaveChange}
 								onDrawingModeChange={(isDrawing) => {
+									if (isRewound) return;
 									isDrawingWave = isDrawing;
 									if (isDrawing) isDrawingFib = false;
 								}}
@@ -987,12 +1026,13 @@
 									selectedWaveDegree = degree;
 									if (degree) selectedFibTool = null;
 								}}
-								fibonacciTools={securityFibonacciTools}
+								fibonacciTools={effectiveFibonacciTools}
 								{activeFibTool}
-								{isDrawingFib}
+								isDrawingFib={isRewound ? false : isDrawingFib}
 								bind:selectedFibTool
 								onFibChange={handleFibChange}
 								onFibDrawingModeChange={(isDrawing) => {
+									if (isRewound) return;
 									isDrawingFib = isDrawing;
 									if (isDrawing) isDrawingWave = false;
 								}}
