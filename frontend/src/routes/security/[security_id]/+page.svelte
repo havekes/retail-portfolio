@@ -60,8 +60,10 @@
 		getSnapshots,
 		areSnapshotsEqual,
 		type RewindDrawings,
-		type RewindDataWindow
+		type RewindDataWindow,
+		type RewindSnapshot
 	} from '$lib/utils/finance/rewind';
+	import RewindTimeline from '$lib/components/charts/rewind-timeline.svelte';
 
 	let { data } = $props();
 
@@ -98,6 +100,16 @@
 	);
 	let saveFeedback = $state<'idle' | 'saved'>('idle');
 	let saveFeedbackTimer: ReturnType<typeof setTimeout> | null = null;
+	let isTimelineVisible = $state(false);
+	let securitySnapshots: RewindSnapshot[] = $derived(
+		getSnapshots(userPreferences?.rewind_snapshots, security?.id)
+	);
+	let timelineNow = $derived(
+		displayCandles.length > 0
+			? parseCandleTime(displayCandles[displayCandles.length - 1].time)
+			: new Date()
+	);
+	let timelinePosition = $state<Date | null>(null);
 
 	onDestroy(() => {
 		if (saveFeedbackTimer) {
@@ -918,6 +930,8 @@
 						{isDrawingWave}
 						{activeFibTool}
 						{isDrawingFib}
+						{isTimelineVisible}
+						onToggleTimeline={() => (isTimelineVisible = !isTimelineVisible)}
 						onSave={handleSaveSnapshot}
 						{saveFeedback}
 						onSelectWaveDegree={(degree) => {
@@ -942,67 +956,76 @@
 							}
 						}}
 					/>
-					<div class="min-h-0 flex-1 overflow-hidden">
-						<ChartComponent
-							candles={displayCandles}
-							bind:this={chartRef}
-							hideLabels={Boolean(userPreferences?.chart_hide_labels)}
-							{alerts}
-							onAddAlert={handleCreateAlert}
-							onRemoveAlert={handleDeleteAlert}
-							averagePrice={averageBuyingPrice}
-							showAveragePrice={indicatorConfigs.avgPrice.enabled}
-							{hasMoreData}
-							{isLoadingMore}
-							onLoadMoreData={handleLoadMoreData}
-							elliottWaves={securityElliottWaves}
-							activeDegree={activeWaveDegree}
-							{activeWaveType}
-							{isDrawingWave}
-							bind:selectedWaveDegree
-							snapToWicks={userPreferences?.wave_settings?.snap_to_wicks ?? false}
-							onWaveChange={handleWaveChange}
-							onDrawingModeChange={(isDrawing) => {
-								isDrawingWave = isDrawing;
-								if (isDrawing) isDrawingFib = false;
-							}}
-							onDegreeChange={(degree) => (activeWaveDegree = degree)}
-							onWaveTypeChange={(type) => (activeWaveType = type)}
-							onWaveSelect={(degree) => {
-								selectedWaveDegree = degree;
-								if (degree) selectedFibTool = null;
-							}}
-							fibonacciTools={securityFibonacciTools}
-							{activeFibTool}
-							{isDrawingFib}
-							bind:selectedFibTool
-							onFibChange={handleFibChange}
-							onFibDrawingModeChange={(isDrawing) => {
-								isDrawingFib = isDrawing;
-								if (isDrawing) isDrawingWave = false;
-							}}
-							onFibToolChange={(tool) => {
-								if (tool) activeFibTool = tool;
-							}}
-							onFibSelect={(tool) => {
-								selectedFibTool = tool;
-								if (tool) selectedWaveDegree = null;
-							}}
-						/>
-						<ChartSettingsModal
-							bind:open={isChartSettingsOpen}
-							chartHideLabels={Boolean(userPreferences?.chart_hide_labels)}
-							onSaveChartHideLabels={handleChartHideLabelsChange}
-							waveSettings={userPreferences?.wave_settings}
-							onSaveWaveSettings={handleWaveSettingsChange}
-							activeTool={activeFibTool}
-							retracementLevels={securityFibonacciTools?.retracement?.levels}
-							extensionLevels={securityFibonacciTools?.extension?.levels}
-							hasActiveDrawing={Boolean(
-								securityFibonacciTools?.retracement || securityFibonacciTools?.extension
-							)}
-							onFibLevelsChange={handleFibLevelsChange}
-						/>
+					<div class="flex min-h-0 flex-1 flex-col">
+						<div class="min-h-0 flex-1 overflow-hidden">
+							<ChartComponent
+								candles={displayCandles}
+								bind:this={chartRef}
+								hideLabels={Boolean(userPreferences?.chart_hide_labels)}
+								{alerts}
+								onAddAlert={handleCreateAlert}
+								onRemoveAlert={handleDeleteAlert}
+								averagePrice={averageBuyingPrice}
+								showAveragePrice={indicatorConfigs.avgPrice.enabled}
+								{hasMoreData}
+								{isLoadingMore}
+								onLoadMoreData={handleLoadMoreData}
+								elliottWaves={securityElliottWaves}
+								activeDegree={activeWaveDegree}
+								{activeWaveType}
+								{isDrawingWave}
+								bind:selectedWaveDegree
+								snapToWicks={userPreferences?.wave_settings?.snap_to_wicks ?? false}
+								onWaveChange={handleWaveChange}
+								onDrawingModeChange={(isDrawing) => {
+									isDrawingWave = isDrawing;
+									if (isDrawing) isDrawingFib = false;
+								}}
+								onDegreeChange={(degree) => (activeWaveDegree = degree)}
+								onWaveTypeChange={(type) => (activeWaveType = type)}
+								onWaveSelect={(degree) => {
+									selectedWaveDegree = degree;
+									if (degree) selectedFibTool = null;
+								}}
+								fibonacciTools={securityFibonacciTools}
+								{activeFibTool}
+								{isDrawingFib}
+								bind:selectedFibTool
+								onFibChange={handleFibChange}
+								onFibDrawingModeChange={(isDrawing) => {
+									isDrawingFib = isDrawing;
+									if (isDrawing) isDrawingWave = false;
+								}}
+								onFibToolChange={(tool) => {
+									if (tool) activeFibTool = tool;
+								}}
+								onFibSelect={(tool) => {
+									selectedFibTool = tool;
+									if (tool) selectedWaveDegree = null;
+								}}
+							/>
+							<ChartSettingsModal
+								bind:open={isChartSettingsOpen}
+								chartHideLabels={Boolean(userPreferences?.chart_hide_labels)}
+								onSaveChartHideLabels={handleChartHideLabelsChange}
+								waveSettings={userPreferences?.wave_settings}
+								onSaveWaveSettings={handleWaveSettingsChange}
+								activeTool={activeFibTool}
+								retracementLevels={securityFibonacciTools?.retracement?.levels}
+								extensionLevels={securityFibonacciTools?.extension?.levels}
+								hasActiveDrawing={Boolean(
+									securityFibonacciTools?.retracement || securityFibonacciTools?.extension
+								)}
+								onFibLevelsChange={handleFibLevelsChange}
+							/>
+						</div>
+						{#if isTimelineVisible}
+							<RewindTimeline
+								snapshots={securitySnapshots}
+								now={timelineNow}
+								bind:position={timelinePosition}
+							/>
+						{/if}
 					</div>
 				</div>
 			</div>

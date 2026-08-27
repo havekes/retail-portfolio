@@ -7,6 +7,7 @@
 	import FibExtensionIcon from '$lib/components/icons/fib-extension-icon.svelte';
 	import Save from '@lucide/svelte/icons/save';
 	import Check from '@lucide/svelte/icons/check';
+	import Timeline from '@lucide/svelte/icons/timeline';
 	import * as DropdownMenu from '$lib/components/ui/dropdown-menu/index.js';
 	import * as Tooltip from '$lib/components/ui/tooltip/index.js';
 
@@ -16,22 +17,26 @@
 		isDrawingWave = false,
 		activeFibTool = null,
 		isDrawingFib = false,
+		isTimelineVisible = false,
 		onSelectWaveDegree,
 		onSelectCorrectiveDegree,
 		onToggleFib,
 		onSave,
-		saveFeedback = 'idle'
+		saveFeedback = 'idle',
+		onToggleTimeline
 	}: {
 		activeWaveDegree?: WaveDegree;
 		activeWaveType?: WaveType;
 		isDrawingWave?: boolean;
 		activeFibTool?: FibToolType | null;
 		isDrawingFib?: boolean;
+		isTimelineVisible?: boolean;
 		onSelectWaveDegree?: (degree: WaveDegree, tool?: WaveType) => void;
 		onSelectCorrectiveDegree?: (degree: WaveDegree) => void;
 		onToggleFib?: (tool: FibToolType) => void;
 		onSave?: () => void;
 		saveFeedback?: 'idle' | 'saved';
+		onToggleTimeline?: () => void;
 	} = $props();
 
 	function handleSelectWave(degree: WaveDegree, tool: WaveType) {
@@ -247,6 +252,29 @@
 			</Tooltip.Trigger>
 			<Tooltip.Content side="right">
 				<p>{saveFeedback === 'saved' ? 'Saved' : 'Save snapshot'}</p>
+			</Tooltip.Content>
+		</Tooltip.Root>
+
+		<!-- Timeline Toggle Button -->
+		<Tooltip.Root>
+			<Tooltip.Trigger>
+				{#snippet child({ props })}
+					<button
+						type="button"
+						{...props}
+						onclick={() => onToggleTimeline?.()}
+						class="mt-auto rounded p-1.5 transition-colors {isTimelineVisible
+							? 'bg-primary text-primary-foreground shadow-sm'
+							: 'text-muted-foreground hover:bg-muted hover:text-foreground'}"
+						aria-label="Toggle rewind timeline"
+						title="Rewind Timeline"
+					>
+						<Timeline class="h-4 w-4" />
+					</button>
+				{/snippet}
+			</Tooltip.Trigger>
+			<Tooltip.Content side="right">
+				<p>Rewind Timeline</p>
 			</Tooltip.Content>
 		</Tooltip.Root>
 	</div>
