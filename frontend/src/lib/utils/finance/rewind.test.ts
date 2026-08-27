@@ -309,6 +309,17 @@ describe('rewind finance utilities', () => {
 			expect(areSnapshotsEqual(baseSnapshot, differentMeta)).toBe(true);
 		});
 
+		it('returns true when backend metadata fields (security_id, user_id, created_at) differ', () => {
+			const withBackendFields: RewindSnapshot = {
+				...baseSnapshot,
+				security_id: 'sec-uuid-123',
+				user_id: 'user-uuid-456',
+				created_at: '2026-08-27T10:00:01.000Z'
+			};
+
+			expect(areSnapshotsEqual(baseSnapshot, withBackendFields)).toBe(true);
+		});
+
 		it('returns true for both null or both undefined', () => {
 			expect(areSnapshotsEqual(null, null)).toBe(true);
 			expect(areSnapshotsEqual(undefined, undefined)).toBe(true);
