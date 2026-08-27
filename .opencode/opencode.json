@@ -14,16 +14,16 @@
       "model": "opencode-go/deepseek-v4-flash"
     },
     "orchestrator": {
-      "model": "opencode-go/glm-5.3"
+      "model": "opencode-go/glm-5.3-flash"
     },
     "planner": {
-      "model": "opencode-go/deepseek-v4-pro"
+      "model": "opencode-go/glm-5.3-flash"
     },
     "pr-reviewer": {
-      "model": "opencode-go/deepseek-v4-pro"
+      "model": "opencode-go/glm-5.3-flash"
     },
     "ticket-writer": {
-      "model": "opencode-go/deepseek-v4-flash"
+      "model": "opencode-go/glm-5.3-flash"
     }
   }
 }

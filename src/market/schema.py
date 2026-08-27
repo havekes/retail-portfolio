@@ -1,6 +1,7 @@
 from datetime import date, datetime
 from decimal import Decimal
-from typing import Literal, Self
+from typing import Any, Literal, Self
+from uuid import UUID
 
 from pydantic import AwareDatetime, BaseModel, ConfigDict
 
@@ -245,3 +246,23 @@ class AIAnalysisRequest(BaseModel):
 class AIAnalysisResponse(BaseModel):
     content: str
     generated_at: str
+
+
+class ChartSnapshotCreate(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    drawings: dict[str, Any]
+    data_window: dict[str, Any]
+    captured_at: datetime | None = None
+
+
+class ChartSnapshotRead(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: UUID
+    security_id: SecurityId
+    user_id: UserId
+    drawings: dict[str, Any]
+    data_window: dict[str, Any]
+    captured_at: datetime
+    created_at: datetime

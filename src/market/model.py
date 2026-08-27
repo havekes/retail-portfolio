@@ -3,7 +3,8 @@ from __future__ import annotations
 from datetime import date as dt_date
 from datetime import datetime
 from decimal import Decimal
-from uuid import uuid4
+from typing import Any
+from uuid import UUID, uuid4
 
 from sqlalchemy import (
     DECIMAL,
@@ -13,6 +14,7 @@ from sqlalchemy import (
     Date,
     DateTime,
     ForeignKey,
+    Index,
     Integer,
     String,
     UniqueConstraint,
@@ -192,4 +194,31 @@ class SecurityDocumentModel(BaseModel):
     file_type: Mapped[str] = mapped_column(String)
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), default=func.now()
+    )
+
+
+class ChartSnapshotModel(BaseModel):
+    __tablename__ = "market_chart_snapshots"
+
+    id: Mapped[UUID] = mapped_column(Uuid, primary_key=True, default=uuid4)
+    security_id: Mapped[SecurityId] = mapped_column(
+        Uuid, ForeignKey("market_securities.id", ondelete="CASCADE")
+    )
+    user_id: Mapped[UserId] = mapped_column(Uuid)
+    drawings: Mapped[dict[str, Any]] = mapped_column(JSON)
+    data_window: Mapped[dict[str, Any]] = mapped_column(JSON)
+    captured_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), default=func.now()
+    )
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), default=func.now()
+    )
+
+    __table_args__ = (
+        Index(
+            "ix_market_chart_snapshots_security_user_captured",
+            "security_id",
+            "user_id",
+            "captured_at",
+        ),
     )

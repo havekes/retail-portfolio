@@ -3,7 +3,6 @@ name: planner
 description: Plans how to implement a single ticket (a GitHub issue labeled "ticket") — analyzes the codebase, chooses the approach, and writes the step-by-step plan into the issue body's ## Plan section via gh issue edit. Spawned by the orchestration skill before implementation.
 tools:
   - run_command
-  - call_mcp_tool
   - write_to_file
 subagent: true
 mainAgent: false

@@ -4,6 +4,7 @@ from collections.abc import Sequence
 from datetime import UTC, date, datetime, time, timedelta, timezone
 from pathlib import Path
 from typing import Annotated
+from uuid import UUID
 
 from fastapi import APIRouter, Depends, File, Query, Request, Response, UploadFile
 from fastapi.exceptions import HTTPException
@@ -31,6 +32,7 @@ from src.market.indicators import (
 )
 from src.market.model import IntradayPriceModel, PriceModel
 from src.market.repository import (
+    ChartSnapshotRepository,
     IntradayPriceRepository,
     PriceAlertRepository,
     PriceRepository,
@@ -42,6 +44,8 @@ from src.market.repository import (
 from src.market.schema import (
     AIAnalysisRequest,
     AIAnalysisResponse,
+    ChartSnapshotCreate,
+    ChartSnapshotRead,
     IntradayPriceHistoryRead,
     IntradayPriceSchema,
     MACDPoint,
@@ -564,6 +568,57 @@ async def market_delete_document(
     doc_repository = await services.aget(SecurityDocumentRepository)
     await doc_repository.delete(doc_id, user.id)
     logger.info("Deleted document %d for security %s", doc_id, security_id)
+
+
+@market_router.get("/securities/{security_id}/snapshots")
+async def market_get_chart_snapshots(
+    user: Annotated[User, Depends(current_user)],
+    security_id: SecurityId,
+    services: DepContainer,
+) -> list[ChartSnapshotRead]:
+    """
+    Get all chart snapshots for a security
+    """
+    repo = await services.aget(ChartSnapshotRepository)
+    snapshots = await repo.get_by_security_and_user(security_id, user.id)
+    logger.info(
+        "Retrieved %d chart snapshots for security %s", len(snapshots), security_id
+    )
+    return snapshots
+
+
+@market_router.post("/securities/{security_id}/snapshots", status_code=201)
+async def market_create_chart_snapshot(
+    user: Annotated[User, Depends(current_user)],
+    security_id: SecurityId,
+    snapshot: ChartSnapshotCreate,
+    services: DepContainer,
+) -> ChartSnapshotRead:
+    """
+    Create a chart snapshot for a security
+    """
+    repo = await services.aget(ChartSnapshotRepository)
+    created = await repo.create(snapshot, security_id, user.id)
+    logger.info("Created chart snapshot %s for security %s", created.id, security_id)
+    return created
+
+
+@market_router.delete(
+    "/securities/{security_id}/snapshots/{snapshot_id}", status_code=204
+)
+async def market_delete_chart_snapshot(
+    user: Annotated[User, Depends(current_user)],
+    security_id: SecurityId,
+    snapshot_id: UUID,
+    services: DepContainer,
+) -> Response:
+    """
+    Delete a chart snapshot for a security
+    """
+    repo = await services.aget(ChartSnapshotRepository)
+    await repo.delete(snapshot_id, user.id)
+    logger.info("Deleted chart snapshot %s for security %s", snapshot_id, security_id)
+    return Response(status_code=204)
 
 
 @market_router.get("/securities/{security_id}/indicators")

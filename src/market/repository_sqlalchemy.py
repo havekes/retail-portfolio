@@ -2,6 +2,7 @@ import uuid
 from datetime import UTC, date, datetime
 from decimal import Decimal
 from typing import override
+from uuid import UUID
 
 from sqlalchemy import delete, func, select, update
 from sqlalchemy.dialects.postgresql import insert
@@ -14,6 +15,7 @@ from src.auth.api_types import UserId
 from src.market.api_types import SecurityId
 from src.market.exception import SecurityNotFoundError, WatchlistNotFoundError
 from src.market.model import (
+    ChartSnapshotModel,
     IntradayPriceModel,
     PriceAlertModel,
     PriceModel,
@@ -24,6 +26,7 @@ from src.market.model import (
     WatchlistModel,
 )
 from src.market.repository import (
+    ChartSnapshotRepository,
     IntradayPriceRepository,
     PriceAlertRepository,
     PriceRepository,
@@ -35,6 +38,8 @@ from src.market.repository import (
 )
 from src.market.schema import (
     AlertForEvaluation,
+    ChartSnapshotCreate,
+    ChartSnapshotRead,
     IntradayPriceSchema,
     PriceAlertRead,
     PriceAlertWrite,
@@ -807,5 +812,63 @@ async def sqlalchemy_security_document_repository_factory(
     container: Container,
 ) -> SqlAlchemySecurityDocumentRepository:
     return SqlAlchemySecurityDocumentRepository(
+        session=await container.aget(AsyncSession),
+    )
+
+
+class SqlAlchemyChartSnapshotRepository(ChartSnapshotRepository):
+    _session: AsyncSession
+
+    def __init__(self, session: AsyncSession):
+        self._session = session
+
+    @override
+    async def get_by_security_and_user(
+        self, security_id: SecurityId, user_id: UserId
+    ) -> list[ChartSnapshotRead]:
+        result = await self._session.execute(
+            select(ChartSnapshotModel)
+            .where(ChartSnapshotModel.security_id == security_id)
+            .where(ChartSnapshotModel.user_id == user_id)
+            .order_by(ChartSnapshotModel.captured_at.asc())
+        )
+        return [
+            ChartSnapshotRead.model_validate(snapshot) for snapshot in result.scalars()
+        ]
+
+    @override
+    async def create(
+        self, snapshot: ChartSnapshotCreate, security_id: SecurityId, user_id: UserId
+    ) -> ChartSnapshotRead:
+        captured_at = snapshot.captured_at or datetime.now(UTC)
+        if captured_at.tzinfo is None:
+            captured_at = captured_at.replace(tzinfo=UTC)
+
+        snapshot_model = ChartSnapshotModel(
+            security_id=security_id,
+            user_id=user_id,
+            drawings=snapshot.drawings,
+            data_window=snapshot.data_window,
+            captured_at=captured_at,
+        )
+        self._session.add(snapshot_model)
+        await self._session.commit()
+        await self._session.refresh(snapshot_model)
+        return ChartSnapshotRead.model_validate(snapshot_model)
+
+    @override
+    async def delete(self, snapshot_id: UUID, user_id: UserId) -> None:
+        await self._session.execute(
+            delete(ChartSnapshotModel)
+            .where(ChartSnapshotModel.id == snapshot_id)
+            .where(ChartSnapshotModel.user_id == user_id)
+        )
+        await self._session.commit()
+
+
+async def sqlalchemy_chart_snapshot_repository_factory(
+    container: Container,
+) -> SqlAlchemyChartSnapshotRepository:
+    return SqlAlchemyChartSnapshotRepository(
         session=await container.aget(AsyncSession),
     )
