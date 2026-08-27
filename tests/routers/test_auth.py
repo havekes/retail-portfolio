@@ -9,7 +9,9 @@ from unittest.mock import MagicMock, patch
 
 import jwt
 import pytest
-from webauthn.authentication.verify_authentication_response import VerifiedAuthentication
+from webauthn.authentication.verify_authentication_response import (
+    VerifiedAuthentication,
+)
 from webauthn.helpers import bytes_to_base64url
 from webauthn.registration.verify_registration_response import VerifiedRegistration
 
@@ -29,6 +31,14 @@ class RouterMockRedis:
     async def delete(self, *keys: str) -> None:
         for k in keys:
             self.data.pop(k, None)
+
+    async def incr(self, key: str) -> int:
+        val = int(self.data.get(key, 0)) + 1
+        self.data[key] = str(val)
+        return val
+
+    async def expire(self, key: str, time: int) -> bool:  # noqa: ARG002
+        return key in self.data
 
 
 @pytest.fixture(autouse=True)
@@ -56,7 +66,9 @@ async def test_signup_success(auth_client):
 
     assert "access_token" not in result
     assert "message" in result
-    assert result["message"] == "User created. Please verify your email before logging in."
+    assert (
+        result["message"] == "User created. Please verify your email before logging in."
+    )
 
 
 @pytest.mark.anyio
@@ -109,7 +121,10 @@ async def test_login_unverified_user(auth_client, caplog):
 async def test_verify_email_success(auth_client, db_session):
     """Test verifying an email with a valid token."""
     from src.auth.service import EmailService, EmailVerificationService
-    from src.auth.repository_sqlalchemy import SqlAlchemyUserRepository, SqlAlchemyVerificationTokenRepository
+    from src.auth.repository_sqlalchemy import (
+        SqlAlchemyUserRepository,
+        SqlAlchemyVerificationTokenRepository,
+    )
 
     user_repo = SqlAlchemyUserRepository(db_session)
     token_repo = SqlAlchemyVerificationTokenRepository(db_session)
@@ -117,7 +132,9 @@ async def test_verify_email_success(auth_client, db_session):
     svc = EmailVerificationService(user_repo, token_repo, email_service)
 
     email = "toverify@example.com"
-    await auth_client.post("/api/v1/auth/signup", json={"email": email, "password": "pass"})
+    await auth_client.post(
+        "/api/v1/auth/signup", json={"email": email, "password": "pass"}
+    )
 
     user = await user_repo.get_by_email(email)
     assert user is not None
@@ -127,20 +144,26 @@ async def test_verify_email_success(auth_client, db_session):
     token_record = await token_repo.get_by_user(user.id)
     assert token_record is not None
 
-    response = await auth_client.post("/api/v1/auth/verify-email", json={"token": token_record.token})
+    response = await auth_client.post(
+        "/api/v1/auth/verify-email", json={"token": token_record.token}
+    )
 
     assert response.status_code == 200
     assert response.json()["message"] == "Email verified successfully"
 
     # Login should now work
-    login_response = await auth_client.post("/api/v1/auth/login", json={"email": email, "password": "pass"})
+    login_response = await auth_client.post(
+        "/api/v1/auth/login", json={"email": email, "password": "pass"}
+    )
     assert login_response.status_code == 200
 
 
 @pytest.mark.anyio
 async def test_verify_email_invalid_token(auth_client):
     """Test verifying an email with an invalid token."""
-    response = await auth_client.post("/api/v1/auth/verify-email", json={"token": "invalid-token-string"})
+    response = await auth_client.post(
+        "/api/v1/auth/verify-email", json={"token": "invalid-token-string"}
+    )
 
     assert response.status_code == 400
     assert response.json()["detail"] == "Invalid or expired verification token"
@@ -150,30 +173,47 @@ async def test_verify_email_invalid_token(auth_client):
 async def test_resend_verification_success(auth_client):
     """Test resending verification email."""
     email = "resend@example.com"
-    await auth_client.post("/api/v1/auth/signup", json={"email": email, "password": "pass"})
+    await auth_client.post(
+        "/api/v1/auth/signup", json={"email": email, "password": "pass"}
+    )
 
-    response = await auth_client.post("/api/v1/auth/resend-verification", json={"email": email})
+    response = await auth_client.post(
+        "/api/v1/auth/resend-verification", json={"email": email}
+    )
 
     assert response.status_code == 200
-    assert response.json()["message"] == "Verification email sent if user exists and is unverified"
+    assert (
+        response.json()["message"]
+        == "Verification email sent if user exists and is unverified"
+    )
 
 
 @pytest.mark.anyio
 async def test_resend_verification_already_verified(auth_client, test_user):
     """Test resending verification email for verified user raises 400."""
-    response = await auth_client.post("/api/v1/auth/resend-verification", json={"email": test_user.email})
+    response = await auth_client.post(
+        "/api/v1/auth/resend-verification", json={"email": test_user.email}
+    )
 
     assert response.status_code == 200
-    assert response.json()["message"] == "Verification email sent if user exists and is unverified"
+    assert (
+        response.json()["message"]
+        == "Verification email sent if user exists and is unverified"
+    )
 
 
 @pytest.mark.anyio
 async def test_resend_verification_nonexistent_user(auth_client):
     """Test resending verification email for nonexistent user succeeds silently."""
-    response = await auth_client.post("/api/v1/auth/resend-verification", json={"email": "nobody@example.com"})
+    response = await auth_client.post(
+        "/api/v1/auth/resend-verification", json={"email": "nobody@example.com"}
+    )
 
     assert response.status_code == 200
-    assert response.json()["message"] == "Verification email sent if user exists and is unverified"
+    assert (
+        response.json()["message"]
+        == "Verification email sent if user exists and is unverified"
+    )
 
 
 @pytest.mark.anyio
@@ -188,7 +228,9 @@ async def test_login_invalid_credentials(auth_client, other_user, caplog):
     result = response.json()
 
     assert result["detail"] == "Invalid credentials"
-    assert f"Login failed for {login_request['email']}: Invalid credentials" in caplog.text
+    assert (
+        f"Login failed for {login_request['email']}: Invalid credentials" in caplog.text
+    )
 
 
 @pytest.mark.anyio
@@ -203,7 +245,9 @@ async def test_login_nonexistent_user(auth_client, caplog):
     result = response.json()
 
     assert result["detail"] == "Invalid credentials"
-    assert f"Login failed for {login_request['email']}: Invalid credentials" in caplog.text
+    assert (
+        f"Login failed for {login_request['email']}: Invalid credentials" in caplog.text
+    )
 
 
 @pytest.mark.anyio
@@ -443,14 +487,10 @@ async def test_totp_endpoints_require_auth(client):
     assert (await client.get("/api/v1/auth/2fa/status")).status_code == 401
     assert (await client.post("/api/v1/auth/2fa/totp/setup")).status_code == 401
     assert (
-        await client.post(
-            "/api/v1/auth/2fa/totp/activate", json={"code": "123456"}
-        )
+        await client.post("/api/v1/auth/2fa/totp/activate", json={"code": "123456"})
     ).status_code == 401
     assert (
-        await client.post(
-            "/api/v1/auth/2fa/totp/disable", json={"code": "123456"}
-        )
+        await client.post("/api/v1/auth/2fa/totp/disable", json={"code": "123456"})
     ).status_code == 401
     assert (
         await client.post("/api/v1/auth/2fa/totp/recovery-codes/regenerate")
@@ -631,6 +671,102 @@ async def test_login_verify_invalid_totp_code(auth_client, test_user):
 
 
 @pytest.mark.anyio
+async def test_2fa_login_verify_lockout(auth_client, test_user):
+    """Test POST /auth/2fa/login-verify triggers 429 lockout after max failed attempts."""
+    import pyotp
+
+    setup_resp = await auth_client.post("/api/v1/auth/2fa/totp/setup")
+    secret = setup_resp.json()["secret"]
+    totp = pyotp.TOTP(secret)
+
+    await auth_client.post(
+        "/api/v1/auth/2fa/totp/activate",
+        json={"code": totp.now()},
+    )
+
+    login_resp = await auth_client.post(
+        "/api/v1/auth/login",
+        json={"email": test_user.email, "password": "testpass"},
+    )
+    mfa_token = login_resp.json()["mfa_token"]
+
+    # Fail max_attempts times with invalid codes
+    for _ in range(settings.totp_max_attempts):
+        bad_resp = await auth_client.post(
+            "/api/v1/auth/2fa/login-verify",
+            json={"mfa_token": mfa_token, "code": "000000"},
+        )
+        assert bad_resp.status_code == 401
+        assert bad_resp.json()["detail"] == "Invalid 2FA code"
+
+    # Next attempt (even with valid TOTP code) should be locked out with 429
+    locked_resp = await auth_client.post(
+        "/api/v1/auth/2fa/login-verify",
+        json={"mfa_token": mfa_token, "code": totp.now()},
+    )
+    assert locked_resp.status_code == 429
+    assert locked_resp.json()["detail"] == "Too many 2FA attempts. Try again later."
+
+
+@pytest.mark.anyio
+async def test_2fa_login_verify_reset_on_success(auth_client, test_user):
+    """Test successful 2FA verification resets failed attempt counter."""
+    import pyotp
+
+    setup_resp = await auth_client.post("/api/v1/auth/2fa/totp/setup")
+    secret = setup_resp.json()["secret"]
+    totp = pyotp.TOTP(secret)
+
+    await auth_client.post(
+        "/api/v1/auth/2fa/totp/activate",
+        json={"code": totp.now()},
+    )
+
+    login_resp = await auth_client.post(
+        "/api/v1/auth/login",
+        json={"email": test_user.email, "password": "testpass"},
+    )
+    mfa_token = login_resp.json()["mfa_token"]
+
+    # Fail max_attempts - 1 times with invalid codes
+    for _ in range(settings.totp_max_attempts - 1):
+        bad_resp = await auth_client.post(
+            "/api/v1/auth/2fa/login-verify",
+            json={"mfa_token": mfa_token, "code": "000000"},
+        )
+        assert bad_resp.status_code == 401
+
+    # Verify with correct code resets counter
+    good_resp = await auth_client.post(
+        "/api/v1/auth/2fa/login-verify",
+        json={"mfa_token": mfa_token, "code": totp.now()},
+    )
+    assert good_resp.status_code == 200
+
+    # Log in again to get fresh mfa token
+    login_resp2 = await auth_client.post(
+        "/api/v1/auth/login",
+        json={"email": test_user.email, "password": "testpass"},
+    )
+    mfa_token2 = login_resp2.json()["mfa_token"]
+
+    # Fail max_attempts - 1 times again without 429
+    for _ in range(settings.totp_max_attempts - 1):
+        bad_resp2 = await auth_client.post(
+            "/api/v1/auth/2fa/login-verify",
+            json={"mfa_token": mfa_token2, "code": "000000"},
+        )
+        assert bad_resp2.status_code == 401
+
+    # Successful verification still works
+    good_resp2 = await auth_client.post(
+        "/api/v1/auth/2fa/login-verify",
+        json={"mfa_token": mfa_token2, "code": totp.now()},
+    )
+    assert good_resp2.status_code == 200
+
+
+@pytest.mark.anyio
 async def test_login_verify_expired_mfa_token(auth_client, test_user):
     """Test POST /auth/2fa/login-verify rejects expired mfa_token with 401."""
     expired_token = jwt.encode(
@@ -721,7 +857,9 @@ async def test_passkey_register_options(auth_client, test_user, mock_redis_stora
 
 @pytest.mark.anyio
 async def test_passkey_register_verify_success(
-    auth_client, test_user, mock_redis_storage  # noqa: ARG001
+    auth_client,
+    test_user,
+    mock_redis_storage,  # noqa: ARG001
 ):
     """Test POST /api/v1/auth/passkey/register/verify successfully registers credential."""
     # First get options
@@ -925,7 +1063,11 @@ async def test_passkey_authenticate_verify_success(
         await auth_client.post(
             "/api/v1/auth/passkey/register/verify",
             json={
-                "credential": {"id": raw_cred_b64, "rawId": raw_cred_b64, "response": {}},
+                "credential": {
+                    "id": raw_cred_b64,
+                    "rawId": raw_cred_b64,
+                    "response": {},
+                },
                 "name": "Auth Verify Key",
             },
         )
@@ -1002,9 +1144,15 @@ async def test_passkey_authenticate_verify_unrecognized_passkey(client):
 async def test_passkey_endpoints_require_auth(client):
     """Test that passkey registration and management endpoints require authentication."""
     assert (await client.get("/api/v1/auth/passkeys")).status_code == 401
-    assert (await client.post("/api/v1/auth/passkey/register/options")).status_code == 401
-    assert (await client.post("/api/v1/auth/passkey/register/verify")).status_code == 401
-    assert (await client.delete(f"/api/v1/auth/passkeys/{uuid.uuid4()}")).status_code == 401
-    assert (await client.patch(f"/api/v1/auth/passkeys/{uuid.uuid4()}")).status_code == 401
-
-
+    assert (
+        await client.post("/api/v1/auth/passkey/register/options")
+    ).status_code == 401
+    assert (
+        await client.post("/api/v1/auth/passkey/register/verify")
+    ).status_code == 401
+    assert (
+        await client.delete(f"/api/v1/auth/passkeys/{uuid.uuid4()}")
+    ).status_code == 401
+    assert (
+        await client.patch(f"/api/v1/auth/passkeys/{uuid.uuid4()}")
+    ).status_code == 401

@@ -8,7 +8,9 @@ import pytest
 from argon2 import PasswordHasher
 from fastapi import HTTPException
 from itsdangerous import URLSafeTimedSerializer
-from webauthn.authentication.verify_authentication_response import VerifiedAuthentication
+from webauthn.authentication.verify_authentication_response import (
+    VerifiedAuthentication,
+)
 from webauthn.registration.verify_registration_response import VerifiedRegistration
 
 from src.auth.api_types import UserId
@@ -314,6 +316,43 @@ class MockRecoveryCodeRepository(RecoveryCodeRepository):
         self.codes.pop(user_id, None)
 
 
+class MockRedis:
+    def __init__(self):
+        self.data: dict[str, str] = {}
+
+    async def get(self, key: str) -> str | None:
+        return self.data.get(key)
+
+    async def setex(self, key: str, time: int, value: str) -> None:  # noqa: ARG002
+        self.data[key] = value
+
+    async def delete(self, *keys: str) -> None:
+        for k in keys:
+            self.data.pop(k, None)
+
+    async def incr(self, key: str) -> int:
+        val = int(self.data.get(key, 0)) + 1
+        self.data[key] = str(val)
+        return val
+
+    async def expire(self, key: str, time: int) -> bool:  # noqa: ARG002
+        return key in self.data
+
+
+class MockRedisManager:
+    def __init__(self):
+        self.redis = MockRedis()
+
+    @contextlib.asynccontextmanager
+    async def client(self):
+        yield self.redis
+
+
+@pytest.fixture
+def mock_redis_manager():
+    return MockRedisManager()
+
+
 @pytest.fixture
 def mock_totp_repo():
     return MockTotpRepository()
@@ -325,11 +364,14 @@ def mock_recovery_code_repo():
 
 
 @pytest.fixture
-def totp_service(mock_totp_repo, mock_recovery_code_repo, mock_user_repo):
+def totp_service(
+    mock_totp_repo, mock_recovery_code_repo, mock_user_repo, mock_redis_manager
+):
     return TotpService(
         totp_repository=mock_totp_repo,
         recovery_code_repository=mock_recovery_code_repo,
         user_repository=mock_user_repo,
+        redis_manager=mock_redis_manager,
     )
 
 
@@ -361,7 +403,9 @@ async def test_totp_setup_returns_secret_and_uri(totp_service, mock_totp_repo):
 
 @pytest.mark.asyncio
 async def test_totp_activate_success(
-    totp_service, mock_totp_repo, mock_recovery_code_repo  # noqa: ARG001
+    totp_service,
+    mock_totp_repo,
+    mock_recovery_code_repo,  # noqa: ARG001
 ):
     user_id = uuid4()
     email = "user@example.com"
@@ -427,7 +471,9 @@ async def test_totp_regenerate_codes_when_not_enabled(totp_service):
 
 @pytest.mark.asyncio
 async def test_totp_disable_with_code(
-    totp_service, mock_totp_repo, mock_recovery_code_repo  # noqa: ARG001
+    totp_service,
+    mock_totp_repo,
+    mock_recovery_code_repo,  # noqa: ARG001
 ):
     user_id = uuid4()
     setup_resp = await totp_service.setup_totp(user_id, "user@example.com")
@@ -444,7 +490,10 @@ async def test_totp_disable_with_code(
 
 @pytest.mark.asyncio
 async def test_totp_disable_with_password(
-    totp_service, mock_user_repo, mock_totp_repo, mock_recovery_code_repo  # noqa: ARG001
+    totp_service,
+    mock_user_repo,
+    mock_totp_repo,
+    mock_recovery_code_repo,  # noqa: ARG001
 ):
     user_id = uuid4()
     email = "test_disable@example.com"
@@ -597,7 +646,69 @@ async def test_verify_2fa_login_invalid_recovery_code(totp_service):
     await totp_service.activate_totp(user_id, totp.now())
 
     # Completely wrong recovery code string
-    assert await totp_service.verify_2fa_login(user_id, "invalid-recovery-code") is False
+    assert (
+        await totp_service.verify_2fa_login(user_id, "invalid-recovery-code") is False
+    )
+
+
+@pytest.mark.asyncio
+async def test_verify_2fa_login_lockout_after_max_failures(totp_service):
+    user_id = uuid4()
+    setup_resp = await totp_service.setup_totp(user_id, "user@example.com")
+    totp = pyotp.TOTP(setup_resp.secret)
+    await totp_service.activate_totp(user_id, totp.now())
+
+    for _ in range(settings.totp_max_attempts):
+        assert await totp_service.verify_2fa_login(user_id, "000000") is False
+
+    with pytest.raises(HTTPException) as exc:
+        await totp_service.verify_2fa_login(user_id, totp.now())
+    assert exc.value.status_code == 429
+    assert "Too many 2FA attempts. Try again later." in exc.value.detail
+
+
+@pytest.mark.asyncio
+async def test_verify_2fa_login_counter_reset_on_success(totp_service):
+    user_id = uuid4()
+    setup_resp = await totp_service.setup_totp(user_id, "user@example.com")
+    totp = pyotp.TOTP(setup_resp.secret)
+    await totp_service.activate_totp(user_id, totp.now())
+
+    # Fail max_attempts - 1 times
+    for _ in range(settings.totp_max_attempts - 1):
+        assert await totp_service.verify_2fa_login(user_id, "000000") is False
+
+    # Successful verification resets counter
+    assert await totp_service.verify_2fa_login(user_id, totp.now()) is True
+
+    # Fail max_attempts - 1 times again without triggering lockout
+    for _ in range(settings.totp_max_attempts - 1):
+        assert await totp_service.verify_2fa_login(user_id, "000000") is False
+
+    # Still able to verify successfully
+    assert await totp_service.verify_2fa_login(user_id, totp.now()) is True
+
+
+@pytest.mark.asyncio
+async def test_verify_2fa_login_recovery_code_counted(totp_service):
+    user_id = uuid4()
+    setup_resp = await totp_service.setup_totp(user_id, "user@example.com")
+    totp = pyotp.TOTP(setup_resp.secret)
+    act_resp = await totp_service.activate_totp(user_id, totp.now())
+    valid_recovery_code = act_resp.recovery_codes[0]
+
+    # Fail max_attempts times with invalid recovery codes
+    for _ in range(settings.totp_max_attempts):
+        assert (
+            await totp_service.verify_2fa_login(user_id, "invalid-recovery-code")
+            is False
+        )
+
+    # Next attempt with a valid recovery code triggers 429 lockout
+    with pytest.raises(HTTPException) as exc:
+        await totp_service.verify_2fa_login(user_id, valid_recovery_code)
+    assert exc.value.status_code == 429
+    assert "Too many 2FA attempts. Try again later." in exc.value.detail
 
 
 class MockPasskeyRepository(PasskeyRepository):
@@ -667,38 +778,9 @@ class MockPasskeyRepository(PasskeyRepository):
         return False
 
 
-class MockRedis:
-    def __init__(self):
-        self.data: dict[str, str] = {}
-
-    async def get(self, key: str) -> str | None:
-        return self.data.get(key)
-
-    async def setex(self, key: str, time: int, value: str) -> None:  # noqa: ARG002
-        self.data[key] = value
-
-    async def delete(self, *keys: str) -> None:
-        for k in keys:
-            self.data.pop(k, None)
-
-
-class MockRedisManager:
-    def __init__(self):
-        self.redis = MockRedis()
-
-    @contextlib.asynccontextmanager
-    async def client(self):
-        yield self.redis
-
-
 @pytest.fixture
 def mock_passkey_repo():
     return MockPasskeyRepository()
-
-
-@pytest.fixture
-def mock_redis_manager():
-    return MockRedisManager()
 
 
 @pytest.fixture
@@ -768,8 +850,13 @@ async def test_passkey_verify_registration_success(
         resp = await passkey_service.verify_registration(user_id, req)
         assert resp.name == "My Mac Passkey"
         assert resp.transports == ["internal"]
-        assert await mock_redis_manager.redis.get(f"webauthn:challenge:reg:{user_id}") is None
-        assert await mock_passkey_repo.get_by_credential_id(b"new_cred_id_123") is not None
+        assert (
+            await mock_redis_manager.redis.get(f"webauthn:challenge:reg:{user_id}")
+            is None
+        )
+        assert (
+            await mock_passkey_repo.get_by_credential_id(b"new_cred_id_123") is not None
+        )
 
 
 @pytest.mark.asyncio
@@ -943,9 +1030,7 @@ async def test_passkey_verify_authentication_success(
 
     # Seed challenge in redis
     challenge_b64 = "Y2hhbGxlbmdlX2J5dGVz"
-    with patch(
-        "src.auth.service.bytes_to_base64url", return_value=challenge_b64
-    ):
+    with patch("src.auth.service.bytes_to_base64url", return_value=challenge_b64):
         await mock_redis_manager.redis.setex(
             f"webauthn:challenge:auth:{challenge_b64}", 300, "1"
         )
@@ -971,14 +1056,21 @@ async def test_passkey_verify_authentication_success(
             return_value=fake_verified_auth,
         ),
     ):
-        user, verified_passkey = await passkey_service.verify_authentication(raw_cred_dict)
+        user, verified_passkey = await passkey_service.verify_authentication(
+            raw_cred_dict
+        )
         assert user.id == user_id
         assert verified_passkey.id == passkey.id
 
         updated = await mock_passkey_repo.get_by_id(passkey.id)
         assert updated.sign_count == 2
         assert updated.last_used_at is not None
-        assert await mock_redis_manager.redis.get(f"webauthn:challenge:auth:{challenge_b64}") is None
+        assert (
+            await mock_redis_manager.redis.get(
+                f"webauthn:challenge:auth:{challenge_b64}"
+            )
+            is None
+        )
 
 
 @pytest.mark.asyncio
@@ -1058,4 +1150,3 @@ async def test_passkey_verify_authentication_user_inactive_or_unverified(
             await passkey_service.verify_authentication({"id": "some_id"})
         assert exc.value.status_code == 403
         assert "Email not verified" in exc.value.detail
-
