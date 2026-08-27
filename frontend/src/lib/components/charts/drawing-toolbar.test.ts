@@ -309,4 +309,34 @@ describe('DrawingToolbar Component', () => {
 		expect(svg).toBeInTheDocument();
 		expect(svg?.classList.contains('lucide-check')).toBe(true);
 	});
+
+	it('renders timeline toggle button with correct aria-label and title and triggers onToggleTimeline', async () => {
+		const onToggleTimeline = vi.fn();
+		render(DrawingToolbar, {
+			props: {
+				onToggleTimeline
+			}
+		});
+
+		const timelineBtn = screen.getByRole('button', { name: 'Toggle rewind timeline' });
+		expect(timelineBtn).toBeInTheDocument();
+		expect(timelineBtn).toHaveAttribute('title', 'Rewind Timeline');
+
+		await fireEvent.click(timelineBtn);
+		expect(onToggleTimeline).toHaveBeenCalledTimes(1);
+	});
+
+	it('highlights timeline toggle button when isTimelineVisible is true', () => {
+		const { rerender } = render(DrawingToolbar, {
+			props: {
+				isTimelineVisible: false
+			}
+		});
+
+		const timelineBtn = screen.getByRole('button', { name: 'Toggle rewind timeline' });
+		expect(timelineBtn.className).not.toContain('bg-primary');
+
+		rerender({ isTimelineVisible: true });
+		expect(timelineBtn.className).toContain('bg-primary');
+	});
 });

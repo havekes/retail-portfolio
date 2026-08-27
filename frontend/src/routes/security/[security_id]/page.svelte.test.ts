@@ -2595,4 +2595,31 @@ describe('Rewind Save Snapshot', () => {
 		await fireEvent.click(saveBtn);
 		expect(userPreferencesService.patchPreferences).not.toHaveBeenCalled();
 	});
+
+	it('toggles rewind timeline strip visibility when toggle button is clicked', async () => {
+		const sampleSnapshot: RewindSnapshot = {
+			id: 'snap-1',
+			captured_at: '2024-01-01T00:00:00.000Z',
+			drawings: {},
+			data_window: { first: '2024-01-01', last: '2024-01-02' }
+		};
+
+		vi.mocked(userPreferencesService.getPreferences).mockResolvedValue({
+			rewind_snapshots: {
+				'sec-1': [sampleSnapshot]
+			}
+		});
+
+		render(PageComponent, { props: { data: mockData } });
+
+		expect(screen.queryByTestId('rewind-timeline')).not.toBeInTheDocument();
+
+		const toggleBtn = await screen.findByRole('button', { name: 'Toggle rewind timeline' });
+		await fireEvent.click(toggleBtn);
+
+		expect(screen.getByTestId('rewind-timeline')).toBeInTheDocument();
+
+		await fireEvent.click(toggleBtn);
+		expect(screen.queryByTestId('rewind-timeline')).not.toBeInTheDocument();
+	});
 });
