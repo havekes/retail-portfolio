@@ -56,7 +56,15 @@
 				</Field>
 				<Field>
 					<FieldLabel for="password-{id}">Password</FieldLabel>
-					<Input id="password-{id}" name="password" type="password" required />
+					<Input
+						id="password-{id}"
+						name="password"
+						type="password"
+						required
+						minlength={12}
+						maxlength={128}
+					/>
+					<FieldDescription>Must be at least 12 characters</FieldDescription>
 				</Field>
 				<Field>
 					<FieldLabel for="confirmPassword-{id}">Confirm Password</FieldLabel>
