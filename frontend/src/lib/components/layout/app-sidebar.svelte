@@ -12,7 +12,6 @@
 	import { resolve } from '$app/paths';
 	import ChartCandlestick from '@lucide/svelte/icons/chart-candlestick';
 	import Search from '@lucide/svelte/icons/search';
-	import Star from '@lucide/svelte/icons/star';
 	import { useSidebar } from '$lib/components/ui/sidebar/context.svelte.js';
 	import { getWatchlistService } from '$lib/components/watchlist/watchlistService.svelte';
 
@@ -69,11 +68,16 @@
 								<Sidebar.MenuButton tooltipContent={`${security.symbol} - ${security.name}`}>
 									{#snippet child({ props })}
 										<a href={resolve(`/security/${security.id}`)} {...props}>
-											<Star class="h-4 w-4 shrink-0 fill-amber-400 stroke-amber-500" />
-											<span>{security.symbol}</span>
-											<span class="ml-1 truncate text-xs font-normal text-muted-foreground"
-												>{security.name}</span
-											>
+											{#if sidebar.state === 'collapsed'}
+												<span class="mx-auto w-full truncate text-center text-[10px] font-semibold"
+													>{security.symbol}</span
+												>
+											{:else}
+												<span>{security.symbol}</span>
+												<span class="ml-1 truncate text-xs font-normal text-muted-foreground"
+													>{security.name}</span
+												>
+											{/if}
 										</a>
 									{/snippet}
 								</Sidebar.MenuButton>
