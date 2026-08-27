@@ -2,11 +2,14 @@ import uuid
 from abc import ABC, abstractmethod
 from datetime import date, datetime
 from decimal import Decimal
+from uuid import UUID
 
 from src.auth.api_types import UserId
 from src.market.api_types import SecurityId
 from src.market.schema import (
     AlertForEvaluation,
+    ChartSnapshotCreate,
+    ChartSnapshotRead,
     IntradayPriceSchema,
     PriceAlertRead,
     PriceAlertWrite,
@@ -226,4 +229,22 @@ class SecurityDocumentRepository(ABC):
 
     @abstractmethod
     async def delete(self, document_id: int, user_id: UserId) -> None:
+        pass
+
+
+class ChartSnapshotRepository(ABC):
+    @abstractmethod
+    async def get_by_security_and_user(
+        self, security_id: SecurityId, user_id: UserId
+    ) -> list[ChartSnapshotRead]:
+        pass
+
+    @abstractmethod
+    async def create(
+        self, snapshot: ChartSnapshotCreate, security_id: SecurityId, user_id: UserId
+    ) -> ChartSnapshotRead:
+        pass
+
+    @abstractmethod
+    async def delete(self, snapshot_id: UUID, user_id: UserId) -> None:
         pass
