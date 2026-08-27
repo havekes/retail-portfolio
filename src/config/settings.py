@@ -44,6 +44,10 @@ class Settings(BaseSettings):
     redis_url: str = "redis://localhost:6379/0"
     sync_ttl_seconds: int = 300
 
+    # 2FA / TOTP
+    totp_max_attempts: int = 5
+    totp_lockout_seconds: int = 900
+
     # WebAuthn Passkeys
     webauthn_rp_id: str = "localhost"
     webauthn_rp_name: str = "Retail Portfolio"

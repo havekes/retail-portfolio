@@ -2,6 +2,7 @@ import json
 import logging
 import secrets
 from datetime import UTC, datetime, timedelta
+from typing import Any, cast
 from uuid import UUID, uuid4
 
 import pyotp
@@ -159,16 +160,21 @@ class TotpService:
     _totp_repository: TotpRepository
     _recovery_code_repository: RecoveryCodeRepository
     _user_repository: UserRepository
+    _redis_manager: RedisManager
 
     def __init__(
         self,
         totp_repository: TotpRepository,
         recovery_code_repository: RecoveryCodeRepository,
         user_repository: UserRepository,
+        redis_manager: RedisManager | None = None,
     ):
         self._totp_repository = totp_repository
         self._recovery_code_repository = recovery_code_repository
         self._user_repository = user_repository
+        self._redis_manager = (
+            redis_manager if redis_manager is not None else default_redis_manager
+        )
 
     async def get_2fa_status(self, user_id: UserId) -> TwoFactorStatusResponse:
         totp = await self._totp_repository.get_by_user_id(user_id)
@@ -259,27 +265,48 @@ class TotpService:
         return TotpRegenerateCodesResponse(recovery_codes=recovery_codes)
 
     async def verify_2fa_login(self, user_id: UserId, code: str) -> bool:
+        lockout_key = f"2fa:lockout:{user_id}"
+        async with self._redis_manager.client() as redis:
+            attempts_raw = await redis.get(lockout_key)
+            if (
+                attempts_raw is not None
+                and int(attempts_raw) >= settings.totp_max_attempts
+            ):
+                raise HTTPException(
+                    status_code=429,
+                    detail="Too many 2FA attempts. Try again later.",
+                )
+
         totp_record = await self._totp_repository.get_by_user_id(user_id)
         if not totp_record or not totp_record.is_verified:
             return False
 
         cleaned_code = code.strip()
+        is_valid = False
         if cleaned_code.isdigit() and len(cleaned_code) == _TOTP_CODE_LENGTH:
             totp = pyotp.totp.TOTP(totp_record.secret)
-            return bool(totp.verify(cleaned_code, valid_window=1))
+            is_valid = bool(totp.verify(cleaned_code, valid_window=1))
+        else:
+            active_codes = await self._recovery_code_repository.get_active_by_user_id(
+                user_id
+            )
+            for rc in active_codes:
+                try:
+                    if _password_hasher.verify(rc.code_hash, cleaned_code):
+                        await self._recovery_code_repository.mark_as_used(rc.id)
+                        is_valid = True
+                        break
+                except Exception:  # noqa: BLE001, S110
+                    pass
 
-        active_codes = await self._recovery_code_repository.get_active_by_user_id(
-            user_id
-        )
-        for rc in active_codes:
-            try:
-                if _password_hasher.verify(rc.code_hash, cleaned_code):
-                    await self._recovery_code_repository.mark_as_used(rc.id)
-                    return True
-            except Exception:  # noqa: BLE001, S110
-                pass
+        async with self._redis_manager.client() as redis:
+            if is_valid:
+                await redis.delete(lockout_key)
+            else:
+                await cast("Any", redis).incr(lockout_key)
+                await redis.expire(lockout_key, settings.totp_lockout_seconds)
 
-        return False
+        return is_valid
 
 
 async def totp_service_factory(
