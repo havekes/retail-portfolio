@@ -92,5 +92,9 @@ describe('Root +layout.svelte', () => {
 		expect(screen.getByTestId('page-content')).toBeInTheDocument();
 		expect(screen.getByText('Portfolio dashboard')).toBeInTheDocument();
 		expect(screen.getByText('test@example.com')).toBeInTheDocument();
+
+		const wrapper = document.querySelector('[data-slot="sidebar-wrapper"]');
+		expect(wrapper).toBeInTheDocument();
+		expect(wrapper).toHaveClass('overflow-hidden');
 	});
 });
