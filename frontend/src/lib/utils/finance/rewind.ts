@@ -82,11 +82,40 @@ export function getSnapshots(
  * When time is after the last snapshot, returns the last snapshot.
  */
 export function findSnapshotAtOrBefore(
+	snapshots: RewindSnapshot[] | null | undefined,
+	time: Date
+): RewindSnapshot | null;
+export function findSnapshotAtOrBefore(
 	allSnapshots: Record<string, RewindSnapshot[]> | null | undefined,
 	securityId: string,
 	time: Date
+): RewindSnapshot | null;
+export function findSnapshotAtOrBefore(
+	snapshotsOrAll: RewindSnapshot[] | Record<string, RewindSnapshot[]> | null | undefined,
+	timeOrSecurityId: Date | string,
+	maybeTime?: Date
 ): RewindSnapshot | null {
-	const snapshots = getSnapshots(allSnapshots, securityId);
+	let snapshots: RewindSnapshot[];
+	let time: Date;
+
+	if (timeOrSecurityId instanceof Date) {
+		time = timeOrSecurityId;
+		if (!Array.isArray(snapshotsOrAll)) {
+			return null;
+		}
+		snapshots = [...snapshotsOrAll].sort((a, b) =>
+			a.captured_at < b.captured_at ? -1 : a.captured_at > b.captured_at ? 1 : 0
+		);
+	} else if (typeof timeOrSecurityId === 'string' && maybeTime instanceof Date) {
+		time = maybeTime;
+		snapshots = getSnapshots(
+			snapshotsOrAll as Record<string, RewindSnapshot[]> | null | undefined,
+			timeOrSecurityId
+		);
+	} else {
+		return null;
+	}
+
 	if (snapshots.length === 0) {
 		return null;
 	}

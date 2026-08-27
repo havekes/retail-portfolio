@@ -14,6 +14,7 @@
 	import AIAnalysisGroup from '$lib/components/actions-sidebar/ai/ai-analysis-group.svelte';
 	import type { UserPreferences } from '$lib/api/userPreferencesService';
 	import { userPreferencesService, type ChartStyle } from '$lib/api/userPreferencesService';
+	import { snapshotsService } from '$lib/api/snapshotsService';
 	import { alertsService, type PriceAlert } from '$lib/api/alertsService';
 	import { blendedAverageCost } from '@/utils/finance/average-cost';
 	import HoldingsGroup from '@/components/actions-sidebar/holding-group/holding-group.svelte';
@@ -56,8 +57,6 @@
 	} from '$lib/utils/finance/fibonacci';
 	import {
 		captureSnapshot,
-		appendSnapshot,
-		getSnapshots,
 		areSnapshotsEqual,
 		findSnapshotAtOrBefore,
 		type RewindDrawings,
@@ -103,9 +102,7 @@
 	let saveFeedback = $state<'idle' | 'saved'>('idle');
 	let saveFeedbackTimer: ReturnType<typeof setTimeout> | null = null;
 	let isTimelineVisible = $state(false);
-	let securitySnapshots: RewindSnapshot[] = $derived(
-		getSnapshots(userPreferences?.rewind_snapshots, security?.id)
-	);
+	let securitySnapshots = $state<RewindSnapshot[]>([]);
 	let timelinePosition = $state<Date | null>(null);
 	let isRewound = $derived(timelinePosition !== null);
 	let displayCandles = $derived(
@@ -118,7 +115,7 @@
 	);
 	let activeSnapshot = $derived<RewindSnapshot | null>(
 		isRewound && security?.id && timelinePosition
-			? findSnapshotAtOrBefore(userPreferences?.rewind_snapshots, security.id, timelinePosition)
+			? findSnapshotAtOrBefore(securitySnapshots, timelinePosition)
 			: null
 	);
 	let effectiveElliottWaves = $derived<SecurityElliottWaves>(
@@ -193,24 +190,22 @@
 
 		const snapshot = captureSnapshot(drawings, dataWindow);
 
-		const existing = getSnapshots(userPreferences?.rewind_snapshots, security.id);
-		const last = existing[existing.length - 1];
+		const last = securitySnapshots[securitySnapshots.length - 1];
 		if (last && areSnapshotsEqual(snapshot, last)) {
 			showSaveFeedback();
 			return;
 		}
 
-		const updated = appendSnapshot(userPreferences?.rewind_snapshots, security.id, snapshot);
-		userPreferences = {
-			...(userPreferences ?? {}),
-			rewind_snapshots: updated
-		};
-
 		try {
-			await userPreferencesService.patchPreferences({ rewind_snapshots: updated });
+			const created = await snapshotsService.createSnapshot(security.id, {
+				drawings,
+				data_window: dataWindow,
+				captured_at: snapshot.captured_at
+			});
+			securitySnapshots = [...securitySnapshots, created];
 			showSaveFeedback();
 		} catch (err) {
-			console.error('Failed to persist rewind snapshots preference:', err);
+			console.error('Failed to persist rewind snapshot:', err);
 		}
 	}
 
@@ -580,6 +575,16 @@
 		}
 	}
 
+	async function loadSnapshots() {
+		if (!security?.id) return;
+		try {
+			const res = await snapshotsService.getSnapshots(security.id);
+			securitySnapshots = res;
+		} catch (err) {
+			console.error('Failed to load snapshots:', err);
+		}
+	}
+
 	// Serialized reconcile chain — `onWaveChange` fires per point while drawing, and concurrent
 	// reconciles reading stale `alerts` would double-create. Chaining onto a single promise keeps
 	// every run sequential so each sees the previous run's applied state.
@@ -774,7 +779,7 @@
 				isLoadingMore = false;
 				rawCandles = mappedCandles;
 				haCandles = convertToHeikinAshi(mappedCandles);
-				await Promise.all([loadAlerts(), loadHoldings()]);
+				await Promise.all([loadAlerts(), loadHoldings(), loadSnapshots()]);
 
 				// Initial-load reconcile: gated on preferences being loaded so a failed fetch never
 				// mass-deletes wave alerts. Soft navigation re-runs the effect per security.
