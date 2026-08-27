@@ -57,7 +57,7 @@ def mock_redis_storage(monkeypatch):
 @pytest.mark.anyio
 async def test_signup_success(auth_client):
     """Test signup successfully creates a new user."""
-    signup_request = {"email": "newuser@example.com", "password": "newpass"}
+    signup_request = {"email": "newuser@example.com", "password": "newpassword123"}
 
     response = await auth_client.post("/api/v1/auth/signup", json=signup_request)
 
@@ -74,7 +74,7 @@ async def test_signup_success(auth_client):
 @pytest.mark.anyio
 async def test_signup_duplicate_email(auth_client, test_user):
     """Test signup with existing email raises 409."""
-    signup_request = {"email": test_user.email, "password": "newpass"}
+    signup_request = {"email": test_user.email, "password": "newpassword123"}
 
     response = await auth_client.post("/api/v1/auth/signup", json=signup_request)
 
@@ -82,6 +82,48 @@ async def test_signup_duplicate_email(auth_client, test_user):
     result = response.json()
 
     assert result["detail"] == "User with email already exists"
+
+
+@pytest.mark.anyio
+async def test_signup_short_password_rejected(auth_client):
+    """Test signup with password shorter than minimum length returns 422."""
+    signup_request = {"email": "shortpw@example.com", "password": "short"}
+
+    response = await auth_client.post("/api/v1/auth/signup", json=signup_request)
+
+    assert response.status_code == 422
+    result = response.json()
+    assert "detail" in result
+    error_msg = str(result["detail"])
+    assert "Password must be between 12 and 128 characters" in error_msg
+
+
+@pytest.mark.anyio
+async def test_signup_long_password_rejected(auth_client):
+    """Test signup with password longer than maximum length returns 422."""
+    signup_request = {"email": "longpw@example.com", "password": "a" * 200}
+
+    response = await auth_client.post("/api/v1/auth/signup", json=signup_request)
+
+    assert response.status_code == 422
+    result = response.json()
+    assert "detail" in result
+    error_msg = str(result["detail"])
+    assert "Password must be between 12 and 128 characters" in error_msg
+
+
+@pytest.mark.anyio
+async def test_login_long_password_rejected(auth_client):
+    """Test login with password longer than maximum length returns 422."""
+    login_request = {"email": "test@example.com", "password": "a" * 200}
+
+    response = await auth_client.post("/api/v1/auth/login", json=login_request)
+
+    assert response.status_code == 422
+    result = response.json()
+    assert "detail" in result
+    error_msg = str(result["detail"])
+    assert "Password cannot exceed 128 characters" in error_msg
 
 
 @pytest.mark.anyio
@@ -103,10 +145,10 @@ async def test_login_success(auth_client, test_user):
 async def test_login_unverified_user(auth_client, caplog):
     """Test login with unverified user raises 403."""
     caplog.set_level(logging.WARNING, logger="src.auth.router")
-    signup_request = {"email": "unverified@example.com", "password": "newpass"}
+    signup_request = {"email": "unverified@example.com", "password": "newpassword123"}
     await auth_client.post("/api/v1/auth/signup", json=signup_request)
 
-    login_request = {"email": "unverified@example.com", "password": "newpass"}
+    login_request = {"email": "unverified@example.com", "password": "newpassword123"}
     response = await auth_client.post("/api/v1/auth/login", json=login_request)
 
     assert response.status_code == 403
@@ -133,7 +175,7 @@ async def test_verify_email_success(auth_client, db_session):
 
     email = "toverify@example.com"
     await auth_client.post(
-        "/api/v1/auth/signup", json={"email": email, "password": "pass"}
+        "/api/v1/auth/signup", json={"email": email, "password": "password1234"}
     )
 
     user = await user_repo.get_by_email(email)
@@ -153,7 +195,7 @@ async def test_verify_email_success(auth_client, db_session):
 
     # Login should now work
     login_response = await auth_client.post(
-        "/api/v1/auth/login", json={"email": email, "password": "pass"}
+        "/api/v1/auth/login", json={"email": email, "password": "password1234"}
     )
     assert login_response.status_code == 200
 
@@ -174,7 +216,7 @@ async def test_resend_verification_success(auth_client):
     """Test resending verification email."""
     email = "resend@example.com"
     await auth_client.post(
-        "/api/v1/auth/signup", json={"email": email, "password": "pass"}
+        "/api/v1/auth/signup", json={"email": email, "password": "password1234"}
     )
 
     response = await auth_client.post(

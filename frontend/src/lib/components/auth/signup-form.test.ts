@@ -21,7 +21,11 @@ describe('SignupForm Component', () => {
 	it('renders signup form properly', () => {
 		render(SignupForm);
 		expect(screen.getByPlaceholderText('m@example.com')).toBeInTheDocument();
-		expect(screen.getByLabelText('Password')).toBeInTheDocument();
+		const passwordInput = screen.getByLabelText('Password');
+		expect(passwordInput).toBeInTheDocument();
+		expect(passwordInput).toHaveAttribute('minlength', '12');
+		expect(passwordInput).toHaveAttribute('maxlength', '128');
+		expect(screen.getByText('Must be at least 12 characters')).toBeInTheDocument();
 		expect(screen.getByLabelText('Confirm Password')).toBeInTheDocument();
 		expect(screen.getByRole('button', { name: 'Sign Up' })).toBeInTheDocument();
 	});
@@ -57,8 +61,8 @@ describe('SignupForm Component', () => {
 
 		const user = userEvent.setup();
 		await user.type(emailInput, 'test@example.com');
-		await user.type(passwordInput, 'password123');
-		await user.type(confirmInput, 'password456');
+		await user.type(passwordInput, 'password1234');
+		await user.type(confirmInput, 'password4567');
 		await user.click(submitButton);
 
 		expect(await screen.findByText('Passwords do not match.')).toBeInTheDocument();
@@ -95,8 +99,8 @@ describe('SignupForm Component', () => {
 
 		const user = userEvent.setup();
 		await user.type(emailInput, 'test@example.com');
-		await user.type(passwordInput, 'password123');
-		await user.type(confirmInput, 'password123');
+		await user.type(passwordInput, 'password1234');
+		await user.type(confirmInput, 'password1234');
 
 		await user.click(submitButton);
 
