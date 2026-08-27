@@ -3,7 +3,6 @@ name: ticket-writer
 description: Distills a rough feature idea or a ready feature spec from .agent/features/ into small, dependency-ordered implementation tickets, creating them as GitHub issues (label "ticket") via the gh CLI. Explores the current project state and asks clarifying questions before creating anything. Spawned by the orchestration skill via invoke_subagent.
 tools:
   - run_command
-  - call_mcp_tool
 subagent: true
 mainAgent: false
 model: flash

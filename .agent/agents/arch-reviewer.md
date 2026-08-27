@@ -4,9 +4,7 @@ description: Performs an on-demand architecture health check, writing a report t
 tools:
   - write_to_file
   - replace_file_content
-  - multi_replace_file_content
   - run_command
-  - call_mcp_tool
 subagent: true
 mainAgent: false
 commandExecutionPolicy: sandbox

@@ -4,9 +4,7 @@ description: Executes a single planned ticket (a GitHub issue labeled "ticket") 
 tools:
   - write_to_file
   - replace_file_content
-  - multi_replace_file_content
   - run_command
-  - call_mcp_tool
 subagent: true
 mainAgent: false
 model: flash
