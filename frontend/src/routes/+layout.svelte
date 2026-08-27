@@ -51,7 +51,11 @@
 <ModeWatcher />
 
 {#if data.user}
-	<Sidebar.Provider bind:open={sidebarOpen} onOpenChange={handleSidebarOpenChange}>
+	<Sidebar.Provider
+		class="overflow-hidden"
+		bind:open={sidebarOpen}
+		onOpenChange={handleSidebarOpenChange}
+	>
 		<AppSidebar />
 		<Sidebar.Inset>
 			{@render children()}
