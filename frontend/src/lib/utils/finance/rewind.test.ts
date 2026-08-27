@@ -262,6 +262,46 @@ describe('rewind finance utilities', () => {
 		it('returns null for invalid Date', () => {
 			expect(findSnapshotAtOrBefore(store, 'AAPL', new Date('invalid'))).toBeNull();
 		});
+
+		describe('with direct RewindSnapshot[] array', () => {
+			const list = [s1, s2, s3];
+
+			it('returns null when time is before first snapshot', () => {
+				const result = findSnapshotAtOrBefore(list, new Date('2026-08-27T09:59:59.999Z'));
+				expect(result).toBeNull();
+			});
+
+			it('returns exact snapshot when time equals captured_at', () => {
+				const result = findSnapshotAtOrBefore(list, new Date('2026-08-27T11:00:00.000Z'));
+				expect(result).toBe(s2);
+			});
+
+			it('returns nearest previous snapshot for intermediate time', () => {
+				const result = findSnapshotAtOrBefore(list, new Date('2026-08-27T11:30:00.000Z'));
+				expect(result).toBe(s2);
+			});
+
+			it('returns last snapshot when time is after last', () => {
+				const result = findSnapshotAtOrBefore(list, new Date('2026-08-27T13:00:00.000Z'));
+				expect(result).toBe(s3);
+			});
+
+			it('returns null for null, undefined, [], and invalid Date', () => {
+				expect(findSnapshotAtOrBefore(null, new Date())).toBeNull();
+				expect(findSnapshotAtOrBefore(undefined, new Date())).toBeNull();
+				expect(findSnapshotAtOrBefore([], new Date())).toBeNull();
+				expect(findSnapshotAtOrBefore(list, new Date('invalid'))).toBeNull();
+			});
+
+			it('handles unsorted arrays correctly without mutating input', () => {
+				const unsorted = [s3, s1, s2];
+				const result = findSnapshotAtOrBefore(unsorted, new Date('2026-08-27T11:15:00.000Z'));
+				expect(result).toBe(s2);
+				expect(unsorted[0]).toBe(s3);
+				expect(unsorted[1]).toBe(s1);
+				expect(unsorted[2]).toBe(s2);
+			});
+		});
 	});
 
 	describe('areSnapshotsEqual', () => {
