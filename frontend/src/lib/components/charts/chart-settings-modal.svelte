@@ -17,7 +17,9 @@
 
 	let {
 		open = $bindable(false),
-		initialSection = 'waves',
+		initialSection = 'general',
+		chartHideLabels = false,
+		onSaveChartHideLabels,
 		waveSettings = null,
 		onSaveWaveSettings,
 		activeTool = 'retracement',
@@ -30,7 +32,9 @@
 		onClose
 	}: {
 		open?: boolean;
-		initialSection?: 'waves' | 'fibonacci';
+		initialSection?: 'general' | 'waves' | 'fibonacci';
+		chartHideLabels?: boolean;
+		onSaveChartHideLabels?: (hide: boolean) => void | Promise<void>;
 		waveSettings?: WaveSettings | null;
 		onSaveWaveSettings?: (settings: WaveSettings) => void | Promise<void>;
 		activeTool?: FibToolType | null;
@@ -43,7 +47,36 @@
 		onClose?: () => void;
 	} = $props();
 
-	let activeSection = $state<'waves' | 'fibonacci'>(untrack(() => initialSection));
+	let activeSection = $state<'general' | 'waves' | 'fibonacci'>(untrack(() => initialSection));
+
+	// ---------------------------------------------------------------------------
+	// General Section State & Handlers
+	// ---------------------------------------------------------------------------
+	let draftChartHideLabels = $state<boolean>(untrack(() => Boolean(chartHideLabels)));
+
+	function syncGeneralFromProps() {
+		draftChartHideLabels = Boolean(chartHideLabels);
+	}
+
+	let prevChartHideLabels: boolean | undefined;
+	$effect(() => {
+		if (chartHideLabels !== prevChartHideLabels) {
+			syncGeneralFromProps();
+			prevChartHideLabels = chartHideLabels;
+		}
+	});
+
+	function handleCancelGeneral() {
+		syncGeneralFromProps();
+		open = false;
+		onClose?.();
+	}
+
+	function handleSaveGeneral() {
+		onSaveChartHideLabels?.(draftChartHideLabels);
+		open = false;
+		onClose?.();
+	}
 
 	// ---------------------------------------------------------------------------
 	// Waves Section State & Handlers
@@ -282,6 +315,7 @@
 	function handleOpenChange(isOpen: boolean) {
 		open = isOpen;
 		if (!isOpen) {
+			syncGeneralFromProps();
 			syncWavesFromProps();
 			onClose?.();
 		}
@@ -303,6 +337,19 @@
 			role="tablist"
 			aria-label="Chart settings section"
 		>
+			<button
+				type="button"
+				role="tab"
+				aria-selected={activeSection === 'general'}
+				aria-controls="general-settings-panel"
+				onclick={() => (activeSection = 'general')}
+				class="flex-1 rounded px-3 py-1.5 text-xs font-medium transition-colors {activeSection ===
+				'general'
+					? 'bg-primary text-primary-foreground shadow-sm'
+					: 'text-muted-foreground hover:bg-muted hover:text-foreground'}"
+			>
+				General
+			</button>
 			<button
 				type="button"
 				role="tab"
@@ -331,7 +378,60 @@
 			</button>
 		</div>
 
-		{#if activeSection === 'waves'}
+		{#if activeSection === 'general'}
+			<!-- General Panel -->
+			<div
+				id="general-settings-panel"
+				role="tabpanel"
+				class="space-y-4 py-1"
+				data-testid="general-settings-panel"
+			>
+				<!-- Hide Labels Toggle -->
+				<div class="flex items-start space-x-3 rounded-md border p-3">
+					<Checkbox
+						id="chart-hide-labels"
+						checked={draftChartHideLabels}
+						onCheckedChange={(checked) => (draftChartHideLabels = checked === true)}
+						data-testid="hide-labels-checkbox"
+						aria-label="Hide indicator labels"
+					/>
+					<div class="space-y-1 leading-none">
+						<label
+							for="chart-hide-labels"
+							class="cursor-pointer text-sm leading-none font-medium peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+						>
+							Hide indicator labels
+						</label>
+						<p class="text-xs text-muted-foreground">
+							Hide right-axis price scale labels for indicators and average price lines.
+						</p>
+					</div>
+				</div>
+
+				<!-- General Footer Actions -->
+				<div class="flex items-center justify-end gap-2 border-t pt-3">
+					<Button
+						type="button"
+						variant="outline"
+						size="sm"
+						onclick={handleCancelGeneral}
+						class="h-8 px-3 text-xs"
+						data-testid="cancel-general-btn"
+					>
+						Cancel
+					</Button>
+					<Button
+						type="button"
+						size="sm"
+						onclick={handleSaveGeneral}
+						class="h-8 px-3 text-xs"
+						data-testid="save-general-btn"
+					>
+						Save
+					</Button>
+				</div>
+			</div>
+		{:else if activeSection === 'waves'}
 			<!-- Waves Panel -->
 			<div
 				id="waves-settings-panel"

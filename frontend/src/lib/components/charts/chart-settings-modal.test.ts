@@ -10,12 +10,14 @@ import {
 } from '$lib/utils/finance/fibonacci';
 
 describe('ChartSettingsModal Component', () => {
+	let mockOnSaveChartHideLabels = vi.fn<(hide: boolean) => void>();
 	let mockOnSaveWaveSettings = vi.fn<(settings: WaveSettings) => void>();
 	let mockOnFibLevelsChange = vi.fn<(tool: FibToolType, levels: FibLevelConfig[]) => void>();
 	let mockOnClose = vi.fn<() => void>();
 
 	beforeEach(() => {
 		vi.clearAllMocks();
+		mockOnSaveChartHideLabels = vi.fn<(hide: boolean) => void>();
 		mockOnSaveWaveSettings = vi.fn<(settings: WaveSettings) => void>();
 		mockOnFibLevelsChange = vi.fn<(tool: FibToolType, levels: FibLevelConfig[]) => void>();
 		mockOnClose = vi.fn<() => void>();
@@ -32,11 +34,11 @@ describe('ChartSettingsModal Component', () => {
 			expect(screen.queryByText('Chart Settings')).not.toBeInTheDocument();
 		});
 
-		it('renders dialog header, top-level tabs, and Waves panel by default when open', () => {
+		it('renders dialog header, top-level tabs, and General panel by default when open', () => {
 			render(ChartSettingsModal, {
 				props: {
 					open: true,
-					onSaveWaveSettings: mockOnSaveWaveSettings,
+					onSaveChartHideLabels: mockOnSaveChartHideLabels,
 					onClose: mockOnClose
 				}
 			});
@@ -47,10 +49,37 @@ describe('ChartSettingsModal Component', () => {
 			).toBeInTheDocument();
 
 			// Top-level tab selector buttons
+			const generalTab = screen.getByRole('tab', { name: 'General' });
 			const wavesTab = screen.getByRole('tab', { name: 'Waves' });
 			const fibTab = screen.getByRole('tab', { name: 'Fibonacci' });
+			expect(generalTab).toBeInTheDocument();
 			expect(wavesTab).toBeInTheDocument();
 			expect(fibTab).toBeInTheDocument();
+			expect(generalTab).toHaveAttribute('aria-selected', 'true');
+			expect(wavesTab).toHaveAttribute('aria-selected', 'false');
+			expect(fibTab).toHaveAttribute('aria-selected', 'false');
+
+			// General panel elements
+			expect(screen.getByTestId('general-settings-panel')).toBeInTheDocument();
+			expect(screen.getByTestId('hide-labels-checkbox')).toBeInTheDocument();
+			expect(screen.getByTestId('cancel-general-btn')).toBeInTheDocument();
+			expect(screen.getByTestId('save-general-btn')).toBeInTheDocument();
+		});
+
+		it('opens with Waves panel selected when initialSection is "waves"', () => {
+			render(ChartSettingsModal, {
+				props: {
+					open: true,
+					initialSection: 'waves',
+					onSaveWaveSettings: mockOnSaveWaveSettings,
+					onClose: mockOnClose
+				}
+			});
+
+			const generalTab = screen.getByRole('tab', { name: 'General' });
+			const wavesTab = screen.getByRole('tab', { name: 'Waves' });
+			const fibTab = screen.getByRole('tab', { name: 'Fibonacci' });
+			expect(generalTab).toHaveAttribute('aria-selected', 'false');
 			expect(wavesTab).toHaveAttribute('aria-selected', 'true');
 			expect(fibTab).toHaveAttribute('aria-selected', 'false');
 
@@ -72,30 +101,42 @@ describe('ChartSettingsModal Component', () => {
 				}
 			});
 
+			const generalTab = screen.getByRole('tab', { name: 'General' });
 			const wavesTab = screen.getByRole('tab', { name: 'Waves' });
 			const fibTab = screen.getByRole('tab', { name: 'Fibonacci' });
+			expect(generalTab).toHaveAttribute('aria-selected', 'false');
 			expect(wavesTab).toHaveAttribute('aria-selected', 'false');
 			expect(fibTab).toHaveAttribute('aria-selected', 'true');
 
 			expect(screen.getByTestId('fibonacci-settings-panel')).toBeInTheDocument();
 		});
 
-		it('switches between Waves and Fibonacci sections on tab click', async () => {
+		it('switches between General, Waves, and Fibonacci sections on tab click', async () => {
 			render(ChartSettingsModal, {
 				props: {
 					open: true,
+					onSaveChartHideLabels: mockOnSaveChartHideLabels,
 					onSaveWaveSettings: mockOnSaveWaveSettings,
 					onFibLevelsChange: mockOnFibLevelsChange
 				}
 			});
 
+			const generalTab = screen.getByRole('tab', { name: 'General' });
 			const wavesTab = screen.getByRole('tab', { name: 'Waves' });
 			const fibTab = screen.getByRole('tab', { name: 'Fibonacci' });
 
-			// Initially Waves
-			expect(wavesTab).toHaveAttribute('aria-selected', 'true');
-			expect(screen.getByTestId('waves-settings-panel')).toBeInTheDocument();
+			// Initially General
+			expect(generalTab).toHaveAttribute('aria-selected', 'true');
+			expect(screen.getByTestId('general-settings-panel')).toBeInTheDocument();
+			expect(screen.queryByTestId('waves-settings-panel')).not.toBeInTheDocument();
 			expect(screen.queryByTestId('fibonacci-settings-panel')).not.toBeInTheDocument();
+
+			// Switch to Waves
+			await fireEvent.click(wavesTab);
+			expect(wavesTab).toHaveAttribute('aria-selected', 'true');
+			expect(generalTab).toHaveAttribute('aria-selected', 'false');
+			expect(screen.getByTestId('waves-settings-panel')).toBeInTheDocument();
+			expect(screen.queryByTestId('general-settings-panel')).not.toBeInTheDocument();
 
 			// Switch to Fibonacci
 			await fireEvent.click(fibTab);
@@ -104,11 +145,78 @@ describe('ChartSettingsModal Component', () => {
 			expect(screen.getByTestId('fibonacci-settings-panel')).toBeInTheDocument();
 			expect(screen.queryByTestId('waves-settings-panel')).not.toBeInTheDocument();
 
-			// Switch back to Waves
-			await fireEvent.click(wavesTab);
-			expect(wavesTab).toHaveAttribute('aria-selected', 'true');
+			// Switch back to General
+			await fireEvent.click(generalTab);
+			expect(generalTab).toHaveAttribute('aria-selected', 'true');
 			expect(fibTab).toHaveAttribute('aria-selected', 'false');
-			expect(screen.getByTestId('waves-settings-panel')).toBeInTheDocument();
+			expect(screen.getByTestId('general-settings-panel')).toBeInTheDocument();
+		});
+	});
+
+	describe('General Section - Initial Values, Toggling, and Actions', () => {
+		it('populates initial checkbox state from chartHideLabels prop', () => {
+			const { rerender } = render(ChartSettingsModal, {
+				props: {
+					open: true,
+					chartHideLabels: true
+				}
+			});
+
+			expect(screen.getByTestId('hide-labels-checkbox')).toHaveAttribute('aria-checked', 'true');
+
+			rerender({ open: true, chartHideLabels: false });
+			expect(screen.getByTestId('hide-labels-checkbox')).toHaveAttribute('aria-checked', 'false');
+		});
+
+		it('defaults chartHideLabels to unchecked when not provided', () => {
+			render(ChartSettingsModal, {
+				props: {
+					open: true
+				}
+			});
+
+			expect(screen.getByTestId('hide-labels-checkbox')).toHaveAttribute('aria-checked', 'false');
+		});
+
+		it('toggles hide labels checkbox and saves updated value', async () => {
+			render(ChartSettingsModal, {
+				props: {
+					open: true,
+					chartHideLabels: false,
+					onSaveChartHideLabels: mockOnSaveChartHideLabels,
+					onClose: mockOnClose
+				}
+			});
+
+			const checkbox = screen.getByTestId('hide-labels-checkbox');
+			await fireEvent.click(checkbox);
+
+			const saveBtn = screen.getByTestId('save-general-btn');
+			await fireEvent.click(saveBtn);
+
+			expect(mockOnSaveChartHideLabels).toHaveBeenCalledTimes(1);
+			expect(mockOnSaveChartHideLabels).toHaveBeenCalledWith(true);
+			expect(mockOnClose).toHaveBeenCalledTimes(1);
+		});
+
+		it('discards unsaved changes and invokes onClose when Cancel button is clicked', async () => {
+			render(ChartSettingsModal, {
+				props: {
+					open: true,
+					chartHideLabels: false,
+					onSaveChartHideLabels: mockOnSaveChartHideLabels,
+					onClose: mockOnClose
+				}
+			});
+
+			const checkbox = screen.getByTestId('hide-labels-checkbox');
+			await fireEvent.click(checkbox);
+
+			const cancelBtn = screen.getByTestId('cancel-general-btn');
+			await fireEvent.click(cancelBtn);
+
+			expect(mockOnSaveChartHideLabels).not.toHaveBeenCalled();
+			expect(mockOnClose).toHaveBeenCalledTimes(1);
 		});
 	});
 
@@ -125,6 +233,7 @@ describe('ChartSettingsModal Component', () => {
 			render(ChartSettingsModal, {
 				props: {
 					open: true,
+					initialSection: 'waves',
 					waveSettings: initialSettings,
 					onSaveWaveSettings: mockOnSaveWaveSettings
 				}
@@ -147,6 +256,7 @@ describe('ChartSettingsModal Component', () => {
 			render(ChartSettingsModal, {
 				props: {
 					open: true,
+					initialSection: 'waves',
 					waveSettings: null,
 					onSaveWaveSettings: mockOnSaveWaveSettings
 				}
@@ -171,6 +281,7 @@ describe('ChartSettingsModal Component', () => {
 			render(ChartSettingsModal, {
 				props: {
 					open: true,
+					initialSection: 'waves',
 					waveSettings: { snap_to_wicks: false },
 					onSaveWaveSettings: mockOnSaveWaveSettings,
 					onClose: mockOnClose
@@ -198,6 +309,7 @@ describe('ChartSettingsModal Component', () => {
 			render(ChartSettingsModal, {
 				props: {
 					open: true,
+					initialSection: 'waves',
 					waveSettings: null,
 					onSaveWaveSettings: mockOnSaveWaveSettings
 				}
@@ -230,6 +342,7 @@ describe('ChartSettingsModal Component', () => {
 			render(ChartSettingsModal, {
 				props: {
 					open: true,
+					initialSection: 'waves',
 					waveSettings: null,
 					onSaveWaveSettings: mockOnSaveWaveSettings
 				}
@@ -254,6 +367,7 @@ describe('ChartSettingsModal Component', () => {
 			render(ChartSettingsModal, {
 				props: {
 					open: true,
+					initialSection: 'waves',
 					waveSettings: null,
 					onSaveWaveSettings: mockOnSaveWaveSettings
 				}
@@ -285,6 +399,7 @@ describe('ChartSettingsModal Component', () => {
 			render(ChartSettingsModal, {
 				props: {
 					open: true,
+					initialSection: 'waves',
 					waveSettings: initialSettings,
 					onSaveWaveSettings: mockOnSaveWaveSettings
 				}
@@ -330,6 +445,7 @@ describe('ChartSettingsModal Component', () => {
 			render(ChartSettingsModal, {
 				props: {
 					open: true,
+					initialSection: 'waves',
 					waveSettings: initialSettings,
 					onSaveWaveSettings: mockOnSaveWaveSettings,
 					onClose: mockOnClose
