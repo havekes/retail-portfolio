@@ -5,6 +5,8 @@
 	import CorrectiveWaveIcon from '$lib/components/icons/corrective-wave-icon.svelte';
 	import FibRetracementIcon from '$lib/components/icons/fib-retracement-icon.svelte';
 	import FibExtensionIcon from '$lib/components/icons/fib-extension-icon.svelte';
+	import Save from '@lucide/svelte/icons/save';
+	import Check from '@lucide/svelte/icons/check';
 	import * as DropdownMenu from '$lib/components/ui/dropdown-menu/index.js';
 	import * as Tooltip from '$lib/components/ui/tooltip/index.js';
 
@@ -16,7 +18,9 @@
 		isDrawingFib = false,
 		onSelectWaveDegree,
 		onSelectCorrectiveDegree,
-		onToggleFib
+		onToggleFib,
+		onSave,
+		saveFeedback = 'idle'
 	}: {
 		activeWaveDegree?: WaveDegree;
 		activeWaveType?: WaveType;
@@ -26,6 +30,8 @@
 		onSelectWaveDegree?: (degree: WaveDegree, tool?: WaveType) => void;
 		onSelectCorrectiveDegree?: (degree: WaveDegree) => void;
 		onToggleFib?: (tool: FibToolType) => void;
+		onSave?: () => void;
+		saveFeedback?: 'idle' | 'saved';
 	} = $props();
 
 	function handleSelectWave(degree: WaveDegree, tool: WaveType) {
@@ -216,6 +222,31 @@
 			</Tooltip.Trigger>
 			<Tooltip.Content side="right">
 				<p>Fibonacci Extension</p>
+			</Tooltip.Content>
+		</Tooltip.Root>
+
+		<!-- Save Snapshot Button -->
+		<Tooltip.Root>
+			<Tooltip.Trigger>
+				{#snippet child({ props })}
+					<button
+						type="button"
+						{...props}
+						onclick={() => onSave?.()}
+						class="rounded p-1.5 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+						aria-label="Save snapshot"
+						title={saveFeedback === 'saved' ? 'Saved' : 'Save snapshot'}
+					>
+						{#if saveFeedback === 'saved'}
+							<Check class="h-4 w-4" />
+						{:else}
+							<Save class="h-4 w-4" />
+						{/if}
+					</button>
+				{/snippet}
+			</Tooltip.Trigger>
+			<Tooltip.Content side="right">
+				<p>{saveFeedback === 'saved' ? 'Saved' : 'Save snapshot'}</p>
 			</Tooltip.Content>
 		</Tooltip.Root>
 	</div>

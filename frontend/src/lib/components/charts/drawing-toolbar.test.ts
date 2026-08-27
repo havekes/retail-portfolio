@@ -278,4 +278,35 @@ describe('DrawingToolbar Component', () => {
 		expect(extendBtn.className).toContain('bg-primary');
 		expect(retraceBtn.className).not.toContain('bg-primary');
 	});
+
+	it('renders Save snapshot button with correct title and triggers onSave when clicked', async () => {
+		const onSave = vi.fn();
+		render(DrawingToolbar, {
+			props: {
+				onSave
+			}
+		});
+
+		const saveBtn = screen.getByRole('button', { name: 'Save snapshot' });
+		expect(saveBtn).toBeInTheDocument();
+		expect(saveBtn).toHaveAttribute('title', 'Save snapshot');
+
+		await fireEvent.click(saveBtn);
+		expect(onSave).toHaveBeenCalledTimes(1);
+	});
+
+	it('renders Save snapshot button with Saved title and check icon when saveFeedback is saved', () => {
+		render(DrawingToolbar, {
+			props: {
+				saveFeedback: 'saved'
+			}
+		});
+
+		const saveBtn = screen.getByRole('button', { name: 'Save snapshot' });
+		expect(saveBtn).toBeInTheDocument();
+		expect(saveBtn).toHaveAttribute('title', 'Saved');
+		const svg = saveBtn.querySelector('svg');
+		expect(svg).toBeInTheDocument();
+		expect(svg?.classList.contains('lucide-check')).toBe(true);
+	});
 });

@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { untrack } from 'svelte';
+	import { untrack, onDestroy } from 'svelte';
 	import type { Time, UTCTimestamp } from 'lightweight-charts';
 	import { getMarketService } from '$lib/api/marketService';
 	import { convertToHeikinAshi } from '@/utils/finance/candle';
@@ -54,6 +54,14 @@
 		type SecurityFibonacciTools,
 		updateSecurityFibonacciTools
 	} from '$lib/utils/finance/fibonacci';
+	import {
+		captureSnapshot,
+		appendSnapshot,
+		getSnapshots,
+		areSnapshotsEqual,
+		type RewindDrawings,
+		type RewindDataWindow
+	} from '$lib/utils/finance/rewind';
 
 	let { data } = $props();
 
@@ -88,6 +96,86 @@
 	let securityFibonacciTools = $derived<SecurityFibonacciTools>(
 		(security?.id && userPreferences?.fibonacci_tools?.[security.id]) || {}
 	);
+	let saveFeedback = $state<'idle' | 'saved'>('idle');
+	let saveFeedbackTimer: ReturnType<typeof setTimeout> | null = null;
+
+	onDestroy(() => {
+		if (saveFeedbackTimer) {
+			clearTimeout(saveFeedbackTimer);
+			saveFeedbackTimer = null;
+		}
+	});
+
+	function showSaveFeedback() {
+		if (saveFeedbackTimer) {
+			clearTimeout(saveFeedbackTimer);
+		}
+		saveFeedback = 'saved';
+		saveFeedbackTimer = setTimeout(() => {
+			saveFeedback = 'idle';
+			saveFeedbackTimer = null;
+		}, 1500);
+	}
+
+	function normalizeCandleTime(t: Time): string | number {
+		if (typeof t === 'string' || typeof t === 'number') return t;
+		if (typeof t === 'object' && t !== null && 'year' in t) {
+			return `${t.year}-${String(t.month).padStart(2, '0')}-${String(t.day).padStart(2, '0')}`;
+		}
+		return String(t);
+	}
+
+	async function handleSaveSnapshot() {
+		if (!security?.id) return;
+		if (!displayCandles.length) return;
+
+		const drawings: RewindDrawings = {
+			elliott_waves: securityElliottWaves,
+			fibonacci_tools: securityFibonacciTools
+		};
+
+		const hasWavePoints = Boolean(
+			(drawings.elliott_waves?.cycle?.points && drawings.elliott_waves.cycle.points.length > 0) ||
+			(drawings.elliott_waves?.primary?.points &&
+				drawings.elliott_waves.primary.points.length > 0) ||
+			(drawings.elliott_waves?.intermediate?.points &&
+				drawings.elliott_waves.intermediate.points.length > 0)
+		);
+		const hasFibTools = Boolean(
+			drawings.fibonacci_tools?.retracement || drawings.fibonacci_tools?.extension
+		);
+
+		if (!hasWavePoints && !hasFibTools) {
+			return;
+		}
+
+		const dataWindow: RewindDataWindow = {
+			first: normalizeCandleTime(displayCandles[0].time),
+			last: normalizeCandleTime(displayCandles[displayCandles.length - 1].time)
+		};
+
+		const snapshot = captureSnapshot(drawings, dataWindow);
+
+		const existing = getSnapshots(userPreferences?.rewind_snapshots, security.id);
+		const last = existing[existing.length - 1];
+		if (last && areSnapshotsEqual(snapshot, last)) {
+			showSaveFeedback();
+			return;
+		}
+
+		const updated = appendSnapshot(userPreferences?.rewind_snapshots, security.id, snapshot);
+		userPreferences = {
+			...(userPreferences ?? {}),
+			rewind_snapshots: updated
+		};
+
+		try {
+			await userPreferencesService.patchPreferences({ rewind_snapshots: updated });
+			showSaveFeedback();
+		} catch (err) {
+			console.error('Failed to persist rewind snapshots preference:', err);
+		}
+	}
 
 	function handleKeyDown(event: KeyboardEvent) {
 		const target = event.target as HTMLElement | null;
@@ -127,6 +215,9 @@
 			if (isDrawingFib) {
 				isDrawingFib = false;
 			}
+		} else if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === 's') {
+			event.preventDefault();
+			void handleSaveSnapshot();
 		}
 	}
 
@@ -827,6 +918,8 @@
 						{isDrawingWave}
 						{activeFibTool}
 						{isDrawingFib}
+						onSave={handleSaveSnapshot}
+						{saveFeedback}
 						onSelectWaveDegree={(degree) => {
 							activeWaveDegree = degree;
 							activeWaveType = 'impulse';

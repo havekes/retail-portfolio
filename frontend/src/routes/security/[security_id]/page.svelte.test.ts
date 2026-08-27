@@ -13,6 +13,7 @@ import type {
 	SecurityFibonacciTools
 } from '$lib/utils/finance/fibonacci';
 import { updateSecurityFibonacciTools } from '$lib/utils/finance/fibonacci';
+import type { RewindSnapshot } from '$lib/utils/finance/rewind';
 if (typeof globalThis.Path2D === 'undefined') {
 	/* eslint-disable-next-line @typescript-eslint/no-explicit-any */
 	(globalThis as any).Path2D = class Path2D {
@@ -2304,5 +2305,294 @@ describe('Security Page - Top Toolbar', () => {
 		});
 		expect(haBtn.className).toContain('bg-primary');
 		expect(candleBtn.className).not.toContain('bg-primary');
+	});
+});
+
+describe('Rewind Save Snapshot', () => {
+	/* eslint-disable-next-line @typescript-eslint/no-explicit-any */
+	let PageComponent: Component<any>;
+
+	const mockData = {
+		security: {
+			id: 'sec-1',
+			symbol: 'AAPL',
+			name: 'Apple Inc.'
+		},
+		items: [
+			{ date: '2024-01-01', open: 100, high: 110, low: 95, close: 105, volume: 1000 },
+			{ date: '2024-01-02', open: 105, high: 115, low: 100, close: 112, volume: 1200 }
+		]
+	};
+
+	const sampleWaveCount: DegreeWaveCount = {
+		type: 'impulse',
+		points: [
+			{ wave: 0, time: '2024-01-01', price: 100 },
+			{ wave: 1, time: '2024-01-02', price: 120 }
+		],
+		wave3Target: 150,
+		wave5Target: 180
+	};
+
+	const sampleElliottWaves: Record<string, SecurityElliottWaves> = {
+		'sec-1': {
+			cycle: sampleWaveCount
+		}
+	};
+
+	const sampleFibTools: Record<string, SecurityFibonacciTools> = {
+		'sec-1': {
+			retracement: {
+				id: 'fib-1',
+				p1: { time: '2024-01-01', price: 100 },
+				p2: { time: '2024-01-02', price: 200 },
+				levels: [{ ratio: 0.618, color: '#089981', enabled: true }]
+			},
+			extension: null
+		}
+	};
+
+	beforeAll(async () => {
+		const mod = await import('./+page.svelte');
+		PageComponent = mod.default;
+	}, 30000);
+
+	beforeEach(() => {
+		vi.clearAllMocks();
+		mockChartProps = null;
+		vi.mocked(userPreferencesService.getPreferences).mockResolvedValue({});
+	});
+
+	it('clicking Save snapshot button persists a snapshot with drawings and data window', async () => {
+		vi.mocked(userPreferencesService.getPreferences).mockResolvedValue({
+			elliott_waves: sampleElliottWaves,
+			fibonacci_tools: sampleFibTools
+		});
+
+		render(PageComponent, { props: { data: mockData } });
+
+		const saveBtn = await screen.findByRole('button', { name: 'Save snapshot' });
+		expect(saveBtn).toBeInTheDocument();
+
+		await fireEvent.click(saveBtn);
+
+		expect(userPreferencesService.patchPreferences).toHaveBeenCalledWith(
+			expect.objectContaining({
+				rewind_snapshots: expect.objectContaining({
+					'sec-1': [
+						expect.objectContaining({
+							drawings: {
+								elliott_waves: sampleElliottWaves['sec-1'],
+								fibonacci_tools: sampleFibTools['sec-1']
+							},
+							data_window: {
+								first: '2024-01-01',
+								last: '2024-01-02'
+							}
+						})
+					]
+				})
+			})
+		);
+		const patchCall = vi.mocked(userPreferencesService.patchPreferences).mock.calls[0][0];
+		expect(patchCall.rewind_snapshots?.['sec-1']).toHaveLength(1);
+	});
+
+	it('pressing Cmd+S captures snapshot, invokes patchPreferences and prevents default browser behavior', async () => {
+		vi.mocked(userPreferencesService.getPreferences).mockResolvedValue({
+			elliott_waves: sampleElliottWaves,
+			fibonacci_tools: sampleFibTools
+		});
+
+		render(PageComponent, { props: { data: mockData } });
+		await screen.findByRole('button', { name: 'Save snapshot' });
+
+		const event = new KeyboardEvent('keydown', {
+			key: 's',
+			metaKey: true,
+			bubbles: true,
+			cancelable: true
+		});
+		const preventDefaultSpy = vi.spyOn(event, 'preventDefault');
+		window.dispatchEvent(event);
+
+		expect(preventDefaultSpy).toHaveBeenCalled();
+		expect(event.defaultPrevented).toBe(true);
+
+		expect(userPreferencesService.patchPreferences).toHaveBeenCalledWith(
+			expect.objectContaining({
+				rewind_snapshots: expect.objectContaining({
+					'sec-1': [
+						expect.objectContaining({
+							drawings: {
+								elliott_waves: sampleElliottWaves['sec-1'],
+								fibonacci_tools: sampleFibTools['sec-1']
+							},
+							data_window: {
+								first: '2024-01-01',
+								last: '2024-01-02'
+							}
+						})
+					]
+				})
+			})
+		);
+	});
+
+	it('pressing Ctrl+S captures snapshot, invokes patchPreferences and prevents default browser behavior', async () => {
+		vi.mocked(userPreferencesService.getPreferences).mockResolvedValue({
+			elliott_waves: sampleElliottWaves,
+			fibonacci_tools: sampleFibTools
+		});
+
+		render(PageComponent, { props: { data: mockData } });
+		await screen.findByRole('button', { name: 'Save snapshot' });
+
+		const event = new KeyboardEvent('keydown', {
+			key: 's',
+			ctrlKey: true,
+			bubbles: true,
+			cancelable: true
+		});
+		const preventDefaultSpy = vi.spyOn(event, 'preventDefault');
+		window.dispatchEvent(event);
+
+		expect(preventDefaultSpy).toHaveBeenCalled();
+		expect(event.defaultPrevented).toBe(true);
+
+		expect(userPreferencesService.patchPreferences).toHaveBeenCalledWith(
+			expect.objectContaining({
+				rewind_snapshots: expect.objectContaining({
+					'sec-1': [
+						expect.objectContaining({
+							drawings: {
+								elliott_waves: sampleElliottWaves['sec-1'],
+								fibonacci_tools: sampleFibTools['sec-1']
+							},
+							data_window: {
+								first: '2024-01-01',
+								last: '2024-01-02'
+							}
+						})
+					]
+				})
+			})
+		);
+	});
+
+	it('does not capture snapshot when Cmd/Ctrl+S is pressed inside an input or textarea', async () => {
+		vi.mocked(userPreferencesService.getPreferences).mockResolvedValue({
+			elliott_waves: sampleElliottWaves,
+			fibonacci_tools: sampleFibTools
+		});
+
+		render(PageComponent, { props: { data: mockData } });
+		await screen.findByRole('button', { name: 'Save snapshot' });
+
+		const inputEl = document.createElement('input');
+		document.body.appendChild(inputEl);
+		inputEl.focus();
+
+		await fireEvent.keyDown(inputEl, { key: 's', metaKey: true });
+		await fireEvent.keyDown(inputEl, { key: 's', ctrlKey: true });
+
+		expect(userPreferencesService.patchPreferences).not.toHaveBeenCalled();
+
+		const textareaEl = document.createElement('textarea');
+		document.body.appendChild(textareaEl);
+		textareaEl.focus();
+
+		await fireEvent.keyDown(textareaEl, { key: 's', metaKey: true });
+		await fireEvent.keyDown(textareaEl, { key: 's', ctrlKey: true });
+
+		expect(userPreferencesService.patchPreferences).not.toHaveBeenCalled();
+
+		document.body.removeChild(inputEl);
+		document.body.removeChild(textareaEl);
+	});
+
+	it('saving identical drawings twice appends only one snapshot (dedupe guard)', async () => {
+		vi.mocked(userPreferencesService.getPreferences).mockResolvedValue({
+			elliott_waves: sampleElliottWaves,
+			fibonacci_tools: sampleFibTools
+		});
+
+		render(PageComponent, { props: { data: mockData } });
+
+		const saveBtn = await screen.findByRole('button', { name: 'Save snapshot' });
+
+		// First save
+		await fireEvent.click(saveBtn);
+		expect(userPreferencesService.patchPreferences).toHaveBeenCalledTimes(1);
+
+		// Second save with unchanged drawings
+		await fireEvent.click(saveBtn);
+		expect(userPreferencesService.patchPreferences).toHaveBeenCalledTimes(1);
+
+		const patchCall = vi.mocked(userPreferencesService.patchPreferences).mock.calls[0][0];
+		expect(patchCall.rewind_snapshots?.['sec-1']).toHaveLength(1);
+	});
+
+	it('does not append snapshot when seeded with existing identical snapshot', async () => {
+		const existingSnapshot: RewindSnapshot = {
+			id: 'snap-existing',
+			captured_at: '2024-01-01T00:00:00.000Z',
+			drawings: {
+				elliott_waves: sampleElliottWaves['sec-1'],
+				fibonacci_tools: sampleFibTools['sec-1']
+			},
+			data_window: {
+				first: '2024-01-01',
+				last: '2024-01-02'
+			}
+		};
+
+		vi.mocked(userPreferencesService.getPreferences).mockResolvedValue({
+			elliott_waves: sampleElliottWaves,
+			fibonacci_tools: sampleFibTools,
+			rewind_snapshots: {
+				'sec-1': [existingSnapshot]
+			}
+		});
+
+		render(PageComponent, { props: { data: mockData } });
+
+		const saveBtn = await screen.findByRole('button', { name: 'Save snapshot' });
+		await fireEvent.click(saveBtn);
+
+		expect(userPreferencesService.patchPreferences).not.toHaveBeenCalled();
+	});
+
+	it('does not capture snapshot when drawings are empty', async () => {
+		vi.mocked(userPreferencesService.getPreferences).mockResolvedValue({
+			elliott_waves: {},
+			fibonacci_tools: {}
+		});
+
+		render(PageComponent, { props: { data: mockData } });
+		const saveBtn = await screen.findByRole('button', { name: 'Save snapshot' });
+
+		await fireEvent.click(saveBtn);
+		expect(userPreferencesService.patchPreferences).not.toHaveBeenCalled();
+
+		await fireEvent.keyDown(window, { key: 's', metaKey: true });
+		expect(userPreferencesService.patchPreferences).not.toHaveBeenCalled();
+	});
+
+	it('does not capture snapshot when wave count has targets but no points and no fib tools', async () => {
+		vi.mocked(userPreferencesService.getPreferences).mockResolvedValue({
+			elliott_waves: {
+				'sec-1': {
+					cycle: { type: 'impulse', points: [], wave3Target: 150, wave5Target: 180 }
+				}
+			},
+			fibonacci_tools: {}
+		});
+
+		render(PageComponent, { props: { data: mockData } });
+		const saveBtn = await screen.findByRole('button', { name: 'Save snapshot' });
+
+		await fireEvent.click(saveBtn);
+		expect(userPreferencesService.patchPreferences).not.toHaveBeenCalled();
 	});
 });
