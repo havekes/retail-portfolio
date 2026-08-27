@@ -1,8 +1,25 @@
+import type { Candle } from '@/utils/finance/candle';
+import { parseCandleTime } from '$lib/chart-preferences';
 import type { RewindSnapshot } from '$lib/utils/finance/rewind';
 
 export interface TimelineDomain {
 	first: number;
 	last: number;
+}
+
+/**
+ * Filters candles to only include those at or before the given cutoff date.
+ * Returns the original candles array if cutoff is null or invalid.
+ */
+export function sliceCandlesBefore(candles: Candle[], cutoff: Date | null): Candle[] {
+	if (!cutoff || isNaN(cutoff.getTime())) {
+		return candles;
+	}
+	const cutoffMs = cutoff.getTime();
+	return candles.filter((c) => {
+		const t = parseCandleTime(c.time).getTime();
+		return !isNaN(t) && t <= cutoffMs;
+	});
 }
 
 /**

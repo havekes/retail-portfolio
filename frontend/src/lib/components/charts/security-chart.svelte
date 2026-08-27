@@ -383,7 +383,20 @@
 	});
 
 	$effect(() => {
-		if (seriesInstance && candles && candles.length > 0) {
+		if (seriesInstance && candles) {
+			if (candles.length === 0) {
+				if (candles === lastCandlesRef) {
+					return;
+				}
+				lastCandlesRef = candles;
+				seriesInstance.setData([]);
+				elliottWavesPrimitive?.setCandles([]);
+				fibonacciPrimitive?.setCandles([]);
+				previousFirstCandleTime = null;
+				isLoadingMore = false;
+				return;
+			}
+
 			if (candles === lastCandlesRef) {
 				return;
 			}
