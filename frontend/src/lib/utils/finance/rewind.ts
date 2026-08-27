@@ -18,6 +18,9 @@ export interface RewindSnapshot {
 	captured_at: string; // ISO-8601 UTC (Date#toISOString())
 	drawings: RewindDrawings;
 	data_window: RewindDataWindow;
+	security_id?: string;
+	user_id?: string;
+	created_at?: string;
 }
 
 /**
