@@ -9,7 +9,7 @@
 	import { useSidebar } from '$lib/components/ui/sidebar/context.svelte.js';
 
 	const sidebar = useSidebar();
-	const user = $derived($page.data.user);
+	const user = $derived($page?.data?.user);
 </script>
 
 <Sidebar.Footer>
