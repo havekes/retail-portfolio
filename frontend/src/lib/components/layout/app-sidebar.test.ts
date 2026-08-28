@@ -126,11 +126,17 @@ describe('AppSidebar Modular Components', () => {
 			});
 
 			const trigger = document.querySelector('[data-sidebar="trigger"]') as HTMLElement;
+			const container = document.querySelector('[data-slot="sidebar-container"]') as HTMLElement;
+			const gap = document.querySelector('[data-slot="sidebar-gap"]') as HTMLElement;
 			expect(trigger).toBeInTheDocument();
+			expect(container).toHaveClass('w-12');
+			expect(gap).toHaveClass('w-12');
 			expect(screen.queryByText('Portfolio dashboard')).not.toBeInTheDocument();
 
 			await fireEvent.click(trigger);
 			expect(screen.getByText('Portfolio dashboard')).toBeInTheDocument();
+			expect(container).toHaveClass('w-64');
+			expect(gap).toHaveClass('w-64');
 		});
 	});
 
