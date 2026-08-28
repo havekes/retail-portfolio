@@ -5,10 +5,12 @@ from unittest.mock import AsyncMock
 from uuid import uuid4
 
 import pytest
+from argon2 import PasswordHasher
 from fastapi import HTTPException
 
 from src.auth.api import UserApi
 from src.auth.api_types import AuthResponse, UserId
+from src.auth.exception import AuthInvalidCredentialsError
 from src.auth.repository import TotpRepository, UserRepository
 from src.auth.schema import LoginChallengeResponse, TotpSchema, UserSchema
 from src.auth.service import EmailVerificationService
@@ -288,3 +290,38 @@ class TestGetUserById:
         )
         found = await api.get_user_by_id(uuid4())
         assert found is None
+
+
+class TestLoginEnumeration:
+    @pytest.mark.asyncio
+    async def test_unknown_email_returns_same_error_as_wrong_password(self):
+        """Unknown email and wrong password both raise AuthInvalidCredentialsError."""
+        user_id = uuid4()
+        hasher = PasswordHasher()
+        user = UserSchema(
+            id=user_id,
+            email="known_user@example.com",
+            password=hasher.hash("correct_password"),  # noqa: S106
+            is_verified=True,
+            created_at=datetime.now(UTC),
+        )
+        user_repo = MockUserRepository({user_id: user})
+        user_repo.get_by_email = AsyncMock(  # type: ignore[method-assign]
+            side_effect=lambda email: (
+                user if email == "known_user@example.com" else None
+            )
+        )
+
+        api = UserApi(
+            user_repository=user_repo,
+            email_verification_service=AsyncMock(spec=EmailVerificationService),
+        )
+
+        # Unknown email raises AuthInvalidCredentialsError
+        with pytest.raises(AuthInvalidCredentialsError):
+            await api.login("unknown_user@example.com", "any_password")
+
+        # Wrong password for existing user raises the same AuthInvalidCredentialsError
+        with pytest.raises(AuthInvalidCredentialsError):
+            await api.login("known_user@example.com", "wrong_password")
+
