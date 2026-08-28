@@ -15,6 +15,7 @@ import type {
 import { updateSecurityFibonacciTools } from '$lib/utils/finance/fibonacci';
 import type { RewindSnapshot } from '$lib/utils/finance/rewind';
 import { snapshotsService } from '$lib/api/snapshotsService';
+import { toast } from '$lib/components/ui/toast/index.js';
 if (typeof globalThis.Path2D === 'undefined') {
 	/* eslint-disable-next-line @typescript-eslint/no-explicit-any */
 	(globalThis as any).Path2D = class Path2D {
@@ -2386,6 +2387,7 @@ describe('Rewind Save Snapshot', () => {
 
 	beforeEach(() => {
 		vi.clearAllMocks();
+		toast.clear();
 		mockChartProps = null;
 		vi.mocked(userPreferencesService.getPreferences).mockResolvedValue({});
 		vi.mocked(snapshotsService.getSnapshots).mockResolvedValue([]);
@@ -2400,7 +2402,7 @@ describe('Rewind Save Snapshot', () => {
 		);
 	});
 
-	it('clicking Save snapshot button persists a snapshot with drawings and data window', async () => {
+	it('clicking Save snapshot button persists a snapshot with drawings and data window and shows success toast', async () => {
 		vi.mocked(userPreferencesService.getPreferences).mockResolvedValue({
 			elliott_waves: sampleElliottWaves,
 			fibonacci_tools: sampleFibTools
@@ -2428,9 +2430,14 @@ describe('Rewind Save Snapshot', () => {
 			})
 		);
 		expect(userPreferencesService.patchPreferences).not.toHaveBeenCalled();
+		await waitFor(() => {
+			expect(
+				toast.toasts.some((t) => t.type === 'success' && t.message === 'Chart snapshot saved')
+			).toBe(true);
+		});
 	});
 
-	it('pressing Cmd+S captures snapshot, invokes createSnapshot and prevents default browser behavior', async () => {
+	it('pressing Cmd+S captures snapshot, invokes createSnapshot, shows success toast and prevents default browser behavior', async () => {
 		vi.mocked(userPreferencesService.getPreferences).mockResolvedValue({
 			elliott_waves: sampleElliottWaves,
 			fibonacci_tools: sampleFibTools
@@ -2451,23 +2458,30 @@ describe('Rewind Save Snapshot', () => {
 		expect(preventDefaultSpy).toHaveBeenCalled();
 		expect(event.defaultPrevented).toBe(true);
 
-		expect(snapshotsService.createSnapshot).toHaveBeenCalledWith(
-			'sec-1',
-			expect.objectContaining({
-				drawings: {
-					elliott_waves: sampleElliottWaves['sec-1'],
-					fibonacci_tools: sampleFibTools['sec-1']
-				},
-				data_window: {
-					first: '2024-01-01',
-					last: '2024-01-02'
-				}
-			})
-		);
+		await waitFor(() => {
+			expect(snapshotsService.createSnapshot).toHaveBeenCalledWith(
+				'sec-1',
+				expect.objectContaining({
+					drawings: {
+						elliott_waves: sampleElliottWaves['sec-1'],
+						fibonacci_tools: sampleFibTools['sec-1']
+					},
+					data_window: {
+						first: '2024-01-01',
+						last: '2024-01-02'
+					}
+				})
+			);
+		});
 		expect(userPreferencesService.patchPreferences).not.toHaveBeenCalled();
+		await waitFor(() => {
+			expect(
+				toast.toasts.some((t) => t.type === 'success' && t.message === 'Chart snapshot saved')
+			).toBe(true);
+		});
 	});
 
-	it('pressing Ctrl+S captures snapshot, invokes createSnapshot and prevents default browser behavior', async () => {
+	it('pressing Ctrl+S captures snapshot, invokes createSnapshot, shows success toast and prevents default browser behavior', async () => {
 		vi.mocked(userPreferencesService.getPreferences).mockResolvedValue({
 			elliott_waves: sampleElliottWaves,
 			fibonacci_tools: sampleFibTools
@@ -2488,20 +2502,27 @@ describe('Rewind Save Snapshot', () => {
 		expect(preventDefaultSpy).toHaveBeenCalled();
 		expect(event.defaultPrevented).toBe(true);
 
-		expect(snapshotsService.createSnapshot).toHaveBeenCalledWith(
-			'sec-1',
-			expect.objectContaining({
-				drawings: {
-					elliott_waves: sampleElliottWaves['sec-1'],
-					fibonacci_tools: sampleFibTools['sec-1']
-				},
-				data_window: {
-					first: '2024-01-01',
-					last: '2024-01-02'
-				}
-			})
-		);
+		await waitFor(() => {
+			expect(snapshotsService.createSnapshot).toHaveBeenCalledWith(
+				'sec-1',
+				expect.objectContaining({
+					drawings: {
+						elliott_waves: sampleElliottWaves['sec-1'],
+						fibonacci_tools: sampleFibTools['sec-1']
+					},
+					data_window: {
+						first: '2024-01-01',
+						last: '2024-01-02'
+					}
+				})
+			);
+		});
 		expect(userPreferencesService.patchPreferences).not.toHaveBeenCalled();
+		await waitFor(() => {
+			expect(
+				toast.toasts.some((t) => t.type === 'success' && t.message === 'Chart snapshot saved')
+			).toBe(true);
+		});
 	});
 
 	it('does not capture snapshot when Cmd/Ctrl+S is pressed inside an input or textarea', async () => {
@@ -2537,7 +2558,7 @@ describe('Rewind Save Snapshot', () => {
 		document.body.removeChild(textareaEl);
 	});
 
-	it('saving identical drawings twice appends only one snapshot (dedupe guard)', async () => {
+	it('saving identical drawings twice appends only one snapshot and displays info toast (dedupe guard)', async () => {
 		vi.mocked(userPreferencesService.getPreferences).mockResolvedValue({
 			elliott_waves: sampleElliottWaves,
 			fibonacci_tools: sampleFibTools
@@ -2550,14 +2571,22 @@ describe('Rewind Save Snapshot', () => {
 		// First save
 		await fireEvent.click(saveBtn);
 		expect(snapshotsService.createSnapshot).toHaveBeenCalledTimes(1);
+		expect(
+			toast.toasts.some((t) => t.type === 'success' && t.message === 'Chart snapshot saved')
+		).toBe(true);
 
 		// Second save with unchanged drawings
 		await fireEvent.click(saveBtn);
 		expect(snapshotsService.createSnapshot).toHaveBeenCalledTimes(1);
 		expect(userPreferencesService.patchPreferences).not.toHaveBeenCalled();
+		expect(
+			toast.toasts.some(
+				(t) => t.type === 'info' && t.message === 'Chart snapshot already up to date'
+			)
+		).toBe(true);
 	});
 
-	it('does not append snapshot when seeded with existing identical snapshot', async () => {
+	it('displays info toast and does not append snapshot when seeded with existing identical snapshot', async () => {
 		const existingSnapshot: RewindSnapshot = {
 			id: 'snap-existing',
 			captured_at: '2024-01-01T00:00:00.000Z',
@@ -2584,6 +2613,32 @@ describe('Rewind Save Snapshot', () => {
 
 		expect(snapshotsService.createSnapshot).not.toHaveBeenCalled();
 		expect(userPreferencesService.patchPreferences).not.toHaveBeenCalled();
+		expect(
+			toast.toasts.some(
+				(t) => t.type === 'info' && t.message === 'Chart snapshot already up to date'
+			)
+		).toBe(true);
+	});
+
+	it('displays error toast when snapshot creation fails', async () => {
+		vi.mocked(userPreferencesService.getPreferences).mockResolvedValue({
+			elliott_waves: sampleElliottWaves,
+			fibonacci_tools: sampleFibTools
+		});
+		vi.mocked(snapshotsService.createSnapshot).mockRejectedValueOnce(new Error('Persist failed'));
+
+		render(PageComponent, { props: { data: mockData } });
+
+		const saveBtn = await screen.findByRole('button', { name: 'Save snapshot' });
+		await fireEvent.click(saveBtn);
+
+		await waitFor(() => {
+			expect(
+				toast.toasts.some(
+					(t) => t.type === 'error' && t.message === 'Failed to save chart snapshot'
+				)
+			).toBe(true);
+		});
 	});
 
 	it('does not capture snapshot when drawings are empty', async () => {
@@ -2622,6 +2677,84 @@ describe('Rewind Save Snapshot', () => {
 		expect(userPreferencesService.patchPreferences).not.toHaveBeenCalled();
 	});
 
+	it('timeline bar is automatically visible on initial load when security has 1+ snapshots', async () => {
+		const sampleSnapshot: RewindSnapshot = {
+			id: 'snap-1',
+			captured_at: '2024-01-01T00:00:00.000Z',
+			drawings: {},
+			data_window: { first: '2024-01-01', last: '2024-01-02' }
+		};
+
+		vi.mocked(snapshotsService.getSnapshots).mockResolvedValue([sampleSnapshot]);
+
+		render(PageComponent, { props: { data: mockData } });
+
+		expect(await screen.findByTestId('rewind-timeline')).toBeInTheDocument();
+		expect(screen.getByTestId('rewind-snapshot-point')).toBeInTheDocument();
+	});
+
+	it('timeline bar is not visible initially when security has 0 snapshots, and saving first snapshot immediately reveals timeline bar and marker without page reload', async () => {
+		vi.mocked(snapshotsService.getSnapshots).mockResolvedValue([]);
+		vi.mocked(userPreferencesService.getPreferences).mockResolvedValue({
+			elliott_waves: sampleElliottWaves,
+			fibonacci_tools: sampleFibTools
+		});
+
+		render(PageComponent, { props: { data: mockData } });
+
+		const saveBtn = await screen.findByRole('button', { name: 'Save snapshot' });
+		expect(screen.queryByTestId('rewind-timeline')).not.toBeInTheDocument();
+
+		await fireEvent.click(saveBtn);
+
+		expect(await screen.findByTestId('rewind-timeline')).toBeInTheDocument();
+		expect(await screen.findByTestId('rewind-snapshot-point')).toBeInTheDocument();
+	});
+
+	it('saving subsequent snapshot updates timeline markers and domain without page reload', async () => {
+		const initialSnapshot: RewindSnapshot = {
+			id: 'snap-initial',
+			captured_at: '2024-01-01T00:00:00.000Z',
+			drawings: {
+				elliott_waves: sampleElliottWaves['sec-1'],
+				fibonacci_tools: sampleFibTools['sec-1']
+			},
+			data_window: { first: '2024-01-01', last: '2024-01-02' }
+		};
+
+		vi.mocked(snapshotsService.getSnapshots).mockResolvedValue([initialSnapshot]);
+		vi.mocked(userPreferencesService.getPreferences).mockResolvedValue({
+			elliott_waves: sampleElliottWaves,
+			fibonacci_tools: sampleFibTools
+		});
+
+		render(PageComponent, { props: { data: mockData } });
+
+		expect(await screen.findByTestId('rewind-timeline')).toBeInTheDocument();
+		expect(screen.getAllByTestId('rewind-snapshot-point')).toHaveLength(1);
+
+		// Modify drawing via chart wave change callback
+		const updatedWaveCount: DegreeWaveCount = {
+			type: 'impulse',
+			points: [
+				{ wave: 0, time: '2024-01-01', price: 100 },
+				{ wave: 1, time: '2024-01-02', price: 120 },
+				{ wave: 2, time: '2024-01-02', price: 110 }
+			],
+			wave3Target: 150,
+			wave5Target: 180
+		};
+		// @ts-expect-error - mockChartProps typed as Record
+		await mockChartProps?.onWaveChange?.('cycle', updatedWaveCount);
+
+		const saveBtn = screen.getByRole('button', { name: 'Save snapshot' });
+		await fireEvent.click(saveBtn);
+
+		await waitFor(() => {
+			expect(screen.getAllByTestId('rewind-snapshot-point')).toHaveLength(2);
+		});
+	});
+
 	it('toggles rewind timeline strip visibility when toggle button is clicked', async () => {
 		const sampleSnapshot: RewindSnapshot = {
 			id: 'snap-1',
@@ -2634,15 +2767,18 @@ describe('Rewind Save Snapshot', () => {
 
 		render(PageComponent, { props: { data: mockData } });
 
-		expect(screen.queryByTestId('rewind-timeline')).not.toBeInTheDocument();
+		// Auto-visible on initial load when snapshots exist
+		expect(await screen.findByTestId('rewind-timeline')).toBeInTheDocument();
 
 		const toggleBtn = await screen.findByRole('button', { name: 'Toggle rewind timeline' });
-		await fireEvent.click(toggleBtn);
 
-		expect(screen.getByTestId('rewind-timeline')).toBeInTheDocument();
-
+		// Toggle off
 		await fireEvent.click(toggleBtn);
 		expect(screen.queryByTestId('rewind-timeline')).not.toBeInTheDocument();
+
+		// Toggle on
+		await fireEvent.click(toggleBtn);
+		expect(screen.getByTestId('rewind-timeline')).toBeInTheDocument();
 	});
 
 	it('navigating to security page calls snapshotsService.getSnapshots and renders snapshots on timeline', async () => {
@@ -2660,10 +2796,7 @@ describe('Rewind Save Snapshot', () => {
 			expect(snapshotsService.getSnapshots).toHaveBeenCalledWith('sec-1');
 		});
 
-		const toggleBtn = await screen.findByRole('button', { name: 'Toggle rewind timeline' });
-		await fireEvent.click(toggleBtn);
-
-		expect(screen.getByTestId('rewind-timeline')).toBeInTheDocument();
+		expect(await screen.findByTestId('rewind-timeline')).toBeInTheDocument();
 		expect(screen.getByTestId('rewind-snapshot-point')).toBeInTheDocument();
 	});
 });
@@ -2763,6 +2896,7 @@ describe('Rewind Scrub and Drawing Restore', () => {
 
 	beforeEach(() => {
 		vi.clearAllMocks();
+		toast.clear();
 		mockChartProps = null;
 		vi.mocked(userPreferencesService.getPreferences).mockResolvedValue({});
 		vi.mocked(snapshotsService.getSnapshots).mockResolvedValue([]);
@@ -2779,9 +2913,7 @@ describe('Rewind Scrub and Drawing Restore', () => {
 			expect(mockChartProps.candles).toHaveLength(3);
 		});
 
-		const toggleBtn = await screen.findByRole('button', { name: 'Toggle rewind timeline' });
-		await fireEvent.click(toggleBtn);
-		expect(screen.getByTestId('rewind-timeline')).toBeInTheDocument();
+		expect(await screen.findByTestId('rewind-timeline')).toBeInTheDocument();
 
 		const snapshotMarker = screen.getByTestId('rewind-snapshot-point');
 		await fireEvent.click(snapshotMarker);
@@ -2812,8 +2944,7 @@ describe('Rewind Scrub and Drawing Restore', () => {
 			expect(mockChartProps.fibonacciTools).toEqual(liveFibTools['sec-1']);
 		});
 
-		const toggleBtn = await screen.findByRole('button', { name: 'Toggle rewind timeline' });
-		await fireEvent.click(toggleBtn);
+		expect(await screen.findByTestId('rewind-timeline')).toBeInTheDocument();
 
 		const markers = screen.getAllByTestId('rewind-snapshot-point');
 		expect(markers).toHaveLength(2);
@@ -2858,8 +2989,7 @@ describe('Rewind Scrub and Drawing Restore', () => {
 		vi.mocked(alertsService.createAlert).mockClear();
 		vi.mocked(alertsService.deleteAlert).mockClear();
 
-		const toggleBtn = await screen.findByRole('button', { name: 'Toggle rewind timeline' });
-		await fireEvent.click(toggleBtn);
+		expect(await screen.findByTestId('rewind-timeline')).toBeInTheDocument();
 
 		const marker = screen.getByTestId('rewind-snapshot-point');
 		await fireEvent.click(marker);
@@ -2899,8 +3029,7 @@ describe('Rewind Scrub and Drawing Restore', () => {
 			expect(mockChartProps.elliottWaves).toEqual(liveElliottWaves['sec-1']);
 		});
 
-		const toggleBtn = await screen.findByRole('button', { name: 'Toggle rewind timeline' });
-		await fireEvent.click(toggleBtn);
+		expect(await screen.findByTestId('rewind-timeline')).toBeInTheDocument();
 
 		const marker = screen.getByTestId('rewind-snapshot-point');
 		await fireEvent.click(marker);
@@ -2957,8 +3086,7 @@ describe('Rewind Scrub and Drawing Restore', () => {
 			expect(mockChartProps.candles).toHaveLength(3);
 		});
 
-		const toggleBtn = await screen.findByRole('button', { name: 'Toggle rewind timeline' });
-		await fireEvent.click(toggleBtn);
+		expect(await screen.findByTestId('rewind-timeline')).toBeInTheDocument();
 
 		const marker = screen.getByTestId('rewind-snapshot-point');
 		await fireEvent.click(marker);
@@ -2997,8 +3125,7 @@ describe('Rewind Scrub and Drawing Restore', () => {
 			expect(mockChartProps.hasMoreData).toBe(true);
 		});
 
-		const toggleBtn = await screen.findByRole('button', { name: 'Toggle rewind timeline' });
-		await fireEvent.click(toggleBtn);
+		expect(await screen.findByTestId('rewind-timeline')).toBeInTheDocument();
 
 		const marker = screen.getByTestId('rewind-snapshot-point');
 		await fireEvent.click(marker);
