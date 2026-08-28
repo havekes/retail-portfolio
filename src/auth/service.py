@@ -351,6 +351,9 @@ class PasskeyService:
             attestation=AttestationConveyancePreference.NONE,
             authenticator_selection=AuthenticatorSelectionCriteria(
                 resident_key=ResidentKeyRequirement.PREFERRED,
+                # UV policy: PREFERRED + require_user_verification=False is a
+                # deliberate choice for consumer passkeys — supports security
+                # keys without biometrics. See ARCH-T08 for rationale.
                 user_verification=UserVerificationRequirement.PREFERRED,
             ),
             exclude_credentials=exclude_credentials or None,
@@ -371,10 +374,9 @@ class PasskeyService:
     ) -> PasskeyResponse:
         key = f"webauthn:challenge:reg:{user_id}"
         async with self._redis_manager.client() as redis:
-            challenge_b64 = await redis.get(key)
+            challenge_b64 = await redis.getdel(key)
             if not challenge_b64:
                 raise HTTPException(400, "Registration challenge expired or not found")
-            await redis.delete(key)
 
         challenge_str = (
             challenge_b64.decode("utf-8")
@@ -384,6 +386,9 @@ class PasskeyService:
         expected_challenge = base64url_to_bytes(challenge_str)
 
         try:
+            # UV policy: PREFERRED + require_user_verification=False is a
+            # deliberate choice for consumer passkeys — supports security
+            # keys without biometrics. See ARCH-T08 for rationale.
             verified = webauthn.verify_registration_response(
                 credential=request.credential,
                 expected_challenge=expected_challenge,
@@ -447,6 +452,9 @@ class PasskeyService:
                         for p in passkeys
                     ]
 
+        # UV policy: PREFERRED + require_user_verification=False is a
+        # deliberate choice for consumer passkeys — supports security
+        # keys without biometrics. See ARCH-T08 for rationale.
         options = webauthn.generate_authentication_options(
             rp_id=settings.webauthn_rp_id,
             allow_credentials=allow_credentials,
@@ -489,14 +497,16 @@ class PasskeyService:
 
         key = f"webauthn:challenge:auth:{challenge_b64}"
         async with self._redis_manager.client() as redis:
-            exists = await redis.get(key)
+            exists = await redis.getdel(key)
             if not exists:
                 raise HTTPException(
                     400, "Authentication challenge expired or not found"
                 )
-            await redis.delete(key)
 
         try:
+            # UV policy: PREFERRED + require_user_verification=False is a
+            # deliberate choice for consumer passkeys — supports security
+            # keys without biometrics. See ARCH-T08 for rationale.
             verified = webauthn.verify_authentication_response(
                 credential=credential,
                 expected_challenge=client_data.challenge,
