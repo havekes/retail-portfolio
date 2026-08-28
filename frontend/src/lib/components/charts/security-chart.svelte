@@ -630,7 +630,7 @@
 				const delta = event.deltaY;
 				if (delta === 0) return;
 
-				const factor = delta > 0 ? 1.1 : 0.9;
+				const factor = delta > 0 ? 1.05 : 0.95;
 				const span = currentRange.to - currentRange.from;
 				const newSpan = span * factor;
 				const mid = (currentRange.from + currentRange.to) / 2;
