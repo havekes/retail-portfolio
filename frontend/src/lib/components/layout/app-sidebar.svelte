@@ -65,11 +65,15 @@
 					<Sidebar.Menu>
 						{#each securities as security (security.id)}
 							<Sidebar.MenuItem>
-								<Sidebar.MenuButton tooltipContent={`${security.symbol} - ${security.name}`}>
+								<Sidebar.MenuButton
+									class="group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:p-0.5 group-data-[collapsible=icon]:[&>span:last-child]:overflow-visible group-data-[collapsible=icon]:[&>span:last-child]:text-clip"
+									tooltipContent={`${security.symbol} - ${security.name}`}
+								>
 									{#snippet child({ props })}
 										<a href={resolve(`/security/${security.id}`)} {...props}>
 											{#if sidebar.state === 'collapsed'}
-												<span class="mx-auto w-full truncate text-center text-[10px] font-semibold"
+												<span
+													class="mx-auto w-full overflow-visible text-center text-[10px] leading-tight font-semibold tracking-tight whitespace-nowrap"
 													>{security.symbol}</span
 												>
 											{:else}

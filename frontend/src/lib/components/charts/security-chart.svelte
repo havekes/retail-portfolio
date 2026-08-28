@@ -248,20 +248,45 @@
 
 	$effect(() => {
 		const visible = !hideLabels;
-		for (const [, s] of indicatorSeries.entries()) {
+		for (const [type, s] of indicatorSeries.entries()) {
 			if (!s) continue;
+			const indInfo = activeIndicators.find((i) => i.type === type);
+			const label = indInfo?.label ?? type.toUpperCase();
+
 			if ('histogram' in s && 'macdLine' in s && 'signalLine' in s) {
-				s.histogram.applyOptions?.({ lastValueVisible: visible, priceLineVisible: visible });
-				s.macdLine.applyOptions?.({ lastValueVisible: visible, priceLineVisible: visible });
-				s.signalLine.applyOptions?.({ lastValueVisible: visible, priceLineVisible: visible });
+				s.histogram.applyOptions?.({
+					lastValueVisible: visible,
+					priceLineVisible: visible,
+					title: visible ? 'MACD Hist' : ''
+				});
+				s.macdLine.applyOptions?.({
+					lastValueVisible: visible,
+					priceLineVisible: visible,
+					title: visible ? 'MACD' : ''
+				});
+				s.signalLine.applyOptions?.({
+					lastValueVisible: visible,
+					priceLineVisible: visible,
+					title: visible ? 'Signal' : ''
+				});
 			} else if ('upper' in s && 'middle' in s && 'lower' in s) {
-				s.upper.applyOptions?.({ lastValueVisible: visible });
-				s.middle.applyOptions?.({ lastValueVisible: visible });
-				s.lower.applyOptions?.({ lastValueVisible: visible });
+				s.upper.applyOptions?.({
+					lastValueVisible: visible,
+					title: visible ? `${label} Upper` : ''
+				});
+				s.middle.applyOptions?.({
+					lastValueVisible: visible,
+					title: visible ? label : ''
+				});
+				s.lower.applyOptions?.({
+					lastValueVisible: visible,
+					title: visible ? `${label} Lower` : ''
+				});
 			} else if ('applyOptions' in s && typeof s.applyOptions === 'function') {
 				s.applyOptions({
 					lastValueVisible: visible,
-					priceLineVisible: visible
+					priceLineVisible: visible,
+					title: visible ? label : ''
 				});
 			}
 		}
@@ -586,6 +611,41 @@
 			onFibSelect?.(tool);
 		});
 
+		const handleWheel = (event: WheelEvent) => {
+			if (!containerRef || !chartInstance || !seriesInstance) return;
+			const rect = containerRef.getBoundingClientRect();
+			const x = event.clientX - rect.left;
+			const priceScale = seriesInstance.priceScale();
+			const priceScaleWidth =
+				(priceScale && typeof priceScale.width === 'function' ? priceScale.width() : 0) ||
+				DEFAULT_PRICE_SCALE_MIN_WIDTH;
+
+			if (x >= containerRef.clientWidth - priceScaleWidth) {
+				event.preventDefault();
+				event.stopPropagation();
+
+				const currentRange = priceScale.getVisibleRange?.();
+				if (!currentRange || currentRange.to <= currentRange.from) return;
+
+				const delta = event.deltaY;
+				if (delta === 0) return;
+
+				const factor = delta > 0 ? 1.1 : 0.9;
+				const span = currentRange.to - currentRange.from;
+				const newSpan = span * factor;
+				const mid = (currentRange.from + currentRange.to) / 2;
+				const from = mid - newSpan / 2;
+				const to = mid + newSpan / 2;
+
+				if (to > from) {
+					priceScale.setVisibleRange?.({ from, to });
+				}
+			}
+		};
+
+		const container = containerRef;
+		container.addEventListener('wheel', handleWheel, { capture: true, passive: false });
+
 		const resizeObserver = new ResizeObserver(() => {
 			if (
 				containerRef &&
@@ -602,6 +662,7 @@
 		resizeObserver.observe(containerRef);
 
 		return () => {
+			container.removeEventListener('wheel', handleWheel, { capture: true });
 			resizeObserver.disconnect();
 			userAlertsPrimitive?.destroy();
 			elliottWavesPrimitive?.destroy();
@@ -637,7 +698,7 @@
 				priceFormat: { type: 'volume' },
 				priceLineVisible: !hideLabels,
 				lastValueVisible: !hideLabels,
-				title: indicator.label
+				title: hideLabels ? '' : indicator.label
 			});
 			indicatorSeries.set('volume', series);
 			activeIndicators = [
@@ -659,7 +720,7 @@
 				crosshairMarkerVisible: true,
 				priceLineVisible: !hideLabels,
 				lastValueVisible: !hideLabels,
-				title: indicator.label
+				title: hideLabels ? '' : indicator.label
 			});
 			indicatorSeries.set('rsi', series);
 			activeIndicators = [
@@ -679,7 +740,7 @@
 				base: 0,
 				priceLineVisible: !hideLabels,
 				lastValueVisible: !hideLabels,
-				title: 'MACD Hist'
+				title: hideLabels ? '' : 'MACD Hist'
 			});
 			const macdLineColor = indicator.color || '#2962FF';
 			const macdLine = chartInstance.addSeries(LineSeries, {
@@ -689,7 +750,7 @@
 				crosshairMarkerVisible: true,
 				priceLineVisible: !hideLabels,
 				lastValueVisible: !hideLabels,
-				title: 'MACD'
+				title: hideLabels ? '' : 'MACD'
 			});
 			const signalLine = chartInstance.addSeries(LineSeries, {
 				priceScaleId: 'macd',
@@ -698,7 +759,7 @@
 				crosshairMarkerVisible: true,
 				priceLineVisible: !hideLabels,
 				lastValueVisible: !hideLabels,
-				title: 'Signal'
+				title: hideLabels ? '' : 'Signal'
 			});
 
 			const macdSeries: MacdSeries = { histogram, macdLine, signalLine };
@@ -748,7 +809,7 @@
 				crosshairMarkerVisible: true,
 				priceLineVisible: !hideLabels,
 				lastValueVisible: !hideLabels,
-				title: indicator.label,
+				title: hideLabels ? '' : indicator.label,
 				priceFormat: {
 					type: 'custom',
 					formatter: (val: number) => `${(val / 1_000_000).toFixed(1)}M`
@@ -788,21 +849,24 @@
 				lineWidth: 1,
 				crosshairMarkerVisible: true,
 				priceLineVisible: false,
-				lastValueVisible: !hideLabels
+				lastValueVisible: !hideLabels,
+				title: hideLabels ? '' : `${indicator.label} Upper`
 			});
 			const middle = chartInstance.addSeries(LineSeries, {
 				color: hexToRgba(color, 1),
 				lineWidth: 1,
 				crosshairMarkerVisible: true,
 				priceLineVisible: false,
-				lastValueVisible: !hideLabels
+				lastValueVisible: !hideLabels,
+				title: hideLabels ? '' : indicator.label
 			});
 			const lower = chartInstance.addSeries(LineSeries, {
 				color: hexToRgba(color, 0.5),
 				lineWidth: 1,
 				crosshairMarkerVisible: true,
 				priceLineVisible: false,
-				lastValueVisible: !hideLabels
+				lastValueVisible: !hideLabels,
+				title: hideLabels ? '' : `${indicator.label} Lower`
 			});
 
 			const bandsPrimitive = new BandsIndicator(
@@ -840,7 +904,7 @@
 			crosshairMarkerVisible: true,
 			priceLineVisible: !hideLabels,
 			lastValueVisible: !hideLabels,
-			title: indicator.label
+			title: hideLabels ? '' : indicator.label
 		});
 
 		indicatorSeries.set(indicator.type, series);
@@ -974,21 +1038,4 @@
 		id={containerId}
 		class="h-full min-h-0 w-full overflow-hidden"
 	></div>
-
-	{#if activeIndicators.length > 0}
-		<div
-			class="absolute top-4 left-4 flex flex-wrap gap-2 rounded-md bg-sidebar-accent/50 p-2 backdrop-blur-sm"
-		>
-			{#each activeIndicators as indicator (indicator.type)}
-				<div class="flex items-center gap-1.5 px-1">
-					{#if indicator.color}
-						<div class="h-2 w-2 rounded-full" style="background-color: {indicator.color}"></div>
-					{/if}
-					<span class="text-[10px] font-medium tracking-wider text-sidebar-foreground/80 uppercase">
-						{indicator.label}
-					</span>
-				</div>
-			{/each}
-		</div>
-	{/if}
 </div>

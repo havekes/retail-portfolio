@@ -61,13 +61,25 @@ vi.mock('lightweight-charts', () => {
 			let currentVisibleLogicalRange: { from: number; to: number } | null = null;
 			const priceScales = new Map<
 				string,
-				{ applyOptions: ReturnType<typeof vi.fn>; width: ReturnType<typeof vi.fn> }
+				{
+					applyOptions: ReturnType<typeof vi.fn>;
+					width: ReturnType<typeof vi.fn>;
+					getVisibleRange: ReturnType<typeof vi.fn>;
+					setVisibleRange: ReturnType<typeof vi.fn>;
+					setAutoScale: ReturnType<typeof vi.fn>;
+				}
 			>();
 			const getPriceScale = (id: string = 'right') => {
 				if (!priceScales.has(id)) {
+					let visibleRange: { from: number; to: number } | null = { from: 100, to: 200 };
 					priceScales.set(id, {
 						applyOptions: vi.fn(),
-						width: vi.fn(() => 50)
+						width: vi.fn(() => 50),
+						getVisibleRange: vi.fn(() => visibleRange),
+						setVisibleRange: vi.fn((r) => {
+							visibleRange = r;
+						}),
+						setAutoScale: vi.fn()
 					});
 				}
 				return priceScales.get(id)!;
@@ -1230,7 +1242,7 @@ describe('SecurityChart - Oscillator Panes & Custom Price Scales', () => {
 			);
 		});
 
-		it('passes lastValueVisible and priceLineVisible to newly added indicator series', async () => {
+		it('passes lastValueVisible, priceLineVisible, and title to newly added indicator series', async () => {
 			const { component: comp } = render(SecurityChart, {
 				props: {
 					candles: initialCandles,
@@ -1253,7 +1265,8 @@ describe('SecurityChart - Oscillator Panes & Custom Price Scales', () => {
 				'LineSeries',
 				expect.objectContaining({
 					lastValueVisible: false,
-					priceLineVisible: false
+					priceLineVisible: false,
+					title: ''
 				})
 			);
 		});
@@ -1280,7 +1293,7 @@ describe('SecurityChart - Oscillator Panes & Custom Price Scales', () => {
 			// ma50 series is the second series created (first is candlestick)
 			const ma50Series = mainChart.addSeries.mock.results[1].value;
 			expect(ma50Series.applyOptions).not.toHaveBeenCalledWith(
-				expect.objectContaining({ lastValueVisible: false })
+				expect.objectContaining({ lastValueVisible: false, title: '' })
 			);
 
 			// Toggle hideLabels to true
@@ -1293,9 +1306,209 @@ describe('SecurityChart - Oscillator Panes & Custom Price Scales', () => {
 			expect(ma50Series.applyOptions).toHaveBeenCalledWith(
 				expect.objectContaining({
 					lastValueVisible: false,
-					priceLineVisible: false
+					priceLineVisible: false,
+					title: ''
 				})
 			);
+
+			// Toggle hideLabels back to false
+			rerender({
+				candles: initialCandles,
+				hideLabels: false
+			});
+			await tick();
+
+			expect(ma50Series.applyOptions).toHaveBeenCalledWith(
+				expect.objectContaining({
+					lastValueVisible: true,
+					priceLineVisible: true,
+					title: '50 Day MA'
+				})
+			);
+		});
+
+		it('dynamically updates MACD sub-series titles and visibility on hideLabels toggle', async () => {
+			const { component: comp, rerender } = render(SecurityChart, {
+				props: {
+					candles: initialCandles,
+					hideLabels: false
+				}
+			});
+			const component = comp as unknown as SecurityChartInstance;
+			const createdCharts = vi.mocked(createChart).mock.results.map((r) => r.value);
+			const mainChart = createdCharts[createdCharts.length - 1];
+
+			component.addIndicator({
+				type: 'macd',
+				label: 'MACD',
+				color: '#2962FF',
+				data: [{ time: '2024-01-10', histogram: 0.5, macd: 1.2, signal: 0.7 }]
+			});
+			await tick();
+
+			// MACD creates Histogram, Line (macd), Line (signal)
+			const histSeries = mainChart.addSeries.mock.results[1].value;
+			const macdLineSeries = mainChart.addSeries.mock.results[2].value;
+			const signalLineSeries = mainChart.addSeries.mock.results[3].value;
+
+			// Toggle hideLabels to true
+			rerender({
+				candles: initialCandles,
+				hideLabels: true
+			});
+			await tick();
+
+			expect(histSeries.applyOptions).toHaveBeenCalledWith(
+				expect.objectContaining({ lastValueVisible: false, title: '' })
+			);
+			expect(macdLineSeries.applyOptions).toHaveBeenCalledWith(
+				expect.objectContaining({ lastValueVisible: false, title: '' })
+			);
+			expect(signalLineSeries.applyOptions).toHaveBeenCalledWith(
+				expect.objectContaining({ lastValueVisible: false, title: '' })
+			);
+
+			// Toggle hideLabels back to false
+			rerender({
+				candles: initialCandles,
+				hideLabels: false
+			});
+			await tick();
+
+			expect(histSeries.applyOptions).toHaveBeenCalledWith(
+				expect.objectContaining({ lastValueVisible: true, title: 'MACD Hist' })
+			);
+			expect(macdLineSeries.applyOptions).toHaveBeenCalledWith(
+				expect.objectContaining({ lastValueVisible: true, title: 'MACD' })
+			);
+			expect(signalLineSeries.applyOptions).toHaveBeenCalledWith(
+				expect.objectContaining({ lastValueVisible: true, title: 'Signal' })
+			);
+		});
+	});
+
+	describe('top-left active indicators legend overlay', () => {
+		it('does not render top-left enabled indicators list overlay when indicators are added', async () => {
+			const { component: comp, container } = render(SecurityChart, {
+				props: {
+					candles: initialCandles
+				}
+			});
+			const component = comp as unknown as SecurityChartInstance;
+
+			component.addIndicator({
+				type: 'ma50',
+				label: '50 Day MA',
+				color: '#2196F3',
+				data: [{ time: '2024-01-10', value: 10 }]
+			});
+			await tick();
+
+			expect(container.querySelector('.backdrop-blur-sm')).toBeNull();
+			expect(container.querySelector('.absolute.top-4.left-4')).toBeNull();
+		});
+	});
+
+	describe('price scale wheel zooming', () => {
+		it('zooms price scale visible range and stops propagation when wheel event occurs over price scale', async () => {
+			const { container } = render(SecurityChart, {
+				props: {
+					candles: initialCandles
+				}
+			});
+
+			const mainContainer = container.querySelector('#main-chart') as HTMLElement;
+			Object.defineProperty(mainContainer, 'clientWidth', { value: 800, configurable: true });
+			Object.defineProperty(mainContainer, 'clientHeight', { value: 600, configurable: true });
+			vi.spyOn(mainContainer, 'getBoundingClientRect').mockReturnValue({
+				left: 0,
+				top: 0,
+				right: 800,
+				bottom: 600,
+				width: 800,
+				height: 600,
+				x: 0,
+				y: 0,
+				toJSON: () => {}
+			});
+
+			const createdCharts = vi.mocked(createChart).mock.results.map((r) => r.value);
+			const mainChart = createdCharts[createdCharts.length - 1];
+			const candlestickSeries = mainChart.addSeries.mock.results[0].value;
+			const priceScale = candlestickSeries.priceScale();
+
+			// priceScale width is 50, container width is 800.
+			// Coordinate x >= 750 is over the price scale.
+			const wheelEvent = new WheelEvent('wheel', {
+				clientX: 760,
+				clientY: 300,
+				deltaY: 100,
+				bubbles: true,
+				cancelable: true
+			});
+
+			const preventDefaultSpy = vi.spyOn(wheelEvent, 'preventDefault');
+			const stopPropagationSpy = vi.spyOn(wheelEvent, 'stopPropagation');
+
+			mainContainer.dispatchEvent(wheelEvent);
+			await tick();
+
+			expect(preventDefaultSpy).toHaveBeenCalled();
+			expect(stopPropagationSpy).toHaveBeenCalled();
+			expect(priceScale.setVisibleRange).toHaveBeenCalledWith(
+				expect.objectContaining({
+					from: expect.any(Number),
+					to: expect.any(Number)
+				})
+			);
+		});
+
+		it('does not intercept wheel events over the main chart canvas', async () => {
+			const { container } = render(SecurityChart, {
+				props: {
+					candles: initialCandles
+				}
+			});
+
+			const mainContainer = container.querySelector('#main-chart') as HTMLElement;
+			Object.defineProperty(mainContainer, 'clientWidth', { value: 800, configurable: true });
+			Object.defineProperty(mainContainer, 'clientHeight', { value: 600, configurable: true });
+			vi.spyOn(mainContainer, 'getBoundingClientRect').mockReturnValue({
+				left: 0,
+				top: 0,
+				right: 800,
+				bottom: 600,
+				width: 800,
+				height: 600,
+				x: 0,
+				y: 0,
+				toJSON: () => {}
+			});
+
+			const createdCharts = vi.mocked(createChart).mock.results.map((r) => r.value);
+			const mainChart = createdCharts[createdCharts.length - 1];
+			const candlestickSeries = mainChart.addSeries.mock.results[0].value;
+			const priceScale = candlestickSeries.priceScale();
+			vi.mocked(priceScale.setVisibleRange).mockClear();
+
+			// Coordinate x = 400 is well within chart canvas (x < 750)
+			const wheelEvent = new WheelEvent('wheel', {
+				clientX: 400,
+				clientY: 300,
+				deltaY: 100,
+				bubbles: true,
+				cancelable: true
+			});
+
+			const preventDefaultSpy = vi.spyOn(wheelEvent, 'preventDefault');
+			const stopPropagationSpy = vi.spyOn(wheelEvent, 'stopPropagation');
+
+			mainContainer.dispatchEvent(wheelEvent);
+			await tick();
+
+			expect(preventDefaultSpy).not.toHaveBeenCalled();
+			expect(stopPropagationSpy).not.toHaveBeenCalled();
+			expect(priceScale.setVisibleRange).not.toHaveBeenCalled();
 		});
 	});
 });

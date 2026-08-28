@@ -110,10 +110,12 @@ describe('AppSidebar Watchlist UI', () => {
 		const aaplTicker = screen.getByText('AAPL');
 		expect(aaplTicker).toBeInTheDocument();
 		expect(aaplTicker).toHaveClass('text-[10px]');
+		expect(aaplTicker).not.toHaveClass('truncate');
 
 		const msftTicker = screen.getByText('MSFT');
 		expect(msftTicker).toBeInTheDocument();
 		expect(msftTicker).toHaveClass('text-[10px]');
+		expect(msftTicker).not.toHaveClass('truncate');
 
 		expect(screen.queryByText('Apple Inc.')).not.toBeInTheDocument();
 		expect(screen.queryByText('Microsoft Corporation')).not.toBeInTheDocument();
