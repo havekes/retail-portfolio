@@ -3,6 +3,12 @@ import { jwtVerify } from 'jose';
 import { JWT_SECRET } from '$env/static/private';
 import { deleteAuthCookie } from '$lib/server/auth-cookie';
 
+// Token verification uses the shared HS256 secret (JWT_SECRET). In a
+// single-deployment architecture this is acceptable — the frontend server
+// and backend run on the same infrastructure. If the architecture moves to
+// separate deployments, migrate to RS256 (public key only) or a backend
+// introspection endpoint. See ARCH-T09 for context.
+// TODO: ARCH-T09
 export const handle: Handle = async ({ event, resolve }) => {
 	event.locals.user = null;
 
@@ -12,13 +18,15 @@ export const handle: Handle = async ({ event, resolve }) => {
 		try {
 			const secret = new TextEncoder().encode(JWT_SECRET);
 			const { payload } = await jwtVerify(token, secret, { algorithms: ['HS256'] });
-			if (payload.exp && payload.exp > Date.now() / 1000) {
+			// Reject non-access tokens (e.g. mfa_pending) — mirrors backend's
+			// get_current_user_from_token scope check.
+			if (payload.scope !== 'access') {
+				deleteAuthCookie(event.cookies);
+			} else {
 				event.locals.user = {
 					id: payload.user_id as string,
 					email: payload.sub as string
 				};
-			} else {
-				deleteAuthCookie(event.cookies);
 			}
 		} catch {
 			deleteAuthCookie(event.cookies);
