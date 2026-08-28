@@ -25,7 +25,7 @@
 {#if collapsible === "none"}
 	<div
 		class={cn(
-			"bg-sidebar text-sidebar-foreground flex h-full w-(--sidebar-width) flex-col",
+			"bg-sidebar text-sidebar-foreground flex h-full w-64 flex-col",
 			className
 		)}
 		bind:this={ref}
@@ -44,7 +44,7 @@
 			data-slot="sidebar"
 			data-mobile="true"
 			class={cn(
-				"bg-sidebar text-sidebar-foreground w-(--sidebar-width) p-0 [&>button]:hidden",
+				"bg-sidebar text-sidebar-foreground w-72 p-0 [&>button]:hidden",
 				className
 			)}
 			style="--sidebar-width: {SIDEBAR_WIDTH_MOBILE};"
@@ -73,25 +73,25 @@
 		<div
 			data-slot="sidebar-gap"
 			class={cn(
-				"transition-[width] duration-200 ease-linear relative w-(--sidebar-width) bg-transparent",
+				"transition-[width] duration-200 ease-linear relative w-64 bg-transparent",
 				"group-data-[collapsible=offcanvas]:w-0",
 				"group-data-[side=right]:rotate-180",
 				variant === "floating" || variant === "inset"
-					? "group-data-[collapsible=icon]:w-[calc(var(--sidebar-width-icon)+(--spacing(4)))]"
-					: "group-data-[collapsible=icon]:w-(--sidebar-width-icon)"
+					? "group-data-[collapsible=icon]:w-[calc(3rem+1rem)]"
+					: "group-data-[collapsible=icon]:w-12"
 			)}
 		></div>
 		<div
 			data-slot="sidebar-container"
 			class={cn(
-				"fixed inset-y-0 z-10 hidden h-svh w-(--sidebar-width) transition-[left,right,width] duration-200 ease-linear md:flex",
+				"fixed inset-y-0 z-10 hidden h-svh w-64 transition-[left,right,width] duration-200 ease-linear md:flex",
 				side === "left"
-					? "start-0 group-data-[collapsible=offcanvas]:start-[calc(var(--sidebar-width)*-1)]"
-					: "end-0 group-data-[collapsible=offcanvas]:end-[calc(var(--sidebar-width)*-1)]",
+					? "start-0 group-data-[collapsible=offcanvas]:-start-64"
+					: "end-0 group-data-[collapsible=offcanvas]:-end-64",
 				// Adjust the padding for floating and inset variants.
 				variant === "floating" || variant === "inset"
-					? "p-2 group-data-[collapsible=icon]:w-[calc(var(--sidebar-width-icon)+(--spacing(4))+2px)]"
-					: "group-data-[collapsible=icon]:w-(--sidebar-width-icon) group-data-[side=left]:border-e group-data-[side=right]:border-s",
+					? "p-2 group-data-[collapsible=icon]:w-[calc(3rem+1rem+2px)]"
+					: "group-data-[collapsible=icon]:w-12 group-data-[side=left]:border-e group-data-[side=right]:border-s",
 				className
 			)}
 			{...restProps}

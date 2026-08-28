@@ -31,7 +31,7 @@
 						</Sidebar.MenuButton>
 					{/snippet}
 				</DropdownMenu.Trigger>
-				<DropdownMenu.Content side="top" class="w-(--bits-dropdown-menu-anchor-width)">
+				<DropdownMenu.Content side="top" class="w-[var(--bits-dropdown-menu-anchor-width)]">
 					<DropdownMenu.Item onSelect={() => goto(resolve('/brokers'))}>
 						Connected brokers
 					</DropdownMenu.Item>
