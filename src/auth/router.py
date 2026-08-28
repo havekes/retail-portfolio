@@ -62,6 +62,9 @@ async def auth_signup(
     try:
         return await user_service.signup(signup_data.email, signup_data.password)
     except AuthUserAlreadyExistsError as e:
+        # Deliberate: 409 informs the user their email is already registered.
+        # Unlike resend-verification (silent-success for privacy), signup must
+        # explain why the action failed so the user can proceed to login.
         raise HTTPException(409, "User with email already exists") from e
     except EmailSendError as e:
         raise HTTPException(

@@ -1,9 +1,11 @@
+import contextlib
 from collections.abc import AsyncGenerator
 from datetime import UTC, datetime, timedelta
 from typing import Annotated
 from uuid import UUID
 
 import jwt
+from argon2 import PasswordHasher
 from fastapi import Depends, HTTPException, Request
 from fastapi.security import OAuth2PasswordBearer
 from pydantic import BaseModel, ValidationError
@@ -33,6 +35,8 @@ from src.config.settings import settings
 
 _ALGORITHM = "HS256"
 _ACCESS_TOKEN_EXPIRE_MINUTES = 24 * 60
+_dummy_hasher = PasswordHasher()
+_DUMMY_PASSWORD_HASH = _dummy_hasher.hash("dummy-password-for-timing")
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token", auto_error=False)
 
 
@@ -148,6 +152,9 @@ class UserApi:
         user = await self._user_repository.get_by_email(email)
 
         if not user:
+            # Perform dummy verify to equalize timing with the known-user path
+            with contextlib.suppress(Exception):
+                _dummy_hasher.verify(_DUMMY_PASSWORD_HASH, plain_text_password)
             raise AuthInvalidCredentialsError
 
         result = user.verify_password(plain_text_password)
@@ -156,6 +163,8 @@ class UserApi:
             raise AuthInvalidCredentialsError
 
         if not user.is_verified:
+            # Deliberate: 403 tells the user to check their inbox for verification.
+            # Folding this into generic 401 would leave users unable to self-recover.
             raise AuthUserUnverifiedError
 
         if self._totp_repository:
