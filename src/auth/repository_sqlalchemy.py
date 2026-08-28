@@ -77,6 +77,15 @@ class SqlAlchemyUserRepository(UserRepository):
         await self._session.commit()
 
     @override
+    async def update_last_login(self, user_id: UserId) -> None:
+        await self._session.execute(
+            update(UserModel)
+            .where(UserModel.id == user_id)
+            .values(last_login_at=datetime.now(UTC))
+        )
+        await self._session.commit()
+
+    @override
     async def get_preferences(self, user_id: UserId) -> dict | None:
         result = await self._session.execute(
             select(UserModel.preferences).where(UserModel.id == user_id)

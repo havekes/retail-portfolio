@@ -30,6 +30,10 @@ class UserRepository(ABC):
         pass
 
     @abstractmethod
+    async def update_last_login(self, user_id: UserId) -> None:
+        pass
+
+    @abstractmethod
     async def get_preferences(self, user_id: UserId) -> dict | None:
         pass
 
