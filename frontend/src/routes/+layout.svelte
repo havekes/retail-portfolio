@@ -9,6 +9,7 @@
 	import { setContext, untrack } from 'svelte';
 	import GlobalSearch from '$lib/components/global-search.svelte';
 	import { userPreferencesService } from '$lib/api/userPreferencesService.js';
+	import { Toaster } from '$lib/components/ui/toast/index.js';
 
 	let { children, data } = $props();
 
@@ -66,3 +67,4 @@
 {/if}
 
 <GlobalSearch bind:open={globalSearchOpen} />
+<Toaster />
