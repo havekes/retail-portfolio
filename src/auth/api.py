@@ -2,7 +2,7 @@ import contextlib
 from collections.abc import AsyncGenerator
 from datetime import UTC, datetime, timedelta
 from typing import Annotated
-from uuid import UUID
+from uuid import UUID, uuid4
 
 import jwt
 from argon2 import PasswordHasher
@@ -32,6 +32,8 @@ from src.auth.repository_sqlalchemy import (
 from src.auth.schema import LoginChallengeResponse, UserSchema
 from src.auth.service import EmailVerificationService
 from src.config.settings import settings
+from src.core.redis import RedisManager
+from src.core.redis import redis_manager as default_redis_manager
 
 _ALGORITHM = "HS256"
 _ACCESS_TOKEN_EXPIRE_MINUTES = 24 * 60
@@ -44,16 +46,21 @@ class UserApi:
     _user_repository: UserRepository
     _email_verification_service: EmailVerificationService
     _totp_repository: TotpRepository | None
+    _redis_manager: RedisManager
 
     def __init__(
         self,
         user_repository: UserRepository,
         email_verification_service: EmailVerificationService,
         totp_repository: TotpRepository | None = None,
+        redis_manager: RedisManager | None = None,
     ):
         self._user_repository = user_repository
         self._email_verification_service = email_verification_service
         self._totp_repository = totp_repository
+        self._redis_manager = (
+            redis_manager if redis_manager is not None else default_redis_manager
+        )
 
     async def get_current_user_from_token(self, token: str) -> User:
         """Retrieve the current user from the provided JWT token."""
@@ -64,6 +71,11 @@ class UserApi:
 
         if token_data.scope != "access":
             raise HTTPException(401, "Token invalid")
+
+        if token_data.jti:
+            async with self._redis_manager.client() as redis:
+                if await redis.get(f"token:deny:{token_data.jti}"):
+                    raise HTTPException(401, "Token revoked")
 
         user = await self._user_repository.get_by_email(token_data.sub)
 
@@ -89,6 +101,7 @@ class UserApi:
                 ).timestamp()
             ),
             scope="access",
+            jti=str(uuid4()),
         )
 
         return jwt.encode(
@@ -208,6 +221,26 @@ class UserApi:
     async def patch_preferences(self, user_id: UserId, preferences: dict) -> dict:
         """Partially update and retrieve the user's stored preferences."""
         return await self._user_repository.patch_preferences(user_id, preferences)
+
+    async def revoke_token(self, token: str) -> None:
+        """Revoke a JWT token by adding its jti to the Redis denylist."""
+        try:
+            token_data = self._decode_token(token)
+        except HTTPException:
+            return
+
+        if not token_data.jti:
+            return
+
+        now = int(datetime.now(UTC).timestamp())
+        remaining_ttl = token_data.exp - now
+        if remaining_ttl > 0:
+            async with self._redis_manager.client() as redis:
+                await redis.setex(f"token:deny:{token_data.jti}", remaining_ttl, "1")
+
+    async def update_last_login(self, user_id: UserId) -> None:
+        """Update the user's last login timestamp."""
+        await self._user_repository.update_last_login(user_id)
 
     def _decode_token(self, token: str) -> AccessTokenData:
         """Decode and validate a JWT token."""

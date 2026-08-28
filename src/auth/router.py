@@ -9,7 +9,7 @@ from itsdangerous import URLSafeTimedSerializer
 from pydantic import BaseModel
 from svcs.fastapi import DepContainer
 
-from src.auth.api import UserApi, current_user
+from src.auth.api import UserApi, current_user, oauth2_scheme
 from src.auth.api_types import (
     AuthResponse,
     LoginRequest,
@@ -22,6 +22,7 @@ from src.auth.exception import (
     AuthUserAlreadyExistsError,
     AuthUserUnverifiedError,
 )
+from src.auth.repository import UserRepository
 from src.auth.schema import (
     LoginChallengeResponse,
     LoginVerifyRequest,
@@ -83,13 +84,22 @@ async def auth_login(
     services: DepContainer,
 ) -> AuthResponse | LoginChallengeResponse:
     user_service = await services.aget(UserApi)
+    user_repo = await services.aget(UserRepository)
     try:
         auth_data = await user_service.login(login_data.email, login_data.password)
     except AuthInvalidCredentialsError as e:
-        logger.warning("Login failed for %s: Invalid credentials", login_data.email)
+        logger.warning(
+            "Login failed for %s: Invalid credentials",
+            login_data.email,
+            extra={"event": "auth.login_failure", "email": login_data.email},
+        )
         raise HTTPException(401, "Invalid credentials") from e
     except AuthUserUnverifiedError as e:
-        logger.warning("Login failed for %s: Email not verified", login_data.email)
+        logger.warning(
+            "Login failed for %s: Email not verified",
+            login_data.email,
+            extra={"event": "auth.login_failure", "email": login_data.email},
+        )
         raise HTTPException(403, "Email not verified") from e
     else:
         if isinstance(auth_data, LoginChallengeResponse):
@@ -101,6 +111,11 @@ async def auth_login(
             secure=settings.environment == "prod",
             samesite="lax",
             max_age=60 * 60 * 24 * 7,  # 7 days
+        )
+        await user_repo.update_last_login(auth_data.user.id)
+        logger.info(
+            "auth.login_success",
+            extra={"user_id": str(auth_data.user.id)},
         )
         return auth_data
 
@@ -114,6 +129,7 @@ async def auth_2fa_login_verify(
     services: DepContainer,
 ) -> AuthResponse:
     user_service = await services.aget(UserApi)
+    user_repo = await services.aget(UserRepository)
     totp_service = await services.aget(TotpService)
 
     token_data = user_service.verify_mfa_token(verify_data.mfa_token)
@@ -139,6 +155,11 @@ async def auth_2fa_login_verify(
         samesite="lax",
         max_age=60 * 60 * 24 * 7,  # 7 days
     )
+    await user_repo.update_last_login(user.id)
+    logger.info(
+        "auth.2fa_verify_success",
+        extra={"user_id": str(user.id)},
+    )
     return AuthResponse(
         access_token=access_token,
         user=User(id=user.id, email=user.email),
@@ -148,7 +169,18 @@ async def auth_2fa_login_verify(
 @auth_router.post("/logout")
 async def auth_logout(
     response: Response,
+    services: DepContainer,
+    token: str | None = Cookie(default=None, alias="auth_token"),
+    token_from_header: Annotated[str | None, Depends(oauth2_scheme)] = None,
 ) -> MessageResponse:
+    effective_token = token or token_from_header
+    if effective_token:
+        user_service = await services.aget(UserApi)
+        try:
+            await user_service.revoke_token(effective_token)
+        except Exception:
+            logger.warning("Failed to revoke token on logout", exc_info=True)
+
     response.delete_cookie(
         key="auth_token",
         httponly=settings.environment == "prod",
@@ -232,7 +264,12 @@ async def auth_totp_activate(
     services: DepContainer,
 ) -> TotpActivateResponse:
     totp_service = await services.aget(TotpService)
-    return await totp_service.activate_totp(user.id, request.code)
+    result = await totp_service.activate_totp(user.id, request.code)
+    logger.info(
+        "auth.totp_enabled",
+        extra={"user_id": str(user.id)},
+    )
+    return result
 
 
 @auth_router.post("/2fa/totp/disable")
@@ -244,6 +281,10 @@ async def auth_totp_disable(
     totp_service = await services.aget(TotpService)
     await totp_service.disable_totp(
         user.id, code=request.code, password=request.password
+    )
+    logger.info(
+        "auth.totp_disabled",
+        extra={"user_id": str(user.id)},
     )
     return MessageResponse(
         message="TOTP two-factor authentication disabled successfully"
@@ -275,7 +316,12 @@ async def auth_passkey_register_verify(
     services: DepContainer,
 ) -> PasskeyResponse:
     passkey_service = await services.aget(PasskeyService)
-    return await passkey_service.verify_registration(user.id, request)
+    result = await passkey_service.verify_registration(user.id, request)
+    logger.info(
+        "auth.passkey_registered",
+        extra={"user_id": str(user.id), "passkey_id": str(result.id)},
+    )
+    return result
 
 
 @auth_router.get("/passkeys")
@@ -295,6 +341,10 @@ async def auth_passkeys_delete(
 ) -> MessageResponse:
     passkey_service = await services.aget(PasskeyService)
     await passkey_service.delete_passkey(passkey_id, user.id)
+    logger.info(
+        "auth.passkey_deleted",
+        extra={"user_id": str(user.id), "passkey_id": str(passkey_id)},
+    )
     return MessageResponse(message="Passkey deleted successfully")
 
 
@@ -331,6 +381,7 @@ async def auth_passkey_authenticate_verify(
     services: DepContainer,
 ) -> AuthResponse:
     user_service = await services.aget(UserApi)
+    user_repo = await services.aget(UserRepository)
     passkey_service = await services.aget(PasskeyService)
 
     user, _passkey = await passkey_service.verify_authentication(verify_data.credential)
@@ -343,6 +394,11 @@ async def auth_passkey_authenticate_verify(
         secure=settings.environment == "prod",
         samesite="lax",
         max_age=60 * 60 * 24 * 7,  # 7 days
+    )
+    await user_repo.update_last_login(user.id)
+    logger.info(
+        "auth.passkey_login_success",
+        extra={"user_id": str(user.id)},
     )
     return AuthResponse(
         access_token=access_token,

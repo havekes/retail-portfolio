@@ -1,6 +1,7 @@
 """Tests for UserApi facade methods."""
 
-from datetime import UTC, datetime
+import contextlib
+from datetime import UTC, datetime, timedelta
 from unittest.mock import AsyncMock
 from uuid import uuid4
 
@@ -14,12 +15,17 @@ from src.auth.exception import AuthInvalidCredentialsError
 from src.auth.repository import TotpRepository, UserRepository
 from src.auth.schema import LoginChallengeResponse, TotpSchema, UserSchema
 from src.auth.service import EmailVerificationService
+from src.core.redis import RedisManager
 
 
 class MockUserRepository(UserRepository):
     """Minimal in-memory UserRepository for UserApi facade tests."""
 
-    def __init__(self, users: dict[UserId, UserSchema] | None = None, prefs: dict[UserId, dict] | None = None) -> None:
+    def __init__(
+        self,
+        users: dict[UserId, UserSchema] | None = None,
+        prefs: dict[UserId, dict] | None = None,
+    ) -> None:
         self._users = users or {}
         self._prefs = prefs or {}
 
@@ -33,6 +39,11 @@ class MockUserRepository(UserRepository):
         raise NotImplementedError
 
     async def mark_as_verified(self, user_id: UserId) -> None: ...
+
+    async def update_last_login(self, user_id: UserId) -> None:
+        user = self._users.get(user_id)
+        if user:
+            user.last_login_at = datetime.now(UTC)
 
     async def get_preferences(self, user_id: UserId) -> dict | None:
         return self._prefs.get(user_id)
@@ -96,7 +107,11 @@ class TestPreferences:
     async def test_save_then_get_preferences_roundtrip(self):
         """Save preferences then retrieve — round-trip through the facade."""
         user_id = uuid4()
-        payload = {"timeframe": "1d", "chart_style": "candlestick", "indicators": {"rsi": {"enabled": True}}}
+        payload = {
+            "timeframe": "1d",
+            "chart_style": "candlestick",
+            "indicators": {"rsi": {"enabled": True}},
+        }
         user_repo = MockUserRepository()
         api = UserApi(
             user_repository=user_repo,
@@ -118,7 +133,11 @@ class TestPreferences:
         )
         patch = {"sidebar_open": False, "timeframe": "4h"}
         res = await api.patch_preferences(user_id, patch)
-        assert res == {"timeframe": "4h", "chart_style": "candlestick", "sidebar_open": False}
+        assert res == {
+            "timeframe": "4h",
+            "chart_style": "candlestick",
+            "sidebar_open": False,
+        }
         assert await api.get_preferences(user_id) == res
 
 
@@ -202,6 +221,7 @@ class TestLogin2faChallenge:
         """login returns LoginChallengeResponse when TOTP is verified for the user."""
         user_id = uuid4()
         from argon2 import PasswordHasher
+
         hasher = PasswordHasher()
         user = UserSchema(
             id=user_id,
@@ -237,6 +257,7 @@ class TestLogin2faChallenge:
         """login returns standard AuthResponse when TOTP is not configured/verified."""
         user_id = uuid4()
         from argon2 import PasswordHasher
+
         hasher = PasswordHasher()
         user = UserSchema(
             id=user_id,
@@ -325,3 +346,109 @@ class TestLoginEnumeration:
         with pytest.raises(AuthInvalidCredentialsError):
             await api.login("known_user@example.com", "wrong_password")
 
+
+class FakeRedisClient:
+    def __init__(self, storage: dict[str, str]):
+        self.storage = storage
+
+    async def get(self, key: str) -> str | None:
+        return self.storage.get(key)
+
+    async def setex(self, key: str, time: int, value: str) -> None:  # noqa: ARG002
+        self.storage[key] = value
+
+
+class FakeRedisManager(RedisManager):
+    def __init__(self, storage: dict[str, str] | None = None):
+        self.storage = storage if storage is not None else {}
+
+    @contextlib.asynccontextmanager
+    async def client(self):
+        yield FakeRedisClient(self.storage)
+
+
+class TestTokenRevocation:
+    @pytest.mark.asyncio
+    async def test_revoked_token_rejected(self):
+        """get_current_user_from_token raises 401 'Token revoked' when jti is denylisted."""
+        user_id = uuid4()
+        user = UserSchema(
+            id=user_id,
+            email="revoked@example.com",
+            password="hashed_password",  # noqa: S106
+            is_verified=True,
+            created_at=datetime.now(UTC),
+        )
+        user_repo = MockUserRepository({user_id: user})
+        user_repo.get_by_email = AsyncMock(return_value=user)  # type: ignore[method-assign]
+        fake_redis = FakeRedisManager()
+
+        api = UserApi(
+            user_repository=user_repo,
+            email_verification_service=AsyncMock(spec=EmailVerificationService),
+            redis_manager=fake_redis,
+        )
+
+        token = api.create_access_token("revoked@example.com", user_id)
+
+        # Before revocation: valid token resolves to user
+        resolved_user = await api.get_current_user_from_token(token)
+        assert resolved_user.id == user_id
+
+        # Revoke the token
+        await api.revoke_token(token)
+
+        # After revocation: raises 401 Token revoked
+        with pytest.raises(HTTPException) as exc_info:
+            await api.get_current_user_from_token(token)
+        assert exc_info.value.status_code == 401
+        assert exc_info.value.detail == "Token revoked"
+
+    @pytest.mark.asyncio
+    async def test_revoke_invalid_token_silently_ignored(self):
+        """revoke_token gracefully ignores invalid/malformed tokens."""
+        fake_redis = FakeRedisManager()
+        api = UserApi(
+            user_repository=MockUserRepository(),
+            email_verification_service=AsyncMock(spec=EmailVerificationService),
+            redis_manager=fake_redis,
+        )
+        await api.revoke_token("not-a-valid-token")
+        assert len(fake_redis.storage) == 0
+
+    @pytest.mark.asyncio
+    async def test_revoke_expired_token_silently_ignored(self):
+        """revoke_token gracefully ignores already expired tokens."""
+        user_id = uuid4()
+        fake_redis = FakeRedisManager()
+        api = UserApi(
+            user_repository=MockUserRepository(),
+            email_verification_service=AsyncMock(spec=EmailVerificationService),
+            redis_manager=fake_redis,
+        )
+        expired_token = api.create_access_token(
+            "test@example.com", user_id, expires_delta=timedelta(seconds=-10)
+        )
+        await api.revoke_token(expired_token)
+        assert len(fake_redis.storage) == 0
+
+
+class TestUpdateLastLogin:
+    @pytest.mark.asyncio
+    async def test_update_last_login_delegates_to_repo(self):
+        user_id = uuid4()
+        user = UserSchema(
+            id=user_id,
+            email="login_user@example.com",
+            password="hashed_password",  # noqa: S106
+            is_verified=True,
+            created_at=datetime.now(UTC),
+        )
+        user_repo = MockUserRepository({user_id: user})
+        api = UserApi(
+            user_repository=user_repo,
+            email_verification_service=AsyncMock(spec=EmailVerificationService),
+        )
+        assert user.last_login_at is None
+        await api.update_last_login(user_id)
+        assert user.last_login_at is not None

@@ -51,6 +51,7 @@ def mock_redis_storage(monkeypatch):
 
     monkeypatch.setattr("src.core.redis.redis_manager.client", _mock_client)
     monkeypatch.setattr("src.auth.service.default_redis_manager.client", _mock_client)
+    monkeypatch.setattr("src.auth.api.default_redis_manager.client", _mock_client)
     return storage
 
 
@@ -1198,3 +1199,238 @@ async def test_passkey_endpoints_require_auth(client):
     assert (
         await client.patch(f"/api/v1/auth/passkeys/{uuid.uuid4()}")
     ).status_code == 401
+
+
+@pytest.mark.anyio
+async def test_logout_revokes_token(client, test_user, mock_redis_storage):
+    """Test POST /api/v1/auth/logout adds token jti to Redis denylist and subsequent requests return 401."""
+    login_resp = await client.post(
+        "/api/v1/auth/login",
+        json={"email": test_user.email, "password": "testpass"},
+    )
+    assert login_resp.status_code == 200
+    token = login_resp.json()["access_token"]
+
+    # Verify protected endpoint works with this token
+    headers = {"Authorization": f"Bearer {token}"}
+    status_resp = await client.get("/api/v1/auth/2fa/status", headers=headers)
+    assert status_resp.status_code == 200
+
+    # Logout
+    logout_resp = await client.post(
+        "/api/v1/auth/logout",
+        headers=headers,
+        cookies={"auth_token": token},
+    )
+    assert logout_resp.status_code == 200
+    assert logout_resp.json()["message"] == "Logged out successfully"
+
+    # Verify denylist key in Redis storage
+    assert any(k.startswith("token:deny:") for k in mock_redis_storage.data)
+
+    # Re-attempt protected endpoint with the revoked token
+    denied_resp = await client.get("/api/v1/auth/2fa/status", headers=headers)
+    assert denied_resp.status_code == 401
+    assert denied_resp.json()["detail"] == "Token revoked"
+
+
+@pytest.mark.anyio
+async def test_last_login_at_updated_on_login(client, test_user, db_session):
+    """Test last_login_at is set in database upon successful password login."""
+    from src.auth.repository_sqlalchemy import SqlAlchemyUserRepository
+
+    user_repo = SqlAlchemyUserRepository(db_session)
+    before_user = await user_repo.get_by_id(test_user.id)
+    assert before_user is not None
+    assert before_user.last_login_at is None
+
+    resp = await client.post(
+        "/api/v1/auth/login",
+        json={"email": test_user.email, "password": "testpass"},
+    )
+    assert resp.status_code == 200
+
+    after_user = await user_repo.get_by_id(test_user.id)
+    assert after_user is not None
+    assert after_user.last_login_at is not None
+
+
+@pytest.mark.anyio
+async def test_last_login_at_updated_on_2fa_verify(
+    client, auth_client, test_user, db_session
+):
+    """Test last_login_at is set in database upon successful 2FA login verification."""
+    import pyotp
+    from sqlalchemy import update
+    from src.auth.model import UserModel
+    from src.auth.repository_sqlalchemy import SqlAlchemyUserRepository
+
+    # Setup TOTP
+    setup_resp = await auth_client.post("/api/v1/auth/2fa/totp/setup")
+    secret = setup_resp.json()["secret"]
+    totp = pyotp.TOTP(secret)
+    await auth_client.post("/api/v1/auth/2fa/totp/activate", json={"code": totp.now()})
+
+    user_repo = SqlAlchemyUserRepository(db_session)
+    # Reset last_login_at
+    await db_session.execute(
+        update(UserModel).where(UserModel.id == test_user.id).values(last_login_at=None)
+    )
+    await db_session.commit()
+
+    # Login with 2FA
+    login_resp = await client.post(
+        "/api/v1/auth/login",
+        json={"email": test_user.email, "password": "testpass"},
+    )
+    mfa_token = login_resp.json()["mfa_token"]
+
+    verify_resp = await client.post(
+        "/api/v1/auth/2fa/login-verify",
+        json={"mfa_token": mfa_token, "code": totp.now()},
+    )
+    assert verify_resp.status_code == 200
+
+    user = await user_repo.get_by_id(test_user.id)
+    assert user is not None
+    assert user.last_login_at is not None
+
+
+@pytest.mark.anyio
+async def test_last_login_at_updated_on_passkey_verify(
+    client, test_user, auth_client, db_session
+):
+    """Test last_login_at is set in database upon successful passkey authentication."""
+    from sqlalchemy import update
+    from src.auth.model import UserModel
+    from src.auth.repository_sqlalchemy import SqlAlchemyUserRepository
+
+    raw_cred_bytes = b"passkey_last_login_cred"
+    raw_cred_b64 = bytes_to_base64url(raw_cred_bytes)
+
+    # Register passkey
+    await auth_client.post("/api/v1/auth/passkey/register/options")
+    fake_reg = MagicMock(spec=VerifiedRegistration)
+    fake_reg.credential_id = raw_cred_bytes
+    fake_reg.credential_public_key = b"passkey_last_login_pubkey"
+    fake_reg.sign_count = 0
+
+    with patch(
+        "src.auth.service.webauthn.verify_registration_response",
+        return_value=fake_reg,
+    ):
+        await auth_client.post(
+            "/api/v1/auth/passkey/register/verify",
+            json={
+                "credential": {
+                    "id": raw_cred_b64,
+                    "rawId": raw_cred_b64,
+                    "response": {},
+                },
+                "name": "LastLogin Passkey",
+            },
+        )
+
+    # Clear last_login_at
+    await db_session.execute(
+        update(UserModel).where(UserModel.id == test_user.id).values(last_login_at=None)
+    )
+    await db_session.commit()
+
+    opts_resp = await client.post("/api/v1/auth/passkey/authenticate/options")
+    challenge_b64 = opts_resp.json()["challenge"]
+
+    client_data_json = f'{{"type": "webauthn.get", "challenge": "{challenge_b64}", "origin": "{settings.webauthn_origin}"}}'
+    client_data_b64 = bytes_to_base64url(client_data_json.encode())
+    auth_data_b64 = bytes_to_base64url(b"auth_data")
+    signature_b64 = bytes_to_base64url(b"sig")
+
+    fake_auth = MagicMock(spec=VerifiedAuthentication)
+    fake_auth.new_sign_count = 1
+
+    with patch(
+        "src.auth.service.webauthn.verify_authentication_response",
+        return_value=fake_auth,
+    ):
+        verify_resp = await client.post(
+            "/api/v1/auth/passkey/authenticate/verify",
+            json={
+                "credential": {
+                    "id": raw_cred_b64,
+                    "rawId": raw_cred_b64,
+                    "response": {
+                        "clientDataJSON": client_data_b64,
+                        "authenticatorData": auth_data_b64,
+                        "signature": signature_b64,
+                    },
+                    "type": "public-key",
+                },
+            },
+        )
+        assert verify_resp.status_code == 200
+
+    user_repo = SqlAlchemyUserRepository(db_session)
+    user = await user_repo.get_by_id(test_user.id)
+    assert user is not None
+    assert user.last_login_at is not None
+
+
+@pytest.mark.anyio
+async def test_auth_audit_logging(client, auth_client, test_user, caplog):
+    """Test security events are logged with user_id and proper event names."""
+    import pyotp
+
+    caplog.set_level(logging.INFO, logger="src.auth.router")
+
+    # 1. Login success
+    await client.post(
+        "/api/v1/auth/login",
+        json={"email": test_user.email, "password": "testpass"},
+    )
+    assert "auth.login_success" in caplog.text
+
+    # 2. TOTP activate & disable
+    setup_resp = await auth_client.post("/api/v1/auth/2fa/totp/setup")
+    secret = setup_resp.json()["secret"]
+    totp = pyotp.TOTP(secret)
+    await auth_client.post(
+        "/api/v1/auth/2fa/totp/activate",
+        json={"code": totp.now()},
+    )
+    assert "auth.totp_enabled" in caplog.text
+
+    await auth_client.post(
+        "/api/v1/auth/2fa/totp/disable",
+        json={"code": totp.now()},
+    )
+    assert "auth.totp_disabled" in caplog.text
+
+    # 3. Passkey register and delete
+    raw_cred_bytes = b"audit_passkey_cred"
+    raw_cred_b64 = bytes_to_base64url(raw_cred_bytes)
+    await auth_client.post("/api/v1/auth/passkey/register/options")
+    fake_reg = MagicMock(spec=VerifiedRegistration)
+    fake_reg.credential_id = raw_cred_bytes
+    fake_reg.credential_public_key = b"pubkey"
+    fake_reg.sign_count = 0
+
+    with patch(
+        "src.auth.service.webauthn.verify_registration_response",
+        return_value=fake_reg,
+    ):
+        reg_resp = await auth_client.post(
+            "/api/v1/auth/passkey/register/verify",
+            json={
+                "credential": {
+                    "id": raw_cred_b64,
+                    "rawId": raw_cred_b64,
+                    "response": {},
+                },
+                "name": "Audit Key",
+            },
+        )
+    assert "auth.passkey_registered" in caplog.text
+    passkey_id = reg_resp.json()["id"]
+
+    await auth_client.delete(f"/api/v1/auth/passkeys/{passkey_id}")
+    assert "auth.passkey_deleted" in caplog.text

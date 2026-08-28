@@ -484,7 +484,9 @@ async def test_recovery_code_repository_active_and_mark_as_used(
     user_repo = SqlAlchemyUserRepository(db_session)
     recovery_repo = SqlAlchemyRecoveryCodeRepository(db_session)
 
-    user = await user_repo.create_user("recovery_active_test@example.com", "password123")
+    user = await user_repo.create_user(
+        "recovery_active_test@example.com", "password123"
+    )
 
     fake_hashes = ["hash_1", "hash_2", "hash_3"]
     created = await recovery_repo.create_recovery_codes(user.id, fake_hashes)
@@ -511,6 +513,25 @@ async def test_recovery_code_repository_active_and_mark_as_used(
     used_code = next(c for c in all_codes if c.id == code_to_use.id)
     assert used_code.is_used is True
     assert used_code.used_at is not None
+
+
+@pytest.mark.anyio
+async def test_user_repository_update_last_login(db_session: AsyncSession):
+    """Test update_last_login sets last_login_at timestamp on UserModel."""
+    user_repo = SqlAlchemyUserRepository(db_session)
+    user = await user_repo.create_user(
+        "last_login_repo_test@example.com", "password123"
+    )
+
+    initial = await user_repo.get_by_id(user.id)
+    assert initial is not None
+    assert initial.last_login_at is None
+
+    await user_repo.update_last_login(user.id)
+
+    updated = await user_repo.get_by_id(user.id)
+    assert updated is not None
+    assert updated.last_login_at is not None
 
 
 @pytest.mark.anyio
@@ -615,7 +636,9 @@ async def test_passkey_cascade_on_user_delete(db_session: AsyncSession):
     user_repo = SqlAlchemyUserRepository(db_session)
     passkey_repo = SqlAlchemyPasskeyRepository(db_session)
 
-    user = await user_repo.create_user("passkey_cascade_test@example.com", "password123")
+    user = await user_repo.create_user(
+        "passkey_cascade_test@example.com", "password123"
+    )
     passkey = await passkey_repo.create_passkey(
         user.id,
         credential_id=b"cascade_cred_id",
@@ -631,6 +654,3 @@ async def test_passkey_cascade_on_user_delete(db_session: AsyncSession):
     await db_session.commit()
 
     assert await passkey_repo.get_by_id(passkey.id) is None
-
-
-

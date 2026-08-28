@@ -56,3 +56,4 @@ class AccessTokenData(BaseModel):
     user_id: str
     exp: int
     scope: str = "access"
+    jti: str = ""

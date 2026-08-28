@@ -66,6 +66,11 @@ class MockUserRepository(UserRepository):
     async def mark_as_verified(self, user_id: UserId) -> None:
         self.verified_users.add(user_id)
 
+    async def update_last_login(self, user_id: UserId) -> None:
+        user = next((u for u in self.users.values() if u.id == user_id), None)
+        if user:
+            user.last_login_at = datetime.now(UTC)
+
     async def get_preferences(self, user_id: UserId) -> dict | None:
         return self.preferences.get(user_id)
 
