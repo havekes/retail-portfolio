@@ -328,6 +328,9 @@ class MockRedis:
     async def get(self, key: str) -> str | None:
         return self.data.get(key)
 
+    async def getdel(self, key: str) -> str | None:
+        return self.data.pop(key, None)
+
     async def setex(self, key: str, time: int, value: str) -> None:  # noqa: ARG002
         self.data[key] = value
 
@@ -1076,6 +1079,87 @@ async def test_passkey_verify_authentication_success(
             )
             is None
         )
+
+
+@pytest.mark.asyncio
+async def test_passkey_authentication_replay_rejected(
+    passkey_service, mock_user_repo, mock_passkey_repo, mock_redis_manager
+):
+    user_id = uuid4()
+    email = "replay_user@example.com"
+    mock_user_repo.users[email] = UserSchema(
+        id=user_id,
+        email=email,
+        password="hashed_password",
+        is_active=True,
+        is_verified=True,
+        last_login_at=None,
+        created_at=datetime.now(UTC),
+    )
+    cred_id = b"replay_cred_bytes"
+    pub_key = b"replay_pubkey_bytes"
+    await mock_passkey_repo.create_passkey(
+        user_id,
+        credential_id=cred_id,
+        public_key=pub_key,
+        sign_count=1,
+    )
+
+    raw_cred_dict = {
+        "id": "base64_cred_id",
+        "rawId": "base64_cred_id",
+        "response": {
+            "clientDataJSON": "eyJjaGFsbGVuZ2UiOiAiY2hhbGxlbmdlIn0",
+            "authenticatorData": "auth_data",
+            "signature": "sig",
+        },
+        "type": "public-key",
+    }
+
+    mock_parsed_cred = MagicMock()
+    mock_parsed_cred.raw_id = cred_id
+    mock_parsed_cred.response.client_data_json = b"client_data_bytes"
+
+    mock_client_data = MagicMock()
+    mock_client_data.challenge = b"challenge_bytes"
+
+    challenge_b64 = "Y2hhbGxlbmdlX2J5dGVz"
+    await mock_redis_manager.redis.setex(
+        f"webauthn:challenge:auth:{challenge_b64}", 300, "1"
+    )
+
+    fake_verified_auth = MagicMock(spec=VerifiedAuthentication)
+    fake_verified_auth.new_sign_count = 2
+
+    with (
+        patch(
+            "src.auth.service.parse_authentication_credential_json",
+            return_value=mock_parsed_cred,
+        ),
+        patch(
+            "src.auth.service.parse_client_data_json",
+            return_value=mock_client_data,
+        ),
+        patch(
+            "src.auth.service.bytes_to_base64url",
+            return_value=challenge_b64,
+        ),
+        patch(
+            "src.auth.service.webauthn.verify_authentication_response",
+            return_value=fake_verified_auth,
+        ),
+    ):
+        # First verification succeeds and consumes challenge atomically
+        user, _verified_passkey = await passkey_service.verify_authentication(
+            raw_cred_dict
+        )
+        assert user.id == user_id
+
+        # Replay attempt fails with 400 challenge expired/not found
+        with pytest.raises(HTTPException) as exc:
+            await passkey_service.verify_authentication(raw_cred_dict)
+        assert exc.value.status_code == 400
+        assert "Authentication challenge expired or not found" in exc.value.detail
 
 
 @pytest.mark.asyncio

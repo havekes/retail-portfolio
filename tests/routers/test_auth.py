@@ -25,6 +25,9 @@ class RouterMockRedis:
     async def get(self, key: str) -> str | None:
         return self.data.get(key)
 
+    async def getdel(self, key: str) -> str | None:
+        return self.data.pop(key, None)
+
     async def setex(self, key: str, time: int, value: str) -> None:  # noqa: ARG002
         self.data[key] = value
 
@@ -961,6 +964,51 @@ async def test_passkey_register_verify_challenge_expired(auth_client):
 
 
 @pytest.mark.anyio
+async def test_passkey_register_replay_rejected(auth_client):
+    """Test POST /api/v1/auth/passkey/register/verify rejects replayed verification request."""
+    # 1. Get registration options (seeds challenge in Redis)
+    opts_resp = await auth_client.post("/api/v1/auth/passkey/register/options")
+    assert opts_resp.status_code == 200
+
+    fake_cred_bytes = b"my_fresh_passkey_cred_id"
+    fake_pub_key = b"my_fresh_public_key"
+
+    fake_verified = MagicMock(spec=VerifiedRegistration)
+    fake_verified.credential_id = fake_cred_bytes
+    fake_verified.credential_public_key = fake_pub_key
+    fake_verified.sign_count = 0
+
+    payload = {
+        "credential": {
+            "id": "cred_id_str",
+            "rawId": "raw_id_str",
+            "response": {"transports": ["internal"]},
+            "type": "public-key",
+        },
+        "name": "My Passkey",
+    }
+
+    with patch(
+        "src.auth.service.webauthn.verify_registration_response",
+        return_value=fake_verified,
+    ):
+        # First verify consumes the challenge and succeeds
+        resp1 = await auth_client.post(
+            "/api/v1/auth/passkey/register/verify",
+            json=payload,
+        )
+        assert resp1.status_code == 200
+
+        # Second verify with the same consumed challenge is rejected with 400
+        resp2 = await auth_client.post(
+            "/api/v1/auth/passkey/register/verify",
+            json=payload,
+        )
+        assert resp2.status_code == 400
+        assert "Registration challenge expired or not found" in resp2.json()["detail"]
+
+
+@pytest.mark.anyio
 async def test_passkey_list_empty_and_populated(auth_client, test_user):  # noqa: ARG001
     """Test GET /api/v1/auth/passkeys lists user's passkeys."""
     # Initially empty
@@ -1153,6 +1201,86 @@ async def test_passkey_authenticate_verify_success(
         assert "access_token" in result
         assert result["user"]["email"] == test_user.email
         assert "auth_token" in verify_resp.cookies
+
+
+@pytest.mark.anyio
+async def test_passkey_authenticate_replay_rejected(
+    client, test_user, auth_client, mock_redis_storage
+):
+    """Test POST /api/v1/auth/passkey/authenticate/verify rejects replayed authentication request."""
+    raw_cred_bytes = b"my_registered_passkey_cred_id_replay"
+    raw_cred_b64 = bytes_to_base64url(raw_cred_bytes)
+
+    # Register passkey
+    await auth_client.post("/api/v1/auth/passkey/register/options")
+    fake_reg = MagicMock(spec=VerifiedRegistration)
+    fake_reg.credential_id = raw_cred_bytes
+    fake_reg.credential_public_key = b"my_registered_public_key"
+    fake_reg.sign_count = 0
+
+    with patch(
+        "src.auth.service.webauthn.verify_registration_response",
+        return_value=fake_reg,
+    ):
+        await auth_client.post(
+            "/api/v1/auth/passkey/register/verify",
+            json={
+                "credential": {
+                    "id": raw_cred_b64,
+                    "rawId": raw_cred_b64,
+                    "response": {},
+                },
+                "name": "Auth Replay Key",
+            },
+        )
+
+    # Get authentication options
+    opts_resp = await client.post("/api/v1/auth/passkey/authenticate/options")
+    assert opts_resp.status_code == 200
+    challenge_b64 = opts_resp.json()["challenge"]
+
+    # Construct mock assertion
+    client_data_json = f'{{"type": "webauthn.get", "challenge": "{challenge_b64}", "origin": "{settings.webauthn_origin}"}}'
+    client_data_b64 = bytes_to_base64url(client_data_json.encode())
+    auth_data_b64 = bytes_to_base64url(b"auth_data")
+    signature_b64 = bytes_to_base64url(b"sig")
+
+    fake_auth = MagicMock(spec=VerifiedAuthentication)
+    fake_auth.new_sign_count = 1
+
+    payload = {
+        "credential": {
+            "id": raw_cred_b64,
+            "rawId": raw_cred_b64,
+            "response": {
+                "clientDataJSON": client_data_b64,
+                "authenticatorData": auth_data_b64,
+                "signature": signature_b64,
+            },
+            "type": "public-key",
+        },
+    }
+
+    with patch(
+        "src.auth.service.webauthn.verify_authentication_response",
+        return_value=fake_auth,
+    ):
+        verify_resp1 = await client.post(
+            "/api/v1/auth/passkey/authenticate/verify",
+            json=payload,
+        )
+        assert verify_resp1.status_code == 200
+
+        # Replay attempt fails with 400 because challenge was consumed atomically
+        verify_resp2 = await client.post(
+            "/api/v1/auth/passkey/authenticate/verify",
+            json=payload,
+        )
+        assert verify_resp2.status_code == 400
+        assert (
+            "Authentication challenge expired or not found"
+            in verify_resp2.json()["detail"]
+        )
 
 
 @pytest.mark.anyio
