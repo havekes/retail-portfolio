@@ -5,6 +5,7 @@ import {
 	getSnapshots,
 	findSnapshotAtOrBefore,
 	areSnapshotsEqual,
+	generateUUID,
 	type RewindDataWindow,
 	type RewindDrawings,
 	type RewindSnapshot
@@ -13,6 +14,8 @@ import type { DegreeWaveCount, SecurityElliottWaves } from './elliott-wave';
 import type { SecurityFibonacciTools } from './fibonacci';
 
 describe('rewind finance utilities', () => {
+	const uuidV4Regex = /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+
 	const sampleWaveCount: DegreeWaveCount = {
 		type: 'impulse',
 		points: [
@@ -50,19 +53,73 @@ describe('rewind finance utilities', () => {
 	};
 
 	describe('captureSnapshot', () => {
-		it('generates non-empty unique id across two calls and spies on crypto.randomUUID', () => {
+		it('generates valid RFC4122 v4 UUID when crypto.randomUUID is present', () => {
 			const uuidSpy = vi.spyOn(crypto, 'randomUUID');
 			const snap1 = captureSnapshot(sampleDrawings, sampleDataWindow);
 			const snap2 = captureSnapshot(sampleDrawings, sampleDataWindow);
 
 			expect(uuidSpy).toHaveBeenCalled();
-			expect(snap1.id).toBeDefined();
-			expect(snap1.id.length).toBeGreaterThan(0);
-			expect(snap2.id).toBeDefined();
-			expect(snap2.id.length).toBeGreaterThan(0);
+			expect(snap1.id).toMatch(uuidV4Regex);
+			expect(snap2.id).toMatch(uuidV4Regex);
 			expect(snap1.id).not.toBe(snap2.id);
 
 			uuidSpy.mockRestore();
+		});
+
+		it('generates valid RFC4122 v4 UUID when crypto.randomUUID is undefined (non-secure context)', () => {
+			const originalRandomUUID = crypto.randomUUID;
+			try {
+				// Simulate non-secure context where crypto.randomUUID is not defined
+				Object.defineProperty(crypto, 'randomUUID', {
+					value: undefined,
+					configurable: true,
+					writable: true
+				});
+
+				const snap = captureSnapshot(sampleDrawings, sampleDataWindow);
+
+				expect(snap.id).toMatch(uuidV4Regex);
+				expect(snap.id).toHaveLength(36);
+			} finally {
+				Object.defineProperty(crypto, 'randomUUID', {
+					value: originalRandomUUID,
+					configurable: true,
+					writable: true
+				});
+			}
+		});
+
+		it('generates valid RFC4122 v4 UUID when crypto.getRandomValues is also undefined (Math.random fallback)', () => {
+			const originalRandomUUID = crypto.randomUUID;
+			const originalGetRandomValues = crypto.getRandomValues;
+			try {
+				Object.defineProperty(crypto, 'randomUUID', {
+					value: undefined,
+					configurable: true,
+					writable: true
+				});
+				Object.defineProperty(crypto, 'getRandomValues', {
+					value: undefined,
+					configurable: true,
+					writable: true
+				});
+
+				const snap = captureSnapshot(sampleDrawings, sampleDataWindow);
+
+				expect(snap.id).toMatch(uuidV4Regex);
+				expect(snap.id).toHaveLength(36);
+			} finally {
+				Object.defineProperty(crypto, 'randomUUID', {
+					value: originalRandomUUID,
+					configurable: true,
+					writable: true
+				});
+				Object.defineProperty(crypto, 'getRandomValues', {
+					value: originalGetRandomValues,
+					configurable: true,
+					writable: true
+				});
+			}
 		});
 
 		it('sets captured_at equal to injected now.toISOString()', () => {
@@ -82,6 +139,65 @@ describe('rewind finance utilities', () => {
 			const parsed = Date.parse(snap.captured_at);
 			expect(parsed).toBeGreaterThanOrEqual(before);
 			expect(parsed).toBeLessThanOrEqual(after);
+		});
+	});
+
+	describe('generateUUID', () => {
+		it('generates valid RFC4122 v4 UUID with crypto.randomUUID', () => {
+			const id = generateUUID();
+			expect(id).toMatch(uuidV4Regex);
+			expect(id).toHaveLength(36);
+		});
+
+		it('generates valid RFC4122 v4 UUID with crypto.getRandomValues fallback', () => {
+			const originalRandomUUID = crypto.randomUUID;
+			try {
+				Object.defineProperty(crypto, 'randomUUID', {
+					value: undefined,
+					configurable: true,
+					writable: true
+				});
+				const id = generateUUID();
+				expect(id).toMatch(uuidV4Regex);
+				expect(id).toHaveLength(36);
+			} finally {
+				Object.defineProperty(crypto, 'randomUUID', {
+					value: originalRandomUUID,
+					configurable: true,
+					writable: true
+				});
+			}
+		});
+
+		it('generates valid RFC4122 v4 UUID with Math.random fallback', () => {
+			const originalRandomUUID = crypto.randomUUID;
+			const originalGetRandomValues = crypto.getRandomValues;
+			try {
+				Object.defineProperty(crypto, 'randomUUID', {
+					value: undefined,
+					configurable: true,
+					writable: true
+				});
+				Object.defineProperty(crypto, 'getRandomValues', {
+					value: undefined,
+					configurable: true,
+					writable: true
+				});
+				const id = generateUUID();
+				expect(id).toMatch(uuidV4Regex);
+				expect(id).toHaveLength(36);
+			} finally {
+				Object.defineProperty(crypto, 'randomUUID', {
+					value: originalRandomUUID,
+					configurable: true,
+					writable: true
+				});
+				Object.defineProperty(crypto, 'getRandomValues', {
+					value: originalGetRandomValues,
+					configurable: true,
+					writable: true
+				});
+			}
 		});
 	});
 
