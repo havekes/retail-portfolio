@@ -65,6 +65,7 @@
 	} from '$lib/utils/finance/rewind';
 	import RewindTimeline from '$lib/components/charts/rewind-timeline.svelte';
 	import { sliceCandlesBefore } from '$lib/components/charts/rewind-timeline';
+	import { toast } from '$lib/components/ui/toast/index.js';
 
 	let { data } = $props();
 
@@ -193,6 +194,7 @@
 		const last = securitySnapshots[securitySnapshots.length - 1];
 		if (last && areSnapshotsEqual(snapshot, last)) {
 			showSaveFeedback();
+			toast.info('Chart snapshot already up to date');
 			return;
 		}
 
@@ -203,9 +205,12 @@
 				captured_at: snapshot.captured_at
 			});
 			securitySnapshots = [...securitySnapshots, created];
+			isTimelineVisible = true;
 			showSaveFeedback();
+			toast.success('Chart snapshot saved');
 		} catch (err) {
 			console.error('Failed to persist rewind snapshot:', err);
+			toast.error('Failed to save chart snapshot');
 		}
 	}
 
@@ -580,6 +585,9 @@
 		try {
 			const res = await snapshotsService.getSnapshots(security.id);
 			securitySnapshots = res;
+			if (securitySnapshots.length > 0) {
+				isTimelineVisible = true;
+			}
 		} catch (err) {
 			console.error('Failed to load snapshots:', err);
 		}
@@ -752,6 +760,7 @@
 			activeWaveType = 'impulse';
 			selectedWaveDegree = null;
 			selectedFibTool = null;
+			isTimelineVisible = false;
 
 			(async () => {
 				if (!userPreferences) {
