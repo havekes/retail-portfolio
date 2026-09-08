@@ -2,9 +2,13 @@ import asyncio
 import logging
 from collections.abc import Sequence
 from datetime import UTC, date, datetime, timedelta
+from typing import Any
 
+import httpx
+from fastapi import HTTPException, status
 from svcs import Container
 
+from src.config.settings import settings
 from src.market.gateway import MarketGateway
 from src.market.model import IntradayPriceModel, PriceModel
 from src.market.repository import (
@@ -12,7 +16,13 @@ from src.market.repository import (
     PriceRepository,
     SecurityRepository,
 )
-from src.market.schema import IntradayPriceSchema, PriceSchema, SecuritySchema
+from src.market.schema import (
+    IndicatorCandleSchema,
+    IndicatorSpecSchema,
+    IntradayPriceSchema,
+    PriceSchema,
+    SecuritySchema,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -319,3 +329,137 @@ async def market_service_factory(container: Container) -> MarketService:
         security_repository=await container.aget(SecurityRepository),
         intraday_price_repository=await container.aget(IntradayPriceRepository),
     )
+
+
+def convert_to_heikin_ashi(
+    candles: Sequence[IndicatorCandleSchema],
+) -> list[IndicatorCandleSchema]:
+    """
+    Convert regular OHLCV candles to Heikin-Ashi candles.
+
+    Formulas:
+    - First candle:
+        ha_close = (open + high + low + close) / 4
+        ha_open = (open + close) / 2
+        ha_high = max(high, ha_open, ha_close)
+        ha_low = min(low, ha_open, ha_close)
+    - Subsequent candles:
+        ha_close = (open + high + low + close) / 4
+        ha_open = (prev_ha_open + prev_ha_close) / 2
+        ha_high = max(high, ha_open, ha_close)
+        ha_low = min(low, ha_open, ha_close)
+    """
+    if not candles:
+        return []
+
+    result: list[IndicatorCandleSchema] = []
+    prev_open: float = 0.0
+    prev_close: float = 0.0
+
+    for i, candle in enumerate(candles):
+        ha_close = (candle.open + candle.high + candle.low + candle.close) / 4.0
+
+        if i == 0:
+            ha_open = (candle.open + candle.close) / 2.0
+        else:
+            ha_open = (prev_open + prev_close) / 2.0
+
+        ha_high = max(candle.high, ha_open, ha_close)
+        ha_low = min(candle.low, ha_open, ha_close)
+
+        prev_open = ha_open
+        prev_close = ha_close
+
+        result.append(
+            IndicatorCandleSchema(
+                time=candle.time,
+                open=ha_open,
+                high=ha_high,
+                low=ha_low,
+                close=ha_close,
+                volume=candle.volume,
+            )
+        )
+
+    return result
+
+
+class IndicatorServiceClient:
+    """Client for calling external Go indicator sidecar microservice."""
+
+    def __init__(
+        self,
+        base_url: str,
+        timeout: float = 10.0,
+        client: httpx.AsyncClient | None = None,
+    ):
+        self.base_url = base_url.rstrip("/")
+        self.timeout = timeout
+        self._client = client
+
+    async def compute(
+        self,
+        interval: str,
+        candles: Sequence[IndicatorCandleSchema],
+        indicators: Sequence[IndicatorSpecSchema],
+    ) -> dict[str, Any]:
+        payload = {
+            "interval": interval,
+            "candles": [
+                c.model_dump() if hasattr(c, "model_dump") else c for c in candles
+            ],
+            "indicators": [
+                i.model_dump(by_alias=True, exclude_none=True)
+                if hasattr(i, "model_dump")
+                else i
+                for i in indicators
+            ],
+        }
+        url = f"{self.base_url}/compute"
+
+        try:
+            if self._client is not None:
+                response = await self._client.post(
+                    url, json=payload, timeout=self.timeout
+                )
+            else:
+                async with httpx.AsyncClient(timeout=self.timeout) as client:
+                    response = await client.post(url, json=payload)
+        except httpx.TimeoutException as exc:
+            logger.warning("Indicator service timed out: %s", exc)
+            raise HTTPException(
+                status_code=504, detail="Indicator service timed out"
+            ) from exc
+        except (httpx.ConnectError, httpx.NetworkError) as exc:
+            logger.warning("Indicator service network error: %s", exc)
+            raise HTTPException(
+                status_code=503, detail="Indicator service unavailable"
+            ) from exc
+
+        if response.status_code == status.HTTP_400_BAD_REQUEST:
+            try:
+                err_data = response.json()
+                detail = err_data.get("error", response.text)
+            except Exception:  # noqa: BLE001
+                detail = response.text
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=detail)
+
+        if response.status_code >= status.HTTP_500_INTERNAL_SERVER_ERROR:
+            raise HTTPException(
+                status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+                detail="Indicator service unavailable",
+            )
+
+        if response.status_code != status.HTTP_200_OK:
+            raise HTTPException(status_code=response.status_code, detail=response.text)
+
+        data = response.json()
+        if isinstance(data, dict) and "indicators" in data:
+            return data["indicators"]
+        return data
+
+
+async def indicator_service_client_factory(
+    _container: Container | None = None,
+) -> IndicatorServiceClient:
+    return IndicatorServiceClient(base_url=settings.indicator_service_url)

@@ -38,11 +38,14 @@ from src.market.repository_sqlalchemy import (
     sqlalchemy_watchlist_repository_factory,
 )
 from src.market.service import (
+    IndicatorServiceClient,
     MarketService,
     PriceAggregationService,
     aggregate_4h_candles,
     aggregate_monthly_prices,
     aggregate_weekly_prices,
+    convert_to_heikin_ashi,
+    indicator_service_client_factory,
     market_service_factory,
 )
 
@@ -75,6 +78,7 @@ def register_market_services(registry: Registry) -> None:
         ChartSnapshotRepository, sqlalchemy_chart_snapshot_repository_factory
     )
     registry.register_factory(IndicatorCache, indicator_cache_factory)
+    registry.register_factory(IndicatorServiceClient, indicator_service_client_factory)
     registry.register_factory(MarketPricesApi, market_prices_factory)
     registry.register_factory(SecurityApi, security_api_factory)
     registry.register_factory(MarketService, market_service_factory)

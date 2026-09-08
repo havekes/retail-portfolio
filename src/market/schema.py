@@ -3,7 +3,7 @@ from decimal import Decimal
 from typing import Any, Literal, Self
 from uuid import UUID
 
-from pydantic import AwareDatetime, BaseModel, ConfigDict
+from pydantic import AwareDatetime, BaseModel, ConfigDict, Field
 
 from src.auth.api_types import UserId
 from src.core.enum import InstitutionEnum
@@ -266,3 +266,38 @@ class ChartSnapshotRead(BaseModel):
     data_window: dict[str, Any]
     captured_at: datetime
     created_at: datetime
+
+
+class IndicatorCandleSchema(BaseModel):
+    time: int | str
+    open: float
+    high: float
+    low: float
+    close: float
+    volume: float = 0.0
+
+
+class IndicatorSpecSchema(BaseModel):
+    model_config = ConfigDict(populate_by_name=True)
+
+    id: str | None = None
+    type: str
+    period: int | None = None
+    fast: int | None = None
+    slow: int | None = None
+    signal: int | None = None
+    std_dev: float | None = Field(default=None, alias="stdDev")
+    settings: dict[str, Any] | None = None
+
+
+class IndicatorComputeRequest(BaseModel):
+    interval: PriceInterval = PriceInterval.ONE_DAY
+    chart_style: Literal["candlestick", "heikin_ashi"] = "candlestick"
+    indicators: list[IndicatorSpecSchema]
+    candles: list[IndicatorCandleSchema] | None = None
+    from_date: datetime | date | None = None
+    to_date: datetime | date | None = None
+
+
+class IndicatorComputeResponse(BaseModel):
+    indicators: dict[str, Any]
