@@ -46,6 +46,9 @@ from src.market.schema import (
     AIAnalysisResponse,
     ChartSnapshotCreate,
     ChartSnapshotRead,
+    IndicatorCandleSchema,
+    IndicatorComputeRequest,
+    IndicatorComputeResponse,
     IntradayPriceHistoryRead,
     IntradayPriceSchema,
     MACDPoint,
@@ -66,10 +69,12 @@ from src.market.schema import (
     WatchlistRead,
 )
 from src.market.service import (
+    IndicatorServiceClient,
     MarketService,
     aggregate_4h_candles,
     aggregate_monthly_prices,
     aggregate_weekly_prices,
+    convert_to_heikin_ashi,
 )
 from src.market.task import generate_note_title_task
 from src.worker import huey
@@ -716,6 +721,144 @@ async def market_get_technical_indicators(  # noqa: C901
 
     logger.info("Calculated indicators %s for security %s", requested, security_id)
     return result
+
+
+@market_router.post("/securities/{security_id}/indicators/compute")
+async def market_compute_indicators(  # noqa: C901, PLR0912
+    _user: Annotated[User, Depends(current_user)],
+    security_id: SecurityId,
+    request: IndicatorComputeRequest,
+    services: DepContainer,
+) -> IndicatorComputeResponse:
+    """
+    Compute technical indicators for a security or custom candle series.
+    """
+    if request.from_date and request.to_date and request.from_date > request.to_date:
+        raise HTTPException(
+            status_code=422,
+            detail="from_date must be less than or equal to to_date",
+        )
+
+    indicator_cache = await services.aget(IndicatorCache)
+
+    if not request.candles:
+        cached_result = await indicator_cache.get(
+            security_id=str(security_id),
+            indicators=request.indicators,
+            interval=str(request.interval.value),
+            chart_style=request.chart_style,
+        )
+        if cached_result is not None:
+            logger.info(
+                "Returned cached indicator computation for security %s", security_id
+            )
+            if isinstance(cached_result, dict) and "indicators" in cached_result:
+                return IndicatorComputeResponse(**cached_result)
+            return IndicatorComputeResponse(indicators=cached_result)
+
+    if request.candles:
+        candles = list(request.candles)
+    else:
+        security_repository = await services.aget(SecurityRepository)
+        security = await security_repository.get_by_id_or_fail(security_id)
+
+        if request.interval in (
+            PriceInterval.ONE_DAY,
+            PriceInterval.ONE_WEEK,
+            PriceInterval.ONE_MONTH,
+        ):
+            price_repository = await services.aget(PriceRepository)
+            if request.from_date and request.to_date:
+                f_date = (
+                    request.from_date.date()
+                    if isinstance(request.from_date, datetime)
+                    else request.from_date
+                )
+                t_date = (
+                    request.to_date.date()
+                    if isinstance(request.to_date, datetime)
+                    else request.to_date
+                )
+                prices, _total = await price_repository.get_prices(
+                    security, f_date, t_date, offset=0, limit=100000
+                )
+            else:
+                prices = await price_repository.get_by_security(security_id)
+                if request.from_date:
+                    f_date = (
+                        request.from_date.date()
+                        if isinstance(request.from_date, datetime)
+                        else request.from_date
+                    )
+                    prices = [p for p in prices if p.date >= f_date]
+                if request.to_date:
+                    t_date = (
+                        request.to_date.date()
+                        if isinstance(request.to_date, datetime)
+                        else request.to_date
+                    )
+                    prices = [p for p in prices if p.date <= t_date]
+
+            prices_sorted = sorted(prices, key=lambda p: p.date)
+            if request.interval == PriceInterval.ONE_WEEK:
+                prices_sorted = aggregate_weekly_prices(prices_sorted)
+            elif request.interval == PriceInterval.ONE_MONTH:
+                prices_sorted = aggregate_monthly_prices(prices_sorted)
+
+            candles = [
+                IndicatorCandleSchema(
+                    time=p.date.isoformat(),
+                    open=float(p.open),
+                    high=float(p.high),
+                    low=float(p.low),
+                    close=float(p.close),
+                    volume=float(p.volume),
+                )
+                for p in prices_sorted
+            ]
+        else:
+            from_dt, to_dt = _to_datetime_range(request.from_date, request.to_date)
+            intraday_repository = await services.aget(IntradayPriceRepository)
+            intraday_prices = await intraday_repository.get_intraday_prices(
+                security_id, start_time=from_dt, end_time=to_dt
+            )
+            intraday_sorted = sorted(intraday_prices, key=lambda c: c.timestamp)
+            if request.interval == PriceInterval.FOUR_HOURS:
+                intraday_sorted = aggregate_4h_candles(intraday_sorted)
+
+            candles = [
+                IndicatorCandleSchema(
+                    time=int(c.timestamp.timestamp()),
+                    open=float(c.open),
+                    high=float(c.high),
+                    low=float(c.low),
+                    close=float(c.close),
+                    volume=float(c.volume),
+                )
+                for c in intraday_sorted
+            ]
+
+    if request.chart_style == "heikin_ashi":
+        candles = convert_to_heikin_ashi(candles)
+
+    indicator_client = await services.aget(IndicatorServiceClient)
+    computed = await indicator_client.compute(
+        interval=str(request.interval.value),
+        candles=candles,
+        indicators=request.indicators,
+    )
+    response = IndicatorComputeResponse(indicators=computed)
+
+    if not request.candles:
+        await indicator_cache.set(
+            security_id=str(security_id),
+            indicators=request.indicators,
+            interval=str(request.interval.value),
+            chart_style=request.chart_style,
+            data=response.model_dump(),
+        )
+
+    return response
 
 
 # AI Analysis endpoints
