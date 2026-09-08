@@ -31,9 +31,14 @@
 		shouldForceRefetch,
 		parseCandleTime,
 		mergeCandles,
-		shouldFetchMoreData,
-		computeIndicatorData
+		shouldFetchMoreData
 	} from '$lib/chart-preferences';
+	import {
+		indicatorsService,
+		type IndicatorSpec,
+		type IndicatorCandle,
+		type IndicatorComputeRequest
+	} from '$lib/api/indicatorsService';
 	import { createIndicatorConfigs, type IndicatorDefault } from '$lib/chart/indicator-defaults';
 	import { getChartDateWindow } from '$lib/utils/date';
 	import type {
@@ -523,22 +528,130 @@
 	let alerts = $state<PriceAlert[]>([]);
 
 	let indicatorConfigs = $state<Record<string, IndicatorDefault>>(createIndicatorConfigs());
+	let sequenceCounter = 0;
+	let activeRefreshSeq = 0;
+	let indicatorSeq: Record<string, number> = {};
+	let isLoadingIndicators = $state(false);
 
 	let holdings = $state<AccountHoldingRead[]>([]);
 	let averageBuyingPrice = $derived(blendedAverageCost(holdings));
 
-	function refreshActiveIndicators() {
-		if (!chartRef) return;
-		setTimeout(() => {
+	function buildIndicatorSpec(id: string, config: IndicatorDefault): IndicatorSpec {
+		const spec: IndicatorSpec = {
+			id,
+			type: id,
+			settings: config.settings
+		};
+		if (config.period != null && config.period > 0) {
+			spec.period = config.period;
+		}
+		if (config.fast != null && config.fast > 0) {
+			spec.fast = config.fast;
+		}
+		if (config.slow != null && config.slow > 0) {
+			spec.slow = config.slow;
+		}
+		if (config.signal != null && config.signal > 0) {
+			spec.signal = config.signal;
+		}
+		if (config.stdDev != null && config.stdDev > 0) {
+			spec.stdDev = config.stdDev;
+		}
+		return spec;
+	}
+
+	function getRewoundCandlesPayload(): IndicatorCandle[] | undefined {
+		if (!isRewound || !timelinePosition) {
+			return undefined;
+		}
+		const sliced = sliceCandlesBefore(rawCandles, timelinePosition);
+		return sliced.map((c) => ({
+			time: c.time as number | string,
+			open: c.open,
+			high: c.high,
+			low: c.low,
+			close: c.close,
+			volume: c.volume ?? 0
+		}));
+	}
+
+	async function refreshActiveIndicators() {
+		if (!chartRef || !security?.id) return;
+
+		const seq = ++sequenceCounter;
+		activeRefreshSeq = seq;
+
+		// Synchronize all active technical indicators' indicatorSeq
+		for (const [id, config] of Object.entries(indicatorConfigs)) {
+			if (id === 'avgPrice') continue;
+			if (config.enabled) {
+				indicatorSeq[id] = seq;
+			}
+		}
+
+		// Re-render volume locally if enabled
+		if (indicatorConfigs.volume?.enabled) {
+			const volData = displayCandles.map((c) => ({
+				time: c.time,
+				value: c.volume || 0,
+				color: c.close >= c.open ? '#26a69a80' : '#ef535080'
+			}));
+			chartRef.removeIndicator('volume');
+			chartRef.addIndicator({
+				type: 'volume',
+				label: indicatorConfigs.volume.label,
+				color: indicatorConfigs.volume.color,
+				data: volData as IndicatorData['data']
+			});
+		}
+
+		// Collect all active technical indicator configs into an array of IndicatorSpec
+		const activeSpecs: IndicatorSpec[] = [];
+		for (const [id, config] of Object.entries(indicatorConfigs)) {
+			if (id === 'avgPrice' || id === 'volume') continue;
+			if (config.enabled) {
+				activeSpecs.push(buildIndicatorSpec(id, config));
+			}
+		}
+
+		if (activeSpecs.length === 0) {
+			return;
+		}
+
+		const candlesPayload = getRewoundCandlesPayload();
+		const request: IndicatorComputeRequest = {
+			interval: selectedInterval,
+			chart_style: chartStyle,
+			indicators: activeSpecs,
+			...(candlesPayload ? { candles: candlesPayload } : {})
+		};
+
+		isLoadingIndicators = true;
+		try {
+			const res = await indicatorsService.computeIndicators(security.id, request);
+			if (seq !== activeRefreshSeq) return;
 			if (!chartRef) return;
-			for (const [id, config] of Object.entries(indicatorConfigs)) {
-				if (id === 'avgPrice') continue;
-				chartRef.removeIndicator(id);
-				if (config.enabled) {
-					onIndicatorToggle(id, true);
+
+			for (const spec of activeSpecs) {
+				const id = spec.id ?? spec.type;
+				if (indicatorConfigs[id]?.enabled && indicatorSeq[id] === seq) {
+					const seriesData = res.indicators[id] ?? res.indicators[spec.type] ?? [];
+					chartRef.removeIndicator(id);
+					chartRef.addIndicator({
+						type: id,
+						label: indicatorConfigs[id].label,
+						color: indicatorConfigs[id].color,
+						data: seriesData as IndicatorData['data']
+					});
 				}
 			}
-		}, 20);
+		} catch (err) {
+			console.error('Failed to refresh indicators:', err);
+		} finally {
+			if (seq === activeRefreshSeq) {
+				isLoadingIndicators = false;
+			}
+		}
 	}
 
 	function onIndicatorConfigChange(
@@ -550,13 +663,9 @@
 		// Handle avgPrice specifically since it's a prop not a generic indicator
 		if (indicatorId === 'avgPrice') return;
 
-		// Trigger a re-render by removing and re-adding if it's currently on chart
-		if (chartRef && reRender) {
-			chartRef.removeIndicator(indicatorId);
-			// setTimeout to give chartRef time to process removal before adding it back
-			setTimeout(() => {
-				onIndicatorToggle(indicatorId, true);
-			}, 10);
+		// Trigger an async refresh for enabled indicators if currently on chart
+		if (chartRef && reRender && indicatorConfigs[indicatorId]?.enabled) {
+			void onIndicatorToggle(indicatorId, true);
 		}
 	}
 
@@ -680,30 +789,78 @@
 		}
 	}
 
-	function onIndicatorToggle(indicatorId: string, enabled: boolean) {
+	async function onIndicatorToggle(indicatorId: string, enabled: boolean) {
 		if (indicatorId === 'avgPrice') {
 			indicatorConfigs.avgPrice.enabled = enabled;
 			return;
+		}
+
+		if (indicatorConfigs[indicatorId]) {
+			indicatorConfigs[indicatorId].enabled = enabled;
 		}
 
 		if (!chartRef) return;
 
 		if (!enabled) {
 			chartRef.removeIndicator(indicatorId);
+			indicatorSeq[indicatorId] = ++sequenceCounter;
 			return;
 		}
 
-		const config = indicatorConfigs[indicatorId as keyof typeof indicatorConfigs];
-		if (!config) return;
+		if (indicatorId === 'volume') {
+			const volData = displayCandles.map((c) => ({
+				time: c.time,
+				value: c.volume || 0,
+				color: c.close >= c.open ? '#26a69a80' : '#ef535080'
+			}));
+			chartRef.removeIndicator('volume');
+			chartRef.addIndicator({
+				type: 'volume',
+				label: indicatorConfigs.volume.label,
+				color: indicatorConfigs.volume.color,
+				data: volData as IndicatorData['data']
+			});
+			return;
+		}
 
-		const data = computeIndicatorData(indicatorId, config, displayCandles, selectedInterval);
+		const config = indicatorConfigs[indicatorId];
+		if (!config || !security?.id) return;
 
-		chartRef.addIndicator({
-			type: indicatorId,
-			label: config.label,
-			color: config.color,
-			data: data as IndicatorData['data']
-		});
+		indicatorSeq[indicatorId] = ++sequenceCounter;
+		const currentSeq = indicatorSeq[indicatorId];
+
+		const spec = buildIndicatorSpec(indicatorId, config);
+		const candlesPayload = getRewoundCandlesPayload();
+
+		const request: IndicatorComputeRequest = {
+			interval: selectedInterval,
+			chart_style: chartStyle,
+			indicators: [spec],
+			...(candlesPayload ? { candles: candlesPayload } : {})
+		};
+
+		isLoadingIndicators = true;
+		try {
+			const res = await indicatorsService.computeIndicators(security.id, request);
+			if (indicatorSeq[indicatorId] !== currentSeq) return;
+			if (!indicatorConfigs[indicatorId]?.enabled) return;
+			if (!chartRef) return;
+
+			const seriesData = res.indicators[indicatorId] ?? res.indicators[spec.type] ?? [];
+			chartRef.removeIndicator(indicatorId);
+			chartRef.addIndicator({
+				type: indicatorId,
+				label: config.label,
+				color: config.color,
+				data: seriesData as IndicatorData['data']
+			});
+		} catch (err) {
+			console.error(`Failed to compute indicator ${indicatorId}:`, err);
+		} finally {
+			if (indicatorSeq[indicatorId] === currentSeq) {
+				isLoadingIndicators = false;
+			}
+		}
 	}
 
 	async function onPreferencesLoaded(prefs: UserPreferences) {
@@ -887,6 +1044,13 @@
 								{tf.toUpperCase()}
 							</button>
 						{/each}
+						{#if isLoadingIndicators}
+							<div
+								class="ml-2 size-3 animate-spin rounded-full border-2 border-primary border-t-transparent"
+								data-testid="loading-indicators-spinner"
+								title="Loading indicators..."
+							></div>
+						{/if}
 					</div>
 					<Tooltip.Provider>
 						<div class="flex items-center gap-1">

@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach, beforeAll } from 'vitest';
-import { render, screen, fireEvent, waitFor } from '@testing-library/svelte';
+import { render, screen, fireEvent, waitFor, within } from '@testing-library/svelte';
 import type { Component } from 'svelte';
 import type { Candle } from '@/utils/finance/candle';
 import type { Time } from 'lightweight-charts';
@@ -121,14 +121,38 @@ vi.mock('$lib/api/snapshotsService', () => {
 	};
 });
 
+const mockComputeIndicators = vi.fn().mockResolvedValue({
+	indicators: {}
+});
+
+vi.mock('$lib/api/indicatorsService', async (importOriginal) => {
+	const actual = await importOriginal<typeof import('$lib/api/indicatorsService')>();
+	return {
+		...actual,
+		indicatorsService: {
+			...actual.indicatorsService,
+			computeIndicators: mockComputeIndicators
+		},
+		getIndicatorsService: () => ({
+			...actual.indicatorsService,
+			computeIndicators: mockComputeIndicators
+		})
+	};
+});
+
 let mockChartProps: Record<string, unknown> | null = null;
+const mockAddIndicator = vi.fn();
+const mockRemoveIndicator = vi.fn();
 
 vi.mock('$lib/components/charts/security-chart.svelte', () => {
 	return {
 		/* eslint-disable-next-line @typescript-eslint/no-explicit-any */
 		default: (...args: any[]) => {
 			mockChartProps = args[1] ?? args[0];
-			return null;
+			return {
+				addIndicator: mockAddIndicator,
+				removeIndicator: mockRemoveIndicator
+			};
 		}
 	};
 });
@@ -3150,6 +3174,374 @@ describe('Rewind Scrub and Drawing Restore', () => {
 		await waitFor(() => {
 			// @ts-expect-error - mockChartProps typed as Record
 			expect(mockChartProps.hasMoreData).toBe(true);
+		});
+	});
+});
+
+describe('Security Page - Asynchronous Indicator Integration', () => {
+	/* eslint-disable-next-line @typescript-eslint/no-explicit-any */
+	let PageComponent: Component<any>;
+
+	const mockData = {
+		security: {
+			id: 'sec-1',
+			symbol: 'AAPL',
+			name: 'Apple Inc.'
+		},
+		items: [
+			{ date: '2024-01-01', open: 100, high: 110, low: 95, close: 105, volume: 1000 },
+			{ date: '2024-01-02', open: 105, high: 115, low: 100, close: 112, volume: 1200 },
+			{ date: '2024-01-03', open: 112, high: 120, low: 108, close: 118, volume: 1500 }
+		]
+	};
+
+	const snap1: RewindSnapshot = {
+		id: 'snap-1',
+		captured_at: '2024-01-02T12:00:00.000Z',
+		drawings: {},
+		data_window: { first: '2024-01-01', last: '2024-01-02' }
+	};
+
+	beforeAll(async () => {
+		const mod = await import('./+page.svelte');
+		PageComponent = mod.default;
+	}, 30000);
+
+	beforeEach(() => {
+		vi.clearAllMocks();
+		toast.clear();
+		mockChartProps = null;
+		mockComputeIndicators.mockReset();
+		mockComputeIndicators.mockResolvedValue({ indicators: {} });
+		mockAddIndicator.mockClear();
+		mockRemoveIndicator.mockClear();
+		mockGetPrices.mockResolvedValue({
+			items: [
+				{
+					timestamp: '2024-01-01T10:00:00Z',
+					open: 100,
+					high: 105,
+					low: 98,
+					close: 102,
+					volume: 500
+				}
+			]
+		});
+		vi.mocked(userPreferencesService.getPreferences).mockResolvedValue({});
+		vi.mocked(snapshotsService.getSnapshots).mockResolvedValue([]);
+	});
+
+	it('toggling an indicator on triggers computeIndicators with matching params and adds series upon resolution', async () => {
+		mockComputeIndicators.mockResolvedValue({
+			indicators: {
+				rsi: [
+					{ time: '2024-01-01', value: 55 },
+					{ time: '2024-01-02', value: 60 }
+				]
+			}
+		});
+
+		render(PageComponent, { props: { data: mockData } });
+
+		await waitFor(() => {
+			expect(mockChartProps).not.toBeNull();
+		});
+
+		const rsiRow = screen.getByText('RSI').closest('[role="button"]');
+		expect(rsiRow).not.toBeNull();
+		await fireEvent.click(rsiRow as HTMLElement);
+
+		await waitFor(() => {
+			expect(mockComputeIndicators).toHaveBeenCalledWith(
+				'sec-1',
+				expect.objectContaining({
+					interval: '1d',
+					chart_style: 'heikin_ashi',
+					indicators: [
+						expect.objectContaining({
+							id: 'rsi',
+							type: 'rsi',
+							period: 14
+						})
+					]
+				})
+			);
+		});
+
+		await waitFor(() => {
+			expect(mockAddIndicator).toHaveBeenCalledWith(
+				expect.objectContaining({
+					type: 'rsi',
+					label: 'RSI',
+					data: [
+						{ time: '2024-01-01', value: 55 },
+						{ time: '2024-01-02', value: 60 }
+					]
+				})
+			);
+		});
+	});
+
+	it('toggling an indicator off immediately removes it from the chart', async () => {
+		vi.mocked(userPreferencesService.getPreferences).mockResolvedValue({
+			indicators: {
+				rsi: { enabled: true, color: '#06b6d4', settings: { period: 14 } }
+			}
+		});
+
+		render(PageComponent, { props: { data: mockData } });
+
+		await waitFor(() => {
+			expect(mockChartProps).not.toBeNull();
+		});
+
+		const rsiRow = screen.getByText('RSI').closest('[role="button"]');
+		expect(rsiRow).not.toBeNull();
+		await fireEvent.click(rsiRow as HTMLElement);
+
+		expect(mockRemoveIndicator).toHaveBeenCalledWith('rsi');
+	});
+
+	it('volume indicator is computed locally without calling computeIndicators', async () => {
+		render(PageComponent, { props: { data: mockData } });
+
+		await waitFor(() => {
+			expect(mockChartProps).not.toBeNull();
+		});
+
+		const volumeRow = screen.getByText('Volume').closest('[role="button"]');
+		expect(volumeRow).not.toBeNull();
+		await fireEvent.click(volumeRow as HTMLElement);
+
+		expect(mockComputeIndicators).not.toHaveBeenCalled();
+		expect(mockAddIndicator).toHaveBeenCalledWith(
+			expect.objectContaining({
+				type: 'volume',
+				label: 'Volume',
+				data: expect.arrayContaining([
+					expect.objectContaining({ value: 1000 }),
+					expect.objectContaining({ value: 1200 }),
+					expect.objectContaining({ value: 1500 })
+				])
+			})
+		);
+	});
+
+	it('switching timeframe triggers computeIndicators with the new interval for active indicators', async () => {
+		vi.mocked(userPreferencesService.getPreferences).mockResolvedValue({
+			indicators: {
+				rsi: { enabled: true, color: '#06b6d4', settings: { period: 14 } }
+			}
+		});
+
+		render(PageComponent, { props: { data: mockData } });
+
+		await waitFor(() => {
+			expect(mockChartProps).not.toBeNull();
+		});
+
+		mockComputeIndicators.mockClear();
+		mockComputeIndicators.mockResolvedValue({
+			indicators: {
+				rsi: [{ time: '2024-01-01', value: 70 }]
+			}
+		});
+
+		const tf1hBtn = screen.getByRole('button', { name: '1H' });
+		await fireEvent.click(tf1hBtn);
+
+		await waitFor(() => {
+			expect(mockComputeIndicators).toHaveBeenCalledWith(
+				'sec-1',
+				expect.objectContaining({
+					interval: '1h',
+					indicators: expect.arrayContaining([expect.objectContaining({ id: 'rsi' })])
+				})
+			);
+		});
+	});
+
+	it('toggling chart style triggers computeIndicators with the new chart_style for active indicators', async () => {
+		vi.mocked(userPreferencesService.getPreferences).mockResolvedValue({
+			indicators: {
+				rsi: { enabled: true, color: '#06b6d4', settings: { period: 14 } }
+			}
+		});
+
+		render(PageComponent, { props: { data: mockData } });
+
+		await waitFor(() => {
+			expect(mockChartProps).not.toBeNull();
+		});
+
+		mockComputeIndicators.mockClear();
+		mockComputeIndicators.mockResolvedValue({
+			indicators: {
+				rsi: [{ time: '2024-01-01', value: 50 }]
+			}
+		});
+
+		const candlestickBtn = await screen.findByRole('button', { name: 'Candlestick' });
+		await fireEvent.click(candlestickBtn);
+
+		await waitFor(() => {
+			expect(mockComputeIndicators).toHaveBeenCalledWith(
+				'sec-1',
+				expect.objectContaining({
+					chart_style: 'candlestick',
+					indicators: expect.arrayContaining([expect.objectContaining({ id: 'rsi' })])
+				})
+			);
+		});
+	});
+
+	it('rewind timeline scrubbing triggers computeIndicators with sliced raw candles', async () => {
+		vi.mocked(snapshotsService.getSnapshots).mockResolvedValue([snap1]);
+		vi.mocked(userPreferencesService.getPreferences).mockResolvedValue({
+			indicators: {
+				rsi: { enabled: true, color: '#06b6d4', settings: { period: 14 } }
+			}
+		});
+
+		render(PageComponent, { props: { data: mockData } });
+
+		await waitFor(() => {
+			expect(mockChartProps).not.toBeNull();
+		});
+
+		expect(await screen.findByTestId('rewind-timeline')).toBeInTheDocument();
+
+		mockComputeIndicators.mockClear();
+		mockComputeIndicators.mockResolvedValue({
+			indicators: {
+				rsi: [{ time: '2024-01-01', value: 45 }]
+			}
+		});
+
+		const marker = screen.getByTestId('rewind-snapshot-point');
+		await fireEvent.click(marker);
+
+		await waitFor(() => {
+			expect(mockComputeIndicators).toHaveBeenCalledWith(
+				'sec-1',
+				expect.objectContaining({
+					candles: expect.any(Array)
+				})
+			);
+		});
+
+		const lastCall = mockComputeIndicators.mock.calls[mockComputeIndicators.mock.calls.length - 1];
+		const requestPayload = lastCall[1];
+		expect(requestPayload.candles).toHaveLength(2);
+	});
+
+	it('discards older in-flight responses when a newer request resolves earlier', async () => {
+		let resolveFirst: (val: unknown) => void;
+		const firstPromise = new Promise((resolve) => {
+			resolveFirst = resolve;
+		});
+
+		let resolveSecond: (val: unknown) => void;
+		const secondPromise = new Promise((resolve) => {
+			resolveSecond = resolve;
+		});
+
+		mockComputeIndicators
+			.mockImplementationOnce(() => firstPromise)
+			.mockImplementationOnce(() => secondPromise);
+
+		render(PageComponent, { props: { data: mockData } });
+
+		await waitFor(() => {
+			expect(mockChartProps).not.toBeNull();
+		});
+
+		const rsiRow = screen.getByText('RSI').closest('[role="button"]');
+		expect(rsiRow).not.toBeNull();
+
+		// Trigger Request 1 (toggle RSI)
+		await fireEvent.click(rsiRow as HTMLElement);
+
+		// Trigger Request 2 (timeframe switch to 1H)
+		const tf1hBtn = screen.getByRole('button', { name: '1H' });
+		await fireEvent.click(tf1hBtn);
+
+		// Resolve Request 2 (newer) FIRST
+		resolveSecond!({
+			indicators: {
+				rsi: [{ time: '2024-01-01', value: 99 }]
+			}
+		});
+
+		await waitFor(() => {
+			expect(mockAddIndicator).toHaveBeenCalledWith(
+				expect.objectContaining({
+					type: 'rsi',
+					data: [{ time: '2024-01-01', value: 99 }]
+				})
+			);
+		});
+
+		mockAddIndicator.mockClear();
+
+		// Resolve Request 1 (older, stale) AFTER
+		resolveFirst!({
+			indicators: {
+				rsi: [{ time: '2024-01-01', value: 11 }]
+			}
+		});
+
+		await new Promise((r) => setTimeout(r, 50));
+
+		// Verify stale data was discarded
+		expect(mockAddIndicator).not.toHaveBeenCalledWith(
+			expect.objectContaining({
+				type: 'rsi',
+				data: [{ time: '2024-01-01', value: 11 }]
+			})
+		);
+	});
+
+	it('modifying indicator config triggers an async refresh for enabled indicators', async () => {
+		vi.mocked(userPreferencesService.getPreferences).mockResolvedValue({
+			indicators: {
+				rsi: { enabled: true, color: '#06b6d4', settings: { period: 14 } }
+			}
+		});
+
+		render(PageComponent, { props: { data: mockData } });
+
+		await waitFor(() => {
+			expect(mockChartProps).not.toBeNull();
+		});
+
+		mockComputeIndicators.mockClear();
+		mockComputeIndicators.mockResolvedValue({
+			indicators: {
+				rsi: [{ time: '2024-01-01', value: 75 }]
+			}
+		});
+
+		// Open RSI settings modal
+		const rsiRow = screen.getByText('RSI').closest('[role="button"]');
+		expect(rsiRow).not.toBeNull();
+		const gearBtn = within(rsiRow as HTMLElement).getByRole('button', { name: /settings/i });
+		await fireEvent.click(gearBtn);
+
+		await waitFor(() => expect(screen.getByText('RSI Settings')).toBeInTheDocument());
+
+		// Change period to 21 and save
+		const periodInput = screen.getByRole('spinbutton');
+		await fireEvent.input(periodInput, { target: { value: '21' } });
+		await fireEvent.click(screen.getByText('Save settings'));
+
+		await waitFor(() => {
+			expect(mockComputeIndicators).toHaveBeenCalledWith(
+				'sec-1',
+				expect.objectContaining({
+					indicators: expect.arrayContaining([expect.objectContaining({ id: 'rsi', period: 21 })])
+				})
+			);
 		});
 	});
 });
