@@ -1,5 +1,4 @@
 import type { Time } from 'lightweight-charts';
-import type { Candle } from './candle';
 import type { IndicatorConfig, IndicatorSettings } from '@/api/indicatorsService';
 
 export type BBSettings = IndicatorSettings & {
@@ -28,35 +27,3 @@ export type BBValue = {
 };
 
 export type BBSeries = BBValue[];
-
-export function calculateBollingerBands(data: Candle[], settings: BBSettings): BBSeries {
-	const { period, stdDev: stdDevMultiplier } = settings;
-	const bbData: BBSeries = [];
-
-	if (data.length < period) {
-		return [];
-	}
-
-	for (let i = period - 1; i < data.length; i++) {
-		let sum = 0;
-		for (let j = 0; j < period; j++) {
-			sum += data[i - j].close;
-		}
-		const sma = sum / period;
-
-		let sumSq = 0;
-		for (let j = 0; j < period; j++) {
-			const variance = data[i - j].close - sma;
-			sumSq += variance * variance;
-		}
-		const stdDev = Math.sqrt(sumSq / period);
-
-		bbData.push({
-			time: data[i].time,
-			middle: sma,
-			upper: sma + stdDev * stdDevMultiplier,
-			lower: sma - stdDev * stdDevMultiplier
-		});
-	}
-	return bbData;
-}
