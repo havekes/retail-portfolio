@@ -33,6 +33,7 @@ class AccountSchema(BaseModel):
     broker_display_name: str | None = None
     net_deposits: float | None = None
     is_active: bool = True
+    api_sync_enabled: bool = True
     created_at: datetime | None = None
     deleted_at: datetime | None = None
     last_sync_at: datetime | None = None
@@ -83,6 +84,8 @@ class InstitutionSchema(BaseModel):
     website: str | None
     is_active: bool
     integration_enabled: bool
+    csv_import_enabled: bool = False
+    csv_format: str | None = None
 
 
 class PositionSchema(BaseModel):

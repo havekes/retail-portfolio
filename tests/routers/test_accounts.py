@@ -6,7 +6,9 @@ from uuid import uuid4
 
 import pytest
 
-from src.account.model import PositionModel
+from src.account.model import AccountModel, PositionModel
+from src.config.limiter import limiter
+from src.core.enum import AccountTypeEnum, InstitutionEnum
 from src.market.model import PriceModel, SecurityModel
 
 
@@ -825,5 +827,47 @@ async def test_preferences_wave_settings_roundtrip(auth_client):
     get_after_patch = await auth_client.get("/api/v1/accounts/me/preferences")
     assert get_after_patch.status_code == 200
     assert get_after_patch.json()["wave_settings"] == patch_payload["wave_settings"]
+
+
+@pytest.mark.anyio
+async def test_account_sync_api_sync_disabled_returns_400(
+    auth_client, test_user, db_session
+):
+    """Test POST /api/v1/accounts/{account_id}/sync returns 400 when api_sync_enabled is False."""
+    limiter.reset()
+
+    disabled_account = AccountModel(
+        id=uuid4(),
+        external_id=str(uuid4()),
+        name="CSV Only Account",
+        user_id=test_user.id,
+        account_type_id=AccountTypeEnum.TFSA.value,
+        institution_id=InstitutionEnum.WEALTHSIMPLE.value,
+        currency="CAD",
+        is_active=True,
+        api_sync_enabled=False,
+    )
+    db_session.add(disabled_account)
+    await db_session.commit()
+    await db_session.refresh(disabled_account)
+
+    response = await auth_client.post(f"/api/v1/accounts/{disabled_account.id}/sync")
+
+    assert response.status_code == 400
+    assert response.json()["detail"] == f"API sync is not enabled for account {disabled_account.id}"
+
+
+@pytest.mark.anyio
+async def test_account_sync_api_sync_enabled_returns_200(
+    auth_client, test_account
+):
+    """Test POST /api/v1/accounts/{account_id}/sync returns 200 when api_sync_enabled is True."""
+    limiter.reset()
+
+    response = await auth_client.post(f"/api/v1/accounts/{test_account.id}/sync")
+
+    assert response.status_code == 200
+    assert response.json() == {"accepted": True}
+
 
 

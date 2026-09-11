@@ -28,6 +28,7 @@ class Account(BaseModel):
     currency: Currency
     broker_display_name: str | None = None
     is_active: bool = True
+    api_sync_enabled: bool = True
     last_sync_at: datetime | None = None
 
 
@@ -56,6 +57,8 @@ class Institution(BaseModel):
     website: str | None
     is_active: bool
     integration_enabled: bool
+    csv_import_enabled: bool = False
+    csv_format: str | None = None
 
 
 class UserPreferences(BaseModel):

@@ -111,6 +111,8 @@ async def _seed_institutions(session):
             "country": "CA",
             "website": "https://www.wealthsimple.com",
             "integration_enabled": True,
+            "csv_import_enabled": True,
+            "csv_format": "wealthsimple",
         },
     ]
 
@@ -137,6 +139,8 @@ async def _seed_institutions(session):
         else:
             inst.integration_enabled = True
             inst.is_active = True
+            inst.csv_import_enabled = True
+            inst.csv_format = "wealthsimple"
 
         institutions[inst_data["id"]] = inst
     rprint(f"Seeded {len(institutions)} institutions")

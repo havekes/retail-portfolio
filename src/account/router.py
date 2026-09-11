@@ -12,7 +12,7 @@ from src.account.api_types import (
     PortfolioId,
     UserPreferences,
 )
-from src.account.exception import AccountNotFoundError
+from src.account.exception import AccountNotFoundError, ApiSyncDisabledError
 from src.account.repository import AccountRepository
 from src.account.schema import (
     AccountHoldingRead,
@@ -296,9 +296,17 @@ async def account_sync_positions(
 
     authorization_api.check_entity_owned_by_user(user, account)
 
+    if not account.api_sync_enabled:
+        raise HTTPException(
+            status_code=400,
+            detail=f"API sync is not enabled for account {account_id}",
+        )
+
     try:
         await position_service.sync_account_positions(user.id, account_id)
     except AccountNotFoundError as e:
         raise HTTPException(status_code=404, detail=str(e)) from e
+    except ApiSyncDisabledError as e:
+        raise HTTPException(status_code=400, detail=str(e)) from e
 
     return {"accepted": True}

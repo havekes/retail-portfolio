@@ -51,6 +51,7 @@ class AccountModel(BaseModel):
     broker_display_name: Mapped[str | None] = mapped_column(String, nullable=True)
     net_deposits: Mapped[Decimal | None] = mapped_column(Float, nullable=True)
     is_active: Mapped[bool] = mapped_column(Boolean, default=True)
+    api_sync_enabled: Mapped[bool] = mapped_column(Boolean, default=True)
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), default=func.now()
     )
@@ -170,6 +171,8 @@ class InstitutionModel(BaseModel):
     website: Mapped[str | None] = mapped_column(String, nullable=True)
     is_active: Mapped[bool] = mapped_column(Boolean, default=True)
     integration_enabled: Mapped[bool] = mapped_column(Boolean, default=False)
+    csv_import_enabled: Mapped[bool] = mapped_column(Boolean, default=False)
+    csv_format: Mapped[str | None] = mapped_column(String, nullable=True)
 
     __table_args__ = (UniqueConstraint("name", "country"),)
 
