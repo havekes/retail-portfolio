@@ -2,6 +2,7 @@
 FROM node:20-alpine AS build
 
 ARG VITE_API_BASE_URL
+ARG VITE_INTERNAL_API_URL
 WORKDIR /app
 
 # Install dependencies

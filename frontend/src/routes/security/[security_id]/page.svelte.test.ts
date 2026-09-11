@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach, beforeAll } from 'vitest';
-import { render, screen, fireEvent, waitFor } from '@testing-library/svelte';
+import { render, screen, fireEvent, waitFor, within } from '@testing-library/svelte';
 import type { Component } from 'svelte';
 import type { Candle } from '@/utils/finance/candle';
 import type { Time } from 'lightweight-charts';
@@ -121,14 +121,38 @@ vi.mock('$lib/api/snapshotsService', () => {
 	};
 });
 
+const mockComputeIndicators = vi.fn().mockResolvedValue({
+	indicators: {}
+});
+
+vi.mock('$lib/api/indicatorsService', async (importOriginal) => {
+	const actual = await importOriginal<typeof import('$lib/api/indicatorsService')>();
+	return {
+		...actual,
+		indicatorsService: {
+			...actual.indicatorsService,
+			computeIndicators: mockComputeIndicators
+		},
+		getIndicatorsService: () => ({
+			...actual.indicatorsService,
+			computeIndicators: mockComputeIndicators
+		})
+	};
+});
+
 let mockChartProps: Record<string, unknown> | null = null;
+const mockAddIndicator = vi.fn();
+const mockRemoveIndicator = vi.fn();
 
 vi.mock('$lib/components/charts/security-chart.svelte', () => {
 	return {
 		/* eslint-disable-next-line @typescript-eslint/no-explicit-any */
 		default: (...args: any[]) => {
 			mockChartProps = args[1] ?? args[0];
-			return null;
+			return {
+				addIndicator: mockAddIndicator,
+				removeIndicator: mockRemoveIndicator
+			};
 		}
 	};
 });
@@ -145,8 +169,7 @@ import {
 	shouldForceRefetch,
 	parseCandleTime,
 	mergeCandles,
-	shouldFetchMoreData,
-	computeIndicatorData
+	shouldFetchMoreData
 } from '$lib/chart-preferences';
 
 // ---------------------------------------------------------------------------
@@ -380,341 +403,6 @@ describe('shouldFetchMoreData', () => {
 	it('prevents fetching when securityId is missing or candles count is 0', () => {
 		expect(shouldFetchMoreData(false, true, undefined, 50)).toBe(false);
 		expect(shouldFetchMoreData(false, true, 'sec-123', 0)).toBe(false);
-	});
-});
-
-// ---------------------------------------------------------------------------
-// computeIndicatorData — timeframe-aware Day MA (ma50 / ma200)
-// ---------------------------------------------------------------------------
-describe('computeIndicatorData — Day Moving Averages (ma50 / ma200)', () => {
-	function makeDailyCandles(): Candle[] {
-		return [
-			{ time: '2024-01-01', open: 10, high: 12, low: 9, close: 10, volume: 100 },
-			{ time: '2024-01-02', open: 20, high: 22, low: 19, close: 20, volume: 200 },
-			{ time: '2024-01-03', open: 30, high: 32, low: 29, close: 30, volume: 300 },
-			{ time: '2024-01-04', open: 40, high: 42, low: 39, close: 40, volume: 400 },
-			{ time: '2024-01-05', open: 50, high: 52, low: 49, close: 50, volume: 500 }
-		];
-	}
-
-	it('computes Day MA on 1h interval using scaled rolling SMA (period * 7)', () => {
-		const candles: Candle[] = Array.from({ length: 15 }, (_, i) => ({
-			time: (1704067200 + i * 3600) as unknown as Time,
-			open: 10,
-			high: 12,
-			low: 9,
-			close: (i + 1) * 10,
-			volume: 100
-		}));
-		const result = computeIndicatorData('ma50', { period: 2 }, candles, '1h') as {
-			time: Time;
-			value: number;
-		}[];
-		// 2-day MA on 1h -> effective period 14 bars. 15 candles -> 2 points (indices 13, 14)
-		expect(result.length).toBe(2);
-		expect(result[0]).toEqual({ time: 1704067200 + 13 * 3600, value: 75 });
-		expect(result[1]).toEqual({ time: 1704067200 + 14 * 3600, value: 85 });
-	});
-
-	it('computes Day MA on 4h interval using scaled rolling SMA (period * 2)', () => {
-		const candles: Candle[] = Array.from({ length: 5 }, (_, i) => ({
-			time: (1704067200 + i * 14400) as unknown as Time,
-			open: 10,
-			high: 12,
-			low: 9,
-			close: (i + 1) * 10,
-			volume: 100
-		}));
-		const result = computeIndicatorData('ma200', { period: 2 }, candles, '4h') as {
-			time: Time;
-			value: number;
-		}[];
-		// 2-day MA on 4h -> effective period 4 bars. 5 candles -> 2 points (indices 3, 4)
-		expect(result.length).toBe(2);
-		expect(result[0]).toEqual({ time: 1704067200 + 3 * 14400, value: 25 });
-		expect(result[1]).toEqual({ time: 1704067200 + 4 * 14400, value: 35 });
-	});
-
-	it('computes Day MA on 1d interval using direct daily candles', () => {
-		const candles = makeDailyCandles();
-		const result = computeIndicatorData('ma50', { period: 3 }, candles, '1d') as {
-			time: Time;
-			value: number;
-		}[];
-		expect(result).toEqual([
-			{ time: '2024-01-03', value: 20 },
-			{ time: '2024-01-04', value: 30 },
-			{ time: '2024-01-05', value: 40 }
-		]);
-	});
-
-	it('computes Day MA on 1w interval by scaling period (period / 5)', () => {
-		const weeklyCandles: Candle[] = [
-			{ time: '2024-01-01', open: 10, high: 15, low: 9, close: 10, volume: 100 },
-			{ time: '2024-01-08', open: 20, high: 25, low: 19, close: 20, volume: 200 },
-			{ time: '2024-01-15', open: 30, high: 35, low: 29, close: 30, volume: 300 }
-		];
-		// period 10 / 5 = 2 weeks SMA
-		const result = computeIndicatorData('ma50', { period: 10 }, weeklyCandles, '1w') as {
-			time: Time;
-			value: number;
-		}[];
-		expect(result).toEqual([
-			{ time: '2024-01-08', value: 15 },
-			{ time: '2024-01-15', value: 25 }
-		]);
-	});
-
-	it('computes Day MA on 1m interval by scaling period (period / 21)', () => {
-		const monthlyCandles: Candle[] = [
-			{ time: '2024-01-01', open: 10, high: 15, low: 9, close: 10, volume: 100 },
-			{ time: '2024-02-01', open: 20, high: 25, low: 19, close: 20, volume: 200 }
-		];
-		// period 21 / 21 = 1 month SMA
-		const result = computeIndicatorData('ma50', { period: 21 }, monthlyCandles, '1m') as {
-			time: Time;
-			value: number;
-		}[];
-		expect(result).toEqual([
-			{ time: '2024-01-01', value: 10 },
-			{ time: '2024-02-01', value: 20 }
-		]);
-	});
-
-	it('reads period from config.settings if not directly on config', () => {
-		const candles = makeDailyCandles();
-		const result = computeIndicatorData('ma50', { settings: { period: 2 } }, candles, '1d') as {
-			time: Time;
-			value: number;
-		}[];
-		expect(result.length).toBe(4);
-		expect(result[0]).toEqual({ time: '2024-01-02', value: 15 });
-	});
-});
-
-// ---------------------------------------------------------------------------
-// computeIndicatorData — timeframe-aware Week MA (ma50w / ma200w)
-// ---------------------------------------------------------------------------
-describe('computeIndicatorData — Week Moving Averages (ma50w / ma200w)', () => {
-	it('computes Week MA on 1d interval using scaled rolling SMA (period * 5)', () => {
-		const candles: Candle[] = Array.from({ length: 12 }, (_, i) => ({
-			time: `2024-01-${String(i + 1).padStart(2, '0')}`,
-			open: 10,
-			high: 12,
-			low: 9,
-			close: (i + 1) * 10,
-			volume: 100
-		}));
-		const result = computeIndicatorData('ma50w', { period: 2 }, candles, '1d') as {
-			time: Time;
-			value: number;
-		}[];
-		// 2-week MA on 1d -> effective period 10 bars. 12 candles -> 3 points (indices 9, 10, 11)
-		expect(result.length).toBe(3);
-		expect(result[0]).toEqual({ time: '2024-01-10', value: 55 });
-		expect(result[1]).toEqual({ time: '2024-01-11', value: 65 });
-		expect(result[2]).toEqual({ time: '2024-01-12', value: 75 });
-	});
-
-	it('computes Week MA on 1h interval using scaled rolling SMA (period * 35)', () => {
-		const candles: Candle[] = Array.from({ length: 72 }, (_, i) => ({
-			time: (1704067200 + i * 3600) as unknown as Time,
-			open: 10,
-			high: 12,
-			low: 9,
-			close: (i + 1) * 10,
-			volume: 100
-		}));
-		const result = computeIndicatorData('ma50w', { period: 2 }, candles, '1h') as {
-			time: Time;
-			value: number;
-		}[];
-		// 2-week MA on 1h -> effective period 70 bars. 72 candles -> 3 points (indices 69, 70, 71)
-		expect(result.length).toBe(3);
-		expect(result[0]).toEqual({ time: 1704067200 + 69 * 3600, value: 355 });
-		expect(result[1]).toEqual({ time: 1704067200 + 70 * 3600, value: 365 });
-		expect(result[2]).toEqual({ time: 1704067200 + 71 * 3600, value: 375 });
-	});
-
-	it('computes Week MA on 4h interval using scaled rolling SMA (period * 10)', () => {
-		const candles: Candle[] = Array.from({ length: 22 }, (_, i) => ({
-			time: (1704067200 + i * 14400) as unknown as Time,
-			open: 10,
-			high: 12,
-			low: 9,
-			close: (i + 1) * 10,
-			volume: 100
-		}));
-		const result = computeIndicatorData('ma200w', { period: 2 }, candles, '4h') as {
-			time: Time;
-			value: number;
-		}[];
-		// 2-week MA on 4h -> effective period 20 bars. 22 candles -> 3 points (indices 19, 20, 21)
-		expect(result.length).toBe(3);
-		expect(result[0]).toEqual({ time: 1704067200 + 19 * 14400, value: 105 });
-		expect(result[1]).toEqual({ time: 1704067200 + 20 * 14400, value: 115 });
-		expect(result[2]).toEqual({ time: 1704067200 + 21 * 14400, value: 125 });
-	});
-
-	it('computes Week MA on 1w interval directly with SMA', () => {
-		const weeklyCandles: Candle[] = [
-			{ time: '2024-01-01', open: 10, high: 15, low: 9, close: 10, volume: 100 },
-			{ time: '2024-01-08', open: 20, high: 25, low: 19, close: 20, volume: 200 },
-			{ time: '2024-01-15', open: 30, high: 35, low: 29, close: 30, volume: 300 }
-		];
-		const result = computeIndicatorData('ma50w', { period: 2 }, weeklyCandles, '1w') as {
-			time: Time;
-			value: number;
-		}[];
-		expect(result).toEqual([
-			{ time: '2024-01-08', value: 15 },
-			{ time: '2024-01-15', value: 25 }
-		]);
-	});
-
-	it('computes Week MA on 1m interval by scaling period (period * 12 / 52)', () => {
-		const monthlyCandles: Candle[] = [
-			{ time: '2024-01-01', open: 10, high: 15, low: 9, close: 10, volume: 100 },
-			{ time: '2024-02-01', open: 20, high: 25, low: 19, close: 20, volume: 200 }
-		];
-		// period 4 * 12 / 52 ≈ 1 month SMA
-		const result = computeIndicatorData('ma50w', { period: 4 }, monthlyCandles, '1m') as {
-			time: Time;
-			value: number;
-		}[];
-		expect(result).toEqual([
-			{ time: '2024-01-01', value: 10 },
-			{ time: '2024-02-01', value: 20 }
-		]);
-	});
-});
-
-// ---------------------------------------------------------------------------
-// computeIndicatorData — Timestamp format preservation
-// ---------------------------------------------------------------------------
-describe('computeIndicatorData — Timestamp format preservation', () => {
-	it('preserves UTCTimestamp seconds format for intraday series', () => {
-		const candles: Candle[] = Array.from({ length: 14 }, (_, i) => ({
-			time: (1704067200 + i * 3600) as unknown as Time,
-			open: 10,
-			high: 11,
-			low: 9,
-			close: 10 + i,
-			volume: 100
-		}));
-		const result = computeIndicatorData('ma50', { period: 2 }, candles, '1h') as {
-			time: Time;
-			value: number;
-		}[];
-		expect(result.length).toBe(1);
-		expect(typeof result[0].time).toBe('number');
-		expect(result[0].time).toBe(1704067200 + 13 * 3600);
-	});
-
-	it('preserves ISO date strings for daily/weekly/monthly series', () => {
-		const candles: Candle[] = [
-			{ time: '2024-01-01', open: 10, high: 11, low: 9, close: 10, volume: 100 },
-			{ time: '2024-01-02', open: 20, high: 21, low: 19, close: 20, volume: 100 }
-		];
-		const result = computeIndicatorData('ma50', { period: 2 }, candles, '1d') as {
-			time: Time;
-			value: number;
-		}[];
-		expect(typeof result[0].time).toBe('string');
-		expect(result[0].time).toBe('2024-01-02');
-	});
-});
-
-// ---------------------------------------------------------------------------
-// computeIndicatorData — Chart style sensitivity (raw vs HA candles)
-// ---------------------------------------------------------------------------
-describe('computeIndicatorData — Chart style candle closes sensitivity', () => {
-	const rawCandles: Candle[] = [
-		{ time: '2024-01-01', open: 100, high: 110, low: 90, close: 100, volume: 500 },
-		{ time: '2024-01-02', open: 100, high: 120, low: 95, close: 110, volume: 500 }
-	];
-	const haCandles: Candle[] = [
-		{ time: '2024-01-01', open: 100, high: 110, low: 90, close: 105, volume: 500 },
-		{ time: '2024-01-02', open: 102.5, high: 120, low: 95, close: 115, volume: 500 }
-	];
-
-	it('calculates indicators with raw candle closes when style is candlestick', () => {
-		const activeCandles = displayCandlesFor('candlestick', rawCandles, haCandles);
-		const result = computeIndicatorData('ma50', { period: 2 }, activeCandles, '1d') as {
-			time: Time;
-			value: number;
-		}[];
-		// (100 + 110) / 2 = 105
-		expect(result[0].value).toBe(105);
-	});
-
-	it('calculates indicators with Heikin-Ashi candle closes when style is heikin_ashi', () => {
-		const activeCandles = displayCandlesFor('heikin_ashi', rawCandles, haCandles);
-		const result = computeIndicatorData('ma50', { period: 2 }, activeCandles, '1d') as {
-			time: Time;
-			value: number;
-		}[];
-		// (105 + 115) / 2 = 110
-		expect(result[0].value).toBe(110);
-	});
-});
-
-// ---------------------------------------------------------------------------
-// computeIndicatorData — Non-MA indicators
-// ---------------------------------------------------------------------------
-describe('computeIndicatorData — Non-MA indicators', () => {
-	const testCandles: Candle[] = [
-		{ time: '2024-01-01', open: 10, high: 15, low: 9, close: 12, volume: 1000 },
-		{ time: '2024-01-02', open: 12, high: 14, low: 8, close: 9, volume: 500 },
-		{ time: '2024-01-03', open: 9, high: 16, low: 9, close: 15, volume: 800 },
-		{ time: '2024-01-04', open: 15, high: 18, low: 13, close: 14, volume: 600 }
-	];
-
-	it('computes volume indicator with correct colors and volumes', () => {
-		const result = computeIndicatorData('volume', {}, testCandles, '1d') as {
-			time: Time;
-			value: number;
-			color: string;
-		}[];
-		expect(result.length).toBe(4);
-		expect(result[0]).toEqual({ time: '2024-01-01', value: 1000, color: '#26a69a80' }); // close (12) >= open (10) -> green
-		expect(result[1]).toEqual({ time: '2024-01-02', value: 500, color: '#ef535080' }); // close (9) < open (12) -> red
-	});
-
-	it('computes OBV indicator', () => {
-		const result = computeIndicatorData('obv', {}, testCandles, '1d') as {
-			time: Time;
-			value: number;
-		}[];
-		expect(result.length).toBe(4);
-		expect(result[0].value).toBe(1000);
-		expect(result[1].value).toBe(500); // 1000 - 500
-		expect(result[2].value).toBe(1300); // 500 + 800
-	});
-
-	it('computes RSI indicator with configurable period', () => {
-		const result = computeIndicatorData('rsi', { period: 2 }, testCandles, '1d');
-		expect(result.length).toBeGreaterThan(0);
-	});
-
-	it('computes MACD indicator with configurable fast/slow/signal', () => {
-		const result = computeIndicatorData('macd', { fast: 2, slow: 3, signal: 2 }, testCandles, '1d');
-		expect(result.length).toBeGreaterThan(0);
-	});
-
-	it('computes Bollinger Bands indicator with configurable period/stdDev', () => {
-		const result = computeIndicatorData('bb', { period: 3, stdDev: 2 }, testCandles, '1d');
-		expect(result.length).toBe(2);
-	});
-
-	it('returns empty array when candles array is empty', () => {
-		expect(computeIndicatorData('volume', {}, [], '1d')).toEqual([]);
-		expect(computeIndicatorData('obv', {}, [], '1d')).toEqual([]);
-		expect(computeIndicatorData('rsi', {}, [], '1d')).toEqual([]);
-		expect(computeIndicatorData('macd', {}, [], '1d')).toEqual([]);
-		expect(computeIndicatorData('bb', {}, [], '1d')).toEqual([]);
-		expect(computeIndicatorData('ma50', {}, [], '1d')).toEqual([]);
-		expect(computeIndicatorData('ma50w', {}, [], '1d')).toEqual([]);
 	});
 });
 
@@ -3150,6 +2838,374 @@ describe('Rewind Scrub and Drawing Restore', () => {
 		await waitFor(() => {
 			// @ts-expect-error - mockChartProps typed as Record
 			expect(mockChartProps.hasMoreData).toBe(true);
+		});
+	});
+});
+
+describe('Security Page - Asynchronous Indicator Integration', () => {
+	/* eslint-disable-next-line @typescript-eslint/no-explicit-any */
+	let PageComponent: Component<any>;
+
+	const mockData = {
+		security: {
+			id: 'sec-1',
+			symbol: 'AAPL',
+			name: 'Apple Inc.'
+		},
+		items: [
+			{ date: '2024-01-01', open: 100, high: 110, low: 95, close: 105, volume: 1000 },
+			{ date: '2024-01-02', open: 105, high: 115, low: 100, close: 112, volume: 1200 },
+			{ date: '2024-01-03', open: 112, high: 120, low: 108, close: 118, volume: 1500 }
+		]
+	};
+
+	const snap1: RewindSnapshot = {
+		id: 'snap-1',
+		captured_at: '2024-01-02T12:00:00.000Z',
+		drawings: {},
+		data_window: { first: '2024-01-01', last: '2024-01-02' }
+	};
+
+	beforeAll(async () => {
+		const mod = await import('./+page.svelte');
+		PageComponent = mod.default;
+	}, 30000);
+
+	beforeEach(() => {
+		vi.clearAllMocks();
+		toast.clear();
+		mockChartProps = null;
+		mockComputeIndicators.mockReset();
+		mockComputeIndicators.mockResolvedValue({ indicators: {} });
+		mockAddIndicator.mockClear();
+		mockRemoveIndicator.mockClear();
+		mockGetPrices.mockResolvedValue({
+			items: [
+				{
+					timestamp: '2024-01-01T10:00:00Z',
+					open: 100,
+					high: 105,
+					low: 98,
+					close: 102,
+					volume: 500
+				}
+			]
+		});
+		vi.mocked(userPreferencesService.getPreferences).mockResolvedValue({});
+		vi.mocked(snapshotsService.getSnapshots).mockResolvedValue([]);
+	});
+
+	it('toggling an indicator on triggers computeIndicators with matching params and adds series upon resolution', async () => {
+		mockComputeIndicators.mockResolvedValue({
+			indicators: {
+				rsi: [
+					{ time: '2024-01-01', value: 55 },
+					{ time: '2024-01-02', value: 60 }
+				]
+			}
+		});
+
+		render(PageComponent, { props: { data: mockData } });
+
+		await waitFor(() => {
+			expect(mockChartProps).not.toBeNull();
+		});
+
+		const rsiRow = screen.getByText('RSI').closest('[role="button"]');
+		expect(rsiRow).not.toBeNull();
+		await fireEvent.click(rsiRow as HTMLElement);
+
+		await waitFor(() => {
+			expect(mockComputeIndicators).toHaveBeenCalledWith(
+				'sec-1',
+				expect.objectContaining({
+					interval: '1d',
+					chart_style: 'heikin_ashi',
+					indicators: [
+						expect.objectContaining({
+							id: 'rsi',
+							type: 'rsi',
+							period: 14
+						})
+					]
+				})
+			);
+		});
+
+		await waitFor(() => {
+			expect(mockAddIndicator).toHaveBeenCalledWith(
+				expect.objectContaining({
+					type: 'rsi',
+					label: 'RSI',
+					data: [
+						{ time: '2024-01-01', value: 55 },
+						{ time: '2024-01-02', value: 60 }
+					]
+				})
+			);
+		});
+	});
+
+	it('toggling an indicator off immediately removes it from the chart', async () => {
+		vi.mocked(userPreferencesService.getPreferences).mockResolvedValue({
+			indicators: {
+				rsi: { enabled: true, color: '#06b6d4', settings: { period: 14 } }
+			}
+		});
+
+		render(PageComponent, { props: { data: mockData } });
+
+		await waitFor(() => {
+			expect(mockChartProps).not.toBeNull();
+		});
+
+		const rsiRow = screen.getByText('RSI').closest('[role="button"]');
+		expect(rsiRow).not.toBeNull();
+		await fireEvent.click(rsiRow as HTMLElement);
+
+		expect(mockRemoveIndicator).toHaveBeenCalledWith('rsi');
+	});
+
+	it('volume indicator is computed locally without calling computeIndicators', async () => {
+		render(PageComponent, { props: { data: mockData } });
+
+		await waitFor(() => {
+			expect(mockChartProps).not.toBeNull();
+		});
+
+		const volumeRow = screen.getByText('Volume').closest('[role="button"]');
+		expect(volumeRow).not.toBeNull();
+		await fireEvent.click(volumeRow as HTMLElement);
+
+		expect(mockComputeIndicators).not.toHaveBeenCalled();
+		expect(mockAddIndicator).toHaveBeenCalledWith(
+			expect.objectContaining({
+				type: 'volume',
+				label: 'Volume',
+				data: expect.arrayContaining([
+					expect.objectContaining({ value: 1000 }),
+					expect.objectContaining({ value: 1200 }),
+					expect.objectContaining({ value: 1500 })
+				])
+			})
+		);
+	});
+
+	it('switching timeframe triggers computeIndicators with the new interval for active indicators', async () => {
+		vi.mocked(userPreferencesService.getPreferences).mockResolvedValue({
+			indicators: {
+				rsi: { enabled: true, color: '#06b6d4', settings: { period: 14 } }
+			}
+		});
+
+		render(PageComponent, { props: { data: mockData } });
+
+		await waitFor(() => {
+			expect(mockChartProps).not.toBeNull();
+		});
+
+		mockComputeIndicators.mockClear();
+		mockComputeIndicators.mockResolvedValue({
+			indicators: {
+				rsi: [{ time: '2024-01-01', value: 70 }]
+			}
+		});
+
+		const tf1hBtn = screen.getByRole('button', { name: '1H' });
+		await fireEvent.click(tf1hBtn);
+
+		await waitFor(() => {
+			expect(mockComputeIndicators).toHaveBeenCalledWith(
+				'sec-1',
+				expect.objectContaining({
+					interval: '1h',
+					indicators: expect.arrayContaining([expect.objectContaining({ id: 'rsi' })])
+				})
+			);
+		});
+	});
+
+	it('toggling chart style triggers computeIndicators with the new chart_style for active indicators', async () => {
+		vi.mocked(userPreferencesService.getPreferences).mockResolvedValue({
+			indicators: {
+				rsi: { enabled: true, color: '#06b6d4', settings: { period: 14 } }
+			}
+		});
+
+		render(PageComponent, { props: { data: mockData } });
+
+		await waitFor(() => {
+			expect(mockChartProps).not.toBeNull();
+		});
+
+		mockComputeIndicators.mockClear();
+		mockComputeIndicators.mockResolvedValue({
+			indicators: {
+				rsi: [{ time: '2024-01-01', value: 50 }]
+			}
+		});
+
+		const candlestickBtn = await screen.findByRole('button', { name: 'Candlestick' });
+		await fireEvent.click(candlestickBtn);
+
+		await waitFor(() => {
+			expect(mockComputeIndicators).toHaveBeenCalledWith(
+				'sec-1',
+				expect.objectContaining({
+					chart_style: 'candlestick',
+					indicators: expect.arrayContaining([expect.objectContaining({ id: 'rsi' })])
+				})
+			);
+		});
+	});
+
+	it('rewind timeline scrubbing triggers computeIndicators with sliced raw candles', async () => {
+		vi.mocked(snapshotsService.getSnapshots).mockResolvedValue([snap1]);
+		vi.mocked(userPreferencesService.getPreferences).mockResolvedValue({
+			indicators: {
+				rsi: { enabled: true, color: '#06b6d4', settings: { period: 14 } }
+			}
+		});
+
+		render(PageComponent, { props: { data: mockData } });
+
+		await waitFor(() => {
+			expect(mockChartProps).not.toBeNull();
+		});
+
+		expect(await screen.findByTestId('rewind-timeline')).toBeInTheDocument();
+
+		mockComputeIndicators.mockClear();
+		mockComputeIndicators.mockResolvedValue({
+			indicators: {
+				rsi: [{ time: '2024-01-01', value: 45 }]
+			}
+		});
+
+		const marker = screen.getByTestId('rewind-snapshot-point');
+		await fireEvent.click(marker);
+
+		await waitFor(() => {
+			expect(mockComputeIndicators).toHaveBeenCalledWith(
+				'sec-1',
+				expect.objectContaining({
+					candles: expect.any(Array)
+				})
+			);
+		});
+
+		const lastCall = mockComputeIndicators.mock.calls[mockComputeIndicators.mock.calls.length - 1];
+		const requestPayload = lastCall[1];
+		expect(requestPayload.candles).toHaveLength(2);
+	});
+
+	it('discards older in-flight responses when a newer request resolves earlier', async () => {
+		let resolveFirst: (val: unknown) => void;
+		const firstPromise = new Promise((resolve) => {
+			resolveFirst = resolve;
+		});
+
+		let resolveSecond: (val: unknown) => void;
+		const secondPromise = new Promise((resolve) => {
+			resolveSecond = resolve;
+		});
+
+		mockComputeIndicators
+			.mockImplementationOnce(() => firstPromise)
+			.mockImplementationOnce(() => secondPromise);
+
+		render(PageComponent, { props: { data: mockData } });
+
+		await waitFor(() => {
+			expect(mockChartProps).not.toBeNull();
+		});
+
+		const rsiRow = screen.getByText('RSI').closest('[role="button"]');
+		expect(rsiRow).not.toBeNull();
+
+		// Trigger Request 1 (toggle RSI)
+		await fireEvent.click(rsiRow as HTMLElement);
+
+		// Trigger Request 2 (timeframe switch to 1H)
+		const tf1hBtn = screen.getByRole('button', { name: '1H' });
+		await fireEvent.click(tf1hBtn);
+
+		// Resolve Request 2 (newer) FIRST
+		resolveSecond!({
+			indicators: {
+				rsi: [{ time: '2024-01-01', value: 99 }]
+			}
+		});
+
+		await waitFor(() => {
+			expect(mockAddIndicator).toHaveBeenCalledWith(
+				expect.objectContaining({
+					type: 'rsi',
+					data: [{ time: '2024-01-01', value: 99 }]
+				})
+			);
+		});
+
+		mockAddIndicator.mockClear();
+
+		// Resolve Request 1 (older, stale) AFTER
+		resolveFirst!({
+			indicators: {
+				rsi: [{ time: '2024-01-01', value: 11 }]
+			}
+		});
+
+		await new Promise((r) => setTimeout(r, 50));
+
+		// Verify stale data was discarded
+		expect(mockAddIndicator).not.toHaveBeenCalledWith(
+			expect.objectContaining({
+				type: 'rsi',
+				data: [{ time: '2024-01-01', value: 11 }]
+			})
+		);
+	});
+
+	it('modifying indicator config triggers an async refresh for enabled indicators', async () => {
+		vi.mocked(userPreferencesService.getPreferences).mockResolvedValue({
+			indicators: {
+				rsi: { enabled: true, color: '#06b6d4', settings: { period: 14 } }
+			}
+		});
+
+		render(PageComponent, { props: { data: mockData } });
+
+		await waitFor(() => {
+			expect(mockChartProps).not.toBeNull();
+		});
+
+		mockComputeIndicators.mockClear();
+		mockComputeIndicators.mockResolvedValue({
+			indicators: {
+				rsi: [{ time: '2024-01-01', value: 75 }]
+			}
+		});
+
+		// Open RSI settings modal
+		const rsiRow = screen.getByText('RSI').closest('[role="button"]');
+		expect(rsiRow).not.toBeNull();
+		const gearBtn = within(rsiRow as HTMLElement).getByRole('button', { name: /settings/i });
+		await fireEvent.click(gearBtn);
+
+		await waitFor(() => expect(screen.getByText('RSI Settings')).toBeInTheDocument());
+
+		// Change period to 21 and save
+		const periodInput = screen.getByRole('spinbutton');
+		await fireEvent.input(periodInput, { target: { value: '21' } });
+		await fireEvent.click(screen.getByText('Save settings'));
+
+		await waitFor(() => {
+			expect(mockComputeIndicators).toHaveBeenCalledWith(
+				'sec-1',
+				expect.objectContaining({
+					indicators: expect.arrayContaining([expect.objectContaining({ id: 'rsi', period: 21 })])
+				})
+			);
 		});
 	});
 });

@@ -35,6 +35,9 @@ class Settings(BaseSettings):
     # Market API (Eodhd)
     eodhd_api_key: str = ""
 
+    # Indicator Service
+    indicator_service_url: str = "http://localhost:8080"
+
     # AI API
     ai_api_endpoint: str = "https://api.openai.com/v1/chat/completions"
     ai_api_key: str = ""
