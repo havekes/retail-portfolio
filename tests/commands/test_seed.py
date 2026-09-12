@@ -5,7 +5,7 @@ from sqlalchemy import select
 
 from src.account.model import AccountModel, InstitutionModel, PortfolioModel, PositionModel
 from src.auth.model import UserModel
-from src.commands.seed import seed_data
+from src.commands.seed import WEALTHSIMPLE_CSV_FORMAT, seed_data
 from src.core.enum import InstitutionEnum
 from src.integration.model import IntegrationUserModel
 from src.market.model import SecurityModel
@@ -32,6 +32,14 @@ async def test_seed_data_dev_and_idempotency(db_session):
     for acc in accounts:
         assert acc.api_sync_enabled is True
 
+    expected_csv_format = (
+        "{account_name},{account_type},{account_classification},{account_number},"
+        "{symbol},{exchange},{mic},{name},{security_type},{quantity},"
+        "{position_direction},{market_price},{market_price_currency},"
+        "{book_value_cad},{book_value_currency_cad},{book_value},{currency},"
+        "{market_value},{market_value_currency},{market_unrealized_returns},"
+        "{market_unrealized_returns_currency}"
+    )
     inst_res = await db_session.execute(
         select(InstitutionModel).where(
             InstitutionModel.id == InstitutionEnum.WEALTHSIMPLE.value
@@ -40,7 +48,8 @@ async def test_seed_data_dev_and_idempotency(db_session):
     ws_inst = inst_res.scalar_one_or_none()
     assert ws_inst is not None
     assert ws_inst.csv_import_enabled is True
-    assert ws_inst.csv_format == "wealthsimple"
+    assert ws_inst.csv_format == expected_csv_format
+    assert ws_inst.csv_format == WEALTHSIMPLE_CSV_FORMAT
 
     pos_res = await db_session.execute(select(PositionModel))
     positions = pos_res.scalars().all()
@@ -66,7 +75,8 @@ async def test_seed_data_dev_and_idempotency(db_session):
     ws_inst2 = inst_res2.scalar_one_or_none()
     assert ws_inst2 is not None
     assert ws_inst2.csv_import_enabled is True
-    assert ws_inst2.csv_format == "wealthsimple"
+    assert ws_inst2.csv_format == expected_csv_format
+    assert ws_inst2.csv_format == WEALTHSIMPLE_CSV_FORMAT
 
     # Third seed run in non-dev environment ("prod") to verify dev-skipping path
     with patch("src.commands.seed.settings.environment", "prod"):

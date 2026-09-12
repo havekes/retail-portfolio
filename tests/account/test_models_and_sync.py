@@ -65,20 +65,29 @@ async def test_institution_model(db_session: AsyncSession) -> None:
     assert inst.csv_import_enabled is False
     assert inst.csv_format is None
 
-    # Also test with custom CSV format and enabled
+    SAMPLE_CSV_FORMAT = (
+        "{account_name},{account_type},{account_classification},{account_number},"
+        "{symbol},{exchange},{mic},{name},{security_type},{quantity},"
+        "{position_direction},{market_price},{market_price_currency},"
+        "{book_value_cad},{book_value_currency_cad},{book_value},{currency},"
+        "{market_value},{market_value_currency},{market_unrealized_returns},"
+        "{market_unrealized_returns_currency}"
+    )
+
+    # Also test with custom CSV format positional template and enabled
     inst_csv = InstitutionModel(
         id=998,
         name="Test CSV Inst",
         country="US",
         csv_import_enabled=True,
-        csv_format="wealthsimple",
+        csv_format=SAMPLE_CSV_FORMAT,
     )
     db_session.add(inst_csv)
     await db_session.commit()
     await db_session.refresh(inst_csv)
 
     assert inst_csv.csv_import_enabled is True
-    assert inst_csv.csv_format == "wealthsimple"
+    assert inst_csv.csv_format == SAMPLE_CSV_FORMAT
 
 
 def test_schema_and_api_types_serialization() -> None:
@@ -117,6 +126,14 @@ def test_schema_and_api_types_serialization() -> None:
     assert inst_schema.csv_import_enabled is False
     assert inst_schema.csv_format is None
 
+    sample_csv_format = (
+        "{account_name},{account_type},{account_classification},{account_number},"
+        "{symbol},{exchange},{mic},{name},{security_type},{quantity},"
+        "{position_direction},{market_price},{market_price_currency},"
+        "{book_value_cad},{book_value_currency_cad},{book_value},{currency},"
+        "{market_value},{market_value_currency},{market_unrealized_returns},"
+        "{market_unrealized_returns_currency}"
+    )
     inst_api = Institution(
         id=InstitutionEnum.WEALTHSIMPLE,
         name="Wealthsimple",
@@ -125,10 +142,10 @@ def test_schema_and_api_types_serialization() -> None:
         is_active=True,
         integration_enabled=True,
         csv_import_enabled=True,
-        csv_format="wealthsimple",
+        csv_format=sample_csv_format,
     )
     assert inst_api.csv_import_enabled is True
-    assert inst_api.csv_format == "wealthsimple"
+    assert inst_api.csv_format == sample_csv_format
 
     account_api = Account(
         id=uuid4(),

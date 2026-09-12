@@ -3,7 +3,7 @@ from datetime import date, datetime
 from decimal import Decimal
 from typing import Self
 
-from pydantic import BaseModel, ConfigDict, field_serializer
+from pydantic import BaseModel, ConfigDict, Field, field_serializer
 from stockholm import Currency
 
 from src.account.api_types import (
@@ -76,6 +76,22 @@ class AccountTypeSchema(BaseModel):
 
 
 class InstitutionSchema(BaseModel):
+    """Institution schema.
+
+    Specification of `csv_format`:
+    A comma-separated positional template string matching expected CSV export columns
+    in order. Standard placeholders include:
+      - {account_name}, {account_type}, {account_classification}, {account_number}
+      - {symbol}, {exchange}, {mic}, {name}, {security_type}
+      - {quantity}, {position_direction}, {market_price}, {market_price_currency}
+      - {book_value_cad}, {book_value_currency_cad}, {book_value}, {currency}
+      - {market_value}, {market_value_currency}, {market_unrealized_returns}
+      - {market_unrealized_returns_currency}
+
+    Guidance for future brokers:
+      Map the broker CSV's column headers left-to-right to the standard placeholders.
+    """
+
     model_config = ConfigDict(from_attributes=True)
 
     id: InstitutionEnum
@@ -85,7 +101,14 @@ class InstitutionSchema(BaseModel):
     is_active: bool
     integration_enabled: bool
     csv_import_enabled: bool = False
-    csv_format: str | None = None
+    csv_format: str | None = Field(
+        default=None,
+        description=(
+            "Positional column template string matching expected CSV export columns "
+            "in order. Format: comma-separated list of placeholder tokens "
+            "(e.g., '{account_number},{symbol},{quantity}')."
+        ),
+    )
 
 
 class PositionSchema(BaseModel):
