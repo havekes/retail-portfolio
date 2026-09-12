@@ -10,6 +10,7 @@ export interface Account {
 	broker_display_name?: string;
 	net_deposits?: number;
 	is_active: boolean;
+	api_sync_enabled: boolean;
 	created_at: Date;
 }
 

@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen, fireEvent } from '@testing-library/svelte';
+import { render, screen, fireEvent, waitFor } from '@testing-library/svelte';
 import AccountsListItem from './accounts-list-item.svelte';
 import { Institution, AccountType } from '@/types/account';
 
@@ -8,7 +8,8 @@ import { Institution, AccountType } from '@/types/account';
 vi.mock('$lib/api/accountClient', () => {
 	return {
 		accountClient: {
-			getAccountTotals: vi.fn()
+			getAccountTotals: vi.fn(),
+			syncAccountCsv: vi.fn()
 		}
 	};
 });
@@ -19,13 +20,18 @@ describe('AccountsListItem', () => {
 	const mockAccount = {
 		id: 'acc-1',
 		name: 'My Test Account',
+		external_id: 'ext-1',
 		institution_id: Institution.Wealthsimple,
 		account_type_id: AccountType.TFSA,
 		currency: 'CAD',
-		broker_display_name: 'Broker'
+		broker_display_name: 'Broker',
+		is_active: true,
+		api_sync_enabled: true,
+		created_at: new Date('2026-01-01')
 	};
 
 	beforeEach(() => {
+		vi.clearAllMocks();
 		vi.mocked(accountClient.getAccountTotals).mockResolvedValue({
 			value: { value: '100', units: 100, nanos: 0, currencyCode: 'CAD' },
 			cost: { value: '50', units: 50, nanos: 0, currencyCode: 'CAD' }
@@ -77,5 +83,87 @@ describe('AccountsListItem', () => {
 			const submitBtn = form.querySelector('button[type="submit"]');
 			expect(submitBtn).toBeInTheDocument();
 		}
+	});
+
+	it('should call onSync when refresh button is clicked on an account with api_sync_enabled true', async () => {
+		const onSyncMock = vi.fn();
+
+		render(AccountsListItem, {
+			props: {
+				account: { ...mockAccount, api_sync_enabled: true },
+				selectionMode: false,
+				isSelected: false,
+				isSyncing: false,
+				syncError: null,
+				onSync: onSyncMock
+			}
+		});
+
+		const syncButton = await screen.findByRole('button', { name: 'Sync positions' });
+		await fireEvent.click(syncButton);
+
+		expect(onSyncMock).toHaveBeenCalledTimes(1);
+		expect(screen.queryByText('Update account from CSV')).not.toBeInTheDocument();
+	});
+
+	it('should not call onSync and instead open CSV update modal when refresh button is clicked on an account with api_sync_enabled false', async () => {
+		const onSyncMock = vi.fn();
+
+		render(AccountsListItem, {
+			props: {
+				account: { ...mockAccount, api_sync_enabled: false },
+				selectionMode: false,
+				isSelected: false,
+				isSyncing: false,
+				syncError: null,
+				onSync: onSyncMock
+			}
+		});
+
+		const updateButton = await screen.findByRole('button', { name: 'Update from CSV' });
+		await fireEvent.click(updateButton);
+
+		expect(onSyncMock).not.toHaveBeenCalled();
+		expect(await screen.findByText('Update account from CSV')).toBeInTheDocument();
+	});
+
+	it('should invalidate cache and invoke onAccountUpdated when CSV upload succeeds', async () => {
+		const onAccountUpdatedMock = vi.fn();
+		vi.mocked(accountClient.syncAccountCsv).mockResolvedValue({
+			...mockAccount,
+			api_sync_enabled: false
+		});
+
+		render(AccountsListItem, {
+			props: {
+				account: { ...mockAccount, api_sync_enabled: false },
+				selectionMode: false,
+				isSelected: false,
+				isSyncing: false,
+				syncError: null,
+				onAccountUpdated: onAccountUpdatedMock
+			}
+		});
+
+		// Initial fetch of account totals
+		await screen.findByText('$100');
+		expect(accountClient.getAccountTotals).toHaveBeenCalledTimes(1);
+
+		// Click to open modal
+		const updateButton = await screen.findByRole('button', { name: 'Update from CSV' });
+		await fireEvent.click(updateButton);
+
+		// Upload a CSV file
+		const file = new File(['data'], 'new.csv', { type: 'text/csv' });
+		const fileInput = document.querySelector('input[type="file"]') as HTMLInputElement;
+		await fireEvent.change(fileInput, { target: { files: [file] } });
+
+		const uploadBtn = screen.getByRole('button', { name: 'Upload CSV' });
+		await fireEvent.click(uploadBtn);
+
+		await waitFor(() => {
+			expect(onAccountUpdatedMock).toHaveBeenCalledTimes(1);
+			expect(accountClient.getAccountTotals).toHaveBeenCalledTimes(2);
+		});
 	});
 });
