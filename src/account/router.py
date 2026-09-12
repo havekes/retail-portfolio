@@ -1,5 +1,4 @@
 import json
-import uuid
 from typing import Annotated
 from uuid import UUID
 
@@ -15,49 +14,52 @@ from fastapi import (
     Response,
     UploadFile,
 )
-from stockholm import Currency
 from svcs.fastapi import DepContainer
 
-from src.account.api.position import PositionApi
 from src.account.api_types import (
     AccountId,
     AccountRenameRequest,
     AccountTotals,
     PortfolioId,
-    Position,
     UserPreferences,
 )
 from src.account.csv import (
     CsvDiscoveredAccount,
-    CsvParserError,
-    CsvPositionRecord,
-    GenericCsvParser,
 )
-from src.account.exception import AccountNotFoundError, ApiSyncDisabledError
+from src.account.csv.exceptions import (
+    CsvEmptyError,
+    CsvParserError,
+)
+from src.account.exception import (
+    AccountNotFoundError,
+    AccountNotInCsvError,
+    ApiSyncDisabledError,
+    CsvAccountDuplicateError,
+    CsvImportDisabledError,
+    InstitutionNotFoundError,
+    NoMatchingAccountsInCsvError,
+    SecurityResolutionError,
+)
 from src.account.repository import (
     AccountRepository,
-    InstitutionRepository,
-    PositionRepository,
 )
 from src.account.schema import (
     AccountHoldingRead,
     AccountHoldingsRead,
     AccountSchema,
-    InstitutionSchema,
     PortfolioAccountUpdateRequest,
     PortfolioCreate,
     PortfolioRead,
 )
 from src.account.service.account import AccountService
+from src.account.service.csv_account import CsvAccountService
 from src.account.service.portfolio import PortfolioService
 from src.account.service.position import PositionService
 from src.auth.api import AuthorizationApi, UserApi, current_user
 from src.auth.api_types import User
 from src.config.limiter import limiter
-from src.core.enum import InstitutionEnum
 from src.core.pagination import PaginatedResponse, PaginationParams
 from src.integration.sync_status import get_active_syncs
-from src.market.api import SecurityApi
 
 account_router = APIRouter(prefix="/accounts")
 portfolio_router = APIRouter(prefix="/portfolios")
@@ -220,23 +222,6 @@ async def account_csv_inspect(
     if actual_institution_id is None:
         raise HTTPException(status_code=422, detail="institution_id is required")
 
-    institution_repository = await services.aget(InstitutionRepository)
-    institution = await institution_repository.get(actual_institution_id)
-    if institution is None:
-        raise HTTPException(
-            status_code=404,
-            detail=f"Institution {actual_institution_id} not found",
-        )
-
-    if not institution.csv_import_enabled or not institution.csv_format:
-        raise HTTPException(
-            status_code=400,
-            detail=(
-                f"CSV import is not enabled or configured for institution "
-                f"'{institution.name}'"
-            ),
-        )
-
     try:
         content_bytes = await file.read()
         content_str = content_bytes.decode("utf-8-sig")
@@ -246,61 +231,16 @@ async def account_csv_inspect(
             detail=f"Failed to read or decode CSV file: {e}",
         ) from e
 
-    if not content_str or not content_str.strip():
-        raise HTTPException(status_code=400, detail="CSV file is empty")
-
-    parser = await services.aget(GenericCsvParser)
+    csv_account_service = await services.aget(CsvAccountService)
     try:
-        discovered_accounts = parser.parse(content_str, institution.csv_format)
-    except CsvParserError as e:
-        raise HTTPException(status_code=400, detail=str(e)) from e
-
-    return discovered_accounts
-
-
-async def _sync_account_csv_positions(
-    account_id: AccountId,
-    institution_id: InstitutionEnum,
-    csv_positions: list[CsvPositionRecord],
-    services: DepContainer,
-) -> None:
-    """Resolve securities and persist positions for a CSV account."""
-    security_api = await services.aget(SecurityApi)
-    position_api = await services.aget(PositionApi)
-    position_repository = await services.aget(PositionRepository)
-    account_repository = await services.aget(AccountRepository)
-
-    positions: list[Position] = []
-    for pos in csv_positions:
-        try:
-            security = await security_api.get_or_create_from_broker(
-                institution_id=institution_id,
-                broker_symbol=pos.symbol,
-                broker_exchange=pos.exchange or "",
-                broker_name=pos.name or "",
-            )
-        except ValueError as e:
-            raise HTTPException(
-                status_code=400,
-                detail=f"Failed to resolve security for symbol '{pos.symbol}': {e}",
-            ) from e
-
-        positions.append(
-            Position(
-                account_id=account_id,
-                security_id=security.id,
-                quantity=pos.quantity,
-                average_cost=pos.average_cost,
-                currency=pos.currency,
-            )
+        return await csv_account_service.inspect_csv(
+            institution_id=actual_institution_id,
+            csv_content=content_str,
         )
-
-    if positions:
-        await position_api.create(positions)
-    else:
-        await position_repository.sync_by_account(account_id, [])
-
-    await account_repository.update_last_sync_at(account_id)
+    except InstitutionNotFoundError as e:
+        raise HTTPException(status_code=404, detail=str(e)) from e
+    except (CsvImportDisabledError, CsvEmptyError, CsvParserError) as e:
+        raise HTTPException(status_code=400, detail=str(e)) from e
 
 
 def _parse_account_number_item(item: str) -> list[str]:
@@ -329,47 +269,6 @@ def _normalize_account_numbers(raw: list[str] | None) -> list[str]:
     return list(dict.fromkeys(result))
 
 
-def _validate_csv_institution(
-    institution: InstitutionSchema | None, institution_id: int
-) -> None:
-    if institution is None:
-        raise HTTPException(
-            status_code=404,
-            detail=f"Institution {institution_id} not found",
-        )
-    if not institution.csv_import_enabled or not institution.csv_format:
-        inst_name = institution.name if institution else str(institution_id)
-        raise HTTPException(
-            status_code=400,
-            detail=(
-                f"CSV import is not enabled or configured for institution '{inst_name}'"
-            ),
-        )
-
-
-def _check_duplicate_accounts(
-    user_accounts: list[AccountSchema],
-    matching_discovered: list[CsvDiscoveredAccount],
-    institution_id: int,
-) -> None:
-    existing_external_ids = {
-        acc.external_id for acc in user_accounts if acc.institution_id == institution_id
-    }
-    duplicates = [
-        acc.account_number
-        for acc in matching_discovered
-        if acc.account_number in existing_external_ids
-    ]
-    if duplicates:
-        detail_msg = (
-            f"Account(s) already exist for this institution: {', '.join(duplicates)}"
-        )
-        raise HTTPException(
-            status_code=400,
-            detail=detail_msg,
-        )
-
-
 @account_router.post("/csv/import")
 async def account_csv_import(  # noqa: PLR0913, PLR0917
     user: Annotated[User, Depends(current_user)],
@@ -396,12 +295,6 @@ async def account_csv_import(  # noqa: PLR0913, PLR0917
     if not normalized_account_numbers:
         raise HTTPException(status_code=422, detail="account_numbers is required")
 
-    institution_repository = await services.aget(InstitutionRepository)
-    institution = await institution_repository.get(actual_institution_id)
-    _validate_csv_institution(institution, actual_institution_id)
-    assert institution is not None
-    assert institution.csv_format is not None
-
     try:
         content_bytes = await file.read()
         content_str = content_bytes.decode("utf-8-sig")
@@ -411,55 +304,25 @@ async def account_csv_import(  # noqa: PLR0913, PLR0917
             detail=f"Failed to read or decode CSV file: {e}",
         ) from e
 
-    if not content_str or not content_str.strip():
-        raise HTTPException(status_code=400, detail="CSV file is empty")
-
-    parser = await services.aget(GenericCsvParser)
+    csv_account_service = await services.aget(CsvAccountService)
     try:
-        discovered_accounts = parser.parse(content_str, institution.csv_format)
-    except CsvParserError as e:
-        raise HTTPException(status_code=400, detail=str(e)) from e
-
-    requested_set = set(normalized_account_numbers)
-    matching_discovered = [
-        acc for acc in discovered_accounts if acc.account_number in requested_set
-    ]
-    if not matching_discovered:
-        raise HTTPException(
-            status_code=400,
-            detail="No matching accounts found in CSV for requested account numbers",
-        )
-
-    account_repository = await services.aget(AccountRepository)
-    user_accounts = await account_repository.get_by_user(user.id)
-    _check_duplicate_accounts(user_accounts, matching_discovered, actual_institution_id)
-
-    created_accounts: list[AccountSchema] = []
-    for disc_acc in matching_discovered:
-        account_schema = AccountSchema(
-            id=uuid.uuid4(),
-            external_id=disc_acc.account_number,
-            name=disc_acc.account_name,
+        return await csv_account_service.import_accounts(
             user_id=user.id,
-            integration_user_id=None,
-            account_type_id=disc_acc.account_type_id,
-            institution_id=InstitutionEnum(actual_institution_id),
-            currency=Currency(disc_acc.currency),
-            broker_display_name=disc_acc.account_name,
-            is_active=True,
-            api_sync_enabled=False,
+            institution_id=actual_institution_id,
+            account_numbers=normalized_account_numbers,
+            csv_content=content_str,
         )
-        created = await account_repository.create(account_schema)
-        await _sync_account_csv_positions(
-            account_id=created.id,
-            institution_id=InstitutionEnum(actual_institution_id),
-            csv_positions=disc_acc.positions,
-            services=services,
-        )
-        refreshed = await account_repository.get(created.id)
-        created_accounts.append(refreshed if refreshed is not None else created)
-
-    return created_accounts
+    except InstitutionNotFoundError as e:
+        raise HTTPException(status_code=404, detail=str(e)) from e
+    except (
+        CsvImportDisabledError,
+        CsvEmptyError,
+        CsvParserError,
+        NoMatchingAccountsInCsvError,
+        CsvAccountDuplicateError,
+        SecurityResolutionError,
+    ) as e:
+        raise HTTPException(status_code=400, detail=str(e)) from e
 
 
 @account_router.post("/{account_id}/csv-sync")
@@ -479,12 +342,6 @@ async def account_csv_sync(
 
     authorization_api.check_entity_owned_by_user(user, account)
 
-    institution_repository = await services.aget(InstitutionRepository)
-    institution = await institution_repository.get(account.institution_id)
-    _validate_csv_institution(institution, account.institution_id)
-    assert institution is not None
-    assert institution.csv_format is not None
-
     try:
         content_bytes = await file.read()
         content_str = content_bytes.decode("utf-8-sig")
@@ -494,41 +351,24 @@ async def account_csv_sync(
             detail=f"Failed to read or decode CSV file: {e}",
         ) from e
 
-    if not content_str or not content_str.strip():
-        raise HTTPException(status_code=400, detail="CSV file is empty")
-
-    parser = await services.aget(GenericCsvParser)
+    csv_account_service = await services.aget(CsvAccountService)
     try:
-        discovered_accounts = parser.parse(content_str, institution.csv_format)
-    except CsvParserError as e:
-        raise HTTPException(status_code=400, detail=str(e)) from e
-
-    matching_account = next(
-        (
-            acc
-            for acc in discovered_accounts
-            if acc.account_number == account.external_id
-        ),
-        None,
-    )
-    if matching_account is None:
-        raise HTTPException(
-            status_code=400,
-            detail=f"No account matching '{account.external_id}' found in CSV",
+        return await csv_account_service.sync_account_from_csv(
+            account=account,
+            csv_content=content_str,
         )
-
-    await _sync_account_csv_positions(
-        account_id=account.id,
-        institution_id=InstitutionEnum(account.institution_id),
-        csv_positions=matching_account.positions,
-        services=services,
-    )
-
-    refreshed = await account_repository.get(account.id)
-    if refreshed is None:
-        raise HTTPException(status_code=404, detail="Account not found")
-
-    return refreshed
+    except AccountNotFoundError as e:
+        raise HTTPException(status_code=404, detail=str(e)) from e
+    except InstitutionNotFoundError as e:
+        raise HTTPException(status_code=404, detail=str(e)) from e
+    except (
+        CsvImportDisabledError,
+        CsvEmptyError,
+        CsvParserError,
+        AccountNotInCsvError,
+        SecurityResolutionError,
+    ) as e:
+        raise HTTPException(status_code=400, detail=str(e)) from e
 
 
 @account_router.patch("/{account_id}/rename")
