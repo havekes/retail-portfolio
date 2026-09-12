@@ -36,3 +36,13 @@ class PortfolioNotFoundError(EntityNotFoundError):
         self.entity_name = "Portfolio"
 
         super().__init__(str(self))
+
+
+class ApiSyncDisabledError(Exception):
+    """Raised when an API sync is attempted on an account
+    with api_sync_enabled=False.
+    """
+
+    def __init__(self, account_id: AccountId):
+        self.account_id = account_id
+        super().__init__(f"API sync is not enabled for account {account_id}")

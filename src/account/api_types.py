@@ -3,7 +3,7 @@ from decimal import Decimal
 from typing import Any
 from uuid import UUID
 
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel, ConfigDict, Field
 from stockholm import Currency, Money
 
 from src.auth.api_types import UserId
@@ -28,6 +28,7 @@ class Account(BaseModel):
     currency: Currency
     broker_display_name: str | None = None
     is_active: bool = True
+    api_sync_enabled: bool = True
     last_sync_at: datetime | None = None
 
 
@@ -50,12 +51,34 @@ class AccountRenameRequest(BaseModel):
 
 
 class Institution(BaseModel):
+    """Institution API type.
+
+    Specification of `csv_format`:
+    A comma-separated positional template string matching expected CSV export columns
+    in order. Standard placeholders include:
+      - {account_name}, {account_type}, {account_classification}, {account_number}
+      - {symbol}, {exchange}, {mic}, {name}, {security_type}
+      - {quantity}, {position_direction}, {market_price}, {market_price_currency}
+      - {book_value_cad}, {book_value_currency_cad}, {book_value}, {currency}
+      - {market_value}, {market_value_currency}, {market_unrealized_returns}
+      - {market_unrealized_returns_currency}
+    """
+
     id: InstitutionEnum
     name: str
     country: str
     website: str | None
     is_active: bool
     integration_enabled: bool
+    csv_import_enabled: bool = False
+    csv_format: str | None = Field(
+        default=None,
+        description=(
+            "Positional column template string matching expected CSV export columns "
+            "in order. Format: comma-separated list of placeholder tokens "
+            "(e.g., '{account_number},{symbol},{quantity}')."
+        ),
+    )
 
 
 class UserPreferences(BaseModel):

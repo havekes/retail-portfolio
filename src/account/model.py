@@ -51,6 +51,7 @@ class AccountModel(BaseModel):
     broker_display_name: Mapped[str | None] = mapped_column(String, nullable=True)
     net_deposits: Mapped[Decimal | None] = mapped_column(Float, nullable=True)
     is_active: Mapped[bool] = mapped_column(Boolean, default=True)
+    api_sync_enabled: Mapped[bool] = mapped_column(Boolean, default=True)
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), default=func.now()
     )
@@ -160,7 +161,25 @@ class AccountTypeModel(BaseModel):
 
 
 class InstitutionModel(BaseModel):
-    """Institution model."""
+    """Institution model.
+
+    Specification of `csv_format`:
+    A comma-separated positional template string matching expected CSV export columns
+    in order. Each column position is represented by a standardized placeholder:
+      - {account_name}, {account_type}, {account_classification}, {account_number}
+      - {symbol}, {exchange}, {mic}, {name}, {security_type}
+      - {quantity}, {position_direction}, {market_price}, {market_price_currency}
+      - {book_value_cad}, {book_value_currency_cad}, {book_value}, {currency}
+      - {market_value}, {market_value_currency}, {market_unrealized_returns}
+      - {market_unrealized_returns_currency}
+
+    Guidance for future brokers/institutions:
+      1. Determine the exact ordered column sequence of the broker's
+         exported CSV header.
+      2. Construct a comma-separated string mapping each column position in order to the
+         matching standard {variable} placeholders above.
+      3. Set `csv_format` to this template string and set `csv_import_enabled = True`.
+    """
 
     __tablename__ = "account_institutions"
 
@@ -170,6 +189,15 @@ class InstitutionModel(BaseModel):
     website: Mapped[str | None] = mapped_column(String, nullable=True)
     is_active: Mapped[bool] = mapped_column(Boolean, default=True)
     integration_enabled: Mapped[bool] = mapped_column(Boolean, default=False)
+    csv_import_enabled: Mapped[bool] = mapped_column(Boolean, default=False)
+    csv_format: Mapped[str | None] = mapped_column(
+        String,
+        nullable=True,
+        doc=(
+            "Positional column template string matching expected CSV export columns "
+            "in order (e.g., '{account_number},{symbol},{quantity}')."
+        ),
+    )
 
     __table_args__ = (UniqueConstraint("name", "country"),)
 

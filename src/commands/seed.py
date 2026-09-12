@@ -102,6 +102,53 @@ async def _seed_account_types(session):
     return account_types
 
 
+WEALTHSIMPLE_CSV_FORMAT = (
+    "{account_name},{account_type},{account_classification},{account_number},"
+    "{symbol},{exchange},{mic},{name},{security_type},{quantity},"
+    "{position_direction},{market_price},{market_price_currency},"
+    "{book_value_cad},{book_value_currency_cad},{book_value},{currency},"
+    "{market_value},{market_value_currency},{market_unrealized_returns},"
+    "{market_unrealized_returns_currency}"
+)
+"""Wealthsimple CSV export column template.
+
+Specification of csv_format:
+The csv_format field defines a comma-separated positional template string that
+maps each column in an institution's exported CSV file to a standardized field
+name in left-to-right order.
+
+Standard placeholders:
+  - {account_name}: Account display name
+  - {account_type}: Account type name or code
+  - {account_classification}: Account classification
+  - {account_number}: Broker account identifier or number
+  - {symbol}: Ticker or instrument symbol
+  - {exchange}: Exchange code (e.g., TSX, NASDAQ)
+  - {mic}: Market Identifier Code
+  - {name}: Security or asset name
+  - {security_type}: Security type category
+  - {quantity}: Number of shares or units held
+  - {position_direction}: Direction (e.g. LONG)
+  - {market_price}: Current price per unit
+  - {market_price_currency}: Currency of market price
+  - {book_value_cad}: Total cost basis in CAD
+  - {book_value_currency_cad}: Currency (CAD)
+  - {book_value}: Total cost basis / book value
+  - {currency}: Base / holding currency code
+  - {market_value}: Total current market value
+  - {market_value_currency}: Currency of market value
+  - {market_unrealized_returns}: Unrealized gain / loss
+  - {market_unrealized_returns_currency}: Currency of unrealized returns
+
+Guidance for future brokers/institutions:
+  When onboarding a new broker with CSV import capability:
+  1. Inspect the broker's exported CSV header row.
+  2. Construct a comma-separated string mapping each column index to the
+     appropriate standard placeholder above.
+  3. Assign this string to csv_format and set csv_import_enabled = True.
+"""
+
+
 async def _seed_institutions(session):
     rprint("Seeding institutions...")
     institutions_data = [
@@ -111,6 +158,8 @@ async def _seed_institutions(session):
             "country": "CA",
             "website": "https://www.wealthsimple.com",
             "integration_enabled": True,
+            "csv_import_enabled": True,
+            "csv_format": WEALTHSIMPLE_CSV_FORMAT,
         },
     ]
 
@@ -137,6 +186,8 @@ async def _seed_institutions(session):
         else:
             inst.integration_enabled = True
             inst.is_active = True
+            inst.csv_import_enabled = True
+            inst.csv_format = WEALTHSIMPLE_CSV_FORMAT
 
         institutions[inst_data["id"]] = inst
     rprint(f"Seeded {len(institutions)} institutions")

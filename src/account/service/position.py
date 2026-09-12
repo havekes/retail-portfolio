@@ -8,7 +8,7 @@ from stockholm.currency import BaseCurrency
 from svcs import Container
 
 from src.account.api_types import Account, AccountId, AccountTotals, PositionId
-from src.account.exception import AccountNotFoundError
+from src.account.exception import AccountNotFoundError, ApiSyncDisabledError
 from src.account.repository import (
     AccountRepository,
     PositionRepository,
@@ -65,6 +65,9 @@ class PositionService:
         """Sync positions for an account from the broker."""
         # Check that account exists
         account = await self._account_service.get_account(account_id)
+
+        if not account.api_sync_enabled:
+            raise ApiSyncDisabledError(account_id)
 
         if account.integration_user_id is None:
             # Nothing to do since the account was not imported from broker

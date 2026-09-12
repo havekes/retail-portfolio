@@ -21,6 +21,8 @@ class InstitutionApi:
                 website=institution.website,
                 is_active=institution.is_active,
                 integration_enabled=institution.integration_enabled,
+                csv_import_enabled=institution.csv_import_enabled,
+                csv_format=institution.csv_format,
             )
             for institution in institutions
         ]
