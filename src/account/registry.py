@@ -12,6 +12,7 @@ from src.account.api.position import (
     PositionApi,
     position_api_factory,
 )
+from src.account.csv import GenericCsvParser
 from src.account.repository import (
     AccountRepository,
     InstitutionRepository,
@@ -55,3 +56,4 @@ def register_account_services(registry: Registry):
     registry.register_factory(AccountService, account_service_factory)
     registry.register_factory(PortfolioService, portfolio_service_factory)
     registry.register_factory(PositionService, position_service_factory)
+    registry.register_value(GenericCsvParser, GenericCsvParser())
