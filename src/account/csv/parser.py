@@ -144,7 +144,7 @@ def _parse_position(
         try:
             bv_clean = book_val_str.replace(",", "").replace("$", "")
             book_value = Decimal(bv_clean)
-        except InvalidOperation, ValueError:
+        except (InvalidOperation, ValueError):  # fmt: skip
             book_value = None
 
     avg_cost = calculate_average_cost(quantity, book_value)
