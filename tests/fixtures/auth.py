@@ -29,19 +29,11 @@ from src.market.schema import SecuritySchema
 class MockEodhdGateway(MarketGateway):
     """Mock implementation of EodhdGateway for testing."""
 
-    def search(self, query: str) -> list[SecuritySearchResult]:  # noqa: ARG002
+    def search(self, query: str) -> list[SecuritySearchResult]:
         """Return a mock search result."""
-        return [
-            SecuritySearchResult(
-                code="AAPL",
-                exchange="NASDAQ",
-                name="Apple Inc",
-                currency="USD",
-                security_type="Common Stock",
-                isin="US0378331005",
-                country="US",
-            )
-        ]
+        from src.stubs.eodhd import StubEodhdGateway
+
+        return StubEodhdGateway(api_key="mock").search(query)
 
     def get_price_on_date(
         self,

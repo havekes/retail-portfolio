@@ -29,6 +29,10 @@ from src.account.service.account import (
     AccountService,
     account_service_factory,
 )
+from src.account.service.csv_account import (
+    CsvAccountService,
+    csv_account_service_factory,
+)
 from src.account.service.portfolio import (
     PortfolioService,
     portfolio_service_factory,
@@ -54,6 +58,7 @@ def register_account_services(registry: Registry):
     registry.register_factory(InstitutionApi, institution_api_factory)
     registry.register_factory(PositionApi, position_api_factory)
     registry.register_factory(AccountService, account_service_factory)
+    registry.register_factory(CsvAccountService, csv_account_service_factory)
     registry.register_factory(PortfolioService, portfolio_service_factory)
     registry.register_factory(PositionService, position_service_factory)
     registry.register_value(GenericCsvParser, GenericCsvParser())

@@ -191,8 +191,8 @@ class StubEodhdGateway(MarketGateway):
 
     def search(self, query: str) -> list[SecuritySearchResult]:
         """Search for securities."""
-        _ = query  # Unused in stub mode
-        return [
+        clean_query = query.strip()
+        known = [
             SecuritySearchResult(
                 code="AAPL",
                 exchange="NASDAQ",
@@ -220,7 +220,50 @@ class StubEodhdGateway(MarketGateway):
                 isin="CA7800625089",
                 country="CA",
             ),
+            SecuritySearchResult(
+                code="TD",
+                exchange="TSX",
+                name="Toronto-Dominion Bank",
+                currency="CAD",
+                security_type="Common Stock",
+                isin="CA8911605092",
+                country="CA",
+            ),
         ]
+
+        if not clean_query:
+            return known
+
+        query_upper = clean_query.upper()
+        if "." in query_upper:
+            symbol_part, exchange_part = query_upper.split(".", 1)
+        elif ":" in query_upper:
+            parts = query_upper.split(":", 1)
+            if parts[0] in ("US", "TO", "TSX", "NASDAQ", "NYSE"):
+                exchange_part, symbol_part = parts[0], parts[1]
+            else:
+                symbol_part, exchange_part = parts[0], parts[1]
+        else:
+            symbol_part = query_upper
+            exchange_part = "US"
+
+        for k in known:
+            if k.code == symbol_part:
+                return [k, *[item for item in known if item.code != symbol_part]]
+
+        is_ca = exchange_part in ("TSX", "TO", "V", "NEO", "CN")
+        currency = "CAD" if is_ca else "USD"
+        country = "CA" if is_ca else "US"
+        generated = SecuritySearchResult(
+            code=symbol_part,
+            exchange=exchange_part or ("TSX" if is_ca else "NASDAQ"),
+            name=f"{symbol_part} Inc.",
+            currency=currency,
+            security_type="Common Stock",
+            isin=f"{country}{symbol_part:0<10}"[:12],
+            country=country,
+        )
+        return [generated, *known]
 
     def get_price_on_date(
         self,
