@@ -2,7 +2,17 @@ from typing import Annotated
 from uuid import UUID
 
 import redis
-from fastapi import APIRouter, Depends, HTTPException, Request, Response
+from fastapi import (
+    APIRouter,
+    Depends,
+    File,
+    Form,
+    HTTPException,
+    Query,
+    Request,
+    Response,
+    UploadFile,
+)
 from svcs.fastapi import DepContainer
 
 from src.account.api_types import (
@@ -12,8 +22,9 @@ from src.account.api_types import (
     PortfolioId,
     UserPreferences,
 )
+from src.account.csv import CsvDiscoveredAccount, CsvParserError, GenericCsvParser
 from src.account.exception import AccountNotFoundError, ApiSyncDisabledError
-from src.account.repository import AccountRepository
+from src.account.repository import AccountRepository, InstitutionRepository
 from src.account.schema import (
     AccountHoldingRead,
     AccountHoldingsRead,
@@ -173,6 +184,61 @@ async def patch_preferences(
     return await user_api.patch_preferences(
         user.id, payload.model_dump(exclude_none=True)
     )
+
+
+@account_router.post("/csv/inspect")
+async def account_csv_inspect(
+    user: Annotated[User, Depends(current_user)],  # noqa: ARG001
+    file: Annotated[UploadFile, File(...)],
+    services: DepContainer,
+    institution_id: Annotated[int | None, Form()] = None,
+    institution_id_query: Annotated[int | None, Query(alias="institution_id")] = None,
+) -> list[CsvDiscoveredAccount]:
+    """
+    Inspect an uploaded CSV file and return discovered accounts with preview positions.
+    """
+    actual_institution_id = (
+        institution_id if institution_id is not None else institution_id_query
+    )
+    if actual_institution_id is None:
+        raise HTTPException(status_code=422, detail="institution_id is required")
+
+    institution_repository = await services.aget(InstitutionRepository)
+    institution = await institution_repository.get(actual_institution_id)
+    if institution is None:
+        raise HTTPException(
+            status_code=404,
+            detail=f"Institution {actual_institution_id} not found",
+        )
+
+    if not institution.csv_import_enabled or not institution.csv_format:
+        raise HTTPException(
+            status_code=400,
+            detail=(
+                f"CSV import is not enabled or configured for institution "
+                f"'{institution.name}'"
+            ),
+        )
+
+    try:
+        content_bytes = await file.read()
+        content_str = content_bytes.decode("utf-8-sig")
+    except Exception as e:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Failed to read or decode CSV file: {e}",
+        ) from e
+
+    if not content_str or not content_str.strip():
+        raise HTTPException(status_code=400, detail="CSV file is empty")
+
+    parser = await services.aget(GenericCsvParser)
+    try:
+        discovered_accounts = parser.parse(content_str, institution.csv_format)
+    except CsvParserError as e:
+        raise HTTPException(status_code=400, detail=str(e)) from e
+
+    return discovered_accounts
 
 
 @account_router.patch("/{account_id}/rename")

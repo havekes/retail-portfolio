@@ -51,6 +51,15 @@ class SqlAlchemyInstitutionRepository(InstitutionRepository):
             for institution_model in institution_models
         ]
 
+    @override
+    async def get(self, institution_id: int) -> InstitutionSchema | None:
+        q = select(InstitutionModel).where(InstitutionModel.id == institution_id)
+        result = await self._session.execute(q)
+        institution_model = result.scalar_one_or_none()
+        if institution_model is None:
+            return None
+        return InstitutionSchema.model_validate(institution_model)
+
 
 async def sqlalchemy_institution_repository_factory(
     container: Container,

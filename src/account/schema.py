@@ -11,6 +11,10 @@ from src.account.api_types import (
     PortfolioId,
     PositionId,
 )
+from src.account.csv.schema import (
+    CsvDiscoveredAccount,
+    CsvPositionRecord,
+)
 from src.auth.api_types import UserId
 from src.core.enum import AccountTypeEnum, InstitutionEnum
 from src.core.pagination import PaginatedResponse
@@ -94,7 +98,7 @@ class InstitutionSchema(BaseModel):
 
     model_config = ConfigDict(from_attributes=True)
 
-    id: InstitutionEnum
+    id: InstitutionEnum | int
     name: str
     country: str
     website: str | None

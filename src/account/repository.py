@@ -19,6 +19,10 @@ class InstitutionRepository(ABC):
     async def get_all_enabled_integrations(self) -> list[InstitutionSchema]:
         pass
 
+    @abstractmethod
+    async def get(self, institution_id: int) -> InstitutionSchema | None:
+        pass
+
 
 class AccountRepository(ABC):
     @abstractmethod

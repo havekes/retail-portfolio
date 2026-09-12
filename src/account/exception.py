@@ -1,6 +1,12 @@
 from typing import override
 
 from src.account.api_types import AccountId, PortfolioId
+from src.account.csv.exceptions import (
+    CsvEmptyError,
+    CsvHeaderValidationError,
+    CsvParserError,
+    CsvRowValidationError,
+)
 from src.core.enum import InstitutionEnum
 from src.core.exception import AuthorizationError, EntityNotFoundError
 

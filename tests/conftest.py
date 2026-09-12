@@ -21,6 +21,7 @@ from src.account.model import (
     AccountTypeModel,
     InstitutionModel,
 )
+from src.commands.seed import WEALTHSIMPLE_CSV_FORMAT
 from src.config.database import BaseModel, sessionmanager
 from src.ws.manager import ws_manager
 
@@ -177,6 +178,8 @@ async def seed_reference_data(db_session: AsyncSession) -> None:
             name="Wealthsimple",
             country="CA",
             is_active=True,
+            csv_import_enabled=True,
+            csv_format=WEALTHSIMPLE_CSV_FORMAT,
         ),
     ]
 
