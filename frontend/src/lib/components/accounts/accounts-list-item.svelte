@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { getAccountTypeLabel, getInstitutionLabel } from '@/types/account';
+	import { getAccountTypeLabel, getInstitutionLabel, type Account } from '@/types/account';
 	import { Badge } from '$lib/components/ui/badge/index.js';
 	import { Checkbox } from '$lib/components/ui/checkbox/index.js';
 	import EditableTitle from '../forms/editable-title.svelte';
@@ -8,6 +8,8 @@
 	import * as Tooltip from '../ui/tooltip';
 	import { buttonVariants } from '../ui/button';
 	import { AccountsListItemState } from './accounts-list-item.svelte.js';
+	import { ModalState } from '@/utils/modal-state.svelte';
+	import UpdateAccountCsvModal from './update-account-csv-modal.svelte';
 	import RefreshCw from '@lucide/svelte/icons/refresh-cw';
 
 	let {
@@ -18,15 +20,29 @@
 		isSyncing,
 		onSync,
 		syncError,
-		onRename
+		onRename,
+		onAccountUpdated
+	}: {
+		account: Account;
+		selectionMode?: boolean;
+		isSelected?: boolean;
+		onToggleSelection?: () => void;
+		isSyncing?: boolean;
+		onSync?: () => void;
+		syncError?: string | null;
+		onRename?: (name: string) => void;
+		onAccountUpdated?: () => void;
 	} = $props();
 
 	const state = new AccountsListItemState(() => account.id);
+	const csvModalState = new ModalState<void>();
+	let wasSyncing = false;
 
 	$effect(() => {
-		if (!isSyncing) {
+		if (wasSyncing && !isSyncing) {
 			state.invalidateCache(account.id);
 		}
+		wasSyncing = isSyncing ?? false;
 	});
 </script>
 
@@ -58,6 +74,7 @@
 								<Tooltip.Root>
 									<Tooltip.Trigger
 										class={buttonVariants({ variant: 'ghost', size: 'icon' })}
+										aria-label="Syncing positions"
 										disabled
 									>
 										<RefreshCw class="h-4 w-4 animate-spin" />
@@ -72,12 +89,19 @@
 								<Tooltip.Root>
 									<Tooltip.Trigger
 										class={buttonVariants({ variant: 'ghost', size: 'icon' })}
-										onclick={onSync}
+										aria-label={account.api_sync_enabled ? 'Sync positions' : 'Update from CSV'}
+										onclick={() => {
+											if (account.api_sync_enabled) {
+												onSync?.();
+											} else {
+												csvModalState.open();
+											}
+										}}
 									>
 										<RefreshCw class="h-4 w-4" />
 									</Tooltip.Trigger>
 									<Tooltip.Content>
-										<p>Sync positions</p>
+										<p>{account.api_sync_enabled ? 'Sync positions' : 'Update from CSV'}</p>
 									</Tooltip.Content>
 								</Tooltip.Root>
 							</Tooltip.Provider>
@@ -125,3 +149,12 @@
 		</div>
 	</div>
 </div>
+
+<UpdateAccountCsvModal
+	{account}
+	modalState={csvModalState}
+	onSuccess={() => {
+		state.invalidateCache(account.id);
+		onAccountUpdated?.();
+	}}
+/>
