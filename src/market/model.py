@@ -69,6 +69,15 @@ class SecurityBrokerModel(BaseModel):
         DateTime(timezone=True), default=func.now()
     )
 
+    __table_args__ = (
+        Index(
+            "ix_market_securities_broker_institution_symbol_exchange",
+            "institution_id",
+            "broker_symbol",
+            "broker_exchange",
+        ),
+    )
+
 
 class PriceModel(BaseModel):
     """Security model."""
