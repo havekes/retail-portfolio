@@ -12,6 +12,7 @@ from sqlalchemy.orm import selectinload
 from svcs import Container
 
 from src.auth.api_types import UserId
+from src.core.enum import InstitutionEnum
 from src.market.api_types import SecurityId
 from src.market.exception import SecurityNotFoundError, WatchlistNotFoundError
 from src.market.model import (
@@ -138,49 +139,61 @@ class SqlAlchemySecurityBrokerRepository(SecurityBrokerRepository):
         self._session = session
 
     @override
-    async def get_or_create(
-        self, security_broker: SecurityBrokerSchema
-    ) -> SecurityBrokerSchema:
+    async def get_by_broker(
+        self, institution_id: InstitutionEnum, broker_symbol: str, broker_exchange: str
+    ) -> SecurityBrokerSchema | None:
+        inst_val = (
+            institution_id.value
+            if hasattr(institution_id, "value")
+            else int(institution_id)
+        )
         existing = await self._session.execute(
             select(SecurityBrokerModel)
-            .where(
-                SecurityBrokerModel.institution_id
-                == security_broker.institution_id.value
-            )
-            .where(SecurityBrokerModel.broker_symbol == security_broker.broker_symbol)
-            .where(
-                SecurityBrokerModel.broker_exchange == security_broker.broker_exchange
-            )
+            .where(SecurityBrokerModel.institution_id == inst_val)
+            .where(SecurityBrokerModel.broker_symbol == broker_symbol)
+            .where(SecurityBrokerModel.broker_exchange == broker_exchange)
             .limit(1)
         )
         existing_broker = existing.scalar_one_or_none()
 
-        if existing_broker:
-            return SecurityBrokerSchema.model_validate(existing_broker)
+        if existing_broker is None:
+            return None
+
+        return SecurityBrokerSchema.model_validate(existing_broker)
+
+    @override
+    async def get_or_create(
+        self, security_broker: SecurityBrokerSchema
+    ) -> SecurityBrokerSchema:
+        existing = await self.get_by_broker(
+            institution_id=security_broker.institution_id,
+            broker_symbol=security_broker.broker_symbol,
+            broker_exchange=security_broker.broker_exchange,
+        )
+
+        if existing:
+            return existing
 
         values = {
             k: v
             for k, v in security_broker.model_dump().items()
             if k not in ("id", "created_at")
         }
-        values["institution_id"] = security_broker.institution_id.value
+        values["institution_id"] = (
+            security_broker.institution_id.value
+            if hasattr(security_broker.institution_id, "value")
+            else int(security_broker.institution_id)
+        )
         await self._session.execute(insert(SecurityBrokerModel).values(values))
         await self._session.commit()
 
-        security_broker_model = await self._session.execute(
-            select(SecurityBrokerModel)
-            .where(
-                SecurityBrokerModel.institution_id
-                == security_broker.institution_id.value
-            )
-            .where(SecurityBrokerModel.broker_symbol == security_broker.broker_symbol)
-            .where(
-                SecurityBrokerModel.broker_exchange == security_broker.broker_exchange
-            )
-            .limit(1)
+        created = await self.get_by_broker(
+            institution_id=security_broker.institution_id,
+            broker_symbol=security_broker.broker_symbol,
+            broker_exchange=security_broker.broker_exchange,
         )
-        security_broker_model = security_broker_model.scalar_one()
-        return SecurityBrokerSchema.model_validate(security_broker_model)
+        assert created is not None
+        return created
 
 
 async def sqlalchemy_security_broker_repository_factory(

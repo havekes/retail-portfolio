@@ -1,6 +1,7 @@
 import datetime
 import uuid
 from decimal import Decimal
+from typing import cast
 
 import pytest
 from pydantic import ValidationError
@@ -13,13 +14,20 @@ from src.auth.repository_sqlalchemy import (
     SqlAlchemyTotpRepository,
     SqlAlchemyUserRepository,
 )
+from src.core.enum import InstitutionEnum
 from src.market.api_types import IntradayPrice
 from src.market.repository_sqlalchemy import (
     SqlAlchemyIntradayPriceRepository,
     SqlAlchemyPriceRepository,
+    SqlAlchemySecurityBrokerRepository,
     SqlAlchemySecurityRepository,
 )
-from src.market.schema import IntradayPriceSchema, PriceSchema, SecuritySchema
+from src.market.schema import (
+    IntradayPriceSchema,
+    PriceSchema,
+    SecurityBrokerSchema,
+    SecuritySchema,
+)
 
 
 @pytest.mark.anyio
@@ -654,3 +662,90 @@ async def test_passkey_cascade_on_user_delete(db_session: AsyncSession):
     await db_session.commit()
 
     assert await passkey_repo.get_by_id(passkey.id) is None
+
+
+@pytest.mark.anyio
+async def test_sqlalchemy_security_broker_repository_get_by_broker(
+    db_session: AsyncSession,
+):
+    """Test get_by_broker returns None when absent and SecurityBrokerSchema when present."""
+    security_repo = SqlAlchemySecurityRepository(db_session)
+    broker_repo = SqlAlchemySecurityBrokerRepository(db_session)
+
+    # 1. Non-existent mapping returns None
+    missing = await broker_repo.get_by_broker(
+        institution_id=InstitutionEnum.WEALTHSIMPLE,
+        broker_symbol="SHOP",
+        broker_exchange="TSX",
+    )
+    assert missing is None
+
+    # Create underlying security (required for foreign key)
+    security = await security_repo.get_or_create(
+        SecuritySchema(
+            id=uuid.uuid4(),
+            symbol="SHOP",
+            exchange="TO",
+            currency="CAD",
+            name="Shopify Inc",
+            isin="CA82509L1076",
+            is_active=True,
+            updated_at=datetime.datetime.now(datetime.UTC),
+        )
+    )
+
+    # 2. Create broker mapping
+    created = await broker_repo.get_or_create(
+        SecurityBrokerSchema(
+            institution_id=InstitutionEnum.WEALTHSIMPLE,
+            broker_symbol="SHOP",
+            mapped_symbol="SHOP",
+            broker_exchange="TSX",
+            mapped_exchange="TO",
+            broker_name="Shopify Inc",
+            security_id=security.id,
+            search_results=[],
+        )
+    )
+    assert created.id is not None
+    assert created.security_id == security.id
+
+    # 3. Existing mapping returns matching SecurityBrokerSchema
+    found = await broker_repo.get_by_broker(
+        institution_id=InstitutionEnum.WEALTHSIMPLE,
+        broker_symbol="SHOP",
+        broker_exchange="TSX",
+    )
+    assert found is not None
+    assert found.id == created.id
+    assert found.institution_id == InstitutionEnum.WEALTHSIMPLE
+    assert found.broker_symbol == "SHOP"
+    assert found.broker_exchange == "TSX"
+    assert found.security_id == security.id
+
+    # 4. Mismatched query fields return None
+    assert (
+        await broker_repo.get_by_broker(
+            institution_id=InstitutionEnum.WEALTHSIMPLE,
+            broker_symbol="OTHER",
+            broker_exchange="TSX",
+        )
+        is None
+    )
+    assert (
+        await broker_repo.get_by_broker(
+            institution_id=InstitutionEnum.WEALTHSIMPLE,
+            broker_symbol="SHOP",
+            broker_exchange="NYSE",
+        )
+        is None
+    )
+    assert (
+        await broker_repo.get_by_broker(
+            institution_id=cast(InstitutionEnum, 999),
+            broker_symbol="SHOP",
+            broker_exchange="TSX",
+        )
+        is None
+    )
+
