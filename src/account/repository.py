@@ -1,7 +1,5 @@
 from abc import ABC, abstractmethod
 
-from stockholm import Currency
-
 from src.account.api_types import AccountId, PortfolioId
 from src.account.schema import (
     AccountHoldingRead,

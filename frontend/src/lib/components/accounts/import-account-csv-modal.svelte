@@ -40,6 +40,7 @@
 	let isDragging = $state(false);
 
 	const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
+	const COMMON_CURRENCIES = ['CAD', 'USD', 'EUR', 'GBP', 'AUD', 'CHF', 'JPY'] as const;
 
 	let isModalOpen = $derived(modalState ? modalState.isOpen : open);
 
@@ -407,13 +408,14 @@
 													data-testid="account-currency-select"
 													aria-label={`Currency for ${acc.account_name}`}
 												>
-													<option value="CAD">CAD</option>
-													<option value="USD">USD</option>
-													<option value="EUR">EUR</option>
-													<option value="GBP">GBP</option>
-													<option value="AUD">AUD</option>
-													<option value="CHF">CHF</option>
-													<option value="JPY">JPY</option>
+													{#if acc.currency && !COMMON_CURRENCIES.includes(acc.currency.toUpperCase() as (typeof COMMON_CURRENCIES)[number])}
+														<option value={acc.currency.toUpperCase()}
+															>{acc.currency.toUpperCase()}</option
+														>
+													{/if}
+													{#each COMMON_CURRENCIES as curr (curr)}
+														<option value={curr}>{curr}</option>
+													{/each}
 												</select>
 											</Table.Cell>
 											<Table.Cell class="text-right">{acc.positions_count}</Table.Cell>

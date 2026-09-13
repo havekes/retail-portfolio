@@ -4,7 +4,6 @@ from typing import override
 from sqlalchemy import delete, func, select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
-from stockholm import Currency
 from svcs import Container
 
 from src.account.api_types import AccountId, PortfolioId
