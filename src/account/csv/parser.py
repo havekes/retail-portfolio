@@ -27,6 +27,41 @@ def normalize_token(token: str) -> str:
     return re.sub(r"[^a-z0-9]+", "_", cleaned.lower()).strip("_")
 
 
+HEADER_ALIASES: dict[str, set[str]] = {
+    "book_value": {
+        "book_value",
+        "book_value_market",
+        "book_value_cad",
+        "cost_basis",
+        "total_cost",
+    },
+    "currency": {
+        "currency",
+        "book_value_currency_market",
+        "book_value_currency_cad",
+        "market_price_currency",
+        "currency_code",
+    },
+    "account_number": {"account_number", "account_no", "account_id"},
+    "account_name": {"account_name", "account"},
+    "account_type": {"account_type", "type"},
+    "symbol": {"symbol", "ticker"},
+    "quantity": {"quantity", "qty", "shares", "units"},
+    "exchange": {"exchange", "market"},
+    "name": {"name", "description", "security_name"},
+    "security_type": {"security_type", "asset_type", "type"},
+}
+
+
+def header_matches(expected: str, actual: str) -> bool:
+    """Check if an actual header matches the expected token or a known alias."""
+    if expected == actual:
+        return True
+    if actual in HEADER_ALIASES.get(expected, set()):
+        return True
+    return expected in HEADER_ALIASES.get(actual, set())
+
+
 ACCOUNT_TYPE_MAP: dict[str, AccountTypeEnum] = {
     # TFSA
     "tfsa": AccountTypeEnum.TFSA,
@@ -119,7 +154,7 @@ def _validate_headers(
     for idx, (expected, actual) in enumerate(
         zip(expected_tokens, actual_headers, strict=False)
     ):
-        if expected != actual:
+        if not header_matches(expected, actual):
             raise CsvHeaderColumnMismatchError(idx + 1, expected, actual)
 
 
@@ -138,7 +173,12 @@ def _parse_position(
     except (InvalidOperation, ValueError) as e:
         raise CsvInvalidQuantityError(row_idx, qty_str, symbol) from e
 
-    book_val_str = row_dict.get("book_value", "").strip()
+    book_val_str = (
+        row_dict.get("book_value")
+        or row_dict.get("book_value_market")
+        or row_dict.get("book_value_cad")
+        or ""
+    ).strip()
     book_value: Decimal | None = None
     if book_val_str:
         try:
@@ -150,7 +190,12 @@ def _parse_position(
     avg_cost = calculate_average_cost(quantity, book_value)
     exchange = row_dict.get("exchange", "").strip() or None
     pos_name = row_dict.get("name", "").strip() or None
-    pos_currency = row_dict.get("currency", "").strip() or account_currency
+    pos_currency = (
+        row_dict.get("currency")
+        or row_dict.get("book_value_currency_market")
+        or row_dict.get("book_value_currency_cad")
+        or account_currency
+    ).strip()
 
     return CsvPositionRecord(
         symbol=symbol,
@@ -203,7 +248,12 @@ class GenericCsvParser:
                     acc_type_id, acc_type_id.name
                 )
                 account_name = row_dict.get("account_name", "").strip()
-                currency = row_dict.get("currency", "").strip() or "CAD"
+                currency = (
+                    row_dict.get("currency")
+                    or row_dict.get("book_value_currency_market")
+                    or row_dict.get("market_price_currency")
+                    or "CAD"
+                ).strip()
 
                 accounts_order.append(account_num)
                 accounts_data[account_num] = {

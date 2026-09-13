@@ -57,6 +57,35 @@ def test_parser_valid_single_account():
     assert pos.currency == "CAD"
 
 
+def test_parser_valid_real_wealthsimple_headers():
+    """Verify parser accepts real Wealthsimple export headers with Book Value (Market) and Book Value Currency (Market)."""
+    real_ws_header = (
+        "Account Name,Account Type,Account Classification,Account Number,"
+        "Symbol,Exchange,MIC,Name,Security Type,Quantity,Position Direction,"
+        "Market Price,Market Price Currency,Book Value (CAD),Book Value Currency (CAD),"
+        "Book Value (Market),Book Value Currency (Market),Market Value,Market Value Currency,"
+        "Market Unrealized Returns,Market Unrealized Returns Currency"
+    )
+    csv_content = (
+        f"{real_ws_header}\n"
+        "My TFSA,TFSA,Personal,W987654321,"
+        "XEQT,TSX,XTSE,iShares Core Equity ETF Portfolio,Equity,50,LONG,"
+        "28.00,CAD,1350.00,CAD,1350.00,CAD,1400.00,CAD,50.00,CAD\n"
+    )
+    accounts = GenericCsvParser.parse(csv_content, WEALTHSIMPLE_CSV_FORMAT)
+    assert len(accounts) == 1
+    acc = accounts[0]
+    assert acc.account_number == "W987654321"
+    assert acc.account_type_id == AccountTypeEnum.TFSA
+    assert acc.currency == "CAD"
+    assert len(acc.positions) == 1
+    pos = acc.positions[0]
+    assert pos.symbol == "XEQT"
+    assert pos.quantity == Decimal("50")
+    assert pos.average_cost == Decimal("27.0000")
+    assert pos.currency == "CAD"
+
+
 def test_parser_valid_multiple_accounts():
     """Verify multiple accounts parsing grouped by account_number."""
     csv_content = (
