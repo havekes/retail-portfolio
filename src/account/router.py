@@ -281,6 +281,8 @@ async def account_csv_import(  # noqa: PLR0913, PLR0917
     account_numbers_query: Annotated[
         list[str] | None, Query(alias="account_numbers")
     ] = None,
+    currencies: Annotated[str | None, Form()] = None,
+    currencies_query: Annotated[str | None, Query(alias="currencies")] = None,
 ) -> list[AccountSchema]:
     """Import selected accounts and positions from an uploaded CSV file."""
     actual_institution_id = (
@@ -295,6 +297,16 @@ async def account_csv_import(  # noqa: PLR0913, PLR0917
     normalized_account_numbers = _normalize_account_numbers(raw_account_numbers)
     if not normalized_account_numbers:
         raise HTTPException(status_code=422, detail="account_numbers is required")
+
+    raw_currencies = currencies if currencies is not None else currencies_query
+    parsed_currencies: dict[str, str] = {}
+    if raw_currencies:
+        try:
+            parsed = json.loads(raw_currencies)
+            if isinstance(parsed, dict):
+                parsed_currencies = {str(k): str(v).upper() for k, v in parsed.items()}
+        except json.JSONDecodeError, ValueError:
+            pass
 
     try:
         content_bytes = await file.read()
@@ -312,6 +324,7 @@ async def account_csv_import(  # noqa: PLR0913, PLR0917
             institution_id=actual_institution_id,
             account_numbers=normalized_account_numbers,
             csv_content=content_str,
+            account_currencies=parsed_currencies,
         )
     except InstitutionNotFoundError as e:
         raise HTTPException(status_code=404, detail=str(e)) from e

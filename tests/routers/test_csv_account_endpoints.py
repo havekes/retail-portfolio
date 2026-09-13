@@ -1,5 +1,6 @@
 """Integration tests for CSV account import and sync endpoints."""
 
+import json
 from decimal import Decimal
 from uuid import uuid4
 
@@ -447,3 +448,24 @@ async def test_csv_sync_account_not_found(auth_client, seed_reference_data: None
         files=files,
     )
     assert response.status_code == 404
+
+
+@pytest.mark.anyio
+async def test_csv_import_with_currencies(
+    auth_client, seed_reference_data: None
+):
+    """Import with explicit currencies parameter creates account with selected currency."""
+    files = {"file": ("ws.csv", VALID_CSV.encode("utf-8"), "text/csv")}
+    response = await auth_client.post(
+        "/api/v1/accounts/csv/import",
+        files=files,
+        data={
+            "institution_id": str(InstitutionEnum.WEALTHSIMPLE.value),
+            "account_numbers": "W123456789",
+            "currencies": json.dumps({"W123456789": "USD"}),
+        },
+    )
+    assert response.status_code == 200
+    data = response.json()
+    assert len(data) == 1
+    assert data[0]["currency"] == "USD"

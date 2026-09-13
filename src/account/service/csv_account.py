@@ -90,13 +90,16 @@ class CsvAccountService:
         if user_id is not None:
             user_accounts = await self._account_repository.get_by_user(user_id)
             raw_inst_id = int(institution_id)
-            existing_external_ids = {
-                acc.external_id
+            existing_by_ext_id = {
+                acc.external_id: acc
                 for acc in user_accounts
                 if acc.external_id and int(acc.institution_id) == raw_inst_id
             }
             for acc in discovered:
-                acc.exists = acc.account_number in existing_external_ids
+                existing = existing_by_ext_id.get(acc.account_number)
+                if existing is not None:
+                    acc.exists = True
+                    acc.currency = str(existing.currency)
 
         return discovered
 
@@ -106,6 +109,7 @@ class CsvAccountService:
         institution_id: int | InstitutionEnum,
         account_numbers: list[str],
         csv_content: str,
+        account_currencies: dict[str, str] | None = None,
     ) -> list[AccountSchema]:
         """Import or update selected accounts and positions from CSV content."""
         institution = await self.validate_csv_institution(institution_id)
@@ -135,9 +139,26 @@ class CsvAccountService:
 
         result_accounts: list[AccountSchema] = []
         for disc_acc in matching_discovered:
+            chosen_currency = (
+                (
+                    (account_currencies.get(disc_acc.account_number) or "")
+                    if account_currencies
+                    else ""
+                )
+                .strip()
+                .upper()
+                or disc_acc.currency
+                or "CAD"
+            )
+
             existing = existing_by_ext_id.get(disc_acc.account_number)
             if existing is not None:
-                # Existing account: update holdings
+                # Existing account: update currency if specified and different
+                if chosen_currency and str(existing.currency) != chosen_currency:
+                    await self._account_repository.update_currency(
+                        existing.id, chosen_currency
+                    )
+                # update holdings
                 await self.sync_account_csv_positions(
                     account_id=existing.id,
                     institution_id=InstitutionEnum(raw_institution_id),
@@ -155,7 +176,7 @@ class CsvAccountService:
                     integration_user_id=None,
                     account_type_id=disc_acc.account_type_id,
                     institution_id=InstitutionEnum(raw_institution_id),
-                    currency=Currency(disc_acc.currency),
+                    currency=Currency(chosen_currency),
                     broker_display_name=disc_acc.account_name,
                     is_active=True,
                     api_sync_enabled=False,

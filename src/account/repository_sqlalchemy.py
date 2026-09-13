@@ -4,6 +4,7 @@ from typing import override
 from sqlalchemy import delete, func, select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
+from stockholm import Currency
 from svcs import Container
 
 from src.account.api_types import AccountId, PortfolioId
@@ -154,6 +155,21 @@ class SqlAlchemyAccountRepository(AccountRepository):
                 Decimal(str(net_deposits)) if net_deposits is not None else None
             )
             await self._session.commit()
+
+    @override
+    async def update_currency(
+        self, account_id: AccountId, currency: str
+    ) -> AccountSchema:
+        account_model = await self._session.get(AccountModel, account_id)
+        if account_model is None:
+            error = f"Account with id {account_id} not found"
+            raise ValueError(error)
+
+        account_model.currency = currency
+        await self._session.commit()
+        await self._session.refresh(account_model)
+
+        return AccountSchema.model_validate(account_model)
 
     @override
     async def update_last_sync_at(self, account_id: AccountId) -> None:

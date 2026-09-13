@@ -34,6 +34,7 @@
 	let selectedFile = $state<File | null>(null);
 	let detectedAccounts = $state<CsvDiscoveredAccount[]>([]);
 	let selectedAccountNumbers = $state<string[]>([]);
+	let accountCurrencies = $state<Record<string, string>>({});
 	let isLoading = $state(false);
 	let error = $state<string | null>(null);
 	let isDragging = $state(false);
@@ -59,6 +60,7 @@
 		selectedFile = null;
 		detectedAccounts = [];
 		selectedAccountNumbers = [];
+		accountCurrencies = {};
 		error = null;
 		isLoading = false;
 		isDragging = false;
@@ -157,6 +159,10 @@
 			}
 			detectedAccounts = accounts;
 			selectedAccountNumbers = accounts.map((acc) => acc.account_number);
+			accountCurrencies = {};
+			for (const acc of accounts) {
+				accountCurrencies[acc.account_number] = acc.currency || 'CAD';
+			}
 			step = 2;
 		} catch (err) {
 			error = err instanceof Error ? err.message : 'Failed to inspect CSV file.';
@@ -206,7 +212,8 @@
 			await accountClient.importAccountsCsv(
 				selectedInstitutionId,
 				selectedFile,
-				selectedAccountNumbers
+				selectedAccountNumbers,
+				accountCurrencies
 			);
 			closeModal();
 			onSuccess?.();
@@ -243,7 +250,7 @@
 >
 	<Dialog.Portal>
 		<Dialog.Overlay />
-		<Dialog.Content class="sm:max-w-[620px]" onkeydown={handleKeyDown}>
+		<Dialog.Content class="sm:max-w-[720px]" onkeydown={handleKeyDown}>
 			<Dialog.Header>
 				<Dialog.Title>
 					{step === 1 ? 'Import accounts from CSV' : 'Select accounts to import'}
@@ -350,6 +357,7 @@
 										<Table.Head>Name</Table.Head>
 										<Table.Head>Type</Table.Head>
 										<Table.Head>Action</Table.Head>
+										<Table.Head>Currency</Table.Head>
 										<Table.Head class="text-right">Holdings</Table.Head>
 									</Table.Row>
 								</Table.Header>
@@ -385,6 +393,28 @@
 														Create account
 													</Badge>
 												{/if}
+											</Table.Cell>
+											<Table.Cell>
+												<select
+													value={accountCurrencies[acc.account_number] ?? acc.currency ?? 'CAD'}
+													onchange={(e) => {
+														accountCurrencies[acc.account_number] = (
+															e.target as HTMLSelectElement
+														).value;
+													}}
+													class="h-8 rounded-md border border-input bg-background px-2 py-1 text-xs shadow-sm focus:ring-1 focus:ring-ring focus:outline-none"
+													disabled={isLoading}
+													data-testid="account-currency-select"
+													aria-label={`Currency for ${acc.account_name}`}
+												>
+													<option value="CAD">CAD</option>
+													<option value="USD">USD</option>
+													<option value="EUR">EUR</option>
+													<option value="GBP">GBP</option>
+													<option value="AUD">AUD</option>
+													<option value="CHF">CHF</option>
+													<option value="JPY">JPY</option>
+												</select>
 											</Table.Cell>
 											<Table.Cell class="text-right">{acc.positions_count}</Table.Cell>
 										</Table.Row>

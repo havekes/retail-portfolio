@@ -71,15 +71,23 @@ export class AccountClient extends ApiClient {
 		institutionId: string | number,
 		file: File,
 		accountNumbers: string[],
+		currenciesOrToken?: Record<string, string> | string | null,
 		token?: string | null
 	): Promise<Account[]> {
+		const currencies =
+			currenciesOrToken && typeof currenciesOrToken === 'object' ? currenciesOrToken : undefined;
+		const actualToken = typeof currenciesOrToken === 'string' ? currenciesOrToken : token;
+
 		const formData = new FormData();
 		formData.append('file', file);
 		formData.append('institution_id', String(institutionId));
 		for (const accountNumber of accountNumbers) {
 			formData.append('account_numbers', accountNumber);
 		}
-		return this.postFormData<Account[]>('/accounts/csv/import', formData, undefined, token);
+		if (currencies && Object.keys(currencies).length > 0) {
+			formData.append('currencies', JSON.stringify(currencies));
+		}
+		return this.postFormData<Account[]>('/accounts/csv/import', formData, undefined, actualToken);
 	}
 }
 

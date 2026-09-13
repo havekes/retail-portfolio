@@ -1,5 +1,7 @@
 from abc import ABC, abstractmethod
 
+from stockholm import Currency
+
 from src.account.api_types import AccountId, PortfolioId
 from src.account.schema import (
     AccountHoldingRead,
@@ -59,6 +61,12 @@ class AccountRepository(ABC):
     async def update_net_deposits(
         self, account_id: AccountId, net_deposits: float | None
     ) -> None:
+        pass
+
+    @abstractmethod
+    async def update_currency(
+        self, account_id: AccountId, currency: str
+    ) -> AccountSchema:
         pass
 
     @abstractmethod
