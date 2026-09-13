@@ -251,8 +251,8 @@ async def test_csv_sync_invalid_headers(
 
 
 @pytest.mark.anyio
-async def test_csv_import_duplicate_prevention(auth_client, seed_reference_data: None):
-    """Importing already existing account number returns HTTP 400."""
+async def test_csv_import_existing_account_updates_positions(auth_client, seed_reference_data: None):
+    """Importing an already existing account number updates its positions and returns HTTP 200."""
     files = {"file": ("ws.csv", VALID_CSV.encode("utf-8"), "text/csv")}
     res1 = await auth_client.post(
         "/api/v1/accounts/csv/import",
@@ -263,8 +263,9 @@ async def test_csv_import_duplicate_prevention(auth_client, seed_reference_data:
         },
     )
     assert res1.status_code == 200
+    acc_id = res1.json()[0]["id"]
 
-    # Second attempt to import the same account number
+    # Second attempt to import the same account number updates the existing account
     files2 = {"file": ("ws.csv", VALID_CSV.encode("utf-8"), "text/csv")}
     res2 = await auth_client.post(
         "/api/v1/accounts/csv/import",
@@ -274,8 +275,8 @@ async def test_csv_import_duplicate_prevention(auth_client, seed_reference_data:
             "account_numbers": "W123456789",
         },
     )
-    assert res2.status_code == 400
-    assert "already exist" in res2.json()["detail"]
+    assert res2.status_code == 200
+    assert res2.json()[0]["id"] == acc_id
 
 
 @pytest.mark.anyio

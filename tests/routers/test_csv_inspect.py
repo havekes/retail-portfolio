@@ -168,6 +168,7 @@ async def test_csv_inspect_valid_wealthsimple_csv(
     assert tfsa["account_type_name"] == "TFSA"
     assert tfsa["currency"] == "CAD"
     assert tfsa["positions_count"] == 1  # cash position sec-c-cad filtered out
+    assert tfsa["exists"] is False
     assert len(tfsa["positions"]) == 1
     pos1 = tfsa["positions"][0]
     assert pos1["symbol"] == "VGRO"
@@ -185,6 +186,7 @@ async def test_csv_inspect_valid_wealthsimple_csv(
     assert rrsp["account_type_name"] == "RRSP"
     assert rrsp["currency"] == "USD"
     assert rrsp["positions_count"] == 1
+    assert rrsp["exists"] is False
     assert len(rrsp["positions"]) == 1
     pos2 = rrsp["positions"][0]
     assert pos2["symbol"] == "AAPL"
@@ -193,6 +195,38 @@ async def test_csv_inspect_valid_wealthsimple_csv(
     assert Decimal(str(pos2["quantity"])) == Decimal("50")
     assert Decimal(str(pos2["average_cost"])) == Decimal("150.0000")
     assert pos2["currency"] == "USD"
+
+
+@pytest.mark.anyio
+async def test_csv_inspect_detects_existing_account(
+    auth_client, seed_reference_data: None
+):
+    """When an account already exists for user and institution, inspect returns exists: true."""
+    # First import account
+    files = {"file": ("ws.csv", VALID_CSV.encode("utf-8"), "text/csv")}
+    res_import = await auth_client.post(
+        "/api/v1/accounts/csv/import",
+        files=files,
+        data={
+            "institution_id": str(InstitutionEnum.WEALTHSIMPLE.value),
+            "account_numbers": "W123456789",
+        },
+    )
+    assert res_import.status_code == 200
+
+    # Now inspect the CSV again
+    files_inspect = {"file": ("ws.csv", VALID_CSV.encode("utf-8"), "text/csv")}
+    res_inspect = await auth_client.post(
+        "/api/v1/accounts/csv/inspect",
+        files=files_inspect,
+        data={"institution_id": str(InstitutionEnum.WEALTHSIMPLE.value)},
+    )
+    assert res_inspect.status_code == 200
+    accounts = res_inspect.json()
+    assert accounts[0]["account_number"] == "W123456789"
+    assert accounts[0]["exists"] is True
+    assert accounts[1]["account_number"] == "W987654321"
+    assert accounts[1]["exists"] is False
 
 
 @pytest.mark.anyio

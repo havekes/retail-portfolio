@@ -441,4 +441,55 @@ describe('ImportAccountCsvModal', () => {
 			expect(brokerClient.getAvailableInstitutions).toHaveBeenCalled();
 		});
 	});
+
+	it('displays action badges indicating if accounts are existing (update) or new (create)', async () => {
+		const mixedDiscoveredAccounts: CsvDiscoveredAccount[] = [
+			{
+				account_number: 'W123456789',
+				account_name: 'Existing TFSA',
+				account_type_id: AccountType.TFSA,
+				account_type_name: 'TFSA',
+				currency: 'CAD',
+				positions_count: 3,
+				exists: true
+			},
+			{
+				account_number: 'W987654321',
+				account_name: 'New RRSP',
+				account_type_id: AccountType.RRSP,
+				account_type_name: 'RRSP',
+				currency: 'USD',
+				positions_count: 1,
+				exists: false
+			}
+		];
+		vi.mocked(accountClient.inspectCsv).mockResolvedValue(mixedDiscoveredAccounts);
+
+		modalState.open();
+		render(ImportAccountCsvModal, {
+			props: {
+				modalState,
+				onSuccess: () => mockOnSuccess()
+			}
+		});
+
+		await waitFor(() => {
+			const select = document.getElementById('broker-select') as HTMLSelectElement;
+			expect(select).toBeInTheDocument();
+		});
+
+		const select = document.getElementById('broker-select') as HTMLSelectElement;
+		await fireEvent.change(select, { target: { value: '1' } });
+
+		const file = new File(['content'], 'test.csv', { type: 'text/csv' });
+		const input = document.querySelector('input[type="file"]') as HTMLInputElement;
+		await fireEvent.change(input, { target: { files: [file] } });
+
+		await fireEvent.click(screen.getByRole('button', { name: 'Preview accounts' }));
+
+		await waitFor(() => {
+			expect(screen.getByText('Update holdings')).toBeInTheDocument();
+			expect(screen.getByText('Create account')).toBeInTheDocument();
+		});
+	});
 });

@@ -207,7 +207,7 @@ async def patch_preferences(
 
 @account_router.post("/csv/inspect")
 async def account_csv_inspect(
-    user: Annotated[User, Depends(current_user)],  # noqa: ARG001
+    user: Annotated[User, Depends(current_user)],
     file: Annotated[UploadFile, File(...)],
     services: DepContainer,
     institution_id: Annotated[int | None, Form()] = None,
@@ -236,6 +236,7 @@ async def account_csv_inspect(
         return await csv_account_service.inspect_csv(
             institution_id=actual_institution_id,
             csv_content=content_str,
+            user_id=user.id,
         )
     except InstitutionNotFoundError as e:
         raise HTTPException(status_code=404, detail=str(e)) from e

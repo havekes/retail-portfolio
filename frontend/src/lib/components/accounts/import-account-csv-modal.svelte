@@ -6,6 +6,7 @@
 	import { Input } from '$lib/components/ui/input/index.js';
 	import { Label } from '$lib/components/ui/label/index.js';
 	import { Checkbox } from '$lib/components/ui/checkbox/index.js';
+	import { Badge } from '$lib/components/ui/badge/index.js';
 	import { accountClient } from '$lib/api/accountClient';
 	import { brokerClient } from '$lib/api/brokerClient';
 	import type { BackendInstitution } from '@/types/broker/broker';
@@ -250,7 +251,7 @@
 				<Dialog.Description>
 					{step === 1
 						? 'Upload a CSV export from your broker to discover and import accounts.'
-						: 'Choose which discovered accounts you want to import into retail-portfolio.'}
+						: 'Select accounts to import. Existing accounts in the app will have their holdings updated, while new accounts will be created.'}
 				</Dialog.Description>
 			</Dialog.Header>
 
@@ -348,6 +349,7 @@
 										<Table.Head>Account #</Table.Head>
 										<Table.Head>Name</Table.Head>
 										<Table.Head>Type</Table.Head>
+										<Table.Head>Action</Table.Head>
 										<Table.Head class="text-right">Holdings</Table.Head>
 									</Table.Row>
 								</Table.Header>
@@ -365,6 +367,25 @@
 											<Table.Cell class="font-mono text-sm">{acc.account_number}</Table.Cell>
 											<Table.Cell class="font-medium">{acc.account_name}</Table.Cell>
 											<Table.Cell>{acc.account_type_name}</Table.Cell>
+											<Table.Cell>
+												{#if acc.exists}
+													<Badge
+														variant="outline"
+														class="border-blue-500/30 bg-blue-50 text-xs font-normal text-blue-700 dark:bg-blue-950/40 dark:text-blue-300"
+														data-testid="account-action-badge"
+													>
+														Update holdings
+													</Badge>
+												{:else}
+													<Badge
+														variant="outline"
+														class="border-green-500/30 bg-green-50 text-xs font-normal text-green-700 dark:bg-green-950/40 dark:text-green-300"
+														data-testid="account-action-badge"
+													>
+														Create account
+													</Badge>
+												{/if}
+											</Table.Cell>
 											<Table.Cell class="text-right">{acc.positions_count}</Table.Cell>
 										</Table.Row>
 									{/each}
