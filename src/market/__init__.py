@@ -11,7 +11,12 @@ from src.market.api import (
     market_prices_factory,
     security_api_factory,
 )
-from src.market.cache import IndicatorCache, indicator_cache_factory
+from src.market.cache import (
+    IndicatorCache,
+    SecuritySearchCache,
+    indicator_cache_factory,
+    security_search_cache_factory,
+)
 from src.market.enum import PriceInterval
 from src.market.eodhd import eodhd_gateway_factory
 from src.market.gateway import MarketGateway
@@ -75,6 +80,7 @@ def register_market_services(registry: Registry) -> None:
         ChartSnapshotRepository, sqlalchemy_chart_snapshot_repository_factory
     )
     registry.register_factory(IndicatorCache, indicator_cache_factory)
+    registry.register_factory(SecuritySearchCache, security_search_cache_factory)
     registry.register_factory(MarketPricesApi, market_prices_factory)
     registry.register_factory(SecurityApi, security_api_factory)
     registry.register_factory(MarketService, market_service_factory)
