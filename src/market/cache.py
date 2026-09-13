@@ -1,13 +1,15 @@
 import hashlib
 import json
 import logging
-from datetime import timedelta
+from collections.abc import Sequence
 from typing import Any
 
 import redis.asyncio as aioredis
+from pydantic import BaseModel
 from redis.asyncio.client import Redis
 
 from src.config.settings import settings
+from src.market.schema import IndicatorSpecSchema
 
 logger = logging.getLogger(__name__)
 
@@ -26,40 +28,79 @@ class IndicatorCache:
         self._redis = redis_client
         self._cache_ttl = cache_ttl
 
+    def _compute_indicator_digest(
+        self,
+        indicators: Sequence[str | IndicatorSpecSchema | dict[str, Any]],
+    ) -> str:
+        canonical_items = []
+        for item in indicators:
+            if isinstance(item, str):
+                canonical_items.append({"type": item})
+            elif isinstance(item, BaseModel):
+                canonical_items.append(
+                    item.model_dump(by_alias=True, exclude_none=True)
+                )
+            elif isinstance(item, dict):
+                canonical_items.append(item)
+            else:
+                canonical_items.append(str(item))
+
+        serialized_items = [
+            json.dumps(item, sort_keys=True) for item in canonical_items
+        ]
+        canonical_payload = json.dumps(sorted(serialized_items))
+        return hashlib.sha256(canonical_payload.encode()).hexdigest()
+
     def _get_cache_key(
-        self, security_id: str, indicators: list[str], price_count: int
+        self,
+        security_id: str,
+        indicators: Sequence[str | IndicatorSpecSchema | dict[str, Any]],
+        price_count: int | None = None,
+        interval: str = "1d",
+        chart_style: str = "candlestick",
     ) -> str:
         """
-        Generate cache key based on security, indicators, and data range.
+        Generate cache key based on security, interval, chart style, and indicators.
 
         Args:
             security_id: Security identifier
-            indicators: List of requested indicator types
-            price_count: Number of price data points (to invalidate on new data)
+            indicators: Sequence of requested indicators (specs, dicts, or strings)
+            price_count: Optional number of price data points
+            interval: Chart interval (default '1d')
+            chart_style: Chart style (default 'candlestick')
 
         Returns:
             Cache key string
         """
+        digest = self._compute_indicator_digest(indicators)
         key_parts = [
             "indicators",
-            security_id,
-            ",".join(sorted(indicators)),
-            str(price_count),
+            str(security_id),
+            str(interval),
+            str(chart_style),
+            digest,
         ]
-        key_string = "|".join(key_parts)
-        digest = hashlib.md5(key_string.encode(), usedforsecurity=False).hexdigest()
-        return f"indicators:{security_id}:{digest}"
+        if price_count is not None:
+            key_parts.append(str(price_count))
+        return ":".join(key_parts)
 
     async def get(
-        self, security_id: str, indicators: list[str], price_count: int
+        self,
+        security_id: str,
+        indicators: Sequence[str | IndicatorSpecSchema | dict[str, Any]],
+        price_count: int | None = None,
+        interval: str = "1d",
+        chart_style: str = "candlestick",
     ) -> Any:
         """
         Get cached indicator data.
 
         Args:
             security_id: Security identifier
-            indicators: List of requested indicator types
-            price_count: Number of price data points
+            indicators: Sequence of requested indicators
+            price_count: Optional number of price data points
+            interval: Candle interval
+            chart_style: Chart style
 
         Returns:
             Cached indicator data or None if not found
@@ -67,7 +108,13 @@ class IndicatorCache:
         if not indicators:
             return None
 
-        cache_key = self._get_cache_key(security_id, indicators, price_count)
+        cache_key = self._get_cache_key(
+            security_id=security_id,
+            indicators=indicators,
+            price_count=price_count,
+            interval=interval,
+            chart_style=chart_style,
+        )
 
         try:
             cached_data = await self._redis.get(cache_key)
@@ -85,26 +132,36 @@ class IndicatorCache:
             )
             return None
 
-    async def set(
+    async def set(  # noqa: PLR0913, PLR0917
         self,
         security_id: str,
-        indicators: list[str],
-        price_count: int,
-        data: dict,
+        indicators: Sequence[str | IndicatorSpecSchema | dict[str, Any]],
+        price_count: int | None = None,
+        data: dict[str, Any] | None = None,
+        interval: str = "1d",
+        chart_style: str = "candlestick",
     ) -> None:
         """
         Cache indicator data.
 
         Args:
             security_id: Security identifier
-            indicators: List of requested indicator types
-            price_count: Number of price data points
+            indicators: Sequence of requested indicators
+            price_count: Optional number of price data points
             data: Indicator data to cache
+            interval: Candle interval
+            chart_style: Chart style
         """
-        if not indicators:
+        if not indicators or data is None:
             return
 
-        cache_key = self._get_cache_key(security_id, indicators, price_count)
+        cache_key = self._get_cache_key(
+            security_id=security_id,
+            indicators=indicators,
+            price_count=price_count,
+            interval=interval,
+            chart_style=chart_style,
+        )
 
         try:
             await self._redis.setex(cache_key, self._cache_ttl, json.dumps(data))
