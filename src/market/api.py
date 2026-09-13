@@ -97,6 +97,17 @@ class SecurityApi:
         broker_exchange: str,
         broker_name: str,
     ) -> Security:
+        existing = await self._security_broker_repository.get_by_broker(
+            institution_id=institution_id,
+            broker_symbol=broker_symbol,
+            broker_exchange=broker_exchange,
+        )
+        if existing:
+            security = await self._security_repository.get_by_id_or_fail(
+                existing.security_id
+            )
+            return Security.model_validate(security)
+
         mapped_symbol = self._map_eodhd_symbol(broker_symbol)
         mapped_exchange = self._map_eodhd_exchange(broker_exchange)
         search_results = self._gateway.search(
