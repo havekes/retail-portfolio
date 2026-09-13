@@ -5,6 +5,7 @@ from decimal import Decimal
 from uuid import UUID
 
 from src.auth.api_types import UserId
+from src.core.enum import InstitutionEnum
 from src.market.api_types import SecurityId
 from src.market.schema import (
     AlertForEvaluation,
@@ -49,6 +50,12 @@ class SecurityBrokerRepository(ABC):
     async def get_or_create(
         self, security_broker: SecurityBrokerSchema
     ) -> SecurityBrokerSchema:
+        pass
+
+    @abstractmethod
+    async def get_by_broker(
+        self, institution_id: InstitutionEnum, broker_symbol: str, broker_exchange: str
+    ) -> SecurityBrokerSchema | None:
         pass
 
 
