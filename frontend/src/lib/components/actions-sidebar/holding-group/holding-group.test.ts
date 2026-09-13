@@ -95,6 +95,7 @@ describe('HoldingGroup Component', () => {
 			institution_id: Institution.Wealthsimple,
 			currency: 'USD',
 			is_active: true,
+			api_sync_enabled: true,
 			created_at: new Date('2026-01-01')
 		},
 		{
@@ -105,6 +106,7 @@ describe('HoldingGroup Component', () => {
 			institution_id: Institution.Wealthsimple,
 			currency: 'USD',
 			is_active: true,
+			api_sync_enabled: true,
 			created_at: new Date('2026-01-01')
 		}
 	];

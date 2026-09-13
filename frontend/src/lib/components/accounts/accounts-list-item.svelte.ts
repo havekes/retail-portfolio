@@ -3,6 +3,7 @@ import type { AccountTotals } from '@/types/account';
 
 export class AccountsListItemState {
 	private totalsCache = $state<Record<string, AccountTotals>>({});
+	private version = $state(0);
 
 	constructor(private getAccountId: () => string) {}
 
@@ -21,10 +22,11 @@ export class AccountsListItemState {
 
 	invalidateCache(id: string) {
 		delete this.totalsCache[id];
+		this.version++;
 	}
 
 	totals = $derived.by(() => {
-		return this.fetchAccountTotals(this.getAccountId());
+		return this.version >= 0 ? this.fetchAccountTotals(this.getAccountId()) : Promise.reject();
 	});
 
 	getAccountTotals(id: string): AccountTotals | undefined {

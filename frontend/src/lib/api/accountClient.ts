@@ -34,6 +34,17 @@ export class AccountClient extends ApiClient {
 	async getSyncStatus(): Promise<{ account_ids: string[] }> {
 		return this.get<{ account_ids: string[] }>('/accounts/sync-status');
 	}
+
+	async syncAccountCsv(accountId: string, file: File, token?: string | null): Promise<Account> {
+		const formData = new FormData();
+		formData.append('file', file);
+		return this.postFormData<Account>(
+			`/accounts/${accountId}/csv-sync`,
+			formData,
+			undefined,
+			token
+		);
+	}
 }
 
 export const getAccountClient = (customFetch?: typeof fetch) => new AccountClient(customFetch);
