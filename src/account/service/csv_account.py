@@ -1,3 +1,4 @@
+import logging
 import uuid
 
 from stockholm import Currency
@@ -9,6 +10,7 @@ from src.account.csv import (
     CsvDiscoveredAccount,
     CsvPositionRecord,
     GenericCsvParser,
+    is_option_symbol,
 )
 from src.account.exception import (
     AccountNotFoundError,
@@ -28,6 +30,8 @@ from src.account.schema import AccountSchema, InstitutionSchema
 from src.auth.api_types import UserId
 from src.core.enum import InstitutionEnum
 from src.market.api import SecurityApi
+
+logger = logging.getLogger(__name__)
 
 
 class CsvAccountService:
@@ -223,6 +227,13 @@ class CsvAccountService:
         """Resolve securities and persist positions for a CSV account."""
         positions: list[Position] = []
         for pos in csv_positions:
+            if is_option_symbol(pos.symbol):
+                logger.info(
+                    "Skipping unsupported option position '%s' for account %s",
+                    pos.symbol,
+                    account_id,
+                )
+                continue
             try:
                 security = await self._security_api.get_or_create_from_broker(
                     institution_id=institution_id,

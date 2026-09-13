@@ -113,6 +113,24 @@ def is_cash_row(symbol: str | None, security_type: str | None) -> bool:
     )
 
 
+OCC_OPTION_PATTERN = re.compile(r"^[A-Za-z0-9.\-/]{1,6}\s*\d{6}[CPcp]\d{1,8}(\.\d+)?$")
+
+
+def is_option_symbol(symbol: str | None) -> bool:
+    """Detect if a symbol matches standard option notation."""
+    if not symbol:
+        return False
+    return bool(OCC_OPTION_PATTERN.match(symbol.strip()))
+
+
+def is_option_row(symbol: str | None, security_type: str | None) -> bool:
+    """Detect option holding rows by security_type or option symbol pattern."""
+    sec_clean = (security_type or "").strip().lower()
+    if "option" in sec_clean or "derivative" in sec_clean:
+        return True
+    return is_option_symbol(symbol)
+
+
 def calculate_average_cost(
     quantity: Decimal, book_value: Decimal | None
 ) -> Decimal | None:
@@ -163,7 +181,7 @@ def _parse_position(
 ) -> CsvPositionRecord | None:
     symbol = row_dict.get("symbol", "").strip()
     security_type = row_dict.get("security_type", "").strip()
-    if is_cash_row(symbol, security_type):
+    if is_cash_row(symbol, security_type) or is_option_row(symbol, security_type):
         return None
 
     qty_str = row_dict.get("quantity", "").strip()

@@ -10,6 +10,9 @@ from src.account.csv.exceptions import (
 from src.account.csv.parser import (
     GenericCsvParser,
     calculate_average_cost,
+    is_cash_row,
+    is_option_row,
+    is_option_symbol,
     map_account_type,
 )
 from src.commands.seed import WEALTHSIMPLE_CSV_FORMAT
@@ -231,3 +234,52 @@ def test_parser_utf8_bom():
     assert len(accounts) == 1
     assert accounts[0].positions[0].symbol == "XIU"
     assert accounts[0].positions[0].average_cost == Decimal("30.0000")
+
+
+def test_is_option_symbol_and_row():
+    """Verify option detection by OCC symbol pattern and security type."""
+    # OCC option symbols
+    assert is_option_symbol("BABA 270617C00250000") is True
+    assert is_option_symbol("AAPL 240119P00150000") is True
+    assert is_option_symbol("SPY240621P00500000") is True
+    assert is_option_symbol("BRK.B 240621C00350000") is True
+    assert is_option_symbol("BABA 270617C250") is True
+
+    # Standard equity/cash symbols
+    assert is_option_symbol("VGRO") is False
+    assert is_option_symbol("AAPL") is False
+    assert is_option_symbol("BABA") is False
+    assert is_option_symbol("sec-c-cad") is False
+    assert is_option_symbol("") is False
+    assert is_option_symbol(None) is False
+
+    # Row detection via security_type
+    assert is_option_row("CUSTOM_OPT", "Option") is True
+    assert is_option_row("CUSTOM_OPT", "Equity Option") is True
+    assert is_option_row("CUSTOM_OPT", "Options") is True
+    assert is_option_row("CUSTOM_OPT", "Derivative") is True
+    assert is_option_row("BABA 270617C00250000", "Unknown") is True
+    assert is_option_row("BABA 270617C00250000", "") is True
+    assert is_option_row("AAPL", "Equity") is False
+
+
+def test_parser_ignores_option_rows():
+    """Verify parser filters out option positions so unsupported options are not imported."""
+    csv_content = (
+        f"{WS_HEADER}\n"
+        "My TFSA,Tax-Free Savings Account,Personal,W123456789,"
+        "VGRO,TSX,XTSE,Vanguard Growth ETF Portfolio,Equity,100,LONG,"
+        "32.50,CAD,3000.00,CAD,3000.00,CAD,3250.00,CAD,250.00,CAD\n"
+        "My TFSA,Tax-Free Savings Account,Personal,W123456789,"
+        "BABA 270617C00250000,OPRA,,BABA Jun 17 2027 250 Call,Option,1,LONG,"
+        "15.00,USD,1500.00,CAD,1100.00,USD,1500.00,USD,400.00,USD\n"
+    )
+
+    accounts = GenericCsvParser.parse(csv_content, WEALTHSIMPLE_CSV_FORMAT)
+
+    assert len(accounts) == 1
+    acc = accounts[0]
+    assert acc.positions_count == 1
+    assert len(acc.positions) == 1
+    assert acc.positions[0].symbol == "VGRO"
+

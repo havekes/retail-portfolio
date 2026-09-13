@@ -442,6 +442,56 @@ async def test_sync_account_csv_positions_security_resolution_error():
 
 
 @pytest.mark.asyncio
+async def test_sync_account_csv_positions_skips_options():
+    account_id = uuid4()
+    sec_api = AsyncMock(spec=SecurityApi)
+    sec_api.get_or_create_from_broker.return_value = MagicMock(id=uuid4())
+    pos_api = AsyncMock(spec=PositionApi)
+    account_repo = AsyncMock(spec=AccountRepository)
+    service = _create_service(
+        sec_api=sec_api, pos_api=pos_api, account_repo=account_repo
+    )
+
+    csv_positions = [
+        CsvPositionRecord(
+            symbol="BABA 270617C00250000",
+            exchange="OPRA",
+            name="BABA Option",
+            quantity=Decimal("1"),
+            average_cost=Decimal("15"),
+            currency="USD",
+        ),
+        CsvPositionRecord(
+            symbol="VGRO",
+            exchange="TSX",
+            name="Vanguard Growth",
+            quantity=Decimal("100"),
+            average_cost=Decimal("30"),
+            currency="CAD",
+        ),
+    ]
+
+    await service.sync_account_csv_positions(
+        account_id=account_id,
+        institution_id=InstitutionEnum.WEALTHSIMPLE,
+        csv_positions=csv_positions,
+    )
+
+    # Should only resolve and create the non-option position (VGRO)
+    sec_api.get_or_create_from_broker.assert_called_once_with(
+        institution_id=InstitutionEnum.WEALTHSIMPLE,
+        broker_symbol="VGRO",
+        broker_exchange="TSX",
+        broker_name="Vanguard Growth",
+    )
+    assert pos_api.create.call_count == 1
+    created_positions = pos_api.create.call_args[0][0]
+    assert len(created_positions) == 1
+    assert created_positions[0].account_id == account_id
+
+
+
+@pytest.mark.asyncio
 async def test_csv_account_service_factory():
     container = AsyncMock(spec=Container)
     container.aget.side_effect = lambda cls: AsyncMock(spec=cls)

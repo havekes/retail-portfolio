@@ -4,7 +4,13 @@ from src.account.csv.exceptions import (
     CsvParserError,
     CsvRowValidationError,
 )
-from src.account.csv.parser import GenericCsvParser, map_account_type
+from src.account.csv.parser import (
+    GenericCsvParser,
+    is_cash_row,
+    is_option_row,
+    is_option_symbol,
+    map_account_type,
+)
 from src.account.csv.schema import CsvDiscoveredAccount, CsvPositionRecord
 
 __all__ = [
@@ -15,5 +21,8 @@ __all__ = [
     "CsvPositionRecord",
     "CsvRowValidationError",
     "GenericCsvParser",
+    "is_cash_row",
+    "is_option_row",
+    "is_option_symbol",
     "map_account_type",
 ]
