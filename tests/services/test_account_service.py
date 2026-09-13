@@ -59,6 +59,21 @@ class MockAccountRepository(AccountRepository):
         pass
 
     @override
+    async def update_currency(
+        self, account_id: AccountId, currency: str
+    ) -> AccountSchema:
+        for account in self.accounts:
+            if account.id == account_id:
+                account_dict = account.model_dump()
+                account_dict["currency"] = Currency(currency)
+                updated = AccountSchema.model_validate(account_dict)
+                self.accounts = [
+                    updated if a.id == account_id else a for a in self.accounts
+                ]
+                return updated
+        raise ValueError
+
+    @override
     async def update_last_sync_at(self, account_id: AccountId) -> None:
         pass
 

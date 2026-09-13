@@ -30,3 +30,4 @@ class CsvDiscoveredAccount(BaseModel):
     currency: str
     positions_count: int
     positions: list[CsvPositionRecord] = Field(default_factory=list)
+    exists: bool = False

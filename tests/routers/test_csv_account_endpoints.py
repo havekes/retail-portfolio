@@ -1,5 +1,6 @@
 """Integration tests for CSV account import and sync endpoints."""
 
+import json
 from decimal import Decimal
 from uuid import uuid4
 
@@ -251,8 +252,8 @@ async def test_csv_sync_invalid_headers(
 
 
 @pytest.mark.anyio
-async def test_csv_import_duplicate_prevention(auth_client, seed_reference_data: None):
-    """Importing already existing account number returns HTTP 400."""
+async def test_csv_import_existing_account_updates_positions(auth_client, seed_reference_data: None):
+    """Importing an already existing account number updates its positions and returns HTTP 200."""
     files = {"file": ("ws.csv", VALID_CSV.encode("utf-8"), "text/csv")}
     res1 = await auth_client.post(
         "/api/v1/accounts/csv/import",
@@ -263,8 +264,9 @@ async def test_csv_import_duplicate_prevention(auth_client, seed_reference_data:
         },
     )
     assert res1.status_code == 200
+    acc_id = res1.json()[0]["id"]
 
-    # Second attempt to import the same account number
+    # Second attempt to import the same account number updates the existing account
     files2 = {"file": ("ws.csv", VALID_CSV.encode("utf-8"), "text/csv")}
     res2 = await auth_client.post(
         "/api/v1/accounts/csv/import",
@@ -274,8 +276,8 @@ async def test_csv_import_duplicate_prevention(auth_client, seed_reference_data:
             "account_numbers": "W123456789",
         },
     )
-    assert res2.status_code == 400
-    assert "already exist" in res2.json()["detail"]
+    assert res2.status_code == 200
+    assert res2.json()[0]["id"] == acc_id
 
 
 @pytest.mark.anyio
@@ -446,3 +448,24 @@ async def test_csv_sync_account_not_found(auth_client, seed_reference_data: None
         files=files,
     )
     assert response.status_code == 404
+
+
+@pytest.mark.anyio
+async def test_csv_import_with_currencies(
+    auth_client, seed_reference_data: None
+):
+    """Import with explicit currencies parameter creates account with selected currency."""
+    files = {"file": ("ws.csv", VALID_CSV.encode("utf-8"), "text/csv")}
+    response = await auth_client.post(
+        "/api/v1/accounts/csv/import",
+        files=files,
+        data={
+            "institution_id": str(InstitutionEnum.WEALTHSIMPLE.value),
+            "account_numbers": "W123456789",
+            "currencies": json.dumps({"W123456789": "USD"}),
+        },
+    )
+    assert response.status_code == 200
+    data = response.json()
+    assert len(data) == 1
+    assert data[0]["currency"] == "USD"

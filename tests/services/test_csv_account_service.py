@@ -15,7 +15,6 @@ from src.account.csv import (
 from src.account.exception import (
     AccountNotFoundError,
     AccountNotInCsvError,
-    CsvAccountDuplicateError,
     CsvFileEmptyError,
     CsvImportDisabledError,
     InstitutionNotFoundError,
@@ -149,6 +148,56 @@ async def test_inspect_csv_success():
 
 
 @pytest.mark.asyncio
+async def test_inspect_csv_populates_exists():
+    inst_repo = AsyncMock(spec=InstitutionRepository)
+    inst_repo.get.return_value = _create_mock_institution(inst_id=1)
+    parser = MagicMock(spec=GenericCsvParser)
+    parser.parse.return_value = [
+        CsvDiscoveredAccount(
+            account_number="ACC-1",
+            account_name="TFSA",
+            account_type_id=AccountTypeEnum.TFSA.value,
+            account_type_name="TFSA",
+            currency="CAD",
+            positions_count=0,
+            positions=[],
+        ),
+        CsvDiscoveredAccount(
+            account_number="ACC-2",
+            account_name="RRSP",
+            account_type_id=AccountTypeEnum.RRSP.value,
+            account_type_name="RRSP",
+            currency="CAD",
+            positions_count=0,
+            positions=[],
+        ),
+    ]
+    account_repo = AsyncMock(spec=AccountRepository)
+    user_id = uuid4()
+    account_repo.get_by_user.return_value = [
+        AccountSchema(
+            id=uuid4(),
+            external_id="ACC-1",
+            name="Existing TFSA",
+            user_id=user_id,
+            account_type_id=AccountTypeEnum.TFSA,
+            institution_id=InstitutionEnum.WEALTHSIMPLE,
+            currency=Currency.CAD,
+        )
+    ]
+    service = _create_service(
+        inst_repo=inst_repo, parser=parser, account_repo=account_repo
+    )
+
+    result = await service.inspect_csv(1, "valid,csv,content", user_id=user_id)
+    assert len(result) == 2
+    assert result[0].account_number == "ACC-1"
+    assert result[0].exists is True
+    assert result[1].account_number == "ACC-2"
+    assert result[1].exists is False
+
+
+@pytest.mark.asyncio
 async def test_import_accounts_no_matching():
     inst_repo = AsyncMock(spec=InstitutionRepository)
     inst_repo.get.return_value = _create_mock_institution()
@@ -170,13 +219,13 @@ async def test_import_accounts_no_matching():
         await service.import_accounts(
             user_id=uuid4(),
             institution_id=1,
-            account_numbers=["DIFFERENT-ACC"],
+            account_numbers=["ACC-NONEXISTENT"],
             csv_content="content",
         )
 
 
 @pytest.mark.asyncio
-async def test_import_accounts_duplicate_detected():
+async def test_import_accounts_updates_existing():
     inst_repo = AsyncMock(spec=InstitutionRepository)
     inst_repo.get.return_value = _create_mock_institution(inst_id=1)
     parser = MagicMock(spec=GenericCsvParser)
@@ -187,35 +236,55 @@ async def test_import_accounts_duplicate_detected():
             account_type_id=AccountTypeEnum.TFSA.value,
             account_type_name="TFSA",
             currency="CAD",
-            positions_count=0,
-            positions=[],
+            positions_count=1,
+            positions=[
+                CsvPositionRecord(
+                    symbol="VGRO",
+                    exchange="TSX",
+                    name="Vanguard Growth",
+                    quantity=Decimal("100"),
+                    average_cost=Decimal("30"),
+                    currency="CAD",
+                )
+            ],
         )
     ]
     account_repo = AsyncMock(spec=AccountRepository)
     user_id = uuid4()
-    account_repo.get_by_user.return_value = [
-        AccountSchema(
-            id=uuid4(),
-            external_id="ACC-1",
-            name="Existing TFSA",
-            user_id=user_id,
-            account_type_id=AccountTypeEnum.TFSA,
-            institution_id=InstitutionEnum.WEALTHSIMPLE,
-            currency=Currency.CAD,
-        )
-    ]
+    existing_acc_id = uuid4()
+    existing_acc = AccountSchema(
+        id=existing_acc_id,
+        external_id="ACC-1",
+        name="Existing TFSA",
+        user_id=user_id,
+        account_type_id=AccountTypeEnum.TFSA,
+        institution_id=InstitutionEnum.WEALTHSIMPLE,
+        currency=Currency.CAD,
+    )
+    account_repo.get_by_user.return_value = [existing_acc]
+    account_repo.get.return_value = existing_acc
+    sec_api = AsyncMock(spec=SecurityApi)
+    sec_api.get_or_create_from_broker.return_value = MagicMock(id=uuid4())
+    pos_api = AsyncMock(spec=PositionApi)
+
     service = _create_service(
-        inst_repo=inst_repo, parser=parser, account_repo=account_repo
+        inst_repo=inst_repo,
+        parser=parser,
+        account_repo=account_repo,
+        sec_api=sec_api,
+        pos_api=pos_api,
     )
 
-    with pytest.raises(CsvAccountDuplicateError) as exc:
-        await service.import_accounts(
-            user_id=user_id,
-            institution_id=1,
-            account_numbers=["ACC-1"],
-            csv_content="content",
-        )
-    assert "already exist" in str(exc.value)
+    result = await service.import_accounts(
+        user_id=user_id,
+        institution_id=1,
+        account_numbers=["ACC-1"],
+        csv_content="content",
+    )
+    assert len(result) == 1
+    assert result[0].id == existing_acc_id
+    account_repo.create.assert_not_called()
+    account_repo.update_last_sync_at.assert_called_once_with(existing_acc_id)
 
 
 @pytest.mark.asyncio
@@ -301,6 +370,110 @@ async def test_import_accounts_success():
 
 
 @pytest.mark.asyncio
+async def test_import_accounts_with_custom_currency_new_account():
+    inst_repo = AsyncMock(spec=InstitutionRepository)
+    inst_repo.get.return_value = _create_mock_institution(inst_id=1)
+    parser = MagicMock(spec=GenericCsvParser)
+    parser.parse.return_value = [
+        CsvDiscoveredAccount(
+            account_number="ACC-1",
+            account_name="TFSA",
+            account_type_id=AccountTypeEnum.TFSA.value,
+            account_type_name="TFSA",
+            currency="CAD",
+            positions_count=0,
+            positions=[],
+        )
+    ]
+    account_repo = AsyncMock(spec=AccountRepository)
+    account_repo.get_by_user.return_value = []
+    created_id = uuid4()
+
+    def mock_create(acc: AccountSchema):
+        acc_dict = acc.model_dump()
+        acc_dict["id"] = created_id
+        return AccountSchema.model_validate(acc_dict)
+
+    account_repo.create.side_effect = mock_create
+    account_repo.get.return_value = AccountSchema(
+        id=created_id,
+        external_id="ACC-1",
+        name="TFSA",
+        user_id=uuid4(),
+        account_type_id=AccountTypeEnum.TFSA,
+        institution_id=InstitutionEnum.WEALTHSIMPLE,
+        currency=Currency.USD,
+    )
+    pos_repo = AsyncMock(spec=PositionRepository)
+    service = _create_service(
+        account_repo=account_repo,
+        inst_repo=inst_repo,
+        pos_repo=pos_repo,
+        parser=parser,
+    )
+
+    result = await service.import_accounts(
+        user_id=uuid4(),
+        institution_id=1,
+        account_numbers=["ACC-1"],
+        csv_content="content",
+        account_currencies={"ACC-1": "USD"},
+    )
+    assert len(result) == 1
+    # Verify account was created with chosen USD currency, not default CAD
+    created_call = account_repo.create.call_args[0][0]
+    assert created_call.currency == Currency.USD
+
+
+@pytest.mark.asyncio
+async def test_import_accounts_with_custom_currency_updates_existing_account():
+    inst_repo = AsyncMock(spec=InstitutionRepository)
+    inst_repo.get.return_value = _create_mock_institution(inst_id=1)
+    parser = MagicMock(spec=GenericCsvParser)
+    parser.parse.return_value = [
+        CsvDiscoveredAccount(
+            account_number="ACC-1",
+            account_name="TFSA",
+            account_type_id=AccountTypeEnum.TFSA.value,
+            account_type_name="TFSA",
+            currency="CAD",
+            positions_count=0,
+            positions=[],
+        )
+    ]
+    account_repo = AsyncMock(spec=AccountRepository)
+    existing_id = uuid4()
+    existing_acc = AccountSchema(
+        id=existing_id,
+        external_id="ACC-1",
+        name="TFSA",
+        user_id=uuid4(),
+        account_type_id=AccountTypeEnum.TFSA,
+        institution_id=InstitutionEnum.WEALTHSIMPLE,
+        currency=Currency.CAD,
+    )
+    account_repo.get_by_user.return_value = [existing_acc]
+    account_repo.get.return_value = existing_acc
+    pos_repo = AsyncMock(spec=PositionRepository)
+    service = _create_service(
+        account_repo=account_repo,
+        inst_repo=inst_repo,
+        pos_repo=pos_repo,
+        parser=parser,
+    )
+
+    await service.import_accounts(
+        user_id=uuid4(),
+        institution_id=1,
+        account_numbers=["ACC-1"],
+        csv_content="content",
+        account_currencies={"ACC-1": "USD"},
+    )
+    # Verify update_currency was called with "USD"
+    account_repo.update_currency.assert_awaited_once_with(existing_id, "USD")
+
+
+@pytest.mark.asyncio
 async def test_sync_account_not_found_by_id():
     account_repo = AsyncMock(spec=AccountRepository)
     account_repo.get.return_value = None
@@ -370,6 +543,56 @@ async def test_sync_account_csv_positions_security_resolution_error():
             csv_positions=csv_positions,
         )
     assert "Failed to resolve security for symbol 'BAD_SYMBOL'" in str(exc.value)
+
+
+@pytest.mark.asyncio
+async def test_sync_account_csv_positions_skips_options():
+    account_id = uuid4()
+    sec_api = AsyncMock(spec=SecurityApi)
+    sec_api.get_or_create_from_broker.return_value = MagicMock(id=uuid4())
+    pos_api = AsyncMock(spec=PositionApi)
+    account_repo = AsyncMock(spec=AccountRepository)
+    service = _create_service(
+        sec_api=sec_api, pos_api=pos_api, account_repo=account_repo
+    )
+
+    csv_positions = [
+        CsvPositionRecord(
+            symbol="BABA 270617C00250000",
+            exchange="OPRA",
+            name="BABA Option",
+            quantity=Decimal("1"),
+            average_cost=Decimal("15"),
+            currency="USD",
+        ),
+        CsvPositionRecord(
+            symbol="VGRO",
+            exchange="TSX",
+            name="Vanguard Growth",
+            quantity=Decimal("100"),
+            average_cost=Decimal("30"),
+            currency="CAD",
+        ),
+    ]
+
+    await service.sync_account_csv_positions(
+        account_id=account_id,
+        institution_id=InstitutionEnum.WEALTHSIMPLE,
+        csv_positions=csv_positions,
+    )
+
+    # Should only resolve and create the non-option position (VGRO)
+    sec_api.get_or_create_from_broker.assert_called_once_with(
+        institution_id=InstitutionEnum.WEALTHSIMPLE,
+        broker_symbol="VGRO",
+        broker_exchange="TSX",
+        broker_name="Vanguard Growth",
+    )
+    assert pos_api.create.call_count == 1
+    created_positions = pos_api.create.call_args[0][0]
+    assert len(created_positions) == 1
+    assert created_positions[0].account_id == account_id
+
 
 
 @pytest.mark.asyncio

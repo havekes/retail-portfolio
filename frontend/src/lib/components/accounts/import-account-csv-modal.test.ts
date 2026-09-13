@@ -309,7 +309,12 @@ describe('ImportAccountCsvModal', () => {
 		const importBtn = screen.getByRole('button', { name: 'Import selected (1)' });
 		await fireEvent.click(importBtn);
 
-		expect(accountClient.importAccountsCsv).toHaveBeenCalledWith('1', file, ['W123456789']);
+		expect(accountClient.importAccountsCsv).toHaveBeenCalledWith(
+			'1',
+			file,
+			['W123456789'],
+			expect.objectContaining({ W123456789: 'CAD' })
+		);
 
 		await waitFor(() => {
 			expect(mockOnSuccess).toHaveBeenCalledTimes(1);
@@ -440,5 +445,105 @@ describe('ImportAccountCsvModal', () => {
 		await waitFor(() => {
 			expect(brokerClient.getAvailableInstitutions).toHaveBeenCalled();
 		});
+	});
+
+	it('displays action badges indicating if accounts are existing (update) or new (create)', async () => {
+		const mixedDiscoveredAccounts: CsvDiscoveredAccount[] = [
+			{
+				account_number: 'W123456789',
+				account_name: 'Existing TFSA',
+				account_type_id: AccountType.TFSA,
+				account_type_name: 'TFSA',
+				currency: 'CAD',
+				positions_count: 3,
+				exists: true
+			},
+			{
+				account_number: 'W987654321',
+				account_name: 'New RRSP',
+				account_type_id: AccountType.RRSP,
+				account_type_name: 'RRSP',
+				currency: 'USD',
+				positions_count: 1,
+				exists: false
+			}
+		];
+		vi.mocked(accountClient.inspectCsv).mockResolvedValue(mixedDiscoveredAccounts);
+
+		modalState.open();
+		render(ImportAccountCsvModal, {
+			props: {
+				modalState,
+				onSuccess: () => mockOnSuccess()
+			}
+		});
+
+		await waitFor(() => {
+			const select = document.getElementById('broker-select') as HTMLSelectElement;
+			expect(select).toBeInTheDocument();
+		});
+
+		const select = document.getElementById('broker-select') as HTMLSelectElement;
+		await fireEvent.change(select, { target: { value: '1' } });
+
+		const file = new File(['content'], 'test.csv', { type: 'text/csv' });
+		const input = document.querySelector('input[type="file"]') as HTMLInputElement;
+		await fireEvent.change(input, { target: { files: [file] } });
+
+		await fireEvent.click(screen.getByRole('button', { name: 'Preview accounts' }));
+
+		await waitFor(() => {
+			expect(screen.getByText('Update holdings')).toBeInTheDocument();
+			expect(screen.getByText('Create account')).toBeInTheDocument();
+		});
+	});
+
+	it('allows user to change account currency before importing', async () => {
+		vi.mocked(accountClient.inspectCsv).mockResolvedValue(mockDiscoveredAccounts);
+		vi.mocked(accountClient.importAccountsCsv).mockResolvedValue([]);
+
+		modalState.open();
+		render(ImportAccountCsvModal, {
+			props: {
+				modalState,
+				onSuccess: () => mockOnSuccess()
+			}
+		});
+
+		await waitFor(() => {
+			const select = document.getElementById('broker-select') as HTMLSelectElement;
+			expect(select).toBeInTheDocument();
+		});
+
+		const select = document.getElementById('broker-select') as HTMLSelectElement;
+		await fireEvent.change(select, { target: { value: '1' } });
+
+		const file = new File(['content'], 'test.csv', { type: 'text/csv' });
+		const input = document.querySelector('input[type="file"]') as HTMLInputElement;
+		await fireEvent.change(input, { target: { files: [file] } });
+
+		await fireEvent.click(screen.getByRole('button', { name: 'Preview accounts' }));
+
+		await waitFor(() => {
+			const currencySelects = screen.getAllByTestId('account-currency-select');
+			expect(currencySelects.length).toBe(2);
+		});
+
+		const currencySelects = screen.getAllByTestId('account-currency-select') as HTMLSelectElement[];
+		// Change the first account currency from CAD to USD
+		await fireEvent.change(currencySelects[0], { target: { value: 'USD' } });
+
+		const importBtn = screen.getByRole('button', { name: 'Import selected (2)' });
+		await fireEvent.click(importBtn);
+
+		expect(accountClient.importAccountsCsv).toHaveBeenCalledWith(
+			'1',
+			file,
+			['W123456789', 'W987654321'],
+			expect.objectContaining({
+				W123456789: 'USD',
+				W987654321: 'USD'
+			})
+		);
 	});
 });

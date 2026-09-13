@@ -156,6 +156,21 @@ class SqlAlchemyAccountRepository(AccountRepository):
             await self._session.commit()
 
     @override
+    async def update_currency(
+        self, account_id: AccountId, currency: str
+    ) -> AccountSchema:
+        account_model = await self._session.get(AccountModel, account_id)
+        if account_model is None:
+            error = f"Account with id {account_id} not found"
+            raise ValueError(error)
+
+        account_model.currency = currency
+        await self._session.commit()
+        await self._session.refresh(account_model)
+
+        return AccountSchema.model_validate(account_model)
+
+    @override
     async def update_last_sync_at(self, account_id: AccountId) -> None:
         stmt = (
             update(AccountModel)

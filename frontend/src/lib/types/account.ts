@@ -114,4 +114,5 @@ export interface CsvDiscoveredAccount {
 	currency: string;
 	positions_count: number;
 	positions?: CsvPositionRecord[];
+	exists?: boolean;
 }

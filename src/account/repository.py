@@ -62,6 +62,12 @@ class AccountRepository(ABC):
         pass
 
     @abstractmethod
+    async def update_currency(
+        self, account_id: AccountId, currency: str
+    ) -> AccountSchema:
+        pass
+
+    @abstractmethod
     async def update_last_sync_at(self, account_id: AccountId) -> None:
         pass
 

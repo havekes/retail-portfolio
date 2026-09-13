@@ -1,3 +1,4 @@
+import logging
 import uuid
 
 from stockholm import Currency
@@ -9,11 +10,11 @@ from src.account.csv import (
     CsvDiscoveredAccount,
     CsvPositionRecord,
     GenericCsvParser,
+    is_option_symbol,
 )
 from src.account.exception import (
     AccountNotFoundError,
     AccountNotInCsvError,
-    CsvAccountDuplicateError,
     CsvFileEmptyError,
     CsvImportDisabledError,
     InstitutionNotFoundError,
@@ -29,6 +30,8 @@ from src.account.schema import AccountSchema, InstitutionSchema
 from src.auth.api_types import UserId
 from src.core.enum import InstitutionEnum
 from src.market.api import SecurityApi
+
+logger = logging.getLogger(__name__)
 
 
 class CsvAccountService:
@@ -71,7 +74,10 @@ class CsvAccountService:
         return institution
 
     async def inspect_csv(
-        self, institution_id: int | InstitutionEnum, csv_content: str
+        self,
+        institution_id: int | InstitutionEnum,
+        csv_content: str,
+        user_id: UserId | None = None,
     ) -> list[CsvDiscoveredAccount]:
         """Inspect CSV content for an institution and return discovered accounts."""
         institution = await self.validate_csv_institution(institution_id)
@@ -80,7 +86,22 @@ class CsvAccountService:
         if not csv_content or not csv_content.strip():
             raise CsvFileEmptyError
 
-        return self._csv_parser.parse(csv_content, institution.csv_format)
+        discovered = self._csv_parser.parse(csv_content, institution.csv_format)
+        if user_id is not None:
+            user_accounts = await self._account_repository.get_by_user(user_id)
+            raw_inst_id = int(institution_id)
+            existing_by_ext_id = {
+                acc.external_id: acc
+                for acc in user_accounts
+                if acc.external_id and int(acc.institution_id) == raw_inst_id
+            }
+            for acc in discovered:
+                existing = existing_by_ext_id.get(acc.account_number)
+                if existing is not None:
+                    acc.exists = True
+                    acc.currency = str(existing.currency)
+
+        return discovered
 
     async def import_accounts(
         self,
@@ -88,8 +109,9 @@ class CsvAccountService:
         institution_id: int | InstitutionEnum,
         account_numbers: list[str],
         csv_content: str,
+        account_currencies: dict[str, str] | None = None,
     ) -> list[AccountSchema]:
-        """Import selected accounts and positions from CSV content."""
+        """Import or update selected accounts and positions from CSV content."""
         institution = await self.validate_csv_institution(institution_id)
         assert institution.csv_format is not None
 
@@ -109,35 +131,66 @@ class CsvAccountService:
 
         raw_institution_id = int(institution_id)
         user_accounts = await self._account_repository.get_by_user(user_id)
-        self._check_duplicate_accounts(
-            user_accounts, matching_discovered, raw_institution_id
-        )
+        existing_by_ext_id = {
+            acc.external_id: acc
+            for acc in user_accounts
+            if acc.external_id and int(acc.institution_id) == raw_institution_id
+        }
 
-        created_accounts: list[AccountSchema] = []
+        result_accounts: list[AccountSchema] = []
         for disc_acc in matching_discovered:
-            account_schema = AccountSchema(
-                id=uuid.uuid4(),
-                external_id=disc_acc.account_number,
-                name=disc_acc.account_name,
-                user_id=user_id,
-                integration_user_id=None,
-                account_type_id=disc_acc.account_type_id,
-                institution_id=InstitutionEnum(raw_institution_id),
-                currency=Currency(disc_acc.currency),
-                broker_display_name=disc_acc.account_name,
-                is_active=True,
-                api_sync_enabled=False,
+            chosen_currency = (
+                (
+                    (account_currencies.get(disc_acc.account_number) or "")
+                    if account_currencies
+                    else ""
+                )
+                .strip()
+                .upper()
+                or disc_acc.currency
+                or "CAD"
             )
-            created = await self._account_repository.create(account_schema)
-            await self.sync_account_csv_positions(
-                account_id=created.id,
-                institution_id=InstitutionEnum(raw_institution_id),
-                csv_positions=disc_acc.positions,
-            )
-            refreshed = await self._account_repository.get(created.id)
-            created_accounts.append(refreshed if refreshed is not None else created)
 
-        return created_accounts
+            existing = existing_by_ext_id.get(disc_acc.account_number)
+            if existing is not None:
+                # Existing account: update currency if specified and different
+                if chosen_currency and str(existing.currency) != chosen_currency:
+                    await self._account_repository.update_currency(
+                        existing.id, chosen_currency
+                    )
+                # update holdings
+                await self.sync_account_csv_positions(
+                    account_id=existing.id,
+                    institution_id=InstitutionEnum(raw_institution_id),
+                    csv_positions=disc_acc.positions,
+                )
+                refreshed = await self._account_repository.get(existing.id)
+                result_accounts.append(refreshed if refreshed is not None else existing)
+            else:
+                # New account: create account and populate positions
+                account_schema = AccountSchema(
+                    id=uuid.uuid4(),
+                    external_id=disc_acc.account_number,
+                    name=disc_acc.account_name,
+                    user_id=user_id,
+                    integration_user_id=None,
+                    account_type_id=disc_acc.account_type_id,
+                    institution_id=InstitutionEnum(raw_institution_id),
+                    currency=Currency(chosen_currency),
+                    broker_display_name=disc_acc.account_name,
+                    is_active=True,
+                    api_sync_enabled=False,
+                )
+                created = await self._account_repository.create(account_schema)
+                await self.sync_account_csv_positions(
+                    account_id=created.id,
+                    institution_id=InstitutionEnum(raw_institution_id),
+                    csv_positions=disc_acc.positions,
+                )
+                refreshed = await self._account_repository.get(created.id)
+                result_accounts.append(refreshed if refreshed is not None else created)
+
+        return result_accounts
 
     async def sync_account_from_csv(
         self,
@@ -195,6 +248,13 @@ class CsvAccountService:
         """Resolve securities and persist positions for a CSV account."""
         positions: list[Position] = []
         for pos in csv_positions:
+            if is_option_symbol(pos.symbol):
+                logger.info(
+                    "Skipping unsupported option position '%s' for account %s",
+                    pos.symbol,
+                    account_id,
+                )
+                continue
             try:
                 security = await self._security_api.get_or_create_from_broker(
                     institution_id=institution_id,
@@ -221,26 +281,6 @@ class CsvAccountService:
             await self._position_repository.sync_by_account(account_id, [])
 
         await self._account_repository.update_last_sync_at(account_id)
-
-    def _check_duplicate_accounts(
-        self,
-        user_accounts: list[AccountSchema],
-        matching_discovered: list[CsvDiscoveredAccount],
-        institution_id: int,
-    ) -> None:
-        """Ensure accounts to import do not exist for this user & institution."""
-        existing_external_ids = {
-            acc.external_id
-            for acc in user_accounts
-            if int(acc.institution_id) == institution_id
-        }
-        duplicates = [
-            acc.account_number
-            for acc in matching_discovered
-            if acc.account_number in existing_external_ids
-        ]
-        if duplicates:
-            raise CsvAccountDuplicateError(duplicates)
 
 
 async def csv_account_service_factory(container: Container) -> CsvAccountService:

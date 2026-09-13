@@ -6,6 +6,7 @@
 	import { Input } from '$lib/components/ui/input/index.js';
 	import { Label } from '$lib/components/ui/label/index.js';
 	import { Checkbox } from '$lib/components/ui/checkbox/index.js';
+	import { Badge } from '$lib/components/ui/badge/index.js';
 	import { accountClient } from '$lib/api/accountClient';
 	import { brokerClient } from '$lib/api/brokerClient';
 	import type { BackendInstitution } from '@/types/broker/broker';
@@ -33,11 +34,13 @@
 	let selectedFile = $state<File | null>(null);
 	let detectedAccounts = $state<CsvDiscoveredAccount[]>([]);
 	let selectedAccountNumbers = $state<string[]>([]);
+	let accountCurrencies = $state<Record<string, string>>({});
 	let isLoading = $state(false);
 	let error = $state<string | null>(null);
 	let isDragging = $state(false);
 
 	const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
+	const COMMON_CURRENCIES = ['CAD', 'USD', 'EUR', 'GBP', 'AUD', 'CHF', 'JPY'] as const;
 
 	let isModalOpen = $derived(modalState ? modalState.isOpen : open);
 
@@ -58,6 +61,7 @@
 		selectedFile = null;
 		detectedAccounts = [];
 		selectedAccountNumbers = [];
+		accountCurrencies = {};
 		error = null;
 		isLoading = false;
 		isDragging = false;
@@ -156,6 +160,10 @@
 			}
 			detectedAccounts = accounts;
 			selectedAccountNumbers = accounts.map((acc) => acc.account_number);
+			accountCurrencies = {};
+			for (const acc of accounts) {
+				accountCurrencies[acc.account_number] = acc.currency || 'CAD';
+			}
 			step = 2;
 		} catch (err) {
 			error = err instanceof Error ? err.message : 'Failed to inspect CSV file.';
@@ -205,7 +213,8 @@
 			await accountClient.importAccountsCsv(
 				selectedInstitutionId,
 				selectedFile,
-				selectedAccountNumbers
+				selectedAccountNumbers,
+				accountCurrencies
 			);
 			closeModal();
 			onSuccess?.();
@@ -242,7 +251,7 @@
 >
 	<Dialog.Portal>
 		<Dialog.Overlay />
-		<Dialog.Content class="sm:max-w-[620px]" onkeydown={handleKeyDown}>
+		<Dialog.Content class="sm:max-w-[720px]" onkeydown={handleKeyDown}>
 			<Dialog.Header>
 				<Dialog.Title>
 					{step === 1 ? 'Import accounts from CSV' : 'Select accounts to import'}
@@ -250,7 +259,7 @@
 				<Dialog.Description>
 					{step === 1
 						? 'Upload a CSV export from your broker to discover and import accounts.'
-						: 'Choose which discovered accounts you want to import into retail-portfolio.'}
+						: 'Select accounts to import. Existing accounts in the app will have their holdings updated, while new accounts will be created.'}
 				</Dialog.Description>
 			</Dialog.Header>
 
@@ -348,6 +357,8 @@
 										<Table.Head>Account #</Table.Head>
 										<Table.Head>Name</Table.Head>
 										<Table.Head>Type</Table.Head>
+										<Table.Head>Action</Table.Head>
+										<Table.Head>Currency</Table.Head>
 										<Table.Head class="text-right">Holdings</Table.Head>
 									</Table.Row>
 								</Table.Header>
@@ -365,6 +376,48 @@
 											<Table.Cell class="font-mono text-sm">{acc.account_number}</Table.Cell>
 											<Table.Cell class="font-medium">{acc.account_name}</Table.Cell>
 											<Table.Cell>{acc.account_type_name}</Table.Cell>
+											<Table.Cell>
+												{#if acc.exists}
+													<Badge
+														variant="outline"
+														class="border-blue-500/30 bg-blue-50 text-xs font-normal text-blue-700 dark:bg-blue-950/40 dark:text-blue-300"
+														data-testid="account-action-badge"
+													>
+														Update holdings
+													</Badge>
+												{:else}
+													<Badge
+														variant="outline"
+														class="border-green-500/30 bg-green-50 text-xs font-normal text-green-700 dark:bg-green-950/40 dark:text-green-300"
+														data-testid="account-action-badge"
+													>
+														Create account
+													</Badge>
+												{/if}
+											</Table.Cell>
+											<Table.Cell>
+												<select
+													value={accountCurrencies[acc.account_number] ?? acc.currency ?? 'CAD'}
+													onchange={(e) => {
+														accountCurrencies[acc.account_number] = (
+															e.target as HTMLSelectElement
+														).value;
+													}}
+													class="h-8 rounded-md border border-input bg-background px-2 py-1 text-xs shadow-sm focus:ring-1 focus:ring-ring focus:outline-none"
+													disabled={isLoading}
+													data-testid="account-currency-select"
+													aria-label={`Currency for ${acc.account_name}`}
+												>
+													{#if acc.currency && !COMMON_CURRENCIES.includes(acc.currency.toUpperCase() as (typeof COMMON_CURRENCIES)[number])}
+														<option value={acc.currency.toUpperCase()}
+															>{acc.currency.toUpperCase()}</option
+														>
+													{/if}
+													{#each COMMON_CURRENCIES as curr (curr)}
+														<option value={curr}>{curr}</option>
+													{/each}
+												</select>
+											</Table.Cell>
 											<Table.Cell class="text-right">{acc.positions_count}</Table.Cell>
 										</Table.Row>
 									{/each}
