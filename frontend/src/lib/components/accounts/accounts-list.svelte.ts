@@ -22,6 +22,7 @@ export class AccountsListState {
 	selectedAccounts = $state<string[]>([]);
 	groupBy = $state<GroupBy>('none');
 	createPortfolioModal = new ModalState<string[]>();
+	importCsvModal = new ModalState<void>();
 
 	// Track which accounts are currently syncing
 	syncingAccountIds = $state(new SvelteSet<string>());

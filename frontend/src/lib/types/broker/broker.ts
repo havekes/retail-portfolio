@@ -12,4 +12,6 @@ export interface BackendInstitution {
 	logo: string | null;
 	auth_type: string;
 	created_at: string;
+	csv_import_enabled?: boolean;
+	csv_format?: string;
 }

@@ -10,6 +10,8 @@
 	import type { BackendInstitution } from '@/types/broker/broker';
 	import { onMount } from 'svelte';
 	import BrokerLoginModal from './broker-login-modal.svelte';
+	import ImportAccountCsvModal from '../accounts/import-account-csv-modal.svelte';
+	import { Button } from '$lib/components/ui/button';
 	import { RadioCards } from '$lib/components/ui/radio-cards';
 	import { Alert, AlertDescription, AlertTitle } from '$lib/components/ui/alert';
 	import { AlertCircle } from '@lucide/svelte';
@@ -67,6 +69,13 @@
 					<span class="text-center text-sm font-medium">{inst.name}</span>
 				{/snippet}
 			</RadioCards>
+
+			<div class="mt-4 border-t pt-4 text-center">
+				<p class="mb-2 text-xs text-muted-foreground">Or import from a CSV file export</p>
+				<Button variant="outline" class="w-full" onclick={state.openCsvImport}>
+					Import accounts from CSV
+				</Button>
+			</div>
 		</div>
 	</DialogContent>
 </Dialog>
@@ -76,3 +85,5 @@
 	institution={state.selectedInstitution}
 	{onSuccess}
 />
+
+<ImportAccountCsvModal bind:open={state.isCsvImportModalOpen} {onSuccess} />

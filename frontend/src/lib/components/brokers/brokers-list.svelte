@@ -5,6 +5,7 @@
 	import * as Alert from '$lib/components/ui/alert/index.js';
 	import { Button } from '../ui/button/index.js';
 	import ConnectBrokerModal from './connect-broker-modal.svelte';
+	import ImportAccountCsvModal from '../accounts/import-account-csv-modal.svelte';
 	import { CircleAlert } from '@lucide/svelte';
 	import { untrack } from 'svelte';
 	import type { BrokerUser } from '@/types/broker/broker';
@@ -17,12 +18,14 @@
 </script>
 
 <ConnectBrokerModal bind:open={state.isModalOpen} onSuccess={state.loadUsers} />
+<ImportAccountCsvModal bind:open={state.isCsvImportModalOpen} onSuccess={state.loadUsers} />
 
 <div class="brokers-list w-full space-y-4">
 	<div class="flex h-[49px] items-center border-b px-4 py-2">
 		<h2>Connected brokers</h2>
 		{#if state.users.length > 0}
-			<div class="ms-auto">
+			<div class="ms-auto flex items-center gap-2">
+				<Button variant="outline" onclick={state.openCsvImport}>Import CSV</Button>
 				<Button onclick={state.openModal}>Connect broker</Button>
 			</div>
 		{/if}
@@ -45,8 +48,9 @@
 						Connect to a broker to autoatically import and sync accounts and holdings
 					</Alert.Description>
 				</Alert.Root>
-				<div class="flex flex-col items-center py-2">
+				<div class="flex flex-col items-center gap-2 py-2">
 					<Button onclick={state.openModal}>Connect broker</Button>
+					<Button variant="outline" onclick={state.openCsvImport}>Import CSV</Button>
 				</div>
 			{/each}
 		{/if}
