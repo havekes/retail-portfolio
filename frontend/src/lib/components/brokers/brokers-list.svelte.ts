@@ -5,6 +5,7 @@ export class BrokersListState {
 	users = $state<BrokerUser[]>([]);
 	isLoading = $state(false);
 	isModalOpen = $state(false);
+	isCsvImportModalOpen = $state(false);
 
 	private brokerService: BrokerService;
 
@@ -24,5 +25,9 @@ export class BrokersListState {
 
 	openModal = () => {
 		this.isModalOpen = true;
+	};
+
+	openCsvImport = () => {
+		this.isCsvImportModalOpen = true;
 	};
 }

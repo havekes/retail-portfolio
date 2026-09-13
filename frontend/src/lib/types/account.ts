@@ -96,3 +96,22 @@ export interface AccountHoldings extends PaginatedResponse<Holding> {
 	net_deposits: number | null;
 	currency: string;
 }
+
+export interface CsvPositionRecord {
+	symbol: string;
+	exchange?: string | null;
+	name?: string | null;
+	quantity: number;
+	average_cost?: number | null;
+	currency: string;
+}
+
+export interface CsvDiscoveredAccount {
+	account_number: string;
+	account_name: string;
+	account_type_id: AccountType;
+	account_type_name: string;
+	currency: string;
+	positions_count: number;
+	positions?: CsvPositionRecord[];
+}

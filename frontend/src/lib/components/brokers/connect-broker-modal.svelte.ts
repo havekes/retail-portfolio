@@ -5,6 +5,7 @@ export class ConnectBrokerModalState {
 	institutions = $state<BackendInstitution[]>([]);
 	selectedInstitution = $state<BackendInstitution | null>(null);
 	isLoginModalOpen = $state(false);
+	isCsvImportModalOpen = $state(false);
 	errorMessage = $state<string | null>(null);
 
 	private brokerService: BrokerService;
@@ -16,6 +17,11 @@ export class ConnectBrokerModalState {
 	reset = () => {
 		this.selectedInstitution = null;
 		this.errorMessage = null;
+	};
+
+	openCsvImport = () => {
+		this.setOpen(false);
+		this.isCsvImportModalOpen = true;
 	};
 
 	loadInstitutions = async () => {

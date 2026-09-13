@@ -62,5 +62,5 @@ export function getBrokerService(customFetch?: typeof fetch) {
 	if (customFetch) {
 		return new BrokerService(customFetch);
 	}
-	return getContext<BrokerService>(BROKER_SERVICE_KEY);
+	return getContext<BrokerService>(BROKER_SERVICE_KEY) ?? new BrokerService();
 }

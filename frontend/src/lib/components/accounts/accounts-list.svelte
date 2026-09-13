@@ -9,6 +9,7 @@
 	import { AccountsListState } from './accounts-list.svelte.js';
 	import type { Account } from '@/types/account';
 	import CreatePortfolioModal from './create-portfolio-modal.svelte';
+	import ImportAccountCsvModal from './import-account-csv-modal.svelte';
 
 	let { accounts = [] }: { accounts?: Account[] } = $props();
 
@@ -42,6 +43,7 @@
 			>
 				{state.selectionMode ? 'Confirm Selection' : 'Create portfolio'}
 			</Button>
+			<Button variant="outline" onclick={() => state.importCsvModal.open()}>Import CSV</Button>
 			<DropdownMenu.Root>
 				<DropdownMenu.Trigger>
 					{#snippet child({ props })}
@@ -112,3 +114,5 @@
 	modalState={state.createPortfolioModal}
 	onCreated={() => state.cancelSelection()}
 />
+
+<ImportAccountCsvModal modalState={state.importCsvModal} onSuccess={() => state.fetchAccounts()} />

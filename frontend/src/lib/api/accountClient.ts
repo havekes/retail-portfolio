@@ -1,5 +1,10 @@
 import { ApiClient } from './apiClient';
-import type { Account, AccountHoldings, AccountTotals } from '@/types/account';
+import type {
+	Account,
+	AccountHoldings,
+	AccountTotals,
+	CsvDiscoveredAccount
+} from '@/types/account';
 
 export class AccountClient extends ApiClient {
 	async getAccounts(token?: string | null): Promise<Account[]> {
@@ -44,6 +49,37 @@ export class AccountClient extends ApiClient {
 			undefined,
 			token
 		);
+	}
+
+	async inspectCsv(
+		institutionId: string | number,
+		file: File,
+		token?: string | null
+	): Promise<CsvDiscoveredAccount[]> {
+		const formData = new FormData();
+		formData.append('file', file);
+		formData.append('institution_id', String(institutionId));
+		return this.postFormData<CsvDiscoveredAccount[]>(
+			'/accounts/csv/inspect',
+			formData,
+			undefined,
+			token
+		);
+	}
+
+	async importAccountsCsv(
+		institutionId: string | number,
+		file: File,
+		accountNumbers: string[],
+		token?: string | null
+	): Promise<Account[]> {
+		const formData = new FormData();
+		formData.append('file', file);
+		formData.append('institution_id', String(institutionId));
+		for (const accountNumber of accountNumbers) {
+			formData.append('account_numbers', accountNumber);
+		}
+		return this.postFormData<Account[]>('/accounts/csv/import', formData, undefined, token);
 	}
 }
 
