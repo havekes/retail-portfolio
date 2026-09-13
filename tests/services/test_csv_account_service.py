@@ -15,7 +15,6 @@ from src.account.csv import (
 from src.account.exception import (
     AccountNotFoundError,
     AccountNotInCsvError,
-    CsvAccountDuplicateError,
     CsvFileEmptyError,
     CsvImportDisabledError,
     InstitutionNotFoundError,

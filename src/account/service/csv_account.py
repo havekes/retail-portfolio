@@ -13,7 +13,6 @@ from src.account.csv import (
 from src.account.exception import (
     AccountNotFoundError,
     AccountNotInCsvError,
-    CsvAccountDuplicateError,
     CsvFileEmptyError,
     CsvImportDisabledError,
     InstitutionNotFoundError,
@@ -90,7 +89,7 @@ class CsvAccountService:
             existing_external_ids = {
                 acc.external_id
                 for acc in user_accounts
-                if int(acc.institution_id) == raw_inst_id
+                if acc.external_id and int(acc.institution_id) == raw_inst_id
             }
             for acc in discovered:
                 acc.exists = acc.account_number in existing_external_ids
@@ -127,7 +126,7 @@ class CsvAccountService:
         existing_by_ext_id = {
             acc.external_id: acc
             for acc in user_accounts
-            if int(acc.institution_id) == raw_institution_id
+            if acc.external_id and int(acc.institution_id) == raw_institution_id
         }
 
         result_accounts: list[AccountSchema] = []
@@ -250,26 +249,6 @@ class CsvAccountService:
             await self._position_repository.sync_by_account(account_id, [])
 
         await self._account_repository.update_last_sync_at(account_id)
-
-    def _check_duplicate_accounts(
-        self,
-        user_accounts: list[AccountSchema],
-        matching_discovered: list[CsvDiscoveredAccount],
-        institution_id: int,
-    ) -> None:
-        """Ensure accounts to import do not exist for this user & institution."""
-        existing_external_ids = {
-            acc.external_id
-            for acc in user_accounts
-            if int(acc.institution_id) == institution_id
-        }
-        duplicates = [
-            acc.account_number
-            for acc in matching_discovered
-            if acc.account_number in existing_external_ids
-        ]
-        if duplicates:
-            raise CsvAccountDuplicateError(duplicates)
 
 
 async def csv_account_service_factory(container: Container) -> CsvAccountService:
