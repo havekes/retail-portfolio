@@ -8,10 +8,10 @@
   },
   "agent": {
     "arch-reviewer": {
-      "model": "opencode-go/kimi-k3"
+      "model": "opencode-go/grok-4.6"
     },
     "implementer": {
-      "model": "opencode-go/deepseek-v4-flash"
+      "model": "opencode-go/deepseek-v4.1-flash"
     },
     "orchestrator": {
       "model": "opencode-go/glm-5.3-flash"
@@ -23,7 +23,7 @@
       "model": "opencode-go/glm-5.3-flash"
     },
     "ticket-writer": {
-      "model": "opencode-go/glm-5.3-flash"
+      "model": "opencode-go/deepseek-v4.1-flash"
     }
   }
 }
