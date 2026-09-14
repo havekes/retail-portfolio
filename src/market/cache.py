@@ -1,6 +1,8 @@
+import contextlib
 import hashlib
 import json
 import logging
+from collections.abc import AsyncIterator
 from datetime import timedelta
 from typing import Any
 
@@ -8,8 +10,12 @@ import redis.asyncio as aioredis
 from redis.asyncio.client import Redis
 
 from src.config.settings import settings
+from src.core.redis import RedisManager, redis_manager
+from src.market.api_types import SecuritySearchResult
 
 logger = logging.getLogger(__name__)
+
+DEFAULT_SEARCH_CACHE_TTL = 2_592_000  # 30 days in seconds
 
 
 class IndicatorCache:
@@ -157,3 +163,108 @@ async def indicator_cache_factory() -> IndicatorCache:
         settings.redis_url, encoding="utf-8", decode_responses=False
     )
     return IndicatorCache(redis_client)
+
+
+class SecuritySearchCache:
+    """Cache for security search results using Redis."""
+
+    def __init__(
+        self,
+        redis_client: Redis | None = None,
+        cache_ttl: int = DEFAULT_SEARCH_CACHE_TTL,
+        redis_manager: RedisManager | None = None,
+    ) -> None:
+        self._redis_client = redis_client
+        self._cache_ttl = cache_ttl
+        self._redis_manager = redis_manager
+
+    def _normalize_query(self, query: str) -> str:
+        """
+        Normalize search query: strip whitespace, lowercase, collapse internal spaces.
+        """
+        return " ".join(query.strip().lower().split())
+
+    def _get_cache_key(self, query: str) -> str:
+        """Generate normalized cache key for search query."""
+        return f"market:search:{self._normalize_query(query)}"
+
+    @contextlib.asynccontextmanager
+    async def _get_client(self) -> AsyncIterator[Redis]:
+        if self._redis_client is not None:
+            yield self._redis_client
+        elif self._redis_manager is not None:
+            async with self._redis_manager.client() as client:
+                yield client
+        else:
+            async with redis_manager.client() as client:
+                yield client
+
+    async def get(self, query: str) -> list[SecuritySearchResult] | None:
+        """
+        Get cached search results for query.
+
+        Args:
+            query: Search query string
+
+        Returns:
+            List of search results or None if not found or on error
+        """
+        normalized = self._normalize_query(query)
+        if not normalized:
+            return None
+
+        cache_key = self._get_cache_key(normalized)
+        try:
+            async with self._get_client() as client:
+                cached_data = await client.get(cache_key)
+
+            if cached_data is None:
+                return None
+
+            items = json.loads(cached_data)
+            if not isinstance(items, list):
+                logger.warning(
+                    "Invalid cache payload format for query %s: expected list, got %s",
+                    query,
+                    type(items).__name__,
+                )
+                return None
+
+            return [SecuritySearchResult.model_validate(item) for item in items]
+        except Exception as e:  # noqa: BLE001
+            logger.warning("Cache get error for query %s: %s", query, e)
+            return None
+
+    async def set(
+        self,
+        query: str,
+        results: list[SecuritySearchResult],
+        ttl: int | None = None,
+    ) -> None:
+        """
+        Cache search results for query.
+
+        Args:
+            query: Search query string
+            results: List of search results to cache
+            ttl: Optional TTL override in seconds (defaults to self._cache_ttl)
+        """
+        normalized = self._normalize_query(query)
+        if not normalized:
+            return
+
+        cache_key = self._get_cache_key(normalized)
+        effective_ttl = ttl if ttl is not None else self._cache_ttl
+
+        try:
+            payload = json.dumps([r.model_dump(mode="json") for r in results])
+            async with self._get_client() as client:
+                await client.setex(cache_key, effective_ttl, payload)
+            logger.debug("Cached %d search results for query %s", len(results), query)
+        except Exception as e:  # noqa: BLE001
+            logger.warning("Cache set error for query %s: %s", query, e)
+
+
+async def security_search_cache_factory() -> SecuritySearchCache:
+    """Factory function to create security search cache instance."""
+    return SecuritySearchCache(redis_manager=redis_manager)

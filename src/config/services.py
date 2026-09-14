@@ -77,7 +77,9 @@ def register_market_stub_services(registry: Registry) -> None:
     )
     from src.market.cache import (  # noqa: PLC0415
         IndicatorCache,
+        SecuritySearchCache,
         indicator_cache_factory,
+        security_search_cache_factory,
     )
     from src.market.eodhd import eodhd_gateway_factory  # noqa: PLC0415
     from src.market.gateway import MarketGateway  # noqa: PLC0415
@@ -138,6 +140,7 @@ def register_market_stub_services(registry: Registry) -> None:
         ChartSnapshotRepository, sqlalchemy_chart_snapshot_repository_factory
     )
     registry.register_factory(IndicatorCache, indicator_cache_factory)
+    registry.register_factory(SecuritySearchCache, security_search_cache_factory)
     registry.register_factory(MarketPricesApi, market_prices_factory)
     registry.register_factory(SecurityApi, security_api_factory)
     registry.register_factory(MarketService, market_service_factory)

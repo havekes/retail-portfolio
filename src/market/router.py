@@ -19,7 +19,7 @@ from src.core.pagination import PaginatedResponse, PaginationParams
 from src.market.ai_service import AIService
 from src.market.api import SecurityApi
 from src.market.api_types import SecurityId, SecuritySearchResult, WatchlistId
-from src.market.cache import IndicatorCache
+from src.market.cache import IndicatorCache, SecuritySearchCache
 from src.market.enum import PriceInterval
 from src.market.gateway import MarketGateway
 from src.market.indicators import (
@@ -99,6 +99,7 @@ async def market_last_close_price(
 
 
 @market_router.get("/search")
+@market_router.get("/securities/search")
 async def market_search(
     _: Annotated[User, Depends(current_user)],
     q: Annotated[str, Query(description="Search query", min_length=1, max_length=100)],
@@ -107,8 +108,19 @@ async def market_search(
     """
     Search for securities by query string
     """
+    cache = await services.aget(SecuritySearchCache)
+    cached_results = await cache.get(q)
+    if cached_results is not None:
+        logger.info(
+            "Returned cached search results for query: %s, found %d results",
+            q,
+            len(cached_results),
+        )
+        return cached_results
+
     gateway = services.get(MarketGateway)
     results = gateway.search(q)
+    await cache.set(q, results)
     logger.info(
         "Searched for securities with query: %s, found %d results", q, len(results)
     )

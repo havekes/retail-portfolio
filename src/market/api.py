@@ -13,6 +13,7 @@ from src.market.api_types import (
     SecurityId,
     SecuritySearchResult,
 )
+from src.market.cache import SecuritySearchCache
 from src.market.eodhd import eodhd_gateway_factory
 from src.market.gateway import MarketGateway
 from src.market.repository import (
@@ -78,6 +79,7 @@ class SecurityApi:
         price_repository: PriceRepository,
         security_broker_repository: SecurityBrokerRepository,
         security_repository: SecurityRepository,
+        search_cache: SecuritySearchCache | None = None,
     ) -> None:
         self._gateway = gateway
         self._market_prices_api = market_prices_api
@@ -85,6 +87,7 @@ class SecurityApi:
         self._price_repository = price_repository
         self._security_broker_repository = security_broker_repository
         self._security_repository = security_repository
+        self._search_cache = search_cache
 
     async def get_by_id(self, security_id: SecurityId) -> Security:
         security = await self._security_repository.get_by_id_or_fail(security_id)
@@ -110,9 +113,17 @@ class SecurityApi:
 
         mapped_symbol = self._map_eodhd_symbol(broker_symbol)
         mapped_exchange = self._map_eodhd_exchange(broker_exchange)
-        search_results = self._gateway.search(
-            query=f"{mapped_symbol}.{mapped_exchange}"
-        )
+        query = f"{mapped_symbol}.{mapped_exchange}"
+
+        search_results: list[SecuritySearchResult] | None = None
+        if self._search_cache is not None:
+            search_results = await self._search_cache.get(query)
+
+        if search_results is None:
+            search_results = self._gateway.search(query=query)
+            if self._search_cache is not None:
+                await self._search_cache.set(query, search_results)
+
         logger.debug(
             "Search results for %s.%s (%s): %s",
             mapped_symbol,
@@ -243,4 +254,5 @@ async def security_api_factory(container: Container) -> SecurityApi:
         price_repository=await container.aget(PriceRepository),
         security_broker_repository=await container.aget(SecurityBrokerRepository),
         security_repository=await container.aget(SecurityRepository),
+        search_cache=await container.aget(SecuritySearchCache),
     )
