@@ -2,7 +2,6 @@ import type { Time } from 'lightweight-charts';
 import type { ISubscription } from '../helpers/delegate';
 import type {
 	DegreeWaveCount,
-	SecurityElliottWaves,
 	WaveDegree,
 	WavePoint,
 	WavePointId,
@@ -36,7 +35,7 @@ export class ElliottWavesPrimitive extends DrawingPrimitiveBase<
 	constructor(initialState?: {
 		activeDegree?: WaveDegree;
 		activeWaveType?: WaveType;
-		waves?: Partial<Record<WaveDegree, DegreeWaveCount | null>> | SecurityElliottWaves;
+		waves?: DegreeWaveCount[];
 		snapToWicks?: boolean;
 		selectedDegree?: WaveDegree | null;
 		selectedWaveId?: string | null;
@@ -52,7 +51,7 @@ export class ElliottWavesPrimitive extends DrawingPrimitiveBase<
 			state.setActiveWaveType(initialState.activeWaveType);
 		}
 		if (initialState?.waves) {
-			state.setAllWaveCounts(initialState.waves);
+			state.setWaves(initialState.waves);
 		}
 		if (initialState?.snapToWicks !== undefined) {
 			mouseHandlers.setSnapToWicks(initialState.snapToWicks);
@@ -131,14 +130,6 @@ export class ElliottWavesPrimitive extends DrawingPrimitiveBase<
 		return this._state.getWaveCount(degree);
 	}
 
-	public setWaveCount(degree: WaveDegree, waveCount: DegreeWaveCount | null): void {
-		this._state.setWaveCount(degree, waveCount);
-	}
-
-	public getAllWaveCounts(): Record<WaveDegree, DegreeWaveCount | null> {
-		return this._state.getAllWaveCounts();
-	}
-
 	public getWaves(degree?: WaveDegree): DegreeWaveCount[] {
 		return this._state.getWaves(degree);
 	}
@@ -155,10 +146,8 @@ export class ElliottWavesPrimitive extends DrawingPrimitiveBase<
 		this._state.setWaves(waves);
 	}
 
-	public setAllWaveCounts(
-		waves: Partial<Record<WaveDegree, DegreeWaveCount | null>> | SecurityElliottWaves
-	): void {
-		this._state.setAllWaveCounts(waves);
+	public removeWave(id: string): boolean {
+		return this._state.removeWave(id);
 	}
 
 	public getDrawingWave(): DegreeWaveCount | null {
@@ -280,7 +269,7 @@ export class ElliottWavesPrimitive extends DrawingPrimitiveBase<
 		const allWaves = this._state.getAllWaves();
 
 		for (const wave of allWaves) {
-			const waveDegree = wave.degree ?? 'cycle';
+			const waveDegree = wave.degree;
 			const config = DEGREE_STYLES[waveDegree];
 			const points = wave.points ?? [];
 			const projectedPoints: ProjectedWavePoint[] = [];
@@ -324,11 +313,7 @@ export class ElliottWavesPrimitive extends DrawingPrimitiveBase<
 				}
 			}
 
-			const waveType =
-				wave.type ??
-				(points.some((p) => p.wave === 'A' || p.wave === 'B' || p.wave === 'C')
-					? 'corrective'
-					: 'impulse');
+			const waveType = wave.type;
 
 			degreeRenderDataList.push({
 				id: wave.id,

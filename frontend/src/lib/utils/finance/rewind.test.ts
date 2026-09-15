@@ -17,6 +17,8 @@ describe('rewind finance utilities', () => {
 	const uuidV4Regex = /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 
 	const sampleWaveCount: DegreeWaveCount = {
+		id: 'wave-primary',
+		degree: 'primary',
 		type: 'impulse',
 		points: [
 			{ wave: 0, time: '2024-01-01', price: 100 },
@@ -31,7 +33,7 @@ describe('rewind finance utilities', () => {
 	};
 
 	const sampleElliottWaves: SecurityElliottWaves = {
-		primary: sampleWaveCount
+		waves: [sampleWaveCount]
 	};
 
 	const sampleFibTools: SecurityFibonacciTools = {
@@ -434,19 +436,23 @@ describe('rewind finance utilities', () => {
 				captured_at: '2026-08-27T12:00:00.000Z',
 				drawings: {
 					elliott_waves: {
-						primary: {
-							type: 'impulse',
-							points: [
-								{ wave: 0, time: '2024-01-01', price: 100 },
-								{ wave: 1, time: '2024-01-02', price: 120 },
-								{ wave: 2, time: '2024-01-03', price: 110 },
-								{ wave: 3, time: '2024-01-04', price: 150 },
-								{ wave: 4, time: '2024-01-05', price: 140 },
-								{ wave: 5, time: '2024-01-06', price: 180 }
-							],
-							wave3Target: 160,
-							wave5Target: 190
-						}
+						waves: [
+							{
+								id: 'wave-primary',
+								degree: 'primary',
+								type: 'impulse',
+								points: [
+									{ wave: 0, time: '2024-01-01', price: 100 },
+									{ wave: 1, time: '2024-01-02', price: 120 },
+									{ wave: 2, time: '2024-01-03', price: 110 },
+									{ wave: 3, time: '2024-01-04', price: 150 },
+									{ wave: 4, time: '2024-01-05', price: 140 },
+									{ wave: 5, time: '2024-01-06', price: 180 }
+								],
+								wave3Target: 160,
+								wave5Target: 190
+							}
+						]
 					},
 					fibonacci_tools: {
 						retracement: {
@@ -495,10 +501,12 @@ describe('rewind finance utilities', () => {
 				drawings: {
 					...baseSnapshot.drawings,
 					elliott_waves: {
-						primary: {
-							...sampleWaveCount,
-							wave3Target: 999
-						}
+						waves: [
+							{
+								...sampleWaveCount,
+								wave3Target: 999
+							}
+						]
 					}
 				}
 			};
@@ -573,9 +581,6 @@ describe('rewind finance utilities', () => {
 
 		it('correctly compares snapshots with multiple coexisting waves', () => {
 			const multiWaves1: SecurityElliottWaves = {
-				cycle: sampleWaveCount,
-				primary: null,
-				intermediate: null,
 				waves: [
 					{ ...sampleWaveCount, id: 'wave-1', degree: 'cycle', type: 'impulse' },
 					{
@@ -616,9 +621,9 @@ describe('rewind finance utilities', () => {
 					elliott_waves: {
 						...multiWaves1,
 						waves: [
-							multiWaves1.waves![0],
+							multiWaves1.waves[0],
 							{
-								...multiWaves1.waves![1],
+								...multiWaves1.waves[1],
 								points: [{ wave: 0, time: '2024-02-01', price: 999 }]
 							}
 						]

@@ -415,10 +415,16 @@ describe('SecurityChart - Elliott Wave Integration', () => {
 
 	it('syncs elliottWaves prop changes to ElliottWavesPrimitive', async () => {
 		const sampleWaves: SecurityElliottWaves = {
-			cycle: {
-				points: [{ wave: 1, time: '2024-01-10', price: 10 }]
-			},
-			primary: null
+			waves: [
+				{
+					id: 'wave-cycle-1',
+					degree: 'cycle',
+					type: 'impulse',
+					points: [{ wave: 1, time: '2024-01-10', price: 10 }],
+					wave3Target: null,
+					wave5Target: null
+				}
+			]
 		};
 
 		const { rerender } = render(SecurityChart, {
@@ -432,13 +438,20 @@ describe('SecurityChart - Elliott Wave Integration', () => {
 			(c) => c[0] instanceof ElliottWavesPrimitive
 		)?.[0] as ElliottWavesPrimitive;
 
-		expect(elliottPrimitive.getWaveCount('cycle')).toEqual(sampleWaves.cycle);
+		expect(elliottPrimitive.getWaveCount('cycle')).toEqual(sampleWaves.waves[0]);
 
 		const updatedWaves: SecurityElliottWaves = {
-			cycle: sampleWaves.cycle,
-			primary: {
-				points: [{ wave: 1, time: '2024-01-11', price: 12 }]
-			}
+			waves: [
+				sampleWaves.waves[0],
+				{
+					id: 'wave-primary-1',
+					degree: 'primary',
+					type: 'impulse',
+					points: [{ wave: 1, time: '2024-01-11', price: 12 }],
+					wave3Target: null,
+					wave5Target: null
+				}
+			]
 		};
 
 		await rerender({
@@ -446,7 +459,7 @@ describe('SecurityChart - Elliott Wave Integration', () => {
 			elliottWaves: updatedWaves
 		});
 
-		expect(elliottPrimitive.getWaveCount('primary')).toEqual(updatedWaves.primary);
+		expect(elliottPrimitive.getWaveCount('primary')).toEqual(updatedWaves.waves[1]);
 	});
 
 	it('forwards primitive events to delegate callbacks', () => {
@@ -475,9 +488,12 @@ describe('SecurityChart - Elliott Wave Integration', () => {
 				points: expect.arrayContaining([expect.objectContaining({ wave: 0, price: 15 })])
 			}),
 			expect.objectContaining({
-				cycle: expect.objectContaining({
-					points: expect.arrayContaining([expect.objectContaining({ wave: 0, price: 15 })])
-				})
+				waves: expect.arrayContaining([
+					expect.objectContaining({
+						degree: 'cycle',
+						points: expect.arrayContaining([expect.objectContaining({ wave: 0, price: 15 })])
+					})
+				])
 			})
 		);
 

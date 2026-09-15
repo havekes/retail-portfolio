@@ -2,7 +2,6 @@ import type { Time } from 'lightweight-charts';
 import { Delegate, type ISubscription } from '../helpers/delegate';
 import type {
 	DegreeWaveCount,
-	SecurityElliottWaves,
 	WaveDegree,
 	WavePoint,
 	WavePointId,
@@ -154,15 +153,12 @@ export class ElliottWaveState {
 					const drawingIdx = this._waves.findIndex((w) => w.id === this._drawingWaveId);
 					if (drawingIdx !== -1) {
 						const wave = this._waves[drawingIdx];
-						const maxPts =
-							(wave.type ?? this._activeWaveType) === 'corrective'
-								? MAX_CORRECTIVE_POINTS
-								: MAX_IMPULSE_POINTS;
+						const maxPts = wave.type === 'corrective' ? MAX_CORRECTIVE_POINTS : MAX_IMPULSE_POINTS;
 						if (wave.points.length < maxPts) {
 							this._waves.splice(drawingIdx, 1);
 							this._wavePointsChanged.fire({
-								degree: wave.degree ?? this._activeDegree,
-								waveCount: this.getWaveCount(wave.degree)
+								degree: wave.degree,
+								waveCount: null
 							});
 						}
 					}
@@ -179,15 +175,12 @@ export class ElliottWaveState {
 			const drawingIdx = this._waves.findIndex((w) => w.id === this._drawingWaveId);
 			if (drawingIdx !== -1) {
 				const wave = this._waves[drawingIdx];
-				const maxPts =
-					(wave.type ?? this._activeWaveType) === 'corrective'
-						? MAX_CORRECTIVE_POINTS
-						: MAX_IMPULSE_POINTS;
+				const maxPts = wave.type === 'corrective' ? MAX_CORRECTIVE_POINTS : MAX_IMPULSE_POINTS;
 				if (wave.points.length < maxPts) {
 					this._waves.splice(drawingIdx, 1);
 					this._wavePointsChanged.fire({
-						degree: wave.degree ?? this._activeDegree,
-						waveCount: this.getWaveCount(wave.degree)
+						degree: wave.degree,
+						waveCount: null
 					});
 				}
 			}
@@ -204,7 +197,6 @@ export class ElliottWaveState {
 	public getWaveCount(degree?: WaveDegree): DegreeWaveCount | null {
 		const targetDegree = degree ?? this._activeDegree;
 
-		// 1. If currently drawing on targetDegree, return drawing wave
 		if (this._drawingWaveId) {
 			const drawing = this._waves.find((w) => w.id === this._drawingWaveId);
 			if (drawing && drawing.degree === targetDegree) {
@@ -212,7 +204,6 @@ export class ElliottWaveState {
 			}
 		}
 
-		// 2. If a wave is selected on targetDegree, return it
 		if (this._selectedWaveId) {
 			const selected = this._waves.find((w) => w.id === this._selectedWaveId);
 			if (selected && selected.degree === targetDegree) {
@@ -220,76 +211,19 @@ export class ElliottWaveState {
 			}
 		}
 
-		// 3. Prefer wave matching activeWaveType on targetDegree
 		const matching = this._waves.filter(
-			(w) => w.degree === targetDegree && (w.type ?? 'impulse') === this._activeWaveType
+			(w) => w.degree === targetDegree && w.type === this._activeWaveType
 		);
 		if (matching.length > 0) {
 			return matching[matching.length - 1];
 		}
 
-		// 4. Fallback to any wave on targetDegree (most recent)
 		const anyOnDegree = this._waves.filter((w) => w.degree === targetDegree);
 		if (anyOnDegree.length > 0) {
 			return anyOnDegree[anyOnDegree.length - 1];
 		}
 
 		return null;
-	}
-
-	public setWaveCount(degree: WaveDegree, waveCount: DegreeWaveCount | null): void {
-		if (!waveCount) {
-			this._removeWaveByDegree(degree);
-			return;
-		}
-
-		const hasDegree = 'degree' in waveCount && waveCount.degree !== undefined;
-		const hasType = 'type' in waveCount && waveCount.type !== undefined;
-
-		const normalized: DegreeWaveCount = {
-			...waveCount,
-			points: [...(waveCount.points || [])]
-		};
-
-		const degValue = waveCount.degree ?? degree;
-		const typeValue =
-			waveCount.type ??
-			(waveCount.points?.some((p) => p.wave === 'A' || p.wave === 'B' || p.wave === 'C')
-				? 'corrective'
-				: 'impulse');
-
-		Object.defineProperty(normalized, 'degree', {
-			value: degValue,
-			enumerable: hasDegree,
-			writable: true,
-			configurable: true
-		});
-
-		Object.defineProperty(normalized, 'type', {
-			value: typeValue,
-			enumerable: hasType,
-			writable: true,
-			configurable: true
-		});
-
-		const idx = normalized.id ? this._waves.findIndex((w) => w.id === normalized.id) : -1;
-		if (idx !== -1) {
-			this._waves[idx] = normalized;
-		} else {
-			const slotIdx = this._waves.findIndex(
-				(w) => w.degree === degree && (w.type ?? 'impulse') === typeValue
-			);
-			if (slotIdx !== -1) {
-				this._waves[slotIdx] = normalized;
-			} else {
-				this._waves.push(normalized);
-			}
-		}
-
-		this._wavePointsChanged.fire({
-			degree,
-			waveCount: normalized
-		});
 	}
 
 	public getAllWaves(): DegreeWaveCount[] {
@@ -313,113 +247,18 @@ export class ElliottWaveState {
 	}
 
 	public setWaves(waves: DegreeWaveCount[]): void {
-		this._waves = waves.map((w) => ({
-			...w,
-			degree: w.degree ?? this._activeDegree,
-			type:
-				w.type ??
-				(w.points?.some((p) => p.wave === 'A' || p.wave === 'B' || p.wave === 'C')
-					? 'corrective'
-					: 'impulse'),
-			points: [...(w.points || [])]
+		this._waves = (waves || []).map((w) => ({
+			id: w.id || generateUUID(),
+			degree: w.degree,
+			type: w.type,
+			points: (w.points || []).map((p) => ({ ...p })),
+			wave3Target: w.wave3Target ?? null,
+			wave5Target: w.wave5Target ?? null
 		}));
 		if (this._selectedWaveId && !this._waves.some((w) => w.id === this._selectedWaveId)) {
 			this._selectedWaveId = null;
 			this.setSelectedDegree(null);
 		}
-		this._wavePointsChanged.fire({
-			degree: this._activeDegree,
-			waveCount: this.getWaveCount(this._activeDegree)
-		});
-	}
-
-	public getAllWaveCounts(): Record<WaveDegree, DegreeWaveCount | null> {
-		return {
-			cycle: this.getWaveCount('cycle'),
-			primary: this.getWaveCount('primary'),
-			intermediate: this.getWaveCount('intermediate')
-		};
-	}
-
-	public setAllWaveCounts(
-		waves: Partial<Record<WaveDegree, DegreeWaveCount | null>> | SecurityElliottWaves
-	): void {
-		if (!waves) {
-			this._waves = [];
-			this._selectedWaveId = null;
-			this.setSelectedDegree(null);
-			this._wavePointsChanged.fire({
-				degree: this._activeDegree,
-				waveCount: null
-			});
-			return;
-		}
-
-		if ('waves' in waves && Array.isArray(waves.waves)) {
-			this._waves = waves.waves.map((w) => {
-				const hasDegree = 'degree' in w && w.degree !== undefined;
-				const hasType = 'type' in w && w.type !== undefined;
-				const normalized: DegreeWaveCount = {
-					...w,
-					points: [...(w.points || [])]
-				};
-				Object.defineProperty(normalized, 'degree', {
-					value: w.degree ?? 'cycle',
-					enumerable: hasDegree,
-					writable: true,
-					configurable: true
-				});
-				Object.defineProperty(normalized, 'type', {
-					value:
-						w.type ??
-						(w.points?.some((p) => p.wave === 'A' || p.wave === 'B' || p.wave === 'C')
-							? 'corrective'
-							: 'impulse'),
-					enumerable: hasType,
-					writable: true,
-					configurable: true
-				});
-				return normalized;
-			});
-		} else {
-			const newWaves: DegreeWaveCount[] = [];
-			const degrees: WaveDegree[] = ['cycle', 'primary', 'intermediate'];
-			for (const deg of degrees) {
-				const count = (waves as Record<WaveDegree, DegreeWaveCount | null>)[deg];
-				if (count) {
-					const hasDegree = 'degree' in count && count.degree !== undefined;
-					const hasType = 'type' in count && count.type !== undefined;
-					const normalized: DegreeWaveCount = {
-						...count,
-						points: [...(count.points || [])]
-					};
-					Object.defineProperty(normalized, 'degree', {
-						value: count.degree ?? deg,
-						enumerable: hasDegree,
-						writable: true,
-						configurable: true
-					});
-					Object.defineProperty(normalized, 'type', {
-						value:
-							count.type ??
-							(count.points?.some((p) => p.wave === 'A' || p.wave === 'B' || p.wave === 'C')
-								? 'corrective'
-								: 'impulse'),
-						enumerable: hasType,
-						writable: true,
-						configurable: true
-					});
-					newWaves.push(normalized);
-				}
-			}
-			this._waves = newWaves;
-		}
-
-		if (this._selectedWaveId && !this._waves.some((w) => w.id === this._selectedWaveId)) {
-			this._selectedWaveId = null;
-			this.setSelectedDegree(null);
-		}
-
 		this._wavePointsChanged.fire({
 			degree: this._activeDegree,
 			waveCount: this.getWaveCount(this._activeDegree)
@@ -438,27 +277,14 @@ export class ElliottWaveState {
 		let currentWave: DegreeWaveCount | undefined;
 
 		if (this._drawingWaveId) {
-			const wave = this._waves.find((w) => w.id === this._drawingWaveId);
-			if (
-				wave &&
-				wave.degree === targetDegree &&
-				(wave.type ?? 'impulse') === this._activeWaveType
-			) {
-				currentWave = wave;
-			} else {
-				this._drawingWaveId = null;
+			const drawing = this._waves.find((w) => w.id === this._drawingWaveId);
+			if (drawing && drawing.degree === targetDegree && drawing.type === this._activeWaveType) {
+				currentWave = drawing;
 			}
-		} else {
-			currentWave = this._waves.find(
-				(w) =>
-					w.degree === targetDegree &&
-					(w.type ?? 'impulse') === this._activeWaveType &&
-					w.points.length < maxPoints
-			);
 		}
 
 		if (!currentWave) {
-			const waveId = this._drawingWaveId ?? generateUUID();
+			const waveId = generateUUID();
 			this._drawingWaveId = waveId;
 			currentWave = {
 				id: waveId,
@@ -514,23 +340,22 @@ export class ElliottWaveState {
 		degree?: WaveDegree,
 		waveId?: string
 	): boolean {
-		const targetDegree = degree ?? this._activeDegree;
-
 		let currentWave: DegreeWaveCount | undefined;
 		if (waveId) {
 			currentWave = this._waves.find((w) => w.id === waveId);
-		} else {
-			if (this._selectedWaveId) {
-				const selected = this._waves.find((w) => w.id === this._selectedWaveId);
-				if (selected && selected.degree === targetDegree) {
-					currentWave = selected;
-				}
-			}
-			if (!currentWave) {
-				currentWave = this._waves.find(
-					(w) => w.degree === targetDegree && w.points.some((p) => p.wave === wave)
-				);
-			}
+		} else if (this._selectedWaveId) {
+			currentWave = this._waves.find((w) => w.id === this._selectedWaveId);
+		} else if (degree) {
+			currentWave = this._waves.find(
+				(w) => w.degree === degree && w.points.some((p) => p.wave === wave)
+			);
+		}
+
+		if (!currentWave) {
+			const targetDegree = degree ?? this._activeDegree;
+			currentWave = this._waves.findLast(
+				(w) => w.degree === targetDegree && w.points.some((p) => p.wave === wave)
+			);
 		}
 
 		if (!currentWave || !currentWave.points) return false;
@@ -559,7 +384,7 @@ export class ElliottWaveState {
 		}
 
 		this._wavePointsChanged.fire({
-			degree: currentWave.degree ?? targetDegree,
+			degree: currentWave.degree,
 			waveCount: currentWave
 		});
 		return true;
@@ -568,16 +393,19 @@ export class ElliottWaveState {
 	public clearWave(waveIdOrDegree?: string | WaveDegree): void {
 		if (!waveIdOrDegree) {
 			if (this._selectedWaveId) {
-				this._removeWaveById(this._selectedWaveId);
+				this.removeWave(this._selectedWaveId);
 				return;
 			}
-			this._removeWaveByDegree(this._activeDegree);
+			const lastWave = this._waves[this._waves.length - 1];
+			if (lastWave) {
+				this.removeWave(lastWave.id);
+			}
 			return;
 		}
 
 		const waveById = this._waves.find((w) => w.id === waveIdOrDegree);
 		if (waveById) {
-			this._removeWaveById(waveIdOrDegree);
+			this.removeWave(waveById.id);
 			return;
 		}
 
@@ -585,59 +413,42 @@ export class ElliottWaveState {
 		if (this._selectedWaveId) {
 			const selected = this._waves.find((w) => w.id === this._selectedWaveId);
 			if (selected && selected.degree === degree) {
-				this._removeWaveById(this._selectedWaveId);
+				this.removeWave(selected.id);
 				return;
 			}
 		}
 
-		this._removeWaveByDegree(degree);
+		const degreeIdx = this._waves.findLastIndex((w) => w.degree === degree);
+		if (degreeIdx !== -1) {
+			this.removeWave(this._waves[degreeIdx].id);
+		} else if (this._selectedDegree === degree) {
+			this.setSelectedDegree(null);
+		}
 	}
 
-	private _removeWaveById(id: string): void {
+	public removeWave(id: string): boolean {
 		const index = this._waves.findIndex((w) => w.id === id);
-		if (index === -1) return;
+		if (index === -1) return false;
 		const [removed] = this._waves.splice(index, 1);
-		if (this._selectedWaveId === id) {
+		const clearedSelectedWave = this._selectedWaveId === id;
+		if (clearedSelectedWave) {
 			this._selectedWaveId = null;
-			this.setSelectedDegree(null);
 		}
 		if (this._drawingWaveId === id) {
 			this._drawingWaveId = null;
 		}
-		this._wavePointsChanged.fire({
-			degree: removed.degree ?? this._activeDegree,
-			waveCount: this.getWaveCount(removed.degree)
-		});
-	}
-
-	private _removeWaveByDegree(degree: WaveDegree): void {
-		const matchingIdx = this._waves.findLastIndex(
-			(w) => w.degree === degree && (w.type ?? 'impulse') === this._activeWaveType
-		);
-		const targetIdx =
-			matchingIdx !== -1 ? matchingIdx : this._waves.findLastIndex((w) => w.degree === degree);
-		if (targetIdx !== -1) {
-			const [removed] = this._waves.splice(targetIdx, 1);
-			if (this._selectedWaveId === removed.id) {
-				this._selectedWaveId = null;
-				this.setSelectedDegree(null);
-			}
-			if (this._drawingWaveId === removed.id) {
-				this._drawingWaveId = null;
-			}
-			this._wavePointsChanged.fire({
-				degree,
-				waveCount: this.getWaveCount(degree)
-			});
-		} else {
-			if (this._selectedDegree === degree) {
-				this.setSelectedDegree(null);
-			}
-			this._wavePointsChanged.fire({
-				degree,
-				waveCount: null
-			});
+		const degreeHasWaves = this._waves.some((w) => w.degree === removed.degree);
+		if (clearedSelectedWave || (this._selectedDegree === removed.degree && !degreeHasWaves)) {
+			this.setSelectedDegree(null);
 		}
+		if (clearedSelectedWave) {
+			this._selectedWaveChanged.fire(null);
+		}
+		this._wavePointsChanged.fire({
+			degree: removed.degree,
+			waveCount: null
+		});
+		return true;
 	}
 
 	public setHoveredPoint(point: PointTarget | null): void {

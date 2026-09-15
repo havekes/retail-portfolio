@@ -51,13 +51,17 @@ export function computeWaveAlertLevels(
 	}
 
 	const levels: WaveAlertLevel[] = [];
+	const waves = securityWaves?.waves ?? [];
 
 	for (const degree of DEGREES) {
 		for (const wave of TARGET_WAVES) {
 			const percent = getWaveAlertPercent(settings, degree, wave);
 			if (percent === null) continue;
 
-			const targetPrice = getWaveTargetPrice(securityWaves?.[degree], wave);
+			const targetWaveCount =
+				waves.find((w) => w.degree === degree && w.type === 'impulse') ??
+				waves.find((w) => w.degree === degree);
+			const targetPrice = getWaveTargetPrice(targetWaveCount, wave);
 			if (targetPrice === null) continue;
 
 			const level = roundTo8dp((targetPrice * percent) / 100);

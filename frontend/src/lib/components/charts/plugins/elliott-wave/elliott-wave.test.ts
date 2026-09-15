@@ -480,8 +480,11 @@ describe('Elliott Wave Plugin', () => {
 			expect(state.getWaveCount('intermediate')).toBeNull();
 		});
 
-		it('sets and retrieves full wave counts for all degrees', () => {
+		it('sets and retrieves the full wave collection', () => {
 			const sampleCycle: DegreeWaveCount = {
+				id: 'cycle-1',
+				degree: 'cycle',
+				type: 'impulse',
 				points: [
 					{ wave: 1, time: '2024-01-01' as Time, price: 100 },
 					{ wave: 2, time: '2024-01-02' as Time, price: 80 }
@@ -489,27 +492,30 @@ describe('Elliott Wave Plugin', () => {
 				wave3Target: 180
 			};
 			const samplePrimary: DegreeWaveCount = {
+				id: 'primary-1',
+				degree: 'primary',
+				type: 'impulse',
 				points: [{ wave: 1, time: '2024-01-05' as Time, price: 110 }],
 				wave3Target: 160
 			};
 			const sampleIntermediate: DegreeWaveCount = {
+				id: 'intermediate-1',
+				degree: 'intermediate',
+				type: 'impulse',
 				points: [{ wave: 1, time: '2024-01-08' as Time, price: 120 }],
 				wave3Target: 170
 			};
 
-			state.setAllWaveCounts({
-				cycle: sampleCycle,
-				primary: samplePrimary,
-				intermediate: sampleIntermediate
-			});
+			state.setWaves([sampleCycle, samplePrimary, sampleIntermediate]);
 
-			const all = state.getAllWaveCounts();
-			expect(all.cycle?.points.length).toBe(2);
-			expect(all.cycle?.wave3Target).toBe(180);
-			expect(all.primary?.points.length).toBe(1);
-			expect(all.primary?.wave3Target).toBe(160);
-			expect(all.intermediate?.points.length).toBe(1);
-			expect(all.intermediate?.wave3Target).toBe(170);
+			const all = state.getAllWaves();
+			expect(all).toHaveLength(3);
+			expect(state.getWaveById('cycle-1')?.points).toHaveLength(2);
+			expect(state.getWaveById('cycle-1')?.wave3Target).toBe(180);
+			expect(state.getWaveById('primary-1')?.points).toHaveLength(1);
+			expect(state.getWaveById('primary-1')?.wave3Target).toBe(160);
+			expect(state.getWaveById('intermediate-1')?.points).toHaveLength(1);
+			expect(state.getWaveById('intermediate-1')?.wave3Target).toBe(170);
 		});
 
 		it('manages hover and drag targets and fires delegates', () => {
@@ -1339,10 +1345,11 @@ describe('Elliott Wave Plugin', () => {
 			expect(primitive.getPoints('primary')).toHaveLength(1);
 			expect(primitive.getPoints('intermediate')).toHaveLength(1);
 
-			const all = primitive.getAllWaveCounts();
-			expect(all.cycle?.points).toHaveLength(2);
-			expect(all.primary?.points).toHaveLength(1);
-			expect(all.intermediate?.points).toHaveLength(1);
+			const all = primitive.getAllWaves();
+			expect(all).toHaveLength(3);
+			expect(all.find((w) => w.degree === 'cycle')?.points).toHaveLength(2);
+			expect(all.find((w) => w.degree === 'primary')?.points).toHaveLength(1);
+			expect(all.find((w) => w.degree === 'intermediate')?.points).toHaveLength(1);
 		});
 
 		it('handles unprojectable / off-screen points without throwing', () => {
@@ -2278,27 +2285,32 @@ describe('Elliott Wave Plugin', () => {
 				expect(primitive.isDrawingMode()).toBe(false);
 			});
 
-			it('loads legacy single-degree preferences without errors or data loss', () => {
-				const legacyPrimitive = new ElliottWavesPrimitive({
-					waves: {
-						cycle: {
+			it('loads a persisted wave collection without errors or data loss', () => {
+				const loadedPrimitive = new ElliottWavesPrimitive({
+					waves: [
+						{
+							id: 'cycle-1',
+							degree: 'cycle',
+							type: 'impulse',
 							points: [
 								{ wave: 0, time: '2024-01-01' as Time, price: 100 },
 								{ wave: 1, time: '2024-01-02' as Time, price: 120 }
 							],
 							wave3Target: 180
 						},
-						primary: {
+						{
+							id: 'primary-1',
+							degree: 'primary',
 							type: 'corrective',
 							points: [{ wave: 0, time: '2024-01-05' as Time, price: 90 }]
 						}
-					}
+					]
 				});
 
-				expect(legacyPrimitive.getAllWaves().length).toBe(2);
-				expect(legacyPrimitive.getWaveCount('cycle')?.points.length).toBe(2);
-				expect(legacyPrimitive.getWaveCount('cycle')?.wave3Target).toBe(180);
-				expect(legacyPrimitive.getWaveCount('primary')?.type).toBe('corrective');
+				expect(loadedPrimitive.getAllWaves().length).toBe(2);
+				expect(loadedPrimitive.getWaveCount('cycle')?.points.length).toBe(2);
+				expect(loadedPrimitive.getWaveCount('cycle')?.wave3Target).toBe(180);
+				expect(loadedPrimitive.getWaveCount('primary')?.type).toBe('corrective');
 			});
 		});
 	});

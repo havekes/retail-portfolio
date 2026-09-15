@@ -417,14 +417,11 @@
 	$effect(() => {
 		if (!elliottWavesPrimitive) return;
 		const currentWaves: SecurityElliottWaves = {
-			cycle: elliottWavesPrimitive.getWaveCount('cycle'),
-			primary: elliottWavesPrimitive.getWaveCount('primary'),
-			intermediate: elliottWavesPrimitive.getWaveCount('intermediate'),
 			waves: elliottWavesPrimitive.getAllWaves()
 		};
 
 		if (!areSecurityElliottWavesEqual(currentWaves, elliottWaves)) {
-			elliottWavesPrimitive.setAllWaveCounts(elliottWaves ?? {});
+			elliottWavesPrimitive.setWaves(elliottWaves?.waves ?? []);
 		}
 	});
 
@@ -626,7 +623,7 @@
 		elliottWavesPrimitive = new ElliottWavesPrimitive({
 			activeDegree,
 			activeWaveType,
-			waves: elliottWaves ?? {},
+			waves: elliottWaves?.waves ?? [],
 			snapToWicks,
 			selectedDegree: selectedWaveDegree
 		});
@@ -637,9 +634,6 @@
 
 		elliottWavesPrimitive.wavePointsChanged().subscribe(({ degree, waveCount }) => {
 			const fullWaves: SecurityElliottWaves = {
-				cycle: elliottWavesPrimitive?.getWaveCount('cycle') ?? null,
-				primary: elliottWavesPrimitive?.getWaveCount('primary') ?? null,
-				intermediate: elliottWavesPrimitive?.getWaveCount('intermediate') ?? null,
 				waves: elliottWavesPrimitive?.getAllWaves() ?? []
 			};
 			onWaveChange?.(degree, waveCount, fullWaves);

@@ -435,28 +435,36 @@ describe('HoldingsModal Component', () => {
 	describe('Elliott Wave Targets panel', () => {
 		const mockElliottWaves: Record<string, SecurityElliottWaves> = {
 			'sec-123': {
-				cycle: {
-					points: [
-						{ wave: 1, time: '2025-01-01', price: 100 },
-						{ wave: 2, time: '2025-03-01', price: 80 },
-						{ wave: 3, time: '2025-06-01', price: 200 },
-						{ wave: 4, time: '2025-08-01', price: 160 },
-						{ wave: 5, time: '2025-12-01', price: 250 }
-					],
-					wave3Target: 220,
-					wave5Target: 300
-				},
-				primary: {
-					points: [
-						{ wave: 1, time: '2026-01-01', price: 120 },
-						{ wave: 2, time: '2026-02-01', price: 110 },
-						{ wave: 3, time: '2026-04-01', price: 180 },
-						{ wave: 4, time: '2026-05-01', price: 150 },
-						{ wave: 5, time: '2026-07-01', price: 190 }
-					],
-					wave3Target: 130, // Target < Current Price (150) -> Negative upside / downside (-13.33%)
-					wave5Target: 175
-				}
+				waves: [
+					{
+						id: 'cycle-1',
+						degree: 'cycle',
+						type: 'impulse',
+						points: [
+							{ wave: 1, time: '2025-01-01', price: 100 },
+							{ wave: 2, time: '2025-03-01', price: 80 },
+							{ wave: 3, time: '2025-06-01', price: 200 },
+							{ wave: 4, time: '2025-08-01', price: 160 },
+							{ wave: 5, time: '2025-12-01', price: 250 }
+						],
+						wave3Target: 220,
+						wave5Target: 300
+					},
+					{
+						id: 'primary-1',
+						degree: 'primary',
+						type: 'impulse',
+						points: [
+							{ wave: 1, time: '2026-01-01', price: 120 },
+							{ wave: 2, time: '2026-02-01', price: 110 },
+							{ wave: 3, time: '2026-04-01', price: 180 },
+							{ wave: 4, time: '2026-05-01', price: 150 },
+							{ wave: 5, time: '2026-07-01', price: 190 }
+						],
+						wave3Target: 130, // Target < Current Price (150) -> Negative upside / downside (-13.33%)
+						wave5Target: 175
+					}
+				]
 			}
 		};
 
@@ -626,8 +634,7 @@ describe('HoldingsModal Component', () => {
 				holdings_period: 'ALL',
 				elliott_waves: {
 					'sec-123': {
-						cycle: null,
-						primary: null
+						waves: []
 					}
 				}
 			});

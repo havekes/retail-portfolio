@@ -91,7 +91,7 @@
 	let isDrawingWave = $state(false);
 	let selectedWaveDegree = $state<WaveDegree | null>(null);
 	let securityElliottWaves = $derived<SecurityElliottWaves>(
-		(security?.id && userPreferences?.elliott_waves?.[security.id]) || {}
+		(security?.id && userPreferences?.elliott_waves?.[security.id]) || { waves: [] }
 	);
 
 	let activeFibTool = $state<FibToolType>('retracement');
@@ -123,7 +123,7 @@
 			: null
 	);
 	let effectiveElliottWaves = $derived<SecurityElliottWaves>(
-		isRewound ? (activeSnapshot?.drawings?.elliott_waves ?? {}) : securityElliottWaves
+		isRewound ? (activeSnapshot?.drawings?.elliott_waves ?? { waves: [] }) : securityElliottWaves
 	);
 	let effectiveFibonacciTools = $derived<SecurityFibonacciTools>(
 		isRewound ? (activeSnapshot?.drawings?.fibonacci_tools ?? {}) : securityFibonacciTools
@@ -173,11 +173,6 @@
 		};
 
 		const hasWavePoints = Boolean(
-			(drawings.elliott_waves?.cycle?.points && drawings.elliott_waves.cycle.points.length > 0) ||
-			(drawings.elliott_waves?.primary?.points &&
-				drawings.elliott_waves.primary.points.length > 0) ||
-			(drawings.elliott_waves?.intermediate?.points &&
-				drawings.elliott_waves.intermediate.points.length > 0) ||
 			drawings.elliott_waves?.waves?.some((w) => w.points && w.points.length > 0)
 		);
 		const hasFibTools = Boolean(
@@ -279,8 +274,7 @@
 		const updatedAllWaves = updateSecurityElliottWaves(
 			userPreferences?.elliott_waves,
 			security.id,
-			allWaves ?? degree,
-			waveCount
+			allWaves?.waves ?? (waveCount ? [waveCount] : [])
 		);
 		userPreferences = {
 			...(userPreferences ?? {}),
@@ -305,7 +299,17 @@
 		if (chartRef?.clearWave) {
 			chartRef.clearWave(selectedWaveId ?? degree);
 		} else if (degree) {
-			await handleWaveChange(degree, null);
+			// Fallback when the chart ref is not available: remove the last wave of the
+			// requested degree from the persisted collection, mirroring clearWave.
+			const current = security?.id
+				? (userPreferences?.elliott_waves?.[security.id]?.waves ?? [])
+				: [];
+			const degreeIdx = current.findLastIndex((w) => w.degree === degree);
+			const remaining =
+				degreeIdx === -1
+					? current
+					: [...current.slice(0, degreeIdx), ...current.slice(degreeIdx + 1)];
+			await handleWaveChange(degree, null, { waves: remaining });
 		}
 	}
 
