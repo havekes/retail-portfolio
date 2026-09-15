@@ -143,6 +143,8 @@ export const DEGREE_STYLES: Record<WaveDegree, DegreeVisualConfig> = {
 };
 
 export const HIT_TEST_RADIUS = 14;
+/** Max pixel distance between the pointer and an active Fib level for wave points to snap to it. */
+export const FIB_SNAP_TOLERANCE_PX = 8;
 export const MAX_IMPULSE_POINTS = 6;
 export const MAX_CORRECTIVE_POINTS = 4;
 export const MAX_WAVE_POINTS = 6;

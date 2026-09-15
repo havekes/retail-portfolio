@@ -17,7 +17,6 @@ import {
 	type ProjectedWavePoint
 } from './pane-renderer';
 import { ElliottWavePaneView } from './pane-view';
-import { buildCandleLookup, findCandleByTime, snapPriceToWick } from '../helpers/mouse/snap';
 import { ElliottWaveState, type PointTarget, type WavePointsChangedEvent } from './state';
 import { DrawingPrimitiveBase } from '../helpers/primitive/drawing-primitive-base';
 
@@ -30,7 +29,7 @@ export class ElliottWavesPrimitive extends DrawingPrimitiveBase<
 	PointTarget
 > {
 	private _snapToWicks: boolean = false;
-	private _candleLookup: Map<number, Candle> = new Map();
+	private _fibLevelPrices: number[] = [];
 
 	constructor(initialState?: {
 		activeDegree?: WaveDegree;
@@ -172,7 +171,6 @@ export class ElliottWavesPrimitive extends DrawingPrimitiveBase<
 	 * wave points can snap to candle wicks when snapToWicks is enabled.
 	 */
 	public override setCandles(candles: Candle[]): void {
-		this._candleLookup = buildCandleLookup(candles);
 		this._mouseHandlers.setCandles(candles);
 		super.setCandles(candles);
 	}
@@ -185,6 +183,21 @@ export class ElliottWavesPrimitive extends DrawingPrimitiveBase<
 		this._snapToWicks = enabled;
 		this._mouseHandlers.setSnapToWicks(enabled);
 		this._requestUpdate?.();
+	}
+
+	/**
+	 * Provides the price of every currently enabled/drawn Fibonacci level, so wave-point
+	 * placement, dragging, and the drawing-preview ghost can snap to them. Supplied by the
+	 * chart owner from `$lib/utils/finance/fibonacci` (never imported from the sibling plugin).
+	 */
+	public setFibLevelPrices(prices: number[]): void {
+		this._fibLevelPrices = Array.isArray(prices) ? [...prices] : [];
+		this._mouseHandlers.setFibLevelPrices(this._fibLevelPrices);
+		this._requestUpdate?.();
+	}
+
+	public getFibLevelPrices(): number[] {
+		return [...this._fibLevelPrices];
 	}
 
 	public getPoints(degree?: WaveDegree): WavePoint[] {
@@ -365,15 +378,10 @@ export class ElliottWavesPrimitive extends DrawingPrimitiveBase<
 				let currentMouse: { x: number; y: number } | null = null;
 				if (lastMouse && lastMouse.insidePlotArea) {
 					let y = lastMouse.y;
-					if (this._snapToWicks && lastMouse.time !== null && lastMouse.price !== null) {
-						const candle = findCandleByTime(this._candleLookup, lastMouse.time);
-						if (candle) {
-							const snappedPrice = snapPriceToWick(lastMouse.price, candle);
-							const snappedY = series.priceToCoordinate(snappedPrice);
-							if (snappedY !== null) {
-								y = snappedY;
-							}
-						}
+					if (lastMouse.time !== null && lastMouse.price !== null) {
+						// Reuse the exact placement/drag resolution so the ghost lands where a
+						// click would (wick- vs Fib-level snap).
+						y = this._mouseHandlers.resolveAdjustedPosition(lastMouse, series).y;
 					}
 					currentMouse = { x: lastMouse.x, y };
 				}

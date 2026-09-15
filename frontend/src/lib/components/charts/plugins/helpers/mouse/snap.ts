@@ -13,6 +13,30 @@ export function snapPriceToWick(price: number, candle: Candle): number {
 }
 
 /**
+ * Finds the price-space closest value in `levelPrices` to `price`. Non-finite candidates and
+ * a non-finite `price` are ignored, and an empty list returns null. Pixel-space tolerance is
+ * the caller's responsibility — this helper only resolves the nearest candidate.
+ */
+export function findNearestLevel(price: number, levelPrices: readonly number[]): number | null {
+	if (typeof price !== 'number' || !isFinite(price) || !Array.isArray(levelPrices)) {
+		return null;
+	}
+
+	let nearest: number | null = null;
+	let nearestDistance = Infinity;
+	for (const level of levelPrices) {
+		if (typeof level !== 'number' || !isFinite(level)) continue;
+		const distance = Math.abs(price - level);
+		if (distance < nearestDistance) {
+			nearestDistance = distance;
+			nearest = level;
+		}
+	}
+
+	return nearest;
+}
+
+/**
  * Builds an O(1) lookup map of candles keyed by their normalized epoch seconds.
  */
 export function buildCandleLookup(candles: Candle[]): Map<number, Candle> {

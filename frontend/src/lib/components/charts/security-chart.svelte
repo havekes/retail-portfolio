@@ -26,7 +26,7 @@
 	import { areSecurityElliottWavesEqual } from '$lib/utils/finance/elliott-wave';
 	import { FibonacciPrimitive } from './plugins/fibonacci/fibonacci-primitive';
 	import type { FibToolType, SecurityFibonacciTools } from '$lib/utils/finance/fibonacci';
-	import { areFibonacciToolsEqual } from '$lib/utils/finance/fibonacci';
+	import { areFibonacciToolsEqual, getActiveFibLevelPrices } from '$lib/utils/finance/fibonacci';
 
 	interface MacdDataItem {
 		time: Time;
@@ -151,6 +151,11 @@
 	let lastCandlesRef: Candle[] | null = null;
 	let currentWhitespaceCount = DEFAULT_FUTURE_BARS;
 	let isUpdatingWhitespace = false;
+
+	// Prices of every enabled/drawn Fib level on this chart. Pushed into the Elliott wave
+	// primitive so wave points can snap to them (financed from utils, never a sibling plugin).
+	const fibSnapPrices = $derived(getActiveFibLevelPrices(fibonacciTools));
+	let appliedFibSnapPricesSignature: string | null = null;
 
 	function checkAndExpandWhitespace(range?: { from: number; to: number } | null) {
 		if (isUpdatingWhitespace || !seriesInstance || !chartInstance || candles.length === 0) {
@@ -467,6 +472,16 @@
 		if (!areFibonacciToolsEqual(currentDrawings, nextDrawings)) {
 			fibonacciPrimitive.setDrawings(nextDrawings);
 		}
+	});
+
+	$effect(() => {
+		if (!elliottWavesPrimitive) return;
+		// Cheap signature guard: `fibSnapPrices` is a fresh array whenever the tools change,
+		// so compare contents before pushing to avoid update churn on unrelated fib edits.
+		const signature = `${fibSnapPrices.length}:${fibSnapPrices.join(',')}`;
+		if (signature === appliedFibSnapPricesSignature) return;
+		appliedFibSnapPricesSignature = signature;
+		elliottWavesPrimitive.setFibLevelPrices(fibSnapPrices);
 	});
 
 	$effect(() => {
