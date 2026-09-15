@@ -13,6 +13,7 @@ import { SvelteSet } from 'svelte/reactivity';
 import { group, type GroupBy } from '@/group';
 import { WsEventType, type AccountSyncMessage } from '@/types/websocket';
 import { ModalState } from '@/utils/modal-state.svelte';
+import { toast } from '$lib/components/ui/toast';
 
 export class AccountsListState {
 	accounts = $state<Account[]>([]);
@@ -255,6 +256,20 @@ export class AccountsListState {
 		const account = this.accounts.find((a) => a.id === id);
 		if (account) {
 			account.name = newName;
+		}
+	}
+
+	async deleteAccount(id: string) {
+		try {
+			await accountClient.deleteAccount(id);
+			this.accounts = this.accounts.filter((a) => a.id !== id);
+			this.selectedAccounts = this.selectedAccounts.filter((accId) => accId !== id);
+			delete this.syncErrors[id];
+			this.syncingAccountIds.delete(id);
+			toast.success('Account deleted successfully');
+		} catch (error) {
+			console.error('Failed to delete account', error);
+			toast.error('Failed to delete account. Please try again.');
 		}
 	}
 }
