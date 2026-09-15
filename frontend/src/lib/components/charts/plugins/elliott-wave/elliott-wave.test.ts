@@ -117,7 +117,9 @@ function createMockChartAndSeries() {
 		chartElement: vi.fn(() => mockChartElement),
 		timeScale: vi.fn(() => timeScale),
 		options: vi.fn(() => ({ handleScroll: { pressedMouseMove: true } })),
-		applyOptions: vi.fn()
+		applyOptions: vi.fn(),
+		setCrosshairPosition: vi.fn(),
+		clearCrosshairPosition: vi.fn()
 	} as unknown as IChartApi;
 
 	return { chart, series, mockChartElement, timeScale, priceScale };
@@ -1889,6 +1891,134 @@ describe('Elliott Wave Plugin', () => {
 
 				primitive.setSelectedDegree(null);
 				expect(onSelectionChanged).toHaveBeenCalledWith(null);
+			});
+		});
+
+		describe('ElliottWavesPrimitive Cancellation and Crosshair Snapping', () => {
+			let primitive: ElliottWavesPrimitive;
+			let mockData: ReturnType<typeof createMockChartAndSeries>;
+			let mockRequestUpdate: () => void;
+
+			beforeEach(() => {
+				primitive = new ElliottWavesPrimitive({
+					activeDegree: 'cycle',
+					activeWaveType: 'impulse'
+				});
+				mockData = createMockChartAndSeries();
+				mockRequestUpdate = vi.fn();
+
+				primitive.attached({
+					chart: mockData.chart,
+					series: mockData.series,
+					requestUpdate: mockRequestUpdate,
+					horzScaleBehavior: {} as never
+				});
+				primitive.setCandles(createDailyCandles(30));
+			});
+
+			it('discards in-progress points and clears empty wave when Escape is pressed', () => {
+				primitive.setDrawingMode(true);
+
+				// Place 2 points via chart clicks
+				mockData.mockChartElement.dispatchEvent(
+					new MouseEvent('click', { clientX: 100, clientY: 200 })
+				);
+				mockData.mockChartElement.dispatchEvent(
+					new MouseEvent('click', { clientX: 150, clientY: 250 })
+				);
+
+				expect(primitive.getPoints('cycle')).toHaveLength(2);
+				expect(primitive.isDrawingMode()).toBe(true);
+
+				// Press Escape
+				window.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', cancelable: true }));
+
+				expect(primitive.isDrawingMode()).toBe(false);
+				expect(primitive.getPoints('cycle')).toHaveLength(0);
+				expect(primitive.getWaveCount('cycle')).toBeNull();
+			});
+
+			it('discards in-progress points and clears empty wave when right-clicked (contextmenu)', () => {
+				primitive.setDrawingMode(true);
+
+				// Place 2 points via chart clicks
+				mockData.mockChartElement.dispatchEvent(
+					new MouseEvent('click', { clientX: 100, clientY: 200 })
+				);
+				mockData.mockChartElement.dispatchEvent(
+					new MouseEvent('click', { clientX: 150, clientY: 250 })
+				);
+
+				expect(primitive.getPoints('cycle')).toHaveLength(2);
+
+				// Right-click
+				mockData.mockChartElement.dispatchEvent(
+					new MouseEvent('contextmenu', {
+						clientX: 200,
+						clientY: 200,
+						cancelable: true,
+						bubbles: true
+					})
+				);
+
+				expect(primitive.isDrawingMode()).toBe(false);
+				expect(primitive.getPoints('cycle')).toHaveLength(0);
+				expect(primitive.getWaveCount('cycle')).toBeNull();
+			});
+
+			it('restores previous completed wave when canceling an in-progress drawing on same degree', () => {
+				// Set initial completed wave (6 points: 0, 1, 2, 3, 4, 5)
+				for (let i = 0; i < 6; i++) {
+					primitive.addPoint(
+						100 + i * 10,
+						`2024-01-${String(i + 1).padStart(2, '0')}` as Time,
+						'cycle'
+					);
+				}
+				expect(primitive.getPoints('cycle')).toHaveLength(6);
+
+				// Enter drawing mode and place 1 point (which begins overwriting)
+				primitive.setDrawingMode(true);
+				mockData.mockChartElement.dispatchEvent(
+					new MouseEvent('click', { clientX: 200, clientY: 200 })
+				);
+				expect(primitive.getPoints('cycle')).toHaveLength(1);
+
+				// Cancel via Escape
+				window.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', cancelable: true }));
+
+				expect(primitive.isDrawingMode()).toBe(false);
+				// The previous 6 points are restored!
+				expect(primitive.getPoints('cycle')).toHaveLength(6);
+				expect(primitive.getPoints('cycle')[0].price).toBe(100);
+			});
+
+			it('synchronizes crosshair position to snapped wick when snapToWicks is enabled in drawing mode', () => {
+				primitive.setSnapToWicks(true);
+				primitive.setDrawingMode(true);
+
+				// Move mouse over day 5 (clientX: 100, clientY: 460 -> price 108, snaps to high 114)
+				mockData.mockChartElement.dispatchEvent(
+					new MouseEvent('mousemove', { clientX: 100, clientY: 460 })
+				);
+
+				expect(mockData.chart.setCrosshairPosition).toHaveBeenCalledWith(
+					114,
+					'2024-01-05',
+					mockData.series
+				);
+			});
+
+			it('clears crosshair position when snapToWicks is disabled in drawing mode', () => {
+				primitive.setSnapToWicks(false);
+				primitive.setDrawingMode(true);
+
+				mockData.mockChartElement.dispatchEvent(
+					new MouseEvent('mousemove', { clientX: 100, clientY: 460 })
+				);
+
+				expect(mockData.chart.setCrosshairPosition).not.toHaveBeenCalled();
+				expect(mockData.chart.clearCrosshairPosition).toHaveBeenCalled();
 			});
 		});
 	});

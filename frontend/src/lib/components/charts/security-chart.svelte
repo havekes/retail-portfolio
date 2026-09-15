@@ -388,6 +388,16 @@
 	});
 
 	$effect(() => {
+		if (!chartInstance) return;
+		const isDrawing = Boolean(isDrawingWave || isDrawingFib);
+		chartInstance.applyOptions({
+			handleScroll: {
+				pressedMouseMove: !isDrawing
+			}
+		});
+	});
+
+	$effect(() => {
 		if (!fibonacciPrimitive) return;
 		if (selectedFibTool !== undefined && fibonacciPrimitive.getSelectedTool() !== selectedFibTool) {
 			fibonacciPrimitive.setSelectedTool(selectedFibTool);
@@ -566,6 +576,9 @@
 		});
 
 		elliottWavesPrimitive.drawingModeChanged().subscribe((isDrawing) => {
+			if (!isDrawing && chartInstance) {
+				chartInstance.applyOptions({ handleScroll: { pressedMouseMove: true } });
+			}
 			onDrawingModeChange?.(isDrawing);
 		});
 
@@ -597,6 +610,9 @@
 		});
 
 		fibonacciPrimitive.drawingModeChanged().subscribe((isDrawing) => {
+			if (!isDrawing && chartInstance) {
+				chartInstance.applyOptions({ handleScroll: { pressedMouseMove: true } });
+			}
 			onFibDrawingModeChange?.(isDrawing);
 		});
 

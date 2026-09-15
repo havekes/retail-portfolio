@@ -22,7 +22,7 @@ export interface ChartMouseHandlersConfig<TPoint, TTarget> {
 	adjustPosition?: (
 		pos: MousePosition,
 		series: ISeriesApi<SeriesType>
-	) => { price: number; y: number };
+	) => { price: number; y: number; snapped?: boolean };
 }
 
 /**
@@ -63,6 +63,7 @@ export class ChartMouseHandlers<
 	private _pointDragged: Delegate<TTarget & { time: Time; price: number; x: number; y: number }> =
 		new Delegate();
 	private _dragEnded: Delegate<TTarget> = new Delegate();
+	private _cancelRequested: Delegate<void> = new Delegate();
 
 	constructor(config: ChartMouseHandlersConfig<TPoint, TTarget>) {
 		this._config = config;
@@ -83,6 +84,7 @@ export class ChartMouseHandlers<
 		this._addDOMListener(container, 'mouseup', this._onMouseUp.bind(this));
 		this._addDOMListener(container, 'click', this._onClick.bind(this));
 		this._addDOMListener(container, 'mouseleave', this._onMouseLeave.bind(this));
+		this._addDOMListener(container, 'contextmenu', this._onContextMenu.bind(this));
 
 		if (typeof window !== 'undefined') {
 			const onWindowMouseUp = () => this._onMouseUp();
@@ -90,11 +92,24 @@ export class ChartMouseHandlers<
 			this._unsubscribers.push(() => {
 				window.removeEventListener('mouseup', onWindowMouseUp);
 			});
+
+			const onWindowKeyDown = (event: KeyboardEvent) => this._onKeyDown(event);
+			window.addEventListener('keydown', onWindowKeyDown);
+			this._unsubscribers.push(() => {
+				window.removeEventListener('keydown', onWindowKeyDown);
+			});
+		}
+
+		if (this._isDrawingMode) {
+			this._disableChartScroll();
 		}
 	}
 
 	public detached(): void {
 		this._restoreChartScroll();
+		if (typeof this._chart?.clearCrosshairPosition === 'function') {
+			this._chart.clearCrosshairPosition();
+		}
 		this._chart = undefined;
 		this._series = undefined;
 		this._projectedPoints = [];
@@ -110,6 +125,7 @@ export class ChartMouseHandlers<
 		this._dragStarted.destroy();
 		this._pointDragged.destroy();
 		this._dragEnded.destroy();
+		this._cancelRequested.destroy();
 
 		for (const unsub of this._unsubscribers) {
 			unsub();
@@ -122,11 +138,20 @@ export class ChartMouseHandlers<
 	}
 
 	public setDrawingMode(isDrawing: boolean): void {
+		const wasDrawing = this._isDrawingMode;
 		this._isDrawingMode = isDrawing;
 		if (isDrawing && this._isDragging) {
 			this._isDragging = false;
 			this._dragTarget = null;
 			this._restoreChartScroll();
+		}
+		if (!wasDrawing && isDrawing) {
+			this._disableChartScroll();
+		} else if (wasDrawing && !isDrawing) {
+			this._restoreChartScroll();
+			if (typeof this._chart?.clearCrosshairPosition === 'function') {
+				this._chart.clearCrosshairPosition();
+			}
 		}
 	}
 
@@ -138,21 +163,26 @@ export class ChartMouseHandlers<
 	private _disableChartScroll(): void {
 		if (!this._chart) return;
 		if (this._savedPressedMouseMove === undefined) {
-			const handleScroll = this._chart.options()?.handleScroll;
+			const handleScroll =
+				typeof this._chart.options === 'function' ? this._chart.options()?.handleScroll : undefined;
 			this._savedPressedMouseMove =
 				typeof handleScroll === 'object' && handleScroll !== null
 					? handleScroll.pressedMouseMove
 					: handleScroll !== false; // boolean shorthand; default (true) enables pressed-move scroll
 		}
-		this._chart.applyOptions({ handleScroll: { pressedMouseMove: false } });
+		if (typeof this._chart.applyOptions === 'function') {
+			this._chart.applyOptions({ handleScroll: { pressedMouseMove: false } });
+		}
 	}
 
 	private _restoreChartScroll(): void {
 		if (!this._chart) return;
 		if (this._savedPressedMouseMove !== undefined) {
-			this._chart.applyOptions({
-				handleScroll: { pressedMouseMove: this._savedPressedMouseMove }
-			});
+			if (typeof this._chart.applyOptions === 'function') {
+				this._chart.applyOptions({
+					handleScroll: { pressedMouseMove: this._savedPressedMouseMove }
+				});
+			}
 		}
 		this._savedPressedMouseMove = undefined;
 	}
@@ -201,6 +231,10 @@ export class ChartMouseHandlers<
 
 	public dragEnded(): ISubscription<TTarget> {
 		return this._dragEnded;
+	}
+
+	public cancelRequested(): ISubscription<void> {
+		return this._cancelRequested;
 	}
 
 	private _addDOMListener(
@@ -274,6 +308,9 @@ export class ChartMouseHandlers<
 		this._lastMousePosition = pos;
 
 		if (!pos) {
+			if (this._isDrawingMode && typeof this._chart?.clearCrosshairPosition === 'function') {
+				this._chart.clearCrosshairPosition();
+			}
 			this._mouseMoved.fire(null);
 			return;
 		}
@@ -301,6 +338,26 @@ export class ChartMouseHandlers<
 			this._pointHovered.fire(hit ? this._config.toTarget(hit) : null);
 		} else {
 			this._pointHovered.fire(null);
+			if (
+				pos.insidePlotArea &&
+				pos.time !== null &&
+				pos.price !== null &&
+				this._series &&
+				this._chart
+			) {
+				if (this._config.adjustPosition) {
+					const adjusted = this._config.adjustPosition(pos, this._series);
+					if (adjusted.snapped && typeof this._chart.setCrosshairPosition === 'function') {
+						this._chart.setCrosshairPosition(adjusted.price, pos.time, this._series);
+					} else if (typeof this._chart.clearCrosshairPosition === 'function') {
+						this._chart.clearCrosshairPosition();
+					}
+				} else if (typeof this._chart.clearCrosshairPosition === 'function') {
+					this._chart.clearCrosshairPosition();
+				}
+			} else if (typeof this._chart?.clearCrosshairPosition === 'function') {
+				this._chart.clearCrosshairPosition();
+			}
 		}
 
 		this._mouseMoved.fire(pos);
@@ -369,11 +426,29 @@ export class ChartMouseHandlers<
 		}
 	}
 
+	private _onContextMenu(event: MouseEvent): void {
+		if (this._isDrawingMode) {
+			event.preventDefault();
+			event.stopPropagation();
+			this._cancelRequested.fire();
+		}
+	}
+
+	private _onKeyDown(event: KeyboardEvent): void {
+		if (event.key === 'Escape' && this._isDrawingMode) {
+			event.preventDefault();
+			this._cancelRequested.fire();
+		}
+	}
+
 	private _onMouseLeave(): void {
 		this._lastMousePosition = null;
 		if (!this._isDragging) {
 			this._pointHovered.fire(null);
 			this._mouseMoved.fire(null);
+		}
+		if (typeof this._chart?.clearCrosshairPosition === 'function') {
+			this._chart.clearCrosshairPosition();
 		}
 	}
 }

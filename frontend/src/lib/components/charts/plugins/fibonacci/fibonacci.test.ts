@@ -91,7 +91,9 @@ function createMockChartAndSeries() {
 		chartElement: vi.fn(() => mockChartElement),
 		timeScale: vi.fn(() => timeScale),
 		options: vi.fn(() => ({ handleScroll: { pressedMouseMove: true } })),
-		applyOptions: vi.fn()
+		applyOptions: vi.fn(),
+		setCrosshairPosition: vi.fn(),
+		clearCrosshairPosition: vi.fn()
 	} as unknown as IChartApi;
 
 	return { chart, series, mockChartElement, timeScale, priceScale };
@@ -988,6 +990,69 @@ describe('Fibonacci Chart Primitive Plugin', () => {
 				new MouseEvent('mouseup', { clientX: 150, clientY: 250 })
 			);
 			expect(primitive.getDraggingPoint()).toBeNull();
+		});
+
+		it('discards pending retracement points and exits drawing mode on Escape', () => {
+			primitive.setActiveTool('retracement');
+			primitive.setDrawingMode(true);
+
+			// Click 1 point
+			mockData.mockChartElement.dispatchEvent(
+				new MouseEvent('click', { clientX: 100, clientY: 200 })
+			);
+			expect(primitive.getPendingPoints()).toHaveLength(1);
+			expect(primitive.isDrawingMode()).toBe(true);
+
+			// Press Escape
+			window.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', cancelable: true }));
+
+			expect(primitive.isDrawingMode()).toBe(false);
+			expect(primitive.getPendingPoints()).toHaveLength(0);
+			expect(primitive.getRetracement()).toBeNull();
+		});
+
+		it('discards pending extension points and exits drawing mode on right-click (contextmenu)', () => {
+			primitive.setActiveTool('extension');
+			primitive.setDrawingMode(true);
+
+			// Click 2 points
+			mockData.mockChartElement.dispatchEvent(
+				new MouseEvent('click', { clientX: 100, clientY: 200 })
+			);
+			mockData.mockChartElement.dispatchEvent(
+				new MouseEvent('click', { clientX: 150, clientY: 250 })
+			);
+			expect(primitive.getPendingPoints()).toHaveLength(2);
+			expect(primitive.isDrawingMode()).toBe(true);
+
+			// Right-click
+			mockData.mockChartElement.dispatchEvent(
+				new MouseEvent('contextmenu', {
+					clientX: 200,
+					clientY: 200,
+					cancelable: true,
+					bubbles: true
+				})
+			);
+
+			expect(primitive.isDrawingMode()).toBe(false);
+			expect(primitive.getPendingPoints()).toHaveLength(0);
+			expect(primitive.getExtension()).toBeNull();
+		});
+
+		it('synchronizes crosshair position to candle wick in drawing mode', () => {
+			primitive.setDrawingMode(true);
+
+			// Mousemove over day 5 (clientX: 100, clientY: 200 -> snaps to high 114)
+			mockData.mockChartElement.dispatchEvent(
+				new MouseEvent('mousemove', { clientX: 100, clientY: 200 })
+			);
+
+			expect(mockData.chart.setCrosshairPosition).toHaveBeenCalledWith(
+				114,
+				'2024-01-05',
+				mockData.series
+			);
 		});
 
 		it('cleans up handlers and subscriptions on detached and destroy', () => {

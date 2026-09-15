@@ -82,7 +82,9 @@ function createMockChartAndSeries() {
 		chartElement: vi.fn(() => mockChartElement),
 		timeScale: vi.fn(() => timeScale),
 		options: vi.fn(() => ({ handleScroll: { pressedMouseMove: true } })),
-		applyOptions: vi.fn()
+		applyOptions: vi.fn(),
+		setCrosshairPosition: vi.fn(),
+		clearCrosshairPosition: vi.fn()
 	} as unknown as IChartApi;
 
 	return { chart, series, mockChartElement, timeScale, priceScale };
@@ -296,6 +298,172 @@ describe('ChartMouseHandlers', () => {
 		});
 	});
 
+	describe('drawing mode scroll lock and restore', () => {
+		it('locks chart scrolling when entering drawing mode and restores on exit', () => {
+			vi.mocked(mockData.chart.applyOptions).mockClear();
+
+			handlers.setDrawingMode(true);
+			expect(mockData.chart.applyOptions).toHaveBeenCalledWith({
+				handleScroll: { pressedMouseMove: false }
+			});
+
+			vi.mocked(mockData.chart.applyOptions).mockClear();
+
+			handlers.setDrawingMode(false);
+			expect(mockData.chart.applyOptions).toHaveBeenCalledWith({
+				handleScroll: { pressedMouseMove: true }
+			});
+		});
+
+		it('locks chart scrolling on attached() if already in drawing mode', () => {
+			const unattachedHandlers = makeHandlers();
+			unattachedHandlers.setDrawingMode(true);
+			const newMock = createMockChartAndSeries();
+
+			unattachedHandlers.attached(newMock.chart, newMock.series);
+			expect(newMock.chart.applyOptions).toHaveBeenCalledWith({
+				handleScroll: { pressedMouseMove: false }
+			});
+		});
+	});
+
+	describe('Escape and right-click cancellation', () => {
+		it('fires cancelRequested and prevents default when Escape is pressed in drawing mode', () => {
+			const onCancel = vi.fn();
+			handlers.cancelRequested().subscribe(onCancel);
+			handlers.setDrawingMode(true);
+
+			const escapeEvent = new KeyboardEvent('keydown', { key: 'Escape', cancelable: true });
+			const preventDefaultSpy = vi.spyOn(escapeEvent, 'preventDefault');
+
+			window.dispatchEvent(escapeEvent);
+
+			expect(onCancel).toHaveBeenCalledTimes(1);
+			expect(preventDefaultSpy).toHaveBeenCalled();
+		});
+
+		it('does not fire cancelRequested on Escape when not in drawing mode', () => {
+			const onCancel = vi.fn();
+			handlers.cancelRequested().subscribe(onCancel);
+			handlers.setDrawingMode(false);
+
+			const escapeEvent = new KeyboardEvent('keydown', { key: 'Escape', cancelable: true });
+			window.dispatchEvent(escapeEvent);
+
+			expect(onCancel).not.toHaveBeenCalled();
+		});
+
+		it('does not fire cancelRequested on other keys in drawing mode', () => {
+			const onCancel = vi.fn();
+			handlers.cancelRequested().subscribe(onCancel);
+			handlers.setDrawingMode(true);
+
+			const enterEvent = new KeyboardEvent('keydown', { key: 'Enter', cancelable: true });
+			window.dispatchEvent(enterEvent);
+
+			expect(onCancel).not.toHaveBeenCalled();
+		});
+
+		it('fires cancelRequested, prevents default and stops propagation on contextmenu in drawing mode', () => {
+			const onCancel = vi.fn();
+			handlers.cancelRequested().subscribe(onCancel);
+			handlers.setDrawingMode(true);
+
+			const contextMenuEvent = new MouseEvent('contextmenu', {
+				clientX: 200,
+				clientY: 200,
+				cancelable: true,
+				bubbles: true
+			});
+			const preventDefaultSpy = vi.spyOn(contextMenuEvent, 'preventDefault');
+			const stopPropagationSpy = vi.spyOn(contextMenuEvent, 'stopPropagation');
+
+			mockData.mockChartElement.dispatchEvent(contextMenuEvent);
+
+			expect(onCancel).toHaveBeenCalledTimes(1);
+			expect(preventDefaultSpy).toHaveBeenCalled();
+			expect(stopPropagationSpy).toHaveBeenCalled();
+		});
+
+		it('does not intercept contextmenu when not in drawing mode', () => {
+			const onCancel = vi.fn();
+			handlers.cancelRequested().subscribe(onCancel);
+			handlers.setDrawingMode(false);
+
+			const contextMenuEvent = new MouseEvent('contextmenu', {
+				clientX: 200,
+				clientY: 200,
+				cancelable: true,
+				bubbles: true
+			});
+			const preventDefaultSpy = vi.spyOn(contextMenuEvent, 'preventDefault');
+
+			mockData.mockChartElement.dispatchEvent(contextMenuEvent);
+
+			expect(onCancel).not.toHaveBeenCalled();
+			expect(preventDefaultSpy).not.toHaveBeenCalled();
+		});
+	});
+
+	describe('crosshair snapping synchronization', () => {
+		it('sets crosshair position when adjustPosition returns snapped: true in drawing mode', () => {
+			const adjustPosition = vi.fn(() => ({ price: 125, y: 375, snapped: true }));
+			handlers = makeHandlers({ adjustPosition });
+			handlers.attached(mockData.chart, mockData.series);
+			handlers.setDrawingMode(true);
+
+			mockData.mockChartElement.dispatchEvent(
+				new MouseEvent('mousemove', { clientX: 200, clientY: 200 })
+			);
+
+			expect(mockData.chart.setCrosshairPosition).toHaveBeenCalledWith(
+				125,
+				'2024-01-09',
+				mockData.series
+			);
+		});
+
+		it('clears crosshair position when adjustPosition returns snapped: false in drawing mode', () => {
+			const adjustPosition = vi.fn(() => ({ price: 160, y: 200, snapped: false }));
+			handlers = makeHandlers({ adjustPosition });
+			handlers.attached(mockData.chart, mockData.series);
+			handlers.setDrawingMode(true);
+
+			mockData.mockChartElement.dispatchEvent(
+				new MouseEvent('mousemove', { clientX: 200, clientY: 200 })
+			);
+
+			expect(mockData.chart.setCrosshairPosition).not.toHaveBeenCalled();
+			expect(mockData.chart.clearCrosshairPosition).toHaveBeenCalled();
+		});
+
+		it('clears crosshair position on mouseleave', () => {
+			handlers.setDrawingMode(true);
+			vi.mocked(mockData.chart.clearCrosshairPosition).mockClear();
+
+			mockData.mockChartElement.dispatchEvent(new MouseEvent('mouseleave'));
+
+			expect(mockData.chart.clearCrosshairPosition).toHaveBeenCalled();
+		});
+
+		it('clears crosshair position when exiting drawing mode', () => {
+			handlers.setDrawingMode(true);
+			vi.mocked(mockData.chart.clearCrosshairPosition).mockClear();
+
+			handlers.setDrawingMode(false);
+
+			expect(mockData.chart.clearCrosshairPosition).toHaveBeenCalled();
+		});
+
+		it('clears crosshair position when detached()', () => {
+			vi.mocked(mockData.chart.clearCrosshairPosition).mockClear();
+
+			handlers.detached();
+
+			expect(mockData.chart.clearCrosshairPosition).toHaveBeenCalled();
+		});
+	});
+
 	describe('listener lifecycle', () => {
 		it('detached() removes all attached DOM listeners', () => {
 			const elementRemoveSpy = vi.spyOn(mockData.mockChartElement, 'removeEventListener');
@@ -305,9 +473,17 @@ describe('ChartMouseHandlers', () => {
 
 			const removedElementEvents = elementRemoveSpy.mock.calls.map((call) => call[0]);
 			expect(removedElementEvents).toEqual(
-				expect.arrayContaining(['mousemove', 'mousedown', 'mouseup', 'click', 'mouseleave'])
+				expect.arrayContaining([
+					'mousemove',
+					'mousedown',
+					'mouseup',
+					'click',
+					'mouseleave',
+					'contextmenu'
+				])
 			);
 			expect(windowRemoveSpy).toHaveBeenCalledWith('mouseup', expect.any(Function));
+			expect(windowRemoveSpy).toHaveBeenCalledWith('keydown', expect.any(Function));
 		});
 	});
 });

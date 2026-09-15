@@ -17,6 +17,7 @@ export interface IDrawingToolState<THoverTarget = unknown, TDragTarget = unknown
 	isDrawingMode(): boolean;
 	setDrawingMode(enabled: boolean): void;
 	drawingModeChanged(): ISubscription<boolean>;
+	cancelDrawing?(): void;
 	getHoveredPoint(): THoverTarget | null;
 	setHoveredPoint(target: THoverTarget | null): void;
 	getDraggingPoint(): TDragTarget | null;
@@ -33,6 +34,7 @@ export interface IDrawingMouseHandlers<THoverTarget = unknown, TDragTarget = unk
 	attached(chart: IChartApi, series: ISeriesApi<SeriesType>, timeProjector?: TimeProjector): void;
 	detached(): void;
 	setDrawingMode(isDrawing: boolean): void;
+	cancelRequested(): ISubscription<void>;
 	mouseMoved(): ISubscription<MousePosition | null>;
 	pointHovered(): ISubscription<THoverTarget | null>;
 	dragStarted(): ISubscription<TDragTarget>;
@@ -143,6 +145,10 @@ export abstract class DrawingPrimitiveBase<
 			}
 		});
 
+		this._subscribe(this._mouseHandlers.cancelRequested(), () => {
+			this.cancelDrawing();
+		});
+
 		this._setupSubscriptions();
 
 		this._requestUpdate?.();
@@ -213,6 +219,15 @@ export abstract class DrawingPrimitiveBase<
 
 	public setDrawingMode(enabled: boolean): void {
 		this._state.setDrawingMode(enabled);
+	}
+
+	public cancelDrawing(): void {
+		if (typeof this._state.cancelDrawing === 'function') {
+			this._state.cancelDrawing();
+		} else {
+			this._state.setDrawingMode(false);
+		}
+		this._requestUpdate?.();
 	}
 
 	public drawingModeChanged(): ISubscription<boolean> {
