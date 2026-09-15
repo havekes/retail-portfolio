@@ -139,10 +139,18 @@ class SqlAlchemyAccountRepository(AccountRepository):
 
     @override
     async def delete(self, account_id: AccountId) -> None:
-        account_model = await self._session.get(AccountModel, account_id)
-        if account_model:
-            await self._session.delete(account_model)
-            await self._session.commit()
+        await self._session.execute(
+            delete(PortfolioAccountModel).where(
+                PortfolioAccountModel.account_id == account_id
+            )
+        )
+        await self._session.execute(
+            delete(PositionModel).where(PositionModel.account_id == account_id)
+        )
+        await self._session.execute(
+            delete(AccountModel).where(AccountModel.id == account_id)
+        )
+        await self._session.commit()
 
     @override
     async def update_net_deposits(

@@ -5,8 +5,9 @@ from decimal import Decimal
 from uuid import uuid4
 
 import pytest
+from sqlalchemy import select
 
-from src.account.model import AccountModel, PositionModel
+from src.account.model import AccountModel, PortfolioAccountModel, PositionModel
 from src.config.limiter import limiter
 from src.core.enum import AccountTypeEnum, InstitutionEnum
 from src.market.model import PriceModel, SecurityModel
@@ -868,6 +869,88 @@ async def test_account_sync_api_sync_enabled_returns_200(
 
     assert response.status_code == 200
     assert response.json() == {"accepted": True}
+
+
+@pytest.mark.anyio
+async def test_account_delete_success(
+    auth_client, test_portfolio_with_accounts, test_positions, db_session
+):
+    """Test account_delete removes account, its positions, and its portfolio associations."""
+    account_id = test_positions[0].account_id
+
+    # Verify associations and positions exist prior to deletion
+    pa_before = (
+        await db_session.scalars(
+            select(PortfolioAccountModel).where(
+                PortfolioAccountModel.account_id == account_id
+            )
+        )
+    ).all()
+    assert len(pa_before) > 0
+
+    pos_before = (
+        await db_session.scalars(
+            select(PositionModel).where(PositionModel.account_id == account_id)
+        )
+    ).all()
+    assert len(pos_before) > 0
+
+    # Execute DELETE request
+    response = await auth_client.delete(f"/api/v1/accounts/{account_id}")
+    assert response.status_code == 204
+
+    # Subsequent GET /api/v1/accounts/ omits the deleted account
+    get_response = await auth_client.get("/api/v1/accounts/")
+    assert get_response.status_code == 200
+    account_ids = [acc["id"] for acc in get_response.json()]
+    assert str(account_id) not in account_ids
+
+    # Subsequent lookup for deleted account totals returns 404
+    totals_response = await auth_client.get(f"/api/v1/accounts/{account_id}/totals")
+    assert totals_response.status_code == 404
+
+    # Confirm DB session shows account and child rows are gone
+    db_session.expire_all()
+    account_in_db = await db_session.get(AccountModel, account_id)
+    assert account_in_db is None
+
+    positions_in_db = (
+        await db_session.scalars(
+            select(PositionModel).where(PositionModel.account_id == account_id)
+        )
+    ).all()
+    assert len(positions_in_db) == 0
+
+    portfolio_accounts_in_db = (
+        await db_session.scalars(
+            select(PortfolioAccountModel).where(
+                PortfolioAccountModel.account_id == account_id
+            )
+        )
+    ).all()
+    assert len(portfolio_accounts_in_db) == 0
+
+
+@pytest.mark.anyio
+async def test_account_delete_not_found(auth_client):
+    """Test account_delete returns 404 for non-existent account."""
+    fake_id = uuid4()
+    response = await auth_client.delete(f"/api/v1/accounts/{fake_id}")
+    assert response.status_code == 404
+
+
+@pytest.mark.anyio
+async def test_account_delete_not_owned(
+    auth_client, other_user_account, db_session
+):
+    """Test account_delete returns 404 for account owned by another user and keeps it in DB."""
+    response = await auth_client.delete(f"/api/v1/accounts/{other_user_account.id}")
+    assert response.status_code == 404
+
+    db_session.expire_all()
+    account_in_db = await db_session.get(AccountModel, other_user_account.id)
+    assert account_in_db is not None
+
 
 
 
