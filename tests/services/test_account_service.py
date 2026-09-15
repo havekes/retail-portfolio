@@ -1,4 +1,5 @@
 from typing import override
+from unittest.mock import AsyncMock
 from uuid import uuid4
 
 import pytest
@@ -125,3 +126,15 @@ async def test_get_all_accounts():
     result = await service.get_all_accounts()
 
     assert result == [account]
+
+
+@pytest.mark.anyio
+async def test_delete_account_delegates_to_repository():
+    mock_repo = AsyncMock(spec=AccountRepository)
+    service = AccountService(account_repository=mock_repo)
+    account_id = uuid4()
+
+    await service.delete_account(account_id)
+
+    mock_repo.delete.assert_awaited_once_with(account_id)
+

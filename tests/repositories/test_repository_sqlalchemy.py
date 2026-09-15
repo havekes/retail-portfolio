@@ -5,8 +5,16 @@ from typing import cast
 
 import pytest
 from pydantic import ValidationError
+from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from src.account.model import (
+    AccountModel,
+    PortfolioAccountModel,
+    PortfolioModel,
+    PositionModel,
+)
+from src.account.repository_sqlalchemy import SqlAlchemyAccountRepository
 from src.auth.model import UserModel
 from src.auth.repository_sqlalchemy import (
     SqlAlchemyPasskeyRepository,
@@ -14,7 +22,7 @@ from src.auth.repository_sqlalchemy import (
     SqlAlchemyTotpRepository,
     SqlAlchemyUserRepository,
 )
-from src.core.enum import InstitutionEnum
+from src.core.enum import AccountTypeEnum, InstitutionEnum
 from src.market.api_types import IntradayPrice
 from src.market.repository_sqlalchemy import (
     SqlAlchemyIntradayPriceRepository,
@@ -748,4 +756,92 @@ async def test_sqlalchemy_security_broker_repository_get_by_broker(
         )
         is None
     )
+
+
+@pytest.mark.anyio
+async def test_account_repository_delete_cascades(
+    db_session: AsyncSession, seed_reference_data: None
+):
+    """Test that SqlAlchemyAccountRepository.delete removes account, positions, and portfolio associations."""
+    account_repo = SqlAlchemyAccountRepository(db_session)
+
+    user_id = uuid.uuid4()
+    account_id = uuid.uuid4()
+    portfolio_id = uuid.uuid4()
+    security_id = uuid.uuid4()
+
+    account = AccountModel(
+        id=account_id,
+        external_id=str(uuid.uuid4()),
+        name="Cascade Test Account",
+        user_id=user_id,
+        account_type_id=AccountTypeEnum.TFSA.value,
+        institution_id=InstitutionEnum.WEALTHSIMPLE.value,
+        currency="CAD",
+        is_active=True,
+    )
+    db_session.add(account)
+
+    portfolio = PortfolioModel(
+        id=portfolio_id,
+        user_id=user_id,
+        name="Cascade Test Portfolio",
+    )
+    db_session.add(portfolio)
+
+    portfolio_account = PortfolioAccountModel(
+        portfolio_id=portfolio_id,
+        account_id=account_id,
+    )
+    db_session.add(portfolio_account)
+
+    position = PositionModel(
+        account_id=account_id,
+        security_id=security_id,
+        quantity=Decimal("10.0"),
+        average_cost=Decimal("150.0"),
+    )
+    db_session.add(position)
+
+    await db_session.commit()
+
+    # Verify rows exist before deletion
+    assert await db_session.get(AccountModel, account_id) is not None
+    pos_count_before = await db_session.scalar(
+        select(func.count())
+        .select_from(PositionModel)
+        .where(PositionModel.account_id == account_id)
+    )
+    assert pos_count_before == 1
+    pa_count_before = await db_session.scalar(
+        select(func.count())
+        .select_from(PortfolioAccountModel)
+        .where(PortfolioAccountModel.account_id == account_id)
+    )
+    assert pa_count_before == 1
+
+    # Delete via repository
+    await account_repo.delete(account_id)
+
+    # Verify rows are deleted
+    assert await db_session.get(AccountModel, account_id) is None
+
+    pos_count_after = await db_session.scalar(
+        select(func.count())
+        .select_from(PositionModel)
+        .where(PositionModel.account_id == account_id)
+    )
+    assert pos_count_after == 0
+
+    pa_count_after = await db_session.scalar(
+        select(func.count())
+        .select_from(PortfolioAccountModel)
+        .where(PortfolioAccountModel.account_id == account_id)
+    )
+    assert pa_count_after == 0
+
+    # Ensure portfolio itself was not deleted
+    portfolio_in_db = await db_session.get(PortfolioModel, portfolio_id)
+    assert portfolio_in_db is not None
+
 
