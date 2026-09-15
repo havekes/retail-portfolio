@@ -50,6 +50,12 @@ class TestToolState implements IDrawingToolState<TestTarget, TestTarget> {
 		return this._hovered;
 	}
 
+	public cancelDrawingCalled = false;
+	public cancelDrawing(): void {
+		this.cancelDrawingCalled = true;
+		this.setDrawingMode(false);
+	}
+
 	public setHoveredPoint(target: TestTarget | null): void {
 		this._hovered = target;
 	}
@@ -87,6 +93,7 @@ class TestMouseHandlers implements IDrawingMouseHandlers<TestTarget, TestTarget>
 	public _dragStarted = new Delegate<TestTarget>();
 	public _dragEnded = new Delegate<TestTarget>();
 	public _chartClicked = new Delegate<{ time: Time; price: number; x: number; y: number }>();
+	public _cancelRequested = new Delegate<void>();
 	public customMouseDelegate = new Delegate<number>();
 
 	public attached(): void {
@@ -119,6 +126,10 @@ class TestMouseHandlers implements IDrawingMouseHandlers<TestTarget, TestTarget>
 
 	public chartClicked() {
 		return this._chartClicked;
+	}
+
+	public cancelRequested() {
+		return this._cancelRequested;
 	}
 }
 
@@ -299,6 +310,23 @@ describe('DrawingPrimitiveBase', () => {
 		requestUpdate.mockClear();
 		mouseHandlers._chartClicked.fire({ time: '2024-01-02' as Time, price: 150, x: 20, y: 30 });
 		expect(state.getPoints()).toEqual([{ time: '2024-01-02', price: 150 }]);
+		expect(requestUpdate).toHaveBeenCalled();
+	});
+
+	it('delegates cancelRequested to cancelDrawing and requests update', () => {
+		primitive.attached({
+			chart: mockChart,
+			series: mockSeries,
+			requestUpdate,
+			horzScaleBehavior: {} as never
+		});
+		primitive.setDrawingMode(true);
+		requestUpdate.mockClear();
+
+		mouseHandlers._cancelRequested.fire();
+
+		expect(state.cancelDrawingCalled).toBe(true);
+		expect(primitive.isDrawingMode()).toBe(false);
 		expect(requestUpdate).toHaveBeenCalled();
 	});
 

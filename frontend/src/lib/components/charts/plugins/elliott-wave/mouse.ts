@@ -41,12 +41,12 @@ export class MouseHandlers extends ChartMouseHandlers<
 
 	// Only invoked by the shared handler when pos.price is non-null.
 	private _adjustPosition(pos: MousePosition, series: ISeriesApi<SeriesType>) {
-		if (!this._snapToWicks) return { price: pos.price as number, y: pos.y };
+		if (!this._snapToWicks) return { price: pos.price as number, y: pos.y, snapped: false };
 		const candle = findCandleByTime(this._candleLookup, pos.time);
-		if (!candle) return { price: pos.price as number, y: pos.y };
+		if (!candle) return { price: pos.price as number, y: pos.y, snapped: false };
 		const price = snapPriceToWick(pos.price as number, candle);
 		const snappedY = series.priceToCoordinate(price);
-		return { price, y: snappedY !== null ? snappedY : pos.y };
+		return { price, y: snappedY !== null ? snappedY : pos.y, snapped: true };
 	}
 
 	public setSnapToWicks(enabled: boolean): void {

@@ -23,6 +23,7 @@ export class ElliottWaveState {
 		intermediate: null
 	};
 	private _isDrawingMode: boolean = false;
+	private _drawingInitialWave: DegreeWaveCount | null | undefined = undefined;
 	private _selectedDegree: WaveDegree | null = null;
 	private _hoveredPoint: PointTarget | null = null;
 	private _draggingPoint: PointTarget | null = null;
@@ -74,6 +75,10 @@ export class ElliottWaveState {
 	public setActiveDegree(degree: WaveDegree): void {
 		if (this._activeDegree !== degree) {
 			this._activeDegree = degree;
+			if (this._isDrawingMode) {
+				const current = this._waveCounts[degree];
+				this._drawingInitialWave = current ? { ...current, points: [...current.points] } : null;
+			}
 			this._degreeChanged.fire(degree);
 		}
 	}
@@ -107,11 +112,45 @@ export class ElliottWaveState {
 	public setDrawingMode(enabled: boolean): void {
 		if (this._isDrawingMode !== enabled) {
 			this._isDrawingMode = enabled;
-			if (enabled && this._selectedDegree !== null) {
-				this.setSelectedDegree(null);
+			if (enabled) {
+				if (this._selectedDegree !== null) {
+					this.setSelectedDegree(null);
+				}
+				const current = this._waveCounts[this._activeDegree];
+				this._drawingInitialWave = current ? { ...current, points: [...current.points] } : null;
+			} else {
+				const isCorrective = this._activeWaveType === 'corrective';
+				const maxPoints = isCorrective ? MAX_CORRECTIVE_POINTS : MAX_IMPULSE_POINTS;
+				const currentWave = this._waveCounts[this._activeDegree];
+				const pts = currentWave?.points ?? [];
+				if (this._drawingInitialWave !== undefined && pts.length > 0 && pts.length < maxPoints) {
+					this._waveCounts[this._activeDegree] = this._drawingInitialWave;
+					this._wavePointsChanged.fire({
+						degree: this._activeDegree,
+						waveCount: this._drawingInitialWave
+					});
+				}
+				this._drawingInitialWave = undefined;
 			}
 			this._drawingModeChanged.fire(enabled);
 		}
+	}
+
+	public cancelDrawing(): void {
+		if (!this._isDrawingMode) return;
+		const isCorrective = this._activeWaveType === 'corrective';
+		const maxPoints = isCorrective ? MAX_CORRECTIVE_POINTS : MAX_IMPULSE_POINTS;
+		const currentWave = this._waveCounts[this._activeDegree];
+		const pts = currentWave?.points ?? [];
+		if (this._drawingInitialWave !== undefined && pts.length > 0 && pts.length < maxPoints) {
+			this._waveCounts[this._activeDegree] = this._drawingInitialWave;
+			this._wavePointsChanged.fire({
+				degree: this._activeDegree,
+				waveCount: this._drawingInitialWave
+			});
+			this._drawingInitialWave = undefined;
+		}
+		this.setDrawingMode(false);
 	}
 
 	public getWaveCount(degree?: WaveDegree): DegreeWaveCount | null {
@@ -198,6 +237,7 @@ export class ElliottWaveState {
 		this._wavePointsChanged.fire({ degree: targetDegree, waveCount: updatedCount });
 
 		if (existingPoints.length >= maxPoints) {
+			this._drawingInitialWave = undefined;
 			this.setDrawingMode(false);
 		}
 

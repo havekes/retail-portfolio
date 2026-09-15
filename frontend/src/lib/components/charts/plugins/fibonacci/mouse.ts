@@ -40,10 +40,17 @@ export class MouseHandlers extends ChartMouseHandlers<
 
 	private _adjustPosition(pos: MousePosition, series: ISeriesApi<SeriesType>) {
 		const candle = findCandleByTime(this._candleLookup, pos.time);
-		if (!candle) return { price: pos.price as number, y: pos.y };
+		if (!candle) return { price: pos.price as number, y: pos.y, snapped: false };
 		const price = snapPriceToWick(pos.price as number, candle);
 		const snappedY = series.priceToCoordinate(price);
-		return { price, y: snappedY !== null ? snappedY : pos.y };
+		return { price, y: snappedY !== null ? snappedY : pos.y, snapped: true };
+	}
+
+	public adjustPosition(
+		pos: MousePosition,
+		series: ISeriesApi<SeriesType>
+	): { price: number; y: number; snapped: boolean } {
+		return this._adjustPosition(pos, series);
 	}
 
 	public setCandles(candles: Candle[]): void {

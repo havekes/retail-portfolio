@@ -23,8 +23,6 @@ const mockGetVisibleLogicalRange = vi.fn();
 const mockSetVisibleLogicalRange = vi.fn();
 const mockGetVisibleRange = vi.fn();
 const mockSetVisibleRange = vi.fn();
-const mockSetCrosshairPosition = vi.fn();
-const mockClearCrosshairPosition = vi.fn();
 const mockSubscribeCrosshairMove = vi.fn();
 const mockFitContent = vi.fn();
 const mockSetData = vi.fn();
@@ -41,7 +39,9 @@ const mockAttachPrimitive = vi.fn((primitive) => {
 			priceScale: () => ({
 				width: () => 50,
 				applyOptions: vi.fn()
-			})
+			}),
+			options: () => ({ handleScroll: { pressedMouseMove: true } }),
+			applyOptions: vi.fn()
 		},
 		series: {
 			priceToCoordinate: () => 100,
@@ -133,11 +133,14 @@ vi.mock('lightweight-charts', () => {
 					crosshairCallbacks.push(cb);
 					mockSubscribeCrosshairMove(cb);
 					return vi.fn();
-				}),
-				setCrosshairPosition: mockSetCrosshairPosition,
-				clearCrosshairPosition: mockClearCrosshairPosition
+				})
 			};
 		}),
+		CrosshairMode: {
+			Normal: 0,
+			Magnet: 1,
+			Hidden: 2
+		},
 		CandlestickSeries: 'CandlestickSeries',
 		LineSeries: 'LineSeries',
 		HistogramSeries: 'HistogramSeries'
@@ -304,6 +307,20 @@ describe('SecurityChart - Infinite Scroll & Logical Range', () => {
 		const mainChartOptions = calls[0][1];
 		expect(mainChartOptions?.leftPriceScale).toEqual({ visible: false });
 		expect(mainChartOptions?.rightPriceScale).toEqual({ visible: true, minimumWidth: 75 });
+	});
+
+	it('initializes chart with crosshair mode Normal', () => {
+		render(SecurityChart, {
+			props: {
+				candles: initialCandles
+			}
+		});
+
+		expect(createChart).toHaveBeenCalledTimes(1);
+		const calls = vi.mocked(createChart).mock.calls;
+
+		const mainChartOptions = calls[0][1];
+		expect(mainChartOptions?.crosshair).toEqual({ mode: 0 });
 	});
 });
 
@@ -1509,6 +1526,191 @@ describe('SecurityChart - Oscillator Panes & Custom Price Scales', () => {
 			expect(preventDefaultSpy).not.toHaveBeenCalled();
 			expect(stopPropagationSpy).not.toHaveBeenCalled();
 			expect(priceScale.setVisibleRange).not.toHaveBeenCalled();
+		});
+	});
+
+	describe('Drawing pan lock and restore', () => {
+		it('disables pressedMouseMove when isDrawingWave prop is true, restores when false', async () => {
+			const { rerender } = render(SecurityChart, {
+				props: {
+					candles: initialCandles,
+					isDrawingWave: false
+				}
+			});
+			await tick();
+
+			const createdCharts = vi.mocked(createChart).mock.results.map((r) => r.value);
+			const mainChart = createdCharts[createdCharts.length - 1];
+			expect(mainChart.applyOptions).toHaveBeenCalledWith({
+				handleScroll: { pressedMouseMove: true }
+			});
+
+			vi.mocked(mainChart.applyOptions).mockClear();
+
+			await rerender({
+				candles: initialCandles,
+				isDrawingWave: true
+			});
+			await tick();
+
+			expect(mainChart.applyOptions).toHaveBeenCalledWith({
+				handleScroll: { pressedMouseMove: false }
+			});
+
+			vi.mocked(mainChart.applyOptions).mockClear();
+
+			await rerender({
+				candles: initialCandles,
+				isDrawingWave: false
+			});
+			await tick();
+
+			expect(mainChart.applyOptions).toHaveBeenCalledWith({
+				handleScroll: { pressedMouseMove: true }
+			});
+		});
+
+		it('disables pressedMouseMove when isDrawingFib prop is true, restores when false', async () => {
+			const { rerender } = render(SecurityChart, {
+				props: {
+					candles: initialCandles,
+					isDrawingFib: false
+				}
+			});
+			await tick();
+
+			const createdCharts = vi.mocked(createChart).mock.results.map((r) => r.value);
+			const mainChart = createdCharts[createdCharts.length - 1];
+
+			vi.mocked(mainChart.applyOptions).mockClear();
+
+			await rerender({
+				candles: initialCandles,
+				isDrawingFib: true
+			});
+			await tick();
+
+			expect(mainChart.applyOptions).toHaveBeenCalledWith({
+				handleScroll: { pressedMouseMove: false }
+			});
+
+			vi.mocked(mainChart.applyOptions).mockClear();
+
+			await rerender({
+				candles: initialCandles,
+				isDrawingFib: false
+			});
+			await tick();
+
+			expect(mainChart.applyOptions).toHaveBeenCalledWith({
+				handleScroll: { pressedMouseMove: true }
+			});
+		});
+
+		it('restores pressedMouseMove when ElliottWavesPrimitive exits drawing mode', async () => {
+			render(SecurityChart, {
+				props: {
+					candles: initialCandles,
+					isDrawingWave: true
+				}
+			});
+			await tick();
+
+			const createdCharts = vi.mocked(createChart).mock.results.map((r) => r.value);
+			const mainChart = createdCharts[createdCharts.length - 1];
+			const elliottPrimitive = mockAttachPrimitive.mock.calls.find(
+				(c) => c[0] instanceof ElliottWavesPrimitive
+			)?.[0] as ElliottWavesPrimitive;
+
+			vi.mocked(mainChart.applyOptions).mockClear();
+
+			// Primitive completes or cancels drawing mode
+			elliottPrimitive.setDrawingMode(false);
+			await tick();
+
+			expect(mainChart.applyOptions).toHaveBeenCalledWith({
+				handleScroll: { pressedMouseMove: true }
+			});
+		});
+
+		it('restores pressedMouseMove when FibonacciPrimitive exits drawing mode', async () => {
+			render(SecurityChart, {
+				props: {
+					candles: initialCandles,
+					isDrawingFib: true
+				}
+			});
+			await tick();
+
+			const createdCharts = vi.mocked(createChart).mock.results.map((r) => r.value);
+			const mainChart = createdCharts[createdCharts.length - 1];
+			const fibPrimitive = mockAttachPrimitive.mock.calls.find(
+				(c) => c[0] instanceof FibonacciPrimitive
+			)?.[0] as FibonacciPrimitive;
+
+			vi.mocked(mainChart.applyOptions).mockClear();
+
+			// Primitive completes or cancels drawing mode
+			fibPrimitive.setDrawingMode(false);
+			await tick();
+
+			expect(mainChart.applyOptions).toHaveBeenCalledWith({
+				handleScroll: { pressedMouseMove: true }
+			});
+		});
+
+		it('does not restore pressedMouseMove when ElliottWaves exits drawing mode if isDrawingFib is active', async () => {
+			render(SecurityChart, {
+				props: {
+					candles: initialCandles,
+					isDrawingWave: true,
+					isDrawingFib: true
+				}
+			});
+			await tick();
+
+			const createdCharts = vi.mocked(createChart).mock.results.map((r) => r.value);
+			const mainChart = createdCharts[createdCharts.length - 1];
+			const elliottPrimitive = mockAttachPrimitive.mock.calls.find(
+				(c) => c[0] instanceof ElliottWavesPrimitive
+			)?.[0] as ElliottWavesPrimitive;
+
+			vi.mocked(mainChart.applyOptions).mockClear();
+
+			// Elliott wave exits drawing mode while Fib drawing is still active
+			elliottPrimitive.setDrawingMode(false);
+			await tick();
+
+			expect(mainChart.applyOptions).not.toHaveBeenCalledWith({
+				handleScroll: { pressedMouseMove: true }
+			});
+		});
+
+		it('does not restore pressedMouseMove when Fibonacci exits drawing mode if isDrawingWave is active', async () => {
+			render(SecurityChart, {
+				props: {
+					candles: initialCandles,
+					isDrawingWave: true,
+					isDrawingFib: true
+				}
+			});
+			await tick();
+
+			const createdCharts = vi.mocked(createChart).mock.results.map((r) => r.value);
+			const mainChart = createdCharts[createdCharts.length - 1];
+			const fibPrimitive = mockAttachPrimitive.mock.calls.find(
+				(c) => c[0] instanceof FibonacciPrimitive
+			)?.[0] as FibonacciPrimitive;
+
+			vi.mocked(mainChart.applyOptions).mockClear();
+
+			// Fibonacci exits drawing mode while Elliott wave drawing is still active
+			fibPrimitive.setDrawingMode(false);
+			await tick();
+
+			expect(mainChart.applyOptions).not.toHaveBeenCalledWith({
+				handleScroll: { pressedMouseMove: true }
+			});
 		});
 	});
 });

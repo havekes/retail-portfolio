@@ -1,5 +1,11 @@
 <script lang="ts">
-	import { CandlestickSeries, createChart, LineSeries, HistogramSeries } from 'lightweight-charts';
+	import {
+		CandlestickSeries,
+		createChart,
+		CrosshairMode,
+		LineSeries,
+		HistogramSeries
+	} from 'lightweight-charts';
 	import type { Time, IChartApi, ISeriesApi, IPriceLine, SeriesType } from 'lightweight-charts';
 	import { onMount } from 'svelte';
 	import type { Candle } from '@/utils/finance/candle';
@@ -388,6 +394,16 @@
 	});
 
 	$effect(() => {
+		if (!chartInstance) return;
+		const isDrawing = Boolean(isDrawingWave || isDrawingFib);
+		chartInstance.applyOptions({
+			handleScroll: {
+				pressedMouseMove: !isDrawing
+			}
+		});
+	});
+
+	$effect(() => {
 		if (!fibonacciPrimitive) return;
 		if (selectedFibTool !== undefined && fibonacciPrimitive.getSelectedTool() !== selectedFibTool) {
 			fibonacciPrimitive.setSelectedTool(selectedFibTool);
@@ -484,6 +500,9 @@
 		chartInstance = createChart(containerRef, {
 			width: containerRef.clientWidth,
 			height: containerRef.clientHeight,
+			crosshair: {
+				mode: CrosshairMode.Normal
+			},
 			layout: {
 				background: { color: 'transparent' },
 				textColor: '#888'
@@ -566,6 +585,9 @@
 		});
 
 		elliottWavesPrimitive.drawingModeChanged().subscribe((isDrawing) => {
+			if (!isDrawing && !isDrawingFib && chartInstance) {
+				chartInstance.applyOptions({ handleScroll: { pressedMouseMove: true } });
+			}
 			onDrawingModeChange?.(isDrawing);
 		});
 
@@ -597,6 +619,9 @@
 		});
 
 		fibonacciPrimitive.drawingModeChanged().subscribe((isDrawing) => {
+			if (!isDrawing && !isDrawingWave && chartInstance) {
+				chartInstance.applyOptions({ handleScroll: { pressedMouseMove: true } });
+			}
 			onFibDrawingModeChange?.(isDrawing);
 		});
 

@@ -89,10 +89,24 @@ export class FibonacciToolState {
 				this.setSelectedTool(null);
 			}
 			if (!enabled) {
+				const hadPending = this._pendingPoints.length > 0;
 				this._pendingPoints = [];
+				if (hadPending) {
+					this._drawingsChanged.fire(this.getDrawings());
+				}
 			}
 			this._drawingModeChanged.fire(enabled);
 		}
+	}
+
+	public cancelDrawing(): void {
+		if (!this._isDrawingMode) return;
+		const hadPending = this._pendingPoints.length > 0;
+		this._pendingPoints = [];
+		if (hadPending) {
+			this._drawingsChanged.fire(this.getDrawings());
+		}
+		this.setDrawingMode(false);
 	}
 
 	public getRetracement(): FibRetracementDrawing | null {

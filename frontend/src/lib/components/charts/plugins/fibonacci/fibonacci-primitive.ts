@@ -408,15 +408,28 @@ export class FibonacciPrimitive extends DrawingPrimitiveBase<
 			}
 
 			const lastMouse = this._mouseHandlers.getLastMousePosition();
-			const currentMouse =
-				lastMouse && lastMouse.insidePlotArea
-					? {
-							x: lastMouse.x,
-							y: lastMouse.y,
-							time: lastMouse.time,
-							price: lastMouse.price
-						}
-					: null;
+			let currentMouse: {
+				x: number;
+				y: number;
+				time?: Time | null;
+				price?: number | null;
+			} | null = null;
+
+			if (lastMouse && lastMouse.insidePlotArea) {
+				let y = lastMouse.y;
+				let price = lastMouse.price;
+				if (series && lastMouse.price !== null && lastMouse.time !== null) {
+					const adjusted = this._mouseHandlers.adjustPosition(lastMouse, series);
+					y = adjusted.y;
+					price = adjusted.price;
+				}
+				currentMouse = {
+					x: lastMouse.x,
+					y,
+					time: lastMouse.time,
+					price
+				};
+			}
 
 			let previewLevels: ProjectedFibLevel[] | undefined = undefined;
 

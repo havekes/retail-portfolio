@@ -773,6 +773,37 @@ describe('Elliott Wave Plugin', () => {
 			expect(textCalls.length).toBe(0);
 		});
 
+		it('renders full-width horizontal dashed crosshair guide line when drawing preview currentMouse is present', () => {
+			const { target, drawCalls, scope } = createMockCanvasTarget();
+
+			renderer.update({
+				degrees: [],
+				preview: {
+					degree: 'cycle',
+					config: CYCLE_STYLE,
+					nextWave: 0,
+					lastPoint: null,
+					currentMouse: { x: 100, y: 200 }
+				}
+			});
+
+			renderer.draw(target);
+
+			const dashCalls = drawCalls.filter((c) => c.type === 'setLineDash');
+			expect(dashCalls.length).toBeGreaterThanOrEqual(1);
+
+			const vpr = scope.verticalPixelRatio;
+			const moveToCalls = drawCalls.filter(
+				(c) => c.type === 'moveTo' && c.args[0] === 0 && c.args[1] === 200 * vpr
+			);
+			const lineToCalls = drawCalls.filter(
+				(c) =>
+					c.type === 'lineTo' && c.args[0] === scope.bitmapSize.width && c.args[1] === 200 * vpr
+			);
+			expect(moveToCalls).toHaveLength(1);
+			expect(lineToCalls).toHaveLength(1);
+		});
+
 		it('renders drawing preview dashed line and ghost badge for wave 1', () => {
 			const { target, drawCalls } = createMockCanvasTarget();
 
@@ -1889,6 +1920,147 @@ describe('Elliott Wave Plugin', () => {
 
 				primitive.setSelectedDegree(null);
 				expect(onSelectionChanged).toHaveBeenCalledWith(null);
+			});
+		});
+
+		describe('ElliottWavesPrimitive Cancellation and Crosshair Snapping', () => {
+			let primitive: ElliottWavesPrimitive;
+			let mockData: ReturnType<typeof createMockChartAndSeries>;
+			let mockRequestUpdate: () => void;
+
+			beforeEach(() => {
+				primitive = new ElliottWavesPrimitive({
+					activeDegree: 'cycle',
+					activeWaveType: 'impulse'
+				});
+				mockData = createMockChartAndSeries();
+				mockRequestUpdate = vi.fn();
+
+				primitive.attached({
+					chart: mockData.chart,
+					series: mockData.series,
+					requestUpdate: mockRequestUpdate,
+					horzScaleBehavior: {} as never
+				});
+				primitive.setCandles(createDailyCandles(30));
+			});
+
+			it('discards in-progress points and clears empty wave when Escape is pressed', () => {
+				primitive.setDrawingMode(true);
+
+				// Place 2 points via chart clicks
+				mockData.mockChartElement.dispatchEvent(
+					new MouseEvent('click', { clientX: 100, clientY: 200 })
+				);
+				mockData.mockChartElement.dispatchEvent(
+					new MouseEvent('click', { clientX: 150, clientY: 250 })
+				);
+
+				expect(primitive.getPoints('cycle')).toHaveLength(2);
+				expect(primitive.isDrawingMode()).toBe(true);
+
+				// Press Escape
+				window.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', cancelable: true }));
+
+				expect(primitive.isDrawingMode()).toBe(false);
+				expect(primitive.getPoints('cycle')).toHaveLength(0);
+				expect(primitive.getWaveCount('cycle')).toBeNull();
+			});
+
+			it('discards in-progress points and clears empty wave when right-clicked (contextmenu)', () => {
+				primitive.setDrawingMode(true);
+
+				// Place 2 points via chart clicks
+				mockData.mockChartElement.dispatchEvent(
+					new MouseEvent('click', { clientX: 100, clientY: 200 })
+				);
+				mockData.mockChartElement.dispatchEvent(
+					new MouseEvent('click', { clientX: 150, clientY: 250 })
+				);
+
+				expect(primitive.getPoints('cycle')).toHaveLength(2);
+
+				// Right-click
+				mockData.mockChartElement.dispatchEvent(
+					new MouseEvent('contextmenu', {
+						clientX: 200,
+						clientY: 200,
+						cancelable: true,
+						bubbles: true
+					})
+				);
+
+				expect(primitive.isDrawingMode()).toBe(false);
+				expect(primitive.getPoints('cycle')).toHaveLength(0);
+				expect(primitive.getWaveCount('cycle')).toBeNull();
+			});
+
+			it('restores previous completed wave when canceling an in-progress drawing on same degree', () => {
+				// Set initial completed wave (6 points: 0, 1, 2, 3, 4, 5)
+				for (let i = 0; i < 6; i++) {
+					primitive.addPoint(
+						100 + i * 10,
+						`2024-01-${String(i + 1).padStart(2, '0')}` as Time,
+						'cycle'
+					);
+				}
+				expect(primitive.getPoints('cycle')).toHaveLength(6);
+
+				// Enter drawing mode and place 1 point (which begins overwriting)
+				primitive.setDrawingMode(true);
+				mockData.mockChartElement.dispatchEvent(
+					new MouseEvent('click', { clientX: 200, clientY: 200 })
+				);
+				expect(primitive.getPoints('cycle')).toHaveLength(1);
+
+				// Cancel via Escape
+				window.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', cancelable: true }));
+
+				expect(primitive.isDrawingMode()).toBe(false);
+				// The previous 6 points are restored!
+				expect(primitive.getPoints('cycle')).toHaveLength(6);
+				expect(primitive.getPoints('cycle')[0].price).toBe(100);
+			});
+
+			it('snaps drawing preview mouse position to candle wick when snapToWicks is enabled', () => {
+				primitive.setSnapToWicks(true);
+				primitive.setDrawingMode(true);
+
+				expect(mockData.chart.applyOptions).toHaveBeenCalledWith({
+					crosshair: { horzLine: { visible: false, labelVisible: false } }
+				});
+
+				// Move mouse over day 5 (clientX: 100, clientY: 460 -> price 108, snaps to high 114)
+				mockData.mockChartElement.dispatchEvent(
+					new MouseEvent('mousemove', { clientX: 100, clientY: 460 })
+				);
+
+				primitive.updateAllViews();
+				const paneView = primitive.paneViews()[0];
+				// eslint-disable-next-line @typescript-eslint/no-explicit-any
+				const rendererData = (paneView.renderer() as any)._data;
+				expect(rendererData.preview.currentMouse.y).toBe(mockData.series.priceToCoordinate(114));
+
+				// Exit drawing mode restores native crosshair
+				primitive.setDrawingMode(false);
+				expect(mockData.chart.applyOptions).toHaveBeenCalledWith({
+					crosshair: { horzLine: { visible: true, labelVisible: true } }
+				});
+			});
+
+			it('uses raw pointer position for drawing preview when snapToWicks is disabled', () => {
+				primitive.setSnapToWicks(false);
+				primitive.setDrawingMode(true);
+
+				mockData.mockChartElement.dispatchEvent(
+					new MouseEvent('mousemove', { clientX: 100, clientY: 460 })
+				);
+
+				primitive.updateAllViews();
+				const paneView = primitive.paneViews()[0];
+				// eslint-disable-next-line @typescript-eslint/no-explicit-any
+				const rendererData = (paneView.renderer() as any)._data;
+				expect(rendererData.preview.currentMouse.y).toBe(460);
 			});
 		});
 	});

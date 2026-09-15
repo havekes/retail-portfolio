@@ -761,6 +761,38 @@ describe('Fibonacci Chart Primitive Plugin', () => {
 			expect(fillTextCalls[0].args[0]).toBe('0.5 (155.00)');
 		});
 
+		it('renders full-width horizontal dashed crosshair guide line when drawing preview currentMouse is present', () => {
+			const renderData: FibonacciRendererData = {
+				retracement: null,
+				extension: null,
+				preview: {
+					tool: 'retracement',
+					placedPoints: [],
+					currentMouse: { x: 200, y: 150, time: '2024-01-09' as Time, price: 170 },
+					previewLevels: []
+				}
+			};
+
+			renderer.update(renderData);
+			renderer.draw(mockCanvas.target);
+
+			const dashCalls = mockCanvas.drawCalls.filter((c) => c.type === 'setLineDash');
+			expect(dashCalls.length).toBeGreaterThanOrEqual(1);
+
+			const vpr = mockCanvas.scope.verticalPixelRatio;
+			const moveToCalls = mockCanvas.drawCalls.filter(
+				(c) => c.type === 'moveTo' && c.args[0] === 0 && c.args[1] === 150 * vpr
+			);
+			const lineToCalls = mockCanvas.drawCalls.filter(
+				(c) =>
+					c.type === 'lineTo' &&
+					c.args[0] === mockCanvas.scope.bitmapSize.width &&
+					c.args[1] === 150 * vpr
+			);
+			expect(moveToCalls).toHaveLength(1);
+			expect(lineToCalls).toHaveLength(1);
+		});
+
 		it('renders hover and drag rings on active anchor handles', () => {
 			const renderData: FibonacciRendererData = {
 				retracement: {
@@ -988,6 +1020,78 @@ describe('Fibonacci Chart Primitive Plugin', () => {
 				new MouseEvent('mouseup', { clientX: 150, clientY: 250 })
 			);
 			expect(primitive.getDraggingPoint()).toBeNull();
+		});
+
+		it('discards pending retracement points and exits drawing mode on Escape', () => {
+			primitive.setActiveTool('retracement');
+			primitive.setDrawingMode(true);
+
+			// Click 1 point
+			mockData.mockChartElement.dispatchEvent(
+				new MouseEvent('click', { clientX: 100, clientY: 200 })
+			);
+			expect(primitive.getPendingPoints()).toHaveLength(1);
+			expect(primitive.isDrawingMode()).toBe(true);
+
+			// Press Escape
+			window.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', cancelable: true }));
+
+			expect(primitive.isDrawingMode()).toBe(false);
+			expect(primitive.getPendingPoints()).toHaveLength(0);
+			expect(primitive.getRetracement()).toBeNull();
+		});
+
+		it('discards pending extension points and exits drawing mode on right-click (contextmenu)', () => {
+			primitive.setActiveTool('extension');
+			primitive.setDrawingMode(true);
+
+			// Click 2 points
+			mockData.mockChartElement.dispatchEvent(
+				new MouseEvent('click', { clientX: 100, clientY: 200 })
+			);
+			mockData.mockChartElement.dispatchEvent(
+				new MouseEvent('click', { clientX: 150, clientY: 250 })
+			);
+			expect(primitive.getPendingPoints()).toHaveLength(2);
+			expect(primitive.isDrawingMode()).toBe(true);
+
+			// Right-click
+			mockData.mockChartElement.dispatchEvent(
+				new MouseEvent('contextmenu', {
+					clientX: 200,
+					clientY: 200,
+					cancelable: true,
+					bubbles: true
+				})
+			);
+
+			expect(primitive.isDrawingMode()).toBe(false);
+			expect(primitive.getPendingPoints()).toHaveLength(0);
+			expect(primitive.getExtension()).toBeNull();
+		});
+
+		it('snaps drawing preview mouse position to candle wick and toggles crosshair in drawing mode', () => {
+			primitive.setDrawingMode(true);
+
+			expect(mockData.chart.applyOptions).toHaveBeenCalledWith({
+				crosshair: { horzLine: { visible: false, labelVisible: false } }
+			});
+
+			// Mousemove over day 5 (clientX: 100, clientY: 200 -> snaps to high 114)
+			mockData.mockChartElement.dispatchEvent(
+				new MouseEvent('mousemove', { clientX: 100, clientY: 200 })
+			);
+
+			primitive.updateAllViews();
+			const paneView = primitive.paneViews()[0];
+			// eslint-disable-next-line @typescript-eslint/no-explicit-any
+			const rendererData = (paneView.renderer() as any)._data;
+			expect(rendererData.preview.currentMouse.y).toBe(mockData.series.priceToCoordinate(114));
+
+			primitive.setDrawingMode(false);
+			expect(mockData.chart.applyOptions).toHaveBeenCalledWith({
+				crosshair: { horzLine: { visible: true, labelVisible: true } }
+			});
 		});
 
 		it('cleans up handlers and subscriptions on detached and destroy', () => {
