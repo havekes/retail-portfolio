@@ -97,4 +97,24 @@ describe('Root +layout.svelte', () => {
 		expect(wrapper).toBeInTheDocument();
 		expect(wrapper).toHaveClass('overflow-hidden');
 	});
+
+	it('allows the sidebar inset to shrink below its content min-width', () => {
+		const children = createRawSnippet(() => ({
+			render: () => '<div data-testid="page-content">Authenticated Dashboard</div>'
+		}));
+
+		render(Layout, {
+			props: {
+				data: {
+					user: { id: 'u1', email: 'test@example.com' },
+					sidebar_open: true
+				},
+				children
+			}
+		});
+
+		const inset = document.querySelector('[data-slot="sidebar-inset"]');
+		expect(inset).toBeInTheDocument();
+		expect(inset).toHaveClass('min-w-0');
+	});
 });
