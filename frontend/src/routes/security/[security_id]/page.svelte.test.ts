@@ -720,6 +720,9 @@ describe('computeIndicatorData — Non-MA indicators', () => {
 
 describe('Elliott Wave Preferences Serialization', () => {
 	const sampleWaveCount: DegreeWaveCount = {
+		id: 'cycle-1',
+		degree: 'cycle',
+		type: 'impulse',
 		points: [
 			{ wave: 1, time: '2024-01-01', price: 100 },
 			{ wave: 2, time: '2024-01-02', price: 80 },
@@ -729,31 +732,31 @@ describe('Elliott Wave Preferences Serialization', () => {
 		]
 	};
 
-	it('persists cycle wave counts under specific security id', () => {
-		const updated = updateSecurityElliottWaves(null, 'sec-100', 'cycle', sampleWaveCount);
-		expect(updated['sec-100'].cycle).toEqual(sampleWaveCount);
-		expect(updated['sec-100'].primary).toBeUndefined();
+	it('persists a wave collection under a specific security id', () => {
+		const updated = updateSecurityElliottWaves(null, 'sec-100', [sampleWaveCount]);
+		expect(updated['sec-100'].waves).toEqual([sampleWaveCount]);
 	});
 
-	it('persists primary wave count without clobbering cycle wave count', () => {
+	it('persists an additional wave without clobbering existing waves', () => {
 		const initial: Record<string, SecurityElliottWaves> = {
-			'sec-100': { cycle: sampleWaveCount }
+			'sec-100': { waves: [sampleWaveCount] }
 		};
 		const primaryWave: DegreeWaveCount = {
+			id: 'primary-1',
+			degree: 'primary',
+			type: 'impulse',
 			points: [{ wave: 1, time: '2024-02-01', price: 250 }]
 		};
-		const updated = updateSecurityElliottWaves(initial, 'sec-100', 'primary', primaryWave);
-		expect(updated['sec-100'].cycle).toEqual(sampleWaveCount);
-		expect(updated['sec-100'].primary).toEqual(primaryWave);
+		const updated = updateSecurityElliottWaves(initial, 'sec-100', [sampleWaveCount, primaryWave]);
+		expect(updated['sec-100'].waves).toEqual([sampleWaveCount, primaryWave]);
 	});
 
-	it('clears active degree wave count by setting to null', () => {
+	it('clears a wave by persisting the remaining collection', () => {
 		const initial: Record<string, SecurityElliottWaves> = {
-			'sec-100': { cycle: sampleWaveCount, primary: sampleWaveCount }
+			'sec-100': { waves: [sampleWaveCount] }
 		};
-		const updated = updateSecurityElliottWaves(initial, 'sec-100', 'cycle', null);
-		expect(updated['sec-100'].cycle).toBeNull();
-		expect(updated['sec-100'].primary).toEqual(sampleWaveCount);
+		const updated = updateSecurityElliottWaves(initial, 'sec-100', []);
+		expect(updated['sec-100'].waves).toEqual([]);
 	});
 });
 
@@ -781,8 +784,14 @@ describe('Security Page - Elliott Wave Toolbar & Integration', () => {
 		vi.mocked(userPreferencesService.getPreferences).mockResolvedValue({
 			elliott_waves: {
 				'sec-1': {
-					cycle: { points: [{ wave: 1, time: '2024-01-01', price: 100 }] },
-					primary: null
+					waves: [
+						{
+							id: 'cycle-1',
+							degree: 'cycle',
+							type: 'impulse',
+							points: [{ wave: 1, time: '2024-01-01', price: 100 }]
+						}
+					]
 				}
 			}
 		});
@@ -951,22 +960,30 @@ describe('Security Page - Wave Selection & Keyboard Deletion', () => {
 
 	const initialWaves: Record<string, SecurityElliottWaves> = {
 		'sec-1': {
-			cycle: {
-				points: [
-					{ wave: 0, time: '2024-01-01', price: 50 },
-					{ wave: 1, time: '2024-01-02', price: 100 },
-					{ wave: 2, time: '2024-01-03', price: 80 },
-					{ wave: 3, time: '2024-01-04', price: 150 },
-					{ wave: 4, time: '2024-01-05', price: 120 },
-					{ wave: 5, time: '2024-01-06', price: 200 }
-				]
-			},
-			primary: {
-				points: [
-					{ wave: 0, time: '2024-01-01', price: 60 },
-					{ wave: 1, time: '2024-01-02', price: 110 }
-				]
-			}
+			waves: [
+				{
+					id: 'cycle-1',
+					degree: 'cycle',
+					type: 'impulse',
+					points: [
+						{ wave: 0, time: '2024-01-01', price: 50 },
+						{ wave: 1, time: '2024-01-02', price: 100 },
+						{ wave: 2, time: '2024-01-03', price: 80 },
+						{ wave: 3, time: '2024-01-04', price: 150 },
+						{ wave: 4, time: '2024-01-05', price: 120 },
+						{ wave: 5, time: '2024-01-06', price: 200 }
+					]
+				},
+				{
+					id: 'primary-1',
+					degree: 'primary',
+					type: 'impulse',
+					points: [
+						{ wave: 0, time: '2024-01-01', price: 60 },
+						{ wave: 1, time: '2024-01-02', price: 110 }
+					]
+				}
+			]
 		}
 	};
 
@@ -1041,14 +1058,13 @@ describe('Security Page - Wave Selection & Keyboard Deletion', () => {
 		// Press Delete on window
 		await fireEvent.keyDown(window, { key: 'Delete' });
 
-		// Preferences patched with cycle = null
+		// Preferences patched with the cycle wave removed, primary wave intact
 		await waitFor(() => {
 			expect(userPreferencesService.patchPreferences).toHaveBeenCalledWith(
 				expect.objectContaining({
 					elliott_waves: expect.objectContaining({
 						'sec-1': expect.objectContaining({
-							cycle: null,
-							primary: expect.any(Object)
+							waves: [expect.objectContaining({ degree: 'primary' })]
 						})
 					})
 				})
@@ -1085,7 +1101,7 @@ describe('Security Page - Wave Selection & Keyboard Deletion', () => {
 				expect.objectContaining({
 					elliott_waves: expect.objectContaining({
 						'sec-1': expect.objectContaining({
-							primary: null
+							waves: [expect.objectContaining({ degree: 'cycle' })]
 						})
 					})
 				})
@@ -1513,13 +1529,17 @@ describe('Security Page - Fibonacci Selection & Keyboard Deletion', () => {
 			},
 			elliott_waves: {
 				'sec-1': {
-					cycle: {
-						points: [
-							{ wave: 0, time: '2024-01-01', price: 100 },
-							{ wave: 1, time: '2024-01-02', price: 110 }
-						]
-					},
-					primary: null
+					waves: [
+						{
+							id: 'cycle-1',
+							degree: 'cycle',
+							type: 'impulse',
+							points: [
+								{ wave: 0, time: '2024-01-01', price: 100 },
+								{ wave: 1, time: '2024-01-02', price: 110 }
+							]
+						}
+					]
 				}
 			}
 		});
@@ -1843,26 +1863,34 @@ describe('Security Page - Wave Target Alert Reconcile', () => {
 	// Cycle: wave3 target 150, wave5 target 200; primary: wave3 target 120, wave5 target 160.
 	const fullWaves: Record<string, SecurityElliottWaves> = {
 		'sec-1': {
-			cycle: {
-				points: [
-					{ wave: 0, time: '2024-01-01', price: 50 },
-					{ wave: 1, time: '2024-01-02', price: 100 },
-					{ wave: 2, time: '2024-01-03', price: 80 },
-					{ wave: 3, time: '2024-01-04', price: 150 },
-					{ wave: 4, time: '2024-01-05', price: 120 },
-					{ wave: 5, time: '2024-01-06', price: 200 }
-				]
-			},
-			primary: {
-				points: [
-					{ wave: 0, time: '2024-02-01', price: 40 },
-					{ wave: 1, time: '2024-02-02', price: 90 },
-					{ wave: 2, time: '2024-02-03', price: 70 },
-					{ wave: 3, time: '2024-02-04', price: 120 },
-					{ wave: 4, time: '2024-02-05', price: 100 },
-					{ wave: 5, time: '2024-02-06', price: 160 }
-				]
-			}
+			waves: [
+				{
+					id: 'cycle-1',
+					degree: 'cycle',
+					type: 'impulse',
+					points: [
+						{ wave: 0, time: '2024-01-01', price: 50 },
+						{ wave: 1, time: '2024-01-02', price: 100 },
+						{ wave: 2, time: '2024-01-03', price: 80 },
+						{ wave: 3, time: '2024-01-04', price: 150 },
+						{ wave: 4, time: '2024-01-05', price: 120 },
+						{ wave: 5, time: '2024-01-06', price: 200 }
+					]
+				},
+				{
+					id: 'primary-1',
+					degree: 'primary',
+					type: 'impulse',
+					points: [
+						{ wave: 0, time: '2024-02-01', price: 40 },
+						{ wave: 1, time: '2024-02-02', price: 90 },
+						{ wave: 2, time: '2024-02-03', price: 70 },
+						{ wave: 3, time: '2024-02-04', price: 120 },
+						{ wave: 4, time: '2024-02-05', price: 100 },
+						{ wave: 5, time: '2024-02-06', price: 160 }
+					]
+				}
+			]
 		}
 	};
 
@@ -2153,16 +2181,21 @@ describe('Security Page - Chart Settings Modal & Wave Settings Integration', () 
 
 	const fullWaves: Record<string, SecurityElliottWaves> = {
 		'sec-1': {
-			cycle: {
-				points: [
-					{ wave: 0, time: '2024-01-01', price: 50 },
-					{ wave: 1, time: '2024-01-02', price: 100 },
-					{ wave: 2, time: '2024-01-03', price: 80 },
-					{ wave: 3, time: '2024-01-04', price: 150 },
-					{ wave: 4, time: '2024-01-05', price: 120 },
-					{ wave: 5, time: '2024-01-06', price: 200 }
-				]
-			}
+			waves: [
+				{
+					id: 'cycle-1',
+					degree: 'cycle',
+					type: 'impulse',
+					points: [
+						{ wave: 0, time: '2024-01-01', price: 50 },
+						{ wave: 1, time: '2024-01-02', price: 100 },
+						{ wave: 2, time: '2024-01-03', price: 80 },
+						{ wave: 3, time: '2024-01-04', price: 150 },
+						{ wave: 4, time: '2024-01-05', price: 120 },
+						{ wave: 5, time: '2024-01-06', price: 200 }
+					]
+				}
+			]
 		}
 	};
 
@@ -2425,6 +2458,8 @@ describe('Rewind Save Snapshot', () => {
 	};
 
 	const sampleWaveCount: DegreeWaveCount = {
+		id: 'cycle-1',
+		degree: 'cycle',
 		type: 'impulse',
 		points: [
 			{ wave: 0, time: '2024-01-01', price: 100 },
@@ -2436,7 +2471,7 @@ describe('Rewind Save Snapshot', () => {
 
 	const sampleElliottWaves: Record<string, SecurityElliottWaves> = {
 		'sec-1': {
-			cycle: sampleWaveCount
+			waves: [sampleWaveCount]
 		}
 	};
 
@@ -2735,7 +2770,16 @@ describe('Rewind Save Snapshot', () => {
 		vi.mocked(userPreferencesService.getPreferences).mockResolvedValue({
 			elliott_waves: {
 				'sec-1': {
-					cycle: { type: 'impulse', points: [], wave3Target: 150, wave5Target: 180 }
+					waves: [
+						{
+							id: 'cycle-1',
+							degree: 'cycle',
+							type: 'impulse',
+							points: [],
+							wave3Target: 150,
+							wave5Target: 180
+						}
+					]
 				}
 			},
 			fibonacci_tools: {}
@@ -2807,6 +2851,8 @@ describe('Rewind Save Snapshot', () => {
 
 		// Modify drawing via chart wave change callback
 		const updatedWaveCount: DegreeWaveCount = {
+			id: 'cycle-1',
+			degree: 'cycle',
 			type: 'impulse',
 			points: [
 				{ wave: 0, time: '2024-01-01', price: 100 },
@@ -2894,7 +2940,7 @@ describe('Rewind Scrub and Drawing Restore', () => {
 		id: 'snap-1',
 		captured_at: '2024-01-01T12:00:00.000Z',
 		drawings: {
-			elliott_waves: {},
+			elliott_waves: { waves: [] },
 			fibonacci_tools: {}
 		},
 		data_window: {
@@ -2908,15 +2954,19 @@ describe('Rewind Scrub and Drawing Restore', () => {
 		captured_at: '2024-01-02T12:00:00.000Z',
 		drawings: {
 			elliott_waves: {
-				cycle: {
-					type: 'impulse',
-					points: [
-						{ wave: 0, time: '2024-01-01', price: 100 },
-						{ wave: 1, time: '2024-01-02', price: 120 }
-					],
-					wave3Target: 150,
-					wave5Target: 180
-				}
+				waves: [
+					{
+						id: 'cycle-1',
+						degree: 'cycle',
+						type: 'impulse',
+						points: [
+							{ wave: 0, time: '2024-01-01', price: 100 },
+							{ wave: 1, time: '2024-01-02', price: 120 }
+						],
+						wave3Target: 150,
+						wave5Target: 180
+					}
+				]
 			},
 			fibonacci_tools: {
 				retracement: {
@@ -2936,16 +2986,20 @@ describe('Rewind Scrub and Drawing Restore', () => {
 
 	const liveElliottWaves: Record<string, SecurityElliottWaves> = {
 		'sec-1': {
-			cycle: {
-				type: 'impulse',
-				points: [
-					{ wave: 0, time: '2024-01-01', price: 100 },
-					{ wave: 1, time: '2024-01-02', price: 120 },
-					{ wave: 2, time: '2024-01-03', price: 110 }
-				],
-				wave3Target: 160,
-				wave5Target: 190
-			}
+			waves: [
+				{
+					id: 'cycle-1',
+					degree: 'cycle',
+					type: 'impulse',
+					points: [
+						{ wave: 0, time: '2024-01-01', price: 100 },
+						{ wave: 1, time: '2024-01-02', price: 120 },
+						{ wave: 2, time: '2024-01-03', price: 110 }
+					],
+					wave3Target: 160,
+					wave5Target: 190
+				}
+			]
 		}
 	};
 
@@ -3036,7 +3090,7 @@ describe('Rewind Scrub and Drawing Restore', () => {
 
 		await waitFor(() => {
 			// @ts-expect-error - mockChartProps typed as Record
-			expect(mockChartProps.elliottWaves).toEqual({});
+			expect(mockChartProps.elliottWaves).toEqual({ waves: [] });
 			// @ts-expect-error - mockChartProps typed as Record
 			expect(mockChartProps.fibonacciTools).toEqual({});
 		});

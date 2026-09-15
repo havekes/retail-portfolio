@@ -4,7 +4,11 @@ import {
 	calculateUpsidePercentage,
 	updateSecurityElliottWaves,
 	getSecurityDegreeWaveCount,
+	selectDegreeWave,
+	getWaveIdentity,
+	normalizeWaveIds,
 	areWaveCountsEqual,
+	areSecurityElliottWavesEqual,
 	getWaveAlertPercent,
 	areWaveSettingsEqual,
 	DEFAULT_WAVE_SETTINGS,
@@ -16,6 +20,9 @@ import {
 
 describe('elliott-wave finance utilities', () => {
 	const sampleWaveCount: DegreeWaveCount = {
+		id: 'w-sample',
+		degree: 'cycle',
+		type: 'impulse',
 		points: [
 			{ wave: 0, time: '2024-01-01', price: 50 },
 			{ wave: 1, time: '2024-01-02', price: 100 },
@@ -78,6 +85,9 @@ describe('elliott-wave finance utilities', () => {
 
 		it('returns null if points array does not contain target wave point and no override exists', () => {
 			const partialCount: DegreeWaveCount = {
+				id: 'w-partial',
+				degree: 'cycle',
+				type: 'impulse',
 				points: [
 					{ wave: 1, time: '2024-01-01', price: 100 },
 					{ wave: 2, time: '2024-01-02', price: 80 }
@@ -88,13 +98,21 @@ describe('elliott-wave finance utilities', () => {
 		});
 
 		it('returns null if points array is empty', () => {
-			const emptyCount: DegreeWaveCount = { points: [] };
+			const emptyCount: DegreeWaveCount = {
+				id: 'w-empty',
+				degree: 'cycle',
+				type: 'impulse',
+				points: []
+			};
 			expect(getWaveTargetPrice(emptyCount, 'wave3')).toBeNull();
 			expect(getWaveTargetPrice(emptyCount, 'wave5')).toBeNull();
 		});
 
 		it('returns null if target wave point has invalid price', () => {
 			const invalidPriceCount: DegreeWaveCount = {
+				id: 'w-invalid-price',
+				degree: 'cycle',
+				type: 'impulse',
 				points: [{ wave: 3, time: '2024-01-01', price: NaN }]
 			};
 			expect(getWaveTargetPrice(invalidPriceCount, 'wave3')).toBeNull();
@@ -151,64 +169,114 @@ describe('elliott-wave finance utilities', () => {
 
 	describe('updateSecurityElliottWaves', () => {
 		it('creates new preferences mapping when existingWaves is null or undefined', () => {
-			const result = updateSecurityElliottWaves(null, 'sec-1', 'cycle', sampleWaveCount);
+			const result = updateSecurityElliottWaves(null, 'sec-1', [sampleWaveCount]);
 			expect(result).toEqual({
 				'sec-1': {
-					cycle: sampleWaveCount
+					waves: [sampleWaveCount]
 				}
 			});
 		});
 
-		it('updates degree wave count while preserving other degrees and securities', () => {
+		it('updates wave counts while preserving other securities', () => {
 			const initial: Record<string, SecurityElliottWaves> = {
 				'sec-1': {
-					cycle: sampleWaveCount,
-					primary: null
+					waves: [sampleWaveCount]
 				},
 				'sec-2': {
-					primary: sampleWaveCount
+					waves: [sampleWaveCount]
 				}
 			};
 
 			const primaryCount: DegreeWaveCount = {
+				id: 'w-primary',
+				degree: 'primary',
+				type: 'impulse',
 				points: [{ wave: 1, time: '2024-02-01', price: 50 }]
 			};
 
-			const updated = updateSecurityElliottWaves(initial, 'sec-1', 'primary', primaryCount);
+			const updated = updateSecurityElliottWaves(initial, 'sec-1', [primaryCount]);
 
-			expect(updated['sec-1'].cycle).toEqual(sampleWaveCount);
-			expect(updated['sec-1'].primary).toEqual(primaryCount);
-			expect(updated['sec-2'].primary).toEqual(sampleWaveCount);
+			expect(updated['sec-1'].waves).toEqual([primaryCount]);
+			expect(updated['sec-2'].waves).toEqual([sampleWaveCount]);
 		});
 
 		it('returns a new object without mutating the original input', () => {
 			const initial: Record<string, SecurityElliottWaves> = {
 				'sec-1': {
-					cycle: sampleWaveCount
+					waves: [sampleWaveCount]
 				}
 			};
 
-			const updated = updateSecurityElliottWaves(initial, 'sec-1', 'primary', null);
+			const updated = updateSecurityElliottWaves(initial, 'sec-1', []);
 
 			expect(updated).not.toBe(initial);
 			expect(updated['sec-1']).not.toBe(initial['sec-1']);
-			expect(initial['sec-1'].primary).toBeUndefined();
-			expect(updated['sec-1'].primary).toBeNull();
+			expect(initial['sec-1'].waves).toEqual([sampleWaveCount]);
+			expect(updated['sec-1'].waves).toEqual([]);
 		});
 
-		it('allows clearing a degree count by passing null', () => {
+		it('allows clearing waves by passing empty array', () => {
 			const initial: Record<string, SecurityElliottWaves> = {
 				'sec-1': {
-					cycle: sampleWaveCount
+					waves: [sampleWaveCount]
 				}
 			};
 
-			const updated = updateSecurityElliottWaves(initial, 'sec-1', 'cycle', null);
-			expect(updated['sec-1'].cycle).toBeNull();
+			const updated = updateSecurityElliottWaves(initial, 'sec-1', []);
+			expect(updated['sec-1'].waves).toEqual([]);
+		});
+
+		it('updates security with a multi-wave collection', () => {
+			const initial: Record<string, SecurityElliottWaves> = {
+				'sec-1': {
+					waves: [sampleWaveCount]
+				}
+			};
+
+			const newWaves: DegreeWaveCount[] = [
+				{
+					id: 'w1',
+					degree: 'cycle',
+					type: 'impulse',
+					points: [{ wave: 0, time: '2024-01-01', price: 10 }]
+				},
+				{
+					id: 'w2',
+					degree: 'primary',
+					type: 'corrective',
+					points: [{ wave: 0, time: '2024-01-05', price: 20 }]
+				}
+			];
+
+			const updated = updateSecurityElliottWaves(initial, 'sec-1', newWaves);
+			expect(updated['sec-1'].waves).toEqual(newWaves);
+		});
+
+		it('updates security using a DegreeWaveCount[] array payload', () => {
+			const waveList: DegreeWaveCount[] = [
+				{
+					id: 'w1',
+					degree: 'cycle',
+					type: 'impulse',
+					points: [{ wave: 0, time: '2024-01-01', price: 10 }]
+				}
+			];
+
+			const updated = updateSecurityElliottWaves(null, 'sec-1', waveList);
+			expect(updated['sec-1'].waves).toEqual(waveList);
 		});
 	});
 
 	describe('getSecurityDegreeWaveCount', () => {
+		it('extracts degree count when present in waves array', () => {
+			const waves: Record<string, SecurityElliottWaves> = {
+				'sec-1': {
+					waves: [sampleWaveCount]
+				}
+			};
+			expect(getSecurityDegreeWaveCount(waves, 'sec-1', 'cycle')).toEqual(sampleWaveCount);
+		});
+
 		it('returns null if existingWaves is null or undefined', () => {
 			expect(getSecurityDegreeWaveCount(null, 'sec-1', 'cycle')).toBeNull();
 			expect(getSecurityDegreeWaveCount(undefined, 'sec-1', 'cycle')).toBeNull();
@@ -216,11 +284,11 @@ describe('elliott-wave finance utilities', () => {
 
 		it('returns null if securityId or degree is falsy', () => {
 			expect(
-				getSecurityDegreeWaveCount({ 'sec-1': { cycle: sampleWaveCount } }, '', 'cycle')
+				getSecurityDegreeWaveCount({ 'sec-1': { waves: [sampleWaveCount] } }, '', 'cycle')
 			).toBeNull();
 			expect(
 				getSecurityDegreeWaveCount(
-					{ 'sec-1': { cycle: sampleWaveCount } },
+					{ 'sec-1': { waves: [sampleWaveCount] } },
 					'sec-1',
 					'' as unknown as WaveDegree
 				)
@@ -229,23 +297,35 @@ describe('elliott-wave finance utilities', () => {
 
 		it('returns null if security is not in existingWaves', () => {
 			const waves: Record<string, SecurityElliottWaves> = {
-				'sec-1': { cycle: sampleWaveCount }
+				'sec-1': { waves: [sampleWaveCount] }
 			};
 			expect(getSecurityDegreeWaveCount(waves, 'sec-2', 'cycle')).toBeNull();
 		});
 
-		it('returns null if degree is null or undefined for the security', () => {
+		it('returns null if degree is not in the waves array', () => {
 			const waves: Record<string, SecurityElliottWaves> = {
-				'sec-1': { cycle: sampleWaveCount, primary: null }
+				'sec-1': { waves: [sampleWaveCount] }
 			};
 			expect(getSecurityDegreeWaveCount(waves, 'sec-1', 'primary')).toBeNull();
 		});
 
-		it('returns the wave count when present', () => {
-			const waves: Record<string, SecurityElliottWaves> = {
-				'sec-1': { cycle: sampleWaveCount }
+		it('prefers impulse wave when multiple waves of same degree exist', () => {
+			const corrective: DegreeWaveCount = {
+				id: 'c1',
+				degree: 'cycle',
+				type: 'corrective',
+				points: [{ wave: 'A', time: '2024-01-01', price: 10 }]
 			};
-			expect(getSecurityDegreeWaveCount(waves, 'sec-1', 'cycle')).toEqual(sampleWaveCount);
+			const impulse: DegreeWaveCount = {
+				id: 'i1',
+				degree: 'cycle',
+				type: 'impulse',
+				points: [{ wave: 1, time: '2024-01-02', price: 20 }]
+			};
+			const waves: Record<string, SecurityElliottWaves> = {
+				'sec-1': { waves: [corrective, impulse] }
+			};
+			expect(getSecurityDegreeWaveCount(waves, 'sec-1', 'cycle')).toEqual(impulse);
 		});
 	});
 
@@ -263,6 +343,9 @@ describe('elliott-wave finance utilities', () => {
 
 		it('returns true for identical wave counts', () => {
 			const duplicate: DegreeWaveCount = {
+				id: 'w-sample',
+				degree: 'cycle',
+				type: 'impulse',
 				points: [
 					{ wave: 0, time: '2024-01-01', price: 50 },
 					{ wave: 1, time: '2024-01-02', price: 100 },
@@ -277,6 +360,9 @@ describe('elliott-wave finance utilities', () => {
 
 		it('returns false if point lengths differ', () => {
 			const partial: DegreeWaveCount = {
+				id: 'w-sample',
+				degree: 'cycle',
+				type: 'impulse',
 				points: [{ wave: 0, time: '2024-01-01', price: 50 }]
 			};
 			expect(areWaveCountsEqual(sampleWaveCount, partial)).toBe(false);
@@ -284,6 +370,9 @@ describe('elliott-wave finance utilities', () => {
 
 		it('returns false if point values differ', () => {
 			const modified: DegreeWaveCount = {
+				id: 'w-sample',
+				degree: 'cycle',
+				type: 'impulse',
 				points: [
 					{ wave: 0, time: '2024-01-01', price: 50 },
 					{ wave: 1, time: '2024-01-02', price: 105 }, // different price
@@ -298,6 +387,9 @@ describe('elliott-wave finance utilities', () => {
 
 		it('returns false if point 0 differs', () => {
 			const modifiedPoint0: DegreeWaveCount = {
+				id: 'w-sample',
+				degree: 'cycle',
+				type: 'impulse',
 				points: [
 					{ wave: 0, time: '2024-01-01', price: 55 }, // different point 0 price
 					{ wave: 1, time: '2024-01-02', price: 100 },
@@ -318,6 +410,8 @@ describe('elliott-wave finance utilities', () => {
 
 		it('returns true for identical corrective wave counts with letters A, B, C', () => {
 			const corrective1: DegreeWaveCount = {
+				id: 'c1',
+				degree: 'cycle',
 				type: 'corrective',
 				points: [
 					{ wave: 0, time: '2024-01-01', price: 100 },
@@ -327,6 +421,8 @@ describe('elliott-wave finance utilities', () => {
 				]
 			};
 			const corrective2: DegreeWaveCount = {
+				id: 'c1',
+				degree: 'cycle',
 				type: 'corrective',
 				points: [
 					{ wave: 0, time: '2024-01-01', price: 100 },
@@ -340,25 +436,261 @@ describe('elliott-wave finance utilities', () => {
 
 		it('returns false when wave count types differ (impulse vs corrective)', () => {
 			const impulse: DegreeWaveCount = {
+				id: 'w1',
+				degree: 'cycle',
 				type: 'impulse',
 				points: [{ wave: 0, time: '2024-01-01', price: 100 }]
 			};
 			const corrective: DegreeWaveCount = {
+				id: 'w1',
+				degree: 'cycle',
 				type: 'corrective',
 				points: [{ wave: 0, time: '2024-01-01', price: 100 }]
 			};
 			expect(areWaveCountsEqual(impulse, corrective)).toBe(false);
 		});
 
-		it('treats undefined type as impulse when comparing to explicit impulse type', () => {
-			const legacy: DegreeWaveCount = {
-				points: [{ wave: 0, time: '2024-01-01', price: 100 }]
-			};
-			const explicitImpulse: DegreeWaveCount = {
+		it('returns false when wave id differs', () => {
+			const a: DegreeWaveCount = { id: 'wave-1', degree: 'cycle', type: 'impulse', points: [] };
+			const b: DegreeWaveCount = { id: 'wave-2', degree: 'cycle', type: 'impulse', points: [] };
+			expect(areWaveCountsEqual(a, b)).toBe(false);
+		});
+
+		it('returns true when wave id matches', () => {
+			const a: DegreeWaveCount = { id: 'wave-1', degree: 'cycle', type: 'impulse', points: [] };
+			const b: DegreeWaveCount = { id: 'wave-1', degree: 'cycle', type: 'impulse', points: [] };
+			expect(areWaveCountsEqual(a, b)).toBe(true);
+		});
+
+		it('returns false when wave degree differs', () => {
+			const a: DegreeWaveCount = { id: 'wave-1', degree: 'cycle', type: 'impulse', points: [] };
+			const b: DegreeWaveCount = { id: 'wave-1', degree: 'primary', type: 'impulse', points: [] };
+			expect(areWaveCountsEqual(a, b)).toBe(false);
+		});
+
+		it('returns true when wave degree matches', () => {
+			const a: DegreeWaveCount = { id: 'wave-1', degree: 'cycle', type: 'impulse', points: [] };
+			const b: DegreeWaveCount = { id: 'wave-1', degree: 'cycle', type: 'impulse', points: [] };
+			expect(areWaveCountsEqual(a, b)).toBe(true);
+		});
+	});
+
+	describe('selectDegreeWave', () => {
+		const impulse: DegreeWaveCount = {
+			id: 'i1',
+			degree: 'cycle',
+			type: 'impulse',
+			points: [{ wave: 1, time: '2024-01-02', price: 20 }]
+		};
+		const laterImpulse: DegreeWaveCount = {
+			id: 'i2',
+			degree: 'cycle',
+			type: 'impulse',
+			points: [{ wave: 1, time: '2024-02-01', price: 30 }]
+		};
+		const corrective: DegreeWaveCount = {
+			id: 'c1',
+			degree: 'cycle',
+			type: 'corrective',
+			points: [{ wave: 'A', time: '2024-01-01', price: 10 }]
+		};
+		const laterCorrective: DegreeWaveCount = {
+			id: 'c2',
+			degree: 'cycle',
+			type: 'corrective',
+			points: [{ wave: 'A', time: '2024-02-01', price: 15 }]
+		};
+
+		it('returns null for empty or missing collections', () => {
+			expect(selectDegreeWave(null, 'cycle')).toBeNull();
+			expect(selectDegreeWave(undefined, 'cycle')).toBeNull();
+			expect(selectDegreeWave([], 'cycle')).toBeNull();
+		});
+
+		it('returns null when the degree is absent', () => {
+			expect(selectDegreeWave([impulse], 'primary')).toBeNull();
+		});
+
+		it('prefers the impulse wave of the degree by default', () => {
+			expect(selectDegreeWave([corrective, impulse], 'cycle')).toBe(impulse);
+		});
+
+		it('falls back to any wave of the degree when no impulse exists', () => {
+			expect(selectDegreeWave([corrective], 'cycle')).toBe(corrective);
+		});
+
+		it('honors a custom preferred type', () => {
+			expect(
+				selectDegreeWave([impulse, corrective], 'cycle', { preferredType: 'corrective' })
+			).toBe(corrective);
+		});
+
+		it("prefers the most recent match when prefer is 'last'", () => {
+			expect(selectDegreeWave([impulse, laterImpulse], 'cycle', { prefer: 'last' })).toBe(
+				laterImpulse
+			);
+			// Falls back to the last any-degree wave when the preferred type is absent.
+			expect(
+				selectDegreeWave([corrective, laterCorrective], 'cycle', {
+					preferredType: 'impulse',
+					prefer: 'last'
+				})
+			).toBe(laterCorrective);
+		});
+	});
+
+	describe('getWaveIdentity / normalizeWaveIds', () => {
+		const idlessWaves: DegreeWaveCount[] = [
+			{
+				id: '',
+				degree: 'cycle',
 				type: 'impulse',
-				points: [{ wave: 0, time: '2024-01-01', price: 100 }]
+				points: [
+					{ wave: 0, time: '2024-01-01', price: 10 },
+					{ wave: 1, time: '2024-01-02', price: 20 }
+				]
+			},
+			{
+				id: undefined as unknown as string,
+				degree: 'primary',
+				type: 'corrective',
+				points: []
+			}
+		];
+
+		it('keeps a persisted id', () => {
+			expect(getWaveIdentity({ ...idlessWaves[0], id: 'persisted' })).toBe('persisted');
+		});
+
+		it('derives a stable id from content and position', () => {
+			expect(getWaveIdentity(idlessWaves[0], 0)).toBe(getWaveIdentity({ ...idlessWaves[0] }, 0));
+			expect(getWaveIdentity(idlessWaves[0], 0)).not.toBe(
+				getWaveIdentity({ ...idlessWaves[0], degree: 'primary' }, 0)
+			);
+			expect(getWaveIdentity(idlessWaves[0], 0)).not.toBe(getWaveIdentity(idlessWaves[0], 1));
+		});
+
+		it('serializes BusinessDay times distinctly rather than as [object Object]', () => {
+			const base: DegreeWaveCount = {
+				id: '',
+				degree: 'cycle',
+				type: 'impulse',
+				points: [{ wave: 0, time: { year: 2024, month: 1, day: 1 }, price: 10 }]
 			};
-			expect(areWaveCountsEqual(legacy, explicitImpulse)).toBe(true);
+			const later: DegreeWaveCount = {
+				...base,
+				points: [{ wave: 0, time: { year: 2024, month: 1, day: 2 }, price: 10 }]
+			};
+			expect(getWaveIdentity(base, 0)).not.toBe(getWaveIdentity(later, 0));
+		});
+
+		it('assigns stable, distinct ids to every id-less wave without mutating input', () => {
+			const first = normalizeWaveIds(idlessWaves);
+			const second = normalizeWaveIds(idlessWaves);
+			expect(first.map((w) => w.id)).toEqual(second.map((w) => w.id));
+			expect(first[0].id).toBeTruthy();
+			expect(first[1].id).toBeTruthy();
+			expect(first[0].id).not.toBe(first[1].id);
+			expect(first[0]).not.toBe(idlessWaves[0]);
+			expect(idlessWaves[0].id).toBe('');
+		});
+
+		it('returns an empty array for null or undefined', () => {
+			expect(normalizeWaveIds(null)).toEqual([]);
+			expect(normalizeWaveIds(undefined)).toEqual([]);
+		});
+	});
+
+	describe('areSecurityElliottWavesEqual', () => {
+		it('returns true when both are null or undefined', () => {
+			expect(areSecurityElliottWavesEqual(null, null)).toBe(true);
+			expect(areSecurityElliottWavesEqual(undefined, undefined)).toBe(true);
+			expect(areSecurityElliottWavesEqual(null, undefined)).toBe(true);
+		});
+
+		it('compares multi-wave collections correctly', () => {
+			const a: SecurityElliottWaves = {
+				waves: [
+					{
+						id: 'w1',
+						degree: 'cycle',
+						type: 'impulse',
+						points: [{ wave: 0, time: '2024-01-01', price: 10 }]
+					},
+					{
+						id: 'w2',
+						degree: 'cycle',
+						type: 'impulse',
+						points: [{ wave: 0, time: '2024-01-05', price: 20 }]
+					}
+				]
+			};
+			const b: SecurityElliottWaves = {
+				waves: [
+					{
+						id: 'w1',
+						degree: 'cycle',
+						type: 'impulse',
+						points: [{ wave: 0, time: '2024-01-01', price: 10 }]
+					},
+					{
+						id: 'w2',
+						degree: 'cycle',
+						type: 'impulse',
+						points: [{ wave: 0, time: '2024-01-05', price: 20 }]
+					}
+				]
+			};
+			expect(areSecurityElliottWavesEqual(a, b)).toBe(true);
+
+			const c: SecurityElliottWaves = {
+				waves: [
+					{
+						id: 'w1',
+						degree: 'cycle',
+						type: 'impulse',
+						points: [{ wave: 0, time: '2024-01-01', price: 10 }]
+					}
+				]
+			};
+			expect(areSecurityElliottWavesEqual(a, c)).toBe(false);
+		});
+
+		it('does not report spurious inequality for id-less waves round-tripped through normalization', () => {
+			const loaded: SecurityElliottWaves = {
+				waves: [
+					{
+						id: '',
+						degree: 'cycle',
+						type: 'impulse',
+						points: [{ wave: 0, time: '2024-01-01', price: 10 }]
+					},
+					{
+						id: undefined as unknown as string,
+						degree: 'primary',
+						type: 'corrective',
+						points: []
+					}
+				]
+			};
+			const serialized: SecurityElliottWaves = { waves: normalizeWaveIds(loaded.waves) };
+
+			// load -> serialize -> compare: identity was preserved, so they are equal.
+			expect(areSecurityElliottWavesEqual(serialized, loaded)).toBe(true);
+			// And normalizing the serialized form again is idempotent.
+			expect(normalizeWaveIds(serialized.waves).map((w) => w.id)).toEqual(
+				serialized.waves.map((w) => w.id)
+			);
+		});
+
+		it('still distinguishes different persisted wave ids', () => {
+			const a: SecurityElliottWaves = {
+				waves: [{ id: 'a', degree: 'cycle', type: 'impulse', points: [] }]
+			};
+			const b: SecurityElliottWaves = {
+				waves: [{ id: 'b', degree: 'cycle', type: 'impulse', points: [] }]
+			};
+			expect(areSecurityElliottWavesEqual(a, b)).toBe(false);
 		});
 	});
 

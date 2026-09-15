@@ -5,34 +5,43 @@ import {
 	roundTo8dp,
 	type WaveAlertLevel
 } from './wave-alerts';
-import type { WaveSettings, SecurityElliottWaves } from './elliott-wave';
+import type { WaveSettings, DegreeWaveCount, SecurityElliottWaves } from './elliott-wave';
 import type { PriceAlert } from '$lib/api/alertsService';
 
+const cycleWaveCount: DegreeWaveCount = {
+	id: 'cycle-1',
+	degree: 'cycle',
+	type: 'impulse',
+	points: [
+		{ wave: 0, time: '2024-01-01', price: 50 },
+		{ wave: 1, time: '2024-01-02', price: 100 },
+		{ wave: 2, time: '2024-01-03', price: 80 },
+		{ wave: 3, time: '2024-01-04', price: 150 },
+		{ wave: 4, time: '2024-01-05', price: 120 },
+		{ wave: 5, time: '2024-01-06', price: 200 }
+	]
+};
+
 const cycleWaves: SecurityElliottWaves = {
-	cycle: {
-		points: [
-			{ wave: 0, time: '2024-01-01', price: 50 },
-			{ wave: 1, time: '2024-01-02', price: 100 },
-			{ wave: 2, time: '2024-01-03', price: 80 },
-			{ wave: 3, time: '2024-01-04', price: 150 },
-			{ wave: 4, time: '2024-01-05', price: 120 },
-			{ wave: 5, time: '2024-01-06', price: 200 }
-		]
-	}
+	waves: [cycleWaveCount]
+};
+
+const primaryWaveCount: DegreeWaveCount = {
+	id: 'primary-1',
+	degree: 'primary',
+	type: 'impulse',
+	points: [
+		{ wave: 0, time: '2024-02-01', price: 40 },
+		{ wave: 1, time: '2024-02-02', price: 90 },
+		{ wave: 2, time: '2024-02-03', price: 70 },
+		{ wave: 3, time: '2024-02-04', price: 120 },
+		{ wave: 4, time: '2024-02-05', price: 100 },
+		{ wave: 5, time: '2024-02-06', price: 160 }
+	]
 };
 
 const bothDegreesWaves: SecurityElliottWaves = {
-	cycle: cycleWaves.cycle,
-	primary: {
-		points: [
-			{ wave: 0, time: '2024-02-01', price: 40 },
-			{ wave: 1, time: '2024-02-02', price: 90 },
-			{ wave: 2, time: '2024-02-03', price: 70 },
-			{ wave: 3, time: '2024-02-04', price: 120 },
-			{ wave: 4, time: '2024-02-05', price: 100 },
-			{ wave: 5, time: '2024-02-06', price: 160 }
-		]
-	}
+	waves: [cycleWaveCount, primaryWaveCount]
 };
 
 function settings(percents: Partial<WaveSettings['alert_percents']> = {}): WaveSettings {
@@ -85,7 +94,14 @@ describe('computeWaveAlertLevels', () => {
 	it('handles floating-point percent math at 8dp', () => {
 		const s = settings({ cycle: { wave3: 90, wave5: 90 } });
 		const waves: SecurityElliottWaves = {
-			cycle: { points: [{ wave: 3, time: '2024-01-04', price: 119.99 }] }
+			waves: [
+				{
+					id: 'cycle-1',
+					degree: 'cycle',
+					type: 'impulse',
+					points: [{ wave: 3, time: '2024-01-04', price: 119.99 }]
+				}
+			]
 		};
 		// 119.99 × 90/100 = 107.991 (8dp)
 		const result = computeWaveAlertLevels(s, waves, 100);
@@ -96,7 +112,14 @@ describe('computeWaveAlertLevels', () => {
 		// level = 100 when current = 100 → skip
 		const s = settings({ cycle: { wave3: 100, wave5: 100 } });
 		const waves: SecurityElliottWaves = {
-			cycle: { points: [{ wave: 3, time: '2024-01-04', price: 100 }] }
+			waves: [
+				{
+					id: 'cycle-1',
+					degree: 'cycle',
+					type: 'impulse',
+					points: [{ wave: 3, time: '2024-01-04', price: 100 }]
+				}
+			]
 		};
 		expect(computeWaveAlertLevels(s, waves, 100)).toEqual([]);
 	});
@@ -129,7 +152,14 @@ describe('computeWaveAlertLevels', () => {
 		const s = settings({ cycle: { wave3: 90, wave5: 90 } });
 		// cycle has a wave3 point but no wave5 point → only wave3 alert
 		const waves: SecurityElliottWaves = {
-			cycle: { points: [{ wave: 3, time: '2024-01-04', price: 150 }] }
+			waves: [
+				{
+					id: 'cycle-1',
+					degree: 'cycle',
+					type: 'impulse',
+					points: [{ wave: 3, time: '2024-01-04', price: 150 }]
+				}
+			]
 		};
 		const result = computeWaveAlertLevels(s, waves, 100);
 		expect(result).toEqual([{ degree: 'cycle', wave: 'wave3', level: 135, condition: 'above' }]);
@@ -138,11 +168,16 @@ describe('computeWaveAlertLevels', () => {
 	it('respects wave3Target/wave5Target overrides', () => {
 		const s = settings({ cycle: { wave3: 90, wave5: 90 } });
 		const waves: SecurityElliottWaves = {
-			cycle: {
-				points: [{ wave: 3, time: '2024-01-04', price: 150 }],
-				wave3Target: 175,
-				wave5Target: 250
-			}
+			waves: [
+				{
+					id: 'cycle-1',
+					degree: 'cycle',
+					type: 'impulse',
+					points: [{ wave: 3, time: '2024-01-04', price: 150 }],
+					wave3Target: 175,
+					wave5Target: 250
+				}
+			]
 		};
 		const result = computeWaveAlertLevels(s, waves, 100);
 		expect(result).toEqual([

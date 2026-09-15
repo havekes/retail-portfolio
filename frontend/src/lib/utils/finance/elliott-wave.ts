@@ -15,16 +15,16 @@ export interface WavePoint {
 }
 
 export interface DegreeWaveCount {
-	type?: WaveType;
+	id: string;
+	degree: WaveDegree;
+	type: WaveType;
 	points: WavePoint[];
 	wave3Target?: number | null;
 	wave5Target?: number | null;
 }
 
 export interface SecurityElliottWaves {
-	cycle?: DegreeWaveCount | null;
-	primary?: DegreeWaveCount | null;
-	intermediate?: DegreeWaveCount | null;
+	waves: DegreeWaveCount[];
 }
 
 /**
@@ -121,25 +121,142 @@ export function calculateUpsidePercentage(
 }
 
 /**
- * Immutably updates the Elliott Wave configuration for a given security and degree.
+ * Deterministic 32-bit FNV-1a hash. Synchronous and environment-independent, used to derive
+ * stable fallback wave ids — never `crypto` (async/variant availability in SSR and old contexts).
+ */
+function stableHash(input: string): string {
+	let hash = 0x811c9dc5;
+	for (let i = 0; i < input.length; i++) {
+		hash ^= input.charCodeAt(i);
+		hash = Math.imul(hash, 0x01000193);
+	}
+	return (hash >>> 0).toString(16).padStart(8, '0');
+}
+
+/**
+ * Stable string form of a lightweight-charts `Time` for id derivation. `BusinessDay` objects
+ * are serialized field-by-field (their default `String()` is `[object Object]`, which would
+ * collide distinct dates).
+ */
+function serializeTime(time: Time): string {
+	if (typeof time === 'object' && time !== null) {
+		return `${time.year}-${time.month}-${time.day}`;
+	}
+	return String(time);
+}
+
+/**
+ * Resolves a wave's identity. A persisted `id` always wins; otherwise a deterministic id is
+ * derived from the wave's index, degree, type, and point positions. Deriving rather than
+ * generating a random UUID keeps identity stable across loads/serializations, so re-loading a
+ * wave collection without persisted ids does not change identities or make comparisons
+ * spuriously differ. The index disambiguates otherwise-identical waves in one collection.
+ */
+export function getWaveIdentity(wave: DegreeWaveCount, index = 0): string {
+	if (wave.id) return wave.id;
+	const points = (wave.points ?? [])
+		.map((p) => `${p.wave}:${serializeTime(p.time)}:${p.price}`)
+		.join('|');
+	return `wave-${index}-${wave.degree}-${wave.type}-${stableHash(points)}`;
+}
+
+/**
+ * Normalizes a wave collection for storage/comparison: clones points, null-normalizes the
+ * target fields, and assigns a stable id to every wave that lacks one (see `getWaveIdentity`).
+ * Pure — never mutates the input.
+ */
+export function normalizeWaveIds(
+	waves: readonly DegreeWaveCount[] | null | undefined
+): DegreeWaveCount[] {
+	return (waves ?? []).map((w, index) => ({
+		...w,
+		id: getWaveIdentity(w, index),
+		points: Array.isArray(w.points) ? w.points.map((p) => ({ ...p })) : [],
+		wave3Target: w.wave3Target ?? null,
+		wave5Target: w.wave5Target ?? null
+	}));
+}
+
+/**
+ * Compares two SecurityElliottWaves objects for structural equality across their wave
+ * collections. Both sides are id-normalized first, so a wave that has no persisted id compares
+ * equal to its deterministic-id counterpart — round-tripping through state does not change
+ * identity and does not spuriously report inequality.
+ */
+export function areSecurityElliottWavesEqual(
+	a: SecurityElliottWaves | null | undefined,
+	b: SecurityElliottWaves | null | undefined
+): boolean {
+	if (!a && !b) return true;
+	const wavesA = normalizeWaveIds(a?.waves);
+	const wavesB = normalizeWaveIds(b?.waves);
+	if (wavesA.length !== wavesB.length) return false;
+
+	for (let i = 0; i < wavesA.length; i++) {
+		if (!areWaveCountsEqual(wavesA[i], wavesB[i])) {
+			return false;
+		}
+	}
+
+	return true;
+}
+
+/**
+ * Immutably updates the Elliott Wave configuration for a given security.
  */
 export function updateSecurityElliottWaves(
 	existingWaves: Record<string, SecurityElliottWaves> | null | undefined,
 	securityId: string,
-	degree: WaveDegree,
-	waveCount: DegreeWaveCount | null
+	waves: DegreeWaveCount[]
 ): Record<string, SecurityElliottWaves> {
 	const currentWaves = existingWaves ? { ...existingWaves } : {};
-	const currentSecurity = currentWaves[securityId] ? { ...currentWaves[securityId] } : {};
-
-	currentSecurity[degree] = waveCount;
-	currentWaves[securityId] = currentSecurity;
-
+	currentWaves[securityId] = {
+		waves: (waves ?? []).map((w) => ({
+			...w,
+			points: Array.isArray(w.points) ? w.points.map((p) => ({ ...p })) : []
+		}))
+	};
 	return currentWaves;
 }
 
 /**
- * Extracts the wave count for a specific security and degree from existing wave preferences.
+ * Selects the wave to represent a degree: the wave of the preferred type when one exists,
+ * otherwise any wave of that degree. Callers that read persisted data use the default
+ * (`impulse`, `'first'`) for a stable, insertion-order-independent choice; interactive callers
+ * pass `prefer: 'last'` so the most recently drawn wave of the active type is targeted.
+ */
+export function selectDegreeWave(
+	waves: readonly DegreeWaveCount[] | null | undefined,
+	degree: WaveDegree,
+	options: { preferredType?: WaveType; prefer?: 'first' | 'last' } = {}
+): DegreeWaveCount | null {
+	if (!waves || !Array.isArray(waves) || !degree) {
+		return null;
+	}
+
+	const { preferredType = 'impulse', prefer = 'first' } = options;
+
+	const pick = (matches: (w: DegreeWaveCount) => boolean): DegreeWaveCount | null => {
+		if (prefer === 'last') {
+			for (let i = waves.length - 1; i >= 0; i--) {
+				const wave = waves[i];
+				if (wave && matches(wave)) return wave;
+			}
+			return null;
+		}
+		return waves.find(matches) ?? null;
+	};
+
+	return (
+		pick((w) => w.degree === degree && w.type === preferredType) ??
+		pick((w) => w.degree === degree) ??
+		null
+	);
+}
+
+/**
+ * Extracts the wave count for a specific security and degree from existing wave preferences,
+ * preferring the impulse wave of that degree (see `selectDegreeWave`).
  */
 export function getSecurityDegreeWaveCount(
 	existingWaves: Record<string, SecurityElliottWaves> | null | undefined,
@@ -151,11 +268,11 @@ export function getSecurityDegreeWaveCount(
 	}
 
 	const securityWaves = existingWaves[securityId];
-	if (!securityWaves) {
+	if (!securityWaves || !Array.isArray(securityWaves.waves)) {
 		return null;
 	}
 
-	return securityWaves[degree] ?? null;
+	return selectDegreeWave(securityWaves.waves, degree);
 }
 
 /**
@@ -193,7 +310,13 @@ export function areWaveCountsEqual(
 ): boolean {
 	if (!a && !b) return true;
 	if (!a || !b) return false;
-	if ((a.type ?? 'impulse') !== (b.type ?? 'impulse')) {
+	if (a.id !== b.id) {
+		return false;
+	}
+	if (a.degree !== b.degree) {
+		return false;
+	}
+	if (a.type !== b.type) {
 		return false;
 	}
 	if (a.wave3Target !== b.wave3Target || a.wave5Target !== b.wave5Target) {

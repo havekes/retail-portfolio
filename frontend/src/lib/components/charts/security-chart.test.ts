@@ -150,7 +150,11 @@ vi.mock('lightweight-charts', () => {
 import type { Component } from 'svelte';
 import { tick } from 'svelte';
 import type { Candle } from '$lib/utils/finance/candle';
-import type { SecurityElliottWaves, WaveDegree } from '$lib/utils/finance/elliott-wave';
+import type {
+	DegreeWaveCount,
+	SecurityElliottWaves,
+	WaveDegree
+} from '$lib/utils/finance/elliott-wave';
 import type { SecurityFibonacciTools, FibToolType } from '$lib/utils/finance/fibonacci';
 import type { IndicatorData } from './security-chart.svelte';
 import { render } from '@testing-library/svelte';
@@ -167,6 +171,10 @@ interface SecurityChartInstance {
 	setSelectedWaveDegree: (degree: WaveDegree | null) => void;
 	getSelectedFibTool: () => FibToolType | null;
 	setSelectedFibTool: (tool: FibToolType | null) => void;
+	clearWave: (waveIdOrDegree?: string | WaveDegree) => void;
+	getAllWaves: () => DegreeWaveCount[];
+	getSelectedWaveId: () => string | null;
+	setSelectedWaveId: (id: string | null) => void;
 }
 
 describe('SecurityChart - Infinite Scroll & Logical Range', () => {
@@ -407,10 +415,16 @@ describe('SecurityChart - Elliott Wave Integration', () => {
 
 	it('syncs elliottWaves prop changes to ElliottWavesPrimitive', async () => {
 		const sampleWaves: SecurityElliottWaves = {
-			cycle: {
-				points: [{ wave: 1, time: '2024-01-10', price: 10 }]
-			},
-			primary: null
+			waves: [
+				{
+					id: 'wave-cycle-1',
+					degree: 'cycle',
+					type: 'impulse',
+					points: [{ wave: 1, time: '2024-01-10', price: 10 }],
+					wave3Target: null,
+					wave5Target: null
+				}
+			]
 		};
 
 		const { rerender } = render(SecurityChart, {
@@ -424,13 +438,20 @@ describe('SecurityChart - Elliott Wave Integration', () => {
 			(c) => c[0] instanceof ElliottWavesPrimitive
 		)?.[0] as ElliottWavesPrimitive;
 
-		expect(elliottPrimitive.getWaveCount('cycle')).toEqual(sampleWaves.cycle);
+		expect(elliottPrimitive.getWaveCount('cycle')).toEqual(sampleWaves.waves[0]);
 
 		const updatedWaves: SecurityElliottWaves = {
-			cycle: sampleWaves.cycle,
-			primary: {
-				points: [{ wave: 1, time: '2024-01-11', price: 12 }]
-			}
+			waves: [
+				sampleWaves.waves[0],
+				{
+					id: 'wave-primary-1',
+					degree: 'primary',
+					type: 'impulse',
+					points: [{ wave: 1, time: '2024-01-11', price: 12 }],
+					wave3Target: null,
+					wave5Target: null
+				}
+			]
 		};
 
 		await rerender({
@@ -438,7 +459,7 @@ describe('SecurityChart - Elliott Wave Integration', () => {
 			elliottWaves: updatedWaves
 		});
 
-		expect(elliottPrimitive.getWaveCount('primary')).toEqual(updatedWaves.primary);
+		expect(elliottPrimitive.getWaveCount('primary')).toEqual(updatedWaves.waves[1]);
 	});
 
 	it('forwards primitive events to delegate callbacks', () => {
@@ -465,6 +486,14 @@ describe('SecurityChart - Elliott Wave Integration', () => {
 			'cycle',
 			expect.objectContaining({
 				points: expect.arrayContaining([expect.objectContaining({ wave: 0, price: 15 })])
+			}),
+			expect.objectContaining({
+				waves: expect.arrayContaining([
+					expect.objectContaining({
+						degree: 'cycle',
+						points: expect.arrayContaining([expect.objectContaining({ wave: 0, price: 15 })])
+					})
+				])
 			})
 		);
 
@@ -475,6 +504,64 @@ describe('SecurityChart - Elliott Wave Integration', () => {
 		// Trigger degree change
 		elliottPrimitive.setActiveDegree('primary');
 		expect(onDegreeChange).toHaveBeenCalledWith('primary');
+	});
+
+	it('syncs multi-wave collections to ElliottWavesPrimitive and delegates targeted deletion', async () => {
+		const initialWaves: SecurityElliottWaves = {
+			waves: [
+				{
+					id: 'wave-1',
+					degree: 'cycle',
+					type: 'impulse',
+					points: [{ wave: 0, time: '2024-01-10', price: 10 }]
+				},
+				{
+					id: 'wave-2',
+					degree: 'cycle',
+					type: 'corrective',
+					points: [{ wave: 0, time: '2024-01-12', price: 15 }]
+				}
+			]
+		};
+
+		const { component: comp, rerender } = render(SecurityChart, {
+			props: {
+				candles: initialCandles,
+				elliottWaves: initialWaves
+			}
+		});
+		const component = comp as unknown as SecurityChartInstance;
+
+		const elliottPrimitive = mockAttachPrimitive.mock.calls.find(
+			(c) => c[0] instanceof ElliottWavesPrimitive
+		)?.[0] as ElliottWavesPrimitive;
+
+		expect(elliottPrimitive.getAllWaves().length).toBe(2);
+
+		// Targeted deletion of wave-1
+		component.clearWave('wave-1');
+		expect(elliottPrimitive.getAllWaves().length).toBe(1);
+		expect(elliottPrimitive.getAllWaves()[0].id).toBe('wave-2');
+
+		// Syncing new multi-wave state via prop
+		const updatedWaves: SecurityElliottWaves = {
+			waves: [
+				{
+					id: 'wave-3',
+					degree: 'primary',
+					type: 'impulse',
+					points: [{ wave: 0, time: '2024-01-15', price: 20 }]
+				}
+			]
+		};
+
+		await rerender({
+			candles: initialCandles,
+			elliottWaves: updatedWaves
+		});
+
+		expect(elliottPrimitive.getAllWaves().length).toBe(1);
+		expect(elliottPrimitive.getAllWaves()[0].id).toBe('wave-3');
 	});
 
 	it('preserves visible logical range and avoids resetting candles when elliottWaves prop updates', async () => {

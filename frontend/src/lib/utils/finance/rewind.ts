@@ -1,6 +1,6 @@
 import type { SecurityElliottWaves } from './elliott-wave';
 import type { SecurityFibonacciTools } from './fibonacci';
-import { areWaveCountsEqual } from './elliott-wave';
+import { areSecurityElliottWavesEqual } from './elliott-wave';
 import { areFibonacciToolsEqual } from './fibonacci';
 
 export interface RewindDataWindow {
@@ -167,18 +167,6 @@ function areDataWindowsEqual(
 	if (!a && !b) return true;
 	if (!a || !b) return false;
 	return String(a.first) === String(b.first) && String(a.last) === String(b.last);
-}
-
-function areSecurityElliottWavesEqual(
-	a: SecurityElliottWaves | null | undefined,
-	b: SecurityElliottWaves | null | undefined
-): boolean {
-	if (!a && !b) return true;
-	return (
-		areWaveCountsEqual(a?.cycle, b?.cycle) &&
-		areWaveCountsEqual(a?.primary, b?.primary) &&
-		areWaveCountsEqual(a?.intermediate, b?.intermediate)
-	);
 }
 
 function areFibonacciToolsEqualNormalized(

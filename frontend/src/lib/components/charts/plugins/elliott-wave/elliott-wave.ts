@@ -18,7 +18,7 @@ import {
 } from './pane-renderer';
 import { ElliottWavePaneView } from './pane-view';
 import { buildCandleLookup, findCandleByTime, snapPriceToWick } from '../helpers/mouse/snap';
-import { ElliottWaveState, type PointTarget } from './state';
+import { ElliottWaveState, type PointTarget, type WavePointsChangedEvent } from './state';
 import { DrawingPrimitiveBase } from '../helpers/primitive/drawing-primitive-base';
 
 export class ElliottWavesPrimitive extends DrawingPrimitiveBase<
@@ -35,9 +35,10 @@ export class ElliottWavesPrimitive extends DrawingPrimitiveBase<
 	constructor(initialState?: {
 		activeDegree?: WaveDegree;
 		activeWaveType?: WaveType;
-		waves?: Partial<Record<WaveDegree, DegreeWaveCount | null>>;
+		waves?: DegreeWaveCount[];
 		snapToWicks?: boolean;
 		selectedDegree?: WaveDegree | null;
+		selectedWaveId?: string | null;
 	}) {
 		const state = new ElliottWaveState();
 		const mouseHandlers = new MouseHandlers();
@@ -50,13 +51,16 @@ export class ElliottWavesPrimitive extends DrawingPrimitiveBase<
 			state.setActiveWaveType(initialState.activeWaveType);
 		}
 		if (initialState?.waves) {
-			state.setAllWaveCounts(initialState.waves);
+			state.setWaves(initialState.waves);
 		}
 		if (initialState?.snapToWicks !== undefined) {
 			mouseHandlers.setSnapToWicks(initialState.snapToWicks);
 		}
 		if (initialState?.selectedDegree !== undefined) {
 			state.setSelectedDegree(initialState.selectedDegree);
+		}
+		if (initialState?.selectedWaveId !== undefined) {
+			state.setSelectedWaveId(initialState.selectedWaveId);
 		}
 
 		super({
@@ -76,13 +80,16 @@ export class ElliottWavesPrimitive extends DrawingPrimitiveBase<
 		this._subscribeToUpdate(this._state.degreeChanged());
 		this._subscribeToUpdate(this._state.waveTypeChanged());
 		this._subscribeToUpdate(this._state.selectionChanged());
+		this._subscribeToUpdate(this._state.selectedWaveChanged());
 
 		this._subscribe(this._mouseHandlers.pointClicked(), (hit) => {
+			this._state.setSelectedWaveId(hit.waveId ?? null);
 			this._state.setSelectedDegree(hit.degree);
 			this._requestUpdate?.();
 		});
 
 		this._subscribe(this._mouseHandlers.emptyAreaClicked(), () => {
+			this._state.setSelectedWaveId(null);
 			this._state.setSelectedDegree(null);
 			this._requestUpdate?.();
 		});
@@ -91,7 +98,8 @@ export class ElliottWavesPrimitive extends DrawingPrimitiveBase<
 			this._state.updatePoint(
 				dragEvent.wave,
 				{ time: dragEvent.time, price: dragEvent.price },
-				dragEvent.degree
+				dragEvent.degree,
+				dragEvent.waveId
 			);
 			this._requestUpdate?.();
 		});
@@ -122,16 +130,40 @@ export class ElliottWavesPrimitive extends DrawingPrimitiveBase<
 		return this._state.getWaveCount(degree);
 	}
 
-	public setWaveCount(degree: WaveDegree, waveCount: DegreeWaveCount | null): void {
-		this._state.setWaveCount(degree, waveCount);
+	public getWaves(degree?: WaveDegree): DegreeWaveCount[] {
+		return this._state.getWaves(degree);
 	}
 
-	public getAllWaveCounts(): Record<WaveDegree, DegreeWaveCount | null> {
-		return this._state.getAllWaveCounts();
+	public getAllWaves(): DegreeWaveCount[] {
+		return this._state.getAllWaves();
 	}
 
-	public setAllWaveCounts(waves: Partial<Record<WaveDegree, DegreeWaveCount | null>>): void {
-		this._state.setAllWaveCounts(waves);
+	public getWaveById(id: string): DegreeWaveCount | undefined {
+		return this._state.getWaveById(id);
+	}
+
+	public setWaves(waves: DegreeWaveCount[]): void {
+		this._state.setWaves(waves);
+	}
+
+	public removeWave(id: string): boolean {
+		return this._state.removeWave(id);
+	}
+
+	public getDrawingWave(): DegreeWaveCount | null {
+		return this._state.getDrawingWave();
+	}
+
+	public getSelectedWaveId(): string | null {
+		return this._state.getSelectedWaveId();
+	}
+
+	public setSelectedWaveId(waveId: string | null): void {
+		this._state.setSelectedWaveId(waveId);
+	}
+
+	public selectedWaveChanged(): ISubscription<string | null> {
+		return this._state.selectedWaveChanged();
 	}
 
 	/**
@@ -180,22 +212,25 @@ export class ElliottWavesPrimitive extends DrawingPrimitiveBase<
 		wave: WavePointId,
 		updateOrPrice: { time?: Time; price?: number } | number,
 		timeOrDegree?: Time | WaveDegree,
-		maybeDegree?: WaveDegree
+		maybeDegreeOrWaveId?: WaveDegree | string,
+		maybeWaveId?: string
 	): boolean {
 		if (typeof updateOrPrice === 'number') {
 			const price = updateOrPrice;
 			const time = timeOrDegree as Time | undefined;
-			const degree = maybeDegree;
-			return this._state.updatePoint(wave, { price, time }, degree);
+			const degree = maybeDegreeOrWaveId as WaveDegree | undefined;
+			const waveId = maybeWaveId;
+			return this._state.updatePoint(wave, { price, time }, degree, waveId);
 		} else {
 			const update = updateOrPrice;
 			const degree = timeOrDegree as WaveDegree | undefined;
-			return this._state.updatePoint(wave, update, degree);
+			const waveId = maybeDegreeOrWaveId as string | undefined;
+			return this._state.updatePoint(wave, update, degree, waveId);
 		}
 	}
 
-	public clearWave(degree?: WaveDegree): void {
-		this._state.clearWave(degree);
+	public clearWave(waveIdOrDegree?: string | WaveDegree): void {
+		this._state.clearWave(waveIdOrDegree);
 	}
 
 	public getSelectedDegree(): WaveDegree | null {
@@ -210,10 +245,7 @@ export class ElliottWavesPrimitive extends DrawingPrimitiveBase<
 		return this._state.selectionChanged();
 	}
 
-	public wavePointsChanged(): ISubscription<{
-		degree: WaveDegree;
-		waveCount: DegreeWaveCount | null;
-	}> {
+	public wavePointsChanged(): ISubscription<WavePointsChangedEvent> {
 		return this._state.wavePointsChanged();
 	}
 
@@ -225,8 +257,6 @@ export class ElliottWavesPrimitive extends DrawingPrimitiveBase<
 		if (!this._chart || !this._series) return null;
 
 		const series = this._series;
-		const degrees: WaveDegree[] = ['cycle', 'primary', 'intermediate'];
-
 		const allProjectedPointsForMouse: ProjectedPointWithTarget[] = [];
 		const degreeRenderDataList: DegreeRenderData[] = [];
 
@@ -234,37 +264,48 @@ export class ElliottWavesPrimitive extends DrawingPrimitiveBase<
 		const dragging = this._state.getDraggingPoint();
 		const activeDegree = this._state.getActiveDegree();
 		const selectedDegree = this._state.getSelectedDegree();
+		const selectedWaveId = this._state.getSelectedWaveId();
 
-		for (const degree of degrees) {
-			const config = DEGREE_STYLES[degree];
-			const waveCount = this._state.getWaveCount(degree);
-			const points = waveCount?.points ?? [];
+		const allWaves = this._state.getAllWaves();
+
+		for (const wave of allWaves) {
+			const waveDegree = wave.degree;
+			const config = DEGREE_STYLES[waveDegree];
+			const points = wave.points ?? [];
 			const projectedPoints: ProjectedWavePoint[] = [];
-			const isDegreeSelected = degree === selectedDegree;
+			const isWaveSelected =
+				(selectedWaveId !== null && wave.id === selectedWaveId) ||
+				(selectedWaveId === null && selectedDegree !== null && waveDegree === selectedDegree);
 
 			for (const pt of points) {
 				const x = this._timeProjector.timeToCoordinate(pt.time);
 				const y = series.priceToCoordinate(pt.price);
 
 				if (x !== null && y !== null) {
-					const isHovered = hovered?.degree === degree && hovered?.wave === pt.wave;
-					const isDragging = dragging?.degree === degree && dragging?.wave === pt.wave;
+					const isHovered = hovered?.waveId
+						? hovered.waveId === wave.id && hovered.wave === pt.wave
+						: hovered?.degree === waveDegree && hovered?.wave === pt.wave;
+					const isDragging = dragging?.waveId
+						? dragging.waveId === wave.id && dragging.wave === pt.wave
+						: dragging?.degree === waveDegree && dragging?.wave === pt.wave;
 
 					const projectedPoint: ProjectedWavePoint = {
 						wave: pt.wave,
+						waveId: wave.id,
 						x,
 						y,
 						time: pt.time,
 						price: pt.price,
 						isHovered,
 						isDragging,
-						isSelected: isDegreeSelected
+						isSelected: isWaveSelected
 					};
 
 					projectedPoints.push(projectedPoint);
 					allProjectedPointsForMouse.push({
-						degree,
+						degree: waveDegree,
 						wave: pt.wave,
+						waveId: wave.id,
 						x,
 						y,
 						originalPoint: pt
@@ -272,19 +313,16 @@ export class ElliottWavesPrimitive extends DrawingPrimitiveBase<
 				}
 			}
 
-			const waveType =
-				waveCount?.type ??
-				(points.some((p) => p.wave === 'A' || p.wave === 'B' || p.wave === 'C')
-					? 'corrective'
-					: 'impulse');
+			const waveType = wave.type;
 
 			degreeRenderDataList.push({
-				degree,
+				id: wave.id,
+				degree: waveDegree,
 				type: waveType,
 				config,
 				points: projectedPoints,
-				isActiveDegree: degree === activeDegree,
-				isSelected: isDegreeSelected
+				isActiveDegree: waveDegree === activeDegree,
+				isSelected: isWaveSelected
 			});
 		}
 
@@ -296,14 +334,32 @@ export class ElliottWavesPrimitive extends DrawingPrimitiveBase<
 			const isCorrective = activeWaveType === 'corrective';
 			const maxPoints = isCorrective ? MAX_CORRECTIVE_POINTS : MAX_IMPULSE_POINTS;
 			const activeConfig = DEGREE_STYLES[activeDegree];
-			const activeDegreeData = degreeRenderDataList.find((d) => d.degree === activeDegree);
-			const activePoints = activeDegreeData?.points ?? [];
 
-			if (activePoints.length < maxPoints) {
+			const drawingWave = this._state.getDrawingWave();
+			const drawingPoints = drawingWave?.points ?? [];
+
+			if (drawingPoints.length < maxPoints) {
 				const nextWave: WavePointId = isCorrective
-					? (([0, 'A', 'B', 'C'] as const)[activePoints.length] ?? 0)
-					: (activePoints.length as 0 | 1 | 2 | 3 | 4 | 5);
-				const lastPoint = activePoints.length > 0 ? activePoints[activePoints.length - 1] : null;
+					? (([0, 'A', 'B', 'C'] as const)[drawingPoints.length] ?? 0)
+					: (drawingPoints.length as 0 | 1 | 2 | 3 | 4 | 5);
+
+				let lastPoint: ProjectedWavePoint | null = null;
+				if (drawingPoints.length > 0) {
+					const lastPt = drawingPoints[drawingPoints.length - 1];
+					const lx = this._timeProjector.timeToCoordinate(lastPt.time);
+					const ly = series.priceToCoordinate(lastPt.price);
+					if (lx !== null && ly !== null) {
+						lastPoint = {
+							wave: lastPt.wave,
+							waveId: drawingWave?.id,
+							x: lx,
+							y: ly,
+							time: lastPt.time,
+							price: lastPt.price
+						};
+					}
+				}
+
 				const lastMouse = this._mouseHandlers.getLastMousePosition();
 
 				let currentMouse: { x: number; y: number } | null = null;

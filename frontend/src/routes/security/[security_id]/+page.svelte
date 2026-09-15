@@ -91,7 +91,7 @@
 	let isDrawingWave = $state(false);
 	let selectedWaveDegree = $state<WaveDegree | null>(null);
 	let securityElliottWaves = $derived<SecurityElliottWaves>(
-		(security?.id && userPreferences?.elliott_waves?.[security.id]) || {}
+		(security?.id && userPreferences?.elliott_waves?.[security.id]) || { waves: [] }
 	);
 
 	let activeFibTool = $state<FibToolType>('retracement');
@@ -123,7 +123,7 @@
 			: null
 	);
 	let effectiveElliottWaves = $derived<SecurityElliottWaves>(
-		isRewound ? (activeSnapshot?.drawings?.elliott_waves ?? {}) : securityElliottWaves
+		isRewound ? (activeSnapshot?.drawings?.elliott_waves ?? { waves: [] }) : securityElliottWaves
 	);
 	let effectiveFibonacciTools = $derived<SecurityFibonacciTools>(
 		isRewound ? (activeSnapshot?.drawings?.fibonacci_tools ?? {}) : securityFibonacciTools
@@ -173,11 +173,7 @@
 		};
 
 		const hasWavePoints = Boolean(
-			(drawings.elliott_waves?.cycle?.points && drawings.elliott_waves.cycle.points.length > 0) ||
-			(drawings.elliott_waves?.primary?.points &&
-				drawings.elliott_waves.primary.points.length > 0) ||
-			(drawings.elliott_waves?.intermediate?.points &&
-				drawings.elliott_waves.intermediate.points.length > 0)
+			drawings.elliott_waves?.waves?.some((w) => w.points && w.points.length > 0)
 		);
 		const hasFibTools = Boolean(
 			drawings.fibonacci_tools?.retracement || drawings.fibonacci_tools?.extension
@@ -232,9 +228,10 @@
 
 		if (event.key === 'Delete' || event.key === 'Backspace') {
 			if (isRewound) return;
-			if (selectedWaveDegree) {
+			const selectedWaveId = chartRef?.getSelectedWaveId?.();
+			if (selectedWaveDegree || selectedWaveId) {
 				event.preventDefault();
-				const degreeToClear = selectedWaveDegree;
+				const degreeToClear = selectedWaveDegree ?? undefined;
 				selectedWaveDegree = null;
 				handleClearWave(degreeToClear);
 			} else if (selectedFibTool) {
@@ -267,14 +264,17 @@
 		await userPreferencesService.patchPreferences(partial);
 	}
 
-	async function handleWaveChange(degree: WaveDegree, waveCount: DegreeWaveCount | null) {
+	async function handleWaveChange(
+		degree: WaveDegree,
+		waveCount: DegreeWaveCount | null,
+		allWaves?: SecurityElliottWaves
+	) {
 		if (isRewound) return;
 		if (!security?.id) return;
 		const updatedAllWaves = updateSecurityElliottWaves(
 			userPreferences?.elliott_waves,
 			security.id,
-			degree,
-			waveCount
+			allWaves?.waves ?? (waveCount ? [waveCount] : [])
 		);
 		userPreferences = {
 			...(userPreferences ?? {}),
@@ -290,12 +290,27 @@
 		scheduleWaveAlertsReconcile();
 	}
 
-	async function handleClearWave(degree: WaveDegree) {
+	async function handleClearWave(degree?: WaveDegree) {
 		if (isRewound) return;
-		if (selectedWaveDegree === degree) {
+		if (degree && selectedWaveDegree === degree) {
 			selectedWaveDegree = null;
 		}
-		await handleWaveChange(degree, null);
+		const selectedWaveId = chartRef?.getSelectedWaveId?.();
+		if (chartRef?.clearWave) {
+			chartRef.clearWave(selectedWaveId ?? degree);
+		} else if (degree) {
+			// Fallback when the chart ref is not available: remove the last wave of the
+			// requested degree from the persisted collection, mirroring clearWave.
+			const current = security?.id
+				? (userPreferences?.elliott_waves?.[security.id]?.waves ?? [])
+				: [];
+			const degreeIdx = current.findLastIndex((w) => w.degree === degree);
+			const remaining =
+				degreeIdx === -1
+					? current
+					: [...current.slice(0, degreeIdx), ...current.slice(degreeIdx + 1)];
+			await handleWaveChange(degree, null, { waves: remaining });
+		}
 	}
 
 	async function handleFibChange(drawings: SecurityFibonacciTools) {
@@ -564,6 +579,8 @@
 	interface ChartInstance {
 		addIndicator: (indicator: IndicatorData) => void;
 		removeIndicator: (indicatorId: string) => void;
+		clearWave?: (waveIdOrDegree?: string | WaveDegree) => void;
+		getSelectedWaveId?: () => string | null;
 	}
 
 	let chartRef = $state<ChartInstance | null>(null);
