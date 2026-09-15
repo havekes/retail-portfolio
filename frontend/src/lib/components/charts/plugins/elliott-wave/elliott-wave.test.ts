@@ -2023,6 +2023,25 @@ describe('Elliott Wave Plugin', () => {
 				});
 			});
 
+			it('resolves a wick/Fib pixel-distance tie to the candle wick', () => {
+				const { mouseHandlers, mockData } = setupMouseHandlers(true);
+				// clientY 435 -> price 113; wick high 114 at y 430 (5px), level 112 at y 440 (5px)
+				mouseHandlers.setFibLevelPrices([112]);
+				const onChartClicked = vi.fn();
+				mouseHandlers.chartClicked().subscribe(onChartClicked);
+
+				mockData.mockChartElement.dispatchEvent(
+					new MouseEvent('click', { clientX: 100, clientY: 435 })
+				);
+
+				expect(onChartClicked).toHaveBeenCalledWith({
+					time: '2024-01-05',
+					price: 114,
+					x: 100,
+					y: fibPriceToY(114)
+				});
+			});
+
 			it('snaps drag moves to the nearest Fib level within tolerance', () => {
 				const { mouseHandlers, mockData } = setupMouseHandlers(false, false);
 				mouseHandlers.setFibLevelPrices([109]);
