@@ -12,6 +12,9 @@ import {
 	areFibonacciToolsEqual,
 	DEFAULT_FIB_RETRACEMENT_LEVELS,
 	DEFAULT_FIB_EXTENSION_LEVELS,
+	FIB_WIDTH_STOPS,
+	FIB_WIDTH_STOP_LABELS,
+	getClosestFibWidthIndex,
 	type FibPoint,
 	type FibLevelConfig,
 	type FibRetracementDrawing,
@@ -44,6 +47,39 @@ describe('fibonacci finance utilities', () => {
 			);
 			expect(disabledRatios).toEqual([0.0, 0.382, 0.5, 0.618, 1.0, 1.272, 3.618, 4.236]);
 			expect(DEFAULT_FIB_EXTENSION_LEVELS.every((l) => typeof l.color === 'string')).toBe(true);
+		});
+
+		it('defines discrete width stops and labels', () => {
+			expect(FIB_WIDTH_STOPS).toEqual([0.25, 0.5, 1, 1.5, 2, 3]);
+			expect(FIB_WIDTH_STOP_LABELS).toEqual(['.25x', '.5x', '1x', '1.5x', '2x', '3x']);
+		});
+	});
+
+	describe('getClosestFibWidthIndex', () => {
+		it('maps exact stop multipliers to their indices', () => {
+			expect(getClosestFibWidthIndex(0.25)).toBe(0);
+			expect(getClosestFibWidthIndex(0.5)).toBe(1);
+			expect(getClosestFibWidthIndex(1)).toBe(2);
+			expect(getClosestFibWidthIndex(1.5)).toBe(3);
+			expect(getClosestFibWidthIndex(2)).toBe(4);
+			expect(getClosestFibWidthIndex(3)).toBe(5);
+		});
+
+		it('maps values close to stops to the nearest stop index', () => {
+			expect(getClosestFibWidthIndex(0.1)).toBe(0);
+			expect(getClosestFibWidthIndex(0.4)).toBe(1);
+			expect(getClosestFibWidthIndex(0.9)).toBe(2);
+			expect(getClosestFibWidthIndex(1.4)).toBe(3);
+			expect(getClosestFibWidthIndex(1.8)).toBe(4);
+			expect(getClosestFibWidthIndex(2.7)).toBe(5);
+			expect(getClosestFibWidthIndex(10)).toBe(5);
+		});
+
+		it('uses defaultVal when input is null, undefined, or invalid', () => {
+			expect(getClosestFibWidthIndex(null, 1)).toBe(2);
+			expect(getClosestFibWidthIndex(undefined, 2)).toBe(4);
+			expect(getClosestFibWidthIndex(-1, 1)).toBe(2);
+			expect(getClosestFibWidthIndex(NaN, 2)).toBe(4);
 		});
 	});
 
@@ -489,6 +525,12 @@ describe('fibonacci finance utilities', () => {
 					})
 				).toBe(false);
 				expect(
+					areRetracementDrawingsEqual(
+						{ ...sampleRetracement, widthMultiplier: undefined },
+						{ ...sampleRetracement, widthMultiplier: null }
+					)
+				).toBe(true);
+				expect(
 					areRetracementDrawingsEqual(sampleRetracement, { ...sampleRetracement, visible: false })
 				).toBe(false);
 			});
@@ -509,6 +551,12 @@ describe('fibonacci finance utilities', () => {
 				expect(
 					areExtensionDrawingsEqual(sampleExtension, { ...sampleExtension, widthMultiplier: 3 })
 				).toBe(false);
+				expect(
+					areExtensionDrawingsEqual(
+						{ ...sampleExtension, widthMultiplier: undefined },
+						{ ...sampleExtension, widthMultiplier: null }
+					)
+				).toBe(true);
 			});
 
 			it('areFibonacciToolsEqual compares complete security tools', () => {

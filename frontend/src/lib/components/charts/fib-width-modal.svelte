@@ -2,13 +2,15 @@
 	import * as Dialog from '$lib/components/ui/dialog/index.js';
 	import { Button } from '$lib/components/ui/button/index.js';
 	import { Checkbox } from '$lib/components/ui/checkbox/index.js';
-	import { Input } from '$lib/components/ui/input/index.js';
 	import { Label } from '$lib/components/ui/label/index.js';
 	import RotateCcw from '@lucide/svelte/icons/rotate-ccw';
-	import type {
-		FibToolType,
-		FibRetracementDrawing,
-		FibExtensionDrawing
+	import {
+		type FibToolType,
+		type FibRetracementDrawing,
+		type FibExtensionDrawing,
+		FIB_WIDTH_STOPS,
+		FIB_WIDTH_STOP_LABELS,
+		getClosestFibWidthIndex
 	} from '$lib/utils/finance/fibonacci';
 
 	let {
@@ -26,29 +28,26 @@
 	} = $props();
 
 	const defaultMultiplier = $derived(tool === 'retracement' ? 1 : 2);
-	const PRESETS = [1, 1.5, 2, 3];
+	const defaultIndex = $derived(getClosestFibWidthIndex(defaultMultiplier, defaultMultiplier));
 
-	let multiplier = $state<number>(1);
+	let sliderIndex = $state<number>(2);
 	let extendLines = $state<boolean>(false);
+
+	const multiplier = $derived(FIB_WIDTH_STOPS[sliderIndex] ?? defaultMultiplier);
 
 	$effect(() => {
 		if (open) {
-			multiplier =
-				typeof drawing?.widthMultiplier === 'number' &&
-				isFinite(drawing.widthMultiplier) &&
-				drawing.widthMultiplier > 0
-					? drawing.widthMultiplier
-					: defaultMultiplier;
+			sliderIndex = getClosestFibWidthIndex(drawing?.widthMultiplier, defaultMultiplier);
 			extendLines = Boolean(drawing?.extendLines);
 		}
 	});
 
-	function handlePreset(p: number) {
-		multiplier = p;
+	function handleSliderChange(idx: number) {
+		sliderIndex = Math.max(0, Math.min(FIB_WIDTH_STOPS.length - 1, idx));
 	}
 
 	function handleReset() {
-		multiplier = defaultMultiplier;
+		sliderIndex = defaultIndex;
 		extendLines = false;
 	}
 
@@ -58,13 +57,7 @@
 	}
 
 	function handleSave() {
-		let val = Number(multiplier);
-		if (isNaN(val) || !isFinite(val) || val <= 0) {
-			val = defaultMultiplier;
-		} else {
-			val = Math.min(10, Math.max(0.1, Math.round(val * 100) / 100));
-		}
-		onSave?.(tool, val, extendLines);
+		onSave?.(tool, multiplier, extendLines);
 		open = false;
 		onClose?.();
 	}
@@ -89,40 +82,67 @@
 		</Dialog.Header>
 
 		<div class="space-y-4 py-2">
-			<!-- Width Multiplier Input -->
+			<!-- Width Multiplier Slider -->
 			<div class="space-y-2">
 				<div class="flex items-center justify-between">
-					<Label for="fib-width-multiplier" class="text-xs font-medium">Width Multiplier</Label>
-					<span class="font-mono text-xs text-muted-foreground">{multiplier}x</span>
+					<Label for="fib-width-slider" class="text-xs font-medium">Width Multiplier</Label>
+					<span
+						class="font-mono text-xs font-semibold text-foreground"
+						data-testid="fib-width-multiplier-display"
+					>
+						{FIB_WIDTH_STOP_LABELS[sliderIndex]}
+					</span>
 				</div>
-				<Input
-					id="fib-width-multiplier"
-					type="number"
-					min="0.1"
-					max="10"
-					step="0.1"
-					placeholder={String(defaultMultiplier)}
-					bind:value={multiplier}
-					data-testid="fib-width-multiplier-input"
-				/>
-			</div>
-
-			<!-- Multiplier Presets -->
-			<div class="space-y-1.5">
-				<Label class="text-xs text-muted-foreground">Quick Presets</Label>
-				<div class="grid grid-cols-4 gap-1.5">
-					{#each PRESETS as preset (preset)}
-						<Button
-							type="button"
-							variant={Number(multiplier) === preset ? 'default' : 'outline'}
-							size="sm"
-							class="h-8 font-mono text-xs"
-							onclick={() => handlePreset(preset)}
-							data-testid={`preset-${preset}x`}
-						>
-							{preset}x
-						</Button>
-					{/each}
+				<div class="relative py-1">
+					<input
+						id="fib-width-slider"
+						type="range"
+						min="0"
+						max="5"
+						step="1"
+						value={sliderIndex}
+						oninput={(e) => handleSliderChange(Number(e.currentTarget.value))}
+						class="w-full cursor-pointer accent-primary"
+						data-testid="fib-width-slider"
+						aria-label="Width Multiplier"
+						aria-valuemin="0.25"
+						aria-valuemax="3"
+						aria-valuenow={multiplier}
+						aria-valuetext={FIB_WIDTH_STOP_LABELS[sliderIndex]}
+					/>
+					<!-- Discrete Tick Marks -->
+					<div
+						class="mt-1 flex justify-between px-1"
+						aria-hidden="true"
+						data-testid="fib-width-ticks"
+					>
+						{#each FIB_WIDTH_STOPS as stop, idx (stop)}
+							<div
+								class="h-1.5 w-0.5 rounded-full {sliderIndex === idx
+									? 'bg-primary'
+									: 'bg-muted-foreground/40'}"
+							></div>
+						{/each}
+					</div>
+					<!-- Stop Labels / Quick Buttons -->
+					<div
+						class="mt-1 flex justify-between font-mono text-[11px] text-muted-foreground"
+						data-testid="fib-width-stops"
+					>
+						{#each FIB_WIDTH_STOPS as stop, idx (stop)}
+							<button
+								type="button"
+								class="cursor-pointer transition-colors hover:text-foreground focus:outline-none {sliderIndex ===
+								idx
+									? 'font-semibold text-primary'
+									: ''}"
+								onclick={() => handleSliderChange(idx)}
+								data-testid={`preset-${stop}x`}
+							>
+								{FIB_WIDTH_STOP_LABELS[idx]}
+							</button>
+						{/each}
+					</div>
 				</div>
 			</div>
 

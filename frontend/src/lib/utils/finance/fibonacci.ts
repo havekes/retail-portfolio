@@ -81,6 +81,33 @@ export const DEFAULT_FIB_EXTENSION_LEVELS: FibLevelConfig[] = [
 ];
 
 /**
+ * Discrete stops for Fibonacci level line width multipliers.
+ */
+export const FIB_WIDTH_STOPS = [0.25, 0.5, 1, 1.5, 2, 3] as const;
+export const FIB_WIDTH_STOP_LABELS = ['.25x', '.5x', '1x', '1.5x', '2x', '3x'] as const;
+export type FibWidthStop = (typeof FIB_WIDTH_STOPS)[number];
+
+/**
+ * Maps a given width multiplier (or unset/null/undefined) to the nearest stop index in FIB_WIDTH_STOPS.
+ */
+export function getClosestFibWidthIndex(
+	val: number | null | undefined,
+	defaultVal: number = 1
+): number {
+	const target = typeof val === 'number' && isFinite(val) && val > 0 ? val : defaultVal;
+	let closestIdx = 0;
+	let minDiff = Infinity;
+	for (let i = 0; i < FIB_WIDTH_STOPS.length; i++) {
+		const diff = Math.abs(FIB_WIDTH_STOPS[i] - target);
+		if (diff < minDiff) {
+			minDiff = diff;
+			closestIdx = i;
+		}
+	}
+	return closestIdx;
+}
+
+/**
  * Formats a Fibonacci ratio and calculated price string (e.g. "0.618 (42.50)").
  * Safely handles invalid or non-finite numbers.
  */
@@ -318,7 +345,7 @@ export function areRetracementDrawingsEqual(
 	if (
 		a.id !== b.id ||
 		a.extendLines !== b.extendLines ||
-		a.widthMultiplier !== b.widthMultiplier ||
+		(a.widthMultiplier ?? null) !== (b.widthMultiplier ?? null) ||
 		a.visible !== b.visible
 	) {
 		return false;
@@ -344,7 +371,7 @@ export function areExtensionDrawingsEqual(
 	if (
 		a.id !== b.id ||
 		a.extendLines !== b.extendLines ||
-		a.widthMultiplier !== b.widthMultiplier ||
+		(a.widthMultiplier ?? null) !== (b.widthMultiplier ?? null) ||
 		a.visible !== b.visible
 	) {
 		return false;

@@ -12,7 +12,10 @@
 		type FibToolType,
 		type FibLevelConfig,
 		DEFAULT_FIB_RETRACEMENT_LEVELS,
-		DEFAULT_FIB_EXTENSION_LEVELS
+		DEFAULT_FIB_EXTENSION_LEVELS,
+		FIB_WIDTH_STOPS,
+		FIB_WIDTH_STOP_LABELS,
+		getClosestFibWidthIndex
 	} from '$lib/utils/finance/fibonacci';
 
 	let {
@@ -326,26 +329,30 @@
 		}
 	}
 
-	const FIB_WIDTH_PRESETS = [1, 1.5, 2, 3];
-
 	const currentActiveMultiplier = $derived(
 		activeFibTab === 'retracement'
 			? (retracementWidthMultiplier ?? 1)
 			: (extensionWidthMultiplier ?? 2)
 	);
 
+	const currentSliderIndex = $derived(
+		getClosestFibWidthIndex(currentActiveMultiplier, activeFibTab === 'retracement' ? 1 : 2)
+	);
+
 	const currentActiveExtendLines = $derived(
 		activeFibTab === 'retracement' ? Boolean(retracementExtendLines) : Boolean(extensionExtendLines)
 	);
 
-	function handlePresetFibWidth(multiplier: number) {
+	function handleSliderChange(idx: number) {
 		if (isFibInteractivityDisabled) return;
-		onFibWidthChange?.(activeFibTab, multiplier, currentActiveExtendLines);
+		const safeIdx = Math.max(0, Math.min(FIB_WIDTH_STOPS.length - 1, idx));
+		const selectedMultiplier = FIB_WIDTH_STOPS[safeIdx];
+		onFibWidthChange?.(activeFibTab, selectedMultiplier, currentActiveExtendLines);
 	}
 
 	function handleToggleExtendLines(extend: boolean) {
 		if (isFibInteractivityDisabled) return;
-		onFibWidthChange?.(activeFibTab, currentActiveMultiplier, extend);
+		onFibWidthChange?.(activeFibTab, FIB_WIDTH_STOPS[currentSliderIndex], extend);
 	}
 
 	function handleOpenChange(isOpen: boolean) {
@@ -688,25 +695,65 @@
 							class="font-mono text-xs text-muted-foreground"
 							data-testid="fib-current-width-multiplier"
 						>
-							{currentActiveMultiplier}x
+							{FIB_WIDTH_STOP_LABELS[currentSliderIndex]}
 						</span>
 					</div>
 					<div class="space-y-1.5">
-						<Label class="text-xs text-muted-foreground">Width Multiplier</Label>
-						<div class="grid grid-cols-4 gap-1.5">
-							{#each FIB_WIDTH_PRESETS as preset (preset)}
-								<Button
-									type="button"
-									variant={currentActiveMultiplier === preset ? 'default' : 'outline'}
-									size="sm"
-									class="h-7 font-mono text-xs"
-									disabled={isFibInteractivityDisabled}
-									onclick={() => handlePresetFibWidth(preset)}
-									data-testid={`fib-settings-preset-${preset}x`}
-								>
-									{preset}x
-								</Button>
-							{/each}
+						<Label for="fib-settings-width-slider" class="text-xs text-muted-foreground"
+							>Width Multiplier</Label
+						>
+						<div class="relative py-1">
+							<input
+								id="fib-settings-width-slider"
+								type="range"
+								min="0"
+								max="5"
+								step="1"
+								disabled={isFibInteractivityDisabled}
+								value={currentSliderIndex}
+								oninput={(e) => handleSliderChange(Number(e.currentTarget.value))}
+								class="w-full cursor-pointer accent-primary disabled:cursor-not-allowed disabled:opacity-50"
+								data-testid="fib-settings-width-slider"
+								aria-label="Width Multiplier"
+								aria-valuemin="0.25"
+								aria-valuemax="3"
+								aria-valuenow={currentActiveMultiplier}
+								aria-valuetext={FIB_WIDTH_STOP_LABELS[currentSliderIndex]}
+							/>
+							<!-- Discrete Tick Marks -->
+							<div
+								class="mt-1 flex justify-between px-1"
+								aria-hidden="true"
+								data-testid="fib-settings-width-ticks"
+							>
+								{#each FIB_WIDTH_STOPS as stop, idx (stop)}
+									<div
+										class="h-1.5 w-0.5 rounded-full {currentSliderIndex === idx
+											? 'bg-primary'
+											: 'bg-muted-foreground/40'}"
+									></div>
+								{/each}
+							</div>
+							<!-- Stop Labels / Quick Buttons -->
+							<div
+								class="mt-1 flex justify-between font-mono text-[11px] text-muted-foreground"
+								data-testid="fib-settings-width-stops"
+							>
+								{#each FIB_WIDTH_STOPS as stop, idx (stop)}
+									<button
+										type="button"
+										disabled={isFibInteractivityDisabled}
+										class="cursor-pointer transition-colors hover:text-foreground focus:outline-none disabled:cursor-not-allowed disabled:opacity-50 {currentSliderIndex ===
+										idx
+											? 'font-semibold text-primary'
+											: ''}"
+										onclick={() => handleSliderChange(idx)}
+										data-testid={`fib-settings-preset-${stop}x`}
+									>
+										{FIB_WIDTH_STOP_LABELS[idx]}
+									</button>
+								{/each}
+							</div>
 						</div>
 					</div>
 					<div class="flex items-center space-x-2 pt-1">

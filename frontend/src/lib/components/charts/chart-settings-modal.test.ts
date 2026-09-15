@@ -815,16 +815,39 @@ describe('ChartSettingsModal Component', () => {
 			expect(screen.getByTestId('fib-width-settings-section')).toBeInTheDocument();
 			expect(screen.getByTestId('fib-current-width-multiplier')).toHaveTextContent('2x');
 
+			const slider = screen.getByTestId('fib-settings-width-slider') as HTMLInputElement;
+			expect(slider).toBeInTheDocument();
+			expect(slider.value).toBe('4'); // 2x corresponds to index 4
+
 			const checkbox = screen.getByTestId('fib-settings-extend-lines-checkbox');
 			expect(checkbox).toHaveAttribute('data-state', 'checked');
 
-			expect(screen.getByTestId('fib-settings-preset-1x')).toBeInTheDocument();
-			expect(screen.getByTestId('fib-settings-preset-1.5x')).toBeInTheDocument();
-			expect(screen.getByTestId('fib-settings-preset-2x')).toBeInTheDocument();
-			expect(screen.getByTestId('fib-settings-preset-3x')).toBeInTheDocument();
+			expect(screen.getByTestId('fib-settings-preset-0.25x')).toHaveTextContent('.25x');
+			expect(screen.getByTestId('fib-settings-preset-0.5x')).toHaveTextContent('.5x');
+			expect(screen.getByTestId('fib-settings-preset-1x')).toHaveTextContent('1x');
+			expect(screen.getByTestId('fib-settings-preset-1.5x')).toHaveTextContent('1.5x');
+			expect(screen.getByTestId('fib-settings-preset-2x')).toHaveTextContent('2x');
+			expect(screen.getByTestId('fib-settings-preset-3x')).toHaveTextContent('3x');
 		});
 
-		it('invokes onFibWidthChange when preset is clicked in Fibonacci section', async () => {
+		it('invokes onFibWidthChange when slider value is adjusted in Fibonacci section', async () => {
+			render(ChartSettingsModal, {
+				props: {
+					open: true,
+					initialSection: 'fibonacci',
+					retracementWidthMultiplier: 1.0,
+					retracementExtendLines: false,
+					onFibWidthChange: mockOnFibWidthChange
+				}
+			});
+
+			const slider = screen.getByTestId('fib-settings-width-slider') as HTMLInputElement;
+			await fireEvent.input(slider, { target: { value: '0' } });
+
+			expect(mockOnFibWidthChange).toHaveBeenCalledWith('retracement', 0.25, false);
+		});
+
+		it('invokes onFibWidthChange when stop button is clicked in Fibonacci section', async () => {
 			render(ChartSettingsModal, {
 				props: {
 					open: true,
@@ -867,6 +890,9 @@ describe('ChartSettingsModal Component', () => {
 					onFibWidthChange: mockOnFibWidthChange
 				}
 			});
+
+			const slider = screen.getByTestId('fib-settings-width-slider');
+			expect(slider).toBeDisabled();
 
 			const preset2x = screen.getByTestId('fib-settings-preset-2x');
 			expect(preset2x).toBeDisabled();
