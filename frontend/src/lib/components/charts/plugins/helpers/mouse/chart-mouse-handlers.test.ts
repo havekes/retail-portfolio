@@ -563,6 +563,103 @@ describe('ChartMouseHandlers', () => {
 		});
 	});
 
+	describe('double-click handling', () => {
+		it('fires doubleClicked when double-clicking on an anchor point', () => {
+			handlers = makeHandlers();
+			handlers.attached(mockData.chart, mockData.series);
+			handlers.setProjectedPoints([makePoint(1, 100, 200)]);
+
+			const onDoubleClicked = vi.fn();
+			handlers.doubleClicked().subscribe(onDoubleClicked);
+
+			mockData.mockChartElement.dispatchEvent(
+				new MouseEvent('dblclick', { clientX: 100, clientY: 200 })
+			);
+
+			expect(onDoubleClicked).toHaveBeenCalledWith({ id: 1 });
+		});
+
+		it('fires doubleClicked when double-clicking on a line', () => {
+			const hitTestLine = vi.fn((x: number, y: number) => {
+				if (x >= 100 && x <= 300 && Math.abs(y - 200) <= 5) {
+					return { id: 42 };
+				}
+				return null;
+			});
+
+			handlers = makeHandlers({ hitTestLine });
+			handlers.attached(mockData.chart, mockData.series);
+
+			const onDoubleClicked = vi.fn();
+			handlers.doubleClicked().subscribe(onDoubleClicked);
+
+			mockData.mockChartElement.dispatchEvent(
+				new MouseEvent('dblclick', { clientX: 200, clientY: 200 })
+			);
+
+			expect(hitTestLine).toHaveBeenCalledWith(200, 200);
+			expect(onDoubleClicked).toHaveBeenCalledWith({ id: 42 });
+		});
+
+		it('does not fire doubleClicked on empty canvas', () => {
+			const hitTestLine = vi.fn(() => null);
+
+			handlers = makeHandlers({ hitTestLine });
+			handlers.attached(mockData.chart, mockData.series);
+			handlers.setProjectedPoints([makePoint(1, 100, 200)]);
+
+			const onDoubleClicked = vi.fn();
+			handlers.doubleClicked().subscribe(onDoubleClicked);
+
+			mockData.mockChartElement.dispatchEvent(
+				new MouseEvent('dblclick', { clientX: 300, clientY: 300 })
+			);
+
+			expect(onDoubleClicked).not.toHaveBeenCalled();
+		});
+
+		it('does not fire doubleClicked in drawing mode', () => {
+			handlers = makeHandlers();
+			handlers.attached(mockData.chart, mockData.series);
+			handlers.setProjectedPoints([makePoint(1, 100, 200)]);
+			handlers.setDrawingMode(true);
+
+			const onDoubleClicked = vi.fn();
+			handlers.doubleClicked().subscribe(onDoubleClicked);
+
+			mockData.mockChartElement.dispatchEvent(
+				new MouseEvent('dblclick', { clientX: 100, clientY: 200 })
+			);
+
+			expect(onDoubleClicked).not.toHaveBeenCalled();
+		});
+
+		it('suppresses doubleClicked when drag occurred', () => {
+			handlers = makeHandlers();
+			handlers.attached(mockData.chart, mockData.series);
+			handlers.setProjectedPoints([makePoint(1, 100, 200)]);
+
+			const onDoubleClicked = vi.fn();
+			handlers.doubleClicked().subscribe(onDoubleClicked);
+
+			// Drag gesture
+			mockData.mockChartElement.dispatchEvent(
+				new MouseEvent('mousedown', { clientX: 100, clientY: 200 })
+			);
+			mockData.mockChartElement.dispatchEvent(
+				new MouseEvent('mousemove', { clientX: 150, clientY: 200 })
+			);
+			mockData.mockChartElement.dispatchEvent(
+				new MouseEvent('mouseup', { clientX: 150, clientY: 200 })
+			);
+			mockData.mockChartElement.dispatchEvent(
+				new MouseEvent('dblclick', { clientX: 150, clientY: 200 })
+			);
+
+			expect(onDoubleClicked).not.toHaveBeenCalled();
+		});
+	});
+
 	describe('listener lifecycle', () => {
 		it('detached() removes all attached DOM listeners', () => {
 			const elementRemoveSpy = vi.spyOn(mockData.mockChartElement, 'removeEventListener');
@@ -577,6 +674,7 @@ describe('ChartMouseHandlers', () => {
 					'mousedown',
 					'mouseup',
 					'click',
+					'dblclick',
 					'mouseleave',
 					'contextmenu'
 				])

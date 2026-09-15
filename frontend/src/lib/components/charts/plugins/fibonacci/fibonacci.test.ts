@@ -199,6 +199,29 @@ describe('Fibonacci Chart Primitive Plugin', () => {
 				expect(bounds.xStart).toBe(250);
 				expect(bounds.xEnd).toBe(400);
 			});
+
+			it('scales bounds by custom widthMultiplier', () => {
+				const bounds = calculateRetracementLineBounds(100, 250, undefined, false, 2.5);
+				// dist = 150 * 2.5 = 375 -> xStart = 250, xEnd = 250 + 375 = 625
+				expect(bounds.xStart).toBe(250);
+				expect(bounds.xEnd).toBe(625);
+			});
+
+			it('defaults to 1x multiplier when widthMultiplier is unset or invalid', () => {
+				expect(calculateRetracementLineBounds(100, 250, undefined, false, null).xEnd).toBe(400);
+				expect(calculateRetracementLineBounds(100, 250, undefined, false, undefined).xEnd).toBe(
+					400
+				);
+				expect(calculateRetracementLineBounds(100, 250, undefined, false, -1).xEnd).toBe(400);
+				expect(calculateRetracementLineBounds(100, 250, undefined, false, NaN).xEnd).toBe(400);
+			});
+
+			it('scales minimum width delta when distance is small', () => {
+				const bounds = calculateRetracementLineBounds(100, 110, undefined, false, 2);
+				// dist = 10 < 30 -> 50 * 2 = 100 -> xStart = 110, xEnd = 210
+				expect(bounds.xStart).toBe(110);
+				expect(bounds.xEnd).toBe(210);
+			});
 		});
 
 		describe('calculateExtensionLineBounds', () => {
@@ -227,6 +250,29 @@ describe('Fibonacci Chart Primitive Plugin', () => {
 				const bounds = calculateExtensionLineBounds(100, 200, 250, 1000, true);
 				expect(bounds.xStart).toBe(250);
 				expect(bounds.xEnd).toBe(1000);
+			});
+
+			it('scales bounds by custom widthMultiplier', () => {
+				const bounds = calculateExtensionLineBounds(100, 200, 250, undefined, false, 1.5);
+				// dist = 150 * 1.5 = 225 -> xStart = 250, xEnd = 250 + 225 = 475
+				expect(bounds.xStart).toBe(250);
+				expect(bounds.xEnd).toBe(475);
+			});
+
+			it('defaults to 2x multiplier when widthMultiplier is unset or invalid', () => {
+				expect(calculateExtensionLineBounds(100, 200, 250, undefined, false, null).xEnd).toBe(550);
+				expect(calculateExtensionLineBounds(100, 200, 250, undefined, false, undefined).xEnd).toBe(
+					550
+				);
+				expect(calculateExtensionLineBounds(100, 200, 250, undefined, false, -2).xEnd).toBe(550);
+				expect(calculateExtensionLineBounds(100, 200, 250, undefined, false, NaN).xEnd).toBe(550);
+			});
+
+			it('scales minimum width delta when distance is small', () => {
+				const bounds = calculateExtensionLineBounds(100, 200, 110, undefined, false, 4);
+				// dist = 10 < 30 -> 25 * 4 = 100 -> xStart = 110, xEnd = 210
+				expect(bounds.xStart).toBe(110);
+				expect(bounds.xEnd).toBe(210);
 			});
 		});
 	});
@@ -1352,6 +1398,61 @@ describe('Fibonacci Chart Primitive Plugin', () => {
 			const lineToCalls = mockCanvas.drawCalls.filter((c) => c.type === 'lineTo');
 			const reachesFutureEnd = lineToCalls.some((c) => c.args[0] === 725 * hpr);
 			expect(reachesFutureEnd).toBe(true);
+		});
+
+		it('fires doubleClicked subscription when double-clicking a drawing point or line', () => {
+			primitive.setRetracement({
+				p1: { time: '2024-01-05' as Time, price: 160 },
+				p2: { time: '2024-01-13' as Time, price: 170 }
+			});
+			primitive.updateAllViews();
+
+			const onDoubleClicked = vi.fn();
+			primitive.doubleClicked().subscribe(onDoubleClicked);
+
+			// Double-click anchor point 1 (x: 100, y: 200)
+			mockData.mockChartElement.dispatchEvent(
+				new MouseEvent('dblclick', { clientX: 100, clientY: 200 })
+			);
+
+			expect(onDoubleClicked).toHaveBeenCalledWith('retracement');
+			expect(primitive.getSelectedTool()).toBe('retracement');
+
+			// Double-click on line (x: 350, y: 150)
+			onDoubleClicked.mockClear();
+			mockData.mockChartElement.dispatchEvent(
+				new MouseEvent('dblclick', { clientX: 350, clientY: 150 })
+			);
+
+			expect(onDoubleClicked).toHaveBeenCalledWith('retracement');
+		});
+
+		it('scales canvas drawing lineTo coordinates and expands line hit-testing range with custom widthMultiplier', () => {
+			primitive.setRetracement({
+				p1: { time: '2024-01-05' as Time, price: 160 },
+				p2: { time: '2024-01-13' as Time, price: 170 },
+				widthMultiplier: 2.0
+			});
+			primitive.updateAllViews();
+
+			const mockCanvas = createMockCanvasTarget();
+			const views = primitive.paneViews();
+			views[0]?.renderer()?.draw(mockCanvas.target);
+
+			const hpr = mockCanvas.scope.horizontalPixelRatio;
+			// P1 at x=100, P2 at x=300. dist = 200.
+			// With widthMultiplier = 2, widthDelta = 200 * 2 = 400.
+			// xStart = 300, xEnd = 300 + 400 = 700.
+			const lineToCalls = mockCanvas.drawCalls.filter((c) => c.type === 'lineTo');
+			const reachesScaledEnd = lineToCalls.some((c) => c.args[0] === 700 * hpr);
+			expect(reachesScaledEnd).toBe(true);
+
+			// Line hit testing at x = 600, y = 150 (would be out of bounds for 1x, but within 2x)
+			primitive.setSelectedTool(null);
+			mockData.mockChartElement.dispatchEvent(
+				new MouseEvent('click', { clientX: 600, clientY: 150 })
+			);
+			expect(primitive.getSelectedTool()).toBe('retracement');
 		});
 	});
 });

@@ -42,6 +42,7 @@ export interface RetracementRenderData {
 	p2: ProjectedFibPoint;
 	levels: ProjectedFibLevel[];
 	extendLines?: boolean;
+	widthMultiplier?: number | null;
 	visible?: boolean;
 	isSelected?: boolean;
 }
@@ -52,6 +53,7 @@ export interface ExtensionRenderData {
 	p3: ProjectedFibPoint;
 	levels: ProjectedFibLevel[];
 	extendLines?: boolean;
+	widthMultiplier?: number | null;
 	visible?: boolean;
 	isSelected?: boolean;
 }
@@ -71,27 +73,32 @@ export interface FibonacciRendererData {
 
 /**
  * Calculates horizontal bounds for Fibonacci Retracement level lines.
- * Starts from the rightmost point (Math.max(p1x, p2x)) and extends rightward by 1x distance
- * between p1 and p2 (with minimum width delta of 50px if distance < 30px).
+ * Starts from the rightmost point (Math.max(p1x, p2x)) and extends rightward by default 1x distance
+ * between p1 and p2 (with minimum width delta of 50px if distance < 30px), scaled by widthMultiplier.
  * If extendLines is true and fullWidth is provided, extends to fullWidth.
  */
 export function calculateRetracementLineBounds(
 	p1x: number,
 	p2x: number,
 	fullWidth?: number,
-	extendLines?: boolean
+	extendLines?: boolean,
+	widthMultiplier?: number | null
 ): { xStart: number; xEnd: number } {
+	const mult =
+		typeof widthMultiplier === 'number' && isFinite(widthMultiplier) && widthMultiplier > 0
+			? widthMultiplier
+			: 1;
 	const xStart = Math.max(p1x, p2x);
 	const dist = Math.abs(p2x - p1x);
-	const widthDelta = dist < 30 ? 50 : dist;
+	const widthDelta = (dist < 30 ? 50 : dist) * mult;
 	const xEnd = extendLines && fullWidth !== undefined ? fullWidth : xStart + widthDelta;
 	return { xStart, xEnd };
 }
 
 /**
  * Calculates horizontal bounds for Fibonacci Extension level lines.
- * Starts from p3x and extends rightward by 2x distance between p1 and p3
- * (with minimum width delta of 50px if distance < 30px).
+ * Starts from p3x and extends rightward by default 2x distance between p1 and p3
+ * (with minimum width delta of 50px if distance < 30px), scaled by widthMultiplier.
  * If extendLines is true and fullWidth is provided, extends to fullWidth.
  */
 export function calculateExtensionLineBounds(
@@ -99,11 +106,16 @@ export function calculateExtensionLineBounds(
 	p2x: number,
 	p3x: number,
 	fullWidth?: number,
-	extendLines?: boolean
+	extendLines?: boolean,
+	widthMultiplier?: number | null
 ): { xStart: number; xEnd: number } {
+	const mult =
+		typeof widthMultiplier === 'number' && isFinite(widthMultiplier) && widthMultiplier > 0
+			? widthMultiplier
+			: 2;
 	const xStart = p3x;
 	const dist = Math.abs(p3x - p1x);
-	const widthDelta = dist < 30 ? 50 : 2 * dist;
+	const widthDelta = dist < 30 ? 25 * mult : dist * mult;
 	const xEnd = extendLines && fullWidth !== undefined ? fullWidth : xStart + widthDelta;
 	return { xStart, xEnd };
 }
@@ -147,7 +159,7 @@ export class FibonacciPaneRenderer implements IPrimitivePaneRenderer {
 		vpr: number,
 		width: number
 	): void {
-		const { p1, p2, levels, extendLines } = data;
+		const { p1, p2, levels, extendLines, widthMultiplier } = data;
 
 		const showHandles =
 			data.isSelected || p1.isHovered || p1.isDragging || p2.isHovered || p2.isDragging;
@@ -170,7 +182,13 @@ export class FibonacciPaneRenderer implements IPrimitivePaneRenderer {
 		}
 
 		// 2. Horizontal Fibonacci level lines & text labels
-		const { xStart, xEnd } = calculateRetracementLineBounds(p1.x, p2.x, width, extendLines);
+		const { xStart, xEnd } = calculateRetracementLineBounds(
+			p1.x,
+			p2.x,
+			width,
+			extendLines,
+			widthMultiplier
+		);
 
 		this._drawLevelLines(ctx, levels, xStart, xEnd, hpr, vpr);
 
@@ -188,7 +206,7 @@ export class FibonacciPaneRenderer implements IPrimitivePaneRenderer {
 		vpr: number,
 		width: number
 	): void {
-		const { p1, p2, p3, levels, extendLines } = data;
+		const { p1, p2, p3, levels, extendLines, widthMultiplier } = data;
 
 		const showHandles =
 			data.isSelected ||
@@ -218,7 +236,14 @@ export class FibonacciPaneRenderer implements IPrimitivePaneRenderer {
 		}
 
 		// 2. Horizontal Fibonacci level lines & text labels
-		const { xStart, xEnd } = calculateExtensionLineBounds(p1.x, p2.x, p3.x, width, extendLines);
+		const { xStart, xEnd } = calculateExtensionLineBounds(
+			p1.x,
+			p2.x,
+			p3.x,
+			width,
+			extendLines,
+			widthMultiplier
+		);
 
 		this._drawLevelLines(ctx, levels, xStart, xEnd, hpr, vpr);
 

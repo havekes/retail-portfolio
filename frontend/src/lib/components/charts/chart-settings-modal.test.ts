@@ -13,6 +13,8 @@ describe('ChartSettingsModal Component', () => {
 	let mockOnSaveChartHideLabels = vi.fn<(hide: boolean) => void>();
 	let mockOnSaveWaveSettings = vi.fn<(settings: WaveSettings) => void>();
 	let mockOnFibLevelsChange = vi.fn<(tool: FibToolType, levels: FibLevelConfig[]) => void>();
+	let mockOnFibWidthChange =
+		vi.fn<(tool: FibToolType, multiplier: number | null, extendLines?: boolean) => void>();
 	let mockOnClose = vi.fn<() => void>();
 
 	beforeEach(() => {
@@ -20,6 +22,8 @@ describe('ChartSettingsModal Component', () => {
 		mockOnSaveChartHideLabels = vi.fn<(hide: boolean) => void>();
 		mockOnSaveWaveSettings = vi.fn<(settings: WaveSettings) => void>();
 		mockOnFibLevelsChange = vi.fn<(tool: FibToolType, levels: FibLevelConfig[]) => void>();
+		mockOnFibWidthChange =
+			vi.fn<(tool: FibToolType, multiplier: number | null, extendLines?: boolean) => void>();
 		mockOnClose = vi.fn<() => void>();
 	});
 
@@ -795,6 +799,109 @@ describe('ChartSettingsModal Component', () => {
 			await fireEvent.click(closeButtons[0]);
 
 			expect(mockOnClose).toHaveBeenCalledTimes(1);
+		});
+
+		it('renders line width multiplier and extend lines controls in Fibonacci section', () => {
+			render(ChartSettingsModal, {
+				props: {
+					open: true,
+					initialSection: 'fibonacci',
+					retracementWidthMultiplier: 2.0,
+					retracementExtendLines: true,
+					onFibWidthChange: mockOnFibWidthChange
+				}
+			});
+
+			expect(screen.getByTestId('fib-width-settings-section')).toBeInTheDocument();
+			expect(screen.getByTestId('fib-current-width-multiplier')).toHaveTextContent('2x');
+
+			const slider = screen.getByTestId('fib-settings-width-slider') as HTMLInputElement;
+			expect(slider).toBeInTheDocument();
+			expect(slider.value).toBe('4'); // 2x corresponds to index 4
+
+			const checkbox = screen.getByTestId('fib-settings-extend-lines-checkbox');
+			expect(checkbox).toHaveAttribute('data-state', 'checked');
+
+			expect(screen.getByTestId('fib-settings-preset-0.25x')).toHaveTextContent('.25x');
+			expect(screen.getByTestId('fib-settings-preset-0.5x')).toHaveTextContent('.5x');
+			expect(screen.getByTestId('fib-settings-preset-1x')).toHaveTextContent('1x');
+			expect(screen.getByTestId('fib-settings-preset-1.5x')).toHaveTextContent('1.5x');
+			expect(screen.getByTestId('fib-settings-preset-2x')).toHaveTextContent('2x');
+			expect(screen.getByTestId('fib-settings-preset-3x')).toHaveTextContent('3x');
+		});
+
+		it('invokes onFibWidthChange when slider value is adjusted in Fibonacci section', async () => {
+			render(ChartSettingsModal, {
+				props: {
+					open: true,
+					initialSection: 'fibonacci',
+					retracementWidthMultiplier: 1.0,
+					retracementExtendLines: false,
+					onFibWidthChange: mockOnFibWidthChange
+				}
+			});
+
+			const slider = screen.getByTestId('fib-settings-width-slider') as HTMLInputElement;
+			await fireEvent.input(slider, { target: { value: '0' } });
+
+			expect(mockOnFibWidthChange).toHaveBeenCalledWith('retracement', 0.25, false);
+		});
+
+		it('invokes onFibWidthChange when stop button is clicked in Fibonacci section', async () => {
+			render(ChartSettingsModal, {
+				props: {
+					open: true,
+					initialSection: 'fibonacci',
+					retracementWidthMultiplier: 1.0,
+					retracementExtendLines: false,
+					onFibWidthChange: mockOnFibWidthChange
+				}
+			});
+
+			const preset15 = screen.getByTestId('fib-settings-preset-1.5x');
+			await fireEvent.click(preset15);
+
+			expect(mockOnFibWidthChange).toHaveBeenCalledWith('retracement', 1.5, false);
+		});
+
+		it('invokes onFibWidthChange when extend lines checkbox is toggled in Fibonacci section', async () => {
+			render(ChartSettingsModal, {
+				props: {
+					open: true,
+					initialSection: 'fibonacci',
+					retracementWidthMultiplier: 1.0,
+					retracementExtendLines: false,
+					onFibWidthChange: mockOnFibWidthChange
+				}
+			});
+
+			const checkbox = screen.getByTestId('fib-settings-extend-lines-checkbox');
+			await fireEvent.click(checkbox);
+
+			expect(mockOnFibWidthChange).toHaveBeenCalledWith('retracement', 1.0, true);
+		});
+
+		it('disables width controls when hasActiveDrawing is false', async () => {
+			render(ChartSettingsModal, {
+				props: {
+					open: true,
+					initialSection: 'fibonacci',
+					hasActiveDrawing: false,
+					onFibWidthChange: mockOnFibWidthChange
+				}
+			});
+
+			const slider = screen.getByTestId('fib-settings-width-slider');
+			expect(slider).toBeDisabled();
+
+			const preset2x = screen.getByTestId('fib-settings-preset-2x');
+			expect(preset2x).toBeDisabled();
+
+			const checkbox = screen.getByTestId('fib-settings-extend-lines-checkbox');
+			expect(checkbox).toBeDisabled();
+
+			await fireEvent.click(preset2x);
+			expect(mockOnFibWidthChange).not.toHaveBeenCalled();
 		});
 	});
 });

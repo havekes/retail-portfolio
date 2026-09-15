@@ -12,7 +12,10 @@
 		type FibToolType,
 		type FibLevelConfig,
 		DEFAULT_FIB_RETRACEMENT_LEVELS,
-		DEFAULT_FIB_EXTENSION_LEVELS
+		DEFAULT_FIB_EXTENSION_LEVELS,
+		FIB_WIDTH_STOPS,
+		FIB_WIDTH_STOP_LABELS,
+		getClosestFibWidthIndex
 	} from '$lib/utils/finance/fibonacci';
 
 	let {
@@ -25,10 +28,15 @@
 		activeTool = 'retracement',
 		retracementLevels = null,
 		extensionLevels = null,
+		retracementWidthMultiplier = null,
+		extensionWidthMultiplier = null,
+		retracementExtendLines = false,
+		extensionExtendLines = false,
 		hasActiveDrawing = true,
 		disabled = false,
 		onFibLevelsChange,
 		onLevelsChange,
+		onFibWidthChange,
 		onClose
 	}: {
 		open?: boolean;
@@ -40,10 +48,19 @@
 		activeTool?: FibToolType | null;
 		retracementLevels?: FibLevelConfig[] | null;
 		extensionLevels?: FibLevelConfig[] | null;
+		retracementWidthMultiplier?: number | null;
+		extensionWidthMultiplier?: number | null;
+		retracementExtendLines?: boolean;
+		extensionExtendLines?: boolean;
 		hasActiveDrawing?: boolean;
 		disabled?: boolean;
 		onFibLevelsChange?: (tool: FibToolType, levels: FibLevelConfig[]) => void;
 		onLevelsChange?: (tool: FibToolType, levels: FibLevelConfig[]) => void;
+		onFibWidthChange?: (
+			tool: FibToolType,
+			multiplier: number | null,
+			extendLines?: boolean
+		) => void;
 		onClose?: () => void;
 	} = $props();
 
@@ -310,6 +327,32 @@
 			currentExtensionLevels = updated;
 			emitFibChange('extension', cloneLevels(updated));
 		}
+	}
+
+	const currentActiveMultiplier = $derived(
+		activeFibTab === 'retracement'
+			? (retracementWidthMultiplier ?? 1)
+			: (extensionWidthMultiplier ?? 2)
+	);
+
+	const currentSliderIndex = $derived(
+		getClosestFibWidthIndex(currentActiveMultiplier, activeFibTab === 'retracement' ? 1 : 2)
+	);
+
+	const currentActiveExtendLines = $derived(
+		activeFibTab === 'retracement' ? Boolean(retracementExtendLines) : Boolean(extensionExtendLines)
+	);
+
+	function handleSliderChange(idx: number) {
+		if (isFibInteractivityDisabled) return;
+		const safeIdx = Math.max(0, Math.min(FIB_WIDTH_STOPS.length - 1, idx));
+		const selectedMultiplier = FIB_WIDTH_STOPS[safeIdx];
+		onFibWidthChange?.(activeFibTab, selectedMultiplier, currentActiveExtendLines);
+	}
+
+	function handleToggleExtendLines(extend: boolean) {
+		if (isFibInteractivityDisabled) return;
+		onFibWidthChange?.(activeFibTab, FIB_WIDTH_STOPS[currentSliderIndex], extend);
 	}
 
 	function handleOpenChange(isOpen: boolean) {
@@ -643,6 +686,92 @@
 						</span>
 					</div>
 				{/if}
+
+				<!-- Line Width & Extension -->
+				<div class="space-y-2 rounded-md border p-3" data-testid="fib-width-settings-section">
+					<div class="flex items-center justify-between">
+						<span class="text-xs font-semibold text-foreground">Line Width & Extension</span>
+						<span
+							class="font-mono text-xs text-muted-foreground"
+							data-testid="fib-current-width-multiplier"
+						>
+							{FIB_WIDTH_STOP_LABELS[currentSliderIndex]}
+						</span>
+					</div>
+					<div class="space-y-1.5">
+						<Label for="fib-settings-width-slider" class="text-xs text-muted-foreground"
+							>Width Multiplier</Label
+						>
+						<div class="relative py-1">
+							<input
+								id="fib-settings-width-slider"
+								type="range"
+								min="0"
+								max="5"
+								step="1"
+								disabled={isFibInteractivityDisabled}
+								value={currentSliderIndex}
+								oninput={(e) => handleSliderChange(Number(e.currentTarget.value))}
+								class="w-full cursor-pointer accent-primary disabled:cursor-not-allowed disabled:opacity-50"
+								data-testid="fib-settings-width-slider"
+								aria-label="Width Multiplier"
+								aria-valuemin="0.25"
+								aria-valuemax="3"
+								aria-valuenow={currentActiveMultiplier}
+								aria-valuetext={FIB_WIDTH_STOP_LABELS[currentSliderIndex]}
+							/>
+							<!-- Discrete Tick Marks -->
+							<div
+								class="mt-1 flex justify-between px-1"
+								aria-hidden="true"
+								data-testid="fib-settings-width-ticks"
+							>
+								{#each FIB_WIDTH_STOPS as stop, idx (stop)}
+									<div
+										class="h-1.5 w-0.5 rounded-full {currentSliderIndex === idx
+											? 'bg-primary'
+											: 'bg-muted-foreground/40'}"
+									></div>
+								{/each}
+							</div>
+							<!-- Stop Labels / Quick Buttons -->
+							<div
+								class="mt-1 flex justify-between font-mono text-[11px] text-muted-foreground"
+								data-testid="fib-settings-width-stops"
+							>
+								{#each FIB_WIDTH_STOPS as stop, idx (stop)}
+									<button
+										type="button"
+										disabled={isFibInteractivityDisabled}
+										class="cursor-pointer transition-colors hover:text-foreground focus:outline-none disabled:cursor-not-allowed disabled:opacity-50 {currentSliderIndex ===
+										idx
+											? 'font-semibold text-primary'
+											: ''}"
+										onclick={() => handleSliderChange(idx)}
+										data-testid={`fib-settings-preset-${stop}x`}
+									>
+										{FIB_WIDTH_STOP_LABELS[idx]}
+									</button>
+								{/each}
+							</div>
+						</div>
+					</div>
+					<div class="flex items-center space-x-2 pt-1">
+						<Checkbox
+							id="fib-settings-extend-lines"
+							checked={currentActiveExtendLines}
+							onCheckedChange={(checked) => handleToggleExtendLines(Boolean(checked))}
+							disabled={isFibInteractivityDisabled}
+							data-testid="fib-settings-extend-lines-checkbox"
+						/>
+						<Label
+							for="fib-settings-extend-lines"
+							class="cursor-pointer text-xs leading-none font-medium peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+						>
+							Extend across full chart width
+						</Label>
+					</div>
+				</div>
 
 				<!-- Level List -->
 				<div

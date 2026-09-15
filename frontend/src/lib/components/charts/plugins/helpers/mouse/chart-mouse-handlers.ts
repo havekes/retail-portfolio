@@ -70,6 +70,7 @@ export class ChartMouseHandlers<
 		new Delegate();
 	private _dragEnded: Delegate<TTarget> = new Delegate();
 	private _cancelRequested: Delegate<void> = new Delegate();
+	private _doubleClicked: Delegate<TTarget> = new Delegate();
 
 	constructor(config: ChartMouseHandlersConfig<TPoint, TTarget>) {
 		this._config = config;
@@ -89,6 +90,7 @@ export class ChartMouseHandlers<
 		this._addDOMListener(container, 'mousedown', this._onMouseDown.bind(this));
 		this._addDOMListener(container, 'mouseup', this._onMouseUp.bind(this));
 		this._addDOMListener(container, 'click', this._onClick.bind(this));
+		this._addDOMListener(container, 'dblclick', this._onDblClick.bind(this));
 		this._addDOMListener(container, 'mouseleave', this._onMouseLeave.bind(this));
 		this._addDOMListener(container, 'contextmenu', this._onContextMenu.bind(this));
 
@@ -140,6 +142,7 @@ export class ChartMouseHandlers<
 		this._pointDragged.destroy();
 		this._dragEnded.destroy();
 		this._cancelRequested.destroy();
+		this._doubleClicked.destroy();
 
 		for (const unsub of this._unsubscribers) {
 			unsub();
@@ -260,6 +263,10 @@ export class ChartMouseHandlers<
 
 	public cancelRequested(): ISubscription<void> {
 		return this._cancelRequested;
+	}
+
+	public doubleClicked(): ISubscription<TTarget> {
+		return this._doubleClicked;
 	}
 
 	private _addDOMListener(
@@ -429,6 +436,27 @@ export class ChartMouseHandlers<
 				} else if (pos.insidePlotArea) {
 					this._emptyAreaClicked.fire();
 				}
+			}
+		}
+	}
+
+	private _onDblClick(event: MouseEvent): void {
+		if (this._isDrawingMode) return;
+		if (this._dragHappened) {
+			this._dragHappened = false;
+			return;
+		}
+
+		const pos = this._determineMousePosition(event);
+		if (!pos) return;
+
+		const hit = this.hitTestPoint(pos.x, pos.y);
+		if (hit) {
+			this._doubleClicked.fire(this._config.toTarget(hit));
+		} else {
+			const lineHit = this._config.hitTestLine?.(pos.x, pos.y);
+			if (lineHit) {
+				this._doubleClicked.fire(lineHit);
 			}
 		}
 	}
