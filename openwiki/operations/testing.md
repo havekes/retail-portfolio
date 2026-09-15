@@ -2,10 +2,9 @@
 
 ## Backend tests
 
-Tests live in `/tests` and use `pytest` with in-memory SQLite (`sqlite+aiosqlite:///:memory:`). `tests/conftest.py` sets required environment variables before the app is imported:
+Tests live in `/tests` and use `pytest` against a throwaway PostgreSQL container (via `testcontainers`), or a `TEST_DATABASE_URL` when one is supplied. Tests must not depend on any other external service: Redis, HTTP APIs, and SMTP are all mocked. `tests/conftest.py` sets required environment variables before the app is imported:
 
 ```python
-DATABASE_URL = "sqlite+aiosqlite:///:memory:"
 SECRET_KEY = "..."
 ENVIRONMENT = "test"
 STUB_EXTERNAL_API = "true"
@@ -25,11 +24,12 @@ STUB_EXTERNAL_API = "true"
 
 ### Key fixtures
 
-- `test_engine` (function scope) — creates the SQLite schema per test and drops it after.
+- `test_engine` (function scope) — creates the schema per test in the Postgres container and drops it after.
 - `db_session` (function scope) — provides an `AsyncSession` and rolls back at the end.
 - `seed_reference_data` — seeds `AccountTypeModel` and `InstitutionModel`.
 - `auth_client` / `unauth_client` — HTTPX async clients with configured auth fixtures.
-- `global_mocks` (session scope, autouse) — patches WebSocket manager and Huey dashboard to avoid Redis timeouts.
+- `global_mocks` (session scope, autouse) — patches the WebSocket manager and Huey dashboard.
+- `fake_redis_manager` (function scope, autouse) — replaces the shared `src.core.redis.redis_manager` client with an in-memory fake (`tests/fixtures/redis.py`); `mock_redis_storage` exposes the backing store for assertions.
 
 ### Running backend tests
 
@@ -65,7 +65,7 @@ docker compose exec frontend npm run test:run
 
 ## Test checks in CI
 
-CI runs the full matrix. Backend tests run with Redis in a service container and an in-memory SQLite database. Frontend tests run `npm run check`, `npm run lint`, and `npm run test:run`.
+CI runs the full matrix. Backend tests run with no Redis service and no database service — Redis is mocked and PostgreSQL is provided by `testcontainers`. Frontend tests run `npm run check`, `npm run lint`, and `npm run test:run`.
 
 ## What to run before committing
 

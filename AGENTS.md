@@ -10,6 +10,8 @@
 
 Each guide holds the full command list (tests, migrations, linting, type checks) and architecture rules for its area.
 
+**Testing rule (all areas)**: tests must never depend on external services. Mock all outbound I/O — Redis, HTTP APIs, and SMTP in the backend, and all API calls in the frontend. See the `## Testing` section in the relevant area guide.
+
 ## Development Commands
 
 All development commands **must** be executed inside Docker: `docker compose exec <backend|frontend> <command>` — see the area guide above for the exact commands. CI runs the same checks.

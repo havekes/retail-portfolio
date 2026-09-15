@@ -13,25 +13,6 @@ jobs:
   backend:
     runs-on: ubuntu-latest
 
-    services:
-      redis:
-        image: redis:7-alpine
-        ports:
-          - 6379:6379
-      postgres:
-        image: postgres:17-alpine
-        env:
-          POSTGRES_USER: test_user
-          POSTGRES_PASSWORD: test_password
-          POSTGRES_DB: test_db
-        ports:
-          - 5432:5432
-        options: >-
-          --health-cmd pg_isready
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
-
     steps:
       - uses: actions/checkout@v4
 
@@ -57,9 +38,6 @@ jobs:
 
       - name: Test
         run: uv run pytest
-        env:
-          DATABASE_URL: "postgresql+asyncpg://test_user:test_password@localhost:5432/test_db"
-          REDIS_URL: "redis://localhost:6379/0"
 
   frontend:
     runs-on: ubuntu-latest

@@ -29,6 +29,7 @@ from src.ws.manager import ws_manager
 from tests.fixtures.auth import *  # noqa: F401, F403
 from tests.fixtures.account import *  # noqa: F401, F403
 from tests.fixtures.market import *  # noqa: F401, F403
+from tests.fixtures.redis import *  # noqa: F401, F403
 
 from unittest.mock import AsyncMock, MagicMock, patch
 
@@ -43,6 +44,10 @@ def global_mocks():
     `src.main.close_worker_dashboard`. Because main.py binds these names at
     import time, patching them prevents creating real AsyncRedis connections
     whose aclose() times out ~4 seconds per test.
+
+    Redis used by the auth denylist, 2FA/passkey challenges, search cache and
+    sync status is mocked separately by the autouse `fake_redis_manager`
+    fixture (see `tests/fixtures/redis.py`); no test may require a Redis server.
     """
     from src.worker import huey
 

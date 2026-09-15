@@ -35,6 +35,17 @@ Coding Agent Guide: retail-portfolio (Backend)
 **MANDATORY**: When editing a backend model, also generate the migrations using alembic.
 **MANDATORY**: All migration files MUST follow the Alembic standard `<hash>_<description>.py` naming. For manual SQL migrations, create a standard revision using the autogenerate command and use `op.execute()` inside it.
 
+## Testing
+
+**MANDATORY**: Backend tests MUST NOT depend on external services — no Redis, no HTTP APIs (EODHD, broker APIs), no SMTP, no DNS resolution. Mock every outbound client and stub **every** method the code under test calls.
+
+Rationale: CI runs the suite without a Redis server. A test that dials `redis://redis:6379/0` only passes inside Docker where the Compose hostname resolves; on a host or in CI it fails with `socket.gaierror`/`ConnectionError` and takes the suite down with it. The same applies to unmocked HTTP/SMTP calls.
+
+- Redis is mocked globally by the autouse `fake_redis_manager` fixture (`tests/fixtures/redis.py`) on the shared `src.core.redis.redis_manager` singleton. Do not add a real Redis dependency; reuse `mock_redis_storage` when you need to assert on stored keys.
+- HTTP/external APIs must be stubbed (see `src/stubs/`) or patched (`StubEodhdGateway`, `StubWealthsimpleAPI`); SMTP is patched (`src.core.email.aiosmtplib.SMTP`).
+- The ephemeral PostgreSQL container from `testcontainers` (see `tests/conftest.py`) is the one allowed infrastructure dependency; repository/migration tests may use it.
+- A test that performs a real network, Redis, or SMTP call is broken by definition — mock it, do not "fix" it by expecting the service to be up.
+
 ## Backend Architecture
 
 ### Overall Structure: Domain-Driven Design with Internal Layers

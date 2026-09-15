@@ -1,7 +1,6 @@
 """Integration tests for auth router."""
 
 import base64
-import contextlib
 import logging
 import uuid
 from datetime import UTC, datetime, timedelta
@@ -17,45 +16,8 @@ from webauthn.registration.verify_registration_response import VerifiedRegistrat
 
 from src.config.settings import settings
 
-
-class RouterMockRedis:
-    def __init__(self):
-        self.data: dict[str, str] = {}
-
-    async def get(self, key: str) -> str | None:
-        return self.data.get(key)
-
-    async def getdel(self, key: str) -> str | None:
-        return self.data.pop(key, None)
-
-    async def setex(self, key: str, time: int, value: str) -> None:  # noqa: ARG002
-        self.data[key] = value
-
-    async def delete(self, *keys: str) -> None:
-        for k in keys:
-            self.data.pop(k, None)
-
-    async def incr(self, key: str) -> int:
-        val = int(self.data.get(key, 0)) + 1
-        self.data[key] = str(val)
-        return val
-
-    async def expire(self, key: str, time: int) -> bool:  # noqa: ARG002
-        return key in self.data
-
-
-@pytest.fixture(autouse=True)
-def mock_redis_storage(monkeypatch):
-    storage = RouterMockRedis()
-
-    @contextlib.asynccontextmanager
-    async def _mock_client():
-        yield storage
-
-    monkeypatch.setattr("src.core.redis.redis_manager.client", _mock_client)
-    monkeypatch.setattr("src.auth.service.default_redis_manager.client", _mock_client)
-    monkeypatch.setattr("src.auth.api.default_redis_manager.client", _mock_client)
-    return storage
+# `mock_redis_storage` (in-memory Redis backing store) is provided globally by
+# tests/fixtures/redis.py.
 
 
 @pytest.mark.anyio
