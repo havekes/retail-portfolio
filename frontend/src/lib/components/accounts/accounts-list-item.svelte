@@ -11,6 +11,10 @@
 	import { ModalState } from '@/utils/modal-state.svelte';
 	import UpdateAccountCsvModal from './update-account-csv-modal.svelte';
 	import RefreshCw from '@lucide/svelte/icons/refresh-cw';
+	import * as DropdownMenu from '../ui/dropdown-menu';
+	import ConfirmationModal from '../ui/confirmation-modal/confirmation-modal.svelte';
+	import EllipsisVertical from '@lucide/svelte/icons/ellipsis-vertical';
+	import { Button } from '../ui/button';
 
 	let {
 		account,
@@ -21,7 +25,8 @@
 		onSync,
 		syncError,
 		onRename,
-		onAccountUpdated
+		onAccountUpdated,
+		onDelete
 	}: {
 		account: Account;
 		selectionMode?: boolean;
@@ -32,15 +37,17 @@
 		syncError?: string | null;
 		onRename?: (name: string) => void;
 		onAccountUpdated?: () => void;
+		onDelete?: () => void;
 	} = $props();
 
-	const state = new AccountsListItemState(() => account.id);
+	const itemState = new AccountsListItemState(() => account.id);
 	const csvModalState = new ModalState<void>();
+	let showDeleteModal = $state(false);
 	let wasSyncing = false;
 
 	$effect(() => {
 		if (wasSyncing && !isSyncing) {
-			state.invalidateCache(account.id);
+			itemState.invalidateCache(account.id);
 		}
 		wasSyncing = isSyncing ?? false;
 	});
@@ -64,8 +71,8 @@
 				id={account.id}
 				href={`/accounts/${account.id}`}
 			/>
-			<div>
-				{#await state.totals}
+			<div class="flex items-center gap-2">
+				{#await itemState.totals}
 					<Skeleton class="h-8 w-24 rounded-full bg-background p-2" />
 				{:then totals}
 					<div class="flex items-center gap-2">
@@ -121,6 +128,25 @@
 				{:catch}
 					<div class="text-sm">Total: failed to load</div>
 				{/await}
+				<DropdownMenu.Root>
+					<DropdownMenu.Trigger>
+						{#snippet child({ props })}
+							<Button {...props} variant="ghost" size="icon" aria-label="Account actions">
+								<EllipsisVertical class="h-4 w-4" />
+							</Button>
+						{/snippet}
+					</DropdownMenu.Trigger>
+					<DropdownMenu.Content>
+						<DropdownMenu.Item
+							variant="destructive"
+							onSelect={() => {
+								showDeleteModal = true;
+							}}
+						>
+							Delete account
+						</DropdownMenu.Item>
+					</DropdownMenu.Content>
+				</DropdownMenu.Root>
 			</div>
 		</div>
 		<div class="flex items-center justify-between text-sm text-muted-foreground">
@@ -150,11 +176,18 @@
 	</div>
 </div>
 
+<ConfirmationModal
+	bind:open={showDeleteModal}
+	title="Delete account"
+	description={`Are you sure you want to delete "${account.name}"? This action cannot be undone.`}
+	onconfirm={() => onDelete?.()}
+/>
+
 <UpdateAccountCsvModal
 	{account}
 	modalState={csvModalState}
 	onSuccess={() => {
-		state.invalidateCache(account.id);
+		itemState.invalidateCache(account.id);
 		onAccountUpdated?.();
 	}}
 />

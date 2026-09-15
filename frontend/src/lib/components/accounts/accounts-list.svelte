@@ -99,6 +99,7 @@
 								onSync={() => state.syncAccount(account.id)}
 								onRename={(name: string) => state.renameAccount(account.id, name)}
 								onAccountUpdated={() => state.fetchAccounts()}
+								onDelete={() => state.deleteAccount(account.id)}
 							/>
 						{/each}
 					</div>

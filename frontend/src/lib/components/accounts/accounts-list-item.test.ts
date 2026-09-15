@@ -166,4 +166,116 @@ describe('AccountsListItem', () => {
 			expect(accountClient.getAccountTotals).toHaveBeenCalledTimes(2);
 		});
 	});
+
+	it('renders overflow menu button with aria-label="Account actions"', () => {
+		render(AccountsListItem, {
+			props: {
+				account: mockAccount
+			}
+		});
+
+		const menuButton = screen.getByRole('button', { name: 'Account actions' });
+		expect(menuButton).toBeInTheDocument();
+	});
+
+	it('clicking overflow menu button displays "Delete account" option', async () => {
+		render(AccountsListItem, {
+			props: {
+				account: mockAccount
+			}
+		});
+
+		const menuButton = screen.getByRole('button', { name: 'Account actions' });
+		await fireEvent.click(menuButton);
+
+		expect(await screen.findByText('Delete account')).toBeInTheDocument();
+	});
+
+	it('clicking "Delete account" opens confirmation modal with title and warning description', async () => {
+		render(AccountsListItem, {
+			props: {
+				account: mockAccount
+			}
+		});
+
+		const menuButton = screen.getByRole('button', { name: 'Account actions' });
+		await fireEvent.click(menuButton);
+
+		const deleteOption = await screen.findByText('Delete account');
+		await fireEvent.click(deleteOption);
+
+		await waitFor(() => {
+			expect(screen.getByRole('heading', { name: 'Delete account' })).toBeInTheDocument();
+			expect(
+				screen.getByText(
+					`Are you sure you want to delete "${mockAccount.name}"? This action cannot be undone.`
+				)
+			).toBeInTheDocument();
+		});
+	});
+
+	it('clicking "Cancel" in confirmation modal closes modal and does not invoke onDelete', async () => {
+		const onDeleteMock = vi.fn();
+		render(AccountsListItem, {
+			props: {
+				account: mockAccount,
+				onDelete: onDeleteMock
+			}
+		});
+
+		const menuButton = screen.getByRole('button', { name: 'Account actions' });
+		await fireEvent.click(menuButton);
+
+		const deleteOption = await screen.findByText('Delete account');
+		await fireEvent.click(deleteOption);
+
+		await waitFor(() => {
+			expect(
+				screen.getByText(
+					`Are you sure you want to delete "${mockAccount.name}"? This action cannot be undone.`
+				)
+			).toBeInTheDocument();
+		});
+
+		const cancelBtn = screen.getByRole('button', { name: 'Cancel' });
+		await fireEvent.click(cancelBtn);
+
+		await waitFor(() => {
+			expect(
+				screen.queryByText(
+					`Are you sure you want to delete "${mockAccount.name}"? This action cannot be undone.`
+				)
+			).not.toBeInTheDocument();
+		});
+		expect(onDeleteMock).not.toHaveBeenCalled();
+	});
+
+	it('clicking "Confirm" in confirmation modal invokes onDelete', async () => {
+		const onDeleteMock = vi.fn();
+		render(AccountsListItem, {
+			props: {
+				account: mockAccount,
+				onDelete: onDeleteMock
+			}
+		});
+
+		const menuButton = screen.getByRole('button', { name: 'Account actions' });
+		await fireEvent.click(menuButton);
+
+		const deleteOption = await screen.findByText('Delete account');
+		await fireEvent.click(deleteOption);
+
+		await waitFor(() => {
+			expect(
+				screen.getByText(
+					`Are you sure you want to delete "${mockAccount.name}"? This action cannot be undone.`
+				)
+			).toBeInTheDocument();
+		});
+
+		const confirmBtn = screen.getByRole('button', { name: 'Confirm' });
+		await fireEvent.click(confirmBtn);
+
+		expect(onDeleteMock).toHaveBeenCalledTimes(1);
+	});
 });
