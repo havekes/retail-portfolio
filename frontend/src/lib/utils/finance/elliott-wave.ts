@@ -255,6 +255,65 @@ export function selectDegreeWave(
 }
 
 /**
+ * Converts a lightweight-charts `Time` to epoch seconds (UTC). Mirrors the semantics of the
+ * chart plugins' `timeToEpochSeconds` helper; duplicated locally because `$lib/utils/finance`
+ * is the lowest layer and must not import from `plugins/helpers/`.
+ */
+function waveTimeToEpochSeconds(time: Time): number {
+	if (typeof time === 'number') return time;
+	if (typeof time === 'string') {
+		const ms = new Date(time).getTime();
+		return Number.isNaN(ms) ? 0 : Math.floor(ms / 1000);
+	}
+	if (time !== null && typeof time === 'object') {
+		return Math.floor(Date.UTC(time.year, time.month - 1, time.day) / 1000);
+	}
+	return 0;
+}
+
+/** Largest epoch-seconds value among a wave's points, or -Infinity when it has none. */
+function latestPointEpoch(wave: DegreeWaveCount): number {
+	let latest = -Infinity;
+	for (const point of wave.points ?? []) {
+		if (!point) continue;
+		const epoch = waveTimeToEpochSeconds(point.time);
+		if (epoch > latest) latest = epoch;
+	}
+	return latest;
+}
+
+/**
+ * Selects the most recent/future wave of a degree: the one whose rightmost point has the
+ * largest epoch seconds. Ties resolve to the later array index, so a wave re-drawn at the
+ * same time supersedes an older count. Returns null when no wave of that degree exists.
+ *
+ * Accepts either a raw wave array (interactive callers) or a persisted
+ * `SecurityElliottWaves` wrapper (preferences readers).
+ */
+export function getLatestWaveCount(
+	waves: DegreeWaveCount[] | SecurityElliottWaves | null | undefined,
+	degree: WaveDegree
+): DegreeWaveCount | null {
+	if (!degree) return null;
+
+	const candidates = Array.isArray(waves) ? waves : (waves?.waves ?? []);
+	let latestWave: DegreeWaveCount | null = null;
+	let latestEpoch = -Infinity;
+
+	for (const wave of candidates) {
+		if (!wave || wave.degree !== degree) continue;
+		const epoch = latestPointEpoch(wave);
+		// `>=` lets a later array index win an exact tie (most recently added wave).
+		if (epoch >= latestEpoch) {
+			latestEpoch = epoch;
+			latestWave = wave;
+		}
+	}
+
+	return latestWave;
+}
+
+/**
  * Extracts the wave count for a specific security and degree from existing wave preferences,
  * preferring the impulse wave of that degree (see `selectDegreeWave`).
  */

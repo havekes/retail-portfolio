@@ -1,9 +1,11 @@
 import { describe, it, expect } from 'vitest';
+import type { Time } from 'lightweight-charts';
 import {
 	getWaveTargetPrice,
 	calculateUpsidePercentage,
 	updateSecurityElliottWaves,
 	getSecurityDegreeWaveCount,
+	getLatestWaveCount,
 	selectDegreeWave,
 	getWaveIdentity,
 	normalizeWaveIds,
@@ -326,6 +328,91 @@ describe('elliott-wave finance utilities', () => {
 				'sec-1': { waves: [corrective, impulse] }
 			};
 			expect(getSecurityDegreeWaveCount(waves, 'sec-1', 'cycle')).toEqual(impulse);
+		});
+	});
+
+	describe('getLatestWaveCount', () => {
+		const makeWave = (
+			id: string,
+			degree: WaveDegree,
+			points: DegreeWaveCount['points'],
+			type: DegreeWaveCount['type'] = 'impulse'
+		): DegreeWaveCount => ({ id, degree, type, points });
+
+		it('returns null for null, undefined, or empty collections', () => {
+			expect(getLatestWaveCount(null, 'cycle')).toBeNull();
+			expect(getLatestWaveCount(undefined, 'cycle')).toBeNull();
+			expect(getLatestWaveCount([], 'cycle')).toBeNull();
+			expect(getLatestWaveCount({ waves: [] }, 'cycle')).toBeNull();
+		});
+
+		it('returns the only wave of the requested degree', () => {
+			const wave = makeWave('only', 'cycle', [{ wave: 1, time: '2024-01-01', price: 10 }]);
+			expect(getLatestWaveCount([wave], 'cycle')).toBe(wave);
+			expect(getLatestWaveCount({ waves: [wave] }, 'cycle')).toBe(wave);
+		});
+
+		it('returns null when no wave matches the requested degree', () => {
+			const wave = makeWave('primary-only', 'primary', [
+				{ wave: 1, time: '2025-01-01', price: 10 }
+			]);
+			expect(getLatestWaveCount([wave], 'cycle')).toBeNull();
+		});
+
+		it('selects the wave whose rightmost point is latest, regardless of array order', () => {
+			const earlier = makeWave('earlier', 'cycle', [
+				{ wave: 1, time: '2024-01-01', price: 10 },
+				{ wave: 3, time: '2024-06-01', price: 30 }
+			]);
+			const later = makeWave('later', 'cycle', [
+				{ wave: 1, time: '2024-02-01', price: 12 },
+				{ wave: 3, time: '2025-12-01', price: 40 }
+			]);
+			expect(getLatestWaveCount([later, earlier], 'cycle')).toBe(later);
+			expect(getLatestWaveCount([earlier, later], 'cycle')).toBe(later);
+		});
+
+		it('does not prefer impulse over corrective — only recency matters', () => {
+			const impulse = makeWave('impulse', 'cycle', [{ wave: 1, time: '2024-01-01', price: 10 }]);
+			const corrective = makeWave(
+				'corrective',
+				'cycle',
+				[{ wave: 'A', time: '2025-01-01', price: 20 }],
+				'corrective'
+			);
+			expect(getLatestWaveCount([impulse, corrective], 'cycle')).toBe(corrective);
+			expect(getLatestWaveCount([corrective, impulse], 'cycle')).toBe(corrective);
+		});
+
+		it('filters by the requested degree when multiple degrees are present', () => {
+			const cycle = makeWave('cycle', 'cycle', [{ wave: 1, time: '2024-01-01', price: 10 }]);
+			const primary = makeWave('primary', 'primary', [{ wave: 1, time: '2025-01-01', price: 20 }]);
+			const intermediate = makeWave('intermediate', 'intermediate', [
+				{ wave: 1, time: '2026-01-01', price: 30 }
+			]);
+			const all = [primary, intermediate, cycle];
+			expect(getLatestWaveCount(all, 'cycle')).toBe(cycle);
+			expect(getLatestWaveCount(all, 'primary')).toBe(primary);
+			expect(getLatestWaveCount(all, 'intermediate')).toBe(intermediate);
+		});
+
+		it('resolves an exact time tie to the later array index', () => {
+			const first = makeWave('first', 'cycle', [{ wave: 1, time: '2024-01-01', price: 10 }]);
+			const second = makeWave('second', 'cycle', [{ wave: 1, time: '2024-01-01', price: 99 }]);
+			expect(getLatestWaveCount([first, second], 'cycle')).toBe(second);
+		});
+
+		it('compares mixed time formats by epoch seconds', () => {
+			const epoch = Math.floor(new Date('2024-06-01T00:00:00Z').getTime() / 1000) as Time;
+			const businessDay: Time = { year: 2024, month: 7, day: 1 };
+			const stringWave = makeWave('string', 'cycle', [{ wave: 1, time: '2024-05-01', price: 10 }]);
+			const epochWave = makeWave('epoch', 'cycle', [{ wave: 1, time: epoch, price: 12 }]);
+			const businessWave = makeWave('business', 'cycle', [
+				{ wave: 1, time: businessDay, price: 14 }
+			]);
+			expect(getLatestWaveCount([stringWave, epochWave, businessWave], 'cycle')).toBe(businessWave);
+			expect(getLatestWaveCount([businessWave, epochWave, stringWave], 'cycle')).toBe(businessWave);
+			expect(getLatestWaveCount([epochWave, businessWave, stringWave], 'cycle')).toBe(businessWave);
 		});
 	});
 
