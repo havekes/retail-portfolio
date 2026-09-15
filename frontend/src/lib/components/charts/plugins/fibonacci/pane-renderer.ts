@@ -69,6 +69,45 @@ export interface FibonacciRendererData {
 	preview: FibDrawingPreviewData | null;
 }
 
+/**
+ * Calculates horizontal bounds for Fibonacci Retracement level lines.
+ * Starts from the rightmost point (Math.max(p1x, p2x)) and extends rightward by 1x distance
+ * between p1 and p2 (with minimum width delta of 50px if distance < 30px).
+ * If extendLines is true and fullWidth is provided, extends to fullWidth.
+ */
+export function calculateRetracementLineBounds(
+	p1x: number,
+	p2x: number,
+	fullWidth?: number,
+	extendLines?: boolean
+): { xStart: number; xEnd: number } {
+	const xStart = Math.max(p1x, p2x);
+	const dist = Math.abs(p2x - p1x);
+	const widthDelta = dist < 30 ? 50 : dist;
+	const xEnd = extendLines && fullWidth !== undefined ? fullWidth : xStart + widthDelta;
+	return { xStart, xEnd };
+}
+
+/**
+ * Calculates horizontal bounds for Fibonacci Extension level lines.
+ * Starts from p3x and extends rightward by 2x distance between p1 and p3
+ * (with minimum width delta of 50px if distance < 30px).
+ * If extendLines is true and fullWidth is provided, extends to fullWidth.
+ */
+export function calculateExtensionLineBounds(
+	p1x: number,
+	p2x: number,
+	p3x: number,
+	fullWidth?: number,
+	extendLines?: boolean
+): { xStart: number; xEnd: number } {
+	const xStart = p3x;
+	const dist = Math.abs(p3x - p1x);
+	const widthDelta = dist < 30 ? 50 : 2 * dist;
+	const xEnd = extendLines && fullWidth !== undefined ? fullWidth : xStart + widthDelta;
+	return { xStart, xEnd };
+}
+
 export class FibonacciPaneRenderer implements IPrimitivePaneRenderer {
 	private _data: FibonacciRendererData | null = null;
 
@@ -131,10 +170,7 @@ export class FibonacciPaneRenderer implements IPrimitivePaneRenderer {
 		}
 
 		// 2. Horizontal Fibonacci level lines & text labels
-		const xMin = Math.min(p1.x, p2.x);
-		const xMax = Math.max(p1.x, p2.x);
-		const xStart = xMin;
-		const xEnd = extendLines ? width : xMax - xMin < 30 ? xMin + 50 : xMax;
+		const { xStart, xEnd } = calculateRetracementLineBounds(p1.x, p2.x, width, extendLines);
 
 		this._drawLevelLines(ctx, levels, xStart, xEnd, hpr, vpr);
 
@@ -182,10 +218,7 @@ export class FibonacciPaneRenderer implements IPrimitivePaneRenderer {
 		}
 
 		// 2. Horizontal Fibonacci level lines & text labels
-		const xMin = Math.min(p1.x, p2.x, p3.x);
-		const xMax = Math.max(p1.x, p2.x, p3.x);
-		const xStart = xMin;
-		const xEnd = extendLines ? width : xMax - xMin < 30 ? xMin + 50 : xMax;
+		const { xStart, xEnd } = calculateExtensionLineBounds(p1.x, p2.x, p3.x, width, extendLines);
 
 		this._drawLevelLines(ctx, levels, xStart, xEnd, hpr, vpr);
 
@@ -350,12 +383,19 @@ export class FibonacciPaneRenderer implements IPrimitivePaneRenderer {
 			ctx.save();
 			try {
 				ctx.globalAlpha = PREVIEW_ALPHA;
-				const allX = preview.placedPoints.map((p) => p.x).concat(mouse.x);
-				const xMin = Math.min(...allX);
-				const xMax = Math.max(...allX);
-				const xStart = xMin;
-				const xEnd = xMax - xMin < 30 ? xMin + 50 : xMax;
-				this._drawLevelLines(ctx, preview.previewLevels, xStart, xEnd, hpr, vpr);
+				let bounds: { xStart: number; xEnd: number };
+				if (preview.tool === 'extension' && preview.placedPoints.length >= 2) {
+					bounds = calculateExtensionLineBounds(
+						preview.placedPoints[0].x,
+						preview.placedPoints[1].x,
+						mouse.x
+					);
+				} else if (preview.placedPoints.length >= 1) {
+					bounds = calculateRetracementLineBounds(preview.placedPoints[0].x, mouse.x);
+				} else {
+					bounds = { xStart: mouse.x, xEnd: mouse.x + 50 };
+				}
+				this._drawLevelLines(ctx, preview.previewLevels, bounds.xStart, bounds.xEnd, hpr, vpr);
 			} finally {
 				ctx.restore();
 			}

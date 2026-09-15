@@ -11,8 +11,10 @@ import {
 	type FibToolType,
 	type SecurityFibonacciTools
 } from '$lib/utils/finance/fibonacci';
-import { MouseHandlers, type ProjectedFibPointWithTarget } from './mouse';
+import { MouseHandlers, type ProjectedFibPointWithTarget, type ProjectedFibLine } from './mouse';
 import {
+	calculateRetracementLineBounds,
+	calculateExtensionLineBounds,
 	type ExtensionRenderData,
 	type FibDrawingPreviewData,
 	type FibonacciRendererData,
@@ -93,6 +95,11 @@ export class FibonacciPrimitive extends DrawingPrimitiveBase<
 		this._subscribeToUpdate(this._state.dragChanged());
 
 		this._subscribe(this._mouseHandlers.pointClicked(), (hit) => {
+			this._state.setSelectedTool(hit.tool);
+			this._requestUpdate?.();
+		});
+
+		this._subscribe(this._mouseHandlers.lineClicked(), (hit) => {
 			this._state.setSelectedTool(hit.tool);
 			this._requestUpdate?.();
 		});
@@ -200,8 +207,9 @@ export class FibonacciPrimitive extends DrawingPrimitiveBase<
 		return this._state.dragChanged();
 	}
 
-	public setCandles(candles: Candle[]): void {
+	public override setCandles(candles: Candle[]): void {
 		this._mouseHandlers.setCandles(candles);
+		super.setCandles(candles);
 	}
 
 	protected override _calculateRendererData(): FibonacciRendererData | null {
@@ -209,6 +217,8 @@ export class FibonacciPrimitive extends DrawingPrimitiveBase<
 
 		const series = this._series;
 		const allProjectedPointsForMouse: ProjectedFibPointWithTarget[] = [];
+		const allProjectedLinesForMouse: ProjectedFibLine[] = [];
+		const timescaleWidth = this._chart?.timeScale().width() ?? 800;
 		const hovered = this._state.getHoveredPoint();
 		const dragging = this._state.getDraggingPoint();
 		const selectedTool = this._state.getSelectedTool();
@@ -275,6 +285,23 @@ export class FibonacciPrimitive extends DrawingPrimitiveBase<
 				);
 
 				const projectedLevels = projectLevels(computedLevels, series);
+
+				const bounds = calculateRetracementLineBounds(
+					x1,
+					x2,
+					timescaleWidth,
+					retracement.extendLines
+				);
+				for (const lvl of projectedLevels) {
+					if (lvl.enabled !== false) {
+						allProjectedLinesForMouse.push({
+							tool: 'retracement',
+							xStart: bounds.xStart,
+							xEnd: bounds.xEnd,
+							y: lvl.y
+						});
+					}
+				}
 
 				retracementRenderData = {
 					p1: p1Projected,
@@ -371,6 +398,24 @@ export class FibonacciPrimitive extends DrawingPrimitiveBase<
 
 				const projectedLevels = projectLevels(computedLevels, series);
 
+				const bounds = calculateExtensionLineBounds(
+					x1,
+					x2,
+					x3,
+					timescaleWidth,
+					extension.extendLines
+				);
+				for (const lvl of projectedLevels) {
+					if (lvl.enabled !== false) {
+						allProjectedLinesForMouse.push({
+							tool: 'extension',
+							xStart: bounds.xStart,
+							xEnd: bounds.xEnd,
+							y: lvl.y
+						});
+					}
+				}
+
 				extensionRenderData = {
 					p1: p1Projected,
 					p2: p2Projected,
@@ -384,6 +429,7 @@ export class FibonacciPrimitive extends DrawingPrimitiveBase<
 		}
 
 		this._mouseHandlers.setProjectedPoints(allProjectedPointsForMouse);
+		this._mouseHandlers.setProjectedLines(allProjectedLinesForMouse);
 
 		// 3. Live Drawing Preview
 		let preview: FibDrawingPreviewData | null = null;

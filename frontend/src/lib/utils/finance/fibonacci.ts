@@ -65,17 +65,17 @@ export const DEFAULT_FIB_RETRACEMENT_LEVELS: FibLevelConfig[] = [
 ];
 
 export const DEFAULT_FIB_EXTENSION_LEVELS: FibLevelConfig[] = [
-	{ ratio: 0.0, color: '#787B86', enabled: true },
-	{ ratio: 0.382, color: '#FF9800', enabled: true },
-	{ ratio: 0.5, color: '#4CAF50', enabled: true },
-	{ ratio: 0.618, color: '#089981', enabled: true },
-	{ ratio: 1.0, color: '#787B86', enabled: true },
-	{ ratio: 1.272, color: '#9C27B0', enabled: true },
+	{ ratio: 0.0, color: '#787B86', enabled: false },
+	{ ratio: 0.382, color: '#FF9800', enabled: false },
+	{ ratio: 0.5, color: '#4CAF50', enabled: false },
+	{ ratio: 0.618, color: '#089981', enabled: false },
+	{ ratio: 1.0, color: '#787B86', enabled: false },
+	{ ratio: 1.272, color: '#9C27B0', enabled: false },
 	{ ratio: 1.618, color: '#2962FF', enabled: true },
 	{ ratio: 2.0, color: '#E91E63', enabled: true },
 	{ ratio: 2.618, color: '#673AB7', enabled: true },
-	{ ratio: 3.618, color: '#3F51B5', enabled: true },
-	{ ratio: 4.236, color: '#009688', enabled: true }
+	{ ratio: 3.618, color: '#3F51B5', enabled: false },
+	{ ratio: 4.236, color: '#009688', enabled: false }
 ];
 
 /**

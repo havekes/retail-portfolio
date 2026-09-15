@@ -35,7 +35,14 @@ describe('fibonacci finance utilities', () => {
 		it('defines standard extension levels', () => {
 			const ratios = DEFAULT_FIB_EXTENSION_LEVELS.map((l) => l.ratio);
 			expect(ratios).toEqual([0.0, 0.382, 0.5, 0.618, 1.0, 1.272, 1.618, 2.0, 2.618, 3.618, 4.236]);
-			expect(DEFAULT_FIB_EXTENSION_LEVELS.every((l) => l.enabled === true)).toBe(true);
+			const enabledRatios = DEFAULT_FIB_EXTENSION_LEVELS.filter((l) => l.enabled === true).map(
+				(l) => l.ratio
+			);
+			expect(enabledRatios).toEqual([1.618, 2.0, 2.618]);
+			const disabledRatios = DEFAULT_FIB_EXTENSION_LEVELS.filter((l) => l.enabled === false).map(
+				(l) => l.ratio
+			);
+			expect(disabledRatios).toEqual([0.0, 0.382, 0.5, 0.618, 1.0, 1.272, 3.618, 4.236]);
 			expect(DEFAULT_FIB_EXTENSION_LEVELS.every((l) => typeof l.color === 'string')).toBe(true);
 		});
 	});

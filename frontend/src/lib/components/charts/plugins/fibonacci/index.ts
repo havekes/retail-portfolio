@@ -16,6 +16,8 @@ export {
 } from './constants';
 export {
 	FibonacciPaneRenderer,
+	calculateRetracementLineBounds,
+	calculateExtensionLineBounds,
 	type ProjectedFibPoint,
 	type ProjectedFibLevel,
 	type RetracementRenderData,
@@ -24,4 +26,9 @@ export {
 	type FibonacciRendererData
 } from './pane-renderer';
 export { FibonacciPaneView } from './pane-view';
-export { MouseHandlers, type MousePosition, type ProjectedFibPointWithTarget } from './mouse';
+export {
+	MouseHandlers,
+	type MousePosition,
+	type ProjectedFibPointWithTarget,
+	type ProjectedFibLine
+} from './mouse';

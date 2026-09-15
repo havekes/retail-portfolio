@@ -451,6 +451,118 @@ describe('ChartMouseHandlers', () => {
 		});
 	});
 
+	describe('click handling and lineClicked integration', () => {
+		it('fires lineClicked when clicking within line geometry, suppressing emptyAreaClicked', () => {
+			const hitTestLine = vi.fn((x: number, y: number) => {
+				if (x >= 100 && x <= 300 && Math.abs(y - 200) <= 5) {
+					return { id: 42 };
+				}
+				return null;
+			});
+
+			handlers = makeHandlers({ hitTestLine });
+			handlers.attached(mockData.chart, mockData.series);
+
+			const onPointClicked = vi.fn();
+			const onLineClicked = vi.fn();
+			const onEmptyAreaClicked = vi.fn();
+
+			handlers.pointClicked().subscribe(onPointClicked);
+			handlers.lineClicked().subscribe(onLineClicked);
+			handlers.emptyAreaClicked().subscribe(onEmptyAreaClicked);
+
+			mockData.mockChartElement.dispatchEvent(
+				new MouseEvent('click', { clientX: 200, clientY: 200 })
+			);
+
+			expect(hitTestLine).toHaveBeenCalledWith(200, 200);
+			expect(onLineClicked).toHaveBeenCalledWith({ id: 42 });
+			expect(onPointClicked).not.toHaveBeenCalled();
+			expect(onEmptyAreaClicked).not.toHaveBeenCalled();
+		});
+
+		it('gives anchor point click precedence over line hit', () => {
+			const hitTestLine = vi.fn(() => ({ id: 99 }));
+
+			handlers = makeHandlers({ hitTestLine });
+			handlers.attached(mockData.chart, mockData.series);
+			handlers.setProjectedPoints([makePoint(1, 100, 200)]);
+
+			const onPointClicked = vi.fn();
+			const onLineClicked = vi.fn();
+			const onEmptyAreaClicked = vi.fn();
+
+			handlers.pointClicked().subscribe(onPointClicked);
+			handlers.lineClicked().subscribe(onLineClicked);
+			handlers.emptyAreaClicked().subscribe(onEmptyAreaClicked);
+
+			// Click on anchor point (100, 200)
+			mockData.mockChartElement.dispatchEvent(
+				new MouseEvent('click', { clientX: 100, clientY: 200 })
+			);
+
+			expect(onPointClicked).toHaveBeenCalledWith({
+				id: 1,
+				point: { label: 'point-1' }
+			});
+			expect(onLineClicked).not.toHaveBeenCalled();
+			expect(onEmptyAreaClicked).not.toHaveBeenCalled();
+			expect(hitTestLine).not.toHaveBeenCalled();
+		});
+
+		it('fires emptyAreaClicked when neither point nor line hits', () => {
+			const hitTestLine = vi.fn(() => null);
+
+			handlers = makeHandlers({ hitTestLine });
+			handlers.attached(mockData.chart, mockData.series);
+			handlers.setProjectedPoints([makePoint(1, 100, 200)]);
+
+			const onPointClicked = vi.fn();
+			const onLineClicked = vi.fn();
+			const onEmptyAreaClicked = vi.fn();
+
+			handlers.pointClicked().subscribe(onPointClicked);
+			handlers.lineClicked().subscribe(onLineClicked);
+			handlers.emptyAreaClicked().subscribe(onEmptyAreaClicked);
+
+			mockData.mockChartElement.dispatchEvent(
+				new MouseEvent('click', { clientX: 300, clientY: 300 })
+			);
+
+			expect(hitTestLine).toHaveBeenCalledWith(300, 300);
+			expect(onEmptyAreaClicked).toHaveBeenCalledTimes(1);
+			expect(onPointClicked).not.toHaveBeenCalled();
+			expect(onLineClicked).not.toHaveBeenCalled();
+		});
+
+		it('suppresses lineClicked when drag occurred', () => {
+			const hitTestLine = vi.fn(() => ({ id: 42 }));
+
+			handlers = makeHandlers({ hitTestLine });
+			handlers.attached(mockData.chart, mockData.series);
+			handlers.setProjectedPoints([makePoint(1, 100, 200)]);
+
+			const onLineClicked = vi.fn();
+			handlers.lineClicked().subscribe(onLineClicked);
+
+			// Drag gesture
+			mockData.mockChartElement.dispatchEvent(
+				new MouseEvent('mousedown', { clientX: 100, clientY: 200 })
+			);
+			mockData.mockChartElement.dispatchEvent(
+				new MouseEvent('mousemove', { clientX: 150, clientY: 200 })
+			);
+			mockData.mockChartElement.dispatchEvent(
+				new MouseEvent('mouseup', { clientX: 150, clientY: 200 })
+			);
+			mockData.mockChartElement.dispatchEvent(
+				new MouseEvent('click', { clientX: 150, clientY: 200 })
+			);
+
+			expect(onLineClicked).not.toHaveBeenCalled();
+		});
+	});
+
 	describe('listener lifecycle', () => {
 		it('detached() removes all attached DOM listeners', () => {
 			const elementRemoveSpy = vi.spyOn(mockData.mockChartElement, 'removeEventListener');

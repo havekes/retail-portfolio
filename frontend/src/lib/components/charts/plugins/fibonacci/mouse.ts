@@ -17,6 +17,13 @@ export interface ProjectedFibPointWithTarget {
 	originalPoint: FibPoint;
 }
 
+export interface ProjectedFibLine {
+	tool: FibToolType;
+	xStart: number;
+	xEnd: number;
+	y: number;
+}
+
 /**
  * Thin fibonacci adapter over the shared {@link ChartMouseHandlers}. Keeps the
  * plugin's public `MouseHandlers` surface (zero-arg constructor included);
@@ -29,13 +36,45 @@ export class MouseHandlers extends ChartMouseHandlers<
 	FibPoint
 > {
 	private _candleLookup: Map<number, Candle> = new Map();
+	private _projectedLines: ProjectedFibLine[] = [];
 
 	constructor() {
 		super({
 			hitTestRadius: HIT_TEST_RADIUS,
 			toTarget: (p) => ({ tool: p.tool, pointIndex: p.pointIndex }),
-			adjustPosition: (pos, series) => this._adjustPosition(pos, series)
+			adjustPosition: (pos, series) => this._adjustPosition(pos, series),
+			hitTestLine: (x, y) => {
+				const hit = this.hitTestLine(x, y);
+				return hit ? { tool: hit.tool, pointIndex: 0 } : null;
+			}
 		});
+	}
+
+	public setProjectedLines(lines: ProjectedFibLine[]): void {
+		this._projectedLines = lines;
+	}
+
+	public hitTestLine(x: number, y: number): ProjectedFibLine | null {
+		let closestLine: ProjectedFibLine | null = null;
+		let closestDist = Infinity;
+
+		for (const line of this._projectedLines) {
+			const minX = Math.min(line.xStart, line.xEnd);
+			const maxX = Math.max(line.xStart, line.xEnd);
+			const clampX = Math.max(minX, Math.min(x, maxX));
+			const dist = Math.hypot(x - clampX, y - line.y);
+			if (dist <= HIT_TEST_RADIUS && dist < closestDist) {
+				closestDist = dist;
+				closestLine = line;
+			}
+		}
+
+		return closestLine;
+	}
+
+	public override detached(): void {
+		super.detached();
+		this._projectedLines = [];
 	}
 
 	private _adjustPosition(pos: MousePosition, series: ISeriesApi<SeriesType>) {
