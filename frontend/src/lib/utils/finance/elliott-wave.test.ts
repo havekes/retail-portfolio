@@ -570,6 +570,20 @@ describe('elliott-wave finance utilities', () => {
 			expect(getWaveIdentity(idlessWaves[0], 0)).not.toBe(getWaveIdentity(idlessWaves[0], 1));
 		});
 
+		it('serializes BusinessDay times distinctly rather than as [object Object]', () => {
+			const base: DegreeWaveCount = {
+				id: '',
+				degree: 'cycle',
+				type: 'impulse',
+				points: [{ wave: 0, time: { year: 2024, month: 1, day: 1 }, price: 10 }]
+			};
+			const later: DegreeWaveCount = {
+				...base,
+				points: [{ wave: 0, time: { year: 2024, month: 1, day: 2 }, price: 10 }]
+			};
+			expect(getWaveIdentity(base, 0)).not.toBe(getWaveIdentity(later, 0));
+		});
+
 		it('assigns stable, distinct ids to every id-less wave without mutating input', () => {
 			const first = normalizeWaveIds(idlessWaves);
 			const second = normalizeWaveIds(idlessWaves);

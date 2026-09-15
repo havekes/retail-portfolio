@@ -134,6 +134,18 @@ function stableHash(input: string): string {
 }
 
 /**
+ * Stable string form of a lightweight-charts `Time` for id derivation. `BusinessDay` objects
+ * are serialized field-by-field (their default `String()` is `[object Object]`, which would
+ * collide distinct dates).
+ */
+function serializeTime(time: Time): string {
+	if (typeof time === 'object' && time !== null) {
+		return `${time.year}-${time.month}-${time.day}`;
+	}
+	return String(time);
+}
+
+/**
  * Resolves a wave's identity. A persisted `id` always wins; otherwise a deterministic id is
  * derived from the wave's index, degree, type, and point positions. Deriving rather than
  * generating a random UUID keeps identity stable across loads/serializations, so re-loading a
@@ -142,7 +154,9 @@ function stableHash(input: string): string {
  */
 export function getWaveIdentity(wave: DegreeWaveCount, index = 0): string {
 	if (wave.id) return wave.id;
-	const points = (wave.points ?? []).map((p) => `${p.wave}:${String(p.time)}:${p.price}`).join('|');
+	const points = (wave.points ?? [])
+		.map((p) => `${p.wave}:${serializeTime(p.time)}:${p.price}`)
+		.join('|');
 	return `wave-${index}-${wave.degree}-${wave.type}-${stableHash(points)}`;
 }
 
