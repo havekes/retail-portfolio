@@ -23,6 +23,11 @@ export interface ChartMouseHandlersConfig<TPoint, TTarget> {
 		pos: MousePosition,
 		series: ISeriesApi<SeriesType>
 	) => { price: number; y: number; snapped?: boolean };
+	/**
+	 * Optional line hit testing hook. Checks if coordinates (x, y) hit a line
+	 * geometry and returns the target.
+	 */
+	hitTestLine?: (x: number, y: number) => TTarget | null;
 }
 
 /**
@@ -57,6 +62,7 @@ export class ChartMouseHandlers<
 	private _chartClicked: Delegate<{ time: Time; price: number; x: number; y: number }> =
 		new Delegate();
 	private _pointClicked: Delegate<TTarget & { point: TOriginal }> = new Delegate();
+	private _lineClicked: Delegate<TTarget> = new Delegate();
 	private _emptyAreaClicked: Delegate<void> = new Delegate();
 	private _pointHovered: Delegate<TTarget | null> = new Delegate();
 	private _dragStarted: Delegate<TTarget> = new Delegate();
@@ -127,6 +133,7 @@ export class ChartMouseHandlers<
 		this._mouseMoved.destroy();
 		this._chartClicked.destroy();
 		this._pointClicked.destroy();
+		this._lineClicked.destroy();
 		this._emptyAreaClicked.destroy();
 		this._pointHovered.destroy();
 		this._dragStarted.destroy();
@@ -223,6 +230,10 @@ export class ChartMouseHandlers<
 
 	public pointClicked(): ISubscription<TTarget & { point: TOriginal }> {
 		return this._pointClicked;
+	}
+
+	public lineClicked(): ISubscription<TTarget> {
+		return this._lineClicked;
 	}
 
 	public emptyAreaClicked(): ISubscription<void> {
@@ -411,8 +422,13 @@ export class ChartMouseHandlers<
 					...this._config.toTarget(hit),
 					point: hit.originalPoint
 				});
-			} else if (pos.insidePlotArea) {
-				this._emptyAreaClicked.fire();
+			} else {
+				const lineHit = this._config.hitTestLine?.(pos.x, pos.y);
+				if (lineHit) {
+					this._lineClicked.fire(lineHit);
+				} else if (pos.insidePlotArea) {
+					this._emptyAreaClicked.fire();
+				}
 			}
 		}
 	}

@@ -7,6 +7,8 @@ import {
 	FibonacciPaneRenderer,
 	FibonacciPaneView,
 	MouseHandlers,
+	calculateRetracementLineBounds,
+	calculateExtensionLineBounds,
 	HIT_TEST_RADIUS,
 	HANDLE_RADIUS,
 	PREVIEW_ALPHA,
@@ -14,6 +16,7 @@ import {
 	DEFAULT_TRENDLINE_COLOR,
 	type FibPointTarget,
 	type ProjectedFibPointWithTarget,
+	type ProjectedFibLine,
 	type FibonacciRendererData
 } from './index';
 import type { Candle } from '$lib/utils/finance/candle';
@@ -154,6 +157,77 @@ describe('Fibonacci Chart Primitive Plugin', () => {
 			expect(PREVIEW_ALPHA).toBe(0.65);
 			expect(DEFAULT_HANDLE_COLOR).toBe('#2962FF');
 			expect(DEFAULT_TRENDLINE_COLOR).toBe('#787B86');
+		});
+	});
+
+	describe('Line Bounds Calculations', () => {
+		describe('calculateRetracementLineBounds', () => {
+			it('starts from Math.max(p1x, p2x) and extends rightward by 1x distance for left-to-right swing', () => {
+				const bounds = calculateRetracementLineBounds(100, 250);
+				// dist = 150 -> xStart = 250, xEnd = 250 + 150 = 400
+				expect(bounds.xStart).toBe(250);
+				expect(bounds.xEnd).toBe(400);
+			});
+
+			it('starts from Math.max(p1x, p2x) and extends rightward by 1x distance for right-to-left swing', () => {
+				const bounds = calculateRetracementLineBounds(250, 100);
+				// dist = 150 -> xStart = 250, xEnd = 250 + 150 = 400
+				expect(bounds.xStart).toBe(250);
+				expect(bounds.xEnd).toBe(400);
+			});
+
+			it('falls back to minimum width delta of 50px when distance is less than 30px', () => {
+				const boundsSmall = calculateRetracementLineBounds(100, 110);
+				// dist = 10 < 30 -> widthDelta = 50 -> xStart = 110, xEnd = 160
+				expect(boundsSmall.xStart).toBe(110);
+				expect(boundsSmall.xEnd).toBe(160);
+
+				const boundsZero = calculateRetracementLineBounds(100, 100);
+				// dist = 0 < 30 -> widthDelta = 50 -> xStart = 100, xEnd = 150
+				expect(boundsZero.xStart).toBe(100);
+				expect(boundsZero.xEnd).toBe(150);
+			});
+
+			it('extends to fullWidth when extendLines is true and fullWidth is provided', () => {
+				const bounds = calculateRetracementLineBounds(100, 250, 800, true);
+				expect(bounds.xStart).toBe(250);
+				expect(bounds.xEnd).toBe(800);
+			});
+
+			it('ignores extendLines when fullWidth is undefined', () => {
+				const bounds = calculateRetracementLineBounds(100, 250, undefined, true);
+				expect(bounds.xStart).toBe(250);
+				expect(bounds.xEnd).toBe(400);
+			});
+		});
+
+		describe('calculateExtensionLineBounds', () => {
+			it('starts from p3x and extends rightward by 2x distance between p1 and p3 for left-to-right points', () => {
+				const bounds = calculateExtensionLineBounds(100, 200, 250);
+				// dist = |250 - 100| = 150 -> widthDelta = 2 * 150 = 300 -> xStart = 250, xEnd = 550
+				expect(bounds.xStart).toBe(250);
+				expect(bounds.xEnd).toBe(550);
+			});
+
+			it('starts from p3x and extends rightward by 2x distance when p3 is to the left of p1', () => {
+				const bounds = calculateExtensionLineBounds(300, 200, 150);
+				// dist = |150 - 300| = 150 -> widthDelta = 2 * 150 = 300 -> xStart = 150, xEnd = 450
+				expect(bounds.xStart).toBe(150);
+				expect(bounds.xEnd).toBe(450);
+			});
+
+			it('falls back to minimum width delta of 50px when distance between p1 and p3 is less than 30px', () => {
+				const bounds = calculateExtensionLineBounds(100, 200, 110);
+				// dist = |110 - 100| = 10 < 30 -> widthDelta = 50 -> xStart = 110, xEnd = 160
+				expect(bounds.xStart).toBe(110);
+				expect(bounds.xEnd).toBe(160);
+			});
+
+			it('extends to fullWidth when extendLines is true and fullWidth is provided', () => {
+				const bounds = calculateExtensionLineBounds(100, 200, 250, 1000, true);
+				expect(bounds.xStart).toBe(250);
+				expect(bounds.xEnd).toBe(1000);
+			});
 		});
 	});
 
@@ -665,6 +739,55 @@ describe('Fibonacci Chart Primitive Plugin', () => {
 			expect(pointClickHandler).not.toHaveBeenCalled();
 			expect(emptyAreaHandler).not.toHaveBeenCalled();
 		});
+
+		describe('hitTestLine', () => {
+			it('registers a hit inside [xStart, xEnd] within HIT_TEST_RADIUS', () => {
+				const lines: ProjectedFibLine[] = [{ tool: 'retracement', xStart: 100, xEnd: 300, y: 200 }];
+				mouse.setProjectedLines(lines);
+
+				// Exactly on the line
+				expect(mouse.hitTestLine(200, 200)?.tool).toBe('retracement');
+				// Within HIT_TEST_RADIUS vertically
+				expect(mouse.hitTestLine(200, 200 + HIT_TEST_RADIUS)?.tool).toBe('retracement');
+				expect(mouse.hitTestLine(200, 200 - HIT_TEST_RADIUS)?.tool).toBe('retracement');
+				// At start and end boundary
+				expect(mouse.hitTestLine(100, 200)?.tool).toBe('retracement');
+				expect(mouse.hitTestLine(300, 200)?.tool).toBe('retracement');
+				// Near endpoints within HIT_TEST_RADIUS
+				expect(mouse.hitTestLine(95, 200)?.tool).toBe('retracement');
+				expect(mouse.hitTestLine(305, 200)?.tool).toBe('retracement');
+			});
+
+			it('misses beyond vertical HIT_TEST_RADIUS or horizontal ends', () => {
+				const lines: ProjectedFibLine[] = [{ tool: 'retracement', xStart: 100, xEnd: 300, y: 200 }];
+				mouse.setProjectedLines(lines);
+
+				// Beyond vertical radius
+				expect(mouse.hitTestLine(200, 200 + HIT_TEST_RADIUS + 1)).toBeNull();
+				expect(mouse.hitTestLine(200, 200 - HIT_TEST_RADIUS - 1)).toBeNull();
+				// Far beyond horizontal ends
+				expect(mouse.hitTestLine(70, 200)).toBeNull();
+				expect(mouse.hitTestLine(330, 200)).toBeNull();
+			});
+
+			it('distinguishes between retracement and extension lines and resolves closest line', () => {
+				const lines: ProjectedFibLine[] = [
+					{ tool: 'retracement', xStart: 100, xEnd: 300, y: 150 },
+					{ tool: 'extension', xStart: 200, xEnd: 400, y: 250 }
+				];
+				mouse.setProjectedLines(lines);
+
+				// Query near retracement line
+				const hitRetracement = mouse.hitTestLine(150, 153);
+				expect(hitRetracement).not.toBeNull();
+				expect(hitRetracement?.tool).toBe('retracement');
+
+				// Query near extension line
+				const hitExtension = mouse.hitTestLine(250, 248);
+				expect(hitExtension).not.toBeNull();
+				expect(hitExtension?.tool).toBe('extension');
+			});
+		});
 	});
 
 	describe('FibonacciPaneRenderer', () => {
@@ -1100,6 +1223,135 @@ describe('Fibonacci Chart Primitive Plugin', () => {
 			expect(primitive.hitTest()).toBeNull();
 
 			primitive.destroy();
+		});
+
+		it('selects retracement tool when clicking along a horizontal level line', () => {
+			primitive.setRetracement({
+				p1: { time: '2024-01-05' as Time, price: 160 }, // x: 100, y: 200
+				p2: { time: '2024-01-13' as Time, price: 170 } // x: 300, y: 150
+			});
+			primitive.updateAllViews();
+
+			expect(primitive.getSelectedTool()).toBeNull();
+
+			// Level 0.5 is at price 165 (y: 175)
+			// Retracement level line extends from xStart = Math.max(100, 300) = 300 to xEnd = 300 + 200 = 500
+			// Click at x: 400, y: 175 (along the line, away from anchor handles at 100,200 and 300,150)
+			mockData.mockChartElement.dispatchEvent(
+				new MouseEvent('click', { clientX: 400, clientY: 175 })
+			);
+
+			expect(primitive.getSelectedTool()).toBe('retracement');
+		});
+
+		it('selects extension tool when clicking along a horizontal level line and deselects on empty area', () => {
+			primitive.setExtension({
+				p1: { time: '2024-01-05' as Time, price: 180 }, // x: 100, y: 100
+				p2: { time: '2024-01-09' as Time, price: 160 }, // x: 200, y: 200 (move = -20)
+				p3: { time: '2024-01-13' as Time, price: 170 } // x: 300, y: 150
+			});
+			primitive.updateAllViews();
+
+			expect(primitive.getSelectedTool()).toBeNull();
+
+			// Level 2.0 is enabled by default: price = 170 + 2.0 * (-20) = 130 (y: (200 - 130) / 0.2 = 350)
+			// Extension level line starts at p3.x = 300, extends rightward by 2 * |300 - 100| = 400 to xEnd = 700
+			// Click at x: 450, y: 350 (along the level 2.0 line)
+			mockData.mockChartElement.dispatchEvent(
+				new MouseEvent('click', { clientX: 450, clientY: 350 })
+			);
+
+			expect(primitive.getSelectedTool()).toBe('extension');
+
+			// Click on empty space (x: 50, y: 50) deselects
+			mockData.mockChartElement.dispatchEvent(
+				new MouseEvent('click', { clientX: 50, clientY: 50 })
+			);
+
+			expect(primitive.getSelectedTool()).toBeNull();
+		});
+
+		it('gives anchor handle interaction precedence over level line selection', () => {
+			primitive.setRetracement({
+				p1: { time: '2024-01-05' as Time, price: 160 },
+				p2: { time: '2024-01-13' as Time, price: 170 }
+			});
+			primitive.updateAllViews();
+
+			// Click directly on P2 anchor handle (x: 300, y: 150)
+			mockData.mockChartElement.dispatchEvent(
+				new MouseEvent('click', { clientX: 300, clientY: 150 })
+			);
+
+			// Selected tool should still be retracement (via pointClicked)
+			expect(primitive.getSelectedTool()).toBe('retracement');
+		});
+
+		it('renders only 3 level lines and 3 labels (1.618, 2.0, 2.618) by default for newly created extension drawings', () => {
+			const mockCanvas = createMockCanvasTarget();
+			primitive.setExtension({
+				p1: { time: '2024-01-05' as Time, price: 180 },
+				p2: { time: '2024-01-09' as Time, price: 160 },
+				p3: { time: '2024-01-13' as Time, price: 170 }
+			});
+			primitive.updateAllViews();
+
+			const views = primitive.paneViews();
+			const renderer = views[0]?.renderer();
+			expect(renderer).toBeDefined();
+
+			renderer?.draw(mockCanvas.target);
+
+			// Labels rendered via fillText
+			const fillTextCalls = mockCanvas.drawCalls.filter((c) => c.type === 'fillText');
+			expect(fillTextCalls).toHaveLength(3);
+
+			const labelTexts = fillTextCalls.map((c) => c.args[0] as string);
+			expect(labelTexts.some((t) => t.startsWith('1.618'))).toBe(true);
+			expect(labelTexts.some((t) => t.startsWith('2.0') || t.startsWith('2 ('))).toBe(true);
+			expect(labelTexts.some((t) => t.startsWith('2.618'))).toBe(true);
+
+			// Disabled default levels (0, 0.382, 0.5, 0.618, 1.0, 1.272, 3.618, 4.236) must not be rendered
+			expect(labelTexts.some((t) => t.startsWith('0.382'))).toBe(false);
+			expect(labelTexts.some((t) => t.startsWith('0.5'))).toBe(false);
+			expect(labelTexts.some((t) => t.startsWith('0.618'))).toBe(false);
+			expect(labelTexts.some((t) => t.startsWith('1.0') || t.startsWith('1 ('))).toBe(false);
+		});
+
+		it('renders level lines and labels and supports hit testing when projecting into future coordinates past the last candle', () => {
+			// Provide 20 historical candles (day 1 to 20; day 20 is at x = 19 * 25 = 475)
+			primitive.setCandles(createDailyCandles(20));
+
+			// Place retracement: P1 at day 10 (x: 225, price: 160 -> y: 200), P2 at day 20 (x: 475, price: 180 -> y: 100)
+			// Level lines start at xStart = 475 (the last candle) and project rightward by 1x (250px) to xEnd = 725
+			// The span [475, 725] is completely in future coordinate space!
+			primitive.setRetracement({
+				p1: { time: '2024-01-10' as Time, price: 160 },
+				p2: { time: '2024-01-20' as Time, price: 180 }
+			});
+			primitive.updateAllViews();
+
+			expect(primitive.getSelectedTool()).toBeNull();
+
+			// Level 0.5 is at price 170 (y: 150)
+			// Click at x: 600 (well past the last candle at x: 475), y: 150
+			mockData.mockChartElement.dispatchEvent(
+				new MouseEvent('click', { clientX: 600, clientY: 150 })
+			);
+
+			expect(primitive.getSelectedTool()).toBe('retracement');
+
+			// Also verify canvas drawing receives future bounds
+			const mockCanvas = createMockCanvasTarget();
+			const views = primitive.paneViews();
+			const renderer = views[0]?.renderer();
+			renderer?.draw(mockCanvas.target);
+
+			const hpr = mockCanvas.scope.horizontalPixelRatio;
+			// Check that lineTo / moveTo coordinates project past 475 * hpr up to 725 * hpr
+			const lineToCalls = mockCanvas.drawCalls.filter((c) => c.type === 'lineTo');
+			const reachesFutureEnd = lineToCalls.some((c) => c.args[0] === 725 * hpr);
+			expect(reachesFutureEnd).toBe(true);
 		});
 	});
 });
