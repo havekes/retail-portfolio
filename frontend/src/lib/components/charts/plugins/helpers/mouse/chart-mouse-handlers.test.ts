@@ -82,9 +82,7 @@ function createMockChartAndSeries() {
 		chartElement: vi.fn(() => mockChartElement),
 		timeScale: vi.fn(() => timeScale),
 		options: vi.fn(() => ({ handleScroll: { pressedMouseMove: true } })),
-		applyOptions: vi.fn(),
-		setCrosshairPosition: vi.fn(),
-		clearCrosshairPosition: vi.fn()
+		applyOptions: vi.fn()
 	} as unknown as IChartApi;
 
 	return { chart, series, mockChartElement, timeScale, priceScale };
@@ -405,62 +403,51 @@ describe('ChartMouseHandlers', () => {
 		});
 	});
 
-	describe('crosshair snapping synchronization', () => {
-		it('sets crosshair position when adjustPosition returns snapped: true in drawing mode', () => {
-			const adjustPosition = vi.fn(() => ({ price: 125, y: 375, snapped: true }));
-			handlers = makeHandlers({ adjustPosition });
+	describe('native crosshair visibility toggling', () => {
+		it('hides native horizontal crosshair line when entering drawing mode', () => {
+			handlers.attached(mockData.chart, mockData.series);
+			vi.mocked(mockData.chart.applyOptions).mockClear();
+
+			handlers.setDrawingMode(true);
+
+			expect(mockData.chart.applyOptions).toHaveBeenCalledWith({
+				crosshair: { horzLine: { visible: false, labelVisible: false } }
+			});
+		});
+
+		it('restores native horizontal crosshair line when exiting drawing mode', () => {
 			handlers.attached(mockData.chart, mockData.series);
 			handlers.setDrawingMode(true);
-
-			mockData.mockChartElement.dispatchEvent(
-				new MouseEvent('mousemove', { clientX: 200, clientY: 200 })
-			);
-
-			expect(mockData.chart.setCrosshairPosition).toHaveBeenCalledWith(
-				125,
-				'2024-01-09',
-				mockData.series
-			);
-		});
-
-		it('clears crosshair position when adjustPosition returns snapped: false in drawing mode', () => {
-			const adjustPosition = vi.fn(() => ({ price: 160, y: 200, snapped: false }));
-			handlers = makeHandlers({ adjustPosition });
-			handlers.attached(mockData.chart, mockData.series);
-			handlers.setDrawingMode(true);
-
-			mockData.mockChartElement.dispatchEvent(
-				new MouseEvent('mousemove', { clientX: 200, clientY: 200 })
-			);
-
-			expect(mockData.chart.setCrosshairPosition).not.toHaveBeenCalled();
-			expect(mockData.chart.clearCrosshairPosition).toHaveBeenCalled();
-		});
-
-		it('clears crosshair position on mouseleave', () => {
-			handlers.setDrawingMode(true);
-			vi.mocked(mockData.chart.clearCrosshairPosition).mockClear();
-
-			mockData.mockChartElement.dispatchEvent(new MouseEvent('mouseleave'));
-
-			expect(mockData.chart.clearCrosshairPosition).toHaveBeenCalled();
-		});
-
-		it('clears crosshair position when exiting drawing mode', () => {
-			handlers.setDrawingMode(true);
-			vi.mocked(mockData.chart.clearCrosshairPosition).mockClear();
+			vi.mocked(mockData.chart.applyOptions).mockClear();
 
 			handlers.setDrawingMode(false);
 
-			expect(mockData.chart.clearCrosshairPosition).toHaveBeenCalled();
+			expect(mockData.chart.applyOptions).toHaveBeenCalledWith({
+				crosshair: { horzLine: { visible: true, labelVisible: true } }
+			});
 		});
 
-		it('clears crosshair position when detached()', () => {
-			vi.mocked(mockData.chart.clearCrosshairPosition).mockClear();
+		it('restores native horizontal crosshair line when detached()', () => {
+			handlers.attached(mockData.chart, mockData.series);
+			handlers.setDrawingMode(true);
+			vi.mocked(mockData.chart.applyOptions).mockClear();
 
 			handlers.detached();
 
-			expect(mockData.chart.clearCrosshairPosition).toHaveBeenCalled();
+			expect(mockData.chart.applyOptions).toHaveBeenCalledWith({
+				crosshair: { horzLine: { visible: true, labelVisible: true } }
+			});
+		});
+
+		it('hides native horizontal crosshair line on attached() if drawing mode was already true', () => {
+			handlers.setDrawingMode(true);
+			vi.mocked(mockData.chart.applyOptions).mockClear();
+
+			handlers.attached(mockData.chart, mockData.series);
+
+			expect(mockData.chart.applyOptions).toHaveBeenCalledWith({
+				crosshair: { horzLine: { visible: false, labelVisible: false } }
+			});
 		});
 	});
 

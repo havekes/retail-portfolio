@@ -46,6 +46,13 @@ export class MouseHandlers extends ChartMouseHandlers<
 		return { price, y: snappedY !== null ? snappedY : pos.y, snapped: true };
 	}
 
+	public adjustPosition(
+		pos: MousePosition,
+		series: ISeriesApi<SeriesType>
+	): { price: number; y: number; snapped: boolean } {
+		return this._adjustPosition(pos, series);
+	}
+
 	public setCandles(candles: Candle[]): void {
 		this._candleLookup = buildCandleLookup(candles);
 	}

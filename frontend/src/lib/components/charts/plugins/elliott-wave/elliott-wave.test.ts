@@ -117,9 +117,7 @@ function createMockChartAndSeries() {
 		chartElement: vi.fn(() => mockChartElement),
 		timeScale: vi.fn(() => timeScale),
 		options: vi.fn(() => ({ handleScroll: { pressedMouseMove: true } })),
-		applyOptions: vi.fn(),
-		setCrosshairPosition: vi.fn(),
-		clearCrosshairPosition: vi.fn()
+		applyOptions: vi.fn()
 	} as unknown as IChartApi;
 
 	return { chart, series, mockChartElement, timeScale, priceScale };
@@ -773,6 +771,37 @@ describe('Elliott Wave Plugin', () => {
 			// But no text label is drawn for nextWave 0
 			const textCalls = drawCalls.filter((c) => c.type === 'fillText');
 			expect(textCalls.length).toBe(0);
+		});
+
+		it('renders full-width horizontal dashed crosshair guide line when drawing preview currentMouse is present', () => {
+			const { target, drawCalls, scope } = createMockCanvasTarget();
+
+			renderer.update({
+				degrees: [],
+				preview: {
+					degree: 'cycle',
+					config: CYCLE_STYLE,
+					nextWave: 0,
+					lastPoint: null,
+					currentMouse: { x: 100, y: 200 }
+				}
+			});
+
+			renderer.draw(target);
+
+			const dashCalls = drawCalls.filter((c) => c.type === 'setLineDash');
+			expect(dashCalls.length).toBeGreaterThanOrEqual(1);
+
+			const vpr = scope.verticalPixelRatio;
+			const moveToCalls = drawCalls.filter(
+				(c) => c.type === 'moveTo' && c.args[0] === 0 && c.args[1] === 200 * vpr
+			);
+			const lineToCalls = drawCalls.filter(
+				(c) =>
+					c.type === 'lineTo' && c.args[0] === scope.bitmapSize.width && c.args[1] === 200 * vpr
+			);
+			expect(moveToCalls).toHaveLength(1);
+			expect(lineToCalls).toHaveLength(1);
 		});
 
 		it('renders drawing preview dashed line and ghost badge for wave 1', () => {
@@ -1993,23 +2022,33 @@ describe('Elliott Wave Plugin', () => {
 				expect(primitive.getPoints('cycle')[0].price).toBe(100);
 			});
 
-			it('synchronizes crosshair position to snapped wick when snapToWicks is enabled in drawing mode', () => {
+			it('snaps drawing preview mouse position to candle wick when snapToWicks is enabled', () => {
 				primitive.setSnapToWicks(true);
 				primitive.setDrawingMode(true);
+
+				expect(mockData.chart.applyOptions).toHaveBeenCalledWith({
+					crosshair: { horzLine: { visible: false, labelVisible: false } }
+				});
 
 				// Move mouse over day 5 (clientX: 100, clientY: 460 -> price 108, snaps to high 114)
 				mockData.mockChartElement.dispatchEvent(
 					new MouseEvent('mousemove', { clientX: 100, clientY: 460 })
 				);
 
-				expect(mockData.chart.setCrosshairPosition).toHaveBeenCalledWith(
-					114,
-					'2024-01-05',
-					mockData.series
-				);
+				primitive.updateAllViews();
+				const paneView = primitive.paneViews()[0];
+				// eslint-disable-next-line @typescript-eslint/no-explicit-any
+				const rendererData = (paneView.renderer() as any)._data;
+				expect(rendererData.preview.currentMouse.y).toBe(mockData.series.priceToCoordinate(114));
+
+				// Exit drawing mode restores native crosshair
+				primitive.setDrawingMode(false);
+				expect(mockData.chart.applyOptions).toHaveBeenCalledWith({
+					crosshair: { horzLine: { visible: true, labelVisible: true } }
+				});
 			});
 
-			it('clears crosshair position when snapToWicks is disabled in drawing mode', () => {
+			it('uses raw pointer position for drawing preview when snapToWicks is disabled', () => {
 				primitive.setSnapToWicks(false);
 				primitive.setDrawingMode(true);
 
@@ -2017,8 +2056,11 @@ describe('Elliott Wave Plugin', () => {
 					new MouseEvent('mousemove', { clientX: 100, clientY: 460 })
 				);
 
-				expect(mockData.chart.setCrosshairPosition).not.toHaveBeenCalled();
-				expect(mockData.chart.clearCrosshairPosition).toHaveBeenCalled();
+				primitive.updateAllViews();
+				const paneView = primitive.paneViews()[0];
+				// eslint-disable-next-line @typescript-eslint/no-explicit-any
+				const rendererData = (paneView.renderer() as any)._data;
+				expect(rendererData.preview.currentMouse.y).toBe(460);
 			});
 		});
 	});

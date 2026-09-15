@@ -111,7 +111,7 @@ export class ElliottWavePaneRenderer implements IPrimitivePaneRenderer {
 
 			// 2. Draw drawing preview (dashed guide line to mouse and ghost label)
 			if (this._data.preview && this._data.preview.currentMouse) {
-				this._drawDrawingPreview(ctx, this._data.preview, hpr, vpr);
+				this._drawDrawingPreview(ctx, this._data.preview, hpr, vpr, scope.bitmapSize.width);
 			}
 
 			// 3. Draw wave labels / nodes for each degree
@@ -236,7 +236,8 @@ export class ElliottWavePaneRenderer implements IPrimitivePaneRenderer {
 		ctx: CanvasRenderingContext2D,
 		preview: DrawingPreviewData,
 		hpr: number,
-		vpr: number
+		vpr: number,
+		bitmapWidth: number
 	): void {
 		const mouse = preview.currentMouse;
 		if (!mouse) return;
@@ -249,6 +250,21 @@ export class ElliottWavePaneRenderer implements IPrimitivePaneRenderer {
 			preview.nextWave === 'B' ||
 			preview.nextWave === 'C';
 		const previewColor = isCorrective ? CORRECTIVE_COLOR : IMPULSE_COLOR;
+
+		// Horizontal dashed crosshair guide line across the full width of the pane
+		ctx.save();
+		try {
+			ctx.beginPath();
+			ctx.strokeStyle = '#758696';
+			ctx.lineWidth = 1 * hpr;
+			const dash = 4 * hpr;
+			ctx.setLineDash([dash, dash]);
+			ctx.moveTo(0, mouseY);
+			ctx.lineTo(bitmapWidth, mouseY);
+			ctx.stroke();
+		} finally {
+			ctx.restore();
+		}
 
 		// Dashed line from last placed point to current mouse position
 		if (preview.lastPoint) {

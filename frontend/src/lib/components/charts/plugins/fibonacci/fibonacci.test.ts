@@ -91,9 +91,7 @@ function createMockChartAndSeries() {
 		chartElement: vi.fn(() => mockChartElement),
 		timeScale: vi.fn(() => timeScale),
 		options: vi.fn(() => ({ handleScroll: { pressedMouseMove: true } })),
-		applyOptions: vi.fn(),
-		setCrosshairPosition: vi.fn(),
-		clearCrosshairPosition: vi.fn()
+		applyOptions: vi.fn()
 	} as unknown as IChartApi;
 
 	return { chart, series, mockChartElement, timeScale, priceScale };
@@ -763,6 +761,38 @@ describe('Fibonacci Chart Primitive Plugin', () => {
 			expect(fillTextCalls[0].args[0]).toBe('0.5 (155.00)');
 		});
 
+		it('renders full-width horizontal dashed crosshair guide line when drawing preview currentMouse is present', () => {
+			const renderData: FibonacciRendererData = {
+				retracement: null,
+				extension: null,
+				preview: {
+					tool: 'retracement',
+					placedPoints: [],
+					currentMouse: { x: 200, y: 150, time: '2024-01-09' as Time, price: 170 },
+					previewLevels: []
+				}
+			};
+
+			renderer.update(renderData);
+			renderer.draw(mockCanvas.target);
+
+			const dashCalls = mockCanvas.drawCalls.filter((c) => c.type === 'setLineDash');
+			expect(dashCalls.length).toBeGreaterThanOrEqual(1);
+
+			const vpr = mockCanvas.scope.verticalPixelRatio;
+			const moveToCalls = mockCanvas.drawCalls.filter(
+				(c) => c.type === 'moveTo' && c.args[0] === 0 && c.args[1] === 150 * vpr
+			);
+			const lineToCalls = mockCanvas.drawCalls.filter(
+				(c) =>
+					c.type === 'lineTo' &&
+					c.args[0] === mockCanvas.scope.bitmapSize.width &&
+					c.args[1] === 150 * vpr
+			);
+			expect(moveToCalls).toHaveLength(1);
+			expect(lineToCalls).toHaveLength(1);
+		});
+
 		it('renders hover and drag rings on active anchor handles', () => {
 			const renderData: FibonacciRendererData = {
 				retracement: {
@@ -1040,19 +1070,28 @@ describe('Fibonacci Chart Primitive Plugin', () => {
 			expect(primitive.getExtension()).toBeNull();
 		});
 
-		it('synchronizes crosshair position to candle wick in drawing mode', () => {
+		it('snaps drawing preview mouse position to candle wick and toggles crosshair in drawing mode', () => {
 			primitive.setDrawingMode(true);
+
+			expect(mockData.chart.applyOptions).toHaveBeenCalledWith({
+				crosshair: { horzLine: { visible: false, labelVisible: false } }
+			});
 
 			// Mousemove over day 5 (clientX: 100, clientY: 200 -> snaps to high 114)
 			mockData.mockChartElement.dispatchEvent(
 				new MouseEvent('mousemove', { clientX: 100, clientY: 200 })
 			);
 
-			expect(mockData.chart.setCrosshairPosition).toHaveBeenCalledWith(
-				114,
-				'2024-01-05',
-				mockData.series
-			);
+			primitive.updateAllViews();
+			const paneView = primitive.paneViews()[0];
+			// eslint-disable-next-line @typescript-eslint/no-explicit-any
+			const rendererData = (paneView.renderer() as any)._data;
+			expect(rendererData.preview.currentMouse.y).toBe(mockData.series.priceToCoordinate(114));
+
+			primitive.setDrawingMode(false);
+			expect(mockData.chart.applyOptions).toHaveBeenCalledWith({
+				crosshair: { horzLine: { visible: true, labelVisible: true } }
+			});
 		});
 
 		it('cleans up handlers and subscriptions on detached and destroy', () => {

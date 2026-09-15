@@ -86,7 +86,7 @@ export class FibonacciPaneRenderer implements IPrimitivePaneRenderer {
 
 			// 1. Draw live preview while in drawing mode
 			if (this._data.preview && this._data.preview.currentMouse) {
-				this._drawDrawingPreview(ctx, this._data.preview, hpr, vpr);
+				this._drawDrawingPreview(ctx, this._data.preview, hpr, vpr, scope.bitmapSize.width);
 			}
 
 			// 2. Draw placed Retracement
@@ -291,13 +291,29 @@ export class FibonacciPaneRenderer implements IPrimitivePaneRenderer {
 		ctx: CanvasRenderingContext2D,
 		preview: FibDrawingPreviewData,
 		hpr: number,
-		vpr: number
+		vpr: number,
+		bitmapWidth: number
 	): void {
 		const mouse = preview.currentMouse;
 		if (!mouse) return;
 
 		const mouseX = mouse.x * hpr;
 		const mouseY = mouse.y * vpr;
+
+		// Horizontal dashed crosshair guide line across the full width of the pane
+		ctx.save();
+		try {
+			ctx.beginPath();
+			ctx.strokeStyle = '#758696';
+			ctx.lineWidth = 1 * hpr;
+			const dash = 4 * hpr;
+			ctx.setLineDash([dash, dash]);
+			ctx.moveTo(0, mouseY);
+			ctx.lineTo(bitmapWidth, mouseY);
+			ctx.stroke();
+		} finally {
+			ctx.restore();
+		}
 
 		// 1. Dashed trendline connecting placed points and connecting last point to mouse
 		if (preview.placedPoints.length > 0) {

@@ -102,13 +102,20 @@ export class ChartMouseHandlers<
 
 		if (this._isDrawingMode) {
 			this._disableChartScroll();
+			if (this._chart && typeof this._chart.applyOptions === 'function') {
+				this._chart.applyOptions({
+					crosshair: { horzLine: { visible: false, labelVisible: false } }
+				});
+			}
 		}
 	}
 
 	public detached(): void {
 		this._restoreChartScroll();
-		if (typeof this._chart?.clearCrosshairPosition === 'function') {
-			this._chart.clearCrosshairPosition();
+		if (this._chart && typeof this._chart.applyOptions === 'function') {
+			this._chart.applyOptions({
+				crosshair: { horzLine: { visible: true, labelVisible: true } }
+			});
 		}
 		this._chart = undefined;
 		this._series = undefined;
@@ -147,10 +154,17 @@ export class ChartMouseHandlers<
 		}
 		if (!wasDrawing && isDrawing) {
 			this._disableChartScroll();
+			if (this._chart && typeof this._chart.applyOptions === 'function') {
+				this._chart.applyOptions({
+					crosshair: { horzLine: { visible: false, labelVisible: false } }
+				});
+			}
 		} else if (wasDrawing && !isDrawing) {
 			this._restoreChartScroll();
-			if (typeof this._chart?.clearCrosshairPosition === 'function') {
-				this._chart.clearCrosshairPosition();
+			if (this._chart && typeof this._chart.applyOptions === 'function') {
+				this._chart.applyOptions({
+					crosshair: { horzLine: { visible: true, labelVisible: true } }
+				});
 			}
 		}
 	}
@@ -308,9 +322,6 @@ export class ChartMouseHandlers<
 		this._lastMousePosition = pos;
 
 		if (!pos) {
-			if (this._isDrawingMode && typeof this._chart?.clearCrosshairPosition === 'function') {
-				this._chart.clearCrosshairPosition();
-			}
 			this._mouseMoved.fire(null);
 			return;
 		}
@@ -338,26 +349,6 @@ export class ChartMouseHandlers<
 			this._pointHovered.fire(hit ? this._config.toTarget(hit) : null);
 		} else {
 			this._pointHovered.fire(null);
-			if (
-				pos.insidePlotArea &&
-				pos.time !== null &&
-				pos.price !== null &&
-				this._series &&
-				this._chart
-			) {
-				if (this._config.adjustPosition) {
-					const adjusted = this._config.adjustPosition(pos, this._series);
-					if (adjusted.snapped && typeof this._chart.setCrosshairPosition === 'function') {
-						this._chart.setCrosshairPosition(adjusted.price, pos.time, this._series);
-					} else if (typeof this._chart.clearCrosshairPosition === 'function') {
-						this._chart.clearCrosshairPosition();
-					}
-				} else if (typeof this._chart.clearCrosshairPosition === 'function') {
-					this._chart.clearCrosshairPosition();
-				}
-			} else if (typeof this._chart?.clearCrosshairPosition === 'function') {
-				this._chart.clearCrosshairPosition();
-			}
 		}
 
 		this._mouseMoved.fire(pos);
@@ -446,9 +437,6 @@ export class ChartMouseHandlers<
 		if (!this._isDragging) {
 			this._pointHovered.fire(null);
 			this._mouseMoved.fire(null);
-		}
-		if (typeof this._chart?.clearCrosshairPosition === 'function') {
-			this._chart.clearCrosshairPosition();
 		}
 	}
 }

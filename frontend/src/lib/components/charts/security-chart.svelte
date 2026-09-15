@@ -1,5 +1,11 @@
 <script lang="ts">
-	import { CandlestickSeries, createChart, LineSeries, HistogramSeries } from 'lightweight-charts';
+	import {
+		CandlestickSeries,
+		createChart,
+		CrosshairMode,
+		LineSeries,
+		HistogramSeries
+	} from 'lightweight-charts';
 	import type { Time, IChartApi, ISeriesApi, IPriceLine, SeriesType } from 'lightweight-charts';
 	import { onMount } from 'svelte';
 	import type { Candle } from '@/utils/finance/candle';
@@ -494,6 +500,9 @@
 		chartInstance = createChart(containerRef, {
 			width: containerRef.clientWidth,
 			height: containerRef.clientHeight,
+			crosshair: {
+				mode: CrosshairMode.Normal
+			},
 			layout: {
 				background: { color: 'transparent' },
 				textColor: '#888'
@@ -576,7 +585,7 @@
 		});
 
 		elliottWavesPrimitive.drawingModeChanged().subscribe((isDrawing) => {
-			if (!isDrawing && chartInstance) {
+			if (!isDrawing && !isDrawingFib && chartInstance) {
 				chartInstance.applyOptions({ handleScroll: { pressedMouseMove: true } });
 			}
 			onDrawingModeChange?.(isDrawing);
@@ -610,7 +619,7 @@
 		});
 
 		fibonacciPrimitive.drawingModeChanged().subscribe((isDrawing) => {
-			if (!isDrawing && chartInstance) {
+			if (!isDrawing && !isDrawingWave && chartInstance) {
 				chartInstance.applyOptions({ handleScroll: { pressedMouseMove: true } });
 			}
 			onFibDrawingModeChange?.(isDrawing);
