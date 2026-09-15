@@ -12,6 +12,7 @@ export type { MousePosition } from '../helpers/mouse/mouse-position';
 export interface ProjectedPointWithTarget {
 	degree: WaveDegree;
 	wave: WavePointId;
+	waveId?: string;
 	x: number;
 	y: number;
 	originalPoint: WavePoint;
@@ -34,7 +35,7 @@ export class MouseHandlers extends ChartMouseHandlers<
 	constructor() {
 		super({
 			hitTestRadius: HIT_TEST_RADIUS,
-			toTarget: (p) => ({ degree: p.degree, wave: p.wave }),
+			toTarget: (p) => ({ degree: p.degree, wave: p.wave, waveId: p.waveId }),
 			adjustPosition: (pos, series) => this._adjustPosition(pos, series)
 		});
 	}

@@ -570,5 +570,64 @@ describe('rewind finance utilities', () => {
 			};
 			expect(areSnapshotsEqual(snapEmptyDrawings1, snapEmptyDrawings2)).toBe(true);
 		});
+
+		it('correctly compares snapshots with multiple coexisting waves', () => {
+			const multiWaves1: SecurityElliottWaves = {
+				cycle: sampleWaveCount,
+				primary: null,
+				intermediate: null,
+				waves: [
+					{ ...sampleWaveCount, id: 'wave-1', degree: 'cycle', type: 'impulse' },
+					{
+						id: 'wave-2',
+						degree: 'cycle',
+						type: 'corrective',
+						points: [
+							{ wave: 0, time: '2024-02-01', price: 160 },
+							{ wave: 1, time: '2024-02-02', price: 140 },
+							{ wave: 2, time: '2024-02-03', price: 150 },
+							{ wave: 3, time: '2024-02-04', price: 130 }
+						]
+					}
+				]
+			};
+
+			const snap1: RewindSnapshot = {
+				id: 's1',
+				captured_at: '2026-08-27T10:00:00.000Z',
+				drawings: { elliott_waves: multiWaves1 },
+				data_window: sampleDataWindow
+			};
+
+			const snap2: RewindSnapshot = {
+				id: 's2',
+				captured_at: '2026-08-27T11:00:00.000Z',
+				drawings: { elliott_waves: JSON.parse(JSON.stringify(multiWaves1)) },
+				data_window: sampleDataWindow
+			};
+
+			expect(areSnapshotsEqual(snap1, snap2)).toBe(true);
+
+			// Different points in second wave
+			const snap3: RewindSnapshot = {
+				id: 's3',
+				captured_at: '2026-08-27T12:00:00.000Z',
+				drawings: {
+					elliott_waves: {
+						...multiWaves1,
+						waves: [
+							multiWaves1.waves![0],
+							{
+								...multiWaves1.waves![1],
+								points: [{ wave: 0, time: '2024-02-01', price: 999 }]
+							}
+						]
+					}
+				},
+				data_window: sampleDataWindow
+			};
+
+			expect(areSnapshotsEqual(snap1, snap3)).toBe(false);
+		});
 	});
 });

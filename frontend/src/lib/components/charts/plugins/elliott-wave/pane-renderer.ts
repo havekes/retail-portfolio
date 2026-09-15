@@ -5,6 +5,7 @@ import { type DegreeVisualConfig, PREVIEW_ALPHA } from './constants';
 
 export interface ProjectedWavePoint {
 	wave: WavePointId;
+	waveId?: string;
 	x: number;
 	y: number;
 	time: Time;
@@ -15,6 +16,7 @@ export interface ProjectedWavePoint {
 }
 
 export interface DegreeRenderData {
+	id?: string;
 	degree: WaveDegree;
 	type?: WaveType;
 	config: DegreeVisualConfig;
