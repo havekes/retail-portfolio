@@ -25,10 +25,15 @@
 		activeTool = 'retracement',
 		retracementLevels = null,
 		extensionLevels = null,
+		retracementWidthMultiplier = null,
+		extensionWidthMultiplier = null,
+		retracementExtendLines = false,
+		extensionExtendLines = false,
 		hasActiveDrawing = true,
 		disabled = false,
 		onFibLevelsChange,
 		onLevelsChange,
+		onFibWidthChange,
 		onClose
 	}: {
 		open?: boolean;
@@ -40,10 +45,19 @@
 		activeTool?: FibToolType | null;
 		retracementLevels?: FibLevelConfig[] | null;
 		extensionLevels?: FibLevelConfig[] | null;
+		retracementWidthMultiplier?: number | null;
+		extensionWidthMultiplier?: number | null;
+		retracementExtendLines?: boolean;
+		extensionExtendLines?: boolean;
 		hasActiveDrawing?: boolean;
 		disabled?: boolean;
 		onFibLevelsChange?: (tool: FibToolType, levels: FibLevelConfig[]) => void;
 		onLevelsChange?: (tool: FibToolType, levels: FibLevelConfig[]) => void;
+		onFibWidthChange?: (
+			tool: FibToolType,
+			multiplier: number | null,
+			extendLines?: boolean
+		) => void;
 		onClose?: () => void;
 	} = $props();
 
@@ -310,6 +324,28 @@
 			currentExtensionLevels = updated;
 			emitFibChange('extension', cloneLevels(updated));
 		}
+	}
+
+	const FIB_WIDTH_PRESETS = [1, 1.5, 2, 3];
+
+	const currentActiveMultiplier = $derived(
+		activeFibTab === 'retracement'
+			? (retracementWidthMultiplier ?? 1)
+			: (extensionWidthMultiplier ?? 2)
+	);
+
+	const currentActiveExtendLines = $derived(
+		activeFibTab === 'retracement' ? Boolean(retracementExtendLines) : Boolean(extensionExtendLines)
+	);
+
+	function handlePresetFibWidth(multiplier: number) {
+		if (isFibInteractivityDisabled) return;
+		onFibWidthChange?.(activeFibTab, multiplier, currentActiveExtendLines);
+	}
+
+	function handleToggleExtendLines(extend: boolean) {
+		if (isFibInteractivityDisabled) return;
+		onFibWidthChange?.(activeFibTab, currentActiveMultiplier, extend);
 	}
 
 	function handleOpenChange(isOpen: boolean) {
@@ -643,6 +679,52 @@
 						</span>
 					</div>
 				{/if}
+
+				<!-- Line Width & Extension -->
+				<div class="space-y-2 rounded-md border p-3" data-testid="fib-width-settings-section">
+					<div class="flex items-center justify-between">
+						<span class="text-xs font-semibold text-foreground">Line Width & Extension</span>
+						<span
+							class="font-mono text-xs text-muted-foreground"
+							data-testid="fib-current-width-multiplier"
+						>
+							{currentActiveMultiplier}x
+						</span>
+					</div>
+					<div class="space-y-1.5">
+						<Label class="text-xs text-muted-foreground">Width Multiplier</Label>
+						<div class="grid grid-cols-4 gap-1.5">
+							{#each FIB_WIDTH_PRESETS as preset (preset)}
+								<Button
+									type="button"
+									variant={currentActiveMultiplier === preset ? 'default' : 'outline'}
+									size="sm"
+									class="h-7 font-mono text-xs"
+									disabled={isFibInteractivityDisabled}
+									onclick={() => handlePresetFibWidth(preset)}
+									data-testid={`fib-settings-preset-${preset}x`}
+								>
+									{preset}x
+								</Button>
+							{/each}
+						</div>
+					</div>
+					<div class="flex items-center space-x-2 pt-1">
+						<Checkbox
+							id="fib-settings-extend-lines"
+							checked={currentActiveExtendLines}
+							onCheckedChange={(checked) => handleToggleExtendLines(Boolean(checked))}
+							disabled={isFibInteractivityDisabled}
+							data-testid="fib-settings-extend-lines-checkbox"
+						/>
+						<Label
+							for="fib-settings-extend-lines"
+							class="cursor-pointer text-xs leading-none font-medium peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+						>
+							Extend across full chart width
+						</Label>
+					</div>
+				</div>
 
 				<!-- Level List -->
 				<div

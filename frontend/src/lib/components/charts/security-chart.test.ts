@@ -946,6 +946,66 @@ describe('SecurityChart - Fibonacci Integration', () => {
 		component.setSelectedFibTool(null);
 		expect(component.getSelectedFibTool()).toBeNull();
 	});
+
+	it('invokes onFibDoubleClick when fibonacciPrimitive.doubleClicked() fires', () => {
+		const onFibDoubleClick = vi.fn();
+
+		render(SecurityChart, {
+			props: {
+				candles: initialCandles,
+				onFibDoubleClick
+			}
+		});
+
+		const fibPrimitive = mockAttachPrimitive.mock.calls.find(
+			(c) => c[0] instanceof FibonacciPrimitive
+		)?.[0] as FibonacciPrimitive;
+
+		/* eslint-disable-next-line @typescript-eslint/no-explicit-any */
+		(fibPrimitive as any)._doubleClicked.fire('retracement');
+
+		expect(onFibDoubleClick).toHaveBeenCalledWith('retracement');
+	});
+
+	it('updates FibonacciPrimitive drawings and re-renders when widthMultiplier prop changes', async () => {
+		const initialTools: SecurityFibonacciTools = {
+			retracement: {
+				p1: { time: '2024-01-10', price: 10 },
+				p2: { time: '2024-01-11', price: 20 },
+				widthMultiplier: 1.0
+			},
+			extension: null
+		};
+
+		const { rerender } = render(SecurityChart, {
+			props: {
+				candles: initialCandles,
+				fibonacciTools: initialTools
+			}
+		});
+
+		const fibPrimitive = mockAttachPrimitive.mock.calls.find(
+			(c) => c[0] instanceof FibonacciPrimitive
+		)?.[0] as FibonacciPrimitive;
+
+		expect(fibPrimitive.getRetracement()?.widthMultiplier).toBe(1.0);
+
+		const updatedTools: SecurityFibonacciTools = {
+			retracement: {
+				p1: { time: '2024-01-10', price: 10 },
+				p2: { time: '2024-01-11', price: 20 },
+				widthMultiplier: 2.5
+			},
+			extension: null
+		};
+
+		await rerender({
+			candles: initialCandles,
+			fibonacciTools: updatedTools
+		});
+
+		expect(fibPrimitive.getRetracement()?.widthMultiplier).toBe(2.5);
+	});
 });
 
 describe('SecurityChart - Oscillator Panes & Custom Price Scales', () => {

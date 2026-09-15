@@ -1242,6 +1242,7 @@ describe('Security Page - Fibonacci Toolbar & Integration', () => {
 
 	beforeEach(() => {
 		vi.clearAllMocks();
+		mockChartProps = null;
 		vi.mocked(userPreferencesService.getPreferences).mockResolvedValue({
 			fibonacci_tools: {
 				'sec-1': {
@@ -1368,6 +1369,77 @@ describe('Security Page - Fibonacci Toolbar & Integration', () => {
 							levels: expect.arrayContaining([
 								expect.objectContaining({ ratio: 0.618, enabled: false })
 							])
+						})
+					})
+				})
+			})
+		);
+	});
+
+	it('opens FibWidthModal on double click from chart and persists adjusted width multiplier', async () => {
+		render(PageComponent, { props: { data: mockData } });
+
+		await screen.findByRole('button', { name: /Open chart settings/i });
+
+		await waitFor(() => {
+			expect(mockChartProps).not.toBeNull();
+		});
+
+		// Simulate double-click event from SecurityChart
+		// @ts-expect-error - mockChartProps typed as Record
+		mockChartProps.onFibDoubleClick?.('retracement');
+
+		expect(await screen.findByTestId('fib-width-modal')).toBeInTheDocument();
+		expect(screen.getByTestId('fib-width-modal-title')).toHaveTextContent(
+			'Fibonacci Retracement Width'
+		);
+
+		// Click 2x preset
+		const preset2 = screen.getByTestId('preset-2x');
+		await fireEvent.click(preset2);
+
+		// Toggle extend across full chart width
+		const checkbox = screen.getByTestId('extend-lines-checkbox');
+		await fireEvent.click(checkbox);
+
+		// Save
+		const saveBtn = screen.getByTestId('save-btn');
+		await fireEvent.click(saveBtn);
+
+		expect(userPreferencesService.patchPreferences).toHaveBeenCalledWith(
+			expect.objectContaining({
+				fibonacci_tools: expect.objectContaining({
+					'sec-1': expect.objectContaining({
+						retracement: expect.objectContaining({
+							widthMultiplier: 2,
+							extendLines: true
+						})
+					})
+				})
+			})
+		);
+	});
+
+	it('persists updated width multiplier when settings dialog changes width in Fibonacci tab', async () => {
+		render(PageComponent, { props: { data: mockData } });
+
+		const settingsBtn = await screen.findByRole('button', { name: /Open chart settings/i });
+		await fireEvent.click(settingsBtn);
+
+		expect(screen.getByText('Chart Settings')).toBeInTheDocument();
+
+		const fibTab = screen.getByRole('tab', { name: 'Fibonacci' });
+		await fireEvent.click(fibTab);
+
+		const preset15 = screen.getByTestId('fib-settings-preset-1.5x');
+		await fireEvent.click(preset15);
+
+		expect(userPreferencesService.patchPreferences).toHaveBeenCalledWith(
+			expect.objectContaining({
+				fibonacci_tools: expect.objectContaining({
+					'sec-1': expect.objectContaining({
+						retracement: expect.objectContaining({
+							widthMultiplier: 1.5
 						})
 					})
 				})

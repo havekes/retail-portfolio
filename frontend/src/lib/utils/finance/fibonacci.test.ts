@@ -483,6 +483,12 @@ describe('fibonacci finance utilities', () => {
 					})
 				).toBe(false);
 				expect(
+					areRetracementDrawingsEqual(sampleRetracement, {
+						...sampleRetracement,
+						widthMultiplier: 2.5
+					})
+				).toBe(false);
+				expect(
 					areRetracementDrawingsEqual(sampleRetracement, { ...sampleRetracement, visible: false })
 				).toBe(false);
 			});
@@ -499,6 +505,9 @@ describe('fibonacci finance utilities', () => {
 				).toBe(false);
 				expect(
 					areExtensionDrawingsEqual(sampleExtension, { ...sampleExtension, extendLines: true })
+				).toBe(false);
+				expect(
+					areExtensionDrawingsEqual(sampleExtension, { ...sampleExtension, widthMultiplier: 3 })
 				).toBe(false);
 			});
 

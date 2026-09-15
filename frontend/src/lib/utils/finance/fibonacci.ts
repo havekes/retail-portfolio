@@ -20,6 +20,7 @@ export interface FibRetracementDrawing {
 	p2: FibPoint;
 	levels?: FibLevelConfig[] | null;
 	extendLines?: boolean;
+	widthMultiplier?: number | null;
 	visible?: boolean;
 }
 
@@ -30,6 +31,7 @@ export interface FibExtensionDrawing {
 	p3: FibPoint;
 	levels?: FibLevelConfig[] | null;
 	extendLines?: boolean;
+	widthMultiplier?: number | null;
 	visible?: boolean;
 }
 
@@ -313,7 +315,12 @@ export function areRetracementDrawingsEqual(
 ): boolean {
 	if (!a && !b) return true;
 	if (!a || !b) return false;
-	if (a.id !== b.id || a.extendLines !== b.extendLines || a.visible !== b.visible) {
+	if (
+		a.id !== b.id ||
+		a.extendLines !== b.extendLines ||
+		a.widthMultiplier !== b.widthMultiplier ||
+		a.visible !== b.visible
+	) {
 		return false;
 	}
 	if (!areFibPointsEqual(a.p1, b.p1) || !areFibPointsEqual(a.p2, b.p2)) {
@@ -334,7 +341,12 @@ export function areExtensionDrawingsEqual(
 ): boolean {
 	if (!a && !b) return true;
 	if (!a || !b) return false;
-	if (a.id !== b.id || a.extendLines !== b.extendLines || a.visible !== b.visible) {
+	if (
+		a.id !== b.id ||
+		a.extendLines !== b.extendLines ||
+		a.widthMultiplier !== b.widthMultiplier ||
+		a.visible !== b.visible
+	) {
 		return false;
 	}
 	if (
