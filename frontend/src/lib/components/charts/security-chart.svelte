@@ -10,6 +10,7 @@
 	import { onMount } from 'svelte';
 	import type { Candle } from '@/utils/finance/candle';
 	import { formatLocalTime, formatLocalTickMark } from '@/utils/date';
+	import { generateFutureWhitespace, DEFAULT_FUTURE_BARS } from './plugins/helpers/time/time';
 	import { BandsIndicator } from './plugins/bands-indicator';
 	import { AVG_PRICE_LINE_COLOR } from './colors';
 	import { UserPriceAlerts } from './plugins/user-price-alerts/user-price-alerts';
@@ -103,7 +104,8 @@
 		onFibChange,
 		onFibDrawingModeChange,
 		onFibToolChange,
-		onFibSelect
+		onFibSelect,
+		futureBars = DEFAULT_FUTURE_BARS
 	} = $props<{
 		candles?: Candle[];
 		containerId?: string;
@@ -135,11 +137,58 @@
 		onFibDrawingModeChange?: (isDrawing: boolean) => void;
 		onFibToolChange?: (tool: FibToolType | null) => void;
 		onFibSelect?: (tool: FibToolType | null) => void;
+		futureBars?: number;
 	}>();
 
 	let avgPriceLine: IPriceLine | null = null;
 	let previousFirstCandleTime: Time | null = null;
 	let lastCandlesRef: Candle[] | null = null;
+	let currentWhitespaceCount = DEFAULT_FUTURE_BARS;
+	let isUpdatingWhitespace = false;
+
+	function checkAndExpandWhitespace(range?: { from: number; to: number } | null) {
+		if (isUpdatingWhitespace || !seriesInstance || !chartInstance || candles.length === 0) {
+			return;
+		}
+
+		const logicalRange = range ?? chartInstance.timeScale().getVisibleLogicalRange();
+		const lastCandleIndex = candles.length - 1;
+		const currentEndIndex = lastCandleIndex + currentWhitespaceCount;
+
+		let neededWhitespace = currentWhitespaceCount;
+
+		if (logicalRange) {
+			const threshold = Math.max(lastCandleIndex + 1, currentEndIndex - 30);
+			if (logicalRange.to >= threshold) {
+				const rangeNeeded = Math.ceil(logicalRange.to - lastCandleIndex) + 100;
+				if (rangeNeeded > neededWhitespace) {
+					neededWhitespace = rangeNeeded;
+				}
+			}
+		}
+
+		if (containerRef && containerRef.clientWidth > 0) {
+			const widthBars = Math.ceil(containerRef.clientWidth / 4) + 100;
+			if (widthBars > neededWhitespace) {
+				neededWhitespace = widthBars;
+			}
+		}
+
+		if (neededWhitespace > currentWhitespaceCount) {
+			isUpdatingWhitespace = true;
+			try {
+				const savedRange = logicalRange ?? chartInstance.timeScale().getVisibleLogicalRange();
+				currentWhitespaceCount = neededWhitespace;
+				const whitespace = generateFutureWhitespace(candles, currentWhitespaceCount);
+				seriesInstance.setData([...candles, ...whitespace]);
+				if (savedRange) {
+					chartInstance.timeScale().setVisibleLogicalRange(savedRange);
+				}
+			} finally {
+				isUpdatingWhitespace = false;
+			}
+		}
+	}
 
 	const DEFAULT_PRICE_SCALE_MIN_WIDTH = 75;
 	const OSCILLATOR_ORDER = ['rsi', 'macd', 'obv'] as const;
@@ -430,6 +479,7 @@
 					return;
 				}
 				lastCandlesRef = candles;
+				currentWhitespaceCount = futureBars;
 				seriesInstance.setData([]);
 				elliottWavesPrimitive?.setCandles([]);
 				fibonacciPrimitive?.setCandles([]);
@@ -464,9 +514,18 @@
 						currentRange = { from: range.from, to: range.to };
 					}
 				}
+			} else if (previousFirstCandleTime === null) {
+				currentWhitespaceCount = futureBars;
+				if (containerRef && containerRef.clientWidth > 0) {
+					const widthBars = Math.ceil(containerRef.clientWidth / 4) + 100;
+					if (widthBars > currentWhitespaceCount) {
+						currentWhitespaceCount = widthBars;
+					}
+				}
 			}
 
-			seriesInstance.setData(candles);
+			const whitespace = generateFutureWhitespace(candles, currentWhitespaceCount);
+			seriesInstance.setData([...candles, ...whitespace]);
 			elliottWavesPrimitive?.setCandles(candles);
 			fibonacciPrimitive?.setCandles(candles);
 
@@ -478,14 +537,10 @@
 					});
 				} else if (previousFirstCandleTime === null) {
 					const visibleDays = 250;
-					if (candles.length > visibleDays) {
-						chartInstance.timeScale().setVisibleLogicalRange({
-							from: candles.length - visibleDays,
-							to: candles.length - 1
-						});
-					} else {
-						chartInstance.timeScale().fitContent();
-					}
+					chartInstance.timeScale().setVisibleLogicalRange({
+						from: Math.max(0, candles.length - visibleDays),
+						to: candles.length - 1
+					});
 				}
 			}
 
@@ -517,7 +572,8 @@
 			timeScale: {
 				timeVisible: true,
 				borderVisible: false,
-				tickMarkFormatter: formatLocalTickMark
+				tickMarkFormatter: formatLocalTickMark,
+				ignoreWhitespaceIndices: false
 			},
 			leftPriceScale: {
 				visible: false
@@ -532,6 +588,9 @@
 			if (range && range.from <= 10 && !isLoadingMore && hasMoreData) {
 				isLoadingMore = true;
 				onLoadMoreData?.();
+			}
+			if (range) {
+				checkAndExpandWhitespace(range);
 			}
 		});
 
@@ -681,6 +740,8 @@
 					width: containerRef.clientWidth,
 					height: containerRef.clientHeight
 				});
+				const range = chartInstance.timeScale().getVisibleLogicalRange();
+				checkAndExpandWhitespace(range);
 			}
 		});
 
@@ -699,16 +760,21 @@
 	export function updateData(newCandles: Candle[]) {
 		if (seriesInstance) {
 			lastCandlesRef = newCandles;
-			seriesInstance.setData(newCandles);
+			if (containerRef && containerRef.clientWidth > 0) {
+				const widthBars = Math.ceil(containerRef.clientWidth / 4) + 100;
+				if (widthBars > currentWhitespaceCount) {
+					currentWhitespaceCount = widthBars;
+				}
+			}
+			const whitespace = generateFutureWhitespace(newCandles, currentWhitespaceCount);
+			seriesInstance.setData([...newCandles, ...whitespace]);
 
-			const visibleDays = 250;
-			if (newCandles.length > visibleDays) {
+			if (newCandles.length > 0) {
+				const visibleDays = 250;
 				chartInstance?.timeScale()?.setVisibleLogicalRange({
-					from: newCandles.length - visibleDays,
+					from: Math.max(0, newCandles.length - visibleDays),
 					to: newCandles.length - 1
 				});
-			} else {
-				chartInstance?.timeScale()?.fitContent();
 			}
 		}
 	}

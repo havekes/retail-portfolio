@@ -292,6 +292,7 @@ describe('SecurityChart - Infinite Scroll & Logical Range', () => {
 		expect(typeof mainChartOptions?.localization?.timeFormatter).toBe('function');
 		expect(mainChartOptions?.timeScale?.tickMarkFormatter).toBeDefined();
 		expect(typeof mainChartOptions?.timeScale?.tickMarkFormatter).toBe('function');
+		expect(mainChartOptions?.timeScale?.ignoreWhitespaceIndices).toBe(false);
 	});
 
 	it('initializes chart with consistent leftPriceScale visible false and rightPriceScale minimumWidth', () => {
@@ -1711,6 +1712,311 @@ describe('SecurityChart - Oscillator Panes & Custom Price Scales', () => {
 			expect(mainChart.applyOptions).not.toHaveBeenCalledWith({
 				handleScroll: { pressedMouseMove: true }
 			});
+		});
+	});
+
+	describe('SecurityChart - Future Time Scale & Whitespace', () => {
+		/* eslint-disable-next-line @typescript-eslint/no-explicit-any */
+		let SecurityChart: Component<any>;
+
+		const testCandles: Candle[] = [
+			{ time: '2024-01-01', open: 100, high: 105, low: 99, close: 102 },
+			{ time: '2024-01-02', open: 102, high: 107, low: 101, close: 105 },
+			{ time: '2024-01-03', open: 105, high: 108, low: 103, close: 106 }
+		];
+
+		beforeAll(async () => {
+			const mod = await import('./security-chart.svelte');
+			SecurityChart = mod.default;
+		});
+
+		beforeEach(() => {
+			vi.clearAllMocks();
+			rangeCallbacks = [];
+			crosshairCallbacks = [];
+			mockGetVisibleLogicalRange.mockReturnValue({ from: 0, to: 2 });
+			mockGetVisibleRange.mockReturnValue(undefined);
+		});
+
+		it('configures timeScale with ignoreWhitespaceIndices: false', () => {
+			render(SecurityChart, {
+				props: {
+					candles: testCandles
+				}
+			});
+
+			const calls = vi.mocked(createChart).mock.calls;
+			const options = calls[calls.length - 1][1];
+			expect(options?.timeScale?.ignoreWhitespaceIndices).toBe(false);
+		});
+
+		it('supplies seriesInstance.setData with candles and future WhitespaceData items', () => {
+			render(SecurityChart, {
+				props: {
+					candles: testCandles,
+					futureBars: 5
+				}
+			});
+
+			expect(mockSetData).toHaveBeenCalled();
+			const lastCallData = mockSetData.mock.calls[mockSetData.mock.calls.length - 1][0];
+
+			// 3 original candles + 5 future whitespace items = 8 items
+			expect(lastCallData).toHaveLength(8);
+
+			// First 3 items are candles
+			expect(lastCallData.slice(0, 3)).toEqual(testCandles);
+
+			// Next 5 items are whitespace entries matching daily interval spacing
+			expect(lastCallData.slice(3)).toEqual([
+				{ time: '2024-01-04' },
+				{ time: '2024-01-05' },
+				{ time: '2024-01-06' },
+				{ time: '2024-01-07' },
+				{ time: '2024-01-08' }
+			]);
+		});
+
+		it('extrapolates future whitespace using intraday interval spacing when candles have numeric timestamps', () => {
+			const baseTime = 1704067200; // 2024-01-01 00:00:00 UTC
+			const intradayCandles: Candle[] = [
+				{ time: baseTime as Time, open: 10, high: 12, low: 9, close: 11 },
+				{ time: (baseTime + 3600) as Time, open: 11, high: 13, low: 10, close: 12 }
+			];
+
+			render(SecurityChart, {
+				props: {
+					candles: intradayCandles,
+					futureBars: 3
+				}
+			});
+
+			const lastCallData = mockSetData.mock.calls[mockSetData.mock.calls.length - 1][0];
+			expect(lastCallData).toHaveLength(5);
+			expect(lastCallData.slice(2)).toEqual([
+				{ time: baseTime + 7200 },
+				{ time: baseTime + 10800 },
+				{ time: baseTime + 14400 }
+			]);
+		});
+
+		it('frames initial visible logical range ending at the latest historical candle (candles.length - 1) instead of zooming out with fitContent', () => {
+			render(SecurityChart, {
+				props: {
+					candles: testCandles
+				}
+			});
+
+			expect(mockFitContent).not.toHaveBeenCalled();
+			expect(mockSetVisibleLogicalRange).toHaveBeenCalledWith({
+				from: 0,
+				to: 2 // testCandles.length - 1
+			});
+		});
+
+		it('frames visible range correctly when candle count exceeds visibleDays (250)', () => {
+			const manyCandles: Candle[] = Array.from({ length: 300 }, (_, i) => ({
+				time: (1704067200 + i * 86400) as Time,
+				open: 100,
+				high: 105,
+				low: 95,
+				close: 100
+			}));
+
+			render(SecurityChart, {
+				props: {
+					candles: manyCandles
+				}
+			});
+
+			// 300 - 250 = 50, to: 299
+			expect(mockSetVisibleLogicalRange).toHaveBeenCalledWith({
+				from: 50,
+				to: 299
+			});
+		});
+
+		it('updateData appends future whitespace points and frames to latest candle index', () => {
+			const { component } = render(SecurityChart, {
+				props: {
+					candles: testCandles,
+					futureBars: 4
+				}
+			});
+
+			mockSetData.mockClear();
+			mockSetVisibleLogicalRange.mockClear();
+
+			const updatedCandles: Candle[] = [
+				...testCandles,
+				{ time: '2024-01-04', open: 106, high: 110, low: 104, close: 108 }
+			];
+
+			(component as unknown as SecurityChartInstance).updateData(updatedCandles);
+
+			expect(mockSetData).toHaveBeenCalledTimes(1);
+			const lastCallData = mockSetData.mock.calls[0][0];
+			expect(lastCallData).toHaveLength(8); // 4 candles + 4 whitespace
+			expect(lastCallData.slice(4)).toEqual([
+				{ time: '2024-01-05' },
+				{ time: '2024-01-06' },
+				{ time: '2024-01-07' },
+				{ time: '2024-01-08' }
+			]);
+
+			expect(mockSetVisibleLogicalRange).toHaveBeenCalledWith({
+				from: 0,
+				to: 3 // updatedCandles.length - 1
+			});
+		});
+
+		it('does not append whitespace points to indicator series', () => {
+			const { component } = render(SecurityChart, {
+				props: {
+					candles: testCandles,
+					futureBars: 10
+				}
+			});
+
+			mockSetData.mockClear();
+
+			const volumeData = [
+				{ time: '2024-01-01' as Time, value: 1000 },
+				{ time: '2024-01-02' as Time, value: 2000 }
+			];
+
+			(component as unknown as SecurityChartInstance).addIndicator({
+				type: 'volume',
+				label: 'Volume',
+				color: '#26a69a',
+				data: volumeData
+			});
+
+			// mockSetData was called for volume series with exactly volumeData (length 2)
+			expect(mockSetData).toHaveBeenCalledWith(volumeData);
+		});
+
+		it('dynamically expands future whitespace when scrolling towards the end of current whitespace and preserves visibleLogicalRange', () => {
+			render(SecurityChart, {
+				props: {
+					candles: testCandles,
+					futureBars: 100
+				}
+			});
+
+			mockSetData.mockClear();
+			mockSetVisibleLogicalRange.mockClear();
+
+			// Initial state: 3 candles (indices 0..2) + 100 whitespace = end index 102.
+			// Threshold is 102 - 30 = 72. Scrolling to `to: 80` nears the end of whitespace.
+			expect(rangeCallbacks.length).toBeGreaterThan(0);
+			rangeCallbacks[0]({ from: 10, to: 80 });
+
+			expect(mockSetData).toHaveBeenCalledTimes(1);
+			const lastCallData = mockSetData.mock.calls[0][0];
+
+			// Expected expansion: Math.ceil(80 - 2) + 100 = 178 whitespace items.
+			// Total data length: 3 candles + 178 whitespace = 181 items.
+			expect(lastCallData).toHaveLength(181);
+			expect(lastCallData.slice(0, 3)).toEqual(testCandles);
+
+			// First whitespace point is 2024-01-04
+			expect(lastCallData[3]).toEqual({ time: '2024-01-04' });
+
+			// Viewport preserved without jumping
+			expect(mockSetVisibleLogicalRange).toHaveBeenCalledWith({
+				from: 10,
+				to: 80
+			});
+		});
+
+		it('dynamically expands future whitespace when zooming out into the future', () => {
+			render(SecurityChart, {
+				props: {
+					candles: testCandles,
+					futureBars: 100
+				}
+			});
+
+			mockSetData.mockClear();
+			mockSetVisibleLogicalRange.mockClear();
+
+			// Zoom out far into future: range.to = 300
+			rangeCallbacks[0]({ from: -50, to: 300 });
+
+			expect(mockSetData).toHaveBeenCalledTimes(1);
+			const lastCallData = mockSetData.mock.calls[0][0];
+
+			// Expected expansion: Math.ceil(300 - 2) + 100 = 398 whitespace items.
+			// Total data length: 3 candles + 398 whitespace = 401 items.
+			expect(lastCallData).toHaveLength(401);
+			expect(mockSetVisibleLogicalRange).toHaveBeenCalledWith({
+				from: -50,
+				to: 300
+			});
+		});
+
+		it('does not prematurely expand future whitespace when scrolling within historical candles', () => {
+			render(SecurityChart, {
+				props: {
+					candles: testCandles,
+					futureBars: 100
+				}
+			});
+
+			mockSetData.mockClear();
+			mockSetVisibleLogicalRange.mockClear();
+
+			// Scrolling within historical data (to <= lastCandleIndex)
+			rangeCallbacks[0]({ from: 0, to: 2 });
+
+			expect(mockSetData).not.toHaveBeenCalled();
+			expect(mockSetVisibleLogicalRange).not.toHaveBeenCalled();
+		});
+
+		it('does not trigger redundant expansions when scrolling within existing buffer', () => {
+			render(SecurityChart, {
+				props: {
+					candles: testCandles,
+					futureBars: 100
+				}
+			});
+
+			// Scroll to 80 (expands whitespace to 178 bars, new end index 180, new threshold 150)
+			rangeCallbacks[0]({ from: 10, to: 80 });
+
+			mockSetData.mockClear();
+			mockSetVisibleLogicalRange.mockClear();
+
+			// Scroll slightly to 85 (well before new threshold 150)
+			rangeCallbacks[0]({ from: 15, to: 85 });
+
+			expect(mockSetData).not.toHaveBeenCalled();
+			expect(mockSetVisibleLogicalRange).not.toHaveBeenCalled();
+		});
+
+		it('generates sufficient future whitespace on initial render when container visible width is wide', () => {
+			const clientWidthSpy = vi
+				.spyOn(HTMLDivElement.prototype, 'clientWidth', 'get')
+				.mockReturnValue(1200);
+
+			try {
+				render(SecurityChart, {
+					props: {
+						candles: testCandles,
+						futureBars: 100
+					}
+				});
+
+				expect(mockSetData).toHaveBeenCalled();
+				const lastCallData = mockSetData.mock.calls[mockSetData.mock.calls.length - 1][0];
+
+				// Math.ceil(1200 / 4) + 100 = 400 whitespace bars.
+				// 3 candles + 400 whitespace = 403 items.
+				expect(lastCallData).toHaveLength(403);
+			} finally {
+				clientWidthSpy.mockRestore();
+			}
 		});
 	});
 });

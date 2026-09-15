@@ -1,5 +1,7 @@
-import type { BusinessDay, Time, UTCTimestamp } from 'lightweight-charts';
+import type { BusinessDay, Time, UTCTimestamp, WhitespaceData } from 'lightweight-charts';
 import type { Candle } from '$lib/utils/finance/candle';
+
+export const DEFAULT_FUTURE_BARS = 100;
 
 /** Convert any lightweight-charts Time value to epoch seconds (UTC). */
 export function timeToEpochSeconds(time: Time): number {
@@ -16,12 +18,13 @@ export function timeToEpochSeconds(time: Time): number {
 
 /** Rebuild a Time value in the same shape as `reference` from an epoch-seconds value. */
 export function epochSecondsToTime(epoch: number, reference: Time): Time {
-	if (typeof reference === 'number') return epoch as UTCTimestamp;
+	const roundedEpoch = Math.round(epoch);
+	if (typeof reference === 'number') return roundedEpoch as UTCTimestamp;
 	if (typeof reference === 'string') {
 		// Date-only (YYYY-MM-DD) candles should stay date-only.
-		return new Date(epoch * 1000).toISOString().slice(0, 10);
+		return new Date(roundedEpoch * 1000).toISOString().slice(0, 10);
 	}
-	const d = new Date(epoch * 1000);
+	const d = new Date(roundedEpoch * 1000);
 	return {
 		year: d.getUTCFullYear(),
 		month: d.getUTCMonth() + 1,
@@ -62,4 +65,27 @@ export function computeIntervalSeconds(candles: Candle[], sampleSize = 8): numbe
 	spacings.sort((a, b) => a - b);
 	const mid = Math.floor(spacings.length / 2);
 	return spacings.length % 2 === 0 ? (spacings[mid - 1] + spacings[mid]) / 2 : spacings[mid];
+}
+
+/**
+ * Generate whitespace data points extending into the future beyond the last candle.
+ * Returns an empty array if candles array has fewer than 2 items, count is non-positive,
+ * or the calculated interval is non-positive.
+ */
+export function generateFutureWhitespace(
+	candles: Candle[],
+	count = DEFAULT_FUTURE_BARS
+): WhitespaceData[] {
+	if (candles.length < 2 || count <= 0) return [];
+	const interval = computeIntervalSeconds(candles);
+	if (interval <= 0) return [];
+
+	const lastTime = candles[candles.length - 1].time;
+	const whitespace: WhitespaceData[] = [];
+	for (let i = 1; i <= count; i++) {
+		whitespace.push({
+			time: addIntervalToTime(lastTime, i, interval)
+		});
+	}
+	return whitespace;
 }
