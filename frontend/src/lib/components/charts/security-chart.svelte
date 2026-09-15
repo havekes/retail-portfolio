@@ -10,6 +10,7 @@
 	import { onMount } from 'svelte';
 	import type { Candle } from '@/utils/finance/candle';
 	import { formatLocalTime, formatLocalTickMark } from '@/utils/date';
+	import { generateFutureWhitespace, DEFAULT_FUTURE_BARS } from './plugins/helpers/time/time';
 	import { BandsIndicator } from './plugins/bands-indicator';
 	import { AVG_PRICE_LINE_COLOR } from './colors';
 	import { UserPriceAlerts } from './plugins/user-price-alerts/user-price-alerts';
@@ -103,7 +104,8 @@
 		onFibChange,
 		onFibDrawingModeChange,
 		onFibToolChange,
-		onFibSelect
+		onFibSelect,
+		futureBars = DEFAULT_FUTURE_BARS
 	} = $props<{
 		candles?: Candle[];
 		containerId?: string;
@@ -135,6 +137,7 @@
 		onFibDrawingModeChange?: (isDrawing: boolean) => void;
 		onFibToolChange?: (tool: FibToolType | null) => void;
 		onFibSelect?: (tool: FibToolType | null) => void;
+		futureBars?: number;
 	}>();
 
 	let avgPriceLine: IPriceLine | null = null;
@@ -466,7 +469,8 @@
 				}
 			}
 
-			seriesInstance.setData(candles);
+			const whitespace = generateFutureWhitespace(candles, futureBars);
+			seriesInstance.setData([...candles, ...whitespace]);
 			elliottWavesPrimitive?.setCandles(candles);
 			fibonacciPrimitive?.setCandles(candles);
 
@@ -478,14 +482,10 @@
 					});
 				} else if (previousFirstCandleTime === null) {
 					const visibleDays = 250;
-					if (candles.length > visibleDays) {
-						chartInstance.timeScale().setVisibleLogicalRange({
-							from: candles.length - visibleDays,
-							to: candles.length - 1
-						});
-					} else {
-						chartInstance.timeScale().fitContent();
-					}
+					chartInstance.timeScale().setVisibleLogicalRange({
+						from: Math.max(0, candles.length - visibleDays),
+						to: candles.length - 1
+					});
 				}
 			}
 
@@ -517,7 +517,8 @@
 			timeScale: {
 				timeVisible: true,
 				borderVisible: false,
-				tickMarkFormatter: formatLocalTickMark
+				tickMarkFormatter: formatLocalTickMark,
+				ignoreWhitespaceIndices: false
 			},
 			leftPriceScale: {
 				visible: false
@@ -699,16 +700,15 @@
 	export function updateData(newCandles: Candle[]) {
 		if (seriesInstance) {
 			lastCandlesRef = newCandles;
-			seriesInstance.setData(newCandles);
+			const whitespace = generateFutureWhitespace(newCandles, futureBars);
+			seriesInstance.setData([...newCandles, ...whitespace]);
 
-			const visibleDays = 250;
-			if (newCandles.length > visibleDays) {
+			if (newCandles.length > 0) {
+				const visibleDays = 250;
 				chartInstance?.timeScale()?.setVisibleLogicalRange({
-					from: newCandles.length - visibleDays,
+					from: Math.max(0, newCandles.length - visibleDays),
 					to: newCandles.length - 1
 				});
-			} else {
-				chartInstance?.timeScale()?.fitContent();
 			}
 		}
 	}
