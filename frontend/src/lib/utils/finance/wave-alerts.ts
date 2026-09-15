@@ -1,6 +1,7 @@
 import {
 	getWaveTargetPrice,
 	getWaveAlertPercent,
+	selectDegreeWave,
 	type WaveDegree,
 	type TargetWave,
 	type WaveSettings,
@@ -58,9 +59,7 @@ export function computeWaveAlertLevels(
 			const percent = getWaveAlertPercent(settings, degree, wave);
 			if (percent === null) continue;
 
-			const targetWaveCount =
-				waves.find((w) => w.degree === degree && w.type === 'impulse') ??
-				waves.find((w) => w.degree === degree);
+			const targetWaveCount = selectDegreeWave(waves, degree);
 			const targetPrice = getWaveTargetPrice(targetWaveCount, wave);
 			if (targetPrice === null) continue;
 

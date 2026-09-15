@@ -27,7 +27,11 @@ import {
 	buildCandleLookup,
 	findCandleByTime
 } from './index';
-import type { DegreeWaveCount } from '$lib/utils/finance/elliott-wave';
+import {
+	areSecurityElliottWavesEqual,
+	type DegreeWaveCount,
+	type SecurityElliottWaves
+} from '$lib/utils/finance/elliott-wave';
 import type { Candle } from '$lib/utils/finance/candle';
 
 // Helper to build daily candles for future-coordinate tests.
@@ -516,6 +520,35 @@ describe('Elliott Wave Plugin', () => {
 			expect(state.getWaveById('primary-1')?.wave3Target).toBe(160);
 			expect(state.getWaveById('intermediate-1')?.points).toHaveLength(1);
 			expect(state.getWaveById('intermediate-1')?.wave3Target).toBe(170);
+		});
+
+		it('assigns stable ids to waves loaded without ids and round-trips without spurious inequality', () => {
+			const loaded: DegreeWaveCount[] = [
+				{
+					id: '',
+					degree: 'cycle',
+					type: 'impulse',
+					points: [{ wave: 0, time: '2024-01-01' as Time, price: 100 }]
+				},
+				{
+					id: undefined as unknown as string,
+					degree: 'primary',
+					type: 'corrective',
+					points: []
+				}
+			];
+
+			state.setWaves(loaded);
+			const firstIds = state.getAllWaves().map((w) => w.id);
+			expect(firstIds.every((id) => Boolean(id))).toBe(true);
+
+			// Re-loading the same id-less collection yields the same identities.
+			state.setWaves(loaded);
+			expect(state.getAllWaves().map((w) => w.id)).toEqual(firstIds);
+
+			// load -> serialize -> compare must not spuriously report inequality.
+			const serialized: SecurityElliottWaves = { waves: state.getAllWaves() };
+			expect(areSecurityElliottWavesEqual(serialized, { waves: loaded })).toBe(true);
 		});
 
 		it('manages hover and drag targets and fires delegates', () => {

@@ -1,11 +1,13 @@
 import type { Time } from 'lightweight-charts';
 import { Delegate, type ISubscription } from '../helpers/delegate';
-import type {
-	DegreeWaveCount,
-	WaveDegree,
-	WavePoint,
-	WavePointId,
-	WaveType
+import {
+	normalizeWaveIds,
+	selectDegreeWave,
+	type DegreeWaveCount,
+	type WaveDegree,
+	type WavePoint,
+	type WavePointId,
+	type WaveType
 } from '$lib/utils/finance/elliott-wave';
 import { MAX_CORRECTIVE_POINTS, MAX_IMPULSE_POINTS } from './constants';
 import { generateUUID } from '$lib/utils/finance/rewind';
@@ -211,19 +213,10 @@ export class ElliottWaveState {
 			}
 		}
 
-		const matching = this._waves.filter(
-			(w) => w.degree === targetDegree && w.type === this._activeWaveType
-		);
-		if (matching.length > 0) {
-			return matching[matching.length - 1];
-		}
-
-		const anyOnDegree = this._waves.filter((w) => w.degree === targetDegree);
-		if (anyOnDegree.length > 0) {
-			return anyOnDegree[anyOnDegree.length - 1];
-		}
-
-		return null;
+		return selectDegreeWave(this._waves, targetDegree, {
+			preferredType: this._activeWaveType,
+			prefer: 'last'
+		});
 	}
 
 	public getAllWaves(): DegreeWaveCount[] {
@@ -247,14 +240,7 @@ export class ElliottWaveState {
 	}
 
 	public setWaves(waves: DegreeWaveCount[]): void {
-		this._waves = (waves || []).map((w) => ({
-			id: w.id || generateUUID(),
-			degree: w.degree,
-			type: w.type,
-			points: (w.points || []).map((p) => ({ ...p })),
-			wave3Target: w.wave3Target ?? null,
-			wave5Target: w.wave5Target ?? null
-		}));
+		this._waves = normalizeWaveIds(waves);
 		if (this._selectedWaveId && !this._waves.some((w) => w.id === this._selectedWaveId)) {
 			this._selectedWaveId = null;
 			this.setSelectedDegree(null);
