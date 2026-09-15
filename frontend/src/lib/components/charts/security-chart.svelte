@@ -143,6 +143,52 @@
 	let avgPriceLine: IPriceLine | null = null;
 	let previousFirstCandleTime: Time | null = null;
 	let lastCandlesRef: Candle[] | null = null;
+	let currentWhitespaceCount = DEFAULT_FUTURE_BARS;
+	let isUpdatingWhitespace = false;
+
+	function checkAndExpandWhitespace(range?: { from: number; to: number } | null) {
+		if (isUpdatingWhitespace || !seriesInstance || !chartInstance || candles.length === 0) {
+			return;
+		}
+
+		const logicalRange = range ?? chartInstance.timeScale().getVisibleLogicalRange();
+		const lastCandleIndex = candles.length - 1;
+		const currentEndIndex = lastCandleIndex + currentWhitespaceCount;
+
+		let neededWhitespace = currentWhitespaceCount;
+
+		if (logicalRange) {
+			const threshold = Math.max(lastCandleIndex + 1, currentEndIndex - 30);
+			if (logicalRange.to >= threshold) {
+				const rangeNeeded = Math.ceil(logicalRange.to - lastCandleIndex) + 100;
+				if (rangeNeeded > neededWhitespace) {
+					neededWhitespace = rangeNeeded;
+				}
+			}
+		}
+
+		if (containerRef && containerRef.clientWidth > 0) {
+			const widthBars = Math.ceil(containerRef.clientWidth / 4) + 100;
+			if (widthBars > neededWhitespace) {
+				neededWhitespace = widthBars;
+			}
+		}
+
+		if (neededWhitespace > currentWhitespaceCount) {
+			isUpdatingWhitespace = true;
+			try {
+				const savedRange = logicalRange ?? chartInstance.timeScale().getVisibleLogicalRange();
+				currentWhitespaceCount = neededWhitespace;
+				const whitespace = generateFutureWhitespace(candles, currentWhitespaceCount);
+				seriesInstance.setData([...candles, ...whitespace]);
+				if (savedRange) {
+					chartInstance.timeScale().setVisibleLogicalRange(savedRange);
+				}
+			} finally {
+				isUpdatingWhitespace = false;
+			}
+		}
+	}
 
 	const DEFAULT_PRICE_SCALE_MIN_WIDTH = 75;
 	const OSCILLATOR_ORDER = ['rsi', 'macd', 'obv'] as const;
@@ -433,6 +479,7 @@
 					return;
 				}
 				lastCandlesRef = candles;
+				currentWhitespaceCount = futureBars;
 				seriesInstance.setData([]);
 				elliottWavesPrimitive?.setCandles([]);
 				fibonacciPrimitive?.setCandles([]);
@@ -467,9 +514,17 @@
 						currentRange = { from: range.from, to: range.to };
 					}
 				}
+			} else if (previousFirstCandleTime === null) {
+				currentWhitespaceCount = futureBars;
+				if (containerRef && containerRef.clientWidth > 0) {
+					const widthBars = Math.ceil(containerRef.clientWidth / 4) + 100;
+					if (widthBars > currentWhitespaceCount) {
+						currentWhitespaceCount = widthBars;
+					}
+				}
 			}
 
-			const whitespace = generateFutureWhitespace(candles, futureBars);
+			const whitespace = generateFutureWhitespace(candles, currentWhitespaceCount);
 			seriesInstance.setData([...candles, ...whitespace]);
 			elliottWavesPrimitive?.setCandles(candles);
 			fibonacciPrimitive?.setCandles(candles);
@@ -533,6 +588,9 @@
 			if (range && range.from <= 10 && !isLoadingMore && hasMoreData) {
 				isLoadingMore = true;
 				onLoadMoreData?.();
+			}
+			if (range) {
+				checkAndExpandWhitespace(range);
 			}
 		});
 
@@ -682,6 +740,8 @@
 					width: containerRef.clientWidth,
 					height: containerRef.clientHeight
 				});
+				const range = chartInstance.timeScale().getVisibleLogicalRange();
+				checkAndExpandWhitespace(range);
 			}
 		});
 
@@ -700,7 +760,13 @@
 	export function updateData(newCandles: Candle[]) {
 		if (seriesInstance) {
 			lastCandlesRef = newCandles;
-			const whitespace = generateFutureWhitespace(newCandles, futureBars);
+			if (containerRef && containerRef.clientWidth > 0) {
+				const widthBars = Math.ceil(containerRef.clientWidth / 4) + 100;
+				if (widthBars > currentWhitespaceCount) {
+					currentWhitespaceCount = widthBars;
+				}
+			}
+			const whitespace = generateFutureWhitespace(newCandles, currentWhitespaceCount);
 			seriesInstance.setData([...newCandles, ...whitespace]);
 
 			if (newCandles.length > 0) {

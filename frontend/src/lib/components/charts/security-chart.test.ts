@@ -1895,5 +1895,128 @@ describe('SecurityChart - Oscillator Panes & Custom Price Scales', () => {
 			// mockSetData was called for volume series with exactly volumeData (length 2)
 			expect(mockSetData).toHaveBeenCalledWith(volumeData);
 		});
+
+		it('dynamically expands future whitespace when scrolling towards the end of current whitespace and preserves visibleLogicalRange', () => {
+			render(SecurityChart, {
+				props: {
+					candles: testCandles,
+					futureBars: 100
+				}
+			});
+
+			mockSetData.mockClear();
+			mockSetVisibleLogicalRange.mockClear();
+
+			// Initial state: 3 candles (indices 0..2) + 100 whitespace = end index 102.
+			// Threshold is 102 - 30 = 72. Scrolling to `to: 80` nears the end of whitespace.
+			expect(rangeCallbacks.length).toBeGreaterThan(0);
+			rangeCallbacks[0]({ from: 10, to: 80 });
+
+			expect(mockSetData).toHaveBeenCalledTimes(1);
+			const lastCallData = mockSetData.mock.calls[0][0];
+
+			// Expected expansion: Math.ceil(80 - 2) + 100 = 178 whitespace items.
+			// Total data length: 3 candles + 178 whitespace = 181 items.
+			expect(lastCallData).toHaveLength(181);
+			expect(lastCallData.slice(0, 3)).toEqual(testCandles);
+
+			// First whitespace point is 2024-01-04
+			expect(lastCallData[3]).toEqual({ time: '2024-01-04' });
+
+			// Viewport preserved without jumping
+			expect(mockSetVisibleLogicalRange).toHaveBeenCalledWith({
+				from: 10,
+				to: 80
+			});
+		});
+
+		it('dynamically expands future whitespace when zooming out into the future', () => {
+			render(SecurityChart, {
+				props: {
+					candles: testCandles,
+					futureBars: 100
+				}
+			});
+
+			mockSetData.mockClear();
+			mockSetVisibleLogicalRange.mockClear();
+
+			// Zoom out far into future: range.to = 300
+			rangeCallbacks[0]({ from: -50, to: 300 });
+
+			expect(mockSetData).toHaveBeenCalledTimes(1);
+			const lastCallData = mockSetData.mock.calls[0][0];
+
+			// Expected expansion: Math.ceil(300 - 2) + 100 = 398 whitespace items.
+			// Total data length: 3 candles + 398 whitespace = 401 items.
+			expect(lastCallData).toHaveLength(401);
+			expect(mockSetVisibleLogicalRange).toHaveBeenCalledWith({
+				from: -50,
+				to: 300
+			});
+		});
+
+		it('does not prematurely expand future whitespace when scrolling within historical candles', () => {
+			render(SecurityChart, {
+				props: {
+					candles: testCandles,
+					futureBars: 100
+				}
+			});
+
+			mockSetData.mockClear();
+			mockSetVisibleLogicalRange.mockClear();
+
+			// Scrolling within historical data (to <= lastCandleIndex)
+			rangeCallbacks[0]({ from: 0, to: 2 });
+
+			expect(mockSetData).not.toHaveBeenCalled();
+			expect(mockSetVisibleLogicalRange).not.toHaveBeenCalled();
+		});
+
+		it('does not trigger redundant expansions when scrolling within existing buffer', () => {
+			render(SecurityChart, {
+				props: {
+					candles: testCandles,
+					futureBars: 100
+				}
+			});
+
+			// Scroll to 80 (expands whitespace to 178 bars, new end index 180, new threshold 150)
+			rangeCallbacks[0]({ from: 10, to: 80 });
+
+			mockSetData.mockClear();
+			mockSetVisibleLogicalRange.mockClear();
+
+			// Scroll slightly to 85 (well before new threshold 150)
+			rangeCallbacks[0]({ from: 15, to: 85 });
+
+			expect(mockSetData).not.toHaveBeenCalled();
+			expect(mockSetVisibleLogicalRange).not.toHaveBeenCalled();
+		});
+
+		it('generates sufficient future whitespace on initial render when container visible width is wide', () => {
+			const clientWidthSpy = vi
+				.spyOn(HTMLDivElement.prototype, 'clientWidth', 'get')
+				.mockReturnValue(1200);
+
+			try {
+				render(SecurityChart, {
+					props: {
+						candles: testCandles,
+						futureBars: 100
+					}
+				});
+
+				expect(mockSetData).toHaveBeenCalled();
+				const lastCallData = mockSetData.mock.calls[mockSetData.mock.calls.length - 1][0];
+
+				// Math.ceil(1200 / 4) + 100 = 400 whitespace bars.
+				// 3 candles + 400 whitespace = 403 items.
+				expect(lastCallData).toHaveLength(403);
+			} finally {
+				clientWidthSpy.mockRestore();
+			}
+		});
 	});
 });
