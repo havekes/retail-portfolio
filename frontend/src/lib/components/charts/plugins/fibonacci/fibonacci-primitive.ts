@@ -1,6 +1,6 @@
 import type { ISeriesApi, SeriesType, Time } from 'lightweight-charts';
 import type { Candle } from '$lib/utils/finance/candle';
-import type { ISubscription } from '../helpers/delegate';
+import { Delegate, type ISubscription } from '../helpers/delegate';
 import {
 	calculateExtensionLevels,
 	calculateRetracementLevels,
@@ -56,6 +56,8 @@ export class FibonacciPrimitive extends DrawingPrimitiveBase<
 	FibPointTarget,
 	FibPointTarget
 > {
+	private _doubleClicked: Delegate<FibToolType> = new Delegate();
+
 	constructor(initialState?: {
 		activeTool?: FibToolType | null;
 		drawings?: SecurityFibonacciTools;
@@ -104,6 +106,12 @@ export class FibonacciPrimitive extends DrawingPrimitiveBase<
 			this._requestUpdate?.();
 		});
 
+		this._subscribe(this._mouseHandlers.doubleClicked(), (hit) => {
+			this._state.setSelectedTool(hit.tool);
+			this._doubleClicked.fire(hit.tool);
+			this._requestUpdate?.();
+		});
+
 		this._subscribe(this._mouseHandlers.emptyAreaClicked(), () => {
 			this._state.setSelectedTool(null);
 			this._requestUpdate?.();
@@ -116,6 +124,15 @@ export class FibonacciPrimitive extends DrawingPrimitiveBase<
 			});
 			this._requestUpdate?.();
 		});
+	}
+
+	public doubleClicked(): ISubscription<FibToolType> {
+		return this._doubleClicked;
+	}
+
+	public override destroy(): void {
+		this._doubleClicked.destroy();
+		super.destroy();
 	}
 
 	// State and Public API Accessors
@@ -290,7 +307,8 @@ export class FibonacciPrimitive extends DrawingPrimitiveBase<
 					x1,
 					x2,
 					timescaleWidth,
-					retracement.extendLines
+					retracement.extendLines,
+					retracement.widthMultiplier
 				);
 				for (const lvl of projectedLevels) {
 					if (lvl.enabled !== false) {
@@ -308,6 +326,7 @@ export class FibonacciPrimitive extends DrawingPrimitiveBase<
 					p2: p2Projected,
 					levels: projectedLevels,
 					extendLines: retracement.extendLines,
+					widthMultiplier: retracement.widthMultiplier,
 					visible: retracement.visible,
 					isSelected: isRetracementSelected
 				};
@@ -403,7 +422,8 @@ export class FibonacciPrimitive extends DrawingPrimitiveBase<
 					x2,
 					x3,
 					timescaleWidth,
-					extension.extendLines
+					extension.extendLines,
+					extension.widthMultiplier
 				);
 				for (const lvl of projectedLevels) {
 					if (lvl.enabled !== false) {
@@ -422,6 +442,7 @@ export class FibonacciPrimitive extends DrawingPrimitiveBase<
 					p3: p3Projected,
 					levels: projectedLevels,
 					extendLines: extension.extendLines,
+					widthMultiplier: extension.widthMultiplier,
 					visible: extension.visible,
 					isSelected: isExtensionSelected
 				};

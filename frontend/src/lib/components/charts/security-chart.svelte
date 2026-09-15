@@ -105,6 +105,7 @@
 		onFibDrawingModeChange,
 		onFibToolChange,
 		onFibSelect,
+		onFibDoubleClick,
 		futureBars = DEFAULT_FUTURE_BARS
 	} = $props<{
 		candles?: Candle[];
@@ -137,6 +138,7 @@
 		onFibDrawingModeChange?: (isDrawing: boolean) => void;
 		onFibToolChange?: (tool: FibToolType | null) => void;
 		onFibSelect?: (tool: FibToolType | null) => void;
+		onFibDoubleClick?: (tool: FibToolType) => void;
 		futureBars?: number;
 	}>();
 
@@ -693,6 +695,10 @@
 				selectedFibTool = tool;
 			}
 			onFibSelect?.(tool);
+		});
+
+		fibonacciPrimitive.doubleClicked().subscribe((tool) => {
+			onFibDoubleClick?.(tool);
 		});
 
 		const handleWheel = (event: WheelEvent) => {

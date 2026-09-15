@@ -48,6 +48,7 @@
 	} from '$lib/utils/finance/elliott-wave';
 	import { computeWaveAlertLevels, reconcileWaveAlerts } from '$lib/utils/finance/wave-alerts';
 	import ChartSettingsModal from '$lib/components/charts/chart-settings-modal.svelte';
+	import FibWidthModal from '$lib/components/charts/fib-width-modal.svelte';
 	import DrawingToolbar from '$lib/components/charts/drawing-toolbar.svelte';
 	import {
 		type FibToolType,
@@ -97,6 +98,8 @@
 	let isDrawingFib = $state(false);
 	let selectedFibTool = $state<FibToolType | null>(null);
 	let isChartSettingsOpen = $state(false);
+	let isFibWidthModalOpen = $state(false);
+	let modalFibTool = $state<FibToolType>('retracement');
 	let securityFibonacciTools = $derived<SecurityFibonacciTools>(
 		(security?.id && userPreferences?.fibonacci_tools?.[security.id]) || {}
 	);
@@ -358,6 +361,50 @@
 			updatedSecurityTools = {
 				...currentTools,
 				extension: currentDrawing ? { ...currentDrawing, levels } : null
+			};
+		}
+		const updatedAllTools = updateSecurityFibonacciTools(
+			userPreferences?.fibonacci_tools,
+			security.id,
+			updatedSecurityTools
+		);
+		userPreferences = {
+			...(userPreferences ?? {}),
+			fibonacci_tools: updatedAllTools
+		};
+		try {
+			await userPreferencesService.patchPreferences({
+				fibonacci_tools: updatedAllTools
+			});
+		} catch (err) {
+			console.error('Failed to persist fibonacci tools preference:', err);
+		}
+	}
+
+	async function handleFibWidthSave(
+		tool: FibToolType,
+		widthMultiplier: number | null,
+		extendLines?: boolean
+	) {
+		if (isRewound) return;
+		if (!security?.id) return;
+		const currentTools = userPreferences?.fibonacci_tools?.[security.id];
+		let updatedSecurityTools: SecurityFibonacciTools;
+		if (tool === 'retracement') {
+			const currentDrawing = currentTools?.retracement;
+			updatedSecurityTools = {
+				...currentTools,
+				retracement: currentDrawing
+					? { ...currentDrawing, widthMultiplier, extendLines: Boolean(extendLines) }
+					: null
+			};
+		} else {
+			const currentDrawing = currentTools?.extension;
+			updatedSecurityTools = {
+				...currentTools,
+				extension: currentDrawing
+					? { ...currentDrawing, widthMultiplier, extendLines: Boolean(extendLines) }
+					: null
 			};
 		}
 		const updatedAllTools = updateSecurityFibonacciTools(
@@ -1057,6 +1104,10 @@
 									selectedFibTool = tool;
 									if (tool) selectedWaveDegree = null;
 								}}
+								onFibDoubleClick={(tool) => {
+									modalFibTool = tool;
+									isFibWidthModalOpen = true;
+								}}
 							/>
 							<ChartSettingsModal
 								bind:open={isChartSettingsOpen}
@@ -1067,10 +1118,23 @@
 								activeTool={activeFibTool}
 								retracementLevels={securityFibonacciTools?.retracement?.levels}
 								extensionLevels={securityFibonacciTools?.extension?.levels}
+								retracementWidthMultiplier={securityFibonacciTools?.retracement?.widthMultiplier}
+								extensionWidthMultiplier={securityFibonacciTools?.extension?.widthMultiplier}
+								retracementExtendLines={securityFibonacciTools?.retracement?.extendLines}
+								extensionExtendLines={securityFibonacciTools?.extension?.extendLines}
 								hasActiveDrawing={Boolean(
 									securityFibonacciTools?.retracement || securityFibonacciTools?.extension
 								)}
 								onFibLevelsChange={handleFibLevelsChange}
+								onFibWidthChange={handleFibWidthSave}
+							/>
+							<FibWidthModal
+								bind:open={isFibWidthModalOpen}
+								tool={modalFibTool}
+								drawing={modalFibTool === 'retracement'
+									? securityFibonacciTools?.retracement
+									: securityFibonacciTools?.extension}
+								onSave={handleFibWidthSave}
 							/>
 						</div>
 						{#if isTimelineVisible}
