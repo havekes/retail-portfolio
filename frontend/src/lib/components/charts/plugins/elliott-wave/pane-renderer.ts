@@ -199,7 +199,6 @@ export class ElliottWavePaneRenderer implements IPrimitivePaneRenderer {
 				}
 			}
 
-
 			// Offset wave label without background badge
 			ctx.save();
 			try {
