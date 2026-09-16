@@ -59,6 +59,61 @@ async def test_compute_invalid_date_range(auth_client, test_security):
 
 
 @pytest.mark.anyio
+async def test_compute_invalid_date_range_mixed_timezone_types(
+    auth_client, test_security
+):
+    # naive datetime (from date-only string) vs aware datetime — comparing them
+    # directly raises TypeError; the endpoint must normalize and return 422.
+    payload = {
+        "interval": "1d",
+        "chart_style": "candlestick",
+        "indicators": [{"type": "SMA", "period": 20}],
+        "from_date": "2026-02-01",
+        "to_date": "2026-01-01T00:00:00Z",
+    }
+    response = await auth_client.post(
+        f"/api/v1/market/securities/{test_security.id}/indicators/compute",
+        json=payload,
+    )
+    assert response.status_code == 422
+
+
+@pytest.mark.anyio
+async def test_compute_valid_date_range_mixed_timezone_types(
+    auth_client, test_security, db_session
+):
+    price = PriceModel(
+        security_id=test_security.id,
+        date=date(2026, 1, 15),
+        open=Decimal("150.00"),
+        high=Decimal("155.00"),
+        low=Decimal("149.00"),
+        close=Decimal("153.00"),
+        adjusted_close=Decimal("153.00"),
+        volume=1000000,
+    )
+    db_session.add(price)
+    await db_session.commit()
+
+    payload = {
+        "interval": "1d",
+        "chart_style": "candlestick",
+        "indicators": [{"type": "SMA", "period": 20}],
+        "from_date": "2026-01-01T00:00:00Z",
+        "to_date": "2026-01-31",
+    }
+    mock_compute = AsyncMock(return_value={"SMA": [{"time": "2026-01-15", "value": 153.0}]})
+
+    with patch.object(IndicatorServiceClient, "compute", mock_compute):
+        response = await auth_client.post(
+            f"/api/v1/market/securities/{test_security.id}/indicators/compute",
+            json=payload,
+        )
+
+    assert response.status_code == 200
+
+
+@pytest.mark.anyio
 async def test_compute_with_custom_candles_and_heikin_ashi(auth_client, test_security):
     custom_candles = [
         {
@@ -329,6 +384,60 @@ async def test_compute_cache_hit_and_miss(auth_client, test_security, db_session
         assert resp2.status_code == 200
         assert resp2.json() == resp1.json()
         assert mock_compute.await_count == 1
+
+
+@pytest.mark.anyio
+async def test_compute_forwards_date_window_to_cache(
+    auth_client, test_security, db_session
+):
+    price = PriceModel(
+        security_id=test_security.id,
+        date=date(2026, 1, 15),
+        open=Decimal("150.00"),
+        high=Decimal("155.00"),
+        low=Decimal("149.00"),
+        close=Decimal("153.00"),
+        adjusted_close=Decimal("153.00"),
+        volume=1000000,
+    )
+    db_session.add(price)
+    await db_session.commit()
+
+    captured: dict[str, dict] = {}
+
+    async def mock_get(*args, **kwargs):
+        captured["get"] = kwargs
+        return None
+
+    async def mock_set(*args, **kwargs):
+        captured["set"] = kwargs
+
+    payload = {
+        "interval": "1d",
+        "chart_style": "candlestick",
+        "indicators": [{"type": "SMA", "period": 20}],
+        "from_date": "2026-01-01",
+        "to_date": "2026-01-31",
+    }
+
+    mock_compute = AsyncMock(return_value={"SMA": [{"time": "2026-01-15", "value": 153.0}]})
+
+    with (
+        patch.object(IndicatorCache, "get", side_effect=mock_get),
+        patch.object(IndicatorCache, "set", side_effect=mock_set),
+        patch.object(IndicatorServiceClient, "compute", mock_compute),
+    ):
+        response = await auth_client.post(
+            f"/api/v1/market/securities/{test_security.id}/indicators/compute",
+            json=payload,
+        )
+
+    assert response.status_code == 200
+    assert captured["get"]["from_date"] is not None
+    assert captured["get"]["to_date"] is not None
+    # The window used to read the cache must match the window used to write it.
+    assert captured["get"]["from_date"] == captured["set"]["from_date"]
+    assert captured["get"]["to_date"] == captured["set"]["to_date"]
 
 
 @pytest.mark.anyio

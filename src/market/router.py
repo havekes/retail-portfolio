@@ -132,6 +132,11 @@ async def market_search(
     return results
 
 
+def _normalize_to_date(value: datetime | date) -> date:
+    """Coerce a date/datetime union member to a plain date for comparison."""
+    return value.date() if isinstance(value, datetime) else value
+
+
 def _to_datetime_range(
     from_date: datetime | date | None,
     to_date: datetime | date | None,
@@ -736,7 +741,7 @@ async def market_get_technical_indicators(  # noqa: C901
 
 
 @market_router.post("/securities/{security_id}/indicators/compute")
-async def market_compute_indicators(  # noqa: C901, PLR0912
+async def market_compute_indicators(  # noqa: C901, PLR0912, PLR0915
     _user: Annotated[User, Depends(current_user)],
     security_id: SecurityId,
     request: IndicatorComputeRequest,
@@ -745,11 +750,16 @@ async def market_compute_indicators(  # noqa: C901, PLR0912
     """
     Compute technical indicators for a security or custom candle series.
     """
-    if request.from_date and request.to_date and request.from_date > request.to_date:
-        raise HTTPException(
-            status_code=422,
-            detail="from_date must be less than or equal to to_date",
-        )
+    if request.from_date and request.to_date:
+        # Normalize the date/datetime union members to plain dates before
+        # comparing; mixing a datetime and a date raises TypeError otherwise.
+        from_bound = _normalize_to_date(request.from_date)
+        to_bound = _normalize_to_date(request.to_date)
+        if from_bound > to_bound:
+            raise HTTPException(
+                status_code=422,
+                detail="from_date must be less than or equal to to_date",
+            )
 
     indicator_cache = await services.aget(IndicatorCache)
 
@@ -759,6 +769,8 @@ async def market_compute_indicators(  # noqa: C901, PLR0912
             indicators=request.indicators,
             interval=str(request.interval.value),
             chart_style=request.chart_style,
+            from_date=request.from_date,
+            to_date=request.to_date,
         )
         if cached_result is not None:
             logger.info(
@@ -867,6 +879,8 @@ async def market_compute_indicators(  # noqa: C901, PLR0912
             indicators=request.indicators,
             interval=str(request.interval.value),
             chart_style=request.chart_style,
+            from_date=request.from_date,
+            to_date=request.to_date,
             data=response.model_dump(),
         )
 
