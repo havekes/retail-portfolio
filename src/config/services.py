@@ -108,7 +108,9 @@ def register_market_stub_services(registry: Registry) -> None:
         sqlalchemy_watchlist_repository_factory,
     )
     from src.market.service import (  # noqa: PLC0415
+        IndicatorServiceClient,
         MarketService,
+        indicator_service_client_factory,
         market_service_factory,
     )
     from src.stubs.ai import StubAIService  # noqa: PLC0415
@@ -141,6 +143,7 @@ def register_market_stub_services(registry: Registry) -> None:
     )
     registry.register_factory(IndicatorCache, indicator_cache_factory)
     registry.register_factory(SecuritySearchCache, security_search_cache_factory)
+    registry.register_factory(IndicatorServiceClient, indicator_service_client_factory)
     registry.register_factory(MarketPricesApi, market_prices_factory)
     registry.register_factory(SecurityApi, security_api_factory)
     registry.register_factory(MarketService, market_service_factory)
