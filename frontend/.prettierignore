@@ -6,6 +6,7 @@ bun.lock
 bun.lockb
 
 # Miscellaneous
+.cache
 .svelte-kit
 /static/
 src/lib/components/ui

@@ -31,6 +31,8 @@ Coding Agent Guide: retail-portfolio (Backend)
 4. Format code: `docker compose exec backend uv run ruff format`
 5. Generate migrations: `docker compose exec backend uv run alembic revision --autogenerate -m "message"`
 
+**Agent harness**: Prefer `./scripts/agent-test tests/...` (targeted, fail-fast) while developing and `./scripts/agent-test` (full backend regression) before finishing. It runs lint/type checks first, sanitizes output, and caps it so context isn't flooded. See root `AGENTS.md` for details.
+
 **MANDATORY**: When writing or editing code, **ALWAYS** run linting, type checks, tests and format before submitting.
 **MANDATORY**: When editing a backend model, also generate the migrations using alembic.
 **MANDATORY**: All migration files MUST follow the Alembic standard `<hash>_<description>.py` naming. For manual SQL migrations, create a standard revision using the autogenerate command and use `op.execute()` inside it.

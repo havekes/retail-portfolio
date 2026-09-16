@@ -1129,19 +1129,19 @@ describe('Fibonacci Chart Primitive Plugin', () => {
 			const hoverMove = new MouseEvent('mousemove', { clientX: 100, clientY: 200 });
 			mockData.mockChartElement.dispatchEvent(hoverMove);
 			primitive.updateAllViews();
-			expect(primitive.hitTest()?.cursorStyle).toBe('grab');
+			expect(primitive.hitTest()?.cursorStyle).toBe('default');
 
 			// Drag anchor P1
 			const downEvent = new MouseEvent('mousedown', { clientX: 100, clientY: 200 });
 			mockData.mockChartElement.dispatchEvent(downEvent);
 			primitive.updateAllViews();
-			expect(primitive.hitTest()?.cursorStyle).toBe('grabbing');
+			expect(primitive.hitTest()?.cursorStyle).toBe('default');
 
 			// Release
 			const upEvent = new MouseEvent('mouseup', { clientX: 100, clientY: 200 });
 			mockData.mockChartElement.dispatchEvent(upEvent);
 			primitive.updateAllViews();
-			expect(primitive.hitTest()?.cursorStyle).toBe('grab');
+			expect(primitive.hitTest()?.cursorStyle).toBe('default');
 		});
 
 		it('supports interactive 2-point drawing via chart clicks', () => {

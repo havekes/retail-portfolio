@@ -1,0 +1,749 @@
+#!/usr/bin/env python3
+"""Agent-optimized test & verification harness for retail-portfolio.
+
+Designed for AI coding agents: maximize signal, minimize tokens, remove noise.
+
+Gates
+-----
+0. Pre-flight: lint + type checks for the selected ecosystem(s). On failure the
+   harness halts and prints only sanitized diagnostics. Tests are never run.
+1. Targeted iteration: ``./scripts/agent-test <path>`` runs only that target
+   with fail-fast enabled and prints the assertion detail.
+2. Full regression: with no args (auto-detected from git diff) or ``--all``,
+   run the suite, parse a structured report and render a two-tier summary:
+   an Index (counts + failed identifiers) and Traces for the first 1-2 failures.
+
+Output is always sanitized (no ANSI, no progress/timing noise, vendor frames
+removed) and hard-capped (default 3000 chars) so it never floods a context window.
+
+Execution model
+---------------
+Runs on the host and shells through ``docker compose exec -T <service>`` by
+default, honouring the repo rule that all dev commands run inside Docker. When
+already inside a container it runs natively; ``--local`` forces native mode.
+"""
+
+from __future__ import annotations
+
+import argparse
+import json
+import os
+import re
+import subprocess
+import sys
+import xml.etree.ElementTree as ET
+from dataclasses import dataclass, field
+from pathlib import Path
+
+# --------------------------------------------------------------------------- #
+# Constants
+# --------------------------------------------------------------------------- #
+
+REPO_ROOT = Path(__file__).resolve().parent.parent
+FRONTEND_ROOT = REPO_ROOT / "frontend"
+CACHE_DIR = REPO_ROOT / ".cache" / "agent-test"
+FRONTEND_CACHE_DIR = FRONTEND_ROOT / ".cache" / "agent-test"
+
+DEFAULT_MAX_CHARS = 3000
+TRACE_FAILURE_LIMIT = 2
+
+BACKEND = "backend"
+FRONTEND = "frontend"
+
+# Paths that imply a backend change for auto-detection.
+BACKEND_PREFIXES = ("src/", "tests/", "migrations/")
+BACKEND_FILES = {"pyproject.toml", "uv.lock", "alembic.ini"}
+# Paths deliberately ignored for auto-detection (docs, tooling, harness itself).
+IGNORED_PREFIXES = (
+    "openspec/",
+    "openwiki/",
+    ".github/",
+    ".opencode/",
+    ".agent/",
+    "scripts/",
+    "frontend/node_modules/",
+)
+
+ANSI_RE = re.compile(r"\x1b\[[0-9;?]*[a-zA-Z]|\x1b\][^\x07]*\x07|\x1b[@-Z\\-_]")
+
+BACKEND_VENDOR_MARKERS = (
+    "site-packages/",
+    "dist-packages/",
+    "/.venv/",
+    "/usr/lib/python",
+    "/usr/local/lib/python",
+)
+FRONTEND_VENDOR_MARKERS = (
+    "node_modules/",
+    "node:internal/",
+)
+
+
+# --------------------------------------------------------------------------- #
+# Data model
+# --------------------------------------------------------------------------- #
+
+
+@dataclass
+class Failure:
+    name: str
+    message: str = ""
+    traceback: str = ""
+
+    @property
+    def one_line(self) -> str:
+        message = strip_ansi(self.message or "").strip()
+        if message:
+            return message.splitlines()[0].strip()
+        for line in reversed(strip_ansi(self.traceback).splitlines()):
+            stripped = line.strip()
+            if stripped.startswith("E "):
+                return stripped[2:].strip()
+            if re.search(r"(Error|Exception|assert)", stripped) and not stripped.startswith("File "):
+                return stripped
+        return ""
+
+
+@dataclass
+class Result:
+    ecosystem: str
+    mode: str
+    total: int = 0
+    passed: int = 0
+    failed: int = 0
+    errors: int = 0
+    skipped: int = 0
+    failures: list[Failure] = field(default_factory=list)
+    command_failed: bool = False
+    note: str = ""
+
+
+# --------------------------------------------------------------------------- #
+# Small helpers
+# --------------------------------------------------------------------------- #
+
+
+def strip_ansi(text: str) -> str:
+    return ANSI_RE.sub("", text).replace("\r\n", "\n").replace("\r", "\n")
+
+
+def collapse_blank_lines(text: str) -> str:
+    lines = [line.rstrip() for line in text.splitlines()]
+    out: list[str] = []
+    blanks = 0
+    for line in lines:
+        if line:
+            blanks = 0
+            out.append(line)
+        else:
+            blanks += 1
+            if blanks <= 1:
+                out.append("")
+    return "\n".join(out).strip("\n")
+
+
+def is_vendor_line(line: str, ecosystem: str) -> bool:
+    markers = BACKEND_VENDOR_MARKERS if ecosystem == BACKEND else FRONTEND_VENDOR_MARKERS
+    return any(marker in line for marker in markers)
+
+
+def filter_vendor_frames(text: str, ecosystem: str) -> str:
+    """Drop stack frames that point at vendor/runtime code, not project source."""
+    out: list[str] = []
+    hidden = 0
+    skip_code_line = False
+    for line in text.splitlines():
+        if is_vendor_line(line, ecosystem):
+            hidden += 1
+            # Python tracebacks pair a `File "..."` line with the source line below.
+            skip_code_line = 'File "' in line
+            continue
+        if skip_code_line and line.strip() and (line.startswith("    ") or line.startswith("\t")):
+            skip_code_line = False
+            continue
+        skip_code_line = False
+        out.append(line)
+    if hidden:
+        out.append(f"  … {hidden} vendor frame(s) hidden")
+    return "\n".join(out)
+
+
+def sanitize(text: str, ecosystem: str) -> str:
+    text = strip_ansi(text)
+    text = filter_vendor_frames(text, ecosystem)
+    return collapse_blank_lines(text)
+
+
+def cap(text: str, limit: int, always_keep: str = "") -> str:
+    """Back-compat helper: hard-cap ``text`` to ``limit`` chars."""
+    if always_keep and not text.startswith(always_keep):
+        text = f"{always_keep}\n{text}" if text else always_keep
+    return truncate(text, limit)
+
+
+def truncate(text: str, budget: int) -> str:
+    if budget <= 0:
+        return ""
+    if len(text) <= budget:
+        return text
+    head = text[: max(budget - 70, 0)]
+    newline = head.rfind("\n")
+    if newline > len(head) * 0.5:
+        head = head[:newline]
+    return f"{head}\n… [output truncated: {len(text) - len(head)} chars omitted]"
+
+
+# --------------------------------------------------------------------------- #
+# Command runner (host -> docker compose exec, or native)
+# --------------------------------------------------------------------------- #
+
+
+class Runner:
+    def __init__(self, local: bool):
+        self.local = local
+
+    def cwd_for(self, ecosystem: str) -> str:
+        if ecosystem == BACKEND:
+            return str(REPO_ROOT)
+        return str(FRONTEND_ROOT)
+
+    def run(self, ecosystem: str, args: list[str], timeout: int = 3600) -> subprocess.CompletedProcess:
+        if self.local:
+            cmd = args
+            cwd = self.cwd_for(ecosystem)
+        else:
+            cmd = ["docker", "compose", "exec", "-T", ecosystem, *args]
+            cwd = str(REPO_ROOT)
+        return subprocess.run(
+            cmd,
+            cwd=cwd,
+            capture_output=True,
+            text=True,
+            timeout=timeout,
+            env={**os.environ, "NO_COLOR": "1", "FORCE_COLOR": "0", "TERM": "dumb"},
+        )
+
+
+# --------------------------------------------------------------------------- #
+# Report paths (host + container views; volumes make them the same file)
+# --------------------------------------------------------------------------- #
+
+
+def report_path(ecosystem: str, name: str, local: bool) -> tuple[Path, str]:
+    base = CACHE_DIR if ecosystem == BACKEND else FRONTEND_CACHE_DIR
+    base.mkdir(parents=True, exist_ok=True)
+    host = base / name
+    container = f"/app/.cache/agent-test/{name}"
+    return host, (str(host) if local else container)
+
+
+def relative_target(ecosystem: str, target: str) -> str:
+    path = Path(target)
+    if not path.is_absolute():
+        path = (REPO_ROOT / path).resolve()
+    else:
+        path = path.resolve()
+    if ecosystem == BACKEND:
+        return str(path.relative_to(REPO_ROOT))
+    return str(path.relative_to(FRONTEND_ROOT))
+
+
+# --------------------------------------------------------------------------- #
+# Gate 0 - pre-flight
+# --------------------------------------------------------------------------- #
+
+
+def gate0_commands(ecosystem: str) -> list[tuple[list[str], str]]:
+    if ecosystem == BACKEND:
+        return [
+            (["uv", "run", "ruff", "check", "--output-format", "concise"], "ruff check"),
+            (["uv", "run", "ruff", "format", "--check"], "ruff format --check"),
+            (["uv", "run", "ty", "check", "--output-format", "concise"], "ty check"),
+        ]
+    return [
+        (["npx", "svelte-kit", "sync"], "svelte-kit sync"),
+        (
+            ["npx", "svelte-check", "--tsconfig", "./tsconfig.json", "--output", "machine"],
+            "svelte-check",
+        ),
+        (["npx", "eslint", ".", "-f", "json"], "eslint"),
+        (["npx", "prettier", "--check", "."], "prettier --check"),
+    ]
+
+
+def format_eslint(output: str) -> str:
+    """Render `eslint -f json` as concise ``path:line:col: message (rule)`` lines."""
+    start = output.find("[")
+    if start == -1:
+        return output
+    try:
+        data = json.loads(output[start:])
+    except json.JSONDecodeError:
+        return output
+    lines: list[str] = []
+    for entry in data:
+        path = entry.get("filePath", "")
+        if path.startswith("/app/"):
+            path = "frontend/" + path[len("/app/"):]
+        for message in entry.get("messages", []):
+            rule = message.get("ruleId") or "fatal"
+            lines.append(
+                f"{path}:{message.get('line', '?')}:{message.get('column', '?')}: "
+                f"{message.get('message', '')} ({rule})"
+            )
+    return "\n".join(lines) if lines else output
+
+
+def format_prettier(output: str) -> str:
+    """Keep only the files prettier would reformat."""
+    return "\n".join(
+        line for line in output.splitlines() if line.startswith(("[warn]", "[error]"))
+    )
+
+
+def run_gate0(runner: Runner, ecosystem: str) -> tuple[bool, str]:
+    for cmd, label in gate0_commands(ecosystem):
+        try:
+            proc = runner.run(ecosystem, cmd)
+        except FileNotFoundError:
+            return False, f"{label}: command not found"
+        if proc.returncode != 0:
+            raw = proc.stdout + "\n" + proc.stderr
+            if label == "eslint":
+                raw = format_eslint(raw)
+            elif label.startswith("prettier"):
+                raw = format_prettier(raw)
+            diag = sanitize(raw, ecosystem)
+            return False, f"[{label}] failed\n{diag}"
+    return True, ""
+
+
+# --------------------------------------------------------------------------- #
+# Gate 1 / Gate 2 - tests
+# --------------------------------------------------------------------------- #
+
+
+def pytest_command(targets: list[str], report_arg: str, fail_fast: bool, coverage: bool) -> list[str]:
+    cmd = ["uv", "run", "pytest"]
+    cmd += targets
+    if fail_fast:
+        cmd.append("-x")
+    cmd += ["--tb=short", f"--junitxml={report_arg}"]
+    if not coverage:
+        cmd.append("--no-cov")
+    else:
+        cmd.append("--cov-report=json:coverage.json")
+    return cmd
+
+
+def vitest_command(targets: list[str], report_arg: str, fail_fast: bool) -> list[str]:
+    cmd = ["npx", "vitest", "run", *targets]
+    if fail_fast:
+        cmd.append("--bail=1")
+    cmd += ["--reporter=json", f"--outputFile={report_arg}"]
+    return cmd
+
+
+def parse_junit(path: Path) -> Result:
+    result = Result(ecosystem=BACKEND, mode="")
+    if not path.exists():
+        result.command_failed = True
+        result.note = "no JUnit report produced"
+        return result
+    root = ET.parse(path).getroot()
+    suites = [root] if root.tag == "testsuite" else list(root.findall("testsuite"))
+    for suite in suites:
+        result.total += int(suite.get("tests", 0))
+        result.failed += int(suite.get("failures", 0))
+        result.errors += int(suite.get("errors", 0))
+        result.skipped += int(suite.get("skipped", 0))
+        for case in suite.iter("testcase"):
+            node = case.find("failure")
+            if node is None:
+                node = case.find("error")
+            if node is None:
+                continue
+            name = f"{case.get('classname', '')}::{case.get('name', '')}".strip(":")
+            text = (node.text or "").strip() or (node.get("message") or "").strip()
+            result.failures.append(Failure(name=name, message=node.get("message", ""), traceback=text))
+    result.passed = max(result.total - result.failed - result.errors - result.skipped, 0)
+    return result
+
+
+def _relativize_frontend(path: str) -> str:
+    for prefix in ("/app/",):
+        if path.startswith(prefix):
+            return "frontend/" + path[len(prefix):]
+    return path
+
+
+def parse_vitest(path: Path) -> Result:
+    result = Result(ecosystem=FRONTEND, mode="")
+    if not path.exists():
+        result.command_failed = True
+        result.note = "no Vitest report produced"
+        return result
+    raw = path.read_text(encoding="utf-8").strip()
+    # Vitest may append multiple JSON payloads; keep the last complete object.
+    start = raw.rfind('{"numTotalTestSuites"')
+    if start == -1:
+        start = raw.rfind("{")
+    data = json.loads(raw[start:] if start != -1 else raw)
+    result.total = int(data.get("numTotalTests", 0))
+    result.passed = int(data.get("numPassedTests", 0))
+    result.failed = int(data.get("numFailedTests", 0))
+    result.skipped = int(data.get("numPendingTests", 0)) + int(data.get("numTodoTests", 0))
+    for suite in data.get("testResults", []):
+        file_name = _relativize_frontend(suite.get("name", ""))
+        for assertion in suite.get("assertionResults", []):
+            if assertion.get("status") != "failed":
+                continue
+            title = assertion.get("fullName") or assertion.get("title") or "unknown"
+            messages = assertion.get("failureMessages") or []
+            result.failures.append(
+                Failure(name=f"{file_name}::{title}", traceback="\n".join(messages))
+            )
+        if suite.get("status") == "failed" and not suite.get("assertionResults"):
+            result.failures.append(
+                Failure(name=file_name, message=suite.get("message", "suite failed"))
+            )
+    return result
+
+
+def run_tests(
+    runner: Runner,
+    ecosystem: str,
+    targets: list[str],
+    *,
+    fail_fast: bool,
+    coverage: bool,
+    local: bool,
+) -> Result:
+    name = "backend.xml" if ecosystem == BACKEND else "frontend.json"
+    host_report, report_arg = report_path(ecosystem, name, local)
+    # Remove stale report so "missing report" is meaningful.
+    if host_report.exists():
+        host_report.unlink()
+    if ecosystem == BACKEND:
+        cmd = pytest_command(targets, report_arg, fail_fast, coverage)
+    else:
+        cmd = vitest_command(targets, report_arg, fail_fast)
+
+    mode = "targeted" if fail_fast else "full"
+    try:
+        proc = runner.run(ecosystem, cmd)
+    except FileNotFoundError as exc:
+        return Result(ecosystem=ecosystem, mode=mode, command_failed=True, note=str(exc))
+
+    result = parse_junit(host_report) if ecosystem == BACKEND else parse_vitest(host_report)
+    result.mode = mode
+    if proc.returncode not in (0, 1) and result.total == 0:
+        result.command_failed = True
+        tail = sanitize(proc.stdout + "\n" + proc.stderr, ecosystem)[-800:]
+        result.note = result.note or f"runner exited {proc.returncode}\n{tail}"
+    return result
+
+
+# --------------------------------------------------------------------------- #
+# Rendering
+# --------------------------------------------------------------------------- #
+
+
+MAX_INDEX_FAILURES = 30
+MAX_FAILURE_TITLE = 100
+
+
+def shorten(text: str, max_len: int = MAX_FAILURE_TITLE) -> str:
+    if len(text) <= max_len:
+        return text
+    half = max(max_len // 2 - 1, 10)
+    return f"{text[:half]}…{text[-half:]}"
+
+
+def render_index(results: list[Result]) -> str:
+    lines = ["INDEX"]
+    any_failures = False
+    for res in results:
+        parts = [f"{res.passed} passed"]
+        if res.failed:
+            parts.append(f"{res.failed} failed")
+        if res.errors:
+            parts.append(f"{res.errors} errors")
+        if res.skipped:
+            parts.append(f"{res.skipped} skipped")
+        lines.append(f"  {res.ecosystem} ({res.mode}): {', '.join(parts)}")
+        if res.note:
+            lines.append(f"    ! {res.note.splitlines()[0]}")
+
+    for res in results:
+        if not res.failures:
+            continue
+        any_failures = True
+        lines.append(f"  Failed ({res.ecosystem}):")
+        # Group by file to avoid repeating long paths, cap the listed identifiers.
+        groups: dict[str, list[str]] = {}
+        for failure in res.failures:
+            if "::" in failure.name:
+                file_name, _, title = failure.name.partition("::")
+            else:
+                file_name, title = failure.name, ""
+            groups.setdefault(file_name, []).append(shorten(title))
+        shown = 0
+        for file_name, titles in groups.items():
+            if shown >= MAX_INDEX_FAILURES:
+                break
+            if titles == [""]:
+                lines.append(f"    - {file_name}")
+                shown += 1
+                continue
+            lines.append(f"    {file_name}")
+            for title in titles:
+                if shown >= MAX_INDEX_FAILURES:
+                    break
+                lines.append(f"      - {title}")
+                shown += 1
+        total = sum(len(titles) for titles in groups.values())
+        if total > shown:
+            lines.append(f"    … and {total - shown} more failed test(s)")
+    if not any_failures and not any(r.command_failed for r in results):
+        lines.append("  All tests passed.")
+    return "\n".join(lines)
+
+
+def display_name(failure: Failure) -> str:
+    if "::" in failure.name:
+        file_name, _, title = failure.name.partition("::")
+        return f"{file_name}::{shorten(title, 90)}"
+    return shorten(failure.name, 140)
+
+
+def render_traces(results: list[Result]) -> str:
+    blocks: list[str] = []
+    shown = 0
+    total = sum(len(res.failures) for res in results)
+    for res in results:
+        for failure in res.failures:
+            if shown < TRACE_FAILURE_LIMIT:
+                trace = sanitize(failure.traceback or failure.message, res.ecosystem)
+                blocks.append(
+                    f"TRACE [{shown + 1}/{min(total, TRACE_FAILURE_LIMIT)}] "
+                    f"{display_name(failure)}\n{trace}"
+                )
+                shown += 1
+            else:
+                summary = failure.one_line
+                suffix = f": {summary}" if summary else ""
+                blocks.append(f"more failure: {display_name(failure)}{suffix}")
+    return "\n\n".join(blocks)
+
+
+def render(results: list[Result], max_chars: int) -> str:
+    index = render_index(results)
+    traces = render_traces(results)
+    if not traces:
+        return truncate(index, max_chars)
+    separator = "\n\nTRACES\n"
+    if len(index) + len(separator) + len(traces) <= max_chars:
+        return f"{index}{separator}{traces}"
+    # Over budget: reserve at least half for the traces so a noisy Index can't
+    # starve the detail that actually explains the failure.
+    trace_budget = max(max_chars // 2, max_chars - len(index) - len(separator) - 40)
+    trace_budget = min(trace_budget, max_chars - len(separator) - 1)
+    index_budget = max_chars - len(separator) - trace_budget - 40
+    return (
+        f"{truncate(index, index_budget)}{separator}"
+        f"{truncate(traces, trace_budget)}"
+    )
+
+
+# --------------------------------------------------------------------------- #
+# Auto-detection
+# --------------------------------------------------------------------------- #
+
+
+def _git_lines(args: list[str]) -> list[str]:
+    try:
+        proc = subprocess.run(
+            ["git", *args],
+            cwd=str(REPO_ROOT),
+            capture_output=True,
+            text=True,
+            timeout=30,
+        )
+    except (OSError, subprocess.SubprocessError):
+        return []
+    if proc.returncode != 0:
+        return []
+    return [line.strip() for line in proc.stdout.splitlines() if line.strip()]
+
+
+def changed_files() -> list[str]:
+    seen: dict[str, None] = {}
+    for args in (
+        ["diff", "--name-only", "origin/main...HEAD"],
+        ["diff", "--name-only", "HEAD"],
+        ["diff", "--name-only", "--cached"],
+        ["ls-files", "--others", "--exclude-standard"],
+    ):
+        for line in _git_lines(args):
+            seen.setdefault(line, None)
+    return list(seen)
+
+
+def detect_ecosystems(files: list[str]) -> list[str]:
+    ecosystems: set[str] = set()
+    for path in files:
+        normalized = path.replace("\\", "/")
+        if any(normalized.startswith(prefix) for prefix in IGNORED_PREFIXES):
+            continue
+        if normalized.startswith("frontend/"):
+            ecosystems.add(FRONTEND)
+        elif normalized.startswith(BACKEND_PREFIXES) or normalized in BACKEND_FILES:
+            ecosystems.add(BACKEND)
+    if not ecosystems:
+        return [BACKEND, FRONTEND]
+    return [eco for eco in (BACKEND, FRONTEND) if eco in ecosystems]
+
+
+# --------------------------------------------------------------------------- #
+# CLI
+# --------------------------------------------------------------------------- #
+
+
+def parse_args(argv: list[str]) -> argparse.Namespace:
+    parser = argparse.ArgumentParser(
+        prog="agent-test",
+        description="Agent-optimized test & verification harness (gate 0/1/2).",
+    )
+    parser.add_argument(
+        "targets",
+        nargs="*",
+        help="Backend/frontend test paths (targeted gate 1), or 'backend'/'frontend' for a full run.",
+    )
+    parser.add_argument("--all", action="store_true", help="Full regression for both ecosystems.")
+    parser.add_argument("--backend", action="store_true", help="Full regression: backend.")
+    parser.add_argument("--frontend", action="store_true", help="Full regression: frontend.")
+    parser.add_argument("--gate0-only", action="store_true", help="Run pre-flight checks only.")
+    parser.add_argument("--no-gate0", action="store_true", help="Skip pre-flight checks.")
+    parser.add_argument("--local", action="store_true", help="Run natively (no docker compose exec).")
+    parser.add_argument("--max-chars", type=int, default=DEFAULT_MAX_CHARS, help="Output cap.")
+    parser.add_argument("--json", action="store_true", help="Emit structured JSON instead of prose.")
+    return parser.parse_args(argv)
+
+
+def resolve_mode(args: argparse.Namespace) -> tuple[str, dict[str, list[str]], list[str]]:
+    """Return (mode, targets_by_ecosystem, selected_ecosystems)."""
+    selected: list[str] = []
+    if args.backend:
+        selected.append(BACKEND)
+    if args.frontend:
+        selected.append(FRONTEND)
+    if args.all:
+        for eco in (BACKEND, FRONTEND):
+            if eco not in selected:
+                selected.append(eco)
+
+    target_map: dict[str, list[str]] = {BACKEND: [], FRONTEND: []}
+    words: list[str] = []
+    for target in args.targets:
+        if target in (BACKEND, FRONTEND):
+            words.append(target)
+            continue
+        eco = FRONTEND if target.replace("\\", "/").lstrip("./").startswith("frontend/") else BACKEND
+        target_map[eco].append(target)
+
+    for word in words:
+        if word not in selected:
+            selected.append(word)
+
+    if any(target_map.values()):
+        for eco in (BACKEND, FRONTEND):
+            if target_map[eco] and eco not in selected:
+                selected.append(eco)
+        return "targeted", target_map, selected
+    if selected:
+        return "full", target_map, selected
+    detected = detect_ecosystems(changed_files())
+    return "full", target_map, detected
+
+
+def main(argv: list[str]) -> int:
+    args = parse_args(argv)
+    local = args.local or Path("/.dockerenv").exists()
+    runner = Runner(local=local)
+    mode, target_map, selected = resolve_mode(args)
+
+    # ---------------- Gate 0 ---------------- #
+    if not args.no_gate0:
+        failures: list[str] = []
+        for eco in selected:
+            ok, diag = run_gate0(runner, eco)
+            if not ok:
+                failures.append(f"GATE 0 FAILED — {eco}\n{diag}")
+        if failures:
+            print(cap("\n\n".join(failures), args.max_chars))
+            return 1
+        if args.gate0_only:
+            print(f"GATE 0 PASSED ({', '.join(selected)})")
+            return 0
+    elif args.gate0_only:
+        return 0
+
+    # ---------------- Gate 1 / Gate 2 ---------------- #
+    results: list[Result] = []
+    for eco in selected:
+        targets = target_map.get(eco, [])
+        if mode == "targeted":
+            targets = [relative_target(eco, t) for t in targets]
+            results.append(
+                run_tests(
+                    runner,
+                    eco,
+                    targets,
+                    fail_fast=True,
+                    coverage=False,
+                    local=local,
+                )
+            )
+        else:
+            results.append(
+                run_tests(
+                    runner,
+                    eco,
+                    [],
+                    fail_fast=False,
+                    coverage=(eco == BACKEND),
+                    local=local,
+                )
+            )
+
+    if args.json:
+        payload = {
+            "mode": mode,
+            "ecosystems": selected,
+            "results": [
+                {
+                    "ecosystem": r.ecosystem,
+                    "mode": r.mode,
+                    "total": r.total,
+                    "passed": r.passed,
+                    "failed": r.failed,
+                    "errors": r.errors,
+                    "skipped": r.skipped,
+                    "command_failed": r.command_failed,
+                    "note": r.note,
+                    "failures": [f.name for f in r.failures],
+                }
+                for r in results
+            ],
+        }
+        print(json.dumps(payload, indent=2))
+    else:
+        print(render(results, args.max_chars))
+
+    failed = any(r.failed or r.errors or r.command_failed for r in results)
+    return 1 if failed else 0
+
+
+if __name__ == "__main__":
+    sys.exit(main(sys.argv[1:]))

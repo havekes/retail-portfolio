@@ -30,7 +30,6 @@ export default defineConfig(({ mode }) => {
 			// --- Token-Saving Output Flags ---
 			reporters: ['dot'], // Replaces multi-line blocks with single dots (.)
 			silent: 'passed-only', // Mutes console.log for passing tests; keeps logs on failure
-			bail: 1, // Stop immediately on 1st failure to preserve context
 			printConsoleTrace: false, // Suppresses stack traces for console logs
 
 			// --- Coverage Setup ---

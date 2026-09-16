@@ -16,6 +16,20 @@ Each guide holds the full command list (tests, migrations, linting, type checks)
 
 All development commands **must** be executed inside Docker: `docker compose exec <backend|frontend> <command>` — see the area guide above for the exact commands. CI runs the same checks.
 
+## Testing with the agent harness
+
+`./scripts/agent-test` is the primary test entrypoint for agents (shorthand: `just test …`). It runs inside Docker for you, sanitizes output (strips ANSI, timing/progress/vendor-frame noise), caps output at ~3000 chars, and only surfaces the failures that matter. Use it instead of raw `docker compose exec … pytest`/`vitest` when you want signal over volume.
+
+- **While developing** — targeted, fail-fast, pre-flight included:
+  - Backend: `./scripts/agent-test tests/routers/test_auth.py`
+  - Frontend: `./scripts/agent-test frontend/src/lib/api/apiClient.test.ts`
+- **Before finishing a task** — Gate 0 (lint/type) + full regression for the ecosystems auto-detected from the git diff:
+  - `./scripts/agent-test` (add `--all` to force both ecosystems)
+- **Pre-flight only** — `./scripts/agent-test --gate0-only` (or `just check`).
+- **Flags** — `--backend` / `--frontend`, `--all`, `--no-gate0`, `--local`, `--json`, `--max-chars N`.
+
+Gates: **Gate 0** runs linter + type checker; if it fails the harness halts and prints diagnostics only — no tests run, so fix the reported errors first. **Gate 1** (a path argument) runs only that target with fail-fast. **Gate 2** (no path argument) runs the full suite and prints a two-tier summary: an *Index* (counts + failed test IDs) and *Traces* for only the first 1–2 failures. The raw commands in the area guides remain the fallback if the harness itself is broken.
+
 ## Parallel Agent Development
 
 If working on multiple tasks simultaneously, agents **must** use the Git worktree isolation workflow to avoid file and Docker conflicts.

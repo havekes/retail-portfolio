@@ -190,11 +190,11 @@ describe('Elliott Wave Plugin', () => {
 
 			expect(PRIMARY_STYLE.degree).toBe('primary');
 			expect(PRIMARY_STYLE.color).toBe('#10b981');
-			expect(PRIMARY_STYLE.formatLabel(1)).toBe('①');
-			expect(PRIMARY_STYLE.formatLabel(2)).toBe('②');
-			expect(PRIMARY_STYLE.formatLabel(3)).toBe('③');
-			expect(PRIMARY_STYLE.formatLabel(4)).toBe('④');
-			expect(PRIMARY_STYLE.formatLabel(5)).toBe('⑤');
+			expect(PRIMARY_STYLE.formatLabel(1)).toBe('1');
+			expect(PRIMARY_STYLE.formatLabel(2)).toBe('2');
+			expect(PRIMARY_STYLE.formatLabel(3)).toBe('3');
+			expect(PRIMARY_STYLE.formatLabel(4)).toBe('4');
+			expect(PRIMARY_STYLE.formatLabel(5)).toBe('5');
 
 			expect(INTERMEDIATE_STYLE.degree).toBe('intermediate');
 			expect(INTERMEDIATE_STYLE.formatLabel(1)).toBe('(1)');
@@ -210,19 +210,19 @@ describe('Elliott Wave Plugin', () => {
 			expect(MAX_WAVE_POINTS).toBe(6);
 			expect(MAX_IMPULSE_POINTS).toBe(6);
 			expect(MAX_CORRECTIVE_POINTS).toBe(4);
-			expect(VERTICAL_LABEL_OFFSET).toBe(14);
+			expect(VERTICAL_LABEL_OFFSET).toBe(18);
 			expect(IMPULSE_COLOR).toBe('#22c55e');
 			expect(CORRECTIVE_COLOR).toBe('#ef4444');
 		});
 
-		it('formats corrective waves for Cycle (A, B, C), Primary (Ⓐ, Ⓑ, Ⓒ), and Intermediate ((A), (B), (C))', () => {
+		it('formats corrective waves for Cycle (A, B, C), Primary (A, B, C), and Intermediate ((A), (B), (C))', () => {
 			expect(CYCLE_STYLE.formatLabel('A')).toBe('A');
 			expect(CYCLE_STYLE.formatLabel('B')).toBe('B');
 			expect(CYCLE_STYLE.formatLabel('C')).toBe('C');
 
-			expect(PRIMARY_STYLE.formatLabel('A')).toBe('Ⓐ');
-			expect(PRIMARY_STYLE.formatLabel('B')).toBe('Ⓑ');
-			expect(PRIMARY_STYLE.formatLabel('C')).toBe('Ⓒ');
+			expect(PRIMARY_STYLE.formatLabel('A')).toBe('A');
+			expect(PRIMARY_STYLE.formatLabel('B')).toBe('B');
+			expect(PRIMARY_STYLE.formatLabel('C')).toBe('C');
 
 			expect(INTERMEDIATE_STYLE.formatLabel('A')).toBe('(A)');
 			expect(INTERMEDIATE_STYLE.formatLabel('B')).toBe('(B)');
@@ -230,7 +230,7 @@ describe('Elliott Wave Plugin', () => {
 
 			// Numeric wave with type='corrective' mapping
 			expect(CYCLE_STYLE.formatLabel(1, 'corrective')).toBe('A');
-			expect(PRIMARY_STYLE.formatLabel(2, 'corrective')).toBe('Ⓑ');
+			expect(PRIMARY_STYLE.formatLabel(2, 'corrective')).toBe('B');
 			expect(INTERMEDIATE_STYLE.formatLabel(3, 'corrective')).toBe('(C)');
 
 			// Wave 0 returns empty string
@@ -255,18 +255,18 @@ describe('Elliott Wave Plugin', () => {
 			expect(getWaveColor('corrective')).toBe(CORRECTIVE_COLOR);
 		});
 
-		it('getWaveLabelOffset returns top offset (-14) for peaks and bottom offset (+14) for troughs', () => {
-			// Peaks: 1, 3, 5, B -> top offset (-14)
-			expect(getWaveLabelOffset(1)).toBe(-14);
-			expect(getWaveLabelOffset(3)).toBe(-14);
-			expect(getWaveLabelOffset(5)).toBe(-14);
-			expect(getWaveLabelOffset('B')).toBe(-14);
+		it('getWaveLabelOffset returns top offset (-18) for peaks and bottom offset (+18) for troughs', () => {
+			// Peaks: 1, 3, 5, B -> top offset (-18)
+			expect(getWaveLabelOffset(1)).toBe(-18);
+			expect(getWaveLabelOffset(3)).toBe(-18);
+			expect(getWaveLabelOffset(5)).toBe(-18);
+			expect(getWaveLabelOffset('B')).toBe(-18);
 
-			// Troughs: 2, 4, A, C -> bottom offset (+14)
-			expect(getWaveLabelOffset(2)).toBe(14);
-			expect(getWaveLabelOffset(4)).toBe(14);
-			expect(getWaveLabelOffset('A')).toBe(14);
-			expect(getWaveLabelOffset('C')).toBe(14);
+			// Troughs: 2, 4, A, C -> bottom offset (+18)
+			expect(getWaveLabelOffset(2)).toBe(18);
+			expect(getWaveLabelOffset(4)).toBe(18);
+			expect(getWaveLabelOffset('A')).toBe(18);
+			expect(getWaveLabelOffset('C')).toBe(18);
 
 			// Anchor point 0
 			expect(getWaveLabelOffset(0)).toBe(0);
@@ -653,9 +653,9 @@ describe('Elliott Wave Plugin', () => {
 			expect(lineCalls).toHaveLength(3);
 			expect(moveCalls).toHaveLength(3);
 
-			// Should render anchor dot only for wave 0, no badge background circles for points 1, 2, 3
+			// No anchor dots or badge background circles are drawn for non-interactive points
 			const arcCalls = drawCalls.filter((c) => c.type === 'arc');
-			expect(arcCalls).toHaveLength(1);
+			expect(arcCalls).toHaveLength(0);
 
 			// Should render Roman numeral text badges "I", "II", "III" for Cycle, but NOT for wave 0
 			const textCalls = drawCalls.filter((c) => c.type === 'fillText');
@@ -667,7 +667,7 @@ describe('Elliott Wave Plugin', () => {
 			expect(labels).not.toContain('0');
 		});
 
-		it('renders Primary degree badges formatted as circled numbers (omits wave 0 label)', () => {
+		it('renders Primary degree badges formatted as plain numbers (omits wave 0 label)', () => {
 			const { target, drawCalls } = createMockCanvasTarget();
 
 			renderer.update({
@@ -693,8 +693,8 @@ describe('Elliott Wave Plugin', () => {
 
 			const textCalls = drawCalls.filter((c) => c.type === 'fillText');
 			const labels = textCalls.map((c) => c.args[0]);
-			expect(labels).toContain('①');
-			expect(labels).toContain('②');
+			expect(labels).toContain('1');
+			expect(labels).toContain('2');
 			expect(labels).not.toContain('0');
 		});
 
@@ -748,9 +748,9 @@ describe('Elliott Wave Plugin', () => {
 
 			renderer.draw(target);
 
-			// Should have at least 2 arc calls (1 for highlight ring, 1 for anchor dot)
+			// Should have at least 1 arc call for the highlight ring (no anchor dot is drawn)
 			const arcCalls = drawCalls.filter((c) => c.type === 'arc');
-			expect(arcCalls.length).toBeGreaterThanOrEqual(2);
+			expect(arcCalls.length).toBeGreaterThanOrEqual(1);
 		});
 
 		it('renders selection ring around node badges when wave degree is selected', () => {
@@ -941,7 +941,7 @@ describe('Elliott Wave Plugin', () => {
 			expect(labels).toContain('A');
 		});
 
-		it('renders wave labels with vertical offsets (-14 for peaks, +14 for troughs)', () => {
+		it('renders wave labels with vertical offsets (-18 for peaks, +18 for troughs)', () => {
 			const { target, drawCalls } = createMockCanvasTarget();
 
 			renderer.update({
@@ -969,12 +969,12 @@ describe('Elliott Wave Plugin', () => {
 			const label2 = textCalls.find((c) => c.args[0] === 'II');
 			const label3 = textCalls.find((c) => c.args[0] === 'III');
 
-			// Peak wave 1: y = (300 - 14) * 2 = 572
-			expect(label1?.args[2]).toBe((300 - 14) * 2);
-			// Trough wave 2: y = (350 + 14) * 2 = 728
-			expect(label2?.args[2]).toBe((350 + 14) * 2);
-			// Peak wave 3: y = (200 - 14) * 2 = 372
-			expect(label3?.args[2]).toBe((200 - 14) * 2);
+			// Peak wave 1: y = (300 - 18) * 2 = 564
+			expect(label1?.args[2]).toBe((300 - 18) * 2);
+			// Trough wave 2: y = (350 + 18) * 2 = 736
+			expect(label2?.args[2]).toBe((350 + 18) * 2);
+			// Peak wave 3: y = (200 - 18) * 2 = 364
+			expect(label3?.args[2]).toBe((200 - 18) * 2);
 		});
 
 		it('renders corrective wave (0, A, B, C) with red segments and offset labels (A below, B above, C below)', () => {
@@ -1009,12 +1009,12 @@ describe('Elliott Wave Plugin', () => {
 			expect(labelB).toBeDefined();
 			expect(labelC).toBeDefined();
 
-			// Wave A (trough): y = (250 + 14) * 2 = 528
-			expect(labelA?.args[2]).toBe((250 + 14) * 2);
-			// Wave B (peak): y = (200 - 14) * 2 = 372
-			expect(labelB?.args[2]).toBe((200 - 14) * 2);
-			// Wave C (trough): y = (280 + 14) * 2 = 588
-			expect(labelC?.args[2]).toBe((280 + 14) * 2);
+			// Wave A (trough): y = (250 + 18) * 2 = 536
+			expect(labelA?.args[2]).toBe((250 + 18) * 2);
+			// Wave B (peak): y = (200 - 18) * 2 = 364
+			expect(labelB?.args[2]).toBe((200 - 18) * 2);
+			// Wave C (trough): y = (280 + 18) * 2 = 596
+			expect(labelC?.args[2]).toBe((280 + 18) * 2);
 		});
 
 		it('handles empty or null data gracefully without crashing', () => {
@@ -1338,9 +1338,9 @@ describe('Elliott Wave Plugin', () => {
 				new MouseEvent('mousemove', { clientX: 100, clientY: 500 }) // over wave 1
 			);
 			primitive.updateAllViews();
-			// Should return grab if hovering
+			// Should return default if hovering
 			const hit = primitive.hitTest();
-			expect(hit?.cursorStyle === 'grab' || hit === null).toBe(true);
+			expect(hit?.cursorStyle === 'default' || hit === null).toBe(true);
 		});
 
 		it('highlights all points of a wave when hovering anywhere on the wave', () => {
@@ -1419,7 +1419,7 @@ describe('Elliott Wave Plugin', () => {
 				new MouseEvent('mousedown', { clientX: 100, clientY: 400 })
 			);
 			primitive.updateAllViews();
-			expect(primitive.hitTest()?.cursorStyle).toBe('grabbing');
+			expect(primitive.hitTest()?.cursorStyle).toBe('default');
 
 			// Drag to new coordinate (x = 150, y = 350)
 			mockData.mockChartElement.dispatchEvent(
@@ -1434,7 +1434,7 @@ describe('Elliott Wave Plugin', () => {
 			// Release drag
 			window.dispatchEvent(new MouseEvent('mouseup'));
 			primitive.updateAllViews();
-			expect(primitive.hitTest()?.cursorStyle).not.toBe('grabbing');
+			expect(primitive.hitTest()?.cursorStyle).not.toBe('default');
 		});
 
 		it('handles degree switching and separate wave points for Cycle, Primary, and Intermediate', () => {

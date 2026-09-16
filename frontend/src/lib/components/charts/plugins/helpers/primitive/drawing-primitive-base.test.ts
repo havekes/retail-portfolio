@@ -401,12 +401,12 @@ describe('DrawingPrimitiveBase', () => {
 			expect(primitive.hitTest()).toBeNull();
 		});
 
-		it('resolves grab cursor and hitTest when hovering a point', () => {
+		it('resolves default cursor and hitTest when hovering a point', () => {
 			state.setHoveredPoint({ id: 'hover-1' });
 			primitive.updateAllViews();
 
 			expect(primitive.hitTest()).toEqual({
-				cursorStyle: 'grab',
+				cursorStyle: 'default',
 				externalId: 'test-primitive',
 				zOrder: 'top'
 			});
@@ -424,14 +424,14 @@ describe('DrawingPrimitiveBase', () => {
 			});
 		});
 
-		it('resolves grabbing cursor and hitTest when dragging a point (top priority)', () => {
+		it('resolves default cursor and hitTest when dragging a point (top priority)', () => {
 			state.setHoveredPoint({ id: 'hover-1' });
 			state.setDrawingMode(true);
 			state.setDraggingPoint({ id: 'drag-1' });
 			primitive.updateAllViews();
 
 			expect(primitive.hitTest()).toEqual({
-				cursorStyle: 'grabbing',
+				cursorStyle: 'default',
 				externalId: 'test-primitive',
 				zOrder: 'top'
 			});

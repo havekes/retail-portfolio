@@ -28,6 +28,8 @@ Coding Agent Guide: retail-portfolio (Frontend)
 4. Run tests (vitest): `npm run test:run`
 5. Format code: `npm run format`
 
+**Agent harness**: Prefer `./scripts/agent-test frontend/src/...` (targeted, fail-fast) while developing and `./scripts/agent-test frontend` (full frontend regression) before finishing. It runs lint/type checks first, sanitizes output, and caps it so context isn't flooded. See root `AGENTS.md` for details.
+
 **MANDATORY**: When writing or editing code, **ALWAYS** run linting, type checks, tests and format before submitting.
 
 ## Testing
