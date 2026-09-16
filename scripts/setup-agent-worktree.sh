@@ -34,10 +34,13 @@ MAILCRAB_PORT=$(python3 -c 'import socket; s=socket.socket(); s.bind(("", 0)); p
 # Generate a safe compose project name based on the path
 PROJECT_NAME=$(basename "$WORKTREE_PATH" | tr -cd 'a-zA-Z0-9_-' | tr 'A-Z' 'a-z')
 
+DOCKER_GID=$("$MAIN_REPO_PATH/scripts/docker-gid.sh")
+
 # 3. Create .env
 echo "Generating .env in $WORKTREE_PATH..."
 cat <<EOF > .env
 COMPOSE_PROJECT_NAME=${PROJECT_NAME}
+DOCKER_GID=${DOCKER_GID}
 BACKEND_PORT=${BACKEND_PORT}
 FRONTEND_PORT=${FRONTEND_PORT}
 BACKEND_DEBUG_PORT=${BACKEND_DEBUG}

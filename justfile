@@ -22,3 +22,8 @@ test-all:
 # Lint + type checks only (Gate 0) for auto-detected ecosystems.
 check:
     @./scripts/agent-test --gate0-only
+
+# Start services with the host's real docker socket gid so in-container tests
+# can reach testcontainers (see docker-compose.yml group_add).
+up:
+    @DOCKER_GID=$(./scripts/docker-gid.sh) docker compose up -d
