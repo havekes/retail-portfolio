@@ -1897,6 +1897,244 @@ describe('Elliott Wave Plugin', () => {
 			});
 		});
 
+		describe('Snap to Fibonacci Levels', () => {
+			const fibPriceToY = (price: number) => (200 - price) / 0.2;
+
+			function setupMouseHandlers(snapToWicks = false, drawingMode = true) {
+				const mouseHandlers = new MouseHandlers();
+				const mockData = createMockChartAndSeries();
+				const projector = configureFutureProjector(mockData);
+				mouseHandlers.attached(mockData.chart, mockData.series, projector);
+				mouseHandlers.setCandles(createDailyCandles(30));
+				mouseHandlers.setDrawingMode(drawingMode);
+				mouseHandlers.setSnapToWicks(snapToWicks);
+				return { mouseHandlers, mockData };
+			}
+
+			it('snaps placement to the nearest Fib level within pixel tolerance', () => {
+				const { mouseHandlers, mockData } = setupMouseHandlers();
+				mouseHandlers.setFibLevelPrices([109]);
+				const onChartClicked = vi.fn();
+				mouseHandlers.chartClicked().subscribe(onChartClicked);
+
+				// day 5, clientY 460 -> price 108; level 109 sits at y 455 (5px away, <= 8)
+				mockData.mockChartElement.dispatchEvent(
+					new MouseEvent('click', { clientX: 100, clientY: 460 })
+				);
+
+				expect(onChartClicked).toHaveBeenCalledWith({
+					time: '2024-01-05',
+					price: 109,
+					x: 100,
+					y: fibPriceToY(109)
+				});
+			});
+
+			it('does not snap when the nearest Fib level is beyond pixel tolerance', () => {
+				const { mouseHandlers, mockData } = setupMouseHandlers();
+				mouseHandlers.setFibLevelPrices([100]); // y 500, 40px from clientY 460
+				const onChartClicked = vi.fn();
+				mouseHandlers.chartClicked().subscribe(onChartClicked);
+
+				mockData.mockChartElement.dispatchEvent(
+					new MouseEvent('click', { clientX: 100, clientY: 460 })
+				);
+
+				expect(onChartClicked).toHaveBeenCalledWith({
+					time: '2024-01-05',
+					price: 108,
+					x: 100,
+					y: 460
+				});
+			});
+
+			it('snaps to a Fib level even when snapToWicks is disabled', () => {
+				const { mouseHandlers, mockData } = setupMouseHandlers(false);
+				mouseHandlers.setFibLevelPrices([109]);
+				const onChartClicked = vi.fn();
+				mouseHandlers.chartClicked().subscribe(onChartClicked);
+
+				mockData.mockChartElement.dispatchEvent(
+					new MouseEvent('click', { clientX: 100, clientY: 460 })
+				);
+
+				expect(onChartClicked).toHaveBeenCalledWith({
+					time: '2024-01-05',
+					price: 109,
+					x: 100,
+					y: fibPriceToY(109)
+				});
+			});
+
+			it('snaps to a Fib level in the future area where no candle wick exists', () => {
+				const { mouseHandlers, mockData } = setupMouseHandlers(true);
+				mouseHandlers.setFibLevelPrices([109]);
+				const onChartClicked = vi.fn();
+				mouseHandlers.chartClicked().subscribe(onChartClicked);
+
+				// x 750 is beyond the last candle (x 725) -> '2024-01-31', no candle to snap to
+				mockData.mockChartElement.dispatchEvent(
+					new MouseEvent('click', { clientX: 750, clientY: 460 })
+				);
+
+				expect(onChartClicked).toHaveBeenCalledWith({
+					time: '2024-01-31',
+					price: 109,
+					x: 750,
+					y: fibPriceToY(109)
+				});
+			});
+
+			it('prefers the candle wick when it is closer in pixel space', () => {
+				const { mouseHandlers, mockData } = setupMouseHandlers(true);
+				// clientY 432 -> price 113.6; wick high 114 at y 430 (2px), level 115 at y 425 (7px)
+				mouseHandlers.setFibLevelPrices([115]);
+				const onChartClicked = vi.fn();
+				mouseHandlers.chartClicked().subscribe(onChartClicked);
+
+				mockData.mockChartElement.dispatchEvent(
+					new MouseEvent('click', { clientX: 100, clientY: 432 })
+				);
+
+				expect(onChartClicked).toHaveBeenCalledWith({
+					time: '2024-01-05',
+					price: 114,
+					x: 100,
+					y: fibPriceToY(114)
+				});
+			});
+
+			it('prefers the Fib level when it is closer in pixel space than the wick', () => {
+				const { mouseHandlers, mockData } = setupMouseHandlers(true);
+				// clientY 440 -> price 112; level 112 at y 440 (0px), wick high 114 at y 430 (10px)
+				mouseHandlers.setFibLevelPrices([112]);
+				const onChartClicked = vi.fn();
+				mouseHandlers.chartClicked().subscribe(onChartClicked);
+
+				mockData.mockChartElement.dispatchEvent(
+					new MouseEvent('click', { clientX: 100, clientY: 440 })
+				);
+
+				expect(onChartClicked).toHaveBeenCalledWith({
+					time: '2024-01-05',
+					price: 112,
+					x: 100,
+					y: fibPriceToY(112)
+				});
+			});
+
+			it('resolves a wick/Fib pixel-distance tie to the candle wick', () => {
+				const { mouseHandlers, mockData } = setupMouseHandlers(true);
+				// clientY 435 -> price 113; wick high 114 at y 430 (5px), level 112 at y 440 (5px)
+				mouseHandlers.setFibLevelPrices([112]);
+				const onChartClicked = vi.fn();
+				mouseHandlers.chartClicked().subscribe(onChartClicked);
+
+				mockData.mockChartElement.dispatchEvent(
+					new MouseEvent('click', { clientX: 100, clientY: 435 })
+				);
+
+				expect(onChartClicked).toHaveBeenCalledWith({
+					time: '2024-01-05',
+					price: 114,
+					x: 100,
+					y: fibPriceToY(114)
+				});
+			});
+
+			it('snaps drag moves to the nearest Fib level within tolerance', () => {
+				const { mouseHandlers, mockData } = setupMouseHandlers(false, false);
+				mouseHandlers.setFibLevelPrices([109]);
+				const onPointDragged = vi.fn();
+				mouseHandlers.pointDragged().subscribe(onPointDragged);
+
+				mouseHandlers.setProjectedPoints([
+					{
+						degree: 'cycle',
+						wave: 1,
+						x: 50,
+						y: 100,
+						originalPoint: { wave: 1, time: '2024-01-03' as Time, price: 112 }
+					}
+				]);
+
+				mockData.mockChartElement.dispatchEvent(
+					new MouseEvent('mousedown', { clientX: 50, clientY: 100 })
+				);
+				mockData.mockChartElement.dispatchEvent(
+					new MouseEvent('mousemove', { clientX: 100, clientY: 460 })
+				);
+
+				expect(onPointDragged).toHaveBeenCalledWith({
+					degree: 'cycle',
+					wave: 1,
+					time: '2024-01-05',
+					price: 109,
+					x: 100,
+					y: fibPriceToY(109)
+				});
+			});
+
+			it('behaves as wick-only when the Fib level list is empty', () => {
+				const { mouseHandlers, mockData } = setupMouseHandlers(true);
+				mouseHandlers.setFibLevelPrices([]);
+				const onChartClicked = vi.fn();
+				mouseHandlers.chartClicked().subscribe(onChartClicked);
+
+				mockData.mockChartElement.dispatchEvent(
+					new MouseEvent('click', { clientX: 100, clientY: 460 })
+				);
+
+				expect(onChartClicked).toHaveBeenCalledWith({
+					time: '2024-01-05',
+					price: 114,
+					x: 100,
+					y: fibPriceToY(114)
+				});
+			});
+
+			it('renders the drawing-preview ghost at the snapped Fib level', () => {
+				const primitive = new ElliottWavesPrimitive({
+					activeDegree: 'cycle',
+					snapToWicks: false
+				});
+				const mockData = createMockChartAndSeries();
+				primitive.attached({
+					chart: mockData.chart,
+					series: mockData.series,
+					requestUpdate: vi.fn(),
+					horzScaleBehavior: {} as never
+				});
+				primitive.setCandles(createDailyCandles(30));
+				primitive.setFibLevelPrices([109]);
+				primitive.setDrawingMode(true);
+
+				mockData.mockChartElement.dispatchEvent(
+					new MouseEvent('mousemove', { clientX: 100, clientY: 460 })
+				);
+
+				primitive.updateAllViews();
+				const rendererData = (
+					primitive as unknown as {
+						_paneViews: { renderer(): { _data: unknown } }[];
+					}
+				)._paneViews[0].renderer()._data as {
+					preview: { currentMouse: { x: number; y: number } };
+				};
+
+				expect(primitive.getFibLevelPrices()).toEqual([109]);
+				expect(rendererData.preview.currentMouse).toEqual({ x: 100, y: fibPriceToY(109) });
+			});
+
+			it('defensively copies Fib level prices on set', () => {
+				const primitive = new ElliottWavesPrimitive();
+				const source = [100, 110];
+				primitive.setFibLevelPrices(source);
+				source.push(120);
+				expect(primitive.getFibLevelPrices()).toEqual([100, 110]);
+			});
+		});
+
 		describe('ElliottWavesPrimitive Selection Integration', () => {
 			let primitive: ElliottWavesPrimitive;
 			let mockData: ReturnType<typeof createMockChartAndSeries>;

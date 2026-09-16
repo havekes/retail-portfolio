@@ -853,6 +853,43 @@ describe('SecurityChart - Fibonacci Integration', () => {
 		expect(fibPrimitive.getExtension()).toEqual(updatedTools.extension);
 	});
 
+	it('pushes enabled Fib levels to ElliottWavesPrimitive and updates on tools change', async () => {
+		const initialTools: SecurityFibonacciTools = {
+			retracement: {
+				p1: { time: '2024-01-10', price: 100 },
+				p2: { time: '2024-01-11', price: 200 },
+				levels: [
+					{ ratio: 0.5, enabled: true },
+					{ ratio: 1.0, enabled: false }
+				]
+			}
+		};
+
+		const { rerender } = render(SecurityChart, {
+			props: { candles: initialCandles, fibonacciTools: initialTools }
+		});
+
+		const elliottPrimitive = mockAttachPrimitive.mock.calls.find(
+			(c) => c[0] instanceof ElliottWavesPrimitive
+		)?.[0] as ElliottWavesPrimitive;
+
+		// retracement p1=100 p2=200; enabled ratio 0.5 -> 150, disabled ratio 1.0 excluded
+		expect(elliottPrimitive.getFibLevelPrices()).toEqual([150]);
+
+		const updatedTools: SecurityFibonacciTools = {
+			retracement: {
+				...initialTools.retracement!,
+				levels: [{ ratio: 0.618, enabled: true }]
+			}
+		};
+
+		await rerender({ candles: initialCandles, fibonacciTools: updatedTools });
+
+		// 200 - 0.618 * 100 = 138.2
+		expect(elliottPrimitive.getFibLevelPrices()).toHaveLength(1);
+		expect(elliottPrimitive.getFibLevelPrices()[0]).toBeCloseTo(138.2);
+	});
+
 	it('forwards primitive delegate events to onFibChange, onFibDrawingModeChange, and onFibToolChange', () => {
 		const onFibChange = vi.fn();
 		const onFibDrawingModeChange = vi.fn();

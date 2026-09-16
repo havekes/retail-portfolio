@@ -2,6 +2,7 @@ import { describe, it, expect } from 'vitest';
 import {
 	calculateRetracementLevels,
 	calculateExtensionLevels,
+	getActiveFibLevelPrices,
 	formatFibLevelLabel,
 	updateSecurityFibonacciTools,
 	getSecurityFibonacciTools,
@@ -351,6 +352,85 @@ describe('fibonacci finance utilities', () => {
 				})
 			).toEqual([]);
 			expect(calculateExtensionLevels(samplePoint1, samplePoint2, samplePoint3, [])).toEqual([]);
+		});
+	});
+
+	describe('getActiveFibLevelPrices', () => {
+		const retracementWith = (levels: FibLevelConfig[]): FibRetracementDrawing => ({
+			p1: { time: '2024-01-01', price: 100 },
+			p2: { time: '2024-01-02', price: 200 },
+			levels,
+			visible: true
+		});
+
+		const extensionWith = (levels: FibLevelConfig[]): FibExtensionDrawing => ({
+			p1: { time: '2024-01-01', price: 100 },
+			p2: { time: '2024-01-02', price: 200 },
+			p3: { time: '2024-01-03', price: 150 },
+			levels,
+			visible: true
+		});
+
+		it('returns [] for nullish tools', () => {
+			expect(getActiveFibLevelPrices(null)).toEqual([]);
+			expect(getActiveFibLevelPrices(undefined)).toEqual([]);
+			expect(getActiveFibLevelPrices({})).toEqual([]);
+		});
+
+		it('returns computed retracement prices using default levels when none configured', () => {
+			// p1=100, p2=200 -> level(ratio) = 200 - ratio * 100
+			const prices = getActiveFibLevelPrices({
+				retracement: {
+					p1: { time: '2024-01-01', price: 100 },
+					p2: { time: '2024-01-02', price: 200 }
+				}
+			});
+			expect(prices).toHaveLength(DEFAULT_FIB_RETRACEMENT_LEVELS.length);
+			expect(prices).toContain(200); // ratio 0
+			expect(prices).toContain(100); // ratio 1
+			expect(prices.some((p) => Math.abs(p - 138.2) < 1e-9)).toBe(true); // ratio 0.618
+		});
+
+		it('honors custom per-drawing levels and excludes disabled levels', () => {
+			const prices = getActiveFibLevelPrices({
+				retracement: retracementWith([
+					{ ratio: 0.5, enabled: true },
+					{ ratio: 0.618, enabled: false }
+				])
+			});
+			expect(prices).toEqual([150]);
+		});
+
+		it('excludes drawings marked invisible', () => {
+			const hidden = { ...retracementWith([{ ratio: 0.5 }]), visible: false };
+			expect(getActiveFibLevelPrices({ retracement: hidden })).toEqual([]);
+			const hiddenExtension = { ...extensionWith([{ ratio: 1 }]), visible: false };
+			expect(getActiveFibLevelPrices({ extension: hiddenExtension })).toEqual([]);
+		});
+
+		it('merges and dedupes retracement and extension prices', () => {
+			// Retracement: 150 only. Extension (p3=150, move=100): ratio 0.5 -> 200, ratio 1 -> 250
+			const tools: SecurityFibonacciTools = {
+				retracement: retracementWith([{ ratio: 0.5 }]),
+				extension: extensionWith([{ ratio: 0.5 }, { ratio: 1 }])
+			};
+			const prices = getActiveFibLevelPrices(tools);
+			expect(prices).toHaveLength(3);
+			expect(new Set(prices).size).toBe(prices.length);
+			expect(prices).toEqual(expect.arrayContaining([150, 200, 250]));
+		});
+
+		it('yields no prices when anchors are missing or invalid', () => {
+			const invalidRetracement: FibRetracementDrawing = {
+				p1: { time: '2024-01-01', price: NaN },
+				p2: { time: '2024-01-02', price: 200 }
+			};
+			expect(getActiveFibLevelPrices({ retracement: invalidRetracement })).toEqual([]);
+
+			const missingAnchors = {
+				extension: { p1: { time: '2024-01-01', price: 100 } }
+			} as unknown as SecurityFibonacciTools;
+			expect(getActiveFibLevelPrices(missingAnchors)).toEqual([]);
 		});
 	});
 

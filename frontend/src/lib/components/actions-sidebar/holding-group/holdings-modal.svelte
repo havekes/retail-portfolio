@@ -20,7 +20,7 @@
 		type SecurityElliottWaves,
 		getWaveTargetPrice,
 		calculateUpsidePercentage,
-		getSecurityDegreeWaveCount
+		getLatestWaveCount
 	} from '$lib/utils/finance/elliott-wave';
 	import { blendedAverageCost } from '$lib/utils/finance/average-cost';
 	import type { ModalState } from '$lib/utils/modal-state.svelte';
@@ -103,7 +103,9 @@
 
 	const currentDegreeWaveCount = $derived.by(() => {
 		if (!effectiveSecurityId) return null;
-		return getSecurityDegreeWaveCount(elliottWaves, effectiveSecurityId, selectedDegree);
+		// Track the most recent/future wave of the selected degree, so targets follow a
+		// wave drawn further to the right (and update when preferences reload on re-open).
+		return getLatestWaveCount(elliottWaves?.[effectiveSecurityId], selectedDegree);
 	});
 
 	const waveTargetPrice = $derived.by(() => {

@@ -5,7 +5,7 @@ import { ModalState } from '$lib/utils/modal-state.svelte';
 import type { AccountHoldingRead } from '$lib/api/accountService';
 import type { Candle } from '$lib/utils/finance/candle';
 import type { SecuritySchema } from '$lib/api/marketService';
-import type { SecurityElliottWaves } from '$lib/utils/finance/elliott-wave';
+import type { SecurityElliottWaves, DegreeWaveCount } from '$lib/utils/finance/elliott-wave';
 
 vi.mock('$app/paths', () => ({
 	resolve: (path: string) => path
@@ -627,6 +627,115 @@ describe('HoldingsModal Component', () => {
 				expect(screen.getByTestId('wave-upside-percent')).toHaveTextContent('+46.67%');
 			});
 			expect(cycleBtn).toHaveAttribute('aria-pressed', 'true');
+		});
+
+		it('tracks the rightmost wave when multiple cycle waves exist', async () => {
+			const earlierCycle: DegreeWaveCount = {
+				id: 'cycle-earlier',
+				degree: 'cycle',
+				type: 'impulse',
+				points: [
+					{ wave: 1, time: '2024-01-01', price: 100 },
+					{ wave: 3, time: '2024-06-01', price: 190 },
+					{ wave: 5, time: '2024-09-01', price: 230 }
+				],
+				wave3Target: 180,
+				wave5Target: 210
+			};
+			const laterCycle: DegreeWaveCount = {
+				id: 'cycle-later',
+				degree: 'cycle',
+				type: 'impulse',
+				points: [
+					{ wave: 1, time: '2025-01-01', price: 120 },
+					{ wave: 3, time: '2025-06-01', price: 240 },
+					{ wave: 5, time: '2025-12-01', price: 310 }
+				],
+				wave3Target: 260,
+				wave5Target: 340
+			};
+
+			vi.mocked(userPreferencesService.getPreferences).mockResolvedValue({
+				holdings_period: 'ALL',
+				elliott_waves: { 'sec-123': { waves: [earlierCycle, laterCycle] } }
+			});
+
+			render(HoldingsModal, {
+				props: {
+					open: true,
+					security: mockSecurity,
+					holdings: mockHoldings,
+					candles: mockCandles,
+					currentPrice: 150
+				}
+			});
+
+			// The later wave's rightmost point (2025-12) wins over the earlier wave (2024-09).
+			await waitFor(() => {
+				expect(screen.getByTestId('wave-target-price')).toHaveTextContent('$260.00');
+			});
+
+			const wave5Btn = screen.getByRole('button', { name: 'Wave 5' });
+			await fireEvent.click(wave5Btn);
+
+			await waitFor(() => {
+				expect(screen.getByTestId('wave-target-price')).toHaveTextContent('$340.00');
+			});
+		});
+
+		it('updates targets to a newly drawn rightmost wave when the modal re-opens', async () => {
+			const firstWave: DegreeWaveCount = {
+				id: 'cycle-1',
+				degree: 'cycle',
+				type: 'impulse',
+				points: [
+					{ wave: 1, time: '2024-01-01', price: 100 },
+					{ wave: 3, time: '2024-06-01', price: 190 }
+				],
+				wave3Target: 180
+			};
+			const secondWave: DegreeWaveCount = {
+				id: 'cycle-2',
+				degree: 'cycle',
+				type: 'impulse',
+				points: [
+					{ wave: 1, time: '2025-01-01', price: 120 },
+					{ wave: 3, time: '2025-12-01', price: 240 }
+				],
+				wave3Target: 260
+			};
+
+			vi.mocked(userPreferencesService.getPreferences).mockResolvedValue({
+				holdings_period: 'ALL',
+				elliott_waves: { 'sec-123': { waves: [firstWave] } }
+			});
+
+			const props = {
+				open: true,
+				security: mockSecurity,
+				holdings: mockHoldings,
+				candles: mockCandles,
+				currentPrice: 150
+			};
+			const { rerender } = render(HoldingsModal, { props });
+
+			await waitFor(() => {
+				expect(screen.getByTestId('wave-target-price')).toHaveTextContent('$180.00');
+			});
+
+			// A wave drawn further to the right is persisted; re-opening the modal
+			// reloads preferences and re-resolves the targets.
+			vi.mocked(userPreferencesService.getPreferences).mockResolvedValue({
+				holdings_period: 'ALL',
+				elliott_waves: { 'sec-123': { waves: [firstWave, secondWave] } }
+			});
+
+			await rerender({ ...props, open: false });
+			await rerender({ ...props, open: true });
+
+			await waitFor(() => {
+				expect(screen.getByTestId('wave-target-price')).toHaveTextContent('$260.00');
+			});
 		});
 
 		it('renders empty state when no wave count is configured for security or selected degree', async () => {

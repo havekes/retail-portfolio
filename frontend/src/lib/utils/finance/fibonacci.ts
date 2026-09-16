@@ -243,6 +243,40 @@ export function calculateExtensionLevels(
 }
 
 /**
+ * Collects the price of every enabled Fibonacci level from the currently drawn (and visible)
+ * retracement and extension tools. Returns a deduplicated list; nullish tools or drawings with
+ * invalid anchors yield no prices for that drawing. Disabled levels (`enabled === false`) are
+ * skipped, as are hidden drawings (`visible === false`). The result feeds wave-point snapping —
+ * empty means "no active levels", so callers fall back to wick snapping only.
+ */
+export function getActiveFibLevelPrices(
+	tools: SecurityFibonacciTools | null | undefined
+): number[] {
+	if (!tools) return [];
+
+	const prices = new Set<number>();
+	const addLevels = (levels: FibComputedLevel[]): void => {
+		for (const level of levels) {
+			if (level.enabled === false) continue;
+			if (typeof level.price !== 'number' || !isFinite(level.price)) continue;
+			prices.add(level.price);
+		}
+	};
+
+	const retracement = tools.retracement;
+	if (retracement && retracement.visible !== false) {
+		addLevels(calculateRetracementLevels(retracement.p1, retracement.p2, retracement.levels));
+	}
+
+	const extension = tools.extension;
+	if (extension && extension.visible !== false) {
+		addLevels(calculateExtensionLevels(extension.p1, extension.p2, extension.p3, extension.levels));
+	}
+
+	return [...prices];
+}
+
+/**
  * Immutably updates the Fibonacci tools for a given security.
  * Supports updating a specific tool ('retracement' or 'extension'), updating full/partial tool config,
  * or clearing tools when null is passed.
