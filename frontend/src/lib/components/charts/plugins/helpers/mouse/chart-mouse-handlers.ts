@@ -25,7 +25,8 @@ export interface ChartMouseHandlersConfig<TPoint, TTarget> {
 	) => { price: number; y: number; snapped?: boolean };
 	/**
 	 * Optional line hit testing hook. Checks if coordinates (x, y) hit a line
-	 * geometry and returns the target.
+	 * geometry and returns the target. Used for click/double-click line
+	 * selection and, on hover, to fire `lineHovered` when no point is hit.
 	 */
 	hitTestLine?: (x: number, y: number) => TTarget | null;
 }
@@ -65,6 +66,7 @@ export class ChartMouseHandlers<
 	private _lineClicked: Delegate<TTarget> = new Delegate();
 	private _emptyAreaClicked: Delegate<void> = new Delegate();
 	private _pointHovered: Delegate<TTarget | null> = new Delegate();
+	private _lineHovered: Delegate<TTarget | null> = new Delegate();
 	private _dragStarted: Delegate<TTarget> = new Delegate();
 	private _pointDragged: Delegate<TTarget & { time: Time; price: number; x: number; y: number }> =
 		new Delegate();
@@ -138,6 +140,7 @@ export class ChartMouseHandlers<
 		this._lineClicked.destroy();
 		this._emptyAreaClicked.destroy();
 		this._pointHovered.destroy();
+		this._lineHovered.destroy();
 		this._dragStarted.destroy();
 		this._pointDragged.destroy();
 		this._dragEnded.destroy();
@@ -245,6 +248,10 @@ export class ChartMouseHandlers<
 
 	public pointHovered(): ISubscription<TTarget | null> {
 		return this._pointHovered;
+	}
+
+	public lineHovered(): ISubscription<TTarget | null> {
+		return this._lineHovered;
 	}
 
 	public dragStarted(): ISubscription<TTarget> {
@@ -363,9 +370,16 @@ export class ChartMouseHandlers<
 				});
 			}
 		} else if (!this._isDrawingMode) {
-			const hit = this.hitTestPoint(pos.x, pos.y);
-			this._pointHovered.fire(hit ? this._config.toTarget(hit) : null);
+			const pointHit = this.hitTestPoint(pos.x, pos.y);
+			if (pointHit) {
+				this._lineHovered.fire(null);
+				this._pointHovered.fire(this._config.toTarget(pointHit));
+			} else {
+				this._pointHovered.fire(null);
+				this._lineHovered.fire(this._config.hitTestLine?.(pos.x, pos.y) ?? null);
+			}
 		} else {
+			this._lineHovered.fire(null);
 			this._pointHovered.fire(null);
 		}
 
@@ -479,6 +493,7 @@ export class ChartMouseHandlers<
 	private _onMouseLeave(): void {
 		this._lastMousePosition = null;
 		if (!this._isDragging) {
+			this._lineHovered.fire(null);
 			this._pointHovered.fire(null);
 			this._mouseMoved.fire(null);
 		}

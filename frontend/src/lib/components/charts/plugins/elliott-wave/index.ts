@@ -25,7 +25,12 @@ export {
 	type ElliottWaveRendererData
 } from './pane-renderer';
 export { ElliottWavePaneView } from './pane-view';
-export { MouseHandlers, type MousePosition, type ProjectedPointWithTarget } from './mouse';
+export {
+	MouseHandlers,
+	type MousePosition,
+	type ProjectedPointWithTarget,
+	type ProjectedWaveSegment
+} from './mouse';
 export { TimeProjector } from '../helpers/time/time-projector';
 export {
 	addIntervalToTime,

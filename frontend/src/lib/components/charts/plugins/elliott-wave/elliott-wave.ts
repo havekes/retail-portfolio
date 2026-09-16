@@ -9,8 +9,9 @@ import type {
 } from '$lib/utils/finance/elliott-wave';
 import type { Candle } from '$lib/utils/finance/candle';
 import { DEGREE_STYLES, MAX_CORRECTIVE_POINTS, MAX_IMPULSE_POINTS } from './constants';
-import { MouseHandlers, type ProjectedPointWithTarget } from './mouse';
+import { MouseHandlers, type ProjectedPointWithTarget, type ProjectedWaveSegment } from './mouse';
 import {
+	getWaveOrder,
 	type DegreeRenderData,
 	type DrawingPreviewData,
 	type ElliottWaveRendererData,
@@ -82,6 +83,17 @@ export class ElliottWavesPrimitive extends DrawingPrimitiveBase<
 		this._subscribeToUpdate(this._state.selectedWaveChanged());
 
 		this._subscribe(this._mouseHandlers.pointClicked(), (hit) => {
+			this._state.setSelectedWaveId(hit.waveId ?? null);
+			this._state.setSelectedDegree(hit.degree);
+			this._requestUpdate?.();
+		});
+
+		this._subscribe(this._mouseHandlers.lineHovered(), (target) => {
+			this._state.setHoveredPoint(target);
+			this._requestUpdate?.();
+		});
+
+		this._subscribe(this._mouseHandlers.lineClicked(), (hit) => {
 			this._state.setSelectedWaveId(hit.waveId ?? null);
 			this._state.setSelectedDegree(hit.degree);
 			this._requestUpdate?.();
@@ -271,6 +283,7 @@ export class ElliottWavesPrimitive extends DrawingPrimitiveBase<
 
 		const series = this._series;
 		const allProjectedPointsForMouse: ProjectedPointWithTarget[] = [];
+		const allProjectedSegmentsForMouse: ProjectedWaveSegment[] = [];
 		const degreeRenderDataList: DegreeRenderData[] = [];
 
 		const hovered = this._state.getHoveredPoint();
@@ -295,8 +308,10 @@ export class ElliottWavesPrimitive extends DrawingPrimitiveBase<
 				const y = series.priceToCoordinate(pt.price);
 
 				if (x !== null && y !== null) {
+					// Hovering any point (or the connecting line) highlights every point
+					// of that wave, so the whole wave reads as a single hovered unit.
 					const isHovered = hovered?.waveId
-						? hovered.waveId === wave.id && hovered.wave === pt.wave
+						? hovered.waveId === wave.id
 						: hovered?.degree === waveDegree && hovered?.wave === pt.wave;
 					const isDragging = dragging?.waveId
 						? dragging.waveId === wave.id && dragging.wave === pt.wave
@@ -328,6 +343,25 @@ export class ElliottWavesPrimitive extends DrawingPrimitiveBase<
 
 			const waveType = wave.type;
 
+			const sortedPoints = [...projectedPoints].sort(
+				(a, b) => getWaveOrder(a.wave) - getWaveOrder(b.wave)
+			);
+			for (let i = 1; i < sortedPoints.length; i++) {
+				const prev = sortedPoints[i - 1];
+				const curr = sortedPoints[i];
+				if (getWaveOrder(curr.wave) === getWaveOrder(prev.wave) + 1) {
+					allProjectedSegmentsForMouse.push({
+						degree: waveDegree,
+						wave: prev.wave,
+						waveId: wave.id,
+						x1: prev.x,
+						y1: prev.y,
+						x2: curr.x,
+						y2: curr.y
+					});
+				}
+			}
+
 			degreeRenderDataList.push({
 				id: wave.id,
 				degree: waveDegree,
@@ -340,6 +374,7 @@ export class ElliottWavesPrimitive extends DrawingPrimitiveBase<
 		}
 
 		this._mouseHandlers.setProjectedPoints(allProjectedPointsForMouse);
+		this._mouseHandlers.setProjectedSegments(allProjectedSegmentsForMouse);
 
 		let preview: DrawingPreviewData | null = null;
 		if (this._state.isDrawingMode()) {

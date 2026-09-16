@@ -203,11 +203,11 @@ export abstract class DrawingPrimitiveBase<
 
 	protected _updateCursor(): void {
 		if (this._state.getDraggingPoint()) {
-			this._currentCursor = 'grabbing';
+			this._currentCursor = 'default';
 		} else if (this._state.isDrawingMode()) {
 			this._currentCursor = 'crosshair';
 		} else if (this._state.getHoveredPoint()) {
-			this._currentCursor = 'grab';
+			this._currentCursor = 'default';
 		} else {
 			this._currentCursor = null;
 		}

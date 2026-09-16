@@ -82,6 +82,13 @@
 		search(query);
 	});
 
+	$effect(() => {
+		if (!open) {
+			query = '';
+			searchResults = [];
+		}
+	});
+
 	let groupedResults = $derived(
 		searchResults.reduce(
 			(groupedResults, result) => {

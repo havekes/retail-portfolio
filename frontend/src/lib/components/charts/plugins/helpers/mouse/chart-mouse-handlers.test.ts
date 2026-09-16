@@ -563,6 +563,78 @@ describe('ChartMouseHandlers', () => {
 		});
 	});
 
+	describe('hover handling with line geometry', () => {
+		it('fires lineHovered over a line when no point is hit, and clears it otherwise', () => {
+			const hitTestLine = vi.fn((x: number, y: number) =>
+				x >= 100 && x <= 300 && Math.abs(y - 200) <= 5 ? { id: 42 } : null
+			);
+			handlers = makeHandlers({ hitTestLine });
+			handlers.attached(mockData.chart, mockData.series);
+			handlers.setProjectedPoints([makePoint(1, 100, 200)]);
+
+			const onLineHovered = vi.fn();
+			const onPointHovered = vi.fn();
+			handlers.lineHovered().subscribe(onLineHovered);
+			handlers.pointHovered().subscribe(onPointHovered);
+
+			// Over the line, away from the anchor point (200, 200)
+			mockData.mockChartElement.dispatchEvent(
+				new MouseEvent('mousemove', { clientX: 200, clientY: 200 })
+			);
+			expect(hitTestLine).toHaveBeenCalledWith(200, 200);
+			expect(onLineHovered).toHaveBeenLastCalledWith({ id: 42 });
+			expect(onPointHovered).toHaveBeenLastCalledWith(null);
+
+			// Over the anchor point -> point hover wins, line hover clears
+			mockData.mockChartElement.dispatchEvent(
+				new MouseEvent('mousemove', { clientX: 100, clientY: 200 })
+			);
+			expect(onPointHovered).toHaveBeenLastCalledWith({ id: 1 });
+			expect(onLineHovered).toHaveBeenLastCalledWith(null);
+
+			// Empty space -> both clear
+			mockData.mockChartElement.dispatchEvent(
+				new MouseEvent('mousemove', { clientX: 400, clientY: 400 })
+			);
+			expect(onLineHovered).toHaveBeenLastCalledWith(null);
+			expect(onPointHovered).toHaveBeenLastCalledWith(null);
+		});
+
+		it('does not hit test lines while in drawing mode', () => {
+			const hitTestLine = vi.fn(() => ({ id: 42 }));
+			handlers = makeHandlers({ hitTestLine });
+			handlers.attached(mockData.chart, mockData.series);
+			handlers.setDrawingMode(true);
+
+			const onLineHovered = vi.fn();
+			handlers.lineHovered().subscribe(onLineHovered);
+
+			mockData.mockChartElement.dispatchEvent(
+				new MouseEvent('mousemove', { clientX: 200, clientY: 200 })
+			);
+
+			expect(hitTestLine).not.toHaveBeenCalled();
+			expect(onLineHovered).toHaveBeenLastCalledWith(null);
+		});
+
+		it('clears line hover on mouseleave', () => {
+			const hitTestLine = vi.fn(() => ({ id: 42 }));
+			handlers = makeHandlers({ hitTestLine });
+			handlers.attached(mockData.chart, mockData.series);
+
+			const onLineHovered = vi.fn();
+			handlers.lineHovered().subscribe(onLineHovered);
+
+			mockData.mockChartElement.dispatchEvent(
+				new MouseEvent('mousemove', { clientX: 200, clientY: 200 })
+			);
+			expect(onLineHovered).toHaveBeenLastCalledWith({ id: 42 });
+
+			mockData.mockChartElement.dispatchEvent(new MouseEvent('mouseleave'));
+			expect(onLineHovered).toHaveBeenLastCalledWith(null);
+		});
+	});
+
 	describe('double-click handling', () => {
 		it('fires doubleClicked when double-clicking on an anchor point', () => {
 			handlers = makeHandlers();

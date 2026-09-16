@@ -1089,6 +1089,35 @@ describe('Elliott Wave Plugin', () => {
 			expect(onHover).toHaveBeenCalledWith(null);
 		});
 
+		it('hit tests wave segments within HIT_TEST_RADIUS', () => {
+			mouseHandlers.setProjectedSegments([
+				{ degree: 'cycle', wave: 0, waveId: 'w1', x1: 100, y1: 200, x2: 300, y2: 200 }
+			]);
+
+			// On the segment
+			expect(mouseHandlers.hitTestLine(200, 200)?.waveId).toBe('w1');
+			// Inclusive radius boundary
+			expect(mouseHandlers.hitTestLine(200, 200 + HIT_TEST_RADIUS)?.waveId).toBe('w1');
+			// Just beyond the radius
+			expect(mouseHandlers.hitTestLine(200, 200 + HIT_TEST_RADIUS + 1)).toBeNull();
+			// Beyond the segment endpoints
+			expect(mouseHandlers.hitTestLine(70, 200)).toBeNull();
+		});
+
+		it('fires lineClicked with the wave target when clicking a wave segment', () => {
+			const onLineClicked = vi.fn();
+			mouseHandlers.lineClicked().subscribe(onLineClicked);
+			mouseHandlers.setProjectedSegments([
+				{ degree: 'cycle', wave: 1, waveId: 'w1', x1: 100, y1: 200, x2: 300, y2: 200 }
+			]);
+
+			mockData.mockChartElement.dispatchEvent(
+				new MouseEvent('click', { clientX: 200, clientY: 200 })
+			);
+
+			expect(onLineClicked).toHaveBeenCalledWith({ degree: 'cycle', wave: 1, waveId: 'w1' });
+		});
+
 		it('handles point dragging lifecycle on mousedown, mousemove, and mouseup', () => {
 			const onDragStart = vi.fn();
 			const onDrag = vi.fn();
@@ -1312,6 +1341,51 @@ describe('Elliott Wave Plugin', () => {
 			// Should return grab if hovering
 			const hit = primitive.hitTest();
 			expect(hit?.cursorStyle === 'grab' || hit === null).toBe(true);
+		});
+
+		it('highlights all points of a wave when hovering anywhere on the wave', () => {
+			primitive.addPoint(100, '2024-01-05' as Time, 'cycle'); // x=100, y=500
+			primitive.addPoint(150, '2024-01-10' as Time, 'cycle'); // x=225, y=250
+			primitive.updateAllViews();
+
+			// Hover the midpoint of the connecting segment, away from both handles
+			mockData.mockChartElement.dispatchEvent(
+				new MouseEvent('mousemove', { clientX: 163, clientY: 375 })
+			);
+			primitive.updateAllViews();
+
+			// eslint-disable-next-line @typescript-eslint/no-explicit-any
+			const hoveredPoints = (primitive as any)._paneViews[0].renderer()._data.degrees[0].points as {
+				isHovered?: boolean;
+			}[];
+			expect(hoveredPoints).toHaveLength(2);
+			expect(hoveredPoints.every((p) => p.isHovered)).toBe(true);
+
+			// Moving off the wave clears the highlight from every point
+			mockData.mockChartElement.dispatchEvent(
+				new MouseEvent('mousemove', { clientX: 500, clientY: 100 })
+			);
+			primitive.updateAllViews();
+
+			// eslint-disable-next-line @typescript-eslint/no-explicit-any
+			const clearedPoints = (primitive as any)._paneViews[0].renderer()._data.degrees[0].points as {
+				isHovered?: boolean;
+			}[];
+			expect(clearedPoints.every((p) => !p.isHovered)).toBe(true);
+		});
+
+		it('selects the wave when clicking its connecting segment', () => {
+			primitive.addPoint(100, '2024-01-05' as Time, 'cycle');
+			primitive.addPoint(150, '2024-01-10' as Time, 'cycle');
+			primitive.updateAllViews();
+
+			const waveId = primitive.getAllWaves()[0].id;
+
+			mockData.mockChartElement.dispatchEvent(
+				new MouseEvent('click', { clientX: 163, clientY: 375 })
+			);
+
+			expect(primitive.getSelectedWaveId()).toBe(waveId);
 		});
 
 		it('handles sequential drawing mode clicks adding points 0 to 5', () => {

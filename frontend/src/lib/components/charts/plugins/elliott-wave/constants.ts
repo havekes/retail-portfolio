@@ -10,11 +10,11 @@ const CYCLE_ROMAN_NUMERALS: Record<number, string> = {
 };
 
 const PRIMARY_CIRCLED_NUMBERS: Record<number, string> = {
-	1: '①',
-	2: '②',
-	3: '③',
-	4: '④',
-	5: '⑤'
+	1: '1',
+	2: '2',
+	3: '3',
+	4: '4',
+	5: '5'
 };
 
 const INTERMEDIATE_PARENTHESES_NUMBERS: Record<number, string> = {
@@ -33,9 +33,9 @@ const CYCLE_CORRECTIVE_LABELS: Record<string, string> = {
 };
 
 const PRIMARY_CORRECTIVE_LABELS: Record<string, string> = {
-	A: 'Ⓐ',
-	B: 'Ⓑ',
-	C: 'Ⓒ'
+	A: 'A',
+	B: 'B',
+	C: 'C'
 };
 
 const INTERMEDIATE_CORRECTIVE_LABELS: Record<string, string> = {
@@ -73,8 +73,8 @@ export const CYCLE_STYLE: DegreeVisualConfig = {
 	badgeBorderColor: '#93c5fd',
 	hoverRingColor: 'rgba(59, 130, 246, 0.4)',
 	selectedRingColor: 'rgba(59, 130, 246, 0.7)',
-	lineWidth: 2,
-	nodeRadius: 10,
+	lineWidth: 1,
+	nodeRadius: 6,
 	formatLabel: (wave: WavePointId, type?: WaveType) => {
 		if (wave === 0) return '';
 		if (wave === 'A' || wave === 'B' || wave === 'C') {
@@ -97,8 +97,8 @@ export const PRIMARY_STYLE: DegreeVisualConfig = {
 	badgeBorderColor: '#6ee7b7',
 	hoverRingColor: 'rgba(16, 185, 129, 0.4)',
 	selectedRingColor: 'rgba(16, 185, 129, 0.7)',
-	lineWidth: 2,
-	nodeRadius: 9,
+	lineWidth: 1,
+	nodeRadius: 5,
 	formatLabel: (wave: WavePointId, type?: WaveType) => {
 		if (wave === 0) return '';
 		if (wave === 'A' || wave === 'B' || wave === 'C') {
@@ -121,8 +121,8 @@ export const INTERMEDIATE_STYLE: DegreeVisualConfig = {
 	badgeBorderColor: '#fcd34d',
 	hoverRingColor: 'rgba(245, 158, 11, 0.4)',
 	selectedRingColor: 'rgba(245, 158, 11, 0.7)',
-	lineWidth: 2,
-	nodeRadius: 9,
+	lineWidth: 1,
+	nodeRadius: 5,
 	formatLabel: (wave: WavePointId, type?: WaveType) => {
 		if (wave === 0) return '';
 		if (wave === 'A' || wave === 'B' || wave === 'C') {

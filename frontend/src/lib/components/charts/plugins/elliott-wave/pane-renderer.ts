@@ -41,7 +41,7 @@ export interface ElliottWaveRendererData {
 
 export const IMPULSE_COLOR = '#22c55e';
 export const CORRECTIVE_COLOR = '#ef4444';
-export const VERTICAL_LABEL_OFFSET = 14;
+export const VERTICAL_LABEL_OFFSET = 18;
 
 export function getWaveColor(waveOrType: WavePointId | WaveType, maybeWave?: WavePointId): string {
 	if (
@@ -191,7 +191,7 @@ export class ElliottWavePaneRenderer implements IPrimitivePaneRenderer {
 					ctx.arc(px, py, radius + 4 * hpr, 0, Math.PI * 2);
 					ctx.fillStyle = ringColor;
 					ctx.fill();
-					ctx.lineWidth = 1.5 * hpr;
+					ctx.lineWidth = 1 * hpr;
 					ctx.strokeStyle = degreeData.config.color;
 					ctx.stroke();
 				} finally {
@@ -199,37 +199,25 @@ export class ElliottWavePaneRenderer implements IPrimitivePaneRenderer {
 				}
 			}
 
-			// Point 0: anchor point dot
-			if (point.wave === 0) {
-				ctx.save();
-				try {
-					ctx.beginPath();
-					ctx.arc(px, py, 3 * hpr, 0, Math.PI * 2);
-					ctx.fillStyle = degreeData.config.color;
-					ctx.fill();
-				} finally {
-					ctx.restore();
-				}
-			} else {
-				// Offset wave label without background badge
-				ctx.save();
-				try {
-					const label = degreeData.config.formatLabel(point.wave, degreeData.type);
-					const fontSize = Math.max(10, Math.round(13 * vpr));
-					ctx.font = `bold ${fontSize}px sans-serif`;
-					const isCorrective =
-						degreeData.type === 'corrective' ||
-						point.wave === 'A' ||
-						point.wave === 'B' ||
-						point.wave === 'C';
-					ctx.fillStyle = isCorrective ? CORRECTIVE_COLOR : IMPULSE_COLOR;
-					ctx.textAlign = 'center';
-					ctx.textBaseline = 'middle';
-					const offsetY = getWaveLabelOffset(point.wave) * vpr;
-					ctx.fillText(label, px, py + offsetY);
-				} finally {
-					ctx.restore();
-				}
+
+			// Offset wave label without background badge
+			ctx.save();
+			try {
+				const label = degreeData.config.formatLabel(point.wave, degreeData.type);
+				const fontSize = Math.max(10, Math.round(15 * vpr));
+				ctx.font = `bold ${fontSize}px sans-serif`;
+				const isCorrective =
+					degreeData.type === 'corrective' ||
+					point.wave === 'A' ||
+					point.wave === 'B' ||
+					point.wave === 'C';
+				ctx.fillStyle = isCorrective ? CORRECTIVE_COLOR : IMPULSE_COLOR;
+				ctx.textAlign = 'center';
+				ctx.textBaseline = 'middle';
+				const offsetY = getWaveLabelOffset(point.wave) * vpr;
+				ctx.fillText(label, px, py + offsetY);
+			} finally {
+				ctx.restore();
 			}
 		}
 	}
@@ -305,7 +293,7 @@ export class ElliottWavePaneRenderer implements IPrimitivePaneRenderer {
 			try {
 				ctx.globalAlpha = PREVIEW_ALPHA;
 				const label = preview.config.formatLabel(preview.nextWave, preview.type);
-				const fontSize = Math.max(10, Math.round(13 * vpr));
+				const fontSize = Math.max(10, Math.round(15 * vpr));
 				ctx.font = `bold ${fontSize}px sans-serif`;
 				ctx.fillStyle = previewColor;
 				ctx.textAlign = 'center';

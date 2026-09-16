@@ -23,10 +23,36 @@ export interface ProjectedPointWithTarget {
 	originalPoint: WavePoint;
 }
 
+export interface ProjectedWaveSegment {
+	degree: WaveDegree;
+	wave: WavePointId;
+	waveId?: string;
+	x1: number;
+	y1: number;
+	x2: number;
+	y2: number;
+}
+
 interface SnapCandidate {
 	price: number;
 	y: number;
 	distance: number;
+}
+
+function distanceToSegment(
+	px: number,
+	py: number,
+	x1: number,
+	y1: number,
+	x2: number,
+	y2: number
+): number {
+	const dx = x2 - x1;
+	const dy = y2 - y1;
+	const lengthSq = dx * dx + dy * dy;
+	const t =
+		lengthSq === 0 ? 0 : Math.max(0, Math.min(1, ((px - x1) * dx + (py - y1) * dy) / lengthSq));
+	return Math.hypot(px - (x1 + t * dx), py - (y1 + t * dy));
 }
 
 /**
@@ -43,13 +69,46 @@ export class MouseHandlers extends ChartMouseHandlers<
 	private _snapToWicks: boolean = false;
 	private _candleLookup: Map<number, Candle> = new Map();
 	private _fibLevelPrices: number[] = [];
+	private _projectedSegments: ProjectedWaveSegment[] = [];
 
 	constructor() {
 		super({
 			hitTestRadius: HIT_TEST_RADIUS,
 			toTarget: (p) => ({ degree: p.degree, wave: p.wave, waveId: p.waveId }),
-			adjustPosition: (pos, series) => this.resolveAdjustedPosition(pos, series)
+			adjustPosition: (pos, series) => this.resolveAdjustedPosition(pos, series),
+			hitTestLine: (x, y) => {
+				const hit = this.hitTestLine(x, y);
+				return hit ? { degree: hit.degree, wave: hit.wave, waveId: hit.waveId } : null;
+			}
 		});
+	}
+
+	public setProjectedSegments(segments: ProjectedWaveSegment[]): void {
+		this._projectedSegments = segments;
+	}
+
+	/**
+	 * Returns the projected wave segment closest to (x, y) within
+	 * {@link HIT_TEST_RADIUS} in CSS pixel space, or null when none is hit.
+	 */
+	public hitTestLine(x: number, y: number): ProjectedWaveSegment | null {
+		let closest: ProjectedWaveSegment | null = null;
+		let closestDist = Infinity;
+
+		for (const seg of this._projectedSegments) {
+			const dist = distanceToSegment(x, y, seg.x1, seg.y1, seg.x2, seg.y2);
+			if (dist <= HIT_TEST_RADIUS && dist < closestDist) {
+				closestDist = dist;
+				closest = seg;
+			}
+		}
+
+		return closest;
+	}
+
+	public override detached(): void {
+		super.detached();
+		this._projectedSegments = [];
 	}
 
 	/**
