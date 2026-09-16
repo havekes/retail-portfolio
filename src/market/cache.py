@@ -3,7 +3,7 @@ import hashlib
 import json
 import logging
 from collections.abc import AsyncIterator, Sequence
-from datetime import timedelta
+from datetime import date, datetime, timedelta
 from typing import Any
 
 import redis.asyncio as aioredis
@@ -34,9 +34,26 @@ class IndicatorCache:
         self._redis = redis_client
         self._cache_ttl = cache_ttl
 
+    @staticmethod
+    def _normalize_window_bound(value: datetime | date | str | None) -> str | None:
+        """Normalize a date/datetime window bound to a date-only ISO string.
+
+        Datetimes are reduced to their calendar date so that equivalent
+        ``date`` and ``datetime`` bounds share the same cache key.
+        """
+        if value is None:
+            return None
+        if isinstance(value, datetime):
+            return value.date().isoformat()
+        if isinstance(value, date):
+            return value.isoformat()
+        return str(value)
+
     def _compute_indicator_digest(
         self,
         indicators: Sequence[str | IndicatorSpecSchema | dict[str, Any]],
+        from_date: datetime | date | str | None = None,
+        to_date: datetime | date | str | None = None,
     ) -> str:
         canonical_items = []
         for item in indicators:
@@ -54,19 +71,29 @@ class IndicatorCache:
         serialized_items = [
             json.dumps(item, sort_keys=True) for item in canonical_items
         ]
-        canonical_payload = json.dumps(sorted(serialized_items))
+        canonical_payload = json.dumps(
+            {
+                "indicators": sorted(serialized_items),
+                "from_date": self._normalize_window_bound(from_date),
+                "to_date": self._normalize_window_bound(to_date),
+            },
+            sort_keys=True,
+        )
         return hashlib.sha256(canonical_payload.encode()).hexdigest()
 
-    def _get_cache_key(
+    def _get_cache_key(  # noqa: PLR0913, PLR0917
         self,
         security_id: str,
         indicators: Sequence[str | IndicatorSpecSchema | dict[str, Any]],
         price_count: int | None = None,
         interval: str = "1d",
         chart_style: str = "candlestick",
+        from_date: datetime | date | str | None = None,
+        to_date: datetime | date | str | None = None,
     ) -> str:
         """
-        Generate cache key based on security, interval, chart style, and indicators.
+        Generate cache key based on security, interval, chart style, indicators,
+        and the requested date window.
 
         Args:
             security_id: Security identifier
@@ -74,11 +101,15 @@ class IndicatorCache:
             price_count: Optional number of price data points
             interval: Chart interval (default '1d')
             chart_style: Chart style (default 'candlestick')
+            from_date: Optional start of the requested date window
+            to_date: Optional end of the requested date window
 
         Returns:
             Cache key string
         """
-        digest = self._compute_indicator_digest(indicators)
+        digest = self._compute_indicator_digest(
+            indicators, from_date=from_date, to_date=to_date
+        )
         key_parts = [
             "indicators",
             str(security_id),
@@ -90,13 +121,15 @@ class IndicatorCache:
             key_parts.append(str(price_count))
         return ":".join(key_parts)
 
-    async def get(
+    async def get(  # noqa: PLR0913, PLR0917
         self,
         security_id: str,
         indicators: Sequence[str | IndicatorSpecSchema | dict[str, Any]],
         price_count: int | None = None,
         interval: str = "1d",
         chart_style: str = "candlestick",
+        from_date: datetime | date | str | None = None,
+        to_date: datetime | date | str | None = None,
     ) -> Any:
         """
         Get cached indicator data.
@@ -107,6 +140,8 @@ class IndicatorCache:
             price_count: Optional number of price data points
             interval: Candle interval
             chart_style: Chart style
+            from_date: Optional start of the requested date window
+            to_date: Optional end of the requested date window
 
         Returns:
             Cached indicator data or None if not found
@@ -120,6 +155,8 @@ class IndicatorCache:
             price_count=price_count,
             interval=interval,
             chart_style=chart_style,
+            from_date=from_date,
+            to_date=to_date,
         )
 
         try:
@@ -146,6 +183,8 @@ class IndicatorCache:
         data: dict[str, Any] | None = None,
         interval: str = "1d",
         chart_style: str = "candlestick",
+        from_date: datetime | date | str | None = None,
+        to_date: datetime | date | str | None = None,
     ) -> None:
         """
         Cache indicator data.
@@ -157,6 +196,8 @@ class IndicatorCache:
             data: Indicator data to cache
             interval: Candle interval
             chart_style: Chart style
+            from_date: Optional start of the requested date window
+            to_date: Optional end of the requested date window
         """
         if not indicators or data is None:
             return
@@ -167,6 +208,8 @@ class IndicatorCache:
             price_count=price_count,
             interval=interval,
             chart_style=chart_style,
+            from_date=from_date,
+            to_date=to_date,
         )
 
         try:

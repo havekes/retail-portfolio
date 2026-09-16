@@ -1,6 +1,6 @@
 import asyncio
 import logging
-from collections.abc import Sequence
+from collections.abc import AsyncGenerator, Sequence
 from datetime import UTC, date, datetime, timedelta
 from typing import Any
 
@@ -396,6 +396,20 @@ class IndicatorServiceClient:
         self.base_url = base_url.rstrip("/")
         self.timeout = timeout
         self._client = client
+        # Only a client this instance created itself may be closed by it.
+        self._owns_client = client is None
+
+    def _get_client(self) -> httpx.AsyncClient:
+        """Return the long-lived HTTP client, creating it on first use."""
+        if self._client is None:
+            self._client = httpx.AsyncClient(timeout=self.timeout)
+        return self._client
+
+    async def aclose(self) -> None:
+        """Close the internally owned HTTP client, if any."""
+        if self._owns_client and self._client is not None:
+            await self._client.aclose()
+            self._client = None
 
     async def compute(
         self,
@@ -418,13 +432,8 @@ class IndicatorServiceClient:
         url = f"{self.base_url}/compute"
 
         try:
-            if self._client is not None:
-                response = await self._client.post(
-                    url, json=payload, timeout=self.timeout
-                )
-            else:
-                async with httpx.AsyncClient(timeout=self.timeout) as client:
-                    response = await client.post(url, json=payload)
+            client = self._get_client()
+            response = await client.post(url, json=payload, timeout=self.timeout)
         except httpx.TimeoutException as exc:
             logger.warning("Indicator service timed out: %s", exc)
             raise HTTPException(
@@ -461,5 +470,16 @@ class IndicatorServiceClient:
 
 async def indicator_service_client_factory(
     _container: Container | None = None,
-) -> IndicatorServiceClient:
-    return IndicatorServiceClient(base_url=settings.indicator_service_url)
+) -> AsyncGenerator[IndicatorServiceClient]:
+    """
+    Build a request-scoped indicator service client.
+
+    The client owns a single ``httpx.AsyncClient`` that is reused across
+    ``compute`` calls for the lifetime of the service instance and closed when
+    the svcs container is torn down (svcs handles the async-generator cleanup).
+    """
+    client = IndicatorServiceClient(base_url=settings.indicator_service_url)
+    try:
+        yield client
+    finally:
+        await client.aclose()

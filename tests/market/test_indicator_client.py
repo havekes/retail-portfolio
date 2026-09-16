@@ -1,4 +1,6 @@
-# ruff: noqa: PLR2004, TRY003, EM101
+# ruff: noqa: PLR2004, TRY003, EM101, SLF001
+from unittest.mock import AsyncMock, patch
+
 import httpx
 import pytest
 from fastapi import HTTPException
@@ -149,6 +151,74 @@ async def test_compute_bad_request_raises_400():
 
 @pytest.mark.anyio
 async def test_indicator_service_client_factory():
-    client = await indicator_service_client_factory()
+    generator = indicator_service_client_factory()
+    client = await anext(generator)
     assert isinstance(client, IndicatorServiceClient)
     assert client.base_url.startswith("http")
+    await generator.aclose()
+
+
+@pytest.mark.anyio
+async def test_compute_reuses_single_owned_client():
+    client = IndicatorServiceClient(base_url="http://indicator-test:8080")
+    response = httpx.Response(
+        200,
+        json={"indicators": {"SMA": [{"time": "2026-01-01", "value": 1.0}]}},
+        request=httpx.Request("POST", "http://indicator-test:8080/compute"),
+    )
+    mock_post = AsyncMock(return_value=response)
+
+    with patch.object(httpx.AsyncClient, "post", mock_post):
+        await client.compute(
+            interval="1d",
+            candles=[],
+            indicators=[IndicatorSpecSchema(type="SMA", period=20)],
+        )
+        first_client = client._client
+        await client.compute(
+            interval="1d",
+            candles=[],
+            indicators=[IndicatorSpecSchema(type="SMA", period=20)],
+        )
+
+        assert mock_post.await_count == 2
+        # The same underlying HTTP client is reused across calls (pooling).
+        assert client._client is first_client
+
+    await client.aclose()
+
+
+@pytest.mark.anyio
+async def test_aclose_closes_owned_client():
+    client = IndicatorServiceClient(base_url="http://indicator-test:8080")
+    response = httpx.Response(
+        200,
+        json={"indicators": {}},
+        request=httpx.Request("POST", "http://indicator-test:8080/compute"),
+    )
+
+    with patch.object(httpx.AsyncClient, "post", AsyncMock(return_value=response)):
+        await client.compute(
+            interval="1d",
+            candles=[],
+            indicators=[IndicatorSpecSchema(type="SMA", period=20)],
+        )
+
+    http_client = client._client
+    assert http_client is not None
+
+    await client.aclose()
+
+    assert http_client.is_closed
+    assert client._client is None
+
+
+@pytest.mark.anyio
+async def test_aclose_does_not_close_injected_client():
+    transport = httpx.MockTransport(lambda _request: httpx.Response(200, json={}))
+    async with httpx.AsyncClient(transport=transport) as http_client:
+        client = IndicatorServiceClient(
+            base_url="http://indicator-test:8080", client=http_client
+        )
+        await client.aclose()
+        assert not http_client.is_closed

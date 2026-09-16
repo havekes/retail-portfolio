@@ -1,5 +1,6 @@
 # ruff: noqa: PLR2004, SLF001
 import fnmatch
+from datetime import date, datetime
 from typing import cast
 from unittest.mock import AsyncMock
 
@@ -115,6 +116,110 @@ def test_get_cache_key_differentiates_interval_and_style(
 
     assert key_1d != key_1h
     assert key_1d != key_ha
+
+
+def test_get_cache_key_includes_date_window(indicator_cache: IndicatorCache):
+    spec = IndicatorSpecSchema(type="SMA", period=20)
+
+    key_no_window = indicator_cache._get_cache_key(
+        security_id="sec-1", indicators=[spec]
+    )
+    key_jan = indicator_cache._get_cache_key(
+        security_id="sec-1",
+        indicators=[spec],
+        from_date=date(2026, 1, 1),
+        to_date=date(2026, 1, 31),
+    )
+    key_jan_again = indicator_cache._get_cache_key(
+        security_id="sec-1",
+        indicators=[spec],
+        from_date=date(2026, 1, 1),
+        to_date=date(2026, 1, 31),
+    )
+    key_feb = indicator_cache._get_cache_key(
+        security_id="sec-1",
+        indicators=[spec],
+        from_date=date(2026, 2, 1),
+        to_date=date(2026, 2, 28),
+    )
+
+    assert key_jan == key_jan_again
+    assert key_jan != key_no_window
+    assert key_jan != key_feb
+
+
+def test_get_cache_key_equivalent_date_and_datetime(indicator_cache: IndicatorCache):
+    spec = IndicatorSpecSchema(type="SMA", period=20)
+
+    key_date = indicator_cache._get_cache_key(
+        security_id="sec-1",
+        indicators=[spec],
+        from_date=date(2026, 1, 1),
+        to_date=date(2026, 1, 31),
+    )
+    key_datetime = indicator_cache._get_cache_key(
+        security_id="sec-1",
+        indicators=[spec],
+        from_date=datetime(2026, 1, 1, 9, 30),
+        to_date=datetime(2026, 1, 31, 16, 0),
+    )
+
+    assert key_date == key_datetime
+
+
+@pytest.mark.anyio
+async def test_cache_window_isolation(indicator_cache: IndicatorCache):
+    spec = IndicatorSpecSchema(type="SMA", period=20)
+    data_jan = {"indicators": {"SMA": [{"time": "2026-01-31", "value": 1.0}]}}
+    data_feb = {"indicators": {"SMA": [{"time": "2026-02-28", "value": 2.0}]}}
+
+    await indicator_cache.set(
+        security_id="sec-1",
+        indicators=[spec],
+        interval="1d",
+        from_date=date(2026, 1, 1),
+        to_date=date(2026, 1, 31),
+        data=data_jan,
+    )
+    await indicator_cache.set(
+        security_id="sec-1",
+        indicators=[spec],
+        interval="1d",
+        from_date=date(2026, 2, 1),
+        to_date=date(2026, 2, 28),
+        data=data_feb,
+    )
+
+    assert (
+        await indicator_cache.get(
+            security_id="sec-1",
+            indicators=[spec],
+            interval="1d",
+            from_date=date(2026, 1, 1),
+            to_date=date(2026, 1, 31),
+        )
+        == data_jan
+    )
+    assert (
+        await indicator_cache.get(
+            security_id="sec-1",
+            indicators=[spec],
+            interval="1d",
+            from_date=date(2026, 2, 1),
+            to_date=date(2026, 2, 28),
+        )
+        == data_feb
+    )
+    assert (
+        await indicator_cache.get(
+            security_id="sec-1",
+            indicators=[spec],
+            interval="1d",
+            from_date=date(2026, 3, 1),
+            to_date=date(2026, 3, 31),
+        )
+        is None
+    )
 
 
 @pytest.mark.anyio
