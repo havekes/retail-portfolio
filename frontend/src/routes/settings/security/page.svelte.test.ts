@@ -42,6 +42,7 @@ describe('Security Settings Page (+page.svelte)', () => {
 	const mockInitialData = {
 		user: { id: 'u-1', email: 'user@example.com' },
 		sidebar_open: true,
+		sidebar_watchlists: false,
 		status: {
 			totp_enabled: false,
 			recovery_codes_remaining: 0
@@ -90,6 +91,7 @@ describe('Security Settings Page (+page.svelte)', () => {
 				data: {
 					user: { id: 'u-1', email: 'user@example.com' },
 					sidebar_open: true,
+					sidebar_watchlists: false,
 					status: {
 						totp_enabled: true,
 						recovery_codes_remaining: 6
@@ -117,6 +119,7 @@ describe('Security Settings Page (+page.svelte)', () => {
 				data: {
 					user: { id: 'u-1', email: 'user@example.com' },
 					sidebar_open: true,
+					sidebar_watchlists: false,
 					status: {
 						totp_enabled: true,
 						recovery_codes_remaining: 8
@@ -173,6 +176,7 @@ describe('Security Settings Page (+page.svelte)', () => {
 				data: {
 					user: { id: 'u-1', email: 'user@example.com' },
 					sidebar_open: true,
+					sidebar_watchlists: false,
 					status: {
 						totp_enabled: false,
 						recovery_codes_remaining: 0

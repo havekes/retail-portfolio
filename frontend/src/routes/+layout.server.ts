@@ -3,6 +3,7 @@ import type { LayoutServerLoad } from './$types';
 
 export const load: LayoutServerLoad = async ({ locals, fetch, cookies }) => {
 	let sidebar_open = true;
+	let sidebar_watchlists = false;
 
 	if (locals.user) {
 		const token = cookies.get('auth_token');
@@ -12,6 +13,9 @@ export const load: LayoutServerLoad = async ({ locals, fetch, cookies }) => {
 			if (prefs && typeof prefs.sidebar_open === 'boolean') {
 				sidebar_open = prefs.sidebar_open;
 			}
+			if (prefs && typeof prefs.sidebar_watchlists === 'boolean') {
+				sidebar_watchlists = prefs.sidebar_watchlists;
+			}
 		} catch {
 			// Fall back to default open state if preferences request fails
 		}
@@ -19,6 +23,7 @@ export const load: LayoutServerLoad = async ({ locals, fetch, cookies }) => {
 
 	return {
 		user: locals.user,
-		sidebar_open
+		sidebar_open,
+		sidebar_watchlists
 	};
 };

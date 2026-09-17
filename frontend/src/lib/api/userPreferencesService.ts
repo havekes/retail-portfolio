@@ -45,6 +45,7 @@ export interface UserPreferences {
 	chart_style?: ChartStyle | null;
 	indicators?: Record<string, IndicatorConfig> | null;
 	sidebar_open?: boolean | null;
+	sidebar_watchlists?: boolean | null;
 	holdings_period?: string | null;
 	elliott_waves?: Record<string, SecurityElliottWaves> | null;
 	fibonacci_tools?: Record<string, SecurityFibonacciTools> | null;

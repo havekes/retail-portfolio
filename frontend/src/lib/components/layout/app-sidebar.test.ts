@@ -29,6 +29,12 @@ vi.mock('$lib/api/marketService', () => ({
 	})
 }));
 
+vi.mock('$lib/api/userPreferencesService', () => ({
+	userPreferencesService: {
+		patchPreferences: vi.fn().mockResolvedValue({})
+	}
+}));
+
 if (typeof window !== 'undefined') {
 	Object.defineProperty(window, 'matchMedia', {
 		writable: true,
@@ -228,6 +234,113 @@ describe('AppSidebar Modular Components', () => {
 
 			// Company names should not be rendered in collapsed view
 			expect(screen.queryByText('Apple Inc.')).not.toBeInTheDocument();
+			expect(screen.queryByText('Alphabet Inc.')).not.toBeInTheDocument();
+		});
+	});
+
+	describe('Watchlist display option', () => {
+		const tech = {
+			id: 'w1',
+			user_id: 'u1',
+			name: 'Tech',
+			securities: [mockSecurities[3], mockSecurities[4]]
+		};
+		const energy = {
+			id: 'w2',
+			user_id: 'u1',
+			name: 'Energy',
+			securities: [mockSecurities[2]]
+		};
+
+		it('keeps the Default list rendering when the option is off', () => {
+			render(AppSidebarTestHarness, {
+				props: {
+					open: true,
+					securities: mockSecurities
+				}
+			});
+
+			expect(screen.getByText('Watchlist')).toBeInTheDocument();
+			expect(screen.queryByText('Watchlists')).not.toBeInTheDocument();
+			expect(screen.getByText('AAPL')).toBeInTheDocument();
+			expect(screen.getByText('Apple Inc.')).toBeInTheDocument();
+
+			// No per-watchlist group labels are rendered while the option is off.
+			expect(screen.queryByText('Tech')).not.toBeInTheDocument();
+			expect(screen.queryByText('Energy')).not.toBeInTheDocument();
+		});
+
+		it('renders each watchlist as its own group with security links when enabled', () => {
+			render(AppSidebarTestHarness, {
+				props: {
+					open: true,
+					securities: [],
+					showWatchlists: true,
+					watchlists: [tech, energy]
+				}
+			});
+
+			expect(screen.getByText('Tech')).toBeInTheDocument();
+			expect(screen.getByText('Energy')).toBeInTheDocument();
+
+			const aaplLink = screen.getByText('AAPL').closest('a');
+			expect(aaplLink).toHaveAttribute('href', '/security/sec-4');
+			const spyLink = screen.getByText('SPY').closest('a');
+			expect(spyLink).toHaveAttribute('href', '/security/sec-3');
+			expect(screen.getByText('Apple Inc.')).toBeInTheDocument();
+		});
+
+		it('renders a muted empty state for a watchlist without securities', () => {
+			render(AppSidebarTestHarness, {
+				props: {
+					open: true,
+					securities: [],
+					showWatchlists: true,
+					watchlists: [{ id: 'w3', user_id: 'u1', name: 'Empty', securities: [] }]
+				}
+			});
+
+			expect(screen.getByText('Empty')).toBeInTheDocument();
+			expect(screen.getByText('No securities')).toBeInTheDocument();
+		});
+
+		it('invokes the toggle callback with the next value', async () => {
+			const onToggle = vi.fn();
+			const { rerender } = render(AppSidebarTestHarness, {
+				props: {
+					open: true,
+					securities: [],
+					showWatchlists: false,
+					onToggleWatchlists: onToggle
+				}
+			});
+
+			await fireEvent.click(screen.getByRole('button', { name: 'Show watchlists' }));
+			expect(onToggle).toHaveBeenCalledWith(true);
+
+			await rerender({
+				open: true,
+				securities: [],
+				showWatchlists: true,
+				onToggleWatchlists: onToggle
+			});
+			await fireEvent.click(screen.getByRole('button', { name: 'Hide watchlists' }));
+			expect(onToggle).toHaveBeenCalledWith(false);
+		});
+
+		it('shows ticker-only tickers in collapsed mode for watchlist securities', () => {
+			render(AppSidebarTestHarness, {
+				props: {
+					open: false,
+					securities: [],
+					showWatchlists: true,
+					watchlists: [tech]
+				}
+			});
+
+			const googlTicker = screen.getByText('GOOGL');
+			expect(googlTicker).toHaveClass('text-[8.5px]');
+			expect(googlTicker).not.toHaveClass('truncate');
 			expect(screen.queryByText('Alphabet Inc.')).not.toBeInTheDocument();
 		});
 	});
