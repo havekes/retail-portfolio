@@ -28,8 +28,9 @@ services:
       - redis
       - mailcrab
     env_file:
-      - ./src/.env
+      - ./.env
     environment:
+      ENVIRONMENT: "${ENVIRONMENT:-dev}"
       PYDEVD_DISABLE_FILE_VALIDATION: true
       UV_CACHE_DIR: /app/.cache/uv
       UV_PROJECT_ENVIRONMENT: /app/.cache/container_venv
@@ -52,8 +53,9 @@ services:
       - redis
       - mailcrab
     env_file:
-      - ./src/.env
+      - ./.env
     environment:
+      ENVIRONMENT: "${ENVIRONMENT:-dev}"
       PYDEVD_DISABLE_FILE_VALIDATION: true
       UV_CACHE_DIR: /app/.cache/uv
       UV_PROJECT_ENVIRONMENT: /app/.cache/container_venv
