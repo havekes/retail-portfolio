@@ -1,12 +1,15 @@
 import type { Time } from 'lightweight-charts';
 import { Delegate, type ISubscription } from '../helpers/delegate';
-import type {
-	FibExtensionDrawing,
-	FibPoint,
-	FibRetracementDrawing,
-	FibToolType,
-	SecurityFibonacciTools
+import {
+	normalizeFibExtensionDrawing,
+	normalizeFibRetracementDrawing,
+	type FibExtensionDrawing,
+	type FibPoint,
+	type FibRetracementDrawing,
+	type FibToolType,
+	type SecurityFibonacciTools
 } from '$lib/utils/finance/fibonacci';
+import { normalizeDrawingTime } from '$lib/utils/finance/drawing-time';
 
 export interface FibPointTarget {
 	tool: FibToolType;
@@ -117,7 +120,7 @@ export class FibonacciToolState {
 		if (!drawing && this._selectedTool === 'retracement') {
 			this.setSelectedTool(null);
 		}
-		this._retracement = drawing ? { ...drawing } : null;
+		this._retracement = normalizeFibRetracementDrawing(drawing);
 		this._drawingsChanged.fire(this.getDrawings());
 	}
 
@@ -129,7 +132,7 @@ export class FibonacciToolState {
 		if (!drawing && this._selectedTool === 'extension') {
 			this.setSelectedTool(null);
 		}
-		this._extension = drawing ? { ...drawing } : null;
+		this._extension = normalizeFibExtensionDrawing(drawing);
 		this._drawingsChanged.fire(this.getDrawings());
 	}
 
@@ -147,8 +150,8 @@ export class FibonacciToolState {
 		if (!tools.extension && this._selectedTool === 'extension') {
 			this.setSelectedTool(null);
 		}
-		this._retracement = tools.retracement ? { ...tools.retracement } : null;
-		this._extension = tools.extension ? { ...tools.extension } : null;
+		this._retracement = normalizeFibRetracementDrawing(tools.retracement);
+		this._extension = normalizeFibExtensionDrawing(tools.extension);
 		this._drawingsChanged.fire(this.getDrawings());
 	}
 
@@ -156,15 +159,16 @@ export class FibonacciToolState {
 		return [...this._pendingPoints];
 	}
 
-	public addPoint(point: FibPoint, tool?: FibToolType): FibPoint {
+	public addPoint(point: { time: Time; price: number }, tool?: FibToolType): FibPoint {
 		const targetTool = tool ?? this._activeTool ?? 'retracement';
 		if (this._activeTool !== targetTool) {
 			this._activeTool = targetTool;
 			this._toolChanged.fire(targetTool);
 		}
 
+		// Canonicalize to epoch seconds on ingestion so anchors are timeframe-independent.
 		const newPoint: FibPoint = {
-			time: point.time,
+			time: normalizeDrawingTime(point.time),
 			price: point.price
 		};
 
@@ -227,10 +231,10 @@ export class FibonacciToolState {
 			const p2 = { ...this._retracement.p2 };
 
 			if (pointIndex === 0) {
-				if (update.time !== undefined) p1.time = update.time;
+				if (update.time !== undefined) p1.time = normalizeDrawingTime(update.time);
 				if (update.price !== undefined) p1.price = update.price;
 			} else if (pointIndex === 1) {
-				if (update.time !== undefined) p2.time = update.time;
+				if (update.time !== undefined) p2.time = normalizeDrawingTime(update.time);
 				if (update.price !== undefined) p2.price = update.price;
 			} else {
 				return false;
@@ -250,13 +254,13 @@ export class FibonacciToolState {
 			const p3 = { ...this._extension.p3 };
 
 			if (pointIndex === 0) {
-				if (update.time !== undefined) p1.time = update.time;
+				if (update.time !== undefined) p1.time = normalizeDrawingTime(update.time);
 				if (update.price !== undefined) p1.price = update.price;
 			} else if (pointIndex === 1) {
-				if (update.time !== undefined) p2.time = update.time;
+				if (update.time !== undefined) p2.time = normalizeDrawingTime(update.time);
 				if (update.price !== undefined) p2.price = update.price;
 			} else if (pointIndex === 2) {
-				if (update.time !== undefined) p3.time = update.time;
+				if (update.time !== undefined) p3.time = normalizeDrawingTime(update.time);
 				if (update.price !== undefined) p3.price = update.price;
 			} else {
 				return false;
