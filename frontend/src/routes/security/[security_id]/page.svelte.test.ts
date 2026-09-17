@@ -14,6 +14,7 @@ import type {
 } from '$lib/utils/finance/fibonacci';
 import { updateSecurityFibonacciTools } from '$lib/utils/finance/fibonacci';
 import type { RewindSnapshot } from '$lib/utils/finance/rewind';
+import type { SecurityDrawings } from '$lib/utils/finance/drawings';
 import { snapshotsService } from '$lib/api/snapshotsService';
 import { toast } from '$lib/components/ui/toast/index.js';
 if (typeof globalThis.Path2D === 'undefined') {
@@ -2177,6 +2178,18 @@ describe('Rewind Save Snapshot', () => {
 		}
 	};
 
+	const sampleNewDrawings: Record<string, SecurityDrawings> = {
+		'sec-1': {
+			measures: [
+				{
+					id: 'measure-1',
+					p1: { time: '2024-01-01', price: 100 },
+					p2: { time: '2024-01-02', price: 112 }
+				}
+			]
+		}
+	};
+
 	beforeAll(async () => {
 		const mod = await import('./+page.svelte');
 		PageComponent = mod.default;
@@ -2217,7 +2230,8 @@ describe('Rewind Save Snapshot', () => {
 			expect.objectContaining({
 				drawings: {
 					elliott_waves: sampleElliottWaves['sec-1'],
-					fibonacci_tools: sampleFibTools['sec-1']
+					fibonacci_tools: sampleFibTools['sec-1'],
+					drawings: {}
 				},
 				data_window: {
 					first: '2024-01-01',
@@ -2261,7 +2275,8 @@ describe('Rewind Save Snapshot', () => {
 				expect.objectContaining({
 					drawings: {
 						elliott_waves: sampleElliottWaves['sec-1'],
-						fibonacci_tools: sampleFibTools['sec-1']
+						fibonacci_tools: sampleFibTools['sec-1'],
+						drawings: {}
 					},
 					data_window: {
 						first: '2024-01-01',
@@ -2305,7 +2320,8 @@ describe('Rewind Save Snapshot', () => {
 				expect.objectContaining({
 					drawings: {
 						elliott_waves: sampleElliottWaves['sec-1'],
-						fibonacci_tools: sampleFibTools['sec-1']
+						fibonacci_tools: sampleFibTools['sec-1'],
+						drawings: {}
 					},
 					data_window: {
 						first: '2024-01-01',
@@ -2481,6 +2497,41 @@ describe('Rewind Save Snapshot', () => {
 		await fireEvent.click(saveBtn);
 		expect(snapshotsService.createSnapshot).not.toHaveBeenCalled();
 		expect(userPreferencesService.patchPreferences).not.toHaveBeenCalled();
+	});
+
+	it('captures a snapshot when only new-tool drawings exist (no waves or fib tools)', async () => {
+		vi.mocked(userPreferencesService.getPreferences).mockResolvedValue({
+			elliott_waves: {},
+			fibonacci_tools: {},
+			drawings: sampleNewDrawings
+		});
+
+		render(PageComponent, { props: { data: mockData } });
+		const saveBtn = await screen.findByRole('button', { name: 'Save snapshot' });
+
+		await fireEvent.click(saveBtn);
+
+		expect(snapshotsService.createSnapshot).toHaveBeenCalledWith(
+			'sec-1',
+			expect.objectContaining({
+				drawings: expect.objectContaining({
+					elliott_waves: { waves: [] },
+					fibonacci_tools: {},
+					drawings: sampleNewDrawings['sec-1']
+				}),
+				data_window: {
+					first: '2024-01-01',
+					last: '2024-01-02'
+				},
+				captured_at: expect.any(String)
+			})
+		);
+		expect(userPreferencesService.patchPreferences).not.toHaveBeenCalled();
+		await waitFor(() => {
+			expect(
+				toast.toasts.some((t) => t.type === 'success' && t.message === 'Chart snapshot saved')
+			).toBe(true);
+		});
 	});
 
 	it('timeline bar is automatically visible on initial load when security has 1+ snapshots', async () => {
@@ -2783,6 +2834,56 @@ describe('Rewind Scrub and Drawing Restore', () => {
 			expect(mockChartProps.elliottWaves).toEqual({ waves: [] });
 			// @ts-expect-error - mockChartProps typed as Record
 			expect(mockChartProps.fibonacciTools).toEqual({});
+		});
+	});
+
+	it('surfaces the snapshot\u2019s new-tool drawings through the effective derived state while rewound', async () => {
+		const snapshotWithDrawings: RewindSnapshot = {
+			id: 'snap-drawings',
+			captured_at: '2024-01-02T12:00:00.000Z',
+			drawings: {
+				drawings: {
+					horizontalLines: [{ id: 'h1', p1: { time: '2024-01-02', price: 111 } }]
+				}
+			},
+			data_window: {
+				first: '2024-01-01',
+				last: '2024-01-02'
+			}
+		};
+
+		const liveDrawings: Record<string, SecurityDrawings> = {
+			'sec-1': {
+				lines: [
+					{
+						id: 'l1',
+						p1: { time: '2024-01-03', price: 100 },
+						p2: { time: '2024-01-03', price: 120 }
+					}
+				]
+			}
+		};
+
+		vi.mocked(snapshotsService.getSnapshots).mockResolvedValue([snapshotWithDrawings]);
+		vi.mocked(userPreferencesService.getPreferences).mockResolvedValue({
+			drawings: liveDrawings
+		});
+
+		const { component } = render(PageComponent, { props: { data: threeCandlesData } });
+		const page = component as unknown as {
+			getEffectiveSecurityDrawings: () => SecurityDrawings;
+		};
+
+		await waitFor(() => {
+			expect(page.getEffectiveSecurityDrawings()).toEqual(liveDrawings['sec-1']);
+		});
+
+		expect(await screen.findByTestId('rewind-timeline')).toBeInTheDocument();
+		const marker = screen.getByTestId('rewind-snapshot-point');
+		await fireEvent.click(marker);
+
+		await waitFor(() => {
+			expect(page.getEffectiveSecurityDrawings()).toEqual(snapshotWithDrawings.drawings.drawings);
 		});
 	});
 
