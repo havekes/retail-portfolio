@@ -13,7 +13,7 @@ After startup:
 - App: `http://localhost:8001`
 - Backend API / ping: `http://localhost:8001/api/ping`
 - ReDoc API docs: `http://localhost:8001/redoc`
-- Frontend dev server: `http://localhost:8100`
+- Frontend dev server: `http://localhost:8002` (override with `FRONTEND_PORT` in root `.env`)
 - Mailcrab (email capture): `http://localhost:8003`
 
 It is recommended to run commands inside containers:
