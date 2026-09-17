@@ -150,12 +150,17 @@ vi.mock('lightweight-charts', () => {
 import type { Component } from 'svelte';
 import { tick } from 'svelte';
 import type { Candle } from '$lib/utils/finance/candle';
-import type {
-	DegreeWaveCount,
-	SecurityElliottWaves,
-	WaveDegree
+import {
+	normalizeWaveIds,
+	type DegreeWaveCount,
+	type SecurityElliottWaves,
+	type WaveDegree
 } from '$lib/utils/finance/elliott-wave';
-import type { SecurityFibonacciTools, FibToolType } from '$lib/utils/finance/fibonacci';
+import {
+	normalizeSecurityFibonacciTools,
+	type SecurityFibonacciTools,
+	type FibToolType
+} from '$lib/utils/finance/fibonacci';
 import type { IndicatorData } from './security-chart.svelte';
 import { render } from '@testing-library/svelte';
 import { createChart } from 'lightweight-charts';
@@ -438,7 +443,8 @@ describe('SecurityChart - Elliott Wave Integration', () => {
 			(c) => c[0] instanceof ElliottWavesPrimitive
 		)?.[0] as ElliottWavesPrimitive;
 
-		expect(elliottPrimitive.getWaveCount('cycle')).toEqual(sampleWaves.waves[0]);
+		// Anchors are canonicalized to epoch seconds on ingestion.
+		expect(elliottPrimitive.getWaveCount('cycle')).toEqual(normalizeWaveIds(sampleWaves.waves)[0]);
 
 		const updatedWaves: SecurityElliottWaves = {
 			waves: [
@@ -459,7 +465,9 @@ describe('SecurityChart - Elliott Wave Integration', () => {
 			elliottWaves: updatedWaves
 		});
 
-		expect(elliottPrimitive.getWaveCount('primary')).toEqual(updatedWaves.waves[1]);
+		expect(elliottPrimitive.getWaveCount('primary')).toEqual(
+			normalizeWaveIds(updatedWaves.waves)[1]
+		);
 	});
 
 	it('forwards primitive events to delegate callbacks', () => {
@@ -767,7 +775,10 @@ describe('SecurityChart - Fibonacci Integration', () => {
 		expect(fibPrimitive).toBeDefined();
 		expect(fibPrimitive.getActiveTool()).toBe('extension');
 		expect(fibPrimitive.isDrawingMode()).toBe(true);
-		expect(fibPrimitive.getRetracement()).toEqual(initialTools.retracement);
+		// Anchors are canonicalized to epoch seconds on ingestion.
+		expect(fibPrimitive.getRetracement()).toEqual(
+			normalizeSecurityFibonacciTools(initialTools).retracement
+		);
 	});
 
 	it('syncs activeFibTool prop changes to FibonacciPrimitive', async () => {
@@ -834,7 +845,9 @@ describe('SecurityChart - Fibonacci Integration', () => {
 			(c) => c[0] instanceof FibonacciPrimitive
 		)?.[0] as FibonacciPrimitive;
 
-		expect(fibPrimitive.getRetracement()).toEqual(sampleTools.retracement);
+		expect(fibPrimitive.getRetracement()).toEqual(
+			normalizeSecurityFibonacciTools(sampleTools).retracement
+		);
 
 		const updatedTools: SecurityFibonacciTools = {
 			retracement: sampleTools.retracement,
@@ -850,7 +863,9 @@ describe('SecurityChart - Fibonacci Integration', () => {
 			fibonacciTools: updatedTools
 		});
 
-		expect(fibPrimitive.getExtension()).toEqual(updatedTools.extension);
+		expect(fibPrimitive.getExtension()).toEqual(
+			normalizeSecurityFibonacciTools(updatedTools).extension
+		);
 	});
 
 	it('pushes enabled Fib levels to ElliottWavesPrimitive and updates on tools change', async () => {
@@ -917,8 +932,8 @@ describe('SecurityChart - Fibonacci Integration', () => {
 		expect(onFibChange).toHaveBeenCalledWith(
 			expect.objectContaining({
 				retracement: expect.objectContaining({
-					p1: { time: '2024-01-10', price: 10 },
-					p2: { time: '2024-01-11', price: 20 }
+					p1: { time: 1704844800, price: 10 },
+					p2: { time: 1704931200, price: 20 }
 				})
 			})
 		);
