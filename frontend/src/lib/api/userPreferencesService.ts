@@ -1,6 +1,7 @@
 import { ApiClient } from './apiClient';
 import type { IndicatorConfig } from './indicatorsService';
 import type { HoldingsTableConfig } from '$lib/components/holdings/holdings-table-columns';
+import type { HoldingsGroupMode } from '$lib/utils/finance/holdings-group';
 import type {
 	DegreeWaveCount,
 	SecurityElliottWaves,
@@ -52,6 +53,7 @@ export interface UserPreferences {
 	wave_settings?: WaveSettings | null;
 	chart_hide_labels?: boolean | null;
 	holdings_table?: HoldingsTableConfig | null;
+	holdings_group?: HoldingsGroupMode | null;
 }
 
 export class UserPreferencesService extends ApiClient {
