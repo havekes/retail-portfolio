@@ -12,10 +12,9 @@ This wiki covers architecture, domain logic, operational runbooks, testing, and 
 
 The only supported local run path is Docker Compose.
 
-1. Copy environment examples:
+1. Create the root environment file (the whole stack reads this one file):
    ```bash
-   cp src/.env.example src/.env
-   cp frontend/.env.example frontend/.env
+   cp .env.example .env
    ```
 2. Start services:
    ```bash

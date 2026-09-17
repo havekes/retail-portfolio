@@ -25,9 +25,9 @@ docker compose exec frontend <command>
 
 ### Environment files
 
-- Copy `src/.env.example` to `src/.env` for the backend.
-- Copy `frontend/.env.example` to `frontend/.env` for the frontend.
-- Do not commit `.env` files. `src/.env.example` is the sample backend config; `frontend/.env.example` is the sample frontend config.
+- Copy the tracked root `.env.example` to the root `.env`: `cp .env.example .env`. The resulting `.env` is gitignored and must not be committed.
+- `docker-compose.yml` reads that single file: the `backend` and `worker` services load it via `env_file`, Compose interpolates `${...}` port/URL variables from it, and the `frontend` service receives its `VITE_*` values (plus `JWT_SECRET`, derived from `SECRET_KEY`) via `environment:` interpolation.
+- Parallel worktrees: `scripts/setup-agent-worktree.sh <worktree-path> <branch-name>` seeds the worktree's root `.env` from the main checkout and assigns unique published ports.
 
 ### Containers
 
@@ -90,7 +90,7 @@ npm run test:run
 
 - Node 25
 - `npm install` inside `frontend/`
-- Copy `frontend/.env.example` → `frontend/.env`
+- `VITE_*` variables and `JWT_SECRET` are provided by the job-level `env:`
 - `npm run check`
 - `npm run lint`
 - `npm run test:run`
