@@ -169,6 +169,11 @@ class HoldingRead(BaseModel):
     updated_at: datetime | None = None
 
 
+class UserHoldingRead(HoldingRead):
+    account_id: AccountId
+    account_name: str
+
+
 class AccountHoldingsRead(PaginatedResponse[HoldingRead]):
     account_id: AccountId
     account_name: str
