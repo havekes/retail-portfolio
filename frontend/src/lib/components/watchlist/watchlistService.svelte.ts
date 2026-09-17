@@ -1,14 +1,11 @@
-import {
-	getMarketService,
-	type MarketService,
-	type WatchlistRead,
-	type SecuritySchema
-} from '@/api/marketService';
+import { getMarketService, type MarketService, type WatchlistRead } from '@/api/marketService';
 import { getContext, setContext } from 'svelte';
 
 export class WatchlistService {
 	watchlists = $state<WatchlistRead[]>([]);
-	defaultWatchlistSecurities = $state<SecuritySchema[]>([]);
+	defaultWatchlistSecurities = $derived(
+		this.watchlists.find((w) => w.name === 'Default')?.securities ?? []
+	);
 	isLoading = $state(false);
 	error = $state<string | null>(null);
 	private client: MarketService;
@@ -17,21 +14,78 @@ export class WatchlistService {
 		this.client = getMarketService(customFetch);
 	}
 
+	private handleError(err: unknown, fallback: string): void {
+		const message = err instanceof Error ? err.message : String(err);
+		this.error = message || fallback;
+		console.error(err);
+	}
+
+	private replaceWatchlist(updated: WatchlistRead): void {
+		this.watchlists = this.watchlists.map((w) => (w.id === updated.id ? updated : w));
+	}
+
 	async loadWatchlists(token?: string | null): Promise<void> {
 		this.isLoading = true;
 		try {
 			this.watchlists = await this.client.getWatchlists(token);
-			const defaultWatchlist = this.watchlists.find((w) => w.name === 'Default');
-			if (defaultWatchlist) {
-				const res = await this.client.getWatchlistSecurities(defaultWatchlist.id, token);
-				this.defaultWatchlistSecurities = res.items;
-			}
 		} catch (err) {
-			const message = err instanceof Error ? err.message : String(err);
-			this.error = message || 'Failed to load watchlists';
-			console.error(err);
+			this.handleError(err, 'Failed to load watchlists');
 		} finally {
 			this.isLoading = false;
+		}
+	}
+
+	async createWatchlist(name: string, token?: string | null): Promise<void> {
+		try {
+			const created = await this.client.createWatchlist(name, token);
+			this.watchlists = [...this.watchlists, created];
+		} catch (err) {
+			this.handleError(err, 'Failed to create watchlist');
+		}
+	}
+
+	async renameWatchlist(watchlistId: string, name: string, token?: string | null): Promise<void> {
+		try {
+			const updated = await this.client.renameWatchlist(watchlistId, name, token);
+			this.replaceWatchlist(updated);
+		} catch (err) {
+			this.handleError(err, 'Failed to rename watchlist');
+		}
+	}
+
+	async deleteWatchlist(watchlistId: string, token?: string | null): Promise<void> {
+		try {
+			await this.client.deleteWatchlist(watchlistId, token);
+			this.watchlists = this.watchlists.filter((w) => w.id !== watchlistId);
+		} catch (err) {
+			this.handleError(err, 'Failed to delete watchlist');
+		}
+	}
+
+	async addSecurityToWatchlist(
+		watchlistId: string,
+		securityId: string,
+		token?: string | null
+	): Promise<void> {
+		try {
+			const updated = await this.client.addSecurityToWatchlist(watchlistId, securityId, token);
+			this.replaceWatchlist(updated);
+		} catch (err) {
+			this.handleError(err, 'Failed to add security to watchlist');
+		}
+	}
+
+	async removeSecurityFromWatchlist(
+		watchlistId: string,
+		securityId: string,
+		token?: string | null
+	): Promise<void> {
+		try {
+			const updated = await this.client.removeSecurityFromWatchlist(watchlistId, securityId, token);
+			this.replaceWatchlist(updated);
+		} catch (err) {
+			this.handleError(err, 'Failed to remove security from watchlist');
+			await this.loadWatchlists(token);
 		}
 	}
 
@@ -42,20 +96,12 @@ export class WatchlistService {
 	async toggleSecurity(securityId: string, token?: string | null): Promise<void> {
 		const isAdded = this.hasSecurity(securityId);
 		try {
-			if (isAdded) {
-				await this.client.removeFromWatchlist(securityId, token);
-				this.defaultWatchlistSecurities = this.defaultWatchlistSecurities.filter(
-					(s) => s.id !== securityId
-				);
-			} else {
-				await this.client.addToWatchlist(securityId, token);
-				// To get the full security schema, we just reload the watchlist securities
-				await this.loadWatchlists(token);
-			}
+			const updated = isAdded
+				? await this.client.removeFromWatchlist(securityId, token)
+				: await this.client.addToWatchlist(securityId, token);
+			this.replaceWatchlist(updated);
 		} catch (err) {
-			const message = err instanceof Error ? err.message : String(err);
-			this.error = message || 'Failed to toggle watchlist security';
-			console.error(err);
+			this.handleError(err, 'Failed to toggle watchlist security');
 			await this.loadWatchlists(token);
 		}
 	}
