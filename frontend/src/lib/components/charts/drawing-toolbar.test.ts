@@ -326,6 +326,30 @@ describe('DrawingToolbar Component', () => {
 		expect(onToggleTimeline).toHaveBeenCalledTimes(1);
 	});
 
+	it('renders Measure button with correct title and triggers onMeasureSelect', async () => {
+		const onMeasureSelect = vi.fn();
+		render(DrawingToolbar, { props: { onMeasureSelect } });
+
+		const measureBtn = screen.getByRole('button', { name: 'Toggle Measure drawing' });
+		expect(measureBtn).toBeInTheDocument();
+		expect(measureBtn).toHaveAttribute('title', 'Measure');
+
+		await fireEvent.click(measureBtn);
+		expect(onMeasureSelect).toHaveBeenCalledTimes(1);
+	});
+
+	it('highlights the Measure button only while Measure drawing is active', () => {
+		const { rerender } = render(DrawingToolbar, {
+			props: { isDrawingMeasure: false }
+		});
+
+		const measureBtn = screen.getByRole('button', { name: 'Toggle Measure drawing' });
+		expect(measureBtn.className).not.toContain('bg-primary');
+
+		rerender({ isDrawingMeasure: true });
+		expect(measureBtn.className).toContain('bg-primary');
+	});
+
 	it('highlights timeline toggle button when isTimelineVisible is true', () => {
 		const { rerender } = render(DrawingToolbar, {
 			props: {
