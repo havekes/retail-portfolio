@@ -23,6 +23,7 @@ import {
 	TimeProjector,
 	computeIntervalSeconds,
 	addIntervalToTime,
+	timeToEpochSeconds,
 	snapPriceToWick,
 	buildCandleLookup,
 	findCandleByTime
@@ -47,6 +48,10 @@ function createDailyCandles(count = 30): Candle[] {
 		};
 	});
 }
+
+/** Canonical epoch-seconds anchor for an ISO date (drawings store time, not bar indices). */
+const anchor = (date: string): Time =>
+	Math.floor(new Date(`${date}T00:00:00Z`).getTime() / 1000) as Time;
 
 // Helper to configure a TimeProjector with the default mock chart + daily candles.
 function configureFutureProjector(
@@ -1310,6 +1315,8 @@ describe('Elliott Wave Plugin', () => {
 				requestUpdate: mockRequestUpdate,
 				horzScaleBehavior: {} as never
 			});
+			// Epoch anchors resolve to the active timeframe's bars via the candle data.
+			primitive.setCandles(createDailyCandles(30));
 		});
 
 		it('attaches and detaches cleanly', () => {
@@ -1428,7 +1435,7 @@ describe('Elliott Wave Plugin', () => {
 
 			const wave0 = primitive.getPoints('cycle')[0];
 			expect(wave0.wave).toBe(0);
-			expect(wave0.time).toBe('2024-01-07');
+			expect(wave0.time).toBe(anchor('2024-01-07'));
 			expect(wave0.price).toBe(130);
 
 			// Release drag
@@ -2227,6 +2234,8 @@ describe('Elliott Wave Plugin', () => {
 					requestUpdate: mockRequestUpdate,
 					horzScaleBehavior: {} as never
 				});
+				// Epoch anchors resolve to the active timeframe's bars via the candle data.
+				primitive.setCandles(createDailyCandles(30));
 			});
 
 			it('initializes selectedDegree from constructor and updates via setSelectedDegree', () => {
@@ -2551,11 +2560,11 @@ describe('Elliott Wave Plugin', () => {
 				const waveB = primitive.getWaveById('wave-B');
 
 				expect(waveA?.points[1].price).toBe(175);
-				expect(waveA?.points[1].time).toBe('2024-01-03');
+				expect(waveA?.points[1].time).toBe(anchor('2024-01-03'));
 
 				// wave-B must remain unchanged
 				expect(waveB?.points[1].price).toBe(250);
-				expect(waveB?.points[1].time).toBe('2024-01-02');
+				expect(waveB?.points[1].time).toBe(anchor('2024-01-02'));
 			});
 
 			it('clearing targeted wave leaves other waves intact', () => {
@@ -2657,6 +2666,191 @@ describe('Elliott Wave Plugin', () => {
 				expect(loadedPrimitive.getWaveCount('cycle')?.wave3Target).toBe(180);
 				expect(loadedPrimitive.getWaveCount('primary')?.type).toBe('corrective');
 			});
+		});
+	});
+
+	describe('Cross-Timeframe Rendering', () => {
+		const HOUR = 3600;
+		const DAY = 86400;
+		const SPACING = 25;
+		const isoEpoch = (iso: string) => Math.floor(new Date(iso).getTime() / 1000);
+
+		const candle = (time: Candle['time'], close = 100): Candle => ({
+			time,
+			open: close - 1,
+			high: close + 2,
+			low: close - 2,
+			close
+		});
+
+		function dailyCandles(): Candle[] {
+			const start = Date.UTC(2024, 0, 1) / 1000;
+			return Array.from({ length: 90 }, (_, i) =>
+				candle(new Date((start + i * DAY) * 1000).toISOString().slice(0, 10) as Time)
+			);
+		}
+
+		function hourlyCandles(): Candle[] {
+			const start = Date.UTC(2024, 0, 1) / 1000;
+			return Array.from({ length: 24 * 60 }, (_, i) => candle((start + i * HOUR) as Time));
+		}
+
+		function fourHourCandles(): Candle[] {
+			const start = Date.UTC(2024, 0, 1) / 1000;
+			return Array.from({ length: 6 * 60 }, (_, i) => candle((start + i * 4 * HOUR) as Time));
+		}
+
+		function weeklyCandles(): Candle[] {
+			const start = Date.UTC(2024, 0, 1) / 1000; // Monday
+			return Array.from({ length: 13 }, (_, i) =>
+				candle(new Date((start + i * 7 * DAY) * 1000).toISOString().slice(0, 10) as Time)
+			);
+		}
+
+		function monthlyCandles(): Candle[] {
+			return [candle('2024-01-01'), candle('2024-02-01'), candle('2024-03-01')];
+		}
+
+		/** Independent at-or-before lookup mirroring the documented snap rule. */
+		function expectedIndex(candles: Candle[], epoch: number): number {
+			let index = 0;
+			for (let i = 0; i < candles.length; i++) {
+				if (timeToEpochSeconds(candles[i].time) <= epoch) index = i;
+				else break;
+			}
+			return index;
+		}
+
+		function createTimeframeHarness(candles: Candle[]) {
+			const indexByEpoch = new Map<number, number>();
+			candles.forEach((c, i) => indexByEpoch.set(timeToEpochSeconds(c.time), i));
+
+			const timeScale = {
+				timeToCoordinate: vi.fn((time: Time) => {
+					const index = indexByEpoch.get(timeToEpochSeconds(time));
+					return index === undefined ? null : index * SPACING;
+				}),
+				coordinateToTime: vi.fn((x: number) => {
+					const index = Math.round(x / SPACING);
+					return index < 0 || index >= candles.length ? null : candles[index].time;
+				}),
+				coordinateToLogical: vi.fn((x: number) => x / SPACING),
+				logicalToCoordinate: vi.fn((logical: number) => logical * SPACING),
+				height: vi.fn(() => 30),
+				width: vi.fn(() => 750)
+			};
+			const priceScale = { width: vi.fn(() => 50), applyOptions: vi.fn() };
+			const series = {
+				priceToCoordinate: vi.fn((price: number) => 500 - price),
+				coordinateToPrice: vi.fn((y: number) => 500 - y),
+				priceScale: vi.fn(() => priceScale)
+			} as unknown as ISeriesApi<SeriesType>;
+			const chart = {
+				chartElement: vi.fn(() => document.createElement('div')),
+				timeScale: vi.fn(() => timeScale),
+				options: vi.fn(() => ({ handleScroll: { pressedMouseMove: true } })),
+				applyOptions: vi.fn()
+			} as unknown as IChartApi;
+			return { chart, series };
+		}
+
+		function renderOn(
+			candles: Candle[],
+			wave: DegreeWaveCount
+		): { wave: number | string; x: number }[] {
+			const harness = createTimeframeHarness(candles);
+			const primitive = new ElliottWavesPrimitive({ activeDegree: 'cycle', waves: [wave] });
+			primitive.attached({
+				chart: harness.chart,
+				series: harness.series,
+				requestUpdate: vi.fn(),
+				horzScaleBehavior: {} as never
+			});
+			primitive.setCandles(candles);
+			primitive.updateAllViews();
+			// eslint-disable-next-line @typescript-eslint/no-explicit-any
+			const data = (primitive as any)._paneViews[0].renderer()._data as {
+				degrees: { points: { wave: number | string; x: number }[] }[];
+			};
+			return data.degrees[0]?.points ?? [];
+		}
+
+		const timeframes: [string, Candle[]][] = [
+			['1d', dailyCandles()],
+			['1h', hourlyCandles()],
+			['4h', fourHourCandles()],
+			['1w', weeklyCandles()],
+			['1m', monthlyCandles()]
+		];
+
+		const impulseEpochs = [
+			isoEpoch('2024-01-15T00:00:00Z'),
+			isoEpoch('2024-01-20T00:00:00Z'),
+			isoEpoch('2024-01-25T00:00:00Z'),
+			isoEpoch('2024-02-01T00:00:00Z'),
+			isoEpoch('2024-02-05T00:00:00Z'),
+			isoEpoch('2024-02-15T00:00:00Z')
+		];
+
+		it('renders an impulse wave on the same dates with identical labels on every timeframe', () => {
+			const impulse: DegreeWaveCount = {
+				id: 'cross-tf-impulse',
+				degree: 'cycle',
+				type: 'impulse',
+				points: impulseEpochs.map((epoch, i) => ({
+					wave: i as 0 | 1 | 2 | 3 | 4 | 5,
+					time: epoch as Time,
+					price: 100 + i * 10
+				}))
+			};
+
+			for (const [name, candles] of timeframes) {
+				const points = renderOn(candles, impulse);
+				expect(points, name).toHaveLength(6);
+				expect(
+					points.map((p) => p.wave),
+					`${name} labels`
+				).toEqual([0, 1, 2, 3, 4, 5]);
+				points.forEach((point, i) => {
+					expect(point.x, `${name} point ${i} x`).toBe(
+						expectedIndex(candles, impulseEpochs[i]) * SPACING
+					);
+				});
+			}
+		});
+
+		it('renders a corrective wave on the same dates with identical labels on every timeframe', () => {
+			const correctiveEpochs = [
+				isoEpoch('2024-01-15T00:00:00Z'),
+				isoEpoch('2024-01-25T00:00:00Z'),
+				isoEpoch('2024-02-05T00:00:00Z'),
+				isoEpoch('2024-02-15T00:00:00Z')
+			];
+			const corrective: DegreeWaveCount = {
+				id: 'cross-tf-corrective',
+				degree: 'cycle',
+				type: 'corrective',
+				points: [
+					{ wave: 0, time: correctiveEpochs[0] as Time, price: 100 },
+					{ wave: 'A', time: correctiveEpochs[1] as Time, price: 110 },
+					{ wave: 'B', time: correctiveEpochs[2] as Time, price: 120 },
+					{ wave: 'C', time: correctiveEpochs[3] as Time, price: 130 }
+				]
+			};
+
+			for (const [name, candles] of timeframes) {
+				const points = renderOn(candles, corrective);
+				expect(points, name).toHaveLength(4);
+				expect(
+					points.map((p) => p.wave),
+					`${name} labels`
+				).toEqual([0, 'A', 'B', 'C']);
+				points.forEach((point, i) => {
+					expect(point.x, `${name} point ${i} x`).toBe(
+						expectedIndex(candles, correctiveEpochs[i]) * SPACING
+					);
+				});
+			}
 		});
 	});
 });

@@ -11,6 +11,7 @@ import {
 } from '$lib/utils/finance/elliott-wave';
 import { MAX_CORRECTIVE_POINTS, MAX_IMPULSE_POINTS } from './constants';
 import { generateUUID } from '$lib/utils/finance/rewind';
+import { normalizeDrawingTime } from '$lib/utils/finance/drawing-time';
 
 export interface PointTarget {
 	degree: WaveDegree;
@@ -293,9 +294,10 @@ export class ElliottWaveState {
 			nextWave = existingPoints.length as 0 | 1 | 2 | 3 | 4 | 5;
 		}
 
+		// Canonicalize to epoch seconds on ingestion so anchors are timeframe-independent.
 		const newPoint: WavePoint = {
 			wave: nextWave,
-			time: point.time,
+			time: normalizeDrawingTime(point.time),
 			price: point.price
 		};
 
@@ -353,7 +355,7 @@ export class ElliottWaveState {
 		const targetPoint = { ...points[pointIndex] };
 
 		if (update.time !== undefined) {
-			targetPoint.time = update.time;
+			targetPoint.time = normalizeDrawingTime(update.time);
 		}
 		if (update.price !== undefined) {
 			targetPoint.price = update.price;

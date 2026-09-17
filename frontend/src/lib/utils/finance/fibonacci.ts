@@ -1,8 +1,14 @@
 import type { Time } from 'lightweight-charts';
+import { normalizeDrawingTime } from './drawing-time';
 
 export type FibToolType = 'retracement' | 'extension';
 
 export interface FibPoint {
+	/**
+	 * Anchor time. Canonicalized to epoch seconds (UTC) in memory, so drawings
+	 * stay put across timeframe switches; legacy persisted date-string /
+	 * `BusinessDay` values are normalized on load.
+	 */
 	time: Time;
 	price: number;
 }
@@ -329,7 +335,52 @@ export function getSecurityFibonacciTools(
 }
 
 /**
- * Compares two FibPoint objects for structural equality.
+ * Normalizes a Fibonacci anchor to canonical epoch seconds. Legacy anchors
+ * persisted as date strings or `BusinessDay` objects are converted here.
+ */
+export function normalizeFibPoint(point: FibPoint | null | undefined): FibPoint | null {
+	if (!point) return null;
+	return { time: normalizeDrawingTime(point.time), price: point.price };
+}
+
+/** Normalizes a retracement drawing's anchors to canonical epoch seconds. */
+export function normalizeFibRetracementDrawing(
+	drawing: FibRetracementDrawing | null | undefined
+): FibRetracementDrawing | null {
+	if (!drawing) return null;
+	return {
+		...drawing,
+		p1: normalizeFibPoint(drawing.p1) as FibPoint,
+		p2: normalizeFibPoint(drawing.p2) as FibPoint
+	};
+}
+
+/** Normalizes an extension drawing's anchors to canonical epoch seconds. */
+export function normalizeFibExtensionDrawing(
+	drawing: FibExtensionDrawing | null | undefined
+): FibExtensionDrawing | null {
+	if (!drawing) return null;
+	return {
+		...drawing,
+		p1: normalizeFibPoint(drawing.p1) as FibPoint,
+		p2: normalizeFibPoint(drawing.p2) as FibPoint,
+		p3: normalizeFibPoint(drawing.p3) as FibPoint
+	};
+}
+
+/** Normalizes every Fibonacci drawing for a security to canonical epoch anchors. */
+export function normalizeSecurityFibonacciTools(
+	tools: SecurityFibonacciTools | null | undefined
+): SecurityFibonacciTools {
+	return {
+		retracement: normalizeFibRetracementDrawing(tools?.retracement),
+		extension: normalizeFibExtensionDrawing(tools?.extension)
+	};
+}
+
+/**
+ * Compares two FibPoint objects for structural equality. Times are compared as
+ * canonical epoch seconds so a legacy date-string anchor equals its epoch form.
  */
 export function areFibPointsEqual(
 	a: FibPoint | null | undefined,
@@ -337,7 +388,7 @@ export function areFibPointsEqual(
 ): boolean {
 	if (!a && !b) return true;
 	if (!a || !b) return false;
-	return a.price === b.price && String(a.time) === String(b.time);
+	return a.price === b.price && normalizeDrawingTime(a.time) === normalizeDrawingTime(b.time);
 }
 
 /**

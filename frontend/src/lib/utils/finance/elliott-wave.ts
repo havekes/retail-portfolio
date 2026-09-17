@@ -1,4 +1,5 @@
 import type { Time } from 'lightweight-charts';
+import { normalizeDrawingTime } from './drawing-time';
 
 export type WaveDegree = 'cycle' | 'primary' | 'intermediate';
 
@@ -10,6 +11,11 @@ export type TargetWave = 'wave3' | 'wave5';
 
 export interface WavePoint {
 	wave: WavePointId;
+	/**
+	 * Anchor time. Canonicalized to epoch seconds (UTC) in memory, so waves stay
+	 * put across timeframe switches; legacy persisted date-string / `BusinessDay`
+	 * values are normalized on load.
+	 */
 	time: Time;
 	price: number;
 }
@@ -161,20 +167,29 @@ export function getWaveIdentity(wave: DegreeWaveCount, index = 0): string {
 }
 
 /**
- * Normalizes a wave collection for storage/comparison: clones points, null-normalizes the
- * target fields, and assigns a stable id to every wave that lacks one (see `getWaveIdentity`).
- * Pure — never mutates the input.
+ * Normalizes a wave collection for storage/comparison: clones points, canonicalizes every
+ * anchor time to epoch seconds, null-normalizes the target fields, and assigns a stable id to
+ * every wave that lacks one (see `getWaveIdentity`). Pure — never mutates the input.
+ *
+ * Anchor times are normalized *before* id derivation, so a legacy date-string wave and its
+ * epoch form derive the same identity and compare equal.
  */
 export function normalizeWaveIds(
 	waves: readonly DegreeWaveCount[] | null | undefined
 ): DegreeWaveCount[] {
-	return (waves ?? []).map((w, index) => ({
-		...w,
-		id: getWaveIdentity(w, index),
-		points: Array.isArray(w.points) ? w.points.map((p) => ({ ...p })) : [],
-		wave3Target: w.wave3Target ?? null,
-		wave5Target: w.wave5Target ?? null
-	}));
+	return (waves ?? []).map((w, index) => {
+		const points = Array.isArray(w.points)
+			? w.points.map((p) => ({ ...p, time: normalizeDrawingTime(p.time) }))
+			: [];
+		const normalized: DegreeWaveCount = { ...w, points };
+		return {
+			...normalized,
+			id: getWaveIdentity(normalized, index),
+			points,
+			wave3Target: w.wave3Target ?? null,
+			wave5Target: w.wave5Target ?? null
+		};
+	});
 }
 
 /**
@@ -254,29 +269,12 @@ export function selectDegreeWave(
 	);
 }
 
-/**
- * Converts a lightweight-charts `Time` to epoch seconds (UTC). Mirrors the semantics of the
- * chart plugins' `timeToEpochSeconds` helper; duplicated locally because `$lib/utils/finance`
- * is the lowest layer and must not import from `plugins/helpers/`.
- */
-function waveTimeToEpochSeconds(time: Time): number {
-	if (typeof time === 'number') return time;
-	if (typeof time === 'string') {
-		const ms = new Date(time).getTime();
-		return Number.isNaN(ms) ? 0 : Math.floor(ms / 1000);
-	}
-	if (time !== null && typeof time === 'object') {
-		return Math.floor(Date.UTC(time.year, time.month - 1, time.day) / 1000);
-	}
-	return 0;
-}
-
 /** Largest epoch-seconds value among a wave's points, or -Infinity when it has none. */
 function latestPointEpoch(wave: DegreeWaveCount): number {
 	let latest = -Infinity;
 	for (const point of wave.points ?? []) {
 		if (!point) continue;
-		const epoch = waveTimeToEpochSeconds(point.time);
+		const epoch = normalizeDrawingTime(point.time);
 		if (epoch > latest) latest = epoch;
 	}
 	return latest;
@@ -390,7 +388,11 @@ export function areWaveCountsEqual(
 		const pA = aPoints[i];
 		const pB = bPoints[i];
 		if (!pA || !pB) return false;
-		if (pA.wave !== pB.wave || pA.price !== pB.price || String(pA.time) !== String(pB.time)) {
+		if (
+			pA.wave !== pB.wave ||
+			pA.price !== pB.price ||
+			normalizeDrawingTime(pA.time) !== normalizeDrawingTime(pB.time)
+		) {
 			return false;
 		}
 	}

@@ -9,8 +9,11 @@ import {
 	DEFAULT_FUTURE_BARS,
 	epochSecondsToTime,
 	generateFutureWhitespace,
+	resolveAnchorEpoch,
 	timeToEpochSeconds
 } from './time';
+
+const epochOf = (iso: string): number => Math.floor(new Date(iso).getTime() / 1000);
 
 describe('time helpers', () => {
 	const createCandle = (time: Candle['time'], close = 100): Candle => ({
@@ -99,6 +102,90 @@ describe('time helpers', () => {
 				createCandle((base + 180) as UTCTimestamp)
 			];
 			expect(computeIntervalSeconds(candles)).toBe(60);
+		});
+	});
+
+	describe('resolveAnchorEpoch', () => {
+		it('returns null for empty or invalid input', () => {
+			expect(resolveAnchorEpoch([], 1704067200)).toBeNull();
+			expect(resolveAnchorEpoch(undefined, 1704067200)).toBeNull();
+			expect(resolveAnchorEpoch([createCandle('2024-01-01')], NaN)).toBeNull();
+		});
+
+		it('snaps an intraday epoch to the containing daily date-string bar', () => {
+			const candles = [
+				createCandle('2024-01-14'),
+				createCandle('2024-01-15'),
+				createCandle('2024-01-16')
+			];
+			const resolved = resolveAnchorEpoch(candles, epochOf('2024-01-15T18:30:00Z'));
+			expect(resolved).toEqual({ time: '2024-01-15', index: 1 });
+		});
+
+		it('snaps a daily anchor to the containing intraday bar on shorter timeframes', () => {
+			const base = epochOf('2024-01-15T00:00:00Z');
+			const candles = Array.from({ length: 8 }, (_, h) =>
+				createCandle((base + h * 3600) as UTCTimestamp)
+			);
+			// 06:30 UTC falls inside the 06:00 hourly bar (index 6).
+			expect(resolveAnchorEpoch(candles, base + 6 * 3600 + 1800)).toEqual({
+				time: base + 6 * 3600,
+				index: 6
+			});
+		});
+
+		it('snaps to the bar at-or-before across an irregular weekend gap', () => {
+			// Friday 2024-01-12 then Monday 2024-01-15 (no weekend bars).
+			const candles = [createCandle('2024-01-12'), createCandle('2024-01-15')];
+			const resolved = resolveAnchorEpoch(candles, epochOf('2024-01-13T12:00:00Z'));
+			expect(resolved).toEqual({ time: '2024-01-12', index: 0 });
+		});
+
+		it('snaps a mid-week epoch to the week-start bar on weekly candles', () => {
+			const candles = [
+				createCandle('2024-01-08'), // Monday
+				createCandle('2024-01-15'), // Monday
+				createCandle('2024-01-22') // Monday
+			];
+			expect(resolveAnchorEpoch(candles, epochOf('2024-01-17T00:00:00Z'))).toEqual({
+				time: '2024-01-15',
+				index: 1
+			});
+		});
+
+		it('snaps a mid-month epoch to the month-start bar on monthly candles', () => {
+			const candles = [
+				createCandle('2024-01-01'),
+				createCandle('2024-02-01'),
+				createCandle('2024-03-01')
+			];
+			expect(resolveAnchorEpoch(candles, epochOf('2024-02-20T00:00:00Z'))).toEqual({
+				time: '2024-02-01',
+				index: 1
+			});
+		});
+
+		it('clamps anchors before the first candle to the first bar', () => {
+			const candles = [createCandle('2024-01-15'), createCandle('2024-01-16')];
+			expect(resolveAnchorEpoch(candles, epochOf('2020-01-01T00:00:00Z'))).toEqual({
+				time: '2024-01-15',
+				index: 0
+			});
+		});
+
+		it('returns null when the anchor is after the last candle (future projection)', () => {
+			const candles = [createCandle('2024-01-15'), createCandle('2024-01-16')];
+			expect(resolveAnchorEpoch(candles, epochOf('2024-02-01T00:00:00Z'))).toBeNull();
+		});
+
+		it('handles BusinessDay-shaped candles', () => {
+			const candles = [
+				createCandle({ year: 2024, month: 1, day: 15 }),
+				createCandle({ year: 2024, month: 1, day: 16 })
+			];
+			const resolved = resolveAnchorEpoch(candles, epochOf('2024-01-16T00:00:00Z'));
+			expect(resolved?.index).toBe(1);
+			expect(resolved?.time).toEqual({ year: 2024, month: 1, day: 16 });
 		});
 	});
 
