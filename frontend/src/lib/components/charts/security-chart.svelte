@@ -23,10 +23,14 @@
 		WaveDegree,
 		WaveType
 	} from '$lib/utils/finance/elliott-wave';
-	import { areSecurityElliottWavesEqual } from '$lib/utils/finance/elliott-wave';
+	import { areSecurityElliottWavesEqual, normalizeWaveIds } from '$lib/utils/finance/elliott-wave';
 	import { FibonacciPrimitive } from './plugins/fibonacci/fibonacci-primitive';
 	import type { FibToolType, SecurityFibonacciTools } from '$lib/utils/finance/fibonacci';
-	import { areFibonacciToolsEqual, getActiveFibLevelPrices } from '$lib/utils/finance/fibonacci';
+	import {
+		areFibonacciToolsEqual,
+		getActiveFibLevelPrices,
+		normalizeSecurityFibonacciTools
+	} from '$lib/utils/finance/fibonacci';
 	import {
 		computePaneBandHeights,
 		computePaneScaleMargins,
@@ -514,9 +518,13 @@
 		const currentWaves: SecurityElliottWaves = {
 			waves: elliottWavesPrimitive.getAllWaves()
 		};
+		// Legacy persisted anchors may be date strings/BusinessDay; normalize to epoch on feed-in.
+		const nextWaves: SecurityElliottWaves = {
+			waves: normalizeWaveIds(elliottWaves?.waves ?? [])
+		};
 
-		if (!areSecurityElliottWavesEqual(currentWaves, elliottWaves)) {
-			elliottWavesPrimitive.setWaves(elliottWaves?.waves ?? []);
+		if (!areSecurityElliottWavesEqual(currentWaves, nextWaves)) {
+			elliottWavesPrimitive.setWaves(nextWaves.waves);
 		}
 	});
 
@@ -554,10 +562,13 @@
 	$effect(() => {
 		if (!fibonacciPrimitive) return;
 		const currentDrawings = fibonacciPrimitive.getDrawings();
-		const nextDrawings: SecurityFibonacciTools = fibonacciTools ?? {
-			retracement: null,
-			extension: null
-		};
+		// Legacy persisted anchors may be date strings/BusinessDay; normalize to epoch on feed-in.
+		const nextDrawings: SecurityFibonacciTools = normalizeSecurityFibonacciTools(
+			fibonacciTools ?? {
+				retracement: null,
+				extension: null
+			}
+		);
 
 		if (!areFibonacciToolsEqual(currentDrawings, nextDrawings)) {
 			fibonacciPrimitive.setDrawings(nextDrawings);
@@ -728,7 +739,7 @@
 		elliottWavesPrimitive = new ElliottWavesPrimitive({
 			activeDegree,
 			activeWaveType,
-			waves: elliottWaves?.waves ?? [],
+			waves: normalizeWaveIds(elliottWaves?.waves ?? []),
 			snapToWicks,
 			selectedDegree: selectedWaveDegree
 		});
@@ -768,7 +779,7 @@
 
 		fibonacciPrimitive = new FibonacciPrimitive({
 			activeTool: activeFibTool,
-			drawings: fibonacciTools ?? undefined,
+			drawings: fibonacciTools ? normalizeSecurityFibonacciTools(fibonacciTools) : undefined,
 			isDrawingMode: isDrawingFib,
 			selectedTool: selectedFibTool
 		});

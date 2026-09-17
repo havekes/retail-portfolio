@@ -20,6 +20,7 @@ import {
 import { ElliottWavePaneView } from './pane-view';
 import { ElliottWaveState, type PointTarget, type WavePointsChangedEvent } from './state';
 import { DrawingPrimitiveBase } from '../helpers/primitive/drawing-primitive-base';
+import { timeToEpochSeconds } from '../helpers/time/time';
 
 export class ElliottWavesPrimitive extends DrawingPrimitiveBase<
 	ElliottWaveRendererData,
@@ -304,7 +305,7 @@ export class ElliottWavesPrimitive extends DrawingPrimitiveBase<
 				(selectedWaveId === null && selectedDegree !== null && waveDegree === selectedDegree);
 
 			for (const pt of points) {
-				const x = this._timeProjector.timeToCoordinate(pt.time);
+				const x = this._timeProjector.epochToCoordinate(timeToEpochSeconds(pt.time));
 				const y = series.priceToCoordinate(pt.price);
 
 				if (x !== null && y !== null) {
@@ -394,7 +395,7 @@ export class ElliottWavesPrimitive extends DrawingPrimitiveBase<
 				let lastPoint: ProjectedWavePoint | null = null;
 				if (drawingPoints.length > 0) {
 					const lastPt = drawingPoints[drawingPoints.length - 1];
-					const lx = this._timeProjector.timeToCoordinate(lastPt.time);
+					const lx = this._timeProjector.epochToCoordinate(timeToEpochSeconds(lastPt.time));
 					const ly = series.priceToCoordinate(lastPt.price);
 					if (lx !== null && ly !== null) {
 						lastPoint = {
