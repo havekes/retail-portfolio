@@ -2,6 +2,7 @@ import { describe, it, expect, vi } from 'vitest';
 import { render, screen, fireEvent, within } from '@testing-library/svelte';
 import HoldingsTable from './holdings-table.svelte';
 import type { Holding } from '$lib/types/account';
+import { normalizeHoldingsTableConfig, type HoldingsTableConfig } from './holdings-table-columns';
 
 // The component is presentational — no API calls to mock. `$app/paths` is mocked
 // so `resolve` returns a plain path (per frontend/AGENTS.md testing rules).
@@ -283,5 +284,161 @@ describe('HoldingsTable', () => {
 		expect(screen.getAllByTestId('skeleton-row')).toHaveLength(5);
 		expect(screen.queryAllByTestId('holding-row')).toHaveLength(0);
 		expect(screen.queryByTestId('empty-state')).not.toBeInTheDocument();
+	});
+
+	describe('column resize', () => {
+		it('resizes the dragged column and leaves adjacent widths untouched', async () => {
+			render(HoldingsTable, { props: { holdings: sortRows } });
+
+			const handle = screen.getByTestId('column-resize-quantity');
+			await fireEvent.pointerDown(handle, { clientX: 100, pointerId: 1 });
+			await fireEvent.pointerMove(handle, { clientX: 150, pointerId: 1 });
+
+			expect(screen.getByTestId('column-col-quantity').style.width).toBe('160px');
+			expect(screen.getByTestId('column-col-security_symbol').style.width).toBe('220px');
+			expect(screen.getByTestId('column-col-account_name').style.width).toBe('140px');
+
+			await fireEvent.pointerUp(handle, { clientX: 150, pointerId: 1 });
+		});
+
+		it('clamps the dragged width to the per-column min and max', async () => {
+			render(HoldingsTable, { props: { holdings: sortRows } });
+
+			const handle = screen.getByTestId('column-resize-quantity');
+
+			await fireEvent.pointerDown(handle, { clientX: 100, pointerId: 1 });
+			await fireEvent.pointerMove(handle, { clientX: 10_000, pointerId: 1 });
+			expect(screen.getByTestId('column-col-quantity').style.width).toBe('180px');
+
+			await fireEvent.pointerMove(handle, { clientX: -10_000, pointerId: 1 });
+			expect(screen.getByTestId('column-col-quantity').style.width).toBe('90px');
+
+			await fireEvent.pointerUp(handle, { clientX: -10_000, pointerId: 1 });
+		});
+
+		it('emits the clamped config once the drag ends', async () => {
+			const onConfigChange = vi.fn();
+			render(HoldingsTable, { props: { holdings: sortRows, onConfigChange } });
+
+			const handle = screen.getByTestId('column-resize-quantity');
+			await fireEvent.pointerDown(handle, { clientX: 100, pointerId: 1 });
+			await fireEvent.pointerMove(handle, { clientX: 150, pointerId: 1 });
+
+			expect(onConfigChange).not.toHaveBeenCalled();
+
+			await fireEvent.pointerUp(handle, { clientX: 150, pointerId: 1 });
+
+			expect(onConfigChange).toHaveBeenCalledTimes(1);
+			expect(onConfigChange.mock.calls[0][0].widths.quantity).toBe(160);
+			expect(onConfigChange.mock.calls[0][0].visible).toEqual([
+				'security_symbol',
+				'account_name',
+				'quantity',
+				'average_cost',
+				'latest_price',
+				'total_value',
+				'profit_loss',
+				'profit_loss_percent'
+			]);
+		});
+
+		it('ignores pointer moves when no drag is active', async () => {
+			const onConfigChange = vi.fn();
+			render(HoldingsTable, { props: { holdings: sortRows, onConfigChange } });
+
+			await fireEvent.pointerMove(screen.getByTestId('column-resize-quantity'), {
+				clientX: 500,
+				pointerId: 1
+			});
+
+			expect(screen.getByTestId('column-col-quantity').style.width).toBe('110px');
+			expect(onConfigChange).not.toHaveBeenCalled();
+		});
+	});
+
+	describe('column visibility', () => {
+		async function hideColumn(testId: string) {
+			await fireEvent.click(screen.getByTestId('column-visibility-trigger'));
+			const toggle = await screen.findByTestId(testId);
+			await fireEvent.click(toggle);
+		}
+
+		it('hides a column from the header, rows and colgroup and shrinks the colspans', async () => {
+			render(HoldingsTable, { props: { holdings: groupRows, groupBy: 'company' } });
+
+			await hideColumn('column-toggle-account_name');
+
+			expect(screen.queryByRole('button', { name: 'Account' })).not.toBeInTheDocument();
+			expect(screen.queryByTestId('account-cell')).not.toBeInTheDocument();
+			expect(screen.queryByTestId('column-col-account_name')).not.toBeInTheDocument();
+			expect(screen.getByTestId('column-col-security_symbol')).toBeInTheDocument();
+			expect(screen.getAllByTestId('group-row')[0].querySelector('td')).toHaveAttribute(
+				'colspan',
+				'7'
+			);
+		});
+
+		it('shrinks the empty-state colspan to the number of visible columns', async () => {
+			render(HoldingsTable, { props: { holdings: [] } });
+
+			await hideColumn('column-toggle-account_name');
+
+			expect(screen.getByTestId('empty-state').querySelector('td')).toHaveAttribute('colspan', '7');
+		});
+
+		it('emits the updated config when a column is hidden and when it is restored', async () => {
+			const onConfigChange = vi.fn();
+			render(HoldingsTable, { props: { holdings: sortRows, onConfigChange } });
+
+			await hideColumn('column-toggle-account_name');
+			expect(onConfigChange).toHaveBeenCalledTimes(1);
+			expect(onConfigChange.mock.calls[0][0].visible).not.toContain('account_name');
+
+			await hideColumn('column-toggle-account_name');
+			expect(onConfigChange).toHaveBeenCalledTimes(2);
+			expect(onConfigChange.mock.calls[1][0].visible).toContain('account_name');
+		});
+
+		it('disables hiding the sticky first column', async () => {
+			const onConfigChange = vi.fn();
+			render(HoldingsTable, { props: { holdings: sortRows, onConfigChange } });
+
+			await fireEvent.click(screen.getByTestId('column-visibility-trigger'));
+			const stickyToggle = await screen.findByTestId('column-toggle-security_symbol');
+
+			expect(stickyToggle).toHaveAttribute('aria-disabled', 'true');
+			await fireEvent.click(stickyToggle);
+
+			expect(onConfigChange).not.toHaveBeenCalled();
+			expect(screen.getByTestId('column-col-security_symbol')).toBeInTheDocument();
+		});
+	});
+
+	describe('persisted config restore', () => {
+		it('renders a supplied config (custom widths, hidden columns) as-is', () => {
+			const tableConfig = normalizeHoldingsTableConfig({
+				widths: { security_symbol: 300 },
+				visible: ['security_symbol', 'quantity', 'total_value']
+			});
+
+			render(HoldingsTable, { props: { holdings: sortRows, tableConfig } });
+
+			expect(screen.getAllByRole('columnheader')).toHaveLength(3);
+			expect(screen.getByTestId('column-col-security_symbol').style.width).toBe('300px');
+			expect(screen.queryByTestId('account-cell')).not.toBeInTheDocument();
+			expect(screen.getByTestId('column-col-total_value')).toBeInTheDocument();
+		});
+
+		it('falls back to the defaults for an invalid stored config', () => {
+			const tableConfig = {
+				widths: { quantity: 10_000, unknown: 50 },
+				visible: ['not_a_column']
+			} as unknown as HoldingsTableConfig;
+
+			render(HoldingsTable, { props: { holdings: sortRows, tableConfig } });
+
+			expect(screen.getAllByRole('columnheader')).toHaveLength(8);
+			expect(screen.getByTestId('column-col-quantity').style.width).toBe('180px');
+		});
 	});
 });
