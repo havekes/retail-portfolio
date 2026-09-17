@@ -1,7 +1,7 @@
 import { describe, it, expect, vi } from 'vitest';
 import { render, screen, fireEvent, within } from '@testing-library/svelte';
 import HoldingsTable from './holdings-table.svelte';
-import type { Holding } from '$lib/types/account';
+import type { UserHolding } from '$lib/types/account';
 
 // The component is presentational — no API calls to mock. `$app/paths` is mocked
 // so `resolve` returns a plain path (per frontend/AGENTS.md testing rules).
@@ -9,12 +9,10 @@ vi.mock('$app/paths', () => ({
 	resolve: (path: string) => path
 }));
 
-type HoldingsRow = Holding & { account_id?: string; account_name?: string };
-
 function makeRow(
-	overrides: Partial<HoldingsRow> &
-		Pick<HoldingsRow, 'id' | 'security_id' | 'security_symbol' | 'security_name'>
-): HoldingsRow {
+	overrides: Partial<UserHolding> &
+		Pick<UserHolding, 'id' | 'security_id' | 'security_symbol' | 'security_name'>
+): UserHolding {
 	return {
 		quantity: 1,
 		average_cost: 100,
@@ -27,11 +25,13 @@ function makeRow(
 		converted_latest_price: 100,
 		unconverted_profit_loss: 0,
 		latest_price: 100,
+		account_id: 'acc-test-1',
+		account_name: 'Test Account',
 		...overrides
 	};
 }
 
-const sortRows: HoldingsRow[] = [
+const sortRows: UserHolding[] = [
 	makeRow({
 		id: 'h-z',
 		security_id: 'sec-z',
@@ -79,7 +79,7 @@ const sortRows: HoldingsRow[] = [
 	})
 ];
 
-const groupRows: HoldingsRow[] = [
+const groupRows: UserHolding[] = [
 	makeRow({
 		id: 'g-1',
 		security_id: 'sec-aapl',
@@ -202,8 +202,20 @@ describe('HoldingsTable', () => {
 		expect(links[2]).toHaveAttribute('href', '/security/sec-z');
 	});
 
-	it('shows a dash in the account cell when no account name is provided', () => {
-		render(HoldingsTable, { props: { holdings: sortRows } });
+	it('shows a dash in the account cell when the account name is blank', () => {
+		render(HoldingsTable, {
+			props: {
+				holdings: [
+					makeRow({
+						id: 'h-blank-account',
+						security_id: 'sec-blank',
+						security_symbol: 'BLNK',
+						security_name: 'Blank Corp',
+						account_name: ''
+					})
+				]
+			}
+		});
 
 		for (const cell of screen.getAllByTestId('account-cell')) {
 			expect(cell).toHaveTextContent('-');

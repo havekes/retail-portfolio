@@ -87,6 +87,16 @@ export interface Holding {
 
 import type { PaginatedResponse } from './pagination';
 
+/**
+ * A holding returned by the user-wide `GET /accounts/holdings` endpoint, which
+ * spans every account the user owns (see backend `UserHoldingRead`). In addition
+ * to the account-scoped `Holding` fields it carries the owning account.
+ */
+export interface UserHolding extends Holding {
+	account_id: string;
+	account_name: string;
+}
+
 export interface AccountHoldings extends PaginatedResponse<Holding> {
 	account_id: string;
 	account_name: string;

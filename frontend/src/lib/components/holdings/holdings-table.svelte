@@ -1,20 +1,15 @@
 <script lang="ts">
 	import { resolve } from '$app/paths';
 	import { SvelteSet } from 'svelte/reactivity';
-	import type { Holding } from '$lib/types/account';
+	import type { UserHolding } from '$lib/types/account';
 	import * as Table from '$lib/components/ui/table/index.js';
 	import ArrowUpDown from '@lucide/svelte/icons/arrow-up-down';
 	import ChevronUp from '@lucide/svelte/icons/chevron-up';
 	import ChevronDown from '@lucide/svelte/icons/chevron-down';
 	import ChevronRight from '@lucide/svelte/icons/chevron-right';
 
-	// `UserHolding` (HOLDINGS-T02) is not merged yet; type against the existing
-	// `Holding` plus the account fields the user-wide table needs. T02 can replace
-	// this alias with `UserHolding` once it lands.
-	type HoldingsRow = Holding & { account_id?: string; account_name?: string };
-
 	type Props = {
-		holdings: HoldingsRow[];
+		holdings: UserHolding[];
 		groupBy?: 'company' | null;
 		isLoading?: boolean;
 		emptyMessage?: string;
@@ -64,7 +59,7 @@
 
 	// Same formula as the account-scoped table: gain relative to the converted cost
 	// basis. Null when there is nothing meaningful to divide by.
-	function profitLossPercent(row: HoldingsRow): number | null {
+	function profitLossPercent(row: UserHolding): number | null {
 		if (row.profit_loss === null || row.profit_loss === undefined) return null;
 		if (!row.average_cost || row.average_cost <= 0) return null;
 		const costBasis = row.quantity * (row.converted_average_cost ?? 0);
@@ -72,7 +67,7 @@
 		return (row.profit_loss / costBasis) * 100;
 	}
 
-	function valueFor(row: HoldingsRow, column: SortColumn): string | number | null | undefined {
+	function valueFor(row: UserHolding, column: SortColumn): string | number | null | undefined {
 		if (column === 'profit_loss_percent') return profitLossPercent(row);
 		return row[column];
 	}
@@ -99,7 +94,7 @@
 	// Company key is the security name. Group order follows first appearance in the
 	// currently sorted rows — group headers are never sorted by their aggregates in
 	// this ticket.
-	type HoldingGroup = { key: string; name: string; rows: HoldingsRow[] };
+	type HoldingGroup = { key: string; name: string; rows: UserHolding[] };
 
 	const groupedHoldings = $derived.by<HoldingGroup[] | null>(() => {
 		if (groupBy !== 'company') return null;
@@ -121,7 +116,7 @@
 		return groups;
 	});
 
-	function groupTotals(rows: HoldingsRow[]) {
+	function groupTotals(rows: UserHolding[]) {
 		let totalValue = 0;
 		let profitLoss = 0;
 		let costBasis = 0;
@@ -184,7 +179,7 @@
 	</Table.Head>
 {/snippet}
 
-{#snippet holdingRow(row: HoldingsRow)}
+{#snippet holdingRow(row: UserHolding)}
 	<Table.Row
 		data-testid="holding-row"
 		class="border-b-muted/10 transition-all even:bg-muted/30 hover:bg-muted/10"
@@ -205,7 +200,7 @@
 			</a>
 		</Table.Cell>
 		<Table.Cell data-testid="account-cell" class="px-4 py-2 text-sm">
-			{row.account_name ?? '-'}
+			{row.account_name || '-'}
 		</Table.Cell>
 		<Table.Cell class="px-4 py-2 text-right text-sm tabular-nums">
 			{row.quantity.toLocaleString(undefined, {
