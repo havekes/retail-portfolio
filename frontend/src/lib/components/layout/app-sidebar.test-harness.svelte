@@ -18,7 +18,14 @@
 	setContext('toggleGlobalSearch', () => onToggleGlobalSearch?.());
 
 	const watchlistService = setWatchlistService();
-	watchlistService.defaultWatchlistSecurities = untrack(() => securities);
+	watchlistService.watchlists = [
+		{
+			id: 'default-watchlist',
+			user_id: 'u1',
+			name: 'Default',
+			securities: untrack(() => securities)
+		}
+	];
 </script>
 
 <Sidebar.Provider {open}>

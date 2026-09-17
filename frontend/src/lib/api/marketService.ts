@@ -60,6 +60,15 @@ export interface WatchlistRead {
 	id: string;
 	user_id: string;
 	name: string;
+	securities: SecuritySchema[];
+}
+
+export interface WatchlistCreate {
+	name: string;
+}
+
+export interface WatchlistUpdate {
+	name: string;
 }
 
 export class MarketService extends ApiClient {
@@ -126,6 +135,57 @@ export class MarketService extends ApiClient {
 	async removeFromWatchlist(securityId: string, token?: string | null): Promise<WatchlistRead> {
 		return await this.delete<WatchlistRead>(
 			`/market/watchlists/securities/${securityId}`,
+			{},
+			token
+		);
+	}
+
+	async createWatchlist(name: string, token?: string | null): Promise<WatchlistRead> {
+		return await this.post<WatchlistRead, WatchlistCreate>(
+			'/market/watchlists',
+			{ name },
+			{},
+			token
+		);
+	}
+
+	async renameWatchlist(
+		watchlistId: string,
+		name: string,
+		token?: string | null
+	): Promise<WatchlistRead> {
+		return await this.patch<WatchlistRead, WatchlistUpdate>(
+			`/market/watchlists/${watchlistId}`,
+			{ name },
+			{},
+			token
+		);
+	}
+
+	async deleteWatchlist(watchlistId: string, token?: string | null): Promise<void> {
+		return await this.delete<void>(`/market/watchlists/${watchlistId}`, {}, token);
+	}
+
+	async addSecurityToWatchlist(
+		watchlistId: string,
+		securityId: string,
+		token?: string | null
+	): Promise<WatchlistRead> {
+		return await this.post<WatchlistRead, Record<string, never>>(
+			`/market/watchlists/${watchlistId}/securities/${securityId}`,
+			{},
+			{},
+			token
+		);
+	}
+
+	async removeSecurityFromWatchlist(
+		watchlistId: string,
+		securityId: string,
+		token?: string | null
+	): Promise<WatchlistRead> {
+		return await this.delete<WatchlistRead>(
+			`/market/watchlists/${watchlistId}/securities/${securityId}`,
 			{},
 			token
 		);
