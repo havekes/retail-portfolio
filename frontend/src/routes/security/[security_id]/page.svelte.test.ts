@@ -3527,3 +3527,311 @@ describe('Security Page - Indicator Pane Heights', () => {
 		});
 	});
 });
+
+describe('Security Page - Measure Tool & Integration', () => {
+	/* eslint-disable-next-line @typescript-eslint/no-explicit-any */
+	let PageComponent: Component<any>;
+
+	const mockData = {
+		security: {
+			id: 'sec-1',
+			symbol: 'AAPL',
+			name: 'Apple Inc.'
+		},
+		items: [
+			{ date: '2024-01-01', open: 100, high: 110, low: 95, close: 105, volume: 1000 },
+			{ date: '2024-01-02', open: 105, high: 115, low: 100, close: 112, volume: 1200 }
+		]
+	};
+
+	const sampleMeasure = {
+		id: 'measure-1',
+		p1: { time: '2024-01-01', price: 100 },
+		p2: { time: '2024-01-02', price: 120 }
+	};
+
+	const sampleDrawings: SecurityDrawings = { measures: [sampleMeasure] };
+
+	beforeAll(async () => {
+		const mod = await import('./+page.svelte');
+		PageComponent = mod.default;
+	}, 30000);
+
+	beforeEach(() => {
+		vi.clearAllMocks();
+		mockChartProps = null;
+		vi.mocked(userPreferencesService.getPreferences).mockResolvedValue({});
+		vi.mocked(snapshotsService.getSnapshots).mockResolvedValue([]);
+	});
+
+	it('renders the Measure toolbar button and activates measure drawing mode, cancelling fib drawing', async () => {
+		render(PageComponent, { props: { data: mockData } });
+
+		const measureBtn = await screen.findByRole('button', { name: 'Toggle Measure drawing' });
+		const fibBtn = screen.getByRole('button', { name: /Toggle Fib Retrace drawing/i });
+
+		// Engage Fibonacci drawing first.
+		await fireEvent.click(fibBtn);
+		expect(fibBtn.className).toContain('bg-primary');
+
+		// Measure takes over and cancels Fibonacci drawing.
+		await fireEvent.click(measureBtn);
+		expect(measureBtn.className).toContain('bg-primary');
+		expect(fibBtn.className).not.toContain('bg-primary');
+
+		await waitFor(() => {
+			// @ts-expect-error - mockChartProps typed as Record
+			expect(mockChartProps.isDrawingMeasure).toBe(true);
+			// @ts-expect-error - mockChartProps typed as Record
+			expect(mockChartProps.isDrawingFib).toBe(false);
+		});
+
+		// Toggling again exits measure drawing mode.
+		await fireEvent.click(measureBtn);
+		expect(measureBtn.className).not.toContain('bg-primary');
+	});
+
+	it('exits measure drawing mode and clears the selected measure on Escape', async () => {
+		render(PageComponent, { props: { data: mockData } });
+		const measureBtn = await screen.findByRole('button', { name: 'Toggle Measure drawing' });
+
+		await fireEvent.click(measureBtn);
+		await waitFor(() => {
+			// @ts-expect-error - mockChartProps typed as Record
+			expect(mockChartProps.isDrawingMeasure).toBe(true);
+		});
+
+		await fireEvent.keyDown(window, { key: 'Escape' });
+
+		await waitFor(() => {
+			// @ts-expect-error - mockChartProps typed as Record
+			expect(mockChartProps.isDrawingMeasure).toBe(false);
+		});
+	});
+
+	it('persists measures through the drawings seam while preserving other tool collections', async () => {
+		vi.mocked(userPreferencesService.getPreferences).mockResolvedValue({
+			drawings: {
+				'sec-1': {
+					horizontalLines: [{ id: 'hl-1', p1: { time: '2024-01-01', price: 90 } }]
+				}
+			}
+		});
+
+		render(PageComponent, { props: { data: mockData } });
+		await screen.findByRole('button', { name: 'Toggle Measure drawing' });
+
+		await waitFor(() => {
+			expect(mockChartProps).not.toBeNull();
+		});
+
+		// @ts-expect-error - mockChartProps typed as Record
+		mockChartProps.onMeasureChange?.([sampleMeasure]);
+
+		await waitFor(() => {
+			expect(userPreferencesService.patchPreferences).toHaveBeenCalledWith(
+				expect.objectContaining({
+					drawings: expect.objectContaining({
+						'sec-1': expect.objectContaining({
+							measures: [sampleMeasure],
+							horizontalLines: [{ id: 'hl-1', p1: { time: '2024-01-01', price: 90 } }]
+						})
+					})
+				})
+			);
+		});
+	});
+
+	it('restores persisted measures from preferences onto the chart', async () => {
+		vi.mocked(userPreferencesService.getPreferences).mockResolvedValue({
+			drawings: { 'sec-1': sampleDrawings }
+		});
+
+		render(PageComponent, { props: { data: mockData } });
+		await screen.findByRole('button', { name: 'Toggle Measure drawing' });
+
+		await waitFor(() => {
+			// @ts-expect-error - mockChartProps typed as Record
+			expect(mockChartProps.securityDrawings).toEqual(sampleDrawings);
+		});
+	});
+
+	it('removes the selected measure on Delete and persists the change', async () => {
+		vi.mocked(userPreferencesService.getPreferences).mockResolvedValue({
+			drawings: { 'sec-1': sampleDrawings }
+		});
+
+		render(PageComponent, { props: { data: mockData } });
+		await screen.findByRole('button', { name: 'Toggle Measure drawing' });
+
+		await waitFor(() => {
+			expect(mockChartProps).not.toBeNull();
+		});
+
+		// @ts-expect-error - mockChartProps typed as Record
+		mockChartProps.onMeasureSelect?.('measure-1');
+
+		await waitFor(() => {
+			// @ts-expect-error - mockChartProps typed as Record
+			expect(mockChartProps.selectedMeasureId).toBe('measure-1');
+		});
+
+		await fireEvent.keyDown(window, { key: 'Delete' });
+
+		await waitFor(() => {
+			expect(userPreferencesService.patchPreferences).toHaveBeenCalledWith(
+				expect.objectContaining({
+					drawings: expect.objectContaining({
+						'sec-1': expect.objectContaining({ measures: null })
+					})
+				})
+			);
+		});
+
+		await waitFor(() => {
+			// @ts-expect-error - mockChartProps typed as Record
+			expect(mockChartProps.selectedMeasureId).toBeNull();
+		});
+	});
+
+	it('removes the selected measure on Backspace', async () => {
+		vi.mocked(userPreferencesService.getPreferences).mockResolvedValue({
+			drawings: { 'sec-1': sampleDrawings }
+		});
+
+		render(PageComponent, { props: { data: mockData } });
+		await screen.findByRole('button', { name: 'Toggle Measure drawing' });
+
+		await waitFor(() => {
+			expect(mockChartProps).not.toBeNull();
+		});
+
+		// @ts-expect-error - mockChartProps typed as Record
+		mockChartProps.onMeasureSelect?.('measure-1');
+		await fireEvent.keyDown(window, { key: 'Backspace' });
+
+		await waitFor(() => {
+			expect(userPreferencesService.patchPreferences).toHaveBeenCalledWith(
+				expect.objectContaining({
+					drawings: expect.objectContaining({
+						'sec-1': expect.objectContaining({ measures: null })
+					})
+				})
+			);
+		});
+	});
+
+	it('clears wave and fib selections when a measure is selected', async () => {
+		vi.mocked(userPreferencesService.getPreferences).mockResolvedValue({
+			fibonacci_tools: {
+				'sec-1': {
+					retracement: {
+						p1: { time: '2024-01-01', price: 100 },
+						p2: { time: '2024-01-02', price: 200 },
+						visible: true
+					}
+				}
+			},
+			drawings: { 'sec-1': sampleDrawings }
+		});
+
+		render(PageComponent, { props: { data: mockData } });
+		await screen.findByRole('button', { name: 'Toggle Measure drawing' });
+
+		await waitFor(() => {
+			expect(mockChartProps).not.toBeNull();
+		});
+
+		// @ts-expect-error - mockChartProps typed as Record
+		mockChartProps.onFibSelect?.('retracement');
+		await waitFor(() => {
+			// @ts-expect-error - mockChartProps typed as Record
+			expect(mockChartProps.selectedFibTool).toBe('retracement');
+		});
+
+		// @ts-expect-error - mockChartProps typed as Record
+		mockChartProps.onMeasureSelect?.('measure-1');
+
+		await waitFor(() => {
+			// @ts-expect-error - mockChartProps typed as Record
+			expect(mockChartProps.selectedMeasureId).toBe('measure-1');
+			// @ts-expect-error - mockChartProps typed as Record
+			expect(mockChartProps.selectedFibTool).toBeNull();
+		});
+	});
+
+	it('cancels wave and fib drawing when the chart reports measure drawing mode', async () => {
+		render(PageComponent, { props: { data: mockData } });
+		const measureBtn = await screen.findByRole('button', { name: 'Toggle Measure drawing' });
+		const fibBtn = screen.getByRole('button', { name: /Toggle Fib Retrace drawing/i });
+
+		await fireEvent.click(fibBtn);
+		await waitFor(() => {
+			// @ts-expect-error - mockChartProps typed as Record
+			expect(mockChartProps.isDrawingFib).toBe(true);
+		});
+
+		// @ts-expect-error - mockChartProps typed as Record
+		mockChartProps.onMeasureDrawingModeChange?.(true);
+
+		await waitFor(() => {
+			// @ts-expect-error - mockChartProps typed as Record
+			expect(mockChartProps.isDrawingMeasure).toBe(true);
+			// @ts-expect-error - mockChartProps typed as Record
+			expect(mockChartProps.isDrawingFib).toBe(false);
+		});
+		expect(measureBtn.className).toContain('bg-primary');
+	});
+
+	it('captures a snapshot carrying measures and blocks measure edits while rewound', async () => {
+		const snapshot: RewindSnapshot = {
+			id: 'snap-measure',
+			captured_at: '2024-01-01T12:00:00.000Z',
+			drawings: {
+				elliott_waves: { waves: [] },
+				fibonacci_tools: {},
+				drawings: sampleDrawings
+			},
+			data_window: { first: '2024-01-01', last: '2024-01-01' }
+		};
+		vi.mocked(userPreferencesService.getPreferences).mockResolvedValue({
+			drawings: { 'sec-1': sampleDrawings }
+		});
+		vi.mocked(snapshotsService.getSnapshots).mockResolvedValue([snapshot]);
+
+		render(PageComponent, { props: { data: mockData } });
+
+		// A measure present satisfies the snapshot gate and is persisted inside RewindDrawings.
+		const saveBtn = await screen.findByRole('button', { name: 'Save snapshot' });
+		await fireEvent.click(saveBtn);
+		await waitFor(() => {
+			expect(snapshotsService.createSnapshot).toHaveBeenCalledWith(
+				'sec-1',
+				expect.objectContaining({
+					drawings: expect.objectContaining({
+						drawings: sampleDrawings
+					})
+				})
+			);
+		});
+
+		// Scrub to the snapshot: the snapshot's measures surface on the chart.
+		expect(await screen.findByTestId('rewind-timeline')).toBeInTheDocument();
+		const markers = screen.getAllByTestId('rewind-snapshot-point');
+		await fireEvent.click(markers[0]);
+
+		await waitFor(() => {
+			// @ts-expect-error - mockChartProps typed as Record
+			expect(mockChartProps.securityDrawings).toEqual(sampleDrawings);
+		});
+
+		// While rewound, measure edits are ignored (no preferences write).
+		vi.mocked(userPreferencesService.patchPreferences).mockClear();
+		// @ts-expect-error - mockChartProps typed as Record
+		mockChartProps.onMeasureChange?.([sampleMeasure]);
+		await waitFor(() => {
+			expect(mockChartProps).not.toBeNull();
+		});
+		expect(userPreferencesService.patchPreferences).not.toHaveBeenCalled();
+	});
+});

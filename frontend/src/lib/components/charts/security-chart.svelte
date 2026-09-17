@@ -31,6 +31,12 @@
 		getActiveFibLevelPrices,
 		normalizeSecurityFibonacciTools
 	} from '$lib/utils/finance/fibonacci';
+	import { MeasurePrimitive } from './plugins/measure/measure-primitive';
+	import {
+		areDrawingCollectionsEqual,
+		type MeasureDrawing,
+		type SecurityDrawings
+	} from '$lib/utils/finance/drawings';
 	import {
 		computePaneBandHeights,
 		computePaneScaleMargins,
@@ -87,6 +93,7 @@
 	let userAlertsPrimitive = $state<UserPriceAlerts | null>(null);
 	let elliottWavesPrimitive = $state<ElliottWavesPrimitive | null>(null);
 	let fibonacciPrimitive = $state<FibonacciPrimitive | null>(null);
+	let measurePrimitive = $state<MeasurePrimitive | null>(null);
 
 	let {
 		candles = [],
@@ -120,6 +127,12 @@
 		onFibToolChange,
 		onFibSelect,
 		onFibDoubleClick,
+		securityDrawings = null,
+		isDrawingMeasure = false,
+		selectedMeasureId = $bindable<string | null>(null),
+		onMeasureChange,
+		onMeasureDrawingModeChange,
+		onMeasureSelect,
 		futureBars = DEFAULT_FUTURE_BARS,
 		onPaneHeightsChange
 	} = $props<{
@@ -158,6 +171,12 @@
 		onFibToolChange?: (tool: FibToolType | null) => void;
 		onFibSelect?: (tool: FibToolType | null) => void;
 		onFibDoubleClick?: (tool: FibToolType) => void;
+		securityDrawings?: SecurityDrawings | null;
+		isDrawingMeasure?: boolean;
+		selectedMeasureId?: string | null;
+		onMeasureChange?: (measures: MeasureDrawing[]) => void;
+		onMeasureDrawingModeChange?: (isDrawing: boolean) => void;
+		onMeasureSelect?: (id: string | null) => void;
 		futureBars?: number;
 		onPaneHeightsChange?: (heights: PaneHeights | null) => void;
 	}>();
@@ -544,7 +563,7 @@
 
 	$effect(() => {
 		if (!chartInstance) return;
-		const isDrawing = Boolean(isDrawingWave || isDrawingFib);
+		const isDrawing = Boolean(isDrawingWave || isDrawingFib || isDrawingMeasure);
 		chartInstance.applyOptions({
 			handleScroll: {
 				pressedMouseMove: !isDrawing
@@ -576,6 +595,31 @@
 	});
 
 	$effect(() => {
+		if (!measurePrimitive) return;
+		if (isDrawingMeasure !== undefined && measurePrimitive.isDrawingMode() !== isDrawingMeasure) {
+			measurePrimitive.setDrawingMode(isDrawingMeasure);
+		}
+	});
+
+	$effect(() => {
+		if (!measurePrimitive) return;
+		if (selectedMeasureId !== undefined && measurePrimitive.getSelectedId() !== selectedMeasureId) {
+			measurePrimitive.select(selectedMeasureId);
+		}
+	});
+
+	$effect(() => {
+		if (!measurePrimitive) return;
+		const current = measurePrimitive.getMeasures();
+		// Legacy persisted anchors may be date strings/BusinessDay; the primitive
+		// normalizes them to epoch seconds on setMeasures.
+		const next = securityDrawings?.measures ?? [];
+		if (!areDrawingCollectionsEqual(current, next)) {
+			measurePrimitive.setMeasures(next);
+		}
+	});
+
+	$effect(() => {
 		if (!elliottWavesPrimitive) return;
 		// Cheap signature guard: `fibSnapPrices` is a fresh array whenever the tools change,
 		// so compare contents before pushing to avoid update churn on unrelated fib edits.
@@ -596,6 +640,7 @@
 				seriesInstance.setData([]);
 				elliottWavesPrimitive?.setCandles([]);
 				fibonacciPrimitive?.setCandles([]);
+				measurePrimitive?.setCandles([]);
 				previousFirstCandleTime = null;
 				isLoadingMore = false;
 				return;
@@ -641,6 +686,7 @@
 			seriesInstance.setData([...candles, ...whitespace]);
 			elliottWavesPrimitive?.setCandles(candles);
 			fibonacciPrimitive?.setCandles(candles);
+			measurePrimitive?.setCandles(candles);
 
 			if (chartInstance) {
 				if (isPrepending && currentRange && addedCandles > 0) {
@@ -811,6 +857,31 @@
 			onFibDoubleClick?.(tool);
 		});
 
+		measurePrimitive = new MeasurePrimitive({
+			measures: securityDrawings?.measures ?? null,
+			isDrawingMode: isDrawingMeasure,
+			selectedId: selectedMeasureId
+		});
+		seriesInstance.attachPrimitive(measurePrimitive);
+
+		measurePrimitive.drawingsChanged().subscribe((measures) => {
+			onMeasureChange?.(measures);
+		});
+
+		measurePrimitive.drawingModeChanged().subscribe((isDrawing) => {
+			if (!isDrawing && !isDrawingWave && !isDrawingFib && chartInstance) {
+				chartInstance.applyOptions({ handleScroll: { pressedMouseMove: true } });
+			}
+			onMeasureDrawingModeChange?.(isDrawing);
+		});
+
+		measurePrimitive.selectionChanged().subscribe((id) => {
+			if (selectedMeasureId !== id) {
+				selectedMeasureId = id;
+			}
+			onMeasureSelect?.(id);
+		});
+
 		const handleWheel = (event: WheelEvent) => {
 			if (!containerRef || !chartInstance || !seriesInstance) return;
 			const rect = containerRef.getBoundingClientRect();
@@ -869,6 +940,7 @@
 			userAlertsPrimitive?.destroy();
 			elliottWavesPrimitive?.destroy();
 			fibonacciPrimitive?.destroy();
+			measurePrimitive?.destroy();
 			chartInstance?.remove();
 		};
 	});
@@ -1273,6 +1345,18 @@
 
 	export function getFibonacciPrimitive(): FibonacciPrimitive | null {
 		return fibonacciPrimitive;
+	}
+
+	export function getMeasurePrimitive(): MeasurePrimitive | null {
+		return measurePrimitive;
+	}
+
+	export function getSelectedMeasureId(): string | null {
+		return measurePrimitive?.getSelectedId() ?? null;
+	}
+
+	export function setSelectedMeasureId(id: string | null) {
+		measurePrimitive?.select(id);
 	}
 </script>
 

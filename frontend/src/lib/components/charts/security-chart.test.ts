@@ -166,6 +166,8 @@ import { render, fireEvent, screen } from '@testing-library/svelte';
 import { createChart } from 'lightweight-charts';
 import { ElliottWavesPrimitive } from './plugins/elliott-wave/elliott-wave';
 import { FibonacciPrimitive } from './plugins/fibonacci/fibonacci-primitive';
+import { MeasurePrimitive } from './plugins/measure/measure-primitive';
+import type { SecurityDrawings } from '$lib/utils/finance/drawings';
 import {
 	MAX_PANE_FRACTION,
 	MIN_PANE_FRACTION,
@@ -2434,5 +2436,241 @@ describe('SecurityChart - Resizable Indicator Panes', () => {
 		expect(lastScaleMargins(mainChart, 'right')).toEqual({ top: 0.05, bottom: 0.3 });
 		expect(onPaneHeightsChange).toHaveBeenCalledWith(null);
 		expect(screen.queryByTestId('reset-pane-heights')).toBeNull();
+	});
+});
+
+describe('SecurityChart - Measure Integration', () => {
+	/* eslint-disable-next-line @typescript-eslint/no-explicit-any */
+	let SecurityChart: Component<any>;
+
+	const initialCandles: Candle[] = [
+		{ time: '2024-01-10', open: 10, high: 12, low: 9, close: 11 },
+		{ time: '2024-01-11', open: 11, high: 13, low: 10, close: 12 }
+	];
+
+	const epoch = (date: string): number =>
+		Math.floor(new Date(`${date}T00:00:00Z`).getTime() / 1000);
+
+	beforeAll(async () => {
+		const mod = await import('./security-chart.svelte');
+		SecurityChart = mod.default;
+	});
+
+	beforeEach(() => {
+		vi.clearAllMocks();
+	});
+
+	function getMeasurePrimitive(): MeasurePrimitive {
+		return mockAttachPrimitive.mock.calls.find(
+			(c) => c[0] instanceof MeasurePrimitive
+		)?.[0] as MeasurePrimitive;
+	}
+
+	function measuresDrawings(): SecurityDrawings {
+		return {
+			measures: [
+				{
+					id: 'measure-1',
+					p1: { time: '2024-01-10', price: 10 },
+					p2: { time: '2024-01-11', price: 20 },
+					visible: true
+				}
+			]
+		};
+	}
+
+	it('attaches MeasurePrimitive to the candlestick series on mount with initial props', () => {
+		render(SecurityChart, {
+			props: {
+				candles: initialCandles,
+				securityDrawings: measuresDrawings(),
+				isDrawingMeasure: true,
+				selectedMeasureId: 'measure-1'
+			}
+		});
+
+		const primitive = getMeasurePrimitive();
+		expect(primitive).toBeDefined();
+		expect(primitive.isDrawingMode()).toBe(true);
+		expect(primitive.getSelectedId()).toBe('measure-1');
+
+		const measures = primitive.getMeasures();
+		expect(measures).toHaveLength(1);
+		// Anchors are canonicalized to epoch seconds on ingestion.
+		expect(measures[0].p1.time).toBe(epoch('2024-01-10'));
+		expect(measures[0].p2.time).toBe(epoch('2024-01-11'));
+	});
+
+	it('syncs the measures collection from the securityDrawings prop', async () => {
+		const { rerender } = render(SecurityChart, {
+			props: { candles: initialCandles, securityDrawings: null }
+		});
+
+		const primitive = getMeasurePrimitive();
+		expect(primitive.getMeasures()).toHaveLength(0);
+
+		await rerender({ candles: initialCandles, securityDrawings: measuresDrawings() });
+
+		expect(primitive.getMeasures()).toHaveLength(1);
+		expect(primitive.getMeasures()[0].p1.price).toBe(10);
+
+		await rerender({ candles: initialCandles, securityDrawings: { measures: null } });
+		expect(primitive.getMeasures()).toHaveLength(0);
+	});
+
+	it('does not reset candle data when only measures change', async () => {
+		const { rerender } = render(SecurityChart, {
+			props: { candles: initialCandles, securityDrawings: null }
+		});
+
+		const initialSetDataCalls = mockSetData.mock.calls.length;
+		await rerender({ candles: initialCandles, securityDrawings: measuresDrawings() });
+
+		expect(mockSetData.mock.calls.length).toBe(initialSetDataCalls);
+	});
+
+	it('syncs isDrawingMeasure prop changes to MeasurePrimitive', async () => {
+		const { rerender } = render(SecurityChart, {
+			props: { candles: initialCandles, isDrawingMeasure: false }
+		});
+
+		const primitive = getMeasurePrimitive();
+		expect(primitive.isDrawingMode()).toBe(false);
+
+		await rerender({ candles: initialCandles, isDrawingMeasure: true });
+		expect(primitive.isDrawingMode()).toBe(true);
+
+		await rerender({ candles: initialCandles, isDrawingMeasure: false });
+		expect(primitive.isDrawingMode()).toBe(false);
+	});
+
+	it('syncs selectedMeasureId prop changes to MeasurePrimitive', async () => {
+		const { rerender } = render(SecurityChart, {
+			props: {
+				candles: initialCandles,
+				securityDrawings: measuresDrawings(),
+				selectedMeasureId: null
+			}
+		});
+
+		const primitive = getMeasurePrimitive();
+		expect(primitive.getSelectedId()).toBeNull();
+
+		await rerender({
+			candles: initialCandles,
+			securityDrawings: measuresDrawings(),
+			selectedMeasureId: 'measure-1'
+		});
+		expect(primitive.getSelectedId()).toBe('measure-1');
+	});
+
+	it('forwards drawingsChanged, drawingModeChanged and selectionChanged to callbacks', () => {
+		const onMeasureChange = vi.fn();
+		const onMeasureDrawingModeChange = vi.fn();
+		const onMeasureSelect = vi.fn();
+
+		render(SecurityChart, {
+			props: {
+				candles: initialCandles,
+				securityDrawings: measuresDrawings(),
+				onMeasureChange,
+				onMeasureDrawingModeChange,
+				onMeasureSelect
+			}
+		});
+
+		const primitive = getMeasurePrimitive();
+
+		// Completing a two-point drawing fires drawingsChanged (and drawingModeChanged).
+		primitive.setDrawingMode(true);
+		primitive.addPoint({ time: '2024-01-10', price: 10 });
+		primitive.addPoint({ time: '2024-01-11', price: 20 });
+
+		expect(onMeasureChange).toHaveBeenCalledWith(
+			expect.arrayContaining([
+				expect.objectContaining({
+					p1: { time: epoch('2024-01-10'), price: 10 },
+					p2: { time: epoch('2024-01-11'), price: 20 }
+				})
+			])
+		);
+		expect(onMeasureDrawingModeChange).toHaveBeenCalledWith(false);
+
+		primitive.select('measure-1');
+		expect(onMeasureSelect).toHaveBeenCalledWith('measure-1');
+
+		primitive.select(null);
+		expect(onMeasureSelect).toHaveBeenCalledWith(null);
+	});
+
+	it('forwards candle updates to MeasurePrimitive', async () => {
+		const { rerender } = render(SecurityChart, {
+			props: { candles: initialCandles }
+		});
+
+		const primitive = getMeasurePrimitive();
+		const setCandlesSpy = vi.spyOn(primitive, 'setCandles');
+
+		const newCandles: Candle[] = [
+			...initialCandles,
+			{ time: '2024-01-12', open: 12, high: 14, low: 11, close: 13 }
+		];
+
+		await rerender({ candles: newCandles });
+		expect(setCandlesSpy).toHaveBeenCalledWith(newCandles);
+	});
+
+	it('destroys MeasurePrimitive when the component is unmounted', () => {
+		const { unmount } = render(SecurityChart, {
+			props: { candles: initialCandles }
+		});
+
+		const primitive = getMeasurePrimitive();
+		const destroySpy = vi.spyOn(primitive, 'destroy');
+		unmount();
+		expect(destroySpy).toHaveBeenCalled();
+	});
+
+	it('disables pressedMouseMove while isDrawingMeasure is true and restores when false', async () => {
+		const { rerender } = render(SecurityChart, {
+			props: { candles: initialCandles, isDrawingMeasure: false }
+		});
+		await tick();
+
+		const createdCharts = vi.mocked(createChart).mock.results.map((r) => r.value);
+		const mainChart = createdCharts[createdCharts.length - 1];
+		vi.mocked(mainChart.applyOptions).mockClear();
+
+		await rerender({ candles: initialCandles, isDrawingMeasure: true });
+		await tick();
+		expect(mainChart.applyOptions).toHaveBeenCalledWith({
+			handleScroll: { pressedMouseMove: false }
+		});
+
+		vi.mocked(mainChart.applyOptions).mockClear();
+		await rerender({ candles: initialCandles, isDrawingMeasure: false });
+		await tick();
+		expect(mainChart.applyOptions).toHaveBeenCalledWith({
+			handleScroll: { pressedMouseMove: true }
+		});
+	});
+
+	it('restores pressedMouseMove when MeasurePrimitive exits drawing mode', async () => {
+		render(SecurityChart, {
+			props: { candles: initialCandles, isDrawingMeasure: true }
+		});
+		await tick();
+
+		const createdCharts = vi.mocked(createChart).mock.results.map((r) => r.value);
+		const mainChart = createdCharts[createdCharts.length - 1];
+		const primitive = getMeasurePrimitive();
+
+		vi.mocked(mainChart.applyOptions).mockClear();
+		primitive.setDrawingMode(false);
+		await tick();
+
+		expect(mainChart.applyOptions).toHaveBeenCalledWith({
+			handleScroll: { pressedMouseMove: true }
+		});
 	});
 });
