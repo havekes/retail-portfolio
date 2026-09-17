@@ -32,8 +32,10 @@
 		normalizeSecurityFibonacciTools
 	} from '$lib/utils/finance/fibonacci';
 	import { MeasurePrimitive } from './plugins/measure/measure-primitive';
+	import { HorizontalLinePrimitive } from './plugins/horizontal-line/horizontal-line-primitive';
 	import {
 		areDrawingCollectionsEqual,
+		type HorizontalLineDrawing,
 		type MeasureDrawing,
 		type SecurityDrawings
 	} from '$lib/utils/finance/drawings';
@@ -94,6 +96,7 @@
 	let elliottWavesPrimitive = $state<ElliottWavesPrimitive | null>(null);
 	let fibonacciPrimitive = $state<FibonacciPrimitive | null>(null);
 	let measurePrimitive = $state<MeasurePrimitive | null>(null);
+	let horizontalLinePrimitive = $state<HorizontalLinePrimitive | null>(null);
 
 	let {
 		candles = [],
@@ -133,6 +136,11 @@
 		onMeasureChange,
 		onMeasureDrawingModeChange,
 		onMeasureSelect,
+		isDrawingHorizontalLine = false,
+		selectedHorizontalLineId = $bindable<string | null>(null),
+		onHorizontalLineChange,
+		onHorizontalLineDrawingModeChange,
+		onHorizontalLineSelect,
 		futureBars = DEFAULT_FUTURE_BARS,
 		onPaneHeightsChange
 	} = $props<{
@@ -177,6 +185,11 @@
 		onMeasureChange?: (measures: MeasureDrawing[]) => void;
 		onMeasureDrawingModeChange?: (isDrawing: boolean) => void;
 		onMeasureSelect?: (id: string | null) => void;
+		isDrawingHorizontalLine?: boolean;
+		selectedHorizontalLineId?: string | null;
+		onHorizontalLineChange?: (lines: HorizontalLineDrawing[]) => void;
+		onHorizontalLineDrawingModeChange?: (isDrawing: boolean) => void;
+		onHorizontalLineSelect?: (id: string | null) => void;
 		futureBars?: number;
 		onPaneHeightsChange?: (heights: PaneHeights | null) => void;
 	}>();
@@ -563,7 +576,9 @@
 
 	$effect(() => {
 		if (!chartInstance) return;
-		const isDrawing = Boolean(isDrawingWave || isDrawingFib || isDrawingMeasure);
+		const isDrawing = Boolean(
+			isDrawingWave || isDrawingFib || isDrawingMeasure || isDrawingHorizontalLine
+		);
 		chartInstance.applyOptions({
 			handleScroll: {
 				pressedMouseMove: !isDrawing
@@ -620,6 +635,41 @@
 	});
 
 	$effect(() => {
+		if (!horizontalLinePrimitive) return;
+		if (
+			isDrawingHorizontalLine !== undefined &&
+			horizontalLinePrimitive.isDrawingMode() !== isDrawingHorizontalLine
+		) {
+			horizontalLinePrimitive.setDrawingMode(isDrawingHorizontalLine);
+		}
+	});
+
+	$effect(() => {
+		if (!horizontalLinePrimitive) return;
+		if (
+			selectedHorizontalLineId !== undefined &&
+			horizontalLinePrimitive.getSelectedId() !== selectedHorizontalLineId
+		) {
+			horizontalLinePrimitive.select(selectedHorizontalLineId);
+		}
+	});
+
+	$effect(() => {
+		if (!horizontalLinePrimitive) return;
+		const current = horizontalLinePrimitive.getHorizontalLines();
+		// Legacy persisted anchors may be date strings/BusinessDay; the primitive
+		// normalizes them to epoch seconds on setHorizontalLines.
+		const next = securityDrawings?.horizontalLines ?? [];
+		if (!areDrawingCollectionsEqual(current, next)) {
+			horizontalLinePrimitive.setHorizontalLines(next);
+		}
+	});
+
+	$effect(() => {
+		horizontalLinePrimitive?.setHideLabels(hideLabels);
+	});
+
+	$effect(() => {
 		if (!elliottWavesPrimitive) return;
 		// Cheap signature guard: `fibSnapPrices` is a fresh array whenever the tools change,
 		// so compare contents before pushing to avoid update churn on unrelated fib edits.
@@ -641,6 +691,7 @@
 				elliottWavesPrimitive?.setCandles([]);
 				fibonacciPrimitive?.setCandles([]);
 				measurePrimitive?.setCandles([]);
+				horizontalLinePrimitive?.setCandles([]);
 				previousFirstCandleTime = null;
 				isLoadingMore = false;
 				return;
@@ -687,6 +738,7 @@
 			elliottWavesPrimitive?.setCandles(candles);
 			fibonacciPrimitive?.setCandles(candles);
 			measurePrimitive?.setCandles(candles);
+			horizontalLinePrimitive?.setCandles(candles);
 
 			if (chartInstance) {
 				if (isPrepending && currentRange && addedCandles > 0) {
@@ -882,6 +934,32 @@
 			onMeasureSelect?.(id);
 		});
 
+		horizontalLinePrimitive = new HorizontalLinePrimitive({
+			horizontalLines: securityDrawings?.horizontalLines ?? null,
+			isDrawingMode: isDrawingHorizontalLine,
+			selectedId: selectedHorizontalLineId,
+			hideLabels
+		});
+		seriesInstance.attachPrimitive(horizontalLinePrimitive);
+
+		horizontalLinePrimitive.drawingsChanged().subscribe((lines) => {
+			onHorizontalLineChange?.(lines);
+		});
+
+		horizontalLinePrimitive.drawingModeChanged().subscribe((isDrawing) => {
+			if (!isDrawing && !isDrawingWave && !isDrawingFib && !isDrawingMeasure && chartInstance) {
+				chartInstance.applyOptions({ handleScroll: { pressedMouseMove: true } });
+			}
+			onHorizontalLineDrawingModeChange?.(isDrawing);
+		});
+
+		horizontalLinePrimitive.selectionChanged().subscribe((id) => {
+			if (selectedHorizontalLineId !== id) {
+				selectedHorizontalLineId = id;
+			}
+			onHorizontalLineSelect?.(id);
+		});
+
 		const handleWheel = (event: WheelEvent) => {
 			if (!containerRef || !chartInstance || !seriesInstance) return;
 			const rect = containerRef.getBoundingClientRect();
@@ -941,6 +1019,7 @@
 			elliottWavesPrimitive?.destroy();
 			fibonacciPrimitive?.destroy();
 			measurePrimitive?.destroy();
+			horizontalLinePrimitive?.destroy();
 			chartInstance?.remove();
 		};
 	});
@@ -1357,6 +1436,18 @@
 
 	export function setSelectedMeasureId(id: string | null) {
 		measurePrimitive?.select(id);
+	}
+
+	export function getHorizontalLinePrimitive(): HorizontalLinePrimitive | null {
+		return horizontalLinePrimitive;
+	}
+
+	export function getSelectedHorizontalLineId(): string | null {
+		return horizontalLinePrimitive?.getSelectedId() ?? null;
+	}
+
+	export function setSelectedHorizontalLineId(id: string | null) {
+		horizontalLinePrimitive?.select(id);
 	}
 </script>
 
