@@ -157,10 +157,17 @@ import type {
 } from '$lib/utils/finance/elliott-wave';
 import type { SecurityFibonacciTools, FibToolType } from '$lib/utils/finance/fibonacci';
 import type { IndicatorData } from './security-chart.svelte';
-import { render } from '@testing-library/svelte';
+import { render, fireEvent, screen } from '@testing-library/svelte';
 import { createChart } from 'lightweight-charts';
 import { ElliottWavesPrimitive } from './plugins/elliott-wave/elliott-wave';
 import { FibonacciPrimitive } from './plugins/fibonacci/fibonacci-primitive';
+import {
+	MAX_PANE_FRACTION,
+	MIN_PANE_FRACTION,
+	BOTTOM_MARGIN,
+	PANE_GAP,
+	TOP_MARGIN
+} from '$lib/chart/indicator-pane-layout';
 
 interface SecurityChartInstance {
 	addIndicator: (indicator: IndicatorData) => void;
@@ -175,6 +182,9 @@ interface SecurityChartInstance {
 	getAllWaves: () => DegreeWaveCount[];
 	getSelectedWaveId: () => string | null;
 	setSelectedWaveId: (id: string | null) => void;
+	getPaneHeights: () => Record<string, number> | null;
+	setPaneHeights: (heights: Record<string, number> | null) => void;
+	resetPaneHeights: () => void;
 }
 
 describe('SecurityChart - Infinite Scroll & Logical Range', () => {
@@ -2202,5 +2212,212 @@ describe('SecurityChart - Oscillator Panes & Custom Price Scales', () => {
 				clientWidthSpy.mockRestore();
 			}
 		});
+	});
+});
+
+describe('SecurityChart - Resizable Indicator Panes', () => {
+	/* eslint-disable-next-line @typescript-eslint/no-explicit-any */
+	let SecurityChart: Component<any>;
+
+	const initialCandles: Candle[] = [
+		{ time: '2024-01-10', open: 10, high: 12, low: 9, close: 11 },
+		{ time: '2024-01-11', open: 11, high: 13, low: 10, close: 12 }
+	];
+
+	const rsiIndicator: IndicatorData = {
+		type: 'rsi',
+		label: 'RSI',
+		color: '#7e57c2',
+		data: [{ time: '2024-01-10', value: 50 }]
+	};
+
+	const macdIndicator: IndicatorData = {
+		type: 'macd',
+		label: 'MACD',
+		color: '#2962FF',
+		data: [{ time: '2024-01-10', histogram: 0.5, macd: 1.2, signal: 0.7 }]
+	};
+
+	beforeAll(async () => {
+		const mod = await import('./security-chart.svelte');
+		SecurityChart = mod.default;
+	});
+
+	beforeEach(() => {
+		vi.clearAllMocks();
+		rangeCallbacks = [];
+		crosshairCallbacks = [];
+		mockGetVisibleLogicalRange.mockReturnValue(undefined);
+		mockGetVisibleRange.mockReturnValue(undefined);
+	});
+
+	function renderChart(props: Record<string, unknown> = {}) {
+		const rendered = render(SecurityChart, {
+			props: { candles: initialCandles, ...props }
+		});
+		const component = rendered.component as unknown as SecurityChartInstance;
+		const createdCharts = vi.mocked(createChart).mock.results.map((r) => r.value);
+		const mainChart = createdCharts[createdCharts.length - 1];
+		const mainContainer = rendered.container.querySelector('#main-chart') as HTMLElement;
+		Object.defineProperty(mainContainer, 'clientHeight', { value: 400, configurable: true });
+		Object.defineProperty(mainContainer, 'clientWidth', { value: 800, configurable: true });
+		return { ...rendered, component, mainChart };
+	}
+
+	function lastScaleMargins(
+		chart: ReturnType<typeof createChart>,
+		id: string
+	): { top: number; bottom: number } {
+		/* eslint-disable-next-line @typescript-eslint/no-explicit-any */
+		const calls: any[] = vi.mocked(chart.priceScale(id).applyOptions).mock.calls;
+		expect(calls.length).toBeGreaterThan(0);
+		return calls[calls.length - 1][0].scaleMargins;
+	}
+
+	function bandHeight(margins: { top: number; bottom: number }): number {
+		return 1 - margins.top - margins.bottom;
+	}
+
+	it('uses the legacy default layout when no custom heights are set (AC3)', async () => {
+		const { component, mainChart } = renderChart();
+		component.addIndicator(rsiIndicator);
+		await tick();
+
+		expect(component.getPaneHeights()).toBeNull();
+		expect(lastScaleMargins(mainChart, 'rsi')).toEqual({ top: 0.75, bottom: 0 });
+		expect(lastScaleMargins(mainChart, 'right')).toEqual({ top: 0.05, bottom: 0.3 });
+	});
+
+	it('renders one handle per adjacent pane pair and only for active panes', async () => {
+		const { component } = renderChart();
+
+		expect(screen.queryByTestId('pane-resize-handle-main-rsi')).toBeNull();
+
+		component.addIndicator(rsiIndicator);
+		await tick();
+		expect(screen.queryByTestId('pane-resize-handle-main-rsi')).not.toBeNull();
+
+		component.addIndicator({
+			type: 'volume',
+			label: 'Volume',
+			color: '#64748b',
+			data: [{ time: '2024-01-10', value: 1000 }]
+		});
+		await tick();
+
+		expect(screen.queryByTestId('pane-resize-handle-main-volume')).not.toBeNull();
+		expect(screen.queryByTestId('pane-resize-handle-volume-rsi')).not.toBeNull();
+		expect(screen.queryByTestId('pane-resize-handle-main-rsi')).toBeNull();
+	});
+
+	it('dragging a divider resizes both adjacent panes within bounds and re-renders immediately (AC1)', async () => {
+		const onPaneHeightsChange = vi.fn();
+		const { component, mainChart } = renderChart({ onPaneHeightsChange });
+		component.addIndicator(rsiIndicator);
+		await tick();
+
+		const handle = screen.getByTestId('pane-resize-handle-main-rsi');
+		vi.mocked(mainChart.priceScale('rsi').applyOptions).mockClear();
+		vi.mocked(mainChart.priceScale('right').applyOptions).mockClear();
+
+		await fireEvent.pointerDown(handle, { clientY: 200, pointerId: 1 });
+		await fireEvent.pointerMove(handle, { clientY: 240, pointerId: 1 });
+
+		// Re-render happened on the move, not only on release.
+		expect(mainChart.priceScale('rsi').applyOptions).toHaveBeenCalled();
+		expect(mainChart.priceScale('right').applyOptions).toHaveBeenCalled();
+
+		const rsiBand = bandHeight(lastScaleMargins(mainChart, 'rsi'));
+		const mainBand = bandHeight(lastScaleMargins(mainChart, 'right'));
+
+		expect(rsiBand).toBeGreaterThanOrEqual(MIN_PANE_FRACTION);
+		expect(rsiBand).toBeLessThanOrEqual(MAX_PANE_FRACTION);
+		expect(mainBand).toBeGreaterThanOrEqual(MIN_PANE_FRACTION);
+		expect(mainBand).toBeLessThanOrEqual(MAX_PANE_FRACTION);
+
+		// Dragging down grows the upper (main) pane and shrinks the lower (RSI) pane.
+		expect(mainBand).toBeGreaterThan(0.65);
+		expect(rsiBand).toBeLessThan(0.25);
+
+		await fireEvent.pointerUp(handle, { clientY: 240, pointerId: 1 });
+		expect(onPaneHeightsChange).toHaveBeenCalledTimes(1);
+		const persisted = onPaneHeightsChange.mock.calls[0][0] as Record<string, number>;
+		expect(persisted.main).toBeGreaterThan(0.65);
+		expect(persisted.rsi).toBeLessThan(0.25);
+	});
+
+	it('restores a stored layout via setPaneHeights (AC2)', async () => {
+		const { component, mainChart } = renderChart();
+		component.addIndicator(rsiIndicator);
+		await tick();
+
+		component.setPaneHeights({ main: 0.5, rsi: 0.3 });
+		await tick();
+
+		expect(component.getPaneHeights()).toEqual({ main: 0.5, rsi: 0.3 });
+		const rsiBand = bandHeight(lastScaleMargins(mainChart, 'rsi'));
+		const mainBand = bandHeight(lastScaleMargins(mainChart, 'right'));
+		expect(rsiBand).toBeGreaterThanOrEqual(MIN_PANE_FRACTION);
+		expect(rsiBand).toBeLessThanOrEqual(MAX_PANE_FRACTION);
+		expect(mainBand).toBeGreaterThanOrEqual(MIN_PANE_FRACTION);
+		expect(mainBand).toBeLessThanOrEqual(MAX_PANE_FRACTION);
+		expect(mainBand).toBeGreaterThan(rsiBand);
+
+		component.setPaneHeights(null);
+		await tick();
+		expect(component.getPaneHeights()).toBeNull();
+		expect(lastScaleMargins(mainChart, 'rsi')).toEqual({ top: 0.75, bottom: 0 });
+	});
+
+	it('drops a removed oscillator height so re-adding starts from defaults (AC4)', async () => {
+		const { component, mainChart } = renderChart();
+		component.addIndicator(rsiIndicator);
+		component.addIndicator(macdIndicator);
+		await tick();
+
+		component.setPaneHeights({ main: 0.45, rsi: 0.2, macd: 0.2 });
+		await tick();
+
+		component.removeIndicator('rsi');
+		await tick();
+
+		expect(component.getPaneHeights()).not.toHaveProperty('rsi');
+		// Remaining layout is valid and non-overlapping.
+		const mainBand = bandHeight(lastScaleMargins(mainChart, 'right'));
+		const macdBand = bandHeight(lastScaleMargins(mainChart, 'macd'));
+		expect(mainBand + macdBand).toBeCloseTo(1 - TOP_MARGIN - BOTTOM_MARGIN - PANE_GAP, 2);
+		expect(1 - lastScaleMargins(mainChart, 'right').bottom).toBeLessThanOrEqual(
+			lastScaleMargins(mainChart, 'macd').top
+		);
+
+		// Re-adding the oscillator uses the default height, not the stale custom fraction.
+		component.addIndicator(rsiIndicator);
+		await tick();
+		expect(component.getPaneHeights()).not.toHaveProperty('rsi');
+		const rsiBand = bandHeight(lastScaleMargins(mainChart, 'rsi'));
+		expect(rsiBand).toBeGreaterThanOrEqual(MIN_PANE_FRACTION);
+		expect(rsiBand).toBeLessThanOrEqual(MAX_PANE_FRACTION);
+	});
+
+	it('reset affordance appears once custom heights exist and restores defaults', async () => {
+		const onPaneHeightsChange = vi.fn();
+		const { component, mainChart } = renderChart({ onPaneHeightsChange });
+		component.addIndicator(rsiIndicator);
+		await tick();
+
+		expect(screen.queryByTestId('reset-pane-heights')).toBeNull();
+
+		component.setPaneHeights({ main: 0.5, rsi: 0.3 });
+		await tick();
+
+		const resetButton = screen.getByTestId('reset-pane-heights');
+		await fireEvent.click(resetButton);
+		await tick();
+
+		expect(component.getPaneHeights()).toBeNull();
+		expect(lastScaleMargins(mainChart, 'rsi')).toEqual({ top: 0.75, bottom: 0 });
+		expect(lastScaleMargins(mainChart, 'right')).toEqual({ top: 0.05, bottom: 0.3 });
+		expect(onPaneHeightsChange).toHaveBeenCalledWith(null);
+		expect(screen.queryByTestId('reset-pane-heights')).toBeNull();
 	});
 });

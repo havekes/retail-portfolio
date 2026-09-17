@@ -143,6 +143,7 @@ vi.mock('$lib/api/indicatorsService', async (importOriginal) => {
 let mockChartProps: Record<string, unknown> | null = null;
 const mockAddIndicator = vi.fn();
 const mockRemoveIndicator = vi.fn();
+const mockSetPaneHeights = vi.fn();
 
 vi.mock('$lib/components/charts/security-chart.svelte', () => {
 	return {
@@ -151,7 +152,8 @@ vi.mock('$lib/components/charts/security-chart.svelte', () => {
 			mockChartProps = args[1] ?? args[0];
 			return {
 				addIndicator: mockAddIndicator,
-				removeIndicator: mockRemoveIndicator
+				removeIndicator: mockRemoveIndicator,
+				setPaneHeights: mockSetPaneHeights
 			};
 		}
 	};
@@ -3332,6 +3334,95 @@ describe('Security Page - Asynchronous Indicator Integration', () => {
 					indicators: expect.arrayContaining([expect.objectContaining({ id: 'rsi', period: 21 })])
 				})
 			);
+		});
+	});
+});
+
+describe('Security Page - Indicator Pane Heights', () => {
+	/* eslint-disable-next-line @typescript-eslint/no-explicit-any */
+	let PageComponent: Component<any>;
+
+	const mockData = {
+		security: {
+			id: 'sec-1',
+			symbol: 'AAPL',
+			name: 'Apple Inc.'
+		},
+		items: [{ date: '2024-01-01', open: 100, high: 110, low: 95, close: 105, volume: 1000 }]
+	};
+
+	beforeAll(async () => {
+		const mod = await import('./+page.svelte');
+		PageComponent = mod.default;
+	}, 30000);
+
+	beforeEach(() => {
+		vi.clearAllMocks();
+		mockChartProps = null;
+		vi.mocked(userPreferencesService.getPreferences).mockResolvedValue({});
+	});
+
+	it('restores stored pane heights onto the chart after preferences load', async () => {
+		const storedHeights = { main: 0.5, rsi: 0.3 };
+		vi.mocked(userPreferencesService.getPreferences).mockResolvedValue({
+			indicator_pane_heights: storedHeights
+		});
+
+		render(PageComponent, { props: { data: mockData } });
+		await screen.findByRole('button', { name: '1D' });
+		await waitFor(() => {
+			expect(mockChartProps).not.toBeNull();
+		});
+
+		await waitFor(() => {
+			expect(mockSetPaneHeights).toHaveBeenCalledWith(storedHeights);
+		});
+	});
+
+	it('does not push pane heights when none are stored', async () => {
+		vi.mocked(userPreferencesService.getPreferences).mockResolvedValue({ chart_hide_labels: true });
+
+		render(PageComponent, { props: { data: mockData } });
+		await screen.findByRole('button', { name: '1D' });
+		await waitFor(() => {
+			expect(mockChartProps).not.toBeNull();
+		});
+
+		await new Promise((r) => setTimeout(r, 150));
+		expect(mockSetPaneHeights).not.toHaveBeenCalled();
+	});
+
+	it('persists the full pane-height map as a single-key patch when the chart reports a change', async () => {
+		render(PageComponent, { props: { data: mockData } });
+		await screen.findByRole('button', { name: '1D' });
+		await waitFor(() => {
+			expect(mockChartProps).not.toBeNull();
+		});
+
+		// @ts-expect-error - mockChartProps typed as Record
+		mockChartProps.onPaneHeightsChange?.({ main: 0.6, rsi: 0.2 });
+
+		await waitFor(() => {
+			expect(userPreferencesService.patchPreferences).toHaveBeenCalledWith({
+				indicator_pane_heights: { main: 0.6, rsi: 0.2 }
+			});
+		});
+	});
+
+	it('persists a reset as indicator_pane_heights: null without clobbering other keys', async () => {
+		render(PageComponent, { props: { data: mockData } });
+		await screen.findByRole('button', { name: '1D' });
+		await waitFor(() => {
+			expect(mockChartProps).not.toBeNull();
+		});
+
+		// @ts-expect-error - mockChartProps typed as Record
+		mockChartProps.onPaneHeightsChange?.(null);
+
+		await waitFor(() => {
+			expect(userPreferencesService.patchPreferences).toHaveBeenCalledWith({
+				indicator_pane_heights: null
+			});
 		});
 	});
 });
