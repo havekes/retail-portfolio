@@ -14,6 +14,7 @@ import type {
 } from '$lib/utils/finance/fibonacci';
 import { updateSecurityFibonacciTools } from '$lib/utils/finance/fibonacci';
 import type { RewindSnapshot } from '$lib/utils/finance/rewind';
+import type { SecurityDrawings } from '$lib/utils/finance/drawings';
 import { snapshotsService } from '$lib/api/snapshotsService';
 import { toast } from '$lib/components/ui/toast/index.js';
 if (typeof globalThis.Path2D === 'undefined') {
@@ -143,6 +144,7 @@ vi.mock('$lib/api/indicatorsService', async (importOriginal) => {
 let mockChartProps: Record<string, unknown> | null = null;
 const mockAddIndicator = vi.fn();
 const mockRemoveIndicator = vi.fn();
+const mockSetPaneHeights = vi.fn();
 
 vi.mock('$lib/components/charts/security-chart.svelte', () => {
 	return {
@@ -151,7 +153,8 @@ vi.mock('$lib/components/charts/security-chart.svelte', () => {
 			mockChartProps = args[1] ?? args[0];
 			return {
 				addIndicator: mockAddIndicator,
-				removeIndicator: mockRemoveIndicator
+				removeIndicator: mockRemoveIndicator,
+				setPaneHeights: mockSetPaneHeights
 			};
 		}
 	};
@@ -2175,6 +2178,18 @@ describe('Rewind Save Snapshot', () => {
 		}
 	};
 
+	const sampleNewDrawings: Record<string, SecurityDrawings> = {
+		'sec-1': {
+			measures: [
+				{
+					id: 'measure-1',
+					p1: { time: '2024-01-01', price: 100 },
+					p2: { time: '2024-01-02', price: 112 }
+				}
+			]
+		}
+	};
+
 	beforeAll(async () => {
 		const mod = await import('./+page.svelte');
 		PageComponent = mod.default;
@@ -2215,7 +2230,8 @@ describe('Rewind Save Snapshot', () => {
 			expect.objectContaining({
 				drawings: {
 					elliott_waves: sampleElliottWaves['sec-1'],
-					fibonacci_tools: sampleFibTools['sec-1']
+					fibonacci_tools: sampleFibTools['sec-1'],
+					drawings: {}
 				},
 				data_window: {
 					first: '2024-01-01',
@@ -2259,7 +2275,8 @@ describe('Rewind Save Snapshot', () => {
 				expect.objectContaining({
 					drawings: {
 						elliott_waves: sampleElliottWaves['sec-1'],
-						fibonacci_tools: sampleFibTools['sec-1']
+						fibonacci_tools: sampleFibTools['sec-1'],
+						drawings: {}
 					},
 					data_window: {
 						first: '2024-01-01',
@@ -2303,7 +2320,8 @@ describe('Rewind Save Snapshot', () => {
 				expect.objectContaining({
 					drawings: {
 						elliott_waves: sampleElliottWaves['sec-1'],
-						fibonacci_tools: sampleFibTools['sec-1']
+						fibonacci_tools: sampleFibTools['sec-1'],
+						drawings: {}
 					},
 					data_window: {
 						first: '2024-01-01',
@@ -2479,6 +2497,41 @@ describe('Rewind Save Snapshot', () => {
 		await fireEvent.click(saveBtn);
 		expect(snapshotsService.createSnapshot).not.toHaveBeenCalled();
 		expect(userPreferencesService.patchPreferences).not.toHaveBeenCalled();
+	});
+
+	it('captures a snapshot when only new-tool drawings exist (no waves or fib tools)', async () => {
+		vi.mocked(userPreferencesService.getPreferences).mockResolvedValue({
+			elliott_waves: {},
+			fibonacci_tools: {},
+			drawings: sampleNewDrawings
+		});
+
+		render(PageComponent, { props: { data: mockData } });
+		const saveBtn = await screen.findByRole('button', { name: 'Save snapshot' });
+
+		await fireEvent.click(saveBtn);
+
+		expect(snapshotsService.createSnapshot).toHaveBeenCalledWith(
+			'sec-1',
+			expect.objectContaining({
+				drawings: expect.objectContaining({
+					elliott_waves: { waves: [] },
+					fibonacci_tools: {},
+					drawings: sampleNewDrawings['sec-1']
+				}),
+				data_window: {
+					first: '2024-01-01',
+					last: '2024-01-02'
+				},
+				captured_at: expect.any(String)
+			})
+		);
+		expect(userPreferencesService.patchPreferences).not.toHaveBeenCalled();
+		await waitFor(() => {
+			expect(
+				toast.toasts.some((t) => t.type === 'success' && t.message === 'Chart snapshot saved')
+			).toBe(true);
+		});
 	});
 
 	it('timeline bar is automatically visible on initial load when security has 1+ snapshots', async () => {
@@ -2781,6 +2834,56 @@ describe('Rewind Scrub and Drawing Restore', () => {
 			expect(mockChartProps.elliottWaves).toEqual({ waves: [] });
 			// @ts-expect-error - mockChartProps typed as Record
 			expect(mockChartProps.fibonacciTools).toEqual({});
+		});
+	});
+
+	it('surfaces the snapshot\u2019s new-tool drawings through the effective derived state while rewound', async () => {
+		const snapshotWithDrawings: RewindSnapshot = {
+			id: 'snap-drawings',
+			captured_at: '2024-01-02T12:00:00.000Z',
+			drawings: {
+				drawings: {
+					horizontalLines: [{ id: 'h1', p1: { time: '2024-01-02', price: 111 } }]
+				}
+			},
+			data_window: {
+				first: '2024-01-01',
+				last: '2024-01-02'
+			}
+		};
+
+		const liveDrawings: Record<string, SecurityDrawings> = {
+			'sec-1': {
+				lines: [
+					{
+						id: 'l1',
+						p1: { time: '2024-01-03', price: 100 },
+						p2: { time: '2024-01-03', price: 120 }
+					}
+				]
+			}
+		};
+
+		vi.mocked(snapshotsService.getSnapshots).mockResolvedValue([snapshotWithDrawings]);
+		vi.mocked(userPreferencesService.getPreferences).mockResolvedValue({
+			drawings: liveDrawings
+		});
+
+		const { component } = render(PageComponent, { props: { data: threeCandlesData } });
+		const page = component as unknown as {
+			getEffectiveSecurityDrawings: () => SecurityDrawings;
+		};
+
+		await waitFor(() => {
+			expect(page.getEffectiveSecurityDrawings()).toEqual(liveDrawings['sec-1']);
+		});
+
+		expect(await screen.findByTestId('rewind-timeline')).toBeInTheDocument();
+		const marker = screen.getByTestId('rewind-snapshot-point');
+		await fireEvent.click(marker);
+
+		await waitFor(() => {
+			expect(page.getEffectiveSecurityDrawings()).toEqual(snapshotWithDrawings.drawings.drawings);
 		});
 	});
 
@@ -3332,6 +3435,95 @@ describe('Security Page - Asynchronous Indicator Integration', () => {
 					indicators: expect.arrayContaining([expect.objectContaining({ id: 'rsi', period: 21 })])
 				})
 			);
+		});
+	});
+});
+
+describe('Security Page - Indicator Pane Heights', () => {
+	/* eslint-disable-next-line @typescript-eslint/no-explicit-any */
+	let PageComponent: Component<any>;
+
+	const mockData = {
+		security: {
+			id: 'sec-1',
+			symbol: 'AAPL',
+			name: 'Apple Inc.'
+		},
+		items: [{ date: '2024-01-01', open: 100, high: 110, low: 95, close: 105, volume: 1000 }]
+	};
+
+	beforeAll(async () => {
+		const mod = await import('./+page.svelte');
+		PageComponent = mod.default;
+	}, 30000);
+
+	beforeEach(() => {
+		vi.clearAllMocks();
+		mockChartProps = null;
+		vi.mocked(userPreferencesService.getPreferences).mockResolvedValue({});
+	});
+
+	it('restores stored pane heights onto the chart after preferences load', async () => {
+		const storedHeights = { main: 0.5, rsi: 0.3 };
+		vi.mocked(userPreferencesService.getPreferences).mockResolvedValue({
+			indicator_pane_heights: storedHeights
+		});
+
+		render(PageComponent, { props: { data: mockData } });
+		await screen.findByRole('button', { name: '1D' });
+		await waitFor(() => {
+			expect(mockChartProps).not.toBeNull();
+		});
+
+		await waitFor(() => {
+			expect(mockSetPaneHeights).toHaveBeenCalledWith(storedHeights);
+		});
+	});
+
+	it('does not push pane heights when none are stored', async () => {
+		vi.mocked(userPreferencesService.getPreferences).mockResolvedValue({ chart_hide_labels: true });
+
+		render(PageComponent, { props: { data: mockData } });
+		await screen.findByRole('button', { name: '1D' });
+		await waitFor(() => {
+			expect(mockChartProps).not.toBeNull();
+		});
+
+		await new Promise((r) => setTimeout(r, 150));
+		expect(mockSetPaneHeights).not.toHaveBeenCalled();
+	});
+
+	it('persists the full pane-height map as a single-key patch when the chart reports a change', async () => {
+		render(PageComponent, { props: { data: mockData } });
+		await screen.findByRole('button', { name: '1D' });
+		await waitFor(() => {
+			expect(mockChartProps).not.toBeNull();
+		});
+
+		// @ts-expect-error - mockChartProps typed as Record
+		mockChartProps.onPaneHeightsChange?.({ main: 0.6, rsi: 0.2 });
+
+		await waitFor(() => {
+			expect(userPreferencesService.patchPreferences).toHaveBeenCalledWith({
+				indicator_pane_heights: { main: 0.6, rsi: 0.2 }
+			});
+		});
+	});
+
+	it('persists a reset as indicator_pane_heights: null without clobbering other keys', async () => {
+		render(PageComponent, { props: { data: mockData } });
+		await screen.findByRole('button', { name: '1D' });
+		await waitFor(() => {
+			expect(mockChartProps).not.toBeNull();
+		});
+
+		// @ts-expect-error - mockChartProps typed as Record
+		mockChartProps.onPaneHeightsChange?.(null);
+
+		await waitFor(() => {
+			expect(userPreferencesService.patchPreferences).toHaveBeenCalledWith({
+				indicator_pane_heights: null
+			});
 		});
 	});
 });

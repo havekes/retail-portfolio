@@ -19,6 +19,16 @@ import type {
 	FibComputedLevel,
 	FibToolType
 } from '$lib/utils/finance/fibonacci';
+import type {
+	DrawingPoint,
+	MeasureDrawing,
+	HorizontalLineDrawing,
+	LineDrawing,
+	Drawing,
+	DrawingToolType,
+	SecurityDrawings,
+	SecurityDrawingsMap
+} from '$lib/utils/finance/drawings';
 
 export type ChartStyle = 'heikin_ashi' | 'candlestick';
 
@@ -37,7 +47,15 @@ export type {
 	SecurityFibonacciTools,
 	FibonacciPreferences,
 	FibComputedLevel,
-	FibToolType
+	FibToolType,
+	DrawingPoint,
+	MeasureDrawing,
+	HorizontalLineDrawing,
+	LineDrawing,
+	Drawing,
+	DrawingToolType,
+	SecurityDrawings,
+	SecurityDrawingsMap
 };
 
 export interface UserPreferences {
@@ -48,8 +66,10 @@ export interface UserPreferences {
 	holdings_period?: string | null;
 	elliott_waves?: Record<string, SecurityElliottWaves> | null;
 	fibonacci_tools?: Record<string, SecurityFibonacciTools> | null;
+	drawings?: Record<string, SecurityDrawings> | null;
 	wave_settings?: WaveSettings | null;
 	chart_hide_labels?: boolean | null;
+	indicator_pane_heights?: Record<string, number> | null;
 }
 
 export class UserPreferencesService extends ApiClient {

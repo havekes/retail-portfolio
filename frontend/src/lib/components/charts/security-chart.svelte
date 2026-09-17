@@ -31,6 +31,16 @@
 		getActiveFibLevelPrices,
 		normalizeSecurityFibonacciTools
 	} from '$lib/utils/finance/fibonacci';
+	import {
+		computePaneBandHeights,
+		computePaneScaleMargins,
+		MAX_PANE_FRACTION,
+		MIN_PANE_FRACTION,
+		MAIN_PANE_ID,
+		OSCILLATOR_PANE_IDS,
+		VOLUME_PANE_ID
+	} from '$lib/chart/indicator-pane-layout';
+	import type { PaneHeights } from '$lib/chart/indicator-pane-layout';
 
 	interface MacdDataItem {
 		time: Time;
@@ -110,7 +120,8 @@
 		onFibToolChange,
 		onFibSelect,
 		onFibDoubleClick,
-		futureBars = DEFAULT_FUTURE_BARS
+		futureBars = DEFAULT_FUTURE_BARS,
+		onPaneHeightsChange
 	} = $props<{
 		candles?: Candle[];
 		containerId?: string;
@@ -148,6 +159,7 @@
 		onFibSelect?: (tool: FibToolType | null) => void;
 		onFibDoubleClick?: (tool: FibToolType) => void;
 		futureBars?: number;
+		onPaneHeightsChange?: (heights: PaneHeights | null) => void;
 	}>();
 
 	let avgPriceLine: IPriceLine | null = null;
@@ -206,79 +218,157 @@
 	}
 
 	const DEFAULT_PRICE_SCALE_MIN_WIDTH = 75;
-	const OSCILLATOR_ORDER = ['rsi', 'macd', 'obv'] as const;
+
+	/** User-customised pane band heights, or null when the default layout is used. */
+	let customPaneHeights = $state<PaneHeights | null>(null);
+
+	/**
+	 * Ordered pane ids currently rendered. Kept in explicit state (rather than
+	 * derived from `indicatorSeries`) so it reliably updates when indicators are
+	 * added/removed imperatively through the exported API.
+	 */
+	let orderedPaneIds = $state<string[]>([MAIN_PANE_ID]);
+
+	function getOrderedPaneIds(): string[] {
+		const ids: string[] = [MAIN_PANE_ID];
+		if (indicatorSeries.has(VOLUME_PANE_ID)) ids.push(VOLUME_PANE_ID);
+		for (const type of OSCILLATOR_PANE_IDS) {
+			if (indicatorSeries.has(type)) ids.push(type);
+		}
+		return ids;
+	}
+
+	function refreshOrderedPaneIds() {
+		const next = getOrderedPaneIds();
+		if (next.length !== orderedPaneIds.length || next.some((id, i) => id !== orderedPaneIds[i])) {
+			orderedPaneIds = next;
+		}
+	}
+
+	const paneLayout = $derived(computePaneScaleMargins(orderedPaneIds, customPaneHeights));
+	const paneLayoutCustom = $derived.by(() => {
+		const custom = customPaneHeights;
+		if (custom === null) return false;
+		return orderedPaneIds.some((id) => id in custom);
+	});
+
+	interface PaneBoundary {
+		key: string;
+		upperId: string;
+		lowerId: string;
+		fraction: number;
+	}
+
+	const paneBoundaries = $derived.by(() => {
+		const ids = orderedPaneIds;
+		const margins = paneLayout;
+		const boundaries: PaneBoundary[] = [];
+		for (let i = 0; i < ids.length - 1; i++) {
+			const upperId = ids[i];
+			const lowerId = ids[i + 1];
+			const upperEnd = 1 - (margins[upperId]?.bottom ?? 0);
+			const lowerStart = margins[lowerId]?.top ?? 0;
+			boundaries.push({
+				key: `${upperId}-${lowerId}`,
+				upperId,
+				lowerId,
+				fraction: (upperEnd + lowerStart) / 2
+			});
+		}
+		return boundaries;
+	});
+
+	function applyPaneMargins() {
+		if (!chartInstance || !seriesInstance) return;
+		refreshOrderedPaneIds();
+		const paneIds = orderedPaneIds;
+		const margins = computePaneScaleMargins(paneIds, customPaneHeights);
+		for (const id of paneIds) {
+			const scaleMargins = margins[id];
+			if (!scaleMargins) continue;
+			if (id === MAIN_PANE_ID) {
+				seriesInstance.priceScale().applyOptions({ scaleMargins });
+			} else {
+				chartInstance.priceScale(id).applyOptions({ scaleMargins });
+			}
+		}
+	}
 
 	function updatePanes() {
+		applyPaneMargins();
+	}
+
+	interface PaneDragState {
+		upperId: string;
+		lowerId: string;
+		startY: number;
+		startHeights: PaneHeights;
+	}
+
+	let paneDragState = $state<PaneDragState | null>(null);
+
+	function clampPaneFraction(value: number): number {
+		return Math.min(MAX_PANE_FRACTION, Math.max(MIN_PANE_FRACTION, value));
+	}
+
+	function handlePaneDragStart(event: PointerEvent, upperId: string, lowerId: string) {
 		if (!chartInstance || !seriesInstance) return;
-
-		const activeOscillators = OSCILLATOR_ORDER.filter((type) => indicatorSeries.has(type));
-		const count = activeOscillators.length;
-		const hasVolume = indicatorSeries.has('volume');
-
-		if (count === 0) {
-			if (hasVolume) {
-				const volumeSeries = indicatorSeries.get('volume') as ISeriesApi<'Histogram'> | undefined;
-				volumeSeries?.priceScale().applyOptions({
-					scaleMargins: { top: 0.7, bottom: 0 }
-				});
-				seriesInstance.priceScale().applyOptions({
-					scaleMargins: { top: 0.1, bottom: 0.35 }
-				});
-			} else {
-				seriesInstance.priceScale().applyOptions({
-					scaleMargins: { top: 0.1, bottom: 0.1 }
-				});
+		event.preventDefault();
+		event.stopPropagation();
+		if (typeof (event.currentTarget as HTMLElement)?.setPointerCapture === 'function') {
+			try {
+				(event.currentTarget as HTMLElement).setPointerCapture(event.pointerId);
+			} catch {
+				// ignore — jsdom and unsupported browsers
 			}
-			return;
+		}
+		paneDragState = {
+			upperId,
+			lowerId,
+			startY: event.clientY,
+			startHeights: computePaneBandHeights(getOrderedPaneIds(), customPaneHeights)
+		};
+	}
+
+	function handlePaneDragMove(event: PointerEvent) {
+		const drag = paneDragState;
+		if (!drag) return;
+		const containerHeight = containerRef?.clientHeight ?? 0;
+		if (containerHeight <= 0) return;
+
+		const delta = (event.clientY - drag.startY) / containerHeight;
+		const sum = (drag.startHeights[drag.upperId] ?? 0) + (drag.startHeights[drag.lowerId] ?? 0);
+
+		let upper = clampPaneFraction((drag.startHeights[drag.upperId] ?? 0) + delta);
+		let lower = sum - upper;
+		if (lower < MIN_PANE_FRACTION) {
+			lower = MIN_PANE_FRACTION;
+			upper = clampPaneFraction(sum - MIN_PANE_FRACTION);
+		} else if (lower > MAX_PANE_FRACTION) {
+			lower = MAX_PANE_FRACTION;
+			upper = clampPaneFraction(sum - MAX_PANE_FRACTION);
 		}
 
-		// When oscillators exist, allocate vertical space
-		const paneHeight = count === 1 ? 0.25 : count === 2 ? 0.18 : 0.14;
-		const gap = 0.02;
-		const totalOscillatorHeight = count * paneHeight + count * gap;
-		const mainAreaHeight = Math.max(0.3, 1.0 - totalOscillatorHeight);
+		customPaneHeights = {
+			...drag.startHeights,
+			[drag.upperId]: upper,
+			[drag.lowerId]: lower
+		};
+		updatePanes();
+	}
 
-		// Configure main candlesticks and volume within [0, mainAreaHeight]
-		if (hasVolume) {
-			const volumeHeight = Math.round(mainAreaHeight * 0.25 * 10000) / 10000;
-			const volumeTop = Math.round((mainAreaHeight - volumeHeight) * 10000) / 10000;
-			const volumeBottom = Math.round((1.0 - mainAreaHeight) * 10000) / 10000;
-
-			const volumeSeries = indicatorSeries.get('volume') as ISeriesApi<'Histogram'> | undefined;
-			volumeSeries?.priceScale().applyOptions({
-				scaleMargins: {
-					top: volumeTop,
-					bottom: volumeBottom
-				}
-			});
-
-			seriesInstance.priceScale().applyOptions({
-				scaleMargins: {
-					top: 0.05,
-					bottom: Math.round((1.0 - mainAreaHeight + volumeHeight + 0.03) * 10000) / 10000
-				}
-			});
-		} else {
-			seriesInstance.priceScale().applyOptions({
-				scaleMargins: {
-					top: 0.05,
-					bottom: Math.round((1.0 - mainAreaHeight + 0.03) * 10000) / 10000
-				}
-			});
+	function handlePaneDragEnd() {
+		if (!paneDragState) return;
+		paneDragState = null;
+		if (customPaneHeights) {
+			onPaneHeightsChange?.({ ...customPaneHeights });
 		}
+	}
 
-		// Configure each oscillator pane
-		activeOscillators.forEach((type, idx) => {
-			const paneTop = Math.round((mainAreaHeight + gap + idx * (paneHeight + gap)) * 10000) / 10000;
-			const paneBottom = Math.max(0, Math.round((1.0 - (paneTop + paneHeight)) * 10000) / 10000);
-
-			chartInstance?.priceScale(type).applyOptions({
-				scaleMargins: {
-					top: paneTop,
-					bottom: paneBottom
-				}
-			});
-		});
+	function handleResetPaneHeights() {
+		customPaneHeights = null;
+		updatePanes();
+		onPaneHeightsChange?.(null);
 	}
 
 	function getTimeValue(t: Time): string | number {
@@ -1058,6 +1148,11 @@
 
 		indicatorSeries.delete(type);
 		activeIndicators = activeIndicators.filter((i) => i.type !== type);
+		if (customPaneHeights && type in customPaneHeights) {
+			const nextHeights = { ...customPaneHeights };
+			delete nextHeights[type];
+			customPaneHeights = Object.keys(nextHeights).length > 0 ? nextHeights : null;
+		}
 		updatePanes();
 	}
 
@@ -1136,6 +1231,26 @@
 		elliottWavesPrimitive?.setSelectedWaveId(waveId);
 	}
 
+	/** Current custom pane heights, or null when the default layout is active. */
+	export function getPaneHeights(): PaneHeights | null {
+		return customPaneHeights ? { ...customPaneHeights } : null;
+	}
+
+	/** Restore a persisted pane-height layout (no change callback fired). */
+	export function setPaneHeights(heights: PaneHeights | null | undefined) {
+		if (!heights || Object.keys(heights).length === 0) {
+			customPaneHeights = null;
+		} else {
+			customPaneHeights = { ...heights };
+		}
+		updatePanes();
+	}
+
+	/** Clear custom pane heights and notify the owner so the change persists. */
+	export function resetPaneHeights() {
+		handleResetPaneHeights();
+	}
+
 	export function getAllWaves(): DegreeWaveCount[] {
 		return elliottWavesPrimitive?.getAllWaves() ?? [];
 	}
@@ -1167,4 +1282,37 @@
 		id={containerId}
 		class="h-full min-h-0 w-full overflow-hidden"
 	></div>
+
+	{#if paneBoundaries.length > 0}
+		{#each paneBoundaries as boundary (boundary.key)}
+			<button
+				type="button"
+				class="absolute right-0 left-0 z-10 flex -translate-y-1/2 cursor-row-resize items-center justify-center border-0 bg-transparent px-0 py-1.5"
+				style="top: {boundary.fraction * 100}%"
+				data-testid={`pane-resize-handle-${boundary.upperId}-${boundary.lowerId}`}
+				aria-label={`Resize ${boundary.upperId} and ${boundary.lowerId} panes`}
+				onpointerdown={(event) => handlePaneDragStart(event, boundary.upperId, boundary.lowerId)}
+			>
+				<span class="h-1 w-full rounded-full bg-border/70 transition-colors hover:bg-primary"
+				></span>
+			</button>
+		{/each}
+	{/if}
+
+	{#if paneLayoutCustom}
+		<button
+			type="button"
+			class="absolute top-2 right-24 z-20 rounded border bg-background/80 px-2 py-0.5 text-xs text-muted-foreground hover:text-foreground"
+			data-testid="reset-pane-heights"
+			onclick={handleResetPaneHeights}
+		>
+			Reset pane sizes
+		</button>
+	{/if}
 </div>
+
+<svelte:window
+	onpointermove={handlePaneDragMove}
+	onpointerup={handlePaneDragEnd}
+	onpointercancel={handlePaneDragEnd}
+/>
