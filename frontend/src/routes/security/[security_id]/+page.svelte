@@ -61,6 +61,7 @@
 		type SecurityFibonacciTools,
 		updateSecurityFibonacciTools
 	} from '$lib/utils/finance/fibonacci';
+	import { isSecurityDrawingsEmpty, type SecurityDrawings } from '$lib/utils/finance/drawings';
 	import {
 		captureSnapshot,
 		areSnapshotsEqual,
@@ -108,6 +109,11 @@
 	let securityFibonacciTools = $derived<SecurityFibonacciTools>(
 		(security?.id && userPreferences?.fibonacci_tools?.[security.id]) || {}
 	);
+	// Persistence seam for the new drawing tools (measure/horizontal line/free-form line).
+	// SECDTL-T04–T06 plugin components consume these deriveds; rendering is their scope.
+	let securityDrawings = $derived<SecurityDrawings>(
+		(security?.id && userPreferences?.drawings?.[security.id]) || {}
+	);
 	let saveFeedback = $state<'idle' | 'saved'>('idle');
 	let saveFeedbackTimer: ReturnType<typeof setTimeout> | null = null;
 	let isTimelineVisible = $state(false);
@@ -133,6 +139,18 @@
 	let effectiveFibonacciTools = $derived<SecurityFibonacciTools>(
 		isRewound ? (activeSnapshot?.drawings?.fibonacci_tools ?? {}) : securityFibonacciTools
 	);
+	let effectiveSecurityDrawings = $derived<SecurityDrawings>(
+		isRewound ? (activeSnapshot?.drawings?.drawings ?? {}) : securityDrawings
+	);
+
+	/**
+	 * Accessor for the new-tool drawings currently in effect: the active rewind
+	 * snapshot's drawings while rewound, otherwise the live per-security drawings
+	 * from user preferences. Exposed for SECDTL-T04–T06 plugin consumption and tests.
+	 */
+	export function getEffectiveSecurityDrawings(): SecurityDrawings {
+		return effectiveSecurityDrawings;
+	}
 
 	$effect(() => {
 		void timelinePosition;
@@ -174,7 +192,8 @@
 
 		const drawings: RewindDrawings = {
 			elliott_waves: securityElliottWaves,
-			fibonacci_tools: securityFibonacciTools
+			fibonacci_tools: securityFibonacciTools,
+			drawings: securityDrawings
 		};
 
 		const hasWavePoints = Boolean(
@@ -183,8 +202,9 @@
 		const hasFibTools = Boolean(
 			drawings.fibonacci_tools?.retracement || drawings.fibonacci_tools?.extension
 		);
+		const hasNewDrawings = !isSecurityDrawingsEmpty(drawings.drawings);
 
-		if (!hasWavePoints && !hasFibTools) {
+		if (!hasWavePoints && !hasFibTools && !hasNewDrawings) {
 			return;
 		}
 
