@@ -1,7 +1,9 @@
-import { render, screen } from '@testing-library/svelte';
+import { render, screen, fireEvent } from '@testing-library/svelte';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import Layout from './+layout.svelte';
+import { load } from './+layout.server';
 import { createRawSnippet } from 'svelte';
+import { userPreferencesService, getUserPreferencesService } from '$lib/api/userPreferencesService';
 
 vi.mock('mode-watcher', () => ({
 	ModeWatcher: () => null
@@ -34,7 +36,8 @@ vi.mock('$lib/api/marketService', () => ({
 vi.mock('$lib/api/userPreferencesService', () => ({
 	userPreferencesService: {
 		patchPreferences: vi.fn().mockResolvedValue({})
-	}
+	},
+	getUserPreferencesService: vi.fn()
 }));
 
 if (typeof window !== 'undefined') {
@@ -65,7 +68,7 @@ describe('Root +layout.svelte', () => {
 
 		render(Layout, {
 			props: {
-				data: { user: null, sidebar_open: true },
+				data: { user: null, sidebar_open: true, sidebar_watchlists: false },
 				children
 			}
 		});
@@ -83,7 +86,8 @@ describe('Root +layout.svelte', () => {
 			props: {
 				data: {
 					user: { id: 'u1', email: 'test@example.com' },
-					sidebar_open: true
+					sidebar_open: true,
+					sidebar_watchlists: false
 				},
 				children
 			}
@@ -107,7 +111,8 @@ describe('Root +layout.svelte', () => {
 			props: {
 				data: {
 					user: { id: 'u1', email: 'test@example.com' },
-					sidebar_open: true
+					sidebar_open: true,
+					sidebar_watchlists: false
 				},
 				children
 			}
@@ -116,5 +121,70 @@ describe('Root +layout.svelte', () => {
 		const inset = document.querySelector('[data-slot="sidebar-inset"]');
 		expect(inset).toBeInTheDocument();
 		expect(inset).toHaveClass('min-w-0');
+	});
+
+	describe('sidebar_watchlists preference', () => {
+		const loadEvent = (prefs: Record<string, unknown>) => {
+			vi.mocked(getUserPreferencesService).mockReturnValue({
+				getPreferences: vi.fn().mockResolvedValue(prefs)
+			} as unknown as ReturnType<typeof getUserPreferencesService>);
+			return {
+				locals: { user: { id: 'u1', email: 'test@example.com' } },
+				fetch: vi.fn(),
+				cookies: { get: vi.fn().mockReturnValue('token') }
+			} as unknown as Parameters<typeof load>[0];
+		};
+
+		it('defaults sidebar_watchlists to false when the preference is absent', async () => {
+			const data = await load(loadEvent({ sidebar_open: true }));
+			expect(data.sidebar_watchlists).toBe(false);
+		});
+
+		it('reads sidebar_watchlists from preferences', async () => {
+			const data = await load(loadEvent({ sidebar_open: true, sidebar_watchlists: true }));
+			expect(data.sidebar_watchlists).toBe(true);
+		});
+
+		it('renders the watchlists header when the preference is on', () => {
+			const children = createRawSnippet(() => ({
+				render: () => '<div data-testid="page-content">Authenticated Dashboard</div>'
+			}));
+
+			render(Layout, {
+				props: {
+					data: {
+						user: { id: 'u1', email: 'test@example.com' },
+						sidebar_open: true,
+						sidebar_watchlists: true
+					},
+					children
+				}
+			});
+
+			expect(screen.getByText('Watchlists')).toBeInTheDocument();
+		});
+
+		it('persists the toggle through the preferences client', async () => {
+			const children = createRawSnippet(() => ({
+				render: () => '<div data-testid="page-content">Authenticated Dashboard</div>'
+			}));
+
+			render(Layout, {
+				props: {
+					data: {
+						user: { id: 'u1', email: 'test@example.com' },
+						sidebar_open: true,
+						sidebar_watchlists: false
+					},
+					children
+				}
+			});
+
+			await fireEvent.click(screen.getByRole('button', { name: 'Show watchlists' }));
+
+			expect(userPreferencesService.patchPreferences).toHaveBeenCalledWith({
+				sidebar_watchlists: true
+			});
+		});
 	});
 });

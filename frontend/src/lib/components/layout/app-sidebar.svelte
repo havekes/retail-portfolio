@@ -9,13 +9,21 @@
 	import AppSidebarProfile from './app-sidebar-profile.svelte';
 
 	const sidebar = useSidebar();
+
+	let {
+		showWatchlists = false,
+		onToggleWatchlists = undefined
+	}: {
+		showWatchlists?: boolean;
+		onToggleWatchlists?: (value: boolean) => void;
+	} = $props();
 </script>
 
 <Sidebar.Root collapsible="icon">
 	<AppSidebarHeader />
 	<Sidebar.Content>
 		<AppSidebarActions />
-		<AppSidebarWatchlist />
+		<AppSidebarWatchlist {showWatchlists} {onToggleWatchlists} />
 	</Sidebar.Content>
 	<AppSidebarProfile />
 	<Sidebar.Rail class="group/rail">

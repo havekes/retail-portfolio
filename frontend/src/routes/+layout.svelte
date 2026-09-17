@@ -18,10 +18,18 @@
 	const watchlistService = setWatchlistService();
 
 	let sidebarOpen = $state(untrack(() => data.sidebar_open ?? true));
+	let showWatchlists = $state(untrack(() => data.sidebar_watchlists ?? false));
 
 	function handleSidebarOpenChange(open: boolean) {
 		if (data.user) {
 			userPreferencesService.patchPreferences({ sidebar_open: open }).catch(console.error);
+		}
+	}
+
+	function handleShowWatchlistsChange(show: boolean) {
+		showWatchlists = show;
+		if (data.user) {
+			userPreferencesService.patchPreferences({ sidebar_watchlists: show }).catch(console.error);
 		}
 	}
 
@@ -57,7 +65,7 @@
 		bind:open={sidebarOpen}
 		onOpenChange={handleSidebarOpenChange}
 	>
-		<AppSidebar />
+		<AppSidebar {showWatchlists} onToggleWatchlists={handleShowWatchlistsChange} />
 		<Sidebar.Inset>
 			{@render children()}
 		</Sidebar.Inset>
