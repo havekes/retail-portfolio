@@ -20,6 +20,7 @@ from src.account.schema import (
     HoldingRead,
     PositionRead,
     PositionSchema,
+    UserHoldingRead,
 )
 from src.account.service.account import AccountService
 from src.auth.api_types import UserId
@@ -129,6 +130,33 @@ class PositionService:
                     account_total_value=account_total_value,
                     account_percentage=account_percentage,
                 )
+            )
+
+        return result_items, total
+
+    async def get_user_holdings(
+        self, user_id: UserId, offset: int = 0, limit: int = 50
+    ) -> tuple[list[UserHoldingRead], int]:
+        """Get holdings across every account owned by the user."""
+        positions, total = await self._position_repository.get_by_user(
+            user_id, offset, limit
+        )
+
+        positions_by_account: dict[AccountId, list[PositionSchema]] = {}
+        for position in positions:
+            positions_by_account.setdefault(position.account_id, []).append(position)
+
+        result_items: list[UserHoldingRead] = []
+        for account_id, account_positions in positions_by_account.items():
+            account = await self._account_service.get_account(account_id)
+            holdings, _, _ = await self._calculate_holdings(account, account_positions)
+            result_items.extend(
+                UserHoldingRead(
+                    **holding.model_dump(),
+                    account_id=account.id,
+                    account_name=account.name,
+                )
+                for holding in holdings
             )
 
         return result_items, total

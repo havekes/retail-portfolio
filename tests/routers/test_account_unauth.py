@@ -12,6 +12,14 @@ async def test_account_rename_unauth():
 
 
 @pytest.mark.anyio
+async def test_user_holdings_unauth():
+    """GET /accounts/holdings returns 401 without auth."""
+    async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as ac:
+        response = await ac.get("/api/v1/accounts/holdings")
+        assert response.status_code == 401
+
+
+@pytest.mark.anyio
 async def test_preferences_get_unauth():
     """GET /me/preferences returns 401 without auth."""
     async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as ac:

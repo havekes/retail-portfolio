@@ -50,6 +50,7 @@ from src.account.schema import (
     PortfolioAccountUpdateRequest,
     PortfolioCreate,
     PortfolioRead,
+    UserHoldingRead,
 )
 from src.account.service.account import AccountService
 from src.account.service.csv_account import CsvAccountService
@@ -445,6 +446,22 @@ async def account_totals(
         raise HTTPException(404)
 
     return await position_service.get_total_for_account(account_id, account.currency)
+
+
+@account_router.get("/holdings")
+async def user_holdings(
+    user: Annotated[User, Depends(current_user)],
+    pagination: Annotated[PaginationParams, Depends()],
+    services: DepContainer,
+) -> PaginatedResponse[UserHoldingRead]:
+    """Get all holdings across every account owned by the current user."""
+    position_service = await services.aget(PositionService)
+    holdings, total = await position_service.get_user_holdings(
+        user.id, offset=pagination.offset, limit=pagination.limit
+    )
+    return PaginatedResponse(
+        items=holdings, total=total, offset=pagination.offset, limit=pagination.limit
+    )
 
 
 @account_router.get("/holdings/{security_id}")
