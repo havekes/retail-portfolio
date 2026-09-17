@@ -33,9 +33,11 @@
 	} from '$lib/utils/finance/fibonacci';
 	import { MeasurePrimitive } from './plugins/measure/measure-primitive';
 	import { HorizontalLinePrimitive } from './plugins/horizontal-line/horizontal-line-primitive';
+	import { FreeFormLinePrimitive } from './plugins/free-form-line/free-form-line-primitive';
 	import {
 		areDrawingCollectionsEqual,
 		type HorizontalLineDrawing,
+		type LineDrawing,
 		type MeasureDrawing,
 		type SecurityDrawings
 	} from '$lib/utils/finance/drawings';
@@ -97,6 +99,7 @@
 	let fibonacciPrimitive = $state<FibonacciPrimitive | null>(null);
 	let measurePrimitive = $state<MeasurePrimitive | null>(null);
 	let horizontalLinePrimitive = $state<HorizontalLinePrimitive | null>(null);
+	let freeFormLinePrimitive = $state<FreeFormLinePrimitive | null>(null);
 
 	let {
 		candles = [],
@@ -141,6 +144,11 @@
 		onHorizontalLineChange,
 		onHorizontalLineDrawingModeChange,
 		onHorizontalLineSelect,
+		isDrawingLine = false,
+		selectedLineId = $bindable<string | null>(null),
+		onLineChange,
+		onLineDrawingModeChange,
+		onLineSelect,
 		futureBars = DEFAULT_FUTURE_BARS,
 		onPaneHeightsChange
 	} = $props<{
@@ -190,6 +198,11 @@
 		onHorizontalLineChange?: (lines: HorizontalLineDrawing[]) => void;
 		onHorizontalLineDrawingModeChange?: (isDrawing: boolean) => void;
 		onHorizontalLineSelect?: (id: string | null) => void;
+		isDrawingLine?: boolean;
+		selectedLineId?: string | null;
+		onLineChange?: (lines: LineDrawing[]) => void;
+		onLineDrawingModeChange?: (isDrawing: boolean) => void;
+		onLineSelect?: (id: string | null) => void;
 		futureBars?: number;
 		onPaneHeightsChange?: (heights: PaneHeights | null) => void;
 	}>();
@@ -577,7 +590,7 @@
 	$effect(() => {
 		if (!chartInstance) return;
 		const isDrawing = Boolean(
-			isDrawingWave || isDrawingFib || isDrawingMeasure || isDrawingHorizontalLine
+			isDrawingWave || isDrawingFib || isDrawingMeasure || isDrawingHorizontalLine || isDrawingLine
 		);
 		chartInstance.applyOptions({
 			handleScroll: {
@@ -670,6 +683,31 @@
 	});
 
 	$effect(() => {
+		if (!freeFormLinePrimitive) return;
+		if (isDrawingLine !== undefined && freeFormLinePrimitive.isDrawingMode() !== isDrawingLine) {
+			freeFormLinePrimitive.setDrawingMode(isDrawingLine);
+		}
+	});
+
+	$effect(() => {
+		if (!freeFormLinePrimitive) return;
+		if (selectedLineId !== undefined && freeFormLinePrimitive.getSelectedId() !== selectedLineId) {
+			freeFormLinePrimitive.select(selectedLineId);
+		}
+	});
+
+	$effect(() => {
+		if (!freeFormLinePrimitive) return;
+		const current = freeFormLinePrimitive.getLines();
+		// Legacy persisted anchors may be date strings/BusinessDay; the primitive
+		// normalizes them to epoch seconds on setLines.
+		const next = securityDrawings?.lines ?? [];
+		if (!areDrawingCollectionsEqual(current, next)) {
+			freeFormLinePrimitive.setLines(next);
+		}
+	});
+
+	$effect(() => {
 		if (!elliottWavesPrimitive) return;
 		// Cheap signature guard: `fibSnapPrices` is a fresh array whenever the tools change,
 		// so compare contents before pushing to avoid update churn on unrelated fib edits.
@@ -692,6 +730,7 @@
 				fibonacciPrimitive?.setCandles([]);
 				measurePrimitive?.setCandles([]);
 				horizontalLinePrimitive?.setCandles([]);
+				freeFormLinePrimitive?.setCandles([]);
 				previousFirstCandleTime = null;
 				isLoadingMore = false;
 				return;
@@ -739,6 +778,7 @@
 			fibonacciPrimitive?.setCandles(candles);
 			measurePrimitive?.setCandles(candles);
 			horizontalLinePrimitive?.setCandles(candles);
+			freeFormLinePrimitive?.setCandles(candles);
 
 			if (chartInstance) {
 				if (isPrepending && currentRange && addedCandles > 0) {
@@ -888,7 +928,7 @@
 		});
 
 		fibonacciPrimitive.drawingModeChanged().subscribe((isDrawing) => {
-			if (!isDrawing && !isDrawingWave && chartInstance) {
+			if (!isDrawing && !isDrawingWave && !isDrawingLine && chartInstance) {
 				chartInstance.applyOptions({ handleScroll: { pressedMouseMove: true } });
 			}
 			onFibDrawingModeChange?.(isDrawing);
@@ -921,7 +961,7 @@
 		});
 
 		measurePrimitive.drawingModeChanged().subscribe((isDrawing) => {
-			if (!isDrawing && !isDrawingWave && !isDrawingFib && chartInstance) {
+			if (!isDrawing && !isDrawingWave && !isDrawingFib && !isDrawingLine && chartInstance) {
 				chartInstance.applyOptions({ handleScroll: { pressedMouseMove: true } });
 			}
 			onMeasureDrawingModeChange?.(isDrawing);
@@ -947,7 +987,14 @@
 		});
 
 		horizontalLinePrimitive.drawingModeChanged().subscribe((isDrawing) => {
-			if (!isDrawing && !isDrawingWave && !isDrawingFib && !isDrawingMeasure && chartInstance) {
+			if (
+				!isDrawing &&
+				!isDrawingWave &&
+				!isDrawingFib &&
+				!isDrawingMeasure &&
+				!isDrawingLine &&
+				chartInstance
+			) {
 				chartInstance.applyOptions({ handleScroll: { pressedMouseMove: true } });
 			}
 			onHorizontalLineDrawingModeChange?.(isDrawing);
@@ -958,6 +1005,38 @@
 				selectedHorizontalLineId = id;
 			}
 			onHorizontalLineSelect?.(id);
+		});
+
+		freeFormLinePrimitive = new FreeFormLinePrimitive({
+			lines: securityDrawings?.lines ?? null,
+			isDrawingMode: isDrawingLine,
+			selectedId: selectedLineId
+		});
+		seriesInstance.attachPrimitive(freeFormLinePrimitive);
+
+		freeFormLinePrimitive.drawingsChanged().subscribe((lines) => {
+			onLineChange?.(lines);
+		});
+
+		freeFormLinePrimitive.drawingModeChanged().subscribe((isDrawing) => {
+			if (
+				!isDrawing &&
+				!isDrawingWave &&
+				!isDrawingFib &&
+				!isDrawingMeasure &&
+				!isDrawingHorizontalLine &&
+				chartInstance
+			) {
+				chartInstance.applyOptions({ handleScroll: { pressedMouseMove: true } });
+			}
+			onLineDrawingModeChange?.(isDrawing);
+		});
+
+		freeFormLinePrimitive.selectionChanged().subscribe((id) => {
+			if (selectedLineId !== id) {
+				selectedLineId = id;
+			}
+			onLineSelect?.(id);
 		});
 
 		const handleWheel = (event: WheelEvent) => {
@@ -1020,6 +1099,7 @@
 			fibonacciPrimitive?.destroy();
 			measurePrimitive?.destroy();
 			horizontalLinePrimitive?.destroy();
+			freeFormLinePrimitive?.destroy();
 			chartInstance?.remove();
 		};
 	});
@@ -1448,6 +1528,18 @@
 
 	export function setSelectedHorizontalLineId(id: string | null) {
 		horizontalLinePrimitive?.select(id);
+	}
+
+	export function getLinePrimitive(): FreeFormLinePrimitive | null {
+		return freeFormLinePrimitive;
+	}
+
+	export function getSelectedLineId(): string | null {
+		return freeFormLinePrimitive?.getSelectedId() ?? null;
+	}
+
+	export function setSelectedLineId(id: string | null) {
+		freeFormLinePrimitive?.select(id);
 	}
 </script>
 

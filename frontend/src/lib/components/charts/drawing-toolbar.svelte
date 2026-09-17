@@ -10,6 +10,7 @@
 	import Timeline from '@lucide/svelte/icons/timeline';
 	import Ruler from '@lucide/svelte/icons/ruler';
 	import Minus from '@lucide/svelte/icons/minus';
+	import Slash from '@lucide/svelte/icons/slash';
 	import * as DropdownMenu from '$lib/components/ui/dropdown-menu/index.js';
 	import * as Tooltip from '$lib/components/ui/tooltip/index.js';
 
@@ -21,12 +22,14 @@
 		isDrawingFib = false,
 		isDrawingMeasure = false,
 		isDrawingHorizontalLine = false,
+		isDrawingLine = false,
 		isTimelineVisible = false,
 		onSelectWaveDegree,
 		onSelectCorrectiveDegree,
 		onToggleFib,
 		onMeasureSelect,
 		onHorizontalLineSelect,
+		onLineSelect,
 		onSave,
 		saveFeedback = 'idle',
 		onToggleTimeline
@@ -38,12 +41,14 @@
 		isDrawingFib?: boolean;
 		isDrawingMeasure?: boolean;
 		isDrawingHorizontalLine?: boolean;
+		isDrawingLine?: boolean;
 		isTimelineVisible?: boolean;
 		onSelectWaveDegree?: (degree: WaveDegree, tool?: WaveType) => void;
 		onSelectCorrectiveDegree?: (degree: WaveDegree) => void;
 		onToggleFib?: (tool: FibToolType) => void;
 		onMeasureSelect?: () => void;
 		onHorizontalLineSelect?: () => void;
+		onLineSelect?: () => void;
 		onSave?: () => void;
 		saveFeedback?: 'idle' | 'saved';
 		onToggleTimeline?: () => void;
@@ -283,6 +288,29 @@
 			</Tooltip.Trigger>
 			<Tooltip.Content side="right">
 				<p>Horizontal Line</p>
+			</Tooltip.Content>
+		</Tooltip.Root>
+
+		<!-- Free-form Line Button -->
+		<Tooltip.Root>
+			<Tooltip.Trigger>
+				{#snippet child({ props })}
+					<button
+						type="button"
+						{...props}
+						onclick={() => onLineSelect?.()}
+						class="rounded p-1.5 transition-colors {isDrawingLine
+							? 'bg-primary text-primary-foreground shadow-sm'
+							: 'text-muted-foreground hover:bg-muted hover:text-foreground'}"
+						aria-label="Toggle Line drawing"
+						title="Line"
+					>
+						<Slash class="h-4 w-4" />
+					</button>
+				{/snippet}
+			</Tooltip.Trigger>
+			<Tooltip.Content side="right">
+				<p>Line</p>
 			</Tooltip.Content>
 		</Tooltip.Root>
 
