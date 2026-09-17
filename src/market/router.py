@@ -396,6 +396,38 @@ async def market_watchlist_securities(
     )
 
 
+@market_router.post("/watchlists/{watchlist_id}/securities/{security_id}")
+async def market_add_security_to_watchlist(
+    user: Annotated[User, Depends(current_user)],
+    watchlist_id: WatchlistId,
+    security_id: SecurityId,
+    services: DepContainer,
+) -> WatchlistRead:
+    """
+    Add a security to a watchlist owned by the logged in user
+    """
+    watchlist_repository = await services.aget(WatchlistRepository)
+    return await watchlist_repository.add_security_to_watchlist(
+        watchlist_id, user.id, security_id
+    )
+
+
+@market_router.delete("/watchlists/{watchlist_id}/securities/{security_id}")
+async def market_remove_security_from_watchlist(
+    user: Annotated[User, Depends(current_user)],
+    watchlist_id: WatchlistId,
+    security_id: SecurityId,
+    services: DepContainer,
+) -> WatchlistRead:
+    """
+    Remove a security from a watchlist owned by the logged in user
+    """
+    watchlist_repository = await services.aget(WatchlistRepository)
+    return await watchlist_repository.remove_security_from_watchlist(
+        watchlist_id, user.id, security_id
+    )
+
+
 @market_router.post("/watchlists/securities/{security_id}")
 async def market_add_to_watchlist(
     user: Annotated[User, Depends(current_user)],

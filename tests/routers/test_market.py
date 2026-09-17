@@ -115,6 +115,143 @@ async def test_watchlist_add_security_not_found(auth_client):
 
 
 @pytest.mark.anyio
+async def test_add_security_to_watchlist(auth_client, test_watchlists, test_security):
+    """POST /watchlists/{id}/securities/{sid} adds the membership, idempotently."""
+    watchlist_id = str(test_watchlists[0].id)
+    url = f"/api/v1/market/watchlists/{watchlist_id}/securities/{test_security.id}"
+
+    response = await auth_client.post(url)
+
+    assert response.status_code == 200
+    result = response.json()
+    assert result["id"] == watchlist_id
+    assert [s["id"] for s in result["securities"]] == [str(test_security.id)]
+
+    # Adding twice must not duplicate the membership row
+    second_response = await auth_client.post(url)
+
+    assert second_response.status_code == 200
+    assert [s["id"] for s in second_response.json()["securities"]] == [
+        str(test_security.id)
+    ]
+
+    securities_response = await auth_client.get(
+        f"/api/v1/market/watchlists/{watchlist_id}/securities"
+    )
+    securities = securities_response.json()
+    assert securities["total"] == 1
+    assert len(securities["items"]) == 1
+
+
+@pytest.mark.anyio
+async def test_remove_security_from_watchlist(auth_client, test_watchlists, test_security):
+    """DELETE /watchlists/{id}/securities/{sid} removes; non-member remove is a no-op."""
+    watchlist_id = str(test_watchlists[0].id)
+    url = f"/api/v1/market/watchlists/{watchlist_id}/securities/{test_security.id}"
+
+    await auth_client.post(url)
+    response = await auth_client.delete(url)
+
+    assert response.status_code == 200
+    result = response.json()
+    assert result["id"] == watchlist_id
+    assert result["securities"] == []
+
+    # Removing a non-member is a successful no-op
+    second_response = await auth_client.delete(url)
+
+    assert second_response.status_code == 200
+    assert second_response.json()["securities"] == []
+
+
+@pytest.mark.anyio
+async def test_watchlist_membership_unknown_security(auth_client, test_watchlists):
+    """POST/DELETE on a random security UUID return 404."""
+    from uuid import uuid4
+
+    watchlist_id = str(test_watchlists[0].id)
+    url = f"/api/v1/market/watchlists/{watchlist_id}/securities/{uuid4()}"
+
+    post_response = await auth_client.post(url)
+    delete_response = await auth_client.delete(url)
+
+    assert post_response.status_code == 404
+    assert delete_response.status_code == 404
+
+
+@pytest.mark.anyio
+async def test_watchlist_membership_not_owned(
+    auth_client, test_security, other_user, db_session
+):
+    """POST/DELETE on another user's watchlist return 404 and leave it untouched."""
+    from uuid import uuid4
+
+    from sqlalchemy import select
+    from sqlalchemy.orm import selectinload
+
+    from src.market.model import WatchlistModel
+
+    other_watchlist = WatchlistModel(
+        id=uuid4(),
+        user_id=other_user.id,
+        name="Other User Watchlist",
+    )
+    db_session.add(other_watchlist)
+    await db_session.commit()
+    other_watchlist_id = str(other_watchlist.id)
+
+    url = (
+        f"/api/v1/market/watchlists/{other_watchlist_id}/securities/{test_security.id}"
+    )
+    post_response = await auth_client.post(url)
+    delete_response = await auth_client.delete(url)
+
+    assert post_response.status_code == 404
+    assert delete_response.status_code == 404
+
+    # Cross-user isolation: the other user's watchlist is unchanged
+    result = await db_session.execute(
+        select(WatchlistModel)
+        .options(selectinload(WatchlistModel.securities))
+        .where(WatchlistModel.id == other_watchlist.id)
+    )
+    assert result.scalar_one().securities == []
+
+
+@pytest.mark.anyio
+async def test_watchlist_membership_cross_user_isolation(
+    auth_client, test_watchlists, test_security, other_user, db_session
+):
+    """Caller add/remove on their own watchlist leaves another user's untouched."""
+    from uuid import uuid4
+
+    from sqlalchemy import select
+    from sqlalchemy.orm import selectinload
+
+    from src.market.model import WatchlistModel
+
+    other_watchlist = WatchlistModel(
+        id=uuid4(),
+        user_id=other_user.id,
+        name="Other User Watchlist",
+    )
+    db_session.add(other_watchlist)
+    await db_session.commit()
+
+    watchlist_id = str(test_watchlists[0].id)
+    url = f"/api/v1/market/watchlists/{watchlist_id}/securities/{test_security.id}"
+    await auth_client.post(url)
+    await auth_client.delete(url)
+
+    result = await db_session.execute(
+        select(WatchlistModel)
+        .options(selectinload(WatchlistModel.securities))
+        .where(WatchlistModel.id == other_watchlist.id)
+    )
+    assert result.scalar_one().securities == []
+
+
+@pytest.mark.anyio
 async def test_watchlist_create(auth_client, test_user):
     """Test POST /watchlists creates a watchlist owned by the caller."""
     response = await auth_client.post(

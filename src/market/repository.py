@@ -171,6 +171,18 @@ class WatchlistRepository(ABC):
         pass
 
     @abstractmethod
+    async def add_security_to_watchlist(
+        self, watchlist_id: WatchlistId, user_id: UserId, security_id: SecurityId
+    ) -> WatchlistRead:
+        pass
+
+    @abstractmethod
+    async def remove_security_from_watchlist(
+        self, watchlist_id: WatchlistId, user_id: UserId, security_id: SecurityId
+    ) -> WatchlistRead:
+        pass
+
+    @abstractmethod
     async def get_securities(
         self, watchlist_id: uuid.UUID, user_id: UserId, offset: int = 0, limit: int = 50
     ) -> tuple[list[SecuritySchema], int]:
