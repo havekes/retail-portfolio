@@ -14,7 +14,10 @@ from src.account.model import (
     PortfolioModel,
     PositionModel,
 )
-from src.account.repository_sqlalchemy import SqlAlchemyAccountRepository
+from src.account.repository_sqlalchemy import (
+    SqlAlchemyAccountRepository,
+    SqlAlchemyPositionRepository,
+)
 from src.auth.model import UserModel
 from src.auth.repository_sqlalchemy import (
     SqlAlchemyPasskeyRepository,
@@ -845,3 +848,48 @@ async def test_account_repository_delete_cascades(
     assert portfolio_in_db is not None
 
 
+@pytest.mark.anyio
+async def test_position_repository_get_by_user_scopes_and_paginates(
+    db_session: AsyncSession,
+    test_accounts,
+    other_user_account,
+    test_security,
+):
+    """get_by_user returns only the user's positions with a full count."""
+    repo = SqlAlchemyPositionRepository(db_session)
+
+    for account in test_accounts:
+        db_session.add(
+            PositionModel(
+                account_id=account.id,
+                security_id=test_security.id,
+                quantity=Decimal("1.0"),
+                average_cost=Decimal("1.0"),
+            )
+        )
+    # A position owned by a different user must never be returned.
+    db_session.add(
+        PositionModel(
+            account_id=other_user_account.id,
+            security_id=test_security.id,
+            quantity=Decimal("99.0"),
+            average_cost=Decimal("99.0"),
+        )
+    )
+    await db_session.commit()
+
+    user_id = test_accounts[0].user_id
+    positions, total = await repo.get_by_user(user_id)
+    assert total == 3
+    assert len(positions) == 3
+    own_account_ids = {account.id for account in test_accounts}
+    assert {position.account_id for position in positions} == own_account_ids
+
+    page, page_total = await repo.get_by_user(user_id, offset=1, limit=1)
+    assert page_total == 3
+    assert len(page) == 1
+
+    other_positions, other_total = await repo.get_by_user(other_user_account.user_id)
+    assert other_total == 1
+    assert len(other_positions) == 1
+    assert other_positions[0].account_id == other_user_account.id
