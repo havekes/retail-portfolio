@@ -61,7 +61,13 @@
 		type SecurityFibonacciTools,
 		updateSecurityFibonacciTools
 	} from '$lib/utils/finance/fibonacci';
-	import { isSecurityDrawingsEmpty, type SecurityDrawings } from '$lib/utils/finance/drawings';
+	import {
+		isSecurityDrawingsEmpty,
+		removeSecurityDrawings,
+		updateSecurityDrawings,
+		type MeasureDrawing,
+		type SecurityDrawings
+	} from '$lib/utils/finance/drawings';
 	import {
 		captureSnapshot,
 		areSnapshotsEqual,
@@ -103,6 +109,8 @@
 	let activeFibTool = $state<FibToolType>('retracement');
 	let isDrawingFib = $state(false);
 	let selectedFibTool = $state<FibToolType | null>(null);
+	let isDrawingMeasure = $state(false);
+	let selectedMeasureId = $state<string | null>(null);
 	let isChartSettingsOpen = $state(false);
 	let isFibWidthModalOpen = $state(false);
 	let modalFibTool = $state<FibToolType>('retracement');
@@ -264,6 +272,11 @@
 				const toolToClear = selectedFibTool;
 				selectedFibTool = null;
 				handleClearFib(toolToClear);
+			} else if (selectedMeasureId) {
+				event.preventDefault();
+				const measureToRemove = selectedMeasureId;
+				selectedMeasureId = null;
+				void handleRemoveMeasure(measureToRemove);
 			}
 		} else if (event.key === 'Escape') {
 			if (selectedWaveDegree) {
@@ -272,11 +285,17 @@
 			if (selectedFibTool) {
 				selectedFibTool = null;
 			}
+			if (selectedMeasureId) {
+				selectedMeasureId = null;
+			}
 			if (isDrawingWave) {
 				isDrawingWave = false;
 			}
 			if (isDrawingFib) {
 				isDrawingFib = false;
+			}
+			if (isDrawingMeasure) {
+				isDrawingMeasure = false;
 			}
 		} else if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === 's') {
 			event.preventDefault();
@@ -462,6 +481,53 @@
 			});
 		} catch (err) {
 			console.error('Failed to persist fibonacci tools preference:', err);
+		}
+	}
+
+	async function handleMeasureChange(measures: MeasureDrawing[]) {
+		if (isRewound) return;
+		if (!security?.id) return;
+		const updatedAllDrawings = updateSecurityDrawings(
+			userPreferences?.drawings,
+			security.id,
+			'measures',
+			measures
+		);
+		userPreferences = {
+			...(userPreferences ?? {}),
+			drawings: updatedAllDrawings
+		};
+		try {
+			await userPreferencesService.patchPreferences({
+				drawings: updatedAllDrawings
+			});
+		} catch (err) {
+			console.error('Failed to persist measure drawings preference:', err);
+		}
+	}
+
+	async function handleRemoveMeasure(measureId: string) {
+		if (isRewound) return;
+		if (selectedMeasureId === measureId) {
+			selectedMeasureId = null;
+		}
+		if (!security?.id) return;
+		const updatedAllDrawings = removeSecurityDrawings(
+			userPreferences?.drawings,
+			security.id,
+			'measures',
+			measureId
+		);
+		userPreferences = {
+			...(userPreferences ?? {}),
+			drawings: updatedAllDrawings
+		};
+		try {
+			await userPreferencesService.patchPreferences({
+				drawings: updatedAllDrawings
+			});
+		} catch (err) {
+			console.error('Failed to persist measure drawings preference:', err);
 		}
 	}
 
@@ -1020,9 +1086,11 @@
 			// Reset drawing mode on route transition / security change
 			isDrawingWave = false;
 			isDrawingFib = false;
+			isDrawingMeasure = false;
 			activeWaveType = 'impulse';
 			selectedWaveDegree = null;
 			selectedFibTool = null;
+			selectedMeasureId = null;
 			isTimelineVisible = false;
 
 			(async () => {
@@ -1250,6 +1318,7 @@
 						isDrawingWave={isRewound ? false : isDrawingWave}
 						{activeFibTool}
 						isDrawingFib={isRewound ? false : isDrawingFib}
+						isDrawingMeasure={isRewound ? false : isDrawingMeasure}
 						{isTimelineVisible}
 						onToggleTimeline={() => (isTimelineVisible = !isTimelineVisible)}
 						onSave={handleSaveSnapshot}
@@ -1260,6 +1329,7 @@
 							activeWaveType = 'impulse';
 							isDrawingWave = true;
 							isDrawingFib = false;
+							isDrawingMeasure = false;
 						}}
 						onSelectCorrectiveDegree={(degree) => {
 							if (isRewound) timelinePosition = null;
@@ -1267,6 +1337,7 @@
 							activeWaveType = 'corrective';
 							isDrawingWave = true;
 							isDrawingFib = false;
+							isDrawingMeasure = false;
 						}}
 						onToggleFib={(tool) => {
 							if (isRewound) timelinePosition = null;
@@ -1276,6 +1347,19 @@
 								activeFibTool = tool;
 								isDrawingFib = true;
 								isDrawingWave = false;
+								isDrawingMeasure = false;
+							}
+						}}
+						onMeasureSelect={() => {
+							if (isRewound) timelinePosition = null;
+							if (isDrawingMeasure) {
+								isDrawingMeasure = false;
+							} else {
+								isDrawingMeasure = true;
+								isDrawingWave = false;
+								isDrawingFib = false;
+								selectedWaveDegree = null;
+								selectedFibTool = null;
 							}
 						}}
 					/>
@@ -1309,7 +1393,10 @@
 								onWaveTypeChange={(type) => (activeWaveType = type)}
 								onWaveSelect={(degree) => {
 									selectedWaveDegree = degree;
-									if (degree) selectedFibTool = null;
+									if (degree) {
+										selectedFibTool = null;
+										selectedMeasureId = null;
+									}
 								}}
 								fibonacciTools={effectiveFibonacciTools}
 								{activeFibTool}
@@ -1326,11 +1413,33 @@
 								}}
 								onFibSelect={(tool) => {
 									selectedFibTool = tool;
-									if (tool) selectedWaveDegree = null;
+									if (tool) {
+										selectedWaveDegree = null;
+										selectedMeasureId = null;
+									}
 								}}
 								onFibDoubleClick={(tool) => {
 									modalFibTool = tool;
 									isFibWidthModalOpen = true;
+								}}
+								securityDrawings={effectiveSecurityDrawings}
+								isDrawingMeasure={isRewound ? false : isDrawingMeasure}
+								bind:selectedMeasureId
+								onMeasureChange={handleMeasureChange}
+								onMeasureDrawingModeChange={(isDrawing) => {
+									if (isRewound) return;
+									isDrawingMeasure = isDrawing;
+									if (isDrawing) {
+										isDrawingWave = false;
+										isDrawingFib = false;
+									}
+								}}
+								onMeasureSelect={(id) => {
+									selectedMeasureId = id;
+									if (id) {
+										selectedWaveDegree = null;
+										selectedFibTool = null;
+									}
 								}}
 								onPaneHeightsChange={handlePaneHeightsChange}
 							/>
