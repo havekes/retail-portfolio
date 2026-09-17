@@ -58,6 +58,7 @@ export interface UserPreferences {
 	watchlist_sort?: Record<string, string> | null;
 	holdings_table?: HoldingsTableConfig | null;
 	holdings_group?: HoldingsGroupMode | null;
+	indicator_pane_heights?: Record<string, number> | null;
 }
 
 export class UserPreferencesService extends ApiClient {

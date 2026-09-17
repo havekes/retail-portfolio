@@ -586,6 +586,7 @@
 		removeIndicator: (indicatorId: string) => void;
 		clearWave?: (waveIdOrDegree?: string | WaveDegree) => void;
 		getSelectedWaveId?: () => string | null;
+		setPaneHeights?: (heights: Record<string, number> | null) => void;
 	}
 
 	let chartRef = $state<ChartInstance | null>(null);
@@ -819,6 +820,26 @@
 		}
 	}
 
+	async function handlePaneHeightsChange(heights: Record<string, number> | null) {
+		// PATCH replaces the whole `indicator_pane_heights` key — always send the full object.
+		userPreferences = {
+			...(userPreferences ?? {}),
+			indicator_pane_heights: heights
+		};
+		try {
+			await userPreferencesService.patchPreferences({ indicator_pane_heights: heights });
+		} catch (err) {
+			console.error('Failed to persist indicator pane heights:', err);
+		}
+	}
+
+	function applySavedPaneHeights(prefs: UserPreferences | null | undefined) {
+		const heights = prefs?.indicator_pane_heights;
+		if (!heights || Object.keys(heights).length === 0) return;
+		// setTimeout ensures chartRef is bound before the restore call.
+		setTimeout(() => chartRef?.setPaneHeights?.(heights), 100);
+	}
+
 	async function handleWaveSettingsChange(settings: WaveSettings) {
 		userPreferences = {
 			...(userPreferences ?? {}),
@@ -929,6 +950,7 @@
 
 	async function onPreferencesLoaded(prefs: UserPreferences) {
 		userPreferences = prefs;
+		applySavedPaneHeights(prefs);
 
 		// (a) Apply chart style
 		chartStyle = (prefs.chart_style as ChartStyle | undefined) ?? 'heikin_ashi';
@@ -988,6 +1010,7 @@
 					try {
 						const prefs = await userPreferencesService.getPreferences();
 						userPreferences = prefs;
+						applySavedPaneHeights(prefs);
 					} catch (err) {
 						console.error('Failed to load user preferences:', err);
 					}
@@ -1289,6 +1312,7 @@
 									modalFibTool = tool;
 									isFibWidthModalOpen = true;
 								}}
+								onPaneHeightsChange={handlePaneHeightsChange}
 							/>
 							<ChartSettingsModal
 								bind:open={isChartSettingsOpen}
