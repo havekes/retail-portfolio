@@ -50,6 +50,7 @@ export interface UserPreferences {
 	fibonacci_tools?: Record<string, SecurityFibonacciTools> | null;
 	wave_settings?: WaveSettings | null;
 	chart_hide_labels?: boolean | null;
+	indicator_pane_heights?: Record<string, number> | null;
 }
 
 export class UserPreferencesService extends ApiClient {
