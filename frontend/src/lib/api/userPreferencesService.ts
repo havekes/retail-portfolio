@@ -1,5 +1,6 @@
 import { ApiClient } from './apiClient';
 import type { IndicatorConfig } from './indicatorsService';
+import type { HoldingsTableConfig } from '$lib/components/holdings/holdings-table-columns';
 import type {
 	DegreeWaveCount,
 	SecurityElliottWaves,
@@ -50,6 +51,7 @@ export interface UserPreferences {
 	fibonacci_tools?: Record<string, SecurityFibonacciTools> | null;
 	wave_settings?: WaveSettings | null;
 	chart_hide_labels?: boolean | null;
+	holdings_table?: HoldingsTableConfig | null;
 }
 
 export class UserPreferencesService extends ApiClient {
