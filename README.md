@@ -7,8 +7,10 @@ Read the [AGENTS.md](./AGENTS.md) file for agent guidelines and [openwiki/quicks
 
 ### Running the app
 
-- Create backend `.env` by copying `.env.example`
-- Create frontend `./frontend/.env` by copying `./frontend/.env.example`
+- Create the root `.env` by copying the tracked template: `cp .env.example .env`
+- The backend, worker, Compose interpolation, and the frontend dev server all read this one root `.env` (it is gitignored; `.env.example` is the tracked sample).
+
+> **Migrating an existing checkout:** `src/.env` and `frontend/.env` are obsolete. Move any custom values (for example `VITE_*` overrides from `frontend/.env`, backend overrides from `src/.env`) into the root `.env`, then delete both files.
 
 Using Docker compose is the only supported way to run the application: `docker compose up -d`
 

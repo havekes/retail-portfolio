@@ -202,9 +202,9 @@ The FastAPI backend is the only intended client.
 
 - **Setting:** `indicator_service_url` in `src/config/settings.py`, default
   `http://localhost:8080`.
-- **Environment variable:** `INDICATOR_SERVICE_URL`; `src/.env.example` sets it
-  to `http://indicator-service:8080` for Docker Compose (the compose service
-  name).
+- **Environment variable:** `INDICATOR_SERVICE_URL`; the root `.env.example`
+  (and the root `.env` copied from it) sets it to
+  `http://indicator-service:8080` for Docker Compose (the compose service name).
 - **Client:** `IndicatorServiceClient` in `src/market/service.py` POSTs
   `{interval, candles, indicators}` as JSON to `<base_url>/compute` and returns
   the `indicators` map. The default client timeout is `10.0`s.
