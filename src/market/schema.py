@@ -99,7 +99,15 @@ class WatchlistSchema(BaseModel):
 
 
 class WatchlistRead(WatchlistSchema):
-    pass
+    securities: list[SecuritySchema]
+
+
+class WatchlistCreate(BaseModel):
+    name: str = Field(min_length=1, max_length=100)
+
+
+class WatchlistUpdate(BaseModel):
+    name: str = Field(min_length=1, max_length=100)
 
 
 class PriceHistoryRead(PaginatedResponse[PriceSchema]):
