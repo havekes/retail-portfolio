@@ -2,6 +2,7 @@
 	import * as Sidebar from '$lib/components/ui/sidebar/index.js';
 	import { resolve } from '$app/paths';
 	import ChartCandlestick from '@lucide/svelte/icons/chart-candlestick';
+	import List from '@lucide/svelte/icons/list';
 	import { useSidebar } from '$lib/components/ui/sidebar/context.svelte.js';
 
 	const sidebar = useSidebar();
@@ -21,6 +22,16 @@
 							<a href={resolve('/')} {...props}>
 								<ChartCandlestick class="size-4 shrink-0" />
 								<span class="truncate text-base font-semibold">Portfolio dashboard</span>
+							</a>
+						{/snippet}
+					</Sidebar.MenuButton>
+				</Sidebar.MenuItem>
+				<Sidebar.MenuItem>
+					<Sidebar.MenuButton>
+						{#snippet child({ props })}
+							<a href={resolve('/watchlists')} {...props}>
+								<List class="size-4 shrink-0" />
+								<span class="truncate text-base font-semibold">Watchlists</span>
 							</a>
 						{/snippet}
 					</Sidebar.MenuButton>
