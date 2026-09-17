@@ -6,3 +6,6 @@ node_modules/
 
 .coverage
 .bash_history
+
+# Real environment file (root). `.env.example` stays in the build context.
+.env

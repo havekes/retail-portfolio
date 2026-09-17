@@ -8,7 +8,7 @@ MIN_SECRET_KEY_LENGTH: int = 32
 
 
 class Settings(BaseSettings):
-    model_config = SettingsConfigDict(env_file=(".env", "src/.env"), extra="ignore")
+    model_config = SettingsConfigDict(env_file=(".env",), extra="ignore")
 
     environment: str = "prod"
     log_level: str | None = None
