@@ -167,6 +167,7 @@ import { createChart } from 'lightweight-charts';
 import { ElliottWavesPrimitive } from './plugins/elliott-wave/elliott-wave';
 import { FibonacciPrimitive } from './plugins/fibonacci/fibonacci-primitive';
 import { MeasurePrimitive } from './plugins/measure/measure-primitive';
+import { HorizontalLinePrimitive } from './plugins/horizontal-line/horizontal-line-primitive';
 import type { SecurityDrawings } from '$lib/utils/finance/drawings';
 import {
 	MAX_PANE_FRACTION,
@@ -2664,6 +2665,255 @@ describe('SecurityChart - Measure Integration', () => {
 		const createdCharts = vi.mocked(createChart).mock.results.map((r) => r.value);
 		const mainChart = createdCharts[createdCharts.length - 1];
 		const primitive = getMeasurePrimitive();
+
+		vi.mocked(mainChart.applyOptions).mockClear();
+		primitive.setDrawingMode(false);
+		await tick();
+
+		expect(mainChart.applyOptions).toHaveBeenCalledWith({
+			handleScroll: { pressedMouseMove: true }
+		});
+	});
+});
+
+describe('SecurityChart - Horizontal Line Integration', () => {
+	/* eslint-disable-next-line @typescript-eslint/no-explicit-any */
+	let SecurityChart: Component<any>;
+
+	const initialCandles: Candle[] = [
+		{ time: '2024-01-10', open: 10, high: 12, low: 9, close: 11 },
+		{ time: '2024-01-11', open: 11, high: 13, low: 10, close: 12 }
+	];
+
+	const epoch = (date: string): number =>
+		Math.floor(new Date(`${date}T00:00:00Z`).getTime() / 1000);
+
+	beforeAll(async () => {
+		const mod = await import('./security-chart.svelte');
+		SecurityChart = mod.default;
+	});
+
+	beforeEach(() => {
+		vi.clearAllMocks();
+	});
+
+	function getHorizontalLinePrimitive(): HorizontalLinePrimitive {
+		return mockAttachPrimitive.mock.calls.find(
+			(c) => c[0] instanceof HorizontalLinePrimitive
+		)?.[0] as HorizontalLinePrimitive;
+	}
+
+	function horizontalLineDrawings(): SecurityDrawings {
+		return {
+			horizontalLines: [
+				{
+					id: 'hline-1',
+					p1: { time: '2024-01-10', price: 10 },
+					visible: true
+				}
+			]
+		};
+	}
+
+	it('attaches HorizontalLinePrimitive to the candlestick series on mount with initial props', () => {
+		render(SecurityChart, {
+			props: {
+				candles: initialCandles,
+				securityDrawings: horizontalLineDrawings(),
+				isDrawingHorizontalLine: true,
+				selectedHorizontalLineId: 'hline-1'
+			}
+		});
+
+		const primitive = getHorizontalLinePrimitive();
+		expect(primitive).toBeDefined();
+		expect(primitive.isDrawingMode()).toBe(true);
+		expect(primitive.getSelectedId()).toBe('hline-1');
+
+		const lines = primitive.getHorizontalLines();
+		expect(lines).toHaveLength(1);
+		// Anchors are canonicalized to epoch seconds on ingestion.
+		expect(lines[0].p1.time).toBe(epoch('2024-01-10'));
+	});
+
+	it('syncs the horizontal line collection from the securityDrawings prop', async () => {
+		const { rerender } = render(SecurityChart, {
+			props: { candles: initialCandles, securityDrawings: null }
+		});
+
+		const primitive = getHorizontalLinePrimitive();
+		expect(primitive.getHorizontalLines()).toHaveLength(0);
+
+		await rerender({ candles: initialCandles, securityDrawings: horizontalLineDrawings() });
+		expect(primitive.getHorizontalLines()).toHaveLength(1);
+		expect(primitive.getHorizontalLines()[0].p1.price).toBe(10);
+
+		await rerender({ candles: initialCandles, securityDrawings: { horizontalLines: null } });
+		expect(primitive.getHorizontalLines()).toHaveLength(0);
+	});
+
+	it('does not reset candle data when only horizontal lines change', async () => {
+		const { rerender } = render(SecurityChart, {
+			props: { candles: initialCandles, securityDrawings: null }
+		});
+
+		const initialSetDataCalls = mockSetData.mock.calls.length;
+		await rerender({ candles: initialCandles, securityDrawings: horizontalLineDrawings() });
+
+		expect(mockSetData.mock.calls.length).toBe(initialSetDataCalls);
+	});
+
+	it('syncs isDrawingHorizontalLine prop changes to HorizontalLinePrimitive', async () => {
+		const { rerender } = render(SecurityChart, {
+			props: { candles: initialCandles, isDrawingHorizontalLine: false }
+		});
+
+		const primitive = getHorizontalLinePrimitive();
+		expect(primitive.isDrawingMode()).toBe(false);
+
+		await rerender({ candles: initialCandles, isDrawingHorizontalLine: true });
+		expect(primitive.isDrawingMode()).toBe(true);
+
+		await rerender({ candles: initialCandles, isDrawingHorizontalLine: false });
+		expect(primitive.isDrawingMode()).toBe(false);
+	});
+
+	it('syncs selectedHorizontalLineId prop changes to HorizontalLinePrimitive', async () => {
+		const { rerender } = render(SecurityChart, {
+			props: {
+				candles: initialCandles,
+				securityDrawings: horizontalLineDrawings(),
+				selectedHorizontalLineId: null
+			}
+		});
+
+		const primitive = getHorizontalLinePrimitive();
+		expect(primitive.getSelectedId()).toBeNull();
+
+		await rerender({
+			candles: initialCandles,
+			securityDrawings: horizontalLineDrawings(),
+			selectedHorizontalLineId: 'hline-1'
+		});
+		expect(primitive.getSelectedId()).toBe('hline-1');
+	});
+
+	it('forwards drawingsChanged, drawingModeChanged and selectionChanged to callbacks', () => {
+		const onHorizontalLineChange = vi.fn();
+		const onHorizontalLineDrawingModeChange = vi.fn();
+		const onHorizontalLineSelect = vi.fn();
+
+		render(SecurityChart, {
+			props: {
+				candles: initialCandles,
+				securityDrawings: horizontalLineDrawings(),
+				onHorizontalLineChange,
+				onHorizontalLineDrawingModeChange,
+				onHorizontalLineSelect
+			}
+		});
+
+		const primitive = getHorizontalLinePrimitive();
+
+		// A single click completes a drawing and fires drawingsChanged + drawingModeChanged.
+		primitive.setDrawingMode(true);
+		primitive.addPoint({ time: '2024-01-11', price: 20 });
+
+		expect(onHorizontalLineChange).toHaveBeenCalledWith(
+			expect.arrayContaining([
+				expect.objectContaining({
+					p1: { time: epoch('2024-01-11'), price: 20 }
+				})
+			])
+		);
+		expect(onHorizontalLineDrawingModeChange).toHaveBeenCalledWith(false);
+
+		primitive.select('hline-1');
+		expect(onHorizontalLineSelect).toHaveBeenCalledWith('hline-1');
+
+		primitive.select(null);
+		expect(onHorizontalLineSelect).toHaveBeenCalledWith(null);
+	});
+
+	it('forwards candle updates to HorizontalLinePrimitive', async () => {
+		const { rerender } = render(SecurityChart, {
+			props: { candles: initialCandles }
+		});
+
+		const primitive = getHorizontalLinePrimitive();
+		const setCandlesSpy = vi.spyOn(primitive, 'setCandles');
+
+		const newCandles: Candle[] = [
+			...initialCandles,
+			{ time: '2024-01-12', open: 12, high: 14, low: 11, close: 13 }
+		];
+
+		await rerender({ candles: newCandles });
+		expect(setCandlesSpy).toHaveBeenCalledWith(newCandles);
+	});
+
+	it('propagates hideLabels to the horizontal line primitive', async () => {
+		const { rerender } = render(SecurityChart, {
+			props: { candles: initialCandles, hideLabels: false }
+		});
+		await tick();
+
+		const primitive = getHorizontalLinePrimitive();
+		const spy = vi.spyOn(primitive, 'setHideLabels');
+
+		await rerender({ candles: initialCandles, hideLabels: true });
+		await tick();
+		expect(spy).toHaveBeenCalledWith(true);
+
+		await rerender({ candles: initialCandles, hideLabels: false });
+		await tick();
+		expect(spy).toHaveBeenCalledWith(false);
+	});
+
+	it('destroys HorizontalLinePrimitive when the component is unmounted', () => {
+		const { unmount } = render(SecurityChart, {
+			props: { candles: initialCandles }
+		});
+
+		const primitive = getHorizontalLinePrimitive();
+		const destroySpy = vi.spyOn(primitive, 'destroy');
+		unmount();
+		expect(destroySpy).toHaveBeenCalled();
+	});
+
+	it('disables pressedMouseMove while isDrawingHorizontalLine is true and restores when false', async () => {
+		const { rerender } = render(SecurityChart, {
+			props: { candles: initialCandles, isDrawingHorizontalLine: false }
+		});
+		await tick();
+
+		const createdCharts = vi.mocked(createChart).mock.results.map((r) => r.value);
+		const mainChart = createdCharts[createdCharts.length - 1];
+		vi.mocked(mainChart.applyOptions).mockClear();
+
+		await rerender({ candles: initialCandles, isDrawingHorizontalLine: true });
+		await tick();
+		expect(mainChart.applyOptions).toHaveBeenCalledWith({
+			handleScroll: { pressedMouseMove: false }
+		});
+
+		vi.mocked(mainChart.applyOptions).mockClear();
+		await rerender({ candles: initialCandles, isDrawingHorizontalLine: false });
+		await tick();
+		expect(mainChart.applyOptions).toHaveBeenCalledWith({
+			handleScroll: { pressedMouseMove: true }
+		});
+	});
+
+	it('restores pressedMouseMove when HorizontalLinePrimitive exits drawing mode', async () => {
+		render(SecurityChart, {
+			props: { candles: initialCandles, isDrawingHorizontalLine: true }
+		});
+		await tick();
+
+		const createdCharts = vi.mocked(createChart).mock.results.map((r) => r.value);
+		const mainChart = createdCharts[createdCharts.length - 1];
+		const primitive = getHorizontalLinePrimitive();
 
 		vi.mocked(mainChart.applyOptions).mockClear();
 		primitive.setDrawingMode(false);

@@ -65,6 +65,7 @@
 		isSecurityDrawingsEmpty,
 		removeSecurityDrawings,
 		updateSecurityDrawings,
+		type HorizontalLineDrawing,
 		type MeasureDrawing,
 		type SecurityDrawings
 	} from '$lib/utils/finance/drawings';
@@ -111,6 +112,8 @@
 	let selectedFibTool = $state<FibToolType | null>(null);
 	let isDrawingMeasure = $state(false);
 	let selectedMeasureId = $state<string | null>(null);
+	let isDrawingHorizontalLine = $state(false);
+	let selectedHorizontalLineId = $state<string | null>(null);
 	let isChartSettingsOpen = $state(false);
 	let isFibWidthModalOpen = $state(false);
 	let modalFibTool = $state<FibToolType>('retracement');
@@ -277,6 +280,11 @@
 				const measureToRemove = selectedMeasureId;
 				selectedMeasureId = null;
 				void handleRemoveMeasure(measureToRemove);
+			} else if (selectedHorizontalLineId) {
+				event.preventDefault();
+				const lineToRemove = selectedHorizontalLineId;
+				selectedHorizontalLineId = null;
+				void handleRemoveHorizontalLine(lineToRemove);
 			}
 		} else if (event.key === 'Escape') {
 			if (selectedWaveDegree) {
@@ -288,6 +296,9 @@
 			if (selectedMeasureId) {
 				selectedMeasureId = null;
 			}
+			if (selectedHorizontalLineId) {
+				selectedHorizontalLineId = null;
+			}
 			if (isDrawingWave) {
 				isDrawingWave = false;
 			}
@@ -296,6 +307,9 @@
 			}
 			if (isDrawingMeasure) {
 				isDrawingMeasure = false;
+			}
+			if (isDrawingHorizontalLine) {
+				isDrawingHorizontalLine = false;
 			}
 		} else if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === 's') {
 			event.preventDefault();
@@ -528,6 +542,53 @@
 			});
 		} catch (err) {
 			console.error('Failed to persist measure drawings preference:', err);
+		}
+	}
+
+	async function handleHorizontalLineChange(lines: HorizontalLineDrawing[]) {
+		if (isRewound) return;
+		if (!security?.id) return;
+		const updatedAllDrawings = updateSecurityDrawings(
+			userPreferences?.drawings,
+			security.id,
+			'horizontalLines',
+			lines
+		);
+		userPreferences = {
+			...(userPreferences ?? {}),
+			drawings: updatedAllDrawings
+		};
+		try {
+			await userPreferencesService.patchPreferences({
+				drawings: updatedAllDrawings
+			});
+		} catch (err) {
+			console.error('Failed to persist horizontal line drawings preference:', err);
+		}
+	}
+
+	async function handleRemoveHorizontalLine(lineId: string) {
+		if (isRewound) return;
+		if (selectedHorizontalLineId === lineId) {
+			selectedHorizontalLineId = null;
+		}
+		if (!security?.id) return;
+		const updatedAllDrawings = removeSecurityDrawings(
+			userPreferences?.drawings,
+			security.id,
+			'horizontalLines',
+			lineId
+		);
+		userPreferences = {
+			...(userPreferences ?? {}),
+			drawings: updatedAllDrawings
+		};
+		try {
+			await userPreferencesService.patchPreferences({
+				drawings: updatedAllDrawings
+			});
+		} catch (err) {
+			console.error('Failed to persist horizontal line drawings preference:', err);
 		}
 	}
 
@@ -1087,10 +1148,12 @@
 			isDrawingWave = false;
 			isDrawingFib = false;
 			isDrawingMeasure = false;
+			isDrawingHorizontalLine = false;
 			activeWaveType = 'impulse';
 			selectedWaveDegree = null;
 			selectedFibTool = null;
 			selectedMeasureId = null;
+			selectedHorizontalLineId = null;
 			isTimelineVisible = false;
 
 			(async () => {
@@ -1319,6 +1382,7 @@
 						{activeFibTool}
 						isDrawingFib={isRewound ? false : isDrawingFib}
 						isDrawingMeasure={isRewound ? false : isDrawingMeasure}
+						isDrawingHorizontalLine={isRewound ? false : isDrawingHorizontalLine}
 						{isTimelineVisible}
 						onToggleTimeline={() => (isTimelineVisible = !isTimelineVisible)}
 						onSave={handleSaveSnapshot}
@@ -1330,6 +1394,7 @@
 							isDrawingWave = true;
 							isDrawingFib = false;
 							isDrawingMeasure = false;
+							isDrawingHorizontalLine = false;
 						}}
 						onSelectCorrectiveDegree={(degree) => {
 							if (isRewound) timelinePosition = null;
@@ -1338,6 +1403,7 @@
 							isDrawingWave = true;
 							isDrawingFib = false;
 							isDrawingMeasure = false;
+							isDrawingHorizontalLine = false;
 						}}
 						onToggleFib={(tool) => {
 							if (isRewound) timelinePosition = null;
@@ -1348,6 +1414,7 @@
 								isDrawingFib = true;
 								isDrawingWave = false;
 								isDrawingMeasure = false;
+								isDrawingHorizontalLine = false;
 							}
 						}}
 						onMeasureSelect={() => {
@@ -1358,8 +1425,23 @@
 								isDrawingMeasure = true;
 								isDrawingWave = false;
 								isDrawingFib = false;
+								isDrawingHorizontalLine = false;
 								selectedWaveDegree = null;
 								selectedFibTool = null;
+							}
+						}}
+						onHorizontalLineSelect={() => {
+							if (isRewound) timelinePosition = null;
+							if (isDrawingHorizontalLine) {
+								isDrawingHorizontalLine = false;
+							} else {
+								isDrawingHorizontalLine = true;
+								isDrawingWave = false;
+								isDrawingFib = false;
+								isDrawingMeasure = false;
+								selectedWaveDegree = null;
+								selectedFibTool = null;
+								selectedMeasureId = null;
 							}
 						}}
 					/>
@@ -1387,7 +1469,11 @@
 								onDrawingModeChange={(isDrawing) => {
 									if (isRewound) return;
 									isDrawingWave = isDrawing;
-									if (isDrawing) isDrawingFib = false;
+									if (isDrawing) {
+										isDrawingFib = false;
+										isDrawingMeasure = false;
+										isDrawingHorizontalLine = false;
+									}
 								}}
 								onDegreeChange={(degree) => (activeWaveDegree = degree)}
 								onWaveTypeChange={(type) => (activeWaveType = type)}
@@ -1396,6 +1482,7 @@
 									if (degree) {
 										selectedFibTool = null;
 										selectedMeasureId = null;
+										selectedHorizontalLineId = null;
 									}
 								}}
 								fibonacciTools={effectiveFibonacciTools}
@@ -1406,7 +1493,11 @@
 								onFibDrawingModeChange={(isDrawing) => {
 									if (isRewound) return;
 									isDrawingFib = isDrawing;
-									if (isDrawing) isDrawingWave = false;
+									if (isDrawing) {
+										isDrawingWave = false;
+										isDrawingMeasure = false;
+										isDrawingHorizontalLine = false;
+									}
 								}}
 								onFibToolChange={(tool) => {
 									if (tool) activeFibTool = tool;
@@ -1416,6 +1507,7 @@
 									if (tool) {
 										selectedWaveDegree = null;
 										selectedMeasureId = null;
+										selectedHorizontalLineId = null;
 									}
 								}}
 								onFibDoubleClick={(tool) => {
@@ -1432,6 +1524,7 @@
 									if (isDrawing) {
 										isDrawingWave = false;
 										isDrawingFib = false;
+										isDrawingHorizontalLine = false;
 									}
 								}}
 								onMeasureSelect={(id) => {
@@ -1439,6 +1532,27 @@
 									if (id) {
 										selectedWaveDegree = null;
 										selectedFibTool = null;
+										selectedHorizontalLineId = null;
+									}
+								}}
+								isDrawingHorizontalLine={isRewound ? false : isDrawingHorizontalLine}
+								bind:selectedHorizontalLineId
+								onHorizontalLineChange={handleHorizontalLineChange}
+								onHorizontalLineDrawingModeChange={(isDrawing) => {
+									if (isRewound) return;
+									isDrawingHorizontalLine = isDrawing;
+									if (isDrawing) {
+										isDrawingWave = false;
+										isDrawingFib = false;
+										isDrawingMeasure = false;
+									}
+								}}
+								onHorizontalLineSelect={(id) => {
+									selectedHorizontalLineId = id;
+									if (id) {
+										selectedWaveDegree = null;
+										selectedFibTool = null;
+										selectedMeasureId = null;
 									}
 								}}
 								onPaneHeightsChange={handlePaneHeightsChange}

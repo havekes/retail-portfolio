@@ -9,6 +9,7 @@
 	import Check from '@lucide/svelte/icons/check';
 	import Timeline from '@lucide/svelte/icons/timeline';
 	import Ruler from '@lucide/svelte/icons/ruler';
+	import Minus from '@lucide/svelte/icons/minus';
 	import * as DropdownMenu from '$lib/components/ui/dropdown-menu/index.js';
 	import * as Tooltip from '$lib/components/ui/tooltip/index.js';
 
@@ -19,11 +20,13 @@
 		activeFibTool = null,
 		isDrawingFib = false,
 		isDrawingMeasure = false,
+		isDrawingHorizontalLine = false,
 		isTimelineVisible = false,
 		onSelectWaveDegree,
 		onSelectCorrectiveDegree,
 		onToggleFib,
 		onMeasureSelect,
+		onHorizontalLineSelect,
 		onSave,
 		saveFeedback = 'idle',
 		onToggleTimeline
@@ -34,11 +37,13 @@
 		activeFibTool?: FibToolType | null;
 		isDrawingFib?: boolean;
 		isDrawingMeasure?: boolean;
+		isDrawingHorizontalLine?: boolean;
 		isTimelineVisible?: boolean;
 		onSelectWaveDegree?: (degree: WaveDegree, tool?: WaveType) => void;
 		onSelectCorrectiveDegree?: (degree: WaveDegree) => void;
 		onToggleFib?: (tool: FibToolType) => void;
 		onMeasureSelect?: () => void;
+		onHorizontalLineSelect?: () => void;
 		onSave?: () => void;
 		saveFeedback?: 'idle' | 'saved';
 		onToggleTimeline?: () => void;
@@ -255,6 +260,29 @@
 			</Tooltip.Trigger>
 			<Tooltip.Content side="right">
 				<p>Measure</p>
+			</Tooltip.Content>
+		</Tooltip.Root>
+
+		<!-- Horizontal Line Button -->
+		<Tooltip.Root>
+			<Tooltip.Trigger>
+				{#snippet child({ props })}
+					<button
+						type="button"
+						{...props}
+						onclick={() => onHorizontalLineSelect?.()}
+						class="rounded p-1.5 transition-colors {isDrawingHorizontalLine
+							? 'bg-primary text-primary-foreground shadow-sm'
+							: 'text-muted-foreground hover:bg-muted hover:text-foreground'}"
+						aria-label="Toggle Horizontal Line drawing"
+						title="Horizontal Line"
+					>
+						<Minus class="h-4 w-4" />
+					</button>
+				{/snippet}
+			</Tooltip.Trigger>
+			<Tooltip.Content side="right">
+				<p>Horizontal Line</p>
 			</Tooltip.Content>
 		</Tooltip.Root>
 

@@ -350,6 +350,30 @@ describe('DrawingToolbar Component', () => {
 		expect(measureBtn.className).toContain('bg-primary');
 	});
 
+	it('renders Horizontal Line button with correct title and triggers onHorizontalLineSelect', async () => {
+		const onHorizontalLineSelect = vi.fn();
+		render(DrawingToolbar, { props: { onHorizontalLineSelect } });
+
+		const lineBtn = screen.getByRole('button', { name: 'Toggle Horizontal Line drawing' });
+		expect(lineBtn).toBeInTheDocument();
+		expect(lineBtn).toHaveAttribute('title', 'Horizontal Line');
+
+		await fireEvent.click(lineBtn);
+		expect(onHorizontalLineSelect).toHaveBeenCalledTimes(1);
+	});
+
+	it('highlights the Horizontal Line button only while its drawing mode is active', () => {
+		const { rerender } = render(DrawingToolbar, {
+			props: { isDrawingHorizontalLine: false }
+		});
+
+		const lineBtn = screen.getByRole('button', { name: 'Toggle Horizontal Line drawing' });
+		expect(lineBtn.className).not.toContain('bg-primary');
+
+		rerender({ isDrawingHorizontalLine: true });
+		expect(lineBtn.className).toContain('bg-primary');
+	});
+
 	it('highlights timeline toggle button when isTimelineVisible is true', () => {
 		const { rerender } = render(DrawingToolbar, {
 			props: {
