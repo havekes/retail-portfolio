@@ -6,7 +6,7 @@ from uuid import UUID
 
 from src.auth.api_types import UserId
 from src.core.enum import InstitutionEnum
-from src.market.api_types import SecurityId
+from src.market.api_types import SecurityId, WatchlistId
 from src.market.schema import (
     AlertForEvaluation,
     ChartSnapshotCreate,
@@ -129,8 +129,29 @@ class IntradayPriceRepository(ABC):
 
 
 class WatchlistRepository(ABC):
+    """Read/write access to a user's watchlists.
+
+    Implementations must scope every operation to the owning ``user_id``:
+    a watchlist that does not exist *or* is owned by another user is reported
+    as ``WatchlistNotFoundError`` so callers cannot distinguish the two.
+    """
+
     @abstractmethod
     async def get_by_user(self, user_id: UserId) -> list[WatchlistRead]:
+        pass
+
+    @abstractmethod
+    async def create(self, user_id: UserId, name: str) -> WatchlistRead:
+        pass
+
+    @abstractmethod
+    async def rename(
+        self, watchlist_id: WatchlistId, user_id: UserId, name: str
+    ) -> WatchlistRead:
+        pass
+
+    @abstractmethod
+    async def delete(self, watchlist_id: WatchlistId, user_id: UserId) -> None:
         pass
 
     @abstractmethod

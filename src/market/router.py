@@ -21,6 +21,7 @@ from src.market.api import SecurityApi
 from src.market.api_types import SecurityId, SecuritySearchResult, WatchlistId
 from src.market.cache import IndicatorCache, SecuritySearchCache
 from src.market.enum import PriceInterval
+from src.market.exception import WatchlistDuplicateNameError
 from src.market.gateway import MarketGateway
 from src.market.indicators import (
     calculate_50_day_ma,
@@ -66,7 +67,9 @@ from src.market.schema import (
     SecurityNoteWrite,
     SecuritySchema,
     TechnicalIndicatorsRead,
+    WatchlistCreate,
     WatchlistRead,
+    WatchlistUpdate,
 )
 from src.market.service import (
     IndicatorServiceClient,
@@ -325,6 +328,53 @@ async def market_watchlists(
     """
     watchlist_repository = await services.aget(WatchlistRepository)
     return await watchlist_repository.get_by_user(user.id)
+
+
+@market_router.post("/watchlists", status_code=201)
+async def market_create_watchlist(
+    user: Annotated[User, Depends(current_user)],
+    payload: WatchlistCreate,
+    services: DepContainer,
+) -> WatchlistRead:
+    """
+    Create a watchlist for the logged in user
+    """
+    watchlist_repository = await services.aget(WatchlistRepository)
+    try:
+        return await watchlist_repository.create(user.id, payload.name)
+    except WatchlistDuplicateNameError as e:
+        raise HTTPException(409, str(e)) from e
+
+
+@market_router.patch("/watchlists/{watchlist_id}")
+async def market_rename_watchlist(
+    user: Annotated[User, Depends(current_user)],
+    watchlist_id: WatchlistId,
+    payload: WatchlistUpdate,
+    services: DepContainer,
+) -> WatchlistRead:
+    """
+    Rename a watchlist owned by the logged in user
+    """
+    watchlist_repository = await services.aget(WatchlistRepository)
+    try:
+        return await watchlist_repository.rename(watchlist_id, user.id, payload.name)
+    except WatchlistDuplicateNameError as e:
+        raise HTTPException(409, str(e)) from e
+
+
+@market_router.delete("/watchlists/{watchlist_id}", status_code=204)
+async def market_delete_watchlist(
+    user: Annotated[User, Depends(current_user)],
+    watchlist_id: WatchlistId,
+    services: DepContainer,
+) -> Response:
+    """
+    Delete a watchlist owned by the logged in user
+    """
+    watchlist_repository = await services.aget(WatchlistRepository)
+    await watchlist_repository.delete(watchlist_id, user.id)
+    return Response(status_code=204)
 
 
 @market_router.get("/watchlists/{watchlist_id}/securities")

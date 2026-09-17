@@ -13,8 +13,12 @@ from svcs import Container
 
 from src.auth.api_types import UserId
 from src.core.enum import InstitutionEnum
-from src.market.api_types import SecurityId
-from src.market.exception import SecurityNotFoundError, WatchlistNotFoundError
+from src.market.api_types import SecurityId, WatchlistId
+from src.market.exception import (
+    SecurityNotFoundError,
+    WatchlistDuplicateNameError,
+    WatchlistNotFoundError,
+)
 from src.market.model import (
     ChartSnapshotModel,
     IntradayPriceModel,
@@ -436,6 +440,66 @@ class SqlAlchemyWatchlistRepository(WatchlistRepository):
         return [
             WatchlistRead.model_validate(watchlist) for watchlist in result.scalars()
         ]
+
+    async def _get_owned(
+        self, watchlist_id: WatchlistId, user_id: UserId
+    ) -> WatchlistModel:
+        """Load a watchlist owned by ``user_id`` or raise ``WatchlistNotFoundError``."""
+        result = await self._session.execute(
+            select(WatchlistModel)
+            .options(selectinload(WatchlistModel.securities))
+            .where(WatchlistModel.id == watchlist_id)
+            .where(WatchlistModel.user_id == user_id)
+            .limit(1)
+        )
+        watchlist_model = result.scalar_one_or_none()
+        if watchlist_model is None:
+            raise WatchlistNotFoundError(watchlist_id)
+        return watchlist_model
+
+    @override
+    async def create(self, user_id: UserId, name: str) -> WatchlistRead:
+        watchlist = WatchlistModel(
+            id=uuid.uuid4(),
+            user_id=user_id,
+            name=name,
+            securities=[],
+        )
+        self._session.add(watchlist)
+        try:
+            await self._session.commit()
+        except IntegrityError:
+            await self._session.rollback()
+            raise WatchlistDuplicateNameError(name) from None
+
+        # reload to load relationships correctly
+        result = await self._session.execute(
+            select(WatchlistModel)
+            .options(selectinload(WatchlistModel.securities))
+            .where(WatchlistModel.id == watchlist.id)
+        )
+        watchlist_model = result.scalar_one()
+        return WatchlistRead.model_validate(watchlist_model)
+
+    @override
+    async def rename(
+        self, watchlist_id: WatchlistId, user_id: UserId, name: str
+    ) -> WatchlistRead:
+        watchlist_model = await self._get_owned(watchlist_id, user_id)
+        watchlist_model.name = name
+        try:
+            await self._session.commit()
+        except IntegrityError:
+            await self._session.rollback()
+            raise WatchlistDuplicateNameError(name) from None
+
+        return WatchlistRead.model_validate(watchlist_model)
+
+    @override
+    async def delete(self, watchlist_id: WatchlistId, user_id: UserId) -> None:
+        watchlist_model = await self._get_owned(watchlist_id, user_id)
+        await self._session.delete(watchlist_model)
+        await self._session.commit()
 
     @override
     async def create_default(self, user_id: UserId) -> WatchlistRead:

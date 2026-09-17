@@ -24,11 +24,17 @@ from src.auth.repository_sqlalchemy import (
 )
 from src.core.enum import AccountTypeEnum, InstitutionEnum
 from src.market.api_types import IntradayPrice
+from src.market.exception import (
+    WatchlistDuplicateNameError,
+    WatchlistNotFoundError,
+)
+from src.market.model import SecurityModel, WatchlistModel, WatchlistsSecuritiesModel
 from src.market.repository_sqlalchemy import (
     SqlAlchemyIntradayPriceRepository,
     SqlAlchemyPriceRepository,
     SqlAlchemySecurityBrokerRepository,
     SqlAlchemySecurityRepository,
+    SqlAlchemyWatchlistRepository,
 )
 from src.market.schema import (
     IntradayPriceSchema,
@@ -845,3 +851,118 @@ async def test_account_repository_delete_cascades(
     assert portfolio_in_db is not None
 
 
+@pytest.mark.anyio
+async def test_watchlist_repository_create_and_duplicate(db_session: AsyncSession):
+    """Test create returns an empty watchlist and rejects duplicate names."""
+    user_repo = SqlAlchemyUserRepository(db_session)
+    watchlist_repo = SqlAlchemyWatchlistRepository(db_session)
+
+    user = await user_repo.create_user(
+        "watchlist_create_test@example.com", "password123"
+    )
+
+    created = await watchlist_repo.create(user.id, "Growth")
+    assert created.name == "Growth"
+    assert created.user_id == user.id
+    assert created.securities == []
+
+    # The same name for the same user is rejected
+    with pytest.raises(WatchlistDuplicateNameError):
+        await watchlist_repo.create(user.id, "Growth")
+
+    # Session remains usable after the rollback
+    others = await watchlist_repo.get_by_user(user.id)
+    assert [w.name for w in others] == ["Growth"]
+
+
+@pytest.mark.anyio
+async def test_watchlist_repository_rename(db_session: AsyncSession):
+    """Test rename updates the name and enforces ownership + uniqueness."""
+    user_repo = SqlAlchemyUserRepository(db_session)
+    watchlist_repo = SqlAlchemyWatchlistRepository(db_session)
+
+    user = await user_repo.create_user(
+        "watchlist_rename_test@example.com", "password123"
+    )
+    other = await user_repo.create_user(
+        "watchlist_rename_other@example.com", "password123"
+    )
+
+    created = await watchlist_repo.create(user.id, "Old Name")
+    renamed = await watchlist_repo.rename(created.id, user.id, "New Name")
+    assert renamed.id == created.id
+    assert renamed.name == "New Name"
+
+    # Duplicate name for the same user is rejected
+    second = await watchlist_repo.create(user.id, "Second")
+    with pytest.raises(WatchlistDuplicateNameError):
+        await watchlist_repo.rename(second.id, user.id, "New Name")
+
+    # Unknown watchlist id is not found
+    with pytest.raises(WatchlistNotFoundError):
+        await watchlist_repo.rename(uuid.uuid4(), user.id, "Whatever")
+
+    # Another user's watchlist is not found
+    with pytest.raises(WatchlistNotFoundError):
+        await watchlist_repo.rename(created.id, other.id, "Stolen")
+
+
+@pytest.mark.anyio
+async def test_watchlist_repository_delete_cascades_membership(
+    db_session: AsyncSession,
+):
+    """Test delete removes the watchlist and its membership rows."""
+    user_repo = SqlAlchemyUserRepository(db_session)
+    watchlist_repo = SqlAlchemyWatchlistRepository(db_session)
+
+    user = await user_repo.create_user(
+        "watchlist_delete_test@example.com", "password123"
+    )
+    created = await watchlist_repo.create(user.id, "To Delete")
+
+    security = SecurityModel(
+        id=uuid.uuid4(),
+        symbol="CASCADE",
+        exchange="US",
+        currency="USD",
+        name="Cascade Test Co",
+        isin=None,
+        is_active=True,
+        updated_at=datetime.datetime.now(datetime.UTC),
+    )
+    db_session.add(security)
+    await db_session.flush()
+    db_session.add(
+        WatchlistsSecuritiesModel(watchlist_id=created.id, security_id=security.id)
+    )
+    await db_session.commit()
+
+    membership_before = await db_session.scalar(
+        select(func.count())
+        .select_from(WatchlistsSecuritiesModel)
+        .where(WatchlistsSecuritiesModel.watchlist_id == created.id)
+    )
+    assert membership_before == 1
+
+    await watchlist_repo.delete(created.id, user.id)
+
+    assert (
+        await db_session.scalar(
+            select(WatchlistModel).where(WatchlistModel.id == created.id)
+        )
+        is None
+    )
+    membership_after = await db_session.scalar(
+        select(func.count())
+        .select_from(WatchlistsSecuritiesModel)
+        .where(WatchlistsSecuritiesModel.watchlist_id == created.id)
+    )
+    assert membership_after == 0
+
+    # Deleting another user's watchlist is a not-found
+    other = await user_repo.create_user(
+        "watchlist_delete_other@example.com", "password123"
+    )
+    other_watchlist = await watchlist_repo.create(other.id, "Other")
+    with pytest.raises(WatchlistNotFoundError):
+        await watchlist_repo.delete(other_watchlist.id, user.id)
