@@ -457,6 +457,17 @@ class SqlAlchemyWatchlistRepository(WatchlistRepository):
             raise WatchlistNotFoundError(watchlist_id)
         return watchlist_model
 
+    async def _get_default_watchlist(self, user_id: UserId) -> WatchlistModel | None:
+        """Load the user's ``Default`` watchlist, or ``None`` when absent."""
+        result = await self._session.execute(
+            select(WatchlistModel)
+            .options(selectinload(WatchlistModel.securities))
+            .where(WatchlistModel.user_id == user_id)
+            .where(WatchlistModel.name == "Default")
+            .limit(1)
+        )
+        return result.scalar_one_or_none()
+
     @override
     async def create(self, user_id: UserId, name: str) -> WatchlistRead:
         watchlist = WatchlistModel(
@@ -522,6 +533,38 @@ class SqlAlchemyWatchlistRepository(WatchlistRepository):
         return WatchlistRead.model_validate(watchlist_model)
 
     @override
+    async def add_security_to_watchlist(
+        self, watchlist_id: WatchlistId, user_id: UserId, security_id: SecurityId
+    ) -> WatchlistRead:
+        security_model = await self._session.get(SecurityModel, security_id)
+        if security_model is None:
+            raise SecurityNotFoundError(security_id)
+
+        watchlist_model = await self._get_owned(watchlist_id, user_id)
+
+        if security_model not in watchlist_model.securities:
+            watchlist_model.securities.append(security_model)
+            await self._session.commit()
+
+        return WatchlistRead.model_validate(watchlist_model)
+
+    @override
+    async def remove_security_from_watchlist(
+        self, watchlist_id: WatchlistId, user_id: UserId, security_id: SecurityId
+    ) -> WatchlistRead:
+        security_model = await self._session.get(SecurityModel, security_id)
+        if security_model is None:
+            raise SecurityNotFoundError(security_id)
+
+        watchlist_model = await self._get_owned(watchlist_id, user_id)
+
+        if security_model in watchlist_model.securities:
+            watchlist_model.securities.remove(security_model)
+            await self._session.commit()
+
+        return WatchlistRead.model_validate(watchlist_model)
+
+    @override
     async def add_security(
         self, user_id: UserId, security_id: SecurityId
     ) -> WatchlistRead:
@@ -529,14 +572,7 @@ class SqlAlchemyWatchlistRepository(WatchlistRepository):
         if security_model is None:
             raise SecurityNotFoundError(security_id)
 
-        result = await self._session.execute(
-            select(WatchlistModel)
-            .options(selectinload(WatchlistModel.securities))
-            .where(WatchlistModel.user_id == user_id)
-            .where(WatchlistModel.name == "Default")
-            .limit(1)
-        )
-        watchlist_model = result.scalar_one_or_none()
+        watchlist_model = await self._get_default_watchlist(user_id)
         if watchlist_model is None:
             watchlist_model = WatchlistModel(
                 id=uuid.uuid4(),
@@ -549,20 +585,14 @@ class SqlAlchemyWatchlistRepository(WatchlistRepository):
                 await self._session.flush()
             except IntegrityError:
                 await self._session.rollback()
-                result = await self._session.execute(
-                    select(WatchlistModel)
-                    .options(selectinload(WatchlistModel.securities))
-                    .where(WatchlistModel.user_id == user_id)
-                    .where(WatchlistModel.name == "Default")
-                    .limit(1)
-                )
-                watchlist_model = result.scalar_one()
+                existing = await self._get_default_watchlist(user_id)
+                if existing is None:  # pragma: no cover - defensive re-raise
+                    raise
+                watchlist_model = existing
 
-        if security_model not in watchlist_model.securities:
-            watchlist_model.securities.append(security_model)
-            await self._session.commit()
-
-        return WatchlistRead.model_validate(watchlist_model)
+        return await self.add_security_to_watchlist(
+            watchlist_model.id, user_id, security_id
+        )
 
     @override
     async def remove_security(
@@ -572,22 +602,13 @@ class SqlAlchemyWatchlistRepository(WatchlistRepository):
         if security_model is None:
             raise SecurityNotFoundError(security_id)
 
-        result = await self._session.execute(
-            select(WatchlistModel)
-            .options(selectinload(WatchlistModel.securities))
-            .where(WatchlistModel.user_id == user_id)
-            .where(WatchlistModel.name == "Default")
-            .limit(1)
-        )
-        watchlist_model = result.scalar_one_or_none()
+        watchlist_model = await self._get_default_watchlist(user_id)
         if watchlist_model is None:
             raise WatchlistNotFoundError(uuid.UUID(int=0))
 
-        if security_model in watchlist_model.securities:
-            watchlist_model.securities.remove(security_model)
-            await self._session.commit()
-
-        return WatchlistRead.model_validate(watchlist_model)
+        return await self.remove_security_from_watchlist(
+            watchlist_model.id, user_id, security_id
+        )
 
     @override
     async def get_securities(
