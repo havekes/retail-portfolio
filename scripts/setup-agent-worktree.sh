@@ -30,39 +30,42 @@ BACKEND_DEBUG=$(python3 -c 'import socket; s=socket.socket(); s.bind(("", 0)); p
 WORKER_DEBUG=$(python3 -c 'import socket; s=socket.socket(); s.bind(("", 0)); print(s.getsockname()[1]); s.close()')
 POSTGRES_PORT=$(python3 -c 'import socket; s=socket.socket(); s.bind(("", 0)); print(s.getsockname()[1]); s.close()')
 MAILCRAB_PORT=$(python3 -c 'import socket; s=socket.socket(); s.bind(("", 0)); print(s.getsockname()[1]); s.close()')
+INDICATOR_SERVICE_PORT=$(python3 -c 'import socket; s=socket.socket(); s.bind(("", 0)); print(s.getsockname()[1]); s.close()')
 
 # Generate a safe compose project name based on the path
 PROJECT_NAME=$(basename "$WORKTREE_PATH" | tr -cd 'a-zA-Z0-9_-' | tr 'A-Z' 'a-z')
 
 DOCKER_GID=$("$MAIN_REPO_PATH/scripts/docker-gid.sh")
 
-# 3. Create .env
+# 3. Build the worktree root .env: seed it with the main repo config, then
+# deterministically override the compose project name and all published ports so
+# the discovered values always win (and re-runs leave no duplicate/stale entries).
 echo "Generating .env in $WORKTREE_PATH..."
-cat <<EOF > .env
-COMPOSE_PROJECT_NAME=${PROJECT_NAME}
-DOCKER_GID=${DOCKER_GID}
-BACKEND_PORT=${BACKEND_PORT}
-FRONTEND_PORT=${FRONTEND_PORT}
-BACKEND_DEBUG_PORT=${BACKEND_DEBUG}
-WORKER_DEBUG_PORT=${WORKER_DEBUG}
-POSTGRES_PORT=${POSTGRES_PORT}
-MAILCRAB_PORT=${MAILCRAB_PORT}
-EOF
-
-# 4. Copy untracked .env files from main repo to worktree
-echo "Copying untracked .env files from main repo..."
-if [ -f "$MAIN_REPO_PATH/src/.env" ]; then
-    cp "$MAIN_REPO_PATH/src/.env" "./src/.env"
-elif [ -f "./src/.env.example" ]; then
-    cp "./src/.env.example" "./src/.env"
-fi
-
 if [ -f "$MAIN_REPO_PATH/.env" ]; then
-    # We don't overwrite the generated root .env, but we can append to it or just leave it
-    # The root .env we just created is for compose overrides. The main repo .env might have other things.
-    # Let's assume root .env for compose is sufficient, and we only really needed src/.env
-    :
+    cp "$MAIN_REPO_PATH/.env" "./.env"
+elif [ -f "./.env.example" ]; then
+    cp "./.env.example" "./.env"
+else
+    echo "Error: no $MAIN_REPO_PATH/.env and no ./.env.example to seed a worktree .env." >&2
+    exit 1
 fi
+
+set_env() {
+    local key="$1" value="$2"
+    grep -v "^${key}=" "./.env" > "./.env.tmp" || true
+    mv "./.env.tmp" "./.env"
+    printf '%s=%s\n' "$key" "$value" >> "./.env"
+}
+
+set_env COMPOSE_PROJECT_NAME "$PROJECT_NAME"
+set_env DOCKER_GID "$DOCKER_GID"
+set_env BACKEND_PORT "$BACKEND_PORT"
+set_env FRONTEND_PORT "$FRONTEND_PORT"
+set_env BACKEND_DEBUG_PORT "$BACKEND_DEBUG"
+set_env WORKER_DEBUG_PORT "$WORKER_DEBUG"
+set_env POSTGRES_PORT "$POSTGRES_PORT"
+set_env MAILCRAB_PORT "$MAILCRAB_PORT"
+set_env INDICATOR_SERVICE_PORT "$INDICATOR_SERVICE_PORT"
 
 echo "Done! Worktree is ready at $WORKTREE_PATH."
 echo "Ports assigned:"
