@@ -41,6 +41,11 @@ jobs:
 
   frontend:
     runs-on: ubuntu-latest
+    env:
+      VITE_API_BASE_URL: http://localhost:8001
+      VITE_INTERNAL_API_URL: http://localhost:8001
+      VITE_ALLOWED_HOSTS: localhost
+      JWT_SECRET: test-secret-key-12345678901234567890
 
     steps:
       - uses: actions/checkout@v4
@@ -54,9 +59,6 @@ jobs:
         run: |
           cd frontend
           npm install
-
-      - name: Prepare env file
-        run: cp frontend/.env.example frontend/.env
 
       - name: Run type checks
         run: |
