@@ -374,6 +374,30 @@ describe('DrawingToolbar Component', () => {
 		expect(lineBtn.className).toContain('bg-primary');
 	});
 
+	it('renders Line button with correct title and triggers onLineSelect', async () => {
+		const onLineSelect = vi.fn();
+		render(DrawingToolbar, { props: { onLineSelect } });
+
+		const lineBtn = screen.getByRole('button', { name: 'Toggle Line drawing' });
+		expect(lineBtn).toBeInTheDocument();
+		expect(lineBtn).toHaveAttribute('title', 'Line');
+
+		await fireEvent.click(lineBtn);
+		expect(onLineSelect).toHaveBeenCalledTimes(1);
+	});
+
+	it('highlights the Line button only while its drawing mode is active', () => {
+		const { rerender } = render(DrawingToolbar, {
+			props: { isDrawingLine: false }
+		});
+
+		const lineBtn = screen.getByRole('button', { name: 'Toggle Line drawing' });
+		expect(lineBtn.className).not.toContain('bg-primary');
+
+		rerender({ isDrawingLine: true });
+		expect(lineBtn.className).toContain('bg-primary');
+	});
+
 	it('highlights timeline toggle button when isTimelineVisible is true', () => {
 		const { rerender } = render(DrawingToolbar, {
 			props: {

@@ -4145,3 +4145,316 @@ describe('Security Page - Horizontal Line Tool & Integration', () => {
 		expect(userPreferencesService.patchPreferences).not.toHaveBeenCalled();
 	});
 });
+
+describe('Security Page - Free-form Line Tool & Integration', () => {
+	/* eslint-disable-next-line @typescript-eslint/no-explicit-any */
+	let PageComponent: Component<any>;
+
+	const mockData = {
+		security: {
+			id: 'sec-1',
+			symbol: 'AAPL',
+			name: 'Apple Inc.'
+		},
+		items: [
+			{ date: '2024-01-01', open: 100, high: 110, low: 95, close: 105, volume: 1000 },
+			{ date: '2024-01-02', open: 105, high: 115, low: 100, close: 112, volume: 1200 }
+		]
+	};
+
+	const sampleLine = {
+		id: 'line-1',
+		p1: { time: '2024-01-01', price: 100 },
+		p2: { time: '2024-01-02', price: 120 }
+	};
+
+	const sampleDrawings: SecurityDrawings = { lines: [sampleLine] };
+
+	beforeAll(async () => {
+		const mod = await import('./+page.svelte');
+		PageComponent = mod.default;
+	}, 30000);
+
+	beforeEach(() => {
+		vi.clearAllMocks();
+		mockChartProps = null;
+		vi.mocked(userPreferencesService.getPreferences).mockResolvedValue({});
+		vi.mocked(snapshotsService.getSnapshots).mockResolvedValue([]);
+	});
+
+	it('renders the Line toolbar button and activates its drawing mode, cancelling fib drawing', async () => {
+		render(PageComponent, { props: { data: mockData } });
+
+		const lineBtn = await screen.findByRole('button', { name: 'Toggle Line drawing' });
+		const fibBtn = screen.getByRole('button', { name: /Toggle Fib Retrace drawing/i });
+
+		// Engage Fibonacci drawing first.
+		await fireEvent.click(fibBtn);
+		expect(fibBtn.className).toContain('bg-primary');
+
+		// Free-form line takes over and cancels Fibonacci drawing.
+		await fireEvent.click(lineBtn);
+		expect(lineBtn.className).toContain('bg-primary');
+		expect(fibBtn.className).not.toContain('bg-primary');
+
+		await waitFor(() => {
+			// @ts-expect-error - mockChartProps typed as Record
+			expect(mockChartProps.isDrawingLine).toBe(true);
+			// @ts-expect-error - mockChartProps typed as Record
+			expect(mockChartProps.isDrawingFib).toBe(false);
+		});
+
+		// Toggling again exits drawing mode.
+		await fireEvent.click(lineBtn);
+		expect(lineBtn.className).not.toContain('bg-primary');
+	});
+
+	it('exits free-form line drawing mode on Escape', async () => {
+		render(PageComponent, { props: { data: mockData } });
+		const lineBtn = await screen.findByRole('button', { name: 'Toggle Line drawing' });
+
+		await fireEvent.click(lineBtn);
+		await waitFor(() => {
+			// @ts-expect-error - mockChartProps typed as Record
+			expect(mockChartProps.isDrawingLine).toBe(true);
+		});
+
+		await fireEvent.keyDown(window, { key: 'Escape' });
+
+		await waitFor(() => {
+			// @ts-expect-error - mockChartProps typed as Record
+			expect(mockChartProps.isDrawingLine).toBe(false);
+		});
+	});
+
+	it('persists lines through the drawings seam while preserving other tool collections', async () => {
+		vi.mocked(userPreferencesService.getPreferences).mockResolvedValue({
+			drawings: {
+				'sec-1': {
+					measures: [
+						{
+							id: 'measure-1',
+							p1: { time: '2024-01-01', price: 90 },
+							p2: { time: '2024-01-02', price: 110 }
+						}
+					],
+					horizontalLines: [{ id: 'hl-1', p1: { time: '2024-01-01', price: 95 } }]
+				}
+			}
+		});
+
+		render(PageComponent, { props: { data: mockData } });
+		await screen.findByRole('button', { name: 'Toggle Line drawing' });
+
+		await waitFor(() => {
+			expect(mockChartProps).not.toBeNull();
+		});
+
+		// @ts-expect-error - mockChartProps typed as Record
+		mockChartProps.onLineChange?.([sampleLine]);
+
+		await waitFor(() => {
+			expect(userPreferencesService.patchPreferences).toHaveBeenCalledWith(
+				expect.objectContaining({
+					drawings: expect.objectContaining({
+						'sec-1': expect.objectContaining({
+							lines: [sampleLine],
+							measures: [
+								{
+									id: 'measure-1',
+									p1: { time: '2024-01-01', price: 90 },
+									p2: { time: '2024-01-02', price: 110 }
+								}
+							],
+							horizontalLines: [{ id: 'hl-1', p1: { time: '2024-01-01', price: 95 } }]
+						})
+					})
+				})
+			);
+		});
+	});
+
+	it('restores persisted lines from preferences onto the chart', async () => {
+		vi.mocked(userPreferencesService.getPreferences).mockResolvedValue({
+			drawings: { 'sec-1': sampleDrawings }
+		});
+
+		render(PageComponent, { props: { data: mockData } });
+		await screen.findByRole('button', { name: 'Toggle Line drawing' });
+
+		await waitFor(() => {
+			// @ts-expect-error - mockChartProps typed as Record
+			expect(mockChartProps.securityDrawings).toEqual(sampleDrawings);
+		});
+	});
+
+	it('removes the selected line on Delete and persists the change', async () => {
+		vi.mocked(userPreferencesService.getPreferences).mockResolvedValue({
+			drawings: { 'sec-1': sampleDrawings }
+		});
+
+		render(PageComponent, { props: { data: mockData } });
+		await screen.findByRole('button', { name: 'Toggle Line drawing' });
+
+		await waitFor(() => {
+			expect(mockChartProps).not.toBeNull();
+		});
+
+		// @ts-expect-error - mockChartProps typed as Record
+		mockChartProps.onLineSelect?.('line-1');
+
+		await waitFor(() => {
+			// @ts-expect-error - mockChartProps typed as Record
+			expect(mockChartProps.selectedLineId).toBe('line-1');
+		});
+
+		await fireEvent.keyDown(window, { key: 'Delete' });
+
+		await waitFor(() => {
+			expect(userPreferencesService.patchPreferences).toHaveBeenCalledWith(
+				expect.objectContaining({
+					drawings: expect.objectContaining({
+						'sec-1': expect.objectContaining({ lines: null })
+					})
+				})
+			);
+		});
+
+		await waitFor(() => {
+			// @ts-expect-error - mockChartProps typed as Record
+			expect(mockChartProps.selectedLineId).toBeNull();
+		});
+	});
+
+	it('removes the selected line on Backspace', async () => {
+		vi.mocked(userPreferencesService.getPreferences).mockResolvedValue({
+			drawings: { 'sec-1': sampleDrawings }
+		});
+
+		render(PageComponent, { props: { data: mockData } });
+		await screen.findByRole('button', { name: 'Toggle Line drawing' });
+
+		await waitFor(() => {
+			expect(mockChartProps).not.toBeNull();
+		});
+
+		// @ts-expect-error - mockChartProps typed as Record
+		mockChartProps.onLineSelect?.('line-1');
+		await fireEvent.keyDown(window, { key: 'Backspace' });
+
+		await waitFor(() => {
+			expect(userPreferencesService.patchPreferences).toHaveBeenCalledWith(
+				expect.objectContaining({
+					drawings: expect.objectContaining({
+						'sec-1': expect.objectContaining({ lines: null })
+					})
+				})
+			);
+		});
+	});
+
+	it('clears wave, fib, measure and horizontal line selections when a line is selected', async () => {
+		vi.mocked(userPreferencesService.getPreferences).mockResolvedValue({
+			drawings: { 'sec-1': sampleDrawings }
+		});
+
+		render(PageComponent, { props: { data: mockData } });
+		await screen.findByRole('button', { name: 'Toggle Line drawing' });
+
+		await waitFor(() => {
+			expect(mockChartProps).not.toBeNull();
+		});
+
+		// @ts-expect-error - mockChartProps typed as Record
+		mockChartProps.onMeasureSelect?.('measure-1');
+		await waitFor(() => {
+			// @ts-expect-error - mockChartProps typed as Record
+			expect(mockChartProps.selectedMeasureId).toBe('measure-1');
+		});
+
+		// @ts-expect-error - mockChartProps typed as Record
+		mockChartProps.onLineSelect?.('line-1');
+
+		await waitFor(() => {
+			// @ts-expect-error - mockChartProps typed as Record
+			expect(mockChartProps.selectedLineId).toBe('line-1');
+			// @ts-expect-error - mockChartProps typed as Record
+			expect(mockChartProps.selectedMeasureId).toBeNull();
+		});
+	});
+
+	it('cancels other drawing tools when the chart reports line drawing mode', async () => {
+		render(PageComponent, { props: { data: mockData } });
+		const lineBtn = await screen.findByRole('button', { name: 'Toggle Line drawing' });
+		const fibBtn = screen.getByRole('button', { name: /Toggle Fib Retrace drawing/i });
+
+		await fireEvent.click(fibBtn);
+		await waitFor(() => {
+			// @ts-expect-error - mockChartProps typed as Record
+			expect(mockChartProps.isDrawingFib).toBe(true);
+		});
+
+		// @ts-expect-error - mockChartProps typed as Record
+		mockChartProps.onLineDrawingModeChange?.(true);
+
+		await waitFor(() => {
+			// @ts-expect-error - mockChartProps typed as Record
+			expect(mockChartProps.isDrawingLine).toBe(true);
+			// @ts-expect-error - mockChartProps typed as Record
+			expect(mockChartProps.isDrawingFib).toBe(false);
+		});
+		expect(lineBtn.className).toContain('bg-primary');
+	});
+
+	it('captures a snapshot carrying lines and blocks edits while rewound', async () => {
+		const snapshot: RewindSnapshot = {
+			id: 'snap-line',
+			captured_at: '2024-01-01T12:00:00.000Z',
+			drawings: {
+				elliott_waves: { waves: [] },
+				fibonacci_tools: {},
+				drawings: sampleDrawings
+			},
+			data_window: { first: '2024-01-01', last: '2024-01-01' }
+		};
+		vi.mocked(userPreferencesService.getPreferences).mockResolvedValue({
+			drawings: { 'sec-1': sampleDrawings }
+		});
+		vi.mocked(snapshotsService.getSnapshots).mockResolvedValue([snapshot]);
+
+		render(PageComponent, { props: { data: mockData } });
+
+		// A line present satisfies the snapshot gate and is persisted inside RewindDrawings.
+		const saveBtn = await screen.findByRole('button', { name: 'Save snapshot' });
+		await fireEvent.click(saveBtn);
+		await waitFor(() => {
+			expect(snapshotsService.createSnapshot).toHaveBeenCalledWith(
+				'sec-1',
+				expect.objectContaining({
+					drawings: expect.objectContaining({
+						drawings: sampleDrawings
+					})
+				})
+			);
+		});
+
+		// Scrub to the snapshot: the snapshot's lines surface on the chart.
+		expect(await screen.findByTestId('rewind-timeline')).toBeInTheDocument();
+		const markers = screen.getAllByTestId('rewind-snapshot-point');
+		await fireEvent.click(markers[0]);
+
+		await waitFor(() => {
+			// @ts-expect-error - mockChartProps typed as Record
+			expect(mockChartProps.securityDrawings).toEqual(sampleDrawings);
+		});
+
+		// While rewound, line edits are ignored (no preferences write).
+		vi.mocked(userPreferencesService.patchPreferences).mockClear();
+		// @ts-expect-error - mockChartProps typed as Record
+		mockChartProps.onLineChange?.([sampleLine]);
+		await waitFor(() => {
+			expect(mockChartProps).not.toBeNull();
+		});
+		expect(userPreferencesService.patchPreferences).not.toHaveBeenCalled();
+	});
+});
