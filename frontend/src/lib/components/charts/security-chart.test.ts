@@ -168,6 +168,7 @@ import { ElliottWavesPrimitive } from './plugins/elliott-wave/elliott-wave';
 import { FibonacciPrimitive } from './plugins/fibonacci/fibonacci-primitive';
 import { MeasurePrimitive } from './plugins/measure/measure-primitive';
 import { HorizontalLinePrimitive } from './plugins/horizontal-line/horizontal-line-primitive';
+import { FreeFormLinePrimitive } from './plugins/free-form-line/free-form-line-primitive';
 import type { SecurityDrawings } from '$lib/utils/finance/drawings';
 import {
 	MAX_PANE_FRACTION,
@@ -2914,6 +2915,241 @@ describe('SecurityChart - Horizontal Line Integration', () => {
 		const createdCharts = vi.mocked(createChart).mock.results.map((r) => r.value);
 		const mainChart = createdCharts[createdCharts.length - 1];
 		const primitive = getHorizontalLinePrimitive();
+
+		vi.mocked(mainChart.applyOptions).mockClear();
+		primitive.setDrawingMode(false);
+		await tick();
+
+		expect(mainChart.applyOptions).toHaveBeenCalledWith({
+			handleScroll: { pressedMouseMove: true }
+		});
+	});
+});
+
+describe('SecurityChart - Free-form Line Integration', () => {
+	/* eslint-disable-next-line @typescript-eslint/no-explicit-any */
+	let SecurityChart: Component<any>;
+
+	const initialCandles: Candle[] = [
+		{ time: '2024-01-10', open: 10, high: 12, low: 9, close: 11 },
+		{ time: '2024-01-11', open: 11, high: 13, low: 10, close: 12 }
+	];
+
+	const epoch = (date: string): number =>
+		Math.floor(new Date(`${date}T00:00:00Z`).getTime() / 1000);
+
+	beforeAll(async () => {
+		const mod = await import('./security-chart.svelte');
+		SecurityChart = mod.default;
+	});
+
+	beforeEach(() => {
+		vi.clearAllMocks();
+	});
+
+	function getFreeFormLinePrimitive(): FreeFormLinePrimitive {
+		return mockAttachPrimitive.mock.calls.find(
+			(c) => c[0] instanceof FreeFormLinePrimitive
+		)?.[0] as FreeFormLinePrimitive;
+	}
+
+	function lineDrawings(): SecurityDrawings {
+		return {
+			lines: [
+				{
+					id: 'line-1',
+					p1: { time: '2024-01-10', price: 10 },
+					p2: { time: '2024-01-11', price: 20 },
+					visible: true
+				}
+			]
+		};
+	}
+
+	it('attaches FreeFormLinePrimitive to the candlestick series on mount with initial props', () => {
+		render(SecurityChart, {
+			props: {
+				candles: initialCandles,
+				securityDrawings: lineDrawings(),
+				isDrawingLine: true,
+				selectedLineId: 'line-1'
+			}
+		});
+
+		const primitive = getFreeFormLinePrimitive();
+		expect(primitive).toBeDefined();
+		expect(primitive.isDrawingMode()).toBe(true);
+		expect(primitive.getSelectedId()).toBe('line-1');
+
+		const lines = primitive.getLines();
+		expect(lines).toHaveLength(1);
+		// Anchors are canonicalized to epoch seconds on ingestion.
+		expect(lines[0].p1.time).toBe(epoch('2024-01-10'));
+		expect(lines[0].p2.time).toBe(epoch('2024-01-11'));
+	});
+
+	it('syncs the lines collection from the securityDrawings prop', async () => {
+		const { rerender } = render(SecurityChart, {
+			props: { candles: initialCandles, securityDrawings: null }
+		});
+
+		const primitive = getFreeFormLinePrimitive();
+		expect(primitive.getLines()).toHaveLength(0);
+
+		await rerender({ candles: initialCandles, securityDrawings: lineDrawings() });
+		expect(primitive.getLines()).toHaveLength(1);
+		expect(primitive.getLines()[0].p1.price).toBe(10);
+
+		await rerender({ candles: initialCandles, securityDrawings: { lines: null } });
+		expect(primitive.getLines()).toHaveLength(0);
+	});
+
+	it('does not reset candle data when only lines change', async () => {
+		const { rerender } = render(SecurityChart, {
+			props: { candles: initialCandles, securityDrawings: null }
+		});
+
+		const initialSetDataCalls = mockSetData.mock.calls.length;
+		await rerender({ candles: initialCandles, securityDrawings: lineDrawings() });
+
+		expect(mockSetData.mock.calls.length).toBe(initialSetDataCalls);
+	});
+
+	it('syncs isDrawingLine prop changes to FreeFormLinePrimitive', async () => {
+		const { rerender } = render(SecurityChart, {
+			props: { candles: initialCandles, isDrawingLine: false }
+		});
+
+		const primitive = getFreeFormLinePrimitive();
+		expect(primitive.isDrawingMode()).toBe(false);
+
+		await rerender({ candles: initialCandles, isDrawingLine: true });
+		expect(primitive.isDrawingMode()).toBe(true);
+
+		await rerender({ candles: initialCandles, isDrawingLine: false });
+		expect(primitive.isDrawingMode()).toBe(false);
+	});
+
+	it('syncs selectedLineId prop changes to FreeFormLinePrimitive', async () => {
+		const { rerender } = render(SecurityChart, {
+			props: {
+				candles: initialCandles,
+				securityDrawings: lineDrawings(),
+				selectedLineId: null
+			}
+		});
+
+		const primitive = getFreeFormLinePrimitive();
+		expect(primitive.getSelectedId()).toBeNull();
+
+		await rerender({
+			candles: initialCandles,
+			securityDrawings: lineDrawings(),
+			selectedLineId: 'line-1'
+		});
+		expect(primitive.getSelectedId()).toBe('line-1');
+	});
+
+	it('forwards drawingsChanged, drawingModeChanged and selectionChanged to callbacks', () => {
+		const onLineChange = vi.fn();
+		const onLineDrawingModeChange = vi.fn();
+		const onLineSelect = vi.fn();
+
+		render(SecurityChart, {
+			props: {
+				candles: initialCandles,
+				securityDrawings: lineDrawings(),
+				onLineChange,
+				onLineDrawingModeChange,
+				onLineSelect
+			}
+		});
+
+		const primitive = getFreeFormLinePrimitive();
+
+		// Completing a two-point drawing fires drawingsChanged (and drawingModeChanged).
+		primitive.setDrawingMode(true);
+		primitive.addPoint({ time: '2024-01-10', price: 10 });
+		primitive.addPoint({ time: '2024-01-11', price: 20 });
+
+		expect(onLineChange).toHaveBeenCalledWith(
+			expect.arrayContaining([
+				expect.objectContaining({
+					p1: { time: epoch('2024-01-10'), price: 10 },
+					p2: { time: epoch('2024-01-11'), price: 20 }
+				})
+			])
+		);
+		expect(onLineDrawingModeChange).toHaveBeenCalledWith(false);
+
+		primitive.select('line-1');
+		expect(onLineSelect).toHaveBeenCalledWith('line-1');
+
+		primitive.select(null);
+		expect(onLineSelect).toHaveBeenCalledWith(null);
+	});
+
+	it('forwards candle updates to FreeFormLinePrimitive', async () => {
+		const { rerender } = render(SecurityChart, {
+			props: { candles: initialCandles }
+		});
+
+		const primitive = getFreeFormLinePrimitive();
+		const setCandlesSpy = vi.spyOn(primitive, 'setCandles');
+
+		const newCandles: Candle[] = [
+			...initialCandles,
+			{ time: '2024-01-12', open: 12, high: 14, low: 11, close: 13 }
+		];
+
+		await rerender({ candles: newCandles });
+		expect(setCandlesSpy).toHaveBeenCalledWith(newCandles);
+	});
+
+	it('destroys FreeFormLinePrimitive when the component is unmounted', () => {
+		const { unmount } = render(SecurityChart, {
+			props: { candles: initialCandles }
+		});
+
+		const primitive = getFreeFormLinePrimitive();
+		const destroySpy = vi.spyOn(primitive, 'destroy');
+		unmount();
+		expect(destroySpy).toHaveBeenCalled();
+	});
+
+	it('disables pressedMouseMove while isDrawingLine is true and restores when false', async () => {
+		const { rerender } = render(SecurityChart, {
+			props: { candles: initialCandles, isDrawingLine: false }
+		});
+		await tick();
+
+		const createdCharts = vi.mocked(createChart).mock.results.map((r) => r.value);
+		const mainChart = createdCharts[createdCharts.length - 1];
+		vi.mocked(mainChart.applyOptions).mockClear();
+
+		await rerender({ candles: initialCandles, isDrawingLine: true });
+		await tick();
+		expect(mainChart.applyOptions).toHaveBeenCalledWith({
+			handleScroll: { pressedMouseMove: false }
+		});
+
+		vi.mocked(mainChart.applyOptions).mockClear();
+		await rerender({ candles: initialCandles, isDrawingLine: false });
+		await tick();
+		expect(mainChart.applyOptions).toHaveBeenCalledWith({
+			handleScroll: { pressedMouseMove: true }
+		});
+	});
+
+	it('restores pressedMouseMove when FreeFormLinePrimitive exits drawing mode', async () => {
+		render(SecurityChart, {
+			props: { candles: initialCandles, isDrawingLine: true }
+		});
+		await tick();
+
+		const createdCharts = vi.mocked(createChart).mock.results.map((r) => r.value);
+		const mainChart = createdCharts[createdCharts.length - 1];
+		const primitive = getFreeFormLinePrimitive();
 
 		vi.mocked(mainChart.applyOptions).mockClear();
 		primitive.setDrawingMode(false);
