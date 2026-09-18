@@ -1,4 +1,9 @@
-import { getMarketService, type MarketService, type WatchlistRead } from '@/api/marketService';
+import {
+	getMarketService,
+	type MarketSearchResult,
+	type MarketService,
+	type WatchlistRead
+} from '@/api/marketService';
 import { getContext, setContext } from 'svelte';
 
 export class WatchlistService {
@@ -6,6 +11,8 @@ export class WatchlistService {
 	defaultWatchlistSecurities = $derived(
 		this.watchlists.find((w) => w.name === 'Default')?.securities ?? []
 	);
+	activeWatchlistId = $state<string | null>(null);
+	activeWatchlist = $derived(this.watchlists.find((w) => w.id === this.activeWatchlistId) ?? null);
 	isLoading = $state(false);
 	error = $state<string | null>(null);
 	private client: MarketService;
@@ -32,6 +39,56 @@ export class WatchlistService {
 			this.handleError(err, 'Failed to load watchlists');
 		} finally {
 			this.isLoading = false;
+		}
+	}
+
+	selectWatchlist(watchlistId: string): void {
+		this.activeWatchlistId = watchlistId;
+	}
+
+	async searchSecurities(query: string): Promise<MarketSearchResult[]> {
+		return await this.client.search(query);
+	}
+
+	async addSecurity(
+		watchlistId: string,
+		result: MarketSearchResult,
+		token?: string | null
+	): Promise<void> {
+		try {
+			const resolved = await this.client.createOrUpdateSecurity({
+				code: result.code,
+				exchange: result.exchange,
+				name: result.name,
+				currency: 'USD'
+			});
+			// The backend does not dedupe membership, so short-circuit before the
+			// membership POST when the security already belongs to the list.
+			const target = this.watchlists.find((w) => w.id === watchlistId);
+			if (target?.securities.some((s) => s.id === resolved.security_id)) {
+				return;
+			}
+			const updated = await this.client.addSecurityToWatchlist(
+				watchlistId,
+				resolved.security_id,
+				token
+			);
+			this.replaceWatchlist(updated);
+		} catch (err) {
+			this.handleError(err, 'Failed to add security to watchlist');
+		}
+	}
+
+	async removeSecurity(
+		watchlistId: string,
+		securityId: string,
+		token?: string | null
+	): Promise<void> {
+		try {
+			const updated = await this.client.removeSecurityFromWatchlist(watchlistId, securityId, token);
+			this.replaceWatchlist(updated);
+		} catch (err) {
+			this.handleError(err, 'Failed to remove security from watchlist');
 		}
 	}
 
