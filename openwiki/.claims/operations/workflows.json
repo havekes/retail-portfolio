@@ -1,0 +1,482 @@
+{
+  "schemaVersion": 1,
+  "pageVersion": "sha256:a704b6ac89d5ab4c66bf2725dc703a2a8c738deffc55d1a259397ae7b4803e0e",
+  "claims": [
+    {
+      "id": "claim_7ecb499131d4460ab8b3effeff51e886",
+      "statement": "Docker Compose is the only supported way to run the application locally, and all development commands must be executed inside the backend or frontend container via `docker compose exec <service> <command>`, because CI runs the same checks.",
+      "evidence": [
+        {
+          "resource": "repo://AGENTS.md#L15-L17",
+          "version": "repo-lines-v1:sha256:72339c27e276600743b00237fd0c7bbd0458009c005d63ecce5173f7c9f1b5e0:eyJzZWxlY3RlZExpbmVDb3VudCI6MywiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiYjdjNGY1Y2FjNTQ4MTZlZWQxNjRkMzY1NmJlMzc2NGJhOTcwNDBlNDlkM2ZjYzhlNDc3MzM2ZjNlMWIzNzdiYiIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiMzhmYjBlMzU1MjE5ZDE4ZjU5ZTViODNkZmMwMTQ4ZmVlMzIxM2I4YzU5ZDZlNGZlNGM1NWE3Mzk0Mzg1NDc3NiIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiZjkyNDVmMjlkOGZhMTI3ZjlmNmJkMzk2NGRhMjY0ZmY3ODQxZTRjNWIyMzFjNTRkZjUwYjUyOTFhNGEzZTg0YyIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiNjZhNGYwMmEyNDRhYjIxNzQ4ODAwMjRmODMyMTc4OGYzMDcwNzJjNDdlZDA0OWYzMzczMjIzOTUxODQ0YTNhNiJ9"
+        },
+        {
+          "resource": "repo://README.md#L8-L24",
+          "version": "repo-lines-v1:sha256:c36c4cabdd029d47464ae522f5d7d973ca9e538e8b837cade177647ad5a1b9a0:eyJzZWxlY3RlZExpbmVDb3VudCI6MTcsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjBiMzA5NmFlYmQzMGU4MzQ3YzQ1YTkwNjZkNjkzNzk5MTY5ZTk0YzM3YzRkYzQyOTc0OThiNjhhMTNkY2UxMjIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjE1MmFkNmJjOWI1ZDc4NjYzYTI3MTRhZDVlMWNhMGM4Njk5MWY3NTQ0MmVlNWQyNDdkNzI1OGM2NzE1OTI1MTMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjIwZGQ3NDZhODIyMjcwZDYwYTA1ZDMyZDNmODg3MjAzNTI3ODBlZmU5MDBiMWE0Y2QxY2U3NmVmNzY4YTgwYTQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImFlY2ZhMjBhNzU1M2M0NzRiYTczN2FjOWZlYzNiZjYyNTY5ODlmNjY4NDVjNTY3YTNjM2NkY2U3NTRiYzhkMTUifQ"
+        },
+        {
+          "resource": "repo://src/AGENTS.md#L23-L32",
+          "version": "repo-lines-v1:sha256:c3847512234949a1ad339de109ce0cb15f82daf704bac4eca5e96145a429cdf2:eyJzZWxlY3RlZExpbmVDb3VudCI6MTAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImY2MTVlODUwMmNkM2RkYWIwNGI2OWJlYWRmYzY0ODg2MmEwYTk1YWM0NjY4Mjc2MjBiMzNkYzMxYjgxMzY2MjkiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjVhYWE0YmQ2ZGZmZjdmZDJjY2JmZGM0ODZiOGUyNWU2ZDJkODgwYWIyYzM5N2QzZTM5MDNjZTQzYzk4ZGQ5NDAiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImRhODg3ZjJiMmEzMDZkZGI4NGJmMmE2MDFmM2M3MmIxNTIzYTY2OThhOTYyNzRiMzlkYzNlNWM2NTc0MTM1MTEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjllYTQzM2Q3MmJkZThlMDQzNmY3NWM4NzU0YWU0MGExZjdhZWM0MTRmODc2MDFkNzFjZWNmNDA0MmFmOTJmMGMifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_77f8e154a3e346e48d08be00cc5028a6",
+      "statement": "`docker-compose.yml` defines seven services (backend, worker, frontend, postgres, redis, mailcrab, indicator-service) with all published ports interpolated from the root `.env` (BACKEND_PORT 8001, BACKEND_DEBUG_PORT 8090, WORKER_DEBUG_PORT 8091, FRONTEND_PORT 8002, POSTGRES_PORT 5432, MAILCRAB_PORT 8003, INDICATOR_SERVICE_PORT 8085), and the backend mounts the host Docker socket with a matching `group_add` Docker GID so testcontainers-backed tests can start a throwaway Postgres.",
+      "evidence": [
+        {
+          "resource": "repo://.env.example#L52-L59",
+          "version": "repo-lines-v1:sha256:f7e56f857189db24dc56f81582c2703a88207aea6336055bcf65418c9e4d1693:eyJzZWxlY3RlZExpbmVDb3VudCI6OCwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiYTE0OGZmOTgxY2RmNzlkMjcwOWFmMTA3ZTYyMWIwOTljYWU5NmQ4ODJkYzdhNGRhMmUwNWIzMTA4ODFhNmU4YiIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiYjA4MTYyM2Q4ZWJjNjExMDU2MGZhMThkNjViNmM5MWFiYmJlMWVmMDA0MjE1NjFhNjljZjc1NWRkMGIyZTQ2NCIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiYTBiY2ExZTBjZDE0ZmZiNjI3MDBjMzZkMjU0MDZiNWUwZGZkZTI2ZWFhOGY5MDAyMjk0ZjgzZTdkZTM0MThmOSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjEsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiM2IzZjQ2MzZkN2ZiODE3ODc1MTIzYmY0OGI5YzJlNjhkYmM4ZWE4ODM1NWUwZDU4MTgxNDE1YjI2YTk3Y2VhNyJ9"
+        },
+        {
+          "resource": "repo://docker-compose.yml#L1-L124",
+          "version": "repo-lines-v1:sha256:2d1dc9e343d03415bf65406b0927f43639b831bb571f31fdb83323d4137c2d18:eyJzZWxlY3RlZExpbmVDb3VudCI6MTI0LCJmaXJzdFNlbGVjdGVkTGluZUhhc2giOiJmYTczZmNjZGM5OWVhODM1OTY3YzdkZWU3ZWZiZWQxZjNjYTg3MjYwZDkyOTMxODUwZmRkNjZkYThjYjEyZjFkIiwibGFzdFNlbGVjdGVkTGluZUhhc2giOiI0ODUxZTcwODI5MjYxYzljZGJkZjFjN2EwYmRlYjkzNTcwZmY5YzZmNTJlOGJhZjBjMWQwODljMTQxMTlmMzE2IiwicHJlY2VkaW5nQ29udGV4dExpbmVDb3VudCI6MCwicHJlY2VkaW5nQ29udGV4dEhhc2giOiJlM2IwYzQ0Mjk4ZmMxYzE0OWFmYmY0Yzg5OTZmYjkyNDI3YWU0MWU0NjQ5YjkzNGNhNDk1OTkxYjc4NTJiODU1IiwiZm9sbG93aW5nQ29udGV4dExpbmVDb3VudCI6MCwiZm9sbG93aW5nQ29udGV4dEhhc2giOiJlM2IwYzQ0Mjk4ZmMxYzE0OWFmYmY0Yzg5OTZmYjkyNDI3YWU0MWU0NjQ5YjkzNGNhNDk1OTkxYjc4NTJiODU1In0"
+        }
+      ]
+    },
+    {
+      "id": "claim_33a07edbbe5640dfaf00c584a9053e9c",
+      "statement": "The tracked root `.env.example` is the single configuration source for the dev stack: `backend` and `worker` load it via `env_file`, Compose interpolates port/URL/`DOCKER_GID` variables from it, and the `frontend` service receives `VITE_*` plus `JWT_SECRET: \"${SECRET_KEY:?SECRET_KEY must be set in the root .env}\"`, so the SSR route guard verifies tokens with exactly the backend signing key and Compose fails fast when `SECRET_KEY` is missing.",
+      "evidence": [
+        {
+          "resource": "repo://.env.example#L1-L13",
+          "version": "repo-lines-v1:sha256:990788c3b013b530d359e31df493c00ac7aa7ccbdc4652f6bdd322dffa57fbc5:eyJzZWxlY3RlZExpbmVDb3VudCI6MTMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjdiMTAxMTY0NTlhNDc0M2U4MWYwZWE5NWNlNmI0ZWE5NmI2YTlkNGYxZTIzMTQwYmFkMDNiOWU1NDhjODI1NzUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjFhYTBmZjNkYjdiNjcyZGQ4ZGY5NGM0ZTk5Yjc2MmRiYzQ2MzVlNTYxYTZjZDU1NmI3Y2U1MzI3Mjg2MDJkMDgiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjowLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImIxYmM0ZjAyOTFiNWVkZWEyODg3NDY1ZTU2ZDgzYmUyMDNjYjhlZmQwNTI1MTc3Yjc4MmM2N2UyZjRkNTNmYmUifQ"
+        },
+        {
+          "resource": "repo://docker-compose.yml#L30-L38",
+          "version": "repo-lines-v1:sha256:9be7d35db785279ac3f25598940d862b8a40b6de849d8a45a34241cb004bb4cc:eyJzZWxlY3RlZExpbmVDb3VudCI6OSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiMTBmNWIyMjJhMzUxODk1NmRjN2I5ZGY1ODY0ZGE1N2M3YjM2NDYyZTBhZDllMDM2YThmMTgxMDZmZWZiNzhkNiIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiZTE0MDJlZDVhMGU5NWM1NjcyYjU3YTZjNGVhNGE0MTk4MGRjNGRmZDI2YjVkZWZhYmQ3OGM4YWIzYmQyOTQ2NyIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiZWFmNDMxMTg1MGUxYmYwZTU0YmQ2ZWU0MGQ0MGU5MzI4NDJiMjE1NTMzNjc3NzNiOWI2OGQ1MTA4ZGE0Y2M2NyIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiNjNhZmY1NjZkYjE2ZDJiZWVjNjBmZTcxMzAwMGYxZmU2OWQxNTRiOWY1ZjYyMDgyYWU1NTlmMzcxMTk0NDBjNiJ9"
+        },
+        {
+          "resource": "repo://docker-compose.yml#L79-L87",
+          "version": "repo-lines-v1:sha256:d48f063f01d4d234b31d587d0ca6914412469a04354baae21ed624cf7d2aa8d6:eyJzZWxlY3RlZExpbmVDb3VudCI6OSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiMjI3NDYzMzRmZGJkNjUxMzIzOWYxMzI2ZGI4YjYxMjc1N2I1YjMyYzA4MDhiNTA4MWE5OTM3ZjY1MzNiOGRiOSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiZTcxZmYzY2QwN2M2YTA4YTg5NzU2MjA5ZTlkMDQzMGUwOTAzNjYzOGMyYTgxODk5NjI1YzJlZTM4YmE5OWFhOCIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiMGJiMjY2OTAwZWJhMmE0OGQ5OWU4ZWUwNGM0ZDQ5MjA4ZWY0NjM4OTI3MTRmYjYwYzhmNDg0NzliNGE1M2NmMiIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiYjM5ODRjNjgxNjczMzcxNjc0M2U2MWE2NjRjZDI1ODZmMDNiMDc4ZTcyNmE3MzE3MzlkOGY5NTFjYzNhZTYxNyJ9"
+        }
+      ]
+    },
+    {
+      "id": "claim_eb222a80f07c4ab385b43d52dada3ef7",
+      "statement": "For parallel work, `scripts/setup-agent-worktree.sh <worktree-path> <branch-name>` creates a git worktree and writes a worktree root `.env` seeded from the main checkout with a generated `COMPOSE_PROJECT_NAME` and seven uniquely discovered free ports, so concurrent agents get independent Compose projects without file or Docker conflicts.",
+      "evidence": [
+        {
+          "resource": "repo://AGENTS.md#L33-L41",
+          "version": "repo-lines-v1:sha256:c07eff454f47baa7c5217409e89c7857952d742f1ed7c95a75fd30fa6b40da80:eyJzZWxlY3RlZExpbmVDb3VudCI6OSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiNmI2YzkwYWM2NTIxODc5ZDQ2MjkyZjUzYjlkOGI1MDhjMmNjYTEwMWU0N2JlMzg3MzJiNjBjMzI2NWU5NjQwOCIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiMDFiYTQ3MTljODBiNmZlOTExYjA5MWE3YzA1MTI0YjY0ZWVlY2U5NjRlMDljMDU4ZWY4Zjk4MDVkYWNhNTQ2YiIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiNTBmMDVmMjg2NzgzNThjNjlkM2M1NjE4YTA3NmUwNmZmNWJmYTBmM2M0MWQwMzk0OWM4NDA1MTk0MTI2OTc3ZiIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiNTliNDhjMWM5M2FmNjMyZDBkNTRmMzc1ZjM0YmU2M2JmZTA4NGRhMjFkYmY5OGQ4OWYyYzUxNzRmNGY1NjZlYSJ9"
+        },
+        {
+          "resource": "repo://scripts/setup-agent-worktree.sh#L13-L68",
+          "version": "repo-lines-v1:sha256:be41aead0ebaf05057d6892c4ad26851814d60a3b8043b0de82fe577003556c2:eyJzZWxlY3RlZExpbmVDb3VudCI6NTYsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImMzMTE2MzIzZTE3NDRhMWUxNGJjZDM2Njc2ZWQ3YjAyYTI0NzQ0Nzc3ZDI5M2MyNjhlNGQ3OGNiMzU4NTRiM2MiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImVhOTA4N2U2Yjk5MTliY2NhNDcxMWIyOGVhMzk5ZmIwMWY0NjAzMWYxYWVmZTU4ZjY2NzdkMjBjMWVkZWJmMzEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjhlM2Y3Mjg3MDI0YzZlOWMyMjVkZDVlN2NhOWFlNjhlYTA0Mjc4ZDEwNjRlYzUzYzU1YjgzZDA5NzQ5OGEzMmIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjczNjNhMzFmZDU5ZTFmMDE5NDY5ZGE4NWQ5YzMxOGMyODMxZDg2ZWJlODdkYzAyNjZhMWMxMmI0ZmRlOTIxZjEifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_9eb6503a16024516ade9cfcd83a623a6",
+      "statement": "`./scripts/agent-test` is the primary test entrypoint for agents (shorthand `just test …`), running on the host through `docker compose exec -T <service>` unless already inside a container or `--local` is given, sanitizing output and hard-capping it at `--max-chars` (default 3000).",
+      "evidence": [
+        {
+          "resource": "repo://AGENTS.md#L19-L31",
+          "version": "repo-lines-v1:sha256:443d98f020ec63ba19068e67bfc06da637fb9bb9b53a35d542a84fadc423a252:eyJzZWxlY3RlZExpbmVDb3VudCI6MTMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjNjOGZiMTg2OTU0Y2E1MWE2M2ViNDVmM2JiYzZhNzE0NDE2MmNmYjg2NGU0N2U2OGQxN2MyYjBkYTY3ODkxNTAiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijc0NDE5NzE1YWU5MzQ4M2MwOTk3ZTlkMWVkNDNjMWFiYmZiZGJmNTdiNTc4YmRiZjY5MDgzOTk3YTMxYmE0ZjgiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjE2ZjdmYWY4OGI2OTFhNTdkMzc4OGMxMzU5NzJmMzU5ODc0OWNjMTRlNDcxYmJiMWY1OGM4NzMzZWJhNWQ5ZTkiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjNkNTFlOGY1NmE0YjA2ZmNmNDRlMTI5NjQ2N2I3NTJjZDU0NzAyOGJkYmJlYmNjZTVjMTJjZTAxODNhNjk1NjUifQ"
+        },
+        {
+          "resource": "repo://scripts/agent-test#L1-L24",
+          "version": "repo-lines-v1:sha256:d0f47a17df34760c719a182717351d668fd8d15d20594821df46e01332d2344e:eyJzZWxlY3RlZExpbmVDb3VudCI6MjQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImQ2ODJjYmRiNGM4YjA3NTE4YmY0ODZjNTg5OTBmYzM5MTc4M2FhMjBhOTE2YmZiMjdhZDIxMWViMWQ1YzM2NDIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImEzMDNlY2RkNGE0ZDEwZjE5YzczZmQ0MmZkMTI0MzdmZDMzNTRhODI2ODE2MDVkYTUyNTVhOTdhMzkwNjhkYmIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjowLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjU1YjZlODcwNmI0MzA0N2YyYTZkYjY3ZjEzMjYzODU5NTYwNGU2N2YzNjk2Njg3NmNlMDE1OGYwMDUzZTZiZDEifQ"
+        },
+        {
+          "resource": "repo://scripts/agent-test#L201-L224",
+          "version": "repo-lines-v1:sha256:8010326eecd6809a0a6c9e3eba8be7ddcd266341c5eba835886fac5e6927fd6a:eyJzZWxlY3RlZExpbmVDb3VudCI6MjQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImJlZjdmMWJkNDY0ZjcxYzM1MTBhMjdjODBmY2FiZDNhMGRhNzIzZTdmMzg3M2YwZDE4YWM2OTY2MjQ4ZDQ4ZGIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjU5MDlhNTNhNjE4ZDAyOGUxZDMwMDBjMGE3YWJjZWVjYmU1ZmIzN2Y0ZTUxMWVmZTQ2NjQzZmFkNmU2Njg3MmYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjA3YTNlMjQwNzZkZWQ0OTc3ODRhNzdkNGQ5ZjYyYTY4ZWE0ZTA4YTViNjFjOWIxYzAwZWU1MzMxYjk4YjJlYWIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjRhOWJiNGIyM2UxY2ZlN2MyZWYwZjAyZjE1NWM4NzI2ODY0ZDNlMDUxNTQyZmQzNTdjNzhkZjZhMTBhNGMzYWYifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_035d5f89face4666b9c5ed4316cfc3c3",
+      "statement": "The harness has three gates: Gate 0 runs lint/type checks (backend `ruff check`, `ruff format --check`, `ty check`; frontend `svelte-kit sync`, `svelte-check`, `eslint -f json`, `prettier --check .`) and halts without running any tests on failure; Gate 1 runs a path target with fail-fast; Gate 2 auto-detects ecosystems from the git diff and renders an Index plus Traces for the first 1–2 failures.",
+      "evidence": [
+        {
+          "resource": "repo://AGENTS.md#L23-L31",
+          "version": "repo-lines-v1:sha256:aab9518a01920a61301f19d9c2a05800c93a2abac8ca862c4d6cc6186dc3daf7:eyJzZWxlY3RlZExpbmVDb3VudCI6OSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiM2VjYWIwN2JmYWJkYWI4YzUzZmUyN2Y2NmY2YWI4ZGYwYTI5ODA5NDg2ZTE4ODVlMWQxMzY1ODFiNDA1M2ZmYyIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNzQ0MTk3MTVhZTkzNDgzYzA5OTdlOWQxZWQ0M2MxYWJiZmJkYmY1N2I1NzhiZGJmNjkwODM5OTdhMzFiYTRmOCIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiZjg1NTFjZmJiMWJlYzc3Y2Y4YjQwODU5YzUxYTRkZGI3MDUxNTNhYmY2YjNmNTk1MGM4ZTkxYjExYjQ5N2E3MCIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiM2Q1MWU4ZjU2YTRiMDZmY2Y0NGUxMjk2NDY3Yjc1MmNkNTQ3MDI4YmRiYmViY2NlNWMxMmNlMDE4M2E2OTU2NSJ9"
+        },
+        {
+          "resource": "repo://scripts/agent-test#L256-L318",
+          "version": "repo-lines-v1:sha256:c677d00f674d64e2706fcb2c29730a15ef8d4a46048367de6bf591050885df8a:eyJzZWxlY3RlZExpbmVDb3VudCI6NjMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjkxNzJiNzNmMjVjNDQwMGYzNjlkNDU0M2JkZTNjYTNlYWMxYWQwMTY1YjAxMDA2ZWQ4MjNkZWRkZjc5MzQxY2MiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjY1NmEwYjMwMTI3YmJiZjE1NTE0ZGVhMjNhMTlkYTQ3ZWQ5OTRkMjdkODAwOTA3NWM3MDRiYTQ5NzAzMjkzMzIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjA3YTNlMjQwNzZkZWQ0OTc3ODRhNzdkNGQ5ZjYyYTY4ZWE0ZTA4YTViNjFjOWIxYzAwZWU1MzMxYjk4YjJlYWIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjRhOWJiNGIyM2UxY2ZlN2MyZWYwZjAyZjE1NWM4NzI2ODY0ZDNlMDUxNTQyZmQzNTdjNzhkZjZhMTBhNGMzYWYifQ"
+        },
+        {
+          "resource": "repo://scripts/agent-test#L463-L556",
+          "version": "repo-lines-v1:sha256:f1a50a559d83caf270ef09fb4d9cd05b822787c0639626c8a8e75f51869f0834:eyJzZWxlY3RlZExpbmVDb3VudCI6OTQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjhlZWE1YzkyMWNiNDczMGRmM2RiY2U0OWNmOTA4MGUyNjUwZTMwNmRiZWM0MzljMDg2OGM3MmI2ZTNlYzNhZTQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjMwYzFmMTg4ZjE0MmVkN2E4MjQ2ODBiMjA3MTcyYzU1MTliYzYxNGE0OGZkYTdjZjE2N2VkYjhkZGY3OTk1NmMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjhjODU4YmY2OGVmZjE4NjU0Njg1ODM2MzkyODM0MDg0MTljZDBlZGYzMzMxNjU3MDE0OGU5ZGFlZjliZDRlODUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjRhOWJiNGIyM2UxY2ZlN2MyZWYwZjAyZjE1NWM4NzI2ODY0ZDNlMDUxNTQyZmQzNTdjNzhkZjZhMTBhNGMzYWYifQ"
+        },
+        {
+          "resource": "repo://scripts/agent-test#L580-L605",
+          "version": "repo-lines-v1:sha256:e3d7f51bb7672f7ecee13ab727da1dd199830713629e7efe06a969b8a18837e5:eyJzZWxlY3RlZExpbmVDb3VudCI6MjYsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjM2NDVlZjU5MzI0NTNiY2JiY2FjOGRlZTAxZTJjMDhhOTcyMDFjZjEyOGRlNmEwOWZkN2M0ZWQ4ZDY5NzExMzgiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjkzNzIwNDY4Njk5ZjVjODZmMGRjZDIxMjc1ZGIyYzJiNjc1ZDQyMWEzMmVkYWM4MDFlZjhmMTE4NGJjZTYzM2EiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6Ijg4OTEzZDg0ZDgyMDYxM2FmNmU1MzMxNjZjY2U4MjFlMDIzYjA5ZDk5M2M4ZGM5MjcwMmU3MGM0OWY3OTgxZTIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjRhOWJiNGIyM2UxY2ZlN2MyZWYwZjAyZjE1NWM4NzI2ODY0ZDNlMDUxNTQyZmQzNTdjNzhkZjZhMTBhNGMzYWYifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_30a8864c8fcb4013bcc31336c94ae4e7",
+      "statement": "The harness exposes `--backend`, `--frontend`, `--all`, `--gate0-only`, `--no-gate0`, `--local`, `--json` and `--max-chars`, and the justfile wraps the common cases as `just test`, `just test-backend`, `just test-frontend`, `just test-all`, `just check` and `just up` (which resolves DOCKER_GID via `scripts/docker-gid.sh`).",
+      "evidence": [
+        {
+          "resource": "repo://justfile#L1-L29",
+          "version": "repo-lines-v1:sha256:a5940377f1273989f7e70a2aa6129543bf480fdc28a1aa7d19633a79d3b38bcb:eyJzZWxlY3RlZExpbmVDb3VudCI6MjksImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijk5NDk3ZjZkOTNiNTAyMjk5NDA2ZGI2MjQ3OGFlMGI5OGZkMGFmMTIzMDJiNzk1NGMxZTFkMzdmN2ZkODg3NDUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImQxMjUyYjRhYmQ2Y2RhZjUwYzE4ZTY5ZGI0YmRjNTI1ZGI3NTkyNGRmNmUyYzY0Njc4YTYxMjAyODI5YmEyZWMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjowLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
+        },
+        {
+          "resource": "repo://scripts/agent-test#L613-L631",
+          "version": "repo-lines-v1:sha256:ab18e8d8ddac5baa25d2d451cf8546b31dcd80afc8a4221a6a969fe580143bee:eyJzZWxlY3RlZExpbmVDb3VudCI6MTksImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjcxYzY4MmM0NDRiZjYzODhkNmNmMGIwNTgzMzVhMjUxNDRhYTQwODZkODcxYTAzMTJkMjNkYzlmZjc5NTdmNmMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImU0ZDMzM2JkZTlmMTgxNzI0YTliMGZlMjAyMWRhNGVjZjJiMTlhYTFkMDc1NDc4MGVhMmEyOWRlYWJkMDQzZjAiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjA3YTNlMjQwNzZkZWQ0OTc3ODRhNzdkNGQ5ZjYyYTY4ZWE0ZTA4YTViNjFjOWIxYzAwZWU1MzMxYjk4YjJlYWIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUxODcwMGRmMmI2MWRkZDhhZTViYmNkODUwNzIwMGVjYzI0MGM4MzlkNTUyNjVmMTAyNGQyMmU1OTk1NTIyNDMifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_a4d2f7e512ba4c1a85cefdcbb35fcf8a",
+      "statement": "The agent harness covers only the backend and frontend ecosystems; the Go indicator service under `services/indicator-service` is exercised by its own CI job rather than by the harness.",
+      "evidence": [
+        {
+          "resource": "repo://.github/workflows/ci.yml#L78-L108",
+          "version": "repo-lines-v1:sha256:b94c2d33e741768b2caa5d0261f07c1a2da4d5e8c8f4d67e7a011281a46c70a4:eyJzZWxlY3RlZExpbmVDb3VudCI6MzEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjU0OTc2YThhZDZhZTQ2YWYzOGU0MGQ4ZWMyOGY4NDU5ZmExNWI1Y2JiYjQ0N2IxNmI0ZTdlZmRmYWMzZWI5ZWQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjY5MDYyYzUxZGRmNDUzNmRlYzNiMWZkMjI1YjA1YWFlZjk2ZTQ3MmJhMGI5ODk2MjRlYTc5NzA1YWYwZTJhODciLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImI0YmVlMDgyMmQ2OTE5ZGQ4YTQxODExN2VhZjRlMmYwYjZkMTc5Mzc5MzM0Y2UxYzI2M2VjNTBjZDg5ZjE0NDYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
+        },
+        {
+          "resource": "repo://scripts/agent-test#L50-L65",
+          "version": "repo-lines-v1:sha256:115e0da8cce0a90452dc433241a94ace5fb15adc1652c7b8bb00c61c4fb4b475:eyJzZWxlY3RlZExpbmVDb3VudCI6MTYsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImVmZjQ1YTM2NTI5ZmU3MWQ3NGE2ZTdiNmJkNzQ5ZDI1ZDYzZGY3YWRiMjY1OWEzZjMyMzhmMmM1NGM2MzFhMDMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImZhZmJhMDUyN2MzOTUzYzRiNmUwZTViNTczOWJhODM2MTJmODA1M2JjZGM5NDY2NzMwMTkzY2QxZDU5MGI0MDgiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImRmOTFkYTBiYTk0NDU2NTY1ZTBhNzQ5MjhkYTljNjNhZTgwNjA2Yjg4YWJlMzIyNTFmMjNiODYxMzhlZGQ4NzIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjViYWNiMjc2MDQ0Y2I4M2FjMzJhN2E3Y2NkMzM0YTQ1NjE4OTE1OGE3ZDJmZWJkOTZhMjQ2ODlmOWU5ZDNiYmIifQ"
+        },
+        {
+          "resource": "repo://services/indicator-service/calculator_test.go",
+          "version": "repo-file-v1:sha256:3bf49df3a6eb9188dea3692074f101d5bd8a0ff8c6aae07cabc87bee05aa75a1"
+        }
+      ]
+    },
+    {
+      "id": "claim_e31f22420e8749c5996272a18cc06d2a",
+      "statement": "Editing a backend model mandates generating an Alembic migration, and all migration files must follow the `<hash>_<description>.py` naming; manual SQL migrations should be created with the autogenerate command and use `op.execute()` inside the generated revision.",
+      "evidence": [
+        {
+          "resource": "repo://AGENTS.md#L6-L13",
+          "version": "repo-lines-v1:sha256:e81183bcbaa78cb42842b9db417c1bdb06dc9e76dd2fff40750651139768fc41:eyJzZWxlY3RlZExpbmVDb3VudCI6OCwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiMjA1NTU3NDQyZDAzYjg2OTE0Nzc2NjQxZjYzODA0NWJjZDY1YWVkNmFhYzYyYzE1YTZmMmUxNTk3ODg3YzMwMSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiMGEzMmQwMDU1ODliNDE2N2RkMGNhNTYzOGMzYjQ1Mzc3OTZiZDA2YjFjOTFhNGQ1MGZiOTVkOWU0NDQ0OGU4NCIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiNWM2MWE3MDUzMjE5ZTdjNzgxZGI2NjJhYTY1YjRlYTViOWFjZjcxZDk0MjcyNGQ1NzZiZjAxMjI5YTMyYjBkOCIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiZjFlNjAzYzE0MTlmMTgzMmUxMWU3MjY2NThjYWUzMDNmYzJhMGZlZjcwOGQzNDMxNjZhMzY4N2EwNTQyYjgxNiJ9"
+        },
+        {
+          "resource": "repo://src/AGENTS.md#L36-L38",
+          "version": "repo-lines-v1:sha256:a66f50aee607233da33a175ee0137a387351d55f0b72e0e4cc770dc5b3fafd5a:eyJzZWxlY3RlZExpbmVDb3VudCI6MywiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiZDFhMWNkODk3MjQ4Y2RiOTFhMDVjNTcxZDhmNWJkNzU2MTU2MTkzNjdjYzg2MzE2YzQ3NTRmNmUwZTY0Y2RkZSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiZThhNjBjOTBmM2I2ZTFmYzI5MTUwMWFkY2NjYjNhYjZjNzEwMzkxYWExYzc1NTc1ZTVlMDA4M2Q3ODU3NDU1MSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiOWVhNDMzZDcyYmRlOGUwNDM2Zjc1Yzg3NTRhZTQwYTFmN2FlYzQxNGY4NzYwMWQ3MWNlY2Y0MDQyYWY5MmYwYyIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiNWVkYWI3ZjkzNjgyMTg1MmQyMjA2NjNmMTU3MDEyMmNiOGI0NDcxMjg5MzY5ZjY5YjcwNjI0NWIxNDg5MzIzMSJ9"
+        }
+      ]
+    },
+    {
+      "id": "claim_1e28e4b5897a419c987cf56633b7ee05",
+      "statement": "`migrations/env.py` imports every domain `model` module so all tables register on `BaseModel.metadata`, and overrides `sqlalchemy.url` from `DATABASE_URL`, rewriting `postgresql+asyncpg://` to synchronous `postgresql://` because Alembic runs a sync engine.",
+      "evidence": [
+        {
+          "resource": "repo://migrations/env.py#L1-L27",
+          "version": "repo-lines-v1:sha256:5f5648acb81b50d879b384c0403df1bc7ea09d898bee86a138d015b7a28c0764:eyJzZWxlY3RlZExpbmVDb3VudCI6MjcsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjM3MjdhZGZmNTI0ZTA2MTYwMjJlYWRkOGY0YWYyMWEwNzc4YjI5ZmM0Yzc3YmRmZWZkMWFmY2UyY2JmNWU0YjciLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImVkNzdmMDYxMzQxYjRhNGEwMDhhZjJmZWM2NTk2NDlmYjVmNWY2MzdhMzc4N2FmNmY4YmQ1NGQ1MTA2ZjdjYzUiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjowLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjlkZjgzMGE3YTBkMWEzOTVhOTFhYmJmNWFlZmFhYzczNmE1NWM5MGE3YTg5NzM1MjY5YmIwYzAyZjk1MjE2MWUifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_7dd858ba96fa487eb0442744a0fdfb08",
+      "statement": "`src/commands/seed.py` always seeds reference data (`AccountTypeModel` and `InstitutionModel`), and only in the `dev` environment additionally seeds the test user, sample securities, accounts, positions, portfolios and integration users before committing.",
+      "evidence": [
+        {
+          "resource": "repo://src/commands/seed.py#L417-L439",
+          "version": "repo-lines-v1:sha256:a96f943a00433017b0c0b7fb71bbc688518c78646b41fea92f792c37ec886d5a:eyJzZWxlY3RlZExpbmVDb3VudCI6MjMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjdhYjliM2MwMGFmNDMxNTFjZWFjMTZjNjA1ZDM0NDAyNWFjMGM2NjAwN2JjODViMzQ1Y2Y1YzhmNDBjZjBmNTYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ3Y2Q4MzVlY2ZjNzYzYzRlMjU2YjA0N2ZiMmNkNWZiNGZhMzYyZDUwZThmZjQ2NWYyZjZkNjc4Y2M5MTU5NmEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjEyYTBhMDNhOGJkZWJkNWNjM2E4MjMwOTk2ZmVhMzcwODIyY2JiZjUxN2U5NTA0NDQ1YTZkZGFlZDExM2I0MTEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_f08cf113688248cbb4fdec309f29e702",
+      "statement": "`src/commands/flush_market_data.py` provides a mutually exclusive `--security-id <uuid>` or `--all` admin command that counts rows in `PriceModel` and `IntradayPriceModel`, requires an interactive `[y/N]` confirmation before deleting them, and invalidates the corresponding indicator cache (`invalidate_security` or `flush_all`).",
+      "evidence": [
+        {
+          "resource": "repo://src/commands/flush_market_data.py#L112-L136",
+          "version": "repo-lines-v1:sha256:eff9ad0efdc14edcef96b081c22a5674617ef39d2a3efaac0794e50c8bf67521:eyJzZWxlY3RlZExpbmVDb3VudCI6MjUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjcwYmM1MTI2NWRhM2M0OTRiZGQyOTQwOGMwZTE3NzY2NWJmZWFkNmZkMjc5MzZmMDU5ZDJjNTU3YjE5YTNjZTEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjE4ZTk5MjMyY2QzYTMwOWY1MGNiZDZmNjYyMTI3ZWVhYWZjZTFmNzM2MjkyZGVmYjExM2Q5ODFhMjBjN2Q4NTIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImIzZGYyYWNmMDZlOGMzZjAzYzcxMzVjNmU4YWM1YTljYTU0MzJhYmUwNmE3NGFjYTBmZGQ5YTUzYTAwOGY5ODciLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
+        },
+        {
+          "resource": "repo://src/commands/flush_market_data.py#L13-L47",
+          "version": "repo-lines-v1:sha256:b9d45fa830d96e81be57cfe6da347d3e0fa20f8549f3b33e61d4203cd6e59ae8:eyJzZWxlY3RlZExpbmVDb3VudCI6MzUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImE4YzI4MjZhZTdlMjc3NWM5Yzc4ZTBkODc5OTQ4NjkzMDBkYTNhMmIxYTI5ZWEyZjNlOTQ4NGI3MDg0YTI1NzMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAxYmE0NzE5YzgwYjZmZTkxMWIwOTFhN2MwNTEyNGI2NGVlZWNlOTY0ZTA5YzA1OGVmOGY5ODA1ZGFjYTU0NmIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjdhZTdjYjYyMDJlOWJjYTkyMGFkOGFlYTgwYmVhNWI4YTZjODYyMmZkNWU4YTdjZjMwMmVmZGFjOThjMzhjY2MiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjgxOGIwZThmYzM5YzZmYmE1NDM3ODgyMzFjODJjY2QyYjY2MjdkNjk4ZDZjMTNjMmYxMjZjNzk4MDYzZGRjYjQifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_97c6b7a720e643da9e91adb84cedec8d",
+      "statement": "`src/worker.py` builds a `MemoryHuey` instance in the `test` environment and a `RedisHuey` otherwise, and its `on_startup` handler registers the worker's own `svcs` registry with a `NullPool` session manager and imports `src.account.task`, `src.integration.task` and `src.market.task` so their tasks are registered.",
+      "evidence": [
+        {
+          "resource": "repo://src/worker.py#L21-L61",
+          "version": "repo-lines-v1:sha256:7326e010bf8d6b107ba41ebff759dddd2c31a4387d190d77c7dc76c43f6553be:eyJzZWxlY3RlZExpbmVDb3VudCI6NDEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjdkOWRhNDRkMWE0MTMxMDEyOTMzZjRiZGJlOTIzZTM0MDNhY2M4NTc3YmQxM2NjMjA3NjNjZDVjZjliM2M4MzYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImIyOGUwZTg3ZGVjZDFlOWQzNzQyNjVlNzU1NjMyMDZiZjkwZDZiMDExMWQ3NzVhODg2MWI2ZTg2ZTg1NzdmYzYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6Ijg1NDEyNzMwOWZkZTJiZWUxOWQzODY1MWRkOWU5ZmJiZmQzM2E5MGM2Yjc1ODk4NjY4MzM3N2U1YmNjNzUyOWUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjoxLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjE4MWJmNTk1MTQ3ZTcyNjE1NDFlMTVkY2Q1NzM1OWQ4NDA0YzQ0NjczMjc0ZmMwMDMyMmI0ZmQ4NWY2NTY0MDkifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_672bc62d31f94cef9e99a6983638f298",
+      "statement": "Periodic work is scheduled in `src/market/task.py`: `daily_price_update` runs at midnight (`crontab(hour=\"0\", minute=\"0\")`) for all active securities, and `hourly_intraday_price_update` runs every hour (`crontab(minute=\"0\")`) and afterwards enqueues account-totals recalculation and price-alert evaluation, each in an isolated try/except so one enqueue failure cannot abort the cascade.",
+      "evidence": [
+        {
+          "resource": "repo://src/market/task.py#L58-L137",
+          "version": "repo-lines-v1:sha256:2d5f04056149d2b950f4f516545400529cec79d04917c4689db0e8b2d04c99f4:eyJzZWxlY3RlZExpbmVDb3VudCI6ODAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImMwZGZmYTI0NjNkYjZjNWEwMDRiZDNiZTRmNjFkYmFiMWE2MGI3MTFlZmQ1Mjc5N2VjOGUwZjZiYjYxMjg5YjkiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAxYmE0NzE5YzgwYjZmZTkxMWIwOTFhN2MwNTEyNGI2NGVlZWNlOTY0ZTA5YzA1OGVmOGY5ODA1ZGFjYTU0NmIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImUyZDY3ZjFjMDc0MDlhNDAyZThiYWViYWY4YzYwOGY2YWRkYzJlNGU2MTgwMThlY2YyNmMxMjg5OTEzNGIzYmMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjY3MDk0Y2RkZWMyMmVjODFhMjFmM2ZmNzVkMDc0M2M3Y2ZlNzg0NzA1OWVmNDQxYzgxYWY4MTNkYThhYjJkNDIifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_de5153fd17e34bba9b56db4b786e6d85",
+      "statement": "Price-alert dispatch is a two-stage Huey chain: `check_and_dispatch_price_alerts` evaluates all active alerts against the latest intraday close and enqueues one `alert_email_dispatch_task` per triggered alert, and that dispatch task declares `retries=3` so transient SMTP or database failures are retried before giving up.",
+      "evidence": [
+        {
+          "resource": "repo://src/market/task.py#L139-L220",
+          "version": "repo-lines-v1:sha256:fb321f3909df3f096783a1f50d119cc50abee507b77760fac2303e137832f233:eyJzZWxlY3RlZExpbmVDb3VudCI6ODIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjFlYzk2YzNlNjFhNjEyOWRiYWQ0ODFmMmI3NDAxOWM4YzdjYzI4NGQ5YjE5YTMzNTU0ZmE5MTdlYTIzYmQzYzgiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjI3Zjc4YzA5MzZjNTBiYTJjNzU1MjE0ZjU3MTRhN2I0NjUzZjBkOTNiY2M0OTk2NjEwMWM0OTlmNGZiNDZhNmIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjI2YjU4YzcyMTUyMzViYmU5ZjBjNGM3MTA0MDU2Yzk5NmNlMGQ5M2I2NzYyZTQwYjQ4MjVhMWEzZDA4N2Q0OGMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_859f0d9016724676b000c51e4f5dd931",
+      "statement": "On-demand worker tasks include `generate_note_title_task` (AI note titles), `sync_account_positions_task` (broker position sync on account import) and `recalculate_all_account_totals_task` (totals recalculation plus WebSocket broadcast); every task body guards on `huey.svcs_registry` and resolves services through `Container(huey.svcs_registry)` because the registry only exists inside a running worker.",
+      "evidence": [
+        {
+          "resource": "repo://src/account/task.py#L13-L34",
+          "version": "repo-lines-v1:sha256:21391137f8f5ad39c7cf76739d7f70b3eb4c41740261f83480b1314a19fe7889:eyJzZWxlY3RlZExpbmVDb3VudCI6MjIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjFlYzk2YzNlNjFhNjEyOWRiYWQ0ODFmMmI3NDAxOWM4YzdjYzI4NGQ5YjE5YTMzNTU0ZmE5MTdlYTIzYmQzYzgiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijc1MGFhNjk2ZTA2ZTk3YTY0OTUyZDhmYjkyNzdkNmFiNWZiNzc1MmIwOWY4NmVmNGFiOTlmYTAzN2UzMjhlZmUiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjYyMDA5N2U0YWE1MDA2OGJhMTU3ZjlhMjczOWZhZDg2OTk1ZTFlMGNkY2NkYWRjNTg5N2MyMDM0Yzc0ZDNlZmEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjBkYTcyMGMwYjBkMTdlZWM4MTM0ZDk3NTVlZTk5MmRjZWYwMjhlZTE0NzU5ODUzM2M5MjI5MDllYTBhY2MwMmMifQ"
+        },
+        {
+          "resource": "repo://src/integration/task.py#L39-L59",
+          "version": "repo-lines-v1:sha256:3724c9fa49d6867908ad7195b1718def5cbe30387258d64a3eadfe9aea564c95:eyJzZWxlY3RlZExpbmVDb3VudCI6MjEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjFlYzk2YzNlNjFhNjEyOWRiYWQ0ODFmMmI3NDAxOWM4YzdjYzI4NGQ5YjE5YTMzNTU0ZmE5MTdlYTIzYmQzYzgiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjMwYzFmMTg4ZjE0MmVkN2E4MjQ2ODBiMjA3MTcyYzU1MTliYzYxNGE0OGZkYTdjZjE2N2VkYjhkZGY3OTk1NmMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjYyMDA5N2U0YWE1MDA2OGJhMTU3ZjlhMjczOWZhZDg2OTk1ZTFlMGNkY2NkYWRjNTg5N2MyMDM0Yzc0ZDNlZmEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjVjMTBkZGQ2MzBjNTJiMWQxMmM2ZTNiOTczYzBhNDY5MGJlYTY4MGI1MGM1NzE3MWNhYWE2NThjZjRlMzUwN2UifQ"
+        },
+        {
+          "resource": "repo://src/market/task.py#L23-L55",
+          "version": "repo-lines-v1:sha256:d17c39473b686cca7d490274659104cccbfbb1f44882572e8f495947baeebbae:eyJzZWxlY3RlZExpbmVDb3VudCI6MzMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjFlYzk2YzNlNjFhNjEyOWRiYWQ0ODFmMmI3NDAxOWM4YzdjYzI4NGQ5YjE5YTMzNTU0ZmE5MTdlYTIzYmQzYzgiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjZhM2U3ZjU1MmE5OTU4OWZjYTBlYmYwZGZiNTcwOTUzYjAwYTYxZjAwNWE5NDQ1ZmUxN2Q2NmFiNGJhZTU4MTAiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjYyMDA5N2U0YWE1MDA2OGJhMTU3ZjlhMjczOWZhZDg2OTk1ZTFlMGNkY2NkYWRjNTg5N2MyMDM0Yzc0ZDNlZmEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6Ijk4NzI4NTJlMDEwNjQ2ZTRkZTU5MGU2YjlkY2UyZDVmN2U5MjFmYzcxMjEwNjY0YzdmMGQ0YjMxYTRmMDZiMmMifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_6a202d3260b944549ace86a959929feb",
+      "statement": "The Huey dashboard is mounted by the FastAPI app at `/worker/api` by `src/main.py` calling `init_worker_dashboard`, which creates the huey-dashboard task table, registers Huey signal handlers with `bind_signals=True` and starts a Redis pub/sub listener; the task API is guarded by `current_user` and a WebSocket is exposed at `/worker/api/updates`.",
+      "evidence": [
+        {
+          "resource": "repo://src/main.py#L64-L79",
+          "version": "repo-lines-v1:sha256:6cbc6f5ffdb59ad950c824d5cd8011ad8dd0bcdc4d144e8a99bb5b3d5a89b183:eyJzZWxlY3RlZExpbmVDb3VudCI6MTYsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjVmOWRlNWVmMTdiNGYxNDM4MjJkOWQ2MDFmMGQxY2VmMTUyMzE1YjZlYzNjNmM5ZTRhOGMxNTU5OGM0ZDdjZDciLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjRmZWJlMmJmNDQ2ZWE0YmM0OWY0MGE0ZjM4NjE5NzFhMjQxMGZkOGU2NjM1YWE3ZDRhNzUzNTc5ZWY4MzBjMDQiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjZjNGEzOWZhOTQxMjczYzA1OWQwODNiOWFjYzg0Zjg1YTY3YTdlODI4ZWJjZGFlMjI2YTAwNTIzOGExNDBiOTgiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjkzMGVmNzc3ODBkZmNkZThlNjgyM2NmOGRlZTI5OGM2YjBmZGM2OGNkNjExNmMzZDcxNmYzMTZiZTliNjBlNDkifQ"
+        },
+        {
+          "resource": "repo://src/worker_dashboard/router.py#L21-L88",
+          "version": "repo-lines-v1:sha256:7a958848e3504df281bf7417b7350e41a0324c6ab359c2f483763a1982c47b2e:eyJzZWxlY3RlZExpbmVDb3VudCI6NjgsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjY3YWM5ODkyOTkzMDUwYTA0ODlkMDVhN2ExMTk0YzU0YTk5ZWFhZTRmN2QwMzIxZjFjNDg2NjJmYWZjMzY2MTQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImQ4YzNiOTVmNWRjMWY0YjgxMjAwNGZkMWUzZGYwNzZjNjZjMDI4NDJlOTJkMDcxMjc4ODQ4YmQ2NTdmN2M4NGMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImU1YzFjNDYyZTJhMzlkNzQ3NTlmNWUxYjEyNmY3NjgzYTJiNzMwMTE4ZTE4ZjUxMjJiMDhjZWRlZWI2NTBlMjMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImQ5NTE0OTk0MGRiOGIyNzQwZTc0N2I3NDA5MGEyZTEzYTlkZmQyYjlkNGRiYzhkOTA3ODVlNmVhNTM0OGQ0ZjkifQ"
+        },
+        {
+          "resource": "repo://src/worker_dashboard/setup.py#L17-L49",
+          "version": "repo-lines-v1:sha256:04455e2afe063faf2e338be412e6f0ff66500f3fdffe2c2e744d90f49c4ac066:eyJzZWxlY3RlZExpbmVDb3VudCI6MzMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImRkNmFlZjJhYjA1ZjIwNWQ3NWU4ZjkwMjBjMGU0ZDNhZDJkZGQwMTY0MzkzOGQxZGRmNDY4NWRlOTdiNjBiMWMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAxYmE0NzE5YzgwYjZmZTkxMWIwOTFhN2MwNTEyNGI2NGVlZWNlOTY0ZTA5YzA1OGVmOGY5ODA1ZGFjYTU0NmIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjYyMDA5N2U0YWE1MDA2OGJhMTU3ZjlhMjczOWZhZDg2OTk1ZTFlMGNkY2NkYWRjNTg5N2MyMDM0Yzc0ZDNlZmEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjFlZmIxM2I4NDdkMjAwNTA5YThhNzlhMTlhYzZiNWVlZjZiYmE5YTdlZDUxMTQ1MTIwZmY1NTFjYjYyYWZiMDkifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_cb80b10544fa44329b822a592f6529c2",
+      "statement": "The dev `worker` service sets `HUEY_DASHBOARD_WORKER: 1` so the Huey consumer process emits the signal events the dashboard subscribes to, and runs the consumer under `watchfiles` with `--periodic` enabled.",
+      "evidence": [
+        {
+          "resource": "repo://docker-compose.yml#L40-L65",
+          "version": "repo-lines-v1:sha256:e2fc7d1066db3446920b3d1e48d20438a63ccfbc943f09f090ff77398571c9a4:eyJzZWxlY3RlZExpbmVDb3VudCI6MjYsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjUwOWM2ZTYzMTdmZTQ1ZWUyZjJiYzEzZDcxNjM2YzIyNGJkZTk4MGMzNTNiNjc2ZWE3YTkxM2ViYTFkZjNlNWEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAzZjcyYzM2OWFiNTk4YWU2MDI0MWQ2MmY0ZGMzNGFiMGZlNGUyNDcxMjgyOTgwMTZjMDk1NmQxZDc2ZTcyYzciLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImFjNTg4MzU4NzdhNTM2OWI0YWQ0YWU1MDEzMjYxMmU2NTIxZjZhZjJhNjBjZjVkYjdlZTY3MDE5MjJiNTE2ODYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImY3Y2U5NWQwNDQ0YjQ0NmExNmI4YmE2M2VlMDFhODE0YmJkNmIyMDEwMjg3NTU4YjEwZWNhNGMxNjEyOGIxNzEifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_1ddb0a690f9849469bcb8598c76f1ecc",
+      "statement": "CI (`.github/workflows/ci.yml`) runs on push to `main` and on pull request opened/synchronize/reopened with three independent jobs: `backend` (Python 3.14, `uv sync --dev`, `uv run ty check`, `uv run ruff check && uv run ruff format --check`, `uv run pytest`), `frontend` (Node 25, `npm install` in `frontend/`, `npm run check`, `npm run lint`, `npm run test:run` with job-level `VITE_*` and `JWT_SECRET` env), and `indicator-service` (Go 1.27, `go mod download`, `go vet ./...`, `go build ./...`, `go test ./...`).",
+      "evidence": [
+        {
+          "resource": "repo://.github/workflows/ci.yml#L1-L108",
+          "version": "repo-lines-v1:sha256:59b75292a27e5c51a0a6a0b17668473b1a84cb5761cd3a95244fcc888c1c7611:eyJzZWxlY3RlZExpbmVDb3VudCI6MTA4LCJmaXJzdFNlbGVjdGVkTGluZUhhc2giOiIwNmUxYjMyZmEwOTA3OWFlMmYwMDAxZmZmMGVjYTI3YjQ5ODU5NTdkNGViNDg1NzkyOWIzY2YwNThmYWFlNTQxIiwibGFzdFNlbGVjdGVkTGluZUhhc2giOiI2OTA2MmM1MWRkZjQ1MzZkZWMzYjFmZDIyNWIwNWFhZWY5NmU0NzJiYTBiOTg5NjI0ZWE3OTcwNWFmMGUyYTg3IiwicHJlY2VkaW5nQ29udGV4dExpbmVDb3VudCI6MCwicHJlY2VkaW5nQ29udGV4dEhhc2giOiJlM2IwYzQ0Mjk4ZmMxYzE0OWFmYmY0Yzg5OTZmYjkyNDI3YWU0MWU0NjQ5YjkzNGNhNDk1OTkxYjc4NTJiODU1IiwiZm9sbG93aW5nQ29udGV4dExpbmVDb3VudCI6MCwiZm9sbG93aW5nQ29udGV4dEhhc2giOiJlM2IwYzQ0Mjk4ZmMxYzE0OWFmYmY0Yzg5OTZmYjkyNDI3YWU0MWU0NjQ5YjkzNGNhNDk1OTkxYjc4NTJiODU1In0"
+        }
+      ]
+    },
+    {
+      "id": "claim_9b4eaec2a4294434ace9224de4ee808d",
+      "statement": "The `backend` CI job declares no Redis or PostgreSQL service because Redis is replaced by the autouse fake and PostgreSQL comes from the testcontainers fixture, so the suite must never depend on a real external service.",
+      "evidence": [
+        {
+          "resource": "repo://.github/workflows/ci.yml#L12-L41",
+          "version": "repo-lines-v1:sha256:58456bcc37a3bcfedd8dc4471b55b48ab58943636de7ebfee91964ef8ee688c2:eyJzZWxlY3RlZExpbmVDb3VudCI6MzAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImU5ZDgwMTU0ZWQ0MmZjNWM3NzliMTMzMTU3OGI1OGI4OWM4MDFlYWNlNzRmMjRjZDQ4ZWI0YTIzNTc5NDBhOTUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAxYmE0NzE5YzgwYjZmZTkxMWIwOTFhN2MwNTEyNGI2NGVlZWNlOTY0ZTA5YzA1OGVmOGY5ODA1ZGFjYTU0NmIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjQ2ODExOTEwOTI0NjZlMWU2ZmFlMjIwMTcyZTYwODEzN2U1ODRmYzJlZWRkOWJkNzc4ZGYxMDdhMjA0Mjk0OGQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjRhMDY0ZjFmODhiNzNhMGQ2NzEzNTA2NmE5YTZkZmJkYzM3OTA4ZjQ3OGVkMGZhMDAxYTEwNGI2MTliZjFjYjUifQ"
+        },
+        {
+          "resource": "repo://src/AGENTS.md#L40-L49",
+          "version": "repo-lines-v1:sha256:d6857c4e16539822a54bd5c0b5fa46fb238e4961b614a51fea96e5124a48c01b:eyJzZWxlY3RlZExpbmVDb3VudCI6MTAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijk1ZTg2ZjY4N2VhMWVhMDRiYTk2Y2M4NzlmMmZmOTI5MjgwNDU4NWVmYTU4NmU3NjA3ODYwNzg4NWVjOTMwMjgiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjU5ZjYzMDk1Y2NmNmUwYjVkNjIyZDA1Njc3YmVhYWNkYTY1OTg3MDczYTg0NDRiNjk0ODE0Njk5MmRkNTc1OTMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjVkMjBlMzhiNDY2MTExNjNkZTU1ZTQ1M2MxMjIyNDg3OTdmYjU2NjVhOTE4M2MyYjM5ZjJiMzFjZjRkNzY1MWYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjhmOGZjNWJiYmQxNzcxMGYzOGY1NzdhYTFkZjM2NjVkZGYyOWM5MjMzNWUyYTBhZjU3MjVlMTRmZjQ5NTM2OGUifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_90a5f0ee9531424a88fe7046ae2f68cf",
+      "statement": "`docker-compose.prod.yml` keeps the same six-service topology with built images, `restart: always`, explicit `container_name`s and fixed published ports (backend `8000:8000`, frontend `80:3000`, indicator-service `8085:8080`); it has no mailcrab service, no `env_file` and runs the worker as `huey_consumer src.worker.huey -w 2 --worker-type thread`.",
+      "evidence": [
+        {
+          "resource": "repo://docker-compose.prod.yml#L1-L64",
+          "version": "repo-lines-v1:sha256:2ad3365c55e998a7c5b8a3a237fb925ef04c421b5f6a6ab337b67b151a3a8a6b:eyJzZWxlY3RlZExpbmVDb3VudCI6NjQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImZhNzNmY2NkYzk5ZWE4MzU5NjdjN2RlZTdlZmJlZDFmM2NhODcyNjBkOTI5MzE4NTBmZGQ2NmRhOGNiMTJmMWQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ4NTFlNzA4MjkyNjFjOWNkYmRmMWM3YTBiZGViOTM1NzBmZjljNmY1MmU4YmFmMGMxZDA4OWMxNDExOWYzMTYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjowLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_efd2e78867234f30a8a481e32b1eadbd",
+      "statement": "The root `Dockerfile` builds the backend image in two stages using `uv sync --frozen` (dependencies layer first, project second), copies the venv into a `python:3.14-slim` runtime as a non-root `appuser`, and runs `uvicorn src.main:app --host 0.0.0.0 --port 8000 --workers 4 --timeout-graceful-shutdown 30` on port 8000.",
+      "evidence": [
+        {
+          "resource": "repo://.dockerignore#L1-L11",
+          "version": "repo-lines-v1:sha256:eec5bdb17706e06ba42733e17b0358acbf1b50af7e8683c6e6566953d5994f0c:eyJzZWxlY3RlZExpbmVDb3VudCI6MTEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImU1OWQ3OWE4ZjVlZjYyNTI0NWRjMjBmN2I2MGYyNmM4MzY0NzhkMDkyZTYyZDc1ZDYzZGU4ZWJlOWY4MDJkNjUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjY5YWE3M2NmNWJjMzM3N2E3ZDk3ZjJlOGQyYmI3NzMxOTU4MTVlZmUyMjVhZjdmMWJlNmY1YjkzMDZiYmUxNGYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjowLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
+        },
+        {
+          "resource": "repo://Dockerfile#L1-L39",
+          "version": "repo-lines-v1:sha256:762030f0a934016a336b07e567698ac2d8924fc7d7e97ca3495d7004f02e794d:eyJzZWxlY3RlZExpbmVDb3VudCI6MzksImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjNlZjUxNzNjODFkYzVjNjYzZjI2YmRkMjBmY2JhZDEyYzE4NzE0N2IxMDlhOThiMDA3M2Q4YmJiOTIzOGY2MmIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjFhYjdjOTI0YTE4YzM5ZTkzMjgwZjBjOGUwZWI1NTRjNzllYzcyOTFkMTJhNzNjMDI1ZDVlYzg2MDdhYWViMTAiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjowLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_3a6c6fd05bd74ec7803ebec5c75d2412",
+      "statement": "The frontend production image is a two-stage `node:20-alpine` build (`npm ci` + `npm run build` with `VITE_API_BASE_URL`/`VITE_INTERNAL_API_URL` build args) that runs `node build` on port 3000, and the indicator-service image is a static `CGO_ENABLED=0` Go binary on `alpine:3.21` running as a non-root user with `wget` installed for its healthcheck on port 8080.",
+      "evidence": [
+        {
+          "resource": "repo://frontend/Dockerfile#L1-L29",
+          "version": "repo-lines-v1:sha256:0f78b174969c99eeaf7a45705c938d4efbfcd0d8547deaa161af73fc06c78d63:eyJzZWxlY3RlZExpbmVDb3VudCI6MjksImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijg3NzVjYzlkODFjMTgzNTVjNDY0YTc4MGVjNTVmNjFlODE2MTNlZGM4NjZmNjIxZjMyN2JjMmIwMWJkZTQzMzMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjM2OGZkNjQ2MmY1MzVlNzljMmZlNGIxZmFkYjFjNzFiYWYwMjUwZDM0N2M3YTM2NTRlNjU1MzcwMTExOGU0NWMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjowLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
+        },
+        {
+          "resource": "repo://services/indicator-service/Dockerfile#L1-L32",
+          "version": "repo-lines-v1:sha256:a55abe80d27c440686ed48b1ba58a1b2f8885098f06c5ecc9bd3d199c3c09607:eyJzZWxlY3RlZExpbmVDb3VudCI6MzIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjMzNWYwNmQ5NWRlYmQxY2RkZWYwZjliODMwZTNiMjUzMzY1YmVmZWQ1ZWY4OTA3MDE1ODBjYTJjOGU2YzFmMzQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijg3ODJmMjBjMWQyYTkwYWI3NTJjM2RiNTkzZWRmMzcxYTRkNWUwNzQyNmRmMTMzZWYxYTcwZTQ2NGE2YzY5NGUiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjowLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_a302d3075eba456a8d14da2dce37295e",
+      "statement": "Migrations are not a deployment step: `lifespan_context` in `src/main.py` calls `run_migrations()` through `asyncio.to_thread` unless `settings.environment == 'test'`, and `run_migrations()` executes `alembic.command.upgrade(Config('alembic.ini'), 'head')`, so each backend instance upgrades the database to head as it starts.",
+      "evidence": [
+        {
+          "resource": "repo://src/main.py#L43-L54",
+          "version": "repo-lines-v1:sha256:9cda8e1e1f1524c48a044f399244c90ee91b0f8a4cc11e1938416fdedd71bf10:eyJzZWxlY3RlZExpbmVDb3VudCI6MTIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijg5M2U4N2JlNmU0OTU1ZTRlNjAzZGYxMTMzM2FiMDQzYTU0MGFiOWQxYTM3NTFmODEwMzhhZTMzNzU1YzI4ZjEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImQyYzY2ODlhODllMzdkMTNjMGFhZWY5ZDQzNGIwYTczYzZjNjk2MTZhMWEzNGM5MzIzNWE5MjM2NGVlODUwY2MiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjNiYzRjMGI2NzdjMzQwMTlhOGFkN2Q0ODkwYWI1NDA1NDMwZDliYjQ4Zjk2YzZiMzZkZTk1MGExODlhNjA3OGQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjQ0ZDFmYzQ1NDU2MjcwMjViY2U0ZGViOWMwNDJmODgwZjE5ODQzMmYxYzE3MzVhYmMwMWQ0YmE0NjYyZWRlYTcifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_d8ba23be6143470f89f39ee10bbaa6be",
+      "statement": "Health probes are split by intent: `GET /health/live` returns `{'status': 'alive'}` without touching dependencies and is the check wired into the Compose healthchecks and Dockerfile `HEALTHCHECK`, while `GET /health/ready` runs `select(1)` through the container-resolved `AsyncSession` and pings Redis, returning 200 with per-dependency `ok` values or 503 with `{'status': 'degraded', …}`.",
+      "evidence": [
+        {
+          "resource": "repo://Dockerfile#L34-L35",
+          "version": "repo-lines-v1:sha256:c675a6faf5335d0f89ac8191a003ff45f5dc0b953980193a44ee9ea9f653d53e:eyJzZWxlY3RlZExpbmVDb3VudCI6MiwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiMzUxMjYzNWM0MTNlNTJjYzA0NTZkZjVjM2VmNjExNzNlMTg5NDgzMGFjYjEyMDhiNGM4M2I2YmQwNzM3YWE5MCIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiMTc4ZWJjMDg0NDZhMTQ2MWQzNDkzMmYwZjMyODBhNGUxZTk4YmE2NWE2YzAwOGM1NGFhZjExMTllN2FhYzFjYiIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiYWU0NTIxMmMzZWQ4NWUyZGU3MzlkNmMxYzU0NjVkZGZkNTA1N2IwZTRjYTczZWFmZWE4ZTdlZGYzYTk4MjU1MCIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiYTJkNDg0ZjZmYTM0MzczNGIyMDdkMTQ1ZjkyM2E0ZGZhZmRlM2NhMjVlOGJkYzIyMmYwMGUyZDY0ZGVlYjEzZSJ9"
+        },
+        {
+          "resource": "repo://docker-compose.yml#L3-L8",
+          "version": "repo-lines-v1:sha256:e1b92ec7fc8bbc0058aaa915b97aad3afab43dabe367093ffe9d405243787723:eyJzZWxlY3RlZExpbmVDb3VudCI6NiwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiYTcxZGI0ZTg3NWViOWE2YWYxNDU1NjMwNTg2MTk2Zjc0MjIyMzEyOGIzNjI1ODAwOTg0OWE2OGY4MDJjY2Y5YyIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiZTJlZGQ4NTMxMzZlOWI5NmJiZjg5MjAyNWMzNzc3MmEwNDFlYTY0YWU0ZjczZWJiMTZhMTAzNTU5MjEzZTNkZSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjIsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiNjI0Nzc5ZjI4MDhiNzgxY2JhOTBlY2Q0NGEzNTg2ZWY5ZWZkZDdlYzRhNWFhNDRmMWQyNjA1NGQ0NzQ1YzVlYyIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiNjMyNDZjZWIxN2RlYzE4YTJiY2UzYWM2OTUyZWQ3ZDRhYmE4OTkxNmQyYmZhNzM3ZjlhZmQ0OTYwMGYxNDA2YiJ9"
+        },
+        {
+          "resource": "repo://src/main.py#L180-L206",
+          "version": "repo-lines-v1:sha256:4383df14bf8cfd1508c36be97a95e4995a5d12ded3c728492f6198d7dc7a7a64:eyJzZWxlY3RlZExpbmVDb3VudCI6MjcsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijg3YjJmNzcxNDkwOWJjNTBiMTUzYjgzNjA5ODhiODA0YWY1MmNjNzA2NTBlMmJmMTVlNjhjMGYwOGU5ZTljM2UiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjMwYzFmMTg4ZjE0MmVkN2E4MjQ2ODBiMjA3MTcyYzU1MTliYzYxNGE0OGZkYTdjZjE2N2VkYjhkZGY3OTk1NmMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjNkNTkwMDhkODliOWNjYTQ2ZjJhNGQ3Y2I0YTg5M2VjODcwZTY2YTY4ODZlNGU3MWNjMTAyYjI0YTM2ZmQzNmYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjJhYWUzNjQ5YjBhNGM2NWIxYmIyYmIzM2NmY2FhNTM5ZjFhMTc5NmE1NmZlOWFmZTMzMDA1YWM4Yjg2ODYxZDIifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_8f246da32785493ba0376afd80c03b40",
+      "statement": "Both dev and prod Compose files healthcheck the Go sidecar with `wget -qO- http://localhost:8080/health`, and the service exposes `GET /health` plus `POST /compute` over the internal network with graceful shutdown on SIGINT/SIGTERM within a 10-second grace period.",
+      "evidence": [
+        {
+          "resource": "repo://docker-compose.prod.yml#L50-L61",
+          "version": "repo-lines-v1:sha256:5eeaa3da4d0a700eab0f8581af57f98787a0dd9c3b5c8ebd07c5da36a3cf06c9:eyJzZWxlY3RlZExpbmVDb3VudCI6MTIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjU0OTc2YThhZDZhZTQ2YWYzOGU0MGQ4ZWMyOGY4NDU5ZmExNWI1Y2JiYjQ0N2IxNmI0ZTdlZmRmYWMzZWI5ZWQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImUyZWRkODUzMTM2ZTliOTZiYmY4OTIwMjVjMzc3NzJhMDQxZWE2NGFlNGY3M2ViYjE2YTEwMzU1OTIxM2UzZGUiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImNmZmU5NGZkZDQzYjRlZTQ3NWUxYzcwMTQ4YjI2MDExNjI4MWQ2YzYxYTAwZWEyOTNkNjE5NmJmMzc4N2Q3NTYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjU3YTIzZjkwMzZkNzYwYmJjNDA5NDNmZTJlZTkwMzNiZjM0ZTg0ZGE1MzBiNmUwN2MxNzBjNzJiMWM3Y2ZkZWYifQ"
+        },
+        {
+          "resource": "repo://docker-compose.yml#L111-L121",
+          "version": "repo-lines-v1:sha256:6ac06e0853ce71e15ffe1cff5bcd5e2a524573747074726468492e4f9ea34102:eyJzZWxlY3RlZExpbmVDb3VudCI6MTEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjU0OTc2YThhZDZhZTQ2YWYzOGU0MGQ4ZWMyOGY4NDU5ZmExNWI1Y2JiYjQ0N2IxNmI0ZTdlZmRmYWMzZWI5ZWQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImUyZWRkODUzMTM2ZTliOTZiYmY4OTIwMjVjMzc3NzJhMDQxZWE2NGFlNGY3M2ViYjE2YTEwMzU1OTIxM2UzZGUiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImEwNWQ4M2M0YjRmMGI4MWY5MGFlZTI0OWU0NjBhNjQ3ZWY4YTZjODM4OTgwNWZiZDNhZjBhMjVmYjk2NjkxZDkiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjU3YTIzZjkwMzZkNzYwYmJjNDA5NDNmZTJlZTkwMzNiZjM0ZTg0ZGE1MzBiNmUwN2MxNzBjNzJiMWM3Y2ZkZWYifQ"
+        },
+        {
+          "resource": "repo://services/indicator-service/main.go#L14-L60",
+          "version": "repo-lines-v1:sha256:f1fe5770f2924dc7eb2f0b9901e37444e59502479ce93455a7beb46b3420d98a:eyJzZWxlY3RlZExpbmVDb3VudCI6NDcsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjMxNWQ2NGY5NzFiMjRmNzAxZDM0Yzc3ZjEyNWFkOTNkNzBiN2I0MGEwMmMwMjM2YjA0NTM5M2UyNGJmNmI1ZmQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjczZjAyZTI1Y2Q3ZGIyNGJlY2IwMDg4OTRlYWUyZWFhMTBkZWY2MDNmNGIyODQ5NzNmMDFmMzY1OGQwNjAxZmIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6Ijc5ZWRkNzJiYTZiNDAwODNjZTk1MjY5ZmE1NmZjZjNhYzFiZDk4MjIxYWE2NjIxYTY4M2Y3ZDU2MzJiYjIxZDUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImZiYjNmYjE2MjdjYjMyNjU5OGZkMWI0NjQwMDc3ODU0YmM2ZDgwNThlNWJkZDEwNzQ1NWJhOWY4N2YwYjhiMjEifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_e4b49cd6672d4bce8864a9d6873d5d4d",
+      "statement": "This repository uses OpenSpec in `spec-driven` mode as declared by `openspec/config.yaml`; canonical specs live in `openspec/specs/<capability>/spec.md`, active changes in `openspec/changes/<name>/`, and archived changes in `openspec/changes/archive/YYYY-MM-DD-<name>/`.",
+      "evidence": [
+        {
+          "resource": "repo://.agent/workflows/opsx-archive.md#L61-L77",
+          "version": "repo-lines-v1:sha256:b486868823a11e56725f0b66196eb8c0853594dc1a52616098d88afbba945474:eyJzZWxlY3RlZExpbmVDb3VudCI6MTcsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjhjMjA2Y2M2NjEyYWE5N2ZlMzRkYWFhMmViYjY3YzkyOWI0YTU1ZGJlYjkzNjhkNjkzYmFjYzRhMjE4ZWMyMjgiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAxYmE0NzE5YzgwYjZmZTkxMWIwOTFhN2MwNTEyNGI2NGVlZWNlOTY0ZTA5YzA1OGVmOGY5ODA1ZGFjYTU0NmIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6Ijk5YWE1MThmODRkMjNlZWIyYzdmNTQwOWQ1NTYyNTE5YTkzMmIyNzM3NDExOWZmYzdiZmJhM2VlNTlkMmQyZjQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjAwMzU4ZTQ4MjJiZmYxNTk3Nzc1MDQ5NzBjZWViMDcxYjg3ODdlZTJjZGUwNDZhMmZjNzNhYTUzMzExYzJjODYifQ"
+        },
+        {
+          "resource": "repo://.agent/workflows/opsx-propose.md#L29-L33",
+          "version": "repo-lines-v1:sha256:d5c2b60f2cd8fd1369447394ee53d35ac920cc0905a7a2595e359bf1f9ccc510:eyJzZWxlY3RlZExpbmVDb3VudCI6NSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiMzEyNjNmMmRmYjIwNWFjZDQ3NTIwY2I3MWIwODQxZDliZmRlMmRiMTJhZWVjNTY4MjYyYmMxZDAxOGY1Mzc3ZiIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiYWJiNWE0ZmFjYzBmNDRkMGIzOGJhZjdjNTI4OTQ0YjQxNDcyMjEzYWFkYWI5MmZlMjA1ZTg0YjcyODAyZjY0ZiIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiNTdmYjc4ZDExYzBlNzI1NDQ0MDk4ZDAzNjAxNjA4YzJkZjU1NTk5MzlhZmI5ZDkzMzEwNjcxZWM0YWJkMTZkMCIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiODI5ZTY5MTkxZTI4YWM2OTQ5MmRhZTM4MzEyZGQ5ZTBlYmM5NjdmYjAxOTdhNTUwOWVlYmQ4NWEyMTNkOGU1MiJ9"
+        },
+        {
+          "resource": "repo://openspec/config.yaml#L1-L1",
+          "version": "repo-lines-v1:sha256:85b53dd24fbe7d19c8b0f0ddccf5e82600c5c372c76b57a2a89dc34dfb0fc5b9:eyJzZWxlY3RlZExpbmVDb3VudCI6MSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiODViNTNkZDI0ZmJlN2QxOWM4YjBmMGRkY2NmNWU4MjYwMGM1YzM3MmM3NmI1N2EyYTg5ZGMzNGRmYjBmYzViOSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiODViNTNkZDI0ZmJlN2QxOWM4YjBmMGRkY2NmNWU4MjYwMGM1YzM3MmM3NmI1N2EyYTg5ZGMzNGRmYjBmYzViOSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjAsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiZTNiMGM0NDI5OGZjMWMxNDlhZmJmNGM4OTk2ZmI5MjQyN2FlNDFlNDY0OWI5MzRjYTQ5NTk5MWI3ODUyYjg1NSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiNGZmOGFjN2U5ZmRjYTJiYTFkZWQxN2UyZmJkMGViNjFiOWUxMThkZTVlZTc3OGYyZGIyOTY1NTA2MTU4OGYwOSJ9"
+        }
+      ]
+    },
+    {
+      "id": "claim_d13b69321e634834a72820a326a46902",
+      "statement": "The four OpenSpec stages — propose, explore, apply and archive — are mirrored as both workflows/slash commands and skills across three directories, `.agent/`, `.opencode/` and `.github/` (`.github/prompts/*.prompt.md`, `.github/skills/`); there is no `.claude/` directory, since `CLAUDE.md` is a stub that imports `AGENTS.md`.",
+      "evidence": [
+        {
+          "resource": "repo://.agent/workflows/opsx-apply.md",
+          "version": "repo-file-v1:sha256:f0318bb977fe7d44faf696060937199b3c4227a0668a00fb5e4418c9c2c08ce4"
+        },
+        {
+          "resource": "repo://.github/prompts/opsx-archive.prompt.md",
+          "version": "repo-file-v1:sha256:506f234494a161cdde2c1fefb319f53ec63e34755811ead4b39c5677c0c7b455"
+        },
+        {
+          "resource": "repo://.opencode/command/opsx-propose.md",
+          "version": "repo-file-v1:sha256:38c79d395a4e3d3e748ca7cbd4229f47a9279d53dcc9d8a87665ceca4322222f"
+        },
+        {
+          "resource": "repo://CLAUDE.md#L1-L7",
+          "version": "repo-lines-v1:sha256:cd617c809957b5aeb601ce9856109475f6da8ed78835148d17c3097dd4daa848:eyJzZWxlY3RlZExpbmVDb3VudCI6NywiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiNWYxODBmOWMxMjY5MDNiY2MzMzFhYTk1NDU2ZTQ5NDQ0YTdkNGQwMTFlOGEyYTgzZjVkYzg3MDIzOTE4MTJkMCIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiMDlmNzg3MTQ4OTNhYTc3OTQyY2VhMWM0YTJlMDIzMWRiYjdmYTJhNDFhNzBjODE0NjBhM2M2NzU2MmRhM2FhYSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjAsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiZTNiMGM0NDI5OGZjMWMxNDlhZmJmNGM4OTk2ZmI5MjQyN2FlNDFlNDY0OWI5MzRjYTQ5NTk5MWI3ODUyYjg1NSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjAsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiZTNiMGM0NDI5OGZjMWMxNDlhZmJmNGM4OTk2ZmI5MjQyN2FlNDFlNDY0OWI5MzRjYTQ5NTk5MWI3ODUyYjg1NSJ9"
+        }
+      ]
+    },
+    {
+      "id": "claim_adfcbae0551542549f8fc4d5c8f760e3",
+      "statement": "`/opsx:propose` creates a change with `openspec new change \"<name>\"`, then builds artifacts in dependency order using `openspec status --change <name> --json` and `openspec instructions <artifact-id> --change <name> --json`, reading completed dependency artifacts before writing each new one and never copying the agent-only `context` and `rules` blocks into the output files.",
+      "evidence": [
+        {
+          "resource": "repo://.agent/workflows/opsx-propose.md#L29-L103",
+          "version": "repo-lines-v1:sha256:77fd4aa24a69d56f487dc7ee922f1f168d2f135aa81acc39dadf6952ae6a81e5:eyJzZWxlY3RlZExpbmVDb3VudCI6NzUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjMxMjYzZjJkZmIyMDVhY2Q0NzUyMGNiNzFiMDg0MWQ5YmZkZTJkYjEyYWVlYzU2ODI2MmJjMWQwMThmNTM3N2YiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjhhMjliYzBhMzgwZjhhYmU5MDAyNWI1YTU2MmY1YTRhMDMzZDIxMzRhYTRkMjE2MTY1ZmNlMmI5MTc2MGFiNmIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjU3ZmI3OGQxMWMwZTcyNTQ0NDA5OGQwMzYwMTYwOGMyZGY1NTU5OTM5YWZiOWQ5MzMxMDY3MWVjNGFiZDE2ZDAiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_099fbc40be1d440abceaef477fe4483f",
+      "statement": "`/opsx:apply` reads the `contextFiles` returned by `openspec instructions apply`, implements each pending task with minimal focused changes, marks `- [ ]` → `- [x]` immediately, and pauses to ask for clarification (or suggests updating artifacts) when a task is unclear or reveals a design issue.",
+      "evidence": [
+        {
+          "resource": "repo://.agent/workflows/opsx-apply.md#L114-L130",
+          "version": "repo-lines-v1:sha256:f85b4f2eb194047326cd609b04dc9710ccdbf843280ddd391d3af5d2a2132fb5:eyJzZWxlY3RlZExpbmVDb3VudCI6MTcsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImQyNDY0NWMxMjM0YTFlNDI1YmJmZjAxZDY4YTQyMDU3MjUwNTI3NjI5NWQwMDBiZjcxZjhkYTg2NmRjZjA2NDAiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAxYmE0NzE5YzgwYjZmZTkxMWIwOTFhN2MwNTEyNGI2NGVlZWNlOTY0ZTA5YzA1OGVmOGY5ODA1ZGFjYTU0NmIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImY0MWU5OGJkY2QwM2M3NTNlNjE3MjBhYzMwYzU5OWQ0YjIyNjJkNzJhZDM1YmQ5YzZkZGFhNmNiMjIwYTU4Y2MiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjI3NTY5YjEyMTBmZjRjN2RmNWM3MTcwMzgzNDEzYWNiYTJlNjg1MzZjYmRkY2Y0YmQ5YjJkZmZiM2QwNDZlNDEifQ"
+        },
+        {
+          "resource": "repo://.agent/workflows/opsx-apply.md#L28-L81",
+          "version": "repo-lines-v1:sha256:6ae6480454236d445fbd42c5e8b56c881188d06c462716aa162b2fd5cb993bf7:eyJzZWxlY3RlZExpbmVDb3VudCI6NTQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjA0NTUxOTgxNDJjOWZlMjE2ODk3ZmIzYjRhMzAxZmU4YWRkZWQ1NzI5YjlhOWY2YzI5N2RhNjQwOTk1Y2YzNTciLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjdjYzViYzYzNGIxNjJhYzc1MGU2ODQ1OGY1OWIyMzIzOWUzZTViN2MwN2Y3MWE2MTA0OTY3YjVhNjE2MWE5NzQiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjZjNTA4YzljNjkxZTMxNDg2MjQzMzhlZGIyYjQ4OGRlNjM0Y2M1MzYwOTNhODdhOGNlMzRjZmY4ZmEwODFjYTgiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjMxMzEzMjQ3NGZmMmYzOGRmYWM1NGFkNWY1NTA3OGQyMWMxMjk4MTBmN2NjNzBkNTk0ZjJkNDk3NThlMzgwMjkifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_36822c64eb82490e82d08dcbdd9d5841",
+      "statement": "`/opsx:archive` never auto-selects a change (it lists them with `openspec list --json` and prompts when ambiguous), warns and requires confirmation for incomplete artifacts or unchecked tasks, compares delta specs at `openspec/changes/<name>/specs/` against `openspec/specs/<capability>/spec.md` before offering a sync, and moves the directory to `openspec/changes/archive/YYYY-MM-DD-<name>` (failing if that target already exists).",
+      "evidence": [
+        {
+          "resource": "repo://.agent/workflows/opsx-archive.md#L11-L76",
+          "version": "repo-lines-v1:sha256:668f38627d69ca2b630be02759a9e3416b88a1054f32cc2bef29477f028ef268:eyJzZWxlY3RlZExpbmVDb3VudCI6NjYsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjU3Nzc0OTc3N2ZjMzE3YTg4N2E1MzUxMWYwY2EwYjA0MDAzMTk2OTdkNDdkNDE0ZDg5ZDllMDljOGEyYjcwMDYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjA1OTZmNmI5MzNkNmJhMDE4ODQ2NmY0MGVkOWFhMDY5YTNhZTU5YTZjYTA2MmZhN2RhNGQ4YzIxMzhjN2JjNTYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImVmYjE2YWIyZGMxZTA4ZmY0YTMwNjk3OGYyNzY3MTFjYjNjZTQ2N2YxODQ5ZWFmOGE5N2U1ZWRiOTE1NGZmMmEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjI3M2ExZjdmMDk5NjMyNjJhNGJhZTY0Y2Y1OTY1Y2MzNjY0MTg5ZmRlMmJmNWI2ZTBkMDI3NGZlOGEwNjc1Y2UifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_78763af6f3a74655ac5d5fa9078200d6",
+      "statement": "`/opsx:explore` is a thinking-only stance — reading, searching and creating OpenSpec artifacts are allowed, but implementing application code is not.",
+      "evidence": [
+        {
+          "resource": "repo://.agent/workflows/opsx-explore.md#L5-L9",
+          "version": "repo-lines-v1:sha256:d033c2020dee1386c9f7ee59223ef3389070655e805cdb84b10f0ddbb282c4c6:eyJzZWxlY3RlZExpbmVDb3VudCI6NSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiOGExYjkyNzM5MzRjMzU0NTg1OTdhMzg4NzA3MTBhNTNkYmIxYmQzMmU3Yzc5M2RjYTJmZTIwOWFjOGMyYWE2MSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiN2ZiMDUwMmU0YjQ2ZGMxYWFlZDY5MDMyZTlhYTRjNGFjNGZlMDNjM2I3M2E2YzAzYzVlYjY5OTBkOGIxNWIxZCIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiMzIyMjYyNjZkZWQxM2FiNWRkNmMwZTBkYzFjZTRiMWU5ODU0Y2UzOTZhNDQyNzI2ODU4OGNkODdjYmI2N2Y3ZCIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiMDg3N2Q2ODQwOTRlMTAzOWU4MjM3NzYxZGI4YTZlNDczNzg4ZTZmZGJkNmExNTZkZDIwNjk0ODY4NzdlZDg2NyJ9"
+        }
+      ]
+    },
+    {
+      "id": "claim_c9248b914fd64626ac6e8b6370a39db3",
+      "statement": "`.github/workflows/openwiki-update.yml` is scheduled daily at 08:00 UTC and can be dispatched manually; it installs `openwiki` globally with npm, runs `openwiki code --update --print` against the OpenCode Go openai-compatible endpoint with a `NODE_OPTIONS` preload shim that injects the required `x-opencode-session` header, and opens a PR on branch `openwiki/update` restricted to `add-paths: openwiki` with `docs: update OpenWiki` as message and title.",
+      "evidence": [
+        {
+          "resource": "repo://.github/workflows/openwiki-update.yml#L1-L49",
+          "version": "repo-lines-v1:sha256:27346c96b3c96f58c2d6e71339e418fa27d6b8ac006d8c5f488d04a87ebb130e:eyJzZWxlY3RlZExpbmVDb3VudCI6NDksImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjA2MDI3ODdhZjZkY2MwODM0ZGUxMjFjYmIxY2I5NWY5NDU5YjcyMWVhYjAzNDlmMTA1MDFiOTk2YzFjNzdmZmYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImY0Nzc5NmQzMTczMmZiY2U4OTk4YTJmN2U3YjFiYjk3NTVjMjNlNTg1MDMyMGI5MDkzN2Q4MmMzZmQwZTYyYTAiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjowLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_522631345eba46e49ff58c95cbd7b5db",
+      "statement": "Generated `openwiki/` pages are refreshed by the scheduled workflow, and `AGENTS.md` instructs agents not to hand-edit them but to change source code and docs and let OpenWiki regenerate.",
+      "evidence": [
+        {
+          "resource": "repo://AGENTS.md#L42-L52",
+          "version": "repo-lines-v1:sha256:2066111756019639fd4ad6a1c6bd7323a3db5fdcf9d2b66a57aa9fac5e0ba943:eyJzZWxlY3RlZExpbmVDb3VudCI6MTEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjVmMTgwZjljMTI2OTAzYmNjMzMxYWE5NTQ1NmU0OTQ0NGE3ZDRkMDExZThhMmE4M2Y1ZGM4NzAyMzkxODEyZDAiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAxYmE0NzE5YzgwYjZmZTkxMWIwOTFhN2MwNTEyNGI2NGVlZWNlOTY0ZTA5YzA1OGVmOGY5ODA1ZGFjYTU0NmIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjhhMzYzMTA1MjUzZGY5MDkyODhlNDcwODFkNzRlMzYyMDdkNmQ4OGU4NzU4MWJjZTlkZTk5ZDllYzVhZDJkODkiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjoxLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjA5Zjc4NzE0ODkzYWE3Nzk0MmNlYTFjNGEyZTAyMzFkYmI3ZmEyYTQxYTcwYzgxNDYwYTNjNjc1NjJkYTNhYWEifQ"
+        }
+      ]
+    }
+  ],
+  "verification": {
+    "by": "openwiki/0.5.2",
+    "at": "2026-09-18T20:16:58.058Z"
+  }
+}

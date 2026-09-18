@@ -1,0 +1,378 @@
+{
+  "schemaVersion": 1,
+  "pageVersion": "sha256:0b63afd819257f5e6a5f5c82a9badb71a8d6954125cb604db14eec3f485044b9",
+  "claims": [
+    {
+      "id": "claim_af3b03e3ba854f68ac50e0d040bc8cd1",
+      "statement": "The runtime is a set of cooperating processes: a FastAPI backend served by `uvicorn src.main:app`, a Huey worker started as `huey_consumer src.worker.huey -w 2 --worker-type thread --periodic`, a SvelteKit SSR frontend, a stateless Go indicator-service sidecar, plus PostgreSQL 18, Redis 7 and mailcrab; the backend and worker each depend on postgres, redis and mailcrab, while the frontend depends on backend and worker.",
+      "evidence": [
+        {
+          "resource": "repo://README.md",
+          "version": "repo-file-v1:sha256:27a4e12c345f6d502be73301a80b43644280d33898fd304525c5d4749c7fa9f4"
+        },
+        {
+          "resource": "repo://docker-compose.yml",
+          "version": "repo-file-v1:sha256:2d1dc9e343d03415bf65406b0927f43639b831bb571f31fdb83323d4137c2d18"
+        }
+      ]
+    },
+    {
+      "id": "claim_ef32779155f04bab9eabc97309dffb2d",
+      "statement": "The Go indicator sidecar is a stateless calculator with no authentication and no rate limiting, exposing only GET /health and POST /compute, and it is intended to be reachable only on the internal Docker network.",
+      "evidence": [
+        {
+          "resource": "repo://services/indicator-service/README.md#L1-L13",
+          "version": "repo-lines-v1:sha256:3ad78b97dd9e96df9aae7ac79a7b3f004b15db4244794eab21fab458a0fee531:eyJzZWxlY3RlZExpbmVDb3VudCI6MTMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImY5MmE0ZjAyM2I5NGU5NGQwZGVhMTRkYzU0MmVmNGRkYjQ0NDZkNDIwMDY3NTc1NjQyOWRiYmI4ZDVhZjE3Y2YiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImY5ZDIzZjhkODQ3NDA1YTk3ZDk4OTAzZTU2ODM0MWI5Y2FiNmNhMDBjOTIzMWM0ZTQ0OTk3NDhmZjNmODk3MGIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjowLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjhjOGU1NDEyYzU0YTAzZTcxZWZiYzU3Y2NiOTJkZjEyN2U1MGJmZGQ1NTZhNDdlMmIyNWE1N2UyNTM5NDY2ZGUifQ"
+        },
+        {
+          "resource": "repo://services/indicator-service/handlers.go#L73-L79",
+          "version": "repo-lines-v1:sha256:2d9429852fd2120b5ce1eecbce7af7757ca22744fb20275b75abbfd5ce50b007:eyJzZWxlY3RlZExpbmVDb3VudCI6NywiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiZjRmMGY5MzY4NjMxMTJhYzY2ODA3NjE0YWNlZmRkNWFlYmM4NjgxNTljZmVmN2FlYjZhZjAyMzE3NjYyZmY1MiIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNDEyY2EzNDVjY2Y3NWJmOWMwODA2YmNlNjk1YmU4ZGU4MDhiNzk5ODQyNTFhN2E1NGQyMDJjZjYxMDFkZDQ1MSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiZWIwZjc0NGMyYzFhNmJkZTEyMTZiZmEzMTljZWJmOGNkNjZiOGUxYzk1NGY0OWU3NzA3YTkwN2Y1OWE2ZmVjNSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjAsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiZTNiMGM0NDI5OGZjMWMxNDlhZmJmNGM4OTk2ZmI5MjQyN2FlNDFlNDY0OWI5MzRjYTQ5NTk5MWI3ODUyYjg1NSJ9"
+        },
+        {
+          "resource": "repo://services/indicator-service/main.go",
+          "version": "repo-file-v1:sha256:fd39abe882e1b7e2f1e91ca8fd27ab03da228d78e3b7419f0ecd96536a4b900c"
+        }
+      ]
+    },
+    {
+      "id": "claim_ed57a1524ca241b5a0e7f75117d23f86",
+      "statement": "`src/main.py` builds the FastAPI app with `lifespan=lifespan_context`; the lifespan runs Alembic `upgrade(head)` in a worker thread when `settings.environment != \"test\"`, creates a fresh `svcs.Registry` stored on `app.state.svcs_registry`, calls `register_services(registry, sessionmanager)`, initializes the WebSocket manager Redis client/listener, and initializes the Huey worker dashboard with signal binding.",
+      "evidence": [
+        {
+          "resource": "repo://src/main.py#L43-L81",
+          "version": "repo-lines-v1:sha256:3997b00817c790332f3ca1dfe1b8b9930c0dfc044a64e2c542882ad334d10f8c:eyJzZWxlY3RlZExpbmVDb3VudCI6MzksImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijg5M2U4N2JlNmU0OTU1ZTRlNjAzZGYxMTMzM2FiMDQzYTU0MGFiOWQxYTM3NTFmODEwMzhhZTMzNzU1YzI4ZjEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImE0MjFlOTZlZDhkYTJiNGIyYTY5YWNjZGU2ZjYyYzFlNDQ3NjdmNzgxZGY0MmEwMzNlOTRlZTg0MjZkNGYwOTQiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjNiYzRjMGI2NzdjMzQwMTlhOGFkN2Q0ODkwYWI1NDA1NDMwZDliYjQ4Zjk2YzZiMzZkZTk1MGExODlhNjA3OGQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjBiOTk5MTFkZjYwMGFlNjBmMmZkNmYzNjIzN2QyNDEwNjI5Y2IxZjA1ODk4ZGNhYzE3NjU2OWQ3N2YzZjk1ZWQifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_41a55cceffb24fc2b2e9eaaa2450d6ed",
+      "statement": "Lifespan teardown closes the Huey worker dashboard, the WebSocket manager and the Redis manager, and the lifespan body wraps its yield in a try/except so a failure during yield is logged instead of aborting shutdown.",
+      "evidence": [
+        {
+          "resource": "repo://src/main.py#L73-L81",
+          "version": "repo-lines-v1:sha256:24f0a9f340fd9594e92e61b9d5175769e1240645a297f41dc2bb4a76884f43ac:eyJzZWxlY3RlZExpbmVDb3VudCI6OSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiYWRhNWM2NmUxN2IxNDUzOTc4MzRiOGM4NTRkYzQxOTNlMjEyNTE4MGE4OTk2YTE0YzMxODgzMzI2YjJlZmJjZiIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiYTQyMWU5NmVkOGRhMmI0YjJhNjlhY2NkZTZmNjJjMWU0NDc2N2Y3ODFkZjQyYTAzM2U5NGVlODQyNmQ0ZjA5NCIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiNzE1OTRmZjA4MDZjNzU5NzZkYWI5YjBkMzU5MGU4Yzc1MWU0ZjBmYjRkY2EzNjE5ZjI4MTMwMjBkMTk3MzM1YiIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiMGI5OTkxMWRmNjAwYWU2MGYyZmQ2ZjM2MjM3ZDI0MTA2MjljYjFmMDU4OThkY2FjMTc2NTY5ZDc3ZjNmOTVlZCJ9"
+        }
+      ]
+    },
+    {
+      "id": "claim_95be0739f4874764837e7762aa947b0f",
+      "statement": "The app is constructed with `debug=settings.environment != \"prod\"`, and in `dev` the module calls `debugpy.listen((\"0.0.0.0\", 5678))` at import time, which is why Docker Compose publishes a backend debug port.",
+      "evidence": [
+        {
+          "resource": "repo://docker-compose.yml#L16-L18",
+          "version": "repo-lines-v1:sha256:e13266a3605b3652804435c61c632ca74ef0dea9cdb85eda4246a38ca01b6b01:eyJzZWxlY3RlZExpbmVDb3VudCI6MywiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiYmMxNmVkMjM5YTM2NTFiNTA3OWMwZTRlN2YwNzg0NGVhMzI5Yzg3NjI4YmY5ZmNjNDYzNjc3MzNmNWUxZTkzZSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiODkxMzNlOTBlYjQzODBmNjUwMjRjMjQyNjI3NTNlMWJkZGVmMmNhZjAxZTE5NTM0NjI3YzEwOTc0NDc4NzA0YiIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiNDQxN2ZhZWU0MjY2ZmZhNTQ0YWFmMDc2NjdlYjIxMzhiMjU2ZDNlNTliMzhjMTYyZWZhZDU3ZGFmN2UyMGZjMyIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiOGVkYjk5MzQwODhjNGNkOWU3N2E0NGMwMTQyYTIyZmFmNDFiYzBlMGYyNzliMjIyYjM4M2M4YzU1ZGJmNWI1MCJ9"
+        },
+        {
+          "resource": "repo://src/main.py#L86-L98",
+          "version": "repo-lines-v1:sha256:5b782fe1ef7d79a9c582186872c42049c9f171b8c469bc6137e748a091fe974a:eyJzZWxlY3RlZExpbmVDb3VudCI6MTMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImNlZjJiZWU5YmI1YzFhNjdiODk2NDNlODdkYzRhNTFhMjM0ZmM1Nzc1ZTdhNDJjNTY1MzI2NmQ1ZmMwMTBmMWQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImZhZmJhMDUyN2MzOTUzYzRiNmUwZTViNTczOWJhODM2MTJmODA1M2JjZGM5NDY2NzMwMTkzY2QxZDU5MGI0MDgiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImU1YzFjNDYyZTJhMzlkNzQ3NTlmNWUxYjEyNmY3NjgzYTJiNzMwMTE4ZTE4ZjUxMjJiMDhjZWRlZWI2NTBlMjMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImY4ZDAwYWIxZjE4MWQ5N2M3MWQ4Y2MxYTMwN2FlNTdlMmJiOTBlYjcyYWFiNjM0OWVjNzY5NjVjYzAzMjUyMDQifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_a19d9f94e17046298946fc02c1d4525b",
+      "statement": "HTTP API routes live under `/api/v1`: `src/main.py` creates one `APIRouter(prefix=\"/api/v1\")`, includes the account, portfolio, auth, institutions, integration and market domain routers into it, and mounts it on the app; domain routers are themselves prefix-less relative to that (for example `auth_router` is `APIRouter(prefix=\"/auth\")`), so older documentation describing bare `/api` paths without the `/v1` segment is inaccurate.",
+      "evidence": [
+        {
+          "resource": "repo://src/auth/router.py#L51-L51",
+          "version": "repo-lines-v1:sha256:e45d5ddaf37bcb06656ecc0f3dd6458f40ad01dd06c0e2b49aff2692728acd7d:eyJzZWxlY3RlZExpbmVDb3VudCI6MSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiZTQ1ZDVkZGFmMzdiY2IwNjY1NmVjYzBmM2RkNjQ1OGY0MGFkMDFkZDA2YzBlMmI0OWFmZjI2OTI3MjhhY2Q3ZCIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiZTQ1ZDVkZGFmMzdiY2IwNjY1NmVjYzBmM2RkNjQ1OGY0MGFkMDFkZDA2YzBlMmI0OWFmZjI2OTI3MjhhY2Q3ZCIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiZTVjMWM0NjJlMmEzOWQ3NDc1OWY1ZTFiMTI2Zjc2ODNhMmI3MzAxMThlMThmNTEyMmIwOGNlZGVlYjY1MGUyMyIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiYjVkN2NkMjc4Y2U3Njc1ZjE3OGJiZmI3OWEyMzUyZDZhMWUxMDY1ODA1ZWY3ODJkMzlkNzE0NWFjMGY2OGRjYiJ9"
+        },
+        {
+          "resource": "repo://src/main.py#L167-L178",
+          "version": "repo-lines-v1:sha256:89630a787886fd7fe30a47a630106db902e2f91c20e9d58aa8726c2f637401f7:eyJzZWxlY3RlZExpbmVDb3VudCI6MTIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ5Y2E0ODI0OTlmYjhiN2JmYWUzZjBlYTk1M2FiMDdmMzA0MjNlYTVlY2I5ZDQyYjhkNGI1NDM5ODU0NGRhZWIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAxYmE0NzE5YzgwYjZmZTkxMWIwOTFhN2MwNTEyNGI2NGVlZWNlOTY0ZTA5YzA1OGVmOGY5ODA1ZGFjYTU0NmIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjM0MGNmNDg1NTYyYTlmN2VhMDdmOTNiNTlmZDU5ZWQzNjkxZjQ2MTZhY2E2MWY4MmEwM2UwNDM5NWE1ZmQyZTciLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImMwYWJjZDRmNzg5ZGFkODZiOGVkN2U1OTJlNmQ5ZTdkNjhjNTM4MTI4YmJlOTEwMGZkNWY5MTE2NjE0NjFkZTAifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_a858bc35733d4c8d8f1490d653a8e9f4",
+      "statement": "Apart from `/api/v1`, the app's top-level routes are the WebSocket endpoint `/api/ws`, the ad-hoc `/api/ping`, `/health/live` and `/health/ready` defined in `src/main.py`, and the Huey worker dashboard mounted at prefix `/worker/api` (task routes under `/worker/api/tasks` and a dashboard WebSocket at `/worker/api/updates`).",
+      "evidence": [
+        {
+          "resource": "repo://src/main.py#L175-L225",
+          "version": "repo-lines-v1:sha256:e7d3e4bea873cf7c83e89bfb19482d415446d091148537f4c90145ecc087686f:eyJzZWxlY3RlZExpbmVDb3VudCI6NTEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImQ0MGVmZTA2OTlhYTliOGYyMGJjOWUyNDMwOTdiZTkwOTZlNjhkYzRmNDhiMmE2MWExYWRiMjU0N2ZkNGZlOTMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjcyMDg1MzI5MTBjZmNlZmU1ODcwM2Q0MzQ0NWE5YzIwMmIxMjQ4NzcyZjE2ZWY1YTE2MzBlNjJmMjVkZjAyNzQiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjFlNDQ4Njk3YzRjNzQxMTBiYzdiNzU5ZWUzOWRmZTBiNmI4Y2U4MmI0ZmZmYjMxMzU3OTljYzFjODQ2ZThjN2QiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjhkY2Y3Y2IxMjE3NDgyNDI5Yjk2ZjIxYzA0ODA3Yzg3MmQ5MGU1ZDY3MjMwNDgzOWE1YmVhMzRiNjhkYmFmY2MifQ"
+        },
+        {
+          "resource": "repo://src/worker_dashboard/router.py#L21-L28",
+          "version": "repo-lines-v1:sha256:f169d02bccb6ec8d7ec218d4490a6320e5cfb4abbac25e0d73f5204026207b6b:eyJzZWxlY3RlZExpbmVDb3VudCI6OCwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiNjdhYzk4OTI5OTMwNTBhMDQ4OWQwNWE3YTExOTRjNTRhOTllYWFlNGY3ZDAzMjFmMWM0ODY2MmZhZmMzNjYxNCIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiZmFmYmEwNTI3YzM5NTNjNGI2ZTBlNWI1NzM5YmE4MzYxMmY4MDUzYmNkYzk0NjY3MzAxOTNjZDFkNTkwYjQwOCIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiZTVjMWM0NjJlMmEzOWQ3NDc1OWY1ZTFiMTI2Zjc2ODNhMmI3MzAxMThlMThmNTEyMmIwOGNlZGVlYjY1MGUyMyIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiNjlkYWEwOWMwNTVmZDBlZTM4MDQ2MWFkZTI3YjcwYzVkODNlZTczYWJlYzk1NzZhZjM2NzM4NmZlYmFlNmU1OCJ9"
+        },
+        {
+          "resource": "repo://src/ws/router.py#L40-L40",
+          "version": "repo-lines-v1:sha256:f94e2e37ba5b08b24133d9c162808a3282679ac81642dcd9adc1ab6d299d0f9b:eyJzZWxlY3RlZExpbmVDb3VudCI6MSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiZjk0ZTJlMzdiYTViMDhiMjQxMzNkOWMxNjI4MDhhMzI4MjY3OWFjODE2NDJkY2Q5YWRjMWFiNmQyOTlkMGY5YiIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiZjk0ZTJlMzdiYTViMDhiMjQxMzNkOWMxNjI4MDhhMzI4MjY3OWFjODE2NDJkY2Q5YWRjMWFiNmQyOTlkMGY5YiIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiODU5MjM1YmExMmFhNzkxMDNhYTZiZWUwYTM2ZTg2MGMzZjQ4YTkzN2I1NWU3OWYzZjBmZjVlZWU4MzdmYmQ2YiIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiMTc4MjUxMzEzYjY3ZmEwYWNjMmZkM2M3NjkwNGU0MmJiZGQ3OWIyNzU0Njg4Y2VkYjliMzZhMGY2Y2Y2OWYzYyJ9"
+        }
+      ]
+    },
+    {
+      "id": "claim_f4ec9f17fc544ac4b82d06eff7c57b30",
+      "statement": "`/health/live` always returns `200 {\"status\": \"alive\"}` and is the probe used by the backend container healthcheck, while `/health/ready` checks a resolved `AsyncSession` with `select(1)` and pings Redis through `redis_manager.client()`, returning `200 {\"status\": \"ready\"}` only when every check is `ok` and `503 {\"status\": \"degraded\"}` otherwise.",
+      "evidence": [
+        {
+          "resource": "repo://docker-compose.yml#L3-L4",
+          "version": "repo-lines-v1:sha256:07122a1f38a42067aeb1fe95b539eae6b5d6b77330dc5c8742382c3bc30a6470:eyJzZWxlY3RlZExpbmVDb3VudCI6MiwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiYTcxZGI0ZTg3NWViOWE2YWYxNDU1NjMwNTg2MTk2Zjc0MjIyMzEyOGIzNjI1ODAwOTg0OWE2OGY4MDJjY2Y5YyIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNjJmNDA0Yjk5NDYzNDFkMjAwMWViNGQ0ZThhNGEzNjg0ODg3NzVkZmQ4ZjZmMjJiNWEyNDJjNDQzZTAzZThmZiIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjIsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiNjI0Nzc5ZjI4MDhiNzgxY2JhOTBlY2Q0NGEzNTg2ZWY5ZWZkZDdlYzRhNWFhNDRmMWQyNjA1NGQ0NzQ1YzVlYyIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiNjZkYTk1YWNjMzNhOWI0NzdlMjFjNjkyODFjYjA5MTQzZTcxMmEzNzFmODEzYTU0OTA3NTY0MTUyZDRlM2VmNyJ9"
+        },
+        {
+          "resource": "repo://src/main.py#L180-L206",
+          "version": "repo-lines-v1:sha256:4383df14bf8cfd1508c36be97a95e4995a5d12ded3c728492f6198d7dc7a7a64:eyJzZWxlY3RlZExpbmVDb3VudCI6MjcsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijg3YjJmNzcxNDkwOWJjNTBiMTUzYjgzNjA5ODhiODA0YWY1MmNjNzA2NTBlMmJmMTVlNjhjMGYwOGU5ZTljM2UiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjMwYzFmMTg4ZjE0MmVkN2E4MjQ2ODBiMjA3MTcyYzU1MTliYzYxNGE0OGZkYTdjZjE2N2VkYjhkZGY3OTk1NmMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjNkNTkwMDhkODliOWNjYTQ2ZjJhNGQ3Y2I0YTg5M2VjODcwZTY2YTY4ODZlNGU3MWNjMTAyYjI0YTM2ZmQzNmYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjJhYWUzNjQ5YjBhNGM2NWIxYmIyYmIzM2NmY2FhNTM5ZjFhMTc5NmE1NmZlOWFmZTMzMDA1YWM4Yjg2ODYxZDIifQ"
+        },
+        {
+          "resource": "repo://tests/test_main.py#L18-L40",
+          "version": "repo-lines-v1:sha256:215bcf26d894044e1b8f40c8a66b2c2922fac37c8af9bce6f35921973a7a575d:eyJzZWxlY3RlZExpbmVDb3VudCI6MjMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImI3YTgzMWZhNDcyNmZjMjMxNTE0NGY5YTA1NWJmZWMyNWYxYWZkMTI2YWFmZjU3YWZmYmU5NDBlZjVjNmE3MzUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAxYmE0NzE5YzgwYjZmZTkxMWIwOTFhN2MwNTEyNGI2NGVlZWNlOTY0ZTA5YzA1OGVmOGY5ODA1ZGFjYTU0NmIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImE5OGIwNjNkOWI0N2U2NTM3OTYyNTU3MmNjZTE5NzY2OWQ1NzY3ZTEyYzE4YmUwNzU2NTJiOGNkOTgxY2U4ZDUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6Ijc4MjQzOWVmMTUzNjVmNTUyMGMxMjM4NjNlNDliMTk3N2VkNjhjMmNhY2Q1ZWY3MzNiOWI5ZGY3MzhkNGUzMjkifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_cf7a4a7bc1c04cd79573c2231cf02e4d",
+      "statement": "`/api/ping` resolves an `AsyncSession`, runs `select(1)`, and returns `{\"ping\": \"pong\", \"database\": \"ok\"|\"error\"}`, reporting database failure in the response body instead of failing the request.",
+      "evidence": [
+        {
+          "resource": "repo://src/main.py#L209-L225",
+          "version": "repo-lines-v1:sha256:82ee4f2191685b54496370e4cb00449691f1fdee2db8ac65ab9477b25d9e7b48:eyJzZWxlY3RlZExpbmVDb3VudCI6MTcsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijk3M2M3MTEyYWIyY2YwYTA0Yjg4NTAxNTFlMGYwNTA4N2ZhMGFkOGRiZTRhMWI5ZmFjZTI3MGE0NGZiNzAwOTciLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjcyMDg1MzI5MTBjZmNlZmU1ODcwM2Q0MzQ0NWE5YzIwMmIxMjQ4NzcyZjE2ZWY1YTE2MzBlNjJmMjVkZjAyNzQiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjhjYzRhN2QxY2M3OTZhYmEzZTQ2NzIzMzI3ZjUxN2U5ZjgxMTk4MmQyNTBmMDcwMjk4NmU0YjU3NjRhZDk1ODkiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjhkY2Y3Y2IxMjE3NDgyNDI5Yjk2ZjIxYzA0ODA3Yzg3MmQ5MGU1ZDY3MjMwNDgzOWE1YmVhMzRiNjhkYmFmY2MifQ"
+        },
+        {
+          "resource": "repo://tests/test_main.py#L42-L45",
+          "version": "repo-lines-v1:sha256:81e456abeb96d0f07db446c6bef750a33496c5f85c7d709259102c4c9525881d:eyJzZWxlY3RlZExpbmVDb3VudCI6NCwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiYjdhODMxZmE0NzI2ZmMyMzE1MTQ0ZjlhMDU1YmZlYzI1ZjFhZmQxMjZhYWZmNTdhZmZiZTk0MGVmNWM2YTczNSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiMjI5NTE0OTBkODczOTc2MmU0MWRhYTRhMDlkZGJkZDgxNWIwMWU0YjVjMjFiOGEzOWZlN2Q4NjZiOWUyMzlhMSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiNWZlYTA0ODA0ZmIxMzMwOGZiMTkzYTI4OGFhNjk2ZjA2YjA1ZjAwNDliZmE5MjY5NDMwZjhiNzg5M2U3NjBhZSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiYmVjMmIxMzk2YzhhMWFkNTBkMjFlNDgwZWY5YjAxOTZlZWU2NzY2ODFlNjc1NGJjNjQ2NGM3NGNhZGJiYTYxMCJ9"
+        }
+      ]
+    },
+    {
+      "id": "claim_fcce9acfa0d444e4b8fe5004b58eb571",
+      "statement": "The middleware stack installed in `src/main.py` is `RequestIdMiddleware`, the slowapi rate-limit middleware plus a `reset_rate_limit_state_middleware` shim, the `cors_exception_middleware` safety net, and `CORSMiddleware`; because Starlette applies middleware in reverse order of `add_middleware`, `RequestIdMiddleware` is outermost.",
+      "evidence": [
+        {
+          "resource": "repo://src/core/middleware.py#L16-L67",
+          "version": "repo-lines-v1:sha256:3bad78af9269e5f7c8c6e4824f7883892567045175db20a14426bc36766edf08:eyJzZWxlY3RlZExpbmVDb3VudCI6NTIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImZmYjJmOGY5ZWRhMTAwZmZlYTI2OGEzYTk5Yjg2Mjk5NzZkYjE1MGE5ZjllMmZlMDI3YTllZmFlZTE1NmE4YjUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjM3Mjc2ZDUyN2MzZDkwNmFkYzlhNWVkNWJjMjE4ZjZhMDVjN2E5ZjgxMDk4MDA4ZjU1Y2FmY2MzZmZiMDRmYzEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjYyMDA5N2U0YWE1MDA2OGJhMTU3ZjlhMjczOWZhZDg2OTk1ZTFlMGNkY2NkYWRjNTg5N2MyMDM0Yzc0ZDNlZmEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjoxLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjBiZDY5NjEyYjhhMThlOGI4Njg4ZjA5YTQ1MTlkNzVkYzVjNjc3ZjcxZmY4NjI1Mzc3MjViYzBlYTA1ZWMwMGIifQ"
+        },
+        {
+          "resource": "repo://src/main.py#L99-L161",
+          "version": "repo-lines-v1:sha256:8614b8f32a557a031ac42cb4fbc712a6ef5d53aca4340a4f4d6d098dd862b821:eyJzZWxlY3RlZExpbmVDb3VudCI6NjMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImE4NWNiMGRiYWJhMTFhYzViNDgyZjExYjVmNzg5ZTYwOTM3NTlmNmM2MThjY2YwMDdhNDljNWZmYWYwNjVkYTgiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImZhZmJhMDUyN2MzOTUzYzRiNmUwZTViNTczOWJhODM2MTJmODA1M2JjZGM5NDY2NzMwMTkzY2QxZDU5MGI0MDgiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6Ijg3ZjdhM2JhZTMzODk5Y2I4NGY5N2ZjNDM2NzI4ZDA2ZWRmZTliMjA4ODg2OGY4MGQ3YThlMjgwMmQ1NDJhODIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjVhNDIzOWFjYTc1NmJmNDJiOGU1YThmODI5ZmU5M2U5NzhmY2RiNGFmMjE4YmYxMjc2OWM0MjAxNTg5ZDVmNGYifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_9f19486e15c2490da789a3702f23ab49",
+      "statement": "`RequestIdMiddleware` reads an incoming `X-Request-ID` or generates a UUID, stores it on `request.state` and in a contextvar for log correlation, echoes it on the response, and logs one line per request with `duration_ms` at `warning` level for 4xx and `info` otherwise.",
+      "evidence": [
+        {
+          "resource": "repo://src/core/middleware.py#L23-L68",
+          "version": "repo-lines-v1:sha256:d0018acf8f9dc2df2de689de1dbce7f1c670bdcaa37d3e13d19449f15de84629:eyJzZWxlY3RlZExpbmVDb3VudCI6NDYsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAyNTNhOGFjNTA2MTVjOWRlMTVhMzAwZGMzMDViMDdiNjI2YjlkM2NhMGI5MTUxNzM1ZGZhNzM1OGZmODEzZjciLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjBiZDY5NjEyYjhhMThlOGI4Njg4ZjA5YTQ1MTlkNzVkYzVjNjc3ZjcxZmY4NjI1Mzc3MjViYzBlYTA1ZWMwMGIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjAxOTU1ZGVkODg4NGMyMjEyN2EyMzI5ZTIzNDMxN2ZhNGU1YzhlOGJkMjFlOTc3ZDQ3MWU5NWNlYjU0ZmE3MTQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
+        },
+        {
+          "resource": "repo://tests/test_request_id.py#L11-L85",
+          "version": "repo-lines-v1:sha256:d508504b71b1f9dd493607b026f4168a38c449b96580d5ae67c90c6bd7f98946:eyJzZWxlY3RlZExpbmVDb3VudCI6NzUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImI3YTgzMWZhNDcyNmZjMjMxNTE0NGY5YTA1NWJmZWMyNWYxYWZkMTI2YWFmZjU3YWZmYmU5NDBlZjVjNmE3MzUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjEzMWNiODIyYzRkMTJjMGNhYmU0NDg2NTc2Njk3MDFiMjdlODkwN2FhNzFkNjFkMjQ4YmY2ZjJhMTExODYyNDEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjU0NjIwYzlkNjQ0NjBkNTdlYTAxZWI0NTAyZTVlNDBhYmM3ZTMwMzUyYzdkYWNhM2Q4YzJhNzg2NDE3MTYwMTMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjoxLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjAxYmE0NzE5YzgwYjZmZTkxMWIwOTFhN2MwNTEyNGI2NGVlZWNlOTY0ZTA5YzA1OGVmOGY5ODA1ZGFjYTU0NmIifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_81218b8b47054c73850e923b36a72136",
+      "statement": "Rate limiting uses slowapi keyed by a `user_or_ip_key_func` that decodes the user id from the `auth_token` cookie or `authorization` header JWT and falls back to the remote address, with Redis (`settings.redis_url`) as storage outside `test` and `memory://` in tests.",
+      "evidence": [
+        {
+          "resource": "repo://src/config/limiter.py#L12-L34",
+          "version": "repo-lines-v1:sha256:e8a3502661ff9353745e7df42261f3214e3c5975db6fbbb4e307df802fe99668:eyJzZWxlY3RlZExpbmVDb3VudCI6MjMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjNlYWJjYWVlY2VkOGM5ZWU3NzhmNWFhMDJmNDc1NjMxOTNmYjUxNjYzYTUwZWRkOGJkMjAxMWZkZjY4Y2Q0YmQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImZhZmJhMDUyN2MzOTUzYzRiNmUwZTViNTczOWJhODM2MTJmODA1M2JjZGM5NDY2NzMwMTkzY2QxZDU5MGI0MDgiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6Ijg2MTM1N2UwMDQ3NWMxN2ViNjYzY2I1YTljMDAwYzQ2ZTk2MzcxYTBkZDZhOWNlNzM3NmJmMWRmZTJjNTNkZjkiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
+        },
+        {
+          "resource": "repo://src/main.py#L100-L103",
+          "version": "repo-lines-v1:sha256:f182ad29b7d53ea107f4865ab39008ea1b3ccf580059d2208f395c49e96e3d08:eyJzZWxlY3RlZExpbmVDb3VudCI6NCwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiY2YzYjQ1YmNkMmNiMGM5OGU0ZGRkMjI1YzkyZGQwOWY3ZjYxNjM5MzMwYjA1MmRiODcxYmRlYjU5NDMzNjk3NCIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiYmU3NjM1M2QwZjVjMTI1NThjMDRiY2M4NzAxNWE1ZWUzMGJlZmI5YjM5ZTYyNWFkYTI0MTRmNjI0ZWRiZDkxOCIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiNjY0MmM1MDE2MTk3MGYyYWJlZTVjNTAyM2RiYjdhZGE4ODI4MGM1ODY3MTg4ZDNkNjYxMmRiMjM1YmU5ZThhMCIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiNTI5MGIyZmI3MWUyOGEwYTIwYzU4ZWRlZTE1ZjZmNzVjNzI1NzMyMTgwMTBiNGNiYWEwYTg5MTE1Mjk5OWU5OCJ9"
+        }
+      ]
+    },
+    {
+      "id": "claim_3b3d2a5b8f59423287f300424f446670",
+      "statement": "`cors_exception_middleware` catches exceptions that escape the normal FastAPI handlers and returns a `500` JSON response while re-injecting CORS headers for allowed origins; `CORSMiddleware` is configured from comma-split `cors_allow_origins`/`cors_allow_methods`/`cors_allow_headers` and, outside `prod`, additionally allows `allow_origin_regex=r\"https?://.*\"`.",
+      "evidence": [
+        {
+          "resource": "repo://src/main.py#L113-L161",
+          "version": "repo-lines-v1:sha256:aadaea82bb3a8c3ce0797aecb95d83b8892a9fd547b65b5561899171cb7ef24e:eyJzZWxlY3RlZExpbmVDb3VudCI6NDksImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjE3YzBhNzhiYjZlMzQzNDljN2Y1NjlhNDRiYzk5NmFlNWIzZTQxOGNmNTIyNDNmNTllYTg3NTFhZDNmMjhiYTAiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImZhZmJhMDUyN2MzOTUzYzRiNmUwZTViNTczOWJhODM2MTJmODA1M2JjZGM5NDY2NzMwMTkzY2QxZDU5MGI0MDgiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjM1ZDkzNGRmNjU4NGU3NGZhOTMxYmFhMjQ4OGQxOGExNGE5N2U1ZmUyYjlkMDEwMDg4MDIwMzBjNDMwOTMxNWQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjVhNDIzOWFjYTc1NmJmNDJiOGU1YThmODI5ZmU5M2U5NzhmY2RiNGFmMjE4YmYxMjc2OWM0MjAxNTg5ZDVmNGYifQ"
+        },
+        {
+          "resource": "repo://tests/test_main.py#L69-L96",
+          "version": "repo-lines-v1:sha256:8480fe416ce66de72f0fe0f1e337f0d9a16526aafe7b1b7f713bd1b24b42f71f:eyJzZWxlY3RlZExpbmVDb3VudCI6MjgsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImI3YTgzMWZhNDcyNmZjMjMxNTE0NGY5YTA1NWJmZWMyNWYxYWZkMTI2YWFmZjU3YWZmYmU5NDBlZjVjNmE3MzUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjMwYzFmMTg4ZjE0MmVkN2E4MjQ2ODBiMjA3MTcyYzU1MTliYzYxNGE0OGZkYTdjZjE2N2VkYjhkZGY3OTk1NmMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjhjYzRhN2QxY2M3OTZhYmEzZTQ2NzIzMzI3ZjUxN2U5ZjgxMTk4MmQyNTBmMDcwMjk4NmU0YjU3NjRhZDk1ODkiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImRiZTY0MWRmNmE5MWM2YzY2YmJmNmJhYTdlZDliZWY1ODI2OTE0MmZkYTIxNThhNGVkNGNmODAzMTk0NmEzMjkifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_a52a280993e04bd38f3d402126688e22",
+      "statement": "`src/main.py` registers global exception handlers that map `EntityNotFoundError` and `AuthorizationError` to `404` with an `{\"error\": ...}` body (deliberately hiding existence from unauthorized callers), `RateLimitExceeded` to slowapi's handler, and any other `Exception` to `500`, where the error detail is the exception string outside `prod` and the literal `\"Internal Error\"` in `prod`.",
+      "evidence": [
+        {
+          "resource": "repo://src/main.py#L102-L102",
+          "version": "repo-lines-v1:sha256:8ab7e1ab076eb4fe9a90e56efedb563d0fdb6b3eb9aad1c5d40d3a727f957b2b:eyJzZWxlY3RlZExpbmVDb3VudCI6MSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiOGFiN2UxYWIwNzZlYjRmZTlhOTBlNTZlZmVkYjU2M2QwZmRiNmIzZWI5YWFkMWM1ZDQwZDNhNzI3Zjk1N2IyYiIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiOGFiN2UxYWIwNzZlYjRmZTlhOTBlNTZlZmVkYjU2M2QwZmRiNmIzZWI5YWFkMWM1ZDQwZDNhNzI3Zjk1N2IyYiIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiZjhkMDBhYjFmMTgxZDk3YzcxZDhjYzFhMzA3YWU1N2UyYmI5MGViNzJhYWI2MzQ5ZWM3Njk2NWNjMDMyNTIwNCIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiNjQ1OGQ4MGFkMzJiZWEwOTUyMGViYzU5NzVlMDZkMzhjYjhmNzVmYTlkMzJhMTYwMGVlYjMyYTM0MzI5YTA5NyJ9"
+        },
+        {
+          "resource": "repo://src/main.py#L228-L261",
+          "version": "repo-lines-v1:sha256:1332f838d383214195395d6ee1c449e76287a7616ee6edfdf6e5d93c3cb8512e:eyJzZWxlY3RlZExpbmVDb3VudCI6MzQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImU0ZTIzZjJkMjYwNGQ2NGZmNWQwZjZkZTk0NDIxYzI5YjBmZGFmODRlNDAwNmNlYTllMDc2YzFjODdiN2JmYzQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjIwMjU2NDFhNTAyMzYyYjI0Nzk3ODVhOTE0NWUxNDdlM2I3ZWQ2ZmMzYTliOWNiODczMzc4MTBiNzUxNjgxNjgiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjczMDMyNWY5ODBiNGFiZTBhNWJmZGViMmQzZWI5MzQ4NzZkM2EwNDMzMjU2NDQ0NzJjMTM2Y2NhMDJiOWE4MGEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
+        },
+        {
+          "resource": "repo://tests/test_main.py#L104-L140",
+          "version": "repo-lines-v1:sha256:d9f8741e8f1d69751a0746d32a967220c449dbc56452f158c9119c46eb19335e:eyJzZWxlY3RlZExpbmVDb3VudCI6MzcsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImI3YTgzMWZhNDcyNmZjMjMxNTE0NGY5YTA1NWJmZWMyNWYxYWZkMTI2YWFmZjU3YWZmYmU5NDBlZjVjNmE3MzUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAxYmE0NzE5YzgwYjZmZTkxMWIwOTFhN2MwNTEyNGI2NGVlZWNlOTY0ZTA5YzA1OGVmOGY5ODA1ZGFjYTU0NmIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjI1MmZjNzA5NTM0YTM5Mjc1MzRiMzAzMmFlMGI3Y2EyOWRmNWE0NDU1YTI1ZDliNDdmNWE5NzY4YTZhNDhjMDYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjMzYmNhNmIyODdhNzgxNzMwZGFlYzc3ZDMyMmI0MjExMjU5N2I5MjU2Mjc1OTViYzlhMGZkM2UwZmVlZGRkMmEifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_06bc4f3aaf6e49ef9468c9bac3f51c57",
+      "statement": "Dependency injection is centralized in `src/config/services.py::register_services(registry, sessionmanager)`, shared by the API process and the worker: it registers `AsyncSession` as a factory over `sessionmanager.session`, registers core services, always registers account and auth services, and selects stub or live registration functions for the market and integration domains based on `settings.stub_external_api`.",
+      "evidence": [
+        {
+          "resource": "repo://src/config/services.py#L14-L34",
+          "version": "repo-lines-v1:sha256:6fd115100fdd701665a71cd80ac86e199e1f25a6a2e2bb72dbdf3e20f168a3ae:eyJzZWxlY3RlZExpbmVDb3VudCI6MjEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImUwNTE3NmQ4M2M0MGQyZjUxY2NjODYzNzlmY2Y2NTc2NmUxYjM3NzU3YmE1Njk1MTM5NTM3NDEzZDViZDQ4NjEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAxYmE0NzE5YzgwYjZmZTkxMWIwOTFhN2MwNTEyNGI2NGVlZWNlOTY0ZTA5YzA1OGVmOGY5ODA1ZGFjYTU0NmIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImQwY2I4MWQ1YzNhYmI0MDhjY2I1ZDRiODI4ZmEwZThjYTA0MGFjNWZkMjNiYWE5ZDBjM2FiN2RlYTI2NGQ2YjIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjdmYTcwZmZhYzdhYTk1YWRmOGIxNTFjMjlmZGZhZTExZDIzYzFiOThjODQwMWVlYmJkOTdkZmQ0NWQ4YTA3ZGEifQ"
+        },
+        {
+          "resource": "repo://src/main.py#L57-L59",
+          "version": "repo-lines-v1:sha256:81326cfdb11654b12994f1f7c2f69696600e839d6b67b08a0e6bcb477139d0e7:eyJzZWxlY3RlZExpbmVDb3VudCI6MywiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiNTJiMDg2MjQwZTMxNzUxM2IxODExZWI5OTI0YzdhOTJhYTMzODFiOWNiMWVmNjBlODkxY2QwNzU5NjcxMGQ0NSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiM2M1NWRkMTEyODg0NTNjZmM2Y2VkMjFiOWYwOTFhNDk0OTczNzc3ZDVhYzViYzU2MjYxYTU1NzNhZTMxMjgzMiIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiYmZlNWUwNDM2YzZkZGEzMjYzYTMwNjhhZjRhYjBiMGRjMThkNjZlYTljZDE4MTgyMWQxMDhjN2MwZjc1ZTFiMyIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiNTJmMDlhYThmMjBjMmFiODVkZDYwYTNlM2QyMDYyMDFhZTdiYjljM2ZmYjc2MmU5ODhlYjZlYTVmNWE0YzBmNSJ9"
+        },
+        {
+          "resource": "repo://src/worker.py#L48-L50",
+          "version": "repo-lines-v1:sha256:8d2dd086fec4242a2601775bde840aa535999b38a55b4ca4de7a496351144f33:eyJzZWxlY3RlZExpbmVDb3VudCI6MywiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiMDI3MjViZDdkNDM0MjAwN2Y1NDlmODRkMjEyY2YyNWVmOTlhNDA0N2NhOTQ3MjEwN2VjOGRiZWNjMGEwNjlkOSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiZWZjZGFjN2NjOTk5MWVlMDE1MzgwODYyYmVhNTAxNGQ4MDMzNzgyZjJiYWE5ZjhmY2JhYjliODIyNzFkMzA0OSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiMzE4YTY5MjQwNTE5OWYxYmM0MTcwN2EwNWZkZjg2Yjk3ZGNhYmU5NDQ4NjlmMmE4ZDQ3Y2E0NDNjYTU0NzdmYSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiZTA3MzcyNzM5M2EzYjhiMjI5OGMwNjViMjU1ODgyMDE3ZjEyNDJmNDlmNGY5NTA0ZDVhMjdkZDkwMDc2ZGRjMCJ9"
+        }
+      ]
+    },
+    {
+      "id": "claim_7a54c324235b4542a0add0a9cc8923a2",
+      "statement": "Each backend domain owns its registrations in a `register_*_services(registry)` function (`src/core/registry.py`, `src/account/registry.py`, `src/auth/__init__.py`, `src/integration/registry.py`, `src/market/__init__.py`), so a new repository, service or domain API must be added there to be resolvable.",
+      "evidence": [
+        {
+          "resource": "repo://src/account/registry.py#L46-L64",
+          "version": "repo-lines-v1:sha256:679d12f8316d2e8bf5ce87d4912e99a724097af80930d5ebde1dfba185e0755e:eyJzZWxlY3RlZExpbmVDb3VudCI6MTksImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImJiZWYwYTA2ZGRlZDVjYTMwYTMyYzUwNzVmMDE3YmI2YTM4NDU2Zjc2MGY0MTE2OTBjNTIzM2E2N2EyNmNlM2UiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjNmY2ViMjA3MzljMmU5NDQxMTYyY2QzNjMyYzEzYjg5NTQ2OWExOWFkZjhlYmJkNmNkNzRkNjNkM2FjYzg5OGEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImE5OGIwNjNkOWI0N2U2NTM3OTYyNTU3MmNjZTE5NzY2OWQ1NzY3ZTEyYzE4YmUwNzU2NTJiOGNkOTgxY2U4ZDUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
+        },
+        {
+          "resource": "repo://src/config/services.py#L4-L10",
+          "version": "repo-lines-v1:sha256:646940937b107abfe40c858c9562ec9bab5b5f81116960f504cd661de245247a:eyJzZWxlY3RlZExpbmVDb3VudCI6NywiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiYmJlYzExYWQ5YTM4YzE2YWFjZjE2ZGI4OTExODQzOTZmZjIxOWM2MzE5OGViZDZkMjY5YjFkYjc1NjY4ODZlYiIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiMjVkNjA5Y2IwNTU3OTVhMzlkMTgxOTJjZTEzYWMxZjRkOWU5NGRkYjE3NmUxZDYyMjFlNTU5ZjM1YTM3Y2RmNyIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiODQ5NmIyMWQwZjg4ZmExZDUxNDZmZTA0NDlmMjYxNjhkNjNjMzEzNjlkY2Y0ZWM4YTE4MWI2NjhhMjM1YzYzNiIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiZDBjYjgxZDVjM2FiYjQwOGNjYjVkNGI4MjhmYTBlOGNhMDQwYWM1ZmQyM2JhYTlkMGMzYWI3ZGVhMjY0ZDZiMiJ9"
+        },
+        {
+          "resource": "repo://src/market/__init__.py#L58-L92",
+          "version": "repo-lines-v1:sha256:55917fb933ce0b7a57d45d098e2b31d14ae0ccc27dbc214bc5ac4179b961271e:eyJzZWxlY3RlZExpbmVDb3VudCI6MzUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImZjMzRmYmVmYmEyMWQ3MmY5NzQ3MDM3MmNhZmMzZWMzMDMzNTBlNmM2MDNhOGQzOTk3NDc0YmZmYjAzYmRmNzgiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImE0OTZlYWVkNDM1Y2RiOTIwYjc4NDQ3NWM2MDJkODk2NTdjYmRkOGNkZDk3MzJjMTYxZjk3YjQxOTVjYzllMzkiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImE5OGIwNjNkOWI0N2U2NTM3OTYyNTU3MmNjZTE5NzY2OWQ1NzY3ZTEyYzE4YmUwNzU2NTJiOGNkOTgxY2U4ZDUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_3a3eef40996740c096fe3cd27db67076",
+      "statement": "The Huey worker builds its own `svcs` registry in the `@huey.on_startup()` handler `setup_worker_services`, using a `DatabaseSessionManager` configured with `poolclass=NullPool` to avoid \"operation in progress\" errors across `asyncio.run()` task cycles, and stores it on `huey.svcs_registry`; tasks resolve services through `svcs.Container(huey.svcs_registry)`, and `@huey.on_shutdown()` closes the registry.",
+      "evidence": [
+        {
+          "resource": "repo://src/account/task.py#L24-L34",
+          "version": "repo-lines-v1:sha256:970e678cc8c71f8acfa2028c2a9533fec60eb092e9fa3e2851bb684f2784f39d:eyJzZWxlY3RlZExpbmVDb3VudCI6MTEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImNjNzgzNWIxOTZjZWMyZmJlNmVhM2IwNTliYTdhYzg1Yjk5MWJmMGIyYzBjNjgwOTFlZjEzZTM3OWZiMzk4YmMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijc1MGFhNjk2ZTA2ZTk3YTY0OTUyZDhmYjkyNzdkNmFiNWZiNzc1MmIwOWY4NmVmNGFiOTlmYTAzN2UzMjhlZmUiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImIxYWY5ODQ2M2E4OGYxZGFkNDJhNGE3MWQwMTc4M2Y0YWRlYzg4OGJjMjU3NzVkZDM3ZTFhY2I4MDU3ZDRmMjMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjBkYTcyMGMwYjBkMTdlZWM4MTM0ZDk3NTVlZTk5MmRjZWYwMjhlZTE0NzU5ODUzM2M5MjI5MDllYTBhY2MwMmMifQ"
+        },
+        {
+          "resource": "repo://src/worker.py#L27-L57",
+          "version": "repo-lines-v1:sha256:e1e2b00362aadc51e996674cda67b5b588466546ad52d129f37797bad4aa7743:eyJzZWxlY3RlZExpbmVDb3VudCI6MzEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImEwM2UyMGU3ZmU1Y2ZlMGYxZGMwMDczYzNkNTU2OTlkZWMzMjY5YTMwZGFmYmJkNGQzMmY2YzU2MDk4N2JkNDQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAxYmE0NzE5YzgwYjZmZTkxMWIwOTFhN2MwNTEyNGI2NGVlZWNlOTY0ZTA5YzA1OGVmOGY5ODA1ZGFjYTU0NmIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6Ijc3YjFhNGRiMDg5OTE2ZmY5YjRmZTM4NjFjMmQyYzk4NWI0YTVlMzRmODRiYjI3NTg1MjkzMDIxOGJiNDVmZGEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjdmZWFlOGEwMGZiMjM3Mzg1MTdlMzhhZGViYTRjNzgyODYzOGQ5MjM1NTI3ODFkNjY4MjE0ZGY5MzY1NDQyMGMifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_dcdbd5f1fce441baa3dcae01f9120cff",
+      "statement": "The worker uses `MemoryHuey` when `settings.environment == \"test\"` and `RedisHuey` (with `settings.redis_url`) otherwise, and imports `src/account/task.py`, `src/integration/task.py` and `src/market/task.py` at module bottom so their task decorators register.",
+      "evidence": [
+        {
+          "resource": "repo://src/worker.py#L21-L24",
+          "version": "repo-lines-v1:sha256:80e33caa99afc788781a938d8fd3a51a5fdc1b1632f61c9ad7be8d8794b6aae8:eyJzZWxlY3RlZExpbmVDb3VudCI6NCwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiN2Q5ZGE0NGQxYTQxMzEwMTI5MzNmNGJkYmU5MjNlMzQwM2FjYzg1NzdiZDEzY2MyMDc2M2NkNWNmOWIzYzgzNiIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiZDM2OTAxYTAwMzc5OTc5ZWVhZDFkNDQ5MmRjYzc1OGM5MjhlMGNmNDY2MzFmODFiODEwZWJiZjA2MjdlMmY4MSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiODU0MTI3MzA5ZmRlMmJlZTE5ZDM4NjUxZGQ5ZTlmYmJmZDMzYTkwYzZiNzU4OTg2NjgzMzc3ZTViY2M3NTI5ZSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiMTU5ODBiNGM2YjM4N2Q3MWVjMjdmZDlkNmE1NDYxZmNlMzNlMjE4NDJkNzllNTQ3NTIzZDc2YjYyYThjMDRlNyJ9"
+        },
+        {
+          "resource": "repo://src/worker.py#L59-L62",
+          "version": "repo-lines-v1:sha256:f6ac7d8d434b36bc31003b0a4fdfc1d6f6e2cfe07fd14876532b41ae2994ee08:eyJzZWxlY3RlZExpbmVDb3VudCI6NCwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiMjc5ZDEyNTNmNjk5MDg2MTQ1MThhMjZlNzk1ODg3ZjE0ZWMwNTFmYjkwMjFiZmJiZGNlM2MxM2VjMWJlMjFkMiIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiMTgxYmY1OTUxNDdlNzI2MTU0MWUxNWRjZDU3MzU5ZDg0MDRjNDQ2NzMyNzRmYzAwMzIyYjRmZDg1ZjY1NjQwOSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiODNiYWJlZWRhNzJiMjhlNjcwZjE3N2VkODE3ZWNmNWQxYjczNzFhZjVhMDk5ODI3ZTFkYTA3NjdlODI4YmMyMyIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjAsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiZTNiMGM0NDI5OGZjMWMxNDlhZmJmNGM4OTk2ZmI5MjQyN2FlNDFlNDY0OWI5MzRjYTQ5NTk5MWI3ODUyYjg1NSJ9"
+        }
+      ]
+    },
+    {
+      "id": "claim_cf601b730f424bff97eabbf412c68c46",
+      "statement": "Background work spans three task modules: `src/integration/task.py` syncs broker positions and emits WebSocket sync-progress events, `src/market/task.py` owns `generate_note_title_task` plus the periodic `daily_price_update` on `crontab(hour=\"0\", minute=\"0\")`, and `src/account/task.py` exposes `recalculate_all_account_totals_task`, which recalculates account totals and pushes `AccountTotalsUpdatedMessage` per user; tasks bridge synchronous Huey to async logic with `asyncio.run(...)` and re-bind the originating `request_id` into the contextvar.",
+      "evidence": [
+        {
+          "resource": "repo://src/account/task.py#L13-L55",
+          "version": "repo-lines-v1:sha256:59483e75c482b81900e13b112eed73b253473023fe1b6a12cf69d3ef1ae12ed6:eyJzZWxlY3RlZExpbmVDb3VudCI6NDMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjFlYzk2YzNlNjFhNjEyOWRiYWQ0ODFmMmI3NDAxOWM4YzdjYzI4NGQ5YjE5YTMzNTU0ZmE5MTdlYTIzYmQzYzgiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjUxMDM0ODFjNTdkMGYwZGMwZjc2Y2QyY2M4YjM2MDRjNGU4Mjk2ZGE0MTIyYWRkMTllODE3NDVkYzdlMzMxYTYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjYyMDA5N2U0YWE1MDA2OGJhMTU3ZjlhMjczOWZhZDg2OTk1ZTFlMGNkY2NkYWRjNTg5N2MyMDM0Yzc0ZDNlZmEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
+        },
+        {
+          "resource": "repo://src/market/task.py#L23-L60",
+          "version": "repo-lines-v1:sha256:8190016a85285905f0033de80c0699a1c45d7df32702d17f6312eb2ab46aadb4:eyJzZWxlY3RlZExpbmVDb3VudCI6MzgsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjFlYzk2YzNlNjFhNjEyOWRiYWQ0ODFmMmI3NDAxOWM4YzdjYzI4NGQ5YjE5YTMzNTU0ZmE5MTdlYTIzYmQzYzgiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImY5OGE4NTZhZGRkNTQ4ZjYyNWNiZTc4M2UxZjgzMDA0NzBmZmQzODE0YWYzYmM0ZTEwMGRhOWRjNjZlYzYyODMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjYyMDA5N2U0YWE1MDA2OGJhMTU3ZjlhMjczOWZhZDg2OTk1ZTFlMGNkY2NkYWRjNTg5N2MyMDM0Yzc0ZDNlZmEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjBhMTZjMjcxZDA3MDRkNDY4NWI2YzBkMTdjZjBjNzNhNzhlOTMwMGVhNTFhMWM3NDdhMmU0YjM0NGQ4MzE2MjYifQ"
+        },
+        {
+          "resource": "repo://src/worker.py#L59-L62",
+          "version": "repo-lines-v1:sha256:f6ac7d8d434b36bc31003b0a4fdfc1d6f6e2cfe07fd14876532b41ae2994ee08:eyJzZWxlY3RlZExpbmVDb3VudCI6NCwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiMjc5ZDEyNTNmNjk5MDg2MTQ1MThhMjZlNzk1ODg3ZjE0ZWMwNTFmYjkwMjFiZmJiZGNlM2MxM2VjMWJlMjFkMiIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiMTgxYmY1OTUxNDdlNzI2MTU0MWUxNWRjZDU3MzU5ZDg0MDRjNDQ2NzMyNzRmYzAwMzIyYjRmZDg1ZjY1NjQwOSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiODNiYWJlZWRhNzJiMjhlNjcwZjE3N2VkODE3ZWNmNWQxYjczNzFhZjVhMDk5ODI3ZTFkYTA3NjdlODI4YmMyMyIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjAsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiZTNiMGM0NDI5OGZjMWMxNDlhZmJmNGM4OTk2ZmI5MjQyN2FlNDFlNDY0OWI5MzRjYTQ5NTk5MWI3ODUyYjg1NSJ9"
+        }
+      ]
+    },
+    {
+      "id": "claim_7bd186b836bb43b8aa9e7ee59558fd04",
+      "statement": "`src/ws/manager.py` exposes a process-global `ConnectionManager` singleton holding `active_connections` per `UserId` and per-event-loop Redis clients in `_clients`; messages are published to the Redis Pub/Sub channel `ws_messages` and delivered to local connections by a background listener task, so Huey worker threads can fan out into the API process, and `send_personal_message` falls back to local broadcast when Redis is unavailable.",
+      "evidence": [
+        {
+          "resource": "repo://src/ws/README.md#L3-L24",
+          "version": "repo-lines-v1:sha256:6e5656d330e577778c02b081510ce1c327579d60c6dae2edc6e3db80e358a12f:eyJzZWxlY3RlZExpbmVDb3VudCI6MjIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjcxZWY4Y2Y4M2U2YzQ2MzRmY2QxMzgxNTZkMjY3OTE0MWQ1YjMxMzBlNTlmZGEwNzQ5NGIzZTAyOTk2ZmRlMDYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ3YzA2YzU2MWQ1YzMyNzM0MzY4NTI2OGE0NmIzMzkxZjM5OThlZWU4OTBkMmJlNTFmMGQyMWNjNGE1M2FlNmQiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjoyLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjE1YTdmYWY0ZGQyMGI5ZTQ1ZDg1Mjk1M2MxZmU3YTQ5NzQ2NmRkYjc0Mjc2NWU4YTRjZDlkMWM2MzlkNTFlZDEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImM5NTU3ZmFmMmE2Yzc1MjliNDBkYWU1NmVmNzJlZmQzM2U0ZGM0ZDJlYzc2N2U2NzAxMzUwM2MwZTY1NDdlYWEifQ"
+        },
+        {
+          "resource": "repo://src/ws/manager.py#L172-L217",
+          "version": "repo-lines-v1:sha256:ae59a504285dfc05ef5e9e2bc0d3b6cb7dc4c5b3ac0d1c2f4dae767b18bf51ff:eyJzZWxlY3RlZExpbmVDb3VudCI6NDYsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjRkZTY2OTk0NDExMjVhMTk0ZWU2YzJmNGM4YTM2NDc5Y2Q3NDA2ODdhZmJmNDMwNzM2ZDNhMDdmYTlkYWI4YjAiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQxNDhiMmRiNGFlMzdlNDc1ZDlmMzMxYjk3MTI0MTRjNzhmZTFlMTFiNjcyNGI2M2U5ZDQ2MTQyZDhjY2MyNTIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImUzYWU5NWRiMjg1YmQ0YzhjMmQ2MGI4ZjVhYmI5ZjgxMWQyOGU1ZmJhMDhkYTMxNDUzMzAwNWIxMzUxNmM2ZmYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
+        },
+        {
+          "resource": "repo://src/ws/manager.py#L18-L135",
+          "version": "repo-lines-v1:sha256:b46f37109359b8bed166ccc18144c4be5571fe25e3e53a74c4b8d015a0ae308f:eyJzZWxlY3RlZExpbmVDb3VudCI6MTE4LCJmaXJzdFNlbGVjdGVkTGluZUhhc2giOiIwZWQ3NTM4Mzk1Mjg1ODViOWM1ZDkzYWUzYWIxOWM1MDdlYWI5MmRhZGQwMzYzZDY2YjdkN2U1MTdjNjM1ZDM0IiwibGFzdFNlbGVjdGVkTGluZUhhc2giOiIxMzAyYjI1YWY5NmQ4NDQ2N2EwMTU5NmIwZmNmMzkxZDYzN2JhNjZiNmQyNjI5NDM0NzI1NzQ3MGFjNmYyMzc5IiwicHJlY2VkaW5nQ29udGV4dExpbmVDb3VudCI6MywicHJlY2VkaW5nQ29udGV4dEhhc2giOiI2MjAwOTdlNGFhNTAwNjhiYTE1N2Y5YTI3MzlmYWQ4Njk5NWUxZTBjZGNjZGFkYzU4OTdjMjAzNGM3NGQzZWZhIiwiZm9sbG93aW5nQ29udGV4dExpbmVDb3VudCI6MywiZm9sbG93aW5nQ29udGV4dEhhc2giOiJiMDliODQzN2FmMzJlZTgzZWY1ZmU5OGU5NThjNDAwODgyZDQ2Y2Q3YmQ1ZjA5MzQ0NWM2YWI5M2UzNjI3ODhkIn0"
+        }
+      ]
+    },
+    {
+      "id": "claim_760a3efd59ed4e9bbe0c7b3261d385e5",
+      "statement": "The `/api/ws` WebSocket endpoint authenticates either with a short-lived signed ticket (query parameter `ticket`, produced by `POST /api/v1/auth/ws-ticket` with `URLSafeTimedSerializer`, `salt=\"ws-ticket\"` and `max_age=30`) or with a session token from the `auth_token` cookie or `sec-websocket-protocol` header resolved through `UserApi`, and closes with code `1008` when authentication fails.",
+      "evidence": [
+        {
+          "resource": "repo://src/auth/router.py#L224-L239",
+          "version": "repo-lines-v1:sha256:c35538d7015f3d7025f81852889d0d2ffa1f0260e85344f54dbf08fad8594b23:eyJzZWxlY3RlZExpbmVDb3VudCI6MTYsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjY3YWIxOGI4MmE5OWE1OWI2YzMzYWEyYzAxNTkwNjU0OWZmYTVmYjllYWM2MzIzYWQyOWRjNDNlMTVhOTVlMTIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjE0NWZhODJhZWExODA4ZDUwYTQyN2U3NTJmNDdjYmIxZDFjZTljNzljZGM0NjcyNDA0YzIwZmJiNjg0MThhNDMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjhjYzRhN2QxY2M3OTZhYmEzZTQ2NzIzMzI3ZjUxN2U5ZjgxMTk4MmQyNTBmMDcwMjk4NmU0YjU3NjRhZDk1ODkiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjU4NjkxODhjNmIxZTZhYzQwNzJlZTExMTdiODYxMDFjMTMwOGFkYzRiNTM0NjQ5OTBkNzEwYTE5MmJlZGE5MjcifQ"
+        },
+        {
+          "resource": "repo://src/ws/router.py#L40-L100",
+          "version": "repo-lines-v1:sha256:63413bb4add89f256d63b0f00b3c0fe377f645d9eea43b5b6b3aec85deb42612:eyJzZWxlY3RlZExpbmVDb3VudCI6NjEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImY5NGUyZTM3YmE1YjA4YjI0MTMzZDljMTYyODA4YTMyODI2NzlhYzgxNjQyZGNkOWFkYzFhYjZkMjk5ZDBmOWIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImRlZmMwZmIxZTE0YTI2Yjk3YjVlNzRlYTc0ODEwMWI1ZGJiYjY3ZmJkN2NjMzM4MGQ1OTQ2MGVlMzE2NmJkODUiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6Ijg1OTIzNWJhMTJhYTc5MTAzYWE2YmVlMGEzNmU4NjBjM2Y0OGE5MzdiNTVlNzlmM2YwZmY1ZWVlODM3ZmJkNmIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_7292825c2b634b1a9c8c36d8b646e9bf",
+      "statement": "WebSocket tickets are single-use: `_check_ticket_not_replayed` atomically sets a `ws-ticket-used:<sha256 of ticket>` key in Redis with `nx=True, ex=30` and the connection is closed with code `1008` on a detected replay; the worker dashboard's `/worker/api/updates` endpoint reuses the same helper.",
+      "evidence": [
+        {
+          "resource": "repo://src/worker_dashboard/router.py#L31-L43",
+          "version": "repo-lines-v1:sha256:aee62b6c14b0e07b5f9df72e0f3a3dc5d7e4cc9efc4a90f44b76899fe9a2e620:eyJzZWxlY3RlZExpbmVDb3VudCI6MTMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImFkMTY4MDA4ZWI1Mjk0NTJjZmYzMTU1YmZlNjkwZmQxZjJjMjU4YzNiMTIyYjg1NmI3NmMwOGZhNWE0NGFiOGMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjYxNGMyMmQ1OTBmZmIzYjU4NjdlYTllOTBiOWZhZWVhZmY4MTVmZDVmMDVhYjEwYTYyYWQ2YzA5YWZiY2ZlZjgiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImE5OGIwNjNkOWI0N2U2NTM3OTYyNTU3MmNjZTE5NzY2OWQ1NzY3ZTEyYzE4YmUwNzU2NTJiOGNkOTgxY2U4ZDUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6Ijg1ZWMwNDljNGNhMTc4NTBkMzI2YmE1YTRkMTVlYjNmMDNhMTNjZWI0NGJmMzlkMWI0N2VjN2EyMTdhNzdmNGQifQ"
+        },
+        {
+          "resource": "repo://src/ws/router.py#L21-L37",
+          "version": "repo-lines-v1:sha256:554d6f607c2b962fa5c06e08a062e3c81020590b872ccecd0bcf041cb58eaad9:eyJzZWxlY3RlZExpbmVDb3VudCI6MTcsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjVmZDFmMGY4MGVkZWQyNzQ2NDY5Yjk0MTZkNTJlNmZlMWM3MmFmOWI0NjkxMjM4YzBjYzE0ZmE0NjAzOWNlMWEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjIyZmQ4NGYzMTAzNWZlOTQ5ZDc2N2VmYzA2MWY3NTcxMDU0ODZjMDMxYWRmNzlkN2YxMTAwODM4MzY0ODdkMzgiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjRjNTNjMDhmNWYzMDlkZGVjNmNkOGRhY2I1OTRjZmExMjkzZGY1ZWEwYTRmMTE3ZDY5YmQ0NWRiMDM4MmZiNmUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImU4YmRiMTJhZTE2MGZhMmE4ZjIxODczYjhhYTA3NTQ1ZmQxNjFiNjgwMDA1OTFkYTE4Zjk1YjM5ZGE1NjJjNDYifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_62de236d108e40eeb7e796eebda13bba",
+      "statement": "The backend layer rules that hold across domains are: repositories always return schemas and never ORM models; cross-domain calls go only through the other domain's `api.py` APIs and `api_types.py`; routers own HTTP concerns while services must not raise `HTTPException` (the authorization service being the documented exception), with domain errors inheriting from `EntityNotFoundError`/`AuthorizationError`; services are registered as factories and resolved from the registry rather than instantiated by hand; and editing a model requires an Alembic migration named `<hash>_<description>.py`.",
+      "evidence": [
+        {
+          "resource": "repo://src/AGENTS.md#L163-L174",
+          "version": "repo-lines-v1:sha256:313ab6aaa4f235e8e59112627815f40bb7ba8a31e496ac003c80274922a4bac0:eyJzZWxlY3RlZExpbmVDb3VudCI6MTIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImI3ZDExMzczMGM0ZWM0NzhhNDUxYmI1ZjIxNjQ5NzhhYWZmZjM2YTk4MjRmNjZlZTkxMWY5OGNjYjI4YmNjYmYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImMwNTRlM2YxYjU2NmJiNDRmZjZlZTcxZjNlYmU1ODg1ZDVjNWY0NGY5Y2NlMzMzNzlhYmJhMjU0YzUxMTU2OWIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjYyY2RlZTMyOGIxM2IxZjY2YjI3MmE0NzExM2NjZjRiMmQ2OTg3NmYxMDFkMDM0MTBiZjIyOGFjZWMyOWFhZGQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
+        },
+        {
+          "resource": "repo://src/AGENTS.md#L86-L136",
+          "version": "repo-lines-v1:sha256:c5a898d17e9e37c6815e3284e5088535611c1153b1251c41d2bd34b83bb6d014:eyJzZWxlY3RlZExpbmVDb3VudCI6NTEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjgyOTQ1OTIwZTlmYTI5YThmMjliMzE2MWI3YzM3NzUwOGVhOWZkOGYzMGY1MGNlNzAzZDdkYTFiMDVhYjJkMjgiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAxYmE0NzE5YzgwYjZmZTkxMWIwOTFhN2MwNTEyNGI2NGVlZWNlOTY0ZTA5YzA1OGVmOGY5ODA1ZGFjYTU0NmIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImQ4MTc4YjcyZjc3MThlMDQ0MzVkYmI3MjdiZmMzMGUzNWRkODhiMTkwMWJiMmRlZGNjOWE3OTA1ZDk5MWJmMjIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjRhYWIyYmQ0ZGUzMDg2ZDk2ZTBjZjBlN2UwZmRmMjZmYmIyZTk3ZWU2MDc3YjAwMjU4NDc5NmU5NTg4YzI4MTQifQ"
+        },
+        {
+          "resource": "repo://src/core/exception.py#L5-L21",
+          "version": "repo-lines-v1:sha256:d46547619a0fe04354493ecbd07c26bb866c37cb9a030447a95f0ccc34c89dff:eyJzZWxlY3RlZExpbmVDb3VudCI6MTcsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjU1NmNmNWY3MzFiNjVmOTFjYWU3YWY1ZmRjOTM5ZDNlY2U3NDhiOTczNzk1YTYxYmJmNjY4OGYxYWY3YTcyN2YiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjE1ZGI2NjIzNzllNTI4ZGE5NjYxZGU0MTVlYmE3NzkwOTY0ODVkNGRiMDc5MDM1ZjhjOGMwZWEyNmExMGRmZjUiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjEzNmJhNGE1NmYzNWFjMTAzODczMTJmZjVkY2Q1NjA5ZDIzYTA1NWI1MzdkNWVhNjZkZWIzNjI2YzdiNDkxYWYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_cab715eea4994f55a17558466671e86e",
+      "statement": "Route handlers receive the `svcs` container as a FastAPI dependency (`DepContainer`) and resolve collaborators by interface, for example `api = await services.aget(AccountApi)`; the frontend talks to the backend through the same `/api/v1` base, using `VITE_INTERNAL_API_URL` for SSR loads and `VITE_API_BASE_URL` for browser calls, and `JWT_SECRET` is derived from the backend `SECRET_KEY` for the SSR route guard.",
+      "evidence": [
+        {
+          "resource": "repo://docker-compose.yml#L79-L87",
+          "version": "repo-lines-v1:sha256:d48f063f01d4d234b31d587d0ca6914412469a04354baae21ed624cf7d2aa8d6:eyJzZWxlY3RlZExpbmVDb3VudCI6OSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiMjI3NDYzMzRmZGJkNjUxMzIzOWYxMzI2ZGI4YjYxMjc1N2I1YjMyYzA4MDhiNTA4MWE5OTM3ZjY1MzNiOGRiOSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiZTcxZmYzY2QwN2M2YTA4YTg5NzU2MjA5ZTlkMDQzMGUwOTAzNjYzOGMyYTgxODk5NjI1YzJlZTM4YmE5OWFhOCIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiMGJiMjY2OTAwZWJhMmE0OGQ5OWU4ZWUwNGM0ZDQ5MjA4ZWY0NjM4OTI3MTRmYjYwYzhmNDg0NzliNGE1M2NmMiIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiYjM5ODRjNjgxNjczMzcxNjc0M2U2MWE2NjRjZDI1ODZmMDNiMDc4ZTcyNmE3MzE3MzlkOGY5NTFjYzNhZTYxNyJ9"
+        },
+        {
+          "resource": "repo://frontend/src/hooks.server.ts",
+          "version": "repo-file-v1:sha256:6d09c24be35030a7713d488c08bafe37c8221bb29a8b721fa9d8b964a80d6b6e"
+        },
+        {
+          "resource": "repo://src/main.py#L64-L67",
+          "version": "repo-lines-v1:sha256:f9a0f412357259106261aca6bbcd92dc7623ba9f93927494da6342b75938e2a2:eyJzZWxlY3RlZExpbmVDb3VudCI6NCwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiNWY5ZGU1ZWYxN2I0ZjE0MzgyMmQ5ZDYwMWYwZDFjZWYxNTIzMTViNmVjM2M2YzllNGE4YzE1NTk4YzRkN2NkNyIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiZDcxZjU5NjEzNzExMzJiMDA2ZmYwYzVmYmI2YTFhMDNlZTlhODFhYTNiMWU1OWUxZjgxMjAzMzFhODhiMjQ0NCIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiNmM0YTM5ZmE5NDEyNzNjMDU5ZDA4M2I5YWNjODRmODVhNjdhN2U4MjhlYmNkYWUyMjZhMDA1MjM4YTE0MGI5OCIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiMzYwZGExMWU5N2QwMWM1MGQwZmM2ZDRkZmM5YjU4ZDNhYzc3M2QyZTYzZTQxNTI1Y2VlNzIzZDVjZTlkOWRlMiJ9"
+        }
+      ]
+    }
+  ],
+  "verification": {
+    "by": "openwiki/0.5.2",
+    "at": "2026-09-18T20:16:58.058Z"
+  }
+}

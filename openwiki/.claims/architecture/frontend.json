@@ -1,0 +1,494 @@
+{
+  "schemaVersion": 1,
+  "pageVersion": "sha256:c443f6b366f76d7d90caabd972e35422080ac5a5de077f2a400a27c5a9eea611",
+  "claims": [
+    {
+      "id": "claim_228fa2aa0c164d8caa3a5b1c7d543592",
+      "statement": "The frontend is a SvelteKit 2 / Svelte 5 SSR application built with Vite and @sveltejs/adapter-node, styled with Tailwind 4 and shadcn-svelte/bits-ui primitives, and charted with lightweight-charts; it exposes two interchangeable import aliases, SvelteKit's $lib/* and the shadcn-style @/*, both mapped to src/lib.",
+      "evidence": [
+        {
+          "resource": "repo://frontend/package.json#L6-L59",
+          "version": "repo-lines-v1:sha256:a343977cd787f0d4d8e8ffb4ddb89b679defc098fbc5fe6dd422ee48a01afbdc:eyJzZWxlY3RlZExpbmVDb3VudCI6NTQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImI3M2NhMGRkN2QzYTM4OWJiODNhMzhhMWIzYzQ5MzhlZjA5ZDFmZjhiYTYxYzA3NTM4YTE1NTNkNDkyYmEyZjciLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImZlNTAzMjQ5NjI1NjU2ODVhNTljMzk3NWUxYTU0MjRhODE3NWJhNDBmN2RmYTNhMDk2NTc5MTliMjFjZDkyNmIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImQ5YjRkYzMxYjhmZDI3NzY4NmI4OWVkODAwNTg3OTEzODZmYmFjOWFlZWNmMGNmZWZhNjg5ZGZhZWE4MTFmMjEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjRlYTk1Zjg3YjUwZjJmODg4MWU0NzQ4NGRlZTIwYWU1NmU2YzI2YWY0YjQzMWFmNWJiZjJmNDliOTM4MDBjMDYifQ"
+        },
+        {
+          "resource": "repo://frontend/svelte.config.js#L10-L18",
+          "version": "repo-lines-v1:sha256:f864a957650dbf173f3366f4b237c618d5385199f22ee3f782bbadef69a656b7:eyJzZWxlY3RlZExpbmVDb3VudCI6OSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiYTQzOWRmODAwY2I4NjQ2NGNlMjM1ZGJiOTA3Njg2NmFiZjgxMjZlMjNiYjg5MjgyYjFiMjU4NmYxMWFhOTY3OCIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNjdjZGE4MmRhNjA2MjM4ZTA1ZTYyMzk5NTY5YzVlZTAzOTkzNDE5NjQ4YWU1ZDQzYTJiZjhjZDYzNDdmODI2MyIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiNjM4N2ZlNTg1YzBjZjlkZjQ1ZGJiNzdmYWQ5MTMzMzQxNmViYWI4Yjc1ZWQyZTQ5OTlkNGMyMmQ5YzZiYjYzYyIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiODlmOWI2OTI1ODZmNTNhYzQ3ODAxZmQ2ZTRkZjg3MWY2NmRjMjFlMTZjODU0ZDkxNzA1NmQ0MWNiZWI3MjE4MiJ9"
+        },
+        {
+          "resource": "repo://frontend/vite.config.ts#L11-L21",
+          "version": "repo-lines-v1:sha256:c3d526bb03e032e2b29c8c8e2cc14a39094cc22de4af8ca22bc7153532587410:eyJzZWxlY3RlZExpbmVDb3VudCI6MTEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjdmNDEzZGNkMWI4MTVjMTEyMTZmYTM4Zjg2YmY0YmE0ODY1ODk3MTBiNzM3ZWE4YjJiYmYwYTkwNzg2YTA1MzMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjViYWQ3Y2MyZGZhZmMyMTc1ZmEyZDk3MDRlMDIwMmY5NDA4M2E5ZGE2OWE1ODViMGIxOGM0OGJlYTIzNjI3NWUiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjUwYjc4MDUyZjc1MmVlNmQ2NzczMmZjZmY0MzJmMmRjY2IwNjkyZmJlZDQ5ZWMzNWMzOTkwNWJjZDNiNmIwOWQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjkzNmYxN2NkODhiMzBjMzJiNTFhNzBhMmQ5MWZiYTFiNGYzMjczZWUyNTRlMTI0M2MxZWFlN2MyNWIzZDUxYTEifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_ca779f8a799b4672901dcac625dd98a8",
+      "statement": "frontend/src/hooks.server.ts guards every request: it verifies the auth_token cookie with jose jwtVerify against JWT_SECRET using HS256, accepts only tokens whose scope is 'access' (deleting the cookie for anything else, including mfa_pending tokens), redirects unauthenticated non-/auth requests 303 to /auth/login, and redirects authenticated users away from /auth/login and /auth/signup to /.",
+      "evidence": [
+        {
+          "resource": "repo://frontend/src/hooks.server.ts#L12-L62",
+          "version": "repo-lines-v1:sha256:8b3f712d5595bf443a6e3718d7c5b8160d178ff19ef37bb0803508eab972f1e2:eyJzZWxlY3RlZExpbmVDb3VudCI6NTEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjA1MDNhYTBkNmY1MDc4YTZiMTg1MDhkZWQwYmJjZDQ3ODdiZGEyY2NmMDk1YmY2OWY5ODAyNmY5YmM5MmI0ZWIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjE2ZTM5OGI5NGJlYWIzNTk1NDA0MDU0MzdiYzE5ZWNjY2FjYjE5NGE0OWI3OTM2MDc0NjBjNjllMTJkNWQyZmIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjAwNGI3YjExN2Q5NDc3YTM0ZTI2YTczZmM1OGE1NDg0Yzg0YTkxZTdmNjI4YTFlZTE0Mjk3ZWMyNTcxYTBmYjUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjoxLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImFhMWQxYTYzMzkwMjI5Yzc5ODM0N2U4M2EwNDA1NDQxYzk0MDAwMzUyODRhZDE2OGMxYmY2Y2RmMWQ3MGEzNzAifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_1195a9aaee1a4555b6733147d7eee482",
+      "statement": "A ?clear_session=true request to /auth/login or /auth/signup deletes any surviving auth_token cookie, sets locals.user to null, and renders the page instead of redirecting, which breaks the redirect loop caused by a stale cookie.",
+      "evidence": [
+        {
+          "resource": "repo://frontend/src/hooks.server.ts#L42-L60",
+          "version": "repo-lines-v1:sha256:2a949b9b3390b890d44d127ae869a2576e8344ea2a1b80f9dde1174c20be9a8e:eyJzZWxlY3RlZExpbmVDb3VudCI6MTksImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImYzZjc4ZDhmZjg4NmQxNDFiMjRhYTAxZTE4N2UxMTgwY2VjMGNlNDI1ZDg1MDYyZGZiODVlZGY5YjliZTgzMzAiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjY3Y2RhODJkYTYwNjIzOGUwNWU2MjM5OTU2OWM1ZWUwMzk5MzQxOTY0OGFlNWQ0M2EyYmY4Y2Q2MzQ3ZjgyNjMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImJhMzUxNDlhMjk1OTg5OGIzNzk2ZGI0YmI2NzY5ZDk3MzE1MTdmMzUxOWUzNzM0OGIxMzMwY2U3MTc2MjNkMWMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImQ3NTY5MzZmNWZlNWJhNTYxYjgzYjhkNjg1NmRmM2UyNjBjYzJkMWU3MmQzNzg5Y2RlNDYxZGEzNWFmYjNjYjMifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_2ba2fb9c7c7043b495f3e761769e03a5",
+      "statement": "The root load (+layout.server.ts) returns { user: locals.user, sidebar_open } by reading the persisted sidebar preference through getUserPreferencesService(fetch).getPreferences(token), falling back to the default open state when the preference request fails.",
+      "evidence": [
+        {
+          "resource": "repo://frontend/src/routes/%2Blayout.server.ts#L4-L23",
+          "version": "repo-lines-v1:sha256:f5dfd51b4fccb64bae77d9c2bf9203dae8f91a0301670d0bacd9a6c445c5cfa4:eyJzZWxlY3RlZExpbmVDb3VudCI6MjAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjZiZjY1OTVmZjIxYjZlNDBjOWU4NzQ1OGI3YzIyZTNjZjdhYTU3ZjBiZDQ2NmM4ZTg5NTI5YTc2M2VmNjZkMzIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImNjM2EyMDc3NGQ1YzJiYjRjNzkwYzE4ODkwYTljNDk0Y2NiNTEwZmM4ZThjMDllYzc0NTE5YmMxNjRmYzc4NGIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjczNzA2YTI5ZmRlZTllNmRiNGMyYmUzMWEwZWY5MWI1NzRiY2Q4YjBlZTQ5NThjZGIyM2ViYzg4NWVlYzFmOGIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjoxLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImFhMWQxYTYzMzkwMjI5Yzc5ODM0N2U4M2EwNDA1NDQxYzk0MDAwMzUyODRhZDE2OGMxYmY2Y2RmMWQ3MGEzNzAifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_1da6d64a30c24bcaa97a52e3e148bb6e",
+      "statement": "Authenticated pages follow a uniform server pattern: the load and each form action construct a client through the factory with SvelteKit's fetch and pass the raw auth_token as an explicit Authorization Bearer override, on ApiError 401 they delete the cookie and redirect 303 to /auth/login?clear_session=true, other statuses are re-thrown as SvelteKit error(status, message), and unknown failures become error(500, 'Internal Server Error').",
+      "evidence": [
+        {
+          "resource": "repo://frontend/src/routes/%2Bpage.server.ts#L7-L53",
+          "version": "repo-lines-v1:sha256:068f15808fe1dc3c931fc20344b2703f259b4646c797a08980f9a1982c386312:eyJzZWxlY3RlZExpbmVDb3VudCI6NDcsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjRlM2Q1N2FlMTIwM2IxZmZjNTYxNDRmMDUzYjhlYTJjNjY4NWY4MmZlNDExZDFhNGZiY2YzM2NlZTA2NjBmMjIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjY3Y2RhODJkYTYwNjIzOGUwNWU2MjM5OTU2OWM1ZWUwMzk5MzQxOTY0OGFlNWQ0M2EyYmY4Y2Q2MzQ3ZjgyNjMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImIwMDk0NDA3ZWYzYmExZTk0OTY4ZGIzZTgyNjI5Y2Y4YWZlMDZkZjIyMjI1ZGZkYTVjMDE3MTM4OTg2YWM2NmYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjoxLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImFhMWQxYTYzMzkwMjI5Yzc5ODM0N2U4M2EwNDA1NDQxYzk0MDAwMzUyODRhZDE2OGMxYmY2Y2RmMWQ3MGEzNzAifQ"
+        },
+        {
+          "resource": "repo://frontend/src/routes/accounts/%5Bid%5D/%2Bpage.server.ts#L7-L49",
+          "version": "repo-lines-v1:sha256:679352c546112f282667fabb3eb52c06599b6e9fea54a033e47e5fdb9abc9933:eyJzZWxlY3RlZExpbmVDb3VudCI6NDMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImY0NWU2N2UwNDI5NjcwNjQ2OTJhYWU2YzgwNmIxMGJmMjBhZWNjY2QwOTU1MGU2N2E0ZWI4MzQ5OTQ0ZjE3NDEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjY3Y2RhODJkYTYwNjIzOGUwNWU2MjM5OTU2OWM1ZWUwMzk5MzQxOTY0OGFlNWQ0M2EyYmY4Y2Q2MzQ3ZjgyNjMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjM3ZDVjYTQwMmU2NjgxNTFmMTE2Y2RkN2FiZDhjMWMzYWQ2Mzg1YjcyOWNlZWEwMjViMGJhYWNkYTFiYjE1MDciLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjoxLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImFhMWQxYTYzMzkwMjI5Yzc5ODM0N2U4M2EwNDA1NDQxYzk0MDAwMzUyODRhZDE2OGMxYmY2Y2RmMWQ3MGEzNzAifQ"
+        },
+        {
+          "resource": "repo://frontend/src/routes/settings/security/%2Bpage.server.ts#L7-L33",
+          "version": "repo-lines-v1:sha256:ae5dfc819926b673b42581fc11e5f2bd49e7dd359c89260213a48f9713b770dd:eyJzZWxlY3RlZExpbmVDb3VudCI6MjcsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjRlM2Q1N2FlMTIwM2IxZmZjNTYxNDRmMDUzYjhlYTJjNjY4NWY4MmZlNDExZDFhNGZiY2YzM2NlZTA2NjBmMjIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjY3Y2RhODJkYTYwNjIzOGUwNWU2MjM5OTU2OWM1ZWUwMzk5MzQxOTY0OGFlNWQ0M2EyYmY4Y2Q2MzQ3ZjgyNjMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImRkYzNkMjY1NWFhMzc0ZjNiNjI4NjRiZDllNGZlNTY5YWI0OWE4MTFlMTFjNDJmMWFjMmQ3Mjk1MTBhZWFkNDIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjoxLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImFhMWQxYTYzMzkwMjI5Yzc5ODM0N2U4M2EwNDA1NDQxYzk0MDAwMzUyODRhZDE2OGMxYmY2Y2RmMWQ3MGEzNzAifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_662e8aeba92f4b4e852870f3c39564e5",
+      "statement": "The /security/[security_id] load fetches the security and its price history in parallel with Promise.all inside getChartDateWindow(..., '1d'), propagates ApiError status codes except 401, and throws a 404 when the price response contains no items; it also re-throws an already-SvelteKit error rather than wrapping it.",
+      "evidence": [
+        {
+          "resource": "repo://frontend/src/routes/security/%5Bsecurity_id%5D/%2Bpage.server.ts#L8-L47",
+          "version": "repo-lines-v1:sha256:4b3d4ca0254598885b0f4788d9b7133b40cf7e2245b7376052d6493d5c1ff584:eyJzZWxlY3RlZExpbmVDb3VudCI6NDAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ1ZjkyODgxYmRkN2E4OTZiYzhlOGFlY2Q4ODExMmU3ZGUwNDRiODUyYmM5MmQ4NDM4OWJjYWQwZGYzZTJhYWIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjY3Y2RhODJkYTYwNjIzOGUwNWU2MjM5OTU2OWM1ZWUwMzk5MzQxOTY0OGFlNWQ0M2EyYmY4Y2Q2MzQ3ZjgyNjMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImRkYzNkMjY1NWFhMzc0ZjNiNjI4NjRiZDllNGZlNTY5YWI0OWE4MTFlMTFjNDJmMWFjMmQ3Mjk1MTBhZWFkNDIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjoxLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImFhMWQxYTYzMzkwMjI5Yzc5ODM0N2U4M2EwNDA1NDQxYzk0MDAwMzUyODRhZDE2OGMxYmY2Y2RmMWQ3MGEzNzAifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_b24b3e12ca5a41d6ae0d668e6cee72d4",
+      "statement": "Mutations use SvelteKit form actions that validate request.formData() and return fail(status, { message }) on ApiError; the shared EditableTitle component drives inline rename by posting to a named action or calling an onSave callback, using enhance from $app/forms. Login is the exception that writes the auth_token cookie directly (path '/', httpOnly, sameSite lax, secure outside dev, one-week maxAge) across its login, verify2fa, and passkeyLogin actions.",
+      "evidence": [
+        {
+          "resource": "repo://frontend/src/lib/components/forms/editable-title.svelte#L6-L60",
+          "version": "repo-lines-v1:sha256:c0a34f026f8260adbe297d3114d5fc68445a66d6ae6d63bfc008e88f99b1ce49:eyJzZWxlY3RlZExpbmVDb3VudCI6NTUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjgxY2U0MWQ5NGU5OGEzMjdhMzhlMjBkZDg1MmUxODBmN2QzOTViZjViZTM1YWQ1ODI4MDc2YTJlZDUwMDIzNzMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImRlNDdmMGQ2Y2RmN2RhNzhlNTczZTVjMmM3NjU1OGM3MjQxMmM1Y2I0YjcxMzQ2OTBiNDk5MDY2NGMwNmRhZGUiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImM1YTk0YWM5ZDc1MThkMjgxNzQzZjcyMmNkN2Y3MjM0MzE0ZmYxYmYzMDU4N2ZkOTk0MjMwN2QwZTAxMmQ3MTMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6Ijc4OGU0YzcxMzgwZTlhYjRjMDM4Njc2YzczZWJmNmJmZjdhOTUyYjNlMTI5MDIzM2Q1Njc1M2M2MWM5MWRlYjgifQ"
+        },
+        {
+          "resource": "repo://frontend/src/routes/accounts/%5Bid%5D/%2Bpage.server.ts#L28-L50",
+          "version": "repo-lines-v1:sha256:6947df217bb9eb1d3b24bf99246313ab4940fd6bda1001f879605b38baa0d7e6:eyJzZWxlY3RlZExpbmVDb3VudCI6MjMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImEyY2QzMDVkZWY1MDJiMDhhZmIwYjAzNDU0MzU1Zjg5YzgwNjBkYjZmZWIxYzFhMDhkOWFkY2I1YTVkMGY3NmUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImFhMWQxYTYzMzkwMjI5Yzc5ODM0N2U4M2EwNDA1NDQxYzk0MDAwMzUyODRhZDE2OGMxYmY2Y2RmMWQ3MGEzNzAiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImU0ZDBkOGJhYjYzYTNkNmY2ZWJhYzZkYjQ5MjE4MTJhYTA2YjRlYjk0ZjY0NWJmYzU3ODMxZjdlZDYwNzdmNDkiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
+        },
+        {
+          "resource": "repo://frontend/src/routes/auth/login/%2Bpage.server.ts#L7-L168",
+          "version": "repo-lines-v1:sha256:0bd7f0272320cabcf845f5187d093b506e0a2c77cac260e3ff1020f6869cf762:eyJzZWxlY3RlZExpbmVDb3VudCI6MTYyLCJmaXJzdFNlbGVjdGVkTGluZUhhc2giOiJhMmNkMzA1ZGVmNTAyYjA4YWZiMGIwMzQ1NDM1NWY4OWM4MDYwZGI2ZmViMWMxYTA4ZDlhZGNiNWE1ZDBmNzZlIiwibGFzdFNlbGVjdGVkTGluZUhhc2giOiI2N2NkYTgyZGE2MDYyMzhlMDVlNjIzOTk1NjljNWVlMDM5OTM0MTk2NDhhZTVkNDNhMmJmOGNkNjM0N2Y4MjYzIiwicHJlY2VkaW5nQ29udGV4dExpbmVDb3VudCI6MywicHJlY2VkaW5nQ29udGV4dEhhc2giOiJkYmU2ZWJlYmRhY2NkMDVjZmM1MjdkZjFlNjI3YWNmYjRlODkwYTk4OTNmNDlkZDMwNTNkY2EwNTM2OTFhMmM4IiwiZm9sbG93aW5nQ29udGV4dExpbmVDb3VudCI6MSwiZm9sbG93aW5nQ29udGV4dEhhc2giOiJhYTFkMWE2MzM5MDIyOWM3OTgzNDdlODNhMDQwNTQ0MWM5NDAwMDM1Mjg0YWQxNjhjMWJmNmNkZjFkNzBhMzcwIn0"
+        }
+      ]
+    },
+    {
+      "id": "claim_e974a17a087d4a35b90df49abd46cea8",
+      "statement": "The abstract ApiClient base resolves its origin in one place — browser: VITE_API_BASE_URL or same-origin, server: VITE_INTERNAL_API_URL falling back to VITE_API_BASE_URL — strips a trailing slash, and appends /api/v1, so all client endpoints are relative to the versioned API root.",
+      "evidence": [
+        {
+          "resource": "repo://frontend/src/lib/api/apiClient.ts#L14-L24",
+          "version": "repo-lines-v1:sha256:66eb0f0509d6cbe0a35eea5dc6f6207234d3f2311bf4a3a5bfa47bafb59f85d5:eyJzZWxlY3RlZExpbmVDb3VudCI6MTEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjNiZGNhYzU0MTk4Y2JmMmVkNTJlOGJmOGIzNDFkNjM4NjgzMjQ4YTE2MjhhOTI1NDczZmMxMWYyMzNmODQ1ZjQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjY3Y2RhODJkYTYwNjIzOGUwNWU2MjM5OTU2OWM1ZWUwMzk5MzQxOTY0OGFlNWQ0M2EyYmY4Y2Q2MzQ3ZjgyNjMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImYyOTY0MDc5YzNjNWM4MTUyMGVmMzNhMmI5ZDJlMTVhMWI4NGQ3MjgwZGI4NTkwZGNkNjU3NDdlM2UwMTJhNDAiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjA2OTUwYzQwYjdiNTE3YzQ3MDJjODliMTZlNzdjYTZmYWI5YmYxMGQxZjczZDI4YWE1MDQ5NTg5NmIyY2E0YzQifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_dcd48a72e0ee4491b505bfae8702d720",
+      "statement": "Every ApiClient request sets credentials: 'include', and an optional tokenOverride adds an Authorization Bearer header used for SSR where a server-to-server fetch does not forward the browser cookie. postFormData omits Content-Type so the multipart boundary is set by the browser, and delete returns undefined for a 204 response instead of parsing a body.",
+      "evidence": [
+        {
+          "resource": "repo://frontend/src/lib/api/apiClient.ts#L154-L173",
+          "version": "repo-lines-v1:sha256:c7585b37839aeefbc132a7f4ad93d03ac8c07b40d0fb82ee9f25d2dcc9855a84:eyJzZWxlY3RlZExpbmVDb3VudCI6MjAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImE0YmNiNDQ5YjI1OGEyZGZmMDc4NGYwMmJjYTAyYTlhMmY5MDc1NGUyN2Q3YTAxNTE0YTNmZWQ5MDEzNGRkYTUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjY3Y2RhODJkYTYwNjIzOGUwNWU2MjM5OTU2OWM1ZWUwMzk5MzQxOTY0OGFlNWQ0M2EyYmY4Y2Q2MzQ3ZjgyNjMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjEyZWQ4M2ExOGY4OGQ4YTViMzM2OGU2ZDcxOGU4MWI0YTJhOWY4ZmFlNThmZTU4MmY1N2RmYTE0MTcxNzliMTciLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjVlMmNmMjcxNGQwNjJkMmFmMWMxNDYwZjhkZmFkYWQ2N2EwZTI2MDJkZWY5ODQxNDNlMGVlZWM4MzA3YWUwMDkifQ"
+        },
+        {
+          "resource": "repo://frontend/src/lib/api/apiClient.ts#L46-L152",
+          "version": "repo-lines-v1:sha256:1e12bba988db8a98fb0d1257a9e0ffcfd89dfc244aa758a1d0f7f8473f80f623:eyJzZWxlY3RlZExpbmVDb3VudCI6MTA3LCJmaXJzdFNlbGVjdGVkTGluZUhhc2giOiI3ZjAyMGNlN2FlMjBiZGEwOWQ4ZmE4MWEyYmUwODJmODA0NGJhMWJjYTczNTQxYjFhMTQ3YmRhZjhjZGJlMjUzIiwibGFzdFNlbGVjdGVkTGluZUhhc2giOiI2N2NkYTgyZGE2MDYyMzhlMDVlNjIzOTk1NjljNWVlMDM5OTM0MTk2NDhhZTVkNDNhMmJmOGNkNjM0N2Y4MjYzIiwicHJlY2VkaW5nQ29udGV4dExpbmVDb3VudCI6MywicHJlY2VkaW5nQ29udGV4dEhhc2giOiIyMmYyZmY1ZmVlYzYwZjU4N2M4ZmFlNGU4N2Y4MDlhNjYxY2ZmZWQ2YjQ3YWFlNWY2ZDZhMjY1M2FhODk1MmVmIiwiZm9sbG93aW5nQ29udGV4dExpbmVDb3VudCI6MywiZm9sbG93aW5nQ29udGV4dEhhc2giOiI4ODg3MWYyYWU5Yzc1NWQ5NmRhOGQ2YTUzODI5NDdiZTYyZTc0MjliMjgyYWM0NGY1NzEyMjA0OTVjMDcxOGQ1In0"
+        }
+      ]
+    },
+    {
+      "id": "claim_3ef0f8719b574b1a92f0cccd3c20560d",
+      "statement": "handleResponse throws ApiError for any non-ok response, and extractErrorMessage prefers the JSON detail field (FastAPI's shape), then message, then falls back to 'Request failed with status <status>'; the resulting message string is preserved so components can surface backend text directly.",
+      "evidence": [
+        {
+          "resource": "repo://frontend/src/lib/api/apiClient.ts#L26-L44",
+          "version": "repo-lines-v1:sha256:16bc3a6342562ee7b732763b15a47420f048bf4dee9e9f07c2c5127e29432a33:eyJzZWxlY3RlZExpbmVDb3VudCI6MTksImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImE4MGU2NWQ3YzFjNzQ3YTNkODkzMjk0ZGIxNzc3ZmFjYzNjNDg5YTFjMmRkNGZkYzQyMGQwMDQzODA5ZTgyOTQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjY3Y2RhODJkYTYwNjIzOGUwNWU2MjM5OTU2OWM1ZWUwMzk5MzQxOTY0OGFlNWQ0M2EyYmY4Y2Q2MzQ3ZjgyNjMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjE4YTI1OTZlMDAwYjY2MmU0YWY0OWI0MGNlMDBmMTgwYmMzZDQ5YTExOTE1YTA3MWNiYmYzMGUzNTlkNWM3MDQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImYzNGY5ZGUwNmRjOGU3MzM1MjAyZGNlODI0NjI2ZGY0NzE5MTcxNjZkZDUzMDAyMDk3OGU2MTdiODNjY2Y3M2MifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_bcb03179f10848dd928f4a88ac9b47b5",
+      "statement": "Each API client module exports a factory getXxxService(customFetch?) alongside a default instance; SSR uses the factory so SvelteKit's load fetch is injected, while the default instance serves browser calls where the cookie is sent automatically.",
+      "evidence": [
+        {
+          "resource": "repo://frontend/src/lib/api/accountClient.ts#L94-L95",
+          "version": "repo-lines-v1:sha256:bb738007b2c3b308ccc39e31e5eabfa00d5c18334eaddea8a64d1b5766b14d5a:eyJzZWxlY3RlZExpbmVDb3VudCI6MiwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiOGZlZDA0MjJlOGFlNTA0NjBkYzlkMzFmNThlM2E2MTU1ZDI0NzZlYTM4ZjFiNmQxOTI1ZjJmM2NlYjg5MDFkYSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNGUxNzIxNWQ4MGUzYmRmMmYzZDdlNzUzMGQyMmE3ZjkxZmNhNDc3ZWZmOWI2ODAyNGU2ZDI2NDBjM2YxODJkMCIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiZjI5NjQwNzljM2M1YzgxNTIwZWYzM2EyYjlkMmUxNWExYjg0ZDcyODBkYjg1OTBkY2Q2NTc0N2UzZTAxMmE0MCIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjAsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiZTNiMGM0NDI5OGZjMWMxNDlhZmJmNGM4OTk2ZmI5MjQyN2FlNDFlNDY0OWI5MzRjYTQ5NTk5MWI3ODUyYjg1NSJ9"
+        },
+        {
+          "resource": "repo://frontend/src/lib/api/securityClient.ts#L105-L106",
+          "version": "repo-lines-v1:sha256:ffb516edea5c8de5785f6555744b9cff43e73ba0d61a92564e8e6f61289b46a0:eyJzZWxlY3RlZExpbmVDb3VudCI6MiwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiYWZiOThlZWYyM2ZlZGEyOThlN2ZjMGNkYTExZjZmNTI5OGZiNTdjMjI0NTBiZWJlMjk5ZDAyNjIzYTQwNjVlZSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiMDE3MzBkZGYxODQwNTFmZDM3MDFkZmM2OGJmZGQwNWMwYjExYmExOTdmN2E0NzdiMWY4Y2MyZDFiOTYzYmU1ZCIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiZjI5NjQwNzljM2M1YzgxNTIwZWYzM2EyYjlkMmUxNWExYjg0ZDcyODBkYjg1OTBkY2Q2NTc0N2UzZTAxMmE0MCIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjAsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiZTNiMGM0NDI5OGZjMWMxNDlhZmJmNGM4OTk2ZmI5MjQyN2FlNDFlNDY0OWI5MzRjYTQ5NTk5MWI3ODUyYjg1NSJ9"
+        },
+        {
+          "resource": "repo://frontend/src/lib/api/userPreferencesService.ts#L85-L87",
+          "version": "repo-lines-v1:sha256:9d274583e4d7f237aaf598d20406ebe301f702121da1a1ad43a4b6fff6c299ec:eyJzZWxlY3RlZExpbmVDb3VudCI6MywiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiMDU3MzM5MWVlMzJhYmE0ZTI1NWVhNmZiMDMwYWVhOGQ3Zjc1NmMyOTI4MzM3MzZkZTgzNjI5ZDUzZGEyMDQ5NCIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNjFjYTc2ODhmZGQ4MTJhYTY4MjJkNmRjNDY0YjEyY2ExNDIyMjY0ZDQwN2ZiMTUyMGU0Y2U1ZjUxMDM2MjRhOSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiZjI5NjQwNzljM2M1YzgxNTIwZWYzM2EyYjlkMmUxNWExYjg0ZDcyODBkYjg1OTBkY2Q2NTc0N2UzZTAxMmE0MCIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjAsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiZTNiMGM0NDI5OGZjMWMxNDlhZmJmNGM4OTk2ZmI5MjQyN2FlNDFlNDY0OWI5MzRjYTQ5NTk5MWI3ODUyYjg1NSJ9"
+        }
+      ]
+    },
+    {
+      "id": "claim_550d0b5cb6754a29ade1a06ca5276a6a",
+      "statement": "The API layer covers separate backend areas with distinct clients: AccountClient (accounts, totals, holdings, sync, CSV), AccountService (cross-account holdings), AuthService (login, 2FA verify, passkey auth, signup, verify-email, logout, WS ticket), SecurityClient (/auth/2fa/* and /auth/passkeys/*), BrokerClient (/integration and /external), MarketService (search, prices, securities, watchlists), PortfolioClient, UserPreferencesService, IndicatorsService, AlertsService, NotesService, DocumentsService, SnapshotsService, and AIService.",
+      "evidence": [
+        {
+          "resource": "repo://frontend/src/lib/api/accountClient.ts#L9-L92",
+          "version": "repo-lines-v1:sha256:f0b6c660faac28c35304b7deec173a0cefc3e252b9b98d4ad62fd9e7c0527d27:eyJzZWxlY3RlZExpbmVDb3VudCI6ODQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjJmNGJhYjg4YzVkNTg3YTBmZDgzMDliYzRjNWU5YmMzZmEzZGJiZDgxMDc5ZTVkMmI3MThlZDhkN2ExYTk4NDgiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQxMmNhMzQ1Y2NmNzViZjljMDgwNmJjZTY5NWJlOGRlODA4Yjc5OTg0MjUxYTdhNTRkMjAyY2Y2MTAxZGQ0NTEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjJiMzQwYjEzNzAxMjY5YWNiZGNiOWUxYWM3NDk0MTE3Y2MxYWY2MmQ5YWQxZGY4YTMzMzYxYjkyMzkyOWMzMmEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjIwYmY0NjNiMGU1MGYxOGE2YzJkMWI1NThkMTFhYmZhY2Q1MzRmMGMyY2Q1Zjg0MWM4Njg5MGM3ZTNkMTVhN2UifQ"
+        },
+        {
+          "resource": "repo://frontend/src/lib/api/marketService.ts#L65-L133",
+          "version": "repo-lines-v1:sha256:bf9ccc76409eed4c406c8fcaa48676f423679b60f4518c44d848c5d5305628c5:eyJzZWxlY3RlZExpbmVDb3VudCI6NjksImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjkxOTMyNWMwMjVlYjQ1N2ExZjgzNTg4OTNmYjNlOTZmNTNlNzVhMmY1MTUzYzA0OTUzYTdlNTdhZmM5Y2E5YjkiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQxMmNhMzQ1Y2NmNzViZjljMDgwNmJjZTY5NWJlOGRlODA4Yjc5OTg0MjUxYTdhNTRkMjAyY2Y2MTAxZGQ0NTEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjM5MzA5NTIxZTNjNmJlYTJhYjA0NDNiM2NiNTc0ZGZlYjczNWM0NzIyYTZmNGJjYmY1YmMxNjEzNDEzOGE1NTUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImRmNzViZDFkZDE5YTk3OTcyZTc0ZTY2MjE0ZGM0ZDM5OWI0NTUyNTQyYTAzNzUyNDIwNzAzYWYwMDAxZGVlOTQifQ"
+        },
+        {
+          "resource": "repo://frontend/src/lib/api/portfolioClient.ts#L4-L8",
+          "version": "repo-lines-v1:sha256:d64ca21ff47902b7f3f5370fc357d24ccd000460df2ca74a7a433b7cc3ab5c65:eyJzZWxlY3RlZExpbmVDb3VudCI6NSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiNTBmNTIwZjk3MTMxYTk0NTgzYmY2ZTc5ZGFhODZhMzBkNDcyY2QyZjM5NzVhOTNkZGU5ODIwMTBkZTgxZWI4YyIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNDEyY2EzNDVjY2Y3NWJmOWMwODA2YmNlNjk1YmU4ZGU4MDhiNzk5ODQyNTFhN2E1NGQyMDJjZjYxMDFkZDQ1MSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiZDNjMzAyNWVlNjNkYWE0ODlmMGUzNmMzZWRkNDZjODVkZDQ2MWQyYWRhNzI2M2MwNzM3NTg4NjQ3OTkxOTk0OSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiMWQ1MjA1MDcwMzlkZjNlMjk1NDM1NzIzZTkxZmY2MmNhNDFlNGZiMzYyY2E3YjdjN2U2ZTQxZWQ2ZTEyZjQ0NyJ9"
+        },
+        {
+          "resource": "repo://frontend/src/lib/api/securityClient.ts#L16-L103",
+          "version": "repo-lines-v1:sha256:71696eb45bfab0c2028771cede0ed6a4068cfae79040313ccdda10f5a9303a73:eyJzZWxlY3RlZExpbmVDb3VudCI6ODgsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImI1M2IyZmU0ODc4NjA4YTMyNTA3ZmVlMTE3YTgwZWViYjY5MDU4YzRhYTE3YWI5YTAyYWViNmVjY2MwZmIzMWEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQxMmNhMzQ1Y2NmNzViZjljMDgwNmJjZTY5NWJlOGRlODA4Yjc5OTg0MjUxYTdhNTRkMjAyY2Y2MTAxZGQ0NTEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImFmODdjOGI5MjY2YzZlMDhkZTA5MGZiZDdkMWZiNzYyNDQzOGFhYzY4NWEwYmM3OTE3MTAxMTk1ZjgwODQ5M2MiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6Ijk2NGI3MTQxN2MxMGU4M2ZiZmE4ZGU4MTExYTQxY2ViMmI3MzRiN2JlNGVmM2NjOGEzYjgwZTNlOWIzMjg3ODIifQ"
+        },
+        {
+          "resource": "repo://frontend/src/lib/api/snapshotsService.ts#L10-L43",
+          "version": "repo-lines-v1:sha256:96a054bad94d489d1ff17a6e18be32a3cbb1f55b462d9764bbb3540f511b7584:eyJzZWxlY3RlZExpbmVDb3VudCI6MzQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImI4OTJjODliYmMwYWEwZjAwZjcwMDc5NWRkNDA5Yzg2OGQ0ZTE3YzAxOWEwYmIzNDU3ZjM1NjlhYWU1MGZiNDUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQxMmNhMzQ1Y2NmNzViZjljMDgwNmJjZTY5NWJlOGRlODA4Yjc5OTg0MjUxYTdhNTRkMjAyY2Y2MTAxZGQ0NTEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImY3ZDEwMTA4ZTNhYTM1OTRjYTgzMTZiOTllODA5ZWM0ZjllNDlmOTdmMmViZDY1N2QwYzdhMmZmNDM5MTQ1NTgiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjFiNWY4NjY4MzExNDRiMmIyOGY5OGU4N2E0MmU2MzIxZGUyNmI0MzFlN2RjMWZjZmI0NWU0YzdkMjk5NWM0NzgifQ"
+        },
+        {
+          "resource": "repo://frontend/src/lib/api/userPreferencesService.ts#L55-L83",
+          "version": "repo-lines-v1:sha256:bc0f47836c3ae9ce760a57034461c1a2fd2e7fbdc46ac6cd66f8800b4221158b:eyJzZWxlY3RlZExpbmVDb3VudCI6MjksImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjFlZGI2ZWFjMjIzNmYxYzM4NzJhYTU4ODk5ZGM0M2U3YzY3OTJiZmRhYWJhNTY0Mjc5NDIwY2VlMjhiMzQ2ZDIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQxMmNhMzQ1Y2NmNzViZjljMDgwNmJjZTY5NWJlOGRlODA4Yjc5OTg0MjUxYTdhNTRkMjAyY2Y2MTAxZGQ0NTEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjZjNjU0OWJjNmIzYTBhMDc5OGI1OTdjMTQ1YWVmOTdmNjU5OWM1ZDg3ZDg4NWIxNjdjMzA1M2U1MWZiY2VhMWIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjIyNTc3OGY0YmE2YzhmZmYwNjg5NDg4OTJkMDdiNjg0OWI2NjlkYjhjNzBiODIzNzA3YjMzMWI3OTAwZDEwNzIifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_f8df0a10f70b4a5399320f4d15043290",
+      "statement": "The route table covers a dashboard at /, account detail at /accounts/[id], broker management at /brokers, security analysis at /security/[security_id], 2FA and passkey management at /settings/security, and the /auth/login, /auth/signup, /auth/logout, and /auth/verify-email auth routes, with /auth/verify-email's load reading the token query parameter and returning a success/error status.",
+      "evidence": [
+        {
+          "resource": "repo://frontend/src/routes/%2Bpage.server.ts#L7-L25",
+          "version": "repo-lines-v1:sha256:d1bd8454861b38348c245ce5cfba20921c6226d8f17fee42904ad024815c031a:eyJzZWxlY3RlZExpbmVDb3VudCI6MTksImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjRlM2Q1N2FlMTIwM2IxZmZjNTYxNDRmMDUzYjhlYTJjNjY4NWY4MmZlNDExZDFhNGZiY2YzM2NlZTA2NjBmMjIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImFhMWQxYTYzMzkwMjI5Yzc5ODM0N2U4M2EwNDA1NDQxYzk0MDAwMzUyODRhZDE2OGMxYmY2Y2RmMWQ3MGEzNzAiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImIwMDk0NDA3ZWYzYmExZTk0OTY4ZGIzZTgyNjI5Y2Y4YWZlMDZkZjIyMjI1ZGZkYTVjMDE3MTM4OTg2YWM2NmYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjI4MGFhMDYyN2FjMDNkZmNmMzA3NmUzYWI4ODI4ZDJhZDViZjhlMGFiMmU2MTdjNDVkYjhjM2UyN2VjODQyOGMifQ"
+        },
+        {
+          "resource": "repo://frontend/src/routes/auth/logout/%2Bpage.server.ts#L16-L21",
+          "version": "repo-lines-v1:sha256:91bf8271386c8d134f94804ed0eb284b888669800e8f3660bdeac0daff25b019:eyJzZWxlY3RlZExpbmVDb3VudCI6NiwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiYTJjZDMwNWRlZjUwMmIwOGFmYjBiMDM0NTQzNTVmODljODA2MGRiNmZlYjFjMWEwOGQ5YWRjYjVhNWQwZjc2ZSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiYWExZDFhNjMzOTAyMjljNzk4MzQ3ZTgzYTA0MDU0NDFjOTQwMDAzNTI4NGFkMTY4YzFiZjZjZGYxZDcwYTM3MCIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiMjdkNzQ2MGZmNGZmYjBmNDZmZDNiOTViNTY2MWY3MGExZjFhZTVkZmEzZjdjOWQ1NzEwYzMzOTVjZjUwODQ1NiIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjAsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiZTNiMGM0NDI5OGZjMWMxNDlhZmJmNGM4OTk2ZmI5MjQyN2FlNDFlNDY0OWI5MzRjYTQ5NTk5MWI3ODUyYjg1NSJ9"
+        },
+        {
+          "resource": "repo://frontend/src/routes/auth/verify-email/%2Bpage.server.ts#L4-L29",
+          "version": "repo-lines-v1:sha256:750f4c9d67601c74f2df5eaf8657df49aa30b6a31311e9ba06a2a22e912467b8:eyJzZWxlY3RlZExpbmVDb3VudCI6MjYsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImQwOWY2MWMwNzFiZjNmNDU2MjI0YzQwMjI5NGVhMTNiNmU1Y2U1Nzc2MTRkZjU0ZDNkMTM3YWJhNDc0OTlmMjIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjY3Y2RhODJkYTYwNjIzOGUwNWU2MjM5OTU2OWM1ZWUwMzk5MzQxOTY0OGFlNWQ0M2EyYmY4Y2Q2MzQ3ZjgyNjMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImFmMzIyNDNiNWFiMDcwOWNmMGRiODE3MTIxMjViNDlhMGEzZDE0MmRkODkxNGU2MDA1ZTg3ZjRmNWEyZWVhYzQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjoxLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImFhMWQxYTYzMzkwMjI5Yzc5ODM0N2U4M2EwNDA1NDQxYzk0MDAwMzUyODRhZDE2OGMxYmY2Y2RmMWQ3MGEzNzAifQ"
+        },
+        {
+          "resource": "repo://frontend/src/routes/brokers/%2Bpage.server.ts#L7-L24",
+          "version": "repo-lines-v1:sha256:0ae655f565d611606ab46e7eb3730ec591dd2767ab2c5e428db73778880a8077:eyJzZWxlY3RlZExpbmVDb3VudCI6MTgsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjRlM2Q1N2FlMTIwM2IxZmZjNTYxNDRmMDUzYjhlYTJjNjY4NWY4MmZlNDExZDFhNGZiY2YzM2NlZTA2NjBmMjIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjY3Y2RhODJkYTYwNjIzOGUwNWU2MjM5OTU2OWM1ZWUwMzk5MzQxOTY0OGFlNWQ0M2EyYmY4Y2Q2MzQ3ZjgyNjMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImRkYzNkMjY1NWFhMzc0ZjNiNjI4NjRiZDllNGZlNTY5YWI0OWE4MTFlMTFjNDJmMWFjMmQ3Mjk1MTBhZWFkNDIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjoxLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImFhMWQxYTYzMzkwMjI5Yzc5ODM0N2U4M2EwNDA1NDQxYzk0MDAwMzUyODRhZDE2OGMxYmY2Y2RmMWQ3MGEzNzAifQ"
+        },
+        {
+          "resource": "repo://frontend/src/routes/settings/security/%2Bpage.server.ts#L7-L33",
+          "version": "repo-lines-v1:sha256:ae5dfc819926b673b42581fc11e5f2bd49e7dd359c89260213a48f9713b770dd:eyJzZWxlY3RlZExpbmVDb3VudCI6MjcsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjRlM2Q1N2FlMTIwM2IxZmZjNTYxNDRmMDUzYjhlYTJjNjY4NWY4MmZlNDExZDFhNGZiY2YzM2NlZTA2NjBmMjIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjY3Y2RhODJkYTYwNjIzOGUwNWU2MjM5OTU2OWM1ZWUwMzk5MzQxOTY0OGFlNWQ0M2EyYmY4Y2Q2MzQ3ZjgyNjMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImRkYzNkMjY1NWFhMzc0ZjNiNjI4NjRiZDllNGZlNTY5YWI0OWE4MTFlMTFjNDJmMWFjMmQ3Mjk1MTBhZWFkNDIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjoxLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImFhMWQxYTYzMzkwMjI5Yzc5ODM0N2U4M2EwNDA1NDQxYzk0MDAwMzUyODRhZDE2OGMxYmY2Y2RmMWQ3MGEzNzAifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_575f910be179474bbb081bbf32ad280b",
+      "statement": "Complex state and orchestration live in ES6 classes in *.svelte.ts files using runes ($state, $derived, $derived.by) rather than in .svelte components or legacy svelte/store: AccountsListState owns accounts, selection mode, groupBy, a SvelteSet of syncing account ids, and a record of per-account sync error messages, seeding from the SSR-provided accounts.",
+      "evidence": [
+        {
+          "resource": "repo://frontend/AGENTS.md#L98-L137",
+          "version": "repo-lines-v1:sha256:0815111f1995b8ba9e310278999e56c89cdda138bae5b840ca0d389d173abf79:eyJzZWxlY3RlZExpbmVDb3VudCI6NDAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjM2NTU5MDJkYjBkMDYwMWE0YWYwMzhiMWFhZGI1M2QyMzg2YTFmOTQ1ZDczOThjNmNmODkxNGY4ZGMwNmRjZjEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImYxY2JhMjA5MDJhMzk3MmIxODRjYTAyNjk2MmU1NjM2MzYwZTRjNWI3ZTQ0NzUzNGQwMzIyOWNkMWQ4NTM5ODciLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjE0NWJjMzIzNWJhZTNhMjM3MWE0M2UzMmJhOTk5ZmI5NGEyYWRhMzYwMTY3OGU1YmY0YThhMzk1YzU5Yzg4MTUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImNlMGVjYjI1NWFiZjc2Mzc4YWU2MDQ5MmU4N2IyODMwNzUwODg0YzU5MDFiZGFkMGYwNzU1OWZhNGFjZGRkYjgifQ"
+        },
+        {
+          "resource": "repo://frontend/src/lib/components/accounts/accounts-list.svelte#L14-L22",
+          "version": "repo-lines-v1:sha256:24236b35aa5e7ca80d3d26c28f1730feb16ee1d1255aed7f4f24752058ab89e7:eyJzZWxlY3RlZExpbmVDb3VudCI6OSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiNjM4ZjRmMjY1YzE3OTI3YWU3MDU3ZDg3MWE3ZjFmYTVjY2EyYTExODM0N2FkOThmOGZhMGQxZDE2NWJiMWZhNiIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiMGE3MzQ5MmQ4OTQ2YjFkMGY5ZDljMDRiNzA0YTkyMGYyNGY4OWVmN2M3ZjczMTFhODU5OWQxMGM3ZjYzNThkMCIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiN2MyZjNiMTZmYWNmZWZkM2RhMGM4MjA2ZDM2NzNhNjBhZGJjODQ0MWRmYWY4NjhkZDgyOTY3MzI2ODY0OTE3NSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiY2QyMzllNDQyYjkxMDk3OWI0Njk4OTUyYTI3N2E4ZGY0OTIzMjU1YjRjYWUzMzMyMTg1YjM0ZDliNWZlYzc3MCJ9"
+        },
+        {
+          "resource": "repo://frontend/src/lib/components/accounts/accounts-list.svelte.ts#L18-L50",
+          "version": "repo-lines-v1:sha256:82ff39a0eb009f84d92842b31f96b3f0a1b9f89cecdc1d8d15f0cdfb820d3c3d:eyJzZWxlY3RlZExpbmVDb3VudCI6MzMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjdjNjYwNjNlZGI5Zjg4ODYzZGI5ZTg2YjA4MjdmZWUzNjUxYTNhNTg0NTc3NzNkN2MxNTc2OTY3YmU3YjQ0YTIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjY3Y2RhODJkYTYwNjIzOGUwNWU2MjM5OTU2OWM1ZWUwMzk5MzQxOTY0OGFlNWQ0M2EyYmY4Y2Q2MzQ3ZjgyNjMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImU3NDRhY2RhMmQ1NGMwNTQzYzY0ZWU4ZGY2YmVlMzY2YWNlZWYyYjU2MmY4ZWYwNTkyMzkxODc1N2RjNDdjZTEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjE3ZjQ1M2U1MWFhOTViOWEzNDZlYjRmNGZhMTM2MmIwYTA0ZTQxYWY3MGQ2NGNmY2MyNzhmMWExODZlYzg5OGYifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_722ec94421264d08b8a4e029a54102e2",
+      "statement": "ModalState<T> in lib/utils/modal-state.svelte.ts is a reusable rune class exposing isOpen, data, open(), close(), and reset(), shared by every create/view/delete modal in the app.",
+      "evidence": [
+        {
+          "resource": "repo://frontend/src/lib/components/accounts/accounts-list.svelte.ts#L25-L26",
+          "version": "repo-lines-v1:sha256:570c1957b173082c29cdeeca28c33de7dd6fbfe001428d7969246caa7df4e1f1:eyJzZWxlY3RlZExpbmVDb3VudCI6MiwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiZmY3YTEzMzZiZGYyYzA4YmE1NDQ2NjdjN2U0ODI1YjlkMmZlMWI5YjY0MmQxMDdmMWNjYzViZjM5MmE1YzViMyIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNWVlZjViYTkxYjZmYmZhYjFhNjY5Yjg1ODM5ZWVjODQwYjczMmExMTYxYjEyOGE1OThjNjRkYTYzMzc5NWExZiIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiMGIwMzZlNjljMDE3YjE1YWUxNmQyMjMwNGVhYmMwNzkyNjFmMGU4ODdlNjgxZDM4MDg3MDQyMGUwYzk4N2JkZSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiNTExNDNlNTRlNjQ1ZjdmNWRiNmQwYmU5MWZhNDQxYzdhYzgxM2U5YzE5YjI1ODczNTY2ZTM0YjA0OGY3NDUzYiJ9"
+        },
+        {
+          "resource": "repo://frontend/src/lib/utils/modal-state.svelte.ts#L1-L19",
+          "version": "repo-lines-v1:sha256:acea00ca1655636b641f057d19b08d2a2a1f266e920130249df2e6d28e7d2832:eyJzZWxlY3RlZExpbmVDb3VudCI6MTksImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImZmNWI1MzE1MTU5OGI5MDk5MzQyZTUwYTgwZDQyY2IzOTRlZTg5MGZjOGIxOGJhMTUzNzFhN2U0N2E4OTkwOTkiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImNjM2EyMDc3NGQ1YzJiYjRjNzkwYzE4ODkwYTljNDk0Y2NiNTEwZmM4ZThjMDllYzc0NTE5YmMxNjRmYzc4NGIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjowLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjoxLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjQxMmNhMzQ1Y2NmNzViZjljMDgwNmJjZTY5NWJlOGRlODA4Yjc5OTg0MjUxYTdhNTRkMjAyY2Y2MTAxZGQ0NTEifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_afdd4246c07b43dd8ad390ac8d3bcb33",
+      "statement": "+layout.svelte instantiates layout-scoped services at component init via setBrokerService(), setSecurityService(), and setWatchlistService(), which publish them with setContext under symbol keys; consumers call the matching getXxxService(), which returns the context instance, or a fresh instance when given a customFetch for SSR, or — for SecurityService only — a lazily created module-level defaultService when called outside a component hierarchy.",
+      "evidence": [
+        {
+          "resource": "repo://frontend/src/lib/components/brokers/brokerService.svelte.ts#L53-L66",
+          "version": "repo-lines-v1:sha256:34961464931f9999d249a55bc5c59f9085f4cc5c4e6d0da9033a5e29b0370fc0:eyJzZWxlY3RlZExpbmVDb3VudCI6MTQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImYzOGMxOTVjNGUzNTMzMmE3YjY0NGRiMzhjNGVlNDE4ZjgzM2FmYTg3Nzk4YWE5NmRhMThkOWZkZTgwODE5MmUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQxMmNhMzQ1Y2NmNzViZjljMDgwNmJjZTY5NWJlOGRlODA4Yjc5OTg0MjUxYTdhNTRkMjAyY2Y2MTAxZGQ0NTEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImYyOTY0MDc5YzNjNWM4MTUyMGVmMzNhMmI5ZDJlMTVhMWI4NGQ3MjgwZGI4NTkwZGNkNjU3NDdlM2UwMTJhNDAiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
+        },
+        {
+          "resource": "repo://frontend/src/lib/components/security/securityService.svelte.ts#L205-L238",
+          "version": "repo-lines-v1:sha256:61d87caefa8e791df57386fc67fd51276d48d9fdfc77f052dc1305a063d85f77:eyJzZWxlY3RlZExpbmVDb3VudCI6MzQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImQ5ZjQyZTI5ZDYwODJjOTg2MDc0MWQ0ZTE4MGNkMTVhNDhlYTU0Y2QxMWNlMzdmN2YwMmU1YTY4ZDg5MDU5N2YiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQxMmNhMzQ1Y2NmNzViZjljMDgwNmJjZTY5NWJlOGRlODA4Yjc5OTg0MjUxYTdhNTRkMjAyY2Y2MTAxZGQ0NTEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImYyOTY0MDc5YzNjNWM4MTUyMGVmMzNhMmI5ZDJlMTVhMWI4NGQ3MjgwZGI4NTkwZGNkNjU3NDdlM2UwMTJhNDAiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
+        },
+        {
+          "resource": "repo://frontend/src/lib/components/watchlist/watchlistService.svelte.ts#L64-L77",
+          "version": "repo-lines-v1:sha256:6161c3fafb40f02f4a8fb679dc2040066d6e8ead7f902153a092be6f408d2d46:eyJzZWxlY3RlZExpbmVDb3VudCI6MTQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQzNjhmNzQxYWQ1MzQ3OTE0ZWUxYTA4YTI1OWY4ZjU3MGY4ZjNlMDI2NTliMjVhMGZiMzdiYzQ0NTQ4MmRlZDQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQxMmNhMzQ1Y2NmNzViZjljMDgwNmJjZTY5NWJlOGRlODA4Yjc5OTg0MjUxYTdhNTRkMjAyY2Y2MTAxZGQ0NTEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImYyOTY0MDc5YzNjNWM4MTUyMGVmMzNhMmI5ZDJlMTVhMWI4NGQ3MjgwZGI4NTkwZGNkNjU3NDdlM2UwMTJhNDAiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
+        },
+        {
+          "resource": "repo://frontend/src/routes/%2Blayout.svelte#L1-L34",
+          "version": "repo-lines-v1:sha256:7ce7d43dea2ea390894268b2983435a0ce0533039817d8564476350fe8be00ca:eyJzZWxlY3RlZExpbmVDb3VudCI6MzQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijk0YWJjOGVkNzU0MzgyMjA2NWMwMjlmNWVhMjUyZDEyMjNkNzZhYTdkMmQzZDRmYjEyNTgxMmY2YjVhOTlkZGYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjJmZjhmMzdiNjg1MWUyNjIyMjAwNGRmNWQ4NjM5NmY3YTAxYzdhMDA0YTUyYjdmZTI2NmYyOWVhOGQ4MzA1ZTQiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjowLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjRkNWU0ZjkzY2U5YThjZGIyYjBjNDUwMDhiZWIxOTM0MDhmMWI2Mjg2ZGJhNmQwMTU0ZmUwNzIyMjgyZDE4MTUifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_2c58d7fda1ee4f4c8d80c0d2e7e9f73c",
+      "statement": "The state layer enforces hard rules: never destructure reactive primitives (it severs the Svelte 5 proxy and breaks reactivity), use $effect for side effects such as DOM listeners and load triggers rather than for computing state or fetching data, and declare a property with $state if the whole reference will be reassigned since deep-proxied objects allow in-place mutation without redeclaration.",
+      "evidence": [
+        {
+          "resource": "repo://frontend/AGENTS.md#L90-L137",
+          "version": "repo-lines-v1:sha256:35bf4337cf033b409fe6d81b7db749cb5b77639a594e4503e1b1c8a1ba5179bb:eyJzZWxlY3RlZExpbmVDb3VudCI6NDgsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjlhZGQwMjg4MzM0ZjI1MWY0ZTM4ZmU3YmY5NmM3ODYzM2VkYTg5Mzg0Yzk0NjgyZGZkODc5NTg2ZDgzOTliMGUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImYxY2JhMjA5MDJhMzk3MmIxODRjYTAyNjk2MmU1NjM2MzYwZTRjNWI3ZTQ0NzUzNGQwMzIyOWNkMWQ4NTM5ODciLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjdiNDAyZGRjNGNiMzllMmI4NjljNzI4YjIwMWE3ZWRjNTU4NTQ3MGIxYWFlYzNiMDRlMWJiNGUxOWU4MDZkMTUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImNlMGVjYjI1NWFiZjc2Mzc4YWU2MDQ5MmU4N2IyODMwNzUwODg0YzU5MDFiZGFkMGYwNzU1OWZhNGFjZGRkYjgifQ"
+        },
+        {
+          "resource": "repo://frontend/src/routes/%2Blayout.svelte#L20-L43",
+          "version": "repo-lines-v1:sha256:ea06166740c6462363ca6a08ea1c7fbcf41ab43e72baf0ea1462e37a78fd755d:eyJzZWxlY3RlZExpbmVDb3VudCI6MjQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImEyNzdkZWIxOTVjMzczNTgxZWVjMDJiZDU4Y2I5MGVkYzI4N2RkYmEwYzRmZjdhOWMwMmI5MzNiMWRkYjZjZmMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjY3Y2RhODJkYTYwNjIzOGUwNWU2MjM5OTU2OWM1ZWUwMzk5MzQxOTY0OGFlNWQ0M2EyYmY4Y2Q2MzQ3ZjgyNjMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjBiZTBlYTFlZjI5YmM3OTUwZjliOWVmMmYzYzhlZTZjY2NhMGZlNzI1ODA0NGUzM2Q3ODVmMzcxYzMyMjRiYjYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjRlMjAxOWRkMmRkYmU5ZTViYjgyMjcwOTVhN2RiNjg2YmNmZmJjYmJiMmM1NjZjZDc1NzBjMDcwNWQ2ZTQyYmEifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_9b191c283ad24e26b9cbca9966a717e9",
+      "statement": "No module-level instantiated state class or raw exported $state may be exported from a .svelte.ts file, because in an SSR environment that bleeds one user's state into another user's request; the instance must be created in a component or layout and passed down through context.",
+      "evidence": [
+        {
+          "resource": "repo://frontend/AGENTS.md#L131-L133",
+          "version": "repo-lines-v1:sha256:78ee3e7e980bd278228cd756a01991983dafd9ab45bbad22ab3a7d9ac2098e48:eyJzZWxlY3RlZExpbmVDb3VudCI6MywiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiNDM5MmFjZmM5YWI5NjgwZjFlNjI0ZjI4ZWI5NzI5NWY2YjE4ZjJiOWNmMGM4MmI0N2U1OWQxOGU2MGJhYmM0NCIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiN2Q0MjViNmU1MjcyN2FjZjg2ZDhmY2I3MzcyMGRlZmZhODE5M2IzMGEzM2M3ZmM4ZDcyYmY4ZWY3NzE1N2I5NyIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiODgwOTE4YWM2NDMwNzA0MDMwMDQzMjc4YWJiMTY3MDAxYzY4MzQzZmM1YTNhZGY3ZjgyYjYxNjk1MjliODRhZiIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiOGQ5OGU3YmM4ZTIwYjUwZTNiYjA4MTFlYjVjMjNhMzIzY2M5MGIyYmQ2ZGRmNGM3ODc3MmFhZDVmODYzNjk1NiJ9"
+        },
+        {
+          "resource": "repo://frontend/src/lib/components/security/securityService.svelte.ts#L205-L221",
+          "version": "repo-lines-v1:sha256:b7decf43a9b70943bc8f5ceaea2e839d657278577db485435447064f45dcd5dc:eyJzZWxlY3RlZExpbmVDb3VudCI6MTcsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImQ5ZjQyZTI5ZDYwODJjOTg2MDc0MWQ0ZTE4MGNkMTVhNDhlYTU0Y2QxMWNlMzdmN2YwMmU1YTY4ZDg5MDU5N2YiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImNhY2QzMWExOThjMjExNzE2ZjkwNmM1NzZjYmQ1Mzk1OWI3NjY4OTBjNzcyNTU1M2U2ZGEwM2ZmNGE0ZTA0MWUiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImYyOTY0MDc5YzNjNWM4MTUyMGVmMzNhMmI5ZDJlMTVhMWI4NGQ3MjgwZGI4NTkwZGNkNjU3NDdlM2UwMTJhNDAiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImM2Mzk0NmY3MGUxOWYxMTlmNDUxOTljYmRkOGI0NGEzMDE0OGZiMGY4MjlkOTYxMWY1NjRlOWRhYjQ5NDZjMjcifQ"
+        },
+        {
+          "resource": "repo://frontend/src/routes/%2Blayout.svelte#L16-L18",
+          "version": "repo-lines-v1:sha256:b7b656380831ca223a82628f8590616ef7d29d38f42a745afd15116cb4ba41de:eyJzZWxlY3RlZExpbmVDb3VudCI6MywiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiZDVhNTE5ZDljMDJiYWFjMzQ0M2ZkYTdhZjk5NjlhNjJmOTVhMTlhZWNlOGFjYTY3NDZiYWVkMDJlMmIxMGZiZiIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiYjAzZjVjN2Y2ZjE4ZjQzNWQ1ODNhZmZhNzAxNjYxNzA4YWIyMzY0YmJjZGEyZGZiYmY0MjVhYTA4ZGZlNTljOSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiYWQ3YjhjMDlhNDQzYzlkMzM2NWYwMzY2ZGVmNzdhZTI4MTBiOTkyODc3YjY3MzVlM2MwOTFiMjcxOWZiYWYzMCIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiNjM1YmZlNmYwMDBiZTA2YzA5OWFjY2QzMDRlZDc2YjU0ZWVlMjIyZDU1MTIyOThmY2RjNTY5NTNjZDkyYmZlMCJ9"
+        }
+      ]
+    },
+    {
+      "id": "claim_28129cdda38c4885b6db5e710afbbd4a",
+      "statement": "Multi-step fetches are orchestrated inside a single service method rather than sequenced in a component: WatchlistService.loadWatchlists resolves the watchlist named Default and then fetches its securities, and AccountsListState.syncAccount posts the sync request and then polls getSyncStatus until the account leaves the in-flight list.",
+      "evidence": [
+        {
+          "resource": "repo://frontend/AGENTS.md#L163-L165",
+          "version": "repo-lines-v1:sha256:2451d36918a58dc14a632945147fe5d109da10b7d639df0ace696290a4870f36:eyJzZWxlY3RlZExpbmVDb3VudCI6MywiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiMTkyYTdhYmU5MzNhZmFmZGU3NDE3OGMwYjVhZWRlYzI0NDdlZDA5MDhlNzI5MWVmNTc0ODhjMDAyNGJhZWI5ZiIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiMWFkYWZlYmI5YjYwMWM2ZTQwOTI0YTc1Nzg2ZTBiNzE2NjQ3YjE1ODQ5MWZlMmJhODQ2MTY2YTNhMDk3NmFiOSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiYTI4NGFjNDZhNGU1ZjMwZTkxMDc1Mzg3MGMyODg0MGFmNmYzNzBhMjc2MDU5NzM0NTBmMGJkZWJlMGNmMDFhNCIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiYjE0ZGRiYjVmOGZiYWFjYzQwZTkwMDg4MWMzZTMwZDIzYzVhOGI0ZGQ0NzFkYzUyMTFhMzRiZTUzZTNlZGIxMCJ9"
+        },
+        {
+          "resource": "repo://frontend/src/lib/components/accounts/accounts-list.svelte.ts#L209-L253",
+          "version": "repo-lines-v1:sha256:44f7ca6a3bf67375e7e200bffa0debe07453130aa7ee99bc243a0a2f57cd6e7d:eyJzZWxlY3RlZExpbmVDb3VudCI6NDUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijk5YTg3OGI5MGJjNmNiZWY1Y2M1NzI1MWJhYmI0YmYwNzY3M2Q2YWJiYTUyYjc5NTg2MWM0ZjU1NGM4NmQyMWQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjY3Y2RhODJkYTYwNjIzOGUwNWU2MjM5OTU2OWM1ZWUwMzk5MzQxOTY0OGFlNWQ0M2EyYmY4Y2Q2MzQ3ZjgyNjMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjIyZjJmZjVmZWVjNjBmNTg3YzhmYWU0ZTg3ZjgwOWE2NjFjZmZlZDZiNDdhYWU1ZjZkNmEyNjUzYWE4OTUyZWYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjJmMzViYWYyZDAwOTdmZjE2YTY5MDBiMWVmZTc0YWFmNWFiZjA2NWNlNTBkZDJjNTczYjRmMmU4MWVlMTlhZTUifQ"
+        },
+        {
+          "resource": "repo://frontend/src/lib/components/watchlist/watchlistService.svelte.ts#L20-L36",
+          "version": "repo-lines-v1:sha256:1027ed459c365c3de6ccdcf52e3682df7cfc5ad7863bb2e3b1e0d1afe7589a2b:eyJzZWxlY3RlZExpbmVDb3VudCI6MTcsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImZjMGFmZmVmMjZmNTgwMzg1YzE0Yjc2YjQyMjIxMTgxYmY4ODNlMjVmNWYyODZkMjA3OTg2NTg1NzdlYWNiZTgiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjY3Y2RhODJkYTYwNjIzOGUwNWU2MjM5OTU2OWM1ZWUwMzk5MzQxOTY0OGFlNWQ0M2EyYmY4Y2Q2MzQ3ZjgyNjMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImNhMDVjMGYxZGZmNGIxNTY1OGE3ZWU5N2U1ZTk5OGVmYzQyYjRlYjFiYjYyNTM1NjRhMmFjOTUzYjZjYzlmYzMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjQ3OGE0OTJhMTY1OTgyMjc0NjA4MzAyYWVhNGNlYzA4MjBkMjQ1M2MyYTllMDNjNGJmMjQwNDYwNTJjNmJjMGEifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_04b5d6e366fd47ae93fc6ef615ad38cd",
+      "statement": "Services store real error message strings rather than a generic boolean error flag — BrokerService, WatchlistService, and SecurityService each expose an error string, and AccountsListState keeps a per-account syncErrors record — so the UI layer can render actionable feedback; all API calls in frontend tests must be mocked, since CI runs without a backend and an unmocked fetch fails the suite.",
+      "evidence": [
+        {
+          "resource": "repo://frontend/AGENTS.md#L35-L59",
+          "version": "repo-lines-v1:sha256:31b9f4bd4831c307eafbee590dfcffbca4edd487472e392bf478c39519a9798e:eyJzZWxlY3RlZExpbmVDb3VudCI6MjUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijk1ZTg2ZjY4N2VhMWVhMDRiYTk2Y2M4NzlmMmZmOTI5MjgwNDU4NWVmYTU4NmU3NjA3ODYwNzg4NWVjOTMwMjgiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjA2MzcwYTI1ZGE5OGVjZmViODAzNGVjODdhZTAyMTJhODQyMThmOTAzNDk0MGNlZjZlOWM1MTQ5NjM2MzE0OWUiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjhmMmMxODM4ZThhNDRiMDg3N2M1MmExZmEzZDE2Y2I2MWFiNDM5YWE3ZTkyMDhhMjg0YjQxYWMyNjU4MjQ1ZGMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjYyOWM5YzdhMmRjZjRjMjQwZGU1MTE1Njk1MWY4NzIzODY3NzNiNzBlNmEwMjJjZjliZDNlNjZiZmRhOTgxNDMifQ"
+        },
+        {
+          "resource": "repo://frontend/src/lib/components/accounts/accounts-list.svelte.ts#L30-L32",
+          "version": "repo-lines-v1:sha256:1119b66c689e7aa12ed0c53fed78c835e72ff8619c5ede6343ad1bb5fa5d1b8c:eyJzZWxlY3RlZExpbmVDb3VudCI6MywiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiMDFiYTQ3MTljODBiNmZlOTExYjA5MWE3YzA1MTI0YjY0ZWVlY2U5NjRlMDljMDU4ZWY4Zjk4MDVkYWNhNTQ2YiIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiN2IwNDMzYjZkNjMyNWM1Yzg2MTBlMWE4MzhkZDAxMGU4NDU3YWM4MDA4M2I4MzZmNDgzOTgwNmNhMzFjYzFiYyIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiNTExNDNlNTRlNjQ1ZjdmNWRiNmQwYmU5MWZhNDQxYzdhYzgxM2U5YzE5YjI1ODczNTY2ZTM0YjA0OGY3NDUzYiIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiNjkzMGIxYjA0M2NiMDQ3N2U4ZDI3ZGM1MjMwOWY0OGY2MDdhNmRhNjMxZjNmNDhmMjMyZjlhNDcyZDk3YjViZiJ9"
+        },
+        {
+          "resource": "repo://frontend/src/lib/components/security/securityService.svelte.ts#L13-L38",
+          "version": "repo-lines-v1:sha256:67d45ccbc5f6d02dac9c48f4e666db4051ab361221d9e08e07cdcedad4e485dd:eyJzZWxlY3RlZExpbmVDb3VudCI6MjYsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjIwNzhhY2ZhMTI4NWFiYzk5MWJiOWZhNWVkMTBlZTMwMGVkOWQ4YjYxYzYyYjA2MDdmN2ExMzg5MTVlZDY2ZTciLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjY3Y2RhODJkYTYwNjIzOGUwNWU2MjM5OTU2OWM1ZWUwMzk5MzQxOTY0OGFlNWQ0M2EyYmY4Y2Q2MzQ3ZjgyNjMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImE3MmZmNmI0ZDJkMDc2MTYzMGE0Zjk1ZGQwNTlmYThkMGU5OTUzYjUxMjcyZmJjYmI1YjNlM2RjMjYxZDVmYzUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjhlZWQ1ZWFkYzJjNDk1MGI1Y2Q3MTU0ZjlmZWFjMTQ4NzQyYmJkMTYwZTQ0MzEwNThlOGE4YzUwMzUzMzk5M2QifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_cc5078e67a3645f698455fbc28822e02",
+      "statement": "AccountsListState opens a WebSocket to /api/ws (URL derived from an absolute VITE_API_BASE_URL when present, otherwise from window.location) using a short-lived signed ticket from authService.getWsTicket(), maintains syncingAccountIds and syncErrors from the sync_started, sync_finished, and sync_failed event types, hydrates in-flight syncs from the sync-status endpoint on open, and reconnects on a 5-second timer after close.",
+      "evidence": [
+        {
+          "resource": "repo://frontend/src/lib/components/accounts/accounts-list.svelte.ts#L52-L137",
+          "version": "repo-lines-v1:sha256:65c10daac9be5dff9342710bf527d55c98e0d186ec367c0464121c05b6b6271c:eyJzZWxlY3RlZExpbmVDb3VudCI6ODYsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImY1YWEzYTQzNjdlY2VmMTY4ZjM3YWI2NzYyMDc5ZTMzOTdhMzU0YTRhYjc2MzYyZjc2ODRlNDQzNDljODZiODIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjY3Y2RhODJkYTYwNjIzOGUwNWU2MjM5OTU2OWM1ZWUwMzk5MzQxOTY0OGFlNWQ0M2EyYmY4Y2Q2MzQ3ZjgyNjMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjIyZjJmZjVmZWVjNjBmNTg3YzhmYWU0ZTg3ZjgwOWE2NjFjZmZlZDZiNDdhYWU1ZjZkNmEyNjUzYWE4OTUyZWYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjUwN2MzOWY2N2EzNTRiNGIzN2UyYTc5OTQ2NTAyNjY4YjRmYTJlOTE2YjYwNjY5MTdhM2U2NzA3MWNlNmFmYzcifQ"
+        },
+        {
+          "resource": "repo://frontend/src/lib/types/websocket.ts#L1-L13",
+          "version": "repo-lines-v1:sha256:2ea84487a23a63ec2e7d33ecf872bd6ea5356561b0a7f4a5420547388bafd12d:eyJzZWxlY3RlZExpbmVDb3VudCI6MTMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImQ5MDNkOTk2ZTI4M2NjZTI5MTM3MDM5ZmZlOGMxOThjODg2ZDNmOWUxNzZjOGI5NTE1NDMxZmQyOTAzMzBiYWYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQxMmNhMzQ1Y2NmNzViZjljMDgwNmJjZTY5NWJlOGRlODA4Yjc5OTg0MjUxYTdhNTRkMjAyY2Y2MTAxZGQ0NTEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjowLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_33986da3d94644bfa8ec5d7876c0619f",
+      "statement": "syncAccount guards against lost pub/sub messages by polling the sync-status endpoint in waitForSyncFinish with a 60-second deadline, a 1.5-second interval, and a 5-second grace period after the account leaves the in-flight list, clearing the sync state and refetching accounts or setting a timeout error message.",
+      "evidence": [
+        {
+          "resource": "repo://frontend/src/lib/components/accounts/accounts-list.svelte.ts#L223-L253",
+          "version": "repo-lines-v1:sha256:d90dbc2952aad17c0f8dc627a239a01da17a53eb089a026dbc709d904af8cec3:eyJzZWxlY3RlZExpbmVDb3VudCI6MzEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjUwZGFiNTc1MTE3MmNiMzZmNWJiZDk4YzFiOWY5NjMxZjBiODJlNzJhNzQxZWU5MTdkMjZmYjQ2ZmZmZDZmMWMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjY3Y2RhODJkYTYwNjIzOGUwNWU2MjM5OTU2OWM1ZWUwMzk5MzQxOTY0OGFlNWQ0M2EyYmY4Y2Q2MzQ3ZjgyNjMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjIyZjJmZjVmZWVjNjBmNTg3YzhmYWU0ZTg3ZjgwOWE2NjFjZmZlZDZiNDdhYWU1ZjZkNmEyNjUzYWE4OTUyZWYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjJmMzViYWYyZDAwOTdmZjE2YTY5MDBiMWVmZTc0YWFmNWFiZjA2NWNlNTBkZDJjNTczYjRmMmU4MWVlMTlhZTUifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_af136ca8f30445faaac104a75ece49ad",
+      "statement": "The authenticated shell in +layout.svelte composes Sidebar.Provider bound to a sidebarOpen state seeded from data.sidebar_open inside untrack, with AppSidebar and Sidebar.Inset wrapping page content; changing the sidebar persists the state through userPreferencesService.patchPreferences({ sidebar_open: open }), and the layout also registers the toggleGlobalSearch context callback through setContext.",
+      "evidence": [
+        {
+          "resource": "repo://frontend/src/routes/%2Blayout.svelte#L20-L34",
+          "version": "repo-lines-v1:sha256:e9a05ecf06aa0ec8ea226d6e64ae0502b921aea729e3e9518cb6d5ee1deabc1d:eyJzZWxlY3RlZExpbmVDb3VudCI6MTUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImEyNzdkZWIxOTVjMzczNTgxZWVjMDJiZDU4Y2I5MGVkYzI4N2RkYmEwYzRmZjdhOWMwMmI5MzNiMWRkYjZjZmMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjJmZjhmMzdiNjg1MWUyNjIyMjAwNGRmNWQ4NjM5NmY3YTAxYzdhMDA0YTUyYjdmZTI2NmYyOWVhOGQ4MzA1ZTQiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjBiZTBlYTFlZjI5YmM3OTUwZjliOWVmMmYzYzhlZTZjY2NhMGZlNzI1ODA0NGUzM2Q3ODVmMzcxYzMyMjRiYjYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjRkNWU0ZjkzY2U5YThjZGIyYjBjNDUwMDhiZWIxOTM0MDhmMWI2Mjg2ZGJhNmQwMTU0ZmUwNzIyMjgyZDE4MTUifQ"
+        },
+        {
+          "resource": "repo://frontend/src/routes/%2Blayout.svelte#L54-L69",
+          "version": "repo-lines-v1:sha256:a1ae482b40209c2290ae21889866f5ec72b7e4fc14c205ac8db3fd55f15fb53e:eyJzZWxlY3RlZExpbmVDb3VudCI6MTYsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImMxNGIwN2IwYjU3ZDk3NzY4ZmU5ZTUyNWM3ODgxYTExYmY2ZTE1MzdkNTM2MzY3MWM3YWFjNzU3YTE0YjFjOWYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjM0M2EyODA1N2JkZmFhYTVmODAyMTdmNjIzZDlkMWEzZGM3YWM3YjVkOTM0MjJkZmU5NzY1NDhlNzZlYWJiYjMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjJhMGUxZGRiYjg1MTk3NmMzN2Y1Y2UzYjEzZmE3MTIzYjhhYTU1YTg3ZDA2NzBmN2I4ZGZmMWZhZGJhOWM5ZWYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjoxLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImZjNWFmOTBjOTg5YjM5Y2YzNzczOTQzZmYxMGY5NGJiYTAzZjk0MzA3YzQzMmZhZjVmOWQ3MDA3MWU2MDUzMmMifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_2f3af35bd3cf44df9527d1281bfd9cd7",
+      "statement": "AppSidebar is collapsible to icon size and stacks AppSidebarHeader (brand link to /), AppSidebarActions (a Search entry invoking the toggleGlobalSearch context callback), AppSidebarWatchlist (links to each default-watchlist security at /security/{id}), and AppSidebarProfile (footer dropdown with the user email and navigation to /brokers, /settings/security, and a native POST form to /auth/logout).",
+      "evidence": [
+        {
+          "resource": "repo://frontend/src/lib/components/layout/app-sidebar-actions.svelte#L1-L24",
+          "version": "repo-lines-v1:sha256:cea9b636cdc289229964b5cb4f6819e3b519a762724f3ca1876e71e50132b267:eyJzZWxlY3RlZExpbmVDb3VudCI6MjQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijk0YWJjOGVkNzU0MzgyMjA2NWMwMjlmNWVhMjUyZDEyMjNkNzZhYTdkMmQzZDRmYjEyNTgxMmY2YjVhOTlkZGYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjMxNDA5YjhjZTIwMWQ3YjE3MWE1NGE0MjkzNjkxNDJjYWQ0MWRiZGZiMTI5Y2IyYTkyNTNkZGRiMTBmYjQzNmIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjowLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
+        },
+        {
+          "resource": "repo://frontend/src/lib/components/layout/app-sidebar-profile.svelte#L15-L49",
+          "version": "repo-lines-v1:sha256:204d529f255d6f1256aa7fb7efb535e47de30f575e5c8a8486887a6a09659080:eyJzZWxlY3RlZExpbmVDb3VudCI6MzUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImE0ODYyNDU1MDIzMmFiNDc0YTgzOTZhZDc3ODkwYmExM2U0YjFkZWQyMmQ4MGMyMmFkODA5YTcwOTdiZjMzMTUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjA0MjRhYTRiNzUzODUxNjFhYWUwY2NlYjQ0MTEzODAyMzA5OTJlY2EyODBkYTc1NTQ4YTkzYzVkMGUwZjdjMDAiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImU4NTgwN2NiMjdkZGI2OThjM2I2MTczM2E3YjhmMjgwZGU1ZjljMjY2ZjU0YjA0YjMxZWVjMDBiYmMxMmM5NWUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjoxLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjFmNzZjOWFiMmYzMmVmOGI3MjYyOWI1MTZhN2RhMGI2OGMzMTMyNGVhMjVlMzExOTBjMWIyYzY1NDNiZjFlZTUifQ"
+        },
+        {
+          "resource": "repo://frontend/src/lib/components/layout/app-sidebar-watchlist.svelte#L24-L59",
+          "version": "repo-lines-v1:sha256:a1b8a7288e593f974267cdb14f12bb3e3c439d2bef961b43d4a7f0b19933edec:eyJzZWxlY3RlZExpbmVDb3VudCI6MzYsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjRjYTMwMGY4NTM3ZWRkN2ExZjEzZjQ2MTAxNTAzNWY3ZTIzZmQzMTI4YTEzM2ViZDlhMjMzNmYyM2JlZDNhMjEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjcxODNmMzc4NGFmOGQzYzI3YWNlMmVjMDFhZjIxZDAyYjQ2YTA4OTljNzYyNzg4YjYzNThiNWE0NWMzOWFmNmIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImZiNjM5MWZlOGZhZjY3ODVjNDE5YmJkZDhmYzJlZjM4N2FkN2NmMjA4YmM5NTFmNjIzMTVjYWNmZTgwMWNkMDMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjoxLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjA2ZmU5OTlhNWM0MzE0ZTdlNjM2ZDhlYWZhYTlkNTBmNmE1MTQ5YmY3NzkzYWEyNDFiNmE5NmJjYmZiZjhjMzUifQ"
+        },
+        {
+          "resource": "repo://frontend/src/lib/components/layout/app-sidebar.svelte#L1-L32",
+          "version": "repo-lines-v1:sha256:5acfc36ecd5a8295eb583dce9adb6c524c60e71c0b186df63ade5b39b7295c0c:eyJzZWxlY3RlZExpbmVDb3VudCI6MzIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijk0YWJjOGVkNzU0MzgyMjA2NWMwMjlmNWVhMjUyZDEyMjNkNzZhYTdkMmQzZDRmYjEyNTgxMmY2YjVhOTlkZGYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjBmMjIyYTUxM2FjNjgzYzRjMjM5MWU3MDkzNDEzNWQ0OTVmZTc1ZWZkMmQwYTQxNzU2ZmNiYjMzMTY0MmE0NjIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjowLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_c9c727b5097f43aa9217f1967fb9825f",
+      "statement": "GlobalSearch is a Command.Dialog bound to the layout's open state that debounces marketService.search by 300 ms, groups results by security_type, navigates to /security/{id} after createOrUpdateSecurity, and offers a watchlist toggle that creates the security first when it is not yet known; Cmd/Ctrl+P is bound at the document level in +layout.svelte.",
+      "evidence": [
+        {
+          "resource": "repo://frontend/src/lib/components/global-search.svelte#L28-L104",
+          "version": "repo-lines-v1:sha256:c1487dc653154269cf4dcea9ef9cbb0a25170a448e8387069ba289af073b47e5:eyJzZWxlY3RlZExpbmVDb3VudCI6NzcsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijk4ZGY5NzY4YTliNmMxMzc3YTRmY2YwODkyMjVjMjAxYjU2MGFlYjcwOTA1YzVmYTJjMjE3MGY1MmVlZDY2ZWYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImFhMGM4YmQ0ODAzMTUxNDE0ZDI3YTBkNjA2MDE3NzgzMDRmZWVmZjYwM2VmMWUzMWNhMmE0YTQyMDJhODIwYTciLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjExZmRjYWU4NGM0YTkxYzljZGVlYWVjMTg4NDUyYjAyZjA5NGRjYmRkYTlhYzRiYmVjM2ViZGNiODZlYzUzOGYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImM0NGM1NmFhMGY2ZGUwMTRmYWIzNmM1ODQ5MTU1NjA3YmIyNTNiZjQyMWNhZjJjYzM1MWZhM2I5NWVmMTQ2ODYifQ"
+        },
+        {
+          "resource": "repo://frontend/src/routes/%2Blayout.svelte#L34-L46",
+          "version": "repo-lines-v1:sha256:ff9cbe94187beba5c0cfc083acccec4ece924c448a05bba49cd5327584fe497b:eyJzZWxlY3RlZExpbmVDb3VudCI6MTMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjJmZjhmMzdiNjg1MWUyNjIyMjAwNGRmNWQ4NjM5NmY3YTAxYzdhMDA0YTUyYjdmZTI2NmYyOWVhOGQ4MzA1ZTQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImM1MzUzMTVmY2ViMzQ4YTg1NTg0NTQ2ZmNmNGU2MDI1Y2UzYmZiYWY1Yjc4NjM5NjUzNmM3MDY5OGQyNGNmM2IiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImYxOGEzYzVmZjA4ZGQ3OTYwMDllNjFlNjY1NzU2YzVhNTY3YTkyYTUxZTg2NGQ1MzkxOTE1NzcxNDZjNGRlMWIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYWZkNmVlYTgwZjZmNjBhYjMwZWRmYzljOGVlNjdiZDdiODYzNDZlYjkyNTI4YTZlYzM5YTNlYmI2NmIxZTcifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_10492f2e148346b6b40e0ae8c6bc7463",
+      "statement": "Type and money conventions: backend fields are mirrored as snake_case, list endpoints return PaginatedResponse<T> with an items array, and Money is { value?, units?, nanos?, currencyCode? } where moneyToNumber prefers units plus nanos/1e9 and falls back to parsing the string value while money() renders a localized dollar amount. Account holdings totals are nested as { cost: Money, value: Money }.",
+      "evidence": [
+        {
+          "resource": "repo://frontend/src/lib/types/account.ts#L1-L98",
+          "version": "repo-lines-v1:sha256:1a13bd29ca166ccff4d9315f9fb175098357ecb39e0d8cd748e8787449dceac6:eyJzZWxlY3RlZExpbmVDb3VudCI6OTgsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjYwOTFiYzYwY2JjODA3MDc3YWNiZjMxNDE0YTRjNDc1ZGYwNDk5NjQ5MmQxNTM4N2EzMzBlMzIyNGZkN2YyMDUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQxMmNhMzQ1Y2NmNzViZjljMDgwNmJjZTY5NWJlOGRlODA4Yjc5OTg0MjUxYTdhNTRkMjAyY2Y2MTAxZGQ0NTEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjowLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjdhYjUxZWZjNGU1MWU4NTA5MTJjNTM0OWM2OTcwM2VkMWYwZmNhZGQ5YmVlMTY4MDE0NDVlOThmMWZjYzliNWUifQ"
+        },
+        {
+          "resource": "repo://frontend/src/lib/types/money.ts#L1-L22",
+          "version": "repo-lines-v1:sha256:25a31f06ae4d952cfae89c93712aec77696ef47a98625a10deeb6107c4417406:eyJzZWxlY3RlZExpbmVDb3VudCI6MjIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImM4MDI5NDJlMDZhZGM4MWU2N2FmYTcyZWUwN2E4NGZhY2ZiYzI4M2RiNDQ1ZTkwNGFkYjkwMDc1YThjNzRkZWMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImFhMWQxYTYzMzkwMjI5Yzc5ODM0N2U4M2EwNDA1NDQxYzk0MDAwMzUyODRhZDE2OGMxYmY2Y2RmMWQ3MGEzNzAiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjowLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
+        },
+        {
+          "resource": "repo://frontend/src/lib/types/pagination.ts",
+          "version": "repo-file-v1:sha256:bd4024a52ceb4b3cdd06cfc5f2f309211e2bc327b5ff2dd4d876ca189c68d382"
+        }
+      ]
+    },
+    {
+      "id": "claim_a1b1f3e906484d129c7c4893e0484315",
+      "statement": "Account and institution domain enums live in lib/types/account.ts with getAccountTypeLabel and getInstitutionLabel helpers that accept an optional translate callback, and AccountHoldings extends PaginatedResponse<Holding> with account-level totals (total_value, total_profit_loss, total_profit_loss_percent, net_deposits, currency) consumed by the account detail header and HoldingsTable.",
+      "evidence": [
+        {
+          "resource": "repo://frontend/src/lib/types/account.ts#L17-L98",
+          "version": "repo-lines-v1:sha256:27e03d18ef2c9673eb5670755dc2a4ace837dc67a4ab6135ef4b580a06230b7e:eyJzZWxlY3RlZExpbmVDb3VudCI6ODIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImRkNjAxYmFhMDNiMWExNWEwMDkwMzM3NjVlZGY2YWY0OWU4N2MwOTQ0ZGVhNzFhYjA2MjkxZDhmMjE1ZTk0NDkiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQxMmNhMzQ1Y2NmNzViZjljMDgwNmJjZTY5NWJlOGRlODA4Yjc5OTg0MjUxYTdhNTRkMjAyY2Y2MTAxZGQ0NTEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjBhM2JjNTJiNGQ4Mzc1ZWUxZGQzY2ZmMjFiNjFhMWMwZjM3MjRiZTIzZWM5OTJkYzNhZjJiMDJjMGExODYwZTIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjdhYjUxZWZjNGU1MWU4NTA5MTJjNTM0OWM2OTcwM2VkMWYwZmNhZGQ5YmVlMTY4MDE0NDVlOThmMWZjYzliNWUifQ"
+        },
+        {
+          "resource": "repo://frontend/src/routes/accounts/%5Bid%5D/%2Bpage.svelte#L21-L84",
+          "version": "repo-lines-v1:sha256:a1437ea1ee0e80b869adeb18cf93706354bcc513e7055882b109ea65f43036e2:eyJzZWxlY3RlZExpbmVDb3VudCI6NjQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImRhYzllN2VjYzhkOWJkMjYyNDNjMGM4ODJkZWYyYTE5ZjA3ZWZhODA1NmExOTcxYjM1NmFmNTY5ZjE4YTc5ZDYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjMzM2I2ZjBjODA3NTgwNGNmMDgyOWQzNDQ0YjI1Y2M4ZTc2ZmE2MzY2MjEzYTYxYjA4YzY1ZTk0OTBmMTk0ZDQiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImI1OWUzMWZkYjI1NmMyNjRmOTU4OGRkYTc5NWY4YWI2MTVmM2M4MmUxMjA1YWI4NTNiNTYwY2M3ZWE2ODZlNWIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUxNjkxNDFiOGQ2NjNlYTUxYzdmOGVlMWEwOGVhYTMyZmU3NjE0NzQ3MTNmODEzNzQ1MzQxMmVhMTA5MGE3YjcifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_40d05f8cbddb4964af909b2e45b09056",
+      "statement": "Frontend tests use Vitest with jsdom and @testing-library/svelte configured in vite.config.ts (environment jsdom, url http://localhost/, setupFiles ./src/setupTest.ts, include src/**/*.test|spec), with setupTest.ts registering jest-dom, stubbing window.location, and deferring teardown ~50 ms so bits-ui body-scroll-lock timers do not throw after jsdom is destroyed; tests must mock every API client module and stub each method the component calls, and must also mock framework or third-party modules that reach the network or DOM ($app/forms, $app/paths, $app/navigation, $app/stores, lightweight-charts), replacing global.WebSocket in websocket tests.",
+      "evidence": [
+        {
+          "resource": "repo://frontend/AGENTS.md#L37-L59",
+          "version": "repo-lines-v1:sha256:a63ea1faf64eb1a8771c4f0525a9fd1302e1f911bddb93fa942c7ff33de48335:eyJzZWxlY3RlZExpbmVDb3VudCI6MjMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjE0M2E5YjFmOWY4ZTdmNGJmMTcwNTE0ZDg2NDEzOWQ0NGYxMjVjMDBkNGEzYjhkODM0MWE3NmQ5ZjI1YjY4YTgiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjA2MzcwYTI1ZGE5OGVjZmViODAzNGVjODdhZTAyMTJhODQyMThmOTAzNDk0MGNlZjZlOWM1MTQ5NjM2MzE0OWUiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjVlZGFiN2Y5MzY4MjE4NTJkMjIwNjYzZjE1NzAxMjJjYjhiNDQ3MTI4OTM2OWY2OWI3MDYyNDViMTQ4OTMyMzEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjYyOWM5YzdhMmRjZjRjMjQwZGU1MTE1Njk1MWY4NzIzODY3NzNiNzBlNmEwMjJjZjliZDNlNjZiZmRhOTgxNDMifQ"
+        },
+        {
+          "resource": "repo://frontend/src/lib/components/accounts/accounts-list.test.ts#L1-L68",
+          "version": "repo-lines-v1:sha256:560956b85c6f3003bf66480526fb1b535abcff8f939d284783166606e1facf65:eyJzZWxlY3RlZExpbmVDb3VudCI6NjgsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImIzOTJjZjY5OTM0OTQ1ZGRlZmY3ZDIwZGUxODVkMTU5M2YzY2JjZjhhNzE0MDI1YzY4MGY0MWY0ODkzZjFhY2QiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjU3ZjQ4OTVlMWViNzY5OWZlNGI1YjYwMmU5NjVjZjAxZDZlNWFhNmE5ZmYwYWQ5YjFmMzNmYWU0N2M3YjU5NGMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjowLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjllOWMyNGY1YWI1YjQ1NzYwNTkxMmMyYWZlNTE5N2U2NjE2MGY3NGYwZGQ3NTMxZDJkYzJiOTU1NWNlZTVlMzkifQ"
+        },
+        {
+          "resource": "repo://frontend/src/setupTest.ts#L1-L48",
+          "version": "repo-lines-v1:sha256:1ad5e1c08ef20d5b658bbb1bc428274d092600e71f7fc1c6f8ec5ee7f281aa0f:eyJzZWxlY3RlZExpbmVDb3VudCI6NDgsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjkxYTNjODk2MmEwZWRjYjk1NjIwNmE1MDFkOTQzZmU5OWUxYzc4YzZkNGQ4YjVjOWE5NDhhMzM2MmM3NTk3OGMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQxMmNhMzQ1Y2NmNzViZjljMDgwNmJjZTY5NWJlOGRlODA4Yjc5OTg0MjUxYTdhNTRkMjAyY2Y2MTAxZGQ0NTEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjowLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
+        },
+        {
+          "resource": "repo://frontend/vite.config.ts#L22-L42",
+          "version": "repo-lines-v1:sha256:d94a7d43059e50c341f5f49fc311627bf89fc79a37edf7c735f0c2f102776a49:eyJzZWxlY3RlZExpbmVDb3VudCI6MjEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjdjNTliYzI3NDRlMThhMGViZmU4YTgzMTFiNWViNjBkNmU5YTU4OWFhZmU0Y2FmMGIyZmVlODcyYWUxOTM5YmEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjY0ZWZjNDk0MThkMjZkY2YxMjliMjJhNmFhMjExMDhjZWVjMzc2NzdhMzJkMDhlOWQ1ZmVlMzVkZGE2NmJiOWQiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImM4MGFlZjBkNTYyMTQzN2M3YzQ5N2ExMzNjYzMzZDJjNjRhYTlhOTRkM2JiYzkwMzIwYzUzN2Y4ZGE2YjA2YTAiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjoyLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImFiYTFiMjFiNDFmOTc4MTk2MDkzZjdiOTJjNmE0OGQ3YjQxMGQyNjY1ZmY0YzU2NTc3ODJhMzE3NWNmZjM4ZmYifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_2cab3cf6b7b3461ba11d585f5d2caf59",
+      "statement": "hooks.server.test.ts runs under the node vitest environment, mocks $env/static/private, signs real HS256 tokens with jose for each case, and covers token-scope rejection such as mfa_pending tokens clearing the cookie while leaving locals.user null.",
+      "evidence": [
+        {
+          "resource": "repo://frontend/src/hooks.server.test.ts#L1-L80",
+          "version": "repo-lines-v1:sha256:3e65df7c10c5af5985d811f906533aecf52d47a51cfa1a91170966984f6b47ad:eyJzZWxlY3RlZExpbmVDb3VudCI6ODAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjRjZDBkMmE3MjMxZTI2OTRjODhjZGQ1NWNlZTE1OGRmMjUxOTg0YTc5ZjQ0YTUyNTgwYTI3YmUwOWQ5NmIyN2YiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImFmMjg0MjU5MmYxNjBhMGJkZmYyNDllZWUxYzEzMzAyMTJhOWM3YmFjYzA1YTczNzVlNmI1MDRjZjVjYjQyNmUiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjowLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImJhMjQ2MzlmMGVhZDUzN2Y3OGJlMTZlOTE2MWIyMmNjNGQwOTNhYzdjY2NiY2U1ZDNkNWNhMmM3ZTZlMmYwZDcifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_eea1a0addfc144d38fd6e35163267ce1",
+      "statement": "The frontend extension points are consistent: a new backend area is a class extending ApiClient exported as both a getXClient factory and a default instance; a new page is a +page.server.ts with the standard 401-delete-and-redirect / ApiError-to-error shape over a thin +page.svelte shell; a new stateful feature is a Foo.svelte.ts rune class with isLoading and message-valued error state instantiated in a component or provided from +layout.svelte; and a new preference is a field added to UserPreferences in userPreferencesService.ts.",
+      "evidence": [
+        {
+          "resource": "repo://frontend/AGENTS.md#L98-L165",
+          "version": "repo-lines-v1:sha256:d222312eccea2e779b72aa4cbf07580f2b999cd8f9f39a2fe71d903f4bf0e128:eyJzZWxlY3RlZExpbmVDb3VudCI6NjgsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjM2NTU5MDJkYjBkMDYwMWE0YWYwMzhiMWFhZGI1M2QyMzg2YTFmOTQ1ZDczOThjNmNmODkxNGY4ZGMwNmRjZjEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjFhZGFmZWJiOWI2MDFjNmU0MDkyNGE3NTc4NmUwYjcxNjY0N2IxNTg0OTFmZTJiYTg0NjE2NmEzYTA5NzZhYjkiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjE0NWJjMzIzNWJhZTNhMjM3MWE0M2UzMmJhOTk5ZmI5NGEyYWRhMzYwMTY3OGU1YmY0YThhMzk1YzU5Yzg4MTUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImIxNGRkYmI1ZjhmYmFhY2M0MGU5MDA4ODFjM2UzMGQyM2M1YThiNGRkNDcxZGM1MjExYTM0YmU1M2UzZWRiMTAifQ"
+        },
+        {
+          "resource": "repo://frontend/src/lib/api/apiClient.ts#L14-L24",
+          "version": "repo-lines-v1:sha256:66eb0f0509d6cbe0a35eea5dc6f6207234d3f2311bf4a3a5bfa47bafb59f85d5:eyJzZWxlY3RlZExpbmVDb3VudCI6MTEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjNiZGNhYzU0MTk4Y2JmMmVkNTJlOGJmOGIzNDFkNjM4NjgzMjQ4YTE2MjhhOTI1NDczZmMxMWYyMzNmODQ1ZjQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjY3Y2RhODJkYTYwNjIzOGUwNWU2MjM5OTU2OWM1ZWUwMzk5MzQxOTY0OGFlNWQ0M2EyYmY4Y2Q2MzQ3ZjgyNjMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImYyOTY0MDc5YzNjNWM4MTUyMGVmMzNhMmI5ZDJlMTVhMWI4NGQ3MjgwZGI4NTkwZGNkNjU3NDdlM2UwMTJhNDAiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjA2OTUwYzQwYjdiNTE3YzQ3MDJjODliMTZlNzdjYTZmYWI5YmYxMGQxZjczZDI4YWE1MDQ5NTg5NmIyY2E0YzQifQ"
+        },
+        {
+          "resource": "repo://frontend/src/lib/api/userPreferencesService.ts#L43-L53",
+          "version": "repo-lines-v1:sha256:0ae95da6f9ee2b23282cb3b75b529d2f7c8a54b0581e856dc21198fc7442896e:eyJzZWxlY3RlZExpbmVDb3VudCI6MTEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjljZDMyNGJjZjhhYjc1MjI2ODc5ZTE3YzIyZTYyNDQ2MWUxNGZiNjRiMzEwMjQzZmZjNTQ1NjNkYWYxNzgyNDQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQxMmNhMzQ1Y2NmNzViZjljMDgwNmJjZTY5NWJlOGRlODA4Yjc5OTg0MjUxYTdhNTRkMjAyY2Y2MTAxZGQ0NTEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImIwOWY3MThkMDM3ZjI1ZTVmY2NjODM5MTRlMWE0ZjQ3N2FhYTllODgyM2IzYThhMDBiMjUxMWY0OGU2ZmMxMmEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImQ3ZDE5MDA5MTZhMjkyOTI1MWY0NDg3N2MyZTRiMjgxNTcyYmY2MGFiM2NlNGQ2YWQyMTFiNTFiOTJkMGZjNDIifQ"
+        },
+        {
+          "resource": "repo://frontend/src/routes/%2Blayout.server.ts#L4-L23",
+          "version": "repo-lines-v1:sha256:f5dfd51b4fccb64bae77d9c2bf9203dae8f91a0301670d0bacd9a6c445c5cfa4:eyJzZWxlY3RlZExpbmVDb3VudCI6MjAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjZiZjY1OTVmZjIxYjZlNDBjOWU4NzQ1OGI3YzIyZTNjZjdhYTU3ZjBiZDQ2NmM4ZTg5NTI5YTc2M2VmNjZkMzIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImNjM2EyMDc3NGQ1YzJiYjRjNzkwYzE4ODkwYTljNDk0Y2NiNTEwZmM4ZThjMDllYzc0NTE5YmMxNjRmYzc4NGIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjczNzA2YTI5ZmRlZTllNmRiNGMyYmUzMWEwZWY5MWI1NzRiY2Q4YjBlZTQ5NThjZGIyM2ViYzg4NWVlYzFmOGIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjoxLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImFhMWQxYTYzMzkwMjI5Yzc5ODM0N2U4M2EwNDA1NDQxYzk0MDAwMzUyODRhZDE2OGMxYmY2Y2RmMWQ3MGEzNzAifQ"
+        }
+      ]
+    }
+  ],
+  "verification": {
+    "by": "openwiki/0.5.2",
+    "at": "2026-09-18T20:16:58.058Z"
+  }
+}
