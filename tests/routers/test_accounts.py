@@ -580,7 +580,8 @@ async def test_preferences_patch_cross_component_isolation(auth_client):
 async def test_preferences_patch_isolated_across_users(auth_client, other_user, client):
     """User A's PATCH preferences does not leak to or affect user B."""
     await auth_client.patch(
-        "/api/v1/accounts/me/preferences", json={"sidebar_open": False, "timeframe": "1w"}
+        "/api/v1/accounts/me/preferences",
+        json={"sidebar_open": False, "timeframe": "1w"},
     )
 
     login_resp = await client.post(
@@ -694,14 +695,9 @@ async def test_preferences_elliott_waves_roundtrip(auth_client):
         "/api/v1/accounts/me/preferences", json=patch_payload
     )
     assert patch_resp.status_code == 200
+    assert patch_resp.json()["elliott_waves"]["sec-1"]["cycle"]["wave3Target"] == 160.0
     assert (
-        patch_resp.json()["elliott_waves"]["sec-1"]["cycle"]["wave3Target"]
-        == 160.0
-    )
-    assert (
-        patch_resp.json()["elliott_waves"]["sec-1"]["primary"]["points"][0][
-            "price"
-        ]
+        patch_resp.json()["elliott_waves"]["sec-1"]["primary"]["points"][0]["price"]
         == 10.0
     )
 
@@ -767,24 +763,20 @@ async def test_preferences_fibonacci_tools_roundtrip(auth_client):
     )
     assert patch_resp.status_code == 200
     assert (
-        patch_resp.json()["fibonacci_tools"]["sec-1"]["retracement"]["p2"][
-            "price"
-        ]
+        patch_resp.json()["fibonacci_tools"]["sec-1"]["retracement"]["p2"]["price"]
         == 220.0
     )
     assert (
-        patch_resp.json()["fibonacci_tools"]["sec-1"]["extension"]["p3"][
-            "price"
-        ]
+        patch_resp.json()["fibonacci_tools"]["sec-1"]["extension"]["p3"]["price"]
         == 150.0
     )
 
     get_after_patch = await auth_client.get("/api/v1/accounts/me/preferences")
     assert get_after_patch.status_code == 200
     assert (
-        get_after_patch.json()["fibonacci_tools"]["sec-1"]["retracement"][
-            "levels"
-        ][1]["ratio"]
+        get_after_patch.json()["fibonacci_tools"]["sec-1"]["retracement"]["levels"][1][
+            "ratio"
+        ]
         == 0.5
     )
 
@@ -831,6 +823,62 @@ async def test_preferences_wave_settings_roundtrip(auth_client):
 
 
 @pytest.mark.anyio
+async def test_preferences_watchlist_order_and_sort(auth_client, other_user, client):
+    """Verify watchlist_order and watchlist_sort persist through PUT/PATCH and remain isolated across users."""
+    payload = {
+        "watchlist_order": ["wl-1", "wl-2", "wl-3"],
+        "watchlist_sort": {"wl-1": "price_change_desc", "wl-2": "name_asc"},
+    }
+    put_resp = await auth_client.put("/api/v1/accounts/me/preferences", json=payload)
+    assert put_resp.status_code == 200
+    assert put_resp.json()["watchlist_order"] == ["wl-1", "wl-2", "wl-3"]
+    assert put_resp.json()["watchlist_sort"] == {
+        "wl-1": "price_change_desc",
+        "wl-2": "name_asc",
+    }
+
+    get_resp = await auth_client.get("/api/v1/accounts/me/preferences")
+    assert get_resp.status_code == 200
+    assert get_resp.json()["watchlist_order"] == ["wl-1", "wl-2", "wl-3"]
+    assert get_resp.json()["watchlist_sort"] == {
+        "wl-1": "price_change_desc",
+        "wl-2": "name_asc",
+    }
+
+    # Test PATCH update
+    patch_payload = {
+        "watchlist_order": ["wl-3", "wl-1", "wl-2"],
+        "watchlist_sort": {"wl-1": "name_desc", "wl-3": "price_change_asc"},
+    }
+    patch_resp = await auth_client.patch(
+        "/api/v1/accounts/me/preferences", json=patch_payload
+    )
+    assert patch_resp.status_code == 200
+    assert patch_resp.json()["watchlist_order"] == ["wl-3", "wl-1", "wl-2"]
+    assert patch_resp.json()["watchlist_sort"] == {
+        "wl-1": "name_desc",
+        "wl-3": "price_change_asc",
+    }
+
+    # Verify user isolation: user B has empty preferences
+    login_resp = await client.post(
+        "/api/v1/auth/login",
+        json={"email": "other@example.com", "password": "otherpass"},
+    )
+    assert login_resp.status_code == 200
+    other_token = login_resp.json()["access_token"]
+
+    other_get = await client.get(
+        "/api/v1/accounts/me/preferences",
+        headers={"Authorization": f"Bearer {other_token}"},
+    )
+    assert other_get.status_code == 200
+    other_prefs = other_get.json()
+    assert other_prefs.get("watchlist_order") is None
+    assert other_prefs.get("watchlist_sort") is None
+
+
+@pytest.mark.anyio
 async def test_account_sync_api_sync_disabled_returns_400(
     auth_client, test_user, db_session
 ):
@@ -855,13 +903,14 @@ async def test_account_sync_api_sync_disabled_returns_400(
     response = await auth_client.post(f"/api/v1/accounts/{disabled_account.id}/sync")
 
     assert response.status_code == 400
-    assert response.json()["detail"] == f"API sync is not enabled for account {disabled_account.id}"
+    assert (
+        response.json()["detail"]
+        == f"API sync is not enabled for account {disabled_account.id}"
+    )
 
 
 @pytest.mark.anyio
-async def test_account_sync_api_sync_enabled_returns_200(
-    auth_client, test_account
-):
+async def test_account_sync_api_sync_enabled_returns_200(auth_client, test_account):
     """Test POST /api/v1/accounts/{account_id}/sync returns 200 when api_sync_enabled is True."""
     limiter.reset()
 
@@ -940,9 +989,7 @@ async def test_account_delete_not_found(auth_client):
 
 
 @pytest.mark.anyio
-async def test_account_delete_not_owned(
-    auth_client, other_user_account, db_session
-):
+async def test_account_delete_not_owned(auth_client, other_user_account, db_session):
     """Test account_delete returns 404 for account owned by another user and keeps it in DB."""
     response = await auth_client.delete(f"/api/v1/accounts/{other_user_account.id}")
     assert response.status_code == 404
@@ -950,7 +997,3 @@ async def test_account_delete_not_owned(
     db_session.expire_all()
     account_in_db = await db_session.get(AccountModel, other_user_account.id)
     assert account_in_db is not None
-
-
-
-

@@ -1,7 +1,9 @@
 import { render, screen } from '@testing-library/svelte';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import Layout from './+layout.svelte';
+import { load } from './+layout.server';
 import { createRawSnippet } from 'svelte';
+import { getUserPreferencesService } from '$lib/api/userPreferencesService';
 
 vi.mock('mode-watcher', () => ({
 	ModeWatcher: () => null
@@ -34,7 +36,8 @@ vi.mock('$lib/api/marketService', () => ({
 vi.mock('$lib/api/userPreferencesService', () => ({
 	userPreferencesService: {
 		patchPreferences: vi.fn().mockResolvedValue({})
-	}
+	},
+	getUserPreferencesService: vi.fn()
 }));
 
 if (typeof window !== 'undefined') {
@@ -65,7 +68,13 @@ describe('Root +layout.svelte', () => {
 
 		render(Layout, {
 			props: {
-				data: { user: null, sidebar_open: true },
+				data: {
+					user: null,
+					sidebar_open: true,
+					collapsed_watchlist_ids: [],
+					watchlist_order: null,
+					watchlist_sort: null
+				},
 				children
 			}
 		});
@@ -83,7 +92,10 @@ describe('Root +layout.svelte', () => {
 			props: {
 				data: {
 					user: { id: 'u1', email: 'test@example.com' },
-					sidebar_open: true
+					sidebar_open: true,
+					collapsed_watchlist_ids: [],
+					watchlist_order: null,
+					watchlist_sort: null
 				},
 				children
 			}
@@ -107,7 +119,10 @@ describe('Root +layout.svelte', () => {
 			props: {
 				data: {
 					user: { id: 'u1', email: 'test@example.com' },
-					sidebar_open: true
+					sidebar_open: true,
+					collapsed_watchlist_ids: [],
+					watchlist_order: null,
+					watchlist_sort: null
 				},
 				children
 			}
@@ -116,5 +131,48 @@ describe('Root +layout.svelte', () => {
 		const inset = document.querySelector('[data-slot="sidebar-inset"]');
 		expect(inset).toBeInTheDocument();
 		expect(inset).toHaveClass('min-w-0');
+	});
+
+	describe('collapsed_watchlist_ids preference', () => {
+		const loadEvent = (prefs: Record<string, unknown>) => {
+			vi.mocked(getUserPreferencesService).mockReturnValue({
+				getPreferences: vi.fn().mockResolvedValue(prefs)
+			} as unknown as ReturnType<typeof getUserPreferencesService>);
+			return {
+				locals: { user: { id: 'u1', email: 'test@example.com' } },
+				fetch: vi.fn(),
+				cookies: { get: vi.fn().mockReturnValue('token') }
+			} as unknown as Parameters<typeof load>[0];
+		};
+
+		it('defaults collapsed_watchlist_ids to empty array when the preference is absent', async () => {
+			const data = await load(loadEvent({ sidebar_open: true }));
+			expect(data.collapsed_watchlist_ids).toEqual([]);
+		});
+
+		it('reads collapsed_watchlist_ids from preferences', async () => {
+			const data = await load(
+				loadEvent({ sidebar_open: true, collapsed_watchlist_ids: ['w1', 'w2'] })
+			);
+			expect(data.collapsed_watchlist_ids).toEqual(['w1', 'w2']);
+		});
+
+		it('reads watchlist_order and watchlist_sort from preferences', async () => {
+			const data = await load(
+				loadEvent({
+					sidebar_open: true,
+					watchlist_order: ['w2', 'w1'],
+					watchlist_sort: { w1: 'name_asc' }
+				})
+			);
+			expect(data.watchlist_order).toEqual(['w2', 'w1']);
+			expect(data.watchlist_sort).toEqual({ w1: 'name_asc' });
+		});
+
+		it('defaults watchlist_order and watchlist_sort to null when absent', async () => {
+			const data = await load(loadEvent({ sidebar_open: true }));
+			expect(data.watchlist_order).toBeNull();
+			expect(data.watchlist_sort).toBeNull();
+		});
 	});
 });

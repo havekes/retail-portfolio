@@ -10,6 +10,7 @@
 	import GlobalSearch from '$lib/components/global-search.svelte';
 	import { userPreferencesService } from '$lib/api/userPreferencesService.js';
 	import { Toaster } from '$lib/components/ui/toast/index.js';
+	import type { WatchlistRead } from '$lib/api/marketService';
 
 	let { children, data } = $props();
 
@@ -31,9 +32,14 @@
 		}
 	});
 
-	setContext('toggleGlobalSearch', () => (globalSearchOpen = !globalSearchOpen));
-
 	let globalSearchOpen = $state(false);
+	let globalSearchTargetWatchlist = $state<WatchlistRead | null>(null);
+
+	setContext('toggleGlobalSearch', () => (globalSearchOpen = !globalSearchOpen));
+	setContext('openGlobalSearch', (watchlist?: WatchlistRead | null) => {
+		globalSearchTargetWatchlist = watchlist ?? null;
+		globalSearchOpen = true;
+	});
 
 	function handleKeydown(e: KeyboardEvent) {
 		if (e.key === 'p' && (e.metaKey || e.ctrlKey)) {
@@ -66,5 +72,5 @@
 	{@render children()}
 {/if}
 
-<GlobalSearch bind:open={globalSearchOpen} />
+<GlobalSearch bind:open={globalSearchOpen} bind:targetWatchlist={globalSearchTargetWatchlist} />
 <Toaster />

@@ -114,6 +114,303 @@ async def test_watchlist_add_security_not_found(auth_client):
     assert "not found" in response.json()["error"].lower()
 
 
+@pytest.mark.anyio
+async def test_add_security_to_watchlist(auth_client, test_watchlists, test_security):
+    """POST /watchlists/{id}/securities/{sid} adds the membership, idempotently."""
+    watchlist_id = str(test_watchlists[0].id)
+    url = f"/api/v1/market/watchlists/{watchlist_id}/securities/{test_security.id}"
+
+    response = await auth_client.post(url)
+
+    assert response.status_code == 200
+    result = response.json()
+    assert result["id"] == watchlist_id
+    assert [s["id"] for s in result["securities"]] == [str(test_security.id)]
+
+    # Adding twice must not duplicate the membership row
+    second_response = await auth_client.post(url)
+
+    assert second_response.status_code == 200
+    assert [s["id"] for s in second_response.json()["securities"]] == [
+        str(test_security.id)
+    ]
+
+    securities_response = await auth_client.get(
+        f"/api/v1/market/watchlists/{watchlist_id}/securities"
+    )
+    securities = securities_response.json()
+    assert securities["total"] == 1
+    assert len(securities["items"]) == 1
+
+
+@pytest.mark.anyio
+async def test_remove_security_from_watchlist(auth_client, test_watchlists, test_security):
+    """DELETE /watchlists/{id}/securities/{sid} removes; non-member remove is a no-op."""
+    watchlist_id = str(test_watchlists[0].id)
+    url = f"/api/v1/market/watchlists/{watchlist_id}/securities/{test_security.id}"
+
+    await auth_client.post(url)
+    response = await auth_client.delete(url)
+
+    assert response.status_code == 200
+    result = response.json()
+    assert result["id"] == watchlist_id
+    assert result["securities"] == []
+
+    # Removing a non-member is a successful no-op
+    second_response = await auth_client.delete(url)
+
+    assert second_response.status_code == 200
+    assert second_response.json()["securities"] == []
+
+
+@pytest.mark.anyio
+async def test_watchlist_membership_unknown_security(auth_client, test_watchlists):
+    """POST/DELETE on a random security UUID return 404."""
+    from uuid import uuid4
+
+    watchlist_id = str(test_watchlists[0].id)
+    url = f"/api/v1/market/watchlists/{watchlist_id}/securities/{uuid4()}"
+
+    post_response = await auth_client.post(url)
+    delete_response = await auth_client.delete(url)
+
+    assert post_response.status_code == 404
+    assert delete_response.status_code == 404
+
+
+@pytest.mark.anyio
+async def test_watchlist_membership_not_owned(
+    auth_client, test_security, other_user, db_session
+):
+    """POST/DELETE on another user's watchlist return 404 and leave it untouched."""
+    from uuid import uuid4
+
+    from sqlalchemy import select
+    from sqlalchemy.orm import selectinload
+
+    from src.market.model import WatchlistModel
+
+    other_watchlist = WatchlistModel(
+        id=uuid4(),
+        user_id=other_user.id,
+        name="Other User Watchlist",
+    )
+    db_session.add(other_watchlist)
+    await db_session.commit()
+    other_watchlist_id = str(other_watchlist.id)
+
+    url = (
+        f"/api/v1/market/watchlists/{other_watchlist_id}/securities/{test_security.id}"
+    )
+    post_response = await auth_client.post(url)
+    delete_response = await auth_client.delete(url)
+
+    assert post_response.status_code == 404
+    assert delete_response.status_code == 404
+
+    # Cross-user isolation: the other user's watchlist is unchanged
+    result = await db_session.execute(
+        select(WatchlistModel)
+        .options(selectinload(WatchlistModel.securities))
+        .where(WatchlistModel.id == other_watchlist.id)
+    )
+    assert result.scalar_one().securities == []
+
+
+@pytest.mark.anyio
+async def test_watchlist_membership_cross_user_isolation(
+    auth_client, test_watchlists, test_security, other_user, db_session
+):
+    """Caller add/remove on their own watchlist leaves another user's untouched."""
+    from uuid import uuid4
+
+    from sqlalchemy import select
+    from sqlalchemy.orm import selectinload
+
+    from src.market.model import WatchlistModel
+
+    other_watchlist = WatchlistModel(
+        id=uuid4(),
+        user_id=other_user.id,
+        name="Other User Watchlist",
+    )
+    db_session.add(other_watchlist)
+    await db_session.commit()
+
+    watchlist_id = str(test_watchlists[0].id)
+    url = f"/api/v1/market/watchlists/{watchlist_id}/securities/{test_security.id}"
+    await auth_client.post(url)
+    await auth_client.delete(url)
+
+    result = await db_session.execute(
+        select(WatchlistModel)
+        .options(selectinload(WatchlistModel.securities))
+        .where(WatchlistModel.id == other_watchlist.id)
+    )
+    assert result.scalar_one().securities == []
+
+
+@pytest.mark.anyio
+async def test_watchlist_create(auth_client, test_user):
+    """Test POST /watchlists creates a watchlist owned by the caller."""
+    response = await auth_client.post(
+        "/api/v1/market/watchlists", json={"name": "My New Watchlist"}
+    )
+
+    assert response.status_code == 201
+    result = response.json()
+    assert result["name"] == "My New Watchlist"
+    assert result["user_id"] == str(test_user.id)
+    assert result["securities"] == []
+
+    # It is now listed for the caller
+    list_response = await auth_client.get("/api/v1/market/watchlists")
+    assert list_response.status_code == 200
+    assert "My New Watchlist" in [w["name"] for w in list_response.json()]
+
+
+@pytest.mark.anyio
+async def test_watchlists_list_includes_securities(auth_client, test_security):
+    """Test GET /watchlists returns each watchlist's securities inline."""
+    await auth_client.post(f"/api/v1/market/watchlists/securities/{test_security.id}")
+
+    response = await auth_client.get("/api/v1/market/watchlists")
+
+    assert response.status_code == 200
+    result = response.json()
+    assert len(result) == 1
+    assert "securities" in result[0]
+    assert len(result[0]["securities"]) == 1
+    assert result[0]["securities"][0]["id"] == str(test_security.id)
+
+
+@pytest.mark.anyio
+async def test_watchlist_rename(auth_client):
+    """Test PATCH /watchlists/{id} renames and returns the updated watchlist."""
+    create_response = await auth_client.post(
+        "/api/v1/market/watchlists", json={"name": "Before"}
+    )
+    watchlist_id = create_response.json()["id"]
+
+    response = await auth_client.patch(
+        f"/api/v1/market/watchlists/{watchlist_id}", json={"name": "After"}
+    )
+
+    assert response.status_code == 200
+    result = response.json()
+    assert result["id"] == watchlist_id
+    assert result["name"] == "After"
+
+    list_response = await auth_client.get("/api/v1/market/watchlists")
+    assert "After" in [w["name"] for w in list_response.json()]
+    assert "Before" not in [w["name"] for w in list_response.json()]
+
+
+@pytest.mark.anyio
+async def test_watchlist_rename_duplicate_name(auth_client):
+    """Test PATCH /watchlists/{id} returns 409 for a duplicate name."""
+    await auth_client.post("/api/v1/market/watchlists", json={"name": "Taken"})
+    create_response = await auth_client.post(
+        "/api/v1/market/watchlists", json={"name": "Other"}
+    )
+    watchlist_id = create_response.json()["id"]
+
+    response = await auth_client.patch(
+        f"/api/v1/market/watchlists/{watchlist_id}", json={"name": "Taken"}
+    )
+
+    assert response.status_code == 409
+
+    # The original name is unchanged
+    list_response = await auth_client.get("/api/v1/market/watchlists")
+    names = [w["name"] for w in list_response.json()]
+    assert "Other" in names
+
+
+@pytest.mark.anyio
+async def test_watchlist_rename_not_owned(auth_client, other_user, db_session):
+    """Test PATCH /watchlists/{id} returns 404 for another user's watchlist."""
+    from uuid import uuid4
+    from src.market.model import WatchlistModel
+
+    watchlist_model = WatchlistModel(
+        id=uuid4(),
+        user_id=other_user.id,
+        name="Other User Watchlist",
+    )
+    db_session.add(watchlist_model)
+    await db_session.commit()
+
+    response = await auth_client.patch(
+        f"/api/v1/market/watchlists/{watchlist_model.id}", json={"name": "Stolen"}
+    )
+
+    assert response.status_code == 404
+
+
+@pytest.mark.anyio
+async def test_watchlist_delete(auth_client):
+    """Test DELETE /watchlists/{id} removes the watchlist."""
+    create_response = await auth_client.post(
+        "/api/v1/market/watchlists", json={"name": "To Delete"}
+    )
+    watchlist_id = create_response.json()["id"]
+
+    response = await auth_client.delete(f"/api/v1/market/watchlists/{watchlist_id}")
+
+    assert response.status_code == 204
+
+    list_response = await auth_client.get("/api/v1/market/watchlists")
+    assert watchlist_id not in [w["id"] for w in list_response.json()]
+
+
+@pytest.mark.anyio
+async def test_watchlist_delete_not_owned(auth_client, other_user, db_session):
+    """Test DELETE /watchlists/{id} returns 404 for another user's watchlist."""
+    from uuid import uuid4
+    from src.market.model import WatchlistModel
+
+    watchlist_model = WatchlistModel(
+        id=uuid4(),
+        user_id=other_user.id,
+        name="Other User Watchlist",
+    )
+    db_session.add(watchlist_model)
+    await db_session.commit()
+
+    response = await auth_client.delete(
+        f"/api/v1/market/watchlists/{watchlist_model.id}"
+    )
+
+    assert response.status_code == 404
+
+
+@pytest.mark.anyio
+async def test_watchlist_crud_unauth():
+    """Test watchlist create/rename/delete return 401 without auth."""
+    from uuid import uuid4
+
+    from httpx import ASGITransport, AsyncClient
+
+    from src.main import app
+
+    async with AsyncClient(
+        transport=ASGITransport(app=app), base_url="http://test"
+    ) as ac:
+        create_response = await ac.post(
+            "/api/v1/market/watchlists", json={"name": "Nope"}
+        )
+        rename_response = await ac.patch(
+            f"/api/v1/market/watchlists/{uuid4()}", json={"name": "Nope"}
+        )
+        delete_response = await ac.delete(f"/api/v1/market/watchlists/{uuid4()}")
+
+    assert create_response.status_code == 401
+    assert rename_response.status_code == 401
+    assert delete_response.status_code == 401
+
+
 
 @pytest.mark.anyio
 async def test_get_prices_1d_default(auth_client, test_security, db_session):

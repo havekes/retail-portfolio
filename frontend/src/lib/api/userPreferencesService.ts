@@ -45,11 +45,15 @@ export interface UserPreferences {
 	chart_style?: ChartStyle | null;
 	indicators?: Record<string, IndicatorConfig> | null;
 	sidebar_open?: boolean | null;
+	sidebar_watchlists?: boolean | null;
+	collapsed_watchlist_ids?: string[] | null;
 	holdings_period?: string | null;
 	elliott_waves?: Record<string, SecurityElliottWaves> | null;
 	fibonacci_tools?: Record<string, SecurityFibonacciTools> | null;
 	wave_settings?: WaveSettings | null;
 	chart_hide_labels?: boolean | null;
+	watchlist_order?: string[] | null;
+	watchlist_sort?: Record<string, string> | null;
 }
 
 export class UserPreferencesService extends ApiClient {

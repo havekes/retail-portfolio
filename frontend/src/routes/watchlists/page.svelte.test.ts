@@ -1,0 +1,559 @@
+import { describe, it, expect, vi, beforeEach, beforeAll } from 'vitest';
+import { render, screen, fireEvent, waitFor, within } from '@testing-library/svelte';
+import type { Component } from 'svelte';
+import type { SecuritySchema, WatchlistRead } from '@/api/marketService';
+
+vi.mock('$app/paths', () => ({
+	resolve: (path: string) => path
+}));
+
+const mocks = vi.hoisted(() => ({
+	client: {
+		search: vi.fn(),
+		createOrUpdateSecurity: vi.fn(),
+		getWatchlists: vi.fn().mockResolvedValue([]),
+		createWatchlist: vi.fn(),
+		renameWatchlist: vi.fn(),
+		deleteWatchlist: vi.fn(),
+		addSecurityToWatchlist: vi.fn(),
+		removeSecurityFromWatchlist: vi.fn(),
+		addToWatchlist: vi.fn(),
+		removeFromWatchlist: vi.fn()
+	},
+	preferences: {
+		patchPreferences: vi.fn().mockResolvedValue({}),
+		getPreferences: vi.fn().mockResolvedValue({})
+	},
+	service: null as unknown
+}));
+
+vi.mock('@/api/marketService', () => ({
+	getMarketService: () => mocks.client
+}));
+
+vi.mock('$lib/api/userPreferencesService', () => ({
+	userPreferencesService: mocks.preferences,
+	getUserPreferencesService: () => mocks.preferences
+}));
+
+// Return a real WatchlistService instance so its $state drives reactivity, while
+// the service module itself is mocked away from the layout context.
+vi.mock('$lib/components/watchlist/watchlistService.svelte', async (importOriginal) => {
+	const actual =
+		await importOriginal<typeof import('$lib/components/watchlist/watchlistService.svelte')>();
+	return {
+		...actual,
+		getWatchlistService: () => mocks.service
+	};
+});
+
+import { WatchlistService } from '$lib/components/watchlist/watchlistService.svelte';
+
+function security(
+	id: string,
+	symbol: string,
+	price?: number | null,
+	changePercent?: number | null
+): SecuritySchema {
+	return {
+		id,
+		symbol,
+		exchange: 'NASDAQ',
+		currency: 'USD',
+		name: `${symbol} Inc.`,
+		isin: null,
+		is_active: true,
+		updated_at: '2026-01-01T00:00:00Z',
+		current_price: price,
+		daily_price_change: null,
+		daily_price_change_percent: changePercent
+	};
+}
+
+function watchlist(id: string, name: string, securities: SecuritySchema[]): WatchlistRead {
+	return { id, user_id: 'user-1', name, securities };
+}
+
+const defaultList = () =>
+	watchlist('wl-default', 'Default', [security('sec-1', 'AAPL'), security('sec-2', 'MSFT')]);
+const techList = () => watchlist('wl-tech', 'Tech', [security('sec-3', 'NVDA')]);
+
+/* eslint-disable-next-line @typescript-eslint/no-explicit-any */
+let PageComponent: Component<any>;
+let service: WatchlistService;
+
+beforeAll(async () => {
+	const mod = await import('./+page.svelte');
+	PageComponent = mod.default;
+}, 30000);
+
+beforeEach(() => {
+	vi.resetAllMocks();
+	mocks.preferences.patchPreferences.mockResolvedValue({});
+	mocks.preferences.getPreferences.mockResolvedValue({});
+	service = new WatchlistService();
+	mocks.service = service;
+});
+
+function renderPage(
+	watchlists: WatchlistRead[],
+	openGlobalSearch: (watchlist?: WatchlistRead | null) => void = vi.fn(),
+	order?: string[] | null,
+	sort?: Record<string, string> | null
+) {
+	return render(PageComponent, {
+		props: {
+			data: {
+				watchlists,
+				watchlist_order: order ?? null,
+				watchlist_sort: sort ?? null
+			}
+		},
+		context: new Map([['openGlobalSearch', openGlobalSearch] as const])
+	});
+}
+
+async function openCreateModal(name: string) {
+	await fireEvent.click(screen.getByRole('button', { name: 'Create watchlist' }));
+	const input = await screen.findByLabelText('Watchlist name');
+	await fireEvent.input(input, { target: { value: name } });
+	await fireEvent.click(screen.getByRole('button', { name: 'Create' }));
+	return input;
+}
+
+describe('Watchlists page - rendering and sections', () => {
+	it('renders every watchlist as its own section with title and count', () => {
+		renderPage([defaultList(), techList()]);
+
+		const defaultSection = screen.getByRole('region', { name: 'Default securities' });
+		const techSection = screen.getByRole('region', { name: 'Tech securities' });
+
+		expect(defaultSection).toBeInTheDocument();
+		expect(techSection).toBeInTheDocument();
+		expect(
+			within(defaultSection).getByRole('heading', { level: 2, name: 'Default' })
+		).toBeInTheDocument();
+		expect(
+			within(techSection).getByRole('heading', { level: 2, name: 'Tech' })
+		).toBeInTheDocument();
+		expect(within(defaultSection).getByText('2 securities')).toBeInTheDocument();
+		expect(within(techSection).getByText('1 security')).toBeInTheDocument();
+	});
+
+	it('renders securities with rounded hover links navigating to /security/[id]', () => {
+		renderPage([defaultList(), techList()]);
+
+		const defaultSection = screen.getByRole('region', { name: 'Default securities' });
+		const aaplLink = within(defaultSection).getByRole('link', { name: /AAPL/ });
+		const msftLink = within(defaultSection).getByRole('link', { name: /MSFT/ });
+
+		expect(aaplLink).toHaveAttribute('href', '/security/sec-1');
+		expect(aaplLink).toHaveClass('rounded-md');
+		expect(aaplLink).toHaveClass('hover:bg-muted');
+
+		expect(msftLink).toHaveAttribute('href', '/security/sec-2');
+		expect(msftLink).toHaveClass('rounded-md');
+		expect(msftLink).toHaveClass('hover:bg-muted');
+	});
+
+	it('renders empty message for watchlists without securities', () => {
+		renderPage([watchlist('wl-empty', 'Empty List', [])]);
+
+		const section = screen.getByRole('region', { name: 'Empty List securities' });
+		expect(within(section).getByText('No securities in this watchlist yet.')).toBeInTheDocument();
+	});
+
+	it('renders the empty state when there are no watchlists at all', () => {
+		renderPage([]);
+
+		expect(screen.getByText("You don't have any watchlists yet")).toBeInTheDocument();
+		expect(screen.queryByRole('region')).not.toBeInTheDocument();
+	});
+
+	it('does not render inline WatchlistSecurityPicker', () => {
+		renderPage([defaultList()]);
+
+		expect(screen.queryByLabelText('Search securities to add')).not.toBeInTheDocument();
+		expect(screen.queryByRole('combobox', { name: /add securities/i })).not.toBeInTheDocument();
+	});
+
+	it('renders Create watchlist button in PageHeader actions and removes sidebar pref toggle', () => {
+		renderPage([defaultList()]);
+
+		expect(screen.getByRole('button', { name: 'Create watchlist' })).toBeInTheDocument();
+		expect(screen.queryByRole('button', { name: /show watchlists/i })).not.toBeInTheDocument();
+		expect(screen.queryByRole('button', { name: /hide watchlists/i })).not.toBeInTheDocument();
+	});
+});
+
+describe('Watchlists page - create watchlist', () => {
+	it('creates a new watchlist through the modal and adds it to the list', async () => {
+		mocks.client.createWatchlist.mockResolvedValue(watchlist('wl-new', 'Dividend', []));
+		renderPage([defaultList()]);
+
+		await openCreateModal('Dividend');
+
+		await waitFor(() =>
+			expect(mocks.client.createWatchlist).toHaveBeenCalledWith('Dividend', undefined)
+		);
+		expect(await screen.findByRole('region', { name: 'Dividend securities' })).toBeInTheDocument();
+	});
+
+	it('shows the backend error message when creation fails', async () => {
+		mocks.client.createWatchlist.mockRejectedValue(new Error('Name already taken'));
+		renderPage([defaultList()]);
+
+		await openCreateModal('Duplicate');
+
+		expect(await screen.findByText('Name already taken')).toBeInTheDocument();
+		expect(screen.queryByRole('region', { name: 'Duplicate securities' })).not.toBeInTheDocument();
+	});
+});
+
+describe('Watchlists page - rename watchlist', () => {
+	it('renames a watchlist via inline input and save button', async () => {
+		mocks.client.renameWatchlist.mockResolvedValue(
+			watchlist('wl-tech', 'Tech & AI', [security('sec-3', 'NVDA')])
+		);
+		renderPage([defaultList(), techList()]);
+
+		await fireEvent.click(screen.getByRole('button', { name: 'Rename Tech' }));
+
+		const input = screen.getByLabelText('Watchlist name');
+		expect(input).toHaveValue('Tech');
+		await fireEvent.input(input, { target: { value: 'Tech & AI' } });
+		await fireEvent.click(screen.getByRole('button', { name: 'Save Tech' }));
+
+		await waitFor(() =>
+			expect(mocks.client.renameWatchlist).toHaveBeenCalledWith('wl-tech', 'Tech & AI', undefined)
+		);
+		expect(await screen.findByRole('heading', { level: 2, name: 'Tech & AI' })).toBeInTheDocument();
+	});
+
+	it('cancels renaming on cancel button click', async () => {
+		renderPage([defaultList(), techList()]);
+
+		await fireEvent.click(screen.getByRole('button', { name: 'Rename Tech' }));
+		const input = screen.getByLabelText('Watchlist name');
+		await fireEvent.input(input, { target: { value: 'Different' } });
+		await fireEvent.click(screen.getByRole('button', { name: 'Cancel rename' }));
+
+		expect(mocks.client.renameWatchlist).not.toHaveBeenCalled();
+		expect(screen.getByRole('heading', { level: 2, name: 'Tech' })).toBeInTheDocument();
+		expect(screen.queryByLabelText('Watchlist name')).not.toBeInTheDocument();
+	});
+
+	it('submits rename on Enter key and cancels on Escape', async () => {
+		mocks.client.renameWatchlist.mockResolvedValue(watchlist('wl-tech', 'New Tech', []));
+		renderPage([techList()]);
+
+		await fireEvent.click(screen.getByRole('button', { name: 'Rename Tech' }));
+		let input = screen.getByLabelText('Watchlist name');
+		await fireEvent.keyDown(input, { key: 'Escape' });
+		expect(screen.queryByLabelText('Watchlist name')).not.toBeInTheDocument();
+
+		await fireEvent.click(screen.getByRole('button', { name: 'Rename Tech' }));
+		input = screen.getByLabelText('Watchlist name');
+		await fireEvent.input(input, { target: { value: 'New Tech' } });
+		await fireEvent.keyDown(input, { key: 'Enter' });
+
+		await waitFor(() =>
+			expect(mocks.client.renameWatchlist).toHaveBeenCalledWith('wl-tech', 'New Tech', undefined)
+		);
+	});
+});
+
+describe('Watchlists page - delete watchlist', () => {
+	it('opens confirmation modal and deletes watchlist on confirm', async () => {
+		mocks.client.deleteWatchlist.mockResolvedValue(undefined);
+		renderPage([defaultList(), techList()]);
+
+		await fireEvent.click(screen.getByRole('button', { name: 'Delete Tech' }));
+		expect(screen.getByText('Delete "Tech"? This cannot be undone.')).toBeInTheDocument();
+
+		await fireEvent.click(screen.getByRole('button', { name: 'Confirm' }));
+
+		await waitFor(() =>
+			expect(mocks.client.deleteWatchlist).toHaveBeenCalledWith('wl-tech', undefined)
+		);
+		await waitFor(() =>
+			expect(screen.queryByRole('region', { name: 'Tech securities' })).not.toBeInTheDocument()
+		);
+	});
+
+	it('does not delete when cancel is clicked in confirmation modal', async () => {
+		renderPage([defaultList(), techList()]);
+
+		await fireEvent.click(screen.getByRole('button', { name: 'Delete Tech' }));
+		await fireEvent.click(await screen.findByRole('button', { name: 'Cancel' }));
+
+		expect(mocks.client.deleteWatchlist).not.toHaveBeenCalled();
+		expect(screen.getByRole('region', { name: 'Tech securities' })).toBeInTheDocument();
+	});
+
+	it('shows the backend error message when deletion fails', async () => {
+		mocks.client.deleteWatchlist.mockRejectedValue(new Error('Watchlist not found'));
+		renderPage([defaultList(), techList()]);
+
+		await fireEvent.click(screen.getByRole('button', { name: 'Delete Tech' }));
+		await fireEvent.click(await screen.findByRole('button', { name: 'Confirm' }));
+
+		expect(await screen.findByText('Watchlist not found')).toBeInTheDocument();
+		expect(screen.getByRole('region', { name: 'Tech securities' })).toBeInTheDocument();
+	});
+});
+
+describe('Watchlists page - targeted search integration', () => {
+	it('calls openGlobalSearch with the target watchlist when "+" button is clicked', async () => {
+		const openGlobalSearch = vi.fn();
+		const tech = techList();
+		renderPage([defaultList(), tech], openGlobalSearch);
+
+		const addBtn = screen.getByRole('button', { name: 'Add security to Tech' });
+		await fireEvent.click(addBtn);
+
+		expect(openGlobalSearch).toHaveBeenCalledTimes(1);
+		expect(openGlobalSearch).toHaveBeenCalledWith(
+			expect.objectContaining({ id: 'wl-tech', name: 'Tech' })
+		);
+	});
+});
+
+describe('Watchlists page - remove security', () => {
+	it('removes the security and updates the count and empty state', async () => {
+		mocks.client.removeSecurityFromWatchlist.mockResolvedValue(watchlist('wl-tech', 'Tech', []));
+		renderPage([defaultList(), techList()]);
+
+		const section = screen.getByRole('region', { name: 'Tech securities' });
+		await fireEvent.click(within(section).getByRole('button', { name: 'Remove NVDA' }));
+
+		await waitFor(() =>
+			expect(mocks.client.removeSecurityFromWatchlist).toHaveBeenCalledWith(
+				'wl-tech',
+				'sec-3',
+				undefined
+			)
+		);
+		await waitFor(() =>
+			expect(within(section).queryByRole('link', { name: /NVDA/ })).not.toBeInTheDocument()
+		);
+		expect(within(section).getByText('0 securities')).toBeInTheDocument();
+		expect(within(section).getByText('No securities in this watchlist yet.')).toBeInTheDocument();
+	});
+
+	it('shows the backend error and keeps the row when removal fails', async () => {
+		mocks.client.removeSecurityFromWatchlist.mockRejectedValue(new Error('Security not found'));
+		mocks.client.getWatchlists.mockResolvedValue([defaultList(), techList()]);
+		renderPage([defaultList(), techList()]);
+
+		const section = screen.getByRole('region', { name: 'Tech securities' });
+		await fireEvent.click(within(section).getByRole('button', { name: 'Remove NVDA' }));
+
+		expect(await screen.findByText('Security not found')).toBeInTheDocument();
+		expect(within(section).getByRole('link', { name: /NVDA/ })).toBeInTheDocument();
+		expect(within(section).getByText('1 security')).toBeInTheDocument();
+	});
+});
+
+describe('Watchlists page - security prices and daily performance display', () => {
+	it('displays formatted price and positive change pill with emerald styling', () => {
+		const positiveSec = security('s1', 'AAPL', 150.25, 2.5);
+		renderPage([watchlist('wl-1', 'Tech', [positiveSec])]);
+
+		expect(screen.getByText('150.25')).toBeInTheDocument();
+		const pill = screen.getByText('+2.50%');
+		expect(pill).toBeInTheDocument();
+		expect(pill).toHaveClass('text-emerald-600');
+		expect(pill).toHaveClass('bg-emerald-500/10');
+	});
+
+	it('displays formatted price and negative change pill with rose styling', () => {
+		const negativeSec = security('s2', 'MSFT', 320.5, -1.75);
+		renderPage([watchlist('wl-1', 'Tech', [negativeSec])]);
+
+		expect(screen.getByText('320.50')).toBeInTheDocument();
+		const pill = screen.getByText('-1.75%');
+		expect(pill).toBeInTheDocument();
+		expect(pill).toHaveClass('text-rose-600');
+		expect(pill).toHaveClass('bg-rose-500/10');
+	});
+
+	it('displays muted styling for zero or absent price change', () => {
+		const zeroSec = security('s3', 'GOOG', 100.0, 0);
+		const absentSec = security('s4', 'AMZN', null, null);
+		renderPage([watchlist('wl-1', 'Tech', [zeroSec, absentSec])]);
+
+		const zeroPill = screen.getByText('0.00%');
+		expect(zeroPill).toHaveClass('text-muted-foreground');
+
+		const absentPills = screen.getAllByText('-');
+		expect(absentPills.length).toBeGreaterThanOrEqual(1);
+	});
+});
+
+describe('Watchlists page - per-watchlist stock sorting', () => {
+	it('sorts securities by name and persists to preferences', async () => {
+		const s1 = security('s1', 'TSLA', 200, 1.0);
+		const s2 = security('s2', 'AAPL', 150, 2.0);
+		const s3 = security('s3', 'MSFT', 300, 3.0);
+		renderPage([watchlist('wl-1', 'Tech', [s1, s2, s3])]);
+
+		const sortBtn = screen.getByRole('button', { name: 'Sort securities in Tech' });
+		await fireEvent.click(sortBtn);
+
+		const nameOption = await screen.findByText('Name (alphabetical)');
+		await fireEvent.click(nameOption);
+
+		await waitFor(() => {
+			expect(mocks.preferences.patchPreferences).toHaveBeenCalledWith({
+				watchlist_sort: { 'wl-1': 'name_asc' }
+			});
+		});
+
+		const rows = screen.getAllByRole('link');
+		expect(rows[0]).toHaveTextContent('AAPL');
+		expect(rows[1]).toHaveTextContent('MSFT');
+		expect(rows[2]).toHaveTextContent('TSLA');
+	});
+
+	it('sorts securities by price change gainers and losers', async () => {
+		const s1 = security('s1', 'AAPL', 150, 1.5);
+		const s2 = security('s2', 'MSFT', 300, -2.0);
+		const s3 = security('s3', 'NVDA', 450, 5.0);
+		renderPage([watchlist('wl-1', 'Tech', [s1, s2, s3])]);
+
+		const sortBtn = screen.getByRole('button', { name: 'Sort securities in Tech' });
+		await fireEvent.click(sortBtn);
+
+		// Gainers first
+		const gainersOption = await screen.findByText('Price Change (Gainers)');
+		await fireEvent.click(gainersOption);
+
+		await waitFor(() => {
+			expect(mocks.preferences.patchPreferences).toHaveBeenCalledWith({
+				watchlist_sort: { 'wl-1': 'price_change_desc' }
+			});
+		});
+
+		let rows = screen.getAllByRole('link');
+		expect(rows[0]).toHaveTextContent('NVDA');
+		expect(rows[1]).toHaveTextContent('AAPL');
+		expect(rows[2]).toHaveTextContent('MSFT');
+
+		// Losers first
+		await fireEvent.click(sortBtn);
+		const losersOption = await screen.findByText('Price Change (Losers)');
+		await fireEvent.click(losersOption);
+
+		await waitFor(() => {
+			expect(mocks.preferences.patchPreferences).toHaveBeenCalledWith({
+				watchlist_sort: { 'wl-1': 'price_change_asc' }
+			});
+		});
+
+		rows = screen.getAllByRole('link');
+		expect(rows[0]).toHaveTextContent('MSFT');
+		expect(rows[1]).toHaveTextContent('AAPL');
+		expect(rows[2]).toHaveTextContent('NVDA');
+	});
+});
+
+describe('Watchlists page - watchlist reorder mode and drag-and-drop', () => {
+	it('toggles reorder mode and shows drag handles', async () => {
+		const w1 = watchlist('wl-1', 'Tech', []);
+		const w2 = watchlist('wl-2', 'Energy', []);
+		renderPage([w1, w2]);
+
+		expect(screen.queryByTestId('drag-handle')).not.toBeInTheDocument();
+		const reorderBtn = screen.getByRole('button', { name: 'Reorder' });
+		await fireEvent.click(reorderBtn);
+
+		expect(screen.getByRole('button', { name: 'Done' })).toBeInTheDocument();
+		expect(screen.getAllByTestId('drag-handle')).toHaveLength(2);
+
+		const doneBtn = screen.getByRole('button', { name: 'Done' });
+		await fireEvent.click(doneBtn);
+		expect(screen.queryByTestId('drag-handle')).not.toBeInTheDocument();
+	});
+
+	it('reorders watchlists via drag-and-drop and persists to preferences', async () => {
+		const w1 = watchlist('wl-1', 'Tech', []);
+		const w2 = watchlist('wl-2', 'Energy', []);
+		const w3 = watchlist('wl-3', 'Crypto', []);
+		renderPage([w1, w2, w3]);
+
+		await fireEvent.click(screen.getByRole('button', { name: 'Reorder' }));
+
+		const sections = screen.getAllByRole('region');
+		expect(sections).toHaveLength(3);
+
+		const dataTransfer = {
+			effectAllowed: '',
+			dropEffect: '',
+			setData: vi.fn(),
+			getData: vi.fn().mockReturnValue('0')
+		};
+
+		// Drag first section (Tech) to third section (Crypto)
+		await fireEvent.dragStart(sections[0], { dataTransfer });
+		await fireEvent.dragOver(sections[2], { dataTransfer });
+		await fireEvent.drop(sections[2], { dataTransfer });
+
+		await waitFor(() => {
+			expect(mocks.preferences.patchPreferences).toHaveBeenCalledWith({
+				watchlist_order: ['wl-2', 'wl-3', 'wl-1']
+			});
+		});
+
+		const reorderedSections = screen.getAllByRole('region');
+		const headings = reorderedSections.map((s) => within(s).getByRole('heading', { level: 2 }));
+		expect(headings[0]).toHaveTextContent('Energy');
+		expect(headings[1]).toHaveTextContent('Crypto');
+		expect(headings[2]).toHaveTextContent('Tech');
+	});
+});
+
+describe('Watchlists page - layout stability during inline editing', () => {
+	it('preserves header container height and classes across view and edit states', async () => {
+		renderPage([techList()]);
+
+		const section = screen.getByRole('region', { name: 'Tech securities' });
+		const headerContainer = section.querySelector('.min-h-10.h-10');
+		expect(headerContainer).toBeInTheDocument();
+		expect(headerContainer).toHaveClass(
+			'min-h-10',
+			'h-10',
+			'flex',
+			'items-center',
+			'justify-between'
+		);
+
+		// Switch to edit mode
+		await fireEvent.click(screen.getByRole('button', { name: 'Rename Tech' }));
+
+		const editHeaderContainer = section.querySelector('.min-h-10.h-10');
+		expect(editHeaderContainer).toBeInTheDocument();
+		expect(editHeaderContainer).toHaveClass(
+			'min-h-10',
+			'h-10',
+			'flex',
+			'items-center',
+			'justify-between'
+		);
+		expect(screen.getByLabelText('Watchlist name')).toBeInTheDocument();
+
+		// Switch back to view mode
+		await fireEvent.click(screen.getByRole('button', { name: 'Cancel rename' }));
+
+		const restoredHeaderContainer = section.querySelector('.min-h-10.h-10');
+		expect(restoredHeaderContainer).toBeInTheDocument();
+		expect(restoredHeaderContainer).toHaveClass(
+			'min-h-10',
+			'h-10',
+			'flex',
+			'items-center',
+			'justify-between'
+		);
+		expect(screen.getByRole('heading', { level: 2, name: 'Tech' })).toBeInTheDocument();
+	});
+});

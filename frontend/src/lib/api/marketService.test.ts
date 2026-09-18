@@ -1,4 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { ApiError } from './apiClient';
 import { MarketService } from './marketService';
 
 describe('MarketService', () => {
@@ -142,4 +143,143 @@ describe('MarketService', () => {
 			})
 		);
 	});
+
+	it('should call createWatchlist with POST, name payload, and token', async () => {
+		vi.mocked(global.fetch).mockResolvedValue({
+			ok: true,
+			status: 201,
+			json: async () => watchlistFixture({ id: 'wl-new', name: 'Growth' })
+		} as Response);
+
+		const result = await service.createWatchlist('Growth', 'test-token');
+
+		expect(global.fetch).toHaveBeenCalledWith(
+			expect.stringContaining('/api/v1/market/watchlists'),
+			expect.objectContaining({
+				method: 'POST',
+				body: JSON.stringify({ name: 'Growth' }),
+				headers: expect.objectContaining({ Authorization: 'Bearer test-token' })
+			})
+		);
+		expect(result.name).toBe('Growth');
+	});
+
+	it('should call renameWatchlist with PATCH on the watchlist path', async () => {
+		vi.mocked(global.fetch).mockResolvedValue({
+			ok: true,
+			status: 200,
+			json: async () => watchlistFixture({ id: 'wl-1', name: 'Renamed' })
+		} as Response);
+
+		await service.renameWatchlist('wl-1', 'Renamed', 'test-token');
+
+		expect(global.fetch).toHaveBeenCalledWith(
+			expect.stringContaining('/api/v1/market/watchlists/wl-1'),
+			expect.objectContaining({
+				method: 'PATCH',
+				body: JSON.stringify({ name: 'Renamed' }),
+				headers: expect.objectContaining({ Authorization: 'Bearer test-token' })
+			})
+		);
+	});
+
+	it('should call deleteWatchlist with DELETE and resolve undefined on 204', async () => {
+		vi.mocked(global.fetch).mockResolvedValue({
+			ok: true,
+			status: 204,
+			json: async () => {
+				throw new Error('204 has no body');
+			}
+		} as unknown as Response);
+
+		const result = await service.deleteWatchlist('wl-1', 'test-token');
+
+		expect(global.fetch).toHaveBeenCalledWith(
+			expect.stringContaining('/api/v1/market/watchlists/wl-1'),
+			expect.objectContaining({
+				method: 'DELETE',
+				headers: expect.objectContaining({ Authorization: 'Bearer test-token' })
+			})
+		);
+		expect(result).toBeUndefined();
+	});
+
+	it('should call addSecurityToWatchlist with POST on the membership path', async () => {
+		vi.mocked(global.fetch).mockResolvedValue({
+			ok: true,
+			status: 200,
+			json: async () => watchlistFixture({ id: 'wl-2', name: 'Tech', securities: [security] })
+		} as Response);
+
+		const result = await service.addSecurityToWatchlist('wl-2', 'sec-1', 'test-token');
+
+		expect(global.fetch).toHaveBeenCalledWith(
+			expect.stringContaining('/api/v1/market/watchlists/wl-2/securities/sec-1'),
+			expect.objectContaining({
+				method: 'POST',
+				headers: expect.objectContaining({ Authorization: 'Bearer test-token' })
+			})
+		);
+		expect(result.securities).toEqual([security]);
+	});
+
+	it('should call removeSecurityFromWatchlist with DELETE on the membership path', async () => {
+		vi.mocked(global.fetch).mockResolvedValue({
+			ok: true,
+			status: 200,
+			json: async () => watchlistFixture({ id: 'wl-2', name: 'Tech', securities: [] })
+		} as Response);
+
+		const result = await service.removeSecurityFromWatchlist('wl-2', 'sec-1', 'test-token');
+
+		expect(global.fetch).toHaveBeenCalledWith(
+			expect.stringContaining('/api/v1/market/watchlists/wl-2/securities/sec-1'),
+			expect.objectContaining({
+				method: 'DELETE',
+				headers: expect.objectContaining({ Authorization: 'Bearer test-token' })
+			})
+		);
+		expect(result.securities).toEqual([]);
+	});
+
+	it('should surface the backend detail through ApiError for a failed watchlist call', async () => {
+		vi.mocked(global.fetch).mockResolvedValue({
+			ok: false,
+			status: 409,
+			json: async () => ({ detail: 'Watchlist with this name already exists' })
+		} as Response);
+
+		await expect(service.createWatchlist('Default', 'test-token')).rejects.toThrow(
+			'Watchlist with this name already exists'
+		);
+		await expect(service.createWatchlist('Default', 'test-token')).rejects.toBeInstanceOf(ApiError);
+	});
 });
+
+const security = {
+	id: 'sec-1',
+	symbol: 'AAPL',
+	exchange: 'NASDAQ',
+	currency: 'USD',
+	name: 'Apple Inc.',
+	isin: null,
+	is_active: true,
+	updated_at: '2026-01-01T00:00:00Z'
+};
+
+function watchlistFixture(
+	overrides: Partial<{
+		id: string;
+		user_id: string;
+		name: string;
+		securities: (typeof security)[];
+	}> = {}
+) {
+	return {
+		id: 'wl-1',
+		user_id: 'user-1',
+		name: 'Default',
+		securities: [],
+		...overrides
+	};
+}

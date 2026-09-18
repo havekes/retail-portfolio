@@ -2,6 +2,7 @@ import { render, screen, fireEvent } from '@testing-library/svelte';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import AppSidebarTestHarness from './app-sidebar.test-harness.svelte';
 import type { SecuritySchema } from '$lib/api/marketService';
+import { userPreferencesService } from '$lib/api/userPreferencesService';
 
 vi.mock('$app/paths', () => ({
 	resolve: (path: string) => path
@@ -27,6 +28,12 @@ vi.mock('$lib/api/marketService', () => ({
 		addToWatchlist: vi.fn(),
 		removeFromWatchlist: vi.fn()
 	})
+}));
+
+vi.mock('$lib/api/userPreferencesService', () => ({
+	userPreferencesService: {
+		patchPreferences: vi.fn().mockResolvedValue({})
+	}
 }));
 
 if (typeof window !== 'undefined') {
@@ -159,6 +166,27 @@ describe('AppSidebar Modular Components', () => {
 			await fireEvent.click(searchBtn);
 			expect(onToggleSearch).toHaveBeenCalledTimes(1);
 		});
+
+		it('renders the Watchlists link directly below Search in the sidebar content', () => {
+			render(AppSidebarTestHarness, {
+				props: {
+					open: true,
+					securities: mockSecurities
+				}
+			});
+
+			const searchBtn = screen.getByRole('button', { name: /search/i });
+			const watchlistsLink = screen.getByRole('link', { name: 'Watchlists' });
+
+			expect(watchlistsLink.closest('[data-slot="sidebar-header"]')).toBeNull();
+			expect(searchBtn.closest('[data-slot="sidebar-group"]')).toBe(
+				watchlistsLink.closest('[data-slot="sidebar-group"]')
+			);
+			// Watchlists link follows the Search button in DOM order.
+			expect(
+				searchBtn.compareDocumentPosition(watchlistsLink) & Node.DOCUMENT_POSITION_FOLLOWING
+			).toBeTruthy();
+		});
 	});
 
 	describe('Watchlist UI', () => {
@@ -229,6 +257,207 @@ describe('AppSidebar Modular Components', () => {
 			// Company names should not be rendered in collapsed view
 			expect(screen.queryByText('Apple Inc.')).not.toBeInTheDocument();
 			expect(screen.queryByText('Alphabet Inc.')).not.toBeInTheDocument();
+		});
+	});
+
+	describe('Watchlist sidebar navigation', () => {
+		const tech = {
+			id: 'w1',
+			user_id: 'u1',
+			name: 'Tech',
+			securities: [mockSecurities[3], mockSecurities[4]]
+		};
+		const energy = {
+			id: 'w2',
+			user_id: 'u1',
+			name: 'Energy',
+			securities: [mockSecurities[2]]
+		};
+
+		it('renders each watchlist as its own group with security links by default', () => {
+			render(AppSidebarTestHarness, {
+				props: {
+					open: true,
+					securities: [],
+					watchlists: [tech, energy]
+				}
+			});
+
+			expect(screen.getByText('Tech')).toBeInTheDocument();
+			expect(screen.getByText('Energy')).toBeInTheDocument();
+
+			const aaplLink = screen.getByText('AAPL').closest('a');
+			expect(aaplLink).toHaveAttribute('href', '/security/sec-4');
+			const spyLink = screen.getByText('SPY').closest('a');
+			expect(spyLink).toHaveAttribute('href', '/security/sec-3');
+			expect(screen.getByText('Apple Inc.')).toBeInTheDocument();
+		});
+
+		it('renders a muted empty state for a watchlist without securities', () => {
+			render(AppSidebarTestHarness, {
+				props: {
+					open: true,
+					securities: [],
+					watchlists: [{ id: 'w3', user_id: 'u1', name: 'Empty', securities: [] }]
+				}
+			});
+
+			expect(screen.getByText('Empty')).toBeInTheDocument();
+			expect(screen.getByText('No securities')).toBeInTheDocument();
+		});
+
+		it('does not render a watchlist visibility toggle in the sidebar', () => {
+			render(AppSidebarTestHarness, {
+				props: {
+					open: true,
+					securities: [],
+					watchlists: [tech, energy]
+				}
+			});
+
+			expect(screen.queryByRole('button', { name: /show watchlists/i })).not.toBeInTheDocument();
+			expect(screen.queryByRole('button', { name: /hide watchlists/i })).not.toBeInTheDocument();
+		});
+
+		it('shows watchlist names in the collapsed rail with wrap-friendly classes', () => {
+			render(AppSidebarTestHarness, {
+				props: {
+					open: false,
+					securities: [],
+					watchlists: [tech, energy]
+				}
+			});
+
+			const techName = screen.getByText('Tech');
+			const label = techName.closest('[data-sidebar="group-label"]') as HTMLElement;
+			expect(label).toHaveClass('group-data-[collapsible=icon]:opacity-100!');
+			expect(label).toHaveClass('group-data-[collapsible=icon]:text-[9px]');
+			expect(label).toHaveClass('group-data-[collapsible=icon]:h-auto!');
+			expect(techName).not.toHaveClass('truncate');
+			expect(techName).toHaveClass('whitespace-normal');
+		});
+
+		it('does not truncate long watchlist names in expanded mode', () => {
+			const longName = 'Long-term compounders and dividend growth ideas';
+			render(AppSidebarTestHarness, {
+				props: {
+					open: true,
+					securities: [],
+					watchlists: [
+						{ id: 'w-long', user_id: 'u1', name: longName, securities: [mockSecurities[3]] }
+					]
+				}
+			});
+
+			const nameSpan = screen.getByText(longName);
+			expect(nameSpan).not.toHaveClass('truncate');
+			expect(nameSpan).toHaveClass('whitespace-normal');
+			expect(nameSpan.closest('[data-sidebar="group-label"]')).toHaveAttribute('title', longName);
+		});
+
+		it('collapses only the watchlist whose caret is clicked and persists to preferences', async () => {
+			render(AppSidebarTestHarness, {
+				props: {
+					open: true,
+					securities: [],
+					watchlists: [tech, energy]
+				}
+			});
+
+			expect(screen.getByText('AAPL')).toBeInTheDocument();
+			expect(screen.getByText('GOOGL')).toBeInTheDocument();
+			expect(screen.getByText('SPY')).toBeInTheDocument();
+
+			await fireEvent.click(screen.getByRole('button', { name: 'Toggle Tech' }));
+
+			expect(screen.queryByText('AAPL')).not.toBeInTheDocument();
+			expect(screen.queryByText('GOOGL')).not.toBeInTheDocument();
+			expect(screen.getByText('SPY')).toBeInTheDocument();
+			expect(userPreferencesService.patchPreferences).toHaveBeenCalledWith({
+				collapsed_watchlist_ids: ['w1']
+			});
+
+			await fireEvent.click(screen.getByRole('button', { name: 'Toggle Tech' }));
+			expect(screen.getByText('AAPL')).toBeInTheDocument();
+			expect(userPreferencesService.patchPreferences).toHaveBeenCalledWith({
+				collapsed_watchlist_ids: []
+			});
+		});
+
+		it('respects initial collapsed state from initialCollapsedWatchlistIds', () => {
+			render(AppSidebarTestHarness, {
+				props: {
+					open: true,
+					securities: [],
+					watchlists: [tech, energy],
+					initialCollapsedWatchlistIds: ['w1']
+				}
+			});
+
+			expect(screen.queryByText('AAPL')).not.toBeInTheDocument();
+			expect(screen.queryByText('GOOGL')).not.toBeInTheDocument();
+			expect(screen.getByText('SPY')).toBeInTheDocument();
+		});
+
+		it('shows ticker-only tickers in collapsed mode for watchlist securities', () => {
+			render(AppSidebarTestHarness, {
+				props: {
+					open: false,
+					securities: [],
+					watchlists: [tech]
+				}
+			});
+
+			const googlTicker = screen.getByText('GOOGL');
+			expect(googlTicker).toHaveClass('text-[8.5px]');
+			expect(googlTicker).not.toHaveClass('truncate');
+			expect(screen.queryByText('Alphabet Inc.')).not.toBeInTheDocument();
+		});
+
+		it('renders watchlists ordered according to initialWatchlistOrder', () => {
+			const crypto = {
+				id: 'w3',
+				user_id: 'u1',
+				name: 'Crypto',
+				securities: []
+			};
+			render(AppSidebarTestHarness, {
+				props: {
+					open: true,
+					securities: [],
+					watchlists: [tech, energy, crypto],
+					initialWatchlistOrder: ['w2', 'w3', 'w1']
+				}
+			});
+
+			const labels = Array.from(document.querySelectorAll('[data-sidebar="group-label"]'))
+				.map((el) => el.textContent?.trim())
+				.filter((text) => ['Tech', 'Energy', 'Crypto'].includes(text ?? ''));
+
+			expect(labels).toEqual(['Energy', 'Crypto', 'Tech']);
+		});
+
+		it('appends unlisted watchlists gracefully when initialWatchlistOrder is partial', () => {
+			const crypto = {
+				id: 'w3',
+				user_id: 'u1',
+				name: 'Crypto',
+				securities: []
+			};
+			render(AppSidebarTestHarness, {
+				props: {
+					open: true,
+					securities: [],
+					watchlists: [tech, energy, crypto],
+					initialWatchlistOrder: ['w3']
+				}
+			});
+
+			const labels = Array.from(document.querySelectorAll('[data-sidebar="group-label"]'))
+				.map((el) => el.textContent?.trim())
+				.filter((text) => ['Tech', 'Energy', 'Crypto'].includes(text ?? ''));
+
+			expect(labels).toEqual(['Crypto', 'Tech', 'Energy']);
 		});
 	});
 
