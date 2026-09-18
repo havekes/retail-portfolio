@@ -1,14 +1,15 @@
 <script lang="ts">
 	import { resolve } from '$app/paths';
-	import { SvelteSet } from 'svelte/reactivity';
 	import type { UserHolding } from '$lib/types/account';
+	import { groupHoldings } from '$lib/utils/finance/holdings-group';
+	import { Badge } from '$lib/components/ui/badge/index.js';
 	import * as Table from '$lib/components/ui/table/index.js';
 	import * as DropdownMenu from '$lib/components/ui/dropdown-menu/index.js';
 	import ArrowUpDown from '@lucide/svelte/icons/arrow-up-down';
 	import ChevronUp from '@lucide/svelte/icons/chevron-up';
 	import ChevronDown from '@lucide/svelte/icons/chevron-down';
-	import ChevronRight from '@lucide/svelte/icons/chevron-right';
 	import Settings2 from '@lucide/svelte/icons/settings-2';
+	import { cn } from '$lib/utils';
 	import {
 		HOLDINGS_TABLE_COLUMNS,
 		HOLDINGS_TABLE_STICKY_COLUMN_ID,
@@ -21,7 +22,7 @@
 
 	type Props = {
 		holdings: UserHolding[];
-		groupBy?: 'company' | null;
+		groupBy?: 'stock' | 'company' | null;
 		isLoading?: boolean;
 		emptyMessage?: string;
 		tableConfig?: HoldingsTableConfig | null;
@@ -53,9 +54,6 @@
 
 	let sortColumn = $state<HoldingsTableColumnId>('total_value');
 	let sortDirection = $state<'asc' | 'desc'>('desc');
-
-	// SvelteSet keeps collapse state reactive without manual reassignment.
-	let collapsedGroups = new SvelteSet<string>();
 
 	type Resize = { column: HoldingsTableColumnId; startX: number; startWidth: number };
 	let resize = $state<Resize | null>(null);
@@ -114,42 +112,111 @@
 		commitConfig({ ...config, visible });
 	}
 
-	const formatCurrency = (amount: number, currency: string) =>
+	const formatCurrency = (amount: number, currency: string = 'CAD') =>
 		new Intl.NumberFormat('en-CA', {
 			style: 'currency',
-			currency
-		}).format(amount);
-
-	const formatNumber = (amount: number) =>
-		new Intl.NumberFormat('en-CA', {
-			minimumFractionDigits: 2,
-			maximumFractionDigits: 2
+			currency: currency || 'CAD'
 		}).format(amount);
 
 	const formatPercent = (value: number) => `${value >= 0 ? '+' : ''}${value.toFixed(2)}%`;
 
-	// Same formula as the account-scoped table: gain relative to the converted cost
-	// basis. Null when there is nothing meaningful to divide by.
-	function profitLossPercent(row: UserHolding): number | null {
+	type HoldingRowView = {
+		id: string;
+		security_id: string;
+		security_symbol: string;
+		security_name: string;
+		currency: string;
+		security_currency: string;
+		quantity: number;
+		average_cost: number | null;
+		converted_average_cost: number | null;
+		latest_price?: number;
+		price_date?: string;
+		total_value: number;
+		unconverted_total_value: number;
+		profit_loss: number | null;
+		unconverted_profit_loss: number | null;
+		account_names: string[];
+	};
+
+	const baseRows = $derived.by<HoldingRowView[]>(() => {
+		if (groupBy === 'stock' || groupBy === 'company') {
+			const groups = groupHoldings(holdings, 'stock');
+			return groups.map((g) => ({
+				id: g.id,
+				security_id: g.security_id,
+				security_symbol: g.security_symbol,
+				security_name: g.security_name,
+				currency: g.currency,
+				security_currency: g.security_currency,
+				quantity: g.quantity,
+				average_cost: g.average_cost,
+				converted_average_cost: g.converted_average_cost,
+				latest_price: g.latest_price,
+				price_date: g.price_date,
+				total_value: g.total_value,
+				unconverted_total_value: g.unconverted_total_value,
+				profit_loss: g.profit_loss,
+				unconverted_profit_loss: g.unconverted_profit_loss,
+				account_names: g.account_names
+			}));
+		}
+
+		return holdings.map((row) => ({
+			id: row.id,
+			security_id: row.security_id,
+			security_symbol: row.security_symbol,
+			security_name: row.security_name,
+			currency: row.currency,
+			security_currency: row.security_currency,
+			quantity: row.quantity,
+			average_cost: row.average_cost,
+			converted_average_cost: row.converted_average_cost,
+			latest_price: row.latest_price,
+			price_date: row.price_date,
+			total_value: row.total_value,
+			unconverted_total_value: row.unconverted_total_value,
+			profit_loss: row.profit_loss,
+			unconverted_profit_loss: row.unconverted_profit_loss,
+			account_names: row.account_name ? [row.account_name] : []
+		}));
+	});
+
+	function profitLossPercent(row: HoldingRowView): number | null {
 		if (row.profit_loss === null || row.profit_loss === undefined) return null;
-		if (!row.average_cost || row.average_cost <= 0) return null;
-		const costBasis = row.quantity * (row.converted_average_cost ?? 0);
-		if (!costBasis) return null;
+		const costBasis = row.quantity * (row.converted_average_cost ?? row.average_cost ?? 0);
+		if (!costBasis || costBasis <= 0) return null;
 		return (row.profit_loss / costBasis) * 100;
 	}
 
+	function getPillClass(changePercent: number | null | undefined): string {
+		if (changePercent == null || Number.isNaN(Number(changePercent))) {
+			return 'text-muted-foreground bg-muted/40 border-border/40';
+		}
+		const num = Number(changePercent);
+		if (num > 0) {
+			return 'text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 border-emerald-500/20';
+		}
+		if (num < 0) {
+			return 'text-rose-600 dark:text-rose-400 bg-rose-500/10 border-rose-500/20';
+		}
+		return 'text-muted-foreground bg-muted/40 border-border/40';
+	}
+
 	function valueFor(
-		row: UserHolding,
+		row: HoldingRowView,
 		column: HoldingsTableColumnId
 	): string | number | null | undefined {
 		if (column === 'profit_loss_percent') return profitLossPercent(row);
-		return row[column];
+		if (column === 'account_name') {
+			return row.account_names.length > 0 ? row.account_names.join(', ') : null;
+		}
+		return row[column as keyof HoldingRowView] as string | number | null | undefined;
 	}
 
-	// Null/undefined cells always sort last, in both directions (lifted from the
-	// account-scoped table).
-	const sortedHoldings = $derived.by(() =>
-		[...holdings].sort((a, b) => {
+	// Null/undefined cells always sort last, in both directions.
+	const displayRows = $derived.by<HoldingRowView[]>(() =>
+		[...baseRows].sort((a, b) => {
 			const aVal = valueFor(a, sortColumn);
 			const bVal = valueFor(b, sortColumn);
 
@@ -165,71 +232,12 @@
 		})
 	);
 
-	// Company key is the security name. Group order follows first appearance in the
-	// currently sorted rows — group headers are never sorted by their aggregates in
-	// this ticket.
-	type HoldingGroup = { key: string; name: string; rows: UserHolding[] };
-
-	const groupedHoldings = $derived.by<HoldingGroup[] | null>(() => {
-		if (groupBy !== 'company') return null;
-
-		const groups: HoldingGroup[] = [];
-		const indexByKey: Record<string, number> = {};
-
-		for (const row of sortedHoldings) {
-			const key = row.security_name;
-			let index = indexByKey[key];
-			if (index === undefined) {
-				index = groups.length;
-				indexByKey[key] = index;
-				groups.push({ key, name: row.security_name, rows: [] });
-			}
-			groups[index].rows.push(row);
-		}
-
-		return groups;
-	});
-
-	function groupTotals(rows: UserHolding[]) {
-		let totalValue = 0;
-		let profitLoss = 0;
-		let costBasis = 0;
-		let hasProfitLoss = false;
-
-		for (const row of rows) {
-			totalValue += row.total_value;
-			if (row.profit_loss !== null && row.profit_loss !== undefined) {
-				hasProfitLoss = true;
-				profitLoss += row.profit_loss;
-				if (row.average_cost !== null && row.average_cost > 0) {
-					costBasis += row.quantity * (row.converted_average_cost ?? 0);
-				}
-			}
-		}
-
-		return {
-			totalValue,
-			profitLoss,
-			hasProfitLoss,
-			// Weighted P/L % across the group's converted cost basis.
-			profitLossPercent: hasProfitLoss && costBasis ? (profitLoss / costBasis) * 100 : null
-		};
-	}
-
 	function handleSort(column: HoldingsTableColumnId) {
 		if (sortColumn === column) {
 			sortDirection = sortDirection === 'asc' ? 'desc' : 'asc';
 		} else {
 			sortColumn = column;
 			sortDirection = 'desc';
-		}
-	}
-
-	function toggleGroup(key: string) {
-		if (collapsedGroups.has(key)) {
-			collapsedGroups.delete(key);
-		} else {
-			collapsedGroups.add(key);
 		}
 	}
 </script>
@@ -265,7 +273,7 @@
 	</Table.Head>
 {/snippet}
 
-{#snippet holdingRow(row: UserHolding)}
+{#snippet holdingRow(row: HoldingRowView)}
 	<Table.Row
 		data-testid="holding-row"
 		class="border-b-muted/10 transition-all even:bg-muted/30 hover:bg-muted/10"
@@ -275,11 +283,11 @@
 				<a
 					data-testid="security-link"
 					href={resolve(`/security/${row.security_id}`)}
-					class="group flex w-fit flex-col"
+					class="group -mx-1.5 -my-1 flex w-fit flex-col rounded-md px-1.5 py-1 transition-colors hover:bg-muted/80"
 				>
 					<span
 						data-testid="security-symbol"
-						class="inline-block text-sm leading-tight font-semibold text-primary group-hover:underline"
+						class="inline-block text-sm leading-tight font-semibold text-primary"
 					>
 						{row.security_symbol}
 					</span>
@@ -289,7 +297,15 @@
 		{/if}
 		{#if isVisible('account_name')}
 			<Table.Cell data-testid="account-cell" class="px-4 py-2 text-sm">
-				{row.account_name || '-'}
+				{#if row.account_names.length === 0}
+					-
+				{:else}
+					<div class="flex flex-wrap items-center gap-1">
+						{#each row.account_names as name (name)}
+							<Badge variant="secondary">{name}</Badge>
+						{/each}
+					</div>
+				{/if}
 			</Table.Cell>
 		{/if}
 		{#if isVisible('quantity')}
@@ -303,14 +319,24 @@
 		{#if isVisible('average_cost')}
 			<Table.Cell class="px-4 py-2 text-right">
 				<div class="flex flex-col items-end leading-tight">
-					<span class="text-xs text-muted-foreground tabular-nums">
-						{row.average_cost !== null && row.average_cost !== undefined
-							? formatCurrency(row.average_cost, row.security_currency)
-							: '-'}
-					</span>
-					{#if row.security_currency !== row.currency && row.converted_average_cost}
-						<span class="text-[10px] text-muted-foreground/60 tabular-nums">
-							{formatCurrency(row.converted_average_cost, row.currency)}
+					{#if row.security_currency !== row.currency}
+						<span class="text-xs text-muted-foreground tabular-nums">
+							{row.converted_average_cost !== null && row.converted_average_cost !== undefined
+								? formatCurrency(row.converted_average_cost, row.currency)
+								: '-'}
+						</span>
+						{#if row.average_cost !== null && row.average_cost !== undefined}
+							<span class="text-[10px] text-muted-foreground/60 tabular-nums">
+								{formatCurrency(row.average_cost, row.security_currency)}
+							</span>
+						{/if}
+					{:else}
+						<span class="text-xs text-muted-foreground tabular-nums">
+							{row.average_cost !== null && row.average_cost !== undefined
+								? formatCurrency(row.average_cost, row.currency)
+								: row.converted_average_cost !== null && row.converted_average_cost !== undefined
+									? formatCurrency(row.converted_average_cost, row.currency)
+									: '-'}
 						</span>
 					{/if}
 				</div>
@@ -326,11 +352,6 @@
 						<span class="text-xs font-medium tabular-nums">
 							{formatCurrency(row.latest_price, row.security_currency)}
 						</span>
-						{#if row.security_currency !== row.currency && row.converted_latest_price}
-							<span class="text-[10px] text-muted-foreground/60 tabular-nums">
-								{formatCurrency(row.converted_latest_price, row.currency)}
-							</span>
-						{/if}
 					</div>
 				{:else}
 					<span class="text-xs text-muted-foreground">-</span>
@@ -341,11 +362,11 @@
 			<Table.Cell class="px-4 py-2 text-right">
 				<div class="flex flex-col items-end leading-tight">
 					<span class="text-sm font-medium tabular-nums">
-						{formatCurrency(row.unconverted_total_value, row.security_currency)}
+						{formatCurrency(row.total_value, row.currency)}
 					</span>
 					{#if row.security_currency !== row.currency}
 						<span class="text-[10px] text-muted-foreground/70 tabular-nums">
-							{formatCurrency(row.total_value, row.currency)}
+							{formatCurrency(row.unconverted_total_value, row.security_currency)}
 						</span>
 					{/if}
 				</div>
@@ -361,18 +382,19 @@
 								row.profit_loss >= 0 ? 'text-emerald-600' : 'text-rose-600'
 							}`}
 						>
-							{row.profit_loss >= 0 ? '+' : ''}{formatCurrency(
-								row.unconverted_profit_loss ?? 0,
-								row.security_currency
-							)}
+							{row.profit_loss >= 0 ? '+' : ''}{formatCurrency(row.profit_loss, row.currency)}
 						</span>
-						{#if row.security_currency !== row.currency}
+						{#if row.security_currency !== row.currency && row.unconverted_profit_loss !== null && row.unconverted_profit_loss !== undefined}
 							<span
+								data-testid="profit-loss-secondary"
 								class={`text-[10px] tabular-nums ${
-									row.profit_loss >= 0 ? 'text-emerald-600/70' : 'text-rose-600/70'
+									row.unconverted_profit_loss >= 0 ? 'text-emerald-600/70' : 'text-rose-600/70'
 								}`}
 							>
-								{row.profit_loss >= 0 ? '+' : ''}{formatCurrency(row.profit_loss, row.currency)}
+								{row.unconverted_profit_loss >= 0 ? '+' : ''}{formatCurrency(
+									row.unconverted_profit_loss,
+									row.security_currency
+								)}
 							</span>
 						{/if}
 					</div>
@@ -387,7 +409,10 @@
 				{#if plPercent !== null}
 					<span
 						data-testid="profit-loss-percent"
-						class={`text-sm tabular-nums ${plPercent >= 0 ? 'text-emerald-600' : 'text-rose-600'}`}
+						class={cn(
+							'inline-flex items-center rounded-md border px-1.5 py-0.5 text-xs font-semibold tabular-nums',
+							getPillClass(plPercent)
+						)}
 					>
 						{formatPercent(plPercent)}
 					</span>
@@ -472,52 +497,8 @@
 						</div>
 					</Table.Cell>
 				</Table.Row>
-			{:else if groupedHoldings}
-				{#each groupedHoldings as group (group.key)}
-					{@const totals = groupTotals(group.rows)}
-					{@const collapsed = collapsedGroups.has(group.key)}
-					<Table.Row data-testid="group-row" class="bg-muted/40 hover:bg-muted/50">
-						<Table.Cell colspan={visibleColumnCount} class="p-0">
-							<button
-								type="button"
-								data-testid="group-header"
-								aria-expanded={!collapsed}
-								class="flex w-full items-center gap-2 px-4 py-2 text-left"
-								onclick={() => toggleGroup(group.key)}
-							>
-								{#if collapsed}<ChevronRight size={14} />{:else}<ChevronDown size={14} />{/if}
-								<span class="text-sm font-semibold">{group.name}</span>
-								<span class="text-xs text-muted-foreground">
-									{group.rows.length}
-									{group.rows.length === 1 ? 'holding' : 'holdings'}
-								</span>
-								<span class="ml-auto text-xs text-muted-foreground tabular-nums">
-									Σ {formatNumber(totals.totalValue)}
-								</span>
-								{#if totals.hasProfitLoss}
-									<span
-										data-testid="group-profit-loss"
-										class={`text-xs tabular-nums ${
-											totals.profitLoss >= 0 ? 'text-emerald-600' : 'text-rose-600'
-										}`}
-									>
-										Σ {totals.profitLoss >= 0 ? '+' : ''}{formatNumber(totals.profitLoss)}
-										{#if totals.profitLossPercent !== null}
-											({formatPercent(totals.profitLossPercent)})
-										{/if}
-									</span>
-								{/if}
-							</button>
-						</Table.Cell>
-					</Table.Row>
-					{#if !collapsed}
-						{#each group.rows as row (row.id)}
-							{@render holdingRow(row)}
-						{/each}
-					{/if}
-				{/each}
 			{:else}
-				{#each sortedHoldings as row (row.id)}
+				{#each displayRows as row (row.id)}
 					{@render holdingRow(row)}
 				{/each}
 			{/if}

@@ -6,15 +6,10 @@ import {
 	HOLDINGS_TABLE_DEFAULT_CONFIG,
 	normalizeHoldingsTableConfig
 } from '$lib/components/holdings/holdings-table-columns';
+import type { HoldingsGroupMode } from '$lib/utils/finance/holdings-group';
 
-// No test may hit the network (frontend/AGENTS.md): every API module the page
-// touches is mocked, and framework modules that touch the browser are stubbed.
 vi.mock('$app/paths', () => ({
 	resolve: (path: string) => path
-}));
-
-vi.mock('$app/navigation', () => ({
-	goto: vi.fn()
 }));
 
 vi.mock('$lib/api/accountService', () => ({
@@ -119,7 +114,7 @@ function makeData(
 	overrides: Partial<{
 		holdings: UserHolding[];
 		holdings_table_config: typeof HOLDINGS_TABLE_DEFAULT_CONFIG;
-		group_mode: 'none' | 'company';
+		group_mode: HoldingsGroupMode;
 	}> = {}
 ) {
 	return {
@@ -130,7 +125,7 @@ function makeData(
 		watchlist_sort: null as Record<string, string> | null,
 		holdings: [] as UserHolding[],
 		holdings_table_config: HOLDINGS_TABLE_DEFAULT_CONFIG,
-		group_mode: 'none' as const,
+		group_mode: 'none' as HoldingsGroupMode,
 		...overrides
 	};
 }
@@ -178,19 +173,20 @@ describe('Holdings page (+page.svelte)', () => {
 		expect(usd).toHaveTextContent('200.00');
 	});
 
-	it('toggling group by company merges rows for the same security without refetching', async () => {
+	it('toggling "Group by stock" merges rows into single rows per stock without refetching', async () => {
 		render(Page, { props: { data: makeData({ holdings: [aaplTfsa, msftRrsp, aaplRrsp] }) } });
 
-		expect(screen.queryAllByTestId('group-header')).toHaveLength(0);
+		expect(screen.getByLabelText('Group by stock')).toBeInTheDocument();
+		expect(screen.getByTestId('group-by-stock')).toBeInTheDocument();
+		expect(screen.queryByTestId('group-header')).not.toBeInTheDocument();
 		expect(screen.getAllByTestId('holding-row')).toHaveLength(3);
 
-		await fireEvent.click(screen.getByTestId('group-by-company'));
+		await fireEvent.click(screen.getByTestId('group-by-stock'));
 
-		const headers = screen.getAllByTestId('group-header');
-		expect(headers).toHaveLength(2);
-		expect(headers[0]).toHaveTextContent('Apple Inc.');
-		expect(headers[0]).toHaveTextContent('2 holdings');
-		expect(screen.getByTestId('group-by-company')).toHaveAttribute('data-state', 'checked');
+		// 3 holdings collapse into 2 stock rows (AAPL and MSFT) without accordion headers
+		expect(screen.queryByTestId('group-header')).not.toBeInTheDocument();
+		expect(screen.getAllByTestId('holding-row')).toHaveLength(2);
+		expect(screen.getByTestId('group-by-stock')).toHaveAttribute('data-state', 'checked');
 
 		// Grouping is pure client-side derivation: the table must not reload data.
 		expect(getUserHoldings).not.toHaveBeenCalled();
@@ -198,34 +194,32 @@ describe('Holdings page (+page.svelte)', () => {
 
 	it('un-groups again when the toggle is switched off', async () => {
 		render(Page, {
-			props: { data: makeData({ holdings: [aaplTfsa, msftRrsp, aaplRrsp], group_mode: 'company' }) }
+			props: { data: makeData({ holdings: [aaplTfsa, msftRrsp, aaplRrsp], group_mode: 'stock' }) }
 		});
 
-		expect(screen.getAllByTestId('group-header')).toHaveLength(2);
+		expect(screen.getAllByTestId('holding-row')).toHaveLength(2);
 
-		await fireEvent.click(screen.getByTestId('group-by-company'));
+		await fireEvent.click(screen.getByTestId('group-by-stock'));
 
-		expect(screen.queryAllByTestId('group-header')).toHaveLength(0);
+		expect(screen.getAllByTestId('holding-row')).toHaveLength(3);
 		expect(getUserHoldings).not.toHaveBeenCalled();
 	});
 
 	it('restores the persisted group mode from the server data', () => {
 		render(Page, {
-			props: { data: makeData({ holdings: [aaplTfsa, aaplRrsp], group_mode: 'company' }) }
+			props: { data: makeData({ holdings: [aaplTfsa, aaplRrsp], group_mode: 'stock' }) }
 		});
 
-		expect(screen.getAllByTestId('group-header')).toHaveLength(1);
-		expect(screen.getByTestId('group-by-company')).toHaveAttribute('data-state', 'checked');
+		expect(screen.getAllByTestId('holding-row')).toHaveLength(1);
+		expect(screen.getByTestId('group-by-stock')).toHaveAttribute('data-state', 'checked');
 	});
 
-	it('persists the group mode when toggled', async () => {
+	it('persists the group mode as "stock" when toggled', async () => {
 		render(Page, { props: { data: makeData({ holdings: [aaplTfsa] }) } });
 
-		await fireEvent.click(screen.getByTestId('group-by-company'));
+		await fireEvent.click(screen.getByTestId('group-by-stock'));
 
-		await waitFor(() =>
-			expect(patchPreferences).toHaveBeenCalledWith({ holdings_group: 'company' })
-		);
+		await waitFor(() => expect(patchPreferences).toHaveBeenCalledWith({ holdings_group: 'stock' }));
 	});
 
 	it('renders the empty state when there are no holdings', () => {
@@ -242,13 +236,13 @@ describe('Holdings page (+page.svelte)', () => {
 
 		render(Page, { props: { data: makeData({ holdings: [aaplTfsa, aaplRrsp] }) } });
 
-		await fireEvent.click(screen.getByTestId('group-by-company'));
+		await fireEvent.click(screen.getByTestId('group-by-stock'));
 
 		await waitFor(() =>
 			expect(screen.getByTestId('holdings-error')).toHaveTextContent('Preferences unavailable')
 		);
 		// The toggle still applies optimistically while the write is retried later.
-		expect(screen.getAllByTestId('group-header')).toHaveLength(1);
+		expect(screen.getAllByTestId('holding-row')).toHaveLength(1);
 	});
 
 	it('renders the column config loaded from the server', () => {

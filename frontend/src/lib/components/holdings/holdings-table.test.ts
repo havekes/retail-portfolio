@@ -46,7 +46,8 @@ const sortRows: UserHolding[] = [
 		total_value: 50,
 		unconverted_total_value: 50,
 		profit_loss: 5,
-		unconverted_profit_loss: 5
+		unconverted_profit_loss: 5,
+		account_name: 'Account Z'
 	}),
 	makeRow({
 		id: 'h-a',
@@ -61,7 +62,8 @@ const sortRows: UserHolding[] = [
 		total_value: 500,
 		unconverted_total_value: 500,
 		profit_loss: null,
-		unconverted_profit_loss: null
+		unconverted_profit_loss: null,
+		account_name: 'Account A'
 	}),
 	makeRow({
 		id: 'h-m',
@@ -76,7 +78,8 @@ const sortRows: UserHolding[] = [
 		total_value: 60,
 		unconverted_total_value: 60,
 		profit_loss: -5,
-		unconverted_profit_loss: -5
+		unconverted_profit_loss: -5,
+		account_name: 'Account M'
 	})
 ];
 
@@ -91,8 +94,8 @@ const groupRows: UserHolding[] = [
 		converted_average_cost: 205,
 		latest_price: 180,
 		converted_latest_price: 250,
-		total_value: 1800,
-		unconverted_total_value: 1300,
+		total_value: 2050,
+		unconverted_total_value: 1800,
 		profit_loss: 300,
 		unconverted_profit_loss: 220,
 		currency: 'CAD',
@@ -114,6 +117,8 @@ const groupRows: UserHolding[] = [
 		unconverted_total_value: 1000,
 		profit_loss: -100,
 		unconverted_profit_loss: -100,
+		currency: 'CAD',
+		security_currency: 'CAD',
 		account_id: 'acc-2',
 		account_name: 'RRSP'
 	}),
@@ -123,16 +128,18 @@ const groupRows: UserHolding[] = [
 		security_symbol: 'AAPL',
 		security_name: 'Apple Inc.',
 		quantity: 2,
-		average_cost: null,
-		converted_average_cost: null,
-		latest_price: undefined,
-		converted_latest_price: null,
-		total_value: 500,
-		unconverted_total_value: 500,
-		profit_loss: null,
-		unconverted_profit_loss: null,
-		account_id: 'acc-1',
-		account_name: 'TFSA'
+		average_cost: 160,
+		converted_average_cost: 210,
+		latest_price: 180,
+		converted_latest_price: 250,
+		total_value: 420,
+		unconverted_total_value: 360,
+		profit_loss: 50,
+		unconverted_profit_loss: 35,
+		currency: 'CAD',
+		security_currency: 'USD',
+		account_id: 'acc-2',
+		account_name: 'RRSP'
 	})
 ];
 
@@ -192,7 +199,7 @@ describe('HoldingsTable', () => {
 		expect(renderedSymbols()).toEqual(['MMM', 'ZZZ', 'AAA']);
 	});
 
-	it('renders one row per holding and links each security cell to /security/{id}', () => {
+	it('renders one row per holding and links each security cell to /security/{id} with rounded hover and without underline', () => {
 		render(HoldingsTable, { props: { holdings: sortRows } });
 
 		expect(screen.getAllByTestId('holding-row')).toHaveLength(3);
@@ -201,12 +208,27 @@ describe('HoldingsTable', () => {
 		expect(links[0]).toHaveAttribute('href', '/security/sec-a');
 		expect(links[1]).toHaveAttribute('href', '/security/sec-m');
 		expect(links[2]).toHaveAttribute('href', '/security/sec-z');
+
+		// Check rounded hover styling and absence of group-hover:underline
+		for (const link of links) {
+			expect(link.className).toContain('hover:bg-muted/80');
+			expect(link.className).toContain('rounded-md');
+			const symbol = within(link).getByTestId('security-symbol');
+			expect(symbol.className).not.toContain('group-hover:underline');
+		}
 	});
 
-	it('shows a dash in the account cell when the account name is blank', () => {
+	it('renders account badges using Badge variant="secondary" and a dash when blank', () => {
 		render(HoldingsTable, {
 			props: {
 				holdings: [
+					makeRow({
+						id: 'h-with-account',
+						security_id: 'sec-1',
+						security_symbol: 'ONE',
+						security_name: 'One Corp',
+						account_name: 'TFSA'
+					}),
 					makeRow({
 						id: 'h-blank-account',
 						security_id: 'sec-blank',
@@ -218,63 +240,165 @@ describe('HoldingsTable', () => {
 			}
 		});
 
-		for (const cell of screen.getAllByTestId('account-cell')) {
-			expect(cell).toHaveTextContent('-');
-		}
+		const cells = screen.getAllByTestId('account-cell');
+		expect(cells[0]).toHaveTextContent('TFSA');
+		const badge = within(cells[0]).getByText('TFSA');
+		expect(badge).toBeInTheDocument();
+
+		expect(cells[1]).toHaveTextContent('-');
 	});
 
-	it('colours positive and negative P/L cells and prefixes the P/L % sign', () => {
+	it('renders watchlist pill badges for P/L % with emerald, rose, and muted styling', () => {
+		render(HoldingsTable, {
+			props: {
+				holdings: [
+					...sortRows,
+					makeRow({
+						id: 'h-zero',
+						security_id: 'sec-zero',
+						security_symbol: 'ZERO',
+						security_name: 'Zero Corp',
+						quantity: 1,
+						average_cost: 10,
+						converted_average_cost: 10,
+						profit_loss: 0,
+						total_value: 10
+					})
+				]
+			}
+		});
+
+		const positiveRow = rowBySymbol('ZZZ');
+		const posPill = within(positiveRow).getByTestId('profit-loss-percent');
+		expect(posPill).toHaveClass('text-emerald-600');
+		expect(posPill).toHaveClass('inline-flex');
+		expect(posPill).toHaveClass('rounded-md');
+		expect(posPill).toHaveClass('border');
+		expect(posPill).toHaveTextContent('+10.00%');
+
+		const negativeRow = rowBySymbol('MMM');
+		const negPill = within(negativeRow).getByTestId('profit-loss-percent');
+		expect(negPill).toHaveClass('text-rose-600');
+		expect(negPill).toHaveClass('inline-flex');
+		expect(negPill).toHaveClass('rounded-md');
+		expect(negPill).toHaveTextContent('-8.33%');
+
+		const zeroRow = rowBySymbol('ZERO');
+		const zeroPill = within(zeroRow).getByTestId('profit-loss-percent');
+		expect(zeroPill).toHaveClass('text-muted-foreground');
+		expect(zeroPill).toHaveTextContent('+0.00%');
+	});
+
+	it('renders dollar Profit / Loss with colored text styling without pill badge containers', () => {
 		render(HoldingsTable, { props: { holdings: sortRows } });
 
 		const positiveRow = rowBySymbol('ZZZ');
-		expect(within(positiveRow).getByTestId('profit-loss')).toHaveClass('text-emerald-600');
-		expect(within(positiveRow).getByTestId('profit-loss').textContent).toMatch(/^\+/);
-		expect(within(positiveRow).getByTestId('profit-loss-percent')).toHaveClass('text-emerald-600');
-		expect(within(positiveRow).getByTestId('profit-loss-percent')).toHaveTextContent('+10.00%');
+		const posPl = within(positiveRow).getByTestId('profit-loss');
+		expect(posPl).toHaveClass('text-emerald-600');
+		expect(posPl).toHaveClass('text-sm');
+		expect(posPl.className).not.toContain('border');
+		expect(posPl.textContent).toMatch(/^\+/);
 
 		const negativeRow = rowBySymbol('MMM');
-		expect(within(negativeRow).getByTestId('profit-loss')).toHaveClass('text-rose-600');
-		expect(within(negativeRow).getByTestId('profit-loss').textContent).toMatch(/^-/);
-		expect(within(negativeRow).getByTestId('profit-loss-percent')).toHaveClass('text-rose-600');
-		expect(within(negativeRow).getByTestId('profit-loss-percent')).toHaveTextContent('-8.33%');
+		const negPl = within(negativeRow).getByTestId('profit-loss');
+		expect(negPl).toHaveClass('text-rose-600');
+		expect(negPl).toHaveClass('text-sm');
+		expect(negPl.className).not.toContain('border');
+		expect(negPl.textContent).toMatch(/^-/);
 	});
 
-	it('renders a group header per company with aggregated values', () => {
-		render(HoldingsTable, { props: { holdings: groupRows, groupBy: 'company' } });
+	it('renders dual-currency display with CAD on top and native USD on bottom, and price in native currency only', () => {
+		render(HoldingsTable, {
+			props: {
+				holdings: [
+					makeRow({
+						id: 'h-usd-sec',
+						security_id: 'sec-aapl',
+						security_symbol: 'AAPL',
+						security_name: 'Apple Inc.',
+						currency: 'CAD',
+						security_currency: 'USD',
+						quantity: 10,
+						average_cost: 150,
+						converted_average_cost: 205,
+						latest_price: 180,
+						converted_latest_price: 245,
+						total_value: 2450,
+						unconverted_total_value: 1800,
+						profit_loss: 400,
+						unconverted_profit_loss: 300
+					})
+				]
+			}
+		});
 
-		const headers = screen.getAllByTestId('group-header');
-		expect(headers).toHaveLength(2);
+		const row = rowBySymbol('AAPL');
 
-		const appleHeader = headers[0];
-		expect(appleHeader).toHaveTextContent('Apple Inc.');
-		expect(appleHeader).toHaveTextContent('2 holdings');
-		expect(appleHeader).toHaveTextContent('2,300.00');
-		expect(appleHeader).toHaveTextContent('+300.00');
-		expect(appleHeader).toHaveTextContent('+14.63%');
+		// Total Value: CAD on top, USD on bottom
+		const totalValueCell = within(row).getAllByRole('cell')[5];
+		expect(totalValueCell).toHaveTextContent('$2,450.00');
+		expect(totalValueCell).toHaveTextContent('$1,800.00');
 
-		const microsoftHeader = headers[1];
-		expect(microsoftHeader).toHaveTextContent('Microsoft Corp.');
-		expect(microsoftHeader).toHaveTextContent('1 holding');
-		expect(microsoftHeader).toHaveTextContent('1,000.00');
-		expect(microsoftHeader).toHaveTextContent('-100.00');
-		expect(microsoftHeader).toHaveTextContent('-5.00%');
+		// Avg Cost: CAD on top, USD on bottom
+		const avgCostCell = within(row).getAllByRole('cell')[3];
+		expect(avgCostCell).toHaveTextContent('$205.00');
+		expect(avgCostCell).toHaveTextContent('$150.00');
+
+		// Profit / Loss: CAD on top, USD on bottom
+		expect(within(row).getByTestId('profit-loss')).toHaveTextContent('+$400.00');
+		expect(within(row).getByTestId('profit-loss-secondary')).toHaveTextContent('+US$300.00');
+
+		// Latest Price: only native USD, no CAD converted line
+		const priceCell = within(row).getAllByRole('cell')[4];
+		expect(priceCell).toHaveTextContent('$180.00');
+		expect(priceCell).not.toHaveTextContent('$245.00');
 	});
 
-	it('collapses and expands a group rows on header click', async () => {
-		render(HoldingsTable, { props: { holdings: groupRows, groupBy: 'company' } });
+	it('renders "Group by stock" mode: strictly one row per stock without accordion headers and with combined account badges', () => {
+		render(HoldingsTable, { props: { holdings: groupRows, groupBy: 'stock' } });
 
-		expect(renderedSymbols()).toEqual(['AAPL', 'AAPL', 'MSFT']);
+		// Strictly 2 rows (AAPL and MSFT), no accordion group-header or group-row elements
+		expect(screen.queryByTestId('group-header')).not.toBeInTheDocument();
+		expect(screen.queryByTestId('group-row')).not.toBeInTheDocument();
+		expect(screen.getAllByTestId('holding-row')).toHaveLength(2);
+		expect(renderedSymbols()).toEqual(['AAPL', 'MSFT']);
 
-		const appleHeader = screen.getAllByTestId('group-header')[0];
-		await fireEvent.click(appleHeader);
+		// AAPL row aggregates CAD totals across TFSA and RRSP
+		const aaplRow = rowBySymbol('AAPL');
+		expect(within(aaplRow).getByText('TFSA')).toBeInTheDocument();
+		expect(within(aaplRow).getByText('RRSP')).toBeInTheDocument();
+		// Quantity: 10 + 2 = 12
+		expect(within(aaplRow).getByText('12')).toBeInTheDocument();
+		// CAD Total Value: 2050 + 420 = 2470
+		expect(within(aaplRow).getByText('$2,470.00')).toBeInTheDocument();
+		// CAD Profit Loss: 300 + 50 = +$350.00
+		expect(within(aaplRow).getByTestId('profit-loss')).toHaveTextContent('+$350.00');
 
-		expect(screen.getAllByTestId('group-header')).toHaveLength(2);
-		expect(renderedSymbols()).toEqual(['MSFT']);
-		expect(appleHeader).toHaveAttribute('aria-expanded', 'false');
+		// MSFT row
+		const msftRow = rowBySymbol('MSFT');
+		expect(within(msftRow).getByText('RRSP')).toBeInTheDocument();
+		expect(within(msftRow).getByText('5')).toBeInTheDocument();
+	});
 
-		await fireEvent.click(appleHeader);
-		expect(renderedSymbols()).toEqual(['AAPL', 'AAPL', 'MSFT']);
-		expect(appleHeader).toHaveAttribute('aria-expanded', 'true');
+	it('sorts aggregated stock rows in "Group by stock" mode', async () => {
+		render(HoldingsTable, { props: { holdings: groupRows, groupBy: 'stock' } });
+
+		// Default sort is total_value desc: AAPL ($2,470) then MSFT ($1,000)
+		expect(renderedSymbols()).toEqual(['AAPL', 'MSFT']);
+
+		// Sort by quantity: AAPL (12), MSFT (5)
+		await fireEvent.click(screen.getByRole('button', { name: 'Quantity' }));
+		expect(renderedSymbols()).toEqual(['AAPL', 'MSFT']);
+
+		await fireEvent.click(screen.getByRole('button', { name: 'Quantity' }));
+		expect(renderedSymbols()).toEqual(['MSFT', 'AAPL']);
+
+		// Sort by Security symbol: AAPL, MSFT
+		await fireEvent.click(screen.getByRole('button', { name: 'Security' }));
+		expect(renderedSymbols()).toEqual(['MSFT', 'AAPL']);
+
+		await fireEvent.click(screen.getByRole('button', { name: 'Security' }));
+		expect(renderedSymbols()).toEqual(['AAPL', 'MSFT']);
 	});
 
 	it('renders the empty state when there are no rows', () => {
@@ -375,8 +499,8 @@ describe('HoldingsTable', () => {
 			await fireEvent.click(toggle);
 		}
 
-		it('hides a column from the header, rows and colgroup and shrinks the colspans', async () => {
-			render(HoldingsTable, { props: { holdings: groupRows, groupBy: 'company' } });
+		it('hides a column from the header, rows and colgroup', async () => {
+			render(HoldingsTable, { props: { holdings: groupRows, groupBy: 'stock' } });
 
 			await hideColumn('column-toggle-account_name');
 
@@ -384,10 +508,6 @@ describe('HoldingsTable', () => {
 			expect(screen.queryByTestId('account-cell')).not.toBeInTheDocument();
 			expect(screen.queryByTestId('column-col-account_name')).not.toBeInTheDocument();
 			expect(screen.getByTestId('column-col-security_symbol')).toBeInTheDocument();
-			expect(screen.getAllByTestId('group-row')[0].querySelector('td')).toHaveAttribute(
-				'colspan',
-				'7'
-			);
 		});
 
 		it('shrinks the empty-state colspan to the number of visible columns', async () => {

@@ -24,22 +24,24 @@ describe('holdings-group-prefs', () => {
 	});
 
 	describe('normalizeHoldingsGroupMode', () => {
-		it('accepts the explicit company mode and falls back to none otherwise', () => {
-			expect(normalizeHoldingsGroupMode('company')).toBe('company');
+		it('accepts stock mode and legacy company mode (normalizing to stock), falling back to none otherwise', () => {
+			expect(normalizeHoldingsGroupMode('stock')).toBe('stock');
+			expect(normalizeHoldingsGroupMode('company')).toBe('stock');
 			expect(normalizeHoldingsGroupMode('none')).toBe('none');
 
-			for (const raw of [undefined, null, '', 'COMPANY', 1, {}, []]) {
+			for (const raw of [undefined, null, '', 'STOCK', 'COMPANY', 1, {}, []]) {
 				expect(normalizeHoldingsGroupMode(raw)).toBe('none');
 			}
 		});
 	});
 
 	describe('loadHoldingsGroupMode', () => {
-		it('reads the preferences service and returns the stored holdings_group key', async () => {
-			const { service, getPreferences } = makeService({ holdings_group: 'company' });
+		it('reads the preferences service and returns normalized stock mode for stock and company keys', async () => {
+			const stockService = makeService({ holdings_group: 'stock' });
+			await expect(loadHoldingsGroupMode(stockService.service)).resolves.toBe('stock');
 
-			await expect(loadHoldingsGroupMode(service)).resolves.toBe('company');
-			expect(getPreferences).toHaveBeenCalledTimes(1);
+			const companyService = makeService({ holdings_group: 'company' });
+			await expect(loadHoldingsGroupMode(companyService.service)).resolves.toBe('stock');
 		});
 
 		it('falls back to none when the stored key is missing, empty or garbage', async () => {
@@ -69,10 +71,10 @@ describe('holdings-group-prefs', () => {
 		it('persists a single holdings_group key through patchPreferences', async () => {
 			const { service, patchPreferences } = makeService();
 
-			await saveHoldingsGroupMode(service, 'company');
+			await saveHoldingsGroupMode(service, 'stock');
 
 			expect(patchPreferences).toHaveBeenCalledTimes(1);
-			expect(patchPreferences).toHaveBeenCalledWith({ holdings_group: 'company' });
+			expect(patchPreferences).toHaveBeenCalledWith({ holdings_group: 'stock' });
 		});
 	});
 
@@ -82,10 +84,10 @@ describe('holdings-group-prefs', () => {
 
 		fetchMock.mockResolvedValueOnce({
 			ok: true,
-			json: async () => ({ holdings_group: 'company' })
+			json: async () => ({ holdings_group: 'stock' })
 		} as Response);
 
-		await expect(loadHoldingsGroupMode(service)).resolves.toBe('company');
+		await expect(loadHoldingsGroupMode(service)).resolves.toBe('stock');
 		expect(fetchMock).toHaveBeenLastCalledWith(
 			expect.stringContaining('/accounts/me/preferences'),
 			expect.objectContaining({ method: 'GET' })

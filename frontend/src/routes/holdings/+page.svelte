@@ -57,7 +57,7 @@
 	}
 
 	function handleGroupToggle(checked: boolean | 'indeterminate') {
-		const mode: HoldingsGroupMode = checked === true ? 'company' : 'none';
+		const mode: HoldingsGroupMode = checked === true ? 'stock' : 'none';
 		service.setGroupBy(mode);
 		persist(saveHoldingsGroupMode(prefsService, mode), 'Failed to save group preference');
 	}
@@ -100,16 +100,16 @@
 				{/each}
 				<div class="flex items-center gap-2">
 					<Checkbox
-						id="group-by-company"
-						data-testid="group-by-company"
-						checked={service.groupBy === 'company'}
+						id="group-by-stock"
+						data-testid="group-by-stock"
+						checked={service.groupBy === 'stock' || service.groupBy === 'company'}
 						onCheckedChange={handleGroupToggle}
 					/>
 					<label
-						for="group-by-company"
+						for="group-by-stock"
 						class="cursor-pointer text-sm leading-none font-medium text-muted-foreground select-none"
 					>
-						Group by company
+						Group by stock
 					</label>
 				</div>
 			</div>
@@ -127,7 +127,7 @@
 	<main class="flex-1 overflow-auto">
 		<HoldingsTable
 			holdings={service.rows}
-			groupBy={service.groupBy === 'company' ? 'company' : null}
+			groupBy={service.groupBy === 'stock' || service.groupBy === 'company' ? 'stock' : null}
 			isLoading={service.isLoading}
 			tableConfig={data.holdings_table_config}
 			onConfigChange={handleConfigChange}
