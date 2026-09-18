@@ -43,6 +43,8 @@ describe('Security Settings Page (+page.svelte)', () => {
 		user: { id: 'u-1', email: 'user@example.com' },
 		sidebar_open: true,
 		collapsed_watchlist_ids: [],
+		watchlist_order: null,
+		watchlist_sort: null,
 		status: {
 			totp_enabled: false,
 			recovery_codes_remaining: 0
@@ -92,6 +94,8 @@ describe('Security Settings Page (+page.svelte)', () => {
 					user: { id: 'u-1', email: 'user@example.com' },
 					sidebar_open: true,
 					collapsed_watchlist_ids: [],
+					watchlist_order: null,
+					watchlist_sort: null,
 					status: {
 						totp_enabled: true,
 						recovery_codes_remaining: 6
@@ -120,6 +124,8 @@ describe('Security Settings Page (+page.svelte)', () => {
 					user: { id: 'u-1', email: 'user@example.com' },
 					sidebar_open: true,
 					collapsed_watchlist_ids: [],
+					watchlist_order: null,
+					watchlist_sort: null,
 					status: {
 						totp_enabled: true,
 						recovery_codes_remaining: 8
@@ -177,6 +183,8 @@ describe('Security Settings Page (+page.svelte)', () => {
 					user: { id: 'u-1', email: 'user@example.com' },
 					sidebar_open: true,
 					collapsed_watchlist_ids: [],
+					watchlist_order: null,
+					watchlist_sort: null,
 					status: {
 						totp_enabled: false,
 						recovery_codes_remaining: 0
