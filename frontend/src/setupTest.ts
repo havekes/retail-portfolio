@@ -27,6 +27,16 @@ afterAll(() => {
 	return new Promise((resolve) => setTimeout(resolve, 50));
 });
 
+// jsdom does not implement `Element.prototype.scrollIntoView`, but bits-ui's
+// Command calls it (on the active item and on the closest group heading) to keep
+// the highlighted option in view. Those calls happen asynchronously and reject
+// with `TypeError: closestGroupHeader?.scrollIntoView is not a function`, which
+// vitest surfaces as unhandled errors for any test rendering a grouped Command.
+// A no-op stub is the standard jsdom shim; tests assert on state, not scrolling.
+if (typeof Element !== 'undefined') {
+	Element.prototype.scrollIntoView = vi.fn();
+}
+
 // Mock window.location
 if (typeof window !== 'undefined') {
 	const url = new URL('http://localhost/');
