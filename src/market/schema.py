@@ -30,6 +30,9 @@ class SecuritySchema(BaseModel):
     isin: str | None
     is_active: bool = True
     updated_at: datetime
+    current_price: Decimal | None = None
+    daily_price_change: Decimal | None = None
+    daily_price_change_percent: Decimal | None = None
 
     def get_eodhd_symbol(self) -> str:
         return f"{self.symbol}.{self.exchange}"

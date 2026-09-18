@@ -10,12 +10,14 @@
 		securities = [],
 		watchlists = undefined,
 		initialCollapsedWatchlistIds = undefined,
+		initialWatchlistOrder = undefined,
 		onToggleGlobalSearch = undefined
 	}: {
 		open?: boolean;
 		securities?: SecuritySchema[];
 		watchlists?: WatchlistRead[];
 		initialCollapsedWatchlistIds?: string[];
+		initialWatchlistOrder?: string[];
 		onToggleGlobalSearch?: () => void;
 	} = $props();
 
@@ -23,6 +25,10 @@
 	const initialCollapsed = untrack(() => initialCollapsedWatchlistIds);
 	if (initialCollapsed !== undefined) {
 		setContext('initialCollapsedWatchlistIds', initialCollapsed);
+	}
+	const initialOrder = untrack(() => initialWatchlistOrder);
+	if (initialOrder !== undefined) {
+		setContext('initialWatchlistOrder', initialOrder);
 	}
 
 	const watchlistService = setWatchlistService();

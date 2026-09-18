@@ -92,5 +92,7 @@ class UserPreferences(BaseModel):
     elliott_waves: dict[str, Any] | None = None
     fibonacci_tools: dict[str, Any] | None = None
     wave_settings: dict[str, Any] | None = None
+    watchlist_order: list[str] | None = None
+    watchlist_sort: dict[str, str] | None = None
 
     model_config = ConfigDict(extra="allow")

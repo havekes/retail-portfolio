@@ -52,6 +52,8 @@ export interface UserPreferences {
 	fibonacci_tools?: Record<string, SecurityFibonacciTools> | null;
 	wave_settings?: WaveSettings | null;
 	chart_hide_labels?: boolean | null;
+	watchlist_order?: string[] | null;
+	watchlist_sort?: Record<string, string> | null;
 }
 
 export class UserPreferencesService extends ApiClient {

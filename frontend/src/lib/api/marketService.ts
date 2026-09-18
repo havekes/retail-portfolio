@@ -38,6 +38,9 @@ export interface SecuritySchema {
 	isin: string | null;
 	is_active: boolean;
 	updated_at: string;
+	current_price?: number | null;
+	daily_price_change?: number | null;
+	daily_price_change_percent?: number | null;
 }
 
 export interface SecurityCreateRequest {
