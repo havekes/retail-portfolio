@@ -182,7 +182,10 @@ prepend_sys_path = [
 [tool.ruff]
 line-length = 88
 cache-dir = "./.cache/ruff"
-exclude = ["migrations", "tests", "modules"]
+# `openwiki/` is machine-generated documentation; ruff formats Python code
+# fences inside Markdown, so generated snippets would otherwise gate CI on
+# every scheduled OpenWiki update.
+exclude = ["migrations", "tests", "modules", "openwiki"]
 
 [tool.ty.src]
 exclude = ["migrations"]
