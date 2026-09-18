@@ -2,6 +2,7 @@ import { describe, it, expect, vi, beforeEach, beforeAll } from 'vitest';
 import { render, screen, fireEvent, waitFor, within } from '@testing-library/svelte';
 import type { Component } from 'svelte';
 import type { SecuritySchema, WatchlistRead } from '@/api/marketService';
+import { WATCHLIST_SIDEBAR_PREF } from '$lib/components/layout/watchlist-sidebar-pref';
 
 vi.mock('$app/paths', () => ({
 	resolve: (path: string) => path
@@ -76,14 +77,22 @@ beforeEach(() => {
 	mocks.service = service;
 });
 
-function renderPage(watchlists: WatchlistRead[]) {
-	return render(PageComponent, { props: { data: { watchlists } } });
+function renderPage(
+	watchlists: WatchlistRead[],
+	showWatchlists = false,
+	setShow: (value: boolean) => void = vi.fn()
+) {
+	return render(PageComponent, {
+		props: { data: { watchlists } },
+		context: new Map([[WATCHLIST_SIDEBAR_PREF, { show: showWatchlists, setShow }] as const])
+	});
 }
 
-async function submitCreate(name: string) {
-	const input = screen.getByLabelText('New watchlist name') as HTMLInputElement;
+async function openCreateModal(name: string) {
+	await fireEvent.click(screen.getByRole('button', { name: 'Create watchlist' }));
+	const input = await screen.findByLabelText('Watchlist name');
 	await fireEvent.input(input, { target: { value: name } });
-	await fireEvent.submit(screen.getByRole('form', { name: 'Create watchlist' }));
+	await fireEvent.click(screen.getByRole('button', { name: 'Create' }));
 	return input;
 }
 
@@ -119,29 +128,72 @@ describe('Watchlists page - rendering', () => {
 
 		expect(screen.getByRole('status', { name: 'Loading watchlists' })).toBeInTheDocument();
 	});
+
+	it('renders the page title without a subtitle', () => {
+		renderPage([]);
+
+		expect(screen.getByRole('heading', { name: 'Watchlists' })).toBeInTheDocument();
+		expect(screen.queryByText('Create, rename and delete your watchlists')).not.toBeInTheDocument();
+	});
+});
+
+describe('Watchlists page - sidebar watchlists toggle', () => {
+	it('renders the toggle in the page header actions', () => {
+		renderPage([defaultList()]);
+
+		const toggle = screen.getByRole('button', { name: 'Show watchlists in sidebar' });
+		expect(toggle).toHaveAttribute('aria-pressed', 'false');
+	});
+
+	it('calls setShow with true when enabling watchlists', async () => {
+		const setShow = vi.fn();
+		renderPage([], false, setShow);
+
+		await fireEvent.click(screen.getByRole('button', { name: 'Show watchlists in sidebar' }));
+
+		expect(setShow).toHaveBeenCalledWith(true);
+	});
+
+	it('reflects the enabled state', () => {
+		renderPage([defaultList()], true);
+
+		const toggle = screen.getByRole('button', { name: 'Hide watchlists in sidebar' });
+		expect(toggle).toHaveAttribute('aria-pressed', 'true');
+	});
 });
 
 describe('Watchlists page - create', () => {
-	it('adds a created watchlist to the list without a reload and clears the input', async () => {
+	it('removes the inline create form and uses a modal instead', async () => {
+		renderPage([]);
+
+		expect(screen.queryByRole('form', { name: 'Create watchlist' })).not.toBeInTheDocument();
+
+		await fireEvent.click(screen.getByRole('button', { name: 'Create watchlist' }));
+
+		expect(await screen.findByRole('dialog')).toBeInTheDocument();
+	});
+
+	it('adds a created watchlist to the list without a reload and closes the modal', async () => {
 		mocks.client.createWatchlist.mockResolvedValue(watchlist('wl-growth', 'Growth', []));
 		renderPage([]);
 
-		const input = await submitCreate('Growth');
+		await openCreateModal('Growth');
 
 		await waitFor(() =>
 			expect(mocks.client.createWatchlist).toHaveBeenCalledWith('Growth', undefined)
 		);
 		expect(await screen.findByText('Growth')).toBeInTheDocument();
-		expect(input.value).toBe('');
+		await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument());
 	});
 
-	it('shows the backend error message when creation fails', async () => {
+	it('shows the backend error in the modal and keeps it open', async () => {
 		mocks.client.createWatchlist.mockRejectedValue(new Error('Watchlist already exists'));
 		renderPage([]);
 
-		await submitCreate('Default');
+		await openCreateModal('Default');
 
 		expect(await screen.findByText('Watchlist already exists')).toBeInTheDocument();
+		expect(screen.getByRole('dialog')).toBeInTheDocument();
 	});
 });
 
@@ -271,6 +323,17 @@ describe('Watchlists page - add security', () => {
 			])
 		);
 	}
+
+	it('renders a single visible border around the add-security input', async () => {
+		renderPage([defaultList()]);
+		await selectWatchlist('Default');
+
+		const inputGroup = document.querySelector('[data-slot="input-group"]') as HTMLElement;
+		const pickerWrapper = inputGroup.closest('[data-slot="command"]')?.parentElement as HTMLElement;
+
+		expect(inputGroup).toHaveClass('border');
+		expect(pickerWrapper).not.toHaveClass('border');
+	});
 
 	it('searches the market and adds the selected security to the active list', async () => {
 		mocks.client.search.mockResolvedValue([

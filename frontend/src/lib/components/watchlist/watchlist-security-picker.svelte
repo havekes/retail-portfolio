@@ -61,7 +61,7 @@
 	);
 </script>
 
-<div class="w-full max-w-md rounded-lg border">
+<div class="w-full max-w-md rounded-lg">
 	<Command.Root shouldFilter={false} label="Add securities">
 		<Command.Input
 			bind:value={query}
