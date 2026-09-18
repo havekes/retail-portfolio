@@ -165,6 +165,27 @@ describe('AppSidebar Modular Components', () => {
 			await fireEvent.click(searchBtn);
 			expect(onToggleSearch).toHaveBeenCalledTimes(1);
 		});
+
+		it('renders the Watchlists link directly below Search in the sidebar content', () => {
+			render(AppSidebarTestHarness, {
+				props: {
+					open: true,
+					securities: mockSecurities
+				}
+			});
+
+			const searchBtn = screen.getByRole('button', { name: /search/i });
+			const watchlistsLink = screen.getByRole('link', { name: 'Watchlists' });
+
+			expect(watchlistsLink.closest('[data-slot="sidebar-header"]')).toBeNull();
+			expect(searchBtn.closest('[data-slot="sidebar-group"]')).toBe(
+				watchlistsLink.closest('[data-slot="sidebar-group"]')
+			);
+			// Watchlists link follows the Search button in DOM order.
+			expect(
+				searchBtn.compareDocumentPosition(watchlistsLink) & Node.DOCUMENT_POSITION_FOLLOWING
+			).toBeTruthy();
+		});
 	});
 
 	describe('Watchlist UI', () => {
@@ -273,6 +294,25 @@ describe('AppSidebar Modular Components', () => {
 			expect(screen.queryByText('Energy')).not.toBeInTheDocument();
 		});
 
+		it('switches from the default list to per-watchlist groups when the preference flips on', async () => {
+			render(AppSidebarTestHarness, {
+				props: {
+					open: true,
+					securities: [],
+					showWatchlists: false,
+					watchlists: [tech, energy]
+				}
+			});
+
+			expect(screen.getByText('Watchlist')).toBeInTheDocument();
+			expect(screen.queryByText('Tech')).not.toBeInTheDocument();
+
+			await fireEvent.click(screen.getByRole('button', { name: 'Toggle harness watchlists' }));
+
+			expect(screen.getByText('Tech')).toBeInTheDocument();
+			expect(screen.getByText('Energy')).toBeInTheDocument();
+		});
+
 		it('renders each watchlist as its own group with security links when enabled', () => {
 			render(AppSidebarTestHarness, {
 				props: {
@@ -307,28 +347,80 @@ describe('AppSidebar Modular Components', () => {
 			expect(screen.getByText('No securities')).toBeInTheDocument();
 		});
 
-		it('invokes the toggle callback with the next value', async () => {
-			const onToggle = vi.fn();
-			const { rerender } = render(AppSidebarTestHarness, {
+		it('does not render a watchlist visibility toggle in the sidebar', () => {
+			render(AppSidebarTestHarness, {
 				props: {
 					open: true,
 					securities: [],
-					showWatchlists: false,
-					onToggleWatchlists: onToggle
+					showWatchlists: true,
+					watchlists: [tech, energy]
 				}
 			});
 
-			await fireEvent.click(screen.getByRole('button', { name: 'Show watchlists' }));
-			expect(onToggle).toHaveBeenCalledWith(true);
+			expect(screen.queryByRole('button', { name: /show watchlists/i })).not.toBeInTheDocument();
+			expect(screen.queryByRole('button', { name: /hide watchlists/i })).not.toBeInTheDocument();
+		});
 
-			await rerender({
-				open: true,
-				securities: [],
-				showWatchlists: true,
-				onToggleWatchlists: onToggle
+		it('shows watchlist names in the collapsed rail with wrap-friendly classes', () => {
+			render(AppSidebarTestHarness, {
+				props: {
+					open: false,
+					securities: [],
+					showWatchlists: true,
+					watchlists: [tech, energy]
+				}
 			});
-			await fireEvent.click(screen.getByRole('button', { name: 'Hide watchlists' }));
-			expect(onToggle).toHaveBeenCalledWith(false);
+
+			const techName = screen.getByText('Tech');
+			const label = techName.closest('[data-sidebar="group-label"]') as HTMLElement;
+			expect(label).toHaveClass('group-data-[collapsible=icon]:opacity-100!');
+			expect(label).toHaveClass('group-data-[collapsible=icon]:text-[9px]');
+			expect(label).toHaveClass('group-data-[collapsible=icon]:h-auto!');
+			expect(techName).not.toHaveClass('truncate');
+			expect(techName).toHaveClass('whitespace-normal');
+		});
+
+		it('does not truncate long watchlist names in expanded mode', () => {
+			const longName = 'Long-term compounders and dividend growth ideas';
+			render(AppSidebarTestHarness, {
+				props: {
+					open: true,
+					securities: [],
+					showWatchlists: true,
+					watchlists: [
+						{ id: 'w-long', user_id: 'u1', name: longName, securities: [mockSecurities[3]] }
+					]
+				}
+			});
+
+			const nameSpan = screen.getByText(longName);
+			expect(nameSpan).not.toHaveClass('truncate');
+			expect(nameSpan).toHaveClass('whitespace-normal');
+			expect(nameSpan.closest('[data-sidebar="group-label"]')).toHaveAttribute('title', longName);
+		});
+
+		it('collapses only the watchlist whose caret is clicked', async () => {
+			render(AppSidebarTestHarness, {
+				props: {
+					open: true,
+					securities: [],
+					showWatchlists: true,
+					watchlists: [tech, energy]
+				}
+			});
+
+			expect(screen.getByText('AAPL')).toBeInTheDocument();
+			expect(screen.getByText('GOOGL')).toBeInTheDocument();
+			expect(screen.getByText('SPY')).toBeInTheDocument();
+
+			await fireEvent.click(screen.getByRole('button', { name: 'Toggle Tech' }));
+
+			expect(screen.queryByText('AAPL')).not.toBeInTheDocument();
+			expect(screen.queryByText('GOOGL')).not.toBeInTheDocument();
+			expect(screen.getByText('SPY')).toBeInTheDocument();
+
+			await fireEvent.click(screen.getByRole('button', { name: 'Toggle Tech' }));
+			expect(screen.getByText('AAPL')).toBeInTheDocument();
 		});
 
 		it('shows ticker-only tickers in collapsed mode for watchlist securities', () => {

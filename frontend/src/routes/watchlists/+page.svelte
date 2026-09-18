@@ -8,9 +8,16 @@
 	import { Input } from '$lib/components/ui/input/index.js';
 	import { Skeleton } from '$lib/components/ui/skeleton/index.js';
 	import { getWatchlistService } from '$lib/components/watchlist/watchlistService.svelte';
+	import CreateWatchlistModal from '$lib/components/watchlist/create-watchlist-modal.svelte';
 	import WatchlistSecurityPicker from '$lib/components/watchlist/watchlist-security-picker.svelte';
-	import { untrack } from 'svelte';
+	import {
+		WATCHLIST_SIDEBAR_PREF,
+		type WatchlistSidebarPref
+	} from '$lib/components/layout/watchlist-sidebar-pref.js';
+	import { getContext, untrack } from 'svelte';
 	import Check from '@lucide/svelte/icons/check';
+	import Eye from '@lucide/svelte/icons/eye';
+	import EyeOff from '@lucide/svelte/icons/eye-off';
 	import Pencil from '@lucide/svelte/icons/pencil';
 	import Trash2 from '@lucide/svelte/icons/trash-2';
 	import X from '@lucide/svelte/icons/x';
@@ -18,6 +25,10 @@
 	let { data }: { data: { watchlists: WatchlistRead[] } } = $props();
 
 	const watchlistService = getWatchlistService();
+	const sidebarPref = getContext<WatchlistSidebarPref | undefined>(WATCHLIST_SIDEBAR_PREF) ?? {
+		show: false,
+		setShow: () => {}
+	};
 
 	// Seed the shared service with the SSR-loaded data so the first paint, the
 	// mutations and the sidebar all read from a single source of truth. The
@@ -32,24 +43,11 @@
 		watchlistService.isLoading && watchlistService.watchlists.length === 0
 	);
 
-	let newName = $state('');
 	let editingId = $state<string | null>(null);
 	let editingName = $state('');
 	let deleteOpen = $state(false);
+	let createOpen = $state(false);
 	let pendingDelete = $state<WatchlistRead | null>(null);
-
-	async function handleCreate(event: SubmitEvent) {
-		event.preventDefault();
-		const name = newName.trim();
-		if (!name) {
-			return;
-		}
-		watchlistService.error = null;
-		await watchlistService.createWatchlist(name);
-		if (!watchlistService.error) {
-			newName = '';
-		}
-	}
 
 	function startRename(watchlist: WatchlistRead) {
 		editingId = watchlist.id;
@@ -118,18 +116,30 @@
 </svelte:head>
 
 <div class="flex flex-1 flex-col overflow-hidden bg-background">
-	<PageHeader title="Watchlists" subtitle="Create, rename and delete your watchlists" />
+	<PageHeader title="Watchlists">
+		{#snippet actions()}
+			<Button
+				variant="outline"
+				size="sm"
+				aria-label={sidebarPref.show ? 'Hide watchlists in sidebar' : 'Show watchlists in sidebar'}
+				aria-pressed={sidebarPref.show}
+				onclick={() => sidebarPref.setShow(!sidebarPref.show)}
+			>
+				{#if sidebarPref.show}
+					<EyeOff class="mr-2 h-4 w-4" />
+					Hide watchlists
+				{:else}
+					<Eye class="mr-2 h-4 w-4" />
+					Show watchlists
+				{/if}
+			</Button>
+		{/snippet}
+	</PageHeader>
 
 	<main class="flex flex-1 flex-col gap-4 overflow-y-auto p-4">
-		<form aria-label="Create watchlist" class="flex items-center gap-2" onsubmit={handleCreate}>
-			<Input
-				bind:value={newName}
-				aria-label="New watchlist name"
-				placeholder="New watchlist name"
-				class="max-w-xs"
-			/>
-			<Button type="submit" disabled={!newName.trim()}>Create</Button>
-		</form>
+		<div class="flex items-center">
+			<Button onclick={() => (createOpen = true)}>Create watchlist</Button>
+		</div>
 
 		{#if watchlistService.error}
 			<Alert variant="destructive">
@@ -256,4 +266,6 @@
 		onconfirm={confirmDelete}
 		oncancel={() => (pendingDelete = null)}
 	/>
+
+	<CreateWatchlistModal bind:open={createOpen} />
 </div>

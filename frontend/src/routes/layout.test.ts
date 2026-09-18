@@ -1,6 +1,7 @@
 import { render, screen, fireEvent } from '@testing-library/svelte';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import Layout from './+layout.svelte';
+import LayoutTestHarness from './layout.test-harness.svelte';
 import { load } from './+layout.server';
 import { createRawSnippet } from 'svelte';
 import { userPreferencesService, getUserPreferencesService } from '$lib/api/userPreferencesService';
@@ -168,27 +169,25 @@ describe('Root +layout.svelte', () => {
 			).toBeInTheDocument();
 		});
 
-		it('persists the toggle through the preferences client', async () => {
-			const children = createRawSnippet(() => ({
-				render: () => '<div data-testid="page-content">Authenticated Dashboard</div>'
-			}));
-
-			render(Layout, {
+		it('persists the toggle through the preferences client and updates context consumers', async () => {
+			render(LayoutTestHarness, {
 				props: {
 					data: {
 						user: { id: 'u1', email: 'test@example.com' },
 						sidebar_open: true,
 						sidebar_watchlists: false
-					},
-					children
+					}
 				}
 			});
 
-			await fireEvent.click(screen.getByRole('button', { name: 'Show watchlists' }));
+			expect(screen.getByTestId('watchlist-pref-state')).toHaveTextContent('off');
+
+			await fireEvent.click(screen.getByRole('button', { name: 'Probe toggle watchlists' }));
 
 			expect(userPreferencesService.patchPreferences).toHaveBeenCalledWith({
 				sidebar_watchlists: true
 			});
+			expect(screen.getByTestId('watchlist-pref-state')).toHaveTextContent('on');
 		});
 	});
 });

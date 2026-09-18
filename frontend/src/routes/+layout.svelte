@@ -10,6 +10,10 @@
 	import GlobalSearch from '$lib/components/global-search.svelte';
 	import { userPreferencesService } from '$lib/api/userPreferencesService.js';
 	import { Toaster } from '$lib/components/ui/toast/index.js';
+	import {
+		WATCHLIST_SIDEBAR_PREF,
+		type WatchlistSidebarPref
+	} from '$lib/components/layout/watchlist-sidebar-pref.js';
 
 	let { children, data } = $props();
 
@@ -32,6 +36,15 @@
 			userPreferencesService.patchPreferences({ sidebar_watchlists: show }).catch(console.error);
 		}
 	}
+
+	setContext<WatchlistSidebarPref>(WATCHLIST_SIDEBAR_PREF, {
+		get show() {
+			return showWatchlists;
+		},
+		setShow(value: boolean) {
+			handleShowWatchlistsChange(value);
+		}
+	});
 
 	$effect(() => {
 		if (data.user) {
@@ -65,7 +78,7 @@
 		bind:open={sidebarOpen}
 		onOpenChange={handleSidebarOpenChange}
 	>
-		<AppSidebar {showWatchlists} onToggleWatchlists={handleShowWatchlistsChange} />
+		<AppSidebar />
 		<Sidebar.Inset>
 			{@render children()}
 		</Sidebar.Inset>
