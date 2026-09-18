@@ -326,6 +326,78 @@ describe('DrawingToolbar Component', () => {
 		expect(onToggleTimeline).toHaveBeenCalledTimes(1);
 	});
 
+	it('renders Measure button with correct title and triggers onMeasureSelect', async () => {
+		const onMeasureSelect = vi.fn();
+		render(DrawingToolbar, { props: { onMeasureSelect } });
+
+		const measureBtn = screen.getByRole('button', { name: 'Toggle Measure drawing' });
+		expect(measureBtn).toBeInTheDocument();
+		expect(measureBtn).toHaveAttribute('title', 'Measure');
+
+		await fireEvent.click(measureBtn);
+		expect(onMeasureSelect).toHaveBeenCalledTimes(1);
+	});
+
+	it('highlights the Measure button only while Measure drawing is active', () => {
+		const { rerender } = render(DrawingToolbar, {
+			props: { isDrawingMeasure: false }
+		});
+
+		const measureBtn = screen.getByRole('button', { name: 'Toggle Measure drawing' });
+		expect(measureBtn.className).not.toContain('bg-primary');
+
+		rerender({ isDrawingMeasure: true });
+		expect(measureBtn.className).toContain('bg-primary');
+	});
+
+	it('renders Horizontal Line button with correct title and triggers onHorizontalLineSelect', async () => {
+		const onHorizontalLineSelect = vi.fn();
+		render(DrawingToolbar, { props: { onHorizontalLineSelect } });
+
+		const lineBtn = screen.getByRole('button', { name: 'Toggle Horizontal Line drawing' });
+		expect(lineBtn).toBeInTheDocument();
+		expect(lineBtn).toHaveAttribute('title', 'Horizontal Line');
+
+		await fireEvent.click(lineBtn);
+		expect(onHorizontalLineSelect).toHaveBeenCalledTimes(1);
+	});
+
+	it('highlights the Horizontal Line button only while its drawing mode is active', () => {
+		const { rerender } = render(DrawingToolbar, {
+			props: { isDrawingHorizontalLine: false }
+		});
+
+		const lineBtn = screen.getByRole('button', { name: 'Toggle Horizontal Line drawing' });
+		expect(lineBtn.className).not.toContain('bg-primary');
+
+		rerender({ isDrawingHorizontalLine: true });
+		expect(lineBtn.className).toContain('bg-primary');
+	});
+
+	it('renders Line button with correct title and triggers onLineSelect', async () => {
+		const onLineSelect = vi.fn();
+		render(DrawingToolbar, { props: { onLineSelect } });
+
+		const lineBtn = screen.getByRole('button', { name: 'Toggle Line drawing' });
+		expect(lineBtn).toBeInTheDocument();
+		expect(lineBtn).toHaveAttribute('title', 'Line');
+
+		await fireEvent.click(lineBtn);
+		expect(onLineSelect).toHaveBeenCalledTimes(1);
+	});
+
+	it('highlights the Line button only while its drawing mode is active', () => {
+		const { rerender } = render(DrawingToolbar, {
+			props: { isDrawingLine: false }
+		});
+
+		const lineBtn = screen.getByRole('button', { name: 'Toggle Line drawing' });
+		expect(lineBtn.className).not.toContain('bg-primary');
+
+		rerender({ isDrawingLine: true });
+		expect(lineBtn.className).toContain('bg-primary');
+	});
+
 	it('highlights timeline toggle button when isTimelineVisible is true', () => {
 		const { rerender } = render(DrawingToolbar, {
 			props: {

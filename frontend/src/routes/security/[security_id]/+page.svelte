@@ -62,6 +62,15 @@
 		updateSecurityFibonacciTools
 	} from '$lib/utils/finance/fibonacci';
 	import {
+		isSecurityDrawingsEmpty,
+		removeSecurityDrawings,
+		updateSecurityDrawings,
+		type HorizontalLineDrawing,
+		type LineDrawing,
+		type MeasureDrawing,
+		type SecurityDrawings
+	} from '$lib/utils/finance/drawings';
+	import {
 		captureSnapshot,
 		areSnapshotsEqual,
 		findSnapshotAtOrBefore,
@@ -102,11 +111,22 @@
 	let activeFibTool = $state<FibToolType>('retracement');
 	let isDrawingFib = $state(false);
 	let selectedFibTool = $state<FibToolType | null>(null);
+	let isDrawingMeasure = $state(false);
+	let selectedMeasureId = $state<string | null>(null);
+	let isDrawingHorizontalLine = $state(false);
+	let selectedHorizontalLineId = $state<string | null>(null);
+	let isDrawingLine = $state(false);
+	let selectedLineId = $state<string | null>(null);
 	let isChartSettingsOpen = $state(false);
 	let isFibWidthModalOpen = $state(false);
 	let modalFibTool = $state<FibToolType>('retracement');
 	let securityFibonacciTools = $derived<SecurityFibonacciTools>(
 		(security?.id && userPreferences?.fibonacci_tools?.[security.id]) || {}
+	);
+	// Persistence seam for the new drawing tools (measure/horizontal line/free-form line).
+	// SECDTL-T04–T06 plugin components consume these deriveds; rendering is their scope.
+	let securityDrawings = $derived<SecurityDrawings>(
+		(security?.id && userPreferences?.drawings?.[security.id]) || {}
 	);
 	let saveFeedback = $state<'idle' | 'saved'>('idle');
 	let saveFeedbackTimer: ReturnType<typeof setTimeout> | null = null;
@@ -133,6 +153,18 @@
 	let effectiveFibonacciTools = $derived<SecurityFibonacciTools>(
 		isRewound ? (activeSnapshot?.drawings?.fibonacci_tools ?? {}) : securityFibonacciTools
 	);
+	let effectiveSecurityDrawings = $derived<SecurityDrawings>(
+		isRewound ? (activeSnapshot?.drawings?.drawings ?? {}) : securityDrawings
+	);
+
+	/**
+	 * Accessor for the new-tool drawings currently in effect: the active rewind
+	 * snapshot's drawings while rewound, otherwise the live per-security drawings
+	 * from user preferences. Exposed for SECDTL-T04–T06 plugin consumption and tests.
+	 */
+	export function getEffectiveSecurityDrawings(): SecurityDrawings {
+		return effectiveSecurityDrawings;
+	}
 
 	$effect(() => {
 		void timelinePosition;
@@ -174,7 +206,8 @@
 
 		const drawings: RewindDrawings = {
 			elliott_waves: securityElliottWaves,
-			fibonacci_tools: securityFibonacciTools
+			fibonacci_tools: securityFibonacciTools,
+			drawings: securityDrawings
 		};
 
 		const hasWavePoints = Boolean(
@@ -183,8 +216,9 @@
 		const hasFibTools = Boolean(
 			drawings.fibonacci_tools?.retracement || drawings.fibonacci_tools?.extension
 		);
+		const hasNewDrawings = !isSecurityDrawingsEmpty(drawings.drawings);
 
-		if (!hasWavePoints && !hasFibTools) {
+		if (!hasWavePoints && !hasFibTools && !hasNewDrawings) {
 			return;
 		}
 
@@ -244,6 +278,21 @@
 				const toolToClear = selectedFibTool;
 				selectedFibTool = null;
 				handleClearFib(toolToClear);
+			} else if (selectedMeasureId) {
+				event.preventDefault();
+				const measureToRemove = selectedMeasureId;
+				selectedMeasureId = null;
+				void handleRemoveMeasure(measureToRemove);
+			} else if (selectedHorizontalLineId) {
+				event.preventDefault();
+				const lineToRemove = selectedHorizontalLineId;
+				selectedHorizontalLineId = null;
+				void handleRemoveHorizontalLine(lineToRemove);
+			} else if (selectedLineId) {
+				event.preventDefault();
+				const lineToRemove = selectedLineId;
+				selectedLineId = null;
+				void handleRemoveLine(lineToRemove);
 			}
 		} else if (event.key === 'Escape') {
 			if (selectedWaveDegree) {
@@ -252,11 +301,29 @@
 			if (selectedFibTool) {
 				selectedFibTool = null;
 			}
+			if (selectedMeasureId) {
+				selectedMeasureId = null;
+			}
+			if (selectedHorizontalLineId) {
+				selectedHorizontalLineId = null;
+			}
+			if (selectedLineId) {
+				selectedLineId = null;
+			}
 			if (isDrawingWave) {
 				isDrawingWave = false;
 			}
 			if (isDrawingFib) {
 				isDrawingFib = false;
+			}
+			if (isDrawingMeasure) {
+				isDrawingMeasure = false;
+			}
+			if (isDrawingHorizontalLine) {
+				isDrawingHorizontalLine = false;
+			}
+			if (isDrawingLine) {
+				isDrawingLine = false;
 			}
 		} else if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === 's') {
 			event.preventDefault();
@@ -445,6 +512,147 @@
 		}
 	}
 
+	async function handleMeasureChange(measures: MeasureDrawing[]) {
+		if (isRewound) return;
+		if (!security?.id) return;
+		const updatedAllDrawings = updateSecurityDrawings(
+			userPreferences?.drawings,
+			security.id,
+			'measures',
+			measures
+		);
+		userPreferences = {
+			...(userPreferences ?? {}),
+			drawings: updatedAllDrawings
+		};
+		try {
+			await userPreferencesService.patchPreferences({
+				drawings: updatedAllDrawings
+			});
+		} catch (err) {
+			console.error('Failed to persist measure drawings preference:', err);
+		}
+	}
+
+	async function handleRemoveMeasure(measureId: string) {
+		if (isRewound) return;
+		if (selectedMeasureId === measureId) {
+			selectedMeasureId = null;
+		}
+		if (!security?.id) return;
+		const updatedAllDrawings = removeSecurityDrawings(
+			userPreferences?.drawings,
+			security.id,
+			'measures',
+			measureId
+		);
+		userPreferences = {
+			...(userPreferences ?? {}),
+			drawings: updatedAllDrawings
+		};
+		try {
+			await userPreferencesService.patchPreferences({
+				drawings: updatedAllDrawings
+			});
+		} catch (err) {
+			console.error('Failed to persist measure drawings preference:', err);
+		}
+	}
+
+	async function handleHorizontalLineChange(lines: HorizontalLineDrawing[]) {
+		if (isRewound) return;
+		if (!security?.id) return;
+		const updatedAllDrawings = updateSecurityDrawings(
+			userPreferences?.drawings,
+			security.id,
+			'horizontalLines',
+			lines
+		);
+		userPreferences = {
+			...(userPreferences ?? {}),
+			drawings: updatedAllDrawings
+		};
+		try {
+			await userPreferencesService.patchPreferences({
+				drawings: updatedAllDrawings
+			});
+		} catch (err) {
+			console.error('Failed to persist horizontal line drawings preference:', err);
+		}
+	}
+
+	async function handleRemoveHorizontalLine(lineId: string) {
+		if (isRewound) return;
+		if (selectedHorizontalLineId === lineId) {
+			selectedHorizontalLineId = null;
+		}
+		if (!security?.id) return;
+		const updatedAllDrawings = removeSecurityDrawings(
+			userPreferences?.drawings,
+			security.id,
+			'horizontalLines',
+			lineId
+		);
+		userPreferences = {
+			...(userPreferences ?? {}),
+			drawings: updatedAllDrawings
+		};
+		try {
+			await userPreferencesService.patchPreferences({
+				drawings: updatedAllDrawings
+			});
+		} catch (err) {
+			console.error('Failed to persist horizontal line drawings preference:', err);
+		}
+	}
+
+	async function handleLineChange(lines: LineDrawing[]) {
+		if (isRewound) return;
+		if (!security?.id) return;
+		const updatedAllDrawings = updateSecurityDrawings(
+			userPreferences?.drawings,
+			security.id,
+			'lines',
+			lines
+		);
+		userPreferences = {
+			...(userPreferences ?? {}),
+			drawings: updatedAllDrawings
+		};
+		try {
+			await userPreferencesService.patchPreferences({
+				drawings: updatedAllDrawings
+			});
+		} catch (err) {
+			console.error('Failed to persist free-form line drawings preference:', err);
+		}
+	}
+
+	async function handleRemoveLine(lineId: string) {
+		if (isRewound) return;
+		if (selectedLineId === lineId) {
+			selectedLineId = null;
+		}
+		if (!security?.id) return;
+		const updatedAllDrawings = removeSecurityDrawings(
+			userPreferences?.drawings,
+			security.id,
+			'lines',
+			lineId
+		);
+		userPreferences = {
+			...(userPreferences ?? {}),
+			drawings: updatedAllDrawings
+		};
+		try {
+			await userPreferencesService.patchPreferences({
+				drawings: updatedAllDrawings
+			});
+		} catch (err) {
+			console.error('Failed to persist free-form line drawings preference:', err);
+		}
+	}
+
 	async function changeTimeframe(
 		interval: string,
 		{ persist = true, force = false }: { persist?: boolean; force?: boolean } = {}
@@ -586,6 +794,7 @@
 		removeIndicator: (indicatorId: string) => void;
 		clearWave?: (waveIdOrDegree?: string | WaveDegree) => void;
 		getSelectedWaveId?: () => string | null;
+		setPaneHeights?: (heights: Record<string, number> | null) => void;
 	}
 
 	let chartRef = $state<ChartInstance | null>(null);
@@ -819,6 +1028,26 @@
 		}
 	}
 
+	async function handlePaneHeightsChange(heights: Record<string, number> | null) {
+		// PATCH replaces the whole `indicator_pane_heights` key — always send the full object.
+		userPreferences = {
+			...(userPreferences ?? {}),
+			indicator_pane_heights: heights
+		};
+		try {
+			await userPreferencesService.patchPreferences({ indicator_pane_heights: heights });
+		} catch (err) {
+			console.error('Failed to persist indicator pane heights:', err);
+		}
+	}
+
+	function applySavedPaneHeights(prefs: UserPreferences | null | undefined) {
+		const heights = prefs?.indicator_pane_heights;
+		if (!heights || Object.keys(heights).length === 0) return;
+		// setTimeout ensures chartRef is bound before the restore call.
+		setTimeout(() => chartRef?.setPaneHeights?.(heights), 100);
+	}
+
 	async function handleWaveSettingsChange(settings: WaveSettings) {
 		userPreferences = {
 			...(userPreferences ?? {}),
@@ -929,6 +1158,7 @@
 
 	async function onPreferencesLoaded(prefs: UserPreferences) {
 		userPreferences = prefs;
+		applySavedPaneHeights(prefs);
 
 		// (a) Apply chart style
 		chartStyle = (prefs.chart_style as ChartStyle | undefined) ?? 'heikin_ashi';
@@ -978,9 +1208,15 @@
 			// Reset drawing mode on route transition / security change
 			isDrawingWave = false;
 			isDrawingFib = false;
+			isDrawingMeasure = false;
+			isDrawingHorizontalLine = false;
+			isDrawingLine = false;
 			activeWaveType = 'impulse';
 			selectedWaveDegree = null;
 			selectedFibTool = null;
+			selectedMeasureId = null;
+			selectedHorizontalLineId = null;
+			selectedLineId = null;
 			isTimelineVisible = false;
 
 			(async () => {
@@ -988,6 +1224,7 @@
 					try {
 						const prefs = await userPreferencesService.getPreferences();
 						userPreferences = prefs;
+						applySavedPaneHeights(prefs);
 					} catch (err) {
 						console.error('Failed to load user preferences:', err);
 					}
@@ -1207,6 +1444,9 @@
 						isDrawingWave={isRewound ? false : isDrawingWave}
 						{activeFibTool}
 						isDrawingFib={isRewound ? false : isDrawingFib}
+						isDrawingMeasure={isRewound ? false : isDrawingMeasure}
+						isDrawingHorizontalLine={isRewound ? false : isDrawingHorizontalLine}
+						isDrawingLine={isRewound ? false : isDrawingLine}
 						{isTimelineVisible}
 						onToggleTimeline={() => (isTimelineVisible = !isTimelineVisible)}
 						onSave={handleSaveSnapshot}
@@ -1217,6 +1457,9 @@
 							activeWaveType = 'impulse';
 							isDrawingWave = true;
 							isDrawingFib = false;
+							isDrawingMeasure = false;
+							isDrawingHorizontalLine = false;
+							isDrawingLine = false;
 						}}
 						onSelectCorrectiveDegree={(degree) => {
 							if (isRewound) timelinePosition = null;
@@ -1224,6 +1467,9 @@
 							activeWaveType = 'corrective';
 							isDrawingWave = true;
 							isDrawingFib = false;
+							isDrawingMeasure = false;
+							isDrawingHorizontalLine = false;
+							isDrawingLine = false;
 						}}
 						onToggleFib={(tool) => {
 							if (isRewound) timelinePosition = null;
@@ -1233,6 +1479,56 @@
 								activeFibTool = tool;
 								isDrawingFib = true;
 								isDrawingWave = false;
+								isDrawingMeasure = false;
+								isDrawingHorizontalLine = false;
+								isDrawingLine = false;
+							}
+						}}
+						onMeasureSelect={() => {
+							if (isRewound) timelinePosition = null;
+							if (isDrawingMeasure) {
+								isDrawingMeasure = false;
+							} else {
+								isDrawingMeasure = true;
+								isDrawingWave = false;
+								isDrawingFib = false;
+								isDrawingHorizontalLine = false;
+								isDrawingLine = false;
+								selectedWaveDegree = null;
+								selectedFibTool = null;
+								selectedLineId = null;
+							}
+						}}
+						onHorizontalLineSelect={() => {
+							if (isRewound) timelinePosition = null;
+							if (isDrawingHorizontalLine) {
+								isDrawingHorizontalLine = false;
+							} else {
+								isDrawingHorizontalLine = true;
+								isDrawingWave = false;
+								isDrawingFib = false;
+								isDrawingMeasure = false;
+								isDrawingLine = false;
+								selectedWaveDegree = null;
+								selectedFibTool = null;
+								selectedMeasureId = null;
+								selectedLineId = null;
+							}
+						}}
+						onLineSelect={() => {
+							if (isRewound) timelinePosition = null;
+							if (isDrawingLine) {
+								isDrawingLine = false;
+							} else {
+								isDrawingLine = true;
+								isDrawingWave = false;
+								isDrawingFib = false;
+								isDrawingMeasure = false;
+								isDrawingHorizontalLine = false;
+								selectedWaveDegree = null;
+								selectedFibTool = null;
+								selectedMeasureId = null;
+								selectedHorizontalLineId = null;
 							}
 						}}
 					/>
@@ -1260,13 +1556,23 @@
 								onDrawingModeChange={(isDrawing) => {
 									if (isRewound) return;
 									isDrawingWave = isDrawing;
-									if (isDrawing) isDrawingFib = false;
+									if (isDrawing) {
+										isDrawingFib = false;
+										isDrawingMeasure = false;
+										isDrawingHorizontalLine = false;
+										isDrawingLine = false;
+									}
 								}}
 								onDegreeChange={(degree) => (activeWaveDegree = degree)}
 								onWaveTypeChange={(type) => (activeWaveType = type)}
 								onWaveSelect={(degree) => {
 									selectedWaveDegree = degree;
-									if (degree) selectedFibTool = null;
+									if (degree) {
+										selectedFibTool = null;
+										selectedMeasureId = null;
+										selectedHorizontalLineId = null;
+										selectedLineId = null;
+									}
 								}}
 								fibonacciTools={effectiveFibonacciTools}
 								{activeFibTool}
@@ -1276,19 +1582,97 @@
 								onFibDrawingModeChange={(isDrawing) => {
 									if (isRewound) return;
 									isDrawingFib = isDrawing;
-									if (isDrawing) isDrawingWave = false;
+									if (isDrawing) {
+										isDrawingWave = false;
+										isDrawingMeasure = false;
+										isDrawingHorizontalLine = false;
+										isDrawingLine = false;
+									}
 								}}
 								onFibToolChange={(tool) => {
 									if (tool) activeFibTool = tool;
 								}}
 								onFibSelect={(tool) => {
 									selectedFibTool = tool;
-									if (tool) selectedWaveDegree = null;
+									if (tool) {
+										selectedWaveDegree = null;
+										selectedMeasureId = null;
+										selectedHorizontalLineId = null;
+										selectedLineId = null;
+									}
 								}}
 								onFibDoubleClick={(tool) => {
 									modalFibTool = tool;
 									isFibWidthModalOpen = true;
 								}}
+								securityDrawings={effectiveSecurityDrawings}
+								isDrawingMeasure={isRewound ? false : isDrawingMeasure}
+								bind:selectedMeasureId
+								onMeasureChange={handleMeasureChange}
+								onMeasureDrawingModeChange={(isDrawing) => {
+									if (isRewound) return;
+									isDrawingMeasure = isDrawing;
+									if (isDrawing) {
+										isDrawingWave = false;
+										isDrawingFib = false;
+										isDrawingHorizontalLine = false;
+										isDrawingLine = false;
+									}
+								}}
+								onMeasureSelect={(id) => {
+									selectedMeasureId = id;
+									if (id) {
+										selectedWaveDegree = null;
+										selectedFibTool = null;
+										selectedHorizontalLineId = null;
+										selectedLineId = null;
+									}
+								}}
+								isDrawingHorizontalLine={isRewound ? false : isDrawingHorizontalLine}
+								bind:selectedHorizontalLineId
+								onHorizontalLineChange={handleHorizontalLineChange}
+								onHorizontalLineDrawingModeChange={(isDrawing) => {
+									if (isRewound) return;
+									isDrawingHorizontalLine = isDrawing;
+									if (isDrawing) {
+										isDrawingWave = false;
+										isDrawingFib = false;
+										isDrawingMeasure = false;
+										isDrawingLine = false;
+									}
+								}}
+								onHorizontalLineSelect={(id) => {
+									selectedHorizontalLineId = id;
+									if (id) {
+										selectedWaveDegree = null;
+										selectedFibTool = null;
+										selectedMeasureId = null;
+										selectedLineId = null;
+									}
+								}}
+								isDrawingLine={isRewound ? false : isDrawingLine}
+								bind:selectedLineId
+								onLineChange={handleLineChange}
+								onLineDrawingModeChange={(isDrawing) => {
+									if (isRewound) return;
+									isDrawingLine = isDrawing;
+									if (isDrawing) {
+										isDrawingWave = false;
+										isDrawingFib = false;
+										isDrawingMeasure = false;
+										isDrawingHorizontalLine = false;
+									}
+								}}
+								onLineSelect={(id) => {
+									selectedLineId = id;
+									if (id) {
+										selectedWaveDegree = null;
+										selectedFibTool = null;
+										selectedMeasureId = null;
+										selectedHorizontalLineId = null;
+									}
+								}}
+								onPaneHeightsChange={handlePaneHeightsChange}
 							/>
 							<ChartSettingsModal
 								bind:open={isChartSettingsOpen}

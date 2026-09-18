@@ -635,4 +635,130 @@ describe('rewind finance utilities', () => {
 			expect(areSnapshotsEqual(snap1, snap3)).toBe(false);
 		});
 	});
+
+	describe('new drawing-tool persistence', () => {
+		const measureDrawings: RewindDrawings = {
+			drawings: {
+				measures: [
+					{
+						id: 'm1',
+						p1: { time: '2024-01-01', price: 100 },
+						p2: { time: '2024-01-02', price: 110 }
+					}
+				],
+				horizontalLines: [{ id: 'h1', p1: { time: '2024-01-03', price: 115 }, visible: true }],
+				lines: [
+					{
+						id: 'l1',
+						p1: { time: '2024-01-04', price: 120 },
+						p2: { time: '2024-01-05', price: 90 }
+					}
+				]
+			}
+		};
+
+		it('round-trips the drawings key through captureSnapshot', () => {
+			const snap = captureSnapshot(
+				measureDrawings,
+				sampleDataWindow,
+				new Date('2026-08-27T10:00:00.000Z')
+			);
+
+			expect(snap.drawings.drawings).toEqual(measureDrawings.drawings);
+			expect(snap.drawings.drawings?.measures?.[0].id).toBe('m1');
+			expect(snap.drawings.drawings?.horizontalLines?.[0].p1.price).toBe(115);
+			expect(snap.drawings.drawings?.lines?.[0].p2?.price).toBe(90);
+		});
+
+		it('compares two snapshots differing only in a new drawing as unequal', () => {
+			const base: RewindSnapshot = {
+				id: 's1',
+				captured_at: '2026-08-27T10:00:00.000Z',
+				drawings: {
+					drawings: {
+						measures: [
+							{
+								id: 'm1',
+								p1: { time: '2024-01-01', price: 100 },
+								p2: { time: '2024-01-02', price: 110 }
+							}
+						]
+					}
+				},
+				data_window: sampleDataWindow
+			};
+
+			const differentPoint: RewindSnapshot = {
+				...base,
+				id: 's2',
+				captured_at: '2026-08-27T11:00:00.000Z',
+				drawings: {
+					drawings: {
+						measures: [
+							{
+								id: 'm1',
+								p1: { time: '2024-01-01', price: 100 },
+								p2: { time: '2024-01-02', price: 999 }
+							}
+						]
+					}
+				}
+			};
+
+			const differentVisibility: RewindSnapshot = {
+				...base,
+				id: 's3',
+				captured_at: '2026-08-27T11:00:00.000Z',
+				drawings: {
+					drawings: {
+						measures: [
+							{
+								id: 'm1',
+								p1: { time: '2024-01-01', price: 100 },
+								p2: { time: '2024-01-02', price: 110 },
+								visible: false
+							}
+						]
+					}
+				}
+			};
+
+			expect(areSnapshotsEqual(base, differentPoint)).toBe(false);
+			expect(areSnapshotsEqual(base, differentVisibility)).toBe(false);
+		});
+
+		it('treats identical new drawings as equal and still dedupes', () => {
+			const snapA: RewindSnapshot = {
+				id: 's1',
+				captured_at: '2026-08-27T10:00:00.000Z',
+				drawings: measureDrawings,
+				data_window: sampleDataWindow
+			};
+			const snapB: RewindSnapshot = {
+				id: 's2',
+				captured_at: '2026-08-27T12:00:00.000Z',
+				drawings: JSON.parse(JSON.stringify(measureDrawings)),
+				data_window: sampleDataWindow
+			};
+
+			expect(areSnapshotsEqual(snapA, snapB)).toBe(true);
+		});
+
+		it('treats missing and empty new drawings as equal', () => {
+			const withoutKey: RewindSnapshot = {
+				id: 's1',
+				captured_at: '2026-08-27T10:00:00.000Z',
+				drawings: { fibonacci_tools: null },
+				data_window: sampleDataWindow
+			};
+			const emptyCollections: RewindSnapshot = {
+				id: 's2',
+				captured_at: '2026-08-27T11:00:00.000Z',
+				drawings: { drawings: { measures: [], horizontalLines: null, lines: [] } },
+				data_window: sampleDataWindow
+			};
+
+			expect(areSnapshotsEqual(withoutKey, emptyCollections)).toBe(true);
+		});
+	});
 });

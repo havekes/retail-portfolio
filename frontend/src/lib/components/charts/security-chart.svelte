@@ -23,10 +23,34 @@
 		WaveDegree,
 		WaveType
 	} from '$lib/utils/finance/elliott-wave';
-	import { areSecurityElliottWavesEqual } from '$lib/utils/finance/elliott-wave';
+	import { areSecurityElliottWavesEqual, normalizeWaveIds } from '$lib/utils/finance/elliott-wave';
 	import { FibonacciPrimitive } from './plugins/fibonacci/fibonacci-primitive';
 	import type { FibToolType, SecurityFibonacciTools } from '$lib/utils/finance/fibonacci';
-	import { areFibonacciToolsEqual, getActiveFibLevelPrices } from '$lib/utils/finance/fibonacci';
+	import {
+		areFibonacciToolsEqual,
+		getActiveFibLevelPrices,
+		normalizeSecurityFibonacciTools
+	} from '$lib/utils/finance/fibonacci';
+	import { MeasurePrimitive } from './plugins/measure/measure-primitive';
+	import { HorizontalLinePrimitive } from './plugins/horizontal-line/horizontal-line-primitive';
+	import { FreeFormLinePrimitive } from './plugins/free-form-line/free-form-line-primitive';
+	import {
+		areDrawingCollectionsEqual,
+		type HorizontalLineDrawing,
+		type LineDrawing,
+		type MeasureDrawing,
+		type SecurityDrawings
+	} from '$lib/utils/finance/drawings';
+	import {
+		computePaneBandHeights,
+		computePaneScaleMargins,
+		MAX_PANE_FRACTION,
+		MIN_PANE_FRACTION,
+		MAIN_PANE_ID,
+		OSCILLATOR_PANE_IDS,
+		VOLUME_PANE_ID
+	} from '$lib/chart/indicator-pane-layout';
+	import type { PaneHeights } from '$lib/chart/indicator-pane-layout';
 
 	interface MacdDataItem {
 		time: Time;
@@ -73,6 +97,9 @@
 	let userAlertsPrimitive = $state<UserPriceAlerts | null>(null);
 	let elliottWavesPrimitive = $state<ElliottWavesPrimitive | null>(null);
 	let fibonacciPrimitive = $state<FibonacciPrimitive | null>(null);
+	let measurePrimitive = $state<MeasurePrimitive | null>(null);
+	let horizontalLinePrimitive = $state<HorizontalLinePrimitive | null>(null);
+	let freeFormLinePrimitive = $state<FreeFormLinePrimitive | null>(null);
 
 	let {
 		candles = [],
@@ -106,7 +133,24 @@
 		onFibToolChange,
 		onFibSelect,
 		onFibDoubleClick,
-		futureBars = DEFAULT_FUTURE_BARS
+		securityDrawings = null,
+		isDrawingMeasure = false,
+		selectedMeasureId = $bindable<string | null>(null),
+		onMeasureChange,
+		onMeasureDrawingModeChange,
+		onMeasureSelect,
+		isDrawingHorizontalLine = false,
+		selectedHorizontalLineId = $bindable<string | null>(null),
+		onHorizontalLineChange,
+		onHorizontalLineDrawingModeChange,
+		onHorizontalLineSelect,
+		isDrawingLine = false,
+		selectedLineId = $bindable<string | null>(null),
+		onLineChange,
+		onLineDrawingModeChange,
+		onLineSelect,
+		futureBars = DEFAULT_FUTURE_BARS,
+		onPaneHeightsChange
 	} = $props<{
 		candles?: Candle[];
 		containerId?: string;
@@ -143,7 +187,24 @@
 		onFibToolChange?: (tool: FibToolType | null) => void;
 		onFibSelect?: (tool: FibToolType | null) => void;
 		onFibDoubleClick?: (tool: FibToolType) => void;
+		securityDrawings?: SecurityDrawings | null;
+		isDrawingMeasure?: boolean;
+		selectedMeasureId?: string | null;
+		onMeasureChange?: (measures: MeasureDrawing[]) => void;
+		onMeasureDrawingModeChange?: (isDrawing: boolean) => void;
+		onMeasureSelect?: (id: string | null) => void;
+		isDrawingHorizontalLine?: boolean;
+		selectedHorizontalLineId?: string | null;
+		onHorizontalLineChange?: (lines: HorizontalLineDrawing[]) => void;
+		onHorizontalLineDrawingModeChange?: (isDrawing: boolean) => void;
+		onHorizontalLineSelect?: (id: string | null) => void;
+		isDrawingLine?: boolean;
+		selectedLineId?: string | null;
+		onLineChange?: (lines: LineDrawing[]) => void;
+		onLineDrawingModeChange?: (isDrawing: boolean) => void;
+		onLineSelect?: (id: string | null) => void;
 		futureBars?: number;
+		onPaneHeightsChange?: (heights: PaneHeights | null) => void;
 	}>();
 
 	let avgPriceLine: IPriceLine | null = null;
@@ -202,79 +263,157 @@
 	}
 
 	const DEFAULT_PRICE_SCALE_MIN_WIDTH = 75;
-	const OSCILLATOR_ORDER = ['rsi', 'macd', 'obv'] as const;
+
+	/** User-customised pane band heights, or null when the default layout is used. */
+	let customPaneHeights = $state<PaneHeights | null>(null);
+
+	/**
+	 * Ordered pane ids currently rendered. Kept in explicit state (rather than
+	 * derived from `indicatorSeries`) so it reliably updates when indicators are
+	 * added/removed imperatively through the exported API.
+	 */
+	let orderedPaneIds = $state<string[]>([MAIN_PANE_ID]);
+
+	function getOrderedPaneIds(): string[] {
+		const ids: string[] = [MAIN_PANE_ID];
+		if (indicatorSeries.has(VOLUME_PANE_ID)) ids.push(VOLUME_PANE_ID);
+		for (const type of OSCILLATOR_PANE_IDS) {
+			if (indicatorSeries.has(type)) ids.push(type);
+		}
+		return ids;
+	}
+
+	function refreshOrderedPaneIds() {
+		const next = getOrderedPaneIds();
+		if (next.length !== orderedPaneIds.length || next.some((id, i) => id !== orderedPaneIds[i])) {
+			orderedPaneIds = next;
+		}
+	}
+
+	const paneLayout = $derived(computePaneScaleMargins(orderedPaneIds, customPaneHeights));
+	const paneLayoutCustom = $derived.by(() => {
+		const custom = customPaneHeights;
+		if (custom === null) return false;
+		return orderedPaneIds.some((id) => id in custom);
+	});
+
+	interface PaneBoundary {
+		key: string;
+		upperId: string;
+		lowerId: string;
+		fraction: number;
+	}
+
+	const paneBoundaries = $derived.by(() => {
+		const ids = orderedPaneIds;
+		const margins = paneLayout;
+		const boundaries: PaneBoundary[] = [];
+		for (let i = 0; i < ids.length - 1; i++) {
+			const upperId = ids[i];
+			const lowerId = ids[i + 1];
+			const upperEnd = 1 - (margins[upperId]?.bottom ?? 0);
+			const lowerStart = margins[lowerId]?.top ?? 0;
+			boundaries.push({
+				key: `${upperId}-${lowerId}`,
+				upperId,
+				lowerId,
+				fraction: (upperEnd + lowerStart) / 2
+			});
+		}
+		return boundaries;
+	});
+
+	function applyPaneMargins() {
+		if (!chartInstance || !seriesInstance) return;
+		refreshOrderedPaneIds();
+		const paneIds = orderedPaneIds;
+		const margins = computePaneScaleMargins(paneIds, customPaneHeights);
+		for (const id of paneIds) {
+			const scaleMargins = margins[id];
+			if (!scaleMargins) continue;
+			if (id === MAIN_PANE_ID) {
+				seriesInstance.priceScale().applyOptions({ scaleMargins });
+			} else {
+				chartInstance.priceScale(id).applyOptions({ scaleMargins });
+			}
+		}
+	}
 
 	function updatePanes() {
+		applyPaneMargins();
+	}
+
+	interface PaneDragState {
+		upperId: string;
+		lowerId: string;
+		startY: number;
+		startHeights: PaneHeights;
+	}
+
+	let paneDragState = $state<PaneDragState | null>(null);
+
+	function clampPaneFraction(value: number): number {
+		return Math.min(MAX_PANE_FRACTION, Math.max(MIN_PANE_FRACTION, value));
+	}
+
+	function handlePaneDragStart(event: PointerEvent, upperId: string, lowerId: string) {
 		if (!chartInstance || !seriesInstance) return;
-
-		const activeOscillators = OSCILLATOR_ORDER.filter((type) => indicatorSeries.has(type));
-		const count = activeOscillators.length;
-		const hasVolume = indicatorSeries.has('volume');
-
-		if (count === 0) {
-			if (hasVolume) {
-				const volumeSeries = indicatorSeries.get('volume') as ISeriesApi<'Histogram'> | undefined;
-				volumeSeries?.priceScale().applyOptions({
-					scaleMargins: { top: 0.7, bottom: 0 }
-				});
-				seriesInstance.priceScale().applyOptions({
-					scaleMargins: { top: 0.1, bottom: 0.35 }
-				});
-			} else {
-				seriesInstance.priceScale().applyOptions({
-					scaleMargins: { top: 0.1, bottom: 0.1 }
-				});
+		event.preventDefault();
+		event.stopPropagation();
+		if (typeof (event.currentTarget as HTMLElement)?.setPointerCapture === 'function') {
+			try {
+				(event.currentTarget as HTMLElement).setPointerCapture(event.pointerId);
+			} catch {
+				// ignore — jsdom and unsupported browsers
 			}
-			return;
+		}
+		paneDragState = {
+			upperId,
+			lowerId,
+			startY: event.clientY,
+			startHeights: computePaneBandHeights(getOrderedPaneIds(), customPaneHeights)
+		};
+	}
+
+	function handlePaneDragMove(event: PointerEvent) {
+		const drag = paneDragState;
+		if (!drag) return;
+		const containerHeight = containerRef?.clientHeight ?? 0;
+		if (containerHeight <= 0) return;
+
+		const delta = (event.clientY - drag.startY) / containerHeight;
+		const sum = (drag.startHeights[drag.upperId] ?? 0) + (drag.startHeights[drag.lowerId] ?? 0);
+
+		let upper = clampPaneFraction((drag.startHeights[drag.upperId] ?? 0) + delta);
+		let lower = sum - upper;
+		if (lower < MIN_PANE_FRACTION) {
+			lower = MIN_PANE_FRACTION;
+			upper = clampPaneFraction(sum - MIN_PANE_FRACTION);
+		} else if (lower > MAX_PANE_FRACTION) {
+			lower = MAX_PANE_FRACTION;
+			upper = clampPaneFraction(sum - MAX_PANE_FRACTION);
 		}
 
-		// When oscillators exist, allocate vertical space
-		const paneHeight = count === 1 ? 0.25 : count === 2 ? 0.18 : 0.14;
-		const gap = 0.02;
-		const totalOscillatorHeight = count * paneHeight + count * gap;
-		const mainAreaHeight = Math.max(0.3, 1.0 - totalOscillatorHeight);
+		customPaneHeights = {
+			...drag.startHeights,
+			[drag.upperId]: upper,
+			[drag.lowerId]: lower
+		};
+		updatePanes();
+	}
 
-		// Configure main candlesticks and volume within [0, mainAreaHeight]
-		if (hasVolume) {
-			const volumeHeight = Math.round(mainAreaHeight * 0.25 * 10000) / 10000;
-			const volumeTop = Math.round((mainAreaHeight - volumeHeight) * 10000) / 10000;
-			const volumeBottom = Math.round((1.0 - mainAreaHeight) * 10000) / 10000;
-
-			const volumeSeries = indicatorSeries.get('volume') as ISeriesApi<'Histogram'> | undefined;
-			volumeSeries?.priceScale().applyOptions({
-				scaleMargins: {
-					top: volumeTop,
-					bottom: volumeBottom
-				}
-			});
-
-			seriesInstance.priceScale().applyOptions({
-				scaleMargins: {
-					top: 0.05,
-					bottom: Math.round((1.0 - mainAreaHeight + volumeHeight + 0.03) * 10000) / 10000
-				}
-			});
-		} else {
-			seriesInstance.priceScale().applyOptions({
-				scaleMargins: {
-					top: 0.05,
-					bottom: Math.round((1.0 - mainAreaHeight + 0.03) * 10000) / 10000
-				}
-			});
+	function handlePaneDragEnd() {
+		if (!paneDragState) return;
+		paneDragState = null;
+		if (customPaneHeights) {
+			onPaneHeightsChange?.({ ...customPaneHeights });
 		}
+	}
 
-		// Configure each oscillator pane
-		activeOscillators.forEach((type, idx) => {
-			const paneTop = Math.round((mainAreaHeight + gap + idx * (paneHeight + gap)) * 10000) / 10000;
-			const paneBottom = Math.max(0, Math.round((1.0 - (paneTop + paneHeight)) * 10000) / 10000);
-
-			chartInstance?.priceScale(type).applyOptions({
-				scaleMargins: {
-					top: paneTop,
-					bottom: paneBottom
-				}
-			});
-		});
+	function handleResetPaneHeights() {
+		customPaneHeights = null;
+		updatePanes();
+		onPaneHeightsChange?.(null);
 	}
 
 	function getTimeValue(t: Time): string | number {
@@ -424,9 +563,13 @@
 		const currentWaves: SecurityElliottWaves = {
 			waves: elliottWavesPrimitive.getAllWaves()
 		};
+		// Legacy persisted anchors may be date strings/BusinessDay; normalize to epoch on feed-in.
+		const nextWaves: SecurityElliottWaves = {
+			waves: normalizeWaveIds(elliottWaves?.waves ?? [])
+		};
 
-		if (!areSecurityElliottWavesEqual(currentWaves, elliottWaves)) {
-			elliottWavesPrimitive.setWaves(elliottWaves?.waves ?? []);
+		if (!areSecurityElliottWavesEqual(currentWaves, nextWaves)) {
+			elliottWavesPrimitive.setWaves(nextWaves.waves);
 		}
 	});
 
@@ -446,7 +589,9 @@
 
 	$effect(() => {
 		if (!chartInstance) return;
-		const isDrawing = Boolean(isDrawingWave || isDrawingFib);
+		const isDrawing = Boolean(
+			isDrawingWave || isDrawingFib || isDrawingMeasure || isDrawingHorizontalLine || isDrawingLine
+		);
 		chartInstance.applyOptions({
 			handleScroll: {
 				pressedMouseMove: !isDrawing
@@ -464,13 +609,101 @@
 	$effect(() => {
 		if (!fibonacciPrimitive) return;
 		const currentDrawings = fibonacciPrimitive.getDrawings();
-		const nextDrawings: SecurityFibonacciTools = fibonacciTools ?? {
-			retracement: null,
-			extension: null
-		};
+		// Legacy persisted anchors may be date strings/BusinessDay; normalize to epoch on feed-in.
+		const nextDrawings: SecurityFibonacciTools = normalizeSecurityFibonacciTools(
+			fibonacciTools ?? {
+				retracement: null,
+				extension: null
+			}
+		);
 
 		if (!areFibonacciToolsEqual(currentDrawings, nextDrawings)) {
 			fibonacciPrimitive.setDrawings(nextDrawings);
+		}
+	});
+
+	$effect(() => {
+		if (!measurePrimitive) return;
+		if (isDrawingMeasure !== undefined && measurePrimitive.isDrawingMode() !== isDrawingMeasure) {
+			measurePrimitive.setDrawingMode(isDrawingMeasure);
+		}
+	});
+
+	$effect(() => {
+		if (!measurePrimitive) return;
+		if (selectedMeasureId !== undefined && measurePrimitive.getSelectedId() !== selectedMeasureId) {
+			measurePrimitive.select(selectedMeasureId);
+		}
+	});
+
+	$effect(() => {
+		if (!measurePrimitive) return;
+		const current = measurePrimitive.getMeasures();
+		// Legacy persisted anchors may be date strings/BusinessDay; the primitive
+		// normalizes them to epoch seconds on setMeasures.
+		const next = securityDrawings?.measures ?? [];
+		if (!areDrawingCollectionsEqual(current, next)) {
+			measurePrimitive.setMeasures(next);
+		}
+	});
+
+	$effect(() => {
+		if (!horizontalLinePrimitive) return;
+		if (
+			isDrawingHorizontalLine !== undefined &&
+			horizontalLinePrimitive.isDrawingMode() !== isDrawingHorizontalLine
+		) {
+			horizontalLinePrimitive.setDrawingMode(isDrawingHorizontalLine);
+		}
+	});
+
+	$effect(() => {
+		if (!horizontalLinePrimitive) return;
+		if (
+			selectedHorizontalLineId !== undefined &&
+			horizontalLinePrimitive.getSelectedId() !== selectedHorizontalLineId
+		) {
+			horizontalLinePrimitive.select(selectedHorizontalLineId);
+		}
+	});
+
+	$effect(() => {
+		if (!horizontalLinePrimitive) return;
+		const current = horizontalLinePrimitive.getHorizontalLines();
+		// Legacy persisted anchors may be date strings/BusinessDay; the primitive
+		// normalizes them to epoch seconds on setHorizontalLines.
+		const next = securityDrawings?.horizontalLines ?? [];
+		if (!areDrawingCollectionsEqual(current, next)) {
+			horizontalLinePrimitive.setHorizontalLines(next);
+		}
+	});
+
+	$effect(() => {
+		horizontalLinePrimitive?.setHideLabels(hideLabels);
+	});
+
+	$effect(() => {
+		if (!freeFormLinePrimitive) return;
+		if (isDrawingLine !== undefined && freeFormLinePrimitive.isDrawingMode() !== isDrawingLine) {
+			freeFormLinePrimitive.setDrawingMode(isDrawingLine);
+		}
+	});
+
+	$effect(() => {
+		if (!freeFormLinePrimitive) return;
+		if (selectedLineId !== undefined && freeFormLinePrimitive.getSelectedId() !== selectedLineId) {
+			freeFormLinePrimitive.select(selectedLineId);
+		}
+	});
+
+	$effect(() => {
+		if (!freeFormLinePrimitive) return;
+		const current = freeFormLinePrimitive.getLines();
+		// Legacy persisted anchors may be date strings/BusinessDay; the primitive
+		// normalizes them to epoch seconds on setLines.
+		const next = securityDrawings?.lines ?? [];
+		if (!areDrawingCollectionsEqual(current, next)) {
+			freeFormLinePrimitive.setLines(next);
 		}
 	});
 
@@ -495,6 +728,9 @@
 				seriesInstance.setData([]);
 				elliottWavesPrimitive?.setCandles([]);
 				fibonacciPrimitive?.setCandles([]);
+				measurePrimitive?.setCandles([]);
+				horizontalLinePrimitive?.setCandles([]);
+				freeFormLinePrimitive?.setCandles([]);
 				previousFirstCandleTime = null;
 				isLoadingMore = false;
 				return;
@@ -540,6 +776,9 @@
 			seriesInstance.setData([...candles, ...whitespace]);
 			elliottWavesPrimitive?.setCandles(candles);
 			fibonacciPrimitive?.setCandles(candles);
+			measurePrimitive?.setCandles(candles);
+			horizontalLinePrimitive?.setCandles(candles);
+			freeFormLinePrimitive?.setCandles(candles);
 
 			if (chartInstance) {
 				if (isPrepending && currentRange && addedCandles > 0) {
@@ -638,7 +877,7 @@
 		elliottWavesPrimitive = new ElliottWavesPrimitive({
 			activeDegree,
 			activeWaveType,
-			waves: elliottWaves?.waves ?? [],
+			waves: normalizeWaveIds(elliottWaves?.waves ?? []),
 			snapToWicks,
 			selectedDegree: selectedWaveDegree
 		});
@@ -678,7 +917,7 @@
 
 		fibonacciPrimitive = new FibonacciPrimitive({
 			activeTool: activeFibTool,
-			drawings: fibonacciTools ?? undefined,
+			drawings: fibonacciTools ? normalizeSecurityFibonacciTools(fibonacciTools) : undefined,
 			isDrawingMode: isDrawingFib,
 			selectedTool: selectedFibTool
 		});
@@ -689,7 +928,7 @@
 		});
 
 		fibonacciPrimitive.drawingModeChanged().subscribe((isDrawing) => {
-			if (!isDrawing && !isDrawingWave && chartInstance) {
+			if (!isDrawing && !isDrawingWave && !isDrawingLine && chartInstance) {
 				chartInstance.applyOptions({ handleScroll: { pressedMouseMove: true } });
 			}
 			onFibDrawingModeChange?.(isDrawing);
@@ -708,6 +947,96 @@
 
 		fibonacciPrimitive.doubleClicked().subscribe((tool) => {
 			onFibDoubleClick?.(tool);
+		});
+
+		measurePrimitive = new MeasurePrimitive({
+			measures: securityDrawings?.measures ?? null,
+			isDrawingMode: isDrawingMeasure,
+			selectedId: selectedMeasureId
+		});
+		seriesInstance.attachPrimitive(measurePrimitive);
+
+		measurePrimitive.drawingsChanged().subscribe((measures) => {
+			onMeasureChange?.(measures);
+		});
+
+		measurePrimitive.drawingModeChanged().subscribe((isDrawing) => {
+			if (!isDrawing && !isDrawingWave && !isDrawingFib && !isDrawingLine && chartInstance) {
+				chartInstance.applyOptions({ handleScroll: { pressedMouseMove: true } });
+			}
+			onMeasureDrawingModeChange?.(isDrawing);
+		});
+
+		measurePrimitive.selectionChanged().subscribe((id) => {
+			if (selectedMeasureId !== id) {
+				selectedMeasureId = id;
+			}
+			onMeasureSelect?.(id);
+		});
+
+		horizontalLinePrimitive = new HorizontalLinePrimitive({
+			horizontalLines: securityDrawings?.horizontalLines ?? null,
+			isDrawingMode: isDrawingHorizontalLine,
+			selectedId: selectedHorizontalLineId,
+			hideLabels
+		});
+		seriesInstance.attachPrimitive(horizontalLinePrimitive);
+
+		horizontalLinePrimitive.drawingsChanged().subscribe((lines) => {
+			onHorizontalLineChange?.(lines);
+		});
+
+		horizontalLinePrimitive.drawingModeChanged().subscribe((isDrawing) => {
+			if (
+				!isDrawing &&
+				!isDrawingWave &&
+				!isDrawingFib &&
+				!isDrawingMeasure &&
+				!isDrawingLine &&
+				chartInstance
+			) {
+				chartInstance.applyOptions({ handleScroll: { pressedMouseMove: true } });
+			}
+			onHorizontalLineDrawingModeChange?.(isDrawing);
+		});
+
+		horizontalLinePrimitive.selectionChanged().subscribe((id) => {
+			if (selectedHorizontalLineId !== id) {
+				selectedHorizontalLineId = id;
+			}
+			onHorizontalLineSelect?.(id);
+		});
+
+		freeFormLinePrimitive = new FreeFormLinePrimitive({
+			lines: securityDrawings?.lines ?? null,
+			isDrawingMode: isDrawingLine,
+			selectedId: selectedLineId
+		});
+		seriesInstance.attachPrimitive(freeFormLinePrimitive);
+
+		freeFormLinePrimitive.drawingsChanged().subscribe((lines) => {
+			onLineChange?.(lines);
+		});
+
+		freeFormLinePrimitive.drawingModeChanged().subscribe((isDrawing) => {
+			if (
+				!isDrawing &&
+				!isDrawingWave &&
+				!isDrawingFib &&
+				!isDrawingMeasure &&
+				!isDrawingHorizontalLine &&
+				chartInstance
+			) {
+				chartInstance.applyOptions({ handleScroll: { pressedMouseMove: true } });
+			}
+			onLineDrawingModeChange?.(isDrawing);
+		});
+
+		freeFormLinePrimitive.selectionChanged().subscribe((id) => {
+			if (selectedLineId !== id) {
+				selectedLineId = id;
+			}
+			onLineSelect?.(id);
 		});
 
 		const handleWheel = (event: WheelEvent) => {
@@ -768,6 +1097,9 @@
 			userAlertsPrimitive?.destroy();
 			elliottWavesPrimitive?.destroy();
 			fibonacciPrimitive?.destroy();
+			measurePrimitive?.destroy();
+			horizontalLinePrimitive?.destroy();
+			freeFormLinePrimitive?.destroy();
 			chartInstance?.remove();
 		};
 	});
@@ -1047,6 +1379,11 @@
 
 		indicatorSeries.delete(type);
 		activeIndicators = activeIndicators.filter((i) => i.type !== type);
+		if (customPaneHeights && type in customPaneHeights) {
+			const nextHeights = { ...customPaneHeights };
+			delete nextHeights[type];
+			customPaneHeights = Object.keys(nextHeights).length > 0 ? nextHeights : null;
+		}
 		updatePanes();
 	}
 
@@ -1125,6 +1462,26 @@
 		elliottWavesPrimitive?.setSelectedWaveId(waveId);
 	}
 
+	/** Current custom pane heights, or null when the default layout is active. */
+	export function getPaneHeights(): PaneHeights | null {
+		return customPaneHeights ? { ...customPaneHeights } : null;
+	}
+
+	/** Restore a persisted pane-height layout (no change callback fired). */
+	export function setPaneHeights(heights: PaneHeights | null | undefined) {
+		if (!heights || Object.keys(heights).length === 0) {
+			customPaneHeights = null;
+		} else {
+			customPaneHeights = { ...heights };
+		}
+		updatePanes();
+	}
+
+	/** Clear custom pane heights and notify the owner so the change persists. */
+	export function resetPaneHeights() {
+		handleResetPaneHeights();
+	}
+
 	export function getAllWaves(): DegreeWaveCount[] {
 		return elliottWavesPrimitive?.getAllWaves() ?? [];
 	}
@@ -1148,6 +1505,42 @@
 	export function getFibonacciPrimitive(): FibonacciPrimitive | null {
 		return fibonacciPrimitive;
 	}
+
+	export function getMeasurePrimitive(): MeasurePrimitive | null {
+		return measurePrimitive;
+	}
+
+	export function getSelectedMeasureId(): string | null {
+		return measurePrimitive?.getSelectedId() ?? null;
+	}
+
+	export function setSelectedMeasureId(id: string | null) {
+		measurePrimitive?.select(id);
+	}
+
+	export function getHorizontalLinePrimitive(): HorizontalLinePrimitive | null {
+		return horizontalLinePrimitive;
+	}
+
+	export function getSelectedHorizontalLineId(): string | null {
+		return horizontalLinePrimitive?.getSelectedId() ?? null;
+	}
+
+	export function setSelectedHorizontalLineId(id: string | null) {
+		horizontalLinePrimitive?.select(id);
+	}
+
+	export function getLinePrimitive(): FreeFormLinePrimitive | null {
+		return freeFormLinePrimitive;
+	}
+
+	export function getSelectedLineId(): string | null {
+		return freeFormLinePrimitive?.getSelectedId() ?? null;
+	}
+
+	export function setSelectedLineId(id: string | null) {
+		freeFormLinePrimitive?.select(id);
+	}
 </script>
 
 <div class="relative flex h-full min-h-0 w-full flex-1 flex-col overflow-hidden">
@@ -1156,4 +1549,37 @@
 		id={containerId}
 		class="h-full min-h-0 w-full overflow-hidden"
 	></div>
+
+	{#if paneBoundaries.length > 0}
+		{#each paneBoundaries as boundary (boundary.key)}
+			<button
+				type="button"
+				class="absolute right-0 left-0 z-10 flex -translate-y-1/2 cursor-row-resize items-center justify-center border-0 bg-transparent px-0 py-1.5"
+				style="top: {boundary.fraction * 100}%"
+				data-testid={`pane-resize-handle-${boundary.upperId}-${boundary.lowerId}`}
+				aria-label={`Resize ${boundary.upperId} and ${boundary.lowerId} panes`}
+				onpointerdown={(event) => handlePaneDragStart(event, boundary.upperId, boundary.lowerId)}
+			>
+				<span class="h-1 w-full rounded-full bg-border/70 transition-colors hover:bg-primary"
+				></span>
+			</button>
+		{/each}
+	{/if}
+
+	{#if paneLayoutCustom}
+		<button
+			type="button"
+			class="absolute top-2 right-24 z-20 rounded border bg-background/80 px-2 py-0.5 text-xs text-muted-foreground hover:text-foreground"
+			data-testid="reset-pane-heights"
+			onclick={handleResetPaneHeights}
+		>
+			Reset pane sizes
+		</button>
+	{/if}
 </div>
+
+<svelte:window
+	onpointermove={handlePaneDragMove}
+	onpointerup={handlePaneDragEnd}
+	onpointercancel={handlePaneDragEnd}
+/>
