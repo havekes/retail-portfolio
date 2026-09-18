@@ -161,7 +161,11 @@ describe('Root +layout.svelte', () => {
 				}
 			});
 
-			expect(screen.getByText('Watchlists')).toBeInTheDocument();
+			// The nav link also renders 'Watchlists'; assert on the sidebar group
+			// label to verify the preference turns the group on.
+			expect(
+				screen.getByText('Watchlists', { selector: '[data-sidebar="group-label"]' })
+			).toBeInTheDocument();
 		});
 
 		it('persists the toggle through the preferences client', async () => {
