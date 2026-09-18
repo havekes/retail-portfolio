@@ -1,4 +1,6 @@
 import uuid
+from collections.abc import Iterable
+from dataclasses import dataclass
 from datetime import UTC, date, datetime
 from decimal import Decimal
 from typing import override
@@ -89,7 +91,13 @@ class SqlAlchemySecurityRepository(SecurityRepository):
             return SecuritySchema.model_validate(existing_security)
 
         # If not exists, insert the new security
-        values = security.model_dump()
+        values = security.model_dump(
+            exclude={
+                "current_price",
+                "daily_price_change",
+                "daily_price_change_percent",
+            }
+        )
         if values.get("id") is None:
             values["id"] = uuid.uuid4()
         _ = await self._session.execute(insert(SecurityModel).values(values))
@@ -424,11 +432,134 @@ async def sqlalchemy_intraday_price_repository_factory(
     )
 
 
+@dataclass(frozen=True)
+class PriceMetrics:
+    current_price: Decimal | None = None
+    daily_price_change: Decimal | None = None
+    daily_price_change_percent: Decimal | None = None
+
+
+_LATEST_PRICES_LIMIT = 2
+
+
 class SqlAlchemyWatchlistRepository(WatchlistRepository):
     _session: AsyncSession
 
     def __init__(self, session: AsyncSession):
         self._session = session
+
+    async def _fetch_price_metrics(
+        self, security_ids: Iterable[SecurityId]
+    ) -> dict[SecurityId, PriceMetrics]:
+        id_list = list(security_ids)
+        if not id_list:
+            return {}
+
+        rn_col = (
+            func.row_number()
+            .over(
+                partition_by=PriceModel.security_id,
+                order_by=(PriceModel.date.desc(), PriceModel.id.desc()),
+            )
+            .label("rn")
+        )
+        subq = (
+            select(
+                PriceModel.security_id,
+                PriceModel.close,
+                rn_col,
+            )
+            .where(PriceModel.security_id.in_(id_list))
+            .subquery()
+        )
+        stmt = (
+            select(
+                subq.c.security_id,
+                subq.c.close,
+                subq.c.rn,
+            )
+            .where(subq.c.rn <= _LATEST_PRICES_LIMIT)
+            .order_by(subq.c.security_id, subq.c.rn.asc())
+        )
+        result = await self._session.execute(stmt)
+        rows = result.all()
+
+        prices_by_sec: dict[SecurityId, list[Decimal]] = {}
+        for sec_id, close, _rn in rows:
+            prices_by_sec.setdefault(sec_id, []).append(close)
+
+        metrics: dict[SecurityId, PriceMetrics] = {}
+        for sec_id, closes in prices_by_sec.items():
+            if not closes:
+                continue
+            latest_close = closes[0]
+            if len(closes) == 1:
+                metrics[sec_id] = PriceMetrics(
+                    current_price=latest_close,
+                    daily_price_change=None,
+                    daily_price_change_percent=None,
+                )
+            else:
+                prev_close = closes[1]
+                daily_change = latest_close - prev_close
+                daily_change_pct = (
+                    ((latest_close - prev_close) / prev_close) * Decimal(100)
+                    if prev_close != Decimal(0)
+                    else None
+                )
+                metrics[sec_id] = PriceMetrics(
+                    current_price=latest_close,
+                    daily_price_change=daily_change,
+                    daily_price_change_percent=daily_change_pct,
+                )
+
+        return metrics
+
+    def _enrich_security(
+        self, security: SecuritySchema, metrics: dict[SecurityId, PriceMetrics]
+    ) -> SecuritySchema:
+        metric = metrics.get(security.id)
+        if metric is None:
+            return security
+        return security.model_copy(
+            update={
+                "current_price": metric.current_price,
+                "daily_price_change": metric.daily_price_change,
+                "daily_price_change_percent": metric.daily_price_change_percent,
+            }
+        )
+
+    async def _enrich_securities(
+        self, securities: list[SecuritySchema]
+    ) -> list[SecuritySchema]:
+        if not securities:
+            return securities
+        metrics = await self._fetch_price_metrics({s.id for s in securities})
+        return [self._enrich_security(s, metrics) for s in securities]
+
+    async def _enrich_watchlists(
+        self, watchlists: list[WatchlistRead]
+    ) -> list[WatchlistRead]:
+        if not watchlists:
+            return watchlists
+        all_securities = [s for w in watchlists for s in w.securities]
+        if not all_securities:
+            return watchlists
+        metrics = await self._fetch_price_metrics({s.id for s in all_securities})
+        return [
+            watchlist.model_copy(
+                update={
+                    "securities": [
+                        self._enrich_security(s, metrics) for s in watchlist.securities
+                    ]
+                }
+            )
+            for watchlist in watchlists
+        ]
+
+    async def _enrich_watchlist(self, watchlist: WatchlistRead) -> WatchlistRead:
+        enriched = await self._enrich_watchlists([watchlist])
+        return enriched[0]
 
     @override
     async def get_by_user(self, user_id: UserId) -> list[WatchlistRead]:
@@ -437,9 +568,10 @@ class SqlAlchemyWatchlistRepository(WatchlistRepository):
             .options(selectinload(WatchlistModel.securities))
             .where(WatchlistModel.user_id == user_id)
         )
-        return [
+        watchlists = [
             WatchlistRead.model_validate(watchlist) for watchlist in result.scalars()
         ]
+        return await self._enrich_watchlists(watchlists)
 
     async def _get_owned(
         self, watchlist_id: WatchlistId, user_id: UserId
@@ -504,7 +636,9 @@ class SqlAlchemyWatchlistRepository(WatchlistRepository):
             await self._session.rollback()
             raise WatchlistDuplicateNameError(name) from None
 
-        return WatchlistRead.model_validate(watchlist_model)
+        return await self._enrich_watchlist(
+            WatchlistRead.model_validate(watchlist_model)
+        )
 
     @override
     async def delete(self, watchlist_id: WatchlistId, user_id: UserId) -> None:
@@ -530,7 +664,9 @@ class SqlAlchemyWatchlistRepository(WatchlistRepository):
             .where(WatchlistModel.id == watchlist.id)
         )
         watchlist_model = result.scalar_one()
-        return WatchlistRead.model_validate(watchlist_model)
+        return await self._enrich_watchlist(
+            WatchlistRead.model_validate(watchlist_model)
+        )
 
     @override
     async def add_security_to_watchlist(
@@ -546,7 +682,9 @@ class SqlAlchemyWatchlistRepository(WatchlistRepository):
             watchlist_model.securities.append(security_model)
             await self._session.commit()
 
-        return WatchlistRead.model_validate(watchlist_model)
+        return await self._enrich_watchlist(
+            WatchlistRead.model_validate(watchlist_model)
+        )
 
     @override
     async def remove_security_from_watchlist(
@@ -562,7 +700,9 @@ class SqlAlchemyWatchlistRepository(WatchlistRepository):
             watchlist_model.securities.remove(security_model)
             await self._session.commit()
 
-        return WatchlistRead.model_validate(watchlist_model)
+        return await self._enrich_watchlist(
+            WatchlistRead.model_validate(watchlist_model)
+        )
 
     @override
     async def add_security(
@@ -636,9 +776,9 @@ class SqlAlchemyWatchlistRepository(WatchlistRepository):
         securities = await self._session.execute(
             base_query.order_by(SecurityModel.symbol).offset(offset).limit(limit)
         )
-        return [
-            SecuritySchema.model_validate(sec) for sec in securities.scalars()
-        ], total or 0
+        sec_list = [SecuritySchema.model_validate(sec) for sec in securities.scalars()]
+        enriched = await self._enrich_securities(sec_list)
+        return enriched, total or 0
 
 
 async def sqlalchemy_watchlist_repository_factory(

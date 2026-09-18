@@ -28,7 +28,12 @@ from src.market.exception import (
     WatchlistDuplicateNameError,
     WatchlistNotFoundError,
 )
-from src.market.model import SecurityModel, WatchlistModel, WatchlistsSecuritiesModel
+from src.market.model import (
+    PriceModel,
+    SecurityModel,
+    WatchlistModel,
+    WatchlistsSecuritiesModel,
+)
 from src.market.repository_sqlalchemy import (
     SqlAlchemyIntradayPriceRepository,
     SqlAlchemyPriceRepository,
@@ -966,3 +971,215 @@ async def test_watchlist_repository_delete_cascades_membership(
     other_watchlist = await watchlist_repo.create(other.id, "Other")
     with pytest.raises(WatchlistNotFoundError):
         await watchlist_repo.delete(other_watchlist.id, user.id)
+
+
+@pytest.mark.anyio
+async def test_watchlist_price_enrichment(db_session: AsyncSession):
+    """Test watchlist security price enrichment for 0, 1, 2, 3+ prices, zero prev close, and batching."""
+    user_repo = SqlAlchemyUserRepository(db_session)
+    watchlist_repo = SqlAlchemyWatchlistRepository(db_session)
+
+    user = await user_repo.create_user(
+        "watchlist_prices_test@example.com", "password123"
+    )
+
+    # 1. Create test securities
+    now = datetime.datetime.now(datetime.UTC)
+    sec_zero = SecurityModel(
+        id=uuid.uuid4(),
+        symbol="ZERO",
+        exchange="US",
+        currency="USD",
+        name="Zero Prices Corp",
+        isin=None,
+        is_active=True,
+        updated_at=now,
+    )
+    sec_one = SecurityModel(
+        id=uuid.uuid4(),
+        symbol="ONE",
+        exchange="US",
+        currency="USD",
+        name="One Price Inc",
+        isin=None,
+        is_active=True,
+        updated_at=now,
+    )
+    sec_two = SecurityModel(
+        id=uuid.uuid4(),
+        symbol="TWO",
+        exchange="US",
+        currency="USD",
+        name="Two Prices Ltd",
+        isin=None,
+        is_active=True,
+        updated_at=now,
+    )
+    sec_multi = SecurityModel(
+        id=uuid.uuid4(),
+        symbol="MULTI",
+        exchange="US",
+        currency="USD",
+        name="Multi Prices PLC",
+        isin=None,
+        is_active=True,
+        updated_at=now,
+    )
+    sec_zero_prev = SecurityModel(
+        id=uuid.uuid4(),
+        symbol="ZEROPREV",
+        exchange="US",
+        currency="USD",
+        name="Zero Prev Corp",
+        isin=None,
+        is_active=True,
+        updated_at=now,
+    )
+    db_session.add_all([sec_zero, sec_one, sec_two, sec_multi, sec_zero_prev])
+    await db_session.flush()
+
+    # 2. Add market prices
+    d1 = datetime.date(2024, 1, 1)
+    d2 = datetime.date(2024, 1, 2)
+    d3 = datetime.date(2024, 1, 3)
+
+    prices = [
+        # sec_one: 1 price
+        PriceModel(
+            security_id=sec_one.id,
+            date=d1,
+            open=Decimal("100"),
+            high=Decimal("105"),
+            low=Decimal("99"),
+            close=Decimal("102.50"),
+            adjusted_close=Decimal("102.50"),
+            volume=1000,
+        ),
+        # sec_two: 2 prices (d1 = 50.00, d2 = 55.00)
+        PriceModel(
+            security_id=sec_two.id,
+            date=d1,
+            open=Decimal("49"),
+            high=Decimal("51"),
+            low=Decimal("48"),
+            close=Decimal("50.00"),
+            adjusted_close=Decimal("50.00"),
+            volume=2000,
+        ),
+        PriceModel(
+            security_id=sec_two.id,
+            date=d2,
+            open=Decimal("51"),
+            high=Decimal("56"),
+            low=Decimal("50"),
+            close=Decimal("55.00"),
+            adjusted_close=Decimal("55.00"),
+            volume=2500,
+        ),
+        # sec_multi: 3 prices (d1 = 10.00, d2 = 20.00, d3 = 15.00)
+        PriceModel(
+            security_id=sec_multi.id,
+            date=d1,
+            open=Decimal("10"),
+            high=Decimal("11"),
+            low=Decimal("9"),
+            close=Decimal("10.00"),
+            adjusted_close=Decimal("10.00"),
+            volume=500,
+        ),
+        PriceModel(
+            security_id=sec_multi.id,
+            date=d2,
+            open=Decimal("11"),
+            high=Decimal("21"),
+            low=Decimal("10"),
+            close=Decimal("20.00"),
+            adjusted_close=Decimal("20.00"),
+            volume=800,
+        ),
+        PriceModel(
+            security_id=sec_multi.id,
+            date=d3,
+            open=Decimal("19"),
+            high=Decimal("20"),
+            low=Decimal("14"),
+            close=Decimal("15.00"),
+            adjusted_close=Decimal("15.00"),
+            volume=1200,
+        ),
+        # sec_zero_prev: 2 prices with prev close = 0
+        PriceModel(
+            security_id=sec_zero_prev.id,
+            date=d1,
+            open=Decimal("0"),
+            high=Decimal("0"),
+            low=Decimal("0"),
+            close=Decimal("0.00"),
+            adjusted_close=Decimal("0.00"),
+            volume=0,
+        ),
+        PriceModel(
+            security_id=sec_zero_prev.id,
+            date=d2,
+            open=Decimal("40"),
+            high=Decimal("45"),
+            low=Decimal("39"),
+            close=Decimal("42.00"),
+            adjusted_close=Decimal("42.00"),
+            volume=1500,
+        ),
+    ]
+    db_session.add_all(prices)
+    await db_session.flush()
+
+    # 3. Create watchlist and attach securities
+    wl = await watchlist_repo.create(user.id, "All Metrics")
+    for sec in [sec_zero, sec_one, sec_two, sec_multi, sec_zero_prev]:
+        await watchlist_repo.add_security_to_watchlist(wl.id, user.id, sec.id)
+
+    # 4. Verify get_by_user returns enriched securities
+    watchlists = await watchlist_repo.get_by_user(user.id)
+    assert len(watchlists) == 1
+    sec_map = {s.symbol: s for s in watchlists[0].securities}
+
+    # sec_zero: 0 prices
+    assert sec_map["ZERO"].current_price is None
+    assert sec_map["ZERO"].daily_price_change is None
+    assert sec_map["ZERO"].daily_price_change_percent is None
+
+    # sec_one: 1 price
+    assert sec_map["ONE"].current_price == Decimal("102.50")
+    assert sec_map["ONE"].daily_price_change is None
+    assert sec_map["ONE"].daily_price_change_percent is None
+
+    # sec_two: 2 prices (latest 55.00, prev 50.00)
+    assert sec_map["TWO"].current_price == Decimal("55.00")
+    assert sec_map["TWO"].daily_price_change == Decimal("5.00")
+    assert sec_map["TWO"].daily_price_change_percent == Decimal("10.0")
+
+    # sec_multi: 3 prices (latest 15.00, prev 20.00; d1 10.00 ignored)
+    assert sec_map["MULTI"].current_price == Decimal("15.00")
+    assert sec_map["MULTI"].daily_price_change == Decimal("-5.00")
+    assert sec_map["MULTI"].daily_price_change_percent == Decimal("-25.0")
+
+    # sec_zero_prev: prev.close is 0 (latest 42.00, prev 0.00) -> daily_price_change_percent is None
+    assert sec_map["ZEROPREV"].current_price == Decimal("42.00")
+    assert sec_map["ZEROPREV"].daily_price_change == Decimal("42.00")
+    assert sec_map["ZEROPREV"].daily_price_change_percent is None
+
+    # 5. Verify get_securities returns same enrichments
+    paged_secs, total = await watchlist_repo.get_securities(wl.id, user.id)
+    assert total == 5
+    paged_map = {s.symbol: s for s in paged_secs}
+    assert paged_map["TWO"].current_price == Decimal("55.00")
+    assert paged_map["TWO"].daily_price_change == Decimal("5.00")
+    assert paged_map["TWO"].daily_price_change_percent == Decimal("10.0")
+
+    # 6. Verify remove_security_from_watchlist retains enrichment on remaining securities
+    updated_wl = await watchlist_repo.remove_security_from_watchlist(
+        wl.id, user.id, sec_zero.id
+    )
+    assert len(updated_wl.securities) == 4
+    updated_map = {s.symbol: s for s in updated_wl.securities}
+    assert updated_map["MULTI"].current_price == Decimal("15.00")
+    assert updated_map["MULTI"].daily_price_change == Decimal("-5.00")
