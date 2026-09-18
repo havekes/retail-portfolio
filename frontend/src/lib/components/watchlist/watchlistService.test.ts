@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import {
 	getMarketService,
+	type MarketSearchResult,
 	type MarketService,
 	type SecuritySchema,
 	type WatchlistRead
@@ -37,6 +38,8 @@ const techList = () => watchlist('wl-tech', 'Tech', [nvda]);
 
 function makeClient() {
 	return {
+		search: vi.fn(),
+		createOrUpdateSecurity: vi.fn(),
 		getWatchlists: vi.fn(),
 		createWatchlist: vi.fn(),
 		renameWatchlist: vi.fn(),
@@ -46,6 +49,10 @@ function makeClient() {
 		addToWatchlist: vi.fn(),
 		removeFromWatchlist: vi.fn()
 	};
+}
+
+function searchResult(code: string, exchange = 'NASDAQ'): MarketSearchResult {
+	return { code, exchange, name: `${code} Inc.`, security_type: 'Stock' };
 }
 
 let client: ReturnType<typeof makeClient>;
@@ -223,5 +230,173 @@ describe('WatchlistService default-list star', () => {
 		expect(client.removeFromWatchlist).toHaveBeenCalledWith('sec-1', 'tok');
 		expect(service.hasSecurity('sec-1')).toBe(false);
 		expect(service.hasSecurity('sec-2')).toBe(true);
+	});
+});
+
+describe('WatchlistService.selectWatchlist', () => {
+	it('tracks the active watchlist and derives it from the shared state', () => {
+		service.watchlists = [defaultList(), techList()];
+		expect(service.activeWatchlist).toBeNull();
+
+		service.selectWatchlist('wl-tech');
+
+		expect(service.activeWatchlistId).toBe('wl-tech');
+		expect(service.activeWatchlist?.name).toBe('Tech');
+	});
+
+	it('keeps the derived active list in sync when its entry is replaced', async () => {
+		service.watchlists = [defaultList(), techList()];
+		service.selectWatchlist('wl-tech');
+		client.removeSecurityFromWatchlist.mockResolvedValue(watchlist('wl-tech', 'Tech', []));
+
+		await service.removeSecurity('wl-tech', 'sec-3');
+
+		expect(service.activeWatchlist?.securities).toEqual([]);
+	});
+});
+
+describe('WatchlistService.searchSecurities', () => {
+	it('delegates to the market search endpoint', async () => {
+		client.search.mockResolvedValue([searchResult('AAPL')]);
+
+		const results = await service.searchSecurities('AAPL');
+
+		expect(client.search).toHaveBeenCalledWith('AAPL');
+		expect(results.map((r) => r.code)).toEqual(['AAPL']);
+	});
+});
+
+describe('WatchlistService.addSecurity', () => {
+	it('resolves the search result, adds membership and replaces the returned list', async () => {
+		service.watchlists = [defaultList(), techList()];
+		client.createOrUpdateSecurity.mockResolvedValue({
+			security_id: 'sec-4',
+			symbol: 'GOOG',
+			exchange: 'NASDAQ',
+			name: 'GOOG Inc.',
+			has_price_data: false
+		});
+		client.addSecurityToWatchlist.mockResolvedValue(
+			watchlist('wl-tech', 'Tech', [nvda, security('sec-4', 'GOOG')])
+		);
+
+		await service.addSecurity('wl-tech', searchResult('GOOG'));
+
+		expect(client.createOrUpdateSecurity).toHaveBeenCalledWith({
+			code: 'GOOG',
+			exchange: 'NASDAQ',
+			name: 'GOOG Inc.',
+			currency: 'USD'
+		});
+		expect(client.addSecurityToWatchlist).toHaveBeenCalledWith('wl-tech', 'sec-4', undefined);
+		expect(service.watchlists.find((w) => w.id === 'wl-tech')?.securities.map((s) => s.id)).toEqual(
+			['sec-3', 'sec-4']
+		);
+		expect(service.error).toBeNull();
+	});
+
+	it('is a no-op when the resolved security already belongs to the list', async () => {
+		service.watchlists = [defaultList()];
+		client.createOrUpdateSecurity.mockResolvedValue({
+			security_id: 'sec-1',
+			symbol: 'AAPL',
+			exchange: 'NASDAQ',
+			name: 'AAPL Inc.',
+			has_price_data: true
+		});
+
+		await service.addSecurity('wl-default', searchResult('AAPL'));
+
+		expect(client.createOrUpdateSecurity).toHaveBeenCalled();
+		expect(client.addSecurityToWatchlist).not.toHaveBeenCalled();
+		expect(service.watchlists[0].securities.map((s) => s.id)).toEqual(['sec-1', 'sec-2']);
+	});
+
+	it('keeps the Default list and sidebar array in sync when a security is added', async () => {
+		service.watchlists = [defaultList()];
+		client.createOrUpdateSecurity.mockResolvedValue({
+			security_id: 'sec-3',
+			symbol: 'NVDA',
+			exchange: 'NASDAQ',
+			name: 'NVDA Inc.',
+			has_price_data: true
+		});
+		client.addSecurityToWatchlist.mockResolvedValue(
+			watchlist('wl-default', 'Default', [aapl, msft, nvda])
+		);
+
+		await service.addSecurity('wl-default', searchResult('NVDA'));
+
+		expect(service.defaultWatchlistSecurities.map((s) => s.id)).toEqual([
+			'sec-1',
+			'sec-2',
+			'sec-3'
+		]);
+	});
+
+	it('surfaces errors and leaves state untouched when resolution fails', async () => {
+		service.watchlists = [defaultList()];
+		client.createOrUpdateSecurity.mockRejectedValue(new Error('Security lookup failed'));
+
+		await service.addSecurity('wl-default', searchResult('AAPL'));
+
+		expect(service.error).toBe('Security lookup failed');
+		expect(client.addSecurityToWatchlist).not.toHaveBeenCalled();
+		expect(service.watchlists[0].securities.map((s) => s.id)).toEqual(['sec-1', 'sec-2']);
+	});
+
+	it('surfaces errors and leaves state untouched when the membership POST fails', async () => {
+		service.watchlists = [techList()];
+		client.createOrUpdateSecurity.mockResolvedValue({
+			security_id: 'sec-4',
+			symbol: 'GOOG',
+			exchange: 'NASDAQ',
+			name: 'GOOG Inc.',
+			has_price_data: false
+		});
+		client.addSecurityToWatchlist.mockRejectedValue(new Error('Watchlist not found'));
+
+		await service.addSecurity('wl-tech', searchResult('GOOG'));
+
+		expect(service.error).toBe('Watchlist not found');
+		expect(service.watchlists[0].securities.map((s) => s.id)).toEqual(['sec-3']);
+	});
+});
+
+describe('WatchlistService.removeSecurity', () => {
+	it('replaces the returned list for a non-default list', async () => {
+		service.watchlists = [defaultList(), watchlist('wl-tech', 'Tech', [nvda, aapl])];
+		client.removeSecurityFromWatchlist.mockResolvedValue(watchlist('wl-tech', 'Tech', [nvda]));
+
+		await service.removeSecurity('wl-tech', 'sec-1');
+
+		expect(client.removeSecurityFromWatchlist).toHaveBeenCalledWith('wl-tech', 'sec-1', undefined);
+		expect(service.watchlists.find((w) => w.id === 'wl-tech')?.securities.map((s) => s.id)).toEqual(
+			['sec-3']
+		);
+	});
+
+	it('keeps the Default list and sidebar array in sync when a security is removed', async () => {
+		service.watchlists = [defaultList()];
+		client.removeSecurityFromWatchlist.mockResolvedValue(
+			watchlist('wl-default', 'Default', [msft])
+		);
+
+		await service.removeSecurity('wl-default', 'sec-1');
+
+		expect(service.defaultWatchlistSecurities.map((s) => s.id)).toEqual(['sec-2']);
+	});
+
+	it('surfaces errors and leaves state untouched when removal fails', async () => {
+		service.watchlists = [defaultList(), techList()];
+		client.removeSecurityFromWatchlist.mockRejectedValue(new Error('Security not found'));
+
+		await service.removeSecurity('wl-tech', 'sec-3');
+
+		expect(service.error).toBe('Security not found');
+		expect(service.watchlists.find((w) => w.id === 'wl-tech')?.securities.map((s) => s.id)).toEqual(
+			['sec-3']
+		);
+		expect(client.getWatchlists).not.toHaveBeenCalled();
 	});
 });

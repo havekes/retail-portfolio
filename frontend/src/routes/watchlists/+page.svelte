@@ -1,5 +1,6 @@
 <script lang="ts">
 	import PageHeader from '@/components/layout/app-header.svelte';
+	import { resolve } from '$app/paths';
 	import type { WatchlistRead } from '@/api/marketService';
 	import { Alert, AlertDescription } from '$lib/components/ui/alert/index.js';
 	import { Button } from '$lib/components/ui/button/index.js';
@@ -7,6 +8,7 @@
 	import { Input } from '$lib/components/ui/input/index.js';
 	import { Skeleton } from '$lib/components/ui/skeleton/index.js';
 	import { getWatchlistService } from '$lib/components/watchlist/watchlistService.svelte';
+	import WatchlistSecurityPicker from '$lib/components/watchlist/watchlist-security-picker.svelte';
 	import { untrack } from 'svelte';
 	import Check from '@lucide/svelte/icons/check';
 	import Pencil from '@lucide/svelte/icons/pencil';
@@ -25,6 +27,7 @@
 	}
 
 	const watchlists = $derived(watchlistService.watchlists);
+	const activeWatchlist = $derived(watchlistService.activeWatchlist);
 	const isInitialLoading = $derived(
 		watchlistService.isLoading && watchlistService.watchlists.length === 0
 	);
@@ -99,6 +102,15 @@
 		const count = watchlist.securities.length;
 		return `${count} ${count === 1 ? 'security' : 'securities'}`;
 	}
+
+	async function handleRemoveSecurity(securityId: string) {
+		const active = watchlistService.activeWatchlist;
+		if (!active) {
+			return;
+		}
+		watchlistService.error = null;
+		await watchlistService.removeSecurity(active.id, securityId);
+	}
 </script>
 
 <svelte:head>
@@ -163,7 +175,14 @@
 								<X />
 							</Button>
 						{:else}
-							<span class="font-medium">{watchlist.name}</span>
+							<button
+								type="button"
+								class="font-medium hover:underline"
+								aria-pressed={watchlistService.activeWatchlistId === watchlist.id}
+								onclick={() => watchlistService.selectWatchlist(watchlist.id)}
+							>
+								{watchlist.name}
+							</button>
 							<span class="text-sm text-muted-foreground">{countLabel(watchlist)}</span>
 							<div class="ml-auto flex items-center gap-1">
 								<Button
@@ -187,6 +206,44 @@
 					</li>
 				{/each}
 			</ul>
+		{/if}
+
+		{#if activeWatchlist}
+			<section
+				aria-label={`${activeWatchlist.name} securities`}
+				class="flex flex-col gap-3 rounded-lg border p-4"
+			>
+				<div class="flex items-center justify-between">
+					<h2 class="text-lg font-semibold">{activeWatchlist.name}</h2>
+					<span class="text-sm text-muted-foreground">{countLabel(activeWatchlist)}</span>
+				</div>
+
+				<WatchlistSecurityPicker watchlistId={activeWatchlist.id} />
+
+				{#if activeWatchlist.securities.length === 0}
+					<p class="text-sm text-muted-foreground">No securities in this watchlist yet.</p>
+				{:else}
+					<ul aria-label="Watchlist securities" class="flex flex-col">
+						{#each activeWatchlist.securities as security (security.id)}
+							<li class="flex items-center gap-2 border-b py-2 last:border-b-0">
+								<a href={resolve(`/security/${security.id}`)} class="font-medium hover:underline">
+									{security.symbol}
+								</a>
+								<span class="truncate text-sm text-muted-foreground">{security.name}</span>
+								<Button
+									size="icon-sm"
+									variant="ghost"
+									class="ml-auto"
+									aria-label={`Remove ${security.symbol}`}
+									onclick={() => handleRemoveSecurity(security.id)}
+								>
+									<X />
+								</Button>
+							</li>
+						{/each}
+					</ul>
+				{/if}
+			</section>
 		{/if}
 	</main>
 
