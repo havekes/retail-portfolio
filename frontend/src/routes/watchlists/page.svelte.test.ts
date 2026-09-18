@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach, beforeAll } from 'vitest';
-import { render, screen, fireEvent, waitFor } from '@testing-library/svelte';
+import { render, screen, fireEvent, waitFor, within } from '@testing-library/svelte';
 import type { Component } from 'svelte';
 import type { SecuritySchema, WatchlistRead } from '@/api/marketService';
 
@@ -9,6 +9,8 @@ vi.mock('$app/paths', () => ({
 
 const mocks = vi.hoisted(() => ({
 	client: {
+		search: vi.fn(),
+		createOrUpdateSecurity: vi.fn(),
 		getWatchlists: vi.fn(),
 		createWatchlist: vi.fn(),
 		renameWatchlist: vi.fn(),
@@ -83,6 +85,15 @@ async function submitCreate(name: string) {
 	await fireEvent.input(input, { target: { value: name } });
 	await fireEvent.submit(screen.getByRole('form', { name: 'Create watchlist' }));
 	return input;
+}
+
+async function selectWatchlist(name: string) {
+	await fireEvent.click(screen.getByRole('button', { name }));
+}
+
+async function searchFor(text: string) {
+	const input = screen.getByLabelText('Search securities to add');
+	await fireEvent.input(input, { target: { value: text } });
 }
 
 describe('Watchlists page - rendering', () => {
@@ -203,5 +214,184 @@ describe('Watchlists page - delete', () => {
 
 		expect(await screen.findByText('Watchlist not found')).toBeInTheDocument();
 		expect(screen.getByText('Tech')).toBeInTheDocument();
+	});
+});
+
+describe('Watchlists page - detail view', () => {
+	it('shows the selected watchlist securities with links to the security page', async () => {
+		renderPage([defaultList(), techList()]);
+
+		await selectWatchlist('Default');
+
+		const section = screen.getByRole('region', { name: 'Default securities' });
+		expect(within(section).getByRole('link', { name: 'AAPL' })).toHaveAttribute(
+			'href',
+			'/security/sec-1'
+		);
+		expect(within(section).getByRole('link', { name: 'MSFT' })).toHaveAttribute(
+			'href',
+			'/security/sec-2'
+		);
+		expect(within(section).queryByRole('link', { name: 'NVDA' })).not.toBeInTheDocument();
+	});
+
+	it('does not render a detail view until a watchlist is selected', () => {
+		renderPage([defaultList(), techList()]);
+
+		expect(screen.queryByRole('region', { name: 'Default securities' })).not.toBeInTheDocument();
+	});
+
+	it('swaps the detail view when another watchlist is selected', async () => {
+		renderPage([defaultList(), techList()]);
+
+		await selectWatchlist('Tech');
+
+		const section = screen.getByRole('region', { name: 'Tech securities' });
+		expect(within(section).getByRole('link', { name: 'NVDA' })).toHaveAttribute(
+			'href',
+			'/security/sec-3'
+		);
+	});
+});
+
+describe('Watchlists page - add security', () => {
+	function mockAddToDefault() {
+		mocks.client.createOrUpdateSecurity.mockResolvedValue({
+			security_id: 'sec-3',
+			symbol: 'NVDA',
+			exchange: 'NASDAQ',
+			name: 'NVDA Inc.',
+			has_price_data: true
+		});
+		mocks.client.addSecurityToWatchlist.mockResolvedValue(
+			watchlist('wl-default', 'Default', [
+				security('sec-1', 'AAPL'),
+				security('sec-2', 'MSFT'),
+				security('sec-3', 'NVDA')
+			])
+		);
+	}
+
+	it('searches the market and adds the selected security to the active list', async () => {
+		mocks.client.search.mockResolvedValue([
+			{ code: 'NVDA', exchange: 'NASDAQ', name: 'NVDA Inc.', security_type: 'Stock' }
+		]);
+		mockAddToDefault();
+		renderPage([defaultList()]);
+		await selectWatchlist('Default');
+
+		await searchFor('NV');
+		await waitFor(() => expect(mocks.client.search).toHaveBeenCalledWith('NV'), { timeout: 2000 });
+		await fireEvent.click(await screen.findByRole('option', { name: /NVDA/ }));
+
+		await waitFor(() =>
+			expect(mocks.client.addSecurityToWatchlist).toHaveBeenCalledWith(
+				'wl-default',
+				'sec-3',
+				undefined
+			)
+		);
+		expect(mocks.client.createOrUpdateSecurity).toHaveBeenCalledWith({
+			code: 'NVDA',
+			exchange: 'NASDAQ',
+			name: 'NVDA Inc.',
+			currency: 'USD'
+		});
+		const section = screen.getByRole('region', { name: 'Default securities' });
+		expect(await within(section).findByRole('link', { name: 'NVDA' })).toBeInTheDocument();
+		expect(within(section).getByText('3 securities')).toBeInTheDocument();
+	});
+
+	it('does not search until the query has at least two characters', async () => {
+		renderPage([defaultList()]);
+		await selectWatchlist('Default');
+
+		await searchFor('N');
+		await new Promise((resolve) => setTimeout(resolve, 400));
+
+		expect(mocks.client.search).not.toHaveBeenCalled();
+	});
+
+	it('is a no-op when the resolved security is already in the list', async () => {
+		mocks.client.search.mockResolvedValue([
+			{ code: 'AAPL', exchange: 'NASDAQ', name: 'AAPL Inc.', security_type: 'Stock' }
+		]);
+		mocks.client.createOrUpdateSecurity.mockResolvedValue({
+			security_id: 'sec-1',
+			symbol: 'AAPL',
+			exchange: 'NASDAQ',
+			name: 'AAPL Inc.',
+			has_price_data: true
+		});
+		renderPage([defaultList()]);
+		await selectWatchlist('Default');
+
+		await searchFor('AA');
+		await waitFor(() => expect(mocks.client.search).toHaveBeenCalledWith('AA'), { timeout: 2000 });
+		await fireEvent.click(await screen.findByRole('option', { name: /AAPL/ }));
+
+		await waitFor(() => expect(mocks.client.createOrUpdateSecurity).toHaveBeenCalled());
+		await new Promise((resolve) => setTimeout(resolve, 50));
+
+		expect(mocks.client.addSecurityToWatchlist).not.toHaveBeenCalled();
+		const section = screen.getByRole('region', { name: 'Default securities' });
+		expect(within(section).getAllByRole('link', { name: 'AAPL' })).toHaveLength(1);
+		expect(within(section).getByText('2 securities')).toBeInTheDocument();
+	});
+
+	it('shows the backend error and leaves the list intact when adding fails', async () => {
+		mocks.client.search.mockResolvedValue([
+			{ code: 'NVDA', exchange: 'NASDAQ', name: 'NVDA Inc.', security_type: 'Stock' }
+		]);
+		mocks.client.createOrUpdateSecurity.mockRejectedValue(new Error('Security lookup failed'));
+		renderPage([defaultList()]);
+		await selectWatchlist('Default');
+
+		await searchFor('NV');
+		await waitFor(() => expect(mocks.client.search).toHaveBeenCalledWith('NV'), { timeout: 2000 });
+		await fireEvent.click(await screen.findByRole('option', { name: /NVDA/ }));
+
+		expect(await screen.findByText('Security lookup failed')).toBeInTheDocument();
+		expect(mocks.client.addSecurityToWatchlist).not.toHaveBeenCalled();
+		const section = screen.getByRole('region', { name: 'Default securities' });
+		expect(within(section).getByRole('link', { name: 'AAPL' })).toBeInTheDocument();
+		expect(within(section).getByText('2 securities')).toBeInTheDocument();
+	});
+});
+
+describe('Watchlists page - remove security', () => {
+	it('removes the security and updates the count', async () => {
+		mocks.client.removeSecurityFromWatchlist.mockResolvedValue(watchlist('wl-tech', 'Tech', []));
+		renderPage([defaultList(), techList()]);
+		await selectWatchlist('Tech');
+
+		const section = screen.getByRole('region', { name: 'Tech securities' });
+		await fireEvent.click(within(section).getByRole('button', { name: 'Remove NVDA' }));
+
+		await waitFor(() =>
+			expect(mocks.client.removeSecurityFromWatchlist).toHaveBeenCalledWith(
+				'wl-tech',
+				'sec-3',
+				undefined
+			)
+		);
+		await waitFor(() =>
+			expect(within(section).queryByRole('link', { name: 'NVDA' })).not.toBeInTheDocument()
+		);
+		expect(within(section).getByText('0 securities')).toBeInTheDocument();
+		expect(within(section).getByText('No securities in this watchlist yet.')).toBeInTheDocument();
+	});
+
+	it('shows the backend error and keeps the row when removal fails', async () => {
+		mocks.client.removeSecurityFromWatchlist.mockRejectedValue(new Error('Security not found'));
+		renderPage([defaultList(), techList()]);
+		await selectWatchlist('Tech');
+
+		const section = screen.getByRole('region', { name: 'Tech securities' });
+		await fireEvent.click(within(section).getByRole('button', { name: 'Remove NVDA' }));
+
+		expect(await screen.findByText('Security not found')).toBeInTheDocument();
+		expect(within(section).getByRole('link', { name: 'NVDA' })).toBeInTheDocument();
+		expect(within(section).getByText('1 security')).toBeInTheDocument();
 	});
 });
