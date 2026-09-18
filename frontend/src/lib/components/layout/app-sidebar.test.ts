@@ -261,7 +261,10 @@ describe('AppSidebar Modular Components', () => {
 			});
 
 			expect(screen.getByText('Watchlist')).toBeInTheDocument();
-			expect(screen.queryByText('Watchlists')).not.toBeInTheDocument();
+			// The nav link also renders 'Watchlists'; no per-list group label should.
+			expect(
+				screen.queryByText('Watchlists', { selector: '[data-sidebar="group-label"]' })
+			).not.toBeInTheDocument();
 			expect(screen.getByText('AAPL')).toBeInTheDocument();
 			expect(screen.getByText('Apple Inc.')).toBeInTheDocument();
 
