@@ -413,6 +413,52 @@ describe('AppSidebar Modular Components', () => {
 			expect(googlTicker).not.toHaveClass('truncate');
 			expect(screen.queryByText('Alphabet Inc.')).not.toBeInTheDocument();
 		});
+
+		it('renders watchlists ordered according to initialWatchlistOrder', () => {
+			const crypto = {
+				id: 'w3',
+				user_id: 'u1',
+				name: 'Crypto',
+				securities: []
+			};
+			render(AppSidebarTestHarness, {
+				props: {
+					open: true,
+					securities: [],
+					watchlists: [tech, energy, crypto],
+					initialWatchlistOrder: ['w2', 'w3', 'w1']
+				}
+			});
+
+			const labels = Array.from(document.querySelectorAll('[data-sidebar="group-label"]'))
+				.map((el) => el.textContent?.trim())
+				.filter((text) => ['Tech', 'Energy', 'Crypto'].includes(text ?? ''));
+
+			expect(labels).toEqual(['Energy', 'Crypto', 'Tech']);
+		});
+
+		it('appends unlisted watchlists gracefully when initialWatchlistOrder is partial', () => {
+			const crypto = {
+				id: 'w3',
+				user_id: 'u1',
+				name: 'Crypto',
+				securities: []
+			};
+			render(AppSidebarTestHarness, {
+				props: {
+					open: true,
+					securities: [],
+					watchlists: [tech, energy, crypto],
+					initialWatchlistOrder: ['w3']
+				}
+			});
+
+			const labels = Array.from(document.querySelectorAll('[data-sidebar="group-label"]'))
+				.map((el) => el.textContent?.trim())
+				.filter((text) => ['Tech', 'Energy', 'Crypto'].includes(text ?? ''));
+
+			expect(labels).toEqual(['Crypto', 'Tech', 'Energy']);
+		});
 	});
 
 	describe('Profile & Rail', () => {

@@ -8,13 +8,21 @@
 	import { getWatchlistService } from '$lib/components/watchlist/watchlistService.svelte';
 	import { userPreferencesService } from '$lib/api/userPreferencesService.js';
 	import type { SecuritySchema } from '$lib/api/marketService';
+	import { sortWatchlistsByOrder } from '$lib/components/watchlist/watchlist-utils';
 	import { cn } from '$lib/utils.js';
 	import { getContext } from 'svelte';
 	import { SvelteSet } from 'svelte/reactivity';
 
 	const sidebar = useSidebar();
 	const watchlistService = getWatchlistService();
-	const watchlists = $derived(watchlistService?.watchlists || []);
+
+	const contextWatchlistOrder = getContext<string[] | undefined>('initialWatchlistOrder');
+	const watchlistOrder = $derived(
+		contextWatchlistOrder ?? ($page?.data?.watchlist_order as string[] | undefined) ?? null
+	);
+	const watchlists = $derived(
+		sortWatchlistsByOrder(watchlistService?.watchlists || [], watchlistOrder)
+	);
 
 	const contextCollapsedIds = getContext<string[] | undefined>('initialCollapsedWatchlistIds');
 	const initialIds =
