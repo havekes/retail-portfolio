@@ -3,12 +3,18 @@
 	import { resolve } from '$app/paths';
 	import * as Command from '@/components/ui/command';
 	import { marketService } from '@/api/marketService';
-	import type { MarketSearchResult } from '@/api/marketService';
+	import type { MarketSearchResult, WatchlistRead } from '@/api/marketService';
 	import { debounce } from '@/utils';
 	import { getWatchlistService } from '$lib/components/watchlist/watchlistService.svelte';
 	import Star from '@lucide/svelte/icons/star';
 
-	let { open = $bindable(false) } = $props();
+	let {
+		open = $bindable(false),
+		targetWatchlist = $bindable<WatchlistRead | null>(null)
+	}: {
+		open?: boolean;
+		targetWatchlist?: WatchlistRead | null;
+	} = $props();
 
 	let query = $state('');
 	let isSearching = $state(false);
@@ -16,12 +22,29 @@
 
 	const watchlistService = getWatchlistService();
 
+	const activeTargetWatchlist = $derived.by(() => {
+		const target = targetWatchlist;
+		if (!target) return null;
+		return watchlistService?.watchlists.find((w) => w.id === target.id) ?? target;
+	});
+
+	const placeholder = $derived(
+		activeTargetWatchlist
+			? `Search securities to add to ${activeTargetWatchlist.name}...`
+			: 'Search for a company or symbol...'
+	);
+
 	function getWatchlistSecurity(result: MarketSearchResult) {
 		if (!watchlistService) return null;
-		return watchlistService.defaultWatchlistSecurities.find(
-			(s) =>
-				s.symbol.toLowerCase() === result.code.toLowerCase() &&
-				s.exchange.toLowerCase() === result.exchange.toLowerCase()
+		const securities = activeTargetWatchlist
+			? activeTargetWatchlist.securities
+			: watchlistService.defaultWatchlistSecurities;
+		return (
+			securities.find(
+				(s) =>
+					s.symbol.toLowerCase() === result.code.toLowerCase() &&
+					s.exchange.toLowerCase() === result.exchange.toLowerCase()
+			) ?? null
 		);
 	}
 
@@ -29,20 +52,43 @@
 		e.stopPropagation();
 		e.preventDefault();
 
+		if (!watchlistService) return;
+
 		const existing = getWatchlistSecurity(result);
-		if (existing) {
-			await watchlistService.toggleSecurity(existing.id);
+		if (activeTargetWatchlist) {
+			if (existing) {
+				await watchlistService.removeSecurityFromWatchlist(activeTargetWatchlist.id, existing.id);
+			} else {
+				try {
+					const response = await marketService.createOrUpdateSecurity({
+						code: result.code,
+						exchange: result.exchange,
+						name: result.name,
+						currency: 'USD'
+					});
+					await watchlistService.addSecurityToWatchlist(
+						activeTargetWatchlist.id,
+						response.security_id
+					);
+				} catch (error) {
+					console.error('Failed to add security to watchlist:', error);
+				}
+			}
 		} else {
-			try {
-				const response = await marketService.createOrUpdateSecurity({
-					code: result.code,
-					exchange: result.exchange,
-					name: result.name,
-					currency: 'USD'
-				});
-				await watchlistService.toggleSecurity(response.security_id);
-			} catch (error) {
-				console.error('Failed to add security to watchlist:', error);
+			if (existing) {
+				await watchlistService.toggleSecurity(existing.id);
+			} else {
+				try {
+					const response = await marketService.createOrUpdateSecurity({
+						code: result.code,
+						exchange: result.exchange,
+						name: result.name,
+						currency: 'USD'
+					});
+					await watchlistService.toggleSecurity(response.security_id);
+				} catch (error) {
+					console.error('Failed to add security to watchlist:', error);
+				}
 			}
 		}
 	}
@@ -86,6 +132,7 @@
 		if (!open) {
 			query = '';
 			searchResults = [];
+			targetWatchlist = null;
 		}
 	});
 
@@ -105,7 +152,7 @@
 </script>
 
 <Command.Dialog bind:open shouldFilter={false} class="sm:max-h-f sm:max-w-xl">
-	<Command.Input bind:value={query} placeholder="Search for a company or symbol..." />
+	<Command.Input bind:value={query} {placeholder} />
 	<Command.List>
 		{#if isSearching}
 			<Command.Loading class="px-2 py-6 text-center">Loading...</Command.Loading>

@@ -1,27 +1,25 @@
 <script lang="ts">
 	import * as Sidebar from '$lib/components/ui/sidebar/index.js';
 	import { resolve } from '$app/paths';
+	import { page } from '$app/stores';
 	import ChevronDown from '@lucide/svelte/icons/chevron-down';
 	import ChevronRight from '@lucide/svelte/icons/chevron-right';
 	import { useSidebar } from '$lib/components/ui/sidebar/context.svelte.js';
 	import { getWatchlistService } from '$lib/components/watchlist/watchlistService.svelte';
+	import { userPreferencesService } from '$lib/api/userPreferencesService.js';
 	import type { SecuritySchema } from '$lib/api/marketService';
 	import { cn } from '$lib/utils.js';
 	import { getContext } from 'svelte';
 	import { SvelteSet } from 'svelte/reactivity';
-	import {
-		WATCHLIST_SIDEBAR_PREF,
-		type WatchlistSidebarPref
-	} from '$lib/components/layout/watchlist-sidebar-pref.js';
 
 	const sidebar = useSidebar();
 	const watchlistService = getWatchlistService();
-	const sidebarPref = getContext<WatchlistSidebarPref | undefined>(WATCHLIST_SIDEBAR_PREF);
-	const showWatchlists = $derived(sidebarPref?.show ?? false);
-	const securities = $derived(watchlistService?.defaultWatchlistSecurities || []);
 	const watchlists = $derived(watchlistService?.watchlists || []);
 
-	let collapsedIds = new SvelteSet<string>();
+	const contextCollapsedIds = getContext<string[] | undefined>('initialCollapsedWatchlistIds');
+	const initialIds =
+		contextCollapsedIds ?? ($page?.data?.collapsed_watchlist_ids as string[] | undefined) ?? [];
+	let collapsedIds = new SvelteSet<string>(initialIds);
 
 	function toggleCollapsed(watchlistId: string) {
 		if (collapsedIds.has(watchlistId)) {
@@ -29,6 +27,9 @@
 		} else {
 			collapsedIds.add(watchlistId);
 		}
+		userPreferencesService
+			.patchPreferences({ collapsed_watchlist_ids: Array.from(collapsedIds) })
+			.catch(console.error);
 	}
 
 	function getTickerFontSize(symbol: string): string {
@@ -72,61 +73,46 @@
 	</Sidebar.MenuItem>
 {/snippet}
 
-{#if showWatchlists}
+<Sidebar.Group>
+	<Sidebar.GroupLabel>Watchlists</Sidebar.GroupLabel>
+</Sidebar.Group>
+{#each watchlists as watchlist (watchlist.id)}
 	<Sidebar.Group>
-		<Sidebar.GroupLabel>Watchlists</Sidebar.GroupLabel>
-	</Sidebar.Group>
-	{#each watchlists as watchlist (watchlist.id)}
-		<Sidebar.Group>
-			<Sidebar.GroupLabel
-				class="h-auto! min-h-8 overflow-visible group-data-[collapsible=icon]:mt-1! group-data-[collapsible=icon]:h-auto! group-data-[collapsible=icon]:w-full group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:px-0! group-data-[collapsible=icon]:text-center group-data-[collapsible=icon]:text-[9px] group-data-[collapsible=icon]:leading-tight group-data-[collapsible=icon]:opacity-100!"
-				title={watchlist.name}
-			>
-				<span class="block break-words whitespace-normal group-data-[collapsible=icon]:break-all">
-					{watchlist.name}
-				</span>
-			</Sidebar.GroupLabel>
-			<Sidebar.GroupAction
-				aria-label={`Toggle ${watchlist.name}`}
-				title={`Toggle ${watchlist.name}`}
-				onclick={() => toggleCollapsed(watchlist.id)}
-			>
-				{#if collapsedIds.has(watchlist.id)}
-					<ChevronRight />
-				{:else}
-					<ChevronDown />
-				{/if}
-			</Sidebar.GroupAction>
-			{#if !collapsedIds.has(watchlist.id)}
-				<Sidebar.GroupContent>
-					<Sidebar.Menu>
-						{#each watchlist.securities as security (security.id)}
-							{@render securityItem(security)}
-						{:else}
-							<Sidebar.MenuItem>
-								<span
-									class="flex h-8 items-center px-2 text-xs text-muted-foreground group-data-[collapsible=icon]:hidden"
-								>
-									No securities
-								</span>
-							</Sidebar.MenuItem>
-						{/each}
-					</Sidebar.Menu>
-				</Sidebar.GroupContent>
+		<Sidebar.GroupLabel
+			class="h-auto! min-h-8 overflow-visible group-data-[collapsible=icon]:mt-1! group-data-[collapsible=icon]:h-auto! group-data-[collapsible=icon]:w-full group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:px-0! group-data-[collapsible=icon]:text-center group-data-[collapsible=icon]:text-[9px] group-data-[collapsible=icon]:leading-tight group-data-[collapsible=icon]:opacity-100!"
+			title={watchlist.name}
+		>
+			<span class="block break-words whitespace-normal group-data-[collapsible=icon]:break-all">
+				{watchlist.name}
+			</span>
+		</Sidebar.GroupLabel>
+		<Sidebar.GroupAction
+			aria-label={`Toggle ${watchlist.name}`}
+			title={`Toggle ${watchlist.name}`}
+			onclick={() => toggleCollapsed(watchlist.id)}
+		>
+			{#if collapsedIds.has(watchlist.id)}
+				<ChevronRight />
+			{:else}
+				<ChevronDown />
 			{/if}
-		</Sidebar.Group>
-	{/each}
-{:else}
-	<Sidebar.Group>
-		<Sidebar.GroupLabel>Watchlist</Sidebar.GroupLabel>
-		<Sidebar.GroupContent>
-			{#if securities.length > 0}
+		</Sidebar.GroupAction>
+		{#if !collapsedIds.has(watchlist.id)}
+			<Sidebar.GroupContent>
 				<Sidebar.Menu>
-					{#each securities as security (security.id)}
+					{#each watchlist.securities as security (security.id)}
 						{@render securityItem(security)}
+					{:else}
+						<Sidebar.MenuItem>
+							<span
+								class="flex h-8 items-center px-2 text-xs text-muted-foreground group-data-[collapsible=icon]:hidden"
+							>
+								No securities
+							</span>
+						</Sidebar.MenuItem>
 					{/each}
 				</Sidebar.Menu>
-			{/if}
-		</Sidebar.GroupContent>
+			</Sidebar.GroupContent>
+		{/if}
 	</Sidebar.Group>
-{/if}
+{/each}

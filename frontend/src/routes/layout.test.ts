@@ -1,10 +1,9 @@
-import { render, screen, fireEvent } from '@testing-library/svelte';
+import { render, screen } from '@testing-library/svelte';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import Layout from './+layout.svelte';
-import LayoutTestHarness from './layout.test-harness.svelte';
 import { load } from './+layout.server';
 import { createRawSnippet } from 'svelte';
-import { userPreferencesService, getUserPreferencesService } from '$lib/api/userPreferencesService';
+import { getUserPreferencesService } from '$lib/api/userPreferencesService';
 
 vi.mock('mode-watcher', () => ({
 	ModeWatcher: () => null
@@ -69,7 +68,7 @@ describe('Root +layout.svelte', () => {
 
 		render(Layout, {
 			props: {
-				data: { user: null, sidebar_open: true, sidebar_watchlists: false },
+				data: { user: null, sidebar_open: true, collapsed_watchlist_ids: [] },
 				children
 			}
 		});
@@ -88,7 +87,7 @@ describe('Root +layout.svelte', () => {
 				data: {
 					user: { id: 'u1', email: 'test@example.com' },
 					sidebar_open: true,
-					sidebar_watchlists: false
+					collapsed_watchlist_ids: []
 				},
 				children
 			}
@@ -113,7 +112,7 @@ describe('Root +layout.svelte', () => {
 				data: {
 					user: { id: 'u1', email: 'test@example.com' },
 					sidebar_open: true,
-					sidebar_watchlists: false
+					collapsed_watchlist_ids: []
 				},
 				children
 			}
@@ -124,7 +123,7 @@ describe('Root +layout.svelte', () => {
 		expect(inset).toHaveClass('min-w-0');
 	});
 
-	describe('sidebar_watchlists preference', () => {
+	describe('collapsed_watchlist_ids preference', () => {
 		const loadEvent = (prefs: Record<string, unknown>) => {
 			vi.mocked(getUserPreferencesService).mockReturnValue({
 				getPreferences: vi.fn().mockResolvedValue(prefs)
@@ -136,58 +135,16 @@ describe('Root +layout.svelte', () => {
 			} as unknown as Parameters<typeof load>[0];
 		};
 
-		it('defaults sidebar_watchlists to false when the preference is absent', async () => {
+		it('defaults collapsed_watchlist_ids to empty array when the preference is absent', async () => {
 			const data = await load(loadEvent({ sidebar_open: true }));
-			expect(data.sidebar_watchlists).toBe(false);
+			expect(data.collapsed_watchlist_ids).toEqual([]);
 		});
 
-		it('reads sidebar_watchlists from preferences', async () => {
-			const data = await load(loadEvent({ sidebar_open: true, sidebar_watchlists: true }));
-			expect(data.sidebar_watchlists).toBe(true);
-		});
-
-		it('renders the watchlists header when the preference is on', () => {
-			const children = createRawSnippet(() => ({
-				render: () => '<div data-testid="page-content">Authenticated Dashboard</div>'
-			}));
-
-			render(Layout, {
-				props: {
-					data: {
-						user: { id: 'u1', email: 'test@example.com' },
-						sidebar_open: true,
-						sidebar_watchlists: true
-					},
-					children
-				}
-			});
-
-			// The nav link also renders 'Watchlists'; assert on the sidebar group
-			// label to verify the preference turns the group on.
-			expect(
-				screen.getByText('Watchlists', { selector: '[data-sidebar="group-label"]' })
-			).toBeInTheDocument();
-		});
-
-		it('persists the toggle through the preferences client and updates context consumers', async () => {
-			render(LayoutTestHarness, {
-				props: {
-					data: {
-						user: { id: 'u1', email: 'test@example.com' },
-						sidebar_open: true,
-						sidebar_watchlists: false
-					}
-				}
-			});
-
-			expect(screen.getByTestId('watchlist-pref-state')).toHaveTextContent('off');
-
-			await fireEvent.click(screen.getByRole('button', { name: 'Probe toggle watchlists' }));
-
-			expect(userPreferencesService.patchPreferences).toHaveBeenCalledWith({
-				sidebar_watchlists: true
-			});
-			expect(screen.getByTestId('watchlist-pref-state')).toHaveTextContent('on');
+		it('reads collapsed_watchlist_ids from preferences', async () => {
+			const data = await load(
+				loadEvent({ sidebar_open: true, collapsed_watchlist_ids: ['w1', 'w2'] })
+			);
+			expect(data.collapsed_watchlist_ids).toEqual(['w1', 'w2']);
 		});
 	});
 });

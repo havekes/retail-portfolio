@@ -10,10 +10,7 @@
 	import GlobalSearch from '$lib/components/global-search.svelte';
 	import { userPreferencesService } from '$lib/api/userPreferencesService.js';
 	import { Toaster } from '$lib/components/ui/toast/index.js';
-	import {
-		WATCHLIST_SIDEBAR_PREF,
-		type WatchlistSidebarPref
-	} from '$lib/components/layout/watchlist-sidebar-pref.js';
+	import type { WatchlistRead } from '$lib/api/marketService';
 
 	let { children, data } = $props();
 
@@ -22,7 +19,6 @@
 	const watchlistService = setWatchlistService();
 
 	let sidebarOpen = $state(untrack(() => data.sidebar_open ?? true));
-	let showWatchlists = $state(untrack(() => data.sidebar_watchlists ?? false));
 
 	function handleSidebarOpenChange(open: boolean) {
 		if (data.user) {
@@ -30,31 +26,20 @@
 		}
 	}
 
-	function handleShowWatchlistsChange(show: boolean) {
-		showWatchlists = show;
-		if (data.user) {
-			userPreferencesService.patchPreferences({ sidebar_watchlists: show }).catch(console.error);
-		}
-	}
-
-	setContext<WatchlistSidebarPref>(WATCHLIST_SIDEBAR_PREF, {
-		get show() {
-			return showWatchlists;
-		},
-		setShow(value: boolean) {
-			handleShowWatchlistsChange(value);
-		}
-	});
-
 	$effect(() => {
 		if (data.user) {
 			watchlistService.loadWatchlists();
 		}
 	});
 
-	setContext('toggleGlobalSearch', () => (globalSearchOpen = !globalSearchOpen));
-
 	let globalSearchOpen = $state(false);
+	let globalSearchTargetWatchlist = $state<WatchlistRead | null>(null);
+
+	setContext('toggleGlobalSearch', () => (globalSearchOpen = !globalSearchOpen));
+	setContext('openGlobalSearch', (watchlist?: WatchlistRead | null) => {
+		globalSearchTargetWatchlist = watchlist ?? null;
+		globalSearchOpen = true;
+	});
 
 	function handleKeydown(e: KeyboardEvent) {
 		if (e.key === 'p' && (e.metaKey || e.ctrlKey)) {
@@ -87,5 +72,5 @@
 	{@render children()}
 {/if}
 
-<GlobalSearch bind:open={globalSearchOpen} />
+<GlobalSearch bind:open={globalSearchOpen} bind:targetWatchlist={globalSearchTargetWatchlist} />
 <Toaster />
