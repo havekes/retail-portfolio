@@ -144,7 +144,7 @@ describe('HoldingsService', () => {
 		expect(service.errorMessage).toBeNull();
 	});
 
-	it('derives grouped holdings for both modes and reacts to setGroupBy', () => {
+	it('derives grouped holdings for both stock and company modes and reacts to setGroupBy', () => {
 		service.rows = [
 			makeHolding('h-1', { account_id: 'acc-1', quantity: 10 }),
 			makeHolding('h-2', { account_id: 'acc-2', quantity: 5 }),
@@ -154,12 +154,16 @@ describe('HoldingsService', () => {
 		expect(service.groupedHoldings).toHaveLength(3);
 		expect(service.groupedHoldings.map((group) => group.account_count)).toEqual([1, 1, 1]);
 
-		service.setGroupBy('company');
+		service.setGroupBy('stock');
 
-		expect(service.groupBy).toBe('company');
+		expect(service.groupBy).toBe('stock');
 		expect(service.groupedHoldings).toHaveLength(2);
 		expect(service.groupedHoldings[0].quantity).toBe(15);
 		expect(service.groupedHoldings[0].account_count).toBe(2);
+
+		service.setGroupBy('company');
+		expect(service.groupBy).toBe('company');
+		expect(service.groupedHoldings).toHaveLength(2);
 	});
 
 	it('getHoldingsService(customFetch) returns an isolated service instance', () => {

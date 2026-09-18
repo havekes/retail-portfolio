@@ -14,9 +14,9 @@ export type HoldingsGroupPrefsService = {
 	): Promise<UserPreferences>;
 };
 
-/** Anything that is not the explicit `company` mode falls back to flat rows. */
+/** Anything that is not explicit `stock` or legacy `company` mode falls back to flat rows. */
 export function normalizeHoldingsGroupMode(raw: unknown): HoldingsGroupMode {
-	return raw === 'company' ? 'company' : 'none';
+	return raw === 'stock' || raw === 'company' ? 'stock' : 'none';
 }
 
 /**
