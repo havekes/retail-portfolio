@@ -1,44 +1,33 @@
 <script lang="ts">
-	import PageHeader from '@/components/layout/app-header.svelte';
 	import { resolve } from '$app/paths';
-	import type { WatchlistRead } from '@/api/marketService';
-	import { Alert, AlertDescription } from '$lib/components/ui/alert/index.js';
-	import { Button } from '$lib/components/ui/button/index.js';
-	import ConfirmationModal from '$lib/components/ui/confirmation-modal/confirmation-modal.svelte';
-	import { Input } from '$lib/components/ui/input/index.js';
-	import { Skeleton } from '$lib/components/ui/skeleton/index.js';
 	import { getWatchlistService } from '$lib/components/watchlist/watchlistService.svelte';
+	import type { WatchlistRead } from '$lib/api/marketService';
+	import PageHeader from '$lib/components/layout/app-header.svelte';
+	import { Button } from '$lib/components/ui/button/index.js';
+	import { Input } from '$lib/components/ui/input/index.js';
+	import { Alert, AlertDescription } from '$lib/components/ui/alert/index.js';
+	import { Skeleton } from '$lib/components/ui/skeleton/index.js';
 	import CreateWatchlistModal from '$lib/components/watchlist/create-watchlist-modal.svelte';
-	import WatchlistSecurityPicker from '$lib/components/watchlist/watchlist-security-picker.svelte';
-	import {
-		WATCHLIST_SIDEBAR_PREF,
-		type WatchlistSidebarPref
-	} from '$lib/components/layout/watchlist-sidebar-pref.js';
+	import ConfirmationModal from '$lib/components/ui/confirmation-modal/confirmation-modal.svelte';
 	import { getContext, untrack } from 'svelte';
 	import Check from '@lucide/svelte/icons/check';
-	import Eye from '@lucide/svelte/icons/eye';
-	import EyeOff from '@lucide/svelte/icons/eye-off';
 	import Pencil from '@lucide/svelte/icons/pencil';
+	import Plus from '@lucide/svelte/icons/plus';
 	import Trash2 from '@lucide/svelte/icons/trash-2';
 	import X from '@lucide/svelte/icons/x';
 
 	let { data }: { data: { watchlists: WatchlistRead[] } } = $props();
 
 	const watchlistService = getWatchlistService();
-	const sidebarPref = getContext<WatchlistSidebarPref | undefined>(WATCHLIST_SIDEBAR_PREF) ?? {
-		show: false,
-		setShow: () => {}
-	};
+	const openGlobalSearch = getContext<((watchlist?: WatchlistRead | null) => void) | undefined>(
+		'openGlobalSearch'
+	);
 
-	// Seed the shared service with the SSR-loaded data so the first paint, the
-	// mutations and the sidebar all read from a single source of truth. The
-	// layout refreshes the same instance client-side.
 	if (watchlistService.watchlists.length === 0 && untrack(() => data.watchlists).length > 0) {
 		watchlistService.watchlists = untrack(() => data.watchlists);
 	}
 
-	const watchlists = $derived(watchlistService.watchlists);
-	const activeWatchlist = $derived(watchlistService.activeWatchlist);
+	const watchlists = $derived(watchlistService.watchlists ?? []);
 	const isInitialLoading = $derived(
 		watchlistService.isLoading && watchlistService.watchlists.length === 0
 	);
@@ -101,13 +90,9 @@
 		return `${count} ${count === 1 ? 'security' : 'securities'}`;
 	}
 
-	async function handleRemoveSecurity(securityId: string) {
-		const active = watchlistService.activeWatchlist;
-		if (!active) {
-			return;
-		}
+	async function handleRemoveSecurity(watchlistId: string, securityId: string) {
 		watchlistService.error = null;
-		await watchlistService.removeSecurity(active.id, securityId);
+		await watchlistService.removeSecurityFromWatchlist(watchlistId, securityId);
 	}
 </script>
 
@@ -118,29 +103,11 @@
 <div class="flex flex-1 flex-col overflow-hidden bg-background">
 	<PageHeader title="Watchlists">
 		{#snippet actions()}
-			<Button
-				variant="outline"
-				size="sm"
-				aria-label={sidebarPref.show ? 'Hide watchlists in sidebar' : 'Show watchlists in sidebar'}
-				aria-pressed={sidebarPref.show}
-				onclick={() => sidebarPref.setShow(!sidebarPref.show)}
-			>
-				{#if sidebarPref.show}
-					<EyeOff class="mr-2 h-4 w-4" />
-					Hide watchlists
-				{:else}
-					<Eye class="mr-2 h-4 w-4" />
-					Show watchlists
-				{/if}
-			</Button>
+			<Button onclick={() => (createOpen = true)}>Create watchlist</Button>
 		{/snippet}
 	</PageHeader>
 
-	<main class="flex flex-1 flex-col gap-4 overflow-y-auto p-4">
-		<div class="flex items-center">
-			<Button onclick={() => (createOpen = true)}>Create watchlist</Button>
-		</div>
-
+	<main class="flex flex-1 flex-col gap-6 overflow-y-auto p-4">
 		{#if watchlistService.error}
 			<Alert variant="destructive">
 				<AlertDescription>{watchlistService.error}</AlertDescription>
@@ -159,101 +126,99 @@
 				<p class="text-sm text-muted-foreground">Create one above to start tracking securities.</p>
 			</div>
 		{:else}
-			<ul aria-label="Watchlists" class="flex flex-col gap-2">
+			<div class="flex flex-col gap-6">
 				{#each watchlists as watchlist (watchlist.id)}
-					<li class="flex items-center gap-2 rounded-lg border p-3">
-						{#if editingId === watchlist.id}
-							<Input
-								bind:value={editingName}
-								aria-label="Watchlist name"
-								class="max-w-xs"
-								onkeydown={(event) => handleRenameKeydown(event, watchlist)}
-							/>
-							<Button
-								size="icon-sm"
-								aria-label={`Save ${watchlist.name}`}
-								onclick={() => confirmRename(watchlist)}
-							>
-								<Check />
-							</Button>
-							<Button
-								size="icon-sm"
-								variant="ghost"
-								aria-label="Cancel rename"
-								onclick={cancelRename}
-							>
-								<X />
-							</Button>
+					<section
+						aria-label={`${watchlist.name} securities`}
+						class="flex flex-col gap-3 rounded-lg border p-4"
+					>
+						<div class="flex items-center justify-between">
+							{#if editingId === watchlist.id}
+								<div class="flex items-center gap-2">
+									<Input
+										bind:value={editingName}
+										aria-label="Watchlist name"
+										class="max-w-xs"
+										onkeydown={(event) => handleRenameKeydown(event, watchlist)}
+									/>
+									<Button
+										size="icon-sm"
+										aria-label={`Save ${watchlist.name}`}
+										onclick={() => confirmRename(watchlist)}
+									>
+										<Check class="h-4 w-4" />
+									</Button>
+									<Button
+										size="icon-sm"
+										variant="ghost"
+										aria-label="Cancel rename"
+										onclick={cancelRename}
+									>
+										<X class="h-4 w-4" />
+									</Button>
+								</div>
+							{:else}
+								<div class="flex items-center gap-2">
+									<h2 class="text-lg font-semibold">{watchlist.name}</h2>
+									<span class="text-sm text-muted-foreground">{countLabel(watchlist)}</span>
+								</div>
+								<div class="flex items-center gap-1">
+									<Button
+										size="icon-sm"
+										variant="ghost"
+										aria-label={`Add security to ${watchlist.name}`}
+										onclick={() => openGlobalSearch?.(watchlist)}
+									>
+										<Plus class="h-4 w-4" />
+									</Button>
+									<Button
+										size="icon-sm"
+										variant="ghost"
+										aria-label={`Rename ${watchlist.name}`}
+										onclick={() => startRename(watchlist)}
+									>
+										<Pencil class="h-4 w-4" />
+									</Button>
+									<Button
+										size="icon-sm"
+										variant="ghost"
+										aria-label={`Delete ${watchlist.name}`}
+										onclick={() => requestDelete(watchlist)}
+									>
+										<Trash2 class="h-4 w-4" />
+									</Button>
+								</div>
+							{/if}
+						</div>
+
+						{#if watchlist.securities.length === 0}
+							<p class="text-sm text-muted-foreground">No securities in this watchlist yet.</p>
 						{:else}
-							<button
-								type="button"
-								class="font-medium hover:underline"
-								aria-pressed={watchlistService.activeWatchlistId === watchlist.id}
-								onclick={() => watchlistService.selectWatchlist(watchlist.id)}
-							>
-								{watchlist.name}
-							</button>
-							<span class="text-sm text-muted-foreground">{countLabel(watchlist)}</span>
-							<div class="ml-auto flex items-center gap-1">
-								<Button
-									size="icon-sm"
-									variant="ghost"
-									aria-label={`Rename ${watchlist.name}`}
-									onclick={() => startRename(watchlist)}
-								>
-									<Pencil />
-								</Button>
-								<Button
-									size="icon-sm"
-									variant="ghost"
-									aria-label={`Delete ${watchlist.name}`}
-									onclick={() => requestDelete(watchlist)}
-								>
-									<Trash2 />
-								</Button>
-							</div>
+							<ul aria-label={`${watchlist.name} securities list`} class="flex flex-col gap-1">
+								{#each watchlist.securities as security (security.id)}
+									<li class="flex items-center gap-2">
+										<a
+											href={resolve(`/security/${security.id}`)}
+											class="flex flex-1 items-center gap-2 rounded-md px-2 py-1.5 transition-colors hover:bg-muted focus:bg-muted"
+										>
+											<span class="font-medium">{security.symbol}</span>
+											<span class="truncate text-sm text-muted-foreground">{security.name}</span>
+										</a>
+										<Button
+											size="icon-sm"
+											variant="ghost"
+											aria-label={`Remove ${security.symbol}`}
+											onclick={() => handleRemoveSecurity(watchlist.id, security.id)}
+										>
+											<X class="h-4 w-4" />
+										</Button>
+									</li>
+								{/each}
+							</ul>
 						{/if}
-					</li>
+					</section>
 				{/each}
-			</ul>
-		{/if}
-
-		{#if activeWatchlist}
-			<section
-				aria-label={`${activeWatchlist.name} securities`}
-				class="flex flex-col gap-3 rounded-lg border p-4"
-			>
-				<div class="flex items-center justify-between">
-					<h2 class="text-lg font-semibold">{activeWatchlist.name}</h2>
-					<span class="text-sm text-muted-foreground">{countLabel(activeWatchlist)}</span>
-				</div>
-
-				<WatchlistSecurityPicker watchlistId={activeWatchlist.id} />
-
-				{#if activeWatchlist.securities.length === 0}
-					<p class="text-sm text-muted-foreground">No securities in this watchlist yet.</p>
-				{:else}
-					<ul aria-label="Watchlist securities" class="flex flex-col">
-						{#each activeWatchlist.securities as security (security.id)}
-							<li class="flex items-center gap-2 border-b py-2 last:border-b-0">
-								<a href={resolve(`/security/${security.id}`)} class="font-medium hover:underline">
-									{security.symbol}
-								</a>
-								<span class="truncate text-sm text-muted-foreground">{security.name}</span>
-								<Button
-									size="icon-sm"
-									variant="ghost"
-									class="ml-auto"
-									aria-label={`Remove ${security.symbol}`}
-									onclick={() => handleRemoveSecurity(security.id)}
-								>
-									<X />
-								</Button>
-							</li>
-						{/each}
-					</ul>
-				{/if}
-			</section>
+			</div>
 		{/if}
 	</main>
 

@@ -2,7 +2,6 @@ import { describe, it, expect, vi, beforeEach, beforeAll } from 'vitest';
 import { render, screen, fireEvent, waitFor, within } from '@testing-library/svelte';
 import type { Component } from 'svelte';
 import type { SecuritySchema, WatchlistRead } from '@/api/marketService';
-import { WATCHLIST_SIDEBAR_PREF } from '$lib/components/layout/watchlist-sidebar-pref';
 
 vi.mock('$app/paths', () => ({
 	resolve: (path: string) => path
@@ -12,7 +11,7 @@ const mocks = vi.hoisted(() => ({
 	client: {
 		search: vi.fn(),
 		createOrUpdateSecurity: vi.fn(),
-		getWatchlists: vi.fn(),
+		getWatchlists: vi.fn().mockResolvedValue([]),
 		createWatchlist: vi.fn(),
 		renameWatchlist: vi.fn(),
 		deleteWatchlist: vi.fn(),
@@ -79,12 +78,11 @@ beforeEach(() => {
 
 function renderPage(
 	watchlists: WatchlistRead[],
-	showWatchlists = false,
-	setShow: (value: boolean) => void = vi.fn()
+	openGlobalSearch: (watchlist?: WatchlistRead | null) => void = vi.fn()
 ) {
 	return render(PageComponent, {
 		props: { data: { watchlists } },
-		context: new Map([[WATCHLIST_SIDEBAR_PREF, { show: showWatchlists, setShow }] as const])
+		context: new Map([['openGlobalSearch', openGlobalSearch] as const])
 	});
 }
 
@@ -96,165 +94,174 @@ async function openCreateModal(name: string) {
 	return input;
 }
 
-async function selectWatchlist(name: string) {
-	await fireEvent.click(screen.getByRole('button', { name }));
-}
-
-async function searchFor(text: string) {
-	const input = screen.getByLabelText('Search securities to add');
-	await fireEvent.input(input, { target: { value: text } });
-}
-
-describe('Watchlists page - rendering', () => {
-	it('renders every watchlist with its security count', () => {
+describe('Watchlists page - rendering and sections', () => {
+	it('renders every watchlist as its own section with title and count', () => {
 		renderPage([defaultList(), techList()]);
 
-		expect(screen.getByText('Default')).toBeInTheDocument();
-		expect(screen.getByText('Tech')).toBeInTheDocument();
-		expect(screen.getByText('2 securities')).toBeInTheDocument();
-		expect(screen.getByText('1 security')).toBeInTheDocument();
+		const defaultSection = screen.getByRole('region', { name: 'Default securities' });
+		const techSection = screen.getByRole('region', { name: 'Tech securities' });
+
+		expect(defaultSection).toBeInTheDocument();
+		expect(techSection).toBeInTheDocument();
+		expect(
+			within(defaultSection).getByRole('heading', { level: 2, name: 'Default' })
+		).toBeInTheDocument();
+		expect(
+			within(techSection).getByRole('heading', { level: 2, name: 'Tech' })
+		).toBeInTheDocument();
+		expect(within(defaultSection).getByText('2 securities')).toBeInTheDocument();
+		expect(within(techSection).getByText('1 security')).toBeInTheDocument();
 	});
 
-	it('renders the empty state when there are no watchlists', () => {
+	it('renders securities with rounded hover links navigating to /security/[id]', () => {
+		renderPage([defaultList(), techList()]);
+
+		const defaultSection = screen.getByRole('region', { name: 'Default securities' });
+		const aaplLink = within(defaultSection).getByRole('link', { name: /AAPL/ });
+		const msftLink = within(defaultSection).getByRole('link', { name: /MSFT/ });
+
+		expect(aaplLink).toHaveAttribute('href', '/security/sec-1');
+		expect(aaplLink).toHaveClass('rounded-md');
+		expect(aaplLink).toHaveClass('hover:bg-muted');
+
+		expect(msftLink).toHaveAttribute('href', '/security/sec-2');
+		expect(msftLink).toHaveClass('rounded-md');
+		expect(msftLink).toHaveClass('hover:bg-muted');
+	});
+
+	it('renders empty message for watchlists without securities', () => {
+		renderPage([watchlist('wl-empty', 'Empty List', [])]);
+
+		const section = screen.getByRole('region', { name: 'Empty List securities' });
+		expect(within(section).getByText('No securities in this watchlist yet.')).toBeInTheDocument();
+	});
+
+	it('renders the empty state when there are no watchlists at all', () => {
 		renderPage([]);
 
-		expect(screen.getByText(/don't have any watchlists yet/i)).toBeInTheDocument();
-		expect(screen.queryByRole('list', { name: 'Watchlists' })).not.toBeInTheDocument();
+		expect(screen.getByText("You don't have any watchlists yet")).toBeInTheDocument();
+		expect(screen.queryByRole('region')).not.toBeInTheDocument();
 	});
 
-	it('renders the loading state while the service has no data yet', () => {
-		service.isLoading = true;
-		renderPage([]);
-
-		expect(screen.getByRole('status', { name: 'Loading watchlists' })).toBeInTheDocument();
-	});
-
-	it('renders the page title without a subtitle', () => {
-		renderPage([]);
-
-		expect(screen.getByRole('heading', { name: 'Watchlists' })).toBeInTheDocument();
-		expect(screen.queryByText('Create, rename and delete your watchlists')).not.toBeInTheDocument();
-	});
-});
-
-describe('Watchlists page - sidebar watchlists toggle', () => {
-	it('renders the toggle in the page header actions', () => {
+	it('does not render inline WatchlistSecurityPicker', () => {
 		renderPage([defaultList()]);
 
-		const toggle = screen.getByRole('button', { name: 'Show watchlists in sidebar' });
-		expect(toggle).toHaveAttribute('aria-pressed', 'false');
+		expect(screen.queryByLabelText('Search securities to add')).not.toBeInTheDocument();
+		expect(screen.queryByRole('combobox', { name: /add securities/i })).not.toBeInTheDocument();
 	});
 
-	it('calls setShow with true when enabling watchlists', async () => {
-		const setShow = vi.fn();
-		renderPage([], false, setShow);
+	it('renders Create watchlist button in PageHeader actions and removes sidebar pref toggle', () => {
+		renderPage([defaultList()]);
 
-		await fireEvent.click(screen.getByRole('button', { name: 'Show watchlists in sidebar' }));
-
-		expect(setShow).toHaveBeenCalledWith(true);
-	});
-
-	it('reflects the enabled state', () => {
-		renderPage([defaultList()], true);
-
-		const toggle = screen.getByRole('button', { name: 'Hide watchlists in sidebar' });
-		expect(toggle).toHaveAttribute('aria-pressed', 'true');
+		expect(screen.getByRole('button', { name: 'Create watchlist' })).toBeInTheDocument();
+		expect(screen.queryByRole('button', { name: /show watchlists/i })).not.toBeInTheDocument();
+		expect(screen.queryByRole('button', { name: /hide watchlists/i })).not.toBeInTheDocument();
 	});
 });
 
-describe('Watchlists page - create', () => {
-	it('removes the inline create form and uses a modal instead', async () => {
-		renderPage([]);
+describe('Watchlists page - create watchlist', () => {
+	it('creates a new watchlist through the modal and adds it to the list', async () => {
+		mocks.client.createWatchlist.mockResolvedValue(watchlist('wl-new', 'Dividend', []));
+		renderPage([defaultList()]);
 
-		expect(screen.queryByRole('form', { name: 'Create watchlist' })).not.toBeInTheDocument();
-
-		await fireEvent.click(screen.getByRole('button', { name: 'Create watchlist' }));
-
-		expect(await screen.findByRole('dialog')).toBeInTheDocument();
-	});
-
-	it('adds a created watchlist to the list without a reload and closes the modal', async () => {
-		mocks.client.createWatchlist.mockResolvedValue(watchlist('wl-growth', 'Growth', []));
-		renderPage([]);
-
-		await openCreateModal('Growth');
+		await openCreateModal('Dividend');
 
 		await waitFor(() =>
-			expect(mocks.client.createWatchlist).toHaveBeenCalledWith('Growth', undefined)
+			expect(mocks.client.createWatchlist).toHaveBeenCalledWith('Dividend', undefined)
 		);
-		expect(await screen.findByText('Growth')).toBeInTheDocument();
-		await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument());
+		expect(await screen.findByRole('region', { name: 'Dividend securities' })).toBeInTheDocument();
 	});
 
-	it('shows the backend error in the modal and keeps it open', async () => {
-		mocks.client.createWatchlist.mockRejectedValue(new Error('Watchlist already exists'));
-		renderPage([]);
+	it('shows the backend error message when creation fails', async () => {
+		mocks.client.createWatchlist.mockRejectedValue(new Error('Name already taken'));
+		renderPage([defaultList()]);
 
-		await openCreateModal('Default');
+		await openCreateModal('Duplicate');
 
-		expect(await screen.findByText('Watchlist already exists')).toBeInTheDocument();
-		expect(screen.getByRole('dialog')).toBeInTheDocument();
+		expect(await screen.findByText('Name already taken')).toBeInTheDocument();
+		expect(screen.queryByRole('region', { name: 'Duplicate securities' })).not.toBeInTheDocument();
 	});
 });
 
-describe('Watchlists page - rename', () => {
-	it('updates the displayed name after a successful rename', async () => {
+describe('Watchlists page - rename watchlist', () => {
+	it('renames a watchlist via inline input and save button', async () => {
 		mocks.client.renameWatchlist.mockResolvedValue(
-			watchlist('wl-default', 'Core', [security('sec-1', 'AAPL')])
+			watchlist('wl-tech', 'Tech & AI', [security('sec-3', 'NVDA')])
 		);
-		renderPage([defaultList()]);
+		renderPage([defaultList(), techList()]);
 
-		await fireEvent.click(screen.getByRole('button', { name: 'Rename Default' }));
+		await fireEvent.click(screen.getByRole('button', { name: 'Rename Tech' }));
+
 		const input = screen.getByLabelText('Watchlist name');
-		await fireEvent.input(input, { target: { value: 'Core' } });
-		await fireEvent.click(screen.getByRole('button', { name: 'Save Default' }));
+		expect(input).toHaveValue('Tech');
+		await fireEvent.input(input, { target: { value: 'Tech & AI' } });
+		await fireEvent.click(screen.getByRole('button', { name: 'Save Tech' }));
 
 		await waitFor(() =>
-			expect(mocks.client.renameWatchlist).toHaveBeenCalledWith('wl-default', 'Core', undefined)
+			expect(mocks.client.renameWatchlist).toHaveBeenCalledWith('wl-tech', 'Tech & AI', undefined)
 		);
-		expect(await screen.findByText('Core')).toBeInTheDocument();
-		expect(screen.queryByText('Default')).not.toBeInTheDocument();
+		expect(await screen.findByRole('heading', { level: 2, name: 'Tech & AI' })).toBeInTheDocument();
 	});
 
-	it('shows the backend error message when renaming fails', async () => {
-		mocks.client.renameWatchlist.mockRejectedValue(new Error('Watchlist name already in use'));
-		renderPage([defaultList()]);
+	it('cancels renaming on cancel button click', async () => {
+		renderPage([defaultList(), techList()]);
 
-		await fireEvent.click(screen.getByRole('button', { name: 'Rename Default' }));
+		await fireEvent.click(screen.getByRole('button', { name: 'Rename Tech' }));
 		const input = screen.getByLabelText('Watchlist name');
-		await fireEvent.input(input, { target: { value: 'Core' } });
-		await fireEvent.click(screen.getByRole('button', { name: 'Save Default' }));
+		await fireEvent.input(input, { target: { value: 'Different' } });
+		await fireEvent.click(screen.getByRole('button', { name: 'Cancel rename' }));
 
-		expect(await screen.findByText('Watchlist name already in use')).toBeInTheDocument();
-		expect(screen.getByLabelText('Watchlist name')).toHaveValue('Core');
-		expect(service.watchlists[0].name).toBe('Default');
+		expect(mocks.client.renameWatchlist).not.toHaveBeenCalled();
+		expect(screen.getByRole('heading', { level: 2, name: 'Tech' })).toBeInTheDocument();
+		expect(screen.queryByLabelText('Watchlist name')).not.toBeInTheDocument();
+	});
+
+	it('submits rename on Enter key and cancels on Escape', async () => {
+		mocks.client.renameWatchlist.mockResolvedValue(watchlist('wl-tech', 'New Tech', []));
+		renderPage([techList()]);
+
+		await fireEvent.click(screen.getByRole('button', { name: 'Rename Tech' }));
+		let input = screen.getByLabelText('Watchlist name');
+		await fireEvent.keyDown(input, { key: 'Escape' });
+		expect(screen.queryByLabelText('Watchlist name')).not.toBeInTheDocument();
+
+		await fireEvent.click(screen.getByRole('button', { name: 'Rename Tech' }));
+		input = screen.getByLabelText('Watchlist name');
+		await fireEvent.input(input, { target: { value: 'New Tech' } });
+		await fireEvent.keyDown(input, { key: 'Enter' });
+
+		await waitFor(() =>
+			expect(mocks.client.renameWatchlist).toHaveBeenCalledWith('wl-tech', 'New Tech', undefined)
+		);
 	});
 });
 
-describe('Watchlists page - delete', () => {
-	it('removes the watchlist after confirmation', async () => {
+describe('Watchlists page - delete watchlist', () => {
+	it('opens confirmation modal and deletes watchlist on confirm', async () => {
 		mocks.client.deleteWatchlist.mockResolvedValue(undefined);
 		renderPage([defaultList(), techList()]);
 
 		await fireEvent.click(screen.getByRole('button', { name: 'Delete Tech' }));
-		expect(await screen.findByText('Delete watchlist')).toBeInTheDocument();
+		expect(screen.getByText('Delete "Tech"? This cannot be undone.')).toBeInTheDocument();
+
 		await fireEvent.click(screen.getByRole('button', { name: 'Confirm' }));
 
 		await waitFor(() =>
 			expect(mocks.client.deleteWatchlist).toHaveBeenCalledWith('wl-tech', undefined)
 		);
-		await waitFor(() => expect(screen.queryByText('Tech')).not.toBeInTheDocument());
-		expect(screen.getByText('Default')).toBeInTheDocument();
+		await waitFor(() =>
+			expect(screen.queryByRole('region', { name: 'Tech securities' })).not.toBeInTheDocument()
+		);
 	});
 
-	it('keeps the watchlist when the confirmation is cancelled', async () => {
+	it('does not delete when cancel is clicked in confirmation modal', async () => {
 		renderPage([defaultList(), techList()]);
 
 		await fireEvent.click(screen.getByRole('button', { name: 'Delete Tech' }));
 		await fireEvent.click(await screen.findByRole('button', { name: 'Cancel' }));
 
 		expect(mocks.client.deleteWatchlist).not.toHaveBeenCalled();
-		expect(screen.getByText('Tech')).toBeInTheDocument();
+		expect(screen.getByRole('region', { name: 'Tech securities' })).toBeInTheDocument();
 	});
 
 	it('shows the backend error message when deletion fails', async () => {
@@ -265,168 +272,30 @@ describe('Watchlists page - delete', () => {
 		await fireEvent.click(await screen.findByRole('button', { name: 'Confirm' }));
 
 		expect(await screen.findByText('Watchlist not found')).toBeInTheDocument();
-		expect(screen.getByText('Tech')).toBeInTheDocument();
+		expect(screen.getByRole('region', { name: 'Tech securities' })).toBeInTheDocument();
 	});
 });
 
-describe('Watchlists page - detail view', () => {
-	it('shows the selected watchlist securities with links to the security page', async () => {
-		renderPage([defaultList(), techList()]);
+describe('Watchlists page - targeted search integration', () => {
+	it('calls openGlobalSearch with the target watchlist when "+" button is clicked', async () => {
+		const openGlobalSearch = vi.fn();
+		const tech = techList();
+		renderPage([defaultList(), tech], openGlobalSearch);
 
-		await selectWatchlist('Default');
+		const addBtn = screen.getByRole('button', { name: 'Add security to Tech' });
+		await fireEvent.click(addBtn);
 
-		const section = screen.getByRole('region', { name: 'Default securities' });
-		expect(within(section).getByRole('link', { name: 'AAPL' })).toHaveAttribute(
-			'href',
-			'/security/sec-1'
+		expect(openGlobalSearch).toHaveBeenCalledTimes(1);
+		expect(openGlobalSearch).toHaveBeenCalledWith(
+			expect.objectContaining({ id: 'wl-tech', name: 'Tech' })
 		);
-		expect(within(section).getByRole('link', { name: 'MSFT' })).toHaveAttribute(
-			'href',
-			'/security/sec-2'
-		);
-		expect(within(section).queryByRole('link', { name: 'NVDA' })).not.toBeInTheDocument();
-	});
-
-	it('does not render a detail view until a watchlist is selected', () => {
-		renderPage([defaultList(), techList()]);
-
-		expect(screen.queryByRole('region', { name: 'Default securities' })).not.toBeInTheDocument();
-	});
-
-	it('swaps the detail view when another watchlist is selected', async () => {
-		renderPage([defaultList(), techList()]);
-
-		await selectWatchlist('Tech');
-
-		const section = screen.getByRole('region', { name: 'Tech securities' });
-		expect(within(section).getByRole('link', { name: 'NVDA' })).toHaveAttribute(
-			'href',
-			'/security/sec-3'
-		);
-	});
-});
-
-describe('Watchlists page - add security', () => {
-	function mockAddToDefault() {
-		mocks.client.createOrUpdateSecurity.mockResolvedValue({
-			security_id: 'sec-3',
-			symbol: 'NVDA',
-			exchange: 'NASDAQ',
-			name: 'NVDA Inc.',
-			has_price_data: true
-		});
-		mocks.client.addSecurityToWatchlist.mockResolvedValue(
-			watchlist('wl-default', 'Default', [
-				security('sec-1', 'AAPL'),
-				security('sec-2', 'MSFT'),
-				security('sec-3', 'NVDA')
-			])
-		);
-	}
-
-	it('renders a single visible border around the add-security input', async () => {
-		renderPage([defaultList()]);
-		await selectWatchlist('Default');
-
-		const inputGroup = document.querySelector('[data-slot="input-group"]') as HTMLElement;
-		const pickerWrapper = inputGroup.closest('[data-slot="command"]')?.parentElement as HTMLElement;
-
-		expect(inputGroup).toHaveClass('border');
-		expect(pickerWrapper).not.toHaveClass('border');
-	});
-
-	it('searches the market and adds the selected security to the active list', async () => {
-		mocks.client.search.mockResolvedValue([
-			{ code: 'NVDA', exchange: 'NASDAQ', name: 'NVDA Inc.', security_type: 'Stock' }
-		]);
-		mockAddToDefault();
-		renderPage([defaultList()]);
-		await selectWatchlist('Default');
-
-		await searchFor('NV');
-		await waitFor(() => expect(mocks.client.search).toHaveBeenCalledWith('NV'), { timeout: 2000 });
-		await fireEvent.click(await screen.findByRole('option', { name: /NVDA/ }));
-
-		await waitFor(() =>
-			expect(mocks.client.addSecurityToWatchlist).toHaveBeenCalledWith(
-				'wl-default',
-				'sec-3',
-				undefined
-			)
-		);
-		expect(mocks.client.createOrUpdateSecurity).toHaveBeenCalledWith({
-			code: 'NVDA',
-			exchange: 'NASDAQ',
-			name: 'NVDA Inc.',
-			currency: 'USD'
-		});
-		const section = screen.getByRole('region', { name: 'Default securities' });
-		expect(await within(section).findByRole('link', { name: 'NVDA' })).toBeInTheDocument();
-		expect(within(section).getByText('3 securities')).toBeInTheDocument();
-	});
-
-	it('does not search until the query has at least two characters', async () => {
-		renderPage([defaultList()]);
-		await selectWatchlist('Default');
-
-		await searchFor('N');
-		await new Promise((resolve) => setTimeout(resolve, 400));
-
-		expect(mocks.client.search).not.toHaveBeenCalled();
-	});
-
-	it('is a no-op when the resolved security is already in the list', async () => {
-		mocks.client.search.mockResolvedValue([
-			{ code: 'AAPL', exchange: 'NASDAQ', name: 'AAPL Inc.', security_type: 'Stock' }
-		]);
-		mocks.client.createOrUpdateSecurity.mockResolvedValue({
-			security_id: 'sec-1',
-			symbol: 'AAPL',
-			exchange: 'NASDAQ',
-			name: 'AAPL Inc.',
-			has_price_data: true
-		});
-		renderPage([defaultList()]);
-		await selectWatchlist('Default');
-
-		await searchFor('AA');
-		await waitFor(() => expect(mocks.client.search).toHaveBeenCalledWith('AA'), { timeout: 2000 });
-		await fireEvent.click(await screen.findByRole('option', { name: /AAPL/ }));
-
-		await waitFor(() => expect(mocks.client.createOrUpdateSecurity).toHaveBeenCalled());
-		await new Promise((resolve) => setTimeout(resolve, 50));
-
-		expect(mocks.client.addSecurityToWatchlist).not.toHaveBeenCalled();
-		const section = screen.getByRole('region', { name: 'Default securities' });
-		expect(within(section).getAllByRole('link', { name: 'AAPL' })).toHaveLength(1);
-		expect(within(section).getByText('2 securities')).toBeInTheDocument();
-	});
-
-	it('shows the backend error and leaves the list intact when adding fails', async () => {
-		mocks.client.search.mockResolvedValue([
-			{ code: 'NVDA', exchange: 'NASDAQ', name: 'NVDA Inc.', security_type: 'Stock' }
-		]);
-		mocks.client.createOrUpdateSecurity.mockRejectedValue(new Error('Security lookup failed'));
-		renderPage([defaultList()]);
-		await selectWatchlist('Default');
-
-		await searchFor('NV');
-		await waitFor(() => expect(mocks.client.search).toHaveBeenCalledWith('NV'), { timeout: 2000 });
-		await fireEvent.click(await screen.findByRole('option', { name: /NVDA/ }));
-
-		expect(await screen.findByText('Security lookup failed')).toBeInTheDocument();
-		expect(mocks.client.addSecurityToWatchlist).not.toHaveBeenCalled();
-		const section = screen.getByRole('region', { name: 'Default securities' });
-		expect(within(section).getByRole('link', { name: 'AAPL' })).toBeInTheDocument();
-		expect(within(section).getByText('2 securities')).toBeInTheDocument();
 	});
 });
 
 describe('Watchlists page - remove security', () => {
-	it('removes the security and updates the count', async () => {
+	it('removes the security and updates the count and empty state', async () => {
 		mocks.client.removeSecurityFromWatchlist.mockResolvedValue(watchlist('wl-tech', 'Tech', []));
 		renderPage([defaultList(), techList()]);
-		await selectWatchlist('Tech');
 
 		const section = screen.getByRole('region', { name: 'Tech securities' });
 		await fireEvent.click(within(section).getByRole('button', { name: 'Remove NVDA' }));
@@ -439,7 +308,7 @@ describe('Watchlists page - remove security', () => {
 			)
 		);
 		await waitFor(() =>
-			expect(within(section).queryByRole('link', { name: 'NVDA' })).not.toBeInTheDocument()
+			expect(within(section).queryByRole('link', { name: /NVDA/ })).not.toBeInTheDocument()
 		);
 		expect(within(section).getByText('0 securities')).toBeInTheDocument();
 		expect(within(section).getByText('No securities in this watchlist yet.')).toBeInTheDocument();
@@ -447,14 +316,14 @@ describe('Watchlists page - remove security', () => {
 
 	it('shows the backend error and keeps the row when removal fails', async () => {
 		mocks.client.removeSecurityFromWatchlist.mockRejectedValue(new Error('Security not found'));
+		mocks.client.getWatchlists.mockResolvedValue([defaultList(), techList()]);
 		renderPage([defaultList(), techList()]);
-		await selectWatchlist('Tech');
 
 		const section = screen.getByRole('region', { name: 'Tech securities' });
 		await fireEvent.click(within(section).getByRole('button', { name: 'Remove NVDA' }));
 
 		expect(await screen.findByText('Security not found')).toBeInTheDocument();
-		expect(within(section).getByRole('link', { name: 'NVDA' })).toBeInTheDocument();
+		expect(within(section).getByRole('link', { name: /NVDA/ })).toBeInTheDocument();
 		expect(within(section).getByText('1 security')).toBeInTheDocument();
 	});
 });

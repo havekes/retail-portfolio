@@ -4,39 +4,26 @@
 	import { setWatchlistService } from '$lib/components/watchlist/watchlistService.svelte';
 	import type { SecuritySchema, WatchlistRead } from '$lib/api/marketService';
 	import { setContext, untrack } from 'svelte';
-	import { WATCHLIST_SIDEBAR_PREF, type WatchlistSidebarPref } from './watchlist-sidebar-pref.js';
 
 	let {
 		open = true,
 		securities = [],
 		watchlists = undefined,
-		showWatchlists = false,
-		onToggleGlobalSearch = undefined,
-		onToggleWatchlists = undefined
+		initialCollapsedWatchlistIds = undefined,
+		onToggleGlobalSearch = undefined
 	}: {
 		open?: boolean;
 		securities?: SecuritySchema[];
 		watchlists?: WatchlistRead[];
-		showWatchlists?: boolean;
+		initialCollapsedWatchlistIds?: string[];
 		onToggleGlobalSearch?: () => void;
-		onToggleWatchlists?: (value: boolean) => void;
 	} = $props();
 
 	setContext('toggleGlobalSearch', () => onToggleGlobalSearch?.());
-
-	let show = $state(untrack(() => showWatchlists));
-
-	function applyShow(value: boolean) {
-		show = value;
-		onToggleWatchlists?.(value);
+	const initialCollapsed = untrack(() => initialCollapsedWatchlistIds);
+	if (initialCollapsed !== undefined) {
+		setContext('initialCollapsedWatchlistIds', initialCollapsed);
 	}
-
-	setContext<WatchlistSidebarPref>(WATCHLIST_SIDEBAR_PREF, {
-		get show() {
-			return show;
-		},
-		setShow: applyShow
-	});
 
 	const watchlistService = setWatchlistService();
 	watchlistService.watchlists = untrack(
@@ -55,5 +42,3 @@
 <Sidebar.Provider {open}>
 	<AppSidebar />
 </Sidebar.Provider>
-
-<button onclick={() => applyShow(!show)}>Toggle harness watchlists</button>
