@@ -399,12 +399,12 @@ describe('HoldingsTable', () => {
 		const headers = screen.getAllByRole('columnheader');
 		for (const th of headers) {
 			expect(th.className).toContain('border-r');
-			expect(th.className).toContain('border-border/40');
+			expect(th.className).toContain('border-border');
 		}
 
 		const handle = screen.getByTestId('column-resize-quantity');
 		expect(handle.className).toContain('border-r');
-		expect(handle.className).toContain('border-border/60');
+		expect(handle.className).toContain('border-border');
 		expect(handle.className).toContain('hover:border-primary/70');
 	});
 
@@ -445,9 +445,9 @@ describe('HoldingsTable', () => {
 		expect(avgCostCell).toHaveTextContent('$150.00');
 		expect(avgCostCell).not.toHaveTextContent('$205.00');
 
-		// Profit / Loss: CAD on top, USD on bottom
+		// Profit / Loss: CAD primary return only, secondary unconverted USD removed
 		expect(within(row).getByTestId('profit-loss')).toHaveTextContent('+$400.00');
-		expect(within(row).getByTestId('profit-loss-secondary')).toHaveTextContent('+US$300.00');
+		expect(within(row).queryByTestId('profit-loss-secondary')).not.toBeInTheDocument();
 
 		// Latest Price: only native USD, no CAD converted line
 		const priceCell = within(row).getAllByRole('cell')[4];
@@ -521,6 +521,54 @@ describe('HoldingsTable', () => {
 		expect(screen.getAllByTestId('skeleton-row')).toHaveLength(5);
 		expect(screen.queryAllByTestId('holding-row')).toHaveLength(0);
 		expect(screen.queryByTestId('empty-state')).not.toBeInTheDocument();
+	});
+
+	it('renders "Account" column header when groupBy is null and "Accounts" when groupBy is "stock"', () => {
+		const { rerender } = render(HoldingsTable, { props: { holdings: groupRows, groupBy: null } });
+
+		expect(screen.getByRole('button', { name: 'Account' })).toBeInTheDocument();
+		expect(screen.queryByRole('button', { name: 'Accounts' })).not.toBeInTheDocument();
+		expect(screen.getByLabelText('Resize Account column')).toBeInTheDocument();
+
+		rerender({ holdings: groupRows, groupBy: 'stock' });
+
+		expect(screen.getByRole('button', { name: 'Accounts' })).toBeInTheDocument();
+		expect(screen.queryByRole('button', { name: 'Account' })).not.toBeInTheDocument();
+		expect(screen.getByLabelText('Resize Accounts column')).toBeInTheDocument();
+	});
+
+	it('applies zebra striping, hover, and border styling to rows and sticky Security cell', () => {
+		render(HoldingsTable, { props: { holdings: groupRows, groupBy: null } });
+
+		const rows = screen.getAllByTestId('holding-row');
+		expect(rows.length).toBeGreaterThan(0);
+		for (const row of rows) {
+			expect(row.className).toContain('group');
+			expect(row.className).toContain('border-b');
+			expect(row.className).toContain('border-border');
+			expect(row.className).toContain('even:bg-muted/50');
+			expect(row.className).toContain('hover:bg-muted/80');
+		}
+
+		// Sticky Security cell on each row matches even zebra striping, hover background, and border
+		const securityCells = rows.map((r) => within(r).getByTestId('security-symbol').closest('td')!);
+		for (const cell of securityCells) {
+			expect(cell.className).toContain('sticky');
+			expect(cell.className).toContain('left-0');
+			expect(cell.className).toContain('bg-background');
+			expect(cell.className).toContain('group-even:bg-muted/50');
+			expect(cell.className).toContain('group-hover:bg-muted/80');
+			expect(cell.className).toContain('border-r');
+			expect(cell.className).toContain('border-border');
+		}
+
+		// All cells across the row have reinforced column border-r border-border
+		const firstRow = rows[0];
+		const cells = within(firstRow).getAllByRole('cell');
+		for (const cell of cells) {
+			expect(cell.className).toContain('border-r');
+			expect(cell.className).toContain('border-border');
+		}
 	});
 
 	describe('column resize', () => {

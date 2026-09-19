@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen, fireEvent, waitFor, within } from '@testing-library/svelte';
+import { render, screen, fireEvent, waitFor } from '@testing-library/svelte';
 import Page from './+page.svelte';
 import type { UserHolding } from '$lib/types/account';
 import {
@@ -163,17 +163,83 @@ describe('Holdings page (+page.svelte)', () => {
 		render(Page, { props: { data: makeData({ holdings: [aaplTfsa, aaplRrsp, aaplUsd] }) } });
 
 		const cad = screen.getByTestId('currency-total-CAD');
-		expect(cad).toHaveTextContent('CAD total');
-		expect(cad).toHaveTextContent('1,500.00');
-		expect(within(cad).getByText(/1,500\.00/)).toBeInTheDocument();
+		expect(cad).toHaveTextContent('CAD TOTAL');
+		expect(cad).toHaveTextContent('$1,500.00');
+
+		const cadReturnPill = screen.getByTestId('currency-return-percent-CAD');
+		expect(cadReturnPill).toHaveTextContent('+3.33%');
+		expect(cadReturnPill.className).toContain('text-emerald-600');
 
 		const cadPl = screen.getByTestId('currency-profit-loss-CAD');
-		expect(cadPl).toHaveTextContent('50.00');
-		expect(cadPl).toHaveTextContent('P/L');
+		expect(cadPl).toHaveTextContent('+$50.00');
 
 		const usd = screen.getByTestId('currency-total-USD');
-		expect(usd).toHaveTextContent('USD total');
-		expect(usd).toHaveTextContent('200.00');
+		expect(usd).toHaveTextContent('USD TOTAL');
+		expect(usd).toHaveTextContent('$200.00');
+
+		const usdReturnPill = screen.getByTestId('currency-return-percent-USD');
+		expect(usdReturnPill).toHaveTextContent('+20.00%');
+		expect(usdReturnPill.className).toContain('text-emerald-600');
+
+		const usdPl = screen.getByTestId('currency-profit-loss-USD');
+		expect(usdPl).toHaveTextContent('+US$20.00');
+	});
+
+	it('renders negative return % pill badge with negative styling', () => {
+		const losingHolding = makeRow({
+			id: 'h-loss',
+			security_id: 'sec-loss',
+			security_symbol: 'LOSS',
+			security_name: 'Loss Corp',
+			quantity: 10,
+			average_cost: 100,
+			converted_average_cost: 100,
+			total_value: 800,
+			profit_loss: -200,
+			currency: 'CAD'
+		});
+		render(Page, { props: { data: makeData({ holdings: [losingHolding] }) } });
+		const pill = screen.getByTestId('currency-return-percent-CAD');
+		expect(pill).toHaveTextContent('-20.00%');
+		expect(pill.className).toContain('text-rose-600');
+		expect(screen.getByTestId('currency-profit-loss-CAD')).toHaveTextContent('-$200.00');
+	});
+
+	it('handles currency bucket with zero cost basis or missing profit/loss gracefully', () => {
+		const zeroCostHolding = makeRow({
+			id: 'h-gift',
+			security_id: 'sec-gift',
+			security_symbol: 'GIFT',
+			security_name: 'Gifted Sec',
+			quantity: 10,
+			average_cost: 0,
+			converted_average_cost: 0,
+			total_value: 500,
+			profit_loss: 500,
+			currency: 'CAD'
+		});
+		const noPlHolding = makeRow({
+			id: 'h-nopl',
+			security_id: 'sec-nopl',
+			security_symbol: 'NOPL',
+			security_name: 'No PL Sec',
+			quantity: 5,
+			average_cost: 100,
+			converted_average_cost: 100,
+			total_value: 500,
+			profit_loss: null,
+			currency: 'USD'
+		});
+		render(Page, { props: { data: makeData({ holdings: [zeroCostHolding, noPlHolding] }) } });
+
+		// Zero cost basis -> returnPercent is null, pill badge omitted, but dollar profit/loss is displayed
+		expect(screen.queryByTestId('currency-return-percent-CAD')).not.toBeInTheDocument();
+		expect(screen.getByTestId('currency-profit-loss-CAD')).toHaveTextContent('+$500.00');
+
+		// Missing profit/loss -> hasProfitLoss is false, right side (pill and dollar P/L) is omitted
+		expect(screen.queryByTestId('currency-return-percent-USD')).not.toBeInTheDocument();
+		expect(screen.queryByTestId('currency-profit-loss-USD')).not.toBeInTheDocument();
+		expect(screen.getByTestId('currency-total-USD')).toHaveTextContent('$500.00');
 	});
 
 	it('toggling "Group by stock" merges rows into single rows per stock without refetching', async () => {
