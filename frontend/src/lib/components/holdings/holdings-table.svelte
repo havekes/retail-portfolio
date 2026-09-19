@@ -279,22 +279,28 @@
 {#snippet sortHeader(column: HoldingsTableColumn, width: number)}
 	{@const label = column.id === 'account_name' && groupBy ? 'Accounts' : column.label}
 	<Table.Head
-		class={`relative h-10 border-r border-border/40 px-4 py-2 transition-colors hover:bg-muted/50 ${column.alignRight ? 'text-right' : ''}`}
+		class={`group/head relative h-10 cursor-pointer border-r border-border/40 px-4 py-2 transition-colors select-none hover:bg-muted/50 ${column.alignRight ? 'text-right' : ''}`}
+		onclick={() => handleSort(column.id)}
 	>
 		<button
 			type="button"
 			class={`group flex items-center gap-2 text-xs font-medium transition-colors hover:text-foreground ${
 				column.alignRight ? 'ml-auto' : ''
 			}`}
-			onclick={() => handleSort(column.id)}
+			onclick={(event) => {
+				event.stopPropagation();
+				handleSort(column.id);
+			}}
 		>
 			{label}
 			{#if sortColumn === column.id}
 				{#if sortDirection === 'asc'}<ChevronUp size={12} />{:else}<ChevronDown size={12} />{/if}
 			{:else}
-				<ArrowUpDown size={12} class="opacity-0 transition-opacity group-hover:opacity-50" />
+				<ArrowUpDown size={12} class="opacity-0 transition-opacity group-hover/head:opacity-50" />
 			{/if}
 		</button>
+		<!-- svelte-ignore a11y_click_events_have_key_events -->
+		<!-- svelte-ignore a11y_no_noninteractive_element_interactions -->
 		<span
 			role="separator"
 			aria-orientation="vertical"
@@ -306,6 +312,7 @@
 			onpointermove={handleResizePointerMove}
 			onpointerup={handleResizePointerUp}
 			onpointercancel={handleResizePointerUp}
+			onclick={(event) => event.stopPropagation()}
 		></span>
 	</Table.Head>
 {/snippet}
@@ -322,7 +329,7 @@
 				<a
 					data-testid="security-link"
 					href={resolve(`/security/${row.security_id}`)}
-					class="group -mx-1.5 -my-1 flex w-full flex-col rounded-md px-1.5 py-1 transition-colors hover:bg-accent hover:text-accent-foreground"
+					class="flex w-fit flex-col rounded-md px-2 py-1 transition-colors hover:bg-accent hover:text-accent-foreground"
 				>
 					<span
 						data-testid="security-symbol"

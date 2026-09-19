@@ -202,7 +202,17 @@ function rowBySymbol(symbol: string): HTMLElement {
 }
 
 describe('HoldingsTable', () => {
-	it('sorts by the security string column, toggling asc/desc on repeat clicks', async () => {
+	it('sorts by clicking the Table.Head columnheader cell, toggling asc/desc on repeat clicks', async () => {
+		render(HoldingsTable, { props: { holdings: sortRows } });
+
+		await fireEvent.click(screen.getByRole('columnheader', { name: /Security/i }));
+		expect(renderedSymbols()).toEqual(['ZZZ', 'MMM', 'AAA']);
+
+		await fireEvent.click(screen.getByRole('columnheader', { name: /Security/i }));
+		expect(renderedSymbols()).toEqual(['AAA', 'MMM', 'ZZZ']);
+	});
+
+	it('sorts via inner button without double-toggling from bubbling', async () => {
 		render(HoldingsTable, { props: { holdings: sortRows } });
 
 		await fireEvent.click(screen.getByRole('button', { name: 'Security' }));
@@ -215,11 +225,30 @@ describe('HoldingsTable', () => {
 	it('sorts by a numeric column, toggling asc/desc on repeat clicks', async () => {
 		render(HoldingsTable, { props: { holdings: sortRows } });
 
-		await fireEvent.click(screen.getByRole('button', { name: 'Quantity' }));
+		await fireEvent.click(screen.getByRole('columnheader', { name: /Quantity/i }));
 		expect(renderedSymbols()).toEqual(['AAA', 'ZZZ', 'MMM']);
 
-		await fireEvent.click(screen.getByRole('button', { name: 'Quantity' }));
+		await fireEvent.click(screen.getByRole('columnheader', { name: /Quantity/i }));
 		expect(renderedSymbols()).toEqual(['MMM', 'ZZZ', 'AAA']);
+	});
+
+	it('does not trigger sorting when clicking or dragging column resize handles', async () => {
+		render(HoldingsTable, { props: { holdings: sortRows } });
+
+		// Default sort: AAA, MMM, ZZZ (total_value desc)
+		expect(renderedSymbols()).toEqual(['AAA', 'MMM', 'ZZZ']);
+
+		const handle = screen.getByTestId('column-resize-quantity');
+
+		// Clicking the resize handle does not sort
+		await fireEvent.click(handle);
+		expect(renderedSymbols()).toEqual(['AAA', 'MMM', 'ZZZ']);
+
+		// Dragging the resize handle does not sort
+		await fireEvent.pointerDown(handle, { clientX: 100, pointerId: 1 });
+		await fireEvent.pointerMove(handle, { clientX: 150, pointerId: 1 });
+		await fireEvent.pointerUp(handle, { clientX: 150, pointerId: 1 });
+		expect(renderedSymbols()).toEqual(['AAA', 'MMM', 'ZZZ']);
 	});
 
 	it('sorts null cells last in both directions', async () => {
@@ -261,7 +290,7 @@ describe('HoldingsTable', () => {
 		expect(renderedSymbols()).toEqual(['MMM', 'ZZZ', 'AAA']);
 	});
 
-	it('renders one row per holding and links each security cell to /security/{id} with rounded hover, full width, and without underline', () => {
+	it('renders one row per holding and links each security cell to /security/{id} with w-fit rounded button styling, and without underline', () => {
 		render(HoldingsTable, { props: { holdings: sortRows } });
 
 		expect(screen.getAllByTestId('holding-row')).toHaveLength(3);
@@ -271,12 +300,17 @@ describe('HoldingsTable', () => {
 		expect(links[1]).toHaveAttribute('href', '/security/sec-m');
 		expect(links[2]).toHaveAttribute('href', '/security/sec-z');
 
-		// Check rounded hover styling, w-full class, and absence of group-hover:underline
+		// Check w-fit rounded button hover styling, px-2 py-1, and absence of w-full / negative margins
 		for (const link of links) {
 			expect(link.className).toContain('hover:bg-accent');
 			expect(link.className).toContain('hover:text-accent-foreground');
+			expect(link.className).toContain('w-fit');
 			expect(link.className).toContain('rounded-md');
-			expect(link.className).toContain('w-full');
+			expect(link.className).toContain('px-2');
+			expect(link.className).toContain('py-1');
+			expect(link.className).not.toContain('w-full');
+			expect(link.className).not.toContain('-mx-1.5');
+			expect(link.className).not.toContain('-my-1');
 			const symbol = within(link).getByTestId('security-symbol');
 			expect(symbol.className).not.toContain('group-hover:underline');
 		}
@@ -406,7 +440,16 @@ describe('HoldingsTable', () => {
 			expect(th.className).toContain('border-border/40');
 			expect(th.className).toContain('transition-colors');
 			expect(th.className).toContain('hover:bg-muted/50');
+			expect(th.className).toContain('group/head');
+			expect(th.className).toContain('cursor-pointer');
+			expect(th.className).toContain('select-none');
 		}
+
+		// Verify unsorted header sort icon has group-hover/head:opacity-50
+		const secHeader = screen.getByRole('columnheader', { name: /Security/i });
+		const arrowIcon = secHeader.querySelector('svg');
+		expect(arrowIcon).toHaveClass('opacity-0');
+		expect(arrowIcon).toHaveClass('group-hover/head:opacity-50');
 
 		const handle = screen.getByTestId('column-resize-quantity');
 		expect(handle.className).toContain('border-r');
