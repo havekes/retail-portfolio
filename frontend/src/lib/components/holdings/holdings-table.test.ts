@@ -2,13 +2,57 @@ import { describe, it, expect, vi } from 'vitest';
 import { render, screen, fireEvent, within } from '@testing-library/svelte';
 import HoldingsTable from './holdings-table.svelte';
 import type { UserHolding } from '$lib/types/account';
-import { normalizeHoldingsTableConfig, type HoldingsTableConfig } from './holdings-table-columns';
+import type { SecurityElliottWaves } from '$lib/utils/finance/elliott-wave';
+import {
+	HOLDINGS_TABLE_COLUMN_IDS,
+	normalizeHoldingsTableConfig,
+	type HoldingsTableConfig
+} from './holdings-table-columns';
 
 // The component is presentational — no API calls to mock. `$app/paths` is mocked
 // so `resolve` returns a plain path (per frontend/AGENTS.md testing rules).
 vi.mock('$app/paths', () => ({
 	resolve: (path: string) => path
 }));
+
+const sampleElliottWaves: Record<string, SecurityElliottWaves> = {
+	'sec-z': {
+		waves: [
+			{
+				id: 'w-z-primary',
+				degree: 'primary',
+				type: 'impulse',
+				wave5Target: 20,
+				points: [{ wave: 5, price: 20, time: '2026-01-01' }]
+			},
+			{
+				id: 'w-z-cycle',
+				degree: 'cycle',
+				type: 'impulse',
+				wave5Target: 25,
+				points: [{ wave: 5, price: 25, time: '2026-01-01' }]
+			}
+		]
+	},
+	'sec-m': {
+		waves: [
+			{
+				id: 'w-m-primary',
+				degree: 'primary',
+				type: 'impulse',
+				wave5Target: 15,
+				points: [{ wave: 5, price: 15, time: '2026-01-01' }]
+			},
+			{
+				id: 'w-m-cycle',
+				degree: 'cycle',
+				type: 'impulse',
+				wave5Target: 45,
+				points: [{ wave: 5, price: 45, time: '2026-01-01' }]
+			}
+		]
+	}
+};
 
 function makeRow(
 	overrides: Partial<UserHolding> &
@@ -181,25 +225,43 @@ describe('HoldingsTable', () => {
 	it('sorts null cells last in both directions', async () => {
 		render(HoldingsTable, { props: { holdings: sortRows } });
 
-		// Avg Cost: AAA has a null average_cost and must stay last in both directions.
-		await fireEvent.click(screen.getByRole('button', { name: 'Avg Cost' }));
+		// Average: AAA has a null average_cost and must stay last in both directions.
+		await fireEvent.click(screen.getByRole('button', { name: 'Average' }));
 		expect(renderedSymbols()).toEqual(['MMM', 'ZZZ', 'AAA']);
 
-		await fireEvent.click(screen.getByRole('button', { name: 'Avg Cost' }));
+		await fireEvent.click(screen.getByRole('button', { name: 'Average' }));
 		expect(renderedSymbols()).toEqual(['ZZZ', 'MMM', 'AAA']);
 	});
 
-	it('sorts by the derived P/L % column', async () => {
+	it('sorts by the Return column', async () => {
 		render(HoldingsTable, { props: { holdings: sortRows } });
 
-		await fireEvent.click(screen.getByRole('button', { name: /P\/L %/ }));
+		await fireEvent.click(screen.getByRole('button', { name: 'Return' }));
 		expect(renderedSymbols()).toEqual(['ZZZ', 'MMM', 'AAA']);
 
-		await fireEvent.click(screen.getByRole('button', { name: /P\/L %/ }));
+		await fireEvent.click(screen.getByRole('button', { name: 'Return' }));
 		expect(renderedSymbols()).toEqual(['MMM', 'ZZZ', 'AAA']);
 	});
 
-	it('renders one row per holding and links each security cell to /security/{id} with rounded hover and without underline', () => {
+	it('sorts by EW Primary and EW Cycle columns with null/undrawn targets last in both directions', async () => {
+		render(HoldingsTable, { props: { holdings: sortRows, elliottWaves: sampleElliottWaves } });
+
+		// EW Primary: ZZZ (+100%), MMM (-50%), AAA (undrawn / null)
+		await fireEvent.click(screen.getByRole('button', { name: 'EW Primary' }));
+		expect(renderedSymbols()).toEqual(['ZZZ', 'MMM', 'AAA']);
+
+		await fireEvent.click(screen.getByRole('button', { name: 'EW Primary' }));
+		expect(renderedSymbols()).toEqual(['MMM', 'ZZZ', 'AAA']);
+
+		// EW Cycle: ZZZ (+150%), MMM (+50%), AAA (undrawn / null)
+		await fireEvent.click(screen.getByRole('button', { name: 'EW Cycle' }));
+		expect(renderedSymbols()).toEqual(['ZZZ', 'MMM', 'AAA']);
+
+		await fireEvent.click(screen.getByRole('button', { name: 'EW Cycle' }));
+		expect(renderedSymbols()).toEqual(['MMM', 'ZZZ', 'AAA']);
+	});
+
+	it('renders one row per holding and links each security cell to /security/{id} with rounded hover, full width, and without underline', () => {
 		render(HoldingsTable, { props: { holdings: sortRows } });
 
 		expect(screen.getAllByTestId('holding-row')).toHaveLength(3);
@@ -209,16 +271,17 @@ describe('HoldingsTable', () => {
 		expect(links[1]).toHaveAttribute('href', '/security/sec-m');
 		expect(links[2]).toHaveAttribute('href', '/security/sec-z');
 
-		// Check rounded hover styling and absence of group-hover:underline
+		// Check rounded hover styling, w-full class, and absence of group-hover:underline
 		for (const link of links) {
 			expect(link.className).toContain('hover:bg-muted/80');
 			expect(link.className).toContain('rounded-md');
+			expect(link.className).toContain('w-full');
 			const symbol = within(link).getByTestId('security-symbol');
 			expect(symbol.className).not.toContain('group-hover:underline');
 		}
 	});
 
-	it('renders account badges using Badge variant="secondary" and a dash when blank', () => {
+	it('renders account badges using Badge variant="secondary" with smaller lighter styling and a dash when blank', () => {
 		render(HoldingsTable, {
 			props: {
 				holdings: [
@@ -244,11 +307,14 @@ describe('HoldingsTable', () => {
 		expect(cells[0]).toHaveTextContent('TFSA');
 		const badge = within(cells[0]).getByText('TFSA');
 		expect(badge).toBeInTheDocument();
+		expect(badge.className).toContain('text-[10px]');
+		expect(badge.className).toContain('font-normal');
+		expect(badge.className).toContain('text-muted-foreground');
 
 		expect(cells[1]).toHaveTextContent('-');
 	});
 
-	it('renders watchlist pill badges for P/L % with emerald, rose, and muted styling', () => {
+	it('renders Return column with percentage pill badge on top and dollar value underneath', () => {
 		render(HoldingsTable, {
 			props: {
 				holdings: [
@@ -275,6 +341,8 @@ describe('HoldingsTable', () => {
 		expect(posPill).toHaveClass('rounded-md');
 		expect(posPill).toHaveClass('border');
 		expect(posPill).toHaveTextContent('+10.00%');
+		const posDollar = within(positiveRow).getByTestId('profit-loss');
+		expect(posDollar).toHaveTextContent('+$5.00');
 
 		const negativeRow = rowBySymbol('MMM');
 		const negPill = within(negativeRow).getByTestId('profit-loss-percent');
@@ -282,32 +350,65 @@ describe('HoldingsTable', () => {
 		expect(negPill).toHaveClass('inline-flex');
 		expect(negPill).toHaveClass('rounded-md');
 		expect(negPill).toHaveTextContent('-8.33%');
+		const negDollar = within(negativeRow).getByTestId('profit-loss');
+		expect(negDollar).toHaveTextContent('-$5.00');
 
 		const zeroRow = rowBySymbol('ZERO');
 		const zeroPill = within(zeroRow).getByTestId('profit-loss-percent');
 		expect(zeroPill).toHaveClass('text-muted-foreground');
 		expect(zeroPill).toHaveTextContent('+0.00%');
+		const zeroDollar = within(zeroRow).getByTestId('profit-loss');
+		expect(zeroDollar).toHaveTextContent('$0.00');
 	});
 
-	it('renders dollar Profit / Loss with colored text styling without pill badge containers', () => {
+	it('renders EW Primary and EW Cycle projection pill and price display with "-" fallback', () => {
+		render(HoldingsTable, {
+			props: {
+				holdings: sortRows,
+				elliottWaves: sampleElliottWaves
+			}
+		});
+
+		const zRow = rowBySymbol('ZZZ');
+		expect(within(zRow).getByTestId('ew-primary-upside')).toHaveTextContent('+100.00%');
+		expect(within(zRow).getByTestId('ew-primary-upside')).toHaveClass('text-emerald-600');
+		expect(within(zRow).getByTestId('ew-primary-target')).toHaveTextContent('$20.00');
+		expect(within(zRow).getByTestId('ew-cycle-upside')).toHaveTextContent('+150.00%');
+		expect(within(zRow).getByTestId('ew-cycle-upside')).toHaveClass('text-emerald-600');
+		expect(within(zRow).getByTestId('ew-cycle-target')).toHaveTextContent('$25.00');
+
+		const mRow = rowBySymbol('MMM');
+		expect(within(mRow).getByTestId('ew-primary-upside')).toHaveTextContent('-50.00%');
+		expect(within(mRow).getByTestId('ew-primary-upside')).toHaveClass('text-rose-600');
+		expect(within(mRow).getByTestId('ew-primary-target')).toHaveTextContent('$15.00');
+		expect(within(mRow).getByTestId('ew-cycle-upside')).toHaveTextContent('+50.00%');
+		expect(within(mRow).getByTestId('ew-cycle-upside')).toHaveClass('text-emerald-600');
+		expect(within(mRow).getByTestId('ew-cycle-target')).toHaveTextContent('$45.00');
+
+		const aRow = rowBySymbol('AAA');
+		expect(within(aRow).queryByTestId('ew-primary-upside')).not.toBeInTheDocument();
+		expect(within(aRow).queryByTestId('ew-cycle-upside')).not.toBeInTheDocument();
+		const aCells = within(aRow).getAllByRole('cell');
+		expect(aCells[7]).toHaveTextContent('-');
+		expect(aCells[8]).toHaveTextContent('-');
+	});
+
+	it('features visible separator borders on header cells and resize handles', () => {
 		render(HoldingsTable, { props: { holdings: sortRows } });
 
-		const positiveRow = rowBySymbol('ZZZ');
-		const posPl = within(positiveRow).getByTestId('profit-loss');
-		expect(posPl).toHaveClass('text-emerald-600');
-		expect(posPl).toHaveClass('text-sm');
-		expect(posPl.className).not.toContain('border');
-		expect(posPl.textContent).toMatch(/^\+/);
+		const headers = screen.getAllByRole('columnheader');
+		for (const th of headers) {
+			expect(th.className).toContain('border-r');
+			expect(th.className).toContain('border-border/40');
+		}
 
-		const negativeRow = rowBySymbol('MMM');
-		const negPl = within(negativeRow).getByTestId('profit-loss');
-		expect(negPl).toHaveClass('text-rose-600');
-		expect(negPl).toHaveClass('text-sm');
-		expect(negPl.className).not.toContain('border');
-		expect(negPl.textContent).toMatch(/^-/);
+		const handle = screen.getByTestId('column-resize-quantity');
+		expect(handle.className).toContain('border-r');
+		expect(handle.className).toContain('border-border/60');
+		expect(handle.className).toContain('hover:border-primary/70');
 	});
 
-	it('renders dual-currency display with CAD on top and native USD on bottom, and price in native currency only', () => {
+	it('renders dual-currency display with CAD on top and native USD on bottom, and price and average cost in native currency only', () => {
 		render(HoldingsTable, {
 			props: {
 				holdings: [
@@ -339,10 +440,10 @@ describe('HoldingsTable', () => {
 		expect(totalValueCell).toHaveTextContent('$2,450.00');
 		expect(totalValueCell).toHaveTextContent('$1,800.00');
 
-		// Avg Cost: CAD on top, USD on bottom
+		// Average: only native USD on a single line, no converted CAD line
 		const avgCostCell = within(row).getAllByRole('cell')[3];
-		expect(avgCostCell).toHaveTextContent('$205.00');
 		expect(avgCostCell).toHaveTextContent('$150.00');
+		expect(avgCostCell).not.toHaveTextContent('$205.00');
 
 		// Profit / Loss: CAD on top, USD on bottom
 		expect(within(row).getByTestId('profit-loss')).toHaveTextContent('+$400.00');
@@ -466,16 +567,7 @@ describe('HoldingsTable', () => {
 
 			expect(onConfigChange).toHaveBeenCalledTimes(1);
 			expect(onConfigChange.mock.calls[0][0].widths.quantity).toBe(160);
-			expect(onConfigChange.mock.calls[0][0].visible).toEqual([
-				'security_symbol',
-				'account_name',
-				'quantity',
-				'average_cost',
-				'latest_price',
-				'total_value',
-				'profit_loss',
-				'profit_loss_percent'
-			]);
+			expect(onConfigChange.mock.calls[0][0].visible).toEqual([...HOLDINGS_TABLE_COLUMN_IDS]);
 		});
 
 		it('ignores pointer moves when no drag is active', async () => {
@@ -489,60 +581,6 @@ describe('HoldingsTable', () => {
 
 			expect(screen.getByTestId('column-col-quantity').style.width).toBe('110px');
 			expect(onConfigChange).not.toHaveBeenCalled();
-		});
-	});
-
-	describe('column visibility', () => {
-		async function hideColumn(testId: string) {
-			await fireEvent.click(screen.getByTestId('column-visibility-trigger'));
-			const toggle = await screen.findByTestId(testId);
-			await fireEvent.click(toggle);
-		}
-
-		it('hides a column from the header, rows and colgroup', async () => {
-			render(HoldingsTable, { props: { holdings: groupRows, groupBy: 'stock' } });
-
-			await hideColumn('column-toggle-account_name');
-
-			expect(screen.queryByRole('button', { name: 'Account' })).not.toBeInTheDocument();
-			expect(screen.queryByTestId('account-cell')).not.toBeInTheDocument();
-			expect(screen.queryByTestId('column-col-account_name')).not.toBeInTheDocument();
-			expect(screen.getByTestId('column-col-security_symbol')).toBeInTheDocument();
-		});
-
-		it('shrinks the empty-state colspan to the number of visible columns', async () => {
-			render(HoldingsTable, { props: { holdings: [] } });
-
-			await hideColumn('column-toggle-account_name');
-
-			expect(screen.getByTestId('empty-state').querySelector('td')).toHaveAttribute('colspan', '7');
-		});
-
-		it('emits the updated config when a column is hidden and when it is restored', async () => {
-			const onConfigChange = vi.fn();
-			render(HoldingsTable, { props: { holdings: sortRows, onConfigChange } });
-
-			await hideColumn('column-toggle-account_name');
-			expect(onConfigChange).toHaveBeenCalledTimes(1);
-			expect(onConfigChange.mock.calls[0][0].visible).not.toContain('account_name');
-
-			await hideColumn('column-toggle-account_name');
-			expect(onConfigChange).toHaveBeenCalledTimes(2);
-			expect(onConfigChange.mock.calls[1][0].visible).toContain('account_name');
-		});
-
-		it('disables hiding the sticky first column', async () => {
-			const onConfigChange = vi.fn();
-			render(HoldingsTable, { props: { holdings: sortRows, onConfigChange } });
-
-			await fireEvent.click(screen.getByTestId('column-visibility-trigger'));
-			const stickyToggle = await screen.findByTestId('column-toggle-security_symbol');
-
-			expect(stickyToggle).toHaveAttribute('aria-disabled', 'true');
-			await fireEvent.click(stickyToggle);
-
-			expect(onConfigChange).not.toHaveBeenCalled();
-			expect(screen.getByTestId('column-col-security_symbol')).toBeInTheDocument();
 		});
 	});
 
@@ -561,6 +599,16 @@ describe('HoldingsTable', () => {
 			expect(screen.getByTestId('column-col-total_value')).toBeInTheDocument();
 		});
 
+		it('shrinks the empty-state colspan to the number of visible columns in tableConfig', () => {
+			const tableConfig = normalizeHoldingsTableConfig({
+				visible: ['security_symbol', 'quantity', 'total_value']
+			});
+
+			render(HoldingsTable, { props: { holdings: [], tableConfig } });
+
+			expect(screen.getByTestId('empty-state').querySelector('td')).toHaveAttribute('colspan', '3');
+		});
+
 		it('falls back to the defaults for an invalid stored config', () => {
 			const tableConfig = {
 				widths: { quantity: 10_000, unknown: 50 },
@@ -569,7 +617,7 @@ describe('HoldingsTable', () => {
 
 			render(HoldingsTable, { props: { holdings: sortRows, tableConfig } });
 
-			expect(screen.getAllByRole('columnheader')).toHaveLength(8);
+			expect(screen.getAllByRole('columnheader')).toHaveLength(9);
 			expect(screen.getByTestId('column-col-quantity').style.width).toBe('180px');
 		});
 	});
