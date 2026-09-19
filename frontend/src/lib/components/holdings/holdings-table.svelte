@@ -279,7 +279,7 @@
 {#snippet sortHeader(column: HoldingsTableColumn, width: number)}
 	{@const label = column.id === 'account_name' && groupBy ? 'Accounts' : column.label}
 	<Table.Head
-		class={`relative h-10 border-r border-border px-4 py-2 ${column.alignRight ? 'text-right' : ''}`}
+		class={`relative h-10 border-r border-border/40 px-4 py-2 transition-colors hover:bg-muted/50 ${column.alignRight ? 'text-right' : ''}`}
 	>
 		<button
 			type="button"
@@ -301,7 +301,7 @@
 			aria-label={`Resize ${label} column`}
 			aria-valuenow={width}
 			data-testid={`column-resize-${column.id}`}
-			class="absolute inset-y-0 right-0 z-20 w-1.5 cursor-col-resize touch-none border-r border-border bg-transparent select-none hover:border-primary/70 hover:bg-primary/50"
+			class="absolute inset-y-0 right-0 z-20 w-1.5 cursor-col-resize touch-none border-r border-border/40 bg-transparent select-none hover:border-primary/70 hover:bg-primary/50"
 			onpointerdown={(event) => handleResizePointerDown(event, column.id)}
 			onpointermove={handleResizePointerMove}
 			onpointerup={handleResizePointerUp}
@@ -317,12 +317,12 @@
 	>
 		{#if isVisible('security_symbol')}
 			<Table.Cell
-				class="sticky left-0 z-10 border-r border-border bg-background px-4 py-2 group-even:bg-muted/50 group-hover:bg-muted/80"
+				class="sticky left-0 z-10 border-r border-border/40 bg-background px-4 py-2 group-even:bg-muted/50 group-hover:bg-muted/80 group-even:group-hover:bg-muted/80"
 			>
 				<a
 					data-testid="security-link"
 					href={resolve(`/security/${row.security_id}`)}
-					class="group -mx-1.5 -my-1 flex w-full flex-col rounded-md px-1.5 py-1 transition-colors hover:bg-muted/80"
+					class="group -mx-1.5 -my-1 flex w-full flex-col rounded-md px-1.5 py-1 transition-colors hover:bg-accent hover:text-accent-foreground"
 				>
 					<span
 						data-testid="security-symbol"
@@ -335,7 +335,7 @@
 			</Table.Cell>
 		{/if}
 		{#if isVisible('account_name')}
-			<Table.Cell data-testid="account-cell" class="border-r border-border px-4 py-2 text-sm">
+			<Table.Cell data-testid="account-cell" class="border-r border-border/40 px-4 py-2 text-sm">
 				{#if row.account_names.length === 0}
 					-
 				{:else}
@@ -350,7 +350,7 @@
 			</Table.Cell>
 		{/if}
 		{#if isVisible('quantity')}
-			<Table.Cell class="border-r border-border px-4 py-2 text-right text-sm tabular-nums">
+			<Table.Cell class="border-r border-border/40 px-4 py-2 text-right text-xs tabular-nums">
 				{row.quantity.toLocaleString(undefined, {
 					minimumFractionDigits: 0,
 					maximumFractionDigits: 4
@@ -358,7 +358,7 @@
 			</Table.Cell>
 		{/if}
 		{#if isVisible('average_cost')}
-			<Table.Cell class="border-r border-border px-4 py-2 text-right">
+			<Table.Cell class="border-r border-border/40 px-4 py-2 text-right">
 				<span class="text-xs text-muted-foreground tabular-nums">
 					{row.average_cost !== null && row.average_cost !== undefined
 						? formatCurrency(row.average_cost, row.security_currency)
@@ -367,7 +367,7 @@
 			</Table.Cell>
 		{/if}
 		{#if isVisible('latest_price')}
-			<Table.Cell class="border-r border-border px-4 py-2 text-right">
+			<Table.Cell class="border-r border-border/40 px-4 py-2 text-right">
 				{#if row.latest_price !== null && row.latest_price !== undefined}
 					<div
 						class="flex flex-col items-end leading-tight"
@@ -383,7 +383,7 @@
 			</Table.Cell>
 		{/if}
 		{#if isVisible('total_value')}
-			<Table.Cell class="border-r border-border px-4 py-2 text-right">
+			<Table.Cell class="border-r border-border/40 px-4 py-2 text-right">
 				<div class="flex flex-col items-end leading-tight">
 					<span class="text-sm font-medium tabular-nums">
 						{formatCurrency(row.total_value, row.currency)}
@@ -397,7 +397,7 @@
 			</Table.Cell>
 		{/if}
 		{#if isVisible('profit_loss')}
-			<Table.Cell class="border-r border-border px-4 py-2 text-right">
+			<Table.Cell class="border-r border-border/40 px-4 py-2 text-right">
 				{#if row.profit_loss !== null && row.profit_loss !== undefined}
 					{@const plPercent = profitLossPercent(row)}
 					<div class="flex flex-col items-end gap-0.5 leading-tight">
@@ -422,7 +422,7 @@
 			</Table.Cell>
 		{/if}
 		{#if isVisible('ew_primary_target')}
-			<Table.Cell class="border-r border-border px-4 py-2 text-right">
+			<Table.Cell class="border-r border-border/40 px-4 py-2 text-right">
 				{#if row.ew_primary_target !== null && row.ew_primary_target !== undefined}
 					<div class="flex flex-col items-end gap-0.5 leading-tight">
 						{#if row.ew_primary_upside !== null && row.ew_primary_upside !== undefined}
@@ -449,7 +449,7 @@
 			</Table.Cell>
 		{/if}
 		{#if isVisible('ew_cycle_target')}
-			<Table.Cell class="border-r border-border px-4 py-2 text-right">
+			<Table.Cell class="border-r border-border/40 px-4 py-2 text-right">
 				{#if row.ew_cycle_target !== null && row.ew_cycle_target !== undefined}
 					<div class="flex flex-col items-end gap-0.5 leading-tight">
 						{#if row.ew_cycle_upside !== null && row.ew_cycle_upside !== undefined}
@@ -483,7 +483,7 @@
 			{/each}
 		</colgroup>
 		<Table.Header class="sticky top-0 z-10 bg-muted/30">
-			<Table.Row>
+			<Table.Row class="hover:bg-transparent">
 				{#each visibleColumns as column (column.id)}
 					{@render sortHeader(column, config.widths[column.id])}
 				{/each}
