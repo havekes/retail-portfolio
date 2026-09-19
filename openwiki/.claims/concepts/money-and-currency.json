@@ -1,0 +1,252 @@
+{
+  "schemaVersion": 1,
+  "pageVersion": "sha256:eac118e99df1f06fab9a8fd666fd52b34f2e0d8397af5a7635637e03b02559ac",
+  "claims": [
+    {
+      "id": "claim_1fa7b469a4a341a483fe1a1fc0ed5014",
+      "statement": "The backend money model uses two representations: raw numeric values (prices, position quantity and average_cost) are `Decimal` in the API types, while any currency-tagged amount is `stockholm.Money`, and `Account.currency` / `Security.currency` are `stockholm.currency.Currency` rather than plain strings.",
+      "evidence": [
+        {
+          "resource": "repo://src/account/api_types.py#L1-L46",
+          "version": "repo-lines-v1:sha256:be5e23cd0fdf4b5700521db06c68c6de1ab6af43b02dd98dbcf9338f01120b93:eyJzZWxlY3RlZExpbmVDb3VudCI6NDYsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjJlZDAyNDdjYzA1Yjg2MWZlYTMzOTFlZTc2NTFhZWM0YmI1NzMwNGI3MWJlNmU5NmQyYjc0ZDE3MWM1NTFmNTUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjYwMWYyM2ZmOTczN2IyMzVkNTM1YjVjYjI2ZDQyMzJjMmJjMTg5MmY4OTZmMTFiODFjMTQ0MWM0ZDEwY2ZjZGMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjowLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImE1YjA3ZmI5OTBkMjZlYmNmM2JlZDM4ZjBkODUxMjY2ODI4YjAxOTBiZGJlMTkxODFjNmIxNDgwMmQ4YTliZWUifQ"
+        },
+        {
+          "resource": "repo://src/account/schema.py#L26-L47",
+          "version": "repo-lines-v1:sha256:a7e1e0142047e4f3818eaa037fa317adf6128d2c1ffa3b5a11f6bbf76a9231d3:eyJzZWxlY3RlZExpbmVDb3VudCI6MjIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImE1MTg2OTE3NDYyMDU5NjM5MGJiODU5MTkzMGNlMTE4NDA0ODExZjlkYTBhNjI3ZTk0MmViMDg2Mzg3MzUxZjgiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjA3MTgzYjQxMTA3Y2Q3NjIxMmI2MDViZGE1NzRiOGE0NmJjZDFjNDI5NmM2ZDdlMDMwNDc1OTU4OGJiMDdjYjciLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjhiYTMzZGY3NDBiY2MyZWRmMDJiZjIxYTFiZjk2YWFjOGY1NGRlMzY3ZDNjZjFkNmEyZDBiYmQ4YmM4NDVhYjEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjEwYjFiMTNkMzM1N2NhZWY2YTg4ZWE2OTZiNDgyYWM2ZTE5MjFmN2FiYWU3ZjJmNjcyNTdlMzg3NmYzZWQ4OTEifQ"
+        },
+        {
+          "resource": "repo://src/market/api_types.py#L13-L37",
+          "version": "repo-lines-v1:sha256:6041a79f4d88273c8a57d2c698c0720c0164d0459c60eb88cd701ec423ce2ce0:eyJzZWxlY3RlZExpbmVDb3VudCI6MjUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImY2Y2Y4NDRmZWRlMzE5MjI5NzEyZTVhMWYwNjhkZDkxODQyZmYwNzMxYjNiZmY4YTY4MzhkMDM0ZDEyODViYWQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAxYmE0NzE5YzgwYjZmZTkxMWIwOTFhN2MwNTEyNGI2NGVlZWNlOTY0ZTA5YzA1OGVmOGY5ODA1ZGFjYTU0NmIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjNjYmU1NWY5MDZjMDBhZDQ1MjVjZGYzYjZjOTQyNjIzNWQ0NWYwMWVhZjZjMzAwNzhkN2IwYWE3MmI1OWU2ODciLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImI0ZDAxYzgzN2ZmZDI4MGE5OWVlOTRmMmYzOGE1Nzk2MTRmMjZkZGQ3ZGY3ZDM1YjkxZGI4OTM4ZTA4ZjY5MWEifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_f73140ba9085439fb6eba5f1fd66c03b",
+      "statement": "A `stockholm.Money` serializes to JSON as a single currency-suffixed string field (for example `{\"value\": \"500.00 USD\"}`), not as structured `units`/`nanos`/`currencyCode`; tests assert `payload[\"totals\"][\"cost\"][\"value\"] == \"500.00 USD\"` and that `result[\"cost\"][\"value\"]` ends with `\" CAD\"`.",
+      "evidence": [
+        {
+          "resource": "repo://tests/routers/test_accounts.py#L92-L102",
+          "version": "repo-lines-v1:sha256:5b7e3e534593b8557caaf2f29de637324c5e866825f045ed3c837088ab68df38:eyJzZWxlY3RlZExpbmVDb3VudCI6MTEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijc4ZjA3ZjYxNzcwYzU3MjA4YTY0MzNkNjE2ZmFlMmI2ZjFhZTVhY2FiZmY5MTRhYzIzMjEwN2ViOGJiM2EwMjQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjIxZjg0YTcxZGEwZTU0YzVlNDc3MTUwOGI4OWFkZjNhMDYxMzJkOGVmYjkzMTQ1OGQyNmM5NTcwZmFkMjFlYzYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjM5MTFhZjU5MDJhOTE2N2MzMGFmOGM1ZTViYzc5YWNjZjczMmFhZjEwYzRkZGE4OWRkYzdiZDRjZjNhMWIxY2UiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImJlYzJiMTM5NmM4YTFhZDUwZDIxZTQ4MGVmOWIwMTk2ZWVlNjc2NjgxZTY3NTRiYzY0NjRjNzRjYWRiYmE2MTAifQ"
+        },
+        {
+          "resource": "repo://tests/tasks/test_account.py#L95-L102",
+          "version": "repo-lines-v1:sha256:369a8a3c2e442870122b76ca44fd6460809f30ae652f314e5853801e4bcab312:eyJzZWxlY3RlZExpbmVDb3VudCI6OCwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiNTExMzBjMjlhMjU2ZTFhYTk0MDU5ZDRkYWQ4MjkzMzgxNTgwNWZmOTljN2RlNWQzNjc1M2I0Zjk2MWVlMjE5OCIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNDJhODMwMWVlZGU3NmRjMmViNDM2OTc5YzM5ODMzODQwZjFjZGNkODNjZDg0NDhiODYzNzljMzdlNzAzMTYxMSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiYTVkZGU1OTlhMTlkMmU1NTk0MmI2NjNiNzM1ZWQzNmMwYzZmMzk0MzRhMTI0YzdmMzY4YmEzMzczZDc5YTJjYSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiNWFiN2IyNzJhYjRlMjUxNzViNWZkMjRjMTNjZmU1NjM0MjUxNGMwMjc5NDZmMDNiNTMwNWRmMjAzMzc4NzlmOSJ9"
+        }
+      ]
+    },
+    {
+      "id": "claim_f811f55933cc41399a7c697f95b94507",
+      "statement": "Currency conversion is centralized in `PositionService._currency_convert`, which short-circuits when source and target currency codes match and otherwise calls `currency_converter.CurrencyConverter.convert(...)`, rounds to 2 decimal places, and re-wraps the result as `Money`; the `CurrencyConverter` instance is constructed once in `position_service_factory` and injected into the service.",
+      "evidence": [
+        {
+          "resource": "repo://src/account/service/position.py#L257-L271",
+          "version": "repo-lines-v1:sha256:43abc8452ad4a193737193297a622844bbec6e06be3030f4eb131351a6dc1629:eyJzZWxlY3RlZExpbmVDb3VudCI6MTUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImZkZDFjNWVkMzc5OGI2NjMyMmIxY2MzYTJiZDliNTUwZjc5ZjQ1ZTY5NjU2ODM1NjBhMWIzYjEzMTI1MzMxNjUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjI1NGI5MzBmZDBjNmU0NTlmNjFjNTUyNWE3ZDMxMTAyODk0N2IzMWM5YTA4YzIwYzliZjczMzJhNzhiMjEyYjMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImM0MDY0NzYxODVhYWZhNzcxZTIzOTY3NGI0ZThhM2ZlZmVhMzNmNDNhZGQ5MWU2MGFmYTg5ODdiNTY0ZTQyNTMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjNkZjUxMDJkYjQ1YzIwNjQ5N2M1NjE2MThiZDUwNGEzZWMxZDRjN2NlMGMzNzc5OGFmNTMxOTExZWM1Yzg3M2UifQ"
+        },
+        {
+          "resource": "repo://src/account/service/position.py#L339-L348",
+          "version": "repo-lines-v1:sha256:5b5bfbd5694886b2d6c296d2731652a62cc20ff2573749b5efe6f12f9e05c212:eyJzZWxlY3RlZExpbmVDb3VudCI6MTAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImJjYTE0NjIxNjVkMjE2OTQ4MTU3MzdlZWRlMmI2MDk3MGI5ZDEzYTA0NmIyNmQ4N2U0OTFlNTZiZWM0MTJhMzYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjMwYzFmMTg4ZjE0MmVkN2E4MjQ2ODBiMjA3MTcyYzU1MTliYzYxNGE0OGZkYTdjZjE2N2VkYjhkZGY3OTk1NmMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImQ2ZmNlZGVlNjVkNGE5YzFjMmEwNDYwM2FiZjhkNzZkY2I2YzMwY2ZmMjgwMjgyZDZkNTc1YjEyYmI0NWRiOWEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_650f899ab59d4bb1864fb9151ea7c199",
+      "statement": "Conversion is applied per position before accumulation rather than to stored values, so positions never have their `average_cost` rewritten by FX and every accumulator for total cost, total value, and total P&L adds only account-currency `Money` values.",
+      "evidence": [
+        {
+          "resource": "repo://src/account/service/position.py#L179-L203",
+          "version": "repo-lines-v1:sha256:0a22482c87b3523ce7a4da4615aeb37e7b5b00db154601a31a929c52edc9f194:eyJzZWxlY3RlZExpbmVDb3VudCI6MjUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjJhMTdiNmY3NDFmY2Y0NWQ3ZGFjMmQ3ZmRhMTc3YTU2Mzk4NWIxNDE5MjI4NWZlY2JiZWM0MjY0ZGYwNzFkZWEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjU5MDlhNTNhNjE4ZDAyOGUxZDMwMDBjMGE3YWJjZWVjYmU1ZmIzN2Y0ZTUxMWVmZTQ2NjQzZmFkNmU2Njg3MmYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImU0YmM3MzBkYTQzOTdmNWJmNTc0NmRlNDM5NzUyNGM2NmRlNTNjMTdkZWQ3ZTg2Yjc5ZDRjYWExNWI5MTBkNDMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjdjNzQ2MjQ1NGQxNTYxOTM0MTUwOWViYjIwZTVmOTY5YzcwNmNlNDlkNDFjN2FlYmI0MmQ0MTU2M2Q2YWQ0MDIifQ"
+        },
+        {
+          "resource": "repo://src/account/service/position.py#L205-L238",
+          "version": "repo-lines-v1:sha256:7fa37c0e12b74847752928dcbdd947a164903269adab6943fcc3ab8000a0c763:eyJzZWxlY3RlZExpbmVDb3VudCI6MzQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImM0NzM5NThkNjZjZWYxMjU0N2E0MGFlYmViM2Y3NTI4NmU1MmE3ZDI3Mjc3MzczZWI1NTM4MGE5NDNlZGViM2QiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImVjZWZjNWE0ZTUwZDgxMmNkMTk5ZDEwYjkxMzkzYWM5ZDZiYzVkMGU0ODQ4ZDNlMGM2MDNmMmNkZGZhZjcyNWIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjE4MmUzOWM1NzZhMzY4Mzg5NmUyOGY5MTQxZjM2MzI5OTRkMGY5ZWUzZjIzODkzM2U4ZTU4ODEwZWFlYzhkODYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjMzMzZiM2JkMzkwYWFjY2E4MzBjNTEyYzEwMTQ1MjE1NzM2ZjYyNDBmY2M1MmM4YzY2MTNiN2U2ZTQ3ZTk5NjYifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_07a02410667d43e598ca1d78a849ba97",
+      "statement": "`HoldingRead` reports the same logical amounts twice — native values in `security_currency` (`unconverted_total_value`, `latest_price`, `average_cost`, `unconverted_profit_loss`) and converted values in the account `currency` (`total_value`, `profit_loss`, `converted_average_cost`, `converted_latest_price`) — and the holdings table only prints the converted line when `holding.security_currency !== holding.currency`.",
+      "evidence": [
+        {
+          "resource": "repo://frontend/src/lib/components/accounts/holdings-table.svelte#L176-L221",
+          "version": "repo-lines-v1:sha256:990693d2ba3d60322a3b8e1d8d10ee220bc3ed9cf93f89f9c82e5d1270c8a345:eyJzZWxlY3RlZExpbmVDb3VudCI6NDYsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjU5MmYwNmYwMTNlMjg2OWNiMWY2ZjMyZGE1MGI2YzI2ZTFjMTdiMGIyOGJkN2VjNDgyNDY4NjA2Y2M0OTc4YWUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjllODYyZDY0MGNmYWUyNjQ1MTI1NTFlYzJhYjVjOTliNTcwMjQ4YTg4MTY1YTFiM2M5YWEwYzY3OGMxYzFmNWMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjhkNjg0MjZlZDllYjI0MjU3YTA4MTM3N2JiOGY2MTJhYjhkNmY3NjE5NjA1MWVmNTZjYzcwNjAzMGVmNWM5YjEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImFlNjNjNDg2NDI5ZmI1NDNmZGVkODI5MTViOWZhNGY2ZjhkNDBjNmM5YzZmZGFiZTYwNzRmOTViYjBlMGNlMmIifQ"
+        },
+        {
+          "resource": "repo://src/account/schema.py#L152-L169",
+          "version": "repo-lines-v1:sha256:16dfa847c02575de39a52d1099987421dc2df91d5728dd4ce89513cfa4c690f1:eyJzZWxlY3RlZExpbmVDb3VudCI6MTgsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImU2ZDQ3YzFhOTc4OTljMTE1YzI4NGZlYzAwZTVkMmM0ZjI0MzI5ZDc2Njg3NTFmYWJhMzRhNDU2ZDVlMDZjMGUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImZkNDg1NDE0NTgyOTVmZTk3NTY3OTdjYjdhYTA4ZjQyMzIyMmRhMzcwMGY5YWJmMThlMDFhM2QzNzVkYTk5MTkiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6Ijc4ZmExNzBkYjA2ODc1MWJmOTg4NGE2NTNjMWFhMmFkM2YzZmViMWQ3NThkZDcyZGQzZjg3OWViZDc3OWNjMzAiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjRlZjA1MzAwOGZlMGY4NmM3YmVmYTgzZTYyZDg2ZmE4YzAyYWQ2ODljZDIxMTlkOWYyZTc4OGRlYjFmZjY1ODIifQ"
+        },
+        {
+          "resource": "repo://src/account/service/position.py#L273-L336",
+          "version": "repo-lines-v1:sha256:4ede5bfd18f6bdfc2944cd790964bdec07d75f1fa334fd417e402095e0043180:eyJzZWxlY3RlZExpbmVDb3VudCI6NjQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjE0ODg0OGY1OGZkYjhiYWRhOWNiZjhkY2JhMzRjYTRlYjZlMWIyZGZiMTMxOTljMDliMjkzMjMwZDE5ZDRjNWIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjRkODliNWRlYTc1NjA3Y2VmZjhmNzZiNzE2NTczYWQ4YWFhYzU3ZjMwOGY0M2UyODUzZmYzN2MwMTAyMWU5ZjAiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjE4MzU4NzIwMWMwYTIwYThhNzJmYTAyNGNlMjE3OTYzOGQ3MDAyMDYyZDZiOWUyZDU3ZjRkZTUyZWQ3YTUyMzAiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjRhNWQ0M2YxZmZiZDc5YzAwZDRlMjVhODNmYjdjZDgzNDEzNWIyMGQ4NjU0YjlmOThhMmY1Mzg3NDk4MTFlNjcifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_22a12249c41c4918a3b5f99c81b9c322",
+      "statement": "`get_total_for_account` returns `AccountTotals(cost, value)` where `cost` is the sum of `quantity × average_cost` and `value` is the sum of `quantity × latest close`, each converted per position; this type is served by `GET /accounts/{account_id}/totals` and pushed over WebSocket as `AccountTotalsUpdatedMessage` by the `recalculate_all_account_totals_task` Huey task.",
+      "evidence": [
+        {
+          "resource": "repo://src/account/router.py#L428-L447",
+          "version": "repo-lines-v1:sha256:ceeecee14770794ce3d2c6a350f28bf6af9dc61c6860b3e59c3e8cde99f82760:eyJzZWxlY3RlZExpbmVDb3VudCI6MjAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjgwYjc1ZDdlZjIxMGRiMmRjMjY0Yzg1OGQzYTAzZDIyNTI5NjhlNzVkY2U4NTYzNTRiZDEwYmFhMDcyNTE3NGMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjhkZmI4ZjQ0MzQ0NzdlOGM3NTJmODA1ZWVlZmU5ZDNiNThiYmQyMWQyMGZlNGMwZmYwOTdjZjViZWYwMDlkMTEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjBhZDY4ZDMyZTQwOTQxYTBjNWE1ZTAzYTExZTNhMGNiOWMyYmYwY2VlMmY1ZmQyN2NkNzU1YzdhMjJmYzY4ODQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImRmZTEzNDgyZWQ1MjJkODgzYmNlZjFlNzM4Y2U1YTc5NWVmZjY0MWJlMzIxY2U2Y2Y0OGMxNTBiMjRjODI5NWIifQ"
+        },
+        {
+          "resource": "repo://src/account/service/position.py#L179-L203",
+          "version": "repo-lines-v1:sha256:0a22482c87b3523ce7a4da4615aeb37e7b5b00db154601a31a929c52edc9f194:eyJzZWxlY3RlZExpbmVDb3VudCI6MjUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjJhMTdiNmY3NDFmY2Y0NWQ3ZGFjMmQ3ZmRhMTc3YTU2Mzk4NWIxNDE5MjI4NWZlY2JiZWM0MjY0ZGYwNzFkZWEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjU5MDlhNTNhNjE4ZDAyOGUxZDMwMDBjMGE3YWJjZWVjYmU1ZmIzN2Y0ZTUxMWVmZTQ2NjQzZmFkNmU2Njg3MmYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImU0YmM3MzBkYTQzOTdmNWJmNTc0NmRlNDM5NzUyNGM2NmRlNTNjMTdkZWQ3ZTg2Yjc5ZDRjYWExNWI5MTBkNDMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjdjNzQ2MjQ1NGQxNTYxOTM0MTUwOWViYjIwZTVmOTY5YzcwNmNlNDlkNDFjN2FlYmI0MmQ0MTU2M2Q2YWQ0MDIifQ"
+        },
+        {
+          "resource": "repo://src/account/task.py#L13-L54",
+          "version": "repo-lines-v1:sha256:a953241d78bdcfc36a8b70ac835043a6ee6396aae9023fc88a8ac3e9aacd402b:eyJzZWxlY3RlZExpbmVDb3VudCI6NDIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjFlYzk2YzNlNjFhNjEyOWRiYWQ0ODFmMmI3NDAxOWM4YzdjYzI4NGQ5YjE5YTMzNTU0ZmE5MTdlYTIzYmQzYzgiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjRiY2Y1ZmNiNjk5ZjE5ZGY5NDQyM2Y3NjgwYmE0MmM4Y2NjZTcwNjRjYThhZDNjNTNlNGJkNDFmM2M2MmI0NDMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjYyMDA5N2U0YWE1MDA2OGJhMTU3ZjlhMjczOWZhZDg2OTk1ZTFlMGNkY2NkYWRjNTg5N2MyMDM0Yzc0ZDNlZmEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjoxLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjUxMDM0ODFjNTdkMGYwZGMwZjc2Y2QyY2M4YjM2MDRjNGU4Mjk2ZGE0MTIyYWRkMTllODE3NDVkYzdlMzMxYTYifQ"
+        },
+        {
+          "resource": "repo://src/ws/api_types.py#L23-L26",
+          "version": "repo-lines-v1:sha256:be1666329dcb1f5d520766fec8ae7c54b747f3252afe324413aa213af59c86ce:eyJzZWxlY3RlZExpbmVDb3VudCI6NCwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiZTliY2U1YmQxZDE2OGU3MGMyMjY5NGRkOGQxNGI4M2U3ZmZiZjJiOWE5YzQxOTY5YmJmZjM0YjRkNWY3YzlhMyIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiYmU3MmIyNmRhNWYxZDJiYTU3OGY5NjAzYzlkNmViNTExNjU1NjVhN2RkOTM2OTgyODAwZTg3NzExODU5OWJjYSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiNjE5Nzk0NjNlNTY4NzhlMzdmODE3ZDk5NzJhMjhmNmJiOGZiZjdhNDQ0OTAzYmZhZTkzNDA3OWEyODBkZTliNSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjAsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiZTNiMGM0NDI5OGZjMWMxNDlhZmJmNGM4OTk2ZmI5MjQyN2FlNDFlNDY0OWI5MzRjYTQ5NTk5MWI3ODUyYjg1NSJ9"
+        }
+      ]
+    },
+    {
+      "id": "claim_acdd08532d4f43129105afa760630b6c",
+      "statement": "When `account.net_deposits` is set, `AccountHoldingsRead.total_profit_loss` is overridden to `total_value - net_deposits` with the percentage reported only when deposits are non-zero; this cash-flow P&L is a distinct quantity from the per-holding `profit_loss` (value minus cost basis) and from `AccountTotals.cost`.",
+      "evidence": [
+        {
+          "resource": "repo://src/account/schema.py#L172-L179",
+          "version": "repo-lines-v1:sha256:e5c831821b439e6be7f5a90b5807709e4adcfdc7b1045057886d63635d4baa64:eyJzZWxlY3RlZExpbmVDb3VudCI6OCwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiMzFkMDQ0Mjg4Y2E1MjZhMzk3YzhjZjQ1YjNkYjY3Nzg1Nzk2NDU1MzE0NjRlMDc3MWU4OWRiYzNhMjQ4YjhjYSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiZGYyNTllMWM4MmQ2ZjMzYzQ4ZThhMjA2ZDdlMzlmNTQ2Y2EzMTUxOGU4ZmUyZWMxYTBmMTBmNzk0YzIwYmJmZiIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiYTc3MmJkNmEwZTI5YWUyYmE5N2M5NTEwYmU1MjQ0OTU5ZjhjNWRhNGE1NDhjZGEzYzIyNmRiZWM4MGVhN2RmZCIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiOTM1ZWU2MWM5ZWE5ZjI0YmYzNDFkYjM1M2JmNDU1OWU5YjNkMjA4MzA4NWI0MDExZGY4YmExYjQ2MzcxYjRmZiJ9"
+        },
+        {
+          "resource": "repo://src/account/service/position.py#L155-L177",
+          "version": "repo-lines-v1:sha256:debf20fffe4abca47110db3892418a311bd44ddc7c47b3b27a3c419d5db06a21:eyJzZWxlY3RlZExpbmVDb3VudCI6MjMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjMzY2U2NzU1ZjhiMTgzNGM5YWQxOWMxODNhY2IyZGNkNDUwYWU1MWVjOWNiMzBjMjNjZGE4ZjRiNDA4MDRiYmUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjU5MDlhNTNhNjE4ZDAyOGUxZDMwMDBjMGE3YWJjZWVjYmU1ZmIzN2Y0ZTUxMWVmZTQ2NjQzZmFkNmU2Njg3MmYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImM0MDdlYTA0YTIzOTg2ZDA5Y2M0MTczMGU1MjRiYjg5MzhlYjg2MWE4ZmNmZDAwYmIzMjg1MzA0YTM3NDljNzAiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjFkODdjNzExZmRmM2JhYWY2ZDg2YWFiMGZmM2I1NTVkNWU2NTk2MmNiODBlZWZjZjMwMWQ3NTYyZTM4M2E1ZDkifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_6192175a3f1f44e59fc29b204a7e576a",
+      "statement": "The frontend `Money` interface is `{ value?: string; units?: number; nanos?: number; currencyCode?: string }`, and `moneyToNumber` prefers `units + nanos / 1e9` when `units` is a number, otherwise falls back to `parseFloat(value)`, returning `0` for null, undefined, or unparseable input; `money(m)` renders `$<localized number>`.",
+      "evidence": [
+        {
+          "resource": "repo://frontend/src/lib/types/money.test.ts#L4-L68",
+          "version": "repo-lines-v1:sha256:86dae18e52ff196236f2e72a5f71102ebde39f714c5b27adf1992f22cede3abe:eyJzZWxlY3RlZExpbmVDb3VudCI6NjUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjBjNGM4ZDZkYmIzNTU0ZDhiZDAzZjI5NmZlZDAzMjNkYjdmYjNmZThkZmMxOTljMmIzMWUxZWMyMDc1NzlhZDciLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjBhNzM0OTJkODk0NmIxZDBmOWQ5YzA0YjcwNGE5MjBmMjRmODllZjdjN2Y3MzExYTg1OTlkMTBjN2Y2MzU4ZDAiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImE4YzJiNWIwYTk4ZDMzYThiNmYyYmNlYjA4NmNiODg2MTFlNTllYmNhZDI1NjkyM2NiNDFiNTFjN2QxODZlZjYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjoxLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImY2ZjViNDBiMTU4NDU3ZDE3ODY0ZjIxNzkwNzg2ZGQ1YTJlY2RiNjRiNjZhNjUxZjc4OGQ0ZTI1Y2QzMzAzZDIifQ"
+        },
+        {
+          "resource": "repo://frontend/src/lib/types/money.ts#L1-L22",
+          "version": "repo-lines-v1:sha256:25a31f06ae4d952cfae89c93712aec77696ef47a98625a10deeb6107c4417406:eyJzZWxlY3RlZExpbmVDb3VudCI6MjIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImM4MDI5NDJlMDZhZGM4MWU2N2FmYTcyZWUwN2E4NGZhY2ZiYzI4M2RiNDQ1ZTkwNGFkYjkwMDc1YThjNzRkZWMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImFhMWQxYTYzMzkwMjI5Yzc5ODM0N2U4M2EwNDA1NDQxYzk0MDAwMzUyODRhZDE2OGMxYmY2Y2RmMWQ3MGEzNzAiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjowLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_b383e5a3726642d694dc5ae1365b6c7e",
+      "statement": "Because the API emits `value` strings like `\"500.00 CAD\"` with no `units`, the `units`/`nanos` branch of `moneyToNumber` is effectively unused against the live backend and real responses succeed only because `parseFloat` stops at the first non-numeric character; a serializer or parser change on either side must update both the backend shape and the frontend `Money` type together or amounts silently become wrong or `0`.",
+      "evidence": [
+        {
+          "resource": "repo://frontend/src/lib/components/accounts/accounts-list-item.svelte#L119-L123",
+          "version": "repo-lines-v1:sha256:c11e5e205de39817f28564c74f92c1fa0ac05959d3f2633b3e689195940b8096:eyJzZWxlY3RlZExpbmVDb3VudCI6NSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiZWNhNTVhNjIyMDFkMDBhYTU2MDU5M2Q2N2U1ZDYyYzBjODYxYTQwNGFjMDk3YzI3OTljNDA3NTdmN2M4MzA2YSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiZGE0MTNkZTFiZjcxYjVmYjE3YzEyMTFhYWJjOWYwZDgwMDA4MDI5ODBkY2I3OTNmNDE2MGMxNDY3MzM4ODI1ZSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiYjgyZWNhYjEyM2U3ZGRkZmZmN2Q4NjE0N2NlMDIwNzNmZmZjNjlkMGIwMTkxZjMyYTVhNWQyYTQwZjU5MTQwMiIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiYmJjNjIzNzQ4YmY5NWY4MjY1NTQ0NDNjYjdiNjU3OTY2ZTQ3NDUxMWZlNTAwMmI5ZTVlZDg5ZjZmMmY5YjJmNSJ9"
+        },
+        {
+          "resource": "repo://frontend/src/lib/types/money.test.ts#L29-L33",
+          "version": "repo-lines-v1:sha256:8e2c072d9ebde22133c0901d78a3f6f9e55824346c82a70e6dee627a201c90ee:eyJzZWxlY3RlZExpbmVDb3VudCI6NSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiZTUwMmQ3MGY5MGIwOTQ2Nzc1YTk2ODczN2UxNTk0YWUxMDQwODY3OThjNWU4Yjc2OTEzY2UwODIzMDkzYWQzNiIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiMGE3MzQ5MmQ4OTQ2YjFkMGY5ZDljMDRiNzA0YTkyMGYyNGY4OWVmN2M3ZjczMTFhODU5OWQxMGM3ZjYzNThkMCIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiOTEwNzFmNWQ1MjdhNTdlODgwZjIyMTU2Njc0YmU5NGY2ZjMwZjMxMDdjM2QyZmFjMzM5NDgzYTUyYTkyNTZhZSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiYzJiMmJhMjI4ODZlNjc4OTY3NGZiODIzYWEwNDJhOTRjYzczZGNjZWY5Njc0NWQyODJhODI5NWFhNGEzYTkyYyJ9"
+        },
+        {
+          "resource": "repo://frontend/src/lib/types/money.ts#L8-L17",
+          "version": "repo-lines-v1:sha256:845ebc0547f25367c8e70a0afb3de5c04198b81b56a04925bb198a5ddb606737:eyJzZWxlY3RlZExpbmVDb3VudCI6MTAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjIwMjgzOGY4MDU5OGY5ZDBhY2VkMTkyMGJlYjdlN2MwNTk0NmM4YWNjZTcwYWVmNThlZGJkNWM0MzRmZWE4MDYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQxMmNhMzQ1Y2NmNzViZjljMDgwNmJjZTY5NWJlOGRlODA4Yjc5OTg0MjUxYTdhNTRkMjAyY2Y2MTAxZGQ0NTEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImIxNWY1YzVjZWYyNjVhYjJmMzgzZGZlZGExNDliY2Y0Mjg0NDdhYWVkNTBmNzRkMTNlOTZmNmUwYjM0NzM0ZTMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImI2YWNiYTMyMGY2MTM1YTZhMDUyMzQxNGU1MjM1YzQyODRkNGM2NjQ2Y2VkMzFhMWVkNDAxZWNjZThiNjE1MDEifQ"
+        },
+        {
+          "resource": "repo://tests/tasks/test_account.py#L101-L102",
+          "version": "repo-lines-v1:sha256:920af3c5b11554ae0a70d5f5cc03df269b3fea5abb4c04140f37169d9badd014:eyJzZWxlY3RlZExpbmVDb3VudCI6MiwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiYTFhYjZmMGJlYWNjYjU3MzhhZGUyY2QyNWUwYjgzZmU1OWUwODY4NDZmYTNhY2FjYTM4ZWUzZDVjZGJiMjk2NCIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNDJhODMwMWVlZGU3NmRjMmViNDM2OTc5YzM5ODMzODQwZjFjZGNkODNjZDg0NDhiODYzNzljMzdlNzAzMTYxMSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiMWNhYjkxOTNiZWM1Yjk2ZTExYTIxNzczY2I0YjA2Y2FlNzFkMWIwYmViZDY3ODQ0MjZhZGNiZWViNDAyZDgxYiIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiNWFiN2IyNzJhYjRlMjUxNzViNWZkMjRjMTNjZmU1NjM0MjUxNGMwMjc5NDZmMDNiNTMwNWRmMjAzMzc4NzlmOSJ9"
+        }
+      ]
+    },
+    {
+      "id": "claim_8619e0f3bc694e48808607937c19fee5",
+      "statement": "`blendedAverageCost` computes the quantity-weighted mean of `average_cost` across holdings, returning `0` for an empty list, zero total quantity, or all-missing costs, and treating a missing `average_cost` as `0` so an unknown-cost holding pulls the blended figure toward zero rather than being excluded.",
+      "evidence": [
+        {
+          "resource": "repo://frontend/src/lib/utils/finance/average-cost.test.ts#L4-L45",
+          "version": "repo-lines-v1:sha256:7f9a8b0211d745247839a012c082689fabb5dec3b127c3de2918665611aa9fea:eyJzZWxlY3RlZExpbmVDb3VudCI6NDIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ0ODAxNDJiZTZjYjU3NDE5MWIzMDRjYTk4MGI2YTkyNWMyZDE0ZDFiMmVhYTFhMDlhZTNmZmE3ODhiN2I5OGEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjBhNzM0OTJkODk0NmIxZDBmOWQ5YzA0YjcwNGE5MjBmMjRmODllZjdjN2Y3MzExYTg1OTlkMTBjN2Y2MzU4ZDAiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjA5OWU2OTM4ZTdmMDE2NDg5MzZjNjlkMWU2NzQyMGU5MTVjYTM4M2M2Zjk4MzYxZjgwNTY3MjdiNzZkZWUzNTEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjoxLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImY2ZjViNDBiMTU4NDU3ZDE3ODY0ZjIxNzkwNzg2ZGQ1YTJlY2RiNjRiNjZhNjUxZjc4OGQ0ZTI1Y2QzMzAzZDIifQ"
+        },
+        {
+          "resource": "repo://frontend/src/lib/utils/finance/average-cost.ts#L1-L17",
+          "version": "repo-lines-v1:sha256:bbeeb118eaa6a592abeec12f28aa4bad81f68c41be5bce7e6943c3ab2eb0c416:eyJzZWxlY3RlZExpbmVDb3VudCI6MTcsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImVhZjIyY2YwNzMyNTkyYzI0NzE0MWNiZTYxZWZhMTEwMTI2MTJmNWEzMTIyYjlhZjliYmFmNTJmNTcyNGQxOTQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQxMmNhMzQ1Y2NmNzViZjljMDgwNmJjZTY5NWJlOGRlODA4Yjc5OTg0MjUxYTdhNTRkMjAyY2Y2MTAxZGQ0NTEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjowLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_5d75b9e4bc0d49f18ea6450b0f6cb2d1",
+      "statement": "Holdings period math runs on JS `number`: `getBenchmarkPrice` returns the average cost for `period === 'ALL'` and otherwise the close of the most recent candle at or before the period cutoff (falling back to the earliest candle), and `calculateHoldingGain` returns `gainAmount = (currentPrice - benchmarkPrice) * quantity` and `gainPercent = priceDiff / benchmarkPrice * 100` guarded to `0` when the benchmark is `0`.",
+      "evidence": [
+        {
+          "resource": "repo://frontend/src/lib/utils/finance/holdings-metrics.ts#L37-L160",
+          "version": "repo-lines-v1:sha256:d56f7fd9219a353f70987833b209a28e3f076d308519ddbdb7e6e659be9bbed7:eyJzZWxlY3RlZExpbmVDb3VudCI6MTI0LCJmaXJzdFNlbGVjdGVkTGluZUhhc2giOiJlYWYyMmNmMDczMjU5MmMyNDcxNDFjYmU2MWVmYTExMDEyNjEyZjVhMzEyMmI5YWY5YmJhZjUyZjU3MjRkMTk0IiwibGFzdFNlbGVjdGVkTGluZUhhc2giOiI0MTJjYTM0NWNjZjc1YmY5YzA4MDZiY2U2OTViZThkZTgwOGI3OTk4NDI1MWE3YTU0ZDIwMmNmNjEwMWRkNDUxIiwicHJlY2VkaW5nQ29udGV4dExpbmVDb3VudCI6MywicHJlY2VkaW5nQ29udGV4dEhhc2giOiI1NmJkYzA5MjIzYTE1MGI2YmNjMjA4OWJlZmEzNzA4ZmFkMDFiNzQzNmQwOTM2ODc0NzA4MDhjMzU5MWM2ZTMzIiwiZm9sbG93aW5nQ29udGV4dExpbmVDb3VudCI6MywiZm9sbG93aW5nQ29udGV4dEhhc2giOiIxNGUwODJlZmM1NGU0ZGRjNjNlMWVhYjk4ZDE2YzdhNDMxYzM1N2VlZGI1YTBiMjExNjYzYTU0OGQ3MjFhZDJjIn0"
+        }
+      ]
+    },
+    {
+      "id": "claim_a7fc6c2d99b04263ad53bbd890ca9314",
+      "statement": "Precision is lost at defined storage boundaries: `PositionModel.quantity` is `DECIMAL(16, 8)` but `PositionModel.average_cost` is `Float`, `AccountModel.currency` is a plain `String` (while the API type is `Currency`), and `AccountModel.net_deposits` is `Float`.",
+      "evidence": [
+        {
+          "resource": "repo://src/account/model.py#L210-L224",
+          "version": "repo-lines-v1:sha256:00d47e694cf3c697d867ac6a6bea34763695650d323ca0f76506a6cbbe9402f1:eyJzZWxlY3RlZExpbmVDb3VudCI6MTUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImMwYTNlNGQ2YjViY2Y3YTIyMDQ3N2Y3ZGM5OTc3YmVjNzNlYjFiNzc5OWZlYmJlZWIxMjJmYzk2MTcxZmViMWYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImJkMzkzMzUzZDE3ZjRmNmMxNzU1MjdiNDU2N2EwN2QwZGYwYjZlYjVjZjQ4NjU0ZDhjMzIxYmIzMmMwMDU2NzYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjhjYzRhN2QxY2M3OTZhYmEzZTQ2NzIzMzI3ZjUxN2U5ZjgxMTk4MmQyNTBmMDcwMjk4NmU0YjU3NjRhZDk1ODkiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjA1NDI0ZGViZGYwMDBlYzgxOTk3NDlhOTYyOTk1NWY2Y2FiZWIyNzg1M2IwYzUzYTljOTVkNmJjNTc4NTdmNjkifQ"
+        },
+        {
+          "resource": "repo://src/account/model.py#L50-L52",
+          "version": "repo-lines-v1:sha256:b5c3c8be9ac561f397a2dd9c381af9eaf4216ab080789f4de05a2c7e01830a12:eyJzZWxlY3RlZExpbmVDb3VudCI6MywiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiMGFhZjk5ZDlkMGNkYjU3OGE1OGMyZjhjY2FmNjA0Yjc1OTI2OTliYjllZmM5NDUzMDU1ODc5ZGI3MjhlNGJjOCIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNzcxMTNkNTRhMDMyOWQyNTZkNmEyMjdkMzBkYjNmYWQ1MDk4MzU3NmVlYjk4MzYwNzVlMWIxNzU1OWJiYzZlMCIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiNTljYTBiMzczOTc4YWViMWJjYTEwZTIzYWEzNzQwYjFiZjIzYTI3ZGRkM2QyYTk4MjkxODk3NTdmYmNlOGFiMiIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiNTU5N2MyYzgxMDI1OTBmOGRmOWJkZjZkMTdlYWMzNWNlZmQ2NGFkN2MxMzk4YmQ5ODI1MzAwNzkxNzAwZWE0ZSJ9"
+        }
+      ]
+    },
+    {
+      "id": "claim_ee8804e187844bd9bca21588463bbe6b",
+      "statement": "`_currency_convert` rounds each converted amount to 2 decimal places before accumulation, so aggregated totals are sums of rounded per-position values rather than the rounded sum of exact values; changing that rounding changes reported totals for multi-position accounts.",
+      "evidence": [
+        {
+          "resource": "repo://src/account/service/position.py#L262-L271",
+          "version": "repo-lines-v1:sha256:fb4a306d09ebf10bc52dd3936a9ba55793e0bbb0546c201d51900169f200d402:eyJzZWxlY3RlZExpbmVDb3VudCI6MTAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjZjNDliNzliZmQ4ZDJlMjVlZGMyODk2NTQ4OGVlYzNlYjU2ODIwYzRmYjhjMDAzMWI4ODg2ZTEyNGExMTBhY2YiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjI1NGI5MzBmZDBjNmU0NTlmNjFjNTUyNWE3ZDMxMTAyODk0N2IzMWM5YTA4YzIwYzliZjczMzJhNzhiMjEyYjMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjE0ODQwNzI5NGJlNzFiNGRiOWY1M2ZiNTBjNjY3NmQxNWE1ODQ0YzhhMzYwNzFmYjlmNjYzNzk0OTdlZjA2NmEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjNkZjUxMDJkYjQ1YzIwNjQ5N2M1NjE2MThiZDUwNGEzZWMxZDRjN2NlMGMzNzc5OGFmNTMxOTExZWM1Yzg3M2UifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_260e8078bb1e47cba4e388b20b9a3515",
+      "statement": "`src/account/csv/parser.py` parses quantities and book values as `Decimal` after stripping `,` and `$`, and computes `average_cost` as `(book_value / quantity).quantize(Decimal(\"0.0001\"), rounding=ROUND_HALF_UP)`, returning `None` for non-positive quantity or missing book value.",
+      "evidence": [
+        {
+          "resource": "repo://src/account/csv/parser.py#L134-L140",
+          "version": "repo-lines-v1:sha256:fba3bcc7a32bfed853ee4dbc04b3ca7fc66a11fba254c278acf2a12cf222c58f:eyJzZWxlY3RlZExpbmVDb3VudCI6NywiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiYWI4M2RlNWFlZGQ3ODUxZTVjNTg3YmJhYTZjZjZjNmVlMTU1YzVhNWQyMmM2ZTFhZDY3MTMxMTczN2ZiMjk0OSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiN2UwYzU1OGRkZTJhNzdmMDBjNjY4ZjNkNDFkOGMzYWJhYzI3NTQ4MDI5ZDViZTg1NDVkNDQ5MWFmMWZiYWFkMSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiODUxMzZjMjExMTM2NDNiZTk5Nzk2MzI5MzEyNjVlYjRmNjg3NTljMDIwYTFjNTRjN2Y1YzZjMzI1ODI2ZjRiOSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiZDA3YWY0Mjk1OTc5MzE1NjI0NDNiZjU0Y2YwZmRiZmU0M2VlYTlhOWJiNGI4YWE4NTA5OTY0NDYyZjFjNzM2OCJ9"
+        },
+        {
+          "resource": "repo://src/account/csv/parser.py#L187-L225",
+          "version": "repo-lines-v1:sha256:a678476995624079ac881c7ad4f0209ac94049665e2c0a4ff5b477a338dd3506:eyJzZWxlY3RlZExpbmVDb3VudCI6MzksImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjdlNmNlMGYyNjdmYmIwNzFjZDNiNTRmMWI2ODMxMDZjY2Y4M2UwNjY1Mjc4ZDY5NmRlMDg2NjY4Mzc1Zjk1MGYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjMwYzFmMTg4ZjE0MmVkN2E4MjQ2ODBiMjA3MTcyYzU1MTliYzYxNGE0OGZkYTdjZjE2N2VkYjhkZGY3OTk1NmMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjdmYzZkNDQyZWUwNGNjMDdhNGJhZDBlMzJkNmMwYmYwNjhkMzk4MjU5Y2I2YjZjNDhiNDQ3YTRmYmYxNDUwN2QiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjIwOTNmZDVmOWUxMzhjYjlhNDA4ODg4NDcyZTA3NWQ1NWNiOGRjYWUwZjRlNjBlZTQxMzEwZGE4NDljYzhiNjcifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_2dc6083e35f84aa7b74f0981a27ad87c",
+      "statement": "`get_holdings_by_security` computes `account_percentage` from `MarketPricesApi.get_latest_close` multiplied by quantity, rounded to 2 places, converted to the account currency, then divided by `get_total_for_account(...).value.amount`, so numerator and denominator are both in account currency only because the holding value is converted first.",
+      "evidence": [
+        {
+          "resource": "repo://src/account/service/position.py#L86-L134",
+          "version": "repo-lines-v1:sha256:12873b254c76a4c89ebd0b161eb24ca5582d791a7a42c91047a268b9d555a67a:eyJzZWxlY3RlZExpbmVDb3VudCI6NDksImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImNkYzMyYjZiMTgyY2FlNzVlNjBiMzMwNTk2YmQyMDQ2NGU4ZjJmZjQ3YjQ0MTA1N2VhOTExODlkYWQ4NzMzYmUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImI4ZmFhYjZkMGE3NDA0YTY2OGRmYWQ5NGI2OWI1MjBkZjZiZTJlMTllOWMyMGQyMzYxZmJkNWVmNWZhNTJkOTkiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImEwZjFhODM5ODQzNWVlMDk3ZTA4ZWUwYzRkMWZiN2U0NTdmMTc1ZWYzM2VjODJmMDlkYzI2MTU5ZWZiYzFlNDgiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjI4YTViYWE1YTEzYmNkNTI0YzM3NTdiNjViNjViNzYyNzIwZTUzNzI1ODJhY2JlMGYyYTBlMGI4NjZkNzY5OTAifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_14e43630f6e3442aaaf226d36a039f70",
+      "statement": "CSV account currency selection and update affect aggregates: on import an existing account's currency is updated when a different `chosen_currency` is supplied, and new accounts are created with `currency=Currency(chosen_currency)`, defaulting to `CAD` when unspecified.",
+      "evidence": [
+        {
+          "resource": "repo://src/account/service/csv_account.py#L148-L183",
+          "version": "repo-lines-v1:sha256:0d755b4973aeea3796ba5df1d4882f82fa9036098619f065fc5e4f4955f30b19:eyJzZWxlY3RlZExpbmVDb3VudCI6MzYsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjMxMTcwN2YxZDFhNjM1YzQyYzI1ODI1M2Q3MWYxYTg5YTFhNGQxOTk3ODE4Y2EzYzkyOGNiNTNiMGU3YTYyZTIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjUxMDM0ODFjNTdkMGYwZGMwZjc2Y2QyY2M4YjM2MDRjNGU4Mjk2ZGE0MTIyYWRkMTllODE3NDVkYzdlMzMxYTYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjYzNmY2ZDBmOTdjZjNkMjYwNTZlNzRhNWM0ZGY3MzE5NjJjYzZiMDIxNmUwNGYzODVmYjFlOTMxNzlhODA3YjEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjRkOWExNzM5NDJkZGY4MzNlMTBiM2M3ZDg3MjdiNGQ4YWRlOTY1ODlkZDIwYmI2MWRhZjY0ODdkZWYwMmVkODAifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_c9f90dfd15c041829da19ae9a77acef9",
+      "statement": "The `account_totals_success` router test exercises `GET /accounts/{account_id}/totals` and asserts the returned `cost` and `value` money strings carry the ` CAD` suffix, while `test_account_totals_not_found` and `test_account_totals_not_owned` assert 404 rather than a currency payload.",
+      "evidence": [
+        {
+          "resource": "repo://tests/routers/test_accounts.py#L87-L122",
+          "version": "repo-lines-v1:sha256:162da5b8444791946620431a6134f00967a3800eed95b3c9d7dd73acf82dc448:eyJzZWxlY3RlZExpbmVDb3VudCI6MzYsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImI3YTgzMWZhNDcyNmZjMjMxNTE0NGY5YTA1NWJmZWMyNWYxYWZkMTI2YWFmZjU3YWZmYmU5NDBlZjVjNmE3MzUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImQ0NDMxNThhNDc3OThmMTc1OGZjMzIyZWJjMDQ2Njk4M2ZmNGJhNTVkY2ViMjA5OGI4ZmFlYzY0YzBmZThkOGMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjgyNGRlNzdkNjc1YzZjZTdhM2NlOGUyODIzNzg0ZTgzOWQzZTA4Yjk4NTRmZmVkNTc4NTczNmMzNzllODY3ZGQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImJlYzJiMTM5NmM4YTFhZDUwZDIxZTQ4MGVmOWIwMTk2ZWVlNjc2NjgxZTY3NTRiYzY0NjRjNzRjYWRiYmE2MTAifQ"
+        }
+      ]
+    }
+  ],
+  "verification": {
+    "by": "openwiki/0.5.2",
+    "at": "2026-09-18T20:16:58.058Z"
+  }
+}

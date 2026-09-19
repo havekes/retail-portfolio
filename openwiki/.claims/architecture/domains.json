@@ -1,0 +1,440 @@
+{
+  "schemaVersion": 1,
+  "pageVersion": "sha256:a091137c663eb064b7e33e2082c103b0eee3da4f4db2c323bb2ef9256cc121db",
+  "claims": [
+    {
+      "id": "claim_cd8c3223793f428f8a0003d13fb73dc3",
+      "statement": "All backend HTTP routers are mounted under a single `APIRouter(prefix=\"/api/v1\")` in `src/main.py` (account, portfolio, auth, institutions, integration, market), while the WebSocket and worker-dashboard routers are mounted outside that prefix; the frontend `apiClient` hard-codes the same `/api/v1` base.",
+      "evidence": [
+        {
+          "resource": "repo://frontend/src/lib/api/apiClient.ts#L22-L22",
+          "version": "repo-lines-v1:sha256:f01f292a38348b15ac56f7c261275d15eea8052d8894b722903bb06d195d6c7e:eyJzZWxlY3RlZExpbmVDb3VudCI6MSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiZjAxZjI5MmEzODM0OGIxNWFjNTZmN2MyNjEyNzVkMTVlZWE4MDUyZDg4OTRiNzIyOTAzYmIwNmQxOTVkNmM3ZSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiZjAxZjI5MmEzODM0OGIxNWFjNTZmN2MyNjEyNzVkMTVlZWE4MDUyZDg4OTRiNzIyOTAzYmIwNmQxOTVkNmM3ZSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiOTdmNmNhOGVmYTYwNGFlYTcxZWJkMjMzZDIwN2FhOTJjMWMzN2M3YzU4Y2RiZjQzNzFhNDE4Y2UxMjA1YjA1ZCIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiMThhMjU5NmUwMDBiNjYyZTRhZjQ5YjQwY2UwMGYxODBiYzNkNDlhMTE5MTVhMDcxY2JiZjMwZTM1OWQ1YzcwNCJ9"
+        },
+        {
+          "resource": "repo://src/main.py#L167-L177",
+          "version": "repo-lines-v1:sha256:b66ab3c7c9677095729c27f4c6b1e651b2f0c6fc24ad24ac21753223cf11dc88:eyJzZWxlY3RlZExpbmVDb3VudCI6MTEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ5Y2E0ODI0OTlmYjhiN2JmYWUzZjBlYTk1M2FiMDdmMzA0MjNlYTVlY2I5ZDQyYjhkNGI1NDM5ODU0NGRhZWIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImFkYzdmZmZmZWJkMzA4YWFhYWVkODM3MmIzNTZmNjU3YjY3MWQ1NGI2MGY0OTUyMDg4NjAzZWRlMzBkZjRmMmYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjM0MGNmNDg1NTYyYTlmN2VhMDdmOTNiNTlmZDU5ZWQzNjkxZjQ2MTZhY2E2MWY4MmEwM2UwNDM5NWE1ZmQyZTciLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImVhYjIyNTRjYmVmODRkNzA3MGNmYWE3MzBiODgzNTI5NWRiMTgxYWU0YzU4ZmM1NDgzNmE2MTZhYzk5NTYzZDEifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_cc00be19e33c4cdb8c2089a9f656dff0",
+      "statement": "Editing a backend model requires generating an Alembic migration, and all migration files MUST follow the `<hash>_<description>.py` naming convention; manual SQL migrations are created via autogenerate and use `op.execute()` inside a standard revision.",
+      "evidence": [
+        {
+          "resource": "repo://src/AGENTS.md#L36-L38",
+          "version": "repo-lines-v1:sha256:a66f50aee607233da33a175ee0137a387351d55f0b72e0e4cc770dc5b3fafd5a:eyJzZWxlY3RlZExpbmVDb3VudCI6MywiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiZDFhMWNkODk3MjQ4Y2RiOTFhMDVjNTcxZDhmNWJkNzU2MTU2MTkzNjdjYzg2MzE2YzQ3NTRmNmUwZTY0Y2RkZSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiZThhNjBjOTBmM2I2ZTFmYzI5MTUwMWFkY2NjYjNhYjZjNzEwMzkxYWExYzc1NTc1ZTVlMDA4M2Q3ODU3NDU1MSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiOWVhNDMzZDcyYmRlOGUwNDM2Zjc1Yzg3NTRhZTQwYTFmN2FlYzQxNGY4NzYwMWQ3MWNlY2Y0MDQyYWY5MmYwYyIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiNWVkYWI3ZjkzNjgyMTg1MmQyMjA2NjNmMTU3MDEyMmNiOGI0NDcxMjg5MzY5ZjY5YjcwNjI0NWIxNDg5MzIzMSJ9"
+        }
+      ]
+    },
+    {
+      "id": "claim_a74538179a484b1682c523e2e5ea7e96",
+      "statement": "The `AccountModel` table `accounts` is unique on `(user_id, institution_id, external_id)`, carries `api_sync_enabled`, `net_deposits`, `last_sync_at` and a nullable `integration_user_id` foreign key to `integration_users.id`, and cascades `all, delete-orphan` to its positions and portfolio associations.",
+      "evidence": [
+        {
+          "resource": "repo://src/account/model.py#L32-L86",
+          "version": "repo-lines-v1:sha256:a8bdafae51b7378523bc64f3288aa2956fcbed32129f4113980bc84b831d8b6f:eyJzZWxlY3RlZExpbmVDb3VudCI6NTUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjdmMGMxMWExMDc1YTk0YmE3OTNmZDUzMTlmYWUxZWViZWUxMzE2YTMwY2VjOTc3NzVhNWIyNTJkYWEyOGI1ZjciLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjMwYzFmMTg4ZjE0MmVkN2E4MjQ2ODBiMjA3MTcyYzU1MTliYzYxNGE0OGZkYTdjZjE2N2VkYjhkZGY3OTk1NmMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjhiYTMzZGY3NDBiY2MyZWRmMDJiZjIxYTFiZjk2YWFjOGY1NGRlMzY3ZDNjZjFkNmEyZDBiYmQ4YmM4NDVhYjEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUyZDllYzljNmZjM2JhMzg3OWYwZjY2NjQ5MjViNGFmZjk3OTg1OTAzN2NjYjVlZTJjNzMyNWY3YWE4NjdjOWYifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_c993c028ff5c45e5a1a728b3d60a0962",
+      "statement": "`InstitutionModel.csv_format` is a comma-separated positional template string using standardized `{placeholder}` tokens that maps each column of a broker CSV export in order; `csv_import_enabled` plus a non-null `csv_format` is the gate that enables CSV import for an institution, and `src/commands/seed.py` documents the worked Wealthsimple example.",
+      "evidence": [
+        {
+          "resource": "repo://src/account/model.py#L163-L200",
+          "version": "repo-lines-v1:sha256:5dd73f37015be39c5f6f9ec9ebd3f97136f80750fbd1e555bde4d387f72ad417:eyJzZWxlY3RlZExpbmVDb3VudCI6MzgsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjA4ZTk3YzJmYjBmODdmNTA0ZjVkY2MzODIwNjI2YTUxYmIwYTY0Njg2NTc4NzFiMWM5NzdiMTVjYjQ5NDVlNWIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjMwYzFmMTg4ZjE0MmVkN2E4MjQ2ODBiMjA3MTcyYzU1MTliYzYxNGE0OGZkYTdjZjE2N2VkYjhkZGY3OTk1NmMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjhjYzRhN2QxY2M3OTZhYmEzZTQ2NzIzMzI3ZjUxN2U5ZjgxMTk4MmQyNTBmMDcwMjk4NmU0YjU3NjRhZDk1ODkiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjU3NTc5OTA3NDNmNDUyNGExZTMxZGEyYmI0NzIyNDQzYTRmZTYxZjIzMzRiOGY1N2VlZTI1ODE1OWZiMmNhZjgifQ"
+        },
+        {
+          "resource": "repo://src/commands/seed.py#L105-L149",
+          "version": "repo-lines-v1:sha256:f2b074d614dda36ed1b840873f36f83aeaae7e90a05fbc1db5033bbef72d6908:eyJzZWxlY3RlZExpbmVDb3VudCI6NDUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImRiMjIwNGRlZTczOGQ0YTg5Mzk5OTNhMWI0MjAxOTgyNTI1YTUzNWFiOTZiMDg0NWM2ZWFiMGFkNDcxYzdjYjgiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImEzMDNlY2RkNGE0ZDEwZjE5YzczZmQ0MmZkMTI0MzdmZDMzNTRhODI2ODE2MDVkYTUyNTVhOTdhMzkwNjhkYmIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjczNWUyY2Q1NTFhODg1ZTZlNjM2ZjZjODI2NWZkN2QxMmFmOTA2ZTQzOGQzZThiZjYzOGIxYzdjNDBmNzkzOTAiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6Ijk5OThjZTQxMmExY2JiNTBiMzlkYjY4ZDdkZmU3NmVmNzg2NjY5OGU2NDIwNDcwODZhNzI5MzUwOWM4MDJjYWQifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_e5babee26aac4ca28196245eec44d8f0",
+      "statement": "`GenericCsvParser` is template-driven: it normalizes template and header tokens to lowercase snake_case, validates header count and per-column matches against alias sets (raising a specific `CsvParserError` subclass on mismatch), drops cash rows (`sec-c-*`, blank/`cash` symbol, `security_type == \"cash\"`) and option rows (OCC-style symbols, `option`/`derivative` types), and computes `average_cost` as `book_value / quantity` quantized to 4 decimals.",
+      "evidence": [
+        {
+          "resource": "repo://src/account/csv/parser.py#L22-L226",
+          "version": "repo-lines-v1:sha256:86e1db337a4aabf81bc90dac814221e3d77f867d5de7d1a7dc639ecbf7373a9e:eyJzZWxlY3RlZExpbmVDb3VudCI6MjA1LCJmaXJzdFNlbGVjdGVkTGluZUhhc2giOiJmNzE1NzJiZGYzMDM4MmFmZWJhOTM2YzY0NzBmOTI4OTJiMjFkMjIxOTFlNzU4NzMwNjkwNGNmM2FhNWM2MDJmIiwibGFzdFNlbGVjdGVkTGluZUhhc2giOiIwMWJhNDcxOWM4MGI2ZmU5MTFiMDkxYTdjMDUxMjRiNjRlZWVjZTk2NGUwOWMwNThlZjhmOTgwNWRhY2E1NDZiIiwicHJlY2VkaW5nQ29udGV4dExpbmVDb3VudCI6MywicHJlY2VkaW5nQ29udGV4dEhhc2giOiI3ZDRiMTBmMDY0NTMyN2ZjMzEzOWM1NTQ2ZmRhNDEzNzBhYmRjM2I1MzVhMjAxZTg1YzBkNWVhOWYzYTE4MjYxIiwiZm9sbG93aW5nQ29udGV4dExpbmVDb3VudCI6MywiZm9sbG93aW5nQ29udGV4dEhhc2giOiI3NzA1N2ZlMGMzNWI0MmYxOGQ4NjE4YmIxMGJhODIzZjNmMjMxZjEzOTc0ODliMzNiOGE3YzY0ZWFiYTRmMjRjIn0"
+        }
+      ]
+    },
+    {
+      "id": "claim_1f0fb83f096e49e087a111fe55efb80a",
+      "statement": "`PositionRepository.sync_by_account` implements position sync as a full replace: it deletes every `PositionModel` row for the account and re-inserts the supplied positions, so partial syncs cannot leave stale holdings.",
+      "evidence": [
+        {
+          "resource": "repo://src/account/repository_sqlalchemy.py#L260-L271",
+          "version": "repo-lines-v1:sha256:d63195dfdf55fd183784f08af0de0a8cc91447db57e612c06ee66b81ecc1c5ca:eyJzZWxlY3RlZExpbmVDb3VudCI6MTIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ0ZGE5MzUwMDE5ZGMxZTY2NzQ1MjY0Mzg3MzE2MTk5NzIyNWU5Y2U2MDEwN2FmN2I2NGY4NDBkZGVjZmRhNGYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImM5NDRhMDZiYTQ1NDVkYzQ1YjZjYTQ5ZjM3Y2IyM2JiNjViYWZjZDUyODg3ODQyMDU0ZThkNzM1ZDNiNzhkMzQiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjBkNzFmMjc5Y2IxZjdmZTgwNDlkMTU1ZDE1ODY1MDRiMzhmMTk1MjdlZDhlNWYwYjgwNzFiODE5OWI0MTA0NzIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImI0ZDhiZGMyMzBmNTJlMTJkMzhlMDE1NzFiYzlmMjM4MmQ3ZDg0MzIzNzZlZjFiMzU2ZmE1ZWE4N2Y4NzNjOGYifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_7b95407932e840c4ba05693ecb0fc312",
+      "statement": "`PositionService.sync_account_positions` is a no-op when the account has no `integration_user_id`, raises `ApiSyncDisabledError` when `api_sync_enabled` is false, and otherwise enqueues the broker sync via `IntegrationAccountApi`; `POST /accounts/{account_id}/sync` pre-checks the same flag and is rate-limited to 3 requests per minute.",
+      "evidence": [
+        {
+          "resource": "repo://src/account/router.py#L487-L521",
+          "version": "repo-lines-v1:sha256:51aab4b10e71d676bcd57c1dc4f4b7aba858d2f2760491203c5f96d5826a1e4d:eyJzZWxlY3RlZExpbmVDb3VudCI6MzUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjdlNThmZTdiZDRmMmIyYTczNGM0ZDk1ZmY2ZDE5YTk4YjUwMWQ0MzhmMWJlNGNhZjk5ZTEwMTkyYmI0OGJjZTEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAxYmE0NzE5YzgwYjZmZTkxMWIwOTFhN2MwNTEyNGI2NGVlZWNlOTY0ZTA5YzA1OGVmOGY5ODA1ZGFjYTU0NmIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjhjYzRhN2QxY2M3OTZhYmEzZTQ2NzIzMzI3ZjUxN2U5ZjgxMTk4MmQyNTBmMDcwMjk4NmU0YjU3NjRhZDk1ODkiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjoxLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjgyN2IzYzZlNmVlYjAyYzA1OTViMTQxZmFkYTZmNmY3NTZlYTg3ODgwMzQxZDQxZmQwY2M2NzMyNzA0NDQwYWUifQ"
+        },
+        {
+          "resource": "repo://src/account/service/position.py#L62-L84",
+          "version": "repo-lines-v1:sha256:e3273c79f3502dbfa2af532fa1198d9ceb3bc0d53ee46c2368408884fff7b618:eyJzZWxlY3RlZExpbmVDb3VudCI6MjMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQyZTRkNzhhZjUzNTBlZTNiNWE0YWZkMDNlNzQyZDVkZTk5ZjY2MDc5NmIwMzBkNTg0NmVmM2ZhODIwNjdhOTMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjU5MDlhNTNhNjE4ZDAyOGUxZDMwMDBjMGE3YWJjZWVjYmU1ZmIzN2Y0ZTUxMWVmZTQ2NjQzZmFkNmU2Njg3MmYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImVjNTczOWE5ZGFjOWVmOWJjMjU5NWJlZmE0YzJjMTkwOGZiMTBlYTMwYTg1ZDYzY2RjNzFiNDMxNjIyNzRiNzIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImJlN2FjMjAwZTBlN2FiYjAxMmYxZDk3NDczMmMwZTJlM2NhY2IyNjUwYjY5MDkyZjM0YzY0NTcyNjY1MDhhODAifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_e5c8592e94db4081828eeae5bab58e02",
+      "statement": "Account holdings and totals convert every position value from the security/position currency into the account currency with `currency_converter.CurrencyConverter` and `stockholm.Money`, deriving `total_profit_loss` as `total_value - net_deposits` and reporting `total_profit_loss_percent` only when `net_deposits` is set and non-zero.",
+      "evidence": [
+        {
+          "resource": "repo://src/account/service/position.py#L136-L177",
+          "version": "repo-lines-v1:sha256:913fdbee56896ba62840b716b72bbcfca0a72eafe2d3047def31a63ad4daa7d4:eyJzZWxlY3RlZExpbmVDb3VudCI6NDIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjJlNTkwNWRkMzdiZjIzMmM5ZTE3OWE1N2EwZGNiYmFiNWE1YmM0MGY2NGUzNWVhYTc2YzljZTJhZDBhMGRjNGQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjU5MDlhNTNhNjE4ZDAyOGUxZDMwMDBjMGE3YWJjZWVjYmU1ZmIzN2Y0ZTUxMWVmZTQ2NjQzZmFkNmU2Njg3MmYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjY4ZmZjYzcwMGY3NWQ2Yjk5Y2U3Zjg2MTJmOTRiNGI4OWI2M2UyOTgxNTkyNDI2OTA4Mjc5ODNmMmM4OTRmNWQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjFkODdjNzExZmRmM2JhYWY2ZDg2YWFiMGZmM2I1NTVkNWU2NTk2MmNiODBlZWZjZjMwMWQ3NTYyZTM4M2E1ZDkifQ"
+        },
+        {
+          "resource": "repo://src/account/service/position.py#L251-L313",
+          "version": "repo-lines-v1:sha256:f004e54648f5f4b98ed66fbde0ed3bdb7634e933aecb78adb1ec10a952f79e37:eyJzZWxlY3RlZExpbmVDb3VudCI6NjMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImE5NDdmMzczMDk3NTNkZDVjNGY3NDk2OWUyY2Q2ZmE5OGRjMmJlNWM1YWMyNjZjMGY4NWMwM2I3MjdmNTI5MDgiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjU5MDlhNTNhNjE4ZDAyOGUxZDMwMDBjMGE3YWJjZWVjYmU1ZmIzN2Y0ZTUxMWVmZTQ2NjQzZmFkNmU2Njg3MmYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImFiYzY0ZmFmOTVhYjc4MGRjZDlhMDk3MmZkZDYwYWVhZjUxOTA5MDJhMGQ1MzNjYjE2MjZiMWI2NjExNTVhYjQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjY4NzY2NzVhOWFhMzY3M2QxZGY4ZDg3YTVlNDk4ODMwZGE5YjVhOWM5YThmZTBkOGJmNDIzYTZhOTdhZmQ1NjEifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_a15fee1a564540019871cbdf4a6abec1",
+      "statement": "The account router exposes user chart preferences at `GET|PUT|PATCH /accounts/me/preferences`, backed by `UserApi.get_preferences`/`save_preferences`/`patch_preferences` on the `auth_users.preferences` JSON column; `model_dump(exclude_none=True)` drops explicit null fields so a PUT does not clear other keys.",
+      "evidence": [
+        {
+          "resource": "repo://src/account/router.py#L169-L205",
+          "version": "repo-lines-v1:sha256:3e8e40e36e073be6a800e7d4958764ab69bdcc613607ce0e4a256a2a83e622b2:eyJzZWxlY3RlZExpbmVDb3VudCI6MzcsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjkwYTRmMTBmNzUwNjg2YTQzOTM2MTgwZjNmZWZjOTE4MTM1NDlmNDE4ZTQ3MzVlMWJhYmUzMjMxNjQyNTM2N2QiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjMwYzFmMTg4ZjE0MmVkN2E4MjQ2ODBiMjA3MTcyYzU1MTliYzYxNGE0OGZkYTdjZjE2N2VkYjhkZGY3OTk1NmMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjE5YTdjMzVlZjhkZTUzMzhiOWUyMjAxMDdhZjRkMGNkN2NjYjQ4ZmE1ODViM2YzZDZlNTU4MzM0MWQ1ODhlMjAiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImJiMzE0NWM2N2ZhNzZiN2VkNjk4Nzk2NjY5MmY3NTlhMjhkZDkwMmY2NDBkOGJmOTIzYzBiODQ2OTcyNTZiNzgifQ"
+        },
+        {
+          "resource": "repo://src/auth/api.py#L213-L223",
+          "version": "repo-lines-v1:sha256:c2fda55db4435eb031f768720d663b51a9164d8664726b9a751ebc9f1c1ea2da:eyJzZWxlY3RlZExpbmVDb3VudCI6MTEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjI2MDVhZmE0MjEzYzI4NTdjNDQzZGUzNTA4Y2NjZjYwMDFjNmNiN2E3NGQxMjFlODk4ZWNhMDZmNWY0N2M5YTUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ4ZDViMjM0MzMyZjMyN2U2MWM2ZjA2ZmU3NWU5MDcwZGZhZjk1MzhlMjc3Y2Y2MDk3ZGQ1MmQ1NjdhODM1MmUiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjNiNGRlZGI4OWY0NzA1OTA0YjM5ZGQzN2EzNWMwMzI4ZDlkMmYyNzdiMmE3NjA3Y2RjN2UwZWEyZDUyZTc5ZGEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjNlNWQzNDk2MzJlNzlmZDAwNmY4NDQ2MjFkYzU4OTdmZmJiMTgxNDBkNzAyMDEzZjlkOGFlOTgyYzc5MDg1NzEifQ"
+        },
+        {
+          "resource": "repo://src/auth/model.py#L39-L39",
+          "version": "repo-lines-v1:sha256:73da9987b87a0ba41018c9a2ec6734b6c2ff0c4f3b94c2c5160145cb453d8410:eyJzZWxlY3RlZExpbmVDb3VudCI6MSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiNzNkYTk5ODdiODdhMGJhNDEwMThjOWEyZWM2NzM0YjZjMmZmMGM0ZjNiOTRjMmM1MTYwMTQ1Y2I0NTNkODQxMCIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNzNkYTk5ODdiODdhMGJhNDEwMThjOWEyZWM2NzM0YjZjMmZmMGM0ZjNiOTRjMmM1MTYwMTQ1Y2I0NTNkODQxMCIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiNjYxNjNmMTFiM2M1Mjc0MDc4YTcwZmUxYTZmOWQ2MTM5MGFiNWQ0ZDM1NzVhMjZhYmJjMzgxMTc1YzZmMDQ0YiIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiYmRhNzIyYWVkOTYwYjQ4YjY0MmUyODBjMGE4ZjgzZjBhMzQzOThlOTY4ODQwNTU2MWM0OGQ5Nzk2ZTlmNDFmYSJ9"
+        }
+      ]
+    },
+    {
+      "id": "claim_c5014ef6ca234bb3a07f35eb4c9d606c",
+      "statement": "`POST /accounts/csv/inspect`, `POST /accounts/csv/import`, and `POST /accounts/{account_id}/csv-sync` accept `institution_id`/`account_numbers`/`currencies` either as multipart form fields or as query parameters with the same alias; account numbers may be a JSON list string, a comma-separated string, or repeated values (normalized and deduplicated in order), and missing `institution_id` or `account_numbers` yields HTTP 422.",
+      "evidence": [
+        {
+          "resource": "repo://src/account/router.py#L208-L339",
+          "version": "repo-lines-v1:sha256:35e29c62ac12034048c22620577c68c9c21d5a416df3c4576abfee09099e4abd:eyJzZWxlY3RlZExpbmVDb3VudCI6MTMyLCJmaXJzdFNlbGVjdGVkTGluZUhhc2giOiIyNmM4NTkzNThlODYyODk3NjVlYTFhYzZjZmYwYjExNThiNjQzMjdkN2U4OTdlYjdhNDg3OTJiZDFlN2FjMTNjIiwibGFzdFNlbGVjdGVkTGluZUhhc2giOiI5ZjMyYTA1YWU5OTM1MTM5NGQ5Y2M5MzdiZjlmODEzZTZkYmViZjU4YzVlM2Y5NWY3MmZhMWVkOGZhZGMwMTI4IiwicHJlY2VkaW5nQ29udGV4dExpbmVDb3VudCI6MywicHJlY2VkaW5nQ29udGV4dEhhc2giOiI4Y2M0YTdkMWNjNzk2YWJhM2U0NjcyMzMyN2Y1MTdlOWY4MTE5ODJkMjUwZjA3MDI5ODZlNGI1NzY0YWQ5NTg5IiwiZm9sbG93aW5nQ29udGV4dExpbmVDb3VudCI6MywiZm9sbG93aW5nQ29udGV4dEhhc2giOiI2ZWFiZjFiMjc2NTYwMTE3YWVlMTRiZTkyMWQwN2Y3OTkyZjA5OTU4ZWFiNGJkMTFmNGU3YzcyOThkNTJhZTFkIn0"
+        }
+      ]
+    },
+    {
+      "id": "claim_165b89c1a67f447e993c7203eecd9b46",
+      "statement": "`CsvAccountService.inspect_csv` marks discovered accounts the user already has for that institution (`exists = True` and the stored currency), and `import_accounts` creates new accounts with `api_sync_enabled=False` or refreshes existing ones by re-syncing their positions, resolving each holding through `SecurityApi.get_or_create_from_broker` and wrapping resolution failures in `SecurityResolutionError`.",
+      "evidence": [
+        {
+          "resource": "repo://src/account/service/csv_account.py#L76-L234",
+          "version": "repo-lines-v1:sha256:9811b8d3d55f917940d514d7997a9bd6422502fff20aa3f32a127d40ee7f4a49:eyJzZWxlY3RlZExpbmVDb3VudCI6MTU5LCJmaXJzdFNlbGVjdGVkTGluZUhhc2giOiJhNzJiNmJlZjc0ODFkYTBiY2Q0ZTQ2MjM1N2FlNzc1ZDM0MWM5NmVjOTY5OGY2ZDA5MDQ5MDI3YTdiZWE4MTE2IiwibGFzdFNlbGVjdGVkTGluZUhhc2giOiI1OTA5YTUzYTYxOGQwMjhlMWQzMDAwYzBhN2FiY2VlY2JlNWZiMzdmNGU1MTFlZmU0NjY0M2ZhZDZlNjY4NzJmIiwicHJlY2VkaW5nQ29udGV4dExpbmVDb3VudCI6MywicHJlY2VkaW5nQ29udGV4dEhhc2giOiJhMDBlOTk2OWE2NDBkODQ5NjBlNGM2MzMxMmFiNTdlYjdlYWFkMjFiZDdjMDM4MzUxMGY3MDQxMTA0ZGIxYWZiIiwiZm9sbG93aW5nQ29udGV4dExpbmVDb3VudCI6MywiZm9sbG93aW5nQ29udGV4dEhhc2giOiI2YTIzOWZkN2IzMjVkODEwYWRlYWNlMDAwYTBkNmU4ZDFkMmQ0NGQ3MTY0ZDZmN2JmY2UwOTMyMDhjNDVlZjEyIn0"
+        }
+      ]
+    },
+    {
+      "id": "claim_0515a1f4967049b2a965d2ff753280a1",
+      "statement": "The auth domain persists five tables — `auth_users` (unique indexed email, argon2 `_password_hash`, `is_active`, `is_verified`, `last_login_at`, JSON `preferences`), `auth_verification_tokens`, `auth_totp`, `auth_recovery_codes`, and `auth_passkeys` — and the TOTP, recovery-code, and passkey tables cascade on user deletion.",
+      "evidence": [
+        {
+          "resource": "repo://src/auth/model.py#L26-L137",
+          "version": "repo-lines-v1:sha256:10cbb68e53773c950b150c1df061d53caa46b8267481eb7f9ca74f50dbe5ce37:eyJzZWxlY3RlZExpbmVDb3VudCI6MTEyLCJmaXJzdFNlbGVjdGVkTGluZUhhc2giOiI1MmY3MTNmZjM1M2E2MGRkNDM1NjE5NjFjNmUxNDUzZWE1YmQ5OTg1ZDhjYjllYTAyNjdiMDIyYmM1NmM4YzU5IiwibGFzdFNlbGVjdGVkTGluZUhhc2giOiIyZmY2MmMwN2RlNzVmZjM3ZGFlMWMxYTI3NDUzNmJlMzJiOGUxYWFmYTU5NWUzNTIxNDJjMmYxNjA1NTlkNTEzIiwicHJlY2VkaW5nQ29udGV4dExpbmVDb3VudCI6MywicHJlY2VkaW5nQ29udGV4dEhhc2giOiI3OTNhZDQ2NWU0OTU5ZGU4ZDNiNTE1NzIyZGYyYjVjMjdiOWMwODBlYmE0NDhlNDRkZTA2YjIyMWZmMjI2ODg5IiwiZm9sbG93aW5nQ29udGV4dExpbmVDb3VudCI6MSwiZm9sbG93aW5nQ29udGV4dEhhc2giOiIzMGMxZjE4OGYxNDJlZDdhODI0NjgwYjIwNzE3MmM1NTE5YmM2MTRhNDhmZGE3Y2YxNjdlZGI4ZGRmNzk5NTZjIn0"
+        }
+      ]
+    },
+    {
+      "id": "claim_6adbb2f9db5e481fadc0aa28560c0f0f",
+      "statement": "`UserApi.login` returns a `LoginChallengeResponse` carrying a 5-minute `mfa_pending`-scope JWT instead of an access token when the user has a verified TOTP record; the client completes the challenge at `POST /auth/2fa/login-verify`, which sets the same `auth_token` cookie as password login.",
+      "evidence": [
+        {
+          "resource": "repo://src/auth/api.py#L113-L142",
+          "version": "repo-lines-v1:sha256:7c83dfd4eb5bec80fc42e38052504086b2ba19a6314fb71bf2f8ee3e033214c9:eyJzZWxlY3RlZExpbmVDb3VudCI6MzAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjNmNjhmYzUwMDhkNjdhYjFmNDdmYTUwMmRiNGVkZmRmYTBjNDRjYzQ3MTI5ZmI4MDY0N2ExNmE3YjFlZjI1ZjUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImNkMjA2M2RmMzAwNDBmMTJiNjRhMDA1NDMyNTkxNWExZjM2M2NhY2U2NzQyOTg3MDljNjlkOTJhOWRjMzM2NmUiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjQ5MDYxODVmMWE5NTJkNTliNjE0NDA2MDExNzQ1ZjBkYTBkYzYwZDIyNzY4Njc4ZjY1N2EwMWIzMWRmY2JhMGMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImMxNWYxYWU2OWQ5YzYwNzk5ODA1MDRlZGMzN2Y1ZjdiZjJlOTIxOTI4MDMzM2YwMGViZmIwODgwZTZiOGRlY2UifQ"
+        },
+        {
+          "resource": "repo://src/auth/api.py#L183-L194",
+          "version": "repo-lines-v1:sha256:4d8e66f3f338091b51da84aa2cc52b1d793c1633e507516e0af694630469b1ce:eyJzZWxlY3RlZExpbmVDb3VudCI6MTIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjYwZmZmNDU0NmNhODJiMmZmN2FmYjYyZmE5MGExM2RiYWZkMmFjYjY3YTI0OGU0NDYzMmZiNzY2OGE3YTkxMzgiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjU5MDlhNTNhNjE4ZDAyOGUxZDMwMDBjMGE3YWJjZWVjYmU1ZmIzN2Y0ZTUxMWVmZTQ2NjQzZmFkNmU2Njg3MmYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImM3ZmM4YzYwNjg0NTZmNWI1NWQ4YTMwYzgyMDU4NGI1MDFhZDJmNDAzODE2ZmY3OGNiOTJjNTk5MTk4YTEyN2IiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjU2MWFlYzU0YTJhNTE2ZThiZGU3YWEyYTA5YzFmOWE5ZTkzN2E0NjgyNTc1MWIwZmE0OTBmN2VhMjNkZDZjNTgifQ"
+        },
+        {
+          "resource": "repo://src/auth/router.py#L123-L166",
+          "version": "repo-lines-v1:sha256:3816cbc37924bff0c3c0402e7c833f5bfec4ef6b60f7488c5eb9a7de609d8acb:eyJzZWxlY3RlZExpbmVDb3VudCI6NDQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAyZTA3MDA2OGE5NTZlYWEzN2QxN2M4MGE3ZWYyOTUwOTBmZmVhOGFkZDdjNTgyNGM0ZWJlN2EwNTA5YjlhYjIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjMwYzFmMTg4ZjE0MmVkN2E4MjQ2ODBiMjA3MTcyYzU1MTliYzYxNGE0OGZkYTdjZjE2N2VkYjhkZGY3OTk1NmMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImRmMjNjYjBkMzcxMzgzNzJlZmY3YmZkNTRkZjg5ZmMzODY0YWE4ZTg0ZWVkZjFkYTM5YzQ2ZjMxMDAxN2VlNDciLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjY2N2NmZDViN2ZhMTcxYmRmZmNkZmE0NDhhMmJlNGJiYTI3ZTc1ZDc2YjVmYTdkNTMxMGM5ZjAwYzliN2VkYjIifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_564fdafa3024427c9cc30f73fa78d639",
+      "statement": "`AuthorizationApi.check_entity_owned_by_user` raises HTTP 404 rather than 403 when the entity is missing or not owned by the user, deliberately hiding entity existence; `src/main.py` maps `AuthorizationError` and `EntityNotFoundError` to 404 responses with an `{\"error\": ...}` body.",
+      "evidence": [
+        {
+          "resource": "repo://src/auth/api.py#L268-L288",
+          "version": "repo-lines-v1:sha256:ff8ec5dc6b98d4bd36e019b72610c0764944f5f40ca2da2febe23588ba576f32:eyJzZWxlY3RlZExpbmVDb3VudCI6MjEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjA2MDc3NmQyZmU2ODMwOWUxOWJhNzRjY2FhN2U2OGEyOGQyODY5NTE0ZjMwOTJlOTFkNTY0YmE5YTA3ZDYyNTAiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAxYmE0NzE5YzgwYjZmZTkxMWIwOTFhN2MwNTEyNGI2NGVlZWNlOTY0ZTA5YzA1OGVmOGY5ODA1ZGFjYTU0NmIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjhjYzRhN2QxY2M3OTZhYmEzZTQ2NzIzMzI3ZjUxN2U5ZjgxMTk4MmQyNTBmMDcwMjk4NmU0YjU3NjRhZDk1ODkiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjMwN2U3N2ViMTAyMDUzYjg0NzNiNzYyZWE1ODQyZjcyMmEwODlmYzkwMDc4YjA5ODczMzQ1ZjU5ZjFkOWUzMTYifQ"
+        },
+        {
+          "resource": "repo://src/main.py#L244-L261",
+          "version": "repo-lines-v1:sha256:747a393263e289c6ad37b985accad9eb56d4228dcb755fb40877c9efcf3f6436:eyJzZWxlY3RlZExpbmVDb3VudCI6MTgsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImQyYmI5MDg3ZjQ2MTI3NmRhYjRjY2M4Mjc3NGY3NjVkZGQzNjgwYjQyMzAyZWQyY2E3Njg3ZjFlNThmODE4MTYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjIwMjU2NDFhNTAyMzYyYjI0Nzk3ODVhOTE0NWUxNDdlM2I3ZWQ2ZmMzYTliOWNiODczMzc4MTBiNzUxNjgxNjgiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjhjYzRhN2QxY2M3OTZhYmEzZTQ2NzIzMzI3ZjUxN2U5ZjgxMTk4MmQyNTBmMDcwMjk4NmU0YjU3NjRhZDk1ODkiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_4f1f3071f279437a9c5ed7ab7e0606eb",
+      "statement": "`SecurityModel` is unique on `(symbol, exchange)` (allowing the same ticker on different venues) and `SecurityBrokerModel` records the broker to security mapping (institution, broker symbol/exchange, mapped symbol/exchange, `search_results` JSON) indexed on `(institution_id, broker_symbol, broker_exchange)`.",
+      "evidence": [
+        {
+          "resource": "repo://src/market/model.py#L31-L79",
+          "version": "repo-lines-v1:sha256:79d4473affd524e8b0faf645edb74cfb1e6e7760c73a6bda3a86eba968ecd19a:eyJzZWxlY3RlZExpbmVDb3VudCI6NDksImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjY4NDhkNzdjMDZjZWVlYzA0NjlkMGY2Njg0ZTdhODY1OTkwODIwNzYyMmVkNjE5ZmVlOTQxYzEwZjgwN2I5N2EiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjMwYzFmMTg4ZjE0MmVkN2E4MjQ2ODBiMjA3MTcyYzU1MTliYzYxNGE0OGZkYTdjZjE2N2VkYjhkZGY3OTk1NmMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImQwMDljYWM0N2EzOTJiNGYxY2E5MjI2M2YxY2RiNGZlNDQ2YjkyMzdiNjgzNDZlOWI1NTUxOTgxZTFkYmE5YTYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjA0MWY4ZjQ0OGMwNTUyNDgxOTI2ZTMxMGZlMTMwMzgzNDRiZWM5OTMyZWFiNzdkNjEwYjI0N2U2N2NkOWI5ZDUifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_4669334934eb41a4a7e78322e1ba9533",
+      "statement": "Price-related market tables are `market_prices` (unique `(security_id, date)`, OHLC plus `adjusted_close` as `DECIMAL(16,8)`) and `market_intraday_prices` (unique `(security_id, timestamp)`, 1-hour candles), and per-user market tables are keyed by `user_id` for watchlists, price alerts, security notes, security documents, and chart snapshots — with `market_chart_snapshots` indexed on `(security_id, user_id, captured_at)`.",
+      "evidence": [
+        {
+          "resource": "repo://src/market/model.py#L82-L233",
+          "version": "repo-lines-v1:sha256:c9b4f13b65f56ee9ba920e598f418f7c254652ce52fdb42a832ccc07f3726bc2:eyJzZWxlY3RlZExpbmVDb3VudCI6MTUyLCJmaXJzdFNlbGVjdGVkTGluZUhhc2giOiJlMGRhOGEzMGQ2M2M3MWE0NDU5Zjc2YmRmNmUxNDM0YWU0NWY5ODBjZDg5NDFjODFlOTc5YjU2NWJkMjBlMGI0IiwibGFzdFNlbGVjdGVkTGluZUhhc2giOiIzMGMxZjE4OGYxNDJlZDdhODI0NjgwYjIwNzE3MmM1NTE5YmM2MTRhNDhmZGE3Y2YxNjdlZGI4ZGRmNzk5NTZjIiwicHJlY2VkaW5nQ29udGV4dExpbmVDb3VudCI6MywicHJlY2VkaW5nQ29udGV4dEhhc2giOiI4Y2M0YTdkMWNjNzk2YWJhM2U0NjcyMzMyN2Y1MTdlOWY4MTE5ODJkMjUwZjA3MDI5ODZlNGI1NzY0YWQ5NTg5IiwiZm9sbG93aW5nQ29udGV4dExpbmVDb3VudCI6MCwiZm9sbG93aW5nQ29udGV4dEhhc2giOiJlM2IwYzQ0Mjk4ZmMxYzE0OWFmYmY0Yzg5OTZmYjkyNDI3YWU0MWU0NjQ5YjkzNGNhNDk1OTkxYjc4NTJiODU1In0"
+        }
+      ]
+    },
+    {
+      "id": "claim_30f8e199d52e43f6ac83729892c94153",
+      "statement": "`SecurityApi.get_or_create_from_broker` first checks the broker mapping table, then maps the broker symbol (`.` to `-`) and exchange (`CSE` to `CA`, `TSX` to `TO`, `NYSE` to `US`, `NASDAQ` to `US`), searches EODHD (through `SecuritySearchCache` when present), takes the first result, warms prices via `MarketPricesApi.get_latest_close`, and persists the mapping with the raw search results; zero search results raise `ValueError`.",
+      "evidence": [
+        {
+          "resource": "repo://src/market/api.py#L96-L195",
+          "version": "repo-lines-v1:sha256:39328a421461f62ab7989fb088bbfaddf9941f7c46c2cd02e7e31bceee2bb27b:eyJzZWxlY3RlZExpbmVDb3VudCI6MTAwLCJmaXJzdFNlbGVjdGVkTGluZUhhc2giOiI4MTZmNTA2OGI3N2Y4NWYyYWIxZjFmYTAyOTM3ZjkwZTFkMTZkNDdmMzAyMzg1ODE1NGMxYzU5MzRmMmRjMDBlIiwibGFzdFNlbGVjdGVkTGluZUhhc2giOiI2YmFkMzg2ZWQ4Mzg0MjFkMWZmNTFhYjlhNDI0NDlhZmUyYjE3MGJmZTRjN2NkZWFkNjcxMmUwNTFhZWNmZTM2IiwicHJlY2VkaW5nQ29udGV4dExpbmVDb3VudCI6MywicHJlY2VkaW5nQ29udGV4dEhhc2giOiJjMWUxYWJlNDRlMDY5YjUzYTVhOGFiNTNkOTkyYTllYWQ4MWI1ZDZiODBmYjhkZDgwYWY5ZjAxNDFjNTk0NTQ4IiwiZm9sbG93aW5nQ29udGV4dExpbmVDb3VudCI6MywiZm9sbG93aW5nQ29udGV4dEhhc2giOiIzMDJiN2Y0MGFhYTIyZTdjMjEzODg4OWU1ZWFhZWRkNDIwZTgxMTk3MDQyZWEzMTk4NjUxNTQyNjJjMGU0ODk5In0"
+        }
+      ]
+    },
+    {
+      "id": "claim_bf9243e9f7174c24bd3a74d243451659",
+      "statement": "`EodhdPriceRepository` is the registered `PriceRepository` implementation and adds read-through caching: `get_prices` merges stored rows with fresh EODHD rows (EODHD winning per date) and persists the union, `get_latest_price` only refetches when the stored close predates the last NYSE trading day (computed with `holidays.NYSE()`), and `save_price`/`save_prices` deliberately raise `NotImplementedError` so writes go through the inner SQLAlchemy repository.",
+      "evidence": [
+        {
+          "resource": "repo://src/market/__init__.py#L59-L60",
+          "version": "repo-lines-v1:sha256:9fd7d10285d54977303886db52b9b39e0c786ace864756bdab44d9f82d8bdc66:eyJzZWxlY3RlZExpbmVDb3VudCI6MiwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiMjk4MTg1OTBhMjQ5MjAxOWQ0YjE2MTljYTg0NzU2YWFiMmU5OTRlYWRhZGU0MDBmNDAwNjM2Njc4OTA1MGIwZSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiYTBkNjM5MDQxNGRkZGJhYThlODEzOGYxNjc4YzdmOWMxNzUxODA4ODRmZWVmNjQxNjZmYjY2ZDdiNDQ2ZWM1NCIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiN2MwYTU1ZjhkZDEzMTM4OTFmY2U3OTI4NTZhOGM0MzZiYTM2OWRlYmViYjI1MTcxZmViNDVkNDU1OTRiYjUzYiIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiNGExNWVhMmExMjZhZGQ2ZjAyNDQ2NjZhYjhiOGMwNzRlZmY3YTVmYmI3ZDhmOWM2ZmM5N2ZhZWFmNTUwNzk4NCJ9"
+        },
+        {
+          "resource": "repo://src/market/repository_eodhd.py#L15-L104",
+          "version": "repo-lines-v1:sha256:708a843195b44252d06de88576556b6fe76bfec0ddcbd122808646a4d7640f68:eyJzZWxlY3RlZExpbmVDb3VudCI6OTAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImJhM2FlNWQ1ZTExMGVlZjExZjBjNzdkM2I3ZTNkMDNjYmQxYmI4ZmJjOGI0OTQ3MzIyOTIxY2UyNTYzZDE5N2EiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjI3YjQ4Nzk3YmM1N2JkZGEzOGQ4MTE5NjhkMTE0YjgzNTZkN2I0YmUzMzFhMTQyZmY4ZDgzNWUwMzc3NjVlYzAiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImQ5NjZiMDVjOTkzODEwOTYyM2Y1NmY0ZDFjN2JlNjY2MGE0ZmM5MjNjYzY4ZDQ5MmVhZDRkYjY4Y2JmMTI1ZjEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImI1YmMwMmZhMGQ2NWVkODRkZTQ0N2I1YmJkMGM1OWUzZTE1NTc3ZjlhYzM1OTA1NGM0Y2E2Y2M2OTkxODFjNTQifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_b8ce31b668be4c7fb961cbf6ae64e2d8",
+      "statement": "`GET /market/prices/{security_id}` supports `interval` in `1d|1w|1m|1h|4h`: daily/weekly/monthly require both `from_date` and `to_date` (HTTP 422 otherwise) and aggregate in process, while intraday reads `market_intraday_prices` and lazily backfills via `MarketService.fetch_and_save_intraday_prices` when the stored window is stale.",
+      "evidence": [
+        {
+          "resource": "repo://src/market/router.py#L167-L301",
+          "version": "repo-lines-v1:sha256:2f73536824c8016414b1aa5d488b05bb4c5a041b3dd4a47c6025ed9a41ec0e76:eyJzZWxlY3RlZExpbmVDb3VudCI6MTM1LCJmaXJzdFNlbGVjdGVkTGluZUhhc2giOiJjYmE0ODBmYmVjOGFlYzcwNDFiNGNkZmYzMTk1NTA4MDA4OWY1MTg1ZGIxNGJiYzZhMjQ5MGU0MjM1MjYxODcxIiwibGFzdFNlbGVjdGVkTGluZUhhc2giOiIzMGMxZjE4OGYxNDJlZDdhODI0NjgwYjIwNzE3MmM1NTE5YmM2MTRhNDhmZGE3Y2YxNjdlZGI4ZGRmNzk5NTZjIiwicHJlY2VkaW5nQ29udGV4dExpbmVDb3VudCI6MywicHJlY2VkaW5nQ29udGV4dEhhc2giOiI1Njc5NDAzMWM0ZWFjYzNjNzY5NGIwYjJjNWMzYTk5OWFiNmIyNWJlNDM3ODk0YmM2ZmIyOTlhMDliOTJlNDBkIiwiZm9sbG93aW5nQ29udGV4dExpbmVDb3VudCI6MywiZm9sbG93aW5nQ29udGV4dEhhc2giOiI0YzRiMzk5MjVlOTAwZWIwOTk5ODc3NGU3YjgwY2U3ZTllMzkwOWRlZTljNWFiOTBkZDE3YWUyNTU1ZjZmZGQ3In0"
+        }
+      ]
+    },
+    {
+      "id": "claim_0dce8b19e1e841788c20425a6ebd824e",
+      "statement": "The market router exposes watchlists, price alerts, security notes, documents, and chart snapshots under `/market/securities/{security_id}/...`, plus default-watchlist routes; note create and update both enqueue `generate_note_title_task` so the title is regenerated by AI in the worker, and document uploads are written to `settings.upload_path` under a random `uuid4` filename with only metadata persisted.",
+      "evidence": [
+        {
+          "resource": "repo://src/market/router.py#L318-L377",
+          "version": "repo-lines-v1:sha256:94ef88617494c9ba3641d07359de7d6558afaa228a6f4dc92c85110299436958:eyJzZWxlY3RlZExpbmVDb3VudCI6NjAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjM4ZGNjYWE3MjNlNTQxMjUxYWI4M2ViMThlNTcxZjgwOGRkYmJjMWFjYzI4MjhmOWQ0MTQzODU2NmY0MGMzMjMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImRlMjk0MTA0NjgxNjU3N2YxM2NkZTAwMWJlOGQ4MzQyNWUzOTBjZTM1NTliNWM3OWEzOTA2NzA0NTgzZDJjM2UiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImMxMmRjZjA2YWFhYmViNTI1NmY4OGQwNmYzOTkxNzVjN2Q0NGQ0ZTZlMDUxNGY4M2JmNjIxZGY4OWRlYzY3MTQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImU3NmZiMTA5Nzk3ZWJmYjE3NTgyMGI3ZDBkYjdmODZkNjcxYmJkYjBmOTg1ZTY3YjE4ZDlmYjBiYThlYzMzZDgifQ"
+        },
+        {
+          "resource": "repo://src/market/router.py#L452-L592",
+          "version": "repo-lines-v1:sha256:a87a1a77793354c28ca4e176dbdaf08f054c9f0f3ce1d90acb0cb012361bb7d2:eyJzZWxlY3RlZExpbmVDb3VudCI6MTQxLCJmaXJzdFNlbGVjdGVkTGluZUhhc2giOiJmMjE1MTc1OTMyY2RmY2VlZGY5ZWFmZjg3YjU2OWM3YjYyNDQyY2EzOWJkMmUzODU0MjdmNzgyMzg1NzVlOTM4IiwibGFzdFNlbGVjdGVkTGluZUhhc2giOiIxYjc5MGNjNWQyN2Y1NTQ1YmNiZWE3MzZmOTY4ZDUyNTYwYzZiNDVlZjk3ZDEwZWI1NDAwYmJjNDhmN2QwN2UzIiwicHJlY2VkaW5nQ29udGV4dExpbmVDb3VudCI6MywicHJlY2VkaW5nQ29udGV4dEhhc2giOiJkOGVhYTExYjAwNjI4NTU2ZjY5NDQ4OTBmMGYxZGQ3Y2U4NGIwYjY2YTE4ZjM3MGVjYjVlNzMxMmFhZjJhZGNkIiwiZm9sbG93aW5nQ29udGV4dExpbmVDb3VudCI6MywiZm9sbG93aW5nQ29udGV4dEhhc2giOiI4OTU1ZmQ3NzY5NTJlYmQ0MzBkNjFkZDBmNjIwNzBmZWE3ZGFkOWM1ODY5NWQ3MmM3YzMwZDk2ZTA3ZDcxODRiIn0"
+        }
+      ]
+    },
+    {
+      "id": "claim_12f33ea708b54e4a92012afa9d0a225c",
+      "statement": "Indicator endpoints split between `GET /market/securities/{security_id}/indicators`, which computes MAs/MACD/RSI in process and caches results in Redis via `IndicatorCache`, and `POST .../indicators/compute`, which builds or accepts a candle series (aggregating weekly/monthly/4h as needed, optionally applying Heikin-Ashi) and delegates computation to the external Go sidecar through `IndicatorServiceClient`; caller-supplied candles bypass the cache.",
+      "evidence": [
+        {
+          "resource": "repo://src/market/router.py#L646-L887",
+          "version": "repo-lines-v1:sha256:7dbb2dda43b3d21ac9627c862bc25fb236136c7d1cfedc071a98f7f496b2f29c:eyJzZWxlY3RlZExpbmVDb3VudCI6MjQyLCJmaXJzdFNlbGVjdGVkTGluZUhhc2giOiI1Yjc0NmY4ZTY1YTNhN2M3MjE0N2RhZTc2ZmY5MDA5NWY4ZmRkNTU5MDA0MjRhNDY4ODMwYmYxZmRmZDZhMmZlIiwibGFzdFNlbGVjdGVkTGluZUhhc2giOiI3MjA4NTMyOTEwY2ZjZWZlNTg3MDNkNDM0NDVhOWMyMDJiMTI0ODc3MmYxNmVmNWExNjMwZTYyZjI1ZGYwMjc0IiwicHJlY2VkaW5nQ29udGV4dExpbmVDb3VudCI6MywicHJlY2VkaW5nQ29udGV4dEhhc2giOiIwYWQ2OGQzMmU0MDk0MWEwYzVhNWUwM2ExMWUzYTBjYjljMmJmMGNlZTJmNWZkMjdjZDc1NWM3YTIyZmM2ODg0IiwiZm9sbG93aW5nQ29udGV4dExpbmVDb3VudCI6MywiZm9sbG93aW5nQ29udGV4dEhhc2giOiJmZjAyOWFiMDI1OWYzOTdiZGVmMzIyYmM1YjRiOTg5MDI5OWU1NDJlOTMzMjJjYjc0NzNkYTgyM2FkZjZiZjYyIn0"
+        },
+        {
+          "resource": "repo://src/market/service.py#L387-L485",
+          "version": "repo-lines-v1:sha256:04c13ac7b4b74b397c7cb9cb12d064d55c7eb8068f8dc630bd7af1dc84b0227d:eyJzZWxlY3RlZExpbmVDb3VudCI6OTksImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjNjYzJmZjgxODkzMWRjZGRmM2Q4NzgzM2EzODgzMGEzZjk5MDA0YTExYTc2ZWQ1ZGM1NDIxYTkyN2E3YWRkYjkiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjRiMDZlYjY3Njg3NTUwMzcyZjc4NjMwNjE0YzBmNDgyYTU5MTYxMTgwNmQ2Yjc0YjhjZTYzYWNiMzc0MTVmOWYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImQ3MjIzMTA2ZmQ4NzQyYjcwZWEyMzNmOWRjMzU5ZjRiMDJiYmIwNjliNzI4M2VlZjc2MjQ5OTUxNmJkN2I5YzgiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_c5713e1b6c034485aa44f60efc7e8bfc",
+      "statement": "The AI endpoints `POST /market/securities/{security_id}/ai/fundamentals`, `/ai/summarize-notes`, and `/ai/portfolio-debate` are each rate-limited to 5 requests per minute and map `TimeoutError` to HTTP 504 and `RuntimeError` to HTTP 503.",
+      "evidence": [
+        {
+          "resource": "repo://src/market/router.py#L890-L966",
+          "version": "repo-lines-v1:sha256:2253466eb102c5a581ffeff49f6077e4237a87247fefa8512ae1e3af711a18df:eyJzZWxlY3RlZExpbmVDb3VudCI6NzcsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjkwMGY4N2IzMDA4MmNlZjI1YmVjMjE5MDE4ZTQyODA3NWRiZTZkNjRjNzJhNjgxYzkwY2I1OGQyNzcxMWJhOTgiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImMyNGY3NzNjZjEzMTg4MjRiNTdmNThiOGY1YTAwNThjNzJhYjc5YjI5YjMwYjIwYTg3NjhkMTU3ODc5ZTU0OWIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjczMDMyNWY5ODBiNGFiZTBhNWJmZGViMmQzZWI5MzQ4NzZkM2EwNDMzMjU2NDQ0NzJjMTM2Y2NhMDJiOWE4MGEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_02f164a2ca584591b7d3161cf0c13cd6",
+      "statement": "`MarketService` updates prices for all active securities — a one-year window daily and a seven-day window of 1-hour intraday candles hourly — pushing blocking gateway I/O through `asyncio.to_thread` and gathering per-security calls with `asyncio.gather`, swallowing per-security exceptions so one failure cannot abort the batch (returning `success`/`failure` counts).",
+      "evidence": [
+        {
+          "resource": "repo://src/market/service.py#L181-L278",
+          "version": "repo-lines-v1:sha256:0cf2b88f6956263c65d313b86de179167f3fe18ccc403802ddb7b63d6c6c5f67:eyJzZWxlY3RlZExpbmVDb3VudCI6OTgsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjA4MTJhNDgxODRjZjQxZTkxMTA1ZDZkMjM3MWMyZGJkZDdhNzYxZWRkNzk0NDIyOTAxMjJlNzM3MmI1OTMwNWYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijg5NWQwM2Q4NzM2YjMwOGFkZDA5MzkxZDUwMWYzNDIwN2JjOTAxYTVkZGM1ZmViZjQ5ZmQ5ZTJmMTE1OTc1YjQiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjNlZmRiODVjM2JmNDZkNzllZWMwYTUzMmI0OGIyNDFmZTdjOTI5OTBjYjcxYjYzNGIxNzI0YjBkYmFkNTBiZmIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImU2N2YzMDk0ZGIzYzY0ZTBiNTI3Yzk4MzFmNDM0ZjA2MGRlMTM4MDhmNzM1NmI4ZmM3M2JiNGFjODJhYzgzNjUifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_505c012cf33a4ae2a4188beadb18d616",
+      "statement": "`src/market/task.py` chains the scheduled pipeline: `daily_price_update` runs at midnight, `hourly_intraday_price_update` runs every hour and then enqueues `recalculate_all_account_totals_task` and `check_and_dispatch_price_alerts` in isolated try/except blocks, and the alert path ends in a retrying `alert_email_dispatch_task` that marks the alert triggered.",
+      "evidence": [
+        {
+          "resource": "repo://src/account/task.py#L13-L54",
+          "version": "repo-lines-v1:sha256:a953241d78bdcfc36a8b70ac835043a6ee6396aae9023fc88a8ac3e9aacd402b:eyJzZWxlY3RlZExpbmVDb3VudCI6NDIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjFlYzk2YzNlNjFhNjEyOWRiYWQ0ODFmMmI3NDAxOWM4YzdjYzI4NGQ5YjE5YTMzNTU0ZmE5MTdlYTIzYmQzYzgiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjRiY2Y1ZmNiNjk5ZjE5ZGY5NDQyM2Y3NjgwYmE0MmM4Y2NjZTcwNjRjYThhZDNjNTNlNGJkNDFmM2M2MmI0NDMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjYyMDA5N2U0YWE1MDA2OGJhMTU3ZjlhMjczOWZhZDg2OTk1ZTFlMGNkY2NkYWRjNTg5N2MyMDM0Yzc0ZDNlZmEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjoxLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjUxMDM0ODFjNTdkMGYwZGMwZjc2Y2QyY2M4YjM2MDRjNGU4Mjk2ZGE0MTIyYWRkMTllODE3NDVkYzdlMzMxYTYifQ"
+        },
+        {
+          "resource": "repo://src/market/task.py#L58-L220",
+          "version": "repo-lines-v1:sha256:b750b131bcf07a29fa6e531b5221f28635535c24ae5909ff3652a2799cd97589:eyJzZWxlY3RlZExpbmVDb3VudCI6MTYzLCJmaXJzdFNlbGVjdGVkTGluZUhhc2giOiJjMGRmZmEyNDYzZGI2YzVhMDA0YmQzYmU0ZjYxZGJhYjFhNjBiNzExZWZkNTI3OTdlYzhlMGY2YmI2MTI4OWI5IiwibGFzdFNlbGVjdGVkTGluZUhhc2giOiIyN2Y3OGMwOTM2YzUwYmEyYzc1NTIxNGY1NzE0YTdiNDY1M2YwZDkzYmNjNDk5NjYxMDFjNDk5ZjRmYjQ2YTZiIiwicHJlY2VkaW5nQ29udGV4dExpbmVDb3VudCI6MywicHJlY2VkaW5nQ29udGV4dEhhc2giOiJlMmQ2N2YxYzA3NDA5YTQwMmU4YmFlYmFmOGM2MDhmNmFkZGMyZTRlNjE4MDE4ZWNmMjZjMTI4OTkxMzRiM2JjIiwiZm9sbG93aW5nQ29udGV4dExpbmVDb3VudCI6MCwiZm9sbG93aW5nQ29udGV4dEhhc2giOiJlM2IwYzQ0Mjk4ZmMxYzE0OWFmYmY0Yzg5OTZmYjkyNDI3YWU0MWU0NjQ5YjkzNGNhNDk1OTkxYjc4NTJiODU1In0"
+        }
+      ]
+    },
+    {
+      "id": "claim_ea3d589f821841ada0595f20778872ce",
+      "statement": "`IntegrationUserModel` (table `integration_users`) is unique on `(user_id, institution_id, external_user_id)`, and `IntegrationAccountApi.sync_account_positions` enqueues `sync_account_positions_task` with the broker gateway class resolved from the account's institution via `get_broker_gateway_class`.",
+      "evidence": [
+        {
+          "resource": "repo://src/integration/api.py#L40-L61",
+          "version": "repo-lines-v1:sha256:d0acac2ef047d0ad7bc1c62531e09ac0fd098ab4e0d7b7f9f90a21df325d5c82:eyJzZWxlY3RlZExpbmVDb3VudCI6MjIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjhlMTkxOWJhMzE2OTZhNjkyYWUwZTI1NWFjY2NjNGE0M2RmM2FiMjhjODk0ODhiNzNlODdjMWVjYWYwNjVhMzIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImEyYjhhODMzOWQ2MWFjZmNjY2MwNTMyY2VkNmIzNWM0MGMxOGY2ODBmYjQ0NjZhOGVkNTk4YjMzYTJmM2YzN2IiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjMxMzliNjQ2OTlmNDcyNzQyMDMxN2U3ODM3YmM0ZmU2ODIzYzkwN2YwN2Y1ZDdkZmMxMGQ5NzZiNjNjODI2YjciLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjQ5OGU1MzM5ZGIwMmUzNTJlZTQzZWM4ZDRlZWRjYmM1MjQ2MjY4ZTViNGVjYzgyYTk5OTYxOTkxZGI0NjZjOTMifQ"
+        },
+        {
+          "resource": "repo://src/integration/model.py#L18-L32",
+          "version": "repo-lines-v1:sha256:64a64fd6e0bcbc1c5ed09e05a73aa20031e6ec529f6fa1faa24184cd23774370:eyJzZWxlY3RlZExpbmVDb3VudCI6MTUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjZkOTQ0YjYxZGY3ZTJjOWFkMmNkNWQ0ZTYzNGYxYzM5ZDgzYjIwODNhMGIwOGU2MDA0NjE4MTJhNzc1YTRmZmEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjMwYzFmMTg4ZjE0MmVkN2E4MjQ2ODBiMjA3MTcyYzU1MTliYzYxNGE0OGZkYTdjZjE2N2VkYjhkZGY3OTk1NmMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6Ijc4ODVjNDlhMDRhNDkwNzI2ZDgyZThhNWI4ZTk0MDM5ZDVkYjIwODVmZGUwMjJlYzRjNjY3NGNkZjMxZDEzNmUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_09aa6fe1bdc54ad9aa6ee828bd395097",
+      "statement": "`BrokerApiGateway` declares `login`, `get_accounts`, and `get_positions_by_account`, and its constructor unconditionally installs keyring's `PlaintextKeyring` — flagged with a TODO to secure before staging — so broker session tokens are stored in plaintext on disk.",
+      "evidence": [
+        {
+          "resource": "repo://src/integration/brokers/__init__.py#L15-L44",
+          "version": "repo-lines-v1:sha256:1297e249afbf6296f78877a1f0e69d5bb35906d424ad535c0d1a8375eeaa125a:eyJzZWxlY3RlZExpbmVDb3VudCI6MzAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjRiY2Q4OTJjYmM0ODU2ODE5YzY0NGJkMmIxYmEzN2ZkYTZlYTFmY2FjMDgyMjJlNzM2N2ZjMmE4ZDVlOTk3MzIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImYwNjJlNThlYTBiMGZkMTk1YmEwNzY2MTNiNjMwZDU5ZTY3YmQ0NzBiYjE5ZTk3YTIwYzkwMjM2NmU1YmEwZTYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImRkZDg2ZmU0OTQwOGU0OTI3ODU2YzI2YTQ5MTY3ZjBmMWExNzE1ZmQ3YzQ2NTEwYWNhNjMxZWVlMDAxNzAxMzEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_ba0956737d0a4bcabbb03e4d2322eef3",
+      "statement": "`_sync_account_positions_task` orchestrates broker sync in the Huey worker: it marks the sync active in Redis, emits `ACCOUNT_SYNC_STARTED`, resolves each broker position to a security via `SecurityApi.get_or_create_from_broker`, replaces positions through `PositionApi.create`, refreshes `net_deposits`/`last_sync_at`, then emits success or a mapped plain-language error email plus `ACCOUNT_SYNC_FAILED`; the Redis marker is always cleared in `finally`, and an interrupted-task signal handler clears it for interrupted tasks.",
+      "evidence": [
+        {
+          "resource": "repo://src/integration/task.py#L39-L300",
+          "version": "repo-lines-v1:sha256:021c47248cf3488480557c6eace099089d6a19f412b293e018c8be237c57f3b4:eyJzZWxlY3RlZExpbmVDb3VudCI6MjYyLCJmaXJzdFNlbGVjdGVkTGluZUhhc2giOiIxZWM5NmMzZTYxYTYxMjlkYmFkNDgxZjJiNzQwMTljOGM3Y2MyODRkOWIxOWEzMzU1NGZhOTE3ZWEyM2JkM2M4IiwibGFzdFNlbGVjdGVkTGluZUhhc2giOiI5Mzg2ODY5YjQ5ZWZiNDZiNWUwNjg0YWVhYWFlMDE4NjNjY2U2ZTNjNmViMjQxM2ZiNzJkZmNmODZlNjVjYjczIiwicHJlY2VkaW5nQ29udGV4dExpbmVDb3VudCI6MywicHJlY2VkaW5nQ29udGV4dEhhc2giOiI2MjAwOTdlNGFhNTAwNjhiYTE1N2Y5YTI3MzlmYWQ4Njk5NWUxZTBjZGNjZGFkYzU4OTdjMjAzNGM3NGQzZWZhIiwiZm9sbG93aW5nQ29udGV4dExpbmVDb3VudCI6MywiZm9sbG93aW5nQ29udGV4dEhhc2giOiJlNGZlOGRhMjhjMjNjYjdmOWYyZGQ1ZjY3NGVjZTNlMjJiYTExZjU2NWI1ZTQ1ZmU2YmM1MTE0NzFmYzViNWIwIn0"
+        }
+      ]
+    },
+    {
+      "id": "claim_fb14da384f6347c9a6bf1e6d506c8269",
+      "statement": "The integration router exposes `GET /integration/institutions` for enabled institutions and `/external` endpoints for broker users, login (mapping `OTPRequiredError` to 400 `OTP_REQUIRED` and `LoginFailedError` to 401 `INVALID_CREDENTIALS`), account listing, `POST /external/accounts/import` (3/minute, deduplicating via `AccountApi.import_from_broker` and enqueuing one sync task per newly created account), and `POST /external/positions/import` for synchronous single-account import; every route touching an `IntegrationUser` first calls `check_entity_owned_by_user`.",
+      "evidence": [
+        {
+          "resource": "repo://src/integration/router.py#L39-L268",
+          "version": "repo-lines-v1:sha256:138029ffcb79a9ac2e72b22282050a1b7269bbdbeb5674910b4543d2b2700fe6:eyJzZWxlY3RlZExpbmVDb3VudCI6MjMwLCJmaXJzdFNlbGVjdGVkTGluZUhhc2giOiIwY2U2NjQzZWYyMGFkOGIyOTVmNTljM2VmMDRiOTU4NTk5NGQwYzQwM2I4MWY3NjIyOTQ5NTAyNGE4OWFlMjk0IiwibGFzdFNlbGVjdGVkTGluZUhhc2giOiJmNDJiNDcyOTNmYjkwMjI4ZmVkOWZmNjY3OWM1ZTMwZWYxOGNkYTgxNDYxMDFiMjU3OWRhZmM5OTU0NWFjZWEyIiwicHJlY2VkaW5nQ29udGV4dExpbmVDb3VudCI6MywicHJlY2VkaW5nQ29udGV4dEhhc2giOiIxNDU2MTI1MTNkZTc4Njc5M2VjNjA0YjdkMjkyMjI0YzNmZmE5YTA2NWQzYjc2MmM5YzU2NzA1MWU1YTc1YmY1IiwiZm9sbG93aW5nQ29udGV4dExpbmVDb3VudCI6MCwiZm9sbG93aW5nQ29udGV4dEhhc2giOiJlM2IwYzQ0Mjk4ZmMxYzE0OWFmYmY0Yzg5OTZmYjkyNDI3YWU0MWU0NjQ5YjkzNGNhNDk1OTkxYjc4NTJiODU1In0"
+        }
+      ]
+    },
+    {
+      "id": "claim_0ad419ddd057447a8a659a56a583e48a",
+      "statement": "`ConnectionManager` tracks per-user WebSocket connections and fans out messages by publishing a user_id and message payload to Redis Pub/Sub channel `ws_messages`, keeping one Redis client per running event loop and falling back to local delivery when publishing fails; `/api/ws` authenticates via a signed single-use ticket (verified with `max_age=30`, salt `ws-ticket`, replay-guarded by a Redis key with 30 s expiry) or the `auth_token` cookie / `sec-websocket-protocol` header, closing with 1008 on failure.",
+      "evidence": [
+        {
+          "resource": "repo://src/ws/manager.py#L18-L214",
+          "version": "repo-lines-v1:sha256:990bb3b9619621393ecdd489baadec440d0afd28bd15c4123e2f1b1fd9d1724c:eyJzZWxlY3RlZExpbmVDb3VudCI6MTk3LCJmaXJzdFNlbGVjdGVkTGluZUhhc2giOiIwZWQ3NTM4Mzk1Mjg1ODViOWM1ZDkzYWUzYWIxOWM1MDdlYWI5MmRhZGQwMzYzZDY2YjdkN2U1MTdjNjM1ZDM0IiwibGFzdFNlbGVjdGVkTGluZUhhc2giOiJhZTg3MjRiOTBiNTM5OWI0ZWFmOGM2ZTQ3MDAwMTIzZTI5NzgyYjA2MDYzNWE2MzBlZmFmMTQ4YzEzYjk4ZWQ3IiwicHJlY2VkaW5nQ29udGV4dExpbmVDb3VudCI6MywicHJlY2VkaW5nQ29udGV4dEhhc2giOiI2MjAwOTdlNGFhNTAwNjhiYTE1N2Y5YTI3MzlmYWQ4Njk5NWUxZTBjZGNjZGFkYzU4OTdjMjAzNGM3NGQzZWZhIiwiZm9sbG93aW5nQ29udGV4dExpbmVDb3VudCI6MywiZm9sbG93aW5nQ29udGV4dEhhc2giOiJiYzRhMGMzMDRmNTkwOWVhMDhlMjcwNjZiZmZlNjhiMzI4YmY2Y2Q5ZWIzZWNiN2NmMjFiNWZhZWM0ZTEwOTA4In0"
+        },
+        {
+          "resource": "repo://src/ws/router.py#L21-L100",
+          "version": "repo-lines-v1:sha256:119316050a292412f6f6e286bcfffad9b897b5f35d165f97f3d3ccb96f4aa1a4:eyJzZWxlY3RlZExpbmVDb3VudCI6ODAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjVmZDFmMGY4MGVkZWQyNzQ2NDY5Yjk0MTZkNTJlNmZlMWM3MmFmOWI0NjkxMjM4YzBjYzE0ZmE0NjAzOWNlMWEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImRlZmMwZmIxZTE0YTI2Yjk3YjVlNzRlYTc0ODEwMWI1ZGJiYjY3ZmJkN2NjMzM4MGQ1OTQ2MGVlMzE2NmJkODUiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjRjNTNjMDhmNWYzMDlkZGVjNmNkOGRhY2I1OTRjZmExMjkzZGY1ZWEwYTRmMTE3ZDY5YmQ0NWRiMDM4MmZiNmUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_3ac249682db54147bc221582b34f175d",
+      "statement": "`src/core/exception.py` defines the two abstract base exceptions every domain error derives from — `EntityNotFoundError` (with `entity_id`/`entity_name`) and `AuthorizationError` (requiring `log_message()`) — and `src/main.py` maps both to HTTP 404 with an error body.",
+      "evidence": [
+        {
+          "resource": "repo://src/core/exception.py#L1-L21",
+          "version": "repo-lines-v1:sha256:912d1a02824ca5c6a5e195920ef165fcd22ba63aec17ab54055631d77c727da6:eyJzZWxlY3RlZExpbmVDb3VudCI6MjEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjBmZTFlZDhkZGU1ZjBhZTZjNGJiNzFlMjE5MGU5ODYwNzMwNzczODBiYTFhOTg2NDg2NzZhNDZkZTAxZjU3NGIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjE1ZGI2NjIzNzllNTI4ZGE5NjYxZGU0MTVlYmE3NzkwOTY0ODVkNGRiMDc5MDM1ZjhjOGMwZWEyNmExMGRmZjUiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjowLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
+        },
+        {
+          "resource": "repo://src/main.py#L244-L261",
+          "version": "repo-lines-v1:sha256:747a393263e289c6ad37b985accad9eb56d4228dcb755fb40877c9efcf3f6436:eyJzZWxlY3RlZExpbmVDb3VudCI6MTgsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImQyYmI5MDg3ZjQ2MTI3NmRhYjRjY2M4Mjc3NGY3NjVkZGQzNjgwYjQyMzAyZWQyY2E3Njg3ZjFlNThmODE4MTYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjIwMjU2NDFhNTAyMzYyYjI0Nzk3ODVhOTE0NWUxNDdlM2I3ZWQ2ZmMzYTliOWNiODczMzc4MTBiNzUxNjgxNjgiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjhjYzRhN2QxY2M3OTZhYmEzZTQ2NzIzMzI3ZjUxN2U5ZjgxMTk4MmQyNTBmMDcwMjk4NmU0YjU3NjRhZDk1ODkiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_f856784394e54ae489bee1b79745783e",
+      "statement": "`src/core/pagination.py` defines `PaginationParams` (`offset >= 0`, `1 <= limit <= 100`, default 50) and the generic `PaginatedResponse` wrapper, which is the response shape used by account holdings, watchlist securities, alerts, and notes endpoints.",
+      "evidence": [
+        {
+          "resource": "repo://src/account/router.py#L450-L484",
+          "version": "repo-lines-v1:sha256:7b7002b5763fb469a6fa31ddd33f38039a62903330d0bbecf85fc20e91102ea9:eyJzZWxlY3RlZExpbmVDb3VudCI6MzUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjU0MzRlYTQ0YjdjMzBmZjA0ZDVmZDViMGVkYTc2NDQzOGQ2ZDVhODRiZGMxYTFlNTBkYTEyZTM4MTUxOTQ2NjAiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjMwYzFmMTg4ZjE0MmVkN2E4MjQ2ODBiMjA3MTcyYzU1MTliYzYxNGE0OGZkYTdjZjE2N2VkYjhkZGY3OTk1NmMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImQ0MmYyYzdmNzc4N2FkMTgyNTE0OTgxZmYzMmFlMWE4NWY0NGQxZWY4ZTY2ZTgzOWQ2MGZmMDg5Y2Q1ZDJkMWIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjRmMzIxNGNlOWE4OWZhODFlZTM2Mzg0NTBlMzQ4NTlmYzMwZWIyMzY5OGRmZTRjMzI3MGEyZDIwODcwZTUzODIifQ"
+        },
+        {
+          "resource": "repo://src/core/pagination.py#L8-L17",
+          "version": "repo-lines-v1:sha256:83e223f2cc428ea150359f5f6aca676a2c552f1b5d72895e22283b066956023b:eyJzZWxlY3RlZExpbmVDb3VudCI6MTAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijc0ZTIwMzZjNzI1MGZkMzVmYmExNzdlYmYyOWFmNDkxOTU1MTAzZjFjYjM0ZmU3OThhMDU4ZjllYzI0MDhjYjIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImU1ZmMyNWM1MzYxOGI0NDhlZjUzZWZjZDA0MGQ4NmY5YjUwNjJhZDI0MjdiMzkzZTlkMWZlNDk1NGNjMTk4YWMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjNhYzM5ODI5NGI0NzYzNmRhYzlmNTM1M2FiYTBmNzIyMGI5NzYxMDJiMmVkNzZlN2U5ZjRmZTBlMmJiMzFjZGUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_dcc813d9c38b48089536be97586c3c4c",
+      "statement": "`register_services` in `src/config/services.py` binds `AsyncSession` to the session manager, registers core/account/auth services unconditionally, and then branches on `settings.stub_external_api` to register either live or stub integration and market services.",
+      "evidence": [
+        {
+          "resource": "repo://src/config/services.py#L14-L34",
+          "version": "repo-lines-v1:sha256:6fd115100fdd701665a71cd80ac86e199e1f25a6a2e2bb72dbdf3e20f168a3ae:eyJzZWxlY3RlZExpbmVDb3VudCI6MjEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImUwNTE3NmQ4M2M0MGQyZjUxY2NjODYzNzlmY2Y2NTc2NmUxYjM3NzU3YmE1Njk1MTM5NTM3NDEzZDViZDQ4NjEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAxYmE0NzE5YzgwYjZmZTkxMWIwOTFhN2MwNTEyNGI2NGVlZWNlOTY0ZTA5YzA1OGVmOGY5ODA1ZGFjYTU0NmIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImQwY2I4MWQ1YzNhYmI0MDhjY2I1ZDRiODI4ZmEwZThjYTA0MGFjNWZkMjNiYWE5ZDBjM2FiN2RlYTI2NGQ2YjIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjdmYTcwZmZhYzdhYTk1YWRmOGIxNTFjMjlmZGZhZTExZDIzYzFiOThjODQwMWVlYmJkOTdkZmQ0NWQ4YTA3ZGEifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_30b3e688d0b64d01890f05cce8f1209e",
+      "statement": "Each domain exposes its own `register_*_services(registry)` function (for example `register_account_services` and `register_market_services`) that registers repositories, APIs, and services as `svcs` factories, so nothing is constructed by hand in a handler.",
+      "evidence": [
+        {
+          "resource": "repo://src/account/registry.py#L46-L64",
+          "version": "repo-lines-v1:sha256:679d12f8316d2e8bf5ce87d4912e99a724097af80930d5ebde1dfba185e0755e:eyJzZWxlY3RlZExpbmVDb3VudCI6MTksImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImJiZWYwYTA2ZGRlZDVjYTMwYTMyYzUwNzVmMDE3YmI2YTM4NDU2Zjc2MGY0MTE2OTBjNTIzM2E2N2EyNmNlM2UiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjNmY2ViMjA3MzljMmU5NDQxMTYyY2QzNjMyYzEzYjg5NTQ2OWExOWFkZjhlYmJkNmNkNzRkNjNkM2FjYzg5OGEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImE5OGIwNjNkOWI0N2U2NTM3OTYyNTU3MmNjZTE5NzY2OWQ1NzY3ZTEyYzE4YmUwNzU2NTJiOGNkOTgxY2U4ZDUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
+        },
+        {
+          "resource": "repo://src/market/__init__.py#L58-L92",
+          "version": "repo-lines-v1:sha256:55917fb933ce0b7a57d45d098e2b31d14ae0ccc27dbc214bc5ac4179b961271e:eyJzZWxlY3RlZExpbmVDb3VudCI6MzUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImZjMzRmYmVmYmEyMWQ3MmY5NzQ3MDM3MmNhZmMzZWMzMDMzNTBlNmM2MDNhOGQzOTk3NDc0YmZmYjAzYmRmNzgiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImE0OTZlYWVkNDM1Y2RiOTIwYjc4NDQ3NWM2MDJkODk2NTdjYmRkOGNkZDk3MzJjMTYxZjk3YjQxOTVjYzllMzkiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImE5OGIwNjNkOWI0N2U2NTM3OTYyNTU3MmNjZTE5NzY2OWQ1NzY3ZTEyYzE4YmUwNzU2NTJiOGNkOTgxY2U4ZDUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_bf63614f37e744b396e9b89a2822e863",
+      "statement": "Extending the backend requires: for a new domain, following the layered file set and calling `register_services` plus including the router in the `/api/v1` router in `src/main.py`; for a new broker, adding an `InstitutionEnum` value, seeding it, implementing `BrokerApiGateway`, and wiring `get_broker_gateway_class`; and for a new market provider, implementing `MarketGateway` and repointing the `MarketGateway` registration.",
+      "evidence": [
+        {
+          "resource": "repo://src/AGENTS.md#L67-L84",
+          "version": "repo-lines-v1:sha256:8db0870b95b6c929de45c000806429176d5ddc208c90ff40dfe29a8260def6e8:eyJzZWxlY3RlZExpbmVDb3VudCI6MTgsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImMxMzdiZjMxNTlkZjNlMzEwMmVhM2IzM2UwOGViZTA5NjVjZGVhZmJmNjJmZmRkYmIzYTQyYWQ0NDRmNjE1MjEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ3YzA2YzU2MWQ1YzMyNzM0MzY4NTI2OGE0NmIzMzkxZjM5OThlZWU4OTBkMmJlNTFmMGQyMWNjNGE1M2FlNmQiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjZmOTI3ZjUzMDUyMmM5NzI3OTBlNmMzMzY1OGQ2MzM1NGQ5ZTgwNzFlY2ZmMWRlOWI1NWNiYzA4ZTJlY2E1YjgiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjNlN2JiMDNkYTFjZDhlN2VmMzJiNDQ4OWU2YmNmMjhlZjYyZjgyZTZiYmM5ZmRkMzc0ZTAzY2NmMmJmMDI2ZGQifQ"
+        },
+        {
+          "resource": "repo://src/integration/api.py#L56-L61",
+          "version": "repo-lines-v1:sha256:e5018e57689c8fd05d7a583d02398cb4da5da5e0a2e9e79c532765a0e002143e:eyJzZWxlY3RlZExpbmVDb3VudCI6NiwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiNzQwMDU5Mzg4Y2Q1MTdhNWY4OWY2MTNhMDlmMWQzNzZlM2YwMTkzZmQyZjYyY2E0NjNjNGFkMzIwYTAzZjMwOSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiYTJiOGE4MzM5ZDYxYWNmY2NjYzA1MzJjZWQ2YjM1YzQwYzE4ZjY4MGZiNDQ2NmE4ZWQ1OThiMzNhMmYzZjM3YiIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiYjNkZjJhY2YwNmU4YzNmMDNjNzEzNWM2ZThhYzVhOWNhNTQzMmFiZTA2YTc0YWNhMGZkZDlhNTNhMDA4Zjk4NyIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiNDk4ZTUzMzlkYjAyZTM1MmVlNDNlYzhkNGVlZGNiYzUyNDYyNjhlNWI0ZWNjODJhOTk5NjE5OTFkYjQ2NmM5MyJ9"
+        },
+        {
+          "resource": "repo://src/market/gateway.py#L12-L54",
+          "version": "repo-lines-v1:sha256:5891fb5129e98801bcf3d69d9b205d426660c8f2664ba4bbd981d437b569af94:eyJzZWxlY3RlZExpbmVDb3VudCI6NDMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjdiYmEzZTVhZDcyYjIzMGY2MDUxYzgyMTJkMzU2NWNiNmMwMTI4MjZiZjY1MTc5NzU2YjkzYjYyMWVmYTUwMzYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjU2MjBkODVkZTRlZDdhYjgwMjFiNGE4ZGQ0ZmExNWVjNTE5MjVjZGZjY2RlMTgwNTg5NWE0YzhhM2MzYmE0OGMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImE5OGIwNjNkOWI0N2U2NTM3OTYyNTU3MmNjZTE5NzY2OWQ1NzY3ZTEyYzE4YmUwNzU2NTJiOGNkOTgxY2U4ZDUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_48383a25c757436ca43ca5882b442e45",
+      "statement": "Tests must not depend on external services — Redis is globally faked, HTTP/broker/SMTP clients are stubbed or patched, and only the ephemeral testcontainers PostgreSQL is allowed — and the backend test suite is grouped into `tests/routers/`, `tests/services/`, per-domain folders such as `tests/account/` and `tests/market/`, `tests/integration/brokers/`, and `tests/ws/`.",
+      "evidence": [
+        {
+          "resource": "repo://src/AGENTS.md#L40-L49",
+          "version": "repo-lines-v1:sha256:d6857c4e16539822a54bd5c0b5fa46fb238e4961b614a51fea96e5124a48c01b:eyJzZWxlY3RlZExpbmVDb3VudCI6MTAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijk1ZTg2ZjY4N2VhMWVhMDRiYTk2Y2M4NzlmMmZmOTI5MjgwNDU4NWVmYTU4NmU3NjA3ODYwNzg4NWVjOTMwMjgiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjU5ZjYzMDk1Y2NmNmUwYjVkNjIyZDA1Njc3YmVhYWNkYTY1OTg3MDczYTg0NDRiNjk0ODE0Njk5MmRkNTc1OTMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjVkMjBlMzhiNDY2MTExNjNkZTU1ZTQ1M2MxMjIyNDg3OTdmYjU2NjVhOTE4M2MyYjM5ZjJiMzFjZjRkNzY1MWYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjhmOGZjNWJiYmQxNzcxMGYzOGY1NzdhYTFkZjM2NjVkZGYyOWM5MjMzNWUyYTBhZjU3MjVlMTRmZjQ5NTM2OGUifQ"
+        }
+      ]
+    }
+  ],
+  "verification": {
+    "by": "openwiki/0.5.2",
+    "at": "2026-09-18T20:16:58.058Z"
+  }
+}

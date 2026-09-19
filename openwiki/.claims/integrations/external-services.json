@@ -1,0 +1,688 @@
+{
+  "schemaVersion": 1,
+  "pageVersion": "sha256:d351efd2d2da796b40c23aca4b07e1d83f7fa942f400378bdb44c4eab5b6a2df",
+  "claims": [
+    {
+      "id": "claim_009d8f17a0e1438ebf31c01733729edc",
+      "statement": "`STUB_EXTERNAL_API` (read as `settings.stub_external_api`) is the single mechanism selecting stub versus live external adapters: `src/config/services.py::register_services` branches on it to call `register_integration_stub_services` + `register_market_stub_services` or `register_integration_services` + `register_market_services`, registering the same abstract keys with different factories so callers are unaffected.",
+      "evidence": [
+        {
+          "resource": "repo://src/config/services.py#L14-L33",
+          "version": "repo-lines-v1:sha256:809d295ee815eb982bf9e52c76be36f766177874fe6e006ccc9cfaa89211951a:eyJzZWxlY3RlZExpbmVDb3VudCI6MjAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImUwNTE3NmQ4M2M0MGQyZjUxY2NjODYzNzlmY2Y2NTc2NmUxYjM3NzU3YmE1Njk1MTM5NTM3NDEzZDViZDQ4NjEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjE0Yjg2OTM3MTMyNGE1NDg5OWQ1MDliMzY4OGE1YTZmNjRhYjQ5N2RjYTRmMDBjNmM3ZjU5ZGU1ZDdkNjYwY2MiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImQwY2I4MWQ1YzNhYmI0MDhjY2I1ZDRiODI4ZmEwZThjYTA0MGFjNWZkMjNiYWE5ZDBjM2FiN2RlYTI2NGQ2YjIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImQ1NDE3NjU4ZWVmMmVmYzA1ODkxYzk4MjcwNmMzNGQ4YzQ4ODkyOTZjYWI5NzEyZWRhZjYwZGFlZWU5ZmQzYTMifQ"
+        },
+        {
+          "resource": "repo://src/config/services.py#L36-L150",
+          "version": "repo-lines-v1:sha256:9547c75c99545930d4d5dfc2d1ec4cb45dbe3754d157db3816077aebafaa3213:eyJzZWxlY3RlZExpbmVDb3VudCI6MTE1LCJmaXJzdFNlbGVjdGVkTGluZUhhc2giOiJkNDg4NmQwOGY4MTdmN2VlMGExODFiODc1OGI4NTE3NTdlNjk2NjhmMmM5NTM5MDViNTBiM2RjZGM5ODljZTNkIiwibGFzdFNlbGVjdGVkTGluZUhhc2giOiJiOGUyNmMyYmU3YWVmMTIzNzVkYjUzODQ4OTlhOGI0ZTE2OWM0NDg4NDRmYTAwYWYxYzhiYmNiOGQ3MmYxZjc2IiwicHJlY2VkaW5nQ29udGV4dExpbmVDb3VudCI6MywicHJlY2VkaW5nQ29udGV4dEhhc2giOiJmYmVkZTQ4N2JhYzBhYzdlYTM3MGVjMzc0YWI0NjE0NWZlNWIwZGY3NTM2M2U4YzI2NGM5NDNkMjQ4NGEyYjBiIiwiZm9sbG93aW5nQ29udGV4dExpbmVDb3VudCI6MSwiZm9sbG93aW5nQ29udGV4dEhhc2giOiJhNDk2ZWFlZDQzNWNkYjkyMGI3ODQ0NzVjNjAyZDg5NjU3Y2JkZDhjZGQ5NzMyYzE2MWY5N2I0MTk1Y2M5ZTM5In0"
+        },
+        {
+          "resource": "repo://src/config/settings.py#L21-L21",
+          "version": "repo-lines-v1:sha256:f6f28e2e53872816748c967e83374de68415633064d6c88958deb641c723e6ba:eyJzZWxlY3RlZExpbmVDb3VudCI6MSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiZjZmMjhlMmU1Mzg3MjgxNjc0OGM5NjdlODMzNzRkZTY4NDE1NjMzMDY0ZDZjODg5NThkZWI2NDFjNzIzZTZiYSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiZjZmMjhlMmU1Mzg3MjgxNjc0OGM5NjdlODMzNzRkZTY4NDE1NjMzMDY0ZDZjODg5NThkZWI2NDFjNzIzZTZiYSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiNjAyZDY0NjdjYjJlZTBhMDA2MzcyZDk0MTJkM2EyZDcwYWNkODgwNTQ0NTE3NDUxMTA4NTU3YjE5ZDllNGIxNCIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiNDFmYTczMjgzMGQ2ODViYTBmMzhkZjEwYjQ0YjFmMjc4YmNkYzU4NmYzYzAyMDk0ZDYyOTliNmI2OTNhZmYyNSJ9"
+        }
+      ]
+    },
+    {
+      "id": "claim_68dc98dca2ba43068833b4cc7ec4ef80",
+      "statement": "The concrete stub implementations selected in stub mode are `StubAIService` (src/stubs/ai.py), `StubWealthsimpleApiGateway` (src/stubs/wealthsimple.py), and `StubEodhdGateway` (src/stubs/eodhd.py); the stub registration functions import these stub modules lazily inside their own bodies so vendor SDKs are not imported on the wrong path.",
+      "evidence": [
+        {
+          "resource": "repo://src/config/services.py#L38-L150",
+          "version": "repo-lines-v1:sha256:421a21932289bdf95218a919309ac7d0f5a8c847ee1493425544e6e46a36cd16:eyJzZWxlY3RlZExpbmVDb3VudCI6MTEzLCJmaXJzdFNlbGVjdGVkTGluZUhhc2giOiIxMWI4OTFlMzczM2RhMTg3ODU3MGViMmFlNWE4ZTEzZWI3ZTVlMWQzMTM4NmY0MzBkYjAxZjgyN2I1ZmUyMjI2IiwibGFzdFNlbGVjdGVkTGluZUhhc2giOiJiOGUyNmMyYmU3YWVmMTIzNzVkYjUzODQ4OTlhOGI0ZTE2OWM0NDg4NDRmYTAwYWYxYzhiYmNiOGQ3MmYxZjc2IiwicHJlY2VkaW5nQ29udGV4dExpbmVDb3VudCI6MywicHJlY2VkaW5nQ29udGV4dEhhc2giOiI3ZmE3MGZmYWM3YWE5NWFkZjhiMTUxYzI5ZmRmYWUxMWQyM2MxYjk4Yzg0MDFlZWJiZDk3ZGZkNDVkOGEwN2RhIiwiZm9sbG93aW5nQ29udGV4dExpbmVDb3VudCI6MSwiZm9sbG93aW5nQ29udGV4dEhhc2giOiJhNDk2ZWFlZDQzNWNkYjkyMGI3ODQ0NzVjNjAyZDg5NjU3Y2JkZDhjZGQ5NzMyYzE2MWY5N2I0MTk1Y2M5ZTM5In0"
+        },
+        {
+          "resource": "repo://src/stubs/ai.py#L12-L58",
+          "version": "repo-lines-v1:sha256:12ba96cd7b47225b74df0a9cf4d1c9b53cffb819830737b9b819d50e80d8936b:eyJzZWxlY3RlZExpbmVDb3VudCI6NDcsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjNiNjUwYTQ0OGY1NGYxYWVjMmU5ZmM0ZWU3MTFlMTUyZTRjYWExNTgzZTdhM2UzMGYxMWEyYTZmNWRlMWU4ZTgiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjU5MDlhNTNhNjE4ZDAyOGUxZDMwMDBjMGE3YWJjZWVjYmU1ZmIzN2Y0ZTUxMWVmZTQ2NjQzZmFkNmU2Njg3MmYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjYyMDA5N2U0YWE1MDA2OGJhMTU3ZjlhMjczOWZhZDg2OTk1ZTFlMGNkY2NkYWRjNTg5N2MyMDM0Yzc0ZDNlZmEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
+        },
+        {
+          "resource": "repo://src/stubs/eodhd.py#L182-L192",
+          "version": "repo-lines-v1:sha256:76ee4b186918538a58d6e6ea334dcc7e74c720804ce5188d586d6edc749bf3c9:eyJzZWxlY3RlZExpbmVDb3VudCI6MTEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjA5YzcwM2VkYjgyN2ViZjJiNDMzMDUwMDgwMTRjM2FjY2MwMmM2ODQxYWVlNTFjNDI1NjI1ODg2YTcyYTYyM2YiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjI5ZTczMzI3YTkyNDFhYjVkODBlODhjYzA3ZTJmYzcwY2UxOGM5OTdiOTFmNTE0NGMzOWY0OWE1NmEyZTA3OGEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6Ijk3MTMxY2Q1YmEzYmJmZTc4MTBlZmI4MWFlZGYxNGNhZDkwMmJhMTgwY2ZlMDA1NThmOTM4NGY3Yjc5MTA5ODciLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjVkNGM2ZWRhODBmYWI1ZjQ4M2ZiN2U3NzAxNGZlY2FjMDNmNjEyZjNmNmRjZTZmNTVlNGNhNjAyNWY2MzJkNTAifQ"
+        },
+        {
+          "resource": "repo://src/stubs/wealthsimple.py#L271-L295",
+          "version": "repo-lines-v1:sha256:ff34b76c03737fa4df730201d8c7fb8c56b3bfbadee0a57224faacdd9d067304:eyJzZWxlY3RlZExpbmVDb3VudCI6MjUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjYyNjZiZjg2OGUwY2NkZjYzZGJjODRkMDk3ZjExNTAyZWVkODFhMmMzMjRmMTIwM2Q1OGE0MTFkYTk4OGU3NTYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAxYmE0NzE5YzgwYjZmZTkxMWIwOTFhN2MwNTEyNGI2NGVlZWNlOTY0ZTA5YzA1OGVmOGY5ODA1ZGFjYTU0NmIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjFmOTQ3NmYyMzcyMDA1OTA0NmY5YmQ3ZGI1ZGJmYjVlZWJlMzlmZGM1ZmU1MjdmY2MwYmVkZmEwM2MzZDU4ODMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjU3MmI2ZGYzOGMzNmJkZjkxMmVjOWJlNjMxMTc1M2FjZGU5MDFmMjQ2ODc4MDEwN2UzN2JlNDU3OWNmNjIxNjUifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_a7c2a4085aa94fe59b975d43ed7a9bad",
+      "statement": "`src/market/eodhd.py::eodhd_gateway_factory` independently re-checks `settings.stub_external_api` and returns `StubEodhdGateway` instead of `EodhdGateway`, so the live-registration path still yields a stub gateway when the flag is set; the registry branch and this factory check must stay consistent or callers receive a different `MarketGateway` implementation.",
+      "evidence": [
+        {
+          "resource": "repo://src/config/services.py#L118-L118",
+          "version": "repo-lines-v1:sha256:29818590a2492019d4b1619ca84756aab2e994eadade400f4006366789050b0e:eyJzZWxlY3RlZExpbmVDb3VudCI6MSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiMjk4MTg1OTBhMjQ5MjAxOWQ0YjE2MTljYTg0NzU2YWFiMmU5OTRlYWRhZGU0MDBmNDAwNjM2Njc4OTA1MGIwZSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiMjk4MTg1OTBhMjQ5MjAxOWQ0YjE2MTljYTg0NzU2YWFiMmU5OTRlYWRhZGU0MDBmNDAwNjM2Njc4OTA1MGIwZSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiYzk5MWI3NWY5NjM0ZmUwZDRlMzBhYWNiM2E1OTQwYjQ4NzllMjhlODBlOWMyNTMxOTNlODU4YmU4MDY1ZDg5NyIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiY2UzZTBhMDVjN2Q3OGEzNDYwOTc1NTFiZWNjODlhMGNkNzk5YTMxYTYwYzg4NDdiNGQ5NDUxZTJlOWIyMmFmZSJ9"
+        },
+        {
+          "resource": "repo://src/market/eodhd.py#L218-L223",
+          "version": "repo-lines-v1:sha256:f4db17284a8b3242f357cc49287e20039c46867435c8d3fbdb50886c19370bb6:eyJzZWxlY3RlZExpbmVDb3VudCI6NiwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiMTMyMDExNzI3ZDlmNWIxMDgzMDJkN2Q3OTE3YzM5YmY5YjM3Mjc3NzdkN2I1NzdhZWM1ZjFkNDkwZDQwMjA0ZSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNzk1NmI1MmYzOGQ4MDBiYzM5NjVjOTBlYWQyNTY4MDgxODA3OGMzYWRjNzJiZDQwYzYxYzMyM2FjZDA3ZWJjNyIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiOTcxMzFjZDViYTNiYmZlNzgxMGVmYjgxYWVkZjE0Y2FkOTAyYmExODBjZmUwMDU1OGY5Mzg0ZjdiNzkxMDk4NyIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjAsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiZTNiMGM0NDI5OGZjMWMxNDlhZmJmNGM4OTk2ZmI5MjQyN2FlNDFlNDY0OWI5MzRjYTQ5NTk5MWI3ODUyYjg1NSJ9"
+        }
+      ]
+    },
+    {
+      "id": "claim_c6933715524f4169b85d488b79c31048",
+      "statement": "`tests/conftest.py` sets `STUB_EXTERNAL_API=true` (and `ENVIRONMENT=test`) in `os.environ` before importing the app, so the entire backend suite resolves stub adapters and needs no EODHD, Wealthsimple, or AI credentials; `STUB_EXTERNAL_API` is absent from the tracked `.env.example`, so the dev Compose stack runs against live adapters.",
+      "evidence": [
+        {
+          "resource": "repo://.env.example#L22-L26",
+          "version": "repo-lines-v1:sha256:cc5e068438fe61827f29d72d30935519c942d1c2f936b1edffae73dca9933450:eyJzZWxlY3RlZExpbmVDb3VudCI6NSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiMTBjYjhjNzExYTU4NDE1OGE1NTdjMGEwOGJiMDJmNjViMmI0MDdhYWU4ODk3NGNkM2E1NDA4MGU3ODMxOGJhYiIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiYjVlZjg3Njc2MmMxNDEzM2NjN2UwODc1N2YwYWFjMWQ2MmNiNzNjY2EyZmU0NDNhOGFkZWYwYWU2Y2IxNTQ2ZiIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiM2RmYWVkMzQ5MTE1MWI4ZTFkNzBmMjc0ZWJlN2U0MjZkM2QyZjdlYWNiMmQ1MGNhNmM1YWM3YWM3YmYwNGI3OSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiNTA4MGU1ZDgxZTc1YjE4OGI4MjkyY2YyZGRkNjhkMTg5Njg3MjQ1YmRhZWQwNGI2Yjk1MjhlNTFiYjI3NTQ1ZSJ9"
+        },
+        {
+          "resource": "repo://tests/conftest.py#L11-L16",
+          "version": "repo-lines-v1:sha256:b038e663dc483bd8ee3ae0f094c6ff28e8052cd4fef39e1d191dba98b4cf8986:eyJzZWxlY3RlZExpbmVDb3VudCI6NiwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiMzMyY2YyZjJiZDZjNzEzNzBjZWE5YjMyODc2ZTUwYzQ4MjI4ZWRjZDlmYzFkOTlmZjkzNDM2OWJhZGM1Mjg3YyIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiOGFhMjc3MDBlNTY0OWVkNDc2MjNkOGE1ZDM3YzVjMTU4ZDg2YTU1NGZhYjg2OTZhYWI5YzM5NzE1NTQ2ZDg5NyIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiZDMwMjIzZmMzZjk5OGZhOThmNjZjOTM5MjEwNTZhYmQ4NTM2OWVjZjVjYjhjYTEzNTdkZmQ0NGM4NDg4OTc0NyIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiZDM0NDMwZjliODJjNjE2YTA3YmNhODc0MDVkMWYzNjFlODYwYTQ3ZDhkOTVmMjRiZmVlZGZiY2JkZDA5NTkyYiJ9"
+        }
+      ]
+    },
+    {
+      "id": "claim_d56d37a485ca47f5ae53b540b587623c",
+      "statement": "`MarketGateway` (src/market/gateway.py) is the abstract market-data contract (`search`, `get_price_on_date`, `get_prices`, `get_intraday_prices`) implemented by the live `EodhdGateway` and the offline `StubEodhdGateway`.",
+      "evidence": [
+        {
+          "resource": "repo://src/market/eodhd.py#L23-L29",
+          "version": "repo-lines-v1:sha256:3470b237855191b8460eca6174ef8d4c6c980f6eae2292553ca43eec717cb6b9:eyJzZWxlY3RlZExpbmVDb3VudCI6NywiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiMDVkZjIwZGYwOWQzM2QwNGNmNTAyYTk0YzNkMmRmMmQ1ZTZjZWUxOGIyMzlkMDViYjE2M2FiZDJiZjU3YmI4OSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiYThlZmEwNDU3MWJiNTg5NTA4YjMyNTAxMTkzMzRiMGY4N2I4YTJjNzdkZGFmZTQ1MGExNmZhMGM4ZDI1Y2ZjYSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiNjIwMDk3ZTRhYTUwMDY4YmExNTdmOWEyNzM5ZmFkODY5OTVlMWUwY2RjY2RhZGM1ODk3YzIwMzRjNzRkM2VmYSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiYWM1ZDliYTMyYzc5M2MxNzhmZDRkYTc2NmEwY2EzOWUwOTUxYmQ0MWQxMzU5NmM3YmVjN2FkMGJiMjA3OTc2MCJ9"
+        },
+        {
+          "resource": "repo://src/market/gateway.py#L12-L54",
+          "version": "repo-lines-v1:sha256:5891fb5129e98801bcf3d69d9b205d426660c8f2664ba4bbd981d437b569af94:eyJzZWxlY3RlZExpbmVDb3VudCI6NDMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjdiYmEzZTVhZDcyYjIzMGY2MDUxYzgyMTJkMzU2NWNiNmMwMTI4MjZiZjY1MTc5NzU2YjkzYjYyMWVmYTUwMzYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjU2MjBkODVkZTRlZDdhYjgwMjFiNGE4ZGQ0ZmExNWVjNTE5MjVjZGZjY2RlMTgwNTg5NWE0YzhhM2MzYmE0OGMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImE5OGIwNjNkOWI0N2U2NTM3OTYyNTU3MmNjZTE5NzY2OWQ1NzY3ZTEyYzE4YmUwNzU2NTJiOGNkOTgxY2U4ZDUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_b1ffaa108e3f4ba597bf4c1bd4a0e101",
+      "statement": "`EodhdGateway.search` issues a raw `requests.get` to `https://eodhd.com/api/search/{query}?api_token=...&fmt=json` with `timeout=10` and no retry, placing the API key in the query string; the gateway does not translate vendor or network errors, so they propagate to the caller.",
+      "evidence": [
+        {
+          "resource": "repo://src/market/eodhd.py#L31-L46",
+          "version": "repo-lines-v1:sha256:47f0b46219635f5fe099ee6939607fdee947b520ec680de528210b5f10b3d821:eyJzZWxlY3RlZExpbmVDb3VudCI6MTYsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjI5ZTczMzI3YTkyNDFhYjVkODBlODhjYzA3ZTJmYzcwY2UxOGM5OTdiOTFmNTE0NGMzOWY0OWE1NmEyZTA3OGEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImJhYWU4YTBjYTc2Zjk4ZjdiN2RjNzk4NDk1MWQ2M2U1N2RiM2M2NDU1NzljYTUxYmFkNmE1MzlkNjE0ZWRiYmUiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjZiMzA2NThmNGM4OTBjNDg2MjA1ZjhlMjk4YTI1NDkxYmFiNWQ0YzVjMDQxNjM0MTE1NWE1NmM4YzMzM2YxODgiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjA3YTBkNGFhYzJhOTdkZmM3ODkwNDg4Y2Y2MGFmNzZiMTE4MmM1NGU2OWU4MWYwY2QzNjcyZTBjNzYxMWEwMWQifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_bd3b41d630bf466d8de4e330b6eee9a8",
+      "statement": "`EodhdGateway.get_price_on_date` returns `None` on an `IndexError` (for example an empty frame for a market holiday) instead of raising, and `get_intraday_prices` accepts only `interval=\"1h\"` (raising `ValueError` otherwise) and drops all-zero OHLCV candles (`open == high == low == close` with `volume == 0`) that represent non-trading hours.",
+      "evidence": [
+        {
+          "resource": "repo://src/market/eodhd.py#L120-L131",
+          "version": "repo-lines-v1:sha256:359059a06828cbbd6a8f50876edb9d50859e8dfae60cd2090dfa14f5172fdfdb:eyJzZWxlY3RlZExpbmVDb3VudCI6MTIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImNmMDQzNjNkNjcxM2VkN2UxMTQ4YzBhMTFlMjdiMGFjZTgzZjhjMWUzZmQwNDhlMmY3MDNhNzdiZWM3YmZjYWUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjI1YWJhNDI4N2NkYjk1NjFkNGUxYjIyNDUzOGUyNTJhYWI0MDc0ZDE0MjI4Yjc2NDQ5MjBmZWQ1NTg5N2M1NDEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImE5MjgyMmE2Zjk5YjczZThmNGRlYTJiZTI4ZGY5MjZlODg3ZDM5MWY2YTEzMmMwOTY1OWM1NDRlNDA2ZGQ1NDAiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImY2YTUzMTg5YTNjMTU2MDI4MzNlMzljYmEyOTExM2E0MmU4NGEwNTI4MzBjMjE4Y2VhNTBkMzE3NDkxMTNjM2YifQ"
+        },
+        {
+          "resource": "repo://src/market/eodhd.py#L161-L180",
+          "version": "repo-lines-v1:sha256:579565f27772bfc210c2a9887d61391b3ae22dc24c643fbe9e5c5c4085b9df2f:eyJzZWxlY3RlZExpbmVDb3VudCI6MjAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImFiYTNlYWE3MDIzYzNlYjM3YzJlY2E3OWFjMGU3NjE0ODM5ZWIwM2NiZTJlM2MzZGFkNGRmNmQwNTMwNTUxYTYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjUxMDM0ODFjNTdkMGYwZGMwZjc2Y2QyY2M4YjM2MDRjNGU4Mjk2ZGE0MTIyYWRkMTllODE3NDVkYzdlMzMxYTYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImVhZGJlZmQ0MmQxM2FiMDNjNjJmYzliM2MwMTIxMGRkMDNmMDU2MTE1MGZhNzAyYTI5MjRkYjhmOTE4ZDM3NDQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjNiYzU4MjQ2NWUzODc2Y2VlM2Y0OGZjMmY4MGJkYTZhZmVkODNkMTM2ZTQ2ZjhiYmIyZDM5ZGZhMzI4M2VmZGMifQ"
+        },
+        {
+          "resource": "repo://src/market/eodhd.py#L48-L76",
+          "version": "repo-lines-v1:sha256:a688980dc2ae1f2f8aab6ceecd815fadb1e34a5d13586790e5acf5cdbcd7ea4a:eyJzZWxlY3RlZExpbmVDb3VudCI6MjksImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjYxZTRjNGUxMDhhM2M2ZGE2MTBiMjNmMmQxMDU2NTNiMmM0MWZhN2IwMzg4OTU2YzZkYjY1MTQ2MTFlMDFkZTQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQyMDc4MzkyZmZlOTM1MTNhNGNlYzA2MjQ2ODZhOTcyM2Y4MzgxYjM4YTNjNjBmYWQ0NmYzYjEwYTc2NjVlN2UiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjMwY2NhYTU2ZDc4NDk5ODQ1ZGJjMzYyZDdhOGNjMjViM2Y4NWI0ZDViYTQ3ZTFhMDRiNzNkNDlkOWY4NTFhNDUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImFiMTAyYzU4ZmZmYjAyMWJjOWMwOGQ3M2Y0NDliMDExMWYxODU0NTIxOGE0NGEzYTFjN2ExYjIyZGI2MWZkZjMifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_99ae8960175c481dbc3bf285d925b24d",
+      "statement": "`StubEodhdGateway`/`StubEodhdAPIClient` are deterministic and offline: prices are seeded from `hash(symbol)`, a hard-coded base-price table covers ten symbols with a `100.0` fallback for unknown ones, intraday generation is capped at `MAX_INTRADAY_STEPS = 10000`, and an unspecified symbol produces a fabricated `SecuritySearchResult` with a synthetic ISIN.",
+      "evidence": [
+        {
+          "resource": "repo://src/stubs/eodhd.py#L136-L179",
+          "version": "repo-lines-v1:sha256:1ac3cb3bd361dc73c4c733a2ddda60e912734a1e51018e4855f5198bc998d426:eyJzZWxlY3RlZExpbmVDb3VudCI6NDQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImNiNGQzNDljYjVjZDZmNmMxOGYzNDYyZjE4Y2NjNDMyYmJmNzc2Zjg5ZTExN2E1NDE1NGVjNWM4OWE0MDNhMGYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImYzNDE0NjNjYmJmYWU0ZmEzZTZlMGU2OTRkMzdhM2M0ZTAyZDFjODllZThkODRhNmM1ZjM3NTViYmI2ZDQ2MWQiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImNiZjNmZGFhNDY3MGRjYjU5YTQzNmRmYjQyZjdkOWVlNDNiMjYxMzEwMmYwYmQxNTJjMzdkMjdkYzA2ZGVkOTQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImQ1MTQ1YWQ0MWEyMmFlN2NkYjdhMmViYmJmOGM1NWM3ZDdiNWJjZDFjMmU0NWVlY2ZlZjNiMjU4Y2Q1OTRjMjMifQ"
+        },
+        {
+          "resource": "repo://src/stubs/eodhd.py#L20-L21",
+          "version": "repo-lines-v1:sha256:26dbb011e3f81dc66bb879c94ee1ff0b3e3c1b6885d1aa832aa299030c068eac:eyJzZWxlY3RlZExpbmVDb3VudCI6MiwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiMGE4NGRiM2U3OTc5NGQ3MWZiNDBmMjQ3ZDBmZmMzY2JjODVhMmZhNDZhNWZmZTlmZWYwMjcxYzc5YzM2Yzg5YSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiYmNjN2I3ZGY2Yzg4ZjE4NWIzMTBhYWVhOGZmNjM1ZTBkODE0MWFiMGFmOTUyZTNiY2Y4MmNiNWZkY2JiZTE2MCIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiMWUwNjBmOGQzMzFiYzBlYTM5NjQwMTFhMDk5YjA2NjgxM2QyMjg3NTE3YmY0MTJkZDc5OWI4M2U2NWJmN2NjOSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiMzMyMTMwODdmZTAxZThlMDY5N2MyZGQ4YmEzMTI0ZDA0ZWQwZGUxMTg1NDZlMTFlYzU0NzM4N2ZjOTgxMWUxMCJ9"
+        },
+        {
+          "resource": "repo://src/stubs/eodhd.py#L234-L266",
+          "version": "repo-lines-v1:sha256:a5b034d1058bf4add5bd4b9d0a3e86c6d5d27534a838b4672e469e48158902c7:eyJzZWxlY3RlZExpbmVDb3VudCI6MzMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjU3NjA1MWRkNzY4YzQyOTNjZjAwNDdiOGFmNTc1OWNiNDRhYzM5MDcyNDEzNGZlZDVhODg3NjFkMzRiODFjZTQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImFjZWQ0NWE2YjMzZWIxYTliMTE4NDdlMzZlNjQwNTcyNjY2ZmYwYWI5ZjkxZDA3NDgxZTFkOWZiYzkxYjJiZTMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjMwOGEwZWY1NGY4MWFmMjliYjgxMGQzZWYwM2Y4ZDk1YzRlYzkzMmU1MTg2NGRlNzA0MTc3NWU4OGVkOGI3MDAiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjA3YTBkNGFhYzJhOTdkZmM3ODkwNDg4Y2Y2MGFmNzZiMTE4MmM1NGU2OWU4MWYwY2QzNjcyZTBjNzYxMWEwMWQifQ"
+        },
+        {
+          "resource": "repo://src/stubs/eodhd.py#L47-L92",
+          "version": "repo-lines-v1:sha256:f75860e030db15097bba4da586c921259098602244bd42300dcd877598d7ae64:eyJzZWxlY3RlZExpbmVDb3VudCI6NDYsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijg2OGZlYzg2NDhmMmQ3ODkzZjIzZWY3NmM5ODJhMTE2NTRhNDg5MjNlMzljMWU5YWU5YzgwMTgzZjg3ZGI1ZjkiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImYzNDE0NjNjYmJmYWU0ZmEzZTZlMGU2OTRkMzdhM2M0ZTAyZDFjODllZThkODRhNmM1ZjM3NTViYmI2ZDQ2MWQiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjYxYzk5ZmZhNmMxYzFjZjFkY2U4ZTAzODY3NGZkZmU5MGMzMDc3YzQ5MTBmYWFiMzA0NGQwODdjNTdjNDYxMjkiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjhkZmRkNGU0MzNiNGMwNTFmODEwMzkyYjkxMjNkNjMwYTkyMDc2MWYyMDBkODhkZThiNWYyOTI1NGRiYmUwNTgifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_6e219a4f3760488ebb051802b00fb058",
+      "statement": "`EodhdPriceRepository` (src/market/repository_eodhd.py) is a read-through decorator over the SQLAlchemy `PriceRepository`: reads hit the database first and only a miss calls the `MarketGateway`, after which fetched prices are persisted via `save_prices`; its `save_price` and `save_prices` raise `NotImplementedError` so the wrapper is never a write target.",
+      "evidence": [
+        {
+          "resource": "repo://src/market/repository_eodhd.py#L27-L55",
+          "version": "repo-lines-v1:sha256:56099159153a53a888f700d2383abc71850884b6a7ecde165a603fece70a0cd3:eyJzZWxlY3RlZExpbmVDb3VudCI6MjksImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ0ZGE5MzUwMDE5ZGMxZTY2NzQ1MjY0Mzg3MzE2MTk5NzIyNWU5Y2U2MDEwN2FmN2I2NGY4NDBkZGVjZmRhNGYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImU5M2UwMjIzNjBkZDVlYTQ3ODY0ZTgwMDZlODRiOGFjZWIwZDZkYzM4NGJmNmI5ZWZiNDdmNmE5MTI4OGRiNDAiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjBmODYwM2FhMDZmMjhhMjRmZGEwMWE2MjM3MTQ4MDg1ODA5ZGEzYWU1YzJlYjhmZWJhOTRmYzc5MDRlNjI0MWIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImNiMjI3YmZiNjJmNTEzNjQwMDI3M2YzNjZiMWNkMDBiOTIwODY4ODE1MGMyNTIzZjJmY2EyM2E1ZWIxYzYzZTkifQ"
+        },
+        {
+          "resource": "repo://src/market/repository_eodhd.py#L98-L104",
+          "version": "repo-lines-v1:sha256:a4d3374862dcafe2aabc9c8daebac5ae11e2994906efb3368276f4244244de27:eyJzZWxlY3RlZExpbmVDb3VudCI6NywiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiNDRkYTkzNTAwMTlkYzFlNjY3NDUyNjQzODczMTYxOTk3MjI1ZTljZTYwMTA3YWY3YjY0Zjg0MGRkZWNmZGE0ZiIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiMjdiNDg3OTdiYzU3YmRkYTM4ZDgxMTk2OGQxMTRiODM1NmQ3YjRiZTMzMWExNDJmZjhkODM1ZTAzNzc2NWVjMCIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiMWM4MjY3ZDQyZTIxYTdhZjNiZmU3OWIxNDM3ODk5ZWIxYTc1ZjkzYjVkZjZlNWViZTM0ZTRmN2MzZTUzNWIyOSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiYjViYzAyZmEwZDY1ZWQ4NGRlNDQ3YjViYmQwYzU5ZTNlMTU1NzdmOWFjMzU5MDU0YzRjYTZjYzY5OTE4MWM1NCJ9"
+        }
+      ]
+    },
+    {
+      "id": "claim_05113efebc114ae1bb0a88daeb1f252b",
+      "statement": "`EodhdPriceRepository.get_latest_price` computes the most recent NYSE trading day using `holidays.NYSE()` while skipping weekends, and only fetches fresh prices from the gateway when the stored price is older than that date.",
+      "evidence": [
+        {
+          "resource": "repo://src/market/repository_eodhd.py#L58-L79",
+          "version": "repo-lines-v1:sha256:c0071aebdf22b7a5322c8f8a4b1cac9afe46449e53085fa65d7f21fafee270a3:eyJzZWxlY3RlZExpbmVDb3VudCI6MjIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjZiZGEwMDJkNTVmZWIwN2EwNjc0MjI5MGNiOTlmOWQyMTUzMzQ1MTYwMDEyMzNhYjFiNGZmMjFhYmFjOTBmODgiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjBlMTE3Y2I1Y2M1MmNkZDIxN2UxNDBkOGM4MjM0YzI0M2MwNjBmNmZiZDQxYTkyYWIzNWZhOWY0MmU1ZGFlZDYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImNlZDFjYjNmYTU3MTY5OTMzOTk3ZDI5NjAxOGNiMTcyN2M2OTAzMWNmYzFkNTM3ZDJjMTQ2YmI4NTZkMjhjZDEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjE1NjgzMzU3N2U4OTBkMmUwNzhmYzI5NTVlYjVmMjU1NmE3YzZjM2E4NGU1MzFiYzdlOGM2MGYxOGE1YTJhMGIifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_099eded52c9c435d90c01dd826c2149e",
+      "statement": "EODHD search results are fronted by `SecuritySearchCache` on both the `SecurityApi.get_or_create_from_broker` path and the `/securities/search` route; the cache keys on a normalized query (`market:search:<lowercased, whitespace-collapsed>`, 30-day TTL) and never raises on Redis failure — `get` returns `None` and `set` logs a warning, so a Redis outage degrades to calling EODHD every time.",
+      "evidence": [
+        {
+          "resource": "repo://src/market/api.py#L118-L126",
+          "version": "repo-lines-v1:sha256:ffdd2f96cd97ec4594c6eb505b4207b40290904725a21981308da07a53553007:eyJzZWxlY3RlZExpbmVDb3VudCI6OSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiNTdmYzYxODI3NDJjN2VkMjA0ZGFkNjhkOTAxMWEzOTQzYjczOWZlN2M2ZTlhNTBhYjE0ZDNhODA4OTQzM2VhNyIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiMDFiYTQ3MTljODBiNmZlOTExYjA5MWE3YzA1MTI0YjY0ZWVlY2U5NjRlMDljMDU4ZWY4Zjk4MDVkYWNhNTQ2YiIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiNmU4NDViMThiODY1ZmVlNmUzZmZkN2IwZDM4ZDcyNWViZjgzMjM3MGFlMmFjMGIzZDAyYzFmNTExMzQ0ZDViZiIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiYjY1MzQ5OTNhMGY4Y2I2ZDNkNGIwMTJlMDVkMGQzYjg3YjE4ODMwODM1M2VmYTVlNzRiMDZjNzJlZDkyYmI3MSJ9"
+        },
+        {
+          "resource": "repo://src/market/cache.py#L268-L301",
+          "version": "repo-lines-v1:sha256:ecf52c2923248c952002461d1a470357bd2009a830423798c43428f16f59a1d5:eyJzZWxlY3RlZExpbmVDb3VudCI6MzQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjVkOWFjZWE0MWY1NTZmY2EzMDliZmU5ODQ0Yjg3NmRkZDM2MzljNzBlZDZkODQ0N2QxYWZiNTFjMjlmZDM1ZGYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAxYmE0NzE5YzgwYjZmZTkxMWIwOTFhN2MwNTEyNGI2NGVlZWNlOTY0ZTA5YzA1OGVmOGY5ODA1ZGFjYTU0NmIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjkxN2YwNjUzYWQ5NmYzOWNhODA5M2Q1ZjY4ZTRkMjczOTEyY2YwMmM1NGEwMDJmNzMyMTBhYjdhM2EwYzQ4MWUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImNlMWQ3Y2YxYzFhZWJlZWFlN2IzMDc1N2I3ZmE3ZTc3OTM3ZWY2ZTYzYzQ0Nzk3YzFmZWRhZGNjZTc3NTZhZmYifQ"
+        },
+        {
+          "resource": "repo://src/market/cache.py#L302-L365",
+          "version": "repo-lines-v1:sha256:a1817a60516d3f9eb180dae53aaf39bd1e1899fec6c1a0fae58b7c9b8dd09b3d:eyJzZWxlY3RlZExpbmVDb3VudCI6NjQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImY3NzMxODE1ZmVmZWQ5MzU0OTE2ZDJkZjZhMDYwMzg0NzRjOGQzNzQ0YTE2YzU3MmRjYWE1OWI4NWQ2OWU1Y2UiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjRlZTk3M2IwZDIwMGU0M2I3OWI5ODE2ZjNiYWIyNzk4YTcwMDAwZmZjYmZjYmFiZmVkYzc3OThiZGY0Mjk0MzciLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImE1MGM2NTlkYTRjMmIxMTUzYjE4YWM0NGM2OTg3ZDZlYjY1M2FkZTdhMjljZWUzNDM0ZmNjMzU1Yzc3ZGZlMjUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjJhYWY1MTI1ZjExOTBjMDg2ZDdjMWFlMzgxZjg4ODY3YmYwZTgzOTY2NjJkYTVkZGUzNjU0ZThhNjg4OThiMTkifQ"
+        },
+        {
+          "resource": "repo://src/market/router.py#L116-L132",
+          "version": "repo-lines-v1:sha256:c0171d958ebe5a0ecebf9ec7ceeca81b6d2832adff169eb7d7582da7f8a993f2:eyJzZWxlY3RlZExpbmVDb3VudCI6MTcsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjZjMGEwZGE1ZGJkMDhhMWRiZDk4MjU0ZGFlNGEwZjQ5YmYwY2EwYzM2MmVjNjgwMjUwOTQ1ZGM3MGZiOWU3OTIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjcwZTRmYjRkNDIzZWMzZTYwYTFkMDNkYjA4OGU1N2U4YjM1MjIxZDkxMzg0OTM2YTg4ZmQ5Mzg5NzllZDlkOTYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImFlYzM5MjBiMGZmNTc2M2FiZjk1NGFlYTBkZmJmMGEyMjdiNjU4OGUwNzJlMDI2YmUzMzEyMjhjYWE1NjgzNDAiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImVjYzJlYjUxM2I4YTJlZWFkMjliZmExYjhkZGZlNmUzMTBhN2UyMjdjMzZlZTgwYmExYjZjZWIyY2Q4YzE2NWYifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_681d6598786b40b0805e4559e4520e85",
+      "statement": "`SecurityApi._map_eodhd_symbol`/`_map_eodhd_exchange` translate broker symbols to EODHD ones by rewriting `.` to `-` and mapping `CSE→CA`, `TSX→TO`, `NYSE→US`, `NASDAQ→US`; unlike the `WealthsimpleApiGateway` twin, `SecurityApi` passes an unknown exchange through unchanged rather than raising.",
+      "evidence": [
+        {
+          "resource": "repo://src/integration/brokers/wealthsimple.py#L377-L386",
+          "version": "repo-lines-v1:sha256:88ab7365b729865b815a1bf37e36ad7c6df652be92ca3aeced3a7540f60abe46:eyJzZWxlY3RlZExpbmVDb3VudCI6MTAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjIzMGNmNDZmNjdkOGQwOGNhN2EyNzA3ZmE0MjEzOWVhM2M5Zjg1NjQ3NTc1NTFhOTliZmY3ZTMzMTg3YTNmMTkiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImI3NjBhNjlhYjlhZWNlMmZiMjUyNzUzNjExOTk2OWMxYmQ5NzdhZDNlODlhZmYyMWIwZTc5ZTZkM2VhMTI5MTgiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjdjMTQ1NWJkMjBiMDdiZWU5MjU1NjE1MWYxYTA2ZWFiYzY0M2E3NTJkOWY4ZWIwY2NhNDYwMTcxMWIyYzkyZGMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjI3M2VhNmE0ZDc1NmNhMWUxMDQyYjU4NGQ1ZjJhNTBiYzU4OGVkYzgyYWQyM2Y0OWE5ZmFiOTFhMDdjZDI5OGUifQ"
+        },
+        {
+          "resource": "repo://src/market/api.py#L184-L195",
+          "version": "repo-lines-v1:sha256:0bbd41ddf618c79897f22bf79e8acba476a497b067a348332152bdf8becb7cd0:eyJzZWxlY3RlZExpbmVDb3VudCI6MTIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ1YTQwMGNjNjFkMzRiOWE5ZTIyZWZiNjg2MmIyZDM3MjFmNDhlMzBhMzgwNWZhY2UxNDMwZTY4MWFhM2ZjMzYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjZiYWQzODZlZDgzODQyMWQxZmY1MWFiOWE0MjQ0OWFmZTJiMTcwYmZlNGM3Y2RlYWQ2NzEyZTA1MWFlY2ZlMzYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImRjYzc0NDdjODA4ODExNzdmYTljMjYzYmRmM2FhNWMzMWY0MDE1MzI3ZjRjNjBiYjEwYTZmMTA1NWQzMzA3MTAiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjMwMmI3ZjQwYWFhMjJlN2MyMTM4ODg5ZTVlYWFlZGQ0MjBlODExOTcwNDJlYTMxOTg2NTE1NDI2MmMwZTQ4OTkifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_8eec447f39ef4e24829b18d4f02df944",
+      "statement": "`BrokerApiGateway` (src/integration/brokers/__init__.py) is the abstract broker contract (`login`, `get_accounts`, `get_positions_by_account`) and its `__init__` installs `keyrings.alt.file.PlaintextKeyring()`, so Wealthsimple session tokens are persisted unencrypted on disk and the code carries a `# TODO secure this before staging deployment` marker.",
+      "evidence": [
+        {
+          "resource": "repo://src/integration/brokers/__init__.py#L15-L44",
+          "version": "repo-lines-v1:sha256:1297e249afbf6296f78877a1f0e69d5bb35906d424ad535c0d1a8375eeaa125a:eyJzZWxlY3RlZExpbmVDb3VudCI6MzAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjRiY2Q4OTJjYmM0ODU2ODE5YzY0NGJkMmIxYmEzN2ZkYTZlYTFmY2FjMDgyMjJlNzM2N2ZjMmE4ZDVlOTk3MzIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImYwNjJlNThlYTBiMGZkMTk1YmEwNzY2MTNiNjMwZDU5ZTY3YmQ0NzBiYjE5ZTk3YTIwYzkwMjM2NmU1YmEwZTYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImRkZDg2ZmU0OTQwOGU0OTI3ODU2YzI2YTQ5MTY3ZjBmMWExNzE1ZmQ3YzQ2NTEwYWNhNjMxZWVlMDAxNzAxMzEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_87ace6c6ba364a1fa4a37399db34f4c8",
+      "statement": "Only Wealthsimple is implemented as a broker: `src/integration/api.py::get_broker_gateway_class` maps `InstitutionEnum.WEALTHSIMPLE` to `WealthsimpleApiGateway` and raises `KeyError` for any other institution, so adding an institution requires extending that dict as well as registering the class.",
+      "evidence": [
+        {
+          "resource": "repo://src/integration/api.py#L56-L61",
+          "version": "repo-lines-v1:sha256:e5018e57689c8fd05d7a583d02398cb4da5da5e0a2e9e79c532765a0e002143e:eyJzZWxlY3RlZExpbmVDb3VudCI6NiwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiNzQwMDU5Mzg4Y2Q1MTdhNWY4OWY2MTNhMDlmMWQzNzZlM2YwMTkzZmQyZjYyY2E0NjNjNGFkMzIwYTAzZjMwOSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiYTJiOGE4MzM5ZDYxYWNmY2NjYzA1MzJjZWQ2YjM1YzQwYzE4ZjY4MGZiNDQ2NmE4ZWQ1OThiMzNhMmYzZjM3YiIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiYjNkZjJhY2YwNmU4YzNmMDNjNzEzNWM2ZThhYzVhOWNhNTQzMmFiZTA2YTc0YWNhMGZkZDlhNTNhMDA4Zjk4NyIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiNDk4ZTUzMzlkYjAyZTM1MmVlNDNlYzhkNGVlZGNiYzUyNDYyNjhlNWI0ZWNjODJhOTk5NjE5OTFkYjQ2NmM5MyJ9"
+        }
+      ]
+    },
+    {
+      "id": "claim_98d92834561345e9b105e657bc2503bf",
+      "statement": "`WealthsimpleApiGateway` persists one session per user in the OS keyring under prefix `retail_portfolio_wealthsimple`, and `login` first probes the cached session with `get_accounts()` before falling back to `ws.login_internal(username, password, otp, persist_session_fct=self._save_session)`; it wraps `ws.send_get` to capture the last raw vendor response so an `UnexpectedException` is logged with the actual HTTP payload.",
+      "evidence": [
+        {
+          "resource": "repo://src/integration/brokers/wealthsimple.py#L110-L147",
+          "version": "repo-lines-v1:sha256:7825ef409c80b5db84691b4f5b021417d4f32a7cd26bf63ea9f5684fbd8337ec:eyJzZWxlY3RlZExpbmVDb3VudCI6MzgsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ0ZGE5MzUwMDE5ZGMxZTY2NzQ1MjY0Mzg3MzE2MTk5NzIyNWU5Y2U2MDEwN2FmN2I2NGY4NDBkZGVjZmRhNGYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImQxMDQyNGJkZTNhZDkxZmY4ZGFlYTgxYTRhYTUwNGIyZmU5ZDM3OTIzZjU5Mzc5MTUyZDU0M2Q3YjRkZWFmNzEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImNiMzcxYjVjZjU3NDljYTQ2MDFkYjUxZjVmZTY2YmNkZDAzODdjZGYxMDI0ZTZmMmQwNDk2OGZhOWQxNWE1OGQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjE0MzQ1NTgxNmZhNTFjNDc1ZjY2NmUzNGZjYWE4NTk5MTRiYWE1MTQyYzYxYjgyOGMyOWE4YTZmMzhlODE4NTQifQ"
+        },
+        {
+          "resource": "repo://src/integration/brokers/wealthsimple.py#L45-L108",
+          "version": "repo-lines-v1:sha256:7f24a2d74a46245f592cbd780a4c5c609f244d16859d804475fcbd079d1bab3c:eyJzZWxlY3RlZExpbmVDb3VudCI6NjQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImE0OWUzMDVlNGZiNjE2NjkxZmNlOTZmNjAwYmNhYTRmNmEyYThiOTNkMTM5N2EwYTQzODhlMTYwYjc3YzJiYzciLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImE2MmNhMWI1NmE0ZGFkNzA5ZDBlMmMzY2YwOWE1YTg4YzU4NWJiMWE5ZTZkYzY4YjkwZTIxMWIzMmQ2ZTMwMDMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjA5ZjkzMDgzYzE5NzEyMWI5ODI3MDBiYThhZmFiZDE3MjJjZjFkM2U3NDA0NTA5ZTgwZWZhMjcyNDdmNjJmMDciLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjMxY2RkYWE2OThmOGYwNWVkMWYwMTk0NzNiMDYwYjc1ZTJhNTUyYWY5YzIwNTRlY2UwZjJmZTQwMDQ1NjEyMTkifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_1d482648b7c84d7ca4310cd6b2264dc0",
+      "statement": "Wealthsimple position parsing is deliberately lossy for known-benign cases — it skips closed accounts, unmapped `unifiedAccountType` values, the `sec-c-cad` cash pseudo-security, positions with a `None` `primaryExchange`, and works around the vendor bug that wraps security ids in `[]` — but raises `UnknownError` when the market-data or identity-position payload has a malformed shape (not a `dict`/`list`).",
+      "evidence": [
+        {
+          "resource": "repo://src/integration/brokers/wealthsimple.py#L236-L250",
+          "version": "repo-lines-v1:sha256:24cc2a1fb6b87090f7ce4572a4665ca17ed385dac83d6ab5d5846101fbdf412e:eyJzZWxlY3RlZExpbmVDb3VudCI6MTUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImMyZjczNmJiZDYwZTkwMDY0MDE2NWY1YzQwNDBjZTUxNmY5MjEwMWU0ZmNjOTBiNTk2NDVkMzU0N2U1MmE2ZmUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQyMDc4MzkyZmZlOTM1MTNhNGNlYzA2MjQ2ODZhOTcyM2Y4MzgxYjM4YTNjNjBmYWQ0NmYzYjEwYTc2NjVlN2UiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImNlYWUxOThmY2M4NGY3MjY1YzcyMzUwZGExMjNlNDM0MWFlNWE4ZjcwYTIzODVlN2M1Zjk1MmMyMDMyYmNhNmUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6Ijc0YmY5MmI4N2VlOWE1YzQ0MmM2MjkwNzY5NmY5M2I2ZGI1MTNhZGJlNDViYmViOWU3YTNjZDEzMTQzMDM0MDYifQ"
+        },
+        {
+          "resource": "repo://src/integration/brokers/wealthsimple.py#L284-L346",
+          "version": "repo-lines-v1:sha256:cef3772bded7799afc569d33d30f4721a161b7f9f79c956abd20e45a56313839:eyJzZWxlY3RlZExpbmVDb3VudCI6NjMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjlkMjliYjFkMjcxMjk5NmZkOThmODI2ODhlOWJlZDg2NzYwZDdkMThhZmNmMmM5ODdlN2FiZGQzMjljYzE4ZmEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImEzN2ExM2RmMGEzNzcwZDhmMzMyNDY5ZmMxNTdjNTk0ZDRmNmI2MzYyYTlhYjNhZjlhMTQxOGJlM2ZkYWY1OTgiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjRiYTAxOThmZGE0YjM3OTcxMmM3OTIzMjQ0ZWJlMDNjNWJiZDg1ODZmNmVjMDg4YmNmZTk5NDQxNGY0Yjk4NjYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImMxMTlkOTc4MTFmOGVkYjY1Yzk5NjdlNzQwMzAxZjJkNzIwZmEwMmIwZTA5MDU2MTY1ZjEyOTBhNzhhOWRlYzUifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_c0296bbe96d344879fbbdfca8b9a5890",
+      "statement": "Wealthsimple infers a position's currency from the exchange (`NYSE`/`NASDAQ` → `USD`, everything else → `CAD`) rather than reading a currency field from the vendor payload.",
+      "evidence": [
+        {
+          "resource": "repo://src/integration/brokers/wealthsimple.py#L317-L320",
+          "version": "repo-lines-v1:sha256:830805a92a2854af2e6de039477ce2394be86f277347f73332d852a16e704b51:eyJzZWxlY3RlZExpbmVDb3VudCI6NCwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiZjg3MWM4Y2NhYjExOTMwMTkyMDBlYzQwMmMxNDVjZDg4YjE4NzBmZTExYmZiNjlkOWM1OGNlOGU0N2NjOGIxYyIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiODNiMWI1NjNiMzM2OWRjM2FiMDE2ODc4YTcwM2IzNGEzODQwNmViNmViZmIwYmY0YmNkYjNjZjFkNDc1NmI4NSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiMTMzMGI4ZTZhMTRmMDI5MWRkMzU1NjJiMjlhYzg1MTgzNWI1MTM1NzY4YmY0ZTE0MDZmNTYyMDg0MTRhNjEyOSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiMjc2NDA0MjM3NTI0OWQ0NmU1ODA0NDI1ODViODM3ZGEwNmQwZmQ2ZGNlYjc2OTQxOGI5YjExZTYyMzEyM2M1ZSJ9"
+        }
+      ]
+    },
+    {
+      "id": "claim_409d245d2da64511bacac9bec2eed324",
+      "statement": "All broker errors descend from `ExternalAPIError` in `src/integration/brokers/exception.py`, with vendor `ws_api` exceptions translated at the gateway boundary (`LoginFailedException`→`LoginFailedError`, `OTPRequiredException`→`OTPRequiredError`, `ManualLoginRequired`→`SessionExpiredError`, otherwise `UnknownError`) and a missing keyring entry raising `SessionDoesNotExistError`.",
+      "evidence": [
+        {
+          "resource": "repo://src/integration/brokers/exception.py#L4-L38",
+          "version": "repo-lines-v1:sha256:ebbf4b1531c67b9977592e3940e07ed3615e2fd8759d1cd9bce79ce0656f7012:eyJzZWxlY3RlZExpbmVDb3VudCI6MzUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjIyZmJkYWI4ZWI3MTM3ODI4MDEzMGVmYWJhZDMzMTk4MDAyZmQ0YjAzODA2ODRlNDU1OGY2NmUxZjMyZDFjMmUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAxYmE0NzE5YzgwYjZmZTkxMWIwOTFhN2MwNTEyNGI2NGVlZWNlOTY0ZTA5YzA1OGVmOGY5ODA1ZGFjYTU0NmIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjEzNmJhNGE1NmYzNWFjMTAzODczMTJmZjVkY2Q1NjA5ZDIzYTA1NWI1MzdkNWVhNjZkZWIzNjI2YzdiNDkxYWYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjQzZDk5MmEyMzBmYWRiMWU1MzBlYTkwYzk1YTM0NzkwNmFiMTg2NTYxYmEyNDAyM2VhMmI0NGYwY2EwNGM4NGMifQ"
+        },
+        {
+          "resource": "repo://src/integration/brokers/wealthsimple.py#L126-L145",
+          "version": "repo-lines-v1:sha256:b46ca47d500463928cf6ec0a5b6535e1807838a06e1441a4d31ee350839c0c25:eyJzZWxlY3RlZExpbmVDb3VudCI6MjAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImI1NjljYjA5MjgwZWUwNzgxOTQ1ZTQ4ZDQwNDFiZDJkZmFhZTY5MWFkMmVhYmY1ZDNjYmEwODQ2YzcyMTZjYWEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAxYmE0NzE5YzgwYjZmZTkxMWIwOTFhN2MwNTEyNGI2NGVlZWNlOTY0ZTA5YzA1OGVmOGY5ODA1ZGFjYTU0NmIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6Ijk4MGY5Y2Q5N2Y1OTUxYWI3MDc5MzY0Yzk4ODQwYTcxYWI2OWViZDYyZDEyYzMxYjExMzBjYWU2MWRkNTFlOWQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjdmZDAyOThjYTEwNzQ4NWQwZDBjNzAyNGNlZTZiNGMwNDI4ZDk2ZTAwYmExMzI4ZDYyNTIyYTIyNGYxMzM1YmUifQ"
+        },
+        {
+          "resource": "repo://src/integration/brokers/wealthsimple.py#L61-L71",
+          "version": "repo-lines-v1:sha256:ada85a70ea6b5e576d0c84a4365e5858d80a290280ea2430fe260e11a3645ea8:eyJzZWxlY3RlZExpbmVDb3VudCI6MTEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjgzZDY3Mjc5NmM0NzJhM2E5NTAwOTRkNGRhZDk5MDhhZGU4YWU5MWE2YjJiZjBkOWFjOTQzNmZhMDZhMGMzYWEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjMxZjdlMGExY2FkZTljY2E2YjVmYTY0ZWE2MjkwNjI3OGMxMjRlMDkyMzUyZmIyMDQwOTZhYjUwMmQ4MzA2ZmEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6Ijg5YTVlMDJmMTdmZWRiMDNlZTk0ZDhkYmU5NzA3NDhjNGZhZGUzZjQxOWQyMmUwNWY4N2Y3OGVmNTgwMWQ1NDgiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImIyZDIyZDFhM2UwMzljOWIxMjJhMWFlNGVlZmY1ZTZhMmUzMTZkMjFjNzlhZmM5ZTMyYTgyYmMyN2VmZTY2MTIifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_fcd3d0ac240842d492242b68f13ce589",
+      "statement": "`src/integration/task.py::_SYNC_ERROR_MESSAGE_MAPPING` turns each broker exception type into a user-facing reconnect instruction, which `_send_sync_error_email` delivers through `EmailService.send_external_account_error_email`; a failed sync also emits a `sync_failed` WebSocket event, and the email failure is caught and logged so it cannot mask the sync failure.",
+      "evidence": [
+        {
+          "resource": "repo://src/integration/task.py#L119-L182",
+          "version": "repo-lines-v1:sha256:c964c2a9bc38e740caa3a68a85fce61a4023ff74c131d327e746796223462c49:eyJzZWxlY3RlZExpbmVDb3VudCI6NjQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImMwMDI5NWI2YTViOWUyMzdmYTgzMWRkMjZkNjRjYmQxY2U3ODQ4MWRlMWVjODgwNTc1YmUyNTcyMmZjMDhjZGUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjMwYzFmMTg4ZjE0MmVkN2E4MjQ2ODBiMjA3MTcyYzU1MTliYzYxNGE0OGZkYTdjZjE2N2VkYjhkZGY3OTk1NmMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjllNWRhZTU3OTQ5MzQ4YzFmYTk2ZjQ3YzgwNWRmYjg2OWE3YmI5ZmE1NDBmNmY5NWRjODY4MjRhYmY3Y2NjODMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjllMzE1NWRmMWE1MDM3MzE1OWZmMjkxZjE0ZmI0NDQ1MTk0NGE1N2MyMmEyNmIyNGJhNGQ1ZDU0ZWM0NDBiYzgifQ"
+        },
+        {
+          "resource": "repo://src/integration/task.py#L185-L219",
+          "version": "repo-lines-v1:sha256:815e8c09bed00ac132aa0ff322bb61c0dccdfbfcff0aa9f682918f3e541ff51e:eyJzZWxlY3RlZExpbmVDb3VudCI6MzUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjY4OWYxMzA3NDc5ZGQ5Y2YwMTIwNzBiZGE4M2U2ZjI5NWEwMDM4MWU3NTA5YTQyYjU3M2Y3ZjExMGZkMmIyYTUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAxYmE0NzE5YzgwYjZmZTkxMWIwOTFhN2MwNTEyNGI2NGVlZWNlOTY0ZTA5YzA1OGVmOGY5ODA1ZGFjYTU0NmIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjhjYzRhN2QxY2M3OTZhYmEzZTQ2NzIzMzI3ZjUxN2U5ZjgxMTk4MmQyNTBmMDcwMjk4NmU0YjU3NjRhZDk1ODkiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImIxYjUwNmNjYTkxZjIzZTE0NjM2YWY3ZWZkMDRkZTQ2YzVmOTk0ZmM5MzA0OWIzMmFiYmMzMTkxNDg3YmU5N2EifQ"
+        },
+        {
+          "resource": "repo://src/integration/task.py#L246-L283",
+          "version": "repo-lines-v1:sha256:40a7829b2a0af43ca9990bb1280a9ec41e0ba37a8c2091e111a2d6d0ef152bab:eyJzZWxlY3RlZExpbmVDb3VudCI6MzgsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijk1NzgwNWMzZmU3YWM2MzA3NGY2OWNkYjI1YjlhY2Q3YTg2NzkyZGZlNTQwODE4YWM0Zjg3NjRiNDllN2QxNGEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQxNjFjZTliMTJjOGMxZGQwOWU3MTcwMWUzNzU3Mjk3OGU1MWU3YTQ3ZDA4ZDAwYzEwM2JkODE2NmU3NTFjNzciLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjlmNDliNDgzMzgzOTBjNDZjYWYxN2ZiODgzYTA4Y2JjZWNlMTVjZTgyODIyZGZjOGZhNDRhNmEyMWI4ZWE1ZjIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImU2YjYyZWQ5OWZlMzI2ZGE0MDc0NTEyNGVhN2I4ZDUxZTQxZTU0NDc2ODE0OTVkMGY3OTE2NjIyZGJmZmU1YjAifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_b4f4162465034a9aaeb8c9b7f7697c9d",
+      "statement": "`wealthsimple_api_wrapper_factory` accepts `debug_api_responses` and `debug_dump_path`, which log raw vendor responses as JSON or dump them to an arbitrary filesystem path with no redaction, exposing account balances and holdings.",
+      "evidence": [
+        {
+          "resource": "repo://src/integration/brokers/wealthsimple.py#L149-L167",
+          "version": "repo-lines-v1:sha256:4e06064088d2f0af0f2daa2d8946f898b7db20df164a364839aec0a43aed7095:eyJzZWxlY3RlZExpbmVDb3VudCI6MTksImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ0ZGE5MzUwMDE5ZGMxZTY2NzQ1MjY0Mzg3MzE2MTk5NzIyNWU5Y2U2MDEwN2FmN2I2NGY4NDBkZGVjZmRhNGYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAxYmE0NzE5YzgwYjZmZTkxMWIwOTFhN2MwNTEyNGI2NGVlZWNlOTY0ZTA5YzA1OGVmOGY5ODA1ZGFjYTU0NmIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjdmZDAyOThjYTEwNzQ4NWQwZDBjNzAyNGNlZTZiNGMwNDI4ZDk2ZTAwYmExMzI4ZDYyNTIyYTIyNGYxMzM1YmUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImJhZTBkNWMxNjE1ZDRhN2Y2MDUwNjQzMGZkODBmMDZlNGM3NTk2YzUxYzU1NzcwNjFmNmRjOTczZTk5OThkNTQifQ"
+        },
+        {
+          "resource": "repo://src/integration/brokers/wealthsimple.py#L218-L227",
+          "version": "repo-lines-v1:sha256:a7adb8de64ad28298333fae33b936d16cb33d01284fbf1e6da43babd9de32578:eyJzZWxlY3RlZExpbmVDb3VudCI6MTAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImJjMTgyZDIwM2Y2NjM1NDUwMTVjZmIwNjYzNjM1ODA3Yjk4MGRlYzUzOTdlYTc4YWQ5ZmUyOWI4NjZiODY4YWEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjFlODA1ZTk2YTI2MDQ3ZmIyYTA0NDFkMmQ1MGFmYjQyMjY4MmNjOWZhZTkxNDRjN2U1MDk5M2ZlYTQ1OWQ0NTkiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjM2YmMzMjMwYWRhMDE3MDQ5MDZlNDAyZjVmOTI2YTEwYzBlZmIzNDY1ZjJmMTM2ZTNiNGU5MWE1MDdlNWRkNTEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjcwNzYxNjc4ZGM4OGQzOTUyZjM0Y2QxYTlkNGQxYzE4YmNlYmQ4NjAzNWFmNDc1YTgzNDBjNmJlNzg2MzhlNjYifQ"
+        },
+        {
+          "resource": "repo://src/integration/brokers/wealthsimple.py#L389-L396",
+          "version": "repo-lines-v1:sha256:101479588019ef7edb3aace962aa5a78f64734b6a6e43640797b4692766708d2:eyJzZWxlY3RlZExpbmVDb3VudCI6OCwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiZmFiZGIxNzEyZGNhMjY3NWY0MjE3OGZlNDNjZTQ3N2FhOTE5ZjgxNDE5YTg3MDQ4ZGNmYTA1NTc1MWI4NzRkMiIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiYjAzOTc1NzBjN2I5YjY2NGEzZDBiYTEwMDY0MDczNmQ5YzI1NTU5NmQ1ZjJjYzRlNmUxNWIzMGEyMjhhZGVhYSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiMGU1ZDhkMzk2ZWJhOTc1ZjZlMmVlNGQ0N2UxMDE2ZmI5NjZhYWZmYjlhZTk3NGQ5ZGY0NzA4YzliMDI4NjM1YiIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjEsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiNzE4ODRkYTljNzBhNWMzYjI3MzZlZjAwODA1NmUxMzJmZTg1OTU4OWM2NjUwZmUxZjhjOTFjNmIyNjM0MGEwOCJ9"
+        }
+      ]
+    },
+    {
+      "id": "claim_071921574a5b4e3fa1d97eed0e72aea7",
+      "statement": "`StubWealthsimpleApiGateway`/`StubWealthsimpleAPI` return fixed fixture data (three accounts including one `closed`, a `sec-c-cad` cash balance, and fixed security market data), always succeed at `login`, use their own keyring prefix `retail_portfolio_wealthsimple_stub`, and skip malformed payloads instead of raising the way the live gateway does.",
+      "evidence": [
+        {
+          "resource": "repo://src/stubs/wealthsimple.py#L14-L122",
+          "version": "repo-lines-v1:sha256:bc62d84112e17d1e820d144fa4f7f11c92b1fcd772d9265b2851e6d702caf234:eyJzZWxlY3RlZExpbmVDb3VudCI6MTA5LCJmaXJzdFNlbGVjdGVkTGluZUhhc2giOiJjODg1NjhhZDRjMGViNzRlOTE1NWZmMjZkNGIzMGU1OTU3NDAyNTUzODJiZDY3NDM1ODk0MDY0NmQ4NDM4MWVkIiwibGFzdFNlbGVjdGVkTGluZUhhc2giOiIwMWJhNDcxOWM4MGI2ZmU5MTFiMDkxYTdjMDUxMjRiNjRlZWVjZTk2NGUwOWMwNThlZjhmOTgwNWRhY2E1NDZiIiwicHJlY2VkaW5nQ29udGV4dExpbmVDb3VudCI6MywicHJlY2VkaW5nQ29udGV4dEhhc2giOiJkZGQ4NmZlNDk0MDhlNDkyNzg1NmMyNmE0OTE2N2YwZjFhMTcxNWZkN2M0NjUxMGFjYTYzMWVlZTAwMTcwMTMxIiwiZm9sbG93aW5nQ29udGV4dExpbmVDb3VudCI6MywiZm9sbG93aW5nQ29udGV4dEhhc2giOiI0MDY1NDFjZTMyYmNhY2FjMGQ2NjEzYjQ3MDVmYWQzMzg1ZmFhYmFlZTUxNTkzMzMzZDBmMTg0ZWI1ODllZWQyIn0"
+        },
+        {
+          "resource": "repo://src/stubs/wealthsimple.py#L271-L340",
+          "version": "repo-lines-v1:sha256:aa34e77345e9a1e60f9934d83ed7dfe16d7022ea8e43e9fa720766d83bec6901:eyJzZWxlY3RlZExpbmVDb3VudCI6NzAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjYyNjZiZjg2OGUwY2NkZjYzZGJjODRkMDk3ZjExNTAyZWVkODFhMmMzMjRmMTIwM2Q1OGE0MTFkYTk4OGU3NTYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjlkOGE5ZTljMzI1MjgyMGM2NWE4MTY1MjBiOGRiNDkzMjI4MDg0OWVjOGM3ZDJlYjYyNzJhZmRmZWJlMDU5YzMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjFmOTQ3NmYyMzcyMDA1OTA0NmY5YmQ3ZGI1ZGJmYjVlZWJlMzlmZGM1ZmU1MjdmY2MwYmVkZmEwM2MzZDU4ODMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjhhZjMwYmMwZWVlZmU3ZTBhMGM5YjRlYjk0M2Y2NDMyNDUxYWFmNjUwZDQxYTEzM2I1YjRkOGEzMGZjNjgwZWIifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_36dc4df6e2874fd496518b5dd91ede4b",
+      "statement": "`AIService` builds an `AsyncOpenAI` client from `settings.ai_api_endpoint.replace(\"/chat/completions\", \"\")` as `base_url`, which is why `AI_API_ENDPOINT` may be either a bare base URL or a full completions path.",
+      "evidence": [
+        {
+          "resource": "repo://src/market/ai_service.py#L360-L370",
+          "version": "repo-lines-v1:sha256:833b4f1034acb8fc6729185d140ce30277e5399018fb888d7d811d07e524fe08:eyJzZWxlY3RlZExpbmVDb3VudCI6MTEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImM0Y2EyNmZlOGZjZWI3NmZmNTVjYTY3MjJhMjYxMmQwNjk1MTUzZThiNmNmYTJjZWUxOTQ0MWIwZjVlMzkyYjAiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjMwYzFmMTg4ZjE0MmVkN2E4MjQ2ODBiMjA3MTcyYzU1MTliYzYxNGE0OGZkYTdjZjE2N2VkYjhkZGY3OTk1NmMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjMxYTU0YjIyYjViZTc5MjViNzQ1YzNiNmZjNDk4YWVjY2NlNjgyOGVhYzgwN2ZkYTJhOWYwYThlNzk1ZDRjYTAiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
+        },
+        {
+          "resource": "repo://src/market/ai_service.py#L39-L55",
+          "version": "repo-lines-v1:sha256:c278e412109680354fe526cd160dd0d1478a787bea6c5abbb42998f68aa6737b:eyJzZWxlY3RlZExpbmVDb3VudCI6MTcsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjllMWQ5N2RiNWI5NGJiODBkZTUxMzg2NThiNmMzNTU2Mzc5NzMzZGRmMTg0MTBhMDBlMDljNTAyZTEwMmQzZDMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjFkMTFiMTIxMmRmNGExNmMxYjFlMTIyOGNiMzg3NWIyYmQ1OGNhZjQ2OTNjNzYzNWM0MWJiMGZhZmI2MDNkYzAiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjM5YmZkZTUzYTNiZmI5NGM0MzI5MDk0MDk2ODE0NzdlYTE4NDg5OTUzOGFlZWMyZTc3YjQxYWU5MTk2OWZjZDYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjBlNTEzMTEzMDM1NGUxOWNiNWM2YzFkMmJmMjZhZTc5NTRiY2M1ZmZlMjAxMmM3NmQzM2M3ZmUzOThmNDVjYWQifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_1f9fa7c537c54a7c9f07ccbc59863f11",
+      "statement": "`AIService._gather_context` assembles the prompt payload from the security record, the latest price, up to 50 of the user's notes for that security, and historical prices for the window starting at the 1st of the previous month minus 90 days through today (only the last 30 prices are sent).",
+      "evidence": [
+        {
+          "resource": "repo://src/market/ai_service.py#L57-L108",
+          "version": "repo-lines-v1:sha256:db69c9b9605cc4c593441f8743c48b423b748b611df8788c4bd88ffdc6811501:eyJzZWxlY3RlZExpbmVDb3VudCI6NTIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjRlNTBiNmNkZDlhMjhhMDU4ZGQ1MTNjYmY4YjYxZWI0MTc5M2NkOGY1ZDcwNjY1MWFhYzMyMjI0M2YzZDViZmUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjU5MDlhNTNhNjE4ZDAyOGUxZDMwMDBjMGE3YWJjZWVjYmU1ZmIzN2Y0ZTUxMWVmZTQ2NjQzZmFkNmU2Njg3MmYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImVjMDAwOWIxYmNkZDVhYmFkMzM2YzVlNDQwMzg1Y2Q5M2MxMDhiMThiZTBlZDJhMzViZTczZTM2ZTBlZmU5OGEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjVjYjMyODdjNWI5MGVjOTQwNzYwMDdjMTNlNGQ1NzllMjA4MjBiOTk4NTY4ZWIzZDczNWRiZTUwN2I3ODEwNzkifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_9f4826a2171944ed9b849fabd073c1eb",
+      "statement": "`AIService` analyses use `temperature=0.7`, `max_tokens=2000` and `timeout=60`, whereas `generate_note_title` hard-codes `model=\"gpt-4-turbo\"` with `temperature=0.3`, `max_tokens=20` and `timeout=10`, ignoring `settings.ai_api_model`.",
+      "evidence": [
+        {
+          "resource": "repo://src/market/ai_service.py#L124-L144",
+          "version": "repo-lines-v1:sha256:52155999c2cbc0053f8e3f0ca6ed706ab455a971ccd9ea87336e3f997eaa6e8a:eyJzZWxlY3RlZExpbmVDb3VudCI6MjEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImI1NjljYjA5MjgwZWUwNzgxOTQ1ZTQ4ZDQwNDFiZDJkZmFhZTY5MWFkMmVhYmY1ZDNjYmEwODQ2YzcyMTZjYWEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjU1MDMyZTk2NGQwOTMyMzUxZTVkMTg1MjY5MjgxYjE3MWEzYTA5YjA4YjI4NmU2NjFlYTQ3MDMyM2M4MmViNGQiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjNlOWRmMmI0MGQ2ODljMGY1YThhMmZkZWY0ZGUxMWZiN2UyODgyYWM0OWQwNjlkMWM3MGY4YjU5MDI2NGIxMzkiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImQwNWIyZjczNGZkNzEwZWQ0ODFjMTk1NGMyNmUwOWYxOWFkY2Y1ZDRjMGQ4NWY0NzAwNmVmNTk2NTVlYjQ2YjAifQ"
+        },
+        {
+          "resource": "repo://src/market/ai_service.py#L280-L301",
+          "version": "repo-lines-v1:sha256:2654f943be52a90086ed4c642afd7a7dac8c045974bb732cdd5ba93b60ed7d03:eyJzZWxlY3RlZExpbmVDb3VudCI6MjIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImI1NjljYjA5MjgwZWUwNzgxOTQ1ZTQ4ZDQwNDFiZDJkZmFhZTY5MWFkMmVhYmY1ZDNjYmEwODQ2YzcyMTZjYWEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjU1MDMyZTk2NGQwOTMyMzUxZTVkMTg1MjY5MjgxYjE3MWEzYTA5YjA4YjI4NmU2NjFlYTQ3MDMyM2M4MmViNGQiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjE5N2FhY2ZmM2Y5ZDQ2YzYwNzAyYjA0YTMzZDZlZjE5MzdmZjZiM2VmOGE0MDZiNjNhMjQ0YWJlYTMwOGUzMWUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImI3ODI4ZmQ3NTUwNDA4YjRiZWYzYWM2ZTIwMzM5MGU5YjYwZTFmZjUwYzQyMGNmZjJlMDMzMWZlNDEwMTE5ZjEifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_34bc3ee22f454343bef26d37294ce826",
+      "statement": "`AIService._call_ai_api` re-raises any provider exception as `RuntimeError(\"AI service unavailable: ...\")`, strips DeepSeek-style ` thinking...` blocks from the returned content, raises `RuntimeError` on empty content and `TypeError` on non-string content; the AI routes map `TimeoutError` to HTTP 504 and `RuntimeError` to HTTP 503 and are each rate-limited at `5/minute`.",
+      "evidence": [
+        {
+          "resource": "repo://src/market/ai_service.py#L110-L166",
+          "version": "repo-lines-v1:sha256:146ebb4be3b12f59e181f43fbb804ab20a3b620f0b28c17938f0b05432900aad:eyJzZWxlY3RlZExpbmVDb3VudCI6NTcsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjBmMmNlNmM2NDhkYzhkZTZhMjJjMTM4YjBjNzljMWI3MDI1ZmQ0ZTI4ZjE5NjhiNGRmOGM0Mzg5M2EzNWEwYjQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjZkYmJlM2U0MWE2YTcwOWJmMTY4YWYzNzIxMTg0MWIyMmExMjVjNGQ2NjczMDBmNGNmNzgyOWZjYWE4MTQ5YmMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjQ5YmUzMWJjMzEzNzBiOGNiZDU3ZmI0MzIzNjBjZmJlYjFkOTlkNTAxYTJlZDlhMjBhNTI4YTA4ZDNmY2RjMDciLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjFjMWM3NGRlMjk1MTcyZGJmZTFjYjE2Yzg1YTJjNDk1MjQ0OWU3MDIzMmI5ZWMxNTkxNDYxMWRiZWU3NDliYjUifQ"
+        },
+        {
+          "resource": "repo://src/market/router.py#L890-L965",
+          "version": "repo-lines-v1:sha256:05a61360c9f3a66616680ba865426c56003e7f6a7ad665222467899725dda2b0:eyJzZWxlY3RlZExpbmVDb3VudCI6NzYsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjkwMGY4N2IzMDA4MmNlZjI1YmVjMjE5MDE4ZTQyODA3NWRiZTZkNjRjNzJhNjgxYzkwY2I1OGQyNzcxMWJhOTgiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjZhY2I1ODVlOGFjNWU3ZWYyMWQ5ZGQ2MWMzOWQ5NzE0Nzg1OGQ3NDM1ZWQwYjE5ZDgzZjE1ZGRjMjRhMWUxM2YiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjczMDMyNWY5ODBiNGFiZTBhNWJmZGViMmQzZWI5MzQ4NzZkM2EwNDMzMjU2NDQ0NzJjMTM2Y2NhMDJiOWE4MGEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjoxLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImMyNGY3NzNjZjEzMTg4MjRiNTdmNThiOGY1YTAwNThjNzJhYjc5YjI5YjMwYjIwYTg3NjhkMTU3ODc5ZTU0OWIifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_8d3ab6ceb9264629b5097ac6ace728d0",
+      "statement": "`AIService.generate_note_title` is the only AI call with a fallback: on any exception it logs and returns the note content truncated to `MAX_TITLE_LENGTH = 50`, so note creation never fails because of the AI provider; it is invoked from the Huey task `generate_note_title_task` rather than inline in the request.",
+      "evidence": [
+        {
+          "resource": "repo://src/market/ai_service.py#L270-L322",
+          "version": "repo-lines-v1:sha256:3cf11e2b6ee0e71b2c99353daffc5237cc157ebaf91220d41eda3269c66ee82f:eyJzZWxlY3RlZExpbmVDb3VudCI6NTMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjMzZDdkZDQ0MTc3MThhOTMzNjQwZjQzZTdjOTkwOTY1MTZkM2M3NjgzYjM0ZmFlNTVkOGNlMzAyODE2OGQ5MzciLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjI4ODhkNTg1OTc5YTZlYjRlN2I2ZWEzNzA2NjY1NThkMzcyNzA0NTFiMGJiZTZkM2YwNTg2NzRkNzQwYTQ2NzEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImFmOTIzNWM1YTU3MTYyYjdkZmQyZDlhZGNjMjBmZmI1OTE0ZDcyMDk3MjM2MjQzNWMzMzM0YjdlMWZmNGFkMzkiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjgzNzdkYThiYTU4Y2FkMTMyZGE1MjYwNDNkMzU5ZTg2ZTFjOTlmZjMwYzVhN2NlNTliNjlhMDg4NDU5OGU5YTIifQ"
+        },
+        {
+          "resource": "repo://src/market/task.py#L23-L55",
+          "version": "repo-lines-v1:sha256:d17c39473b686cca7d490274659104cccbfbb1f44882572e8f495947baeebbae:eyJzZWxlY3RlZExpbmVDb3VudCI6MzMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjFlYzk2YzNlNjFhNjEyOWRiYWQ0ODFmMmI3NDAxOWM4YzdjYzI4NGQ5YjE5YTMzNTU0ZmE5MTdlYTIzYmQzYzgiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjZhM2U3ZjU1MmE5OTU4OWZjYTBlYmYwZGZiNTcwOTUzYjAwYTYxZjAwNWE5NDQ1ZmUxN2Q2NmFiNGJhZTU4MTAiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjYyMDA5N2U0YWE1MDA2OGJhMTU3ZjlhMjczOWZhZDg2OTk1ZTFlMGNkY2NkYWRjNTg5N2MyMDM0Yzc0ZDNlZmEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6Ijk4NzI4NTJlMDEwNjQ2ZTRkZTU5MGU2YjlkY2UyZDVmN2U5MjFmYzcxMjEwNjY0YzdmMGQ0YjMxYTRmMDZiMmMifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_250e2099c5274ef58c951b0342f58adf",
+      "statement": "`StubAIService` accepts `*args, **kwargs` and implements `analyze_fundamentals`, `summarize_notes` and `analyze_portfolio_fit`, returning fixed markdown strings so it is a drop-in replacement for `AIService` in the container.",
+      "evidence": [
+        {
+          "resource": "repo://src/config/services.py#L150-L150",
+          "version": "repo-lines-v1:sha256:b8e26c2be7aef12375db5384899a8b4e169c448844fa00af1c8bbcb8d72f1f76:eyJzZWxlY3RlZExpbmVDb3VudCI6MSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiYjhlMjZjMmJlN2FlZjEyMzc1ZGI1Mzg0ODk5YThiNGUxNjljNDQ4ODQ0ZmEwMGFmMWM4YmJjYjhkNzJmMWY3NiIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiYjhlMjZjMmJlN2FlZjEyMzc1ZGI1Mzg0ODk5YThiNGUxNjljNDQ4ODQ0ZmEwMGFmMWM4YmJjYjhkNzJmMWY3NiIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiZjUxMWZlZDA2ZGE0ZDg1ZjZkZTg2YjAyOGZjZTFlOWRjMmNkZDdmMDI3YTA2MThmYTVmMzIxZDBlZjRhYWY0ZSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjEsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiYTQ5NmVhZWQ0MzVjZGI5MjBiNzg0NDc1YzYwMmQ4OTY1N2NiZGQ4Y2RkOTczMmMxNjFmOTdiNDE5NWNjOWUzOSJ9"
+        },
+        {
+          "resource": "repo://src/stubs/ai.py#L12-L58",
+          "version": "repo-lines-v1:sha256:12ba96cd7b47225b74df0a9cf4d1c9b53cffb819830737b9b819d50e80d8936b:eyJzZWxlY3RlZExpbmVDb3VudCI6NDcsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjNiNjUwYTQ0OGY1NGYxYWVjMmU5ZmM0ZWU3MTFlMTUyZTRjYWExNTgzZTdhM2UzMGYxMWEyYTZmNWRlMWU4ZTgiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjU5MDlhNTNhNjE4ZDAyOGUxZDMwMDBjMGE3YWJjZWVjYmU1ZmIzN2Y0ZTUxMWVmZTQ2NjQzZmFkNmU2Njg3MmYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjYyMDA5N2U0YWE1MDA2OGJhMTU3ZjlhMjczOWZhZDg2OTk1ZTFlMGNkY2NkYWRjNTg5N2MyMDM0Yzc0ZDNlZmEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_e1300e09d4f744aa9cc49cd0f698d991",
+      "statement": "`EmailService` renders Jinja2 HTML/text template pairs from `src/templates/email/` and sends them over `aiosmtplib.SMTP` with a fresh `connect()` → optional `starttls()` → optional `login()` (only when both user and password are set) → `send_message()` → `quit()` sequence per email, with no connection pooling; any failure is wrapped into `EmailSendError(\"Failed to send email\")`.",
+      "evidence": [
+        {
+          "resource": "repo://src/core/email.py#L113-L177",
+          "version": "repo-lines-v1:sha256:e197321f8593dc708573fadb84fc4564da0b3362686af67fa62841e431cdaeb3:eyJzZWxlY3RlZExpbmVDb3VudCI6NjUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImQ5MjM3ZDJmZTAxM2JiYjk0NDAzYmRlOWE2NzViNzQzMmJjZDk3NjgxNGUxYjU4YzBmMmQ5Y2JiM2E4ZTJlM2IiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjU5MDlhNTNhNjE4ZDAyOGUxZDMwMDBjMGE3YWJjZWVjYmU1ZmIzN2Y0ZTUxMWVmZTQ2NjQzZmFkNmU2Njg3MmYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImY5YzFmMGE2MjVmZWNmZmY2YzlhNzZhOGFlNTIwNzRlYzIwNmFlZTRlMTFlMzYxZTQyMmQ5MThjZmUzYzkwZGIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
+        },
+        {
+          "resource": "repo://src/core/email.py#L15-L111",
+          "version": "repo-lines-v1:sha256:5ae8c95bc951b2d2cb76534fd8e26fd53f11c67e7b67012f173560a14f26a0e9:eyJzZWxlY3RlZExpbmVDb3VudCI6OTcsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjE4NzIxYWZjNjhiZWQ2ZDMyNjQ3Mzc3YjNjYjIxMzJmYzA4NTM5MDFmNWRjNjZkNDMzNWE4MmFmM2IxNmI4MTQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjI2Mjg3Njc4YmIwZmI5NWFjNzZmNmY1NDU1MGY2YzA3YzQxMWRmMTYzYWY3ZGJhY2Y1MjJlMjI1ZWUxZGFkNGMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImU1YzFjNDYyZTJhMzlkNzQ3NTlmNWUxYjEyNmY3NjgzYTJiNzMwMTE4ZTE4ZjUxMjJiMDhjZWRlZWI2NTBlMjMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjMzOWI5MTUwNDEyNTk0MjZkNTYzZmRiZjQ0NDhmOTgyYjZjOTAwNTgxNTA5ZjI2Yzg4YjU3MGU2MTk3MmI2YWYifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_697b5921d56148cbaa34f49cfd1278d5",
+      "statement": "`settings.frontend_url` is interpolated into outbound email links — the verification link, the price-alert deeplink `{frontend_url}/security/{security_id}` and the external-account error deeplink `{frontend_url}/accounts` — so a wrong `FRONTEND_URL` produces working emails with broken links.",
+      "evidence": [
+        {
+          "resource": "repo://src/core/email.py#L113-L152",
+          "version": "repo-lines-v1:sha256:9ea2e506d0447bfb3b593fcf68f2ff871d036e082c9d43d19f589b0fabfde6bd:eyJzZWxlY3RlZExpbmVDb3VudCI6NDAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImQ5MjM3ZDJmZTAxM2JiYjk0NDAzYmRlOWE2NzViNzQzMmJjZDk3NjgxNGUxYjU4YzBmMmQ5Y2JiM2E4ZTJlM2IiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjU5MDlhNTNhNjE4ZDAyOGUxZDMwMDBjMGE3YWJjZWVjYmU1ZmIzN2Y0ZTUxMWVmZTQ2NjQzZmFkNmU2Njg3MmYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImY5YzFmMGE2MjVmZWNmZmY2YzlhNzZhOGFlNTIwNzRlYzIwNmFlZTRlMTFlMzYxZTQyMmQ5MThjZmUzYzkwZGIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImIyNTk1MDkzNDI3MDcwNjZiZmY5ZTQ2YjBhMWY0NGY0MWMxODY4ODk0ZjJkNDdmMTE5NGE5MTZlODk3YjFlZmUifQ"
+        },
+        {
+          "resource": "repo://src/integration/task.py#L207-L218",
+          "version": "repo-lines-v1:sha256:b2b898d12a6be9d57a03b3e174459954281eb2943abab07905ff9f99f3add79d:eyJzZWxlY3RlZExpbmVDb3VudCI6MTIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijk1ZThjMGVkZTNjOWY1ZmI4Yzg4Y2Q5Y2NkYTU5NmIxYmQwOGQzM2NkN2VkNDJlY2ZhN2M3ZjA0YTg5NWY3NGYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjMwYzFmMTg4ZjE0MmVkN2E4MjQ2ODBiMjA3MTcyYzU1MTliYzYxNGE0OGZkYTdjZjE2N2VkYjhkZGY3OTk1NmMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjJiNDExMDU0YTdiMjIwNmU2NTg0NWMyZTIxNGNkYTVmZWU1MmJhYzU5MjYyMGNlYTkxNTBiNzk1MDk1MmY1YTQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjlhYTIwYWJjMjEzYTM3YmRlNTE0OTQ0ZGRhMjFhMDMxNjBlNjI2NTExM2RhYzQ0NDNkOTliM2FmNmQyMWMwMTAifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_c8dcf8845a134ebaa871cc9f47b9796f",
+      "statement": "In the dev Docker Compose stack `SMTP_HOST=\"mailcrab\"` and `SMTP_PORT=1025` point email at the `marlonb/mailcrab` sink service, which is published on `MAILCRAB_PORT` (default 8003) at `/`, so nothing is delivered externally in dev.",
+      "evidence": [
+        {
+          "resource": "repo://.env.example#L34-L41",
+          "version": "repo-lines-v1:sha256:344c1adb1e7072b21eb6e8e42b31c6f9cd6293a06f960ecc872d5ce5c94dacbc:eyJzZWxlY3RlZExpbmVDb3VudCI6OCwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiZWUyZjM3YzM1OWI0YTM4NjU2NmM5ZTAwMzMwODE2NjVjZWY0YzBiYWQ0MGY0ODJmZTNlMjgwNzE0ZTM2ZGJlOSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiYjJkNzVmZjk4YzM2ZjUwZjI5MWNlNzI1ODc5YTQ4NTRkZTVjNDM2MWZiZTA5NjU2M2M1Y2I3NjAwZDk5ZjM0ZSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiMzYyYjZjOTc3ZDVjNGI5MTQ0MGE3OTkwMGFjMGZkZmJkYzI2ZmI2NThiYzBhMGI1MzVjYzZlNmU5NmNlN2VkMiIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiYjEwYzYwMGM5ODQ0N2YwZDZmMzM3YTRiNzAyYjFiNzVkYjJhNzE5N2Q2YjcxODlkZjIwYWM4NTE3ZWQzYzVjMiJ9"
+        },
+        {
+          "resource": "repo://docker-compose.yml#L105-L109",
+          "version": "repo-lines-v1:sha256:832dc1f94ef76b7151684bf8eaa1c5e9484fa931e83d9ff3eff2d95880d3278f:eyJzZWxlY3RlZExpbmVDb3VudCI6NSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiNGVkZDYwODA1M2U2Y2I5OTQzODhjMmU4NzIwYmFiYjBmZDdmZGNmY2EyYjc0ZDMyNzFhNTA1YTZjMTAwY2JlZCIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiZjA0YTAyMzQwMTkzYThkMTk5MTU0ZjQ0ZjYyYzc5NjMzNWFlNWI5OGMxM2MxYTI1NWIzMTY1NGMyYmNjMzNmOCIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiYjZlNTkxNTA2MzYwMzg1ZjE1NjMxZjcxY2VlZTZiMmViNjg5ZmQzNTdiOWFhYzNmNWRkYzRjZWMxMjdiZDRhMiIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiYTQ0NjkzMDBkNjk5Y2QyMDRlZDZhYWI4NzI2ZjYzMGFmNzRjZTY1YTJiNWFiYzlhYzU4MTNmNWExZWEyOTE0MCJ9"
+        }
+      ]
+    },
+    {
+      "id": "claim_2227c541d716421da51f10e54647057b",
+      "statement": "Redis is reached through the module-level `redis_manager = RedisManager(settings.redis_url)` singleton, which keeps one client per running event loop in a lock-guarded dict, prunes and closes clients whose loop has closed, and lazily creates a `decode_responses=True` client for the current loop — the design that lets one singleton serve the request loop, the pub/sub listener and `asyncio.run()` task loops.",
+      "evidence": [
+        {
+          "resource": "repo://src/core/redis.py#L14-L66",
+          "version": "repo-lines-v1:sha256:8a4b86471a3e0ad564162e14fc3f1cf3b8e606cab3f1cf5601258e769e948f23:eyJzZWxlY3RlZExpbmVDb3VudCI6NTMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImQ5OTgzNTQ2OWNiODgyYTE2Mjk2OGJiMmZlNTY4ZTU2ODg0YWQ0ZDlkYWFmMGM1ZDEzMDJiYmJhNDM5OWYzYmYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImE4MzczMWM0ZWQ1ODhhODZiMzZhZjk3MjVmYzJkODUzMDI0OTIwNDliMjgwMWQxZWQ3MDEwYjI5YWIzYWZkNGEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjYyMDA5N2U0YWE1MDA2OGJhMTU3ZjlhMjczOWZhZDg2OTk1ZTFlMGNkY2NkYWRjNTg5N2MyMDM0Yzc0ZDNlZmEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_5b40114f9bfb480da04e46aa030d59bf",
+      "statement": "Two Redis consumers deliberately diverge from the shared manager: `indicator_cache_factory` builds its own client from `settings.redis_url` with `decode_responses=False` for binary-safe payloads, while `security_search_cache_factory` passes the shared `redis_manager`.",
+      "evidence": [
+        {
+          "resource": "repo://src/market/cache.py#L260-L265",
+          "version": "repo-lines-v1:sha256:67cb01cd7f7b926d3777ea80bdd277d08f2625c47ddbb7fc2cdd2e76c18557c9:eyJzZWxlY3RlZExpbmVDb3VudCI6NiwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiYTlhNjgyZDQwODY1N2RmZDZmNjg3YTk3ODM5MzI0NzIxNmFjM2IyZGU1MmI1N2Q5YTViYTk0ODM4M2ZkM2I2NSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiOGRkMzBhMzUxNGRkNjQwZDJjZWExNTQwZWNhOTZkNTM2NWY4MWY3YmYxNDAyYzA2NDQ0YWI0ZmIyYWY3MmE3NyIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiNTFlMzI0YWQxZmNlMTk4YjNlZDhkMjFjOGQ5NTNmMWUzN2ViMTA5NmY0NDhkMmZjNTMwOGZiOGJjMDdhMTI1MyIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiOGZjMzcwYmIxOWVkZGEzODZmOGZkMGQwZWVkYjZmYjA3ODhlNmVhZDgwODU4N2E0MTRhZWEwZmM4ODliMTY5YSJ9"
+        },
+        {
+          "resource": "repo://src/market/cache.py#L368-L370",
+          "version": "repo-lines-v1:sha256:852e33cd006b06bc7c1ca2bdff92134b5ff7d0352fd26f180197ea8c6dacde4a:eyJzZWxlY3RlZExpbmVDb3VudCI6MywiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiZTg1YmZjYjA2OTkzZTdjMTE2Y2MwNzhlMDAyNTIyNzk0YjIzZGMyMDBlMTM3MzE2NjAwNTU0MjZkMzc3ZTA4MSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiMmVkMmRjYzZkN2Y5N2YxMWJjY2UxMmJiZjVhZTU3NGYyN2Y4ZDQ0ZThhNmQ5NWE5MWNiNzVhNDU2MjI0N2E2YSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiODI0ZGYzOGQwMDg0ZmIxNmIwMTFhMzI0NzgzODFiNjQ5ODYxOWE4YjU4NmVkNDM4MTQ0OGEwZGY0NmQxMWJhOCIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjAsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiZTNiMGM0NDI5OGZjMWMxNDlhZmJmNGM4OTk2ZmI5MjQyN2FlNDFlNDY0OWI5MzRjYTQ5NTk5MWI3ODUyYjg1NSJ9"
+        }
+      ]
+    },
+    {
+      "id": "claim_381f78db6cb7478a96e6d9cd50c2f860",
+      "statement": "The indicator cache key format is `indicators:<security_id>:<interval>:<chart_style>:<sha256 digest of canonical indicators plus normalized date window>:<price_count?>`, entries use a 3600s TTL, and invalidation scans `indicators:*<security_id>*` (or `indicators:*` to flush all); cache get/set/invalidate errors are logged and swallowed rather than raised.",
+      "evidence": [
+        {
+          "resource": "repo://src/market/cache.py#L162-L176",
+          "version": "repo-lines-v1:sha256:294e34e273de38f51a7612b3e7331b8e4dc6305da31b13eb17b2ffbabfe86b4c:eyJzZWxlY3RlZExpbmVDb3VudCI6MTUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImI1NjljYjA5MjgwZWUwNzgxOTQ1ZTQ4ZDQwNDFiZDJkZmFhZTY5MWFkMmVhYmY1ZDNjYmEwODQ2YzcyMTZjYWEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQyMDc4MzkyZmZlOTM1MTNhNGNlYzA2MjQ2ODZhOTcyM2Y4MzgxYjM4YTNjNjBmYWQ0NmYzYjEwYTc2NjVlN2UiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjUzZTI2NDY0OGE4Yzc1NTU1MDAzYmMyYWIyMDNkNjJkYzZkZTMyZTczMGUxZWViMjZjZjBhM2U4MWMyZWYxY2MiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjJlYzRjODEwYmExZjk3ZDMyOGM1Njg2NzcwZjdiZDQ4MGFiYWIyZDg0MmM4NzM1MDExNjEwOTc4ZDkzZDEzN2MifQ"
+        },
+        {
+          "resource": "repo://src/market/cache.py#L221-L257",
+          "version": "repo-lines-v1:sha256:f03d0cfd899ab608b0b3393185491e68fbea86e833b3ebdb31b92c2c237ee833:eyJzZWxlY3RlZExpbmVDb3VudCI6MzcsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijg2MjI3YzA4ZDZjZGY5MTQ3MDgzMzBiYmY5NDBiMWVmMGEwMWRlMzBkYzA4NGJiNzUwNDVkNjJiZDRjMGU0ZGQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjBjZmI3ZGE5MzkwMjIxMWQwNTYyYzk0MmE3YzFkNjI2MDVkNDAxYjk3NTg2MTA3OGU5MmRhMmI2NjAyY2U4MzMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImU0ODQ5MWU3ZjhmMTc4OGI2YmMzYTU5YmU2YzBkZTFjZTk5Mzc2Njg5OWRiY2RhMDMyMDM0NGNkODQ2YzAzYjAiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjM2YWFmYjZmYzhlNGNiMjUyNzU4MWFiZWNiNTkyZDEzODNhZjYwYjIyNGVmMjVmN2Q0MTI0ZWNiNzk5NDMyZGEifQ"
+        },
+        {
+          "resource": "repo://src/market/cache.py#L23-L35",
+          "version": "repo-lines-v1:sha256:3001e34e5130957bb774abe367049175c62638e7aabef2d4e7e915ba463bc3a0:eyJzZWxlY3RlZExpbmVDb3VudCI6MTMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjA4N2NiNjFlZDVhYjA2Y2MwNzg5YzE0YzI1ZjRhYWI1N2U4ODZjMTI1YjcxNGJjNmM1ODUzMDlmNWYxOGYyY2MiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjA3YmNiNjc2YTg3MjdhYTk5NzU3YmU4MmQ4YWFlZDdkZGQ3OWM1NDM3ZDBhNDUxZWYyOTI5NzcxZDU4NzQ3ZTYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjMzNTZjM2JmOWI2OGI5MjVmMjlhYjU3N2U2YTZlMzIzOThjMTU3OWVlZjAzOTk5NjQ1MTNhNTZmNWUxODA4ZDgiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImJmMGM4ZDZlZTQ0YzM1YzY3ZTMyOTUyNWQwMTRmNWZmZjgzM2MxNjY0NDNhMWVhOThhMzgyZGZkMjk3N2Q3MDAifQ"
+        },
+        {
+          "resource": "repo://src/market/cache.py#L84-L122",
+          "version": "repo-lines-v1:sha256:30bc921520d4b84f2144a5e5c8f845a7925404d622514213998dbfcb7d558d87:eyJzZWxlY3RlZExpbmVDb3VudCI6MzksImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImU1YTRiMDdhOGZlN2Q1YjU2YzY3ZmJlNmI4MGIwOGRlZjBjY2JlZDZhNzBiZmE4YmE1MjFjNDQ0ZTYyZGViNTEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjA5OGJmZWQyOWQ3OTE1ZjE3NjY0MDFmYjEwMTA3OThiYTE2N2NkNWMxMWIxM2RmYzUzZjVhMTZjZDg5Y2FlYjUiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjYxZWE0MGM3YTM5MzM1ZWM3NDFiZmI3M2U0NjAyNDlhMTNkNmJmMTUwYjZiZjQxNTY1MjVkYjYwNWJhNWZhYjEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImU1NTdkYzZhOGFhMzU0NmU1MDYyNzM0NzMxN2ZmZDdlMzliODQ1MWEzODMyYTNhMTBmZTljMzVmMWFkYjkxZDQifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_5668610caf4346ab9a1dfdc3fc654a48",
+      "statement": "Redis holds account-sync status as a set at `account_syncs:active:<user_id>` with `settings.sync_ttl_seconds` (default 300) expiry, used by `mark_sync_started` / `mark_sync_finished` / `get_active_syncs` so the sync-state TTL is the safety net for a worker dying mid-sync.",
+      "evidence": [
+        {
+          "resource": "repo://src/config/settings.py#L48-L48",
+          "version": "repo-lines-v1:sha256:0e5d1b6c39831f88c459cede3a5cb80b5e0e5cc8ee626a014554453889165f75:eyJzZWxlY3RlZExpbmVDb3VudCI6MSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiMGU1ZDFiNmMzOTgzMWY4OGM0NTljZWRlM2E1Y2I4MGI1ZTBlNWNjOGVlNjI2YTAxNDU1NDQ1Mzg4OTE2NWY3NSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiMGU1ZDFiNmMzOTgzMWY4OGM0NTljZWRlM2E1Y2I4MGI1ZTBlNWNjOGVlNjI2YTAxNDU1NDQ1Mzg4OTE2NWY3NSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiOTkwY2NjOWJiYTNlMTVhMTE5Y2U0YTRhMDhiMzIyNzY3NWYxZmI1YzE0NTM0NmE1NTRiYmNlZjQzMDNjMjhmNSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiZGNkNTkxMzZhM2E2YjQyYjlmNjlhZDBiNTY5YjdmNWQ0Y2JiY2RlM2FjMzlkMzM1MjUyNjE4N2M4ODk2NjBkNiJ9"
+        },
+        {
+          "resource": "repo://src/integration/sync_status.py#L12-L30",
+          "version": "repo-lines-v1:sha256:587945af185ba5206c6b2183a71328b68e54db613283f4efb44a15b1aafefa15:eyJzZWxlY3RlZExpbmVDb3VudCI6MTksImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjdiMDYyZTc0MDZmZWQ5ZjhlYzIwMmJmMjk0MDU1MTJiNGFhNGYxNDhkM2E5ZmMxZTNkM2RiMzQwYWY1YjRhODMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjRlYmU4MDViY2ViZjc3NjU5OTQwY2JkODAyNDNlNDcyZGIxODUyNjQ5NjkzZTBlMzBlYjMwOTZmYTkyNGRlNTgiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjYyMDA5N2U0YWE1MDA2OGJhMTU3ZjlhMjczOWZhZDg2OTk1ZTFlMGNkY2NkYWRjNTg5N2MyMDM0Yzc0ZDNlZmEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_36de6851554a4852a441afe8b6d3058a",
+      "statement": "Redis pub/sub is the WebSocket fan-out: `ConnectionManager.send_personal_message` publishes `{\"user_id\": ..., \"message\": ...}` to channel `ws_messages` so any process can deliver, falls back to local-only delivery when Redis is unreachable, and the `_listen_for_messages` task resubscribes and restarts itself after a 5s delay on unexpected error.",
+      "evidence": [
+        {
+          "resource": "repo://src/ws/manager.py#L172-L214",
+          "version": "repo-lines-v1:sha256:4a96211b6d58f8f0f7e70198692a45e07f4480bad678ce960f79ad47d4fd2dc7:eyJzZWxlY3RlZExpbmVDb3VudCI6NDMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjRkZTY2OTk0NDExMjVhMTk0ZWU2YzJmNGM4YTM2NDc5Y2Q3NDA2ODdhZmJmNDMwNzM2ZDNhMDdmYTlkYWI4YjAiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImFlODcyNGI5MGI1Mzk5YjRlYWY4YzZlNDcwMDAxMjNlMjk3ODJiMDYwNjM1YTYzMGVmYWYxNDhjMTNiOThlZDciLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImUzYWU5NWRiMjg1YmQ0YzhjMmQ2MGI4ZjVhYmI5ZjgxMWQyOGU1ZmJhMDhkYTMxNDUzMzAwNWIxMzUxNmM2ZmYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImJjNGEwYzMwNGY1OTA5ZWEwOGUyNzA2NmJmZmU2OGIzMjhiZjZjZDllYjNlY2I3Y2YyMWI1ZmFlYzRlMTA5MDgifQ"
+        },
+        {
+          "resource": "repo://src/ws/manager.py#L94-L127",
+          "version": "repo-lines-v1:sha256:1f72fe4711132f1566b6419d25e85c33408629eb55de36ca5e935284a16d8f38:eyJzZWxlY3RlZExpbmVDb3VudCI6MzQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijg5MWY0ZjBjYmJiZTAzZWQwZmFlYzY3ZjY2MmFhMjdjYWY5NjliNjUzMWM1MWNiYThhMmE5OWM0ZTQzNjE3N2EiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjJkZDNiZWVjYjJmYjUzZDZjNWQ4NzQzZTE4MTk5OTMyMDY5NTQ5ZTk4M2ZhYjUxMmFjM2YyODU3OTZhZTE4NzIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjQ0MGJmOTcwZjYzMGM4ZGFhMjMzNzg2ZmVjYmJhNjhmNmNkODRhMTlkMmQwOWVhMTIxMDNiYTkzNGY3NmY0MTYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjI3NjU5NjczMzMyMDlmYjIwN2Y1ZWEzODU3MmZkMjMwNTdkNzgxZmY0YWRkNmY0ODhkMzJiYzYwYjMyYzY2OTMifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_329d5e1857ab41ee93b2d28716eeaae7",
+      "statement": "The Huey broker is Redis-backed in normal runs — `huey = RedisHueyWithRegistry(\"retail-portfolio\", url=settings.redis_url)` — and is swapped for `MemoryHueyWithRegistry` when `settings.environment == \"test\"`.",
+      "evidence": [
+        {
+          "resource": "repo://src/worker.py#L21-L24",
+          "version": "repo-lines-v1:sha256:80e33caa99afc788781a938d8fd3a51a5fdc1b1632f61c9ad7be8d8794b6aae8:eyJzZWxlY3RlZExpbmVDb3VudCI6NCwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiN2Q5ZGE0NGQxYTQxMzEwMTI5MzNmNGJkYmU5MjNlMzQwM2FjYzg1NzdiZDEzY2MyMDc2M2NkNWNmOWIzYzgzNiIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiZDM2OTAxYTAwMzc5OTc5ZWVhZDFkNDQ5MmRjYzc1OGM5MjhlMGNmNDY2MzFmODFiODEwZWJiZjA2MjdlMmY4MSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiODU0MTI3MzA5ZmRlMmJlZTE5ZDM4NjUxZGQ5ZTlmYmJmZDMzYTkwYzZiNzU4OTg2NjgzMzc3ZTViY2M3NTI5ZSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiMTU5ODBiNGM2YjM4N2Q3MWVjMjdmZDlkNmE1NDYxZmNlMzNlMjE4NDJkNzllNTQ3NTIzZDc2YjYyYThjMDRlNyJ9"
+        }
+      ]
+    },
+    {
+      "id": "claim_b6847a06c4a14eb0b735e10360b260a4",
+      "statement": "The Go indicator sidecar (`services/indicator-service`) is a stateless calculator whose `POST /compute` accepts `{interval, candles, indicators}` and returns `{\"indicators\": {resultKey: points}}` keyed by the spec `id` when set and its `type` otherwise; too few candles yield an empty series with HTTP 200, an unsupported indicator type is a 400, request bodies are capped at 10MB, and `GET /health` is the liveness probe.",
+      "evidence": [
+        {
+          "resource": "repo://services/indicator-service/README.md#L15-L93",
+          "version": "repo-lines-v1:sha256:d0a9e3afacc115f58d49797cc786ea584748fef82c989c0ae99bb6ec29774720:eyJzZWxlY3RlZExpbmVDb3VudCI6NzksImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjljNjkwY2E2OTYxNTU4ZjQ4ZmQ3MjA2N2NmMjVmN2RlMzQ5MmRiMDEzYzAxZmI2ZWVjODA0M2ViMGNmNWU4NGQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjBiMTVmYWYwMzQ1M2JkMTQ0NzExNDRiY2U2MzZjYTE5MzlhNzEzODQ4YTJkZjQ3ZjA1MDRkMTRkZDQ3NjJmZTMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjY3MDMzYWM2NGNmNTVmNzMxMDNiNTRkNGM3MGVhNTY3ZDA0NmZjYTk2OWY2ZDFkN2UwYjk5Yjc3NTk3OGE1ZGMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6Ijk0M2YyMjM0NGNlZjFlZDA5MGMyYmZjZDI2YWVjZDA2YmI4NzEwNzVjYTY3ZmQxYTMyY2I3MDQ2ZmFhOGI3YTEifQ"
+        },
+        {
+          "resource": "repo://services/indicator-service/README.md#L220-L251",
+          "version": "repo-lines-v1:sha256:a4c0e696b18b0e6e9eeac62de8cb26ac8104716f0778253081b3a83ec5b8c4cd:eyJzZWxlY3RlZExpbmVDb3VudCI6MzIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAxYmE0NzE5YzgwYjZmZTkxMWIwOTFhN2MwNTEyNGI2NGVlZWNlOTY0ZTA5YzA1OGVmOGY5ODA1ZGFjYTU0NmIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjdlNmIzMmY1ZmY3YzNjOTE4YzcxYmU1NDczNGFjOGU0YWNkNTA3MzY3ZjI3MmZmMGYwMTQ3NmM5M2MyMmQxZjkiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjA1NjkzNWZjYmQwNzU2NjA3YWZlM2UxNjEyOTcxYTRkNTY5ZWYxYTNmNTJmZTYwOWU4NDk2YzIwYmU5ZWVhOWIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_75753c2570c7417b82cfecac1a08bdb6",
+      "statement": "The indicator sidecar exposes no authentication and no rate limiting and is documented as intended for the internal Docker network only; dev Compose publishes it on `${INDICATOR_SERVICE_PORT:-8085}` mapped to container port 8080, so publishing that port beyond localhost hands out an unauthenticated compute endpoint.",
+      "evidence": [
+        {
+          "resource": "repo://docker-compose.yml#L111-L121",
+          "version": "repo-lines-v1:sha256:6ac06e0853ce71e15ffe1cff5bcd5e2a524573747074726468492e4f9ea34102:eyJzZWxlY3RlZExpbmVDb3VudCI6MTEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjU0OTc2YThhZDZhZTQ2YWYzOGU0MGQ4ZWMyOGY4NDU5ZmExNWI1Y2JiYjQ0N2IxNmI0ZTdlZmRmYWMzZWI5ZWQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImUyZWRkODUzMTM2ZTliOTZiYmY4OTIwMjVjMzc3NzJhMDQxZWE2NGFlNGY3M2ViYjE2YTEwMzU1OTIxM2UzZGUiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImEwNWQ4M2M0YjRmMGI4MWY5MGFlZTI0OWU0NjBhNjQ3ZWY4YTZjODM4OTgwNWZiZDNhZjBhMjVmYjk2NjkxZDkiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjU3YTIzZjkwMzZkNzYwYmJjNDA5NDNmZTJlZTkwMzNiZjM0ZTg0ZGE1MzBiNmUwN2MxNzBjNzJiMWM3Y2ZkZWYifQ"
+        },
+        {
+          "resource": "repo://services/indicator-service/README.md#L12-L13",
+          "version": "repo-lines-v1:sha256:25617046c485ae86f8b3072901f19f9480099eb259471ec6a930e98f8bf32f27:eyJzZWxlY3RlZExpbmVDb3VudCI6MiwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiOTkxNzg2ODE0ZWFkMjViODEwZDJiNDIxZjVmZjZjNjk4YzQ5ZDU1MWRmNGMzNDY4ZGI4Zjc4ODdkYjlhYmVmMyIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiZjlkMjNmOGQ4NDc0MDVhOTdkOTg5MDNlNTY4MzQxYjljYWI2Y2EwMGM5MjMxYzRlNDQ5OTc0OGZmM2Y4OTcwYiIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiZDA4YWRhMGIzZDAwZmIzOTUxMmZlZGFlYzI2OTE2ZDZjZTY0OWIyYjNhYzYxZDIwOWEyNGFjNTFlOTQ0NGU3YSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiOGM4ZTU0MTJjNTRhMDNlNzFlZmJjNTdjY2I5MmRmMTI3ZTUwYmZkZDU1NmE0N2UyYjI1YTU3ZTI1Mzk0NjZkZSJ9"
+        },
+        {
+          "resource": "repo://services/indicator-service/README.md#L170-L184",
+          "version": "repo-lines-v1:sha256:3db463dcecc367e6826ad9107452598a7dbfd272a463fa6f4a597139c8683fd7:eyJzZWxlY3RlZExpbmVDb3VudCI6MTUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjJiNDVkZDhkOWVjZmZhMWE0OTczMDUzMzU2ODI5MGQwYWUyZTAyN2EwMzIzNTkyYTA3ZGNlNGU3YjEyNTRiMWYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijg2YTc0ZGUyNjYzYWZlMDBlNmQwNWRkOGYwMTEyZDZmYTRmNzIwODFkOWRhMWZiYWI4MzM2MmY0ZDU0MGMxMDYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjAxNWZiNjdiYTUyZTIxMjIyMWYzODY0ZjgxNTY0YTc0NjNhZjRkMzA2YjM5Y2MxMjkxNzg1ZjNhYmE5YjdhNzYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjU3YmRmZDQwMWUwYjZkNDlmMzIxNDI3NDA1NzAxMzJjNWY2ZjNlY2E5OWZkOTU0MGIyYmQzZTNlY2U5MjU0ZTEifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_e6f4e52f2fe54d91a1baaba488c8d65b",
+      "statement": "`IndicatorServiceClient` (`src/market/service.py`) is built by `indicator_service_client_factory` from `settings.indicator_service_url` with a default timeout of 10.0s, owns a single long-lived `httpx.AsyncClient` reused across `compute` calls, and closes it in `aclose()` only when it created the client itself (`_owns_client`), leaving an injected client open.",
+      "evidence": [
+        {
+          "resource": "repo://src/market/service.py#L387-L412",
+          "version": "repo-lines-v1:sha256:d4ae3d34dab5555625324b7b786b433ef01c20835909e2261beac313e491c1e7:eyJzZWxlY3RlZExpbmVDb3VudCI6MjYsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjNjYzJmZjgxODkzMWRjZGRmM2Q4NzgzM2EzODgzMGEzZjk5MDA0YTExYTc2ZWQ1ZGM1NDIxYTkyN2E3YWRkYjkiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImM0MWYyNzQ1MTNlOTIwM2Y0MjMyZDkxOGZhZGJlNzllYjIzNmRjNDBjZTFkM2JhNjRmZTY4NjcxNGM3ZGY5NDIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImQ3MjIzMTA2ZmQ4NzQyYjcwZWEyMzNmOWRjMzU5ZjRiMDJiYmIwNjliNzI4M2VlZjc2MjQ5OTUxNmJkN2I5YzgiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImFmNDk3NjQ0N2I0ZjgxZTg4NTQwMTU3NTYxYTEwYzJmMjUxNDNiNDMyNDkyYmEzNjk5NmMzNDAyNDJkODEwY2EifQ"
+        },
+        {
+          "resource": "repo://src/market/service.py#L471-L485",
+          "version": "repo-lines-v1:sha256:ababf9c499dfd9c9a90bd446b070f0d8ec872119868a4a34bcac48efd1c032e8:eyJzZWxlY3RlZExpbmVDb3VudCI6MTUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImU0Njg1NTNiMjBjM2YyYmY1NDRiMzA2ODJmNzMxN2VkMmYxZDY1NDM0ODQxZjk3NmY2N2E5YjY3YTk1MmU5YmMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjRiMDZlYjY3Njg3NTUwMzcyZjc4NjMwNjE0YzBmNDgyYTU5MTYxMTgwNmQ2Yjc0YjhjZTYzYWNiMzc0MTVmOWYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImE5YWJhMDA3ZTU2MTIwMzVmNDFlMDdjYTJhYTUzNDAxMTc3MGVjYzhiY2I0MTQzZThhN2IxYjEyNDhjZWVlY2QiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
+        },
+        {
+          "resource": "repo://tests/market/test_indicator_client.py#L161-L224",
+          "version": "repo-lines-v1:sha256:26f38c426a50dd73d30ed84613c1787f667349e30a65db96aa2cf34d9d05eba3:eyJzZWxlY3RlZExpbmVDb3VudCI6NjQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImI3YTgzMWZhNDcyNmZjMjMxNTE0NGY5YTA1NWJmZWMyNWYxYWZkMTI2YWFmZjU3YWZmYmU5NDBlZjVjNmE3MzUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjUzNzQ5MzQyM2FhYjMxMmM5NmEwMWQ1MjBiNWFmOWQ3MWE5NDYyOWM1NTAyYTc1OThkODE3NGY1NmYzZDhkZGUiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjU0NDI2NjQ4ZGU0ODYzZGU1YzBmMDQzZGY5NzhmNGQ2NDU2ZjJlYTU0MzZiZjk5OGVlOGUwYjU3YTZkYzg1ZjciLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_f9760080a8624edfae2735edcf643683",
+      "statement": "`IndicatorServiceClient.compute` maps sidecar outcomes onto FastAPI errors: `httpx.TimeoutException` → 504 \"Indicator service timed out\", `httpx.ConnectError`/`httpx.NetworkError` → 503 \"Indicator service unavailable\", `400` → 400 carrying the service's `error` text as detail, `5xx` → 503 \"Indicator service unavailable\", and any other non-200 → that status with the response text as detail.",
+      "evidence": [
+        {
+          "resource": "repo://src/market/service.py#L414-L468",
+          "version": "repo-lines-v1:sha256:784fbabd96e154b8b633aebc511ccbe06cc09ec95047eac609c6417edfd97365:eyJzZWxlY3RlZExpbmVDb3VudCI6NTUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjlkYjIxMmE3NzE3YWQ0NTY5NzdiOTExMTFmYjAwZTdmNjFlYjhkNDY4YzIxZjQyZDMwZjgzZTc3OGFhZjVlNzgiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjhjMjVlM2FlYzFiMTNmOTBhMzhjYjJjY2NiZjlkZjgzYmM1ZmU2NjAyODE3OTJlYzczMDc0MjcwMjMwYzcyYjYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjE1MGFkODJkN2E1YzI5NmZmMjdjYWVmZWY3N2MyOGFkYmFjZWZiNGQwMjU5ZDE4ZmFmNDc5ZDY4MmUyZTM2YjIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImY4ZjM3OGE3MWNlNTk3M2JmNGYwYWFjZjE1YWYyN2IxNGJjZjJkOGM0ZGVjNDViOGFkY2JjMDUxN2E2MWYwOTgifQ"
+        },
+        {
+          "resource": "repo://tests/market/test_indicator_client.py#L65-L149",
+          "version": "repo-lines-v1:sha256:25873088c9fbde8c95378d5c68178a1dbe4353274ee31ad34a641555db86136d:eyJzZWxlY3RlZExpbmVDb3VudCI6ODUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImI3YTgzMWZhNDcyNmZjMjMxNTE0NGY5YTA1NWJmZWMyNWYxYWZkMTI2YWFmZjU3YWZmYmU5NDBlZjVjNmE3MzUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ2NGVlN2U0YjU2MDZiZWJmNzU5NGM3Y2YyM2Y2MzM4YjQ4MTgwMWYyYmE0NmJhNGM2ODFjOTQxNWNhNDlkYzAiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImRjMjc2N2EwMTE1YmEzOTg3YjcyZWJmMzY0NmUxOGZlMmYzNDcwYzJlM2EzY2E5OWVhMjVmNjAxMTBkMmVjNmMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImJlYzJiMTM5NmM4YTFhZDUwZDIxZTQ4MGVmOWIwMTk2ZWVlNjc2NjgxZTY3NTRiYzY0NjRjNzRjYWRiYmE2MTAifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_9edc4f76cee9425fb6437013f2401d61",
+      "statement": "`IndicatorServiceClient` is registered identically on both registry paths, so `STUB_EXTERNAL_API` does not affect the sidecar client; only `MarketGateway`, `AIService` and `WealthsimpleApiGateway` (and the EODHD-backed `PriceRepository`) differ between stub and live mode.",
+      "evidence": [
+        {
+          "resource": "repo://src/config/services.py#L144-L146",
+          "version": "repo-lines-v1:sha256:4a49b11c85bec238365689a1f56c2b972285cb7e3d2286dc5c99311e7eb422df:eyJzZWxlY3RlZExpbmVDb3VudCI6MywiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiZTBkMTliMjI2OGQxYjBkODI0ZWMzZDM1YjYwNTU4ZWI4N2I5MDdiYzg4ZDFmZjNjMTI3MDgyYTBiMTdkNmNkYSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiODNhYTY4N2E1NGI3ODQ1YmY1Y2RiYzFkMDU5NGZjMjE5N2IxZmVmZDBhN2YxZDJiM2YwOTBkN2QzZTUxNjE0ZiIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiYjhiY2M4Y2FiYzhjNjIwODExYjBmZjRkZTdjMjBhNDhhMGU4NjNjMzVjYzhhNDkxNTY0MjZlOTRhOTg3NTUzNCIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiZjUxMWZlZDA2ZGE0ZDg1ZjZkZTg2YjAyOGZjZTFlOWRjMmNkZDdmMDI3YTA2MThmYTVmMzIxZDBlZjRhYWY0ZSJ9"
+        },
+        {
+          "resource": "repo://src/config/services.py#L56-L62",
+          "version": "repo-lines-v1:sha256:5f816627005aee5954f4a7f549f1c29399eb63aac713111d310dca0e8efcb242:eyJzZWxlY3RlZExpbmVDb3VudCI6NywiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiZGJhOTY1ZWU5YmJlNThmMGQyODM2OGI0MjAyYWFiMDU0NTY2Y2IxZDg3YTFkMzRlNWFjZDJjYjUxMGZlZTdhZiIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiZjMxODIwNDRmMTMzN2E1ZTFlNDRlZWU4ZTcxZjY0OTI5YmU1M2JjZTAyZGJjZmRlNGJkYjQ0NzQwMDM2MmNkMSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiNGEwNDg5NTM2NWEzMTQyM2UzZGQxZWM4ZjdkYjAzYjY3M2JhOGUxM2EwYjkyOTUwNmQ4YTZiNmM3ZWQ0MDM0MyIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiODViMDY1MWQxZWYzMWI1MGY3MDI5NGE2YjU4MDZjNjVlOWVjNjBhOTUzNDRhZjIzZTFhNGIyZDIxZTA3ODQwMCJ9"
+        },
+        {
+          "resource": "repo://src/market/__init__.py#L85-L91",
+          "version": "repo-lines-v1:sha256:01319f4e99311fcec73b50f6cfebb8edb4bb684d71ec10cbc484758308aa0b0c:eyJzZWxlY3RlZExpbmVDb3VudCI6NywiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiZTBkMTliMjI2OGQxYjBkODI0ZWMzZDM1YjYwNTU4ZWI4N2I5MDdiYzg4ZDFmZjNjMTI3MDgyYTBiMTdkNmNkYSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiYzg3ZmI5OWViNmU4OThhN2ZiNTI3MWFhY2RiNTRlMTc1MTliOTk3N2I2ODFlYmI5MWFmZjIxYzJmYTNiYjFhNyIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiYjhiY2M4Y2FiYzhjNjIwODExYjBmZjRkZTdjMjBhNDhhMGU4NjNjMzVjYzhhNDkxNTY0MjZlOTRhOTg3NTUzNCIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjEsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiYTQ5NmVhZWQ0MzVjZGI5MjBiNzg0NDc1YzYwMmQ4OTY1N2NiZGQ4Y2RkOTczMmMxNjFmOTdiNDE5NWNjOWUzOSJ9"
+        }
+      ]
+    },
+    {
+      "id": "claim_76ec0583b47b43c8b010d5168494ff8c",
+      "statement": "External-service configuration is read from the root `.env` plus the process environment (which wins), through a `Settings` model that pins `env_file=(\".env\",)` with `extra=\"ignore\"`; no external-service credential is validated at startup, so a bad `EODHD_API_KEY` or `AI_API_KEY` surfaces only on first use — or is hidden entirely when `STUB_EXTERNAL_API` is true — and changing a value requires a container restart.",
+      "evidence": [
+        {
+          "resource": "repo://.env.example#L1-L6",
+          "version": "repo-lines-v1:sha256:8dd149548716abb279ae52d9c5625e85a394639fb9d3d50485fcc42c7bb8f58c:eyJzZWxlY3RlZExpbmVDb3VudCI6NiwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiN2IxMDExNjQ1OWE0NzQzZTgxZjBlYTk1Y2U2YjRlYTk2YjZhOWQ0ZjFlMjMxNDBiYWQwM2I5ZTU0OGM4MjU3NSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiYzliNDE5NjEzZmM2YjQyNWVmY2FmNWY5Y2E3MDVjMzBmOGU3MWY5ZDg5ZjQxMzI1YTRkZjQ3YzMxMGNjNGQ1OCIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjAsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiZTNiMGM0NDI5OGZjMWMxNDlhZmJmNGM4OTk2ZmI5MjQyN2FlNDFlNDY0OWI5MzRjYTQ5NTk5MWI3ODUyYjg1NSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiOGM4YjhiMDYzYjZlYmM1YTc3N2U3ZDMxNDQ1YTQwMDlhOTgxMzI0ODM5YjE5MDI5NDM2Y2NhYTM2MzRlZjIwNCJ9"
+        },
+        {
+          "resource": "repo://src/config/settings.py#L10-L11",
+          "version": "repo-lines-v1:sha256:a3afdda2cd18b4232c7b77b5efc0813b07d224fc119dd1a03b18df0b7c9857fd:eyJzZWxlY3RlZExpbmVDb3VudCI6MiwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiZmM4NjMzMWM5MGI3OGNkYjkxN2ZkNWJkNjlmYzA3MTRkNWE1ZmU4NDYwZDg3NjI3OWUxNWZmNDJmZmM3MjM1YyIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNjkxMWQ2OWM2NjExNjYzZmZkOTU1MDE4MTFkNGUzMTVkMzEwMzNhMjUzY2I3MTk0OTc5YjVkNTI5YWRlZmRiYyIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiMjIxNGUxY2UzY2QzYjYwOGJlZjhkNTdjZjFjNjllY2EzNTMyMmM0MWU2YjlhMWMzMTQ4ZjU5MjViYTU0YjA3NSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiZWJkOGU2YTI3YTI0NTJmMTAxOGM2NzQ5OGY2MjEzMGU3ZWFlNTU3MmU3NGNiOWI1YzQ1YzhiMWM3ZDdmZWMzMSJ9"
+        },
+        {
+          "resource": "repo://src/config/settings.py#L35-L67",
+          "version": "repo-lines-v1:sha256:4630c002d551c73673b36d6314dec1a67dbf24a8065590a77ea217a3f0a5e887:eyJzZWxlY3RlZExpbmVDb3VudCI6MzMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjA1NjM5YjgyYjI1OTE2YmJjZDFjNjljM2E3ZDAzMGI1ZTk1MzdjM2RjZGNlMGRlYTk2MTkxYjYwYWRmOTFiZGYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImU2OThjYjgwZDFkN2FjYTliODM5NTVkMWIxOWRiYjM3ZTMwNzg0MWJkYzVlZjFiZGM2ZTY1Yjk0OTM4Mjg2ZWQiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImUwYTYwMzAxYmUwZDRmMjg0NjkxODIwMGVjNTUzNGY3OTYwMTAyNmJmYzQ2ZGMyNzE0ZDJlOWY3NTFmZjkwMTciLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjU4NDQ5OGU4Yjg2YzViZDFmZDc2Njc0NzMxYzcxNzZkMjY2ODg2YWQ4YzJjMTQ2YWYyZWY5ZDIxYzM2NDk0MTUifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_f7b2bc18b5e447bc856a5ad769c5891e",
+      "statement": "`SECRET_KEY` is validated at import time by `Settings.validate_secret_key`: outside `dev`/`test` it must be non-empty and at least `MIN_SECRET_KEY_LENGTH = 32` characters long or `Settings()` raises a `ValueError` with generation instructions.",
+      "evidence": [
+        {
+          "resource": "repo://src/config/settings.py#L7-L8",
+          "version": "repo-lines-v1:sha256:4f2bf3fa724d10145096992dd0a07b6281ba6e670f3c86427fca0da8287e3db3:eyJzZWxlY3RlZExpbmVDb3VudCI6MiwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiYTlhYTg3YTBkYjhiMWNmOWNiZjE0NDRhOThmMmU4NDIyNTM4N2I5ODFmZjhjYTFmMDU1ODYxOWU4M2NhNWI0YiIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiMDFiYTQ3MTljODBiNmZlOTExYjA5MWE3YzA1MTI0YjY0ZWVlY2U5NjRlMDljMDU4ZWY4Zjk4MDVkYWNhNTQ2YiIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiZWUyYzdiODliNzk1YmVlY2NjMjg3NDJmZDU0MjAyYTMwNDY4N2E4ZWQwY2Y0N2U0ZDEzOGM0NGM4NDc4YjkyNyIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiNDU0NTFjNzM1ZjNhOTMyNmY3ZDIxZmY2MDcyMzI3NzMwMWRkOGMyMzIwMWU0NGY2ZTA0YmUzOGMyZWNkZTVmNCJ9"
+        },
+        {
+          "resource": "repo://src/config/settings.py#L76-L91",
+          "version": "repo-lines-v1:sha256:a68b2fd0d656498a482c939ae4ad7b3c6bc99aea17a88a32ba456520d175d0d7:eyJzZWxlY3RlZExpbmVDb3VudCI6MTYsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjFlZjFjZGQwZjU3NDMzY2U1MDc3OTA3MjJlMmY1MWQ5NzM1NmNiZmZhN2IyNGRkN2NhMTM0NDgzMmQ0ZTUyNDgiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImE4ZjRiZjE4NzYxNjAyZDNiNTkwYjM3ZDM5OGZhOTk3Nzk3MzBhNzdiNjgxMzhmZGQxNDA3MzQ5MmUzNzY2ZWQiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6Ijc5MzEwZTU3YWU5MWE5MjliOTI4OWVlNWRlZDc1NTUyMGI5N2Q2OGEyYmVhNTUyNTVmNDZhZTgyYzEyOTBhMDMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_bb9f0e49cbc340348b0893544321539a",
+      "statement": "Backend tests must not depend on any external service — no Redis, no HTTP APIs (EODHD, broker APIs), no SMTP, no DNS resolution — and every outbound client must be mocked with each method the code under test calls stubbed; the only permitted infrastructure dependency is the ephemeral `testcontainers` PostgreSQL instance.",
+      "evidence": [
+        {
+          "resource": "repo://src/AGENTS.md#L40-L49",
+          "version": "repo-lines-v1:sha256:d6857c4e16539822a54bd5c0b5fa46fb238e4961b614a51fea96e5124a48c01b:eyJzZWxlY3RlZExpbmVDb3VudCI6MTAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijk1ZTg2ZjY4N2VhMWVhMDRiYTk2Y2M4NzlmMmZmOTI5MjgwNDU4NWVmYTU4NmU3NjA3ODYwNzg4NWVjOTMwMjgiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjU5ZjYzMDk1Y2NmNmUwYjVkNjIyZDA1Njc3YmVhYWNkYTY1OTg3MDczYTg0NDRiNjk0ODE0Njk5MmRkNTc1OTMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjVkMjBlMzhiNDY2MTExNjNkZTU1ZTQ1M2MxMjIyNDg3OTdmYjU2NjVhOTE4M2MyYjM5ZjJiMzFjZjRkNzY1MWYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjhmOGZjNWJiYmQxNzcxMGYzOGY1NzdhYTFkZjM2NjVkZGYyOWM5MjMzNWUyYTBhZjU3MjVlMTRmZjQ5NTM2OGUifQ"
+        },
+        {
+          "resource": "repo://tests/conftest.py#L37-L51",
+          "version": "repo-lines-v1:sha256:44290da37a5c9c9e57b9e72595c22775020fc0e0c6461616935e86176d55d650:eyJzZWxlY3RlZExpbmVDb3VudCI6MTUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImZlMzZhODM0MWIzMmViMGZkZGY4YTk0MzAyNjlkNzRiNmQ4MTBjMDMyYmI2NTk5MjUzNWE2MzQ0MDdiYzNjMWYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImE2YTcxNTI1NzJlZTg0ZjEwOTA2Yzc0YjlmMmE5MjQzNGRkYWIwZTNjNDI4MTNiMDRlNTk3ZWZjZWM5NTFiMjYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImI2OWVkZGU5OGY1MThlMzY5NjZmYWVhNzdiYzcwYTlmZmM5ZmE0M2FmYTczNmJhMzQ2MjI2Yjc2ZTQ3MmJlZjEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjlhYjU0NTk3YTU4Y2FiYmE0OTJkNWZlMTM3ODZkMWU5NjUxM2FiMzNlZWJmYTA5YjgyOTQ3NThmOGE0OGEzNmUifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_5599ef24fc3a4aa58f3e6ce351e5baca",
+      "statement": "Established mock/stub mechanisms for outbound clients include the autouse `fake_redis_manager` fixture replacing `src.core.redis.redis_manager.client` with an in-memory `FakeRedis` (with `mock_redis_storage` exposing the backing store), the vendor stubs in `src/stubs/`, monkeypatched factories such as `src.market.eodhd.eodhd_gateway_factory` in `tests/fixtures/auth.py::auth_client`, `httpx.MockTransport` for `IndicatorServiceClient`, `patch(\"src.core.email.aiosmtplib.SMTP\")` for email, and `AsyncMock(spec=AIService)` so the AI client is never constructed.",
+      "evidence": [
+        {
+          "resource": "repo://tests/email/test_email_service.py#L40-L40",
+          "version": "repo-lines-v1:sha256:4ebdf4fac0ec54b3b3155b02cfb2b4421581f8c02d92635ccfae9b8dc64dcab7:eyJzZWxlY3RlZExpbmVDb3VudCI6MSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiNGViZGY0ZmFjMGVjNTRiM2IzMTU1YjAyY2ZiMmI0NDIxNTgxZjhjMDJkOTI2MzVjY2ZhZTliOGRjNjRkY2FiNyIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNGViZGY0ZmFjMGVjNTRiM2IzMTU1YjAyY2ZiMmI0NDIxNTgxZjhjMDJkOTI2MzVjY2ZhZTliOGRjNjRkY2FiNyIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiNWRkZDFlNjc4N2IyNzg3NzQ0NDgyZjZkM2I3NGU1ZGIwYTI4ZmQzNTY3MjJiYTY1MTU5MDUzZDNlNWFkN2I3YSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiNWUzZDhiNmRiNzMzNDU1MjVmOWRhYTA0ODc2OTU1NmQyMTgzOTY1YjRlNmVhNzNlYmE5ZjMxNTFmNDM0MTE2YSJ9"
+        },
+        {
+          "resource": "repo://tests/fixtures/auth.py#L108-L157",
+          "version": "repo-lines-v1:sha256:bd805e6d200a6348779bdd96eada9e02492afd8d1365a47101512a2d4a44a166:eyJzZWxlY3RlZExpbmVDb3VudCI6NTAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjIzZjM2NmI5YmQ5YThkMGYzNDBhMmJjMGJlMWUyMmVlYTIwNTY4ZGQ3OGE0NTI4MWI3MjFiMzBmMjJkMDg3ZjAiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjMwYzFmMTg4ZjE0MmVkN2E4MjQ2ODBiMjA3MTcyYzU1MTliYzYxNGE0OGZkYTdjZjE2N2VkYjhkZGY3OTk1NmMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjA5ZDZkYmI0NmY3ODcyNmI2OGE5NWMwYTNkMjJiYzgxYWFhZDQ3M2FhMDNmYjZmNzk0ZDk5OGQzZTEwMzRkMjMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImVjMmEzZDQ5M2U2NjIzMDRkNzcxYTVhYjVlNjIzNWUxMWUzODdjMTllN2MwNDgzMzdmNmY5N2FkZWM0NWFmYmEifQ"
+        },
+        {
+          "resource": "repo://tests/fixtures/redis.py#L108-L143",
+          "version": "repo-lines-v1:sha256:0259d3f2808fc04dd6d381f68f06b22af2e2a1290f2cd16555acda0ae8dbc00c:eyJzZWxlY3RlZExpbmVDb3VudCI6MzYsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjZhZjhkZDU0Nzk1NDg2ZGViNDJkZmFkYTQxYzY2OTE0ODliMjRlYTA2ZTAxMDgyY2U5NGU0Mzk4YjViY2JiMWMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjdhMTNkYjM3MDJkYzljOGRmMGRmZTI1NGNiYTdjY2FiMjUyNzAwZDZlYTU1M2FlMzhjNjg0ZDRiZTk2ZjU1Y2YiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjczM2U4NDg3Yzg1ZGZkY2Y5ZmE3YjkzYzc0NmM5NDYyNWFlNDdlMTIwYzc5N2U3OTFlNzM3ZjllZDdmZmM3M2QiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
+        },
+        {
+          "resource": "repo://tests/market/test_indicator_client.py#L37-L75",
+          "version": "repo-lines-v1:sha256:8bd8c97b80e0ebee959f4a0f49eeaff503c8c24a8d221d22ab5c0e21c0bd0731:eyJzZWxlY3RlZExpbmVDb3VudCI6MzksImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjRlZjUxNjM1NzVmYmEzMmMyOWUxOGJmNWQyOWMzNWU4ZDM0MjFlMGZhNDc0ZjBhOTU5Yjc1N2M2NWMwNzI4MjAiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjU5MDlhNTNhNjE4ZDAyOGUxZDMwMDBjMGE3YWJjZWVjYmU1ZmIzN2Y0ZTUxMWVmZTQ2NjQzZmFkNmU2Njg3MmYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImYyNGRlOGRiYzU4YmIyMmRjNDIzNjhlODY3MWMyNmJhOWQ1NGVhZmEzZWE5OWJkYzM2N2ZlZmFiOTJhMzE2OTEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjcxNjk4NzgwZjVlM2ExZGUyMDUxMjk0M2RiYTYxYzMyYTRkZTM0YTc3OTEwMjE5NGQ2NWMzY2QyOTVlZTc3Y2QifQ"
+        },
+        {
+          "resource": "repo://tests/routers/test_notes.py#L25-L50",
+          "version": "repo-lines-v1:sha256:69fdccd56970927f564fb0ab021aaaf5e7d934b19dc80852d5833af27dc6906b:eyJzZWxlY3RlZExpbmVDb3VudCI6MjYsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImI3YTgzMWZhNDcyNmZjMjMxNTE0NGY5YTA1NWJmZWMyNWYxYWZkMTI2YWFmZjU3YWZmYmU5NDBlZjVjNmE3MzUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImZkNGMwNWUyMmIzNGIzZDE1ZTE4YWZjN2E0MjA1MzIzYWUxYTZiMDk4MDAzOWQ5MmEyMWZlNjc3MWQ4OTU0ZTgiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjFjNTcxODlhYjViYjZmNDNjYzJiYWRjZTlhYzIxZTM4NzBlNWRlNzEzNDBjMTRhZWNhYmJjZDIxMGNiOTE1NTkiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjA3ODYyYTkzZTlmZmEwNjAxYjNlN2E1N2ZlMzdkNTYzMmJiY2FhMTlkYTA3MGVkYTAxZGI5Y2I5ZmU1OTU5ZTMifQ"
+        }
+      ]
+    }
+  ],
+  "verification": {
+    "by": "openwiki/0.5.2",
+    "at": "2026-09-18T20:16:58.058Z"
+  }
+}

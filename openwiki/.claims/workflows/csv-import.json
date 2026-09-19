@@ -1,0 +1,512 @@
+{
+  "schemaVersion": 1,
+  "pageVersion": "sha256:f3c740388c4abcded7b72c7c460241b73fff62dda7d68db647ffe813c897ecb3",
+  "claims": [
+    {
+      "id": "claim_e6d9fdbb216f4c8c8f04159d6c5aa622",
+      "statement": "`Institution.csv_format` on `account_institutions` is a comma-separated positional template string mapping each column of a broker CSV export to a standardized placeholder, and it is the only per-broker configuration the generic parser consumes — there is no broker-specific branching in `src/account/csv/parser.py`.",
+      "evidence": [
+        {
+          "resource": "repo://src/account/api_types.py#L53-L81",
+          "version": "repo-lines-v1:sha256:801c516cdeadf848ae510a329ae010ccb52f7bc4feac88adfec70636bbcef6f4:eyJzZWxlY3RlZExpbmVDb3VudCI6MjksImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjRlOWJiNWFiMmZkZjIxMWJjYWMzODYxMDQ2ZTAwNGU1ZjQwOWIyM2JiNTdmZTkyMmZkMWRjNmM4MWYwZWNmZjkiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjMwYzFmMTg4ZjE0MmVkN2E4MjQ2ODBiMjA3MTcyYzU1MTliYzYxNGE0OGZkYTdjZjE2N2VkYjhkZGY3OTk1NmMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImVmZGYzMzcwMTg0ZjFhZDUwMDMzYTBiMjA4YmEwMTAzZGU0NzlhOTUzNjg0MTBkNGY0MzUyN2Q5NWY1ZjRlZDMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImRjZDFlMDdhMTJkZDVmYjkwN2E4YWY0NzM2NGFjMjI2ODIxY2I5M2RkZjFkMWI0ZjExYjFlYmRiZThhZmQxMzcifQ"
+        },
+        {
+          "resource": "repo://src/account/csv/parser.py#L143-L177",
+          "version": "repo-lines-v1:sha256:ec0b63fb066bdb604c931a9777e51a9a07f26eca3a77d6e9659b6fceed73f61d:eyJzZWxlY3RlZExpbmVDb3VudCI6MzUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijc0YTU1MGE2NTM2MzViMTQ3ZGM1YmZhODk1NTJiNDllODYyZjQyODhlNzg0NTJmMzAwMjJhYzQyYzU1MWI4NjgiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAxYmE0NzE5YzgwYjZmZTkxMWIwOTFhN2MwNTEyNGI2NGVlZWNlOTY0ZTA5YzA1OGVmOGY5ODA1ZGFjYTU0NmIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjE4ZTRkMzU2ZDAzYjRkOGJlYTQ2ODlkMGE2M2JiMGQwMDQ2YjgwZGE3N2QxYTZiYjUyN2VlNGE5NjI1ZTY3ZTYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImQzMjRjZjA4NjA1YmI5YWZlYjE5NDNhZTM4MmU1M2IzODMwZGVjNTY0MGQ0YzNkY2VlY2YwZjMzOTlkZjNiMzAifQ"
+        },
+        {
+          "resource": "repo://src/account/model.py#L163-L202",
+          "version": "repo-lines-v1:sha256:c9962045578c64eafa4bcb1995f7e60dbf6ef541ef3b92cd519d48f33924aeec:eyJzZWxlY3RlZExpbmVDb3VudCI6NDAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjA4ZTk3YzJmYjBmODdmNTA0ZjVkY2MzODIwNjI2YTUxYmIwYTY0Njg2NTc4NzFiMWM5NzdiMTVjYjQ5NDVlNWIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjE0ZTBmNmI1MGU3MGE4NjkyYTc5ZGVkMDdlOTBjMGQ1Njc5ZmMyMzZkMDg2YzBiYjZmMWJhODM3NGQ5ZTMwZWIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjhjYzRhN2QxY2M3OTZhYmEzZTQ2NzIzMzI3ZjUxN2U5ZjgxMTk4MmQyNTBmMDcwMjk4NmU0YjU3NjRhZDk1ODkiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjkwZDNjN2VkZDM5N2E1YzIzNTgzOTdjMGIyOWUxMWRjOTZjMDliM2FlMGM5ODA1Y2Q5MmM3MTEyOTcwOWExNjkifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_9a6171b1895c4076b16974ee815d87d2",
+      "statement": "`normalize_token` is the single normalization rule applied to both template tokens and file headers — it strips a leading UTF-8 BOM and whitespace, unwraps `{...}`, lowercases, and collapses non-alphanumeric runs into single underscores — so real-world broker labels only match the template through the `HEADER_ALIASES` table.",
+      "evidence": [
+        {
+          "resource": "repo://src/account/csv/parser.py#L22-L63",
+          "version": "repo-lines-v1:sha256:d6e57cc222b8619a80423892119aec5f8b7f10e2f340691d07f18bdf98ce4c6f:eyJzZWxlY3RlZExpbmVDb3VudCI6NDIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImY3MTU3MmJkZjMwMzgyYWZlYmE5MzZjNjQ3MGY5Mjg5MmIyMWQyMjE5MWU3NTg3MzA2OTA0Y2YzYWE1YzYwMmYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAxYmE0NzE5YzgwYjZmZTkxMWIwOTFhN2MwNTEyNGI2NGVlZWNlOTY0ZTA5YzA1OGVmOGY5ODA1ZGFjYTU0NmIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjdkNGIxMGYwNjQ1MzI3ZmMzMTM5YzU1NDZmZGE0MTM3MGFiZGMzYjUzNWEyMDFlODVjMGQ1ZWE5ZjNhMTgyNjEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjZiZDExMzIyMzFiY2E0ODdmMmMyYTgyNDcwMGNjNDg2YWYyNGZlYWQ0ZjU3MDZlNGIzZTgzZTY0YTY5MWE0MDMifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_483dde5469f64f19b7de31b6fb770dcd",
+      "statement": "`header_matches` accepts a header alias match in either direction (actual in `HEADER_ALIASES[expected]` or expected in `HEADER_ALIASES[actual]`), which is what lets a `{type}` template token line up with a file column labeled `Security Type`.",
+      "evidence": [
+        {
+          "resource": "repo://src/account/csv/parser.py#L30-L62",
+          "version": "repo-lines-v1:sha256:121d36f673c5f4d02292f34faa6b6b73cfec76fc8138c3ac80fb7d0e343faea7:eyJzZWxlY3RlZExpbmVDb3VudCI6MzMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijc0OGM4ZWFiOTVmNmUwZGQwM2Q5ZjhhMTFmYWMxY2VmYTY3M2YzMDIzN2EyMjc3YjhkODYwMmZjNWY5OTExYjIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjVmMjQ1Y2JiOGQyNmM1ZDBjNjExMTljNTMwMTQ1OTEyOWFlMzY1MjdmMzAzNmI5ZmI0ZTg3ZmIyOTU4ODBkMmMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjgxNTQyMGQzNTMwNmUxOTczZDkyY2MxZmVlZjRlZjA3ZmRjNzZiN2FhZmYyMmVkZTZjZjQ1NzcyMzIxODIzM2UiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjAwZWE4YzUxYTY5ZGEzYzdjNzdlZjFlNDZkYjg5MTJjMjU5NmJlZmQ5NTg4OGI5ZmM0NjQzMjYwMGNjMTk5NmYifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_eac84451e5a84934af51f20768674ed7",
+      "statement": "Header validation is two-stage and strictly positional: a raw column-count mismatch raises `CsvHeaderCountMismatchError` before any name comparison, and the first element-wise name mismatch raises `CsvHeaderColumnMismatchError` with a 1-based column index; a reordered export therefore fails even when every label is recognized.",
+      "evidence": [
+        {
+          "resource": "repo://src/account/csv/exceptions.py#L5-L24",
+          "version": "repo-lines-v1:sha256:6393a37093f7e9803e2c8dcc11aaf11b4b28aa8e16a5616cfc169aa2e5b688cc:eyJzZWxlY3RlZExpbmVDb3VudCI6MjAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjhjZTcyMDMzZDZlN2JkZDhkZGQxMjk2OWFiMzg2NjMwNjBiNGI0YTRiZGIzM2E5OWUzMTk4ZDliOTBkMTFjNjUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjU5MDlhNTNhNjE4ZDAyOGUxZDMwMDBjMGE3YWJjZWVjYmU1ZmIzN2Y0ZTUxMWVmZTQ2NjQzZmFkNmU2Njg3MmYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjM0OGEyZTE0OTU2ODk5NzY2OTUyZTRlMWE3NTA0YjlkYzIxYjU0NDMyOTQ2NzNkYTQzMjY0YWFmOGZiZmY4NTUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjQ3MjMwNmI5NGZiMDQ2MjBjMjE0ZDkwM2JmNDNmNTE3YjMxNzk3ZDBmYmQwNTNkMTFiMDkwNDMyN2UwYjhmNDQifQ"
+        },
+        {
+          "resource": "repo://src/account/csv/parser.py#L155-L176",
+          "version": "repo-lines-v1:sha256:9accaf2711d694db28a3dcd023af69a1cdb9f14f28983dce0f7bcb673811ff83:eyJzZWxlY3RlZExpbmVDb3VudCI6MjIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImVhMzUxMDgwYTZhOTZjMjczMjMzYzA5MGNjZGNiMTE5ZmVkODc4MWJiMDMzMTQwMTdlZTJhNWU5MTYzNjM1NzgiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImE0YWMzZjk2MmNkNGQzZjQxM2Y1OWE1YTdlMjFhMzNiYzkzZTI3MGRmYzk1NmU1YzVhNGUzZDM3MWNiYjQwZjkiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjI3M2MxZWI5MmU3MmEwNmFlOGVkNTJlNTZkMDdjMDY0NmE1NDFmODJlNTA1YzZlN2Q4ODJhZmIyZWNjN2VjNjEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImJhNWNhYjcwNjY4ZmI1ZGM5OTczNGU2MjZiOWYwOTMyMjQ3ZjBhNWU3YzkzYjlkNTAxZjQyYjQwZmM3Yjg0OTgifQ"
+        },
+        {
+          "resource": "repo://tests/account/csv/test_parser.py#L133-L152",
+          "version": "repo-lines-v1:sha256:f90f957e15209f42721e621fdc6e1fcd9b80710934c7832c811b5b5c1e2af369:eyJzZWxlY3RlZExpbmVDb3VudCI6MjAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImFiZjdlYmNiNDU5ZGViN2JkYjJkNDhlMWUzYmE4NzE3Y2VjMjBiYzA5MWMyNWU5NDJhMmMyNTJkZGE1M2JiZGIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjZmYzljZDQwN2QxYTg4MzNlZTA4YmMxYzY0ZDdjNTU5NzA1NzlmYTMzODQ4Yzc5YmQ3ZjA4OTBkZDlmZDg3NzQiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjYzMGMxYWY0MTdjZTliOTRhNmE5N2JkNzBmZGExNjA3NGIzZmU1ZGY5M2Q5ODlkZTQ5ZWM4ZDY2OTAyYjg3NzMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjY3ZmJiZjIyMWYzMTFhOTdmOGNlYmMzZjZmZWU2OGQ3N2ZlODQyOTZiNjg2NjBiYmQxZTNmN2NiN2IzZDUyYTgifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_9d38c82c89364f9989f159d6c1b1ffce",
+      "statement": "`map_account_type` lowercases and trims the raw account type and resolves only the documented `ACCOUNT_TYPE_MAP` keys (TFSA/RRSP/FHSA variants plus non-registered/personal/margin) to `AccountTypeEnum`; an unrecognized value raises `CsvUnsupportedAccountTypeError` and aborts the entire parse rather than skipping the row.",
+      "evidence": [
+        {
+          "resource": "repo://src/account/csv/parser.py#L65-L101",
+          "version": "repo-lines-v1:sha256:17ea6e40a0217071449f665e070f0325693a5cb52ffa39ea197d5da8f3b1f871:eyJzZWxlY3RlZExpbmVDb3VudCI6MzcsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjhjY2U4MmIzNjk2N2IwMWU4NzllMzNhZmZmODk5OGFiMWI3ZjViZjE4MmYyYWRlNjI3ZTA0MDViYzQ5Mjg2NTMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjI2Nzk4NTc5ZjcxMTdjYmE2MjlmODQzNzZmNjNhZDJjNzBhNTRlZmUwODk3ZGQzMDc3YmVhNmRhYzFjNjYwNTMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjU3ODU5MjRkNGJiODk5NzJjODFhZDc4NzNhZjdjOTg4YzdkYTNiNjZjMTBjNmM5NTBiNjU1NDljYWQ0MWY4MGQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjE3OWY2YmJmNDAxNzI0YWZmNTEwZTQ2YTk3MGEzZTU5MmU4NzRjNDEyMjhlZDkyNDdlNzMxMzJiNDgzNmVhNjAifQ"
+        },
+        {
+          "resource": "repo://tests/account/csv/test_parser.py#L166-L198",
+          "version": "repo-lines-v1:sha256:891bffea96568f8df4023a42d5d8a3f25fb9a20c525ba89f5164b11e1c6641e1:eyJzZWxlY3RlZExpbmVDb3VudCI6MzMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImZmY2E3ZmE3MmJkMDQxZWM4MWYzMmE0YzBlNWRmNWQwNzU2MmIzOTIwNzAxNWFjZjQxNzU1MTExN2E0YTUxZWYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjUxODA0ZjBjNjA2ZWM1NjYyYjdkN2Q3YTAzOTI3NDAxNmYyZWYzNGExZGI4YzdmODM4YjU3ZWFiOTE0ZDU4MTUiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImY3YTg2MjFhZWNmMjgwOThjOTFhMDU2NGZmZmNkMmVmNzk0OWEyNzRlNmYxNTUwYzM1NjkwNDQxNmJmZmIxOGIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImJjZDE2NWRkMjk1YTg3NGI4OGY1NjMxZDBkOWJjYzdjYjkyZGY3YTQ3NDM2YjIxMGQ0NzI2YjZjYmM0NzkzY2QifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_bf8903b6e7994e4bac603af981041cff",
+      "statement": "`_parse_position` treats quantity and book value asymmetrically: an unparseable quantity raises `CsvInvalidQuantityError` (and a missing quantity cell silently parses as `Decimal(\"0\")`), while an unparseable book value is swallowed into `None` so a malformed cost basis degrades to unknown cost instead of failing the import.",
+      "evidence": [
+        {
+          "resource": "repo://src/account/csv/parser.py#L179-L225",
+          "version": "repo-lines-v1:sha256:f601e82e8e0c901914c81387a6cbca10031907de3715538fe9c75885351b3dc0:eyJzZWxlY3RlZExpbmVDb3VudCI6NDcsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjdmOTRlMGQ1MTVkOTBhZjQ0NGFmNjU4ZGZhYjgyNDc1ZDlhMjFkYmI0MGQ5NWZiNDEyNTNiNGRmNDNmZjNjYWUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjMwYzFmMTg4ZjE0MmVkN2E4MjQ2ODBiMjA3MTcyYzU1MTliYzYxNGE0OGZkYTdjZjE2N2VkYjhkZGY3OTk1NmMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImE5MGFiN2MwMmQ5ZjQwYTUzYzk5YWRlZmMyNmU2Mjc0ZmQ2NTM4NzYwZDcwOGU5MWViZTliNGE2NzJlZDJkMDAiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjIwOTNmZDVmOWUxMzhjYjlhNDA4ODg4NDcyZTA3NWQ1NWNiOGRjYWUwZjRlNjBlZTQxMzEwZGE4NDljYzhiNjcifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_dad687c0f9264026b4a4d3c034ed2da2",
+      "statement": "`calculate_average_cost` returns `None` for non-positive quantity or missing book value, otherwise quantizes `book_value / quantity` to 4 decimal places with `ROUND_HALF_UP`; that quantize step fixes every CSV-imported `average_cost` and cascades into all downstream cost-basis P&L.",
+      "evidence": [
+        {
+          "resource": "repo://src/account/csv/parser.py#L134-L140",
+          "version": "repo-lines-v1:sha256:fba3bcc7a32bfed853ee4dbc04b3ca7fc66a11fba254c278acf2a12cf222c58f:eyJzZWxlY3RlZExpbmVDb3VudCI6NywiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiYWI4M2RlNWFlZGQ3ODUxZTVjNTg3YmJhYTZjZjZjNmVlMTU1YzVhNWQyMmM2ZTFhZDY3MTMxMTczN2ZiMjk0OSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiN2UwYzU1OGRkZTJhNzdmMDBjNjY4ZjNkNDFkOGMzYWJhYzI3NTQ4MDI5ZDViZTg1NDVkNDQ5MWFmMWZiYWFkMSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiODUxMzZjMjExMTM2NDNiZTk5Nzk2MzI5MzEyNjVlYjRmNjg3NTljMDIwYTFjNTRjN2Y1YzZjMzI1ODI2ZjRiOSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiZDA3YWY0Mjk1OTc5MzE1NjI0NDNiZjU0Y2YwZmRiZmU0M2VlYTlhOWJiNGI4YWE4NTA5OTY0NDYyZjFjNzM2OCJ9"
+        },
+        {
+          "resource": "repo://tests/account/csv/test_parser.py#L201-L221",
+          "version": "repo-lines-v1:sha256:15fd6ffb5b538ec818816c47c11b44c58fda673e44e517b3b441ab5bdc634f21:eyJzZWxlY3RlZExpbmVDb3VudCI6MjEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjdhNmZjOTFhNzdlZGU5MDkzYmUzYjkxNmE0YmQzODg4MTgxY2ZjOTIxNDYyOGMzMDUwZWZiNmVmMWQwMTE4MzQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjZlNDE4YWRmY2U2OGZkOWM0ZDNkZjQ3NTc3NGIzYWM5MjRhYzVhY2U0MzUwZjczZmQwNmI3MWQwMjQxZGEwZjUiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjE0OGU5ODg2YjExODE5NjdhNmQ1YmZhMjA0ZjcxNmI0ZTZiYTFiZjFmOTUxZGY5YzY2ZWIyN2QzMWUwZDhiNDMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6Ijc2Njc2ZmFlMmNlNjk4ZTMzZWU5MzFmNzZmMTgxNWQ5ZWQzMmQ4NWQzYmNhZjdmNWJmZmNlMTg0MTIzYjJlMTUifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_d2a337876b544d5b8d7c7ee73c304325",
+      "statement": "`GenericCsvParser.parse` enforces per-row invariants while grouping by `account_number`: every row needs a non-empty account number (`CsvMissingAccountNumberError`), but only the first row seen for a new account number needs a non-empty account type (`CsvMissingAccountTypeError`); accounts are returned in first-seen order with `row_idx` reported as a 1-based file line number starting at 2.",
+      "evidence": [
+        {
+          "resource": "repo://src/account/csv/exceptions.py#L48-L79",
+          "version": "repo-lines-v1:sha256:0e12e615e6cdef7e395492f8ed010e10e0e7a307ff2dfd6ded116441c4e6c5c8:eyJzZWxlY3RlZExpbmVDb3VudCI6MzIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjdiZWMyNGIwOWU2OGJiNmUyMGMxYWVmNDI4N2VkODIzMzg0ZGFmMzZjZTU1ZTBjOGVmOWU2ZDM1MjM2ZjkyMDQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjU5MDlhNTNhNjE4ZDAyOGUxZDMwMDBjMGE3YWJjZWVjYmU1ZmIzN2Y0ZTUxMWVmZTQ2NjQzZmFkNmU2Njg3MmYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjE2Yzc1ODNiNjk2MzE4MjA3MjIwZDJlNDE0NjNjN2RmZTdlMTA0YjdmZjM2ZTY3Y2I0OWFjNDcyYTAyOTBiZWMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
+        },
+        {
+          "resource": "repo://src/account/csv/parser.py#L234-L303",
+          "version": "repo-lines-v1:sha256:866560ab0041e121b033f0c072b438a640cab250fd1af529d410ca6b49bed07a:eyJzZWxlY3RlZExpbmVDb3VudCI6NzAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjE3NDcyMjAwZGE3NTdlNzk5Y2JkOWYzYzc1YjUxMTM0MTkwZTg2OTE4YjU1YzRkNDY4MjNiMGI1MjEzMGUyOTEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImJhYWU4YTBjYTc2Zjk4ZjdiN2RjNzk4NDk1MWQ2M2U1N2RiM2M2NDU1NzljYTUxYmFkNmE1MzlkNjE0ZWRiYmUiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImE3M2NlOGVjMDhkMGQxOTJmYzQ0ZGY1YjcxOGFkNGJjYWE0NzJjNzk1N2UxN2VhYjQ0ZTA4Y2EzOWY3ODg1NWUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_22adba6cf4644ed1841118263f798180",
+      "statement": "Row filtering runs before the quantity parse in `_parse_position`: cash rows (empty symbol, `cash` symbol or security_type, or a `sec-c-` prefix) and option rows (OCC-pattern symbols via `OCC_OPTION_PATTERN`, or `option`/`derivative` security types) are dropped and never become positions or raise quantity errors; options are defended a second time in `sync_account_csv_positions` via `is_option_symbol`.",
+      "evidence": [
+        {
+          "resource": "repo://src/account/csv/parser.py#L104-L131",
+          "version": "repo-lines-v1:sha256:6398de530a36c83fe21b87e37c61c70a2bd0798fe4b6ba09f3a4b93f11dad4ae:eyJzZWxlY3RlZExpbmVDb3VudCI6MjgsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjIyMzM0ZTRiNjQzNGUzYjA1MDNkYTk5YjNmYjU2YjhlMWIxNWY5YzIzY2VlYTFhZmQ5YWMzMDQzZTM4YzIwZWMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImIzZDY5Njg1Y2UwYWNmZWY5N2RmZGU5ZWMyYzRmMzRlZjg3YWNmNzM2NDZmNzgyZDdlOTVmNmQwY2RhODA2MjUiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjMxNjY0YmRhOTczZTliYzE4MjBhY2ZhYTVhOTViNGVlOGE5NzRkYjVjNzhjM2FkNWQ5MWMwMmQxZGJkMWRhNmMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjhlNWMyMGFlM2NmZTc4NWE5M2FlMTRkMThkNmYxNDY1ODk2Y2IyOTJmMjQxNGZmOGU0ZmEzNTA2N2VkN2I4MmIifQ"
+        },
+        {
+          "resource": "repo://src/account/csv/parser.py#L179-L186",
+          "version": "repo-lines-v1:sha256:4151b706f784bfe6795d567c83c080a88662085d113c657780faf57436dc89db:eyJzZWxlY3RlZExpbmVDb3VudCI6OCwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiN2Y5NGUwZDUxNWQ5MGFmNDQ0YWY2NThkZmFiODI0NzVkOWEyMWRiYjQwZDk1ZmI0MTI1M2I0ZGY0M2ZmM2NhZSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiMDFiYTQ3MTljODBiNmZlOTExYjA5MWE3YzA1MTI0YjY0ZWVlY2U5NjRlMDljMDU4ZWY4Zjk4MDVkYWNhNTQ2YiIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiYTkwYWI3YzAyZDlmNDBhNTNjOTlhZGVmYzI2ZTYyNzRmZDY1Mzg3NjBkNzA4ZTkxZWJlOWI0YTY3MmVkMmQwMCIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiYWJlYjI2NDEyYjE5YjJhMDQ4NWI2YmZlMTcxNjgwYjI5MjBjOGI0Njg0MWY5ZWZiOTQ5ZTBiYTIxOWRhNWZiNCJ9"
+        },
+        {
+          "resource": "repo://src/account/service/csv_account.py#L248-L258",
+          "version": "repo-lines-v1:sha256:e3ebf58ea508122a2f9fdf79eeace0bab00a005e2b9d41c0b1b3b676955a0698:eyJzZWxlY3RlZExpbmVDb3VudCI6MTEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImIyMDI1YTNlYzM4OGRhNmM5Mjc1ZWQ1MWJlZmNmNmUxYjIxMjdlZGM5YjA5Mzk0NTAyMTVjYzIzNzczNjg5YjIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijk1NzgwNWMzZmU3YWM2MzA3NGY2OWNkYjI1YjlhY2Q3YTg2NzkyZGZlNTQwODE4YWM0Zjg3NjRiNDllN2QxNGEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjEyYjg0ZTBkODQzOTcxN2EwN2NiOGExMTlkYjM4OTEyMDVjN2RkMmMxOTk1ODM0OTkzODNjZmQ2NjNkZWNhMDciLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImU0N2U1NDhjM2FhOTUxZDZiYTM3NzM0YWUwOTFiZDI2NGQ2NjRhYmUxNzAyOWE2MjhkNzQ1OGVjN2FiYWUxYWYifQ"
+        },
+        {
+          "resource": "repo://tests/account/csv/test_parser.py#L239-L285",
+          "version": "repo-lines-v1:sha256:7d34541c3cc0d2af1b0a374ae3e6096da40f20787401451e1f66af7fb617b877:eyJzZWxlY3RlZExpbmVDb3VudCI6NDcsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjIzNThiNWQ1ZWVjNDdkZjE4MGY2MmNjZjA5NzZlNmQyMDQxODc4ZDcxOTUxZDcxZmRiMDkxNDQzMzQ0ZGM4ZTMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAxYmE0NzE5YzgwYjZmZTkxMWIwOTFhN2MwNTEyNGI2NGVlZWNlOTY0ZTA5YzA1OGVmOGY5ODA1ZGFjYTU0NmIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjlhNzgwMGZkZTc4M2U5NzQ5YWI0MzAxZDI2YTA2ZDk1MGJkODA5NGEwOWM4MmUzZTdhMzkzMzNmOWNjOGU5ZmQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_fd9abc8dbd4a4b1e944d9cff96d6bae9",
+      "statement": "The parser's exception taxonomy is rooted at `CsvParserError` with three branches — `CsvHeaderValidationError` (count/column), `CsvEmptyError` (empty content, empty template, no columns; plus the service-level `CsvFileEmptyError` subclass), and `CsvRowValidationError` (unsupported account type, missing account number, missing account type, invalid quantity) — and the router maps `CsvParserError` to HTTP 400 with the message as `detail`.",
+      "evidence": [
+        {
+          "resource": "repo://src/account/csv/exceptions.py#L1-L79",
+          "version": "repo-lines-v1:sha256:77f44baf962da910894139a9d2dff4a6768ea988bd676cff198d013506e44996:eyJzZWxlY3RlZExpbmVDb3VudCI6NzksImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImI2MjkwNTdmNzJjNzkxMzQ0MjM5ZDcwY2NlYzI0ZTU1ZTQ2NjU1YWFlNjA2OGNjNWYwOGRkNGY0MTg4YmFmNDYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjU5MDlhNTNhNjE4ZDAyOGUxZDMwMDBjMGE3YWJjZWVjYmU1ZmIzN2Y0ZTUxMWVmZTQ2NjQzZmFkNmU2Njg3MmYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjowLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
+        },
+        {
+          "resource": "repo://src/account/exception.py#L71-L86",
+          "version": "repo-lines-v1:sha256:83284c7ee48ac2e1af5fe1f5576342fc53003a03f41419315b2fd00447bef5c3:eyJzZWxlY3RlZExpbmVDb3VudCI6MTYsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImMxNzQ4NGJhODZjN2ExNWI5OWU1YmRjNmIwMDU4MTFkNWM1YWFjZWRkYTg0Njk2NjQ1N2UwOWExODVjNmMwY2MiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjU5MDlhNTNhNjE4ZDAyOGUxZDMwMDBjMGE3YWJjZWVjYmU1ZmIzN2Y0ZTUxMWVmZTQ2NjQzZmFkNmU2Njg3MmYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjRhMmExODU3MTIzZGU3YzZhN2MzZmY4YzVjM2U2MmM0OGQ2NjA4YTlmOThjYzc0MDkyNzkwZGFmYjRkYTE4ZDMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjEyODEyMzE0MzNjMzFmMzJjNjc0ZGQ3M2Y0NzU5N2M3YjkyNjg1MWU0NzI4NDQyNmM3NWQ1NTlmODlhYjA2ODMifQ"
+        },
+        {
+          "resource": "repo://src/account/router.py#L241-L244",
+          "version": "repo-lines-v1:sha256:a3502fa92e53f4afcc9a010d4e0d06f8ba25da21c8e2558f6929d50578416edd:eyJzZWxlY3RlZExpbmVDb3VudCI6NCwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiN2JiYWUwODk5OTliMGZhMDA3MjUwZjU1NzkzODQxYWY5NjQ4MTQzODZhZmJkYTlhMTQ4NzlhMmZkODM5ZjA1NCIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiOWYzMmEwNWFlOTkzNTEzOTRkOWNjOTM3YmY5ZjgxM2U2ZGJlYmY1OGM1ZTNmOTVmNzJmYTFlZDhmYWRjMDEyOCIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiNTJhMTkwODUwZDIwNjdiZTU5ZDhmMzRhNjVhODc3NzExNzkwOTA5NmVjMGZhNzgyMzMxNWRmZmYzNmU5ZDM1NyIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiNjdjNmY2OGQyMmJkMzhhYzgwNmYwNTliNjIwMDZmMzQ5MWNkYTY4ODBmYjJjYTFkMTJlODIwMzI0OGQ3MTdjNiJ9"
+        }
+      ]
+    },
+    {
+      "id": "claim_9a1bd2a799fc4478b9a8167c3191325b",
+      "statement": "All three CSV endpoints (`POST /accounts/csv/inspect`, `/accounts/csv/import`, `/accounts/{account_id}/csv-sync`) share one gate: `CsvAccountService.validate_csv_institution` raises `InstitutionNotFoundError` (404) when the institution row is missing and `CsvImportDisabledError` (400) when `csv_import_enabled` is false OR `csv_format` is empty, so `csv_import_enabled=True` with `csv_format=None` behaves identically to a disabled institution.",
+      "evidence": [
+        {
+          "resource": "repo://src/account/exception.py#L57-L86",
+          "version": "repo-lines-v1:sha256:bab289d245b0a7f32824f35d72558977e1f8fb70a08b4bc1953d5862b0f5615e:eyJzZWxlY3RlZExpbmVDb3VudCI6MzAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImUwNGI5ODJjODE1OGNhMjAwNDkxYjAyOTIyNmZmYTFjOTY0ODc5MTA4MTg1ZDQ2MWYwYjJlYzYzNThlOTUwM2MiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjU5MDlhNTNhNjE4ZDAyOGUxZDMwMDBjMGE3YWJjZWVjYmU1ZmIzN2Y0ZTUxMWVmZTQ2NjQzZmFkNmU2Njg3MmYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjE1YzBiMDNlYmM1N2Q2MjA3ODRlMTViY2ZhNzczNjBiM2NmOWRkZDQwYzdkZWMwOGM3ZGY4MGE2MzAwNGE1ZTYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjEyODEyMzE0MzNjMzFmMzJjNjc0ZGQ3M2Y0NzU5N2M3YjkyNjg1MWU0NzI4NDQyNmM3NWQ1NTlmODlhYjA2ODMifQ"
+        },
+        {
+          "resource": "repo://src/account/service/csv_account.py#L61-L74",
+          "version": "repo-lines-v1:sha256:2cd8aa8b3c014858994a3a105ba3eb1f5cbf7281cd84a478f4ff69d3e02602ff:eyJzZWxlY3RlZExpbmVDb3VudCI6MTQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjEzMzBkNjcyYWIxOTAwOGExODVmNGMzYzNlZDg2OTIxMmQ5NmQxMWE5NjMxZTdjYzFmNmZkMGNmNDM3NTk4MjYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ0MmE0MjViZmMxYWQ2ZTMwN2IyZTIyYTQ0MGMxMmU5YWQ2YWI2YzdjZTBiMGMwN2QxYmJkNzlkZWFkNWQ4MWMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjU2YmZlNjllNmQxNzBiM2Y0Yzc0ZmNhM2YxNzI4MTZjMGYxNjQ1MDI2ZjNiYTgwMjFmZDhmMDZlYTY4NGQ5M2EiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjY4OWY0MDY4OGVkNmZkODhlMzU5MGViNDRjZjhmM2ZmZmQ5OTQ1YjUwNWY1ZDViMGQ2NjU4NDdiMTcwNTQwZWIifQ"
+        },
+        {
+          "resource": "repo://tests/routers/test_csv_inspect.py#L62-L115",
+          "version": "repo-lines-v1:sha256:d043d46eedb895f0b3cc81f138933c8730bdfd9a8e93174f8e4fdf3db22f45c3:eyJzZWxlY3RlZExpbmVDb3VudCI6NTQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImI3YTgzMWZhNDcyNmZjMjMxNTE0NGY5YTA1NWJmZWMyNWYxYWZkMTI2YWFmZjU3YWZmYmU5NDBlZjVjNmE3MzUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjMwYzFmMTg4ZjE0MmVkN2E4MjQ2ODBiMjA3MTcyYzU1MTliYzYxNGE0OGZkYTdjZjE2N2VkYjhkZGY3OTk1NmMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjZhOWMxYzE4NzZiZmU5MjhlMzE5MzkwOTUyMTY1ZTVkMzI4NzI3ZjNhMGM1MTI3NzQ3YmNhYjlmMDJiOTI3NDMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImJlYzJiMTM5NmM4YTFhZDUwZDIxZTQ4MGVmOWIwMTk2ZWVlNjc2NjgxZTY3NTRiYzY0NjRjNzRjYWRiYmE2MTAifQ"
+        },
+        {
+          "resource": "repo://tests/services/test_csv_account_service.py#L76-L107",
+          "version": "repo-lines-v1:sha256:ab514a1b6747a2e38b1843c37d0f82e47dcb64b6f56a2db623d843310bbf7a34:eyJzZWxlY3RlZExpbmVDb3VudCI6MzIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImJkOTk0MmRlYjdkYmFiYzExNGIxYzQ4ZDAyZGE0NjM4NmU5YWNhNTE1YTUyZmI3YjNjNDEyZGM2Mjc5MjFiMDgiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAxYmE0NzE5YzgwYjZmZTkxMWIwOTFhN2MwNTEyNGI2NGVlZWNlOTY0ZTA5YzA1OGVmOGY5ODA1ZGFjYTU0NmIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjhjYzRhN2QxY2M3OTZhYmEzZTQ2NzIzMzI3ZjUxN2U5ZjgxMTk4MmQyNTBmMDcwMjk4NmU0YjU3NjRhZDk1ODkiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjI4MTk0ZGZlZmMwOTQ4ZTRhNzhhM2FlNzVkY2E4NmY5Njc0ODg1NjFjZmRhYjRkMmQyMWMzOTQ0MWE0MDU5NGYifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_54182a85d8d04fa4852c63b8e4e0ad0b",
+      "statement": "`inspect_csv` parses, then when a `user_id` is given it marks `exists = True` and overwrites each discovered account's currency with the stored `Account.currency` for account numbers the user already has at that institution; `exists` drives the modal's `Update holdings` versus `Create account` badge.",
+      "evidence": [
+        {
+          "resource": "repo://src/account/csv/schema.py#L21-L33",
+          "version": "repo-lines-v1:sha256:f15d5b1f470bc545f79262c66bec13bf3219b78a77a2b57b664d51f89e146b5f:eyJzZWxlY3RlZExpbmVDb3VudCI6MTMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImYzMzJlMDY3OWU1N2M1ODBjNDRhYTk5MmJhYzYzZmQ2ZDIyYzc5YTI3MDEzNDdkODE2OThhMDY2NTc3ZGVhZGUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjdhYjczOGFhYzM1ZmE5MGRkNmY5NjY5ZmIyNmYwYjJhNmM3ZGEwNmZiMmUzNzhkZGJiMmEzZTQxOTg4MTFkMjkiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImFkOGU5NWQzMzMxNzY1OGZkZjhjZWQ3ZTcxYTRiNWQ2NzVhODU4YzhiNjE2YmFjM2Y2YzkzMzkxZDUzZWVmMDEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
+        },
+        {
+          "resource": "repo://src/account/service/csv_account.py#L76-L104",
+          "version": "repo-lines-v1:sha256:20f756d9c8a9077ad7dbb5380e3f783020fee6c03b087af1a52a535455c5d1e0:eyJzZWxlY3RlZExpbmVDb3VudCI6MjksImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImE3MmI2YmVmNzQ4MWRhMGJjZDRlNDYyMzU3YWU3NzVkMzQxYzk2ZWM5Njk4ZjZkMDkwNDkwMjdhN2JlYTgxMTYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjFiMzFmOThhNzZjYjM4ZTM3ZjhhYTQxYTQwYzUxMDk1ZGNiNzA1YjZkZmY2YTJiMWExNWI4OTIxMDE1NDRkZWIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImEwMGU5OTY5YTY0MGQ4NDk2MGU0YzYzMzEyYWI1N2ViN2VhYWQyMWJkN2MwMzgzNTEwZjcwNDExMDRkYjFhZmIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjFiOGZiN2M0YzYxYWY2ZjAxNDdjYjMzMGU3NWU0ZTBiNDVkNjk3NjU3ZGI2ZDg5OGE3NGY3NTZiMGViYTZmZjgifQ"
+        },
+        {
+          "resource": "repo://tests/routers/test_csv_inspect.py#L200-L229",
+          "version": "repo-lines-v1:sha256:818dd79f8fa83503e44957ef5f68fa9c3ef47682e6e5030476bfb49f6a6fd67a:eyJzZWxlY3RlZExpbmVDb3VudCI6MzAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImI3YTgzMWZhNDcyNmZjMjMxNTE0NGY5YTA1NWJmZWMyNWYxYWZkMTI2YWFmZjU3YWZmYmU5NDBlZjVjNmE3MzUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjExMzdhMmYyODRmZjAzOGVlODJmZGNkYTliNTNjMGY5Y2ExZTk2MmZmYzY3NDMzNWU4NmI3YzZhYjk5NGZlYzAiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImM3YTY1ODI0NzA5NjFiYmNiMmI0MDAyYTdhYzUyMDRhNGYxYjZiODkxNmQxZTJlZDhiYTdjZTgwNDAyZWVhNGIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImJlYzJiMTM5NmM4YTFhZDUwZDIxZTQ4MGVmOWIwMTk2ZWVlNjc2NjgxZTY3NTRiYzY0NjRjNzRjYWRiYmE2MTAifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_35909e41728a4857bd483918c769cd3a",
+      "statement": "`import_accounts` filters parsed accounts against the requested `account_numbers` and raises `NoMatchingAccountsInCsvError` when the intersection is empty — there is no import-everything mode. `CsvAccountDuplicateError` is mapped to 400 by the router but is never raised on this path: a requested number that already exists is treated as an in-place update returning the same account id.",
+      "evidence": [
+        {
+          "resource": "repo://src/account/router.py#L294-L339",
+          "version": "repo-lines-v1:sha256:2c4960c0915baca4d8434aac77b0185338bc958739fe2d2f740526e7747d1715:eyJzZWxlY3RlZExpbmVDb3VudCI6NDYsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjRlNzJmZTM0M2E5Y2Y0MzEyMGRhNDJiNTBmMTEwMjMwMjRkODdmMTk0MzE4MTgwMGU1MzgwOGI3MDcwZDQ2OTYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjlmMzJhMDVhZTk5MzUxMzk0ZDljYzkzN2JmOWY4MTNlNmRiZWJmNThjNWUzZjk1ZjcyZmExZWQ4ZmFkYzAxMjgiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImZkZjA5MmFiMzU3NzMyNzgyOTVmODYxYWY0YWYyYzEwZjQwNTVjMDcyMjdmMDk1MDkyYzg5YTE1MzRkMGQ3OTkiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjZlYWJmMWIyNzY1NjAxMTdhZWUxNGJlOTIxZDA3Zjc5OTJmMDk5NThlYWI0YmQxMWY0ZTdjNzI5OGQ1MmFlMWQifQ"
+        },
+        {
+          "resource": "repo://src/account/service/csv_account.py#L106-L193",
+          "version": "repo-lines-v1:sha256:9e7fb0b5912b1336c4bd6577a965bb2d38522e76c5c49db5e5a33ec323447a98:eyJzZWxlY3RlZExpbmVDb3VudCI6ODgsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjM0MDNiYzcwN2M5ODc2Mjk4MjRkZDI4ZjhmMWYzNTY4YzFiYzY4ODYzYmJjNjg3NTQ4OWE4MDEwODk2ZmJmYmYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImViNWU5Njk1YmYwODdmZmEwZGJhZDg3Mjg1N2ZkNzY5ZmJlZTgxODNhYTU1OTAwZTI4OWFlMThhZjBkNDZmYzgiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImVjNGFiYjkzZTdmMDk2ZjU1MWI5ZTM1Zjc1MzQyYzgzNjdmZmEwMmM4OGMzYTQ3MTI3YTRkZDFiN2RhOTVkMjciLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjFmNDlmNzhjNjQ1ZGM4MTIwZDkxYTgwODlmOGY3Nzk1ZjhjM2FjNjFiZTFkOGM4NDljMWM1OGJiYTRkOGYzNDgifQ"
+        },
+        {
+          "resource": "repo://tests/routers/test_csv_account_endpoints.py#L254-L280",
+          "version": "repo-lines-v1:sha256:1d15f40830dc6c3ef1604e1deaf5eccf0d4f9fa589f266494859dd1bb7a3ce86:eyJzZWxlY3RlZExpbmVDb3VudCI6MjcsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImI3YTgzMWZhNDcyNmZjMjMxNTE0NGY5YTA1NWJmZWMyNWYxYWZkMTI2YWFmZjU3YWZmYmU5NDBlZjVjNmE3MzUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImM4ZjA3ZDZjZTFkMjgwZjk2NjM4NDE1NjhkMGVlYjU2MTI0YWNjOWE0YmY0ZjgzYzBmYjA5NTQzZWQ1NmE4N2UiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjYzMTEwN2E3YjdhZDUzZDYwY2RhOWQ4MzIyYTdkNzhlZGQyNjljOGE3YzJlMGY1ZjNiZjQ0ZGNkZjA2NWQ4NTEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImJlYzJiMTM5NmM4YTFhZDUwZDIxZTQ4MGVmOWIwMTk2ZWVlNjc2NjgxZTY3NTRiYzY0NjRjNzRjYWRiYmE2MTAifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_f638317f92cc4248ac237052c829802e",
+      "statement": "Accounts created by CSV import are stamped `api_sync_enabled=False` (with `integration_user_id=None`), which is what makes the broker sync path refuse them and makes the frontend account-row refresh control render `Update from CSV` instead of `Sync positions`.",
+      "evidence": [
+        {
+          "resource": "repo://frontend/src/lib/components/accounts/accounts-list-item.svelte#L94-L114",
+          "version": "repo-lines-v1:sha256:11a197c210f9ec350000221d6f9a2f7d5219beb6dc1e790cffe9aa0e1952460d:eyJzZWxlY3RlZExpbmVDb3VudCI6MjEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjgzZjcwOTdhYTdiYjY5ODA1MzFjMTE2YjU1YmZkNGNhMGM4YWJmNjczMmFlZjFhNjkzNzNkNzhlMDc5MGRlMGIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjVkM2EwMTQ3MTZjZDU3Y2MwMTliNTMyZTI3YjQyMjQ0OGY0ZmRlMTVjY2ZlNWJlZjJjM2QxYWFjZDE2ZDViN2UiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImY2NTAyNTcyZDY1ZmUxMTY5NTNlZmQxZGYxMTNiMDZiYjBkMzk3YjcwYTIxMjAxYTMyYzZiMTYyNDlmMDYxNGIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImRjY2VkNTZlNzNhZmE4YzlkOTA2MGEyMWEyMmQwYjJhZmM0ZTBhYWNhODUyOGRkMjBkYWExMzUyOWI0MzFjNjMifQ"
+        },
+        {
+          "resource": "repo://src/account/router.py#L509-L513",
+          "version": "repo-lines-v1:sha256:3771a20d5b500bfd32a729d1cd7f00cea39bd03a6c10cfef14f803a205f9542f:eyJzZWxlY3RlZExpbmVDb3VudCI6NSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiNTdkNjU2YzEwNjMxODM0MTU1ODljMTcwNDkzYzZjNzc5OGNkYTRiYzlmZDUxZTdiYmE2MDVhMWMwMWUzNzM5YSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNTkwOWE1M2E2MThkMDI4ZTFkMzAwMGMwYTdhYmNlZWNiZTVmYjM3ZjRlNTExZWZlNDY2NDNmYWQ2ZTY2ODcyZiIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiOGRlZDI4YjI1MDdiM2QxYTc2NmIxYzc5YmNhNjlmNDliZGVhOTI3OTBiYjgxYjIzYWY1ODg1MmMyZmJjMGQ1YSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiMzdmMjQ4Y2VlODA2YmUyNzBlMmZkNTYyOWFiZDRmOWFjZGU0N2UyYjVmYzdjZjRiY2EzNzdjNjQ4YjMxN2JlYiJ9"
+        },
+        {
+          "resource": "repo://src/account/service/csv_account.py#L169-L189",
+          "version": "repo-lines-v1:sha256:8a5c8f7f88fcdde8744a240c18aac577fca33750dc45715049aa611f5117a1a0:eyJzZWxlY3RlZExpbmVDb3VudCI6MjEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImE1N2QyYmZkYWI1ZjI1ZTc5ZTIzZWI0MjlhMjg1N2EwYTcxOTc3NTM3NDA0N2ZiNjViZGM1MDU0ODkzMzQyMDgiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjUxMDM0ODFjNTdkMGYwZGMwZjc2Y2QyY2M4YjM2MDRjNGU4Mjk2ZGE0MTIyYWRkMTllODE3NDVkYzdlMzMxYTYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjczN2ZmYWQ3NDk0MDIxZTc4MWEyOGQ4MGFjYWMyNmIwODkzMmNmNDFkNWUyOTc2NWJjOTNjNjAyZjg0NmM5NmUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjQ5NDVhY2JjYTVmZmNkY2NhMTcwMWFiZjgzMDdkMzAxM2FlYzY3YTExNTI1ZDU2MTEzOTIyODQ5NmUyNGI4OGQifQ"
+        },
+        {
+          "resource": "repo://tests/routers/test_csv_account_endpoints.py#L300-L305",
+          "version": "repo-lines-v1:sha256:026f83ffc47bd4d12ae802f3c6a2d1f6e85a33ace23af8ad7bb3f42df5ffa571:eyJzZWxlY3RlZExpbmVDb3VudCI6NiwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiMDFiYTQ3MTljODBiNmZlOTExYjA5MWE3YzA1MTI0YjY0ZWVlY2U5NjRlMDljMDU4ZWY4Zjk4MDVkYWNhNTQ2YiIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNDcxYTQ0NzkzYTQwZWIzODk4M2JlYWZhYjhhZDg5YzgxNjNmZDk5OWI1MzlmYmM3NmYyMWRkNTY4YzVhN2ExYSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiY2ZjNjlmMzY1YzY5ZjhkOTA4NDExNDA1M2Q3YTEwZTYyNDkyZTViNWUzMzI2ZTUxZjhkNWM4OTc1ZTMwOGFjYiIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiNTk3NzdmNzEzNDJhNTUwYWJiYzIxYzQxMTQwNGJlY2VhMTdjZDdlODFkZWNiZmZkMmYwYTNkNGYzYTJlMWQ3NiJ9"
+        }
+      ]
+    },
+    {
+      "id": "claim_2ffa0bd971b44cb8b1a2d06ef75f8f3e",
+      "statement": "Currency resolution at import has a defined precedence per account: the caller-supplied `account_currencies[number]` (trimmed and uppercased) wins, then the parsed account currency, then `\"CAD\"`; for an existing account a difference triggers `AccountRepository.update_currency`, and for a new account it becomes the `AccountSchema.currency`.",
+      "evidence": [
+        {
+          "resource": "repo://src/account/service/csv_account.py#L140-L160",
+          "version": "repo-lines-v1:sha256:e378a7c969370a54cf582b559ef36ee9c21c750aa1446de97cdf02178c1a569d:eyJzZWxlY3RlZExpbmVDb3VudCI6MjEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImFiYmI2NThiNjY3YWI3MDhmNDM1NzQxYjYxOTNkZWI0OWM2ZjNhYzI5NGJmOTc3NDYyYzk5MTY3NGVjYmJiOTUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImQwMDEwNWUwYTY4NTIxYzNkMzMyNjE1MzkwZTg1OWUzOWNmMjQxMjc0YTdkNzgxZDE5NmEzYWRhMDdiMTBmZDciLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6Ijg1N2U0OWM1N2E5ZDdkNmI0ZGQ1YTVmMGZjOTRkZGUyOWIzNDFlNmNmZDIyMzg4ZDU3MmRiY2JmNTJiYTgwMjUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImE0MzljYTQ3OTZlZGU4M2U1OTM5NDU3YTZhNjEyNjcwZDExM2ZiYmMyYTdlNTMwZDk2MzdjMTAwZWY4YWIyY2YifQ"
+        },
+        {
+          "resource": "repo://src/account/service/csv_account.py#L169-L184",
+          "version": "repo-lines-v1:sha256:69c573461a07f50509ecac2310e5361364ed4ccf4541c4729c5984de70573fbe:eyJzZWxlY3RlZExpbmVDb3VudCI6MTYsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImE1N2QyYmZkYWI1ZjI1ZTc5ZTIzZWI0MjlhMjg1N2EwYTcxOTc3NTM3NDA0N2ZiNjViZGM1MDU0ODkzMzQyMDgiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImE1NWQxMWYxNGI4NTY4ZGQzMTM5NGRjNWZlZmYxOTc3MGRhNjdlNWY5ZjFhNWE5Y2I4NWUzY2IyZGRkNDIyZDMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjczN2ZmYWQ3NDk0MDIxZTc4MWEyOGQ4MGFjYWMyNmIwODkzMmNmNDFkNWUyOTc2NWJjOTNjNjAyZjg0NmM5NmUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjUwNGQwNGE3ZmMyYTM3MzM5NjAxZDliMGNlNDZiN2U1ZDkwMmM5ODdhYjVlODRhZTYyODc2NTdkZGVkYjNlOTAifQ"
+        },
+        {
+          "resource": "repo://tests/routers/test_csv_account_endpoints.py#L453-L471",
+          "version": "repo-lines-v1:sha256:0965a5c42e37a7ad28dd47a6ea27dd4ef03e766c9a96bf4910a3c2db4938f218:eyJzZWxlY3RlZExpbmVDb3VudCI6MTksImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImI3YTgzMWZhNDcyNmZjMjMxNTE0NGY5YTA1NWJmZWMyNWYxYWZkMTI2YWFmZjU3YWZmYmU5NDBlZjVjNmE3MzUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjVjMjEwOTg2YjIxOThiNjE5M2U1ODhhOTQ4ZmY1OGNjYTE0YWMzZThiMzY0MjkxNWQ2MDU3YmQ5OWJlYTQwZTIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjgyNGRlNzdkNjc1YzZjZTdhM2NlOGUyODIzNzg0ZTgzOWQzZTA4Yjk4NTRmZmVkNTc4NTczNmMzNzllODY3ZGQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
+        },
+        {
+          "resource": "repo://tests/services/test_csv_account_service.py#L372-L473",
+          "version": "repo-lines-v1:sha256:646390c20d067b054a44beb5def3477efe68d5d970633220d116f3546f7fb0c6:eyJzZWxlY3RlZExpbmVDb3VudCI6MTAyLCJmaXJzdFNlbGVjdGVkTGluZUhhc2giOiJiZDk5NDJkZWI3ZGJhYmMxMTRiMWM0OGQwMmRhNDYzODZlOWFjYTUxNWE1MmZiN2IzYzQxMmRjNjI3OTIxYjA4IiwibGFzdFNlbGVjdGVkTGluZUhhc2giOiI3ODY1MjgyNTZkY2NkZDI4MDE0ZWU4YzRlNDg1YTJhZjE5NDYyOGRlMDk3Nzc4ZDQ4ZjdiZDhjMTM5ZDkyNzE5IiwicHJlY2VkaW5nQ29udGV4dExpbmVDb3VudCI6MywicHJlY2VkaW5nQ29udGV4dEhhc2giOiI5YjllYzkyMzgyMTIxMTE3ZTk0YzljYWYzYmZkZmNhYzM4OTg5ZmI3ZTU1MmVjYTUwOTQwMDkwOTM2YTQ4ZjdhIiwiZm9sbG93aW5nQ29udGV4dExpbmVDb3VudCI6MywiZm9sbG93aW5nQ29udGV4dEhhc2giOiI1YWI3YjI3MmFiNGUyNTE3NWI1ZmQyNGMxM2NmZTU2MzQyNTE0YzAyNzk0NmYwM2I1MzA1ZGYyMDMzNzg3OWY5In0"
+        }
+      ]
+    },
+    {
+      "id": "claim_0c2eb9be0dc14569a936ea0223838c45",
+      "statement": "`sync_account_from_csv` is asymmetric with import: it never creates an account, never changes the account currency, and never considers other discovered accounts in the file — it matches only the target account's `external_id` (raising `AccountNotInCsvError` otherwise), validates the account's own institution's CSV enablement, and is the only CSV endpoint that enforces account ownership (404 for another user's account).",
+      "evidence": [
+        {
+          "resource": "repo://src/account/router.py#L342-L385",
+          "version": "repo-lines-v1:sha256:bff735012fbae4435acffc1474c78ca74e44d37c1c9483feb4f1d3ad7892da8f:eyJzZWxlY3RlZExpbmVDb3VudCI6NDQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ0YzU5YzhmM2YyM2NhZjYzOTI2ODUxMTM5MTNkYTQzNjVhMzdlMTEwN2I1YjhmMzBjZDliNzM4YjkzNGFjZmQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjlmMzJhMDVhZTk5MzUxMzk0ZDljYzkzN2JmOWY4MTNlNmRiZWJmNThjNWUzZjk1ZjcyZmExZWQ4ZmFkYzAxMjgiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjY2NDA4MmE3YTEzYzE0YjFiN2E1NzMyZDlmMTczMTc3NDFlYmVmNjZjOGZiOTUzNTUwZTZjYWYyZjc0YTM5M2EiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjBlOTkwZjA0MTZmNmVjNDI4NzI5OWY1NmI4NzcwNDE5YzhmNzMxYTIxYzk3YTk3MjU4ODUwM2M4NmFlNWJhNWEifQ"
+        },
+        {
+          "resource": "repo://src/account/service/csv_account.py#L195-L240",
+          "version": "repo-lines-v1:sha256:c07368b0fe6c0d353d41b42d2e4460612a23e0dba770f7848e1690c83b91f622:eyJzZWxlY3RlZExpbmVDb3VudCI6NDYsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijk0OThjMDc0YjEzOTczNzZjZTc1YjViNmZhYTA4ODdmMGQ4YTNlYzk5YTIzZjI0NDE3YzI0OGM0MDE1ODBkZDIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjY3YzE4Y2I4MmYwMTdlZjU5NDBmOGJjZDNiMzdlZjBhYjNhOGU1N2IzZmZlOTllYWU3M2Q2MWMzODQ0NWI3MTAiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImYxMGYyNzdhMjU4OWRkODM3NTg3MTk0OTU4NjBjMzAzMWRkMDcwNjgxMTM4ODAzNWE1MTZiZDhjODY2NjE4MWUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImI2YTYzNzkzOWMxMzgwZTQyMmZkYjRmZjIyMTk1YWI4ODA1NTBjOTIzYzNlZTU2ZDdhOTIzNTQwZTA4ODlkMGMifQ"
+        },
+        {
+          "resource": "repo://tests/routers/test_csv_account_endpoints.py#L374-L450",
+          "version": "repo-lines-v1:sha256:049ec60f0e9e9a04d5a6d7d98feb93ee2e0f182bf34e17434b102395fb0ad5d4:eyJzZWxlY3RlZExpbmVDb3VudCI6NzcsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImI3YTgzMWZhNDcyNmZjMjMxNTE0NGY5YTA1NWJmZWMyNWYxYWZkMTI2YWFmZjU3YWZmYmU5NDBlZjVjNmE3MzUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImQ0NDMxNThhNDc3OThmMTc1OGZjMzIyZWJjMDQ2Njk4M2ZmNGJhNTVkY2ViMjA5OGI4ZmFlYzY0YzBmZThkOGMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjQ5MDFmNGU1MjA1MTQ5MDk4ZDdkODM1MTAxMzg2OTFjYTk0NGZkM2MyNDU1N2I4N2JhZjJiODFlMzUzNjhkZTUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImJlYzJiMTM5NmM4YTFhZDUwZDIxZTQ4MGVmOWIwMTk2ZWVlNjc2NjgxZTY3NTRiYzY0NjRjNzRjYWRiYmE2MTAifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_0e93ed5941d84a57a69c05c979c12bd2",
+      "statement": "`sync_account_csv_positions` is the shared tail for all three paths: it resolves each symbol through `SecurityApi.get_or_create_from_broker` (wrapping a `ValueError` from the market layer as `SecurityResolutionError`, which the router maps to 400), then writes via `PositionApi.create` — which replaces every position row for the account — or calls `sync_by_account(account_id, [])` when the resolved list is empty, so an all-cash export clears the account instead of leaving stale rows; finally it stamps `update_last_sync_at`.",
+      "evidence": [
+        {
+          "resource": "repo://src/account/api/position.py#L14-L24",
+          "version": "repo-lines-v1:sha256:7d87f5bd7a991737c8aadee73ef70ec50a91b3b1c84b1a4e1fc2f0fb8dac4da9:eyJzZWxlY3RlZExpbmVDb3VudCI6MTEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjY1ZjU4MGFkYTY4NGRkNjhhZjY3NmNkMjhkNTUxMTlkOWZkMTljYjA4N2MxMzdiODRjYjQ0ZmRhOGY5OTUyZjkiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijc0OTRkMjUwZWUyYjJjZDc4NzZjOWZlNmY4Y2UyOTQwYWE3YjYwY2U3MDU5NTI5ZjA0MmUxNzljMGNlMzY5NDEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6Ijk2YTY4YjI1MzU5Y2QxZmQ1NDM5MTkyM2FlZDUzYTBlNjFhYTM1MmU5OTJkMzNjNjVmODA0YzY1MWNhYzc0MzkiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImM1ZTc4ZTZhMGZhZGU0MjViMzg2ZDM1MDMwZGNmMTg1NDlmMWRhMGM0ZjAyZTQwYWIxMmIwOTE2ZjBlMDQ1NmYifQ"
+        },
+        {
+          "resource": "repo://src/account/repository_sqlalchemy.py#L260-L271",
+          "version": "repo-lines-v1:sha256:d63195dfdf55fd183784f08af0de0a8cc91447db57e612c06ee66b81ecc1c5ca:eyJzZWxlY3RlZExpbmVDb3VudCI6MTIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ0ZGE5MzUwMDE5ZGMxZTY2NzQ1MjY0Mzg3MzE2MTk5NzIyNWU5Y2U2MDEwN2FmN2I2NGY4NDBkZGVjZmRhNGYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImM5NDRhMDZiYTQ1NDVkYzQ1YjZjYTQ5ZjM3Y2IyM2JiNjViYWZjZDUyODg3ODQyMDU0ZThkNzM1ZDNiNzhkMzQiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjBkNzFmMjc5Y2IxZjdmZTgwNDlkMTU1ZDE1ODY1MDRiMzhmMTk1MjdlZDhlNWYwYjgwNzFiODE5OWI0MTA0NzIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImI0ZDhiZGMyMzBmNTJlMTJkMzhlMDE1NzFiYzlmMjM4MmQ3ZDg0MzIzNzZlZjFiMzU2ZmE1ZWE4N2Y4NzNjOGYifQ"
+        },
+        {
+          "resource": "repo://src/account/service/csv_account.py#L242-L283",
+          "version": "repo-lines-v1:sha256:210e623a9269851d45038e51f1a6530b218485f207561849f69cb8838859bd01:eyJzZWxlY3RlZExpbmVDb3VudCI6NDIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ2YTMxM2M1ZTM1NWQ0ZDg1NWFlZjE3ZjI5YTYxYTliN2MxODc3ZDA3MDJhODUwZGVmYzBhZTIzYzA2ZTg0MmMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijk0ZjBkMjAzMjZhNTEwZWZmMTEyY2U3Mzg1OTJjNWM0YTZhOWI1MTMxNDYyYjY1NzM2MmIwOTlkMzQyMTg0YjIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImI1OTMwY2RkY2Y3Zjk4NjA0YTRjYmE4ZTAxZDNhMWY0NDBhMTFhNjA3ODgzZjg5NGUwNGM4M2JlMWI1Y2YwNTEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjQ3NjMzYzhiN2M0NmFjMTAyOGNlZjEzZjE3ZGUzOTIxNWM3ZmRkYzFmODc3ZGQ2MDQzZGI5MDQzNjdiY2YzZGQifQ"
+        },
+        {
+          "resource": "repo://tests/routers/test_csv_account_endpoints.py#L327-L371",
+          "version": "repo-lines-v1:sha256:4af090b2e80fc009c3985a4c8f1c23387e6be20db090e1fa90d364b1ce6fdf66:eyJzZWxlY3RlZExpbmVDb3VudCI6NDUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImI3YTgzMWZhNDcyNmZjMjMxNTE0NGY5YTA1NWJmZWMyNWYxYWZkMTI2YWFmZjU3YWZmYmU5NDBlZjVjNmE3MzUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjdkOWQyMjQyNjBlYzY4NmZmODVlMmVhZjU0NWRlOWI0Mzg1YjcxNGRkNTZjNTNkNmMwMWJjZjBmZjk3Yjg1ZmMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjYzZGViMmMwNDE0OWM2ZjQ3MDU0MmUwMDMxMjczNmZhMjZiM2U5ODlkN2I5NTk3MzY5N2U1OWQxMDU3OWVmYTAiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImJlYzJiMTM5NmM4YTFhZDUwZDIxZTQ4MGVmOWIwMTk2ZWVlNjc2NjgxZTY3NTRiYzY0NjRjNzRjYWRiYmE2MTAifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_0c657b6290064a3bbd477267139ccb2f",
+      "statement": "Security resolution for CSV positions is institution-scoped and cached through `SecurityBroker` rows: a repeat `(institution, broker_symbol, broker_exchange)` short-circuits to the mapped security, and a new pair maps the broker symbol/exchange to an EODHD query (`TSX`→`TO`, `CSE`→`CA`, `NYSE`/`NASDAQ`→`US`, `.`→`-`), searches the cached gateway, creates or reuses the security, primes its latest close, and records the raw search results.",
+      "evidence": [
+        {
+          "resource": "repo://src/market/api.py#L96-L195",
+          "version": "repo-lines-v1:sha256:39328a421461f62ab7989fb088bbfaddf9941f7c46c2cd02e7e31bceee2bb27b:eyJzZWxlY3RlZExpbmVDb3VudCI6MTAwLCJmaXJzdFNlbGVjdGVkTGluZUhhc2giOiI4MTZmNTA2OGI3N2Y4NWYyYWIxZjFmYTAyOTM3ZjkwZTFkMTZkNDdmMzAyMzg1ODE1NGMxYzU5MzRmMmRjMDBlIiwibGFzdFNlbGVjdGVkTGluZUhhc2giOiI2YmFkMzg2ZWQ4Mzg0MjFkMWZmNTFhYjlhNDI0NDlhZmUyYjE3MGJmZTRjN2NkZWFkNjcxMmUwNTFhZWNmZTM2IiwicHJlY2VkaW5nQ29udGV4dExpbmVDb3VudCI6MywicHJlY2VkaW5nQ29udGV4dEhhc2giOiJjMWUxYWJlNDRlMDY5YjUzYTVhOGFiNTNkOTkyYTllYWQ4MWI1ZDZiODBmYjhkZDgwYWY5ZjAxNDFjNTk0NTQ4IiwiZm9sbG93aW5nQ29udGV4dExpbmVDb3VudCI6MywiZm9sbG93aW5nQ29udGV4dEhhc2giOiIzMDJiN2Y0MGFhYTIyZTdjMjEzODg4OWU1ZWFhZWRkNDIwZTgxMTk3MDQyZWEzMTk4NjUxNTQyNjJjMGU0ODk5In0"
+        },
+        {
+          "resource": "repo://tests/services/test_csv_account_service.py#L362-L367",
+          "version": "repo-lines-v1:sha256:903c5c85b7cbc5f66202a5f494c15132d63354f19236ea7a6336ef2040f75e88:eyJzZWxlY3RlZExpbmVDb3VudCI6NiwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiYWEyY2FhZDU1NGZkMTRhMjk1MTg4NzliYjNjZWFjZWZmY2FkNjNkM2M3YWMzZTc1MTcxOTZjYzVjOWE4YzFjZSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiMzBjMWYxODhmMTQyZWQ3YTgyNDY4MGIyMDcxNzJjNTUxOWJjNjE0YTQ4ZmRhN2NmMTY3ZWRiOGRkZjc5OTU2YyIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiYTZhYmI1NzFlNTY2YjA3ZTVlZDhmOTU4NmRiZmFhYjhkYWY4MTA3Yjg5NTMzYzdiNTljZDk0YTNjNDJjZWI3OCIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiOGYyZDZiMzMwYTUzNTNiODcwMDExNzkwOGFhM2M1MTMxZDBhODM4NDk0ODEyZjY5MTE5YzgyYzU1OTg0MTc3YSJ9"
+        }
+      ]
+    },
+    {
+      "id": "claim_0c73e6a0f38944f6ab163ee813735c52",
+      "statement": "The CSV endpoints accept `institution_id`, `account_numbers` and `currencies` as either multipart form fields or query parameters with the same alias (form wins); `institution_id` and `account_numbers` are mandatory (422), account numbers accept a JSON list string, a comma-separated string, or repeated values and are deduplicated in order, and a malformed `currencies` JSON is silently ignored rather than rejected.",
+      "evidence": [
+        {
+          "resource": "repo://frontend/src/lib/api/accountClient.ts#L70-L91",
+          "version": "repo-lines-v1:sha256:d76fc4d445f541db9a45298febda6b8eabef33d1ad911c9a009e0852058838ab:eyJzZWxlY3RlZExpbmVDb3VudCI6MjIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjgyYzM5NWY5NTk1NjU0MzNmNTFlZTA0Zjc1OTU1ZTI2ZWIzYzFmNmQ1YmVhOTE3ZmQ1YTViYThiMmEyYTZkMWUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjY3Y2RhODJkYTYwNjIzOGUwNWU2MjM5OTU2OWM1ZWUwMzk5MzQxOTY0OGFlNWQ0M2EyYmY4Y2Q2MzQ3ZjgyNjMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjExZmRjYWU4NGM0YTkxYzljZGVlYWVjMTg4NDUyYjAyZjA5NGRjYmRkYTlhYzRiYmVjM2ViZGNiODZlYzUzOGYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjA5NWU1YzAxYTNiMThkNDdjOTJlOWY1YjgzMjdmMGNiNWNhMzdmYzI0NjA1ZGYxNDgwYzdkMDgzZjUyZmRiNjgifQ"
+        },
+        {
+          "resource": "repo://src/account/router.py#L208-L339",
+          "version": "repo-lines-v1:sha256:35e29c62ac12034048c22620577c68c9c21d5a416df3c4576abfee09099e4abd:eyJzZWxlY3RlZExpbmVDb3VudCI6MTMyLCJmaXJzdFNlbGVjdGVkTGluZUhhc2giOiIyNmM4NTkzNThlODYyODk3NjVlYTFhYzZjZmYwYjExNThiNjQzMjdkN2U4OTdlYjdhNDg3OTJiZDFlN2FjMTNjIiwibGFzdFNlbGVjdGVkTGluZUhhc2giOiI5ZjMyYTA1YWU5OTM1MTM5NGQ5Y2M5MzdiZjlmODEzZTZkYmViZjU4YzVlM2Y5NWY3MmZhMWVkOGZhZGMwMTI4IiwicHJlY2VkaW5nQ29udGV4dExpbmVDb3VudCI6MywicHJlY2VkaW5nQ29udGV4dEhhc2giOiI4Y2M0YTdkMWNjNzk2YWJhM2U0NjcyMzMyN2Y1MTdlOWY4MTE5ODJkMjUwZjA3MDI5ODZlNGI1NzY0YWQ5NTg5IiwiZm9sbG93aW5nQ29udGV4dExpbmVDb3VudCI6MywiZm9sbG93aW5nQ29udGV4dEhhc2giOiI2ZWFiZjFiMjc2NTYwMTE3YWVlMTRiZTkyMWQwN2Y3OTkyZjA5OTU4ZWFiNGJkMTFmNGU3YzcyOThkNTJhZTFkIn0"
+        },
+        {
+          "resource": "repo://tests/routers/test_csv_account_endpoints.py#L78-L101",
+          "version": "repo-lines-v1:sha256:bd350e512d3236d30fe0ee918d924bd6efc03e03d9e895b95f00fb6bbc2179c3:eyJzZWxlY3RlZExpbmVDb3VudCI6MjQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImI3YTgzMWZhNDcyNmZjMjMxNTE0NGY5YTA1NWJmZWMyNWYxYWZkMTI2YWFmZjU3YWZmYmU5NDBlZjVjNmE3MzUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImUzODEzNjU1Mjg3YTFiOWExODY2OGQ1ZWIyZDFjMjZlYzE3NzFmZjY3M2FkYmJmZmYzMGIwYzNmYmMwZTA2MGIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImI2MTViMzY5NGY1ZmFmNGNhZjc4NzFkYjRiMjYwMDcyMThmNTE4MGJmMjY1N2Q3OTBiYTVlNDcxNDQ0ZTliMDYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImJlYzJiMTM5NmM4YTFhZDUwZDIxZTQ4MGVmOWIwMTk2ZWVlNjc2NjgxZTY3NTRiYzY0NjRjNzRjYWRiYmE2MTAifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_fd548c5f455842f899abc914a2b40924",
+      "statement": "None of the three CSV endpoints carries a rate limit — only `POST /accounts/{account_id}/sync` is decorated with `@limiter.limit(\"3/minute\")` in `src/account/router.py`.",
+      "evidence": [
+        {
+          "resource": "repo://src/account/router.py#L208-L215",
+          "version": "repo-lines-v1:sha256:e4359f08c6f26896be6bbfa8c3e993528d1c27bf0d06b253288c0b4d85229202:eyJzZWxlY3RlZExpbmVDb3VudCI6OCwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiMjZjODU5MzU4ZTg2Mjg5NzY1ZWExYWM2Y2ZmMGIxMTU4YjY0MzI3ZDdlODk3ZWI3YTQ4NzkyYmQxZTdhYzEzYyIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiYWFlZDhjOTUwNjJiZDI0Y2RlMDRmMjMzMWJiM2MxYWRhZmQ0ZjE0MGUyNDJlMzlhYjJmMTJlNGQyMWQyNTBlNiIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiOGNjNGE3ZDFjYzc5NmFiYTNlNDY3MjMzMjdmNTE3ZTlmODExOTgyZDI1MGYwNzAyOTg2ZTRiNTc2NGFkOTU4OSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiY2JiZDZkMWE2YTlkOTdkYzc0MDIzN2Y3NGFjNWM0MDZlYWUxNmU4ZDIwZmYwMjk1ZmI0ZjA2ZTJhNzk4MmRkNSJ9"
+        },
+        {
+          "resource": "repo://src/account/router.py#L487-L489",
+          "version": "repo-lines-v1:sha256:76463781f73d0903552c61902d57a0d59fbe919a41d9e7b5aca03fba365128a2:eyJzZWxlY3RlZExpbmVDb3VudCI6MywiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiN2U1OGZlN2JkNGYyYjJhNzM0YzRkOTVmZjZkMTlhOThiNTAxZDQzOGYxYmU0Y2FmOTllMTAxOTJiYjQ4YmNlMSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiMmJlODk3ZTE4NjRkZmI2MzczMGZkYmU4OWE2NWNkMmVkNDY0ZmQ4ZjVlY2Q5NWQxNjVkMTgxMzc2Y2UzYWEwYyIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiOGNjNGE3ZDFjYzc5NmFiYTNlNDY3MjMzMjdmNTE3ZTlmODExOTgyZDI1MGYwNzAyOTg2ZTRiNTc2NGFkOTU4OSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiZWQ1OWZmZjU5YzM2Zjc4MGRkYzA2MzE0NjhiNmZkMjA5ZGIwNTAzYjU2OGFlNDJmODBmZWY1OTcwNDdlYzliYyJ9"
+        }
+      ]
+    },
+    {
+      "id": "claim_da35d7d0c8de485f80d65a61fb74a9b2",
+      "statement": "All three CSV endpoints decode the upload with `content_bytes.decode(\"utf-8-sig\")`, so a UTF-8 BOM never reaches the parser and a read/decode failure produces an HTTP 400 rather than an unhandled 500; the parser additionally strips a leading BOM defensively.",
+      "evidence": [
+        {
+          "resource": "repo://src/account/csv/parser.py#L234-L241",
+          "version": "repo-lines-v1:sha256:24a876a8109f39c23e11eaa369a6ba63ad3518e884ae12524f3976cdc8a73a94:eyJzZWxlY3RlZExpbmVDb3VudCI6OCwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiMTc0NzIyMDBkYTc1N2U3OTljYmQ5ZjNjNzViNTExMzQxOTBlODY5MThiNTVjNGQ0NjgyM2IwYjUyMTMwZTI5MSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiMDA0MWY1MjhhYzRhZDM2NzQ0NjZiOTc0ZTVjYjA5MWNjNWQwYzM3YjU2MDk1NTViNGFlZGQ5MWMzNjRlOGNhNiIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiYTczY2U4ZWMwOGQwZDE5MmZjNDRkZjViNzE4YWQ0YmNhYTQ3MmM3OTU3ZTE3ZWFiNDRlMDhjYTM5Zjc4ODU1ZSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiZDY5ODFkNTFhNzhhNDBkZDZmZDlmN2Y1MzdiMDU4NGU5ZDEzZDc0MmFmYmNlYTVhOTUwYjgyOGVjODk3YmI2NSJ9"
+        },
+        {
+          "resource": "repo://src/account/router.py#L225-L232",
+          "version": "repo-lines-v1:sha256:16815d8d215a185c3bc18b498487596f90546a94294b7c072e33bee71203e5ff:eyJzZWxlY3RlZExpbmVDb3VudCI6OCwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiYWRhNWM2NmUxN2IxNDUzOTc4MzRiOGM4NTRkYzQxOTNlMjEyNTE4MGE4OTk2YTE0YzMxODgzMzI2YjJlZmJjZiIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNjkzOTdlYTFiNjAyZTNlMjA3MmZjMDhlODcxMTJhNGVkNzFjMmU0ZjA4NjVmNDlkODQxOThkMjFkY2MwMTUzOSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiZmRmMDkyYWIzNTc3MzI3ODI5NWY4NjFhZjRhZjJjMTBmNDA1NWMwNzIyN2YwOTUwOTJjODlhMTUzNGQwZDc5OSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiYzllNGFjMWQ3MWI0MjA2OTc0ODU2Nzk5ZThmNTkwMjU2OTAzMDc4ZjJhNTNiNDA0OGVmNzQ0Zjc1NTQ5MjE1NCJ9"
+        },
+        {
+          "resource": "repo://tests/account/csv/test_parser.py#L224-L236",
+          "version": "repo-lines-v1:sha256:2241ab139b1c42f637da316bfda6975d1d8677bda49776a4eefc224670fd907c:eyJzZWxlY3RlZExpbmVDb3VudCI6MTMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQyODgwZjlmMjJjYTJjMGEwMGVhMGQ3MWRmMGEwM2E4NTA2ZmEyODU1N2U1OTM3ODk3Yzg2OThhMGY2MmIzODgiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjY3ODJlMzE0YTFjM2U5MTY0M2Q2ZGM0N2E4MzdmNTVhNzQ1ODI3YWUzYzA4ZjNiNGM1MTc2NThlYWNiMjA0NDAiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjM2MmI4M2ZjNDc3OWNjODczMGJlOWQxMzI5NWNmZWE2ZDc4NDA3Y2JiZGM5MTBkYTEzYTFiOTRkMGI3ZGY0OGYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjUyZTRlM2I0ODMzY2ZiZmU1YWUzYmRhMThlNjI3ZjNlNzcyOTU4ZWRjZTgxMmM5MDQ4M2ZhM2Y5YTQyOTYyOTQifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_abc5f2a348c745d0b2715e6b02fe8884",
+      "statement": "`WEALTHSIMPLE_CSV_FORMAT` in `src/commands/seed.py` is the worked example of the template contract: 21 placeholders in Wealthsimple column order, seeded onto the `WEALTHSIMPLE` institution with `csv_import_enabled=True` and re-asserted on every seed run for an already-existing institution, so a template change reaches an existing database.",
+      "evidence": [
+        {
+          "resource": "repo://src/commands/seed.py#L105-L194",
+          "version": "repo-lines-v1:sha256:82cdf1fc3ea6caa825f074ca43329050d7695093cc21f0841b989135bc5c6ec6:eyJzZWxlY3RlZExpbmVDb3VudCI6OTAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImRiMjIwNGRlZTczOGQ0YTg5Mzk5OTNhMWI0MjAxOTgyNTI1YTUzNWFiOTZiMDg0NWM2ZWFiMGFkNDcxYzdjYjgiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjI1ZTM1ZGNkOWMwMGM2OTNlM2EyNGUzNzU1ZGJkZGIxNGNiOTM4YTMwYzIyNTA1YzA0MDY3NjM0NDVjYjRhYzkiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjczNWUyY2Q1NTFhODg1ZTZlNjM2ZjZjODI2NWZkN2QxMmFmOTA2ZTQzOGQzZThiZjYzOGIxYzdjNDBmNzkzOTAiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjZhNDY1MTI5YzE4MmQwMTI1MmRiZWQ3OWIzYjc4YWUxZWIzNDE2NWU3YTk2ZWU0ODA0YzM2NmM2NGFmZmNlNTgifQ"
+        },
+        {
+          "resource": "repo://tests/commands/test_seed.py#L35-L79",
+          "version": "repo-lines-v1:sha256:2dc1bdec66a5c2a211d315628482536a193fbf99a8dcd5cff7b55bc4b222cb52:eyJzZWxlY3RlZExpbmVDb3VudCI6NDUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjhiYTQ3ZDYxOGQwNGEwOGQ1NWVmNDhkYzhiNWZhM2RiMDg4N2QwYWZlZTBiMmNmZGQ5MGMwZTZlMDYyMmY1OTQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImZjNDNjMjc1NGYyMTI1YWM0NzYzMzVkZjQzYzkyYTc5MjljNzBkNDdhYzc3ZWE1N2MwM2JlZGE5OWMzYzI4ZDciLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjgyZmMwYjkzOGFiYzI3ZTdmMDA4MjZkMDMzMzcwOWM4YzljYTdhMTE4NzE0ZjdiM2Y0MjQ2ZTljODY1MzNjYzQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImM1ZGQzMWIyNmY5ZjhlMzg0MDAzZTY4MzYwNGE3MjBhMTBkMmRlM2MzNGYyYTVkNzFkNDgwNzM2YmY0ZjEzNDcifQ"
+        },
+        {
+          "resource": "repo://tests/conftest.py#L179-L192",
+          "version": "repo-lines-v1:sha256:d321b3a944adfa7b8a686d68936674f280200243484508af6fbbd4c339dd8c9d:eyJzZWxlY3RlZExpbmVDb3VudCI6MTQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImRlNDNiOGQ1N2NjZmVjZDFkYjQ3ODk0ODc5ZDMwZDIxZTljZDU0NTljOTgxM2VjZGNhOTNkZjY0NDZlMzhjZGYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImEwZWU5ZmQwZDQxYWM5MGU5NDYzNTlmYmVlMTI4NGEwMWZiNmFjOTc2YzNjMzNmNWQ4NmFmN2MyMWZjYmMwYTMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImQ2YmYzZWI0OTRiMWIzMzg4OGE4ZTBmYTU4ZjA3Yjk0ZGM0ODA3OTE5YjE4MTI2MDA0MjUyMDM1NjM4MTkyN2YiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjoxLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjdhNjRlZWI2MDJiMzM2MzEwNjUzNzU5MDBkN2ZmY2Y0NGEzMWM3ODZjODA3Mjc0NTk2YjkxZjI0OTYyZTc2YzEifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_5f0448a6bb0d4cc799a00271f9912987",
+      "statement": "Onboarding a new broker CSV export is a data change, not a code change: set `csv_format` to the positional template matching the export header and `csv_import_enabled = True`; parser code only needs touching when the export requires placeholder vocabulary the parser does not consume or a header label no alias covers. The caveat is that templates omitting `{account_number}` or `{account_type}` fail at runtime with the row-level missing errors, and omitting `{quantity}` silently yields zero-quantity positions.",
+      "evidence": [
+        {
+          "resource": "repo://src/account/csv/parser.py#L247-L291",
+          "version": "repo-lines-v1:sha256:a92c32b3bf90be922a841c822d0d9237a98eab9be6a65f24bf391e094a0e8d58:eyJzZWxlY3RlZExpbmVDb3VudCI6NDUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjU4MmVhOWIwNGQ4OGQwNzFkN2M3Y2ZjNjQ4YjRiY2MxNWQwMjQ1ZDBlZDNhZGQzZjljMGM1ZjcwNmE1YTA2MjYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAxYmE0NzE5YzgwYjZmZTkxMWIwOTFhN2MwNTEyNGI2NGVlZWNlOTY0ZTA5YzA1OGVmOGY5ODA1ZGFjYTU0NmIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImM5YjVjNTFhYjg5ZjcwMzkzZmIzNzU1OGQ0NGMwNjk5NDA3MzQ2Mzc5ODJhZWQ0MTNkZDY3ZmRlYmZlZTkxNmIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6Ijc5MzM0YWZjZDY1ZGNkNDQ4NjYwNGRkZTAxMzc4MjIzODMyYzc1MDJiOTkyNDk3ZGM2ZTExMmY0ZWRiZGMxNTgifQ"
+        },
+        {
+          "resource": "repo://src/account/model.py#L163-L202",
+          "version": "repo-lines-v1:sha256:c9962045578c64eafa4bcb1995f7e60dbf6ef541ef3b92cd519d48f33924aeec:eyJzZWxlY3RlZExpbmVDb3VudCI6NDAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjA4ZTk3YzJmYjBmODdmNTA0ZjVkY2MzODIwNjI2YTUxYmIwYTY0Njg2NTc4NzFiMWM5NzdiMTVjYjQ5NDVlNWIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjE0ZTBmNmI1MGU3MGE4NjkyYTc5ZGVkMDdlOTBjMGQ1Njc5ZmMyMzZkMDg2YzBiYjZmMWJhODM3NGQ5ZTMwZWIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjhjYzRhN2QxY2M3OTZhYmEzZTQ2NzIzMzI3ZjUxN2U5ZjgxMTk4MmQyNTBmMDcwMjk4NmU0YjU3NjRhZDk1ODkiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjkwZDNjN2VkZDM5N2E1YzIzNTgzOTdjMGIyOWUxMWRjOTZjMDliM2FlMGM5ODA1Y2Q5MmM3MTEyOTcwOWExNjkifQ"
+        },
+        {
+          "resource": "repo://src/commands/seed.py#L113-L149",
+          "version": "repo-lines-v1:sha256:2a5610ae2ec4d47f2de437dcbda1423c04ed9213da6c4014511ca7fbe61d115d:eyJzZWxlY3RlZExpbmVDb3VudCI6MzcsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjJjMWE3OTcyNjBlOWMyYTRmZjRhNDdkMTAyOTRjNTU5NmQ3OTUzNjg4ODg5MTY3YzE2ODY4OGFiNDlkOGJiNmYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImEzMDNlY2RkNGE0ZDEwZjE5YzczZmQ0MmZkMTI0MzdmZDMzNTRhODI2ODE2MDVkYTUyNTVhOTdhMzkwNjhkYmIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjMwMGJhMTEwNGFiNTJkZjk5ZTYxNTVlYjNmMjk1NDdmODgyZmE0NDQ2YjhmNGU4OGQ2YzI0N2Y1ZDVkNDY1MDIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6Ijk5OThjZTQxMmExY2JiNTBiMzlkYjY4ZDdkZmU3NmVmNzg2NjY5OGU2NDIwNDcwODZhNzI5MzUwOWM4MDJjYWQifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_cbc23990670344b8861c0a3006612e30",
+      "statement": "The institution seam surfaces to the frontend through `GET /integration/institutions`, which returns `csv_import_enabled` and `csv_format`; the import modal filters that list to `csv_import_enabled === true` and auto-selects the broker when exactly one remains, so adding a second CSV broker requires no frontend change.",
+      "evidence": [
+        {
+          "resource": "repo://frontend/src/lib/components/accounts/import-account-csv-modal.svelte#L81-L91",
+          "version": "repo-lines-v1:sha256:14ac33efe2719973239fb854564f50173ed13c517825999ec7cc5ed2d933fc9f:eyJzZWxlY3RlZExpbmVDb3VudCI6MTEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImFhYWMzMzkwNDgwYTE5OTkwMjg2OTg2MzFhZDcwYzQ3MTI2ODU1ZmI5MWJhMjNjYmJhYmY0OTcxOWQ2YzFlMWUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjY3Y2RhODJkYTYwNjIzOGUwNWU2MjM5OTU2OWM1ZWUwMzk5MzQxOTY0OGFlNWQ0M2EyYmY4Y2Q2MzQ3ZjgyNjMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjhlM2U4ZjFkYmE5ZmIxMjEwMGE2MzA2ZmY3MTcwZjQzMjY2MTU2ZDJjNTJhMTlmZGEzZTU1ZjhmNTJhZTcxNTciLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImJlNDk3MTE2NmEzZDRhZmQ4ZjFmMDA3YzZiOTBlYjY4M2MxNTE2ODBlMjBkOTk2NWRjNTkxMGE3OGY5YzlhYjgifQ"
+        },
+        {
+          "resource": "repo://frontend/src/lib/components/accounts/import-account-csv-modal.test.ts#L82-L135",
+          "version": "repo-lines-v1:sha256:52e3ca318d65e0a5a9e4e53661b1e8f9d49dd0922cfc2ca249784a36d0e7f3cf:eyJzZWxlY3RlZExpbmVDb3VudCI6NTQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijk1ZjYzNDQ2NWFkYWNjZmJkZjVjYzczMTljMjI1OGNlYzA3YTE3YzM0ZWJkNjM4MTJhNTE3YjQ5ZDI1NGU3YzMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjBhNzM0OTJkODk0NmIxZDBmOWQ5YzA0YjcwNGE5MjBmMjRmODllZjdjN2Y3MzExYTg1OTlkMTBjN2Y2MzU4ZDAiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjZhNWRlZjgzNWE5MWU2YThkNzIxY2EwOTE3ZmYyNjgzMDk3OGRjZThjZmNiOGEzN2Q2YmJhNzg4NjU0MzI2MTUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImM0MDFiZDQyZDk0MjlhYjhhMTdhMWUzNWRjMGM2OTBiNTJhNjJiMDk4NGE5ZDNjY2Y0ZTRiOGNiZTQ0YmI4ZDUifQ"
+        },
+        {
+          "resource": "repo://src/account/api/institution.py#L13-L28",
+          "version": "repo-lines-v1:sha256:19c262538ccb8b856549e766af805efca4272073afd3246c375ff2e2709dd8e0:eyJzZWxlY3RlZExpbmVDb3VudCI6MTYsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImFhNzlmOWVkYmIyMzM5NWNiMGYwYWJlNjkzYTMwMjUzZGVmMzgyM2FjZWU5M2I1NDQ2ZDFhOWQ2NTA5Mjk2YTgiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImJhYWU4YTBjYTc2Zjk4ZjdiN2RjNzk4NDk1MWQ2M2U1N2RiM2M2NDU1NzljYTUxYmFkNmE1MzlkNjE0ZWRiYmUiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6Ijk2NTQ3YzVhNGU4YzM4OWEyNDUxOTAxZjUxN2RiYmU1ODFiZWJjM2UzZjJhYTcxMzhiZDk3ZTYyY2UzYjRjMGQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjQwMDE2ZmRlNDczZTRkMzljNzQ5MDRiZmJjM2U5ODg1ZGYyYTMwMjhmNzZkZDVjNTVhYWRhMDhhNDg4MTQ1ZTgifQ"
+        },
+        {
+          "resource": "repo://src/integration/router.py#L39-L48",
+          "version": "repo-lines-v1:sha256:c13f734824a786e80195b686fe8ad7cbaeb452316ceffe75e4382fd63ea971a7:eyJzZWxlY3RlZExpbmVDb3VudCI6MTAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjBjZTY2NDNlZjIwYWQ4YjI5NWY1OWMzZWYwNGI5NTg1OTk0ZDBjNDAzYjgxZjc2MjI5NDk1MDI0YTg5YWUyOTQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ3OGMzMDBkMmM4MDhiNDgzYjg3MDM1ZjdiOTA4ZTkzODY2NjBlZGE5YmQzZjljMmE3ZmRhYjg1ZGRmNGQ2NDYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjE0NTYxMjUxM2RlNzg2NzkzZWM2MDRiN2QyOTIyMjRjM2ZmYTlhMDY1ZDNiNzYyYzljNTY3MDUxZTVhNzViZjUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImZkODk3MjkxNzY5NzU5ODJmZmEyZWUzYjZlMjI4YzdhMTAyODUxNTliMjkzODg4MDMyMjYzMzMxOGJhZWJiYzQifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_dbe6bff75c544456a758f690ea174ca4",
+      "statement": "`import-account-csv-modal.svelte` is a two-step dialog (broker+file, then a preview table) with client-side `.csv`-extension and 10 MB size guards that disable the primary button, an empty-account-list error that keeps the user on step 1, all discovered accounts selected by default with select-all/indeterminate header state, per-row currency dropdowns, and `Back` preserving the broker and file.",
+      "evidence": [
+        {
+          "resource": "repo://frontend/src/lib/components/accounts/import-account-csv-modal.svelte#L101-L238",
+          "version": "repo-lines-v1:sha256:5e504ce81dd4d343d1cf69442bbc5b07e38fcfae122d41eb7fd21b998a9000ee:eyJzZWxlY3RlZExpbmVDb3VudCI6MTM4LCJmaXJzdFNlbGVjdGVkTGluZUhhc2giOiI3ZmFkYjUyYTNmZDkwNTdkOTRmNTkxNTU2ODA4ZWRmNGEyNDZjODUwZTY2MmIzMGM0YmY5NDI5MGEwMzIwMTYwIiwibGFzdFNlbGVjdGVkTGluZUhhc2giOiI2N2NkYTgyZGE2MDYyMzhlMDVlNjIzOTk1NjljNWVlMDM5OTM0MTk2NDhhZTVkNDNhMmJmOGNkNjM0N2Y4MjYzIiwicHJlY2VkaW5nQ29udGV4dExpbmVDb3VudCI6MywicHJlY2VkaW5nQ29udGV4dEhhc2giOiI0ZjZmZWEzZTYwMTZhYmRiYmEzOTI3MDg4YmZhOThjN2NmMTUyNGUzZWViNmJiNDY0NGIzYThmY2YyOGZmYWEzIiwiZm9sbG93aW5nQ29udGV4dExpbmVDb3VudCI6MywiZm9sbG93aW5nQ29udGV4dEhhc2giOiJhODNjN2M4ODVhMjg5ZDM5MjRmMGQ4MzU2NzVmNjNkZDkwODM2Mjc1ZTk3YzNkMTUwZGJhOTJhYzYxYzk2OWYzIn0"
+        },
+        {
+          "resource": "repo://frontend/src/lib/components/accounts/import-account-csv-modal.svelte#L342-L427",
+          "version": "repo-lines-v1:sha256:4e46e0c4d3a07a46fa703732325b8f4d393c2b20d39416b24c1ed3500afa1202:eyJzZWxlY3RlZExpbmVDb3VudCI6ODYsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ4ZGM0YTliYzVjMDUzMGJhNGI0YzQyNzM5MzlmMGNkOTBhMmEyMTljYWM1OTljMTBlMGQyNDJiNzAyMTEzZjUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImVkNjJkNjAzMzMyNjA1ZGY4NDQ5NDQ0MzJjNzM0Y2Q3NjZmY2E2ZjFjMDY1MTEzMzIzOWI4ZmEzYWYyOWU2ZjMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjhmYjJiYjRhODZlM2JkZjUwYTczOGU1NjcyNzYzMzVlZGRmYWM4YTg3Y2YwMjVmOWMzMWFjYWRmMDVkZDgzM2UiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjRjMTk1Yjg3Njg2MDUyY2M1MTdmODI3ZGY3YjQzMzc3OGU5OWE2MmVlZWFlZjliNDQzNjNkNWQ4NjA5ZGMyNTEifQ"
+        },
+        {
+          "resource": "repo://frontend/src/lib/components/accounts/import-account-csv-modal.test.ts#L137-L223",
+          "version": "repo-lines-v1:sha256:4919282cad08cfd7ecb8e0d440acbc098f61ab252cc24fd7ea6d9a6eea892faf:eyJzZWxlY3RlZExpbmVDb3VudCI6ODcsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjhlM2U1Y2QzOWJkODkzNzExMzI5ZDU3NTY2YzMyZTgxYjM3MWZhNjllODk0ZTIxNDMxMGUxZWY3NWZmMjc2YjMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjBhNzM0OTJkODk0NmIxZDBmOWQ5YzA0YjcwNGE5MjBmMjRmODllZjdjN2Y3MzExYTg1OTlkMTBjN2Y2MzU4ZDAiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImZiNmI3MDgxZTQ1NGQ4NDM1MGNiYmYzN2FjM2VlNjliODQ4ZjEzMjViOGRhOTM1OWM2MjY5ODg1MDBlNGNlOGYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImEwMTI3NGIyNjFkNzM4M2M4M2UwMTQ4Y2M0Y2YzNDY3YzIyM2E3NzE3MWRlN2IwN2RmMmViMTJmNjRjZjUzNzUifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_3f7e00d66b6441af8d367793e42754e7",
+      "statement": "`update-account-csv-modal.svelte` is a single-step dialog that sends only the file for one account to `syncAccountCsv(account.id, file)` — no institution or account number travels in the body; it is opened from the account-row refresh control that renders `Update from CSV` when `api_sync_enabled` is false.",
+      "evidence": [
+        {
+          "resource": "repo://frontend/src/lib/api/accountClient.ts#L43-L52",
+          "version": "repo-lines-v1:sha256:a8da39eb6c38666104aca9920dc8ce616523f05f3a71ade50d3511dd73feca4b:eyJzZWxlY3RlZExpbmVDb3VudCI6MTAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImIzNTgwYTBiNzNjYWQyYTU0N2RjZTNjMDY2MjI2NGE5NzIwMjRlZmY3YmM2ZGFlZDc0MDBiZWFmOWUyZWU3Y2EiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjY3Y2RhODJkYTYwNjIzOGUwNWU2MjM5OTU2OWM1ZWUwMzk5MzQxOTY0OGFlNWQ0M2EyYmY4Y2Q2MzQ3ZjgyNjMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImUzOThlNmM3NThmMzQwZGU2NDkxNWM4NzViNTE4OTE5OTE2MTlhOTM1ZmE1YmM0Y2Q4YmRjMWNkYWQ0MDZjZjQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImEzZmMwNGM0NGY2OGQxMGM0M2FlNTJiMDM5ZDM1M2JiMDRiMzM4MWZmMmYxZmNjMTdkNTdmOWIzMDAwYjNmMjIifQ"
+        },
+        {
+          "resource": "repo://frontend/src/lib/components/accounts/accounts-list-item.svelte#L94-L114",
+          "version": "repo-lines-v1:sha256:11a197c210f9ec350000221d6f9a2f7d5219beb6dc1e790cffe9aa0e1952460d:eyJzZWxlY3RlZExpbmVDb3VudCI6MjEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjgzZjcwOTdhYTdiYjY5ODA1MzFjMTE2YjU1YmZkNGNhMGM4YWJmNjczMmFlZjFhNjkzNzNkNzhlMDc5MGRlMGIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjVkM2EwMTQ3MTZjZDU3Y2MwMTliNTMyZTI3YjQyMjQ0OGY0ZmRlMTVjY2ZlNWJlZjJjM2QxYWFjZDE2ZDViN2UiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImY2NTAyNTcyZDY1ZmUxMTY5NTNlZmQxZGYxMTNiMDZiYjBkMzk3YjcwYTIxMjAxYTMyYzZiMTYyNDlmMDYxNGIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImRjY2VkNTZlNzNhZmE4YzlkOTA2MGEyMWEyMmQwYjJhZmM0ZTBhYWNhODUyOGRkMjBkYWExMzUyOWI0MzFjNjMifQ"
+        },
+        {
+          "resource": "repo://frontend/src/lib/components/accounts/update-account-csv-modal.svelte#L100-L123",
+          "version": "repo-lines-v1:sha256:83fcadd1a50f28b0e8f39c69f13a2df7648f597ee7bbcd4e531b207cacf55271:eyJzZWxlY3RlZExpbmVDb3VudCI6MjQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijk1NWE4NjMzNjg5N2UxODk3MWFlYmExMmQ4MjhkMGM3MWViMzk1OTZlMWZmMjYxNzk1M2I4MzU0ZTBiZWFiYjUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjY3Y2RhODJkYTYwNjIzOGUwNWU2MjM5OTU2OWM1ZWUwMzk5MzQxOTY0OGFlNWQ0M2EyYmY4Y2Q2MzQ3ZjgyNjMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjIyZjJmZjVmZWVjNjBmNTg3YzhmYWU0ZTg3ZjgwOWE2NjFjZmZlZDZiNDdhYWU1ZjZkNmEyNjUzYWE4OTUyZWYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjA1NDljMmE1MGU0MmZiNjFiYjJjMDYwZmJjZjA1Yjc4ZGRjZmFiZjRhNmZkODk1ZGZjZjllMjM2NDg1MmYyNzcifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_1bf3fe858c9e43be90df2f1627a84d07",
+      "statement": "`AccountClient.importAccountsCsv`'s fourth parameter is overloaded as `currenciesOrToken?: Record<string,string> | string | null`: a string is routed to the auth token while an object becomes the stringified `currencies` form field, and the client sends repeated `account_numbers` fields.",
+      "evidence": [
+        {
+          "resource": "repo://frontend/src/lib/api/accountClient.test.ts#L229-L310",
+          "version": "repo-lines-v1:sha256:a2cce85806ad90dc256fc3386228776aa097407b6030904cda48136d4e2b7e64:eyJzZWxlY3RlZExpbmVDb3VudCI6ODIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjM3MDY3OWVlYjIxNzlkOTA2NWNhZDgzYjhlNWE2NDkyMjc1YmU2NjY2YmEwZjE3NzUwOTBkYzk3NzE2YjFhNzQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjZhMmEzYjc2ZTEyY2UxNTM3OWQwNWYyODY5ZGM0ODMyZGU3NTg5MDUzYjQ5YmZmMjM3ZTQyNWM3MjM3ODAxNTQiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImZiNmI3MDgxZTQ1NGQ4NDM1MGNiYmYzN2FjM2VlNjliODQ4ZjEzMjViOGRhOTM1OWM2MjY5ODg1MDBlNGNlOGYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjoyLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImMzMWExNDMyMDk0YzllODliMzZjZWY3MzE0NThjMDIzNWNkZmE3MjgwNDE0NjU2NDJjZjcyN2E5Y2Q4ZjQyNTQifQ"
+        },
+        {
+          "resource": "repo://frontend/src/lib/api/accountClient.ts#L70-L91",
+          "version": "repo-lines-v1:sha256:d76fc4d445f541db9a45298febda6b8eabef33d1ad911c9a009e0852058838ab:eyJzZWxlY3RlZExpbmVDb3VudCI6MjIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjgyYzM5NWY5NTk1NjU0MzNmNTFlZTA0Zjc1OTU1ZTI2ZWIzYzFmNmQ1YmVhOTE3ZmQ1YTViYThiMmEyYTZkMWUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjY3Y2RhODJkYTYwNjIzOGUwNWU2MjM5OTU2OWM1ZWUwMzk5MzQxOTY0OGFlNWQ0M2EyYmY4Y2Q2MzQ3ZjgyNjMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjExZmRjYWU4NGM0YTkxYzljZGVlYWVjMTg4NDUyYjAyZjA5NGRjYmRkYTlhYzRiYmVjM2ViZGNiODZlYzUzOGYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjA5NWU1YzAxYTNiMThkNDdjOTJlOWY1YjgzMjdmMGNiNWNhMzdmYzI0NjA1ZGYxNDgwYzdkMDgzZjUyZmRiNjgifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_382c6083ca434c1385fa16e2c91e9c4d",
+      "statement": "Both CSV modals render the backend `detail` string verbatim in a destructive alert, so the parser's diagnostic messages (column index, expected and actual header names, row index, symbol, account type) are what end users actually read.",
+      "evidence": [
+        {
+          "resource": "repo://frontend/src/lib/components/accounts/import-account-csv-modal.svelte#L266-L273",
+          "version": "repo-lines-v1:sha256:eeffd52e79a63ddf671f79c41a5c6fe5966e8e4ca1517fddadce05cc70a37efe:eyJzZWxlY3RlZExpbmVDb3VudCI6OCwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiNTI0NmIxNGY3ODc1NzBiMDhlY2UyZGI2MzFlYmU2NmEzZTYyMjMwMzAxNDZkZjZmMDUwZDBjZTlkZGQ1YjczOSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNjc5YjQyOTgwNDdmNTYzZjBiYjRiMjI3ZThjMzI3YTNkODU0YzNhYjhiYTEyZTE3ZWM4NjlhMjMzMmIyYTAwOSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiZmJkNDg2YTM3ZmIxODczNzQzM2JhZDcxZmZlNjQxZDA4MmM5YjgyZWYyMTkyZTlmMDI0MDcwZGIxOTJjNmIzZCIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiNzFjNWU4MTFmODJlNTdmOGVkZGQ2OTMxMmVjNWNjYmY4MjhkNmQxMDk1MDI0M2ZlOTcxOTZjZTJmOTA4N2FiZiJ9"
+        },
+        {
+          "resource": "repo://frontend/src/lib/components/accounts/update-account-csv-modal.svelte#L137-L142",
+          "version": "repo-lines-v1:sha256:ef3bf2d38158c8211374e6b1201de51e3e8f062d400ee234bb223ffaa5d9e304:eyJzZWxlY3RlZExpbmVDb3VudCI6NiwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiNTI0NmIxNGY3ODc1NzBiMDhlY2UyZGI2MzFlYmU2NmEzZTYyMjMwMzAxNDZkZjZmMDUwZDBjZTlkZGQ1YjczOSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNjc5YjQyOTgwNDdmNTYzZjBiYjRiMjI3ZThjMzI3YTNkODU0YzNhYjhiYTEyZTE3ZWM4NjlhMjMzMmIyYTAwOSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiZmJkNDg2YTM3ZmIxODczNzQzM2JhZDcxZmZlNjQxZDA4MmM5YjgyZWYyMTkyZTlmMDI0MDcwZGIxOTJjNmIzZCIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiOGIxZmVmNmVkN2NhMzUzOWYzNTc5OTM3NmM3YWYxYmYyYWZjZGNiYzM1YzM2ODdkNzU3YzM4ZmY5NGY3ZTVlOSJ9"
+        },
+        {
+          "resource": "repo://src/account/csv/parser.py#L155-L176",
+          "version": "repo-lines-v1:sha256:9accaf2711d694db28a3dcd023af69a1cdb9f14f28983dce0f7bcb673811ff83:eyJzZWxlY3RlZExpbmVDb3VudCI6MjIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImVhMzUxMDgwYTZhOTZjMjczMjMzYzA5MGNjZGNiMTE5ZmVkODc4MWJiMDMzMTQwMTdlZTJhNWU5MTYzNjM1NzgiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImE0YWMzZjk2MmNkNGQzZjQxM2Y1OWE1YTdlMjFhMzNiYzkzZTI3MGRmYzk1NmU1YzVhNGUzZDM3MWNiYjQwZjkiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjI3M2MxZWI5MmU3MmEwNmFlOGVkNTJlNTZkMDdjMDY0NmE1NDFmODJlNTA1YzZlN2Q4ODJhZmIyZWNjN2VjNjEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImJhNWNhYjcwNjY4ZmI1ZGM5OTczNGU2MjZiOWYwOTMyMjQ3ZjBhNWU3YzkzYjlkNTAxZjQyYjQwZmM3Yjg0OTgifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_6d4aa33cf4dd46dfbfc8916a0a5d9b16",
+      "statement": "Focused CSV coverage is layered: `tests/account/csv/test_parser.py` pins the template/alias/filter/rounding contract, `tests/services/test_csv_account_service.py` pins the institution gate and the create/update/sync branches with mocked repositories and `SecurityApi`, `tests/routers/test_csv_inspect.py` and `tests/routers/test_csv_account_endpoints.py` drive the real FastAPI app against Postgres asserting status codes and `PositionModel` rows, and `tests/commands/test_seed.py` pins the seeded template plus seed idempotency.",
+      "evidence": [
+        {
+          "resource": "repo://tests/account/csv/test_parser.py#L30-L61",
+          "version": "repo-lines-v1:sha256:a262986a73e07df5897267009c451d64260c1c0aa7f015eace48c3ae72792357:eyJzZWxlY3RlZExpbmVDb3VudCI6MzIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjNmYTNmNDE1MDc2ZTA0NzY0ZTIzOTdmOTQwNDVjOTQ1NDczYWU5OGQxOWFhYTc1ZTViNDMxYWJhZmFlMTMyM2YiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAxYmE0NzE5YzgwYjZmZTkxMWIwOTFhN2MwNTEyNGI2NGVlZWNlOTY0ZTA5YzA1OGVmOGY5ODA1ZGFjYTU0NmIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImE5OGIwNjNkOWI0N2U2NTM3OTYyNTU3MmNjZTE5NzY2OWQ1NzY3ZTEyYzE4YmUwNzU2NTJiOGNkOTgxY2U4ZDUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjAyMmQ0MGI4ZjEzZTFiMDY2YTcyYjQ0NzZhYmU2NzUxOTkwYzA4ZDVkOTViNWI1MjJmNzQyMDA1ZjYzMDNhMWMifQ"
+        },
+        {
+          "resource": "repo://tests/commands/test_seed.py#L14-L83",
+          "version": "repo-lines-v1:sha256:ff29af1337ee0b719f542540c6623797fd15222be63f0fb0df652005570ea32e:eyJzZWxlY3RlZExpbmVDb3VudCI6NzAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImI3YTgzMWZhNDcyNmZjMjMxNTE0NGY5YTA1NWJmZWMyNWYxYWZkMTI2YWFmZjU3YWZmYmU5NDBlZjVjNmE3MzUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjNkNTcwZWZlMmI1YmFjOGFhZjQ5YTFkNTBiMmM3YWViZWI0YzgwNDYyMTRiNzM4Yjk2MGE2YTIwZTk1ODUyNzkiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjA1NGRiZGFlYTI1ODY3NTFjYjU1MDA0ZGM5NzIxOGFkZDhkYmNhNTI4NzkxNWNkMGIzYjEwNDUwNWE2Y2Y0NDQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
+        },
+        {
+          "resource": "repo://tests/routers/test_csv_account_endpoints.py#L283-L325",
+          "version": "repo-lines-v1:sha256:e53ede9a028334e6a740aea3a715ea40b8fc8881c4d88df3a039c9fc13fbb562:eyJzZWxlY3RlZExpbmVDb3VudCI6NDMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImI3YTgzMWZhNDcyNmZjMjMxNTE0NGY5YTA1NWJmZWMyNWYxYWZkMTI2YWFmZjU3YWZmYmU5NDBlZjVjNmE3MzUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAxYmE0NzE5YzgwYjZmZTkxMWIwOTFhN2MwNTEyNGI2NGVlZWNlOTY0ZTA5YzA1OGVmOGY5ODA1ZGFjYTU0NmIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImUyOWNlNzlmYjI3Y2Y3ZjIzNmRhZjI0MWEyODJjYTY1OTAxNzc2YTlkNWZhNDU3OGZlMGIwNzNiZDIxNWMyNmMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImY2N2Q3NWU4ZGE0NjhiNDkxNzRjYjdkMzZjYWQ4NzAzMWEwNGMxNzgzYTI1ZTg3ZWExZGFiYzM4ODQ3NGRjYWYifQ"
+        },
+        {
+          "resource": "repo://tests/services/test_csv_account_service.py#L58-L107",
+          "version": "repo-lines-v1:sha256:d3a108074481697304b04695eceda34cbb2b817d488647eae02eb3e3617f55ce:eyJzZWxlY3RlZExpbmVDb3VudCI6NTAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ2ZTc4MGI5OWNlZGUzMTU2MWM2MmMzMTNjYWE1YTI4NDVkYjhhYmEzZGE2ZmFhMGNlYjU3NDM3OTM0MWY3MjUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAxYmE0NzE5YzgwYjZmZTkxMWIwOTFhN2MwNTEyNGI2NGVlZWNlOTY0ZTA5YzA1OGVmOGY5ODA1ZGFjYTU0NmIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjZhM2NmNTE5MjM1NGY3MTYxNWFjNTEwMzRiM2U5N2MyMGVkYTk5NjQzZmNhZjViYmU2ZDQxYWQ1OWJkMTIxNjciLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjI4MTk0ZGZlZmMwOTQ4ZTRhNzhhM2FlNzVkY2E4NmY5Njc0ODg1NjFjZmRhYjRkMmQyMWMzOTQ0MWE0MDU5NGYifQ"
+        }
+      ]
+    }
+  ],
+  "verification": {
+    "by": "openwiki/0.5.2",
+    "at": "2026-09-18T20:16:58.058Z"
+  }
+}
