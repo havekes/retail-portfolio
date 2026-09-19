@@ -10,6 +10,7 @@
 	import { saveHoldingsGroupMode } from '$lib/components/holdings/holdings-group-prefs';
 	import { getUserPreferencesService } from '$lib/api/userPreferencesService';
 	import { SvelteMap } from 'svelte/reactivity';
+	import { cn } from '$lib/utils';
 	import {
 		HOLDINGS_TABLE_COLUMNS,
 		HOLDINGS_TABLE_STICKY_COLUMN_ID,
@@ -42,13 +43,25 @@
 	const currencyTotals = $derived.by(() => {
 		const buckets = new SvelteMap<
 			string,
-			{ currency: string; totalValue: number; profitLoss: number; hasProfitLoss: boolean }
+			{
+				currency: string;
+				totalValue: number;
+				profitLoss: number;
+				costBasis: number;
+				hasProfitLoss: boolean;
+			}
 		>();
 
 		for (const row of service.rows) {
 			let bucket = buckets.get(row.currency);
 			if (!bucket) {
-				bucket = { currency: row.currency, totalValue: 0, profitLoss: 0, hasProfitLoss: false };
+				bucket = {
+					currency: row.currency,
+					totalValue: 0,
+					profitLoss: 0,
+					costBasis: 0,
+					hasProfitLoss: false
+				};
 				buckets.set(row.currency, bucket);
 			}
 
@@ -57,9 +70,16 @@
 				bucket.profitLoss += row.profit_loss;
 				bucket.hasProfitLoss = true;
 			}
+			const rowCostBasis = row.quantity * (row.converted_average_cost ?? row.average_cost ?? 0);
+			if (rowCostBasis > 0) {
+				bucket.costBasis += rowCostBasis;
+			}
 		}
 
-		return [...buckets.values()];
+		return [...buckets.values()].map((bucket) => ({
+			...bucket,
+			returnPercent: bucket.costBasis > 0 ? (bucket.profitLoss / bucket.costBasis) * 100 : null
+		}));
 	});
 
 	function persist(promise: Promise<void>, fallbackMessage: string) {
@@ -88,6 +108,22 @@
 
 	const formatCurrency = (amount: number, currency: string) =>
 		new Intl.NumberFormat('en-CA', { style: 'currency', currency }).format(amount);
+
+	function getPillClass(changePercent: number | null | undefined): string {
+		if (changePercent == null || Number.isNaN(Number(changePercent))) {
+			return 'text-muted-foreground bg-muted/40 border-border/40';
+		}
+		const num = Number(changePercent);
+		if (num > 0) {
+			return 'text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 border-emerald-500/20';
+		}
+		if (num < 0) {
+			return 'text-rose-600 dark:text-rose-400 bg-rose-500/10 border-rose-500/20';
+		}
+		return 'text-muted-foreground bg-muted/40 border-border/40';
+	}
+
+	const formatPercent = (value: number) => `${value >= 0 ? '+' : ''}${value.toFixed(2)}%`;
 </script>
 
 <svelte:head>
@@ -99,22 +135,38 @@
 		{#snippet actions()}
 			<div class="flex items-center gap-6">
 				{#each currencyTotals as total (total.currency)}
-					<div class="flex flex-col items-end" data-testid={`currency-total-${total.currency}`}>
-						<span class="text-[10px] tracking-tight text-muted-foreground uppercase">
-							{total.currency} total
-						</span>
-						<span class="text-base font-semibold text-foreground tabular-nums">
-							{formatCurrency(total.totalValue, total.currency)}
-						</span>
-						{#if total.hasProfitLoss}
-							<span
-								data-testid={`currency-profit-loss-${total.currency}`}
-								class={`text-xs tabular-nums ${
-									total.profitLoss >= 0 ? 'text-emerald-600' : 'text-rose-600'
-								}`}
-							>
-								{total.profitLoss >= 0 ? '+' : ''}{formatCurrency(total.profitLoss, total.currency)} P/L
+					<div class="flex items-center gap-3" data-testid={`currency-total-${total.currency}`}>
+						<div class="flex flex-col items-end leading-tight">
+							<span class="text-[10px] tracking-tight text-muted-foreground uppercase">
+								{total.currency} TOTAL
 							</span>
+							<span class="text-base font-semibold text-foreground tabular-nums">
+								{formatCurrency(total.totalValue, total.currency)}
+							</span>
+						</div>
+						{#if total.hasProfitLoss}
+							<div class="flex flex-col items-end gap-0.5 leading-tight">
+								{#if total.returnPercent !== null}
+									<span
+										data-testid={`currency-return-percent-${total.currency}`}
+										class={cn(
+											'inline-flex items-center rounded-md border px-1.5 py-0.5 text-xs font-semibold tabular-nums',
+											getPillClass(total.returnPercent)
+										)}
+									>
+										{formatPercent(total.returnPercent)}
+									</span>
+								{/if}
+								<span
+									data-testid={`currency-profit-loss-${total.currency}`}
+									class="text-xs text-muted-foreground tabular-nums"
+								>
+									{total.profitLoss >= 0 ? '+' : ''}{formatCurrency(
+										total.profitLoss,
+										total.currency
+									)}
+								</span>
+							</div>
 						{/if}
 					</div>
 				{/each}

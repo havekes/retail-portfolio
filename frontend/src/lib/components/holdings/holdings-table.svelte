@@ -277,8 +277,9 @@
 </script>
 
 {#snippet sortHeader(column: HoldingsTableColumn, width: number)}
+	{@const label = column.id === 'account_name' && groupBy ? 'Accounts' : column.label}
 	<Table.Head
-		class={`relative h-10 border-r border-border/40 px-4 py-2 ${column.alignRight ? 'text-right' : ''}`}
+		class={`relative h-10 border-r border-border px-4 py-2 ${column.alignRight ? 'text-right' : ''}`}
 	>
 		<button
 			type="button"
@@ -287,7 +288,7 @@
 			}`}
 			onclick={() => handleSort(column.id)}
 		>
-			{column.label}
+			{label}
 			{#if sortColumn === column.id}
 				{#if sortDirection === 'asc'}<ChevronUp size={12} />{:else}<ChevronDown size={12} />{/if}
 			{:else}
@@ -297,10 +298,10 @@
 		<span
 			role="separator"
 			aria-orientation="vertical"
-			aria-label={`Resize ${column.label} column`}
+			aria-label={`Resize ${label} column`}
 			aria-valuenow={width}
 			data-testid={`column-resize-${column.id}`}
-			class="absolute inset-y-0 right-0 z-20 w-1.5 cursor-col-resize touch-none border-r border-border/60 bg-transparent select-none hover:border-primary/70 hover:bg-primary/50"
+			class="absolute inset-y-0 right-0 z-20 w-1.5 cursor-col-resize touch-none border-r border-border bg-transparent select-none hover:border-primary/70 hover:bg-primary/50"
 			onpointerdown={(event) => handleResizePointerDown(event, column.id)}
 			onpointermove={handleResizePointerMove}
 			onpointerup={handleResizePointerUp}
@@ -312,10 +313,12 @@
 {#snippet holdingRow(row: HoldingRowView)}
 	<Table.Row
 		data-testid="holding-row"
-		class="border-b-muted/10 transition-all even:bg-muted/30 hover:bg-muted/10"
+		class="group border-b border-border transition-colors even:bg-muted/50 hover:bg-muted/80"
 	>
 		{#if isVisible('security_symbol')}
-			<Table.Cell class="sticky left-0 z-10 bg-background px-4 py-2">
+			<Table.Cell
+				class="sticky left-0 z-10 border-r border-border bg-background px-4 py-2 group-even:bg-muted/50 group-hover:bg-muted/80"
+			>
 				<a
 					data-testid="security-link"
 					href={resolve(`/security/${row.security_id}`)}
@@ -332,7 +335,7 @@
 			</Table.Cell>
 		{/if}
 		{#if isVisible('account_name')}
-			<Table.Cell data-testid="account-cell" class="px-4 py-2 text-sm">
+			<Table.Cell data-testid="account-cell" class="border-r border-border px-4 py-2 text-sm">
 				{#if row.account_names.length === 0}
 					-
 				{:else}
@@ -347,7 +350,7 @@
 			</Table.Cell>
 		{/if}
 		{#if isVisible('quantity')}
-			<Table.Cell class="px-4 py-2 text-right text-sm tabular-nums">
+			<Table.Cell class="border-r border-border px-4 py-2 text-right text-sm tabular-nums">
 				{row.quantity.toLocaleString(undefined, {
 					minimumFractionDigits: 0,
 					maximumFractionDigits: 4
@@ -355,7 +358,7 @@
 			</Table.Cell>
 		{/if}
 		{#if isVisible('average_cost')}
-			<Table.Cell class="px-4 py-2 text-right">
+			<Table.Cell class="border-r border-border px-4 py-2 text-right">
 				<span class="text-xs text-muted-foreground tabular-nums">
 					{row.average_cost !== null && row.average_cost !== undefined
 						? formatCurrency(row.average_cost, row.security_currency)
@@ -364,7 +367,7 @@
 			</Table.Cell>
 		{/if}
 		{#if isVisible('latest_price')}
-			<Table.Cell class="px-4 py-2 text-right">
+			<Table.Cell class="border-r border-border px-4 py-2 text-right">
 				{#if row.latest_price !== null && row.latest_price !== undefined}
 					<div
 						class="flex flex-col items-end leading-tight"
@@ -380,7 +383,7 @@
 			</Table.Cell>
 		{/if}
 		{#if isVisible('total_value')}
-			<Table.Cell class="px-4 py-2 text-right">
+			<Table.Cell class="border-r border-border px-4 py-2 text-right">
 				<div class="flex flex-col items-end leading-tight">
 					<span class="text-sm font-medium tabular-nums">
 						{formatCurrency(row.total_value, row.currency)}
@@ -394,7 +397,7 @@
 			</Table.Cell>
 		{/if}
 		{#if isVisible('profit_loss')}
-			<Table.Cell class="px-4 py-2 text-right">
+			<Table.Cell class="border-r border-border px-4 py-2 text-right">
 				{#if row.profit_loss !== null && row.profit_loss !== undefined}
 					{@const plPercent = profitLossPercent(row)}
 					<div class="flex flex-col items-end gap-0.5 leading-tight">
@@ -412,17 +415,6 @@
 						<span data-testid="profit-loss" class="text-xs text-muted-foreground tabular-nums">
 							{row.profit_loss >= 0 ? '+' : ''}{formatCurrency(row.profit_loss, row.currency)}
 						</span>
-						{#if row.security_currency !== row.currency && row.unconverted_profit_loss !== null && row.unconverted_profit_loss !== undefined}
-							<span
-								data-testid="profit-loss-secondary"
-								class="text-[10px] text-muted-foreground/70 tabular-nums"
-							>
-								{row.unconverted_profit_loss >= 0 ? '+' : ''}{formatCurrency(
-									row.unconverted_profit_loss,
-									row.security_currency
-								)}
-							</span>
-						{/if}
 					</div>
 				{:else}
 					<span class="text-sm text-muted-foreground">-</span>
@@ -430,7 +422,7 @@
 			</Table.Cell>
 		{/if}
 		{#if isVisible('ew_primary_target')}
-			<Table.Cell class="px-4 py-2 text-right">
+			<Table.Cell class="border-r border-border px-4 py-2 text-right">
 				{#if row.ew_primary_target !== null && row.ew_primary_target !== undefined}
 					<div class="flex flex-col items-end gap-0.5 leading-tight">
 						{#if row.ew_primary_upside !== null && row.ew_primary_upside !== undefined}
@@ -457,7 +449,7 @@
 			</Table.Cell>
 		{/if}
 		{#if isVisible('ew_cycle_target')}
-			<Table.Cell class="px-4 py-2 text-right">
+			<Table.Cell class="border-r border-border px-4 py-2 text-right">
 				{#if row.ew_cycle_target !== null && row.ew_cycle_target !== undefined}
 					<div class="flex flex-col items-end gap-0.5 leading-tight">
 						{#if row.ew_cycle_upside !== null && row.ew_cycle_upside !== undefined}
