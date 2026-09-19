@@ -1,5 +1,6 @@
 import { ApiClient } from './apiClient';
 import type { PaginatedResponse } from '../types/pagination';
+import type { UserHolding } from '../types/account';
 
 export interface AccountHoldingRead {
 	account_id: string;
@@ -16,6 +17,18 @@ export class AccountService extends ApiClient {
 	async getHoldings(securityId: string): Promise<PaginatedResponse<AccountHoldingRead>> {
 		return await this.get<PaginatedResponse<AccountHoldingRead>>(
 			`/accounts/holdings/${securityId}`
+		);
+	}
+
+	async getUserHoldings(
+		offset = 0,
+		limit = 50,
+		token?: string | null
+	): Promise<PaginatedResponse<UserHolding>> {
+		return await this.get<PaginatedResponse<UserHolding>>(
+			`/accounts/holdings?offset=${offset}&limit=${limit}`,
+			{},
+			token
 		);
 	}
 }

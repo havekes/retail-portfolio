@@ -335,6 +335,142 @@ async def test_account_holdings_success(
 
 
 @pytest.mark.anyio
+async def test_user_holdings_success_across_accounts(
+    auth_client, test_accounts, test_security, db_session
+):
+    """GET /holdings returns the caller's positions across all their accounts."""
+    for account in test_accounts[:2]:
+        db_session.add(
+            PositionModel(
+                account_id=account.id,
+                security_id=test_security.id,
+                quantity=Decimal("10.0"),
+                average_cost=Decimal("150.0"),
+            )
+        )
+    await db_session.commit()
+
+    response = await auth_client.get("/api/v1/accounts/holdings")
+
+    assert response.status_code == 200
+    result = response.json()
+    assert result["total"] == 2
+    assert result["offset"] == 0
+    assert len(result["items"]) == 2
+
+    by_account = {item["account_id"]: item for item in result["items"]}
+    for account in test_accounts[:2]:
+        item = by_account[str(account.id)]
+        assert item["account_name"] == account.name
+        # Every HoldingRead field plus the account context is present.
+        for field in (
+            "id",
+            "security_id",
+            "security_symbol",
+            "security_name",
+            "quantity",
+            "average_cost",
+            "total_value",
+            "profit_loss",
+            "currency",
+            "security_currency",
+            "unconverted_total_value",
+            "converted_average_cost",
+            "converted_latest_price",
+            "unconverted_profit_loss",
+            "latest_price",
+            "price_date",
+            "updated_at",
+        ):
+            assert field in item
+        assert item["security_symbol"] == test_security.symbol
+        assert item["quantity"] == 10.0
+
+
+@pytest.mark.anyio
+async def test_user_holdings_isolation(
+    auth_client, test_accounts, other_user_account, test_security, db_session
+):
+    """Positions belonging to another user are never returned."""
+    db_session.add(
+        PositionModel(
+            account_id=test_accounts[0].id,
+            security_id=test_security.id,
+            quantity=Decimal("10.0"),
+            average_cost=Decimal("150.0"),
+        )
+    )
+    db_session.add(
+        PositionModel(
+            account_id=other_user_account.id,
+            security_id=test_security.id,
+            quantity=Decimal("99.0"),
+            average_cost=Decimal("1.0"),
+        )
+    )
+    await db_session.commit()
+
+    response = await auth_client.get("/api/v1/accounts/holdings")
+
+    assert response.status_code == 200
+    result = response.json()
+    assert result["total"] == 1
+    assert len(result["items"]) == 1
+    assert result["items"][0]["account_id"] == str(test_accounts[0].id)
+    assert result["items"][0]["quantity"] == 10.0
+    assert str(other_user_account.id) not in {
+        item["account_id"] for item in result["items"]
+    }
+
+
+@pytest.mark.anyio
+async def test_user_holdings_pagination(
+    auth_client, test_accounts, test_security, db_session
+):
+    """offset/limit paginate correctly and total is the full count."""
+    for account in test_accounts:
+        db_session.add(
+            PositionModel(
+                account_id=account.id,
+                security_id=test_security.id,
+                quantity=Decimal("1.0"),
+                average_cost=Decimal("1.0"),
+            )
+        )
+    await db_session.commit()
+
+    first = await auth_client.get("/api/v1/accounts/holdings?offset=0&limit=2")
+    assert first.status_code == 200
+    first_body = first.json()
+    assert first_body["total"] == 3
+    assert first_body["offset"] == 0
+    assert first_body["limit"] == 2
+    assert len(first_body["items"]) == 2
+
+    second = await auth_client.get("/api/v1/accounts/holdings?offset=2&limit=2")
+    assert second.status_code == 200
+    second_body = second.json()
+    assert second_body["total"] == 3
+    assert len(second_body["items"]) == 1
+
+    first_ids = {item["id"] for item in first_body["items"]}
+    second_ids = {item["id"] for item in second_body["items"]}
+    assert first_ids.isdisjoint(second_ids)
+    assert len(first_ids | second_ids) == 3
+
+
+@pytest.mark.anyio
+async def test_user_holdings_empty(auth_client, test_accounts):
+    """A user with no positions gets an empty page."""
+    response = await auth_client.get("/api/v1/accounts/holdings")
+
+    assert response.status_code == 200
+    result = response.json()
+    assert result["total"] == 0
+    assert result["items"] == []
+
+
+@pytest.mark.anyio
 async def test_preferences_empty(auth_client):
     """GET /me/preferences returns {} when user has no preferences saved."""
     response = await auth_client.get("/api/v1/accounts/me/preferences")
