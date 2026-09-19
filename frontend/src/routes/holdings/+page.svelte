@@ -1,7 +1,6 @@
 <script lang="ts">
 	import PageHeader from '$lib/components/layout/app-header.svelte';
 	import HoldingsTable from '$lib/components/holdings/holdings-table.svelte';
-	import { Checkbox } from '$lib/components/ui/checkbox/index.js';
 	import * as Alert from '$lib/components/ui/alert/index.js';
 	import * as DropdownMenu from '$lib/components/ui/dropdown-menu/index.js';
 	import Settings2 from '@lucide/svelte/icons/settings-2';
@@ -170,37 +169,31 @@
 						{/if}
 					</div>
 				{/each}
-				<div class="flex items-center gap-2">
-					<Checkbox
-						id="group-by-stock"
-						data-testid="group-by-stock"
-						checked={service.groupBy === 'stock' || service.groupBy === 'company'}
-						onCheckedChange={handleGroupToggle}
-					/>
-					<label
-						for="group-by-stock"
-						class="cursor-pointer text-sm leading-none font-medium text-muted-foreground select-none"
-					>
-						Group by stock
-					</label>
-				</div>
 				<DropdownMenu.Root>
 					<DropdownMenu.Trigger>
 						{#snippet child({ props })}
 							<button
 								{...props}
 								type="button"
-								data-testid="column-visibility-trigger"
-								aria-label="Toggle columns"
-								title="Toggle columns"
-								class="inline-flex items-center gap-1.5 rounded-md border border-input bg-background px-2.5 py-1.5 text-xs font-medium text-muted-foreground shadow-xs transition-colors hover:bg-accent hover:text-accent-foreground"
+								data-testid="display-settings-trigger"
+								aria-label="Display settings"
+								title="Display settings"
+								class="inline-flex size-8 items-center justify-center rounded-md border border-input bg-background text-muted-foreground shadow-xs transition-colors hover:bg-accent hover:text-accent-foreground"
 							>
-								<Settings2 size={14} />
-								Columns
+								<Settings2 size={16} />
 							</button>
 						{/snippet}
 					</DropdownMenu.Trigger>
-					<DropdownMenu.Content align="end" class="w-44">
+					<DropdownMenu.Content align="end" class="w-48">
+						<DropdownMenu.Label>View options</DropdownMenu.Label>
+						<DropdownMenu.CheckboxItem
+							data-testid="group-by-stock"
+							checked={service.groupBy === 'stock' || service.groupBy === 'company'}
+							onCheckedChange={handleGroupToggle}
+						>
+							Group by stock
+						</DropdownMenu.CheckboxItem>
+						<DropdownMenu.Separator />
 						<DropdownMenu.Label>Visible columns</DropdownMenu.Label>
 						<DropdownMenu.Separator />
 						{#each HOLDINGS_TABLE_COLUMNS as column (column.id)}

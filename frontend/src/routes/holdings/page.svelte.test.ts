@@ -242,20 +242,33 @@ describe('Holdings page (+page.svelte)', () => {
 		expect(screen.getByTestId('currency-total-USD')).toHaveTextContent('$500.00');
 	});
 
+	it('renders unified icon-only settings trigger button and no standalone group checkbox in header', () => {
+		render(Page, { props: { data: makeData({ holdings: [aaplTfsa] }) } });
+
+		const trigger = screen.getByRole('button', { name: 'Display settings' });
+		expect(trigger).toBeInTheDocument();
+		expect(trigger).toHaveAttribute('data-testid', 'display-settings-trigger');
+		expect(trigger).toHaveAttribute('aria-label', 'Display settings');
+		expect(trigger).toHaveAttribute('title', 'Display settings');
+
+		// Standalone checkbox outside dropdown is not present
+		expect(screen.queryByRole('checkbox', { name: 'Group by stock' })).not.toBeInTheDocument();
+		expect(screen.queryByTestId('column-visibility-trigger')).not.toBeInTheDocument();
+	});
+
 	it('toggling "Group by stock" merges rows into single rows per stock without refetching', async () => {
 		render(Page, { props: { data: makeData({ holdings: [aaplTfsa, msftRrsp, aaplRrsp] }) } });
 
-		expect(screen.getByLabelText('Group by stock')).toBeInTheDocument();
-		expect(screen.getByTestId('group-by-stock')).toBeInTheDocument();
 		expect(screen.queryByTestId('group-header')).not.toBeInTheDocument();
 		expect(screen.getAllByTestId('holding-row')).toHaveLength(3);
 
-		await fireEvent.click(screen.getByTestId('group-by-stock'));
+		await fireEvent.click(screen.getByTestId('display-settings-trigger'));
+		const groupByToggle = await screen.findByTestId('group-by-stock');
+		await fireEvent.click(groupByToggle);
 
 		// 3 holdings collapse into 2 stock rows (AAPL and MSFT) without accordion headers
 		expect(screen.queryByTestId('group-header')).not.toBeInTheDocument();
 		expect(screen.getAllByTestId('holding-row')).toHaveLength(2);
-		expect(screen.getByTestId('group-by-stock')).toHaveAttribute('data-state', 'checked');
 
 		// Grouping is pure client-side derivation: the table must not reload data.
 		expect(getUserHoldings).not.toHaveBeenCalled();
@@ -268,25 +281,31 @@ describe('Holdings page (+page.svelte)', () => {
 
 		expect(screen.getAllByTestId('holding-row')).toHaveLength(2);
 
-		await fireEvent.click(screen.getByTestId('group-by-stock'));
+		await fireEvent.click(screen.getByTestId('display-settings-trigger'));
+		const groupByToggle = await screen.findByTestId('group-by-stock');
+		await fireEvent.click(groupByToggle);
 
 		expect(screen.getAllByTestId('holding-row')).toHaveLength(3);
 		expect(getUserHoldings).not.toHaveBeenCalled();
 	});
 
-	it('restores the persisted group mode from the server data', () => {
+	it('restores the persisted group mode from the server data', async () => {
 		render(Page, {
 			props: { data: makeData({ holdings: [aaplTfsa, aaplRrsp], group_mode: 'stock' }) }
 		});
 
 		expect(screen.getAllByTestId('holding-row')).toHaveLength(1);
-		expect(screen.getByTestId('group-by-stock')).toHaveAttribute('data-state', 'checked');
+		await fireEvent.click(screen.getByTestId('display-settings-trigger'));
+		const item = await screen.findByTestId('group-by-stock');
+		expect(item).toHaveAttribute('data-state', 'checked');
 	});
 
 	it('persists the group mode as "stock" when toggled', async () => {
 		render(Page, { props: { data: makeData({ holdings: [aaplTfsa] }) } });
 
-		await fireEvent.click(screen.getByTestId('group-by-stock'));
+		await fireEvent.click(screen.getByTestId('display-settings-trigger'));
+		const groupByToggle = await screen.findByTestId('group-by-stock');
+		await fireEvent.click(groupByToggle);
 
 		await waitFor(() => expect(patchPreferences).toHaveBeenCalledWith({ holdings_group: 'stock' }));
 	});
@@ -305,7 +324,9 @@ describe('Holdings page (+page.svelte)', () => {
 
 		render(Page, { props: { data: makeData({ holdings: [aaplTfsa, aaplRrsp] }) } });
 
-		await fireEvent.click(screen.getByTestId('group-by-stock'));
+		await fireEvent.click(screen.getByTestId('display-settings-trigger'));
+		const groupByToggle = await screen.findByTestId('group-by-stock');
+		await fireEvent.click(groupByToggle);
 
 		await waitFor(() =>
 			expect(screen.getByTestId('holdings-error')).toHaveTextContent('Preferences unavailable')
@@ -335,7 +356,7 @@ describe('Holdings page (+page.svelte)', () => {
 	it('persists the column config when a column is hidden', async () => {
 		render(Page, { props: { data: makeData({ holdings: [aaplTfsa] }) } });
 
-		await fireEvent.click(screen.getByTestId('column-visibility-trigger'));
+		await fireEvent.click(screen.getByTestId('display-settings-trigger'));
 		await fireEvent.click(await screen.findByTestId('column-toggle-account_name'));
 
 		await waitFor(() => expect(patchPreferences).toHaveBeenCalled());
@@ -351,13 +372,13 @@ describe('Holdings page (+page.svelte)', () => {
 
 		expect(screen.getByTestId('column-col-account_name')).toBeInTheDocument();
 
-		await fireEvent.click(screen.getByTestId('column-visibility-trigger'));
+		await fireEvent.click(screen.getByTestId('display-settings-trigger'));
 		const toggle = await screen.findByTestId('column-toggle-account_name');
 
 		await fireEvent.click(toggle);
 		expect(screen.queryByTestId('column-col-account_name')).not.toBeInTheDocument();
 
-		await fireEvent.click(screen.getByTestId('column-visibility-trigger'));
+		await fireEvent.click(screen.getByTestId('display-settings-trigger'));
 		const restoreToggle = await screen.findByTestId('column-toggle-account_name');
 		await fireEvent.click(restoreToggle);
 		expect(screen.getByTestId('column-col-account_name')).toBeInTheDocument();

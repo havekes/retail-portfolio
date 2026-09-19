@@ -273,7 +273,8 @@ describe('HoldingsTable', () => {
 
 		// Check rounded hover styling, w-full class, and absence of group-hover:underline
 		for (const link of links) {
-			expect(link.className).toContain('hover:bg-muted/80');
+			expect(link.className).toContain('hover:bg-accent');
+			expect(link.className).toContain('hover:text-accent-foreground');
 			expect(link.className).toContain('rounded-md');
 			expect(link.className).toContain('w-full');
 			const symbol = within(link).getByTestId('security-symbol');
@@ -393,18 +394,23 @@ describe('HoldingsTable', () => {
 		expect(aCells[8]).toHaveTextContent('-');
 	});
 
-	it('features visible separator borders on header cells and resize handles', () => {
+	it('features visible separator borders on header cells and resize handles, with header hover isolation', () => {
 		render(HoldingsTable, { props: { holdings: sortRows } });
+
+		const headerRow = screen.getAllByRole('row')[0];
+		expect(headerRow.className).toContain('hover:bg-transparent');
 
 		const headers = screen.getAllByRole('columnheader');
 		for (const th of headers) {
 			expect(th.className).toContain('border-r');
-			expect(th.className).toContain('border-border');
+			expect(th.className).toContain('border-border/40');
+			expect(th.className).toContain('transition-colors');
+			expect(th.className).toContain('hover:bg-muted/50');
 		}
 
 		const handle = screen.getByTestId('column-resize-quantity');
 		expect(handle.className).toContain('border-r');
-		expect(handle.className).toContain('border-border');
+		expect(handle.className).toContain('border-border/40');
 		expect(handle.className).toContain('hover:border-primary/70');
 	});
 
@@ -558,17 +564,30 @@ describe('HoldingsTable', () => {
 			expect(cell.className).toContain('bg-background');
 			expect(cell.className).toContain('group-even:bg-muted/50');
 			expect(cell.className).toContain('group-hover:bg-muted/80');
+			expect(cell.className).toContain('group-even:group-hover:bg-muted/80');
 			expect(cell.className).toContain('border-r');
-			expect(cell.className).toContain('border-border');
+			expect(cell.className).toContain('border-border/40');
 		}
 
-		// All cells across the row have reinforced column border-r border-border
+		// All cells across the row have softened column border-r border-border/40
 		const firstRow = rows[0];
 		const cells = within(firstRow).getAllByRole('cell');
 		for (const cell of cells) {
 			expect(cell.className).toContain('border-r');
-			expect(cell.className).toContain('border-border');
+			expect(cell.className).toContain('border-border/40');
 		}
+	});
+
+	it('renders Quantity cell with text-xs tabular-nums typography matching numeric columns', () => {
+		render(HoldingsTable, { props: { holdings: sortRows } });
+
+		const row = rowBySymbol('ZZZ');
+		const cells = within(row).getAllByRole('cell');
+		// Index 2 is Quantity
+		const quantityCell = cells[2];
+		expect(quantityCell.className).toContain('text-xs');
+		expect(quantityCell.className).toContain('tabular-nums');
+		expect(quantityCell.className).not.toContain('text-sm');
 	});
 
 	describe('column resize', () => {
