@@ -7,6 +7,7 @@ import {
 	normalizeHoldingsTableConfig
 } from '$lib/components/holdings/holdings-table-columns';
 import type { HoldingsGroupMode } from '$lib/utils/finance/holdings-group';
+import type { SecurityElliottWaves } from '$lib/utils/finance/elliott-wave';
 
 vi.mock('$app/paths', () => ({
 	resolve: (path: string) => path
@@ -115,6 +116,7 @@ function makeData(
 		holdings: UserHolding[];
 		holdings_table_config: typeof HOLDINGS_TABLE_DEFAULT_CONFIG;
 		group_mode: HoldingsGroupMode;
+		elliott_waves: Record<string, SecurityElliottWaves> | null;
 	}> = {}
 ) {
 	return {
@@ -126,6 +128,7 @@ function makeData(
 		holdings: [] as UserHolding[],
 		holdings_table_config: HOLDINGS_TABLE_DEFAULT_CONFIG,
 		group_mode: 'none' as HoldingsGroupMode,
+		elliott_waves: null as Record<string, SecurityElliottWaves> | null,
 		...overrides
 	};
 }
@@ -275,5 +278,51 @@ describe('Holdings page (+page.svelte)', () => {
 			holdings_table: { visible: string[] };
 		};
 		expect(lastPayload.holdings_table.visible).not.toContain('account_name');
+	});
+
+	it('toggles column visibility from PageHeader dropdown and restores column on repeat toggle', async () => {
+		render(Page, { props: { data: makeData({ holdings: [aaplTfsa] }) } });
+
+		expect(screen.getByTestId('column-col-account_name')).toBeInTheDocument();
+
+		await fireEvent.click(screen.getByTestId('column-visibility-trigger'));
+		const toggle = await screen.findByTestId('column-toggle-account_name');
+
+		await fireEvent.click(toggle);
+		expect(screen.queryByTestId('column-col-account_name')).not.toBeInTheDocument();
+
+		await fireEvent.click(screen.getByTestId('column-visibility-trigger'));
+		const restoreToggle = await screen.findByTestId('column-toggle-account_name');
+		await fireEvent.click(restoreToggle);
+		expect(screen.getByTestId('column-col-account_name')).toBeInTheDocument();
+	});
+
+	it('forwards elliott_waves from data to HoldingsTable rendering projections', () => {
+		const mockWaves: Record<string, SecurityElliottWaves> = {
+			'sec-aapl': {
+				waves: [
+					{
+						id: 'w-1',
+						degree: 'primary',
+						type: 'impulse',
+						wave5Target: 200,
+						points: [{ wave: 5, price: 200, time: '2026-01-01' }]
+					}
+				]
+			}
+		};
+
+		render(Page, {
+			props: {
+				data: makeData({
+					holdings: [aaplTfsa],
+					elliott_waves: mockWaves
+				})
+			}
+		});
+
+		// AAPL latest_price is 100, wave 5 target is 200 -> upside +100%
+		expect(screen.getByTestId('ew-primary-upside')).toHaveTextContent('+100.00%');
+		expect(screen.getByTestId('ew-primary-target')).toHaveTextContent('$200.00');
 	});
 });

@@ -1,5 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import {
+	HOLDINGS_TABLE_COLUMNS,
 	HOLDINGS_TABLE_COLUMN_IDS,
 	HOLDINGS_TABLE_COLUMN_MAX_WIDTHS,
 	HOLDINGS_TABLE_COLUMN_MIN_WIDTHS,
@@ -7,7 +8,8 @@ import {
 	HOLDINGS_TABLE_DEFAULT_WIDTHS,
 	HOLDINGS_TABLE_STICKY_COLUMN_ID,
 	clampColumnWidth,
-	normalizeHoldingsTableConfig
+	normalizeHoldingsTableConfig,
+	toggleColumnVisibility
 } from './holdings-table-columns';
 
 describe('holdings-table-columns', () => {
@@ -37,6 +39,75 @@ describe('holdings-table-columns', () => {
 				HOLDINGS_TABLE_DEFAULT_WIDTHS.account_name
 			);
 		});
+		it('clamps ew_primary_target and ew_cycle_target within bounds', () => {
+			expect(clampColumnWidth('ew_primary_target', 50)).toBe(
+				HOLDINGS_TABLE_COLUMN_MIN_WIDTHS.ew_primary_target
+			);
+			expect(clampColumnWidth('ew_primary_target', 500)).toBe(
+				HOLDINGS_TABLE_COLUMN_MAX_WIDTHS.ew_primary_target
+			);
+			expect(clampColumnWidth('ew_primary_target', 150)).toBe(150);
+			expect(clampColumnWidth('ew_primary_target', Number.NaN)).toBe(
+				HOLDINGS_TABLE_DEFAULT_WIDTHS.ew_primary_target
+			);
+
+			expect(clampColumnWidth('ew_cycle_target', 50)).toBe(
+				HOLDINGS_TABLE_COLUMN_MIN_WIDTHS.ew_cycle_target
+			);
+			expect(clampColumnWidth('ew_cycle_target', 500)).toBe(
+				HOLDINGS_TABLE_COLUMN_MAX_WIDTHS.ew_cycle_target
+			);
+			expect(clampColumnWidth('ew_cycle_target', 150)).toBe(150);
+			expect(clampColumnWidth('ew_cycle_target', Number.NaN)).toBe(
+				HOLDINGS_TABLE_DEFAULT_WIDTHS.ew_cycle_target
+			);
+		});
+	});
+
+	describe('HOLDINGS_TABLE_COLUMNS', () => {
+		it('has updated labels and contains ew_primary_target and ew_cycle_target without profit_loss_percent', () => {
+			const labels = Object.fromEntries(HOLDINGS_TABLE_COLUMNS.map((c) => [c.id, c.label]));
+			expect(labels.average_cost).toBe('Average');
+			expect(labels.profit_loss).toBe('Return');
+			expect(labels.ew_primary_target).toBe('EW Primary');
+			expect(labels.ew_cycle_target).toBe('EW Cycle');
+			expect(labels).not.toHaveProperty('profit_loss_percent');
+			expect(HOLDINGS_TABLE_COLUMN_IDS).toContain('ew_primary_target');
+			expect(HOLDINGS_TABLE_COLUMN_IDS).toContain('ew_cycle_target');
+			expect(HOLDINGS_TABLE_COLUMN_IDS).not.toContain('profit_loss_percent');
+		});
+	});
+
+	describe('toggleColumnVisibility', () => {
+		it('hides a visible column and restores it when toggled again', () => {
+			const initial = HOLDINGS_TABLE_DEFAULT_CONFIG;
+			expect(initial.visible).toContain('quantity');
+
+			const hidden = toggleColumnVisibility(initial, 'quantity');
+			expect(hidden.visible).not.toContain('quantity');
+			expect(hidden.visible).toContain('security_symbol');
+
+			const restored = toggleColumnVisibility(hidden, 'quantity');
+			expect(restored.visible).toContain('quantity');
+			expect(restored.visible).toEqual(HOLDINGS_TABLE_DEFAULT_CONFIG.visible);
+		});
+
+		it('preserves canonical column ordering when toggling columns', () => {
+			const initial = HOLDINGS_TABLE_DEFAULT_CONFIG;
+			const withoutTotal = toggleColumnVisibility(initial, 'total_value');
+			const withoutAccount = toggleColumnVisibility(withoutTotal, 'account_name');
+			const withAccountAgain = toggleColumnVisibility(withoutAccount, 'account_name');
+
+			const expectedOrder = HOLDINGS_TABLE_COLUMN_IDS.filter((id) => id !== 'total_value');
+			expect(withAccountAgain.visible).toEqual(expectedOrder);
+		});
+
+		it('never hides the sticky security_symbol column', () => {
+			const initial = HOLDINGS_TABLE_DEFAULT_CONFIG;
+			const attempt = toggleColumnVisibility(initial, 'security_symbol');
+			expect(attempt.visible).toContain('security_symbol');
+			expect(attempt).toBe(initial);
+		});
 	});
 
 	describe('normalizeHoldingsTableConfig', () => {
@@ -49,15 +120,25 @@ describe('holdings-table-columns', () => {
 			expect(normalizeHoldingsTableConfig({})).toEqual(HOLDINGS_TABLE_DEFAULT_CONFIG);
 		});
 
-		it('merges stored widths over the defaults and drops unknown column ids', () => {
+		it('merges stored widths over the defaults and drops unknown column ids including legacy profit_loss_percent', () => {
 			const config = normalizeHoldingsTableConfig({
-				widths: { quantity: 150, account_name: 175, not_a_column: 999 }
+				widths: { quantity: 150, account_name: 175, profit_loss_percent: 120, not_a_column: 999 }
 			});
 
 			expect(config.widths.quantity).toBe(150);
 			expect(config.widths.account_name).toBe(175);
 			expect(config.widths.security_symbol).toBe(HOLDINGS_TABLE_DEFAULT_WIDTHS.security_symbol);
+			expect(config.widths).not.toHaveProperty('profit_loss_percent');
 			expect(config.widths).not.toHaveProperty('not_a_column');
+		});
+
+		it('filters out legacy profit_loss_percent from visible while maintaining canonical visibility of other columns', () => {
+			const config = normalizeHoldingsTableConfig({
+				visible: ['security_symbol', 'profit_loss', 'profit_loss_percent', 'ew_primary_target']
+			});
+
+			expect(config.visible).toEqual(['security_symbol', 'profit_loss', 'ew_primary_target']);
+			expect(config.visible).not.toContain('profit_loss_percent');
 		});
 
 		it('clamps out-of-range and ignores invalid width values', () => {

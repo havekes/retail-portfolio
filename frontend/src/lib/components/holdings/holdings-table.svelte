@@ -1,14 +1,18 @@
 <script lang="ts">
 	import { resolve } from '$app/paths';
 	import type { UserHolding } from '$lib/types/account';
+	import {
+		getLatestWaveCount,
+		getWaveTargetPrice,
+		calculateUpsidePercentage,
+		type SecurityElliottWaves
+	} from '$lib/utils/finance/elliott-wave';
 	import { groupHoldings } from '$lib/utils/finance/holdings-group';
 	import { Badge } from '$lib/components/ui/badge/index.js';
 	import * as Table from '$lib/components/ui/table/index.js';
-	import * as DropdownMenu from '$lib/components/ui/dropdown-menu/index.js';
 	import ArrowUpDown from '@lucide/svelte/icons/arrow-up-down';
 	import ChevronUp from '@lucide/svelte/icons/chevron-up';
 	import ChevronDown from '@lucide/svelte/icons/chevron-down';
-	import Settings2 from '@lucide/svelte/icons/settings-2';
 	import { cn } from '$lib/utils';
 	import {
 		HOLDINGS_TABLE_COLUMNS,
@@ -27,6 +31,7 @@
 		emptyMessage?: string;
 		tableConfig?: HoldingsTableConfig | null;
 		onConfigChange?: (config: HoldingsTableConfig) => void;
+		elliottWaves?: Record<string, SecurityElliottWaves> | null;
 	};
 
 	let {
@@ -35,10 +40,11 @@
 		isLoading = false,
 		emptyMessage = 'No holdings yet.',
 		tableConfig = null,
-		onConfigChange
+		onConfigChange,
+		elliottWaves = null
 	}: Props = $props();
 
-	// Writable derived: normalizes the consumer's config, but a drag/toggle can
+	// Writable derived: normalizes the consumer's config, but a drag can
 	// override it locally for immediate feedback until the prop changes again.
 	// The consumer owns persistence via `onConfigChange`.
 	let config = $derived(normalizeHoldingsTableConfig(tableConfig));
@@ -57,11 +63,6 @@
 
 	type Resize = { column: HoldingsTableColumnId; startX: number; startWidth: number };
 	let resize = $state<Resize | null>(null);
-
-	function commitConfig(next: HoldingsTableConfig) {
-		config = next;
-		onConfigChange?.(next);
-	}
 
 	function handleResizePointerDown(event: PointerEvent, column: HoldingsTableColumnId) {
 		event.preventDefault();
@@ -102,16 +103,6 @@
 		onConfigChange?.(next);
 	}
 
-	function toggleColumn(column: HoldingsTableColumnId) {
-		if (column === HOLDINGS_TABLE_STICKY_COLUMN_ID) return;
-		const visible = config.visible.includes(column)
-			? config.visible.filter((id) => id !== column)
-			: HOLDINGS_TABLE_COLUMNS.map((c) => c.id).filter(
-					(id) => id === column || config.visible.includes(id)
-				);
-		commitConfig({ ...config, visible });
-	}
-
 	const formatCurrency = (amount: number, currency: string = 'CAD') =>
 		new Intl.NumberFormat('en-CA', {
 			style: 'currency',
@@ -137,49 +128,81 @@
 		profit_loss: number | null;
 		unconverted_profit_loss: number | null;
 		account_names: string[];
+		ew_primary_target: number | null;
+		ew_primary_upside: number | null;
+		ew_cycle_target: number | null;
+		ew_cycle_upside: number | null;
 	};
 
 	const baseRows = $derived.by<HoldingRowView[]>(() => {
 		if (groupBy === 'stock' || groupBy === 'company') {
 			const groups = groupHoldings(holdings, 'stock');
-			return groups.map((g) => ({
-				id: g.id,
-				security_id: g.security_id,
-				security_symbol: g.security_symbol,
-				security_name: g.security_name,
-				currency: g.currency,
-				security_currency: g.security_currency,
-				quantity: g.quantity,
-				average_cost: g.average_cost,
-				converted_average_cost: g.converted_average_cost,
-				latest_price: g.latest_price,
-				price_date: g.price_date,
-				total_value: g.total_value,
-				unconverted_total_value: g.unconverted_total_value,
-				profit_loss: g.profit_loss,
-				unconverted_profit_loss: g.unconverted_profit_loss,
-				account_names: g.account_names
-			}));
+			return groups.map((g) => {
+				const primaryWave = getLatestWaveCount(elliottWaves?.[g.security_id], 'primary');
+				const ew_primary_target = getWaveTargetPrice(primaryWave, 'wave5');
+				const ew_primary_upside = calculateUpsidePercentage(ew_primary_target, g.latest_price);
+
+				const cycleWave = getLatestWaveCount(elliottWaves?.[g.security_id], 'cycle');
+				const ew_cycle_target = getWaveTargetPrice(cycleWave, 'wave5');
+				const ew_cycle_upside = calculateUpsidePercentage(ew_cycle_target, g.latest_price);
+
+				return {
+					id: g.id,
+					security_id: g.security_id,
+					security_symbol: g.security_symbol,
+					security_name: g.security_name,
+					currency: g.currency,
+					security_currency: g.security_currency,
+					quantity: g.quantity,
+					average_cost: g.average_cost,
+					converted_average_cost: g.converted_average_cost,
+					latest_price: g.latest_price,
+					price_date: g.price_date,
+					total_value: g.total_value,
+					unconverted_total_value: g.unconverted_total_value,
+					profit_loss: g.profit_loss,
+					unconverted_profit_loss: g.unconverted_profit_loss,
+					account_names: g.account_names,
+					ew_primary_target,
+					ew_primary_upside,
+					ew_cycle_target,
+					ew_cycle_upside
+				};
+			});
 		}
 
-		return holdings.map((row) => ({
-			id: row.id,
-			security_id: row.security_id,
-			security_symbol: row.security_symbol,
-			security_name: row.security_name,
-			currency: row.currency,
-			security_currency: row.security_currency,
-			quantity: row.quantity,
-			average_cost: row.average_cost,
-			converted_average_cost: row.converted_average_cost,
-			latest_price: row.latest_price,
-			price_date: row.price_date,
-			total_value: row.total_value,
-			unconverted_total_value: row.unconverted_total_value,
-			profit_loss: row.profit_loss,
-			unconverted_profit_loss: row.unconverted_profit_loss,
-			account_names: row.account_name ? [row.account_name] : []
-		}));
+		return holdings.map((row) => {
+			const primaryWave = getLatestWaveCount(elliottWaves?.[row.security_id], 'primary');
+			const ew_primary_target = getWaveTargetPrice(primaryWave, 'wave5');
+			const ew_primary_upside = calculateUpsidePercentage(ew_primary_target, row.latest_price);
+
+			const cycleWave = getLatestWaveCount(elliottWaves?.[row.security_id], 'cycle');
+			const ew_cycle_target = getWaveTargetPrice(cycleWave, 'wave5');
+			const ew_cycle_upside = calculateUpsidePercentage(ew_cycle_target, row.latest_price);
+
+			return {
+				id: row.id,
+				security_id: row.security_id,
+				security_symbol: row.security_symbol,
+				security_name: row.security_name,
+				currency: row.currency,
+				security_currency: row.security_currency,
+				quantity: row.quantity,
+				average_cost: row.average_cost,
+				converted_average_cost: row.converted_average_cost,
+				latest_price: row.latest_price,
+				price_date: row.price_date,
+				total_value: row.total_value,
+				unconverted_total_value: row.unconverted_total_value,
+				profit_loss: row.profit_loss,
+				unconverted_profit_loss: row.unconverted_profit_loss,
+				account_names: row.account_name ? [row.account_name] : [],
+				ew_primary_target,
+				ew_primary_upside,
+				ew_cycle_target,
+				ew_cycle_upside
+			};
+		});
 	});
 
 	function profitLossPercent(row: HoldingRowView): number | null {
@@ -207,9 +230,14 @@
 		row: HoldingRowView,
 		column: HoldingsTableColumnId
 	): string | number | null | undefined {
-		if (column === 'profit_loss_percent') return profitLossPercent(row);
 		if (column === 'account_name') {
 			return row.account_names.length > 0 ? row.account_names.join(', ') : null;
+		}
+		if (column === 'ew_primary_target') {
+			return row.ew_primary_upside ?? row.ew_primary_target;
+		}
+		if (column === 'ew_cycle_target') {
+			return row.ew_cycle_upside ?? row.ew_cycle_target;
 		}
 		return row[column as keyof HoldingRowView] as string | number | null | undefined;
 	}
@@ -220,8 +248,14 @@
 			const aVal = valueFor(a, sortColumn);
 			const bVal = valueFor(b, sortColumn);
 
-			if (aVal === null || aVal === undefined) return 1;
-			if (bVal === null || bVal === undefined) return -1;
+			const aNil =
+				aVal === null || aVal === undefined || (typeof aVal === 'number' && !Number.isFinite(aVal));
+			const bNil =
+				bVal === null || bVal === undefined || (typeof bVal === 'number' && !Number.isFinite(bVal));
+
+			if (aNil && bNil) return 0;
+			if (aNil) return 1;
+			if (bNil) return -1;
 
 			const comparison =
 				typeof aVal === 'string' && typeof bVal === 'string'
@@ -243,7 +277,9 @@
 </script>
 
 {#snippet sortHeader(column: HoldingsTableColumn, width: number)}
-	<Table.Head class={`relative h-10 px-4 py-2 ${column.alignRight ? 'text-right' : ''}`}>
+	<Table.Head
+		class={`relative h-10 border-r border-border/40 px-4 py-2 ${column.alignRight ? 'text-right' : ''}`}
+	>
 		<button
 			type="button"
 			class={`group flex items-center gap-2 text-xs font-medium transition-colors hover:text-foreground ${
@@ -264,7 +300,7 @@
 			aria-label={`Resize ${column.label} column`}
 			aria-valuenow={width}
 			data-testid={`column-resize-${column.id}`}
-			class="absolute inset-y-0 right-0 z-20 w-1.5 cursor-col-resize touch-none bg-transparent select-none hover:bg-primary/50"
+			class="absolute inset-y-0 right-0 z-20 w-1.5 cursor-col-resize touch-none border-r border-border/60 bg-transparent select-none hover:border-primary/70 hover:bg-primary/50"
 			onpointerdown={(event) => handleResizePointerDown(event, column.id)}
 			onpointermove={handleResizePointerMove}
 			onpointerup={handleResizePointerUp}
@@ -283,7 +319,7 @@
 				<a
 					data-testid="security-link"
 					href={resolve(`/security/${row.security_id}`)}
-					class="group -mx-1.5 -my-1 flex w-fit flex-col rounded-md px-1.5 py-1 transition-colors hover:bg-muted/80"
+					class="group -mx-1.5 -my-1 flex w-full flex-col rounded-md px-1.5 py-1 transition-colors hover:bg-muted/80"
 				>
 					<span
 						data-testid="security-symbol"
@@ -302,7 +338,9 @@
 				{:else}
 					<div class="flex flex-wrap items-center gap-1">
 						{#each row.account_names as name (name)}
-							<Badge variant="secondary">{name}</Badge>
+							<Badge variant="secondary" class="text-[10px] font-normal text-muted-foreground">
+								{name}
+							</Badge>
 						{/each}
 					</div>
 				{/if}
@@ -318,28 +356,11 @@
 		{/if}
 		{#if isVisible('average_cost')}
 			<Table.Cell class="px-4 py-2 text-right">
-				<div class="flex flex-col items-end leading-tight">
-					{#if row.security_currency !== row.currency}
-						<span class="text-xs text-muted-foreground tabular-nums">
-							{row.converted_average_cost !== null && row.converted_average_cost !== undefined
-								? formatCurrency(row.converted_average_cost, row.currency)
-								: '-'}
-						</span>
-						{#if row.average_cost !== null && row.average_cost !== undefined}
-							<span class="text-[10px] text-muted-foreground/60 tabular-nums">
-								{formatCurrency(row.average_cost, row.security_currency)}
-							</span>
-						{/if}
-					{:else}
-						<span class="text-xs text-muted-foreground tabular-nums">
-							{row.average_cost !== null && row.average_cost !== undefined
-								? formatCurrency(row.average_cost, row.currency)
-								: row.converted_average_cost !== null && row.converted_average_cost !== undefined
-									? formatCurrency(row.converted_average_cost, row.currency)
-									: '-'}
-						</span>
-					{/if}
-				</div>
+				<span class="text-xs text-muted-foreground tabular-nums">
+					{row.average_cost !== null && row.average_cost !== undefined
+						? formatCurrency(row.average_cost, row.security_currency)
+						: '-'}
+				</span>
 			</Table.Cell>
 		{/if}
 		{#if isVisible('latest_price')}
@@ -375,21 +396,26 @@
 		{#if isVisible('profit_loss')}
 			<Table.Cell class="px-4 py-2 text-right">
 				{#if row.profit_loss !== null && row.profit_loss !== undefined}
-					<div class="flex flex-col items-end leading-tight">
-						<span
-							data-testid="profit-loss"
-							class={`text-sm tabular-nums ${
-								row.profit_loss >= 0 ? 'text-emerald-600' : 'text-rose-600'
-							}`}
-						>
+					{@const plPercent = profitLossPercent(row)}
+					<div class="flex flex-col items-end gap-0.5 leading-tight">
+						{#if plPercent !== null}
+							<span
+								data-testid="profit-loss-percent"
+								class={cn(
+									'inline-flex items-center rounded-md border px-1.5 py-0.5 text-xs font-semibold tabular-nums',
+									getPillClass(plPercent)
+								)}
+							>
+								{formatPercent(plPercent)}
+							</span>
+						{/if}
+						<span data-testid="profit-loss" class="text-xs text-muted-foreground tabular-nums">
 							{row.profit_loss >= 0 ? '+' : ''}{formatCurrency(row.profit_loss, row.currency)}
 						</span>
 						{#if row.security_currency !== row.currency && row.unconverted_profit_loss !== null && row.unconverted_profit_loss !== undefined}
 							<span
 								data-testid="profit-loss-secondary"
-								class={`text-[10px] tabular-nums ${
-									row.unconverted_profit_loss >= 0 ? 'text-emerald-600/70' : 'text-rose-600/70'
-								}`}
+								class="text-[10px] text-muted-foreground/70 tabular-nums"
 							>
 								{row.unconverted_profit_loss >= 0 ? '+' : ''}{formatCurrency(
 									row.unconverted_profit_loss,
@@ -403,19 +429,52 @@
 				{/if}
 			</Table.Cell>
 		{/if}
-		{#if isVisible('profit_loss_percent')}
+		{#if isVisible('ew_primary_target')}
 			<Table.Cell class="px-4 py-2 text-right">
-				{@const plPercent = profitLossPercent(row)}
-				{#if plPercent !== null}
-					<span
-						data-testid="profit-loss-percent"
-						class={cn(
-							'inline-flex items-center rounded-md border px-1.5 py-0.5 text-xs font-semibold tabular-nums',
-							getPillClass(plPercent)
-						)}
-					>
-						{formatPercent(plPercent)}
-					</span>
+				{#if row.ew_primary_target !== null && row.ew_primary_target !== undefined}
+					<div class="flex flex-col items-end gap-0.5 leading-tight">
+						{#if row.ew_primary_upside !== null && row.ew_primary_upside !== undefined}
+							<span
+								data-testid="ew-primary-upside"
+								class={cn(
+									'inline-flex items-center rounded-md border px-1.5 py-0.5 text-xs font-semibold tabular-nums',
+									getPillClass(row.ew_primary_upside)
+								)}
+							>
+								{formatPercent(row.ew_primary_upside)}
+							</span>
+						{/if}
+						<span
+							data-testid="ew-primary-target"
+							class="text-xs text-muted-foreground tabular-nums"
+						>
+							{formatCurrency(row.ew_primary_target, row.security_currency)}
+						</span>
+					</div>
+				{:else}
+					<span class="text-sm text-muted-foreground">-</span>
+				{/if}
+			</Table.Cell>
+		{/if}
+		{#if isVisible('ew_cycle_target')}
+			<Table.Cell class="px-4 py-2 text-right">
+				{#if row.ew_cycle_target !== null && row.ew_cycle_target !== undefined}
+					<div class="flex flex-col items-end gap-0.5 leading-tight">
+						{#if row.ew_cycle_upside !== null && row.ew_cycle_upside !== undefined}
+							<span
+								data-testid="ew-cycle-upside"
+								class={cn(
+									'inline-flex items-center rounded-md border px-1.5 py-0.5 text-xs font-semibold tabular-nums',
+									getPillClass(row.ew_cycle_upside)
+								)}
+							>
+								{formatPercent(row.ew_cycle_upside)}
+							</span>
+						{/if}
+						<span data-testid="ew-cycle-target" class="text-xs text-muted-foreground tabular-nums">
+							{formatCurrency(row.ew_cycle_target, row.security_currency)}
+						</span>
+					</div>
 				{:else}
 					<span class="text-sm text-muted-foreground">-</span>
 				{/if}
@@ -425,39 +484,6 @@
 {/snippet}
 
 <div class="w-full">
-	<div class="flex items-center justify-end border-b px-2 py-1">
-		<DropdownMenu.Root>
-			<DropdownMenu.Trigger>
-				{#snippet child({ props })}
-					<button
-						{...props}
-						type="button"
-						data-testid="column-visibility-trigger"
-						aria-label="Toggle columns"
-						title="Toggle columns"
-						class="inline-flex items-center gap-1 rounded-md px-2 py-1 text-xs text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
-					>
-						<Settings2 size={14} />
-						Columns
-					</button>
-				{/snippet}
-			</DropdownMenu.Trigger>
-			<DropdownMenu.Content align="end" class="w-44">
-				<DropdownMenu.Label>Visible columns</DropdownMenu.Label>
-				<DropdownMenu.Separator />
-				{#each HOLDINGS_TABLE_COLUMNS as column (column.id)}
-					<DropdownMenu.CheckboxItem
-						checked={isVisible(column.id)}
-						disabled={column.id === HOLDINGS_TABLE_STICKY_COLUMN_ID}
-						onCheckedChange={() => toggleColumn(column.id)}
-						data-testid={`column-toggle-${column.id}`}
-					>
-						{column.label}
-					</DropdownMenu.CheckboxItem>
-				{/each}
-			</DropdownMenu.Content>
-		</DropdownMenu.Root>
-	</div>
 	<Table.Root>
 		<colgroup>
 			{#each visibleColumns as column (column.id)}

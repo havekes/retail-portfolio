@@ -6,6 +6,7 @@ import { ApiError } from '$lib/api/apiClient';
 import { normalizeHoldingsTableConfig } from '$lib/components/holdings/holdings-table-columns';
 import { normalizeHoldingsGroupMode } from '$lib/components/holdings/holdings-group-prefs';
 import type { UserHolding } from '$lib/types/account';
+import type { SecurityElliottWaves } from '$lib/utils/finance/elliott-wave';
 import type { PageServerLoad } from './$types';
 
 const PAGE_SIZE = 50;
@@ -39,14 +40,16 @@ export const load: PageServerLoad = async ({ fetch, cookies }) => {
 	try {
 		const holdings = await loadAllHoldings(fetch, token);
 
-		// One preferences request for both persisted keys. The client-side helpers
+		// One preferences request for persisted keys. The client-side helpers
 		// are token-less (browser same-origin), so SSR reads the token explicitly.
 		let holdings_table_config = normalizeHoldingsTableConfig(null);
 		let group_mode = normalizeHoldingsGroupMode(null);
+		let elliott_waves: Record<string, SecurityElliottWaves> | null = null;
 		try {
 			const prefs = await getUserPreferencesService(fetch).getPreferences(token);
 			holdings_table_config = normalizeHoldingsTableConfig(prefs?.holdings_table);
 			group_mode = normalizeHoldingsGroupMode(prefs?.holdings_group);
+			elliott_waves = prefs?.elliott_waves ?? null;
 		} catch {
 			// Preferences are non-fatal: fall back to defaults and still render holdings.
 		}
@@ -54,7 +57,8 @@ export const load: PageServerLoad = async ({ fetch, cookies }) => {
 		return {
 			holdings,
 			holdings_table_config,
-			group_mode
+			group_mode,
+			elliott_waves
 		};
 	} catch (err) {
 		if (err instanceof ApiError) {
