@@ -4,7 +4,7 @@ title: "Development, CI & Change Workflows"
 openwiki_generated: true
 verified:
   - by: openwiki/0.5.2
-    at: 2026-09-18T20:16:58.058Z
+    at: 2026-09-20T12:50:16.306Z
 sources:
   - id: openwiki-source-b6d79691ae8158aab326e9d3
     resource: repo://.agent/workflows/opsx-apply.md
@@ -48,6 +48,8 @@ sources:
     resource: repo://README.md
   - id: openwiki-source-b1543404abfc927178353273
     resource: repo://scripts/agent-test
+  - id: openwiki-source-3871c7364a9411872d29e162
+    resource: repo://scripts/opencode-go-session-fetch.mjs
   - id: openwiki-source-c347ef400d4d12fd07984865
     resource: repo://scripts/setup-agent-worktree.sh
   - id: openwiki-source-634b7bac22fbe90060118ce8
@@ -76,7 +78,7 @@ sources:
     resource: repo://src/worker_dashboard/setup.py
   - id: openwiki-source-7a8d629077019775a9fec3d3
     resource: repo://src/worker.py
-generated: { by: "openwiki/0.5.2", at: "2026-09-18T20:16:58.058Z" }
+generated: { by: "openwiki/0.5.2", at: "2026-09-20T12:50:16.306Z" }
 ---
 
 
@@ -388,15 +390,14 @@ This repository uses OpenSpec in `spec-driven` mode (`openspec/config.yaml` decl
 active changes live in `openspec/changes/<name>/` and, once archived, move to
 `openspec/changes/archive/YYYY-MM-DD-<name>/`.
 
-<!-- openwiki: mermaid parse failed and this diagram was converted to a text fence so it does not break rendering. Fix the diagram source and restore the mermaid fence. Parser error: Heuristic: a semicolon inside a label breaks rendering; rephrase the label. -->
-```text
+```mermaid
 flowchart TD
-    P["/opsx:propose<br/>openspec new change &lt;name&gt;"] --> A1["proposal.md"]
+    P["/opsx:propose — openspec new change NAME"] --> A1["proposal.md"]
     A1 --> A2["design.md / delta specs"]
     A2 --> A3["tasks.md"]
-    A3 --> AP["/opsx:apply<br/>implement tasks, mark - [x]"]
-    AP --> AR["/opsx:archive<br/>sync delta specs, mv to archive/YYYY-MM-DD-name"]
-    E["/opsx:explore<br/>thinking only, no application code"] -.-> P
+    A3 --> AP["/opsx:apply — implement tasks, mark each done"]
+    AP --> AR["/opsx:archive — sync delta specs, move to archive/YYYY-MM-DD-name"]
+    E["/opsx:explore — thinking only, no application code"] -.-> P
 ```
 
 Caption: the four-stage lifecycle. Each stage is one slash command and one mirrored skill;
@@ -450,12 +451,16 @@ add all three mirrors — a change to only one silently diverges per tool.
 2. `npm install --global openwiki`.
 3. `openwiki code --update --print` with `OPENWIKI_PROVIDER=openai-compatible`,
    `OPENAI_COMPATIBLE_BASE_URL=https://opencode.ai/zen/go/v1`, `OPENWIKI_MODEL_ID=deepseek-v4.1-flash`
-   and the API key from the `OPENCODE_API_KEY` secret. The step also sets
+   and `OPENAI_COMPATIBLE_API_KEY` fed from the `OPENCODE_API_KEY` secret. The step also sets
    `NODE_OPTIONS: --import ./scripts/opencode-go-session-fetch.mjs`, a preload shim that wraps
-   global `fetch` to add the `x-opencode-session` header the provider cannot send itself.
+   global `fetch` to add the `x-opencode-session` header the provider cannot send itself
+   (and a non-generic user agent) for requests to `opencode.ai`.
 4. `peter-evans/create-pull-request@v7` opens a PR on the `openwiki/update` branch limited to
    `add-paths: openwiki` (`docs: update OpenWiki`).
 
 Documentation therefore lands through review, never as a direct commit to `main`. The
-generated `openwiki/` tree is refreshed by this workflow — `AGENTS.md` instructs agents not to
-hand-edit generated pages, but to change source and docs and let OpenWiki regenerate.
+generated `openwiki/` tree is refreshed by this workflow — the OpenWiki block at the end of
+`AGENTS.md` (imported wholesale by the `CLAUDE.md` stub) frames it as optional just-in-time
+context rather than required startup reading, treats source code and tests as authoritative,
+and instructs agents not to hand-edit generated pages but to change source and docs and let
+OpenWiki regenerate.

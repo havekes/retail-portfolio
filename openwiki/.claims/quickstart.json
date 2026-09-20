@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "pageVersion": "sha256:9928c498c9543bd15465dfae1905a84197a57248fcbf66cae98e86fa41300683",
+  "pageVersion": "sha256:e28f275d607b711ce08b3b430c7be4a218099310129b1389cf05c1a6fbfc3dd0",
   "claims": [
     {
       "id": "claim_9bd0ec86d7b94a8584961b72b1da8ef4",
@@ -207,10 +207,120 @@
           "version": "repo-lines-v1:sha256:e196ae5aef70399b7f4cd655c0440c5c589dbecac5863d6178aa1c195d5a4325:eyJzZWxlY3RlZExpbmVDb3VudCI6MTIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjVmMTgwZjljMTI2OTAzYmNjMzMxYWE5NTQ1NmU0OTQ0NGE3ZDRkMDExZThhMmE4M2Y1ZGM4NzAyMzkxODEyZDAiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjA5Zjc4NzE0ODkzYWE3Nzk0MmNlYTFjNGEyZTAyMzFkYmI3ZmEyYTQxYTcwYzgxNDYwYTNjNjc1NjJkYTNhYWEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjhhMzYzMTA1MjUzZGY5MDkyODhlNDcwODFkNzRlMzYyMDdkNmQ4OGU4NzU4MWJjZTlkZTk5ZDllYzVhZDJkODkiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
         }
       ]
+    },
+    {
+      "id": "claim_1ae88f16275f4385ad47ee4dc0e6ac35",
+      "statement": "The repository is laid out as routing destinations: `src/` for the FastAPI backend, `frontend/` for the SvelteKit app, `services/indicator-service/` for the Go sidecar, `migrations/` for Alembic revisions (configured as the Alembic script_location), `tests/` for backend pytest suites, `src/stubs/` for stub gateways used by tests and STUB_EXTERNAL_API mode, `src/commands/` for seeding and market-data flush CLI entrypoints, `openspec/` for capability specs and change artifacts, and `scripts/` plus `.github/workflows/` for tooling and CI.",
+      "evidence": [
+        {
+          "resource": "repo://.github/workflows/ci.yml#L12-L108",
+          "version": "repo-lines-v1:sha256:7aaeb66cc0b9582126900fc50c8c7d28e2e255e464650135969dd584cb4009d6:eyJzZWxlY3RlZExpbmVDb3VudCI6OTcsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImU5ZDgwMTU0ZWQ0MmZjNWM3NzliMTMzMTU3OGI1OGI4OWM4MDFlYWNlNzRmMjRjZDQ4ZWI0YTIzNTc5NDBhOTUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjY5MDYyYzUxZGRmNDUzNmRlYzNiMWZkMjI1YjA1YWFlZjk2ZTQ3MmJhMGI5ODk2MjRlYTc5NzA1YWYwZTJhODciLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjQ2ODExOTEwOTI0NjZlMWU2ZmFlMjIwMTcyZTYwODEzN2U1ODRmYzJlZWRkOWJkNzc4ZGYxMDdhMjA0Mjk0OGQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
+        },
+        {
+          "resource": "repo://docker-compose.yml#L111-L112",
+          "version": "repo-lines-v1:sha256:623c62a677bdee296b2cb9d489131de99298ec57ddc22238cf6a47d67f5f45c5:eyJzZWxlY3RlZExpbmVDb3VudCI6MiwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiNTQ5NzZhOGFkNmFlNDZhZjM4ZTQwZDhlYzI4Zjg0NTlmYTE1YjVjYmJiNDQ3YjE2YjRlN2VmZGZhYzNlYjllZCIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiZjhjNjc2YmI4ZjFjY2NhNDBhZGRlMDEyZTRjYzk4Zjc4MzQ5ZjA2YTlhZjUyYmY1MzM3ZmMyOGE4YzE2YjY2YiIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiYTA1ZDgzYzRiNGYwYjgxZjkwYWVlMjQ5ZTQ2MGE2NDdlZjhhNmM4Mzg5ODA1ZmJkM2FmMGEyNWZiOTY2OTFkOSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiZTJjMzhjYjcyMzM3ZmY4NGFlMDNkYWJkM2U2ZWY5OGQ4OGFjMjQ3ODAwMDdmZjVkZmRhNjk3OGQ1ZGVmOGY1NSJ9"
+        },
+        {
+          "resource": "repo://pyproject.toml#L107-L113",
+          "version": "repo-lines-v1:sha256:5dc20c4020f393a20ff67adee76be464f530a3c06000fdaff82a1877aa04720e:eyJzZWxlY3RlZExpbmVDb3VudCI6NywiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiMjc0MmJkOTE3MmM0YjA5OTMwNTgyNGEyZWIzZDcxOGU1ZTAzY2ZkMTYyMjAxNDc2N2ZiZmQzNDc4YTM1ZWJiOSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiYjU0ZGRkZTA5NDJhZjQzNmQwNTBhMjg5MTk1Y2M1ZWRlMzQyZGU4NTIzNmQ1ZDEwOTNiNzJjMTI1ZDg3YThmOCIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiYzA5MmJhNWViMzZkYTcyMDczNTY4NWVjODgyNWMyMzZiMGQ0ZjMwOGQ0ZjZkYzU4MzhmNGQ4NmE0ZTliZTlmYyIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiMjc1NWQ1MTZmZjRiYzdjYjQ3ODAxNzIyNmYyZTljMzEwOGM4MTAyYmUwY2I4NTIwMzJmYWQwM2NkMGY3NDdmYSJ9"
+        },
+        {
+          "resource": "repo://src/AGENTS.md#L42-L65",
+          "version": "repo-lines-v1:sha256:6e13ed2c573cce86ae502a2fedc69f6d9bd3e8c076ebda0e85564c3e27a9730d:eyJzZWxlY3RlZExpbmVDb3VudCI6MjQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjJlMjI0YWI3MzVhZDE3YzlmNGUzOTBiMmNiYmQ0MTExMWJlZmYxMmFjYTYyNTA1ZDQ0Y2NkMmY4MzczNGIzYTgiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ3YzA2YzU2MWQ1YzMyNzM0MzY4NTI2OGE0NmIzMzkxZjM5OThlZWU4OTBkMmJlNTFmMGQyMWNjNGE1M2FlNmQiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjVlZGFiN2Y5MzY4MjE4NTJkMjIwNjYzZjE1NzAxMjJjYjhiNDQ3MTI4OTM2OWY2OWI3MDYyNDViMTQ4OTMyMzEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImI3OTYwMGJjZmZjYzAxY2I2NTY2MDQ2ZTZlNzU0MWRiNjljMjY3ZTU1OGNmMTgyYTlmNWZmZTRjZjU1MGQ4ZWYifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_2441b2f0b7c143f0b4ef804553cef3a7",
+      "statement": "`just up` is the preferred stack-start recipe: it resolves the host Docker socket's group id with scripts/docker-gid.sh and passes it as DOCKER_GID so the backend/worker containers (uid 1000) can reach the daemon, which is what allows testcontainers-backed tests to start throwaway PostgreSQL inside the containers.",
+      "evidence": [
+        {
+          "resource": "repo://docker-compose.yml#L13-L23",
+          "version": "repo-lines-v1:sha256:da22d8781e3ab8822efbaefd5a0907b3faaa99faf8a593a9d357f95b18eed3e1:eyJzZWxlY3RlZExpbmVDb3VudCI6MTEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImY2MzdiYjQ0Mjk1YjBmMWQxOGQxMGU5ZDI1ZGI1OTA2NDczYzk3MzMzMGQ3ZTI5ZmI3MmE4OTQ4NzFiMmQ0ODQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjJlZGE3NDkyZWJlMDZiYmEwNWVlZWQwZjlmYzhhODRlYTRiMTVhMGRhZGFjMDU4OGQ3NmNlMmI2MTRkMWE0YzYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImYyODFhODQzOWQ4YjVjZWE4ZTZhNTcxNjRjMTUxNDI3ZTFjNjRjZTgzODNhMTVhNDRmNmRlN2Y2ZWQ3YzhjN2YiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjFjODlhOGNjNTY2YzNlZTY1MmNmMWZmNDg2MzEyZDUyMDgxNDAwODgwNzI0NWNhYzJiODBlZjQ1MmU0OTE2OTIifQ"
+        },
+        {
+          "resource": "repo://justfile#L26-L29",
+          "version": "repo-lines-v1:sha256:2bf772d5962283770861f36dff1751d7cbe90e64af7e8ca9176d5299fd8780c1:eyJzZWxlY3RlZExpbmVDb3VudCI6NCwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiNWM0MDVmM2JhNjFiNTcyZTgxZTQ0MDI3ODhiMzgzYWUyYzhlMmYxOTg3ZWUzNDU0OTdjMDMwODlmYmEzMTAzYiIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiZDEyNTJiNGFiZDZjZGFmNTBjMThlNjlkYjRiZGM1MjVkYjc1OTI0ZGY2ZTJjNjQ2NzhhNjEyMDI4MjliYTJlYyIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiYjg5M2UxZmVlZWUwMzFjNTk1ODJiODJjZjY3MWMyOWU5NDIwMzU0NTMyYzBmZjgwYTZiM2Y0M2ZkNjNjMzRlNCIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjAsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiZTNiMGM0NDI5OGZjMWMxNDlhZmJmNGM4OTk2ZmI5MjQyN2FlNDFlNDY0OWI5MzRjYTQ5NTk5MWI3ODUyYjg1NSJ9"
+        },
+        {
+          "resource": "repo://scripts/docker-gid.sh#L1-L18",
+          "version": "repo-lines-v1:sha256:6de34eff4381f4e87510c77ca0f474842db66b76d17dc11b8f1184e1e8a5b44f:eyJzZWxlY3RlZExpbmVDb3VudCI6MTgsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjFkOTVmYzA0YTgwYzk1MmY0OWNlNDE4ODYyN2M1M2IwZmJlOGM0NDA0MWI5NTJkNTkyYWNkMWRlOTk4NjE0NjYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjM3NjlkMjM3Y2Q0MjBiOWQzOGI5ODFhMGE0ZjY3NzAxOTBhNGE4M2RjYTFmZTU2YzRmNWJhMWUyY2JjMGVmNzYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjowLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_e1db9d6cf0e944bfbf335cdae1c2fab6",
+      "statement": "Beyond the published service ports, Compose maps the backend and worker debugpy ports to 8090 and 8091 (BACKEND_DEBUG_PORT, WORKER_DEBUG_PORT) and PostgreSQL to 5432 (POSTGRES_PORT), all interpolated from the root .env like the rest of the stack.",
+      "evidence": [
+        {
+          "resource": "repo://.env.example#L52-L59",
+          "version": "repo-lines-v1:sha256:f7e56f857189db24dc56f81582c2703a88207aea6336055bcf65418c9e4d1693:eyJzZWxlY3RlZExpbmVDb3VudCI6OCwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiYTE0OGZmOTgxY2RmNzlkMjcwOWFmMTA3ZTYyMWIwOTljYWU5NmQ4ODJkYzdhNGRhMmUwNWIzMTA4ODFhNmU4YiIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiYjA4MTYyM2Q4ZWJjNjExMDU2MGZhMThkNjViNmM5MWFiYmJlMWVmMDA0MjE1NjFhNjljZjc1NWRkMGIyZTQ2NCIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiYTBiY2ExZTBjZDE0ZmZiNjI3MDBjMzZkMjU0MDZiNWUwZGZkZTI2ZWFhOGY5MDAyMjk0ZjgzZTdkZTM0MThmOSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjEsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiM2IzZjQ2MzZkN2ZiODE3ODc1MTIzYmY0OGI5YzJlNjhkYmM4ZWE4ODM1NWUwZDU4MTgxNDE1YjI2YTk3Y2VhNyJ9"
+        },
+        {
+          "resource": "repo://docker-compose.yml#L16-L18",
+          "version": "repo-lines-v1:sha256:e13266a3605b3652804435c61c632ca74ef0dea9cdb85eda4246a38ca01b6b01:eyJzZWxlY3RlZExpbmVDb3VudCI6MywiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiYmMxNmVkMjM5YTM2NTFiNTA3OWMwZTRlN2YwNzg0NGVhMzI5Yzg3NjI4YmY5ZmNjNDYzNjc3MzNmNWUxZTkzZSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiODkxMzNlOTBlYjQzODBmNjUwMjRjMjQyNjI3NTNlMWJkZGVmMmNhZjAxZTE5NTM0NjI3YzEwOTc0NDc4NzA0YiIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiNDQxN2ZhZWU0MjY2ZmZhNTQ0YWFmMDc2NjdlYjIxMzhiMjU2ZDNlNTliMzhjMTYyZWZhZDU3ZGFmN2UyMGZjMyIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiOGVkYjk5MzQwODhjNGNkOWU3N2E0NGMwMTQyYTIyZmFmNDFiYzBlMGYyNzliMjIyYjM4M2M4YzU1ZGJmNWI1MCJ9"
+        },
+        {
+          "resource": "repo://docker-compose.yml#L45-L46",
+          "version": "repo-lines-v1:sha256:52b0aee2686a010d8d5b0cf920b7c5bfe4626c1cc4aa8fe6dfe06003ec1d1575:eyJzZWxlY3RlZExpbmVDb3VudCI6MiwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiYmMxNmVkMjM5YTM2NTFiNTA3OWMwZTRlN2YwNzg0NGVhMzI5Yzg3NjI4YmY5ZmNjNDYzNjc3MzNmNWUxZTkzZSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiZDhjNzM2ZDNlOTNiYjdhZGVhNmM1ZjQ5YWU0MDVmZmRhZTgzMjdmMjM4ZGJlZDAxZTBiNGU1NmJjZjUwMDFmNyIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiNTYyN2JlMzEwYmEyZjZiNzk2MzM5NmM2MDU1MmY2MzcwYTE3ZjM2ZDdkMzQ3NTQ2Mzg3NWQzNDEzYmJiYWQ2MSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiMzAzMmViMDY0NjI3OTE2NWNmMzFlODBlMzNkNDU2NmY5Y2UzY2ZkZjVmNGZhYjExM2JmY2U5ZjIyZmU0ZThjYyJ9"
+        },
+        {
+          "resource": "repo://docker-compose.yml#L96-L97",
+          "version": "repo-lines-v1:sha256:38fab7134685473c452aa0da0f3fd3badea7632e618e1fc3680f22a652c00070:eyJzZWxlY3RlZExpbmVDb3VudCI6MiwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiYmMxNmVkMjM5YTM2NTFiNTA3OWMwZTRlN2YwNzg0NGVhMzI5Yzg3NjI4YmY5ZmNjNDYzNjc3MzNmNWUxZTkzZSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiYmNmY2RkMTZmN2M5Zjc5ZDNmNTM3OWIxYzFhYTMyNDZmZTMzN2FhZTg4MTljMzllMWZhZjJlMTdkZDIzNWEwNCIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiNDBiOGFhM2JhNjgxNzc3NGY5MTM5YzQwMmY2N2U3YmIwMzg5YzQ3NTNlYTcwYzg4ZTMyZDYyYzgzOGVlYzJkZCIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiNTM4NjY5MmQ2Zjc2NjhhZGViNTc1NDczMDk1ZTM5MWYyNjgzZDYwN2NkMjU4MjE5ZGQ4OTkyOWM2ZWRiZjJjYSJ9"
+        }
+      ]
+    },
+    {
+      "id": "claim_1b27102708d14decb7b51b64b957b250",
+      "statement": "CI is a three-job workflow: a backend job running uv run ty check, ruff check + ruff format --check and pytest on Python 3.14; a frontend job running npm run check, npm run lint and npm run test:run on Node 25 with VITE_* and JWT_SECRET env vars; and an indicator-service job running go vet, go build and go test on Go 1.27.",
+      "evidence": [
+        {
+          "resource": "repo://.github/workflows/ci.yml#L12-L108",
+          "version": "repo-lines-v1:sha256:7aaeb66cc0b9582126900fc50c8c7d28e2e255e464650135969dd584cb4009d6:eyJzZWxlY3RlZExpbmVDb3VudCI6OTcsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImU5ZDgwMTU0ZWQ0MmZjNWM3NzliMTMzMTU3OGI1OGI4OWM4MDFlYWNlNzRmMjRjZDQ4ZWI0YTIzNTc5NDBhOTUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjY5MDYyYzUxZGRmNDUzNmRlYzNiMWZkMjI1YjA1YWFlZjk2ZTQ3MmJhMGI5ODk2MjRlYTc5NzA1YWYwZTJhODciLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjQ2ODExOTEwOTI0NjZlMWU2ZmFlMjIwMTcyZTYwODEzN2U1ODRmYzJlZWRkOWJkNzc4ZGYxMDdhMjA0Mjk0OGQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_d55af0c9f7c649a1a005c72dc98903b8",
+      "statement": "AGENTS.md is the root agent guide that delegates backend work (src/, tests/, migrations/) to src/AGENTS.md and frontend work (frontend/) to frontend/AGENTS.md; CLAUDE.md is only a one-line stub that imports AGENTS.md via `@AGENTS.md` and contributes no guidance of its own.",
+      "evidence": [
+        {
+          "resource": "repo://AGENTS.md#L6-L11",
+          "version": "repo-lines-v1:sha256:0e95ba924e0f508f288ecb82e06aa0e2d91f2262bcaf3d611b098515c80c062a:eyJzZWxlY3RlZExpbmVDb3VudCI6NiwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiMjA1NTU3NDQyZDAzYjg2OTE0Nzc2NjQxZjYzODA0NWJjZDY1YWVkNmFhYzYyYzE1YTZmMmUxNTk3ODg3YzMwMSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiZjNiNzM1MDNlZGRhMGI0NjE0MTMxM2JiMGVkN2EzZmZmMDQzYjEzNzYyYWRiYmQxOGVmM2ZmMzY1OTJjNmI0NSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiNWM2MWE3MDUzMjE5ZTdjNzgxZGI2NjJhYTY1YjRlYTViOWFjZjcxZDk0MjcyNGQ1NzZiZjAxMjI5YTMyYjBkOCIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiZjkyNDVmMjlkOGZhMTI3ZjlmNmJkMzk2NGRhMjY0ZmY3ODQxZTRjNWIyMzFjNTRkZjUwYjUyOTFhNGEzZTg0YyJ9"
+        },
+        {
+          "resource": "repo://CLAUDE.md#L1-L7",
+          "version": "repo-lines-v1:sha256:cd617c809957b5aeb601ce9856109475f6da8ed78835148d17c3097dd4daa848:eyJzZWxlY3RlZExpbmVDb3VudCI6NywiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiNWYxODBmOWMxMjY5MDNiY2MzMzFhYTk1NDU2ZTQ5NDQ0YTdkNGQwMTFlOGEyYTgzZjVkYzg3MDIzOTE4MTJkMCIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiMDlmNzg3MTQ4OTNhYTc3OTQyY2VhMWM0YTJlMDIzMWRiYjdmYTJhNDFhNzBjODE0NjBhM2M2NzU2MmRhM2FhYSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjAsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiZTNiMGM0NDI5OGZjMWMxNDlhZmJmNGM4OTk2ZmI5MjQyN2FlNDFlNDY0OWI5MzRjYTQ5NTk5MWI3ODUyYjg1NSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjAsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiZTNiMGM0NDI5OGZjMWMxNDlhZmJmNGM4OTk2ZmI5MjQyN2FlNDFlNDY0OWI5MzRjYTQ5NTk5MWI3ODUyYjg1NSJ9"
+        }
+      ]
+    },
+    {
+      "id": "claim_83a7804f0af142909d61b3f34b9e1afd",
+      "statement": "The OpenWiki block appended to AGENTS.md frames the generated openwiki/ tree as optional just-in-time context rather than required startup reading, states that source code and tests are authoritative so a brief's unknowns and review items are verification gaps rather than automatic requirements, and directs agents to prefer the narrowest quiet validation that proves the changed behavior while preserving complete failure output.",
+      "evidence": [
+        {
+          "resource": "repo://AGENTS.md#L42-L53",
+          "version": "repo-lines-v1:sha256:e196ae5aef70399b7f4cd655c0440c5c589dbecac5863d6178aa1c195d5a4325:eyJzZWxlY3RlZExpbmVDb3VudCI6MTIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjVmMTgwZjljMTI2OTAzYmNjMzMxYWE5NTQ1NmU0OTQ0NGE3ZDRkMDExZThhMmE4M2Y1ZGM4NzAyMzkxODEyZDAiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjA5Zjc4NzE0ODkzYWE3Nzk0MmNlYTFjNGEyZTAyMzFkYmI3ZmEyYTQxYTcwYzgxNDYwYTNjNjc1NjJkYTNhYWEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjhhMzYzMTA1MjUzZGY5MDkyODhlNDcwODFkNzRlMzYyMDdkNmQ4OGU4NzU4MWJjZTlkZTk5ZDllYzVhZDJkODkiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_93b4e976075246a28f63500de63806bf",
+      "statement": "`src/.env` and `frontend/.env` are obsolete: all custom values (frontend VITE_* overrides, backend overrides) must be moved into the single root `.env` and both files deleted, since the backend, worker, Compose interpolation and frontend dev server all read the root file.",
+      "evidence": [
+        {
+          "resource": "repo://.env.example#L1-L6",
+          "version": "repo-lines-v1:sha256:8dd149548716abb279ae52d9c5625e85a394639fb9d3d50485fcc42c7bb8f58c:eyJzZWxlY3RlZExpbmVDb3VudCI6NiwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiN2IxMDExNjQ1OWE0NzQzZTgxZjBlYTk1Y2U2YjRlYTk2YjZhOWQ0ZjFlMjMxNDBiYWQwM2I5ZTU0OGM4MjU3NSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiYzliNDE5NjEzZmM2YjQyNWVmY2FmNWY5Y2E3MDVjMzBmOGU3MWY5ZDg5ZjQxMzI1YTRkZjQ3YzMxMGNjNGQ1OCIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjAsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiZTNiMGM0NDI5OGZjMWMxNDlhZmJmNGM4OTk2ZmI5MjQyN2FlNDFlNDY0OWI5MzRjYTQ5NTk5MWI3ODUyYjg1NSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiOGM4YjhiMDYzYjZlYmM1YTc3N2U3ZDMxNDQ1YTQwMDlhOTgxMzI0ODM5YjE5MDI5NDM2Y2NhYTM2MzRlZjIwNCJ9"
+        },
+        {
+          "resource": "repo://README.md#L8-L21",
+          "version": "repo-lines-v1:sha256:58e673d4f84949b0c8481de04ee0fcd912b9fef6b12f621eb43c56b074d9c3a2:eyJzZWxlY3RlZExpbmVDb3VudCI6MTQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjBiMzA5NmFlYmQzMGU4MzQ3YzQ1YTkwNjZkNjkzNzk5MTY5ZTk0YzM3YzRkYzQyOTc0OThiNjhhMTNkY2UxMjIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAxYmE0NzE5YzgwYjZmZTkxMWIwOTFhN2MwNTEyNGI2NGVlZWNlOTY0ZTA5YzA1OGVmOGY5ODA1ZGFjYTU0NmIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjIwZGQ3NDZhODIyMjcwZDYwYTA1ZDMyZDNmODg3MjAzNTI3ODBlZmU5MDBiMWE0Y2QxY2U3NmVmNzY4YTgwYTQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImQ5MGU1MDkzOTY0Y2JkZDMzNzE5ZDc5NTMzNmRhMmNhNGU5ZmM4MjcwNDhkN2ExNGQ5NjBjZWIxZDFhNjY1NGIifQ"
+        }
+      ]
     }
   ],
   "verification": {
     "by": "openwiki/0.5.2",
-    "at": "2026-09-18T20:16:58.058Z"
+    "at": "2026-09-20T12:50:16.306Z"
   }
 }

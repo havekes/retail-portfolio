@@ -5,8 +5,10 @@ description: Catalog of the backend domains and their owned systems — account 
 tags: [backend, domain-driven-design, fastapi, repositories, services, dependency-injection, routers, extension-points]
 verified:
   - by: openwiki/0.5.2
-    at: 2026-09-18T20:16:58.058Z
+    at: 2026-09-20T12:50:16.306Z
 sources:
+  - id: openwiki-source-ebee543967c6f3e7a101e271
+    resource: repo://alembic.ini
   - id: openwiki-source-45599bb9a8794a9c90b7e20d
     resource: repo://frontend/src/lib/api/apiClient.ts
   - id: openwiki-source-f2a11e03c22959177c73ac6b
@@ -57,12 +59,18 @@ sources:
     resource: repo://src/market/__init__.py
   - id: openwiki-source-01883905c6624d1aafed4cfd
     resource: repo://src/market/api.py
+  - id: openwiki-source-0759916706da37d0d3bef090
+    resource: repo://src/market/exception.py
   - id: openwiki-source-b5c9dababd9a2ff2d28150b0
     resource: repo://src/market/gateway.py
   - id: openwiki-source-cc33fb93093886e62b166a26
     resource: repo://src/market/model.py
   - id: openwiki-source-2a7887e5463dd941a6134a40
     resource: repo://src/market/repository_eodhd.py
+  - id: openwiki-source-8ba9c7034638e16be9336256
+    resource: repo://src/market/repository_sqlalchemy.py
+  - id: openwiki-source-47b0223ca650e12504aa1417
+    resource: repo://src/market/repository.py
   - id: openwiki-source-d8383d22d61483b00080a280
     resource: repo://src/market/router.py
   - id: openwiki-source-9fc85bceeb3edfbe3ab56a7c
@@ -73,7 +81,7 @@ sources:
     resource: repo://src/ws/manager.py
   - id: openwiki-source-d63e02f817074e4280e045ae
     resource: repo://src/ws/router.py
-generated: { by: "openwiki/0.5.2", at: "2026-09-18T20:16:58.058Z" }
+generated: { by: "openwiki/0.5.2", at: "2026-09-20T12:50:16.306Z" }
 ---
 
 # Backend Domains
@@ -84,13 +92,13 @@ Routers are mounted in `src/main.py` under a single `APIRouter(prefix="/api/v1")
 
 ## Shared conventions
 
-- **Models** live in `model.py` and inherit from `BaseModel` (`src/config/database.py`); they generate Alembic migrations and are never returned to clients.
+- **Models** live in `model.py` and inherit from `BaseModel` (`src/config/database.py`); they generate Alembic migrations and are never returned to clients. A route returns a `*Read` schema, never an ORM model.
 - **Schemas** live in `schema.py`. Repositories and services exchange schemas, never ORM models.
-- **Public API types** live in `api_types.py` and are the only types that may cross a domain boundary.
+- **Public API types** live in `api_types.py` and are the only types that may cross a domain boundary. A service that needs another domain's data imports that domain's API type, not its `schema.py`.
 - **Repositories** define abstract interfaces in `repository.py` and SQLAlchemy implementations in `repository_sqlalchemy.py`. Alternative implementations use `repository_<impl>.py` (for example `repository_eodhd.py`).
-- **Services** hold orchestration and calculations; routers delegate to them and must not reach into foreign repositories.
+- **Services** hold orchestration and calculations; routers delegate to them and must never reach into a *foreign* domain's repositories. Using the router's own domain repositories directly is allowed and is what the market watchlist, alert, note, document, and snapshot routes do — there is no service layer between them and their repository.
 - **Exceptions** inherit from `src.core.exception.EntityNotFoundError` or `AuthorizationError` so `src/main.py` can map them to a consistent HTTP status. Domain errors that are not entity/authorization errors are handled explicitly in the router.
-- **MANDATORY:** editing a backend model requires a matching Alembic migration, and every migration file MUST follow the `<hash>_<description>.py` naming convention (autogenerate with `uv run alembic revision --autogenerate -m "message"`; for manual SQL, create a standard revision and use `op.execute()` inside it).
+- **MANDATORY:** editing a backend model requires a matching Alembic revision shipped in the same change, and every migration file MUST follow the `<hash>_<description>.py` naming convention under `migrations/versions/` (`alembic.ini` sets `script_location = migrations`; autogenerate with `uv run alembic revision --autogenerate -m "message"`; for manual SQL, create a standard revision and use `op.execute()` inside it). `src/main.py` upgrades to `head` at startup except when `settings.environment == "test"`.
 
 ## Entity model
 
@@ -105,6 +113,7 @@ erDiagram
   User ||--o{ SecurityNote : writes
   User ||--o{ SecurityDocument : uploads
   User ||--o{ ChartSnapshot : captures
+  User ||--o{ PriceAlert : sets
   Institution ||--o{ Account : provides
   AccountType ||--o{ Account : classifies
   IntegrationUser ||--o{ Account : imported_via
@@ -122,8 +131,9 @@ erDiagram
   Watchlist ||--o{ WatchlistsSecurities : lists
   Security ||--o{ WatchlistsSecurities : listed_in
 ```
+*Cross-domain entity relationships: user-owned aggregates fan out from `User`, while every market table except account positions holds a real foreign key to `Security`.*
 
-`SecurityBroker` stores the broker symbol/exchange mapping plus the raw EODHD search results used to resolve it. Position, Price, and IntradayPrice are the only cross-domain tables whose `security_id` is a plain UUID column rather than a database foreign key.
+`SecurityBroker` stores the broker symbol/exchange mapping plus the raw EODHD search results used to resolve it. Every market-owned table references `market_securities.id` with a real foreign key; the one cross-domain exception is `account_positions.security_id` in the account domain, which is a plain UUID column so positions can point at a security without a database-level constraint across domains.
 
 ## account
 
@@ -238,7 +248,7 @@ Login and 2FA verification set the `httponly`/`secure` `auth_token` cookie (7-da
 | `SecurityBrokerModel` | `market_securities_broker` | `institution_id`, `broker_symbol`, `broker_exchange`, `broker_name`, `mapped_symbol`, `mapped_exchange`, `security_id` (FK), `search_results` (JSON) | Indexed on `(institution_id, broker_symbol, broker_exchange)` |
 | `PriceModel` | `market_prices` | `security_id` (FK), `date`, OHLC + `adjusted_close` as `DECIMAL(16,8)`, `volume` | Unique `(security_id, date)` |
 | `IntradayPriceModel` | `market_intraday_prices` | `security_id` (FK), `timestamp: timestamptz`, OHLCV | Unique `(security_id, timestamp)`; 1-hour candles |
-| `WatchlistModel` | `market_watchlists` | `id: UUID`, `user_id`, `name`; `securities` relationship via `lazy="selectin"` | Unique `(user_id, name)` |
+| `WatchlistModel` | `market_watchlists` | `id: UUID`, `user_id`, `name`; `securities` relationship via `lazy="selectin"` | Unique `(user_id, name)`; the user's default list is the one literally named `"Default"` |
 | `WatchlistsSecuritiesModel` | `market_watchlists_securities` | composite PK, `ondelete="CASCADE"` both sides | Many-to-many |
 | `PriceAlertModel` | `market_price_alerts` | `security_id`, `user_id`, `target_price`, `condition`, `source` (default `manual`), `triggered_at` | Null `triggered_at` = active |
 | `SecurityNoteModel` | `market_security_notes` | `security_id`, `user_id`, nullable `title`, `content`, timestamps | Title filled asynchronously by AI |
@@ -274,7 +284,7 @@ Requires `current_user` on every route. Endpoint surface:
 - `GET /prices/{security_id}` — `interval` ∈ `1d|1w|1m|1h|4h`. Daily/weekly/monthly require `from_date` and `to_date` (422 otherwise) and aggregate in-process; intraday reads `market_intraday_prices` and lazily backfills via `MarketService.fetch_and_save_intraday_prices` when the window is stale.
 - `GET /search` and `GET /securities/search` — EODHD search, cached
 - `GET /securities/{security_id}`, `POST /security` (create-or-get)
-- `GET /watchlists`, `GET /watchlists/{watchlist_id}/securities`, `POST|DELETE /watchlists/securities/{security_id}` (default watchlist)
+- Watchlists: `GET /watchlists` (each item embeds its securities), `POST /watchlists` (201), `PATCH /watchlists/{watchlist_id}`, `DELETE /watchlists/{watchlist_id}` (204), `GET /watchlists/{watchlist_id}/securities` (paginated), `POST|DELETE /watchlists/{watchlist_id}/securities/{security_id}`, and the default-watchlist shortcuts `POST|DELETE /watchlists/securities/{security_id}`
 - `GET|POST /securities/{security_id}/alerts`, `DELETE /securities/{security_id}/alerts/{alert_id}`
 - `GET|POST /securities/{security_id}/notes`, `PUT|DELETE /securities/{security_id}/notes/{note_id}`
 - `GET|POST /securities/{security_id}/documents`, `DELETE /securities/{security_id}/documents/{doc_id}`
@@ -282,6 +292,23 @@ Requires `current_user` on every route. Endpoint surface:
 - `GET /securities/{security_id}/indicators` — in-process indicator calculation, Redis-cached
 - `POST /securities/{security_id}/indicators/compute` — candle-series computation delegated to the Go sidecar; accepts caller-supplied `candles` (which bypasses and skips the cache)
 - `POST /securities/{security_id}/ai/fundamentals`, `/ai/summarize-notes`, `/ai/portfolio-debate` — each rate-limited `5/minute`, mapping `TimeoutError` → 504 and `RuntimeError` → 503
+
+### Watchlists
+
+Watchlists are the one market feature with a full CRUD surface rather than per-security sub-resources. `WatchlistRepository` (`src/market/repository.py`) is the contract the router talks to directly — there is no watchlist service — and `SqlAlchemyWatchlistRepository` implements it:
+
+| Method | Behaviour |
+|--------|-----------|
+| `get_by_user(user_id)` | All watchlists for the user with their securities eagerly loaded (`selectinload`) and each security price-enriched |
+| `create(user_id, name)` | Insert; an `IntegrityError` from the `(user_id, name)` unique constraint becomes `WatchlistDuplicateNameError` (rolled back, session still usable) |
+| `rename(watchlist_id, user_id, name)` | Ownership check, then rename; duplicate names raise the same error |
+| `delete(watchlist_id, user_id)` | Ownership check, then delete; membership rows disappear through `ondelete="CASCADE"` |
+| `create_default(user_id)` | Creates the literal `"Default"` watchlist; part of the repository contract but not currently invoked by any router |
+| `add_security` / `remove_security` | Default-watchlist shortcuts: they resolve the user's `"Default"` watchlist (creating it on first add, tolerating a concurrent-create `IntegrityError` by re-reading) and then delegate to the per-watchlist methods; `remove_security` with no default watchlist raises `WatchlistNotFoundError` for the nil UUID |
+| `add_security_to_watchlist` / `remove_security_from_watchlist` | Idempotent membership edits on one watchlist; unknown `security_id` raises `SecurityNotFoundError`, and removing a non-member is a successful no-op |
+| `get_securities(watchlist_id, user_id, offset, limit)` | Ownership check, then a `symbol`-ordered page plus total, price-enriched |
+
+Two invariants matter when changing this code. First, **every operation is scoped to the owning `user_id`, and a watchlist that does not exist *or* is owned by another user is reported as `WatchlistNotFoundError`** — deliberately indistinguishable, so a caller cannot probe for other users' watchlist IDs; the global `EntityNotFoundError` handler turns that into a 404. `WatchlistDuplicateNameError`, by contrast, is a plain `Exception` (not an `EntityNotFoundError`) precisely so the router can translate it to 409 instead of letting the global handler emit 404. Second, `WatchlistRead` responses embed securities already enriched with `current_price`, `daily_price_change`, and `daily_price_change_percent`, computed in one batched window query over the latest two closes per security — so a watchlist read is not a bare join, and adding a field to the enrichment means touching `_fetch_price_metrics` rather than the router.
 
 ### Business rules
 
@@ -396,13 +423,14 @@ Dependencies are one-directional in practice; the table lists who calls whom.
 ```mermaid
 flowchart TD
   Router["Domain router"] --> Service["Domain service"]
-  Service --> OwnRepo["Own domain repository"]
+  Router --> OwnRepo["Own domain repository"]
+  Service --> OwnRepo
   Service --> ForeignApi["Other domain api.py"]
   ForeignApi --> ForeignService["Foreign domain service"]
   ForeignService --> ForeignRepo["Foreign repository"]
   Service --> External["External gateway or sidecar"]
 ```
-*A service reaches outward only through another domain's public API, never its repositories; external providers sit behind gateway clients.*
+*A router may call its own domain's repository directly for thin CRUD routes, but any cross-domain reach goes through the other domain's `api.py`; external providers sit behind gateway clients.*
 
 ## Extension points
 
@@ -414,4 +442,4 @@ flowchart TD
 
 ## Focused tests
 
-Tests are grouped by concern rather than strictly by domain: router-level tests in `tests/routers/` (`test_auth.py` for 2FA and passkey flows, `test_accounts.py`, `test_csv_account_endpoints.py`, `test_csv_inspect.py`, `test_portfolios.py`, `test_market.py`, `test_chart_snapshots.py`, `test_sync_status.py`, `test_rate_limit.py`), service-level tests in `tests/services/` (`test_auth_services.py`, `test_position_api.py`, `test_csv_account_service.py`, `test_market_service.py`), domain unit tests in `tests/account/` and `tests/market/` (`test_models_and_sync.py`, `tests/account/csv/test_parser.py`, `test_security_api.py`, `test_indicator_compute_api.py`, `test_indicator_cache.py`, `test_alert_evaluation_service.py`), broker tests in `tests/integration/brokers/`, and WebSocket tests in `tests/ws/`. Tests must not depend on external services — see [Testing](../operations/testing.md).
+Tests are grouped by concern rather than strictly by domain: router-level tests in `tests/routers/` (`test_auth.py` for 2FA and passkey flows, `test_accounts.py`, `test_csv_account_endpoints.py`, `test_csv_inspect.py`, `test_portfolios.py`, `test_market.py` for prices and the full watchlist surface, `test_chart_snapshots.py`, `test_notes.py`, `test_documents.py`, `test_sync_status.py`, `test_rate_limit.py`), service-level tests in `tests/services/` (`test_auth_services.py`, `test_position_api.py`, `test_csv_account_service.py`, `test_market_service.py`), repository tests in `tests/repositories/` (`test_repository_sqlalchemy.py` covers watchlist create/rename/delete, cross-user `WatchlistNotFoundError`, and price enrichment), domain unit tests in `tests/account/` and `tests/market/` (`test_models_and_sync.py`, `tests/account/csv/test_parser.py`, `test_security_api.py`, `test_indicator_compute_api.py`, `test_indicator_cache.py`, `test_alert_evaluation_service.py`), broker tests in `tests/integration/brokers/`, and WebSocket tests in `tests/ws/`. Tests must not depend on external services — see [Testing](../operations/testing.md).

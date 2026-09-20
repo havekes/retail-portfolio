@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "pageVersion": "sha256:a704b6ac89d5ab4c66bf2725dc703a2a8c738deffc55d1a259397ae7b4803e0e",
+  "pageVersion": "sha256:810960179975b13276dd83056710be0976574b3206f9afa10002f56abbbce7f6",
   "claims": [
     {
       "id": "claim_7ecb499131d4460ab8b3effeff51e886",
@@ -456,27 +456,35 @@
     },
     {
       "id": "claim_c9248b914fd64626ac6e8b6370a39db3",
-      "statement": "`.github/workflows/openwiki-update.yml` is scheduled daily at 08:00 UTC and can be dispatched manually; it installs `openwiki` globally with npm, runs `openwiki code --update --print` against the OpenCode Go openai-compatible endpoint with a `NODE_OPTIONS` preload shim that injects the required `x-opencode-session` header, and opens a PR on branch `openwiki/update` restricted to `add-paths: openwiki` with `docs: update OpenWiki` as message and title.",
+      "statement": "`.github/workflows/openwiki-update.yml` is scheduled daily at 08:00 UTC and can be dispatched manually; it installs `openwiki` globally with npm, then runs `openwiki code --update --print` with `OPENWIKI_PROVIDER=openai-compatible`, `OPENAI_COMPATIBLE_BASE_URL=https://opencode.ai/zen/go/v1`, `OPENWIKI_MODEL_ID=deepseek-v4.1-flash` and `OPENAI_COMPATIBLE_API_KEY` fed from the `OPENCODE_API_KEY` secret, plus a `NODE_OPTIONS` preload shim that injects the required `x-opencode-session` header and a non-generic user agent for opencode.ai requests, and finally opens a PR on branch `openwiki/update` restricted to `add-paths: openwiki` with `docs: update OpenWiki` as message and title.",
       "evidence": [
         {
           "resource": "repo://.github/workflows/openwiki-update.yml#L1-L49",
           "version": "repo-lines-v1:sha256:27346c96b3c96f58c2d6e71339e418fa27d6b8ac006d8c5f488d04a87ebb130e:eyJzZWxlY3RlZExpbmVDb3VudCI6NDksImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjA2MDI3ODdhZjZkY2MwODM0ZGUxMjFjYmIxY2I5NWY5NDU5YjcyMWVhYjAzNDlmMTA1MDFiOTk2YzFjNzdmZmYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImY0Nzc5NmQzMTczMmZiY2U4OTk4YTJmN2U3YjFiYjk3NTVjMjNlNTg1MDMyMGI5MDkzN2Q4MmMzZmQwZTYyYTAiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjowLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
+        },
+        {
+          "resource": "repo://scripts/opencode-go-session-fetch.mjs#L1-L47",
+          "version": "repo-lines-v1:sha256:62cb0d2c9d22d617a2008fd4cd46ef8ad4a029b232744730a0877be779847cab:eyJzZWxlY3RlZExpbmVDb3VudCI6NDcsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjUzNzI5ZTQ4MWFhNzgyMTA4OTMxMWY4M2NlODc1OWVhMjM2MmUwZmFmMTY4YWNkZTJlYmU2YmM3Y2NhNzJkMTAiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImFhMWQxYTYzMzkwMjI5Yzc5ODM0N2U4M2EwNDA1NDQxYzk0MDAwMzUyODRhZDE2OGMxYmY2Y2RmMWQ3MGEzNzAiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjowLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
         }
       ]
     },
     {
       "id": "claim_522631345eba46e49ff58c95cbd7b5db",
-      "statement": "Generated `openwiki/` pages are refreshed by the scheduled workflow, and `AGENTS.md` instructs agents not to hand-edit them but to change source code and docs and let OpenWiki regenerate.",
+      "statement": "The OpenWiki block at the end of `AGENTS.md` (imported wholesale by the `CLAUDE.md` stub) frames the generated `openwiki/` tree as optional just-in-time context rather than required startup reading, treats source code and tests as authoritative, and instructs agents not to hand-edit generated pages but to change source and docs and let the scheduled OpenWiki workflow regenerate them.",
       "evidence": [
         {
           "resource": "repo://AGENTS.md#L42-L52",
           "version": "repo-lines-v1:sha256:2066111756019639fd4ad6a1c6bd7323a3db5fdcf9d2b66a57aa9fac5e0ba943:eyJzZWxlY3RlZExpbmVDb3VudCI6MTEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjVmMTgwZjljMTI2OTAzYmNjMzMxYWE5NTQ1NmU0OTQ0NGE3ZDRkMDExZThhMmE4M2Y1ZGM4NzAyMzkxODEyZDAiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAxYmE0NzE5YzgwYjZmZTkxMWIwOTFhN2MwNTEyNGI2NGVlZWNlOTY0ZTA5YzA1OGVmOGY5ODA1ZGFjYTU0NmIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjhhMzYzMTA1MjUzZGY5MDkyODhlNDcwODFkNzRlMzYyMDdkNmQ4OGU4NzU4MWJjZTlkZTk5ZDllYzVhZDJkODkiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjoxLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjA5Zjc4NzE0ODkzYWE3Nzk0MmNlYTFjNGEyZTAyMzFkYmI3ZmEyYTQxYTcwYzgxNDYwYTNjNjc1NjJkYTNhYWEifQ"
+        },
+        {
+          "resource": "repo://CLAUDE.md#L1-L7",
+          "version": "repo-lines-v1:sha256:cd617c809957b5aeb601ce9856109475f6da8ed78835148d17c3097dd4daa848:eyJzZWxlY3RlZExpbmVDb3VudCI6NywiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiNWYxODBmOWMxMjY5MDNiY2MzMzFhYTk1NDU2ZTQ5NDQ0YTdkNGQwMTFlOGEyYTgzZjVkYzg3MDIzOTE4MTJkMCIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiMDlmNzg3MTQ4OTNhYTc3OTQyY2VhMWM0YTJlMDIzMWRiYjdmYTJhNDFhNzBjODE0NjBhM2M2NzU2MmRhM2FhYSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjAsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiZTNiMGM0NDI5OGZjMWMxNDlhZmJmNGM4OTk2ZmI5MjQyN2FlNDFlNDY0OWI5MzRjYTQ5NTk5MWI3ODUyYjg1NSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjAsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiZTNiMGM0NDI5OGZjMWMxNDlhZmJmNGM4OTk2ZmI5MjQyN2FlNDFlNDY0OWI5MzRjYTQ5NTk5MWI3ODUyYjg1NSJ9"
         }
       ]
     }
   ],
   "verification": {
     "by": "openwiki/0.5.2",
-    "at": "2026-09-18T20:16:58.058Z"
+    "at": "2026-09-20T12:50:16.306Z"
   }
 }
