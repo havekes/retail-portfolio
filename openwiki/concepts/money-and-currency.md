@@ -5,7 +5,7 @@ description: The cross-cutting money model behind totals, holdings, P&L, and CSV
 tags: [money, currency, decimal, stockholm, fx-conversion, holdings, precision]
 verified:
   - by: openwiki/0.5.2
-    at: 2026-09-18T20:16:58.058Z
+    at: 2026-09-20T12:50:16.306Z
 sources:
   - id: openwiki-source-b263e02920f61e43137888d6
     resource: repo://frontend/src/lib/components/accounts/accounts-list-item.svelte
@@ -45,7 +45,7 @@ sources:
     resource: repo://tests/routers/test_accounts.py
   - id: openwiki-source-b0c29edcbfef3a92f664c095
     resource: repo://tests/tasks/test_account.py
-generated: { by: "openwiki/0.5.2", at: "2026-09-18T20:16:58.058Z" }
+generated: { by: "openwiki/0.5.2", at: "2026-09-20T12:50:16.306Z" }
 ---
 
 # Money & Currency Handling
@@ -117,14 +117,14 @@ position (native security/position currency)
 
 A small flowchart of that boundary:
 
-<!-- openwiki: mermaid parse failed and this diagram was converted to a text fence so it does not break rendering. Fix the diagram source and restore the mermaid fence. Parser error: Heuristic: an unescaped angle bracket inside a label breaks rendering; rephrase the label. -->
-```text
+```mermaid
 flowchart LR
-  P["Position<br/>quantity, average_cost, position.currency"] --> N["Native Money<br/>unconverted cost and value"]
-  N --> C{"_currency_convert<br/>source equals target?"}
-  C -- yes --> A["Account-currency Money"]
-  C -- no --> X["CurrencyConverter.convert<br/>round to 2 places"] --> A
-  A --> T["total_cost / total_value / total_P&L"]
+  pos["Position: quantity, average_cost, position currency"] --> native["Native Money, unconverted cost and value"]
+  native --> check{"currency codes match?"}
+  check -- yes --> acct["Account-currency Money"]
+  check -- no --> conv["CurrencyConverter.convert, rounded to 2 places"]
+  conv --> acct
+  acct --> totals["totals in account currency"]
 ```
 
 *Where currency conversion happens: per position, before any accumulation.*
@@ -138,6 +138,13 @@ different currencies — `HoldingRead` carries both the native pair
 `converted_average_cost`, `converted_latest_price` in `currency`, which is the
 account currency). The frontend holds both and prints the converted line only
 when `holding.security_currency !== holding.currency`.
+
+Because the conversion target is the account's own `currency`, changing an
+account's currency re-bases every converted figure for that account without
+touching a single stored position. CSV import is one path that can do this:
+`src/account/service/csv_account.py` updates an existing account's currency when
+a different `chosen_currency` is supplied, and creates new accounts with
+`currency=Currency(chosen_currency)`, defaulting to `CAD`.
 
 ## The totals and holdings shape
 
@@ -287,6 +294,8 @@ The focused tests that pin this behavior are:
   precedence, and `money()` formatting.
 - `frontend/src/lib/utils/finance/average-cost.test.ts` — empty list, single
   holding, weighted blend, zero total quantity, missing `average_cost`.
+- `tests/account/csv/test_parser.py::test_average_cost_calculation` — the
+  `book_value / quantity` quantize to `0.0001` and its `None`/zero edge cases.
 - `tests/routers/test_accounts.py::test_account_totals_success` — asserts the
   `value` string ends with ` CAD`, i.e. that `Money` serializes to a
   currency-tagged string.

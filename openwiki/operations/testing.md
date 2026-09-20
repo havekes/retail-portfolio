@@ -1,12 +1,9 @@
 ---
 type: "Reference"
 title: "Testing & Verification"
-description: "How correctness is verified in retail-portfolio: the pytest domain/layer layout, PostgreSQL testcontainer and session-isolation fixtures, the global Redis/Huey/WebSocket mocks, the Vitest setup for SvelteKit and lightweight-charts, the agent-test harness gates, and the CI matrix."
+description: "How correctness is verified in retail-portfolio: the pytest domain/layer layout, PostgreSQL testcontainer and session-isolation fixtures, the global Redis/Huey/WebSocket mocks, the Vitest/jsdom setup with its shim set, the agent-test harness gates, and the three CI jobs."
 tags: [testing, pytest, vitest, fixtures, testcontainers, ci, mocking]
 openwiki_generated: true
-verified:
-  - by: openwiki/0.5.2
-    at: 2026-09-18T20:16:58.058Z
 sources:
   - id: openwiki-source-164e2da859b5277df81c7d94
     resource: repo://.github/workflows/ci.yml
@@ -22,6 +19,8 @@ sources:
     resource: repo://frontend/src/lib/components/auth/login-form.test.ts
   - id: openwiki-source-c3b7cc10403cbc15934d0991
     resource: repo://frontend/src/lib/components/charts/security-chart.test.ts
+  - id: openwiki-source-eaf28afd746bbeb265c93c7b
+    resource: repo://frontend/src/lib/components/watchlist/watchlistService.test.ts
   - id: openwiki-source-b307a9988e1f7e9f57f8c56b
     resource: repo://frontend/src/setupTest.ts
   - id: openwiki-source-378e3cf05ab0d05d335c68d5
@@ -42,6 +41,10 @@ sources:
     resource: repo://tests/fixtures/redis.py
   - id: openwiki-source-8ff946921bcd1055eadbc5ac
     resource: repo://tests/integration/brokers/test_wealthsimple.py
+  - id: openwiki-source-4a4ca3cbe0b274d6c82e4e15
+    resource: repo://tests/market/test_indicator_client.py
+  - id: openwiki-source-d5f24b3551e2c9a796e0c850
+    resource: repo://tests/market/test_indicator_compute_api.py
   - id: openwiki-source-d59cda026d403e42927334dd
     resource: repo://tests/tasks/test_redis_concurrency.py
   - id: openwiki-source-8b176c94b018259ee14f35b7
@@ -50,7 +53,10 @@ sources:
     resource: repo://tests/test_migrations_autogenerate.py
   - id: openwiki-source-da833519b72f73ce64d59b2b
     resource: repo://tests/ws/test_manager.py
-generated: { by: "openwiki/0.5.2", at: "2026-09-18T20:16:58.058Z" }
+generated: { by: "openwiki/0.5.2", at: "2026-09-20T12:50:16.306Z" }
+verified:
+  - by: openwiki/0.5.2
+    at: 2026-09-20T12:50:16.306Z
 ---
 
 # Testing & Verification
@@ -81,7 +87,7 @@ The tree is organized by domain **and** by architectural layer, mirroring the DD
 | `tests/services/` | Service/API-layer behaviour — auth APIs and services, account service and API, position API, market service, CSV account service |
 | `tests/repositories/` | SQLAlchemy repository tests (`test_repository_sqlalchemy.py`) |
 | `tests/tasks/` | Huey task tests — account, integration, market, and Redis concurrency |
-| `tests/market/` | Market domain: indicators (pure math, caching, client, compute API), Heikin-Ashi, EODHD gateway, security API and search cache/router, price alerts (repository, evaluation service, dispatch task), plus `tests/market/commands/` for CLI commands |
+| `tests/market/` | Market domain: indicators (pure math, caching, client, compute API), Heikin-Ashi, EODHD gateway, security API and search cache, price alerts (repository, evaluation service, dispatch task), plus `tests/market/commands/` for CLI commands |
 | `tests/account/` | Account model/sync behaviour, plus `tests/account/commands/` and `tests/account/csv/` (CSV parser) |
 | `tests/auth/commands/` | Auth CLI commands (`create_test_user`, `create_test_token`) |
 | `tests/integration/brokers/` | Broker integration tests driven by `StubWealthsimpleAPI` / `StubWSAPISession` from `src/stubs/wealthsimple.py` |
@@ -121,6 +127,8 @@ sequenceDiagram
     F->>PG: rollback after the test
     F->>PG: drop_all, dispose engine
 ```
+
+Database fixture lifecycle: one session-scoped PostgreSQL (reused via `TEST_DATABASE_URL` or started with testcontainers) and a per-test engine that creates and drops the schema.
 
 - `postgres_service` (session scope) reuses `TEST_DATABASE_URL` when it contains a Postgres URL (also exporting it as `DATABASE_URL`), otherwise starts a throwaway `PostgresContainer("postgres:17-alpine")` and rewrites the connection string to the `postgresql+asyncpg` dialect. The host Docker socket is mounted into the backend container (with a matching `group_add` Docker GID) precisely so testcontainers can work from inside Compose.
 - `test_db_url` simply exposes that URL.
@@ -176,11 +184,23 @@ docker compose exec backend uv run pytest
 - Output is minimized the same way the backend is: `reporters: ['dot']`, `silent: 'passed-only'`, `printConsoleTrace: false`.
 - Coverage uses the `v8` provider over `src/**/*.{js,ts}` with `reporter: ['json']` and `skipFull: true`.
 
-`frontend/src/setupTest.ts` imports `@testing-library/jest-dom/vitest`, stubs `window.location` with a `vi.stubGlobal` URL object, suppresses only the bit-UI `derived_inert` console warning, and waits 50 ms in an `afterAll` hook so bits-ui's pending body-scroll-lock timer fires before jsdom is torn down.
+### The jsdom shim set
+
+`frontend/src/setupTest.ts` is not just matcher registration — it installs five shims, each of which removes a specific way jsdom fails under SvelteKit + bits-ui:
+
+| Shim | Lines | Why it exists |
+|------|-------|---------------|
+| `import '@testing-library/jest-dom/vitest'` | L1 | Registers the DOM matchers (`toBeInTheDocument`, …) used by component suites. |
+| `console.warn` spy that drops only messages containing `derived_inert` | L10-L17 | bits-ui's dismissible layer (Dialog, Popover) schedules `afterSleep` timers that read derived state after the layer's effects are destroyed; Svelte's DEV-only `derived_inert` warning is library-internal noise with no app-side fix, so that one message is swallowed while every other argument is forwarded to the captured original `console.warn`. |
+| `afterAll` that awaits 50 ms | L26-L28 | bits-ui's body-scroll-lock schedules a ~24 ms `setTimeout` to restore the body style when the last lock releases on unmount. If that timer is still pending when vitest destroys the jsdom environment, its callback throws `ReferenceError: document is not defined` and vitest fails the run — a race that shows up on slow CI machines. The wait runs after testing-library cleanup but before teardown. |
+| No-op `Element.prototype.scrollIntoView = vi.fn()` | L36-L38 | jsdom does not implement `scrollIntoView`, but bits-ui's `Command` calls it on the active item and on the closest group heading to keep the highlighted option in view. Those calls happen asynchronously, so the rejection surfaces as `TypeError: closestGroupHeader?.scrollIntoView is not a function` — reported by vitest as unhandled errors for any test rendering a grouped Command. Tests assert on state, not scrolling. |
+| `vi.stubGlobal('location', …)` | L41-L58 | Replaces `window.location` with a `URL('http://localhost/')`-derived object exposing `href`/`origin`/`protocol`/`host`/`hostname`/`port`/`pathname`/`search`/`hash` plus `assign`, `replace`, `reload` and `toString` spies, so navigation is assertable and consistent with `environmentOptions.url`. |
 
 ### Conventions
 
 Suite files are colocated with the code they cover (`src/**/*.test.ts`) — API clients under `src/lib/api/`, utilities under `src/lib/utils/`, components next to their `.svelte` file, and route-level tests (`hooks.server.test.ts`, `routes/layout.test.ts`, `routes/security/[security_id]/page.svelte.test.ts`). Because SvelteKit runtime modules do not exist under jsdom, tests mock them explicitly with `vi.mock('$app/paths', …)`, `vi.mock('$app/navigation', …)`, `vi.mock('$app/forms', …)` and `vi.mock('$app/stores', …)`. Fetch-based clients mock `global.fetch` (see `src/lib/api/apiClient.test.ts`, which also asserts the raised `ApiError` for 401/404).
+
+Service-layer suites follow the mandated pattern one level up: `src/lib/components/watchlist/watchlistService.test.ts` mocks the API module (`vi.mock('@/api/marketService', () => ({ getMarketService: vi.fn() }))`) and then returns a hand-built client object whose every method is a `vi.fn()` — `getWatchlists`, `createWatchlist`, `renameWatchlist`, `deleteWatchlist`, `addSecurityToWatchlist`, `removeSecurityFromWatchlist`, … — so `WatchlistService` can be driven as a plain class with no SvelteKit runtime and no network. (`@/*` maps to `./src/lib/*` through `svelte.config.js`.)
 
 Chart tests mock the `lightweight-charts` module wholesale: `src/lib/components/charts/security-chart.test.ts` defines `Path2D` and `ResizeObserver` polyfills, then `vi.mock('lightweight-charts', …)` returning a `createChart` stub with mocked time scale, price scales, series, `attachPrimitive`, range/visible-range subscriptions and crosshair callbacks. `frontend/AGENTS.md` documents the expected depth for chart-plugin suites: state transitions, mouse-adapter hit-testing/snapping/drag lifecycle, renderer geometry and canvas draw calls, and full primitive lifecycle (`attached`/`detached`/`destroy`, `updateAllViews`, `hitTest` cursor resolution).
 
@@ -193,19 +213,35 @@ docker compose exec frontend npm run lint      # prettier --check . && eslint .
 
 ## The agent-test harness
 
-`./scripts/agent-test` (shorthand: `just test …`) is the primary test entrypoint for agents, documented in the root `AGENTS.md` and `justfile`. It runs on the host and shells through `docker compose exec -T <service>` unless it detects it is already inside a container or `--local` is passed, honouring the repo rule that dev commands run in Docker. It sanitizes output (ANSI stripping, vendor-frame removal, blank-line collapsing) and hard-caps it (`--max-chars`, default 3000).
+`./scripts/agent-test` (shorthand: `just test …`) is the primary test entrypoint for agents, documented in the root `AGENTS.md` and `justfile`. It runs on the host and shells through `docker compose exec -T <service>` unless it detects it is already inside a container (`/.dockerenv`) or `--local` is passed, honouring the repo rule that dev commands run in Docker. It sanitizes output (ANSI stripping, vendor-frame removal, blank-line collapsing) and hard-caps it (`--max-chars`, default 3000).
 
-Three gates:
+```mermaid
+flowchart TD
+    A["agent-test invocation"] --> B["resolve mode: explicit targets, ecosystem flags, or git-diff auto-detection"]
+    B --> C["Gate 0: lint and type checks for each selected ecosystem"]
+    C -->|failure| D["print sanitized diagnostics, exit 1 without running any test"]
+    C -->|pass| E{"target paths given"}
+    E -->|yes| F["Gate 1: targeted run, fail-fast, backend coverage off"]
+    E -->|no| G["Gate 2: full suite, backend coverage on"]
+    F --> H["parse JUnit XML or Vitest JSON report from .cache/agent-test"]
+    G --> H
+    H --> I["render Index of counts and failed identifiers, then Traces for the first two failures"]
+    I --> J{"any failed, errored, or runner failure"}
+    J -->|yes| K["exit 1"]
+    J -->|no| L["exit 0"]
+```
+
+The three-gate pipeline: Gate 0 halts before any test runs, Gate 1 is a single target with fail-fast, and Gate 2 is the full auto-detected regression.
 
 - **Gate 0 — pre-flight lint/type.** If it fails, the harness prints sanitized diagnostics and returns 1 **without running any tests**. Backend commands: `uv run ruff check --output-format concise`, `uv run ruff format --check`, `uv run ty check --output-format concise`. Frontend commands: `npx svelte-kit sync`, `npx svelte-check --tsconfig ./tsconfig.json --output machine`, `npx eslint . -f json` (reformatted to `path:line:col: message (rule)`), `npx prettier --check .`.
 - **Gate 1 — targeted iteration.** Passing a path (`./scripts/agent-test tests/routers/test_auth.py`, or `frontend/src/lib/api/apiClient.test.ts`) runs only that target with fail-fast (`pytest -x` / `vitest --bail=1`) and `--no-cov` on the backend, so the assertion detail is what you read.
 - **Gate 2 — full regression.** With no targets, the ecosystems are auto-detected from the git diff (`origin/main...HEAD`, working tree, staged, untracked; `openspec/`, `openwiki/`, `.github/`, `.opencode/`, `.agent/`, `scripts/` and `frontend/node_modules/` are ignored; `src/`/`tests/`/`migrations/`/`pyproject.toml`/`uv.lock`/`alembic.ini` imply backend, `frontend/` implies frontend, and no changes means both). The suite runs without fail-fast and coverage on for the backend, and the output is rendered as an **Index** (per-ecosystem counts plus failed test identifiers, capped at 30) followed by **Traces** for the first 1–2 failures; the rest appear as one-line summaries.
 
-Both test gates parse machine-readable reports written to `.cache/agent-test/` — JUnit XML for pytest, Vitest's JSON reporter for the frontend — and the process exits 1 if any test failed, errored, or the runner itself failed.
+Both test gates parse machine-readable reports written to `.cache/agent-test/` — JUnit XML (`backend.xml`) for pytest, Vitest's JSON reporter (`frontend.json`) for the frontend — and the process exits 1 if any test failed, errored, or the runner itself failed (including when no report was produced at all).
 
 Flags: `--backend` / `--frontend` (full regression for one ecosystem), `--all`, `--gate0-only` (also exposed as `just check`), `--no-gate0`, `--local`, `--json` (structured output instead of prose), `--max-chars N`. `just` recipes wrap the common cases: `just test` (auto-detect), `just test-backend`, `just test-frontend`, `just test-all`, `just check`.
 
-**Scope of the harness:** it covers the backend and frontend only. The Go indicator service under `services/indicator-service` is exercised by its own CI job (`go vet`, `go build`, `go test ./...`) and is reached from the backend in tests via the indicator client/compute-API suites rather than by the harness.
+**Scope of the harness:** it covers the backend and frontend only. The Go indicator service under `services/indicator-service` is exercised by its own CI job (`go vet`, `go build`, `go test ./...` over `calculator_test.go`, `handlers_test.go`, `timeframe_test.go`) and is never run by the harness. The backend reaches that sidecar only through stubbed transports: `tests/market/test_indicator_client.py` builds an `IndicatorServiceClient` on top of an `httpx.MockTransport` handler (and patches `httpx.AsyncClient.post` for the client-reuse case), while `tests/market/test_indicator_compute_api.py` patches `IndicatorServiceClient.compute` with an `AsyncMock` — so the compute endpoint's candle aggregation, interval handling and error mapping are asserted without a single HTTP call.
 
 ## CI
 

@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "pageVersion": "sha256:ca675387d472e1b6f5e993973bcfe7e4225fcafa89c7d7755f2cdd1675dd0765",
+  "pageVersion": "sha256:995c578fe96ca183e7331f3b2b5d4703679bc333df76058c1c25b7fe4499a485",
   "claims": [
     {
       "id": "claim_378287f072a04458b7482923bc24f4c5",
@@ -148,11 +148,11 @@
     },
     {
       "id": "claim_017e861873564415a6b629c092d9b90f",
-      "statement": "frontend/src/setupTest.ts imports @testing-library/jest-dom/vitest, stubs window.location, suppresses only the bits-ui derived_inert console warning, and waits 50 ms in afterAll so bits-ui's pending body-scroll-lock timer fires before the jsdom environment is destroyed.",
+      "statement": "frontend/src/setupTest.ts imports @testing-library/jest-dom/vitest, spies on console.warn to drop only messages containing bits-ui's derived_inert warning while forwarding every other argument to the captured original, waits 50 ms in an afterAll hook so bits-ui's pending body-scroll-lock timer fires before the jsdom environment is destroyed, and stubs window.location with a URL('http://localhost/')-derived object exposing href/origin/protocol/host/hostname/port/pathname/search/hash plus assign/replace/reload/toString spies.",
       "evidence": [
         {
-          "resource": "repo://frontend/src/setupTest.ts#L1-L48",
-          "version": "repo-lines-v1:sha256:1ad5e1c08ef20d5b658bbb1bc428274d092600e71f7fc1c6f8ec5ee7f281aa0f:eyJzZWxlY3RlZExpbmVDb3VudCI6NDgsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjkxYTNjODk2MmEwZWRjYjk1NjIwNmE1MDFkOTQzZmU5OWUxYzc4YzZkNGQ4YjVjOWE5NDhhMzM2MmM3NTk3OGMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQxMmNhMzQ1Y2NmNzViZjljMDgwNmJjZTY5NWJlOGRlODA4Yjc5OTg0MjUxYTdhNTRkMjAyY2Y2MTAxZGQ0NTEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjowLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
+          "resource": "repo://frontend/src/setupTest.ts#L1-L58",
+          "version": "repo-lines-v1:sha256:f478993d80952c4a451f64bdc80851a1f8fc18afa28ed282db3fd0fa20a10c92:eyJzZWxlY3RlZExpbmVDb3VudCI6NTgsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjkxYTNjODk2MmEwZWRjYjk1NjIwNmE1MDFkOTQzZmU5OWUxYzc4YzZkNGQ4YjVjOWE5NDhhMzM2MmM3NTk3OGMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQxMmNhMzQ1Y2NmNzViZjljMDgwNmJjZTY5NWJlOGRlODA4Yjc5OTg0MjUxYTdhNTRkMjAyY2Y2MTAxZGQ0NTEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjowLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
         }
       ]
     },
@@ -251,10 +251,66 @@
           "version": "repo-lines-v1:sha256:e077488ee9fec897ca3d905fa963f85b0743ed2e1a7099c758797146e7c57bfa:eyJzZWxlY3RlZExpbmVDb3VudCI6MSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiZTA3NzQ4OGVlOWZlYzg5N2NhM2Q5MDVmYTk2M2Y4NWIwNzQzZWQyZTFhNzA5OWM3NTg3OTcxNDZlN2M1N2JmYSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiZTA3NzQ4OGVlOWZlYzg5N2NhM2Q5MDVmYTk2M2Y4NWIwNzQzZWQyZTFhNzA5OWM3NTg3OTcxNDZlN2M1N2JmYSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiYTg0MWNiMWNkZThiYzQ1ZDJhMzBlMjNiYzY0MWEwNDM1ZjFiMzZkYTkxZWU2NTVmMjNlNDg0YTZjNWJiYWQwNSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiODFjMTQyNmJlYTdmYWJhMDVhMTJjMWUxYzg2MGRhNjdjNjE3MzhmZmNjY2NhNGY2NzZlNGI5MjZkZWE2NmUwMiJ9"
         }
       ]
+    },
+    {
+      "id": "claim_10869ef0d1fb48f6b3b7fb962076e7ee",
+      "statement": "frontend/src/setupTest.ts installs a no-op Element.prototype.scrollIntoView stub because jsdom does not implement it while bits-ui's Command calls it asynchronously on the active item and on the closest group heading; without the stub those calls reject with 'closestGroupHeader?.scrollIntoView is not a function' and vitest reports them as unhandled errors for any test rendering a grouped Command.",
+      "evidence": [
+        {
+          "resource": "repo://frontend/src/setupTest.ts#L30-L38",
+          "version": "repo-lines-v1:sha256:1f773ba41813fcdc239414570d503f5c778509875a03791d1095497877460506:eyJzZWxlY3RlZExpbmVDb3VudCI6OSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiNDgzYjc0YWVhZTRlMzY0OGUwYTNkMzBhMTdiNGNiZjY2ZmZlZTc4NjA3NmEwZDhhOTQ4ZjNhZTE2MGVhYWQwMCIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNDEyY2EzNDVjY2Y3NWJmOWMwODA2YmNlNjk1YmU4ZGU4MDhiNzk5ODQyNTFhN2E1NGQyMDJjZjYxMDFkZDQ1MSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiYWQyM2U3NzZlZGY1MGU2Zjc0ZDgxYjg5NzI4NjUxMjQ3MWYwZWI3ZjYyNTI0NDA3MmRjMmRmN2E2NTg0NTEwNiIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiYjFkNzg1YTk1MDYyZjk2MjQyMTg4MGNkZjQ3OWQ5NzAwM2NiYjYzYjRlYzEyYWNlZjJjNWY1ZmQwYzE1ZThmYyJ9"
+        }
+      ]
+    },
+    {
+      "id": "claim_ae8310fa8d054c92b8e697d85a40a8f1",
+      "statement": "Service-layer frontend suites follow the mandated mocking pattern by mocking the API module itself (vi.mock('@/api/marketService', () => ({ getMarketService: vi.fn() }))) and returning a hand-built client whose every method is a vi.fn(), which lets a plain class such as WatchlistService be exercised without SvelteKit runtime modules or network access.",
+      "evidence": [
+        {
+          "resource": "repo://frontend/src/lib/components/watchlist/watchlistService.test.ts#L11-L66",
+          "version": "repo-lines-v1:sha256:9f8c2f164ae9e0c4d295901fc72f6cdfa17e3d2bcfc7e975fe2df2ef07947939:eyJzZWxlY3RlZExpbmVDb3VudCI6NTYsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImNhMGU4M2I3MmNhYTFlNTdiNDIyYThmYTZlZjc0ZDQ4OGEwYTI2YzgxZWRkMDNjMmFlMzJhOWM1ZmIyODBjOGMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImY2ZjViNDBiMTU4NDU3ZDE3ODY0ZjIxNzkwNzg2ZGQ1YTJlY2RiNjRiNjZhNjUxZjc4OGQ0ZTI1Y2QzMzAzZDIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjdkMjhhNGFkNDM2ZjQyNjU1MzY4NTc1NjI4MTg5OGMyODY0MTRlNjU1ZWQ1ODExNGE2MzNjZWQ4MTk4ZjUzNWEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjhiY2ZiYWMyOTRjNTkyMmI2YzJlYmViYmMwZDU1YzBjMmI5NzQ2YTVkODdiYjIyMzI4OWI4OTZhYWEzZDdlMzgifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_d40f409f022c4b58964246afb51f82a1",
+      "statement": "Gate 0 of scripts/agent-test runs exactly 'uv run ruff check --output-format concise', 'uv run ruff format --check' and 'uv run ty check --output-format concise' for the backend and 'npx svelte-kit sync', 'npx svelte-check --tsconfig ./tsconfig.json --output machine', 'npx eslint . -f json' and 'npx prettier --check .' for the frontend, halting with sanitized diagnostics and exit code 1 before any test runs; both test gates parse reports written to .cache/agent-test (backend.xml JUnit XML, frontend.json Vitest JSON) and the process exits 1 when any test failed, errored, or the runner itself failed.",
+      "evidence": [
+        {
+          "resource": "repo://scripts/agent-test#L256-L271",
+          "version": "repo-lines-v1:sha256:febd28c81386412e90b01cad6cfb924247f7f47dcb6b85d425d575039a7b75cc:eyJzZWxlY3RlZExpbmVDb3VudCI6MTYsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjkxNzJiNzNmMjVjNDQwMGYzNjlkNDU0M2JkZTNjYTNlYWMxYWQwMTY1YjAxMDA2ZWQ4MjNkZWRkZjc5MzQxY2MiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImFkZDI0NDU4MmI2ZmIwM2QyM2I4NDE1YWJlY2QzNDZiMGM5ZjQ2NmI2Zjc1MmIwNjgxODljZTdlOWEyZGMzNTAiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjA3YTNlMjQwNzZkZWQ0OTc3ODRhNzdkNGQ5ZjYyYTY4ZWE0ZTA4YTViNjFjOWIxYzAwZWU1MzMxYjk4YjJlYWIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjA5ZjQzMjBkYjUzN2Q2YTA0ODdiODJhNDUzZjFhMzNiNzM1YzE4OTg5M2Y0MDcwMWFiOWIyYWRmYTUwOTNmZDcifQ"
+        },
+        {
+          "resource": "repo://scripts/agent-test#L304-L318",
+          "version": "repo-lines-v1:sha256:345f963dc51b95a471c4afb05a496d933343115966c860241f55f4c2cde17fc9:eyJzZWxlY3RlZExpbmVDb3VudCI6MTUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjI3YTZiYmZlYzY5ZDMzNzE5MmViNGYyMGUyZDBiNDc1NjQzZGEzOGIyOTNiNmM1ZjBjMDM5MTAwYjkzMGY3ZDAiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjY1NmEwYjMwMTI3YmJiZjE1NTE0ZGVhMjNhMTlkYTQ3ZWQ5OTRkMjdkODAwOTA3NWM3MDRiYTQ5NzAzMjkzMzIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjhjYzRhN2QxY2M3OTZhYmEzZTQ2NzIzMzI3ZjUxN2U5ZjgxMTk4MmQyNTBmMDcwMjk4NmU0YjU3NjRhZDk1ODkiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjRhOWJiNGIyM2UxY2ZlN2MyZWYwZjAyZjE1NWM4NzI2ODY0ZDNlMDUxNTQyZmQzNTdjNzhkZjZhMTBhNGMzYWYifQ"
+        },
+        {
+          "resource": "repo://scripts/agent-test#L422-L444",
+          "version": "repo-lines-v1:sha256:a4627adfccfd3e6d7c0fdbfb79c53171c567da8fc7930fcd0ce2725ec51c45a1:eyJzZWxlY3RlZExpbmVDb3VudCI6MjMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjlmNTQ4ZWExNzVmMWY1NGY0ODFlZTg1NjcyNGNhMzI3MjVlMTI0OTQ1OWYwZjA2YzNjMWVkYTg4OGQyNjczZGUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImZhMTFjMDU2N2QwYTVmOWU5YjEzNWY2NWNkMjUzNzJkZmQ2Mjg3NzVmN2MxZWQyNTNmOGJhZDQyZGQyZDY2NjkiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6Ijk2OGI4MDU5ZTUwMTM3YmJiNDYzNGM3YWY5MDQxNjY3Zjg2NDA2MmVmZThlZGQxMzMzMDdiMDUwNjJjNmJhZjQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjRhOWJiNGIyM2UxY2ZlN2MyZWYwZjAyZjE1NWM4NzI2ODY0ZDNlMDUxNTQyZmQzNTdjNzhkZjZhMTBhNGMzYWYifQ"
+        },
+        {
+          "resource": "repo://scripts/agent-test#L744-L745",
+          "version": "repo-lines-v1:sha256:24ea94e18d8666294ab542baa404c309b767e59479e0ade2f2ac8c07475c0a60:eyJzZWxlY3RlZExpbmVDb3VudCI6MiwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiMWRmMjRjZDZlZGQzZDQxMmY3YmZjNDMyODU1ZWJhMTZlNmZiNzI3MmIzMjc2NzNhOTllNTI5MDc1OTg1YmU3YSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiODhmZWMwYTcyZmI4ZTQzYmY5NzU3ZjBmNGI1ZWUwMjBjZDA0MDQwNzVkNWFkMjdiYTNmZDZjYWM2NDZhODllNiIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiMzhhMWU1MWYyODI0ZDM0MDMwMTVlM2MwMjQwODdjNjE1MmQ5NjZhNTdjNGEyMGZhZmUxOTU5ZDI2ZmU1ZTdkNyIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiM2Q0MTM0MGNjMjM5YTE1OWNlOWI2MDIyZTlmNjMyMjgzMmUyZWFkNzZjYWU5ZTQ3NTRkMjEwZWI4ZmI2ZDVlOCJ9"
+        }
+      ]
+    },
+    {
+      "id": "claim_a5345dee8b0e49ebab4e6b36337fad50",
+      "statement": "Backend tests reach the Go indicator sidecar only through stubbed transports rather than HTTP: tests/market/test_indicator_client.py drives IndicatorServiceClient through an httpx.MockTransport handler (and patches httpx.AsyncClient.post for the single-owned-client case), while tests/market/test_indicator_compute_api.py patches IndicatorServiceClient.compute with an AsyncMock to assert candle aggregation and interval handling on the compute endpoint.",
+      "evidence": [
+        {
+          "resource": "repo://tests/market/test_indicator_client.py#L16-L62",
+          "version": "repo-lines-v1:sha256:a458776eb226028e85bc91d2e952772933bab21be9ba826a929dd0dec1ea9537:eyJzZWxlY3RlZExpbmVDb3VudCI6NDcsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjNkYzUxNDIxZjk3NjMxNWZjMzgwZDk0ZmYzODIzMWNlODQ4ZDJkM2UzMmIzNDdmY2JkNWM3ZGQ0ZGQyZGE0NTEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImNiMzYyZDc1NDZhNjZkM2M0NGNhZjNiMWNmNmQyZDZmYjJiZDkyN2I5NjA1NjRhY2RjZjMxOWJlYTE0Y2VjNjIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImJlYzJiMTM5NmM4YTFhZDUwZDIxZTQ4MGVmOWIwMTk2ZWVlNjc2NjgxZTY3NTRiYzY0NjRjNzRjYWRiYmE2MTAiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImJlYzJiMTM5NmM4YTFhZDUwZDIxZTQ4MGVmOWIwMTk2ZWVlNjc2NjgxZTY3NTRiYzY0NjRjNzRjYWRiYmE2MTAifQ"
+        },
+        {
+          "resource": "repo://tests/market/test_indicator_compute_api.py#L188-L207",
+          "version": "repo-lines-v1:sha256:b5282bb7b054eb6da0b482f09a9e57fb89eec9d64a8341825941210d54bc4e34:eyJzZWxlY3RlZExpbmVDb3VudCI6MjAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjNmNDgwMDAyMGEwNjc1YjRlY2M3YjY5OTgyNTRmNzAwYjgwOTlkMzIwOGM5MTA2NzNiNDdkYjg0MDBmNGMwOTkiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjE1Y2YzYTVjM2I0MzYwYWIwNDBlNTI5M2YxMWRkZGQxNWY1ZWEwNTc0ZWEzYmNkM2ZiOWJmYTlmNDI0NjEwMTciLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjgzODZhNDZmMmU1MzlhODJjNmI3NDVjZTJiNmI4NDJiODBlMGEzYTg1YzY1YzRkZjNmYTNjNDQyNjRkMDhhN2EiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImJlYzJiMTM5NmM4YTFhZDUwZDIxZTQ4MGVmOWIwMTk2ZWVlNjc2NjgxZTY3NTRiYzY0NjRjNzRjYWRiYmE2MTAifQ"
+        }
+      ]
     }
   ],
   "verification": {
     "by": "openwiki/0.5.2",
-    "at": "2026-09-18T20:16:58.058Z"
+    "at": "2026-09-20T12:50:16.306Z"
   }
 }

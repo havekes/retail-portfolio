@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "pageVersion": "sha256:eac118e99df1f06fab9a8fd666fd52b34f2e0d8397af5a7635637e03b02559ac",
+  "pageVersion": "sha256:1e73b6e7be072a11b2bc98ed99418b211028aa78fd5fac0b0a0f2c3487627e3b",
   "claims": [
     {
       "id": "claim_1fa7b469a4a341a483fe1a1fc0ed5014",
@@ -243,10 +243,28 @@
           "version": "repo-lines-v1:sha256:162da5b8444791946620431a6134f00967a3800eed95b3c9d7dd73acf82dc448:eyJzZWxlY3RlZExpbmVDb3VudCI6MzYsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImI3YTgzMWZhNDcyNmZjMjMxNTE0NGY5YTA1NWJmZWMyNWYxYWZkMTI2YWFmZjU3YWZmYmU5NDBlZjVjNmE3MzUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImQ0NDMxNThhNDc3OThmMTc1OGZjMzIyZWJjMDQ2Njk4M2ZmNGJhNTVkY2ViMjA5OGI4ZmFlYzY0YzBmZThkOGMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjgyNGRlNzdkNjc1YzZjZTdhM2NlOGUyODIzNzg0ZTgzOWQzZTA4Yjk4NTRmZmVkNTc4NTczNmMzNzllODY3ZGQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImJlYzJiMTM5NmM4YTFhZDUwZDIxZTQ4MGVmOWIwMTk2ZWVlNjc2NjgxZTY3NTRiYzY0NjRjNzRjYWRiYmE2MTAifQ"
         }
       ]
+    },
+    {
+      "id": "claim_b3c260fa54d44bbfb4b7ef7a2966e884",
+      "statement": "Because the FX conversion target is the account's own `currency` (passed as `account.currency` into every `_currency_convert` call site), changing an account's currency re-bases every converted total, value, and P&L for that account without modifying any stored position; CSV import is one path that does this, updating an existing account's currency when a different `chosen_currency` is supplied and creating new accounts with `currency=Currency(chosen_currency)` (defaulting to `CAD`).",
+      "evidence": [
+        {
+          "resource": "repo://src/account/service/csv_account.py#L142-L184",
+          "version": "repo-lines-v1:sha256:e68f46f6a2ce9936a0555165fd2a8a992bb7b80b93cd1000bb592268cac39d2b:eyJzZWxlY3RlZExpbmVDb3VudCI6NDMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImYxNTg2Nzg4NzQ4ZThiM2E2YWIzNGVkM2Y3Yzk2ZTAxZjQ5OGE2NDRmZjllOWIwNzdmNWVkNWU3ZjJiYjg4ZTMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImE1NWQxMWYxNGI4NTY4ZGQzMTM5NGRjNWZlZmYxOTc3MGRhNjdlNWY5ZjFhNWE5Y2I4NWUzY2IyZGRkNDIyZDMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6Ijc3NmFkYjgwOTI5NTZlZDlkN2FiNDVjNTU3YjFjNTc2MmMzMTYzNjA3YzczM2U3ODRlNTE2ZDNmZTQ1MmIwOWEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjUwNGQwNGE3ZmMyYTM3MzM5NjAxZDliMGNlNDZiN2U1ZDkwMmM5ODdhYjVlODRhZTYyODc2NTdkZGVkYjNlOTAifQ"
+        },
+        {
+          "resource": "repo://src/account/service/position.py#L179-L203",
+          "version": "repo-lines-v1:sha256:0a22482c87b3523ce7a4da4615aeb37e7b5b00db154601a31a929c52edc9f194:eyJzZWxlY3RlZExpbmVDb3VudCI6MjUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjJhMTdiNmY3NDFmY2Y0NWQ3ZGFjMmQ3ZmRhMTc3YTU2Mzk4NWIxNDE5MjI4NWZlY2JiZWM0MjY0ZGYwNzFkZWEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjU5MDlhNTNhNjE4ZDAyOGUxZDMwMDBjMGE3YWJjZWVjYmU1ZmIzN2Y0ZTUxMWVmZTQ2NjQzZmFkNmU2Njg3MmYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImU0YmM3MzBkYTQzOTdmNWJmNTc0NmRlNDM5NzUyNGM2NmRlNTNjMTdkZWQ3ZTg2Yjc5ZDRjYWExNWI5MTBkNDMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjdjNzQ2MjQ1NGQxNTYxOTM0MTUwOWViYjIwZTVmOTY5YzcwNmNlNDlkNDFjN2FlYmI0MmQ0MTU2M2Q2YWQ0MDIifQ"
+        },
+        {
+          "resource": "repo://src/account/service/position.py#L257-L271",
+          "version": "repo-lines-v1:sha256:43abc8452ad4a193737193297a622844bbec6e06be3030f4eb131351a6dc1629:eyJzZWxlY3RlZExpbmVDb3VudCI6MTUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImZkZDFjNWVkMzc5OGI2NjMyMmIxY2MzYTJiZDliNTUwZjc5ZjQ1ZTY5NjU2ODM1NjBhMWIzYjEzMTI1MzMxNjUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjI1NGI5MzBmZDBjNmU0NTlmNjFjNTUyNWE3ZDMxMTAyODk0N2IzMWM5YTA4YzIwYzliZjczMzJhNzhiMjEyYjMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImM0MDY0NzYxODVhYWZhNzcxZTIzOTY3NGI0ZThhM2ZlZmVhMzNmNDNhZGQ5MWU2MGFmYTg5ODdiNTY0ZTQyNTMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjNkZjUxMDJkYjQ1YzIwNjQ5N2M1NjE2MThiZDUwNGEzZWMxZDRjN2NlMGMzNzc5OGFmNTMxOTExZWM1Yzg3M2UifQ"
+        }
+      ]
     }
   ],
   "verification": {
     "by": "openwiki/0.5.2",
-    "at": "2026-09-18T20:16:58.058Z"
+    "at": "2026-09-20T12:50:16.306Z"
   }
 }
