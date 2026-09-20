@@ -135,15 +135,20 @@ describe('DrawingHistoryManager', () => {
 		};
 		manager.push(stateWithLineMovedFurther, { coalesce: true });
 
-		// Should still only require 1 undo to get back to emptyState
+		// Undoing the drag reverts to the pre-drag state (stateWithLine)
 		expect(manager.canUndo()).toBe(true);
 		const undone = manager.undo();
-		expect(undone).toEqual(emptyState);
-		expect(manager.canUndo()).toBe(false);
+		expect(undone).toEqual(stateWithLine);
+		expect(manager.canUndo()).toBe(true);
 
 		// Redo should jump to the final dragged position
 		const redone = manager.redo();
 		expect(redone).toEqual(stateWithLineMovedFurther);
+
+		// Subsequent undo calls revert to pre-drag state, then back to base emptyState
+		expect(manager.undo()).toEqual(stateWithLine);
+		expect(manager.undo()).toEqual(emptyState);
+		expect(manager.canUndo()).toBe(false);
 	});
 
 	it('supports startCoalescing and stopCoalescing flags', () => {
@@ -166,6 +171,7 @@ describe('DrawingHistoryManager', () => {
 		manager.stopCoalescing();
 		expect(manager.isCoalescing()).toBe(false);
 
+		expect(manager.undo()).toEqual(stateWithLine);
 		expect(manager.undo()).toEqual(emptyState);
 	});
 });

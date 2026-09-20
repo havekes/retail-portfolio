@@ -293,6 +293,7 @@ export class ElliottWavePaneRenderer implements IPrimitivePaneRenderer {
 				ctx.setLineDash([dash, dash]);
 				ctx.moveTo(lastX, lastY);
 				ctx.lineTo(mouseX, mouseY);
+				ctx.stroke();
 			} finally {
 				ctx.restore();
 			}

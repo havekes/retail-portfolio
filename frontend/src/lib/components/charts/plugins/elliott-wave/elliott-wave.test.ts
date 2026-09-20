@@ -949,6 +949,13 @@ describe('Elliott Wave Plugin', () => {
 			const dashCalls = drawCalls.filter((c) => c.type === 'setLineDash');
 			expect(dashCalls.length).toBeGreaterThanOrEqual(1);
 
+			// hpr = 2, vpr = 2 in mock scope, so (160, 250) -> (320, 500)
+			const lineToIndex = drawCalls.findIndex(
+				(c) => c.type === 'lineTo' && c.args[0] === 320 && c.args[1] === 500
+			);
+			expect(lineToIndex).toBeGreaterThanOrEqual(0);
+			expect(drawCalls[lineToIndex + 1]?.type).toBe('stroke');
+
 			const textCalls = drawCalls.filter((c) => c.type === 'fillText');
 			const labels = textCalls.map((c) => c.args[0]);
 			expect(labels).toContain('I'); // Ghost badge for next wave (Cycle = Roman numeral)

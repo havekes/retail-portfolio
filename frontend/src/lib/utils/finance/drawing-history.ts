@@ -59,6 +59,7 @@ export class DrawingHistoryManager {
 	private _undoStack: SecurityDrawingState[] = [];
 	private _redoStack: SecurityDrawingState[] = [];
 	private _isCoalescing: boolean = false;
+	private _coalescingEntryPushed: boolean = false;
 	private readonly _maxHistory: number;
 
 	constructor(options?: { maxHistory?: number }) {
@@ -69,6 +70,7 @@ export class DrawingHistoryManager {
 		this._undoStack = [cloneDrawingState(initialState)];
 		this._redoStack = [];
 		this._isCoalescing = false;
+		this._coalescingEntryPushed = false;
 	}
 
 	public canUndo(): boolean {
@@ -81,10 +83,12 @@ export class DrawingHistoryManager {
 
 	public startCoalescing(): void {
 		this._isCoalescing = true;
+		this._coalescingEntryPushed = false;
 	}
 
 	public stopCoalescing(): void {
 		this._isCoalescing = false;
+		this._coalescingEntryPushed = false;
 	}
 
 	public isCoalescing(): boolean {
@@ -100,13 +104,14 @@ export class DrawingHistoryManager {
 			return;
 		}
 
-		if (shouldCoalesce && this._undoStack.length > 1) {
+		if (shouldCoalesce && this._coalescingEntryPushed && this._undoStack.length > 1) {
 			this._undoStack[this._undoStack.length - 1] = cloneDrawingState(state);
 		} else {
 			this._undoStack.push(cloneDrawingState(state));
 			if (this._undoStack.length > this._maxHistory) {
 				this._undoStack.shift();
 			}
+			this._coalescingEntryPushed = shouldCoalesce;
 		}
 
 		this._redoStack = [];
@@ -117,6 +122,7 @@ export class DrawingHistoryManager {
 		const current = this._undoStack.pop()!;
 		this._redoStack.push(current);
 		this._isCoalescing = false;
+		this._coalescingEntryPushed = false;
 		return cloneDrawingState(this._undoStack[this._undoStack.length - 1]);
 	}
 
@@ -125,6 +131,7 @@ export class DrawingHistoryManager {
 		const next = this._redoStack.pop()!;
 		this._undoStack.push(next);
 		this._isCoalescing = false;
+		this._coalescingEntryPushed = false;
 		return cloneDrawingState(next);
 	}
 
@@ -137,5 +144,6 @@ export class DrawingHistoryManager {
 		this._undoStack = [];
 		this._redoStack = [];
 		this._isCoalescing = false;
+		this._coalescingEntryPushed = false;
 	}
 }
