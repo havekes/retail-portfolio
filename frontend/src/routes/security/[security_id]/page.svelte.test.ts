@@ -14,7 +14,12 @@ import type {
 } from '$lib/utils/finance/fibonacci';
 import { updateSecurityFibonacciTools } from '$lib/utils/finance/fibonacci';
 import type { RewindSnapshot } from '$lib/utils/finance/rewind';
-import type { SecurityDrawings, MeasureDrawing } from '$lib/utils/finance/drawings';
+import type {
+	SecurityDrawings,
+	MeasureDrawing,
+	HorizontalLineDrawing,
+	LineDrawing
+} from '$lib/utils/finance/drawings';
 import { snapshotsService } from '$lib/api/snapshotsService';
 import { toast } from '$lib/components/ui/toast/index.js';
 if (typeof globalThis.Path2D === 'undefined') {
@@ -4728,6 +4733,437 @@ describe('Security Page - Session Drawing Undo/Redo', () => {
 		await waitFor(() => {
 			expect(undoBtn).toBeEnabled();
 			expect(redoBtn).toBeDisabled();
+		});
+	});
+});
+
+describe('Security Page - Drawing Dragging Deferral & Network Throttling (AC 2, AC 3, AC 5)', () => {
+	/* eslint-disable-next-line @typescript-eslint/no-explicit-any */
+	let PageComponent: Component<any>;
+
+	const mockData = {
+		security: {
+			id: 'sec-1',
+			symbol: 'AAPL',
+			name: 'Apple Inc.'
+		},
+		items: [
+			{
+				timestamp: 1704067200,
+				open: 100,
+				high: 105,
+				low: 99,
+				close: 104,
+				volume: 1000
+			}
+		]
+	};
+
+	const baseMeasure: MeasureDrawing = {
+		id: 'm-1',
+		p1: { time: 1704067200 as unknown as Time, price: 100 },
+		p2: { time: 1704153600 as unknown as Time, price: 105 }
+	};
+
+	const baseHorizontalLine: HorizontalLineDrawing = {
+		id: 'hl-1',
+		p1: { time: 1704067200 as unknown as Time, price: 100 }
+	};
+
+	const baseLine: LineDrawing = {
+		id: 'line-1',
+		p1: { time: 1704067200 as unknown as Time, price: 100 },
+		p2: { time: 1704153600 as unknown as Time, price: 105 }
+	};
+
+	const baseFib: SecurityFibonacciTools = {
+		retracement: {
+			p1: { time: 1704067200 as unknown as Time, price: 100 },
+			p2: { time: 1704153600 as unknown as Time, price: 105 },
+			levels: []
+		}
+	};
+
+	const baseWaves: SecurityElliottWaves = {
+		waves: [
+			{
+				id: 'w-1',
+				degree: 'minor',
+				type: 'impulse',
+				points: [{ time: 1704067200 as unknown as Time, price: 100 }]
+			}
+		]
+	};
+
+	beforeAll(async () => {
+		const mod = await import('./+page.svelte');
+		PageComponent = mod.default;
+	}, 60000);
+
+	beforeEach(() => {
+		vi.clearAllMocks();
+		mockChartProps = null;
+		vi.mocked(userPreferencesService.getPreferences).mockResolvedValue({});
+		vi.mocked(userPreferencesService.patchPreferences).mockResolvedValue({});
+		vi.mocked(snapshotsService.getSnapshots).mockResolvedValue([]);
+	});
+
+	it('defers measure preference write during drag moves and commits once on drag end (AC 2, AC 3)', async () => {
+		render(PageComponent, { props: { data: mockData } });
+		await waitFor(() => expect(mockChartProps).not.toBeNull());
+
+		// 1. Initial non-drag change commits immediately
+		// @ts-expect-error - mockChartProps typed as Record
+		mockChartProps.onMeasureChange?.([baseMeasure]);
+		await waitFor(() => {
+			expect(userPreferencesService.patchPreferences).toHaveBeenCalledTimes(1);
+		});
+		vi.mocked(userPreferencesService.patchPreferences).mockClear();
+
+		// 2. Drag starts
+		// @ts-expect-error - mockChartProps typed as Record
+		mockChartProps.onDrawingDragStart?.();
+
+		// 3. Intermediate drag moves
+		const moved1 = { ...baseMeasure, p2: { time: 1704153600 as unknown as Time, price: 108 } };
+		const moved2 = { ...baseMeasure, p2: { time: 1704153600 as unknown as Time, price: 112 } };
+		// @ts-expect-error - mockChartProps typed as Record
+		mockChartProps.onMeasureChange?.([moved1]);
+		// @ts-expect-error - mockChartProps typed as Record
+		mockChartProps.onMeasureChange?.([moved2]);
+
+		// Zero network calls during intermediate drag moves
+		expect(userPreferencesService.patchPreferences).not.toHaveBeenCalled();
+
+		// 4. Drag ends
+		// @ts-expect-error - mockChartProps typed as Record
+		mockChartProps.onDrawingDragEnd?.();
+
+		// Exactly one network call on drag end with final state
+		await waitFor(() => {
+			expect(userPreferencesService.patchPreferences).toHaveBeenCalledTimes(1);
+			expect(userPreferencesService.patchPreferences).toHaveBeenCalledWith(
+				expect.objectContaining({
+					drawings: expect.objectContaining({
+						'sec-1': expect.objectContaining({
+							measures: [moved2]
+						})
+					})
+				})
+			);
+		});
+	});
+
+	it('defers horizontal line preference write during drag moves and commits once on drag end (AC 2, AC 3)', async () => {
+		render(PageComponent, { props: { data: mockData } });
+		await waitFor(() => expect(mockChartProps).not.toBeNull());
+
+		// 1. Initial non-drag change commits immediately
+		// @ts-expect-error - mockChartProps typed as Record
+		mockChartProps.onHorizontalLineChange?.([baseHorizontalLine]);
+		await waitFor(() => {
+			expect(userPreferencesService.patchPreferences).toHaveBeenCalledTimes(1);
+		});
+		vi.mocked(userPreferencesService.patchPreferences).mockClear();
+
+		// 2. Drag starts
+		// @ts-expect-error - mockChartProps typed as Record
+		mockChartProps.onDrawingDragStart?.();
+
+		// 3. Intermediate drag moves
+		const moved1 = {
+			...baseHorizontalLine,
+			p1: { time: 1704067200 as unknown as Time, price: 102 }
+		};
+		const moved2 = {
+			...baseHorizontalLine,
+			p1: { time: 1704067200 as unknown as Time, price: 106 }
+		};
+		// @ts-expect-error - mockChartProps typed as Record
+		mockChartProps.onHorizontalLineChange?.([moved1]);
+		// @ts-expect-error - mockChartProps typed as Record
+		mockChartProps.onHorizontalLineChange?.([moved2]);
+
+		expect(userPreferencesService.patchPreferences).not.toHaveBeenCalled();
+
+		// 4. Drag ends
+		// @ts-expect-error - mockChartProps typed as Record
+		mockChartProps.onDrawingDragEnd?.();
+
+		await waitFor(() => {
+			expect(userPreferencesService.patchPreferences).toHaveBeenCalledTimes(1);
+			expect(userPreferencesService.patchPreferences).toHaveBeenCalledWith(
+				expect.objectContaining({
+					drawings: expect.objectContaining({
+						'sec-1': expect.objectContaining({
+							horizontalLines: [moved2]
+						})
+					})
+				})
+			);
+		});
+	});
+
+	it('defers free-form line preference write during drag moves and commits once on drag end (AC 2, AC 3)', async () => {
+		render(PageComponent, { props: { data: mockData } });
+		await waitFor(() => expect(mockChartProps).not.toBeNull());
+
+		// 1. Initial non-drag change commits immediately
+		// @ts-expect-error - mockChartProps typed as Record
+		mockChartProps.onLineChange?.([baseLine]);
+		await waitFor(() => {
+			expect(userPreferencesService.patchPreferences).toHaveBeenCalledTimes(1);
+		});
+		vi.mocked(userPreferencesService.patchPreferences).mockClear();
+
+		// 2. Drag starts
+		// @ts-expect-error - mockChartProps typed as Record
+		mockChartProps.onDrawingDragStart?.();
+
+		// 3. Intermediate drag moves
+		const moved1 = { ...baseLine, p2: { time: 1704153600 as unknown as Time, price: 108 } };
+		const moved2 = { ...baseLine, p2: { time: 1704153600 as unknown as Time, price: 114 } };
+		// @ts-expect-error - mockChartProps typed as Record
+		mockChartProps.onLineChange?.([moved1]);
+		// @ts-expect-error - mockChartProps typed as Record
+		mockChartProps.onLineChange?.([moved2]);
+
+		expect(userPreferencesService.patchPreferences).not.toHaveBeenCalled();
+
+		// 4. Drag ends
+		// @ts-expect-error - mockChartProps typed as Record
+		mockChartProps.onDrawingDragEnd?.();
+
+		await waitFor(() => {
+			expect(userPreferencesService.patchPreferences).toHaveBeenCalledTimes(1);
+			expect(userPreferencesService.patchPreferences).toHaveBeenCalledWith(
+				expect.objectContaining({
+					drawings: expect.objectContaining({
+						'sec-1': expect.objectContaining({
+							lines: [moved2]
+						})
+					})
+				})
+			);
+		});
+	});
+
+	it('defers fibonacci preference write during drag moves and commits once on drag end (AC 2, AC 3)', async () => {
+		render(PageComponent, { props: { data: mockData } });
+		await waitFor(() => expect(mockChartProps).not.toBeNull());
+
+		// 1. Initial non-drag change commits immediately
+		// @ts-expect-error - mockChartProps typed as Record
+		mockChartProps.onFibChange?.(baseFib);
+		await waitFor(() => {
+			expect(userPreferencesService.patchPreferences).toHaveBeenCalledTimes(1);
+		});
+		vi.mocked(userPreferencesService.patchPreferences).mockClear();
+
+		// 2. Drag starts
+		// @ts-expect-error - mockChartProps typed as Record
+		mockChartProps.onDrawingDragStart?.();
+
+		// 3. Intermediate drag moves
+		const movedFib1: SecurityFibonacciTools = {
+			retracement: {
+				p1: { time: 1704067200 as unknown as Time, price: 102 },
+				p2: { time: 1704153600 as unknown as Time, price: 107 },
+				levels: []
+			}
+		};
+		const movedFib2: SecurityFibonacciTools = {
+			retracement: {
+				p1: { time: 1704067200 as unknown as Time, price: 104 },
+				p2: { time: 1704153600 as unknown as Time, price: 110 },
+				levels: []
+			}
+		};
+		// @ts-expect-error - mockChartProps typed as Record
+		mockChartProps.onFibChange?.(movedFib1);
+		// @ts-expect-error - mockChartProps typed as Record
+		mockChartProps.onFibChange?.(movedFib2);
+
+		expect(userPreferencesService.patchPreferences).not.toHaveBeenCalled();
+
+		// 4. Drag ends
+		// @ts-expect-error - mockChartProps typed as Record
+		mockChartProps.onDrawingDragEnd?.();
+
+		await waitFor(() => {
+			expect(userPreferencesService.patchPreferences).toHaveBeenCalledTimes(1);
+			expect(userPreferencesService.patchPreferences).toHaveBeenCalledWith(
+				expect.objectContaining({
+					fibonacci_tools: expect.objectContaining({
+						'sec-1': movedFib2
+					})
+				})
+			);
+		});
+	});
+
+	it('defers elliott wave preference write during drag moves and commits once on drag end (AC 2, AC 3)', async () => {
+		render(PageComponent, { props: { data: mockData } });
+		await waitFor(() => expect(mockChartProps).not.toBeNull());
+
+		// 1. Initial non-drag change commits immediately
+		// @ts-expect-error - mockChartProps typed as Record
+		mockChartProps.onWaveChange?.('minor', baseWaves.waves[0], baseWaves);
+		await waitFor(() => {
+			expect(userPreferencesService.patchPreferences).toHaveBeenCalledTimes(1);
+		});
+		vi.mocked(userPreferencesService.patchPreferences).mockClear();
+
+		// 2. Drag starts
+		// @ts-expect-error - mockChartProps typed as Record
+		mockChartProps.onDrawingDragStart?.();
+
+		// 3. Intermediate drag moves
+		const movedWaves1: SecurityElliottWaves = {
+			waves: [
+				{
+					id: 'w-1',
+					degree: 'minor',
+					type: 'impulse',
+					points: [{ time: 1704067200 as unknown as Time, price: 105 }]
+				}
+			]
+		};
+		const movedWaves2: SecurityElliottWaves = {
+			waves: [
+				{
+					id: 'w-1',
+					degree: 'minor',
+					type: 'impulse',
+					points: [{ time: 1704067200 as unknown as Time, price: 115 }]
+				}
+			]
+		};
+		// @ts-expect-error - mockChartProps typed as Record
+		mockChartProps.onWaveChange?.('minor', movedWaves1.waves[0], movedWaves1);
+		// @ts-expect-error - mockChartProps typed as Record
+		mockChartProps.onWaveChange?.('minor', movedWaves2.waves[0], movedWaves2);
+
+		expect(userPreferencesService.patchPreferences).not.toHaveBeenCalled();
+
+		// 4. Drag ends
+		// @ts-expect-error - mockChartProps typed as Record
+		mockChartProps.onDrawingDragEnd?.();
+
+		await waitFor(() => {
+			expect(userPreferencesService.patchPreferences).toHaveBeenCalledTimes(1);
+			expect(userPreferencesService.patchPreferences).toHaveBeenCalledWith(
+				expect.objectContaining({
+					elliott_waves: expect.objectContaining({
+						'sec-1': movedWaves2
+					})
+				})
+			);
+		});
+	});
+
+	it('emits zero network calls when anchor drag starts and ends without moving', async () => {
+		render(PageComponent, { props: { data: mockData } });
+		await waitFor(() => expect(mockChartProps).not.toBeNull());
+
+		vi.mocked(userPreferencesService.patchPreferences).mockClear();
+
+		// Empty drag gesture
+		// @ts-expect-error - mockChartProps typed as Record
+		mockChartProps.onDrawingDragStart?.();
+		// @ts-expect-error - mockChartProps typed as Record
+		mockChartProps.onDrawingDragEnd?.();
+
+		expect(userPreferencesService.patchPreferences).not.toHaveBeenCalled();
+	});
+
+	it('accurately restores pre-drag and post-drag states on undo and redo after anchor drag (AC 5)', async () => {
+		render(PageComponent, { props: { data: mockData } });
+		await waitFor(() => expect(mockChartProps).not.toBeNull());
+
+		// 1. Add base line
+		// @ts-expect-error - mockChartProps typed as Record
+		mockChartProps.onLineChange?.([baseLine]);
+		await waitFor(() => {
+			expect(userPreferencesService.patchPreferences).toHaveBeenCalledWith(
+				expect.objectContaining({
+					drawings: expect.objectContaining({
+						'sec-1': expect.objectContaining({
+							lines: [baseLine]
+						})
+					})
+				})
+			);
+		});
+		vi.mocked(userPreferencesService.patchPreferences).mockClear();
+
+		// 2. Drag line to new coordinates
+		// @ts-expect-error - mockChartProps typed as Record
+		mockChartProps.onDrawingDragStart?.();
+
+		const intermediateLine = {
+			...baseLine,
+			p2: { time: 1704153600 as unknown as Time, price: 110 }
+		};
+		const finalDraggedLine = {
+			...baseLine,
+			p2: { time: 1704153600 as unknown as Time, price: 120 }
+		};
+
+		// @ts-expect-error - mockChartProps typed as Record
+		mockChartProps.onLineChange?.([intermediateLine]);
+		// @ts-expect-error - mockChartProps typed as Record
+		mockChartProps.onLineChange?.([finalDraggedLine]);
+
+		expect(userPreferencesService.patchPreferences).not.toHaveBeenCalled();
+
+		// @ts-expect-error - mockChartProps typed as Record
+		mockChartProps.onDrawingDragEnd?.();
+
+		await waitFor(() => {
+			expect(userPreferencesService.patchPreferences).toHaveBeenCalledWith(
+				expect.objectContaining({
+					drawings: expect.objectContaining({
+						'sec-1': expect.objectContaining({
+							lines: [finalDraggedLine]
+						})
+					})
+				})
+			);
+		});
+
+		vi.mocked(userPreferencesService.patchPreferences).mockClear();
+
+		// 3. Undo drag -> reverts to pre-drag state (baseLine)
+		await fireEvent.keyDown(window, { key: 'z', ctrlKey: true });
+
+		await waitFor(() => {
+			expect(userPreferencesService.patchPreferences).toHaveBeenCalledWith(
+				expect.objectContaining({
+					drawings: expect.objectContaining({
+						'sec-1': expect.objectContaining({
+							lines: [baseLine]
+						})
+					})
+				})
+			);
+		});
+
+		vi.mocked(userPreferencesService.patchPreferences).mockClear();
+
+		// 4. Redo drag -> restores final dragged state (finalDraggedLine)
+		await fireEvent.keyDown(window, { key: 'z', ctrlKey: true, shiftKey: true });
+
+		await waitFor(() => {
+			expect(userPreferencesService.patchPreferences).toHaveBeenCalledWith(
+				expect.objectContaining({
+					drawings: expect.objectContaining({
+						'sec-1': expect.objectContaining({
+							lines: [finalDraggedLine]
+						})
+					})
+				})
+			);
 		});
 	});
 });

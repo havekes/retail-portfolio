@@ -282,24 +282,24 @@ describe('DrawingPrimitiveBase', () => {
 		});
 		requestUpdate.mockClear();
 
-		// mouseMoved
+		// mouseMoved when not in drawing mode -> no update
 		mouseHandlers._mouseMoved.fire(null);
-		expect(requestUpdate).toHaveBeenCalledTimes(1);
+		expect(requestUpdate).toHaveBeenCalledTimes(0);
 
 		// pointHovered
 		mouseHandlers._pointHovered.fire({ id: 'target-1' });
 		expect(state.getHoveredPoint()).toEqual({ id: 'target-1' });
-		expect(requestUpdate).toHaveBeenCalledTimes(2);
+		expect(requestUpdate).toHaveBeenCalledTimes(1);
 
 		// dragStarted
 		mouseHandlers._dragStarted.fire({ id: 'drag-1' });
 		expect(state.getDraggingPoint()).toEqual({ id: 'drag-1' });
-		expect(requestUpdate).toHaveBeenCalledTimes(3);
+		expect(requestUpdate).toHaveBeenCalledTimes(2);
 
 		// dragEnded
 		mouseHandlers._dragEnded.fire({ id: 'drag-1' });
 		expect(state.getDraggingPoint()).toBeNull();
-		expect(requestUpdate).toHaveBeenCalledTimes(4);
+		expect(requestUpdate).toHaveBeenCalledTimes(3);
 
 		// chartClicked when not in drawing mode -> no point added
 		mouseHandlers._chartClicked.fire({ time: '2024-01-01' as Time, price: 100, x: 10, y: 20 });
@@ -311,6 +311,61 @@ describe('DrawingPrimitiveBase', () => {
 		mouseHandlers._chartClicked.fire({ time: '2024-01-02' as Time, price: 150, x: 20, y: 30 });
 		expect(state.getPoints()).toEqual([{ time: '2024-01-02', price: 150 }]);
 		expect(requestUpdate).toHaveBeenCalled();
+	});
+
+	it('throttles mouseMoved redraw requests based on drawing mode (AC 1)', () => {
+		primitive.attached({
+			chart: mockChart,
+			series: mockSeries,
+			requestUpdate,
+			horzScaleBehavior: {} as never
+		});
+		requestUpdate.mockClear();
+
+		// Moving cursor across chart when NOT in drawing mode triggers zero _requestUpdate calls
+		expect(primitive.isDrawingMode()).toBe(false);
+		mouseHandlers._mouseMoved.fire({ x: 10, y: 20, time: null, price: null, insidePlotArea: true });
+		mouseHandlers._mouseMoved.fire({ x: 20, y: 30, time: null, price: null, insidePlotArea: true });
+		mouseHandlers._mouseMoved.fire(null);
+		expect(requestUpdate).toHaveBeenCalledTimes(0);
+
+		// When in drawing mode, moving cursor requests updates
+		primitive.setDrawingMode(true);
+		requestUpdate.mockClear();
+		mouseHandlers._mouseMoved.fire({ x: 30, y: 40, time: null, price: null, insidePlotArea: true });
+		expect(requestUpdate).toHaveBeenCalledTimes(1);
+		mouseHandlers._mouseMoved.fire({ x: 40, y: 50, time: null, price: null, insidePlotArea: true });
+		expect(requestUpdate).toHaveBeenCalledTimes(2);
+	});
+
+	it('throttles pointHovered redraw requests when moving across empty canvas', () => {
+		primitive.attached({
+			chart: mockChart,
+			series: mockSeries,
+			requestUpdate,
+			horzScaleBehavior: {} as never
+		});
+		requestUpdate.mockClear();
+
+		// Idle hover on empty canvas (target is null and hoveredPoint is already null) -> 0 redraw calls
+		expect(state.getHoveredPoint()).toBeNull();
+		mouseHandlers._pointHovered.fire(null);
+		mouseHandlers._pointHovered.fire(null);
+		expect(requestUpdate).toHaveBeenCalledTimes(0);
+
+		// Hovering over an anchor -> requests update
+		mouseHandlers._pointHovered.fire({ id: 'target-1' });
+		expect(state.getHoveredPoint()).toEqual({ id: 'target-1' });
+		expect(requestUpdate).toHaveBeenCalledTimes(1);
+
+		// Moving away from anchor back to empty canvas -> requests update to clear hover styling
+		mouseHandlers._pointHovered.fire(null);
+		expect(state.getHoveredPoint()).toBeNull();
+		expect(requestUpdate).toHaveBeenCalledTimes(2);
+
+		// Moving across empty canvas again -> 0 additional redraw calls
+		mouseHandlers._pointHovered.fire(null);
+		expect(requestUpdate).toHaveBeenCalledTimes(2);
 	});
 
 	it('delegates cancelRequested to cancelDrawing and requests update', () => {

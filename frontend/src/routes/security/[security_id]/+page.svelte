@@ -260,6 +260,31 @@
 	let isApplyingHistory = false;
 	let canUndo = $state(drawingHistoryManager.canUndo());
 	let canRedo = $state(drawingHistoryManager.canRedo());
+	let isDraggingDrawing = $state(false);
+	let pendingDrawingPreferences: Partial<UserPreferences> | null = null;
+
+	function handleDrawingDragStart() {
+		isDraggingDrawing = true;
+		pendingDrawingPreferences = null;
+		drawingHistoryManager.startCoalescing();
+	}
+
+	async function handleDrawingDragEnd() {
+		isDraggingDrawing = false;
+		drawingHistoryManager.stopCoalescing();
+		if (pendingDrawingPreferences !== null) {
+			const prefsToSave = { ...pendingDrawingPreferences };
+			pendingDrawingPreferences = null;
+			try {
+				await userPreferencesService.patchPreferences(prefsToSave);
+			} catch (err) {
+				console.error('Failed to persist drawings preference on drag end:', err);
+			}
+			if (prefsToSave.elliott_waves) {
+				scheduleWaveAlertsReconcile();
+			}
+		}
+	}
 
 	$effect(() => {
 		const unsubscribe = drawingHistoryManager.subscribe(() => {
@@ -482,7 +507,14 @@
 			...(userPreferences ?? {}),
 			elliott_waves: updatedAllWaves
 		};
-		recordDrawingStateChange();
+		recordDrawingStateChange({ coalesce: isDraggingDrawing });
+		if (isDraggingDrawing) {
+			pendingDrawingPreferences = {
+				...(pendingDrawingPreferences ?? {}),
+				elliott_waves: updatedAllWaves
+			};
+			return;
+		}
 		try {
 			await userPreferencesService.patchPreferences({
 				elliott_waves: updatedAllWaves
@@ -528,7 +560,14 @@
 			...(userPreferences ?? {}),
 			fibonacci_tools: updatedAllTools
 		};
-		recordDrawingStateChange();
+		recordDrawingStateChange({ coalesce: isDraggingDrawing });
+		if (isDraggingDrawing) {
+			pendingDrawingPreferences = {
+				...(pendingDrawingPreferences ?? {}),
+				fibonacci_tools: updatedAllTools
+			};
+			return;
+		}
 		try {
 			await userPreferencesService.patchPreferences({
 				fibonacci_tools: updatedAllTools
@@ -659,7 +698,14 @@
 			...(userPreferences ?? {}),
 			drawings: updatedAllDrawings
 		};
-		recordDrawingStateChange();
+		recordDrawingStateChange({ coalesce: isDraggingDrawing });
+		if (isDraggingDrawing) {
+			pendingDrawingPreferences = {
+				...(pendingDrawingPreferences ?? {}),
+				drawings: updatedAllDrawings
+			};
+			return;
+		}
 		try {
 			await userPreferencesService.patchPreferences({
 				drawings: updatedAllDrawings
@@ -708,7 +754,14 @@
 			...(userPreferences ?? {}),
 			drawings: updatedAllDrawings
 		};
-		recordDrawingStateChange();
+		recordDrawingStateChange({ coalesce: isDraggingDrawing });
+		if (isDraggingDrawing) {
+			pendingDrawingPreferences = {
+				...(pendingDrawingPreferences ?? {}),
+				drawings: updatedAllDrawings
+			};
+			return;
+		}
 		try {
 			await userPreferencesService.patchPreferences({
 				drawings: updatedAllDrawings
@@ -757,7 +810,14 @@
 			...(userPreferences ?? {}),
 			drawings: updatedAllDrawings
 		};
-		recordDrawingStateChange();
+		recordDrawingStateChange({ coalesce: isDraggingDrawing });
+		if (isDraggingDrawing) {
+			pendingDrawingPreferences = {
+				...(pendingDrawingPreferences ?? {}),
+				drawings: updatedAllDrawings
+			};
+			return;
+		}
 		try {
 			await userPreferencesService.patchPreferences({
 				drawings: updatedAllDrawings
@@ -1825,8 +1885,8 @@
 										selectedHorizontalLineId = null;
 									}
 								}}
-								onDrawingDragStart={() => drawingHistoryManager.startCoalescing()}
-								onDrawingDragEnd={() => drawingHistoryManager.stopCoalescing()}
+								onDrawingDragStart={handleDrawingDragStart}
+								onDrawingDragEnd={handleDrawingDragEnd}
 								onPaneHeightsChange={handlePaneHeightsChange}
 							/>
 							<ChartSettingsModal

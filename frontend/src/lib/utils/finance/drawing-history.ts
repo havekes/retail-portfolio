@@ -59,7 +59,7 @@ export class DrawingHistoryManager {
 	private _undoStack: SecurityDrawingState[] = [];
 	private _redoStack: SecurityDrawingState[] = [];
 	private _isCoalescing: boolean = false;
-	private _coalescingEntryPushed: boolean = false;
+	private _pendingCoalescedState: SecurityDrawingState | null = null;
 	private readonly _maxHistory: number;
 	private _listeners: Set<() => void> = new Set();
 
@@ -77,6 +77,25 @@ export class DrawingHistoryManager {
 		}
 	}
 
+	private _flushCoalesced(): void {
+		if (this._pendingCoalescedState === null) {
+			return;
+		}
+
+		const pending = this._pendingCoalescedState;
+		this._pendingCoalescedState = null;
+
+		const current = this._undoStack[this._undoStack.length - 1];
+		if (!current || !areDrawingStatesEqual(pending, current)) {
+			this._undoStack.push(cloneDrawingState(pending));
+			if (this._undoStack.length > this._maxHistory) {
+				this._undoStack.shift();
+			}
+			this._redoStack = [];
+			this._notify();
+		}
+	}
+
 	public subscribe(listener: () => void): () => void {
 		this._listeners.add(listener);
 		return () => {
@@ -88,12 +107,15 @@ export class DrawingHistoryManager {
 		this._undoStack = [cloneDrawingState(initialState)];
 		this._redoStack = [];
 		this._isCoalescing = false;
-		this._coalescingEntryPushed = false;
+		this._pendingCoalescedState = null;
 		this._notify();
 	}
 
 	public canUndo(): boolean {
-		return this._undoStack.length > 1;
+		return (
+			this._undoStack.length > 1 ||
+			(this._pendingCoalescedState !== null && this._undoStack.length >= 1)
+		);
 	}
 
 	public canRedo(): boolean {
@@ -101,13 +123,13 @@ export class DrawingHistoryManager {
 	}
 
 	public startCoalescing(): void {
+		this._flushCoalesced();
 		this._isCoalescing = true;
-		this._coalescingEntryPushed = false;
 	}
 
 	public stopCoalescing(): void {
 		this._isCoalescing = false;
-		this._coalescingEntryPushed = false;
+		this._flushCoalesced();
 	}
 
 	public isCoalescing(): boolean {
@@ -118,19 +140,21 @@ export class DrawingHistoryManager {
 		const shouldCoalesce =
 			typeof options === 'boolean' ? options : Boolean(options?.coalesce) || this._isCoalescing;
 
+		if (shouldCoalesce) {
+			this._pendingCoalescedState = state;
+			return;
+		}
+
+		this._flushCoalesced();
+
 		const current = this._undoStack[this._undoStack.length - 1];
 		if (current && areDrawingStatesEqual(state, current)) {
 			return;
 		}
 
-		if (shouldCoalesce && this._coalescingEntryPushed && this._undoStack.length > 1) {
-			this._undoStack[this._undoStack.length - 1] = cloneDrawingState(state);
-		} else {
-			this._undoStack.push(cloneDrawingState(state));
-			if (this._undoStack.length > this._maxHistory) {
-				this._undoStack.shift();
-			}
-			this._coalescingEntryPushed = shouldCoalesce;
+		this._undoStack.push(cloneDrawingState(state));
+		if (this._undoStack.length > this._maxHistory) {
+			this._undoStack.shift();
 		}
 
 		this._redoStack = [];
@@ -138,26 +162,27 @@ export class DrawingHistoryManager {
 	}
 
 	public undo(): SecurityDrawingState | null {
+		this._flushCoalesced();
 		if (!this.canUndo()) return null;
 		const current = this._undoStack.pop()!;
 		this._redoStack.push(current);
 		this._isCoalescing = false;
-		this._coalescingEntryPushed = false;
 		this._notify();
 		return cloneDrawingState(this._undoStack[this._undoStack.length - 1]);
 	}
 
 	public redo(): SecurityDrawingState | null {
+		this._flushCoalesced();
 		if (!this.canRedo()) return null;
 		const next = this._redoStack.pop()!;
 		this._undoStack.push(next);
 		this._isCoalescing = false;
-		this._coalescingEntryPushed = false;
 		this._notify();
 		return cloneDrawingState(next);
 	}
 
 	public getCurrentState(): SecurityDrawingState | null {
+		this._flushCoalesced();
 		if (this._undoStack.length === 0) return null;
 		return cloneDrawingState(this._undoStack[this._undoStack.length - 1]);
 	}
@@ -166,7 +191,7 @@ export class DrawingHistoryManager {
 		this._undoStack = [];
 		this._redoStack = [];
 		this._isCoalescing = false;
-		this._coalescingEntryPushed = false;
+		this._pendingCoalescedState = null;
 		this._notify();
 	}
 }

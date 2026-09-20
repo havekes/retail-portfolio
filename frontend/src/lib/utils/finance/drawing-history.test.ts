@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach } from 'vitest';
+import { describe, it, expect, beforeEach, vi } from 'vitest';
 import {
 	DrawingHistoryManager,
 	areDrawingStatesEqual,
@@ -173,6 +173,74 @@ describe('DrawingHistoryManager', () => {
 
 		expect(manager.undo()).toEqual(stateWithLine);
 		expect(manager.undo()).toEqual(emptyState);
+	});
+
+	it('bypasses JSON serialization during intermediate coalescing moves and clones once on stopCoalescing (AC 4, AC 5)', () => {
+		manager.push(stateWithLine);
+
+		const stringifySpy = vi.spyOn(JSON, 'stringify');
+
+		manager.startCoalescing();
+
+		// Intermediate drag moves: 10 rapid pushes
+		for (let price = 101; price <= 110; price++) {
+			manager.push({
+				elliott_waves: { waves: [] },
+				fibonacci_tools: {},
+				drawings: {
+					horizontalLines: [{ id: 'hl-1', p1: { time: '2024-01-01' as Time, price } }],
+					lines: [],
+					measures: []
+				}
+			});
+		}
+
+		// Intermediate moves should cause ZERO JSON.stringify serialization calls
+		expect(stringifySpy).toHaveBeenCalledTimes(0);
+
+		// Stopping coalescing flushes and performs exactly 1 serialization clone
+		manager.stopCoalescing();
+		expect(stringifySpy).toHaveBeenCalledTimes(1);
+
+		stringifySpy.mockRestore();
+
+		// Pre-drag state is restored on undo, and final dragged state on redo
+		expect(manager.undo()).toEqual(stateWithLine);
+		const redone = manager.redo();
+		expect(redone?.drawings?.horizontalLines?.[0]?.p1?.price).toBe(110);
+	});
+
+	it('bypasses JSON serialization during intermediate moves when options.coalesce is true and flushes on undo (AC 4, AC 5)', () => {
+		manager.push(stateWithLine);
+
+		const stringifySpy = vi.spyOn(JSON, 'stringify');
+
+		for (let price = 101; price <= 105; price++) {
+			manager.push(
+				{
+					elliott_waves: { waves: [] },
+					fibonacci_tools: {},
+					drawings: {
+						horizontalLines: [{ id: 'hl-1', p1: { time: '2024-01-01' as Time, price } }],
+						lines: [],
+						measures: []
+					}
+				},
+				{ coalesce: true }
+			);
+		}
+
+		// 0 serialization calls during intermediate moves
+		expect(stringifySpy).toHaveBeenCalledTimes(0);
+
+		// Undoing flushes the coalesced state first (1 clone on flush into _undoStack, 1 clone returning the undone state)
+		const undone = manager.undo();
+		expect(undone).toEqual(stateWithLine);
+
+		const redone = manager.redo();
+		expect(redone?.drawings?.horizontalLines?.[0]?.p1?.price).toBe(105);
+
+		stringifySpy.mockRestore();
 	});
 
 	it('notifies subscribers on init, push, undo, redo, and clear, and allows unsubscribe', () => {
