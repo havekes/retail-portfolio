@@ -8,7 +8,6 @@ import {
 	DEFAULT_HOVER_RING_COLOR,
 	DEFAULT_LEVEL_LINE_DASH,
 	DEFAULT_LEVEL_LINE_WIDTH,
-	DEFAULT_SELECTED_RING_COLOR,
 	DEFAULT_TRENDLINE_COLOR,
 	DEFAULT_TRENDLINE_WIDTH,
 	HANDLE_RADIUS,
@@ -310,17 +309,13 @@ export class FibonacciPaneRenderer implements IPrimitivePaneRenderer {
 		const py = point.y * vpr;
 		const radius = HANDLE_RADIUS * hpr;
 
-		// Highlight ring on hover, drag, or selection
-		if (point.isHovered || point.isDragging || point.isSelected) {
+		// Highlight ring exclusively on hover or drag
+		if (point.isHovered || point.isDragging) {
 			ctx.save();
 			try {
 				ctx.beginPath();
 				ctx.arc(px, py, radius + 4 * hpr, 0, Math.PI * 2);
-				ctx.fillStyle = point.isDragging
-					? DEFAULT_DRAG_RING_COLOR
-					: point.isHovered
-						? DEFAULT_HOVER_RING_COLOR
-						: DEFAULT_SELECTED_RING_COLOR;
+				ctx.fillStyle = point.isDragging ? DEFAULT_DRAG_RING_COLOR : DEFAULT_HOVER_RING_COLOR;
 				ctx.fill();
 				ctx.lineWidth = 1.5 * hpr;
 				ctx.strokeStyle = DEFAULT_HANDLE_COLOR;

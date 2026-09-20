@@ -1,7 +1,11 @@
 import type { Time } from 'lightweight-charts';
 import type { DrawingPoint, LineDrawing } from '$lib/utils/finance/drawings';
 import { normalizeDrawingTime } from '$lib/utils/finance/drawing-time';
-import { MouseHandlers, type ProjectedLinePointWithTarget } from './mouse';
+import {
+	MouseHandlers,
+	type ProjectedLinePointWithTarget,
+	type ProjectedLineSegment
+} from './mouse';
 import {
 	type LinePreviewData,
 	type LineRenderItem,
@@ -59,6 +63,11 @@ export class FreeFormLinePrimitive extends DrawingPrimitiveBase<
 		this._subscribeToUpdate(this._state.dragChanged());
 
 		this._subscribe(this._mouseHandlers.pointClicked(), (hit) => {
+			this._state.select(hit.id);
+			this._requestUpdate?.();
+		});
+
+		this._subscribe(this._mouseHandlers.lineClicked(), (hit) => {
 			this._state.select(hit.id);
 			this._requestUpdate?.();
 		});
@@ -142,6 +151,7 @@ export class FreeFormLinePrimitive extends DrawingPrimitiveBase<
 
 		const lines: LineRenderItem[] = [];
 		const projectedForMouse: ProjectedLinePointWithTarget[] = [];
+		const projectedLines: ProjectedLineSegment[] = [];
 
 		for (const drawing of this._state.getLines()) {
 			if (drawing.visible === false) continue;
@@ -192,9 +202,16 @@ export class FreeFormLinePrimitive extends DrawingPrimitiveBase<
 				y: y2,
 				originalPoint: drawing.p2
 			});
+
+			projectedLines.push({
+				id,
+				p1: { x: x1, y: y1 },
+				p2: { x: x2, y: y2 }
+			});
 		}
 
 		this._mouseHandlers.setProjectedPoints(projectedForMouse);
+		this._mouseHandlers.setProjectedLines(projectedLines);
 
 		let preview: LinePreviewData | null = null;
 		if (this._state.isDrawingMode()) {

@@ -13,20 +13,62 @@ export interface ProjectedMeasurePointWithTarget {
 	originalPoint: DrawingPoint;
 }
 
+export interface ProjectedMeasureLine {
+	id: string;
+	p1: { x: number; y: number };
+	p2: { x: number; y: number };
+}
+
+function pointToSegmentDistance(
+	px: number,
+	py: number,
+	x1: number,
+	y1: number,
+	x2: number,
+	y2: number
+): number {
+	const dx = x2 - x1;
+	const dy = y2 - y1;
+	const lenSq = dx * dx + dy * dy;
+	if (lenSq === 0) return Math.hypot(px - x1, py - y1);
+	const t = Math.max(0, Math.min(1, ((px - x1) * dx + (py - y1) * dy) / lenSq));
+	return Math.hypot(px - (x1 + t * dx), py - (y1 + t * dy));
+}
+
 /**
  * Thin Measure adapter over the shared {@link ChartMouseHandlers}. Endpoint
- * hit testing is keyed by drawing id + point index; Measure keeps the raw click
- * position (no wick snapping), so `adjustPosition` is intentionally omitted.
+ * hit testing is keyed by drawing id + point index. Also supports connecting
+ * line segment hit testing.
  */
 export class MouseHandlers extends ChartMouseHandlers<
 	ProjectedMeasurePointWithTarget,
 	MeasurePointTarget,
 	DrawingPoint
 > {
+	private _projectedLines: ProjectedMeasureLine[] = [];
+
 	constructor() {
 		super({
 			hitTestRadius: HIT_TEST_RADIUS,
-			toTarget: (p) => ({ id: p.id, pointIndex: p.pointIndex })
+			toTarget: (p) => ({ id: p.id, pointIndex: p.pointIndex }),
+			hitTestLine: (x, y) => this.hitTestLine(x, y)
 		});
+	}
+
+	public setProjectedLines(lines: ProjectedMeasureLine[]): void {
+		this._projectedLines = lines;
+	}
+
+	public hitTestLine(x: number, y: number): MeasurePointTarget | null {
+		let closestDist = Infinity;
+		let closestTarget: MeasurePointTarget | null = null;
+		for (const line of this._projectedLines) {
+			const dist = pointToSegmentDistance(x, y, line.p1.x, line.p1.y, line.p2.x, line.p2.y);
+			if (dist <= HIT_TEST_RADIUS && dist < closestDist) {
+				closestDist = dist;
+				closestTarget = { id: line.id, pointIndex: 0 };
+			}
+		}
+		return closestTarget;
 	}
 }

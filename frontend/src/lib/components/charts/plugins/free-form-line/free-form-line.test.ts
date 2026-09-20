@@ -421,6 +421,26 @@ describe('Free-form Line Plugin', () => {
 			expect(mouse.hitTestPoint(105, 203 + HIT_TEST_RADIUS + 1)).toBeNull();
 		});
 
+		it('hit tests line segments within HIT_TEST_RADIUS', () => {
+			mouse.setProjectedLines([
+				{
+					id: 'l1',
+					p1: { x: 100, y: 200 },
+					p2: { x: 300, y: 200 }
+				}
+			]);
+
+			// Midpoint of segment at y=200
+			expect(mouse.hitTestLine(200, 200)).toEqual({ id: 'l1', pointIndex: 0 });
+			// Within HIT_TEST_RADIUS
+			expect(mouse.hitTestLine(200, 200 + HIT_TEST_RADIUS - 1)).toEqual({
+				id: 'l1',
+				pointIndex: 0
+			});
+			// Outside HIT_TEST_RADIUS
+			expect(mouse.hitTestLine(200, 200 + HIT_TEST_RADIUS + 2)).toBeNull();
+		});
+
 		it('fires hover, drag and click delegates with id-keyed targets', () => {
 			const hoverHandler = vi.fn();
 			const dragStartHandler = vi.fn();
@@ -540,14 +560,15 @@ describe('Free-form Line Plugin', () => {
 			};
 		}
 
-		it('draws the straight segment and both endpoint handles', () => {
+		it('draws the straight segment and omits endpoint handles on resting lines', () => {
 			renderer.update(renderData());
 			renderer.draw(mockCanvas.target);
 
 			expect(mockCanvas.target.useBitmapCoordinateSpace).toHaveBeenCalled();
 			const strokes = mockCanvas.drawCalls.filter((c) => c.type === 'stroke');
 			expect(strokes.some((c) => c.color === FREE_FORM_LINE_COLOR)).toBe(true);
-			expect(mockCanvas.drawCalls.filter((c) => c.type === 'arc')).toHaveLength(2);
+			// 0 arcs for resting line
+			expect(mockCanvas.drawCalls.filter((c) => c.type === 'arc')).toHaveLength(0);
 			const moves = mockCanvas.drawCalls.filter((c) => c.type === 'moveTo');
 			expect(moves).toHaveLength(1);
 		});
@@ -562,21 +583,36 @@ describe('Free-form Line Plugin', () => {
 			expect(mockCanvas.drawCalls.filter((c) => c.type === 'arc')).toHaveLength(0);
 		});
 
-		it('draws hover and drag rings on the active endpoint handles', () => {
+		it('draws hover and drag rings exclusively on the active endpoint handles', () => {
 			const data = renderData();
 			data.lines[0].p1.isHovered = true;
 			data.lines[0].p2.isDragging = true;
 			renderer.update(data);
 			renderer.draw(mockCanvas.target);
 
+			// 2 handles + 2 rings = 4 arcs
 			expect(mockCanvas.drawCalls.filter((c) => c.type === 'arc')).toHaveLength(4);
+
+			// When only p1 is hovered, only p1 gets a ring: 2 handles + 1 ring = 3 arcs
+			const dataOneHover = renderData();
+			dataOneHover.lines[0].p1.isHovered = true;
+			mockCanvas = createMockCanvasTarget();
+			renderer.update(dataOneHover);
+			renderer.draw(mockCanvas.target);
+			expect(mockCanvas.drawCalls.filter((c) => c.type === 'arc')).toHaveLength(3);
 		});
 
-		it('draws selection rings when the line is selected', () => {
+		it('draws both endpoint handles with blue fill, white border, radius 5 without rings when selected', () => {
 			renderer.update(renderData({ isSelected: true }));
 			renderer.draw(mockCanvas.target);
 
-			expect(mockCanvas.drawCalls.filter((c) => c.type === 'arc')).toHaveLength(4);
+			const arcs = mockCanvas.drawCalls.filter((c) => c.type === 'arc');
+			// 2 handles, 0 rings
+			expect(arcs).toHaveLength(2);
+			expect(arcs[0].args[2]).toBe(HANDLE_RADIUS * 2);
+			expect(arcs[1].args[2]).toBe(HANDLE_RADIUS * 2);
+			expect(mockCanvas.context.fillStyle).toBe('#2962FF');
+			expect(mockCanvas.context.strokeStyle).toBe('#ffffff');
 		});
 
 		it('draws a dashed live preview segment and ghost handle between the placed point and the cursor', () => {
@@ -724,6 +760,24 @@ describe('Free-form Line Plugin', () => {
 				new MouseEvent('click', { clientX: 400, clientY: 300 })
 			);
 			expect(primitive.getSelectedId()).toBeNull();
+		});
+
+		it('selects a line when clicked directly on its connecting segment', () => {
+			primitive.setLines([
+				{
+					id: 'l1',
+					p1: { time: anchor('2024-01-05'), price: 160 },
+					p2: { time: anchor('2024-01-13'), price: 180 }
+				}
+			]);
+			primitive.updateAllViews();
+			expect(primitive.getSelectedId()).toBeNull();
+
+			// Click near midpoint of segment (x: 200, y: 150)
+			mockData.mockChartElement.dispatchEvent(
+				new MouseEvent('click', { clientX: 200, clientY: 150 })
+			);
+			expect(primitive.getSelectedId()).toBe('l1');
 		});
 
 		it('updates the line live while dragging either endpoint in time and price', () => {

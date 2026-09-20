@@ -150,3 +150,9 @@ export const MAX_CORRECTIVE_POINTS = 4;
 export const MAX_WAVE_POINTS = 6;
 export const PREVIEW_LINE_DASH = [4, 4];
 export const PREVIEW_ALPHA = 0.65;
+
+export const HANDLE_RADIUS = 5;
+export const DEFAULT_HANDLE_COLOR = '#2962FF';
+export const DEFAULT_HANDLE_BORDER_COLOR = '#ffffff';
+export const DEFAULT_DRAG_RING_COLOR = 'rgba(41, 98, 255, 0.35)';
+export const DEFAULT_HOVER_RING_COLOR = 'rgba(41, 98, 255, 0.2)';

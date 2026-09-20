@@ -365,6 +365,14 @@ describe('Horizontal Line Plugin', () => {
 			expect(mouse.hitTestPoint(105, 203 + HIT_TEST_RADIUS + 1)).toBeNull();
 		});
 
+		it('hit tests the line across full pane width', () => {
+			mouse.setProjectedLines([{ id: 'hl1', y: 200 }]);
+
+			expect(mouse.hitTestLine(500, 200)).toEqual({ id: 'hl1' });
+			expect(mouse.hitTestLine(500, 200 + HIT_TEST_RADIUS - 1)).toEqual({ id: 'hl1' });
+			expect(mouse.hitTestLine(500, 200 + HIT_TEST_RADIUS + 2)).toBeNull();
+		});
+
 		it('fires hover, drag and click delegates with id-keyed targets', () => {
 			const hoverHandler = vi.fn();
 			const dragStartHandler = vi.fn();
@@ -452,7 +460,12 @@ describe('Horizontal Line Plugin', () => {
 		});
 
 		function renderData(
-			options: { showLabel?: boolean; isSelected?: boolean } = {}
+			options: {
+				showLabel?: boolean;
+				isSelected?: boolean;
+				isHovered?: boolean;
+				isDragging?: boolean;
+			} = {}
 		): HorizontalRendererData {
 			return {
 				lines: [
@@ -463,10 +476,13 @@ describe('Horizontal Line Plugin', () => {
 							y: 300,
 							time: anchor('2024-01-01'),
 							price: 160,
-							isSelected: options.isSelected
+							isSelected: options.isSelected,
+							isHovered: options.isHovered,
+							isDragging: options.isDragging
 						},
 						label: '160.00',
-						showLabel: options.showLabel
+						showLabel: options.showLabel,
+						isSelected: options.isSelected
 					}
 				],
 				preview: null
@@ -486,14 +502,23 @@ describe('Horizontal Line Plugin', () => {
 			expect(mockCanvas.drawCalls.some((c) => c.type === 'stroke')).toBe(true);
 		});
 
-		it('draws the draggable handle as an arc', () => {
+		it('hides the handle on resting unselected unhovered line (0 arcs)', () => {
 			renderer.update(renderData());
+			renderer.draw(mockCanvas.target);
+
+			const arcs = mockCanvas.drawCalls.filter((c) => c.type === 'arc');
+			expect(arcs).toHaveLength(0);
+		});
+
+		it('draws the handle with blue fill, white border, radius 5 when selected without ring', () => {
+			renderer.update(renderData({ isSelected: true }));
 			renderer.draw(mockCanvas.target);
 
 			const arcs = mockCanvas.drawCalls.filter((c) => c.type === 'arc');
 			expect(arcs).toHaveLength(1);
 			expect(arcs[0].args.slice(0, 3)).toEqual([199, 599, HANDLE_RADIUS * 2]);
-			expect(mockCanvas.drawCalls.some((c) => c.type === 'fill')).toBe(true);
+			expect(mockCanvas.context.fillStyle).toBe('#2962FF');
+			expect(mockCanvas.context.strokeStyle).toBe('#ffffff');
 		});
 
 		it('draws the price label only when showLabel is true', () => {
@@ -508,11 +533,16 @@ describe('Horizontal Line Plugin', () => {
 			expect(mockCanvas.drawCalls.filter((c) => c.type === 'fillText')).toHaveLength(0);
 		});
 
-		it('draws selection rings when the line is selected', () => {
-			renderer.update(renderData({ showLabel: true, isSelected: true }));
+		it('draws highlight rings exclusively when the point is hovered or dragged', () => {
+			renderer.update(renderData({ isHovered: true }));
 			renderer.draw(mockCanvas.target);
 
-			// Base handle + selection ring.
+			// Highlight ring + handle dot = 2 arcs
+			expect(mockCanvas.drawCalls.filter((c) => c.type === 'arc')).toHaveLength(2);
+
+			mockCanvas = createMockCanvasTarget();
+			renderer.update(renderData({ isDragging: true }));
+			renderer.draw(mockCanvas.target);
 			expect(mockCanvas.drawCalls.filter((c) => c.type === 'arc')).toHaveLength(2);
 		});
 
@@ -670,6 +700,18 @@ describe('Horizontal Line Plugin', () => {
 				new MouseEvent('click', { clientX: 400, clientY: 300 })
 			);
 			expect(primitive.getSelectedId()).toBeNull();
+		});
+
+		it('selects a line when clicked directly anywhere along its horizontal span', () => {
+			primitive.setHorizontalLines([{ id: 'hl1', p1: { time: anchor('2024-01-05'), price: 160 } }]);
+			primitive.updateAllViews();
+			expect(primitive.getSelectedId()).toBeNull();
+
+			// Click at x=500, y=200 (far from handle at x=100, but on the horizontal line at y=200)
+			mockData.mockChartElement.dispatchEvent(
+				new MouseEvent('click', { clientX: 500, clientY: 200 })
+			);
+			expect(primitive.getSelectedId()).toBe('hl1');
 		});
 
 		it('removes a line and clears its selection', () => {

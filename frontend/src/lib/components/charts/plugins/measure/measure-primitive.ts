@@ -5,9 +5,14 @@ import { normalizeDrawingTime } from '$lib/utils/finance/drawing-time';
 import {
 	computeMeasure,
 	formatMeasureLabel,
+	snapMeasureAngle,
 	type MeasureDirection
 } from '$lib/utils/finance/measure';
-import { MouseHandlers, type ProjectedMeasurePointWithTarget } from './mouse';
+import {
+	MouseHandlers,
+	type ProjectedMeasureLine,
+	type ProjectedMeasurePointWithTarget
+} from './mouse';
 import {
 	type MeasurePreviewData,
 	type MeasureRenderItem,
@@ -64,15 +69,43 @@ export class MeasurePrimitive extends DrawingPrimitiveBase<
 			this._requestUpdate?.();
 		});
 
+		this._subscribe(this._mouseHandlers.lineClicked(), (hit) => {
+			this._state.select(hit.id);
+			this._requestUpdate?.();
+		});
+
 		this._subscribe(this._mouseHandlers.emptyAreaClicked(), () => {
 			this._state.select(null);
 			this._requestUpdate?.();
 		});
 
 		this._subscribe(this._mouseHandlers.pointDragged(), (dragEvent) => {
+			let { time, price } = dragEvent;
+			const measure = this._state.getMeasures().find((m) => m.id === dragEvent.id);
+			if (measure && this._series) {
+				const otherPoint = dragEvent.pointIndex === 0 ? measure.p2 : measure.p1;
+				const otherX = this._timeProjector.epochToCoordinate(normalizeDrawingTime(otherPoint.time));
+				const otherY = this._series.priceToCoordinate(otherPoint.price);
+				if (
+					otherX !== null &&
+					otherY !== null &&
+					dragEvent.x !== undefined &&
+					dragEvent.y !== undefined
+				) {
+					const snap = snapMeasureAngle(
+						{ x: otherX, y: otherY },
+						{ x: dragEvent.x, y: dragEvent.y }
+					);
+					if (snap === 'horizontal') {
+						price = otherPoint.price;
+					} else if (snap === 'vertical') {
+						time = otherPoint.time;
+					}
+				}
+			}
 			this._state.updatePoint(dragEvent.id, dragEvent.pointIndex, {
-				time: dragEvent.time,
-				price: dragEvent.price
+				time,
+				price
 			});
 			this._requestUpdate?.();
 		});
@@ -88,8 +121,26 @@ export class MeasurePrimitive extends DrawingPrimitiveBase<
 		this._state.setMeasures(measures);
 	}
 
-	public addPoint(point: DrawingPoint): DrawingPoint {
-		return this._state.addPoint(point);
+	public override addPoint(point: DrawingPoint): DrawingPoint {
+		let pointToAdd = point;
+		const pending = this._state.getPendingPoints();
+		if (pending.length === 1 && this._series) {
+			const anchor = pending[0];
+			const anchorX = this._timeProjector.epochToCoordinate(normalizeDrawingTime(anchor.time));
+			const anchorY = this._series.priceToCoordinate(anchor.price);
+			const currentX = this._timeProjector.epochToCoordinate(normalizeDrawingTime(point.time));
+			const currentY = this._series.priceToCoordinate(point.price);
+
+			if (anchorX !== null && anchorY !== null && currentX !== null && currentY !== null) {
+				const snap = snapMeasureAngle({ x: anchorX, y: anchorY }, { x: currentX, y: currentY });
+				if (snap === 'horizontal') {
+					pointToAdd = { time: point.time, price: anchor.price };
+				} else if (snap === 'vertical') {
+					pointToAdd = { time: anchor.time, price: point.price };
+				}
+			}
+		}
+		return this._state.addPoint(pointToAdd);
 	}
 
 	public updatePoint(
@@ -146,6 +197,9 @@ export class MeasurePrimitive extends DrawingPrimitiveBase<
 
 		const measures: MeasureRenderItem[] = [];
 		const projectedForMouse: ProjectedMeasurePointWithTarget[] = [];
+		const projectedLines: ProjectedMeasureLine[] = [];
+
+		const ts = this._chart.timeScale();
 
 		for (const drawing of this._state.getMeasures()) {
 			if (drawing.visible === false) continue;
@@ -180,6 +234,13 @@ export class MeasurePrimitive extends DrawingPrimitiveBase<
 				isSelected
 			};
 
+			const l1 = typeof ts.coordinateToLogical === 'function' ? ts.coordinateToLogical(x1) : null;
+			const l2 = typeof ts.coordinateToLogical === 'function' ? ts.coordinateToLogical(x2) : null;
+			const bars = l1 !== null && l2 !== null ? Math.round(Math.abs(l2 - l1)) : 0;
+			const epoch1 = normalizeDrawingTime(drawing.p1.time);
+			const epoch2 = normalizeDrawingTime(drawing.p2.time);
+			const elapsedSeconds = Math.abs(epoch2 - epoch1);
+
 			const { delta, percent, direction } = computeMeasure(drawing.p1, drawing.p2);
 			measures.push({
 				id,
@@ -188,7 +249,7 @@ export class MeasurePrimitive extends DrawingPrimitiveBase<
 				delta,
 				percent,
 				direction,
-				label: formatMeasureLabel(delta, percent),
+				label: formatMeasureLabel(delta, percent, { bars, elapsedSeconds }),
 				visible: drawing.visible,
 				isSelected
 			});
@@ -207,9 +268,16 @@ export class MeasurePrimitive extends DrawingPrimitiveBase<
 				y: y2,
 				originalPoint: drawing.p2
 			});
+
+			projectedLines.push({
+				id,
+				p1: { x: x1, y: y1 },
+				p2: { x: x2, y: y2 }
+			});
 		}
 
 		this._mouseHandlers.setProjectedPoints(projectedForMouse);
+		this._mouseHandlers.setProjectedLines(projectedLines);
 
 		let preview: MeasurePreviewData | null = null;
 		if (this._state.isDrawingMode()) {
@@ -252,8 +320,40 @@ export class MeasurePrimitive extends DrawingPrimitiveBase<
 					time: normalizeDrawingTime(currentMouse.time ?? pending[0].time),
 					price: currentMouse.price
 				};
+
+				let mouseX = currentMouse.x;
+				let mouseY = currentMouse.y;
+				if (placedPoints[0]) {
+					const snap = snapMeasureAngle(placedPoints[0], { x: mouseX, y: mouseY });
+					if (snap === 'horizontal') {
+						target.price = anchor.price;
+						mouseY = placedPoints[0].y;
+						currentMouse.y = mouseY;
+						currentMouse.price = anchor.price;
+					} else if (snap === 'vertical') {
+						target.time = anchor.time;
+						mouseX = placedPoints[0].x;
+						currentMouse.x = mouseX;
+						currentMouse.time = anchor.time;
+					}
+				}
+
+				const l1 =
+					placedPoints[0] && typeof ts.coordinateToLogical === 'function'
+						? ts.coordinateToLogical(placedPoints[0].x)
+						: null;
+				const l2 =
+					typeof ts.coordinateToLogical === 'function' ? ts.coordinateToLogical(mouseX) : null;
+				const bars = l1 !== null && l2 !== null ? Math.round(Math.abs(l2 - l1)) : 0;
+				const epoch1 = normalizeDrawingTime(anchor.time);
+				const epoch2 = normalizeDrawingTime(target.time);
+				const elapsedSeconds = Math.abs(epoch2 - epoch1);
+
 				const computation = computeMeasure(anchor, target);
-				label = formatMeasureLabel(computation.delta, computation.percent);
+				label = formatMeasureLabel(computation.delta, computation.percent, {
+					bars,
+					elapsedSeconds
+				});
 				direction = computation.direction;
 			}
 

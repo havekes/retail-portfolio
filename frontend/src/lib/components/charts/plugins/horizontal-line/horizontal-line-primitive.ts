@@ -1,6 +1,10 @@
 import type { DrawingPoint, HorizontalLineDrawing } from '$lib/utils/finance/drawings';
 import { normalizeDrawingTime } from '$lib/utils/finance/drawing-time';
-import { MouseHandlers, type ProjectedHorizontalLinePointWithTarget } from './mouse';
+import {
+	MouseHandlers,
+	type ProjectedHorizontalLine,
+	type ProjectedHorizontalLinePointWithTarget
+} from './mouse';
 import {
 	type HorizontalPreviewData,
 	type HorizontalRenderItem,
@@ -63,6 +67,11 @@ export class HorizontalLinePrimitive extends DrawingPrimitiveBase<
 		this._subscribeToUpdate(this._state.dragChanged());
 
 		this._subscribe(this._mouseHandlers.pointClicked(), (hit) => {
+			this._state.select(hit.id);
+			this._requestUpdate?.();
+		});
+
+		this._subscribe(this._mouseHandlers.lineClicked(), (hit) => {
 			this._state.select(hit.id);
 			this._requestUpdate?.();
 		});
@@ -151,6 +160,7 @@ export class HorizontalLinePrimitive extends DrawingPrimitiveBase<
 
 		const lines: HorizontalRenderItem[] = [];
 		const projectedForMouse: ProjectedHorizontalLinePointWithTarget[] = [];
+		const projectedLines: ProjectedHorizontalLine[] = [];
 
 		for (const drawing of this._state.getHorizontalLines()) {
 			if (drawing.visible === false) continue;
@@ -187,9 +197,15 @@ export class HorizontalLinePrimitive extends DrawingPrimitiveBase<
 				y,
 				originalPoint: drawing.p1
 			});
+
+			projectedLines.push({
+				id,
+				y
+			});
 		}
 
 		this._mouseHandlers.setProjectedPoints(projectedForMouse);
+		this._mouseHandlers.setProjectedLines(projectedLines);
 
 		let preview: HorizontalPreviewData | null = null;
 		if (this._state.isDrawingMode()) {

@@ -125,6 +125,9 @@ function createMockCanvasTarget() {
 		fillRect(...args: unknown[]) {
 			drawCalls.push({ type: 'fillRect', args, color: styles.fillStyle });
 		},
+		closePath() {
+			drawCalls.push({ type: 'closePath', args: [] });
+		},
 		fillText(text: string, x: number, y: number) {
 			drawCalls.push({ type: 'fillText', args: [text, x, y] });
 		},
@@ -423,6 +426,23 @@ describe('Measure Plugin', () => {
 			expect(mouse.hitTestPoint(105, 203 + HIT_TEST_RADIUS + 1)).toBeNull();
 		});
 
+		it('hit tests connecting line segments within HIT_TEST_RADIUS', () => {
+			mouse.setProjectedLines([
+				{
+					id: 'm1',
+					p1: { x: 100, y: 200 },
+					p2: { x: 300, y: 200 }
+				}
+			]);
+
+			expect(mouse.hitTestLine(200, 200)).toEqual({ id: 'm1', pointIndex: 0 });
+			expect(mouse.hitTestLine(200, 200 + HIT_TEST_RADIUS - 1)).toEqual({
+				id: 'm1',
+				pointIndex: 0
+			});
+			expect(mouse.hitTestLine(200, 200 + HIT_TEST_RADIUS + 2)).toBeNull();
+		});
+
 		it('projects and hit tests anchors through the shared time projector', () => {
 			const projector = new TimeProjector();
 			projector.attach(mockData.chart);
@@ -558,7 +578,7 @@ describe('Measure Plugin', () => {
 			};
 		}
 
-		it('draws the connecting line, handles and the label for an up measure', () => {
+		it('draws the connecting line, arrowhead at p2, and label, and omits resting handles', () => {
 			renderer.update(renderData('up', '+20.00 (+20.0%)'));
 			renderer.draw(mockCanvas.target);
 
@@ -567,7 +587,11 @@ describe('Measure Plugin', () => {
 			expect(strokes.some((c) => c.color === MEASURE_UP_COLOR)).toBe(true);
 			const labels = mockCanvas.drawCalls.filter((c) => c.type === 'fillText');
 			expect(labels.map((c) => c.args[0])).toContain('+20.00 (+20.0%)');
-			expect(mockCanvas.drawCalls.filter((c) => c.type === 'arc')).toHaveLength(2);
+			// Resting handles are omitted
+			expect(mockCanvas.drawCalls.filter((c) => c.type === 'arc')).toHaveLength(0);
+			// Arrowhead draws path with closePath and fill
+			expect(mockCanvas.drawCalls.some((c) => c.type === 'closePath')).toBe(true);
+			expect(mockCanvas.drawCalls.some((c) => c.type === 'fill')).toBe(true);
 		});
 
 		it('uses the down colour for a negative move', () => {
@@ -599,21 +623,38 @@ describe('Measure Plugin', () => {
 			expect(mockCanvas.drawCalls.filter((c) => c.type === 'arc')).toHaveLength(0);
 		});
 
-		it('draws hover and drag rings on the active endpoint handles', () => {
+		it('draws hover and drag rings exclusively on the active endpoint handles', () => {
 			const data = renderData('up', '+20.00 (+20.0%)');
 			data.measures[0].p1.isHovered = true;
 			data.measures[0].p2.isDragging = true;
 			renderer.update(data);
 			renderer.draw(mockCanvas.target);
 
+			// 2 handles + 2 rings = 4 arcs
 			expect(mockCanvas.drawCalls.filter((c) => c.type === 'arc')).toHaveLength(4);
+
+			// When only p1 is hovered, only p1 gets a ring: 2 handles + 1 ring = 3 arcs
+			const dataOneHover = renderData('up', '+20.00 (+20.0%)');
+			dataOneHover.measures[0].p1.isHovered = true;
+			mockCanvas = createMockCanvasTarget();
+			renderer.update(dataOneHover);
+			renderer.draw(mockCanvas.target);
+			expect(mockCanvas.drawCalls.filter((c) => c.type === 'arc')).toHaveLength(3);
 		});
 
-		it('draws selection rings when the measure is selected', () => {
+		it('draws both endpoint handles with blue fill, white border, radius 5 without rings when selected', () => {
 			renderer.update(renderData('up', '+20.00 (+20.0%)', { isSelected: true }));
 			renderer.draw(mockCanvas.target);
 
-			expect(mockCanvas.drawCalls.filter((c) => c.type === 'arc')).toHaveLength(4);
+			const arcs = mockCanvas.drawCalls.filter((c) => c.type === 'arc');
+			// 2 handles, 0 rings
+			expect(arcs).toHaveLength(2);
+			expect(arcs[0].args[2]).toBe(HANDLE_RADIUS * 2);
+			expect(arcs[1].args[2]).toBe(HANDLE_RADIUS * 2);
+			const fills = mockCanvas.drawCalls.filter((c) => c.type === 'fill');
+			expect(fills.some((c) => c.color === '#2962FF')).toBe(true);
+			const strokes = mockCanvas.drawCalls.filter((c) => c.type === 'stroke');
+			expect(strokes.some((c) => c.color === '#ffffff')).toBe(true);
 		});
 
 		it('draws a dashed live preview line and label between the placed point and the cursor', () => {
@@ -743,7 +784,8 @@ describe('Measure Plugin', () => {
 				_data: MeasureRendererData;
 			};
 			expect(renderer._data.preview?.placedPoints).toHaveLength(1);
-			expect(renderer._data.preview?.label).toBe('+20.00 (+12.5%)');
+			expect(renderer._data.preview?.label).toContain('+20.00 (+12.5%)');
+			expect(renderer._data.preview?.label).toContain('8 bars, 8d');
 			expect(renderer._data.preview?.direction).toBe('up');
 		});
 
@@ -767,6 +809,83 @@ describe('Measure Plugin', () => {
 				new MouseEvent('click', { clientX: 400, clientY: 300 })
 			);
 			expect(primitive.getSelectedId()).toBeNull();
+		});
+
+		it('selects a measure when clicked directly on its connecting line segment', () => {
+			primitive.setMeasures([
+				{
+					id: 'm1',
+					p1: { time: anchor('2024-01-05'), price: 160 },
+					p2: { time: anchor('2024-01-13'), price: 180 }
+				}
+			]);
+			primitive.updateAllViews();
+			expect(primitive.getSelectedId()).toBeNull();
+
+			// Click near midpoint of segment (x: 200, y: 150)
+			mockData.mockChartElement.dispatchEvent(
+				new MouseEvent('click', { clientX: 200, clientY: 150 })
+			);
+			expect(primitive.getSelectedId()).toBe('m1');
+		});
+
+		it('snaps to pure horizontal (price delta 0) when horizontal movement is dominant', () => {
+			primitive.setDrawingMode(true);
+			primitive.updateAllViews();
+
+			// Anchor point at x=100, y=200 (price 160)
+			mockData.mockChartElement.dispatchEvent(
+				new MouseEvent('click', { clientX: 100, clientY: 200 })
+			);
+
+			// Click second point at x=300, y=205 (dominant horizontal: dy=5, dx=200)
+			mockData.mockChartElement.dispatchEvent(
+				new MouseEvent('click', { clientX: 300, clientY: 205 })
+			);
+
+			const measures = primitive.getMeasures();
+			expect(measures).toHaveLength(1);
+			expect(measures[0].p1.price).toBe(160);
+			// Price snapped to anchor price: delta is 0
+			expect(measures[0].p2.price).toBe(160);
+			expect(measures[0].p2.time).toBe(anchor('2024-01-13'));
+		});
+
+		it('snaps to pure vertical (time delta 0) when vertical movement is dominant', () => {
+			primitive.setDrawingMode(true);
+			primitive.updateAllViews();
+
+			// Anchor point at x=100, y=200 (price 160, time 2024-01-05)
+			mockData.mockChartElement.dispatchEvent(
+				new MouseEvent('click', { clientX: 100, clientY: 200 })
+			);
+
+			// Click second point at x=105, y=100 (dominant vertical: dx=5, dy=100)
+			mockData.mockChartElement.dispatchEvent(
+				new MouseEvent('click', { clientX: 105, clientY: 100 })
+			);
+
+			const measures = primitive.getMeasures();
+			expect(measures).toHaveLength(1);
+			// Time snapped to anchor time: time delta is 0
+			expect(measures[0].p2.time).toBe(anchor('2024-01-05'));
+			expect(measures[0].p2.price).toBe(180);
+		});
+
+		it('displays bars and elapsed time in the measure label', () => {
+			primitive.setMeasures([
+				{
+					id: 'm1',
+					p1: { time: anchor('2024-01-05'), price: 160 },
+					p2: { time: anchor('2024-01-17'), price: 180 }
+				}
+			]);
+			primitive.updateAllViews();
+
+			const renderer = primitive.paneViews()[0]?.renderer() as unknown as {
+				_data: MeasureRendererData;
+			};
+			expect(renderer._data.measures[0].label).toContain('+20.00 (+12.5%) · 12 bars, 12d');
 		});
 
 		it('updates the measurement live while dragging an endpoint', () => {
@@ -888,7 +1007,7 @@ describe('Measure Plugin', () => {
 				_data: MeasureRendererData;
 			};
 			expect(renderer._data.measures).toHaveLength(1);
-			expect(renderer._data.measures[0].label).toBe('+20.00 (+12.5%)');
+			expect(renderer._data.measures[0].label).toBe('+20.00 (+12.5%) · 10 bars, 10d');
 			expect(renderer._data.measures[0].p1.x).toBe(225);
 			expect(renderer._data.measures[0].p2.x).toBe(475);
 		});
