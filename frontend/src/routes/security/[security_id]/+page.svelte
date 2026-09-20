@@ -78,6 +78,10 @@
 		type RewindDataWindow,
 		type RewindSnapshot
 	} from '$lib/utils/finance/rewind';
+	import {
+		DrawingHistoryManager,
+		type SecurityDrawingState
+	} from '$lib/utils/finance/drawing-history';
 	import RewindTimeline from '$lib/components/charts/rewind-timeline.svelte';
 	import { sliceCandlesBefore } from '$lib/components/charts/rewind-timeline';
 	import { toast } from '$lib/components/ui/toast/index.js';
@@ -252,6 +256,104 @@
 		}
 	}
 
+	const drawingHistoryManager = new DrawingHistoryManager();
+	let isApplyingHistory = false;
+
+	function getCurrentDrawingState(): SecurityDrawingState {
+		if (!security?.id) {
+			return {
+				elliott_waves: null,
+				fibonacci_tools: null,
+				drawings: null
+			};
+		}
+		return {
+			elliott_waves: userPreferences?.elliott_waves?.[security.id] ?? null,
+			fibonacci_tools: userPreferences?.fibonacci_tools?.[security.id] ?? null,
+			drawings: userPreferences?.drawings?.[security.id] ?? null
+		};
+	}
+
+	function recordDrawingStateChange(options?: { coalesce?: boolean }) {
+		if (isApplyingHistory || isRewound || !security?.id) return;
+		drawingHistoryManager.push(getCurrentDrawingState(), options);
+	}
+
+	async function handleUndo() {
+		if (isRewound || !security?.id) return;
+		const previousState = drawingHistoryManager.undo();
+		if (!previousState) return;
+		await applyRestoredDrawingState(previousState);
+	}
+
+	async function handleRedo() {
+		if (isRewound || !security?.id) return;
+		const nextState = drawingHistoryManager.redo();
+		if (!nextState) return;
+		await applyRestoredDrawingState(nextState);
+	}
+
+	async function applyRestoredDrawingState(restored: SecurityDrawingState) {
+		if (!security?.id) return;
+		const secId = security.id;
+
+		isApplyingHistory = true;
+		try {
+			const newElliottWaves = {
+				...(userPreferences?.elliott_waves ?? {})
+			};
+			if (restored.elliott_waves) {
+				newElliottWaves[secId] = restored.elliott_waves;
+			} else {
+				delete newElliottWaves[secId];
+			}
+
+			const newFibonacciTools = {
+				...(userPreferences?.fibonacci_tools ?? {})
+			};
+			if (restored.fibonacci_tools) {
+				newFibonacciTools[secId] = restored.fibonacci_tools;
+			} else {
+				delete newFibonacciTools[secId];
+			}
+
+			const newDrawings = {
+				...(userPreferences?.drawings ?? {})
+			};
+			if (restored.drawings) {
+				newDrawings[secId] = restored.drawings;
+			} else {
+				delete newDrawings[secId];
+			}
+
+			userPreferences = {
+				...(userPreferences ?? {}),
+				elliott_waves: newElliottWaves,
+				fibonacci_tools: newFibonacciTools,
+				drawings: newDrawings
+			};
+
+			selectedWaveDegree = null;
+			selectedFibTool = null;
+			selectedMeasureId = null;
+			selectedHorizontalLineId = null;
+			selectedLineId = null;
+
+			try {
+				await userPreferencesService.patchPreferences({
+					elliott_waves: newElliottWaves,
+					fibonacci_tools: newFibonacciTools,
+					drawings: newDrawings
+				});
+			} catch (err) {
+				console.error('Failed to persist restored drawing state:', err);
+			}
+			scheduleWaveAlertsReconcile();
+		} finally {
+			isApplyingHistory = false;
+		}
+	}
+
 	function handleKeyDown(event: KeyboardEvent) {
 		const target = event.target as HTMLElement | null;
 		if (
@@ -268,31 +370,34 @@
 		if (event.key === 'Delete' || event.key === 'Backspace') {
 			if (isRewound) return;
 			const selectedWaveId = chartRef?.getSelectedWaveId?.();
-			if (selectedWaveDegree || selectedWaveId) {
+			const waveDegree = selectedWaveDegree ?? chartRef?.getSelectedWaveDegree?.();
+			const fibTool = selectedFibTool ?? chartRef?.getSelectedFibTool?.();
+			const measureId = selectedMeasureId ?? chartRef?.getSelectedMeasureId?.();
+			const horizontalLineId =
+				selectedHorizontalLineId ?? chartRef?.getSelectedHorizontalLineId?.();
+			const lineId = selectedLineId ?? chartRef?.getSelectedLineId?.();
+
+			if (waveDegree || selectedWaveId) {
 				event.preventDefault();
-				const degreeToClear = selectedWaveDegree ?? undefined;
+				const degreeToClear = waveDegree ?? undefined;
 				selectedWaveDegree = null;
 				handleClearWave(degreeToClear);
-			} else if (selectedFibTool) {
+			} else if (fibTool) {
 				event.preventDefault();
-				const toolToClear = selectedFibTool;
 				selectedFibTool = null;
-				handleClearFib(toolToClear);
-			} else if (selectedMeasureId) {
+				handleClearFib(fibTool);
+			} else if (measureId) {
 				event.preventDefault();
-				const measureToRemove = selectedMeasureId;
 				selectedMeasureId = null;
-				void handleRemoveMeasure(measureToRemove);
-			} else if (selectedHorizontalLineId) {
+				void handleRemoveMeasure(measureId);
+			} else if (horizontalLineId) {
 				event.preventDefault();
-				const lineToRemove = selectedHorizontalLineId;
 				selectedHorizontalLineId = null;
-				void handleRemoveHorizontalLine(lineToRemove);
-			} else if (selectedLineId) {
+				void handleRemoveHorizontalLine(horizontalLineId);
+			} else if (lineId) {
 				event.preventDefault();
-				const lineToRemove = selectedLineId;
 				selectedLineId = null;
-				void handleRemoveLine(lineToRemove);
+				void handleRemoveLine(lineId);
 			}
 		} else if (event.key === 'Escape') {
 			if (selectedWaveDegree) {
@@ -325,6 +430,18 @@
 			if (isDrawingLine) {
 				isDrawingLine = false;
 			}
+		} else if ((event.metaKey || event.ctrlKey) && (event.key === 'z' || event.key === 'Z')) {
+			event.preventDefault();
+			if (isRewound) return;
+			if (event.shiftKey) {
+				void handleRedo();
+			} else {
+				void handleUndo();
+			}
+		} else if ((event.metaKey || event.ctrlKey) && (event.key === 'y' || event.key === 'Y')) {
+			event.preventDefault();
+			if (isRewound) return;
+			void handleRedo();
 		} else if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === 's') {
 			event.preventDefault();
 			if (isRewound) return;
@@ -352,6 +469,7 @@
 			...(userPreferences ?? {}),
 			elliott_waves: updatedAllWaves
 		};
+		recordDrawingStateChange();
 		try {
 			await userPreferencesService.patchPreferences({
 				elliott_waves: updatedAllWaves
@@ -397,6 +515,7 @@
 			...(userPreferences ?? {}),
 			fibonacci_tools: updatedAllTools
 		};
+		recordDrawingStateChange();
 		try {
 			await userPreferencesService.patchPreferences({
 				fibonacci_tools: updatedAllTools
@@ -459,6 +578,7 @@
 			...(userPreferences ?? {}),
 			fibonacci_tools: updatedAllTools
 		};
+		recordDrawingStateChange();
 		try {
 			await userPreferencesService.patchPreferences({
 				fibonacci_tools: updatedAllTools
@@ -503,6 +623,7 @@
 			...(userPreferences ?? {}),
 			fibonacci_tools: updatedAllTools
 		};
+		recordDrawingStateChange();
 		try {
 			await userPreferencesService.patchPreferences({
 				fibonacci_tools: updatedAllTools
@@ -525,6 +646,7 @@
 			...(userPreferences ?? {}),
 			drawings: updatedAllDrawings
 		};
+		recordDrawingStateChange();
 		try {
 			await userPreferencesService.patchPreferences({
 				drawings: updatedAllDrawings
@@ -550,6 +672,7 @@
 			...(userPreferences ?? {}),
 			drawings: updatedAllDrawings
 		};
+		recordDrawingStateChange();
 		try {
 			await userPreferencesService.patchPreferences({
 				drawings: updatedAllDrawings
@@ -572,6 +695,7 @@
 			...(userPreferences ?? {}),
 			drawings: updatedAllDrawings
 		};
+		recordDrawingStateChange();
 		try {
 			await userPreferencesService.patchPreferences({
 				drawings: updatedAllDrawings
@@ -597,6 +721,7 @@
 			...(userPreferences ?? {}),
 			drawings: updatedAllDrawings
 		};
+		recordDrawingStateChange();
 		try {
 			await userPreferencesService.patchPreferences({
 				drawings: updatedAllDrawings
@@ -619,6 +744,7 @@
 			...(userPreferences ?? {}),
 			drawings: updatedAllDrawings
 		};
+		recordDrawingStateChange();
 		try {
 			await userPreferencesService.patchPreferences({
 				drawings: updatedAllDrawings
@@ -644,6 +770,7 @@
 			...(userPreferences ?? {}),
 			drawings: updatedAllDrawings
 		};
+		recordDrawingStateChange();
 		try {
 			await userPreferencesService.patchPreferences({
 				drawings: updatedAllDrawings
@@ -793,7 +920,12 @@
 		addIndicator: (indicator: IndicatorData) => void;
 		removeIndicator: (indicatorId: string) => void;
 		clearWave?: (waveIdOrDegree?: string | WaveDegree) => void;
+		getSelectedWaveDegree?: () => WaveDegree | null;
 		getSelectedWaveId?: () => string | null;
+		getSelectedFibTool?: () => FibToolType | null;
+		getSelectedMeasureId?: () => string | null;
+		getSelectedHorizontalLineId?: () => string | null;
+		getSelectedLineId?: () => string | null;
 		setPaneHeights?: (heights: Record<string, number> | null) => void;
 	}
 
@@ -1159,6 +1291,7 @@
 	async function onPreferencesLoaded(prefs: UserPreferences) {
 		userPreferences = prefs;
 		applySavedPaneHeights(prefs);
+		drawingHistoryManager.init(getCurrentDrawingState());
 
 		// (a) Apply chart style
 		chartStyle = (prefs.chart_style as ChartStyle | undefined) ?? 'heikin_ashi';
@@ -1225,9 +1358,12 @@
 						const prefs = await userPreferencesService.getPreferences();
 						userPreferences = prefs;
 						applySavedPaneHeights(prefs);
+						drawingHistoryManager.init(getCurrentDrawingState());
 					} catch (err) {
 						console.error('Failed to load user preferences:', err);
 					}
+				} else {
+					drawingHistoryManager.init(getCurrentDrawingState());
 				}
 
 				// Convert to lightweight-charts format and sort properly (oldest to newest)
@@ -1672,6 +1808,8 @@
 										selectedHorizontalLineId = null;
 									}
 								}}
+								onDrawingDragStart={() => drawingHistoryManager.startCoalescing()}
+								onDrawingDragEnd={() => drawingHistoryManager.stopCoalescing()}
 								onPaneHeightsChange={handlePaneHeightsChange}
 							/>
 							<ChartSettingsModal

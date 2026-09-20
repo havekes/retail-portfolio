@@ -6,7 +6,6 @@ import {
 	DEFAULT_HANDLE_BORDER_COLOR,
 	DEFAULT_HANDLE_COLOR,
 	DEFAULT_HOVER_RING_COLOR,
-	DEFAULT_SELECTED_RING_COLOR,
 	FREE_FORM_LINE_COLOR,
 	FREE_FORM_LINE_WIDTH,
 	HANDLE_RADIUS,
@@ -49,9 +48,8 @@ function withSelection(point: ProjectedLinePoint, isSelected?: boolean): Project
 
 /**
  * Renderer for the free-form line tool. Draws a plain straight segment between
- * the two anchors plus a draggable dot handle at each endpoint; while the first
- * point is pending a dashed translucent segment follows the cursor together
- * with a ghost handle.
+ * the two anchors plus a draggable dot handle at each endpoint; handles are
+ * omitted on resting lines and appear when hovered, dragged, or selected.
  */
 export class LinePaneRenderer implements IPrimitivePaneRenderer {
 	private _data: LineRendererData | null = null;
@@ -101,8 +99,19 @@ export class LinePaneRenderer implements IPrimitivePaneRenderer {
 			ctx.restore();
 		}
 
-		this._drawHandle(ctx, withSelection(item.p1, item.isSelected), hpr, vpr);
-		this._drawHandle(ctx, withSelection(item.p2, item.isSelected), hpr, vpr);
+		const showHandles =
+			item.isSelected ||
+			item.p1.isSelected ||
+			item.p2.isSelected ||
+			item.p1.isHovered ||
+			item.p1.isDragging ||
+			item.p2.isHovered ||
+			item.p2.isDragging;
+
+		if (showHandles) {
+			this._drawHandle(ctx, withSelection(item.p1, item.isSelected), hpr, vpr);
+			this._drawHandle(ctx, withSelection(item.p2, item.isSelected), hpr, vpr);
+		}
 	}
 
 	private _drawPreview(
@@ -165,16 +174,12 @@ export class LinePaneRenderer implements IPrimitivePaneRenderer {
 		const py = positionsLine(point.y, vpr, 1).position;
 		const radius = HANDLE_RADIUS * hpr;
 
-		if (point.isHovered || point.isDragging || point.isSelected) {
+		if (point.isHovered || point.isDragging) {
 			ctx.save();
 			try {
 				ctx.beginPath();
 				ctx.arc(px, py, radius + 4 * hpr, 0, Math.PI * 2);
-				ctx.fillStyle = point.isDragging
-					? DEFAULT_DRAG_RING_COLOR
-					: point.isHovered
-						? DEFAULT_HOVER_RING_COLOR
-						: DEFAULT_SELECTED_RING_COLOR;
+				ctx.fillStyle = point.isDragging ? DEFAULT_DRAG_RING_COLOR : DEFAULT_HOVER_RING_COLOR;
 				ctx.fill();
 				ctx.lineWidth = 1.5 * hpr;
 				ctx.strokeStyle = DEFAULT_HANDLE_COLOR;

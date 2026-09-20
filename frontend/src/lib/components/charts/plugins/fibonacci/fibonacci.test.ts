@@ -1001,7 +1001,7 @@ describe('Fibonacci Chart Primitive Plugin', () => {
 			expect(arcCalls.length).toBe(4);
 		});
 
-		it('renders selection ring around anchor handles when drawing is selected', () => {
+		it('renders anchor handles without selection rings when drawing is selected, and renders highlight ring only on hovered/dragged points', () => {
 			const renderData: FibonacciRendererData = {
 				retracement: {
 					p1: {
@@ -1031,8 +1031,15 @@ describe('Fibonacci Chart Primitive Plugin', () => {
 			renderer.draw(mockCanvas.target);
 
 			const arcCalls = mockCanvas.drawCalls.filter((c) => c.type === 'arc');
-			// Each selected handle gets 1 selection ring + 1 circle = 4 arc calls
-			expect(arcCalls.length).toBe(4);
+			// Handles shown without highlight rings on selection: 2 circles = 2 arc calls
+			expect(arcCalls.length).toBe(2);
+
+			// When p1 is hovered, only p1 gets a highlight ring: 1 ring + 2 circles = 3 arc calls
+			renderData.retracement!.p1.isHovered = true;
+			mockCanvas = createMockCanvasTarget();
+			renderer.update(renderData);
+			renderer.draw(mockCanvas.target);
+			expect(mockCanvas.drawCalls.filter((c) => c.type === 'arc')).toHaveLength(3);
 		});
 	});
 

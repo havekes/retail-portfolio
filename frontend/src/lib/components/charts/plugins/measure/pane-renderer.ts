@@ -7,7 +7,6 @@ import {
 	DEFAULT_HANDLE_BORDER_COLOR,
 	DEFAULT_HANDLE_COLOR,
 	DEFAULT_HOVER_RING_COLOR,
-	DEFAULT_SELECTED_RING_COLOR,
 	HANDLE_RADIUS,
 	MEASURE_FILL_ALPHA,
 	MEASURE_LABEL_BG_COLOR,
@@ -126,8 +125,22 @@ export class MeasurePaneRenderer implements IPrimitivePaneRenderer {
 			ctx.restore();
 		}
 
-		this._drawAnchorHandle(ctx, withSelection(item.p1, item.isSelected), hpr, vpr);
-		this._drawAnchorHandle(ctx, withSelection(item.p2, item.isSelected), hpr, vpr);
+		// Directional arrowhead at endpoint p2 oriented along segment vector.
+		this._drawArrowhead(ctx, x1, y1, x2, y2, color, hpr);
+
+		const showHandles =
+			item.isSelected ||
+			item.p1.isSelected ||
+			item.p2.isSelected ||
+			item.p1.isHovered ||
+			item.p1.isDragging ||
+			item.p2.isHovered ||
+			item.p2.isDragging;
+
+		if (showHandles) {
+			this._drawAnchorHandle(ctx, withSelection(item.p1, item.isSelected), hpr, vpr);
+			this._drawAnchorHandle(ctx, withSelection(item.p2, item.isSelected), hpr, vpr);
+		}
 
 		this._drawLabel(
 			ctx,
@@ -138,6 +151,44 @@ export class MeasurePaneRenderer implements IPrimitivePaneRenderer {
 			hpr,
 			vpr
 		);
+	}
+
+	private _drawArrowhead(
+		ctx: CanvasRenderingContext2D,
+		fromX: number,
+		fromY: number,
+		toX: number,
+		toY: number,
+		color: string,
+		hpr: number
+	): void {
+		const dx = toX - fromX;
+		const dy = toY - fromY;
+		const len = Math.hypot(dx, dy);
+		if (len === 0) return;
+
+		const angle = Math.atan2(dy, dx);
+		const arrowLength = 10 * hpr;
+		const arrowAngle = Math.PI / 6;
+
+		ctx.save();
+		try {
+			ctx.beginPath();
+			ctx.fillStyle = color;
+			ctx.moveTo(toX, toY);
+			ctx.lineTo(
+				toX - arrowLength * Math.cos(angle - arrowAngle),
+				toY - arrowLength * Math.sin(angle - arrowAngle)
+			);
+			ctx.lineTo(
+				toX - arrowLength * Math.cos(angle + arrowAngle),
+				toY - arrowLength * Math.sin(angle + arrowAngle)
+			);
+			ctx.closePath();
+			ctx.fill();
+		} finally {
+			ctx.restore();
+		}
 	}
 
 	private _drawPreview(
@@ -158,11 +209,12 @@ export class MeasurePaneRenderer implements IPrimitivePaneRenderer {
 		const anchor = preview.placedPoints[0];
 
 		if (anchor) {
+			const color = measureColor(preview.direction ?? 'flat');
 			ctx.save();
 			try {
 				ctx.beginPath();
 				ctx.globalAlpha = PREVIEW_ALPHA;
-				ctx.strokeStyle = measureColor(preview.direction ?? 'flat');
+				ctx.strokeStyle = color;
 				ctx.lineWidth = MEASURE_LINE_WIDTH * hpr;
 				const dash = PREVIEW_LINE_DASH[0] * hpr;
 				ctx.setLineDash([dash, dash]);
@@ -172,6 +224,8 @@ export class MeasurePaneRenderer implements IPrimitivePaneRenderer {
 			} finally {
 				ctx.restore();
 			}
+
+			this._drawArrowhead(ctx, anchor.x * hpr, anchor.y * vpr, mouseX, mouseY, color, hpr);
 		}
 
 		// Ghost anchor handle at the cursor.
@@ -212,16 +266,12 @@ export class MeasurePaneRenderer implements IPrimitivePaneRenderer {
 		const py = point.y * vpr;
 		const radius = HANDLE_RADIUS * hpr;
 
-		if (point.isHovered || point.isDragging || point.isSelected) {
+		if (point.isHovered || point.isDragging) {
 			ctx.save();
 			try {
 				ctx.beginPath();
 				ctx.arc(px, py, radius + 4 * hpr, 0, Math.PI * 2);
-				ctx.fillStyle = point.isDragging
-					? DEFAULT_DRAG_RING_COLOR
-					: point.isHovered
-						? DEFAULT_HOVER_RING_COLOR
-						: DEFAULT_SELECTED_RING_COLOR;
+				ctx.fillStyle = point.isDragging ? DEFAULT_DRAG_RING_COLOR : DEFAULT_HOVER_RING_COLOR;
 				ctx.fill();
 				ctx.lineWidth = 1.5 * hpr;
 				ctx.strokeStyle = DEFAULT_HANDLE_COLOR;

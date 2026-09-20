@@ -134,7 +134,12 @@ function createMockChartAndSeries() {
 
 // Helper to create mock Canvas 2D context and CanvasRenderingTarget2D
 function createMockCanvasTarget() {
-	const drawCalls: { type: string; args: unknown[] }[] = [];
+	const drawCalls: {
+		type: string;
+		args: unknown[];
+		fillStyle?: string | CanvasGradient | CanvasPattern;
+		strokeStyle?: string | CanvasGradient | CanvasPattern;
+	}[] = [];
 	const context = {
 		save: vi.fn(() => drawCalls.push({ type: 'save', args: [] })),
 		restore: vi.fn(() => drawCalls.push({ type: 'restore', args: [] })),
@@ -142,8 +147,20 @@ function createMockCanvasTarget() {
 		moveTo: vi.fn((x: number, y: number) => drawCalls.push({ type: 'moveTo', args: [x, y] })),
 		lineTo: vi.fn((x: number, y: number) => drawCalls.push({ type: 'lineTo', args: [x, y] })),
 		arc: vi.fn((...args: unknown[]) => drawCalls.push({ type: 'arc', args })),
-		fill: vi.fn(() => drawCalls.push({ type: 'fill', args: [] })),
-		stroke: vi.fn(() => drawCalls.push({ type: 'stroke', args: [] })),
+		fill: vi.fn(() =>
+			drawCalls.push({
+				type: 'fill',
+				args: [],
+				fillStyle: (context as unknown as CanvasRenderingContext2D).fillStyle
+			})
+		),
+		stroke: vi.fn(() =>
+			drawCalls.push({
+				type: 'stroke',
+				args: [],
+				strokeStyle: (context as unknown as CanvasRenderingContext2D).strokeStyle
+			})
+		),
 		fillText: vi.fn((text: string, x: number, y: number) =>
 			drawCalls.push({ type: 'fillText', args: [text, x, y] })
 		),
@@ -734,7 +751,7 @@ describe('Elliott Wave Plugin', () => {
 			expect(labels).not.toContain('(0)');
 		});
 
-		it('renders highlight ring when a point (including wave 0) is hovered or dragged', () => {
+		it('renders anchor dot and highlight ring when a point is hovered', () => {
 			const { target, drawCalls } = createMockCanvasTarget();
 
 			renderer.update({
@@ -753,13 +770,16 @@ describe('Elliott Wave Plugin', () => {
 
 			renderer.draw(target);
 
-			// Should have at least 1 arc call for the highlight ring (no anchor dot is drawn)
+			// Should have 1 highlight ring + 1 anchor dot = 2 arcs
 			const arcCalls = drawCalls.filter((c) => c.type === 'arc');
-			expect(arcCalls.length).toBeGreaterThanOrEqual(1);
+			expect(arcCalls).toHaveLength(2);
+			const fills = drawCalls.filter((c) => c.type === 'fill');
+			expect(fills.some((f) => f.fillStyle === '#2962FF')).toBe(true);
+			expect(fills.some((f) => f.fillStyle === 'rgba(41, 98, 255, 0.2)')).toBe(true);
 		});
 
-		it('renders selection ring around node badges when wave degree is selected', () => {
-			const { target, drawCalls, context } = createMockCanvasTarget();
+		it('renders anchor dots without highlight rings when wave degree is selected but unhovered', () => {
+			const { target, drawCalls } = createMockCanvasTarget();
 
 			renderer.update({
 				degrees: [
@@ -779,10 +799,65 @@ describe('Elliott Wave Plugin', () => {
 
 			renderer.draw(target);
 
-			// Should have selection halo for point 0 (1 ring + 1 dot = 2 arcs) and point 1 (1 ring = 1 arc) -> total 3 arcs
+			// Should have anchor dots for point 0 and point 1 (2 arcs total), NO highlight rings
 			const arcCalls = drawCalls.filter((c) => c.type === 'arc');
-			expect(arcCalls.length).toBeGreaterThanOrEqual(2);
-			expect(context.fillStyle).toBeDefined();
+			expect(arcCalls).toHaveLength(2);
+			const fills = drawCalls.filter((c) => c.type === 'fill');
+			expect(fills.some((f) => f.fillStyle === '#2962FF')).toBe(true);
+			expect(fills.some((f) => f.fillStyle === 'rgba(41, 98, 255, 0.2)')).toBe(false);
+		});
+
+		it('renders highlight ring exclusively around hovered point on a selected wave', () => {
+			const { target, drawCalls } = createMockCanvasTarget();
+
+			renderer.update({
+				degrees: [
+					{
+						degree: 'cycle',
+						config: CYCLE_STYLE,
+						isActiveDegree: true,
+						isSelected: true,
+						points: [
+							{ wave: 0, x: 100, y: 300, time: '2024-01-01' as Time, price: 100, isHovered: true },
+							{ wave: 1, x: 150, y: 250, time: '2024-01-02' as Time, price: 120, isHovered: false }
+						]
+					}
+				],
+				preview: null
+			});
+
+			renderer.draw(target);
+
+			// 2 anchor dots + 1 highlight ring for the hovered point = 3 arcs
+			const arcCalls = drawCalls.filter((c) => c.type === 'arc');
+			expect(arcCalls).toHaveLength(3);
+			const fills = drawCalls.filter((c) => c.type === 'fill');
+			expect(fills.some((f) => f.fillStyle === 'rgba(41, 98, 255, 0.2)')).toBe(true);
+		});
+
+		it('renders no anchor dots or highlight rings for resting unselected unhovered wave', () => {
+			const { target, drawCalls } = createMockCanvasTarget();
+
+			renderer.update({
+				degrees: [
+					{
+						degree: 'cycle',
+						config: CYCLE_STYLE,
+						isActiveDegree: false,
+						isSelected: false,
+						points: [
+							{ wave: 0, x: 100, y: 300, time: '2024-01-01' as Time, price: 100 },
+							{ wave: 1, x: 150, y: 250, time: '2024-01-02' as Time, price: 120 }
+						]
+					}
+				],
+				preview: null
+			});
+
+			renderer.draw(target);
+
+			const arcCalls = drawCalls.filter((c) => c.type === 'arc');
+			expect(arcCalls).toHaveLength(0);
 		});
 
 		it('renders drawing preview for wave 0 without text badge', () => {

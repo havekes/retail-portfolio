@@ -149,6 +149,8 @@
 		onLineChange,
 		onLineDrawingModeChange,
 		onLineSelect,
+		onDrawingDragStart,
+		onDrawingDragEnd,
 		futureBars = DEFAULT_FUTURE_BARS,
 		onPaneHeightsChange
 	} = $props<{
@@ -203,6 +205,8 @@
 		onLineChange?: (lines: LineDrawing[]) => void;
 		onLineDrawingModeChange?: (isDrawing: boolean) => void;
 		onLineSelect?: (id: string | null) => void;
+		onDrawingDragStart?: () => void;
+		onDrawingDragEnd?: () => void;
 		futureBars?: number;
 		onPaneHeightsChange?: (heights: PaneHeights | null) => void;
 	}>();
@@ -915,6 +919,9 @@
 			onWaveSelect?.(degree);
 		});
 
+		elliottWavesPrimitive.dragStarted().subscribe(() => onDrawingDragStart?.());
+		elliottWavesPrimitive.dragEnded().subscribe(() => onDrawingDragEnd?.());
+
 		fibonacciPrimitive = new FibonacciPrimitive({
 			activeTool: activeFibTool,
 			drawings: fibonacciTools ? normalizeSecurityFibonacciTools(fibonacciTools) : undefined,
@@ -949,6 +956,9 @@
 			onFibDoubleClick?.(tool);
 		});
 
+		fibonacciPrimitive.dragStarted().subscribe(() => onDrawingDragStart?.());
+		fibonacciPrimitive.dragEnded().subscribe(() => onDrawingDragEnd?.());
+
 		measurePrimitive = new MeasurePrimitive({
 			measures: securityDrawings?.measures ?? null,
 			isDrawingMode: isDrawingMeasure,
@@ -973,6 +983,9 @@
 			}
 			onMeasureSelect?.(id);
 		});
+
+		measurePrimitive.dragStarted().subscribe(() => onDrawingDragStart?.());
+		measurePrimitive.dragEnded().subscribe(() => onDrawingDragEnd?.());
 
 		horizontalLinePrimitive = new HorizontalLinePrimitive({
 			horizontalLines: securityDrawings?.horizontalLines ?? null,
@@ -1007,6 +1020,9 @@
 			onHorizontalLineSelect?.(id);
 		});
 
+		horizontalLinePrimitive.dragStarted().subscribe(() => onDrawingDragStart?.());
+		horizontalLinePrimitive.dragEnded().subscribe(() => onDrawingDragEnd?.());
+
 		freeFormLinePrimitive = new FreeFormLinePrimitive({
 			lines: securityDrawings?.lines ?? null,
 			isDrawingMode: isDrawingLine,
@@ -1038,6 +1054,9 @@
 			}
 			onLineSelect?.(id);
 		});
+
+		freeFormLinePrimitive.dragStarted().subscribe(() => onDrawingDragStart?.());
+		freeFormLinePrimitive.dragEnded().subscribe(() => onDrawingDragEnd?.());
 
 		const handleWheel = (event: WheelEvent) => {
 			if (!containerRef || !chartInstance || !seriesInstance) return;

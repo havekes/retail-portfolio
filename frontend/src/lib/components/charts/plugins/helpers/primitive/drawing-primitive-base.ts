@@ -137,7 +137,7 @@ export abstract class DrawingPrimitiveBase<
 
 		this._subscribe(this._mouseHandlers.chartClicked(), (clickEvent) => {
 			if (this._state.isDrawingMode()) {
-				this._state.addPoint({
+				this.addPoint({
 					time: clickEvent.time,
 					price: clickEvent.price
 				});
@@ -230,8 +230,20 @@ export abstract class DrawingPrimitiveBase<
 		this._requestUpdate?.();
 	}
 
+	public addPoint(point: { time: Time; price: number }): unknown {
+		return this._state.addPoint(point);
+	}
+
 	public drawingModeChanged(): ISubscription<boolean> {
 		return this._state.drawingModeChanged();
+	}
+
+	public dragStarted(): ISubscription<TDragTarget> {
+		return this._mouseHandlers.dragStarted();
+	}
+
+	public dragEnded(): ISubscription<TDragTarget> {
+		return this._mouseHandlers.dragEnded();
 	}
 
 	public setCandles(candles: Candle[]): void {

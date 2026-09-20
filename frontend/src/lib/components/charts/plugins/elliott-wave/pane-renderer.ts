@@ -1,7 +1,15 @@
 import type { BitmapCoordinatesRenderingScope, CanvasRenderingTarget2D } from 'fancy-canvas';
 import type { IPrimitivePaneRenderer, Time } from 'lightweight-charts';
 import type { WaveDegree, WavePointId, WaveType } from '$lib/utils/finance/elliott-wave';
-import { type DegreeVisualConfig, PREVIEW_ALPHA } from './constants';
+import {
+	type DegreeVisualConfig,
+	PREVIEW_ALPHA,
+	HANDLE_RADIUS,
+	DEFAULT_HANDLE_COLOR,
+	DEFAULT_HANDLE_BORDER_COLOR,
+	DEFAULT_DRAG_RING_COLOR,
+	DEFAULT_HOVER_RING_COLOR
+} from './constants';
 
 export interface ProjectedWavePoint {
 	wave: WavePointId;
@@ -174,25 +182,41 @@ export class ElliottWavePaneRenderer implements IPrimitivePaneRenderer {
 		hpr: number,
 		vpr: number
 	): void {
+		const isDrawing = this._data?.preview !== null;
+		const isWaveActive =
+			degreeData.isSelected ||
+			degreeData.points.some((p) => p.isHovered || p.isDragging) ||
+			(isDrawing && degreeData.isActiveDegree);
+
 		for (const point of degreeData.points) {
 			const px = point.x * hpr;
 			const py = point.y * vpr;
-			const radius = degreeData.config.nodeRadius * hpr;
+			const radius = HANDLE_RADIUS * hpr;
 
-			// Highlight ring on hover, drag, or selection
-			if (point.isHovered || point.isDragging || degreeData.isSelected || point.isSelected) {
-				const ringColor =
-					point.isHovered || point.isDragging
-						? degreeData.config.hoverRingColor
-						: (degreeData.config.selectedRingColor ?? degreeData.config.hoverRingColor);
+			// Highlight ring on hover or drag only (never all points when selected)
+			if (point.isHovered || point.isDragging) {
+				const ringColor = point.isDragging ? DEFAULT_DRAG_RING_COLOR : DEFAULT_HOVER_RING_COLOR;
 				ctx.save();
 				try {
 					ctx.beginPath();
 					ctx.arc(px, py, radius + 4 * hpr, 0, Math.PI * 2);
 					ctx.fillStyle = ringColor;
 					ctx.fill();
-					ctx.lineWidth = 1 * hpr;
-					ctx.strokeStyle = degreeData.config.color;
+				} finally {
+					ctx.restore();
+				}
+			}
+
+			// Anchor dot handles: visible when wave is active (selected, hovered, dragging, or drawing)
+			if (isWaveActive) {
+				ctx.save();
+				try {
+					ctx.beginPath();
+					ctx.arc(px, py, radius, 0, Math.PI * 2);
+					ctx.fillStyle = DEFAULT_HANDLE_COLOR;
+					ctx.fill();
+					ctx.lineWidth = 1.5 * hpr;
+					ctx.strokeStyle = DEFAULT_HANDLE_BORDER_COLOR;
 					ctx.stroke();
 				} finally {
 					ctx.restore();
@@ -269,25 +293,28 @@ export class ElliottWavePaneRenderer implements IPrimitivePaneRenderer {
 				ctx.setLineDash([dash, dash]);
 				ctx.moveTo(lastX, lastY);
 				ctx.lineTo(mouseX, mouseY);
-				ctx.stroke();
 			} finally {
 				ctx.restore();
 			}
 		}
 
+		// Ghost preview anchor handle at cursor position
+		ctx.save();
+		try {
+			ctx.globalAlpha = PREVIEW_ALPHA;
+			ctx.beginPath();
+			ctx.arc(mouseX, mouseY, HANDLE_RADIUS * hpr, 0, Math.PI * 2);
+			ctx.fillStyle = DEFAULT_HANDLE_COLOR;
+			ctx.fill();
+			ctx.lineWidth = 1.5 * hpr;
+			ctx.strokeStyle = DEFAULT_HANDLE_BORDER_COLOR;
+			ctx.stroke();
+		} finally {
+			ctx.restore();
+		}
+
 		// Ghost preview label at cursor position (without badge background)
-		if (preview.nextWave === 0) {
-			ctx.save();
-			try {
-				ctx.globalAlpha = PREVIEW_ALPHA;
-				ctx.beginPath();
-				ctx.arc(mouseX, mouseY, 3 * hpr, 0, Math.PI * 2);
-				ctx.fillStyle = preview.config.color;
-				ctx.fill();
-			} finally {
-				ctx.restore();
-			}
-		} else {
+		if (preview.nextWave !== 0) {
 			ctx.save();
 			try {
 				ctx.globalAlpha = PREVIEW_ALPHA;

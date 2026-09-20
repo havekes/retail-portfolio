@@ -14,7 +14,7 @@ import type {
 } from '$lib/utils/finance/fibonacci';
 import { updateSecurityFibonacciTools } from '$lib/utils/finance/fibonacci';
 import type { RewindSnapshot } from '$lib/utils/finance/rewind';
-import type { SecurityDrawings } from '$lib/utils/finance/drawings';
+import type { SecurityDrawings, MeasureDrawing } from '$lib/utils/finance/drawings';
 import { snapshotsService } from '$lib/api/snapshotsService';
 import { toast } from '$lib/components/ui/toast/index.js';
 if (typeof globalThis.Path2D === 'undefined') {
@@ -4456,5 +4456,169 @@ describe('Security Page - Free-form Line Tool & Integration', () => {
 			expect(mockChartProps).not.toBeNull();
 		});
 		expect(userPreferencesService.patchPreferences).not.toHaveBeenCalled();
+	});
+});
+
+describe('Security Page - Session Drawing Undo/Redo', () => {
+	/* eslint-disable-next-line @typescript-eslint/no-explicit-any */
+	let PageComponent: Component<any>;
+
+	const mockData = {
+		security: {
+			id: 'sec-1',
+			symbol: 'AAPL',
+			name: 'Apple Inc.'
+		},
+		items: [
+			{
+				timestamp: 1704067200,
+				open: 100,
+				high: 105,
+				low: 99,
+				close: 104,
+				volume: 1000
+			}
+		]
+	};
+
+	const sampleMeasure: MeasureDrawing = {
+		id: 'measure-undo',
+		p1: { time: 1704067200 as unknown as Time, price: 100 },
+		p2: { time: 1704153600 as unknown as Time, price: 105 }
+	};
+
+	beforeAll(async () => {
+		const mod = await import('./+page.svelte');
+		PageComponent = mod.default;
+	}, 30000);
+
+	beforeEach(() => {
+		vi.clearAllMocks();
+		mockChartProps = null;
+		vi.mocked(userPreferencesService.getPreferences).mockResolvedValue({});
+		vi.mocked(userPreferencesService.patchPreferences).mockResolvedValue({});
+		vi.mocked(snapshotsService.getSnapshots).mockResolvedValue([]);
+	});
+
+	it('undoes a newly added drawing on Ctrl+Z and redoes on Ctrl+Shift+Z', async () => {
+		render(PageComponent, { props: { data: mockData } });
+
+		await waitFor(() => {
+			expect(mockChartProps).not.toBeNull();
+		});
+
+		// 1. Add a measure
+		// @ts-expect-error - mockChartProps typed as Record
+		mockChartProps.onMeasureChange?.([sampleMeasure]);
+
+		await waitFor(() => {
+			expect(userPreferencesService.patchPreferences).toHaveBeenCalledWith(
+				expect.objectContaining({
+					drawings: expect.objectContaining({
+						'sec-1': expect.objectContaining({
+							measures: [sampleMeasure]
+						})
+					})
+				})
+			);
+		});
+
+		vi.mocked(userPreferencesService.patchPreferences).mockClear();
+
+		// 2. Press Ctrl+Z to undo
+		await fireEvent.keyDown(window, { key: 'z', ctrlKey: true });
+
+		await waitFor(() => {
+			expect(userPreferencesService.patchPreferences).toHaveBeenCalledWith(
+				expect.objectContaining({
+					drawings: expect.not.objectContaining({
+						'sec-1': expect.objectContaining({
+							measures: [sampleMeasure]
+						})
+					})
+				})
+			);
+		});
+
+		vi.mocked(userPreferencesService.patchPreferences).mockClear();
+
+		// 3. Press Ctrl+Shift+Z to redo
+		await fireEvent.keyDown(window, { key: 'z', ctrlKey: true, shiftKey: true });
+
+		await waitFor(() => {
+			expect(userPreferencesService.patchPreferences).toHaveBeenCalledWith(
+				expect.objectContaining({
+					drawings: expect.objectContaining({
+						'sec-1': expect.objectContaining({
+							measures: [sampleMeasure]
+						})
+					})
+				})
+			);
+		});
+	});
+
+	it('redoes with Cmd+Y', async () => {
+		render(PageComponent, { props: { data: mockData } });
+
+		await waitFor(() => {
+			expect(mockChartProps).not.toBeNull();
+		});
+
+		// Add measure
+		// @ts-expect-error - mockChartProps typed as Record
+		mockChartProps.onMeasureChange?.([sampleMeasure]);
+		await waitFor(() => {
+			expect(userPreferencesService.patchPreferences).toHaveBeenCalled();
+		});
+
+		// Undo with Cmd+Z
+		await fireEvent.keyDown(window, { key: 'z', metaKey: true });
+		await waitFor(() => {
+			// @ts-expect-error - mockChartProps typed as Record
+			expect(mockChartProps.securityDrawings?.measures ?? []).toHaveLength(0);
+		});
+
+		vi.mocked(userPreferencesService.patchPreferences).mockClear();
+
+		// Redo with Cmd+Y
+		await fireEvent.keyDown(window, { key: 'y', metaKey: true });
+		await waitFor(() => {
+			expect(userPreferencesService.patchPreferences).toHaveBeenCalledWith(
+				expect.objectContaining({
+					drawings: expect.objectContaining({
+						'sec-1': expect.objectContaining({
+							measures: [sampleMeasure]
+						})
+					})
+				})
+			);
+		});
+	});
+
+	it('does not trigger undo when active element is an input', async () => {
+		render(PageComponent, { props: { data: mockData } });
+
+		await waitFor(() => {
+			expect(mockChartProps).not.toBeNull();
+		});
+
+		// Add measure
+		// @ts-expect-error - mockChartProps typed as Record
+		mockChartProps.onMeasureChange?.([sampleMeasure]);
+		await waitFor(() => {
+			expect(userPreferencesService.patchPreferences).toHaveBeenCalled();
+		});
+
+		vi.mocked(userPreferencesService.patchPreferences).mockClear();
+
+		const inputEl = document.createElement('input');
+		document.body.appendChild(inputEl);
+		inputEl.focus();
+
+		await fireEvent.keyDown(inputEl, { key: 'z', ctrlKey: true });
+
+		expect(userPreferencesService.patchPreferences).not.toHaveBeenCalled();
+		document.body.removeChild(inputEl);
 	});
 });
