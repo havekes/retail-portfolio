@@ -2029,6 +2029,47 @@ describe('Security Page - Chart Settings Modal & Wave Settings Integration', () 
 			});
 		});
 	});
+
+	it('opens ChartSettingsModal via Cmd+, and Ctrl+, keyboard shortcuts', async () => {
+		render(PageComponent, { props: { data: mockData } });
+
+		await waitFor(() => {
+			expect(mockChartProps).not.toBeNull();
+		});
+
+		expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+
+		// Press Cmd+,
+		await fireEvent.keyDown(window, { key: ',', metaKey: true });
+		expect(await screen.findByRole('dialog')).toBeInTheDocument();
+
+		// Close modal
+		const closeBtn = screen.getByRole('button', { name: 'Close' });
+		await fireEvent.click(closeBtn);
+		await waitFor(() => {
+			expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+		});
+
+		// Press Ctrl+,
+		await fireEvent.keyDown(window, { key: ',', ctrlKey: true });
+		expect(await screen.findByRole('dialog')).toBeInTheDocument();
+
+		// Close modal
+		const closeBtn2 = screen.getByRole('button', { name: 'Close' });
+		await fireEvent.click(closeBtn2);
+		await waitFor(() => {
+			expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+		});
+
+		// Input focus guard
+		const inputEl = document.createElement('input');
+		document.body.appendChild(inputEl);
+		inputEl.focus();
+
+		await fireEvent.keyDown(inputEl, { key: ',', ctrlKey: true });
+		expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+		document.body.removeChild(inputEl);
+	});
 });
 
 describe('Security Page - Top Toolbar', () => {
@@ -2087,7 +2128,7 @@ describe('Security Page - Top Toolbar', () => {
 
 		const settingsBtn = screen.getByRole('button', { name: /Open chart settings/i });
 		expect(settingsBtn).toBeInTheDocument();
-		expect(settingsBtn).toHaveAttribute('title', 'Chart Settings');
+		expect(settingsBtn).toHaveAttribute('title', 'Chart Settings (Ctrl+, / ⌘,)');
 	});
 
 	it('clicking Candlestick icon button sets chartStyle to candlestick and persists preference', async () => {
@@ -4620,5 +4661,73 @@ describe('Security Page - Session Drawing Undo/Redo', () => {
 
 		expect(userPreferencesService.patchPreferences).not.toHaveBeenCalled();
 		document.body.removeChild(inputEl);
+	});
+
+	it('undoes and redoes drawings via drawing toolbar Undo/Redo buttons', async () => {
+		render(PageComponent, { props: { data: mockData } });
+
+		await waitFor(() => {
+			expect(mockChartProps).not.toBeNull();
+		});
+
+		const undoBtn = screen.getByRole('button', { name: 'Undo' });
+		const redoBtn = screen.getByRole('button', { name: 'Redo' });
+
+		// Initially disabled
+		expect(undoBtn).toBeDisabled();
+		expect(redoBtn).toBeDisabled();
+
+		// Add measure drawing
+		// @ts-expect-error - mockChartProps typed as Record
+		mockChartProps.onMeasureChange?.([sampleMeasure]);
+
+		await waitFor(() => {
+			expect(undoBtn).toBeEnabled();
+		});
+		expect(redoBtn).toBeDisabled();
+
+		vi.mocked(userPreferencesService.patchPreferences).mockClear();
+
+		// Click Undo button in toolbar
+		await fireEvent.click(undoBtn);
+
+		await waitFor(() => {
+			expect(userPreferencesService.patchPreferences).toHaveBeenCalledWith(
+				expect.objectContaining({
+					drawings: expect.not.objectContaining({
+						'sec-1': expect.objectContaining({
+							measures: [sampleMeasure]
+						})
+					})
+				})
+			);
+		});
+
+		await waitFor(() => {
+			expect(undoBtn).toBeDisabled();
+			expect(redoBtn).toBeEnabled();
+		});
+
+		vi.mocked(userPreferencesService.patchPreferences).mockClear();
+
+		// Click Redo button in toolbar
+		await fireEvent.click(redoBtn);
+
+		await waitFor(() => {
+			expect(userPreferencesService.patchPreferences).toHaveBeenCalledWith(
+				expect.objectContaining({
+					drawings: expect.objectContaining({
+						'sec-1': expect.objectContaining({
+							measures: [sampleMeasure]
+						})
+					})
+				})
+			);
+		});
+
+		await waitFor(() => {
+			expect(undoBtn).toBeEnabled();
+			expect(redoBtn).toBeDisabled();
+		});
 	});
 });

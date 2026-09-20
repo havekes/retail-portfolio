@@ -34,6 +34,7 @@ export class MeasureToolState {
 	private _pendingPoints: DrawingPoint[] = [];
 	private _selectedId: string | null = null;
 	private _hovered: MeasurePointTarget | null = null;
+	private _hoveredLine: MeasurePointTarget | null = null;
 	private _dragging: MeasurePointTarget | null = null;
 	private _isDrawingMode: boolean = false;
 
@@ -43,6 +44,7 @@ export class MeasureToolState {
 	private _drawingModeChanged: Delegate<boolean> = new Delegate();
 	private _selectionChanged: Delegate<string | null> = new Delegate();
 	private _hoverChanged: Delegate<MeasurePointTarget | null> = new Delegate();
+	private _hoveredLineChanged: Delegate<MeasurePointTarget | null> = new Delegate();
 	private _dragChanged: Delegate<MeasurePointTarget | null> = new Delegate();
 
 	constructor(idFactory: () => string = generateUUID) {
@@ -63,6 +65,10 @@ export class MeasureToolState {
 
 	public hoverChanged(): ISubscription<MeasurePointTarget | null> {
 		return this._hoverChanged;
+	}
+
+	public hoveredLineChanged(): ISubscription<MeasurePointTarget | null> {
+		return this._hoveredLineChanged;
 	}
 
 	public dragChanged(): ISubscription<MeasurePointTarget | null> {
@@ -180,6 +186,7 @@ export class MeasureToolState {
 			this._selectionChanged.fire(null);
 		}
 		if (this._hovered?.id === id) this.setHoveredPoint(null);
+		if (this._hoveredLine?.id === id) this.setHoveredLine(null);
 		if (this._dragging?.id === id) this.setDraggingPoint(null);
 		this._drawingsChanged.fire(this.getMeasures());
 		return true;
@@ -210,6 +217,18 @@ export class MeasureToolState {
 		return this._hovered;
 	}
 
+	public setHoveredLine(line: MeasurePointTarget | null): void {
+		const changed = this._hoveredLine?.id !== line?.id;
+		if (changed) {
+			this._hoveredLine = line;
+			this._hoveredLineChanged.fire(line);
+		}
+	}
+
+	public getHoveredLine(): MeasurePointTarget | null {
+		return this._hoveredLine;
+	}
+
 	public setDraggingPoint(point: MeasurePointTarget | null): void {
 		const changed =
 			this._dragging?.id !== point?.id || this._dragging?.pointIndex !== point?.pointIndex;
@@ -228,6 +247,7 @@ export class MeasureToolState {
 		this._drawingModeChanged.destroy();
 		this._selectionChanged.destroy();
 		this._hoverChanged.destroy();
+		this._hoveredLineChanged.destroy();
 		this._dragChanged.destroy();
 	}
 }

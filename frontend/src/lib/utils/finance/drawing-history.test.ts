@@ -174,6 +174,37 @@ describe('DrawingHistoryManager', () => {
 		expect(manager.undo()).toEqual(stateWithLine);
 		expect(manager.undo()).toEqual(emptyState);
 	});
+
+	it('notifies subscribers on init, push, undo, redo, and clear, and allows unsubscribe', () => {
+		let callCount = 0;
+		const unsubscribe = manager.subscribe(() => {
+			callCount++;
+		});
+
+		manager.push(stateWithLine);
+		expect(callCount).toBe(1);
+
+		// Duplicate push should not notify
+		manager.push(stateWithLine);
+		expect(callCount).toBe(1);
+
+		manager.undo();
+		expect(callCount).toBe(2);
+
+		manager.redo();
+		expect(callCount).toBe(3);
+
+		manager.init(emptyState);
+		expect(callCount).toBe(4);
+
+		manager.clear();
+		expect(callCount).toBe(5);
+
+		// Unsubscribe stops notifications
+		unsubscribe();
+		manager.push(stateWithLine);
+		expect(callCount).toBe(5);
+	});
 });
 
 describe('areDrawingStatesEqual', () => {

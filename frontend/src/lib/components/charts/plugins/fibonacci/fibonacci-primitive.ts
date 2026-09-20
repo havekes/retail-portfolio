@@ -24,7 +24,7 @@ import {
 	type RetracementRenderData
 } from './pane-renderer';
 import { FibonacciPaneView } from './pane-view';
-import { FibonacciToolState, type FibPointTarget } from './state';
+import { FibonacciToolState, type FibPointTarget, type FibToolTarget } from './state';
 import { DrawingPrimitiveBase } from '../helpers/primitive/drawing-primitive-base';
 
 function projectLevels(
@@ -95,6 +95,7 @@ export class FibonacciPrimitive extends DrawingPrimitiveBase<
 		this._subscribeToUpdate(this._state.toolChanged());
 		this._subscribeToUpdate(this._state.selectionChanged());
 		this._subscribeToUpdate(this._state.hoverChanged());
+		this._subscribeToUpdate(this._state.hoveredLineChanged());
 		this._subscribeToUpdate(this._state.dragChanged());
 
 		this._subscribe(this._mouseHandlers.pointClicked(), (hit) => {
@@ -104,6 +105,11 @@ export class FibonacciPrimitive extends DrawingPrimitiveBase<
 
 		this._subscribe(this._mouseHandlers.lineClicked(), (hit) => {
 			this._state.setSelectedTool(hit.tool);
+			this._requestUpdate?.();
+		});
+
+		this._subscribe(this._mouseHandlers.lineHovered(), (hit) => {
+			this._state.setHoveredLine(hit);
 			this._requestUpdate?.();
 		});
 
@@ -221,6 +227,14 @@ export class FibonacciPrimitive extends DrawingPrimitiveBase<
 		return this._state.hoverChanged();
 	}
 
+	public hoveredLineChanged(): ISubscription<FibToolTarget | null> {
+		return this._state.hoveredLineChanged();
+	}
+
+	public getHoveredLine(): FibToolTarget | null {
+		return this._state.getHoveredLine();
+	}
+
 	public dragChanged(): ISubscription<FibPointTarget | null> {
 		return this._state.dragChanged();
 	}
@@ -238,6 +252,7 @@ export class FibonacciPrimitive extends DrawingPrimitiveBase<
 		const allProjectedLinesForMouse: ProjectedFibLine[] = [];
 		const timescaleWidth = this._chart?.timeScale().width() ?? 800;
 		const hovered = this._state.getHoveredPoint();
+		const hoveredLine = this._state.getHoveredLine();
 		const dragging = this._state.getDraggingPoint();
 		const selectedTool = this._state.getSelectedTool();
 		const isRetracementSelected = selectedTool === 'retracement';
@@ -329,7 +344,8 @@ export class FibonacciPrimitive extends DrawingPrimitiveBase<
 					extendLines: retracement.extendLines,
 					widthMultiplier: retracement.widthMultiplier,
 					visible: retracement.visible,
-					isSelected: isRetracementSelected
+					isSelected: isRetracementSelected,
+					isHovered: hoveredLine?.tool === 'retracement'
 				};
 			}
 		}
@@ -445,7 +461,8 @@ export class FibonacciPrimitive extends DrawingPrimitiveBase<
 					extendLines: extension.extendLines,
 					widthMultiplier: extension.widthMultiplier,
 					visible: extension.visible,
-					isSelected: isExtensionSelected
+					isSelected: isExtensionSelected,
+					isHovered: hoveredLine?.tool === 'extension'
 				};
 			}
 		}

@@ -35,6 +35,7 @@ export class HorizontalLineToolState {
 	private _lines: HorizontalLineDrawing[] = [];
 	private _selectedId: string | null = null;
 	private _hovered: HorizontalLineTarget | null = null;
+	private _hoveredLine: HorizontalLineTarget | null = null;
 	private _dragging: HorizontalLineTarget | null = null;
 	private _isDrawingMode: boolean = false;
 
@@ -44,6 +45,7 @@ export class HorizontalLineToolState {
 	private _drawingModeChanged: Delegate<boolean> = new Delegate();
 	private _selectionChanged: Delegate<string | null> = new Delegate();
 	private _hoverChanged: Delegate<HorizontalLineTarget | null> = new Delegate();
+	private _hoveredLineChanged: Delegate<HorizontalLineTarget | null> = new Delegate();
 	private _dragChanged: Delegate<HorizontalLineTarget | null> = new Delegate();
 
 	constructor(idFactory: () => string = generateUUID) {
@@ -64,6 +66,10 @@ export class HorizontalLineToolState {
 
 	public hoverChanged(): ISubscription<HorizontalLineTarget | null> {
 		return this._hoverChanged;
+	}
+
+	public hoveredLineChanged(): ISubscription<HorizontalLineTarget | null> {
+		return this._hoveredLineChanged;
 	}
 
 	public dragChanged(): ISubscription<HorizontalLineTarget | null> {
@@ -145,6 +151,7 @@ export class HorizontalLineToolState {
 			this._selectionChanged.fire(null);
 		}
 		if (this._hovered?.id === id) this.setHoveredPoint(null);
+		if (this._hoveredLine?.id === id) this.setHoveredLine(null);
 		if (this._dragging?.id === id) this.setDraggingPoint(null);
 		this._drawingsChanged.fire(this.getHorizontalLines());
 		return true;
@@ -174,6 +181,18 @@ export class HorizontalLineToolState {
 		return this._hovered;
 	}
 
+	public setHoveredLine(target: HorizontalLineTarget | null): void {
+		const changed = this._hoveredLine?.id !== target?.id;
+		if (changed) {
+			this._hoveredLine = target;
+			this._hoveredLineChanged.fire(target);
+		}
+	}
+
+	public getHoveredLine(): HorizontalLineTarget | null {
+		return this._hoveredLine;
+	}
+
 	public setDraggingPoint(target: HorizontalLineTarget | null): void {
 		const changed = this._dragging?.id !== target?.id;
 		if (changed) {
@@ -191,6 +210,7 @@ export class HorizontalLineToolState {
 		this._drawingModeChanged.destroy();
 		this._selectionChanged.destroy();
 		this._hoverChanged.destroy();
+		this._hoveredLineChanged.destroy();
 		this._dragChanged.destroy();
 	}
 }

@@ -411,4 +411,80 @@ describe('DrawingToolbar Component', () => {
 		rerender({ isTimelineVisible: true });
 		expect(timelineBtn.className).toContain('bg-primary');
 	});
+
+	it('renders Horizontal Line button with dedicated HorizontalLineIcon SVG', () => {
+		render(DrawingToolbar);
+
+		const lineBtn = screen.getByRole('button', { name: 'Toggle Horizontal Line drawing' });
+		const lineSvg = lineBtn.querySelector('svg');
+		expect(lineSvg).toBeInTheDocument();
+		const lineEl = lineSvg?.querySelector('line');
+		expect(lineEl).toHaveAttribute('x1', '3');
+		expect(lineEl).toHaveAttribute('y1', '12');
+		expect(lineEl).toHaveAttribute('x2', '21');
+		expect(lineEl).toHaveAttribute('y2', '12');
+	});
+
+	it('renders Line button with dedicated LineIcon SVG', () => {
+		render(DrawingToolbar);
+
+		const lineBtn = screen.getByRole('button', { name: 'Toggle Line drawing' });
+		const lineSvg = lineBtn.querySelector('svg');
+		expect(lineSvg).toBeInTheDocument();
+		const lineEl = lineSvg?.querySelector('line');
+		expect(lineEl).toHaveAttribute('x1', '5');
+		expect(lineEl).toHaveAttribute('y1', '19');
+		expect(lineEl).toHaveAttribute('x2', '19');
+		expect(lineEl).toHaveAttribute('y2', '5');
+	});
+
+	it('renders Undo and Redo buttons with shortcut tooltips and disabled state by default', () => {
+		render(DrawingToolbar);
+
+		const undoBtn = screen.getByRole('button', { name: 'Undo' });
+		expect(undoBtn).toBeInTheDocument();
+		expect(undoBtn).toHaveAttribute('title', 'Undo (Ctrl+Z / ⌘Z)');
+		expect(undoBtn).toBeDisabled();
+
+		const redoBtn = screen.getByRole('button', { name: 'Redo' });
+		expect(redoBtn).toBeInTheDocument();
+		expect(redoBtn).toHaveAttribute('title', 'Redo (Ctrl+Y / ⌘Y)');
+		expect(redoBtn).toBeDisabled();
+	});
+
+	it('enables Undo and Redo buttons when canUndo and canRedo are true and triggers callbacks', async () => {
+		const onUndo = vi.fn();
+		const onRedo = vi.fn();
+
+		const { rerender } = render(DrawingToolbar, {
+			props: {
+				canUndo: true,
+				canRedo: true,
+				onUndo,
+				onRedo
+			}
+		});
+
+		const undoBtn = screen.getByRole('button', { name: 'Undo' });
+		const redoBtn = screen.getByRole('button', { name: 'Redo' });
+
+		expect(undoBtn).toBeEnabled();
+		expect(redoBtn).toBeEnabled();
+
+		await fireEvent.click(undoBtn);
+		expect(onUndo).toHaveBeenCalledTimes(1);
+
+		await fireEvent.click(redoBtn);
+		expect(onRedo).toHaveBeenCalledTimes(1);
+
+		// When disabled, clicking should not trigger callbacks
+		rerender({ canUndo: false, canRedo: false });
+		expect(undoBtn).toBeDisabled();
+		expect(redoBtn).toBeDisabled();
+
+		await fireEvent.click(undoBtn);
+		await fireEvent.click(redoBtn);
+		expect(onUndo).toHaveBeenCalledTimes(1);
+		expect(onRedo).toHaveBeenCalledTimes(1);
+	});
 });

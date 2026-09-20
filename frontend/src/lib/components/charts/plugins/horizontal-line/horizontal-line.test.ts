@@ -464,6 +464,7 @@ describe('Horizontal Line Plugin', () => {
 				showLabel?: boolean;
 				isSelected?: boolean;
 				isHovered?: boolean;
+				isLineHovered?: boolean;
 				isDragging?: boolean;
 			} = {}
 		): HorizontalRendererData {
@@ -482,7 +483,8 @@ describe('Horizontal Line Plugin', () => {
 						},
 						label: '160.00',
 						showLabel: options.showLabel,
-						isSelected: options.isSelected
+						isSelected: options.isSelected,
+						isHovered: options.isLineHovered
 					}
 				],
 				preview: null
@@ -544,6 +546,17 @@ describe('Horizontal Line Plugin', () => {
 			renderer.update(renderData({ isDragging: true }));
 			renderer.draw(mockCanvas.target);
 			expect(mockCanvas.drawCalls.filter((c) => c.type === 'arc')).toHaveLength(2);
+		});
+
+		it('draws the handle dot without highlight ring when line is hovered (1 arc)', () => {
+			renderer.update(renderData({ isLineHovered: true }));
+			renderer.draw(mockCanvas.target);
+
+			const arcs = mockCanvas.drawCalls.filter((c) => c.type === 'arc');
+			expect(arcs).toHaveLength(1);
+			expect(arcs[0].args.slice(0, 3)).toEqual([199, 599, HANDLE_RADIUS * 2]);
+			expect(mockCanvas.context.fillStyle).toBe('#2962FF');
+			expect(mockCanvas.context.strokeStyle).toBe('#ffffff');
 		});
 
 		it('skips invisible lines', () => {
@@ -768,6 +781,38 @@ describe('Horizontal Line Plugin', () => {
 			expect(primitive.getHoveredPoint()).toEqual({ id: 'hl1' });
 			primitive.updateAllViews();
 			expect(primitive.hitTest()?.cursorStyle).toBe('default');
+		});
+
+		it('shows handle without highlight ring when hovering line, and highlights point when hovering handle', () => {
+			primitive.setHorizontalLines([{ id: 'hl1', p1: { time: anchor('2024-01-05'), price: 160 } }]);
+			primitive.updateAllViews();
+
+			// Hover at x=500, y=200 (far from handle at x=100, on horizontal line)
+			mockData.mockChartElement.dispatchEvent(
+				new MouseEvent('mousemove', { clientX: 500, clientY: 200 })
+			);
+			primitive.updateAllViews();
+
+			expect(primitive.getHoveredLine()).toEqual({ id: 'hl1' });
+			expect(primitive.getHoveredPoint()).toBeNull();
+
+			let renderer = primitive.paneViews()[0]?.renderer() as unknown as {
+				_data: HorizontalRendererData;
+			};
+			expect(renderer._data.lines[0].isHovered).toBe(true);
+			expect(renderer._data.lines[0].p1.isHovered).toBe(false);
+
+			// Hover directly over handle at x=100, y=200
+			mockData.mockChartElement.dispatchEvent(
+				new MouseEvent('mousemove', { clientX: 100, clientY: 200 })
+			);
+			primitive.updateAllViews();
+
+			expect(primitive.getHoveredPoint()).toEqual({ id: 'hl1' });
+			renderer = primitive.paneViews()[0]?.renderer() as unknown as {
+				_data: HorizontalRendererData;
+			};
+			expect(renderer._data.lines[0].p1.isHovered).toBe(true);
 		});
 
 		it('gates the price label on setHideLabels', () => {

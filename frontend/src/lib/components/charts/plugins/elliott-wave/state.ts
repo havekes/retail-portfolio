@@ -33,6 +33,7 @@ export class ElliottWaveState {
 	private _isDrawingMode: boolean = false;
 	private _selectedDegree: WaveDegree | null = null;
 	private _hoveredPoint: PointTarget | null = null;
+	private _hoveredLine: PointTarget | null = null;
 	private _draggingPoint: PointTarget | null = null;
 
 	private _wavePointsChanged: Delegate<WavePointsChangedEvent> = new Delegate();
@@ -42,6 +43,7 @@ export class ElliottWaveState {
 	private _selectionChanged: Delegate<WaveDegree | null> = new Delegate();
 	private _selectedWaveChanged: Delegate<string | null> = new Delegate();
 	private _hoverChanged: Delegate<PointTarget | null> = new Delegate();
+	private _hoveredLineChanged: Delegate<PointTarget | null> = new Delegate();
 	private _dragChanged: Delegate<PointTarget | null> = new Delegate();
 
 	public wavePointsChanged(): ISubscription<WavePointsChangedEvent> {
@@ -70,6 +72,10 @@ export class ElliottWaveState {
 
 	public hoverChanged(): ISubscription<PointTarget | null> {
 		return this._hoverChanged;
+	}
+
+	public hoveredLineChanged(): ISubscription<PointTarget | null> {
+		return this._hoveredLineChanged;
 	}
 
 	public dragChanged(): ISubscription<PointTarget | null> {
@@ -425,6 +431,15 @@ export class ElliottWaveState {
 		if (this._drawingWaveId === id) {
 			this._drawingWaveId = null;
 		}
+		if (this._hoveredLine?.waveId === id) {
+			this.setHoveredLine(null);
+		}
+		if (this._hoveredPoint?.waveId === id) {
+			this.setHoveredPoint(null);
+		}
+		if (this._draggingPoint?.waveId === id) {
+			this.setDraggingPoint(null);
+		}
 		const degreeHasWaves = this._waves.some((w) => w.degree === removed.degree);
 		if (clearedSelectedWave || (this._selectedDegree === removed.degree && !degreeHasWaves)) {
 			this.setSelectedDegree(null);
@@ -454,6 +469,21 @@ export class ElliottWaveState {
 		return this._hoveredPoint;
 	}
 
+	public setHoveredLine(line: PointTarget | null): void {
+		const changed =
+			this._hoveredLine?.degree !== line?.degree ||
+			this._hoveredLine?.wave !== line?.wave ||
+			this._hoveredLine?.waveId !== line?.waveId;
+		if (changed) {
+			this._hoveredLine = line;
+			this._hoveredLineChanged.fire(line);
+		}
+	}
+
+	public getHoveredLine(): PointTarget | null {
+		return this._hoveredLine;
+	}
+
 	public setDraggingPoint(point: PointTarget | null): void {
 		const changed =
 			this._draggingPoint?.degree !== point?.degree ||
@@ -477,6 +507,7 @@ export class ElliottWaveState {
 		this._selectionChanged.destroy();
 		this._selectedWaveChanged.destroy();
 		this._hoverChanged.destroy();
+		this._hoveredLineChanged.destroy();
 		this._dragChanged.destroy();
 	}
 }

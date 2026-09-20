@@ -16,6 +16,10 @@ export interface FibPointTarget {
 	pointIndex: 0 | 1 | 2;
 }
 
+export interface FibToolTarget {
+	tool: FibToolType;
+}
+
 export class FibonacciToolState {
 	private _activeTool: FibToolType | null = 'retracement';
 	private _isDrawingMode: boolean = false;
@@ -25,6 +29,7 @@ export class FibonacciToolState {
 	private _pendingPoints: FibPoint[] = [];
 
 	private _hoveredPoint: FibPointTarget | null = null;
+	private _hoveredLine: FibToolTarget | null = null;
 	private _draggingPoint: FibPointTarget | null = null;
 
 	private _drawingsChanged: Delegate<SecurityFibonacciTools> = new Delegate();
@@ -32,6 +37,7 @@ export class FibonacciToolState {
 	private _toolChanged: Delegate<FibToolType | null> = new Delegate();
 	private _selectionChanged: Delegate<FibToolType | null> = new Delegate();
 	private _hoverChanged: Delegate<FibPointTarget | null> = new Delegate();
+	private _hoveredLineChanged: Delegate<FibToolTarget | null> = new Delegate();
 	private _dragChanged: Delegate<FibPointTarget | null> = new Delegate();
 
 	public drawingsChanged(): ISubscription<SecurityFibonacciTools> {
@@ -52,6 +58,10 @@ export class FibonacciToolState {
 
 	public hoverChanged(): ISubscription<FibPointTarget | null> {
 		return this._hoverChanged;
+	}
+
+	public hoveredLineChanged(): ISubscription<FibToolTarget | null> {
+		return this._hoveredLineChanged;
 	}
 
 	public dragChanged(): ISubscription<FibPointTarget | null> {
@@ -283,6 +293,15 @@ export class FibonacciToolState {
 			if (this._selectedTool === 'retracement') {
 				this.setSelectedTool(null);
 			}
+			if (this._hoveredPoint?.tool === 'retracement') {
+				this.setHoveredPoint(null);
+			}
+			if (this._hoveredLine?.tool === 'retracement') {
+				this.setHoveredLine(null);
+			}
+			if (this._draggingPoint?.tool === 'retracement') {
+				this.setDraggingPoint(null);
+			}
 			this._retracement = null;
 			if (this._activeTool === 'retracement') {
 				this._pendingPoints = [];
@@ -291,6 +310,15 @@ export class FibonacciToolState {
 		if (!tool || tool === 'extension') {
 			if (this._selectedTool === 'extension') {
 				this.setSelectedTool(null);
+			}
+			if (this._hoveredPoint?.tool === 'extension') {
+				this.setHoveredPoint(null);
+			}
+			if (this._hoveredLine?.tool === 'extension') {
+				this.setHoveredLine(null);
+			}
+			if (this._draggingPoint?.tool === 'extension') {
+				this.setDraggingPoint(null);
 			}
 			this._extension = null;
 			if (this._activeTool === 'extension') {
@@ -314,6 +342,18 @@ export class FibonacciToolState {
 		return this._hoveredPoint;
 	}
 
+	public setHoveredLine(target: FibToolTarget | null): void {
+		const changed = this._hoveredLine?.tool !== target?.tool;
+		if (changed) {
+			this._hoveredLine = target ? { tool: target.tool } : null;
+			this._hoveredLineChanged.fire(this._hoveredLine);
+		}
+	}
+
+	public getHoveredLine(): FibToolTarget | null {
+		return this._hoveredLine;
+	}
+
 	public setDraggingPoint(point: FibPointTarget | null): void {
 		const changed =
 			this._draggingPoint?.tool !== point?.tool ||
@@ -334,6 +374,7 @@ export class FibonacciToolState {
 		this._toolChanged.destroy();
 		this._selectionChanged.destroy();
 		this._hoverChanged.destroy();
+		this._hoveredLineChanged.destroy();
 		this._dragChanged.destroy();
 	}
 }

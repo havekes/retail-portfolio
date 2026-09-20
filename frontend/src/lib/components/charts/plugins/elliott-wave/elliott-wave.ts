@@ -82,6 +82,7 @@ export class ElliottWavesPrimitive extends DrawingPrimitiveBase<
 		this._subscribeToUpdate(this._state.waveTypeChanged());
 		this._subscribeToUpdate(this._state.selectionChanged());
 		this._subscribeToUpdate(this._state.selectedWaveChanged());
+		this._subscribeToUpdate(this._state.hoveredLineChanged());
 
 		this._subscribe(this._mouseHandlers.pointClicked(), (hit) => {
 			this._state.setSelectedWaveId(hit.waveId ?? null);
@@ -90,7 +91,7 @@ export class ElliottWavesPrimitive extends DrawingPrimitiveBase<
 		});
 
 		this._subscribe(this._mouseHandlers.lineHovered(), (target) => {
-			this._state.setHoveredPoint(target);
+			this._state.setHoveredLine(target);
 			this._requestUpdate?.();
 		});
 
@@ -279,6 +280,18 @@ export class ElliottWavesPrimitive extends DrawingPrimitiveBase<
 		return this._state.degreeChanged();
 	}
 
+	public getHoveredPoint(): PointTarget | null {
+		return this._state.getHoveredPoint();
+	}
+
+	public getHoveredLine(): PointTarget | null {
+		return this._state.getHoveredLine();
+	}
+
+	public getDraggingPoint(): PointTarget | null {
+		return this._state.getDraggingPoint();
+	}
+
 	protected override _calculateRendererData(): ElliottWaveRendererData | null {
 		if (!this._chart || !this._series) return null;
 
@@ -288,6 +301,7 @@ export class ElliottWavesPrimitive extends DrawingPrimitiveBase<
 		const degreeRenderDataList: DegreeRenderData[] = [];
 
 		const hovered = this._state.getHoveredPoint();
+		const hoveredLine = this._state.getHoveredLine();
 		const dragging = this._state.getDraggingPoint();
 		const activeDegree = this._state.getActiveDegree();
 		const selectedDegree = this._state.getSelectedDegree();
@@ -304,15 +318,18 @@ export class ElliottWavesPrimitive extends DrawingPrimitiveBase<
 				(selectedWaveId !== null && wave.id === selectedWaveId) ||
 				(selectedWaveId === null && selectedDegree !== null && waveDegree === selectedDegree);
 
+			const isWaveHovered = hoveredLine?.waveId
+				? hoveredLine.waveId === wave.id
+				: hoveredLine !== null && hoveredLine?.degree === waveDegree;
+
 			for (const pt of points) {
 				const x = this._timeProjector.epochToCoordinate(timeToEpochSeconds(pt.time));
 				const y = series.priceToCoordinate(pt.price);
 
 				if (x !== null && y !== null) {
-					// Hovering any point (or the connecting line) highlights every point
-					// of that wave, so the whole wave reads as a single hovered unit.
+					// Highlight ring on hover or drag strictly for this point
 					const isHovered = hovered?.waveId
-						? hovered.waveId === wave.id
+						? hovered.waveId === wave.id && hovered.wave === pt.wave
 						: hovered?.degree === waveDegree && hovered?.wave === pt.wave;
 					const isDragging = dragging?.waveId
 						? dragging.waveId === wave.id && dragging.wave === pt.wave
@@ -370,7 +387,8 @@ export class ElliottWavesPrimitive extends DrawingPrimitiveBase<
 				config,
 				points: projectedPoints,
 				isActiveDegree: waveDegree === activeDegree,
-				isSelected: isWaveSelected
+				isSelected: isWaveSelected,
+				isHovered: isWaveHovered
 			});
 		}
 

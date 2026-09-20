@@ -258,6 +258,18 @@
 
 	const drawingHistoryManager = new DrawingHistoryManager();
 	let isApplyingHistory = false;
+	let canUndo = $state(false);
+	let canRedo = $state(false);
+
+	$effect(() => {
+		canUndo = drawingHistoryManager.canUndo();
+		canRedo = drawingHistoryManager.canRedo();
+		const unsubscribe = drawingHistoryManager.subscribe(() => {
+			canUndo = drawingHistoryManager.canUndo();
+			canRedo = drawingHistoryManager.canRedo();
+		});
+		return unsubscribe;
+	});
 
 	function getCurrentDrawingState(): SecurityDrawingState {
 		if (!security?.id) {
@@ -446,6 +458,9 @@
 			event.preventDefault();
 			if (isRewound) return;
 			void handleSaveSnapshot();
+		} else if ((event.metaKey || event.ctrlKey) && event.key === ',') {
+			event.preventDefault();
+			isChartSettingsOpen = true;
 		}
 	}
 
@@ -1560,14 +1575,14 @@
 											onclick={() => (isChartSettingsOpen = true)}
 											class="rounded p-1.5 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
 											aria-label="Open chart settings"
-											title="Chart Settings"
+											title="Chart Settings (Ctrl+, / ⌘,)"
 										>
 											<Settings class="h-4 w-4" />
 										</button>
 									{/snippet}
 								</Tooltip.Trigger>
 								<Tooltip.Content side="bottom">
-									<p>Chart Settings</p>
+									<p>Chart Settings (Ctrl+, / ⌘,)</p>
 								</Tooltip.Content>
 							</Tooltip.Root>
 						</div>
@@ -1584,6 +1599,10 @@
 						isDrawingHorizontalLine={isRewound ? false : isDrawingHorizontalLine}
 						isDrawingLine={isRewound ? false : isDrawingLine}
 						{isTimelineVisible}
+						canUndo={isRewound ? false : canUndo}
+						canRedo={isRewound ? false : canRedo}
+						onUndo={handleUndo}
+						onRedo={handleRedo}
 						onToggleTimeline={() => (isTimelineVisible = !isTimelineVisible)}
 						onSave={handleSaveSnapshot}
 						{saveFeedback}
