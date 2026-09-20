@@ -224,6 +224,27 @@ class SqlAlchemyPositionRepository(PositionRepository):
         ], total or 0
 
     @override
+    async def get_by_user(
+        self, user_id: UserId, offset: int = 0, limit: int = 50
+    ) -> tuple[list[PositionSchema], int]:
+        base_query = (
+            select(PositionModel)
+            .join(AccountModel, PositionModel.account_id == AccountModel.id)
+            .where(AccountModel.user_id == user_id)
+            .order_by(PositionModel.id)
+        )
+        total = await self._session.scalar(
+            select(func.count()).select_from(base_query.subquery())
+        )
+
+        result = await self._session.execute(base_query.offset(offset).limit(limit))
+        position_models = result.scalars().all()
+        return [
+            PositionSchema.model_validate(position_model)
+            for position_model in position_models
+        ], total or 0
+
+    @override
     async def get_holdings_by_security(
         self, security_id: SecurityId, user_id: UserId, offset: int = 0, limit: int = 50
     ) -> tuple[list[AccountHoldingRead], int]:
