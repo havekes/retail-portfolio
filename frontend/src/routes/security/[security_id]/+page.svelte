@@ -258,12 +258,10 @@
 
 	const drawingHistoryManager = new DrawingHistoryManager();
 	let isApplyingHistory = false;
-	let canUndo = $state(false);
-	let canRedo = $state(false);
+	let canUndo = $state(drawingHistoryManager.canUndo());
+	let canRedo = $state(drawingHistoryManager.canRedo());
 
 	$effect(() => {
-		canUndo = drawingHistoryManager.canUndo();
-		canRedo = drawingHistoryManager.canRedo();
 		const unsubscribe = drawingHistoryManager.subscribe(() => {
 			canUndo = drawingHistoryManager.canUndo();
 			canRedo = drawingHistoryManager.canRedo();

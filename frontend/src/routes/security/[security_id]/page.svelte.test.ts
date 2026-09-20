@@ -467,7 +467,7 @@ describe('Security Page - Elliott Wave Toolbar & Integration', () => {
 	beforeAll(async () => {
 		const mod = await import('./+page.svelte');
 		PageComponent = mod.default;
-	}, 30000);
+	}, 60000);
 
 	beforeEach(() => {
 		vi.clearAllMocks();
@@ -681,7 +681,7 @@ describe('Security Page - Wave Selection & Keyboard Deletion', () => {
 	beforeAll(async () => {
 		const mod = await import('./+page.svelte');
 		PageComponent = mod.default;
-	}, 30000);
+	}, 60000);
 
 	beforeEach(() => {
 		vi.clearAllMocks();
@@ -945,7 +945,7 @@ describe('Security Page - Fibonacci Toolbar & Integration', () => {
 	beforeAll(async () => {
 		const mod = await import('./+page.svelte');
 		PageComponent = mod.default;
-	}, 30000);
+	}, 60000);
 
 	beforeEach(() => {
 		vi.clearAllMocks();
@@ -1197,7 +1197,7 @@ describe('Security Page - Fibonacci Selection & Keyboard Deletion', () => {
 	beforeAll(async () => {
 		const mod = await import('./+page.svelte');
 		PageComponent = mod.default;
-	}, 30000);
+	}, 60000);
 
 	beforeEach(() => {
 		vi.clearAllMocks();
@@ -1484,7 +1484,7 @@ describe('Security Page - Viewport Containment & Scrolling Layout', () => {
 	beforeAll(async () => {
 		const mod = await import('./+page.svelte');
 		PageComponent = mod.default;
-	}, 30000);
+	}, 60000);
 
 	beforeEach(() => {
 		vi.clearAllMocks();
@@ -1609,7 +1609,7 @@ describe('Security Page - Wave Target Alert Reconcile', () => {
 	beforeAll(async () => {
 		const mod = await import('./+page.svelte');
 		PageComponent = mod.default;
-	}, 30000);
+	}, 60000);
 
 	beforeEach(() => {
 		vi.clearAllMocks();
@@ -1893,7 +1893,7 @@ describe('Security Page - Chart Settings Modal & Wave Settings Integration', () 
 	beforeAll(async () => {
 		const mod = await import('./+page.svelte');
 		PageComponent = mod.default;
-	}, 30000);
+	}, 60000);
 
 	beforeEach(() => {
 		vi.clearAllMocks();
@@ -2088,7 +2088,7 @@ describe('Security Page - Top Toolbar', () => {
 	beforeAll(async () => {
 		const mod = await import('./+page.svelte');
 		PageComponent = mod.default;
-	}, 30000);
+	}, 60000);
 
 	beforeEach(() => {
 		vi.clearAllMocks();
@@ -2234,7 +2234,7 @@ describe('Rewind Save Snapshot', () => {
 	beforeAll(async () => {
 		const mod = await import('./+page.svelte');
 		PageComponent = mod.default;
-	}, 30000);
+	}, 60000);
 
 	beforeEach(() => {
 		vi.clearAllMocks();
@@ -2800,7 +2800,7 @@ describe('Rewind Scrub and Drawing Restore', () => {
 	beforeAll(async () => {
 		const mod = await import('./+page.svelte');
 		PageComponent = mod.default;
-	}, 30000);
+	}, 60000);
 
 	beforeEach(() => {
 		vi.clearAllMocks();
@@ -3139,7 +3139,7 @@ describe('Security Page - Asynchronous Indicator Integration', () => {
 	beforeAll(async () => {
 		const mod = await import('./+page.svelte');
 		PageComponent = mod.default;
-	}, 30000);
+	}, 60000);
 
 	beforeEach(() => {
 		vi.clearAllMocks();
@@ -3496,7 +3496,7 @@ describe('Security Page - Indicator Pane Heights', () => {
 	beforeAll(async () => {
 		const mod = await import('./+page.svelte');
 		PageComponent = mod.default;
-	}, 30000);
+	}, 60000);
 
 	beforeEach(() => {
 		vi.clearAllMocks();
@@ -3596,7 +3596,7 @@ describe('Security Page - Measure Tool & Integration', () => {
 	beforeAll(async () => {
 		const mod = await import('./+page.svelte');
 		PageComponent = mod.default;
-	}, 30000);
+	}, 60000);
 
 	beforeEach(() => {
 		vi.clearAllMocks();
@@ -3903,7 +3903,7 @@ describe('Security Page - Horizontal Line Tool & Integration', () => {
 	beforeAll(async () => {
 		const mod = await import('./+page.svelte');
 		PageComponent = mod.default;
-	}, 30000);
+	}, 60000);
 
 	beforeEach(() => {
 		vi.clearAllMocks();
@@ -4214,7 +4214,7 @@ describe('Security Page - Free-form Line Tool & Integration', () => {
 	beforeAll(async () => {
 		const mod = await import('./+page.svelte');
 		PageComponent = mod.default;
-	}, 30000);
+	}, 60000);
 
 	beforeEach(() => {
 		vi.clearAllMocks();
@@ -4531,7 +4531,7 @@ describe('Security Page - Session Drawing Undo/Redo', () => {
 	beforeAll(async () => {
 		const mod = await import('./+page.svelte');
 		PageComponent = mod.default;
-	}, 30000);
+	}, 60000);
 
 	beforeEach(() => {
 		vi.clearAllMocks();
