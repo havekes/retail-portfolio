@@ -546,14 +546,17 @@ describe('Free-form Line Plugin', () => {
 			mockCanvas = createMockCanvasTarget();
 		});
 
-		function renderData(options: { isSelected?: boolean } = {}): LineRendererData {
+		function renderData(
+			options: { isSelected?: boolean; isHovered?: boolean } = {}
+		): LineRendererData {
 			return {
 				lines: [
 					{
 						id: 'l1',
 						p1: { pointIndex: 0, x: 100, y: 300, time: anchor('2024-01-01'), price: 100 },
 						p2: { pointIndex: 1, x: 250, y: 100, time: anchor('2024-01-10'), price: 120 },
-						isSelected: options.isSelected
+						isSelected: options.isSelected,
+						isHovered: options.isHovered
 					}
 				],
 				preview: null
@@ -600,6 +603,16 @@ describe('Free-form Line Plugin', () => {
 			renderer.update(dataOneHover);
 			renderer.draw(mockCanvas.target);
 			expect(mockCanvas.drawCalls.filter((c) => c.type === 'arc')).toHaveLength(3);
+		});
+
+		it('draws both endpoint handles without rings when line is hovered (2 arcs)', () => {
+			renderer.update(renderData({ isHovered: true }));
+			renderer.draw(mockCanvas.target);
+
+			// 2 handles, 0 rings = 2 arcs
+			const arcs = mockCanvas.drawCalls.filter((c) => c.type === 'arc');
+			expect(arcs).toHaveLength(2);
+			expect(mockCanvas.context.fillStyle).toBe('#2962FF');
 		});
 
 		it('draws both endpoint handles with blue fill, white border, radius 5 without rings when selected', () => {
@@ -919,6 +932,46 @@ describe('Free-form Line Plugin', () => {
 			expect(primitive.getHoveredPoint()).toEqual({ id: 'l1', pointIndex: 0 });
 			primitive.updateAllViews();
 			expect(primitive.hitTest()?.cursorStyle).toBe('default');
+		});
+
+		it('shows handles without highlight rings when hovering line, and highlights point when hovering endpoint', () => {
+			primitive.setLines([
+				{
+					id: 'l1',
+					p1: { time: anchor('2024-01-05'), price: 160 },
+					p2: { time: anchor('2024-01-10'), price: 140 }
+				}
+			]);
+			primitive.updateAllViews();
+
+			// Hover midpoint of segment (x=(100+225)/2=163, y=(200+300)/2=250)
+			mockData.mockChartElement.dispatchEvent(
+				new MouseEvent('mousemove', { clientX: 163, clientY: 250 })
+			);
+			primitive.updateAllViews();
+
+			expect(primitive.getHoveredLine()).toEqual({ id: 'l1', pointIndex: 0 });
+			expect(primitive.getHoveredPoint()).toBeNull();
+
+			let renderer = primitive.paneViews()[0]?.renderer() as unknown as {
+				_data: LineRendererData;
+			};
+			expect(renderer._data.lines[0].isHovered).toBe(true);
+			expect(renderer._data.lines[0].p1.isHovered).toBe(false);
+			expect(renderer._data.lines[0].p2.isHovered).toBe(false);
+
+			// Hover endpoint p1 at x=100, y=200
+			mockData.mockChartElement.dispatchEvent(
+				new MouseEvent('mousemove', { clientX: 100, clientY: 200 })
+			);
+			primitive.updateAllViews();
+
+			expect(primitive.getHoveredPoint()).toEqual({ id: 'l1', pointIndex: 0 });
+			renderer = primitive.paneViews()[0]?.renderer() as unknown as {
+				_data: LineRendererData;
+			};
+			expect(renderer._data.lines[0].p1.isHovered).toBe(true);
+			expect(renderer._data.lines[0].p2.isHovered).toBe(false);
 		});
 
 		it('projects lines across timeframes and future whitespace via the time projector', () => {

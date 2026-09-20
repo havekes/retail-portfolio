@@ -904,4 +904,60 @@ describe('ChartSettingsModal Component', () => {
 			expect(mockOnFibWidthChange).not.toHaveBeenCalled();
 		});
 	});
+
+	describe('Keyboard Shortcuts', () => {
+		it('switches between general, waves, and fibonacci sections via Cmd+1..3 and Ctrl+1..3', async () => {
+			render(ChartSettingsModal, {
+				props: {
+					open: true,
+					initialSection: 'general'
+				}
+			});
+
+			const generalTab = screen.getByRole('tab', { name: 'General' });
+			const wavesTab = screen.getByRole('tab', { name: 'Waves' });
+			const fibTab = screen.getByRole('tab', { name: 'Fibonacci' });
+
+			expect(generalTab).toHaveAttribute('aria-selected', 'true');
+			expect(wavesTab).toHaveAttribute('aria-selected', 'false');
+			expect(fibTab).toHaveAttribute('aria-selected', 'false');
+
+			// Cmd+2 -> waves
+			await fireEvent.keyDown(window, { key: '2', metaKey: true });
+			expect(generalTab).toHaveAttribute('aria-selected', 'false');
+			expect(wavesTab).toHaveAttribute('aria-selected', 'true');
+			expect(fibTab).toHaveAttribute('aria-selected', 'false');
+
+			// Ctrl+3 -> fibonacci
+			await fireEvent.keyDown(window, { key: '3', ctrlKey: true });
+			expect(generalTab).toHaveAttribute('aria-selected', 'false');
+			expect(wavesTab).toHaveAttribute('aria-selected', 'false');
+			expect(fibTab).toHaveAttribute('aria-selected', 'true');
+
+			// Cmd+1 -> general
+			await fireEvent.keyDown(window, { key: '1', metaKey: true });
+			expect(generalTab).toHaveAttribute('aria-selected', 'true');
+			expect(wavesTab).toHaveAttribute('aria-selected', 'false');
+			expect(fibTab).toHaveAttribute('aria-selected', 'false');
+
+			// Check defaultPrevented is set on cancelable event
+			const evt = new KeyboardEvent('keydown', { key: '2', metaKey: true, cancelable: true });
+			window.dispatchEvent(evt);
+			expect(evt.defaultPrevented).toBe(true);
+		});
+
+		it('does not trigger shortcuts when modal is closed', async () => {
+			render(ChartSettingsModal, {
+				props: {
+					open: false,
+					initialSection: 'general'
+				}
+			});
+
+			const cmd2Event = new KeyboardEvent('keydown', { key: '2', metaKey: true, cancelable: true });
+			const pd2Spy = vi.spyOn(cmd2Event, 'preventDefault');
+			window.dispatchEvent(cmd2Event);
+			expect(pd2Spy).not.toHaveBeenCalled();
+		});
+	});
 });

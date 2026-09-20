@@ -36,6 +36,7 @@ export class LineToolState {
 	private _pendingPoints: DrawingPoint[] = [];
 	private _selectedId: string | null = null;
 	private _hovered: LinePointTarget | null = null;
+	private _hoveredLine: LinePointTarget | null = null;
 	private _dragging: LinePointTarget | null = null;
 	private _isDrawingMode: boolean = false;
 
@@ -45,6 +46,7 @@ export class LineToolState {
 	private _drawingModeChanged: Delegate<boolean> = new Delegate();
 	private _selectionChanged: Delegate<string | null> = new Delegate();
 	private _hoverChanged: Delegate<LinePointTarget | null> = new Delegate();
+	private _hoveredLineChanged: Delegate<LinePointTarget | null> = new Delegate();
 	private _dragChanged: Delegate<LinePointTarget | null> = new Delegate();
 
 	constructor(idFactory: () => string = generateUUID) {
@@ -65,6 +67,10 @@ export class LineToolState {
 
 	public hoverChanged(): ISubscription<LinePointTarget | null> {
 		return this._hoverChanged;
+	}
+
+	public hoveredLineChanged(): ISubscription<LinePointTarget | null> {
+		return this._hoveredLineChanged;
 	}
 
 	public dragChanged(): ISubscription<LinePointTarget | null> {
@@ -182,6 +188,7 @@ export class LineToolState {
 			this._selectionChanged.fire(null);
 		}
 		if (this._hovered?.id === id) this.setHoveredPoint(null);
+		if (this._hoveredLine?.id === id) this.setHoveredLine(null);
 		if (this._dragging?.id === id) this.setDraggingPoint(null);
 		this._drawingsChanged.fire(this.getLines());
 		return true;
@@ -212,6 +219,18 @@ export class LineToolState {
 		return this._hovered;
 	}
 
+	public setHoveredLine(line: LinePointTarget | null): void {
+		const changed = this._hoveredLine?.id !== line?.id;
+		if (changed) {
+			this._hoveredLine = line;
+			this._hoveredLineChanged.fire(line);
+		}
+	}
+
+	public getHoveredLine(): LinePointTarget | null {
+		return this._hoveredLine;
+	}
+
 	public setDraggingPoint(point: LinePointTarget | null): void {
 		const changed =
 			this._dragging?.id !== point?.id || this._dragging?.pointIndex !== point?.pointIndex;
@@ -230,6 +249,7 @@ export class LineToolState {
 		this._drawingModeChanged.destroy();
 		this._selectionChanged.destroy();
 		this._hoverChanged.destroy();
+		this._hoveredLineChanged.destroy();
 		this._dragChanged.destroy();
 	}
 }

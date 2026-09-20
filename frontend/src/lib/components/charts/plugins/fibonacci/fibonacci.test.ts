@@ -13,6 +13,7 @@ import {
 	HANDLE_RADIUS,
 	PREVIEW_ALPHA,
 	DEFAULT_HANDLE_COLOR,
+	DEFAULT_HOVER_RING_COLOR,
 	DEFAULT_TRENDLINE_COLOR,
 	type FibPointTarget,
 	type ProjectedFibPointWithTarget,
@@ -106,8 +107,15 @@ function createMockChartAndSeries() {
 	return { chart, series, mockChartElement, timeScale, priceScale };
 }
 
+interface DrawCall {
+	type: string;
+	args: unknown[];
+	color?: string;
+}
+
 function createMockCanvasTarget() {
-	const drawCalls: { type: string; args: unknown[] }[] = [];
+	const drawCalls: DrawCall[] = [];
+	const styles = { strokeStyle: '', fillStyle: '' };
 	const context = {
 		save: vi.fn(() => drawCalls.push({ type: 'save', args: [] })),
 		restore: vi.fn(() => drawCalls.push({ type: 'restore', args: [] })),
@@ -115,14 +123,24 @@ function createMockCanvasTarget() {
 		moveTo: vi.fn((x: number, y: number) => drawCalls.push({ type: 'moveTo', args: [x, y] })),
 		lineTo: vi.fn((x: number, y: number) => drawCalls.push({ type: 'lineTo', args: [x, y] })),
 		arc: vi.fn((...args: unknown[]) => drawCalls.push({ type: 'arc', args })),
-		fill: vi.fn(() => drawCalls.push({ type: 'fill', args: [] })),
-		stroke: vi.fn(() => drawCalls.push({ type: 'stroke', args: [] })),
+		fill: vi.fn(() => drawCalls.push({ type: 'fill', args: [], color: styles.fillStyle })),
+		stroke: vi.fn(() => drawCalls.push({ type: 'stroke', args: [], color: styles.strokeStyle })),
 		fillText: vi.fn((text: string, x: number, y: number) =>
 			drawCalls.push({ type: 'fillText', args: [text, x, y] })
 		),
 		setLineDash: vi.fn((dash: number[]) => drawCalls.push({ type: 'setLineDash', args: [dash] })),
-		strokeStyle: '',
-		fillStyle: '',
+		get strokeStyle() {
+			return styles.strokeStyle;
+		},
+		set strokeStyle(val: string) {
+			styles.strokeStyle = val;
+		},
+		get fillStyle() {
+			return styles.fillStyle;
+		},
+		set fillStyle(val: string) {
+			styles.fillStyle = val;
+		},
 		lineWidth: 1,
 		lineCap: 'butt',
 		lineJoin: 'miter',
@@ -1041,6 +1059,43 @@ describe('Fibonacci Chart Primitive Plugin', () => {
 			renderer.draw(mockCanvas.target);
 			expect(mockCanvas.drawCalls.filter((c) => c.type === 'arc')).toHaveLength(3);
 		});
+
+		it('renders anchor handles without rings when level line is hovered (retracement isHovered)', () => {
+			const renderData: FibonacciRendererData = {
+				retracement: {
+					p1: {
+						pointIndex: 0,
+						x: 100,
+						y: 300,
+						time: '2024-01-05' as Time,
+						price: 140,
+						isHovered: false
+					},
+					p2: {
+						pointIndex: 1,
+						x: 250,
+						y: 100,
+						time: '2024-01-11' as Time,
+						price: 180,
+						isHovered: false
+					},
+					levels: [],
+					isHovered: true
+				},
+				extension: null,
+				preview: null
+			};
+
+			renderer.update(renderData);
+			renderer.draw(mockCanvas.target);
+
+			const arcCalls = mockCanvas.drawCalls.filter((c) => c.type === 'arc');
+			// Handles shown without highlight rings on line hover: 2 circles = 2 arc calls
+			expect(arcCalls.length).toBe(2);
+			const fills = mockCanvas.drawCalls.filter((c) => c.type === 'fill');
+			expect(fills.some((f) => f.color === DEFAULT_HANDLE_COLOR)).toBe(true);
+			expect(fills.some((f) => f.color === DEFAULT_HOVER_RING_COLOR)).toBe(false);
+		});
 	});
 
 	describe('FibonacciPrimitive Integration', () => {
@@ -1344,6 +1399,57 @@ describe('Fibonacci Chart Primitive Plugin', () => {
 
 			// Selected tool should still be retracement (via pointClicked)
 			expect(primitive.getSelectedTool()).toBe('retracement');
+		});
+
+		it('isolates line hover from anchor handle highlight rings on mouse movement', () => {
+			primitive.setRetracement({
+				p1: { time: '2024-01-05' as Time, price: 160 },
+				p2: { time: '2024-01-13' as Time, price: 170 }
+			});
+			primitive.updateAllViews();
+
+			// Level 0.5 is at price 165 (y: 175). Hover over level line at x: 350, y: 175
+			mockData.mockChartElement.dispatchEvent(
+				new MouseEvent('mousemove', { clientX: 350, clientY: 175 })
+			);
+
+			expect(primitive.getHoveredLine()).toEqual({ tool: 'retracement' });
+
+			primitive.updateAllViews();
+			const views = primitive.paneViews();
+			const renderer = views[0]?.renderer();
+			expect(renderer).toBeDefined();
+
+			let mockCanvas = createMockCanvasTarget();
+			renderer?.draw(mockCanvas.target);
+
+			// Anchor handles shown (2 arcs), but NO highlight ring (no DEFAULT_HOVER_RING_COLOR)
+			const arcs = mockCanvas.drawCalls.filter((c) => c.type === 'arc');
+			expect(arcs).toHaveLength(2);
+			const fills = mockCanvas.drawCalls.filter((c) => c.type === 'fill');
+			expect(fills.some((f) => f.color === DEFAULT_HOVER_RING_COLOR)).toBe(false);
+
+			// Hover directly over P1 anchor handle at (100, 200)
+			mockData.mockChartElement.dispatchEvent(
+				new MouseEvent('mousemove', { clientX: 100, clientY: 200 })
+			);
+
+			primitive.updateAllViews();
+			mockCanvas = createMockCanvasTarget();
+			renderer?.draw(mockCanvas.target);
+
+			// Highlight ring on P1 + P1 handle + P2 handle = 3 arcs, ring fill present
+			const arcs2 = mockCanvas.drawCalls.filter((c) => c.type === 'arc');
+			expect(arcs2).toHaveLength(3);
+			const fills2 = mockCanvas.drawCalls.filter((c) => c.type === 'fill');
+			expect(fills2.some((f) => f.color === DEFAULT_HOVER_RING_COLOR)).toBe(true);
+
+			// Move to empty space
+			mockData.mockChartElement.dispatchEvent(
+				new MouseEvent('mousemove', { clientX: 50, clientY: 50 })
+			);
+			expect(primitive.getHoveredLine()).toBeNull();
+			expect(primitive.getHoveredPoint()).toBeNull();
 		});
 
 		it('renders only 3 level lines and 3 labels (1.618, 2.0, 2.618) by default for newly created extension drawings', () => {

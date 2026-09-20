@@ -835,6 +835,36 @@ describe('Elliott Wave Plugin', () => {
 			expect(fills.some((f) => f.fillStyle === 'rgba(41, 98, 255, 0.2)')).toBe(true);
 		});
 
+		it('renders anchor dots without highlight rings when line is hovered (degreeData.isHovered)', () => {
+			const { target, drawCalls } = createMockCanvasTarget();
+
+			renderer.update({
+				degrees: [
+					{
+						degree: 'cycle',
+						config: CYCLE_STYLE,
+						isActiveDegree: false,
+						isSelected: false,
+						isHovered: true,
+						points: [
+							{ wave: 0, x: 100, y: 300, time: '2024-01-01' as Time, price: 100, isHovered: false },
+							{ wave: 1, x: 150, y: 250, time: '2024-01-02' as Time, price: 120, isHovered: false }
+						]
+					}
+				],
+				preview: null
+			});
+
+			renderer.draw(target);
+
+			// Should have anchor dots for point 0 and point 1 (2 arcs total), NO highlight rings
+			const arcCalls = drawCalls.filter((c) => c.type === 'arc');
+			expect(arcCalls).toHaveLength(2);
+			const fills = drawCalls.filter((c) => c.type === 'fill');
+			expect(fills.some((f) => f.fillStyle === '#2962FF')).toBe(true);
+			expect(fills.some((f) => f.fillStyle === 'rgba(41, 98, 255, 0.2)')).toBe(false);
+		});
+
 		it('renders no anchor dots or highlight rings for resting unselected unhovered wave', () => {
 			const { target, drawCalls } = createMockCanvasTarget();
 
@@ -1432,7 +1462,7 @@ describe('Elliott Wave Plugin', () => {
 			expect(hit?.cursorStyle === 'default' || hit === null).toBe(true);
 		});
 
-		it('highlights all points of a wave when hovering anywhere on the wave', () => {
+		it('shows handles without highlight rings when hovering line, and highlights point only when hovering handle', () => {
 			primitive.addPoint(100, '2024-01-05' as Time, 'cycle'); // x=100, y=500
 			primitive.addPoint(150, '2024-01-10' as Time, 'cycle'); // x=225, y=250
 			primitive.updateAllViews();
@@ -1444,23 +1474,35 @@ describe('Elliott Wave Plugin', () => {
 			primitive.updateAllViews();
 
 			// eslint-disable-next-line @typescript-eslint/no-explicit-any
-			const hoveredPoints = (primitive as any)._paneViews[0].renderer()._data.degrees[0].points as {
+			const degreeData = (primitive as any)._paneViews[0].renderer()._data.degrees[0];
+			expect(degreeData.isHovered).toBe(true);
+			const hoveredPoints = degreeData.points as {
 				isHovered?: boolean;
 			}[];
 			expect(hoveredPoints).toHaveLength(2);
-			expect(hoveredPoints.every((p) => p.isHovered)).toBe(true);
+			expect(hoveredPoints.every((p) => !p.isHovered)).toBe(true);
 
-			// Moving off the wave clears the highlight from every point
+			// Hover directly over point 0 handle (x=100, y=500)
+			mockData.mockChartElement.dispatchEvent(
+				new MouseEvent('mousemove', { clientX: 100, clientY: 500 })
+			);
+			primitive.updateAllViews();
+
+			// eslint-disable-next-line @typescript-eslint/no-explicit-any
+			const pointHoverData = (primitive as any)._paneViews[0].renderer()._data.degrees[0];
+			expect(pointHoverData.points[0].isHovered).toBe(true);
+			expect(pointHoverData.points[1].isHovered).toBe(false);
+
+			// Moving off the wave clears the highlight from every point and line
 			mockData.mockChartElement.dispatchEvent(
 				new MouseEvent('mousemove', { clientX: 500, clientY: 100 })
 			);
 			primitive.updateAllViews();
 
 			// eslint-disable-next-line @typescript-eslint/no-explicit-any
-			const clearedPoints = (primitive as any)._paneViews[0].renderer()._data.degrees[0].points as {
-				isHovered?: boolean;
-			}[];
-			expect(clearedPoints.every((p) => !p.isHovered)).toBe(true);
+			const clearedDegree = (primitive as any)._paneViews[0].renderer()._data.degrees[0];
+			expect(clearedDegree.isHovered).toBe(false);
+			expect(clearedDegree.points.every((p: { isHovered?: boolean }) => !p.isHovered)).toBe(true);
 		});
 
 		it('selects the wave when clicking its connecting segment', () => {

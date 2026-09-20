@@ -61,9 +61,27 @@ export class DrawingHistoryManager {
 	private _isCoalescing: boolean = false;
 	private _coalescingEntryPushed: boolean = false;
 	private readonly _maxHistory: number;
+	private _listeners: Set<() => void> = new Set();
 
 	constructor(options?: { maxHistory?: number }) {
 		this._maxHistory = options?.maxHistory ?? 100;
+	}
+
+	private _notify(): void {
+		for (const listener of this._listeners) {
+			try {
+				listener();
+			} catch (e) {
+				console.error('Error in DrawingHistoryManager listener:', e);
+			}
+		}
+	}
+
+	public subscribe(listener: () => void): () => void {
+		this._listeners.add(listener);
+		return () => {
+			this._listeners.delete(listener);
+		};
 	}
 
 	public init(initialState: SecurityDrawingState): void {
@@ -71,6 +89,7 @@ export class DrawingHistoryManager {
 		this._redoStack = [];
 		this._isCoalescing = false;
 		this._coalescingEntryPushed = false;
+		this._notify();
 	}
 
 	public canUndo(): boolean {
@@ -115,6 +134,7 @@ export class DrawingHistoryManager {
 		}
 
 		this._redoStack = [];
+		this._notify();
 	}
 
 	public undo(): SecurityDrawingState | null {
@@ -123,6 +143,7 @@ export class DrawingHistoryManager {
 		this._redoStack.push(current);
 		this._isCoalescing = false;
 		this._coalescingEntryPushed = false;
+		this._notify();
 		return cloneDrawingState(this._undoStack[this._undoStack.length - 1]);
 	}
 
@@ -132,6 +153,7 @@ export class DrawingHistoryManager {
 		this._undoStack.push(next);
 		this._isCoalescing = false;
 		this._coalescingEntryPushed = false;
+		this._notify();
 		return cloneDrawingState(next);
 	}
 
@@ -145,5 +167,6 @@ export class DrawingHistoryManager {
 		this._redoStack = [];
 		this._isCoalescing = false;
 		this._coalescingEntryPushed = false;
+		this._notify();
 	}
 }

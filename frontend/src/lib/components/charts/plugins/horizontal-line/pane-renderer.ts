@@ -37,6 +37,7 @@ export interface HorizontalRenderItem {
 	showLabel?: boolean;
 	visible?: boolean;
 	isSelected?: boolean;
+	isHovered?: boolean;
 }
 
 export interface HorizontalPreviewData {
@@ -110,7 +111,11 @@ export class HorizontalLinePaneRenderer implements IPrimitivePaneRenderer {
 		}
 
 		const showHandle =
-			item.isSelected || item.p1.isSelected || item.p1.isHovered || item.p1.isDragging;
+			item.isSelected ||
+			item.isHovered ||
+			item.p1.isSelected ||
+			item.p1.isHovered ||
+			item.p1.isDragging;
 		if (showHandle) {
 			this._drawHandle(ctx, withSelection(item.p1, item.isSelected), hpr, vpr);
 		}

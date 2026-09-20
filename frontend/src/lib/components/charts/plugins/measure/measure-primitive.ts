@@ -62,6 +62,7 @@ export class MeasurePrimitive extends DrawingPrimitiveBase<
 		this._subscribeToUpdate(this._state.drawingsChanged());
 		this._subscribeToUpdate(this._state.selectionChanged());
 		this._subscribeToUpdate(this._state.hoverChanged());
+		this._subscribeToUpdate(this._state.hoveredLineChanged());
 		this._subscribeToUpdate(this._state.dragChanged());
 
 		this._subscribe(this._mouseHandlers.pointClicked(), (hit) => {
@@ -71,6 +72,11 @@ export class MeasurePrimitive extends DrawingPrimitiveBase<
 
 		this._subscribe(this._mouseHandlers.lineClicked(), (hit) => {
 			this._state.select(hit.id);
+			this._requestUpdate?.();
+		});
+
+		this._subscribe(this._mouseHandlers.lineHovered(), (hit) => {
+			this._state.setHoveredLine(hit);
 			this._requestUpdate?.();
 		});
 
@@ -171,6 +177,10 @@ export class MeasurePrimitive extends DrawingPrimitiveBase<
 		return this._state.getHoveredPoint();
 	}
 
+	public getHoveredLine(): MeasurePointTarget | null {
+		return this._state.getHoveredLine();
+	}
+
 	public getDraggingPoint(): MeasurePointTarget | null {
 		return this._state.getDraggingPoint();
 	}
@@ -192,6 +202,7 @@ export class MeasurePrimitive extends DrawingPrimitiveBase<
 
 		const series = this._series;
 		const hovered = this._state.getHoveredPoint();
+		const hoveredLine = this._state.getHoveredLine();
 		const dragging = this._state.getDraggingPoint();
 		const selectedId = this._state.getSelectedId();
 
@@ -213,6 +224,7 @@ export class MeasurePrimitive extends DrawingPrimitiveBase<
 			if (x1 === null || y1 === null || x2 === null || y2 === null) continue;
 
 			const isSelected = selectedId === id;
+			const isHovered = hoveredLine?.id === id;
 			const p1: ProjectedMeasurePoint = {
 				pointIndex: 0,
 				x: x1,
@@ -251,7 +263,8 @@ export class MeasurePrimitive extends DrawingPrimitiveBase<
 				direction,
 				label: formatMeasureLabel(delta, percent, { bars, elapsedSeconds }),
 				visible: drawing.visible,
-				isSelected
+				isSelected,
+				isHovered
 			});
 
 			projectedForMouse.push({

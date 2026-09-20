@@ -42,6 +42,7 @@ export interface MeasureRenderItem {
 	label: string;
 	visible?: boolean;
 	isSelected?: boolean;
+	isHovered?: boolean;
 }
 
 export interface MeasurePreviewData {
@@ -130,6 +131,7 @@ export class MeasurePaneRenderer implements IPrimitivePaneRenderer {
 
 		const showHandles =
 			item.isSelected ||
+			item.isHovered ||
 			item.p1.isSelected ||
 			item.p2.isSelected ||
 			item.p1.isHovered ||

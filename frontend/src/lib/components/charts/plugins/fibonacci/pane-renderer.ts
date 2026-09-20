@@ -44,6 +44,7 @@ export interface RetracementRenderData {
 	widthMultiplier?: number | null;
 	visible?: boolean;
 	isSelected?: boolean;
+	isHovered?: boolean;
 }
 
 export interface ExtensionRenderData {
@@ -55,6 +56,7 @@ export interface ExtensionRenderData {
 	widthMultiplier?: number | null;
 	visible?: boolean;
 	isSelected?: boolean;
+	isHovered?: boolean;
 }
 
 export interface FibDrawingPreviewData {
@@ -161,7 +163,12 @@ export class FibonacciPaneRenderer implements IPrimitivePaneRenderer {
 		const { p1, p2, levels, extendLines, widthMultiplier } = data;
 
 		const showHandles =
-			data.isSelected || p1.isHovered || p1.isDragging || p2.isHovered || p2.isDragging;
+			data.isSelected ||
+			data.isHovered ||
+			p1.isHovered ||
+			p1.isDragging ||
+			p2.isHovered ||
+			p2.isDragging;
 
 		// 1. Trendline connecting p1 to p2 (only when hovered/dragged/selected)
 		if (showHandles) {
@@ -209,6 +216,7 @@ export class FibonacciPaneRenderer implements IPrimitivePaneRenderer {
 
 		const showHandles =
 			data.isSelected ||
+			data.isHovered ||
 			p1.isHovered ||
 			p1.isDragging ||
 			p2.isHovered ||

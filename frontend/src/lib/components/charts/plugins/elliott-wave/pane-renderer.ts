@@ -31,6 +31,7 @@ export interface DegreeRenderData {
 	points: ProjectedWavePoint[];
 	isActiveDegree: boolean;
 	isSelected?: boolean;
+	isHovered?: boolean;
 }
 
 export interface DrawingPreviewData {
@@ -185,6 +186,7 @@ export class ElliottWavePaneRenderer implements IPrimitivePaneRenderer {
 		const isDrawing = this._data?.preview !== null;
 		const isWaveActive =
 			degreeData.isSelected ||
+			degreeData.isHovered ||
 			degreeData.points.some((p) => p.isHovered || p.isDragging) ||
 			(isDrawing && degreeData.isActiveDegree);
 

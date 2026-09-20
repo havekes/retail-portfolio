@@ -363,7 +363,25 @@
 			onClose?.();
 		}
 	}
+
+	function handleModalKeyDown(event: KeyboardEvent) {
+		if (!open) return;
+		if (event.metaKey || event.ctrlKey) {
+			if (event.key === '1') {
+				event.preventDefault();
+				activeSection = 'general';
+			} else if (event.key === '2') {
+				event.preventDefault();
+				activeSection = 'waves';
+			} else if (event.key === '3') {
+				event.preventDefault();
+				activeSection = 'fibonacci';
+			}
+		}
+	}
 </script>
+
+<svelte:window onkeydown={handleModalKeyDown} />
 
 <Dialog.Root bind:open onOpenChange={handleOpenChange}>
 	<Dialog.Content class="w-full max-w-md">

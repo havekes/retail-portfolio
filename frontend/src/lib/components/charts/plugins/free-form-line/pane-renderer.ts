@@ -30,6 +30,7 @@ export interface LineRenderItem {
 	p2: ProjectedLinePoint;
 	visible?: boolean;
 	isSelected?: boolean;
+	isHovered?: boolean;
 }
 
 export interface LinePreviewData {
@@ -101,6 +102,7 @@ export class LinePaneRenderer implements IPrimitivePaneRenderer {
 
 		const showHandles =
 			item.isSelected ||
+			item.isHovered ||
 			item.p1.isSelected ||
 			item.p2.isSelected ||
 			item.p1.isHovered ||

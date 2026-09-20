@@ -559,7 +559,7 @@ describe('Measure Plugin', () => {
 		function renderData(
 			direction: 'up' | 'down' | 'flat',
 			label: string,
-			options: { isSelected?: boolean } = {}
+			options: { isSelected?: boolean; isHovered?: boolean } = {}
 		): MeasureRendererData {
 			return {
 				measures: [
@@ -571,7 +571,8 @@ describe('Measure Plugin', () => {
 						percent: 20,
 						direction,
 						label,
-						isSelected: options.isSelected
+						isSelected: options.isSelected,
+						isHovered: options.isHovered
 					}
 				],
 				preview: null
@@ -640,6 +641,18 @@ describe('Measure Plugin', () => {
 			renderer.update(dataOneHover);
 			renderer.draw(mockCanvas.target);
 			expect(mockCanvas.drawCalls.filter((c) => c.type === 'arc')).toHaveLength(3);
+		});
+
+		it('draws both endpoint handles without rings when line is hovered (2 arcs)', () => {
+			renderer.update(renderData('up', '+20.00 (+20.0%)', { isHovered: true }));
+			renderer.draw(mockCanvas.target);
+
+			// 2 handles, 0 rings = 2 arcs
+			const arcs = mockCanvas.drawCalls.filter((c) => c.type === 'arc');
+			expect(arcs).toHaveLength(2);
+			const fills = mockCanvas.drawCalls.filter((c) => c.type === 'fill');
+			expect(fills.some((c) => c.color === '#2962FF')).toBe(true);
+			expect(fills.some((c) => c.color === 'rgba(41, 98, 255, 0.2)')).toBe(false);
 		});
 
 		it('draws both endpoint handles with blue fill, white border, radius 5 without rings when selected', () => {
@@ -991,6 +1004,46 @@ describe('Measure Plugin', () => {
 			expect(primitive.getHoveredPoint()).toEqual({ id: 'm1', pointIndex: 0 });
 			primitive.updateAllViews();
 			expect(primitive.hitTest()?.cursorStyle).toBe('default');
+		});
+
+		it('shows handles without highlight rings when hovering line, and highlights point when hovering endpoint', () => {
+			primitive.setMeasures([
+				{
+					id: 'm1',
+					p1: { time: anchor('2024-01-05'), price: 160 },
+					p2: { time: anchor('2024-01-10'), price: 140 }
+				}
+			]);
+			primitive.updateAllViews();
+
+			// Hover midpoint of segment (x=(100+225)/2=163, y=(200+300)/2=250)
+			mockData.mockChartElement.dispatchEvent(
+				new MouseEvent('mousemove', { clientX: 163, clientY: 250 })
+			);
+			primitive.updateAllViews();
+
+			expect(primitive.getHoveredLine()).toEqual({ id: 'm1', pointIndex: 0 });
+			expect(primitive.getHoveredPoint()).toBeNull();
+
+			let renderer = primitive.paneViews()[0]?.renderer() as unknown as {
+				_data: MeasureRendererData;
+			};
+			expect(renderer._data.measures[0].isHovered).toBe(true);
+			expect(renderer._data.measures[0].p1.isHovered).toBe(false);
+			expect(renderer._data.measures[0].p2.isHovered).toBe(false);
+
+			// Hover endpoint p1 at x=100, y=200
+			mockData.mockChartElement.dispatchEvent(
+				new MouseEvent('mousemove', { clientX: 100, clientY: 200 })
+			);
+			primitive.updateAllViews();
+
+			expect(primitive.getHoveredPoint()).toEqual({ id: 'm1', pointIndex: 0 });
+			renderer = primitive.paneViews()[0]?.renderer() as unknown as {
+				_data: MeasureRendererData;
+			};
+			expect(renderer._data.measures[0].p1.isHovered).toBe(true);
+			expect(renderer._data.measures[0].p2.isHovered).toBe(false);
 		});
 
 		it('projects measures across timeframes and future whitespace via the time projector', () => {

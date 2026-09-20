@@ -5,12 +5,14 @@
 	import CorrectiveWaveIcon from '$lib/components/icons/corrective-wave-icon.svelte';
 	import FibRetracementIcon from '$lib/components/icons/fib-retracement-icon.svelte';
 	import FibExtensionIcon from '$lib/components/icons/fib-extension-icon.svelte';
+	import HorizontalLineIcon from '$lib/components/icons/horizontal-line-icon.svelte';
+	import LineIcon from '$lib/components/icons/line-icon.svelte';
 	import Save from '@lucide/svelte/icons/save';
 	import Check from '@lucide/svelte/icons/check';
 	import Timeline from '@lucide/svelte/icons/timeline';
 	import Ruler from '@lucide/svelte/icons/ruler';
-	import Minus from '@lucide/svelte/icons/minus';
-	import Slash from '@lucide/svelte/icons/slash';
+	import Undo from '@lucide/svelte/icons/undo';
+	import Redo from '@lucide/svelte/icons/redo';
 	import * as DropdownMenu from '$lib/components/ui/dropdown-menu/index.js';
 	import * as Tooltip from '$lib/components/ui/tooltip/index.js';
 
@@ -24,12 +26,16 @@
 		isDrawingHorizontalLine = false,
 		isDrawingLine = false,
 		isTimelineVisible = false,
+		canUndo = false,
+		canRedo = false,
 		onSelectWaveDegree,
 		onSelectCorrectiveDegree,
 		onToggleFib,
 		onMeasureSelect,
 		onHorizontalLineSelect,
 		onLineSelect,
+		onUndo,
+		onRedo,
 		onSave,
 		saveFeedback = 'idle',
 		onToggleTimeline
@@ -43,12 +49,16 @@
 		isDrawingHorizontalLine?: boolean;
 		isDrawingLine?: boolean;
 		isTimelineVisible?: boolean;
+		canUndo?: boolean;
+		canRedo?: boolean;
 		onSelectWaveDegree?: (degree: WaveDegree, tool?: WaveType) => void;
 		onSelectCorrectiveDegree?: (degree: WaveDegree) => void;
 		onToggleFib?: (tool: FibToolType) => void;
 		onMeasureSelect?: () => void;
 		onHorizontalLineSelect?: () => void;
 		onLineSelect?: () => void;
+		onUndo?: () => void;
+		onRedo?: () => void;
 		onSave?: () => void;
 		saveFeedback?: 'idle' | 'saved';
 		onToggleTimeline?: () => void;
@@ -282,7 +292,7 @@
 						aria-label="Toggle Horizontal Line drawing"
 						title="Horizontal Line"
 					>
-						<Minus class="h-4 w-4" />
+						<HorizontalLineIcon class="h-4 w-4" />
 					</button>
 				{/snippet}
 			</Tooltip.Trigger>
@@ -305,12 +315,60 @@
 						aria-label="Toggle Line drawing"
 						title="Line"
 					>
-						<Slash class="h-4 w-4" />
+						<LineIcon class="h-4 w-4" />
 					</button>
 				{/snippet}
 			</Tooltip.Trigger>
 			<Tooltip.Content side="right">
 				<p>Line</p>
+			</Tooltip.Content>
+		</Tooltip.Root>
+
+		<!-- Undo Button -->
+		<Tooltip.Root>
+			<Tooltip.Trigger>
+				{#snippet child({ props })}
+					<button
+						type="button"
+						{...props}
+						disabled={!canUndo}
+						onclick={() => canUndo && onUndo?.()}
+						class="rounded p-1.5 transition-colors {!canUndo
+							? 'cursor-not-allowed text-muted-foreground opacity-40'
+							: 'text-muted-foreground hover:bg-muted hover:text-foreground'}"
+						aria-label="Undo"
+						title="Undo (Ctrl+Z / ⌘Z)"
+					>
+						<Undo class="h-4 w-4" />
+					</button>
+				{/snippet}
+			</Tooltip.Trigger>
+			<Tooltip.Content side="right">
+				<p>Undo (Ctrl+Z / ⌘Z)</p>
+			</Tooltip.Content>
+		</Tooltip.Root>
+
+		<!-- Redo Button -->
+		<Tooltip.Root>
+			<Tooltip.Trigger>
+				{#snippet child({ props })}
+					<button
+						type="button"
+						{...props}
+						disabled={!canRedo}
+						onclick={() => canRedo && onRedo?.()}
+						class="rounded p-1.5 transition-colors {!canRedo
+							? 'cursor-not-allowed text-muted-foreground opacity-40'
+							: 'text-muted-foreground hover:bg-muted hover:text-foreground'}"
+						aria-label="Redo"
+						title="Redo (Ctrl+Y / ⌘Y)"
+					>
+						<Redo class="h-4 w-4" />
+					</button>
+				{/snippet}
+			</Tooltip.Trigger>
+			<Tooltip.Content side="right">
+				<p>Redo (Ctrl+Y / ⌘Y)</p>
 			</Tooltip.Content>
 		</Tooltip.Root>
 
