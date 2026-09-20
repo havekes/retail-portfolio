@@ -4788,9 +4788,9 @@ describe('Security Page - Drawing Dragging Deferral & Network Throttling (AC 2, 
 		waves: [
 			{
 				id: 'w-1',
-				degree: 'minor',
+				degree: 'cycle',
 				type: 'impulse',
-				points: [{ time: 1704067200 as unknown as Time, price: 100 }]
+				points: [{ wave: 0, time: 1704067200 as unknown as Time, price: 100 }]
 			}
 		]
 	};
@@ -5008,7 +5008,7 @@ describe('Security Page - Drawing Dragging Deferral & Network Throttling (AC 2, 
 
 		// 1. Initial non-drag change commits immediately
 		// @ts-expect-error - mockChartProps typed as Record
-		mockChartProps.onWaveChange?.('minor', baseWaves.waves[0], baseWaves);
+		mockChartProps.onWaveChange?.('cycle', baseWaves.waves[0], baseWaves);
 		await waitFor(() => {
 			expect(userPreferencesService.patchPreferences).toHaveBeenCalledTimes(1);
 		});
@@ -5023,9 +5023,9 @@ describe('Security Page - Drawing Dragging Deferral & Network Throttling (AC 2, 
 			waves: [
 				{
 					id: 'w-1',
-					degree: 'minor',
+					degree: 'cycle',
 					type: 'impulse',
-					points: [{ time: 1704067200 as unknown as Time, price: 105 }]
+					points: [{ wave: 0, time: 1704067200 as unknown as Time, price: 105 }]
 				}
 			]
 		};
@@ -5033,16 +5033,16 @@ describe('Security Page - Drawing Dragging Deferral & Network Throttling (AC 2, 
 			waves: [
 				{
 					id: 'w-1',
-					degree: 'minor',
+					degree: 'cycle',
 					type: 'impulse',
-					points: [{ time: 1704067200 as unknown as Time, price: 115 }]
+					points: [{ wave: 0, time: 1704067200 as unknown as Time, price: 115 }]
 				}
 			]
 		};
 		// @ts-expect-error - mockChartProps typed as Record
-		mockChartProps.onWaveChange?.('minor', movedWaves1.waves[0], movedWaves1);
+		mockChartProps.onWaveChange?.('cycle', movedWaves1.waves[0], movedWaves1);
 		// @ts-expect-error - mockChartProps typed as Record
-		mockChartProps.onWaveChange?.('minor', movedWaves2.waves[0], movedWaves2);
+		mockChartProps.onWaveChange?.('cycle', movedWaves2.waves[0], movedWaves2);
 
 		expect(userPreferencesService.patchPreferences).not.toHaveBeenCalled();
 
