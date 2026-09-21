@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "pageVersion": "sha256:e28f275d607b711ce08b3b430c7be4a218099310129b1389cf05c1a6fbfc3dd0",
+  "pageVersion": "sha256:e14f6281a69e0e517553c0843341607f6a5e451cbc1432171e51048fe5dfcabc",
   "claims": [
     {
       "id": "claim_9bd0ec86d7b94a8584961b72b1da8ef4",
@@ -317,10 +317,36 @@
           "version": "repo-lines-v1:sha256:58e673d4f84949b0c8481de04ee0fcd912b9fef6b12f621eb43c56b074d9c3a2:eyJzZWxlY3RlZExpbmVDb3VudCI6MTQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjBiMzA5NmFlYmQzMGU4MzQ3YzQ1YTkwNjZkNjkzNzk5MTY5ZTk0YzM3YzRkYzQyOTc0OThiNjhhMTNkY2UxMjIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAxYmE0NzE5YzgwYjZmZTkxMWIwOTFhN2MwNTEyNGI2NGVlZWNlOTY0ZTA5YzA1OGVmOGY5ODA1ZGFjYTU0NmIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjIwZGQ3NDZhODIyMjcwZDYwYTA1ZDMyZDNmODg3MjAzNTI3ODBlZmU5MDBiMWE0Y2QxY2U3NmVmNzY4YTgwYTQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImQ5MGU1MDkzOTY0Y2JkZDMzNzE5ZDc5NTMzNmRhMmNhNGU5ZmM4MjcwNDhkN2ExNGQ5NjBjZWIxZDFhNjY1NGIifQ"
         }
       ]
+    },
+    {
+      "id": "claim_f2589e621f024933a5074da9108b4671",
+      "statement": "The accounts/holdings read path that the quickstart routes to the Accounts & Holdings Views page spans three frontend surfaces: the accounts dashboard at `/`, the account-scoped holdings page at `/accounts/[id]`, and the cross-account `/holdings` page (reachable from the sidebar actions group), whose table columns and stock/company grouping are driven by the persisted `holdings_table` and `holdings_group` preferences.",
+      "evidence": [
+        {
+          "resource": "repo://frontend/src/lib/components/holdings/holdings-table.svelte#L1-L30",
+          "version": "repo-lines-v1:sha256:d05e402ebb294f5a6f0e876e9e395ea62c9712912a019ec6bad85c1038810d34:eyJzZWxlY3RlZExpbmVDb3VudCI6MzAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijk0YWJjOGVkNzU0MzgyMjA2NWMwMjlmNWVhMjUyZDEyMjNkNzZhYTdkMmQzZDRmYjEyNTgxMmY2YjVhOTlkZGYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQxYzYwODEyMzUyOWI0YmMwNjNkZDM1MWEzZTVlOTU0Yjc3NjZlODMwYzJjYjJiNDRlNzE1NGIwZGM3M2RkMDIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjowLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjVkMzVmNDZlNDE3MzE0ZWQ2YzIxNmMyNDM4MjhjZDIwZjhiZmY5ZTliMzMzMjcwN2JkZWI3YmQxMTQ4MzYyZTcifQ"
+        },
+        {
+          "resource": "repo://frontend/src/lib/components/layout/app-sidebar-actions.svelte#L39-L39",
+          "version": "repo-lines-v1:sha256:b73257fb361fef2ba5752ffe2d648aea62abf4968c78a290ed6c3c82a386bcdb:eyJzZWxlY3RlZExpbmVDb3VudCI6MSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiYjczMjU3ZmIzNjFmZWYyYmE1NzUyZmZlMmQ2NDhhZWE2MmFiZjQ5NjhjNzhhMjkwZWQ2YzNjODJhMzg2YmNkYiIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiYjczMjU3ZmIzNjFmZWYyYmE1NzUyZmZlMmQ2NDhhZWE2MmFiZjQ5NjhjNzhhMjkwZWQ2YzNjODJhMzg2YmNkYiIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiMzgyZGE5OTVjNTkzMzQ2ODE0NTE1N2JlMDdiN2EzMDA2ZTdlNjk4NzVlMmY1MmM5NGRiOTAyMmZiYzQ3NGUzOCIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiYzQ1Yjg2NGQ3ZDlmMTcxZjJkMjIxNTQxYzlhMWY0MjFkYmY2YWViZmMyODU4YjM2MGRhODljMDg0MmE1YjYwOCJ9"
+        },
+        {
+          "resource": "repo://frontend/src/routes/%2Bpage.server.ts#L7-L25",
+          "version": "repo-lines-v1:sha256:d1bd8454861b38348c245ce5cfba20921c6226d8f17fee42904ad024815c031a:eyJzZWxlY3RlZExpbmVDb3VudCI6MTksImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjRlM2Q1N2FlMTIwM2IxZmZjNTYxNDRmMDUzYjhlYTJjNjY4NWY4MmZlNDExZDFhNGZiY2YzM2NlZTA2NjBmMjIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImFhMWQxYTYzMzkwMjI5Yzc5ODM0N2U4M2EwNDA1NDQxYzk0MDAwMzUyODRhZDE2OGMxYmY2Y2RmMWQ3MGEzNzAiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImIwMDk0NDA3ZWYzYmExZTk0OTY4ZGIzZTgyNjI5Y2Y4YWZlMDZkZjIyMjI1ZGZkYTVjMDE3MTM4OTg2YWM2NmYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjI4MGFhMDYyN2FjMDNkZmNmMzA3NmUzYWI4ODI4ZDJhZDViZjhlMGFiMmU2MTdjNDVkYjhjM2UyN2VjODQyOGMifQ"
+        },
+        {
+          "resource": "repo://frontend/src/routes/accounts/%5Bid%5D/%2Bpage.server.ts",
+          "version": "repo-file-v1:sha256:98086b7da876cedfae1e46ecb02f7c26963be89aa4d980c7f21ccb66058b2d01"
+        },
+        {
+          "resource": "repo://frontend/src/routes/holdings/%2Bpage.server.ts#L12-L62",
+          "version": "repo-lines-v1:sha256:faa0490bfa8695cedd2d29ee28c5c9f1bd9c4ce294817b17b282325d9e3e1294:eyJzZWxlY3RlZExpbmVDb3VudCI6NTEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjY0ODQwODQ5Y2FkZjdiNzQwYmZlYjFiOWM4MWRlZDE5ZWQ4OWUzOTMyZmM1OGRkYmJjZTQ2N2IzYTRiNGZiN2YiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjM2MGI4OGEwNWQ1YjUzODQ3NjAyMjliZTYwNTcyZmU2MmIxYzI5Y2RjNTdlZGI1ZTY5NTFkYWE0ZmQ0NmM4MDMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjZmNzQzNjZhMmU1MjdkMTBkYjZlMDliNDE0NGJhNGNkZDA5ZWJhYjkxZDY0Y2FjYmYzYjc3ZGJmYzMxYTE3ZWIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjU5NzEwOGQzY2U3MGFkZGE2YjlkMWNjMGU5ZjhmMjBjY2Q4YjhlMjUwMmZmYmU5NmQzYjhlZTk2ODMwM2EyZDUifQ"
+        }
+      ]
     }
   ],
   "verification": {
     "by": "openwiki/0.5.2",
-    "at": "2026-09-20T12:50:16.306Z"
+    "at": "2026-09-21T14:49:00.510Z"
   }
 }

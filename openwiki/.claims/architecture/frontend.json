@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "pageVersion": "sha256:aea023be3b1097b6dcfc038a36a1612aa8507a3e854ec02efca60f9e8b56241e",
+  "pageVersion": "sha256:d9591f19dada5805b99b21f7631bdf0599892741e22f6317d36a8b7354473757",
   "claims": [
     {
       "id": "claim_228fa2aa0c164d8caa3a5b1c7d543592",
@@ -180,7 +180,7 @@
     },
     {
       "id": "claim_f8df0a10f70b4a5399320f4d15043290",
-      "statement": "The route table covers a dashboard at /, account detail at /accounts/[id], broker management at /brokers, security analysis at /security/[security_id], 2FA and passkey management at /settings/security, and the /auth/login, /auth/signup, /auth/logout, and /auth/verify-email auth routes, with /auth/verify-email's load reading the token query parameter and returning a success/error status.",
+      "statement": "The route table covers a dashboard at /, account detail at /accounts/[id], the user-wide holdings view at /holdings, broker management at /brokers, watchlist management at /watchlists, security analysis at /security/[security_id], 2FA and passkey management at /settings/security, and the /auth/login, /auth/signup, /auth/logout, and /auth/verify-email auth routes, with /auth/verify-email's load reading the token query parameter and returning a success/error status.",
       "evidence": [
         {
           "resource": "repo://frontend/src/routes/%2Bpage.server.ts#L7-L25",
@@ -197,6 +197,10 @@
         {
           "resource": "repo://frontend/src/routes/brokers/%2Bpage.server.ts#L7-L24",
           "version": "repo-lines-v1:sha256:0ae655f565d611606ab46e7eb3730ec591dd2767ab2c5e428db73778880a8077:eyJzZWxlY3RlZExpbmVDb3VudCI6MTgsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjRlM2Q1N2FlMTIwM2IxZmZjNTYxNDRmMDUzYjhlYTJjNjY4NWY4MmZlNDExZDFhNGZiY2YzM2NlZTA2NjBmMjIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjY3Y2RhODJkYTYwNjIzOGUwNWU2MjM5OTU2OWM1ZWUwMzk5MzQxOTY0OGFlNWQ0M2EyYmY4Y2Q2MzQ3ZjgyNjMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImRkYzNkMjY1NWFhMzc0ZjNiNjI4NjRiZDllNGZlNTY5YWI0OWE4MTFlMTFjNDJmMWFjMmQ3Mjk1MTBhZWFkNDIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjoxLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImFhMWQxYTYzMzkwMjI5Yzc5ODM0N2U4M2EwNDA1NDQxYzk0MDAwMzUyODRhZDE2OGMxYmY2Y2RmMWQ3MGEzNzAifQ"
+        },
+        {
+          "resource": "repo://frontend/src/routes/holdings/%2Bpage.server.ts#L37-L72",
+          "version": "repo-lines-v1:sha256:4c2b7bc43a5cd446a9775b4c1026edf7f0fc8e36672bd0a2a4b25a878effdae1:eyJzZWxlY3RlZExpbmVDb3VudCI6MzYsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjRlM2Q1N2FlMTIwM2IxZmZjNTYxNDRmMDUzYjhlYTJjNjY4NWY4MmZlNDExZDFhNGZiY2YzM2NlZTA2NjBmMjIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjY3Y2RhODJkYTYwNjIzOGUwNWU2MjM5OTU2OWM1ZWUwMzk5MzQxOTY0OGFlNWQ0M2EyYmY4Y2Q2MzQ3ZjgyNjMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjNmNzVlZDgwZTE0NTA3YmQ2NWU2NTEyMDA0NTZmZmJkN2YyYTA2MGI2Mjg3ODEyZTU1MzIxYWFhZDc1NjEwYTEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjoxLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImFhMWQxYTYzMzkwMjI5Yzc5ODM0N2U4M2EwNDA1NDQxYzk0MDAwMzUyODRhZDE2OGMxYmY2Y2RmMWQ3MGEzNzAifQ"
         },
         {
           "resource": "repo://frontend/src/routes/settings/security/%2Bpage.server.ts#L7-L33",
@@ -362,11 +366,11 @@
     },
     {
       "id": "claim_2f3af35bd3cf44df9527d1281bfd9cd7",
-      "statement": "AppSidebar is collapsible to icon size and stacks AppSidebarHeader (brand link to / plus the sidebar trigger), AppSidebarActions (a Search entry invoking the toggleGlobalSearch context callback with a Cmd-P hint, and a Watchlists link to /watchlists), AppSidebarWatchlist (renders every watchlist from getWatchlistService().watchlists as a collapsible group, not just the default one), and AppSidebarProfile (footer dropdown with the user email and navigation to /brokers, /settings/security, and a native POST form to /auth/logout).",
+      "statement": "AppSidebar is collapsible to icon size and stacks AppSidebarHeader (brand link to / plus the sidebar trigger), AppSidebarActions (a Search entry invoking the toggleGlobalSearch context callback with a Cmd-P hint, a Watchlists link to /watchlists and a Holdings link to /holdings, both links built with resolve from $app/paths), AppSidebarWatchlist (renders every watchlist from getWatchlistService().watchlists as a collapsible group, not just the default one), and AppSidebarProfile (footer dropdown with the user email and navigation to /brokers, /settings/security, and a native POST form to /auth/logout).",
       "evidence": [
         {
-          "resource": "repo://frontend/src/lib/components/layout/app-sidebar-actions.svelte#L12-L36",
-          "version": "repo-lines-v1:sha256:399f9f897fa5cdb177f54d63c320f126ba10d7aa31edf631d2fd9ebe29f94527:eyJzZWxlY3RlZExpbmVDb3VudCI6MjUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ3MTMzNWFiM2Y0ZGZlMTNmOWFkYjFlNDA5YmVmMTVkOGEyZTA3OTY2NTdlMmUzNDZhOGViOTZmMTg0NWE3NWUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjMxNDA5YjhjZTIwMWQ3YjE3MWE1NGE0MjkzNjkxNDJjYWQ0MWRiZGZiMTI5Y2IyYTkyNTNkZGRiMTBmYjQzNmIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjFjNDM4YzQ5ODczZjM2ZGIwYTE1YzgxZWFiZjQ4NTkxZGYxNjhiMDVjM2JjNGE2ODQ4M2E1YmEzYzJmYThmMDMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
+          "resource": "repo://frontend/src/lib/components/layout/app-sidebar-actions.svelte#L13-L47",
+          "version": "repo-lines-v1:sha256:a6d445018e038ba658532f46ac7e2151fcbea081f14de22056a404ff6972cbb6:eyJzZWxlY3RlZExpbmVDb3VudCI6MzUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ3MTMzNWFiM2Y0ZGZlMTNmOWFkYjFlNDA5YmVmMTVkOGEyZTA3OTY2NTdlMmUzNDZhOGViOTZmMTg0NWE3NWUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjMxNDA5YjhjZTIwMWQ3YjE3MWE1NGE0MjkzNjkxNDJjYWQ0MWRiZGZiMTI5Y2IyYTkyNTNkZGRiMTBmYjQzNmIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjFjNDM4YzQ5ODczZjM2ZGIwYTE1YzgxZWFiZjQ4NTkxZGYxNjhiMDVjM2JjNGE2ODQ4M2E1YmEzYzJmYThmMDMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
         },
         {
           "resource": "repo://frontend/src/lib/components/layout/app-sidebar-profile.svelte#L15-L49",
@@ -401,8 +405,8 @@
       "statement": "Type and money conventions: backend fields are mirrored as snake_case, list endpoints return PaginatedResponse<T> with an items array, and Money is { value?, units?, nanos?, currencyCode? } where moneyToNumber prefers units plus nanos/1e9 and falls back to parsing the string value while money() renders a localized dollar amount. Account holdings totals are nested as { cost: Money, value: Money }.",
       "evidence": [
         {
-          "resource": "repo://frontend/src/lib/types/account.ts#L1-L98",
-          "version": "repo-lines-v1:sha256:1a13bd29ca166ccff4d9315f9fb175098357ecb39e0d8cd748e8787449dceac6:eyJzZWxlY3RlZExpbmVDb3VudCI6OTgsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjYwOTFiYzYwY2JjODA3MDc3YWNiZjMxNDE0YTRjNDc1ZGYwNDk5NjQ5MmQxNTM4N2EzMzBlMzIyNGZkN2YyMDUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQxMmNhMzQ1Y2NmNzViZjljMDgwNmJjZTY5NWJlOGRlODA4Yjc5OTg0MjUxYTdhNTRkMjAyY2Y2MTAxZGQ0NTEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjowLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjdhYjUxZWZjNGU1MWU4NTA5MTJjNTM0OWM2OTcwM2VkMWYwZmNhZGQ5YmVlMTY4MDE0NDVlOThmMWZjYzliNWUifQ"
+          "resource": "repo://frontend/src/lib/types/account.ts#L1-L128",
+          "version": "repo-lines-v1:sha256:cf92fbfe22c6134d308ad46f5fa3cba49bfc6a772bb55954c6bf3e5975585eb7:eyJzZWxlY3RlZExpbmVDb3VudCI6MTI4LCJmaXJzdFNlbGVjdGVkTGluZUhhc2giOiI2MDkxYmM2MGNiYzgwNzA3N2FjYmYzMTQxNGE0YzQ3NWRmMDQ5OTY0OTJkMTUzODdhMzMwZTMyMjRmZDdmMjA1IiwibGFzdFNlbGVjdGVkTGluZUhhc2giOiI0MTJjYTM0NWNjZjc1YmY5YzA4MDZiY2U2OTViZThkZTgwOGI3OTk4NDI1MWE3YTU0ZDIwMmNmNjEwMWRkNDUxIiwicHJlY2VkaW5nQ29udGV4dExpbmVDb3VudCI6MCwicHJlY2VkaW5nQ29udGV4dEhhc2giOiJlM2IwYzQ0Mjk4ZmMxYzE0OWFmYmY0Yzg5OTZmYjkyNDI3YWU0MWU0NjQ5YjkzNGNhNDk1OTkxYjc4NTJiODU1IiwiZm9sbG93aW5nQ29udGV4dExpbmVDb3VudCI6MCwiZm9sbG93aW5nQ29udGV4dEhhc2giOiJlM2IwYzQ0Mjk4ZmMxYzE0OWFmYmY0Yzg5OTZmYjkyNDI3YWU0MWU0NjQ5YjkzNGNhNDk1OTkxYjc4NTJiODU1In0"
         },
         {
           "resource": "repo://frontend/src/lib/types/money.ts#L1-L22",
@@ -416,11 +420,11 @@
     },
     {
       "id": "claim_a1b1f3e906484d129c7c4893e0484315",
-      "statement": "Account and institution domain enums live in lib/types/account.ts with getAccountTypeLabel and getInstitutionLabel helpers that accept an optional translate callback, and AccountHoldings extends PaginatedResponse<Holding> with account-level totals (total_value, total_profit_loss, total_profit_loss_percent, net_deposits, currency) consumed by the account detail header and HoldingsTable.",
+      "statement": "Account and institution domain enums live in lib/types/account.ts with getAccountTypeLabel and getInstitutionLabel helpers that accept an optional translate callback, and AccountHoldings extends PaginatedResponse<Holding> with account-level totals (total_value, total_profit_loss, total_profit_loss_percent, net_deposits, currency) consumed by the account detail header and the account-scoped holdings table.",
       "evidence": [
         {
-          "resource": "repo://frontend/src/lib/types/account.ts#L17-L98",
-          "version": "repo-lines-v1:sha256:27e03d18ef2c9673eb5670755dc2a4ace837dc67a4ab6135ef4b580a06230b7e:eyJzZWxlY3RlZExpbmVDb3VudCI6ODIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImRkNjAxYmFhMDNiMWExNWEwMDkwMzM3NjVlZGY2YWY0OWU4N2MwOTQ0ZGVhNzFhYjA2MjkxZDhmMjE1ZTk0NDkiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQxMmNhMzQ1Y2NmNzViZjljMDgwNmJjZTY5NWJlOGRlODA4Yjc5OTg0MjUxYTdhNTRkMjAyY2Y2MTAxZGQ0NTEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjBhM2JjNTJiNGQ4Mzc1ZWUxZGQzY2ZmMjFiNjFhMWMwZjM3MjRiZTIzZWM5OTJkYzNhZjJiMDJjMGExODYwZTIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjdhYjUxZWZjNGU1MWU4NTA5MTJjNTM0OWM2OTcwM2VkMWYwZmNhZGQ5YmVlMTY4MDE0NDVlOThmMWZjYzliNWUifQ"
+          "resource": "repo://frontend/src/lib/types/account.ts#L17-L108",
+          "version": "repo-lines-v1:sha256:8216655b56e934b89faf76bf33451ee4b7e86fcb8fe247d8ab6c05dea1fcb467:eyJzZWxlY3RlZExpbmVDb3VudCI6OTIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImRkNjAxYmFhMDNiMWExNWEwMDkwMzM3NjVlZGY2YWY0OWU4N2MwOTQ0ZGVhNzFhYjA2MjkxZDhmMjE1ZTk0NDkiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQxMmNhMzQ1Y2NmNzViZjljMDgwNmJjZTY5NWJlOGRlODA4Yjc5OTg0MjUxYTdhNTRkMjAyY2Y2MTAxZGQ0NTEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjBhM2JjNTJiNGQ4Mzc1ZWUxZGQzY2ZmMjFiNjFhMWMwZjM3MjRiZTIzZWM5OTJkYzNhZjJiMDJjMGExODYwZTIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjdhYjUxZWZjNGU1MWU4NTA5MTJjNTM0OWM2OTcwM2VkMWYwZmNhZGQ5YmVlMTY4MDE0NDVlOThmMWZjYzliNWUifQ"
         },
         {
           "resource": "repo://frontend/src/routes/accounts/%5Bid%5D/%2Bpage.svelte#L21-L84",
@@ -462,7 +466,7 @@
     },
     {
       "id": "claim_eea1a0addfc144d38fd6e35163267ce1",
-      "statement": "The frontend extension points are consistent: a new backend area is a class extending ApiClient exported as both a getXClient factory and a default instance; a new page is a +page.server.ts with the standard 401-delete-and-redirect / ApiError-to-error shape over a thin +page.svelte shell; a new stateful feature is a Foo.svelte.ts rune class with isLoading and message-valued error state instantiated in a component or provided from +layout.svelte; and a new preference is a field added to UserPreferences in userPreferencesService.ts, patched from the component with patchPreferences, and — when it drives layout rendering — also read in +layout.server.ts's load behind a shape check inside the existing try/catch.",
+      "statement": "The frontend extension points are consistent: a new backend area is a class extending ApiClient exported as both a getXClient factory and a default instance; a new page is a +page.server.ts with the standard 401-delete-and-redirect / ApiError-to-error shape over a thin +page.svelte shell; a new stateful feature is a Foo.svelte.ts rune class with isLoading and message-valued error state instantiated in the component that owns the state (as /holdings does with HoldingsService) or provided from +layout.svelte; and a new preference is a field added to UserPreferences in userPreferencesService.ts, patched from the component with patchPreferences, where shell-driving preferences are additionally read in +layout.server.ts's load behind a shape check inside the existing try/catch while page-scoped ones like holdings_table and holdings_group are read in that page's own +page.server.ts load inside a nested try/catch.",
       "evidence": [
         {
           "resource": "repo://frontend/AGENTS.md#L98-L165",
@@ -473,12 +477,16 @@
           "version": "repo-lines-v1:sha256:66eb0f0509d6cbe0a35eea5dc6f6207234d3f2311bf4a3a5bfa47bafb59f85d5:eyJzZWxlY3RlZExpbmVDb3VudCI6MTEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjNiZGNhYzU0MTk4Y2JmMmVkNTJlOGJmOGIzNDFkNjM4NjgzMjQ4YTE2MjhhOTI1NDczZmMxMWYyMzNmODQ1ZjQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjY3Y2RhODJkYTYwNjIzOGUwNWU2MjM5OTU2OWM1ZWUwMzk5MzQxOTY0OGFlNWQ0M2EyYmY4Y2Q2MzQ3ZjgyNjMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImYyOTY0MDc5YzNjNWM4MTUyMGVmMzNhMmI5ZDJlMTVhMWI4NGQ3MjgwZGI4NTkwZGNkNjU3NDdlM2UwMTJhNDAiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjA2OTUwYzQwYjdiNTE3YzQ3MDJjODliMTZlNzdjYTZmYWI5YmYxMGQxZjczZDI4YWE1MDQ5NTg5NmIyY2E0YzQifQ"
         },
         {
-          "resource": "repo://frontend/src/lib/api/userPreferencesService.ts#L43-L57",
-          "version": "repo-lines-v1:sha256:11123601f48c0df6d34dfd1aa49c7609b9dfdbee7432403260a5d3484de59caa:eyJzZWxlY3RlZExpbmVDb3VudCI6MTUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjljZDMyNGJjZjhhYjc1MjI2ODc5ZTE3YzIyZTYyNDQ2MWUxNGZiNjRiMzEwMjQzZmZjNTQ1NjNkYWYxNzgyNDQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQxMmNhMzQ1Y2NmNzViZjljMDgwNmJjZTY5NWJlOGRlODA4Yjc5OTg0MjUxYTdhNTRkMjAyY2Y2MTAxZGQ0NTEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImIwOWY3MThkMDM3ZjI1ZTVmY2NjODM5MTRlMWE0ZjQ3N2FhYTllODgyM2IzYThhMDBiMjUxMWY0OGU2ZmMxMmEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImQ3ZDE5MDA5MTZhMjkyOTI1MWY0NDg3N2MyZTRiMjgxNTcyYmY2MGFiM2NlNGQ2YWQyMTFiNTFiOTJkMGZjNDIifQ"
+          "resource": "repo://frontend/src/lib/api/userPreferencesService.ts#L45-L61",
+          "version": "repo-lines-v1:sha256:c495ea21fbbb496dec2923ecdab94999897ce00772095c464f0b72ea7630b407:eyJzZWxlY3RlZExpbmVDb3VudCI6MTcsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjljZDMyNGJjZjhhYjc1MjI2ODc5ZTE3YzIyZTYyNDQ2MWUxNGZiNjRiMzEwMjQzZmZjNTQ1NjNkYWYxNzgyNDQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQxMmNhMzQ1Y2NmNzViZjljMDgwNmJjZTY5NWJlOGRlODA4Yjc5OTg0MjUxYTdhNTRkMjAyY2Y2MTAxZGQ0NTEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImIwOWY3MThkMDM3ZjI1ZTVmY2NjODM5MTRlMWE0ZjQ3N2FhYTllODgyM2IzYThhMDBiMjUxMWY0OGU2ZmMxMmEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImQ3ZDE5MDA5MTZhMjkyOTI1MWY0NDg3N2MyZTRiMjgxNTcyYmY2MGFiM2NlNGQ2YWQyMTFiNTFiOTJkMGZjNDIifQ"
         },
         {
           "resource": "repo://frontend/src/routes/%2Blayout.server.ts#L4-L39",
           "version": "repo-lines-v1:sha256:4d9b999c2b7235e03aa7af204ef514e568128241f9cfa04167430d36670a498a:eyJzZWxlY3RlZExpbmVDb3VudCI6MzYsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjZiZjY1OTVmZjIxYjZlNDBjOWU4NzQ1OGI3YzIyZTNjZjdhYTU3ZjBiZDQ2NmM4ZTg5NTI5YTc2M2VmNjZkMzIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImFhMWQxYTYzMzkwMjI5Yzc5ODM0N2U4M2EwNDA1NDQxYzk0MDAwMzUyODRhZDE2OGMxYmY2Y2RmMWQ3MGEzNzAiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjczNzA2YTI5ZmRlZTllNmRiNGMyYmUzMWEwZWY5MWI1NzRiY2Q4YjBlZTQ5NThjZGIyM2ViYzg4NWVlYzFmOGIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
+        },
+        {
+          "resource": "repo://frontend/src/routes/holdings/%2Bpage.server.ts#L44-L55",
+          "version": "repo-lines-v1:sha256:eb04445fb009ae7b0ef14fc9366d13102109cf46109ee4dd5df2ec2662563d7d:eyJzZWxlY3RlZExpbmVDb3VudCI6MTIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImE3MGM0NTEzNTNiN2VlZWFmOTg0NWZhOGJkMTBjZDNlODkxMWY2OWU3MTEwNzhiNTQ3ZmY1ZDM0N2IwNzZjOTAiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjY0ZWZjNDk0MThkMjZkY2YxMjliMjJhNmFhMjExMDhjZWVjMzc2NzdhMzJkMDhlOWQ1ZmVlMzVkZGE2NmJiOWQiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjJiMzA4MWMyNDQ1YzczYTM2ZTg2Mjc4NDhiOWEwMTE1YTI2MTAxMzVmZmEwNjU4NTJiYzI4ZDdjY2MwZThjMGYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImY4N2Q1ZDE2MWVhYjE3NzgxZTUwYzg1MDA3YjZhOGM2ZTQxNTg4Mzk1ZGQ0ZTA4YzEwNWIyMzkzNTE3YTkyODgifQ"
         }
       ]
     },
@@ -538,11 +546,11 @@
     },
     {
       "id": "claim_8e1f1ae0b00e4765910078e056f227c3",
-      "statement": "Layout-level preferences are server-loaded and client-persisted in one round trip: sidebar_open, collapsed_watchlist_ids, watchlist_order and watchlist_sort are all read in +layout.server.ts and written back with userPreferencesService.patchPreferences from the component owning the interaction (the layout's sidebar handler, AppSidebarWatchlist.toggleCollapsed, and the /watchlists drop and sort handlers), always as fire-and-forget calls that only log on failure. sidebar_watchlists is declared on UserPreferences but is not read by any component or load.",
+      "statement": "Layout-level preferences are server-loaded and client-persisted in one round trip: sidebar_open, collapsed_watchlist_ids, watchlist_order and watchlist_sort are read in +layout.server.ts and written back with userPreferencesService.patchPreferences from the component owning the interaction (the layout's sidebar handler, AppSidebarWatchlist.toggleCollapsed, and the /watchlists drop and sort handlers), always as fire-and-forget calls that only log on failure. Page-scoped holdings preferences follow the same write path but are read by the /holdings load: holdings_table and holdings_group feed holdings_table_config and group_mode, are patched through saveHoldingsTableConfig / saveHoldingsGroupMode, and their rejections are surfaced in a page-level persistError instead of only being logged. sidebar_watchlists is declared on UserPreferences but is not read by any component or load.",
       "evidence": [
         {
-          "resource": "repo://frontend/src/lib/api/userPreferencesService.ts#L43-L57",
-          "version": "repo-lines-v1:sha256:11123601f48c0df6d34dfd1aa49c7609b9dfdbee7432403260a5d3484de59caa:eyJzZWxlY3RlZExpbmVDb3VudCI6MTUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjljZDMyNGJjZjhhYjc1MjI2ODc5ZTE3YzIyZTYyNDQ2MWUxNGZiNjRiMzEwMjQzZmZjNTQ1NjNkYWYxNzgyNDQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQxMmNhMzQ1Y2NmNzViZjljMDgwNmJjZTY5NWJlOGRlODA4Yjc5OTg0MjUxYTdhNTRkMjAyY2Y2MTAxZGQ0NTEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImIwOWY3MThkMDM3ZjI1ZTVmY2NjODM5MTRlMWE0ZjQ3N2FhYTllODgyM2IzYThhMDBiMjUxMWY0OGU2ZmMxMmEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImQ3ZDE5MDA5MTZhMjkyOTI1MWY0NDg3N2MyZTRiMjgxNTcyYmY2MGFiM2NlNGQ2YWQyMTFiNTFiOTJkMGZjNDIifQ"
+          "resource": "repo://frontend/src/lib/api/userPreferencesService.ts#L45-L61",
+          "version": "repo-lines-v1:sha256:c495ea21fbbb496dec2923ecdab94999897ce00772095c464f0b72ea7630b407:eyJzZWxlY3RlZExpbmVDb3VudCI6MTcsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjljZDMyNGJjZjhhYjc1MjI2ODc5ZTE3YzIyZTYyNDQ2MWUxNGZiNjRiMzEwMjQzZmZjNTQ1NjNkYWYxNzgyNDQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQxMmNhMzQ1Y2NmNzViZjljMDgwNmJjZTY5NWJlOGRlODA4Yjc5OTg0MjUxYTdhNTRkMjAyY2Y2MTAxZGQ0NTEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImIwOWY3MThkMDM3ZjI1ZTVmY2NjODM5MTRlMWE0ZjQ3N2FhYTllODgyM2IzYThhMDBiMjUxMWY0OGU2ZmMxMmEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImQ3ZDE5MDA5MTZhMjkyOTI1MWY0NDg3N2MyZTRiMjgxNTcyYmY2MGFiM2NlNGQ2YWQyMTFiNTFiOTJkMGZjNDIifQ"
         },
         {
           "resource": "repo://frontend/src/lib/components/layout/app-sidebar-watchlist.svelte#L32-L41",
@@ -555,6 +563,14 @@
         {
           "resource": "repo://frontend/src/routes/%2Blayout.svelte#L23-L27",
           "version": "repo-lines-v1:sha256:daea8456ca7d8ea95ee2b25282060a5ec06e508dd01098dee814d9be4b5d3d55:eyJzZWxlY3RlZExpbmVDb3VudCI6NSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiMzRkMjc1YjhjMTE0OGQ5MTZjYzVlNWRiZTIxYjE1NTg0MTZmZDlhYjVmOTBkYTAyN2E1ZTQwZTRiMTg2ZjZiNSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNjdjZGE4MmRhNjA2MjM4ZTA1ZTYyMzk5NTY5YzVlZTAzOTkzNDE5NjQ4YWU1ZDQzYTJiZjhjZDYzNDdmODI2MyIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiNjM1YmZlNmYwMDBiZTA2YzA5OWFjY2QzMDRlZDc2YjU0ZWVlMjIyZDU1MTIyOThmY2RjNTY5NTNjZDkyYmZlMCIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiZWE1M2Y2OTNkMzNmMzExMmY0NDc1ZjU5NDdhYTc5Zjc1ZGZkYzBiOWRjMDc0NzE2NjBiOTFjODBlOWUyYTVkNSJ9"
+        },
+        {
+          "resource": "repo://frontend/src/routes/holdings/%2Bpage.server.ts#L44-L55",
+          "version": "repo-lines-v1:sha256:eb04445fb009ae7b0ef14fc9366d13102109cf46109ee4dd5df2ec2662563d7d:eyJzZWxlY3RlZExpbmVDb3VudCI6MTIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImE3MGM0NTEzNTNiN2VlZWFmOTg0NWZhOGJkMTBjZDNlODkxMWY2OWU3MTEwNzhiNTQ3ZmY1ZDM0N2IwNzZjOTAiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjY0ZWZjNDk0MThkMjZkY2YxMjliMjJhNmFhMjExMDhjZWVjMzc2NzdhMzJkMDhlOWQ1ZmVlMzVkZGE2NmJiOWQiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjJiMzA4MWMyNDQ1YzczYTM2ZTg2Mjc4NDhiOWEwMTE1YTI2MTAxMzVmZmEwNjU4NTJiYzI4ZDdjY2MwZThjMGYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImY4N2Q1ZDE2MWVhYjE3NzgxZTUwYzg1MDA3YjZhOGM2ZTQxNTg4Mzk1ZGQ0ZTA4YzEwNWIyMzkzNTE3YTkyODgifQ"
+        },
+        {
+          "resource": "repo://frontend/src/routes/holdings/%2Bpage.svelte#L84-L106",
+          "version": "repo-lines-v1:sha256:4f697ca073e9489c0a60e26ae247d4873dead6d3c288b234ee6faea041f97be0:eyJzZWxlY3RlZExpbmVDb3VudCI6MjMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImM0MDM4Y2EwNDE3ZGM3MTI2YmQzMWFmYzQ2MjFlYWVhZjNhZDUxNmMzOTAyNjBlM2EwZDI5NWZhNTc3ZDc4OWIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjY3Y2RhODJkYTYwNjIzOGUwNWU2MjM5OTU2OWM1ZWUwMzk5MzQxOTY0OGFlNWQ0M2EyYmY4Y2Q2MzQ3ZjgyNjMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImNkYzZmYzBkNTUyNGUyMDc0ZDQ2MWFkMDUwNTIwODhkNmU5ZjI5ZDdhZWQyNjIwZWZkM2YyYzdlMDExNzMxMzEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImYyM2U5ZDUzZWRlNGI0M2MwYzBhNzZlZDJiNDZhNzE3MzFhMmEzMzNkZmZkYjZkMDk5YWYwNjc1Njg1MGE3YTAifQ"
         },
         {
           "resource": "repo://frontend/src/routes/watchlists/%2Bpage.svelte#L139-L144",
@@ -610,8 +626,16 @@
     },
     {
       "id": "claim_5389f86c1afb417dbdbbc28b94d10c11",
-      "statement": "Route-level tests exercise the shell and page components directly with mocked clients instead of a running server: routes/layout.test.ts renders +layout.svelte with a createRawSnippet child to assert the unauthenticated bare-children path versus the Sidebar.Provider path and calls the +layout.server.ts load with a fake event to check collapsed_watchlist_ids, watchlist_order and watchlist_sort defaults, and routes/watchlists/page.svelte.test.ts mocks the market client and preferences service while keeping a real WatchlistService instance (mocking only getWatchlistService) so the page's $derived ordering and sorting run against real rune state.",
+      "statement": "Route-level tests exercise the shell and page components directly with mocked clients instead of a running server: routes/layout.test.ts renders +layout.svelte with a createRawSnippet child to assert the unauthenticated bare-children path versus the Sidebar.Provider path and calls the +layout.server.ts load with a fake event to check collapsed_watchlist_ids, watchlist_order and watchlist_sort defaults, routes/watchlists/page.svelte.test.ts mocks the market client and preferences service while keeping a real WatchlistService instance (mocking only getWatchlistService) so the page's $derived ordering and sorting run against real rune state, and the colocated /holdings suites mock $lib/api/accountService and $lib/api/userPreferencesService (plus $app/paths in the component test) to drive the load and the page's grouping, column visibility and per-currency totals without any backend.",
       "evidence": [
+        {
+          "resource": "repo://frontend/src/routes/holdings/page.server.test.ts#L6-L46",
+          "version": "repo-lines-v1:sha256:608040d98a2f6612a425c7a287d361e985287a250e6440870a4c120642f87101:eyJzZWxlY3RlZExpbmVDb3VudCI6NDEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijc4OGI4MTQ3YWM4NzkyNmUzNDJiNzg1NTJhNDNmYmYzMWZjYjI3MmY2OWY1ZjFjM2FkM2I2YzNkN2RkMjU0ZjMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQxMmNhMzQ1Y2NmNzViZjljMDgwNmJjZTY5NWJlOGRlODA4Yjc5OTg0MjUxYTdhNTRkMjAyY2Y2MTAxZGQ0NTEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjQ3MDcxZDdkZWUxMTRmM2NhNzFlZDczMWVkMGNkNmY5NjJlZDk2ZGNkMmNjMjBkOWUwNzUwZmE1OTI3N2QxOGQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImE4ODc3NmYzNGFlNjYxMGI0YmI5ZDRkYWUxN2NjMGVhMjJiYWFmMjJhMmJiODg0ZjQ1NjA4ZTEzYjlkMjRkYjcifQ"
+        },
+        {
+          "resource": "repo://frontend/src/routes/holdings/page.svelte.test.ts#L12-L32",
+          "version": "repo-lines-v1:sha256:45cd7870fb0fc0e951e2fa6723d750e7c47cb68fd2f1243b26b689fc7458eaea:eyJzZWxlY3RlZExpbmVDb3VudCI6MjEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijk2MzhjZDllNDMxNjQ3MTdmZDRiNTc0ODZmN2Q1NWNkMzZjODI1MThiZjk1NzJkNjY1MDg4ZGFkYzMyZTZjNjgiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijg5OTQzZDUxMjlkNzQ2ZDRkZDI3YmY2ZjZlNTE0NmE2YjZjOTBmYjBmNTJkMWE5M2M5ZDM5ZGY2ZDVjNjAyYTkiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImZmNWQ1M2MxMWIyNGE5YmY5MzlhNGUwZmM2NDUwMDI2YjY1YzkxYzAwOGI0NTViODMzMTliMWE3NjQ3OTRlOTciLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjEyYTIwM2Q2ZDI3NzMwN2MyZWRhOTA1YjEzOTlkODZkM2NlNjc1Y2VjZTkwNTFkNjcwNTMwNzAwM2JkOGYwNzMifQ"
+        },
         {
           "resource": "repo://frontend/src/routes/layout.test.ts#L59-L177",
           "version": "repo-lines-v1:sha256:161b0b65ceebba8341549589fad447d51a5f1d663811c235230abcb8c7d34783:eyJzZWxlY3RlZExpbmVDb3VudCI6MTE5LCJmaXJzdFNlbGVjdGVkTGluZUhhc2giOiI3MDM0NjUyY2FlZDRhZTk3OWIyODEzMzMzNTA4OTY2YTFkZjkyYmIxZDg4MGFiMWNkYTg0ZjczNzVkOThjYTViIiwibGFzdFNlbGVjdGVkTGluZUhhc2giOiIwYTczNDkyZDg5NDZiMWQwZjlkOWMwNGI3MDRhOTIwZjI0Zjg5ZWY3YzdmNzMxMWE4NTk5ZDEwYzdmNjM1OGQwIiwicHJlY2VkaW5nQ29udGV4dExpbmVDb3VudCI6MywicHJlY2VkaW5nQ29udGV4dEhhc2giOiI2ZjQxNzJiMjg4Y2VhMTFhMzliMWQyZTE3Mjk3NDQ0YTU0NDAwZTk0ZGJiM2JhZTg0MTAyNmVkYmE3NDEyYjU4IiwiZm9sbG93aW5nQ29udGV4dExpbmVDb3VudCI6MSwiZm9sbG93aW5nQ29udGV4dEhhc2giOiJmNmY1YjQwYjE1ODQ1N2QxNzg2NGYyMTc5MDc4NmRkNWEyZWNkYjY0YjY2YTY1MWY3ODhkNGUyNWNkMzMwM2QyIn0"
@@ -621,10 +645,108 @@
           "version": "repo-lines-v1:sha256:6fc5a3c6df8c9f6a498c8380f1be473d5b8c0327dd5ab732aba9937c448b7715:eyJzZWxlY3RlZExpbmVDb3VudCI6ODUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImNhMGU4M2I3MmNhYTFlNTdiNDIyYThmYTZlZjc0ZDQ4OGEwYTI2YzgxZWRkMDNjMmFlMzJhOWM1ZmIyODBjOGMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQxMmNhMzQ1Y2NmNzViZjljMDgwNmJjZTY5NWJlOGRlODA4Yjc5OTg0MjUxYTdhNTRkMjAyY2Y2MTAxZGQ0NTEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImI3ZjM2MTMwMWRjYWY0N2YzZDhkNTJkOThiZGQ0NmEwMmExZWJjZDQwMDNhMWJhMzBjNGY5ZWFhMTQ1NDhiMzMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjQxOWQyNjI2ZGMxZWZmMGY0ZmIwOWQ4NThlNTVhOGRjNTk1NDgxY2NkYThlN2E5NjMyY2NkMzEwNTk4Zjg0YzgifQ"
         }
       ]
+    },
+    {
+      "id": "claim_68c0564804764b5fa4a21469a64e6118",
+      "statement": "The /holdings route has a single server load and no form actions: it pages getAccountService(fetch).getUserHoldings(offset, 50, token) until offset >= total or a page returns no items (hard cap of 100 pages), then makes a nested non-fatal getUserPreferencesService(fetch).getPreferences(token) call that normalizes holdings_table and holdings_group and forwards elliott_waves, returning { holdings, holdings_table_config, group_mode, elliott_waves }; ApiError 401 deletes the auth cookie and redirects 303 to /auth/login?clear_session=true, any other ApiError status is re-thrown as error(status, message), and unknown failures become error(500, 'Internal Server Error').",
+      "evidence": [
+        {
+          "resource": "repo://frontend/src/routes/holdings/%2Bpage.server.ts#L12-L72",
+          "version": "repo-lines-v1:sha256:3d9010cf77c30b3582e9283495c0a823795fa99510d4ef90e3c09286135d713f:eyJzZWxlY3RlZExpbmVDb3VudCI6NjEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjY0ODQwODQ5Y2FkZjdiNzQwYmZlYjFiOWM4MWRlZDE5ZWQ4OWUzOTMyZmM1OGRkYmJjZTQ2N2IzYTRiNGZiN2YiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjY3Y2RhODJkYTYwNjIzOGUwNWU2MjM5OTU2OWM1ZWUwMzk5MzQxOTY0OGFlNWQ0M2EyYmY4Y2Q2MzQ3ZjgyNjMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjZmNzQzNjZhMmU1MjdkMTBkYjZlMDliNDE0NGJhNGNkZDA5ZWJhYjkxZDY0Y2FjYmYzYjc3ZGJmYzMxYTE3ZWIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjoxLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImFhMWQxYTYzMzkwMjI5Yzc5ODM0N2U4M2EwNDA1NDQxYzk0MDAwMzUyODRhZDE2OGMxYmY2Y2RmMWQ3MGEzNzAifQ"
+        },
+        {
+          "resource": "repo://frontend/src/routes/holdings/page.server.test.ts#L56-L145",
+          "version": "repo-lines-v1:sha256:5f350deb0655a1258995d14a186dffe127db83ed79ceadfb2312076a6ccf15d1:eyJzZWxlY3RlZExpbmVDb3VudCI6OTAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImZmZDY1NWI3MTRlZDQwYTI0ZDAzY2U0Yzk3MTAzZjVkODJiZjU2NWE0MWIyZmZhNDI0NDNlNzhkZmJmODkwNmMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjBhNzM0OTJkODk0NmIxZDBmOWQ5YzA0YjcwNGE5MjBmMjRmODllZjdjN2Y3MzExYTg1OTlkMTBjN2Y2MzU4ZDAiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImMxZmFmMzBjYmQ2NjZjMGVkODFjZmJkMTI0YzY2MTdiMTc0ZThkNWE5NGUyNjIwODkwNjQyZjFiMjBlMzUwZWIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImE3MmE5ZjBiMzdjOGEwMDZmMWM4ZTc5MDQwNDY0Y2FlZWY0YmRkNjU5ZWZhMDJkM2Y5OTcyODQwYjE0M2VlNWIifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_aacc0cf1c5e846d08926d5c1c0de2bea",
+      "statement": "AccountService covers both holdings scopes: getHoldings(securityId) reads the per-security account breakdown at /accounts/holdings/{securityId}, and getUserHoldings(offset = 0, limit = 50, token?) reads the user-wide paginated GET /accounts/holdings?offset=&limit= typed as PaginatedResponse<UserHolding>, passing the same optional SSR token override that factory-built clients use.",
+      "evidence": [
+        {
+          "resource": "repo://frontend/src/lib/api/accountService.ts#L16-L34",
+          "version": "repo-lines-v1:sha256:c449f56ebe3860ceffaf102b3cdf394b82e20f2f8883c4990e8885a5822b9434:eyJzZWxlY3RlZExpbmVDb3VudCI6MTksImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjJjMjA5YzIzN2FkMGQ0YjU2MTk0ZjQ2NjhiNTU0Yjc4MWJiMDY0Mzk4ZmIxYjQ3ZWFlZGNlYjVlMDNlOGM4YTUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQxMmNhMzQ1Y2NmNzViZjljMDgwNmJjZTY5NWJlOGRlODA4Yjc5OTg0MjUxYTdhNTRkMjAyY2Y2MTAxZGQ0NTEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjdhYWViMGRiZmIwY2IzZTFiNDcxZWM3NjRmYWQxOWJlZjIxMDhiZjFlYzBiMTI5YTM0YzUzZWI4ZmQ3YjY3NDMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjkxNmRkMWE1NmM0NGYxZGFlOGMzYzU3MjY0YWY2OTE4OWNkM2U3MGRjOTVmNmM4ZmIwNzRjNDQ5ZjU1NmRkYzgifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_89964638d3f2447dad2f8ccd865048df",
+      "statement": "The /holdings page instantiates its own HoldingsService at component init and seeds it from the server data (rows from data.holdings, groupBy from data.group_mode), so toggling grouping re-renders from memory instead of refetching; groupBy is a rune and groupedHoldings is a $derived.by over groupHoldings(rows, mode) from lib/utils/finance/holdings-group.ts. The same module exports setHoldingsService() / getHoldingsService(customFetch?) under Symbol('holdings-service'), where the customFetch call returns an isolated instance, but no production component reads that context.",
+      "evidence": [
+        {
+          "resource": "repo://frontend/src/lib/components/holdings/holdingsService.svelte.ts#L14-L28",
+          "version": "repo-lines-v1:sha256:b3e9e12f931031de545772e082146e767536c1f6f1b2861888895a3c8e273ae1:eyJzZWxlY3RlZExpbmVDb3VudCI6MTUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjgxNjdmM2MzZTA2ODNhODI0NjEyMGQ4MDdlMWQ3MjVlNDU3ZDZhMmM4YjNiYmZjMzkxYjU3ZGJiN2YyN2U1NDMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjY3Y2RhODJkYTYwNjIzOGUwNWU2MjM5OTU2OWM1ZWUwMzk5MzQxOTY0OGFlNWQ0M2EyYmY4Y2Q2MzQ3ZjgyNjMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImI1NDE4YWY2MjUxOGUyMmZkYzBjMDZjNDNmZjE1YWNhNDI1NjRlMjAyZmNjNDIyYTllNjcyMTNiMDJjY2E0YmIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjQ3NGUzODVjNDZhOGMwODBlMDNlODIwYjhjYTg4OTExY2YxMTllNDRhMTcxNjAxZjg4MGM3YTMzOGJlZjYyNDYifQ"
+        },
+        {
+          "resource": "repo://frontend/src/lib/components/holdings/holdingsService.svelte.ts#L57-L69",
+          "version": "repo-lines-v1:sha256:1e8e75fa2f1032dfc04799ce1ed626005c294be9b7369d88a3eb02ab9244d3c3:eyJzZWxlY3RlZExpbmVDb3VudCI6MTMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjRlMDdmZDUzZjEyYzJhYWNjNjJhYjU4MDliYTc3OWNkOGQ2YzdhMTVjZGU5MTUxYjY5NTlkNzk2OWFmNmE2NTgiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjZjY2NmNmJhMjI5Y2RmMmEwN2Q3NTZlYTc4NjQ5MzU4MGY2NDdhODU3OWI5ZDI5YzU4NjU1MTkxZWVjZGUzOWEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImYyOTY0MDc5YzNjNWM4MTUyMGVmMzNhMmI5ZDJlMTVhMWI4NGQ3MjgwZGI4NTkwZGNkNjU3NDdlM2UwMTJhNDAiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjoxLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjQxMmNhMzQ1Y2NmNzViZjljMDgwNmJjZTY5NWJlOGRlODA4Yjc5OTg0MjUxYTdhNTRkMjAyY2Y2MTAxZGQ0NTEifQ"
+        },
+        {
+          "resource": "repo://frontend/src/routes/holdings/%2Bpage.svelte#L23-L35",
+          "version": "repo-lines-v1:sha256:30aede43b91d378ac1da24ae7a280073ee9102c18d6a9051cbb82643c022e4cb:eyJzZWxlY3RlZExpbmVDb3VudCI6MTMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijc4YTA4ZTZmNDlkYzBkODRhNGZmNTRlOWVmYmU5ZWRmZjM2YWRkNjk1NjQxMjBjMWE1ODU2MDIwOTM5OGZiNDQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImFhMGM4YmQ0ODAzMTUxNDE0ZDI3YTBkNjA2MDE3NzgzMDRmZWVmZjYwM2VmMWUzMWNhMmE0YTQyMDJhODIwYTciLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6Ijg5OTdmMzcyYzJlMGQyMDgyODFjYWNjMWRkYjk3YTNjOThjZTUwMDFiZjcyMDQzZDE0NTRiMTAxMTQzMGY2OGIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImZkYjJmOGY3YWVlNTg0OWM4MmZkYmY2MmUxOGMxNjFmNWY1ZTBiMjViNTVlYjA5ZmFlYTA4ZGFlMzdhMTU0M2UifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_5b768b90b15740bea2c1cfbf29556c8c",
+      "statement": "HoldingsService.load(token) is the client-side equivalent of the /holdings server load: it pages getUserHoldings with PAGE_SIZE 50 until offset >= total or an empty page, capped at MAX_PAGES 100 as a stale-total safety valve, accumulates every page before assigning rows, keeps the previous rows when a page rejects, and stores the thrown message (Error message or String(error)) in errorMessage. No production component calls it today, because the SSR load already supplies the rows.",
+      "evidence": [
+        {
+          "resource": "repo://frontend/src/lib/components/holdings/holdingsService.svelte.ts#L10-L54",
+          "version": "repo-lines-v1:sha256:12145b62abd48222cf8aaf00fcfcafedefc1cf5fa8bdcce743ff8cdc5e65f6f2:eyJzZWxlY3RlZExpbmVDb3VudCI6NDUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjY0ODQwODQ5Y2FkZjdiNzQwYmZlYjFiOWM4MWRlZDE5ZWQ4OWUzOTMyZmM1OGRkYmJjZTQ2N2IzYTRiNGZiN2YiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjY3Y2RhODJkYTYwNjIzOGUwNWU2MjM5OTU2OWM1ZWUwMzk5MzQxOTY0OGFlNWQ0M2EyYmY4Y2Q2MzQ3ZjgyNjMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjgwNzEzN2ZhZTVjMjI2OGRlYWIxNmY0MTU1YjA0MzRmYzkwOGU0NDM5YmY1MjczNzU2NWEwYWEyODc0MGMxMmIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImVkMWRiNjU2M2E2YTRkMmI1NzVkYWI2ZTgwOGVmNWVjYWJmYjkyNTRhMDMyYzYyZmE2NmE2MDhmNDEzYjVmY2EifQ"
+        },
+        {
+          "resource": "repo://frontend/src/lib/components/holdings/holdingsService.test.ts#L89-L125",
+          "version": "repo-lines-v1:sha256:9eb95ad071885e04b9fd66cbbaad06a0db9438b22da1b59c6e6e75f0b50e613b:eyJzZWxlY3RlZExpbmVDb3VudCI6MzcsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjZjNDhmNTQ0ZTJhZDNiMzhmMzk5YzY1ZTQ0YTc3MjEzMDViNzc2ZmU4Mjc0MDZhZDYzNDQ5ZjNmZjJkZWFhZjUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjBhNzM0OTJkODk0NmIxZDBmOWQ5YzA0YjcwNGE5MjBmMjRmODllZjdjN2Y3MzExYTg1OTlkMTBjN2Y2MzU4ZDAiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImQ0ZTRkOWIxYmJlNWJlNTI3NzAwN2Q4MGRiYTVkYzQ1YzcyNzk2OWVjNTdiOTk1NDlmZTRiZjQ1ZDhkYzVlOTIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUxMTNlOTgwN2FkZThjYjQ3MTM1NmVlMjJjYWU1Mzc3NDA1NjBhZGFiYTBlNDE0YWFlYzY2NmYyYjUxOTIzYzIifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_dba46bfdf6aa418aa594a78d18bb4c14",
+      "statement": "UserHolding in lib/types/account.ts is Holding extended with account_id and account_name, mirroring the backend UserHoldingRead returned by the user-wide GET /accounts/holdings; it is the row type of the /holdings table, which is what lets that view render an Account column and aggregate one stock across accounts.",
+      "evidence": [
+        {
+          "resource": "repo://frontend/src/lib/types/account.ts#L88-L98",
+          "version": "repo-lines-v1:sha256:245f84857968aa0fca85f5b0e65068aa910a64074d1a6ce6a9ebacd822f083d6:eyJzZWxlY3RlZExpbmVDb3VudCI6MTEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjA2MmJjZWMxMTcwZGZjMGVhN2MyZWM5ZjlmYzY1NjA2ZjU2ZGUyMTkzNWYwMTQ1ZDQ4YjI2YjBiYjRjZjE0MjEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQxMmNhMzQ1Y2NmNzViZjljMDgwNmJjZTY5NWJlOGRlODA4Yjc5OTg0MjUxYTdhNTRkMjAyY2Y2MTAxZGQ0NTEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjViYTU4OGRkNzhkMmQ2OGQwM2Q2NWJhMGExZTgzZTM3ZjAwNGU4ZjMxMjY5NzA5MzEwZDg1YWYzNjZkNDlmOTkiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImNhOWZjMDBhMjE0MGVkZWE3YzZkYzk3Mjk4NjMyZGJlYzVmMGNhNjk0ZTFlNzNjNGE0ZDkyODEzMTFlYzNiOGQifQ"
+        },
+        {
+          "resource": "repo://frontend/src/routes/holdings/%2Bpage.svelte#L23-L28",
+          "version": "repo-lines-v1:sha256:5adb4634031f05b4cb987718ca17176119bb5cd7fccd791a3a4c2a5b07b790b8:eyJzZWxlY3RlZExpbmVDb3VudCI6NiwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiNzhhMDhlNmY0OWRjMGQ4NGE0ZmY1NGU5ZWZiZTllZGZmMzZhZGQ2OTU2NDEyMGMxYTU4NTYwMjA5Mzk4ZmI0NCIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNDA3NjE0NDc2ZTc0Yzc1MzQ3OTU2MzViMTUyYjQ5NzBkZWE1YjJiNTYyNjg5ZjUwZTVlYWIwNzNlNzZhZTZjYSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiODk5N2YzNzJjMmUwZDIwODI4MWNhY2MxZGRiOTdhM2M5OGNlNTAwMWJmNzIwNDNkMTQ1NGIxMDExNDMwZjY4YiIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiM2JhMmY1OGExZTFhZmZjMDc5MDViMjhjNWEyZDBlNDIwMDc4ODFhM2I2ZmQ0OGYxNGZmYzI3NTM3NGEyNDYxNiJ9"
+        }
+      ]
+    },
+    {
+      "id": "claim_a1690ffdc6e640d4a90b28205de434d6",
+      "statement": "UserPreferences in lib/api/userPreferencesService.ts carries the holdings preferences holdings_table (HoldingsTableConfig from components/holdings/holdings-table-columns) and holdings_group (HoldingsGroupMode from lib/utils/finance/holdings-group) alongside the sidebar, watchlist, chart and holdings_period fields, and the same module re-exports the Elliott-wave and Fibonacci persistence shapes (SecurityElliottWaves, WaveSettings, FibonacciPreferences, and peers) that are declared under $lib/utils/finance/.",
+      "evidence": [
+        {
+          "resource": "repo://frontend/src/lib/api/userPreferencesService.ts#L25-L61",
+          "version": "repo-lines-v1:sha256:9051d15e8f4c524422537b7f7132dacfe61d0ad51b8a3b0e2ac74aba8e5c2b0d:eyJzZWxlY3RlZExpbmVDb3VudCI6MzcsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImQ5MzJlZjU1ODlhNjg1OGE5MjUwMDM2M2E1MjlmZmFkMTgyZTc5OTU1YzliNTBiYWEyOTUzZTMwMGZiNTc4NDMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQxMmNhMzQ1Y2NmNzViZjljMDgwNmJjZTY5NWJlOGRlODA4Yjc5OTg0MjUxYTdhNTRkMjAyY2Y2MTAxZGQ0NTEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjYyOWRiYTI0MTQyZmM2M2VjMjQyZTFmNGRhOGYzZWZiMTIyYzI3NTc3YTRiYWIyYTg1NmE4MjFlYTZiN2JiYTQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImQ3ZDE5MDA5MTZhMjkyOTI1MWY0NDg3N2MyZTRiMjgxNTcyYmY2MGFiM2NlNGQ2YWQyMTFiNTFiOTJkMGZjNDIifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_dbca480a134648b1b6db07b389693d9f",
+      "statement": "Holdings are rendered by two independent, route-scoped tables with no shared component between them: /accounts/[id] feeds the older components/accounts/holdings-table.svelte from an AccountHoldings payload, while /holdings feeds components/holdings/holdings-table.svelte from UserHolding rows plus tableConfig, groupBy, elliottWaves and an onConfigChange callback that the page uses to persist column changes.",
+      "evidence": [
+        {
+          "resource": "repo://frontend/src/routes/accounts/%5Bid%5D/%2Bpage.svelte#L1-L84",
+          "version": "repo-lines-v1:sha256:2279fd82945b2a6a7a70672d5a18f784fcdc8d617058d856baf2e60299c596bd:eyJzZWxlY3RlZExpbmVDb3VudCI6ODQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijk0YWJjOGVkNzU0MzgyMjA2NWMwMjlmNWVhMjUyZDEyMjNkNzZhYTdkMmQzZDRmYjEyNTgxMmY2YjVhOTlkZGYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjMzM2I2ZjBjODA3NTgwNGNmMDgyOWQzNDQ0YjI1Y2M4ZTc2ZmE2MzY2MjEzYTYxYjA4YzY1ZTk0OTBmMTk0ZDQiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjowLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUxNjkxNDFiOGQ2NjNlYTUxYzdmOGVlMWEwOGVhYTMyZmU3NjE0NzQ3MTNmODEzNzQ1MzQxMmVhMTA5MGE3YjcifQ"
+        },
+        {
+          "resource": "repo://frontend/src/routes/holdings/%2Bpage.svelte#L1-L35",
+          "version": "repo-lines-v1:sha256:d2626744900faa9b921d989af09344d464154b71873bba02aa171bb453bff312:eyJzZWxlY3RlZExpbmVDb3VudCI6MzUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijk0YWJjOGVkNzU0MzgyMjA2NWMwMjlmNWVhMjUyZDEyMjNkNzZhYTdkMmQzZDRmYjEyNTgxMmY2YjVhOTlkZGYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImFhMGM4YmQ0ODAzMTUxNDE0ZDI3YTBkNjA2MDE3NzgzMDRmZWVmZjYwM2VmMWUzMWNhMmE0YTQyMDJhODIwYTciLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjowLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImZkYjJmOGY3YWVlNTg0OWM4MmZkYmY2MmUxOGMxNjFmNWY1ZTBiMjViNTVlYjA5ZmFlYTA4ZGFlMzdhMTU0M2UifQ"
+        },
+        {
+          "resource": "repo://frontend/src/routes/holdings/%2Bpage.svelte#L223-L233",
+          "version": "repo-lines-v1:sha256:723e3bd8f81933c113067204d79b13b5e562c307b74e83510d7572b6f47b5b96:eyJzZWxlY3RlZExpbmVDb3VudCI6MTEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjZjODAwMWIzNjRiODc2OTlmYjcyNmEyYWI5ODBmOTM3ODA3MjdlZDZkNzIzZTBiYzdiMTAyMDczNzNjOTRlMjEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjFhNzY5YzRkMWJjNDkxOTgwMDQxOTgwYjg5YzhmM2Y4MjQ0NGM4NTMzYzBiYmY4ZDVmZWM4N2U5ZGFlYzQ3MTUiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImQzNWJkODMzNmNjMDk4MzA0ODUyNjkzMDllNmNjY2Y4MzVlZGIyNDBiOGQ2MDY2NmVjYjEyZTUzYmUyMzQ4YmUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjoxLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjVlYjUxNjU4YzRmZjAzNWZlY2RlYjRjMjY5ZWZiMmQzM2E2N2FjOTkyOGEyYTZjMmQyZDlhMTQ2MzBhMGVjMzUifQ"
+        }
+      ]
     }
   ],
   "verification": {
     "by": "openwiki/0.5.2",
-    "at": "2026-09-20T12:50:16.306Z"
+    "at": "2026-09-21T14:49:00.510Z"
   }
 }
