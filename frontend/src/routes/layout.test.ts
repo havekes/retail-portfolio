@@ -1,4 +1,4 @@
-import { render, screen, fireEvent } from '@testing-library/svelte';
+import { render, screen, fireEvent, waitFor } from '@testing-library/svelte';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import Layout from './+layout.svelte';
 import { load } from './+layout.server';
@@ -6,6 +6,12 @@ import { createRawSnippet } from 'svelte';
 import { goto } from '$app/navigation';
 import { getWatchlistService } from '$lib/components/watchlist/watchlistService.svelte';
 import { getUserPreferencesService } from '$lib/api/userPreferencesService';
+import { ApiError } from '$lib/api/apiClient';
+
+const marketMocks = vi.hoisted(() => ({
+	getWatchlists: vi.fn(),
+	getWatchlistSecurities: vi.fn()
+}));
 
 vi.mock('mode-watcher', () => ({
 	ModeWatcher: () => null
@@ -29,10 +35,7 @@ vi.mock('$app/stores', async () => {
 });
 
 vi.mock('$lib/api/marketService', () => ({
-	getMarketService: () => ({
-		getWatchlists: vi.fn().mockResolvedValue([]),
-		getWatchlistSecurities: vi.fn().mockResolvedValue({ items: [] })
-	})
+	getMarketService: () => marketMocks
 }));
 
 vi.mock('$lib/api/userPreferencesService', () => ({
@@ -61,6 +64,10 @@ if (typeof window !== 'undefined') {
 describe('Root +layout.svelte', () => {
 	beforeEach(() => {
 		vi.clearAllMocks();
+		// `clearAllMocks` keeps implementations, so reset explicitly: the async
+		// watchlists load must default to a successful, empty response per test.
+		marketMocks.getWatchlists.mockReset().mockResolvedValue([]);
+		marketMocks.getWatchlistSecurities.mockReset().mockResolvedValue({ items: [] });
 	});
 
 	it('renders children without Sidebar.Provider / AppSidebar when unauthenticated', () => {
@@ -226,6 +233,45 @@ describe('Root +layout.svelte', () => {
 			await pressKey(content, 'w', { metaKey: true });
 			await pressKey(content, 'h', { ctrlKey: true });
 
+			expect(goto).not.toHaveBeenCalled();
+		});
+	});
+
+	describe('async watchlists load', () => {
+		const renderAuthenticated = () => {
+			const children = createRawSnippet(() => ({
+				render: () => '<div data-testid="page-content">Authenticated Dashboard</div>'
+			}));
+
+			return render(Layout, {
+				props: {
+					data: {
+						user: { id: 'u1', email: 'test@example.com' },
+						sidebar_open: true,
+						collapsed_watchlist_ids: [],
+						watchlist_order: null,
+						watchlist_sort: null
+					},
+					children
+				}
+			});
+		};
+
+		it('redirects to login through the shared seam when the load returns 401', async () => {
+			marketMocks.getWatchlists.mockRejectedValueOnce(new ApiError(401, 'Unauthorized'));
+
+			renderAuthenticated();
+
+			await waitFor(() => expect(goto).toHaveBeenCalledWith('/auth/login?clear_session=true'));
+			expect(goto).toHaveBeenCalledTimes(1);
+		});
+
+		it('does not redirect when the watchlists load succeeds', async () => {
+			marketMocks.getWatchlists.mockResolvedValueOnce([]);
+
+			renderAuthenticated();
+
+			await waitFor(() => expect(marketMocks.getWatchlists).toHaveBeenCalledTimes(1));
 			expect(goto).not.toHaveBeenCalled();
 		});
 	});

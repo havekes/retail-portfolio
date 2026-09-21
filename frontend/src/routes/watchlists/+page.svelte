@@ -43,6 +43,9 @@
 		'openGlobalSearch'
 	);
 
+	// Safety net only: the server load no longer supplies watchlists (the layout-owned
+	// service fetches them asynchronously), so `data.watchlists` is empty and this guard
+	// is inert. Kept for direct/programmatic renders that still pass server data.
 	if (watchlistService.watchlists.length === 0 && untrack(() => data.watchlists).length > 0) {
 		watchlistService.watchlists = untrack(() => data.watchlists);
 	}

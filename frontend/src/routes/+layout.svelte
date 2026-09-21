@@ -11,6 +11,7 @@
 	import { resolve } from '$app/paths';
 	import GlobalSearch from '$lib/components/global-search.svelte';
 	import { userPreferencesService } from '$lib/api/userPreferencesService.js';
+	import { redirectOn401 } from '$lib/api/async-data';
 	import { Toaster } from '$lib/components/ui/toast/index.js';
 	import type { WatchlistRead } from '$lib/api/marketService';
 
@@ -28,9 +29,19 @@
 		}
 	}
 
+	// The layout owns the initial watchlists fetch (it also feeds the sidebar and the
+	// 0-9 shortcuts): pages render their shell first and fill in when it resolves.
+	// `$effect` never runs during SSR, so this stays browser-only. A 401 is routed
+	// through the shared async-data seam instead of a page-local redirect.
 	$effect(() => {
 		if (data.user) {
-			watchlistService.loadWatchlists();
+			void (async () => {
+				const err = await watchlistService.loadWatchlists();
+
+				if (err !== null) {
+					await redirectOn401(err);
+				}
+			})();
 		}
 	});
 

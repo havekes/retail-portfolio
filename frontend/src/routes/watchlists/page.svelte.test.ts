@@ -558,6 +558,89 @@ describe('Watchlists page - layout stability during inline editing', () => {
 	});
 });
 
+describe('Watchlists page - instant shell with async list', () => {
+	it('renders the shell and skeleton rows before the async watchlists load resolves', async () => {
+		let resolveWatchlists!: (value: WatchlistRead[]) => void;
+		mocks.client.getWatchlists.mockReturnValue(
+			new Promise<WatchlistRead[]>((resolve) => {
+				resolveWatchlists = resolve;
+			})
+		);
+
+		// The layout-owned service starts the initial fetch; its pending promise is what
+		// drives the page's `isInitialLoading` skeleton path.
+		const loadPromise = service.loadWatchlists();
+		renderPage([]);
+
+		// Titlebar, page actions and structure are up before any data arrives.
+		expect(screen.getByRole('heading', { name: 'Watchlists' })).toBeInTheDocument();
+		expect(screen.getByRole('button', { name: 'Reorder' })).toBeInTheDocument();
+		expect(screen.getByRole('button', { name: 'Create watchlist' })).toBeInTheDocument();
+
+		const status = screen.getByRole('status', { name: 'Loading watchlists' });
+		expect(status.querySelectorAll('[data-slot="skeleton"]')).toHaveLength(3);
+		expect(screen.queryByRole('region')).not.toBeInTheDocument();
+		expect(screen.queryByText("You don't have any watchlists yet")).not.toBeInTheDocument();
+
+		resolveWatchlists([defaultList(), techList()]);
+		await loadPromise;
+
+		await waitFor(() =>
+			expect(screen.getByRole('region', { name: 'Default securities' })).toBeInTheDocument()
+		);
+		expect(screen.getByRole('region', { name: 'Tech securities' })).toBeInTheDocument();
+		expect(screen.queryByRole('status', { name: 'Loading watchlists' })).not.toBeInTheDocument();
+		expect(mocks.client.getWatchlists).toHaveBeenCalledTimes(1);
+	});
+
+	it('fills in the real sections without re-navigating, and never fetches on its own', async () => {
+		mocks.client.getWatchlists.mockResolvedValue([defaultList(), techList()]);
+		renderPage([]);
+
+		// Rendering the page alone must not fetch: the layout-owned service is the single
+		// owner of the initial request, so no duplicate server + client request exists.
+		expect(mocks.client.getWatchlists).not.toHaveBeenCalled();
+
+		await service.loadWatchlists();
+
+		await waitFor(() =>
+			expect(screen.getByRole('region', { name: 'Default securities' })).toBeInTheDocument()
+		);
+		expect(screen.getByRole('region', { name: 'Tech securities' })).toBeInTheDocument();
+		expect(screen.getByRole('heading', { level: 2, name: 'Default' })).toBeInTheDocument();
+		expect(screen.getByText('2 securities')).toBeInTheDocument();
+		expect(screen.getByRole('button', { name: 'Sort securities in Default' })).toBeInTheDocument();
+		expect(screen.queryByRole('status', { name: 'Loading watchlists' })).not.toBeInTheDocument();
+		expect(mocks.client.getWatchlists).toHaveBeenCalledTimes(1);
+	});
+
+	it('applies the persisted watchlist order to the asynchronously loaded sections', async () => {
+		mocks.client.getWatchlists.mockResolvedValue([defaultList(), techList()]);
+		renderPage([], vi.fn(), ['wl-tech', 'wl-default']);
+
+		await service.loadWatchlists();
+
+		await waitFor(() => expect(screen.getAllByRole('region')).toHaveLength(2));
+		const headings = screen
+			.getAllByRole('region')
+			.map((section) => within(section).getByRole('heading', { level: 2 }).textContent);
+		expect(headings).toEqual(['Tech', 'Default']);
+	});
+
+	it('shows the destructive alert and keeps the shell when the async load fails', async () => {
+		mocks.client.getWatchlists.mockRejectedValue(new Error('boom'));
+		renderPage([]);
+
+		await service.loadWatchlists();
+
+		await waitFor(() => expect(screen.getByRole('alert')).toHaveTextContent('boom'));
+		expect(screen.getByRole('alert')).toHaveClass('text-destructive');
+		// No SvelteKit error page: the shell and its actions survive the failed load.
+		expect(screen.getByRole('heading', { name: 'Watchlists' })).toBeInTheDocument();
+		expect(screen.getByRole('button', { name: 'Create watchlist' })).toBeInTheDocument();
+	});
+});
+
 describe('Watchlists page - shared error lifecycle', () => {
 	it('clears the page-level error after a subsequent successful mutation', async () => {
 		mocks.client.renameWatchlist.mockRejectedValue(new Error('Watchlist name already in use'));

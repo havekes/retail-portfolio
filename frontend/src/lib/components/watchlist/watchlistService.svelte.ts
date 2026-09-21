@@ -30,13 +30,22 @@ export class WatchlistService {
 		this.watchlists = this.watchlists.map((w) => (w.id === updated.id ? updated : w));
 	}
 
-	async loadWatchlists(token?: string | null): Promise<void> {
+	/**
+	 * Load the user's watchlists. Returns the caught error (after storing its
+	 * message in `error`) so callers can route a 401 through the shared
+	 * async-data seam, or `null` when the load succeeded.
+	 */
+	async loadWatchlists(token?: string | null): Promise<unknown | null> {
 		this.error = null;
 		this.isLoading = true;
 		try {
 			this.watchlists = await this.client.getWatchlists(token);
+
+			return null;
 		} catch (err) {
 			this.handleError(err, 'Failed to load watchlists');
+
+			return err;
 		} finally {
 			this.isLoading = false;
 		}

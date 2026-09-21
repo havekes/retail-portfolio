@@ -69,22 +69,27 @@ describe('WatchlistService.loadWatchlists', () => {
 	it('stores watchlists with embedded securities and derives the default list', async () => {
 		client.getWatchlists.mockResolvedValue([techList(), defaultList()]);
 
-		await service.loadWatchlists('tok');
+		const result = await service.loadWatchlists('tok');
 
 		expect(client.getWatchlists).toHaveBeenCalledWith('tok');
 		expect(service.watchlists).toHaveLength(2);
 		expect(service.defaultWatchlistSecurities.map((s) => s.id)).toEqual(['sec-1', 'sec-2']);
 		expect(service.isLoading).toBe(false);
 		expect(service.error).toBeNull();
+		// `null` tells the caller there is nothing to route through the 401 seam.
+		expect(result).toBeNull();
 	});
 
 	it('surfaces a load failure without leaving isLoading set', async () => {
-		client.getWatchlists.mockRejectedValue(new Error('network down'));
+		const failure = new Error('network down');
+		client.getWatchlists.mockRejectedValue(failure);
 
-		await service.loadWatchlists();
+		const result = await service.loadWatchlists();
 
 		expect(service.error).toBe('network down');
 		expect(service.isLoading).toBe(false);
+		// The caught error is returned so callers can route a 401 to the login page.
+		expect(result).toBe(failure);
 	});
 });
 
@@ -436,7 +441,7 @@ describe('WatchlistService error lifecycle', () => {
 		client.addToWatchlist.mockResolvedValue(watchlist('wl-default', 'Default', [aapl, msft, nvda]));
 		client.removeFromWatchlist.mockResolvedValue(watchlist('wl-default', 'Default', [msft]));
 
-		const cases: [string, () => Promise<void>][] = [
+		const cases: [string, () => Promise<unknown>][] = [
 			['loadWatchlists', () => service.loadWatchlists()],
 			['createWatchlist', () => service.createWatchlist('New')],
 			['renameWatchlist', () => service.renameWatchlist('wl-tech', 'Tech')],
