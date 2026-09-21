@@ -338,6 +338,20 @@ describe('Horizontal Line Plugin', () => {
 			state.setDraggingPoint(null);
 			expect(state.getDraggingPoint()).toBeNull();
 		});
+
+		it('does not trigger drawingsChanged when setHorizontalLines is invoked with unchanged drawings', () => {
+			const initialLines = [{ id: 'hl1', p1: { time: anchor('2024-01-01'), price: 100 } }];
+			state.setHorizontalLines(initialLines);
+
+			const drawingsHandler = vi.fn();
+			state.drawingsChanged().subscribe(drawingsHandler);
+
+			state.setHorizontalLines(initialLines);
+			expect(drawingsHandler).not.toHaveBeenCalled();
+
+			state.setHorizontalLines([{ id: 'hl1', p1: { time: '2024-01-01' as Time, price: 100 } }]);
+			expect(drawingsHandler).not.toHaveBeenCalled();
+		});
 	});
 
 	describe('MouseHandlers', () => {

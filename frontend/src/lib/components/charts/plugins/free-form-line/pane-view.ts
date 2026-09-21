@@ -1,26 +1,8 @@
-import type {
-	IPrimitivePaneRenderer,
-	IPrimitivePaneView,
-	PrimitivePaneViewZOrder
-} from 'lightweight-charts';
+import { DelegatingPaneView } from '../helpers/primitive/delegating-pane-view';
 import { LinePaneRenderer, type LineRendererData } from './pane-renderer';
 
-export class LinePaneView implements IPrimitivePaneView {
-	private readonly _renderer: LinePaneRenderer;
-
+export class LinePaneView extends DelegatingPaneView<LineRendererData, LinePaneRenderer> {
 	constructor() {
-		this._renderer = new LinePaneRenderer();
-	}
-
-	public zOrder(): PrimitivePaneViewZOrder {
-		return 'top';
-	}
-
-	public renderer(): IPrimitivePaneRenderer {
-		return this._renderer;
-	}
-
-	public update(data: LineRendererData | null): void {
-		this._renderer.update(data);
+		super(new LinePaneRenderer());
 	}
 }
