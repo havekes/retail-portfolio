@@ -387,6 +387,32 @@ describe('Measure Plugin', () => {
 			state.setDraggingPoint(null);
 			expect(state.getDraggingPoint()).toBeNull();
 		});
+
+		it('does not trigger drawingsChanged when setMeasures is invoked with unchanged drawings', () => {
+			const initialMeasures = [
+				{
+					id: 'm1',
+					p1: { time: anchor('2024-01-01'), price: 100 },
+					p2: { time: anchor('2024-01-02'), price: 110 }
+				}
+			];
+			state.setMeasures(initialMeasures);
+
+			const drawingsHandler = vi.fn();
+			state.drawingsChanged().subscribe(drawingsHandler);
+
+			state.setMeasures(initialMeasures);
+			expect(drawingsHandler).not.toHaveBeenCalled();
+
+			state.setMeasures([
+				{
+					id: 'm1',
+					p1: { time: '2024-01-01' as Time, price: 100 },
+					p2: { time: '2024-01-02' as Time, price: 110 }
+				}
+			]);
+			expect(drawingsHandler).not.toHaveBeenCalled();
+		});
 	});
 
 	describe('MouseHandlers', () => {
