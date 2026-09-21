@@ -13,6 +13,10 @@ vi.mock('$app/paths', () => ({
 	resolve: (path: string) => path
 }));
 
+vi.mock('$app/navigation', () => ({
+	goto: vi.fn()
+}));
+
 vi.mock('$lib/api/accountService', () => ({
 	getAccountService: vi.fn()
 }));
@@ -21,6 +25,8 @@ vi.mock('$lib/api/userPreferencesService', () => ({
 	getUserPreferencesService: vi.fn()
 }));
 
+import { goto } from '$app/navigation';
+import { ApiError } from '$lib/api/apiClient';
 import { getAccountService, type AccountService } from '$lib/api/accountService';
 import {
 	getUserPreferencesService,
@@ -111,9 +117,12 @@ const aaplUsd = makeRow({
 	account_name: 'USD Account'
 });
 
+function pageOf(items: UserHolding[], total = items.length) {
+	return { items, total, offset: 0, limit: 50 };
+}
+
 function makeData(
 	overrides: Partial<{
-		holdings: UserHolding[];
 		holdings_table_config: typeof HOLDINGS_TABLE_DEFAULT_CONFIG;
 		group_mode: HoldingsGroupMode;
 		elliott_waves: Record<string, SecurityElliottWaves> | null;
@@ -125,12 +134,30 @@ function makeData(
 		collapsed_watchlist_ids: [] as string[],
 		watchlist_order: null as string[] | null,
 		watchlist_sort: null as Record<string, string> | null,
-		holdings: [] as UserHolding[],
 		holdings_table_config: HOLDINGS_TABLE_DEFAULT_CONFIG,
 		group_mode: 'none' as HoldingsGroupMode,
 		elliott_waves: null as Record<string, SecurityElliottWaves> | null,
 		...overrides
 	};
+}
+
+/**
+ * Render the page with the async holdings load stubbed, then wait until the
+ * resolved rows are on screen. The page fetches its rows after navigation.
+ */
+async function renderWithHoldings(
+	holdings: UserHolding[],
+	dataOverrides: Parameters<typeof makeData>[0] = {},
+	total = holdings.length
+) {
+	getUserHoldings.mockResolvedValue(pageOf(holdings, total));
+	render(Page, { props: { data: makeData(dataOverrides) } });
+
+	if (holdings.length > 0) {
+		await waitFor(() => expect(screen.getAllByTestId('holding-row').length).toBeGreaterThan(0));
+	} else {
+		await waitFor(() => expect(screen.getByTestId('empty-state')).toBeInTheDocument());
+	}
 }
 
 describe('Holdings page (+page.svelte)', () => {
@@ -140,6 +167,7 @@ describe('Holdings page (+page.svelte)', () => {
 		getPreferences.mockReset();
 		patchPreferences.mockReset();
 
+		getUserHoldings.mockResolvedValue(pageOf([]));
 		getPreferences.mockResolvedValue({});
 		patchPreferences.mockResolvedValue({});
 		vi.mocked(getAccountService).mockReturnValue({
@@ -151,16 +179,79 @@ describe('Holdings page (+page.svelte)', () => {
 		} as unknown as UserPreferencesService);
 	});
 
-	it('lists holdings from every account', () => {
-		render(Page, { props: { data: makeData({ holdings: [aaplTfsa, msftRrsp, aaplUsd] }) } });
+	it('renders the shell (title, actions, table headers, skeletons) before holdings resolve', async () => {
+		let resolveLoad!: (value: unknown) => void;
+		getUserHoldings.mockReturnValueOnce(
+			new Promise((resolve) => {
+				resolveLoad = resolve;
+			})
+		);
+
+		render(Page, {
+			props: {
+				data: makeData({
+					holdings_table_config: normalizeHoldingsTableConfig({
+						widths: { security_symbol: 300 },
+						visible: ['security_symbol', 'quantity', 'total_value']
+					})
+				})
+			}
+		});
+
+		await waitFor(() => expect(screen.getAllByTestId('skeleton-row').length).toBeGreaterThan(0));
+
+		expect(screen.getByText('Holdings')).toBeInTheDocument();
+		expect(screen.getByText('All holdings across your accounts')).toBeInTheDocument();
+		expect(screen.getByTestId('display-settings-trigger')).toBeInTheDocument();
+		// The persisted column config is applied on the first render.
+		expect(screen.getAllByRole('columnheader')).toHaveLength(3);
+		expect(screen.queryByTestId('holding-row')).not.toBeInTheDocument();
+
+		resolveLoad(pageOf([aaplTfsa], 1));
+
+		await waitFor(() => expect(screen.getAllByTestId('holding-row')).toHaveLength(1));
+	});
+
+	it('fills in rows without user action once the async load resolves', async () => {
+		await renderWithHoldings([aaplTfsa, msftRrsp, aaplUsd]);
 
 		expect(screen.getAllByTestId('holding-row')).toHaveLength(3);
 		expect(screen.getByText('TFSA')).toBeInTheDocument();
 		expect(screen.getByText('USD Account')).toBeInTheDocument();
+		expect(getUserHoldings).toHaveBeenCalledWith(0, 50, undefined);
 	});
 
-	it('buckets header totals per currency instead of summing across them', () => {
-		render(Page, { props: { data: makeData({ holdings: [aaplTfsa, aaplRrsp, aaplUsd] }) } });
+	it('loads every page of holdings sequentially', async () => {
+		const firstPage = Array.from({ length: 50 }, (_, index) =>
+			makeRow({
+				id: `h-${index}`,
+				security_id: `sec-${index}`,
+				security_symbol: `SYM${index}`,
+				security_name: `Security ${index}`
+			})
+		);
+		const secondPage = [
+			makeRow({
+				id: 'h-50',
+				security_id: 'sec-50',
+				security_symbol: 'SYM50',
+				security_name: 'Security 50'
+			})
+		];
+
+		getUserHoldings
+			.mockResolvedValueOnce(pageOf(firstPage, 51))
+			.mockResolvedValueOnce(pageOf(secondPage, 51));
+
+		render(Page, { props: { data: makeData() } });
+
+		await waitFor(() => expect(screen.getAllByTestId('holding-row')).toHaveLength(51));
+		expect(getUserHoldings).toHaveBeenNthCalledWith(1, 0, 50, undefined);
+		expect(getUserHoldings).toHaveBeenNthCalledWith(2, 50, 50, undefined);
+	});
+
+	it('buckets header totals per currency instead of summing across them', async () => {
+		await renderWithHoldings([aaplTfsa, aaplRrsp, aaplUsd]);
 
 		const cad = screen.getByTestId('currency-total-CAD');
 		expect(cad).toHaveTextContent('CAD TOTAL');
@@ -185,7 +276,7 @@ describe('Holdings page (+page.svelte)', () => {
 		expect(usdPl).toHaveTextContent('+US$20.00');
 	});
 
-	it('renders negative return % pill badge with negative styling', () => {
+	it('renders negative return % pill badge with negative styling', async () => {
 		const losingHolding = makeRow({
 			id: 'h-loss',
 			security_id: 'sec-loss',
@@ -198,14 +289,16 @@ describe('Holdings page (+page.svelte)', () => {
 			profit_loss: -200,
 			currency: 'CAD'
 		});
-		render(Page, { props: { data: makeData({ holdings: [losingHolding] }) } });
+
+		await renderWithHoldings([losingHolding]);
+
 		const pill = screen.getByTestId('currency-return-percent-CAD');
 		expect(pill).toHaveTextContent('-20.00%');
 		expect(pill.className).toContain('text-rose-600');
 		expect(screen.getByTestId('currency-profit-loss-CAD')).toHaveTextContent('-$200.00');
 	});
 
-	it('handles currency bucket with zero cost basis or missing profit/loss gracefully', () => {
+	it('handles currency bucket with zero cost basis or missing profit/loss gracefully', async () => {
 		const zeroCostHolding = makeRow({
 			id: 'h-gift',
 			security_id: 'sec-gift',
@@ -230,7 +323,8 @@ describe('Holdings page (+page.svelte)', () => {
 			profit_loss: null,
 			currency: 'USD'
 		});
-		render(Page, { props: { data: makeData({ holdings: [zeroCostHolding, noPlHolding] }) } });
+
+		await renderWithHoldings([zeroCostHolding, noPlHolding]);
 
 		// Zero cost basis -> returnPercent is null, pill badge omitted, but dollar profit/loss is displayed
 		expect(screen.queryByTestId('currency-return-percent-CAD')).not.toBeInTheDocument();
@@ -242,8 +336,8 @@ describe('Holdings page (+page.svelte)', () => {
 		expect(screen.getByTestId('currency-total-USD')).toHaveTextContent('$500.00');
 	});
 
-	it('renders unified icon-only settings trigger button and no standalone group checkbox in header', () => {
-		render(Page, { props: { data: makeData({ holdings: [aaplTfsa] }) } });
+	it('renders unified icon-only settings trigger button and no standalone group checkbox in header', async () => {
+		await renderWithHoldings([aaplTfsa]);
 
 		const trigger = screen.getByRole('button', { name: 'Display settings' });
 		expect(trigger).toBeInTheDocument();
@@ -257,10 +351,12 @@ describe('Holdings page (+page.svelte)', () => {
 	});
 
 	it('toggling "Group by stock" merges rows into single rows per stock without refetching', async () => {
-		render(Page, { props: { data: makeData({ holdings: [aaplTfsa, msftRrsp, aaplRrsp] }) } });
+		await renderWithHoldings([aaplTfsa, msftRrsp, aaplRrsp]);
 
 		expect(screen.queryByTestId('group-header')).not.toBeInTheDocument();
 		expect(screen.getAllByTestId('holding-row')).toHaveLength(3);
+
+		const callsAfterLoad = getUserHoldings.mock.calls.length;
 
 		await fireEvent.click(screen.getByTestId('display-settings-trigger'));
 		const groupByToggle = await screen.findByTestId('group-by-stock');
@@ -271,28 +367,26 @@ describe('Holdings page (+page.svelte)', () => {
 		expect(screen.getAllByTestId('holding-row')).toHaveLength(2);
 
 		// Grouping is pure client-side derivation: the table must not reload data.
-		expect(getUserHoldings).not.toHaveBeenCalled();
+		expect(getUserHoldings.mock.calls.length).toBe(callsAfterLoad);
 	});
 
 	it('un-groups again when the toggle is switched off', async () => {
-		render(Page, {
-			props: { data: makeData({ holdings: [aaplTfsa, msftRrsp, aaplRrsp], group_mode: 'stock' }) }
-		});
+		await renderWithHoldings([aaplTfsa, msftRrsp, aaplRrsp], { group_mode: 'stock' });
 
 		expect(screen.getAllByTestId('holding-row')).toHaveLength(2);
+
+		const callsAfterLoad = getUserHoldings.mock.calls.length;
 
 		await fireEvent.click(screen.getByTestId('display-settings-trigger'));
 		const groupByToggle = await screen.findByTestId('group-by-stock');
 		await fireEvent.click(groupByToggle);
 
 		expect(screen.getAllByTestId('holding-row')).toHaveLength(3);
-		expect(getUserHoldings).not.toHaveBeenCalled();
+		expect(getUserHoldings.mock.calls.length).toBe(callsAfterLoad);
 	});
 
 	it('restores the persisted group mode from the server data', async () => {
-		render(Page, {
-			props: { data: makeData({ holdings: [aaplTfsa, aaplRrsp], group_mode: 'stock' }) }
-		});
+		await renderWithHoldings([aaplTfsa, aaplRrsp], { group_mode: 'stock' });
 
 		expect(screen.getAllByTestId('holding-row')).toHaveLength(1);
 		await fireEvent.click(screen.getByTestId('display-settings-trigger'));
@@ -301,7 +395,7 @@ describe('Holdings page (+page.svelte)', () => {
 	});
 
 	it('persists the group mode as "stock" when toggled', async () => {
-		render(Page, { props: { data: makeData({ holdings: [aaplTfsa] }) } });
+		await renderWithHoldings([aaplTfsa]);
 
 		await fireEvent.click(screen.getByTestId('display-settings-trigger'));
 		const groupByToggle = await screen.findByTestId('group-by-stock');
@@ -310,8 +404,8 @@ describe('Holdings page (+page.svelte)', () => {
 		await waitFor(() => expect(patchPreferences).toHaveBeenCalledWith({ holdings_group: 'stock' }));
 	});
 
-	it('renders the empty state when there are no holdings', () => {
-		render(Page, { props: { data: makeData() } });
+	it('renders the empty state when there are no holdings', async () => {
+		await renderWithHoldings([]);
 
 		expect(screen.getByTestId('empty-state')).toHaveTextContent(
 			'No holdings yet. Import an account to see your holdings here.'
@@ -319,10 +413,32 @@ describe('Holdings page (+page.svelte)', () => {
 		expect(screen.queryByTestId('currency-total-CAD')).not.toBeInTheDocument();
 	});
 
+	it('shows the holdings-error alert with the real message when the async load fails', async () => {
+		getUserHoldings.mockRejectedValue(new Error('Holdings service unavailable'));
+
+		render(Page, { props: { data: makeData() } });
+
+		await waitFor(() =>
+			expect(screen.getByTestId('holdings-error')).toHaveTextContent('Holdings service unavailable')
+		);
+		// The page shell survives the failed async load (no SvelteKit error page).
+		expect(screen.getByText('Holdings')).toBeInTheDocument();
+		expect(goto).not.toHaveBeenCalled();
+	});
+
+	it('redirects to login when the async holdings load returns 401', async () => {
+		getUserHoldings.mockRejectedValue(new ApiError(401, 'Unauthorized'));
+
+		render(Page, { props: { data: makeData() } });
+
+		await waitFor(() => expect(goto).toHaveBeenCalledWith('/auth/login?clear_session=true'));
+		expect(goto).toHaveBeenCalledTimes(1);
+	});
+
 	it('shows an error banner when persisting the group mode fails', async () => {
 		patchPreferences.mockRejectedValueOnce(new Error('Preferences unavailable'));
 
-		render(Page, { props: { data: makeData({ holdings: [aaplTfsa, aaplRrsp] }) } });
+		await renderWithHoldings([aaplTfsa, aaplRrsp]);
 
 		await fireEvent.click(screen.getByTestId('display-settings-trigger'));
 		const groupByToggle = await screen.findByTestId('group-by-stock');
@@ -335,17 +451,12 @@ describe('Holdings page (+page.svelte)', () => {
 		expect(screen.getAllByTestId('holding-row')).toHaveLength(1);
 	});
 
-	it('renders the column config loaded from the server', () => {
-		render(Page, {
-			props: {
-				data: makeData({
-					holdings: [aaplTfsa],
-					holdings_table_config: normalizeHoldingsTableConfig({
-						widths: { security_symbol: 300 },
-						visible: ['security_symbol', 'quantity', 'total_value']
-					})
-				})
-			}
+	it('renders the column config loaded from the server', async () => {
+		await renderWithHoldings([aaplTfsa], {
+			holdings_table_config: normalizeHoldingsTableConfig({
+				widths: { security_symbol: 300 },
+				visible: ['security_symbol', 'quantity', 'total_value']
+			})
 		});
 
 		expect(screen.getAllByRole('columnheader')).toHaveLength(3);
@@ -354,7 +465,7 @@ describe('Holdings page (+page.svelte)', () => {
 	});
 
 	it('persists the column config when a column is hidden', async () => {
-		render(Page, { props: { data: makeData({ holdings: [aaplTfsa] }) } });
+		await renderWithHoldings([aaplTfsa]);
 
 		await fireEvent.click(screen.getByTestId('display-settings-trigger'));
 		await fireEvent.click(await screen.findByTestId('column-toggle-account_name'));
@@ -368,7 +479,7 @@ describe('Holdings page (+page.svelte)', () => {
 	});
 
 	it('toggles column visibility from PageHeader dropdown and restores column on repeat toggle', async () => {
-		render(Page, { props: { data: makeData({ holdings: [aaplTfsa] }) } });
+		await renderWithHoldings([aaplTfsa]);
 
 		expect(screen.getByTestId('column-col-account_name')).toBeInTheDocument();
 
@@ -384,7 +495,7 @@ describe('Holdings page (+page.svelte)', () => {
 		expect(screen.getByTestId('column-col-account_name')).toBeInTheDocument();
 	});
 
-	it('forwards elliott_waves from data to HoldingsTable rendering projections', () => {
+	it('forwards elliott_waves from data to HoldingsTable rendering projections', async () => {
 		const mockWaves: Record<string, SecurityElliottWaves> = {
 			'sec-aapl': {
 				waves: [
@@ -399,14 +510,7 @@ describe('Holdings page (+page.svelte)', () => {
 			}
 		};
 
-		render(Page, {
-			props: {
-				data: makeData({
-					holdings: [aaplTfsa],
-					elliott_waves: mockWaves
-				})
-			}
-		});
+		await renderWithHoldings([aaplTfsa], { elliott_waves: mockWaves });
 
 		// AAPL latest_price is 100, wave 5 target is 200 -> upside +100%
 		expect(screen.getByTestId('ew-primary-upside')).toHaveTextContent('+100.00%');

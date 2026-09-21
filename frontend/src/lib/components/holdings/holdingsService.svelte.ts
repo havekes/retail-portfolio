@@ -27,7 +27,12 @@ export class HoldingsService {
 		this.groupBy = mode;
 	}
 
-	async load(token?: string | null): Promise<void> {
+	/**
+	 * Load every page of holdings. Returns the caught error (after storing its
+	 * message in `errorMessage`) so callers can route a 401 through the shared
+	 * async-data seam, or `null` when the load succeeded.
+	 */
+	async load(token?: string | null): Promise<unknown | null> {
 		this.isLoading = true;
 		this.errorMessage = null;
 
@@ -46,8 +51,12 @@ export class HoldingsService {
 			}
 
 			this.rows = collected;
+
+			return null;
 		} catch (error) {
 			this.errorMessage = error instanceof Error ? error.message : String(error);
+
+			return error;
 		} finally {
 			this.isLoading = false;
 		}
