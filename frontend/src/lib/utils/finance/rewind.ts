@@ -1,7 +1,9 @@
 import type { SecurityElliottWaves } from './elliott-wave';
 import type { SecurityFibonacciTools } from './fibonacci';
+import type { SecurityDrawings } from './drawings';
 import { areSecurityElliottWavesEqual } from './elliott-wave';
 import { areFibonacciToolsEqual } from './fibonacci';
+import { areSecurityDrawingsEqual } from './drawings';
 
 export interface RewindDataWindow {
 	first: string | number; // getTimeValue()-stringified candle time
@@ -11,6 +13,7 @@ export interface RewindDataWindow {
 export interface RewindDrawings {
 	elliott_waves?: SecurityElliottWaves | null;
 	fibonacci_tools?: SecurityFibonacciTools | null;
+	drawings?: SecurityDrawings | null;
 }
 
 export interface RewindSnapshot {
@@ -199,6 +202,10 @@ export function areSnapshotsEqual(
 	}
 
 	if (!areFibonacciToolsEqualNormalized(a.drawings?.fibonacci_tools, b.drawings?.fibonacci_tools)) {
+		return false;
+	}
+
+	if (!areSecurityDrawingsEqual(a.drawings?.drawings, b.drawings?.drawings)) {
 		return false;
 	}
 

@@ -557,3 +557,38 @@ describe('Watchlists page - layout stability during inline editing', () => {
 		expect(screen.getByRole('heading', { level: 2, name: 'Tech' })).toBeInTheDocument();
 	});
 });
+
+describe('Watchlists page - shared error lifecycle', () => {
+	it('clears the page-level error after a subsequent successful mutation', async () => {
+		mocks.client.renameWatchlist.mockRejectedValue(new Error('Watchlist name already in use'));
+		mocks.client.removeSecurityFromWatchlist.mockResolvedValue(watchlist('wl-tech', 'Tech', []));
+		renderPage([defaultList(), techList()]);
+
+		await fireEvent.click(screen.getByRole('button', { name: 'Rename Tech' }));
+		const input = screen.getByLabelText('Watchlist name');
+		await fireEvent.input(input, { target: { value: 'Default' } });
+		await fireEvent.click(screen.getByRole('button', { name: 'Save Tech' }));
+
+		expect(await screen.findByText('Watchlist name already in use')).toBeInTheDocument();
+		expect(service.error).toBe('Watchlist name already in use');
+
+		const section = screen.getByRole('region', { name: 'Tech securities' });
+		await fireEvent.click(within(section).getByRole('button', { name: 'Remove NVDA' }));
+
+		await waitFor(() => expect(service.error).toBeNull());
+		await waitFor(() =>
+			expect(screen.queryByText('Watchlist name already in use')).not.toBeInTheDocument()
+		);
+	});
+
+	it('suppresses the page-level alert while the create modal owns the error', async () => {
+		mocks.client.createWatchlist.mockRejectedValue(new Error('Name already taken'));
+		renderPage([defaultList()]);
+
+		await openCreateModal('Duplicate');
+
+		expect(await screen.findByText('Name already taken')).toBeInTheDocument();
+		// Only the modal alert renders; the page-level banner is suppressed.
+		expect(screen.getAllByText('Name already taken')).toHaveLength(1);
+	});
+});

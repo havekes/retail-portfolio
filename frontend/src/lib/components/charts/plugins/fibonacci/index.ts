@@ -2,18 +2,20 @@ export { FibonacciPrimitive } from './fibonacci-primitive';
 export { FibonacciToolState, type FibPointTarget } from './state';
 export {
 	HIT_TEST_RADIUS,
-	HANDLE_RADIUS,
 	PREVIEW_LINE_DASH,
 	PREVIEW_ALPHA,
 	DEFAULT_TRENDLINE_WIDTH,
 	DEFAULT_LEVEL_LINE_WIDTH,
 	DEFAULT_LEVEL_LINE_DASH,
+	DEFAULT_TRENDLINE_COLOR
+} from './constants';
+export {
+	HANDLE_RADIUS,
 	DEFAULT_HANDLE_COLOR,
 	DEFAULT_HANDLE_BORDER_COLOR,
 	DEFAULT_HOVER_RING_COLOR,
-	DEFAULT_DRAG_RING_COLOR,
-	DEFAULT_TRENDLINE_COLOR
-} from './constants';
+	DEFAULT_DRAG_RING_COLOR
+} from '../helpers/renderer';
 export {
 	FibonacciPaneRenderer,
 	calculateRetracementLineBounds,

@@ -150,17 +150,33 @@ vi.mock('lightweight-charts', () => {
 import type { Component } from 'svelte';
 import { tick } from 'svelte';
 import type { Candle } from '$lib/utils/finance/candle';
-import type {
-	DegreeWaveCount,
-	SecurityElliottWaves,
-	WaveDegree
+import {
+	normalizeWaveIds,
+	type DegreeWaveCount,
+	type SecurityElliottWaves,
+	type WaveDegree
 } from '$lib/utils/finance/elliott-wave';
-import type { SecurityFibonacciTools, FibToolType } from '$lib/utils/finance/fibonacci';
+import {
+	normalizeSecurityFibonacciTools,
+	type SecurityFibonacciTools,
+	type FibToolType
+} from '$lib/utils/finance/fibonacci';
 import type { IndicatorData } from './security-chart.svelte';
-import { render } from '@testing-library/svelte';
+import { render, fireEvent, screen } from '@testing-library/svelte';
 import { createChart } from 'lightweight-charts';
 import { ElliottWavesPrimitive } from './plugins/elliott-wave/elliott-wave';
 import { FibonacciPrimitive } from './plugins/fibonacci/fibonacci-primitive';
+import { MeasurePrimitive } from './plugins/measure/measure-primitive';
+import { HorizontalLinePrimitive } from './plugins/horizontal-line/horizontal-line-primitive';
+import { FreeFormLinePrimitive } from './plugins/free-form-line/free-form-line-primitive';
+import type { SecurityDrawings } from '$lib/utils/finance/drawings';
+import {
+	MAX_PANE_FRACTION,
+	MIN_PANE_FRACTION,
+	BOTTOM_MARGIN,
+	PANE_GAP,
+	TOP_MARGIN
+} from '$lib/chart/indicator-pane-layout';
 
 interface SecurityChartInstance {
 	addIndicator: (indicator: IndicatorData) => void;
@@ -175,6 +191,9 @@ interface SecurityChartInstance {
 	getAllWaves: () => DegreeWaveCount[];
 	getSelectedWaveId: () => string | null;
 	setSelectedWaveId: (id: string | null) => void;
+	getPaneHeights: () => Record<string, number> | null;
+	setPaneHeights: (heights: Record<string, number> | null) => void;
+	resetPaneHeights: () => void;
 }
 
 describe('SecurityChart - Infinite Scroll & Logical Range', () => {
@@ -438,7 +457,8 @@ describe('SecurityChart - Elliott Wave Integration', () => {
 			(c) => c[0] instanceof ElliottWavesPrimitive
 		)?.[0] as ElliottWavesPrimitive;
 
-		expect(elliottPrimitive.getWaveCount('cycle')).toEqual(sampleWaves.waves[0]);
+		// Anchors are canonicalized to epoch seconds on ingestion.
+		expect(elliottPrimitive.getWaveCount('cycle')).toEqual(normalizeWaveIds(sampleWaves.waves)[0]);
 
 		const updatedWaves: SecurityElliottWaves = {
 			waves: [
@@ -459,7 +479,9 @@ describe('SecurityChart - Elliott Wave Integration', () => {
 			elliottWaves: updatedWaves
 		});
 
-		expect(elliottPrimitive.getWaveCount('primary')).toEqual(updatedWaves.waves[1]);
+		expect(elliottPrimitive.getWaveCount('primary')).toEqual(
+			normalizeWaveIds(updatedWaves.waves)[1]
+		);
 	});
 
 	it('forwards primitive events to delegate callbacks', () => {
@@ -767,7 +789,10 @@ describe('SecurityChart - Fibonacci Integration', () => {
 		expect(fibPrimitive).toBeDefined();
 		expect(fibPrimitive.getActiveTool()).toBe('extension');
 		expect(fibPrimitive.isDrawingMode()).toBe(true);
-		expect(fibPrimitive.getRetracement()).toEqual(initialTools.retracement);
+		// Anchors are canonicalized to epoch seconds on ingestion.
+		expect(fibPrimitive.getRetracement()).toEqual(
+			normalizeSecurityFibonacciTools(initialTools).retracement
+		);
 	});
 
 	it('syncs activeFibTool prop changes to FibonacciPrimitive', async () => {
@@ -834,7 +859,9 @@ describe('SecurityChart - Fibonacci Integration', () => {
 			(c) => c[0] instanceof FibonacciPrimitive
 		)?.[0] as FibonacciPrimitive;
 
-		expect(fibPrimitive.getRetracement()).toEqual(sampleTools.retracement);
+		expect(fibPrimitive.getRetracement()).toEqual(
+			normalizeSecurityFibonacciTools(sampleTools).retracement
+		);
 
 		const updatedTools: SecurityFibonacciTools = {
 			retracement: sampleTools.retracement,
@@ -850,7 +877,9 @@ describe('SecurityChart - Fibonacci Integration', () => {
 			fibonacciTools: updatedTools
 		});
 
-		expect(fibPrimitive.getExtension()).toEqual(updatedTools.extension);
+		expect(fibPrimitive.getExtension()).toEqual(
+			normalizeSecurityFibonacciTools(updatedTools).extension
+		);
 	});
 
 	it('pushes enabled Fib levels to ElliottWavesPrimitive and updates on tools change', async () => {
@@ -917,8 +946,8 @@ describe('SecurityChart - Fibonacci Integration', () => {
 		expect(onFibChange).toHaveBeenCalledWith(
 			expect.objectContaining({
 				retracement: expect.objectContaining({
-					p1: { time: '2024-01-10', price: 10 },
-					p2: { time: '2024-01-11', price: 20 }
+					p1: { time: 1704844800, price: 10 },
+					p2: { time: 1704931200, price: 20 }
 				})
 			})
 		);
@@ -2201,6 +2230,933 @@ describe('SecurityChart - Oscillator Panes & Custom Price Scales', () => {
 			} finally {
 				clientWidthSpy.mockRestore();
 			}
+		});
+	});
+});
+
+describe('SecurityChart - Resizable Indicator Panes', () => {
+	/* eslint-disable-next-line @typescript-eslint/no-explicit-any */
+	let SecurityChart: Component<any>;
+
+	const initialCandles: Candle[] = [
+		{ time: '2024-01-10', open: 10, high: 12, low: 9, close: 11 },
+		{ time: '2024-01-11', open: 11, high: 13, low: 10, close: 12 }
+	];
+
+	const rsiIndicator: IndicatorData = {
+		type: 'rsi',
+		label: 'RSI',
+		color: '#7e57c2',
+		data: [{ time: '2024-01-10', value: 50 }]
+	};
+
+	const macdIndicator: IndicatorData = {
+		type: 'macd',
+		label: 'MACD',
+		color: '#2962FF',
+		data: [{ time: '2024-01-10', histogram: 0.5, macd: 1.2, signal: 0.7 }]
+	};
+
+	beforeAll(async () => {
+		const mod = await import('./security-chart.svelte');
+		SecurityChart = mod.default;
+	});
+
+	beforeEach(() => {
+		vi.clearAllMocks();
+		rangeCallbacks = [];
+		crosshairCallbacks = [];
+		mockGetVisibleLogicalRange.mockReturnValue(undefined);
+		mockGetVisibleRange.mockReturnValue(undefined);
+	});
+
+	function renderChart(props: Record<string, unknown> = {}) {
+		const rendered = render(SecurityChart, {
+			props: { candles: initialCandles, ...props }
+		});
+		const component = rendered.component as unknown as SecurityChartInstance;
+		const createdCharts = vi.mocked(createChart).mock.results.map((r) => r.value);
+		const mainChart = createdCharts[createdCharts.length - 1];
+		const mainContainer = rendered.container.querySelector('#main-chart') as HTMLElement;
+		Object.defineProperty(mainContainer, 'clientHeight', { value: 400, configurable: true });
+		Object.defineProperty(mainContainer, 'clientWidth', { value: 800, configurable: true });
+		return { ...rendered, component, mainChart };
+	}
+
+	function lastScaleMargins(
+		chart: ReturnType<typeof createChart>,
+		id: string
+	): { top: number; bottom: number } {
+		/* eslint-disable-next-line @typescript-eslint/no-explicit-any */
+		const calls: any[] = vi.mocked(chart.priceScale(id).applyOptions).mock.calls;
+		expect(calls.length).toBeGreaterThan(0);
+		return calls[calls.length - 1][0].scaleMargins;
+	}
+
+	function bandHeight(margins: { top: number; bottom: number }): number {
+		return 1 - margins.top - margins.bottom;
+	}
+
+	it('uses the legacy default layout when no custom heights are set (AC3)', async () => {
+		const { component, mainChart } = renderChart();
+		component.addIndicator(rsiIndicator);
+		await tick();
+
+		expect(component.getPaneHeights()).toBeNull();
+		expect(lastScaleMargins(mainChart, 'rsi')).toEqual({ top: 0.75, bottom: 0 });
+		expect(lastScaleMargins(mainChart, 'right')).toEqual({ top: 0.05, bottom: 0.3 });
+	});
+
+	it('renders one handle per adjacent pane pair and only for active panes', async () => {
+		const { component } = renderChart();
+
+		expect(screen.queryByTestId('pane-resize-handle-main-rsi')).toBeNull();
+
+		component.addIndicator(rsiIndicator);
+		await tick();
+		expect(screen.queryByTestId('pane-resize-handle-main-rsi')).not.toBeNull();
+
+		component.addIndicator({
+			type: 'volume',
+			label: 'Volume',
+			color: '#64748b',
+			data: [{ time: '2024-01-10', value: 1000 }]
+		});
+		await tick();
+
+		expect(screen.queryByTestId('pane-resize-handle-main-volume')).not.toBeNull();
+		expect(screen.queryByTestId('pane-resize-handle-volume-rsi')).not.toBeNull();
+		expect(screen.queryByTestId('pane-resize-handle-main-rsi')).toBeNull();
+	});
+
+	it('dragging a divider resizes both adjacent panes within bounds and re-renders immediately (AC1)', async () => {
+		const onPaneHeightsChange = vi.fn();
+		const { component, mainChart } = renderChart({ onPaneHeightsChange });
+		component.addIndicator(rsiIndicator);
+		await tick();
+
+		const handle = screen.getByTestId('pane-resize-handle-main-rsi');
+		vi.mocked(mainChart.priceScale('rsi').applyOptions).mockClear();
+		vi.mocked(mainChart.priceScale('right').applyOptions).mockClear();
+
+		await fireEvent.pointerDown(handle, { clientY: 200, pointerId: 1 });
+		await fireEvent.pointerMove(handle, { clientY: 240, pointerId: 1 });
+
+		// Re-render happened on the move, not only on release.
+		expect(mainChart.priceScale('rsi').applyOptions).toHaveBeenCalled();
+		expect(mainChart.priceScale('right').applyOptions).toHaveBeenCalled();
+
+		const rsiBand = bandHeight(lastScaleMargins(mainChart, 'rsi'));
+		const mainBand = bandHeight(lastScaleMargins(mainChart, 'right'));
+
+		expect(rsiBand).toBeGreaterThanOrEqual(MIN_PANE_FRACTION);
+		expect(rsiBand).toBeLessThanOrEqual(MAX_PANE_FRACTION);
+		expect(mainBand).toBeGreaterThanOrEqual(MIN_PANE_FRACTION);
+		expect(mainBand).toBeLessThanOrEqual(MAX_PANE_FRACTION);
+
+		// Dragging down grows the upper (main) pane and shrinks the lower (RSI) pane.
+		expect(mainBand).toBeGreaterThan(0.65);
+		expect(rsiBand).toBeLessThan(0.25);
+
+		await fireEvent.pointerUp(handle, { clientY: 240, pointerId: 1 });
+		expect(onPaneHeightsChange).toHaveBeenCalledTimes(1);
+		const persisted = onPaneHeightsChange.mock.calls[0][0] as Record<string, number>;
+		expect(persisted.main).toBeGreaterThan(0.65);
+		expect(persisted.rsi).toBeLessThan(0.25);
+	});
+
+	it('restores a stored layout via setPaneHeights (AC2)', async () => {
+		const { component, mainChart } = renderChart();
+		component.addIndicator(rsiIndicator);
+		await tick();
+
+		component.setPaneHeights({ main: 0.5, rsi: 0.3 });
+		await tick();
+
+		expect(component.getPaneHeights()).toEqual({ main: 0.5, rsi: 0.3 });
+		const rsiBand = bandHeight(lastScaleMargins(mainChart, 'rsi'));
+		const mainBand = bandHeight(lastScaleMargins(mainChart, 'right'));
+		expect(rsiBand).toBeGreaterThanOrEqual(MIN_PANE_FRACTION);
+		expect(rsiBand).toBeLessThanOrEqual(MAX_PANE_FRACTION);
+		expect(mainBand).toBeGreaterThanOrEqual(MIN_PANE_FRACTION);
+		expect(mainBand).toBeLessThanOrEqual(MAX_PANE_FRACTION);
+		expect(mainBand).toBeGreaterThan(rsiBand);
+
+		component.setPaneHeights(null);
+		await tick();
+		expect(component.getPaneHeights()).toBeNull();
+		expect(lastScaleMargins(mainChart, 'rsi')).toEqual({ top: 0.75, bottom: 0 });
+	});
+
+	it('drops a removed oscillator height so re-adding starts from defaults (AC4)', async () => {
+		const { component, mainChart } = renderChart();
+		component.addIndicator(rsiIndicator);
+		component.addIndicator(macdIndicator);
+		await tick();
+
+		component.setPaneHeights({ main: 0.45, rsi: 0.2, macd: 0.2 });
+		await tick();
+
+		component.removeIndicator('rsi');
+		await tick();
+
+		expect(component.getPaneHeights()).not.toHaveProperty('rsi');
+		// Remaining layout is valid and non-overlapping.
+		const mainBand = bandHeight(lastScaleMargins(mainChart, 'right'));
+		const macdBand = bandHeight(lastScaleMargins(mainChart, 'macd'));
+		expect(mainBand + macdBand).toBeCloseTo(1 - TOP_MARGIN - BOTTOM_MARGIN - PANE_GAP, 2);
+		expect(1 - lastScaleMargins(mainChart, 'right').bottom).toBeLessThanOrEqual(
+			lastScaleMargins(mainChart, 'macd').top
+		);
+
+		// Re-adding the oscillator uses the default height, not the stale custom fraction.
+		component.addIndicator(rsiIndicator);
+		await tick();
+		expect(component.getPaneHeights()).not.toHaveProperty('rsi');
+		const rsiBand = bandHeight(lastScaleMargins(mainChart, 'rsi'));
+		expect(rsiBand).toBeGreaterThanOrEqual(MIN_PANE_FRACTION);
+		expect(rsiBand).toBeLessThanOrEqual(MAX_PANE_FRACTION);
+	});
+
+	it('reset affordance appears once custom heights exist and restores defaults', async () => {
+		const onPaneHeightsChange = vi.fn();
+		const { component, mainChart } = renderChart({ onPaneHeightsChange });
+		component.addIndicator(rsiIndicator);
+		await tick();
+
+		expect(screen.queryByTestId('reset-pane-heights')).toBeNull();
+
+		component.setPaneHeights({ main: 0.5, rsi: 0.3 });
+		await tick();
+
+		const resetButton = screen.getByTestId('reset-pane-heights');
+		await fireEvent.click(resetButton);
+		await tick();
+
+		expect(component.getPaneHeights()).toBeNull();
+		expect(lastScaleMargins(mainChart, 'rsi')).toEqual({ top: 0.75, bottom: 0 });
+		expect(lastScaleMargins(mainChart, 'right')).toEqual({ top: 0.05, bottom: 0.3 });
+		expect(onPaneHeightsChange).toHaveBeenCalledWith(null);
+		expect(screen.queryByTestId('reset-pane-heights')).toBeNull();
+	});
+});
+
+describe('SecurityChart - Measure Integration', () => {
+	/* eslint-disable-next-line @typescript-eslint/no-explicit-any */
+	let SecurityChart: Component<any>;
+
+	const initialCandles: Candle[] = [
+		{ time: '2024-01-10', open: 10, high: 12, low: 9, close: 11 },
+		{ time: '2024-01-11', open: 11, high: 13, low: 10, close: 12 }
+	];
+
+	const epoch = (date: string): number =>
+		Math.floor(new Date(`${date}T00:00:00Z`).getTime() / 1000);
+
+	beforeAll(async () => {
+		const mod = await import('./security-chart.svelte');
+		SecurityChart = mod.default;
+	});
+
+	beforeEach(() => {
+		vi.clearAllMocks();
+	});
+
+	function getMeasurePrimitive(): MeasurePrimitive {
+		return mockAttachPrimitive.mock.calls.find(
+			(c) => c[0] instanceof MeasurePrimitive
+		)?.[0] as MeasurePrimitive;
+	}
+
+	function measuresDrawings(): SecurityDrawings {
+		return {
+			measures: [
+				{
+					id: 'measure-1',
+					p1: { time: '2024-01-10', price: 10 },
+					p2: { time: '2024-01-11', price: 20 },
+					visible: true
+				}
+			]
+		};
+	}
+
+	it('attaches MeasurePrimitive to the candlestick series on mount with initial props', () => {
+		render(SecurityChart, {
+			props: {
+				candles: initialCandles,
+				securityDrawings: measuresDrawings(),
+				isDrawingMeasure: true,
+				selectedMeasureId: 'measure-1'
+			}
+		});
+
+		const primitive = getMeasurePrimitive();
+		expect(primitive).toBeDefined();
+		expect(primitive.isDrawingMode()).toBe(true);
+		expect(primitive.getSelectedId()).toBe('measure-1');
+
+		const measures = primitive.getMeasures();
+		expect(measures).toHaveLength(1);
+		// Anchors are canonicalized to epoch seconds on ingestion.
+		expect(measures[0].p1.time).toBe(epoch('2024-01-10'));
+		expect(measures[0].p2.time).toBe(epoch('2024-01-11'));
+	});
+
+	it('syncs the measures collection from the securityDrawings prop', async () => {
+		const { rerender } = render(SecurityChart, {
+			props: { candles: initialCandles, securityDrawings: null }
+		});
+
+		const primitive = getMeasurePrimitive();
+		expect(primitive.getMeasures()).toHaveLength(0);
+
+		await rerender({ candles: initialCandles, securityDrawings: measuresDrawings() });
+
+		expect(primitive.getMeasures()).toHaveLength(1);
+		expect(primitive.getMeasures()[0].p1.price).toBe(10);
+
+		await rerender({ candles: initialCandles, securityDrawings: { measures: null } });
+		expect(primitive.getMeasures()).toHaveLength(0);
+	});
+
+	it('does not reset candle data when only measures change', async () => {
+		const { rerender } = render(SecurityChart, {
+			props: { candles: initialCandles, securityDrawings: null }
+		});
+
+		const initialSetDataCalls = mockSetData.mock.calls.length;
+		await rerender({ candles: initialCandles, securityDrawings: measuresDrawings() });
+
+		expect(mockSetData.mock.calls.length).toBe(initialSetDataCalls);
+	});
+
+	it('syncs isDrawingMeasure prop changes to MeasurePrimitive', async () => {
+		const { rerender } = render(SecurityChart, {
+			props: { candles: initialCandles, isDrawingMeasure: false }
+		});
+
+		const primitive = getMeasurePrimitive();
+		expect(primitive.isDrawingMode()).toBe(false);
+
+		await rerender({ candles: initialCandles, isDrawingMeasure: true });
+		expect(primitive.isDrawingMode()).toBe(true);
+
+		await rerender({ candles: initialCandles, isDrawingMeasure: false });
+		expect(primitive.isDrawingMode()).toBe(false);
+	});
+
+	it('syncs selectedMeasureId prop changes to MeasurePrimitive', async () => {
+		const { rerender } = render(SecurityChart, {
+			props: {
+				candles: initialCandles,
+				securityDrawings: measuresDrawings(),
+				selectedMeasureId: null
+			}
+		});
+
+		const primitive = getMeasurePrimitive();
+		expect(primitive.getSelectedId()).toBeNull();
+
+		await rerender({
+			candles: initialCandles,
+			securityDrawings: measuresDrawings(),
+			selectedMeasureId: 'measure-1'
+		});
+		expect(primitive.getSelectedId()).toBe('measure-1');
+	});
+
+	it('forwards drawingsChanged, drawingModeChanged and selectionChanged to callbacks', () => {
+		const onMeasureChange = vi.fn();
+		const onMeasureDrawingModeChange = vi.fn();
+		const onMeasureSelect = vi.fn();
+
+		render(SecurityChart, {
+			props: {
+				candles: initialCandles,
+				securityDrawings: measuresDrawings(),
+				onMeasureChange,
+				onMeasureDrawingModeChange,
+				onMeasureSelect
+			}
+		});
+
+		const primitive = getMeasurePrimitive();
+
+		// Completing a two-point drawing fires drawingsChanged (and drawingModeChanged).
+		primitive.setDrawingMode(true);
+		primitive.addPoint({ time: '2024-01-10', price: 10 });
+		primitive.addPoint({ time: '2024-01-11', price: 20 });
+
+		expect(onMeasureChange).toHaveBeenCalledWith(
+			expect.arrayContaining([
+				expect.objectContaining({
+					p1: { time: epoch('2024-01-10'), price: 10 },
+					p2: { time: epoch('2024-01-11'), price: 20 }
+				})
+			])
+		);
+		expect(onMeasureDrawingModeChange).toHaveBeenCalledWith(false);
+
+		primitive.select('measure-1');
+		expect(onMeasureSelect).toHaveBeenCalledWith('measure-1');
+
+		primitive.select(null);
+		expect(onMeasureSelect).toHaveBeenCalledWith(null);
+	});
+
+	it('forwards candle updates to MeasurePrimitive', async () => {
+		const { rerender } = render(SecurityChart, {
+			props: { candles: initialCandles }
+		});
+
+		const primitive = getMeasurePrimitive();
+		const setCandlesSpy = vi.spyOn(primitive, 'setCandles');
+
+		const newCandles: Candle[] = [
+			...initialCandles,
+			{ time: '2024-01-12', open: 12, high: 14, low: 11, close: 13 }
+		];
+
+		await rerender({ candles: newCandles });
+		expect(setCandlesSpy).toHaveBeenCalledWith(newCandles);
+	});
+
+	it('destroys MeasurePrimitive when the component is unmounted', () => {
+		const { unmount } = render(SecurityChart, {
+			props: { candles: initialCandles }
+		});
+
+		const primitive = getMeasurePrimitive();
+		const destroySpy = vi.spyOn(primitive, 'destroy');
+		unmount();
+		expect(destroySpy).toHaveBeenCalled();
+	});
+
+	it('disables pressedMouseMove while isDrawingMeasure is true and restores when false', async () => {
+		const { rerender } = render(SecurityChart, {
+			props: { candles: initialCandles, isDrawingMeasure: false }
+		});
+		await tick();
+
+		const createdCharts = vi.mocked(createChart).mock.results.map((r) => r.value);
+		const mainChart = createdCharts[createdCharts.length - 1];
+		vi.mocked(mainChart.applyOptions).mockClear();
+
+		await rerender({ candles: initialCandles, isDrawingMeasure: true });
+		await tick();
+		expect(mainChart.applyOptions).toHaveBeenCalledWith({
+			handleScroll: { pressedMouseMove: false }
+		});
+
+		vi.mocked(mainChart.applyOptions).mockClear();
+		await rerender({ candles: initialCandles, isDrawingMeasure: false });
+		await tick();
+		expect(mainChart.applyOptions).toHaveBeenCalledWith({
+			handleScroll: { pressedMouseMove: true }
+		});
+	});
+
+	it('restores pressedMouseMove when MeasurePrimitive exits drawing mode', async () => {
+		render(SecurityChart, {
+			props: { candles: initialCandles, isDrawingMeasure: true }
+		});
+		await tick();
+
+		const createdCharts = vi.mocked(createChart).mock.results.map((r) => r.value);
+		const mainChart = createdCharts[createdCharts.length - 1];
+		const primitive = getMeasurePrimitive();
+
+		vi.mocked(mainChart.applyOptions).mockClear();
+		primitive.setDrawingMode(false);
+		await tick();
+
+		expect(mainChart.applyOptions).toHaveBeenCalledWith({
+			handleScroll: { pressedMouseMove: true }
+		});
+	});
+});
+
+describe('SecurityChart - Horizontal Line Integration', () => {
+	/* eslint-disable-next-line @typescript-eslint/no-explicit-any */
+	let SecurityChart: Component<any>;
+
+	const initialCandles: Candle[] = [
+		{ time: '2024-01-10', open: 10, high: 12, low: 9, close: 11 },
+		{ time: '2024-01-11', open: 11, high: 13, low: 10, close: 12 }
+	];
+
+	const epoch = (date: string): number =>
+		Math.floor(new Date(`${date}T00:00:00Z`).getTime() / 1000);
+
+	beforeAll(async () => {
+		const mod = await import('./security-chart.svelte');
+		SecurityChart = mod.default;
+	});
+
+	beforeEach(() => {
+		vi.clearAllMocks();
+	});
+
+	function getHorizontalLinePrimitive(): HorizontalLinePrimitive {
+		return mockAttachPrimitive.mock.calls.find(
+			(c) => c[0] instanceof HorizontalLinePrimitive
+		)?.[0] as HorizontalLinePrimitive;
+	}
+
+	function horizontalLineDrawings(): SecurityDrawings {
+		return {
+			horizontalLines: [
+				{
+					id: 'hline-1',
+					p1: { time: '2024-01-10', price: 10 },
+					visible: true
+				}
+			]
+		};
+	}
+
+	it('attaches HorizontalLinePrimitive to the candlestick series on mount with initial props', () => {
+		render(SecurityChart, {
+			props: {
+				candles: initialCandles,
+				securityDrawings: horizontalLineDrawings(),
+				isDrawingHorizontalLine: true,
+				selectedHorizontalLineId: 'hline-1'
+			}
+		});
+
+		const primitive = getHorizontalLinePrimitive();
+		expect(primitive).toBeDefined();
+		expect(primitive.isDrawingMode()).toBe(true);
+		expect(primitive.getSelectedId()).toBe('hline-1');
+
+		const lines = primitive.getHorizontalLines();
+		expect(lines).toHaveLength(1);
+		// Anchors are canonicalized to epoch seconds on ingestion.
+		expect(lines[0].p1.time).toBe(epoch('2024-01-10'));
+	});
+
+	it('syncs the horizontal line collection from the securityDrawings prop', async () => {
+		const { rerender } = render(SecurityChart, {
+			props: { candles: initialCandles, securityDrawings: null }
+		});
+
+		const primitive = getHorizontalLinePrimitive();
+		expect(primitive.getHorizontalLines()).toHaveLength(0);
+
+		await rerender({ candles: initialCandles, securityDrawings: horizontalLineDrawings() });
+		expect(primitive.getHorizontalLines()).toHaveLength(1);
+		expect(primitive.getHorizontalLines()[0].p1.price).toBe(10);
+
+		await rerender({ candles: initialCandles, securityDrawings: { horizontalLines: null } });
+		expect(primitive.getHorizontalLines()).toHaveLength(0);
+	});
+
+	it('does not reset candle data when only horizontal lines change', async () => {
+		const { rerender } = render(SecurityChart, {
+			props: { candles: initialCandles, securityDrawings: null }
+		});
+
+		const initialSetDataCalls = mockSetData.mock.calls.length;
+		await rerender({ candles: initialCandles, securityDrawings: horizontalLineDrawings() });
+
+		expect(mockSetData.mock.calls.length).toBe(initialSetDataCalls);
+	});
+
+	it('syncs isDrawingHorizontalLine prop changes to HorizontalLinePrimitive', async () => {
+		const { rerender } = render(SecurityChart, {
+			props: { candles: initialCandles, isDrawingHorizontalLine: false }
+		});
+
+		const primitive = getHorizontalLinePrimitive();
+		expect(primitive.isDrawingMode()).toBe(false);
+
+		await rerender({ candles: initialCandles, isDrawingHorizontalLine: true });
+		expect(primitive.isDrawingMode()).toBe(true);
+
+		await rerender({ candles: initialCandles, isDrawingHorizontalLine: false });
+		expect(primitive.isDrawingMode()).toBe(false);
+	});
+
+	it('syncs selectedHorizontalLineId prop changes to HorizontalLinePrimitive', async () => {
+		const { rerender } = render(SecurityChart, {
+			props: {
+				candles: initialCandles,
+				securityDrawings: horizontalLineDrawings(),
+				selectedHorizontalLineId: null
+			}
+		});
+
+		const primitive = getHorizontalLinePrimitive();
+		expect(primitive.getSelectedId()).toBeNull();
+
+		await rerender({
+			candles: initialCandles,
+			securityDrawings: horizontalLineDrawings(),
+			selectedHorizontalLineId: 'hline-1'
+		});
+		expect(primitive.getSelectedId()).toBe('hline-1');
+	});
+
+	it('forwards drawingsChanged, drawingModeChanged and selectionChanged to callbacks', () => {
+		const onHorizontalLineChange = vi.fn();
+		const onHorizontalLineDrawingModeChange = vi.fn();
+		const onHorizontalLineSelect = vi.fn();
+
+		render(SecurityChart, {
+			props: {
+				candles: initialCandles,
+				securityDrawings: horizontalLineDrawings(),
+				onHorizontalLineChange,
+				onHorizontalLineDrawingModeChange,
+				onHorizontalLineSelect
+			}
+		});
+
+		const primitive = getHorizontalLinePrimitive();
+
+		// A single click completes a drawing and fires drawingsChanged + drawingModeChanged.
+		primitive.setDrawingMode(true);
+		primitive.addPoint({ time: '2024-01-11', price: 20 });
+
+		expect(onHorizontalLineChange).toHaveBeenCalledWith(
+			expect.arrayContaining([
+				expect.objectContaining({
+					p1: { time: epoch('2024-01-11'), price: 20 }
+				})
+			])
+		);
+		expect(onHorizontalLineDrawingModeChange).toHaveBeenCalledWith(false);
+
+		primitive.select('hline-1');
+		expect(onHorizontalLineSelect).toHaveBeenCalledWith('hline-1');
+
+		primitive.select(null);
+		expect(onHorizontalLineSelect).toHaveBeenCalledWith(null);
+	});
+
+	it('forwards candle updates to HorizontalLinePrimitive', async () => {
+		const { rerender } = render(SecurityChart, {
+			props: { candles: initialCandles }
+		});
+
+		const primitive = getHorizontalLinePrimitive();
+		const setCandlesSpy = vi.spyOn(primitive, 'setCandles');
+
+		const newCandles: Candle[] = [
+			...initialCandles,
+			{ time: '2024-01-12', open: 12, high: 14, low: 11, close: 13 }
+		];
+
+		await rerender({ candles: newCandles });
+		expect(setCandlesSpy).toHaveBeenCalledWith(newCandles);
+	});
+
+	it('propagates hideLabels to the horizontal line primitive', async () => {
+		const { rerender } = render(SecurityChart, {
+			props: { candles: initialCandles, hideLabels: false }
+		});
+		await tick();
+
+		const primitive = getHorizontalLinePrimitive();
+		const spy = vi.spyOn(primitive, 'setHideLabels');
+
+		await rerender({ candles: initialCandles, hideLabels: true });
+		await tick();
+		expect(spy).toHaveBeenCalledWith(true);
+
+		await rerender({ candles: initialCandles, hideLabels: false });
+		await tick();
+		expect(spy).toHaveBeenCalledWith(false);
+	});
+
+	it('destroys HorizontalLinePrimitive when the component is unmounted', () => {
+		const { unmount } = render(SecurityChart, {
+			props: { candles: initialCandles }
+		});
+
+		const primitive = getHorizontalLinePrimitive();
+		const destroySpy = vi.spyOn(primitive, 'destroy');
+		unmount();
+		expect(destroySpy).toHaveBeenCalled();
+	});
+
+	it('disables pressedMouseMove while isDrawingHorizontalLine is true and restores when false', async () => {
+		const { rerender } = render(SecurityChart, {
+			props: { candles: initialCandles, isDrawingHorizontalLine: false }
+		});
+		await tick();
+
+		const createdCharts = vi.mocked(createChart).mock.results.map((r) => r.value);
+		const mainChart = createdCharts[createdCharts.length - 1];
+		vi.mocked(mainChart.applyOptions).mockClear();
+
+		await rerender({ candles: initialCandles, isDrawingHorizontalLine: true });
+		await tick();
+		expect(mainChart.applyOptions).toHaveBeenCalledWith({
+			handleScroll: { pressedMouseMove: false }
+		});
+
+		vi.mocked(mainChart.applyOptions).mockClear();
+		await rerender({ candles: initialCandles, isDrawingHorizontalLine: false });
+		await tick();
+		expect(mainChart.applyOptions).toHaveBeenCalledWith({
+			handleScroll: { pressedMouseMove: true }
+		});
+	});
+
+	it('restores pressedMouseMove when HorizontalLinePrimitive exits drawing mode', async () => {
+		render(SecurityChart, {
+			props: { candles: initialCandles, isDrawingHorizontalLine: true }
+		});
+		await tick();
+
+		const createdCharts = vi.mocked(createChart).mock.results.map((r) => r.value);
+		const mainChart = createdCharts[createdCharts.length - 1];
+		const primitive = getHorizontalLinePrimitive();
+
+		vi.mocked(mainChart.applyOptions).mockClear();
+		primitive.setDrawingMode(false);
+		await tick();
+
+		expect(mainChart.applyOptions).toHaveBeenCalledWith({
+			handleScroll: { pressedMouseMove: true }
+		});
+	});
+});
+
+describe('SecurityChart - Free-form Line Integration', () => {
+	/* eslint-disable-next-line @typescript-eslint/no-explicit-any */
+	let SecurityChart: Component<any>;
+
+	const initialCandles: Candle[] = [
+		{ time: '2024-01-10', open: 10, high: 12, low: 9, close: 11 },
+		{ time: '2024-01-11', open: 11, high: 13, low: 10, close: 12 }
+	];
+
+	const epoch = (date: string): number =>
+		Math.floor(new Date(`${date}T00:00:00Z`).getTime() / 1000);
+
+	beforeAll(async () => {
+		const mod = await import('./security-chart.svelte');
+		SecurityChart = mod.default;
+	});
+
+	beforeEach(() => {
+		vi.clearAllMocks();
+	});
+
+	function getFreeFormLinePrimitive(): FreeFormLinePrimitive {
+		return mockAttachPrimitive.mock.calls.find(
+			(c) => c[0] instanceof FreeFormLinePrimitive
+		)?.[0] as FreeFormLinePrimitive;
+	}
+
+	function lineDrawings(): SecurityDrawings {
+		return {
+			lines: [
+				{
+					id: 'line-1',
+					p1: { time: '2024-01-10', price: 10 },
+					p2: { time: '2024-01-11', price: 20 },
+					visible: true
+				}
+			]
+		};
+	}
+
+	it('attaches FreeFormLinePrimitive to the candlestick series on mount with initial props', () => {
+		render(SecurityChart, {
+			props: {
+				candles: initialCandles,
+				securityDrawings: lineDrawings(),
+				isDrawingLine: true,
+				selectedLineId: 'line-1'
+			}
+		});
+
+		const primitive = getFreeFormLinePrimitive();
+		expect(primitive).toBeDefined();
+		expect(primitive.isDrawingMode()).toBe(true);
+		expect(primitive.getSelectedId()).toBe('line-1');
+
+		const lines = primitive.getLines();
+		expect(lines).toHaveLength(1);
+		// Anchors are canonicalized to epoch seconds on ingestion.
+		expect(lines[0].p1.time).toBe(epoch('2024-01-10'));
+		expect(lines[0].p2.time).toBe(epoch('2024-01-11'));
+	});
+
+	it('syncs the lines collection from the securityDrawings prop', async () => {
+		const { rerender } = render(SecurityChart, {
+			props: { candles: initialCandles, securityDrawings: null }
+		});
+
+		const primitive = getFreeFormLinePrimitive();
+		expect(primitive.getLines()).toHaveLength(0);
+
+		await rerender({ candles: initialCandles, securityDrawings: lineDrawings() });
+		expect(primitive.getLines()).toHaveLength(1);
+		expect(primitive.getLines()[0].p1.price).toBe(10);
+
+		await rerender({ candles: initialCandles, securityDrawings: { lines: null } });
+		expect(primitive.getLines()).toHaveLength(0);
+	});
+
+	it('does not reset candle data when only lines change', async () => {
+		const { rerender } = render(SecurityChart, {
+			props: { candles: initialCandles, securityDrawings: null }
+		});
+
+		const initialSetDataCalls = mockSetData.mock.calls.length;
+		await rerender({ candles: initialCandles, securityDrawings: lineDrawings() });
+
+		expect(mockSetData.mock.calls.length).toBe(initialSetDataCalls);
+	});
+
+	it('syncs isDrawingLine prop changes to FreeFormLinePrimitive', async () => {
+		const { rerender } = render(SecurityChart, {
+			props: { candles: initialCandles, isDrawingLine: false }
+		});
+
+		const primitive = getFreeFormLinePrimitive();
+		expect(primitive.isDrawingMode()).toBe(false);
+
+		await rerender({ candles: initialCandles, isDrawingLine: true });
+		expect(primitive.isDrawingMode()).toBe(true);
+
+		await rerender({ candles: initialCandles, isDrawingLine: false });
+		expect(primitive.isDrawingMode()).toBe(false);
+	});
+
+	it('syncs selectedLineId prop changes to FreeFormLinePrimitive', async () => {
+		const { rerender } = render(SecurityChart, {
+			props: {
+				candles: initialCandles,
+				securityDrawings: lineDrawings(),
+				selectedLineId: null
+			}
+		});
+
+		const primitive = getFreeFormLinePrimitive();
+		expect(primitive.getSelectedId()).toBeNull();
+
+		await rerender({
+			candles: initialCandles,
+			securityDrawings: lineDrawings(),
+			selectedLineId: 'line-1'
+		});
+		expect(primitive.getSelectedId()).toBe('line-1');
+	});
+
+	it('forwards drawingsChanged, drawingModeChanged and selectionChanged to callbacks', () => {
+		const onLineChange = vi.fn();
+		const onLineDrawingModeChange = vi.fn();
+		const onLineSelect = vi.fn();
+
+		render(SecurityChart, {
+			props: {
+				candles: initialCandles,
+				securityDrawings: lineDrawings(),
+				onLineChange,
+				onLineDrawingModeChange,
+				onLineSelect
+			}
+		});
+
+		const primitive = getFreeFormLinePrimitive();
+
+		// Completing a two-point drawing fires drawingsChanged (and drawingModeChanged).
+		primitive.setDrawingMode(true);
+		primitive.addPoint({ time: '2024-01-10', price: 10 });
+		primitive.addPoint({ time: '2024-01-11', price: 20 });
+
+		expect(onLineChange).toHaveBeenCalledWith(
+			expect.arrayContaining([
+				expect.objectContaining({
+					p1: { time: epoch('2024-01-10'), price: 10 },
+					p2: { time: epoch('2024-01-11'), price: 20 }
+				})
+			])
+		);
+		expect(onLineDrawingModeChange).toHaveBeenCalledWith(false);
+
+		primitive.select('line-1');
+		expect(onLineSelect).toHaveBeenCalledWith('line-1');
+
+		primitive.select(null);
+		expect(onLineSelect).toHaveBeenCalledWith(null);
+	});
+
+	it('forwards candle updates to FreeFormLinePrimitive', async () => {
+		const { rerender } = render(SecurityChart, {
+			props: { candles: initialCandles }
+		});
+
+		const primitive = getFreeFormLinePrimitive();
+		const setCandlesSpy = vi.spyOn(primitive, 'setCandles');
+
+		const newCandles: Candle[] = [
+			...initialCandles,
+			{ time: '2024-01-12', open: 12, high: 14, low: 11, close: 13 }
+		];
+
+		await rerender({ candles: newCandles });
+		expect(setCandlesSpy).toHaveBeenCalledWith(newCandles);
+	});
+
+	it('destroys FreeFormLinePrimitive when the component is unmounted', () => {
+		const { unmount } = render(SecurityChart, {
+			props: { candles: initialCandles }
+		});
+
+		const primitive = getFreeFormLinePrimitive();
+		const destroySpy = vi.spyOn(primitive, 'destroy');
+		unmount();
+		expect(destroySpy).toHaveBeenCalled();
+	});
+
+	it('disables pressedMouseMove while isDrawingLine is true and restores when false', async () => {
+		const { rerender } = render(SecurityChart, {
+			props: { candles: initialCandles, isDrawingLine: false }
+		});
+		await tick();
+
+		const createdCharts = vi.mocked(createChart).mock.results.map((r) => r.value);
+		const mainChart = createdCharts[createdCharts.length - 1];
+		vi.mocked(mainChart.applyOptions).mockClear();
+
+		await rerender({ candles: initialCandles, isDrawingLine: true });
+		await tick();
+		expect(mainChart.applyOptions).toHaveBeenCalledWith({
+			handleScroll: { pressedMouseMove: false }
+		});
+
+		vi.mocked(mainChart.applyOptions).mockClear();
+		await rerender({ candles: initialCandles, isDrawingLine: false });
+		await tick();
+		expect(mainChart.applyOptions).toHaveBeenCalledWith({
+			handleScroll: { pressedMouseMove: true }
+		});
+	});
+
+	it('restores pressedMouseMove when FreeFormLinePrimitive exits drawing mode', async () => {
+		render(SecurityChart, {
+			props: { candles: initialCandles, isDrawingLine: true }
+		});
+		await tick();
+
+		const createdCharts = vi.mocked(createChart).mock.results.map((r) => r.value);
+		const mainChart = createdCharts[createdCharts.length - 1];
+		const primitive = getFreeFormLinePrimitive();
+
+		vi.mocked(mainChart.applyOptions).mockClear();
+		primitive.setDrawingMode(false);
+		await tick();
+
+		expect(mainChart.applyOptions).toHaveBeenCalledWith({
+			handleScroll: { pressedMouseMove: true }
 		});
 	});
 });

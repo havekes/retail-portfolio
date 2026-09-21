@@ -295,21 +295,31 @@ describe('WatchlistService.addSecurity', () => {
 		expect(service.error).toBeNull();
 	});
 
-	it('is a no-op when the resolved security already belongs to the list', async () => {
+	it('is a no-op when the security already belongs to the target list', async () => {
 		service.watchlists = [defaultList()];
-		client.createOrUpdateSecurity.mockResolvedValue({
-			security_id: 'sec-1',
-			symbol: 'AAPL',
-			exchange: 'NASDAQ',
-			name: 'AAPL Inc.',
-			has_price_data: true
-		});
 
 		await service.addSecurity('wl-default', searchResult('AAPL'));
 
-		expect(client.createOrUpdateSecurity).toHaveBeenCalled();
+		// Dedupe happens before any network resolution or membership POST.
+		expect(client.createOrUpdateSecurity).not.toHaveBeenCalled();
 		expect(client.addSecurityToWatchlist).not.toHaveBeenCalled();
+		expect(service.error).toBeNull();
 		expect(service.watchlists[0].securities.map((s) => s.id)).toEqual(['sec-1', 'sec-2']);
+	});
+
+	it('reuses an existing security id from another watchlist without resolving a new one', async () => {
+		service.watchlists = [defaultList(), techList()];
+		client.addSecurityToWatchlist.mockResolvedValue(watchlist('wl-tech', 'Tech', [nvda, aapl]));
+
+		// AAPL already exists in the Default list; adding it to Tech reuses sec-1.
+		await service.addSecurity('wl-tech', searchResult('AAPL'));
+
+		expect(client.createOrUpdateSecurity).not.toHaveBeenCalled();
+		expect(client.addSecurityToWatchlist).toHaveBeenCalledWith('wl-tech', 'sec-1', undefined);
+		expect(service.error).toBeNull();
+		expect(service.watchlists.find((w) => w.id === 'wl-tech')?.securities.map((s) => s.id)).toEqual(
+			['sec-3', 'sec-1']
+		);
 	});
 
 	it('keeps the Default list and sidebar array in sync when a security is added', async () => {
@@ -338,7 +348,8 @@ describe('WatchlistService.addSecurity', () => {
 		service.watchlists = [defaultList()];
 		client.createOrUpdateSecurity.mockRejectedValue(new Error('Security lookup failed'));
 
-		await service.addSecurity('wl-default', searchResult('AAPL'));
+		// TSLA is not a member of any loaded watchlist, so resolution is attempted.
+		await service.addSecurity('wl-default', searchResult('TSLA'));
 
 		expect(service.error).toBe('Security lookup failed');
 		expect(client.addSecurityToWatchlist).not.toHaveBeenCalled();
@@ -398,5 +409,53 @@ describe('WatchlistService.removeSecurity', () => {
 			['sec-3']
 		);
 		expect(client.getWatchlists).not.toHaveBeenCalled();
+	});
+});
+
+describe('WatchlistService error lifecycle', () => {
+	it('sets the error on failure and clears it on the next successful mutation', async () => {
+		service.watchlists = [defaultList(), techList()];
+		client.renameWatchlist.mockRejectedValue(new Error('Watchlist name already in use'));
+
+		await service.renameWatchlist('wl-tech', 'Default');
+		expect(service.error).toBe('Watchlist name already in use');
+
+		client.deleteWatchlist.mockResolvedValue(undefined);
+		await service.deleteWatchlist('wl-tech');
+		expect(service.error).toBeNull();
+	});
+
+	it('clears a stale error on every successful mutation', async () => {
+		service.watchlists = [defaultList(), techList()];
+		client.getWatchlists.mockResolvedValue([]);
+		client.createWatchlist.mockResolvedValue(watchlist('wl-new', 'New', []));
+		client.renameWatchlist.mockResolvedValue(watchlist('wl-tech', 'Tech', [nvda]));
+		client.deleteWatchlist.mockResolvedValue(undefined);
+		client.addSecurityToWatchlist.mockResolvedValue(watchlist('wl-tech', 'Tech', [nvda, aapl]));
+		client.removeSecurityFromWatchlist.mockResolvedValue(watchlist('wl-tech', 'Tech', []));
+		client.addToWatchlist.mockResolvedValue(watchlist('wl-default', 'Default', [aapl, msft, nvda]));
+		client.removeFromWatchlist.mockResolvedValue(watchlist('wl-default', 'Default', [msft]));
+
+		const cases: [string, () => Promise<void>][] = [
+			['loadWatchlists', () => service.loadWatchlists()],
+			['createWatchlist', () => service.createWatchlist('New')],
+			['renameWatchlist', () => service.renameWatchlist('wl-tech', 'Tech')],
+			['deleteWatchlist', () => service.deleteWatchlist('wl-tech')],
+			['addSecurity', () => service.addSecurity('wl-tech', searchResult('AAPL'))],
+			['removeSecurity', () => service.removeSecurity('wl-tech', 'sec-1')],
+			['addSecurityToWatchlist', () => service.addSecurityToWatchlist('wl-tech', 'sec-1')],
+			[
+				'removeSecurityFromWatchlist',
+				() => service.removeSecurityFromWatchlist('wl-tech', 'sec-1')
+			],
+			['toggleSecurity', () => service.toggleSecurity('sec-3')]
+		];
+
+		for (const [name, run] of cases) {
+			service.watchlists = [defaultList(), techList()];
+			service.error = 'stale error';
+			await run();
+			expect(service.error, name).toBeNull();
+		}
 	});
 });

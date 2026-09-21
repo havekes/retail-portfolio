@@ -23,6 +23,7 @@ import {
 	TimeProjector,
 	computeIntervalSeconds,
 	addIntervalToTime,
+	timeToEpochSeconds,
 	snapPriceToWick,
 	buildCandleLookup,
 	findCandleByTime
@@ -47,6 +48,10 @@ function createDailyCandles(count = 30): Candle[] {
 		};
 	});
 }
+
+/** Canonical epoch-seconds anchor for an ISO date (drawings store time, not bar indices). */
+const anchor = (date: string): Time =>
+	Math.floor(new Date(`${date}T00:00:00Z`).getTime() / 1000) as Time;
 
 // Helper to configure a TimeProjector with the default mock chart + daily candles.
 function configureFutureProjector(
@@ -129,7 +134,12 @@ function createMockChartAndSeries() {
 
 // Helper to create mock Canvas 2D context and CanvasRenderingTarget2D
 function createMockCanvasTarget() {
-	const drawCalls: { type: string; args: unknown[] }[] = [];
+	const drawCalls: {
+		type: string;
+		args: unknown[];
+		fillStyle?: string | CanvasGradient | CanvasPattern;
+		strokeStyle?: string | CanvasGradient | CanvasPattern;
+	}[] = [];
 	const context = {
 		save: vi.fn(() => drawCalls.push({ type: 'save', args: [] })),
 		restore: vi.fn(() => drawCalls.push({ type: 'restore', args: [] })),
@@ -137,8 +147,20 @@ function createMockCanvasTarget() {
 		moveTo: vi.fn((x: number, y: number) => drawCalls.push({ type: 'moveTo', args: [x, y] })),
 		lineTo: vi.fn((x: number, y: number) => drawCalls.push({ type: 'lineTo', args: [x, y] })),
 		arc: vi.fn((...args: unknown[]) => drawCalls.push({ type: 'arc', args })),
-		fill: vi.fn(() => drawCalls.push({ type: 'fill', args: [] })),
-		stroke: vi.fn(() => drawCalls.push({ type: 'stroke', args: [] })),
+		fill: vi.fn(() =>
+			drawCalls.push({
+				type: 'fill',
+				args: [],
+				fillStyle: (context as unknown as CanvasRenderingContext2D).fillStyle
+			})
+		),
+		stroke: vi.fn(() =>
+			drawCalls.push({
+				type: 'stroke',
+				args: [],
+				strokeStyle: (context as unknown as CanvasRenderingContext2D).strokeStyle
+			})
+		),
 		fillText: vi.fn((text: string, x: number, y: number) =>
 			drawCalls.push({ type: 'fillText', args: [text, x, y] })
 		),
@@ -729,7 +751,7 @@ describe('Elliott Wave Plugin', () => {
 			expect(labels).not.toContain('(0)');
 		});
 
-		it('renders highlight ring when a point (including wave 0) is hovered or dragged', () => {
+		it('renders anchor dot and highlight ring when a point is hovered', () => {
 			const { target, drawCalls } = createMockCanvasTarget();
 
 			renderer.update({
@@ -748,13 +770,16 @@ describe('Elliott Wave Plugin', () => {
 
 			renderer.draw(target);
 
-			// Should have at least 1 arc call for the highlight ring (no anchor dot is drawn)
+			// Should have 1 highlight ring + 1 anchor dot = 2 arcs
 			const arcCalls = drawCalls.filter((c) => c.type === 'arc');
-			expect(arcCalls.length).toBeGreaterThanOrEqual(1);
+			expect(arcCalls).toHaveLength(2);
+			const fills = drawCalls.filter((c) => c.type === 'fill');
+			expect(fills.some((f) => f.fillStyle === '#2962FF')).toBe(true);
+			expect(fills.some((f) => f.fillStyle === 'rgba(41, 98, 255, 0.2)')).toBe(true);
 		});
 
-		it('renders selection ring around node badges when wave degree is selected', () => {
-			const { target, drawCalls, context } = createMockCanvasTarget();
+		it('renders anchor dots without highlight rings when wave degree is selected but unhovered', () => {
+			const { target, drawCalls } = createMockCanvasTarget();
 
 			renderer.update({
 				degrees: [
@@ -774,10 +799,95 @@ describe('Elliott Wave Plugin', () => {
 
 			renderer.draw(target);
 
-			// Should have selection halo for point 0 (1 ring + 1 dot = 2 arcs) and point 1 (1 ring = 1 arc) -> total 3 arcs
+			// Should have anchor dots for point 0 and point 1 (2 arcs total), NO highlight rings
 			const arcCalls = drawCalls.filter((c) => c.type === 'arc');
-			expect(arcCalls.length).toBeGreaterThanOrEqual(2);
-			expect(context.fillStyle).toBeDefined();
+			expect(arcCalls).toHaveLength(2);
+			const fills = drawCalls.filter((c) => c.type === 'fill');
+			expect(fills.some((f) => f.fillStyle === '#2962FF')).toBe(true);
+			expect(fills.some((f) => f.fillStyle === 'rgba(41, 98, 255, 0.2)')).toBe(false);
+		});
+
+		it('renders highlight ring exclusively around hovered point on a selected wave', () => {
+			const { target, drawCalls } = createMockCanvasTarget();
+
+			renderer.update({
+				degrees: [
+					{
+						degree: 'cycle',
+						config: CYCLE_STYLE,
+						isActiveDegree: true,
+						isSelected: true,
+						points: [
+							{ wave: 0, x: 100, y: 300, time: '2024-01-01' as Time, price: 100, isHovered: true },
+							{ wave: 1, x: 150, y: 250, time: '2024-01-02' as Time, price: 120, isHovered: false }
+						]
+					}
+				],
+				preview: null
+			});
+
+			renderer.draw(target);
+
+			// 2 anchor dots + 1 highlight ring for the hovered point = 3 arcs
+			const arcCalls = drawCalls.filter((c) => c.type === 'arc');
+			expect(arcCalls).toHaveLength(3);
+			const fills = drawCalls.filter((c) => c.type === 'fill');
+			expect(fills.some((f) => f.fillStyle === 'rgba(41, 98, 255, 0.2)')).toBe(true);
+		});
+
+		it('renders anchor dots without highlight rings when line is hovered (degreeData.isHovered)', () => {
+			const { target, drawCalls } = createMockCanvasTarget();
+
+			renderer.update({
+				degrees: [
+					{
+						degree: 'cycle',
+						config: CYCLE_STYLE,
+						isActiveDegree: false,
+						isSelected: false,
+						isHovered: true,
+						points: [
+							{ wave: 0, x: 100, y: 300, time: '2024-01-01' as Time, price: 100, isHovered: false },
+							{ wave: 1, x: 150, y: 250, time: '2024-01-02' as Time, price: 120, isHovered: false }
+						]
+					}
+				],
+				preview: null
+			});
+
+			renderer.draw(target);
+
+			// Should have anchor dots for point 0 and point 1 (2 arcs total), NO highlight rings
+			const arcCalls = drawCalls.filter((c) => c.type === 'arc');
+			expect(arcCalls).toHaveLength(2);
+			const fills = drawCalls.filter((c) => c.type === 'fill');
+			expect(fills.some((f) => f.fillStyle === '#2962FF')).toBe(true);
+			expect(fills.some((f) => f.fillStyle === 'rgba(41, 98, 255, 0.2)')).toBe(false);
+		});
+
+		it('renders no anchor dots or highlight rings for resting unselected unhovered wave', () => {
+			const { target, drawCalls } = createMockCanvasTarget();
+
+			renderer.update({
+				degrees: [
+					{
+						degree: 'cycle',
+						config: CYCLE_STYLE,
+						isActiveDegree: false,
+						isSelected: false,
+						points: [
+							{ wave: 0, x: 100, y: 300, time: '2024-01-01' as Time, price: 100 },
+							{ wave: 1, x: 150, y: 250, time: '2024-01-02' as Time, price: 120 }
+						]
+					}
+				],
+				preview: null
+			});
+
+			renderer.draw(target);
+
+			const arcCalls = drawCalls.filter((c) => c.type === 'arc');
+			expect(arcCalls).toHaveLength(0);
 		});
 
 		it('renders drawing preview for wave 0 without text badge', () => {
@@ -868,6 +978,13 @@ describe('Elliott Wave Plugin', () => {
 
 			const dashCalls = drawCalls.filter((c) => c.type === 'setLineDash');
 			expect(dashCalls.length).toBeGreaterThanOrEqual(1);
+
+			// hpr = 2, vpr = 2 in mock scope, so (160, 250) -> (320, 500)
+			const lineToIndex = drawCalls.findIndex(
+				(c) => c.type === 'lineTo' && c.args[0] === 320 && c.args[1] === 500
+			);
+			expect(lineToIndex).toBeGreaterThanOrEqual(0);
+			expect(drawCalls[lineToIndex + 1]?.type).toBe('stroke');
 
 			const textCalls = drawCalls.filter((c) => c.type === 'fillText');
 			const labels = textCalls.map((c) => c.args[0]);
@@ -1310,6 +1427,8 @@ describe('Elliott Wave Plugin', () => {
 				requestUpdate: mockRequestUpdate,
 				horzScaleBehavior: {} as never
 			});
+			// Epoch anchors resolve to the active timeframe's bars via the candle data.
+			primitive.setCandles(createDailyCandles(30));
 		});
 
 		it('attaches and detaches cleanly', () => {
@@ -1343,7 +1462,7 @@ describe('Elliott Wave Plugin', () => {
 			expect(hit?.cursorStyle === 'default' || hit === null).toBe(true);
 		});
 
-		it('highlights all points of a wave when hovering anywhere on the wave', () => {
+		it('shows handles without highlight rings when hovering line, and highlights point only when hovering handle', () => {
 			primitive.addPoint(100, '2024-01-05' as Time, 'cycle'); // x=100, y=500
 			primitive.addPoint(150, '2024-01-10' as Time, 'cycle'); // x=225, y=250
 			primitive.updateAllViews();
@@ -1355,23 +1474,35 @@ describe('Elliott Wave Plugin', () => {
 			primitive.updateAllViews();
 
 			// eslint-disable-next-line @typescript-eslint/no-explicit-any
-			const hoveredPoints = (primitive as any)._paneViews[0].renderer()._data.degrees[0].points as {
+			const degreeData = (primitive as any)._paneViews[0].renderer()._data.degrees[0];
+			expect(degreeData.isHovered).toBe(true);
+			const hoveredPoints = degreeData.points as {
 				isHovered?: boolean;
 			}[];
 			expect(hoveredPoints).toHaveLength(2);
-			expect(hoveredPoints.every((p) => p.isHovered)).toBe(true);
+			expect(hoveredPoints.every((p) => !p.isHovered)).toBe(true);
 
-			// Moving off the wave clears the highlight from every point
+			// Hover directly over point 0 handle (x=100, y=500)
+			mockData.mockChartElement.dispatchEvent(
+				new MouseEvent('mousemove', { clientX: 100, clientY: 500 })
+			);
+			primitive.updateAllViews();
+
+			// eslint-disable-next-line @typescript-eslint/no-explicit-any
+			const pointHoverData = (primitive as any)._paneViews[0].renderer()._data.degrees[0];
+			expect(pointHoverData.points[0].isHovered).toBe(true);
+			expect(pointHoverData.points[1].isHovered).toBe(false);
+
+			// Moving off the wave clears the highlight from every point and line
 			mockData.mockChartElement.dispatchEvent(
 				new MouseEvent('mousemove', { clientX: 500, clientY: 100 })
 			);
 			primitive.updateAllViews();
 
 			// eslint-disable-next-line @typescript-eslint/no-explicit-any
-			const clearedPoints = (primitive as any)._paneViews[0].renderer()._data.degrees[0].points as {
-				isHovered?: boolean;
-			}[];
-			expect(clearedPoints.every((p) => !p.isHovered)).toBe(true);
+			const clearedDegree = (primitive as any)._paneViews[0].renderer()._data.degrees[0];
+			expect(clearedDegree.isHovered).toBe(false);
+			expect(clearedDegree.points.every((p: { isHovered?: boolean }) => !p.isHovered)).toBe(true);
 		});
 
 		it('selects the wave when clicking its connecting segment', () => {
@@ -1428,7 +1559,7 @@ describe('Elliott Wave Plugin', () => {
 
 			const wave0 = primitive.getPoints('cycle')[0];
 			expect(wave0.wave).toBe(0);
-			expect(wave0.time).toBe('2024-01-07');
+			expect(wave0.time).toBe(anchor('2024-01-07'));
 			expect(wave0.price).toBe(130);
 
 			// Release drag
@@ -2227,6 +2358,8 @@ describe('Elliott Wave Plugin', () => {
 					requestUpdate: mockRequestUpdate,
 					horzScaleBehavior: {} as never
 				});
+				// Epoch anchors resolve to the active timeframe's bars via the candle data.
+				primitive.setCandles(createDailyCandles(30));
 			});
 
 			it('initializes selectedDegree from constructor and updates via setSelectedDegree', () => {
@@ -2551,11 +2684,11 @@ describe('Elliott Wave Plugin', () => {
 				const waveB = primitive.getWaveById('wave-B');
 
 				expect(waveA?.points[1].price).toBe(175);
-				expect(waveA?.points[1].time).toBe('2024-01-03');
+				expect(waveA?.points[1].time).toBe(anchor('2024-01-03'));
 
 				// wave-B must remain unchanged
 				expect(waveB?.points[1].price).toBe(250);
-				expect(waveB?.points[1].time).toBe('2024-01-02');
+				expect(waveB?.points[1].time).toBe(anchor('2024-01-02'));
 			});
 
 			it('clearing targeted wave leaves other waves intact', () => {
@@ -2657,6 +2790,191 @@ describe('Elliott Wave Plugin', () => {
 				expect(loadedPrimitive.getWaveCount('cycle')?.wave3Target).toBe(180);
 				expect(loadedPrimitive.getWaveCount('primary')?.type).toBe('corrective');
 			});
+		});
+	});
+
+	describe('Cross-Timeframe Rendering', () => {
+		const HOUR = 3600;
+		const DAY = 86400;
+		const SPACING = 25;
+		const isoEpoch = (iso: string) => Math.floor(new Date(iso).getTime() / 1000);
+
+		const candle = (time: Candle['time'], close = 100): Candle => ({
+			time,
+			open: close - 1,
+			high: close + 2,
+			low: close - 2,
+			close
+		});
+
+		function dailyCandles(): Candle[] {
+			const start = Date.UTC(2024, 0, 1) / 1000;
+			return Array.from({ length: 90 }, (_, i) =>
+				candle(new Date((start + i * DAY) * 1000).toISOString().slice(0, 10) as Time)
+			);
+		}
+
+		function hourlyCandles(): Candle[] {
+			const start = Date.UTC(2024, 0, 1) / 1000;
+			return Array.from({ length: 24 * 60 }, (_, i) => candle((start + i * HOUR) as Time));
+		}
+
+		function fourHourCandles(): Candle[] {
+			const start = Date.UTC(2024, 0, 1) / 1000;
+			return Array.from({ length: 6 * 60 }, (_, i) => candle((start + i * 4 * HOUR) as Time));
+		}
+
+		function weeklyCandles(): Candle[] {
+			const start = Date.UTC(2024, 0, 1) / 1000; // Monday
+			return Array.from({ length: 13 }, (_, i) =>
+				candle(new Date((start + i * 7 * DAY) * 1000).toISOString().slice(0, 10) as Time)
+			);
+		}
+
+		function monthlyCandles(): Candle[] {
+			return [candle('2024-01-01'), candle('2024-02-01'), candle('2024-03-01')];
+		}
+
+		/** Independent at-or-before lookup mirroring the documented snap rule. */
+		function expectedIndex(candles: Candle[], epoch: number): number {
+			let index = 0;
+			for (let i = 0; i < candles.length; i++) {
+				if (timeToEpochSeconds(candles[i].time) <= epoch) index = i;
+				else break;
+			}
+			return index;
+		}
+
+		function createTimeframeHarness(candles: Candle[]) {
+			const indexByEpoch = new Map<number, number>();
+			candles.forEach((c, i) => indexByEpoch.set(timeToEpochSeconds(c.time), i));
+
+			const timeScale = {
+				timeToCoordinate: vi.fn((time: Time) => {
+					const index = indexByEpoch.get(timeToEpochSeconds(time));
+					return index === undefined ? null : index * SPACING;
+				}),
+				coordinateToTime: vi.fn((x: number) => {
+					const index = Math.round(x / SPACING);
+					return index < 0 || index >= candles.length ? null : candles[index].time;
+				}),
+				coordinateToLogical: vi.fn((x: number) => x / SPACING),
+				logicalToCoordinate: vi.fn((logical: number) => logical * SPACING),
+				height: vi.fn(() => 30),
+				width: vi.fn(() => 750)
+			};
+			const priceScale = { width: vi.fn(() => 50), applyOptions: vi.fn() };
+			const series = {
+				priceToCoordinate: vi.fn((price: number) => 500 - price),
+				coordinateToPrice: vi.fn((y: number) => 500 - y),
+				priceScale: vi.fn(() => priceScale)
+			} as unknown as ISeriesApi<SeriesType>;
+			const chart = {
+				chartElement: vi.fn(() => document.createElement('div')),
+				timeScale: vi.fn(() => timeScale),
+				options: vi.fn(() => ({ handleScroll: { pressedMouseMove: true } })),
+				applyOptions: vi.fn()
+			} as unknown as IChartApi;
+			return { chart, series };
+		}
+
+		function renderOn(
+			candles: Candle[],
+			wave: DegreeWaveCount
+		): { wave: number | string; x: number }[] {
+			const harness = createTimeframeHarness(candles);
+			const primitive = new ElliottWavesPrimitive({ activeDegree: 'cycle', waves: [wave] });
+			primitive.attached({
+				chart: harness.chart,
+				series: harness.series,
+				requestUpdate: vi.fn(),
+				horzScaleBehavior: {} as never
+			});
+			primitive.setCandles(candles);
+			primitive.updateAllViews();
+			// eslint-disable-next-line @typescript-eslint/no-explicit-any
+			const data = (primitive as any)._paneViews[0].renderer()._data as {
+				degrees: { points: { wave: number | string; x: number }[] }[];
+			};
+			return data.degrees[0]?.points ?? [];
+		}
+
+		const timeframes: [string, Candle[]][] = [
+			['1d', dailyCandles()],
+			['1h', hourlyCandles()],
+			['4h', fourHourCandles()],
+			['1w', weeklyCandles()],
+			['1m', monthlyCandles()]
+		];
+
+		const impulseEpochs = [
+			isoEpoch('2024-01-15T00:00:00Z'),
+			isoEpoch('2024-01-20T00:00:00Z'),
+			isoEpoch('2024-01-25T00:00:00Z'),
+			isoEpoch('2024-02-01T00:00:00Z'),
+			isoEpoch('2024-02-05T00:00:00Z'),
+			isoEpoch('2024-02-15T00:00:00Z')
+		];
+
+		it('renders an impulse wave on the same dates with identical labels on every timeframe', () => {
+			const impulse: DegreeWaveCount = {
+				id: 'cross-tf-impulse',
+				degree: 'cycle',
+				type: 'impulse',
+				points: impulseEpochs.map((epoch, i) => ({
+					wave: i as 0 | 1 | 2 | 3 | 4 | 5,
+					time: epoch as Time,
+					price: 100 + i * 10
+				}))
+			};
+
+			for (const [name, candles] of timeframes) {
+				const points = renderOn(candles, impulse);
+				expect(points, name).toHaveLength(6);
+				expect(
+					points.map((p) => p.wave),
+					`${name} labels`
+				).toEqual([0, 1, 2, 3, 4, 5]);
+				points.forEach((point, i) => {
+					expect(point.x, `${name} point ${i} x`).toBe(
+						expectedIndex(candles, impulseEpochs[i]) * SPACING
+					);
+				});
+			}
+		});
+
+		it('renders a corrective wave on the same dates with identical labels on every timeframe', () => {
+			const correctiveEpochs = [
+				isoEpoch('2024-01-15T00:00:00Z'),
+				isoEpoch('2024-01-25T00:00:00Z'),
+				isoEpoch('2024-02-05T00:00:00Z'),
+				isoEpoch('2024-02-15T00:00:00Z')
+			];
+			const corrective: DegreeWaveCount = {
+				id: 'cross-tf-corrective',
+				degree: 'cycle',
+				type: 'corrective',
+				points: [
+					{ wave: 0, time: correctiveEpochs[0] as Time, price: 100 },
+					{ wave: 'A', time: correctiveEpochs[1] as Time, price: 110 },
+					{ wave: 'B', time: correctiveEpochs[2] as Time, price: 120 },
+					{ wave: 'C', time: correctiveEpochs[3] as Time, price: 130 }
+				]
+			};
+
+			for (const [name, candles] of timeframes) {
+				const points = renderOn(candles, corrective);
+				expect(points, name).toHaveLength(4);
+				expect(
+					points.map((p) => p.wave),
+					`${name} labels`
+				).toEqual([0, 'A', 'B', 'C']);
+				points.forEach((point, i) => {
+					expect(point.x, `${name} point ${i} x`).toBe(
+						expectedIndex(candles, correctiveEpochs[i]) * SPACING
+					);
+				});
+			}
 		});
 	});
 });

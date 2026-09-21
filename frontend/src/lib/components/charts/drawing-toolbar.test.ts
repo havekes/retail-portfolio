@@ -326,6 +326,78 @@ describe('DrawingToolbar Component', () => {
 		expect(onToggleTimeline).toHaveBeenCalledTimes(1);
 	});
 
+	it('renders Measure button with correct title and triggers onMeasureSelect', async () => {
+		const onMeasureSelect = vi.fn();
+		render(DrawingToolbar, { props: { onMeasureSelect } });
+
+		const measureBtn = screen.getByRole('button', { name: 'Toggle Measure drawing' });
+		expect(measureBtn).toBeInTheDocument();
+		expect(measureBtn).toHaveAttribute('title', 'Measure');
+
+		await fireEvent.click(measureBtn);
+		expect(onMeasureSelect).toHaveBeenCalledTimes(1);
+	});
+
+	it('highlights the Measure button only while Measure drawing is active', () => {
+		const { rerender } = render(DrawingToolbar, {
+			props: { isDrawingMeasure: false }
+		});
+
+		const measureBtn = screen.getByRole('button', { name: 'Toggle Measure drawing' });
+		expect(measureBtn.className).not.toContain('bg-primary');
+
+		rerender({ isDrawingMeasure: true });
+		expect(measureBtn.className).toContain('bg-primary');
+	});
+
+	it('renders Horizontal Line button with correct title and triggers onHorizontalLineSelect', async () => {
+		const onHorizontalLineSelect = vi.fn();
+		render(DrawingToolbar, { props: { onHorizontalLineSelect } });
+
+		const lineBtn = screen.getByRole('button', { name: 'Toggle Horizontal Line drawing' });
+		expect(lineBtn).toBeInTheDocument();
+		expect(lineBtn).toHaveAttribute('title', 'Horizontal Line');
+
+		await fireEvent.click(lineBtn);
+		expect(onHorizontalLineSelect).toHaveBeenCalledTimes(1);
+	});
+
+	it('highlights the Horizontal Line button only while its drawing mode is active', () => {
+		const { rerender } = render(DrawingToolbar, {
+			props: { isDrawingHorizontalLine: false }
+		});
+
+		const lineBtn = screen.getByRole('button', { name: 'Toggle Horizontal Line drawing' });
+		expect(lineBtn.className).not.toContain('bg-primary');
+
+		rerender({ isDrawingHorizontalLine: true });
+		expect(lineBtn.className).toContain('bg-primary');
+	});
+
+	it('renders Line button with correct title and triggers onLineSelect', async () => {
+		const onLineSelect = vi.fn();
+		render(DrawingToolbar, { props: { onLineSelect } });
+
+		const lineBtn = screen.getByRole('button', { name: 'Toggle Line drawing' });
+		expect(lineBtn).toBeInTheDocument();
+		expect(lineBtn).toHaveAttribute('title', 'Line');
+
+		await fireEvent.click(lineBtn);
+		expect(onLineSelect).toHaveBeenCalledTimes(1);
+	});
+
+	it('highlights the Line button only while its drawing mode is active', () => {
+		const { rerender } = render(DrawingToolbar, {
+			props: { isDrawingLine: false }
+		});
+
+		const lineBtn = screen.getByRole('button', { name: 'Toggle Line drawing' });
+		expect(lineBtn.className).not.toContain('bg-primary');
+
+		rerender({ isDrawingLine: true });
+		expect(lineBtn.className).toContain('bg-primary');
+	});
+
 	it('highlights timeline toggle button when isTimelineVisible is true', () => {
 		const { rerender } = render(DrawingToolbar, {
 			props: {
@@ -338,5 +410,159 @@ describe('DrawingToolbar Component', () => {
 
 		rerender({ isTimelineVisible: true });
 		expect(timelineBtn.className).toContain('bg-primary');
+	});
+
+	it('renders Horizontal Line button with dedicated HorizontalLineIcon SVG', () => {
+		render(DrawingToolbar);
+
+		const lineBtn = screen.getByRole('button', { name: 'Toggle Horizontal Line drawing' });
+		const lineSvg = lineBtn.querySelector('svg');
+		expect(lineSvg).toBeInTheDocument();
+		const lineEl = lineSvg?.querySelector('line');
+		expect(lineEl).toHaveAttribute('x1', '3');
+		expect(lineEl).toHaveAttribute('y1', '12');
+		expect(lineEl).toHaveAttribute('x2', '21');
+		expect(lineEl).toHaveAttribute('y2', '12');
+	});
+
+	it('renders Line button with dedicated LineIcon SVG', () => {
+		render(DrawingToolbar);
+
+		const lineBtn = screen.getByRole('button', { name: 'Toggle Line drawing' });
+		const lineSvg = lineBtn.querySelector('svg');
+		expect(lineSvg).toBeInTheDocument();
+		const lineEl = lineSvg?.querySelector('line');
+		expect(lineEl).toHaveAttribute('x1', '5');
+		expect(lineEl).toHaveAttribute('y1', '19');
+		expect(lineEl).toHaveAttribute('x2', '19');
+		expect(lineEl).toHaveAttribute('y2', '5');
+	});
+
+	it('renders Undo and Redo buttons with shortcut tooltips and disabled state by default', () => {
+		render(DrawingToolbar);
+
+		const undoBtn = screen.getByRole('button', { name: 'Undo' });
+		expect(undoBtn).toBeInTheDocument();
+		expect(undoBtn).toHaveAttribute('title', 'Undo (Ctrl+Z / ⌘Z)');
+		expect(undoBtn).toBeDisabled();
+
+		const redoBtn = screen.getByRole('button', { name: 'Redo' });
+		expect(redoBtn).toBeInTheDocument();
+		expect(redoBtn).toHaveAttribute('title', 'Redo (Ctrl+Y / ⌘Y)');
+		expect(redoBtn).toBeDisabled();
+	});
+
+	it('enables Undo and Redo buttons when canUndo and canRedo are true and triggers callbacks', async () => {
+		const onUndo = vi.fn();
+		const onRedo = vi.fn();
+
+		const { rerender } = render(DrawingToolbar, {
+			props: {
+				canUndo: true,
+				canRedo: true,
+				onUndo,
+				onRedo
+			}
+		});
+
+		const undoBtn = screen.getByRole('button', { name: 'Undo' });
+		const redoBtn = screen.getByRole('button', { name: 'Redo' });
+
+		expect(undoBtn).toBeEnabled();
+		expect(redoBtn).toBeEnabled();
+
+		await fireEvent.click(undoBtn);
+		expect(onUndo).toHaveBeenCalledTimes(1);
+
+		await fireEvent.click(redoBtn);
+		expect(onRedo).toHaveBeenCalledTimes(1);
+
+		// When disabled, clicking should not trigger callbacks
+		rerender({ canUndo: false, canRedo: false });
+		expect(undoBtn).toBeDisabled();
+		expect(redoBtn).toBeDisabled();
+
+		await fireEvent.click(undoBtn);
+		await fireEvent.click(redoBtn);
+		expect(onUndo).toHaveBeenCalledTimes(1);
+		expect(onRedo).toHaveBeenCalledTimes(1);
+	});
+
+	it('delegates actions to service when service prop is provided', async () => {
+		const mockService = {
+			activeWaveDegree: 'cycle' as const,
+			activeWaveType: 'impulse' as const,
+			isDrawingWave: false,
+			isDrawingWaveEffective: false,
+			activeFibTool: 'retracement' as const,
+			isDrawingFib: false,
+			isDrawingFibEffective: false,
+			isDrawingMeasure: false,
+			isDrawingMeasureEffective: false,
+			isDrawingHorizontalLine: false,
+			isDrawingHorizontalLineEffective: false,
+			isDrawingLine: false,
+			isDrawingLineEffective: false,
+			isTimelineVisible: false,
+			canUndo: true,
+			canRedo: true,
+			saveFeedback: 'idle' as const,
+			selectWaveDegree: vi.fn(),
+			toggleFib: vi.fn(),
+			toggleMeasure: vi.fn(),
+			toggleHorizontalLine: vi.fn(),
+			toggleLine: vi.fn(),
+			handleUndo: vi.fn(),
+			handleRedo: vi.fn(),
+			handleSaveSnapshot: vi.fn(),
+			toggleTimeline: vi.fn()
+		};
+
+		render(DrawingToolbar, {
+			props: {
+				/* eslint-disable-next-line @typescript-eslint/no-explicit-any */
+				service: mockService as any
+			}
+		});
+
+		// Fib retracement click
+		const fibBtn = screen.getByRole('button', { name: /Toggle Fib Retrace drawing/i });
+		await fireEvent.click(fibBtn);
+		expect(mockService.toggleFib).toHaveBeenCalledWith('retracement');
+
+		// Measure click
+		const measureBtn = screen.getByRole('button', { name: /Toggle Measure drawing/i });
+		await fireEvent.click(measureBtn);
+		expect(mockService.toggleMeasure).toHaveBeenCalledTimes(1);
+
+		// Horizontal line click
+		const hLineBtn = screen.getByRole('button', { name: /Toggle Horizontal Line drawing/i });
+		await fireEvent.click(hLineBtn);
+		expect(mockService.toggleHorizontalLine).toHaveBeenCalledTimes(1);
+
+		// Line click
+		const lineBtn = screen.getByRole('button', { name: /Toggle Line drawing/i });
+		await fireEvent.click(lineBtn);
+		expect(mockService.toggleLine).toHaveBeenCalledTimes(1);
+
+		// Undo click
+		const undoBtn = screen.getByRole('button', { name: 'Undo' });
+		await fireEvent.click(undoBtn);
+		expect(mockService.handleUndo).toHaveBeenCalledTimes(1);
+
+		// Redo click
+		const redoBtn = screen.getByRole('button', { name: 'Redo' });
+		await fireEvent.click(redoBtn);
+		expect(mockService.handleRedo).toHaveBeenCalledTimes(1);
+
+		// Save click
+		const saveBtn = screen.getByRole('button', { name: 'Save snapshot' });
+		await fireEvent.click(saveBtn);
+		expect(mockService.handleSaveSnapshot).toHaveBeenCalledTimes(1);
+
+		// Timeline click
+		const timelineBtn = screen.getByRole('button', { name: 'Toggle rewind timeline' });
+		await fireEvent.click(timelineBtn);
+		expect(mockService.toggleTimeline).toHaveBeenCalledTimes(1);
 	});
 });

@@ -118,11 +118,18 @@ export abstract class DrawingPrimitiveBase<
 			this._requestUpdate?.();
 		});
 
-		this._subscribeToUpdate(this._mouseHandlers.mouseMoved());
+		this._subscribe(this._mouseHandlers.mouseMoved(), () => {
+			if (this._state.isDrawingMode()) {
+				this._requestUpdate?.();
+			}
+		});
 
 		this._subscribe(this._mouseHandlers.pointHovered(), (target) => {
+			const shouldUpdate = this._state.getHoveredPoint() !== null || target !== null;
 			this._state.setHoveredPoint(target);
-			this._requestUpdate?.();
+			if (shouldUpdate) {
+				this._requestUpdate?.();
+			}
 		});
 
 		this._subscribe(this._mouseHandlers.dragStarted(), (target) => {
@@ -137,7 +144,7 @@ export abstract class DrawingPrimitiveBase<
 
 		this._subscribe(this._mouseHandlers.chartClicked(), (clickEvent) => {
 			if (this._state.isDrawingMode()) {
-				this._state.addPoint({
+				this.addPoint({
 					time: clickEvent.time,
 					price: clickEvent.price
 				});
@@ -230,8 +237,20 @@ export abstract class DrawingPrimitiveBase<
 		this._requestUpdate?.();
 	}
 
+	public addPoint(point: { time: Time; price: number }): unknown {
+		return this._state.addPoint(point);
+	}
+
 	public drawingModeChanged(): ISubscription<boolean> {
 		return this._state.drawingModeChanged();
+	}
+
+	public dragStarted(): ISubscription<TDragTarget> {
+		return this._mouseHandlers.dragStarted();
+	}
+
+	public dragEnded(): ISubscription<TDragTarget> {
+		return this._mouseHandlers.dragEnded();
 	}
 
 	public setCandles(candles: Candle[]): void {

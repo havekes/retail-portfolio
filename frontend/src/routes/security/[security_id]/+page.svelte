@@ -14,7 +14,6 @@
 	import AIAnalysisGroup from '$lib/components/actions-sidebar/ai/ai-analysis-group.svelte';
 	import type { UserPreferences } from '$lib/api/userPreferencesService';
 	import { userPreferencesService, type ChartStyle } from '$lib/api/userPreferencesService';
-	import { snapshotsService } from '$lib/api/snapshotsService';
 	import { alertsService, type PriceAlert } from '$lib/api/alertsService';
 	import { blendedAverageCost } from '@/utils/finance/average-cost';
 	import HoldingsGroup from '@/components/actions-sidebar/holding-group/holding-group.svelte';
@@ -41,37 +40,21 @@
 	} from '$lib/api/indicatorsService';
 	import { createIndicatorConfigs, type IndicatorDefault } from '$lib/chart/indicator-defaults';
 	import { getChartDateWindow } from '$lib/utils/date';
-	import type {
-		DegreeWaveCount,
-		SecurityElliottWaves,
-		WaveDegree,
-		WaveSettings
-	} from '$lib/utils/finance/elliott-wave';
-	import {
-		updateSecurityElliottWaves,
-		DEFAULT_WAVE_SETTINGS
-	} from '$lib/utils/finance/elliott-wave';
+	import type { WaveSettings } from '$lib/utils/finance/elliott-wave';
+	import { DEFAULT_WAVE_SETTINGS } from '$lib/utils/finance/elliott-wave';
 	import { computeWaveAlertLevels, reconcileWaveAlerts } from '$lib/utils/finance/wave-alerts';
 	import ChartSettingsModal from '$lib/components/charts/chart-settings-modal.svelte';
 	import FibWidthModal from '$lib/components/charts/fib-width-modal.svelte';
 	import DrawingToolbar from '$lib/components/charts/drawing-toolbar.svelte';
-	import {
-		type FibToolType,
-		type FibLevelConfig,
-		type SecurityFibonacciTools,
-		updateSecurityFibonacciTools
-	} from '$lib/utils/finance/fibonacci';
-	import {
-		captureSnapshot,
-		areSnapshotsEqual,
-		findSnapshotAtOrBefore,
-		type RewindDrawings,
-		type RewindDataWindow,
-		type RewindSnapshot
-	} from '$lib/utils/finance/rewind';
+	import type { FibToolType } from '$lib/utils/finance/fibonacci';
+	import type { SecurityDrawings } from '$lib/utils/finance/drawings';
 	import RewindTimeline from '$lib/components/charts/rewind-timeline.svelte';
 	import { sliceCandlesBefore } from '$lib/components/charts/rewind-timeline';
-	import { toast } from '$lib/components/ui/toast/index.js';
+	import {
+		setChartDrawingsService,
+		ChartDrawingsService,
+		type ChartInstance
+	} from '$lib/services/ChartDrawingsService.svelte';
 
 	let { data } = $props();
 
@@ -91,358 +74,67 @@
 	let isLoadingMore = $state(false);
 
 	let userPreferences = $state<UserPreferences | null>(null);
-	let activeWaveDegree = $state<WaveDegree>('cycle');
-	let activeWaveType = $state<'impulse' | 'corrective'>('impulse');
-	let isDrawingWave = $state(false);
-	let selectedWaveDegree = $state<WaveDegree | null>(null);
-	let securityElliottWaves = $derived<SecurityElliottWaves>(
-		(security?.id && userPreferences?.elliott_waves?.[security.id]) || { waves: [] }
-	);
-
-	let activeFibTool = $state<FibToolType>('retracement');
-	let isDrawingFib = $state(false);
-	let selectedFibTool = $state<FibToolType | null>(null);
 	let isChartSettingsOpen = $state(false);
 	let isFibWidthModalOpen = $state(false);
 	let modalFibTool = $state<FibToolType>('retracement');
-	let securityFibonacciTools = $derived<SecurityFibonacciTools>(
-		(security?.id && userPreferences?.fibonacci_tools?.[security.id]) || {}
+
+	const drawingsService = setChartDrawingsService(
+		new ChartDrawingsService({
+			securityId: untrack(() => security?.id),
+			userPreferences: untrack(() => userPreferences),
+			getChartRef: () => chartRef,
+			onWaveAlertsReconcile: () => scheduleWaveAlertsReconcile(),
+			onPreferencesChanged: (prefs: UserPreferences) => {
+				userPreferences = prefs;
+			},
+			onChartSettingsOpen: () => {
+				isChartSettingsOpen = true;
+			}
+		})
 	);
-	let saveFeedback = $state<'idle' | 'saved'>('idle');
-	let saveFeedbackTimer: ReturnType<typeof setTimeout> | null = null;
-	let isTimelineVisible = $state(false);
-	let securitySnapshots = $state<RewindSnapshot[]>([]);
-	let timelinePosition = $state<Date | null>(null);
-	let isRewound = $derived(timelinePosition !== null);
+
+	let isRewound = $derived(drawingsService.isRewound);
 	let displayCandles = $derived(
-		isRewound ? sliceCandlesBefore(allDisplayCandles, timelinePosition) : allDisplayCandles
+		isRewound
+			? sliceCandlesBefore(allDisplayCandles, drawingsService.timelinePosition)
+			: allDisplayCandles
 	);
 	let timelineNow = $derived(
 		allDisplayCandles.length > 0
 			? parseCandleTime(allDisplayCandles[allDisplayCandles.length - 1].time)
 			: new Date()
 	);
-	let activeSnapshot = $derived<RewindSnapshot | null>(
-		isRewound && security?.id && timelinePosition
-			? findSnapshotAtOrBefore(securitySnapshots, timelinePosition)
-			: null
-	);
-	let effectiveElliottWaves = $derived<SecurityElliottWaves>(
-		isRewound ? (activeSnapshot?.drawings?.elliott_waves ?? { waves: [] }) : securityElliottWaves
-	);
-	let effectiveFibonacciTools = $derived<SecurityFibonacciTools>(
-		isRewound ? (activeSnapshot?.drawings?.fibonacci_tools ?? {}) : securityFibonacciTools
-	);
 
 	$effect(() => {
-		void timelinePosition;
+		drawingsService.setDisplayCandles(displayCandles);
+	});
+
+	$effect(() => {
+		drawingsService.setSecurity(security?.id ?? null);
+	});
+
+	/**
+	 * Accessor for the new-tool drawings currently in effect: the active rewind
+	 * snapshot's drawings while rewound, otherwise the live per-security drawings
+	 * from user preferences. Exposed for SECDTL-T04–T06 plugin consumption and tests.
+	 */
+	export function getEffectiveSecurityDrawings(): SecurityDrawings {
+		return drawingsService.getEffectiveSecurityDrawings();
+	}
+
+	$effect(() => {
+		void drawingsService.timelinePosition;
 		untrack(() => {
 			refreshActiveIndicators();
 		});
 	});
 
 	onDestroy(() => {
-		if (saveFeedbackTimer) {
-			clearTimeout(saveFeedbackTimer);
-			saveFeedbackTimer = null;
-		}
+		drawingsService.destroy();
 	});
-
-	function showSaveFeedback() {
-		if (saveFeedbackTimer) {
-			clearTimeout(saveFeedbackTimer);
-		}
-		saveFeedback = 'saved';
-		saveFeedbackTimer = setTimeout(() => {
-			saveFeedback = 'idle';
-			saveFeedbackTimer = null;
-		}, 1500);
-	}
-
-	function normalizeCandleTime(t: Time): string | number {
-		if (typeof t === 'string' || typeof t === 'number') return t;
-		if (typeof t === 'object' && t !== null && 'year' in t) {
-			return `${t.year}-${String(t.month).padStart(2, '0')}-${String(t.day).padStart(2, '0')}`;
-		}
-		return String(t);
-	}
-
-	async function handleSaveSnapshot() {
-		if (isRewound) return;
-		if (!security?.id) return;
-		if (!displayCandles.length) return;
-
-		const drawings: RewindDrawings = {
-			elliott_waves: securityElliottWaves,
-			fibonacci_tools: securityFibonacciTools
-		};
-
-		const hasWavePoints = Boolean(
-			drawings.elliott_waves?.waves?.some((w) => w.points && w.points.length > 0)
-		);
-		const hasFibTools = Boolean(
-			drawings.fibonacci_tools?.retracement || drawings.fibonacci_tools?.extension
-		);
-
-		if (!hasWavePoints && !hasFibTools) {
-			return;
-		}
-
-		const dataWindow: RewindDataWindow = {
-			first: normalizeCandleTime(displayCandles[0].time),
-			last: normalizeCandleTime(displayCandles[displayCandles.length - 1].time)
-		};
-
-		const snapshot = captureSnapshot(drawings, dataWindow);
-
-		const last = securitySnapshots[securitySnapshots.length - 1];
-		if (last && areSnapshotsEqual(snapshot, last)) {
-			showSaveFeedback();
-			toast.info('Chart snapshot already up to date');
-			return;
-		}
-
-		try {
-			const created = await snapshotsService.createSnapshot(security.id, {
-				drawings,
-				data_window: dataWindow,
-				captured_at: snapshot.captured_at
-			});
-			securitySnapshots = [...securitySnapshots, created];
-			isTimelineVisible = true;
-			showSaveFeedback();
-			toast.success('Chart snapshot saved');
-		} catch (err) {
-			console.error('Failed to persist rewind snapshot:', err);
-			toast.error('Failed to save chart snapshot');
-		}
-	}
-
-	function handleKeyDown(event: KeyboardEvent) {
-		const target = event.target as HTMLElement | null;
-		if (
-			target &&
-			typeof target.closest === 'function' &&
-			(target.tagName === 'INPUT' ||
-				target.tagName === 'TEXTAREA' ||
-				target.isContentEditable ||
-				target.closest('input, textarea, [contenteditable="true"]'))
-		) {
-			return;
-		}
-
-		if (event.key === 'Delete' || event.key === 'Backspace') {
-			if (isRewound) return;
-			const selectedWaveId = chartRef?.getSelectedWaveId?.();
-			if (selectedWaveDegree || selectedWaveId) {
-				event.preventDefault();
-				const degreeToClear = selectedWaveDegree ?? undefined;
-				selectedWaveDegree = null;
-				handleClearWave(degreeToClear);
-			} else if (selectedFibTool) {
-				event.preventDefault();
-				const toolToClear = selectedFibTool;
-				selectedFibTool = null;
-				handleClearFib(toolToClear);
-			}
-		} else if (event.key === 'Escape') {
-			if (selectedWaveDegree) {
-				selectedWaveDegree = null;
-			}
-			if (selectedFibTool) {
-				selectedFibTool = null;
-			}
-			if (isDrawingWave) {
-				isDrawingWave = false;
-			}
-			if (isDrawingFib) {
-				isDrawingFib = false;
-			}
-		} else if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === 's') {
-			event.preventDefault();
-			if (isRewound) return;
-			void handleSaveSnapshot();
-		}
-	}
 
 	async function updateChartPreferences(partial: Partial<UserPreferences>) {
 		await userPreferencesService.patchPreferences(partial);
-	}
-
-	async function handleWaveChange(
-		degree: WaveDegree,
-		waveCount: DegreeWaveCount | null,
-		allWaves?: SecurityElliottWaves
-	) {
-		if (isRewound) return;
-		if (!security?.id) return;
-		const updatedAllWaves = updateSecurityElliottWaves(
-			userPreferences?.elliott_waves,
-			security.id,
-			allWaves?.waves ?? (waveCount ? [waveCount] : [])
-		);
-		userPreferences = {
-			...(userPreferences ?? {}),
-			elliott_waves: updatedAllWaves
-		};
-		try {
-			await userPreferencesService.patchPreferences({
-				elliott_waves: updatedAllWaves
-			});
-		} catch (err) {
-			console.error('Failed to persist elliott waves preference:', err);
-		}
-		scheduleWaveAlertsReconcile();
-	}
-
-	async function handleClearWave(degree?: WaveDegree) {
-		if (isRewound) return;
-		if (degree && selectedWaveDegree === degree) {
-			selectedWaveDegree = null;
-		}
-		const selectedWaveId = chartRef?.getSelectedWaveId?.();
-		if (chartRef?.clearWave) {
-			chartRef.clearWave(selectedWaveId ?? degree);
-		} else if (degree) {
-			// Fallback when the chart ref is not available: remove the last wave of the
-			// requested degree from the persisted collection, mirroring clearWave.
-			const current = security?.id
-				? (userPreferences?.elliott_waves?.[security.id]?.waves ?? [])
-				: [];
-			const degreeIdx = current.findLastIndex((w) => w.degree === degree);
-			const remaining =
-				degreeIdx === -1
-					? current
-					: [...current.slice(0, degreeIdx), ...current.slice(degreeIdx + 1)];
-			await handleWaveChange(degree, null, { waves: remaining });
-		}
-	}
-
-	async function handleFibChange(drawings: SecurityFibonacciTools) {
-		if (isRewound) return;
-		if (!security?.id) return;
-		const updatedAllTools = updateSecurityFibonacciTools(
-			userPreferences?.fibonacci_tools,
-			security.id,
-			drawings
-		);
-		userPreferences = {
-			...(userPreferences ?? {}),
-			fibonacci_tools: updatedAllTools
-		};
-		try {
-			await userPreferencesService.patchPreferences({
-				fibonacci_tools: updatedAllTools
-			});
-		} catch (err) {
-			console.error('Failed to persist fibonacci tools preference:', err);
-		}
-	}
-
-	async function handleClearFib(tool?: FibToolType | null) {
-		if (isRewound) return;
-		if (tool && selectedFibTool === tool) {
-			selectedFibTool = null;
-		} else if (!tool) {
-			selectedFibTool = null;
-		}
-		if (!security?.id) return;
-		const currentTools = userPreferences?.fibonacci_tools?.[security.id];
-		const updatedSecurityTools: SecurityFibonacciTools = {
-			retracement:
-				tool === 'retracement'
-					? null
-					: tool === 'extension'
-						? (currentTools?.retracement ?? null)
-						: null,
-			extension:
-				tool === 'extension'
-					? null
-					: tool === 'retracement'
-						? (currentTools?.extension ?? null)
-						: null
-		};
-		await handleFibChange(updatedSecurityTools);
-	}
-
-	async function handleFibLevelsChange(tool: FibToolType, levels: FibLevelConfig[]) {
-		if (isRewound) return;
-		if (!security?.id) return;
-		const currentTools = userPreferences?.fibonacci_tools?.[security.id];
-		let updatedSecurityTools: SecurityFibonacciTools;
-		if (tool === 'retracement') {
-			const currentDrawing = currentTools?.retracement;
-			updatedSecurityTools = {
-				...currentTools,
-				retracement: currentDrawing ? { ...currentDrawing, levels } : null
-			};
-		} else {
-			const currentDrawing = currentTools?.extension;
-			updatedSecurityTools = {
-				...currentTools,
-				extension: currentDrawing ? { ...currentDrawing, levels } : null
-			};
-		}
-		const updatedAllTools = updateSecurityFibonacciTools(
-			userPreferences?.fibonacci_tools,
-			security.id,
-			updatedSecurityTools
-		);
-		userPreferences = {
-			...(userPreferences ?? {}),
-			fibonacci_tools: updatedAllTools
-		};
-		try {
-			await userPreferencesService.patchPreferences({
-				fibonacci_tools: updatedAllTools
-			});
-		} catch (err) {
-			console.error('Failed to persist fibonacci tools preference:', err);
-		}
-	}
-
-	async function handleFibWidthSave(
-		tool: FibToolType,
-		widthMultiplier: number | null,
-		extendLines?: boolean
-	) {
-		if (isRewound) return;
-		if (!security?.id) return;
-		const currentTools = userPreferences?.fibonacci_tools?.[security.id];
-		let updatedSecurityTools: SecurityFibonacciTools;
-		if (tool === 'retracement') {
-			const currentDrawing = currentTools?.retracement;
-			updatedSecurityTools = {
-				...currentTools,
-				retracement: currentDrawing
-					? { ...currentDrawing, widthMultiplier, extendLines: Boolean(extendLines) }
-					: null
-			};
-		} else {
-			const currentDrawing = currentTools?.extension;
-			updatedSecurityTools = {
-				...currentTools,
-				extension: currentDrawing
-					? { ...currentDrawing, widthMultiplier, extendLines: Boolean(extendLines) }
-					: null
-			};
-		}
-		const updatedAllTools = updateSecurityFibonacciTools(
-			userPreferences?.fibonacci_tools,
-			security.id,
-			updatedSecurityTools
-		);
-		userPreferences = {
-			...(userPreferences ?? {}),
-			fibonacci_tools: updatedAllTools
-		};
-		try {
-			await userPreferencesService.patchPreferences({
-				fibonacci_tools: updatedAllTools
-			});
-		} catch (err) {
-			console.error('Failed to persist fibonacci tools preference:', err);
-		}
 	}
 
 	async function changeTimeframe(
@@ -580,14 +272,6 @@
 		}
 	}
 	let securityChart = $state<unknown | null>(null);
-
-	interface ChartInstance {
-		addIndicator: (indicator: IndicatorData) => void;
-		removeIndicator: (indicatorId: string) => void;
-		clearWave?: (waveIdOrDegree?: string | WaveDegree) => void;
-		getSelectedWaveId?: () => string | null;
-	}
-
 	let chartRef = $state<ChartInstance | null>(null);
 	let alerts = $state<PriceAlert[]>([]);
 
@@ -625,10 +309,10 @@
 	}
 
 	function getRewoundCandlesPayload(): IndicatorCandle[] | undefined {
-		if (!isRewound || !timelinePosition) {
+		if (!isRewound || !drawingsService.timelinePosition) {
 			return undefined;
 		}
-		const sliced = sliceCandlesBefore(rawCandles, timelinePosition);
+		const sliced = sliceCandlesBefore(rawCandles, drawingsService.timelinePosition);
 		return sliced.map((c) => ({
 			time: c.time as number | string,
 			open: c.open,
@@ -753,19 +437,6 @@
 		}
 	}
 
-	async function loadSnapshots() {
-		if (!security?.id) return;
-		try {
-			const res = await snapshotsService.getSnapshots(security.id);
-			securitySnapshots = res;
-			if (securitySnapshots.length > 0) {
-				isTimelineVisible = true;
-			}
-		} catch (err) {
-			console.error('Failed to load snapshots:', err);
-		}
-	}
-
 	// Serialized reconcile chain — `onWaveChange` fires per point while drawing, and concurrent
 	// reconciles reading stale `alerts` would double-create. Chaining onto a single promise keeps
 	// every run sequential so each sees the previous run's applied state.
@@ -785,7 +456,11 @@
 		const settings = userPreferences?.wave_settings ?? DEFAULT_WAVE_SETTINGS;
 		const lastCandle = displayCandles[displayCandles.length - 1];
 		const currentPrice = lastCandle?.close;
-		const desired = computeWaveAlertLevels(settings, securityElliottWaves, currentPrice);
+		const desired = computeWaveAlertLevels(
+			settings,
+			drawingsService.securityElliottWaves,
+			currentPrice
+		);
 		const { toCreate, toDelete } = reconcileWaveAlerts(alerts, desired);
 		try {
 			await Promise.all(toDelete.map((alert) => alertsService.deleteAlert(security.id, alert.id)));
@@ -817,6 +492,26 @@
 		} catch (err) {
 			console.error('Failed to persist chart hide labels preference:', err);
 		}
+	}
+
+	async function handlePaneHeightsChange(heights: Record<string, number> | null) {
+		// PATCH replaces the whole `indicator_pane_heights` key — always send the full object.
+		userPreferences = {
+			...(userPreferences ?? {}),
+			indicator_pane_heights: heights
+		};
+		try {
+			await userPreferencesService.patchPreferences({ indicator_pane_heights: heights });
+		} catch (err) {
+			console.error('Failed to persist indicator pane heights:', err);
+		}
+	}
+
+	function applySavedPaneHeights(prefs: UserPreferences | null | undefined) {
+		const heights = prefs?.indicator_pane_heights;
+		if (!heights || Object.keys(heights).length === 0) return;
+		// setTimeout ensures chartRef is bound before the restore call.
+		setTimeout(() => chartRef?.setPaneHeights?.(heights), 100);
 	}
 
 	async function handleWaveSettingsChange(settings: WaveSettings) {
@@ -929,6 +624,8 @@
 
 	async function onPreferencesLoaded(prefs: UserPreferences) {
 		userPreferences = prefs;
+		applySavedPaneHeights(prefs);
+		drawingsService.setPreferences(prefs);
 
 		// (a) Apply chart style
 		chartStyle = (prefs.chart_style as ChartStyle | undefined) ?? 'heikin_ashi';
@@ -976,21 +673,20 @@
 
 		untrack(() => {
 			// Reset drawing mode on route transition / security change
-			isDrawingWave = false;
-			isDrawingFib = false;
-			activeWaveType = 'impulse';
-			selectedWaveDegree = null;
-			selectedFibTool = null;
-			isTimelineVisible = false;
+			drawingsService.resetToolState();
 
 			(async () => {
 				if (!userPreferences) {
 					try {
 						const prefs = await userPreferencesService.getPreferences();
 						userPreferences = prefs;
+						applySavedPaneHeights(prefs);
+						drawingsService.setPreferences(prefs);
 					} catch (err) {
 						console.error('Failed to load user preferences:', err);
 					}
+				} else {
+					drawingsService.setPreferences(userPreferences);
 				}
 
 				// Convert to lightweight-charts format and sort properly (oldest to newest)
@@ -1009,7 +705,7 @@
 				isLoadingMore = false;
 				rawCandles = mappedCandles;
 				haCandles = convertToHeikinAshi(mappedCandles);
-				await Promise.all([loadAlerts(), loadHoldings(), loadSnapshots()]);
+				await Promise.all([loadAlerts(), loadHoldings(), drawingsService.loadSnapshots()]);
 
 				// Initial-load reconcile: gated on preferences being loaded so a failed fetch never
 				// mass-deletes wave alerts. Soft navigation re-runs the effect per security.
@@ -1030,6 +726,9 @@
 			})();
 		});
 	});
+	function handleKeyDown(event: KeyboardEvent) {
+		drawingsService.handleKeyDown(event, chartRef);
+	}
 </script>
 
 <svelte:window onkeydown={handleKeyDown} />
@@ -1187,55 +886,21 @@
 											onclick={() => (isChartSettingsOpen = true)}
 											class="rounded p-1.5 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
 											aria-label="Open chart settings"
-											title="Chart Settings"
+											title="Chart Settings (Ctrl+, / ⌘,)"
 										>
 											<Settings class="h-4 w-4" />
 										</button>
 									{/snippet}
 								</Tooltip.Trigger>
 								<Tooltip.Content side="bottom">
-									<p>Chart Settings</p>
+									<p>Chart Settings (Ctrl+, / ⌘,)</p>
 								</Tooltip.Content>
 							</Tooltip.Root>
 						</div>
 					</Tooltip.Provider>
 				</div>
 				<div class="flex min-h-0 flex-1 overflow-hidden">
-					<DrawingToolbar
-						{activeWaveDegree}
-						{activeWaveType}
-						isDrawingWave={isRewound ? false : isDrawingWave}
-						{activeFibTool}
-						isDrawingFib={isRewound ? false : isDrawingFib}
-						{isTimelineVisible}
-						onToggleTimeline={() => (isTimelineVisible = !isTimelineVisible)}
-						onSave={handleSaveSnapshot}
-						{saveFeedback}
-						onSelectWaveDegree={(degree) => {
-							if (isRewound) timelinePosition = null;
-							activeWaveDegree = degree;
-							activeWaveType = 'impulse';
-							isDrawingWave = true;
-							isDrawingFib = false;
-						}}
-						onSelectCorrectiveDegree={(degree) => {
-							if (isRewound) timelinePosition = null;
-							activeWaveDegree = degree;
-							activeWaveType = 'corrective';
-							isDrawingWave = true;
-							isDrawingFib = false;
-						}}
-						onToggleFib={(tool) => {
-							if (isRewound) timelinePosition = null;
-							if (isDrawingFib && activeFibTool === tool) {
-								isDrawingFib = false;
-							} else {
-								activeFibTool = tool;
-								isDrawingFib = true;
-								isDrawingWave = false;
-							}
-						}}
-					/>
+					<DrawingToolbar service={drawingsService} />
 					<div class="flex min-h-0 flex-1 flex-col">
 						<div class="min-h-0 flex-1 overflow-hidden">
 							<ChartComponent
@@ -1250,45 +915,50 @@
 								hasMoreData={!isRewound && hasMoreData}
 								{isLoadingMore}
 								onLoadMoreData={handleLoadMoreData}
-								elliottWaves={effectiveElliottWaves}
-								activeDegree={activeWaveDegree}
-								{activeWaveType}
-								isDrawingWave={isRewound ? false : isDrawingWave}
-								bind:selectedWaveDegree
+								elliottWaves={drawingsService.effectiveElliottWaves}
+								activeDegree={drawingsService.activeWaveDegree}
+								activeWaveType={drawingsService.activeWaveType}
+								isDrawingWave={drawingsService.isDrawingWaveEffective}
+								bind:selectedWaveDegree={drawingsService.selectedWaveDegree}
 								snapToWicks={userPreferences?.wave_settings?.snap_to_wicks ?? false}
-								onWaveChange={handleWaveChange}
-								onDrawingModeChange={(isDrawing) => {
-									if (isRewound) return;
-									isDrawingWave = isDrawing;
-									if (isDrawing) isDrawingFib = false;
-								}}
-								onDegreeChange={(degree) => (activeWaveDegree = degree)}
-								onWaveTypeChange={(type) => (activeWaveType = type)}
-								onWaveSelect={(degree) => {
-									selectedWaveDegree = degree;
-									if (degree) selectedFibTool = null;
-								}}
-								fibonacciTools={effectiveFibonacciTools}
-								{activeFibTool}
-								isDrawingFib={isRewound ? false : isDrawingFib}
-								bind:selectedFibTool
-								onFibChange={handleFibChange}
-								onFibDrawingModeChange={(isDrawing) => {
-									if (isRewound) return;
-									isDrawingFib = isDrawing;
-									if (isDrawing) isDrawingWave = false;
-								}}
+								onWaveChange={drawingsService.handleWaveChange}
+								onDrawingModeChange={drawingsService.setDrawingWaveMode}
+								onDegreeChange={(degree) => (drawingsService.activeWaveDegree = degree)}
+								onWaveTypeChange={(type) => (drawingsService.activeWaveType = type)}
+								onWaveSelect={drawingsService.selectWave}
+								fibonacciTools={drawingsService.effectiveFibonacciTools}
+								activeFibTool={drawingsService.activeFibTool}
+								isDrawingFib={drawingsService.isDrawingFibEffective}
+								bind:selectedFibTool={drawingsService.selectedFibTool}
+								onFibChange={drawingsService.handleFibChange}
+								onFibDrawingModeChange={drawingsService.setDrawingFibMode}
 								onFibToolChange={(tool) => {
-									if (tool) activeFibTool = tool;
+									if (tool) drawingsService.activeFibTool = tool;
 								}}
-								onFibSelect={(tool) => {
-									selectedFibTool = tool;
-									if (tool) selectedWaveDegree = null;
-								}}
+								onFibSelect={drawingsService.selectFib}
 								onFibDoubleClick={(tool) => {
 									modalFibTool = tool;
 									isFibWidthModalOpen = true;
 								}}
+								securityDrawings={drawingsService.effectiveSecurityDrawings}
+								isDrawingMeasure={drawingsService.isDrawingMeasureEffective}
+								bind:selectedMeasureId={drawingsService.selectedMeasureId}
+								onMeasureChange={drawingsService.handleMeasureChange}
+								onMeasureDrawingModeChange={drawingsService.setDrawingMeasureMode}
+								onMeasureSelect={drawingsService.selectMeasure}
+								isDrawingHorizontalLine={drawingsService.isDrawingHorizontalLineEffective}
+								bind:selectedHorizontalLineId={drawingsService.selectedHorizontalLineId}
+								onHorizontalLineChange={drawingsService.handleHorizontalLineChange}
+								onHorizontalLineDrawingModeChange={drawingsService.setDrawingHorizontalLineMode}
+								onHorizontalLineSelect={drawingsService.selectHorizontalLine}
+								isDrawingLine={drawingsService.isDrawingLineEffective}
+								bind:selectedLineId={drawingsService.selectedLineId}
+								onLineChange={drawingsService.handleLineChange}
+								onLineDrawingModeChange={drawingsService.setDrawingLineMode}
+								onLineSelect={drawingsService.selectLine}
+								onDrawingDragStart={drawingsService.handleDrawingDragStart}
+								onDrawingDragEnd={drawingsService.handleDrawingDragEnd}
+								onPaneHeightsChange={handlePaneHeightsChange}
 							/>
 							<ChartSettingsModal
 								bind:open={isChartSettingsOpen}
@@ -1296,33 +966,38 @@
 								onSaveChartHideLabels={handleChartHideLabelsChange}
 								waveSettings={userPreferences?.wave_settings}
 								onSaveWaveSettings={handleWaveSettingsChange}
-								activeTool={activeFibTool}
-								retracementLevels={securityFibonacciTools?.retracement?.levels}
-								extensionLevels={securityFibonacciTools?.extension?.levels}
-								retracementWidthMultiplier={securityFibonacciTools?.retracement?.widthMultiplier}
-								extensionWidthMultiplier={securityFibonacciTools?.extension?.widthMultiplier}
-								retracementExtendLines={securityFibonacciTools?.retracement?.extendLines}
-								extensionExtendLines={securityFibonacciTools?.extension?.extendLines}
+								activeTool={drawingsService.activeFibTool}
+								retracementLevels={drawingsService.effectiveFibonacciTools?.retracement?.levels}
+								extensionLevels={drawingsService.effectiveFibonacciTools?.extension?.levels}
+								retracementWidthMultiplier={drawingsService.effectiveFibonacciTools?.retracement
+									?.widthMultiplier}
+								extensionWidthMultiplier={drawingsService.effectiveFibonacciTools?.extension
+									?.widthMultiplier}
+								retracementExtendLines={drawingsService.effectiveFibonacciTools?.retracement
+									?.extendLines}
+								extensionExtendLines={drawingsService.effectiveFibonacciTools?.extension
+									?.extendLines}
 								hasActiveDrawing={Boolean(
-									securityFibonacciTools?.retracement || securityFibonacciTools?.extension
+									drawingsService.effectiveFibonacciTools?.retracement ||
+									drawingsService.effectiveFibonacciTools?.extension
 								)}
-								onFibLevelsChange={handleFibLevelsChange}
-								onFibWidthChange={handleFibWidthSave}
+								onFibLevelsChange={drawingsService.handleFibLevelsChange}
+								onFibWidthChange={drawingsService.handleFibWidthSave}
 							/>
 							<FibWidthModal
 								bind:open={isFibWidthModalOpen}
 								tool={modalFibTool}
 								drawing={modalFibTool === 'retracement'
-									? securityFibonacciTools?.retracement
-									: securityFibonacciTools?.extension}
-								onSave={handleFibWidthSave}
+									? drawingsService.effectiveFibonacciTools?.retracement
+									: drawingsService.effectiveFibonacciTools?.extension}
+								onSave={drawingsService.handleFibWidthSave}
 							/>
 						</div>
-						{#if isTimelineVisible}
+						{#if drawingsService.isTimelineVisible}
 							<RewindTimeline
-								snapshots={securitySnapshots}
+								snapshots={drawingsService.snapshots}
 								now={timelineNow}
-								bind:position={timelinePosition}
+								bind:position={drawingsService.timelinePosition}
 							/>
 						{/if}
 					</div>

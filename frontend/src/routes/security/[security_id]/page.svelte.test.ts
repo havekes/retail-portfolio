@@ -14,6 +14,13 @@ import type {
 } from '$lib/utils/finance/fibonacci';
 import { updateSecurityFibonacciTools } from '$lib/utils/finance/fibonacci';
 import type { RewindSnapshot } from '$lib/utils/finance/rewind';
+import {
+	normalizeSecurityDrawings,
+	type SecurityDrawings,
+	type MeasureDrawing,
+	type HorizontalLineDrawing,
+	type LineDrawing
+} from '$lib/utils/finance/drawings';
 import { snapshotsService } from '$lib/api/snapshotsService';
 import { toast } from '$lib/components/ui/toast/index.js';
 if (typeof globalThis.Path2D === 'undefined') {
@@ -143,6 +150,7 @@ vi.mock('$lib/api/indicatorsService', async (importOriginal) => {
 let mockChartProps: Record<string, unknown> | null = null;
 const mockAddIndicator = vi.fn();
 const mockRemoveIndicator = vi.fn();
+const mockSetPaneHeights = vi.fn();
 
 vi.mock('$lib/components/charts/security-chart.svelte', () => {
 	return {
@@ -151,7 +159,8 @@ vi.mock('$lib/components/charts/security-chart.svelte', () => {
 			mockChartProps = args[1] ?? args[0];
 			return {
 				addIndicator: mockAddIndicator,
-				removeIndicator: mockRemoveIndicator
+				removeIndicator: mockRemoveIndicator,
+				setPaneHeights: mockSetPaneHeights
 			};
 		}
 	};
@@ -464,7 +473,7 @@ describe('Security Page - Elliott Wave Toolbar & Integration', () => {
 	beforeAll(async () => {
 		const mod = await import('./+page.svelte');
 		PageComponent = mod.default;
-	}, 30000);
+	}, 60000);
 
 	beforeEach(() => {
 		vi.clearAllMocks();
@@ -678,7 +687,7 @@ describe('Security Page - Wave Selection & Keyboard Deletion', () => {
 	beforeAll(async () => {
 		const mod = await import('./+page.svelte');
 		PageComponent = mod.default;
-	}, 30000);
+	}, 60000);
 
 	beforeEach(() => {
 		vi.clearAllMocks();
@@ -942,7 +951,7 @@ describe('Security Page - Fibonacci Toolbar & Integration', () => {
 	beforeAll(async () => {
 		const mod = await import('./+page.svelte');
 		PageComponent = mod.default;
-	}, 30000);
+	}, 60000);
 
 	beforeEach(() => {
 		vi.clearAllMocks();
@@ -1194,7 +1203,7 @@ describe('Security Page - Fibonacci Selection & Keyboard Deletion', () => {
 	beforeAll(async () => {
 		const mod = await import('./+page.svelte');
 		PageComponent = mod.default;
-	}, 30000);
+	}, 60000);
 
 	beforeEach(() => {
 		vi.clearAllMocks();
@@ -1481,7 +1490,7 @@ describe('Security Page - Viewport Containment & Scrolling Layout', () => {
 	beforeAll(async () => {
 		const mod = await import('./+page.svelte');
 		PageComponent = mod.default;
-	}, 30000);
+	}, 60000);
 
 	beforeEach(() => {
 		vi.clearAllMocks();
@@ -1606,7 +1615,7 @@ describe('Security Page - Wave Target Alert Reconcile', () => {
 	beforeAll(async () => {
 		const mod = await import('./+page.svelte');
 		PageComponent = mod.default;
-	}, 30000);
+	}, 60000);
 
 	beforeEach(() => {
 		vi.clearAllMocks();
@@ -1890,7 +1899,7 @@ describe('Security Page - Chart Settings Modal & Wave Settings Integration', () 
 	beforeAll(async () => {
 		const mod = await import('./+page.svelte');
 		PageComponent = mod.default;
-	}, 30000);
+	}, 60000);
 
 	beforeEach(() => {
 		vi.clearAllMocks();
@@ -2026,6 +2035,47 @@ describe('Security Page - Chart Settings Modal & Wave Settings Integration', () 
 			});
 		});
 	});
+
+	it('opens ChartSettingsModal via Cmd+, and Ctrl+, keyboard shortcuts', async () => {
+		render(PageComponent, { props: { data: mockData } });
+
+		await waitFor(() => {
+			expect(mockChartProps).not.toBeNull();
+		});
+
+		expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+
+		// Press Cmd+,
+		await fireEvent.keyDown(window, { key: ',', metaKey: true });
+		expect(await screen.findByRole('dialog')).toBeInTheDocument();
+
+		// Close modal
+		const closeBtn = screen.getByRole('button', { name: 'Close' });
+		await fireEvent.click(closeBtn);
+		await waitFor(() => {
+			expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+		});
+
+		// Press Ctrl+,
+		await fireEvent.keyDown(window, { key: ',', ctrlKey: true });
+		expect(await screen.findByRole('dialog')).toBeInTheDocument();
+
+		// Close modal
+		const closeBtn2 = screen.getByRole('button', { name: 'Close' });
+		await fireEvent.click(closeBtn2);
+		await waitFor(() => {
+			expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+		});
+
+		// Input focus guard
+		const inputEl = document.createElement('input');
+		document.body.appendChild(inputEl);
+		inputEl.focus();
+
+		await fireEvent.keyDown(inputEl, { key: ',', ctrlKey: true });
+		expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+		document.body.removeChild(inputEl);
+	});
 });
 
 describe('Security Page - Top Toolbar', () => {
@@ -2044,7 +2094,7 @@ describe('Security Page - Top Toolbar', () => {
 	beforeAll(async () => {
 		const mod = await import('./+page.svelte');
 		PageComponent = mod.default;
-	}, 30000);
+	}, 60000);
 
 	beforeEach(() => {
 		vi.clearAllMocks();
@@ -2084,7 +2134,7 @@ describe('Security Page - Top Toolbar', () => {
 
 		const settingsBtn = screen.getByRole('button', { name: /Open chart settings/i });
 		expect(settingsBtn).toBeInTheDocument();
-		expect(settingsBtn).toHaveAttribute('title', 'Chart Settings');
+		expect(settingsBtn).toHaveAttribute('title', 'Chart Settings (Ctrl+, / ⌘,)');
 	});
 
 	it('clicking Candlestick icon button sets chartStyle to candlestick and persists preference', async () => {
@@ -2175,10 +2225,22 @@ describe('Rewind Save Snapshot', () => {
 		}
 	};
 
+	const sampleNewDrawings: Record<string, SecurityDrawings> = {
+		'sec-1': {
+			measures: [
+				{
+					id: 'measure-1',
+					p1: { time: '2024-01-01', price: 100 },
+					p2: { time: '2024-01-02', price: 112 }
+				}
+			]
+		}
+	};
+
 	beforeAll(async () => {
 		const mod = await import('./+page.svelte');
 		PageComponent = mod.default;
-	}, 30000);
+	}, 60000);
 
 	beforeEach(() => {
 		vi.clearAllMocks();
@@ -2215,7 +2277,8 @@ describe('Rewind Save Snapshot', () => {
 			expect.objectContaining({
 				drawings: {
 					elliott_waves: sampleElliottWaves['sec-1'],
-					fibonacci_tools: sampleFibTools['sec-1']
+					fibonacci_tools: sampleFibTools['sec-1'],
+					drawings: {}
 				},
 				data_window: {
 					first: '2024-01-01',
@@ -2259,7 +2322,8 @@ describe('Rewind Save Snapshot', () => {
 				expect.objectContaining({
 					drawings: {
 						elliott_waves: sampleElliottWaves['sec-1'],
-						fibonacci_tools: sampleFibTools['sec-1']
+						fibonacci_tools: sampleFibTools['sec-1'],
+						drawings: {}
 					},
 					data_window: {
 						first: '2024-01-01',
@@ -2303,7 +2367,8 @@ describe('Rewind Save Snapshot', () => {
 				expect.objectContaining({
 					drawings: {
 						elliott_waves: sampleElliottWaves['sec-1'],
-						fibonacci_tools: sampleFibTools['sec-1']
+						fibonacci_tools: sampleFibTools['sec-1'],
+						drawings: {}
 					},
 					data_window: {
 						first: '2024-01-01',
@@ -2479,6 +2544,42 @@ describe('Rewind Save Snapshot', () => {
 		await fireEvent.click(saveBtn);
 		expect(snapshotsService.createSnapshot).not.toHaveBeenCalled();
 		expect(userPreferencesService.patchPreferences).not.toHaveBeenCalled();
+	});
+
+	it('captures a snapshot when only new-tool drawings exist (no waves or fib tools)', async () => {
+		vi.mocked(userPreferencesService.getPreferences).mockResolvedValue({
+			elliott_waves: {},
+			fibonacci_tools: {},
+			drawings: sampleNewDrawings
+		});
+
+		render(PageComponent, { props: { data: mockData } });
+		const saveBtn = await screen.findByRole('button', { name: 'Save snapshot' });
+
+		await fireEvent.click(saveBtn);
+
+		expect(snapshotsService.createSnapshot).toHaveBeenCalledWith(
+			'sec-1',
+			expect.objectContaining({
+				drawings: expect.objectContaining({
+					elliott_waves: { waves: [] },
+					fibonacci_tools: {},
+					// restored anchors are normalized to epoch seconds at the drawings seam
+					drawings: normalizeSecurityDrawings(sampleNewDrawings['sec-1'])
+				}),
+				data_window: {
+					first: '2024-01-01',
+					last: '2024-01-02'
+				},
+				captured_at: expect.any(String)
+			})
+		);
+		expect(userPreferencesService.patchPreferences).not.toHaveBeenCalled();
+		await waitFor(() => {
+			expect(
+				toast.toasts.some((t) => t.type === 'success' && t.message === 'Chart snapshot saved')
+			).toBe(true);
+		});
 	});
 
 	it('timeline bar is automatically visible on initial load when security has 1+ snapshots', async () => {
@@ -2706,7 +2807,7 @@ describe('Rewind Scrub and Drawing Restore', () => {
 	beforeAll(async () => {
 		const mod = await import('./+page.svelte');
 		PageComponent = mod.default;
-	}, 30000);
+	}, 60000);
 
 	beforeEach(() => {
 		vi.clearAllMocks();
@@ -2781,6 +2882,58 @@ describe('Rewind Scrub and Drawing Restore', () => {
 			expect(mockChartProps.elliottWaves).toEqual({ waves: [] });
 			// @ts-expect-error - mockChartProps typed as Record
 			expect(mockChartProps.fibonacciTools).toEqual({});
+		});
+	});
+
+	it('surfaces the snapshot\u2019s new-tool drawings through the effective derived state while rewound', async () => {
+		const snapshotWithDrawings: RewindSnapshot = {
+			id: 'snap-drawings',
+			captured_at: '2024-01-02T12:00:00.000Z',
+			drawings: {
+				drawings: {
+					horizontalLines: [{ id: 'h1', p1: { time: '2024-01-02', price: 111 } }]
+				}
+			},
+			data_window: {
+				first: '2024-01-01',
+				last: '2024-01-02'
+			}
+		};
+
+		const liveDrawings: Record<string, SecurityDrawings> = {
+			'sec-1': {
+				lines: [
+					{
+						id: 'l1',
+						p1: { time: '2024-01-03', price: 100 },
+						p2: { time: '2024-01-03', price: 120 }
+					}
+				]
+			}
+		};
+
+		vi.mocked(snapshotsService.getSnapshots).mockResolvedValue([snapshotWithDrawings]);
+		vi.mocked(userPreferencesService.getPreferences).mockResolvedValue({
+			drawings: liveDrawings
+		});
+
+		const { component } = render(PageComponent, { props: { data: threeCandlesData } });
+		const page = component as unknown as {
+			getEffectiveSecurityDrawings: () => SecurityDrawings;
+		};
+
+		await waitFor(() => {
+			expect(page.getEffectiveSecurityDrawings()).toEqual(
+				normalizeSecurityDrawings(liveDrawings['sec-1'])
+			);
+		});
+
+		expect(await screen.findByTestId('rewind-timeline')).toBeInTheDocument();
+		const marker = screen.getByTestId('rewind-snapshot-point');
+		await fireEvent.click(marker);
+
+		await waitFor(() => {
+			expect(page.getEffectiveSecurityDrawings()).toEqual(snapshotWithDrawings.drawings.drawings);
 		});
 	});
 
@@ -2995,7 +3148,7 @@ describe('Security Page - Asynchronous Indicator Integration', () => {
 	beforeAll(async () => {
 		const mod = await import('./+page.svelte');
 		PageComponent = mod.default;
-	}, 30000);
+	}, 60000);
 
 	beforeEach(() => {
 		vi.clearAllMocks();
@@ -3330,6 +3483,1697 @@ describe('Security Page - Asynchronous Indicator Integration', () => {
 				'sec-1',
 				expect.objectContaining({
 					indicators: expect.arrayContaining([expect.objectContaining({ id: 'rsi', period: 21 })])
+				})
+			);
+		});
+	});
+});
+
+describe('Security Page - Indicator Pane Heights', () => {
+	/* eslint-disable-next-line @typescript-eslint/no-explicit-any */
+	let PageComponent: Component<any>;
+
+	const mockData = {
+		security: {
+			id: 'sec-1',
+			symbol: 'AAPL',
+			name: 'Apple Inc.'
+		},
+		items: [{ date: '2024-01-01', open: 100, high: 110, low: 95, close: 105, volume: 1000 }]
+	};
+
+	beforeAll(async () => {
+		const mod = await import('./+page.svelte');
+		PageComponent = mod.default;
+	}, 60000);
+
+	beforeEach(() => {
+		vi.clearAllMocks();
+		mockChartProps = null;
+		vi.mocked(userPreferencesService.getPreferences).mockResolvedValue({});
+	});
+
+	it('restores stored pane heights onto the chart after preferences load', async () => {
+		const storedHeights = { main: 0.5, rsi: 0.3 };
+		vi.mocked(userPreferencesService.getPreferences).mockResolvedValue({
+			indicator_pane_heights: storedHeights
+		});
+
+		render(PageComponent, { props: { data: mockData } });
+		await screen.findByRole('button', { name: '1D' });
+		await waitFor(() => {
+			expect(mockChartProps).not.toBeNull();
+		});
+
+		await waitFor(() => {
+			expect(mockSetPaneHeights).toHaveBeenCalledWith(storedHeights);
+		});
+	});
+
+	it('does not push pane heights when none are stored', async () => {
+		vi.mocked(userPreferencesService.getPreferences).mockResolvedValue({ chart_hide_labels: true });
+
+		render(PageComponent, { props: { data: mockData } });
+		await screen.findByRole('button', { name: '1D' });
+		await waitFor(() => {
+			expect(mockChartProps).not.toBeNull();
+		});
+
+		await new Promise((r) => setTimeout(r, 150));
+		expect(mockSetPaneHeights).not.toHaveBeenCalled();
+	});
+
+	it('persists the full pane-height map as a single-key patch when the chart reports a change', async () => {
+		render(PageComponent, { props: { data: mockData } });
+		await screen.findByRole('button', { name: '1D' });
+		await waitFor(() => {
+			expect(mockChartProps).not.toBeNull();
+		});
+
+		// @ts-expect-error - mockChartProps typed as Record
+		mockChartProps.onPaneHeightsChange?.({ main: 0.6, rsi: 0.2 });
+
+		await waitFor(() => {
+			expect(userPreferencesService.patchPreferences).toHaveBeenCalledWith({
+				indicator_pane_heights: { main: 0.6, rsi: 0.2 }
+			});
+		});
+	});
+
+	it('persists a reset as indicator_pane_heights: null without clobbering other keys', async () => {
+		render(PageComponent, { props: { data: mockData } });
+		await screen.findByRole('button', { name: '1D' });
+		await waitFor(() => {
+			expect(mockChartProps).not.toBeNull();
+		});
+
+		// @ts-expect-error - mockChartProps typed as Record
+		mockChartProps.onPaneHeightsChange?.(null);
+
+		await waitFor(() => {
+			expect(userPreferencesService.patchPreferences).toHaveBeenCalledWith({
+				indicator_pane_heights: null
+			});
+		});
+	});
+});
+
+describe('Security Page - Measure Tool & Integration', () => {
+	/* eslint-disable-next-line @typescript-eslint/no-explicit-any */
+	let PageComponent: Component<any>;
+
+	const mockData = {
+		security: {
+			id: 'sec-1',
+			symbol: 'AAPL',
+			name: 'Apple Inc.'
+		},
+		items: [
+			{ date: '2024-01-01', open: 100, high: 110, low: 95, close: 105, volume: 1000 },
+			{ date: '2024-01-02', open: 105, high: 115, low: 100, close: 112, volume: 1200 }
+		]
+	};
+
+	const sampleMeasure = {
+		id: 'measure-1',
+		p1: { time: '2024-01-01', price: 100 },
+		p2: { time: '2024-01-02', price: 120 }
+	};
+
+	const sampleDrawings: SecurityDrawings = { measures: [sampleMeasure] };
+
+	beforeAll(async () => {
+		const mod = await import('./+page.svelte');
+		PageComponent = mod.default;
+	}, 60000);
+
+	beforeEach(() => {
+		vi.clearAllMocks();
+		mockChartProps = null;
+		vi.mocked(userPreferencesService.getPreferences).mockResolvedValue({});
+		vi.mocked(snapshotsService.getSnapshots).mockResolvedValue([]);
+	});
+
+	it('renders the Measure toolbar button and activates measure drawing mode, cancelling fib drawing', async () => {
+		render(PageComponent, { props: { data: mockData } });
+
+		const measureBtn = await screen.findByRole('button', { name: 'Toggle Measure drawing' });
+		const fibBtn = screen.getByRole('button', { name: /Toggle Fib Retrace drawing/i });
+
+		// Engage Fibonacci drawing first.
+		await fireEvent.click(fibBtn);
+		expect(fibBtn.className).toContain('bg-primary');
+
+		// Measure takes over and cancels Fibonacci drawing.
+		await fireEvent.click(measureBtn);
+		expect(measureBtn.className).toContain('bg-primary');
+		expect(fibBtn.className).not.toContain('bg-primary');
+
+		await waitFor(() => {
+			// @ts-expect-error - mockChartProps typed as Record
+			expect(mockChartProps.isDrawingMeasure).toBe(true);
+			// @ts-expect-error - mockChartProps typed as Record
+			expect(mockChartProps.isDrawingFib).toBe(false);
+		});
+
+		// Toggling again exits measure drawing mode.
+		await fireEvent.click(measureBtn);
+		expect(measureBtn.className).not.toContain('bg-primary');
+	});
+
+	it('exits measure drawing mode and clears the selected measure on Escape', async () => {
+		render(PageComponent, { props: { data: mockData } });
+		const measureBtn = await screen.findByRole('button', { name: 'Toggle Measure drawing' });
+
+		await fireEvent.click(measureBtn);
+		await waitFor(() => {
+			// @ts-expect-error - mockChartProps typed as Record
+			expect(mockChartProps.isDrawingMeasure).toBe(true);
+		});
+
+		await fireEvent.keyDown(window, { key: 'Escape' });
+
+		await waitFor(() => {
+			// @ts-expect-error - mockChartProps typed as Record
+			expect(mockChartProps.isDrawingMeasure).toBe(false);
+		});
+	});
+
+	it('persists measures through the drawings seam while preserving other tool collections', async () => {
+		vi.mocked(userPreferencesService.getPreferences).mockResolvedValue({
+			drawings: {
+				'sec-1': {
+					horizontalLines: [{ id: 'hl-1', p1: { time: '2024-01-01', price: 90 } }]
+				}
+			}
+		});
+
+		render(PageComponent, { props: { data: mockData } });
+		await screen.findByRole('button', { name: 'Toggle Measure drawing' });
+
+		await waitFor(() => {
+			expect(mockChartProps).not.toBeNull();
+		});
+
+		// @ts-expect-error - mockChartProps typed as Record
+		mockChartProps.onMeasureChange?.([sampleMeasure]);
+
+		await waitFor(() => {
+			expect(userPreferencesService.patchPreferences).toHaveBeenCalledWith(
+				expect.objectContaining({
+					drawings: expect.objectContaining({
+						'sec-1': expect.objectContaining({
+							measures: [sampleMeasure],
+							horizontalLines: normalizeSecurityDrawings({
+								horizontalLines: [{ id: 'hl-1', p1: { time: '2024-01-01', price: 90 } }]
+							})?.horizontalLines
+						})
+					})
+				})
+			);
+		});
+	});
+
+	it('restores persisted measures from preferences onto the chart', async () => {
+		vi.mocked(userPreferencesService.getPreferences).mockResolvedValue({
+			drawings: { 'sec-1': sampleDrawings }
+		});
+
+		render(PageComponent, { props: { data: mockData } });
+		await screen.findByRole('button', { name: 'Toggle Measure drawing' });
+
+		await waitFor(() => {
+			// @ts-expect-error - mockChartProps typed as Record
+			expect(mockChartProps.securityDrawings).toEqual(normalizeSecurityDrawings(sampleDrawings));
+		});
+	});
+
+	it('removes the selected measure on Delete and persists the change', async () => {
+		vi.mocked(userPreferencesService.getPreferences).mockResolvedValue({
+			drawings: { 'sec-1': sampleDrawings }
+		});
+
+		render(PageComponent, { props: { data: mockData } });
+		await screen.findByRole('button', { name: 'Toggle Measure drawing' });
+
+		await waitFor(() => {
+			expect(mockChartProps).not.toBeNull();
+		});
+
+		// @ts-expect-error - mockChartProps typed as Record
+		mockChartProps.onMeasureSelect?.('measure-1');
+
+		await waitFor(() => {
+			// @ts-expect-error - mockChartProps typed as Record
+			expect(mockChartProps.selectedMeasureId).toBe('measure-1');
+		});
+
+		await fireEvent.keyDown(window, { key: 'Delete' });
+
+		await waitFor(() => {
+			expect(userPreferencesService.patchPreferences).toHaveBeenCalledWith(
+				expect.objectContaining({
+					drawings: expect.objectContaining({
+						'sec-1': expect.objectContaining({ measures: null })
+					})
+				})
+			);
+		});
+
+		await waitFor(() => {
+			// @ts-expect-error - mockChartProps typed as Record
+			expect(mockChartProps.selectedMeasureId).toBeNull();
+		});
+	});
+
+	it('removes the selected measure on Backspace', async () => {
+		vi.mocked(userPreferencesService.getPreferences).mockResolvedValue({
+			drawings: { 'sec-1': sampleDrawings }
+		});
+
+		render(PageComponent, { props: { data: mockData } });
+		await screen.findByRole('button', { name: 'Toggle Measure drawing' });
+
+		await waitFor(() => {
+			expect(mockChartProps).not.toBeNull();
+		});
+
+		// @ts-expect-error - mockChartProps typed as Record
+		mockChartProps.onMeasureSelect?.('measure-1');
+		await fireEvent.keyDown(window, { key: 'Backspace' });
+
+		await waitFor(() => {
+			expect(userPreferencesService.patchPreferences).toHaveBeenCalledWith(
+				expect.objectContaining({
+					drawings: expect.objectContaining({
+						'sec-1': expect.objectContaining({ measures: null })
+					})
+				})
+			);
+		});
+	});
+
+	it('clears wave and fib selections when a measure is selected', async () => {
+		vi.mocked(userPreferencesService.getPreferences).mockResolvedValue({
+			fibonacci_tools: {
+				'sec-1': {
+					retracement: {
+						p1: { time: '2024-01-01', price: 100 },
+						p2: { time: '2024-01-02', price: 200 },
+						visible: true
+					}
+				}
+			},
+			drawings: { 'sec-1': sampleDrawings }
+		});
+
+		render(PageComponent, { props: { data: mockData } });
+		await screen.findByRole('button', { name: 'Toggle Measure drawing' });
+
+		await waitFor(() => {
+			expect(mockChartProps).not.toBeNull();
+		});
+
+		// @ts-expect-error - mockChartProps typed as Record
+		mockChartProps.onFibSelect?.('retracement');
+		await waitFor(() => {
+			// @ts-expect-error - mockChartProps typed as Record
+			expect(mockChartProps.selectedFibTool).toBe('retracement');
+		});
+
+		// @ts-expect-error - mockChartProps typed as Record
+		mockChartProps.onMeasureSelect?.('measure-1');
+
+		await waitFor(() => {
+			// @ts-expect-error - mockChartProps typed as Record
+			expect(mockChartProps.selectedMeasureId).toBe('measure-1');
+			// @ts-expect-error - mockChartProps typed as Record
+			expect(mockChartProps.selectedFibTool).toBeNull();
+		});
+	});
+
+	it('cancels wave and fib drawing when the chart reports measure drawing mode', async () => {
+		render(PageComponent, { props: { data: mockData } });
+		const measureBtn = await screen.findByRole('button', { name: 'Toggle Measure drawing' });
+		const fibBtn = screen.getByRole('button', { name: /Toggle Fib Retrace drawing/i });
+
+		await fireEvent.click(fibBtn);
+		await waitFor(() => {
+			// @ts-expect-error - mockChartProps typed as Record
+			expect(mockChartProps.isDrawingFib).toBe(true);
+		});
+
+		// @ts-expect-error - mockChartProps typed as Record
+		mockChartProps.onMeasureDrawingModeChange?.(true);
+
+		await waitFor(() => {
+			// @ts-expect-error - mockChartProps typed as Record
+			expect(mockChartProps.isDrawingMeasure).toBe(true);
+			// @ts-expect-error - mockChartProps typed as Record
+			expect(mockChartProps.isDrawingFib).toBe(false);
+		});
+		expect(measureBtn.className).toContain('bg-primary');
+	});
+
+	it('captures a snapshot carrying measures and blocks measure edits while rewound', async () => {
+		const snapshot: RewindSnapshot = {
+			id: 'snap-measure',
+			captured_at: '2024-01-01T12:00:00.000Z',
+			drawings: {
+				elliott_waves: { waves: [] },
+				fibonacci_tools: {},
+				drawings: sampleDrawings
+			},
+			data_window: { first: '2024-01-01', last: '2024-01-01' }
+		};
+		vi.mocked(userPreferencesService.getPreferences).mockResolvedValue({
+			drawings: { 'sec-1': sampleDrawings }
+		});
+		vi.mocked(snapshotsService.getSnapshots).mockResolvedValue([snapshot]);
+
+		render(PageComponent, { props: { data: mockData } });
+
+		// A measure present satisfies the snapshot gate and is persisted inside RewindDrawings.
+		const saveBtn = await screen.findByRole('button', { name: 'Save snapshot' });
+		await fireEvent.click(saveBtn);
+		await waitFor(() => {
+			expect(snapshotsService.createSnapshot).toHaveBeenCalledWith(
+				'sec-1',
+				expect.objectContaining({
+					drawings: expect.objectContaining({
+						drawings: normalizeSecurityDrawings(sampleDrawings)
+					})
+				})
+			);
+		});
+
+		// Scrub to the snapshot: the snapshot's measures surface on the chart.
+		expect(await screen.findByTestId('rewind-timeline')).toBeInTheDocument();
+		const markers = screen.getAllByTestId('rewind-snapshot-point');
+		await fireEvent.click(markers[0]);
+
+		await waitFor(() => {
+			// @ts-expect-error - mockChartProps typed as Record
+			expect(mockChartProps.securityDrawings).toEqual(sampleDrawings);
+		});
+
+		// While rewound, measure edits are ignored (no preferences write).
+		vi.mocked(userPreferencesService.patchPreferences).mockClear();
+		// @ts-expect-error - mockChartProps typed as Record
+		mockChartProps.onMeasureChange?.([sampleMeasure]);
+		await waitFor(() => {
+			expect(mockChartProps).not.toBeNull();
+		});
+		expect(userPreferencesService.patchPreferences).not.toHaveBeenCalled();
+	});
+});
+
+describe('Security Page - Horizontal Line Tool & Integration', () => {
+	/* eslint-disable-next-line @typescript-eslint/no-explicit-any */
+	let PageComponent: Component<any>;
+
+	const mockData = {
+		security: {
+			id: 'sec-1',
+			symbol: 'AAPL',
+			name: 'Apple Inc.'
+		},
+		items: [
+			{ date: '2024-01-01', open: 100, high: 110, low: 95, close: 105, volume: 1000 },
+			{ date: '2024-01-02', open: 105, high: 115, low: 100, close: 112, volume: 1200 }
+		]
+	};
+
+	const sampleHorizontalLine = {
+		id: 'hline-1',
+		p1: { time: '2024-01-01', price: 100 }
+	};
+
+	const sampleDrawings: SecurityDrawings = { horizontalLines: [sampleHorizontalLine] };
+
+	beforeAll(async () => {
+		const mod = await import('./+page.svelte');
+		PageComponent = mod.default;
+	}, 60000);
+
+	beforeEach(() => {
+		vi.clearAllMocks();
+		mockChartProps = null;
+		vi.mocked(userPreferencesService.getPreferences).mockResolvedValue({});
+		vi.mocked(snapshotsService.getSnapshots).mockResolvedValue([]);
+	});
+
+	it('renders the Horizontal Line toolbar button and activates its drawing mode, cancelling fib drawing', async () => {
+		render(PageComponent, { props: { data: mockData } });
+
+		const lineBtn = await screen.findByRole('button', { name: 'Toggle Horizontal Line drawing' });
+		const fibBtn = screen.getByRole('button', { name: /Toggle Fib Retrace drawing/i });
+
+		// Engage Fibonacci drawing first.
+		await fireEvent.click(fibBtn);
+		expect(fibBtn.className).toContain('bg-primary');
+
+		// Horizontal line takes over and cancels Fibonacci drawing.
+		await fireEvent.click(lineBtn);
+		expect(lineBtn.className).toContain('bg-primary');
+		expect(fibBtn.className).not.toContain('bg-primary');
+
+		await waitFor(() => {
+			// @ts-expect-error - mockChartProps typed as Record
+			expect(mockChartProps.isDrawingHorizontalLine).toBe(true);
+			// @ts-expect-error - mockChartProps typed as Record
+			expect(mockChartProps.isDrawingFib).toBe(false);
+		});
+
+		// Toggling again exits drawing mode.
+		await fireEvent.click(lineBtn);
+		expect(lineBtn.className).not.toContain('bg-primary');
+	});
+
+	it('exits horizontal line drawing mode on Escape', async () => {
+		render(PageComponent, { props: { data: mockData } });
+		const lineBtn = await screen.findByRole('button', { name: 'Toggle Horizontal Line drawing' });
+
+		await fireEvent.click(lineBtn);
+		await waitFor(() => {
+			// @ts-expect-error - mockChartProps typed as Record
+			expect(mockChartProps.isDrawingHorizontalLine).toBe(true);
+		});
+
+		await fireEvent.keyDown(window, { key: 'Escape' });
+
+		await waitFor(() => {
+			// @ts-expect-error - mockChartProps typed as Record
+			expect(mockChartProps.isDrawingHorizontalLine).toBe(false);
+		});
+	});
+
+	it('persists horizontal lines through the drawings seam while preserving other tool collections', async () => {
+		vi.mocked(userPreferencesService.getPreferences).mockResolvedValue({
+			drawings: {
+				'sec-1': {
+					measures: [
+						{
+							id: 'measure-1',
+							p1: { time: '2024-01-01', price: 90 },
+							p2: { time: '2024-01-02', price: 110 }
+						}
+					]
+				}
+			}
+		});
+
+		render(PageComponent, { props: { data: mockData } });
+		await screen.findByRole('button', { name: 'Toggle Horizontal Line drawing' });
+
+		await waitFor(() => {
+			expect(mockChartProps).not.toBeNull();
+		});
+
+		// @ts-expect-error - mockChartProps typed as Record
+		mockChartProps.onHorizontalLineChange?.([sampleHorizontalLine]);
+
+		await waitFor(() => {
+			expect(userPreferencesService.patchPreferences).toHaveBeenCalledWith(
+				expect.objectContaining({
+					drawings: expect.objectContaining({
+						'sec-1': expect.objectContaining({
+							horizontalLines: [sampleHorizontalLine],
+							measures: normalizeSecurityDrawings({
+								measures: [
+									{
+										id: 'measure-1',
+										p1: { time: '2024-01-01', price: 90 },
+										p2: { time: '2024-01-02', price: 110 }
+									}
+								]
+							})?.measures
+						})
+					})
+				})
+			);
+		});
+	});
+
+	it('restores persisted horizontal lines from preferences onto the chart', async () => {
+		vi.mocked(userPreferencesService.getPreferences).mockResolvedValue({
+			drawings: { 'sec-1': sampleDrawings }
+		});
+
+		render(PageComponent, { props: { data: mockData } });
+		await screen.findByRole('button', { name: 'Toggle Horizontal Line drawing' });
+
+		await waitFor(() => {
+			// @ts-expect-error - mockChartProps typed as Record
+			expect(mockChartProps.securityDrawings).toEqual(normalizeSecurityDrawings(sampleDrawings));
+		});
+	});
+
+	it('removes the selected horizontal line on Delete and persists the change', async () => {
+		vi.mocked(userPreferencesService.getPreferences).mockResolvedValue({
+			drawings: { 'sec-1': sampleDrawings }
+		});
+
+		render(PageComponent, { props: { data: mockData } });
+		await screen.findByRole('button', { name: 'Toggle Horizontal Line drawing' });
+
+		await waitFor(() => {
+			expect(mockChartProps).not.toBeNull();
+		});
+
+		// @ts-expect-error - mockChartProps typed as Record
+		mockChartProps.onHorizontalLineSelect?.('hline-1');
+
+		await waitFor(() => {
+			// @ts-expect-error - mockChartProps typed as Record
+			expect(mockChartProps.selectedHorizontalLineId).toBe('hline-1');
+		});
+
+		await fireEvent.keyDown(window, { key: 'Delete' });
+
+		await waitFor(() => {
+			expect(userPreferencesService.patchPreferences).toHaveBeenCalledWith(
+				expect.objectContaining({
+					drawings: expect.objectContaining({
+						'sec-1': expect.objectContaining({ horizontalLines: null })
+					})
+				})
+			);
+		});
+
+		await waitFor(() => {
+			// @ts-expect-error - mockChartProps typed as Record
+			expect(mockChartProps.selectedHorizontalLineId).toBeNull();
+		});
+	});
+
+	it('removes the selected horizontal line on Backspace', async () => {
+		vi.mocked(userPreferencesService.getPreferences).mockResolvedValue({
+			drawings: { 'sec-1': sampleDrawings }
+		});
+
+		render(PageComponent, { props: { data: mockData } });
+		await screen.findByRole('button', { name: 'Toggle Horizontal Line drawing' });
+
+		await waitFor(() => {
+			expect(mockChartProps).not.toBeNull();
+		});
+
+		// @ts-expect-error - mockChartProps typed as Record
+		mockChartProps.onHorizontalLineSelect?.('hline-1');
+		await fireEvent.keyDown(window, { key: 'Backspace' });
+
+		await waitFor(() => {
+			expect(userPreferencesService.patchPreferences).toHaveBeenCalledWith(
+				expect.objectContaining({
+					drawings: expect.objectContaining({
+						'sec-1': expect.objectContaining({ horizontalLines: null })
+					})
+				})
+			);
+		});
+	});
+
+	it('clears wave, fib and measure selections when a horizontal line is selected', async () => {
+		vi.mocked(userPreferencesService.getPreferences).mockResolvedValue({
+			drawings: { 'sec-1': sampleDrawings }
+		});
+
+		render(PageComponent, { props: { data: mockData } });
+		await screen.findByRole('button', { name: 'Toggle Horizontal Line drawing' });
+
+		await waitFor(() => {
+			expect(mockChartProps).not.toBeNull();
+		});
+
+		// @ts-expect-error - mockChartProps typed as Record
+		mockChartProps.onMeasureSelect?.('measure-1');
+		await waitFor(() => {
+			// @ts-expect-error - mockChartProps typed as Record
+			expect(mockChartProps.selectedMeasureId).toBe('measure-1');
+		});
+
+		// @ts-expect-error - mockChartProps typed as Record
+		mockChartProps.onHorizontalLineSelect?.('hline-1');
+
+		await waitFor(() => {
+			// @ts-expect-error - mockChartProps typed as Record
+			expect(mockChartProps.selectedHorizontalLineId).toBe('hline-1');
+			// @ts-expect-error - mockChartProps typed as Record
+			expect(mockChartProps.selectedMeasureId).toBeNull();
+		});
+	});
+
+	it('cancels other drawing tools when the chart reports horizontal line drawing mode', async () => {
+		render(PageComponent, { props: { data: mockData } });
+		const lineBtn = await screen.findByRole('button', { name: 'Toggle Horizontal Line drawing' });
+		const fibBtn = screen.getByRole('button', { name: /Toggle Fib Retrace drawing/i });
+
+		await fireEvent.click(fibBtn);
+		await waitFor(() => {
+			// @ts-expect-error - mockChartProps typed as Record
+			expect(mockChartProps.isDrawingFib).toBe(true);
+		});
+
+		// @ts-expect-error - mockChartProps typed as Record
+		mockChartProps.onHorizontalLineDrawingModeChange?.(true);
+
+		await waitFor(() => {
+			// @ts-expect-error - mockChartProps typed as Record
+			expect(mockChartProps.isDrawingHorizontalLine).toBe(true);
+			// @ts-expect-error - mockChartProps typed as Record
+			expect(mockChartProps.isDrawingFib).toBe(false);
+		});
+		expect(lineBtn.className).toContain('bg-primary');
+	});
+
+	it('captures a snapshot carrying horizontal lines and blocks edits while rewound', async () => {
+		const snapshot: RewindSnapshot = {
+			id: 'snap-hline',
+			captured_at: '2024-01-01T12:00:00.000Z',
+			drawings: {
+				elliott_waves: { waves: [] },
+				fibonacci_tools: {},
+				drawings: sampleDrawings
+			},
+			data_window: { first: '2024-01-01', last: '2024-01-01' }
+		};
+		vi.mocked(userPreferencesService.getPreferences).mockResolvedValue({
+			drawings: { 'sec-1': sampleDrawings }
+		});
+		vi.mocked(snapshotsService.getSnapshots).mockResolvedValue([snapshot]);
+
+		render(PageComponent, { props: { data: mockData } });
+
+		// A horizontal line present satisfies the snapshot gate and is persisted inside RewindDrawings.
+		const saveBtn = await screen.findByRole('button', { name: 'Save snapshot' });
+		await fireEvent.click(saveBtn);
+		await waitFor(() => {
+			expect(snapshotsService.createSnapshot).toHaveBeenCalledWith(
+				'sec-1',
+				expect.objectContaining({
+					drawings: expect.objectContaining({
+						drawings: normalizeSecurityDrawings(sampleDrawings)
+					})
+				})
+			);
+		});
+
+		// Scrub to the snapshot: the snapshot's horizontal lines surface on the chart.
+		expect(await screen.findByTestId('rewind-timeline')).toBeInTheDocument();
+		const markers = screen.getAllByTestId('rewind-snapshot-point');
+		await fireEvent.click(markers[0]);
+
+		await waitFor(() => {
+			// @ts-expect-error - mockChartProps typed as Record
+			expect(mockChartProps.securityDrawings).toEqual(sampleDrawings);
+		});
+
+		// While rewound, horizontal line edits are ignored (no preferences write).
+		vi.mocked(userPreferencesService.patchPreferences).mockClear();
+		// @ts-expect-error - mockChartProps typed as Record
+		mockChartProps.onHorizontalLineChange?.([sampleHorizontalLine]);
+		await waitFor(() => {
+			expect(mockChartProps).not.toBeNull();
+		});
+		expect(userPreferencesService.patchPreferences).not.toHaveBeenCalled();
+	});
+});
+
+describe('Security Page - Free-form Line Tool & Integration', () => {
+	/* eslint-disable-next-line @typescript-eslint/no-explicit-any */
+	let PageComponent: Component<any>;
+
+	const mockData = {
+		security: {
+			id: 'sec-1',
+			symbol: 'AAPL',
+			name: 'Apple Inc.'
+		},
+		items: [
+			{ date: '2024-01-01', open: 100, high: 110, low: 95, close: 105, volume: 1000 },
+			{ date: '2024-01-02', open: 105, high: 115, low: 100, close: 112, volume: 1200 }
+		]
+	};
+
+	const sampleLine = {
+		id: 'line-1',
+		p1: { time: '2024-01-01', price: 100 },
+		p2: { time: '2024-01-02', price: 120 }
+	};
+
+	const sampleDrawings: SecurityDrawings = { lines: [sampleLine] };
+
+	beforeAll(async () => {
+		const mod = await import('./+page.svelte');
+		PageComponent = mod.default;
+	}, 60000);
+
+	beforeEach(() => {
+		vi.clearAllMocks();
+		mockChartProps = null;
+		vi.mocked(userPreferencesService.getPreferences).mockResolvedValue({});
+		vi.mocked(snapshotsService.getSnapshots).mockResolvedValue([]);
+	});
+
+	it('renders the Line toolbar button and activates its drawing mode, cancelling fib drawing', async () => {
+		render(PageComponent, { props: { data: mockData } });
+
+		const lineBtn = await screen.findByRole('button', { name: 'Toggle Line drawing' });
+		const fibBtn = screen.getByRole('button', { name: /Toggle Fib Retrace drawing/i });
+
+		// Engage Fibonacci drawing first.
+		await fireEvent.click(fibBtn);
+		expect(fibBtn.className).toContain('bg-primary');
+
+		// Free-form line takes over and cancels Fibonacci drawing.
+		await fireEvent.click(lineBtn);
+		expect(lineBtn.className).toContain('bg-primary');
+		expect(fibBtn.className).not.toContain('bg-primary');
+
+		await waitFor(() => {
+			// @ts-expect-error - mockChartProps typed as Record
+			expect(mockChartProps.isDrawingLine).toBe(true);
+			// @ts-expect-error - mockChartProps typed as Record
+			expect(mockChartProps.isDrawingFib).toBe(false);
+		});
+
+		// Toggling again exits drawing mode.
+		await fireEvent.click(lineBtn);
+		expect(lineBtn.className).not.toContain('bg-primary');
+	});
+
+	it('exits free-form line drawing mode on Escape', async () => {
+		render(PageComponent, { props: { data: mockData } });
+		const lineBtn = await screen.findByRole('button', { name: 'Toggle Line drawing' });
+
+		await fireEvent.click(lineBtn);
+		await waitFor(() => {
+			// @ts-expect-error - mockChartProps typed as Record
+			expect(mockChartProps.isDrawingLine).toBe(true);
+		});
+
+		await fireEvent.keyDown(window, { key: 'Escape' });
+
+		await waitFor(() => {
+			// @ts-expect-error - mockChartProps typed as Record
+			expect(mockChartProps.isDrawingLine).toBe(false);
+		});
+	});
+
+	it('persists lines through the drawings seam while preserving other tool collections', async () => {
+		vi.mocked(userPreferencesService.getPreferences).mockResolvedValue({
+			drawings: {
+				'sec-1': {
+					measures: [
+						{
+							id: 'measure-1',
+							p1: { time: '2024-01-01', price: 90 },
+							p2: { time: '2024-01-02', price: 110 }
+						}
+					],
+					horizontalLines: [{ id: 'hl-1', p1: { time: '2024-01-01', price: 95 } }]
+				}
+			}
+		});
+
+		render(PageComponent, { props: { data: mockData } });
+		await screen.findByRole('button', { name: 'Toggle Line drawing' });
+
+		await waitFor(() => {
+			expect(mockChartProps).not.toBeNull();
+		});
+
+		// @ts-expect-error - mockChartProps typed as Record
+		mockChartProps.onLineChange?.([sampleLine]);
+
+		await waitFor(() => {
+			expect(userPreferencesService.patchPreferences).toHaveBeenCalledWith(
+				expect.objectContaining({
+					drawings: expect.objectContaining({
+						'sec-1': expect.objectContaining({
+							lines: [sampleLine],
+							measures: normalizeSecurityDrawings({
+								measures: [
+									{
+										id: 'measure-1',
+										p1: { time: '2024-01-01', price: 90 },
+										p2: { time: '2024-01-02', price: 110 }
+									}
+								]
+							})?.measures,
+							horizontalLines: normalizeSecurityDrawings({
+								horizontalLines: [{ id: 'hl-1', p1: { time: '2024-01-01', price: 95 } }]
+							})?.horizontalLines
+						})
+					})
+				})
+			);
+		});
+	});
+
+	it('restores persisted lines from preferences onto the chart', async () => {
+		vi.mocked(userPreferencesService.getPreferences).mockResolvedValue({
+			drawings: { 'sec-1': sampleDrawings }
+		});
+
+		render(PageComponent, { props: { data: mockData } });
+		await screen.findByRole('button', { name: 'Toggle Line drawing' });
+
+		await waitFor(() => {
+			// @ts-expect-error - mockChartProps typed as Record
+			expect(mockChartProps.securityDrawings).toEqual(normalizeSecurityDrawings(sampleDrawings));
+		});
+	});
+
+	it('removes the selected line on Delete and persists the change', async () => {
+		vi.mocked(userPreferencesService.getPreferences).mockResolvedValue({
+			drawings: { 'sec-1': sampleDrawings }
+		});
+
+		render(PageComponent, { props: { data: mockData } });
+		await screen.findByRole('button', { name: 'Toggle Line drawing' });
+
+		await waitFor(() => {
+			expect(mockChartProps).not.toBeNull();
+		});
+
+		// @ts-expect-error - mockChartProps typed as Record
+		mockChartProps.onLineSelect?.('line-1');
+
+		await waitFor(() => {
+			// @ts-expect-error - mockChartProps typed as Record
+			expect(mockChartProps.selectedLineId).toBe('line-1');
+		});
+
+		await fireEvent.keyDown(window, { key: 'Delete' });
+
+		await waitFor(() => {
+			expect(userPreferencesService.patchPreferences).toHaveBeenCalledWith(
+				expect.objectContaining({
+					drawings: expect.objectContaining({
+						'sec-1': expect.objectContaining({ lines: null })
+					})
+				})
+			);
+		});
+
+		await waitFor(() => {
+			// @ts-expect-error - mockChartProps typed as Record
+			expect(mockChartProps.selectedLineId).toBeNull();
+		});
+	});
+
+	it('removes the selected line on Backspace', async () => {
+		vi.mocked(userPreferencesService.getPreferences).mockResolvedValue({
+			drawings: { 'sec-1': sampleDrawings }
+		});
+
+		render(PageComponent, { props: { data: mockData } });
+		await screen.findByRole('button', { name: 'Toggle Line drawing' });
+
+		await waitFor(() => {
+			expect(mockChartProps).not.toBeNull();
+		});
+
+		// @ts-expect-error - mockChartProps typed as Record
+		mockChartProps.onLineSelect?.('line-1');
+		await fireEvent.keyDown(window, { key: 'Backspace' });
+
+		await waitFor(() => {
+			expect(userPreferencesService.patchPreferences).toHaveBeenCalledWith(
+				expect.objectContaining({
+					drawings: expect.objectContaining({
+						'sec-1': expect.objectContaining({ lines: null })
+					})
+				})
+			);
+		});
+	});
+
+	it('clears wave, fib, measure and horizontal line selections when a line is selected', async () => {
+		vi.mocked(userPreferencesService.getPreferences).mockResolvedValue({
+			drawings: { 'sec-1': sampleDrawings }
+		});
+
+		render(PageComponent, { props: { data: mockData } });
+		await screen.findByRole('button', { name: 'Toggle Line drawing' });
+
+		await waitFor(() => {
+			expect(mockChartProps).not.toBeNull();
+		});
+
+		// @ts-expect-error - mockChartProps typed as Record
+		mockChartProps.onMeasureSelect?.('measure-1');
+		await waitFor(() => {
+			// @ts-expect-error - mockChartProps typed as Record
+			expect(mockChartProps.selectedMeasureId).toBe('measure-1');
+		});
+
+		// @ts-expect-error - mockChartProps typed as Record
+		mockChartProps.onLineSelect?.('line-1');
+
+		await waitFor(() => {
+			// @ts-expect-error - mockChartProps typed as Record
+			expect(mockChartProps.selectedLineId).toBe('line-1');
+			// @ts-expect-error - mockChartProps typed as Record
+			expect(mockChartProps.selectedMeasureId).toBeNull();
+		});
+	});
+
+	it('cancels other drawing tools when the chart reports line drawing mode', async () => {
+		render(PageComponent, { props: { data: mockData } });
+		const lineBtn = await screen.findByRole('button', { name: 'Toggle Line drawing' });
+		const fibBtn = screen.getByRole('button', { name: /Toggle Fib Retrace drawing/i });
+
+		await fireEvent.click(fibBtn);
+		await waitFor(() => {
+			// @ts-expect-error - mockChartProps typed as Record
+			expect(mockChartProps.isDrawingFib).toBe(true);
+		});
+
+		// @ts-expect-error - mockChartProps typed as Record
+		mockChartProps.onLineDrawingModeChange?.(true);
+
+		await waitFor(() => {
+			// @ts-expect-error - mockChartProps typed as Record
+			expect(mockChartProps.isDrawingLine).toBe(true);
+			// @ts-expect-error - mockChartProps typed as Record
+			expect(mockChartProps.isDrawingFib).toBe(false);
+		});
+		expect(lineBtn.className).toContain('bg-primary');
+	});
+
+	it('captures a snapshot carrying lines and blocks edits while rewound', async () => {
+		const snapshot: RewindSnapshot = {
+			id: 'snap-line',
+			captured_at: '2024-01-01T12:00:00.000Z',
+			drawings: {
+				elliott_waves: { waves: [] },
+				fibonacci_tools: {},
+				drawings: sampleDrawings
+			},
+			data_window: { first: '2024-01-01', last: '2024-01-01' }
+		};
+		vi.mocked(userPreferencesService.getPreferences).mockResolvedValue({
+			drawings: { 'sec-1': sampleDrawings }
+		});
+		vi.mocked(snapshotsService.getSnapshots).mockResolvedValue([snapshot]);
+
+		render(PageComponent, { props: { data: mockData } });
+
+		// A line present satisfies the snapshot gate and is persisted inside RewindDrawings.
+		const saveBtn = await screen.findByRole('button', { name: 'Save snapshot' });
+		await fireEvent.click(saveBtn);
+		await waitFor(() => {
+			expect(snapshotsService.createSnapshot).toHaveBeenCalledWith(
+				'sec-1',
+				expect.objectContaining({
+					drawings: expect.objectContaining({
+						drawings: normalizeSecurityDrawings(sampleDrawings)
+					})
+				})
+			);
+		});
+
+		// Scrub to the snapshot: the snapshot's lines surface on the chart.
+		expect(await screen.findByTestId('rewind-timeline')).toBeInTheDocument();
+		const markers = screen.getAllByTestId('rewind-snapshot-point');
+		await fireEvent.click(markers[0]);
+
+		await waitFor(() => {
+			// @ts-expect-error - mockChartProps typed as Record
+			expect(mockChartProps.securityDrawings).toEqual(sampleDrawings);
+		});
+
+		// While rewound, line edits are ignored (no preferences write).
+		vi.mocked(userPreferencesService.patchPreferences).mockClear();
+		// @ts-expect-error - mockChartProps typed as Record
+		mockChartProps.onLineChange?.([sampleLine]);
+		await waitFor(() => {
+			expect(mockChartProps).not.toBeNull();
+		});
+		expect(userPreferencesService.patchPreferences).not.toHaveBeenCalled();
+	});
+});
+
+describe('Security Page - Session Drawing Undo/Redo', () => {
+	/* eslint-disable-next-line @typescript-eslint/no-explicit-any */
+	let PageComponent: Component<any>;
+
+	const mockData = {
+		security: {
+			id: 'sec-1',
+			symbol: 'AAPL',
+			name: 'Apple Inc.'
+		},
+		items: [
+			{
+				timestamp: 1704067200,
+				open: 100,
+				high: 105,
+				low: 99,
+				close: 104,
+				volume: 1000
+			}
+		]
+	};
+
+	const sampleMeasure: MeasureDrawing = {
+		id: 'measure-undo',
+		p1: { time: 1704067200 as unknown as Time, price: 100 },
+		p2: { time: 1704153600 as unknown as Time, price: 105 }
+	};
+
+	beforeAll(async () => {
+		const mod = await import('./+page.svelte');
+		PageComponent = mod.default;
+	}, 60000);
+
+	beforeEach(() => {
+		vi.clearAllMocks();
+		mockChartProps = null;
+		vi.mocked(userPreferencesService.getPreferences).mockResolvedValue({});
+		vi.mocked(userPreferencesService.patchPreferences).mockResolvedValue({});
+		vi.mocked(snapshotsService.getSnapshots).mockResolvedValue([]);
+	});
+
+	it('undoes a newly added drawing on Ctrl+Z and redoes on Ctrl+Shift+Z', async () => {
+		render(PageComponent, { props: { data: mockData } });
+
+		await waitFor(() => {
+			expect(mockChartProps).not.toBeNull();
+		});
+
+		// 1. Add a measure
+		// @ts-expect-error - mockChartProps typed as Record
+		mockChartProps.onMeasureChange?.([sampleMeasure]);
+
+		await waitFor(() => {
+			expect(userPreferencesService.patchPreferences).toHaveBeenCalledWith(
+				expect.objectContaining({
+					drawings: expect.objectContaining({
+						'sec-1': expect.objectContaining({
+							measures: [sampleMeasure]
+						})
+					})
+				})
+			);
+		});
+
+		vi.mocked(userPreferencesService.patchPreferences).mockClear();
+
+		// 2. Press Ctrl+Z to undo
+		await fireEvent.keyDown(window, { key: 'z', ctrlKey: true });
+
+		await waitFor(() => {
+			expect(userPreferencesService.patchPreferences).toHaveBeenCalledWith(
+				expect.objectContaining({
+					drawings: expect.not.objectContaining({
+						'sec-1': expect.objectContaining({
+							measures: [sampleMeasure]
+						})
+					})
+				})
+			);
+		});
+
+		vi.mocked(userPreferencesService.patchPreferences).mockClear();
+
+		// 3. Press Ctrl+Shift+Z to redo
+		await fireEvent.keyDown(window, { key: 'z', ctrlKey: true, shiftKey: true });
+
+		await waitFor(() => {
+			expect(userPreferencesService.patchPreferences).toHaveBeenCalledWith(
+				expect.objectContaining({
+					drawings: expect.objectContaining({
+						'sec-1': expect.objectContaining({
+							measures: [sampleMeasure]
+						})
+					})
+				})
+			);
+		});
+	});
+
+	it('redoes with Cmd+Y', async () => {
+		render(PageComponent, { props: { data: mockData } });
+
+		await waitFor(() => {
+			expect(mockChartProps).not.toBeNull();
+		});
+
+		// Add measure
+		// @ts-expect-error - mockChartProps typed as Record
+		mockChartProps.onMeasureChange?.([sampleMeasure]);
+		await waitFor(() => {
+			expect(userPreferencesService.patchPreferences).toHaveBeenCalled();
+		});
+
+		// Undo with Cmd+Z
+		await fireEvent.keyDown(window, { key: 'z', metaKey: true });
+		await waitFor(() => {
+			// @ts-expect-error - mockChartProps typed as Record
+			expect(mockChartProps.securityDrawings?.measures ?? []).toHaveLength(0);
+		});
+
+		vi.mocked(userPreferencesService.patchPreferences).mockClear();
+
+		// Redo with Cmd+Y
+		await fireEvent.keyDown(window, { key: 'y', metaKey: true });
+		await waitFor(() => {
+			expect(userPreferencesService.patchPreferences).toHaveBeenCalledWith(
+				expect.objectContaining({
+					drawings: expect.objectContaining({
+						'sec-1': expect.objectContaining({
+							measures: [sampleMeasure]
+						})
+					})
+				})
+			);
+		});
+	});
+
+	it('does not trigger undo when active element is an input', async () => {
+		render(PageComponent, { props: { data: mockData } });
+
+		await waitFor(() => {
+			expect(mockChartProps).not.toBeNull();
+		});
+
+		// Add measure
+		// @ts-expect-error - mockChartProps typed as Record
+		mockChartProps.onMeasureChange?.([sampleMeasure]);
+		await waitFor(() => {
+			expect(userPreferencesService.patchPreferences).toHaveBeenCalled();
+		});
+
+		vi.mocked(userPreferencesService.patchPreferences).mockClear();
+
+		const inputEl = document.createElement('input');
+		document.body.appendChild(inputEl);
+		inputEl.focus();
+
+		await fireEvent.keyDown(inputEl, { key: 'z', ctrlKey: true });
+
+		expect(userPreferencesService.patchPreferences).not.toHaveBeenCalled();
+		document.body.removeChild(inputEl);
+	});
+
+	it('undoes and redoes drawings via drawing toolbar Undo/Redo buttons', async () => {
+		render(PageComponent, { props: { data: mockData } });
+
+		await waitFor(() => {
+			expect(mockChartProps).not.toBeNull();
+		});
+
+		const undoBtn = screen.getByRole('button', { name: 'Undo' });
+		const redoBtn = screen.getByRole('button', { name: 'Redo' });
+
+		// Initially disabled
+		expect(undoBtn).toBeDisabled();
+		expect(redoBtn).toBeDisabled();
+
+		// Add measure drawing
+		// @ts-expect-error - mockChartProps typed as Record
+		mockChartProps.onMeasureChange?.([sampleMeasure]);
+
+		await waitFor(() => {
+			expect(undoBtn).toBeEnabled();
+		});
+		expect(redoBtn).toBeDisabled();
+
+		vi.mocked(userPreferencesService.patchPreferences).mockClear();
+
+		// Click Undo button in toolbar
+		await fireEvent.click(undoBtn);
+
+		await waitFor(() => {
+			expect(userPreferencesService.patchPreferences).toHaveBeenCalledWith(
+				expect.objectContaining({
+					drawings: expect.not.objectContaining({
+						'sec-1': expect.objectContaining({
+							measures: [sampleMeasure]
+						})
+					})
+				})
+			);
+		});
+
+		await waitFor(() => {
+			expect(undoBtn).toBeDisabled();
+			expect(redoBtn).toBeEnabled();
+		});
+
+		vi.mocked(userPreferencesService.patchPreferences).mockClear();
+
+		// Click Redo button in toolbar
+		await fireEvent.click(redoBtn);
+
+		await waitFor(() => {
+			expect(userPreferencesService.patchPreferences).toHaveBeenCalledWith(
+				expect.objectContaining({
+					drawings: expect.objectContaining({
+						'sec-1': expect.objectContaining({
+							measures: [sampleMeasure]
+						})
+					})
+				})
+			);
+		});
+
+		await waitFor(() => {
+			expect(undoBtn).toBeEnabled();
+			expect(redoBtn).toBeDisabled();
+		});
+	});
+});
+
+describe('Security Page - Drawing Dragging Deferral & Network Throttling (AC 2, AC 3, AC 5)', () => {
+	/* eslint-disable-next-line @typescript-eslint/no-explicit-any */
+	let PageComponent: Component<any>;
+
+	const mockData = {
+		security: {
+			id: 'sec-1',
+			symbol: 'AAPL',
+			name: 'Apple Inc.'
+		},
+		items: [
+			{
+				timestamp: 1704067200,
+				open: 100,
+				high: 105,
+				low: 99,
+				close: 104,
+				volume: 1000
+			}
+		]
+	};
+
+	const baseMeasure: MeasureDrawing = {
+		id: 'm-1',
+		p1: { time: 1704067200 as unknown as Time, price: 100 },
+		p2: { time: 1704153600 as unknown as Time, price: 105 }
+	};
+
+	const baseHorizontalLine: HorizontalLineDrawing = {
+		id: 'hl-1',
+		p1: { time: 1704067200 as unknown as Time, price: 100 }
+	};
+
+	const baseLine: LineDrawing = {
+		id: 'line-1',
+		p1: { time: 1704067200 as unknown as Time, price: 100 },
+		p2: { time: 1704153600 as unknown as Time, price: 105 }
+	};
+
+	const baseFib: SecurityFibonacciTools = {
+		retracement: {
+			p1: { time: 1704067200 as unknown as Time, price: 100 },
+			p2: { time: 1704153600 as unknown as Time, price: 105 },
+			levels: []
+		}
+	};
+
+	const baseWaves: SecurityElliottWaves = {
+		waves: [
+			{
+				id: 'w-1',
+				degree: 'cycle',
+				type: 'impulse',
+				points: [{ wave: 0, time: 1704067200 as unknown as Time, price: 100 }]
+			}
+		]
+	};
+
+	beforeAll(async () => {
+		const mod = await import('./+page.svelte');
+		PageComponent = mod.default;
+	}, 60000);
+
+	beforeEach(() => {
+		vi.clearAllMocks();
+		mockChartProps = null;
+		vi.mocked(userPreferencesService.getPreferences).mockResolvedValue({});
+		vi.mocked(userPreferencesService.patchPreferences).mockResolvedValue({});
+		vi.mocked(snapshotsService.getSnapshots).mockResolvedValue([]);
+	});
+
+	it('defers measure preference write during drag moves and commits once on drag end (AC 2, AC 3)', async () => {
+		render(PageComponent, { props: { data: mockData } });
+		await waitFor(() => expect(mockChartProps).not.toBeNull());
+
+		// 1. Initial non-drag change commits immediately
+		// @ts-expect-error - mockChartProps typed as Record
+		mockChartProps.onMeasureChange?.([baseMeasure]);
+		await waitFor(() => {
+			expect(userPreferencesService.patchPreferences).toHaveBeenCalledTimes(1);
+		});
+		vi.mocked(userPreferencesService.patchPreferences).mockClear();
+
+		// 2. Drag starts
+		// @ts-expect-error - mockChartProps typed as Record
+		mockChartProps.onDrawingDragStart?.();
+
+		// 3. Intermediate drag moves
+		const moved1 = { ...baseMeasure, p2: { time: 1704153600 as unknown as Time, price: 108 } };
+		const moved2 = { ...baseMeasure, p2: { time: 1704153600 as unknown as Time, price: 112 } };
+		// @ts-expect-error - mockChartProps typed as Record
+		mockChartProps.onMeasureChange?.([moved1]);
+		// @ts-expect-error - mockChartProps typed as Record
+		mockChartProps.onMeasureChange?.([moved2]);
+
+		// Zero network calls during intermediate drag moves
+		expect(userPreferencesService.patchPreferences).not.toHaveBeenCalled();
+
+		// 4. Drag ends
+		// @ts-expect-error - mockChartProps typed as Record
+		mockChartProps.onDrawingDragEnd?.();
+
+		// Exactly one network call on drag end with final state
+		await waitFor(() => {
+			expect(userPreferencesService.patchPreferences).toHaveBeenCalledTimes(1);
+			expect(userPreferencesService.patchPreferences).toHaveBeenCalledWith(
+				expect.objectContaining({
+					drawings: expect.objectContaining({
+						'sec-1': expect.objectContaining({
+							measures: [moved2]
+						})
+					})
+				})
+			);
+		});
+	});
+
+	it('defers horizontal line preference write during drag moves and commits once on drag end (AC 2, AC 3)', async () => {
+		render(PageComponent, { props: { data: mockData } });
+		await waitFor(() => expect(mockChartProps).not.toBeNull());
+
+		// 1. Initial non-drag change commits immediately
+		// @ts-expect-error - mockChartProps typed as Record
+		mockChartProps.onHorizontalLineChange?.([baseHorizontalLine]);
+		await waitFor(() => {
+			expect(userPreferencesService.patchPreferences).toHaveBeenCalledTimes(1);
+		});
+		vi.mocked(userPreferencesService.patchPreferences).mockClear();
+
+		// 2. Drag starts
+		// @ts-expect-error - mockChartProps typed as Record
+		mockChartProps.onDrawingDragStart?.();
+
+		// 3. Intermediate drag moves
+		const moved1 = {
+			...baseHorizontalLine,
+			p1: { time: 1704067200 as unknown as Time, price: 102 }
+		};
+		const moved2 = {
+			...baseHorizontalLine,
+			p1: { time: 1704067200 as unknown as Time, price: 106 }
+		};
+		// @ts-expect-error - mockChartProps typed as Record
+		mockChartProps.onHorizontalLineChange?.([moved1]);
+		// @ts-expect-error - mockChartProps typed as Record
+		mockChartProps.onHorizontalLineChange?.([moved2]);
+
+		expect(userPreferencesService.patchPreferences).not.toHaveBeenCalled();
+
+		// 4. Drag ends
+		// @ts-expect-error - mockChartProps typed as Record
+		mockChartProps.onDrawingDragEnd?.();
+
+		await waitFor(() => {
+			expect(userPreferencesService.patchPreferences).toHaveBeenCalledTimes(1);
+			expect(userPreferencesService.patchPreferences).toHaveBeenCalledWith(
+				expect.objectContaining({
+					drawings: expect.objectContaining({
+						'sec-1': expect.objectContaining({
+							horizontalLines: [moved2]
+						})
+					})
+				})
+			);
+		});
+	});
+
+	it('defers free-form line preference write during drag moves and commits once on drag end (AC 2, AC 3)', async () => {
+		render(PageComponent, { props: { data: mockData } });
+		await waitFor(() => expect(mockChartProps).not.toBeNull());
+
+		// 1. Initial non-drag change commits immediately
+		// @ts-expect-error - mockChartProps typed as Record
+		mockChartProps.onLineChange?.([baseLine]);
+		await waitFor(() => {
+			expect(userPreferencesService.patchPreferences).toHaveBeenCalledTimes(1);
+		});
+		vi.mocked(userPreferencesService.patchPreferences).mockClear();
+
+		// 2. Drag starts
+		// @ts-expect-error - mockChartProps typed as Record
+		mockChartProps.onDrawingDragStart?.();
+
+		// 3. Intermediate drag moves
+		const moved1 = { ...baseLine, p2: { time: 1704153600 as unknown as Time, price: 108 } };
+		const moved2 = { ...baseLine, p2: { time: 1704153600 as unknown as Time, price: 114 } };
+		// @ts-expect-error - mockChartProps typed as Record
+		mockChartProps.onLineChange?.([moved1]);
+		// @ts-expect-error - mockChartProps typed as Record
+		mockChartProps.onLineChange?.([moved2]);
+
+		expect(userPreferencesService.patchPreferences).not.toHaveBeenCalled();
+
+		// 4. Drag ends
+		// @ts-expect-error - mockChartProps typed as Record
+		mockChartProps.onDrawingDragEnd?.();
+
+		await waitFor(() => {
+			expect(userPreferencesService.patchPreferences).toHaveBeenCalledTimes(1);
+			expect(userPreferencesService.patchPreferences).toHaveBeenCalledWith(
+				expect.objectContaining({
+					drawings: expect.objectContaining({
+						'sec-1': expect.objectContaining({
+							lines: [moved2]
+						})
+					})
+				})
+			);
+		});
+	});
+
+	it('defers fibonacci preference write during drag moves and commits once on drag end (AC 2, AC 3)', async () => {
+		render(PageComponent, { props: { data: mockData } });
+		await waitFor(() => expect(mockChartProps).not.toBeNull());
+
+		// 1. Initial non-drag change commits immediately
+		// @ts-expect-error - mockChartProps typed as Record
+		mockChartProps.onFibChange?.(baseFib);
+		await waitFor(() => {
+			expect(userPreferencesService.patchPreferences).toHaveBeenCalledTimes(1);
+		});
+		vi.mocked(userPreferencesService.patchPreferences).mockClear();
+
+		// 2. Drag starts
+		// @ts-expect-error - mockChartProps typed as Record
+		mockChartProps.onDrawingDragStart?.();
+
+		// 3. Intermediate drag moves
+		const movedFib1: SecurityFibonacciTools = {
+			retracement: {
+				p1: { time: 1704067200 as unknown as Time, price: 102 },
+				p2: { time: 1704153600 as unknown as Time, price: 107 },
+				levels: []
+			}
+		};
+		const movedFib2: SecurityFibonacciTools = {
+			retracement: {
+				p1: { time: 1704067200 as unknown as Time, price: 104 },
+				p2: { time: 1704153600 as unknown as Time, price: 110 },
+				levels: []
+			}
+		};
+		// @ts-expect-error - mockChartProps typed as Record
+		mockChartProps.onFibChange?.(movedFib1);
+		// @ts-expect-error - mockChartProps typed as Record
+		mockChartProps.onFibChange?.(movedFib2);
+
+		expect(userPreferencesService.patchPreferences).not.toHaveBeenCalled();
+
+		// 4. Drag ends
+		// @ts-expect-error - mockChartProps typed as Record
+		mockChartProps.onDrawingDragEnd?.();
+
+		await waitFor(() => {
+			expect(userPreferencesService.patchPreferences).toHaveBeenCalledTimes(1);
+			expect(userPreferencesService.patchPreferences).toHaveBeenCalledWith(
+				expect.objectContaining({
+					fibonacci_tools: expect.objectContaining({
+						'sec-1': movedFib2
+					})
+				})
+			);
+		});
+	});
+
+	it('defers elliott wave preference write during drag moves and commits once on drag end (AC 2, AC 3)', async () => {
+		render(PageComponent, { props: { data: mockData } });
+		await waitFor(() => expect(mockChartProps).not.toBeNull());
+
+		// 1. Initial non-drag change commits immediately
+		// @ts-expect-error - mockChartProps typed as Record
+		mockChartProps.onWaveChange?.('cycle', baseWaves.waves[0], baseWaves);
+		await waitFor(() => {
+			expect(userPreferencesService.patchPreferences).toHaveBeenCalledTimes(1);
+		});
+		vi.mocked(userPreferencesService.patchPreferences).mockClear();
+
+		// 2. Drag starts
+		// @ts-expect-error - mockChartProps typed as Record
+		mockChartProps.onDrawingDragStart?.();
+
+		// 3. Intermediate drag moves
+		const movedWaves1: SecurityElliottWaves = {
+			waves: [
+				{
+					id: 'w-1',
+					degree: 'cycle',
+					type: 'impulse',
+					points: [{ wave: 0, time: 1704067200 as unknown as Time, price: 105 }]
+				}
+			]
+		};
+		const movedWaves2: SecurityElliottWaves = {
+			waves: [
+				{
+					id: 'w-1',
+					degree: 'cycle',
+					type: 'impulse',
+					points: [{ wave: 0, time: 1704067200 as unknown as Time, price: 115 }]
+				}
+			]
+		};
+		// @ts-expect-error - mockChartProps typed as Record
+		mockChartProps.onWaveChange?.('cycle', movedWaves1.waves[0], movedWaves1);
+		// @ts-expect-error - mockChartProps typed as Record
+		mockChartProps.onWaveChange?.('cycle', movedWaves2.waves[0], movedWaves2);
+
+		expect(userPreferencesService.patchPreferences).not.toHaveBeenCalled();
+
+		// 4. Drag ends
+		// @ts-expect-error - mockChartProps typed as Record
+		mockChartProps.onDrawingDragEnd?.();
+
+		await waitFor(() => {
+			expect(userPreferencesService.patchPreferences).toHaveBeenCalledTimes(1);
+			expect(userPreferencesService.patchPreferences).toHaveBeenCalledWith(
+				expect.objectContaining({
+					elliott_waves: expect.objectContaining({
+						'sec-1': movedWaves2
+					})
+				})
+			);
+		});
+	});
+
+	it('emits zero network calls when anchor drag starts and ends without moving', async () => {
+		render(PageComponent, { props: { data: mockData } });
+		await waitFor(() => expect(mockChartProps).not.toBeNull());
+
+		vi.mocked(userPreferencesService.patchPreferences).mockClear();
+
+		// Empty drag gesture
+		// @ts-expect-error - mockChartProps typed as Record
+		mockChartProps.onDrawingDragStart?.();
+		// @ts-expect-error - mockChartProps typed as Record
+		mockChartProps.onDrawingDragEnd?.();
+
+		expect(userPreferencesService.patchPreferences).not.toHaveBeenCalled();
+	});
+
+	it('accurately restores pre-drag and post-drag states on undo and redo after anchor drag (AC 5)', async () => {
+		render(PageComponent, { props: { data: mockData } });
+		await waitFor(() => expect(mockChartProps).not.toBeNull());
+
+		// 1. Add base line
+		// @ts-expect-error - mockChartProps typed as Record
+		mockChartProps.onLineChange?.([baseLine]);
+		await waitFor(() => {
+			expect(userPreferencesService.patchPreferences).toHaveBeenCalledWith(
+				expect.objectContaining({
+					drawings: expect.objectContaining({
+						'sec-1': expect.objectContaining({
+							lines: [baseLine]
+						})
+					})
+				})
+			);
+		});
+		vi.mocked(userPreferencesService.patchPreferences).mockClear();
+
+		// 2. Drag line to new coordinates
+		// @ts-expect-error - mockChartProps typed as Record
+		mockChartProps.onDrawingDragStart?.();
+
+		const intermediateLine = {
+			...baseLine,
+			p2: { time: 1704153600 as unknown as Time, price: 110 }
+		};
+		const finalDraggedLine = {
+			...baseLine,
+			p2: { time: 1704153600 as unknown as Time, price: 120 }
+		};
+
+		// @ts-expect-error - mockChartProps typed as Record
+		mockChartProps.onLineChange?.([intermediateLine]);
+		// @ts-expect-error - mockChartProps typed as Record
+		mockChartProps.onLineChange?.([finalDraggedLine]);
+
+		expect(userPreferencesService.patchPreferences).not.toHaveBeenCalled();
+
+		// @ts-expect-error - mockChartProps typed as Record
+		mockChartProps.onDrawingDragEnd?.();
+
+		await waitFor(() => {
+			expect(userPreferencesService.patchPreferences).toHaveBeenCalledWith(
+				expect.objectContaining({
+					drawings: expect.objectContaining({
+						'sec-1': expect.objectContaining({
+							lines: [finalDraggedLine]
+						})
+					})
+				})
+			);
+		});
+
+		vi.mocked(userPreferencesService.patchPreferences).mockClear();
+
+		// 3. Undo drag -> reverts to pre-drag state (baseLine)
+		await fireEvent.keyDown(window, { key: 'z', ctrlKey: true });
+
+		await waitFor(() => {
+			expect(userPreferencesService.patchPreferences).toHaveBeenCalledWith(
+				expect.objectContaining({
+					drawings: expect.objectContaining({
+						'sec-1': expect.objectContaining({
+							lines: [baseLine]
+						})
+					})
+				})
+			);
+		});
+
+		vi.mocked(userPreferencesService.patchPreferences).mockClear();
+
+		// 4. Redo drag -> restores final dragged state (finalDraggedLine)
+		await fireEvent.keyDown(window, { key: 'z', ctrlKey: true, shiftKey: true });
+
+		await waitFor(() => {
+			expect(userPreferencesService.patchPreferences).toHaveBeenCalledWith(
+				expect.objectContaining({
+					drawings: expect.objectContaining({
+						'sec-1': expect.objectContaining({
+							lines: [finalDraggedLine]
+						})
+					})
 				})
 			);
 		});

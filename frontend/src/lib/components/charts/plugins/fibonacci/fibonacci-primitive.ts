@@ -11,6 +11,7 @@ import {
 	type FibToolType,
 	type SecurityFibonacciTools
 } from '$lib/utils/finance/fibonacci';
+import { normalizeDrawingTime } from '$lib/utils/finance/drawing-time';
 import { MouseHandlers, type ProjectedFibPointWithTarget, type ProjectedFibLine } from './mouse';
 import {
 	calculateRetracementLineBounds,
@@ -23,7 +24,7 @@ import {
 	type RetracementRenderData
 } from './pane-renderer';
 import { FibonacciPaneView } from './pane-view';
-import { FibonacciToolState, type FibPointTarget } from './state';
+import { FibonacciToolState, type FibPointTarget, type FibToolTarget } from './state';
 import { DrawingPrimitiveBase } from '../helpers/primitive/drawing-primitive-base';
 
 function projectLevels(
@@ -94,6 +95,7 @@ export class FibonacciPrimitive extends DrawingPrimitiveBase<
 		this._subscribeToUpdate(this._state.toolChanged());
 		this._subscribeToUpdate(this._state.selectionChanged());
 		this._subscribeToUpdate(this._state.hoverChanged());
+		this._subscribeToUpdate(this._state.hoveredLineChanged());
 		this._subscribeToUpdate(this._state.dragChanged());
 
 		this._subscribe(this._mouseHandlers.pointClicked(), (hit) => {
@@ -103,6 +105,11 @@ export class FibonacciPrimitive extends DrawingPrimitiveBase<
 
 		this._subscribe(this._mouseHandlers.lineClicked(), (hit) => {
 			this._state.setSelectedTool(hit.tool);
+			this._requestUpdate?.();
+		});
+
+		this._subscribe(this._mouseHandlers.lineHovered(), (hit) => {
+			this._state.setHoveredLine(hit);
 			this._requestUpdate?.();
 		});
 
@@ -172,7 +179,7 @@ export class FibonacciPrimitive extends DrawingPrimitiveBase<
 		return this._state.getPendingPoints();
 	}
 
-	public addPoint(point: FibPoint, tool?: FibToolType): FibPoint {
+	public addPoint(point: { time: Time; price: number }, tool?: FibToolType): FibPoint {
 		return this._state.addPoint(point, tool);
 	}
 
@@ -220,6 +227,14 @@ export class FibonacciPrimitive extends DrawingPrimitiveBase<
 		return this._state.hoverChanged();
 	}
 
+	public hoveredLineChanged(): ISubscription<FibToolTarget | null> {
+		return this._state.hoveredLineChanged();
+	}
+
+	public getHoveredLine(): FibToolTarget | null {
+		return this._state.getHoveredLine();
+	}
+
 	public dragChanged(): ISubscription<FibPointTarget | null> {
 		return this._state.dragChanged();
 	}
@@ -237,6 +252,7 @@ export class FibonacciPrimitive extends DrawingPrimitiveBase<
 		const allProjectedLinesForMouse: ProjectedFibLine[] = [];
 		const timescaleWidth = this._chart?.timeScale().width() ?? 800;
 		const hovered = this._state.getHoveredPoint();
+		const hoveredLine = this._state.getHoveredLine();
 		const dragging = this._state.getDraggingPoint();
 		const selectedTool = this._state.getSelectedTool();
 		const isRetracementSelected = selectedTool === 'retracement';
@@ -247,9 +263,9 @@ export class FibonacciPrimitive extends DrawingPrimitiveBase<
 		const retracement = this._state.getRetracement();
 
 		if (retracement && retracement.visible !== false) {
-			const x1 = this._timeProjector.timeToCoordinate(retracement.p1.time);
+			const x1 = this._timeProjector.epochToCoordinate(normalizeDrawingTime(retracement.p1.time));
 			const y1 = series.priceToCoordinate(retracement.p1.price);
-			const x2 = this._timeProjector.timeToCoordinate(retracement.p2.time);
+			const x2 = this._timeProjector.epochToCoordinate(normalizeDrawingTime(retracement.p2.time));
 			const y2 = series.priceToCoordinate(retracement.p2.price);
 
 			if (x1 !== null && y1 !== null && x2 !== null && y2 !== null) {
@@ -328,7 +344,8 @@ export class FibonacciPrimitive extends DrawingPrimitiveBase<
 					extendLines: retracement.extendLines,
 					widthMultiplier: retracement.widthMultiplier,
 					visible: retracement.visible,
-					isSelected: isRetracementSelected
+					isSelected: isRetracementSelected,
+					isHovered: hoveredLine?.tool === 'retracement'
 				};
 			}
 		}
@@ -338,11 +355,11 @@ export class FibonacciPrimitive extends DrawingPrimitiveBase<
 		const extension = this._state.getExtension();
 
 		if (extension && extension.visible !== false) {
-			const x1 = this._timeProjector.timeToCoordinate(extension.p1.time);
+			const x1 = this._timeProjector.epochToCoordinate(normalizeDrawingTime(extension.p1.time));
 			const y1 = series.priceToCoordinate(extension.p1.price);
-			const x2 = this._timeProjector.timeToCoordinate(extension.p2.time);
+			const x2 = this._timeProjector.epochToCoordinate(normalizeDrawingTime(extension.p2.time));
 			const y2 = series.priceToCoordinate(extension.p2.price);
-			const x3 = this._timeProjector.timeToCoordinate(extension.p3.time);
+			const x3 = this._timeProjector.epochToCoordinate(normalizeDrawingTime(extension.p3.time));
 			const y3 = series.priceToCoordinate(extension.p3.price);
 
 			if (x1 !== null && y1 !== null && x2 !== null && y2 !== null && x3 !== null && y3 !== null) {
@@ -444,7 +461,8 @@ export class FibonacciPrimitive extends DrawingPrimitiveBase<
 					extendLines: extension.extendLines,
 					widthMultiplier: extension.widthMultiplier,
 					visible: extension.visible,
-					isSelected: isExtensionSelected
+					isSelected: isExtensionSelected,
+					isHovered: hoveredLine?.tool === 'extension'
 				};
 			}
 		}
@@ -461,7 +479,7 @@ export class FibonacciPrimitive extends DrawingPrimitiveBase<
 			const placedPoints: ProjectedFibPoint[] = [];
 			for (let i = 0; i < pending.length; i++) {
 				const pt = pending[i];
-				const x = this._timeProjector.timeToCoordinate(pt.time);
+				const x = this._timeProjector.epochToCoordinate(normalizeDrawingTime(pt.time));
 				const y = series.priceToCoordinate(pt.price);
 				if (x !== null && y !== null) {
 					placedPoints.push({
@@ -505,7 +523,7 @@ export class FibonacciPrimitive extends DrawingPrimitiveBase<
 					const previewComputed = calculateRetracementLevels(
 						pending[0],
 						{
-							time: (currentMouse.time ?? pending[0].time) as Time,
+							time: normalizeDrawingTime(currentMouse.time ?? pending[0].time),
 							price: currentMouse.price
 						},
 						null
@@ -516,7 +534,7 @@ export class FibonacciPrimitive extends DrawingPrimitiveBase<
 						pending[0],
 						pending[1],
 						{
-							time: (currentMouse.time ?? pending[1].time) as Time,
+							time: normalizeDrawingTime(currentMouse.time ?? pending[1].time),
 							price: currentMouse.price
 						},
 						null

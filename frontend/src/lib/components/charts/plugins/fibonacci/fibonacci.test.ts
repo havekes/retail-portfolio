@@ -13,6 +13,7 @@ import {
 	HANDLE_RADIUS,
 	PREVIEW_ALPHA,
 	DEFAULT_HANDLE_COLOR,
+	DEFAULT_HOVER_RING_COLOR,
 	DEFAULT_TRENDLINE_COLOR,
 	type FibPointTarget,
 	type ProjectedFibPointWithTarget,
@@ -20,7 +21,13 @@ import {
 	type FibonacciRendererData
 } from './index';
 import type { Candle } from '$lib/utils/finance/candle';
+import type { SecurityFibonacciTools } from '$lib/utils/finance/fibonacci';
 import { TimeProjector } from '../helpers/time/time-projector';
+import { timeToEpochSeconds } from '../helpers/time/time';
+
+/** Canonical epoch-seconds anchor for an ISO date (drawings store time, not bar indices). */
+const anchor = (date: string): Time =>
+	Math.floor(new Date(`${date}T00:00:00Z`).getTime() / 1000) as Time;
 
 function createDailyCandles(count = 30): Candle[] {
 	return Array.from({ length: count }, (_, i) => {
@@ -100,8 +107,15 @@ function createMockChartAndSeries() {
 	return { chart, series, mockChartElement, timeScale, priceScale };
 }
 
+interface DrawCall {
+	type: string;
+	args: unknown[];
+	color?: string;
+}
+
 function createMockCanvasTarget() {
-	const drawCalls: { type: string; args: unknown[] }[] = [];
+	const drawCalls: DrawCall[] = [];
+	const styles = { strokeStyle: '', fillStyle: '' };
 	const context = {
 		save: vi.fn(() => drawCalls.push({ type: 'save', args: [] })),
 		restore: vi.fn(() => drawCalls.push({ type: 'restore', args: [] })),
@@ -109,14 +123,24 @@ function createMockCanvasTarget() {
 		moveTo: vi.fn((x: number, y: number) => drawCalls.push({ type: 'moveTo', args: [x, y] })),
 		lineTo: vi.fn((x: number, y: number) => drawCalls.push({ type: 'lineTo', args: [x, y] })),
 		arc: vi.fn((...args: unknown[]) => drawCalls.push({ type: 'arc', args })),
-		fill: vi.fn(() => drawCalls.push({ type: 'fill', args: [] })),
-		stroke: vi.fn(() => drawCalls.push({ type: 'stroke', args: [] })),
+		fill: vi.fn(() => drawCalls.push({ type: 'fill', args: [], color: styles.fillStyle })),
+		stroke: vi.fn(() => drawCalls.push({ type: 'stroke', args: [], color: styles.strokeStyle })),
 		fillText: vi.fn((text: string, x: number, y: number) =>
 			drawCalls.push({ type: 'fillText', args: [text, x, y] })
 		),
 		setLineDash: vi.fn((dash: number[]) => drawCalls.push({ type: 'setLineDash', args: [dash] })),
-		strokeStyle: '',
-		fillStyle: '',
+		get strokeStyle() {
+			return styles.strokeStyle;
+		},
+		set strokeStyle(val: string) {
+			styles.strokeStyle = val;
+		},
+		get fillStyle() {
+			return styles.fillStyle;
+		},
+		set fillStyle(val: string) {
+			styles.fillStyle = val;
+		},
 		lineWidth: 1,
 		lineCap: 'butt',
 		lineJoin: 'miter',
@@ -345,8 +369,8 @@ describe('Fibonacci Chart Primitive Plugin', () => {
 
 			const retracement = state.getRetracement();
 			expect(retracement).not.toBeNull();
-			expect(retracement?.p1).toEqual({ time: '2024-01-01', price: 100 });
-			expect(retracement?.p2).toEqual({ time: '2024-01-10', price: 180 });
+			expect(retracement?.p1).toEqual({ time: anchor('2024-01-01'), price: 100 });
+			expect(retracement?.p2).toEqual({ time: anchor('2024-01-10'), price: 180 });
 			expect(drawingsHandler).toHaveBeenCalled();
 		});
 
@@ -379,9 +403,9 @@ describe('Fibonacci Chart Primitive Plugin', () => {
 
 			const extension = state.getExtension();
 			expect(extension).not.toBeNull();
-			expect(extension?.p1).toEqual({ time: '2024-01-01', price: 100 });
-			expect(extension?.p2).toEqual({ time: '2024-01-10', price: 150 });
-			expect(extension?.p3).toEqual({ time: '2024-01-15', price: 120 });
+			expect(extension?.p1).toEqual({ time: anchor('2024-01-01'), price: 100 });
+			expect(extension?.p2).toEqual({ time: anchor('2024-01-10'), price: 150 });
+			expect(extension?.p3).toEqual({ time: anchor('2024-01-15'), price: 120 });
 		});
 
 		it('updates placed anchor points for retracement and extension', () => {
@@ -393,7 +417,7 @@ describe('Fibonacci Chart Primitive Plugin', () => {
 			const p1Updated = state.updatePoint('retracement', 0, { price: 110 });
 			expect(p1Updated).toBe(true);
 			expect(state.getRetracement()?.p1.price).toBe(110);
-			expect(state.getRetracement()?.p1.time).toBe('2024-01-01');
+			expect(state.getRetracement()?.p1.time).toBe(anchor('2024-01-01'));
 
 			// Update retracement P2
 			const p2Updated = state.updatePoint('retracement', 1, {
@@ -402,7 +426,7 @@ describe('Fibonacci Chart Primitive Plugin', () => {
 			});
 			expect(p2Updated).toBe(true);
 			expect(state.getRetracement()?.p2.price).toBe(190);
-			expect(state.getRetracement()?.p2.time).toBe('2024-01-12');
+			expect(state.getRetracement()?.p2.time).toBe(anchor('2024-01-12'));
 
 			// Invalid index
 			expect(state.updatePoint('retracement', 2, { price: 200 })).toBe(false);
@@ -995,7 +1019,7 @@ describe('Fibonacci Chart Primitive Plugin', () => {
 			expect(arcCalls.length).toBe(4);
 		});
 
-		it('renders selection ring around anchor handles when drawing is selected', () => {
+		it('renders anchor handles without selection rings when drawing is selected, and renders highlight ring only on hovered/dragged points', () => {
 			const renderData: FibonacciRendererData = {
 				retracement: {
 					p1: {
@@ -1025,8 +1049,52 @@ describe('Fibonacci Chart Primitive Plugin', () => {
 			renderer.draw(mockCanvas.target);
 
 			const arcCalls = mockCanvas.drawCalls.filter((c) => c.type === 'arc');
-			// Each selected handle gets 1 selection ring + 1 circle = 4 arc calls
-			expect(arcCalls.length).toBe(4);
+			// Handles shown without highlight rings on selection: 2 circles = 2 arc calls
+			expect(arcCalls.length).toBe(2);
+
+			// When p1 is hovered, only p1 gets a highlight ring: 1 ring + 2 circles = 3 arc calls
+			renderData.retracement!.p1.isHovered = true;
+			mockCanvas = createMockCanvasTarget();
+			renderer.update(renderData);
+			renderer.draw(mockCanvas.target);
+			expect(mockCanvas.drawCalls.filter((c) => c.type === 'arc')).toHaveLength(3);
+		});
+
+		it('renders anchor handles without rings when level line is hovered (retracement isHovered)', () => {
+			const renderData: FibonacciRendererData = {
+				retracement: {
+					p1: {
+						pointIndex: 0,
+						x: 100,
+						y: 300,
+						time: '2024-01-05' as Time,
+						price: 140,
+						isHovered: false
+					},
+					p2: {
+						pointIndex: 1,
+						x: 250,
+						y: 100,
+						time: '2024-01-11' as Time,
+						price: 180,
+						isHovered: false
+					},
+					levels: [],
+					isHovered: true
+				},
+				extension: null,
+				preview: null
+			};
+
+			renderer.update(renderData);
+			renderer.draw(mockCanvas.target);
+
+			const arcCalls = mockCanvas.drawCalls.filter((c) => c.type === 'arc');
+			// Handles shown without highlight rings on line hover: 2 circles = 2 arc calls
+			expect(arcCalls.length).toBe(2);
+			const fills = mockCanvas.drawCalls.filter((c) => c.type === 'fill');
+			expect(fills.some((f) => f.color === DEFAULT_HANDLE_COLOR)).toBe(true);
+			expect(fills.some((f) => f.color === DEFAULT_HOVER_RING_COLOR)).toBe(false);
 		});
 	});
 
@@ -1182,7 +1250,7 @@ describe('Fibonacci Chart Primitive Plugin', () => {
 			);
 
 			expect(primitive.getRetracement()?.p1.price).toBe(116);
-			expect(primitive.getRetracement()?.p1.time).toBe('2024-01-07');
+			expect(primitive.getRetracement()?.p1.time).toBe(anchor('2024-01-07'));
 
 			// Mouseup
 			mockData.mockChartElement.dispatchEvent(
@@ -1333,6 +1401,57 @@ describe('Fibonacci Chart Primitive Plugin', () => {
 			expect(primitive.getSelectedTool()).toBe('retracement');
 		});
 
+		it('isolates line hover from anchor handle highlight rings on mouse movement', () => {
+			primitive.setRetracement({
+				p1: { time: '2024-01-05' as Time, price: 160 },
+				p2: { time: '2024-01-13' as Time, price: 170 }
+			});
+			primitive.updateAllViews();
+
+			// Level 0.5 is at price 165 (y: 175). Hover over level line at x: 350, y: 175
+			mockData.mockChartElement.dispatchEvent(
+				new MouseEvent('mousemove', { clientX: 350, clientY: 175 })
+			);
+
+			expect(primitive.getHoveredLine()).toEqual({ tool: 'retracement' });
+
+			primitive.updateAllViews();
+			const views = primitive.paneViews();
+			const renderer = views[0]?.renderer();
+			expect(renderer).toBeDefined();
+
+			let mockCanvas = createMockCanvasTarget();
+			renderer?.draw(mockCanvas.target);
+
+			// Anchor handles shown (2 arcs), but NO highlight ring (no DEFAULT_HOVER_RING_COLOR)
+			const arcs = mockCanvas.drawCalls.filter((c) => c.type === 'arc');
+			expect(arcs).toHaveLength(2);
+			const fills = mockCanvas.drawCalls.filter((c) => c.type === 'fill');
+			expect(fills.some((f) => f.color === DEFAULT_HOVER_RING_COLOR)).toBe(false);
+
+			// Hover directly over P1 anchor handle at (100, 200)
+			mockData.mockChartElement.dispatchEvent(
+				new MouseEvent('mousemove', { clientX: 100, clientY: 200 })
+			);
+
+			primitive.updateAllViews();
+			mockCanvas = createMockCanvasTarget();
+			renderer?.draw(mockCanvas.target);
+
+			// Highlight ring on P1 + P1 handle + P2 handle = 3 arcs, ring fill present
+			const arcs2 = mockCanvas.drawCalls.filter((c) => c.type === 'arc');
+			expect(arcs2).toHaveLength(3);
+			const fills2 = mockCanvas.drawCalls.filter((c) => c.type === 'fill');
+			expect(fills2.some((f) => f.color === DEFAULT_HOVER_RING_COLOR)).toBe(true);
+
+			// Move to empty space
+			mockData.mockChartElement.dispatchEvent(
+				new MouseEvent('mousemove', { clientX: 50, clientY: 50 })
+			);
+			expect(primitive.getHoveredLine()).toBeNull();
+			expect(primitive.getHoveredPoint()).toBeNull();
+		});
+
 		it('renders only 3 level lines and 3 labels (1.618, 2.0, 2.618) by default for newly created extension drawings', () => {
 			const mockCanvas = createMockCanvasTarget();
 			primitive.setExtension({
@@ -1453,6 +1572,160 @@ describe('Fibonacci Chart Primitive Plugin', () => {
 				new MouseEvent('click', { clientX: 600, clientY: 150 })
 			);
 			expect(primitive.getSelectedTool()).toBe('retracement');
+		});
+	});
+
+	describe('Cross-Timeframe Rendering', () => {
+		const HOUR = 3600;
+		const DAY = 86400;
+		const SPACING = 25;
+		const isoEpoch = (iso: string) => Math.floor(new Date(iso).getTime() / 1000);
+
+		const candle = (time: Candle['time'], close = 100): Candle => ({
+			time,
+			open: close - 1,
+			high: close + 2,
+			low: close - 2,
+			close
+		});
+
+		function dailyCandles(): Candle[] {
+			const start = Date.UTC(2024, 0, 1) / 1000;
+			return Array.from({ length: 90 }, (_, i) =>
+				candle(new Date((start + i * DAY) * 1000).toISOString().slice(0, 10) as Time)
+			);
+		}
+
+		function hourlyCandles(): Candle[] {
+			const start = Date.UTC(2024, 0, 1) / 1000;
+			return Array.from({ length: 24 * 60 }, (_, i) => candle((start + i * HOUR) as Time));
+		}
+
+		function fourHourCandles(): Candle[] {
+			const start = Date.UTC(2024, 0, 1) / 1000;
+			return Array.from({ length: 6 * 60 }, (_, i) => candle((start + i * 4 * HOUR) as Time));
+		}
+
+		function weeklyCandles(): Candle[] {
+			const start = Date.UTC(2024, 0, 1) / 1000; // Monday
+			return Array.from({ length: 13 }, (_, i) =>
+				candle(new Date((start + i * 7 * DAY) * 1000).toISOString().slice(0, 10) as Time)
+			);
+		}
+
+		function monthlyCandles(): Candle[] {
+			return [candle('2024-01-01'), candle('2024-02-01'), candle('2024-03-01')];
+		}
+
+		/** Independent at-or-before lookup mirroring the documented snap rule. */
+		function expectedIndex(candles: Candle[], epoch: number): number {
+			let index = 0;
+			for (let i = 0; i < candles.length; i++) {
+				if (timeToEpochSeconds(candles[i].time) <= epoch) index = i;
+				else break;
+			}
+			return index;
+		}
+
+		function createTimeframeHarness(candles: Candle[]) {
+			const indexByEpoch = new Map<number, number>();
+			candles.forEach((c, i) => indexByEpoch.set(timeToEpochSeconds(c.time), i));
+
+			const timeScale = {
+				timeToCoordinate: vi.fn((time: Time) => {
+					const index = indexByEpoch.get(timeToEpochSeconds(time));
+					return index === undefined ? null : index * SPACING;
+				}),
+				coordinateToTime: vi.fn((x: number) => {
+					const index = Math.round(x / SPACING);
+					return index < 0 || index >= candles.length ? null : candles[index].time;
+				}),
+				coordinateToLogical: vi.fn((x: number) => x / SPACING),
+				logicalToCoordinate: vi.fn((logical: number) => logical * SPACING),
+				height: vi.fn(() => 30),
+				width: vi.fn(() => 750)
+			};
+			const priceScale = { width: vi.fn(() => 50), applyOptions: vi.fn() };
+			const series = {
+				priceToCoordinate: vi.fn((price: number) => 500 - price),
+				coordinateToPrice: vi.fn((y: number) => 500 - y),
+				priceScale: vi.fn(() => priceScale)
+			} as unknown as ISeriesApi<SeriesType>;
+			const chart = {
+				chartElement: vi.fn(() => document.createElement('div')),
+				timeScale: vi.fn(() => timeScale),
+				options: vi.fn(() => ({ handleScroll: { pressedMouseMove: true } })),
+				applyOptions: vi.fn()
+			} as unknown as IChartApi;
+			return { chart, series, timeScale };
+		}
+
+		function renderOn(candles: Candle[], drawings: SecurityFibonacciTools): FibonacciRendererData {
+			const harness = createTimeframeHarness(candles);
+			const primitive = new FibonacciPrimitive({ drawings });
+			primitive.attached({
+				chart: harness.chart,
+				series: harness.series,
+				requestUpdate: vi.fn(),
+				horzScaleBehavior: {} as never
+			});
+			primitive.setCandles(candles);
+			primitive.updateAllViews();
+			// eslint-disable-next-line @typescript-eslint/no-explicit-any
+			return (primitive as any)._paneViews[0].renderer()._data as FibonacciRendererData;
+		}
+
+		const timeframes: [string, Candle[]][] = [
+			['1d', dailyCandles()],
+			['1h', hourlyCandles()],
+			['4h', fourHourCandles()],
+			['1w', weeklyCandles()],
+			['1m', monthlyCandles()]
+		];
+
+		it('renders a retracement on the same dates with identical labels on every timeframe', () => {
+			const p1Epoch = isoEpoch('2024-01-15T00:00:00Z');
+			const p2Epoch = isoEpoch('2024-02-15T00:00:00Z');
+			const p1 = { time: p1Epoch as Time, price: 100 };
+			const p2 = { time: p2Epoch as Time, price: 200 };
+
+			let baselineLabels: string[] | null = null;
+			for (const [name, candles] of timeframes) {
+				const data = renderOn(candles, { retracement: { p1, p2 } });
+				const retracement = data.retracement;
+				expect(retracement, name).not.toBeNull();
+				expect(retracement?.p1.x, `${name} p1 x`).toBe(expectedIndex(candles, p1Epoch) * SPACING);
+				expect(retracement?.p2.x, `${name} p2 x`).toBe(expectedIndex(candles, p2Epoch) * SPACING);
+
+				const labels = (retracement?.levels ?? []).map((level) => level.label);
+				expect(labels.length, name).toBeGreaterThan(0);
+				if (baselineLabels === null) baselineLabels = labels;
+				else expect(labels, name).toEqual(baselineLabels);
+			}
+		});
+
+		it('renders a fib extension on the same dates with identical labels on every timeframe', () => {
+			const p1Epoch = isoEpoch('2024-01-15T00:00:00Z');
+			const p2Epoch = isoEpoch('2024-02-15T00:00:00Z');
+			const p3Epoch = isoEpoch('2024-02-20T00:00:00Z');
+			const p1 = { time: p1Epoch as Time, price: 100 };
+			const p2 = { time: p2Epoch as Time, price: 200 };
+			const p3 = { time: p3Epoch as Time, price: 150 };
+
+			let baselineLabels: string[] | null = null;
+			for (const [name, candles] of timeframes) {
+				const data = renderOn(candles, { extension: { p1, p2, p3 } });
+				const extension = data.extension;
+				expect(extension, name).not.toBeNull();
+				expect(extension?.p1.x, `${name} p1 x`).toBe(expectedIndex(candles, p1Epoch) * SPACING);
+				expect(extension?.p2.x, `${name} p2 x`).toBe(expectedIndex(candles, p2Epoch) * SPACING);
+				expect(extension?.p3.x, `${name} p3 x`).toBe(expectedIndex(candles, p3Epoch) * SPACING);
+
+				const labels = (extension?.levels ?? []).map((level) => level.label);
+				expect(labels.length, name).toBeGreaterThan(0);
+				if (baselineLabels === null) baselineLabels = labels;
+				else expect(labels, name).toEqual(baselineLabels);
+			}
 		});
 	});
 });
