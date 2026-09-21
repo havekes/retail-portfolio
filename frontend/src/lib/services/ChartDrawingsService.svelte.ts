@@ -41,9 +41,10 @@ import {
 	DrawingHistoryManager,
 	type SecurityDrawingState
 } from '$lib/utils/finance/drawing-history';
+import type { IndicatorData } from '$lib/components/charts/security-chart.svelte';
 
 export interface ChartInstance {
-	addIndicator: (indicator: unknown) => void;
+	addIndicator: (indicator: IndicatorData) => void;
 	removeIndicator: (indicatorId: string) => void;
 	clearWave?: (waveIdOrDegree?: string | WaveDegree) => void;
 	getSelectedWaveDegree?: () => WaveDegree | null;
@@ -57,9 +58,7 @@ export interface ChartInstance {
 }
 
 export interface UserPreferencesServiceLike {
-	patchPreferences: (
-		patch: Partial<UserPreferences>
-	) => Promise<UserPreferences> | Promise<unknown>;
+	patchPreferences: (patch: Partial<UserPreferences>) => Promise<UserPreferences>;
 }
 
 export interface SnapshotsServiceLike {
@@ -70,8 +69,8 @@ export interface SnapshotsServiceLike {
 			data_window: RewindDataWindow;
 			captured_at?: string;
 		}
-	) => Promise<RewindSnapshot> | Promise<unknown>;
-	getSnapshots: (securityId: string) => Promise<RewindSnapshot[]> | Promise<unknown>;
+	) => Promise<RewindSnapshot>;
+	getSnapshots: (securityId: string) => Promise<RewindSnapshot[]>;
 }
 
 export interface ToastLike {

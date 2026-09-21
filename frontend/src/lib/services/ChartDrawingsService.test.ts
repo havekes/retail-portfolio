@@ -1,7 +1,14 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { ChartDrawingsService, type ChartInstance } from './ChartDrawingsService.svelte';
+import { describe, it, expect, vi, beforeEach, type Mock } from 'vitest';
+import {
+	ChartDrawingsService,
+	type ChartInstance,
+	type UserPreferencesServiceLike,
+	type SnapshotsServiceLike,
+	type ToastLike
+} from './ChartDrawingsService.svelte';
 import type { Time } from 'lightweight-charts';
 import type { Candle } from '@/utils/finance/candle';
+import type { UserPreferences } from '$lib/api/userPreferencesService';
 import type {
 	LineDrawing,
 	MeasureDrawing,
@@ -10,17 +17,17 @@ import type {
 import type { RewindSnapshot } from '$lib/utils/finance/rewind';
 
 describe('ChartDrawingsService', () => {
-	let mockPatchPreferences: ReturnType<typeof vi.fn>;
-	let mockCreateSnapshot: ReturnType<typeof vi.fn>;
-	let mockGetSnapshots: ReturnType<typeof vi.fn>;
+	let mockPatchPreferences: Mock<UserPreferencesServiceLike['patchPreferences']>;
+	let mockCreateSnapshot: Mock<SnapshotsServiceLike['createSnapshot']>;
+	let mockGetSnapshots: Mock<SnapshotsServiceLike['getSnapshots']>;
 	let mockToast: {
-		info: ReturnType<typeof vi.fn>;
-		success: ReturnType<typeof vi.fn>;
-		error: ReturnType<typeof vi.fn>;
+		info: Mock<ToastLike['info']>;
+		success: Mock<ToastLike['success']>;
+		error: Mock<ToastLike['error']>;
 	};
-	let mockWaveAlertsReconcile: ReturnType<typeof vi.fn>;
-	let mockPreferencesChanged: ReturnType<typeof vi.fn>;
-	let mockChartSettingsOpen: ReturnType<typeof vi.fn>;
+	let mockWaveAlertsReconcile: Mock<() => void>;
+	let mockPreferencesChanged: Mock<(prefs: UserPreferences) => void>;
+	let mockChartSettingsOpen: Mock<() => void>;
 
 	const sampleCandles: Candle[] = [
 		{
@@ -42,7 +49,7 @@ describe('ChartDrawingsService', () => {
 	];
 
 	beforeEach(() => {
-		mockPatchPreferences = vi.fn().mockResolvedValue({});
+		mockPatchPreferences = vi.fn().mockResolvedValue({} as UserPreferences);
 		mockCreateSnapshot = vi.fn().mockImplementation((_secId, req) =>
 			Promise.resolve({
 				id: 'snap-1',
