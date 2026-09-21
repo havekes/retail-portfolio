@@ -9,10 +9,12 @@ import {
 import type { Time } from 'lightweight-charts';
 import type { Candle } from '@/utils/finance/candle';
 import type { UserPreferences } from '$lib/api/userPreferencesService';
-import type {
-	LineDrawing,
-	MeasureDrawing,
-	HorizontalLineDrawing
+import {
+	areDrawingCollectionsEqual,
+	normalizeSecurityDrawings,
+	type LineDrawing,
+	type MeasureDrawing,
+	type HorizontalLineDrawing
 } from '$lib/utils/finance/drawings';
 import type { RewindSnapshot } from '$lib/utils/finance/rewind';
 
@@ -512,6 +514,61 @@ describe('ChartDrawingsService', () => {
 		});
 	});
 
+	describe('Legacy drawing anchor normalization', () => {
+		it('normalizes restored legacy anchors without a write-back on load', () => {
+			const legacyMeasures: MeasureDrawing[] = [
+				{
+					id: 'm1',
+					p1: { time: '2025-01-01' as unknown as Time, price: 100 },
+					p2: { time: { year: 2025, month: 1, day: 2 }, price: 110 }
+				}
+			];
+
+			const service = createService({
+				userPreferences: {
+					drawings: {
+						'sec-1': { measures: legacyMeasures, horizontalLines: [], lines: [] }
+					}
+				}
+			});
+
+			expect(mockPatchPreferences).not.toHaveBeenCalled();
+
+			const restored = service.securityDrawings;
+			expect(restored.measures?.[0].p1.time).toBe(1735689600);
+			expect(restored.measures?.[0].p2.time).toBe(1735776000);
+
+			// This mirrors the security-chart sync guard: the primitive normalizes the
+			// same anchors on feed-in, so the guard sees no difference and never
+			// re-sets the primitive (which is what triggered the write-back).
+			const primitiveAnchors = normalizeSecurityDrawings(restored);
+			expect(areDrawingCollectionsEqual(restored.measures, primitiveAnchors?.measures)).toBe(true);
+			expect(mockPatchPreferences).not.toHaveBeenCalled();
+		});
+
+		it('normalizes legacy anchors applied through setPreferences', () => {
+			const service = createService({ userPreferences: {} });
+
+			service.setPreferences({
+				drawings: {
+					'sec-1': {
+						lines: [
+							{
+								id: 'l1',
+								p1: { time: '2025-01-01' as unknown as Time, price: 100 },
+								p2: { time: '2025-01-02' as unknown as Time, price: 110 }
+							}
+						]
+					}
+				}
+			});
+
+			expect(service.securityDrawings.lines?.[0].p1.time).toBe(1735689600);
+			expect(service.securityDrawings.lines?.[0].p2.time).toBe(1735776000);
+			expect(mockPatchPreferences).not.toHaveBeenCalled();
+		});
+	});
+
 	describe('Snapshots management and rewind', () => {
 		it('captures and saves snapshot via snapshotsService', async () => {
 			const line: LineDrawing = {
@@ -519,6 +576,8 @@ describe('ChartDrawingsService', () => {
 				p1: { time: '2025-01-01' as unknown as Time, price: 100 },
 				p2: { time: '2025-01-02' as unknown as Time, price: 110 }
 			};
+			// Restored drawings are normalized to epoch anchors at the service seam.
+			const normalizedLine = normalizeSecurityDrawings({ lines: [line] })!.lines![0];
 
 			const service = createService({
 				userPreferences: {
@@ -538,7 +597,7 @@ describe('ChartDrawingsService', () => {
 						drawings: {
 							measures: [],
 							horizontalLines: [],
-							lines: [line]
+							lines: [normalizedLine]
 						}
 					}),
 					data_window: {
@@ -619,11 +678,14 @@ describe('ChartDrawingsService', () => {
 				}
 			});
 
+			// Restored live drawings are exposed with normalized epoch anchors.
+			const normalizedLiveLine = normalizeSecurityDrawings({ lines: [liveLine] })!.lines![0];
+
 			service.snapshots = [snapshot];
 
 			// Not rewound: effective drawings are live drawings
-			expect(service.effectiveSecurityDrawings.lines).toEqual([liveLine]);
-			expect(service.getEffectiveSecurityDrawings().lines).toEqual([liveLine]);
+			expect(service.effectiveSecurityDrawings.lines).toEqual([normalizedLiveLine]);
+			expect(service.getEffectiveSecurityDrawings().lines).toEqual([normalizedLiveLine]);
 
 			// Rewound to the snapshot time
 			service.setTimelinePosition(new Date('2025-01-02T12:00:00.000Z'));

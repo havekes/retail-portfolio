@@ -6,6 +6,7 @@ import {
 	addOrReplaceDrawing,
 	removeSecurityDrawings,
 	isSecurityDrawingsEmpty,
+	normalizeSecurityDrawings,
 	areDrawingPointsEqual,
 	areDrawingsEqual,
 	areDrawingCollectionsEqual,
@@ -15,6 +16,9 @@ import {
 	type LineDrawing,
 	type SecurityDrawingsMap
 } from './drawings';
+
+const EPOCH_2025_01_01 = 1735689600;
+const EPOCH_2025_01_02 = 1735776000;
 
 const measure: MeasureDrawing = {
 	id: 'm1',
@@ -216,18 +220,87 @@ describe('drawings finance utilities', () => {
 		});
 	});
 
+	describe('normalizeSecurityDrawings', () => {
+		it('converts date-string and BusinessDay anchors to epoch seconds', () => {
+			const legacy: SecurityDrawingsMap = {
+				'sec-1': {
+					measures: [
+						{
+							id: 'm1',
+							p1: { time: '2025-01-01', price: 100 },
+							p2: { time: '2025-01-02', price: 110 }
+						}
+					],
+					horizontalLines: [
+						{ id: 'h1', p1: { time: { year: 2025, month: 1, day: 1 }, price: 90 } }
+					],
+					lines: [
+						{
+							id: 'l1',
+							p1: { time: '2025-01-01', price: 80 },
+							p2: { time: '2025-01-02', price: 70 }
+						}
+					]
+				}
+			};
+
+			const normalized = normalizeSecurityDrawings(legacy['sec-1']);
+
+			expect(normalized?.measures?.[0].p1).toEqual({ time: EPOCH_2025_01_01, price: 100 });
+			expect(normalized?.measures?.[0].p2).toEqual({ time: EPOCH_2025_01_02, price: 110 });
+			expect(normalized?.horizontalLines?.[0].p1).toEqual({ time: EPOCH_2025_01_01, price: 90 });
+			expect(normalized?.lines?.[0].p1).toEqual({ time: EPOCH_2025_01_01, price: 80 });
+			expect(normalized?.lines?.[0].p2).toEqual({ time: EPOCH_2025_01_02, price: 70 });
+			// ids and visibility are preserved
+			expect(normalized?.measures?.[0].id).toBe('m1');
+			expect(normalized?.horizontalLines?.[0].id).toBe('h1');
+		});
+
+		it('is idempotent for already-normalized epoch anchors', () => {
+			const epochDrawings: SecurityDrawingsMap = {
+				'sec-1': {
+					measures: [
+						{
+							id: 'm-epoch',
+							p1: { time: EPOCH_2025_01_01 as UTCTimestamp, price: 100 },
+							p2: { time: EPOCH_2025_01_02 as UTCTimestamp, price: 110 }
+						}
+					]
+				}
+			};
+			const normalized = normalizeSecurityDrawings(epochDrawings['sec-1']);
+			expect(normalized?.measures?.[0].p1.time).toBe(EPOCH_2025_01_01);
+			expect(normalizeSecurityDrawings(normalized)?.measures).toEqual(normalized?.measures);
+		});
+
+		it('preserves null/undefined collections and nullish input', () => {
+			expect(normalizeSecurityDrawings(null)).toBeNull();
+			expect(normalizeSecurityDrawings(undefined)).toBeNull();
+			expect(normalizeSecurityDrawings({ measures: null })).toEqual({ measures: null });
+			expect(normalizeSecurityDrawings({ lines: undefined })?.lines).toBeUndefined();
+		});
+	});
+
 	describe('areDrawingPointsEqual', () => {
-		it('compares price and time with string normalization', () => {
+		it('compares price and time using canonical epoch normalization', () => {
 			expect(
 				areDrawingPointsEqual(
 					{ time: '2024-01-01', price: 100 },
 					{ time: '2024-01-01', price: 100 }
 				)
 			).toBe(true);
+			// A legacy date-string anchor equals its epoch form
 			expect(
 				areDrawingPointsEqual(
-					{ time: 1700000000 as UTCTimestamp, price: 100 },
-					{ time: '1700000000', price: 100 }
+					{ time: 1735689600 as UTCTimestamp, price: 100 },
+					{ time: '2025-01-01', price: 100 }
+				)
+			).toBe(true);
+			// A BusinessDay anchor equals its epoch form
+			expect(
+				areDrawingPointsEqual(
+					{ time: { year: 2025, month: 1, day: 1 }, price: 100 },
+					{ time: 1735689600 as UTCTimestamp, price: 100 }
 				)
 			).toBe(true);
 			expect(

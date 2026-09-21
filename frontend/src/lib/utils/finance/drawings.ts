@@ -1,4 +1,5 @@
 import type { Time } from 'lightweight-charts';
+import { normalizeDrawingTime } from './drawing-time';
 
 /**
  * Tool identifiers for the new drawing tools. Each maps to a per-security
@@ -198,8 +199,43 @@ export function isSecurityDrawingsEmpty(value: SecurityDrawings | null | undefin
 }
 
 /**
- * Compares two DrawingPoint objects for structural equality (stringifies time
- * so BusinessDay objects and their string forms compare equal).
+ * Normalizes a single drawing anchor to canonical epoch seconds. Legacy anchors
+ * persisted as date strings or `BusinessDay` objects are converted here.
+ */
+function normalizeDrawingPoint(point: DrawingPoint | null | undefined): DrawingPoint | null {
+	if (!point) return null;
+	return { time: normalizeDrawingTime(point.time), price: point.price };
+}
+
+/**
+ * Normalizes every anchor of a per-security drawings collection to canonical
+ * epoch seconds. Legacy date-string/`BusinessDay` anchors are upgraded here so
+ * restored drawings already match what the chart primitives derive on feed-in.
+ */
+export function normalizeSecurityDrawings(
+	drawings: SecurityDrawings | null | undefined
+): SecurityDrawings | null {
+	if (!drawings) return null;
+	const normalizeTwoPoint = <T extends MeasureDrawing | LineDrawing>(drawing: T): T => ({
+		...drawing,
+		p1: normalizeDrawingPoint(drawing.p1) as DrawingPoint,
+		p2: normalizeDrawingPoint(drawing.p2) as DrawingPoint
+	});
+	return {
+		measures: drawings.measures?.map((drawing) => normalizeTwoPoint(drawing)) ?? drawings.measures,
+		horizontalLines:
+			drawings.horizontalLines?.map((drawing) => ({
+				...drawing,
+				p1: normalizeDrawingPoint(drawing.p1) as DrawingPoint
+			})) ?? drawings.horizontalLines,
+		lines: drawings.lines?.map((drawing) => normalizeTwoPoint(drawing)) ?? drawings.lines
+	};
+}
+
+/**
+ * Compares two DrawingPoint objects for structural equality. Times are compared
+ * as canonical epoch seconds so a legacy date-string/`BusinessDay` anchor equals
+ * its epoch form.
  */
 export function areDrawingPointsEqual(
 	a: DrawingPoint | null | undefined,
@@ -207,7 +243,7 @@ export function areDrawingPointsEqual(
 ): boolean {
 	if (!a && !b) return true;
 	if (!a || !b) return false;
-	return a.price === b.price && String(a.time) === String(b.time);
+	return a.price === b.price && normalizeDrawingTime(a.time) === normalizeDrawingTime(b.time);
 }
 
 /**
