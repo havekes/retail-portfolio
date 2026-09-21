@@ -487,4 +487,82 @@ describe('DrawingToolbar Component', () => {
 		expect(onUndo).toHaveBeenCalledTimes(1);
 		expect(onRedo).toHaveBeenCalledTimes(1);
 	});
+
+	it('delegates actions to service when service prop is provided', async () => {
+		const mockService = {
+			activeWaveDegree: 'cycle' as const,
+			activeWaveType: 'impulse' as const,
+			isDrawingWave: false,
+			isDrawingWaveEffective: false,
+			activeFibTool: 'retracement' as const,
+			isDrawingFib: false,
+			isDrawingFibEffective: false,
+			isDrawingMeasure: false,
+			isDrawingMeasureEffective: false,
+			isDrawingHorizontalLine: false,
+			isDrawingHorizontalLineEffective: false,
+			isDrawingLine: false,
+			isDrawingLineEffective: false,
+			isTimelineVisible: false,
+			canUndo: true,
+			canRedo: true,
+			saveFeedback: 'idle' as const,
+			selectWaveDegree: vi.fn(),
+			toggleFib: vi.fn(),
+			toggleMeasure: vi.fn(),
+			toggleHorizontalLine: vi.fn(),
+			toggleLine: vi.fn(),
+			handleUndo: vi.fn(),
+			handleRedo: vi.fn(),
+			handleSaveSnapshot: vi.fn(),
+			toggleTimeline: vi.fn()
+		};
+
+		render(DrawingToolbar, {
+			props: {
+				/* eslint-disable-next-line @typescript-eslint/no-explicit-any */
+				service: mockService as any
+			}
+		});
+
+		// Fib retracement click
+		const fibBtn = screen.getByRole('button', { name: /Toggle Fib Retrace drawing/i });
+		await fireEvent.click(fibBtn);
+		expect(mockService.toggleFib).toHaveBeenCalledWith('retracement');
+
+		// Measure click
+		const measureBtn = screen.getByRole('button', { name: /Toggle Measure drawing/i });
+		await fireEvent.click(measureBtn);
+		expect(mockService.toggleMeasure).toHaveBeenCalledTimes(1);
+
+		// Horizontal line click
+		const hLineBtn = screen.getByRole('button', { name: /Toggle Horizontal Line drawing/i });
+		await fireEvent.click(hLineBtn);
+		expect(mockService.toggleHorizontalLine).toHaveBeenCalledTimes(1);
+
+		// Line click
+		const lineBtn = screen.getByRole('button', { name: /Toggle Line drawing/i });
+		await fireEvent.click(lineBtn);
+		expect(mockService.toggleLine).toHaveBeenCalledTimes(1);
+
+		// Undo click
+		const undoBtn = screen.getByRole('button', { name: 'Undo' });
+		await fireEvent.click(undoBtn);
+		expect(mockService.handleUndo).toHaveBeenCalledTimes(1);
+
+		// Redo click
+		const redoBtn = screen.getByRole('button', { name: 'Redo' });
+		await fireEvent.click(redoBtn);
+		expect(mockService.handleRedo).toHaveBeenCalledTimes(1);
+
+		// Save click
+		const saveBtn = screen.getByRole('button', { name: 'Save snapshot' });
+		await fireEvent.click(saveBtn);
+		expect(mockService.handleSaveSnapshot).toHaveBeenCalledTimes(1);
+
+		// Timeline click
+		const timelineBtn = screen.getByRole('button', { name: 'Toggle rewind timeline' });
+		await fireEvent.click(timelineBtn);
+		expect(mockService.toggleTimeline).toHaveBeenCalledTimes(1);
+	});
 });
