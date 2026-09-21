@@ -160,11 +160,38 @@ describe('AppSidebar Modular Components', () => {
 
 			const searchBtn = screen.getByRole('button', { name: /search/i });
 			expect(searchBtn).toBeInTheDocument();
-			expect(screen.getByText('⌘')).toBeInTheDocument();
-			expect(screen.getByText('P')).toBeInTheDocument();
+			expect(screen.getByText('/')).toBeInTheDocument();
 
 			await fireEvent.click(searchBtn);
 			expect(onToggleSearch).toHaveBeenCalledTimes(1);
+		});
+
+		it('shows keyboard shortcut hints for Watchlists and Holdings', () => {
+			render(AppSidebarTestHarness, {
+				props: {
+					open: true,
+					securities: mockSecurities
+				}
+			});
+
+			const watchlistsLink = screen.getByRole('link', { name: /watchlists/i });
+			expect(watchlistsLink).toHaveTextContent('w');
+
+			const holdingsLink = screen.getByRole('link', { name: /holdings/i });
+			expect(holdingsLink).toHaveTextContent('h');
+		});
+
+		it('hides the shortcut hints in the collapsed rail', () => {
+			render(AppSidebarTestHarness, {
+				props: {
+					open: false,
+					securities: mockSecurities
+				}
+			});
+
+			for (const hint of Array.from(document.querySelectorAll('[data-slot="kbd-group"]'))) {
+				expect(hint).toHaveClass('group-data-[collapsible=icon]:hidden');
+			}
 		});
 
 		it('renders the Watchlists link directly below Search in the sidebar content', () => {
@@ -176,7 +203,7 @@ describe('AppSidebar Modular Components', () => {
 			});
 
 			const searchBtn = screen.getByRole('button', { name: /search/i });
-			const watchlistsLink = screen.getByRole('link', { name: 'Watchlists' });
+			const watchlistsLink = screen.getByRole('link', { name: /watchlists/i });
 
 			expect(watchlistsLink.closest('[data-slot="sidebar-header"]')).toBeNull();
 			expect(searchBtn.closest('[data-slot="sidebar-group"]')).toBe(
@@ -291,6 +318,58 @@ describe('AppSidebar Modular Components', () => {
 			const spyLink = screen.getByText('SPY').closest('a');
 			expect(spyLink).toHaveAttribute('href', '/security/sec-3');
 			expect(screen.getByText('Apple Inc.')).toBeInTheDocument();
+		});
+
+		it('shows numeric shortcut hints on default watchlist tickers only', () => {
+			const defaultList = {
+				id: 'w-default',
+				user_id: 'u1',
+				name: 'Default',
+				securities: [mockSecurities[0], mockSecurities[1]]
+			};
+			render(AppSidebarTestHarness, {
+				props: {
+					open: true,
+					securities: [],
+					watchlists: [defaultList, tech]
+				}
+			});
+
+			const expected: [string, string][] = [
+				['C', '1'],
+				['BA', '2']
+			];
+			for (const [ticker, hint] of expected) {
+				const link = screen.getByText(ticker).closest('a') as HTMLElement;
+				expect(link.querySelector('[data-slot="kbd"]')?.textContent).toBe(hint);
+			}
+
+			// Non-default watchlist tickers get no shortcut hint.
+			const aaplLink = screen.getByText('AAPL').closest('a') as HTMLElement;
+			expect(aaplLink.querySelector('[data-slot="kbd"]')).toBeNull();
+		});
+
+		it('maps the tenth default watchlist ticker to 0', () => {
+			const securities = Array.from({ length: 10 }, (_, index) => ({
+				...mockSecurities[0],
+				id: `sec-${index}`,
+				symbol: `S${index}`
+			}));
+			render(AppSidebarTestHarness, {
+				props: {
+					open: true,
+					securities: [],
+					watchlists: [{ id: 'w-default', user_id: 'u1', name: 'Default', securities }]
+				}
+			});
+
+			const defaultGroup = screen
+				.getByText('Default')
+				.closest('[data-sidebar="group"]') as HTMLElement;
+			const hints = Array.from(defaultGroup.querySelectorAll('[data-slot="kbd"]')).map(
+				(kbd) => kbd.textContent
+			);
+			expect(hints).toEqual(['1', '2', '3', '4', '5', '6', '7', '8', '9', '0']);
 		});
 
 		it('renders a muted empty state for a watchlist without securities', () => {

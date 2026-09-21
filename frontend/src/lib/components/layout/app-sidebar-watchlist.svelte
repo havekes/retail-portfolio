@@ -1,5 +1,6 @@
 <script lang="ts">
 	import * as Sidebar from '$lib/components/ui/sidebar/index.js';
+	import * as Kbd from '$lib/components/ui/kbd/index.js';
 	import { resolve } from '$app/paths';
 	import { page } from '$app/stores';
 	import ChevronDown from '@lucide/svelte/icons/chevron-down';
@@ -41,6 +42,12 @@
 			.catch(console.error);
 	}
 
+	/** Shortcut hint for the nth default-watchlist ticker: 1-9, then 0 for the tenth. */
+	function getTickerShortcut(index: number): string | undefined {
+		if (index < 0 || index > 9) return undefined;
+		return index === 9 ? '0' : String(index + 1);
+	}
+
 	function getTickerFontSize(symbol: string): string {
 		const len = symbol.length;
 		if (len <= 2) {
@@ -53,11 +60,13 @@
 	}
 </script>
 
-{#snippet securityItem(security: SecuritySchema)}
+{#snippet securityItem(security: SecuritySchema, shortcut?: string)}
 	<Sidebar.MenuItem>
 		<Sidebar.MenuButton
 			class="group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:p-0! group-data-[collapsible=icon]:[&>span:last-child]:overflow-visible group-data-[collapsible=icon]:[&>span:last-child]:text-clip"
-			tooltipContent={`${security.symbol} - ${security.name}`}
+			tooltipContent={shortcut
+				? `${security.symbol} - ${security.name} (${shortcut})`
+				: `${security.symbol} - ${security.name}`}
 		>
 			{#snippet child({ props })}
 				<a href={resolve(`/security/${security.id}`)} {...props}>
@@ -75,6 +84,11 @@
 						<span class="ml-1 truncate text-xs font-normal text-muted-foreground">
 							{security.name}
 						</span>
+						{#if shortcut}
+							<Kbd.Group class="ml-auto">
+								<Kbd.Root>{shortcut}</Kbd.Root>
+							</Kbd.Group>
+						{/if}
 					{/if}
 				</a>
 			{/snippet}
@@ -110,8 +124,11 @@
 		{#if !collapsedIds.has(watchlist.id)}
 			<Sidebar.GroupContent>
 				<Sidebar.Menu>
-					{#each watchlist.securities as security (security.id)}
-						{@render securityItem(security)}
+					{#each watchlist.securities as security, index (security.id)}
+						{@render securityItem(
+							security,
+							isDefaultWatchlist ? getTickerShortcut(index) : undefined
+						)}
 					{:else}
 						<Sidebar.MenuItem>
 							<span

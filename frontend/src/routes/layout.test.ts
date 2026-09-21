@@ -1,8 +1,10 @@
-import { render, screen } from '@testing-library/svelte';
+import { render, screen, fireEvent } from '@testing-library/svelte';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import Layout from './+layout.svelte';
 import { load } from './+layout.server';
 import { createRawSnippet } from 'svelte';
+import { goto } from '$app/navigation';
+import { getWatchlistService } from '$lib/components/watchlist/watchlistService.svelte';
 import { getUserPreferencesService } from '$lib/api/userPreferencesService';
 
 vi.mock('mode-watcher', () => ({
@@ -131,6 +133,101 @@ describe('Root +layout.svelte', () => {
 		const inset = document.querySelector('[data-slot="sidebar-inset"]');
 		expect(inset).toBeInTheDocument();
 		expect(inset).toHaveClass('min-w-0');
+	});
+
+	describe('sidebar keyboard shortcuts', () => {
+		// Svelte delegates `keydown` to the document root, so the event must be
+		// dispatched from an element inside the rendered tree to reach the handler.
+		let capturedWatchlistService: ReturnType<typeof getWatchlistService> | null = null;
+
+		const renderLayout = () => {
+			const children = createRawSnippet(() => ({
+				render: () => '<div data-testid="page-content">Authenticated Dashboard</div>',
+				setup: () => {
+					capturedWatchlistService = getWatchlistService();
+				}
+			}));
+
+			render(Layout, {
+				props: {
+					data: {
+						user: { id: 'u1', email: 'test@example.com' },
+						sidebar_open: true,
+						collapsed_watchlist_ids: [],
+						watchlist_order: null,
+						watchlist_sort: null
+					},
+					children
+				}
+			});
+
+			return screen.getByTestId('page-content');
+		};
+
+		const pressKey = (target: HTMLElement, key: string, modifiers: KeyboardEventInit = {}) =>
+			fireEvent.keyDown(target, { key, ...modifiers });
+
+		it('opens global search on "/"', async () => {
+			const content = renderLayout();
+
+			await pressKey(content, '/');
+
+			expect(screen.getByPlaceholderText('Search for a company or symbol...')).toBeInTheDocument();
+		});
+
+		it('navigates to watchlists on "w" and holdings on "h"', async () => {
+			const content = renderLayout();
+
+			await pressKey(content, 'w');
+			expect(goto).toHaveBeenCalledWith('/watchlists');
+
+			await pressKey(content, 'h');
+			expect(goto).toHaveBeenCalledWith('/holdings');
+		});
+
+		it('navigates to default watchlist tickers by number, with 0 for the tenth', async () => {
+			const content = renderLayout();
+			capturedWatchlistService!.defaultWatchlistSecurities = Array.from(
+				{ length: 11 },
+				(_, index) => ({
+					id: `sec-${index}`,
+					symbol: `S${index}`,
+					exchange: 'NASDAQ',
+					currency: 'USD',
+					name: `Security ${index}`,
+					isin: null,
+					is_active: true,
+					updated_at: '2026-01-01T00:00:00Z'
+				})
+			);
+
+			await pressKey(content, '1');
+			expect(goto).toHaveBeenCalledWith('/security/sec-0');
+
+			await pressKey(content, '0');
+			expect(goto).toHaveBeenCalledWith('/security/sec-9');
+		});
+
+		it('ignores shortcuts while typing in an input', async () => {
+			renderLayout();
+			const input = document.createElement('input');
+			document.body.appendChild(input);
+
+			await pressKey(input, 'w');
+			await pressKey(input, '1');
+
+			expect(goto).not.toHaveBeenCalled();
+			input.remove();
+		});
+
+		it('ignores shortcuts when a modifier key is held', async () => {
+			const content = renderLayout();
+
+			await pressKey(content, 'w', { metaKey: true });
+			await pressKey(content, 'h', { ctrlKey: true });
+
+			expect(goto).not.toHaveBeenCalled();
+		});
 	});
 
 	describe('collapsed_watchlist_ids preference', () => {

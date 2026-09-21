@@ -13,32 +13,37 @@
 <Sidebar.Group>
 	<Sidebar.Menu>
 		<Sidebar.MenuItem>
-			<Sidebar.MenuButton onclick={() => toggleGlobalSearch?.()} tooltipContent="Search (⌘P)">
+			<Sidebar.MenuButton onclick={() => toggleGlobalSearch?.()} tooltipContent="Search (/)">
 				<Search class="h-4 w-4 shrink-0" />
 				<span class="text-base">Search</span>
 
-				<Kbd.Group class="ml-auto">
-					<Kbd.Root>⌘</Kbd.Root>
-					<Kbd.Root>P</Kbd.Root>
+				<Kbd.Group class="ml-auto group-data-[collapsible=icon]:hidden">
+					<Kbd.Root>/</Kbd.Root>
 				</Kbd.Group>
 			</Sidebar.MenuButton>
 		</Sidebar.MenuItem>
 		<Sidebar.MenuItem>
-			<Sidebar.MenuButton tooltipContent="Watchlists">
+			<Sidebar.MenuButton tooltipContent="Watchlists (w)">
 				{#snippet child({ props })}
 					<a href={resolve('/watchlists')} {...props}>
 						<List class="h-4 w-4 shrink-0" />
 						<span class="truncate text-base">Watchlists</span>
+						<Kbd.Group class="ml-auto group-data-[collapsible=icon]:hidden">
+							<Kbd.Root>w</Kbd.Root>
+						</Kbd.Group>
 					</a>
 				{/snippet}
 			</Sidebar.MenuButton>
 		</Sidebar.MenuItem>
 		<Sidebar.MenuItem>
-			<Sidebar.MenuButton tooltipContent="Holdings">
+			<Sidebar.MenuButton tooltipContent="Holdings (h)">
 				{#snippet child({ props })}
 					<a href={resolve('/holdings')} {...props}>
 						<ChartPie class="h-4 w-4 shrink-0" />
 						<span class="text-base">Holdings</span>
+						<Kbd.Group class="ml-auto group-data-[collapsible=icon]:hidden">
+							<Kbd.Root>h</Kbd.Root>
+						</Kbd.Group>
 					</a>
 				{/snippet}
 			</Sidebar.MenuButton>
