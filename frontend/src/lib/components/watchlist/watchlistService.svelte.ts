@@ -32,6 +32,7 @@ export class WatchlistService {
 	}
 
 	async loadWatchlists(token?: string | null): Promise<void> {
+		this.error = null;
 		this.isLoading = true;
 		try {
 			this.watchlists = await this.client.getWatchlists(token);
@@ -55,24 +56,43 @@ export class WatchlistService {
 		result: MarketSearchResult,
 		token?: string | null
 	): Promise<void> {
+		this.error = null;
 		try {
-			const resolved = await this.client.createOrUpdateSecurity({
-				code: result.code,
-				exchange: result.exchange,
-				name: result.name,
-				currency: 'USD'
-			});
-			// The backend does not dedupe membership, so short-circuit before the
-			// membership POST when the security already belongs to the list.
 			const target = this.watchlists.find((w) => w.id === watchlistId);
-			if (target?.securities.some((s) => s.id === resolved.security_id)) {
+			if (
+				target?.securities.some(
+					(s) =>
+						s.symbol.toUpperCase() === result.code.toUpperCase() &&
+						s.exchange.toUpperCase() === result.exchange.toUpperCase()
+				)
+			) {
 				return;
 			}
-			const updated = await this.client.addSecurityToWatchlist(
-				watchlistId,
-				resolved.security_id,
-				token
-			);
+
+			let securityId: string | undefined;
+			for (const w of this.watchlists) {
+				const match = w.securities.find(
+					(s) =>
+						s.symbol.toUpperCase() === result.code.toUpperCase() &&
+						s.exchange.toUpperCase() === result.exchange.toUpperCase()
+				);
+				if (match) {
+					securityId = match.id;
+					break;
+				}
+			}
+
+			if (!securityId) {
+				const resolved = await this.client.createOrUpdateSecurity({
+					code: result.code,
+					exchange: result.exchange,
+					name: result.name,
+					currency: 'USD'
+				});
+				securityId = resolved.security_id;
+			}
+
+			const updated = await this.client.addSecurityToWatchlist(watchlistId, securityId, token);
 			this.replaceWatchlist(updated);
 		} catch (err) {
 			this.handleError(err, 'Failed to add security to watchlist');
@@ -84,6 +104,7 @@ export class WatchlistService {
 		securityId: string,
 		token?: string | null
 	): Promise<void> {
+		this.error = null;
 		try {
 			const updated = await this.client.removeSecurityFromWatchlist(watchlistId, securityId, token);
 			this.replaceWatchlist(updated);
@@ -93,6 +114,7 @@ export class WatchlistService {
 	}
 
 	async createWatchlist(name: string, token?: string | null): Promise<void> {
+		this.error = null;
 		try {
 			const created = await this.client.createWatchlist(name, token);
 			this.watchlists = [...this.watchlists, created];
@@ -102,6 +124,7 @@ export class WatchlistService {
 	}
 
 	async renameWatchlist(watchlistId: string, name: string, token?: string | null): Promise<void> {
+		this.error = null;
 		try {
 			const updated = await this.client.renameWatchlist(watchlistId, name, token);
 			this.replaceWatchlist(updated);
@@ -111,6 +134,7 @@ export class WatchlistService {
 	}
 
 	async deleteWatchlist(watchlistId: string, token?: string | null): Promise<void> {
+		this.error = null;
 		try {
 			await this.client.deleteWatchlist(watchlistId, token);
 			this.watchlists = this.watchlists.filter((w) => w.id !== watchlistId);
@@ -124,6 +148,7 @@ export class WatchlistService {
 		securityId: string,
 		token?: string | null
 	): Promise<void> {
+		this.error = null;
 		try {
 			const updated = await this.client.addSecurityToWatchlist(watchlistId, securityId, token);
 			this.replaceWatchlist(updated);
@@ -137,12 +162,15 @@ export class WatchlistService {
 		securityId: string,
 		token?: string | null
 	): Promise<void> {
+		this.error = null;
 		try {
 			const updated = await this.client.removeSecurityFromWatchlist(watchlistId, securityId, token);
 			this.replaceWatchlist(updated);
 		} catch (err) {
-			this.handleError(err, 'Failed to remove security from watchlist');
+			// Resync first: the resync clears the shared error at its start, so the
+			// removal error must be recorded afterwards to stay visible.
 			await this.loadWatchlists(token);
+			this.handleError(err, 'Failed to remove security from watchlist');
 		}
 	}
 
@@ -151,6 +179,7 @@ export class WatchlistService {
 	}
 
 	async toggleSecurity(securityId: string, token?: string | null): Promise<void> {
+		this.error = null;
 		const isAdded = this.hasSecurity(securityId);
 		try {
 			const updated = isAdded
@@ -158,8 +187,10 @@ export class WatchlistService {
 				: await this.client.addToWatchlist(securityId, token);
 			this.replaceWatchlist(updated);
 		} catch (err) {
-			this.handleError(err, 'Failed to toggle watchlist security');
+			// Resync first: the resync clears the shared error at its start, so the
+			// toggle error must be recorded afterwards to stay visible.
 			await this.loadWatchlists(token);
+			this.handleError(err, 'Failed to toggle watchlist security');
 		}
 	}
 }

@@ -14,11 +14,12 @@ import type {
 } from '$lib/utils/finance/fibonacci';
 import { updateSecurityFibonacciTools } from '$lib/utils/finance/fibonacci';
 import type { RewindSnapshot } from '$lib/utils/finance/rewind';
-import type {
-	SecurityDrawings,
-	MeasureDrawing,
-	HorizontalLineDrawing,
-	LineDrawing
+import {
+	normalizeSecurityDrawings,
+	type SecurityDrawings,
+	type MeasureDrawing,
+	type HorizontalLineDrawing,
+	type LineDrawing
 } from '$lib/utils/finance/drawings';
 import { snapshotsService } from '$lib/api/snapshotsService';
 import { toast } from '$lib/components/ui/toast/index.js';
@@ -2563,7 +2564,8 @@ describe('Rewind Save Snapshot', () => {
 				drawings: expect.objectContaining({
 					elliott_waves: { waves: [] },
 					fibonacci_tools: {},
-					drawings: sampleNewDrawings['sec-1']
+					// restored anchors are normalized to epoch seconds at the drawings seam
+					drawings: normalizeSecurityDrawings(sampleNewDrawings['sec-1'])
 				}),
 				data_window: {
 					first: '2024-01-01',
@@ -2921,7 +2923,9 @@ describe('Rewind Scrub and Drawing Restore', () => {
 		};
 
 		await waitFor(() => {
-			expect(page.getEffectiveSecurityDrawings()).toEqual(liveDrawings['sec-1']);
+			expect(page.getEffectiveSecurityDrawings()).toEqual(
+				normalizeSecurityDrawings(liveDrawings['sec-1'])
+			);
 		});
 
 		expect(await screen.findByTestId('rewind-timeline')).toBeInTheDocument();
@@ -3680,7 +3684,9 @@ describe('Security Page - Measure Tool & Integration', () => {
 					drawings: expect.objectContaining({
 						'sec-1': expect.objectContaining({
 							measures: [sampleMeasure],
-							horizontalLines: [{ id: 'hl-1', p1: { time: '2024-01-01', price: 90 } }]
+							horizontalLines: normalizeSecurityDrawings({
+								horizontalLines: [{ id: 'hl-1', p1: { time: '2024-01-01', price: 90 } }]
+							})?.horizontalLines
 						})
 					})
 				})
@@ -3698,7 +3704,7 @@ describe('Security Page - Measure Tool & Integration', () => {
 
 		await waitFor(() => {
 			// @ts-expect-error - mockChartProps typed as Record
-			expect(mockChartProps.securityDrawings).toEqual(sampleDrawings);
+			expect(mockChartProps.securityDrawings).toEqual(normalizeSecurityDrawings(sampleDrawings));
 		});
 	});
 
@@ -3855,7 +3861,7 @@ describe('Security Page - Measure Tool & Integration', () => {
 				'sec-1',
 				expect.objectContaining({
 					drawings: expect.objectContaining({
-						drawings: sampleDrawings
+						drawings: normalizeSecurityDrawings(sampleDrawings)
 					})
 				})
 			);
@@ -3993,13 +3999,15 @@ describe('Security Page - Horizontal Line Tool & Integration', () => {
 					drawings: expect.objectContaining({
 						'sec-1': expect.objectContaining({
 							horizontalLines: [sampleHorizontalLine],
-							measures: [
-								{
-									id: 'measure-1',
-									p1: { time: '2024-01-01', price: 90 },
-									p2: { time: '2024-01-02', price: 110 }
-								}
-							]
+							measures: normalizeSecurityDrawings({
+								measures: [
+									{
+										id: 'measure-1',
+										p1: { time: '2024-01-01', price: 90 },
+										p2: { time: '2024-01-02', price: 110 }
+									}
+								]
+							})?.measures
 						})
 					})
 				})
@@ -4017,7 +4025,7 @@ describe('Security Page - Horizontal Line Tool & Integration', () => {
 
 		await waitFor(() => {
 			// @ts-expect-error - mockChartProps typed as Record
-			expect(mockChartProps.securityDrawings).toEqual(sampleDrawings);
+			expect(mockChartProps.securityDrawings).toEqual(normalizeSecurityDrawings(sampleDrawings));
 		});
 	});
 
@@ -4165,7 +4173,7 @@ describe('Security Page - Horizontal Line Tool & Integration', () => {
 				'sec-1',
 				expect.objectContaining({
 					drawings: expect.objectContaining({
-						drawings: sampleDrawings
+						drawings: normalizeSecurityDrawings(sampleDrawings)
 					})
 				})
 			);
@@ -4305,14 +4313,18 @@ describe('Security Page - Free-form Line Tool & Integration', () => {
 					drawings: expect.objectContaining({
 						'sec-1': expect.objectContaining({
 							lines: [sampleLine],
-							measures: [
-								{
-									id: 'measure-1',
-									p1: { time: '2024-01-01', price: 90 },
-									p2: { time: '2024-01-02', price: 110 }
-								}
-							],
-							horizontalLines: [{ id: 'hl-1', p1: { time: '2024-01-01', price: 95 } }]
+							measures: normalizeSecurityDrawings({
+								measures: [
+									{
+										id: 'measure-1',
+										p1: { time: '2024-01-01', price: 90 },
+										p2: { time: '2024-01-02', price: 110 }
+									}
+								]
+							})?.measures,
+							horizontalLines: normalizeSecurityDrawings({
+								horizontalLines: [{ id: 'hl-1', p1: { time: '2024-01-01', price: 95 } }]
+							})?.horizontalLines
 						})
 					})
 				})
@@ -4330,7 +4342,7 @@ describe('Security Page - Free-form Line Tool & Integration', () => {
 
 		await waitFor(() => {
 			// @ts-expect-error - mockChartProps typed as Record
-			expect(mockChartProps.securityDrawings).toEqual(sampleDrawings);
+			expect(mockChartProps.securityDrawings).toEqual(normalizeSecurityDrawings(sampleDrawings));
 		});
 	});
 
@@ -4478,7 +4490,7 @@ describe('Security Page - Free-form Line Tool & Integration', () => {
 				'sec-1',
 				expect.objectContaining({
 					drawings: expect.objectContaining({
-						drawings: sampleDrawings
+						drawings: normalizeSecurityDrawings(sampleDrawings)
 					})
 				})
 			);

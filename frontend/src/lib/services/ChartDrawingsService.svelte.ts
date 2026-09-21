@@ -26,6 +26,7 @@ import type {
 } from '$lib/utils/finance/drawings';
 import {
 	isSecurityDrawingsEmpty,
+	normalizeSecurityDrawings,
 	removeSecurityDrawings,
 	updateSecurityDrawings
 } from '$lib/utils/finance/drawings';
@@ -100,6 +101,22 @@ function normalizeCandleTime(t: Time): string | number {
 	return String(t);
 }
 
+/**
+ * Normalizes legacy drawing anchors (date strings / `BusinessDay` objects) for
+ * every security at the preference-loading seam, so restored drawings already
+ * equal the epoch anchors the chart primitives derive on feed-in. Without this
+ * the primitive sync effects see a difference and write one extra preference
+ * patch per tool on first load.
+ */
+function normalizeDrawingsPreferences(prefs: UserPreferences | null): UserPreferences | null {
+	if (!prefs?.drawings) return prefs;
+	const drawings: Record<string, SecurityDrawings> = {};
+	for (const [securityKey, value] of Object.entries(prefs.drawings)) {
+		drawings[securityKey] = normalizeSecurityDrawings(value) ?? {};
+	}
+	return { ...prefs, drawings };
+}
+
 export class ChartDrawingsService {
 	// Active tool state
 	activeWaveDegree = $state<WaveDegree>('cycle');
@@ -161,7 +178,8 @@ export class ChartDrawingsService {
 	}
 
 	get securityDrawings(): SecurityDrawings {
-		return (this.securityId && this.userPreferences?.drawings?.[this.securityId]) || {};
+		const stored = (this.securityId && this.userPreferences?.drawings?.[this.securityId]) || null;
+		return normalizeSecurityDrawings(stored) ?? {};
 	}
 
 	get activeSnapshot(): RewindSnapshot | null {
@@ -213,7 +231,7 @@ export class ChartDrawingsService {
 	constructor(options: ChartDrawingsServiceOptions = {}) {
 		this.options = options;
 		this.securityId = options.securityId ?? null;
-		this.userPreferences = options.userPreferences ?? null;
+		this.userPreferences = normalizeDrawingsPreferences(options.userPreferences ?? null);
 		this.displayCandles = options.displayCandles ?? [];
 		this._userPreferencesService = options.userPreferencesService ?? userPreferencesService;
 		this._snapshotsService = options.snapshotsService ?? snapshotsService;
@@ -250,8 +268,9 @@ export class ChartDrawingsService {
 
 	setPreferences = (prefs: UserPreferences | null) => {
 		if (this.userPreferences === prefs) return;
-		this.userPreferences = prefs;
-		if (prefs && this.securityId && this._historyManager.getCurrentState() === null) {
+		const normalized = normalizeDrawingsPreferences(prefs);
+		this.userPreferences = normalized;
+		if (normalized && this.securityId && this._historyManager.getCurrentState() === null) {
 			this._historyManager.init(this.getCurrentDrawingState());
 		}
 	};
