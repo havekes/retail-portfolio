@@ -118,11 +118,18 @@ export abstract class DrawingPrimitiveBase<
 			this._requestUpdate?.();
 		});
 
-		this._subscribeToUpdate(this._mouseHandlers.mouseMoved());
+		this._subscribe(this._mouseHandlers.mouseMoved(), () => {
+			if (this._state.isDrawingMode()) {
+				this._requestUpdate?.();
+			}
+		});
 
 		this._subscribe(this._mouseHandlers.pointHovered(), (target) => {
+			const shouldUpdate = this._state.getHoveredPoint() !== null || target !== null;
 			this._state.setHoveredPoint(target);
-			this._requestUpdate?.();
+			if (shouldUpdate) {
+				this._requestUpdate?.();
+			}
 		});
 
 		this._subscribe(this._mouseHandlers.dragStarted(), (target) => {
