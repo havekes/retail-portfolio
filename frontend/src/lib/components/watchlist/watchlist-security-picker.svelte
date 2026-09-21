@@ -12,29 +12,37 @@
 	let isSearching = $state(false);
 	let searchError = $state<string | null>(null);
 	let searchResults = $state<MarketSearchResult[]>([]);
+	let latestRequestId = 0;
 
 	const search = debounce(async (value: string) => {
 		const trimmed = value.trim();
 		if (trimmed.length < 2) {
+			latestRequestId++;
 			searchResults = [];
 			searchError = null;
+			isSearching = false;
 			return;
 		}
 
+		const requestId = ++latestRequestId;
 		isSearching = true;
 		searchError = null;
 		try {
-			searchResults = await watchlistService.searchSecurities(trimmed);
+			const results = await watchlistService.searchSecurities(trimmed);
+			if (requestId !== latestRequestId) return;
+			searchResults = results;
 		} catch (err) {
+			if (requestId !== latestRequestId) return;
 			searchResults = [];
 			searchError = err instanceof Error ? err.message : 'Failed to search securities';
 		} finally {
-			isSearching = false;
+			if (requestId === latestRequestId) {
+				isSearching = false;
+			}
 		}
 	}, 300);
 
 	async function handleSelect(result: MarketSearchResult) {
-		watchlistService.error = null;
 		await watchlistService.addSecurity(watchlistId, result);
 		if (!watchlistService.error) {
 			query = '';

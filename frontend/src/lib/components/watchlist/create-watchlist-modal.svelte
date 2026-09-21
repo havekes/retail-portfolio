@@ -34,14 +34,10 @@
 
 		isSubmitting = true;
 		error = null;
-		// Own the create error inside the modal and clear the shared service error
-		// so the page-level alert doesn't duplicate the message.
-		watchlistService.error = null;
 		await watchlistService.createWatchlist(trimmed);
 
 		if (watchlistService.error) {
 			error = watchlistService.error;
-			watchlistService.error = null;
 			isSubmitting = false;
 			return;
 		}

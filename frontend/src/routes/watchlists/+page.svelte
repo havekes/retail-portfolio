@@ -95,7 +95,6 @@
 			cancelRename();
 			return;
 		}
-		watchlistService.error = null;
 		await watchlistService.renameWatchlist(watchlist.id, name);
 		if (!watchlistService.error) {
 			cancelRename();
@@ -122,7 +121,6 @@
 		}
 		const watchlistId = pendingDelete.id;
 		pendingDelete = null;
-		watchlistService.error = null;
 		await watchlistService.deleteWatchlist(watchlistId);
 	}
 
@@ -132,7 +130,6 @@
 	}
 
 	async function handleRemoveSecurity(watchlistId: string, securityId: string) {
-		watchlistService.error = null;
 		await watchlistService.removeSecurityFromWatchlist(watchlistId, securityId);
 	}
 
@@ -226,7 +223,7 @@
 	</PageHeader>
 
 	<main class="flex flex-1 flex-col gap-6 overflow-y-auto p-4">
-		{#if watchlistService.error}
+		{#if watchlistService.error && !createOpen}
 			<Alert variant="destructive">
 				<AlertDescription>{watchlistService.error}</AlertDescription>
 			</Alert>
