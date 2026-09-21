@@ -1,5 +1,4 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { ApiError } from '$lib/api/apiClient';
 import { HOLDINGS_TABLE_DEFAULT_CONFIG } from '$lib/components/holdings/holdings-table-columns';
 import type { Cookies } from '@sveltejs/kit';
 
@@ -53,26 +52,7 @@ describe('Holdings +page.server.ts load', () => {
 		cookies = createMockCookies('test-token');
 	});
 
-	it('returns holdings, holdings_table_config, group_mode, and elliott_waves on success', async () => {
-		const holdingItem = {
-			id: 'holding-1',
-			security_id: 'sec-1',
-			security_symbol: 'AAPL',
-			account_id: 'acc-1',
-			account_name: 'TFSA',
-			quantity: 10,
-			average_cost: 150,
-			latest_price: 175,
-			total_value: 1750,
-			profit_loss: 250,
-			profit_loss_percent: 16.67
-		};
-
-		mockGetUserHoldings.mockResolvedValue({
-			items: [holdingItem],
-			total: 1
-		});
-
+	it('returns only the preferences-derived keys on success', async () => {
 		const mockWaves = {
 			'sec-1': {
 				waves: []
@@ -89,84 +69,42 @@ describe('Holdings +page.server.ts load', () => {
 		});
 
 		const result = (await load(createMockEvent(cookies))) as {
-			holdings: unknown[];
 			holdings_table_config: { widths: Record<string, number>; visible: string[] };
 			group_mode: string;
 			elliott_waves: typeof mockWaves | null;
 		};
 
-		expect(mockGetUserHoldings).toHaveBeenCalledWith(0, 50, 'test-token');
 		expect(mockGetPreferences).toHaveBeenCalledWith('test-token');
-		expect(result.holdings).toEqual([holdingItem]);
+		expect(Object.keys(result).sort()).toEqual([
+			'elliott_waves',
+			'group_mode',
+			'holdings_table_config'
+		]);
 		expect(result.holdings_table_config.visible).toEqual(['security_symbol', 'quantity']);
 		expect(result.group_mode).toBe('stock');
 		expect(result.elliott_waves).toEqual(mockWaves);
 	});
 
-	it('paginates holdings until all items are loaded', async () => {
-		const firstPageItems = Array.from({ length: 50 }, (_, i) => ({
-			id: `h-${i}`,
-			security_id: `s-${i}`
-		}));
-		const secondPageItems = [{ id: 'h-50', security_id: 's-50' }];
-
-		mockGetUserHoldings
-			.mockResolvedValueOnce({ items: firstPageItems, total: 51 })
-			.mockResolvedValueOnce({ items: secondPageItems, total: 51 });
-
+	it('never loads holdings in the server load', async () => {
 		mockGetPreferences.mockResolvedValue(null);
 
-		const result = (await load(createMockEvent(cookies))) as { holdings: unknown[] };
+		await load(createMockEvent(cookies));
 
-		expect(mockGetUserHoldings).toHaveBeenCalledTimes(2);
-		expect(mockGetUserHoldings).toHaveBeenNthCalledWith(1, 0, 50, 'test-token');
-		expect(mockGetUserHoldings).toHaveBeenNthCalledWith(2, 50, 50, 'test-token');
-		expect(result.holdings).toEqual([...firstPageItems, ...secondPageItems]);
+		expect(mockGetUserHoldings).not.toHaveBeenCalled();
 	});
 
 	it('falls back gracefully to default table config, flat group mode, and null elliott_waves when preferences fail', async () => {
-		mockGetUserHoldings.mockResolvedValue({
-			items: [],
-			total: 0
-		});
 		mockGetPreferences.mockRejectedValue(new Error('Preferences service unavailable'));
 
 		const result = (await load(createMockEvent(cookies))) as {
-			holdings: unknown[];
 			holdings_table_config: unknown;
 			group_mode: string;
 			elliott_waves: unknown;
 		};
 
-		expect(result.holdings).toEqual([]);
 		expect(result.holdings_table_config).toEqual(HOLDINGS_TABLE_DEFAULT_CONFIG);
 		expect(result.group_mode).toBe('none');
 		expect(result.elliott_waves).toBeNull();
-	});
-
-	it('clears auth cookie and redirects to login when getUserHoldings throws 401 ApiError', async () => {
-		mockGetUserHoldings.mockRejectedValue(new ApiError(401, 'Unauthorized'));
-
-		await expect(load(createMockEvent(cookies))).rejects.toMatchObject({
-			status: 303,
-			location: '/auth/login?clear_session=true'
-		});
-		expect(cookies.delete).toHaveBeenCalledWith('auth_token', expect.any(Object));
-	});
-
-	it('propagates non-401 ApiError as Kit error', async () => {
-		mockGetUserHoldings.mockRejectedValue(new ApiError(503, 'Service Unavailable'));
-
-		await expect(load(createMockEvent(cookies))).rejects.toMatchObject({
-			status: 503
-		});
-	});
-
-	it('propagates unexpected errors as 500 Kit error', async () => {
-		mockGetUserHoldings.mockRejectedValue(new Error('Network failure'));
-
-		await expect(load(createMockEvent(cookies))).rejects.toMatchObject({
-			status: 500
-		});
+		expect(mockGetUserHoldings).not.toHaveBeenCalled();
 	});
 });

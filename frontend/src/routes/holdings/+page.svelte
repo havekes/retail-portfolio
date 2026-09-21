@@ -5,6 +5,7 @@
 	import * as DropdownMenu from '$lib/components/ui/dropdown-menu/index.js';
 	import Settings2 from '@lucide/svelte/icons/settings-2';
 	import { HoldingsService } from '$lib/components/holdings/holdingsService.svelte';
+	import { redirectOn401 } from '$lib/api/async-data';
 	import { saveHoldingsTableConfig } from '$lib/components/holdings/holdings-table-prefs';
 	import { saveHoldingsGroupMode } from '$lib/components/holdings/holdings-group-prefs';
 	import { getUserPreferencesService } from '$lib/api/userPreferencesService';
@@ -23,10 +24,22 @@
 	let { data } = $props();
 
 	// The page owns its service instance (SSR "no global instances" rule) and seeds
-	// it from the server load: toggling grouping never triggers a refetch.
+	// group mode from the server load: toggling grouping never triggers a refetch.
 	const service = new HoldingsService();
-	service.rows = data.holdings;
 	service.setGroupBy(data.group_mode);
+
+	// Holdings rows are fetched after navigation so the shell renders instantly.
+	// `$effect` never runs during SSR, so this mount-time trigger stays browser-only
+	// and fires exactly once; the sequential pagination waterfall lives in the service.
+	$effect(() => {
+		void (async () => {
+			const loadError = await service.load();
+
+			if (loadError !== null) {
+				await redirectOn401(loadError);
+			}
+		})();
+	});
 
 	const prefsService = getUserPreferencesService();
 

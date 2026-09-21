@@ -5,6 +5,7 @@ vi.mock('$lib/api/accountService', () => ({
 }));
 
 import { getAccountService, type AccountService } from '$lib/api/accountService';
+import { ApiError } from '$lib/api/apiClient';
 import { HoldingsService, getHoldingsService } from './holdingsService.svelte';
 import type { UserHolding } from '$lib/types/account';
 
@@ -131,6 +132,22 @@ describe('HoldingsService', () => {
 
 		expect(service.errorMessage).toBe('boom');
 		expect(service.rows).toEqual([]);
+	});
+
+	it('returns null when the load succeeds so callers can skip error handling', async () => {
+		getUserHoldings.mockResolvedValueOnce(page(makeHoldings(1), 1, 0));
+
+		await expect(service.load()).resolves.toBeNull();
+	});
+
+	it('returns the caught error so callers can route a 401 through the shared seam', async () => {
+		const unauthorized = new ApiError(401, 'Unauthorized');
+		getUserHoldings.mockRejectedValueOnce(unauthorized);
+
+		const result = await service.load();
+
+		expect(result).toBe(unauthorized);
+		expect(service.errorMessage).toBe('Unauthorized');
 	});
 
 	it('clears a previous error on a successful load', async () => {
