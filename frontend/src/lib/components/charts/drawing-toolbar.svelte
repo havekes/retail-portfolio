@@ -1,6 +1,10 @@
 <script lang="ts">
 	import type { WaveDegree, WaveType } from '$lib/utils/finance/elliott-wave';
 	import type { FibToolType } from '$lib/utils/finance/fibonacci';
+	import {
+		type ChartDrawingsService,
+		getChartDrawingsService
+	} from '$lib/services/ChartDrawingsService.svelte';
 	import WaveIcon from '$lib/components/icons/wave-icon.svelte';
 	import CorrectiveWaveIcon from '$lib/components/icons/corrective-wave-icon.svelte';
 	import FibRetracementIcon from '$lib/components/icons/fib-retracement-icon.svelte';
@@ -17,17 +21,18 @@
 	import * as Tooltip from '$lib/components/ui/tooltip/index.js';
 
 	let {
-		activeWaveDegree = 'cycle',
-		activeWaveType = 'impulse',
-		isDrawingWave = false,
-		activeFibTool = null,
-		isDrawingFib = false,
-		isDrawingMeasure = false,
-		isDrawingHorizontalLine = false,
-		isDrawingLine = false,
-		isTimelineVisible = false,
-		canUndo = false,
-		canRedo = false,
+		service: propService,
+		activeWaveDegree: propActiveWaveDegree,
+		activeWaveType: propActiveWaveType,
+		isDrawingWave: propIsDrawingWave,
+		activeFibTool: propActiveFibTool,
+		isDrawingFib: propIsDrawingFib,
+		isDrawingMeasure: propIsDrawingMeasure,
+		isDrawingHorizontalLine: propIsDrawingHorizontalLine,
+		isDrawingLine: propIsDrawingLine,
+		isTimelineVisible: propIsTimelineVisible,
+		canUndo: propCanUndo,
+		canRedo: propCanRedo,
 		onSelectWaveDegree,
 		onSelectCorrectiveDegree,
 		onToggleFib,
@@ -37,9 +42,10 @@
 		onUndo,
 		onRedo,
 		onSave,
-		saveFeedback = 'idle',
+		saveFeedback: propSaveFeedback,
 		onToggleTimeline
 	}: {
+		service?: ChartDrawingsService;
 		activeWaveDegree?: WaveDegree;
 		activeWaveType?: WaveType;
 		isDrawingWave?: boolean;
@@ -64,11 +70,109 @@
 		onToggleTimeline?: () => void;
 	} = $props();
 
+	const contextService = getChartDrawingsService();
+	const service = $derived(propService ?? contextService);
+
+	let activeWaveDegree = $derived(
+		service ? service.activeWaveDegree : (propActiveWaveDegree ?? 'cycle')
+	);
+	let activeWaveType = $derived(
+		service ? service.activeWaveType : (propActiveWaveType ?? 'impulse')
+	);
+	let isDrawingWave = $derived(
+		service ? service.isDrawingWaveEffective : (propIsDrawingWave ?? false)
+	);
+	let activeFibTool = $derived(service ? service.activeFibTool : (propActiveFibTool ?? null));
+	let isDrawingFib = $derived(
+		service ? service.isDrawingFibEffective : (propIsDrawingFib ?? false)
+	);
+	let isDrawingMeasure = $derived(
+		service ? service.isDrawingMeasureEffective : (propIsDrawingMeasure ?? false)
+	);
+	let isDrawingHorizontalLine = $derived(
+		service ? service.isDrawingHorizontalLineEffective : (propIsDrawingHorizontalLine ?? false)
+	);
+	let isDrawingLine = $derived(
+		service ? service.isDrawingLineEffective : (propIsDrawingLine ?? false)
+	);
+	let isTimelineVisible = $derived(
+		service ? service.isTimelineVisible : (propIsTimelineVisible ?? false)
+	);
+	let canUndo = $derived(service ? service.canUndo : (propCanUndo ?? false));
+	let canRedo = $derived(service ? service.canRedo : (propCanRedo ?? false));
+	let saveFeedback = $derived(service ? service.saveFeedback : (propSaveFeedback ?? 'idle'));
+
 	function handleSelectWave(degree: WaveDegree, tool: WaveType) {
 		if (tool === 'corrective' && onSelectCorrectiveDegree) {
 			onSelectCorrectiveDegree(degree);
-		} else {
-			onSelectWaveDegree?.(degree, tool);
+		} else if (onSelectWaveDegree) {
+			onSelectWaveDegree(degree, tool);
+		} else if (service) {
+			service.selectWaveDegree(degree, tool);
+		}
+	}
+
+	function handleToggleFib(tool: FibToolType) {
+		if (onToggleFib) {
+			onToggleFib(tool);
+		} else if (service) {
+			service.toggleFib(tool);
+		}
+	}
+
+	function handleMeasureSelect() {
+		if (onMeasureSelect) {
+			onMeasureSelect();
+		} else if (service) {
+			service.toggleMeasure();
+		}
+	}
+
+	function handleHorizontalLineSelect() {
+		if (onHorizontalLineSelect) {
+			onHorizontalLineSelect();
+		} else if (service) {
+			service.toggleHorizontalLine();
+		}
+	}
+
+	function handleLineSelect() {
+		if (onLineSelect) {
+			onLineSelect();
+		} else if (service) {
+			service.toggleLine();
+		}
+	}
+
+	function handleUndo() {
+		if (onUndo) {
+			onUndo();
+		} else if (service) {
+			void service.handleUndo();
+		}
+	}
+
+	function handleRedo() {
+		if (onRedo) {
+			onRedo();
+		} else if (service) {
+			void service.handleRedo();
+		}
+	}
+
+	function handleSave() {
+		if (onSave) {
+			onSave();
+		} else if (service) {
+			void service.handleSaveSnapshot();
+		}
+	}
+
+	function handleToggleTimeline() {
+		if (onToggleTimeline) {
+			onToggleTimeline();
+		} else if (service) {
+			service.toggleTimeline();
 		}
 	}
 </script>
@@ -216,7 +320,7 @@
 					<button
 						type="button"
 						{...props}
-						onclick={() => onToggleFib?.('retracement')}
+						onclick={() => handleToggleFib('retracement')}
 						class="rounded p-1.5 transition-colors {isDrawingFib && activeFibTool === 'retracement'
 							? 'bg-primary text-primary-foreground shadow-sm'
 							: 'text-muted-foreground hover:bg-muted hover:text-foreground'}"
@@ -239,7 +343,7 @@
 					<button
 						type="button"
 						{...props}
-						onclick={() => onToggleFib?.('extension')}
+						onclick={() => handleToggleFib('extension')}
 						class="rounded p-1.5 transition-colors {isDrawingFib && activeFibTool === 'extension'
 							? 'bg-primary text-primary-foreground shadow-sm'
 							: 'text-muted-foreground hover:bg-muted hover:text-foreground'}"
@@ -262,7 +366,7 @@
 					<button
 						type="button"
 						{...props}
-						onclick={() => onMeasureSelect?.()}
+						onclick={handleMeasureSelect}
 						class="rounded p-1.5 transition-colors {isDrawingMeasure
 							? 'bg-primary text-primary-foreground shadow-sm'
 							: 'text-muted-foreground hover:bg-muted hover:text-foreground'}"
@@ -285,7 +389,7 @@
 					<button
 						type="button"
 						{...props}
-						onclick={() => onHorizontalLineSelect?.()}
+						onclick={handleHorizontalLineSelect}
 						class="rounded p-1.5 transition-colors {isDrawingHorizontalLine
 							? 'bg-primary text-primary-foreground shadow-sm'
 							: 'text-muted-foreground hover:bg-muted hover:text-foreground'}"
@@ -308,7 +412,7 @@
 					<button
 						type="button"
 						{...props}
-						onclick={() => onLineSelect?.()}
+						onclick={handleLineSelect}
 						class="rounded p-1.5 transition-colors {isDrawingLine
 							? 'bg-primary text-primary-foreground shadow-sm'
 							: 'text-muted-foreground hover:bg-muted hover:text-foreground'}"
@@ -332,7 +436,7 @@
 						type="button"
 						{...props}
 						disabled={!canUndo}
-						onclick={() => canUndo && onUndo?.()}
+						onclick={() => canUndo && handleUndo()}
 						class="rounded p-1.5 transition-colors {!canUndo
 							? 'cursor-not-allowed text-muted-foreground opacity-40'
 							: 'text-muted-foreground hover:bg-muted hover:text-foreground'}"
@@ -356,7 +460,7 @@
 						type="button"
 						{...props}
 						disabled={!canRedo}
-						onclick={() => canRedo && onRedo?.()}
+						onclick={() => canRedo && handleRedo()}
 						class="rounded p-1.5 transition-colors {!canRedo
 							? 'cursor-not-allowed text-muted-foreground opacity-40'
 							: 'text-muted-foreground hover:bg-muted hover:text-foreground'}"
@@ -379,7 +483,7 @@
 					<button
 						type="button"
 						{...props}
-						onclick={() => onSave?.()}
+						onclick={handleSave}
 						class="rounded p-1.5 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
 						aria-label="Save snapshot"
 						title={saveFeedback === 'saved' ? 'Saved' : 'Save snapshot'}
@@ -404,7 +508,7 @@
 					<button
 						type="button"
 						{...props}
-						onclick={() => onToggleTimeline?.()}
+						onclick={handleToggleTimeline}
 						class="mt-auto rounded p-1.5 transition-colors {isTimelineVisible
 							? 'bg-primary text-primary-foreground shadow-sm'
 							: 'text-muted-foreground hover:bg-muted hover:text-foreground'}"
