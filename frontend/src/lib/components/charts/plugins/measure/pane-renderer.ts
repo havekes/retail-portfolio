@@ -1,20 +1,9 @@
 import type { BitmapCoordinatesRenderingScope, CanvasRenderingTarget2D } from 'fancy-canvas';
 import type { IPrimitivePaneRenderer, Time } from 'lightweight-charts';
 import type { MeasureDirection } from '$lib/utils/finance/measure';
-import { positionsLine } from '../helpers/dimensions/positions';
+import { drawAnchorHandle, drawChartLabel } from '../helpers/renderer';
 import {
-	DEFAULT_DRAG_RING_COLOR,
-	DEFAULT_HANDLE_BORDER_COLOR,
-	DEFAULT_HANDLE_COLOR,
-	DEFAULT_HOVER_RING_COLOR,
-	HANDLE_RADIUS,
 	MEASURE_FILL_ALPHA,
-	MEASURE_LABEL_BG_COLOR,
-	MEASURE_LABEL_CHAR_WIDTH,
-	MEASURE_LABEL_FONT_SIZE,
-	MEASURE_LABEL_HEIGHT,
-	MEASURE_LABEL_PADDING_X,
-	MEASURE_LABEL_TEXT_COLOR,
 	MEASURE_LINE_WIDTH,
 	PREVIEW_ALPHA,
 	PREVIEW_LINE_DASH,
@@ -140,16 +129,19 @@ export class MeasurePaneRenderer implements IPrimitivePaneRenderer {
 			item.p2.isDragging;
 
 		if (showHandles) {
-			this._drawAnchorHandle(ctx, withSelection(item.p1, item.isSelected), hpr, vpr);
-			this._drawAnchorHandle(ctx, withSelection(item.p2, item.isSelected), hpr, vpr);
+			drawAnchorHandle(ctx, withSelection(item.p1, item.isSelected), hpr, vpr);
+			drawAnchorHandle(ctx, withSelection(item.p2, item.isSelected), hpr, vpr);
 		}
 
-		this._drawLabel(
+		drawChartLabel(
 			ctx,
-			(item.p1.x + item.p2.x) / 2,
-			(item.p1.y + item.p2.y) / 2,
-			item.label,
-			color,
+			{
+				text: item.label,
+				x: (item.p1.x + item.p2.x) / 2,
+				y: (item.p1.y + item.p2.y) / 2,
+				align: 'center',
+				accentColor: color
+			},
 			hpr,
 			vpr
 		);
@@ -200,7 +192,7 @@ export class MeasurePaneRenderer implements IPrimitivePaneRenderer {
 		vpr: number
 	): void {
 		for (const point of preview.placedPoints) {
-			this._drawAnchorHandle(ctx, point, hpr, vpr);
+			drawAnchorHandle(ctx, point, hpr, vpr);
 		}
 
 		const mouse = preview.currentMouse;
@@ -231,107 +223,21 @@ export class MeasurePaneRenderer implements IPrimitivePaneRenderer {
 		}
 
 		// Ghost anchor handle at the cursor.
-		ctx.save();
-		try {
-			ctx.globalAlpha = PREVIEW_ALPHA;
-			ctx.beginPath();
-			ctx.arc(mouseX, mouseY, HANDLE_RADIUS * hpr, 0, Math.PI * 2);
-			ctx.fillStyle = DEFAULT_HANDLE_COLOR;
-			ctx.fill();
-			ctx.lineWidth = 1.5 * hpr;
-			ctx.strokeStyle = DEFAULT_HANDLE_BORDER_COLOR;
-			ctx.stroke();
-		} finally {
-			ctx.restore();
-		}
+		drawAnchorHandle(ctx, mouse, hpr, vpr, { alpha: PREVIEW_ALPHA });
 
 		if (anchor && preview.label) {
-			this._drawLabel(
+			drawChartLabel(
 				ctx,
-				(anchor.x + mouse.x) / 2,
-				(anchor.y + mouse.y) / 2,
-				preview.label,
-				measureColor(preview.direction ?? 'flat'),
+				{
+					text: preview.label,
+					x: (anchor.x + mouse.x) / 2,
+					y: (anchor.y + mouse.y) / 2,
+					align: 'center',
+					accentColor: measureColor(preview.direction ?? 'flat')
+				},
 				hpr,
 				vpr
 			);
-		}
-	}
-
-	private _drawAnchorHandle(
-		ctx: CanvasRenderingContext2D,
-		point: ProjectedMeasurePoint,
-		hpr: number,
-		vpr: number
-	): void {
-		const px = point.x * hpr;
-		const py = point.y * vpr;
-		const radius = HANDLE_RADIUS * hpr;
-
-		if (point.isHovered || point.isDragging) {
-			ctx.save();
-			try {
-				ctx.beginPath();
-				ctx.arc(px, py, radius + 4 * hpr, 0, Math.PI * 2);
-				ctx.fillStyle = point.isDragging ? DEFAULT_DRAG_RING_COLOR : DEFAULT_HOVER_RING_COLOR;
-				ctx.fill();
-				ctx.lineWidth = 1.5 * hpr;
-				ctx.strokeStyle = DEFAULT_HANDLE_COLOR;
-				ctx.stroke();
-			} finally {
-				ctx.restore();
-			}
-		}
-
-		ctx.save();
-		try {
-			ctx.beginPath();
-			ctx.arc(px, py, radius, 0, Math.PI * 2);
-			ctx.fillStyle = DEFAULT_HANDLE_COLOR;
-			ctx.fill();
-			ctx.lineWidth = 1.5 * hpr;
-			ctx.strokeStyle = DEFAULT_HANDLE_BORDER_COLOR;
-			ctx.stroke();
-		} finally {
-			ctx.restore();
-		}
-	}
-
-	private _drawLabel(
-		ctx: CanvasRenderingContext2D,
-		centreX: number,
-		centreY: number,
-		text: string,
-		color: string,
-		hpr: number,
-		vpr: number
-	): void {
-		const textWidth = text.length * MEASURE_LABEL_CHAR_WIDTH + MEASURE_LABEL_PADDING_X * 2;
-		const xBox = positionsLine(centreX, hpr, textWidth);
-		const yBox = positionsLine(centreY, vpr, MEASURE_LABEL_HEIGHT);
-
-		ctx.save();
-		try {
-			ctx.fillStyle = MEASURE_LABEL_BG_COLOR;
-			ctx.fillRect(xBox.position, yBox.position, xBox.length, yBox.length);
-
-			// Direction-coloured accent bar along the bottom edge of the label.
-			const accentHeight = Math.max(1, Math.round(hpr));
-			ctx.fillStyle = color;
-			ctx.fillRect(
-				xBox.position,
-				yBox.position + yBox.length - accentHeight,
-				xBox.length,
-				accentHeight
-			);
-
-			ctx.fillStyle = MEASURE_LABEL_TEXT_COLOR;
-			ctx.font = `bold ${Math.round(MEASURE_LABEL_FONT_SIZE * vpr)}px sans-serif`;
-			ctx.textAlign = 'center';
-			ctx.textBaseline = 'middle';
-			ctx.fillText(text, xBox.position + xBox.length / 2, yBox.position + yBox.length / 2);
-		} finally {
-			ctx.restore();
 		}
 	}
 }

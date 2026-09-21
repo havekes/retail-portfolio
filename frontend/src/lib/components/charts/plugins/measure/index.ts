@@ -2,7 +2,6 @@ export { MeasurePrimitive } from './measure-primitive';
 export { MeasureToolState, type MeasurePointTarget } from './state';
 export {
 	HIT_TEST_RADIUS,
-	HANDLE_RADIUS,
 	PREVIEW_LINE_DASH,
 	PREVIEW_ALPHA,
 	MEASURE_LINE_WIDTH,
@@ -17,13 +16,16 @@ export {
 	MEASURE_LABEL_HEIGHT,
 	MEASURE_LABEL_FONT_SIZE,
 	MEASURE_LABEL_PADDING_X,
-	MEASURE_LABEL_CHAR_WIDTH,
+	MEASURE_LABEL_CHAR_WIDTH
+} from './constants';
+export {
+	HANDLE_RADIUS,
 	DEFAULT_HANDLE_COLOR,
 	DEFAULT_HANDLE_BORDER_COLOR,
 	DEFAULT_HOVER_RING_COLOR,
 	DEFAULT_DRAG_RING_COLOR,
 	DEFAULT_SELECTED_RING_COLOR
-} from './constants';
+} from '../helpers/renderer';
 export {
 	MeasurePaneRenderer,
 	type ProjectedMeasurePoint,

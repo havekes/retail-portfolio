@@ -1,16 +1,12 @@
 import type { BitmapCoordinatesRenderingScope, CanvasRenderingTarget2D } from 'fancy-canvas';
 import type { IPrimitivePaneRenderer, Time } from 'lightweight-charts';
 import type { FibToolType } from '$lib/utils/finance/fibonacci';
+import { drawAnchorHandle } from '../helpers/renderer';
 import {
-	DEFAULT_DRAG_RING_COLOR,
-	DEFAULT_HANDLE_BORDER_COLOR,
-	DEFAULT_HANDLE_COLOR,
-	DEFAULT_HOVER_RING_COLOR,
 	DEFAULT_LEVEL_LINE_DASH,
 	DEFAULT_LEVEL_LINE_WIDTH,
 	DEFAULT_TRENDLINE_COLOR,
 	DEFAULT_TRENDLINE_WIDTH,
-	HANDLE_RADIUS,
 	PREVIEW_ALPHA,
 	PREVIEW_LINE_DASH
 } from './constants';
@@ -200,8 +196,8 @@ export class FibonacciPaneRenderer implements IPrimitivePaneRenderer {
 
 		// 3. Anchor handles (only when hovered/dragged/selected)
 		if (showHandles) {
-			this._drawAnchorHandle(ctx, p1, hpr, vpr);
-			this._drawAnchorHandle(ctx, p2, hpr, vpr);
+			drawAnchorHandle(ctx, p1, hpr, vpr);
+			drawAnchorHandle(ctx, p2, hpr, vpr);
 		}
 	}
 
@@ -256,9 +252,9 @@ export class FibonacciPaneRenderer implements IPrimitivePaneRenderer {
 
 		// 3. Anchor handles (only when hovered/dragged/selected)
 		if (showHandles) {
-			this._drawAnchorHandle(ctx, p1, hpr, vpr);
-			this._drawAnchorHandle(ctx, p2, hpr, vpr);
-			this._drawAnchorHandle(ctx, p3, hpr, vpr);
+			drawAnchorHandle(ctx, p1, hpr, vpr);
+			drawAnchorHandle(ctx, p2, hpr, vpr);
+			drawAnchorHandle(ctx, p3, hpr, vpr);
 		}
 	}
 
@@ -304,47 +300,6 @@ export class FibonacciPaneRenderer implements IPrimitivePaneRenderer {
 					ctx.restore();
 				}
 			}
-		}
-	}
-
-	private _drawAnchorHandle(
-		ctx: CanvasRenderingContext2D,
-		point: ProjectedFibPoint,
-		hpr: number,
-		vpr: number
-	): void {
-		const px = point.x * hpr;
-		const py = point.y * vpr;
-		const radius = HANDLE_RADIUS * hpr;
-
-		// Highlight ring exclusively on hover or drag
-		if (point.isHovered || point.isDragging) {
-			ctx.save();
-			try {
-				ctx.beginPath();
-				ctx.arc(px, py, radius + 4 * hpr, 0, Math.PI * 2);
-				ctx.fillStyle = point.isDragging ? DEFAULT_DRAG_RING_COLOR : DEFAULT_HOVER_RING_COLOR;
-				ctx.fill();
-				ctx.lineWidth = 1.5 * hpr;
-				ctx.strokeStyle = DEFAULT_HANDLE_COLOR;
-				ctx.stroke();
-			} finally {
-				ctx.restore();
-			}
-		}
-
-		// Node circle
-		ctx.save();
-		try {
-			ctx.beginPath();
-			ctx.arc(px, py, radius, 0, Math.PI * 2);
-			ctx.fillStyle = DEFAULT_HANDLE_COLOR;
-			ctx.fill();
-			ctx.lineWidth = 1.5 * hpr;
-			ctx.strokeStyle = DEFAULT_HANDLE_BORDER_COLOR;
-			ctx.stroke();
-		} finally {
-			ctx.restore();
 		}
 	}
 
@@ -402,7 +357,7 @@ export class FibonacciPaneRenderer implements IPrimitivePaneRenderer {
 
 			// Draw handles for already placed points in drawing preview
 			for (const pt of preview.placedPoints) {
-				this._drawAnchorHandle(ctx, pt, hpr, vpr);
+				drawAnchorHandle(ctx, pt, hpr, vpr);
 			}
 		}
 
@@ -430,20 +385,6 @@ export class FibonacciPaneRenderer implements IPrimitivePaneRenderer {
 		}
 
 		// 3. Ghost anchor handle at mouse position
-		ctx.save();
-		try {
-			ctx.globalAlpha = PREVIEW_ALPHA;
-			const radius = HANDLE_RADIUS * hpr;
-
-			ctx.beginPath();
-			ctx.arc(mouseX, mouseY, radius, 0, Math.PI * 2);
-			ctx.fillStyle = DEFAULT_HANDLE_COLOR;
-			ctx.fill();
-			ctx.lineWidth = 1.5 * hpr;
-			ctx.strokeStyle = DEFAULT_HANDLE_BORDER_COLOR;
-			ctx.stroke();
-		} finally {
-			ctx.restore();
-		}
+		drawAnchorHandle(ctx, mouse, hpr, vpr, { alpha: PREVIEW_ALPHA });
 	}
 }
