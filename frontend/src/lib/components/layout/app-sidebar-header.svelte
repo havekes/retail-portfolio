@@ -7,7 +7,7 @@
 	const sidebar = useSidebar();
 </script>
 
-<Sidebar.Header class="border-b py-2">
+<Sidebar.Header class="h-[49px] justify-center border-b">
 	{#if sidebar.state === 'collapsed'}
 		<div class="flex items-center justify-center">
 			<Sidebar.Trigger title="Toggle sidebar" />

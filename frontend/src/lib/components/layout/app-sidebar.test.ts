@@ -319,7 +319,43 @@ describe('AppSidebar Modular Components', () => {
 			expect(screen.queryByRole('button', { name: /hide watchlists/i })).not.toBeInTheDocument();
 		});
 
-		it('shows watchlist names in the collapsed rail with wrap-friendly classes', () => {
+		it('shows only the default watchlist tickers and no names in the collapsed rail', () => {
+			const defaultList = {
+				id: 'w-default',
+				user_id: 'u1',
+				name: 'Default',
+				securities: [mockSecurities[0], mockSecurities[1]]
+			};
+			render(AppSidebarTestHarness, {
+				props: {
+					open: false,
+					securities: [],
+					watchlists: [defaultList, tech, energy]
+				}
+			});
+
+			// Default watchlist tickers are rendered.
+			expect(screen.getByText('C')).toBeInTheDocument();
+			expect(screen.getByText('BA')).toBeInTheDocument();
+
+			// The default watchlist group stays visible; other watchlists are hidden entirely.
+			const defaultGroup = screen
+				.getByText('Default')
+				.closest('[data-sidebar="group"]') as HTMLElement;
+			expect(defaultGroup).not.toHaveClass('group-data-[collapsible=icon]:hidden!');
+			for (const name of ['Tech', 'Energy']) {
+				const group = screen.getByText(name).closest('[data-sidebar="group"]') as HTMLElement;
+				expect(group).toHaveClass('group-data-[collapsible=icon]:hidden!');
+			}
+
+			// No watchlist name label is shown in the collapsed rail.
+			for (const name of ['Default', 'Tech', 'Energy']) {
+				const label = screen.getByText(name).closest('[data-sidebar="group-label"]') as HTMLElement;
+				expect(label).toHaveClass('group-data-[collapsible=icon]:hidden!');
+			}
+		});
+
+		it('hides the Watchlists group header in the collapsed rail', () => {
 			render(AppSidebarTestHarness, {
 				props: {
 					open: false,
@@ -328,13 +364,10 @@ describe('AppSidebar Modular Components', () => {
 				}
 			});
 
-			const techName = screen.getByText('Tech');
-			const label = techName.closest('[data-sidebar="group-label"]') as HTMLElement;
-			expect(label).toHaveClass('group-data-[collapsible=icon]:opacity-100!');
-			expect(label).toHaveClass('group-data-[collapsible=icon]:text-[9px]');
-			expect(label).toHaveClass('group-data-[collapsible=icon]:h-auto!');
-			expect(techName).not.toHaveClass('truncate');
-			expect(techName).toHaveClass('whitespace-normal');
+			const header = screen
+				.getByText('Watchlists', { selector: '[data-sidebar="group-label"]' })
+				.closest('[data-sidebar="group"]') as HTMLElement;
+			expect(header).toHaveClass('group-data-[collapsible=icon]:hidden!');
 		});
 
 		it('does not truncate long watchlist names in expanded mode', () => {

@@ -738,12 +738,13 @@
 </svelte:head>
 
 <div class="flex h-svh max-h-svh min-h-0 flex-1 flex-col overflow-hidden">
-	<PageHeader {isLoading} {error} subtitle={security?.name ?? ''}>
+	<PageHeader {isLoading} {error}>
 		{#snippet titleSlot()}
 			<div class="flex items-center gap-2">
 				<h2 class="text-lg font-semibold">{security?.symbol ?? ''}</h2>
 				{#if security}
 					{@const currentSecurity = security}
+					<p class="text-sm text-muted-foreground">{currentSecurity.name}</p>
 					<button
 						type="button"
 						onclick={() => watchlistService.toggleSecurity(currentSecurity.id)}

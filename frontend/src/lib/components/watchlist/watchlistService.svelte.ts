@@ -8,9 +8,8 @@ import { getContext, setContext } from 'svelte';
 
 export class WatchlistService {
 	watchlists = $state<WatchlistRead[]>([]);
-	defaultWatchlistSecurities = $derived(
-		this.watchlists.find((w) => w.name === 'Default')?.securities ?? []
-	);
+	defaultWatchlist = $derived(this.watchlists.find((w) => w.name === 'Default') ?? null);
+	defaultWatchlistSecurities = $derived(this.defaultWatchlist?.securities ?? []);
 	activeWatchlistId = $state<string | null>(null);
 	activeWatchlist = $derived(this.watchlists.find((w) => w.id === this.activeWatchlistId) ?? null);
 	isLoading = $state(false);

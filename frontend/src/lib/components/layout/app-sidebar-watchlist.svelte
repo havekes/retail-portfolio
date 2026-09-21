@@ -23,6 +23,7 @@
 	const watchlists = $derived(
 		sortWatchlistsByOrder(watchlistService?.watchlists || [], watchlistOrder)
 	);
+	const defaultWatchlistId = $derived(watchlistService?.defaultWatchlist?.id ?? null);
 
 	const contextCollapsedIds = getContext<string[] | undefined>('initialCollapsedWatchlistIds');
 	const initialIds =
@@ -81,16 +82,17 @@
 	</Sidebar.MenuItem>
 {/snippet}
 
-<Sidebar.Group>
+<Sidebar.Group class="group-data-[collapsible=icon]:hidden!">
 	<Sidebar.GroupLabel>Watchlists</Sidebar.GroupLabel>
 </Sidebar.Group>
 {#each watchlists as watchlist (watchlist.id)}
-	<Sidebar.Group>
+	{@const isDefaultWatchlist = watchlist.id === defaultWatchlistId}
+	<Sidebar.Group class={cn(!isDefaultWatchlist && 'group-data-[collapsible=icon]:hidden!')}>
 		<Sidebar.GroupLabel
-			class="h-auto! min-h-8 overflow-visible group-data-[collapsible=icon]:mt-1! group-data-[collapsible=icon]:h-auto! group-data-[collapsible=icon]:w-full group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:px-0! group-data-[collapsible=icon]:text-center group-data-[collapsible=icon]:text-[9px] group-data-[collapsible=icon]:leading-tight group-data-[collapsible=icon]:opacity-100!"
+			class="h-auto! min-h-8 overflow-visible group-data-[collapsible=icon]:hidden!"
 			title={watchlist.name}
 		>
-			<span class="block break-words whitespace-normal group-data-[collapsible=icon]:break-all">
+			<span class="block break-words whitespace-normal">
 				{watchlist.name}
 			</span>
 		</Sidebar.GroupLabel>
