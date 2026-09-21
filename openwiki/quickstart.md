@@ -1,11 +1,11 @@
 ---
 type: reference
 title: Quickstart & Task Routing
-description: Entry point to the retail-portfolio wiki — what the repository is, how to run the Docker Compose stack, where every system lives, and a task-routing table that points backend, frontend, chart, auth, broker-sync, CSV, market-data, AI, integration, money, dev-workflow and testing work at the right page.
+description: Entry point to the retail-portfolio wiki — what the repository is, how to run the Docker Compose stack, where every system lives, and a task-routing table that points backend, frontend, chart, auth, broker-sync, CSV, market-data, AI, integration, money, holdings-read-path, dev-workflow and testing work at the right page.
 tags: [quickstart, task-routing, onboarding, repository-map, development-workflow]
 verified:
   - by: openwiki/0.5.2
-    at: 2026-09-20T12:50:16.306Z
+    at: 2026-09-21T14:49:00.510Z
 sources:
   - id: openwiki-source-5f5b95b3d6a215fa02ceb945
     resource: repo://.env.example
@@ -21,6 +21,16 @@ sources:
     resource: repo://docker-compose.yml
   - id: openwiki-source-e483fd3285d99d05c7b265cf
     resource: repo://frontend/AGENTS.md
+  - id: openwiki-source-09dad1559edc73c5b154a081
+    resource: repo://frontend/src/lib/components/holdings/holdings-table.svelte
+  - id: openwiki-source-3f8311916804417f28db7f0d
+    resource: repo://frontend/src/lib/components/layout/app-sidebar-actions.svelte
+  - id: openwiki-source-846f5f71a06546739c7f1ccb
+    resource: repo://frontend/src/routes/%2Bpage.server.ts
+  - id: openwiki-source-b8584948ed4a6fee33406f78
+    resource: repo://frontend/src/routes/accounts/%5Bid%5D/%2Bpage.server.ts
+  - id: openwiki-source-899c8715bbba1ad86cff7b6b
+    resource: repo://frontend/src/routes/holdings/%2Bpage.server.ts
   - id: openwiki-source-c59fe4336a371ea1052a01dd
     resource: repo://justfile
   - id: openwiki-source-05ccef8d4cf1698187f20464
@@ -33,7 +43,7 @@ sources:
     resource: repo://scripts/docker-gid.sh
   - id: openwiki-source-230f617cb6d47154ef463034
     resource: repo://src/AGENTS.md
-generated: { by: "openwiki/0.5.2", at: "2026-09-20T12:50:16.306Z" }
+generated: { by: "openwiki/0.5.2", at: "2026-09-21T14:49:00.510Z" }
 ---
 
 # Quickstart & Task Routing
@@ -109,6 +119,7 @@ CI (`.github/workflows/ci.yml`) runs the same verification in three jobs: backen
 | AI context assembly, fundamentals/notes/debate endpoints, the async title task | [AI Analysis Flows](./workflows/ai-analysis.md) |
 | An outbound dependency: EODHD, Wealthsimple, the AI endpoint, SMTP/mailcrab, Redis, the indicator sidecar | [External Services & Adapters](./integrations/external-services.md) |
 | Money, currency conversion, totals, holdings/P&L math, rounding | [Money & Currency Handling](./concepts/money-and-currency.md) |
+| The holdings read path: the accounts dashboard, `/accounts/[id]`, cross-account `/holdings`, holdings table columns/grouping/preferences | [Accounts & Holdings Views](./workflows/accounts-and-holdings-views.md) |
 | How to run, ship and change: Compose stack, in-container commands, agent-test harness, worktrees, migrations, CI, OpenSpec | [Development, CI & Change Workflows](./operations/workflows.md) |
 | The pytest/Vitest layout, fixtures, mandatory mocking, harness gates, CI matrix | [Testing & Verification](./operations/testing.md) |
 
