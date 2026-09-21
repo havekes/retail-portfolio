@@ -1,14 +1,9 @@
 import type { BitmapCoordinatesRenderingScope, CanvasRenderingTarget2D } from 'fancy-canvas';
 import type { IPrimitivePaneRenderer, Time } from 'lightweight-charts';
-import { positionsLine } from '../helpers/dimensions/positions';
+import { drawAnchorHandle } from '../helpers/renderer';
 import {
-	DEFAULT_DRAG_RING_COLOR,
-	DEFAULT_HANDLE_BORDER_COLOR,
-	DEFAULT_HANDLE_COLOR,
-	DEFAULT_HOVER_RING_COLOR,
 	FREE_FORM_LINE_COLOR,
 	FREE_FORM_LINE_WIDTH,
-	HANDLE_RADIUS,
 	PREVIEW_ALPHA,
 	PREVIEW_LINE_DASH
 } from './constants';
@@ -151,19 +146,7 @@ export class LinePaneRenderer implements IPrimitivePaneRenderer {
 		}
 
 		// Ghost handle at the cursor.
-		ctx.save();
-		try {
-			ctx.globalAlpha = PREVIEW_ALPHA;
-			ctx.beginPath();
-			ctx.arc(mouseX, mouseY, HANDLE_RADIUS * hpr, 0, Math.PI * 2);
-			ctx.fillStyle = DEFAULT_HANDLE_COLOR;
-			ctx.fill();
-			ctx.lineWidth = 1.5 * hpr;
-			ctx.strokeStyle = DEFAULT_HANDLE_BORDER_COLOR;
-			ctx.stroke();
-		} finally {
-			ctx.restore();
-		}
+		drawAnchorHandle(ctx, mouse, hpr, vpr, { alpha: PREVIEW_ALPHA });
 	}
 
 	private _drawHandle(
@@ -172,36 +155,6 @@ export class LinePaneRenderer implements IPrimitivePaneRenderer {
 		hpr: number,
 		vpr: number
 	): void {
-		const px = positionsLine(point.x, hpr, 1).position;
-		const py = positionsLine(point.y, vpr, 1).position;
-		const radius = HANDLE_RADIUS * hpr;
-
-		if (point.isHovered || point.isDragging) {
-			ctx.save();
-			try {
-				ctx.beginPath();
-				ctx.arc(px, py, radius + 4 * hpr, 0, Math.PI * 2);
-				ctx.fillStyle = point.isDragging ? DEFAULT_DRAG_RING_COLOR : DEFAULT_HOVER_RING_COLOR;
-				ctx.fill();
-				ctx.lineWidth = 1.5 * hpr;
-				ctx.strokeStyle = DEFAULT_HANDLE_COLOR;
-				ctx.stroke();
-			} finally {
-				ctx.restore();
-			}
-		}
-
-		ctx.save();
-		try {
-			ctx.beginPath();
-			ctx.arc(px, py, radius, 0, Math.PI * 2);
-			ctx.fillStyle = DEFAULT_HANDLE_COLOR;
-			ctx.fill();
-			ctx.lineWidth = 1.5 * hpr;
-			ctx.strokeStyle = DEFAULT_HANDLE_BORDER_COLOR;
-			ctx.stroke();
-		} finally {
-			ctx.restore();
-		}
+		drawAnchorHandle(ctx, point, hpr, vpr);
 	}
 }

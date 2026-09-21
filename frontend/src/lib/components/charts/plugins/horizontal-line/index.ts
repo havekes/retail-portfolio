@@ -2,7 +2,6 @@ export { HorizontalLinePrimitive } from './horizontal-line-primitive';
 export { HorizontalLineToolState, type HorizontalLineTarget } from './state';
 export {
 	HIT_TEST_RADIUS,
-	HANDLE_RADIUS,
 	PREVIEW_LINE_DASH,
 	PREVIEW_ALPHA,
 	HORIZONTAL_LINE_WIDTH,
@@ -13,13 +12,16 @@ export {
 	HORIZONTAL_LABEL_FONT_SIZE,
 	HORIZONTAL_LABEL_PADDING_X,
 	HORIZONTAL_LABEL_CHAR_WIDTH,
-	HORIZONTAL_LABEL_MARGIN_X,
+	HORIZONTAL_LABEL_MARGIN_X
+} from './constants';
+export {
+	HANDLE_RADIUS,
 	DEFAULT_HANDLE_COLOR,
 	DEFAULT_HANDLE_BORDER_COLOR,
 	DEFAULT_HOVER_RING_COLOR,
 	DEFAULT_DRAG_RING_COLOR,
 	DEFAULT_SELECTED_RING_COLOR
-} from './constants';
+} from '../helpers/renderer';
 export {
 	HorizontalLinePaneRenderer,
 	type ProjectedHorizontalLinePoint,

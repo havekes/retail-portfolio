@@ -1,19 +1,9 @@
 import type { BitmapCoordinatesRenderingScope, CanvasRenderingTarget2D } from 'fancy-canvas';
 import type { IPrimitivePaneRenderer, Time } from 'lightweight-charts';
-import { positionsBox, positionsLine } from '../helpers/dimensions/positions';
+import { positionsLine } from '../helpers/dimensions/positions';
+import { drawAnchorHandle, drawChartLabel } from '../helpers/renderer';
 import {
-	DEFAULT_DRAG_RING_COLOR,
-	DEFAULT_HANDLE_BORDER_COLOR,
-	DEFAULT_HANDLE_COLOR,
-	DEFAULT_HOVER_RING_COLOR,
-	HANDLE_RADIUS,
-	HORIZONTAL_LABEL_BG_COLOR,
-	HORIZONTAL_LABEL_CHAR_WIDTH,
-	HORIZONTAL_LABEL_FONT_SIZE,
-	HORIZONTAL_LABEL_HEIGHT,
 	HORIZONTAL_LABEL_MARGIN_X,
-	HORIZONTAL_LABEL_PADDING_X,
-	HORIZONTAL_LABEL_TEXT_COLOR,
 	HORIZONTAL_LINE_COLOR,
 	HORIZONTAL_LINE_WIDTH,
 	PREVIEW_ALPHA,
@@ -117,11 +107,22 @@ export class HorizontalLinePaneRenderer implements IPrimitivePaneRenderer {
 			item.p1.isHovered ||
 			item.p1.isDragging;
 		if (showHandle) {
-			this._drawHandle(ctx, withSelection(item.p1, item.isSelected), hpr, vpr);
+			drawAnchorHandle(ctx, withSelection(item.p1, item.isSelected), hpr, vpr);
 		}
 
 		if (item.showLabel) {
-			this._drawLabel(ctx, scope, item.p1, item.label, hpr, vpr);
+			drawChartLabel(
+				ctx,
+				{
+					text: item.label,
+					x: scope.mediaSize.width - HORIZONTAL_LABEL_MARGIN_X,
+					y: item.p1.y,
+					align: 'right',
+					accentColor: HORIZONTAL_LINE_COLOR
+				},
+				hpr,
+				vpr
+			);
 		}
 	}
 
@@ -154,99 +155,21 @@ export class HorizontalLinePaneRenderer implements IPrimitivePaneRenderer {
 		}
 
 		// Ghost handle at the cursor.
-		ctx.save();
-		try {
-			ctx.globalAlpha = PREVIEW_ALPHA;
-			ctx.beginPath();
-			ctx.arc(mouse.x * hpr, mouse.y * vpr, HANDLE_RADIUS * hpr, 0, Math.PI * 2);
-			ctx.fillStyle = DEFAULT_HANDLE_COLOR;
-			ctx.fill();
-			ctx.lineWidth = 1.5 * hpr;
-			ctx.strokeStyle = DEFAULT_HANDLE_BORDER_COLOR;
-			ctx.stroke();
-		} finally {
-			ctx.restore();
-		}
+		drawAnchorHandle(ctx, mouse, hpr, vpr, { alpha: PREVIEW_ALPHA });
 
 		if (preview.showLabel && preview.label) {
-			this._drawLabel(ctx, scope, { x: mouse.x, y: mouse.y }, preview.label, hpr, vpr);
-		}
-	}
-
-	private _drawHandle(
-		ctx: CanvasRenderingContext2D,
-		point: ProjectedHorizontalLinePoint,
-		hpr: number,
-		vpr: number
-	): void {
-		const px = positionsLine(point.x, hpr, 1).position;
-		const py = positionsLine(point.y, vpr, 1).position;
-		const radius = HANDLE_RADIUS * hpr;
-
-		if (point.isHovered || point.isDragging) {
-			ctx.save();
-			try {
-				ctx.beginPath();
-				ctx.arc(px, py, radius + 4 * hpr, 0, Math.PI * 2);
-				ctx.fillStyle = point.isDragging ? DEFAULT_DRAG_RING_COLOR : DEFAULT_HOVER_RING_COLOR;
-				ctx.fill();
-				ctx.lineWidth = 1.5 * hpr;
-				ctx.strokeStyle = DEFAULT_HANDLE_COLOR;
-				ctx.stroke();
-			} finally {
-				ctx.restore();
-			}
-		}
-
-		ctx.save();
-		try {
-			ctx.beginPath();
-			ctx.arc(px, py, radius, 0, Math.PI * 2);
-			ctx.fillStyle = DEFAULT_HANDLE_COLOR;
-			ctx.fill();
-			ctx.lineWidth = 1.5 * hpr;
-			ctx.strokeStyle = DEFAULT_HANDLE_BORDER_COLOR;
-			ctx.stroke();
-		} finally {
-			ctx.restore();
-		}
-	}
-
-	private _drawLabel(
-		ctx: CanvasRenderingContext2D,
-		scope: BitmapCoordinatesRenderingScope,
-		point: { x: number; y: number },
-		text: string,
-		hpr: number,
-		vpr: number
-	): void {
-		const textWidth = text.length * HORIZONTAL_LABEL_CHAR_WIDTH + HORIZONTAL_LABEL_PADDING_X * 2;
-		const rightEdge = scope.mediaSize.width - HORIZONTAL_LABEL_MARGIN_X;
-		const xBox = positionsBox(rightEdge - textWidth, rightEdge, hpr);
-		const yBox = positionsLine(point.y, vpr, HORIZONTAL_LABEL_HEIGHT);
-
-		ctx.save();
-		try {
-			ctx.fillStyle = HORIZONTAL_LABEL_BG_COLOR;
-			ctx.fillRect(xBox.position, yBox.position, xBox.length, yBox.length);
-
-			// Accent bar along the bottom edge of the label.
-			const accentHeight = Math.max(1, Math.round(hpr));
-			ctx.fillStyle = HORIZONTAL_LINE_COLOR;
-			ctx.fillRect(
-				xBox.position,
-				yBox.position + yBox.length - accentHeight,
-				xBox.length,
-				accentHeight
+			drawChartLabel(
+				ctx,
+				{
+					text: preview.label,
+					x: scope.mediaSize.width - HORIZONTAL_LABEL_MARGIN_X,
+					y: mouse.y,
+					align: 'right',
+					accentColor: HORIZONTAL_LINE_COLOR
+				},
+				hpr,
+				vpr
 			);
-
-			ctx.fillStyle = HORIZONTAL_LABEL_TEXT_COLOR;
-			ctx.font = `bold ${Math.round(HORIZONTAL_LABEL_FONT_SIZE * vpr)}px sans-serif`;
-			ctx.textAlign = 'center';
-			ctx.textBaseline = 'middle';
-			ctx.fillText(text, xBox.position + xBox.length / 2, yBox.position + yBox.length / 2);
-		} finally {
-			ctx.restore();
 		}
 	}
 }
