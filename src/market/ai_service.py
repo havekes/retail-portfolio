@@ -206,6 +206,18 @@ def _labelled_value(line: str, label: str) -> str | None:
     return match.group(1).strip() if match else None
 
 
+def _strict_labelled_value(line: str, label: str) -> str | None:
+    """Return the value of a ``LABEL:`` that *starts* line, or ``None``.
+
+    Unlike :func:`_labelled_value` this tolerates only leading whitespace, not
+    markdown bullets/blockquote markers. The normal (non-salvage) parse path
+    uses it so a noisy prose line such as ``*   Title: we need something short``
+    is never mistaken for a labelled title.
+    """
+    match = re.match(rf"[ \t]*{label}\s*:\s*(.*)", line, re.IGNORECASE)
+    return match.group(1).strip() if match else None
+
+
 def _http_error_status(e: Exception) -> str | int | None:
     """Best-effort HTTP status from an OpenAI SDK exception."""
     return getattr(e, "status_code", None) or e.__class__.__name__
@@ -762,17 +774,28 @@ class AIService:
         never costs us the title — unless *labelled_only* is set (salvage path),
         in which case only explicit labels count and the bare-title fallback is
         suppressed so reasoning prose can never become a title.
+
+        On the normal path a label must *start* its line (only surrounding
+        whitespace is tolerated), and the **first** ``TITLE:`` wins, so noisy
+        untagged prose such as a bullet-prefixed ``Title: ...`` line cannot beat
+        a real title. The salvage path keeps the tolerant bullet-prefixed scan
+        because there the answer genuinely sits inside ``*   TITLE: ...``
+        thought bullets.
         """
         text = strip_reasoning(raw)
         title, summary = AIService._parse_json_title_and_summary(text)
 
         if title is None:
+            label_value = _labelled_value if labelled_only else _strict_labelled_value
             for line in text.splitlines():
-                title_value = _labelled_value(line, "TITLE")
-                summary_value = _labelled_value(line, "SUMMARY")
-                if title_value is not None:
+                title_value = label_value(line, "TITLE")
+                if title_value is not None and title is None:
+                    # First labelled title wins; later duplicates are ignored.
                     title = title_value
-                elif summary_value is not None:
+                summary_value = label_value(line, "SUMMARY")
+                if summary_value is not None:
+                    # The model's last labelled summary is the answer; earlier
+                    # bulleted "Summary:" lines are drafts.
                     summary = summary_value
 
         if title is None and not labelled_only:

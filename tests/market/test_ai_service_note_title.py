@@ -269,3 +269,63 @@ async def test_thought_only_prose_never_becomes_a_title():
 
     assert title == "Actual content"
     assert summary is None
+
+
+# Noisy untagged prose: the model did not emit labelled lines, but one of its
+# prose bullets begins with "Title:". On the normal path only a label that
+# starts the line counts, so that prose must not win the title.
+NOISY_UNTAGGED_TITLE_PROSE = (
+    "Here is my reasoning about this note, untagged.\n"
+    "*   Title: we need something short\n"
+    "*   Summary: and this is just prose, not a label.\n"
+)
+
+
+@pytest.mark.anyio
+async def test_untagged_noisy_prose_title_line_does_not_become_the_title():
+    service, _ = _build_service(NOISY_UNTAGGED_TITLE_PROSE)
+
+    title, summary = await service.generate_note_title_and_summary("Some note body")
+
+    assert title == "Here is my reasoning about this note, untagged."
+    assert title != "we need something short"
+    assert summary is None
+
+
+@pytest.mark.anyio
+async def test_first_labelled_title_wins_over_a_later_duplicate():
+    service, _ = _build_service(
+        "TITLE: First title\n"
+        "TITLE: Second title\n"
+        "SUMMARY: The real summary sentence."
+    )
+
+    title, summary = await service.generate_note_title_and_summary("Some note body")
+
+    assert title == "First title"
+    assert summary == "The real summary sentence."
+
+
+@pytest.mark.anyio
+async def test_mid_line_title_label_is_not_a_label():
+    service, _ = _build_service("Some prose mentioning TITLE: not a label at all")
+
+    title, _ = await service.generate_note_title_and_summary("Some note body")
+
+    assert title != "not a label at all"
+    assert title == "Some prose mentioning TITLE: not a label at all"
+
+
+@pytest.mark.anyio
+async def test_salvage_still_accepts_bullet_prefixed_labels():
+    """The tolerant scan stays for the salvage path, not the normal one."""
+    service, _ = _build_service(
+        "<thought>*   Input: a note about VOO.\n"
+        "    *   Title: Salvaged title\n"
+        "    *   Summary: Salvaged summary sentence.</thought>"
+    )
+
+    title, summary = await service.generate_note_title_and_summary("Some note body")
+
+    assert title == "Salvaged title"
+    assert summary == "Salvaged summary sentence."
