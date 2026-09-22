@@ -168,6 +168,22 @@ async def _generate_note_summary(
                     )
                     return
 
+                # A thought-only response (or an unparseable one) cleans down to
+                # two empty parts. Upserting them would wipe a previously good
+                # summary, so keep the stored row and let the next regeneration
+                # try again.
+                if (
+                    not summary["short_summary"].strip()
+                    and not summary["long_summary"].strip()
+                ):
+                    logger.warning(
+                        "Empty summary parts for security %s, user %s — "
+                        "keeping previous summary",
+                        security_id,
+                        user_id,
+                    )
+                    return
+
                 await summary_repository.upsert(
                     NoteSummaryWrite(
                         short_summary=summary["short_summary"],

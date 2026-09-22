@@ -215,6 +215,46 @@ async def test_zero_notes_for_other_user_does_not_touch_this_users_summary(
 
 
 @pytest.mark.anyio
+async def test_empty_summary_parts_keep_previous_summary_and_skip_upsert(
+    db_session: AsyncSession,
+    note_security: SecurityModel,
+    caplog: pytest.LogCaptureFixture,
+):
+    """A thought-only response cleans to empty parts; the good row must survive."""
+    user_id = uuid4()
+    note_repository = SqlAlchemySecurityNoteRepository(db_session)
+    summary_repository = SqlAlchemySecurityNoteSummaryRepository(db_session)
+    await _seed_note(note_repository, note_security.id, user_id)
+    await _seed_summary(summary_repository, note_security.id, user_id, "Good digest")
+    previous = await summary_repository.get(note_security.id, user_id)
+
+    # The configured model's thought-only response parses to two empty parts.
+    empty_parts = AIService._parse_summary_parts(
+        "<thought>Only reasoning, no answer at all</thought>"
+    )
+    assert empty_parts == {"short_summary": "", "long_summary": ""}
+
+    ai_service = AsyncMock(spec=AIService)
+    ai_service.summarize_notes.return_value = empty_parts
+
+    with (
+        _task_environment(note_repository, summary_repository, ai_service),
+        caplog.at_level("WARNING"),
+    ):
+        await _generate_note_summary(note_security.id, user_id)
+
+    ai_service.summarize_notes.assert_awaited_once_with(note_security.id, user_id)
+    stored = await summary_repository.get(note_security.id, user_id)
+    assert stored is not None
+    assert stored.short_summary == "Good digest"
+    assert stored.long_summary == "Good digest"
+    assert previous is not None
+    assert stored.generated_at == previous.generated_at
+    assert "Empty summary parts" in caplog.text
+    assert "keeping previous summary" in caplog.text
+
+
+@pytest.mark.anyio
 async def test_ai_failure_is_logged_and_keeps_previous_summary(
     db_session: AsyncSession, note_security: SecurityModel
 ):
