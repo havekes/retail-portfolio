@@ -1,5 +1,21 @@
 import type { WatchlistRead, WatchlistSecuritySchema, WatchlistSort } from '$lib/api/marketService';
 
+/**
+ * Shared grid template for the data columns of a watchlist security row.
+ *
+ * A single static Tailwind literal (never built dynamically — the JIT compiler
+ * needs complete class names) so every row in a watchlist renders identical
+ * column tracks and the price/pill columns start at the same offset.
+ *
+ * Tracks: symbol/name (fluid) · date added (`md` and up) · price · % change pill.
+ * Below `md` the date track is dropped from the template and its cell is
+ * hidden, so the remaining tracks keep the same offsets on every row. The date
+ * cell is always rendered (a dash when the timestamp is absent) so the price
+ * and pill always occupy their own tracks regardless of missing data.
+ */
+export const WATCHLIST_ROW_DATA_TRACKS =
+	'grid grid-cols-[minmax(0,1fr)_5rem_6rem] gap-2 md:grid-cols-[minmax(0,1fr)_6.5rem_5rem_6rem]';
+
 const WATCHLIST_SORT_KEYS: WatchlistSort[] = [
 	'custom',
 	'name_asc',
