@@ -127,6 +127,14 @@
 		}
 	}
 
+	// Watchlist-level selection mirrors the row behaviour for the Reorder-mode
+	// grab handle: watchlist ids are unique, so a single value covers it.
+	let selectedWatchlistId = $state<string | null>(null);
+
+	function selectWatchlist(watchlistId: string) {
+		selectedWatchlistId = watchlistId;
+	}
+
 	function startRename(watchlist: WatchlistRead) {
 		editingId = watchlist.id;
 		editingName = watchlist.name;
@@ -391,7 +399,8 @@
 						class={cn(
 							'flex flex-col gap-3 rounded-lg bg-muted p-4 transition-colors',
 							isReorderMode && 'cursor-move outline-1 outline-border outline-dashed select-none',
-							dragOverIndex === index && 'ring-2 ring-primary'
+							dragOverIndex === index && 'ring-2 ring-primary',
+							selectedWatchlistId === watchlist.id && 'ring-1 ring-ring'
 						)}
 						draggable={isReorderMode}
 						ondragstart={(e) => handleDragStart(e, index)}
@@ -435,6 +444,8 @@
 											data-testid="drag-handle"
 											aria-label={`Reorder ${watchlist.name}`}
 											class="shrink-0 cursor-grab rounded-sm text-muted-foreground hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none"
+											onmousedown={() => selectWatchlist(watchlist.id)}
+											onfocus={() => selectWatchlist(watchlist.id)}
 											onkeydown={(e) =>
 												handleReorderKeydown(e, index, watchlists.length, moveWatchlist)}
 										>
@@ -551,6 +562,8 @@
 												data-testid="security-drag-handle"
 												aria-label={`Reorder ${security.symbol}`}
 												class="shrink-0 cursor-grab rounded-sm text-muted-foreground hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none"
+												onmousedown={() => selectRow(watchlist.id, security.id)}
+												onfocus={() => selectRow(watchlist.id, security.id)}
 												onkeydown={(e) =>
 													handleReorderKeydown(
 														e,

@@ -1364,3 +1364,122 @@ describe('Watchlists page - row column alignment and card polish', () => {
 		expect(screen.getByRole('menuitem', { name: 'Name (alphabetical)' })).toBeInTheDocument();
 	});
 });
+
+describe('Watchlists page - move handle selection', () => {
+	async function enableSecurityReorder(name = 'Tech') {
+		await fireEvent.click(screen.getByRole('button', { name: `Reorder securities in ${name}` }));
+	}
+
+	function rowLink(symbol: string, listName = 'Tech securities'): HTMLElement {
+		return within(screen.getByRole('region', { name: listName })).getByRole('link', {
+			name: new RegExp(symbol)
+		});
+	}
+
+	function rowSymbols(listName = 'Tech securities'): string[] {
+		return within(screen.getByRole('region', { name: listName }))
+			.getAllByRole('link')
+			.map((link) => link.querySelector('span')?.textContent?.trim() ?? '');
+	}
+
+	it('selects the row when its move handle is pressed, with the selected-row treatment', async () => {
+		renderPage([watchlist('wl-tech', 'Tech', [security('s1', 'AAPL'), security('s2', 'MSFT')])]);
+		await enableSecurityReorder();
+
+		await fireEvent.mouseDown(screen.getByRole('button', { name: 'Reorder AAPL' }));
+
+		const aapl = rowLink('AAPL');
+		await waitFor(() => expect(aapl.closest('li')).toHaveAttribute('aria-current', 'true'));
+		expect(aapl).toHaveClass('bg-background', 'ring-1', 'ring-ring');
+		expect(rowLink('MSFT').closest('li')).not.toHaveAttribute('aria-current');
+	});
+
+	it('selects the row when the move handle receives focus', async () => {
+		renderPage([watchlist('wl-tech', 'Tech', [security('s1', 'AAPL'), security('s2', 'MSFT')])]);
+		await enableSecurityReorder();
+
+		await fireEvent.focus(screen.getByRole('button', { name: 'Reorder MSFT' }));
+
+		await waitFor(() =>
+			expect(rowLink('MSFT').closest('li')).toHaveAttribute('aria-current', 'true')
+		);
+		expect(rowLink('AAPL').closest('li')).not.toHaveAttribute('aria-current');
+	});
+
+	it('keeps at most one selected row per watchlist when selecting via handles', async () => {
+		renderPage([watchlist('wl-tech', 'Tech', [security('s1', 'AAPL'), security('s2', 'MSFT')])]);
+		await enableSecurityReorder();
+
+		await fireEvent.mouseDown(screen.getByRole('button', { name: 'Reorder AAPL' }));
+		await waitFor(() =>
+			expect(rowLink('AAPL').closest('li')).toHaveAttribute('aria-current', 'true')
+		);
+
+		await fireEvent.mouseDown(screen.getByRole('button', { name: 'Reorder MSFT' }));
+
+		await waitFor(() =>
+			expect(rowLink('MSFT').closest('li')).toHaveAttribute('aria-current', 'true')
+		);
+		expect(rowLink('AAPL').closest('li')).not.toHaveAttribute('aria-current');
+	});
+
+	it('keeps the handle-selected row selected through an arrow-key reorder', async () => {
+		const aap = security('s1', 'AAPL', 150, 1, '2026-01-01T00:00:00Z', 0);
+		const mst = security('s2', 'MSFT', 300, 2, '2026-01-02T00:00:00Z', 1);
+		mocks.client.reorderWatchlistSecurities.mockResolvedValue(
+			watchlist('wl-tech', 'Tech', [
+				{ ...mst, position: 0 },
+				{ ...aap, position: 1 }
+			])
+		);
+		renderPage([watchlist('wl-tech', 'Tech', [aap, mst])]);
+		await enableSecurityReorder();
+
+		const handle = screen.getByRole('button', { name: 'Reorder AAPL' });
+		await fireEvent.mouseDown(handle);
+		await waitFor(() =>
+			expect(rowLink('AAPL').closest('li')).toHaveAttribute('aria-current', 'true')
+		);
+
+		await fireEvent.keyDown(handle, { key: 'ArrowDown' });
+
+		await waitFor(() => expect(rowSymbols()).toEqual(['MSFT', 'AAPL']));
+		expect(rowLink('AAPL').closest('li')).toHaveAttribute('aria-current', 'true');
+		expect(rowLink('MSFT').closest('li')).not.toHaveAttribute('aria-current');
+	});
+
+	it('selects via the handle without navigating and leaves the row link intact', async () => {
+		renderPage([watchlist('wl-tech', 'Tech', [security('s1', 'AAPL')])]);
+		await enableSecurityReorder();
+
+		const handle = screen.getByRole('button', { name: 'Reorder AAPL' });
+		expect(handle).toHaveAttribute('type', 'button');
+		expect(handle.closest('a')).toBeNull();
+
+		await fireEvent.mouseDown(handle);
+
+		const link = rowLink('AAPL');
+		expect(link).toHaveAttribute('href', '/security/s1');
+		expect(link.closest('li')).toHaveAttribute('aria-current', 'true');
+	});
+
+	it('highlights the watchlist card when its reorder handle is pressed', async () => {
+		renderPage([defaultList(), techList()]);
+		await fireEvent.click(screen.getByRole('button', { name: 'Reorder' }));
+
+		await fireEvent.mouseDown(screen.getByRole('button', { name: 'Reorder Default' }));
+
+		const defaultSection = screen.getByRole('region', { name: 'Default securities' });
+		await waitFor(() => expect(defaultSection).toHaveClass('ring-1', 'ring-ring'));
+
+		await fireEvent.mouseDown(screen.getByRole('button', { name: 'Reorder Tech' }));
+
+		await waitFor(() =>
+			expect(screen.getByRole('region', { name: 'Tech securities' })).toHaveClass(
+				'ring-1',
+				'ring-ring'
+			)
+		);
+		expect(defaultSection).not.toHaveClass('ring-ring');
+	});
+});
