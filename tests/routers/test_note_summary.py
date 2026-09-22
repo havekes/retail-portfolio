@@ -90,6 +90,78 @@ async def test_returns_nulls_when_nothing_generated(
     }
 
 
+async def _store_raw_summary(
+    db_session: AsyncSession,
+    security_id: SecurityId,
+    user_id: UserId,
+    short: str,
+    long: str,
+) -> None:
+    """Store an already-dirty summary row directly, emulating a legacy record."""
+    repository = SqlAlchemySecurityNoteSummaryRepository(db_session)
+    await repository.upsert(
+        NoteSummaryWrite(
+            short_summary=short,
+            long_summary=long,
+            generated_at=datetime.now(UTC),
+        ),
+        security_id,
+        user_id,
+    )
+
+
+@pytest.mark.anyio
+async def test_cleans_legacy_reasoning_markers_on_read(
+    auth_client,
+    db_session: AsyncSession,
+    test_user: UserSchema,
+    test_security: SecurityModel,
+):
+    """A legacy row with reasoning/markdown must render clean without a migration."""
+    await _store_raw_summary(
+        db_session,
+        test_security.id,
+        test_user.id,
+        short="<thought>DRAFT</thought>Dense digest.",
+        long=(
+            "<thought>*   reasoning that must never render</thought>"
+            "# Heading\n- Bullet\nReal paragraph with <think>inline</think> noise."
+        ),
+    )
+
+    response = await auth_client.get(_notes_summary_url(test_security.id))
+
+    assert response.status_code == status.HTTP_200_OK
+    data = response.json()
+    assert data["short_summary"] == "Dense digest."
+    assert data["long_summary"] == "Heading Bullet Real paragraph with noise."
+    assert "<thought" not in data["long_summary"]
+    assert "</thought>" not in data["long_summary"]
+    assert "#" not in data["long_summary"]
+
+
+@pytest.mark.anyio
+async def test_derives_short_digest_for_legacy_row_without_one(
+    auth_client,
+    db_session: AsyncSession,
+    test_user: UserSchema,
+    test_security: SecurityModel,
+):
+    await _store_raw_summary(
+        db_session,
+        test_security.id,
+        test_user.id,
+        short="",
+        long="A clean long paragraph that has no short digest stored.",
+    )
+
+    response = await auth_client.get(_notes_summary_url(test_security.id))
+
+    data = response.json()
+    assert data["short_summary"] == "A clean long paragraph that has no short digest stored."
+    assert data["long_summary"] == "A clean long paragraph that has no short digest stored."
+
+
 @pytest.mark.anyio
 async def test_returns_404_for_unknown_security(auth_client):
     response = await auth_client.get(_notes_summary_url(uuid4()))
