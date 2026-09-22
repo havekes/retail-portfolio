@@ -6,14 +6,18 @@ from huey import crontab
 from svcs import Container
 
 from src.account.task import recalculate_all_account_totals_task
+from src.auth.api_types import UserId
 from src.core.context import get_request_id, request_id_ctx_var, set_request_id
 from src.market.ai_service import AIService
 from src.market.alert_service import AlertEvaluationService
+from src.market.api_types import SecurityId
 from src.market.repository import (
     IntradayPriceRepository,
     PriceAlertRepository,
     SecurityNoteRepository,
+    SecurityNoteSummaryRepository,
 )
+from src.market.schema import NoteSummaryWrite
 from src.market.service import MarketService
 from src.worker import huey
 
@@ -50,6 +54,76 @@ async def _generate_note_title(note_id: int, request_id: str | None = None) -> N
             title = await ai_service.generate_note_title(note.content)
             await note_repository.update_title(note_id, title)
             logger.info("Generated title for note %d: %s", note_id, title)
+    finally:
+        if req_token is not None:
+            request_id_ctx_var.reset(req_token)
+
+
+@huey.task()
+def generate_note_summary_task(
+    security_id: SecurityId, user_id: UserId, request_id: str | None = None
+) -> None:
+    """Huey task to regenerate the persisted note summary using AI."""
+    if request_id is None:
+        request_id = get_request_id()
+
+    asyncio.run(_generate_note_summary(security_id, user_id, request_id=request_id))
+
+
+async def _generate_note_summary(
+    security_id: SecurityId, user_id: UserId, request_id: str | None = None
+) -> None:
+    """Regenerate the stored note summary for (security, user).
+
+    With no notes left the stored summary is cleared instead of calling the
+    AI. Any failure (AI error, timeout) is logged and swallowed: the previously
+    stored summary stays untouched and the worker never crashes.
+    """
+    if huey.svcs_registry is None:
+        return
+
+    req_token = set_request_id(request_id) if request_id else None
+
+    try:
+        async with Container(huey.svcs_registry) as svcs_container:
+            note_repository: SecurityNoteRepository = await svcs_container.aget(
+                SecurityNoteRepository
+            )
+            ai_service: AIService = await svcs_container.aget(AIService)
+            summary_repository: SecurityNoteSummaryRepository = (
+                await svcs_container.aget(SecurityNoteSummaryRepository)
+            )
+
+            try:
+                notes, _ = await note_repository.get_by_security_and_user(
+                    security_id, user_id, limit=1
+                )
+                if not notes:
+                    await summary_repository.delete(security_id, user_id)
+                    logger.info(
+                        "Cleared note summary for security %s, user %s (no notes left)",
+                        security_id,
+                        user_id,
+                    )
+                    return
+
+                summary = await ai_service.summarize_notes(security_id, user_id)
+                await summary_repository.upsert(
+                    NoteSummaryWrite(summary=summary, generated_at=datetime.now(UTC)),
+                    security_id,
+                    user_id,
+                )
+                logger.info(
+                    "Generated note summary for security %s, user %s",
+                    security_id,
+                    user_id,
+                )
+            except Exception:
+                logger.exception(
+                    "Failed to generate note summary for security %s, user %s",
+                    security_id,
+                    user_id,
+                )
     finally:
         if req_token is not None:
             request_id_ctx_var.reset(req_token)

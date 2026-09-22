@@ -142,3 +142,31 @@ async def test_deleting_security_cascades_to_summaries(db_session: AsyncSession)
     await db_session.commit()
 
     assert await repository.get(security.id, user_id) is None
+
+
+@pytest.mark.anyio
+async def test_delete_removes_only_the_requested_summary(db_session: AsyncSession):
+    security = await _create_security(db_session)
+    user_id = uuid4()
+    other_user_id = uuid4()
+    repository = SqlAlchemySecurityNoteSummaryRepository(db_session)
+
+    await repository.upsert(_summary_write("Mine"), security.id, user_id)
+    await repository.upsert(_summary_write("Theirs"), security.id, other_user_id)
+
+    await repository.delete(security.id, user_id)
+
+    assert await repository.get(security.id, user_id) is None
+    theirs = await repository.get(security.id, other_user_id)
+    assert theirs is not None
+    assert theirs.summary == "Theirs"
+
+
+@pytest.mark.anyio
+async def test_delete_is_a_noop_when_no_summary_exists(db_session: AsyncSession):
+    security = await _create_security(db_session)
+    repository = SqlAlchemySecurityNoteSummaryRepository(db_session)
+
+    await repository.delete(security.id, uuid4())
+
+    assert await repository.get(security.id, uuid4()) is None

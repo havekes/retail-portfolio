@@ -230,6 +230,14 @@ class SecurityNoteWrite(BaseModel):
 
 
 class NoteSummaryWrite(BaseModel):
+    """Write payload for a persisted note summary.
+
+    ``generated_at`` is accepted for API symmetry but is informational only:
+    the persistence layer stamps the database transaction time
+    (``func.now()``) and ignores the supplied value, so there is a single
+    clock (the database) and no app/DB skew.
+    """
+
     summary: str
     generated_at: datetime
 

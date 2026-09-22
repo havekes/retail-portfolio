@@ -287,6 +287,10 @@ class SecurityNoteSummaryRepository(ABC):
     ) -> NoteSummaryResponse:
         pass
 
+    @abstractmethod
+    async def delete(self, security_id: SecurityId, user_id: UserId) -> None:
+        """Remove the stored summary for (security, user); no-op if absent."""
+
 
 class SecurityDocumentRepository(ABC):
     @abstractmethod
