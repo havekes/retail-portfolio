@@ -15,6 +15,8 @@
 	import {
 		formatPrice,
 		formatPriceChangePercent,
+		handleReorderKeydown,
+		moveItem,
 		normalizeWatchlistSort,
 		sortSecurities,
 		sortWatchlistsByOrder
@@ -83,6 +85,18 @@
 	let isReorderMode = $state(false);
 	let draggedIndex = $state<number | null>(null);
 	let dragOverIndex = $state<number | null>(null);
+
+	// Security reordering is offered per watchlist (one active list at a time) and
+	// only for custom-sorted lists, where the row order maps onto `position`.
+	let securityReorderWatchlistId = $state<string | null>(null);
+	let securityDragIndex = $state<number | null>(null);
+	let securityDragOverIndex = $state<number | null>(null);
+
+	let announcement = $state('');
+
+	function announce(text: string) {
+		announcement = text;
+	}
 
 	let editingId = $state<string | null>(null);
 	let editingName = $state('');
@@ -170,6 +184,38 @@
 		dragOverIndex = null;
 	}
 
+	/**
+	 * Move a watchlist one slot, applying the new order optimistically and
+	 * persisting `watchlist_order`. On failure both local snapshots are restored so
+	 * no stale order survives, and the error surfaces in the shared alert. Used by
+	 * both the drag-and-drop and keyboard paths so the two stay in lockstep.
+	 */
+	async function moveWatchlist(from: number, to: number) {
+		if (!isReorderMode || from === to) return;
+
+		const currentList = [...orderedWatchlists];
+		const moved = currentList[from];
+		if (!moved) return;
+
+		const previousOrder = watchlistOrder;
+		const previousWatchlists = watchlistService.watchlists;
+
+		const nextList = moveItem(currentList, from, to);
+		const newOrder = nextList.map((w) => w.id);
+		watchlistService.watchlists = nextList;
+		watchlistOrder = newOrder;
+		announce(`${moved.name} moved to position ${to + 1} of ${nextList.length}`);
+
+		try {
+			await userPreferencesService.patchPreferences({ watchlist_order: newOrder });
+		} catch (err) {
+			watchlistService.watchlists = previousWatchlists;
+			watchlistOrder = previousOrder;
+			watchlistService.error =
+				err instanceof Error ? err.message : 'Failed to save watchlist order';
+		}
+	}
+
 	async function handleDrop(e: DragEvent, targetIndex: number) {
 		if (!isReorderMode || draggedIndex === null) return;
 		e.preventDefault();
@@ -177,24 +223,84 @@
 		draggedIndex = null;
 		dragOverIndex = null;
 
-		if (from === targetIndex) return;
-
-		const currentList = [...orderedWatchlists];
-		const [moved] = currentList.splice(from, 1);
-		currentList.splice(targetIndex, 0, moved);
-
-		watchlistService.watchlists = currentList;
-		const newOrder = currentList.map((w) => w.id);
-		watchlistOrder = newOrder;
-
-		await userPreferencesService
-			.patchPreferences({ watchlist_order: newOrder })
-			.catch(console.error);
+		await moveWatchlist(from, targetIndex);
 	}
 
 	function handleDragEnd() {
 		draggedIndex = null;
 		dragOverIndex = null;
+	}
+
+	function isSecurityReorderEnabled(watchlist: WatchlistRead): boolean {
+		return (
+			normalizeWatchlistSort(watchlist.sort) === 'custom' &&
+			securityReorderWatchlistId === watchlist.id
+		);
+	}
+
+	/** Security drag only applies when its list's toggle is on and watchlist reorder mode is off. */
+	function isSecurityReorderActive(watchlist: WatchlistRead): boolean {
+		return isSecurityReorderEnabled(watchlist) && !isReorderMode;
+	}
+
+	function toggleSecurityReorder(watchlist: WatchlistRead) {
+		securityReorderWatchlistId = securityReorderWatchlistId === watchlist.id ? null : watchlist.id;
+		securityDragIndex = null;
+		securityDragOverIndex = null;
+	}
+
+	function sortedSecuritiesFor(watchlist: WatchlistRead) {
+		return sortSecurities(watchlist.securities, normalizeWatchlistSort(watchlist.sort));
+	}
+
+	/** Reorder a security, persist the new id order and announce the completed move. */
+	function moveSecurity(watchlist: WatchlistRead, from: number, to: number) {
+		if (!isSecurityReorderActive(watchlist) || from === to) return;
+
+		const sorted = sortedSecuritiesFor(watchlist);
+		const moved = sorted[from];
+		if (!moved) return;
+
+		const securityIds = moveItem(sorted, from, to).map((s) => s.id);
+		announce(`${moved.symbol} moved to position ${to + 1} of ${sorted.length}`);
+		void watchlistService.reorderSecurities(watchlist.id, securityIds);
+	}
+
+	function handleSecurityDragStart(e: DragEvent, watchlist: WatchlistRead, index: number) {
+		if (!isSecurityReorderActive(watchlist)) return;
+		securityDragIndex = index;
+		if (e.dataTransfer) {
+			e.dataTransfer.effectAllowed = 'move';
+			e.dataTransfer.setData('text/plain', String(index));
+		}
+	}
+
+	function handleSecurityDragOver(e: DragEvent, watchlist: WatchlistRead, index: number) {
+		if (!isSecurityReorderActive(watchlist) || securityDragIndex === null) return;
+		e.preventDefault();
+		if (e.dataTransfer) {
+			e.dataTransfer.dropEffect = 'move';
+		}
+		securityDragOverIndex = index;
+	}
+
+	function handleSecurityDragLeave() {
+		securityDragOverIndex = null;
+	}
+
+	function handleSecurityDrop(e: DragEvent, watchlist: WatchlistRead, targetIndex: number) {
+		if (!isSecurityReorderActive(watchlist) || securityDragIndex === null) return;
+		e.preventDefault();
+		const from = securityDragIndex;
+		securityDragIndex = null;
+		securityDragOverIndex = null;
+
+		moveSecurity(watchlist, from, targetIndex);
+	}
+
+	function handleSecurityDragEnd() {
+		securityDragIndex = null;
+		securityDragOverIndex = null;
 	}
 
 	function getPillClass(changePercent: number | null | undefined): string {
@@ -231,6 +337,8 @@
 	</PageHeader>
 
 	<main class="flex flex-1 flex-col gap-6 overflow-y-auto p-4">
+		<div role="status" aria-live="polite" class="sr-only">{announcement}</div>
+
 		{#if watchlistService.error && !createOpen}
 			<Alert variant="destructive">
 				<AlertDescription>{watchlistService.error}</AlertDescription>
@@ -295,11 +403,16 @@
 							{:else}
 								<div class="flex items-center gap-2">
 									{#if isReorderMode}
-										<GripVertical
-											class="h-4 w-4 shrink-0 cursor-grab text-muted-foreground"
+										<button
+											type="button"
 											data-testid="drag-handle"
-											aria-hidden="true"
-										/>
+											aria-label={`Reorder ${watchlist.name}`}
+											class="shrink-0 cursor-grab rounded-sm text-muted-foreground hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none"
+											onkeydown={(e) =>
+												handleReorderKeydown(e, index, watchlists.length, moveWatchlist)}
+										>
+											<GripVertical class="h-4 w-4" />
+										</button>
 									{/if}
 									<h2 class="text-lg leading-none font-semibold">{watchlist.name}</h2>
 									<span class="text-sm leading-none text-muted-foreground"
@@ -307,6 +420,17 @@
 									>
 								</div>
 								<div class="flex items-center gap-1">
+									{#if normalizeWatchlistSort(watchlist.sort) === 'custom'}
+										<Button
+											size="icon-sm"
+											variant={securityReorderWatchlistId === watchlist.id ? 'secondary' : 'ghost'}
+											aria-label={`Reorder securities in ${watchlist.name}`}
+											aria-pressed={securityReorderWatchlistId === watchlist.id}
+											onclick={() => toggleSecurityReorder(watchlist)}
+										>
+											<GripVertical class="h-4 w-4" />
+										</Button>
+									{/if}
 									<DropdownMenu.Root>
 										<DropdownMenu.Trigger>
 											{#snippet child({ props })}
@@ -375,8 +499,40 @@
 								normalizeWatchlistSort(watchlist.sort)
 							)}
 							<ul aria-label={`${watchlist.name} securities list`} class="flex flex-col gap-1">
-								{#each sortedSecurities as security (security.id)}
-									<li class="flex items-center gap-2">
+								{#each sortedSecurities as security, securityIndex (security.id)}
+									{@const securityReorderActive = isSecurityReorderActive(watchlist)}
+									<li
+										class={cn(
+											'flex items-center gap-2 rounded-md',
+											securityReorderActive && 'cursor-move',
+											securityReorderActive &&
+												securityDragOverIndex === securityIndex &&
+												'bg-muted/40'
+										)}
+										draggable={securityReorderActive}
+										ondragstart={(e) => handleSecurityDragStart(e, watchlist, securityIndex)}
+										ondragover={(e) => handleSecurityDragOver(e, watchlist, securityIndex)}
+										ondragleave={handleSecurityDragLeave}
+										ondrop={(e) => handleSecurityDrop(e, watchlist, securityIndex)}
+										ondragend={handleSecurityDragEnd}
+									>
+										{#if securityReorderActive}
+											<button
+												type="button"
+												data-testid="security-drag-handle"
+												aria-label={`Reorder ${security.symbol}`}
+												class="shrink-0 cursor-grab rounded-sm text-muted-foreground hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none"
+												onkeydown={(e) =>
+													handleReorderKeydown(
+														e,
+														securityIndex,
+														sortedSecurities.length,
+														(from, to) => moveSecurity(watchlist, from, to)
+													)}
+											>
+												<GripVertical class="h-4 w-4" />
+											</button>
+										{/if}
 										<a
 											href={resolve(`/security/${security.id}`)}
 											class="flex flex-1 items-center justify-between gap-2 rounded-md px-2 py-1.5 transition-colors hover:bg-muted focus:bg-muted"

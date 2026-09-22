@@ -55,6 +55,7 @@ function makeClient() {
 		deleteWatchlist: vi.fn(),
 		addSecurityToWatchlist: vi.fn(),
 		removeSecurityFromWatchlist: vi.fn(),
+		reorderWatchlistSecurities: vi.fn(),
 		addToWatchlist: vi.fn(),
 		removeFromWatchlist: vi.fn()
 	};
@@ -241,6 +242,78 @@ describe('WatchlistService membership', () => {
 
 		expect(service.error).toBe('Security not found');
 		expect(client.getWatchlists).toHaveBeenCalledWith('tok');
+	});
+});
+
+describe('WatchlistService.reorderSecurities', () => {
+	it('applies the new order optimistically with rewritten positions before the PUT settles', async () => {
+		const first = { ...aapl, position: 0 };
+		const second = { ...msft, position: 1 };
+		const third = { ...nvda, position: 2 };
+		service.watchlists = [watchlist('wl-tech', 'Tech', [first, second, third])];
+
+		let resolvePut!: (value: WatchlistRead) => void;
+		client.reorderWatchlistSecurities.mockReturnValue(
+			new Promise<WatchlistRead>((resolve) => {
+				resolvePut = resolve;
+			})
+		);
+
+		const promise = service.reorderSecurities('wl-tech', ['sec-3', 'sec-1', 'sec-2'], 'tok');
+
+		// The optimistic rebuild is visible while the request is still in flight...
+		const optimistic = service.watchlists.find((w) => w.id === 'wl-tech');
+		expect(optimistic?.securities.map((s) => s.id)).toEqual(['sec-3', 'sec-1', 'sec-2']);
+		expect(optimistic?.securities.map((s) => s.position)).toEqual([0, 1, 2]);
+		expect(client.reorderWatchlistSecurities).toHaveBeenCalledWith(
+			'wl-tech',
+			['sec-3', 'sec-1', 'sec-2'],
+			'tok'
+		);
+
+		resolvePut(watchlist('wl-tech', 'Tech', [third, first, second]));
+		await promise;
+
+		expect(service.error).toBeNull();
+	});
+
+	it('replaces the watchlist with the server payload, keeping server positions', async () => {
+		service.watchlists = [defaultList(), watchlist('wl-tech', 'Tech', [nvda, aapl])];
+		client.reorderWatchlistSecurities.mockResolvedValue(
+			watchlist('wl-tech', 'Tech', [
+				{ ...nvda, position: 0 },
+				{ ...aapl, position: 1 }
+			])
+		);
+
+		await service.reorderSecurities('wl-tech', ['sec-3', 'sec-1'], 'tok');
+
+		const stored = service.watchlists.find((w) => w.id === 'wl-tech');
+		expect(stored?.securities.map((s) => s.id)).toEqual(['sec-3', 'sec-1']);
+		expect(stored?.securities.map((s) => s.position)).toEqual([0, 1]);
+		// Unrelated watchlists are untouched.
+		expect(
+			service.watchlists.find((w) => w.id === 'wl-default')?.securities.map((s) => s.id)
+		).toEqual(['sec-1', 'sec-2']);
+		expect(service.error).toBeNull();
+	});
+
+	it('resyncs, reverts the optimistic order and records the error when the PUT fails', async () => {
+		service.watchlists = [watchlist('wl-tech', 'Tech', [aapl, msft, nvda])];
+		client.reorderWatchlistSecurities.mockRejectedValue(new Error('Reorder failed'));
+		client.getWatchlists.mockResolvedValue([
+			watchlist('wl-tech', 'Tech', [
+				{ ...aapl, position: 0 },
+				{ ...msft, position: 1 },
+				{ ...nvda, position: 2 }
+			])
+		]);
+
+		await service.reorderSecurities('wl-tech', ['sec-3', 'sec-1', 'sec-2'], 'tok');
+
+		expect(client.getWatchlists).toHaveBeenCalledWith('tok');
+		expect(service.watchlists[0].securities.map((s) => s.id)).toEqual(['sec-1', 'sec-2', 'sec-3']);
+		expect(service.error).toBe('Reorder failed');
 	});
 });
 
@@ -479,6 +552,7 @@ describe('WatchlistService error lifecycle', () => {
 		client.deleteWatchlist.mockResolvedValue(undefined);
 		client.addSecurityToWatchlist.mockResolvedValue(watchlist('wl-tech', 'Tech', [nvda, aapl]));
 		client.removeSecurityFromWatchlist.mockResolvedValue(watchlist('wl-tech', 'Tech', []));
+		client.reorderWatchlistSecurities.mockResolvedValue(watchlist('wl-tech', 'Tech', [nvda]));
 		client.addToWatchlist.mockResolvedValue(watchlist('wl-default', 'Default', [aapl, msft, nvda]));
 		client.removeFromWatchlist.mockResolvedValue(watchlist('wl-default', 'Default', [msft]));
 
@@ -495,6 +569,7 @@ describe('WatchlistService error lifecycle', () => {
 				'removeSecurityFromWatchlist',
 				() => service.removeSecurityFromWatchlist('wl-tech', 'sec-1')
 			],
+			['reorderSecurities', () => service.reorderSecurities('wl-tech', ['sec-3'])],
 			['toggleSecurity', () => service.toggleSecurity('sec-3')]
 		];
 
