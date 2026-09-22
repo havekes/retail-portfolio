@@ -203,6 +203,18 @@ class SecurityNoteWrite(BaseModel):
     content: str
 
 
+class NoteSummaryWrite(BaseModel):
+    summary: str
+    generated_at: datetime
+
+
+class NoteSummaryResponse(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    summary: str | None = None
+    generated_at: datetime | None = None
+
+
 class SecurityDocumentWrite(BaseModel):
     filename: str
     file_path: str

@@ -12,6 +12,8 @@ from src.market.schema import (
     ChartSnapshotCreate,
     ChartSnapshotRead,
     IntradayPriceSchema,
+    NoteSummaryResponse,
+    NoteSummaryWrite,
     PriceAlertRead,
     PriceAlertWrite,
     PriceSchema,
@@ -248,6 +250,20 @@ class SecurityNoteRepository(ABC):
 
     @abstractmethod
     async def delete(self, note_id: int, user_id: UserId) -> None:
+        pass
+
+
+class SecurityNoteSummaryRepository(ABC):
+    @abstractmethod
+    async def get(
+        self, security_id: SecurityId, user_id: UserId
+    ) -> NoteSummaryResponse | None:
+        pass
+
+    @abstractmethod
+    async def upsert(
+        self, summary: NoteSummaryWrite, security_id: SecurityId, user_id: UserId
+    ) -> NoteSummaryResponse:
         pass
 
 

@@ -30,6 +30,7 @@ from src.market.model import (
     SecurityDocumentModel,
     SecurityModel,
     SecurityNoteModel,
+    SecurityNoteSummaryModel,
     WatchlistModel,
 )
 from src.market.repository import (
@@ -40,6 +41,7 @@ from src.market.repository import (
     SecurityBrokerRepository,
     SecurityDocumentRepository,
     SecurityNoteRepository,
+    SecurityNoteSummaryRepository,
     SecurityRepository,
     WatchlistRepository,
 )
@@ -48,6 +50,8 @@ from src.market.schema import (
     ChartSnapshotCreate,
     ChartSnapshotRead,
     IntradayPriceSchema,
+    NoteSummaryResponse,
+    NoteSummaryWrite,
     PriceAlertRead,
     PriceAlertWrite,
     PriceSchema,
@@ -994,6 +998,58 @@ async def sqlalchemy_security_note_repository_factory(
     container: Container,
 ) -> SqlAlchemySecurityNoteRepository:
     return SqlAlchemySecurityNoteRepository(
+        session=await container.aget(AsyncSession),
+    )
+
+
+class SqlAlchemySecurityNoteSummaryRepository(SecurityNoteSummaryRepository):
+    _session: AsyncSession
+
+    def __init__(self, session: AsyncSession):
+        self._session = session
+
+    @override
+    async def get(
+        self, security_id: SecurityId, user_id: UserId
+    ) -> NoteSummaryResponse | None:
+        result = await self._session.execute(
+            select(SecurityNoteSummaryModel)
+            .where(SecurityNoteSummaryModel.security_id == security_id)
+            .where(SecurityNoteSummaryModel.user_id == user_id)
+        )
+        row = result.scalar_one_or_none()
+        return NoteSummaryResponse.model_validate(row) if row else None
+
+    @override
+    async def upsert(
+        self, summary: NoteSummaryWrite, security_id: SecurityId, user_id: UserId
+    ) -> NoteSummaryResponse:
+        result = await self._session.execute(
+            select(SecurityNoteSummaryModel)
+            .where(SecurityNoteSummaryModel.security_id == security_id)
+            .where(SecurityNoteSummaryModel.user_id == user_id)
+        )
+        row = result.scalar_one_or_none()
+        if row is None:
+            row = SecurityNoteSummaryModel(
+                security_id=security_id,
+                user_id=user_id,
+                summary=summary.summary,
+                generated_at=func.now(),
+            )
+        else:
+            row.summary = summary.summary
+            row.generated_at = func.now()
+        self._session.add(row)
+        await self._session.commit()
+        await self._session.refresh(row)
+        return NoteSummaryResponse.model_validate(row)
+
+
+async def sqlalchemy_security_note_summary_repository_factory(
+    container: Container,
+) -> SqlAlchemySecurityNoteSummaryRepository:
+    return SqlAlchemySecurityNoteSummaryRepository(
         session=await container.aget(AsyncSession),
     )
 
