@@ -55,15 +55,32 @@
 		ChartDrawingsService,
 		type ChartInstance
 	} from '$lib/services/ChartDrawingsService.svelte';
+	import { redirectOn401 } from '$lib/api/async-data';
+	import { SecurityPageDataService } from './page-data.svelte';
 
 	let { data } = $props();
 
 	const watchlistService = getWatchlistService();
 
-	let isLoading = $state(false);
-	let error = $state<string | null>(null);
+	// The page owns its service instance (SSR "no global instances" rule) and owns
+	// the post-navigation data wave: identity + `1d` series resolve after the shell
+	// has already rendered.
+	const pageData = new SecurityPageDataService();
 
-	let security = $derived(data.security);
+	// Timeframe switches own their own failure message; the service owns the
+	// initial load's. Both surface in the same "Failed to Load Chart" card.
+	let timeframeError = $state<string | null>(null);
+	const error = $derived(pageData.error ?? timeframeError);
+
+	// Instant titlebar: shortcut navigation resolves the id from the already-loaded
+	// default watchlist, so identity renders before the fetch lands. Direct loads
+	// fall back to the app-header skeleton until the service resolves.
+	const instantSecurity = $derived(
+		watchlistService.defaultWatchlistSecurities.find((s) => s.id === data.security_id) ?? null
+	);
+	let security = $derived(pageData.security ?? instantSecurity);
+	const isLoading = $derived(!security && !error);
+
 	let haCandles = $state<Candle[]>([]);
 	let selectedInterval = $state('1d');
 	let chartStyle = $state<ChartStyle>('heikin_ashi');
@@ -161,10 +178,10 @@
 			const priceResponse = await marketService.getPrices(security.id, from, to, interval);
 
 			if (!priceResponse.items || priceResponse.items.length === 0) {
-				error = 'No price data available for this timeframe';
+				timeframeError = 'No price data available for this timeframe';
 				return;
 			}
-			error = null;
+			timeframeError = null;
 
 			const mappedCandles: Candle[] = priceResponse.items.map((p) => {
 				const timeVal =
@@ -213,7 +230,11 @@
 
 	async function handleLoadMoreData() {
 		if (isRewound) return;
-		if (!shouldFetchMoreData(isLoadingMore, hasMoreData, security?.id, rawCandles.length)) {
+		const securityId = security?.id;
+		if (
+			!securityId ||
+			!shouldFetchMoreData(isLoadingMore, hasMoreData, securityId, rawCandles.length)
+		) {
 			return;
 		}
 
@@ -224,7 +245,7 @@
 			const { from, to } = getChartDateWindow(oldestDate, selectedInterval);
 
 			const marketService = getMarketService();
-			const priceResponse = await marketService.getPrices(security.id, from, to, selectedInterval);
+			const priceResponse = await marketService.getPrices(securityId, from, to, selectedInterval);
 
 			if (!priceResponse.items || priceResponse.items.length === 0) {
 				hasMoreData = false;
@@ -662,66 +683,90 @@
 		}
 	}
 
+	// The route shell (titlebar + chart region) renders instantly; the security
+	// identity and its `1d` price series are fetched after navigation. `$effect`
+	// never runs during SSR, so this mount-time trigger is browser-only and fires
+	// once per security — soft navigation re-runs it via `data.security_id`.
 	$effect(() => {
-		const items = data.items;
-		void security?.id;
-
-		if (!items || items.length === 0) {
-			error = 'No price data available for this security';
-			return;
-		}
+		const securityId = data.security_id;
 
 		untrack(() => {
-			// Reset drawing mode on route transition / security change
+			// Reset drawing mode and pagination state on route transition / security change.
 			drawingsService.resetToolState();
+			timeframeError = null;
+			hasMoreData = true;
+			isLoadingMore = false;
+			securityChart = null;
 
-			(async () => {
-				if (!userPreferences) {
-					try {
-						const prefs = await userPreferencesService.getPreferences();
-						userPreferences = prefs;
-						applySavedPaneHeights(prefs);
-						drawingsService.setPreferences(prefs);
-					} catch (err) {
-						console.error('Failed to load user preferences:', err);
+			void (async () => {
+				const loadError = await pageData.load(securityId);
+
+				// A newer navigation superseded this load; its own effect run owns the init.
+				if (data.security_id !== securityId) return;
+
+				if (loadError !== null) {
+					// 401s leave through the shared async-data seam; any other failure is
+					// already surfaced by `pageData.error` in the "Failed to Load Chart" card.
+					await redirectOn401(loadError);
+					return;
+				}
+
+				const items = pageData.items;
+				if (!items) return;
+
+				try {
+					if (!userPreferences) {
+						try {
+							const prefs = await userPreferencesService.getPreferences();
+							userPreferences = prefs;
+							applySavedPaneHeights(prefs);
+							drawingsService.setPreferences(prefs);
+						} catch (err) {
+							console.error('Failed to load user preferences:', err);
+						}
+					} else {
+						drawingsService.setPreferences(userPreferences);
 					}
-				} else {
-					drawingsService.setPreferences(userPreferences);
-				}
 
-				// Convert to lightweight-charts format and sort properly (oldest to newest)
-				const mappedCandles: Candle[] = items.map((p) => ({
-					time: p.timestamp
-						? (Math.floor(new Date(p.timestamp).getTime() / 1000) as UTCTimestamp)
-						: ((p.date ?? '') as Time),
-					open: Number(p.open),
-					high: Number(p.high),
-					low: Number(p.low),
-					close: Number(p.close),
-					volume: Number(p.volume)
-				}));
+					// Convert to lightweight-charts format and sort properly (oldest to newest)
+					const mappedCandles: Candle[] = items.map((p) => ({
+						time: p.timestamp
+							? (Math.floor(new Date(p.timestamp).getTime() / 1000) as UTCTimestamp)
+							: ((p.date ?? '') as Time),
+						open: Number(p.open),
+						high: Number(p.high),
+						low: Number(p.low),
+						close: Number(p.close),
+						volume: Number(p.volume)
+					}));
 
-				hasMoreData = true;
-				isLoadingMore = false;
-				rawCandles = mappedCandles;
-				haCandles = convertToHeikinAshi(mappedCandles);
-				await Promise.all([loadAlerts(), loadHoldings(), drawingsService.loadSnapshots()]);
+					hasMoreData = true;
+					isLoadingMore = false;
+					rawCandles = mappedCandles;
+					haCandles = convertToHeikinAshi(mappedCandles);
+					await Promise.all([loadAlerts(), loadHoldings(), drawingsService.loadSnapshots()]);
 
-				// Initial-load reconcile: gated on preferences being loaded so a failed fetch never
-				// mass-deletes wave alerts. Soft navigation re-runs the effect per security.
-				if (userPreferences !== null) {
-					scheduleWaveAlertsReconcile();
-				}
+					// Initial-load reconcile: gated on preferences being loaded so a failed fetch never
+					// mass-deletes wave alerts. Soft navigation re-runs the effect per security.
+					if (userPreferences !== null) {
+						scheduleWaveAlertsReconcile();
+					}
 
-				const module = await import('$lib/components/charts/security-chart.svelte');
-				securityChart = module.default;
+					const module = await import('$lib/components/charts/security-chart.svelte');
+					securityChart = module.default;
 
-				// Soft-navigation reconcile: server always loads '1d' series; if we're on a different
-				// timeframe, force-refetch to keep the displayed series in sync with the active
-				// timeframe for the new security. Gate on !isChangingTimeframe to avoid a
-				// redundant refetch when a saved timeframe ≠ 1d (onPreferencesLoaded is still running).
-				if (!isChangingTimeframe && selectedInterval !== '1d') {
-					await changeTimeframe(selectedInterval, { persist: false, force: true });
+					// Soft-navigation reconcile: the async load always fetches the '1d' series; if
+					// we're on a different timeframe, force-refetch to keep the displayed series in
+					// sync with the active timeframe for the new security. Gate on
+					// !isChangingTimeframe to avoid a redundant refetch when a saved timeframe ≠ 1d
+					// (onPreferencesLoaded is still running).
+					if (!isChangingTimeframe && selectedInterval !== '1d') {
+						await changeTimeframe(selectedInterval, { persist: false, force: true });
+					}
+				} catch (err) {
+					// `load()` never throws; this keeps a failure in the init chain (dynamic
+					// import, preferences, snapshots) from surfacing as an unhandled rejection.
+					console.error('Failed to initialise security chart:', err);
 				}
 			})();
 		});
@@ -762,11 +807,7 @@
 		{/snippet}
 	</PageHeader>
 
-	{#if isLoading}
-		<div class="flex min-h-0 flex-1 items-center justify-center overflow-hidden">
-			<p class="text-gray-500">Loading chart data...</p>
-		</div>
-	{:else if error}
+	{#if error}
 		<div class="flex min-h-0 flex-1 items-center justify-center overflow-hidden">
 			<div
 				class="card error-card w-full max-w-md rounded-lg border border-red-200 bg-white p-8 shadow-lg dark:border-red-800 dark:bg-gray-800"
@@ -1020,6 +1061,10 @@
 					<AIAnalysisGroup securityId={security.id} expanded={true} />
 				</Sidebar.Content>
 			</div>
+		</div>
+	{:else}
+		<div class="flex min-h-0 flex-1 items-center justify-center overflow-hidden">
+			<p class="text-gray-500">Loading chart data...</p>
 		</div>
 	{/if}
 </div>
