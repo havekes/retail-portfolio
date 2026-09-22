@@ -298,6 +298,56 @@ describe('WatchlistService.reorderSecurities', () => {
 		expect(service.error).toBeNull();
 	});
 
+	it('keeps positions contiguous across a reverse-direction second reorder', async () => {
+		service.watchlists = [
+			watchlist('wl-tech', 'Tech', [
+				{ ...aapl, position: 0 },
+				{ ...msft, position: 1 },
+				{ ...nvda, position: 2 }
+			])
+		];
+		client.reorderWatchlistSecurities
+			.mockResolvedValueOnce(
+				watchlist('wl-tech', 'Tech', [
+					{ ...nvda, position: 0 },
+					{ ...aapl, position: 1 },
+					{ ...msft, position: 2 }
+				])
+			)
+			.mockResolvedValueOnce(
+				watchlist('wl-tech', 'Tech', [
+					{ ...nvda, position: 0 },
+					{ ...msft, position: 1 },
+					{ ...aapl, position: 2 }
+				])
+			);
+
+		// Forward: NVDA to the front.
+		await service.reorderSecurities('wl-tech', ['sec-3', 'sec-1', 'sec-2'], 'tok');
+		// Reverse: MSFT up one, computed from the order the first call left behind.
+		await service.reorderSecurities('wl-tech', ['sec-3', 'sec-2', 'sec-1'], 'tok');
+
+		expect(client.reorderWatchlistSecurities).toHaveBeenNthCalledWith(
+			1,
+			'wl-tech',
+			['sec-3', 'sec-1', 'sec-2'],
+			'tok'
+		);
+		expect(client.reorderWatchlistSecurities).toHaveBeenNthCalledWith(
+			2,
+			'wl-tech',
+			['sec-3', 'sec-2', 'sec-1'],
+			'tok'
+		);
+
+		const stored = service.watchlists.find((w) => w.id === 'wl-tech');
+		// Optimistic state agrees with the last server payload: the id order and the
+		// rewritten positions the next keydown's index is derived from.
+		expect(stored?.securities.map((s) => s.id)).toEqual(['sec-3', 'sec-2', 'sec-1']);
+		expect(stored?.securities.map((s) => s.position)).toEqual([0, 1, 2]);
+		expect(service.error).toBeNull();
+	});
+
 	it('resyncs, reverts the optimistic order and records the error when the PUT fails', async () => {
 		service.watchlists = [watchlist('wl-tech', 'Tech', [aapl, msft, nvda])];
 		client.reorderWatchlistSecurities.mockRejectedValue(new Error('Reorder failed'));

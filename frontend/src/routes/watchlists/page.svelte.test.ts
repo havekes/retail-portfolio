@@ -730,6 +730,79 @@ describe('Watchlists page - watchlist reorder mode and drag-and-drop', () => {
 		expect(screen.getByRole('button', { name: 'Reorder Energy' })).toHaveFocus();
 	});
 
+	it('keeps moving the same watchlist after a direction switch (up, down, down)', async () => {
+		renderPage([
+			watchlist('wl-2', 'Energy', []),
+			watchlist('wl-1', 'Tech', []),
+			watchlist('wl-3', 'Crypto', [])
+		]);
+
+		await fireEvent.click(screen.getByRole('button', { name: 'Reorder' }));
+
+		const handle = screen.getByRole('button', { name: 'Reorder Tech' });
+		handle.focus();
+		expect(handle).toHaveFocus();
+
+		function headings(): (string | null)[] {
+			return screen
+				.getAllByRole('region')
+				.map((section) => within(section).getByRole('heading', { level: 2 }).textContent);
+		}
+
+		function expectSameFocusedHandle(position: number) {
+			expect(screen.getByRole('button', { name: 'Reorder Tech' })).toBe(handle);
+			expect(handle).toBe(document.activeElement);
+			expect(screen.getByRole('region', { name: 'Tech securities' })).toHaveClass(
+				'ring-1',
+				'ring-ring'
+			);
+			expect(screen.getByRole('status')).toHaveTextContent(
+				`Tech moved to position ${position} of 3`
+			);
+		}
+
+		await fireEvent.keyDown(handle, { key: 'ArrowUp' });
+		await waitFor(() =>
+			expect(mocks.preferences.patchPreferences).toHaveBeenLastCalledWith({
+				watchlist_order: ['wl-1', 'wl-2', 'wl-3']
+			})
+		);
+		expect(headings()).toEqual(['Tech', 'Energy', 'Crypto']);
+		expectSameFocusedHandle(1);
+
+		// The direction switch. Pre-fix this press drops focus to `<body>` and every
+		// later arrow key is lost.
+		await fireEvent.keyDown(handle, { key: 'ArrowDown' });
+		await waitFor(() =>
+			expect(mocks.preferences.patchPreferences).toHaveBeenLastCalledWith({
+				watchlist_order: ['wl-2', 'wl-1', 'wl-3']
+			})
+		);
+		expect(headings()).toEqual(['Energy', 'Tech', 'Crypto']);
+		expectSameFocusedHandle(2);
+
+		await fireEvent.keyDown(handle, { key: 'ArrowDown' });
+		await waitFor(() =>
+			expect(mocks.preferences.patchPreferences).toHaveBeenLastCalledWith({
+				watchlist_order: ['wl-2', 'wl-3', 'wl-1']
+			})
+		);
+		expect(headings()).toEqual(['Energy', 'Crypto', 'Tech']);
+		expectSameFocusedHandle(3);
+
+		// ...and the list keeps walking back up afterwards.
+		await fireEvent.keyDown(handle, { key: 'ArrowUp' });
+		await waitFor(() =>
+			expect(mocks.preferences.patchPreferences).toHaveBeenLastCalledWith({
+				watchlist_order: ['wl-2', 'wl-1', 'wl-3']
+			})
+		);
+		expect(headings()).toEqual(['Energy', 'Tech', 'Crypto']);
+		expectSameFocusedHandle(2);
+
+		expect(mocks.preferences.patchPreferences).toHaveBeenCalledTimes(4);
+	});
+
 	it('does not move a watchlist past the top or bottom boundary', async () => {
 		renderPage([watchlist('wl-1', 'Tech', []), watchlist('wl-2', 'Energy', [])]);
 
@@ -903,6 +976,164 @@ describe('Watchlists page - security reorder in custom sort mode', () => {
 		});
 
 		expect(mocks.client.reorderWatchlistSecurities).not.toHaveBeenCalled();
+	});
+
+	it('keeps moving the same security after a direction switch (up, up, down)', async () => {
+		// Reported repro: repeated ArrowUp works, but the first ArrowDown in the
+		// opposite direction leaves the list unwalkable. Every press here fires on
+		// the SAME captured handle node (never re-queried), so a detached or
+		// replaced handle cannot hide behind a fresh lookup.
+		const aap = a();
+		const mst = b();
+		const nvd = c();
+		const byId: Record<string, WatchlistSecuritySchema> = { s1: aap, s2: mst, s3: nvd };
+		// The server echoes exactly the requested order, so optimistic and persisted
+		// orders agree unless the component desyncs them itself.
+		mocks.client.reorderWatchlistSecurities.mockImplementation(
+			async (_watchlistId: string, ids: string[]) =>
+				watchlist(
+					'wl-tech',
+					'Tech',
+					ids.map((id, index) => ({ ...byId[id], position: index }))
+				)
+		);
+		renderPage([watchlist('wl-tech', 'Tech', [aap, mst, nvd])]);
+		await enableReorder();
+
+		const handle = screen.getByRole('button', { name: 'Reorder NVDA' });
+		handle.focus();
+		expect(handle).toHaveFocus();
+
+		/**
+		 * Pins the root cause named by the red assertion: the handle is the same
+		 * attached node and still holds focus after the move (suspect 3 — the keyed
+		 * row element is detached and re-attached by Svelte's reconciliation when the
+		 * item moves to a later index, which drops focus to `<body>`). Svelte
+		 * delegates `keydown` to the root, so a body-focused handle never sees the
+		 * next arrow key. Also asserts the moved row stays the selected row and the
+		 * status announcement reports the new position.
+		 */
+		function expectSameFocusedHandle(position: number) {
+			expect(screen.getByRole('button', { name: 'Reorder NVDA' })).toBe(handle);
+			expect(handle.isConnected).toBe(true);
+			expect(handle).toBe(document.activeElement);
+			expect(screen.getByRole('link', { name: /NVDA/ }).closest('li')).toHaveAttribute(
+				'aria-current',
+				'true'
+			);
+			expect(screen.getByRole('status')).toHaveTextContent(
+				`NVDA moved to position ${position} of 3`
+			);
+		}
+
+		await fireEvent.keyDown(handle, { key: 'ArrowUp' });
+		// Suspect 1 (silently swallowed press): every press must persist the order
+		// the user sees, one request per press.
+		await waitFor(() =>
+			expect(mocks.client.reorderWatchlistSecurities).toHaveBeenLastCalledWith(
+				'wl-tech',
+				['s1', 's3', 's2'],
+				undefined
+			)
+		);
+		// Suspect 2 (optimistic vs server disagreement): the rendered order equals
+		// the last persisted order, so the next keydown's index is the visible index.
+		expect(rowSymbols()).toEqual(['AAPL', 'NVDA', 'MSFT']);
+		expectSameFocusedHandle(2);
+
+		await fireEvent.keyDown(handle, { key: 'ArrowUp' });
+		await waitFor(() =>
+			expect(mocks.client.reorderWatchlistSecurities).toHaveBeenLastCalledWith(
+				'wl-tech',
+				['s3', 's1', 's2'],
+				undefined
+			)
+		);
+		expect(rowSymbols()).toEqual(['NVDA', 'AAPL', 'MSFT']);
+		expectSameFocusedHandle(1);
+
+		// The direction switch. Pre-fix this press drops focus to `<body>` and every
+		// later arrow key is lost.
+		await fireEvent.keyDown(handle, { key: 'ArrowDown' });
+		await waitFor(() =>
+			expect(mocks.client.reorderWatchlistSecurities).toHaveBeenLastCalledWith(
+				'wl-tech',
+				['s1', 's3', 's2'],
+				undefined
+			)
+		);
+		expect(rowSymbols()).toEqual(['AAPL', 'NVDA', 'MSFT']);
+		expectSameFocusedHandle(2);
+
+		// ...and the list keeps walking in both directions afterwards.
+		await fireEvent.keyDown(handle, { key: 'ArrowDown' });
+		await waitFor(() =>
+			expect(mocks.client.reorderWatchlistSecurities).toHaveBeenLastCalledWith(
+				'wl-tech',
+				['s1', 's2', 's3'],
+				undefined
+			)
+		);
+		expect(rowSymbols()).toEqual(['AAPL', 'MSFT', 'NVDA']);
+		expectSameFocusedHandle(3);
+
+		await fireEvent.keyDown(handle, { key: 'ArrowUp' });
+		await waitFor(() =>
+			expect(mocks.client.reorderWatchlistSecurities).toHaveBeenLastCalledWith(
+				'wl-tech',
+				['s1', 's3', 's2'],
+				undefined
+			)
+		);
+		expect(rowSymbols()).toEqual(['AAPL', 'NVDA', 'MSFT']);
+		expectSameFocusedHandle(2);
+
+		expect(mocks.client.reorderWatchlistSecurities).toHaveBeenCalledTimes(5);
+	});
+
+	it('stays a no-op at the boundary after a direction switch', async () => {
+		const msft = security('s2', 'MSFT', 300, 2, '2026-01-02T00:00:00Z', 0);
+		const aapl = security('s1', 'AAPL', 150, 1, '2026-01-01T00:00:00Z', 1);
+		const byId: Record<string, WatchlistSecuritySchema> = { s1: aapl, s2: msft };
+		mocks.client.reorderWatchlistSecurities.mockImplementation(
+			async (_watchlistId: string, ids: string[]) =>
+				watchlist(
+					'wl-tech',
+					'Tech',
+					ids.map((id, index) => ({ ...byId[id], position: index }))
+				)
+		);
+		renderPage([watchlist('wl-tech', 'Tech', [msft, aapl])]);
+		await enableReorder();
+
+		// Walk MSFT down to the bottom, then press ArrowDown again: the first press
+		// moves, the boundary press must change nothing and issue no request.
+		const handle = screen.getByRole('button', { name: 'Reorder MSFT' });
+		handle.focus();
+		await fireEvent.keyDown(handle, { key: 'ArrowDown' });
+		await waitFor(() =>
+			expect(mocks.client.reorderWatchlistSecurities).toHaveBeenLastCalledWith(
+				'wl-tech',
+				['s1', 's2'],
+				undefined
+			)
+		);
+
+		await fireEvent.keyDown(handle, { key: 'ArrowDown' });
+		await fireEvent.keyDown(handle, { key: 'ArrowUp' });
+		await waitFor(() =>
+			expect(mocks.client.reorderWatchlistSecurities).toHaveBeenLastCalledWith(
+				'wl-tech',
+				['s2', 's1'],
+				undefined
+			)
+		);
+
+		// The boundary press itself issued nothing extra: the reverse move is the
+		// second call, and the list stays walkable and focused after it.
+		expect(mocks.client.reorderWatchlistSecurities).toHaveBeenCalledTimes(2);
+		expect(handle).toBe(document.activeElement);
+		expect(screen.queryByRole('alert')).not.toBeInTheDocument();
 	});
 
 	it('shows no controls and ignores drops for non-custom sorts', async () => {

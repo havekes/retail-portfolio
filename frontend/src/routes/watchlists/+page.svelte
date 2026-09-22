@@ -24,7 +24,7 @@
 		WATCHLIST_ROW_DATA_TRACKS
 	} from '$lib/components/watchlist/watchlist-utils';
 	import { cn } from '$lib/utils';
-	import { getContext, untrack } from 'svelte';
+	import { getContext, tick, untrack } from 'svelte';
 	import ArrowUpDown from '@lucide/svelte/icons/arrow-up-down';
 	import Check from '@lucide/svelte/icons/check';
 	import ChevronDown from '@lucide/svelte/icons/chevron-down';
@@ -220,12 +220,54 @@
 	}
 
 	/**
+	 * Re-focus a move handle after its row has been reordered.
+	 *
+	 * Svelte's keyed `{#each}` reconciliation moves the row that contains the
+	 * focused handle to its new position by detaching and re-attaching that
+	 * element when the item shifts to a later index. Detaching the active element
+	 * drops focus to `<body>`, and because Svelte delegates `keydown` to the root
+	 * and dispatches by `event.target`, the handle then never sees another arrow
+	 * key: the first move in the opposite direction leaves the list unwalkable.
+	 * The handle node itself survives the move, so focus is restored on the same
+	 * element once the reorder render has been applied. Focus is only reclaimed
+	 * when the DOM move dropped it — never stolen from a control the user has
+	 * since moved to.
+	 */
+	async function restoreHandleFocus(handle: HTMLElement | null) {
+		if (!handle) return;
+		await tick();
+		const active = document.activeElement;
+		if (handle.isConnected && (active === null || active === document.body)) {
+			handle.focus();
+		}
+	}
+
+	/** Keyboard reorder for the watchlist handle, keeping focus on that handle. */
+	function handleWatchlistReorderKeydown(event: KeyboardEvent, index: number, length: number) {
+		const handle = event.currentTarget as HTMLElement | null;
+		handleReorderKeydown(event, index, length, (from, to) => moveWatchlist(from, to, handle));
+	}
+
+	/** Keyboard reorder for a security handle, keeping focus on that handle. */
+	function handleSecurityReorderKeydown(
+		event: KeyboardEvent,
+		watchlist: WatchlistRead,
+		index: number,
+		length: number
+	) {
+		const handle = event.currentTarget as HTMLElement | null;
+		handleReorderKeydown(event, index, length, (from, to) =>
+			moveSecurity(watchlist, from, to, handle)
+		);
+	}
+
+	/**
 	 * Move a watchlist one slot, applying the new order optimistically and
 	 * persisting `watchlist_order`. On failure both local snapshots are restored so
 	 * no stale order survives, and the error surfaces in the shared alert. Used by
 	 * both the drag-and-drop and keyboard paths so the two stay in lockstep.
 	 */
-	async function moveWatchlist(from: number, to: number) {
+	async function moveWatchlist(from: number, to: number, handle?: HTMLElement | null) {
 		if (!isReorderMode || from === to) return;
 
 		const currentList = [...orderedWatchlists];
@@ -240,6 +282,7 @@
 		watchlistService.watchlists = nextList;
 		watchlistOrder = newOrder;
 		announce(`${moved.name} moved to position ${to + 1} of ${nextList.length}`);
+		void restoreHandleFocus(handle ?? null);
 
 		try {
 			await userPreferencesService.patchPreferences({ watchlist_order: newOrder });
@@ -289,7 +332,12 @@
 	}
 
 	/** Reorder a security, persist the new id order and announce the completed move. */
-	function moveSecurity(watchlist: WatchlistRead, from: number, to: number) {
+	function moveSecurity(
+		watchlist: WatchlistRead,
+		from: number,
+		to: number,
+		handle?: HTMLElement | null
+	) {
 		if (!isSecurityReorderActive(watchlist) || from === to) return;
 
 		const sorted = sortedSecuritiesFor(watchlist);
@@ -299,6 +347,7 @@
 		const securityIds = moveItem(sorted, from, to).map((s) => s.id);
 		announce(`${moved.symbol} moved to position ${to + 1} of ${sorted.length}`);
 		void watchlistService.reorderSecurities(watchlist.id, securityIds);
+		void restoreHandleFocus(handle ?? null);
 	}
 
 	function handleSecurityDragStart(e: DragEvent, watchlist: WatchlistRead, index: number) {
@@ -446,8 +495,7 @@
 											class="shrink-0 cursor-grab rounded-sm text-muted-foreground hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none"
 											onmousedown={() => selectWatchlist(watchlist.id)}
 											onfocus={() => selectWatchlist(watchlist.id)}
-											onkeydown={(e) =>
-												handleReorderKeydown(e, index, watchlists.length, moveWatchlist)}
+											onkeydown={(e) => handleWatchlistReorderKeydown(e, index, watchlists.length)}
 										>
 											<GripVertical class="h-4 w-4" />
 										</button>
@@ -565,11 +613,11 @@
 												onmousedown={() => selectRow(watchlist.id, security.id)}
 												onfocus={() => selectRow(watchlist.id, security.id)}
 												onkeydown={(e) =>
-													handleReorderKeydown(
+													handleSecurityReorderKeydown(
 														e,
+														watchlist,
 														securityIndex,
-														sortedSecurities.length,
-														(from, to) => moveSecurity(watchlist, from, to)
+														sortedSecurities.length
 													)}
 											>
 												<GripVertical class="h-4 w-4" />
