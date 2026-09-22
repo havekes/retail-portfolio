@@ -30,8 +30,15 @@
 
 <Dialog.Root bind:open>
 	<Dialog.Portal>
-		<Dialog.Overlay />
-		<Dialog.Content onkeydown={handleKeyDown}>
+		<!--
+			Both the overlay and the content are raised above the standard z-50
+			dialog layer. Confirmation dialogs can be opened from inside another
+			dialog (e.g. deleting a note from the note view dialog); without a
+			strictly higher z-index the confirm would tie with the note dialog
+			and lose to portal/DOM order, rendering behind it and unclickable.
+		-->
+		<Dialog.Overlay class="z-[60]" />
+		<Dialog.Content class="z-[60]" onkeydown={handleKeyDown}>
 			<Dialog.Header>
 				<Dialog.Title>{title}</Dialog.Title>
 				<Dialog.Description class="py-2">

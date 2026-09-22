@@ -6,6 +6,7 @@ export interface SecurityNote {
 	security_id: string;
 	user_id: string;
 	title?: string;
+	summary?: string | null;
 	content: string;
 	created_at: string;
 	updated_at: string;
@@ -43,7 +44,7 @@ export class NotesService extends ApiClient {
 		noteId: number,
 		request: SecurityNoteUpdateRequest
 	): Promise<SecurityNote> {
-		return await this.patch<SecurityNote, SecurityNoteUpdateRequest>(
+		return await this.put<SecurityNote, SecurityNoteUpdateRequest>(
 			`/market/securities/${securityId}/notes/${noteId}`,
 			request
 		);

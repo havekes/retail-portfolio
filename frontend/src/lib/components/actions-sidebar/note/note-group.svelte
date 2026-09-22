@@ -33,9 +33,46 @@
 	let error = $state<string | null>(null);
 	let summaryRef = $state<{ refresh: () => Promise<void> } | null>(null);
 
+	// Bumped by every list refresh (and on security switch/unmount). In-flight
+	// fetches and scheduled polls compare against it so a slow response can
+	// never overwrite a newer list.
+	let refreshToken = 0;
+	let pollTimer: ReturnType<typeof setTimeout> | null = null;
+	let pollResolve: (() => void) | null = null;
+
 	const createModal = new ModalState();
 	const viewModal = new ModalState<SecurityNote>();
 	const deleteConfirmationModal = new ModalState<number>();
+
+	function sortNotes() {
+		notes.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+	}
+
+	function cancelPoll() {
+		if (pollTimer !== null) {
+			clearTimeout(pollTimer);
+			pollTimer = null;
+		}
+		const resolve = pollResolve;
+		pollResolve = null;
+		// The waiting loop re-checks its token and exits when it is no longer current.
+		resolve?.();
+	}
+
+	function waitForNextPoll(): Promise<void> {
+		return new Promise((resolve) => {
+			pollResolve = resolve;
+			pollTimer = setTimeout(() => {
+				pollTimer = null;
+				pollResolve = null;
+				resolve();
+			}, pollIntervalMs ?? 2000);
+		});
+	}
+
+	function hasMissingSummary(): boolean {
+		return notes.some((note) => !note.summary);
+	}
 
 	async function fetchNotes() {
 		isLoading = true;
@@ -43,7 +80,7 @@
 		try {
 			const res = await notesService.getNotes(securityId);
 			notes = res.items;
-			notes.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+			sortNotes();
 		} catch (err) {
 			const status = err instanceof ApiError ? err.status : null;
 			if (status === 404) {
@@ -54,6 +91,28 @@
 			}
 		} finally {
 			isLoading = false;
+		}
+	}
+
+	// The per-note AI summary is generated asynchronously by the worker, so the
+	// first refetch after a mutation may still carry `summary: null`. Poll a
+	// bounded number of times until every visible row has one.
+	async function pollNotes(token: number) {
+		const attempts = maxPollAttempts ?? 6;
+		for (let attempt = 0; attempt < attempts; attempt++) {
+			if (token !== refreshToken || !hasMissingSummary()) return;
+			await waitForNextPoll();
+			if (token !== refreshToken) return;
+			try {
+				const res = await notesService.getNotes(securityId);
+				if (token !== refreshToken) return;
+				notes = res.items;
+				sortNotes();
+			} catch {
+				// Best-effort refresh: keep the last good list instead of
+				// flashing the error state over a background poll.
+				return;
+			}
 		}
 	}
 
@@ -74,12 +133,15 @@
 	// Every note mutation invalidates the AI summary, so both the list and the
 	// summary block refresh together from one callback.
 	async function refreshAll() {
+		const token = ++refreshToken;
+		cancelPoll();
 		await fetchNotes();
 		// Deleting the last note unmounts the summary block, so refreshing it would
 		// fire a pointless GET for a component that no longer exists.
 		if (notes.length > 0) {
 			await summaryRef?.refresh();
 		}
+		await pollNotes(token);
 	}
 
 	function handleDeleteRequest(noteId: number) {
@@ -108,8 +170,16 @@
 
 	$effect(() => {
 		if (securityId) {
+			refreshToken++;
+			cancelPoll();
 			fetchNotes();
 		}
+		return () => {
+			// Invalidate in-flight fetches/polls when the security changes or the
+			// component unmounts so their responses can't land on a stale list.
+			refreshToken++;
+			cancelPoll();
+		};
 	});
 </script>
 
