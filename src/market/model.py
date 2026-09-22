@@ -17,6 +17,7 @@ from sqlalchemy import (
     Index,
     Integer,
     String,
+    Text,
     UniqueConstraint,
     Uuid,
     func,
@@ -26,6 +27,7 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 from src.auth.api_types import UserId
 from src.config.database import BaseModel
 from src.market.api_types import EodhdSearchResult, SecurityId, WatchlistId
+from src.market.schema import MAX_SHORT_SUMMARY_LENGTH
 
 
 class SecurityModel(BaseModel):  # pylint: disable=too-few-public-methods
@@ -210,7 +212,8 @@ class SecurityNoteSummaryModel(BaseModel):
         Uuid, ForeignKey("market_securities.id", ondelete="CASCADE")
     )
     user_id: Mapped[UserId] = mapped_column(Uuid)
-    summary: Mapped[str] = mapped_column(String)
+    short_summary: Mapped[str] = mapped_column(String(MAX_SHORT_SUMMARY_LENGTH))
+    long_summary: Mapped[str] = mapped_column(Text)
     generated_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), default=func.now()
     )

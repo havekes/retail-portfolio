@@ -12,8 +12,16 @@ from src.market.repository_sqlalchemy import SqlAlchemySecurityNoteSummaryReposi
 from src.market.schema import NoteSummaryWrite
 
 
-def _summary_write(text: str) -> NoteSummaryWrite:
-    return NoteSummaryWrite(summary=text, generated_at=datetime.now(UTC))
+def _summary_write(
+    long_summary: str, short_summary: str | None = None
+) -> NoteSummaryWrite:
+    return NoteSummaryWrite(
+        short_summary=(short_summary if short_summary is not None else long_summary)[
+            :160
+        ],
+        long_summary=long_summary,
+        generated_at=datetime.now(UTC),
+    )
 
 
 async def _create_security(
@@ -47,14 +55,18 @@ async def test_upsert_persists_summary_and_get_returns_it(db_session: AsyncSessi
     repository = SqlAlchemySecurityNoteSummaryRepository(db_session)
 
     created = await repository.upsert(
-        _summary_write("First summary"), security.id, user_id
+        _summary_write("First long summary", "First digest"),
+        security.id,
+        user_id,
     )
-    assert created.summary == "First summary"
+    assert created.short_summary == "First digest"
+    assert created.long_summary == "First long summary"
     assert created.generated_at is not None
 
     fetched = await repository.get(security.id, user_id)
     assert fetched is not None
-    assert fetched.summary == "First summary"
+    assert fetched.short_summary == "First digest"
+    assert fetched.long_summary == "First long summary"
     assert fetched.generated_at is not None
     assert fetched.generated_at == created.generated_at
 
@@ -66,13 +78,14 @@ async def test_upsert_updates_existing_row_in_place(db_session: AsyncSession):
     repository = SqlAlchemySecurityNoteSummaryRepository(db_session)
 
     first = await repository.upsert(
-        _summary_write("First summary"), security.id, user_id
+        _summary_write("First long summary", "First digest"), security.id, user_id
     )
     second = await repository.upsert(
-        _summary_write("Second summary"), security.id, user_id
+        _summary_write("Second long summary", "Second digest"), security.id, user_id
     )
 
-    assert second.summary == "Second summary"
+    assert second.short_summary == "Second digest"
+    assert second.long_summary == "Second long summary"
     assert second.generated_at is not None
     assert first.generated_at is not None
     assert second.generated_at >= first.generated_at
@@ -87,7 +100,31 @@ async def test_upsert_updates_existing_row_in_place(db_session: AsyncSession):
 
     fetched = await repository.get(security.id, user_id)
     assert fetched is not None
-    assert fetched.summary == "Second summary"
+    assert fetched.short_summary == "Second digest"
+    assert fetched.long_summary == "Second long summary"
+
+
+@pytest.mark.anyio
+async def test_upsert_truncates_short_summary_to_the_column_width(
+    db_session: AsyncSession,
+):
+    """The VARCHAR(160) column accepts exactly 160 characters and nothing more."""
+    security = await _create_security(db_session)
+    user_id = uuid4()
+    repository = SqlAlchemySecurityNoteSummaryRepository(db_session)
+
+    created = await repository.upsert(
+        NoteSummaryWrite(
+            short_summary="x" * 160,
+            long_summary="Long body",
+            generated_at=datetime.now(UTC),
+        ),
+        security.id,
+        user_id,
+    )
+
+    assert created.short_summary is not None
+    assert len(created.short_summary) == 160
 
 
 @pytest.mark.anyio
@@ -104,9 +141,9 @@ async def test_get_is_scoped_to_user(db_session: AsyncSession):
     theirs = await repository.get(security.id, other_user_id)
 
     assert mine is not None
-    assert mine.summary == "Mine"
+    assert mine.long_summary == "Mine"
     assert theirs is not None
-    assert theirs.summary == "Theirs"
+    assert theirs.long_summary == "Theirs"
 
 
 @pytest.mark.anyio
@@ -123,9 +160,9 @@ async def test_get_is_scoped_to_security(db_session: AsyncSession):
     msft = await repository.get(other_security.id, user_id)
 
     assert aapl is not None
-    assert aapl.summary == "AAPL summary"
+    assert aapl.long_summary == "AAPL summary"
     assert msft is not None
-    assert msft.summary == "MSFT summary"
+    assert msft.long_summary == "MSFT summary"
 
 
 @pytest.mark.anyio
@@ -159,7 +196,7 @@ async def test_delete_removes_only_the_requested_summary(db_session: AsyncSessio
     assert await repository.get(security.id, user_id) is None
     theirs = await repository.get(security.id, other_user_id)
     assert theirs is not None
-    assert theirs.summary == "Theirs"
+    assert theirs.long_summary == "Theirs"
 
 
 @pytest.mark.anyio

@@ -113,7 +113,11 @@ async def _generate_note_summary(
 
                 summary = await ai_service.summarize_notes(security_id, user_id)
                 await summary_repository.upsert(
-                    NoteSummaryWrite(summary=summary, generated_at=datetime.now(UTC)),
+                    NoteSummaryWrite(
+                        short_summary=summary["short_summary"],
+                        long_summary=summary["long_summary"],
+                        generated_at=datetime.now(UTC),
+                    ),
                     security_id,
                     user_id,
                 )

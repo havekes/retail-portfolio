@@ -83,7 +83,10 @@ async def test_regenerated_summary_and_clearing_are_visible_through_get(
     )
 
     ai_service = AsyncMock(spec=AIService)
-    ai_service.summarize_notes.return_value = "Regenerated digest"
+    ai_service.summarize_notes.return_value = {
+        "short_summary": "Regenerated digest",
+        "long_summary": "Regenerated digest paragraph.",
+    }
 
     await _run_task(
         test_security.id, test_user.id, note_repository, summary_repository, ai_service
@@ -92,7 +95,8 @@ async def test_regenerated_summary_and_clearing_are_visible_through_get(
     response = await auth_client.get(_notes_summary_url(test_security.id))
     assert response.status_code == status.HTTP_200_OK
     body = response.json()
-    assert body["summary"] == "Regenerated digest"
+    assert body["short_summary"] == "Regenerated digest"
+    assert body["long_summary"] == "Regenerated digest paragraph."
     assert body["generated_at"] is not None
     generated_at = datetime.fromisoformat(body["generated_at"])
     assert abs((datetime.now(UTC) - generated_at).total_seconds()) < 60
@@ -105,7 +109,11 @@ async def test_regenerated_summary_and_clearing_are_visible_through_get(
 
     response = await auth_client.get(_notes_summary_url(test_security.id))
     assert response.status_code == status.HTTP_200_OK
-    assert response.json() == {"summary": None, "generated_at": None}
+    assert response.json() == {
+        "short_summary": None,
+        "long_summary": None,
+        "generated_at": None,
+    }
     assert ai_service.summarize_notes.await_count == 1
 
 
@@ -123,7 +131,10 @@ async def test_ai_failure_keeps_serving_the_previous_summary(
     )
 
     working_ai = AsyncMock(spec=AIService)
-    working_ai.summarize_notes.return_value = "First digest"
+    working_ai.summarize_notes.return_value = {
+        "short_summary": "First digest",
+        "long_summary": "First digest paragraph.",
+    }
     await _run_task(
         test_security.id, test_user.id, note_repository, summary_repository, working_ai
     )
@@ -136,7 +147,7 @@ async def test_ai_failure_keeps_serving_the_previous_summary(
 
     response = await auth_client.get(_notes_summary_url(test_security.id))
     assert response.status_code == status.HTTP_200_OK
-    assert response.json()["summary"] == "First digest"
+    assert response.json()["long_summary"] == "First digest paragraph."
 
 
 @pytest.mark.anyio
@@ -146,8 +157,6 @@ async def test_unknown_security_is_untouched(db_session: AsyncSession):
     note_repository = SqlAlchemySecurityNoteRepository(db_session)
     ai_service = AsyncMock(spec=AIService)
 
-    await _run_task(
-        uuid4(), uuid4(), note_repository, summary_repository, ai_service
-    )
+    await _run_task(uuid4(), uuid4(), note_repository, summary_repository, ai_service)
 
     ai_service.summarize_notes.assert_not_awaited()

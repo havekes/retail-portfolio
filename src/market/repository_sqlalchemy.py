@@ -1222,11 +1222,13 @@ class SqlAlchemySecurityNoteSummaryRepository(SecurityNoteSummaryRepository):
             row = SecurityNoteSummaryModel(
                 security_id=security_id,
                 user_id=user_id,
-                summary=summary.summary,
+                short_summary=summary.short_summary,
+                long_summary=summary.long_summary,
                 generated_at=func.now(),
             )
         else:
-            row.summary = summary.summary
+            row.short_summary = summary.short_summary
+            row.long_summary = summary.long_summary
             row.generated_at = func.now()
         self._session.add(row)
         await self._session.commit()

@@ -47,7 +47,11 @@ async def _store_summary(
 ) -> None:
     repository = SqlAlchemySecurityNoteSummaryRepository(db_session)
     await repository.upsert(
-        NoteSummaryWrite(summary=text, generated_at=datetime.now(UTC)),
+        NoteSummaryWrite(
+            short_summary=text[:160],
+            long_summary=text,
+            generated_at=datetime.now(UTC),
+        ),
         security_id,
         user_id,
     )
@@ -66,7 +70,8 @@ async def test_returns_persisted_summary_for_current_user(
 
     assert response.status_code == status.HTTP_200_OK
     data = response.json()
-    assert data["summary"] == "Digest text"
+    assert data["short_summary"] == "Digest text"
+    assert data["long_summary"] == "Digest text"
     assert data["generated_at"] is not None
 
 
@@ -78,7 +83,11 @@ async def test_returns_nulls_when_nothing_generated(
     response = await auth_client.get(_notes_summary_url(test_security.id))
 
     assert response.status_code == status.HTTP_200_OK
-    assert response.json() == {"summary": None, "generated_at": None}
+    assert response.json() == {
+        "short_summary": None,
+        "long_summary": None,
+        "generated_at": None,
+    }
 
 
 @pytest.mark.anyio
@@ -96,7 +105,8 @@ async def test_scopes_lookup_to_current_user(
     mock_summary_repository: AsyncMock,
 ):
     mock_summary_repository.get.return_value = NoteSummaryResponse(
-        summary="Scoped summary",
+        short_summary="Scoped digest",
+        long_summary="Scoped summary",
         generated_at=datetime.now(UTC),
     )
     app.state.svcs_registry.register_value(
@@ -106,7 +116,8 @@ async def test_scopes_lookup_to_current_user(
     response = await auth_client.get(_notes_summary_url(test_security.id))
 
     assert response.status_code == status.HTTP_200_OK
-    assert response.json()["summary"] == "Scoped summary"
+    assert response.json()["long_summary"] == "Scoped summary"
+    assert response.json()["short_summary"] == "Scoped digest"
     mock_summary_repository.get.assert_awaited_once_with(test_security.id, test_user.id)
 
 
@@ -135,8 +146,8 @@ async def test_does_not_leak_across_users_or_securities(
 
     response = await auth_client.get(_notes_summary_url(test_security.id))
     assert response.status_code == status.HTTP_200_OK
-    assert response.json()["summary"] == "Mine"
+    assert response.json()["long_summary"] == "Mine"
 
     response = await auth_client.get(_notes_summary_url(other_security.id))
     assert response.status_code == status.HTTP_200_OK
-    assert response.json()["summary"] == "Other security"
+    assert response.json()["long_summary"] == "Other security"

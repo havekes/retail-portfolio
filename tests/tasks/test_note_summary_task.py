@@ -98,7 +98,11 @@ async def _seed_summary(
     text: str,
 ) -> None:
     await repository.upsert(
-        NoteSummaryWrite(summary=text, generated_at=datetime.now(UTC)),
+        NoteSummaryWrite(
+            short_summary=text[:160],
+            long_summary=text,
+            generated_at=datetime.now(UTC),
+        ),
         security_id,
         user_id,
     )
@@ -114,7 +118,10 @@ async def test_generates_and_persists_summary(
     await _seed_note(note_repository, note_security.id, user_id)
 
     ai_service = AsyncMock(spec=AIService)
-    ai_service.summarize_notes.return_value = "Fresh digest"
+    ai_service.summarize_notes.return_value = {
+        "short_summary": "Fresh digest",
+        "long_summary": "Fresh digest paragraph.",
+    }
 
     with _task_environment(note_repository, summary_repository, ai_service):
         await _generate_note_summary(note_security.id, user_id)
@@ -122,7 +129,8 @@ async def test_generates_and_persists_summary(
     ai_service.summarize_notes.assert_awaited_once_with(note_security.id, user_id)
     stored = await summary_repository.get(note_security.id, user_id)
     assert stored is not None
-    assert stored.summary == "Fresh digest"
+    assert stored.short_summary == "Fresh digest"
+    assert stored.long_summary == "Fresh digest paragraph."
     assert stored.generated_at is not None
     # generated_at comes from the DB clock (func.now()), i.e. it is fresh
     assert abs((datetime.now(UTC) - stored.generated_at).total_seconds()) < 60
@@ -140,14 +148,18 @@ async def test_upsert_updates_existing_summary_row(
     previous = await summary_repository.get(note_security.id, user_id)
 
     ai_service = AsyncMock(spec=AIService)
-    ai_service.summarize_notes.return_value = "New digest"
+    ai_service.summarize_notes.return_value = {
+        "short_summary": "New digest",
+        "long_summary": "New digest paragraph.",
+    }
 
     with _task_environment(note_repository, summary_repository, ai_service):
         await _generate_note_summary(note_security.id, user_id)
 
     stored = await summary_repository.get(note_security.id, user_id)
     assert stored is not None
-    assert stored.summary == "New digest"
+    assert stored.short_summary == "New digest"
+    assert stored.long_summary == "New digest paragraph."
     assert previous is not None
     assert previous.generated_at is not None
     assert stored.generated_at is not None
@@ -193,7 +205,7 @@ async def test_zero_notes_for_other_user_does_not_touch_this_users_summary(
     assert await summary_repository.get(note_security.id, user_id) is None
     other = await summary_repository.get(note_security.id, other_user_id)
     assert other is not None
-    assert other.summary == "Theirs"
+    assert other.long_summary == "Theirs"
 
 
 @pytest.mark.anyio
@@ -220,7 +232,7 @@ async def test_ai_failure_is_logged_and_keeps_previous_summary(
     ai_service.summarize_notes.assert_awaited_once_with(note_security.id, user_id)
     stored = await summary_repository.get(note_security.id, user_id)
     assert stored is not None
-    assert stored.summary == "Previous"
+    assert stored.long_summary == "Previous"
 
 
 @pytest.mark.anyio

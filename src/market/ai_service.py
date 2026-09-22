@@ -17,11 +17,29 @@ from src.market.repository import (
     SecurityNoteRepository,
     SecurityRepository,
 )
+from src.market.schema import MAX_SHORT_SUMMARY_LENGTH
 
 logger = logging.getLogger(__name__)
 
 
 MAX_TITLE_LENGTH = 50
+
+# The local model (Gemma) emits reasoning in ``[think] ... [/think]`` blocks
+# before the answer. ``_strip_think`` removes both complete blocks and an
+# unterminated ``[think]`` prefix (generation truncated mid-reasoning).
+_THINK_PAIRED_RE = re.compile(r"\[think\].*?\[/think\]", re.DOTALL)
+_THINK_UNTERMINATED_RE = re.compile(r"\[think\].*", re.DOTALL)
+
+
+def _strip_think(content: str) -> str:
+    """Remove reasoning tokens from a model response.
+
+    Handles the complete ``[think]...[/think]`` pair *and* an unterminated
+    ``[think]`` prefix (when generation is cut off mid-reasoning, everything
+    from the opening tag onward is reasoning and must not be persisted).
+    """
+    without_pairs = _THINK_PAIRED_RE.sub("", content)
+    return _THINK_UNTERMINATED_RE.sub("", without_pairs).strip()
 
 
 def _http_error_status(e: Exception) -> str | int | None:
@@ -54,6 +72,13 @@ class AIContext(TypedDict):
 class AIResponse(TypedDict):
     content: str
     generated_at: str
+
+
+class NoteSummaryParts(TypedDict):
+    """Two-part AI summary of a user's notes for one security."""
+
+    short_summary: str
+    long_summary: str
 
 
 class AIService:
@@ -169,7 +194,9 @@ class AIService:
                         "content": (
                             "You are a helpful financial analysis assistant. "
                             "Provide clear, actionable insights based on the "
-                            "provided data. Use markdown formatting for readability."
+                            "provided data. Use markdown formatting for readability. "
+                            "Answer directly: never include reasoning or "
+                            "[think]...[/think] blocks in your reply."
                         ),
                     },
                     {
@@ -205,9 +232,7 @@ class AIService:
                 time.monotonic() - started_at,
                 len(content_str),
             )
-            return re.sub(
-                r"<think>.*?</think>", "", content_str, count=0, flags=re.DOTALL
-            ).strip()
+            return _strip_think(content_str)
 
     def _raise_content_type_error(self) -> None:
         msg = "AI response content is not a string"
@@ -309,8 +334,11 @@ class AIService:
         prompt_parts.append(RECENCY_WEIGHTING_INSTRUCTION)
         prompt_parts.append(f"\n{prompt}\n")
         prompt_parts.append(
-            "\nProvide a concise, well-structured summary with key themes, "
-            "action items and any shift in the user's view over time."
+            "\nReply with exactly two labelled parts, nothing else:\n"
+            f"SHORT: <one information-dense sentence, maximum "
+            f"{MAX_SHORT_SUMMARY_LENGTH} characters>\n"
+            "LONG: <one short paragraph, 3-5 sentences, no markdown headings>\n"
+            "Do not include reasoning or [think]...[/think] blocks."
         )
 
         return "".join(prompt_parts)
@@ -336,30 +364,158 @@ class AIService:
         )
         return await self._call_ai_api(prompt, context)
 
-    async def summarize_notes(self, security_id: SecurityId, user_id: UserId) -> str:
+    async def summarize_notes(
+        self, security_id: SecurityId, user_id: UserId
+    ) -> NoteSummaryParts:
         """
-        Generate summary of user's notes for a security.
+        Generate a two-part summary of the user's notes for a security.
+
+        A single AI call produces both parts: a dense ``short_summary`` (hard
+        capped at :data:`MAX_SHORT_SUMMARY_LENGTH`) and a one-paragraph
+        ``long_summary``. The model is asked for ``SHORT:``/``LONG:`` labels; a
+        tolerant parser accepts bare lines too and derives the short part from
+        the long one when the model only produces that.
 
         Args:
             security_id: Security identifier
             user_id: User identifier
 
         Returns:
-            AI-generated summary
+            ``NoteSummaryParts`` with both summary parts
         """
         context = await self._gather_context(security_id, user_id)
 
         if not context["notes"]:
-            return "No notes found for this security."
+            placeholder = "No notes found for this security."
+            return NoteSummaryParts(short_summary=placeholder, long_summary=placeholder)
 
         prompt = (
             "Summarize the key insights, themes, and action items from "
             "the user's notes. Organize by topic and highlight important "
             "observations or decisions."
         )
-        return await self._call_ai_api(
+        raw = await self._call_ai_api(
             prompt, context, prompt_builder=self._build_notes_summary_prompt
         )
+        return self._parse_summary_parts(raw)
+
+    @staticmethod
+    def _parse_summary_parts(raw: str) -> NoteSummaryParts:
+        """Parse a model response into the two summary parts.
+
+        Tolerates the labelled ``SHORT:``/``LONG:`` format (labels on separate
+        lines, or a single line), a JSON object, and an unlabelled response
+        (everything becomes the long part). The short part is always derived
+        from the long part when missing, and truncated to the hard cap.
+        """
+        short: str | None = None
+        long: str | None = None
+
+        text = raw.strip()
+        payload = AIService._parse_json_summary_parts(text)
+        if payload is not None:
+            short, long = payload
+
+        if short is None and long is None:
+            short, long = AIService._parse_labelled_summary_parts(text)
+
+        if long is None:
+            # Unlabelled or SHORT-only response: the whole text is the paragraph.
+            long = text
+
+        long_summary = AIService._clean_summary(long) or ""
+        short_summary = AIService._clean_summary(short)
+        if not short_summary:
+            short_summary = AIService._derive_short_summary(long_summary)
+        else:
+            short_summary = short_summary[:MAX_SHORT_SUMMARY_LENGTH]
+
+        return NoteSummaryParts(
+            short_summary=short_summary[:MAX_SHORT_SUMMARY_LENGTH],
+            long_summary=long_summary,
+        )
+
+    @staticmethod
+    def _parse_labelled_summary_parts(text: str) -> tuple[str | None, str | None]:
+        """Parse ``SHORT:``/``LONG:`` labelled output, else ``(None, None)``."""
+        short: str | None = None
+        long: str | None = None
+        long_buffer: list[str] = []
+        collecting_long = False
+
+        for line in text.splitlines():
+            upper = line.strip().upper()
+            if upper.startswith("SHORT:"):
+                short = line.strip()[len("SHORT:") :].strip()
+                collecting_long = False
+            elif upper.startswith("LONG:"):
+                first = line.strip()[len("LONG:") :].strip()
+                long_buffer = [first] if first else []
+                collecting_long = True
+            elif collecting_long:
+                long_buffer.append(line)
+
+        if long_buffer:
+            long = "\n".join(long_buffer).strip()
+
+        if long is None:
+            long = AIService._rest_after_short(text) if short is not None else None
+
+        return short, long
+
+    @staticmethod
+    def _parse_json_summary_parts(text: str) -> tuple[str | None, str | None] | None:
+        """Extract summary parts from a JSON body, else ``None``."""
+        if not text.startswith("{"):
+            return None
+        try:
+            payload = json.loads(text)
+        except json.JSONDecodeError:
+            return None
+        if not isinstance(payload, dict):
+            return None
+
+        raw_short = payload.get("short") or payload.get("short_summary")
+        raw_long = payload.get("long") or payload.get("long_summary")
+        return (
+            raw_short if isinstance(raw_short, str) else None,
+            raw_long if isinstance(raw_long, str) else None,
+        )
+
+    @staticmethod
+    def _rest_after_short(text: str) -> str | None:
+        """Text following the ``SHORT:`` line — used when no ``LONG:`` label exists."""
+        lines = text.splitlines()
+        for index, line in enumerate(lines):
+            if line.strip().upper().startswith("SHORT:"):
+                rest = "\n".join(lines[index + 1 :]).strip()
+                return rest or None
+        return None
+
+    @staticmethod
+    def _derive_short_summary(long_summary: str) -> str:
+        """Derive a dense short digest from the paragraph's first sentence(s).
+
+        Takes leading sentences until they would overflow
+        :data:`MAX_SHORT_SUMMARY_LENGTH`, then hard-truncates. Returns ``""``
+        when there is nothing to derive from.
+        """
+        text = " ".join(long_summary.split())
+        if not text:
+            return ""
+        if len(text) <= MAX_SHORT_SUMMARY_LENGTH:
+            return text
+
+        sentences = re.split(r"(?<=[.!?])\s+", text)
+        digest = ""
+        for sentence in sentences:
+            candidate = f"{digest} {sentence}".strip()
+            if len(candidate) > MAX_SHORT_SUMMARY_LENGTH:
+                break
+            digest = candidate
+        if digest:
+            return digest
+        return text[:MAX_SHORT_SUMMARY_LENGTH]
 
     async def generate_note_title(self, content: str) -> str:
         """Generate a short, concise title for a note using AI.
@@ -390,7 +546,9 @@ class AIService:
                             "You generate short titles and one-sentence "
                             "summaries for notes. Reply with exactly two lines:\n"
                             "TITLE: <short title, maximum 50 characters>\n"
-                            "SUMMARY: <one sentence capturing the note's point>"
+                            "SUMMARY: <one sentence capturing the note's point>\n"
+                            "Answer directly: never include reasoning or "
+                            "[think]...[/think] blocks in your reply."
                         ),
                     },
                     {
@@ -412,7 +570,11 @@ class AIService:
             if not isinstance(raw, str):
                 self._raise_title_type_error()
 
-            title, summary = self._parse_title_and_summary(cast("str", raw))
+            # Defensive second pass: the combined call bypasses `_call_ai_api`,
+            # so reasoning tokens are stripped here before parsing.
+            title, summary = self._parse_title_and_summary(
+                _strip_think(cast("str", raw))
+            )
             if not title:
                 self._raise_no_title()
         except Exception:
