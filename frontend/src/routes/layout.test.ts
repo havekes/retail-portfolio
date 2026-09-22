@@ -85,8 +85,7 @@ describe('Root +layout.svelte', () => {
 					user: null,
 					sidebar_open: true,
 					collapsed_watchlist_ids: [],
-					watchlist_order: null,
-					watchlist_sort: null
+					watchlist_order: null
 				},
 				children
 			}
@@ -107,8 +106,7 @@ describe('Root +layout.svelte', () => {
 					user: { id: 'u1', email: 'test@example.com' },
 					sidebar_open: true,
 					collapsed_watchlist_ids: [],
-					watchlist_order: null,
-					watchlist_sort: null
+					watchlist_order: null
 				},
 				children
 			}
@@ -134,8 +132,7 @@ describe('Root +layout.svelte', () => {
 					user: { id: 'u1', email: 'test@example.com' },
 					sidebar_open: true,
 					collapsed_watchlist_ids: [],
-					watchlist_order: null,
-					watchlist_sort: null
+					watchlist_order: null
 				},
 				children
 			}
@@ -165,8 +162,7 @@ describe('Root +layout.svelte', () => {
 						user: { id: 'u1', email: 'test@example.com' },
 						sidebar_open: true,
 						collapsed_watchlist_ids: [],
-						watchlist_order: null,
-						watchlist_sort: null
+						watchlist_order: null
 					},
 					children
 				}
@@ -274,8 +270,7 @@ describe('Root +layout.svelte', () => {
 						user: { id: 'u1', email: 'test@example.com' },
 						sidebar_open: true,
 						collapsed_watchlist_ids: [],
-						watchlist_order: null,
-						watchlist_sort: null
+						watchlist_order: null
 					},
 					children
 				}
@@ -310,8 +305,7 @@ describe('Root +layout.svelte', () => {
 						user: null,
 						sidebar_open: true,
 						collapsed_watchlist_ids: [],
-						watchlist_order: null,
-						watchlist_sort: null
+						watchlist_order: null
 					},
 					children
 				}
@@ -384,8 +378,7 @@ describe('Root +layout.svelte', () => {
 						user: { id: 'u1', email: 'test@example.com' },
 						sidebar_open: true,
 						collapsed_watchlist_ids: [],
-						watchlist_order: null,
-						watchlist_sort: null
+						watchlist_order: null
 					},
 					children
 				}
@@ -435,22 +428,19 @@ describe('Root +layout.svelte', () => {
 			expect(data.collapsed_watchlist_ids).toEqual(['w1', 'w2']);
 		});
 
-		it('reads watchlist_order and watchlist_sort from preferences', async () => {
+		it('reads watchlist_order from preferences', async () => {
 			const data = await load(
 				loadEvent({
 					sidebar_open: true,
-					watchlist_order: ['w2', 'w1'],
-					watchlist_sort: { w1: 'name_asc' }
+					watchlist_order: ['w2', 'w1']
 				})
 			);
 			expect(data.watchlist_order).toEqual(['w2', 'w1']);
-			expect(data.watchlist_sort).toEqual({ w1: 'name_asc' });
 		});
 
-		it('defaults watchlist_order and watchlist_sort to null when absent', async () => {
+		it('defaults watchlist_order to null when absent', async () => {
 			const data = await load(loadEvent({ sidebar_open: true }));
 			expect(data.watchlist_order).toBeNull();
-			expect(data.watchlist_sort).toBeNull();
 		});
 	});
 });
