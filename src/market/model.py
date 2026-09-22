@@ -190,6 +190,13 @@ class SecurityNoteModel(BaseModel):
 
 
 class SecurityNoteSummaryModel(BaseModel):
+    """Persisted latest AI summary of a user's notes for one security.
+
+    ``generated_at`` always carries the database transaction time
+    (``func.now()``) — the application never supplies it, so there is a single
+    clock and no app/DB skew.
+    """
+
     __tablename__ = "market_security_note_summaries"
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)

@@ -1,5 +1,6 @@
 import logging
 import re
+from collections.abc import Callable
 from datetime import UTC, date, datetime, timedelta, timezone
 from typing import TypedDict, cast
 
@@ -19,6 +20,14 @@ logger = logging.getLogger(__name__)
 
 
 MAX_TITLE_LENGTH = 50
+
+# Stable sentence so tests (and prompt consumers) can assert the recency
+# weighting instruction is present.
+RECENCY_WEIGHTING_INSTRUCTION = (
+    "\nWeight the most recent notes more heavily: assume newer notes reflect "
+    "the user's current thinking and give them proportionally more emphasis "
+    "than older notes, while preserving the evolution of the user's views.\n"
+)
 
 
 class AIContext(TypedDict):
@@ -108,7 +117,11 @@ class AIService:
         )
 
     async def _call_ai_api(
-        self, prompt: str, context: AIContext, timeout: int = 60
+        self,
+        prompt: str,
+        context: AIContext,
+        timeout: int = 60,
+        prompt_builder: Callable[[str, AIContext], str] | None = None,
     ) -> str:
         """
         Call AI API with prompt and context.
@@ -117,10 +130,14 @@ class AIService:
             prompt: User's analysis request
             context: Security context data
             timeout: Request timeout in seconds
+            prompt_builder: Optional context renderer; defaults to the generic
+                analysis prompt. Callers needing a specialised rendering (for
+                example the recency-weighted notes summary) pass their own.
 
         Returns:
             AI response content
         """
+        build_prompt = prompt_builder or self._build_context_prompt
         try:
             response = await self._client.chat.completions.create(
                 model=self._api_model,
@@ -135,7 +152,7 @@ class AIService:
                     },
                     {
                         "role": "user",
-                        "content": self._build_context_prompt(prompt, context),
+                        "content": build_prompt(prompt, context),
                     },
                 ],
                 temperature=0.7,
@@ -223,6 +240,46 @@ class AIService:
 
         return "".join(prompt_parts)
 
+    def _build_notes_summary_prompt(self, prompt: str, context: AIContext) -> str:
+        """
+        Build a recency-weighted prompt for summarizing the user's notes.
+
+        Every gathered note is rendered (not just the most recent few), each
+        prefixed with its full creation timestamp, in the order the repository
+        returns them (newest first). The prompt then instructs the model to
+        weight the most recent notes proportionally more heavily — the
+        weighting lives in the prompt text, not in hard-coded recency tiers.
+
+        Args:
+            prompt: User's original prompt
+            context: AI context data
+
+        Returns:
+            Formatted prompt string
+        """
+        security = context["security"]
+        notes = context["notes"]
+
+        prompt_parts = [
+            "Summarize the user's notes for the following security:\n",
+            f"- Symbol: {security['symbol']}\n",
+            f"- Name: {security['name']}\n",
+            f"- Exchange: {security['exchange']}\n",
+            f"- Currency: {security['currency']}\n",
+            "\nUser Notes (ordered newest first):\n",
+        ]
+        prompt_parts.extend(
+            f"- [{note['created_at']}] {note['content']}\n" for note in notes
+        )
+        prompt_parts.append(RECENCY_WEIGHTING_INSTRUCTION)
+        prompt_parts.append(f"\n{prompt}\n")
+        prompt_parts.append(
+            "\nProvide a concise, well-structured summary with key themes, "
+            "action items and any shift in the user's view over time."
+        )
+
+        return "".join(prompt_parts)
+
     async def analyze_fundamentals(
         self, security_id: SecurityId, user_id: UserId
     ) -> str:
@@ -265,7 +322,9 @@ class AIService:
             "the user's notes. Organize by topic and highlight important "
             "observations or decisions."
         )
-        return await self._call_ai_api(prompt, context)
+        return await self._call_ai_api(
+            prompt, context, prompt_builder=self._build_notes_summary_prompt
+        )
 
     async def generate_note_title(self, content: str) -> str:
         """

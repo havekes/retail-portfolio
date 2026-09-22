@@ -81,7 +81,7 @@ from src.market.service import (
     aggregate_weekly_prices,
     convert_to_heikin_ashi,
 )
-from src.market.task import generate_note_title_task
+from src.market.task import generate_note_summary_task, generate_note_title_task
 from src.worker import huey
 
 logger = logging.getLogger(__name__)
@@ -569,6 +569,8 @@ async def market_create_note(
 
     # Trigger title generation in background
     generate_note_title_task(created_note.id, request_id=get_request_id())
+    # Regenerate the persisted note summary in background
+    generate_note_summary_task(security_id, user.id, request_id=get_request_id())
 
     return created_note
 
@@ -590,6 +592,8 @@ async def market_update_note(
 
     # Trigger title update in background
     generate_note_title_task(note_id, request_id=get_request_id())
+    # Regenerate the persisted note summary in background
+    generate_note_summary_task(security_id, user.id, request_id=get_request_id())
 
     return updated_note
 
@@ -607,6 +611,10 @@ async def market_delete_note(
     note_repository = await services.aget(SecurityNoteRepository)
     await note_repository.delete(note_id, user.id)
     logger.info("Deleted note %d for security %s", note_id, security_id)
+
+    # Regenerate the persisted note summary in background (clears it if this
+    # was the last note)
+    generate_note_summary_task(security_id, user.id, request_id=get_request_id())
 
 
 # Security Documents endpoints

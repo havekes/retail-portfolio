@@ -1024,6 +1024,12 @@ class SqlAlchemySecurityNoteSummaryRepository(SecurityNoteSummaryRepository):
     async def upsert(
         self, summary: NoteSummaryWrite, security_id: SecurityId, user_id: UserId
     ) -> NoteSummaryResponse:
+        """Insert or update the summary row, stamping the DB transaction time.
+
+        ``summary.generated_at`` is intentionally ignored in favour of
+        ``func.now()`` so the stored timestamp always comes from the database
+        clock.
+        """
         result = await self._session.execute(
             select(SecurityNoteSummaryModel)
             .where(SecurityNoteSummaryModel.security_id == security_id)
@@ -1044,6 +1050,15 @@ class SqlAlchemySecurityNoteSummaryRepository(SecurityNoteSummaryRepository):
         await self._session.commit()
         await self._session.refresh(row)
         return NoteSummaryResponse.model_validate(row)
+
+    @override
+    async def delete(self, security_id: SecurityId, user_id: UserId) -> None:
+        await self._session.execute(
+            delete(SecurityNoteSummaryModel)
+            .where(SecurityNoteSummaryModel.security_id == security_id)
+            .where(SecurityNoteSummaryModel.user_id == user_id)
+        )
+        await self._session.commit()
 
 
 async def sqlalchemy_security_note_summary_repository_factory(

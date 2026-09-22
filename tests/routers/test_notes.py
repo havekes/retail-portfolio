@@ -23,7 +23,7 @@ async def test_security(db_session):
     return security
 
 @pytest.mark.anyio
-async def test_create_note_triggers_title_generation(auth_client, test_security, db_session):
+async def test_create_note_triggers_title_generation(auth_client, test_user, test_security, db_session):
     mock_title = "AI Generated Title"
     
     # Setup mock container for the background task
@@ -47,7 +47,8 @@ async def test_create_note_triggers_title_generation(auth_client, test_security,
     with (
         patch("src.market.task.huey.svcs_registry", MagicMock()),
         patch("src.market.task.Container", return_value=mock_container),
-        patch("src.market.router.generate_note_title_task") as mock_task
+        patch("src.market.router.generate_note_title_task") as mock_task,
+        patch("src.market.router.generate_note_summary_task") as mock_summary_task,
     ):
         note_data = {"content": "This is a test note content"}
         response = await auth_client.post(
@@ -60,6 +61,10 @@ async def test_create_note_triggers_title_generation(auth_client, test_security,
         
         # Verify the task was called
         mock_task.assert_called_once_with(created_note_id, request_id=ANY)
+        # Summary regeneration is dispatched exactly once for the (security, user)
+        mock_summary_task.assert_called_once_with(
+            test_security.id, test_user.id, request_id=ANY
+        )
         
         # Manually run the async part of the task with our mocked container
         await _generate_note_title(created_note_id)
@@ -72,9 +77,12 @@ async def test_create_note_triggers_title_generation(auth_client, test_security,
         assert notes["items"][0]["title"] == mock_title
 
 @pytest.mark.anyio
-async def test_update_note_triggers_title_generation(auth_client, test_security, db_session):
+async def test_update_note_triggers_title_generation(auth_client, test_user, test_security, db_session):
     # 1. Create a note first
-    with patch("src.market.router.generate_note_title_task"):
+    with (
+        patch("src.market.router.generate_note_title_task"),
+        patch("src.market.router.generate_note_summary_task"),
+    ):
         note_data = {"content": "Initial content"}
         response = await auth_client.post(
             f"/api/v1/market/securities/{test_security.id}/notes",
@@ -107,7 +115,8 @@ async def test_update_note_triggers_title_generation(auth_client, test_security,
     with (
         patch("src.market.task.huey.svcs_registry", MagicMock()),
         patch("src.market.task.Container", return_value=mock_container),
-        patch("src.market.router.generate_note_title_task") as mock_task
+        patch("src.market.router.generate_note_title_task") as mock_task,
+        patch("src.market.router.generate_note_summary_task") as mock_summary_task,
     ):
         update_data = {"content": "Updated content"}
         response = await auth_client.put(
@@ -118,6 +127,9 @@ async def test_update_note_triggers_title_generation(auth_client, test_security,
         
         # Verify the task was called
         mock_task.assert_called_once_with(note_id, request_id=ANY)
+        mock_summary_task.assert_called_once_with(
+            test_security.id, test_user.id, request_id=ANY
+        )
         
         # Manually run the async part of the task
         await _generate_note_title(note_id)
@@ -128,3 +140,40 @@ async def test_update_note_triggers_title_generation(auth_client, test_security,
         notes = response.json()
         assert len(notes["items"]) == 1
         assert notes["items"][0]["title"] == mock_title
+
+
+@pytest.mark.anyio
+async def test_delete_note_triggers_summary_regeneration(auth_client, test_user, test_security):
+    # 1. Create a note first (title/summary dispatch suppressed)
+    with (
+        patch("src.market.router.generate_note_title_task"),
+        patch("src.market.router.generate_note_summary_task"),
+    ):
+        response = await auth_client.post(
+            f"/api/v1/market/securities/{test_security.id}/notes",
+            json={"content": "Content to delete"}
+        )
+    assert response.status_code == 200
+    note_id = response.json()["id"]
+
+    # 2. Delete the note and check the summary task is dispatched
+    with (
+        patch("src.market.router.generate_note_title_task") as mock_title_task,
+        patch("src.market.router.generate_note_summary_task") as mock_summary_task,
+    ):
+        response = await auth_client.delete(
+            f"/api/v1/market/securities/{test_security.id}/notes/{note_id}"
+        )
+        assert response.status_code == 200
+
+        mock_summary_task.assert_called_once_with(
+            test_security.id, test_user.id, request_id=ANY
+        )
+        # Deleting only regenerates the summary, no title task
+        mock_title_task.assert_not_called()
+
+    response = await auth_client.get(
+        f"/api/v1/market/securities/{test_security.id}/notes"
+    )
+    assert response.status_code == 200
+    assert response.json()["items"] == []
