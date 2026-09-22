@@ -50,6 +50,7 @@ vi.mock('$lib/components/watchlist/watchlistService.svelte', async (importOrigin
 });
 
 import { WatchlistService } from '$lib/components/watchlist/watchlistService.svelte';
+import { WATCHLIST_ROW_DATA_TRACKS } from '$lib/components/watchlist/watchlist-utils';
 
 function security(
 	id: string,
@@ -158,11 +159,11 @@ describe('Watchlists page - rendering and sections', () => {
 
 		expect(aaplLink).toHaveAttribute('href', '/security/sec-1');
 		expect(aaplLink).toHaveClass('rounded-md');
-		expect(aaplLink).toHaveClass('hover:bg-muted');
+		expect(aaplLink).toHaveClass('hover:bg-background/60');
 
 		expect(msftLink).toHaveAttribute('href', '/security/sec-2');
 		expect(msftLink).toHaveClass('rounded-md');
-		expect(msftLink).toHaveClass('hover:bg-muted');
+		expect(msftLink).toHaveClass('hover:bg-background/60');
 	});
 
 	it('shows the formatted date added as muted secondary text', () => {
@@ -178,7 +179,7 @@ describe('Watchlists page - rendering and sections', () => {
 		expect(added).toHaveClass('text-muted-foreground');
 	});
 
-	it('omits the date added when it is missing or invalid without breaking the row', () => {
+	it('keeps the date column occupied with a dash when it is missing or invalid', () => {
 		renderPage([
 			watchlist('wl-dates', 'Dates', [
 				security('sec-1', 'AAPL', 180, 1.2, ''),
@@ -188,7 +189,13 @@ describe('Watchlists page - rendering and sections', () => {
 
 		const section = screen.getByRole('region', { name: 'Dates securities' });
 
-		expect(within(section).queryByTitle('Added')).not.toBeInTheDocument();
+		const dates = within(section).getAllByTitle('Added');
+		expect(dates).toHaveLength(2);
+		expect(dates[0]).toHaveTextContent('-');
+		expect(dates[1]).toHaveTextContent('-');
+		for (const date of dates) {
+			expect(date).toHaveClass('hidden', 'md:block');
+		}
 		expect(within(section).getByRole('link', { name: /AAPL/ })).toHaveAttribute(
 			'href',
 			'/security/sec-1'
@@ -1111,5 +1118,244 @@ describe('Watchlists page - shared error lifecycle', () => {
 		expect(await screen.findByText('Name already taken')).toBeInTheDocument();
 		// Only the modal alert renders; the page-level banner is suppressed.
 		expect(screen.getAllByText('Name already taken')).toHaveLength(1);
+	});
+});
+
+describe('Watchlists page - row column alignment and card polish', () => {
+	function rowLinks(listName = 'Tech securities'): HTMLElement[] {
+		return within(screen.getByRole('region', { name: listName })).getAllByRole('link');
+	}
+
+	function rowSymbols(listName = 'Tech securities'): string[] {
+		return rowLinks(listName).map((link) => link.querySelector('span')?.textContent?.trim() ?? '');
+	}
+
+	function selectRow(link: HTMLElement) {
+		return fireEvent.focus(link);
+	}
+
+	it('renders every row with the shared fixed column tracks', () => {
+		renderPage([
+			watchlist('wl-tech', 'Tech', [
+				security('s1', 'AAPL', 150.25, 1.2, '2026-01-01T00:00:00Z', 0),
+				security('s2', 'MSFT', 320.5, -1.75, '2026-02-01T00:00:00Z', 1),
+				security('s3', 'NVDA', null, null, '', 2)
+			])
+		]);
+
+		const links = rowLinks();
+		expect(links).toHaveLength(3);
+
+		const tracks = WATCHLIST_ROW_DATA_TRACKS.split(' ');
+		for (const link of links) {
+			for (const track of tracks) {
+				expect(link).toHaveClass(track);
+			}
+		}
+
+		// The date cell is always occupied (dash when absent) so price and pill
+		// always land in their own tracks, and stays hidden below `md` uniformly.
+		const dates = screen.getAllByTitle('Added');
+		expect(dates).toHaveLength(3);
+		expect(dates[0]).toHaveTextContent('Jan 1, 2026');
+		expect(dates[1]).toHaveTextContent('Feb 1, 2026');
+		expect(dates[2]).toHaveTextContent('-');
+		for (const date of dates) {
+			expect(date).toHaveClass('hidden', 'md:block');
+		}
+	});
+
+	it('styles each section as a borderless muted rounded card', async () => {
+		renderPage([defaultList(), techList()]);
+
+		for (const section of screen.getAllByRole('region')) {
+			expect(section).toHaveClass('rounded-lg', 'bg-muted');
+			expect(section.classList.contains('border')).toBe(false);
+			expect(section.classList.contains('border-dashed')).toBe(false);
+		}
+
+		await fireEvent.click(screen.getByRole('button', { name: 'Reorder' }));
+
+		for (const section of screen.getAllByRole('region')) {
+			expect(section).toHaveClass('outline-dashed', 'outline-1');
+			expect(section.classList.contains('border-dashed')).toBe(false);
+		}
+	});
+
+	it('marks the drag-over section with a ring instead of a border', async () => {
+		renderPage([defaultList(), techList()]);
+		await fireEvent.click(screen.getByRole('button', { name: 'Reorder' }));
+
+		const sections = screen.getAllByRole('region');
+		const dataTransfer = {
+			effectAllowed: '',
+			dropEffect: '',
+			setData: vi.fn(),
+			getData: vi.fn().mockReturnValue('0')
+		};
+
+		await fireEvent.dragStart(sections[0], { dataTransfer });
+		await fireEvent.dragOver(sections[1], { dataTransfer });
+
+		const target = screen.getByRole('region', { name: 'Tech securities' });
+		expect(target).toHaveClass('ring-2', 'ring-primary');
+		expect(target.classList.contains('border')).toBe(false);
+	});
+
+	it('highlights the focused row, keeps one highlight per section and clears the old one', async () => {
+		renderPage([defaultList(), techList()]);
+
+		const defaultSection = screen.getByRole('region', { name: 'Default securities' });
+		const techSection = screen.getByRole('region', { name: 'Tech securities' });
+		const aapl = within(defaultSection).getByRole('link', { name: /AAPL/ });
+		const msft = within(defaultSection).getByRole('link', { name: /MSFT/ });
+		const nvda = within(techSection).getByRole('link', { name: /NVDA/ });
+
+		// Nothing focused on a fresh render: no highlighted row anywhere.
+		for (const link of screen.getAllByRole('link')) {
+			expect(link.closest('li')).not.toHaveAttribute('aria-current');
+		}
+
+		await selectRow(aapl);
+		await waitFor(() => expect(aapl.closest('li')).toHaveAttribute('aria-current', 'true'));
+		expect(msft.closest('li')).not.toHaveAttribute('aria-current');
+		expect(nvda.closest('li')).not.toHaveAttribute('aria-current');
+
+		await selectRow(msft);
+		await waitFor(() => expect(msft.closest('li')).toHaveAttribute('aria-current', 'true'));
+		expect(aapl.closest('li')).not.toHaveAttribute('aria-current');
+
+		// Selection is per-section: focusing another watchlist's row leaves the
+		// first section's highlight untouched.
+		await selectRow(nvda);
+		await waitFor(() => expect(nvda.closest('li')).toHaveAttribute('aria-current', 'true'));
+		expect(msft.closest('li')).toHaveAttribute('aria-current', 'true');
+	});
+
+	it('renders the selected row with a treatment distinct from hover', async () => {
+		renderPage([defaultList()]);
+
+		const aapl = screen.getByRole('link', { name: /AAPL/ });
+		expect(aapl).toHaveClass('hover:bg-background/60');
+
+		await selectRow(aapl);
+		await waitFor(() => expect(aapl).toHaveClass('bg-background'));
+		expect(aapl).toHaveClass('ring-1', 'ring-ring');
+		// Selected uses an opaque background plus a ring, not just the hover tint.
+		expect(aapl.classList.contains('bg-background/60')).toBe(false);
+	});
+
+	it('keeps the same security selected through an arrow-key reorder', async () => {
+		const aap = security('s1', 'AAPL', 150, 1, '2026-01-01T00:00:00Z', 0);
+		const mst = security('s2', 'MSFT', 300, 2, '2026-01-02T00:00:00Z', 1);
+		mocks.client.reorderWatchlistSecurities.mockResolvedValue(
+			watchlist('wl-tech', 'Tech', [
+				{ ...mst, position: 0 },
+				{ ...aap, position: 1 }
+			])
+		);
+		renderPage([watchlist('wl-tech', 'Tech', [aap, mst])]);
+
+		const aapl = screen.getByRole('link', { name: /AAPL/ });
+		await selectRow(aapl);
+		await waitFor(() => expect(aapl.closest('li')).toHaveAttribute('aria-current', 'true'));
+
+		await fireEvent.click(screen.getByRole('button', { name: 'Reorder securities in Tech' }));
+		await fireEvent.keyDown(screen.getByRole('button', { name: 'Reorder AAPL' }), {
+			key: 'ArrowDown'
+		});
+
+		await waitFor(() => expect(rowSymbols()).toEqual(['MSFT', 'AAPL']));
+		expect(screen.getByRole('link', { name: /AAPL/ }).closest('li')).toHaveAttribute(
+			'aria-current',
+			'true'
+		);
+		expect(screen.getByRole('link', { name: /MSFT/ }).closest('li')).not.toHaveAttribute(
+			'aria-current'
+		);
+	});
+
+	it('keeps the same security selected after a sort change', async () => {
+		const tsla = security('s1', 'TSLA', 200, 1, '2026-01-03T00:00:00Z', 0);
+		const aap = security('s2', 'AAPL', 150, 2, '2026-01-01T00:00:00Z', 1);
+		mocks.client.updateWatchlistSort.mockResolvedValue(
+			watchlist('wl-tech', 'Tech', [aap, tsla], 'name_asc')
+		);
+		renderPage([watchlist('wl-tech', 'Tech', [tsla, aap])]);
+
+		const selected = screen.getByRole('link', { name: /TSLA/ });
+		await selectRow(selected);
+		await waitFor(() => expect(selected.closest('li')).toHaveAttribute('aria-current', 'true'));
+
+		await fireEvent.click(screen.getByRole('button', { name: 'Sort securities in Tech' }));
+		await fireEvent.click(await screen.findByRole('menuitem', { name: 'Name (alphabetical)' }));
+
+		await waitFor(() => expect(rowSymbols()).toEqual(['AAPL', 'TSLA']));
+		expect(screen.getByRole('link', { name: /TSLA/ }).closest('li')).toHaveAttribute(
+			'aria-current',
+			'true'
+		);
+	});
+
+	it('drops the highlight when the selected security is removed', async () => {
+		mocks.client.removeSecurityFromWatchlist.mockResolvedValue(watchlist('wl-tech', 'Tech', []));
+		renderPage([watchlist('wl-tech', 'Tech', [security('s1', 'AAPL')])]);
+
+		const aapl = screen.getByRole('link', { name: /AAPL/ });
+		await selectRow(aapl);
+		await waitFor(() => expect(aapl.closest('li')).toHaveAttribute('aria-current', 'true'));
+
+		await fireEvent.click(screen.getByRole('button', { name: 'Remove AAPL' }));
+
+		await waitFor(() =>
+			expect(screen.queryByRole('link', { name: /AAPL/ })).not.toBeInTheDocument()
+		);
+	});
+
+	it('gives every row link an explicit, concise accessible name', () => {
+		renderPage([defaultList(), techList()]);
+
+		expect(screen.getByRole('link', { name: 'AAPL — AAPL Inc.' })).toHaveAttribute(
+			'href',
+			'/security/sec-1'
+		);
+		expect(screen.getByRole('link', { name: 'NVDA — NVDA Inc.' })).toBeInTheDocument();
+	});
+
+	it('exposes a non-empty accessible name on every interactive control', async () => {
+		function expectNamed(control: HTMLElement) {
+			const label = control.getAttribute('aria-label') ?? '';
+			const text = control.textContent?.trim() ?? '';
+			expect(label.length > 0 || text.length > 0).toBe(true);
+		}
+
+		renderPage([defaultList(), techList()]);
+
+		for (const button of screen.getAllByRole('button')) expectNamed(button);
+		for (const link of screen.getAllByRole('link')) expectNamed(link);
+
+		expect(screen.getByRole('button', { name: 'Sort securities in Tech' })).toBeInTheDocument();
+		expect(screen.getByRole('button', { name: 'Add security to Tech' })).toBeInTheDocument();
+		expect(screen.getByRole('button', { name: 'Rename Tech' })).toBeInTheDocument();
+		expect(screen.getByRole('button', { name: 'Delete Tech' })).toBeInTheDocument();
+		expect(screen.getByRole('button', { name: 'Remove NVDA' })).toBeInTheDocument();
+
+		// Watchlist drag handles only exist in watchlist reorder mode.
+		await fireEvent.click(screen.getByRole('button', { name: 'Reorder' }));
+		for (const button of screen.getAllByRole('button')) expectNamed(button);
+		expect(screen.getByRole('button', { name: 'Reorder Default' })).toBeInTheDocument();
+		await fireEvent.click(screen.getByRole('button', { name: 'Done' }));
+
+		// Security drag handles only exist while their reorder toggle is on.
+		await fireEvent.click(screen.getByRole('button', { name: 'Reorder securities in Default' }));
+		for (const button of screen.getAllByRole('button')) expectNamed(button);
+		expect(screen.getByRole('button', { name: 'Reorder AAPL' })).toBeInTheDocument();
+		expect(screen.getByRole('button', { name: 'Reorder MSFT' })).toBeInTheDocument();
+
+		// Sort dropdown trigger and its items.
+		await fireEvent.click(screen.getByRole('button', { name: 'Sort securities in Default' }));
+		for (const item of await screen.findAllByRole('menuitem')) expectNamed(item);
+		expect(screen.getByRole('menuitem', { name: 'Custom' })).toBeInTheDocument();
+		expect(screen.getByRole('menuitem', { name: 'Name (alphabetical)' })).toBeInTheDocument();
 	});
 });

@@ -20,7 +20,8 @@
 		moveItem,
 		normalizeWatchlistSort,
 		sortSecurities,
-		sortWatchlistsByOrder
+		sortWatchlistsByOrder,
+		WATCHLIST_ROW_DATA_TRACKS
 	} from '$lib/components/watchlist/watchlist-utils';
 	import { cn } from '$lib/utils';
 	import { getContext, untrack } from 'svelte';
@@ -105,6 +106,27 @@
 	let createOpen = $state(false);
 	let pendingDelete = $state<WatchlistRead | null>(null);
 
+	// Row selection is focus-driven: the highlighted row is the security that
+	// currently holds keyboard focus, remembered per watchlist id. Keyed by
+	// security id (not row index) so the highlight follows the same security
+	// through arrow-key/drag reorder and sort changes, and survives blur.
+	let selectedByWatchlistId = $state<Record<string, string>>({});
+
+	function selectRow(watchlistId: string, securityId: string) {
+		selectedByWatchlistId[watchlistId] = securityId;
+	}
+
+	function isRowSelected(watchlistId: string, securityId: string): boolean {
+		return selectedByWatchlistId[watchlistId] === securityId;
+	}
+
+	/** Drop a remembered selection so a removed security cannot stay highlighted. */
+	function clearSelection(watchlistId: string) {
+		if (watchlistId in selectedByWatchlistId) {
+			delete selectedByWatchlistId[watchlistId];
+		}
+	}
+
 	function startRename(watchlist: WatchlistRead) {
 		editingId = watchlist.id;
 		editingName = watchlist.name;
@@ -148,6 +170,7 @@
 		const watchlistId = pendingDelete.id;
 		pendingDelete = null;
 		await watchlistService.deleteWatchlist(watchlistId);
+		clearSelection(watchlistId);
 	}
 
 	function countLabel(watchlist: WatchlistRead): string {
@@ -157,6 +180,9 @@
 
 	async function handleRemoveSecurity(watchlistId: string, securityId: string) {
 		await watchlistService.removeSecurityFromWatchlist(watchlistId, securityId);
+		if (selectedByWatchlistId[watchlistId] === securityId) {
+			clearSelection(watchlistId);
+		}
 	}
 
 	async function handleSortSelect(watchlist: WatchlistRead, sort: WatchlistSort) {
@@ -363,9 +389,9 @@
 					<section
 						aria-label={`${watchlist.name} securities`}
 						class={cn(
-							'flex flex-col gap-3 rounded-lg border p-4 transition-colors',
-							isReorderMode && 'cursor-move border-dashed select-none',
-							dragOverIndex === index && 'border-primary bg-muted/40'
+							'flex flex-col gap-3 rounded-lg bg-muted p-4 transition-colors',
+							isReorderMode && 'cursor-move outline-1 outline-border outline-dashed select-none',
+							dragOverIndex === index && 'ring-2 ring-primary'
 						)}
 						draggable={isReorderMode}
 						ondragstart={(e) => handleDragStart(e, index)}
@@ -454,11 +480,11 @@
 													<span class="flex-1">{option.label}</span>
 													{#if isActive}
 														{#if option.direction === 'asc'}
-															<ChevronUp size={12} />
+															<ChevronUp size={12} aria-hidden="true" />
 														{:else}
-															<ChevronDown size={12} />
+															<ChevronDown size={12} aria-hidden="true" />
 														{/if}
-														<Check class="h-4 w-4" />
+														<Check class="h-4 w-4" aria-hidden="true" />
 													{/if}
 												</DropdownMenu.Item>
 											{/each}
@@ -502,13 +528,15 @@
 							<ul aria-label={`${watchlist.name} securities list`} class="flex flex-col gap-1">
 								{#each sortedSecurities as security, securityIndex (security.id)}
 									{@const securityReorderActive = isSecurityReorderActive(watchlist)}
+									{@const rowSelected = isRowSelected(watchlist.id, security.id)}
 									<li
+										aria-current={rowSelected ? 'true' : undefined}
 										class={cn(
 											'flex items-center gap-2 rounded-md',
 											securityReorderActive && 'cursor-move',
 											securityReorderActive &&
 												securityDragOverIndex === securityIndex &&
-												'bg-muted/40'
+												'bg-background/60'
 										)}
 										draggable={securityReorderActive}
 										ondragstart={(e) => handleSecurityDragStart(e, watchlist, securityIndex)}
@@ -536,33 +564,36 @@
 										{/if}
 										<a
 											href={resolve(`/security/${security.id}`)}
-											class="flex flex-1 items-center justify-between gap-2 rounded-md px-2 py-1.5 transition-colors hover:bg-muted focus:bg-muted"
+											aria-label={`${security.symbol} — ${security.name}`}
+											onfocus={() => selectRow(watchlist.id, security.id)}
+											class={cn(
+												WATCHLIST_ROW_DATA_TRACKS,
+												'flex-1 items-center rounded-md px-2 py-1.5 transition-colors',
+												'hover:bg-background/60 focus:bg-background/60 focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none',
+												rowSelected && 'bg-background ring-1 ring-ring'
+											)}
 										>
 											<div class="flex min-w-0 items-center gap-2">
 												<span class="shrink-0 font-medium">{security.symbol}</span>
 												<span class="truncate text-sm text-muted-foreground">{security.name}</span>
 											</div>
-											<div class="flex shrink-0 items-center gap-2">
-												{#if formatDateAdded(security.added_at)}
-													<span
-														class="hidden text-xs text-muted-foreground md:inline"
-														title="Added"
-													>
-														{formatDateAdded(security.added_at)}
-													</span>
-												{/if}
-												<span class="text-sm font-medium tabular-nums">
-													{formatPrice(security.current_price)}
-												</span>
-												<span
-													class={cn(
-														'inline-flex items-center rounded-md border px-1.5 py-0.5 text-xs font-semibold tabular-nums',
-														getPillClass(security.daily_price_change_percent)
-													)}
-												>
-													{formatPriceChangePercent(security.daily_price_change_percent)}
-												</span>
-											</div>
+											<span
+												class="hidden truncate text-xs text-muted-foreground md:block"
+												title="Added"
+											>
+												{formatDateAdded(security.added_at) ?? '-'}
+											</span>
+											<span class="justify-self-end text-sm font-medium tabular-nums">
+												{formatPrice(security.current_price)}
+											</span>
+											<span
+												class={cn(
+													'inline-flex min-w-[4.5rem] items-center justify-center justify-self-end rounded-md border px-1.5 py-0.5 text-xs font-semibold tabular-nums',
+													getPillClass(security.daily_price_change_percent)
+												)}
+											>
+												{formatPriceChangePercent(security.daily_price_change_percent)}
+											</span>
 										</a>
 										<Button
 											size="icon-sm"
