@@ -7,10 +7,12 @@
 	import * as Sidebar from '$lib/components/ui/sidebar/index.js';
 	import AppSidebar from '$lib/components/layout/app-sidebar.svelte';
 	import { setContext, untrack } from 'svelte';
-	import { goto } from '$app/navigation';
+	import { SvelteSet } from 'svelte/reactivity';
+	import { goto, preloadData } from '$app/navigation';
 	import { resolve } from '$app/paths';
 	import GlobalSearch from '$lib/components/global-search.svelte';
 	import { userPreferencesService } from '$lib/api/userPreferencesService.js';
+	import { redirectOn401 } from '$lib/api/async-data';
 	import { Toaster } from '$lib/components/ui/toast/index.js';
 	import type { WatchlistRead } from '$lib/api/marketService';
 
@@ -28,9 +30,30 @@
 		}
 	}
 
+	// The layout owns the initial watchlists fetch (it also feeds the sidebar and the
+	// 0-9 shortcuts): pages render their shell first and fill in when it resolves.
+	// `$effect` never runs during SSR, so this stays browser-only. A 401 is routed
+	// through the shared async-data seam instead of a page-local redirect.
 	$effect(() => {
 		if (data.user) {
-			watchlistService.loadWatchlists();
+			void (async () => {
+				const err = await watchlistService.loadWatchlists();
+
+				if (err !== null) {
+					await redirectOn401(err);
+					return;
+				}
+
+				// Warm the shortcut targets once the watchlists are known. These
+				// prefetches are fire-and-forget: nothing render-related awaits
+				// them, so the current page still paints and stays interactive
+				// first. Ordering matches the 1-9/0 shortcuts below.
+				prefetchUrl('/watchlists');
+				prefetchUrl('/holdings');
+				for (const security of watchlistService.defaultWatchlistSecurities.slice(0, 10)) {
+					prefetchUrl(`/security/${security.id}`);
+				}
+			})();
 		}
 	});
 
@@ -42,6 +65,20 @@
 		globalSearchTargetWatchlist = watchlist ?? null;
 		globalSearchOpen = true;
 	});
+
+	// Per-instance (never module scope, see the SSR data-bleed gotcha) record of
+	// shortcut targets already warmed. Each URL is prefetched at most once; a
+	// rejected prefetch is swallowed because the real navigation load still runs.
+	let prefetchedUrls = new SvelteSet<string>();
+
+	function prefetchUrl(url: string): void {
+		if (prefetchedUrls.has(url)) return;
+		prefetchedUrls.add(url);
+		// `resolve` is typed against the app's literal route union, which a dynamic
+		// value cannot satisfy; callers only pass the known shortcut targets, and
+		// the cast is type-only (the cast value never reaches runtime).
+		preloadData(resolve(url as unknown as '/')).catch(() => {});
+	}
 
 	function isTypingTarget(target: EventTarget | null): boolean {
 		if (!(target instanceof HTMLElement)) return false;
@@ -66,12 +103,14 @@
 
 		if (e.key === 'w' || e.key === 'W') {
 			e.preventDefault();
+			prefetchUrl('/watchlists');
 			void goto(resolve('/watchlists'));
 			return;
 		}
 
 		if (e.key === 'h' || e.key === 'H') {
 			e.preventDefault();
+			prefetchUrl('/holdings');
 			void goto(resolve('/holdings'));
 			return;
 		}
@@ -82,6 +121,7 @@
 			const security = watchlistService.defaultWatchlistSecurities[index];
 			if (security) {
 				e.preventDefault();
+				prefetchUrl(`/security/${security.id}`);
 				void goto(resolve(`/security/${security.id}`));
 			}
 		}

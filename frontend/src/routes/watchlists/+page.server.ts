@@ -1,26 +1,10 @@
-import { getMarketService } from '$lib/api/marketService';
-import { deleteAuthCookie } from '$lib/server/auth-cookie';
-import { error, redirect } from '@sveltejs/kit';
-import { ApiError } from '$lib/api/apiClient';
 import type { PageServerLoad } from './$types';
 
-export const load: PageServerLoad = async ({ cookies, fetch }) => {
-	const token = cookies.get('auth_token');
-	const marketService = getMarketService(fetch);
-
-	try {
-		const watchlists = await marketService.getWatchlists(token);
-		return {
-			watchlists
-		};
-	} catch (err) {
-		if (err instanceof ApiError) {
-			if (err.status === 401) {
-				deleteAuthCookie(cookies);
-				throw redirect(303, '/auth/login?clear_session=true');
-			}
-			throw error(err.status, err.message);
-		}
-		throw error(500, 'Internal Server Error');
-	}
+// The watchlists themselves are NOT awaited here: the layout-owned
+// `WatchlistService.loadWatchlists()` (see `+layout.svelte`) is the single owner of
+// the initial fetch, so `/watchlists` renders its titlebar, actions and skeleton
+// rows instantly. An empty list keeps the `data.watchlists` prop shape intact for
+// the page's seeding guard, which is inert while this stays empty.
+export const load: PageServerLoad = () => {
+	return { watchlists: [] };
 };

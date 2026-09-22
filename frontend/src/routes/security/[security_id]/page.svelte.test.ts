@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach, beforeAll } from 'vitest';
+import { describe, it, expect, vi, beforeEach, beforeAll, afterEach } from 'vitest';
 import { render, screen, fireEvent, waitFor, within } from '@testing-library/svelte';
 import type { Component } from 'svelte';
 import type { Candle } from '@/utils/finance/candle';
@@ -43,11 +43,17 @@ vi.mock('$app/paths', () => ({
 	resolve: (path: string) => path
 }));
 
+vi.mock('$app/navigation', () => ({
+	goto: vi.fn()
+}));
+
+const mockGetSecurity = vi.fn();
 const mockGetPrices = vi.fn().mockResolvedValue({ items: [] });
 
 vi.mock('$lib/api/marketService', () => ({
 	getMarketService: () => ({
-		getPrices: mockGetPrices
+		getPrices: mockGetPrices,
+		getSecurity: mockGetSecurity
 	})
 }));
 
@@ -95,11 +101,14 @@ vi.mock('@/api/accountService', () => ({
 	}
 }));
 
+const mockWatchlistService = {
+	hasSecurity: vi.fn().mockReturnValue(false),
+	toggleSecurity: vi.fn(),
+	defaultWatchlistSecurities: [] as { id: string; symbol: string; name: string }[]
+};
+
 vi.mock('$lib/components/watchlist/watchlistService.svelte', () => ({
-	getWatchlistService: () => ({
-		hasSecurity: vi.fn().mockReturnValue(false),
-		toggleSecurity: vi.fn()
-	})
+	getWatchlistService: () => mockWatchlistService
 }));
 
 vi.mock('$lib/api/snapshotsService', () => {
@@ -168,6 +177,55 @@ vi.mock('$lib/components/charts/security-chart.svelte', () => {
 
 import { userPreferencesService } from '$lib/api/userPreferencesService';
 import { alertsService } from '$lib/api/alertsService';
+import { goto } from '$app/navigation';
+import { ApiError } from '$lib/api/apiClient';
+
+// ---------------------------------------------------------------------------
+// Async route fixtures
+//
+// The server load now returns only `security_id`: the page fetches the security
+// identity and its `1d` price series after navigation. Describes declare the
+// fixtures they care about and register them with `stubMarketFixtures`.
+// ---------------------------------------------------------------------------
+interface SecurityFixture {
+	id: string;
+	symbol: string;
+	name: string;
+}
+
+interface PriceFixture {
+	date?: string;
+	timestamp?: string | number;
+	open: number;
+	high: number;
+	low: number;
+	close: number;
+	volume: number;
+}
+
+const aaplSecurity: SecurityFixture = { id: 'sec-1', symbol: 'AAPL', name: 'Apple Inc.' };
+const msftSecurity: SecurityFixture = { id: 'sec-2', symbol: 'MSFT', name: 'Microsoft Corp.' };
+
+const securityFixtures = new Map<string, SecurityFixture>();
+const priceFixtures = new Map<string, PriceFixture[]>();
+
+function stubMarketFixtures(security: SecurityFixture, items: PriceFixture[] = []) {
+	securityFixtures.set(security.id, security);
+	priceFixtures.set(security.id, items);
+}
+
+// The page fetches on mount, so each test starts from the fixtures its describe
+// registered instead of whatever a previous test left behind.
+beforeEach(() => {
+	mockGetSecurity.mockReset();
+	mockGetPrices.mockReset();
+	mockGetSecurity.mockImplementation(
+		async (securityId: string) => securityFixtures.get(securityId) ?? null
+	);
+	mockGetPrices.mockImplementation(async (securityId: string) => ({
+		items: priceFixtures.get(securityId) ?? []
+	}));
+});
 
 // ---------------------------------------------------------------------------
 // Helpers under test — imported directly from the real module the page uses
@@ -461,14 +519,14 @@ describe('Security Page - Elliott Wave Toolbar & Integration', () => {
 	/* eslint-disable-next-line @typescript-eslint/no-explicit-any */
 	let PageComponent: Component<any>;
 
-	const mockData = {
-		security: {
-			id: 'sec-1',
-			symbol: 'AAPL',
-			name: 'Apple Inc.'
-		},
-		items: [{ date: '2024-01-01', open: 100, high: 110, low: 95, close: 105, volume: 1000 }]
-	};
+	const mockDataItems = [
+		{ date: '2024-01-01', open: 100, high: 110, low: 95, close: 105, volume: 1000 }
+	];
+	const mockData = { security_id: aaplSecurity.id };
+
+	beforeEach(() => {
+		stubMarketFixtures(aaplSecurity, mockDataItems);
+	});
 
 	beforeAll(async () => {
 		const mod = await import('./+page.svelte');
@@ -622,16 +680,11 @@ describe('Security Page - Elliott Wave Toolbar & Integration', () => {
 		expect(waveBtn.className).toContain('bg-primary');
 
 		// Soft navigate to another security
-		const newSecurityData = {
-			security: {
-				id: 'sec-2',
-				symbol: 'MSFT',
-				name: 'Microsoft Corp.'
-			},
-			items: [{ date: '2024-01-01', open: 200, high: 210, low: 195, close: 205, volume: 2000 }]
-		};
+		stubMarketFixtures(msftSecurity, [
+			{ date: '2024-01-01', open: 200, high: 210, low: 195, close: 205, volume: 2000 }
+		]);
 
-		await rerender({ data: newSecurityData });
+		await rerender({ data: { security_id: msftSecurity.id } });
 
 		// Wait for soft navigation effect to execute and reset drawing mode
 		await waitFor(() => {
@@ -646,14 +699,14 @@ describe('Security Page - Wave Selection & Keyboard Deletion', () => {
 	/* eslint-disable-next-line @typescript-eslint/no-explicit-any */
 	let PageComponent: Component<any>;
 
-	const mockData = {
-		security: {
-			id: 'sec-1',
-			symbol: 'AAPL',
-			name: 'Apple Inc.'
-		},
-		items: [{ date: '2024-01-01', open: 100, high: 110, low: 95, close: 105, volume: 1000 }]
-	};
+	const mockDataItems = [
+		{ date: '2024-01-01', open: 100, high: 110, low: 95, close: 105, volume: 1000 }
+	];
+	const mockData = { security_id: aaplSecurity.id };
+
+	beforeEach(() => {
+		stubMarketFixtures(aaplSecurity, mockDataItems);
+	});
 
 	const initialWaves: Record<string, SecurityElliottWaves> = {
 		'sec-1': {
@@ -939,14 +992,14 @@ describe('Security Page - Fibonacci Toolbar & Integration', () => {
 	/* eslint-disable-next-line @typescript-eslint/no-explicit-any */
 	let PageComponent: Component<any>;
 
-	const mockData = {
-		security: {
-			id: 'sec-1',
-			symbol: 'AAPL',
-			name: 'Apple Inc.'
-		},
-		items: [{ date: '2024-01-01', open: 100, high: 110, low: 95, close: 105, volume: 1000 }]
-	};
+	const mockDataItems = [
+		{ date: '2024-01-01', open: 100, high: 110, low: 95, close: 105, volume: 1000 }
+	];
+	const mockData = { security_id: aaplSecurity.id };
+
+	beforeEach(() => {
+		stubMarketFixtures(aaplSecurity, mockDataItems);
+	});
 
 	beforeAll(async () => {
 		const mod = await import('./+page.svelte');
@@ -1168,16 +1221,11 @@ describe('Security Page - Fibonacci Toolbar & Integration', () => {
 		expect(retraceBtn.className).toContain('bg-primary');
 
 		// Soft navigate to another security
-		const newSecurityData = {
-			security: {
-				id: 'sec-2',
-				symbol: 'MSFT',
-				name: 'Microsoft Corp.'
-			},
-			items: [{ date: '2024-01-01', open: 200, high: 210, low: 195, close: 205, volume: 2000 }]
-		};
+		stubMarketFixtures(msftSecurity, [
+			{ date: '2024-01-01', open: 200, high: 210, low: 195, close: 205, volume: 2000 }
+		]);
 
-		await rerender({ data: newSecurityData });
+		await rerender({ data: { security_id: msftSecurity.id } });
 
 		await waitFor(() => {
 			expect(
@@ -1191,14 +1239,14 @@ describe('Security Page - Fibonacci Selection & Keyboard Deletion', () => {
 	/* eslint-disable-next-line @typescript-eslint/no-explicit-any */
 	let PageComponent: Component<any>;
 
-	const mockData = {
-		security: {
-			id: 'sec-1',
-			symbol: 'AAPL',
-			name: 'Apple Inc.'
-		},
-		items: [{ date: '2024-01-01', open: 100, high: 110, low: 95, close: 105, volume: 1000 }]
-	};
+	const mockDataItems = [
+		{ date: '2024-01-01', open: 100, high: 110, low: 95, close: 105, volume: 1000 }
+	];
+	const mockData = { security_id: aaplSecurity.id };
+
+	beforeEach(() => {
+		stubMarketFixtures(aaplSecurity, mockDataItems);
+	});
 
 	beforeAll(async () => {
 		const mod = await import('./+page.svelte');
@@ -1478,14 +1526,14 @@ describe('Security Page - Viewport Containment & Scrolling Layout', () => {
 	/* eslint-disable-next-line @typescript-eslint/no-explicit-any */
 	let PageComponent: Component<any>;
 
-	const mockData = {
-		security: {
-			id: 'sec-1',
-			symbol: 'AAPL',
-			name: 'Apple Inc.'
-		},
-		items: [{ date: '2024-01-01', open: 100, high: 110, low: 95, close: 105, volume: 1000 }]
-	};
+	const mockDataItems = [
+		{ date: '2024-01-01', open: 100, high: 110, low: 95, close: 105, volume: 1000 }
+	];
+	const mockData = { security_id: aaplSecurity.id };
+
+	beforeEach(() => {
+		stubMarketFixtures(aaplSecurity, mockDataItems);
+	});
 
 	beforeAll(async () => {
 		const mod = await import('./+page.svelte');
@@ -1545,17 +1593,15 @@ describe('Security Page - Wave Target Alert Reconcile', () => {
 	/* eslint-disable-next-line @typescript-eslint/no-explicit-any */
 	let PageComponent: Component<any>;
 
-	const mockData = {
-		security: {
-			id: 'sec-1',
-			symbol: 'AAPL',
-			name: 'Apple Inc.'
-		},
-		items: [
-			{ date: '2024-01-01', open: 100, high: 110, low: 95, close: 100, volume: 1000 },
-			{ date: '2024-01-02', open: 100, high: 120, low: 95, close: 100, volume: 1000 }
-		]
-	};
+	const mockDataItems = [
+		{ date: '2024-01-01', open: 100, high: 110, low: 95, close: 100, volume: 1000 },
+		{ date: '2024-01-02', open: 100, high: 120, low: 95, close: 100, volume: 1000 }
+	];
+	const mockData = { security_id: aaplSecurity.id };
+
+	beforeEach(() => {
+		stubMarketFixtures(aaplSecurity, mockDataItems);
+	});
 
 	// Cycle: wave3 target 150, wave5 target 200; primary: wave3 target 120, wave5 target 160.
 	const fullWaves: Record<string, SecurityElliottWaves> = {
@@ -1864,17 +1910,15 @@ describe('Security Page - Chart Settings Modal & Wave Settings Integration', () 
 	/* eslint-disable-next-line @typescript-eslint/no-explicit-any */
 	let PageComponent: Component<any>;
 
-	const mockData = {
-		security: {
-			id: 'sec-1',
-			symbol: 'AAPL',
-			name: 'Apple Inc.'
-		},
-		items: [
-			{ date: '2024-01-01', open: 100, high: 110, low: 95, close: 100, volume: 1000 },
-			{ date: '2024-01-02', open: 100, high: 120, low: 95, close: 100, volume: 1000 }
-		]
-	};
+	const mockDataItems = [
+		{ date: '2024-01-01', open: 100, high: 110, low: 95, close: 100, volume: 1000 },
+		{ date: '2024-01-02', open: 100, high: 120, low: 95, close: 100, volume: 1000 }
+	];
+	const mockData = { security_id: aaplSecurity.id };
+
+	beforeEach(() => {
+		stubMarketFixtures(aaplSecurity, mockDataItems);
+	});
 
 	const fullWaves: Record<string, SecurityElliottWaves> = {
 		'sec-1': {
@@ -2082,14 +2126,14 @@ describe('Security Page - Top Toolbar', () => {
 	/* eslint-disable-next-line @typescript-eslint/no-explicit-any */
 	let PageComponent: Component<any>;
 
-	const mockData = {
-		security: {
-			id: 'sec-1',
-			symbol: 'AAPL',
-			name: 'Apple Inc.'
-		},
-		items: [{ date: '2024-01-01', open: 100, high: 110, low: 95, close: 105, volume: 1000 }]
-	};
+	const mockDataItems = [
+		{ date: '2024-01-01', open: 100, high: 110, low: 95, close: 105, volume: 1000 }
+	];
+	const mockData = { security_id: aaplSecurity.id };
+
+	beforeEach(() => {
+		stubMarketFixtures(aaplSecurity, mockDataItems);
+	});
 
 	beforeAll(async () => {
 		const mod = await import('./+page.svelte');
@@ -2183,17 +2227,15 @@ describe('Rewind Save Snapshot', () => {
 	/* eslint-disable-next-line @typescript-eslint/no-explicit-any */
 	let PageComponent: Component<any>;
 
-	const mockData = {
-		security: {
-			id: 'sec-1',
-			symbol: 'AAPL',
-			name: 'Apple Inc.'
-		},
-		items: [
-			{ date: '2024-01-01', open: 100, high: 110, low: 95, close: 105, volume: 1000 },
-			{ date: '2024-01-02', open: 105, high: 115, low: 100, close: 112, volume: 1200 }
-		]
-	};
+	const mockDataItems = [
+		{ date: '2024-01-01', open: 100, high: 110, low: 95, close: 105, volume: 1000 },
+		{ date: '2024-01-02', open: 105, high: 115, low: 100, close: 112, volume: 1200 }
+	];
+	const mockData = { security_id: aaplSecurity.id };
+
+	beforeEach(() => {
+		stubMarketFixtures(aaplSecurity, mockDataItems);
+	});
 
 	const sampleWaveCount: DegreeWaveCount = {
 		id: 'cycle-1',
@@ -2712,18 +2754,16 @@ describe('Rewind Scrub and Drawing Restore', () => {
 	/* eslint-disable-next-line @typescript-eslint/no-explicit-any */
 	let PageComponent: Component<any>;
 
-	const threeCandlesData = {
-		security: {
-			id: 'sec-1',
-			symbol: 'AAPL',
-			name: 'Apple Inc.'
-		},
-		items: [
-			{ date: '2024-01-01', open: 100, high: 110, low: 95, close: 105, volume: 1000 },
-			{ date: '2024-01-02', open: 105, high: 115, low: 100, close: 112, volume: 1200 },
-			{ date: '2024-01-03', open: 112, high: 120, low: 108, close: 118, volume: 1500 }
-		]
-	};
+	const threeCandlesDataItems = [
+		{ date: '2024-01-01', open: 100, high: 110, low: 95, close: 105, volume: 1000 },
+		{ date: '2024-01-02', open: 105, high: 115, low: 100, close: 112, volume: 1200 },
+		{ date: '2024-01-03', open: 112, high: 120, low: 108, close: 118, volume: 1500 }
+	];
+	const threeCandlesData = { security_id: aaplSecurity.id };
+
+	beforeEach(() => {
+		stubMarketFixtures(aaplSecurity, threeCandlesDataItems);
+	});
 
 	const snap1: RewindSnapshot = {
 		id: 'snap-1',
@@ -3125,18 +3165,16 @@ describe('Security Page - Asynchronous Indicator Integration', () => {
 	/* eslint-disable-next-line @typescript-eslint/no-explicit-any */
 	let PageComponent: Component<any>;
 
-	const mockData = {
-		security: {
-			id: 'sec-1',
-			symbol: 'AAPL',
-			name: 'Apple Inc.'
-		},
-		items: [
-			{ date: '2024-01-01', open: 100, high: 110, low: 95, close: 105, volume: 1000 },
-			{ date: '2024-01-02', open: 105, high: 115, low: 100, close: 112, volume: 1200 },
-			{ date: '2024-01-03', open: 112, high: 120, low: 108, close: 118, volume: 1500 }
-		]
-	};
+	const mockDataItems = [
+		{ date: '2024-01-01', open: 100, high: 110, low: 95, close: 105, volume: 1000 },
+		{ date: '2024-01-02', open: 105, high: 115, low: 100, close: 112, volume: 1200 },
+		{ date: '2024-01-03', open: 112, high: 120, low: 108, close: 118, volume: 1500 }
+	];
+	const mockData = { security_id: aaplSecurity.id };
+
+	beforeEach(() => {
+		stubMarketFixtures(aaplSecurity, mockDataItems);
+	});
 
 	const snap1: RewindSnapshot = {
 		id: 'snap-1',
@@ -3158,18 +3196,6 @@ describe('Security Page - Asynchronous Indicator Integration', () => {
 		mockComputeIndicators.mockResolvedValue({ indicators: {} });
 		mockAddIndicator.mockClear();
 		mockRemoveIndicator.mockClear();
-		mockGetPrices.mockResolvedValue({
-			items: [
-				{
-					timestamp: '2024-01-01T10:00:00Z',
-					open: 100,
-					high: 105,
-					low: 98,
-					close: 102,
-					volume: 500
-				}
-			]
-		});
 		vi.mocked(userPreferencesService.getPreferences).mockResolvedValue({});
 		vi.mocked(snapshotsService.getSnapshots).mockResolvedValue([]);
 	});
@@ -3493,14 +3519,14 @@ describe('Security Page - Indicator Pane Heights', () => {
 	/* eslint-disable-next-line @typescript-eslint/no-explicit-any */
 	let PageComponent: Component<any>;
 
-	const mockData = {
-		security: {
-			id: 'sec-1',
-			symbol: 'AAPL',
-			name: 'Apple Inc.'
-		},
-		items: [{ date: '2024-01-01', open: 100, high: 110, low: 95, close: 105, volume: 1000 }]
-	};
+	const mockDataItems = [
+		{ date: '2024-01-01', open: 100, high: 110, low: 95, close: 105, volume: 1000 }
+	];
+	const mockData = { security_id: aaplSecurity.id };
+
+	beforeEach(() => {
+		stubMarketFixtures(aaplSecurity, mockDataItems);
+	});
 
 	beforeAll(async () => {
 		const mod = await import('./+page.svelte');
@@ -3582,17 +3608,15 @@ describe('Security Page - Measure Tool & Integration', () => {
 	/* eslint-disable-next-line @typescript-eslint/no-explicit-any */
 	let PageComponent: Component<any>;
 
-	const mockData = {
-		security: {
-			id: 'sec-1',
-			symbol: 'AAPL',
-			name: 'Apple Inc.'
-		},
-		items: [
-			{ date: '2024-01-01', open: 100, high: 110, low: 95, close: 105, volume: 1000 },
-			{ date: '2024-01-02', open: 105, high: 115, low: 100, close: 112, volume: 1200 }
-		]
-	};
+	const mockDataItems = [
+		{ date: '2024-01-01', open: 100, high: 110, low: 95, close: 105, volume: 1000 },
+		{ date: '2024-01-02', open: 105, high: 115, low: 100, close: 112, volume: 1200 }
+	];
+	const mockData = { security_id: aaplSecurity.id };
+
+	beforeEach(() => {
+		stubMarketFixtures(aaplSecurity, mockDataItems);
+	});
 
 	const sampleMeasure = {
 		id: 'measure-1',
@@ -3892,17 +3916,15 @@ describe('Security Page - Horizontal Line Tool & Integration', () => {
 	/* eslint-disable-next-line @typescript-eslint/no-explicit-any */
 	let PageComponent: Component<any>;
 
-	const mockData = {
-		security: {
-			id: 'sec-1',
-			symbol: 'AAPL',
-			name: 'Apple Inc.'
-		},
-		items: [
-			{ date: '2024-01-01', open: 100, high: 110, low: 95, close: 105, volume: 1000 },
-			{ date: '2024-01-02', open: 105, high: 115, low: 100, close: 112, volume: 1200 }
-		]
-	};
+	const mockDataItems = [
+		{ date: '2024-01-01', open: 100, high: 110, low: 95, close: 105, volume: 1000 },
+		{ date: '2024-01-02', open: 105, high: 115, low: 100, close: 112, volume: 1200 }
+	];
+	const mockData = { security_id: aaplSecurity.id };
+
+	beforeEach(() => {
+		stubMarketFixtures(aaplSecurity, mockDataItems);
+	});
 
 	const sampleHorizontalLine = {
 		id: 'hline-1',
@@ -4204,17 +4226,15 @@ describe('Security Page - Free-form Line Tool & Integration', () => {
 	/* eslint-disable-next-line @typescript-eslint/no-explicit-any */
 	let PageComponent: Component<any>;
 
-	const mockData = {
-		security: {
-			id: 'sec-1',
-			symbol: 'AAPL',
-			name: 'Apple Inc.'
-		},
-		items: [
-			{ date: '2024-01-01', open: 100, high: 110, low: 95, close: 105, volume: 1000 },
-			{ date: '2024-01-02', open: 105, high: 115, low: 100, close: 112, volume: 1200 }
-		]
-	};
+	const mockDataItems = [
+		{ date: '2024-01-01', open: 100, high: 110, low: 95, close: 105, volume: 1000 },
+		{ date: '2024-01-02', open: 105, high: 115, low: 100, close: 112, volume: 1200 }
+	];
+	const mockData = { security_id: aaplSecurity.id };
+
+	beforeEach(() => {
+		stubMarketFixtures(aaplSecurity, mockDataItems);
+	});
 
 	const sampleLine = {
 		id: 'line-1',
@@ -4521,23 +4541,21 @@ describe('Security Page - Session Drawing Undo/Redo', () => {
 	/* eslint-disable-next-line @typescript-eslint/no-explicit-any */
 	let PageComponent: Component<any>;
 
-	const mockData = {
-		security: {
-			id: 'sec-1',
-			symbol: 'AAPL',
-			name: 'Apple Inc.'
-		},
-		items: [
-			{
-				timestamp: 1704067200,
-				open: 100,
-				high: 105,
-				low: 99,
-				close: 104,
-				volume: 1000
-			}
-		]
-	};
+	const mockDataItems = [
+		{
+			timestamp: 1704067200,
+			open: 100,
+			high: 105,
+			low: 99,
+			close: 104,
+			volume: 1000
+		}
+	];
+	const mockData = { security_id: aaplSecurity.id };
+
+	beforeEach(() => {
+		stubMarketFixtures(aaplSecurity, mockDataItems);
+	});
 
 	const sampleMeasure: MeasureDrawing = {
 		id: 'measure-undo',
@@ -4753,23 +4771,21 @@ describe('Security Page - Drawing Dragging Deferral & Network Throttling (AC 2, 
 	/* eslint-disable-next-line @typescript-eslint/no-explicit-any */
 	let PageComponent: Component<any>;
 
-	const mockData = {
-		security: {
-			id: 'sec-1',
-			symbol: 'AAPL',
-			name: 'Apple Inc.'
-		},
-		items: [
-			{
-				timestamp: 1704067200,
-				open: 100,
-				high: 105,
-				low: 99,
-				close: 104,
-				volume: 1000
-			}
-		]
-	};
+	const mockDataItems = [
+		{
+			timestamp: 1704067200,
+			open: 100,
+			high: 105,
+			low: 99,
+			close: 104,
+			volume: 1000
+		}
+	];
+	const mockData = { security_id: aaplSecurity.id };
+
+	beforeEach(() => {
+		stubMarketFixtures(aaplSecurity, mockDataItems);
+	});
 
 	const baseMeasure: MeasureDrawing = {
 		id: 'm-1',
@@ -5177,5 +5193,166 @@ describe('Security Page - Drawing Dragging Deferral & Network Throttling (AC 2, 
 				})
 			);
 		});
+	});
+});
+
+// ---------------------------------------------------------------------------
+// The route shell renders before the async data wave resolves: the server load
+// only supplies `security_id`, and the page fetches identity + prices itself.
+// ---------------------------------------------------------------------------
+describe('Security Page - Instant Shell with Async Chart Data', () => {
+	/* eslint-disable-next-line @typescript-eslint/no-explicit-any */
+	let PageComponent: Component<any>;
+
+	const shellItems: PriceFixture[] = [
+		{ date: '2024-01-01', open: 100, high: 110, low: 95, close: 105, volume: 1000 },
+		{ date: '2024-01-02', open: 105, high: 115, low: 100, close: 112, volume: 1200 },
+		{ date: '2024-01-03', open: 112, high: 120, low: 108, close: 118, volume: 1500 }
+	];
+
+	beforeAll(async () => {
+		const mod = await import('./+page.svelte');
+		PageComponent = mod.default;
+	}, 60000);
+
+	beforeEach(() => {
+		vi.clearAllMocks();
+		mockChartProps = null;
+		mockWatchlistService.defaultWatchlistSecurities = [];
+		stubMarketFixtures(aaplSecurity, shellItems);
+		vi.mocked(userPreferencesService.getPreferences).mockResolvedValue({});
+		vi.mocked(snapshotsService.getSnapshots).mockResolvedValue([]);
+	});
+
+	afterEach(() => {
+		mockWatchlistService.defaultWatchlistSecurities = [];
+	});
+
+	it('renders the shell with the instant titlebar and chart placeholder before prices resolve', () => {
+		let resolvePrices!: (value: { items: PriceFixture[] }) => void;
+		mockGetPrices.mockReturnValueOnce(
+			new Promise((resolve) => {
+				resolvePrices = resolve;
+			})
+		);
+		mockWatchlistService.defaultWatchlistSecurities = [aaplSecurity];
+
+		render(PageComponent, { props: { data: { security_id: aaplSecurity.id } } });
+
+		// Deliberately no `waitFor`: the shell must already be on screen.
+		expect(screen.getByText('AAPL')).toBeInTheDocument();
+		expect(screen.getByText('Apple Inc.')).toBeInTheDocument();
+		expect(screen.getByText('Loading chart data...')).toBeInTheDocument();
+		expect(mockChartProps).toBeNull();
+
+		resolvePrices({ items: shellItems });
+
+		return waitFor(() => expect(mockChartProps).not.toBeNull());
+	});
+
+	it('falls back to the title skeleton when the watchlist cannot resolve the id yet', () => {
+		mockGetPrices.mockReturnValueOnce(new Promise(() => {}));
+
+		render(PageComponent, { props: { data: { security_id: aaplSecurity.id } } });
+
+		expect(screen.getByText('Loading chart data...')).toBeInTheDocument();
+		expect(document.querySelectorAll('[data-slot="skeleton"]').length).toBeGreaterThan(0);
+		expect(screen.queryByText('AAPL')).not.toBeInTheDocument();
+	});
+
+	it('renders the chart with the resolved candles and active timeframe without navigation', async () => {
+		render(PageComponent, { props: { data: { security_id: aaplSecurity.id } } });
+
+		await waitFor(() => expect(mockChartProps).not.toBeNull());
+
+		// @ts-expect-error - mockChartProps typed as Record
+		const candles = mockChartProps.candles as Candle[];
+		expect(candles.map((candle) => candle.time)).toEqual([
+			'2024-01-01',
+			'2024-01-02',
+			'2024-01-03'
+		]);
+
+		expect(screen.getByRole('button', { name: '1D' }).className).toContain('bg-primary');
+		expect(screen.queryByText('Loading chart data...')).not.toBeInTheDocument();
+		expect(goto).not.toHaveBeenCalled();
+	});
+
+	it('force-refetches the saved timeframe once the async data resolves', async () => {
+		vi.mocked(userPreferencesService.getPreferences).mockResolvedValue({ timeframe: '4h' });
+
+		render(PageComponent, { props: { data: { security_id: aaplSecurity.id } } });
+
+		await waitFor(() => {
+			expect(mockGetPrices).toHaveBeenCalledWith(
+				'sec-1',
+				expect.any(String),
+				expect.any(String),
+				'4h'
+			);
+		});
+
+		await waitFor(() => {
+			expect(screen.getByRole('button', { name: '4H' }).className).toContain('bg-primary');
+		});
+	});
+
+	it('renders the in-page error card when the price fetch rejects', async () => {
+		mockGetPrices.mockRejectedValueOnce(new Error('Price service unavailable'));
+
+		render(PageComponent, { props: { data: { security_id: aaplSecurity.id } } });
+
+		expect(await screen.findByText('Failed to Load Chart')).toBeInTheDocument();
+		expect(screen.getAllByText('Price service unavailable').length).toBeGreaterThan(0);
+		expect(mockChartProps).toBeNull();
+		expect(goto).not.toHaveBeenCalled();
+	});
+
+	it('renders the in-page error card when the price series is empty', async () => {
+		stubMarketFixtures(aaplSecurity, []);
+
+		render(PageComponent, { props: { data: { security_id: aaplSecurity.id } } });
+
+		expect(await screen.findByText('Failed to Load Chart')).toBeInTheDocument();
+		expect(screen.getAllByText('No price data available for this security').length).toBeGreaterThan(
+			0
+		);
+		expect(mockChartProps).toBeNull();
+	});
+
+	it('routes a 401 from the async load through the shared redirect seam', async () => {
+		mockGetPrices.mockRejectedValueOnce(new ApiError(401, 'Unauthorized'));
+
+		render(PageComponent, { props: { data: { security_id: aaplSecurity.id } } });
+
+		await waitFor(() => expect(goto).toHaveBeenCalledWith('/auth/login?clear_session=true'));
+	});
+
+	it('does not navigate when the async load fails with a non-401 error', async () => {
+		mockGetPrices.mockRejectedValueOnce(new ApiError(500, 'Server exploded'));
+
+		render(PageComponent, { props: { data: { security_id: aaplSecurity.id } } });
+
+		expect(await screen.findByText('Failed to Load Chart')).toBeInTheDocument();
+		expect(goto).not.toHaveBeenCalled();
+	});
+
+	it('produces no unhandled rejections when the async data path fails', async () => {
+		const unhandled: unknown[] = [];
+		const onUnhandledRejection = (reason: unknown) => unhandled.push(reason);
+		process.on('unhandledRejection', onUnhandledRejection);
+
+		try {
+			mockGetSecurity.mockRejectedValueOnce(new Error('Security service unavailable'));
+
+			render(PageComponent, { props: { data: { security_id: aaplSecurity.id } } });
+
+			expect(await screen.findByText('Failed to Load Chart')).toBeInTheDocument();
+			await new Promise((resolve) => setTimeout(resolve, 50));
+		} finally {
+			process.off('unhandledRejection', onUnhandledRejection);
+		}
+
+		expect(unhandled).toEqual([]);
 	});
 });
