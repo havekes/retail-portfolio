@@ -50,6 +50,46 @@ export function sortWatchlistsByOrder<T extends Pick<WatchlistRead, 'id'>>(
 }
 
 /**
+ * Returns a new array with the item at `from` moved to index `to` (index shift).
+ * Never mutates the input. Equal or out-of-range indices are a no-op that still
+ * returns a fresh copy, so callers can assign the result unconditionally.
+ */
+export function moveItem<T>(list: T[], from: number, to: number): T[] {
+	const next = [...list];
+	if (from === to || from < 0 || to < 0 || from >= list.length || to >= list.length) {
+		return next;
+	}
+	const [moved] = next.splice(from, 1);
+	next.splice(to, 0, moved);
+	return next;
+}
+
+/**
+ * Shared keyboard handler for reorderable lists: ArrowUp/ArrowDown shift the item
+ * at `index` by one position via `onMove(from, to)`. The arrow key is always
+ * consumed (`preventDefault`) so the page does not scroll, but moving past either
+ * end is a no-op. Any other key returns `false` untouched.
+ */
+export function handleReorderKeydown(
+	event: { key: string; preventDefault(): void },
+	index: number,
+	length: number,
+	onMove: (from: number, to: number) => void
+): boolean {
+	const direction = event.key === 'ArrowUp' ? -1 : event.key === 'ArrowDown' ? 1 : 0;
+	if (direction === 0) {
+		return false;
+	}
+
+	event.preventDefault();
+	const target = index + direction;
+	if (target >= 0 && target < length) {
+		onMove(index, target);
+	}
+	return true;
+}
+
+/**
  * Sorts securities based on sortKey:
  * - 'custom': Insertion order, ascending `position` (oldest added first)
  * - 'name_asc': Alphabetical by name ascending

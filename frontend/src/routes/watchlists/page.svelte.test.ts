@@ -18,6 +18,7 @@ const mocks = vi.hoisted(() => ({
 		deleteWatchlist: vi.fn(),
 		addSecurityToWatchlist: vi.fn(),
 		removeSecurityFromWatchlist: vi.fn(),
+		reorderWatchlistSecurities: vi.fn(),
 		addToWatchlist: vi.fn(),
 		removeFromWatchlist: vi.fn()
 	},
@@ -642,6 +643,286 @@ describe('Watchlists page - watchlist reorder mode and drag-and-drop', () => {
 		expect(headings[0]).toHaveTextContent('Energy');
 		expect(headings[1]).toHaveTextContent('Crypto');
 		expect(headings[2]).toHaveTextContent('Tech');
+	});
+
+	it('renders focusable labelled drag handles instead of aria-hidden icons', async () => {
+		renderPage([watchlist('wl-1', 'Tech', [])]);
+
+		await fireEvent.click(screen.getByRole('button', { name: 'Reorder' }));
+
+		const handle = screen.getByTestId('drag-handle');
+		expect(handle.tagName).toBe('BUTTON');
+		expect(handle).toHaveAttribute('type', 'button');
+		expect(handle).toHaveAttribute('aria-label', 'Reorder Tech');
+		expect(handle).not.toHaveAttribute('aria-hidden');
+	});
+
+	it('moves a watchlist with ArrowDown and persists the new order', async () => {
+		renderPage([
+			watchlist('wl-1', 'Tech', []),
+			watchlist('wl-2', 'Energy', []),
+			watchlist('wl-3', 'Crypto', [])
+		]);
+
+		await fireEvent.click(screen.getByRole('button', { name: 'Reorder' }));
+		await fireEvent.keyDown(screen.getByRole('button', { name: 'Reorder Tech' }), {
+			key: 'ArrowDown'
+		});
+
+		await waitFor(() =>
+			expect(mocks.preferences.patchPreferences).toHaveBeenCalledWith({
+				watchlist_order: ['wl-2', 'wl-1', 'wl-3']
+			})
+		);
+
+		const headings = screen
+			.getAllByRole('region')
+			.map((section) => within(section).getByRole('heading', { level: 2 }).textContent);
+		expect(headings).toEqual(['Energy', 'Tech', 'Crypto']);
+		expect(screen.getByRole('status')).toHaveTextContent('Tech moved to position 2 of 3');
+	});
+
+	it('moves a watchlist with ArrowUp and keeps focus on the handle', async () => {
+		renderPage([watchlist('wl-1', 'Tech', []), watchlist('wl-2', 'Energy', [])]);
+
+		await fireEvent.click(screen.getByRole('button', { name: 'Reorder' }));
+		const handle = screen.getByRole('button', { name: 'Reorder Energy' });
+		handle.focus();
+		await fireEvent.keyDown(handle, { key: 'ArrowUp' });
+
+		await waitFor(() =>
+			expect(mocks.preferences.patchPreferences).toHaveBeenCalledWith({
+				watchlist_order: ['wl-2', 'wl-1']
+			})
+		);
+		expect(screen.getByRole('button', { name: 'Reorder Energy' })).toHaveFocus();
+	});
+
+	it('does not move a watchlist past the top or bottom boundary', async () => {
+		renderPage([watchlist('wl-1', 'Tech', []), watchlist('wl-2', 'Energy', [])]);
+
+		await fireEvent.click(screen.getByRole('button', { name: 'Reorder' }));
+		await fireEvent.keyDown(screen.getByRole('button', { name: 'Reorder Tech' }), {
+			key: 'ArrowUp'
+		});
+		await fireEvent.keyDown(screen.getByRole('button', { name: 'Reorder Energy' }), {
+			key: 'ArrowDown'
+		});
+
+		expect(mocks.preferences.patchPreferences).not.toHaveBeenCalled();
+	});
+
+	it('rolls both order snapshots back and shows the error when persisting fails', async () => {
+		mocks.preferences.patchPreferences.mockRejectedValue(new Error('Order save failed'));
+		renderPage([watchlist('wl-1', 'Tech', []), watchlist('wl-2', 'Energy', [])]);
+
+		await fireEvent.click(screen.getByRole('button', { name: 'Reorder' }));
+		await fireEvent.keyDown(screen.getByRole('button', { name: 'Reorder Tech' }), {
+			key: 'ArrowDown'
+		});
+
+		expect(await screen.findByText('Order save failed')).toBeInTheDocument();
+
+		const headings = screen
+			.getAllByRole('region')
+			.map((section) => within(section).getByRole('heading', { level: 2 }).textContent);
+		expect(headings).toEqual(['Tech', 'Energy']);
+	});
+});
+
+describe('Watchlists page - security reorder in custom sort mode', () => {
+	function dataTransfer() {
+		return {
+			effectAllowed: '',
+			dropEffect: '',
+			setData: vi.fn(),
+			getData: vi.fn().mockReturnValue('0')
+		};
+	}
+
+	function rowSymbols(listName = 'Tech securities'): string[] {
+		return within(screen.getByRole('region', { name: listName }))
+			.getAllByRole('link')
+			.map((link) => link.querySelector('span')?.textContent?.trim() ?? '');
+	}
+
+	const a = () => security('s1', 'AAPL', 150, 1, '2026-01-01T00:00:00Z', 0);
+	const b = () => security('s2', 'MSFT', 300, 2, '2026-01-02T00:00:00Z', 1);
+	const c = () => security('s3', 'NVDA', 450, 3, '2026-01-03T00:00:00Z', 2);
+
+	async function enableReorder(name = 'Tech') {
+		await fireEvent.click(screen.getByRole('button', { name: `Reorder securities in ${name}` }));
+	}
+
+	it('offers the reorder toggle only for custom-sorted watchlists', () => {
+		renderPage([
+			watchlist('wl-tech', 'Tech', [a()], 'custom'),
+			watchlist('wl-recent', 'Recent', [b()], 'date_added')
+		]);
+
+		const toggle = screen.getByRole('button', { name: 'Reorder securities in Tech' });
+		expect(toggle).toHaveAttribute('aria-pressed', 'false');
+		expect(
+			screen.queryByRole('button', { name: 'Reorder securities in Recent' })
+		).not.toBeInTheDocument();
+	});
+
+	it('shows labelled focusable handles on every row once the toggle is on', async () => {
+		renderPage([watchlist('wl-tech', 'Tech', [a(), b()])]);
+
+		expect(screen.queryByTestId('security-drag-handle')).not.toBeInTheDocument();
+
+		await enableReorder();
+
+		expect(screen.getByRole('button', { name: 'Reorder securities in Tech' })).toHaveAttribute(
+			'aria-pressed',
+			'true'
+		);
+		expect(screen.getAllByTestId('security-drag-handle')).toHaveLength(2);
+		expect(screen.getByRole('button', { name: 'Reorder AAPL' })).toHaveAttribute('type', 'button');
+		expect(screen.getByRole('button', { name: 'Reorder MSFT' })).toBeInTheDocument();
+	});
+
+	it('reorders rows by drag and persists the new id order', async () => {
+		mocks.client.reorderWatchlistSecurities.mockResolvedValue(
+			watchlist('wl-tech', 'Tech', [
+				{ ...b(), position: 0 },
+				{ ...c(), position: 1 },
+				{ ...a(), position: 2 }
+			])
+		);
+		renderPage([watchlist('wl-tech', 'Tech', [a(), b(), c()])]);
+		await enableReorder();
+
+		const rows = within(screen.getByRole('region', { name: 'Tech securities' })).getAllByRole(
+			'listitem'
+		);
+		const dt = dataTransfer();
+
+		await fireEvent.dragStart(rows[0], { dataTransfer: dt });
+		await fireEvent.dragOver(rows[2], { dataTransfer: dt });
+		await fireEvent.drop(rows[2], { dataTransfer: dt });
+
+		await waitFor(() =>
+			expect(mocks.client.reorderWatchlistSecurities).toHaveBeenCalledWith(
+				'wl-tech',
+				['s2', 's3', 's1'],
+				undefined
+			)
+		);
+		await waitFor(() => expect(rowSymbols()).toEqual(['MSFT', 'NVDA', 'AAPL']));
+	});
+
+	it('moves a security down with ArrowDown, persists and announces it', async () => {
+		mocks.client.reorderWatchlistSecurities
+			.mockResolvedValueOnce(
+				watchlist('wl-tech', 'Tech', [
+					{ ...b(), position: 0 },
+					{ ...a(), position: 1 },
+					{ ...c(), position: 2 }
+				])
+			)
+			.mockResolvedValueOnce(
+				watchlist('wl-tech', 'Tech', [
+					{ ...b(), position: 0 },
+					{ ...c(), position: 1 },
+					{ ...a(), position: 2 }
+				])
+			);
+		renderPage([watchlist('wl-tech', 'Tech', [a(), b(), c()])]);
+		await enableReorder();
+
+		const handle = screen.getByRole('button', { name: 'Reorder AAPL' });
+		handle.focus();
+		await fireEvent.keyDown(handle, { key: 'ArrowDown' });
+
+		await waitFor(() =>
+			expect(mocks.client.reorderWatchlistSecurities).toHaveBeenCalledWith(
+				'wl-tech',
+				['s2', 's1', 's3'],
+				undefined
+			)
+		);
+		await waitFor(() => expect(rowSymbols()).toEqual(['MSFT', 'AAPL', 'NVDA']));
+		expect(screen.getByRole('status')).toHaveTextContent('AAPL moved to position 2 of 3');
+
+		// The keyed row survives the optimistic + server re-render, so focus and
+		// subsequent keystrokes stay attached to the same security handle.
+		expect(screen.getByRole('button', { name: 'Reorder AAPL' })).toBe(handle);
+		await fireEvent.keyDown(handle, { key: 'ArrowDown' });
+		await waitFor(() =>
+			expect(mocks.client.reorderWatchlistSecurities).toHaveBeenLastCalledWith(
+				'wl-tech',
+				['s2', 's3', 's1'],
+				undefined
+			)
+		);
+	});
+
+	it('does not move a security past the top or bottom boundary', async () => {
+		renderPage([watchlist('wl-tech', 'Tech', [a(), b()])]);
+		await enableReorder();
+
+		await fireEvent.keyDown(screen.getByRole('button', { name: 'Reorder AAPL' }), {
+			key: 'ArrowUp'
+		});
+		await fireEvent.keyDown(screen.getByRole('button', { name: 'Reorder MSFT' }), {
+			key: 'ArrowDown'
+		});
+
+		expect(mocks.client.reorderWatchlistSecurities).not.toHaveBeenCalled();
+	});
+
+	it('shows no controls and ignores drops for non-custom sorts', async () => {
+		renderPage([watchlist('wl-tech', 'Tech', [a(), b()], 'name_asc')]);
+
+		expect(
+			screen.queryByRole('button', { name: 'Reorder securities in Tech' })
+		).not.toBeInTheDocument();
+		expect(screen.queryByTestId('security-drag-handle')).not.toBeInTheDocument();
+
+		const rows = within(screen.getByRole('region', { name: 'Tech securities' })).getAllByRole(
+			'listitem'
+		);
+		const dt = dataTransfer();
+		await fireEvent.dragStart(rows[0], { dataTransfer: dt });
+		await fireEvent.dragOver(rows[1], { dataTransfer: dt });
+		await fireEvent.drop(rows[1], { dataTransfer: dt });
+
+		expect(mocks.client.reorderWatchlistSecurities).not.toHaveBeenCalled();
+	});
+
+	it('ignores drags when the toggle is off', async () => {
+		renderPage([watchlist('wl-tech', 'Tech', [a(), b()])]);
+
+		const rows = within(screen.getByRole('region', { name: 'Tech securities' })).getAllByRole(
+			'listitem'
+		);
+		const dt = dataTransfer();
+		await fireEvent.dragStart(rows[0], { dataTransfer: dt });
+		await fireEvent.dragOver(rows[1], { dataTransfer: dt });
+		await fireEvent.drop(rows[1], { dataTransfer: dt });
+
+		expect(mocks.client.reorderWatchlistSecurities).not.toHaveBeenCalled();
+	});
+
+	it('resyncs, reverts the optimistic order and shows the error when the reorder fails', async () => {
+		mocks.client.reorderWatchlistSecurities.mockRejectedValue(new Error('Reorder failed'));
+		mocks.client.getWatchlists.mockResolvedValue([watchlist('wl-tech', 'Tech', [a(), b()])]);
+		renderPage([watchlist('wl-tech', 'Tech', [a(), b()])]);
+		await enableReorder();
+
+		const rows = within(screen.getByRole('region', { name: 'Tech securities' })).getAllByRole(
+			'listitem'
+		);
+		const dt = dataTransfer();
+		await fireEvent.dragStart(rows[0], { dataTransfer: dt });
+		await fireEvent.dragOver(rows[1], { dataTransfer: dt });
+		await fireEvent.drop(rows[1], { dataTransfer: dt });
+
+		expect(await screen.findByText('Reorder failed')).toBeInTheDocument();
+		await waitFor(() => expect(mocks.client.getWatchlists).toHaveBeenCalled());
+		await waitFor(() => expect(rowSymbols()).toEqual(['AAPL', 'MSFT']));
 	});
 });
 

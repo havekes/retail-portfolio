@@ -1,8 +1,10 @@
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import type { WatchlistRead, WatchlistSecuritySchema } from '$lib/api/marketService';
 import {
 	formatPrice,
 	formatPriceChangePercent,
+	handleReorderKeydown,
+	moveItem,
 	normalizeWatchlistSort,
 	sortSecurities,
 	sortWatchlistsByOrder
@@ -197,6 +199,85 @@ describe('watchlist-utils', () => {
 			expect(normalizeWatchlistSort(null)).toBe('custom');
 			expect(normalizeWatchlistSort('')).toBe('custom');
 			expect(normalizeWatchlistSort('garbage')).toBe('custom');
+		});
+	});
+
+	describe('moveItem', () => {
+		it('moves an item forward to a later index', () => {
+			expect(moveItem(['a', 'b', 'c', 'd'], 0, 2)).toEqual(['b', 'c', 'a', 'd']);
+		});
+
+		it('moves an item backward to an earlier index', () => {
+			expect(moveItem(['a', 'b', 'c', 'd'], 3, 1)).toEqual(['a', 'd', 'b', 'c']);
+		});
+
+		it('is a no-op for equal indices', () => {
+			expect(moveItem(['a', 'b', 'c'], 1, 1)).toEqual(['a', 'b', 'c']);
+		});
+
+		it('is a no-op for out-of-range indices', () => {
+			expect(moveItem(['a', 'b', 'c'], -1, 1)).toEqual(['a', 'b', 'c']);
+			expect(moveItem(['a', 'b', 'c'], 0, -1)).toEqual(['a', 'b', 'c']);
+			expect(moveItem(['a', 'b', 'c'], 3, 1)).toEqual(['a', 'b', 'c']);
+			expect(moveItem(['a', 'b', 'c'], 0, 3)).toEqual(['a', 'b', 'c']);
+		});
+
+		it('never mutates the input array and always returns a fresh copy', () => {
+			const list = ['a', 'b', 'c'];
+			const moved = moveItem(list, 0, 2);
+
+			expect(list).toEqual(['a', 'b', 'c']);
+			expect(moved).not.toBe(list);
+
+			const noop = moveItem(list, 1, 1);
+			expect(noop).not.toBe(list);
+		});
+	});
+
+	describe('handleReorderKeydown', () => {
+		function event(key: string) {
+			return { key, preventDefault: vi.fn() };
+		}
+
+		it('moves one position up on ArrowUp and consumes the key', () => {
+			const e = event('ArrowUp');
+			const onMove = vi.fn();
+
+			expect(handleReorderKeydown(e, 2, 3, onMove)).toBe(true);
+			expect(e.preventDefault).toHaveBeenCalledTimes(1);
+			expect(onMove).toHaveBeenCalledWith(2, 1);
+		});
+
+		it('moves one position down on ArrowDown and consumes the key', () => {
+			const e = event('ArrowDown');
+			const onMove = vi.fn();
+
+			expect(handleReorderKeydown(e, 0, 3, onMove)).toBe(true);
+			expect(e.preventDefault).toHaveBeenCalledTimes(1);
+			expect(onMove).toHaveBeenCalledWith(0, 1);
+		});
+
+		it('consumes the key but does not move at the first and last position', () => {
+			const up = event('ArrowUp');
+			const upMove = vi.fn();
+			expect(handleReorderKeydown(up, 0, 3, upMove)).toBe(true);
+			expect(up.preventDefault).toHaveBeenCalledTimes(1);
+			expect(upMove).not.toHaveBeenCalled();
+
+			const down = event('ArrowDown');
+			const downMove = vi.fn();
+			expect(handleReorderKeydown(down, 2, 3, downMove)).toBe(true);
+			expect(down.preventDefault).toHaveBeenCalledTimes(1);
+			expect(downMove).not.toHaveBeenCalled();
+		});
+
+		it('leaves non-arrow keys untouched', () => {
+			const e = event('Enter');
+			const onMove = vi.fn();
+
+			expect(handleReorderKeydown(e, 1, 3, onMove)).toBe(false);
+			expect(e.preventDefault).not.toHaveBeenCalled();
+			expect(onMove).not.toHaveBeenCalled();
 		});
 	});
 
