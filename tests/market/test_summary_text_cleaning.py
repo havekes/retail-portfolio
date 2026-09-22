@@ -74,6 +74,28 @@ def test_strips_stray_closing_tag_glued_to_a_label():
     assert strip_reasoning("</thought>TITLE: Real title") == "TITLE: Real title"
 
 
+def test_strips_nested_html_thought_blocks():
+    assert strip_reasoning("<thought>a<thought>b</thought>c</thought>tail") == "tail"
+
+
+def test_strips_nested_bracket_think_blocks():
+    assert strip_reasoning("[think]a[think]b[/think]c[/think]tail") == "tail"
+
+
+def test_strips_mixed_nested_reasoning_blocks():
+    assert (
+        strip_reasoning("<thought>outer<think>inner</think>still outer</thought>answer")
+        == "answer"
+    )
+    assert (
+        strip_reasoning("<thought>a[think]b[/think]c</thought>TITLE: ok") == "TITLE: ok"
+    )
+
+
+def test_strips_unterminated_nested_thought_block():
+    assert strip_reasoning("<thought>a<thought>b</thought>c") == ""
+
+
 def test_real_paired_sample_keeps_only_the_answer():
     cleaned = strip_reasoning(REAL_THOUGHT_SUMMARY_RESPONSE)
     assert cleaned.startswith("SHORT: User maintains")

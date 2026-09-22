@@ -36,12 +36,16 @@ MAX_LONG_SUMMARY_LENGTH = 1200
 # ``</thought>SHORT: ...``), ``<think>...</think>``, and the older lowercase
 # ``[think]...[/think]`` flavour. Anything after an *unterminated* opening
 # marker is reasoning too (generation truncated mid-thought).
+# Content of a paired block must not itself contain another reasoning tag, so
+# each pass removes the *innermost* block. :func:`_strip_paired_reasoning` then
+# loops until the text stops changing, which peels a nested chain outwards
+# (``<thought>a<thought>b</thought>c</thought>`` → ``tail``, not ``ctail``).
 _PAIRED_REASONING_RE = re.compile(
-    r"<(?:thought|think)\b[^>]*>.*?</(?:thought|think)\s*>",
+    r"<(?:thought|think)\b[^>]*>(?:(?!</?(?:thought|think)\b).)*?</(?:thought|think)\s*>",
     re.IGNORECASE | re.DOTALL,
 )
 _BRACKET_PAIRED_REASONING_RE = re.compile(
-    r"\[think\].*?\[/think\]", re.IGNORECASE | re.DOTALL
+    r"\[think\](?:(?!\[/?think\]).)*?\[/think\]", re.IGNORECASE | re.DOTALL
 )
 _UNTERMINATED_REASONING_RE = re.compile(
     r"<(?:thought|think)\b[^>]*>.*\Z|\[think\].*\Z",
@@ -64,19 +68,35 @@ _MARKDOWN_ORDERED_RE = re.compile(r"^[ \t]*\d+[.)][ \t]+", re.MULTILINE)
 _MARKDOWN_BLOCKQUOTE_RE = re.compile(r"^[ \t]*>[ \t]?", re.MULTILINE)
 
 
+def _strip_paired_reasoning(content: str) -> str:
+    """Remove every paired reasoning block, including nested ones.
+
+    Each regex pass removes the innermost block, so a nested chain collapses
+    outwards; the loop repeats until the text stops changing. Callers then
+    apply the unterminated-marker rule to whatever opening tag is left.
+    """
+    previous: str | None = None
+    cleaned = content
+    while cleaned != previous:
+        previous = cleaned
+        cleaned = _PAIRED_REASONING_RE.sub("", cleaned)
+        cleaned = _BRACKET_PAIRED_REASONING_RE.sub("", cleaned)
+    return cleaned
+
+
 def strip_reasoning(content: str) -> str:
     """Remove every known reasoning marker from a model response.
 
     Handles HTML-style ``<thought>``/``<think>`` blocks and the lowercase
     ``[think]`` flavour, in any casing, at any position and in any number of
-    blocks. Both the paired form and an unterminated opening marker are
-    removed; when generation is cut off mid-reasoning, everything from the
-    opening marker onward is reasoning and must never be persisted or rendered.
+    blocks, including nested blocks. Both the paired form and an unterminated
+    opening marker are removed; when generation is cut off mid-reasoning,
+    everything from the opening marker onward is reasoning and must never be
+    persisted or rendered.
 
     Idempotent: safe to apply on generation *and* again on read.
     """
-    cleaned = _PAIRED_REASONING_RE.sub("", content)
-    cleaned = _BRACKET_PAIRED_REASONING_RE.sub("", cleaned)
+    cleaned = _strip_paired_reasoning(content)
     cleaned = _UNTERMINATED_REASONING_RE.sub("", cleaned)
     cleaned = _STRAY_REASONING_TAG_RE.sub("", cleaned)
     return cleaned.strip()
