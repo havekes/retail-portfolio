@@ -1,3 +1,4 @@
+import json
 import logging
 import re
 from collections.abc import Callable
@@ -327,58 +328,137 @@ class AIService:
         )
 
     async def generate_note_title(self, content: str) -> str:
+        """Generate a short, concise title for a note using AI.
+
+        Thin wrapper kept for existing callers; the underlying AI request is
+        shared with the summary so a note create costs a single call.
         """
-        Generate a short, concise title for a note using AI.
+        title, _ = await self.generate_note_title_and_summary(content)
+        return title
 
-        Args:
-            content: The content of the note.
+    async def generate_note_title_and_summary(
+        self, content: str
+    ) -> tuple[str, str | None]:
+        """Generate a note title and a one-sentence summary in a single AI call.
 
-        Returns:
-            A short title (max 50 characters).
+        Returns ``(title, summary)``. When the AI is unavailable the title
+        falls back to a truncated version of the content and the summary is
+        ``None`` (also when the response can't be parsed as a summary), so the
+        caller can persist a nullable summary without losing the title.
         """
         try:
             response = await self._client.chat.completions.create(
-                model="gpt-4-turbo",
+                model=self._api_model,
                 messages=[
                     {
                         "role": "system",
                         "content": (
-                            "You are a helpful assistant that generates short, "
-                            "concise titles for notes. The title should be "
-                            "maximum 50 characters and capture the essence "
-                            "of the note."
+                            "You generate short titles and one-sentence "
+                            "summaries for notes. Reply with exactly two lines:\n"
+                            "TITLE: <short title, maximum 50 characters>\n"
+                            "SUMMARY: <one sentence capturing the note's point>"
                         ),
                     },
                     {
                         "role": "user",
-                        "content": f"Generate a title for this note:\n\n{content}",
+                        "content": (
+                            "Generate a title and one-sentence summary for "
+                            f"this note:\n\n{content}"
+                        ),
                     },
                 ],
                 temperature=0.3,
-                max_tokens=20,
+                max_tokens=120,
                 timeout=10,
             )
-            title = response.choices[0].message.content
-            if not title:
+            raw = response.choices[0].message.content
+            if not raw:
                 self._raise_no_title()
 
-            if not isinstance(title, str):
+            if not isinstance(raw, str):
                 self._raise_title_type_error()
 
-            title_str = cast("str", title)
-            title_str = title_str.strip()
-            # Remove quotes if AI included them
-            if (title_str.startswith('"') and title_str.endswith('"')) or (
-                title_str.startswith("'") and title_str.endswith("'")
-            ):
-                title_str = title_str[1:-1]
-            return title_str[:MAX_TITLE_LENGTH]
+            title, summary = self._parse_title_and_summary(cast("str", raw))
+            if not title:
+                self._raise_no_title()
         except Exception:
-            logger.exception("Failed to generate note title")
-            # Return a truncated version of the content as fallback
-            if len(content) > MAX_TITLE_LENGTH:
-                return content[: MAX_TITLE_LENGTH - 3] + "..."
-            return content
+            logger.exception("Failed to generate note title and summary")
+            return self._fallback_title(content), None
+        else:
+            return title, summary
+
+    @staticmethod
+    def _parse_title_and_summary(raw: str) -> tuple[str, str | None]:
+        """Best-effort parse of the model response into ``(title, summary)``.
+
+        Tolerates JSON objects (``{"title": ..., "summary": ...}``) and the
+        ``TITLE:``/``SUMMARY:`` two-line format. Anything else is treated as a
+        bare title so a malformed summary never costs us the title.
+        """
+        text = raw.strip()
+        title, summary = AIService._parse_json_title_and_summary(text)
+
+        if title is None:
+            for line in text.splitlines():
+                stripped = line.strip()
+                upper = stripped.upper()
+                if upper.startswith("TITLE:"):
+                    title = stripped[len("TITLE:") :].strip()
+                elif upper.startswith("SUMMARY:"):
+                    summary = stripped[len("SUMMARY:") :].strip()
+
+        if title is None:
+            # Untagged response: the first non-empty line is the title and we
+            # deliberately don't guess at a summary.
+            title = next(
+                (line.strip() for line in text.splitlines() if line.strip()), ""
+            )
+
+        return AIService._clean_title(title), AIService._clean_summary(summary)
+
+    @staticmethod
+    def _parse_json_title_and_summary(text: str) -> tuple[str | None, str | None]:
+        """Extract ``(title, summary)`` from a JSON body, else ``(None, None)``."""
+        if not text.startswith("{"):
+            return None, None
+        try:
+            payload = json.loads(text)
+        except json.JSONDecodeError:
+            return None, None
+        if not isinstance(payload, dict):
+            return None, None
+
+        raw_title = payload.get("title")
+        raw_summary = payload.get("summary")
+        title = raw_title if isinstance(raw_title, str) else None
+        summary = raw_summary if isinstance(raw_summary, str) else None
+        return title, summary
+
+    @staticmethod
+    def _clean_title(title: str) -> str:
+        cleaned = title.strip()
+        if (cleaned.startswith('"') and cleaned.endswith('"')) or (
+            cleaned.startswith("'") and cleaned.endswith("'")
+        ):
+            cleaned = cleaned[1:-1]
+        return cleaned[:MAX_TITLE_LENGTH]
+
+    @staticmethod
+    def _clean_summary(summary: str | None) -> str | None:
+        if summary is None:
+            return None
+        cleaned = summary.strip()
+        if (cleaned.startswith('"') and cleaned.endswith('"')) or (
+            cleaned.startswith("'") and cleaned.endswith("'")
+        ):
+            cleaned = cleaned[1:-1]
+        return cleaned or None
+
+    @staticmethod
+    def _fallback_title(content: str) -> str:
+        if len(content) > MAX_TITLE_LENGTH:
+            return content[: MAX_TITLE_LENGTH - 3] + "..."
+        return content
 
     def _raise_title_type_error(self) -> None:
         msg = "AI title is not a string"

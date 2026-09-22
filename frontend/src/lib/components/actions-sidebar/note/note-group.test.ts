@@ -27,6 +27,7 @@ const secondNote: SecurityNote = {
 	id: 3,
 	security_id: 'sec-123',
 	user_id: 'user-1',
+	summary: 'Second note summary.',
 	content: 'Second note',
 	created_at: '2026-08-20T12:00:00Z',
 	updated_at: '2026-08-20T12:00:00Z'
@@ -36,6 +37,7 @@ const mockNote: SecurityNote = {
 	id: 1,
 	security_id: 'sec-123',
 	user_id: 'user-1',
+	summary: 'AI sentence about the note.',
 	content: 'A note from the API',
 	created_at: '2026-09-01T12:00:00Z',
 	updated_at: '2026-09-01T12:00:00Z'
@@ -435,6 +437,100 @@ describe('NoteGroup', () => {
 
 			expect(await screen.findByText('Failed to load summary')).toBeInTheDocument();
 			expect(screen.queryByText('Failed to fetch')).not.toBeInTheDocument();
+		});
+	});
+
+	describe('per-note AI summaries', () => {
+		beforeEach(() => {
+			vi.mocked(notesService.getNotes).mockResolvedValue({
+				items: [mockNote],
+				total: 1,
+				offset: 0,
+				limit: 10
+			});
+		});
+
+		it('renders the sentence summary beneath the note preview', async () => {
+			renderGroup(true);
+
+			expect(await screen.findByText('AI sentence about the note.')).toBeInTheDocument();
+			expect(screen.queryByText('Summarizing…')).not.toBeInTheDocument();
+		});
+
+		it('shows a muted pending fallback while the summary is null', async () => {
+			vi.mocked(notesService.getNotes).mockResolvedValue({
+				items: [{ ...mockNote, id: 9, summary: null }],
+				total: 1,
+				offset: 0,
+				limit: 10
+			});
+			renderGroup(true);
+
+			expect(await screen.findByText('Summarizing…')).toBeInTheDocument();
+		});
+
+		it('polls the list until a freshly created note carries its summary', async () => {
+			const withoutSummary: SecurityNote = { ...mockNote, id: 42, summary: null };
+			vi.mocked(notesService.getNotes)
+				// initial mount
+				.mockResolvedValueOnce({ items: [mockNote], total: 1, offset: 0, limit: 10 })
+				// first refetch after creating the note: summary not generated yet
+				.mockResolvedValueOnce({ items: [withoutSummary], total: 1, offset: 0, limit: 10 })
+				// a later poll picks up the generated sentence
+				.mockResolvedValue({
+					items: [{ ...withoutSummary, summary: 'Fresh sentence.' }],
+					total: 1,
+					offset: 0,
+					limit: 10
+				});
+			renderGroup(true);
+			await screen.findByText('AI sentence about the note.');
+
+			await fireEvent.keyDown(window, { key: 'n' });
+			const textarea = await screen.findByPlaceholderText('Enter your note here...');
+			await fireEvent.input(textarea, { target: { value: 'Another note' } });
+			await fireEvent.click(screen.getByRole('button', { name: 'Save note' }));
+
+			expect(await screen.findByText('Fresh sentence.')).toBeInTheDocument();
+		});
+	});
+
+	describe('delete confirmation stacking', () => {
+		it('raises the confirmation above an open note dialog', async () => {
+			vi.mocked(notesService.getNotes).mockResolvedValue({
+				items: [mockNote],
+				total: 1,
+				offset: 0,
+				limit: 10
+			});
+			renderGroup(true);
+
+			await fireEvent.click(await screen.findByText('A note from the API'));
+			await waitFor(() => expect(screen.getByText('View note')).toBeInTheDocument());
+
+			await fireEvent.click(screen.getByRole('button', { name: 'Delete' }));
+
+			const confirmTitle = await screen.findByText('Delete Note');
+			const confirmContent = confirmTitle.closest('[data-slot="dialog-content"]');
+			expect(confirmContent).not.toBeNull();
+			// Strictly above the z-50 note dialog so it is clickable.
+			expect(confirmContent?.className).toContain('z-[60]');
+		});
+
+		it('keeps the delete confirmation above the list-only quick delete path', async () => {
+			vi.mocked(notesService.getNotes).mockResolvedValue({
+				items: [mockNote],
+				total: 1,
+				offset: 0,
+				limit: 10
+			});
+			renderGroup(true);
+
+			await fireEvent.click(await screen.findByTitle('Delete note'));
+
+			const confirmTitle = await screen.findByText('Delete Note');
+			const confirmContent = confirmTitle.closest('[data-slot="dialog-content"]');
+			expect(confirmContent?.className).toContain('z-[60]');
 		});
 	});
 });

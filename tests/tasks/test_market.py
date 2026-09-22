@@ -112,19 +112,26 @@ async def test_hourly_intraday_price_update_success():
 
 
 def test_worker_command_enables_periodic_scheduling():
-    """The worker consumer command in docker-compose.yml must include --periodic.
+    """The worker consumer command must keep Huey's periodic scheduler enabled.
 
-    Without --periodic, Huey ignores periodic task schedules entirely — daily
-    and hourly price updates never fire. This is the regression that caused
-    issue #140 (intraday prices table empty because the hourly task never ran).
+    Huey 3.x schedules periodic tasks by default and only exposes the
+    ``--no-periodic`` opt-out; the old ``--periodic`` flag was removed and makes
+    ``huey_consumer`` exit at startup ("no such option: --periodic"), which left
+    every enqueued task unprocessed. Disabling the scheduler would silently stop
+    the daily/hourly price updates (the issue #140 regression), so assert the
+    command runs the consumer without either flag.
     """
     with Path("docker-compose.yml").open() as f:
         compose = yaml.safe_load(f)
     cmd = compose["services"]["worker"]["command"]
     assert "huey_consumer" in cmd, "worker consumer command must invoke huey_consumer"
-    assert "--periodic" in cmd, (
-        "worker consumer command must include --periodic or periodic tasks "
-        "(daily/hourly price updates) will never be scheduled. See #140."
+    assert "--no-periodic" not in cmd, (
+        "worker consumer command must not disable periodic tasks or the "
+        "daily/hourly price updates will never be scheduled. See #140."
+    )
+    assert "--periodic" not in cmd, (
+        "huey 3.x removed the --periodic flag; passing it crashes huey_consumer "
+        "at startup and leaves all enqueued tasks unprocessed."
     )
 
 

@@ -26,7 +26,7 @@ logger = logging.getLogger(__name__)
 
 @huey.task()
 def generate_note_title_task(note_id: int, request_id: str | None = None) -> None:
-    """Huey task to generate note title using AI."""
+    """Huey task to generate a note's title and one-sentence summary using AI."""
     if request_id is None:
         request_id = get_request_id()
 
@@ -51,9 +51,13 @@ async def _generate_note_title(note_id: int, request_id: str | None = None) -> N
                 logger.warning("Note %d not found for title generation", note_id)
                 return
 
-            title = await ai_service.generate_note_title(note.content)
-            await note_repository.update_title(note_id, title)
+            title, summary = await ai_service.generate_note_title_and_summary(
+                note.content
+            )
+            await note_repository.update_title_and_summary(note_id, title, summary)
             logger.info("Generated title for note %d: %s", note_id, title)
+            if summary:
+                logger.info("Generated summary for note %d", note_id)
     finally:
         if req_token is not None:
             request_id_ctx_var.reset(req_token)

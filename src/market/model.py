@@ -185,6 +185,7 @@ class SecurityNoteModel(BaseModel):
     )
     user_id: Mapped[UserId] = mapped_column(Uuid)
     title: Mapped[str | None] = mapped_column(String, nullable=True)
+    summary: Mapped[str | None] = mapped_column(String, nullable=True)
     content: Mapped[str] = mapped_column(String)
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), default=func.now()
