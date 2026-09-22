@@ -1,7 +1,7 @@
 import { render, screen, fireEvent } from '@testing-library/svelte';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import AppSidebarTestHarness from './app-sidebar.test-harness.svelte';
-import type { SecuritySchema } from '$lib/api/marketService';
+import type { WatchlistRead, WatchlistSecuritySchema } from '$lib/api/marketService';
 import { userPreferencesService } from '$lib/api/userPreferencesService';
 
 vi.mock('$app/paths', () => ({
@@ -52,7 +52,7 @@ if (typeof window !== 'undefined') {
 	});
 }
 
-const mockSecurities: SecuritySchema[] = [
+const mockSecurities: WatchlistSecuritySchema[] = [
 	{
 		id: 'sec-1',
 		symbol: 'C',
@@ -61,7 +61,9 @@ const mockSecurities: SecuritySchema[] = [
 		name: 'Citigroup Inc.',
 		isin: null,
 		is_active: true,
-		updated_at: '2026-01-01T00:00:00Z'
+		updated_at: '2026-01-01T00:00:00Z',
+		added_at: '2026-01-01T00:00:00Z',
+		position: 0
 	},
 	{
 		id: 'sec-2',
@@ -71,7 +73,9 @@ const mockSecurities: SecuritySchema[] = [
 		name: 'Boeing Co.',
 		isin: null,
 		is_active: true,
-		updated_at: '2026-01-01T00:00:00Z'
+		updated_at: '2026-01-01T00:00:00Z',
+		added_at: '2026-01-01T00:00:00Z',
+		position: 0
 	},
 	{
 		id: 'sec-3',
@@ -81,7 +85,9 @@ const mockSecurities: SecuritySchema[] = [
 		name: 'SPDR S&P 500 ETF Trust',
 		isin: null,
 		is_active: true,
-		updated_at: '2026-01-01T00:00:00Z'
+		updated_at: '2026-01-01T00:00:00Z',
+		added_at: '2026-01-01T00:00:00Z',
+		position: 0
 	},
 	{
 		id: 'sec-4',
@@ -91,7 +97,9 @@ const mockSecurities: SecuritySchema[] = [
 		name: 'Apple Inc.',
 		isin: null,
 		is_active: true,
-		updated_at: '2026-01-01T00:00:00Z'
+		updated_at: '2026-01-01T00:00:00Z',
+		added_at: '2026-01-01T00:00:00Z',
+		position: 0
 	},
 	{
 		id: 'sec-5',
@@ -101,7 +109,9 @@ const mockSecurities: SecuritySchema[] = [
 		name: 'Alphabet Inc.',
 		isin: null,
 		is_active: true,
-		updated_at: '2026-01-01T00:00:00Z'
+		updated_at: '2026-01-01T00:00:00Z',
+		added_at: '2026-01-01T00:00:00Z',
+		position: 0
 	}
 ];
 
@@ -288,16 +298,18 @@ describe('AppSidebar Modular Components', () => {
 	});
 
 	describe('Watchlist sidebar navigation', () => {
-		const tech = {
+		const tech: WatchlistRead = {
 			id: 'w1',
 			user_id: 'u1',
 			name: 'Tech',
+			sort: 'custom',
 			securities: [mockSecurities[3], mockSecurities[4]]
 		};
-		const energy = {
+		const energy: WatchlistRead = {
 			id: 'w2',
 			user_id: 'u1',
 			name: 'Energy',
+			sort: 'custom',
 			securities: [mockSecurities[2]]
 		};
 
@@ -321,10 +333,11 @@ describe('AppSidebar Modular Components', () => {
 		});
 
 		it('shows numeric shortcut hints on default watchlist tickers only', () => {
-			const defaultList = {
+			const defaultList: WatchlistRead = {
 				id: 'w-default',
 				user_id: 'u1',
 				name: 'Default',
+				sort: 'custom',
 				securities: [mockSecurities[0], mockSecurities[1]]
 			};
 			render(AppSidebarTestHarness, {
@@ -359,7 +372,9 @@ describe('AppSidebar Modular Components', () => {
 				props: {
 					open: true,
 					securities: [],
-					watchlists: [{ id: 'w-default', user_id: 'u1', name: 'Default', securities }]
+					watchlists: [
+						{ id: 'w-default', user_id: 'u1', name: 'Default', sort: 'custom', securities }
+					]
 				}
 			});
 
@@ -377,7 +392,7 @@ describe('AppSidebar Modular Components', () => {
 				props: {
 					open: true,
 					securities: [],
-					watchlists: [{ id: 'w3', user_id: 'u1', name: 'Empty', securities: [] }]
+					watchlists: [{ id: 'w3', user_id: 'u1', name: 'Empty', sort: 'custom', securities: [] }]
 				}
 			});
 
@@ -399,10 +414,11 @@ describe('AppSidebar Modular Components', () => {
 		});
 
 		it('shows only the default watchlist tickers and no names in the collapsed rail', () => {
-			const defaultList = {
+			const defaultList: WatchlistRead = {
 				id: 'w-default',
 				user_id: 'u1',
 				name: 'Default',
+				sort: 'custom',
 				securities: [mockSecurities[0], mockSecurities[1]]
 			};
 			render(AppSidebarTestHarness, {
@@ -456,7 +472,13 @@ describe('AppSidebar Modular Components', () => {
 					open: true,
 					securities: [],
 					watchlists: [
-						{ id: 'w-long', user_id: 'u1', name: longName, securities: [mockSecurities[3]] }
+						{
+							id: 'w-long',
+							user_id: 'u1',
+							name: longName,
+							sort: 'custom',
+							securities: [mockSecurities[3]]
+						}
 					]
 				}
 			});
@@ -527,10 +549,11 @@ describe('AppSidebar Modular Components', () => {
 		});
 
 		it('renders watchlists ordered according to initialWatchlistOrder', () => {
-			const crypto = {
+			const crypto: WatchlistRead = {
 				id: 'w3',
 				user_id: 'u1',
 				name: 'Crypto',
+				sort: 'custom',
 				securities: []
 			};
 			render(AppSidebarTestHarness, {
@@ -550,10 +573,11 @@ describe('AppSidebar Modular Components', () => {
 		});
 
 		it('appends unlisted watchlists gracefully when initialWatchlistOrder is partial', () => {
-			const crypto = {
+			const crypto: WatchlistRead = {
 				id: 'w3',
 				user_id: 'u1',
 				name: 'Crypto',
+				sort: 'custom',
 				securities: []
 			};
 			render(AppSidebarTestHarness, {

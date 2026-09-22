@@ -3,8 +3,8 @@ import {
 	getMarketService,
 	type MarketSearchResult,
 	type MarketService,
-	type SecuritySchema,
-	type WatchlistRead
+	type WatchlistRead,
+	type WatchlistSecuritySchema
 } from '@/api/marketService';
 import { WatchlistService } from './watchlistService.svelte';
 
@@ -12,7 +12,7 @@ vi.mock('@/api/marketService', () => ({
 	getMarketService: vi.fn()
 }));
 
-function security(id: string, symbol: string): SecuritySchema {
+function security(id: string, symbol: string): WatchlistSecuritySchema {
 	return {
 		id,
 		symbol,
@@ -21,12 +21,14 @@ function security(id: string, symbol: string): SecuritySchema {
 		name: `${symbol} Inc.`,
 		isin: null,
 		is_active: true,
-		updated_at: '2026-01-01T00:00:00Z'
+		updated_at: '2026-01-01T00:00:00Z',
+		added_at: '2026-01-01T00:00:00Z',
+		position: 0
 	};
 }
 
-function watchlist(id: string, name: string, securities: SecuritySchema[]): WatchlistRead {
-	return { id, user_id: 'user-1', name, securities };
+function watchlist(id: string, name: string, securities: WatchlistSecuritySchema[]): WatchlistRead {
+	return { id, user_id: 'user-1', name, sort: 'custom', securities };
 }
 
 const aapl = security('sec-1', 'AAPL');

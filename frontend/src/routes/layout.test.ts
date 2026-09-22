@@ -208,7 +208,9 @@ describe('Root +layout.svelte', () => {
 					name: `Security ${index}`,
 					isin: null,
 					is_active: true,
-					updated_at: '2026-01-01T00:00:00Z'
+					updated_at: '2026-01-01T00:00:00Z',
+					added_at: '2026-01-01T00:00:00Z',
+					position: index
 				})
 			);
 
@@ -253,7 +255,9 @@ describe('Root +layout.svelte', () => {
 				name: `Security ${index}`,
 				isin: null,
 				is_active: true,
-				updated_at: '2026-01-01T00:00:00Z'
+				updated_at: '2026-01-01T00:00:00Z',
+				added_at: '2026-01-01T00:00:00Z',
+				position: index
 			}));
 
 		const renderLayout = () => {

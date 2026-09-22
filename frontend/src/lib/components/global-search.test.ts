@@ -2,7 +2,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent, waitFor } from '@testing-library/svelte';
 import GlobalSearch from './global-search.svelte';
 import GlobalSearchTestHarness from './global-search.test-harness.svelte';
-import type { SecuritySchema, WatchlistRead } from '@/api/marketService';
+import type { WatchlistRead, WatchlistSecuritySchema } from '@/api/marketService';
 import { WatchlistService } from '$lib/components/watchlist/watchlistService.svelte';
 
 vi.mock('$app/paths', () => ({
@@ -35,7 +35,7 @@ vi.mock('$lib/components/watchlist/watchlistService.svelte', async (importOrigin
 	};
 });
 
-function security(id: string, symbol: string): SecuritySchema {
+function security(id: string, symbol: string): WatchlistSecuritySchema {
 	return {
 		id,
 		symbol,
@@ -44,12 +44,14 @@ function security(id: string, symbol: string): SecuritySchema {
 		name: `${symbol} Inc.`,
 		isin: null,
 		is_active: true,
-		updated_at: '2026-01-01T00:00:00Z'
+		updated_at: '2026-01-01T00:00:00Z',
+		added_at: '2026-01-01T00:00:00Z',
+		position: 0
 	};
 }
 
-function watchlist(id: string, name: string, securities: SecuritySchema[]): WatchlistRead {
-	return { id, user_id: 'user-1', name, securities };
+function watchlist(id: string, name: string, securities: WatchlistSecuritySchema[]): WatchlistRead {
+	return { id, user_id: 'user-1', name, sort: 'custom', securities };
 }
 
 describe('GlobalSearch component', () => {

@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { ApiError } from './apiClient';
-import { MarketService } from './marketService';
+import { MarketService, type WatchlistSort } from './marketService';
 
 describe('MarketService', () => {
 	let service: MarketService;
@@ -242,6 +242,84 @@ describe('MarketService', () => {
 		expect(result.securities).toEqual([]);
 	});
 
+	it('should call updateWatchlistSort with PATCH, sort payload, and token', async () => {
+		vi.mocked(global.fetch).mockResolvedValue({
+			ok: true,
+			status: 200,
+			json: async () => watchlistFixture({ id: 'wl-1', sort: 'date_added' })
+		} as Response);
+
+		const result = await service.updateWatchlistSort('wl-1', 'date_added', 'test-token');
+
+		expect(global.fetch).toHaveBeenCalledWith(
+			expect.stringContaining('/api/v1/market/watchlists/wl-1'),
+			expect.objectContaining({
+				method: 'PATCH',
+				body: JSON.stringify({ sort: 'date_added' }),
+				headers: expect.objectContaining({ Authorization: 'Bearer test-token' })
+			})
+		);
+		expect(result.sort).toBe('date_added');
+	});
+
+	it('should call reorderWatchlistSecurities with PUT on the order path preserving array order', async () => {
+		vi.mocked(global.fetch).mockResolvedValue({
+			ok: true,
+			status: 200,
+			json: async () =>
+				watchlistFixture({
+					id: 'wl-1',
+					securities: [security, { ...security, id: 'sec-2', symbol: 'MSFT' }]
+				})
+		} as Response);
+
+		const result = await service.reorderWatchlistSecurities(
+			'wl-1',
+			['sec-2', 'sec-1'],
+			'test-token'
+		);
+
+		expect(global.fetch).toHaveBeenCalledWith(
+			expect.stringContaining('/api/v1/market/watchlists/wl-1/securities/order'),
+			expect.objectContaining({
+				method: 'PUT',
+				body: JSON.stringify({ security_ids: ['sec-2', 'sec-1'] }),
+				headers: expect.objectContaining({ Authorization: 'Bearer test-token' })
+			})
+		);
+		expect(result.id).toBe('wl-1');
+	});
+
+	it('should surface the backend detail through ApiError for a failed sort update', async () => {
+		vi.mocked(global.fetch).mockResolvedValue({
+			ok: false,
+			status: 422,
+			json: async () => ({ detail: 'Unknown sort mode' })
+		} as Response);
+
+		await expect(service.updateWatchlistSort('wl-1', 'date_added', 'test-token')).rejects.toThrow(
+			'Unknown sort mode'
+		);
+		await expect(
+			service.updateWatchlistSort('wl-1', 'date_added', 'test-token')
+		).rejects.toBeInstanceOf(ApiError);
+	});
+
+	it('should surface the backend detail through ApiError for a failed reorder', async () => {
+		vi.mocked(global.fetch).mockResolvedValue({
+			ok: false,
+			status: 422,
+			json: async () => ({ detail: 'security_ids must be a permutation of the watchlist' })
+		} as Response);
+
+		await expect(
+			service.reorderWatchlistSecurities('wl-1', ['sec-1'], 'test-token')
+		).rejects.toThrow('security_ids must be a permutation of the watchlist');
+		await expect(
+			service.reorderWatchlistSecurities('wl-1', ['sec-1'], 'test-token')
+		).rejects.toBeInstanceOf(ApiError);
+	});
+
 	it('should surface the backend detail through ApiError for a failed watchlist call', async () => {
 		vi.mocked(global.fetch).mockResolvedValue({
 			ok: false,
@@ -264,7 +342,9 @@ const security = {
 	name: 'Apple Inc.',
 	isin: null,
 	is_active: true,
-	updated_at: '2026-01-01T00:00:00Z'
+	updated_at: '2026-01-01T00:00:00Z',
+	added_at: '2026-01-01T00:00:00Z',
+	position: 0
 };
 
 function watchlistFixture(
@@ -272,6 +352,7 @@ function watchlistFixture(
 		id: string;
 		user_id: string;
 		name: string;
+		sort: WatchlistSort;
 		securities: (typeof security)[];
 	}> = {}
 ) {
@@ -279,6 +360,7 @@ function watchlistFixture(
 		id: 'wl-1',
 		user_id: 'user-1',
 		name: 'Default',
+		sort: 'custom' as WatchlistSort,
 		securities: [],
 		...overrides
 	};
