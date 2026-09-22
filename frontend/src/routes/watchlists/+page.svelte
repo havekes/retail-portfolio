@@ -13,6 +13,7 @@
 	import CreateWatchlistModal from '$lib/components/watchlist/create-watchlist-modal.svelte';
 	import ConfirmationModal from '$lib/components/ui/confirmation-modal/confirmation-modal.svelte';
 	import {
+		formatDateAdded,
 		formatPrice,
 		formatPriceChangePercent,
 		handleReorderKeydown,
@@ -542,6 +543,14 @@
 												<span class="truncate text-sm text-muted-foreground">{security.name}</span>
 											</div>
 											<div class="flex shrink-0 items-center gap-2">
+												{#if formatDateAdded(security.added_at)}
+													<span
+														class="hidden text-xs text-muted-foreground md:inline"
+														title="Added"
+													>
+														{formatDateAdded(security.added_at)}
+													</span>
+												{/if}
 												<span class="text-sm font-medium tabular-nums">
 													{formatPrice(security.current_price)}
 												</span>

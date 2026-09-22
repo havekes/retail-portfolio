@@ -1,6 +1,7 @@
 import { describe, expect, it, vi } from 'vitest';
 import type { WatchlistRead, WatchlistSecuritySchema } from '$lib/api/marketService';
 import {
+	formatDateAdded,
 	formatPrice,
 	formatPriceChangePercent,
 	handleReorderKeydown,
@@ -320,6 +321,23 @@ describe('watchlist-utils', () => {
 			expect(formatPriceChangePercent(undefined)).toBe('-');
 			expect(formatPriceChangePercent('')).toBe('-');
 			expect(formatPriceChangePercent(NaN)).toBe('-');
+		});
+	});
+
+	describe('formatDateAdded', () => {
+		it('formats a valid ISO timestamp deterministically', () => {
+			expect(formatDateAdded('2024-01-01T00:00:00Z')).toBe('Jan 1, 2024');
+			expect(formatDateAdded('2024-03-15T12:30:00Z')).toBe('Mar 15, 2024');
+		});
+
+		it('returns null when the value is missing', () => {
+			expect(formatDateAdded(null)).toBeNull();
+			expect(formatDateAdded(undefined)).toBeNull();
+			expect(formatDateAdded('')).toBeNull();
+		});
+
+		it('returns null for unparseable input', () => {
+			expect(formatDateAdded('not-a-date')).toBeNull();
 		});
 	});
 });
