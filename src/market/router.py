@@ -21,7 +21,11 @@ from src.market.api import SecurityApi
 from src.market.api_types import SecurityId, SecuritySearchResult, WatchlistId
 from src.market.cache import IndicatorCache, SecuritySearchCache
 from src.market.enum import PriceInterval
-from src.market.exception import WatchlistDuplicateNameError
+from src.market.exception import (
+    WatchlistDuplicateNameError,
+    WatchlistNotFoundError,
+    WatchlistOrderIdentityError,
+)
 from src.market.gateway import MarketGateway
 from src.market.indicators import (
     calculate_50_day_ma,
@@ -68,6 +72,7 @@ from src.market.schema import (
     SecuritySchema,
     TechnicalIndicatorsRead,
     WatchlistCreate,
+    WatchlistOrderUpdate,
     WatchlistRead,
     WatchlistUpdate,
 )
@@ -347,20 +352,38 @@ async def market_create_watchlist(
 
 
 @market_router.patch("/watchlists/{watchlist_id}")
-async def market_rename_watchlist(
+async def market_update_watchlist(
     user: Annotated[User, Depends(current_user)],
     watchlist_id: WatchlistId,
     payload: WatchlistUpdate,
     services: DepContainer,
 ) -> WatchlistRead:
     """
-    Rename a watchlist owned by the logged in user
+    Rename and/or change the sort mode of a watchlist owned by the logged in user
     """
     watchlist_repository = await services.aget(WatchlistRepository)
+
+    watchlist: WatchlistRead | None = None
     try:
-        return await watchlist_repository.rename(watchlist_id, user.id, payload.name)
+        if payload.name is not None:
+            watchlist = await watchlist_repository.rename(
+                watchlist_id, user.id, payload.name
+            )
+        if payload.sort is not None:
+            watchlist = await watchlist_repository.update_sort(
+                watchlist_id, user.id, payload.sort
+            )
     except WatchlistDuplicateNameError as e:
         raise HTTPException(409, str(e)) from e
+
+    if watchlist is None:
+        # A payload that changes nothing still has to prove ownership.
+        owned = await watchlist_repository.get_by_user(user.id)
+        watchlist = next((w for w in owned if w.id == watchlist_id), None)
+        if watchlist is None:
+            raise WatchlistNotFoundError(watchlist_id)
+
+    return watchlist
 
 
 @market_router.delete("/watchlists/{watchlist_id}", status_code=204)
@@ -426,6 +449,25 @@ async def market_remove_security_from_watchlist(
     return await watchlist_repository.remove_security_from_watchlist(
         watchlist_id, user.id, security_id
     )
+
+
+@market_router.put("/watchlists/{watchlist_id}/securities/order")
+async def market_reorder_watchlist_securities(
+    user: Annotated[User, Depends(current_user)],
+    watchlist_id: WatchlistId,
+    payload: WatchlistOrderUpdate,
+    services: DepContainer,
+) -> WatchlistRead:
+    """
+    Rewrite the manual security ordering of a watchlist owned by the logged in user
+    """
+    watchlist_repository = await services.aget(WatchlistRepository)
+    try:
+        return await watchlist_repository.set_security_order(
+            watchlist_id, user.id, payload.security_ids
+        )
+    except WatchlistOrderIdentityError as e:
+        raise HTTPException(422, str(e)) from e
 
 
 @market_router.post("/watchlists/securities/{security_id}")

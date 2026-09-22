@@ -16,7 +16,7 @@ from src.market.api_types import (
     SecuritySearchResult,
     WatchlistId,
 )
-from src.market.enum import PriceInterval
+from src.market.enum import PriceInterval, WatchlistSortMode
 
 
 class SecuritySchema(BaseModel):
@@ -36,6 +36,13 @@ class SecuritySchema(BaseModel):
 
     def get_eodhd_symbol(self) -> str:
         return f"{self.symbol}.{self.exchange}"
+
+
+class WatchlistSecuritySchema(SecuritySchema):
+    """A security as seen inside a watchlist, with its membership metadata."""
+
+    added_at: AwareDatetime
+    position: int
 
 
 class SecurityBrokerSchema(BaseModel):
@@ -99,10 +106,11 @@ class WatchlistSchema(BaseModel):
     id: WatchlistId
     user_id: UserId
     name: str
+    sort: WatchlistSortMode = WatchlistSortMode.CUSTOM
 
 
 class WatchlistRead(WatchlistSchema):
-    securities: list[SecuritySchema]
+    securities: list[WatchlistSecuritySchema]
 
 
 class WatchlistCreate(BaseModel):
@@ -110,7 +118,25 @@ class WatchlistCreate(BaseModel):
 
 
 class WatchlistUpdate(BaseModel):
-    name: str = Field(min_length=1, max_length=100)
+    """Partial update of a watchlist: rename and/or change the sort mode.
+
+    Both fields are optional so a caller can PATCH either independently;
+    ``name`` keeps its constraints, so an explicit ``null`` or an empty
+    string is still rejected.
+    """
+
+    name: str | None = Field(default=None, min_length=1, max_length=100)
+    sort: WatchlistSortMode | None = None
+
+
+class WatchlistOrderUpdate(BaseModel):
+    """Full replacement of a watchlist's manual security ordering.
+
+    ``security_ids`` must be an exact permutation of the watchlist's current
+    membership; ``[]`` is the valid permutation of an empty watchlist.
+    """
+
+    security_ids: list[SecurityId]
 
 
 class PriceHistoryRead(PaginatedResponse[PriceSchema]):

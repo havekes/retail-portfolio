@@ -1,4 +1,38 @@
-import type { SecuritySchema, WatchlistRead } from '$lib/api/marketService';
+import type { WatchlistRead, WatchlistSecuritySchema, WatchlistSort } from '$lib/api/marketService';
+
+/**
+ * Shared grid template for the data columns of a watchlist security row.
+ *
+ * A single static Tailwind literal (never built dynamically — the JIT compiler
+ * needs complete class names) so every row in a watchlist renders identical
+ * column tracks and the price/pill columns start at the same offset.
+ *
+ * Tracks: symbol/name (fluid) · date added (`md` and up) · price · % change pill.
+ * Below `md` the date track is dropped from the template and its cell is
+ * hidden, so the remaining tracks keep the same offsets on every row. The date
+ * cell is always rendered (a dash when the timestamp is absent) so the price
+ * and pill always occupy their own tracks regardless of missing data.
+ */
+export const WATCHLIST_ROW_DATA_TRACKS =
+	'grid grid-cols-[minmax(0,1fr)_5rem_6rem] gap-2 md:grid-cols-[minmax(0,1fr)_6.5rem_5rem_6rem]';
+
+const WATCHLIST_SORT_KEYS: WatchlistSort[] = [
+	'custom',
+	'name_asc',
+	'price_change_desc',
+	'price_change_asc',
+	'date_added',
+	'date_added_asc'
+];
+
+/**
+ * Narrows a persisted (or absent) watchlist sort key to the known `WatchlistSort`
+ * union. Anything unrecognised — including `undefined`/`null` from older payloads —
+ * falls back to `custom`.
+ */
+export function normalizeWatchlistSort(sort?: string | null): WatchlistSort {
+	return WATCHLIST_SORT_KEYS.includes(sort as WatchlistSort) ? (sort as WatchlistSort) : 'custom';
+}
 
 /**
  * Sorts an array of watchlists according to an array of watchlist IDs.
@@ -32,23 +66,68 @@ export function sortWatchlistsByOrder<T extends Pick<WatchlistRead, 'id'>>(
 }
 
 /**
+ * Returns a new array with the item at `from` moved to index `to` (index shift).
+ * Never mutates the input. Equal or out-of-range indices are a no-op that still
+ * returns a fresh copy, so callers can assign the result unconditionally.
+ */
+export function moveItem<T>(list: T[], from: number, to: number): T[] {
+	const next = [...list];
+	if (from === to || from < 0 || to < 0 || from >= list.length || to >= list.length) {
+		return next;
+	}
+	const [moved] = next.splice(from, 1);
+	next.splice(to, 0, moved);
+	return next;
+}
+
+/**
+ * Shared keyboard handler for reorderable lists: ArrowUp/ArrowDown shift the item
+ * at `index` by one position via `onMove(from, to)`. The arrow key is always
+ * consumed (`preventDefault`) so the page does not scroll, but moving past either
+ * end is a no-op. Any other key returns `false` untouched.
+ */
+export function handleReorderKeydown(
+	event: { key: string; preventDefault(): void },
+	index: number,
+	length: number,
+	onMove: (from: number, to: number) => void
+): boolean {
+	const direction = event.key === 'ArrowUp' ? -1 : event.key === 'ArrowDown' ? 1 : 0;
+	if (direction === 0) {
+		return false;
+	}
+
+	event.preventDefault();
+	const target = index + direction;
+	if (target >= 0 && target < length) {
+		onMove(index, target);
+	}
+	return true;
+}
+
+/**
  * Sorts securities based on sortKey:
+ * - 'custom': Insertion order, ascending `position` (oldest added first)
  * - 'name_asc': Alphabetical by name ascending
  * - 'name_desc': Alphabetical by name descending
  * - 'price_change_desc': Highest price change percentage first (gainers)
  * - 'price_change_asc': Lowest price change percentage first (losers)
+ * - 'date_added': Most recently added first (descending `added_at`)
+ * - 'date_added_asc': Oldest first (ascending `added_at`)
+ *
+ * Absent or unrecognised keys fall back to the custom (`position`) order.
  */
 export function sortSecurities(
-	securities: SecuritySchema[],
+	securities: WatchlistSecuritySchema[],
 	sortKey?: string | null
-): SecuritySchema[] {
-	if (!sortKey) {
-		return [...securities];
-	}
-
+): WatchlistSecuritySchema[] {
 	const list = [...securities];
+	const byPosition = (a: WatchlistSecuritySchema, b: WatchlistSecuritySchema) =>
+		(a.position ?? 0) - (b.position ?? 0);
 
 	switch (sortKey) {
+		case 'custom':
+			return list.sort(byPosition);
 		case 'name_asc':
 			return list.sort((a, b) => (a.name || '').localeCompare(b.name || ''));
 		case 'name_desc':
@@ -71,8 +150,13 @@ export function sortSecurities(
 				if (bVal == null) return -1;
 				return Number(aVal) - Number(bVal);
 			});
+		case 'date_added':
+			return list.sort((a, b) => (b.added_at ?? '').localeCompare(a.added_at ?? ''));
+		case 'date_added_asc':
+			return list.sort((a, b) => (a.added_at ?? '').localeCompare(b.added_at ?? ''));
 		default:
-			return list;
+			// Absent or unrecognised keys (including stale ones) fall back to custom order.
+			return list.sort(byPosition);
 	}
 }
 
@@ -112,4 +196,26 @@ export function formatPriceChangePercent(
 		return `+${formatted}%`;
 	}
 	return `${formatted}%`;
+}
+
+/**
+ * Formats a security's `added_at` timestamp for display, e.g. "Jan 1, 2024".
+ * Explicit `en-US` locale and UTC time zone keep the output deterministic
+ * regardless of the viewer's environment. Returns `null` when the value is
+ * absent or unparseable so callers can omit the element entirely.
+ */
+export function formatDateAdded(added: string | null | undefined): string | null {
+	if (added == null || added === '') {
+		return null;
+	}
+	const date = new Date(added);
+	if (Number.isNaN(date.getTime())) {
+		return null;
+	}
+	return date.toLocaleDateString('en-US', {
+		month: 'short',
+		day: 'numeric',
+		year: 'numeric',
+		timeZone: 'UTC'
+	});
 }

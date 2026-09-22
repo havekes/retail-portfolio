@@ -59,11 +59,30 @@ export interface SecurityCreateResponse {
 	has_price_data: boolean;
 }
 
+/**
+ * Persisted ordering of a watchlist's securities, mirroring the backend
+ * `WatchlistSortMode` enum. `date_added` is newest first, `date_added_asc` oldest first.
+ */
+export type WatchlistSort =
+	| 'custom'
+	| 'name_asc'
+	| 'price_change_desc'
+	| 'price_change_asc'
+	| 'date_added'
+	| 'date_added_asc';
+
+/** A security as returned inside a watchlist, including its membership metadata. */
+export interface WatchlistSecuritySchema extends SecuritySchema {
+	added_at: string;
+	position: number;
+}
+
 export interface WatchlistRead {
 	id: string;
 	user_id: string;
 	name: string;
-	securities: SecuritySchema[];
+	sort: WatchlistSort;
+	securities: WatchlistSecuritySchema[];
 }
 
 export interface WatchlistCreate {
@@ -71,7 +90,8 @@ export interface WatchlistCreate {
 }
 
 export interface WatchlistUpdate {
-	name: string;
+	name?: string;
+	sort?: WatchlistSort;
 }
 
 export class MarketService extends ApiClient {
@@ -169,6 +189,19 @@ export class MarketService extends ApiClient {
 		return await this.delete<void>(`/market/watchlists/${watchlistId}`, {}, token);
 	}
 
+	async updateWatchlistSort(
+		watchlistId: string,
+		sort: WatchlistSort,
+		token?: string | null
+	): Promise<WatchlistRead> {
+		return await this.patch<WatchlistRead, WatchlistUpdate>(
+			`/market/watchlists/${watchlistId}`,
+			{ sort },
+			{},
+			token
+		);
+	}
+
 	async addSecurityToWatchlist(
 		watchlistId: string,
 		securityId: string,
@@ -189,6 +222,25 @@ export class MarketService extends ApiClient {
 	): Promise<WatchlistRead> {
 		return await this.delete<WatchlistRead>(
 			`/market/watchlists/${watchlistId}/securities/${securityId}`,
+			{},
+			token
+		);
+	}
+
+	/**
+	 * Replace the manual ordering of a watchlist's securities.
+	 *
+	 * `securityIds` must be an exact permutation of the watchlist's current
+	 * membership; the array order is sent as-given.
+	 */
+	async reorderWatchlistSecurities(
+		watchlistId: string,
+		securityIds: string[],
+		token?: string | null
+	): Promise<WatchlistRead> {
+		return await this.put<WatchlistRead, { security_ids: string[] }>(
+			`/market/watchlists/${watchlistId}/securities/order`,
+			{ security_ids: securityIds },
 			{},
 			token
 		);

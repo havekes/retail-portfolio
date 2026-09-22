@@ -2,7 +2,7 @@
 	import * as Sidebar from '$lib/components/ui/sidebar/index.js';
 	import AppSidebar from './app-sidebar.svelte';
 	import { setWatchlistService } from '$lib/components/watchlist/watchlistService.svelte';
-	import type { SecuritySchema, WatchlistRead } from '$lib/api/marketService';
+	import type { WatchlistRead, WatchlistSecuritySchema } from '$lib/api/marketService';
 	import { setContext, untrack } from 'svelte';
 
 	let {
@@ -14,7 +14,7 @@
 		onToggleGlobalSearch = undefined
 	}: {
 		open?: boolean;
-		securities?: SecuritySchema[];
+		securities?: WatchlistSecuritySchema[];
 		watchlists?: WatchlistRead[];
 		initialCollapsedWatchlistIds?: string[];
 		initialWatchlistOrder?: string[];
@@ -39,6 +39,7 @@
 					id: 'default-watchlist',
 					user_id: 'u1',
 					name: 'Default',
+					sort: 'custom',
 					securities
 				}
 			]

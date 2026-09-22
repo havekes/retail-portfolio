@@ -1,8 +1,12 @@
-import { describe, expect, it } from 'vitest';
-import type { SecuritySchema, WatchlistRead } from '$lib/api/marketService';
+import { describe, expect, it, vi } from 'vitest';
+import type { WatchlistRead, WatchlistSecuritySchema } from '$lib/api/marketService';
 import {
+	formatDateAdded,
 	formatPrice,
 	formatPriceChangePercent,
+	handleReorderKeydown,
+	moveItem,
+	normalizeWatchlistSort,
 	sortSecurities,
 	sortWatchlistsByOrder
 } from './watchlist-utils';
@@ -12,6 +16,7 @@ function makeWatchlist(id: string, name: string): WatchlistRead {
 		id,
 		user_id: 'user-1',
 		name,
+		sort: 'custom',
 		securities: []
 	};
 }
@@ -21,8 +26,10 @@ function makeSecurity(
 	symbol: string,
 	name: string,
 	price?: number | null,
-	changePercent?: number | null
-): SecuritySchema {
+	changePercent?: number | null,
+	position = 0,
+	addedAt = '2024-01-01T00:00:00Z'
+): WatchlistSecuritySchema {
 	return {
 		id,
 		symbol,
@@ -34,7 +41,9 @@ function makeSecurity(
 		updated_at: '2024-01-01T00:00:00Z',
 		current_price: price,
 		daily_price_change: null,
-		daily_price_change_percent: changePercent
+		daily_price_change_percent: changePercent,
+		added_at: addedAt,
+		position
 	};
 }
 
@@ -103,10 +112,197 @@ describe('watchlist-utils', () => {
 			expect(sorted.map((s) => s.symbol)).toEqual(['MSFT', 'AAPL', 'TSLA', 'NVDA']);
 		});
 
-		it('returns original list copy when sortKey is empty or unrecognized', () => {
-			const list = [sA, sM, sT];
-			expect(sortSecurities(list, null)).toEqual(list);
-			expect(sortSecurities(list, 'unknown')).toEqual(list);
+		it('sorts by custom (ascending position, oldest added first)', () => {
+			const first = makeSecurity('1', 'TSLA', 'Tesla Inc', 250, 5.0, 0);
+			const second = makeSecurity('2', 'AAPL', 'Apple Inc', 180, 2.5, 1);
+			const third = makeSecurity('3', 'MSFT', 'Microsoft Corp', 400, -1.2, 2);
+
+			const sorted = sortSecurities([third, first, second], 'custom');
+
+			expect(sorted.map((s) => s.symbol)).toEqual(['TSLA', 'AAPL', 'MSFT']);
+		});
+
+		it('sorts by date_added (newest first)', () => {
+			const oldest = makeSecurity('1', 'AAPL', 'Apple Inc', 180, 2.5, 0, '2024-01-01T00:00:00Z');
+			const middle = makeSecurity(
+				'2',
+				'MSFT',
+				'Microsoft Corp',
+				400,
+				-1.2,
+				1,
+				'2024-02-01T00:00:00Z'
+			);
+			const newest = makeSecurity('3', 'TSLA', 'Tesla Inc', 250, 5.0, 2, '2024-03-01T00:00:00Z');
+
+			const sorted = sortSecurities([oldest, newest, middle], 'date_added');
+
+			expect(sorted.map((s) => s.symbol)).toEqual(['TSLA', 'MSFT', 'AAPL']);
+		});
+
+		it('sorts by date_added_asc (oldest first)', () => {
+			const oldest = makeSecurity('1', 'AAPL', 'Apple Inc', 180, 2.5, 2, '2024-01-01T00:00:00Z');
+			const middle = makeSecurity(
+				'2',
+				'MSFT',
+				'Microsoft Corp',
+				400,
+				-1.2,
+				1,
+				'2024-02-01T00:00:00Z'
+			);
+			const newest = makeSecurity('3', 'TSLA', 'Tesla Inc', 250, 5.0, 0, '2024-03-01T00:00:00Z');
+
+			const sorted = sortSecurities([newest, oldest, middle], 'date_added_asc');
+
+			expect(sorted.map((s) => s.symbol)).toEqual(['AAPL', 'MSFT', 'TSLA']);
+		});
+
+		it('falls back to custom (position) order when the key is absent or unrecognised', () => {
+			// Positions deliberately disagree with array order to prove the fallback sorts.
+			const first = makeSecurity('1', 'TSLA', 'Tesla Inc', 250, 5.0, 0);
+			const second = makeSecurity('2', 'AAPL', 'Apple Inc', 180, 2.5, 1);
+			const list = [second, first];
+
+			expect(sortSecurities(list, null).map((s) => s.symbol)).toEqual(['TSLA', 'AAPL']);
+			expect(sortSecurities(list, undefined).map((s) => s.symbol)).toEqual(['TSLA', 'AAPL']);
+			expect(sortSecurities(list, 'unknown').map((s) => s.symbol)).toEqual(['TSLA', 'AAPL']);
+			expect(sortSecurities(list, 'name_desc').map((s) => s.symbol)).toEqual(['TSLA', 'AAPL']);
+		});
+
+		it('does not mutate the input array', () => {
+			const first = makeSecurity('1', 'TSLA', 'Tesla Inc', 250, 5.0, 0);
+			const second = makeSecurity('2', 'AAPL', 'Apple Inc', 180, 2.5, 1);
+			const list = [second, first];
+
+			sortSecurities(list, 'custom');
+
+			expect(list.map((s) => s.symbol)).toEqual(['AAPL', 'TSLA']);
+		});
+	});
+
+	describe('normalizeWatchlistSort', () => {
+		it('passes through every known key', () => {
+			for (const key of [
+				'custom',
+				'name_asc',
+				'price_change_desc',
+				'price_change_asc',
+				'date_added',
+				'date_added_asc'
+			] as const) {
+				expect(normalizeWatchlistSort(key)).toBe(key);
+			}
+		});
+
+		it('falls back to custom for absent or unrecognised keys', () => {
+			expect(normalizeWatchlistSort(undefined)).toBe('custom');
+			expect(normalizeWatchlistSort(null)).toBe('custom');
+			expect(normalizeWatchlistSort('')).toBe('custom');
+			expect(normalizeWatchlistSort('garbage')).toBe('custom');
+		});
+	});
+
+	describe('moveItem', () => {
+		it('moves an item forward to a later index', () => {
+			expect(moveItem(['a', 'b', 'c', 'd'], 0, 2)).toEqual(['b', 'c', 'a', 'd']);
+		});
+
+		it('moves an item backward to an earlier index', () => {
+			expect(moveItem(['a', 'b', 'c', 'd'], 3, 1)).toEqual(['a', 'd', 'b', 'c']);
+		});
+
+		it('is a no-op for equal indices', () => {
+			expect(moveItem(['a', 'b', 'c'], 1, 1)).toEqual(['a', 'b', 'c']);
+		});
+
+		it('is a no-op for out-of-range indices', () => {
+			expect(moveItem(['a', 'b', 'c'], -1, 1)).toEqual(['a', 'b', 'c']);
+			expect(moveItem(['a', 'b', 'c'], 0, -1)).toEqual(['a', 'b', 'c']);
+			expect(moveItem(['a', 'b', 'c'], 3, 1)).toEqual(['a', 'b', 'c']);
+			expect(moveItem(['a', 'b', 'c'], 0, 3)).toEqual(['a', 'b', 'c']);
+		});
+
+		it('never mutates the input array and always returns a fresh copy', () => {
+			const list = ['a', 'b', 'c'];
+			const moved = moveItem(list, 0, 2);
+
+			expect(list).toEqual(['a', 'b', 'c']);
+			expect(moved).not.toBe(list);
+
+			const noop = moveItem(list, 1, 1);
+			expect(noop).not.toBe(list);
+		});
+	});
+
+	describe('handleReorderKeydown', () => {
+		function event(key: string) {
+			return { key, preventDefault: vi.fn() };
+		}
+
+		it('moves one position up on ArrowUp and consumes the key', () => {
+			const e = event('ArrowUp');
+			const onMove = vi.fn();
+
+			expect(handleReorderKeydown(e, 2, 3, onMove)).toBe(true);
+			expect(e.preventDefault).toHaveBeenCalledTimes(1);
+			expect(onMove).toHaveBeenCalledWith(2, 1);
+		});
+
+		it('moves one position down on ArrowDown and consumes the key', () => {
+			const e = event('ArrowDown');
+			const onMove = vi.fn();
+
+			expect(handleReorderKeydown(e, 0, 3, onMove)).toBe(true);
+			expect(e.preventDefault).toHaveBeenCalledTimes(1);
+			expect(onMove).toHaveBeenCalledWith(0, 1);
+		});
+
+		it('consumes the key but does not move at the first and last position', () => {
+			const up = event('ArrowUp');
+			const upMove = vi.fn();
+			expect(handleReorderKeydown(up, 0, 3, upMove)).toBe(true);
+			expect(up.preventDefault).toHaveBeenCalledTimes(1);
+			expect(upMove).not.toHaveBeenCalled();
+
+			const down = event('ArrowDown');
+			const downMove = vi.fn();
+			expect(handleReorderKeydown(down, 2, 3, downMove)).toBe(true);
+			expect(down.preventDefault).toHaveBeenCalledTimes(1);
+			expect(downMove).not.toHaveBeenCalled();
+		});
+
+		it('drives an up/up/down walk through one counting onMove callback', () => {
+			// Mirrors the keyboard reorder contract: each press hands the handler the
+			// item's *current* index, so reversing direction keeps resolving one slot
+			// per press instead of going dead.
+			const onMove = vi.fn();
+			const up1 = event('ArrowUp');
+			const up2 = event('ArrowUp');
+			const down = event('ArrowDown');
+
+			expect(handleReorderKeydown(up1, 2, 3, onMove)).toBe(true);
+			expect(handleReorderKeydown(up2, 1, 3, onMove)).toBe(true);
+			expect(handleReorderKeydown(down, 0, 3, onMove)).toBe(true);
+
+			expect(onMove).toHaveBeenCalledTimes(3);
+			expect(onMove.mock.calls).toEqual([
+				[2, 1],
+				[1, 0],
+				[0, 1]
+			]);
+			expect(up1.preventDefault).toHaveBeenCalledTimes(1);
+			expect(up2.preventDefault).toHaveBeenCalledTimes(1);
+			expect(down.preventDefault).toHaveBeenCalledTimes(1);
+		});
+
+		it('leaves non-arrow keys untouched', () => {
+			const e = event('Enter');
+			const onMove = vi.fn();
+
+			expect(handleReorderKeydown(e, 1, 3, onMove)).toBe(false);
+			expect(e.preventDefault).not.toHaveBeenCalled();
+			expect(onMove).not.toHaveBeenCalled();
 		});
 	});
 
@@ -149,6 +345,23 @@ describe('watchlist-utils', () => {
 			expect(formatPriceChangePercent(undefined)).toBe('-');
 			expect(formatPriceChangePercent('')).toBe('-');
 			expect(formatPriceChangePercent(NaN)).toBe('-');
+		});
+	});
+
+	describe('formatDateAdded', () => {
+		it('formats a valid ISO timestamp deterministically', () => {
+			expect(formatDateAdded('2024-01-01T00:00:00Z')).toBe('Jan 1, 2024');
+			expect(formatDateAdded('2024-03-15T12:30:00Z')).toBe('Mar 15, 2024');
+		});
+
+		it('returns null when the value is missing', () => {
+			expect(formatDateAdded(null)).toBeNull();
+			expect(formatDateAdded(undefined)).toBeNull();
+			expect(formatDateAdded('')).toBeNull();
+		});
+
+		it('returns null for unparseable input', () => {
+			expect(formatDateAdded('not-a-date')).toBeNull();
 		});
 	});
 });

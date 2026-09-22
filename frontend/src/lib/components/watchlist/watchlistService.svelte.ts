@@ -2,7 +2,8 @@ import {
 	getMarketService,
 	type MarketSearchResult,
 	type MarketService,
-	type WatchlistRead
+	type WatchlistRead,
+	type WatchlistSort
 } from '@/api/marketService';
 import { getContext, setContext } from 'svelte';
 
@@ -141,6 +142,21 @@ export class WatchlistService {
 		}
 	}
 
+	/**
+	 * Persist a watchlist's sort mode and swap in the returned list. The response
+	 * carries both the new `sort` and the securities already ordered by the backend,
+	 * so no optimistic local update is applied before it resolves.
+	 */
+	async setSort(watchlistId: string, sort: WatchlistSort, token?: string | null): Promise<void> {
+		this.error = null;
+		try {
+			const updated = await this.client.updateWatchlistSort(watchlistId, sort, token);
+			this.replaceWatchlist(updated);
+		} catch (err) {
+			this.handleError(err, 'Failed to update watchlist sort');
+		}
+	}
+
 	async deleteWatchlist(watchlistId: string, token?: string | null): Promise<void> {
 		this.error = null;
 		try {
@@ -179,6 +195,38 @@ export class WatchlistService {
 			// removal error must be recorded afterwards to stay visible.
 			await this.loadWatchlists(token);
 			this.handleError(err, 'Failed to remove security from watchlist');
+		}
+	}
+
+	/**
+	 * Persist a manual security ordering. The new order is applied optimistically
+	 * (array order rebuilt in `securityIds` order with each `position` rewritten to
+	 * its index, since custom mode renders through `sortSecurities`) before the PUT
+	 * resolves, then replaced by the server payload so positions stay consistent.
+	 */
+	async reorderSecurities(
+		watchlistId: string,
+		securityIds: string[],
+		token?: string | null
+	): Promise<void> {
+		this.error = null;
+		try {
+			const target = this.watchlists.find((w) => w.id === watchlistId);
+			if (target) {
+				const reordered = securityIds
+					.map((id) => target.securities.find((s) => s.id === id))
+					.filter((s): s is NonNullable<typeof s> => s != null)
+					.map((s, index) => ({ ...s, position: index }));
+				this.replaceWatchlist({ ...target, securities: reordered });
+			}
+
+			const updated = await this.client.reorderWatchlistSecurities(watchlistId, securityIds, token);
+			this.replaceWatchlist(updated);
+		} catch (err) {
+			// Resync first: the resync clears the shared error at its start, so the
+			// reorder error must be recorded afterwards to stay visible.
+			await this.loadWatchlists(token);
+			this.handleError(err, 'Failed to reorder watchlist securities');
 		}
 	}
 

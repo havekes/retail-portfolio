@@ -27,9 +27,11 @@ from src.auth.repository_sqlalchemy import (
 )
 from src.core.enum import AccountTypeEnum, InstitutionEnum
 from src.market.api_types import IntradayPrice
+from src.market.enum import WatchlistSortMode
 from src.market.exception import (
     WatchlistDuplicateNameError,
     WatchlistNotFoundError,
+    WatchlistOrderIdentityError,
 )
 from src.market.model import (
     PriceModel,
@@ -49,6 +51,7 @@ from src.market.schema import (
     PriceSchema,
     SecurityBrokerSchema,
     SecuritySchema,
+    WatchlistSecuritySchema,
 )
 
 
@@ -859,6 +862,18 @@ async def test_account_repository_delete_cascades(
     assert portfolio_in_db is not None
 
 
+def test_watchlist_sort_mode_enum_is_complete():
+    """The sort enum exposes exactly the six modes the read contract advertises."""
+    assert sorted(mode.value for mode in WatchlistSortMode) == [
+        "custom",
+        "date_added",
+        "date_added_asc",
+        "name_asc",
+        "price_change_asc",
+        "price_change_desc",
+    ]
+
+
 @pytest.mark.anyio
 async def test_watchlist_repository_create_and_duplicate(db_session: AsyncSession):
     """Test create returns an empty watchlist and rejects duplicate names."""
@@ -872,6 +887,7 @@ async def test_watchlist_repository_create_and_duplicate(db_session: AsyncSessio
     created = await watchlist_repo.create(user.id, "Growth")
     assert created.name == "Growth"
     assert created.user_id == user.id
+    assert created.sort == WatchlistSortMode.CUSTOM
     assert created.securities == []
 
     # The same name for the same user is rejected
@@ -941,7 +957,12 @@ async def test_watchlist_repository_delete_cascades_membership(
     db_session.add(security)
     await db_session.flush()
     db_session.add(
-        WatchlistsSecuritiesModel(watchlist_id=created.id, security_id=security.id)
+        WatchlistsSecuritiesModel(
+            watchlist_id=created.id,
+            security_id=security.id,
+            added_at=datetime.datetime.now(datetime.UTC),
+            position=1,
+        )
     )
     await db_session.commit()
 
@@ -974,6 +995,363 @@ async def test_watchlist_repository_delete_cascades_membership(
     other_watchlist = await watchlist_repo.create(other.id, "Other")
     with pytest.raises(WatchlistNotFoundError):
         await watchlist_repo.delete(other_watchlist.id, user.id)
+
+
+@pytest.mark.anyio
+async def test_watchlist_membership_position_and_added_at(
+    db_session: AsyncSession,
+):
+    """Membership inserts append positions and stamp a tz-aware added_at."""
+    user_repo = SqlAlchemyUserRepository(db_session)
+    watchlist_repo = SqlAlchemyWatchlistRepository(db_session)
+
+    user = await user_repo.create_user(
+        "watchlist_position_test@example.com", "password123"
+    )
+    watchlist = await watchlist_repo.create(user.id, "Ordered")
+
+    securities = [
+        SecurityModel(
+            id=uuid.uuid4(),
+            symbol=f"POS{i}",
+            exchange="US",
+            currency="USD",
+            name=f"Position Test {i}",
+            isin=None,
+            is_active=True,
+            updated_at=datetime.datetime.now(datetime.UTC),
+        )
+        for i in range(3)
+    ]
+    db_session.add_all(securities)
+    await db_session.flush()
+
+    async def membership_rows() -> list[tuple[int, datetime.datetime]]:
+        result = await db_session.execute(
+            select(
+                WatchlistsSecuritiesModel.position,
+                WatchlistsSecuritiesModel.added_at,
+            )
+            .where(WatchlistsSecuritiesModel.watchlist_id == watchlist.id)
+            .order_by(WatchlistsSecuritiesModel.position)
+        )
+        return [(position, added_at) for position, added_at in result.all()]
+
+    # Positions are appended in add order; every membership gets an added_at.
+    reads = [
+        await watchlist_repo.add_security_to_watchlist(
+            watchlist.id, user.id, security.id
+        )
+        for security in securities[:2]
+    ]
+    rows = await membership_rows()
+    assert [position for position, _ in rows] == [1, 2]
+    assert all(added_at is not None for _, added_at in rows)
+    assert all(added_at.tzinfo is not None for _, added_at in rows)
+
+    # The read schema carries the membership metadata, ordered by position.
+    assert all(
+        isinstance(security, WatchlistSecuritySchema) for security in reads[1].securities
+    )
+    assert [s.position for s in reads[1].securities] == [1, 2]
+    assert [s.id for s in reads[1].securities] == [s.id for s in securities[:2]]
+    assert all(s.added_at.tzinfo is not None for s in reads[1].securities)
+
+    # Re-adding an existing membership is idempotent.
+    await watchlist_repo.add_security_to_watchlist(
+        watchlist.id, user.id, securities[0].id
+    )
+    assert [position for position, _ in await membership_rows()] == [1, 2]
+
+    # Removing frees the position; re-adding appends after the current maximum.
+    await watchlist_repo.remove_security_from_watchlist(
+        watchlist.id, user.id, securities[0].id
+    )
+    refreshed = await watchlist_repo.add_security_to_watchlist(
+        watchlist.id, user.id, securities[0].id
+    )
+    assert sorted(position for position, _ in await membership_rows()) == [2, 3]
+    assert {s.id for s in refreshed.securities} == {
+        securities[0].id,
+        securities[1].id,
+    }
+    # Re-added membership sorts after the survivor, and metadata is still present.
+    assert [s.id for s in refreshed.securities] == [securities[1].id, securities[0].id]
+    assert [s.position for s in refreshed.securities] == [2, 3]
+    assert all(s.added_at.tzinfo is not None for s in refreshed.securities)
+
+
+@pytest.mark.anyio
+async def test_watchlist_read_exposes_sort_and_ordered_membership_metadata(
+    db_session: AsyncSession,
+):
+    """Every read path exposes ``sort`` and position-ordered membership metadata."""
+    user_repo = SqlAlchemyUserRepository(db_session)
+    watchlist_repo = SqlAlchemyWatchlistRepository(db_session)
+
+    user = await user_repo.create_user(
+        "watchlist_read_contract@example.com", "password123"
+    )
+
+    default = await watchlist_repo.create_default(user.id)
+    assert default.sort == WatchlistSortMode.CUSTOM
+    assert default.securities == []
+
+    # Seed three memberships with deliberately out-of-order positions.
+    securities = {
+        position: SecurityModel(
+            id=uuid.uuid4(),
+            symbol=f"ORD{position}",
+            exchange="US",
+            currency="USD",
+            name=f"Ordered {position}",
+            isin=None,
+            is_active=True,
+            updated_at=datetime.datetime.now(datetime.UTC),
+        )
+        for position in (1, 2, 3)
+    }
+    db_session.add_all(securities.values())
+    await db_session.flush()
+    seeded_at = datetime.datetime.now(datetime.UTC)
+    for position in (3, 1, 2):
+        db_session.add(
+            WatchlistsSecuritiesModel(
+                watchlist_id=default.id,
+                security_id=securities[position].id,
+                added_at=seeded_at,
+                position=position,
+            )
+        )
+    await db_session.commit()
+
+    def assert_read(read, expected_symbols: list[str]) -> None:
+        assert [s.symbol for s in read.securities] == expected_symbols
+        assert [s.position for s in read.securities] == [
+            int(symbol.removeprefix("ORD")) for symbol in expected_symbols
+        ]
+        assert all(isinstance(s, WatchlistSecuritySchema) for s in read.securities)
+        assert all(s.added_at.tzinfo is not None for s in read.securities)
+
+    # get_by_user: sorted by position regardless of insert order.
+    listed = await watchlist_repo.get_by_user(user.id)
+    assert len(listed) == 1
+    assert listed[0].sort == WatchlistSortMode.CUSTOM
+    assert_read(listed[0], ["ORD1", "ORD2", "ORD3"])
+
+    # rename
+    renamed = await watchlist_repo.rename(default.id, user.id, "Renamed")
+    assert renamed.name == "Renamed"
+    assert_read(renamed, ["ORD1", "ORD2", "ORD3"])
+
+    # add_security_to_watchlist appends after the current maximum position.
+    fourth = SecurityModel(
+        id=uuid.uuid4(),
+        symbol="ORD4",
+        exchange="US",
+        currency="USD",
+        name="Ordered 4",
+        isin=None,
+        is_active=True,
+        updated_at=datetime.datetime.now(datetime.UTC),
+    )
+    db_session.add(fourth)
+    await db_session.flush()
+    added = await watchlist_repo.add_security_to_watchlist(
+        default.id, user.id, fourth.id
+    )
+    assert_read(added, ["ORD1", "ORD2", "ORD3", "ORD4"])
+
+    # remove_security_from_watchlist drops the position-2 entry and keeps order.
+    removed = await watchlist_repo.remove_security_from_watchlist(
+        default.id, user.id, securities[2].id
+    )
+    assert_read(removed, ["ORD1", "ORD3", "ORD4"])
+
+    # A non-default sort mode persisted on the model is surfaced on reads.
+    watchlist_model = await db_session.get(WatchlistModel, default.id)
+    assert watchlist_model is not None
+    watchlist_model.sort = WatchlistSortMode.DATE_ADDED.value
+    await db_session.commit()
+    reselected = await watchlist_repo.get_by_user(user.id)
+    assert reselected[0].sort == WatchlistSortMode.DATE_ADDED
+
+
+@pytest.mark.anyio
+async def test_watchlist_repository_update_sort(db_session: AsyncSession):
+    """``update_sort`` persists the mode and is owner-scoped."""
+    user_repo = SqlAlchemyUserRepository(db_session)
+    watchlist_repo = SqlAlchemyWatchlistRepository(db_session)
+
+    user = await user_repo.create_user(
+        "watchlist_update_sort@example.com", "password123"
+    )
+    other = await user_repo.create_user(
+        "watchlist_update_sort_other@example.com", "password123"
+    )
+
+    created = await watchlist_repo.create(user.id, "Sortable")
+    assert created.sort == WatchlistSortMode.CUSTOM
+
+    updated = await watchlist_repo.update_sort(
+        created.id, user.id, WatchlistSortMode.DATE_ADDED
+    )
+    assert updated.id == created.id
+    assert updated.sort == WatchlistSortMode.DATE_ADDED
+
+    # Persisted, not just reflected on the returned read.
+    stored = await db_session.scalar(
+        select(WatchlistModel.sort).where(WatchlistModel.id == created.id)
+    )
+    assert stored == WatchlistSortMode.DATE_ADDED.value
+    listed = await watchlist_repo.get_by_user(user.id)
+    assert listed[0].sort == WatchlistSortMode.DATE_ADDED
+
+    # Unknown watchlist and another user's watchlist are not found.
+    with pytest.raises(WatchlistNotFoundError):
+        await watchlist_repo.update_sort(
+            uuid.uuid4(), user.id, WatchlistSortMode.CUSTOM
+        )
+    with pytest.raises(WatchlistNotFoundError):
+        await watchlist_repo.update_sort(
+            created.id, other.id, WatchlistSortMode.CUSTOM
+        )
+
+
+async def _seed_watchlist_memberships(
+    db_session: AsyncSession, watchlist_id: uuid.UUID, count: int
+) -> list[SecurityModel]:
+    """Persist ``count`` securities and memberships at positions ``0..count-1``."""
+    securities = [
+        SecurityModel(
+            id=uuid.uuid4(),
+            symbol=f"RDR{index}",
+            exchange="US",
+            currency="USD",
+            name=f"Reorder Test {index}",
+            isin=None,
+            is_active=True,
+            updated_at=datetime.datetime.now(datetime.UTC),
+        )
+        for index in range(count)
+    ]
+    db_session.add_all(securities)
+    await db_session.flush()
+    for position, security in enumerate(securities):
+        db_session.add(
+            WatchlistsSecuritiesModel(
+                watchlist_id=watchlist_id,
+                security_id=security.id,
+                position=position,
+            )
+        )
+    await db_session.commit()
+    return securities
+
+
+async def _stored_positions(
+    db_session: AsyncSession, watchlist_id: uuid.UUID
+) -> list[tuple[object, int]]:
+    result = await db_session.execute(
+        select(
+            WatchlistsSecuritiesModel.security_id,
+            WatchlistsSecuritiesModel.position,
+        )
+        .where(WatchlistsSecuritiesModel.watchlist_id == watchlist_id)
+        .order_by(WatchlistsSecuritiesModel.position)
+    )
+    return [(security_id, position) for security_id, position in result.all()]
+
+
+@pytest.mark.anyio
+async def test_watchlist_repository_set_security_order(db_session: AsyncSession):
+    """``set_security_order`` rewrites positions to ``0..n-1`` and is idempotent."""
+    user_repo = SqlAlchemyUserRepository(db_session)
+    watchlist_repo = SqlAlchemyWatchlistRepository(db_session)
+
+    user = await user_repo.create_user(
+        "watchlist_set_order@example.com", "password123"
+    )
+    other = await user_repo.create_user(
+        "watchlist_set_order_other@example.com", "password123"
+    )
+    watchlist = await watchlist_repo.create(user.id, "Reorderable")
+    securities = await _seed_watchlist_memberships(db_session, watchlist.id, 3)
+    first, second, third = securities
+
+    new_order = [third.id, first.id, second.id]
+    read = await watchlist_repo.set_security_order(watchlist.id, user.id, new_order)
+
+    assert [s.id for s in read.securities] == new_order
+    assert [s.position for s in read.securities] == [0, 1, 2]
+    assert await _stored_positions(db_session, watchlist.id) == [
+        (security_id, position) for position, security_id in enumerate(new_order)
+    ]
+
+    # Re-calling with the same order is a no-op that returns the same read.
+    again = await watchlist_repo.set_security_order(watchlist.id, user.id, new_order)
+    assert [s.id for s in again.securities] == new_order
+    assert [s.position for s in again.securities] == [0, 1, 2]
+    assert await _stored_positions(db_session, watchlist.id) == [
+        (security_id, position) for position, security_id in enumerate(new_order)
+    ]
+
+    # The empty list is the valid permutation of an empty watchlist.
+    empty = await watchlist_repo.create(user.id, "Empty")
+    empty_read = await watchlist_repo.set_security_order(empty.id, user.id, [])
+    assert empty_read.securities == []
+
+    # Unknown watchlist / another user's watchlist are not found.
+    with pytest.raises(WatchlistNotFoundError):
+        await watchlist_repo.set_security_order(uuid.uuid4(), user.id, [])
+    with pytest.raises(WatchlistNotFoundError):
+        await watchlist_repo.set_security_order(watchlist.id, other.id, new_order)
+
+
+@pytest.mark.anyio
+async def test_watchlist_repository_set_security_order_rejects_bad_payload(
+    db_session: AsyncSession,
+):
+    """A non-permutation payload is rejected before any position is written."""
+    user_repo = SqlAlchemyUserRepository(db_session)
+    watchlist_repo = SqlAlchemyWatchlistRepository(db_session)
+
+    user = await user_repo.create_user(
+        "watchlist_set_order_bad@example.com", "password123"
+    )
+    watchlist = await watchlist_repo.create(user.id, "Guarded")
+    securities = await _seed_watchlist_memberships(db_session, watchlist.id, 3)
+    first, second, third = securities
+
+    foreign = SecurityModel(
+        id=uuid.uuid4(),
+        symbol="FOREIGN",
+        exchange="US",
+        currency="USD",
+        name="Not a member",
+        isin=None,
+        is_active=True,
+        updated_at=datetime.datetime.now(datetime.UTC),
+    )
+    db_session.add(foreign)
+    await db_session.commit()
+
+    seeded = [(security.id, position) for position, security in enumerate(securities)]
+    bad_payloads = [
+        # duplicate id: ``set`` collapses it, only the length check rejects this
+        [first.id, first.id, second.id, third.id],
+        # missing id
+        [first.id, second.id],
+        # foreign id
+        [first.id, second.id, foreign.id],
+        # duplicate + missing together
+        [first.id, first.id, second.id],
+    ]
+
+    for payload in bad_payloads:
+        with pytest.raises(WatchlistOrderIdentityError):
+            await watchlist_repo.set_security_order(watchlist.id, user.id, payload)
+        assert await _stored_positions(db_session, watchlist.id) == seeded
 
 
 @pytest.mark.anyio

@@ -3,7 +3,7 @@
 	import { page } from '$app/stores';
 	import { getWatchlistService } from '$lib/components/watchlist/watchlistService.svelte';
 	import { userPreferencesService } from '$lib/api/userPreferencesService';
-	import type { WatchlistRead } from '$lib/api/marketService';
+	import type { WatchlistRead, WatchlistSort } from '$lib/api/marketService';
 	import PageHeader from '$lib/components/layout/app-header.svelte';
 	import { Button } from '$lib/components/ui/button/index.js';
 	import { Input } from '$lib/components/ui/input/index.js';
@@ -13,15 +13,22 @@
 	import CreateWatchlistModal from '$lib/components/watchlist/create-watchlist-modal.svelte';
 	import ConfirmationModal from '$lib/components/ui/confirmation-modal/confirmation-modal.svelte';
 	import {
+		formatDateAdded,
 		formatPrice,
 		formatPriceChangePercent,
+		handleReorderKeydown,
+		moveItem,
+		normalizeWatchlistSort,
 		sortSecurities,
-		sortWatchlistsByOrder
+		sortWatchlistsByOrder,
+		WATCHLIST_ROW_DATA_TRACKS
 	} from '$lib/components/watchlist/watchlist-utils';
 	import { cn } from '$lib/utils';
-	import { getContext, untrack } from 'svelte';
+	import { getContext, tick, untrack } from 'svelte';
 	import ArrowUpDown from '@lucide/svelte/icons/arrow-up-down';
 	import Check from '@lucide/svelte/icons/check';
+	import ChevronDown from '@lucide/svelte/icons/chevron-down';
+	import ChevronUp from '@lucide/svelte/icons/chevron-up';
 	import GripVertical from '@lucide/svelte/icons/grip-vertical';
 	import Pencil from '@lucide/svelte/icons/pencil';
 	import Plus from '@lucide/svelte/icons/plus';
@@ -34,9 +41,22 @@
 		data: {
 			watchlists: WatchlistRead[];
 			watchlist_order?: string[] | null;
-			watchlist_sort?: Record<string, string> | null;
 		};
 	} = $props();
+
+	/**
+	 * The dropdown contract: `direction` is the visual sense of each mode, used for the
+	 * active-option chevron (ChevronUp = ascending/oldest-first, ChevronDown = descending/
+	 * newest-first), mirroring the holdings table header indicator.
+	 */
+	const sortOptions: { value: WatchlistSort; label: string; direction: 'asc' | 'desc' }[] = [
+		{ value: 'custom', label: 'Custom', direction: 'asc' },
+		{ value: 'name_asc', label: 'Name (alphabetical)', direction: 'asc' },
+		{ value: 'price_change_desc', label: 'Price Change (Gainers)', direction: 'desc' },
+		{ value: 'price_change_asc', label: 'Price Change (Losers)', direction: 'asc' },
+		{ value: 'date_added', label: 'Date added (newest first)', direction: 'desc' },
+		{ value: 'date_added_asc', label: 'Date added (oldest first)', direction: 'asc' }
+	];
 
 	const watchlistService = getWatchlistService();
 	const openGlobalSearch = getContext<((watchlist?: WatchlistRead | null) => void) | undefined>(
@@ -55,14 +75,6 @@
 			() => data.watchlist_order ?? ($page?.data?.watchlist_order as string[] | undefined) ?? null
 		)
 	);
-	let watchlistSort = $state<Record<string, string>>(
-		untrack(
-			() =>
-				data.watchlist_sort ??
-				($page?.data?.watchlist_sort as Record<string, string> | undefined) ??
-				{}
-		)
-	);
 
 	const orderedWatchlists = $derived(
 		sortWatchlistsByOrder(watchlistService.watchlists ?? [], watchlistOrder)
@@ -76,11 +88,52 @@
 	let draggedIndex = $state<number | null>(null);
 	let dragOverIndex = $state<number | null>(null);
 
+	// Security reordering is offered per watchlist (one active list at a time) and
+	// only for custom-sorted lists, where the row order maps onto `position`.
+	let securityReorderWatchlistId = $state<string | null>(null);
+	let securityDragIndex = $state<number | null>(null);
+	let securityDragOverIndex = $state<number | null>(null);
+
+	let announcement = $state('');
+
+	function announce(text: string) {
+		announcement = text;
+	}
+
 	let editingId = $state<string | null>(null);
 	let editingName = $state('');
 	let deleteOpen = $state(false);
 	let createOpen = $state(false);
 	let pendingDelete = $state<WatchlistRead | null>(null);
+
+	// Row selection is focus-driven: the highlighted row is the security that
+	// currently holds keyboard focus, remembered per watchlist id. Keyed by
+	// security id (not row index) so the highlight follows the same security
+	// through arrow-key/drag reorder and sort changes, and survives blur.
+	let selectedByWatchlistId = $state<Record<string, string>>({});
+
+	function selectRow(watchlistId: string, securityId: string) {
+		selectedByWatchlistId[watchlistId] = securityId;
+	}
+
+	function isRowSelected(watchlistId: string, securityId: string): boolean {
+		return selectedByWatchlistId[watchlistId] === securityId;
+	}
+
+	/** Drop a remembered selection so a removed security cannot stay highlighted. */
+	function clearSelection(watchlistId: string) {
+		if (watchlistId in selectedByWatchlistId) {
+			delete selectedByWatchlistId[watchlistId];
+		}
+	}
+
+	// Watchlist-level selection mirrors the row behaviour for the Reorder-mode
+	// grab handle: watchlist ids are unique, so a single value covers it.
+	let selectedWatchlistId = $state<string | null>(null);
+
+	function selectWatchlist(watchlistId: string) {
+		selectedWatchlistId = watchlistId;
+	}
 
 	function startRename(watchlist: WatchlistRead) {
 		editingId = watchlist.id;
@@ -125,6 +178,7 @@
 		const watchlistId = pendingDelete.id;
 		pendingDelete = null;
 		await watchlistService.deleteWatchlist(watchlistId);
+		clearSelection(watchlistId);
 	}
 
 	function countLabel(watchlist: WatchlistRead): string {
@@ -134,13 +188,13 @@
 
 	async function handleRemoveSecurity(watchlistId: string, securityId: string) {
 		await watchlistService.removeSecurityFromWatchlist(watchlistId, securityId);
+		if (selectedByWatchlistId[watchlistId] === securityId) {
+			clearSelection(watchlistId);
+		}
 	}
 
-	async function setWatchlistSort(watchlistId: string, sortKey: string) {
-		watchlistSort = { ...watchlistSort, [watchlistId]: sortKey };
-		await userPreferencesService
-			.patchPreferences({ watchlist_sort: watchlistSort })
-			.catch(console.error);
+	async function handleSortSelect(watchlist: WatchlistRead, sort: WatchlistSort) {
+		await watchlistService.setSort(watchlist.id, sort);
 	}
 
 	function handleDragStart(e: DragEvent, index: number) {
@@ -165,6 +219,81 @@
 		dragOverIndex = null;
 	}
 
+	/**
+	 * Re-focus a move handle after its row has been reordered.
+	 *
+	 * Svelte's keyed `{#each}` reconciliation moves the row that contains the
+	 * focused handle to its new position by detaching and re-attaching that
+	 * element when the item shifts to a later index. Detaching the active element
+	 * drops focus to `<body>`, and because Svelte delegates `keydown` to the root
+	 * and dispatches by `event.target`, the handle then never sees another arrow
+	 * key: the first move in the opposite direction leaves the list unwalkable.
+	 * The handle node itself survives the move, so focus is restored on the same
+	 * element once the reorder render has been applied. Focus is only reclaimed
+	 * when the DOM move dropped it — never stolen from a control the user has
+	 * since moved to.
+	 */
+	async function restoreHandleFocus(handle: HTMLElement | null) {
+		if (!handle) return;
+		await tick();
+		const active = document.activeElement;
+		if (handle.isConnected && (active === null || active === document.body)) {
+			handle.focus();
+		}
+	}
+
+	/** Keyboard reorder for the watchlist handle, keeping focus on that handle. */
+	function handleWatchlistReorderKeydown(event: KeyboardEvent, index: number, length: number) {
+		const handle = event.currentTarget as HTMLElement | null;
+		handleReorderKeydown(event, index, length, (from, to) => moveWatchlist(from, to, handle));
+	}
+
+	/** Keyboard reorder for a security handle, keeping focus on that handle. */
+	function handleSecurityReorderKeydown(
+		event: KeyboardEvent,
+		watchlist: WatchlistRead,
+		index: number,
+		length: number
+	) {
+		const handle = event.currentTarget as HTMLElement | null;
+		handleReorderKeydown(event, index, length, (from, to) =>
+			moveSecurity(watchlist, from, to, handle)
+		);
+	}
+
+	/**
+	 * Move a watchlist one slot, applying the new order optimistically and
+	 * persisting `watchlist_order`. On failure both local snapshots are restored so
+	 * no stale order survives, and the error surfaces in the shared alert. Used by
+	 * both the drag-and-drop and keyboard paths so the two stay in lockstep.
+	 */
+	async function moveWatchlist(from: number, to: number, handle?: HTMLElement | null) {
+		if (!isReorderMode || from === to) return;
+
+		const currentList = [...orderedWatchlists];
+		const moved = currentList[from];
+		if (!moved) return;
+
+		const previousOrder = watchlistOrder;
+		const previousWatchlists = watchlistService.watchlists;
+
+		const nextList = moveItem(currentList, from, to);
+		const newOrder = nextList.map((w) => w.id);
+		watchlistService.watchlists = nextList;
+		watchlistOrder = newOrder;
+		announce(`${moved.name} moved to position ${to + 1} of ${nextList.length}`);
+		void restoreHandleFocus(handle ?? null);
+
+		try {
+			await userPreferencesService.patchPreferences({ watchlist_order: newOrder });
+		} catch (err) {
+			watchlistService.watchlists = previousWatchlists;
+			watchlistOrder = previousOrder;
+			watchlistService.error =
+				err instanceof Error ? err.message : 'Failed to save watchlist order';
+		}
+	}
+
 	async function handleDrop(e: DragEvent, targetIndex: number) {
 		if (!isReorderMode || draggedIndex === null) return;
 		e.preventDefault();
@@ -172,24 +301,90 @@
 		draggedIndex = null;
 		dragOverIndex = null;
 
-		if (from === targetIndex) return;
-
-		const currentList = [...orderedWatchlists];
-		const [moved] = currentList.splice(from, 1);
-		currentList.splice(targetIndex, 0, moved);
-
-		watchlistService.watchlists = currentList;
-		const newOrder = currentList.map((w) => w.id);
-		watchlistOrder = newOrder;
-
-		await userPreferencesService
-			.patchPreferences({ watchlist_order: newOrder })
-			.catch(console.error);
+		await moveWatchlist(from, targetIndex);
 	}
 
 	function handleDragEnd() {
 		draggedIndex = null;
 		dragOverIndex = null;
+	}
+
+	function isSecurityReorderEnabled(watchlist: WatchlistRead): boolean {
+		return (
+			normalizeWatchlistSort(watchlist.sort) === 'custom' &&
+			securityReorderWatchlistId === watchlist.id
+		);
+	}
+
+	/** Security drag only applies when its list's toggle is on and watchlist reorder mode is off. */
+	function isSecurityReorderActive(watchlist: WatchlistRead): boolean {
+		return isSecurityReorderEnabled(watchlist) && !isReorderMode;
+	}
+
+	function toggleSecurityReorder(watchlist: WatchlistRead) {
+		securityReorderWatchlistId = securityReorderWatchlistId === watchlist.id ? null : watchlist.id;
+		securityDragIndex = null;
+		securityDragOverIndex = null;
+	}
+
+	function sortedSecuritiesFor(watchlist: WatchlistRead) {
+		return sortSecurities(watchlist.securities, normalizeWatchlistSort(watchlist.sort));
+	}
+
+	/** Reorder a security, persist the new id order and announce the completed move. */
+	function moveSecurity(
+		watchlist: WatchlistRead,
+		from: number,
+		to: number,
+		handle?: HTMLElement | null
+	) {
+		if (!isSecurityReorderActive(watchlist) || from === to) return;
+
+		const sorted = sortedSecuritiesFor(watchlist);
+		const moved = sorted[from];
+		if (!moved) return;
+
+		const securityIds = moveItem(sorted, from, to).map((s) => s.id);
+		announce(`${moved.symbol} moved to position ${to + 1} of ${sorted.length}`);
+		void watchlistService.reorderSecurities(watchlist.id, securityIds);
+		void restoreHandleFocus(handle ?? null);
+	}
+
+	function handleSecurityDragStart(e: DragEvent, watchlist: WatchlistRead, index: number) {
+		if (!isSecurityReorderActive(watchlist)) return;
+		securityDragIndex = index;
+		if (e.dataTransfer) {
+			e.dataTransfer.effectAllowed = 'move';
+			e.dataTransfer.setData('text/plain', String(index));
+		}
+	}
+
+	function handleSecurityDragOver(e: DragEvent, watchlist: WatchlistRead, index: number) {
+		if (!isSecurityReorderActive(watchlist) || securityDragIndex === null) return;
+		e.preventDefault();
+		if (e.dataTransfer) {
+			e.dataTransfer.dropEffect = 'move';
+		}
+		securityDragOverIndex = index;
+	}
+
+	function handleSecurityDragLeave() {
+		securityDragOverIndex = null;
+	}
+
+	function handleSecurityDrop(e: DragEvent, watchlist: WatchlistRead, targetIndex: number) {
+		if (!isSecurityReorderActive(watchlist) || securityDragIndex === null) return;
+		e.preventDefault();
+		const from = securityDragIndex;
+		securityDragIndex = null;
+		securityDragOverIndex = null;
+
+		moveSecurity(watchlist, from, targetIndex);
+	}
+
+	function handleSecurityDragEnd() {
+		securityDragIndex = null;
+		securityDragOverIndex = null;
 	}
 
 	function getPillClass(changePercent: number | null | undefined): string {
@@ -226,6 +421,8 @@
 	</PageHeader>
 
 	<main class="flex flex-1 flex-col gap-6 overflow-y-auto p-4">
+		<div role="status" aria-live="polite" class="sr-only">{announcement}</div>
+
 		{#if watchlistService.error && !createOpen}
 			<Alert variant="destructive">
 				<AlertDescription>{watchlistService.error}</AlertDescription>
@@ -249,9 +446,10 @@
 					<section
 						aria-label={`${watchlist.name} securities`}
 						class={cn(
-							'flex flex-col gap-3 rounded-lg border p-4 transition-colors',
-							isReorderMode && 'cursor-move border-dashed select-none',
-							dragOverIndex === index && 'border-primary bg-muted/40'
+							'flex flex-col gap-3 rounded-lg bg-muted p-4 transition-colors',
+							isReorderMode && 'cursor-move outline-1 outline-border outline-dashed select-none',
+							dragOverIndex === index && 'ring-2 ring-primary',
+							selectedWatchlistId === watchlist.id && 'ring-1 ring-ring'
 						)}
 						draggable={isReorderMode}
 						ondragstart={(e) => handleDragStart(e, index)}
@@ -290,11 +488,17 @@
 							{:else}
 								<div class="flex items-center gap-2">
 									{#if isReorderMode}
-										<GripVertical
-											class="h-4 w-4 shrink-0 cursor-grab text-muted-foreground"
+										<button
+											type="button"
 											data-testid="drag-handle"
-											aria-hidden="true"
-										/>
+											aria-label={`Reorder ${watchlist.name}`}
+											class="shrink-0 cursor-grab rounded-sm text-muted-foreground hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none"
+											onmousedown={() => selectWatchlist(watchlist.id)}
+											onfocus={() => selectWatchlist(watchlist.id)}
+											onkeydown={(e) => handleWatchlistReorderKeydown(e, index, watchlists.length)}
+										>
+											<GripVertical class="h-4 w-4" />
+										</button>
 									{/if}
 									<h2 class="text-lg leading-none font-semibold">{watchlist.name}</h2>
 									<span class="text-sm leading-none text-muted-foreground"
@@ -302,6 +506,17 @@
 									>
 								</div>
 								<div class="flex items-center gap-1">
+									{#if normalizeWatchlistSort(watchlist.sort) === 'custom'}
+										<Button
+											size="icon-sm"
+											variant={securityReorderWatchlistId === watchlist.id ? 'secondary' : 'ghost'}
+											aria-label={`Reorder securities in ${watchlist.name}`}
+											aria-pressed={securityReorderWatchlistId === watchlist.id}
+											onclick={() => toggleSecurityReorder(watchlist)}
+										>
+											<GripVertical class="h-4 w-4" />
+										</Button>
+									{/if}
 									<DropdownMenu.Root>
 										<DropdownMenu.Trigger>
 											{#snippet child({ props })}
@@ -316,19 +531,22 @@
 											{/snippet}
 										</DropdownMenu.Trigger>
 										<DropdownMenu.Content align="end">
-											<DropdownMenu.Item onclick={() => setWatchlistSort(watchlist.id, 'name_asc')}>
-												Name (alphabetical)
-											</DropdownMenu.Item>
-											<DropdownMenu.Item
-												onclick={() => setWatchlistSort(watchlist.id, 'price_change_desc')}
-											>
-												Price Change (Gainers)
-											</DropdownMenu.Item>
-											<DropdownMenu.Item
-												onclick={() => setWatchlistSort(watchlist.id, 'price_change_asc')}
-											>
-												Price Change (Losers)
-											</DropdownMenu.Item>
+											{#each sortOptions as option (option.value)}
+												{@const isActive = normalizeWatchlistSort(watchlist.sort) === option.value}
+												<DropdownMenu.Item
+													onclick={() => handleSortSelect(watchlist, option.value)}
+												>
+													<span class="flex-1">{option.label}</span>
+													{#if isActive}
+														{#if option.direction === 'asc'}
+															<ChevronUp size={12} aria-hidden="true" />
+														{:else}
+															<ChevronDown size={12} aria-hidden="true" />
+														{/if}
+														<Check class="h-4 w-4" aria-hidden="true" />
+													{/if}
+												</DropdownMenu.Item>
+											{/each}
 										</DropdownMenu.Content>
 									</DropdownMenu.Root>
 									<Button
@@ -364,32 +582,79 @@
 						{:else}
 							{@const sortedSecurities = sortSecurities(
 								watchlist.securities,
-								watchlistSort[watchlist.id]
+								normalizeWatchlistSort(watchlist.sort)
 							)}
 							<ul aria-label={`${watchlist.name} securities list`} class="flex flex-col gap-1">
-								{#each sortedSecurities as security (security.id)}
-									<li class="flex items-center gap-2">
+								{#each sortedSecurities as security, securityIndex (security.id)}
+									{@const securityReorderActive = isSecurityReorderActive(watchlist)}
+									{@const rowSelected = isRowSelected(watchlist.id, security.id)}
+									<li
+										aria-current={rowSelected ? 'true' : undefined}
+										class={cn(
+											'flex items-center gap-2 rounded-md',
+											securityReorderActive && 'cursor-move',
+											securityReorderActive &&
+												securityDragOverIndex === securityIndex &&
+												'bg-background/60'
+										)}
+										draggable={securityReorderActive}
+										ondragstart={(e) => handleSecurityDragStart(e, watchlist, securityIndex)}
+										ondragover={(e) => handleSecurityDragOver(e, watchlist, securityIndex)}
+										ondragleave={handleSecurityDragLeave}
+										ondrop={(e) => handleSecurityDrop(e, watchlist, securityIndex)}
+										ondragend={handleSecurityDragEnd}
+									>
+										{#if securityReorderActive}
+											<button
+												type="button"
+												data-testid="security-drag-handle"
+												aria-label={`Reorder ${security.symbol}`}
+												class="shrink-0 cursor-grab rounded-sm text-muted-foreground hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none"
+												onmousedown={() => selectRow(watchlist.id, security.id)}
+												onfocus={() => selectRow(watchlist.id, security.id)}
+												onkeydown={(e) =>
+													handleSecurityReorderKeydown(
+														e,
+														watchlist,
+														securityIndex,
+														sortedSecurities.length
+													)}
+											>
+												<GripVertical class="h-4 w-4" />
+											</button>
+										{/if}
 										<a
 											href={resolve(`/security/${security.id}`)}
-											class="flex flex-1 items-center justify-between gap-2 rounded-md px-2 py-1.5 transition-colors hover:bg-muted focus:bg-muted"
+											aria-label={`${security.symbol} — ${security.name}`}
+											onfocus={() => selectRow(watchlist.id, security.id)}
+											class={cn(
+												WATCHLIST_ROW_DATA_TRACKS,
+												'flex-1 items-center rounded-md px-2 py-1.5 transition-colors',
+												'hover:bg-background/60 focus:bg-background/60 focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none',
+												rowSelected && 'bg-background ring-1 ring-ring focus:bg-background'
+											)}
 										>
 											<div class="flex min-w-0 items-center gap-2">
 												<span class="shrink-0 font-medium">{security.symbol}</span>
 												<span class="truncate text-sm text-muted-foreground">{security.name}</span>
 											</div>
-											<div class="flex shrink-0 items-center gap-2">
-												<span class="text-sm font-medium tabular-nums">
-													{formatPrice(security.current_price)}
-												</span>
-												<span
-													class={cn(
-														'inline-flex items-center rounded-md border px-1.5 py-0.5 text-xs font-semibold tabular-nums',
-														getPillClass(security.daily_price_change_percent)
-													)}
-												>
-													{formatPriceChangePercent(security.daily_price_change_percent)}
-												</span>
-											</div>
+											<span
+												class="hidden truncate text-xs text-muted-foreground md:block"
+												title="Added"
+											>
+												{formatDateAdded(security.added_at) ?? '-'}
+											</span>
+											<span class="justify-self-end text-sm font-medium tabular-nums">
+												{formatPrice(security.current_price)}
+											</span>
+											<span
+												class={cn(
+													'inline-flex min-w-[4.5rem] items-center justify-center justify-self-end rounded-md border px-1.5 py-0.5 text-xs font-semibold tabular-nums',
+													getPillClass(security.daily_price_change_percent)
+												)}
+											>
+												{formatPriceChangePercent(security.daily_price_change_percent)}
+											</span>
 										</a>
 										<Button
 											size="icon-sm"
