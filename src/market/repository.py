@@ -7,6 +7,7 @@ from uuid import UUID
 from src.auth.api_types import UserId
 from src.core.enum import InstitutionEnum
 from src.market.api_types import SecurityId, WatchlistId
+from src.market.enum import WatchlistSortMode
 from src.market.schema import (
     AlertForEvaluation,
     ChartSnapshotCreate,
@@ -149,6 +150,26 @@ class WatchlistRepository(ABC):
         self, watchlist_id: WatchlistId, user_id: UserId, name: str
     ) -> WatchlistRead:
         pass
+
+    @abstractmethod
+    async def update_sort(
+        self, watchlist_id: WatchlistId, user_id: UserId, sort: WatchlistSortMode
+    ) -> WatchlistRead:
+        """Persist the watchlist's sort mode and return the updated read."""
+
+    @abstractmethod
+    async def set_security_order(
+        self,
+        watchlist_id: WatchlistId,
+        user_id: UserId,
+        ordered_security_ids: list[SecurityId],
+    ) -> WatchlistRead:
+        """Rewrite the watchlist's membership positions to ``0..n-1``.
+
+        ``ordered_security_ids`` must be an exact permutation of the current
+        membership; implementations reject anything else (including duplicates)
+        without changing any position.
+        """
 
     @abstractmethod
     async def delete(self, watchlist_id: WatchlistId, user_id: UserId) -> None:

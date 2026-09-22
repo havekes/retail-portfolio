@@ -21,6 +21,7 @@ from src.market.exception import (
     SecurityNotFoundError,
     WatchlistDuplicateNameError,
     WatchlistNotFoundError,
+    WatchlistOrderIdentityError,
 )
 from src.market.model import (
     ChartSnapshotModel,
@@ -623,7 +624,7 @@ class SqlAlchemyWatchlistRepository(WatchlistRepository):
                 id=model.id,
                 user_id=model.user_id,
                 name=model.name,
-                sort=WatchlistSortMode(model.sort),
+                sort=model.sort,
                 securities=memberships.get(model.id, []),
             )
             for model in models
@@ -638,9 +639,7 @@ class SqlAlchemyWatchlistRepository(WatchlistRepository):
     @override
     async def get_by_user(self, user_id: UserId) -> list[WatchlistRead]:
         result = await self._session.execute(
-            select(WatchlistModel)
-            .options(selectinload(WatchlistModel.securities))
-            .where(WatchlistModel.user_id == user_id)
+            select(WatchlistModel).where(WatchlistModel.user_id == user_id)
         )
         watchlists = await self._build_watchlist_reads(result.scalars())
         return await self._enrich_watchlists(watchlists)
@@ -665,7 +664,6 @@ class SqlAlchemyWatchlistRepository(WatchlistRepository):
         """Load the user's ``Default`` watchlist, or ``None`` when absent."""
         result = await self._session.execute(
             select(WatchlistModel)
-            .options(selectinload(WatchlistModel.securities))
             .where(WatchlistModel.user_id == user_id)
             .where(WatchlistModel.name == "Default")
             .limit(1)
@@ -707,6 +705,64 @@ class SqlAlchemyWatchlistRepository(WatchlistRepository):
         except IntegrityError:
             await self._session.rollback()
             raise WatchlistDuplicateNameError(name) from None
+
+        return await self._enrich_watchlist(
+            await self._build_watchlist_read(watchlist_model)
+        )
+
+    @override
+    async def update_sort(
+        self, watchlist_id: WatchlistId, user_id: UserId, sort: WatchlistSortMode
+    ) -> WatchlistRead:
+        watchlist_model = await self._get_owned(watchlist_id, user_id)
+        watchlist_model.sort = sort.value
+        await self._session.commit()
+
+        return await self._enrich_watchlist(
+            await self._build_watchlist_read(watchlist_model)
+        )
+
+    @override
+    async def set_security_order(
+        self,
+        watchlist_id: WatchlistId,
+        user_id: UserId,
+        ordered_security_ids: list[SecurityId],
+    ) -> WatchlistRead:
+        watchlist_model = await self._get_owned(watchlist_id, user_id)
+
+        result = await self._session.execute(
+            select(
+                WatchlistsSecuritiesModel.security_id,
+                WatchlistsSecuritiesModel.position,
+            ).where(WatchlistsSecuritiesModel.watchlist_id == watchlist_model.id)
+        )
+        memberships = result.all()
+        current_ids = [security_id for security_id, _ in memberships]
+
+        # ``set`` collapses duplicates, so the length check is what rejects a
+        # payload that repeats a membership id. Validate everything *before*
+        # writing so a rejected payload leaves every position untouched.
+        if len(ordered_security_ids) != len(current_ids) or set(
+            ordered_security_ids
+        ) != set(current_ids):
+            raise WatchlistOrderIdentityError
+
+        current_order = [
+            security_id
+            for security_id, _ in sorted(
+                memberships, key=lambda membership: membership[1]
+            )
+        ]
+        if current_order != ordered_security_ids:
+            for position, security_id in enumerate(ordered_security_ids):
+                await self._session.execute(
+                    update(WatchlistsSecuritiesModel)
+                    .where(WatchlistsSecuritiesModel.watchlist_id == watchlist_model.id)
+                    .where(WatchlistsSecuritiesModel.security_id == security_id)
+                    .values(position=position)
+                )
+            await self._session.commit()
 
         return await self._enrich_watchlist(
             await self._build_watchlist_read(watchlist_model)
