@@ -11,7 +11,7 @@ from fastapi.exceptions import HTTPException
 from svcs.fastapi import DepContainer
 
 from src.auth.api import current_user
-from src.auth.api_types import User
+from src.auth.api_types import User, UserId
 from src.config.limiter import limiter
 from src.config.settings import settings
 from src.core.context import get_request_id
@@ -86,7 +86,17 @@ from src.market.service import (
     aggregate_weekly_prices,
     convert_to_heikin_ashi,
 )
-from src.market.task import generate_note_summary_task, generate_note_title_task
+from src.market.task import (
+    generate_note_summary_task,
+    generate_note_title_task,
+    mark_task_cancelled,
+)
+from src.market.task_labels import (
+    note_summary_label,
+    note_title_label,
+    record_task_label,
+    revoke_labelled_task,
+)
 from src.worker import huey
 
 logger = logging.getLogger(__name__)
@@ -575,6 +585,37 @@ async def market_delete_alert(
 
 
 # Security Notes endpoints
+async def _cancel_labelled_task(
+    request: Request, label: str, task_name: str, reason: str
+) -> None:
+    """Revoke the queued task under *label* and mark it cancelled.
+
+    Best-effort: failures are logged and swallowed so a delete request never
+    fails because of revocation bookkeeping.
+    """
+    task_id = await revoke_labelled_task(label)
+    if task_id is None:
+        return
+
+    state = getattr(request.app.state, "huey_dashboard", None)
+    db = state.get("db") if isinstance(state, dict) else None
+    if db is None:
+        logger.warning(
+            "No huey dashboard db available to mark task %s as cancelled", task_id
+        )
+        return
+
+    await mark_task_cancelled(db, task_id, task_name, reason)
+
+
+async def _dispatch_note_summary_task(security_id: SecurityId, user_id: UserId) -> None:
+    """Dispatch (and label) the persisted-summary regeneration task."""
+    summary_result = generate_note_summary_task(
+        security_id, user_id, request_id=get_request_id()
+    )
+    await record_task_label(note_summary_label(user_id, security_id), summary_result.id)
+
+
 @market_router.get("/securities/{security_id}/notes")
 async def market_get_notes(
     user: Annotated[User, Depends(current_user)],
@@ -610,9 +651,12 @@ async def market_create_note(
     logger.info("Created note %d for security %s", created_note.id, security_id)
 
     # Trigger title generation in background
-    generate_note_title_task(created_note.id, request_id=get_request_id())
+    title_result = generate_note_title_task(
+        created_note.id, request_id=get_request_id()
+    )
+    await record_task_label(note_title_label(user.id, created_note.id), title_result.id)
     # Regenerate the persisted note summary in background
-    generate_note_summary_task(security_id, user.id, request_id=get_request_id())
+    await _dispatch_note_summary_task(security_id, user.id)
 
     return created_note
 
@@ -633,15 +677,17 @@ async def market_update_note(
     logger.info("Updated note %d for security %s", note_id, security_id)
 
     # Trigger title update in background
-    generate_note_title_task(note_id, request_id=get_request_id())
-    # Regenerate the persisted note summary in background
-    generate_note_summary_task(security_id, user.id, request_id=get_request_id())
+    title_result = generate_note_title_task(note_id, request_id=get_request_id())
+    await record_task_label(note_title_label(user.id, note_id), title_result.id)
+    # Regenerate the persisted note summary in background (replace-on-write)
+    await _dispatch_note_summary_task(security_id, user.id)
 
     return updated_note
 
 
 @market_router.delete("/securities/{security_id}/notes/{note_id}")
 async def market_delete_note(
+    request: Request,
     user: Annotated[User, Depends(current_user)],
     security_id: SecurityId,
     note_id: int,
@@ -651,12 +697,28 @@ async def market_delete_note(
     Delete a note for a security
     """
     note_repository = await services.aget(SecurityNoteRepository)
+
+    # Cancel the note's queued title task and the (security, user) summary task
+    # before the fresh summary dispatch replaces the summary label.
+    await _cancel_labelled_task(
+        request,
+        note_title_label(user.id, note_id),
+        "generate_note_title_task",
+        "note deleted before execution",
+    )
+    await _cancel_labelled_task(
+        request,
+        note_summary_label(user.id, security_id),
+        "generate_note_summary_task",
+        "note deleted before execution",
+    )
+
     await note_repository.delete(note_id, user.id)
     logger.info("Deleted note %d for security %s", note_id, security_id)
 
     # Regenerate the persisted note summary in background (clears it if this
     # was the last note)
-    generate_note_summary_task(security_id, user.id, request_id=get_request_id())
+    await _dispatch_note_summary_task(security_id, user.id)
 
 
 # Security Documents endpoints
