@@ -120,8 +120,9 @@ async def test_prompt_includes_every_note_with_timestamps_and_recency_instructio
 
     summary = await service.summarize_notes(uuid4(), uuid4())
 
-    assert summary["long_summary"] == "### Summary\nDigest text"
-    assert summary["short_summary"] == "### Summary Digest text"
+    # Markdown headings/newlines are normalized app-side to plain text.
+    assert summary["long_summary"] == "Summary Digest text"
+    assert summary["short_summary"] == "Summary Digest text"
     create.assert_awaited_once()
 
     message = _user_message(create)
@@ -174,7 +175,7 @@ async def test_parses_labelled_short_and_long_parts():
 
     assert summary["short_summary"] == "Cautiously accumulating on weakness."
     assert summary["long_summary"] == (
-        "The user is buying weakness and watching earnings.\nSentiment stays long-term."
+        "The user is buying weakness and watching earnings. Sentiment stays long-term."
     )
 
 
@@ -278,3 +279,88 @@ async def test_unterminated_thinking_prefix_is_stripped():
 
     assert "[think]" not in summary["long_summary"]
     assert summary["short_summary"] == "Dense digest."
+
+
+# --- Real captured response: HTML-style <thought> block ----------------------
+# Verbatim (sanitized) sample captured from the worktree stack's configured
+# endpoint. The model prefixes its reasoning with a paired <thought> block and
+# glues the closing tag to the first labelled answer line.
+REAL_THOUGHT_SUMMARY_RESPONSE = (
+    "<thought>*   Security: VOO (Vanguard S&P 500 ETF)\n"
+    "    *   Notes:\n"
+    "        1. 2026-09-20: Added to position on dip, saving cash for October.\n"
+    "        2. 2026-09-18: Concerned about concentration risk (60% of portfolio).\n"
+    "    *   *Short Draft 1:* User maintains a long-term DCA strategy for VOO. "
+    "(147 chars) - Good.\n"
+    "    *   SHORT: DRAFT SHORT that must never be persisted.\n"
+    "    *   LONG: DRAFT LONG that must never be persisted.</thought>"
+    "SHORT: User maintains a long-term DCA strategy for VOO, buying the dip.\n\n"
+    "LONG: The user continues a long-term investment thesis using monthly "
+    "dollar-cost averaging. Concentration risk is a concern at 60% of the "
+    "portfolio, and cash is reserved for October."
+)
+
+
+@pytest.mark.anyio
+async def test_real_thought_block_is_stripped_and_labelled_answer_parsed():
+    service, _ = _build_service(
+        [_note("VOO", NOW)], content=REAL_THOUGHT_SUMMARY_RESPONSE
+    )
+
+    summary = await service.summarize_notes(uuid4(), uuid4())
+
+    assert summary["short_summary"] == (
+        "User maintains a long-term DCA strategy for VOO, buying the dip."
+    )
+    assert summary["long_summary"].startswith("The user continues a long-term")
+    assert "<thought" not in summary["long_summary"]
+    assert "</thought>" not in summary["long_summary"]
+    assert "DRAFT" not in summary["short_summary"]
+    assert "DRAFT" not in summary["long_summary"]
+    assert summary["long_summary"].count("*") == 0
+    assert len(summary["short_summary"]) <= 160
+
+
+@pytest.mark.anyio
+async def test_markdown_headings_and_bullets_are_normalized_app_side():
+    service, _ = _build_service(
+        [_note("Markdown", NOW)],
+        content=(
+            "SHORT: **Dense** digest.\n"
+            "LONG: # Heading\n\n- Bullet one\n- Bullet two\n\nBold **text** here."
+        ),
+    )
+
+    summary = await service.summarize_notes(uuid4(), uuid4())
+
+    assert summary["short_summary"] == "Dense digest."
+    assert summary["long_summary"] == "Heading Bullet one Bullet two Bold text here."
+    assert "#" not in summary["long_summary"]
+    assert "**" not in summary["long_summary"]
+    assert "\n" not in summary["long_summary"]
+
+
+@pytest.mark.anyio
+async def test_prompt_forbids_reasoning_tags_and_markdown():
+    service, create = _build_service([_note("Prompt", NOW)])
+
+    await service.summarize_notes(uuid4(), uuid4())
+
+    message = _user_message(create)
+    assert "<thought>" in message
+    assert "[think]" in message
+    assert "no markdown" in message
+    assert "no emojis" in message
+
+
+@pytest.mark.anyio
+async def test_thought_only_prose_never_becomes_the_stored_summary():
+    service, _ = _build_service(
+        [_note("Prose", NOW)],
+        content="<thought>Just reasoning prose with no labelled answer at all.</thought>",
+    )
+
+    summary = await service.summarize_notes(uuid4(), uuid4())
+
+    assert summary["long_summary"] == ""
+    assert summary["short_summary"] == ""
