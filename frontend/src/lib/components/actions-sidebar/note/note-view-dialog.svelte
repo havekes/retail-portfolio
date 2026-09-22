@@ -30,10 +30,14 @@
 		error = null;
 
 		try {
-			await notesService.updateNote(props.securityId, props.note.id, {
+			const updated = await notesService.updateNote(props.securityId, props.note.id, {
 				content: editContent.trim()
 			});
 			isEditing = false;
+			// Keep the modal state in sync so the view branch shows the saved content
+			// immediately (the group refetch replaces the list item, not this data).
+			editContent = updated.content;
+			props.modalState.data = updated;
 			props.onUpdated();
 		} catch (err) {
 			error = err instanceof Error ? err.message : 'Failed to update note';

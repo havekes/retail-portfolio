@@ -218,6 +218,9 @@ describe('NoteGroup', () => {
 			await fireEvent.click(screen.getByRole('button', { name: 'Edit' }));
 			const editArea = screen.getByPlaceholderText('Enter note content...');
 			await fireEvent.input(editArea, { target: { value: 'Updated content' } });
+
+			const updatedNote = { ...mockNote, content: 'Updated content' };
+			vi.mocked(notesService.updateNote).mockResolvedValue(updatedNote);
 			await fireEvent.click(screen.getByRole('button', { name: 'Save note' }));
 
 			await waitFor(() =>
@@ -225,6 +228,10 @@ describe('NoteGroup', () => {
 					content: 'Updated content'
 				})
 			);
+
+			// Save switches back to view mode and shows the saved content immediately
+			await waitFor(() => expect(screen.getByText('View note')).toBeInTheDocument());
+			await waitFor(() => expect(screen.getByText('Updated content')).toBeInTheDocument());
 		});
 
 		it('deletes a note after confirmation', async () => {
