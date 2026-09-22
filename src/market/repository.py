@@ -291,7 +291,7 @@ class SecurityNoteSummaryRepository(ABC):
     async def upsert(
         self, summary: NoteSummaryWrite, security_id: SecurityId, user_id: UserId
     ) -> NoteSummaryResponse:
-        pass
+        """Insert or update the two-part summary (short digest + paragraph)."""
 
     @abstractmethod
     async def delete(self, security_id: SecurityId, user_id: UserId) -> None:

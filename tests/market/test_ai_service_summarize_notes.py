@@ -69,6 +69,7 @@ def _price(security_id: SecurityId, day: date, close: str) -> PriceSchema:
 
 def _build_service(
     notes: list[SecurityNoteRead],
+    content: str = "### Summary\nDigest text",
 ) -> tuple[AIService, AsyncMock]:
     security_id = uuid4()
     security_repository = AsyncMock(spec=SecurityRepository)
@@ -97,11 +98,7 @@ def _build_service(
 
     create = AsyncMock(
         return_value=SimpleNamespace(
-            choices=[
-                SimpleNamespace(
-                    message=SimpleNamespace(content="### Summary\nDigest text")
-                )
-            ]
+            choices=[SimpleNamespace(message=SimpleNamespace(content=content))]
         )
     )
     client = MagicMock()
@@ -118,14 +115,13 @@ def _user_message(create: AsyncMock) -> str:
 
 @pytest.mark.anyio
 async def test_prompt_includes_every_note_with_timestamps_and_recency_instruction():
-    notes = [
-        _note(f"Note {i}", NOW - timedelta(days=i)) for i in range(7)
-    ]
+    notes = [_note(f"Note {i}", NOW - timedelta(days=i)) for i in range(7)]
     service, create = _build_service(notes)
 
     summary = await service.summarize_notes(uuid4(), uuid4())
 
-    assert summary == "### Summary\nDigest text"
+    assert summary["long_summary"] == "### Summary\nDigest text"
+    assert summary["short_summary"] == "### Summary Digest text"
     create.assert_awaited_once()
 
     message = _user_message(create)
@@ -158,5 +154,127 @@ async def test_no_notes_short_circuits_without_calling_the_api():
 
     summary = await service.summarize_notes(uuid4(), uuid4())
 
-    assert summary == "No notes found for this security."
+    assert summary == {
+        "short_summary": "No notes found for this security.",
+        "long_summary": "No notes found for this security.",
+    }
     create.assert_not_awaited()
+
+
+@pytest.mark.anyio
+async def test_parses_labelled_short_and_long_parts():
+    service, _ = _build_service(
+        [_note("Buy the dip", NOW)],
+        content="SHORT: Cautiously accumulating on weakness.\n"
+        "LONG: The user is buying weakness and watching earnings.\n"
+        "Sentiment stays long-term.",
+    )
+
+    summary = await service.summarize_notes(uuid4(), uuid4())
+
+    assert summary["short_summary"] == "Cautiously accumulating on weakness."
+    assert summary["long_summary"] == (
+        "The user is buying weakness and watching earnings.\nSentiment stays long-term."
+    )
+
+
+@pytest.mark.anyio
+async def test_derives_short_part_when_model_only_returns_long():
+    long_part = (
+        "Earnings were strong and guidance was raised for the full year. "
+        "The position was trimmed into strength after the run-up. "
+        "Valuation still looks full relative to peers."
+    )
+    service, _ = _build_service([_note("Trimmed", NOW)], content=f"LONG: {long_part}")
+
+    summary = await service.summarize_notes(uuid4(), uuid4())
+
+    assert summary["long_summary"] == long_part
+    # Derived from the paragraph's leading sentence(s), never the whole paragraph.
+    assert summary["short_summary"] == (
+        "Earnings were strong and guidance was raised for the full year. "
+        "The position was trimmed into strength after the run-up."
+    )
+    assert summary["short_summary"] != long_part
+    assert len(summary["short_summary"]) <= 160
+
+
+@pytest.mark.anyio
+async def test_short_part_is_hard_capped_at_160_chars():
+    service, _ = _build_service(
+        [_note("Long", NOW)], content=f"SHORT: {'x' * 300}\nLONG: Paragraph."
+    )
+
+    summary = await service.summarize_notes(uuid4(), uuid4())
+
+    assert len(summary["short_summary"]) == 160
+    assert summary["long_summary"] == "Paragraph."
+
+
+@pytest.mark.anyio
+async def test_unlabelled_response_becomes_the_long_part():
+    service, _ = _build_service(
+        [_note("Plain", NOW)], content="A plain digest without any labels."
+    )
+
+    summary = await service.summarize_notes(uuid4(), uuid4())
+
+    assert summary["long_summary"] == "A plain digest without any labels."
+    assert summary["short_summary"] == "A plain digest without any labels."
+
+
+@pytest.mark.anyio
+async def test_short_only_response_falls_back_to_the_short_part():
+    """A SHORT-only response must not store the raw labelled line as the paragraph."""
+    service, _ = _build_service(
+        [_note("Shorty", NOW)], content="SHORT: Cautiously accumulating on weakness."
+    )
+
+    summary = await service.summarize_notes(uuid4(), uuid4())
+
+    assert summary["long_summary"] == "Cautiously accumulating on weakness."
+    assert summary["short_summary"] == "Cautiously accumulating on weakness."
+
+
+@pytest.mark.anyio
+async def test_short_only_json_response_falls_back_to_the_short_part():
+    """A JSON body with only a short part must not leak the raw JSON blob."""
+    service, _ = _build_service(
+        [_note("JSON", NOW)], content='{"short_summary": "Trimmed into strength."}'
+    )
+
+    summary = await service.summarize_notes(uuid4(), uuid4())
+
+    assert summary["long_summary"] == "Trimmed into strength."
+    assert summary["short_summary"] == "Trimmed into strength."
+
+
+@pytest.mark.anyio
+async def test_thinking_tokens_are_stripped_from_both_parts():
+    service, _ = _build_service(
+        [_note("Think", NOW)],
+        content=(
+            "[think]Weighing the notes...[/think]\n"
+            "SHORT: Dense digest.\nLONG: A full paragraph."
+        ),
+    )
+
+    summary = await service.summarize_notes(uuid4(), uuid4())
+
+    assert summary["short_summary"] == "Dense digest."
+    assert summary["long_summary"] == "A full paragraph."
+    assert "[think]" not in summary["short_summary"]
+    assert "[think]" not in summary["long_summary"]
+
+
+@pytest.mark.anyio
+async def test_unterminated_thinking_prefix_is_stripped():
+    service, _ = _build_service(
+        [_note("Think", NOW)],
+        content="SHORT: Dense digest.\nLONG: Paragraph.\n[think]and then it stops",
+    )
+
+    summary = await service.summarize_notes(uuid4(), uuid4())
+
+    assert "[think]" not in summary["long_summary"]
+    assert summary["short_summary"] == "Dense digest."

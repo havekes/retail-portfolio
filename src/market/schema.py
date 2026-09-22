@@ -18,6 +18,11 @@ from src.market.api_types import (
 )
 from src.market.enum import PriceInterval, WatchlistSortMode
 
+# Hard cap for the short (high-level) summary digest. Lives here (not in
+# ``ai_service``) so the ORM model and the write schema can share it as a
+# column/pydantic length without importing the AI service (circular import).
+MAX_SHORT_SUMMARY_LENGTH = 160
+
 
 class SecuritySchema(BaseModel):
     model_config = ConfigDict(from_attributes=True)
@@ -233,20 +238,23 @@ class SecurityNoteWrite(BaseModel):
 class NoteSummaryWrite(BaseModel):
     """Write payload for a persisted note summary.
 
-    ``generated_at`` is accepted for API symmetry but is informational only:
-    the persistence layer stamps the database transaction time
-    (``func.now()``) and ignores the supplied value, so there is a single
-    clock (the database) and no app/DB skew.
+    ``short_summary`` is the high-level digest (hard capped at 160 characters)
+    and ``long_summary`` the one-paragraph detail. ``generated_at`` is accepted
+    for API symmetry but is informational only: the persistence layer stamps
+    the database transaction time (``func.now()``) and ignores the supplied
+    value, so there is a single clock (the database) and no app/DB skew.
     """
 
-    summary: str
+    short_summary: str = Field(max_length=MAX_SHORT_SUMMARY_LENGTH)
+    long_summary: str
     generated_at: datetime
 
 
 class NoteSummaryResponse(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
-    summary: str | None = None
+    short_summary: str | None = None
+    long_summary: str | None = None
     generated_at: datetime | None = None
 
 

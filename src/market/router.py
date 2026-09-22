@@ -1060,7 +1060,13 @@ async def market_ai_summarize_notes(
     """
     ai_service = await services.aget(AIService)
     try:
-        content = await ai_service.summarize_notes(security_id, user.id)
+        summary = await ai_service.summarize_notes(security_id, user.id)
+        # This endpoint renders one text blob; the on-demand "Summarize Notes"
+        # action shows the full paragraph, so the short digest is prefixed as a
+        # lead-in and the long part is the body.
+        content = summary["long_summary"]
+        if summary["short_summary"]:
+            content = f"{summary['short_summary']}\n\n{summary['long_summary']}"
         return AIAnalysisResponse(
             content=content, generated_at=datetime.now(UTC).isoformat()
         )

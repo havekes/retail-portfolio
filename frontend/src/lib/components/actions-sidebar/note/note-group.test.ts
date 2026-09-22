@@ -19,7 +19,8 @@ vi.mock('$lib/api/notesService', () => ({
 import { notesService } from '$lib/api/notesService';
 
 const persistedSummary = {
-	summary: 'Persisted summary',
+	short_summary: 'Persisted summary',
+	long_summary: 'Persisted summary paragraph with more detail.',
 	generated_at: '2026-09-01T12:00:00Z'
 };
 
@@ -271,9 +272,68 @@ describe('NoteGroup', () => {
 			expect(item.compareDocumentPosition(summary) & Node.DOCUMENT_POSITION_PRECEDING).toBeTruthy();
 		});
 
+		it('shows only the short digest inline', async () => {
+			renderGroup(true);
+
+			expect(await screen.findByText('Persisted summary')).toBeInTheDocument();
+			// The long part is dialog-only.
+			expect(
+				screen.queryByText('Persisted summary paragraph with more detail.')
+			).not.toBeInTheDocument();
+		});
+
+		it('truncates the rendered short digest at 160 chars', async () => {
+			const longShort = 'x'.repeat(300);
+			vi.mocked(notesService.getLatestSummary).mockResolvedValue({
+				short_summary: longShort,
+				long_summary: 'Long paragraph.',
+				generated_at: 't0'
+			});
+			renderGroup(true);
+
+			const rendered = await screen.findByTitle('Show full summary');
+			expect(rendered.textContent?.trim()).toHaveLength(160);
+		});
+
+		it('opens a dialog with the long summary on click and closes on Escape', async () => {
+			renderGroup(true);
+
+			await fireEvent.click(await screen.findByTitle('Show full summary'));
+
+			const long = await screen.findByText('Persisted summary paragraph with more detail.');
+			expect(long).toBeInTheDocument();
+
+			await fireEvent.keyDown(document.activeElement ?? document.body, { key: 'Escape' });
+
+			await waitFor(() =>
+				expect(
+					screen.queryByText('Persisted summary paragraph with more detail.')
+				).not.toBeInTheDocument()
+			);
+		});
+
+		it('falls back to the short digest in the dialog when no long summary exists', async () => {
+			vi.mocked(notesService.getLatestSummary).mockResolvedValue({
+				short_summary: 'Only a digest.',
+				long_summary: null,
+				generated_at: 't0'
+			});
+			renderGroup(true);
+
+			await fireEvent.click(await screen.findByTitle('Show full summary'));
+
+			// Rendered both inline and in the dialog (fallback), so assert on the
+			// dialog content element rather than a unique text node.
+			const dialogContent = document.querySelector(
+				'[data-slot="dialog-content"][data-state="open"]'
+			);
+			expect(dialogContent?.textContent).toContain('Only a digest.');
+		});
+
 		it('shows a pending state when no summary has been generated yet', async () => {
 			vi.mocked(notesService.getLatestSummary).mockResolvedValue({
-				summary: null,
+				short_summary: null,
+				long_summary: null,
 				generated_at: null
 			});
 			renderGroup(true);
@@ -299,9 +359,21 @@ describe('NoteGroup', () => {
 
 		it('re-fetches and shows the updated summary after a note is created', async () => {
 			vi.mocked(notesService.getLatestSummary)
-				.mockResolvedValueOnce({ summary: 'Old summary', generated_at: 't0' })
-				.mockResolvedValueOnce({ summary: 'Old summary', generated_at: 't0' })
-				.mockResolvedValue({ summary: 'New summary', generated_at: 't1' });
+				.mockResolvedValueOnce({
+					short_summary: 'Old summary',
+					long_summary: 'Old long.',
+					generated_at: 't0'
+				})
+				.mockResolvedValueOnce({
+					short_summary: 'Old summary',
+					long_summary: 'Old long.',
+					generated_at: 't0'
+				})
+				.mockResolvedValue({
+					short_summary: 'New summary',
+					long_summary: 'New long.',
+					generated_at: 't1'
+				});
 			renderGroup(true);
 			await screen.findByText('Old summary');
 
@@ -316,9 +388,21 @@ describe('NoteGroup', () => {
 
 		it('re-fetches and shows the updated summary after a note is updated', async () => {
 			vi.mocked(notesService.getLatestSummary)
-				.mockResolvedValueOnce({ summary: 'Old summary', generated_at: 't0' })
-				.mockResolvedValueOnce({ summary: 'Old summary', generated_at: 't0' })
-				.mockResolvedValue({ summary: 'New summary', generated_at: 't1' });
+				.mockResolvedValueOnce({
+					short_summary: 'Old summary',
+					long_summary: 'Old long.',
+					generated_at: 't0'
+				})
+				.mockResolvedValueOnce({
+					short_summary: 'Old summary',
+					long_summary: 'Old long.',
+					generated_at: 't0'
+				})
+				.mockResolvedValue({
+					short_summary: 'New summary',
+					long_summary: 'New long.',
+					generated_at: 't1'
+				});
 			renderGroup(true);
 			await screen.findByText('Old summary');
 
@@ -334,9 +418,21 @@ describe('NoteGroup', () => {
 
 		it('re-fetches and shows the updated summary after a note is deleted', async () => {
 			vi.mocked(notesService.getLatestSummary)
-				.mockResolvedValueOnce({ summary: 'Old summary', generated_at: 't0' })
-				.mockResolvedValueOnce({ summary: 'Old summary', generated_at: 't0' })
-				.mockResolvedValue({ summary: 'New summary', generated_at: 't1' });
+				.mockResolvedValueOnce({
+					short_summary: 'Old summary',
+					long_summary: 'Old long.',
+					generated_at: 't0'
+				})
+				.mockResolvedValueOnce({
+					short_summary: 'Old summary',
+					long_summary: 'Old long.',
+					generated_at: 't0'
+				})
+				.mockResolvedValue({
+					short_summary: 'New summary',
+					long_summary: 'New long.',
+					generated_at: 't1'
+				});
 			renderGroup(true);
 			await screen.findByText('Old summary');
 
@@ -371,9 +467,13 @@ describe('NoteGroup', () => {
 
 		it('shows the summary once regeneration lands after a pending state', async () => {
 			vi.mocked(notesService.getLatestSummary)
-				.mockResolvedValueOnce({ summary: null, generated_at: null })
-				.mockResolvedValueOnce({ summary: null, generated_at: null })
-				.mockResolvedValue({ summary: 'Brand new summary', generated_at: 't1' });
+				.mockResolvedValueOnce({ short_summary: null, long_summary: null, generated_at: null })
+				.mockResolvedValueOnce({ short_summary: null, long_summary: null, generated_at: null })
+				.mockResolvedValue({
+					short_summary: 'Brand new summary',
+					long_summary: 'Brand new long.',
+					generated_at: 't1'
+				});
 			renderGroup(true);
 			await screen.findByText(/summary pending/i);
 
@@ -388,14 +488,18 @@ describe('NoteGroup', () => {
 		it('announces regeneration when no summary is persisted yet', async () => {
 			let resolveRefresh!: (value: SecurityNoteSummary) => void;
 			vi.mocked(notesService.getLatestSummary)
-				.mockResolvedValueOnce({ summary: null, generated_at: null })
+				.mockResolvedValueOnce({ short_summary: null, long_summary: null, generated_at: null })
 				.mockImplementationOnce(
 					() =>
 						new Promise<SecurityNoteSummary>((resolve) => {
 							resolveRefresh = resolve;
 						})
 				)
-				.mockResolvedValue({ summary: 'Fresh summary', generated_at: 't1' });
+				.mockResolvedValue({
+					short_summary: 'Fresh summary',
+					long_summary: 'Fresh long.',
+					generated_at: 't1'
+				});
 			renderGroup(true);
 			await screen.findByText(/summary pending/i);
 
@@ -408,7 +512,11 @@ describe('NoteGroup', () => {
 			// progress, not the static pending copy.
 			expect(await screen.findByText(/generating summary/i)).toBeInTheDocument();
 
-			resolveRefresh({ summary: 'Fresh summary', generated_at: 't1' });
+			resolveRefresh({
+				short_summary: 'Fresh summary',
+				long_summary: 'Fresh long.',
+				generated_at: 't1'
+			});
 			expect(await screen.findByText('Fresh summary')).toBeInTheDocument();
 		});
 

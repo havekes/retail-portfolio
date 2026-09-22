@@ -99,6 +99,48 @@ async def test_blank_response_falls_back_without_summary():
 
 
 @pytest.mark.anyio
+async def test_thinking_tokens_are_stripped_before_parsing():
+    service, _ = _build_service(
+        "[think]Let me reason about this note...[/think]\n"
+        "TITLE: Earnings beat\n"
+        "SUMMARY: The company beat earnings and raised guidance."
+    )
+
+    title, summary = await service.generate_note_title_and_summary("Some note body")
+
+    assert title == "Earnings beat"
+    assert summary == "The company beat earnings and raised guidance."
+    assert "[think]" not in title
+    assert summary is not None
+    assert "[think]" not in summary
+
+
+@pytest.mark.anyio
+async def test_unterminated_thinking_prefix_swallows_the_tagged_lines():
+    """A truncated `[think]` prefix must never leak; title falls back, no summary."""
+    service, _ = _build_service(
+        "TITLE: Real title\nSUMMARY: Real summary.\n[think]and generation stops here"
+    )
+
+    title, summary = await service.generate_note_title_and_summary("Some note body")
+
+    # Everything from `[think]` onward is reasoning, but the tagged lines before
+    # it still parse (the strip only cuts at the opening tag).
+    assert title == "Real title"
+    assert summary == "Real summary."
+
+
+@pytest.mark.anyio
+async def test_whole_response_is_thinking_falls_back_to_content_title():
+    service, _ = _build_service("[think]Only reasoning, no answer at all")
+
+    title, summary = await service.generate_note_title_and_summary("Actual content")
+
+    assert title == "Actual content"
+    assert summary is None
+
+
+@pytest.mark.anyio
 async def test_generate_note_title_delegates_to_combined_call():
     service, create = _build_service("TITLE: Delegated title\nSUMMARY: A sentence.")
 
