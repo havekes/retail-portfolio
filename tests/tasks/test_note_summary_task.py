@@ -27,8 +27,12 @@ from src.market.repository_sqlalchemy import (
     SqlAlchemySecurityNoteRepository,
     SqlAlchemySecurityNoteSummaryRepository,
 )
-from src.market.schema import NoteSummaryWrite, SecurityNoteWrite
-from src.market.task import _generate_note_summary, generate_note_summary_task
+from src.market.schema import NoteSummaryWrite, SecurityNoteRead, SecurityNoteWrite
+from src.market.task import (
+    _generate_note_summary,
+    generate_note_summary_task,
+    mark_task_cancelled,
+)
 from src.worker import huey
 
 
@@ -87,8 +91,10 @@ async def _seed_note(
     security_id: SecurityId,
     user_id: UserId,
     content: str = "Consider adding on weakness",
-) -> None:
-    await repository.create(SecurityNoteWrite(content=content), security_id, user_id)
+) -> SecurityNoteRead:
+    return await repository.create(
+        SecurityNoteWrite(content=content), security_id, user_id
+    )
 
 
 async def _seed_summary(
@@ -245,6 +251,102 @@ async def test_no_registry_returns_without_touching_anything(
         await _generate_note_summary(note_security.id, uuid4())
 
     ai_service.summarize_notes.assert_not_awaited()
+
+
+@pytest.mark.anyio
+async def test_notes_deleted_during_ai_call_discards_result_and_clears_summary(
+    db_session: AsyncSession,
+    note_security: SecurityModel,
+    caplog: pytest.LogCaptureFixture,
+):
+    """Delete-DURING the AI call: no upsert, stored summary cleared, INFO log."""
+    user_id = uuid4()
+    note_repository = SqlAlchemySecurityNoteRepository(db_session)
+    summary_repository = SqlAlchemySecurityNoteSummaryRepository(db_session)
+    note = await _seed_note(note_repository, note_security.id, user_id)
+    assert note is not None
+    await _seed_summary(summary_repository, note_security.id, user_id, "Stale digest")
+
+    ai_service = AsyncMock(spec=AIService)
+    ai_service.summarize_notes.return_value = {
+        "short_summary": "Late digest",
+        "long_summary": "Late digest paragraph.",
+    }
+
+    original_get = note_repository.get_by_security_and_user
+    calls = {"n": 0}
+
+    async def _get_then_delete(
+        security_id: SecurityId, uid: UserId, offset: int = 0, limit: int = 50
+    ):
+        calls["n"] += 1
+        if calls["n"] > 1:
+            await note_repository.delete(note.id, user_id)
+        return await original_get(security_id, uid, offset=offset, limit=limit)
+
+    with (
+        _task_environment(note_repository, summary_repository, ai_service),
+        patch.object(
+            note_repository, "get_by_security_and_user", side_effect=_get_then_delete
+        ),
+        patch.object(summary_repository, "upsert", new=AsyncMock()) as mock_upsert,
+        caplog.at_level("INFO"),
+    ):
+        await _generate_note_summary(note_security.id, user_id)
+
+    ai_service.summarize_notes.assert_awaited_once()
+    mock_upsert.assert_not_awaited()
+    assert await summary_repository.get(note_security.id, user_id) is None
+    assert "Discarded note summary" in caplog.text
+    assert "cleared stored summary — notes deleted during generation" in caplog.text
+
+
+@pytest.mark.anyio
+async def test_notes_still_present_after_ai_call_persists_summary(
+    db_session: AsyncSession, note_security: SecurityModel
+):
+    """Normal path unchanged: the post-AI re-check passes and the row is written."""
+    user_id = uuid4()
+    note_repository = SqlAlchemySecurityNoteRepository(db_session)
+    summary_repository = SqlAlchemySecurityNoteSummaryRepository(db_session)
+    await _seed_note(note_repository, note_security.id, user_id)
+
+    ai_service = AsyncMock(spec=AIService)
+    ai_service.summarize_notes.return_value = {
+        "short_summary": "Fresh digest",
+        "long_summary": "Fresh digest paragraph.",
+    }
+
+    with _task_environment(note_repository, summary_repository, ai_service):
+        await _generate_note_summary(note_security.id, user_id)
+
+    stored = await summary_repository.get(note_security.id, user_id)
+    assert stored is not None
+    assert stored.long_summary == "Fresh digest paragraph."
+
+
+@pytest.mark.anyio
+async def test_mark_task_cancelled_writes_cancelled_row() -> None:
+    db = AsyncMock()
+
+    await mark_task_cancelled(db, "task-1", "generate_note_title_task", "note deleted")
+
+    db.upsert_task.assert_awaited_once()
+    info = db.upsert_task.await_args.args[0]
+    assert info.id == "task-1"
+    assert info.name == "generate_note_title_task"
+    assert info.status == "cancelled"
+    assert info.error == "note deleted"
+    assert info.timestamp is not None
+
+
+@pytest.mark.anyio
+async def test_mark_task_cancelled_swallows_dashboard_errors() -> None:
+    db = AsyncMock()
+    db.upsert_task.side_effect = RuntimeError("dashboard db down")
+
+    # must not raise: dashboard bookkeeping never breaks a request
+    await mark_task_cancelled(db, "task-1", "generate_note_title_task", "note deleted")
 
 
 def test_task_wrapper_runs_async_logic():
