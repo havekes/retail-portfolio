@@ -16,7 +16,7 @@ from src.market.api_types import (
     SecuritySearchResult,
     WatchlistId,
 )
-from src.market.enum import PriceInterval
+from src.market.enum import PriceInterval, WatchlistSortMode
 
 
 class SecuritySchema(BaseModel):
@@ -36,6 +36,13 @@ class SecuritySchema(BaseModel):
 
     def get_eodhd_symbol(self) -> str:
         return f"{self.symbol}.{self.exchange}"
+
+
+class WatchlistSecuritySchema(SecuritySchema):
+    """A security as seen inside a watchlist, with its membership metadata."""
+
+    added_at: AwareDatetime
+    position: int
 
 
 class SecurityBrokerSchema(BaseModel):
@@ -99,10 +106,11 @@ class WatchlistSchema(BaseModel):
     id: WatchlistId
     user_id: UserId
     name: str
+    sort: WatchlistSortMode = WatchlistSortMode.CUSTOM
 
 
 class WatchlistRead(WatchlistSchema):
-    securities: list[SecuritySchema]
+    securities: list[WatchlistSecuritySchema]
 
 
 class WatchlistCreate(BaseModel):
