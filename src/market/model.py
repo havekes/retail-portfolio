@@ -189,6 +189,22 @@ class SecurityNoteModel(BaseModel):
     )
 
 
+class SecurityNoteSummaryModel(BaseModel):
+    __tablename__ = "market_security_note_summaries"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    security_id: Mapped[SecurityId] = mapped_column(
+        Uuid, ForeignKey("market_securities.id", ondelete="CASCADE")
+    )
+    user_id: Mapped[UserId] = mapped_column(Uuid)
+    summary: Mapped[str] = mapped_column(String)
+    generated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), default=func.now()
+    )
+
+    __table_args__ = (UniqueConstraint("security_id", "user_id"),)
+
+
 class SecurityDocumentModel(BaseModel):
     __tablename__ = "market_security_documents"
 
