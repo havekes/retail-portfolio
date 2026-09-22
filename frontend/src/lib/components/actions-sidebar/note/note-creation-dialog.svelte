@@ -16,6 +16,7 @@
 	let content = $state('');
 	let isLoading = $state(false);
 	let error = $state<string | null>(null);
+	let contentTextarea = $state<HTMLTextAreaElement | null>(null);
 
 	async function handleSubmit() {
 		if (!content.trim()) {
@@ -52,7 +53,15 @@
 <Dialog.Root bind:open={modalState.isOpen}>
 	<Dialog.Portal>
 		<Dialog.Overlay />
-		<Dialog.Content onkeydown={handleKeyDown}>
+		<Dialog.Content
+			onkeydown={handleKeyDown}
+			onOpenAutoFocus={(event) => {
+				// Content-first: skip bits-ui's default focus placement and put the
+				// caret straight in the note body.
+				event.preventDefault();
+				contentTextarea?.focus();
+			}}
+		>
 			<Dialog.Header>
 				<Dialog.Title>Add note</Dialog.Title>
 				<Dialog.Description>Your notes are private and only visible to you.</Dialog.Description>
@@ -70,6 +79,7 @@
 				<div class="space-y-2">
 					<Textarea
 						id="note-content"
+						bind:ref={contentTextarea}
 						bind:value={content}
 						placeholder="Enter your note here..."
 						rows={6}
