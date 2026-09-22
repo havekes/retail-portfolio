@@ -25,10 +25,11 @@ async def test_security(db_session):
 @pytest.mark.anyio
 async def test_create_note_triggers_title_generation(auth_client, test_user, test_security, db_session):
     mock_title = "AI Generated Title"
-    
+    mock_summary = "The note describes a test scenario."
+
     # Setup mock container for the background task
     mock_ai_service = AsyncMock(spec=AIService)
-    mock_ai_service.generate_note_title.return_value = mock_title
+    mock_ai_service.generate_note_title_and_summary.return_value = (mock_title, mock_summary)
     
     note_repo = SqlAlchemySecurityNoteRepository(db_session)
     
@@ -75,6 +76,7 @@ async def test_create_note_triggers_title_generation(auth_client, test_user, tes
         notes = response.json()
         assert len(notes["items"]) == 1
         assert notes["items"][0]["title"] == mock_title
+        assert notes["items"][0]["summary"] == mock_summary
 
 @pytest.mark.anyio
 async def test_update_note_triggers_title_generation(auth_client, test_user, test_security, db_session):
@@ -93,10 +95,11 @@ async def test_update_note_triggers_title_generation(auth_client, test_user, tes
     
     # 2. Update the note and check title generation
     mock_title = "Updated AI Title"
-    
+    mock_summary = "The updated note describes changed content."
+
     # Setup mock container for the background task
     mock_ai_service = AsyncMock(spec=AIService)
-    mock_ai_service.generate_note_title.return_value = mock_title
+    mock_ai_service.generate_note_title_and_summary.return_value = (mock_title, mock_summary)
     
     note_repo = SqlAlchemySecurityNoteRepository(db_session)
     
@@ -140,6 +143,7 @@ async def test_update_note_triggers_title_generation(auth_client, test_user, tes
         notes = response.json()
         assert len(notes["items"]) == 1
         assert notes["items"][0]["title"] == mock_title
+        assert notes["items"][0]["summary"] == mock_summary
 
 
 @pytest.mark.anyio

@@ -219,6 +219,7 @@ class SecurityNoteRead(BaseModel):
     security_id: SecurityId
     user_id: UserId
     title: str | None = None
+    summary: str | None = None
     content: str
     created_at: datetime
     updated_at: datetime

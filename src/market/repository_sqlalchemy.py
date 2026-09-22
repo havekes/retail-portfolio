@@ -1154,6 +1154,19 @@ class SqlAlchemySecurityNoteRepository(SecurityNoteRepository):
             await self._session.commit()
 
     @override
+    async def update_title_and_summary(
+        self, note_id: int, title: str, summary: str | None
+    ) -> None:
+        result = await self._session.execute(
+            select(SecurityNoteModel).where(SecurityNoteModel.id == note_id)
+        )
+        note_model = result.scalar_one_or_none()
+        if note_model:
+            note_model.title = title
+            note_model.summary = summary
+            await self._session.commit()
+
+    @override
     async def delete(self, note_id: int, user_id: UserId) -> None:
         await self._session.execute(
             delete(SecurityNoteModel)
