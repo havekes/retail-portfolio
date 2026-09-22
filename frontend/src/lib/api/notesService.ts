@@ -21,7 +21,8 @@ export interface SecurityNoteUpdateRequest {
 }
 
 export interface SecurityNoteSummary {
-	summary: string | null;
+	short_summary: string | null;
+	long_summary: string | null;
 	generated_at: string | null;
 }
 

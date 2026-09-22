@@ -2,6 +2,7 @@
 	import { notesService } from '$lib/api/notesService';
 	import { ApiError } from '$lib/api/apiClient';
 	import { Skeleton } from '$lib/components/ui/skeleton/index.js';
+	import * as Dialog from '$lib/components/ui/dialog/index.js';
 	import Sparkles from '@lucide/svelte/icons/sparkles';
 	import SidebarError from '../sidebar-error.svelte';
 
@@ -17,11 +18,16 @@
 		maxPollAttempts?: number;
 	}>();
 
-	let summary = $state<string | null>(null);
+	/** The backend hard-caps the short digest at 160 chars; enforce it on render too. */
+	const SHORT_SUMMARY_MAX_LENGTH = 160;
+
+	let shortSummary = $state<string | null>(null);
+	let longSummary = $state<string | null>(null);
 	let generatedAt = $state<string | null>(null);
 	let isLoading = $state(true);
 	let error = $state<string | null>(null);
 	let regenerating = $state(false);
+	let dialogOpen = $state(false);
 
 	// Every load/refresh takes a token; a newer request (or an unmount) makes older
 	// in-flight requests and scheduled polls no-ops so responses can never race.
@@ -57,11 +63,16 @@
 		return err instanceof ApiError ? err.message : 'Failed to load summary';
 	}
 
+	function renderShort(text: string): string {
+		return text.slice(0, SHORT_SUMMARY_MAX_LENGTH);
+	}
+
 	async function fetchSummary(token: number, id: string): Promise<'ok' | 'error' | 'stale'> {
 		try {
 			const result = await notesService.getLatestSummary(id);
 			if (token !== requestToken) return 'stale';
-			summary = result.summary;
+			shortSummary = result.short_summary;
+			longSummary = result.long_summary;
 			generatedAt = result.generated_at;
 			error = null;
 			return 'ok';
@@ -108,7 +119,7 @@
 				regenerating = false;
 				return;
 			}
-			if (generatedAt !== baseline || (baseline === null && summary !== null)) {
+			if (generatedAt !== baseline || (baseline === null && shortSummary !== null)) {
 				regenerating = false;
 				return;
 			}
@@ -147,11 +158,16 @@
 
 	{#if error}
 		<SidebarError message={error} onretry={retry} />
-	{:else if summary}
+	{:else if shortSummary}
 		<div>
-			<p class="rounded-md bg-accent/50 p-3 text-xs leading-relaxed whitespace-pre-wrap">
-				{summary}
-			</p>
+			<button
+				type="button"
+				class="w-full rounded-md bg-accent/50 p-3 text-left text-xs leading-relaxed transition-colors hover:bg-accent"
+				title="Show full summary"
+				onclick={() => (dialogOpen = true)}
+			>
+				{renderShort(shortSummary)}
+			</button>
 			{#if regenerating}
 				<p class="mt-1 text-[10px] text-muted-foreground">Updating summary…</p>
 			{/if}
@@ -164,3 +180,19 @@
 		</p>
 	{/if}
 </div>
+
+<Dialog.Root bind:open={dialogOpen}>
+	<Dialog.Portal>
+		<Dialog.Content class="z-[60] max-w-lg">
+			<Dialog.Header>
+				<Dialog.Title>AI summary</Dialog.Title>
+				<Dialog.Description>Full AI summary of your notes for this security.</Dialog.Description>
+			</Dialog.Header>
+			<div
+				class="mt-4 max-h-[50vh] overflow-y-auto rounded-md bg-accent/30 p-4 text-sm leading-relaxed whitespace-pre-wrap"
+			>
+				{longSummary ?? shortSummary}
+			</div>
+		</Dialog.Content>
+	</Dialog.Portal>
+</Dialog.Root>
