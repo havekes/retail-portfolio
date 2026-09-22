@@ -165,6 +165,40 @@ describe('Watchlists page - rendering and sections', () => {
 		expect(msftLink).toHaveClass('hover:bg-muted');
 	});
 
+	it('shows the formatted date added as muted secondary text', () => {
+		renderPage([
+			watchlist('wl-dates', 'Dates', [security('sec-1', 'AAPL', 180, 1.2, '2026-01-01T00:00:00Z')])
+		]);
+
+		const section = screen.getByRole('region', { name: 'Dates securities' });
+		const added = within(section).getByTitle('Added');
+
+		expect(added).toHaveTextContent('Jan 1, 2026');
+		expect(added).toHaveClass('text-xs');
+		expect(added).toHaveClass('text-muted-foreground');
+	});
+
+	it('omits the date added when it is missing or invalid without breaking the row', () => {
+		renderPage([
+			watchlist('wl-dates', 'Dates', [
+				security('sec-1', 'AAPL', 180, 1.2, ''),
+				security('sec-2', 'MSFT', 200, -0.5, 'not-a-date')
+			])
+		]);
+
+		const section = screen.getByRole('region', { name: 'Dates securities' });
+
+		expect(within(section).queryByTitle('Added')).not.toBeInTheDocument();
+		expect(within(section).getByRole('link', { name: /AAPL/ })).toHaveAttribute(
+			'href',
+			'/security/sec-1'
+		);
+		expect(within(section).getByRole('link', { name: /MSFT/ })).toHaveAttribute(
+			'href',
+			'/security/sec-2'
+		);
+	});
+
 	it('renders empty message for watchlists without securities', () => {
 		renderPage([watchlist('wl-empty', 'Empty List', [])]);
 

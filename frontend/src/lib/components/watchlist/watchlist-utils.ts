@@ -181,3 +181,25 @@ export function formatPriceChangePercent(
 	}
 	return `${formatted}%`;
 }
+
+/**
+ * Formats a security's `added_at` timestamp for display, e.g. "Jan 1, 2024".
+ * Explicit `en-US` locale and UTC time zone keep the output deterministic
+ * regardless of the viewer's environment. Returns `null` when the value is
+ * absent or unparseable so callers can omit the element entirely.
+ */
+export function formatDateAdded(added: string | null | undefined): string | null {
+	if (added == null || added === '') {
+		return null;
+	}
+	const date = new Date(added);
+	if (Number.isNaN(date.getTime())) {
+		return null;
+	}
+	return date.toLocaleDateString('en-US', {
+		month: 'short',
+		day: 'numeric',
+		year: 'numeric',
+		timeZone: 'UTC'
+	});
+}
