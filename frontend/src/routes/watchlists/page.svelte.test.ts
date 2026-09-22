@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach, beforeAll } from 'vitest';
 import { render, screen, fireEvent, waitFor, within } from '@testing-library/svelte';
 import type { Component } from 'svelte';
-import type { SecuritySchema, WatchlistRead } from '@/api/marketService';
+import type { WatchlistRead, WatchlistSecuritySchema } from '@/api/marketService';
 
 vi.mock('$app/paths', () => ({
 	resolve: (path: string) => path
@@ -54,7 +54,7 @@ function security(
 	symbol: string,
 	price?: number | null,
 	changePercent?: number | null
-): SecuritySchema {
+): WatchlistSecuritySchema {
 	return {
 		id,
 		symbol,
@@ -64,14 +64,16 @@ function security(
 		isin: null,
 		is_active: true,
 		updated_at: '2026-01-01T00:00:00Z',
+		added_at: '2026-01-01T00:00:00Z',
+		position: 0,
 		current_price: price,
 		daily_price_change: null,
 		daily_price_change_percent: changePercent
 	};
 }
 
-function watchlist(id: string, name: string, securities: SecuritySchema[]): WatchlistRead {
-	return { id, user_id: 'user-1', name, securities };
+function watchlist(id: string, name: string, securities: WatchlistSecuritySchema[]): WatchlistRead {
+	return { id, user_id: 'user-1', name, sort: 'custom', securities };
 }
 
 const defaultList = () =>

@@ -12,6 +12,7 @@ function makeWatchlist(id: string, name: string): WatchlistRead {
 		id,
 		user_id: 'user-1',
 		name,
+		sort: 'custom',
 		securities: []
 	};
 }
