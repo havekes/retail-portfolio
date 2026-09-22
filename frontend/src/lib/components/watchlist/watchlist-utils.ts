@@ -1,4 +1,22 @@
-import type { SecuritySchema, WatchlistRead } from '$lib/api/marketService';
+import type { WatchlistRead, WatchlistSecuritySchema, WatchlistSort } from '$lib/api/marketService';
+
+const WATCHLIST_SORT_KEYS: WatchlistSort[] = [
+	'custom',
+	'name_asc',
+	'price_change_desc',
+	'price_change_asc',
+	'date_added',
+	'date_added_asc'
+];
+
+/**
+ * Narrows a persisted (or absent) watchlist sort key to the known `WatchlistSort`
+ * union. Anything unrecognised — including `undefined`/`null` from older payloads —
+ * falls back to `custom`.
+ */
+export function normalizeWatchlistSort(sort?: string | null): WatchlistSort {
+	return WATCHLIST_SORT_KEYS.includes(sort as WatchlistSort) ? (sort as WatchlistSort) : 'custom';
+}
 
 /**
  * Sorts an array of watchlists according to an array of watchlist IDs.
@@ -33,22 +51,27 @@ export function sortWatchlistsByOrder<T extends Pick<WatchlistRead, 'id'>>(
 
 /**
  * Sorts securities based on sortKey:
+ * - 'custom': Insertion order, ascending `position` (oldest added first)
  * - 'name_asc': Alphabetical by name ascending
  * - 'name_desc': Alphabetical by name descending
  * - 'price_change_desc': Highest price change percentage first (gainers)
  * - 'price_change_asc': Lowest price change percentage first (losers)
+ * - 'date_added': Most recently added first (descending `added_at`)
+ * - 'date_added_asc': Oldest first (ascending `added_at`)
+ *
+ * Absent or unrecognised keys fall back to the custom (`position`) order.
  */
 export function sortSecurities(
-	securities: SecuritySchema[],
+	securities: WatchlistSecuritySchema[],
 	sortKey?: string | null
-): SecuritySchema[] {
-	if (!sortKey) {
-		return [...securities];
-	}
-
+): WatchlistSecuritySchema[] {
 	const list = [...securities];
+	const byPosition = (a: WatchlistSecuritySchema, b: WatchlistSecuritySchema) =>
+		(a.position ?? 0) - (b.position ?? 0);
 
 	switch (sortKey) {
+		case 'custom':
+			return list.sort(byPosition);
 		case 'name_asc':
 			return list.sort((a, b) => (a.name || '').localeCompare(b.name || ''));
 		case 'name_desc':
@@ -71,8 +94,13 @@ export function sortSecurities(
 				if (bVal == null) return -1;
 				return Number(aVal) - Number(bVal);
 			});
+		case 'date_added':
+			return list.sort((a, b) => (b.added_at ?? '').localeCompare(a.added_at ?? ''));
+		case 'date_added_asc':
+			return list.sort((a, b) => (a.added_at ?? '').localeCompare(b.added_at ?? ''));
 		default:
-			return list;
+			// Absent or unrecognised keys (including stale ones) fall back to custom order.
+			return list.sort(byPosition);
 	}
 }
 

@@ -4,7 +4,8 @@ import {
 	type MarketSearchResult,
 	type MarketService,
 	type WatchlistRead,
-	type WatchlistSecuritySchema
+	type WatchlistSecuritySchema,
+	type WatchlistSort
 } from '@/api/marketService';
 import { WatchlistService } from './watchlistService.svelte';
 
@@ -27,8 +28,13 @@ function security(id: string, symbol: string): WatchlistSecuritySchema {
 	};
 }
 
-function watchlist(id: string, name: string, securities: WatchlistSecuritySchema[]): WatchlistRead {
-	return { id, user_id: 'user-1', name, sort: 'custom', securities };
+function watchlist(
+	id: string,
+	name: string,
+	securities: WatchlistSecuritySchema[],
+	sort: WatchlistSort = 'custom'
+): WatchlistRead {
+	return { id, user_id: 'user-1', name, sort, securities };
 }
 
 const aapl = security('sec-1', 'AAPL');
@@ -45,6 +51,7 @@ function makeClient() {
 		getWatchlists: vi.fn(),
 		createWatchlist: vi.fn(),
 		renameWatchlist: vi.fn(),
+		updateWatchlistSort: vi.fn(),
 		deleteWatchlist: vi.fn(),
 		addSecurityToWatchlist: vi.fn(),
 		removeSecurityFromWatchlist: vi.fn(),
@@ -137,6 +144,37 @@ describe('WatchlistService.renameWatchlist', () => {
 
 		expect(service.error).toBe('Watchlist name already in use');
 		expect(service.watchlists[0].name).toBe('Tech');
+	});
+});
+
+describe('WatchlistService.setSort', () => {
+	it('persists the sort and replaces the returned watchlist in state', async () => {
+		service.watchlists = [defaultList(), techList()];
+		const updatedSecurities = [aapl, msft, nvda];
+		client.updateWatchlistSort.mockResolvedValue(
+			watchlist('wl-tech', 'Tech', updatedSecurities, 'date_added')
+		);
+
+		await service.setSort('wl-tech', 'date_added', 'tok');
+
+		expect(client.updateWatchlistSort).toHaveBeenCalledWith('wl-tech', 'date_added', 'tok');
+		const stored = service.watchlists.find((w) => w.id === 'wl-tech');
+		expect(stored?.sort).toBe('date_added');
+		expect(stored?.securities.map((s) => s.id)).toEqual(['sec-1', 'sec-2', 'sec-3']);
+		// Unrelated watchlists are untouched.
+		expect(service.watchlists.find((w) => w.id === 'wl-default')?.sort).toBe('custom');
+		expect(service.error).toBeNull();
+	});
+
+	it('sets the error and leaves state untouched when the PATCH fails', async () => {
+		service.watchlists = [defaultList(), techList()];
+		client.updateWatchlistSort.mockRejectedValue(new Error('Watchlist not found'));
+
+		await service.setSort('wl-tech', 'date_added');
+
+		expect(service.error).toBe('Watchlist not found');
+		expect(service.watchlists.find((w) => w.id === 'wl-tech')?.sort).toBe('custom');
+		expect(client.getWatchlists).not.toHaveBeenCalled();
 	});
 });
 
@@ -437,6 +475,7 @@ describe('WatchlistService error lifecycle', () => {
 		client.getWatchlists.mockResolvedValue([]);
 		client.createWatchlist.mockResolvedValue(watchlist('wl-new', 'New', []));
 		client.renameWatchlist.mockResolvedValue(watchlist('wl-tech', 'Tech', [nvda]));
+		client.updateWatchlistSort.mockResolvedValue(watchlist('wl-tech', 'Tech', [nvda]));
 		client.deleteWatchlist.mockResolvedValue(undefined);
 		client.addSecurityToWatchlist.mockResolvedValue(watchlist('wl-tech', 'Tech', [nvda, aapl]));
 		client.removeSecurityFromWatchlist.mockResolvedValue(watchlist('wl-tech', 'Tech', []));
@@ -447,6 +486,7 @@ describe('WatchlistService error lifecycle', () => {
 			['loadWatchlists', () => service.loadWatchlists()],
 			['createWatchlist', () => service.createWatchlist('New')],
 			['renameWatchlist', () => service.renameWatchlist('wl-tech', 'Tech')],
+			['setSort', () => service.setSort('wl-tech', 'name_asc')],
 			['deleteWatchlist', () => service.deleteWatchlist('wl-tech')],
 			['addSecurity', () => service.addSecurity('wl-tech', searchResult('AAPL'))],
 			['removeSecurity', () => service.removeSecurity('wl-tech', 'sec-1')],

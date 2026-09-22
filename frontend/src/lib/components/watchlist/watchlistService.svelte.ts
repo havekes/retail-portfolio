@@ -2,7 +2,8 @@ import {
 	getMarketService,
 	type MarketSearchResult,
 	type MarketService,
-	type WatchlistRead
+	type WatchlistRead,
+	type WatchlistSort
 } from '@/api/marketService';
 import { getContext, setContext } from 'svelte';
 
@@ -138,6 +139,21 @@ export class WatchlistService {
 			this.replaceWatchlist(updated);
 		} catch (err) {
 			this.handleError(err, 'Failed to rename watchlist');
+		}
+	}
+
+	/**
+	 * Persist a watchlist's sort mode and swap in the returned list. The response
+	 * carries both the new `sort` and the securities already ordered by the backend,
+	 * so no optimistic local update is applied before it resolves.
+	 */
+	async setSort(watchlistId: string, sort: WatchlistSort, token?: string | null): Promise<void> {
+		this.error = null;
+		try {
+			const updated = await this.client.updateWatchlistSort(watchlistId, sort, token);
+			this.replaceWatchlist(updated);
+		} catch (err) {
+			this.handleError(err, 'Failed to update watchlist sort');
 		}
 	}
 
