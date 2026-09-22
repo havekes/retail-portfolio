@@ -1,6 +1,7 @@
 import json
 import logging
 import re
+import time
 from collections.abc import Callable
 from datetime import UTC, date, datetime, timedelta, timezone
 from typing import TypedDict, cast
@@ -21,6 +22,18 @@ logger = logging.getLogger(__name__)
 
 
 MAX_TITLE_LENGTH = 50
+
+
+def _http_error_status(e: Exception) -> str | int | None:
+    """Best-effort HTTP status from an OpenAI SDK exception."""
+    return getattr(e, "status_code", None) or e.__class__.__name__
+
+
+def _http_error_body(e: Exception) -> str | None:
+    """Best-effort response/error detail from an OpenAI SDK exception (truncated)."""
+    body = getattr(e, "body", None) or getattr(e, "message", None)
+    return str(body)[:500] if body else None
+
 
 # Stable sentence so tests (and prompt consumers) can assert the recency
 # weighting instruction is present.
@@ -58,6 +71,7 @@ class AIService:
         self._security_repository = security_repository
         self._price_repository = price_repository
         self._notes_repository = notes_repository
+        self._api_base_url = api_endpoint
         self._client = AsyncOpenAI(
             api_key=api_key,
             base_url=api_endpoint.replace("/chat/completions", ""),
@@ -139,6 +153,13 @@ class AIService:
             AI response content
         """
         build_prompt = prompt_builder or self._build_context_prompt
+        logger.info(
+            "Calling AI API: model=%s endpoint=%s prompt_chars=%d",
+            self._api_model,
+            self._api_base_url,
+            len(build_prompt(prompt, context)),
+        )
+        started_at = time.monotonic()
         try:
             response = await self._client.chat.completions.create(
                 model=self._api_model,
@@ -164,13 +185,26 @@ class AIService:
             if not content:
                 self._raise_empty_response()
         except Exception as e:
-            logger.exception("AI API request failed")
+            failed_after_s = time.monotonic() - started_at
+            failure_status = _http_error_status(e)
+            failure_detail = _http_error_body(e)
+            logger.exception(
+                "AI API request failed after %.2fs: status=%s detail=%s",
+                failed_after_s,
+                failure_status,
+                failure_detail,
+            )
             msg = f"AI service unavailable: {e!s}"
             raise RuntimeError(msg) from None
         else:
             if not isinstance(content, str):
                 self._raise_content_type_error()
             content_str = cast("str", content)
+            logger.info(
+                "AI API request completed in %.2fs: response_chars=%d",
+                time.monotonic() - started_at,
+                len(content_str),
+            )
             return re.sub(
                 r"<think>.*?</think>", "", content_str, count=0, flags=re.DOTALL
             ).strip()
