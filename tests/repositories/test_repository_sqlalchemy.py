@@ -941,7 +941,12 @@ async def test_watchlist_repository_delete_cascades_membership(
     db_session.add(security)
     await db_session.flush()
     db_session.add(
-        WatchlistsSecuritiesModel(watchlist_id=created.id, security_id=security.id)
+        WatchlistsSecuritiesModel(
+            watchlist_id=created.id,
+            security_id=security.id,
+            added_at=datetime.datetime.now(datetime.UTC),
+            position=1,
+        )
     )
     await db_session.commit()
 
@@ -974,6 +979,76 @@ async def test_watchlist_repository_delete_cascades_membership(
     other_watchlist = await watchlist_repo.create(other.id, "Other")
     with pytest.raises(WatchlistNotFoundError):
         await watchlist_repo.delete(other_watchlist.id, user.id)
+
+
+@pytest.mark.anyio
+async def test_watchlist_membership_position_and_added_at(
+    db_session: AsyncSession,
+):
+    """Membership inserts append positions and stamp a tz-aware added_at."""
+    user_repo = SqlAlchemyUserRepository(db_session)
+    watchlist_repo = SqlAlchemyWatchlistRepository(db_session)
+
+    user = await user_repo.create_user(
+        "watchlist_position_test@example.com", "password123"
+    )
+    watchlist = await watchlist_repo.create(user.id, "Ordered")
+
+    securities = [
+        SecurityModel(
+            id=uuid.uuid4(),
+            symbol=f"POS{i}",
+            exchange="US",
+            currency="USD",
+            name=f"Position Test {i}",
+            isin=None,
+            is_active=True,
+            updated_at=datetime.datetime.now(datetime.UTC),
+        )
+        for i in range(3)
+    ]
+    db_session.add_all(securities)
+    await db_session.flush()
+
+    async def membership_rows() -> list[tuple[int, datetime.datetime]]:
+        result = await db_session.execute(
+            select(
+                WatchlistsSecuritiesModel.position,
+                WatchlistsSecuritiesModel.added_at,
+            )
+            .where(WatchlistsSecuritiesModel.watchlist_id == watchlist.id)
+            .order_by(WatchlistsSecuritiesModel.position)
+        )
+        return [(position, added_at) for position, added_at in result.all()]
+
+    # Positions are appended in add order; every membership gets an added_at.
+    for security in securities[:2]:
+        await watchlist_repo.add_security_to_watchlist(
+            watchlist.id, user.id, security.id
+        )
+    rows = await membership_rows()
+    assert [position for position, _ in rows] == [1, 2]
+    assert all(added_at is not None for _, added_at in rows)
+    assert all(added_at.tzinfo is not None for _, added_at in rows)
+
+    # Re-adding an existing membership is idempotent.
+    await watchlist_repo.add_security_to_watchlist(
+        watchlist.id, user.id, securities[0].id
+    )
+    assert [position for position, _ in await membership_rows()] == [1, 2]
+
+    # Removing frees the position; re-adding appends after the current maximum.
+    await watchlist_repo.remove_security_from_watchlist(
+        watchlist.id, user.id, securities[0].id
+    )
+    refreshed = await watchlist_repo.add_security_to_watchlist(
+        watchlist.id, user.id, securities[0].id
+    )
+    assert sorted(position for position, _ in await membership_rows()) == [2, 3]
+    assert {s.id for s in refreshed.securities} == {
+        securities[0].id,
+        securities[1].id,
+    }
 
 
 @pytest.mark.anyio

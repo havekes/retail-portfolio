@@ -31,6 +31,7 @@ from src.market.model import (
     SecurityModel,
     SecurityNoteModel,
     WatchlistModel,
+    WatchlistsSecuritiesModel,
 )
 from src.market.repository import (
     ChartSnapshotRepository,
@@ -678,12 +679,45 @@ class SqlAlchemyWatchlistRepository(WatchlistRepository):
 
         watchlist_model = await self._get_owned(watchlist_id, user_id)
 
-        if security_model not in watchlist_model.securities:
-            watchlist_model.securities.append(security_model)
+        # The ``securities`` relationship cannot write the association columns
+        # (``added_at`` / ``position``), so the membership is inserted explicitly.
+        existing_membership = await self._session.scalar(
+            select(WatchlistsSecuritiesModel.security_id)
+            .where(WatchlistsSecuritiesModel.watchlist_id == watchlist_model.id)
+            .where(WatchlistsSecuritiesModel.security_id == security_id)
+            .limit(1)
+        )
+        if existing_membership is None:
+            # ``position`` is application-managed: append after the watchlist's
+            # current maximum. Not concurrency-safe under simultaneous adds,
+            # which is acceptable for single-user watchlists.
+            next_position = (
+                select(
+                    func.coalesce(func.max(WatchlistsSecuritiesModel.position), 0) + 1
+                )
+                .where(WatchlistsSecuritiesModel.watchlist_id == watchlist_model.id)
+                .scalar_subquery()
+            )
+            await self._session.execute(
+                insert(WatchlistsSecuritiesModel).values(
+                    watchlist_id=watchlist_model.id,
+                    security_id=security_id,
+                    added_at=func.now(),
+                    position=next_position,
+                )
+            )
             await self._session.commit()
 
+        # Reload the watchlist so the ORM collection reflects the explicit
+        # INSERT above (the loaded collection is stale otherwise).
+        result = await self._session.execute(
+            select(WatchlistModel)
+            .options(selectinload(WatchlistModel.securities))
+            .where(WatchlistModel.id == watchlist_model.id)
+            .execution_options(populate_existing=True)
+        )
         return await self._enrich_watchlist(
-            WatchlistRead.model_validate(watchlist_model)
+            WatchlistRead.model_validate(result.scalar_one())
         )
 
     @override
