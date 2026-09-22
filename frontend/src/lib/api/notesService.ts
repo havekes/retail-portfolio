@@ -19,6 +19,11 @@ export interface SecurityNoteUpdateRequest {
 	content: string;
 }
 
+export interface SecurityNoteSummary {
+	summary: string | null;
+	generated_at: string | null;
+}
+
 export class NotesService extends ApiClient {
 	async getNotes(securityId: string): Promise<PaginatedResponse<SecurityNote>> {
 		return await this.get<PaginatedResponse<SecurityNote>>(
@@ -46,6 +51,10 @@ export class NotesService extends ApiClient {
 
 	async deleteNote(securityId: string, noteId: number): Promise<void> {
 		return await this.delete(`/market/securities/${securityId}/notes/${noteId}`);
+	}
+
+	async getLatestSummary(securityId: string): Promise<SecurityNoteSummary> {
+		return await this.get<SecurityNoteSummary>(`/market/securities/${securityId}/ai/notes-summary`);
 	}
 }
 
