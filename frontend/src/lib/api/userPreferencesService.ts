@@ -74,7 +74,6 @@ export interface UserPreferences {
 	wave_settings?: WaveSettings | null;
 	chart_hide_labels?: boolean | null;
 	watchlist_order?: string[] | null;
-	watchlist_sort?: Record<string, string> | null;
 	holdings_table?: HoldingsTableConfig | null;
 	holdings_group?: HoldingsGroupMode | null;
 	indicator_pane_heights?: Record<string, number> | null;

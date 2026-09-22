@@ -445,13 +445,6 @@ describe('Watchlists page - per-watchlist stock sorting', () => {
 			.map((link) => link.querySelector('span')?.textContent?.trim() ?? '');
 	}
 
-	function wroteWatchlistSortPreference(): boolean {
-		return mocks.preferences.patchPreferences.mock.calls.some((call) => {
-			const payload = (call as unknown[])[0] as Record<string, unknown> | undefined;
-			return !!payload && Object.prototype.hasOwnProperty.call(payload, 'watchlist_sort');
-		});
-	}
-
 	it('lists exactly the six sort options in order', async () => {
 		renderPage([watchlist('wl-1', 'Tech', [security('s1', 'AAPL')])]);
 
@@ -487,7 +480,6 @@ describe('Watchlists page - per-watchlist stock sorting', () => {
 			expect(mocks.client.updateWatchlistSort).toHaveBeenCalledWith('wl-1', 'name_asc', undefined)
 		);
 		await waitFor(() => expect(rowSymbols()).toEqual(['AAPL', 'MSFT', 'TSLA']));
-		expect(wroteWatchlistSortPreference()).toBe(false);
 	});
 
 	it('persists gainers and losers selections', async () => {
@@ -621,7 +613,6 @@ describe('Watchlists page - per-watchlist stock sorting', () => {
 		await waitFor(() =>
 			expect(mocks.client.updateWatchlistSort).toHaveBeenCalledWith('wl-1', 'custom', undefined)
 		);
-		expect(wroteWatchlistSortPreference()).toBe(false);
 	});
 });
 
