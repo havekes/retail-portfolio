@@ -133,6 +133,10 @@ class WatchlistsSecuritiesModel(BaseModel):
     security_id: Mapped[SecurityId] = mapped_column(
         Uuid, ForeignKey("market_securities.id", ondelete="CASCADE"), primary_key=True
     )
+    added_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), default=func.now()
+    )
+    position: Mapped[int] = mapped_column(Integer)
 
 
 class WatchlistModel(BaseModel):
@@ -141,6 +145,7 @@ class WatchlistModel(BaseModel):
     id: Mapped[WatchlistId] = mapped_column(Uuid, primary_key=True, default=uuid4)
     user_id: Mapped[UserId] = mapped_column(Uuid)
     name: Mapped[str] = mapped_column(String)
+    sort: Mapped[str] = mapped_column(String, server_default="custom", default="custom")
 
     securities: Mapped[list[SecurityModel]] = relationship(
         secondary="market_watchlists_securities",
