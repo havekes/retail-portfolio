@@ -272,6 +272,30 @@ describe('watchlist-utils', () => {
 			expect(downMove).not.toHaveBeenCalled();
 		});
 
+		it('drives an up/up/down walk through one counting onMove callback', () => {
+			// Mirrors the keyboard reorder contract: each press hands the handler the
+			// item's *current* index, so reversing direction keeps resolving one slot
+			// per press instead of going dead.
+			const onMove = vi.fn();
+			const up1 = event('ArrowUp');
+			const up2 = event('ArrowUp');
+			const down = event('ArrowDown');
+
+			expect(handleReorderKeydown(up1, 2, 3, onMove)).toBe(true);
+			expect(handleReorderKeydown(up2, 1, 3, onMove)).toBe(true);
+			expect(handleReorderKeydown(down, 0, 3, onMove)).toBe(true);
+
+			expect(onMove).toHaveBeenCalledTimes(3);
+			expect(onMove.mock.calls).toEqual([
+				[2, 1],
+				[1, 0],
+				[0, 1]
+			]);
+			expect(up1.preventDefault).toHaveBeenCalledTimes(1);
+			expect(up2.preventDefault).toHaveBeenCalledTimes(1);
+			expect(down.preventDefault).toHaveBeenCalledTimes(1);
+		});
+
 		it('leaves non-arrow keys untouched', () => {
 			const e = event('Enter');
 			const onMove = vi.fn();
