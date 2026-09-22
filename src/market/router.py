@@ -16,7 +16,13 @@ from src.config.limiter import limiter
 from src.config.settings import settings
 from src.core.context import get_request_id
 from src.core.pagination import PaginatedResponse, PaginationParams
-from src.market.ai_service import AIService
+from src.market.ai_service import (
+    AIService,
+    clean_note_title,
+    clean_short_summary,
+    derive_short_summary,
+    normalize_long_summary,
+)
 from src.market.api import SecurityApi
 from src.market.api_types import SecurityId, SecuritySearchResult, WatchlistId
 from src.market.cache import IndicatorCache, SecuritySearchCache
@@ -616,6 +622,40 @@ async def _dispatch_note_summary_task(security_id: SecurityId, user_id: UserId) 
     await record_task_label(note_summary_label(user_id, security_id), summary_result.id)
 
 
+def _sanitize_note_read(note: SecurityNoteRead) -> SecurityNoteRead:
+    """Clean a note's legacy AI fields on read so markers never render.
+
+    Rows persisted before the response cleaner existed may still carry
+    reasoning markers (``<thought>``/``[think]``) or markdown in their title
+    and one-sentence summary. Cleaning on read is idempotent, keeps the UI
+    clean without a data migration, and the next dispatched regeneration
+    replaces the stored row for good.
+    """
+    return note.model_copy(
+        update={
+            "title": clean_note_title(note.title),
+            "summary": clean_short_summary(note.summary),
+        }
+    )
+
+
+def _sanitize_summary_read(summary: NoteSummaryResponse) -> NoteSummaryResponse:
+    """Self-heal the persisted two-part summary on read (legacy rows).
+
+    Strips reasoning/markdown, re-applies the app-side caps and re-derives the
+    short digest from the cleaned long part when it is missing.
+    """
+    long_summary = (
+        normalize_long_summary(summary.long_summary) if summary.long_summary else None
+    )
+    short_summary = clean_short_summary(summary.short_summary)
+    if short_summary is None and long_summary:
+        short_summary = derive_short_summary(long_summary) or None
+    return summary.model_copy(
+        update={"short_summary": short_summary, "long_summary": long_summary}
+    )
+
+
 @market_router.get("/securities/{security_id}/notes")
 async def market_get_notes(
     user: Annotated[User, Depends(current_user)],
@@ -632,7 +672,10 @@ async def market_get_notes(
     )
     logger.info("Retrieved %d notes for security %s", len(notes), security_id)
     return PaginatedResponse(
-        items=notes, total=total, offset=pagination.offset, limit=pagination.limit
+        items=[_sanitize_note_read(note) for note in notes],
+        total=total,
+        offset=pagination.offset,
+        limit=pagination.limit,
     )
 
 
@@ -1155,7 +1198,7 @@ async def market_get_notes_summary(
     if summary is None:
         logger.info("No notes summary found for security %s", security_id)
         return NoteSummaryResponse()
-    return summary
+    return _sanitize_summary_read(summary)
 
 
 @market_router.post("/securities/{security_id}/ai/portfolio-debate")

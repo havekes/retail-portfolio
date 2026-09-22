@@ -24,22 +24,198 @@ logger = logging.getLogger(__name__)
 
 MAX_TITLE_LENGTH = 50
 
-# The local model (Gemma) emits reasoning in ``[think] ... [/think]`` blocks
-# before the answer. ``_strip_think`` removes both complete blocks and an
-# unterminated ``[think]`` prefix (generation truncated mid-reasoning).
-_THINK_PAIRED_RE = re.compile(r"\[think\].*?\[/think\]", re.DOTALL)
-_THINK_UNTERMINATED_RE = re.compile(r"\[think\].*", re.DOTALL)
+# Hard cap for the cleaned long summary. The prompt asks for 3-5 sentences;
+# anything beyond this is markdown/reasoning noise and is trimmed app-side so a
+# stored ``long_summary`` can never grow unbounded. Documented value: 1200
+# characters (after reasoning/markdown stripping and whitespace collapsing).
+MAX_LONG_SUMMARY_LENGTH = 1200
+
+# Reasoning markers the configured model (Gemma) emits *before* the answer.
+# Captured from the real endpoint: HTML-style ``<thought>...</thought>`` (the
+# closing tag is frequently glued to the first answer line, e.g.
+# ``</thought>SHORT: ...``), ``<think>...</think>``, and the older lowercase
+# ``[think]...[/think]`` flavour. Anything after an *unterminated* opening
+# marker is reasoning too (generation truncated mid-thought).
+# Content of a paired block must not itself contain another reasoning tag, so
+# each pass removes the *innermost* block. :func:`_strip_paired_reasoning` then
+# loops until the text stops changing, which peels a nested chain outwards
+# (``<thought>a<thought>b</thought>c</thought>`` → ``tail``, not ``ctail``).
+_PAIRED_REASONING_RE = re.compile(
+    r"<(?:thought|think)\b[^>]*>(?:(?!</?(?:thought|think)\b).)*?</(?:thought|think)\s*>",
+    re.IGNORECASE | re.DOTALL,
+)
+_BRACKET_PAIRED_REASONING_RE = re.compile(
+    r"\[think\](?:(?!\[/?think\]).)*?\[/think\]", re.IGNORECASE | re.DOTALL
+)
+_UNTERMINATED_REASONING_RE = re.compile(
+    r"<(?:thought|think)\b[^>]*>.*\Z|\[think\].*\Z",
+    re.IGNORECASE | re.DOTALL,
+)
+# Single tag remnants left once the paired blocks are gone (for example the
+# orphan ``</thought>`` before an otherwise well-formed ``TITLE:`` line).
+_STRAY_REASONING_TAG_RE = re.compile(r"</?(?:thought|think)\s*/?>", re.IGNORECASE)
+# Reasoning tags only (contents preserved) — used by the salvage path.
+_REASONING_TAG_ONLY_RE = re.compile(
+    r"</?(?:thought|think)\b[^>]*>|\[/?think\]", re.IGNORECASE
+)
+
+# Markdown markers stripped from stored summaries. Kept deliberately narrow:
+# headings, bullets/ordered lists, blockquotes, bold markers and inline code.
+# Single ``*``/``_`` are left alone so ordinary prose is never mangled.
+_MARKDOWN_HEADING_RE = re.compile(r"^[ \t]*#{1,6}[ \t]*", re.MULTILINE)
+_MARKDOWN_BULLET_RE = re.compile(r"^[ \t]*[-*+\u2022][ \t]+", re.MULTILINE)
+_MARKDOWN_ORDERED_RE = re.compile(r"^[ \t]*\d+[.)][ \t]+", re.MULTILINE)
+_MARKDOWN_BLOCKQUOTE_RE = re.compile(r"^[ \t]*>[ \t]?", re.MULTILINE)
 
 
-def _strip_think(content: str) -> str:
-    """Remove reasoning tokens from a model response.
+def _strip_paired_reasoning(content: str) -> str:
+    """Remove every paired reasoning block, including nested ones.
 
-    Handles the complete ``[think]...[/think]`` pair *and* an unterminated
-    ``[think]`` prefix (when generation is cut off mid-reasoning, everything
-    from the opening tag onward is reasoning and must not be persisted).
+    Each regex pass removes the innermost block, so a nested chain collapses
+    outwards; the loop repeats until the text stops changing. Callers then
+    apply the unterminated-marker rule to whatever opening tag is left.
     """
-    without_pairs = _THINK_PAIRED_RE.sub("", content)
-    return _THINK_UNTERMINATED_RE.sub("", without_pairs).strip()
+    previous: str | None = None
+    cleaned = content
+    while cleaned != previous:
+        previous = cleaned
+        cleaned = _PAIRED_REASONING_RE.sub("", cleaned)
+        cleaned = _BRACKET_PAIRED_REASONING_RE.sub("", cleaned)
+    return cleaned
+
+
+def strip_reasoning(content: str) -> str:
+    """Remove every known reasoning marker from a model response.
+
+    Handles HTML-style ``<thought>``/``<think>`` blocks and the lowercase
+    ``[think]`` flavour, in any casing, at any position and in any number of
+    blocks, including nested blocks. Both the paired form and an unterminated
+    opening marker are removed; when generation is cut off mid-reasoning,
+    everything from the opening marker onward is reasoning and must never be
+    persisted or rendered.
+
+    Idempotent: safe to apply on generation *and* again on read.
+    """
+    cleaned = _strip_paired_reasoning(content)
+    cleaned = _UNTERMINATED_REASONING_RE.sub("", cleaned)
+    cleaned = _STRAY_REASONING_TAG_RE.sub("", cleaned)
+    return cleaned.strip()
+
+
+def remove_reasoning_tags(content: str) -> str:
+    """Remove only the reasoning *tags*, keeping whatever sits between them.
+
+    Used purely as a salvage path: the configured model sometimes emits its
+    entire (labelled) answer inside the thought block and nothing after it. A
+    salvage parse of this text still only accepts explicit ``LABEL:`` lines, so
+    free-form reasoning prose is never treated as an answer.
+    """
+    return _REASONING_TAG_ONLY_RE.sub("", content).strip()
+
+
+def _strip_markdown(text: str) -> str:
+    """Strip lightweight markdown markers from summary text."""
+    stripped = _MARKDOWN_HEADING_RE.sub("", text)
+    stripped = _MARKDOWN_BULLET_RE.sub("", stripped)
+    stripped = _MARKDOWN_ORDERED_RE.sub("", stripped)
+    stripped = _MARKDOWN_BLOCKQUOTE_RE.sub("", stripped)
+    return stripped.replace("**", "").replace("__", "").replace("`", "")
+
+
+def normalize_long_summary(text: str) -> str:
+    """Normalize a long summary to plain, single-paragraph text.
+
+    Applies :func:`strip_reasoning`, removes markdown headings/bullets/bold
+    markers, collapses all whitespace (including blank lines) into single
+    spaces and hard-caps the result at :data:`MAX_LONG_SUMMARY_LENGTH`.
+    """
+    cleaned = _strip_markdown(strip_reasoning(text))
+    collapsed = " ".join(cleaned.split())
+    return collapsed[:MAX_LONG_SUMMARY_LENGTH].strip()
+
+
+def clean_short_summary(text: str | None) -> str | None:
+    """Normalize a short digest to plain text, hard-capped at 160 characters.
+
+    Returns ``None`` for ``None``/blank input so callers can fall back to
+    deriving the digest from the long form.
+    """
+    if text is None:
+        return None
+    cleaned = normalize_long_summary(text)
+    return cleaned[:MAX_SHORT_SUMMARY_LENGTH] or None
+
+
+def clean_note_title(title: str | None) -> str | None:
+    """Normalize an AI-generated (or legacy stored) title to plain text.
+
+    Strips reasoning markers and markdown, collapses whitespace, removes
+    wrapping quotes and hard-caps at :data:`MAX_TITLE_LENGTH`. Returns ``None``
+    for blank input.
+    """
+    if not title:
+        return None
+    cleaned = " ".join(_strip_markdown(strip_reasoning(title)).split())
+    if (cleaned.startswith('"') and cleaned.endswith('"')) or (
+        cleaned.startswith("'") and cleaned.endswith("'")
+    ):
+        cleaned = cleaned[1:-1]
+    return cleaned[:MAX_TITLE_LENGTH] or None
+
+
+def derive_short_summary(long_summary: str) -> str:
+    """Derive a dense short digest from the paragraph's first sentence(s).
+
+    Takes leading sentences until they would overflow
+    :data:`MAX_SHORT_SUMMARY_LENGTH`, then hard-truncates. Returns ``""``
+    when there is nothing to derive from.
+    """
+    text = " ".join(long_summary.split())
+    if not text:
+        return ""
+    if len(text) <= MAX_SHORT_SUMMARY_LENGTH:
+        return text
+
+    sentences = re.split(r"(?<=[.!?])\s+", text)
+    digest = ""
+    for sentence in sentences:
+        candidate = f"{digest} {sentence}".strip()
+        if len(candidate) > MAX_SHORT_SUMMARY_LENGTH:
+            break
+        digest = candidate
+    if digest:
+        return digest
+    return text[:MAX_SHORT_SUMMARY_LENGTH]
+
+
+# Characters that may legitimately precede a ``LABEL:`` marker in model output:
+# spaces/tabs, markdown bullets and bold markers, blockquote markers and inline
+# code ticks. Anything else before the label means the line is prose, not a label.
+_LABEL_LEADING_NOISE = r"[ \t*+\->\u2022#_`]*"
+
+
+def _labelled_value(line: str, label: str) -> str | None:
+    """Return the value of ``LABEL:`` in *line*, or ``None`` when absent.
+
+    Unlike a bare ``startswith`` check this tolerates the leading noise the
+    configured model actually emits: a markdown bullet (``*   SHORT: ...``) or
+    an orphan reasoning tag (the tag itself is removed by
+    :func:`strip_reasoning` before parsing).
+    """
+    match = re.match(rf"{_LABEL_LEADING_NOISE}{label}\s*:\s*(.*)", line, re.IGNORECASE)
+    return match.group(1).strip() if match else None
+
+
+def _strict_labelled_value(line: str, label: str) -> str | None:
+    """Return the value of a ``LABEL:`` that *starts* line, or ``None``.
+
+    Unlike :func:`_labelled_value` this tolerates only leading whitespace, not
+    markdown bullets/blockquote markers. The normal (non-salvage) parse path
+    uses it so a noisy prose line such as ``*   Title: we need something short``
+    is never mistaken for a labelled title.
+    """
+    match = re.match(rf"[ \t]*{label}\s*:\s*(.*)", line, re.IGNORECASE)
+    return match.group(1).strip() if match else None
 
 
 def _http_error_status(e: Exception) -> str | int | None:
@@ -160,7 +336,7 @@ class AIService:
         self,
         prompt: str,
         context: AIContext,
-        timeout: int = 60,
+        timeout: int = 90,
         prompt_builder: Callable[[str, AIContext], str] | None = None,
     ) -> str:
         """
@@ -195,8 +371,9 @@ class AIService:
                             "You are a helpful financial analysis assistant. "
                             "Provide clear, actionable insights based on the "
                             "provided data. Use markdown formatting for readability. "
-                            "Answer directly: never include reasoning or "
-                            "[think]...[/think] blocks in your reply."
+                            "Answer directly: never include reasoning, thought "
+                            "tags such as <thought> or [think], or emojis in your "
+                            "reply."
                         ),
                     },
                     {
@@ -232,7 +409,7 @@ class AIService:
                 time.monotonic() - started_at,
                 len(content_str),
             )
-            return _strip_think(content_str)
+            return strip_reasoning(content_str)
 
     def _raise_content_type_error(self) -> None:
         msg = "AI response content is not a string"
@@ -334,11 +511,12 @@ class AIService:
         prompt_parts.append(RECENCY_WEIGHTING_INSTRUCTION)
         prompt_parts.append(f"\n{prompt}\n")
         prompt_parts.append(
-            "\nReply with exactly two labelled parts, nothing else:\n"
+            "\nReply in plain text with exactly these two lines and nothing else:\n"
             f"SHORT: <one information-dense sentence, maximum "
             f"{MAX_SHORT_SUMMARY_LENGTH} characters>\n"
-            "LONG: <one short paragraph, 3-5 sentences, no markdown headings>\n"
-            "Do not include reasoning or [think]...[/think] blocks."
+            "LONG: <one paragraph, 3-5 sentences>\n"
+            "Rules: no <thought>, <think> or [think] blocks; no markdown (no "
+            "#, **, -, bullets, headings); no emojis; overall sentiment only."
         )
 
         return "".join(prompt_parts)
@@ -411,7 +589,9 @@ class AIService:
         short: str | None = None
         long: str | None = None
 
-        text = raw.strip()
+        # Reasoning is stripped defensively here too: the cleaner is idempotent
+        # and this parser is also reachable from stored/legacy text.
+        text = strip_reasoning(raw)
         payload = AIService._parse_json_summary_parts(text)
         if payload is not None:
             short, long = payload
@@ -422,19 +602,17 @@ class AIService:
         if long is None:
             # SHORT-only or malformed labelled output: fall back to the short
             # part itself rather than storing the raw labelled/JSON text as
-            # the paragraph. (_derive_short_summary below then re-derives the
+            # the paragraph. (derive_short_summary below then re-derives the
             # digest from it.)
             long = short
             if long is None:
                 # Unlabelled response: the whole text is the paragraph.
                 long = text
 
-        long_summary = AIService._clean_summary(long) or ""
-        short_summary = AIService._clean_summary(short)
+        long_summary = normalize_long_summary(AIService._clean_summary(long) or "")
+        short_summary = clean_short_summary(AIService._clean_summary(short))
         if not short_summary:
-            short_summary = AIService._derive_short_summary(long_summary)
-        else:
-            short_summary = short_summary[:MAX_SHORT_SUMMARY_LENGTH]
+            short_summary = derive_short_summary(long_summary)
 
         return NoteSummaryParts(
             short_summary=short_summary[:MAX_SHORT_SUMMARY_LENGTH],
@@ -450,13 +628,13 @@ class AIService:
         collecting_long = False
 
         for line in text.splitlines():
-            upper = line.strip().upper()
-            if upper.startswith("SHORT:"):
-                short = line.strip()[len("SHORT:") :].strip()
+            short_value = _labelled_value(line, "SHORT")
+            long_value = _labelled_value(line, "LONG")
+            if short_value is not None:
+                short = short_value
                 collecting_long = False
-            elif upper.startswith("LONG:"):
-                first = line.strip()[len("LONG:") :].strip()
-                long_buffer = [first] if first else []
+            elif long_value is not None:
+                long_buffer = [long_value] if long_value else []
                 collecting_long = True
             elif collecting_long:
                 long_buffer.append(line)
@@ -493,35 +671,10 @@ class AIService:
         """Text following the ``SHORT:`` line — used when no ``LONG:`` label exists."""
         lines = text.splitlines()
         for index, line in enumerate(lines):
-            if line.strip().upper().startswith("SHORT:"):
+            if _labelled_value(line, "SHORT") is not None:
                 rest = "\n".join(lines[index + 1 :]).strip()
                 return rest or None
         return None
-
-    @staticmethod
-    def _derive_short_summary(long_summary: str) -> str:
-        """Derive a dense short digest from the paragraph's first sentence(s).
-
-        Takes leading sentences until they would overflow
-        :data:`MAX_SHORT_SUMMARY_LENGTH`, then hard-truncates. Returns ``""``
-        when there is nothing to derive from.
-        """
-        text = " ".join(long_summary.split())
-        if not text:
-            return ""
-        if len(text) <= MAX_SHORT_SUMMARY_LENGTH:
-            return text
-
-        sentences = re.split(r"(?<=[.!?])\s+", text)
-        digest = ""
-        for sentence in sentences:
-            candidate = f"{digest} {sentence}".strip()
-            if len(candidate) > MAX_SHORT_SUMMARY_LENGTH:
-                break
-            digest = candidate
-        if digest:
-            return digest
-        return text[:MAX_SHORT_SUMMARY_LENGTH]
 
     async def generate_note_title(self, content: str) -> str:
         """Generate a short, concise title for a note using AI.
@@ -550,11 +703,13 @@ class AIService:
                         "role": "system",
                         "content": (
                             "You generate short titles and one-sentence "
-                            "summaries for notes. Reply with exactly two lines:\n"
+                            "summaries for notes. Reply in plain text with exactly "
+                            "two lines and nothing else:\n"
                             "TITLE: <short title, maximum 50 characters>\n"
                             "SUMMARY: <one sentence capturing the note's point>\n"
-                            "Answer directly: never include reasoning or "
-                            "[think]...[/think] blocks in your reply."
+                            "Rules: no <thought>, <think> or [think] blocks; no "
+                            "markdown (no #, **, -, bullets, headings); no emojis.\n"
+                            "Answer directly."
                         ),
                     },
                     {
@@ -566,8 +721,17 @@ class AIService:
                     },
                 ],
                 temperature=0.3,
-                max_tokens=120,
-                timeout=10,
+                # The configured model emits its reasoning before the answer. A
+                # 120-token budget was consumed entirely by the thought block
+                # (captured: answerless response, later stripped to ""), and 300
+                # is still routinely filled by the reasoning alone. 1000 leaves
+                # room for the thought block *and* the two answer lines.
+                max_tokens=1000,
+                # The real endpoint needs ~30-160s per call (reasoning model);
+                # the previous 10s budget raised APITimeoutError on every
+                # execution and silently downgraded every note to a
+                # content-truncated fallback title.
+                timeout=180,
             )
             raw = response.choices[0].message.content
             if not raw:
@@ -578,9 +742,17 @@ class AIService:
 
             # Defensive second pass: the combined call bypasses `_call_ai_api`,
             # so reasoning tokens are stripped here before parsing.
-            title, summary = self._parse_title_and_summary(
-                _strip_think(cast("str", raw))
-            )
+            raw_text = cast("str", raw)
+            title, summary = self._parse_title_and_summary(strip_reasoning(raw_text))
+            if not title:
+                # The model sometimes emits its whole labelled answer *inside*
+                # the thought block and nothing after it (captured from the real
+                # endpoint). Salvage explicit TITLE:/SUMMARY: lines from the
+                # tag-stripped response so those notes still get a real title
+                # instead of a content-truncation fallback.
+                title, summary = self._parse_title_and_summary(
+                    remove_reasoning_tags(raw_text), labelled_only=True
+                )
             if not title:
                 self._raise_no_title()
         except Exception:
@@ -590,33 +762,50 @@ class AIService:
             return title, summary
 
     @staticmethod
-    def _parse_title_and_summary(raw: str) -> tuple[str, str | None]:
+    def _parse_title_and_summary(
+        raw: str, *, labelled_only: bool = False
+    ) -> tuple[str, str | None]:
         """Best-effort parse of the model response into ``(title, summary)``.
 
         Tolerates JSON objects (``{"title": ..., "summary": ...}``) and the
-        ``TITLE:``/``SUMMARY:`` two-line format. Anything else is treated as a
-        bare title so a malformed summary never costs us the title.
+        ``TITLE:``/``SUMMARY:`` two-line format. Reasoning markers are stripped
+        first (idempotent) so a reasoning prefix can never be mistaken for the
+        title. Anything else is treated as a bare title so a malformed summary
+        never costs us the title — unless *labelled_only* is set (salvage path),
+        in which case only explicit labels count and the bare-title fallback is
+        suppressed so reasoning prose can never become a title.
+
+        On the normal path a label must *start* its line (only surrounding
+        whitespace is tolerated), and the **first** ``TITLE:`` wins, so noisy
+        untagged prose such as a bullet-prefixed ``Title: ...`` line cannot beat
+        a real title. The salvage path keeps the tolerant bullet-prefixed scan
+        because there the answer genuinely sits inside ``*   TITLE: ...``
+        thought bullets.
         """
-        text = raw.strip()
+        text = strip_reasoning(raw)
         title, summary = AIService._parse_json_title_and_summary(text)
 
         if title is None:
+            label_value = _labelled_value if labelled_only else _strict_labelled_value
             for line in text.splitlines():
-                stripped = line.strip()
-                upper = stripped.upper()
-                if upper.startswith("TITLE:"):
-                    title = stripped[len("TITLE:") :].strip()
-                elif upper.startswith("SUMMARY:"):
-                    summary = stripped[len("SUMMARY:") :].strip()
+                title_value = label_value(line, "TITLE")
+                if title_value is not None and title is None:
+                    # First labelled title wins; later duplicates are ignored.
+                    title = title_value
+                summary_value = label_value(line, "SUMMARY")
+                if summary_value is not None:
+                    # The model's last labelled summary is the answer; earlier
+                    # bulleted "Summary:" lines are drafts.
+                    summary = summary_value
 
-        if title is None:
+        if title is None and not labelled_only:
             # Untagged response: the first non-empty line is the title and we
             # deliberately don't guess at a summary.
             title = next(
                 (line.strip() for line in text.splitlines() if line.strip()), ""
             )
 
-        return AIService._clean_title(title), AIService._clean_summary(summary)
+        return AIService._clean_title(title or ""), AIService._clean_summary(summary)
 
     @staticmethod
     def _parse_json_title_and_summary(text: str) -> tuple[str | None, str | None]:
@@ -638,18 +827,14 @@ class AIService:
 
     @staticmethod
     def _clean_title(title: str) -> str:
-        cleaned = title.strip()
-        if (cleaned.startswith('"') and cleaned.endswith('"')) or (
-            cleaned.startswith("'") and cleaned.endswith("'")
-        ):
-            cleaned = cleaned[1:-1]
-        return cleaned[:MAX_TITLE_LENGTH]
+        return clean_note_title(title) or ""
 
     @staticmethod
     def _clean_summary(summary: str | None) -> str | None:
         if summary is None:
             return None
-        cleaned = summary.strip()
+        cleaned = _strip_markdown(strip_reasoning(summary))
+        cleaned = " ".join(cleaned.split())
         if (cleaned.startswith('"') and cleaned.endswith('"')) or (
             cleaned.startswith("'") and cleaned.endswith("'")
         ):

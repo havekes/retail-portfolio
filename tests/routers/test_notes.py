@@ -349,3 +349,43 @@ async def test_delete_survives_missing_dashboard_db(
         app.state.huey_dashboard = None
 
     assert response.status_code == 200
+
+
+@pytest.mark.anyio
+async def test_get_notes_cleans_legacy_reasoning_markers_on_read(
+    auth_client, test_user, test_security, db_session, mock_redis_storage
+):
+    """Legacy rows written before the cleaner must not render reasoning/markdown."""
+    with (
+        patch("src.market.router.generate_note_title_task") as title_task,
+        patch("src.market.router.generate_note_summary_task") as summary_task,
+    ):
+        title_task.return_value = _task_result("title-legacy", "generate_note_title_task")
+        summary_task.return_value = _task_result(
+            "summary-legacy", "generate_note_summary_task"
+        )
+        response = await auth_client.post(
+            f"/api/v1/market/securities/{test_security.id}/notes",
+            json={"content": "Legacy content"},
+        )
+    assert response.status_code == 200
+    note_id = response.json()["id"]
+
+    note_repo = SqlAlchemySecurityNoteRepository(db_session)
+    await note_repo.update_title_and_summary(
+        note_id,
+        "<thought>draft title that must never render</thought>## Real title",
+        "<thought>draft summary that must never render</thought>A one-sentence summary.",
+    )
+
+    response = await auth_client.get(
+        f"/api/v1/market/securities/{test_security.id}/notes"
+    )
+
+    assert response.status_code == 200
+    item = response.json()["items"][0]
+    assert item["title"] == "Real title"
+    assert item["summary"] == "A one-sentence summary."
+    assert "<thought" not in item["title"]
+    assert "<thought" not in item["summary"]
+    assert "#" not in item["title"]

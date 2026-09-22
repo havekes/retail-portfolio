@@ -148,3 +148,184 @@ async def test_generate_note_title_delegates_to_combined_call():
 
     assert title == "Delegated title"
     create.assert_awaited_once()
+
+
+# --- Real captured responses ------------------------------------------------
+# Verbatim (sanitized) samples captured from the worktree stack's configured
+# endpoint. The per-note call used to budget 120 tokens and 10 seconds; the
+# model spends both on its reasoning first.
+REAL_ANSWERLESS_THOUGHT_RESPONSE = (
+    "<thought>*   Input: A short note about investing in VOO (S&P 500 ETF).\n"
+    "    *   Key points: Added to VOO on a dip, holding cash for October.\n"
+    "    *   Constraint 1: Short title (max 50 chars).\n"
+    "    *   Constraint 2: One-sentence summary.\n"
+    "    </thought>"
+)
+
+REAL_THOUGHT_GLUED_TO_TITLE_RESPONSE = (
+    "<thought>*   Input text: Bought more VOO on the dip.\n"
+    "    *   Goal: Short title and one-sentence summary.</thought>"
+    "TITLE: VOO Position Update\n"
+    "SUMMARY: Increased VOO holdings during a dip while managing "
+    "concentration risk through dollar cost averaging."
+)
+
+
+@pytest.mark.anyio
+async def test_answerless_thought_block_never_leaks_into_the_title():
+    """The old 120-token budget produced a thought-only response (real sample)."""
+    service, _ = _build_service(REAL_ANSWERLESS_THOUGHT_RESPONSE)
+
+    title, summary = await service.generate_note_title_and_summary(
+        "Actual note content"
+    )
+
+    assert title == "Actual note content"
+    assert summary is None
+    assert "<thought" not in title
+    assert "</thought>" not in title
+
+
+@pytest.mark.anyio
+async def test_thought_block_glued_to_title_is_stripped_before_parsing():
+    """A paired <thought> block whose closing tag is glued to ``TITLE:`` parses."""
+    service, _ = _build_service(REAL_THOUGHT_GLUED_TO_TITLE_RESPONSE)
+
+    title, summary = await service.generate_note_title_and_summary("Some note body")
+
+    assert title == "VOO Position Update"
+    assert summary == (
+        "Increased VOO holdings during a dip while managing concentration "
+        "risk through dollar cost averaging."
+    )
+    assert "<thought" not in title
+
+
+@pytest.mark.anyio
+async def test_think_tag_variants_are_stripped():
+    for marker in (
+        "<think>reasoning</think>",
+        "[THINK]reasoning[/THINK]",
+        "[Think]reasoning[/Think]",
+    ):
+        service, _ = _build_service(
+            f"{marker}TITLE: Variant title\nSUMMARY: Variant summary."
+        )
+
+        title, summary = await service.generate_note_title_and_summary("note body")
+
+        assert title == "Variant title", marker
+        assert summary == "Variant summary.", marker
+
+
+@pytest.mark.anyio
+async def test_title_call_budget_survives_real_latency():
+    """Regression guard: 10s/120 tokens raised APITimeoutError for every note."""
+    service, create = _build_service("TITLE: T\nSUMMARY: S.")
+
+    await service.generate_note_title_and_summary("note")
+
+    assert create.call_args.kwargs["timeout"] >= 120
+    assert create.call_args.kwargs["max_tokens"] >= 1000
+
+
+# Captured: the model put its only labelled answer *inside* the thought block
+# and emitted nothing afterwards.
+REAL_THOUGHT_ONLY_TITLE_RESPONSE = (
+    "<thought>*   Input: A note about adding to a VOO position, managing cash "
+    "for October.\n"
+    "    *   Constraint 1: Short title (max 50 chars).\n"
+    "    *   Title: VOO Position Update\n"
+    "    *   Summary: The user increased their VOO holding during a dip.\n"
+    "    *   TITLE: VOO Position Update\n"
+    "    *   SUMMARY: Increased VOO holdings on a dip while managing "
+    "concentration risk through dollar cost averaging.\n"
+    "    *   Plain text? Yes.</thought>"
+)
+
+
+@pytest.mark.anyio
+async def test_thought_only_response_salvages_its_labelled_answer():
+    """The real model often keeps the answer inside <thought>; salvage it."""
+    service, _ = _build_service(REAL_THOUGHT_ONLY_TITLE_RESPONSE)
+
+    title, summary = await service.generate_note_title_and_summary("Some note body")
+
+    assert title == "VOO Position Update"
+    assert summary == (
+        "Increased VOO holdings on a dip while managing concentration risk "
+        "through dollar cost averaging."
+    )
+
+
+@pytest.mark.anyio
+async def test_thought_only_prose_never_becomes_a_title():
+    """Salvage accepts only labelled lines, so reasoning prose can't leak."""
+    service, _ = _build_service(
+        "<thought>We should think hard about this note and then answer.</thought>"
+    )
+
+    title, summary = await service.generate_note_title_and_summary("Actual content")
+
+    assert title == "Actual content"
+    assert summary is None
+
+
+# Noisy untagged prose: the model did not emit labelled lines, but one of its
+# prose bullets begins with "Title:". On the normal path only a label that
+# starts the line counts, so that prose must not win the title.
+NOISY_UNTAGGED_TITLE_PROSE = (
+    "Here is my reasoning about this note, untagged.\n"
+    "*   Title: we need something short\n"
+    "*   Summary: and this is just prose, not a label.\n"
+)
+
+
+@pytest.mark.anyio
+async def test_untagged_noisy_prose_title_line_does_not_become_the_title():
+    service, _ = _build_service(NOISY_UNTAGGED_TITLE_PROSE)
+
+    title, summary = await service.generate_note_title_and_summary("Some note body")
+
+    assert title == "Here is my reasoning about this note, untagged."
+    assert title != "we need something short"
+    assert summary is None
+
+
+@pytest.mark.anyio
+async def test_first_labelled_title_wins_over_a_later_duplicate():
+    service, _ = _build_service(
+        "TITLE: First title\n"
+        "TITLE: Second title\n"
+        "SUMMARY: The real summary sentence."
+    )
+
+    title, summary = await service.generate_note_title_and_summary("Some note body")
+
+    assert title == "First title"
+    assert summary == "The real summary sentence."
+
+
+@pytest.mark.anyio
+async def test_mid_line_title_label_is_not_a_label():
+    service, _ = _build_service("Some prose mentioning TITLE: not a label at all")
+
+    title, _ = await service.generate_note_title_and_summary("Some note body")
+
+    assert title != "not a label at all"
+    assert title == "Some prose mentioning TITLE: not a label at all"
+
+
+@pytest.mark.anyio
+async def test_salvage_still_accepts_bullet_prefixed_labels():
+    """The tolerant scan stays for the salvage path, not the normal one."""
+    service, _ = _build_service(
+        "<thought>*   Input: a note about VOO.\n"
+        "    *   Title: Salvaged title\n"
+        "    *   Summary: Salvaged summary sentence.</thought>"
+    )
+
+    title, summary = await service.generate_note_title_and_summary("Some note body")
+
+    assert title == "Salvaged title"
+    assert summary == "Salvaged summary sentence."
