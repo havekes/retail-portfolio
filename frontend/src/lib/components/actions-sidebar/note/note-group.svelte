@@ -64,6 +64,39 @@
 		deleteConfirmationModal.open(noteId);
 	}
 
+	function isTypingTarget(target: EventTarget | null): boolean {
+		if (!(target instanceof HTMLElement)) return false;
+		return (
+			target.tagName === 'INPUT' ||
+			target.tagName === 'TEXTAREA' ||
+			target.tagName === 'SELECT' ||
+			target.isContentEditable ||
+			// jsdom does not implement `isContentEditable`, so also match the
+			// attribute directly (same fallback as ChartDrawingsService).
+			target.closest('[contenteditable="true"], [contenteditable=""]') !== null
+		);
+	}
+
+	function isAnyModalOpen(): boolean {
+		// Every modal in the app renders through the shared dialog wrapper, which
+		// stamps `data-slot="dialog-content"` on bits-ui's content element.
+		return Boolean(document.querySelector('[data-slot="dialog-content"][data-state="open"]'));
+	}
+
+	// Guards intentionally mirror the page-level and root-layout keydown handlers
+	// so the two window listeners never double-handle a key: modifier combos and
+	// keystrokes aimed at a typing surface or an already-open modal are ignored.
+	function handleShortcutKeydown(event: KeyboardEvent) {
+		if (event.metaKey || event.ctrlKey || event.altKey) return;
+		if (isTypingTarget(event.target)) return;
+		if (isAnyModalOpen()) return;
+
+		if (event.key === 'n' || event.key === 'N') {
+			event.preventDefault();
+			createModal.open();
+		}
+	}
+
 	$effect(() => {
 		if (securityId) {
 			fetchNotes();
@@ -107,6 +140,8 @@
 		</Sidebar.GroupContent>
 	{/if}
 </Sidebar.Group>
+
+<svelte:window onkeydown={handleShortcutKeydown} />
 
 <NoteCreationDialog {securityId} modalState={createModal} onCreated={fetchNotes} />
 
