@@ -360,6 +360,260 @@ async def test_watchlist_rename_not_owned(auth_client, other_user, db_session):
     assert response.status_code == 404
 
 
+async def _seed_memberships(
+    db_session, watchlist_id, symbols: list[str]
+):
+    """Create securities and membership rows at positions ``0..n-1``."""
+    from uuid import uuid4
+
+    from src.market.model import SecurityModel, WatchlistsSecuritiesModel
+
+    securities = [
+        SecurityModel(
+            id=uuid4(),
+            symbol=symbol,
+            exchange="US",
+            currency="USD",
+            name=f"Order test {symbol}",
+            isin=None,
+            is_active=True,
+            updated_at=datetime.now(timezone.utc),
+        )
+        for symbol in symbols
+    ]
+    db_session.add_all(securities)
+    await db_session.flush()
+    for position, security in enumerate(securities):
+        db_session.add(
+            WatchlistsSecuritiesModel(
+                watchlist_id=watchlist_id,
+                security_id=security.id,
+                position=position,
+            )
+        )
+    await db_session.commit()
+    return securities
+
+
+async def _membership_positions(db_session, watchlist_id) -> list[tuple[object, int]]:
+    from sqlalchemy import select
+
+    from src.market.model import WatchlistsSecuritiesModel
+
+    result = await db_session.execute(
+        select(
+            WatchlistsSecuritiesModel.security_id,
+            WatchlistsSecuritiesModel.position,
+        )
+        .where(WatchlistsSecuritiesModel.watchlist_id == watchlist_id)
+        .order_by(WatchlistsSecuritiesModel.position)
+    )
+    return [(security_id, position) for security_id, position in result.all()]
+
+
+@pytest.mark.anyio
+async def test_watchlist_patch_sort(auth_client):
+    """PATCH {"sort": ...} persists the mode and the next GET reflects it."""
+    create_response = await auth_client.post(
+        "/api/v1/market/watchlists", json={"name": "Sorted"}
+    )
+    watchlist_id = create_response.json()["id"]
+
+    response = await auth_client.patch(
+        f"/api/v1/market/watchlists/{watchlist_id}", json={"sort": "date_added"}
+    )
+
+    assert response.status_code == 200
+    result = response.json()
+    assert result["id"] == watchlist_id
+    assert result["name"] == "Sorted"
+    assert result["sort"] == "date_added"
+
+    list_response = await auth_client.get("/api/v1/market/watchlists")
+    persisted = {w["id"]: w["sort"] for w in list_response.json()}
+    assert persisted[watchlist_id] == "date_added"
+
+
+@pytest.mark.anyio
+async def test_watchlist_patch_invalid_sort(auth_client, db_session):
+    """PATCH with an unsupported sort value is a 422 and stores nothing."""
+    from uuid import UUID
+
+    from src.market.model import WatchlistModel
+
+    create_response = await auth_client.post(
+        "/api/v1/market/watchlists", json={"name": "Sort Guard"}
+    )
+    watchlist_id = create_response.json()["id"]
+
+    response = await auth_client.patch(
+        f"/api/v1/market/watchlists/{watchlist_id}", json={"sort": "bogus"}
+    )
+
+    assert response.status_code == 422
+
+    watchlist_model = await db_session.get(WatchlistModel, UUID(watchlist_id))
+    assert watchlist_model is not None
+    assert watchlist_model.sort == "custom"
+
+
+@pytest.mark.anyio
+async def test_watchlist_patch_name_and_sort(auth_client):
+    """A combined PATCH applies the rename and the sort mode together."""
+    create_response = await auth_client.post(
+        "/api/v1/market/watchlists", json={"name": "Before"}
+    )
+    watchlist_id = create_response.json()["id"]
+
+    response = await auth_client.patch(
+        f"/api/v1/market/watchlists/{watchlist_id}",
+        json={"name": "After", "sort": "name_asc"},
+    )
+
+    assert response.status_code == 200
+    result = response.json()
+    assert result["name"] == "After"
+    assert result["sort"] == "name_asc"
+
+    list_response = await auth_client.get("/api/v1/market/watchlists")
+    updated = next(w for w in list_response.json() if w["id"] == watchlist_id)
+    assert updated["name"] == "After"
+    assert updated["sort"] == "name_asc"
+
+
+@pytest.mark.anyio
+async def test_watchlist_patch_empty_payload(auth_client):
+    """A bare PATCH returns the current watchlist without changing anything."""
+    create_response = await auth_client.post(
+        "/api/v1/market/watchlists", json={"name": "Untouched"}
+    )
+    watchlist_id = create_response.json()["id"]
+
+    response = await auth_client.patch(
+        f"/api/v1/market/watchlists/{watchlist_id}", json={}
+    )
+
+    assert response.status_code == 200
+    result = response.json()
+    assert result["id"] == watchlist_id
+    assert result["name"] == "Untouched"
+    assert result["sort"] == "custom"
+
+
+@pytest.mark.anyio
+async def test_watchlist_reorder_securities(auth_client, test_watchlists, db_session):
+    """PUT /watchlists/{id}/securities/order rewrites positions 0..n-1."""
+    watchlist = test_watchlists[0]
+    securities = await _seed_memberships(db_session, watchlist.id, ["AAA", "BBB", "CCC"])
+
+    new_order = [securities[2].id, securities[0].id, securities[1].id]
+    response = await auth_client.put(
+        f"/api/v1/market/watchlists/{watchlist.id}/securities/order",
+        json={"security_ids": [str(security_id) for security_id in new_order]},
+    )
+
+    assert response.status_code == 200
+    result = response.json()
+    assert result["id"] == str(watchlist.id)
+    assert [s["id"] for s in result["securities"]] == [
+        str(security_id) for security_id in new_order
+    ]
+    assert [s["position"] for s in result["securities"]] == [0, 1, 2]
+
+    # The new order is persisted, not just reflected in the response.
+    assert await _membership_positions(db_session, watchlist.id) == [
+        (security_id, position) for position, security_id in enumerate(new_order)
+    ]
+    list_response = await auth_client.get("/api/v1/market/watchlists")
+    persisted = next(w for w in list_response.json() if w["id"] == str(watchlist.id))
+    assert [s["id"] for s in persisted["securities"]] == [
+        str(security_id) for security_id in new_order
+    ]
+
+
+@pytest.mark.anyio
+async def test_watchlist_reorder_rejects_bad_payload(
+    auth_client, test_watchlists, db_session
+):
+    """A payload that is not a permutation is a 422 that changes no position."""
+    from uuid import uuid4
+
+    from src.market.model import SecurityModel
+
+    watchlist = test_watchlists[0]
+    securities = await _seed_memberships(db_session, watchlist.id, ["AAA", "BBB", "CCC"])
+    first, second, third = securities
+    seeded = [(security.id, position) for position, security in enumerate(securities)]
+
+    foreign = SecurityModel(
+        id=uuid4(),
+        symbol="ZZZ",
+        exchange="US",
+        currency="USD",
+        name="Not a member",
+        isin=None,
+        is_active=True,
+        updated_at=datetime.now(timezone.utc),
+    )
+    db_session.add(foreign)
+    await db_session.commit()
+
+    url = f"/api/v1/market/watchlists/{watchlist.id}/securities/order"
+    bad_payloads = [
+        # duplicated id
+        [first.id, first.id, third.id],
+        # missing id
+        [first.id, second.id],
+        # foreign id
+        [first.id, second.id, foreign.id],
+        # a superset of the membership
+        [first.id, second.id, third.id, foreign.id],
+    ]
+
+    for payload in bad_payloads:
+        response = await auth_client.put(
+            url, json={"security_ids": [str(sid) for sid in payload]}
+        )
+        assert response.status_code == 422
+        assert await _membership_positions(db_session, watchlist.id) == seeded
+
+
+@pytest.mark.anyio
+async def test_watchlist_write_endpoints_not_owned(
+    auth_client, other_user, db_session
+):
+    """PATCH sort and PUT order return 404 for another user's watchlist."""
+    from uuid import uuid4
+
+    from src.market.model import WatchlistModel
+
+    other_watchlist = WatchlistModel(
+        id=uuid4(),
+        user_id=other_user.id,
+        name="Other User Watchlist",
+    )
+    db_session.add(other_watchlist)
+    await db_session.commit()
+
+    patch_response = await auth_client.patch(
+        f"/api/v1/market/watchlists/{other_watchlist.id}",
+        json={"sort": "date_added"},
+    )
+    put_response = await auth_client.put(
+        f"/api/v1/market/watchlists/{other_watchlist.id}/securities/order",
+        json={"security_ids": []},
+    )
+
+    assert patch_response.status_code == 404
+    assert put_response.status_code == 404
+
+    # Cross-user isolation: the other user's watchlist is untouched.
+    refreshed = await db_session.get(WatchlistModel, other_watchlist.id)
+    assert refreshed is not None
+    assert refreshed.sort == "custom"
+    assert await _membership_positions(db_session, other_watchlist.id) == []
+
+
 @pytest.mark.anyio
 async def test_watchlist_delete(auth_client):
     """Test DELETE /watchlists/{id} removes the watchlist."""
