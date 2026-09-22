@@ -8,7 +8,7 @@
 	let {
 		securityId,
 		pollIntervalMs = 2000,
-		maxPollAttempts = 6
+		maxPollAttempts = 30
 	} = $props<{
 		securityId: string;
 		/** Gap between regeneration polls; overridable so tests don't need fake timers. */
