@@ -3,7 +3,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import Layout from './+layout.svelte';
 import { load } from './+layout.server';
 import { createRawSnippet } from 'svelte';
-import { goto } from '$app/navigation';
+import { goto, preloadData } from '$app/navigation';
 import { getWatchlistService } from '$lib/components/watchlist/watchlistService.svelte';
 import { getUserPreferencesService } from '$lib/api/userPreferencesService';
 import { ApiError } from '$lib/api/apiClient';
@@ -22,7 +22,8 @@ vi.mock('$app/paths', () => ({
 }));
 
 vi.mock('$app/navigation', () => ({
-	goto: vi.fn()
+	goto: vi.fn(),
+	preloadData: vi.fn()
 }));
 
 vi.mock('$app/stores', async () => {
@@ -68,6 +69,9 @@ describe('Root +layout.svelte', () => {
 		// watchlists load must default to a successful, empty response per test.
 		marketMocks.getWatchlists.mockReset().mockResolvedValue([]);
 		marketMocks.getWatchlistSecurities.mockReset().mockResolvedValue({ items: [] });
+		// Bare `vi.fn()` returns undefined, which the layout's `.catch()` would
+		// reject on, so every prefetch defaults to a resolved navigation result.
+		vi.mocked(preloadData).mockReset().mockResolvedValue({ type: 'loaded', status: 200, data: {} });
 	});
 
 	it('renders children without Sidebar.Provider / AppSidebar when unauthenticated', () => {
@@ -234,6 +238,133 @@ describe('Root +layout.svelte', () => {
 			await pressKey(content, 'h', { ctrlKey: true });
 
 			expect(goto).not.toHaveBeenCalled();
+		});
+	});
+
+	describe('shortcut-target prefetch', () => {
+		let capturedWatchlistService: ReturnType<typeof getWatchlistService> | null = null;
+
+		const securities = (count: number) =>
+			Array.from({ length: count }, (_, index) => ({
+				id: `sec-${index}`,
+				symbol: `S${index}`,
+				exchange: 'NASDAQ',
+				currency: 'USD',
+				name: `Security ${index}`,
+				isin: null,
+				is_active: true,
+				updated_at: '2026-01-01T00:00:00Z'
+			}));
+
+		const renderLayout = () => {
+			const children = createRawSnippet(() => ({
+				render: () => '<div data-testid="page-content">Authenticated Dashboard</div>',
+				setup: () => {
+					capturedWatchlistService = getWatchlistService();
+				}
+			}));
+
+			render(Layout, {
+				props: {
+					data: {
+						user: { id: 'u1', email: 'test@example.com' },
+						sidebar_open: true,
+						collapsed_watchlist_ids: [],
+						watchlist_order: null,
+						watchlist_sort: null
+					},
+					children
+				}
+			});
+
+			return screen.getByTestId('page-content');
+		};
+
+		const pressKey = (target: HTMLElement, key: string) => fireEvent.keyDown(target, { key });
+
+		it('prefetches the shortcut routes plus the default watchlist top ten, in order', async () => {
+			renderLayout();
+			capturedWatchlistService!.defaultWatchlistSecurities = securities(11);
+
+			await waitFor(() => expect(preloadData).toHaveBeenCalledTimes(12));
+
+			expect(vi.mocked(preloadData).mock.calls.map(([url]) => url)).toEqual([
+				'/watchlists',
+				'/holdings',
+				...securities(10).map((security) => `/security/${security.id}`)
+			]);
+		});
+
+		it('does not prefetch when unauthenticated', async () => {
+			const children = createRawSnippet(() => ({
+				render: () => '<div data-testid="page-content">Login Page Content</div>'
+			}));
+
+			render(Layout, {
+				props: {
+					data: {
+						user: null,
+						sidebar_open: true,
+						collapsed_watchlist_ids: [],
+						watchlist_order: null,
+						watchlist_sort: null
+					},
+					children
+				}
+			});
+
+			await new Promise((resolve) => setTimeout(resolve, 0));
+
+			expect(marketMocks.getWatchlists).not.toHaveBeenCalled();
+			expect(preloadData).not.toHaveBeenCalled();
+		});
+
+		it('prefetches each URL at most once, even across repeated shortcut presses', async () => {
+			const content = renderLayout();
+			capturedWatchlistService!.defaultWatchlistSecurities = [];
+
+			await pressKey(content, 'w');
+			await pressKey(content, 'w');
+
+			await waitFor(() => expect(goto).toHaveBeenCalledTimes(2));
+
+			const watchlistPrefetches = vi
+				.mocked(preloadData)
+				.mock.calls.filter(([url]) => url === '/watchlists');
+			expect(watchlistPrefetches).toHaveLength(1);
+			expect(goto).toHaveBeenNthCalledWith(1, '/watchlists');
+			expect(goto).toHaveBeenNthCalledWith(2, '/watchlists');
+		});
+
+		it('prefetches the numeric shortcut target before navigating to it', async () => {
+			const content = renderLayout();
+			capturedWatchlistService!.defaultWatchlistSecurities = securities(2);
+
+			await waitFor(() => expect(marketMocks.getWatchlists).toHaveBeenCalledTimes(1));
+			await pressKey(content, '1');
+
+			expect(goto).toHaveBeenCalledWith('/security/sec-0');
+			expect(preloadData).toHaveBeenCalledWith('/security/sec-0');
+			expect(vi.mocked(preloadData).mock.invocationCallOrder.at(-1)!).toBeLessThan(
+				vi.mocked(goto).mock.invocationCallOrder.at(-1)!
+			);
+		});
+
+		it('swallows prefetch failures: navigation still works and no error surfaces', async () => {
+			vi.mocked(preloadData).mockRejectedValue(new Error('prefetch boom'));
+			const content = renderLayout();
+			capturedWatchlistService!.defaultWatchlistSecurities = securities(11);
+
+			await pressKey(content, 'w');
+			await pressKey(content, 'h');
+
+			// The whole background pass and both shortcut prefetches rejected, yet
+			// the shortcuts keep navigating and nothing is shown to the user: the
+			// rejected `preloadData` promises never escape `prefetchUrl`.
+			await waitFor(() => expect(goto).toHaveBeenCalledWith('/holdings'));
+			expect(goto).toHaveBeenNthCalledWith(1, '/watchlists');
+			expect(goto).toHaveBeenNthCalledWith(2, '/holdings');
+			expect(screen.queryByRole('alert')).not.toBeInTheDocument();
 		});
 	});
 
