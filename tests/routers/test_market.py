@@ -31,6 +31,8 @@ async def test_watchlists_list_success(auth_client, test_watchlists):
     assert len(result) == 2
     assert result[0]["name"] == "Test Watchlist 0"
     assert result[1]["name"] == "Test Watchlist 1"
+    # Every watchlist exposes its persisted sort mode, defaulting to custom.
+    assert [w["sort"] for w in result] == ["custom", "custom"]
     
     # Test new securities endpoint
     watchlist_id = result[0]["id"]
@@ -125,7 +127,12 @@ async def test_add_security_to_watchlist(auth_client, test_watchlists, test_secu
     assert response.status_code == 200
     result = response.json()
     assert result["id"] == watchlist_id
+    assert result["sort"] == "custom"
     assert [s["id"] for s in result["securities"]] == [str(test_security.id)]
+    # Each entry carries its membership metadata.
+    membership = result["securities"][0]
+    assert membership["position"] == 1
+    assert datetime.fromisoformat(membership["added_at"]).tzinfo is not None
 
     # Adding twice must not duplicate the membership row
     second_response = await auth_client.post(url)
@@ -262,6 +269,7 @@ async def test_watchlist_create(auth_client, test_user):
     result = response.json()
     assert result["name"] == "My New Watchlist"
     assert result["user_id"] == str(test_user.id)
+    assert result["sort"] == "custom"
     assert result["securities"] == []
 
     # It is now listed for the caller
@@ -281,8 +289,11 @@ async def test_watchlists_list_includes_securities(auth_client, test_security):
     result = response.json()
     assert len(result) == 1
     assert "securities" in result[0]
+    assert result[0]["sort"] == "custom"
     assert len(result[0]["securities"]) == 1
     assert result[0]["securities"][0]["id"] == str(test_security.id)
+    assert result[0]["securities"][0]["position"] == 1
+    assert "added_at" in result[0]["securities"][0]
 
 
 @pytest.mark.anyio

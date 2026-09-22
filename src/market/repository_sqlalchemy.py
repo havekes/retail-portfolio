@@ -16,6 +16,7 @@ from svcs import Container
 from src.auth.api_types import UserId
 from src.core.enum import InstitutionEnum
 from src.market.api_types import SecurityId, WatchlistId
+from src.market.enum import WatchlistSortMode
 from src.market.exception import (
     SecurityNotFoundError,
     WatchlistDuplicateNameError,
@@ -59,6 +60,7 @@ from src.market.schema import (
     SecurityNoteWrite,
     SecuritySchema,
     WatchlistRead,
+    WatchlistSecuritySchema,
 )
 
 
@@ -562,6 +564,77 @@ class SqlAlchemyWatchlistRepository(WatchlistRepository):
         enriched = await self._enrich_watchlists([watchlist])
         return enriched[0]
 
+    def _to_watchlist_security(
+        self, security: SecurityModel, added_at: datetime, position: int
+    ) -> WatchlistSecuritySchema:
+        """Combine a security row with its membership metadata."""
+        return WatchlistSecuritySchema(
+            **SecuritySchema.model_validate(security).model_dump(),
+            added_at=added_at,
+            position=position,
+        )
+
+    async def _load_memberships(
+        self, watchlist_ids: Iterable[WatchlistId]
+    ) -> dict[WatchlistId, list[WatchlistSecuritySchema]]:
+        """Load each watchlist's memberships ordered by ``position`` ascending.
+
+        The ``secondary`` relationship cannot order by or carry the association
+        columns (``position`` / ``added_at``), so the association table is
+        queried explicitly, joined to the security rows.
+        """
+        id_list = list(watchlist_ids)
+        if not id_list:
+            return {}
+
+        result = await self._session.execute(
+            select(
+                WatchlistsSecuritiesModel.watchlist_id,
+                SecurityModel,
+                WatchlistsSecuritiesModel.added_at,
+                WatchlistsSecuritiesModel.position,
+            )
+            .join(
+                SecurityModel,
+                SecurityModel.id == WatchlistsSecuritiesModel.security_id,
+            )
+            .where(WatchlistsSecuritiesModel.watchlist_id.in_(id_list))
+            .order_by(
+                WatchlistsSecuritiesModel.position.asc(),
+                WatchlistsSecuritiesModel.added_at.asc(),
+            )
+        )
+
+        memberships: dict[WatchlistId, list[WatchlistSecuritySchema]] = {}
+        for watchlist_id, security, added_at, position in result.all():
+            memberships.setdefault(watchlist_id, []).append(
+                self._to_watchlist_security(security, added_at, position)
+            )
+        return memberships
+
+    async def _build_watchlist_reads(
+        self, watchlist_models: Iterable[WatchlistModel]
+    ) -> list[WatchlistRead]:
+        """Build read schemas carrying ``sort`` and ordered membership metadata."""
+        models = list(watchlist_models)
+        memberships = await self._load_memberships(model.id for model in models)
+        return [
+            WatchlistRead(
+                id=model.id,
+                user_id=model.user_id,
+                name=model.name,
+                sort=WatchlistSortMode(model.sort),
+                securities=memberships.get(model.id, []),
+            )
+            for model in models
+        ]
+
+    async def _build_watchlist_read(
+        self, watchlist_model: WatchlistModel
+    ) -> WatchlistRead:
+        reads = await self._build_watchlist_reads([watchlist_model])
+        return reads[0]
+
     @override
     async def get_by_user(self, user_id: UserId) -> list[WatchlistRead]:
         result = await self._session.execute(
@@ -569,9 +642,7 @@ class SqlAlchemyWatchlistRepository(WatchlistRepository):
             .options(selectinload(WatchlistModel.securities))
             .where(WatchlistModel.user_id == user_id)
         )
-        watchlists = [
-            WatchlistRead.model_validate(watchlist) for watchlist in result.scalars()
-        ]
+        watchlists = await self._build_watchlist_reads(result.scalars())
         return await self._enrich_watchlists(watchlists)
 
     async def _get_owned(
@@ -623,7 +694,7 @@ class SqlAlchemyWatchlistRepository(WatchlistRepository):
             .where(WatchlistModel.id == watchlist.id)
         )
         watchlist_model = result.scalar_one()
-        return WatchlistRead.model_validate(watchlist_model)
+        return await self._build_watchlist_read(watchlist_model)
 
     @override
     async def rename(
@@ -638,7 +709,7 @@ class SqlAlchemyWatchlistRepository(WatchlistRepository):
             raise WatchlistDuplicateNameError(name) from None
 
         return await self._enrich_watchlist(
-            WatchlistRead.model_validate(watchlist_model)
+            await self._build_watchlist_read(watchlist_model)
         )
 
     @override
@@ -666,7 +737,7 @@ class SqlAlchemyWatchlistRepository(WatchlistRepository):
         )
         watchlist_model = result.scalar_one()
         return await self._enrich_watchlist(
-            WatchlistRead.model_validate(watchlist_model)
+            await self._build_watchlist_read(watchlist_model)
         )
 
     @override
@@ -717,7 +788,7 @@ class SqlAlchemyWatchlistRepository(WatchlistRepository):
             .execution_options(populate_existing=True)
         )
         return await self._enrich_watchlist(
-            WatchlistRead.model_validate(result.scalar_one())
+            await self._build_watchlist_read(result.scalar_one())
         )
 
     @override
@@ -734,8 +805,16 @@ class SqlAlchemyWatchlistRepository(WatchlistRepository):
             watchlist_model.securities.remove(security_model)
             await self._session.commit()
 
+        # Reload with ``populate_existing`` so the in-session collection (stale
+        # after the membership removal) reflects the persisted rows.
+        result = await self._session.execute(
+            select(WatchlistModel)
+            .options(selectinload(WatchlistModel.securities))
+            .where(WatchlistModel.id == watchlist_model.id)
+            .execution_options(populate_existing=True)
+        )
         return await self._enrich_watchlist(
-            WatchlistRead.model_validate(watchlist_model)
+            await self._build_watchlist_read(result.scalar_one())
         )
 
     @override
