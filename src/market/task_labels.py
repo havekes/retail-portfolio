@@ -12,7 +12,9 @@ because the task bodies themselves re-check the database before persisting
 
 import logging
 
+from src.auth.api_types import UserId
 from src.core.redis import redis_manager
+from src.market.api_types import SecurityId
 from src.worker import huey
 
 logger = logging.getLogger(__name__)
@@ -20,12 +22,12 @@ logger = logging.getLogger(__name__)
 WORKER_TASK_LABEL_TTL = 3600
 
 
-def note_title_label(user_id: object, note_id: int) -> str:
+def note_title_label(user_id: UserId, note_id: int) -> str:
     """Redis key holding the queued title task id for a single note."""
     return f"note-title:{user_id}:{note_id}"
 
 
-def note_summary_label(user_id: object, security_id: object) -> str:
+def note_summary_label(user_id: UserId, security_id: SecurityId) -> str:
     """Redis key holding the queued summary task id for (user, security)."""
     return f"note-summary:{user_id}:{security_id}"
 
