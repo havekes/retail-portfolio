@@ -570,7 +570,7 @@
 												WATCHLIST_ROW_DATA_TRACKS,
 												'flex-1 items-center rounded-md px-2 py-1.5 transition-colors',
 												'hover:bg-background/60 focus:bg-background/60 focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none',
-												rowSelected && 'bg-background ring-1 ring-ring'
+												rowSelected && 'bg-background ring-1 ring-ring focus:bg-background'
 											)}
 										>
 											<div class="flex min-w-0 items-center gap-2">

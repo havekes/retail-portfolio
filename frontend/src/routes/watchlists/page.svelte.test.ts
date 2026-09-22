@@ -1243,6 +1243,11 @@ describe('Watchlists page - row column alignment and card polish', () => {
 		expect(aapl).toHaveClass('ring-1', 'ring-ring');
 		// Selected uses an opaque background plus a ring, not just the hover tint.
 		expect(aapl.classList.contains('bg-background/60')).toBe(false);
+		// The selected row is focus-driven, so it is almost always focused: the
+		// focus variant must stay opaque too, otherwise it paints over the
+		// selection treatment (variant utilities are emitted after base ones).
+		expect(aapl).toHaveClass('focus:bg-background');
+		expect(aapl.classList.contains('focus:bg-background/60')).toBe(false);
 	});
 
 	it('keeps the same security selected through an arrow-key reorder', async () => {
