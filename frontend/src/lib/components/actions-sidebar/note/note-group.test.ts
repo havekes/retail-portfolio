@@ -10,11 +10,26 @@ vi.mock('$lib/api/notesService', () => ({
 		getNotes: vi.fn(),
 		createNote: vi.fn(),
 		updateNote: vi.fn(),
-		deleteNote: vi.fn()
+		deleteNote: vi.fn(),
+		getLatestSummary: vi.fn()
 	}
 }));
 
 import { notesService } from '$lib/api/notesService';
+
+const persistedSummary = {
+	summary: 'Persisted summary',
+	generated_at: '2026-09-01T12:00:00Z'
+};
+
+const secondNote: SecurityNote = {
+	id: 3,
+	security_id: 'sec-123',
+	user_id: 'user-1',
+	content: 'Second note',
+	created_at: '2026-08-20T12:00:00Z',
+	updated_at: '2026-08-20T12:00:00Z'
+};
 
 const mockNote: SecurityNote = {
 	id: 1,
@@ -32,7 +47,15 @@ const createdNote: SecurityNote = {
 };
 
 function renderGroup(expanded = false) {
-	return render(NoteGroup, { props: { securityId: 'sec-123', expanded } });
+	return render(NoteGroup, {
+		props: {
+			securityId: 'sec-123',
+			expanded,
+			// Tiny poll window so the regeneration tests don't need fake timers.
+			pollIntervalMs: 1,
+			maxPollAttempts: 3
+		}
+	});
 }
 
 const dialogTitle = () => screen.queryByText('Add note');
@@ -50,6 +73,7 @@ describe('NoteGroup', () => {
 		vi.mocked(notesService.createNote).mockResolvedValue(createdNote);
 		vi.mocked(notesService.updateNote).mockResolvedValue(createdNote);
 		vi.mocked(notesService.deleteNote).mockResolvedValue(undefined);
+		vi.mocked(notesService.getLatestSummary).mockResolvedValue(persistedSummary);
 	});
 
 	describe('n shortcut', () => {
@@ -215,6 +239,147 @@ describe('NoteGroup', () => {
 			await waitFor(() =>
 				expect(notesService.deleteNote).toHaveBeenCalledWith('sec-123', mockNote.id)
 			);
+		});
+	});
+
+	describe('AI summary block', () => {
+		beforeEach(() => {
+			vi.mocked(notesService.getNotes).mockResolvedValue({
+				items: [mockNote, secondNote],
+				total: 2,
+				offset: 0,
+				limit: 10
+			});
+		});
+
+		it('renders the persisted summary above the note list', async () => {
+			renderGroup(true);
+
+			const summary = await screen.findByText('Persisted summary');
+			const item = await screen.findByText('A note from the API');
+
+			expect(item.compareDocumentPosition(summary) & Node.DOCUMENT_POSITION_PRECEDING).toBeTruthy();
+		});
+
+		it('shows a pending state when no summary has been generated yet', async () => {
+			vi.mocked(notesService.getLatestSummary).mockResolvedValue({
+				summary: null,
+				generated_at: null
+			});
+			renderGroup(true);
+
+			expect(await screen.findByText(/summary pending/i)).toBeInTheDocument();
+			expect(screen.queryByText('Try again')).not.toBeInTheDocument();
+		});
+
+		it('omits the block and never fetches a summary when there are no notes', async () => {
+			vi.mocked(notesService.getNotes).mockResolvedValue({
+				items: [],
+				total: 0,
+				offset: 0,
+				limit: 10
+			});
+			renderGroup(true);
+
+			expect(await screen.findByText('No notes yet')).toBeInTheDocument();
+			expect(screen.queryByText('AI summary')).not.toBeInTheDocument();
+			expect(screen.queryByText(/summary pending/i)).not.toBeInTheDocument();
+			expect(notesService.getLatestSummary).not.toHaveBeenCalled();
+		});
+
+		it('re-fetches and shows the updated summary after a note is created', async () => {
+			vi.mocked(notesService.getLatestSummary)
+				.mockResolvedValueOnce({ summary: 'Old summary', generated_at: 't0' })
+				.mockResolvedValueOnce({ summary: 'Old summary', generated_at: 't0' })
+				.mockResolvedValue({ summary: 'New summary', generated_at: 't1' });
+			renderGroup(true);
+			await screen.findByText('Old summary');
+
+			await fireEvent.keyDown(window, { key: 'n' });
+			const textarea = await screen.findByPlaceholderText('Enter your note here...');
+			await fireEvent.input(textarea, { target: { value: 'Another note' } });
+			await fireEvent.click(screen.getByRole('button', { name: 'Save note' }));
+
+			await waitFor(() => expect(screen.getByText('New summary')).toBeInTheDocument());
+			expect(screen.queryByText('Old summary')).not.toBeInTheDocument();
+		});
+
+		it('re-fetches and shows the updated summary after a note is updated', async () => {
+			vi.mocked(notesService.getLatestSummary)
+				.mockResolvedValueOnce({ summary: 'Old summary', generated_at: 't0' })
+				.mockResolvedValueOnce({ summary: 'Old summary', generated_at: 't0' })
+				.mockResolvedValue({ summary: 'New summary', generated_at: 't1' });
+			renderGroup(true);
+			await screen.findByText('Old summary');
+
+			await fireEvent.click(await screen.findByText('A note from the API'));
+			await waitFor(() => expect(screen.getByText('View note')).toBeInTheDocument());
+			await fireEvent.click(screen.getByRole('button', { name: 'Edit' }));
+			const editArea = screen.getByPlaceholderText('Enter note content...');
+			await fireEvent.input(editArea, { target: { value: 'Updated content' } });
+			await fireEvent.click(screen.getByRole('button', { name: 'Save note' }));
+
+			await waitFor(() => expect(screen.getByText('New summary')).toBeInTheDocument());
+		});
+
+		it('re-fetches and shows the updated summary after a note is deleted', async () => {
+			vi.mocked(notesService.getLatestSummary)
+				.mockResolvedValueOnce({ summary: 'Old summary', generated_at: 't0' })
+				.mockResolvedValueOnce({ summary: 'Old summary', generated_at: 't0' })
+				.mockResolvedValue({ summary: 'New summary', generated_at: 't1' });
+			renderGroup(true);
+			await screen.findByText('Old summary');
+
+			await fireEvent.click(screen.getAllByTitle('Delete note')[0]);
+			await waitFor(() => expect(screen.getByText('Delete Note')).toBeInTheDocument());
+			await fireEvent.click(screen.getByRole('button', { name: 'Confirm' }));
+
+			await waitFor(() =>
+				expect(notesService.deleteNote).toHaveBeenCalledWith('sec-123', mockNote.id)
+			);
+			await waitFor(() => expect(screen.getByText('New summary')).toBeInTheDocument());
+		});
+
+		it('shows the summary once regeneration lands after a pending state', async () => {
+			vi.mocked(notesService.getLatestSummary)
+				.mockResolvedValueOnce({ summary: null, generated_at: null })
+				.mockResolvedValueOnce({ summary: null, generated_at: null })
+				.mockResolvedValue({ summary: 'Brand new summary', generated_at: 't1' });
+			renderGroup(true);
+			await screen.findByText(/summary pending/i);
+
+			await fireEvent.keyDown(window, { key: 'n' });
+			const textarea = await screen.findByPlaceholderText('Enter your note here...');
+			await fireEvent.input(textarea, { target: { value: 'Another note' } });
+			await fireEvent.click(screen.getByRole('button', { name: 'Save note' }));
+
+			expect(await screen.findByText('Brand new summary')).toBeInTheDocument();
+		});
+
+		it('stays in the error state when a retry fails again', async () => {
+			vi.mocked(notesService.getLatestSummary)
+				.mockRejectedValueOnce(new Error('summary unavailable'))
+				.mockRejectedValueOnce(new Error('still unavailable'));
+			renderGroup(true);
+
+			expect(await screen.findByText('summary unavailable')).toBeInTheDocument();
+			await fireEvent.click(screen.getByRole('button', { name: 'Try again' }));
+
+			expect(await screen.findByText('still unavailable')).toBeInTheDocument();
+			expect(screen.getByText('Try again')).toBeInTheDocument();
+		});
+
+		it('recovers from the error state when a retry succeeds', async () => {
+			vi.mocked(notesService.getLatestSummary).mockRejectedValueOnce(
+				new Error('summary unavailable')
+			);
+			renderGroup(true);
+
+			expect(await screen.findByText('summary unavailable')).toBeInTheDocument();
+			await fireEvent.click(screen.getByRole('button', { name: 'Try again' }));
+
+			expect(await screen.findByText('Persisted summary')).toBeInTheDocument();
+			expect(screen.queryByText('summary unavailable')).not.toBeInTheDocument();
 		});
 	});
 });
