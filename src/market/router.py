@@ -39,6 +39,7 @@ from src.market.repository import (
     PriceRepository,
     SecurityDocumentRepository,
     SecurityNoteRepository,
+    SecurityNoteSummaryRepository,
     SecurityRepository,
     WatchlistRepository,
 )
@@ -54,6 +55,7 @@ from src.market.schema import (
     IntradayPriceSchema,
     MACDPoint,
     MAPoint,
+    NoteSummaryResponse,
     PriceAlertRead,
     PriceAlertWrite,
     PriceHistoryRead,
@@ -1016,6 +1018,26 @@ async def market_ai_summarize_notes(
         raise HTTPException(status_code=504, detail="AI analysis timed out") from None
     except RuntimeError as e:
         raise HTTPException(status_code=503, detail=str(e)) from None
+
+
+@market_router.get("/securities/{security_id}/ai/notes-summary")
+async def market_get_notes_summary(
+    user: Annotated[User, Depends(current_user)],
+    security_id: SecurityId,
+    services: DepContainer,
+) -> NoteSummaryResponse:
+    """
+    Get the latest persisted AI summary of the user's notes for a security.
+    """
+    security_repository = await services.aget(SecurityRepository)
+    await security_repository.get_by_id_or_fail(security_id)
+
+    summary_repository = await services.aget(SecurityNoteSummaryRepository)
+    summary = await summary_repository.get(security_id, user.id)
+    if summary is None:
+        logger.info("No notes summary found for security %s", security_id)
+        return NoteSummaryResponse()
+    return summary
 
 
 @market_router.post("/securities/{security_id}/ai/portfolio-debate")
