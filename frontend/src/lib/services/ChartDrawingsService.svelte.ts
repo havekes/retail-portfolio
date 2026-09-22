@@ -43,6 +43,7 @@ import {
 	type SecurityDrawingState
 } from '$lib/utils/finance/drawing-history';
 import type { IndicatorData } from '$lib/components/charts/security-chart.svelte';
+import { isTypingTarget } from '$lib/utils/keyboard';
 
 export interface ChartInstance {
 	addIndicator: (indicator: IndicatorData) => void;
@@ -969,15 +970,7 @@ export class ChartDrawingsService {
 	};
 
 	handleKeyDown = (event: KeyboardEvent, chartRef?: ChartInstance | null) => {
-		const target = event.target as HTMLElement | null;
-		if (
-			target &&
-			typeof target.closest === 'function' &&
-			(target.tagName === 'INPUT' ||
-				target.tagName === 'TEXTAREA' ||
-				target.isContentEditable ||
-				target.closest('input, textarea, [contenteditable="true"]'))
-		) {
+		if (isTypingTarget(event.target)) {
 			return;
 		}
 

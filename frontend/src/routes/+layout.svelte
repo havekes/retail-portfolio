@@ -14,6 +14,7 @@
 	import { userPreferencesService } from '$lib/api/userPreferencesService.js';
 	import { redirectOn401 } from '$lib/api/async-data';
 	import { Toaster } from '$lib/components/ui/toast/index.js';
+	import { isTypingTarget } from '$lib/utils/keyboard';
 	import type { WatchlistRead } from '$lib/api/marketService';
 
 	let { children, data } = $props();
@@ -78,16 +79,6 @@
 		// value cannot satisfy; callers only pass the known shortcut targets, and
 		// the cast is type-only (the cast value never reaches runtime).
 		preloadData(resolve(url as unknown as '/')).catch(() => {});
-	}
-
-	function isTypingTarget(target: EventTarget | null): boolean {
-		if (!(target instanceof HTMLElement)) return false;
-		return (
-			target.tagName === 'INPUT' ||
-			target.tagName === 'TEXTAREA' ||
-			target.tagName === 'SELECT' ||
-			target.isContentEditable
-		);
 	}
 
 	function handleKeydown(e: KeyboardEvent) {

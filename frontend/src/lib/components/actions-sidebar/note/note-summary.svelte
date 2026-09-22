@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { notesService } from '$lib/api/notesService';
+	import { ApiError } from '$lib/api/apiClient';
 	import { Skeleton } from '$lib/components/ui/skeleton/index.js';
 	import Sparkles from '@lucide/svelte/icons/sparkles';
 	import SidebarError from '../sidebar-error.svelte';
@@ -51,7 +52,9 @@
 	}
 
 	function describeError(err: unknown): string {
-		return err instanceof Error ? err.message : 'Failed to load summary';
+		// Only the API's own message is user-facing; anything else (e.g. a network
+		// TypeError) is wrapped in the same generic copy `fetchNotes` falls back to.
+		return err instanceof ApiError ? err.message : 'Failed to load summary';
 	}
 
 	async function fetchSummary(token: number, id: string): Promise<'ok' | 'error' | 'stale'> {
@@ -156,6 +159,8 @@
 	{:else if isLoading}
 		<Skeleton class="h-12 w-full" />
 	{:else}
-		<p class="rounded-md bg-accent/50 p-3 text-xs text-muted-foreground">Summary pending…</p>
+		<p class="rounded-md bg-accent/50 p-3 text-xs text-muted-foreground">
+			{regenerating ? 'Generating summary…' : 'Summary pending…'}
+		</p>
 	{/if}
 </div>

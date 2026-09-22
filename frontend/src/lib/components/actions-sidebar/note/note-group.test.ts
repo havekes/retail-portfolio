@@ -1,7 +1,8 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent, waitFor } from '@testing-library/svelte';
 import NoteGroup from './note-group.svelte';
-import type { SecurityNote } from '$lib/api/notesService';
+import { ApiError } from '$lib/api/apiClient';
+import type { SecurityNote, SecurityNoteSummary } from '$lib/api/notesService';
 
 // Mock every API surface the group and its dialogs touch so no test ever
 // performs a real network request.
@@ -340,6 +341,25 @@ describe('NoteGroup', () => {
 			await waitFor(() => expect(screen.getByText('New summary')).toBeInTheDocument());
 		});
 
+		it('does not refresh the summary after deleting the last note', async () => {
+			vi.mocked(notesService.getNotes)
+				.mockResolvedValueOnce({ items: [mockNote], total: 1, offset: 0, limit: 10 })
+				.mockResolvedValue({ items: [], total: 0, offset: 0, limit: 10 });
+			renderGroup(true);
+
+			await screen.findByText('Persisted summary');
+			await fireEvent.click(screen.getByTitle('Delete note'));
+			await waitFor(() => expect(screen.getByText('Delete Note')).toBeInTheDocument());
+			await fireEvent.click(screen.getByRole('button', { name: 'Confirm' }));
+
+			await waitFor(() =>
+				expect(notesService.deleteNote).toHaveBeenCalledWith('sec-123', mockNote.id)
+			);
+			await waitFor(() => expect(screen.getByText('No notes yet')).toBeInTheDocument());
+			// The block unmounted with the last note: no pointless regeneration poll.
+			expect(notesService.getLatestSummary).toHaveBeenCalledTimes(1);
+		});
+
 		it('shows the summary once regeneration lands after a pending state', async () => {
 			vi.mocked(notesService.getLatestSummary)
 				.mockResolvedValueOnce({ summary: null, generated_at: null })
@@ -356,10 +376,37 @@ describe('NoteGroup', () => {
 			expect(await screen.findByText('Brand new summary')).toBeInTheDocument();
 		});
 
+		it('announces regeneration when no summary is persisted yet', async () => {
+			let resolveRefresh!: (value: SecurityNoteSummary) => void;
+			vi.mocked(notesService.getLatestSummary)
+				.mockResolvedValueOnce({ summary: null, generated_at: null })
+				.mockImplementationOnce(
+					() =>
+						new Promise<SecurityNoteSummary>((resolve) => {
+							resolveRefresh = resolve;
+						})
+				)
+				.mockResolvedValue({ summary: 'Fresh summary', generated_at: 't1' });
+			renderGroup(true);
+			await screen.findByText(/summary pending/i);
+
+			await fireEvent.keyDown(window, { key: 'n' });
+			const textarea = await screen.findByPlaceholderText('Enter your note here...');
+			await fireEvent.input(textarea, { target: { value: 'Another note' } });
+			await fireEvent.click(screen.getByRole('button', { name: 'Save note' }));
+
+			// The refresh is still in flight with nothing persisted yet: show
+			// progress, not the static pending copy.
+			expect(await screen.findByText(/generating summary/i)).toBeInTheDocument();
+
+			resolveRefresh({ summary: 'Fresh summary', generated_at: 't1' });
+			expect(await screen.findByText('Fresh summary')).toBeInTheDocument();
+		});
+
 		it('stays in the error state when a retry fails again', async () => {
 			vi.mocked(notesService.getLatestSummary)
-				.mockRejectedValueOnce(new Error('summary unavailable'))
-				.mockRejectedValueOnce(new Error('still unavailable'));
+				.mockRejectedValueOnce(new ApiError(500, 'summary unavailable'))
+				.mockRejectedValueOnce(new ApiError(500, 'still unavailable'));
 			renderGroup(true);
 
 			expect(await screen.findByText('summary unavailable')).toBeInTheDocument();
@@ -371,7 +418,7 @@ describe('NoteGroup', () => {
 
 		it('recovers from the error state when a retry succeeds', async () => {
 			vi.mocked(notesService.getLatestSummary).mockRejectedValueOnce(
-				new Error('summary unavailable')
+				new ApiError(500, 'summary unavailable')
 			);
 			renderGroup(true);
 
@@ -380,6 +427,14 @@ describe('NoteGroup', () => {
 
 			expect(await screen.findByText('Persisted summary')).toBeInTheDocument();
 			expect(screen.queryByText('summary unavailable')).not.toBeInTheDocument();
+		});
+
+		it('wraps non-API errors in the generic load message', async () => {
+			vi.mocked(notesService.getLatestSummary).mockRejectedValue(new TypeError('Failed to fetch'));
+			renderGroup(true);
+
+			expect(await screen.findByText('Failed to load summary')).toBeInTheDocument();
+			expect(screen.queryByText('Failed to fetch')).not.toBeInTheDocument();
 		});
 	});
 });

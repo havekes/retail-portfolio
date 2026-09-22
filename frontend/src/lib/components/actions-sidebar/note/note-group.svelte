@@ -9,6 +9,7 @@
 	import type { SecurityNote } from '$lib/api/notesService';
 	import Plus from '@lucide/svelte/icons/plus';
 	import { ModalState } from '@/utils/modal-state.svelte';
+	import { isTypingTarget } from '$lib/utils/keyboard';
 	import GroupTitle from '../group-title.svelte';
 	import SidebarError from '../sidebar-error.svelte';
 	import { Skeleton } from '$lib/components/ui/skeleton/index.js';
@@ -74,24 +75,15 @@
 	// summary block refresh together from one callback.
 	async function refreshAll() {
 		await fetchNotes();
-		await summaryRef?.refresh();
+		// Deleting the last note unmounts the summary block, so refreshing it would
+		// fire a pointless GET for a component that no longer exists.
+		if (notes.length > 0) {
+			await summaryRef?.refresh();
+		}
 	}
 
 	function handleDeleteRequest(noteId: number) {
 		deleteConfirmationModal.open(noteId);
-	}
-
-	function isTypingTarget(target: EventTarget | null): boolean {
-		if (!(target instanceof HTMLElement)) return false;
-		return (
-			target.tagName === 'INPUT' ||
-			target.tagName === 'TEXTAREA' ||
-			target.tagName === 'SELECT' ||
-			target.isContentEditable ||
-			// jsdom does not implement `isContentEditable`, so also match the
-			// attribute directly (same fallback as ChartDrawingsService).
-			target.closest('[contenteditable="true"], [contenteditable=""]') !== null
-		);
 	}
 
 	function isAnyModalOpen(): boolean {

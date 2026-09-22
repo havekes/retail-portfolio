@@ -19,6 +19,20 @@ target_metadata = BaseModel.metadata
 # access to the values within the .ini file in use.
 config = context.config
 
+
+def include_object(obj, name, type_, reflected, compare_to) -> bool:
+    """Exclude runtime-owned tables from autogenerate drift.
+
+    `huey_tasks` is created by the `huey-dashboard` package at every backend /
+    worker start (`TaskDatabase.ensure_table()`), not by this migration tree,
+    so a drop migration alone can never keep `alembic check` clean — the table
+    reappears on the next process start. Ignore it here instead.
+    """
+    if type_ == "table" and name == "huey_tasks":
+        return False
+    return True
+
+
 # Override sqlalchemy.url if DATABASE_URL environment variable is set
 db_url = os.environ.get("DATABASE_URL")
 if db_url:
@@ -45,6 +59,7 @@ def run_migrations_offline() -> None:
         target_metadata=target_metadata,
         literal_binds=True,
         dialect_opts={"paramstyle": "named"},
+        include_object=include_object,
     )
 
     with context.begin_transaction():
@@ -65,7 +80,11 @@ def run_migrations_online() -> None:
     )
 
     with connectable.connect() as connection:
-        context.configure(connection=connection, target_metadata=target_metadata)
+        context.configure(
+            connection=connection,
+            target_metadata=target_metadata,
+            include_object=include_object,
+        )
         with context.begin_transaction():
             context.run_migrations()
 
