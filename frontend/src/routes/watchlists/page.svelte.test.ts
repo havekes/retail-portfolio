@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach, beforeAll } from 'vitest';
 import { render, screen, fireEvent, waitFor, within } from '@testing-library/svelte';
 import type { Component } from 'svelte';
-import type { WatchlistRead, WatchlistSecuritySchema } from '@/api/marketService';
+import type { WatchlistRead, WatchlistSecuritySchema, WatchlistSort } from '@/api/marketService';
 
 vi.mock('$app/paths', () => ({
 	resolve: (path: string) => path
@@ -14,6 +14,7 @@ const mocks = vi.hoisted(() => ({
 		getWatchlists: vi.fn().mockResolvedValue([]),
 		createWatchlist: vi.fn(),
 		renameWatchlist: vi.fn(),
+		updateWatchlistSort: vi.fn(),
 		deleteWatchlist: vi.fn(),
 		addSecurityToWatchlist: vi.fn(),
 		removeSecurityFromWatchlist: vi.fn(),
@@ -53,7 +54,9 @@ function security(
 	id: string,
 	symbol: string,
 	price?: number | null,
-	changePercent?: number | null
+	changePercent?: number | null,
+	addedAt = '2026-01-01T00:00:00Z',
+	position = 0
 ): WatchlistSecuritySchema {
 	return {
 		id,
@@ -64,16 +67,21 @@ function security(
 		isin: null,
 		is_active: true,
 		updated_at: '2026-01-01T00:00:00Z',
-		added_at: '2026-01-01T00:00:00Z',
-		position: 0,
+		added_at: addedAt,
+		position,
 		current_price: price,
 		daily_price_change: null,
 		daily_price_change_percent: changePercent
 	};
 }
 
-function watchlist(id: string, name: string, securities: WatchlistSecuritySchema[]): WatchlistRead {
-	return { id, user_id: 'user-1', name, sort: 'custom', securities };
+function watchlist(
+	id: string,
+	name: string,
+	securities: WatchlistSecuritySchema[],
+	sort: WatchlistSort = 'custom'
+): WatchlistRead {
+	return { id, user_id: 'user-1', name, sort, securities };
 }
 
 const defaultList = () =>
@@ -100,15 +108,13 @@ beforeEach(() => {
 function renderPage(
 	watchlists: WatchlistRead[],
 	openGlobalSearch: (watchlist?: WatchlistRead | null) => void = vi.fn(),
-	order?: string[] | null,
-	sort?: Record<string, string> | null
+	order?: string[] | null
 ) {
 	return render(PageComponent, {
 		props: {
 			data: {
 				watchlists,
-				watchlist_order: order ?? null,
-				watchlist_sort: sort ?? null
+				watchlist_order: order ?? null
 			}
 		},
 		context: new Map([['openGlobalSearch', openGlobalSearch] as const])
@@ -394,69 +400,193 @@ describe('Watchlists page - security prices and daily performance display', () =
 });
 
 describe('Watchlists page - per-watchlist stock sorting', () => {
-	it('sorts securities by name and persists to preferences', async () => {
-		const s1 = security('s1', 'TSLA', 200, 1.0);
-		const s2 = security('s2', 'AAPL', 150, 2.0);
-		const s3 = security('s3', 'MSFT', 300, 3.0);
-		renderPage([watchlist('wl-1', 'Tech', [s1, s2, s3])]);
+	function openSortMenu() {
+		return fireEvent.click(screen.getByRole('button', { name: 'Sort securities in Tech' }));
+	}
 
-		const sortBtn = screen.getByRole('button', { name: 'Sort securities in Tech' });
-		await fireEvent.click(sortBtn);
+	function rowSymbols(listName = 'Tech securities'): string[] {
+		return within(screen.getByRole('region', { name: listName }))
+			.getAllByRole('link')
+			.map((link) => link.querySelector('span')?.textContent?.trim() ?? '');
+	}
 
-		const nameOption = await screen.findByText('Name (alphabetical)');
-		await fireEvent.click(nameOption);
-
-		await waitFor(() => {
-			expect(mocks.preferences.patchPreferences).toHaveBeenCalledWith({
-				watchlist_sort: { 'wl-1': 'name_asc' }
-			});
+	function wroteWatchlistSortPreference(): boolean {
+		return mocks.preferences.patchPreferences.mock.calls.some((call) => {
+			const payload = (call as unknown[])[0] as Record<string, unknown> | undefined;
+			return !!payload && Object.prototype.hasOwnProperty.call(payload, 'watchlist_sort');
 		});
+	}
 
-		const rows = screen.getAllByRole('link');
-		expect(rows[0]).toHaveTextContent('AAPL');
-		expect(rows[1]).toHaveTextContent('MSFT');
-		expect(rows[2]).toHaveTextContent('TSLA');
+	it('lists exactly the six sort options in order', async () => {
+		renderPage([watchlist('wl-1', 'Tech', [security('s1', 'AAPL')])]);
+
+		await openSortMenu();
+
+		const items = await screen.findAllByRole('menuitem');
+		expect(items.map((item) => item.textContent?.trim())).toEqual([
+			'Custom',
+			'Name (alphabetical)',
+			'Price Change (Gainers)',
+			'Price Change (Losers)',
+			'Date added (newest first)',
+			'Date added (oldest first)'
+		]);
 	});
 
-	it('sorts securities by price change gainers and losers', async () => {
-		const s1 = security('s1', 'AAPL', 150, 1.5);
-		const s2 = security('s2', 'MSFT', 300, -2.0);
-		const s3 = security('s3', 'NVDA', 450, 5.0);
+	it('selecting Name (alphabetical) persists via the model and reorders rows', async () => {
+		const s1 = security('s1', 'TSLA', 200, 1.0, '2026-01-03T00:00:00Z', 0);
+		const s2 = security('s2', 'AAPL', 150, 2.0, '2026-01-01T00:00:00Z', 1);
+		const s3 = security('s3', 'MSFT', 300, 3.0, '2026-01-02T00:00:00Z', 2);
+		mocks.client.updateWatchlistSort.mockResolvedValue(
+			watchlist('wl-1', 'Tech', [s2, s3, s1], 'name_asc')
+		);
 		renderPage([watchlist('wl-1', 'Tech', [s1, s2, s3])]);
 
-		const sortBtn = screen.getByRole('button', { name: 'Sort securities in Tech' });
-		await fireEvent.click(sortBtn);
+		// Before any selection: custom order, i.e. insertion (position) order.
+		expect(rowSymbols()).toEqual(['TSLA', 'AAPL', 'MSFT']);
 
-		// Gainers first
-		const gainersOption = await screen.findByText('Price Change (Gainers)');
-		await fireEvent.click(gainersOption);
+		await openSortMenu();
+		await fireEvent.click(screen.getByRole('menuitem', { name: 'Name (alphabetical)' }));
 
-		await waitFor(() => {
-			expect(mocks.preferences.patchPreferences).toHaveBeenCalledWith({
-				watchlist_sort: { 'wl-1': 'price_change_desc' }
-			});
+		await waitFor(() =>
+			expect(mocks.client.updateWatchlistSort).toHaveBeenCalledWith('wl-1', 'name_asc', undefined)
+		);
+		await waitFor(() => expect(rowSymbols()).toEqual(['AAPL', 'MSFT', 'TSLA']));
+		expect(wroteWatchlistSortPreference()).toBe(false);
+	});
+
+	it('persists gainers and losers selections', async () => {
+		const s1 = security('s1', 'AAPL', 150, 1.5, '2026-01-01T00:00:00Z', 0);
+		const s2 = security('s2', 'MSFT', 300, -2.0, '2026-01-02T00:00:00Z', 1);
+		const s3 = security('s3', 'NVDA', 450, 5.0, '2026-01-03T00:00:00Z', 2);
+		mocks.client.updateWatchlistSort
+			.mockResolvedValueOnce(watchlist('wl-1', 'Tech', [s3, s1, s2], 'price_change_desc'))
+			.mockResolvedValueOnce(watchlist('wl-1', 'Tech', [s2, s1, s3], 'price_change_asc'));
+		renderPage([watchlist('wl-1', 'Tech', [s1, s2, s3])]);
+
+		await openSortMenu();
+		await fireEvent.click(screen.getByRole('menuitem', { name: 'Price Change (Gainers)' }));
+
+		await waitFor(() => expect(rowSymbols()).toEqual(['NVDA', 'AAPL', 'MSFT']));
+		expect(mocks.client.updateWatchlistSort).toHaveBeenCalledWith(
+			'wl-1',
+			'price_change_desc',
+			undefined
+		);
+
+		await openSortMenu();
+		await fireEvent.click(screen.getByRole('menuitem', { name: 'Price Change (Losers)' }));
+
+		await waitFor(() => expect(rowSymbols()).toEqual(['MSFT', 'AAPL', 'NVDA']));
+		expect(mocks.client.updateWatchlistSort).toHaveBeenLastCalledWith(
+			'wl-1',
+			'price_change_asc',
+			undefined
+		);
+	});
+
+	it('round-trips both date added directions', async () => {
+		const oldest = security('s1', 'AAPL', 150, 1.5, '2026-01-01T00:00:00Z', 0);
+		const middle = security('s2', 'MSFT', 300, -2.0, '2026-02-01T00:00:00Z', 1);
+		const newest = security('s3', 'NVDA', 450, 5.0, '2026-03-01T00:00:00Z', 2);
+		mocks.client.updateWatchlistSort
+			.mockResolvedValueOnce(watchlist('wl-1', 'Tech', [newest, middle, oldest], 'date_added'))
+			.mockResolvedValueOnce(watchlist('wl-1', 'Tech', [oldest, middle, newest], 'date_added_asc'));
+		renderPage([watchlist('wl-1', 'Tech', [oldest, middle, newest])]);
+
+		await openSortMenu();
+		await fireEvent.click(screen.getByRole('menuitem', { name: 'Date added (newest first)' }));
+
+		await waitFor(() => expect(rowSymbols()).toEqual(['NVDA', 'MSFT', 'AAPL']));
+		expect(mocks.client.updateWatchlistSort).toHaveBeenCalledWith('wl-1', 'date_added', undefined);
+
+		await openSortMenu();
+		await fireEvent.click(screen.getByRole('menuitem', { name: 'Date added (oldest first)' }));
+
+		await waitFor(() => expect(rowSymbols()).toEqual(['AAPL', 'MSFT', 'NVDA']));
+		expect(mocks.client.updateWatchlistSort).toHaveBeenLastCalledWith(
+			'wl-1',
+			'date_added_asc',
+			undefined
+		);
+	});
+
+	it('renders each watchlist from its own persisted sort on load', async () => {
+		const oldest = security('s1', 'AAPL', 150, 1.5, '2026-01-01T00:00:00Z', 0);
+		const newest = security('s2', 'NVDA', 450, 5.0, '2026-03-01T00:00:00Z', 1);
+		renderPage([
+			watchlist('wl-1', 'Tech', [oldest, newest], 'date_added'),
+			watchlist('wl-2', 'Energy', [newest, oldest])
+		]);
+
+		// Persisted mode alone drives the first render: newest first for Tech...
+		expect(rowSymbols()).toEqual(['NVDA', 'AAPL']);
+		// ...and custom (position) order for the freshly created Energy list.
+		expect(rowSymbols('Energy securities')).toEqual(['AAPL', 'NVDA']);
+		expect(mocks.client.updateWatchlistSort).not.toHaveBeenCalled();
+	});
+
+	it('marks the active option with a check and the matching direction chevron', async () => {
+		renderPage([watchlist('wl-1', 'Tech', [security('s1', 'AAPL')], 'date_added')]);
+
+		await openSortMenu();
+
+		const activeItem = await screen.findByRole('menuitem', {
+			name: 'Date added (newest first)'
 		});
+		expect(activeItem.querySelector('.lucide-check')).not.toBeNull();
+		expect(activeItem.querySelector('.lucide-chevron-down')).not.toBeNull();
+		expect(activeItem.querySelector('.lucide-chevron-up')).toBeNull();
 
-		let rows = screen.getAllByRole('link');
-		expect(rows[0]).toHaveTextContent('NVDA');
-		expect(rows[1]).toHaveTextContent('AAPL');
-		expect(rows[2]).toHaveTextContent('MSFT');
+		const inactiveItem = screen.getByRole('menuitem', { name: 'Custom' });
+		expect(inactiveItem.querySelector('.lucide-check')).toBeNull();
+		expect(inactiveItem.querySelector('.lucide-chevron-down')).toBeNull();
+		expect(inactiveItem.querySelector('.lucide-chevron-up')).toBeNull();
+	});
 
-		// Losers first
-		await fireEvent.click(sortBtn);
-		const losersOption = await screen.findByText('Price Change (Losers)');
-		await fireEvent.click(losersOption);
+	it('shows the ascending chevron for ascending modes', async () => {
+		renderPage([watchlist('wl-1', 'Tech', [security('s1', 'AAPL')], 'custom')]);
 
-		await waitFor(() => {
-			expect(mocks.preferences.patchPreferences).toHaveBeenCalledWith({
-				watchlist_sort: { 'wl-1': 'price_change_asc' }
-			});
-		});
+		await openSortMenu();
 
-		rows = screen.getAllByRole('link');
-		expect(rows[0]).toHaveTextContent('MSFT');
-		expect(rows[1]).toHaveTextContent('AAPL');
-		expect(rows[2]).toHaveTextContent('NVDA');
+		const customItem = await screen.findByRole('menuitem', { name: 'Custom' });
+		expect(customItem.querySelector('.lucide-check')).not.toBeNull();
+		expect(customItem.querySelector('.lucide-chevron-up')).not.toBeNull();
+		expect(customItem.querySelector('.lucide-chevron-down')).toBeNull();
+	});
+
+	it('shows the ascending chevron for date added (oldest first)', async () => {
+		renderPage([watchlist('wl-1', 'Tech', [security('s1', 'AAPL')], 'date_added_asc')]);
+
+		await openSortMenu();
+
+		const activeItem = await screen.findByRole('menuitem', { name: 'Date added (oldest first)' });
+		expect(activeItem.querySelector('.lucide-check')).not.toBeNull();
+		expect(activeItem.querySelector('.lucide-chevron-up')).not.toBeNull();
+	});
+
+	it('falls back to custom order for an unknown persisted sort and can reset it', async () => {
+		const staleSort = 'garbage' as unknown as WatchlistSort;
+		const s1 = security('s1', 'TSLA', 200, 1.0, '2026-01-03T00:00:00Z', 0);
+		const s2 = security('s2', 'AAPL', 150, 2.0, '2026-01-01T00:00:00Z', 1);
+		const s3 = security('s3', 'MSFT', 300, 3.0, '2026-01-02T00:00:00Z', 2);
+		mocks.client.updateWatchlistSort.mockResolvedValue(
+			watchlist('wl-1', 'Tech', [s1, s2, s3], 'custom')
+		);
+		// Array order is deliberately not the position order.
+		renderPage([watchlist('wl-1', 'Tech', [s2, s3, s1], staleSort)]);
+
+		expect(rowSymbols()).toEqual(['TSLA', 'AAPL', 'MSFT']);
+
+		await openSortMenu();
+		const customItem = await screen.findByRole('menuitem', { name: 'Custom' });
+		expect(customItem.querySelector('.lucide-check')).not.toBeNull();
+		await fireEvent.click(customItem);
+
+		await waitFor(() =>
+			expect(mocks.client.updateWatchlistSort).toHaveBeenCalledWith('wl-1', 'custom', undefined)
+		);
+		expect(wroteWatchlistSortPreference()).toBe(false);
 	});
 });
 

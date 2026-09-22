@@ -1,8 +1,9 @@
 import { describe, expect, it } from 'vitest';
-import type { SecuritySchema, WatchlistRead } from '$lib/api/marketService';
+import type { WatchlistRead, WatchlistSecuritySchema } from '$lib/api/marketService';
 import {
 	formatPrice,
 	formatPriceChangePercent,
+	normalizeWatchlistSort,
 	sortSecurities,
 	sortWatchlistsByOrder
 } from './watchlist-utils';
@@ -22,8 +23,10 @@ function makeSecurity(
 	symbol: string,
 	name: string,
 	price?: number | null,
-	changePercent?: number | null
-): SecuritySchema {
+	changePercent?: number | null,
+	position = 0,
+	addedAt = '2024-01-01T00:00:00Z'
+): WatchlistSecuritySchema {
 	return {
 		id,
 		symbol,
@@ -35,7 +38,9 @@ function makeSecurity(
 		updated_at: '2024-01-01T00:00:00Z',
 		current_price: price,
 		daily_price_change: null,
-		daily_price_change_percent: changePercent
+		daily_price_change_percent: changePercent,
+		added_at: addedAt,
+		position
 	};
 }
 
@@ -104,10 +109,94 @@ describe('watchlist-utils', () => {
 			expect(sorted.map((s) => s.symbol)).toEqual(['MSFT', 'AAPL', 'TSLA', 'NVDA']);
 		});
 
-		it('returns original list copy when sortKey is empty or unrecognized', () => {
-			const list = [sA, sM, sT];
-			expect(sortSecurities(list, null)).toEqual(list);
-			expect(sortSecurities(list, 'unknown')).toEqual(list);
+		it('sorts by custom (ascending position, oldest added first)', () => {
+			const first = makeSecurity('1', 'TSLA', 'Tesla Inc', 250, 5.0, 0);
+			const second = makeSecurity('2', 'AAPL', 'Apple Inc', 180, 2.5, 1);
+			const third = makeSecurity('3', 'MSFT', 'Microsoft Corp', 400, -1.2, 2);
+
+			const sorted = sortSecurities([third, first, second], 'custom');
+
+			expect(sorted.map((s) => s.symbol)).toEqual(['TSLA', 'AAPL', 'MSFT']);
+		});
+
+		it('sorts by date_added (newest first)', () => {
+			const oldest = makeSecurity('1', 'AAPL', 'Apple Inc', 180, 2.5, 0, '2024-01-01T00:00:00Z');
+			const middle = makeSecurity(
+				'2',
+				'MSFT',
+				'Microsoft Corp',
+				400,
+				-1.2,
+				1,
+				'2024-02-01T00:00:00Z'
+			);
+			const newest = makeSecurity('3', 'TSLA', 'Tesla Inc', 250, 5.0, 2, '2024-03-01T00:00:00Z');
+
+			const sorted = sortSecurities([oldest, newest, middle], 'date_added');
+
+			expect(sorted.map((s) => s.symbol)).toEqual(['TSLA', 'MSFT', 'AAPL']);
+		});
+
+		it('sorts by date_added_asc (oldest first)', () => {
+			const oldest = makeSecurity('1', 'AAPL', 'Apple Inc', 180, 2.5, 2, '2024-01-01T00:00:00Z');
+			const middle = makeSecurity(
+				'2',
+				'MSFT',
+				'Microsoft Corp',
+				400,
+				-1.2,
+				1,
+				'2024-02-01T00:00:00Z'
+			);
+			const newest = makeSecurity('3', 'TSLA', 'Tesla Inc', 250, 5.0, 0, '2024-03-01T00:00:00Z');
+
+			const sorted = sortSecurities([newest, oldest, middle], 'date_added_asc');
+
+			expect(sorted.map((s) => s.symbol)).toEqual(['AAPL', 'MSFT', 'TSLA']);
+		});
+
+		it('falls back to custom (position) order when the key is absent or unrecognised', () => {
+			// Positions deliberately disagree with array order to prove the fallback sorts.
+			const first = makeSecurity('1', 'TSLA', 'Tesla Inc', 250, 5.0, 0);
+			const second = makeSecurity('2', 'AAPL', 'Apple Inc', 180, 2.5, 1);
+			const list = [second, first];
+
+			expect(sortSecurities(list, null).map((s) => s.symbol)).toEqual(['TSLA', 'AAPL']);
+			expect(sortSecurities(list, undefined).map((s) => s.symbol)).toEqual(['TSLA', 'AAPL']);
+			expect(sortSecurities(list, 'unknown').map((s) => s.symbol)).toEqual(['TSLA', 'AAPL']);
+			expect(sortSecurities(list, 'name_desc').map((s) => s.symbol)).toEqual(['TSLA', 'AAPL']);
+		});
+
+		it('does not mutate the input array', () => {
+			const first = makeSecurity('1', 'TSLA', 'Tesla Inc', 250, 5.0, 0);
+			const second = makeSecurity('2', 'AAPL', 'Apple Inc', 180, 2.5, 1);
+			const list = [second, first];
+
+			sortSecurities(list, 'custom');
+
+			expect(list.map((s) => s.symbol)).toEqual(['AAPL', 'TSLA']);
+		});
+	});
+
+	describe('normalizeWatchlistSort', () => {
+		it('passes through every known key', () => {
+			for (const key of [
+				'custom',
+				'name_asc',
+				'price_change_desc',
+				'price_change_asc',
+				'date_added',
+				'date_added_asc'
+			] as const) {
+				expect(normalizeWatchlistSort(key)).toBe(key);
+			}
+		});
+
+		it('falls back to custom for absent or unrecognised keys', () => {
+			expect(normalizeWatchlistSort(undefined)).toBe('custom');
+			expect(normalizeWatchlistSort(null)).toBe('custom');
+			expect(normalizeWatchlistSort('')).toBe('custom');
+			expect(normalizeWatchlistSort('garbage')).toBe('custom');
 		});
 	});
 

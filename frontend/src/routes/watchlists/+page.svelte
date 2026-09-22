@@ -3,7 +3,7 @@
 	import { page } from '$app/stores';
 	import { getWatchlistService } from '$lib/components/watchlist/watchlistService.svelte';
 	import { userPreferencesService } from '$lib/api/userPreferencesService';
-	import type { WatchlistRead } from '$lib/api/marketService';
+	import type { WatchlistRead, WatchlistSort } from '$lib/api/marketService';
 	import PageHeader from '$lib/components/layout/app-header.svelte';
 	import { Button } from '$lib/components/ui/button/index.js';
 	import { Input } from '$lib/components/ui/input/index.js';
@@ -15,6 +15,7 @@
 	import {
 		formatPrice,
 		formatPriceChangePercent,
+		normalizeWatchlistSort,
 		sortSecurities,
 		sortWatchlistsByOrder
 	} from '$lib/components/watchlist/watchlist-utils';
@@ -22,6 +23,8 @@
 	import { getContext, untrack } from 'svelte';
 	import ArrowUpDown from '@lucide/svelte/icons/arrow-up-down';
 	import Check from '@lucide/svelte/icons/check';
+	import ChevronDown from '@lucide/svelte/icons/chevron-down';
+	import ChevronUp from '@lucide/svelte/icons/chevron-up';
 	import GripVertical from '@lucide/svelte/icons/grip-vertical';
 	import Pencil from '@lucide/svelte/icons/pencil';
 	import Plus from '@lucide/svelte/icons/plus';
@@ -34,9 +37,22 @@
 		data: {
 			watchlists: WatchlistRead[];
 			watchlist_order?: string[] | null;
-			watchlist_sort?: Record<string, string> | null;
 		};
 	} = $props();
+
+	/**
+	 * The dropdown contract: `direction` is the visual sense of each mode, used for the
+	 * active-option chevron (ChevronUp = ascending/oldest-first, ChevronDown = descending/
+	 * newest-first), mirroring the holdings table header indicator.
+	 */
+	const sortOptions: { value: WatchlistSort; label: string; direction: 'asc' | 'desc' }[] = [
+		{ value: 'custom', label: 'Custom', direction: 'asc' },
+		{ value: 'name_asc', label: 'Name (alphabetical)', direction: 'asc' },
+		{ value: 'price_change_desc', label: 'Price Change (Gainers)', direction: 'desc' },
+		{ value: 'price_change_asc', label: 'Price Change (Losers)', direction: 'asc' },
+		{ value: 'date_added', label: 'Date added (newest first)', direction: 'desc' },
+		{ value: 'date_added_asc', label: 'Date added (oldest first)', direction: 'asc' }
+	];
 
 	const watchlistService = getWatchlistService();
 	const openGlobalSearch = getContext<((watchlist?: WatchlistRead | null) => void) | undefined>(
@@ -53,14 +69,6 @@
 	let watchlistOrder = $state<string[] | null>(
 		untrack(
 			() => data.watchlist_order ?? ($page?.data?.watchlist_order as string[] | undefined) ?? null
-		)
-	);
-	let watchlistSort = $state<Record<string, string>>(
-		untrack(
-			() =>
-				data.watchlist_sort ??
-				($page?.data?.watchlist_sort as Record<string, string> | undefined) ??
-				{}
 		)
 	);
 
@@ -136,11 +144,8 @@
 		await watchlistService.removeSecurityFromWatchlist(watchlistId, securityId);
 	}
 
-	async function setWatchlistSort(watchlistId: string, sortKey: string) {
-		watchlistSort = { ...watchlistSort, [watchlistId]: sortKey };
-		await userPreferencesService
-			.patchPreferences({ watchlist_sort: watchlistSort })
-			.catch(console.error);
+	async function handleSortSelect(watchlist: WatchlistRead, sort: WatchlistSort) {
+		await watchlistService.setSort(watchlist.id, sort);
 	}
 
 	function handleDragStart(e: DragEvent, index: number) {
@@ -316,19 +321,22 @@
 											{/snippet}
 										</DropdownMenu.Trigger>
 										<DropdownMenu.Content align="end">
-											<DropdownMenu.Item onclick={() => setWatchlistSort(watchlist.id, 'name_asc')}>
-												Name (alphabetical)
-											</DropdownMenu.Item>
-											<DropdownMenu.Item
-												onclick={() => setWatchlistSort(watchlist.id, 'price_change_desc')}
-											>
-												Price Change (Gainers)
-											</DropdownMenu.Item>
-											<DropdownMenu.Item
-												onclick={() => setWatchlistSort(watchlist.id, 'price_change_asc')}
-											>
-												Price Change (Losers)
-											</DropdownMenu.Item>
+											{#each sortOptions as option (option.value)}
+												{@const isActive = normalizeWatchlistSort(watchlist.sort) === option.value}
+												<DropdownMenu.Item
+													onclick={() => handleSortSelect(watchlist, option.value)}
+												>
+													<span class="flex-1">{option.label}</span>
+													{#if isActive}
+														{#if option.direction === 'asc'}
+															<ChevronUp size={12} />
+														{:else}
+															<ChevronDown size={12} />
+														{/if}
+														<Check class="h-4 w-4" />
+													{/if}
+												</DropdownMenu.Item>
+											{/each}
 										</DropdownMenu.Content>
 									</DropdownMenu.Root>
 									<Button
@@ -364,7 +372,7 @@
 						{:else}
 							{@const sortedSecurities = sortSecurities(
 								watchlist.securities,
-								watchlistSort[watchlist.id]
+								normalizeWatchlistSort(watchlist.sort)
 							)}
 							<ul aria-label={`${watchlist.name} securities list`} class="flex flex-col gap-1">
 								{#each sortedSecurities as security (security.id)}
