@@ -224,6 +224,32 @@ async def test_unlabelled_response_becomes_the_long_part():
 
 
 @pytest.mark.anyio
+async def test_short_only_response_falls_back_to_the_short_part():
+    """A SHORT-only response must not store the raw labelled line as the paragraph."""
+    service, _ = _build_service(
+        [_note("Shorty", NOW)], content="SHORT: Cautiously accumulating on weakness."
+    )
+
+    summary = await service.summarize_notes(uuid4(), uuid4())
+
+    assert summary["long_summary"] == "Cautiously accumulating on weakness."
+    assert summary["short_summary"] == "Cautiously accumulating on weakness."
+
+
+@pytest.mark.anyio
+async def test_short_only_json_response_falls_back_to_the_short_part():
+    """A JSON body with only a short part must not leak the raw JSON blob."""
+    service, _ = _build_service(
+        [_note("JSON", NOW)], content='{"short_summary": "Trimmed into strength."}'
+    )
+
+    summary = await service.summarize_notes(uuid4(), uuid4())
+
+    assert summary["long_summary"] == "Trimmed into strength."
+    assert summary["short_summary"] == "Trimmed into strength."
+
+
+@pytest.mark.anyio
 async def test_thinking_tokens_are_stripped_from_both_parts():
     service, _ = _build_service(
         [_note("Think", NOW)],

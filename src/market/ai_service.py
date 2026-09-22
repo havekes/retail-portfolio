@@ -420,8 +420,14 @@ class AIService:
             short, long = AIService._parse_labelled_summary_parts(text)
 
         if long is None:
-            # Unlabelled or SHORT-only response: the whole text is the paragraph.
-            long = text
+            # SHORT-only or malformed labelled output: fall back to the short
+            # part itself rather than storing the raw labelled/JSON text as
+            # the paragraph. (_derive_short_summary below then re-derives the
+            # digest from it.)
+            long = short
+            if long is None:
+                # Unlabelled response: the whole text is the paragraph.
+                long = text
 
         long_summary = AIService._clean_summary(long) or ""
         short_summary = AIService._clean_summary(short)
