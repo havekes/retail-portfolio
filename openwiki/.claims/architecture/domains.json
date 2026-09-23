@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "pageVersion": "sha256:c2df6810f10882bdc1e7a4773962b857b7be062fd6f9b25fcaf02a33ab138116",
+  "pageVersion": "sha256:387e44c454226b972705b42bb124d03173fe867c7ad6d39f37a42c3c133a53ab",
   "claims": [
     {
       "id": "claim_cd8c3223793f428f8a0003d13fb73dc3",
@@ -108,10 +108,10 @@
     },
     {
       "id": "claim_a15fee1a564540019871cbdf4a6abec1",
-      "statement": "The account router exposes user chart preferences at `GET|PUT|PATCH /accounts/me/preferences`, backed by `UserApi.get_preferences`/`save_preferences`/`patch_preferences` on the `auth_users.preferences` JSON column; `model_dump(exclude_none=True)` drops explicit null fields so a PUT does not clear other keys.",
+      "statement": "The account router exposes per-user chart preferences at `GET|PUT|PATCH /accounts/me/preferences`, backed by `UserApi.get_preferences`/`save_preferences`/`patch_preferences` on the `auth_users.preferences` JSON column: GET returns `{}` when nothing is saved, PUT replaces the document with `model_dump(exclude_none=True)` so explicit null fields are dropped, and PATCH merges through a JSONB `||` update that returns the merged document; the per-key read/write matrix lives in the User Preferences concept page.",
       "evidence": [
         {
-          "resource": "repo://src/account/router.py#L169-L205",
+          "resource": "repo://src/account/router.py#L170-L206",
           "version": "repo-lines-v1:sha256:3e8e40e36e073be6a800e7d4958764ab69bdcc613607ce0e4a256a2a83e622b2:eyJzZWxlY3RlZExpbmVDb3VudCI6MzcsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjkwYTRmMTBmNzUwNjg2YTQzOTM2MTgwZjNmZWZjOTE4MTM1NDlmNDE4ZTQ3MzVlMWJhYmUzMjMxNjQyNTM2N2QiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjMwYzFmMTg4ZjE0MmVkN2E4MjQ2ODBiMjA3MTcyYzU1MTliYzYxNGE0OGZkYTdjZjE2N2VkYjhkZGY3OTk1NmMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjE5YTdjMzVlZjhkZTUzMzhiOWUyMjAxMDdhZjRkMGNkN2NjYjQ4ZmE1ODViM2YzZDZlNTU4MzM0MWQ1ODhlMjAiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImJiMzE0NWM2N2ZhNzZiN2VkNjk4Nzk2NjY5MmY3NTlhMjhkZDkwMmY2NDBkOGJmOTIzYzBiODQ2OTcyNTZiNzgifQ"
         },
         {
@@ -119,8 +119,8 @@
           "version": "repo-lines-v1:sha256:c2fda55db4435eb031f768720d663b51a9164d8664726b9a751ebc9f1c1ea2da:eyJzZWxlY3RlZExpbmVDb3VudCI6MTEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjI2MDVhZmE0MjEzYzI4NTdjNDQzZGUzNTA4Y2NjZjYwMDFjNmNiN2E3NGQxMjFlODk4ZWNhMDZmNWY0N2M5YTUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ4ZDViMjM0MzMyZjMyN2U2MWM2ZjA2ZmU3NWU5MDcwZGZhZjk1MzhlMjc3Y2Y2MDk3ZGQ1MmQ1NjdhODM1MmUiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjNiNGRlZGI4OWY0NzA1OTA0YjM5ZGQzN2EzNWMwMzI4ZDlkMmYyNzdiMmE3NjA3Y2RjN2UwZWEyZDUyZTc5ZGEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjNlNWQzNDk2MzJlNzlmZDAwNmY4NDQ2MjFkYzU4OTdmZmJiMTgxNDBkNzAyMDEzZjlkOGFlOTgyYzc5MDg1NzEifQ"
         },
         {
-          "resource": "repo://src/auth/model.py#L39-L39",
-          "version": "repo-lines-v1:sha256:73da9987b87a0ba41018c9a2ec6734b6c2ff0c4f3b94c2c5160145cb453d8410:eyJzZWxlY3RlZExpbmVDb3VudCI6MSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiNzNkYTk5ODdiODdhMGJhNDEwMThjOWEyZWM2NzM0YjZjMmZmMGM0ZjNiOTRjMmM1MTYwMTQ1Y2I0NTNkODQxMCIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNzNkYTk5ODdiODdhMGJhNDEwMThjOWEyZWM2NzM0YjZjMmZmMGM0ZjNiOTRjMmM1MTYwMTQ1Y2I0NTNkODQxMCIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiNjYxNjNmMTFiM2M1Mjc0MDc4YTcwZmUxYTZmOWQ2MTM5MGFiNWQ0ZDM1NzVhMjZhYmJjMzgxMTc1YzZmMDQ0YiIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiYmRhNzIyYWVkOTYwYjQ4YjY0MmUyODBjMGE4ZjgzZjBhMzQzOThlOTY4ODQwNTU2MWM0OGQ5Nzk2ZTlmNDFmYSJ9"
+          "resource": "repo://src/auth/repository_sqlalchemy.py#L88-L121",
+          "version": "repo-lines-v1:sha256:115d6fd55d6909f75fd41fb2118e1ed044b78fc4ab4b2285a20182b5137849f5:eyJzZWxlY3RlZExpbmVDb3VudCI6MzQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ0ZGE5MzUwMDE5ZGMxZTY2NzQ1MjY0Mzg3MzE2MTk5NzIyNWU5Y2U2MDEwN2FmN2I2NGY4NDBkZGVjZmRhNGYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjkyN2Y0MWU1YTUwNzQ5MTlmNGZhZjBjM2IyMGFkZmE3MGQwNjNlNjUwMjNkNWRhYTU3YjJmYzYyNTM5NzA3ZDUiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImE5ZjNjODFmYTgyZWIzOTgyMmUzY2QzZmVjNDBiZTVlYzgzODFmYmNiMDgxNDMyMmY3MzI5M2UxNmJmYTU2M2YiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6Ijk1NDVmNTk3NzFkODU3MDQ3M2QzZTRjODMzYzM1MDU4YjAxMTU0MmY2NjkxMDFhOWUzNjU2Y2ExNzU1OTQyNDgifQ"
         }
       ]
     },
@@ -201,8 +201,12 @@
       "statement": "Price-related market tables are `market_prices` (unique `(security_id, date)`, OHLC plus `adjusted_close` as `DECIMAL(16,8)`) and `market_intraday_prices` (unique `(security_id, timestamp)`, 1-hour candles), and per-user market tables are keyed by `user_id` for watchlists, price alerts, security notes, security documents, and chart snapshots — with `market_chart_snapshots` indexed on `(security_id, user_id, captured_at)`.",
       "evidence": [
         {
-          "resource": "repo://src/market/model.py#L82-L233",
-          "version": "repo-lines-v1:sha256:c9b4f13b65f56ee9ba920e598f418f7c254652ce52fdb42a832ccc07f3726bc2:eyJzZWxlY3RlZExpbmVDb3VudCI6MTUyLCJmaXJzdFNlbGVjdGVkTGluZUhhc2giOiJlMGRhOGEzMGQ2M2M3MWE0NDU5Zjc2YmRmNmUxNDM0YWU0NWY5ODBjZDg5NDFjODFlOTc5YjU2NWJkMjBlMGI0IiwibGFzdFNlbGVjdGVkTGluZUhhc2giOiIzMGMxZjE4OGYxNDJlZDdhODI0NjgwYjIwNzE3MmM1NTE5YmM2MTRhNDhmZGE3Y2YxNjdlZGI4ZGRmNzk5NTZjIiwicHJlY2VkaW5nQ29udGV4dExpbmVDb3VudCI6MywicHJlY2VkaW5nQ29udGV4dEhhc2giOiI4Y2M0YTdkMWNjNzk2YWJhM2U0NjcyMzMyN2Y1MTdlOWY4MTE5ODJkMjUwZjA3MDI5ODZlNGI1NzY0YWQ5NTg5IiwiZm9sbG93aW5nQ29udGV4dExpbmVDb3VudCI6MCwiZm9sbG93aW5nQ29udGV4dEhhc2giOiJlM2IwYzQ0Mjk4ZmMxYzE0OWFmYmY0Yzg5OTZmYjkyNDI3YWU0MWU0NjQ5YjkzNGNhNDk1OTkxYjc4NTJiODU1In0"
+          "resource": "repo://src/market/model.py#L127-L238",
+          "version": "repo-lines-v1:sha256:2931d3e56bac88b49bd9b3c12f02915ab34f7ba67acf926d43e3d6c0bf2cb2d8:eyJzZWxlY3RlZExpbmVDb3VudCI6MTEyLCJmaXJzdFNlbGVjdGVkTGluZUhhc2giOiI2ODBmNDgyMmJmNTcyMzg5MGE4ODFhNDdjNzg4Yjk0NDdkNDM3NmI4ZDI3YTNmNTNjOTE3NzA4OGU2NWZjY2YxIiwibGFzdFNlbGVjdGVkTGluZUhhc2giOiIzMGMxZjE4OGYxNDJlZDdhODI0NjgwYjIwNzE3MmM1NTE5YmM2MTRhNDhmZGE3Y2YxNjdlZGI4ZGRmNzk5NTZjIiwicHJlY2VkaW5nQ29udGV4dExpbmVDb3VudCI6MywicHJlY2VkaW5nQ29udGV4dEhhc2giOiI4Y2M0YTdkMWNjNzk2YWJhM2U0NjcyMzMyN2Y1MTdlOWY4MTE5ODJkMjUwZjA3MDI5ODZlNGI1NzY0YWQ5NTg5IiwiZm9sbG93aW5nQ29udGV4dExpbmVDb3VudCI6MCwiZm9sbG93aW5nQ29udGV4dEhhc2giOiJlM2IwYzQ0Mjk4ZmMxYzE0OWFmYmY0Yzg5OTZmYjkyNDI3YWU0MWU0NjQ5YjkzNGNhNDk1OTkxYjc4NTJiODU1In0"
+        },
+        {
+          "resource": "repo://src/market/model.py#L82-L124",
+          "version": "repo-lines-v1:sha256:7fb1df0289069b72cc512e2591677d808e85c8873d5d4edf2f010548ed0aee38:eyJzZWxlY3RlZExpbmVDb3VudCI6NDMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImUwZGE4YTMwZDYzYzcxYTQ0NTlmNzZiZGY2ZTE0MzRhZTQ1Zjk4MGNkODk0MWM4MWU5NzliNTY1YmQyMGUwYjQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjMwYzFmMTg4ZjE0MmVkN2E4MjQ2ODBiMjA3MTcyYzU1MTliYzYxNGE0OGZkYTdjZjE2N2VkYjhkZGY3OTk1NmMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjhjYzRhN2QxY2M3OTZhYmEzZTQ2NzIzMzI3ZjUxN2U5ZjgxMTk4MmQyNTBmMDcwMjk4NmU0YjU3NjRhZDk1ODkiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImYxMDA0NTJhYmNhZTRkZTgwNzc3ZWYxOTgzODU1ZmZhZjQ5NDcxNTk1M2MxZDE2NTgyODQxNDg4NzQwNjJmZmIifQ"
         }
       ]
     },
@@ -438,31 +442,31 @@
     },
     {
       "id": "claim_6919630645964a8e85cc3ff233d72a13",
-      "statement": "The market router's watchlist surface is `GET|POST /market/watchlists` (POST 201), `PATCH|DELETE /market/watchlists/{watchlist_id}` (DELETE 204), `GET /market/watchlists/{watchlist_id}/securities` (paginated `PaginatedResponse[SecuritySchema]`), `POST|DELETE /market/watchlists/{watchlist_id}/securities/{security_id}`, and the default-watchlist shortcuts `POST|DELETE /market/watchlists/securities/{security_id}`; every route requires `current_user`, and each mutation returns the updated `WatchlistRead` with its securities embedded.",
+      "statement": "The market router's watchlist surface is `GET|POST /market/watchlists` (POST 201), `PATCH /market/watchlists/{watchlist_id}` (rename and/or sort mode), `DELETE /market/watchlists/{watchlist_id}` (204), `GET /market/watchlists/{watchlist_id}/securities` (paginated `PaginatedResponse[SecuritySchema]`), `POST|DELETE /market/watchlists/{watchlist_id}/securities/{security_id}`, `PUT /market/watchlists/{watchlist_id}/securities/order` (manual-order replacement), and the default-watchlist shortcuts `POST|DELETE /market/watchlists/securities/{security_id}`; every route requires `current_user`, and each mutation returns the updated `WatchlistRead` with its securities embedded.",
       "evidence": [
         {
-          "resource": "repo://src/market/router.py#L321-L454",
-          "version": "repo-lines-v1:sha256:8532fa4ff1f935b31c23a18ecbfdd98cf382d7f1dff32566e573695cd48a6990:eyJzZWxlY3RlZExpbmVDb3VudCI6MTM0LCJmaXJzdFNlbGVjdGVkTGluZUhhc2giOiIzOGRjY2FhNzIzZTU0MTI1MWFiODNlYjE4ZTU3MWY4MDhkZGJiYzFhY2MyODI4ZjlkNDE0Mzg1NjZmNDBjMzIzIiwibGFzdFNlbGVjdGVkTGluZUhhc2giOiIxOTExOTA3ZTZiYzhiZWRhNjZiMGM4ZTRiNGRkMWVmYmFlNTM2MDk2NGUzZDU3ZDhlNzBiOTRhOGYzOGEzZmUxIiwicHJlY2VkaW5nQ29udGV4dExpbmVDb3VudCI6MywicHJlY2VkaW5nQ29udGV4dEhhc2giOiJjMTJkY2YwNmFhYWJlYjUyNTZmODhkMDZmMzk5MTc1YzdkNDRkNGU2ZTA1MTRmODNiZjYyMWRmODlkZWM2NzE0IiwiZm9sbG93aW5nQ29udGV4dExpbmVDb3VudCI6MywiZm9sbG93aW5nQ29udGV4dEhhc2giOiJiMjAxNTQ0ZmY5NTkwMTYxMDA5ZDkyMzk2ZTY4ZWU5NmY2MjVmNjIyYThmM2U5ZmFlZGQzZmFmMjhhZTZjYTNlIn0"
+          "resource": "repo://src/market/router.py#L326-L496",
+          "version": "repo-lines-v1:sha256:aa1e8f4eed415186517a8caf7a0d75fa8e3fa1c6a8db7911e8f2d68c8c58e7ff:eyJzZWxlY3RlZExpbmVDb3VudCI6MTcxLCJmaXJzdFNlbGVjdGVkTGluZUhhc2giOiIzOGRjY2FhNzIzZTU0MTI1MWFiODNlYjE4ZTU3MWY4MDhkZGJiYzFhY2MyODI4ZjlkNDE0Mzg1NjZmNDBjMzIzIiwibGFzdFNlbGVjdGVkTGluZUhhc2giOiIxOTExOTA3ZTZiYzhiZWRhNjZiMGM4ZTRiNGRkMWVmYmFlNTM2MDk2NGUzZDU3ZDhlNzBiOTRhOGYzOGEzZmUxIiwicHJlY2VkaW5nQ29udGV4dExpbmVDb3VudCI6MywicHJlY2VkaW5nQ29udGV4dEhhc2giOiJjMTJkY2YwNmFhYWJlYjUyNTZmODhkMDZmMzk5MTc1YzdkNDRkNGU2ZTA1MTRmODNiZjYyMWRmODlkZWM2NzE0IiwiZm9sbG93aW5nQ29udGV4dExpbmVDb3VudCI6MywiZm9sbG93aW5nQ29udGV4dEhhc2giOiJiMjAxNTQ0ZmY5NTkwMTYxMDA5ZDkyMzk2ZTY4ZWU5NmY2MjVmNjIyYThmM2U5ZmFlZGQzZmFmMjhhZTZjYTNlIn0"
         }
       ]
     },
     {
       "id": "claim_b6c1c30ba460459a9547687626889a07",
-      "statement": "`WatchlistRepository` (`src/market/repository.py`) is the contract the market router uses directly for watchlists — there is no watchlist service — and declares `get_by_user`, `create`, `rename`, `delete`, `create_default`, the default-watchlist shortcuts `add_security`/`remove_security`, the per-watchlist `add_security_to_watchlist`/`remove_security_from_watchlist`, and the paged `get_securities`; the ABC requires every implementation to scope operations to the owning `user_id` and to report a watchlist that is missing *or* owned by another user as `WatchlistNotFoundError` so callers cannot distinguish the two.",
+      "statement": "`WatchlistRepository` (`src/market/repository.py`) is the contract the market router uses directly for watchlists — there is no watchlist service — and declares `get_by_user`, `create`, `rename`, `update_sort`, `set_security_order`, `delete`, `create_default`, the default-watchlist shortcuts `add_security`/`remove_security`, the per-watchlist `add_security_to_watchlist`/`remove_security_from_watchlist`, and the paged `get_securities`; the ABC requires every implementation to scope operations to the owning `user_id` and to report a watchlist that is missing *or* owned by another user as `WatchlistNotFoundError` so callers cannot distinguish the two.",
       "evidence": [
         {
-          "resource": "repo://src/market/repository.py#L131-L189",
-          "version": "repo-lines-v1:sha256:b0a55c1bf5e781a683060561c574c1ad634b6ad6dcd3a267dc000a51b7744238:eyJzZWxlY3RlZExpbmVDb3VudCI6NTksImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjdhZTA1MjBjYTg1MjA1YTQzNzhjY2M3N2M4NmE3YWExNzk4ODIxMjUwZjFjMzVkMmEzZjFhYTBiZDJhYzJjMGUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImYwNjJlNThlYTBiMGZkMTk1YmEwNzY2MTNiNjMwZDU5ZTY3YmQ0NzBiYjE5ZTk3YTIwYzkwMjM2NmU1YmEwZTYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjM4MzA2YjE3YTFjM2I3MjA4Mzc2OWI4OGM1YjAwN2I5NmEzNWEwNDJmNzllYWI1ODUzMDY3Y2JlZGQ0MWFjOTMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImFiMzczMTQzYWRmZDQxNjZiYmRmZTcxZGNlMWI1MmNmMTc1MWNkZTk2MzFmMWIwMTE3ZjEzYzZlY2ZkOGMyMWMifQ"
+          "resource": "repo://src/market/repository.py#L132-L210",
+          "version": "repo-lines-v1:sha256:6e65b8aa0ee4855ba5f13bba25dd3f5c0704bc06e7f46fd9ad3701b9bd74f692:eyJzZWxlY3RlZExpbmVDb3VudCI6NzksImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjdhZTA1MjBjYTg1MjA1YTQzNzhjY2M3N2M4NmE3YWExNzk4ODIxMjUwZjFjMzVkMmEzZjFhYTBiZDJhYzJjMGUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImYwNjJlNThlYTBiMGZkMTk1YmEwNzY2MTNiNjMwZDU5ZTY3YmQ0NzBiYjE5ZTk3YTIwYzkwMjM2NmU1YmEwZTYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjM4MzA2YjE3YTFjM2I3MjA4Mzc2OWI4OGM1YjAwN2I5NmEzNWEwNDJmNzllYWI1ODUzMDY3Y2JlZGQ0MWFjOTMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImFiMzczMTQzYWRmZDQxNjZiYmRmZTcxZGNlMWI1MmNmMTc1MWNkZTk2MzFmMWIwMTE3ZjEzYzZlY2ZkOGMyMWMifQ"
         }
       ]
     },
     {
       "id": "claim_f398c99c4d85479985806a4b4cc8f89f",
-      "statement": "`SqlAlchemyWatchlistRepository` converts the `(user_id, name)` unique violation into `WatchlistDuplicateNameError` after a rollback on both create and rename, resolves the default watchlist by the literal name `\"Default\"` (creating it on the first `add_security`, tolerating a concurrent-create `IntegrityError` by re-reading, and raising `WatchlistNotFoundError` from `remove_security` when absent), raises `SecurityNotFoundError` for an unknown security in membership edits, treats removing a non-member as a no-op, and price-enriches every returned `WatchlistRead`/`SecuritySchema` with `current_price`, `daily_price_change`, and `daily_price_change_percent` from one batched query over the latest two closes per security.",
+      "statement": "`SqlAlchemyWatchlistRepository` converts the `(user_id, name)` unique violation into `WatchlistDuplicateNameError` after a rollback on both create and rename, resolves the default watchlist by the literal name `\"Default\"` (creating it on the first `add_security`, tolerating a concurrent-create `IntegrityError` by re-reading, and raising `WatchlistNotFoundError` for the nil UUID from `remove_security` when absent), raises `SecurityNotFoundError` for an unknown security in membership edits, treats removing a non-member as a no-op, appends a new membership at `max(position) + 1` (documented as not concurrency-safe, which is acceptable for single-user watchlists), and returns every `WatchlistRead` with `sort` plus `WatchlistSecuritySchema` members ordered by `position` and price-enriched with `current_price`, `daily_price_change`, and `daily_price_change_percent` from one batched query over the latest two closes per security.",
       "evidence": [
         {
-          "resource": "repo://src/market/repository_sqlalchemy.py#L445-L781",
-          "version": "repo-lines-v1:sha256:a9f7f37698a8aebf48812cf140cc619432de3ead21b6cc3da274b8ffe70de8ef:eyJzZWxlY3RlZExpbmVDb3VudCI6MzM3LCJmaXJzdFNlbGVjdGVkTGluZUhhc2giOiJkZWQ5ZDVmM2M0Mzk0ODU2N2RiYTc1MTQwZDdkMGYxNjdmMGNmYTM0OWNiYzAwNzBjMWZhODFlNTBhOTk5ZjMyIiwibGFzdFNlbGVjdGVkTGluZUhhc2giOiI4YmYxY2IwNTgyNGI2MDkwNzBhMzllOTcyYjIzMjhlMmNjMzMxMThlNDhiOTg5NWVhMGQ4ZTFlNjk2OTYzOTRiIiwicHJlY2VkaW5nQ29udGV4dExpbmVDb3VudCI6MywicHJlY2VkaW5nQ29udGV4dEhhc2giOiIxYTM4N2M0ZWM2NmIwOTNiZDIwNDZjNTBjNGU4NzNjY2VhOWFhMGQ5YTZhNWM4MjhiMGE5MDRlMDEwNDhkYWQxIiwiZm9sbG93aW5nQ29udGV4dExpbmVDb3VudCI6MywiZm9sbG93aW5nQ29udGV4dEhhc2giOiJmYzkxNjIxNzkwNzc0ZTM4MTZiNGY3OTFlMDkzN2U0NDFhMmZlMGIxMTJlZWM2OGE1OGU0MjczYWQ0ZDIyZTI2In0"
+          "resource": "repo://src/market/repository_sqlalchemy.py#L449-L950",
+          "version": "repo-lines-v1:sha256:06e83d79bd2658d15307c794139fb64b300ac1505c6b298d5c8e023d90b65369:eyJzZWxlY3RlZExpbmVDb3VudCI6NTAyLCJmaXJzdFNlbGVjdGVkTGluZUhhc2giOiJkZWQ5ZDVmM2M0Mzk0ODU2N2RiYTc1MTQwZDdkMGYxNjdmMGNmYTM0OWNiYzAwNzBjMWZhODFlNTBhOTk5ZjMyIiwibGFzdFNlbGVjdGVkTGluZUhhc2giOiI4YmYxY2IwNTgyNGI2MDkwNzBhMzllOTcyYjIzMjhlMmNjMzMxMThlNDhiOTg5NWVhMGQ4ZTFlNjk2OTYzOTRiIiwicHJlY2VkaW5nQ29udGV4dExpbmVDb3VudCI6MywicHJlY2VkaW5nQ29udGV4dEhhc2giOiIxYTM4N2M0ZWM2NmIwOTNiZDIwNDZjNTBjNGU4NzNjY2VhOWFhMGQ5YTZhNWM4MjhiMGE5MDRlMDEwNDhkYWQxIiwiZm9sbG93aW5nQ29udGV4dExpbmVDb3VudCI6MywiZm9sbG93aW5nQ29udGV4dEhhc2giOiJmYzkxNjIxNzkwNzc0ZTM4MTZiNGY3OTFlMDkzN2U0NDFhMmZlMGIxMTJlZWM2OGE1OGU0MjczYWQ0ZDIyZTI2In0"
         }
       ]
     },
@@ -489,28 +493,152 @@
           "version": "repo-lines-v1:sha256:00d47e694cf3c697d867ac6a6bea34763695650d323ca0f76506a6cbbe9402f1:eyJzZWxlY3RlZExpbmVDb3VudCI6MTUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImMwYTNlNGQ2YjViY2Y3YTIyMDQ3N2Y3ZGM5OTc3YmVjNzNlYjFiNzc5OWZlYmJlZWIxMjJmYzk2MTcxZmViMWYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImJkMzkzMzUzZDE3ZjRmNmMxNzU1MjdiNDU2N2EwN2QwZGYwYjZlYjVjZjQ4NjU0ZDhjMzIxYmIzMmMwMDU2NzYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjhjYzRhN2QxY2M3OTZhYmEzZTQ2NzIzMzI3ZjUxN2U5ZjgxMTk4MmQyNTBmMDcwMjk4NmU0YjU3NjRhZDk1ODkiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjA1NDI0ZGViZGYwMDBlYzgxOTk3NDlhOTYyOTk1NWY2Y2FiZWIyNzg1M2IwYzUzYTljOTVkNmJjNTc4NTdmNjkifQ"
         },
         {
-          "resource": "repo://src/market/model.py#L54-L233",
-          "version": "repo-lines-v1:sha256:e68ee11a7a33aa21d620ac794e719eea8c8bc6e35f9def5cb6aab2a318b42419:eyJzZWxlY3RlZExpbmVDb3VudCI6MTgwLCJmaXJzdFNlbGVjdGVkTGluZUhhc2giOiJlMzA5Njk0OWRhYzVhZjM0ZWNiNmM1Y2M3ZWZiNTE5NjU0YTUwYmZmNDhiYjU3NjY3MTEzNGM2NjQyMjRmYjcxIiwibGFzdFNlbGVjdGVkTGluZUhhc2giOiIzMGMxZjE4OGYxNDJlZDdhODI0NjgwYjIwNzE3MmM1NTE5YmM2MTRhNDhmZGE3Y2YxNjdlZGI4ZGRmNzk5NTZjIiwicHJlY2VkaW5nQ29udGV4dExpbmVDb3VudCI6MywicHJlY2VkaW5nQ29udGV4dEhhc2giOiI4Y2M0YTdkMWNjNzk2YWJhM2U0NjcyMzMyN2Y1MTdlOWY4MTE5ODJkMjUwZjA3MDI5ODZlNGI1NzY0YWQ5NTg5IiwiZm9sbG93aW5nQ29udGV4dExpbmVDb3VudCI6MCwiZm9sbG93aW5nQ29udGV4dEhhc2giOiJlM2IwYzQ0Mjk4ZmMxYzE0OWFmYmY0Yzg5OTZmYjkyNDI3YWU0MWU0NjQ5YjkzNGNhNDk1OTkxYjc4NTJiODU1In0"
+          "resource": "repo://src/market/model.py#L127-L238",
+          "version": "repo-lines-v1:sha256:2931d3e56bac88b49bd9b3c12f02915ab34f7ba67acf926d43e3d6c0bf2cb2d8:eyJzZWxlY3RlZExpbmVDb3VudCI6MTEyLCJmaXJzdFNlbGVjdGVkTGluZUhhc2giOiI2ODBmNDgyMmJmNTcyMzg5MGE4ODFhNDdjNzg4Yjk0NDdkNDM3NmI4ZDI3YTNmNTNjOTE3NzA4OGU2NWZjY2YxIiwibGFzdFNlbGVjdGVkTGluZUhhc2giOiIzMGMxZjE4OGYxNDJlZDdhODI0NjgwYjIwNzE3MmM1NTE5YmM2MTRhNDhmZGE3Y2YxNjdlZGI4ZGRmNzk5NTZjIiwicHJlY2VkaW5nQ29udGV4dExpbmVDb3VudCI6MywicHJlY2VkaW5nQ29udGV4dEhhc2giOiI4Y2M0YTdkMWNjNzk2YWJhM2U0NjcyMzMyN2Y1MTdlOWY4MTE5ODJkMjUwZjA3MDI5ODZlNGI1NzY0YWQ5NTg5IiwiZm9sbG93aW5nQ29udGV4dExpbmVDb3VudCI6MCwiZm9sbG93aW5nQ29udGV4dEhhc2giOiJlM2IwYzQ0Mjk4ZmMxYzE0OWFmYmY0Yzg5OTZmYjkyNDI3YWU0MWU0NjQ5YjkzNGNhNDk1OTkxYjc4NTJiODU1In0"
+        },
+        {
+          "resource": "repo://src/market/model.py#L54-L79",
+          "version": "repo-lines-v1:sha256:ebafe20effa844675bf7435fcb81054401e84f29ee4ae827c0f4f7e805a44883:eyJzZWxlY3RlZExpbmVDb3VudCI6MjYsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImUzMDk2OTQ5ZGFjNWFmMzRlY2I2YzVjYzdlZmI1MTk2NTRhNTBiZmY0OGJiNTc2NjcxMTM0YzY2NDIyNGZiNzEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjMwYzFmMTg4ZjE0MmVkN2E4MjQ2ODBiMjA3MTcyYzU1MTliYzYxNGE0OGZkYTdjZjE2N2VkYjhkZGY3OTk1NmMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjhjYzRhN2QxY2M3OTZhYmEzZTQ2NzIzMzI3ZjUxN2U5ZjgxMTk4MmQyNTBmMDcwMjk4NmU0YjU3NjRhZDk1ODkiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjA0MWY4ZjQ0OGMwNTUyNDgxOTI2ZTMxMGZlMTMwMzgzNDRiZWM5OTMyZWFiNzdkNjEwYjI0N2U2N2NkOWI5ZDUifQ"
+        },
+        {
+          "resource": "repo://src/market/model.py#L82-L124",
+          "version": "repo-lines-v1:sha256:7fb1df0289069b72cc512e2591677d808e85c8873d5d4edf2f010548ed0aee38:eyJzZWxlY3RlZExpbmVDb3VudCI6NDMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImUwZGE4YTMwZDYzYzcxYTQ0NTlmNzZiZGY2ZTE0MzRhZTQ1Zjk4MGNkODk0MWM4MWU5NzliNTY1YmQyMGUwYjQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjMwYzFmMTg4ZjE0MmVkN2E4MjQ2ODBiMjA3MTcyYzU1MTliYzYxNGE0OGZkYTdjZjE2N2VkYjhkZGY3OTk1NmMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjhjYzRhN2QxY2M3OTZhYmEzZTQ2NzIzMzI3ZjUxN2U5ZjgxMTk4MmQyNTBmMDcwMjk4NmU0YjU3NjRhZDk1ODkiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImYxMDA0NTJhYmNhZTRkZTgwNzc3ZWYxOTgzODU1ZmZhZjQ5NDcxNTk1M2MxZDE2NTgyODQxNDg4NzQwNjJmZmIifQ"
         }
       ]
     },
     {
       "id": "claim_b331addd94e342f68002abf09c52cb36",
-      "statement": "The layering rules this page owns are: models generate migrations and are never returned to clients (routes return `*Read` schemas), repositories and services exchange schemas rather than ORM models, `api_types.py` is the only type surface that may cross a domain boundary, and a router may call its own domain's repositories directly for thin CRUD routes but must never touch a foreign domain's repositories.",
+      "statement": "The layering rules this page owns are: models generate migrations and are never returned to clients (routes return `*Read` schemas), repositories and services exchange schemas rather than ORM models, `api_types.py` is the only type surface that may cross a domain boundary, and a router may call its own domain's repositories directly for thin CRUD routes — as the market watchlist routes do — but must never touch a foreign domain's repositories.",
       "evidence": [
         {
           "resource": "repo://src/AGENTS.md#L86-L135",
           "version": "repo-lines-v1:sha256:a3d73d2d4de4e8c1aaae526279d21448a801992e289f5212a78c87305dd7e016:eyJzZWxlY3RlZExpbmVDb3VudCI6NTAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjgyOTQ1OTIwZTlmYTI5YThmMjliMzE2MWI3YzM3NzUwOGVhOWZkOGYzMGY1MGNlNzAzZDdkYTFiMDVhYjJkMjgiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjM4MWRiNDZlZGNlMWE3ZTkzNDI4MDZmOWExZDRiZDI0MzAzNDdhNDYyMzNhNGYwYzAwZmI1MGE2ZGEyMjRiMzAiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImQ4MTc4YjcyZjc3MThlMDQ0MzVkYmI3MjdiZmMzMGUzNWRkODhiMTkwMWJiMmRlZGNjOWE3OTA1ZDk5MWJmMjIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjJlOTU1NmU0NzM2NTZhZDMwZjBkM2YzY2EzZjI4NmEzOTg4ODUxZWFmMTA2N2UyMDI1MTE1NTBhYzQ4MjNkZGYifQ"
         },
         {
-          "resource": "repo://src/market/router.py#L321-L454",
-          "version": "repo-lines-v1:sha256:8532fa4ff1f935b31c23a18ecbfdd98cf382d7f1dff32566e573695cd48a6990:eyJzZWxlY3RlZExpbmVDb3VudCI6MTM0LCJmaXJzdFNlbGVjdGVkTGluZUhhc2giOiIzOGRjY2FhNzIzZTU0MTI1MWFiODNlYjE4ZTU3MWY4MDhkZGJiYzFhY2MyODI4ZjlkNDE0Mzg1NjZmNDBjMzIzIiwibGFzdFNlbGVjdGVkTGluZUhhc2giOiIxOTExOTA3ZTZiYzhiZWRhNjZiMGM4ZTRiNGRkMWVmYmFlNTM2MDk2NGUzZDU3ZDhlNzBiOTRhOGYzOGEzZmUxIiwicHJlY2VkaW5nQ29udGV4dExpbmVDb3VudCI6MywicHJlY2VkaW5nQ29udGV4dEhhc2giOiJjMTJkY2YwNmFhYWJlYjUyNTZmODhkMDZmMzk5MTc1YzdkNDRkNGU2ZTA1MTRmODNiZjYyMWRmODlkZWM2NzE0IiwiZm9sbG93aW5nQ29udGV4dExpbmVDb3VudCI6MywiZm9sbG93aW5nQ29udGV4dEhhc2giOiJiMjAxNTQ0ZmY5NTkwMTYxMDA5ZDkyMzk2ZTY4ZWU5NmY2MjVmNjIyYThmM2U5ZmFlZGQzZmFmMjhhZTZjYTNlIn0"
+          "resource": "repo://src/market/router.py#L326-L496",
+          "version": "repo-lines-v1:sha256:aa1e8f4eed415186517a8caf7a0d75fa8e3fa1c6a8db7911e8f2d68c8c58e7ff:eyJzZWxlY3RlZExpbmVDb3VudCI6MTcxLCJmaXJzdFNlbGVjdGVkTGluZUhhc2giOiIzOGRjY2FhNzIzZTU0MTI1MWFiODNlYjE4ZTU3MWY4MDhkZGJiYzFhY2MyODI4ZjlkNDE0Mzg1NjZmNDBjMzIzIiwibGFzdFNlbGVjdGVkTGluZUhhc2giOiIxOTExOTA3ZTZiYzhiZWRhNjZiMGM4ZTRiNGRkMWVmYmFlNTM2MDk2NGUzZDU3ZDhlNzBiOTRhOGYzOGEzZmUxIiwicHJlY2VkaW5nQ29udGV4dExpbmVDb3VudCI6MywicHJlY2VkaW5nQ29udGV4dEhhc2giOiJjMTJkY2YwNmFhYWJlYjUyNTZmODhkMDZmMzk5MTc1YzdkNDRkNGU2ZTA1MTRmODNiZjYyMWRmODlkZWM2NzE0IiwiZm9sbG93aW5nQ29udGV4dExpbmVDb3VudCI6MywiZm9sbG93aW5nQ29udGV4dEhhc2giOiJiMjAxNTQ0ZmY5NTkwMTYxMDA5ZDkyMzk2ZTY4ZWU5NmY2MjVmNjIyYThmM2U5ZmFlZGQzZmFmMjhhZTZjYTNlIn0"
+        }
+      ]
+    },
+    {
+      "id": "claim_68f1996566d04bb68528870cb3fee322",
+      "statement": "`market_watchlists_securities` is an association entity rather than a bare join table: it carries a server-defaulted `added_at` and an application-managed `position`, while `market_watchlists` carries a persisted `sort` mode defaulting to `custom`; because a SQLAlchemy `secondary` relationship can neither carry nor order by those association columns, the watchlist read paths query the association explicitly, joined to the security rows and ordered by `position` then `added_at`.",
+      "evidence": [
+        {
+          "resource": "repo://src/market/model.py#L127-L157",
+          "version": "repo-lines-v1:sha256:a7ad27f3cb4442460012ec03146c61ef6e4884d65bb92cfcd9a752853ea0dd12:eyJzZWxlY3RlZExpbmVDb3VudCI6MzEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjY4MGY0ODIyYmY1NzIzODkwYTg4MWE0N2M3ODhiOTQ0N2Q0Mzc2YjhkMjdhM2Y1M2M5MTc3MDg4ZTY1ZmNjZjEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjMwYzFmMTg4ZjE0MmVkN2E4MjQ2ODBiMjA3MTcyYzU1MTliYzYxNGE0OGZkYTdjZjE2N2VkYjhkZGY3OTk1NmMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjhjYzRhN2QxY2M3OTZhYmEzZTQ2NzIzMzI3ZjUxN2U5ZjgxMTk4MmQyNTBmMDcwMjk4NmU0YjU3NjRhZDk1ODkiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjdiMTljNzk1MjU4Y2I4Njc4YmI2ODk0ZGU1M2EzMmQ3Yzc0MDA0NGU2MDZmNzZjZTFjYzE5ZjYwZDUyMmFjZWIifQ"
+        },
+        {
+          "resource": "repo://src/market/repository_sqlalchemy.py#L578-L631",
+          "version": "repo-lines-v1:sha256:7fd45065ff640a4e33c206feabb37fa4698595b60ded3753d03d616cd5d2a6a4:eyJzZWxlY3RlZExpbmVDb3VudCI6NTQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjA5ZmIxOTZiYjkyNDdiMDhjMTliYzEzZmY4OTBhMTQxYmFmZTcyMjdlMTE1NThhNTMzZmNhYTU0MjQ5YTdjMTQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImJhYWU4YTBjYTc2Zjk4ZjdiN2RjNzk4NDk1MWQ2M2U1N2RiM2M2NDU1NzljYTUxYmFkNmE1MzlkNjE0ZWRiYmUiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjFmYzY0MzI4NmJjYWFjNTZlNWQ2OTBlOTAwNTcxMmVlYjU1MDI3MWQwYTU5M2JkYWY3ZDY0NWEwOTVjNWU3ODUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjkyZjkxYzBlZTMwMDdkNWVmMjYyZjY5ZTEwMTUzMzc1MWRkOWEyOTdjZjcyMjA0ZmY1NzJjMTkwYzk2ZDAwOWYifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_95e0337b4544420ca155aba4e22d27b6",
+      "statement": "`PUT /market/watchlists/{watchlist_id}/securities/order` replaces a watchlist's manual ordering: the payload must be an exact permutation of the current membership (a repeated id is rejected by the length check), validation runs before any write so a rejected payload leaves every position untouched, and a rejected payload raises `WatchlistOrderIdentityError` — deliberately a plain `Exception`, not an `EntityNotFoundError` — which the route translates to HTTP 422.",
+      "evidence": [
+        {
+          "resource": "repo://src/market/exception.py#L25-L36",
+          "version": "repo-lines-v1:sha256:82000db4706f139a8ac12d23608769ae6f41a4debdf23689471b77dc89819ef7:eyJzZWxlY3RlZExpbmVDb3VudCI6MTIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImY1YzMwNGU4YzkwNjE5OGFiZGM5MTAzMjdiZDE1NjJiNWNhY2VlMTM4N2E1YjM4YmM2MGY4ZmU4MjI5NzBhZTkiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjU5MDlhNTNhNjE4ZDAyOGUxZDMwMDBjMGE3YWJjZWVjYmU1ZmIzN2Y0ZTUxMWVmZTQ2NjQzZmFkNmU2Njg3MmYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjdjOGE0Mjg4YTJmYmNiOGUwMDMwOGQ3ZWE2MzE1YmE0Y2U5MzU0MGViMDlkMGMwZjFmMTQ2ZWE0Njk2MWNmMDUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjgwYjg3YTgwMmRiNGJmY2Y0NzY3NmZjYTM3ZWZkZWE5Nzg4M2MzZWEzMGU0NTJhMjNjMDA5YjI5ODRlNmMzZmEifQ"
+        },
+        {
+          "resource": "repo://src/market/repository_sqlalchemy.py#L726-L769",
+          "version": "repo-lines-v1:sha256:91cc545b1312c289de04d7171ca204ef3f45e54c7797b4b3421002d1890ce246:eyJzZWxlY3RlZExpbmVDb3VudCI6NDQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImVjYjliMTM5NjFiMGRlMThlYzI1YmQxYmEyOGQ3YTdmMjc2ZjBkMDA1MDgzMzc1MDBmZjdhZTA3NGQ1MWYzN2EiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjU5MDlhNTNhNjE4ZDAyOGUxZDMwMDBjMGE3YWJjZWVjYmU1ZmIzN2Y0ZTUxMWVmZTQ2NjQzZmFkNmU2Njg3MmYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjhhZmU0YTdmZWIzYzVlN2ZiOGNjZjcwZmE3NzIzNDkxYWMzOTgwOWRmZjE4YWVmMmFiODE1YzExZjc2MzM0YTAiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjRiNzJkOTk1OTRjMDNiMGFiZmM1NTNmODA3NDRjZjdlNGY4MzAyYzY1NTg3MTZjMTE5NGZlZmI0MzM0NTI1NzcifQ"
+        },
+        {
+          "resource": "repo://src/market/router.py#L454-L470",
+          "version": "repo-lines-v1:sha256:13eb2d0ae903d8cbacdaa0327c2818e75bdfcdb763ccdcece375ae139825be70:eyJzZWxlY3RlZExpbmVDb3VudCI6MTcsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjU4ZDY5ZDljOGVlMDJkMjM2NWMwNDlmOGYxYWRhYjlhMDE2NGRmNjljN2Y2NTBlM2VlMWJhMWQwOWYyNzk1ZWQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjNlZGI2MTg0YmE5MTQ5YzljMmVmMzQ1NjFjOWRhNWMyYmYwMjdmYjA3NDQ3MWYwNGExY2NhZTAyNzIzZThkMTEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjhjYzRhN2QxY2M3OTZhYmEzZTQ2NzIzMzI3ZjUxN2U5ZjgxMTk4MmQyNTBmMDcwMjk4NmU0YjU3NjRhZDk1ODkiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImQ2OTk0MjFjYzE1MGM4M2VmMGQzNTVhNjU1MTc0YTI2ZDQzZDI5MmUzMTk0MmY5ZDFlN2UyZGIzNjMzMGY2ZTQifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_f2bbf7fa19db4549a7393dca4f9dd399",
+      "statement": "`PATCH /market/watchlists/{watchlist_id}` renames and/or changes the sort mode in one call and translates `WatchlistDuplicateNameError` to HTTP 409; a payload that changes nothing still proves ownership by re-reading the user's watchlists and raising `WatchlistNotFoundError` when the id is absent, so a no-op PATCH cannot be used to probe another user's watchlist.",
+      "evidence": [
+        {
+          "resource": "repo://src/market/router.py#L354-L386",
+          "version": "repo-lines-v1:sha256:a6ddf87aa2b0c8c10450fe41c7bbb46093b9ac6165fda5d07ee2816118f60296:eyJzZWxlY3RlZExpbmVDb3VudCI6MzMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImU0NTdmYmNkZmZhOGI2MGUxMGU4NmYxOWZkNjE1MzhkNmFkZDk1NjFiMDJkZGUwNjA3OTk4ODNhMWFlMGVkODYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjVhMjkwYjUwYTc2MWZiYWU1ZTMyN2E2MzE3NGFmNThjNzdkOGE4NzNmZDFjN2NiZTExZjQwYTIzNzY4MmU2ZTIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjNmMWI3YjBhMWVmNTY5MjdlNDdiMWE5MmQ2MzZmOGYwNWExNWUwZTQ0MmY2Y2VkNzNmNmNjYWE5YWE2NDFmOTIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjFhMzk0OWY0MzRmYmYwMDNjNzZiZDhhYzk0ZDgyMmQ1YjkwMjg1NzI1MWM0MTZhMDM2MWMyMjFjZDNjMmYyOTgifQ"
+        },
+        {
+          "resource": "repo://src/market/schema.py#L120-L139",
+          "version": "repo-lines-v1:sha256:28b72003095d7445994011e58e7a4b57d26a60e478a36018eea3b34a1e15b3cf:eyJzZWxlY3RlZExpbmVDb3VudCI6MjAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImU5NWRhMDU5NDdlMmI3MmY2ZWRhNWNhYjA2YTAyYjUwY2QyOTc0MDU1ZjlkZThjOTBmYjEzZjk2YzYyOGY1MTMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImVkODE4YTg3OWEzMmYxM2IxY2QyY2Q1MTU3Yjc1ZDkwMTJkMjZiNTE0ODFhZWUyOGJmMmY1NDBjYjdiZGZkM2UiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImY2YjVmOTFmOWVkMjM4YmE3MGQ2NzFhMjNiNDMwYmU3NDRhYjE3ZDg5M2NjY2Q5YjFkMTE3NmJhNzllMjg0ZmEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjRkZDlhMTM2YmNmYzhkN2NiZjQxNjA2OTY3YjBjMThmYTI3YzUwYjdmZTZjNmY5MTU5Y2YxODI5ZWM0YWFlNTgifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_22ffef26405049828d72adeb2e6ee556",
+      "statement": "`src/market/enum.py` owns the watchlist sort modes (`custom`, `name_asc`, `price_change_desc`, `price_change_asc`, `date_added`, `date_added_asc`) and the candle intervals (`1h`, `4h`, `1d`, `1w`, `1m`); the watchlist repository persists whatever sort value it is given but never orders by it, and `get_securities` pages a `symbol`-ordered subset, so display sort is applied above the repository rather than in SQL.",
+      "evidence": [
+        {
+          "resource": "repo://src/market/enum.py#L4-L25",
+          "version": "repo-lines-v1:sha256:1caeeb4d171e6b8e52901e636bd5d824624c342abaf69d343eed1831a034e405:eyJzZWxlY3RlZExpbmVDb3VudCI6MjIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImU3ZWJkZGRiNGYxZjFiMmRiZGY5NjJmZmMwMGFiMTQ5ZjJlZjZmYjZmNTE4NTRiNTYxNmYyMmU4NDliM2E2YzkiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjU4YjczODlkZWQ1OTRjMTBjY2YxMmIyODhmMzE0YmQ3OTY3ODhmZmRlYzVjZDA3ZmMxZjkzN2Q1Njc4ZGY0OTQiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjMzMjZiNjg5ZDEzNjY5NGYyM2VjMDk5ZTk4Zjc5NmYxNWNjMmUzNmZmMDMyOWJmYWI1NWY4NDZlNmFlOGU5YjciLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
+        },
+        {
+          "resource": "repo://src/market/repository_sqlalchemy.py#L713-L723",
+          "version": "repo-lines-v1:sha256:eb6b6b5779e46a882b3a3f51847fef16911b47064f84e65f007ae5c6d6978a00:eyJzZWxlY3RlZExpbmVDb3VudCI6MTEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ0ZGE5MzUwMDE5ZGMxZTY2NzQ1MjY0Mzg3MzE2MTk5NzIyNWU5Y2U2MDEwN2FmN2I2NGY4NDBkZGVjZmRhNGYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjU5MDlhNTNhNjE4ZDAyOGUxZDMwMDBjMGE3YWJjZWVjYmU1ZmIzN2Y0ZTUxMWVmZTQ2NjQzZmFkNmU2Njg3MmYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjBiZGU4ZmUwMWVmMDRmNzY0NDE5MzcxMTZmMTA4NmQ1YTY4Y2Y1OTBlNTU3ZDQ5YTUwMTg4ZmZjMGY5ZjYzNmIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjNkZTIwMWNkY2JhYjVlNzU3NjExYTc5MDE2MDU5MjExMzhmZDY4MmFkMjYyYTUwZmQ3ZDc0MDQ5ZGVhNmZkNmIifQ"
+        },
+        {
+          "resource": "repo://src/market/repository_sqlalchemy.py#L923-L950",
+          "version": "repo-lines-v1:sha256:d04c3e2ba1d9a1c5e246ec54e14a1e8bc58677f47e460e9d4ee361da74172afb:eyJzZWxlY3RlZExpbmVDb3VudCI6MjgsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijk0Njk1YzRlNjg2MmY0YzZjMjg1ODQzZDlkM2RlZGFhYTIxN2Y2MTBiMjdhZjBhNGZkN2M4ODJlZTE3ZTdlZDQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjhiZjFjYjA1ODI0YjYwOTA3MGEzOWU5NzJiMjMyOGUyY2MzMzExOGU0OGI5ODk1ZWEwZDhlMWU2OTY5NjM5NGIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjhhZmU0YTdmZWIzYzVlN2ZiOGNjZjcwZmE3NzIzNDkxYWMzOTgwOWRmZjE4YWVmMmFiODE1YzExZjc2MzM0YTAiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImZjOTE2MjE3OTA3NzRlMzgxNmI0Zjc5MWUwOTM3ZTQ0MWEyZmUwYjExMmVlYzY4YTU4ZTQyNzNhZDRkMjJlMjYifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_642065b3a7c54d878a9db23ac2b1894d",
+      "statement": "`migrations/versions/4c2ed77e7738_add_watchlist_sort_membership_added_at_.py` is the worked example of the mandatory model-change-plus-migration rule: it adds `market_watchlists.sort` and `market_watchlists_securities.added_at`/`position`, backfills existing rows deterministically (`row_number()` partitioned by watchlist ordered by `security_id`), and only then enforces `NOT NULL`.",
+      "evidence": [
+        {
+          "resource": "repo://migrations/versions/4c2ed77e7738_add_watchlist_sort_membership_added_at_.py#L1-L76",
+          "version": "repo-lines-v1:sha256:27d53ba17cb3d9197e2ce0a0b9203008df46eb468081c487b7f056d02d568e6e:eyJzZWxlY3RlZExpbmVDb3VudCI6NzYsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ0ZDllNTkxMGJmNDExOWE4MDk5OWNjZjRkMTExZmEzMDg5YTlkNWNkZDY1ODcyMDM4NWUxZmUxY2RmZDZhY2EiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAxYmE0NzE5YzgwYjZmZTkxMWIwOTFhN2MwNTEyNGI2NGVlZWNlOTY0ZTA5YzA1OGVmOGY5ODA1ZGFjYTU0NmIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjowLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImYzZGI0NGNjMjg2MTAyNzI1ZmJhZjdiMDMwZjc1YWE2YTFkZjRmZGE1NjY2MWM1YTliODY4NTQzNzczZTExMDYifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_0cb6356b18434bc9a15128816d262788",
+      "statement": "The account router exposes three holdings reads — `GET /accounts/holdings` (paginated `UserHoldingRead` aggregated across every account the user owns), `GET /accounts/holdings/{security_id}` (security-scoped), and `GET /accounts/{account_id}/holdings` (account-scoped, with header totals computed over all positions); `PositionService.get_holdings_by_security` returns an empty list with a zero total when the security itself cannot be resolved (a TODO flags the ambiguity with \"no holdings\"), while `_calculate_holdings` logs and skips an unresolvable position so one bad row cannot abort the read.",
+      "evidence": [
+        {
+          "resource": "repo://src/account/router.py#L451-L501",
+          "version": "repo-lines-v1:sha256:32eaf2aa94975b9d8c471353b3a88ebf7d0f09289a196167d34a5ecba710ff2a:eyJzZWxlY3RlZExpbmVDb3VudCI6NTEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjU1YTQ2OTNhYmFmZDViYzczODZlOWYwNTNjOWExYjljNmUxY2YwZjgzNTJiNGQ3ZTUxN2VmNTY3NTk0YmMxZGIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjMwYzFmMTg4ZjE0MmVkN2E4MjQ2ODBiMjA3MTcyYzU1MTliYzYxNGE0OGZkYTdjZjE2N2VkYjhkZGY3OTk1NmMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImQ0MmYyYzdmNzc4N2FkMTgyNTE0OTgxZmYzMmFlMWE4NWY0NGQxZWY4ZTY2ZTgzOWQ2MGZmMDg5Y2Q1ZDJkMWIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjRmMzIxNGNlOWE4OWZhODFlZTM2Mzg0NTBlMzQ4NTlmYzMwZWIyMzY5OGRmZTRjMzI3MGEyZDIwODcwZTUzODIifQ"
+        },
+        {
+          "resource": "repo://src/account/service/position.py#L241-L266",
+          "version": "repo-lines-v1:sha256:0ab20274d2f3db2bfe33a79ff92031e45f4139a965de8edac8ac4e966b11fa91:eyJzZWxlY3RlZExpbmVDb3VudCI6MjYsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjI2NTI1ZjQzNjZiYzRlNDc1OWExMTc1MDc1ZjI1MzVkOTFhMTYxMWFmODAzODQyMTUzOWEwNDUwMWQ2OGQ2NDAiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImVjZWZjNWE0ZTUwZDgxMmNkMTk5ZDEwYjkxMzkzYWM5ZDZiYzVkMGU0ODQ4ZDNlMGM2MDNmMmNkZGZhZjcyNWIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImJmYWM4MTk5NGEwZjI1MDNmNTkzOTY0Mjc1ZWRiYTc0M2RjNzZjNGM2NzA3ZTRhNmE0NjQxYWI1OGI2OWQyNDEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjMzMzZiM2JkMzkwYWFjY2E4MzBjNTEyYzEwMTQ1MjE1NzM2ZjYyNDBmY2M1MmM4YzY2MTNiN2U2ZTQ3ZTk5NjYifQ"
+        },
+        {
+          "resource": "repo://src/account/service/position.py#L87-L135",
+          "version": "repo-lines-v1:sha256:12873b254c76a4c89ebd0b161eb24ca5582d791a7a42c91047a268b9d555a67a:eyJzZWxlY3RlZExpbmVDb3VudCI6NDksImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImNkYzMyYjZiMTgyY2FlNzVlNjBiMzMwNTk2YmQyMDQ2NGU4ZjJmZjQ3YjQ0MTA1N2VhOTExODlkYWQ4NzMzYmUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImI4ZmFhYjZkMGE3NDA0YTY2OGRmYWQ5NGI2OWI1MjBkZjZiZTJlMTllOWMyMGQyMzYxZmJkNWVmNWZhNTJkOTkiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImEwZjFhODM5ODQzNWVlMDk3ZTA4ZWUwYzRkMWZiN2U0NTdmMTc1ZWYzM2VjODJmMDlkYzI2MTU5ZWZiYzFlNDgiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjQ4MjMwNTk0ZWM3YzRjOWQ1YjUwNmY4MTMwZTdmOTZiMjdmYzJlMDQzMTBiOGQ0NTAzYTUwMDJlZGM4ZWFhNjIifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_48f3977f00204dc88dbfc80da5f55dbe",
+      "statement": "`CsvAccountService.validate_csv_institution` is the single gate for CSV import: an unknown institution raises `InstitutionNotFoundError`, and an institution with `csv_import_enabled` false or a null `csv_format` raises `CsvImportDisabledError`, so enabling CSV support for a broker is a data change (template plus flag) rather than a parser change.",
+      "evidence": [
+        {
+          "resource": "repo://src/account/service/csv_account.py#L61-L74",
+          "version": "repo-lines-v1:sha256:2cd8aa8b3c014858994a3a105ba3eb1f5cbf7281cd84a478f4ff69d3e02602ff:eyJzZWxlY3RlZExpbmVDb3VudCI6MTQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjEzMzBkNjcyYWIxOTAwOGExODVmNGMzYzNlZDg2OTIxMmQ5NmQxMWE5NjMxZTdjYzFmNmZkMGNmNDM3NTk4MjYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ0MmE0MjViZmMxYWQ2ZTMwN2IyZTIyYTQ0MGMxMmU5YWQ2YWI2YzdjZTBiMGMwN2QxYmJkNzlkZWFkNWQ4MWMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjU2YmZlNjllNmQxNzBiM2Y0Yzc0ZmNhM2YxNzI4MTZjMGYxNjQ1MDI2ZjNiYTgwMjFmZDhmMDZlYTY4NGQ5M2EiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjY4OWY0MDY4OGVkNmZkODhlMzU5MGViNDRjZjhmM2ZmZmQ5OTQ1YjUwNWY1ZDViMGQ2NjU4NDdiMTcwNTQwZWIifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_12ab5f8288704882be004d580dd1ef45",
+      "statement": "`ws_manager` (`src/ws/manager.py`) is the single fan-out the account-totals task and the integration broker-sync task push through, so realtime account updates originate in the Huey worker processes rather than in the API process.",
+      "evidence": [
+        {
+          "resource": "repo://src/account/task.py#L44-L50",
+          "version": "repo-lines-v1:sha256:7e8192845f1ed920d1f7bcc8084d0299dfc355b0f56e17ba535fd006e7a23873:eyJzZWxlY3RlZExpbmVDb3VudCI6NywiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiMGZhMDI4NDMwYjNiYWZjZTI2MTNlMjI5Y2UwMDQ2ZDk3YTc5ZmY3MWI3NDZlN2QwYjhiOWM2NTcwMDZhMmY1ZSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNTEwMzQ4MWM1N2QwZjBkYzBmNzZjZDJjYzhiMzYwNGM0ZTgyOTZkYTQxMjJhZGQxOWU4MTc0NWRjN2UzMzFhNiIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiZmMxZjRkNjY2ODBmNWI5NzY1MTg4MWEyZmMzMmEwZDY3YWNhODAzYWQ5ODA2NDRlZTkwYmJjMzFkM2NiYmIyZSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiMTlmMDA5MThkYmRjYjEzNjlmNmNjNWFlMDdmY2Q2ZTIyNzVjOTlmY2YwNDZjMjJjZGU0ZWUzNDYzOWJkYzc2MSJ9"
+        },
+        {
+          "resource": "repo://src/integration/task.py#L246-L252",
+          "version": "repo-lines-v1:sha256:39f40f017afd3d48bb1db7f4393fb3be2da8f3f255a8629892fbafd1116d08d6:eyJzZWxlY3RlZExpbmVDb3VudCI6NywiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiOTU3ODA1YzNmZTdhYzYzMDc0ZjY5Y2RiMjViOWFjZDdhODY3OTJkZmU1NDA4MThhYzRmODc2NGI0OWU3ZDE0YSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiMThmZTg4YWJmOTdjNWM0ZjMzNThjMDgwODc2NDZkNThhZGU3MzZiMmViMTA2M2Q3M2MxNjA2YzAwNDIxNWZlYSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiOWY0OWI0ODMzODM5MGM0NmNhZjE3ZmI4ODNhMDhjYmNlY2UxNWNlODI4MjJkZmM4ZmE0NGE2YTIxYjhlYTVmMiIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiNmQ0ZjE3ZDRiNjllODExYjk4OWU1YzViNzFiZDA0MzI5ZTA4YmIxMWJhOGM2ZTEzNWIzYWJjNjkyNjFiNzE2YSJ9"
         }
       ]
     }
   ],
   "verification": {
     "by": "openwiki/0.5.2",
-    "at": "2026-09-20T12:50:16.306Z"
+    "at": "2026-09-23T13:18:56.288Z"
   }
 }

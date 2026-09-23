@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "pageVersion": "sha256:0b63afd819257f5e6a5f5c82a9badb71a8d6954125cb604db14eec3f485044b9",
+  "pageVersion": "sha256:f954a30aa125e5e6299dbd7ef95bfc363ec57fbdb9e7694589d081e0d0d6e39f",
   "claims": [
     {
       "id": "claim_af3b03e3ba854f68ac50e0d040bc8cd1",
@@ -134,7 +134,7 @@
     },
     {
       "id": "claim_fcce9acfa0d444e4b8fe5004b58eb571",
-      "statement": "The middleware stack installed in `src/main.py` is `RequestIdMiddleware`, the slowapi rate-limit middleware plus a `reset_rate_limit_state_middleware` shim, the `cors_exception_middleware` safety net, and `CORSMiddleware`; because Starlette applies middleware in reverse order of `add_middleware`, `RequestIdMiddleware` is outermost.",
+      "statement": "The middleware stack installed in `src/main.py` is registered as `RequestIdMiddleware`, then `app.state.limiter` with the `RateLimitExceeded` handler plus `SlowAPIMiddleware`, then the two function middlewares `reset_rate_limit_state_middleware` and `cors_exception_middleware`, and finally `CORSMiddleware`; Starlette makes the last-registered middleware the outermost one, so the effective inbound order is `CORSMiddleware`, `cors_exception_middleware`, `reset_rate_limit_state_middleware`, `SlowAPIMiddleware`, `RequestIdMiddleware`, then the router.",
       "evidence": [
         {
           "resource": "repo://src/core/middleware.py#L16-L67",
@@ -271,24 +271,6 @@
       ]
     },
     {
-      "id": "claim_cf601b730f424bff97eabbf412c68c46",
-      "statement": "Background work spans three task modules: `src/integration/task.py` syncs broker positions and emits WebSocket sync-progress events, `src/market/task.py` owns `generate_note_title_task` plus the periodic `daily_price_update` on `crontab(hour=\"0\", minute=\"0\")`, and `src/account/task.py` exposes `recalculate_all_account_totals_task`, which recalculates account totals and pushes `AccountTotalsUpdatedMessage` per user; tasks bridge synchronous Huey to async logic with `asyncio.run(...)` and re-bind the originating `request_id` into the contextvar.",
-      "evidence": [
-        {
-          "resource": "repo://src/account/task.py#L13-L55",
-          "version": "repo-lines-v1:sha256:59483e75c482b81900e13b112eed73b253473023fe1b6a12cf69d3ef1ae12ed6:eyJzZWxlY3RlZExpbmVDb3VudCI6NDMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjFlYzk2YzNlNjFhNjEyOWRiYWQ0ODFmMmI3NDAxOWM4YzdjYzI4NGQ5YjE5YTMzNTU0ZmE5MTdlYTIzYmQzYzgiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjUxMDM0ODFjNTdkMGYwZGMwZjc2Y2QyY2M4YjM2MDRjNGU4Mjk2ZGE0MTIyYWRkMTllODE3NDVkYzdlMzMxYTYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjYyMDA5N2U0YWE1MDA2OGJhMTU3ZjlhMjczOWZhZDg2OTk1ZTFlMGNkY2NkYWRjNTg5N2MyMDM0Yzc0ZDNlZmEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
-        },
-        {
-          "resource": "repo://src/market/task.py#L23-L60",
-          "version": "repo-lines-v1:sha256:8190016a85285905f0033de80c0699a1c45d7df32702d17f6312eb2ab46aadb4:eyJzZWxlY3RlZExpbmVDb3VudCI6MzgsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjFlYzk2YzNlNjFhNjEyOWRiYWQ0ODFmMmI3NDAxOWM4YzdjYzI4NGQ5YjE5YTMzNTU0ZmE5MTdlYTIzYmQzYzgiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImY5OGE4NTZhZGRkNTQ4ZjYyNWNiZTc4M2UxZjgzMDA0NzBmZmQzODE0YWYzYmM0ZTEwMGRhOWRjNjZlYzYyODMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjYyMDA5N2U0YWE1MDA2OGJhMTU3ZjlhMjczOWZhZDg2OTk1ZTFlMGNkY2NkYWRjNTg5N2MyMDM0Yzc0ZDNlZmEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjBhMTZjMjcxZDA3MDRkNDY4NWI2YzBkMTdjZjBjNzNhNzhlOTMwMGVhNTFhMWM3NDdhMmU0YjM0NGQ4MzE2MjYifQ"
-        },
-        {
-          "resource": "repo://src/worker.py#L59-L62",
-          "version": "repo-lines-v1:sha256:f6ac7d8d434b36bc31003b0a4fdfc1d6f6e2cfe07fd14876532b41ae2994ee08:eyJzZWxlY3RlZExpbmVDb3VudCI6NCwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiMjc5ZDEyNTNmNjk5MDg2MTQ1MThhMjZlNzk1ODg3ZjE0ZWMwNTFmYjkwMjFiZmJiZGNlM2MxM2VjMWJlMjFkMiIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiMTgxYmY1OTUxNDdlNzI2MTU0MWUxNWRjZDU3MzU5ZDg0MDRjNDQ2NzMyNzRmYzAwMzIyYjRmZDg1ZjY1NjQwOSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiODNiYWJlZWRhNzJiMjhlNjcwZjE3N2VkODE3ZWNmNWQxYjczNzFhZjVhMDk5ODI3ZTFkYTA3NjdlODI4YmMyMyIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjAsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiZTNiMGM0NDI5OGZjMWMxNDlhZmJmNGM4OTk2ZmI5MjQyN2FlNDFlNDY0OWI5MzRjYTQ5NTk5MWI3ODUyYjg1NSJ9"
-        }
-      ]
-    },
-    {
       "id": "claim_7bd186b836bb43b8aa9e7ee59558fd04",
       "statement": "`src/ws/manager.py` exposes a process-global `ConnectionManager` singleton holding `active_connections` per `UserId` and per-event-loop Redis clients in `_clients`; messages are published to the Redis Pub/Sub channel `ws_messages` and delivered to local connections by a background listener task, so Huey worker threads can fan out into the API process, and `send_personal_message` falls back to local broadcast when Redis is unavailable.",
       "evidence": [
@@ -369,10 +351,122 @@
           "version": "repo-lines-v1:sha256:f9a0f412357259106261aca6bbcd92dc7623ba9f93927494da6342b75938e2a2:eyJzZWxlY3RlZExpbmVDb3VudCI6NCwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiNWY5ZGU1ZWYxN2I0ZjE0MzgyMmQ5ZDYwMWYwZDFjZWYxNTIzMTViNmVjM2M2YzllNGE4YzE1NTk4YzRkN2NkNyIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiZDcxZjU5NjEzNzExMzJiMDA2ZmYwYzVmYmI2YTFhMDNlZTlhODFhYTNiMWU1OWUxZjgxMjAzMzFhODhiMjQ0NCIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiNmM0YTM5ZmE5NDEyNzNjMDU5ZDA4M2I5YWNjODRmODVhNjdhN2U4MjhlYmNkYWUyMjZhMDA1MjM4YTE0MGI5OCIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiMzYwZGExMWU5N2QwMWM1MGQwZmM2ZDRkZmM5YjU4ZDNhYzc3M2QyZTYzZTQxNTI1Y2VlNzIzZDVjZTlkOWRlMiJ9"
         }
       ]
+    },
+    {
+      "id": "claim_25e7e91504374acda4de93acf696a9af",
+      "statement": "`docker-compose.prod.yml` is not a drop-in copy of the dev stack: it builds the images (`build: .` for backend and worker, `build: ./frontend`), pins ports (`8000:8000`, `80:3000`, `8085:8080`), drops the debug ports, declares no `mailcrab` service, and runs the worker as `huey_consumer src.worker.huey -w 2 --worker-type thread` without `--periodic`, so Huey's periodic schedules only fire under the dev Compose file.",
+      "evidence": [
+        {
+          "resource": "repo://docker-compose.prod.yml#L1-L62",
+          "version": "repo-lines-v1:sha256:9ee9d0fd5ef185bb092749540bbfe39f825acc6880310d71497b88c9556eb3d6:eyJzZWxlY3RlZExpbmVDb3VudCI6NjIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImZhNzNmY2NkYzk5ZWE4MzU5NjdjN2RlZTdlZmJlZDFmM2NhODcyNjBkOTI5MzE4NTBmZGQ2NmRhOGNiMTJmMWQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAxYmE0NzE5YzgwYjZmZTkxMWIwOTFhN2MwNTEyNGI2NGVlZWNlOTY0ZTA5YzA1OGVmOGY5ODA1ZGFjYTU0NmIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjowLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjoyLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjU2OWMwNGY4MGU4MzhlZDA4YWFjZmU4ZjdmZGFjODhiZjRhZWFmZTE2MjEwY2U0ODRlZTdhNmNiOGI0ZTc5NTgifQ"
+        },
+        {
+          "resource": "repo://docker-compose.yml#L40-L66",
+          "version": "repo-lines-v1:sha256:2906e7806791acec40cc888cce1e5adfe353614d372091ddfd6fd630fba38d8e:eyJzZWxlY3RlZExpbmVDb3VudCI6MjcsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjUwOWM2ZTYzMTdmZTQ1ZWUyZjJiYzEzZDcxNjM2YzIyNGJkZTk4MGMzNTNiNjc2ZWE3YTkxM2ViYTFkZjNlNWEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAxYmE0NzE5YzgwYjZmZTkxMWIwOTFhN2MwNTEyNGI2NGVlZWNlOTY0ZTA5YzA1OGVmOGY5ODA1ZGFjYTU0NmIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImFjNTg4MzU4NzdhNTM2OWI0YWQ0YWU1MDEzMjYxMmU2NTIxZjZhZjJhNjBjZjVkYjdlZTY3MDE5MjJiNTE2ODYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjU2YzYwYjMxY2JiZDQ2NDNmYTc2MDYxODUxOTM5MzhjNGZjYjA3NTQ4MmFmNzM2YTIyNDY5MWZkMGI1YzJmZWMifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_8221749aa8114ff58785deb955bcbc15",
+      "statement": "The root `Dockerfile` builds a `python:3.14-slim` image whose `CMD` runs `uvicorn src.main:app --host 0.0.0.0 --port 8000 --workers 4 --timeout-graceful-shutdown 30` and whose `HEALTHCHECK` probes `/health/live`; because the lifespan owns migrations, each of those four worker processes executes `alembic upgrade head` at startup.",
+      "evidence": [
+        {
+          "resource": "repo://Dockerfile#L18-L39",
+          "version": "repo-lines-v1:sha256:c05dfdb84dda95c1d05f45404ff52e3e5d7a730f5895775b081c75618b764717:eyJzZWxlY3RlZExpbmVDb3VudCI6MjIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImFkMGE2NTg2YjY1YTNhOWU3MWYyOTU2NjMwMTRmMzhkYTIyMTRhNzZkYjY2YTg3Njg3MmU4MmU5MmVhNWE4OGYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjFhYjdjOTI0YTE4YzM5ZTkzMjgwZjBjOGUwZWI1NTRjNzllYzcyOTFkMTJhNzNjMDI1ZDVlYzg2MDdhYWViMTAiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjUyZDY5MjkwZGExNmU3NDlkYzYwMmJmNDliZmRjYmEyYTBjNmIwMTFiNTQ2MWI4MDJlZjE4MWI4NGRhN2MxNDUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
+        },
+        {
+          "resource": "repo://src/main.py#L50-L54",
+          "version": "repo-lines-v1:sha256:8c7e192ac801876227e1124ea24f25a438a1d5e2d51430061db78f76d3b76e6f:eyJzZWxlY3RlZExpbmVDb3VudCI6NSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiODdjZmYzZjE3ODQyZGVjNmU3ZTkxYzNlM2I4ZmNlMGE4MjJmYzMxMTI3MzgxYjAwZjQ0YTlmMTMzMzMwM2EyZSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiZDJjNjY4OWE4OWUzN2QxM2MwYWFlZjlkNDM0YjBhNzNjNmM2OTYxNmExYTM0YzkzMjM1YTkyMzY0ZWU4NTBjYyIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiMmYxYjc3MTExM2I1Njk5MTExZTM4YmUzODU5YzBhOGVlNTU1MmNkZTZlNWUzYTYxMDJmNTU2MjFkYTkzZmFlMCIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiNDRkMWZjNDU0NTYyNzAyNWJjZTRkZWI5YzA0MmY4ODBmMTk4NDMyZjFjMTczNWFiYzAxZDRiYTQ2NjJlZGVhNyJ9"
+        }
+      ]
+    },
+    {
+      "id": "claim_04edf40d60d948ee9fe016acaa5a35b7",
+      "statement": "The Huey worker dashboard mounted at `/worker/api` is authenticated: its task routes are included with `dependencies=[Depends(current_user)]`, and the `/worker/api/updates` WebSocket accepts either a single-use signed ticket or the `auth_token` cookie / `sec-websocket-protocol` token resolved through `UserApi`, closing with code `1008` when neither authenticates.",
+      "evidence": [
+        {
+          "resource": "repo://src/worker_dashboard/router.py#L21-L28",
+          "version": "repo-lines-v1:sha256:f169d02bccb6ec8d7ec218d4490a6320e5cfb4abbac25e0d73f5204026207b6b:eyJzZWxlY3RlZExpbmVDb3VudCI6OCwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiNjdhYzk4OTI5OTMwNTBhMDQ4OWQwNWE3YTExOTRjNTRhOTllYWFlNGY3ZDAzMjFmMWM0ODY2MmZhZmMzNjYxNCIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiZmFmYmEwNTI3YzM5NTNjNGI2ZTBlNWI1NzM5YmE4MzYxMmY4MDUzYmNkYzk0NjY3MzAxOTNjZDFkNTkwYjQwOCIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiZTVjMWM0NjJlMmEzOWQ3NDc1OWY1ZTFiMTI2Zjc2ODNhMmI3MzAxMThlMThmNTEyMmIwOGNlZGVlYjY1MGUyMyIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiNjlkYWEwOWMwNTVmZDBlZTM4MDQ2MWFkZTI3YjcwYzVkODNlZTczYWJlYzk1NzZhZjM2NzM4NmZlYmFlNmU1OCJ9"
+        },
+        {
+          "resource": "repo://src/worker_dashboard/router.py#L86-L110",
+          "version": "repo-lines-v1:sha256:ff74b11cba9d38af2676472605122a8341fb25527e19de8a626f00b24157bbf7:eyJzZWxlY3RlZExpbmVDb3VudCI6MjUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImJmZjcwMTQwYzlhMzEzOTRjZjUwNzBlZDFhZWZmNDg1MDE2MWI0MTMyYjg3MzIxMzFlY2NjM2Y1ZTE1OWQ4MzciLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjVlZGNkNWNiMzNhZDAwMmM4MDNiMGEyNDFkZjkxYTI3ODUzNzk2ZDFhODgwMjlmNmYzNDI1MWZjMjQwYjY4ODEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjAyMTQ2NjU1Y2E1NjgwMzdlNzAxZTlmZjk3YjY2ZWRmOGQ1ZDhiZDdmMGJiNTQ5ZTAwMDA1ZjBlNTY4YzJhY2YiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImM5NTNhYWU5YmNmNTg3ODlkMjgyNGJkOTJmNzQzOGU2YWUyOWUwMWQyOWQ0ZGIzM2Q4NmMyMGRiYWIyY2ZiYTgifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_b0f37ed3a23f440e86d539928b220789",
+      "statement": "Verification of any change follows global constraints: development commands run inside the containers (`docker compose exec <backend|frontend> <command>`) rather than on the host; `./scripts/agent-test` (shorthand `just test`) is the primary test entrypoint with Gate 0 (lint + type check, halting before tests), Gate 1 (a path argument, fail-fast) and Gate 2 (full regression); and no test may depend on external services — Redis, HTTP APIs, SMTP and DNS are mocked, with the ephemeral testcontainers PostgreSQL as the only allowed infrastructure dependency and all frontend API clients mocked.",
+      "evidence": [
+        {
+          "resource": "repo://AGENTS.md#L13-L31",
+          "version": "repo-lines-v1:sha256:b0e4960f19f53a217d7ea27000fdaa19c9f4c634507cc16358237999ec78aaca:eyJzZWxlY3RlZExpbmVDb3VudCI6MTksImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjBhMzJkMDA1NTg5YjQxNjdkZDBjYTU2MzhjM2I0NTM3Nzk2YmQwNmIxYzkxYTRkNTBmYjk1ZDllNDQ0NDhlODQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijc0NDE5NzE1YWU5MzQ4M2MwOTk3ZTlkMWVkNDNjMWFiYmZiZGJmNTdiNTc4YmRiZjY5MDgzOTk3YTMxYmE0ZjgiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImI5NGY3ODBiYzA1ODVjZjM4MzEwNTUyMzUxZDEyYTNkYWIwMDIwOGQ1MDViOWJlN2NiYWU3NjRlZTQ5ODYxNGYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjNkNTFlOGY1NmE0YjA2ZmNmNDRlMTI5NjQ2N2I3NTJjZDU0NzAyOGJkYmJlYmNjZTVjMTJjZTAxODNhNjk1NjUifQ"
+        },
+        {
+          "resource": "repo://frontend/AGENTS.md#L35-L59",
+          "version": "repo-lines-v1:sha256:31b9f4bd4831c307eafbee590dfcffbca4edd487472e392bf478c39519a9798e:eyJzZWxlY3RlZExpbmVDb3VudCI6MjUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijk1ZTg2ZjY4N2VhMWVhMDRiYTk2Y2M4NzlmMmZmOTI5MjgwNDU4NWVmYTU4NmU3NjA3ODYwNzg4NWVjOTMwMjgiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjA2MzcwYTI1ZGE5OGVjZmViODAzNGVjODdhZTAyMTJhODQyMThmOTAzNDk0MGNlZjZlOWM1MTQ5NjM2MzE0OWUiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjhmMmMxODM4ZThhNDRiMDg3N2M1MmExZmEzZDE2Y2I2MWFiNDM5YWE3ZTkyMDhhMjg0YjQxYWMyNjU4MjQ1ZGMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjYyOWM5YzdhMmRjZjRjMjQwZGU1MTE1Njk1MWY4NzIzODY3NzNiNzBlNmEwMjJjZjliZDNlNjZiZmRhOTgxNDMifQ"
+        },
+        {
+          "resource": "repo://src/AGENTS.md#L25-L49",
+          "version": "repo-lines-v1:sha256:2fe742325189262e209f2fe1c4e619dca9f281797ec2fc86069d804481925096:eyJzZWxlY3RlZExpbmVDb3VudCI6MjUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjE4NGYzMTY5NDNkNTA1ODY1NzM3YzQ4YmFjZmJjNDQ5NzBhZTZkY2RmZGRhZDRjYmY3NzA5ZjlkYjk2YmYwODAiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjU5ZjYzMDk1Y2NmNmUwYjVkNjIyZDA1Njc3YmVhYWNkYTY1OTg3MDczYTg0NDRiNjk0ODE0Njk5MmRkNTc1OTMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjU0MTI2MDEwZThjNzE2NmNiMTlmOTVhM2VjMjc0NzM1YjJkZjM5YTc0ZTY3ZjVlMDM1MDc0MWQzMWY5NTBkYzEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjhmOGZjNWJiYmQxNzcxMGYzOGY1NzdhYTFkZjM2NjVkZGYyOWM5MjMzNWUyYTBhZjU3MjVlMTRmZjQ5NTM2OGUifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_b5d67f743d1946cb8bb9e248ff430c38",
+      "statement": "CI (`.github/workflows/ci.yml`) runs three independent jobs — backend (`uv run ty check`, `uv run ruff check` and `uv run ruff format --check`, `uv run pytest`), frontend (`npm run check`, `npm run lint`, `npm run test:run` with `VITE_API_BASE_URL`, `VITE_INTERNAL_API_URL`, `VITE_ALLOWED_HOSTS` and `JWT_SECRET` set but no backend running) and indicator-service (`go vet ./...`, `go build ./...`, `go test ./...`).",
+      "evidence": [
+        {
+          "resource": "repo://.github/workflows/ci.yml#L12-L108",
+          "version": "repo-lines-v1:sha256:7aaeb66cc0b9582126900fc50c8c7d28e2e255e464650135969dd584cb4009d6:eyJzZWxlY3RlZExpbmVDb3VudCI6OTcsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImU5ZDgwMTU0ZWQ0MmZjNWM3NzliMTMzMTU3OGI1OGI4OWM4MDFlYWNlNzRmMjRjZDQ4ZWI0YTIzNTc5NDBhOTUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjY5MDYyYzUxZGRmNDUzNmRlYzNiMWZkMjI1YjA1YWFlZjk2ZTQ3MmJhMGI5ODk2MjRlYTc5NzA1YWYwZTJhODciLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjQ2ODExOTEwOTI0NjZlMWU2ZmFlMjIwMTcyZTYwODEzN2U1ODRmYzJlZWRkOWJkNzc4ZGYxMDdhMjA0Mjk0OGQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_866f77f1cc7c436abd6163524d6af894",
+      "statement": "The SvelteKit SSR guard in `frontend/src/hooks.server.ts` verifies the `auth_token` cookie with the shared `JWT_SECRET` and deletes the cookie for any token whose `scope` is not `access`, so an `mfa_pending` token cannot act as an SSR session; unauthenticated visitors to non-`/auth` routes are redirected to `/auth/login`.",
+      "evidence": [
+        {
+          "resource": "repo://frontend/src/hooks.server.ts#L12-L62",
+          "version": "repo-lines-v1:sha256:8b3f712d5595bf443a6e3718d7c5b8160d178ff19ef37bb0803508eab972f1e2:eyJzZWxlY3RlZExpbmVDb3VudCI6NTEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjA1MDNhYTBkNmY1MDc4YTZiMTg1MDhkZWQwYmJjZDQ3ODdiZGEyY2NmMDk1YmY2OWY5ODAyNmY5YmM5MmI0ZWIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjE2ZTM5OGI5NGJlYWIzNTk1NDA0MDU0MzdiYzE5ZWNjY2FjYjE5NGE0OWI3OTM2MDc0NjBjNjllMTJkNWQyZmIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjAwNGI3YjExN2Q5NDc3YTM0ZTI2YTczZmM1OGE1NDg0Yzg0YTkxZTdmNjI4YTFlZTE0Mjk3ZWMyNTcxYTBmYjUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjoxLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImFhMWQxYTYzMzkwMjI5Yzc5ODM0N2U4M2EwNDA1NDQxYzk0MDAwMzUyODRhZDE2OGMxYmY2Y2RmMWQ3MGEzNzAifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_0488e2ed46b245bba8ed642f96b8f4a4",
+      "statement": "The rule that cross-domain access goes through the other domain's `api.py` APIs does not forbid a router from using its *own* domain's repositories directly: the market watchlist, alert, note, document and snapshot routes do exactly that, with no service layer between them and their repository.",
+      "evidence": [
+        {
+          "resource": "repo://src/AGENTS.md#L95-L99",
+          "version": "repo-lines-v1:sha256:cc50eb96070d387a165f8ba04874134f6756e097b630fe6e592a982aab632bd6:eyJzZWxlY3RlZExpbmVDb3VudCI6NSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiZmRhZDBjOTI1Mzg4ZTVjOGYyYjQ0ZGM1YzllMGI4OTQ3MTMzNjA1ZWNlZDlhMDdkNTc5NTIwODYxOTE1YjJiZiIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiYTQ2OWZkODIyNjRjMTVmMTQ5NTUxODljMjQyNzg5NmE1NGZlNmIwM2U4Mjk4OWZmY2MwOWY4NDgzYjk4NjYzOCIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiY2YyNTE4YWViYzY5Nzg1OGQ1Zjc2NDg1ZWJiOGZlMjViNzU5ZGQyNWQ4OGY3MWE0OTEyOTgxYmU5YzdkMWNmMiIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiNmFmYzhkMzBmM2EwZjk2MWFlOWE1MTk2ZTg4MmM2YTIzNTlmNTI1MzUwOTc5MDFhMTBkMjFmZjU3YjIxMmFkZiJ9"
+        },
+        {
+          "resource": "repo://src/market/router.py#L719-L770",
+          "version": "repo-lines-v1:sha256:957289d3f4061b559ae4ab2011323c2e7a87966c871313ed9efaaa772e6d1c67:eyJzZWxlY3RlZExpbmVDb3VudCI6NTIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImE0MWJkMTY3Mzc5NjE1MzBiOGExMWE2ZTM5Y2M3ZDUyYzY4MmVjNDYzNWZkMWY1NDkwM2Y0MzA0NjQ5MzRkYTUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjViNzQ2ZjhlNjVhM2E3YzcyMTQ3ZGFlNzZmZjkwMDk1ZjhmZGQ1NTkwMDQyNGE0Njg4MzBiZjFmZGZkNmEyZmUiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjliY2Y4N2U1NmFmNmVmYWZlODM1MzI1M2UzZTUzZGYwMzEwOWRmYzZkOGMyYjkyNzBhMTNkODUxMGMwMDZkZGUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjdjOWQyMTU2YjY0ZTdjMjc3MjM3NmM1NzU0MTAzOWU1Njk5N2ExNTgwZGVlMDVjMzM5ZGE1YTBmNDBmYjViNTgifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_542cd00b91fe49db80d90ca37b3ecc18",
+      "statement": "The Go indicator sidecar has exactly one caller: the backend builds `IndicatorServiceClient` from `settings.indicator_service_url` (default `http://localhost:8080`, `http://indicator-service:8080` in Compose) and the market compute route resolves it through the `svcs` container; no frontend code holds the sidecar's URL, so its published host port exists only for manual inspection.",
+      "evidence": [
+        {
+          "resource": "repo://src/config/settings.py#L38-L39",
+          "version": "repo-lines-v1:sha256:ea492e3accb9eac619c3732b03ef8e80c36f56ccf6ad7859e2b773f44e5e44e4:eyJzZWxlY3RlZExpbmVDb3VudCI6MiwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiZmZiMzUxZWNmMTEwZTEwMmU2YTViZTQ5NDJjNDI4ZGM4OTdiZDMxYmQyZjJkN2I2NTNlOGE3M2RiYzA4MDIwYiIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiOTFjN2MxNDczNzQzMTI5NmExODJlMzNiNWRkYzUyMjA0ZmI3ZTE2YjMzMWFjNmZiZjBiZjVjOTQ1ZWEwNGQ3NyIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiMzg1YzNmZGQzYjRiMWFmZjFmNGUyYWZjMjcxMDY4ZTE5MGE4OTBmMjM3ZmZmNGU3OTkwZTViZTdmY2JhMTc2OCIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiMjY1YTEwOGY5MjBmODM0ZThkYjYxOTI2NTg2NTJmZGZhMDg1NzhhNDRlMDdiMzgyNzhiYzVmY2NhMTYxZTRiZCJ9"
+        },
+        {
+          "resource": "repo://src/market/router.py#L989-L999",
+          "version": "repo-lines-v1:sha256:df1beeab2c1e517c946bb390b4dc27ef6531bbb182bd535b05987793c49d0a81:eyJzZWxlY3RlZExpbmVDb3VudCI6MTEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImVjN2ZmOTlkOTEyNjEyYTllNGM4YWEzNGNkYWZjYzNiNGFiZTAzMDg2MDJjZDQyYWNmZDM0NDI4MzNlMzZkNTkiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAxYmE0NzE5YzgwYjZmZTkxMWIwOTFhN2MwNTEyNGI2NGVlZWNlOTY0ZTA5YzA1OGVmOGY5ODA1ZGFjYTU0NmIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjcxYTQyZjc1MmM4OTMwYzNiNjBjMGFkZDNlZjczYzNlZDc2YTc3NmRhMDkyNmI4OGQ0ZjdlNGY4YzFmZGQyMmEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjM4YjA2NDVkODFhZTFiMmUwOTg5NWJkYWU1YzIxMjkxNjIzYzYxZWNkZGI0OGY3NzM4ZjkxMjVjZGZjNzRjMjYifQ"
+        },
+        {
+          "resource": "repo://src/market/service.py#L387-L485",
+          "version": "repo-lines-v1:sha256:04c13ac7b4b74b397c7cb9cb12d064d55c7eb8068f8dc630bd7af1dc84b0227d:eyJzZWxlY3RlZExpbmVDb3VudCI6OTksImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjNjYzJmZjgxODkzMWRjZGRmM2Q4NzgzM2EzODgzMGEzZjk5MDA0YTExYTc2ZWQ1ZGM1NDIxYTkyN2E3YWRkYjkiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjRiMDZlYjY3Njg3NTUwMzcyZjc4NjMwNjE0YzBmNDgyYTU5MTYxMTgwNmQ2Yjc0YjhjZTYzYWNiMzc0MTVmOWYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImQ3MjIzMTA2ZmQ4NzQyYjcwZWEyMzNmOWRjMzU5ZjRiMDJiYmIwNjliNzI4M2VlZjc2MjQ5OTUxNmJkN2I5YzgiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
+        }
+      ]
     }
   ],
   "verification": {
     "by": "openwiki/0.5.2",
-    "at": "2026-09-18T20:16:58.058Z"
+    "at": "2026-09-23T13:18:56.288Z"
   }
 }

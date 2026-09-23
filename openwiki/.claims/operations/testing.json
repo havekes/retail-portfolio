@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "pageVersion": "sha256:995c578fe96ca183e7331f3b2b5d4703679bc333df76058c1c25b7fe4499a485",
+  "pageVersion": "sha256:b239a01617615d2c4cfa7bb95bfa2f7816ad44d26c58a224c05057119bd6d7ea",
   "claims": [
     {
       "id": "claim_378287f072a04458b7482923bc24f4c5",
@@ -32,8 +32,12 @@
     },
     {
       "id": "claim_d534dff1345f4bdfbf06fa78380b61e5",
-      "statement": "tests/ is organized by domain and by architectural layer, with routers/, services/, repositories/, tasks/, market/ (including market/commands/), account/ (including account/commands/ and account/csv/), auth/commands/, integration/brokers/, email/, ws/, shared fixtures/, and root-level files covering app startup, settings, logging, request IDs and migration drift.",
+      "statement": "tests/ is organized by domain and by architectural layer, with routers/, services/, repositories/, tasks/, market/ (including market/commands/), account/ (including account/commands/ and account/csv/), auth/commands/, commands/ for the top-level CLI commands (seed_data, flush_market_data), integration/brokers/, email/, ws/, shared fixtures/, and root-level files covering app startup, settings, logging, request IDs and migration drift.",
       "evidence": [
+        {
+          "resource": "repo://tests/commands/test_seed.py#L1-L18",
+          "version": "repo-lines-v1:sha256:8d36289505bce8123dba8795607c494bfdaa53c2ef354600d92d8ae0263afdd9:eyJzZWxlY3RlZExpbmVDb3VudCI6MTgsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImNiN2ExODcxMjdhYjhkYTBjZTNhMjI1NGJkZGYwY2JjYWZkYjdkYjI1ODUwZGE3NjBmZjY1NGZjNmU1YmM1ZTEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjNkNTcwZWZlMmI1YmFjOGFhZjQ5YTFkNTBiMmM3YWViZWI0YzgwNDYyMTRiNzM4Yjk2MGE2YTIwZTk1ODUyNzkiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjowLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImRmYTVjM2RlNTM3NDljNzdlOWY5Yjg4NDU3NWE0NTI5Mzc4NTMwYmU3YTdlYTQ0ZjdhMGEwNWMzNjE0OTliZmIifQ"
+        },
         {
           "resource": "repo://tests/conftest.py#L1-L35",
           "version": "repo-lines-v1:sha256:ce5c0524533135f4d60b877514eb98c47827ddd024ff79d671662471cc3f63f5:eyJzZWxlY3RlZExpbmVDb3VudCI6MzUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImM2MGY2YTVhYjBmNDdmOWQ1MjdiYWY0MGZkMDc0MTY1ZmIzNTI3ZWUxODE5YWU2YWU2NTY4Yjk3MmU3YTZjZjMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAxYmE0NzE5YzgwYjZmZTkxMWIwOTFhN2MwNTEyNGI2NGVlZWNlOTY0ZTA5YzA1OGVmOGY5ODA1ZGFjYTU0NmIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjowLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImJlZDUxMWVlN2I4MjJkNjNhZTk0YTk0OGVlMGU4NTBmYWMxNDI5ZDRhZTE5YjE2Y2Y3OWJjNTRjZDYwMDU3NTQifQ"
@@ -240,15 +244,19 @@
     },
     {
       "id": "claim_f5b5fd92ca0242bc81030b98b918fee8",
-      "statement": "Email tests patch src.core.email.aiosmtplib.SMTP at the transport boundary and broker integration tests drive src/stubs/wealthsimple.py stubs (StubWealthsimpleAPI, StubWSAPISession) instead of making network calls, keeping SMTP and broker HTTP traffic out of the suite.",
+      "statement": "Email tests patch src.core.email.aiosmtplib.SMTP at the transport boundary (and patch the settings object for SMTP configuration) while the template suite renders verify_email templates through src.core.email.jinja_env with no transport at all, and broker integration tests drive src/stubs/wealthsimple.py stubs (StubWealthsimpleAPI, StubWSAPISession) instead of making network calls, keeping SMTP and broker HTTP traffic out of the suite.",
       "evidence": [
         {
-          "resource": "repo://tests/email/test_email_service.py#L40-L40",
-          "version": "repo-lines-v1:sha256:4ebdf4fac0ec54b3b3155b02cfb2b4421581f8c02d92635ccfae9b8dc64dcab7:eyJzZWxlY3RlZExpbmVDb3VudCI6MSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiNGViZGY0ZmFjMGVjNTRiM2IzMTU1YjAyY2ZiMmI0NDIxNTgxZjhjMDJkOTI2MzVjY2ZhZTliOGRjNjRkY2FiNyIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNGViZGY0ZmFjMGVjNTRiM2IzMTU1YjAyY2ZiMmI0NDIxNTgxZjhjMDJkOTI2MzVjY2ZhZTliOGRjNjRkY2FiNyIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiNWRkZDFlNjc4N2IyNzg3NzQ0NDgyZjZkM2I3NGU1ZGIwYTI4ZmQzNTY3MjJiYTY1MTU5MDUzZDNlNWFkN2I3YSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiNWUzZDhiNmRiNzMzNDU1MjVmOWRhYTA0ODc2OTU1NmQyMTgzOTY1YjRlNmVhNzNlYmE5ZjMxNTFmNDM0MTE2YSJ9"
+          "resource": "repo://tests/email/test_email_service.py#L36-L58",
+          "version": "repo-lines-v1:sha256:fdbe57ca4e6a0df7e607ca0aa982d045d8ecff72248a2148cfb672b11a536a87:eyJzZWxlY3RlZExpbmVDb3VudCI6MjMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImE0NjE5MGRmYjg2OTdkYTQ5YTRmMGYwMDQ2YmE0MWRiOGI5NDY2NDM2Y2UwMDU5M2VlZDE3ZmM5NjViOTBhNmQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjU1MDMyZTk2NGQwOTMyMzUxZTVkMTg1MjY5MjgxYjE3MWEzYTA5YjA4YjI4NmU2NjFlYTQ3MDMyM2M4MmViNGQiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImQ4OTYwNjBjNzU0NWM1ZDgyY2M4ODkwNjBlOGQ5ODU2ZDI2YWQxYWEwMDQyMzc5MzM0MGY2Mjc0YTVjN2I4ZjYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjRhMWY1YzFkYjBhMGIzOTQ5MzI5MmE2NjgwMmUzZjJhY2VhZWM0MzEyY2E0Y2M3M2NkYjE5NWE0ZTdkYTBhZTAifQ"
         },
         {
-          "resource": "repo://tests/integration/brokers/test_wealthsimple.py#L31-L31",
-          "version": "repo-lines-v1:sha256:e077488ee9fec897ca3d905fa963f85b0743ed2e1a7099c758797146e7c57bfa:eyJzZWxlY3RlZExpbmVDb3VudCI6MSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiZTA3NzQ4OGVlOWZlYzg5N2NhM2Q5MDVmYTk2M2Y4NWIwNzQzZWQyZTFhNzA5OWM3NTg3OTcxNDZlN2M1N2JmYSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiZTA3NzQ4OGVlOWZlYzg5N2NhM2Q5MDVmYTk2M2Y4NWIwNzQzZWQyZTFhNzA5OWM3NTg3OTcxNDZlN2M1N2JmYSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiYTg0MWNiMWNkZThiYzQ1ZDJhMzBlMjNiYzY0MWEwNDM1ZjFiMzZkYTkxZWU2NTVmMjNlNDg0YTZjNWJiYWQwNSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiODFjMTQyNmJlYTdmYWJhMDVhMTJjMWUxYzg2MGRhNjdjNjE3MzhmZmNjY2NhNGY2NzZlNGI5MjZkZWE2NmUwMiJ9"
+          "resource": "repo://tests/email/test_templates.py#L1-L39",
+          "version": "repo-lines-v1:sha256:ab357a59aaeccdb46e4585648745a133fc0469fc6b33fa1101513ded6b356999:eyJzZWxlY3RlZExpbmVDb3VudCI6MzksImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjY0MDViYmQ5MTM0YTM4MDA2MjVmNTFlMDEwMzI5ZmIwYWRhYjA2NTk5MzFhOGZjMGYxMmJhOTIxOGVhZDBiN2YiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjgwYjM3ZTViMzU1MGEwYjZkZWZiYzc0N2MxN2M0MWEwYzMwZjI4Yjc1YmM1YTRlMjJkYjZkZWU3OTBiOTM4YWMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjowLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImVkN2QzZjQ5ZWI5ZTk5OGI3ODc4NGNhMDE1MTg5ZWQxMzc2ODFmNGE0MzJlN2FmODM4MjcyMjIxNjg4MTJjNmMifQ"
+        },
+        {
+          "resource": "repo://tests/integration/brokers/test_wealthsimple.py#L31-L37",
+          "version": "repo-lines-v1:sha256:66bbe975a55adecb616e4e464d94ce895deb1b1ac074456e97949699122308cc:eyJzZWxlY3RlZExpbmVDb3VudCI6NywiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiZTA3NzQ4OGVlOWZlYzg5N2NhM2Q5MDVmYTk2M2Y4NWIwNzQzZWQyZTFhNzA5OWM3NTg3OTcxNDZlN2M1N2JmYSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiODUzYzU1OGRiODFkOGEyYjg4MmUxNGQ1Mjk3ODFiYTVjYzY1YjY5ZTg0MmE1YjE0OWZmYmYxMjk4ZWZlZmJhNCIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiYTg0MWNiMWNkZThiYzQ1ZDJhMzBlMjNiYzY0MWEwNDM1ZjFiMzZkYTkxZWU2NTVmMjNlNDg0YTZjNWJiYWQwNSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiODFjMTQyNmJlYTdmYWJhMDVhMTJjMWUxYzg2MGRhNjdjNjE3MzhmZmNjY2NhNGY2NzZlNGI5MjZkZWE2NmUwMiJ9"
         }
       ]
     },
@@ -264,11 +272,19 @@
     },
     {
       "id": "claim_ae8310fa8d054c92b8e697d85a40a8f1",
-      "statement": "Service-layer frontend suites follow the mandated mocking pattern by mocking the API module itself (vi.mock('@/api/marketService', () => ({ getMarketService: vi.fn() }))) and returning a hand-built client whose every method is a vi.fn(), which lets a plain class such as WatchlistService be exercised without SvelteKit runtime modules or network access.",
+      "statement": "Service-layer frontend suites follow the mandated mocking pattern by mocking the API module itself (vi.mock('@/api/marketService', () => ({ getMarketService: vi.fn() }))) and then handing back a hand-built client whose every method is a vi.fn() — search, createOrUpdateSecurity, getWatchlists, createWatchlist, renameWatchlist, updateWatchlistSort, deleteWatchlist, addSecurityToWatchlist, removeSecurityFromWatchlist, reorderWatchlistSecurities, addToWatchlist, removeFromWatchlist — which lets a plain class such as WatchlistService be exercised without SvelteKit runtime modules or network access; HoldingsService uses the same shape against $lib/api/accountService.",
       "evidence": [
         {
-          "resource": "repo://frontend/src/lib/components/watchlist/watchlistService.test.ts#L11-L66",
-          "version": "repo-lines-v1:sha256:9f8c2f164ae9e0c4d295901fc72f6cdfa17e3d2bcfc7e975fe2df2ef07947939:eyJzZWxlY3RlZExpbmVDb3VudCI6NTYsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImNhMGU4M2I3MmNhYTFlNTdiNDIyYThmYTZlZjc0ZDQ4OGEwYTI2YzgxZWRkMDNjMmFlMzJhOWM1ZmIyODBjOGMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImY2ZjViNDBiMTU4NDU3ZDE3ODY0ZjIxNzkwNzg2ZGQ1YTJlY2RiNjRiNjZhNjUxZjc4OGQ0ZTI1Y2QzMzAzZDIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjdkMjhhNGFkNDM2ZjQyNjU1MzY4NTc1NjI4MTg5OGMyODY0MTRlNjU1ZWQ1ODExNGE2MzNjZWQ4MTk4ZjUzNWEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjhiY2ZiYWMyOTRjNTkyMmI2YzJlYmViYmMwZDU1YzBjMmI5NzQ2YTVkODdiYjIyMzI4OWI4OTZhYWEzZDdlMzgifQ"
+          "resource": "repo://frontend/src/lib/components/holdings/holdingsService.test.ts#L3-L58",
+          "version": "repo-lines-v1:sha256:36f46e56e41e0d963338ff720dce3a6a4380cdee062a6cd5d48a6a6850212a51:eyJzZWxlY3RlZExpbmVDb3VudCI6NTYsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImRkY2YzM2I5NGVkMTU4NTk1ZjdlNGU0M2M4YjhmOTgzMjg1OTVkNzI5OWEwNDAzMzQ0MjQ1ZTIyNGVmYzg5NmYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjBhNzM0OTJkODk0NmIxZDBmOWQ5YzA0YjcwNGE5MjBmMjRmODllZjdjN2Y3MzExYTg1OTlkMTBjN2Y2MzU4ZDAiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjoyLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjA2ODU5Yzk2OGVlNGEyZTc1NjdhNGZlNTU0NTJjNTg1NjhhNTM2NTk2NDJlMTE2ZTc1M2JmOWYzNWJlMjc5NjQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImNmNWMyYzA5Nzc2ZjZlZmQ3NDlmN2MxNjA3MTM5ZjU4OTg4ZGRmYWJmODNmZWY2YmFkM2Y1M2NiZTM4MzhlMGQifQ"
+        },
+        {
+          "resource": "repo://frontend/src/lib/components/watchlist/watchlistService.test.ts#L12-L14",
+          "version": "repo-lines-v1:sha256:65d45afca91dcfd86c70fd7c551331eacb84ed420b0f741029da4adfc4262092:eyJzZWxlY3RlZExpbmVDb3VudCI6MywiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiY2EwZTgzYjcyY2FhMWU1N2I0MjJhOGZhNmVmNzRkNDg4YTBhMjZjODFlZGQwM2MyYWUzMmE5YzVmYjI4MGM4YyIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNWI3NDFkMmMwOGU2ZjUxMGI3ZTlhMjY0ZjM3OGY5Y2UwMDQ5YTUwNGUwZTdlZjVkNjdjZDNlYTgxM2Y4NTQ3NCIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiN2QyOGE0YWQ0MzZmNDI2NTUzNjg1NzU2MjgxODk4YzI4NjQxNGU2NTVlZDU4MTE0YTYzM2NlZDgxOThmNTM1YSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiZTY5MjhmM2QxZjk0M2EzNjcwNzg4YWM2ZjJkYTcwOGI4YTMxNTEzNjA4YWUyNTk4ZDY0MjE5ODhlMDQ0MzlhZCJ9"
+        },
+        {
+          "resource": "repo://frontend/src/lib/components/watchlist/watchlistService.test.ts#L47-L76",
+          "version": "repo-lines-v1:sha256:84cb0836fb3c9f8a354462edb7a1b2d37102ad9c3e8ae73a7b4f7340e76ce1e7:eyJzZWxlY3RlZExpbmVDb3VudCI6MzAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjEzODM0OGU1MTg3MmMyMzBjNDZhYzRlOTBlYmY2MTA4MTg4MWM4MDc5N2EwZDQ4OTVhZWViZjk5ZWRlNTJiNzAiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImY2ZjViNDBiMTU4NDU3ZDE3ODY0ZjIxNzkwNzg2ZGQ1YTJlY2RiNjRiNjZhNjUxZjc4OGQ0ZTI1Y2QzMzAzZDIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImU1ZTQ2MTgxZTgyNTk1M2Y3MTM1NjAxODEyNDJmYzk1NWEwOGNkYzlkYTE1ZDk5NmRlNGVmOTFlZjI0MzAxYjAiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjhiY2ZiYWMyOTRjNTkyMmI2YzJlYmViYmMwZDU1YzBjMmI5NzQ2YTVkODdiYjIyMzI4OWI4OTZhYWEzZDdlMzgifQ"
         }
       ]
     },
@@ -307,10 +323,176 @@
           "version": "repo-lines-v1:sha256:b5282bb7b054eb6da0b482f09a9e57fb89eec9d64a8341825941210d54bc4e34:eyJzZWxlY3RlZExpbmVDb3VudCI6MjAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjNmNDgwMDAyMGEwNjc1YjRlY2M3YjY5OTgyNTRmNzAwYjgwOTlkMzIwOGM5MTA2NzNiNDdkYjg0MDBmNGMwOTkiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjE1Y2YzYTVjM2I0MzYwYWIwNDBlNTI5M2YxMWRkZGQxNWY1ZWEwNTc0ZWEzYmNkM2ZiOWJmYTlmNDI0NjEwMTciLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjgzODZhNDZmMmU1MzlhODJjNmI3NDVjZTJiNmI4NDJiODBlMGEzYTg1YzY1YzRkZjNmYTNjNDQyNjRkMDhhN2EiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImJlYzJiMTM5NmM4YTFhZDUwZDIxZTQ4MGVmOWIwMTk2ZWVlNjc2NjgxZTY3NTRiYzY0NjRjNzRjYWRiYmE2MTAifQ"
         }
       ]
+    },
+    {
+      "id": "claim_6ad58b48ddca4b838d0716f8daf1b343",
+      "statement": "Which mocking seam a frontend suite uses follows how the code under test obtains its client: fetch-based API clients mock global.fetch and assert URL/method/payload plus error mapping (apiClient, accountClient, authService, indicatorsService, snapshotsService); service classes that pull a client from a module factory mock that module and return a hand-built client (watchlistService, holdingsService); and service classes that receive their collaborators as constructor arguments need no module mock at all — ChartDrawingsService.test.ts constructs the service with stubbed patchPreferences, createSnapshot/getSnapshots, a toast double and vi.fn() callbacks, then asserts tool mutual exclusion, Delete/Backspace/Escape handling, undo/redo, drag coalescing and legacy-anchor normalization without a write-back.",
+      "evidence": [
+        {
+          "resource": "repo://frontend/src/lib/api/apiClient.test.ts#L15-L40",
+          "version": "repo-lines-v1:sha256:10faad00e8c2486c102174fa2e971e9fe75c9757cb6860752a117cf62188ab52:eyJzZWxlY3RlZExpbmVDb3VudCI6MjYsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImE5ZTY5MzlmMGI1NTg3MDI3NzU0YjI5NmJmMDFiMjVjYTM0NDE5NzUxZjhlNGY0ZjQ3Y2QyNmFjOTczYzI0ZjMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjBhNzM0OTJkODk0NmIxZDBmOWQ5YzA0YjcwNGE5MjBmMjRmODllZjdjN2Y3MzExYTg1OTlkMTBjN2Y2MzU4ZDAiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImYyOTY0MDc5YzNjNWM4MTUyMGVmMzNhMmI5ZDJlMTVhMWI4NGQ3MjgwZGI4NTkwZGNkNjU3NDdlM2UwMTJhNDAiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImE1NGNlMGU4MTcxOTYzZDgyNTA1ODBhYzk3NDk1NTBjOTc1NzhhMGM0YjY3ZGY4ZWNlMGVmNmNiZWViOGI4NTEifQ"
+        },
+        {
+          "resource": "repo://frontend/src/lib/services/ChartDrawingsService.test.ts#L373-L514",
+          "version": "repo-lines-v1:sha256:e06480b4dadef30d1edfa6354a499b68fd3ec002039e5a719063a6bcf527ff89:eyJzZWxlY3RlZExpbmVDb3VudCI6MTQyLCJmaXJzdFNlbGVjdGVkTGluZUhhc2giOiIxMTg4MjExM2RkZDc5MjQzODAwZjIyMjQyMDhkODMwZTAxMzhhM2M1ZWJmNmU3N2RkYjIwYzNjOGIyYzcxN2MwIiwibGFzdFNlbGVjdGVkTGluZUhhc2giOiI2YTJhM2I3NmUxMmNlMTUzNzlkMDVmMjg2OWRjNDgzMmRlNzU4OTA1M2I0OWJmZjIzN2U0MjVjNzIzNzgwMTU0IiwicHJlY2VkaW5nQ29udGV4dExpbmVDb3VudCI6MywicHJlY2VkaW5nQ29udGV4dEhhc2giOiJmYjZiNzA4MWU0NTRkODQzNTBjYmJmMzdhYzNlZTY5Yjg0OGYxMzI1YjhkYTkzNTljNjI2OTg4NTAwZTRjZThmIiwiZm9sbG93aW5nQ29udGV4dExpbmVDb3VudCI6MywiZm9sbG93aW5nQ29udGV4dEhhc2giOiJhMzA1YTc2Zjk1Y2YwYWExNjJiMjZhNzUwMGRkNDRiMDY3MjU1MjlmNTJkMWZlYTRhNDg0NmQyZDNkYmIzMWJjIn0"
+        },
+        {
+          "resource": "repo://frontend/src/lib/services/ChartDrawingsService.test.ts#L53-L95",
+          "version": "repo-lines-v1:sha256:fbe5b58c18eb14a7c1551359d60fdaf41a6dd54176e5c9563cc99b4a8465a358:eyJzZWxlY3RlZExpbmVDb3VudCI6NDMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjVlMzE4NjMyNzRjOTc3ZDQ1NTdmOTE1MzhiMWJkNTkyZGVmODQ0YjgxM2FlZjVkZDdmM2NjMWExMDQ4YjUxMTMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjY3Y2RhODJkYTYwNjIzOGUwNWU2MjM5OTU2OWM1ZWUwMzk5MzQxOTY0OGFlNWQ0M2EyYmY4Y2Q2MzQ3ZjgyNjMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImVhYTg0ZWI2YzhiNzg1YWQ5YzQ5ZjUyYjczZjcxOThiNjlhYzMxODdiY2FkMGIyOTI5NWQ1YzM3MTUwZmVlNTAiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImJhMmViMmJhNmQ5ZGRiODQxZTFjNmE5ZTE5MmFiNzVkYzE5M2NlOWY4MzA5ZTJiYjEwZGJmN2M2ZjQwYjUxMTUifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_791620a47b2444dda1afb908470f603e",
+      "statement": "Route-level frontend suites come in page.server.test.ts / page.svelte.test.ts pairs: the server suite mocks the API service modules and drives load/actions with a hand-built Cookies and RequestEvent object (asserting that /holdings never loads holdings in the server load and falls back to HOLDINGS_TABLE_DEFAULT_CONFIG on preference failure), while the component suite renders the page with render(Page, { props: { data } }) and asserts the shell-first contract — skeleton rows before the post-navigation load resolves, rows filling in without user action, sequential page loading, per-currency totals — and the 401 path that calls goto('/auth/login?clear_session=true'); src/lib/api/async-data.test.ts unit-tests that redirect seam directly.",
+      "evidence": [
+        {
+          "resource": "repo://frontend/src/lib/api/async-data.test.ts#L1-L47",
+          "version": "repo-lines-v1:sha256:f0d5a5c5ed67b32a27b6c46ca2f722039e8706e43089fcabc361bdaa7b493424:eyJzZWxlY3RlZExpbmVDb3VudCI6NDcsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImIzOTJjZjY5OTM0OTQ1ZGRlZmY3ZDIwZGUxODVkMTU5M2YzY2JjZjhhNzE0MDI1YzY4MGY0MWY0ODkzZjFhY2QiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjBhNzM0OTJkODk0NmIxZDBmOWQ5YzA0YjcwNGE5MjBmMjRmODllZjdjN2Y3MzExYTg1OTlkMTBjN2Y2MzU4ZDAiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjowLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjoxLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImY2ZjViNDBiMTU4NDU3ZDE3ODY0ZjIxNzkwNzg2ZGQ1YTJlY2RiNjRiNjZhNjUxZjc4OGQ0ZTI1Y2QzMzAzZDIifQ"
+        },
+        {
+          "resource": "repo://frontend/src/routes/holdings/page.server.test.ts#L5-L109",
+          "version": "repo-lines-v1:sha256:590cd39434d423a228ad03fd72e9bb688949132c80e6e2b5c38cf39da0c60639:eyJzZWxlY3RlZExpbmVDb3VudCI6MTA1LCJmaXJzdFNlbGVjdGVkTGluZUhhc2giOiI3ODhiODE0N2FjODc5MjZlMzQyYjc4NTUyYTQzZmJmMzFmY2IyNzJmNjlmNWYxYzNhZDNiNmMzZDdkZDI1NGYzIiwibGFzdFNlbGVjdGVkTGluZUhhc2giOiIwYTczNDkyZDg5NDZiMWQwZjlkOWMwNGI3MDRhOTIwZjI0Zjg5ZWY3YzdmNzMxMWE4NTk5ZDEwYzdmNjM1OGQwIiwicHJlY2VkaW5nQ29udGV4dExpbmVDb3VudCI6MywicHJlY2VkaW5nQ29udGV4dEhhc2giOiI0NzA3MWQ3ZGVlMTE0ZjNjYTcxZWQ3MzFlZDBjZDZmOTYyZWQ5NmRjZDJjYzIwZDllMDc1MGZhNTkyNzdkMThkIiwiZm9sbG93aW5nQ29udGV4dExpbmVDb3VudCI6MSwiZm9sbG93aW5nQ29udGV4dEhhc2giOiJmNmY1YjQwYjE1ODQ1N2QxNzg2NGYyMTc5MDc4NmRkNWEyZWNkYjY0YjY2YTY1MWY3ODhkNGUyNWNkMzMwM2QyIn0"
+        },
+        {
+          "resource": "repo://frontend/src/routes/holdings/page.svelte.test.ts#L181-L251",
+          "version": "repo-lines-v1:sha256:a785af20ca7cee1a067212c3e2af0efac6bf1b2859706aab7036861a514d351e:eyJzZWxlY3RlZExpbmVDb3VudCI6NzEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjYwYjNjNjI4NDNlMWQzYjJjYmM5NzEwMGUxOWI0MjRiYmFlNjBhOTY3Yjk0NmEzZmI3ZWI1ZDFhZTIyMmIzOTQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAxYmE0NzE5YzgwYjZmZTkxMWIwOTFhN2MwNTEyNGI2NGVlZWNlOTY0ZTA5YzA1OGVmOGY5ODA1ZGFjYTU0NmIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjBhNmZlMjYyOWVlZWNkODNhZjNlM2RlYzU1M2NlNTZiNDgwODk0MTAyYjA3YjY3ZTdlYjIwMmI2YzQ5YjU5MTEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjU2MWQwOTc3ODI5NjJiZWEwNjFmZmQ3NjAzOTBjNjUwMDlkNzMzMzBiOGUwMzQwYTNlYTI4YThiNDkwNmY1N2YifQ"
+        },
+        {
+          "resource": "repo://frontend/src/routes/holdings/page.svelte.test.ts#L415-L435",
+          "version": "repo-lines-v1:sha256:25da3d57bfc339317841b2d54a88e03468985ad1ef28b306f788a6821ccf8aed:eyJzZWxlY3RlZExpbmVDb3VudCI6MjEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjVjZjI2NGZkZmU3NjJjNDQzZTVkZjdkMzVhZWQyNDVhZDEwZDQ5MGQyYjBlZTlhOTliMDE4YWY2YmE0MmNlYTciLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjBhNzM0OTJkODk0NmIxZDBmOWQ5YzA0YjcwNGE5MjBmMjRmODllZjdjN2Y3MzExYTg1OTlkMTBjN2Y2MzU4ZDAiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImVkNWNhMDJlZmZjMjNhNmU1ZGJiMTI0NTcwZjEzNWVhYzAyNzIxOGY2ZWU5OGNhM2VjZTY4OTM2ZDM2MDVjMTUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjQxZjljYzZkOTJkYzViZTA0NDQ4NDJmYzMzMDI0MjRiOGU5NDk0NDFiYWJiZjE0MTQ4NzY1YTM1Y2QxYjFkMTkifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_2907306f01c84b28ac5f38b1d1389abb",
+      "statement": "Frontend suites also mock third-party and browser-facing modules (mode-watcher, @simplewebauthn/browser, qrcode, $env/static/private) and use vi.hoisted when a mock must exist before the imports are evaluated; src/hooks.server.test.ts is the one suite that opts out of jsdom with a '// @vitest-environment node' pragma to verify JWT handling with jose, Path2D and ResizeObserver polyfills are declared locally at the top of the chart suites, and window.matchMedia is defined inside src/routes/layout.test.ts.",
+      "evidence": [
+        {
+          "resource": "repo://frontend/src/hooks.server.test.ts#L1-L15",
+          "version": "repo-lines-v1:sha256:fab0389c1fead3697b1d1491639a2452749b3472d6b2a7982f50a71bd1450a35:eyJzZWxlY3RlZExpbmVDb3VudCI6MTUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjRjZDBkMmE3MjMxZTI2OTRjODhjZGQ1NWNlZTE1OGRmMjUxOTg0YTc5ZjQ0YTUyNTgwYTI3YmUwOWQ5NmIyN2YiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImZiYTRiNzZmZjYwZTI5MTA2Mjc2ZmQ3MGE4YzE5MWY1MDQ5MWZiZmM5Y2NkZGY5YzdkYzI5ZWIxYzFjMTk4NjIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjowLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjI1MjdhYThmNWNjMWFhMjhkMDEyYmFmODIwMGVlM2UyNmEwMmM3YzczMzVlMTg3YjZiYzA2NDg4ODE5ZjJkNmEifQ"
+        },
+        {
+          "resource": "repo://frontend/src/lib/components/charts/security-chart.test.ts#L1-L17",
+          "version": "repo-lines-v1:sha256:c2401278624df1c703bd5d86fed0ed36f2e2a2d6677f55862fccd0e27a0e7d6c:eyJzZWxlY3RlZExpbmVDb3VudCI6MTcsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImU4MDZlYzJjYzg3OGJhMDNhMTRkMWRlODkxZjNlZTQwNWM1MmY2MDAyOTNlZmY5YjYyMjBmYjkzZDdkZTljNzciLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQxMmNhMzQ1Y2NmNzViZjljMDgwNmJjZTY5NWJlOGRlODA4Yjc5OTg0MjUxYTdhNTRkMjAyY2Y2MTAxZGQ0NTEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjowLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjlhZjY0ZTYwZDJiN2ExMDM0ODVlMjQzYWMxY2M2NzUzYzg1YTYxODgwYTZiOTJlZDlkNGIwOGU0NmNiYWIzN2YifQ"
+        },
+        {
+          "resource": "repo://frontend/src/routes/layout.test.ts#L11-L60",
+          "version": "repo-lines-v1:sha256:31e1db2e628c74b5915b32fd41c64de8206e03dfbacca144b97605eed18ca3e9:eyJzZWxlY3RlZExpbmVDb3VudCI6NTAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQyMDFjYTM0NWRhMmZiZWZlNjUyNTFmMjlkNTJjMGEzNmE1ZjM2N2U1YjJjYzdlZTU2YzhkYTYwODkxMTEwMWYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImIyOGUzMWQ5ZTc0YWFiY2U2YjIwYzQ3MmQ5MjFlOTJhMTc1MjJkMjg4ZTlmNWU5MzhmZDEwOTc5Njc3MjE1NjMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjExNjlkMzZlYmU5MDM4MmE2NTlhMWFhYmJmZjNiNGM4NTFhOWU1ZmViMTg3YmFlMTk2MzM5YWQyMzBlYjYxNDciLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUwYWQ1YTMwMjA2MmMyYWYwMDY1Y2RjOTk0Y2JhMjI4MmJjYTEwZmQ0MTI3NGNiNTQzYTZiNWNmMGE5MTVlY2EifQ"
+        },
+        {
+          "resource": "repo://frontend/src/routes/settings/security/page.svelte.test.ts#L7-L39",
+          "version": "repo-lines-v1:sha256:0985f44c5af0ca6357bd9707b7e078341bc839847fec70707f13fa52fc432e02:eyJzZWxlY3RlZExpbmVDb3VudCI6MzMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijg5ODU0MGVjNTQ0ODkxZTEwNDZhOWE1ZGNhZTdhMDU5MzY4Mjg2YjFkZTUxYTk2MmRhNGY3YTg0YTQ4M2U4OGYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImY2ZjViNDBiMTU4NDU3ZDE3ODY0ZjIxNzkwNzg2ZGQ1YTJlY2RiNjRiNjZhNjUxZjc4OGQ0ZTI1Y2QzMzAzZDIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjExMTQ3OGY1YTU1MGQxN2ViZWE1YWVlODA4MDVlOTU2MjM2YzMzZTFlZDA5ZDJhMGZhMmVlMWM0NzRhNmI0ZDgiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjQ5MTgxM2YyOTQ2YTA2NmVhYWRhNTI0NzVmMzBkMDQwOTQwNTk2OGI4ODVmZjAyZmViMDM2OTcyZWQ5MzA4MzAifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_069c6e21863148daabd170a0b4f5c56b",
+      "statement": "Chart plugin suites import only types from lightweight-charts and hand-build IChartApi/ISeriesApi doubles plus a canvas target that records draw calls, then exercise the four layers frontend/AGENTS.md requires: state transitions and delegate firing, mouse-adapter hit-testing and drag lifecycle, renderer geometry and canvas draw calls under a bitmap coordinate scope, and the full primitive lifecycle (attached/detached/destroy, updateAllViews, hitTest cursor resolution, TimeProjector projection of future whitespace).",
+      "evidence": [
+        {
+          "resource": "repo://frontend/AGENTS.md#L222-L234",
+          "version": "repo-lines-v1:sha256:d7a3b80e95c8d95c9df058b2a3e322f9817907766725ff4ae7903438a9df102b:eyJzZWxlY3RlZExpbmVDb3VudCI6MTMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImFlYmMwMGU3YTY2NWM1NDUyOTQ1MzU4OWE0Yjc0N2NhYTQ2NjYzMDI4NjgzYWJkYTgwNmI0ZDNiYzY0Y2I5YTAiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjVhYzE1MWFhZDRjYzc1NTE3MjBiYzNiMmUyYjhkOGY0NWE3ZjRkZjYzODg5ZDI3YTQ0NzY2YTVmZTQyYjQyNjEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImEzY2YxNTZiZWM0M2JkMjUzZDRkNGZlZmIyOTc4YmEyODRiNzlkNWJhNTk2MGQ3MDgxYjgzZjk1NDFhYzMzMzEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjA4ZDU0ZTBlNTQ0NDlmMjQxZjEyMzBjYWIyMjc5ZDVjNTBmZTkzZTZjYzQ4OTE2MDI3ZmRiNzcyMjY1MWJhNGYifQ"
+        },
+        {
+          "resource": "repo://frontend/src/lib/components/charts/plugins/measure/measure.test.ts#L41-L177",
+          "version": "repo-lines-v1:sha256:6c6669a00edfca0bcf73ae3a365f94116c447c4ee2db46069509927404ebb422:eyJzZWxlY3RlZExpbmVDb3VudCI6MTM3LCJmaXJzdFNlbGVjdGVkTGluZUhhc2giOiJmMjc4MjRiZjRlOGY5Nzk0MDZlNDNhOTdlNWIwMDI0NzA3MzBkMDU1YWYxMWU0MjMwZmNmNGEzZDg0NzRiOTIzIiwibGFzdFNlbGVjdGVkTGluZUhhc2giOiI0MTJjYTM0NWNjZjc1YmY5YzA4MDZiY2U2OTViZThkZTgwOGI3OTk4NDI1MWE3YTU0ZDIwMmNmNjEwMWRkNDUxIiwicHJlY2VkaW5nQ29udGV4dExpbmVDb3VudCI6MywicHJlY2VkaW5nQ29udGV4dEhhc2giOiI2ZjQxNzJiMjg4Y2VhMTFhMzliMWQyZTE3Mjk3NDQ0YTU0NDAwZTk0ZGJiM2JhZTg0MTAyNmVkYmE3NDEyYjU4IiwiZm9sbG93aW5nQ29udGV4dExpbmVDb3VudCI6MywiZm9sbG93aW5nQ29udGV4dEhhc2giOiJlMTQ0MWZjOWU1MTU4N2EzNzRjMjIwYmJhNzUzNWVlNDFlM2RjODQxNjFjYjgyOWI0NDYzZDg1MWRkNjEyYjk0In0"
+        },
+        {
+          "resource": "repo://frontend/src/lib/components/charts/plugins/measure/measure.test.ts#L418-L429",
+          "version": "repo-lines-v1:sha256:a59d82abc2382481abe55faa229d60a6dd6aa2ed455484b0f8e00d3947d3a20d:eyJzZWxlY3RlZExpbmVDb3VudCI6MTIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjMyZTczODMyZjM2NDYwYjQ5YTc4ZWRkYTgxYzlmMDdlMjAyNWU1ZGQ5MDgwZGFhMzlhOWZhMDllNzZmNTBmYzkiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjZhMmEzYjc2ZTEyY2UxNTM3OWQwNWYyODY5ZGM0ODMyZGU3NTg5MDUzYjQ5YmZmMjM3ZTQyNWM3MjM3ODAxNTQiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImZiNmI3MDgxZTQ1NGQ4NDM1MGNiYmYzN2FjM2VlNjliODQ4ZjEzMjViOGRhOTM1OWM2MjY5ODg1MDBlNGNlOGYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImRhZjI4ZGYzYTU2YjIwZTkwYzM3NWNjYzYzN2QzZDZkODVhYTAxNTY5NmMzZWFiNTYxYjFmZGZlMjEwNGI2MmIifQ"
+        },
+        {
+          "resource": "repo://frontend/src/lib/components/charts/plugins/measure/measure.test.ts#L743-L759",
+          "version": "repo-lines-v1:sha256:3f00872e90128879b35e7ad661463ab64ac416eea24883a5154d52170a95bf15:eyJzZWxlY3RlZExpbmVDb3VudCI6MTcsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjdjMTQ1ODQ4MTU2MmRlYTg1MWQwYTdmZGI4NDgzNTIxMjk4ZjUxZTExNTM5MmMzZjcwZjQ4YjM2NDU1MzM1NDciLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjZhMmEzYjc2ZTEyY2UxNTM3OWQwNWYyODY5ZGM0ODMyZGU3NTg5MDUzYjQ5YmZmMjM3ZTQyNWM3MjM3ODAxNTQiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImZiNmI3MDgxZTQ1NGQ4NDM1MGNiYmYzN2FjM2VlNjliODQ4ZjEzMjViOGRhOTM1OWM2MjY5ODg1MDBlNGNlOGYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImFiMjI3ZmY5MDNlN2E3YTQ4NmEzOTVkM2E3ZjY3YjY3MjJiMjhiMmU1MTgzNWViNzkyMjBhZWUzZmRiZDVjZDkifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_0a27492e7c2f4ae88c6ba7001fd8bbf2",
+      "statement": "Where the application resolves collaborators through its svcs registry rather than a module-level factory, backend suites override the registry directly: tests/market/test_search_router.py registers AsyncMock/MagicMock replacements for SecuritySearchCache and MarketGateway on app.state.svcs_registry to assert cache-hit and cache-miss behaviour of the market search endpoints without an outbound call.",
+      "evidence": [
+        {
+          "resource": "repo://tests/market/test_search_router.py#L14-L51",
+          "version": "repo-lines-v1:sha256:fba74ced3d54020acd34b54767764a72ea52894d1f13738fa9ffcfc5d89bb999:eyJzZWxlY3RlZExpbmVDb3VudCI6MzgsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjIzZjM2NmI5YmQ5YThkMGYzNDBhMmJjMGJlMWUyMmVlYTIwNTY4ZGQ3OGE0NTI4MWI3MjFiMzBmMjJkMDg3ZjAiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAxYmE0NzE5YzgwYjZmZTkxMWIwOTFhN2MwNTEyNGI2NGVlZWNlOTY0ZTA5YzA1OGVmOGY5ODA1ZGFjYTU0NmIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6Ijg5OTU4MTM3ZWI3Zjc1Y2ZkNWYxNGViNDNhMTczY2QwOWIyNTdhMTJhYjUyN2Y4YjBiYzRkZDg0YjUxYTIxNWQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjRiMTViNDBkZDhkYjdmNTcwOWIyMjNkNzU4ZjUyYjU1ODBmZTUzMDc0YTIzMGRhNmZiN2U0ZDYyZmNhMWRkOWYifQ"
+        },
+        {
+          "resource": "repo://tests/market/test_search_router.py#L61-L119",
+          "version": "repo-lines-v1:sha256:32cae5e8f3b02eaee797a6bcd8aca757a3439c51337d1f7ba4943c708c5ab2b9:eyJzZWxlY3RlZExpbmVDb3VudCI6NTksImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjNmNzdjNWQ2ZDMyMzYzMzAzYzU3NmQxNzdkZDRmODEzNDBlOTI0Yzc2YWYyYmY5ZDUxN2U1MTI2MTRmYWJhZTYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjRkOTIxMDMyMmI0ZWJmM2NiYzk1NTBkZTQwOWFlMGYwZDBjMzAwY2NjYTE2ODc2NTM2NGUxNWM4M2UyNTRlNzgiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjNhZjk5YjQ2NzViNjY3Mzc4YmQ0YzIzZjg5Zjg3ZDhjZjdhNmU4YTA3YWIyNTI3ZDQ1MWJjZjhhMWMzYmYwYjgiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_401e2b1d0d55400c83778346a7dc7521",
+      "statement": "Cache suites that receive a Redis client by constructor inject their own local fake instead of relying on the singleton fake_redis_manager: tests/market/test_indicator_cache.py defines its own FakeRedis and casts it to IndicatorCache, and tests/market/test_security_search_cache.py passes an AsyncMock into SecuritySearchCache.",
+      "evidence": [
+        {
+          "resource": "repo://tests/market/test_indicator_cache.py#L14-L51",
+          "version": "repo-lines-v1:sha256:fe19975585fc425d4390665e7e92d412026f9a83e7a71b2cd9d8d1a652ec31c2:eyJzZWxlY3RlZExpbmVDb3VudCI6MzgsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjZjZjI4MzBkNWQ3MGY4MzU4ZDM5MjgwOGUyYzZiN2E1N2M1N2I3ZDlmOTFmZmM5OGNmYzkxOGI3MThjNmRjNjAiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjVlNzRjNTBkYmM2NTU2Mjc4OGZiNDI3MmY4OTIwYmM2ZTZmYTgyMTU4ZDk3MTg2ZDExZjg5NDgwMmMyZDUzYzgiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjdhZTU0MmE5OGU2NmM4NzQ0YjI4NTg0MmY1N2U0ZGFmNTVmMThlMmEwODM1MWNjOWJkMzFiMzA5YTIyMTdmMTQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjViM2Y2MDlkZThiMWU0YzM3OWY3MGRkMDA0N2Y0ZDEyOTJlMGQyZmJhMjQzZWQ2Y2U0NjYzYTE5ZjhjNDkzYzkifQ"
+        },
+        {
+          "resource": "repo://tests/market/test_security_search_cache.py#L22-L32",
+          "version": "repo-lines-v1:sha256:8a89fec51ccc5a5eb9324043f62c816f77775a82a7183a4334c303db6904a7f0:eyJzZWxlY3RlZExpbmVDb3VudCI6MTEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjIzZjM2NmI5YmQ5YThkMGYzNDBhMmJjMGJlMWUyMmVlYTIwNTY4ZGQ3OGE0NTI4MWI3MjFiMzBmMjJkMDg3ZjAiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjU2MjA3NzEzNWJmOGI3NjA2NWVkYmM1MTA4NzM0MzRhOTczMGU2NzlmZjMxYjVlYjAxOGI3YWRlOTA5NDFiZjIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImM2N2FlMzdiYjgyOGQ2YTFkYjE0NjVlZmQ5MzRhYzc1OTY5ODVmN2FhYzM2MGQzZTBjZjM5ZTcwYjU1MjA2M2QiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjgxYzE0MjZiZWE3ZmFiYTA1YTEyYzFlMWM4NjBkYTY3YzYxNzM4ZmZjY2NjYTRmNjc2ZTRiOTI2ZGVhNjZlMDIifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_f125e20d8e854db0904a68a0de37420a",
+      "statement": "Backend async suites are marked with either @pytest.mark.anyio or @pytest.mark.asyncio, and both anyio and pytest-asyncio are dev dependencies, so neither marker is globally enforced by configuration (pyproject.toml sets no asyncio_mode or anyio_backend fixture).",
+      "evidence": [
+        {
+          "resource": "repo://pyproject.toml#L48-L61",
+          "version": "repo-lines-v1:sha256:aea0579a9e49053121e09a854c43a667d9e835eae148a21a04bc37a7b64842f9:eyJzZWxlY3RlZExpbmVDb3VudCI6MTQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImRiYjc0OTliMWNlMWM0ZjRiMjUyN2YzYTMyODRjYWM2YjZhMWUzYmY0OTg4YjU2Nzk4MmMzZGM4ZTlhMTdmMjMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImY5NDE2ZTA5Zjc4YmEzMTZjMDMyNTY4MjEzYjg1NWVlNzU2ZTQxNTY1ZDkxOGYwOTUxOWM4MWZkNjIwZjQwNjAiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjliZWUxMjc2YTM1YjFkOTA1NGY5MzU0ZWJjNDk1ZjgwM2Y2MzFiMWY4YTQ2MDc3NjRhYjRkYzdlNGZjMWEzNDIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImYzODYxMmU4MzYwN2EwNDI2Zjg3Zjk3MGQwMWNhODY4MzY0MzAzNTZiZTE2MWE0NTRlZTBhNWZmMTI1NjkwZjIifQ"
+        },
+        {
+          "resource": "repo://pyproject.toml#L63-L82",
+          "version": "repo-lines-v1:sha256:266a53f5d4854679d8ee2e4c4dd3f8b9a9731c12df45309a0d038695d3e145ec:eyJzZWxlY3RlZExpbmVDb3VudCI6MjAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijg2NzZlNjQxNDY1YTY1NTFlOWU5Y2ZmZDdmYWExZTZhNDJmOWI3MjQ4MDk4MTNjOTAzZDdlZGNiNTJmMzAwNmYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImY5NDE2ZTA5Zjc4YmEzMTZjMDMyNTY4MjEzYjg1NWVlNzU2ZTQxNTY1ZDkxOGYwOTUxOWM4MWZkNjIwZjQwNjAiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImNlYWM2NGQ4NjI1YWVlNjY0MTU1NDg5N2RmYmUzYzk1NjU1NzgyNjRhMDUxYTMxMjI2OWJhOGJlZTEwYjFlYWUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImRlYjUxNmJjMzUxMzgwNzkyNzAyNDIxYzVmZGIxYWRkNTYxNTExYThiOWZhMWE3Y2M4ZmZiMjVlNTlhMmYwODgifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_194e2478c6fc44e6a6c3bf75682e1b94",
+      "statement": "tests/fixtures/account.py seeds the shared relational fixtures (accounts, portfolios, positions, securities and integration users) and includes cross-user variants — other_user_account, other_user_portfolio and other_user_external_user, all bound to the other_user fixture — so ownership and authorization denials can be asserted, while tests/fixtures/market.py seeds watchlists for the test user.",
+      "evidence": [
+        {
+          "resource": "repo://tests/fixtures/account.py#L32-L36",
+          "version": "repo-lines-v1:sha256:857ce77d3777d7fdf1da04c9157689a2a62eb63280caceb7bf59478cef52e9b8:eyJzZWxlY3RlZExpbmVDb3VudCI6NSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiMjNmMzY2YjliZDlhOGQwZjM0MGEyYmMwYmUxZTIyZWVhMjA1NjhkZDc4YTQ1MjgxYjcyMWIzMGYyMmQwODdmMCIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiZGFhYzRmNzM0MjFmMGU5MmM2NGU1Zjg3NWFkNDU2MGQ3MjY4NmMwZDBhYzU0OWJjZWZmMGU2MzI4MmUxMTZmZiIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiMTA1NTAyYzY1OTljYjBjODFkMDc2OTE5OTQ5MzFkOTc2YTM0MjA5YjM2N2E0N2E0ZmIzYmEzOTMzNjM0OGFiYyIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiMjc0NjcxMTQ2ZDZjMTA2YTVjMTE0NzVkNjExNDg0YTA0ZmJiNjdiY2QxZTEzMTI4NDI1ZWQwN2EwNDlkZjMwMyJ9"
+        },
+        {
+          "resource": "repo://tests/fixtures/account.py#L396-L403",
+          "version": "repo-lines-v1:sha256:cd4b74f3ec50c056633a93869be711f99db1964e8735f1b00e91ed192aec6097:eyJzZWxlY3RlZExpbmVDb3VudCI6OCwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiMjNmMzY2YjliZDlhOGQwZjM0MGEyYmMwYmUxZTIyZWVhMjA1NjhkZDc4YTQ1MjgxYjcyMWIzMGYyMmQwODdmMCIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiZTA5ZGJkOTZjOWUzZThiODMxN2I4OTRhYWU1YzAyODRlZTU1ZGY3ZDliYzg1OTRmMWM2ODk0ODAyZDA4YzkxYSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiZWVlNjIxMmY1ZGQ5Zjg2ZjU3MjM5MWVhMTc3N2M0YjdhMWJkMWE3ZGRiMWYzOTM0YzE3YzI5MzY1ZDJiYzJjNSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiMWNhMDZhNjE0MjUxODczNDQyOGFmNjM2Yjg0NzQwOWQyNGViZTYyZTQ4MjJkNzU3YWY5YmI0NTUwNjg0OGI2MSJ9"
+        },
+        {
+          "resource": "repo://tests/fixtures/account.py#L85-L94",
+          "version": "repo-lines-v1:sha256:2ad59164ebd400eae001b1334b888df77f2ee04a00a82d828fd8b8863f4b260d:eyJzZWxlY3RlZExpbmVDb3VudCI6MTAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjIzZjM2NmI5YmQ5YThkMGYzNDBhMmJjMGJlMWUyMmVlYTIwNTY4ZGQ3OGE0NTI4MWI3MjFiMzBmMjJkMDg3ZjAiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImUwOWRiZDk2YzllM2U4YjgzMTdiODk0YWFlNWMwMjg0ZWU1NWRmN2Q5YmM4NTk0ZjFjNjg5NDgwMmQwOGM5MWEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImJkNDA0MWQ4NDcwOTViNTVhNTQ3OGU4OTk5Nzk2NDJjMDQ4YjM4NDYzMWZjNmIxMzU2MTBkMWY0NmJlOTk2OTYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjYwZWZiZjVjOWE2NjA4OWFmZjg0Mjg0ZmM4Y2I1YWMzZmIxY2Q0MzYyOTYzODgxZWJhM2MyMGVlYWY0OWI2OTAifQ"
+        },
+        {
+          "resource": "repo://tests/fixtures/market.py#L15-L49",
+          "version": "repo-lines-v1:sha256:5f16f7de71ce9814e23972c11cf6e57ad69e0294859796376ab98c3c195732aa:eyJzZWxlY3RlZExpbmVDb3VudCI6MzUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjIzZjM2NmI5YmQ5YThkMGYzNDBhMmJjMGJlMWUyMmVlYTIwNTY4ZGQ3OGE0NTI4MWI3MjFiMzBmMjJkMDg3ZjAiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjUxZmZkY2Y4NTQ5MzcyMjgxMjhhMDE1Y2ZmNzk1NTY2OTkxYzc3MmJhMTBjZjE0ZjNmMmUwMTZkNDdmYjMwNWYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjRmODRiZDBmNjg4ZWE3YzE5NDQwOTBmNWJlZDRhZDM1M2QzZDA1OGFmYzQ0YWZiMGJmNDM2OWQ2NDM0YjU2NjYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_3ec743370d954ed1ad7cf891350104eb",
+      "statement": "Frontend test imports use two interchangeable path aliases — SvelteKit's $lib/* and the shadcn-style @/* — where @/* maps to ./src/lib/* through the kit.alias entry in frontend/svelte.config.js, so vi.mock specifiers may be written either way for the same module.",
+      "evidence": [
+        {
+          "resource": "repo://frontend/src/lib/components/watchlist/watchlistService.test.ts#L1-L10",
+          "version": "repo-lines-v1:sha256:d2c26a6a73d43d475c9946de1cf426ec9c9079d4fca201393d7a819cbbd07873:eyJzZWxlY3RlZExpbmVDb3VudCI6MTAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAxNTJhMjA2Y2Q0YzgyYmU1YWU4YjZhZDcxYzM3ZGVkMDI5YWE4NTYzMDhlN2FkZjk2YjEzMWU1ZGM2ZGQ5YzEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjEzZTdlY2I2MWNjZGMxOTRkYjc1YzI1NTlhN2FhMjEwODI5Mzk1ZjZjNzJlN2Y1YmVkODY1MTc1ZTI2NDM4ZTkiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjowLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjMzYzQzYTg1M2FmYjdjNjViMDE1YTE5NjhjMjc1ZTA4Njc4ZDEzMDQzYTJhMmFhODAyNjE0YjA0MTZkYTkxNTMifQ"
+        },
+        {
+          "resource": "repo://frontend/src/lib/services/ChartDrawingsService.test.ts#L1-L19",
+          "version": "repo-lines-v1:sha256:46bb093ad5f32197fa4212483d597b8a24f6f7d5f3dd55cde8b0c62e0c1c63d2:eyJzZWxlY3RlZExpbmVDb3VudCI6MTksImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjhiMmY5ZWFkMmFlYTNhN2YyMmY1MTc4M2VmYzM1YzE5NTk5NjVjOTFiNmE5NTNjYjY1ZTFkODAwNzM0MGY1MGYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImM2NTUwMGE0YzY3ZDY2NTJmYWJiOGE2Nzk1YmU3ODVjZWE2MjMyZDI4ZjZiNWIyMTZhOTNlYjk4Mzg5ZWU1ZTciLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjowLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjBmOGVmYTMxOTQ1OTNmNDNmZmZiZjdmZjY4MTY3NTg3NDVmMGZmOGQ4YWMwOTMwMGU4ODAyMmJmY2Y4Y2UzNTgifQ"
+        },
+        {
+          "resource": "repo://frontend/svelte.config.js#L10-L18",
+          "version": "repo-lines-v1:sha256:f864a957650dbf173f3366f4b237c618d5385199f22ee3f782bbadef69a656b7:eyJzZWxlY3RlZExpbmVDb3VudCI6OSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiYTQzOWRmODAwY2I4NjQ2NGNlMjM1ZGJiOTA3Njg2NmFiZjgxMjZlMjNiYjg5MjgyYjFiMjU4NmYxMWFhOTY3OCIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNjdjZGE4MmRhNjA2MjM4ZTA1ZTYyMzk5NTY5YzVlZTAzOTkzNDE5NjQ4YWU1ZDQzYTJiZjhjZDYzNDdmODI2MyIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiNjM4N2ZlNTg1YzBjZjlkZjQ1ZGJiNzdmYWQ5MTMzMzQxNmViYWI4Yjc1ZWQyZTQ5OTlkNGMyMmQ5YzZiYjYzYyIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiODlmOWI2OTI1ODZmNTNhYzQ3ODAxZmQ2ZTRkZjg3MWY2NmRjMjFlMTZjODU0ZDkxNzA1NmQ0MWNiZWI3MjE4MiJ9"
+        }
+      ]
     }
   ],
   "verification": {
     "by": "openwiki/0.5.2",
-    "at": "2026-09-20T12:50:16.306Z"
+    "at": "2026-09-23T13:18:56.288Z"
   }
 }

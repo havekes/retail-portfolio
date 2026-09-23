@@ -1,11 +1,11 @@
 ---
 type: reference
 title: Quickstart & Task Routing
-description: Entry point to the retail-portfolio wiki — what the repository is, how to run the Docker Compose stack, where every system lives, and a task-routing table that points backend, frontend, chart, auth, broker-sync, CSV, market-data, AI, integration, money, holdings-read-path, dev-workflow and testing work at the right page.
+description: Entry point to the retail-portfolio wiki — what the repository is, how to run the Docker Compose stack from the single root .env, where every system lives, and a task-routing table that points backend-domain, config/DI, frontend-shell, chart-surface, chart-drawings-and-rewind, realtime-and-background-jobs, user-preferences, holdings-read-path, broker/CSV/market-data/AI, money, integration, dev-workflow and testing work at the owning page.
 tags: [quickstart, task-routing, onboarding, repository-map, development-workflow]
 verified:
   - by: openwiki/0.5.2
-    at: 2026-09-21T14:49:00.510Z
+    at: 2026-09-23T13:18:56.288Z
 sources:
   - id: openwiki-source-5f5b95b3d6a215fa02ceb945
     resource: repo://.env.example
@@ -21,6 +21,8 @@ sources:
     resource: repo://docker-compose.yml
   - id: openwiki-source-e483fd3285d99d05c7b265cf
     resource: repo://frontend/AGENTS.md
+  - id: openwiki-source-45599bb9a8794a9c90b7e20d
+    resource: repo://frontend/src/lib/api/apiClient.ts
   - id: openwiki-source-09dad1559edc73c5b154a081
     resource: repo://frontend/src/lib/components/holdings/holdings-table.svelte
   - id: openwiki-source-3f8311916804417f28db7f0d
@@ -31,6 +33,10 @@ sources:
     resource: repo://frontend/src/routes/accounts/%5Bid%5D/%2Bpage.server.ts
   - id: openwiki-source-899c8715bbba1ad86cff7b6b
     resource: repo://frontend/src/routes/holdings/%2Bpage.server.ts
+  - id: openwiki-source-17695a0429275bdf8c6b0e99
+    resource: repo://frontend/src/routes/holdings/%2Bpage.svelte
+  - id: openwiki-source-378e3cf05ab0d05d335c68d5
+    resource: repo://frontend/vite.config.ts
   - id: openwiki-source-c59fe4336a371ea1052a01dd
     resource: repo://justfile
   - id: openwiki-source-05ccef8d4cf1698187f20464
@@ -43,7 +49,13 @@ sources:
     resource: repo://scripts/docker-gid.sh
   - id: openwiki-source-230f617cb6d47154ef463034
     resource: repo://src/AGENTS.md
-generated: { by: "openwiki/0.5.2", at: "2026-09-21T14:49:00.510Z" }
+  - id: openwiki-source-11b9d806fcc6dd6e7747ed87
+    resource: repo://src/main.py
+  - id: openwiki-source-c8a9ed75dfc5d7332062ae40
+    resource: repo://src/worker_dashboard/router.py
+  - id: openwiki-source-7a8d629077019775a9fec3d3
+    resource: repo://src/worker.py
+generated: { by: "openwiki/0.5.2", at: "2026-09-23T13:18:56.288Z" }
 ---
 
 # Quickstart & Task Routing
@@ -70,18 +82,32 @@ just up        # or: docker compose up -d
 `scripts/docker-gid.sh`, overridable with `DOCKER_GID`), which is what lets
 testcontainers-backed tests inside the containers reach the daemon.
 
-| Service | URL | Port override (root `.env`) |
-|---|---|---|
-| backend | `http://localhost:8001` (docs at `/redoc`, ping at `/api/ping`) | `BACKEND_PORT` → container `8000` |
-| frontend | `http://localhost:8002/` | `FRONTEND_PORT` → container `8100` |
-| mailcrab (dev SMTP inbox) | `http://localhost:8003` | `MAILCRAB_PORT` |
-| indicator service | `http://localhost:8085` | `INDICATOR_SERVICE_PORT` |
-| PostgreSQL | `localhost:5432` | `POSTGRES_PORT` |
-| debugpy (backend / worker) | `localhost:8090` / `localhost:8091` | `BACKEND_DEBUG_PORT`, `WORKER_DEBUG_PORT` |
+| Service | URL / purpose | Host port (root `.env` override) | Container port |
+|---|---|---|---|
+| backend | `http://localhost:8001` — `/redoc`, `/api/ping`, `/health/live`, `/health/ready`, Huey dashboard at `/worker/api` | `BACKEND_PORT` | `8000` |
+| frontend | `http://localhost:8002/` | `FRONTEND_PORT` | `8100` |
+| mailcrab (dev SMTP inbox) | `http://localhost:8003` | `MAILCRAB_PORT` | `1080` |
+| indicator service | `http://localhost:8085` — stateless Go indicator calculator | `INDICATOR_SERVICE_PORT` | `8080` |
+| PostgreSQL | `localhost:5432` | `POSTGRES_PORT` | `5432` |
+| debugpy | `localhost:8090` (backend) / `localhost:8091` (worker) | `BACKEND_DEBUG_PORT`, `WORKER_DEBUG_PORT` | `5678` |
+| Redis | not published — reachable only on the Compose network as `redis:6379` | — | — |
 
 Every one of those ports is Compose-interpolated from the root `.env`, so change ports
 there rather than in `docker-compose.yml`. `src/.env` and `frontend/.env` are obsolete —
 move any custom values into the root `.env` and delete them.
+
+`worker` is a separate container from `backend`: it runs
+`huey_consumer src.worker.huey -w 2 --worker-type thread --periodic` under `watchfiles`
+reload, so task changes are picked up without restarting Compose. Nothing in a request
+path runs those tasks, and the job view is served by the backend process, not the worker —
+see [Realtime, Background Jobs & the Worker](./workflows/realtime-and-background-jobs.md).
+
+Two configuration details bite when ports change: the frontend service receives
+`JWT_SECRET` derived from the root `SECRET_KEY` (Compose fails fast if `SECRET_KEY` is
+unset), and `CORS_ALLOW_ORIGINS` in `.env.example` names `http://localhost:8101` while the
+dev frontend is published on `8002` — dev still works because the backend sets
+`allow_origin_regex=r"https?://.*"` for any non-prod environment, but in prod that regex is
+`None` and the origin list must be correct.
 
 CI (`.github/workflows/ci.yml`) runs the same verification in three jobs: backend
 (`uv run ty check`, `ruff check` + `ruff format --check`, `pytest`), frontend
@@ -111,15 +137,18 @@ CI (`.github/workflows/ci.yml`) runs the same verification in three jobs: backen
 | A backend domain: add a route/service/repository, or touch `account`, `auth`, `market`, `integration`, `ws`, `core` | [Backend Domains](./architecture/domains.md) |
 | `Settings`, the root `.env` contract, the `svcs` registry, DB/Redis managers, middleware | [Configuration, DI & Cross-Cutting Runtime](./architecture/configuration.md) |
 | SvelteKit routes, `load`/form actions, API clients, runes-based services, SSR pitfalls | [Frontend Architecture](./architecture/frontend.md) |
-| Charts, drawing tools, indicator overlays, chart snapshots/rewind, finance math | [Charting, Drawing Tools & Rewind](./architecture/charting.md) |
+| The chart surface: chart mount/series lifecycle, panes and pane heights, timeframe/chart style, indicator overlays, chart settings, price alerts | [Charting: Chart Surface, Panes & Indicators](./architecture/charting.md) |
+| Drawing tools: series-primitive plugins and helpers, finance math, drawing persistence/undo-redo, chart snapshots and the rewind timeline | [Chart Drawings, Plugins & Rewind](./architecture/chart-drawings-and-rewind.md) |
+| Anything persisted per user: the `/accounts/me/preferences` contract, key ownership, merge/`exclude_none` semantics | [User Preferences](./concepts/user-preferences.md) |
 | Signup/login, the `auth_token` JWT, 2FA/TOTP, passkeys, ownership authorization, the WS ticket | [Authentication & Authorization](./architecture/authentication.md) |
+| The holdings read path: the accounts dashboard, `/accounts/[id]`, cross-account `/holdings`, holdings table columns/grouping/preferences | [Accounts & Holdings Views](./workflows/accounts-and-holdings-views.md) |
 | Broker connect, Wealthsimple login/OTP, position import and the Huey sync task | [Broker Connect, Import & Position Sync](./workflows/broker-sync.md) |
 | CSV templates, account discovery, the inspect → import → sync lifecycle | [CSV Account Import & Sync](./workflows/csv-import.md) |
 | Price fetches/backfill, daily & intraday tasks, the downstream recalc/alert cascade, indicator computation | [Market Data, Indicators & the Price Update Cascade](./workflows/market-data-and-indicators.md) |
 | AI context assembly, fundamentals/notes/debate endpoints, the async title task | [AI Analysis Flows](./workflows/ai-analysis.md) |
+| The worker: task registries, periodic/on-demand jobs, retries, the Redis WebSocket fan-out, sync-status keys, the frontend consumer | [Realtime, Background Jobs & the Worker](./workflows/realtime-and-background-jobs.md) |
 | An outbound dependency: EODHD, Wealthsimple, the AI endpoint, SMTP/mailcrab, Redis, the indicator sidecar | [External Services & Adapters](./integrations/external-services.md) |
 | Money, currency conversion, totals, holdings/P&L math, rounding | [Money & Currency Handling](./concepts/money-and-currency.md) |
-| The holdings read path: the accounts dashboard, `/accounts/[id]`, cross-account `/holdings`, holdings table columns/grouping/preferences | [Accounts & Holdings Views](./workflows/accounts-and-holdings-views.md) |
 | How to run, ship and change: Compose stack, in-container commands, agent-test harness, worktrees, migrations, CI, OpenSpec | [Development, CI & Change Workflows](./operations/workflows.md) |
 | The pytest/Vitest layout, fixtures, mandatory mocking, harness gates, CI matrix | [Testing & Verification](./operations/testing.md) |
 

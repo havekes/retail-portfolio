@@ -1,70 +1,82 @@
 {
   "schemaVersion": 1,
-  "pageVersion": "sha256:8095ed0af75a141592720335b3cfcbb85be92392cede00121a217f39296763bf",
+  "pageVersion": "sha256:a8724753acfe863dbd6125da36ceab330802eff7fc3b1d37604133ca1e45a6c8",
   "claims": [
     {
       "id": "claim_5df96f2816c44d53858f0d0400053d41",
-      "statement": "security-chart.svelte owns the chart lifecycle: onMount creates the lightweight-charts instance (CrosshairMode.Normal, hidden left price scale, right price scale with minimumWidth 75), adds the CandlestickSeries, attaches the UserPriceAlerts, ElliottWavesPrimitive and FibonacciPrimitive series primitives to it, and the onMount teardown destroys all three primitives before calling chartInstance.remove().",
+      "statement": "security-chart.svelte owns the chart lifecycle: onMount creates the lightweight-charts instance (CrosshairMode.Normal, transparent layout, formatLocalTime as the time formatter, formatLocalTickMark as the tick-mark formatter, ignoreWhitespaceIndices false, hidden left price scale, right price scale with minimumWidth 75), adds the CandlestickSeries and applies the pane margins, attaches six series primitives to that series (UserPriceAlerts, ElliottWavesPrimitive, FibonacciPrimitive, MeasurePrimitive, HorizontalLinePrimitive, FreeFormLinePrimitive), subscribes their delegates, installs a capture-phase non-passive wheel listener that zooms the price scale and a ResizeObserver, and the teardown removes the wheel listener, disconnects the observer, destroys all six primitives and only then calls chartInstance.remove().",
       "evidence": [
         {
-          "resource": "repo://frontend/src/lib/components/charts/security-chart.svelte#L564-L597",
-          "version": "repo-lines-v1:sha256:91548f5f94d77627b655bf94fc227e7d22f18032b9dd7b340c9c3c071ee36698:eyJzZWxlY3RlZExpbmVDb3VudCI6MzQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImQzNmI2YjdmZThkMDAxOTBlMmRlZTM3ZDhkYjNhNmMzMWM5NTg1MTk0NzEzODI0MDM5MjgyN2Q0MWI1ZmQ4ZTUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjZhMmEzYjc2ZTEyY2UxNTM3OWQwNWYyODY5ZGM0ODMyZGU3NTg5MDUzYjQ5YmZmMjM3ZTQyNWM3MjM3ODAxNTQiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImYxOGEzYzVmZjA4ZGQ3OTYwMDllNjFlNjY1NzU2YzVhNTY3YTkyYTUxZTg2NGQ1MzkxOTE1NzcxNDZjNGRlMWIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjBiYTFhNDk1ZGJhY2Q3MzE0MzhhYzU2NWMzZTY5MmQ2NzRiMzVjYjAyNjAxZTFiMTcxYzllMTg0ZGQ0OGZhODgifQ"
+          "resource": "repo://frontend/src/lib/components/charts/security-chart.svelte#L1061-L1123",
+          "version": "repo-lines-v1:sha256:6d93a44aeff765ac6b6dab89463d2983ca0ad0941f86ae34a1185fb04d1f6b84:eyJzZWxlY3RlZExpbmVDb3VudCI6NjMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjFhZmZkMTk1ZGUzZGJjMjIzYzFiZTJlNzI5N2IwNDY2ZjEwMmVkYTdmZmE2Y2NjNmMxNjU5MTQ1MzhiN2U3YjQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjM2MGI4OGEwNWQ1YjUzODQ3NjAyMjliZTYwNTcyZmU2MmIxYzI5Y2RjNTdlZGI1ZTY5NTFkYWE0ZmQ0NmM4MDMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6Ijk4MTQyNDQxYjNjNjlkMjdlYzAwZDE4MDJkMjI1OTZiYjgzYjIzOGM2NGE3ZDkzMWY5M2RiMjZmOTZlNTIxN2EiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImNhNzQ3NTM2MTIwZjljOGYxODQyYTI4NDA5ZjMwNGZlMDdjZmU0YjhmOWE3OTE1MTViMjRkMzA0YTE0NjU3MmMifQ"
         },
         {
-          "resource": "repo://frontend/src/lib/components/charts/security-chart.svelte#L609-L648",
-          "version": "repo-lines-v1:sha256:170fd00ff1780f260b7bf0750c2b0af8db2a99aeaa1dae8db0a61d468f578aed:eyJzZWxlY3RlZExpbmVDb3VudCI6NDAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjZmN2Y5MTNkYTllOTdjYjllZWY3M2VjMWI4Y2FlYmUzZTBmM2UxNDAxNjYxNjlhZGMyZDM4ZGEzYmYzMjYyMmIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjFiNzA1MTEyOTdkMWQzODA2ZmFiOTBiMThlOGFiNWQyMmJkYTM5Y2U5OGE3ZjQ0Yjc5NTczYWFkZGQ4NTAxZjgiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6Ijg3ZmM4Nzk5ZDNhNGY2NGE3NjMyYTliYTEzYjc1NTQ2MmFkZjAzNmNiZjVkOTJkN2U4M2ZjODM0OTAwYTE5MTQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjNhMGVhNzAyYjY2OTJlYmVjZWI1NDExMzEwNzk2MTY2ZTA4ZWQzYjc4NGIxYjM4MDBmY2RhZDBiZmY4ZmRhNTkifQ"
-        },
-        {
-          "resource": "repo://frontend/src/lib/components/charts/security-chart.svelte#L765-L772",
-          "version": "repo-lines-v1:sha256:d3092237d1c555ddc2bbb122f4fccc00123050d5c3d8ded51a59d12d37746cfd:eyJzZWxlY3RlZExpbmVDb3VudCI6OCwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiZGYxY2JjNGY0MzcyMjljYjc5NjhjOTU4MjYyOWJmODZiZjNhYWJmMWY4OGE5MDgxNGE1NTFhZGU0YTlmYWQ1ZiIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiMzYwYjg4YTA1ZDViNTM4NDc2MDIyOWJlNjA1NzJmZTYyYjFjMjljZGM1N2VkYjVlNjk1MWRhYTRmZDQ2YzgwMyIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiOGI0NmE5OWM3MTdhMWRiOTQ0NjE4ZDEyODg5YjE3YjdlOTAwZWJhNzA3NmE0ZWEzNjU3M2M5NTgzNTIyNWI1MCIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiY2E3NDc1MzYxMjBmOWM4ZjE4NDJhMjg0MDlmMzA0ZmUwN2NmZTRiOGY5YTc5MTUxNWIyNGQzMDRhMTQ2NTcyYyJ9"
+          "resource": "repo://frontend/src/lib/components/charts/security-chart.svelte#L807-L864",
+          "version": "repo-lines-v1:sha256:286ed1338d24ad9ad775ce26eb5bf2ac1890b0423e0207a0667614e806f9c9a3:eyJzZWxlY3RlZExpbmVDb3VudCI6NTgsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImQzNmI2YjdmZThkMDAxOTBlMmRlZTM3ZDhkYjNhNmMzMWM5NTg1MTk0NzEzODI0MDM5MjgyN2Q0MWI1ZmQ4ZTUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjNiMTM3MDYwYzk3NmVkYTI4MTg2NzkwNmJiMjg2YzIwYzQ1ZGIwMTU4YTZmNWUzMzI2ZmY0MWI5MTE3ZjA1YjAiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImYxOGEzYzVmZjA4ZGQ3OTYwMDllNjFlNjY1NzU2YzVhNTY3YTkyYTUxZTg2NGQ1MzkxOTE1NzcxNDZjNGRlMWIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImIxNzFlNzA0ZTJmZmNmMWRjNDU4ODUwYmM3OTQyMjdhMTQyNjc2ZTczYjdkNjczYzMzZTk0YWM0Njc4MmIzZDAifQ"
         }
       ]
     },
     {
       "id": "claim_4900f06c2e7e432db1c3c1723cc30f07",
-      "statement": "Oscillator indicators do not get separate chart panes: they get separate price-scale ids on the same pane, and updatePanes() carves the vertical space with priceScale().applyOptions({scaleMargins}) following OSCILLATOR_ORDER (rsi, macd, obv), with per-oscillator heights of 0.25/0.18/0.14, a 0.02 gap, a main-area floor of 0.3, and the bottom 25% of the main area reserved for volume when it is enabled.",
+      "statement": "Oscillator indicators do not get separate chart panes: every pane (main, volume, rsi, macd, obv) is a price-scale id whose visible band is carved out with priceScale().applyOptions({scaleMargins}), the stacking order is main, then volume when present, then OSCILLATOR_PANE_IDS (rsi, macd, obv), the ordered ids are held in explicit orderedPaneIds state so imperative add/remove updates them reliably, and the margin arithmetic itself now lives in the pure module $lib/chart/indicator-pane-layout.ts which the chart only applies (main via seriesInstance.priceScale(), the rest via chartInstance.priceScale(id)).",
       "evidence": [
         {
-          "resource": "repo://frontend/src/lib/components/charts/security-chart.svelte#L204-L278",
-          "version": "repo-lines-v1:sha256:d5191db9730de3428ac45f6593aa7d06e056edca31e481c385ab14d411f43081:eyJzZWxlY3RlZExpbmVDb3VudCI6NzUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImFlMjRjYWIyYzU5ZDJiZDJkMzE3ZGEyNDAzZDQ3OTMyNjM3MjMxZTc4YWYyMDMzZDE4MjMxNjNlYjhlMTJlMDUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjY3Y2RhODJkYTYwNjIzOGUwNWU2MjM5OTU2OWM1ZWUwMzk5MzQxOTY0OGFlNWQ0M2EyYmY4Y2Q2MzQ3ZjgyNjMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjIyZjJmZjVmZWVjNjBmNTg3YzhmYWU0ZTg3ZjgwOWE2NjFjZmZlZDZiNDdhYWU1ZjZkNmEyNjUzYWE4OTUyZWYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImZiNzU0YmQzMjE5MmQ0NDRiYmZkYzNjOGNlZjFiNDE5ZDFjYWU4MDNlNzg3MTZlZjAwNzVkYzU1MTk0NmEyYjcifQ"
+          "resource": "repo://frontend/src/lib/chart/indicator-pane-layout.ts#L219-L245",
+          "version": "repo-lines-v1:sha256:f7b3ab72ab24ce6e6abba5722b483c485a22b549c373f48c9dca1f1726f99448:eyJzZWxlY3RlZExpbmVDb3VudCI6MjcsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjhlNjQzZDBlODdlNTc3Mjg1ZmEwNTBiZDE2NDEzN2NkMWUyNWJhMTIyMzYxNTJjNjc5MGIxMzEzY2I2MTkwZWMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQxMmNhMzQ1Y2NmNzViZjljMDgwNmJjZTY5NWJlOGRlODA4Yjc5OTg0MjUxYTdhNTRkMjAyY2Y2MTAxZGQ0NTEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImFmZmY3Njg5YjJjMGM4YmE3NTcxMzY0NjIyNzBiOTRmZGM3MGYwN2YzYzc2Y2M2ODlmZTEwM2U3ZTA5OWZkOWQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjY0NzQ3MTUzNmRhYTM1OGJlOTM5MWZhZjNiMWE2NzBmMGFhYjQzNzNiODY0OWU5ZDIwMWQ5N2JhYzViYTM4OTkifQ"
+        },
+        {
+          "resource": "repo://frontend/src/lib/chart/indicator-pane-layout.ts#L23-L25",
+          "version": "repo-lines-v1:sha256:a7655d32f820bb6cfcc3788eac523d32551070019d6240d9a993e08c22b8c19f:eyJzZWxlY3RlZExpbmVDb3VudCI6MywiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiNWE5MDdiNjJjZWZhYzFkYjEwMTk4ZjA3ZDA5OGZjMjdjOTcwYWQ1OGMyMzA0NzllMjZlOTc0NTI0ZjgzNzUxYiIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiMGM4ZmU4YWQ4NjNiNDZkMTBkM2ZjY2ViNTQ3MWE2OWI4NDcxYmY2YWY0ZWQzYjY0Mzk1NmMzMThmMjgxN2U2NSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiMTU5OGE1NmJmYTgyY2I2MTI2NjdlOWE2OTQxNDNiMmNhYjRiYWUyZTc5ZjVmOTExYjMzMDBiNWQ3ZThhNjE1YiIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiMjhjYzM3MDE1NGU1YmU5MzI2YTlkMmZkODAxZjczYzdkYzcxNGUzZTU3MTFjY2I1NjVmMjJlZTAzM2E4NjMyOCJ9"
+        },
+        {
+          "resource": "repo://frontend/src/lib/components/charts/security-chart.svelte#L279-L348",
+          "version": "repo-lines-v1:sha256:5557b5a51cbd842dfc04de8b9662e6fd653bb6a0251637c1ec286aa76cc23f43:eyJzZWxlY3RlZExpbmVDb3VudCI6NzAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ4NjdjZGY1ODM2YzZmZWRiN2UyZjFlYzYxZjQ5ZjFmZDg1YTczYTA0M2E2OGE1ZGE5YTZjOTQ1MjM5YmZjNTIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjY3Y2RhODJkYTYwNjIzOGUwNWU2MjM5OTU2OWM1ZWUwMzk5MzQxOTY0OGFlNWQ0M2EyYmY4Y2Q2MzQ3ZjgyNjMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImJiNDYwNWUyODVlZTk5MzlkYjgxZTBhOTI0NTE5Y2Q2MTExNGNjNzY5ODMwY2IxZmEwYWRmYjk1MGNmY2U5NjAiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImM1OTBiNzg5M2QxOGQxMzU2MjZmNWUzMDI0NDJkYzcxYzAzNTQ2NjRmNzRmOTZkY2ZhZDNlN2Q3NzE4YTdhYTMifQ"
         }
       ]
     },
     {
       "id": "claim_e0edfc99d0234df491281a9fec4d8d00",
-      "statement": "Future whitespace keeps drawing ahead of the last candle possible: generateFutureWhitespace derives the bar interval from the median spacing of the most recent candles and appends whitespace points one interval apart, while checkAndExpandWhitespace grows the allocated count and re-applies the previously saved visible logical range so the expansion is invisible to the user.",
+      "statement": "Future whitespace keeps drawing ahead of the last candle possible: generateFutureWhitespace returns an empty array for fewer than two candles or a non-positive count, derives the bar interval from the median spacing of the most recent candles via computeIntervalSeconds and appends count whitespace points one interval apart with the reference candle's Time shape preserved; checkAndExpandWhitespace grows the allocated count when the visible range nears the right edge or the container needs more bars and re-applies the previously saved visible logical range so the expansion is invisible to the user.",
       "evidence": [
         {
-          "resource": "repo://frontend/src/lib/components/charts/plugins/helpers/time/time.ts#L49-L91",
-          "version": "repo-lines-v1:sha256:cb6b8bfd71264a933dd1637ea717d9920a817f0c9f6de9f202348694677a35b0:eyJzZWxlY3RlZExpbmVDb3VudCI6NDMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImVhZjIyY2YwNzMyNTkyYzI0NzE0MWNiZTYxZWZhMTEwMTI2MTJmNWEzMTIyYjlhZjliYmFmNTJmNTcyNGQxOTQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQxMmNhMzQ1Y2NmNzViZjljMDgwNmJjZTY5NWJlOGRlODA4Yjc5OTg0MjUxYTdhNTRkMjAyY2Y2MTAxZGQ0NTEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImQ2MGU4OTcwN2JiMWE4NzdmNzJkZWQ1YTBmNGEzYWE5YjFmNzIwM2YyMzg0ZDdlN2RhZDJiZGQ4ZGE3NTQyODIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
+          "resource": "repo://frontend/src/lib/components/charts/plugins/helpers/time/time.ts#L123-L144",
+          "version": "repo-lines-v1:sha256:f481223df141d953453c2ceec51339044ed213860332a4f5d022db54e5963954:eyJzZWxlY3RlZExpbmVDb3VudCI6MjIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImVhZjIyY2YwNzMyNTkyYzI0NzE0MWNiZTYxZWZhMTEwMTI2MTJmNWEzMTIyYjlhZjliYmFmNTJmNTcyNGQxOTQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQxMmNhMzQ1Y2NmNzViZjljMDgwNmJjZTY5NWJlOGRlODA4Yjc5OTg0MjUxYTdhNTRkMjAyY2Y2MTAxZGQ0NTEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjEzMTEzMDYwZGY5OWJjYWZlY2Q3ODRlZmYyYjU3MDI4NmE1MDdiYmE5YmYyMTIwZjYwMjljYzJhYzlmZTJjZDUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
         },
         {
-          "resource": "repo://frontend/src/lib/components/charts/security-chart.svelte#L160-L202",
-          "version": "repo-lines-v1:sha256:4b3464b0629e72349e8f2753355995f5123b3e1f1385df4953f5d3817c5fc43f:eyJzZWxlY3RlZExpbmVDb3VudCI6NDMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjRhOWQzOGQ1MDA0ZjY2MTAzNTc0NDIxNGQ1OTc0Yjg3ZGMzZWJmN2EwMzM4NjE2MjRlZjU2ODQ0ZDhmMDAwZTQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjY3Y2RhODJkYTYwNjIzOGUwNWU2MjM5OTU2OWM1ZWUwMzk5MzQxOTY0OGFlNWQ0M2EyYmY4Y2Q2MzQ3ZjgyNjMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImFlMmY2NWUxY2E5NGEyOGExNWIxMThmZDFhNmNiOTQ5ZTgzOTg0YTBlMTAxMGRhNGNlNjg3YWExYzU1ODc2ZWIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImQ2ZmE2ZTAwZmI2YTg1YWE4NWJlNjAwNDE2ZTE3MzlkNTViZTFiZmFiMjczZWYyZDNjNWRhZmJmZDI2N2YyNGEifQ"
+          "resource": "repo://frontend/src/lib/components/charts/plugins/helpers/time/time.ts#L57-L72",
+          "version": "repo-lines-v1:sha256:c933b653b14b583965db84c5e673b533a6c6b49cff318d9dcbcd3fa2e02d6dc0:eyJzZWxlY3RlZExpbmVDb3VudCI6MTYsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjcyZWNlYmI5YzQ0NDExMzJhNGZhZmMwYTMxYzg3M2ViM2QxM2RiODBlMGM1MTU5ZGY2OGYyNjYwODU0ZTFjYmMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQxMmNhMzQ1Y2NmNzViZjljMDgwNmJjZTY5NWJlOGRlODA4Yjc5OTg0MjUxYTdhNTRkMjAyY2Y2MTAxZGQ0NTEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImFkZTRjODE4NmU3OTQ4M2U1YjEyMzFjMTdhZDEwYWI3MTM3NWY2NmM2OTE1Y2Q0YmU4YTM0ODVkYWQ5M2ZmZTkiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6Ijc3ODVlZWJjYWFkZjQ5Y2ViMTA2NDQ4YjkwNDk5NWE0NjZhOGFmNDFhN2Y3OTk1ZTdiMzA0MmJkMzk5MDM1NjgifQ"
+        },
+        {
+          "resource": "repo://frontend/src/lib/components/charts/security-chart.svelte#L225-L267",
+          "version": "repo-lines-v1:sha256:4b3464b0629e72349e8f2753355995f5123b3e1f1385df4953f5d3817c5fc43f:eyJzZWxlY3RlZExpbmVDb3VudCI6NDMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjRhOWQzOGQ1MDA0ZjY2MTAzNTc0NDIxNGQ1OTc0Yjg3ZGMzZWJmN2EwMzM4NjE2MjRlZjU2ODQ0ZDhmMDAwZTQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjY3Y2RhODJkYTYwNjIzOGUwNWU2MjM5OTU2OWM1ZWUwMzk5MzQxOTY0OGFlNWQ0M2EyYmY4Y2Q2MzQ3ZjgyNjMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImFlMmY2NWUxY2E5NGEyOGExNWIxMThmZDFhNmNiOTQ5ZTgzOTg0YTBlMTAxMGRhNGNlNjg3YWExYzU1ODc2ZWIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjYwNmNiOGI5OTUwYzk0ZDQzNmEyNGU3MWY1MGRjOGVhOTlkNmZmOTNhNDU3MDk2ZjYyMzQwNGQ3MjM5MzNmM2YifQ"
         }
       ]
     },
     {
       "id": "claim_2ceb3f8d111b403e8a4f205b18d23327",
-      "statement": "The candles $effect in security-chart.svelte is the single writer of series data: it no-ops when the candles array reference is unchanged, clears series and primitive candle data for empty input, detects prepended history and shifts the visible logical range by the number of added candles, and on first load shows the last 250 bars.",
+      "statement": "The candles $effect in security-chart.svelte is the single writer of series data: it no-ops when the candles array reference is unchanged, clears series data and every drawing primitive's candle set for empty input, detects prepended history and shifts the visible logical range by the number of added candles, sizes the whitespace count from futureBars and the container width on first load and then shows the last 250 bars, and on every non-empty update writes the candles plus generated future whitespace and pushes the raw candles into all five drawing primitives.",
       "evidence": [
         {
-          "resource": "repo://frontend/src/lib/components/charts/security-chart.svelte#L487-L562",
-          "version": "repo-lines-v1:sha256:98d469c2c97af75133ed5a1f54e5ec605c491eb532a1e479d23d4a46f9505532:eyJzZWxlY3RlZExpbmVDb3VudCI6NzYsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjRmZmYwNjMzNDhhMWUxYTMyNTEzZWFjYzAxNmZjMjVjZmZlZjBiNGM5MGJmMGM4ODhlZDU4NTdmMjEzYTMyZGMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjBhNzM0OTJkODk0NmIxZDBmOWQ5YzA0YjcwNGE5MjBmMjRmODllZjdjN2Y3MzExYTg1OTlkMTBjN2Y2MzU4ZDAiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6Ijc2MDI4NWI0YWI1YzFmYzFmMDAwNDIwMTNmZGY3MjM5NmRiNWU5ZDE1MTRlNGQ5ZGMyNTU0NTc5YWZkNjU3YjQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImNlMjZlOGFhODRiNjY0NWU5YTk2ZmFmOTUwNjZmMjEyMTBhZTA1YWM5ZWQwMTMxMDQ0Mjc0NmYyNjk3MjUzMTQifQ"
+          "resource": "repo://frontend/src/lib/components/charts/security-chart.svelte#L724-L805",
+          "version": "repo-lines-v1:sha256:ea98ea2eb7b2ae7ad275a8ff4819a08cec50f9d0971217f0ee1e5d595e946bfb:eyJzZWxlY3RlZExpbmVDb3VudCI6ODIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjRmZmYwNjMzNDhhMWUxYTMyNTEzZWFjYzAxNmZjMjVjZmZlZjBiNGM5MGJmMGM4ODhlZDU4NTdmMjEzYTMyZGMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjBhNzM0OTJkODk0NmIxZDBmOWQ5YzA0YjcwNGE5MjBmMjRmODllZjdjN2Y3MzExYTg1OTlkMTBjN2Y2MzU4ZDAiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6Ijc2MDI4NWI0YWI1YzFmYzFmMDAwNDIwMTNmZGY3MjM5NmRiNWU5ZDE1MTRlNGQ5ZGMyNTU0NTc5YWZkNjU3YjQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImNlMjZlOGFhODRiNjY0NWU5YTk2ZmFmOTUwNjZmMjEyMTBhZTA1YWM5ZWQwMTMxMDQ0Mjc0NmYyNjk3MjUzMTQifQ"
         }
       ]
     },
     {
       "id": "claim_9fd6735b4fc2452eb82ecf97c09e0960",
-      "statement": "Drawing mode locks chart panning: the component sets handleScroll.pressedMouseMove=false while isDrawingWave or isDrawingFib is true, and each primitive's drawingModeChanged subscription restores pressedMouseMove=true once both drawing modes are off.",
+      "statement": "Drawing mode locks chart panning: one $effect ORs all five drawing flags (wave, fib, measure, horizontal line, free-form line) and applies handleScroll.pressedMouseMove = !isDrawing, and each primitive's drawingModeChanged subscription restores pressedMouseMove = true only once every other drawing flag is off, so finishing one tool does not unlock panning while another is still active.",
       "evidence": [
         {
-          "resource": "repo://frontend/src/lib/components/charts/security-chart.svelte#L447-L455",
-          "version": "repo-lines-v1:sha256:56a3bcb70d7ce42bcd9baa647ecbca46fb5e24888579a847b9032e604b3be69c:eyJzZWxlY3RlZExpbmVDb3VudCI6OSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiNGZmZjA2MzM0OGExZTFhMzI1MTNlYWNjMDE2ZmMyNWNmZmVmMGI0YzkwYmYwYzg4OGVkNTg1N2YyMTNhMzJkYyIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiMGE3MzQ5MmQ4OTQ2YjFkMGY5ZDljMDRiNzA0YTkyMGYyNGY4OWVmN2M3ZjczMTFhODU5OWQxMGM3ZjYzNThkMCIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiZjE4YTNjNWZmMDhkZDc5NjAwOWU2MWU2NjU3NTZjNWE1NjdhOTJhNTFlODY0ZDUzOTE5MTU3NzE0NmM0ZGUxYiIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiNTljYTFhNjdhMjJlMGMxYWYxNWUzYjY5YTYzMGRkYTBmYTJmZjg1M2RkYzFkODhjZTY4MmQ2MjBiYTBkYjI0OSJ9"
+          "resource": "repo://frontend/src/lib/components/charts/security-chart.svelte#L594-L604",
+          "version": "repo-lines-v1:sha256:9a2f4ba01e968f3950796594a9a448e6b74afccf9e39dad28ff3b57d57a2a891:eyJzZWxlY3RlZExpbmVDb3VudCI6MTEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjRmZmYwNjMzNDhhMWUxYTMyNTEzZWFjYzAxNmZjMjVjZmZlZjBiNGM5MGJmMGM4ODhlZDU4NTdmMjEzYTMyZGMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjBhNzM0OTJkODk0NmIxZDBmOWQ5YzA0YjcwNGE5MjBmMjRmODllZjdjN2Y3MzExYTg1OTlkMTBjN2Y2MzU4ZDAiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImYxOGEzYzVmZjA4ZGQ3OTYwMDllNjFlNjY1NzU2YzVhNTY3YTkyYTUxZTg2NGQ1MzkxOTE1NzcxNDZjNGRlMWIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjU5Y2ExYTY3YTIyZTBjMWFmMTVlM2I2OWE2MzBkZGEwZmEyZmY4NTNkZGMxZDg4Y2U2ODJkNjIwYmEwZGIyNDkifQ"
         },
         {
-          "resource": "repo://frontend/src/lib/components/charts/security-chart.svelte#L657-L696",
-          "version": "repo-lines-v1:sha256:f26dbb3bbf9bf8186dc44f15cdd7790a4f94310cdd2d11c4f22969523410d8dd:eyJzZWxlY3RlZExpbmVDb3VudCI6NDAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjBmNmFmMjQ3ZGY2NDNkZjEyZWI2YmE3NDUwYWYzZmZlNGViN2RiOTFhNTU5YWQ4OTZiZmY2ZDA1ZTE5MTJlNTMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjZhMmEzYjc2ZTEyY2UxNTM3OWQwNWYyODY5ZGM0ODMyZGU3NTg5MDUzYjQ5YmZmMjM3ZTQyNWM3MjM3ODAxNTQiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjRlY2I0YzQxNjdlMzQ3ODk3ZDcyMWViNmViZDFiZDk0MjU2YTNmMmU2NDk3NGVhZGQ2MzE3OWJjZWI5MTIxMTciLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImY4OGE4OTc0NjFkMDJmMWIwMTk3MDEzZmM4ZGQ4NzE0OGI4ZmVmOWI2ZTVhZDAyMThjMGMzMjExMmNkYmM1YmUifQ"
+          "resource": "repo://frontend/src/lib/components/charts/security-chart.svelte#L900-L905",
+          "version": "repo-lines-v1:sha256:72278b868cc571cfa713616b87a01daddc862d2ef4eb33424ab20ca0386e55cb:eyJzZWxlY3RlZExpbmVDb3VudCI6NiwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiMGY2YWYyNDdkZjY0M2RmMTJlYjZiYTc0NTBhZjNmZmU0ZWI3ZGI5MWE1NTlhZDg5NmJmZjZkMDVlMTkxMmU1MyIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNmEyYTNiNzZlMTJjZTE1Mzc5ZDA1ZjI4NjlkYzQ4MzJkZTc1ODkwNTNiNDliZmYyMzdlNDI1YzcyMzc4MDE1NCIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiNGVjYjRjNDE2N2UzNDc4OTdkNzIxZWI2ZWJkMWJkOTQyNTZhM2YyZTY0OTc0ZWFkZDYzMTc5YmNlYjkxMjExNyIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiYzkxYWNiODhlZjIwMzUxNjRiZjhiODQ2ZGJhZDc4OGY2ZTMyYjBiN2EwOWQ3ODYyZTk3NmU3M2MxYzkxNjc5OCJ9"
+        },
+        {
+          "resource": "repo://frontend/src/lib/components/charts/security-chart.svelte#L937-L942",
+          "version": "repo-lines-v1:sha256:6fb5d11d532a13a3d822216b236403328418ee5fe62d87efe70eb438f83e8065:eyJzZWxlY3RlZExpbmVDb3VudCI6NiwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiNTczMDk0ZDE4YzMyZTI1NGY3NGI2MTU1MWM3ZDBjYTZkZmQ5ZjEyOTczYjc2YzcyZDQ1M2JhMTdiYzc4YTYwMiIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNmEyYTNiNzZlMTJjZTE1Mzc5ZDA1ZjI4NjlkYzQ4MzJkZTc1ODkwNTNiNDliZmYyMzdlNDI1YzcyMzc4MDE1NCIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiMTYzMGQ2MDVlNzE1MDU3NDY2OGZhNWY4NTBkNjM4Njc0NDI2ZWU0ZWVlMmYyNTlmOGVjMzE0MWZiNzVmOWI2NyIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiZjg4YTg5NzQ2MWQwMmYxYjAxOTcwMTNmYzhkZDg3MTQ4YjhmZWY5YjZlNWFkMDIxOGMwYzMyMTEyY2RiYzViZSJ9"
         }
       ]
     },
@@ -80,29 +92,33 @@
     },
     {
       "id": "claim_2a3e1000e4f4498b9795c50c6c712258",
-      "statement": "Timeframe handling covers five intervals (1h, 4h, 1d, 1w, 1m): getChartDateWindow returns a 30-day window for intraday intervals and a 2-year window otherwise, intraday prices map to UTCTimestamp epoch seconds while daily and coarser intervals keep date strings, and changeTimeframe persists the timeframe preference outside the fetch try/catch so a failed preference write cannot mask a fetch error.",
+      "statement": "Timeframe handling covers five intervals (1h, 4h, 1d, 1w, 1m): getChartDateWindow returns a 30-day window for intraday intervals and a 2-year window otherwise, intraday prices map to UTCTimestamp epoch seconds while daily and coarser intervals keep date strings, and changeTimeframe persists the timeframe preference outside the fetch try/catch (and only when the fetch succeeded) so a failed preference write can neither mask a fetch error nor hold isChangingTimeframe open.",
       "evidence": [
         {
           "resource": "repo://frontend/src/lib/utils/date.ts#L29-L43",
           "version": "repo-lines-v1:sha256:a7496416f0049897bdd3fba541c80d28557b251fe0b812293ad032b3fa6889e1:eyJzZWxlY3RlZExpbmVDb3VudCI6MTUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImE4N2YwMDlhMzRiZTZlYTYwZjM1OGY5ZjQxMDQ2YTdkYWQyNWNlZGNmZDQ3NmYwN2Q5NWE5ZGUxMmFiZTBmMjIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQxMmNhMzQ1Y2NmNzViZjljMDgwNmJjZTY5NWJlOGRlODA4Yjc5OTg0MjUxYTdhNTRkMjAyY2Y2MTAxZGQ0NTEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjZmNDE3MmIyODhjZWExMWEzOWIxZDJlMTcyOTc0NDRhNTQ0MDBlOTRkYmIzYmFlODQxMDI2ZWRiYTc0MTJiNTgiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImE0N2Q0YTA0ZDcxYTEyZjIxYzVjMzgwZDg4MmE4NWQ4NjAzZjMzYmE3NWJkZDVmYWZhY2FkZmMyNDdhYzJlMTIifQ"
         },
         {
-          "resource": "repo://frontend/src/routes/security/%5Bsecurity_id%5D/%2Bpage.svelte#L448-L520",
-          "version": "repo-lines-v1:sha256:9ea501bee7634ff7c258292fad77930aad831eb02dab04ce584f4aac8f0dbb93:eyJzZWxlY3RlZExpbmVDb3VudCI6NzMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjMxOGI0ODMwYmU2MGZjYjAyNWQ1NDJhZmQ1Mzg2ODA0MzQ3MWUyMDUwOWQ1ODA2NmM1NmE4ZWY1ODE2ZTNjMzciLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjY3Y2RhODJkYTYwNjIzOGUwNWU2MjM5OTU2OWM1ZWUwMzk5MzQxOTY0OGFlNWQ0M2EyYmY4Y2Q2MzQ3ZjgyNjMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjIyZjJmZjVmZWVjNjBmNTg3YzhmYWU0ZTg3ZjgwOWE2NjFjZmZlZDZiNDdhYWU1ZjZkNmEyNjUzYWE4OTUyZWYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImVjZmIwNmU2Zjg2NDc4OTZlNjU3ZmUzZjJmY2I5YzA2NTg5MDNiMWJhZjE1NGM2Nzk5MTI0ODJmY2U4Zjc5NmQifQ"
+          "resource": "repo://frontend/src/routes/security/%5Bsecurity_id%5D/%2Bpage.svelte#L157-L229",
+          "version": "repo-lines-v1:sha256:da9bb50c46ebbccc8b5e848e491abc93c7bb9ca1229358da120b47f6dfa8cabd:eyJzZWxlY3RlZExpbmVDb3VudCI6NzMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjMxOGI0ODMwYmU2MGZjYjAyNWQ1NDJhZmQ1Mzg2ODA0MzQ3MWUyMDUwOWQ1ODA2NmM1NmE4ZWY1ODE2ZTNjMzciLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjY3Y2RhODJkYTYwNjIzOGUwNWU2MjM5OTU2OWM1ZWUwMzk5MzQxOTY0OGFlNWQ0M2EyYmY4Y2Q2MzQ3ZjgyNjMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImE5NzEzYjg1NzY1NGRmNzQ5YTZjYTAyYTczNGY2MjA2ZTZhNWQ1ZGY5NjEzMmEwZjI1NjljOTY5ZjRmMWM2M2UiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImVjZmIwNmU2Zjg2NDc4OTZlNjU3ZmUzZjJmY2I5YzA2NTg5MDNiMWJhZjE1NGM2Nzk5MTI0ODJmY2U4Zjc5NmQifQ"
         }
       ]
     },
     {
       "id": "claim_42ae57b485c747b58c77fd2d2beab357",
-      "statement": "The security route's server load always fetches a 1d price window, and the page reconciles that with the saved timeframe by force-refetching when the active selectedInterval is not 1d on soft navigation.",
+      "statement": "The security route's server load returns only { security_id } (throwing a 400 when the param is missing) and never fetches the security or its prices; the identity plus a 1d price window are fetched after navigation by SecurityPageDataService, and the page reconciles that always-1d series with the saved timeframe by force-refetching the active selectedInterval when it is not 1d and no timeframe change is already in flight.",
       "evidence": [
         {
-          "resource": "repo://frontend/src/routes/security/%5Bsecurity_id%5D/%2Bpage.server.ts#L19-L23",
-          "version": "repo-lines-v1:sha256:454b798d85955d51999150a894c8afe88197fc1c9737986f98ec531bbe512efc:eyJzZWxlY3RlZExpbmVDb3VudCI6NSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiNGE0MmQ0YTllNTVhZjA2NjZmMTJiYjdlYjRjMzAyOGJhN2FlZDIzYzhhYjY4NmVmZTBlMTkyYTM5MTBmYTFhYyIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNDNkODRmNGUyMmMzMzU4NGFiMTA3OGFmZGVmM2ExZGIxMzgwMDQwOWU0ZTBjMTc1OTI4ZTIzYWVhMzc2MTc3NiIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiMmEzODQ0ODdmYmQ2YjNkMGE4N2QzMTZhODYzOWE1OThiNzNkYjAwMTFkOTYxMWJjYmI1YzdlZDY3ZjU0YjZhMiIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiNzBjYjVhNmMxYzYxMjljY2I2OGVkMDdlODExYjc2YmEwNWM5YWYzYTIyZmU4ZjA2YzgxZjBhY2NhMWY2OWU4YiJ9"
+          "resource": "repo://frontend/src/routes/security/%5Bsecurity_id%5D/%2Bpage.server.ts#L1-L15",
+          "version": "repo-lines-v1:sha256:7080d89f3c00cb2125c938bc82f249b43be40ae725a82d96db7c878f9076f87e:eyJzZWxlY3RlZExpbmVDb3VudCI6MTUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImJlMGYxNWQ5NGYzYzkwNDM3ZDk5ZTczZTRkOGY1ZjFmODM4OGQ5NGUwOWI1ZWZmMjg1ZGI0OGM1OTBlZTRjMTQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImFhMWQxYTYzMzkwMjI5Yzc5ODM0N2U4M2EwNDA1NDQxYzk0MDAwMzUyODRhZDE2OGMxYmY2Y2RmMWQ3MGEzNzAiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjowLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
         },
         {
-          "resource": "repo://frontend/src/routes/security/%5Bsecurity_id%5D/%2Bpage.svelte#L1020-L1029",
-          "version": "repo-lines-v1:sha256:53a2367a40c442cecf70e9ac71e034349347b11089f4d68372af2d9ca3667cd5:eyJzZWxlY3RlZExpbmVDb3VudCI6MTAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImZkZGZkZjQxNDQwNDU0MzYwMzlmYTEwNzExMmQ1YzAxOWUyMjgzNDQ4NDQ5Yzg0MzBhOTNlYWI4ZDMzNDlhNzgiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjRkYzc2MDIwYmFlNzA1NzdlNjRiMzMwZGNhODNmZGYyNGYzZDc1OTNhMDE1NGQ4YWJlYzZkYzYzZjU4OTdmZDkiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImY1NjdiNjUxYzg4MmE4YzZlNGE0ODBiZTdiMjMxNjE5ZmE5MTdlYTZmMzY0MWE4OTVmZDA2MDkwMGZlMzk0NDUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjhmODJlNzc0NTZlMzhhNzdhMjYyZGQzNGY1NDIxMTMwNDQ1MjEwMGM5NDg4OTAxZjY2ZDFiZDg2ODhlYmE0MjgifQ"
+          "resource": "repo://frontend/src/routes/security/%5Bsecurity_id%5D/%2Bpage.svelte#L755-L765",
+          "version": "repo-lines-v1:sha256:ec3ec351c10577769e26a396da5631d39da226c16d7d80a0c8ceed479ec45a84:eyJzZWxlY3RlZExpbmVDb3VudCI6MTEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjA2MjEzZTkyY2RiNjBjZmU3NzIyZmZhYzA5YzM1NGFkNDYwMzMyZTE2MmY1OGQ2MzMyNmNiMTcwODJhOWJmZjUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjEwZGY4MWIwNDZmNTgwNjU5MzhkNDk0ZWFlMTJlNTdjMDQwMmRlZTU1NjYwZjYwZDM2MDk0NjA2OGVlYzIzYzUiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjMzNWVlZjE4Mzk3YTZlNGI3OWE5MjY0NWRkOWE5YmY0OWI3YjI2YzU1NzFkOGQzNDllOGQwZDU1M2MwZjNkOGEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjhlOTIyMzU2Yjk5ZDJhMzFhYTVlYWFhNjBiODA4M2ZhZWQyOWMzMzYzZDIxZWZiMDkwYWM1Mzc0ZGI2MmJjYTAifQ"
+        },
+        {
+          "resource": "repo://frontend/src/routes/security/%5Bsecurity_id%5D/page.server.test.ts#L50-L64",
+          "version": "repo-lines-v1:sha256:6e63043d89fe2ee63c411b6b27aec93c7443a95a4ef19ee554b27883f96b0f0a:eyJzZWxlY3RlZExpbmVDb3VudCI6MTUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImI2OWY0ZjA3MjMwNTMwYjhjNDUwYTFjMjNlZGJhYmZkNWU4NDI2NzJiMTY5YzQ1ZWViNDVhODdlMjcxMjU2NzYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjBhNzM0OTJkODk0NmIxZDBmOWQ5YzA0YjcwNGE5MjBmMjRmODllZjdjN2Y3MzExYTg1OTlkMTBjN2Y2MzU4ZDAiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImJjNWJhZmM2NWQwNDUzMjYxMjQ5ODcwNWUyZWMwODk1YzdkNWVjOGYyMTI1OTJkZDJmNDUzNWI4ZGI2MDVhNTgiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImE5ZGJhM2E3N2E1NTdjNWYwNmY2YTMyNDQ4NjU3NGFlNWFjM2MxOWVkNmFiYmY5ZmQ5NzYzMmU2YWQ3MDIyOTYifQ"
         }
       ]
     },
@@ -118,19 +134,19 @@
     },
     {
       "id": "claim_29cd770cb95745c380bbd27619ccb69a",
-      "statement": "addIndicator composes each indicator type from the right series shape — a volume HistogramSeries on the 'volume' scale, single LineSeries for rsi and obv, three series for macd (histogram plus MACD and signal lines), three LineSeries plus a BandsIndicator series primitive attached to the middle band for bb, and a plain LineSeries overlay otherwise — while removeIndicator detaches the bands primitive and removes every series of the group.",
+      "statement": "addIndicator composes each indicator type from the right series shape — a volume HistogramSeries on the 'volume' scale, a single LineSeries for rsi, three series for macd (histogram plus MACD and signal lines) sharing the 'macd' scale, a LineSeries with a custom M/1M price formatter on the 'obv' scale, three LineSeries plus a BandsIndicator series primitive attached to the middle band for bb on the main scale, and a plain LineSeries overlay otherwise — while removeIndicator detaches the bands primitive and removes every series of the group and drops any stored custom pane height for that indicator.",
       "evidence": [
         {
-          "resource": "repo://frontend/src/lib/components/charts/security-chart.svelte#L1027-L1051",
-          "version": "repo-lines-v1:sha256:65b6741d4d9b60c099f064eb2500d97b7dc575584cfb077fe03ac0519fe8d96d:eyJzZWxlY3RlZExpbmVDb3VudCI6MjUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImEyN2Y2ZDBlMjhhMmMwZDE3MTg1NjY1NDFmMjQzZGQ3ZWE3ZjZhZjJlMzM2N2I1YzI4ZDgyODZiMzJmNWQwZmEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjY3Y2RhODJkYTYwNjIzOGUwNWU2MjM5OTU2OWM1ZWUwMzk5MzQxOTY0OGFlNWQ0M2EyYmY4Y2Q2MzQ3ZjgyNjMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjIyZjJmZjVmZWVjNjBmNTg3YzhmYWU0ZTg3ZjgwOWE2NjFjZmZlZDZiNDdhYWU1ZjZkNmEyNjUzYWE4OTUyZWYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjliODY3MjJhMWVlZDJhMGMxMzQ1YjhhMjYwNDgyNGFjMjRhMTc0OWQzMDdkMjM2YTNlMGI4YmYwNzViYTBmZDEifQ"
+          "resource": "repo://frontend/src/lib/components/charts/security-chart.svelte#L1148-L1200",
+          "version": "repo-lines-v1:sha256:f3ed447ab78bdba62e751742acee3587c3d8ddb0258e775a5b424bae80b3c977:eyJzZWxlY3RlZExpbmVDb3VudCI6NTMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImRkMmQ4Y2UyOGVhMzlmZDEyNjE4YjMzYjAxYjNjODEwNjUxYjRkNzE3NWQ3YWI4NWQ2ZmNmZTVmNWJkZmRlZDQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjRiZWMxMTYyOWFkMzM0ZmQ4NjEzZWQ0Y2ZiYjliYzhmNTU3NzY5YjJmZDhkYjM2ZTk0NGJmYzM3ZDNlNzBhMzIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjIyZjJmZjVmZWVjNjBmNTg3YzhmYWU0ZTg3ZjgwOWE2NjFjZmZlZDZiNDdhYWU1ZjZkNmEyNjUzYWE4OTUyZWYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6Ijg2OTU1MGQ0ZWQ4ODc1OWYyYTc5NTJiMDY5MGY1YzE5Zjk2ZWQ2Mjk2MzRiYmQwMmQ4ZjA1NWY2OTVkNDZhOTEifQ"
         },
         {
-          "resource": "repo://frontend/src/lib/components/charts/security-chart.svelte#L1053-L1106",
-          "version": "repo-lines-v1:sha256:945edcb6c8d5815696595b4713d637ccc977af4b6ba9ebdfcabbd75939c6440d:eyJzZWxlY3RlZExpbmVDb3VudCI6NTQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImI1OTI2MjkyNWM4OGI3YzlhNmU3Yzc3ZDhhNzg2YWExODhiMjdmMTQyYTNkZmI5ODE2MmJhYzVkZDk0ZjNhOGQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjY3Y2RhODJkYTYwNjIzOGUwNWU2MjM5OTU2OWM1ZWUwMzk5MzQxOTY0OGFlNWQ0M2EyYmY4Y2Q2MzQ3ZjgyNjMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImE3N2ZlNmQzMzY0YTQ2OThlYjdjZWFkZmU4Mzk4ZDRjMWZkNzVjZDk4MmM2ZDE3NTIwMzUxNjk3MzI1OTk0M2IiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjczMzQwYzIyNWQ5NjdmZmQyMTRlMjM4ZmEwNWQ5ZmQ4MDYzNWNjMjNlN2QwMTgzOWNiOTNlOTU2NmE0OWUwODAifQ"
+          "resource": "repo://frontend/src/lib/components/charts/security-chart.svelte#L1287-L1355",
+          "version": "repo-lines-v1:sha256:d022ce59ace3ef75a786116446f3fe129144a51a9c8f3a7c170de4f741ee337a:eyJzZWxlY3RlZExpbmVDb3VudCI6NjksImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjE5ZjdjNzAxMTVjMDljMWRhN2I5NWYwYWI4YTE0ZGQ5NjVlN2MzMThlMDQwNjEyYWM1NGI2YjAxN2MxNGRiYjAiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjY0ZWZjNDk0MThkMjZkY2YxMjliMjJhNmFhMjExMDhjZWVjMzc2NzdhMzJkMDhlOWQ1ZmVlMzVkZGE2NmJiOWQiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImVkOTU4ZDA5MDY1NDdjNTYzYzZiODg2ZDJiZDNlMTFhNDI4NzU2YmRkYmZkMjIwYzhhMmJmOGFiZDk3MTE2MWUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImJjZmJhM2U0ZTAyOTJiMWJkOGYyZWZkOGU2NzhlMTZiZmRlMzBiYTliZWExOGNiYjQ2ZWRmYjY4NjIzMDYwMTUifQ"
         },
         {
-          "resource": "repo://frontend/src/lib/components/charts/security-chart.svelte#L797-L1025",
-          "version": "repo-lines-v1:sha256:81ffdc55983a043cabc70660cbcc4c37036bd569748e5ad20d2ae9031ea653ed:eyJzZWxlY3RlZExpbmVDb3VudCI6MjI5LCJmaXJzdFNlbGVjdGVkTGluZUhhc2giOiJkZDJkOGNlMjhlYTM5ZmQxMjYxOGIzM2IwMWIzYzgxMDY1MWI0ZDcxNzVkN2FiODVkNmZjZmU1ZjViZGZkZWQ0IiwibGFzdFNlbGVjdGVkTGluZUhhc2giOiI2N2NkYTgyZGE2MDYyMzhlMDVlNjIzOTk1NjljNWVlMDM5OTM0MTk2NDhhZTVkNDNhMmJmOGNkNjM0N2Y4MjYzIiwicHJlY2VkaW5nQ29udGV4dExpbmVDb3VudCI6MywicHJlY2VkaW5nQ29udGV4dEhhc2giOiIyMmYyZmY1ZmVlYzYwZjU4N2M4ZmFlNGU4N2Y4MDlhNjYxY2ZmZWQ2YjQ3YWFlNWY2ZDZhMjY1M2FhODk1MmVmIiwiZm9sbG93aW5nQ29udGV4dExpbmVDb3VudCI6MywiZm9sbG93aW5nQ29udGV4dEhhc2giOiIwOTU2ODhmMjNmNWI3OGQyNzg0M2I1ZDVlYmFhZjY2ZTE1ZDU1NGM2NWFmOGIzODNkZWE1YzlkNTBkZTJhNjQ0In0"
+          "resource": "repo://frontend/src/lib/components/charts/security-chart.svelte#L1378-L1407",
+          "version": "repo-lines-v1:sha256:d70b2818340928206fb05ba2c537d0ccffa5f65e23d9c1bc2d2ef4a6e966b306:eyJzZWxlY3RlZExpbmVDb3VudCI6MzAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImEyN2Y2ZDBlMjhhMmMwZDE3MTg1NjY1NDFmMjQzZGQ3ZWE3ZjZhZjJlMzM2N2I1YzI4ZDgyODZiMzJmNWQwZmEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjY3Y2RhODJkYTYwNjIzOGUwNWU2MjM5OTU2OWM1ZWUwMzk5MzQxOTY0OGFlNWQ0M2EyYmY4Y2Q2MzQ3ZjgyNjMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjIyZjJmZjVmZWVjNjBmNTg3YzhmYWU0ZTg3ZjgwOWE2NjFjZmZlZDZiNDdhYWU1ZjZkNmEyNjUzYWE4OTUyZWYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjliODY3MjJhMWVlZDJhMGMxMzQ1YjhhMjYwNDgyNGFjMjRhMTc0OWQzMDdkMjM2YTNlMGI4YmYwNzViYTBmZDEifQ"
         }
       ]
     },
@@ -149,334 +165,6 @@
       ]
     },
     {
-      "id": "claim_75de67056d9d436f838526e9f6bbaae9",
-      "statement": "Drawing-tool plugins follow a fixed per-plugin file split — state.ts for domain state and Delegate events, mouse.ts as a thin ChartMouseHandlers adapter, pane-renderer.ts for canvas drawing, pane-view.ts for renderer data and zOrder, constants.ts for visual constants, index.ts as the barrel — and the same architecture rule forbids cross-plugin imports, so anything shared must live in plugins/helpers/ or $lib/utils/finance/.",
-      "evidence": [
-        {
-          "resource": "repo://frontend/AGENTS.md#L171-L181",
-          "version": "repo-lines-v1:sha256:099aa19a79f5efab2dd10d2f1b330404d665357b8bbb70845047e6d5f298cf75:eyJzZWxlY3RlZExpbmVDb3VudCI6MTEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjM0OWIyMzAxNTA0NWFiMTEyMzQ3MGRlZTY4NzZjM2I5NDA2Njg0MDEwYzBmY2JmZTk1ZTE0OGI3ZGQ3ODRhNjEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImFmOTY3N2EzMjg0Y2ZlNGE5YWYwNGI2ZmI1NjExYmU0NDVkMzgxMDYwNGI4NmYzZTA5YWQ3ZTMwMmE5Nzc1NzMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjIzZjI2NDVmOTVlZTFkMjU5NjNhMjRmOGI1YjhjYjVkZTMzYmRhZjYzZDIzYWY5MTZlNmZlYmUzNDI2MWY3ZmUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjExOWVmMjFhNzkzYjJiYTBiYmYxM2Y1YzU2MzUwYWMyYjA4MmFmMGFkOTMzYzhlZjM4NTg5YTQ2NjgxMGJlODMifQ"
-        },
-        {
-          "resource": "repo://frontend/AGENTS.md#L236-L242",
-          "version": "repo-lines-v1:sha256:9ffdd0c6ec95351ee285c0504c6287f0d4c4e35ad157b649e320e571ac2db943:eyJzZWxlY3RlZExpbmVDb3VudCI6NywiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiZTFiMjMzNzI0MTA4MGZlMDBhNTlkYTk4ODQ5MjJmYzBjZjdhYmJjZDVmOTQwN2RmZTU4NWI0NDYzNWFmMDFlNyIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiMzYwZDAzZDkyYmNkMjIyZjczZTM3MjRmM2E0M2Q3MTQ2ZDc3YWNlNTNlM2RiNWJhOTdjNDhhMTI3NDc4MWRiYiIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiNmYxZTI5Y2I4ZTUxYzA2MDMzMDg5YzQ4MDE0NDgxNThiMzAwNzQ3ZDk4OGU2ODcxMjY3NTllYmQ0MTJlM2Y2OCIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiNGY2NDk1ZTRhODllYWUwZDRjZDllM2U3MWNhMWYzODE2YjA2OTkzNzU2MzI4ODJiYTUyN2E5MTg2ZjA5MzU3MCJ9"
-        },
-        {
-          "resource": "repo://frontend/src/lib/components/charts/plugins/fibonacci/index.ts#L1-L34",
-          "version": "repo-lines-v1:sha256:6a51f3cc33fd84044ffc99c4120984cd01914cc74fd5a2916fc5729082be8d85:eyJzZWxlY3RlZExpbmVDb3VudCI6MzQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImQ3NTJlYTZlMWIwOTE0ZjhlMzlmMzRjNWVkNDIxMDBjMDRlODRmNWU3ZGRlMDQ3NjFmYzM5ZjlhNzZmZDMzNjIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjJjZTg3OTg3MDAyZGY2YjU0Mjk5NWFkNTZiZTNiZjUxMDgxNmUzNGMxYTQ5NGUxMWY0MGMyMzI5ZmFkZDFjMDgiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjowLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
-        }
-      ]
-    },
-    {
-      "id": "claim_2dda4d05d9574a839205ba23534ee9a2",
-      "statement": "FibonacciToolState drives the click-to-draw progression: two clicks complete a retracement and three complete an extension, completion stores the drawing, clears pending points and exits drawing mode; updatePoint edits a single anchor (0/1 for retracement, 0/1/2 for extension); every mutation fires drawingsChanged with a defensive copy of SecurityFibonacciTools; and selection is cleared when the selected tool's drawing is removed or hidden.",
-      "evidence": [
-        {
-          "resource": "repo://frontend/src/lib/components/charts/plugins/fibonacci/state.ts#L116-L153",
-          "version": "repo-lines-v1:sha256:8480c655814068ca9c5a36741bd10a1e65c9438db7aa7800c2123eaf6222646d:eyJzZWxlY3RlZExpbmVDb3VudCI6MzgsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImEwOGYxMTUwY2YyOWE3MzAyNWQxNjE4ZDJkOGVlZGI3M2Y1OGIyN2NlZDk2NWRhYTBhMDhhM2Y3MTkwN2MxMGMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjY3Y2RhODJkYTYwNjIzOGUwNWU2MjM5OTU2OWM1ZWUwMzk5MzQxOTY0OGFlNWQ0M2EyYmY4Y2Q2MzQ3ZjgyNjMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjY5MTFlZTllYTU0NDJjNDgyYWM4NThkN2I5NDU1NDk1ZjJlNmI1ZDU3ZWM5ODlhNmRmMzkwYTI3MGY0MDM2MzciLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImMxMDM3MTUyOWM3ZDE1MTJkMTc0ZjAwMmFmNGU5MzFjY2EyMTU1ZGVjZGE0MzNjYTlmMDI2ZWY0M2VhZmE2MDEifQ"
-        },
-        {
-          "resource": "repo://frontend/src/lib/components/charts/plugins/fibonacci/state.ts#L159-L217",
-          "version": "repo-lines-v1:sha256:48dcf14647cfa74a28685804bd076c746a0bc4fcf85dd5ff6cb74b480a2d0f6e:eyJzZWxlY3RlZExpbmVDb3VudCI6NTksImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjZlZTNmZWEwNDU4YjllNDk3ZjJjZDcyMTBkZjI4ZjE1MWQwNjRjY2Y2NTQ2YjM4ZGYzMDMzODI5NmJhOGMxY2EiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjY3Y2RhODJkYTYwNjIzOGUwNWU2MjM5OTU2OWM1ZWUwMzk5MzQxOTY0OGFlNWQ0M2EyYmY4Y2Q2MzQ3ZjgyNjMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjNlZWJhNjdhNDJkYTJiN2ZhNThkZDhmNzA3NTE0YWFiMGJiMzdlNmZiNTNmMGJmNjZhYjZlYTRmOWI2MTUzMTgiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjdhYjY0YTY5YzZlM2IzNmJjMWVhNzRmNGU2OTQzYTViNDY3MzQ5N2VjZGQxNzk3YzNlNGQ5ZjdhZTBmYTNkZjcifQ"
-        },
-        {
-          "resource": "repo://frontend/src/lib/components/charts/plugins/fibonacci/state.ts#L219-L275",
-          "version": "repo-lines-v1:sha256:3647d0368530fbd25f35a3264f88b7d14dac2a9b78dbcf91bd1fe75c98ea48d7:eyJzZWxlY3RlZExpbmVDb3VudCI6NTcsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjhmOTc0ZmQ2Y2ZiZmEyMjM4ZDdiMDQ5MTQxODFmNzZhYTI4NDllYTkyYTkzOGFjYjg4M2JiMjVkYjY1N2Q2NmIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjY3Y2RhODJkYTYwNjIzOGUwNWU2MjM5OTU2OWM1ZWUwMzk5MzQxOTY0OGFlNWQ0M2EyYmY4Y2Q2MzQ3ZjgyNjMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjFmMDdkYWNjNTA2NmMxZTVlMDE3ODVlMWY1OGM4MWEyMTBmNmI4MDkyNGIxNGZhY2ExM2IyZGU5MzI2NThmYTciLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjA4NWNhMjY0OWU4YTFlYzlhOGU1OGY5NjY2NWYwOTQ0NmRjYTQxN2U0MzA0YTdhZDhkZjg5OGIwYWI3Yjg3ZDIifQ"
-        },
-        {
-          "resource": "repo://frontend/src/lib/components/charts/plugins/fibonacci/state.ts#L277-L297",
-          "version": "repo-lines-v1:sha256:d92831c9853b62b258cd4a0114690fe4d71cd2a49ff8cfbf26a53efe2337ce9f:eyJzZWxlY3RlZExpbmVDb3VudCI6MjEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjE5MDM3YWNlNzQ3ZDU4Y2I5ZWEyZjg0MmMzMTNlNTY2ZGI1NDJkZjMzMGIzZWRmNjQ5YzdkMmI0ODI0M2U4MTMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjY3Y2RhODJkYTYwNjIzOGUwNWU2MjM5OTU2OWM1ZWUwMzk5MzQxOTY0OGFlNWQ0M2EyYmY4Y2Q2MzQ3ZjgyNjMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjIyZThmZWMxN2E4OTgxODBlZDRjMjkzZGVlYTg4NTQ2ZTYyMWZjMWJlZmUxN2M2OWZjYTMwMDE3MmE1N2IzNjgiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjU3NjI3ZjhhOGY0YzA4OWZiOGM5OGQ3N2FhMTcyZjYxMDUwMzU4ODgwZmYwN2Q2YTA4NzA1Y2FmY2U0ZGYxODMifQ"
-        }
-      ]
-    },
-    {
-      "id": "claim_41140dc64bf841a580f64cf9af3b90c1",
-      "statement": "The Fibonacci mouse adapter is a thin ChartMouseHandlers subclass that sets HIT_TEST_RADIUS (14 px), maps hits to {tool, pointIndex}, adds line hit-testing against the projected level lines with distance measured to the clamped x-range, and snaps placements to candle wicks through the adjustPosition hook whenever a candle exists at the pointer time.",
-      "evidence": [
-        {
-          "resource": "repo://frontend/src/lib/components/charts/plugins/fibonacci/constants.ts#L1-L13",
-          "version": "repo-lines-v1:sha256:33cb71a2be35dd28aaade1325270552ba9be753cefd7ccffaac554e165761777:eyJzZWxlY3RlZExpbmVDb3VudCI6MTMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImY4ZDEwOTBiOTQyODRjZmI3YmIwNzMyNjI0MDNjNjViYTMyNGU3NjIwZDNhNjY0NzFmNWNmMWIzN2E5NGNlZDIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjZmNzQ0NTA3MzY4ZGRjYThiN2Q1NWRkYWM0MTE2MzU5MDU3YWQ4OGZhNWE1ZmVmMGQ5YjIyYjI0ZmNkMWY3ZjEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjowLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjoxLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImM5OTE3ZThiY2Q0MGIwOGE2ZTU3MjNkZjYyYjc1NjNiMmRiYTMyMTY2ZWRiOTliOGFjMGI5NzMyYTRjOGE2YzAifQ"
-        },
-        {
-          "resource": "repo://frontend/src/lib/components/charts/plugins/fibonacci/mouse.ts#L33-L97",
-          "version": "repo-lines-v1:sha256:01ad7acef8a68995c836d5681452642f2649560fff9a7ed6c3f4a6d98e7d6cc3:eyJzZWxlY3RlZExpbmVDb3VudCI6NjUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImZkNmNkMjc0Y2I1ZTg0ZWJkNzMyMjllMmMyYTM2OTgxYjk0ZDY1YzQ0OTZmNjg3NjA3ODE1MGVjOTFmN2Y5ZWUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjY3Y2RhODJkYTYwNjIzOGUwNWU2MjM5OTU2OWM1ZWUwMzk5MzQxOTY0OGFlNWQ0M2EyYmY4Y2Q2MzQ3ZjgyNjMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjgzZmRmZDFhNjQxNGRmYjM5OTczYTYxNjQ1ZTNlZDdlOTU1ODUyZmJkZjA0ZWU2Nzg0NGQ3MWM0YWQxNTNkNmEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjoxLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjQxMmNhMzQ1Y2NmNzViZjljMDgwNmJjZTY5NWJlOGRlODA4Yjc5OTg0MjUxYTdhNTRkMjAyY2Y2MTAxZGQ0NTEifQ"
-        }
-      ]
-    },
-    {
-      "id": "claim_a5215c8cf3bd42209a4848848b1e4e05",
-      "statement": "FibonacciPrimitive wires the shared and plugin delegates in _setupSubscriptions (drawingsChanged, toolChanged, selectionChanged, hoverChanged, dragChanged plus pointClicked, lineClicked, doubleClicked, emptyAreaClicked, pointDragged), exposes its own doubleClicked delegate that the page turns into the fib width modal, and projects levels with series.priceToCoordinate inside _calculateRendererData.",
-      "evidence": [
-        {
-          "resource": "repo://frontend/src/lib/components/charts/plugins/fibonacci/fibonacci-primitive.ts#L232-L270",
-          "version": "repo-lines-v1:sha256:30ce2ef55b911b6160952e19597421cc123f81ed58dabfc57a408cf9e4e97546:eyJzZWxlY3RlZExpbmVDb3VudCI6MzksImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImNkNzdiZDBhNjgwYjczOWY2MzcwNDMyNGI5Nzk4YTgyYzQyMzBhZTMwODVlOWFkZjc2NTU3ZTI3NTA4NjVhYWEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImZiZWEyNTRkN2M4NTc3MjY5OGQ3MzgwZTY5NjA0NzE1MmJhNjRhOTI3MTA4YzI1NjljZmExZTlkYzg3Njk4NTciLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImIzNDcxMjBjZDEyYzZmZDEzMDJmMjIzZGM0NGEwYWJhNjYyNDY3OGM5YzUwY2IyNDQ4YWZmMmFiMDUxYjQzMmIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImU5MThlZjUzNDU4ZGFkNzZkMGFlZjM0M2JlN2ZmMWM2MWU3NDQwODkxMjE3NDRmMmVlMjkwNTZiNzc4YWZhMjYifQ"
-        },
-        {
-          "resource": "repo://frontend/src/lib/components/charts/plugins/fibonacci/fibonacci-primitive.ts#L92-L136",
-          "version": "repo-lines-v1:sha256:b1bf37894b96a9b60f04ee4568d4b5c3e6ad646ccdf15529d755075f0e17d36b:eyJzZWxlY3RlZExpbmVDb3VudCI6NDUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjFmY2Y3OWJiNDAxMjRiMmM3M2MwNDRlN2UxNDcwNDU0MjRhZWNmN2U0OTllNmZhYjBjMmZmMzA0MGQ3MzJkZjQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjY3Y2RhODJkYTYwNjIzOGUwNWU2MjM5OTU2OWM1ZWUwMzk5MzQxOTY0OGFlNWQ0M2EyYmY4Y2Q2MzQ3ZjgyNjMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjFjYjVmODUwYmU4YTU3Y2I0ZWFhNjJhZjNhYWJiZjJlOTBmN2I5NjYzMDcxM2Y2ZTQxMDEzYjkwYzMxOGNkMWIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjBmOTU5OTUxNzY3ZGJmY2MxYzM2ZmY5MjQzZGRhYTVhM2FlNWJlM2YxZTQwYjc2MGU4YWE2YzQ1ZDM3ZWYxMTgifQ"
-        }
-      ]
-    },
-    {
-      "id": "claim_edc419e1a8044c72b65a43420f41375c",
-      "statement": "ElliottWaveState assigns wave labels by position (0..5 for impulse, the sequence [0,'A','B','C'] for corrective), records wave3Target/wave5Target when points 3 and 5 are placed or moved, exits drawing mode once MAX_IMPULSE_POINTS (6) or MAX_CORRECTIVE_POINTS (4) is reached, and clearWave resolves which wave to remove in the order selected wave, wave id, latest wave of a degree, then last wave overall.",
-      "evidence": [
-        {
-          "resource": "repo://frontend/src/lib/components/charts/plugins/elliott-wave/constants.ts#L145-L150",
-          "version": "repo-lines-v1:sha256:ee47adabc5f901fdcd40987a8af71847584ed39b2e5c9aa1a90c862c39ef97ee:eyJzZWxlY3RlZExpbmVDb3VudCI6NiwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiZjhkMTA5MGI5NDI4NGNmYjdiYjA3MzI2MjQwM2M2NWJhMzI0ZTc2MjBkM2E2NjQ3MWY1Y2YxYjM3YTk0Y2VkMiIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiZWQzZWJmN2IyODBhYWZmNDYxMWI3ZDIwMjM4NTFjZmJlNDMxOWY3NWNjNDNmNWIzODI5MGFkODY4YzBkZTJkYSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiYTUyNGNjZjgzYmE3MmYyNmZmOGJlOTJmZWI1NmI1ZTJlMDk3NjMwMjIxMTM0YzAyODdkZGUyZWY0MzQyM2I3MSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjIsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiYjg1YWJmZmE3NmIxYTQ3NDkyOTE0NDdjNDFjMjM2MjdiMDljNmExY2RjN2IwZmI1M2UzNmE1OWE3ZDRhNDgwZSJ9"
-        },
-        {
-          "resource": "repo://frontend/src/lib/components/charts/plugins/elliott-wave/state.ts#L258-L321",
-          "version": "repo-lines-v1:sha256:685f4beb21c81b9e673e1dd440710096c79265c69b0ef345994ce4cec89b356d:eyJzZWxlY3RlZExpbmVDb3VudCI6NjQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijc1MjMyZDMwMTk0YTZjMGU3NDllYmVlMjhiNTg1MDc0YWY2NzkwMzZkODk4ODVmMTc1ZDU2ODQ2ZmFkZmFlMTQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjY3Y2RhODJkYTYwNjIzOGUwNWU2MjM5OTU2OWM1ZWUwMzk5MzQxOTY0OGFlNWQ0M2EyYmY4Y2Q2MzQ3ZjgyNjMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjlhOWJlZTNiNWY5ZWMwNDFlNWUyNWVmZTJjOGJiMDI2MDI5MjU3Zjk0YzYzNWUyNDA1ZjI5YTBlMmE4ZmU0NTgiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImIyNzRkYjNiNjNhM2FmMWYxYjA1YjcyN2ZlZGE0Yjk1MWU2YTE0NTJmZGMxODJlN2NhZTQxMDdmNzYxNWEwZGYifQ"
-        },
-        {
-          "resource": "repo://frontend/src/lib/components/charts/plugins/elliott-wave/state.ts#L323-L377",
-          "version": "repo-lines-v1:sha256:8221e704489c98905bc98fc2134248f6cee05e7eda66d0363c22d2242673db29:eyJzZWxlY3RlZExpbmVDb3VudCI6NTUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjhmOTc0ZmQ2Y2ZiZmEyMjM4ZDdiMDQ5MTQxODFmNzZhYTI4NDllYTkyYTkzOGFjYjg4M2JiMjVkYjY1N2Q2NmIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjY3Y2RhODJkYTYwNjIzOGUwNWU2MjM5OTU2OWM1ZWUwMzk5MzQxOTY0OGFlNWQ0M2EyYmY4Y2Q2MzQ3ZjgyNjMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjFmMDdkYWNjNTA2NmMxZTVlMDE3ODVlMWY1OGM4MWEyMTBmNmI4MDkyNGIxNGZhY2ExM2IyZGU5MzI2NThmYTciLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjczNzAxYTE3NjY5ZDhmMjgyMmJiYTBiNWYyOTY2M2VjZGExZTFhZmM0NmMxY2MwMTg2ZmQ1NmRjYWExYjJlNjYifQ"
-        },
-        {
-          "resource": "repo://frontend/src/lib/components/charts/plugins/elliott-wave/state.ts#L379-L413",
-          "version": "repo-lines-v1:sha256:bb8e367645d0f7804a494bb298c813abb2535f100edd72e1743418eca40faad1:eyJzZWxlY3RlZExpbmVDb3VudCI6MzUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImJhZDY0ZTRmZWUzNGY1MmVkN2EzN2E1MGJkNDdlYTFkYzlkYjMxYjkyNTk1OGM1MmNlYjg2NTY0ZTA4YjdmYTUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjY3Y2RhODJkYTYwNjIzOGUwNWU2MjM5OTU2OWM1ZWUwMzk5MzQxOTY0OGFlNWQ0M2EyYmY4Y2Q2MzQ3ZjgyNjMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImY3YWJlM2M0ZjU5OWMzOGM2OWQ2ZmQyY2MzMWE2ZDVlZjE4YTZhYzg2OTVkMTY3MTAzMzBkNjlkMzMzMzFjNDgiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjNkN2NkOTEzNmQ1ZDY4MzJjZmQ2NGVmNTUzYjZjODRmNjM2MzRkOGI0YmNkMmM0MTAzNDdkYmQ1NGFmODUxODkifQ"
-        }
-      ]
-    },
-    {
-      "id": "claim_4638ba919751476cbfbd2c7a203e93a5",
-      "statement": "Elliott wave placement snapping resolves a candle-wick candidate (only when snapToWicks is on and a candle exists at the pointer time) against a Fibonacci-level candidate (only when the nearest active level is within FIB_SNAP_TOLERANCE_PX = 8 px, independent of snapToWicks) and returns the closer one, with pixel-space ties going to the wick.",
-      "evidence": [
-        {
-          "resource": "repo://frontend/src/lib/components/charts/plugins/elliott-wave/constants.ts#L145-L147",
-          "version": "repo-lines-v1:sha256:c2e54da7568548d5f879a3f56bf91eb4c2321db31d43c4a96db70665fe177d72:eyJzZWxlY3RlZExpbmVDb3VudCI6MywiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiZjhkMTA5MGI5NDI4NGNmYjdiYjA3MzI2MjQwM2M2NWJhMzI0ZTc2MjBkM2E2NjQ3MWY1Y2YxYjM3YTk0Y2VkMiIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNGE4YmM3NjI3ZDFhMDUzNGIwMDliZmRiMTZlN2I3NmMzNmVlNjQyMDQ0ZWFhNjJlMTRlN2ExY2JkNTNmYTRkYSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiYTUyNGNjZjgzYmE3MmYyNmZmOGJlOTJmZWI1NmI1ZTJlMDk3NjMwMjIxMTM0YzAyODdkZGUyZWY0MzQyM2I3MSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiOWVkMjRkNDMwYTM5NGFjOGQ5NGIyZGIxM2JkNjcyNTU0ZDUzMTRlZWM5MTU0ZTdiMTVjZWVjZGU5YzBkNWEyZSJ9"
-        },
-        {
-          "resource": "repo://frontend/src/lib/components/charts/plugins/elliott-wave/mouse.ts#L114-L159",
-          "version": "repo-lines-v1:sha256:bea335fdf64559bd2ff3c82ff3e7d3f3ecbce87f5c053dac917f97c3a535c2cf:eyJzZWxlY3RlZExpbmVDb3VudCI6NDYsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImVkOWQ4Y2EyYmNhNmJiZDE2YjU5Y2JmNTJiNDM1ZDNlNzY3NjA3MTk4NjQ1Njc0YTdjN2ZiOGMyZTA1NjA2YTMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjY3Y2RhODJkYTYwNjIzOGUwNWU2MjM5OTU2OWM1ZWUwMzk5MzQxOTY0OGFlNWQ0M2EyYmY4Y2Q2MzQ3ZjgyNjMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImFmMjY4MzM0ZDIxYTNhZTdkYmYwZTk2ODNmMjczYzg2OWZhNWFhMWQyMTg3YTdkZDM5MTIwN2VjNWMwNmRhNDgiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjJhMWNhZTlmYjQ0ZjY5ZjlhNDAyYjdiMDJjZTY0NjcxMjNmZGI1NDNiODViMDk1MTAzOTFkOThlZjFkOTU1N2MifQ"
-        }
-      ]
-    },
-    {
-      "id": "claim_92ecccef110d4bf5a10ce7e629f145f0",
-      "statement": "Fibonacci-to-Elliott wave snapping is implemented without a cross-plugin import: the page derives fibSnapPrices with getActiveFibLevelPrices(fibonacciTools) from utils/finance/fibonacci.ts and pushes them into the Elliott primitive through setFibLevelPrices behind a content-signature guard that avoids update churn on unrelated fib edits.",
-      "evidence": [
-        {
-          "resource": "repo://frontend/src/lib/utils/finance/fibonacci.ts#L245-L277",
-          "version": "repo-lines-v1:sha256:48c3a802b51946c8faac061274bfb3d9a519b943370177bf1048b245e55af673:eyJzZWxlY3RlZExpbmVDb3VudCI6MzMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImVhZjIyY2YwNzMyNTkyYzI0NzE0MWNiZTYxZWZhMTEwMTI2MTJmNWEzMTIyYjlhZjliYmFmNTJmNTcyNGQxOTQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQxMmNhMzQ1Y2NmNzViZjljMDgwNmJjZTY5NWJlOGRlODA4Yjc5OTg0MjUxYTdhNTRkMjAyY2Y2MTAxZGQ0NTEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjE1ZGEwZDliNzNlMDlmNTNjN2Q1OGJhMzBmZGNlNTM1YzMzNGUxZDllYmIxMmViNzQxMGQzYjliNTFmNDU0OGYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6Ijc1YzczMGJjMjRkYWM4ZjFkMTAxZTdhYzJiYzhjYWJiYTQ0Njg1ODM2M2YxZDA0NzYzMTIxNjMyYjUyNmI5MmYifQ"
-        },
-        {
-          "resource": "repo://frontend/src/routes/security/%5Bsecurity_id%5D/%2Bpage.svelte#L155-L158",
-          "version": "repo-lines-v1:sha256:ea4c183ef6690dfa21b9be15e831b60d9707023a72bd3d1d7512e374fb2f611e:eyJzZWxlY3RlZExpbmVDb3VudCI6NCwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiMTRjOWMyNzU4ZTFhNzBiNjQ3ZjljYzZiNGEzZThmMGIyZjY5Y2U3N2QwZTVmNjdjZWJjMjYxZjQ3NmRjZDU0MiIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNjE4OWU0Y2FmN2FlMGJiNmU1MjVlZWU5ZGNiZWQ1ZjU4MmY4YzU1ZGMxNGViZTlhMzhkMmUxZDlkMGY3NTg0ZiIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiMmVlNDQ4Yjc2OWM4N2QxZjU5MGUzY2E2YzIwNDM5YjRlNmE5NGMxZThmMWQ3OTZkODQ5Zjk0NmU2ZTY3MWQ5OSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiNzA4OGU4YzQxYzA4NzFlOTg5ZGE4MTFmMGRjOTQ0NTZlOWYzNmY5MDllYjhiNjFmZDcxZTIzMmIxMTAwOTc2YSJ9"
-        },
-        {
-          "resource": "repo://frontend/src/routes/security/%5Bsecurity_id%5D/%2Bpage.svelte#L477-L485",
-          "version": "repo-lines-v1:sha256:9625ca859a6efdf19fea7f2ed92386a4ccb8a5d557bbc568ca2bda753a4b0a6f:eyJzZWxlY3RlZExpbmVDb3VudCI6OSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiMzdhMGU3OGFkYzA2NzBiZjk5MGYyNjQzZDcxOTM4NGE5OTE1YTZmYjlhN2ZlNzY5ODQ4YzZlN2MzYjM2Yzg0YSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiYjlkYzIwZTE2MGM2OGMzMzE2YzllMjNjMWFlMDQ5OGExZDBhYWM3MGM0ZTIxYzgwOGI0NDFkODc4NzRmNmRkOSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiNWRmNWNiZGZhNzNjNjAzMGJjZjE2ZGU4YWQzNTc2MjRkOTZjZDg4MmVlY2NkYWVhY2M2ZmE4MDM1ZTczOTAxMCIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiZTE1MTgzOTMyZWRjNWZiNmM2NjU4MjEzMGY0YjA3NDJkZWViNGVjOWFjODJjODk2ZGQwZGE1Y2FmOGFlZDU5ZCJ9"
-        }
-      ]
-    },
-    {
-      "id": "claim_9a8d78be59db40248e15eef59038b2fc",
-      "statement": "Delegate<T1> is the shared publisher/subscriber primitive for chart tooling: subscribe takes a linkedObject ownership handle and an optional singleshot flag, unsubscribeAll(linkedObject) is how primitives release every subscription they own at once, fire iterates a snapshot of the listener list and drops single-shot listeners before invoking (so re-entrant subscribe/unsubscribe during dispatch is safe), and destroy clears all listeners.",
-      "evidence": [
-        {
-          "resource": "repo://frontend/src/lib/components/charts/plugins/helpers/delegate.ts#L15-L55",
-          "version": "repo-lines-v1:sha256:696f3b5cda38a8f154fde5a0d9eaca15e12be118b45fd12d2acdfab7f75dfc03:eyJzZWxlY3RlZExpbmVDb3VudCI6NDEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjY0ZTJhYmRiMDdkMDg1ZTFiOWVmMjgwZGYwOGQ2ZmQzYWVjZTkxNGMxNjFkNzc5ZGZkMDAzNDlhNWY5MjhiZTkiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQxMmNhMzQ1Y2NmNzViZjljMDgwNmJjZTY5NWJlOGRlODA4Yjc5OTg0MjUxYTdhNTRkMjAyY2Y2MTAxZGQ0NTEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImVkOTI4MTMzOWQ3ZGRiZmJjYTRiYWMxMDJhZTVlZDA3NGM1MmYzMmVlMTk1ZDE2NTFlMWIwYWQ3NWMwZDE5YTUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
-        }
-      ]
-    },
-    {
-      "id": "claim_3b1bb60a29744c3a9f6de0ae85b131ae",
-      "statement": "positionsLine and positionsBox are the shared bitmap-coordinate geometry helpers: positionsLine scales a media position by the pixel ratio and centres a desired width on it, and positionsBox returns a box start plus a length of abs(delta)+1 so a single-pixel box stays visible.",
-      "evidence": [
-        {
-          "resource": "repo://frontend/src/lib/components/charts/plugins/helpers/dimensions/positions.ts#L15-L48",
-          "version": "repo-lines-v1:sha256:d2a3b0016d26140fa7952ff8a14613feb213be51e840213ebdd828598936e921:eyJzZWxlY3RlZExpbmVDb3VudCI6MzQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijk3NDI0YmYwMzY3ZGQ5NDBkNjA0NzVjMzI3YTc4N2FlMTBiYzFjNmEwMDZmYTlkMTIyYzBiY2VlZWExNjczMTMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQxMmNhMzQ1Y2NmNzViZjljMDgwNmJjZTY5NWJlOGRlODA4Yjc5OTg0MjUxYTdhNTRkMjAyY2Y2MTAxZGQ0NTEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImU4NjM4MjE3NWM4YjU0MDljNDMxMTVjYmNjMGI4YjZlMWVlNGJkMzMzMTYwOGJmYzE3YWNkMzA4MTA5NjBkZGIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
-        }
-      ]
-    },
-    {
-      "id": "claim_b9d5d9e648124b8d80ab1fbd075e3437",
-      "statement": "All series-primitive renderers draw inside target.useBitmapCoordinateSpace: the user-price-alerts renderers derive pixel-aligned geometry with positionsLine, while the fibonacci and elliott-wave renderers scale media coordinates by the scope's horizontalPixelRatio/verticalPixelRatio themselves.",
-      "evidence": [
-        {
-          "resource": "repo://frontend/src/lib/components/charts/plugins/bands-indicator.ts#L106-L106",
-          "version": "repo-lines-v1:sha256:cba6ca5dd44e80e27bf26f0be32c18ff241686a6e41a977b35fbbe663ec7804e:eyJzZWxlY3RlZExpbmVDb3VudCI6MSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiY2JhNmNhNWRkNDRlODBlMjdiZjI2ZjBiZTMyYzE4ZmYyNDE2ODZhNmU0MWE5NzdiMzVmYmJlNjYzZWM3ODA0ZSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiY2JhNmNhNWRkNDRlODBlMjdiZjI2ZjBiZTMyYzE4ZmYyNDE2ODZhNmU0MWE5NzdiMzVmYmJlNjYzZWM3ODA0ZSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiZTk3NTY4ZmM0N2M3MjYyZTYxMTcxYTc0OTNkY2E0ODk0NWNhNzY2MDJmNTA3NzRhYTc4NzYzN2QzODc4YTI2NSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiZjM4NWI4YTM5NWI2OGExZmFiMzhkNzJjYTgxZTAxNWY2MmU2ZmM5OWMyYTIwYmNhODI0NmM1NzU1MGIyYTM3NSJ9"
-        },
-        {
-          "resource": "repo://frontend/src/lib/components/charts/plugins/elliott-wave/pane-renderer.ts#L102-L124",
-          "version": "repo-lines-v1:sha256:29bd28a45eed1ff383cb71c3f3a000689266a29b21efb9e4821add36fb6adcc4:eyJzZWxlY3RlZExpbmVDb3VudCI6MjMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjE0MDA1YTNmYjcyMGMyNjZlOWUyMjNiODcxMmEyMTI1ZDkyN2RhMzRhNzI2YmFmNGVhNjZlODMxMTcwMDI3NDYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjY3Y2RhODJkYTYwNjIzOGUwNWU2MjM5OTU2OWM1ZWUwMzk5MzQxOTY0OGFlNWQ0M2EyYmY4Y2Q2MzQ3ZjgyNjMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjAzN2I2Y2UwNzg1M2NiNzM5NmJkNTBmODY4ZjE0ZDE0MWRhYjZiZjhmMzA1YzE3ZTE5OWM1ZjM3MzYxYjJjNGUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImU1YzRiODBjNGI3OTVkYjM0YzM2OWVkNmJmZTc3Y2FkNzAwNWI5NTRiZDFhMWUyZWY4NjU5MTM0MWQyMjc0NjcifQ"
-        },
-        {
-          "resource": "repo://frontend/src/lib/components/charts/plugins/fibonacci/pane-renderer.ts#L130-L153",
-          "version": "repo-lines-v1:sha256:6cdb5e5b757d03bb127d2876a25546e81c557d5fd19e31d329642f9d9c9d0d85:eyJzZWxlY3RlZExpbmVDb3VudCI6MjQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjE0MDA1YTNmYjcyMGMyNjZlOWUyMjNiODcxMmEyMTI1ZDkyN2RhMzRhNzI2YmFmNGVhNjZlODMxMTcwMDI3NDYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjY3Y2RhODJkYTYwNjIzOGUwNWU2MjM5OTU2OWM1ZWUwMzk5MzQxOTY0OGFlNWQ0M2EyYmY4Y2Q2MzQ3ZjgyNjMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjAzN2I2Y2UwNzg1M2NiNzM5NmJkNTBmODY4ZjE0ZDE0MWRhYjZiZjhmMzA1YzE3ZTE5OWM1ZjM3MzYxYjJjNGUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjdkN2Y0YzZlOWM0ZjQ2ZjZkZGU5ZDAxNTc2NWE4MmI0YzBmOGI1MWRhZmM0ZWI0MDBiYTRlMzQyMzBhNGFiNTcifQ"
-        },
-        {
-          "resource": "repo://frontend/src/lib/components/charts/plugins/user-price-alerts/pane-renderer.ts#L25-L65",
-          "version": "repo-lines-v1:sha256:d5a658df47982c76ca47bb04928c401285ce70d267c6fee98eeccc6859408d0b:eyJzZWxlY3RlZExpbmVDb3VudCI6NDEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQxNGU4N2M1MWYxZjJjNGI3NTMyZmVkNzdjMDYyZmFkNGMwZmFkMzJiODliMzIxYmFkMzNjMmRkZjlmZjlmNTUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjUyODA1YWJlOWFmNjk3ZjExNGU2MGUwN2RlYjg4MWRlZGM5NzdiZTE1ZWIyYmNmZjY4MGU3NzEyNzc5YTBjNzciLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjE3MzI3MzUyZTc1NjU1ZGUwY2FlM2FmMGM5MGUxN2Q1MDA3OGNhMjU1OGNjMjk4YmQ2NjIwODJiZTYzNjU0NTIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjE3NWI4YWQyZTRjZjZlYjYzZWRiYzY1ZmZmODBmOGYxMmUxZjNiNjNmOThkNDIwYzAxYTMwM2Y5ZGVlYjVhODEifQ"
-        }
-      ]
-    },
-    {
-      "id": "claim_1929d4edebb449c2bf621c0cb2e118fd",
-      "statement": "ChartMouseHandlers clips interactions to the plot area by subtracting the price-scale width and the time-scale height, so pointer positions outside it carry null time/price and can never become placements or drags; its hit test treats a distance exactly equal to hitTestRadius as a hit (inclusive boundary) and resolves exact-distance ties first-wins by array order.",
-      "evidence": [
-        {
-          "resource": "repo://frontend/src/lib/components/charts/plugins/helpers/mouse/chart-mouse-handlers.ts#L290-L343",
-          "version": "repo-lines-v1:sha256:e7b46920c2cb84eb85ea66512bda08d108379a644396a8b3ddf9253daa2ba096:eyJzZWxlY3RlZExpbmVDb3VudCI6NTQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjZhOTM0ZDFkMzg2YWQ3MjMyNTFjYjkxYTI2NzEzZWRmMGEyMGJiMDg0ZjZlOGRmMzBiYTExZWI2ZjBlNGNiZWIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjY3Y2RhODJkYTYwNjIzOGUwNWU2MjM5OTU2OWM1ZWUwMzk5MzQxOTY0OGFlNWQ0M2EyYmY4Y2Q2MzQ3ZjgyNjMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjFjYjVmODUwYmU4YTU3Y2I0ZWFhNjJhZjNhYWJiZjJlOTBmN2I5NjYzMDcxM2Y2ZTQxMDEzYjkwYzMxOGNkMWIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjBiNGFhYTcwNmFkZGJhOTRlZDBlZDJiNDFiMWMyMWY4N2UzMWE0ZTlhN2EyM2IwODQ3MTFlMDdiYTBjNTViY2QifQ"
-        },
-        {
-          "resource": "repo://frontend/src/lib/components/charts/plugins/helpers/mouse/chart-mouse-handlers.ts#L8-L32",
-          "version": "repo-lines-v1:sha256:8e192347056889f4a6b1f256ed8d7f5ff537827e0cf7ccf01f823121e435ba2f:eyJzZWxlY3RlZExpbmVDb3VudCI6MjUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjM0ZmZjYmExNGFkODQxZjE1MTg3Y2FlNDllMjQyOTczY2E3OWE2M2FiOTU0YjUzMmNiM2E1N2Q0Zjk5YTVhY2MiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQxMmNhMzQ1Y2NmNzViZjljMDgwNmJjZTY5NWJlOGRlODA4Yjc5OTg0MjUxYTdhNTRkMjAyY2Y2MTAxZGQ0NTEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImI4MjgwMmEzZmEyYjllOGVhNWUzMDNkOTdmMzg3ZDM1MjFhMmRkYjZiY2Q5ZWI5YThkZjZiZjIxNzJlZGM1YTEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjM3MGU0OWE1MmQ3NzUwZGY2OGM5MTZjMzJkZGE3NDVmOWNmNzhlMTc1YzIxODNmYTUzODQxMDJhYjUxNDNjYTQifQ"
-        }
-      ]
-    },
-    {
-      "id": "claim_8b99f6561947498192d771538d4142f5",
-      "statement": "ChartMouseHandlers implements the anchor drag lifecycle: mousedown on a hit disables the chart's pressedMouseMove scroll and fires dragStarted, moves fire pointDragged with the (optionally adjusted) position and mark that a drag happened, the trailing click/dblclick is suppressed so a drag never also places or selects a point, and mouseup on the chart element or on window restores scroll and fires dragEnded.",
-      "evidence": [
-        {
-          "resource": "repo://frontend/src/lib/components/charts/plugins/helpers/mouse/chart-mouse-handlers.ts#L190-L215",
-          "version": "repo-lines-v1:sha256:d9e249d3ea0b5eaf23356bfc2882cbc452c74651b0afbc568eb74a330fc23606:eyJzZWxlY3RlZExpbmVDb3VudCI6MjYsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImNkNmVhODkyZWRiMDAwOGJiNDk2MmE5NmJmNzM4Y2U5NDFkYjcwY2E5NGZlMDk4Yzg3ZTkxMTFlZmQ4YTUwYTciLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjY3Y2RhODJkYTYwNjIzOGUwNWU2MjM5OTU2OWM1ZWUwMzk5MzQxOTY0OGFlNWQ0M2EyYmY4Y2Q2MzQ3ZjgyNjMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImNmNTg5YzAzNTIzNDI5NjFjMWQ2ZDQwNTQ5NTI3NTJkNjQyOTM3MTcwMmM4ZWYyNzVlMzNkMTNhMWJkNDU3MzYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImFhNGNjZjc1MWY3MzFhMDU3MjA0NDdmYTlmZDdlNTgwNDg0OGNmMzcxNmQyMzExMGFmZDI4YmViZmM4OTRlZDIifQ"
-        },
-        {
-          "resource": "repo://frontend/src/lib/components/charts/plugins/helpers/mouse/chart-mouse-handlers.ts#L345-L412",
-          "version": "repo-lines-v1:sha256:20bb31bd706eab28721f2d70c0fe593e20123a45192719d90c2a2c5b28560a8b:eyJzZWxlY3RlZExpbmVDb3VudCI6NjgsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijc1NTQ4NTY1YWE3Zjk2M2Y5NTZjOTk2YTYzMDc3YzIxMzU1NmVjODFiODkxYTk5ZDk0ZTQ5YWEzOWI1NmRkYTUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjY3Y2RhODJkYTYwNjIzOGUwNWU2MjM5OTU2OWM1ZWUwMzk5MzQxOTY0OGFlNWQ0M2EyYmY4Y2Q2MzQ3ZjgyNjMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6Ijg2NzBkMDU2NjQxMzUxMmNmYjE4ODc0NTIxZDM3MDI5ZTg0OGJjY2Y0YTA1MDU5MjZkNjFkODIxMTdlMTQ0Y2MiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImIyOTAxYzZhZTNmZDI3MjQ1YWE1ZjU2NzFlZmFiZDRlODA2NzQyYTkxM2VmNDdjNmRhMjZkZWRlNTQ4OTI2MzQifQ"
-        },
-        {
-          "resource": "repo://frontend/src/lib/components/charts/plugins/helpers/mouse/chart-mouse-handlers.ts#L99-L111",
-          "version": "repo-lines-v1:sha256:4e42fe08236fbe8f9fe08cfc6555800efc201818c2fa0059ae144e0933a7a374:eyJzZWxlY3RlZExpbmVDb3VudCI6MTMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjNiMTg0YThlMmU5MjUyZTNjZGJkMDE0OTNlMjM2MTQzNmY2ZDU4NGJhNzRkOTQ1MzdiMTE1YjFkZTY5Mjg0YTkiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjY0ZWZjNDk0MThkMjZkY2YxMjliMjJhNmFhMjExMDhjZWVjMzc2NzdhMzJkMDhlOWQ1ZmVlMzVkZGE2NmJiOWQiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImI0MjhmYmM1MzFiMThhNWY5OGZmNGU4YjYwNGI3YTUxZTBmZTIwNjEyODhhOTgyY2QzMzc2MTgwY2YxNTA3ZjciLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImM3NDRiOTBiNDM5N2VkYTFiNDliMmI3YjM4OTEzNWNlYzBiNDEyMWVkYTYzYjRiZGMzYTRlYTQxYTQwZTc1NGEifQ"
-        }
-      ]
-    },
-    {
-      "id": "claim_13b8913ebefc4384a4f9e951fd50c9fe",
-      "statement": "While in drawing mode ChartMouseHandlers hides the horizontal crosshair line and disables pressed-move scroll, fires chartClicked with the adjusted time/price/x/y for clicks inside the plot area, and fires cancelRequested on right-click (contextmenu) or Escape; all DOM listeners, including the window-level mouseup and keydown handlers, are removed in detached().",
-      "evidence": [
-        {
-          "resource": "repo://frontend/src/lib/components/charts/plugins/helpers/mouse/chart-mouse-handlers.ts#L123-L154",
-          "version": "repo-lines-v1:sha256:24a3c4d427c1c81f0793d031badc2bd07187190de5258906069ae3230a3ac5f0:eyJzZWxlY3RlZExpbmVDb3VudCI6MzIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImRiYThmMWEyMzBkODhjOTZiY2NiNGE0YjUxZTUzNjRiMjgyMzJjZWI4NTMzNTY2OTlmZjBhNTMxNDcwYWVjZWMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjY3Y2RhODJkYTYwNjIzOGUwNWU2MjM5OTU2OWM1ZWUwMzk5MzQxOTY0OGFlNWQ0M2EyYmY4Y2Q2MzQ3ZjgyNjMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjIyZjJmZjVmZWVjNjBmNTg3YzhmYWU0ZTg3ZjgwOWE2NjFjZmZlZDZiNDdhYWU1ZjZkNmEyNjUzYWE4OTUyZWYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImY2OThjMmY0MTU2ZDZlNTUzM2M1YWRkNzY5OGUzNjdjOTNhNjBhMWUzOWVkNzlhYTY1NmNlMTE0MzEzNDc3OTkifQ"
-        },
-        {
-          "resource": "repo://frontend/src/lib/components/charts/plugins/helpers/mouse/chart-mouse-handlers.ts#L160-L183",
-          "version": "repo-lines-v1:sha256:c9852ace35fef2576f0f8c1fde87b504f8d88067ec8ffd0e77c802ea4d1ceed4:eyJzZWxlY3RlZExpbmVDb3VudCI6MjQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjgzOTNmNGJkZDY2OTgxNWMwM2FhOGQyZDc1YzcyYTExMDRhOTYyYzBiMzFiZmI5MWE4MTQ3ZjgzZGQ0MGM0MmEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjY3Y2RhODJkYTYwNjIzOGUwNWU2MjM5OTU2OWM1ZWUwMzk5MzQxOTY0OGFlNWQ0M2EyYmY4Y2Q2MzQ3ZjgyNjMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImFiNTAxNTdhMDVkNGZkMGE5YjljMTNkOTY2ZDdjMDIxY2YwOGNmOTFkMDI0MWQ0OTMxOGFiMDU3NGI5YzM1NDMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjhhZTNiNGVjNjY0MzViNTYyZWQ4NTI3YTQ1M2JhMDM2NWNiYWYyY2JjNzU3OTg4Y2U5YjQwYTcwN2E0NjdiNTMifQ"
-        },
-        {
-          "resource": "repo://frontend/src/lib/components/charts/plugins/helpers/mouse/chart-mouse-handlers.ts#L414-L455",
-          "version": "repo-lines-v1:sha256:a1e9a9a494f6278c1bcd70b8bf17cadfc91d6ab73e4572a17ecabe562c576843:eyJzZWxlY3RlZExpbmVDb3VudCI6NDIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjEyN2VhZGFjMTBhOWJlNmY4NmNlYWM4Y2IwNWNlMjMyNTFmYzY2MmU0M2FjYWIwMWU2OGM0NzcwYjY1MGYzZTUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjY3Y2RhODJkYTYwNjIzOGUwNWU2MjM5OTU2OWM1ZWUwMzk5MzQxOTY0OGFlNWQ0M2EyYmY4Y2Q2MzQ3ZjgyNjMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjIyZjJmZjVmZWVjNjBmNTg3YzhmYWU0ZTg3ZjgwOWE2NjFjZmZlZDZiNDdhYWU1ZjZkNmEyNjUzYWE4OTUyZWYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjJjMjU0ZTkyMThkNTRjY2IyMTY0MDg1MzQwNDBhMDljZjRiNmUwYTk2MTM4N2JiOTU0NGE4NmU3MDBkMDkyM2EifQ"
-        },
-        {
-          "resource": "repo://frontend/src/lib/components/charts/plugins/helpers/mouse/chart-mouse-handlers.ts#L478-L491",
-          "version": "repo-lines-v1:sha256:14cdf87f9f051f479fd9f5a3a5ecaaeea41e2bdfcded8ea742ccf25de22e4c66:eyJzZWxlY3RlZExpbmVDb3VudCI6MTQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjEzNGMxMzdhZGY1YTM3MmNkNzdkYWFjOTEzMmU5N2UxZTkzYTc4ZDI4MmZmM2IzOTk3MDhjMWM1OGY3YTUyNjQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjY3Y2RhODJkYTYwNjIzOGUwNWU2MjM5OTU2OWM1ZWUwMzk5MzQxOTY0OGFlNWQ0M2EyYmY4Y2Q2MzQ3ZjgyNjMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjIyZjJmZjVmZWVjNjBmNTg3YzhmYWU0ZTg3ZjgwOWE2NjFjZmZlZDZiNDdhYWU1ZjZkNmEyNjUzYWE4OTUyZWYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjYyYjZlNmMzY2ZhZmViMTViZTg3MjljYmRlZGEzMDY5YTgzNmUzN2JkYWZlZGNmNzc5YjIyNWE0ZWJjOGFjYjcifQ"
-        }
-      ]
-    },
-    {
-      "id": "claim_da11e6a04db14c869b899bcaed851019",
-      "statement": "helpers/mouse/snap.ts holds the pure snapping helpers shared by the drawing plugins: snapPriceToWick resolves an equidistant price to the candle high, findNearestLevel ignores non-finite candidates and leaves pixel-space tolerance to the caller, and buildCandleLookup/findCandleByTime provide O(1) candle lookup keyed by normalized epoch seconds.",
-      "evidence": [
-        {
-          "resource": "repo://frontend/src/lib/components/charts/plugins/helpers/mouse/snap.ts#L9-L59",
-          "version": "repo-lines-v1:sha256:b56347e529d152d1b268ff1a1c0c531c46bdfa7f5279f63cd6a9ff74e108d1ef:eyJzZWxlY3RlZExpbmVDb3VudCI6NTEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImNjOGUzNWIxZDJiNWU4OGU3YzM0ZDY5YjU5OGZlYjIxN2I1NDEwYjM3NjU5ZTc2ZTVkMmU3MGQ0MzI3NjkwMmIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQxMmNhMzQ1Y2NmNzViZjljMDgwNmJjZTY5NWJlOGRlODA4Yjc5OTg0MjUxYTdhNTRkMjAyY2Y2MTAxZGQ0NTEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjgwNjIxYmFlN2M1Zjk4YWRiNmUwNzViYmEyN2Y1MWQ3MjIxZDFiNWRmMDE0YzJkMGE5MTJjNTM3MjljOWJmMTIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
-        }
-      ]
-    },
-    {
-      "id": "claim_412dfaff8f0f4c1da3b9dd6f11b538a3",
-      "statement": "TimeProjector projects coordinates to time and back both inside the historical range, by delegating to the chart's time scale, and beyond the last candle, by extrapolating whole bar intervals from the last candle time and mapping through logical bar indices — which is what allows wave points and fib anchors to live in the future whitespace.",
-      "evidence": [
-        {
-          "resource": "repo://frontend/src/lib/components/charts/plugins/helpers/time/time-projector.ts#L12-L93",
-          "version": "repo-lines-v1:sha256:88e09fcd566627db0312ba7f29e3ec82fe6c01bf94a36a8251e4aa0797df2e78:eyJzZWxlY3RlZExpbmVDb3VudCI6ODIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjFkMjFiNjJkMjg0MTBiOGFiYWY0MmUzMzdhYzRjOWRiZGU1NTllZmJiNzBmNzI2YzBjMTUzMWMxNDJkZWM3YzciLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjY3Y2RhODJkYTYwNjIzOGUwNWU2MjM5OTU2OWM1ZWUwMzk5MzQxOTY0OGFlNWQ0M2EyYmY4Y2Q2MzQ3ZjgyNjMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImU3NjM4NTA2NGZiNjBjZmVmZjVhNTE0ZjRlYjM5NTRkZmY0ZjZmZTc2Mzg2ZWVhOTEwMmU3YWMxN2U3N2FmZWYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjoxLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjQxMmNhMzQ1Y2NmNzViZjljMDgwNmJjZTY5NWJlOGRlODA4Yjc5OTg0MjUxYTdhNTRkMjAyY2Y2MTAxZGQ0NTEifQ"
-        }
-      ]
-    },
-    {
-      "id": "claim_6d124f8326034f23a78459fc8a55c3f1",
-      "statement": "DrawingPrimitiveBase implements the ISeriesPrimitive lifecycle: attached() binds the TimeProjector and mouse handlers and wires the standard delegates, every subscription is tracked via _subscribe/_subscribeToUpdate and released with unsubscribeAll(this) in detached(), updateAllViews() passes null renderer data to the pane view when detached or when chart/series references are missing, and destroy() runs detached() before destroying the state's delegates.",
-      "evidence": [
-        {
-          "resource": "repo://frontend/src/lib/components/charts/plugins/helpers/primitive/drawing-primitive-base.ts#L107-L178",
-          "version": "repo-lines-v1:sha256:3f1b53825aa38efdb5efca00cf3135383ec4ac0eca7f7ccfa963eb9e104754b3:eyJzZWxlY3RlZExpbmVDb3VudCI6NzIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ5MmNmOTdhZGQ0MzMyMjgwYTdlNmM4ZjFjNGI4OTcyODViNmU1MDk1NDM2YzUzOGExZWM2NTdlMzYzMWIzMjUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjY3Y2RhODJkYTYwNjIzOGUwNWU2MjM5OTU2OWM1ZWUwMzk5MzQxOTY0OGFlNWQ0M2EyYmY4Y2Q2MzQ3ZjgyNjMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImE4OWNkNmZiZmRhMjVhNTZlYWZhOWY0ZTZkMTE4ZDc0ZGFjOWM3M2FhZDU1ZTczZTU3YWY4ZmMxMjNmYmJiZjMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImQ3NjYzZTkzZmU1YTU5OWZkYjdiMThkZDVjZTc1MTYyMzM0ZmUwNDNmMGQ3NTMxODZiOWVhMmVmOTEyMWVmNWYifQ"
-        },
-        {
-          "resource": "repo://frontend/src/lib/components/charts/plugins/helpers/primitive/drawing-primitive-base.ts#L184-L193",
-          "version": "repo-lines-v1:sha256:fd6dfa6928fe469e22b745ffed2eae47bbf4875beba3f32d7821958831f9ebad:eyJzZWxlY3RlZExpbmVDb3VudCI6MTAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImNmNTEzYzhkNzhlZmQyMmFlM2U1NjdmNGZmNzlhYWNlNGU5NTM3YjZjNGY3NDViMjkzNTJkMTZiY2U5ODkyZWYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjY3Y2RhODJkYTYwNjIzOGUwNWU2MjM5OTU2OWM1ZWUwMzk5MzQxOTY0OGFlNWQ0M2EyYmY4Y2Q2MzQ3ZjgyNjMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjlmOWFmMTRjYzc4ZDJlMzczNDg3ZWNlZjExMGFlMmNhZGExY2EyMTllZDk4OWI0MzVlMGE3NmFjOGIwMmRkOGQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImY4OTI0OGRhMjJlYTA1NWQ5OWUzYTljYzNkNjYxN2MwYTc4NmQ5ZTgyZmQwZDcwZWM2ZjZjODNlMjNhOWM3MGYifQ"
-        },
-        {
-          "resource": "repo://frontend/src/lib/components/charts/plugins/helpers/primitive/drawing-primitive-base.ts#L242-L245",
-          "version": "repo-lines-v1:sha256:795afcfd32417e1a3938adf1f4d9e3465eec75ef51bca89aa942c0c79bd4dd08:eyJzZWxlY3RlZExpbmVDb3VudCI6NCwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiNGNkY2Y1ZWJiZDIwYmM0Y2ZiNDcyNDdhNmIzMDlhMzA3MjQ2MWE5YTdmYmE5ODliNWJjNTFhODdhZmViMjlkZSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNjdjZGE4MmRhNjA2MjM4ZTA1ZTYyMzk5NTY5YzVlZTAzOTkzNDE5NjQ4YWU1ZDQzYTJiZjhjZDYzNDdmODI2MyIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiOTlkNzYwYzAwNTYwNDVhYzkwZGZhN2RmNzk2ZDIwMzQ1ZGY5ZTQzNjk0ZTdiMjU0OGM4OGRiNjhiNDBiNzM3NiIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiODZhN2UzYzZlNWZkNTI2NjkxYWI5MDVlNzUxMzUwMGNhNjQ0NjJjNTY0N2UxMjQ1ZDQ5Y2EwY2M2NmYzNzA5ZiJ9"
-        }
-      ]
-    },
-    {
-      "id": "claim_2d2cbcfb970847b79a8fdfcc6ea1323b",
-      "statement": "DrawingPrimitiveBase resolves one cursor for every drawing tool with a fixed precedence: dragging outranks drawing mode, which outranks a hovered point; drawing mode alone yields 'crosshair', dragging and hovering both yield 'default', and an idle primitive yields null — and hitTest() reports {cursorStyle, externalId, zOrder: 'top'} only when a cursor is set.",
-      "evidence": [
-        {
-          "resource": "repo://frontend/src/lib/components/charts/plugins/helpers/primitive/drawing-primitive-base.ts#L195-L214",
-          "version": "repo-lines-v1:sha256:e87fdb1f73e5046cfa035f6745494dc62959c0a76384e319e7ef404aea5c0dfb:eyJzZWxlY3RlZExpbmVDb3VudCI6MjAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImJmMDllOGI3YWJkZTdlMmZhYTkxODRlZmFhNmQ5MTY3MDRmODMwZDZiYzJjZGRkOTJhYmM0ODY2MTZkNDY3YTUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjY3Y2RhODJkYTYwNjIzOGUwNWU2MjM5OTU2OWM1ZWUwMzk5MzQxOTY0OGFlNWQ0M2EyYmY4Y2Q2MzQ3ZjgyNjMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjkwY2RlODM4NzYzNzY5ZTFjMjM5ODc3OThiZjQ5YzQ0MDRmMTg1ZTE5MzM5MDJkZDVmZDk0N2MxZjg4YzRlYTgiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjBhZDM5NzBkNTYxYWRhYTNjMTU3YzQ4OWFlM2M5NmVjNTJkNjYxYTQ5MWI0NjY0MTI2MDljNTljMjdjMzFlNDEifQ"
-        }
-      ]
-    },
-    {
-      "id": "claim_b5810d05183c4d5cbcc8edb032232faf",
-      "statement": "Finance math and pattern validation live in frontend/src/lib/utils/finance/ with colocated unit tests, and plugin code consumes those exports instead of embedding formulas: fibonacci.ts owns the default retracement/extension level tables, calculateRetracementLevels and calculateExtensionLevels, getActiveFibLevelPrices, updateSecurityFibonacciTools and the structural-equality helpers.",
-      "evidence": [
-        {
-          "resource": "repo://frontend/AGENTS.md#L217-L220",
-          "version": "repo-lines-v1:sha256:44ee87380735cbea72a6ba54a5acb06dc7635988a30195e1841cd464c6816214:eyJzZWxlY3RlZExpbmVDb3VudCI6NCwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiOWMzY2M5NWRjYWIyYmM4NWIwZGNmNDE4OGZkODU5MTdmMzljYjZjZjliMzdmMjY1MjhlY2IzOTNiNDM4ZTMzNCIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNWI3NjU1YzM4ZDUwZTI1ODBhNmI0OGVjZTJhYzI5ZDgyYmQ5MGYwMDNkZTY3ODM3NDQwOThmYmJhYTg1YzMzYyIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiMjQ2ZWRiODdlNTg2ZTY4MjI0ZDBjMDE1ZmZkMjRlMTVhZTU0MmNiZmVmOGM2Yjg1OTQxMmFhMDM2ZTcyYjgxOSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiOTdlYTkzMDk3YzlmMTU0MWNiZTQ2YzU4YTljMTVmYWVjNTdmMjkwNDQ5ZjBmZDIxOTM2NjhkODEwZjhkOTU5MSJ9"
-        },
-        {
-          "resource": "repo://frontend/src/lib/utils/finance/fibonacci.ts#L134-L150",
-          "version": "repo-lines-v1:sha256:57d6a6cae2169c1f586057aa04cedadeefa7a6456c56f92d01fe4fcebcd628fc:eyJzZWxlY3RlZExpbmVDb3VudCI6MTcsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAzODM3ZTM5MmQzYzc3Zjk4NDU2ZmM4MTQ3NzRiNmUwMmM3ZDdkN2IwZWZlMGI0NDdiODRhMDc3MWFjYjgwMGQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjY3Y2RhODJkYTYwNjIzOGUwNWU2MjM5OTU2OWM1ZWUwMzk5MzQxOTY0OGFlNWQ0M2EyYmY4Y2Q2MzQ3ZjgyNjMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImZiOGRiZjQ2Y2YyN2RiMDI5YjM1ZmNiM2Q4MTdiODYyMTY3N2E5MzA3YjdhODA3NTAyOWMyM2MzNDczOWQ3OTUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImYyNTE0Njg2MjdlNzc3NzYwMjQ1NDNmMTQxNTVkZjEzODNhZTkyYWUyYjUwN2ZlZThiNDkxNGJmZTVmMjdkMmUifQ"
-        },
-        {
-          "resource": "repo://frontend/src/lib/utils/finance/fibonacci.ts#L190-L243",
-          "version": "repo-lines-v1:sha256:ba4d4d785cddff1f179011a8e7694a862fdb18c6c07da66e354fbb020ef66f41:eyJzZWxlY3RlZExpbmVDb3VudCI6NTQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjVkZmM4ZWZjYzg5MWFhY2Y1MjYzMjZkMTE3MTEzNWE4ZDUzMmEwYjUyMjUyN2NjZGNlOTA2ZDYwY2Y1OGE1MWQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQxMmNhMzQ1Y2NmNzViZjljMDgwNmJjZTY5NWJlOGRlODA4Yjc5OTg0MjUxYTdhNTRkMjAyY2Y2MTAxZGQ0NTEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImMzNTQ0MGI3OTMzY2VhNGFmYjFlMzE0NmY3MjFmODE1NWRiYWRmYzc2ODc2ZTFhZTgwOGQ0M2ZlOGQ4NTYzODQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImU3Y2Y1NDQxZTRjZjY1MmFlNmZkNjhkYjZmZDg1YzQ2OGE3MzZmZGUwOTYyNzA3ZmI5MGFhZjAwZTZhYTMxYmQifQ"
-        },
-        {
-          "resource": "repo://frontend/src/lib/utils/finance/fibonacci.ts#L284-L330",
-          "version": "repo-lines-v1:sha256:fb07ca5011866e576b34f0d84a531a6ab0f221c4927c7b60c97e9e3c16f8c19e:eyJzZWxlY3RlZExpbmVDb3VudCI6NDcsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImZlZTYwZTJkYjlmZThlMTNmYWQ5ODY4ZmJkMDZlYjYxMzdlYWU1ZWM3ZmM0MTVlYjRmNTdlZWY2NmYwNjM4MDEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAxYmE0NzE5YzgwYjZmZTkxMWIwOTFhN2MwNTEyNGI2NGVlZWNlOTY0ZTA5YzA1OGVmOGY5ODA1ZGFjYTU0NmIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImMzMzM5YzhkMzFhN2NmMjhhY2Q5YjYzM2IwY2RmMjcwNzY3NjY5ZDUzMmY2YjdmN2YxMGNjNTg0NmU1NzcyNzQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUxODU1ZjRjYTZiMDg2ODc4OGZhN2MwNWFjY2MzODQ4YzM3YjE0YTM1NWVhYmM2N2ZkNGY2NDAxZmFlZDZmN2YifQ"
-        },
-        {
-          "resource": "repo://frontend/src/lib/utils/finance/fibonacci.ts#L58-L81",
-          "version": "repo-lines-v1:sha256:9fb4a62b64b79315ac063539e69a66c049288ef35a2aaf0c4a6ca412b4b6107c:eyJzZWxlY3RlZExpbmVDb3VudCI6MjQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjViMTNlZjRlYWU2ZjZhMmZhNmE4N2E0MmZlZDA2MDBkYTE1NzNjZDZiNzMzMTk0MGM4NmFlNmM2NDkwOWYwMGUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImIwMmQyYzBkNmRjNWU3NGQ5MmZhMTRiOTFkYmVhMjY0MDkwYmViMzVmZGI5MTg4ZDliMzQxMTgxZGNlOWY0Y2UiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImY2NDgyODhhMzFkOWRhZWM2ZTZiZDc0YzYyMGZkZDZlOGFlMjZjYWY2MTEzZTg1ZGRkNzM0NzMwOWE1MmRkNTUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6Ijk2YjgzMjI4ZTYzZjgwOWU1MGZmMjQ3MDc1OTE1YTg2ZTY2Yzk1YjUzODQ3NTM1MWRkZjZhNTJmNzNkMjU4ZDIifQ"
-        }
-      ]
-    },
-    {
-      "id": "claim_49929e534ecf4498aca9b21a515a61dd",
-      "statement": "elliott-wave.ts owns the Elliott domain model (WaveDegree, WaveType, WavePointId, DegreeWaveCount, SecurityElliottWaves, WaveSettings/WaveAlertPercents with DEFAULT_WAVE_SETTINGS) plus the target and selection helpers getWaveTargetPrice, calculateUpsidePercentage, selectDegreeWave, getSecurityDegreeWaveCount, getLatestWaveCount, updateSecurityElliottWaves, normalizeWaveIds and getWaveAlertPercent.",
-      "evidence": [
-        {
-          "resource": "repo://frontend/src/lib/utils/finance/elliott-wave.ts#L104-L121",
-          "version": "repo-lines-v1:sha256:132a8509d7829cd24f9a3b9efb4e1958925c62947067c772cd4ba29eed790b8f:eyJzZWxlY3RlZExpbmVDb3VudCI6MTgsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImE0ZmZmOWZlYTY5NmFlMDNkZTg0MmNiYzRlMjkxNWY0NmZjMGRkMmJmNmY3ZmIwYjc3ZTg0N2M5MjUyZTMyYmYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQxMmNhMzQ1Y2NmNzViZjljMDgwNmJjZTY5NWJlOGRlODA4Yjc5OTg0MjUxYTdhNTRkMjAyY2Y2MTAxZGQ0NTEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImZjYWIyMjZhNjM5ZjczY2Q1MTYwMzUwYWI5OGM0MWUxN2JmMWQzZGEyNjEyZWRlMjNlNjZkOTJkMjA3Yjg5ZjgiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjA3ZTIyOGUzYWVlYjNkMDQyNTgyNGUzODE2ZGVmNjUzYTNhZWRlOWJmMzFmYzc3YWUzYTYzYzcxODUwODI5YWYifQ"
-        },
-        {
-          "resource": "repo://frontend/src/lib/utils/finance/elliott-wave.ts#L228-L255",
-          "version": "repo-lines-v1:sha256:48e14c2c8e2a5c54224fe5dc88c6afacbeb2999a706e5b24369ca2e318870d84:eyJzZWxlY3RlZExpbmVDb3VudCI6MjgsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImY2YWViNDIwY2EyZDY1Yzc3YjEzYjM2MTM3N2UxM2UzZTA2MDFjNjcyODJiNTE0Mjk4MjBiZjViZTJlZGJjYmEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQxMmNhMzQ1Y2NmNzViZjljMDgwNmJjZTY5NWJlOGRlODA4Yjc5OTg0MjUxYTdhNTRkMjAyY2Y2MTAxZGQ0NTEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjY2ODMzN2IyYzMwNTQ2ZjQ5YWY1ZmI1MjhjYWVhZjJjZjZhYWJlMGFiOGYyMWVhMmNlZjM2NjM1Yzg3OTIyYTYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjY0ZWQxMjFjZGFlMDE3ODZhZjk4ZjNmZDRhNmYyODIzMmU4MzY1ZTgwZWEzODRiMTMyNTUyMTc2OGU5ZDU2ZTgifQ"
-        },
-        {
-          "resource": "repo://frontend/src/lib/utils/finance/elliott-wave.ts#L30-L56",
-          "version": "repo-lines-v1:sha256:7036ac95361316a2c38f6d7bc4138f27a18122cda1c738f41fb882e0ddcd610a:eyJzZWxlY3RlZExpbmVDb3VudCI6MjcsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImVhZjIyY2YwNzMyNTkyYzI0NzE0MWNiZTYxZWZhMTEwMTI2MTJmNWEzMTIyYjlhZjliYmFmNTJmNTcyNGQxOTQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImFhMWQxYTYzMzkwMjI5Yzc5ODM0N2U4M2EwNDA1NDQxYzk0MDAwMzUyODRhZDE2OGMxYmY2Y2RmMWQ3MGEzNzAiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImNiNmE3ZjliY2RkMTE1OGJhNjg4NjdhYjhlNzU1YzY1OTc1OWRjOWVjYzM2N2IzYzUxZDBjNTRlYmQ0ZGFiZTUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImU0NjNlMmFlYjE5MjY4NDBlZTU4NjBhMjA5OTI2NzJjNjM0ZGY1MzkxNWRjNmY4OTdmMjM0NTA2NzMyOTNkZWQifQ"
-        },
-        {
-          "resource": "repo://frontend/src/lib/utils/finance/elliott-wave.ts#L341-L361",
-          "version": "repo-lines-v1:sha256:a5fb668172ef221329ce6aeb3bc30e39e150d342a35850623c6337ba093a961a:eyJzZWxlY3RlZExpbmVDb3VudCI6MjEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjczMTdhOGYxNWJmNmFmODEwYTk0Zjk0ZTc3ZjQ4Zjk5YjMwZGQxNTU1ZjdjMDM2MDQzZTc5MjhjMGUxYWQxY2UiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQxMmNhMzQ1Y2NmNzViZjljMDgwNmJjZTY5NWJlOGRlODA4Yjc5OTg0MjUxYTdhNTRkMjAyY2Y2MTAxZGQ0NTEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImRkMDQ1OWNmZDhkZjk2YjM3NTRkYWFmZTMyOWQxYjIyMzM1NDQ5NTg0NWJiNTk4NGNhNGFkZWQ4Y2ZiZjhlYjMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImE1ZDZhZGJlOTJkOTExMDE3YjVkMTIxNjhhNGQ2MGM2MzVkNmY1OGU4ZDJmMWFlZjI5MzcxNmVlNTMxNWVmZjIifQ"
-        },
-        {
-          "resource": "repo://frontend/src/lib/utils/finance/elliott-wave.ts#L62-L97",
-          "version": "repo-lines-v1:sha256:f8a1ca22e9fc9cbc22fd3d154ed31dcb216a133d728ebd7012f1ed7c8a9d0986:eyJzZWxlY3RlZExpbmVDb3VudCI6MzYsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjM1NzJmNDc4ZGFjMTA3NGQ1MGZlMjVlZDM4NzE4MWIzZTFlZGM4ZjVkODJmMWE2NzZkZGI3ZmJjYWM0N2JiYzMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQxMmNhMzQ1Y2NmNzViZjljMDgwNmJjZTY5NWJlOGRlODA4Yjc5OTg0MjUxYTdhNTRkMjAyY2Y2MTAxZGQ0NTEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjNmOWEzZjMxODc1ODRiNGQwMDc3ZDBlMzVlYjhiM2U2Njg4ODdlMTU3ZTcwM2Y0NWIyYTgyMDJhZTkwOThkOWUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjllNGYxZmRhOTU4MTA0NDQyZjcyZGViMGNjNDJjMjEzMDYzZmUzMWRlOWZhNjE1MTllYmViNjkxMTAzMmJjZjkifQ"
-        }
-      ]
-    },
-    {
-      "id": "claim_bbe8d063fdda4f72a5a583f0916ba4a5",
-      "statement": "The dependency direction between the layers is one-way: utils/finance is the lowest layer and must not import from plugins/helpers, which is why elliott-wave.ts re-implements the epoch-seconds conversion privately as waveTimeToEpochSeconds instead of importing the plugin time helper.",
-      "evidence": [
-        {
-          "resource": "repo://frontend/src/lib/utils/finance/elliott-wave.ts#L257-L262",
-          "version": "repo-lines-v1:sha256:a68226e3c9cb379e8aa4658bb6ecf7a0be1d46cb83481694b3718707cfad3033:eyJzZWxlY3RlZExpbmVDb3VudCI6NiwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiZWFmMjJjZjA3MzI1OTJjMjQ3MTQxY2JlNjFlZmExMTAxMjYxMmY1YTMxMjJiOWFmOWJiYWY1MmY1NzI0ZDE5NCIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiM2Q3YWYxYmFmZGIxODdiYTJkNmQwZDdkZDBmMDY5ODhkMTc4YzA4ZjI4NWIwYjUxZTc0ZGVkNDMxZDdmZDg0NyIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiMjViYjFhZjUyMWJlY2Q1NWQ3MDU2YThhOWEwZGQxZWJjZGExZmM3OWZmMjNmNzQ1Nzc2ZjQ5OTU4MzM1MjkyMyIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiYjA3MGY3YjA5OTc5OTgyYTE3NjBiNjQ1NDFhMjkwNDhmZGYxNDdkMDY5NGViMmVhNjQ1YjU5YmFhYjc3OTBjZiJ9"
-        }
-      ]
-    },
-    {
       "id": "claim_5ea01748691c4dce815718ab3f317be2",
       "statement": "wave-alerts.ts derives and reconciles wave-target alerts: computeWaveAlertLevels iterates degree by target wave deterministically, skips a degree whose percent is null or whose target is missing, rounds each level to 8 decimals to match the backend DECIMAL(16,8) column, sets the condition by comparison with the current price and skips equality; reconcileWaveAlerts diffs existing alerts by (condition, level) and never returns manual alerts (source !== 'wave') for deletion, so a second run over applied state returns empty sets.",
       "evidence": [
@@ -491,262 +179,6 @@
         {
           "resource": "repo://frontend/src/lib/utils/finance/wave-alerts.ts#L99-L137",
           "version": "repo-lines-v1:sha256:b118837bf8afb531e9a0ff51c9cceb5257ecedf111fe4f93925fc3b5c2f0e7ab:eyJzZWxlY3RlZExpbmVDb3VudCI6MzksImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImVhZjIyY2YwNzMyNTkyYzI0NzE0MWNiZTYxZWZhMTEwMTI2MTJmNWEzMTIyYjlhZjliYmFmNTJmNTcyNGQxOTQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQxMmNhMzQ1Y2NmNzViZjljMDgwNmJjZTY5NWJlOGRlODA4Yjc5OTg0MjUxYTdhNTRkMjAyY2Y2MTAxZGQ0NTEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImE1ZmU5MDc3ZGEwNDc0ZjJjNjViODdjN2E1M2E4ZTQ3OGNkNzVlODE1NjkxMDFiNGI2MDlmYzQ5N2EzZWU3NWQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
-        }
-      ]
-    },
-    {
-      "id": "claim_433c41d42ca946bfbdbe92f009d7786c",
-      "statement": "The remaining finance modules are type/config definitions rather than implementations — bollinger-bands.ts, moving-average.ts, rsi.ts, macd.ts and obv.ts export default configs (20/2 bands, 14 RSI, 12/26/9 MACD) plus value/series types — while holdings-metrics.ts and average-cost.ts hold the position math (period cutoffs, benchmark price, holding gain, quantity-weighted blended average cost) and candle.ts holds Candle plus convertToHeikinAshi.",
-      "evidence": [
-        {
-          "resource": "repo://frontend/src/lib/utils/finance/average-cost.ts#L7-L17",
-          "version": "repo-lines-v1:sha256:e46a0a17bacdc4bfec6e487f3dd985499bbcc59d537c8c7180f76e5a541eaa99:eyJzZWxlY3RlZExpbmVDb3VudCI6MTEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijk0YjA0ODk3NzE3M2U5ZGJlZjRlNDM1NmNjNGMzNjQzN2EwZjU1ZjdjMDE4YWIwOTczOWNiNDUzM2FlZWNkNGUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQxMmNhMzQ1Y2NmNzViZjljMDgwNmJjZTY5NWJlOGRlODA4Yjc5OTg0MjUxYTdhNTRkMjAyY2Y2MTAxZGQ0NTEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjY2NGVmMjEzMDQ0MjZmZjM5NWRjYmQ3YWNkNzM3OWU2OWJmNzU2MDcxMTZjYjkyOTBmMjlmM2M3N2Y4MGY1ZTgiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
-        },
-        {
-          "resource": "repo://frontend/src/lib/utils/finance/bollinger-bands.ts#L13-L29",
-          "version": "repo-lines-v1:sha256:5abcd06f004cad9295529b1454b8e2ca2f75416383080d3fbd014b1b4bf89dbd:eyJzZWxlY3RlZExpbmVDb3VudCI6MTcsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImIzMTRjZGQ4ZjVkNTdhMjU2NmZlNjQyN2IwZjFkMjE3MjcyMzJjYTFmODdkNjIxMWEyZjYzNGFjNTE3NGI5ZjEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ3NDU1MTU4MmM4NDI3OWVkYThkNWIxZWE3NjQwNmExYWZlYzczNzRiZjYzYzk2ODY4ZDhjMTkxYmFkOGYyMWIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImQwNjM3MGQwOTFhODE4MjlkMmVlN2ZlYTcyYWQzZDk0M2ZlOGZmNWM5ZGJmNTRiNDAxOWEwYTcyZWMzNGIxMmIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
-        },
-        {
-          "resource": "repo://frontend/src/lib/utils/finance/candle.ts#L11-L49",
-          "version": "repo-lines-v1:sha256:2e07556c73ffae1ec70fcb18603ade876261096fafdc2a5dff0f6c9a7ec68726:eyJzZWxlY3RlZExpbmVDb3VudCI6MzksImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjJlNWNhMTU4MmFlNTI5NjNmMjA3MGJiZTYyNWU1MTk5NDk5NmEzMGM3MmFhOWUwMDQ0MTRjMThlYjhkMTE5ODgiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjY3Y2RhODJkYTYwNjIzOGUwNWU2MjM5OTU2OWM1ZWUwMzk5MzQxOTY0OGFlNWQ0M2EyYmY4Y2Q2MzQ3ZjgyNjMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjI1ZDA2YWRmZTQ4MDgyMmQ0ZWY5MjE2OWFkN2MyYWFiYjQ3MTRkOWE2NTY3MmNjY2VhMWM0NDcyNzY2NDU5MWUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjM3NWMzYTNiMjg4MDJjYjA0OTg0YWQ1NTdmOWIzN2M3YWI4YjVjY2QwNzAyMzkyZDZjZDMxZTA0MWU0ZmFmYmMifQ"
-        },
-        {
-          "resource": "repo://frontend/src/lib/utils/finance/holdings-metrics.ts#L136-L183",
-          "version": "repo-lines-v1:sha256:422fe8a134c459d9f4a27642e6fe0d8428bdfef7114c0eaf268481f7749523b5:eyJzZWxlY3RlZExpbmVDb3VudCI6NDgsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImZkMTkxYjc2NWMwNzQ5YjBhODFkZjRkNzQxYTE3MjlhYjViOTA5Mjc4MGFmMzJiODU2MDZlOGE5YTk4NTNlYWQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQxMmNhMzQ1Y2NmNzViZjljMDgwNmJjZTY5NWJlOGRlODA4Yjc5OTg0MjUxYTdhNTRkMjAyY2Y2MTAxZGQ0NTEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImEzYTcyNzU5ZTMwNzQ4ODRlMjVlMzYxYWEzYjE0NGMyMjQ1YzA2NTNhYmI1MzM1MmQyYzFkMjdkNTMyYWU2ZWQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
-        },
-        {
-          "resource": "repo://frontend/src/lib/utils/finance/holdings-metrics.ts#L41-L79",
-          "version": "repo-lines-v1:sha256:3ea48c155f7633bfb8bd9fa8ae2240e429d9707e00e92f30ee8226f3b7989d10:eyJzZWxlY3RlZExpbmVDb3VudCI6MzksImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjM2MTJjYTg2OGFlZDc5ZjQyMWM3YWMzYjEwY2ViNzY1YWE3ZGE1MTYxODVlMTJhZmY0YzM5MjAwYWY2MGI2NTMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQxMmNhMzQ1Y2NmNzViZjljMDgwNmJjZTY5NWJlOGRlODA4Yjc5OTg0MjUxYTdhNTRkMjAyY2Y2MTAxZGQ0NTEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImZlMDNmYmM5Mzk2MmE0ZTQ1YjI1M2NiOTMxMDQyM2FkMDQzY2YyMDVhZTQwNDE2NTIzYjRhZmJkYmI2ZDc0ODQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjIwOGIyOWVlZmI0NjJlMDYzOTQ1ZDgwOGRkNmY4ODFkZjAyNmQ0ZTUwMzkwNzVhYzRhODFjYzg2OGU2ODYwZTEifQ"
-        },
-        {
-          "resource": "repo://frontend/src/lib/utils/finance/holdings-metrics.ts#L87-L130",
-          "version": "repo-lines-v1:sha256:5ab44b649cdcace2c4a72f6f70fec2c7387107faa8a6b9ccf90991688440762b:eyJzZWxlY3RlZExpbmVDb3VudCI6NDQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijg0YWZmYjEwNmVkZDUyMjllZjA1NDUxMzE0OWY3NzM1OGYxYjBjMTA2YzA4ZTE5Mjk3MjdmNjNjZTk2ZjViNDAiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjlmYzFkNjM0ZGRmNmM3OWI0MzRlZDc2ODUyY2Y2MzM4NGNmMWRkZGU1MDZjOTAyNjdhYzFkZDQxNWU0NmY2ZTIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImQ0YTA3ZThkNTBkZDMzMTljZjMwMWEwOWY5OWFiNWIyZWEwZmM4MjZjOWI5NzVjYmFjZGIxMzRiMTRjMDEyYjkiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjM3OTI5ZTkxZTBmOTljM2U4MjVkZTY5YjQzNWZiNjQ4NGQxYjBhMWRmMmY0NjU2MWFiZjFhMjlmMDQxODhiODgifQ"
-        },
-        {
-          "resource": "repo://frontend/src/lib/utils/finance/macd.ts#L14-L31",
-          "version": "repo-lines-v1:sha256:7c5717af7876ef613afdc97d8150776ef3d1961ea3ed98839615ab78aec9c9b3:eyJzZWxlY3RlZExpbmVDb3VudCI6MTgsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ5ZWZkMmRlN2MwZTY1OWJiYzViMGI2YThlMTI1NGY1MjM2ODYwODFmZDkwM2VlMmE1MzgwZDEyN2EyNGQ3NmQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImUxYjhjN2IxNjkzZmJkZGU0Mjk3OGI0Mjc1MDQ3MGE5NDAxZDBiOGY3NGRkODMyYzEzYTBmY2UzMTZlYzdhMDYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImQ0ODJmNmI0ZDY5ZjQ3NWU1M2VlMDgxNDU0YTJmMjhiYzNlYjllZjZkMmU2NTI0M2ZmNTY3ZmU0NWFkM2ZiNDQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
-        },
-        {
-          "resource": "repo://frontend/src/lib/utils/finance/moving-average.ts#L3-L16",
-          "version": "repo-lines-v1:sha256:e5110103d0f59cca0234fa4c36b2d7ed8e2bb716f52c0d42d6624a7eb5c44f44:eyJzZWxlY3RlZExpbmVDb3VudCI6MTQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjE3M2YzNjcyZTUyMmE3ZGZhNGQ0Y2IyMDhkYWNmMzAzNWUxMDUzZWQ0ZjE5NjE4OTE2ZmU1N2U0MGE1NjIyN2EiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjEyN2RkZDE1MjdiMzY3ZjUzZTAyOWM1MDY2MjU2NWI3NjlhY2VhZTAxZGI3NjliZGJkZWQxOTVmOWY4MDkyMDMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjoyLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6Ijk1YmFiYWMwMjE1MTRiN2RkMjdlNDM3NWJjODI1ZjJjZWQ4ODU2ZjQ4NjIxNTZmNTg0NjgwNmI3YTFjNGY1MzciLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
-        },
-        {
-          "resource": "repo://frontend/src/lib/utils/finance/obv.ts#L10-L21",
-          "version": "repo-lines-v1:sha256:6f6978f24afacf64e8e9d13dfe2c4f7d5d707009a9140caf89b60e5b4cd3590f:eyJzZWxlY3RlZExpbmVDb3VudCI6MTIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjE1MWVhZjVkN2MxOTc5M2FiMmU1YjBlM2Y2Yzg2ZjlhODQ4NmQ3NThjNjRlYzFlYzEzMTI5MzQ4MjhlMGE0ZDMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjhiODUyMTc3MGJiMTgxZmUyZTFhYjAzYjRmNGEyYjg5YmFhOTcyZmQ5MTFhY2NjZDYzY2Q0ZjZjMjgzZmQwOTIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjBkMTAwMGEzNWI0OWZhNjQwM2M1NmFkOWE4YjdmMTE5NDcyYzRhN2ViNDM2NGQyNGRjOGMzOGMyNmEwZWE1MzIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
-        },
-        {
-          "resource": "repo://frontend/src/lib/utils/finance/rsi.ts#L12-L25",
-          "version": "repo-lines-v1:sha256:50b95b9cc5368d557e7afd861263f741b4c0ba3c62d4f0c61d3c4f391f4accde:eyJzZWxlY3RlZExpbmVDb3VudCI6MTQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjU3NzVmY2IzMDExYzZhMzYwMTg5YTQyODBiYThlNTE2ODg5ZDk3ZDk0ODRmZmM0NzlmNjRkMjZjNzRmMGVjOTciLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjE3NjVlYWIyM2ExNWVhZjhlZWMwZTMxMDZkYzU3YzcwNjI2ZWE2YjY0YTViOWJkZDdhOGFiOTYxOGU3YmU1ZTQiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImE4YWU4Yjk5NzA3NTUwNmUyOTgxNTk2MTFmYTM5NmExMjI3NjdmOGFmZjg5NDk4MGE0MjFkYzE1NTRlYTZhNTkiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
-        }
-      ]
-    },
-    {
-      "id": "claim_2dcdac887bdb489faa16482ed1cd4a14",
-      "statement": "ChartSnapshotModel persists chart snapshots in market_chart_snapshots with a UUID primary key, a security_id foreign key to market_securities with ON DELETE CASCADE, user_id, JSON drawings and data_window columns, captured_at and created_at timestamps, and a composite index on (security_id, user_id, captured_at); the table is created by migration bea77d72aaf1_add_market_chart_snapshots.",
-      "evidence": [
-        {
-          "resource": "repo://migrations/versions/bea77d72aaf1_add_market_chart_snapshots.py#L23-L34",
-          "version": "repo-lines-v1:sha256:095e7c55dcce77db06f4bdc3ac2392078df7cf89eafa9b12b241ccdfaeed05aa:eyJzZWxlY3RlZExpbmVDb3VudCI6MTIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjYxZmEwODQzZDU4ZjM5M2E2NzNmOWRkODcyY2NiY2I5Y2I4Njk4NmZhMGQ0YjNmODVlNzIyNTYyMjQ5OTcxNjkiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjIwZjIwYTA2ZGU5ZjI1YWU5ZjRiNjg2MDFkOGU3MWVlNTExYzdmZjQxYWUxMzJhMTg5ZjBhNzE1Y2VlMTg2OTIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImRiZDg2MWQ4NWIxM2IyMjI4OTY2ODExNmJiYWI0NjI5MTdkNjllNTY2NmVjMzhhMjk2MzdiOTRmYmFjM2ZkNWQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjBmMDFmMzA3NWRhMTliMzU5NTlmOWZlYTg0MGFiMzkzZThmOWE3ZWZlOWIwYjFhOTMwMWNhMTUwNjllNzE4MWIifQ"
-        },
-        {
-          "resource": "repo://src/market/model.py#L209-L233",
-          "version": "repo-lines-v1:sha256:36dcf56cbb0e95279f4c2dfb443321c8fe497d99ba27f0cf0ca498a0eef59074:eyJzZWxlY3RlZExpbmVDb3VudCI6MjUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjYzMWFmOGQ1ZDk4YzhlZTczMGFmNDI2OTcwYThkMzRlNTZmZTY4YWE4MGE2ZjQ3ZDZjMjE4MzUyYTQ5YjI4MzUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjMwYzFmMTg4ZjE0MmVkN2E4MjQ2ODBiMjA3MTcyYzU1MTliYzYxNGE0OGZkYTdjZjE2N2VkYjhkZGY3OTk1NmMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjhjYzRhN2QxY2M3OTZhYmEzZTQ2NzIzMzI3ZjUxN2U5ZjgxMTk4MmQyNTBmMDcwMjk4NmU0YjU3NjRhZDk1ODkiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
-        }
-      ]
-    },
-    {
-      "id": "claim_fdfcaeadf4724e478d079b6dd1a54955",
-      "statement": "SqlAlchemyChartSnapshotRepository scopes every snapshot operation to the owning user: reads filter by security_id and user_id and order by captured_at ascending (the frontend timeline depends on snapshots[0] being the oldest), create normalizes a client-supplied captured_at to UTC or defaults to now(UTC) before inserting, and delete filters on both id and user_id.",
-      "evidence": [
-        {
-          "resource": "repo://src/market/repository.py#L242-L257",
-          "version": "repo-lines-v1:sha256:080cde8f6e2bfbf1c7dd13b0240d76fe2bbbb54275508a5b92b5a9821190b1ec:eyJzZWxlY3RlZExpbmVDb3VudCI6MTYsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijc5MDI4MmZjMjUwNDhjMWQxNmUzYzY3ZGE3NjdiNjVlNGUzNTMxMGMyMDAwZTRmYmNkNDA4MTQ0ZWI3OTdiMmEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImYwNjJlNThlYTBiMGZkMTk1YmEwNzY2MTNiNjMwZDU5ZTY3YmQ0NzBiYjE5ZTk3YTIwYzkwMjM2NmU1YmEwZTYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjZhMjhmMzA0MGRmYmViNjhjYzk0NjA4NDdiODVkYjU5ZDNlMGFkNzA5Nzk5NzFhNzM0YzQ5NWEyMTBiOWViN2QiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
-        },
-        {
-          "resource": "repo://src/market/repository_sqlalchemy.py#L838-L879",
-          "version": "repo-lines-v1:sha256:0e33d365434dbc825ea222591fd015d021e9268f5d5d83b136e3ddd1cff3fb3e:eyJzZWxlY3RlZExpbmVDb3VudCI6NDIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ0ZGE5MzUwMDE5ZGMxZTY2NzQ1MjY0Mzg3MzE2MTk5NzIyNWU5Y2U2MDEwN2FmN2I2NGY4NDBkZGVjZmRhNGYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImM5NDRhMDZiYTQ1NDVkYzQ1YjZjYTQ5ZjM3Y2IyM2JiNjViYWZjZDUyODg3ODQyMDU0ZThkNzM1ZDNiNzhkMzQiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjgwMjBhN2I4Yjg2ZjcxNmFhNTk0OTljYTIyYjc3MTYyMDA3YmZlZDkwNGQ0MTllNjI2OTMwOWRiZTgyODBiNjYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjAzMjI5NTVkODQzMGIzMzYwNmFjMjRmZTBhZGFhYWMzZjE4ZTFiOWFkOTViMjUzMjZjZDMyZmQzMTUyY2JhNGIifQ"
-        }
-      ]
-    },
-    {
-      "id": "claim_10bcb5d97e2a4dd694db66fa6540f22b",
-      "statement": "Snapshot HTTP surface: GET and POST /market/securities/{security_id}/snapshots plus DELETE /market/securities/{security_id}/snapshots/{snapshot_id} (router prefix /market, mounted under /api/v1, current_user required) returning list[ChartSnapshotRead], 201 with the created ChartSnapshotRead and 204 respectively; ChartSnapshotCreate takes drawings, data_window and optional captured_at, and ChartSnapshotRepository is registered as a svcs factory.",
-      "evidence": [
-        {
-          "resource": "repo://src/market/__init__.py#L82-L84",
-          "version": "repo-lines-v1:sha256:b8bcc8cabc8c620811b0ff4de7c20a48a0e863c35cc8a49156426e94a9875534:eyJzZWxlY3RlZExpbmVDb3VudCI6MywiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiMjY3YjgyMjNlOTg1OGM0NDExYzIzMzVkYWZiZTllZjVhZGM2ZDFkYWRkMDU3YjhlZGFhMjU1OWFkNjUzNDcwMyIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiMzBjMWYxODhmMTQyZWQ3YTgyNDY4MGIyMDcxNzJjNTUxOWJjNjE0YTQ4ZmRhN2NmMTY3ZWRiOGRkZjc5OTU2YyIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiNTg5MzA2YjQ2ZjhkMDE1NTYzYWY3Njk2YmI3NDkzMjFkZGFiYWYzZTZhOTlkZWYxODcwZjJhNzMwMWNmNTI5MCIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiNGE0OWIxMWM4NWJlYzIzODM2NTY4OWExZjU2YzJiOTcyMjg1Y2I3ZTNkMjI4NmRjNWM5OTMxMWU3ZWI0MjJkZiJ9"
-        },
-        {
-          "resource": "repo://src/market/router.py#L595-L643",
-          "version": "repo-lines-v1:sha256:0b0361765f89ab303a6fec038e6b5c56c49091f5db38041f1c72f1705bc89440:eyJzZWxlY3RlZExpbmVDb3VudCI6NDksImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImE0MWJkMTY3Mzc5NjE1MzBiOGExMWE2ZTM5Y2M3ZDUyYzY4MmVjNDYzNWZkMWY1NDkwM2Y0MzA0NjQ5MzRkYTUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImJkNmIzMzVkN2RkNmY5YTJjYjU5ZmJhMjY5MWY3NmEzODk5ZDFlMDY2MjY1YTQ0ODI2MzNkNjYwY2ViMmFiMTMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjliY2Y4N2U1NmFmNmVmYWZlODM1MzI1M2UzZTUzZGYwMzEwOWRmYzZkOGMyYjkyNzBhMTNkODUxMGMwMDZkZGUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImFkYmE5OTUzMGQ4ZTI4MGFiNDkxYzFmYzU4ZTg0NzZkNjc5ZTZiYzM1OWEzZDE4MmRjODY0NmJmMTQxMTEyMDkifQ"
-        },
-        {
-          "resource": "repo://src/market/schema.py#L251-L268",
-          "version": "repo-lines-v1:sha256:a8ec1894265a03bf7a7ff3acc1a318336fd1d4a34965010796006f33e20a0827:eyJzZWxlY3RlZExpbmVDb3VudCI6MTgsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImMxZDg5ZjNhMDk2NmRhNzk5MDk1M2UzZmIxOWQyNDkzMzgwNjE5NWZkNTU4MmNjZWIzOWE4NzY4NzA4ODQ4ZmEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijk2NzI3ZTlkNmU5ZTRjYzE0MmVjOGU5Yzg5NzZhMWM5MTcxZGNjMGU5OGIwNDA4MjlkNmI4YWZiNDI1Y2E2YjAiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjJmZTI0Mzk5ZDZiM2Q3ZjJmOWRhOTExZTAwMzEyZjE2ZDk5NTYyODY2Y2E4ZTJiMzNiNWU1MDY3Y2Y5ODQwODMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjE4MmExYmQwOWM4NmJjZTQ1YjI0NzhlZjMxODIxZDQ4ODhkNjkwNGJkMjA0NDJlOTIzODc4YzcxYzdmNGYxODYifQ"
-        }
-      ]
-    },
-    {
-      "id": "claim_af400017021b4f28bebb029e80563a6e",
-      "statement": "frontend snapshotsService is a thin ApiClient subclass exposing getSnapshots, createSnapshot and deleteSnapshot against /market/securities/{id}/snapshots (base URL resolves to /api/v1), with a getSnapshotsService(customFetch?) factory and a snapshotsService singleton.",
-      "evidence": [
-        {
-          "resource": "repo://frontend/src/lib/api/snapshotsService.ts#L4-L47",
-          "version": "repo-lines-v1:sha256:c094b9797e8fe8366de3a951ee57f9319e1f9faf617ea0a481157da62de685c4:eyJzZWxlY3RlZExpbmVDb3VudCI6NDQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjY5ZjBmZTA1NjE4NDYwNGI4NTYzMjQzMDE4YTgxMDQ4ZTM4MWRhNzQyOThjNDAwYzBjNmQ0MThmZTQxNjU0NjEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImQ2YTYwYTA5OGNjY2IyOTk4Yzc2MzgzOTBhY2NiNzc4ZGFjZmIxZWQ4ZjQzMjMzMjJhNzJjNGMwODFhMDcyMjgiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImUzYmQ5NGU1N2JiZjJhYmFhYzY0ZDUwZDE4ZThiMzhiNDhiN2ZiNjY0OTZiMTE5NjEyNjhlMzhiOThkMWE0NWQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
-        }
-      ]
-    },
-    {
-      "id": "claim_d7b59241dbec4da992e9163d945daedd",
-      "statement": "finance/rewind.ts defines the snapshot wire model (RewindSnapshot, RewindDrawings, RewindDataWindow) and captureSnapshot, which builds a client-side id from generateUUID() plus an ISO-8601 UTC captured_at; generateUUID falls back from crypto.randomUUID to crypto.getRandomValues to Math.random because non-secure HTTP contexts lack randomUUID.",
-      "evidence": [
-        {
-          "resource": "repo://frontend/src/lib/utils/finance/rewind.ts#L26-L65",
-          "version": "repo-lines-v1:sha256:725c2c074997fa4649187da838f6a0e34286a6a67dfff75c6db990203df6c017:eyJzZWxlY3RlZExpbmVDb3VudCI6NDAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImVhZjIyY2YwNzMyNTkyYzI0NzE0MWNiZTYxZWZhMTEwMTI2MTJmNWEzMTIyYjlhZjliYmFmNTJmNTcyNGQxOTQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQxMmNhMzQ1Y2NmNzViZjljMDgwNmJjZTY5NWJlOGRlODA4Yjc5OTg0MjUxYTdhNTRkMjAyY2Y2MTAxZGQ0NTEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImFhZmIzODcwYzY3YjM0NWUzYmI3YjgxMTljYWI1MDBiNWEwYTk3OTk3MWNhZDUyNmUwY2E5NjdjNjcyNjlhZGYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjQyZjExNTliYmRlMzc0ZTUwYzYzY2Y0MzEyMDNlMTJhYjVmNjgzYWUxN2U2ODhhN2M4ODI0ZTE1M2Y5ZDg3NzMifQ"
-        },
-        {
-          "resource": "repo://frontend/src/lib/utils/finance/rewind.ts#L6-L24",
-          "version": "repo-lines-v1:sha256:fe724e3de203cdd3bf0f00244b76b99d6f2240cf711a8972d0a3a1ee97f515a7:eyJzZWxlY3RlZExpbmVDb3VudCI6MTksImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjgyNzUwNzE0ZDdjOWFkOWVhM2VlMTc4MDRlNzJjNzUyYTRhMjU0NjUyNDE3MDE1NGQ1YjFmYzU2MDUyYWM2MjYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQxMmNhMzQ1Y2NmNzViZjljMDgwNmJjZTY5NWJlOGRlODA4Yjc5OTg0MjUxYTdhNTRkMjAyY2Y2MTAxZGQ0NTEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6Ijc1ZmY4NTgzZTE1ZDg0NjNkOTg2YzY5NjY3YWNlNWE2NGQ3YWQzMDU5NGFiZDVmNGRmMGZjNDk3MzVmYjgzMDQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjE2ODQxYWUxOGU5MWI3NjE2YTU0YWVkYjczNWViYWI3N2I4NTU3ZWMxNjY0NDU5MDE4MmYyNTI3OWY3ZjZjOGMifQ"
-        }
-      ]
-    },
-    {
-      "id": "claim_11d0a60d91194a218234173e0ba96400",
-      "statement": "finance/rewind.ts also holds the immutable snapshot algebra: appendSnapshot returns a new per-security map, getSnapshots returns an ascending-by-captured_at copy, and findSnapshotAtOrBefore returns the latest snapshot at or before a time (null when the time precedes the first snapshot) and is overloaded for a flat array and for a map plus security id.",
-      "evidence": [
-        {
-          "resource": "repo://frontend/src/lib/utils/finance/rewind.ts#L104-L161",
-          "version": "repo-lines-v1:sha256:5242f59f2a9667ddabf0aff04a1237e395a1d562f73fc250d053eed277550b26:eyJzZWxlY3RlZExpbmVDb3VudCI6NTgsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImVhZjIyY2YwNzMyNTkyYzI0NzE0MWNiZTYxZWZhMTEwMTI2MTJmNWEzMTIyYjlhZjliYmFmNTJmNTcyNGQxOTQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQxMmNhMzQ1Y2NmNzViZjljMDgwNmJjZTY5NWJlOGRlODA4Yjc5OTg0MjUxYTdhNTRkMjAyY2Y2MTAxZGQ0NTEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjI1YmIxYWY1MjFiZWNkNTVkNzA1NmE4YTlhMGRkMWViY2RhMWZjNzlmZjIzZjc0NTc3NmY0OTk1ODMzNTI5MjMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImJmNWUxYjljNTNmNDczNjQwMTNiNTc2NTc4MjE1MjdkZjBjMDVjOWUwZjE1ZTFiNzQ5N2E3YmVhMTczOGIwMWMifQ"
-        },
-        {
-          "resource": "repo://frontend/src/lib/utils/finance/rewind.ts#L67-L102",
-          "version": "repo-lines-v1:sha256:691b26c8650ea91e883213bec6989ba67bdb4fc0d43ee0dcc0ecd9ee44cc9ac1:eyJzZWxlY3RlZExpbmVDb3VudCI6MzYsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImVhZjIyY2YwNzMyNTkyYzI0NzE0MWNiZTYxZWZhMTEwMTI2MTJmNWEzMTIyYjlhZjliYmFmNTJmNTcyNGQxOTQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQxMmNhMzQ1Y2NmNzViZjljMDgwNmJjZTY5NWJlOGRlODA4Yjc5OTg0MjUxYTdhNTRkMjAyY2Y2MTAxZGQ0NTEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjU0YmE3MjYzYzEwODcwMmE1NWNjOWRjZjU4MWYxMTMzMzc4Mjk3NmRlN2U2MDRkMTIxNWU2ZDhjZjUxYTA4ZmYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImYyMDU1Nzk4ZjMwMDYxMGI3ZTBiNjJjMzhiZTFiOTAzYTY0ZWVkZGM3ZDNjYTAxNjc2MmViZjYyYzkyYmRjN2IifQ"
-        }
-      ]
-    },
-    {
-      "id": "claim_fdd4d9402ceb478fa81339e2bc68a93f",
-      "statement": "areSnapshotsEqual gives snapshot saves their dedupe semantics by comparing only the data window and the drawings structurally while intentionally ignoring the id and captured_at metadata, and it normalizes absent versus empty Fibonacci tools as equal.",
-      "evidence": [
-        {
-          "resource": "repo://frontend/src/lib/utils/finance/rewind.ts#L163-L206",
-          "version": "repo-lines-v1:sha256:17092159dbcb2853f05d8b94f488d3c6592949c64d3737039ced9f7f15c020b8:eyJzZWxlY3RlZExpbmVDb3VudCI6NDQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjExYzE3OGM1ZWQwY2QxOTIzNjE2ZGQwYTI1NzgwNDQ5OTQwNmJkOTEzNThjZDk1OGIxNjlmMzQ1MmM5Y2MwYTEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQxMmNhMzQ1Y2NmNzViZjljMDgwNmJjZTY5NWJlOGRlODA4Yjc5OTg0MjUxYTdhNTRkMjAyY2Y2MTAxZGQ0NTEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjZlZjJjMmMyNWYzZTM4ZDZlNzk5MDgzNGExN2ZmZDVhZDE2MThlMzNjODRmNDg0ZTdkZDk3OWJkNDg1ZjA2YjUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
-        }
-      ]
-    },
-    {
-      "id": "claim_1e81dcf6934648219c1184cc817c27ed",
-      "statement": "rewind-timeline.ts (the pure module beside the timeline component) holds the timeline geometry: sliceCandlesBefore returns the original candle array for a null or invalid cutoff and otherwise filters by parsed candle time, snapshotTimelineDomain takes its first bound from Date.parse(snapshots[0].captured_at) or now and its last bound from now while forcing last = first + 1 whenever the domain would degenerate, and timeToFraction/fractionToTime map between time and a clamped [0, 1] fraction.",
-      "evidence": [
-        {
-          "resource": "repo://frontend/src/lib/components/charts/rewind-timeline.ts#L14-L66",
-          "version": "repo-lines-v1:sha256:5c376749169fec4e0073045a0951053e17e346aa1decae540378472a144b7166:eyJzZWxlY3RlZExpbmVDb3VudCI6NTMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjkzMDA2ZThhMWNiM2MxMDBjNDlkMDU3OWI3OGUxM2QzN2QzMWNiOTk2ZDExNTlkMDBiMWRiY2FhZjFkOWFlZjEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQxMmNhMzQ1Y2NmNzViZjljMDgwNmJjZTY5NWJlOGRlODA4Yjc5OTg0MjUxYTdhNTRkMjAyY2Y2MTAxZGQ0NTEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImM2YTRiNTgzNTQ4ODJmYjJlMmZjNWExMWQwYjM2ZTc0NWZiMjQ2YjA4NmQ3YjI2YmU3ZmZlMDgwNDc2NmFlNWQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
-        }
-      ]
-    },
-    {
-      "id": "claim_7b49efa803aa4999b82a14f50bf8ef37",
-      "statement": "RewindTimeline is a pointer-driven scrubber: it renders one marker per snapshot positioned by timeToFraction, a playhead at timeToFraction(position ?? now), an empty state when there are no snapshots, and it sets position to null when the dragged fraction reaches 0.995 so dragging to the right edge returns to live data; position is $bindable and the optional onScrub callback is not used by the security page, which binds position instead.",
-      "evidence": [
-        {
-          "resource": "repo://frontend/src/lib/components/charts/rewind-timeline.svelte#L146-L169",
-          "version": "repo-lines-v1:sha256:a57d36eb50d8ef302cb2923845761e149556b451680ef069085f263dc0423d32:eyJzZWxlY3RlZExpbmVDb3VudCI6MjQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImZjOGZmM2Y2MTRkMjIwOTE4ODMyOWMxODI3ZjM0ZTJiNDM2YTFiMmI0YzZmZWExNWI4ODdjYWI5ODQ5Mjc0MTUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImE4NTQwOWVhNjA5OWI4YzhmMDYwMmM3OTM0ZjZkNTlkMWM5ZjQ4ODA5OWRhY2JjZTI3MTk5ZTBlNmVjYTU0NDciLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjM1NjA5M2U3N2UxNjFmYTc4MzQyY2JjMDk4ODkyNTNiZTIyYTQ2NGNmZGM2ZGEwM2I0MjliYTMwZjVmYjkwNTMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjdiOTAwMmEyZGQyZjhiYmJkN2M2MDJhZWM5YjkyODYzOTc3OWNiZmViY2NjNGM2NzJkNWZmMzRlNzc5MDAzM2EifQ"
-        },
-        {
-          "resource": "repo://frontend/src/lib/components/charts/rewind-timeline.svelte#L18-L38",
-          "version": "repo-lines-v1:sha256:fcb5e893f7d61e0629dad2438269f18160b36acc88cd546d3f329910bb368c42:eyJzZWxlY3RlZExpbmVDb3VudCI6MjEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImNmODU5ZGJmOTI4NTcyOWIxNTFhZjQxMjYzMWFkM2QxNDQ2OGM1ZTVkNTgxYWNlMzA3OTg4NzdmODI4ZWQyNDMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjY3Y2RhODJkYTYwNjIzOGUwNWU2MjM5OTU2OWM1ZWUwMzk5MzQxOTY0OGFlNWQ0M2EyYmY4Y2Q2MzQ3ZjgyNjMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjMwNTVmY2M4ZThmNzQ5ODQ2YTM3MmQxMTMzNmNkNGQwYjhjYjNmZWViZjMzNjAyZDI1MWIyYmYzNzE0NDM3OGMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjZkZmM4NDFmZmY1MGM4M2FlMzA5ZmY0ZTc5ZDQwZGY3YjBlYzA2Zjc1MjUyYTQzYTA1NGVmZDQ3MzZhODIyYjUifQ"
-        },
-        {
-          "resource": "repo://frontend/src/lib/components/charts/rewind-timeline.svelte#L88-L98",
-          "version": "repo-lines-v1:sha256:6fdd4e6cae8244eb70e9b5e3449e03aefaadc7e87410a5b5d7aa1dceaefb2d19:eyJzZWxlY3RlZExpbmVDb3VudCI6MTEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijc1MTZkYTk5YjQ5N2E2ZWI3MzEzOTRmMmY3ZDIzZWQ2MjkxYjIxOGUyNzc4NGIzOWM0YTBmZGNmNDdjMjhhY2QiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImQyNzE0MzdhNDIxZDZlMDJhYjcyMDc1OGNlYmE3MDBiMmRjODFkYjJlZjQ2Yjg1YzQ4Zjc0YTU0Y2EzNTE3ZjEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImZiNjM5MWZlOGZhZjY3ODVjNDE5YmJkZDhmYzJlZjM4N2FkN2NmMjA4YmM5NTFmNjIzMTVjYWNmZTgwMWNkMDMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImE5MDhjOTQ2M2RkNmQ0NjJiNWYzZTI2NzQ2MmVkMzEyZWY5ZDJiYTBmMDQ0YzI0MDE1MTdjMDU1ZmVmNTBjZmYifQ"
-        },
-        {
-          "resource": "repo://frontend/src/routes/security/%5Bsecurity_id%5D/%2Bpage.svelte#L1321-L1327",
-          "version": "repo-lines-v1:sha256:4aec1110393c5d2422ee421a732935cbbbb1c9a8b805ef6c344aafb70d0b8b0d:eyJzZWxlY3RlZExpbmVDb3VudCI6NywiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiMzA2YTlkYjllNzNiYTZjZmJjZGY5ZGE3M2JiYzgwZDExYzllNmQwMDFkNjA1ZjQ4YmY4NTRhNTY3NzFhOTljYiIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiYTZkNWQ2ZmQxNGRlOTY0MTU0NzYwMDFkNDNlYmQxYTk2MGE1YTgzZDI2MWI1YjJhMjUxODEwOWY0ZTY3N2NkMyIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiMTM1MWViMzdhN2M5OGQ0MzQwMzk3ZDRhMGQwOGY2YWRkN2IyNjZjYWE0ZjkzZmQ3OGU3MDdhMWNmMzgyZDAwYSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiZDQyZDE5MmRlZTI1NTRlYTY5NjdiZGMzYzIyZDY2MzlmZDMxMDgyZWEyNGI0Mjk4ZGExZjVlOTIxOWRjMmM4NCJ9"
-        }
-      ]
-    },
-    {
-      "id": "claim_2d78dc5d5aab40d0a39d4a96f6992d11",
-      "statement": "The security page derives all rewind state from a single timelinePosition: displayCandles becomes sliceCandlesBefore(allDisplayCandles, timelinePosition) while rewound, activeSnapshot becomes findSnapshotAtOrBefore(securitySnapshots, timelinePosition), and the chart's primitives receive the snapshot's elliott_waves and fibonacci_tools instead of the live preferences.",
-      "evidence": [
-        {
-          "resource": "repo://frontend/src/routes/security/%5Bsecurity_id%5D/%2Bpage.svelte#L113-L142",
-          "version": "repo-lines-v1:sha256:b19de5712bcbb1f28b9c03fb9d0a218912fd63d2060925c232ec3441635ea57f:eyJzZWxlY3RlZExpbmVDb3VudCI6MzAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImE3NzgxYmEwMzhiYWQyZTIzYmQ2MmFlZmUzMzJjZDUwZjY2Mjc5ODBlOTJkMzIxM2IyNGY3MjhkNzMwNGJhZGQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjBhNzM0OTJkODk0NmIxZDBmOWQ5YzA0YjcwNGE5MjBmMjRmODllZjdjN2Y3MzExYTg1OTlkMTBjN2Y2MzU4ZDAiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImNjN2QzMDlmOGFhN2MyMTdhZWM2MjUyY2Q1YmViOTBmMWRkZWExY2FjMzI0MDgzMDRkOWFhN2U2MDZhNWNiNDgiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImJiZTY4YTgxY2RlYTI5MGJjYWVmMjNjODg1MGMyM2M3N2I5NjViMjBmZGU5YzdkOTM0MzAwY2MzNTgxYTgzNTUifQ"
-        },
-        {
-          "resource": "repo://frontend/src/routes/security/%5Bsecurity_id%5D/%2Bpage.svelte#L1249-L1271",
-          "version": "repo-lines-v1:sha256:96a9e5a553d9f0b4b0407b02b54bced0a76a7250df65563c3e161c43dde6d24e:eyJzZWxlY3RlZExpbmVDb3VudCI6MjMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjY2ZGM5YmEwNzU0YWZhODRmZmQ3NDBiMzRmMTk1OWRmYzcwM2EzNmU1Y2Y5N2FhMDE4NzljMTgwODIxNDMwMzgiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjhjNGVkMWQzMWE3NzZhMTUyYTk4ZDE4YjA5ODBkZjdkYzM2YjMxZGUxYmZhNWI0ZDY1YzJlNjZhNDA0ODRiZGYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjU4ZjY4N2VjMWZkNzIxYjI0YmE1M2RkNTY0YTkyOThiNjYxNzBjNDI2NGZhZjg4ZmJlNGFkN2VlNjJjNmM1NmQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjU2MzljYWFkOGVmMzgwYTZjN2QwOTdjNzM2ODM1ZWQzZTE2MTk3OTQ0NDVkYzg3YzA0MzhmMTM5OWU1MmQ0MTcifQ"
-        }
-      ]
-    },
-    {
-      "id": "claim_e8cd1c843f9a4b9097b1bce5c35885c8",
-      "statement": "Rewind is a strictly read-only mode: while isRewound the chart receives drawing modes of false and hasMoreData false, every mutation handler (wave change/clear, fib change/clear/levels/width, save snapshot, load-more, wave-alert reconcile) early-returns, and indicators are recomputed from the sliced candles via getRewoundCandlesPayload so oscillators show the values they had at that instant.",
-      "evidence": [
-        {
-          "resource": "repo://frontend/src/routes/security/%5Bsecurity_id%5D/%2Bpage.svelte#L1249-L1256",
-          "version": "repo-lines-v1:sha256:ef9bde1bee4122d9f0a321f7399a866bbe3f347d443da8e5883d6b63e7aa63d5:eyJzZWxlY3RlZExpbmVDb3VudCI6OCwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiNjZkYzliYTA3NTRhZmE4NGZmZDc0MGIzNGYxOTU5ZGZjNzAzYTM2ZTVjZjk3YWEwMTg3OWMxODA4MjE0MzAzOCIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiOThmMzk1MzM0NzhjNjM1OTdjODUyZWYwMzAxNTE5YjM4NDM1MmNiM2UwOWJiMWJiMjNlNmY2ZDg2OWEyNzIwMiIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiNThmNjg3ZWMxZmQ3MjFiMjRiYTUzZGQ1NjRhOTI5OGI2NjE3MGM0MjY0ZmFmODhmYmU0YWQ3ZWU2MmM2YzU2ZCIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiZmVhZWQ0ZjUwYjJmMzU4ZjkzZTQxOGNkY2Q0MzI3NjM0NjQ2ZjQ4ZTc3Mjg4MGExMzYwMzU3NWFjYTFjYmNhNCJ9"
-        },
-        {
-          "resource": "repo://frontend/src/routes/security/%5Bsecurity_id%5D/%2Bpage.svelte#L170-L173",
-          "version": "repo-lines-v1:sha256:1cb524cac8e47e9f7d6c8854a762f1424173f8cab60d7df7a72de820d4ed3305:eyJzZWxlY3RlZExpbmVDb3VudCI6NCwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiOWM1NDIzZWQ4Y2E4MjdjNTAyMWRmZGRjNmU2Y2QyMjk3MTI5Y2U5MGI2NTRiODMyNDJlMjQ0ZjQxZThjMzJjZCIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiYTc5OGI3MjkyYzE0Y2I3NjkxZmMwNGE2YmQxMmE2NmI0YTY3ZjY1ZjZmYmY3ODE2YWNiYzAzMjUzYzRhMTYzZiIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiMjdiYjE4M2QwZTIzZWUyZTMyMTNiMjc4NGRmZDUwNzI5OWMzZTViOGE0OTQ5ZDhiMDI3NjA0NGE4M2ZkZGU0NCIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiODQxMDNlY2JhODFiMzBkNzI4Y2U3YzhhN2YzZDQ4ZGVhMmFkZjI2MmZhMjUyYTRmNGI5MzI2ZDQ1NDkzNmIyZSJ9"
-        },
-        {
-          "resource": "repo://frontend/src/routes/security/%5Bsecurity_id%5D/%2Bpage.svelte#L272-L277",
-          "version": "repo-lines-v1:sha256:c983767f2c13ea0af8f2818ffa662212db97738bbe66953df9bd52fa27fff804:eyJzZWxlY3RlZExpbmVDb3VudCI6NiwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiYjk1ZGYwZDBhNGQ1ZGRhNDFiMWM5YTdjYzdhMjY3NjdhNmEyYmQzMTI1YjFjYzkwMjMwOWY1MjZiZGNlODA2YiIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiZmM4ZTcxNTM1NjY2MzgwZTY0NTI2MzE0OTViYzliN2JkYzU3MGI0MjhhYjM5MmM1NTQ4YjkyMzNiNDc2MTQ3OCIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiYTk3MTNiODU3NjU0ZGY3NDlhNmNhMDJhNzM0ZjYyMDZlNmE1ZDVkZjk2MTMyYTBmMjU2OWM5NjlmNGYxYzYzZSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiNGRjZmQ0NWNjMjFhNTUyNmI3ZjMxODJmYzU4ODkzMWUzM2M3ZjhlMWU2NjUzN2E3ZTEzNGQ0ZDliYTg4OWU2OCJ9"
-        },
-        {
-          "resource": "repo://frontend/src/routes/security/%5Bsecurity_id%5D/%2Bpage.svelte#L522-L526",
-          "version": "repo-lines-v1:sha256:70de0579fbe7d45371c12c3b02941b9656c392a06a2152c503fcc03278788323:eyJzZWxlY3RlZExpbmVDb3VudCI6NSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiODk3MDMxNWU0MDkzNzFlYjEzYmM1MTlhZjI0NGZmMGRjOWYxMzczYWFlNGY3ZGIwM2Q3MmI3NzBhMWU5ZTQ0NyIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNjRlZmM0OTQxOGQyNmRjZjEyOWIyMmE2YWEyMTEwOGNlZWMzNzY3N2EzMmQwOGU5ZDVmZWUzNWRkYTY2YmI5ZCIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiMjJmMmZmNWZlZWM2MGY1ODdjOGZhZTRlODdmODA5YTY2MWNmZmVkNmI0N2FhZTVmNmQ2YTI2NTNhYTg5NTJlZiIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiOWQ5YjM4Njg2MjJlYzMyZThlZWQ5MTcxNmUxMzg3MmY5MDgwNzZiYTc2NGRiOGYxNzNhNmI4ZWQwMzc5ZGQwMyJ9"
-        },
-        {
-          "resource": "repo://frontend/src/routes/security/%5Bsecurity_id%5D/%2Bpage.svelte#L627-L640",
-          "version": "repo-lines-v1:sha256:b46b57e7d2b497ce2909a17a69ac71c5ca7db84040d569b34fb2e1e98efa5059:eyJzZWxlY3RlZExpbmVDb3VudCI6MTQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImRiZDU3N2E2N2Y3OGQyNzA1NTlmNGZhMzgzZWRiNWM0N2M4OTAwODJjODk0NTNlMWQ5Y2RmY2U4NjMzYTQyZGQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjY3Y2RhODJkYTYwNjIzOGUwNWU2MjM5OTU2OWM1ZWUwMzk5MzQxOTY0OGFlNWQ0M2EyYmY4Y2Q2MzQ3ZjgyNjMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImIyNGU2NmZiMmVjNDdhMmVhZDNmNzZhMzdmMzFhNWZjMTE4NjQyNjJiODAzMjZhODIyYWI3N2Q5MzAyMDUxOTQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImIzYjBkOGFmNWM0NWUyMzZhNjdiNWI1NGUzNDRlY2Q0NzRjOWM5NWY5Y2RiN2I1MDZlY2ZjODQ4MDkzODQ5NzMifQ"
-        },
-        {
-          "resource": "repo://frontend/src/routes/security/%5Bsecurity_id%5D/%2Bpage.svelte#L774-L780",
-          "version": "repo-lines-v1:sha256:57a7445720e8727386cf69fb1cc6b863b64c6380e92a1a2bbd44958ab67f415c:eyJzZWxlY3RlZExpbmVDb3VudCI6NywiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiZTkwNDI4MGU0YjQyYjk0ZGZlMGJhM2NiNzE3MzFjNzEwZjg4OWEwYTU2MmFmNDU4OGQyZDZhMzU0ZjM0OTg4YiIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNjdjZGE4MmRhNjA2MjM4ZTA1ZTYyMzk5NTY5YzVlZTAzOTkzNDE5NjQ4YWU1ZDQzYTJiZjhjZDYzNDdmODI2MyIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiNDY0M2MyMjI5ZTQ0NDZiZTE1ZTFmOTBiMjk1ZWI1ZjUwMTk5N2QzOGExNTRmNWFiMjFmYWFjMGY4ZDRhMmQ3OSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiZGNhOTdjOGVkZjhhMGUzOTgwNzBhYzZmZDU4N2UxMjhmNTBlYjk0NWUxY2FmODkxMWJiMGUyZDYzNzljZDEyNSJ9"
-        }
-      ]
-    },
-    {
-      "id": "claim_87d13959f0e1426790857d0bfbb95381",
-      "statement": "Saving a snapshot requires a non-rewound chart, a security id and displayed candles, skips silently when there is no wave point or fib drawing, builds data_window from the first and last displayed candle times, dedupes against the newest stored snapshot with areSnapshotsEqual (toast 'Chart snapshot already up to date' and no POST), and otherwise POSTs and appends the server-returned snapshot and reveals the timeline; loadSnapshots() reveals the timeline on load when snapshots already exist, and Cmd/Ctrl+S triggers the same path from the keyboard.",
-      "evidence": [
-        {
-          "resource": "repo://frontend/src/lib/components/charts/drawing-toolbar.svelte#L233-L256",
-          "version": "repo-lines-v1:sha256:7c1b9699c41cbcba713b553094a82cd756f190c317930aaabcedf4c4225af161:eyJzZWxlY3RlZExpbmVDb3VudCI6MjQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjE0NDEzNGI4YjdkNjU5ZjgzNzA1MGQyOWUzYzM4Y2E5MzI0NDM1ODA2ZThkYjljODczZTI4YTRjY2VjNTU0ZmMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjhjYWNiNjcyZDNmYzRjMzBjM2IwNzNmODc3MDE2NDg1NGU2MmYzNjI5MGQ1YjZkNjExNmE0NTFiYjI4NTZkM2YiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImJlN2Q0ZjA4NTI1NDBjZWQxYzdjZjIzZmI1NWIxMjAwZmZiZjM5ZGNiMzNkMTM2MmZhM2VmNDI3N2FjNjU5YjQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjRlY2I1ZGIxZjQ2OWE5NjFjYTk5NjZjNTExN2NjZWNlNGEwZDY4MTQzZDgwMTI5YmYxZjgzYmEzMTc0ZWY4ZDYifQ"
-        },
-        {
-          "resource": "repo://frontend/src/routes/security/%5Bsecurity_id%5D/%2Bpage.svelte#L170-L219",
-          "version": "repo-lines-v1:sha256:810fe5d1e73a466997657af8943d7a65ec25a6ba3a12249320b04de5e7d5137f:eyJzZWxlY3RlZExpbmVDb3VudCI6NTAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjljNTQyM2VkOGNhODI3YzUwMjFkZmRkYzZlNmNkMjI5NzEyOWNlOTBiNjU0YjgzMjQyZTI0NGY0MWU4YzMyY2QiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjY3Y2RhODJkYTYwNjIzOGUwNWU2MjM5OTU2OWM1ZWUwMzk5MzQxOTY0OGFlNWQ0M2EyYmY4Y2Q2MzQ3ZjgyNjMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjI3YmIxODNkMGUyM2VlMmUzMjEzYjI3ODRkZmQ1MDcyOTljM2U1YjhhNDk0OWQ4YjAyNzYwNDRhODNmZGRlNDQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjEwNDk1NjU5NTQ1NjM1NTU5ZWI4NDQwNTJhMWI3OTYxZDk1YTQ4ZjdhMDg3MmUxNjYxNDE4YWY2NDI0MGQ0NTgifQ"
-        },
-        {
-          "resource": "repo://frontend/src/routes/security/%5Bsecurity_id%5D/%2Bpage.svelte#L261-L265",
-          "version": "repo-lines-v1:sha256:16fc211a2d7ecdda87eeff05b0c0d408583913cf30fa7ffc817d1e138254e029:eyJzZWxlY3RlZExpbmVDb3VudCI6NSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiMDk4ODUxMmM1ZGMyNGI4NjFkYjFjY2YxMGE4NjAzYjM2NWQ3NDI4ZTVlYWFhYTA0YTQ5YjVhNDRjMTBjY2E0NyIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNjRlZmM0OTQxOGQyNmRjZjEyOWIyMmE2YWEyMTEwOGNlZWMzNzY3N2EzMmQwOGU5ZDVmZWUzNWRkYTY2YmI5ZCIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiNjg5ZWVjNDI3YTg5OThmZjdiYjUwNTE5YTE3ZTJmNmUwNTA4NTIwNTY1ZDU5MjM1ZWQxMGQzNGYzNjQ1MmNhYSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiNzhjNjg0ODc0YTAzYTZjYzRjNTVjMjliMmVhYTQyNjkwZjYwMjBjYWE1MmI0OWVkNjg3MDg4MGM3MmI3YzlmMSJ9"
-        },
-        {
-          "resource": "repo://frontend/src/routes/security/%5Bsecurity_id%5D/%2Bpage.svelte#L756-L767",
-          "version": "repo-lines-v1:sha256:e3740a93a0b25e375d05bddcfa509a905dca116f30516812f0f774beeea9cc45:eyJzZWxlY3RlZExpbmVDb3VudCI6MTIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjI3MTljM2Q1YjM1ZGJkNDllZWFmN2QyMGY4MGVhNzQ0MDRhYWE1NjhkMzRhZDRkZTE4YTBlYjViNmM0YTJmNTQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjY3Y2RhODJkYTYwNjIzOGUwNWU2MjM5OTU2OWM1ZWUwMzk5MzQxOTY0OGFlNWQ0M2EyYmY4Y2Q2MzQ3ZjgyNjMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjIyZjJmZjVmZWVjNjBmNTg3YzhmYWU0ZTg3ZjgwOWE2NjFjZmZlZDZiNDdhYWU1ZjZkNmEyNjUzYWE4OTUyZWYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6Ijg1MzE3NDk3NDJhYmUwNTliZjk2M2I2ZDhhZjRkMzJmZjdjMmU3OTY1NWY5MzQ3OTZmOGNlNDM4ODBkYjhiNzcifQ"
-        }
-      ]
-    },
-    {
-      "id": "claim_95080c0657ea488f830b15990293916e",
-      "statement": "Snapshot deletion exists end to end — snapshotsService.deleteSnapshot plus the backend DELETE route — but the security page never calls it, so deleting snapshots from the UI is an unimplemented extension point rather than a missing endpoint.",
-      "evidence": [
-        {
-          "resource": "repo://frontend/src/lib/api/snapshotsService.ts#L32-L42",
-          "version": "repo-lines-v1:sha256:a84af66ca2b56c932c5024d60f45f4eeef23eaef3ffce44a699d472908477e70:eyJzZWxlY3RlZExpbmVDb3VudCI6MTEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImRlOTc2YmVlMTViM2NjZTA4MTZhZjdhMWM4ZmExZTU4MjQ5NzVlMjY3ZDA3YzZmZjg4M2VjMmEyYmMwYmVkMTMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjY3Y2RhODJkYTYwNjIzOGUwNWU2MjM5OTU2OWM1ZWUwMzk5MzQxOTY0OGFlNWQ0M2EyYmY4Y2Q2MzQ3ZjgyNjMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjExZmRjYWU4NGM0YTkxYzljZGVlYWVjMTg4NDUyYjAyZjA5NGRjYmRkYTlhYzRiYmVjM2ViZGNiODZlYzUzOGYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImZkYzhiZWRmNzE4OWU1ZWIxMGI1MDBlY2YxMTIyODM5NWRjZjVmNjk0OGFiZTUzNjNmMzlkNWQzYzYwYzhlNzMifQ"
-        },
-        {
-          "resource": "repo://frontend/src/routes/security/%5Bsecurity_id%5D/%2Bpage.svelte#L170-L219",
-          "version": "repo-lines-v1:sha256:810fe5d1e73a466997657af8943d7a65ec25a6ba3a12249320b04de5e7d5137f:eyJzZWxlY3RlZExpbmVDb3VudCI6NTAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjljNTQyM2VkOGNhODI3YzUwMjFkZmRkYzZlNmNkMjI5NzEyOWNlOTBiNjU0YjgzMjQyZTI0NGY0MWU4YzMyY2QiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjY3Y2RhODJkYTYwNjIzOGUwNWU2MjM5OTU2OWM1ZWUwMzk5MzQxOTY0OGFlNWQ0M2EyYmY4Y2Q2MzQ3ZjgyNjMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjI3YmIxODNkMGUyM2VlMmUzMjEzYjI3ODRkZmQ1MDcyOTljM2U1YjhhNDk0OWQ4YjAyNzYwNDRhODNmZGRlNDQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjEwNDk1NjU5NTQ1NjM1NTU5ZWI4NDQwNTJhMWI3OTYxZDk1YTQ4ZjdhMDg3MmUxNjYxNDE4YWY2NDI0MGQ0NTgifQ"
-        },
-        {
-          "resource": "repo://src/market/router.py#L628-L643",
-          "version": "repo-lines-v1:sha256:68395c2f43b47e1370041bb3a1c9486a052f1af882ad476359ccede7dc7a2a46:eyJzZWxlY3RlZExpbmVDb3VudCI6MTYsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjZhNGRmMjZkMWYyZDYyOTJiM2IyMmM2NDY3ZjIzYTgyN2ZjMGQ3MWIyMGJlMGEwN2Q2ZTg1YTY5ODRiNDlmY2EiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImJkNmIzMzVkN2RkNmY5YTJjYjU5ZmJhMjY5MWY3NmEzODk5ZDFlMDY2MjY1YTQ0ODI2MzNkNjYwY2ViMmFiMTMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6Ijg5YTYxMGMxOGM5YzVhYmY4M2E0NTFiNzRiNTcyODJlNDI4YzVlMWZkMmE5OWFlNDU3MjBmNTdlZTcwNTk3NjQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImFkYmE5OTUzMGQ4ZTI4MGFiNDkxYzFmYzU4ZTg0NzZkNjc5ZTZiYzM1OWEzZDE4MmRjODY0NmJmMTQxMTEyMDkifQ"
         }
       ]
     },
@@ -788,61 +220,297 @@
     },
     {
       "id": "claim_2d26bc841af344189e4d5c9f33cffc16",
-      "statement": "Wave-target alerts are reconciled against the live alert list: handleWaveChange and handleWaveSettingsChange schedule a reconcile, the page serializes reconciles on a single promise chain because onWaveChange fires once per placed point, the initial reconcile is gated on preferences having loaded so a failed preference fetch cannot mass-delete wave alerts, and any create or delete triggers loadAlerts().",
+      "statement": "Wave-target alerts are reconciled against the live alert list: handleWaveSettingsChange and the drawings service's wave-change path schedule a reconcile, the page serializes reconciles on a single promise chain because onWaveChange fires once per placed point, the initial reconcile is gated on preferences having loaded so a failed preference fetch cannot mass-delete wave alerts, and any create or delete triggers loadAlerts().",
       "evidence": [
         {
-          "resource": "repo://frontend/src/routes/security/%5Bsecurity_id%5D/%2Bpage.svelte#L1014-L1018",
-          "version": "repo-lines-v1:sha256:36bba9f9ba01fbcd57a3b9bb3a893dcc8cbf05b9aefdd8858ebabedfaf30861c:eyJzZWxlY3RlZExpbmVDb3VudCI6NSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiNWY4Yzk2ZWY1ZTlkNDlhNjY5ZGRhMGE2ZjYwZDllNGFlNDk0YTQ3NzdlNmIwZWJiYjJhODc0ZjFhZjE1ODExNyIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNGRjNzYwMjBiYWU3MDU3N2U2NGIzMzBkY2E4M2ZkZjI0ZjNkNzU5M2EwMTU0ZDhhYmVjNmRjNjNmNTg5N2ZkOSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiN2IwZDk4OThjOGUyMDk2OGJhYzVlZTQ3YmJjYjZhMjgwZGEzY2Q1OWJkNDQzMDg2ZDUyZjkxZmNjNGE3NzVhNyIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiYmRmYTRhMjk4NTU3MzkyNmQ4ZmQ5YTFjNTJjMjE4NjQxMzlhMGMxNjdlZmY3NTY4ZWM0N2Q4MTNhYjM2OGFlNSJ9"
+          "resource": "repo://frontend/src/routes/security/%5Bsecurity_id%5D/%2Bpage.svelte#L461-L504",
+          "version": "repo-lines-v1:sha256:27cab7181a8743c2b8deccafa0916256b2fd762f987c9331602b793ede5e1620:eyJzZWxlY3RlZExpbmVDb3VudCI6NDQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjgzNGQwYzA1ZjM0MDgwNDNjNjI5MWE3Mzk5MTBjMDI0MThjYTgxN2ZlOTg4NmZhODBiZWQ5MWVhMzEyNTJkZmIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjY3Y2RhODJkYTYwNjIzOGUwNWU2MjM5OTU2OWM1ZWUwMzk5MzQxOTY0OGFlNWQ0M2EyYmY4Y2Q2MzQ3ZjgyNjMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjIyZjJmZjVmZWVjNjBmNTg3YzhmYWU0ZTg3ZjgwOWE2NjFjZmZlZDZiNDdhYWU1ZjZkNmEyNjUzYWE4OTUyZWYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjI3MWYwNGU2ZmY5NGJiYjdhYjljZmE1MmFlOWQxMzAxYmU1MjExNGYyOTczYmZjMTYzMmMxMGJjNzMxODUyZDUifQ"
         },
         {
-          "resource": "repo://frontend/src/routes/security/%5Bsecurity_id%5D/%2Bpage.svelte#L769-L808",
-          "version": "repo-lines-v1:sha256:a3118127002c816a53ef7c20af3d7833181ba13913f05ae695d7423c5853717d:eyJzZWxlY3RlZExpbmVDb3VudCI6NDAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjgzNGQwYzA1ZjM0MDgwNDNjNjI5MWE3Mzk5MTBjMDI0MThjYTgxN2ZlOTg4NmZhODBiZWQ5MWVhMzEyNTJkZmIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjY3Y2RhODJkYTYwNjIzOGUwNWU2MjM5OTU2OWM1ZWUwMzk5MzQxOTY0OGFlNWQ0M2EyYmY4Y2Q2MzQ3ZjgyNjMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjIyZjJmZjVmZWVjNjBmNTg3YzhmYWU0ZTg3ZjgwOWE2NjFjZmZlZDZiNDdhYWU1ZjZkNmEyNjUzYWE4OTUyZWYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjI3MWYwNGU2ZmY5NGJiYjdhYjljZmE1MmFlOWQxMzAxYmU1MjExNGYyOTczYmZjMTYzMmMxMGJjNzMxODUyZDUifQ"
+          "resource": "repo://frontend/src/routes/security/%5Bsecurity_id%5D/%2Bpage.svelte#L538-L550",
+          "version": "repo-lines-v1:sha256:409422407e88610c84f206cbca445f02f5c57d692f292cda358a262c1da2cb23:eyJzZWxlY3RlZExpbmVDb3VudCI6MTMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjZlZDRkODNmMTRiOTRiZWI1MTFjYzZlYzI3MzRlZDg4NzRhYTUyMmNkYWY4NjQ5NmRjNjRhOGIwZjk3ZGU0ZWUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjY3Y2RhODJkYTYwNjIzOGUwNWU2MjM5OTU2OWM1ZWUwMzk5MzQxOTY0OGFlNWQ0M2EyYmY4Y2Q2MzQ3ZjgyNjMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImFiYjBjMDM2OGU1ZDVhNDkxZWQ1OWU0Y2E4ZGJmMjdlZWMxYjkzYjdmNWYyNTczZDQ5YzY4ZWQ5M2MyZGI4ZTkiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImNkZGMzMDVmMzY4YjRkNTY3ZjEzZDI2ODJmOWJhNmM1MjNkYjQzNDUzOWFkYTM3Y2YwNjk5NDFkMGNiMTk0NzMifQ"
+        },
+        {
+          "resource": "repo://frontend/src/routes/security/%5Bsecurity_id%5D/%2Bpage.svelte#L749-L753",
+          "version": "repo-lines-v1:sha256:8a9aee71cc223afc18b7655df1b870212d87b6ffb382d10b5201c922682dc397:eyJzZWxlY3RlZExpbmVDb3VudCI6NSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiY2ZiYTA5NzliNjQyOTgxYWRjOTJlZjM4OTA0ZmViMjRjNjc2NDVhYjQ5YTc3ZDdkOTk4MmU0NmQ5NTI2Njg3NyIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiMTBkZjgxYjA0NmY1ODA2NTkzOGQ0OTRlYWUxMmU1N2MwNDAyZGVlNTU2NjBmNjBkMzYwOTQ2MDY4ZWVjMjNjNSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiMDIyZTQ2MmIwN2NhNzYwODYwZDhlNjE5M2NiY2ViYTZlMzE3NzRmYjQ1MWE3Y2E4MDU1NmM3MmU2ODUwZjYyNiIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiZTdiMWY5M2M0MDZjMTA1ZGVhOWI3YWZmNTUwYmEyYmRhNzRlYjAzM2I2MDBkYmM1MTVlZDJiYzU5YzgxYjFkNCJ9"
         }
       ]
     },
     {
       "id": "claim_29fb51dbc82349fdbaf90cbc36defed2",
-      "statement": "Chart tests are colocated with their subject and must mock the chart and canvas layers: security-chart.test.ts replaces lightweight-charts with a vi.mock factory of chainable createChart/timeScale/priceScale/addSeries/attachPrimitive mocks (plus Path2D and ResizeObserver stubs), while plugin tests build a fake CanvasRenderingTarget2D whose useBitmapCoordinateSpace invokes the callback with a fake BitmapCoordinatesRenderingScope and a recording 2D context.",
+      "statement": "Chart tests are colocated with their subject and must mock the chart and canvas layers: security-chart.test.ts stubs Path2D and ResizeObserver before importing the component and replaces lightweight-charts with a vi.mock factory of chainable createChart/timeScale/priceScale/addSeries/attachPrimitive mocks, while plugin tests build a fake CanvasRenderingTarget2D whose useBitmapCoordinateSpace invokes the callback with a fake BitmapCoordinatesRenderingScope and a recording 2D context, and every API client a subject calls is mocked.",
       "evidence": [
         {
-          "resource": "repo://frontend/src/lib/components/charts/plugins/fibonacci/fibonacci.test.ts#L103-L150",
-          "version": "repo-lines-v1:sha256:e7e39851801361b53305f902d684314a643b831058dc46a4179d95913480261c:eyJzZWxlY3RlZExpbmVDb3VudCI6NDgsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjJkMWRmMWZmNTVlYTBkMDJkNzFkNzMzOGMyNjhlMDRmMjlkM2RkZmZhOGM2YjIzNjM4MTBmM2ZhYmMwMGQ4MmMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQxMmNhMzQ1Y2NmNzViZjljMDgwNmJjZTY5NWJlOGRlODA4Yjc5OTg0MjUxYTdhNTRkMjAyY2Y2MTAxZGQ0NTEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImIzMzFiODZkYWRiODUxZmYzNGU3YjgwYTYyNTI3ZTc2ZjdkMDJiMDZhZTQyZmQzYThkNjczM2JkYmE4MTk5MjgiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjgxNDlhYjQ3MDk1ODU0NzQxOWU1ZmU3ZjJhODNiMjZmMWQ2MzQ2ODU2MjBhMjRiNTNhY2M5N2E2YTI1ZjdjMjYifQ"
+          "resource": "repo://frontend/src/lib/components/charts/plugins/fibonacci/fibonacci.test.ts#L116-L174",
+          "version": "repo-lines-v1:sha256:210fffbbb7afe0c2feeed34426a3d0df708c75c28b80cc105326eb12d12ed9f9:eyJzZWxlY3RlZExpbmVDb3VudCI6NTksImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjJkMWRmMWZmNTVlYTBkMDJkNzFkNzMzOGMyNjhlMDRmMjlkM2RkZmZhOGM2YjIzNjM4MTBmM2ZhYmMwMGQ4MmMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQxMmNhMzQ1Y2NmNzViZjljMDgwNmJjZTY5NWJlOGRlODA4Yjc5OTg0MjUxYTdhNTRkMjAyY2Y2MTAxZGQ0NTEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjQxM2RkZjQ3YTFlMDI0YzY4Y2I2ZGRjMDNiMjllNzRjY2Y4OWFmYjg0NGE1OGY4YjQ4NzdhOGFjNDVhNzcyMDciLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjgxNDlhYjQ3MDk1ODU0NzQxOWU1ZmU3ZjJhODNiMjZmMWQ2MzQ2ODU2MjBhMjRiNTNhY2M5N2E2YTI1ZjdjMjYifQ"
         },
         {
-          "resource": "repo://frontend/src/lib/components/charts/security-chart.test.ts#L1-L148",
-          "version": "repo-lines-v1:sha256:9c2c62572c6c76293ca4e919bc6b9c4ceface537f4487da1706dcf5f8a6cf9b9:eyJzZWxlY3RlZExpbmVDb3VudCI6MTQ4LCJmaXJzdFNlbGVjdGVkTGluZUhhc2giOiJlODA2ZWMyY2M4NzhiYTAzYTE0ZDFkZTg5MWYzZWU0MDVjNTJmNjAwMjkzZWZmOWI2MjIwZmI5M2Q3ZGU5Yzc3IiwibGFzdFNlbGVjdGVkTGluZUhhc2giOiJmNmY1YjQwYjE1ODQ1N2QxNzg2NGYyMTc5MDc4NmRkNWEyZWNkYjY0YjY2YTY1MWY3ODhkNGUyNWNkMzMwM2QyIiwicHJlY2VkaW5nQ29udGV4dExpbmVDb3VudCI6MCwicHJlY2VkaW5nQ29udGV4dEhhc2giOiJlM2IwYzQ0Mjk4ZmMxYzE0OWFmYmY0Yzg5OTZmYjkyNDI3YWU0MWU0NjQ5YjkzNGNhNDk1OTkxYjc4NTJiODU1IiwiZm9sbG93aW5nQ29udGV4dExpbmVDb3VudCI6MywiZm9sbG93aW5nQ29udGV4dEhhc2giOiI5YjhjOGRlMGY0ZjQxNDQ5ZjJlZjcwYzNjN2I0NDQ5NDg0Njk4ZmE1MWJjYjJjODU3MjczODBiMzQxMTQxMTIxIn0"
+          "resource": "repo://frontend/src/lib/components/charts/security-chart.test.ts#L1-L17",
+          "version": "repo-lines-v1:sha256:c2401278624df1c703bd5d86fed0ed36f2e2a2d6677f55862fccd0e27a0e7d6c:eyJzZWxlY3RlZExpbmVDb3VudCI6MTcsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImU4MDZlYzJjYzg3OGJhMDNhMTRkMWRlODkxZjNlZTQwNWM1MmY2MDAyOTNlZmY5YjYyMjBmYjkzZDdkZTljNzciLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQxMmNhMzQ1Y2NmNzViZjljMDgwNmJjZTY5NWJlOGRlODA4Yjc5OTg0MjUxYTdhNTRkMjAyY2Y2MTAxZGQ0NTEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjowLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjlhZjY0ZTYwZDJiN2ExMDM0ODVlMjQzYWMxY2M2NzUzYzg1YTYxODgwYTZiOTJlZDlkNGIwOGU0NmNiYWIzN2YifQ"
+        },
+        {
+          "resource": "repo://frontend/src/lib/components/charts/security-chart.test.ts#L57-L148",
+          "version": "repo-lines-v1:sha256:cd70f85bf4eaa99e5960a6a835cbcb8941dd503fa36190c2d8455b865dbfd49b:eyJzZWxlY3RlZExpbmVDb3VudCI6OTIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjdiYjFlYzQ4YzY1NTYxMDNjNDBkOTVmY2VmNTVjZDBjMjE2NmE3YzViMjIzMjcyOTVhODAyMTY3OGRlNzA4ZTEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImY2ZjViNDBiMTU4NDU3ZDE3ODY0ZjIxNzkwNzg2ZGQ1YTJlY2RiNjRiNjZhNjUxZjc4OGQ0ZTI1Y2QzMzAzZDIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjQ4ODQ0NTIyOWI0YjUxNGVjNjdmMDg5MjBkOTE1MjJlZmRmM2E4ZGM2ZTkyNDEyNDA4ZWM2ZDBiOWQ2NzI1MTIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjliOGM4ZGUwZjRmNDE0NDlmMmVmNzBjM2M3YjQ0NDk0ODQ2OThmYTUxYmNiMmM4NTcyNzM4MGIzNDExNDExMjEifQ"
         }
       ]
     },
     {
-      "id": "claim_bb2464d9153e4520afd416269260ab81",
-      "statement": "Every drawing plugin suite is expected to exercise four depths — state transitions, the mouse adapter (target mapping, hit radius, snapping hooks, drag versus click), the renderer/canvas draw calls and pixel-ratio scaling, and primitive integration (attached/detached/destroy, updateAllViews, cursor via hitTest, future projection) — and the rewind feature is covered at three levels: pure helpers, the timeline component, and the page's 'Rewind Save Snapshot' and 'Rewind Scrub and Drawing Restore' suites.",
+      "id": "claim_22bfaff36dab42f3b13e2de0fbd58a3d",
+      "statement": "SecurityPageDataService (page-data.svelte.ts) owns the post-navigation data wave: load(securityId) fetches getSecurity and getPrices for a 1d window with getChartDateWindow in parallel, guards against a stale in-flight load clobbering a newer soft navigation with a private loadSeq, never throws (it returns the caught error so the page can route a 401 through redirectOn401), and treats a missing or empty price items array as a successful load whose message lands in error; the page's per-security $effect resets tool state, timeframeError and pagination, awaits that load, and renders an instant titlebar from the default watchlist plus a Loading chart data placeholder until the chart module resolves.",
       "evidence": [
         {
-          "resource": "repo://frontend/AGENTS.md#L222-L234",
-          "version": "repo-lines-v1:sha256:d7a3b80e95c8d95c9df058b2a3e322f9817907766725ff4ae7903438a9df102b:eyJzZWxlY3RlZExpbmVDb3VudCI6MTMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImFlYmMwMGU3YTY2NWM1NDUyOTQ1MzU4OWE0Yjc0N2NhYTQ2NjYzMDI4NjgzYWJkYTgwNmI0ZDNiYzY0Y2I5YTAiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjVhYzE1MWFhZDRjYzc1NTE3MjBiYzNiMmUyYjhkOGY0NWE3ZjRkZjYzODg5ZDI3YTQ0NzY2YTVmZTQyYjQyNjEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImEzY2YxNTZiZWM0M2JkMjUzZDRkNGZlZmIyOTc4YmEyODRiNzlkNWJhNTk2MGQ3MDgxYjgzZjk1NDFhYzMzMzEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjA4ZDU0ZTBlNTQ0NDlmMjQxZjEyMzBjYWIyMjc5ZDVjNTBmZTkzZTZjYzQ4OTE2MDI3ZmRiNzcyMjY1MWJhNGYifQ"
+          "resource": "repo://frontend/src/routes/security/%5Bsecurity_id%5D/%2Bpage.svelte#L686-L773",
+          "version": "repo-lines-v1:sha256:61148400c36668305bb147fecc6a1d99d1b75f268752dda0511492f4b1030eb3:eyJzZWxlY3RlZExpbmVDb3VudCI6ODgsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImYwNjY4OGFjNGJhOTQ3NTM2NDgwMzk5ODNhYWFjOWM3ZjU5ZjRkOGU1NzA0MjM4ZDQ4ODNlYjgyMjM0NmZhYzAiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjBhNzM0OTJkODk0NmIxZDBmOWQ5YzA0YjcwNGE5MjBmMjRmODllZjdjN2Y3MzExYTg1OTlkMTBjN2Y2MzU4ZDAiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjIyZjJmZjVmZWVjNjBmNTg3YzhmYWU0ZTg3ZjgwOWE2NjFjZmZlZDZiNDdhYWU1ZjZkNmEyNjUzYWE4OTUyZWYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjAxMDhkNmM3MTRkNWQ1NWM1ZDk2Y2E2ZTExM2I3MGM4ZTRhYTM3OTk0MTUyYzI2MTk3ZWMzMDJmMjg1N2FkOWUifQ"
         },
         {
-          "resource": "repo://frontend/src/lib/components/charts/plugins/elliott-wave/elliott-wave.test.ts#L180-L181",
-          "version": "repo-lines-v1:sha256:a9e42cfbffaed09bddd52685deda8fda9f4541d2d18038e77ea6f0002fb0aca7:eyJzZWxlY3RlZExpbmVDb3VudCI6MiwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiZmVmOTE1OWJiZWZkZjliMDg5NWFhMzY4OGNhNDVkMDJmZThjNDQxZGY0ZWY1NGNiOWQ4NjNlMGM1OTIyMmEzZCIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiMzM0YjE4NTExY2EyY2E0MTUwM2I5ZmY5N2JjNTc1ZjcwMGQzOGY1MTI1MDk3NzE2YWIzY2UxODc2NzU4YWIzZCIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiNTdmY2I2NjFlODhiZDRmMGJkYWYwMTM0OTYxZDliMjkxZDIyMWFkODNhNzJjZGQxYTdlNTExZWYxNjI3MmRjNSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiY2EwZjZmNjFhMzY0MzhjZThmMTg0YmE0OWE3ZmIxMDRmNGI4MGVkOTMzMTBjMmM0MGVkYzdjY2NjODcwNmUwYyJ9"
+          "resource": "repo://frontend/src/routes/security/%5Bsecurity_id%5D/page-data.svelte.ts#L29-L68",
+          "version": "repo-lines-v1:sha256:a033dc0e5931dafa89d8a446be8e892d4be7cb7b4824da69ffbb1df6b3b2988d:eyJzZWxlY3RlZExpbmVDb3VudCI6NDAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImViZmRlNjRjNjg1YzAwYmRmYTEwNTg4YjRmMzQ4ODliOTcxZGY0NWZiNGFlZjk3YzY1YTc2NGQ2Yzk1ZjFhMTQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjY3Y2RhODJkYTYwNjIzOGUwNWU2MjM5OTU2OWM1ZWUwMzk5MzQxOTY0OGFlNWQ0M2EyYmY4Y2Q2MzQ3ZjgyNjMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImY0MzIzYzMyMGYzNzI4Mzg2ZTdjOWQ4NmEwYTM1YWRkNDViM2Q2MmZmMjlkODFiZGQwMTJlMjA3NDEyYmFlNzQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjoxLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjQxMmNhMzQ1Y2NmNzViZjljMDgwNmJjZTY5NWJlOGRlODA4Yjc5OTg0MjUxYTdhNTRkMjAyY2Y2MTAxZGQ0NTEifQ"
         },
         {
-          "resource": "repo://frontend/src/lib/components/charts/rewind-timeline.test.ts#L14-L14",
-          "version": "repo-lines-v1:sha256:440ea8be51658b245a118be90cbc95a6df8741f6735b4165880e87fbf75a8e87:eyJzZWxlY3RlZExpbmVDb3VudCI6MSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiNDQwZWE4YmU1MTY1OGIyNDVhMTE4YmU5MGNiYzk1YTZkZjg3NDFmNjczNWI0MTY1ODgwZTg3ZmJmNzVhOGU4NyIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNDQwZWE4YmU1MTY1OGIyNDVhMTE4YmU5MGNiYzk1YTZkZjg3NDFmNjczNWI0MTY1ODgwZTg3ZmJmNzVhOGU4NyIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiNDA2Y2MwZDMxYzk5Njk2YjBhMzIxYzc5ZTQzNmM2Mjc1NTJmZDIwZTg1MzlhN2FlZGVjODdkM2RlODNjMzRiYSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiZDk5ZDIyMmNjODg3ZGE2Zjk1YWM4ZjcwY2JiNmI2ODU4ZTdhMjYzMjZiOWQ3ZThmNDNiMzlhN2NmZDBlZjgyMyJ9"
+          "resource": "repo://frontend/src/routes/security/%5Bsecurity_id%5D/page.svelte.test.ts#L5231-L5251",
+          "version": "repo-lines-v1:sha256:cd52bafb08605f82b49b4eb6e1f83b0ca84335cc66e54cb25f7e09c55c16f91b:eyJzZWxlY3RlZExpbmVDb3VudCI6MjEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjE1OGY4NDAxYzgwMjViNTUzYjJjYmY4NTFhMzc5YjhhMTE1ODVjNDAzZjY4YzBmZjFiODFlY2E3NDNlMzcwYjQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjBhNzM0OTJkODk0NmIxZDBmOWQ5YzA0YjcwNGE5MjBmMjRmODllZjdjN2Y3MzExYTg1OTlkMTBjN2Y2MzU4ZDAiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjYxNzI1MWNiYzg4NzA1OWI3OWRiOGNhMjA0ZGU3MGQ1ZTIwM2UzMzJmOGE5ZThjMDBmZjU5MThmZjdlYmJiYzYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImJiNTg0ODkxYWU5NGU1NDA3ZDMxYWFiNTlhOGRmNTE3MThhNWRmOWZjZjhmNGM4MzUxNjM1ZWQ0NTc3YWMyYmIifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_e7dbb554e9384509b8c08c4c8e15fac2",
+      "statement": "The pure pane-layout module owns the whole distribution: computeDefaultPaneScaleMargins reproduces the legacy margins exactly (main 0.1/0.1 with no oscillators or volume; volume 0.7/0 and main 0.1/0.35 for volume only; per-oscillator height 0.25/0.18/0.14 by active count with a 0.02 gap and a main-area floor of 0.3, with volume taking the bottom 25% of the main area), computePaneScaleMargins returns those defaults byte-for-byte whenever no custom height applies to a present pane, and with custom heights distributePaneHeights allocates 1 - TOP_MARGIN - BOTTOM_MARGIN - (n-1) * PANE_GAP across panes weighted by the custom height or derived default, clamped to [MIN_PANE_FRACTION 0.08, MAX_PANE_FRACTION 0.8] by a water-filling allocatePaneHeights that pins out-of-bounds panes and redistributes the remainder.",
+      "evidence": [
+        {
+          "resource": "repo://frontend/src/lib/chart/indicator-pane-layout.test.ts#L35-L88",
+          "version": "repo-lines-v1:sha256:8b6453326ad692538460c2e3000d6ccc2d450324241bd4dee2680a3b372451ac:eyJzZWxlY3RlZExpbmVDb3VudCI6NTQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjJmN2FlNGRiMWMyNTRhZjc0ODk1ZjE3NGFmYzdhMTJjOGYwMjcyMjk2ZDEyOTdiODE5ZGYwMmNmZjFjZWY0N2YiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjBhNzM0OTJkODk0NmIxZDBmOWQ5YzA0YjcwNGE5MjBmMjRmODllZjdjN2Y3MzExYTg1OTlkMTBjN2Y2MzU4ZDAiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImYyOTY0MDc5YzNjNWM4MTUyMGVmMzNhMmI5ZDJlMTVhMWI4NGQ3MjgwZGI4NTkwZGNkNjU3NDdlM2UwMTJhNDAiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUyMjY2ODZhZjg0OWZmOWU0OTc5YTZjY2UzYmVkMGY2N2JlZWNmYmRkMmFhOWFlNTc5ZjE2M2RjZjZjZjZlZTgifQ"
         },
         {
-          "resource": "repo://frontend/src/routes/security/%5Bsecurity_id%5D/page.svelte.test.ts#L2132-L2132",
-          "version": "repo-lines-v1:sha256:5df9feed336a06cbc45ff1ae5bb8c7050a225155a8972ceedd98c944812a0bfb:eyJzZWxlY3RlZExpbmVDb3VudCI6MSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiNWRmOWZlZWQzMzZhMDZjYmM0NWZmMWFlNWJiOGM3MDUwYTIyNTE1NWE4OTcyY2VlZGQ5OGM5NDQ4MTJhMGJmYiIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNWRmOWZlZWQzMzZhMDZjYmM0NWZmMWFlNWJiOGM3MDUwYTIyNTE1NWE4OTcyY2VlZGQ5OGM5NDQ4MTJhMGJmYiIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiMTEyNDNmY2U3Zjg1Y2U3MDNmNmQ3ZDVmODRlNTU5MDRiZjA3OGFmNzI3MzEzMGE0MGZhMjkxYmQ4NTAwMTMxMSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiOTMwNzM2MzQxMTQxMmU4NzUxNGMyZWQ0MWJmZWMzN2M4NWI0ZDdjZTM2M2EwZmJlZTA2NWMzMTdhY2VlOGU1ZSJ9"
+          "resource": "repo://frontend/src/lib/chart/indicator-pane-layout.ts#L129-L209",
+          "version": "repo-lines-v1:sha256:c2b48fcf0c5612c8da9317bae5e602dd941a9264046007e9ca12ca6526c8f970:eyJzZWxlY3RlZExpbmVDb3VudCI6ODEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjEwMzA1ZDI4ZjQ0MGVjOTVjYjgyNTMyMmZkMjBhMWM2YTg4MjllZTA0ODNlYmI0OTdkOTI4NjAwNjc0OWNhZjAiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQxMmNhMzQ1Y2NmNzViZjljMDgwNmJjZTY5NWJlOGRlODA4Yjc5OTg0MjUxYTdhNTRkMjAyY2Y2MTAxZGQ0NTEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjE3OTczZmVmYjljZjUyMjY2ZDVkOWNiZWU4YjhiODQ0NzBhNzhiYjFjNDlkMDc4MGI4OGYxNzI3NGExMjI2ZTkiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImNiZjFkNDMxYzY2N2Q4MGM3M2RlZDE2MjkzYzAxZTQ2ZThmNWRlZDZmYTZmMmU2OTYyNmVkYzdjNmY3NDA0NTIifQ"
         },
         {
-          "resource": "repo://frontend/src/routes/security/%5Bsecurity_id%5D/page.svelte.test.ts#L2610-L2610",
-          "version": "repo-lines-v1:sha256:a0a3501793f333017fd87cb1fd49c7b76c9479df7f4c5a4ab497aa3a07bfd4bf:eyJzZWxlY3RlZExpbmVDb3VudCI6MSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiYTBhMzUwMTc5M2YzMzMwMTdmZDg3Y2IxZmQ0OWM3Yjc2Yzk0NzlkZjdmNGM1YTRhYjQ5N2FhM2EwN2JmZDRiZiIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiYTBhMzUwMTc5M2YzMzMwMTdmZDg3Y2IxZmQ0OWM3Yjc2Yzk0NzlkZjdmNGM1YTRhYjQ5N2FhM2EwN2JmZDRiZiIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiMTEyNDNmY2U3Zjg1Y2U3MDNmNmQ3ZDVmODRlNTU5MDRiZjA3OGFmNzI3MzEzMGE0MGZhMjkxYmQ4NTAwMTMxMSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiOTMwNzM2MzQxMTQxMmU4NzUxNGMyZWQ0MWJmZWMzN2M4NWI0ZDdjZTM2M2EwZmJlZTA2NWMzMTdhY2VlOGU1ZSJ9"
+          "resource": "repo://frontend/src/lib/chart/indicator-pane-layout.ts#L27-L50",
+          "version": "repo-lines-v1:sha256:1426da6a5ae67c3e05db48c9a9f577b5a2a5f881b9abe7966b91c5f2a68b8372:eyJzZWxlY3RlZExpbmVDb3VudCI6MjQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImUzOTk2MjJjZWZlZWNhMzU2MDdjZGEzZGQ0ODUwYThjY2JkNDBmM2E5OTU0MzhiZjVlYzA0ZjhlNDdlZGVhMmYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImY2ZjViNDBiMTU4NDU3ZDE3ODY0ZjIxNzkwNzg2ZGQ1YTJlY2RiNjRiNjZhNjUxZjc4OGQ0ZTI1Y2QzMzAzZDIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjE4N2E0YTk1OTg1MDliNzg5NDRmNmEzZjBiMGNiMzk2ZmUzZTQ4ODcxMTE5NjdjYjAxZmQwYmY2N2Y1YTA3YmIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6Ijg5OTZmZmU0OTBhMTkyNjgzMDVmMjU3NGRhYjFlNDIwODdiMDYxYTZiYTFmOWMxM2EwMDgwZTA1ODZiMWVjNWIifQ"
+        },
+        {
+          "resource": "repo://frontend/src/lib/chart/indicator-pane-layout.ts#L66-L110",
+          "version": "repo-lines-v1:sha256:242c145db794d63f60dc79425cce8681053015cab3dfa611bcf8beb096cff52e:eyJzZWxlY3RlZExpbmVDb3VudCI6NDUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjFmNDM4ZDRkNWM1YzZmZThhZDM5NTNiNmQ3NzY5MDAyZDZjMzU1NTk5NWE3ZGJiMmViMDYzYmQwZTg5MzljZmUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQxMmNhMzQ1Y2NmNzViZjljMDgwNmJjZTY5NWJlOGRlODA4Yjc5OTg0MjUxYTdhNTRkMjAyY2Y2MTAxZGQ0NTEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjA3YzUyYjk0MmQwMGYyMGRiMDQzMjBlZGRiZGNmMzFlODAxYjk3YzEyZGE1OGMwYmJjYzMwNDlkMzU0YzY5YzkiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImJkNmNlODJkODE0OGNiMzQyZmIxODY3M2M1MmQ1NThmMWIwNTM3YjhkMmMwZmMzYWMxMzUxOTQ1ZmM4MjU4ZjkifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_c19b1f6ac5e4478e84bbe06e0aec3597",
+      "statement": "Custom pane heights are interactive in the chart component: it renders one absolutely-positioned resize handle per adjacent pane pair (data-testid pane-resize-handle-<upper>-<lower>) at the boundary between the two margins, a pointer drag converts the vertical delta into a fraction moved between the two panes while preserving their sum and clamping both to [MIN_PANE_FRACTION, MAX_PANE_FRACTION] and re-applies the margins on every move, the window-level pointerup/pointercancel fires onPaneHeightsChange exactly once, a Reset pane sizes button appears only while a custom height applies to a present pane, and removeIndicator deletes the removed pane's stored height so re-adding starts from the default.",
+      "evidence": [
+        {
+          "resource": "repo://frontend/src/lib/components/charts/security-chart.svelte#L1399-L1407",
+          "version": "repo-lines-v1:sha256:47f8a66efdbfca3178183ef733d2023657439c8fc4e9d4fa539e9a0313362043:eyJzZWxlY3RlZExpbmVDb3VudCI6OSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiYjlkMDY1ZTczZTkzMzZiNGUwNGY5ZGI0OTgxYWFlOWU4NWZkMDFlOWNlZThhMzdkZDc2NTNmNGY0YzhiMzI4OSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNjdjZGE4MmRhNjA2MjM4ZTA1ZTYyMzk5NTY5YzVlZTAzOTkzNDE5NjQ4YWU1ZDQzYTJiZjhjZDYzNDdmODI2MyIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiNzE0YTE5YmFiMWQ5YWZmZDI0OWYwMWI1NTA0OTBjMDEwNzMyNTRmZWU2ZjVmZGJjMmU1M2RkYTMxZjc0Y2YwYSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiOWI4NjcyMmExZWVkMmEwYzEzNDViOGEyNjA0ODI0YWMyNGExNzQ5ZDMwN2QyMzZhM2UwYjhiZjA3NWJhMGZkMSJ9"
+        },
+        {
+          "resource": "repo://frontend/src/lib/components/charts/security-chart.svelte#L1572-L1597",
+          "version": "repo-lines-v1:sha256:a30332b5eb66bcc780480844901b899b8347f1c2934b697301c184a871ba6e1e:eyJzZWxlY3RlZExpbmVDb3VudCI6MjYsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjM4NDk1NGMzNzNiYmVjZjI1YWQyZDlmNWI2NDg2NTY1MTExMjlmOTRhZjFkOTYwNDlkMTViZmMzODYzZWMwZmYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjA5MDQ4ZjM1YTY2MjZmYmIyMzlkMTVmY2ViOTBkODdmMDU1ZDViNzYyMTMwNzAzMjAzOGI4MzM4ODZjMTRjN2YiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjhlNDFhNTg4YmY5NDA4MWJjYmQ5OGYzNWQ1MmZiYjgxZTVkNDNiNGJhNWQ0OWVhMjZlODNkNzQ0NjY3N2JkNDgiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImNmNDY0NzdmMWI5NDY2ZWFjYTlmODdiYTFjZWY4MTk3ZTk0MGE3OTFjZTM3NWIxYjgzNDA3YTJiOTdmMWZkYzIifQ"
+        },
+        {
+          "resource": "repo://frontend/src/lib/components/charts/security-chart.svelte#L304-L421",
+          "version": "repo-lines-v1:sha256:256aee5dd464ca9017a2ad15b4c9ab9c051f3ddf68af784500c16ade60b3bf38:eyJzZWxlY3RlZExpbmVDb3VudCI6MTE4LCJmaXJzdFNlbGVjdGVkTGluZUhhc2giOiI3ZjcxZDY2NGUzNjM3OGQyYmJjYTI1OTc0NGJhZDBlYjg3MTNkMjRjMTFjYzk2MmE0MzEyNTZhM2Q1YWRmNjc1IiwibGFzdFNlbGVjdGVkTGluZUhhc2giOiI2N2NkYTgyZGE2MDYyMzhlMDVlNjIzOTk1NjljNWVlMDM5OTM0MTk2NDhhZTVkNDNhMmJmOGNkNjM0N2Y4MjYzIiwicHJlY2VkaW5nQ29udGV4dExpbmVDb3VudCI6MywicHJlY2VkaW5nQ29udGV4dEhhc2giOiIwZGEyY2Q4YjY0MDFlYmM5M2VlNTc4MjRmNDhlZmJlMjRjNmE1ODMzOTkxNzg3MGE2YWY2MDRlYzk4NzZjOWRkIiwiZm9sbG93aW5nQ29udGV4dExpbmVDb3VudCI6MywiZm9sbG93aW5nQ29udGV4dEhhc2giOiJmYjc1NGJkMzIxOTJkNDQ0YmJmZGMzYzhjZWYxYjQxOWQxY2FlODAzZTc4NzE2ZWYwMDc1ZGM1NTE5NDZhMmI3In0"
+        },
+        {
+          "resource": "repo://frontend/src/lib/components/charts/security-chart.test.ts#L2310-L2441",
+          "version": "repo-lines-v1:sha256:42298ef288ec0e9ea64042b168283fdb24c237157cf5902a1f721264b7ee56f9:eyJzZWxlY3RlZExpbmVDb3VudCI6MTMyLCJmaXJzdFNlbGVjdGVkTGluZUhhc2giOiI0MmFiOTk2ZWViZGVjMzA4OTE3ZjZmNDVjOGUwOTBmYzE1ZDA1NzE1YjdlZGMzODE0MTcwNjMzMTNmZDNjYTA2IiwibGFzdFNlbGVjdGVkTGluZUhhc2giOiIwYTczNDkyZDg5NDZiMWQwZjlkOWMwNGI3MDRhOTIwZjI0Zjg5ZWY3YzdmNzMxMWE4NTk5ZDEwYzdmNjM1OGQwIiwicHJlY2VkaW5nQ29udGV4dExpbmVDb3VudCI6MywicHJlY2VkaW5nQ29udGV4dEhhc2giOiJkMTJkODkxNDQ4NzYxZmI2MWE4MTliMDE4ZjNlYWEzMDFmNzU1YjQ2Yzg2NDJjNzI5MzI3NzUwMjg0NTlhMDllIiwiZm9sbG93aW5nQ29udGV4dExpbmVDb3VudCI6MywiZm9sbG93aW5nQ29udGV4dEhhc2giOiJiZjhiYTE4N2NjZTgyNmE1MDdlYzU4YTVlODk0NTRlODdmYmZkMTY2ODI5NzNhMzRmYmUxNjZiNmQwY2FhZDAwIn0"
+        }
+      ]
+    },
+    {
+      "id": "claim_80eaa2d40a5a425d8ccb1b4b2c6e6da2",
+      "statement": "Pane heights persist through the indicator_pane_heights user preference: the page's handlePaneHeightsChange updates local userPreferences and PATCHes the whole key (sending null on reset, because PATCH replaces it), and applySavedPaneHeights restores a stored map by calling chartRef.setPaneHeights behind a setTimeout(..., 100) so the chart ref is bound first, no-oping when the stored map is absent or empty.",
+      "evidence": [
+        {
+          "resource": "repo://frontend/src/lib/api/userPreferencesService.ts#L63-L80",
+          "version": "repo-lines-v1:sha256:aebac163f6422fcf5a66443cbd73ed845c4ef9495d1ff3751869909feb689688:eyJzZWxlY3RlZExpbmVDb3VudCI6MTgsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjljZDMyNGJjZjhhYjc1MjI2ODc5ZTE3YzIyZTYyNDQ2MWUxNGZiNjRiMzEwMjQzZmZjNTQ1NjNkYWYxNzgyNDQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQxMmNhMzQ1Y2NmNzViZjljMDgwNmJjZTY5NWJlOGRlODA4Yjc5OTg0MjUxYTdhNTRkMjAyY2Y2MTAxZGQ0NTEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImFhOTc3ODQyYWRjMmUwOTYzODMzM2Q2NDM4NmFmNzRkZTUwZjg2OGQyYzI2NzVhOWRmNzdhYWI2ZGM1ODcyMGQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImQ3ZDE5MDA5MTZhMjkyOTI1MWY0NDg3N2MyZTRiMjgxNTcyYmY2MGFiM2NlNGQ2YWQyMTFiNTFiOTJkMGZjNDIifQ"
+        },
+        {
+          "resource": "repo://frontend/src/routes/security/%5Bsecurity_id%5D/%2Bpage.svelte#L518-L536",
+          "version": "repo-lines-v1:sha256:8e4bff406d13f683323f1bb2fb2be9c9656ae72112c70b2e5d729dbe1aed3cd0:eyJzZWxlY3RlZExpbmVDb3VudCI6MTksImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjMzNWY4ZjdkYTY0ZWRhNjUzMDY4YWViZDBmMzUxNzJkYzE1NGMzZGQ4MDJlY2U3MzFmMmQ2NWFlN2U2ZTMxYmIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjY3Y2RhODJkYTYwNjIzOGUwNWU2MjM5OTU2OWM1ZWUwMzk5MzQxOTY0OGFlNWQ0M2EyYmY4Y2Q2MzQ3ZjgyNjMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjIyZjJmZjVmZWVjNjBmNTg3YzhmYWU0ZTg3ZjgwOWE2NjFjZmZlZDZiNDdhYWU1ZjZkNmEyNjUzYWE4OTUyZWYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6Ijk1ZTA5MmRjZmUxOGU3OGRmZDlmYjliNjgyNWIxZDU3YTg0YjJmZjQxZGVkMTM1YTZmOWY5ZmIwYmNiM2M5NzkifQ"
+        },
+        {
+          "resource": "repo://frontend/src/routes/security/%5Bsecurity_id%5D/page.svelte.test.ts#L3542-L3604",
+          "version": "repo-lines-v1:sha256:23a7d0d509a1bd5cf0df4a47aea935d579dc4949ddef8bd47f801290a44e08ee:eyJzZWxlY3RlZExpbmVDb3VudCI6NjMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImE4NmJlMjZjNmNjNGJkMTE5OWM4YzAxN2JhMWU5ZGM3ZWJiNmU1NjM0ZTFhMWQ1NDU1NzdhMTU3YzUyYTU0NmEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjBhNzM0OTJkODk0NmIxZDBmOWQ5YzA0YjcwNGE5MjBmMjRmODllZjdjN2Y3MzExYTg1OTlkMTBjN2Y2MzU4ZDAiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjgzNDQ5MDgxOWE0NjA2YWU5MWUwMzQwOTY3N2M1ZWEzNDU5YTY0ZmI1MTI5NDdjMTQwY2U4ODAzNmUxNzY0OGEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjM2YjE1NzI0NzQwOWZkY2QxOTc0MmQzN2FlMzBjNDE5Y2FmZTcwMThiNGFkZDZiNjI2NzIyNGFhYmZjMWEzNmQifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_31e579f21beb40e180dfc720c5413c6e",
+      "statement": "The indicator compute contract is IndicatorsService.computeIndicators posting { interval, chart_style, indicators: IndicatorSpec[], candles?, from_date?, to_date? } to /api/v1/market/securities/{security_id}/indicators/compute and receiving { indicators: Record<string, unknown[]> } keyed by spec id/type, with the page reading res.indicators[id] ?? res.indicators[spec.type] ?? []; buildIndicatorSpec copies the spec id/type and settings plus only the positive numeric fields period, fast, slow, signal and stdDev.",
+      "evidence": [
+        {
+          "resource": "repo://frontend/src/lib/api/indicatorsService.ts#L20-L72",
+          "version": "repo-lines-v1:sha256:e583768dbce42d1fd76ab1a8ce155a9f141707f9dd5e6b88482c357defe7e195:eyJzZWxlY3RlZExpbmVDb3VudCI6NTMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjVjYjUzNGVmNDM1NTEzMTY3MGQzYjJmNTQwOWZmNGFlMWMyNTFlN2VhNWIxYzFmMDVlNTA2M2VjMzY5MmE5MTAiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjY3Y2RhODJkYTYwNjIzOGUwNWU2MjM5OTU2OWM1ZWUwMzk5MzQxOTY0OGFlNWQ0M2EyYmY4Y2Q2MzQ3ZjgyNjMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjdhMzk2ZTBlNWQ1MWFhNGE2ZDJmNjhlOWY2ZGZiYjM2M2EwNzQyM2IyZDg0Zjg4YjllZWEwZTBjMWYwOTQzYzgiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjJkYTcwYmQ4YzgwOTdhMzRkNWNlMjhjNTg0OTBhOWRlZjhjYjc1YjZmMWU0MDUwMjU4MzhiNzYwMjRiNzI2M2UifQ"
+        },
+        {
+          "resource": "repo://frontend/src/routes/security/%5Bsecurity_id%5D/%2Bpage.svelte#L308-L330",
+          "version": "repo-lines-v1:sha256:d659cfb641cb8fc3379ae1458dee43c41802793497003ecf7bb426318b0eef37:eyJzZWxlY3RlZExpbmVDb3VudCI6MjMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjA1OWIyNjIxOTQ3OWNlNTI0MmU3ODNmZDUwNzM2YTI5ZDYyYzAzNjk0MWE0ODgwYzdlM2VlNGQ3M2IxMDEzOGQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjY3Y2RhODJkYTYwNjIzOGUwNWU2MjM5OTU2OWM1ZWUwMzk5MzQxOTY0OGFlNWQ0M2EyYmY4Y2Q2MzQ3ZjgyNjMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImYzMWQ2MjA4OWE1OTI0NzhhYzk5OWIxYWJlYzg5ZDY1ZTY2NTUyOWUxMzU5ZjU1OWI4NWFjYzJkOGFmN2U1ZjQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjMxOTZlYjE3ZWVkZmIxMTcxZDc1ZjJhNmRkOGQ5OGQ0Njc5MzU3M2NjNzhlNDM1YmY2NTI2YmU2ZjQ1NzQ4MTcifQ"
+        },
+        {
+          "resource": "repo://frontend/src/routes/security/%5Bsecurity_id%5D/%2Bpage.svelte#L629-L636",
+          "version": "repo-lines-v1:sha256:2645e7a93cd9256deffe3dc93d5bace392556cacee18c54c83a818423f31de0d:eyJzZWxlY3RlZExpbmVDb3VudCI6OCwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiMTJjNDA0ZmJmNmUwODk0NjUwZWNiNTg2NTAwOWE2NDEyN2M3MGVkMWZkZTUwZmY1NGU1MjBjMjQ3ZGIwMWNhYyIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiMjhlZjkwMTZlZmJiZGVkNDdlMmZmZWY0OTJiMTc4ODVlN2FhZWZjOTQ3MTIyYzg3Y2MyZmYxNGU1ZjIwMTI1OSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiYTVlYWY2ZmJiNWE0Y2E0YzcxMTExOTI3OTAwNDNiMWEzYmVlMWQ1ODM4OThlZDk5YzhlZTc5ZTYwYjg3N2Q2YyIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiYjk5NjViOTU4YTE4MDcxZTk0MDY5MGEwZDVkN2ZhMTk3ZjM5N2E2YjI5YmRhMWVmYTJlZjczZDUxZDAyYjYwOSJ9"
+        }
+      ]
+    },
+    {
+      "id": "claim_1aff7e97909e479388ec77ee2530d469",
+      "statement": "The backend compute route validates the optional date window (422 when from_date exceeds to_date), builds candles from the daily price repository (aggregating to weekly or monthly when asked) or the intraday repository (aggregating to 4h), or uses request.candles verbatim, converts to Heikin-Ashi server-side when chart_style is heikin_ashi, and delegates to the external indicator service (mapping timeouts to 504 and connection errors or 5xx to 503); the IndicatorCache is read and written only when request.candles is absent, because the cache key is security + interval + chart style + a digest of the canonical indicator specs and date window and cannot describe a caller-supplied candle set.",
+      "evidence": [
+        {
+          "resource": "repo://src/market/cache.py#L52-L122",
+          "version": "repo-lines-v1:sha256:5ba4f26436cb42ae31f9e0c408973edf67831bbff9631ac7a8f15687972edadc:eyJzZWxlY3RlZExpbmVDb3VudCI6NzEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImQxNzcyYzMyODI1Yjg1YjY1Njc2YmU2ODBkMTkzNzNmMjhjYzI5N2FmNzQ5NWZlYmI5MTM5MjhjMjZkNTE2NDEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjA5OGJmZWQyOWQ3OTE1ZjE3NjY0MDFmYjEwMTA3OThiYTE2N2NkNWMxMWIxM2RmYzUzZjVhMTZjZDg5Y2FlYjUiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImYxZWZlODljODUwMWQzZDJjNmUwNTVmNTE3ZWIyYmYyZmFiZDMxMDc4OWU4NThiMWRmZTQyMTkyN2NiYmFjYzAiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImU1NTdkYzZhOGFhMzU0NmU1MDYyNzM0NzMxN2ZmZDdlMzliODQ1MWEzODMyYTNhMTBmZTljMzVmMWFkYjkxZDQifQ"
+        },
+        {
+          "resource": "repo://src/market/router.py#L867-L1011",
+          "version": "repo-lines-v1:sha256:e6180903a276304a2a9bdf02b709a439728de04528884bb129c84ecae5da71f0:eyJzZWxlY3RlZExpbmVDb3VudCI6MTQ1LCJmaXJzdFNlbGVjdGVkTGluZUhhc2giOiJlMmRkNDJjNjU3ZjdjNmI2MTk2YmZjOTJkZDQ5OTA2ZWY1YTlmNmI3Y2E0Y2IyOWFmOWFmN2MxZDIwZGIwMGFiIiwibGFzdFNlbGVjdGVkTGluZUhhc2giOiI3MjA4NTMyOTEwY2ZjZWZlNTg3MDNkNDM0NDVhOWMyMDJiMTI0ODc3MmYxNmVmNWExNjMwZTYyZjI1ZGYwMjc0IiwicHJlY2VkaW5nQ29udGV4dExpbmVDb3VudCI6MywicHJlY2VkaW5nQ29udGV4dEhhc2giOiJkNzIyMzEwNmZkODc0MmI3MGVhMjMzZjlkYzM1OWY0YjAyYmJiMDY5YjcyODNlZWY3NjI0OTk1MTZiZDdiOWM4IiwiZm9sbG93aW5nQ29udGV4dExpbmVDb3VudCI6MywiZm9sbG93aW5nQ29udGV4dEhhc2giOiJmZjAyOWFiMDI1OWYzOTdiZGVmMzIyYmM1YjRiOTg5MDI5OWU1NDJlOTMzMjJjYjc0NzNkYTgyM2FkZjZiZjYyIn0"
+        },
+        {
+          "resource": "repo://src/market/service.py#L414-L468",
+          "version": "repo-lines-v1:sha256:784fbabd96e154b8b633aebc511ccbe06cc09ec95047eac609c6417edfd97365:eyJzZWxlY3RlZExpbmVDb3VudCI6NTUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjlkYjIxMmE3NzE3YWQ0NTY5NzdiOTExMTFmYjAwZTdmNjFlYjhkNDY4YzIxZjQyZDMwZjgzZTc3OGFhZjVlNzgiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjhjMjVlM2FlYzFiMTNmOTBhMzhjYjJjY2NiZjlkZjgzYmM1ZmU2NjAyODE3OTJlYzczMDc0MjcwMjMwYzcyYjYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjE1MGFkODJkN2E1YzI5NmZmMjdjYWVmZWY3N2MyOGFkYmFjZWZiNGQwMjU5ZDE4ZmFmNDc5ZDY4MmUyZTM2YjIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImY4ZjM3OGE3MWNlNTk3M2JmNGYwYWFjZjE1YWYyN2IxNGJjZjJkOGM0ZGVjNDViOGFkY2JjMDUxN2E2MWYwOTgifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_80e6eab5d94e412ba4311fc33f1ae7a3",
+      "statement": "Indicator responses are guarded against out-of-order arrival on two paths: the bulk refreshActiveIndicators stamps a monotonic sequenceCounter into indicatorSeq for every enabled indicator and accepts each response entry only while that indicator is still enabled and its stored sequence matches, while the single onIndicatorToggle stamps one id and accepts only if the sequence, the enabled flag and the chart ref still agree; disabling an indicator bumps its sequence so an in-flight response cannot resurrect it, and isLoadingIndicators is only cleared by the newest request.",
+      "evidence": [
+        {
+          "resource": "repo://frontend/src/routes/security/%5Bsecurity_id%5D/%2Bpage.svelte#L347-L424",
+          "version": "repo-lines-v1:sha256:96ca510bc3a60e9b88fb7c7fc97cf53b5fbcd37274dbd574daf44e5a932f7d1d:eyJzZWxlY3RlZExpbmVDb3VudCI6NzgsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImQzNzk1MmFiYmY3YjVlNWRlMWVkNDEwNjJjODQ5ZWIyZmNlOWViNzA4MmFmZWI0OTRiZTZmMTRiYTI0MDgwMmQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjY3Y2RhODJkYTYwNjIzOGUwNWU2MjM5OTU2OWM1ZWUwMzk5MzQxOTY0OGFlNWQ0M2EyYmY4Y2Q2MzQ3ZjgyNjMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImEwYTg3NTZhOThiOTVlZTU3NWJlZWU0NjAwNDhjN2ZjOTdhNjdhZDRkZDE1NWFjMWE4NTk3ZWM2NWM0ZmEyODAiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6Ijg0ZTYyNDNhYjM0MTNlYTc3YmQ3NDgwODMyYzhjMTJlMDgyYjIzZTNjMDMzYzQyNmQ5YjIzNDBlMTQ3YmQ3OTEifQ"
+        },
+        {
+          "resource": "repo://frontend/src/routes/security/%5Bsecurity_id%5D/%2Bpage.svelte#L572-L644",
+          "version": "repo-lines-v1:sha256:64c63d81e166a3b491b900eed195923e455c38758448cf50341dd96f40f8def6:eyJzZWxlY3RlZExpbmVDb3VudCI6NzMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjZjZjdhZmQyMDFiZmU2Y2Y3NTQ3N2YwMDgxNjRmMTFmMjEzYmE0MjYzMDdkZjAxYWFmZjlhMTI1MTE4MTA3ZTQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjY3Y2RhODJkYTYwNjIzOGUwNWU2MjM5OTU2OWM1ZWUwMzk5MzQxOTY0OGFlNWQ0M2EyYmY4Y2Q2MzQ3ZjgyNjMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjIyZjJmZjVmZWVjNjBmNTg3YzhmYWU0ZTg3ZjgwOWE2NjFjZmZlZDZiNDdhYWU1ZjZkNmEyNjUzYWE4OTUyZWYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjAyNTI4ZTY5MTM0MTA2MjQ1OWQxZDZkMzkwYTVjNTNlYzQwMzBjYmU0NmVhZDMwZmM4OTY3NjM5NzE5OWY1NjAifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_866ea68dca014489b4eadcb20fbe997e",
+      "statement": "chart-settings-modal.svelte has three sections (general, waves, fibonacci) that each hold local draft state resynced from props through serialized JSON.stringify keys (to avoid spurious resyncs from $state proxies): general persists the hide-labels toggle, waves validates the per-degree wave-3/wave-5 percentages and blocks the save on non-numeric, non-finite or negative input before persisting wave_settings, and the fibonacci section is disabled whenever the page reports no active drawing; the modal opens from the toolbar settings button or Cmd/Ctrl+, which ChartDrawingsService.handleKeyDown routes to onChartSettingsOpen.",
+      "evidence": [
+        {
+          "resource": "repo://frontend/src/lib/components/charts/chart-settings-modal.svelte#L135-L205",
+          "version": "repo-lines-v1:sha256:1986516b8de6374d3344595491b4d34b44e22d114803da4d29d98e7be1e64820:eyJzZWxlY3RlZExpbmVDb3VudCI6NzEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ0YjY2YTg5YjYyOGIxOWQ4MjhhMWJmNWUwZmQzOTg5YmQxZGMzYTNiYjg1ZjYzN2FmMGU0NzkyZDIyOGQzZmUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjY3Y2RhODJkYTYwNjIzOGUwNWU2MjM5OTU2OWM1ZWUwMzk5MzQxOTY0OGFlNWQ0M2EyYmY4Y2Q2MzQ3ZjgyNjMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImYxOGEzYzVmZjA4ZGQ3OTYwMDllNjFlNjY1NzU2YzVhNTY3YTkyYTUxZTg2NGQ1MzkxOTE1NzcxNDZjNGRlMWIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImYxYzdmNTVjOTc5MjEwZjBkYTZhZDA2YWU1MTI3NTczYzc1MTE0MjljY2RkOWFmNjMxNzk1MGU2NGQ4NzNiMGUifQ"
+        },
+        {
+          "resource": "repo://frontend/src/lib/components/charts/chart-settings-modal.svelte#L67-L96",
+          "version": "repo-lines-v1:sha256:986b50b34f9f82f35a6804f75e4bf340ca31ec7d05be8f64c64031f1c1e8f9a1:eyJzZWxlY3RlZExpbmVDb3VudCI6MzAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjFkNDU0YzAyM2Y2YzNkY2Y4NTMyNzFhOTkzMWNmZTAxZGYyMDRiZjA4YmJiMDA1NTIzMDMzOGNiZTE1OTlmMmMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjY3Y2RhODJkYTYwNjIzOGUwNWU2MjM5OTU2OWM1ZWUwMzk5MzQxOTY0OGFlNWQ0M2EyYmY4Y2Q2MzQ3ZjgyNjMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjExNjNhZjc5ZWZmZDY4YjEzOGY4ZDA3NjMxZmM0NWJiMjg5NjhiNWJiYjgwMTNiZGIwM2NmMWM0ZTgwNGEzZmIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImU3OGNjYTBhNmMzNWYwYjE2OWVlYWFiYTExYWJlZmQ0N2E5NzkxZGNkODMxZTkwY2M4ZWFkNzY1ZTBjNTEzMTYifQ"
+        },
+        {
+          "resource": "repo://frontend/src/lib/services/ChartDrawingsService.svelte.ts#L1032-L1041",
+          "version": "repo-lines-v1:sha256:5eecf5c4255ace060aa814c90d5443c667f928297456714bd997d8bc7d45b995:eyJzZWxlY3RlZExpbmVDb3VudCI6MTAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjA5ODg1MTJjNWRjMjRiODYxZGIxY2NmMTBhODYwM2IzNjVkNzQyOGU1ZWFhYWEwNGE0OWI1YTQ0YzEwY2NhNDciLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjY0ZWZjNDk0MThkMjZkY2YxMjliMjJhNmFhMjExMDhjZWVjMzc2NzdhMzJkMDhlOWQ1ZmVlMzVkZGE2NmJiOWQiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjU0NmM0NGIxYjU0NmM2ZjY1OGUxMTM2OTE5M2EzMjNiY2M4YjQ1ZWQyZjY5MDBiOGU2ZWE3YWVjNzY1Y2ZkY2YiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjEzNmVhNjE5ZTlkN2ViMDg2MzA4MWM3N2Y1MTM3YTZlNDNmYjdiNTRhNjQ5YWM1NGJhMmI5YzFlZTI2YmE0YTgifQ"
+        },
+        {
+          "resource": "repo://frontend/src/routes/security/%5Bsecurity_id%5D/%2Bpage.svelte#L1005-L1028",
+          "version": "repo-lines-v1:sha256:414711f66b1077a40668b897f1702c60dc5de9bfb8aebe8889ecea3cd42a99ea:eyJzZWxlY3RlZExpbmVDb3VudCI6MjQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImRjN2NhMThjM2EyNWUzYjA1YTA1Y2UzYzNlZGMxOGY5MTdlOTk4MGVlODA2NDhmY2E3NTUyZWRjNTY2MGEyNTUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImI5NTc4MzQ1OTNiN2Y5MjVmYWUxMzA0YTRjZDNkMGY3ODlmOGJkMWFiNjNhYzE4YmQ5YjdiMWRiNzY2YmU3NGYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjgwYTIwYWY3MDUwMmUwOTAwOGU4ZTZlNGVjNDU5MDJkYTQzMDBkMWViZDRmM2FhMDEwNWQxYmNhZGMxNDM3MDkiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImIyY2Y5YmNmZTE5MGFiODRjMWMzMWZiNGJjMzkwOWEyYmU0NDhjMmU0ZmQzMTFiZjlmN2M2MmY1OWVjN2MxN2MifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_b5f01897a50148a7b19b947209ac1426",
+      "statement": "A single hideLabels $effect drives lastValueVisible, priceLineVisible and title across every indicator series group — the MACD histogram/MACD/signal trio, the BB upper/middle/lower trio and any generic single series — using the indicator's configured label and blanking the titles when labels are hidden.",
+      "evidence": [
+        {
+          "resource": "repo://frontend/src/lib/components/charts/security-chart.svelte#L458-L502",
+          "version": "repo-lines-v1:sha256:8c2a0f5db06b7a5a7975ae1a254313605ee6a44471998d1d56277c874e8890d3:eyJzZWxlY3RlZExpbmVDb3VudCI6NDUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjRmZmYwNjMzNDhhMWUxYTMyNTEzZWFjYzAxNmZjMjVjZmZlZjBiNGM5MGJmMGM4ODhlZDU4NTdmMjEzYTMyZGMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjBhNzM0OTJkODk0NmIxZDBmOWQ5YzA0YjcwNGE5MjBmMjRmODllZjdjN2Y3MzExYTg1OTlkMTBjN2Y2MzU4ZDAiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImYxOGEzYzVmZjA4ZGQ3OTYwMDllNjFlNjY1NzU2YzVhNTY3YTkyYTUxZTg2NGQ1MzkxOTE1NzcxNDZjNGRlMWIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjFkMDg4ZTdiZmI5MTc5ODNiNDdhZDI1NzcyNTlmOWVjZDY1NmE5MTE3ZGM1NDI0ZWVlMmVmYzA5YTQ0ZDlhZTkifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_1b02c53f69a844b896dcf10075a48cec",
+      "statement": "The exported updateData(candles) is the imperative replacement path for series data: it sets lastCandlesRef so the candle $effect does not re-apply, grows the whitespace count from the container width, writes the candles plus generated future whitespace, and shows the last 250 bars — but it does not push candles into the drawing primitives.",
+      "evidence": [
+        {
+          "resource": "repo://frontend/src/lib/components/charts/security-chart.svelte#L1126-L1146",
+          "version": "repo-lines-v1:sha256:76215361a0d61540fef5d9d598b4514f90ebdd6ce086fdb0f62a5f689f6bd1fb:eyJzZWxlY3RlZExpbmVDb3VudCI6MjEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjIwM2Y0NTVmMjYyNTNkYTJjMzYwY2U0NDg4ZDdlNTBjODY3OTUxYzI5OTQ3Y2M0MTBiYzcyNTgyN2I5YWNhOWIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjY3Y2RhODJkYTYwNjIzOGUwNWU2MjM5OTU2OWM1ZWUwMzk5MzQxOTY0OGFlNWQ0M2EyYmY4Y2Q2MzQ3ZjgyNjMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjhmNTZlZjM2NWRiMWEyZDdjNTIyOTA1NGIxODkyYjBiMTMxNjExM2YyMGJmYjA2OTBhMTQ1YTUxZjM2MDkwZDYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImIxN2RlM2EyMmZhYTdhZDhmNTIyMDkwMDgwMTc5ZThkNzVjNGZiNjkxYmNjYmM4NmViNzY0MDJiODQzYWQ1YmUifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_a338c850a0fb4cd9b76b7d978f9247c3",
+      "statement": "Pagination is driven from the same visible-logical-range subscription: the chart sets isLoadingMore and calls onLoadMoreData when the range starts at or before bar 10, more history exists and no load is in flight, the page's handleLoadMoreData fetches the older window for the active interval, merges it with mergeCandles (dedupe by String(time), prepend) and sets hasMoreData false when the response is empty or adds no new candles, and an $effect clears isLoadingMore as soon as hasMoreData goes false.",
+      "evidence": [
+        {
+          "resource": "repo://frontend/src/lib/components/charts/security-chart.svelte#L431-L435",
+          "version": "repo-lines-v1:sha256:62b3210e53e7c7f5c4f6d417f880517d128bcf70fdd08648a59c0d094059455f:eyJzZWxlY3RlZExpbmVDb3VudCI6NSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiNGZmZjA2MzM0OGExZTFhMzI1MTNlYWNjMDE2ZmMyNWNmZmVmMGI0YzkwYmYwYzg4OGVkNTg1N2YyMTNhMzJkYyIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiMGE3MzQ5MmQ4OTQ2YjFkMGY5ZDljMDRiNzA0YTkyMGYyNGY4OWVmN2M3ZjczMTFhODU5OWQxMGM3ZjYzNThkMCIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiMjdiYjE4M2QwZTIzZWUyZTMyMTNiMjc4NGRmZDUwNzI5OWMzZTViOGE0OTQ5ZDhiMDI3NjA0NGE4M2ZkZGU0NCIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiOGIxNGU2ZDE5YWE0ZjEwYmNmZjFhZjc2YmZiYmMyNjUwNGYxNWQ5MDU4ZDEwZWRjNWQ5ZjYwYWJjMDQyMGRlOSJ9"
+        },
+        {
+          "resource": "repo://frontend/src/lib/components/charts/security-chart.svelte#L842-L850",
+          "version": "repo-lines-v1:sha256:babdec16882784f1d24e312b8bc0a9957482723d3833d8c40e6c6fe8af52df90:eyJzZWxlY3RlZExpbmVDb3VudCI6OSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiMTgzMTE2MjNlYWZhZmY3YjM3YTk5NjVkNGM3MTAyYjk0YjM1YmM1M2NhZjBhMGQxMmJiYzYzODkxY2Y3ZGUzOCIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNmEyYTNiNzZlMTJjZTE1Mzc5ZDA1ZjI4NjlkYzQ4MzJkZTc1ODkwNTNiNDliZmYyMzdlNDI1YzcyMzc4MDE1NCIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiODdmYzg3OTlkM2E0ZjY0YTc2MzJhOWJhMTNiNzU1NDYyYWRmMDM2Y2JmNWQ5MmQ3ZTgzZmM4MzQ5MDBhMTkxNCIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiZjhlYmI2NmU3ZjVmODhkM2Y4Zjk4MDZmNTRhMWU3YzI2YTY3NGM4OGJlY2Q4ZjAwYzRhM2RiNWJkYzAxNjJkOCJ9"
+        },
+        {
+          "resource": "repo://frontend/src/routes/security/%5Bsecurity_id%5D/%2Bpage.svelte#L231-L294",
+          "version": "repo-lines-v1:sha256:950b0d59fdb99a117cdbf34b5bdcde34e133e6d47160b604f499c00dc1085e93:eyJzZWxlY3RlZExpbmVDb3VudCI6NjQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijg5NzAzMTVlNDA5MzcxZWIxM2JjNTE5YWYyNDRmZjBkYzlmMTM3M2FhZTRmN2RiMDNkNzJiNzcwYTFlOWU0NDciLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjY3Y2RhODJkYTYwNjIzOGUwNWU2MjM5OTU2OWM1ZWUwMzk5MzQxOTY0OGFlNWQ0M2EyYmY4Y2Q2MzQ3ZjgyNjMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjIyZjJmZjVmZWVjNjBmNTg3YzhmYWU0ZTg3ZjgwOWE2NjFjZmZlZDZiNDdhYWU1ZjZkNmEyNjUzYWE4OTUyZWYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImMyZGJkMjQxZGU4MzEwZTAzZDUyYmI5ZTY4ZjI1MjBlNTMwNzRhMzNlZDc3ZGViYjlhZWYwZDlkNjBmNjdlYzkifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_3815579cdbf241c7ade80ec3698b817d",
+      "statement": "A capture-phase, non-passive wheel listener zooms the price scale rather than the time scale: when the pointer x falls inside the price-scale strip (container width minus the price scale width, falling back to 75 px) it prevents default and propagation and scales the price scale's visible range span by 1.025 on scroll down or 0.975 on scroll up around the range mid-point; wheel events over the chart canvas are left alone.",
+      "evidence": [
+        {
+          "resource": "repo://frontend/src/lib/components/charts/security-chart.svelte#L1061-L1094",
+          "version": "repo-lines-v1:sha256:aeb7584df1e8a5d9bdf07985963a89ec7f528cb9a8d7b2d7e2ae427458e6617d:eyJzZWxlY3RlZExpbmVDb3VudCI6MzQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjFhZmZkMTk1ZGUzZGJjMjIzYzFiZTJlNzI5N2IwNDY2ZjEwMmVkYTdmZmE2Y2NjNmMxNjU5MTQ1MzhiN2U3YjQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImZmNjg0MTA4ZmUxYzVlNjQ2NjQzN2Q0ODIxODI1YmVlYWJjY2ZlNjRkNDViYTYwODg5YTUwYTRlYmE4YjY3ZmQiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6Ijk4MTQyNDQxYjNjNjlkMjdlYzAwZDE4MDJkMjI1OTZiYjgzYjIzOGM2NGE3ZDkzMWY5M2RiMjZmOTZlNTIxN2EiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImE2ZDYzMzU1OTFlMmRkODU0MTM5NTY5NjRhMDNlNmRkOGQ3YjFmZjZmN2JkYzRmZjA3NTM0MjVkZGE4YjI5OTEifQ"
+        },
+        {
+          "resource": "repo://frontend/src/lib/components/charts/security-chart.test.ts#L1643-L1743",
+          "version": "repo-lines-v1:sha256:508dc70fbe21c21f35bec733ebd275089baa837777b822120ed6cb20a4779b6c:eyJzZWxlY3RlZExpbmVDb3VudCI6MTAxLCJmaXJzdFNlbGVjdGVkTGluZUhhc2giOiJmYTUxM2ZjYzMwZWZmMTIyM2UwNTQ1YzNlZWVhYWQ5MjY3ZDkwMTY3YWU0NjRlMTNkYWFkNjU1YWU3MTJlMTM1IiwibGFzdFNlbGVjdGVkTGluZUhhc2giOiI2YTJhM2I3NmUxMmNlMTUzNzlkMDVmMjg2OWRjNDgzMmRlNzU4OTA1M2I0OWJmZjIzN2U0MjVjNzIzNzgwMTU0IiwicHJlY2VkaW5nQ29udGV4dExpbmVDb3VudCI6MywicHJlY2VkaW5nQ29udGV4dEhhc2giOiJmYjZiNzA4MWU0NTRkODQzNTBjYmJmMzdhYzNlZTY5Yjg0OGYxMzI1YjhkYTkzNTljNjI2OTg4NTAwZTRjZThmIiwiZm9sbG93aW5nQ29udGV4dExpbmVDb3VudCI6MywiZm9sbG93aW5nQ29udGV4dEhhc2giOiI1NTAxNzk0YTQyMmU3ZmRhZmU2NTE1MGVmNjY2MzVhODc3NDU1MDVmNWZhZjlkMjNmZGZlNTM2ZDg5NTAyZDE3In0"
+        }
+      ]
+    },
+    {
+      "id": "claim_849fe756cb9e400c8bb274d36ad67947",
+      "statement": "sparkline.svelte is a chart-library-free SVG sparkline used by the holdings views: it derives values from plain numbers or Candle.close, builds a Catmull-Rom smoothed line plus a closed area path inside a fixed 0 0 100 height view box with a gradient fill, and colors by an explicit color/isPositive or by first-versus-last trend; it never touches lightweight-charts.",
+      "evidence": [
+        {
+          "resource": "repo://frontend/src/lib/components/charts/sparkline.svelte#L125-L152",
+          "version": "repo-lines-v1:sha256:31c1ad63f9f6c2bf01c4cd3f9049760a06dfb64c67a3a36f780498c48ab41384:eyJzZWxlY3RlZExpbmVDb3VudCI6MjgsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImEyNTI4ODNjNWVlMmIzMWU3YTQxZjlkNTkzZGQ0MmUwYzMwMjZkZWI2MzFhYTBlNzkzNGZiYWEyYWMwYmVlNzMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjA5MDQ4ZjM1YTY2MjZmYmIyMzlkMTVmY2ViOTBkODdmMDU1ZDViNzYyMTMwNzAzMjAzOGI4MzM4ODZjMTRjN2YiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjEyNjg4NTMzMGY4OWQ1MTM5YWIwZTg1MjFlNWM4NWE1OTFlMjZhYTgxZjQ1YTQxYWI0MTlmZTZiZDA1YzMyNWQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjoxLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjkzNTQ2YWEzYzNiNjE5MGViYWYyNDBiODNlNTA2MTBkNTc4ZWMxYjM5MTk5YTJhOGJjNDkyOTQ3YjU4N2ExZGUifQ"
+        },
+        {
+          "resource": "repo://frontend/src/lib/components/charts/sparkline.svelte#L39-L122",
+          "version": "repo-lines-v1:sha256:608714c194019f24595e6691958c8b5f8d77923f8f989733caee4c9ae6812129:eyJzZWxlY3RlZExpbmVDb3VudCI6ODQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAwYTBkODM2MDFkYmU1YzAyZDdlZWFjOTJiOTY5NmRlYzRiNjA0MTI5NWYwOGVlMmNiOTE1Yzg3YWZkMWZlODkiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjBhNzM0OTJkODk0NmIxZDBmOWQ5YzA0YjcwNGE5MjBmMjRmODllZjdjN2Y3MzExYTg1OTlkMTBjN2Y2MzU4ZDAiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImJkNDYyNjA1OGZmMTk5MDkzNjQwOTAyNGNiMWIyOWQ0NGEzZjMyM2QzYzUxYzEyMWZkZWQzYjNhYWQ3YTU4YTQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjdmMTczODZmZDY5ZmYxZjFmNGI2OWFhMDY0OTI3ZTUyNzc2ZTYwZjU5YTI2YzQ4MzY4MTk3ZDI3NDI0NjQ1OTkifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_12379088e0ee4b53842002aba47055e2",
+      "statement": "Charting tests cover the surface at three levels: indicator-pane-layout.test.ts pins the legacy default margins for 0/1/2/3 oscillators and the volume variants, custom-height normalization, min/max clamping and the water-filling allocator; indicator-defaults.test.ts pins the frozen default table, its sidebar key order and copy independence; security-chart.test.ts covers oscillator panes and custom price scales, hideLabels, the price-scale wheel zoom, the drawing pan-lock restore rules, future whitespace and resizable indicator panes; and page.svelte.test.ts plus page.server.test.ts cover async indicator integration, pane-height persistence and the instant-shell load.",
+      "evidence": [
+        {
+          "resource": "repo://frontend/src/lib/chart/indicator-defaults.test.ts#L18-L89",
+          "version": "repo-lines-v1:sha256:bf3736664fb97810a2eb336b6b5872e03304af26cfebb7dbc14f722877422615:eyJzZWxlY3RlZExpbmVDb3VudCI6NzIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImFkZGZhMjE0ZmRlMjBlZWU0ODMzNWIzZjU2MTM0ZDJjNjNhNjEyNDg2YTcwYTNiODMyZTBiMzY0ZDU2OTgwYjMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImY2ZjViNDBiMTU4NDU3ZDE3ODY0ZjIxNzkwNzg2ZGQ1YTJlY2RiNjRiNjZhNjUxZjc4OGQ0ZTI1Y2QzMzAzZDIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImY0M2M4MGQ0YTIxNWE3NDk0NDc2ZDUzNzkwNDliNmEyMzJmZDhlNjYxYTE0NWI0YTE0ZTM5ODAzMzgxZjMyMzIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
+        },
+        {
+          "resource": "repo://frontend/src/lib/chart/indicator-pane-layout.test.ts#L35-L88",
+          "version": "repo-lines-v1:sha256:8b6453326ad692538460c2e3000d6ccc2d450324241bd4dee2680a3b372451ac:eyJzZWxlY3RlZExpbmVDb3VudCI6NTQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjJmN2FlNGRiMWMyNTRhZjc0ODk1ZjE3NGFmYzdhMTJjOGYwMjcyMjk2ZDEyOTdiODE5ZGYwMmNmZjFjZWY0N2YiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjBhNzM0OTJkODk0NmIxZDBmOWQ5YzA0YjcwNGE5MjBmMjRmODllZjdjN2Y3MzExYTg1OTlkMTBjN2Y2MzU4ZDAiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImYyOTY0MDc5YzNjNWM4MTUyMGVmMzNhMmI5ZDJlMTVhMWI4NGQ3MjgwZGI4NTkwZGNkNjU3NDdlM2UwMTJhNDAiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUyMjY2ODZhZjg0OWZmOWU0OTc5YTZjY2UzYmVkMGY2N2JlZWNmYmRkMmFhOWFlNTc5ZjE2M2RjZjZjZjZlZTgifQ"
+        },
+        {
+          "resource": "repo://frontend/src/lib/components/charts/security-chart.test.ts#L2237-L2308",
+          "version": "repo-lines-v1:sha256:16e41e4cd3741fb4d125aeeb1cb943f55ae767e4b0c4f01475973e4fefd51292:eyJzZWxlY3RlZExpbmVDb3VudCI6NzIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImIwMzMzMzE4YzE3Y2I0YzJjNDVlNDliOWNmNTgwNzFkNzNmYTgxMTVmN2RkZTBlZGZlODNjMmYwN2JjZDU5ODEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjBhNzM0OTJkODk0NmIxZDBmOWQ5YzA0YjcwNGE5MjBmMjRmODllZjdjN2Y3MzExYTg1OTlkMTBjN2Y2MzU4ZDAiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjExMjQzZmNlN2Y4NWNlNzAzZjZkN2Q1Zjg0ZTU1OTA0YmYwNzhhZjcyNzMxMzBhNDBmYTI5MWJkODUwMDEzMTEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjE3MjhjMmRlYWIyNTdiZDUyZDE5NTZiMWExN2Q1MWJlNDk0MzI2ZjhmNzEwN2JhZWNmMjJjNWJhODBmZWEwZmUifQ"
+        },
+        {
+          "resource": "repo://frontend/src/routes/security/%5Bsecurity_id%5D/page.server.test.ts#L45-L64",
+          "version": "repo-lines-v1:sha256:bd251b95ccea34c40c5935d618a77a4fd546dcca2e074c4f78678b4f7cb91a6c:eyJzZWxlY3RlZExpbmVDb3VudCI6MjAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjIxMjU2ZDI1ZWFlYmEzNjI4OWQ3NGMzNTg1NTA1YmQ1ZGZiY2U2NTRhMzg1NDU0M2JmYTk4ZTk4OWI5YjM3ZTIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjBhNzM0OTJkODk0NmIxZDBmOWQ5YzA0YjcwNGE5MjBmMjRmODllZjdjN2Y3MzExYTg1OTlkMTBjN2Y2MzU4ZDAiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjQ5ZmI2Zjg0M2IxNzczZGJhNjZiNzI4YjdmMmViNzAxYmE0NzZkNjNlYTBmMGJkMmI1YzQ4OGU1MmYzODM1MWYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImE5ZGJhM2E3N2E1NTdjNWYwNmY2YTMyNDQ4NjU3NGFlNWFjM2MxOWVkNmFiYmY5ZmQ5NzYzMmU2YWQ3MDIyOTYifQ"
+        },
+        {
+          "resource": "repo://frontend/src/routes/security/%5Bsecurity_id%5D/page.svelte.test.ts#L3164-L3252",
+          "version": "repo-lines-v1:sha256:dcbbf9c38162e144f4054eb95216f46c8b8a96211f2fe13fa147740c22bb59d7:eyJzZWxlY3RlZExpbmVDb3VudCI6ODksImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjE1YTcxOTFhZjEwMGMwMmI0ZTJkYjdkY2NmZTQ2YjliYjhkZmYzNGI1ZmQ2YzVlODEyNjk2YzNmMzRiMjdkZWQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjBhNzM0OTJkODk0NmIxZDBmOWQ5YzA0YjcwNGE5MjBmMjRmODllZjdjN2Y3MzExYTg1OTlkMTBjN2Y2MzU4ZDAiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjExMjQzZmNlN2Y4NWNlNzAzZjZkN2Q1Zjg0ZTU1OTA0YmYwNzhhZjcyNzMxMzBhNDBmYTI5MWJkODUwMDEzMTEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImNhNzZiNGJhNzBlMjAzMzJiZjE2NDU0NjIyM2MyNTI5YzUyZDVkNTM5MzM2OGI1NjUzZGRkNTliMzMzZGE4MDkifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_e7ed3f2b70b84e539e09ea26aadeb4a1",
+      "statement": "frontend/AGENTS.md makes mocking mandatory for frontend tests: every API call must be mocked, no test may hit a real backend or perform a real network request, and framework or third-party modules that make network or browser calls (including lightweight-charts) must be mocked, because a test that performs a real fetch or XHR fails on CI and depends on a running backend.",
+      "evidence": [
+        {
+          "resource": "repo://frontend/AGENTS.md#L37-L59",
+          "version": "repo-lines-v1:sha256:a63ea1faf64eb1a8771c4f0525a9fd1302e1f911bddb93fa942c7ff33de48335:eyJzZWxlY3RlZExpbmVDb3VudCI6MjMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjE0M2E5YjFmOWY4ZTdmNGJmMTcwNTE0ZDg2NDEzOWQ0NGYxMjVjMDBkNGEzYjhkODM0MWE3NmQ5ZjI1YjY4YTgiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjA2MzcwYTI1ZGE5OGVjZmViODAzNGVjODdhZTAyMTJhODQyMThmOTAzNDk0MGNlZjZlOWM1MTQ5NjM2MzE0OWUiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjVlZGFiN2Y5MzY4MjE4NTJkMjIwNjYzZjE1NzAxMjJjYjhiNDQ3MTI4OTM2OWY2OWI3MDYyNDViMTQ4OTMyMzEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjYyOWM5YzdhMmRjZjRjMjQwZGU1MTE1Njk1MWY4NzIzODY3NzNiNzBlNmEwMjJjZjliZDNlNjZiZmRhOTgxNDMifQ"
         }
       ]
     }
   ],
   "verification": {
     "by": "openwiki/0.5.2",
-    "at": "2026-09-18T20:16:58.058Z"
+    "at": "2026-09-23T13:18:56.288Z"
   }
 }
