@@ -1,0 +1,846 @@
+{
+  "schemaVersion": 1,
+  "pageVersion": "sha256:cb8c7531b4ba9a56624365572c1ddd78b517659c9f5bd7ea85cbe0b3874ee7f3",
+  "claims": [
+    {
+      "id": "claim_3585c07100e94b8683559dea580757c0",
+      "statement": "The chart drawing system is layered: per-plugin lightweight-charts series primitives under frontend/src/lib/components/charts/plugins/<plugin>/, reusable plumbing in plugins/helpers/, pure math in $lib/utils/finance/, and ChartDrawingsService as the single page-owned orchestrator that persists drawings, owns undo/redo history and saves/loads rewind snapshots.",
+      "evidence": [
+        {
+          "resource": "repo://frontend/AGENTS.md#L169-L181",
+          "version": "repo-lines-v1:sha256:5731aba56ad8dca679b4020494fcdec6d33509fa4373ea0c6b3bbaa91e059718:eyJzZWxlY3RlZExpbmVDb3VudCI6MTMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjdiNTk0MmM4ZTIzMjIxNjQzMGEyOTI2NTg0YjlmNTYxNmVlNGJiN2I4YTU3YzU2OTZhNTFmM2YzZWEwZWJiNGYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImFmOTY3N2EzMjg0Y2ZlNGE5YWYwNGI2ZmI1NjExYmU0NDVkMzgxMDYwNGI4NmYzZTA5YWQ3ZTMwMmE5Nzc1NzMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImIxNGRkYmI1ZjhmYmFhY2M0MGU5MDA4ODFjM2UzMGQyM2M1YThiNGRkNDcxZGM1MjExYTM0YmU1M2UzZWRiMTAiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjExOWVmMjFhNzkzYjJiYTBiYmYxM2Y1YzU2MzUwYWMyYjA4MmFmMGFkOTMzYzhlZjM4NTg5YTQ2NjgxMGJlODMifQ"
+        },
+        {
+          "resource": "repo://frontend/src/lib/services/ChartDrawingsService.svelte.ts#L120-L130",
+          "version": "repo-lines-v1:sha256:4b263bdbf6b57e2fc4e824053175939ac4dd4acbd023e6b6bba2b16603da4bce:eyJzZWxlY3RlZExpbmVDb3VudCI6MTEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImY5ZTgyZTBkYzM1YzU4NmRlMzYwZmQ1NmM1YjdhMmIyYzIzZTZkNTI5NDgwMzMxZmRkYzAwOGFiMDI4YmViMjMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAxYmE0NzE5YzgwYjZmZTkxMWIwOTFhN2MwNTEyNGI2NGVlZWNlOTY0ZTA5YzA1OGVmOGY5ODA1ZGFjYTU0NmIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjliZThjYzg0NThkMDgyMzEzM2IyNzA0ZWNjNzlkMGU3OTMwZTU1Mzg3YTIzMjJmNDdiOWVmNjgzZTBmNjdjNDkiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjI1NGY3M2I0ZTMyYjQ2OGIyNWI4ZjMxODU2YmM5MTE1ZTMxOThhZTYzNTkxMWRmZGUxZTEyZmVhMTVkMjE4ZWEifQ"
+        },
+        {
+          "resource": "repo://frontend/src/lib/utils/finance/drawings.ts#L1-L60",
+          "version": "repo-lines-v1:sha256:708e1bf7ef462a1c54ef7765ee6687e10dff96dc99154633ca566dc9160bda86:eyJzZWxlY3RlZExpbmVDb3VudCI6NjAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImU4MDMzZGRlNzhkY2Q1YzZkNjYwOTIwZWNhMzQ3N2RiOWQ2MDUxZDQxNmQ1MjQ3OWIxM2NjZmViZGI0NTEwOGIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjE5NGE4ZTU1YmE0ZGQzOTQ3ZjU4NjIxZjE0NGYyZmM3MGM5NzA2MWM5YzBmODg1OWMzNWY4ZmIyNzE0ZWM5YjIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjowLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjgwMzkzMDFhNjZiYWNhZGE0NTRiYWU2YTYzYzNmM2YyYmM4MjIwMzc5YTI2YWE5NjhkNmI4ZmEwNTk4NTk2ZDUifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_566e7ea5e8fc4a8b94a17f5534dd02ab",
+      "statement": "Each drawing tool occupies its own plugins/<name>/ directory with the same responsibility split — state.ts (domain state + delegates), mouse.ts (adapter over ChartMouseHandlers), pane-renderer.ts (canvas drawing inside the bitmap coordinate space), pane-view.ts (renderer holder + zOrder), constants.ts (visual constants) and index.ts (barrel) — except user-price-alerts/, which additionally carries irenderer-data.ts, renderer-base.ts and price-scale-pane-renderer.ts and has no index.ts barrel. The primitive file name is not uniform: elliott-wave/elliott-wave.ts, fibonacci/fibonacci-primitive.ts, and <tool>-primitive.ts for measure, horizontal-line and free-form-line.",
+      "evidence": [
+        {
+          "resource": "repo://frontend/AGENTS.md#L169-L190",
+          "version": "repo-lines-v1:sha256:3e64613caf77f1789f8e767979a85b1507cb3dd9e0ce57c1038e646e4529c969:eyJzZWxlY3RlZExpbmVDb3VudCI6MjIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjdiNTk0MmM4ZTIzMjIxNjQzMGEyOTI2NTg0YjlmNTYxNmVlNGJiN2I4YTU3YzU2OTZhNTFmM2YzZWEwZWJiNGYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImM5MTg4MmU5YWY2ZjZmMzhkYzRhYTFkMGFkOWY3OGRhYzY1YzRiMWU2MTU4ODJlZGY3MTA3NWVmYTkzYmM5MTEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImIxNGRkYmI1ZjhmYmFhY2M0MGU5MDA4ODFjM2UzMGQyM2M1YThiNGRkNDcxZGM1MjExYTM0YmU1M2UzZWRiMTAiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjA2N2NjNDEwMzcxNjhkOTA5NjRhMTJkZjgyYjNjZTNkOWVlYzJhZjJjZjUzOGNkZDczZTFiY2MwZjQzOTQ4ODQifQ"
+        },
+        {
+          "resource": "repo://frontend/src/lib/components/charts/plugins/measure/measure-primitive.ts#L1-L60",
+          "version": "repo-lines-v1:sha256:d71cbee12020e97f1e9ba812d85d9ad9614308c17560a6da33cf30b00ad52512:eyJzZWxlY3RlZExpbmVDb3VudCI6NjAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImU4MDMzZGRlNzhkY2Q1YzZkNjYwOTIwZWNhMzQ3N2RiOWQ2MDUxZDQxNmQ1MjQ3OWIxM2NjZmViZGI0NTEwOGIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAxYmE0NzE5YzgwYjZmZTkxMWIwOTFhN2MwNTEyNGI2NGVlZWNlOTY0ZTA5YzA1OGVmOGY5ODA1ZGFjYTU0NmIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjowLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImNiNTAwNjg1NjE1YzE4YzdkNGYyZDQ0ZDlhMjgyY2Y5MTI4Yjk4YzAwZGZlMjhlMGM4ODE3ZDM3NDUxMTRjZTUifQ"
+        },
+        {
+          "resource": "repo://frontend/src/lib/components/charts/plugins/user-price-alerts/user-price-alerts.ts#L1-L60",
+          "version": "repo-lines-v1:sha256:106f276b224846a54ab26a2fb0952948b73e55255885e038c3378df4d68ce519:eyJzZWxlY3RlZExpbmVDb3VudCI6NjAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImMxYjdmOTA3OGU5ZTRlMWE0OWRiZDk4MmZiZmIxYWU5ZmVlMzU5NDlhNjhhNTdiN2FiNWE4NGE5ZDcyZTA1MmIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAxYmE0NzE5YzgwYjZmZTkxMWIwOTFhN2MwNTEyNGI2NGVlZWNlOTY0ZTA5YzA1OGVmOGY5ODA1ZGFjYTU0NmIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjowLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6Ijg4N2I5NjQ4OTRlOGYwNjFlZDBmYjg0YzZmMDNmMzljYzE3MmVlYmIxN2Q5Mjc2ZDMyN2NiYmJmNWFkNTM2NTkifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_fc4f48ce4482462086a873a1e173f537",
+      "statement": "Two structural rules are enforced for plugins: no cross-plugin imports (a plugin must never import from a sibling plugin directory; shared code moves to plugins/helpers/ or $lib/utils/finance/), and no finance formulas inside plugins (ratios, wave validation, measurement math and equality live in $lib/utils/finance/).",
+      "evidence": [
+        {
+          "resource": "repo://frontend/AGENTS.md#L181-L181",
+          "version": "repo-lines-v1:sha256:af9677a3284cfe4a9af04b6fb5611be445d3810604b86f3e09ad7e302a977573:eyJzZWxlY3RlZExpbmVDb3VudCI6MSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiYWY5Njc3YTMyODRjZmU0YTlhZjA0YjZmYjU2MTFiZTQ0NWQzODEwNjA0Yjg2ZjNlMDlhZDdlMzAyYTk3NzU3MyIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiYWY5Njc3YTMyODRjZmU0YTlhZjA0YjZmYjU2MTFiZTQ0NWQzODEwNjA0Yjg2ZjNlMDlhZDdlMzAyYTk3NzU3MyIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiMmE5OTk1ZDE3YjlmYzE1YTAxYWY0ZGFmZDc5ZDFiY2VmNmFkMzBlZjhiNmYzMjZmOTIzNWFhMzQ1MzFmZjMwNyIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiMTE5ZWYyMWE3OTNiMmJhMGJiZjEzZjVjNTYzNTBhYzJiMDgyYWYwYWQ5MzNjOGVmMzg1ODlhNDY2ODEwYmU4MyJ9"
+        },
+        {
+          "resource": "repo://frontend/AGENTS.md#L219-L219",
+          "version": "repo-lines-v1:sha256:b90c6eff0880679465b86962016ea23e62530adaae1411880775f9eaceaafdf0:eyJzZWxlY3RlZExpbmVDb3VudCI6MSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiYjkwYzZlZmYwODgwNjc5NDY1Yjg2OTYyMDE2ZWEyM2U2MjUzMGFkYWFlMTQxMTg4MDc3NWY5ZWFjZWFhZmRmMCIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiYjkwYzZlZmYwODgwNjc5NDY1Yjg2OTYyMDE2ZWEyM2U2MjUzMGFkYWFlMTQxMTg4MDc3NWY5ZWFjZWFhZmRmMCIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiZGM2ZjhhNWI5NGNiMjEzZTI2MDU0MGJlOGQ1NjVmNjAzNmRiYTZkMWFjNWQ3NGY2MzUwNDU1YmM4ZTM2NjRhNCIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiZDBhMzgwZmVjZTBiNzliM2VhYzhiNjk2Y2IzZTUxMDUzMzk0Yzg4ZWQxYTVmMWQxYTcwN2NiNDRjYWRlMTJiYSJ9"
+        },
+        {
+          "resource": "repo://frontend/AGENTS.md#L238-L238",
+          "version": "repo-lines-v1:sha256:de4977c65cf0eb6361109a744f78eef7059df3b365975fa36a31f47a7ac2d659:eyJzZWxlY3RlZExpbmVDb3VudCI6MSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiZGU0OTc3YzY1Y2YwZWI2MzYxMTA5YTc0NGY3OGVlZjcwNTlkZjNiMzY1OTc1ZmEzNmEzMWY0N2E3YWMyZDY1OSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiZGU0OTc3YzY1Y2YwZWI2MzYxMTA5YTc0NGY3OGVlZjcwNTlkZjNiMzY1OTc1ZmEzNmEzMWY0N2E3YWMyZDY1OSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiMDhkNTRlMGU1NDQ0OWYyNDFmMTIzMGNhYjIyNzlkNWM1MGZlOTNlNmNjNDg5MTYwMjdmZGI3NzIyNjUxYmE0ZiIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiMDY5ZmRlMTJkNmE2ZmJhNzY5ODBhMzU1ZjAyZGIwZGFkYzVkNzg4NDYxYWVjMTBjMzY4Y2I1YmFiNjc4NGIzNiJ9"
+        },
+        {
+          "resource": "repo://frontend/src/lib/components/charts/plugins/elliott-wave/index.ts#L34-L42",
+          "version": "repo-lines-v1:sha256:f69058b1e11bf848a855306602dc2ea4270ee178357c5500d915e5e6110e0edb:eyJzZWxlY3RlZExpbmVDb3VudCI6OSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiZjJiM2Y1N2UyZjc1YTQxNTI0NmZmOGYwZDYwZTQ1NmRlZDUzNGU2ZmU3YmI1ZjBiZGE3YzBhNWFkMWU1MjAwZSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiMzhhYTM5ODRjODhjODY0Yzc1ODEzMTBmMmFjMjY1YWU0MDgwZGVmYjdkNDQwNWQwMDZmZjM0NTRmOGZmMmEyNCIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiNmZhMjgzNWQ2M2E2Mzg2NTZlMGI3ZmRiMGVhZWM4MGM1MGNjYzIxMjY2NDcxNDJiYjEwZWUyZWQ5Y2Y3NzU1NyIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjAsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiZTNiMGM0NDI5OGZjMWMxNDlhZmJmNGM4OTk2ZmI5MjQyN2FlNDFlNDY0OWI5MzRjYTQ5NTk5MWI3ODUyYjg1NSJ9"
+        }
+      ]
+    },
+    {
+      "id": "claim_d275273bc7d74f91a6a5248f7d01e5e6",
+      "statement": "DrawingPrimitiveBase<TRendererData, TPaneView, TState, TMouseHandlers, THoverTarget, TDragTarget> is the abstract ISeriesPrimitive<Time> base that declares the IDrawingToolState, IUpdatablePaneView and IDrawingMouseHandlers contracts and centralizes lifecycle: attached() binds the TimeProjector and mouse handlers, pushes the current drawing mode and wires the standard delegates; detached() unsubscribes every tracked subscription via sub.unsubscribeAll(this), calls mouseHandlers.detached() and clears the chart/series/requestUpdate references; destroy() runs detached() then state.destroy(); updateAllViews() passes null renderer data when the chart or series reference is missing.",
+      "evidence": [
+        {
+          "resource": "repo://frontend/src/lib/components/charts/plugins/helpers/primitive/drawing-primitive-base.ts#L107-L174",
+          "version": "repo-lines-v1:sha256:6d3e03aa422def815cb2b6529ae07d0d1c2624f4ca4fa772e74b44185867ab0d:eyJzZWxlY3RlZExpbmVDb3VudCI6NjgsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ5MmNmOTdhZGQ0MzMyMjgwYTdlNmM4ZjFjNGI4OTcyODViNmU1MDk1NDM2YzUzOGExZWM2NTdlMzYzMWIzMjUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjY3Y2RhODJkYTYwNjIzOGUwNWU2MjM5OTU2OWM1ZWUwMzk5MzQxOTY0OGFlNWQ0M2EyYmY4Y2Q2MzQ3ZjgyNjMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImE4OWNkNmZiZmRhMjVhNTZlYWZhOWY0ZTZkMTE4ZDc0ZGFjOWM3M2FhZDU1ZTczZTU3YWY4ZmMxMjNmYmJiZjMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImFmMTc2Y2Y4OTZkZmUxZmI3MjQzMzgwOWE1ZjE3NWM1YzVmYWZmMDY4YTU2MGVhYmI0OTljNTliOTk5ODNjYmYifQ"
+        },
+        {
+          "resource": "repo://frontend/src/lib/components/charts/plugins/helpers/primitive/drawing-primitive-base.ts#L191-L209",
+          "version": "repo-lines-v1:sha256:572c993c724a86d85e27739c0a07b206ea10a2b0e27488dae728d0334cce2696:eyJzZWxlY3RlZExpbmVDb3VudCI6MTksImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImNmNTEzYzhkNzhlZmQyMmFlM2U1NjdmNGZmNzlhYWNlNGU5NTM3YjZjNGY3NDViMjkzNTJkMTZiY2U5ODkyZWYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjY3Y2RhODJkYTYwNjIzOGUwNWU2MjM5OTU2OWM1ZWUwMzk5MzQxOTY0OGFlNWQ0M2EyYmY4Y2Q2MzQ3ZjgyNjMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjlmOWFmMTRjYzc4ZDJlMzczNDg3ZWNlZjExMGFlMmNhZGExY2EyMTllZDk4OWI0MzVlMGE3NmFjOGIwMmRkOGQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImZhZTJlMWE4OTg3MjYxYzhmNWY1ZDBlYTRmNGZhMzlhOGI3YzgwOGI5MWI1NjUyYjg3Yzk5NjA2NzM2ZDk4ZmYifQ"
+        },
+        {
+          "resource": "repo://frontend/src/lib/components/charts/plugins/helpers/primitive/drawing-primitive-base.ts#L256-L268",
+          "version": "repo-lines-v1:sha256:60ba5e19ee7a3400ba70341a9cae7bf05c5a96666f0bc6f69cde3519385d5445:eyJzZWxlY3RlZExpbmVDb3VudCI6MTMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjM3MTY3MWU3ZTFkMzBiNzBiNmE0MjE0YTJmMzAwNjA3Yjg5OWE5ZTM4MTRhYmRlZDgzMTkxNzVmYTc0MDcyY2IiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImY1ZTIxMjVlYWRiMzMyMWM2N2QzY2ZkM2IzNGFlNWMwNWNiZWExYTE4Njk4OTlkZmU4MjgwNWY2OGFkZTM5MGIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjZmYjIyZTU5MTQxYzEzMGQwYzU2ZjJjYzEwYjY3YTk4NzA2MTY4MDNhNjU4N2Q4M2U5ZDBlZGM2MDIxYjdmNTQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjoxLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjQxMmNhMzQ1Y2NmNzViZjljMDgwNmJjZTY5NWJlOGRlODA4Yjc5OTg0MjUxYTdhNTRkMjAyY2Y2MTAxZGQ0NTEifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_75b6da50a87a4ed8b59778ad9347e545",
+      "statement": "DrawingPrimitiveBase resolves a single cursor with a fixed precedence — dragging yields 'default', drawing mode yields 'crosshair', hovering a point yields 'default', otherwise null — and hitTest() returns null for a null cursor, otherwise { cursorStyle, externalId, zOrder: 'top' }, where externalId is the plugin identifier reported back to the chart owner ('elliott-waves-primitive', 'fibonacci-primitive', 'measure-primitive', 'horizontal-line-primitive', 'free-form-line-primitive', 'user-alerts-primitive').",
+      "evidence": [
+        {
+          "resource": "repo://frontend/src/lib/components/charts/plugins/helpers/primitive/drawing-primitive-base.ts#L202-L221",
+          "version": "repo-lines-v1:sha256:e87fdb1f73e5046cfa035f6745494dc62959c0a76384e319e7ef404aea5c0dfb:eyJzZWxlY3RlZExpbmVDb3VudCI6MjAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImJmMDllOGI3YWJkZTdlMmZhYTkxODRlZmFhNmQ5MTY3MDRmODMwZDZiYzJjZGRkOTJhYmM0ODY2MTZkNDY3YTUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjY3Y2RhODJkYTYwNjIzOGUwNWU2MjM5OTU2OWM1ZWUwMzk5MzQxOTY0OGFlNWQ0M2EyYmY4Y2Q2MzQ3ZjgyNjMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjkwY2RlODM4NzYzNzY5ZTFjMjM5ODc3OThiZjQ5YzQ0MDRmMTg1ZTE5MzM5MDJkZDVmZDk0N2MxZjg4YzRlYTgiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjBhZDM5NzBkNTYxYWRhYTNjMTU3YzQ4OWFlM2M5NmVjNTJkNjYxYTQ5MWI0NjY0MTI2MDljNTljMjdjMzFlNDEifQ"
+        },
+        {
+          "resource": "repo://frontend/src/lib/components/charts/plugins/measure/measure-primitive.ts#L53-L58",
+          "version": "repo-lines-v1:sha256:dd02e580353fad1b85f0bc72c7e17b37816354ab9ccb1a72db6d904352b1edda:eyJzZWxlY3RlZExpbmVDb3VudCI6NiwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiZTc2MTQ1NDZkMGEzZGQyYjBhMGQzNWUxOTFmYjU4NTg2NWFlZGY0MDFjZmI3NmM1YjI1YWNlYTk3ZmFkY2MyOCIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNmEyYTNiNzZlMTJjZTE1Mzc5ZDA1ZjI4NjlkYzQ4MzJkZTc1ODkwNTNiNDliZmYyMzdlNDI1YzcyMzc4MDE1NCIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiMzI1NDFmNDM0NzAwMzYxYjkxNGIzZTU2MjgwZjcxNGMyZWZlM2NhNWRkNzU3NTMwMGZlMDUzNTgxODVlNjY1MyIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiZTMzNjljMDhkN2IwMzJiYjNjY2E1YWUyMTIyZTVjODAxYjhkYWI1Zjc0ZGI3NDA1OTYxNTU4MjVkMTcyYmViZiJ9"
+        },
+        {
+          "resource": "repo://frontend/src/lib/components/charts/plugins/user-price-alerts/user-price-alerts.ts#L152-L159",
+          "version": "repo-lines-v1:sha256:35f98513a35ccea81ded0bd16fc9ac4af16dbb0e5c0aa5ca128e66da9f6ab7b6:eyJzZWxlY3RlZExpbmVDb3VudCI6OCwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiMWFkZmRjZWIzNzJiMzQyMzUyNmRmYWU0ZDA3NTg5YzUzYTI5ZjUwMGIwYzhiZTRmZjA0NmY1NGI0NDNjYmFhYiIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNjdjZGE4MmRhNjA2MjM4ZTA1ZTYyMzk5NTY5YzVlZTAzOTkzNDE5NjQ4YWU1ZDQzYTJiZjhjZDYzNDdmODI2MyIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiZTRhNWQxNjhhYjA3ZGYzZjhhMDljOThmNDgxMWI3NDU3NzMwN2JjNzI0MmQzNmM5N2YyNDFjMTNkMDViZGEzMCIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiN2RkMDJjNWNjYmIyZjQxNmI0ODQ4ZGQ5MzVjN2M5YjViNmJkN2ZjMTI2MWEyMzIwOTgzYWVjNmY1YWFjYmE2ZCJ9"
+        }
+      ]
+    },
+    {
+      "id": "claim_84656bf3c60f4699b60e5e8b57be2b8c",
+      "statement": "BaseCollectionToolState<TDrawing, TTarget> implements IDrawingToolState for the newer collection-based tools: it owns the drawing array, pending points, selected id, hovered point, hovered line and dragging target, exposes six delegates (drawingsChanged, drawingModeChanged, selectionChanged, hoverChanged, hoveredLineChanged, dragChanged) and takes an injectable idFactory defaulting to generateUUID from $lib/utils/finance/rewind.",
+      "evidence": [
+        {
+          "resource": "repo://frontend/src/lib/components/charts/plugins/helpers/primitive/base-collection-state.ts#L19-L66",
+          "version": "repo-lines-v1:sha256:b04e5772cd868baa6518ac22736d5b79269f2b81785219a51a9fff77d945dc6c:eyJzZWxlY3RlZExpbmVDb3VudCI6NDgsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjJhZjA4NzE0ZTNhYmEzMjc5MWExZDRiMDRiMzBmMjdmODZkMGJjMWM0MGEzMGFmMWExNDAzYzVjZmJjNzM2ZjciLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjY3Y2RhODJkYTYwNjIzOGUwNWU2MjM5OTU2OWM1ZWUwMzk5MzQxOTY0OGFlNWQ0M2EyYmY4Y2Q2MzQ3ZjgyNjMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6Ijc2YzAzYTUzODk1MTExZThlNmMzMmUyZTE5NTkyMmQ4ZWVlMDUwZWYyNjZiMWU5ZWQ1YmE1OTMyZDg0MGExZWMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImFiZjc0NzZkYjA1ZTcwYjRhNjYzNDZkODhiNTk4Zjk0ZDU2OTFlMDc0Y2UyZTA1NWE3MDEwYTAwYTg4ZjAwZTMifQ"
+        },
+        {
+          "resource": "repo://frontend/src/lib/components/charts/plugins/helpers/primitive/base-collection-state.ts#L285-L292",
+          "version": "repo-lines-v1:sha256:720fdea6b0fde1eac0585ea6bc573f6fbfe07849c03ac66c575981f63cb777ee:eyJzZWxlY3RlZExpbmVDb3VudCI6OCwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiNGNkY2Y1ZWJiZDIwYmM0Y2ZiNDcyNDdhNmIzMDlhMzA3MjQ2MWE5YTdmYmE5ODliNWJjNTFhODdhZmViMjlkZSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNjdjZGE4MmRhNjA2MjM4ZTA1ZTYyMzk5NTY5YzVlZTAzOTkzNDE5NjQ4YWU1ZDQzYTJiZjhjZDYzNDdmODI2MyIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiZmZkNWRlY2I1YWRhNmEyZTJlNjI0MmI5NzM1YjMzYzUxNTY1Mzc1MzFkNjNmYWQ5MmM2MTdhYjQ0ZGUwMTA2YyIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjEsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiNDEyY2EzNDVjY2Y3NWJmOWMwODA2YmNlNjk1YmU4ZGU4MDhiNzk5ODQyNTFhN2E1NGQyMDJjZjYxMDFkZDQ1MSJ9"
+        }
+      ]
+    },
+    {
+      "id": "claim_d102ec26cec444af9255c178850de815",
+      "statement": "BaseCollectionToolState normalizes every ingested anchor through normalizeDrawingTime and assigns missing ids in _normalizeDrawing, and setDrawings compares the normalized collection against the existing one with areDrawingCollectionsEqual and returns without firing when equal — that equality guard is what prevents a reactive feedback loop between a primitive and the chart's $effect sync.",
+      "evidence": [
+        {
+          "resource": "repo://frontend/src/lib/components/charts/plugins/helpers/primitive/base-collection-state.ts#L68-L126",
+          "version": "repo-lines-v1:sha256:23b784ae2d7b637896f67441df775ddcfde4d507b79ca93bfdb7703837fa51c8:eyJzZWxlY3RlZExpbmVDb3VudCI6NTksImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijc0ODYyMWQzOTI3NGQ5NDk1OGQ2M2YwZjZkNTRjYjIyZWM3MDEwOGZlYWM2YWZmNzU2Y2NiMzFhZTY2ZGM4ZjIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjY3Y2RhODJkYTYwNjIzOGUwNWU2MjM5OTU2OWM1ZWUwMzk5MzQxOTY0OGFlNWQ0M2EyYmY4Y2Q2MzQ3ZjgyNjMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImUzMzNhMmMxOTNjMzNhYWUxMjNiOTMxOWEyYjlkODk2NWQ3YmNiNDY0NzFiNmY3YzI0YjgyMjlmZDQxOWQ2NDkiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjBiYzkyMWFmMmVlYjIxNDY1ZmExYTVhMjE3YThhN2JiYmQyNWQ1YWJkMTBlNmRhM2M1OWVkN2E5NzJmZWYxZTcifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_69e6b74926d4405f9e18f640f68f87e3",
+      "statement": "BaseCollectionToolState keeps selection consistent: setDrawings and removeDrawing drop a selection whose drawing disappeared and fire selectionChanged; setDrawingMode(true) clears the selection; leaving drawing mode or cancelDrawing() discards pending points and fires drawingsChanged only when there were pending points.",
+      "evidence": [
+        {
+          "resource": "repo://frontend/src/lib/components/charts/plugins/helpers/primitive/base-collection-state.ts#L115-L160",
+          "version": "repo-lines-v1:sha256:5044abef35c9f02957795907fa04d36e168676c2d6a65f1917e524d625a1362a:eyJzZWxlY3RlZExpbmVDb3VudCI6NDYsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjE3Mzk3NDE0NWVhZjg0MDU2ZDIzMTQ4OWM1NjY2OGU2ZTc1ODI0YTA1MDNlNGFlNzllMmEzMjQzOGRmOTc5ZTEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjY3Y2RhODJkYTYwNjIzOGUwNWU2MjM5OTU2OWM1ZWUwMzk5MzQxOTY0OGFlNWQ0M2EyYmY4Y2Q2MzQ3ZjgyNjMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImQ1NjcxNTI5MTE5OWU5MGJhOWUzZjVmOWE3YWNmNjZmZTFlNjllM2VlNzU5ZGQ2YzAxN2JkMGZhMzQxOTZkYmQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImQ2N2FkMzc5YmExZTMwMGM5MDhiZWY2NWQ2YWUyMWJhNTUxOWEzM2MzOTlhYmJmMmFiZTkzMzM4NTE3NzU4MDYifQ"
+        },
+        {
+          "resource": "repo://frontend/src/lib/components/charts/plugins/helpers/primitive/base-collection-state.ts#L215-L228",
+          "version": "repo-lines-v1:sha256:0a6c42b4cd5bd3b331a1309d9a2918d63219afd2df142694ff4580d0b2115ec1:eyJzZWxlY3RlZExpbmVDb3VudCI6MTQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjZjZDAyOGVlZmM2YzU0MjA5ZjIyNGQ0ODc2YzFjZGZhOGQzZDUwNTEzYjI4MWM5ZmExNWNhM2NlMDc2OTAxNWMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjY3Y2RhODJkYTYwNjIzOGUwNWU2MjM5OTU2OWM1ZWUwMzk5MzQxOTY0OGFlNWQ0M2EyYmY4Y2Q2MzQ3ZjgyNjMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImY3YWJlM2M0ZjU5OWMzOGM2OWQ2ZmQyY2MzMWE2ZDVlZjE4YTZhYzg2OTVkMTY3MTAzMzBkNjlkMzMzMzFjNDgiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjM3ZWY3M2IxNzFmYWQ2YTFmNmEwZDMzMTU3NDI5NDE1YWFiYTc1NTk5ZTAxOTljMTY0ZDQ4ZjgwMjBiMjQ3ODEifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_03188ff2e26f42e2b17a32eb2e620e99",
+      "statement": "BaseCollectionToolState provides _addTwoPointDrawing (commits { id, p1, p2, visible: true } on the second anchor, clears pending points and exits drawing mode) and _updateTwoPointDrawing (rewrites one anchor with a normalized time, returning false for an unknown id).",
+      "evidence": [
+        {
+          "resource": "repo://frontend/src/lib/components/charts/plugins/free-form-line/state.ts#L32-L46",
+          "version": "repo-lines-v1:sha256:c3eb8ef16e35fe0f44a8d922efc2948850f4732865eb7c51369a1e7d544f0dfb:eyJzZWxlY3RlZExpbmVDb3VudCI6MTUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImVkOWQ4Y2EyYmNhNmJiZDE2YjU5Y2JmNTJiNDM1ZDNlNzY3NjA3MTk4NjQ1Njc0YTdjN2ZiOGMyZTA1NjA2YTMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjY3Y2RhODJkYTYwNjIzOGUwNWU2MjM5OTU2OWM1ZWUwMzk5MzQxOTY0OGFlNWQ0M2EyYmY4Y2Q2MzQ3ZjgyNjMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImIxOGJjZjMyNDU2N2E1ZmUyMDUxYzQ5NGM1MDhmYmVlMTIyYjcyZTdlYmZlMmExOWUxZGVmMzM0M2QyMDMzOWMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjoxLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjQxMmNhMzQ1Y2NmNzViZjljMDgwNmJjZTY5NWJlOGRlODA4Yjc5OTg0MjUxYTdhNTRkMjAyY2Y2MTAxZGQ0NTEifQ"
+        },
+        {
+          "resource": "repo://frontend/src/lib/components/charts/plugins/helpers/primitive/base-collection-state.ts#L164-L213",
+          "version": "repo-lines-v1:sha256:729c05eecccd34ed468ef5ecb7b703220a3c98c00e9d93454a08ee6230f7b90f:eyJzZWxlY3RlZExpbmVDb3VudCI6NTAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImU4N2ZhNDRjNjNiNDNmODM2OTk1NzRhMGU1ZmZiZWUxNDU5NmZlYTc0ZmVlNjFiOWJkMTYxZmQ5YWQ3Y2YwZDkiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjY3Y2RhODJkYTYwNjIzOGUwNWU2MjM5OTU2OWM1ZWUwMzk5MzQxOTY0OGFlNWQ0M2EyYmY4Y2Q2MzQ3ZjgyNjMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImQ2N2FkMzc5YmExZTMwMGM5MDhiZWY2NWQ2YWUyMWJhNTUxOWEzM2MzOTlhYmJmMmFiZTkzMzM4NTE3NzU4MDYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjhhMWQzOGY4ZDI4Njg5NzQ5NGMxMWJkNTM2Njc4OWYyOWZiYzEzYWEzZWNhOGE2NDkwYjllNGYxMDBjOWMxYjgifQ"
+        },
+        {
+          "resource": "repo://frontend/src/lib/components/charts/plugins/measure/state.ts#L31-L45",
+          "version": "repo-lines-v1:sha256:8699209769210b4063771e8e8f4ac068ee573dc4dd1d3d2abab0c4bd9e5022a0:eyJzZWxlY3RlZExpbmVDb3VudCI6MTUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImVkOWQ4Y2EyYmNhNmJiZDE2YjU5Y2JmNTJiNDM1ZDNlNzY3NjA3MTk4NjQ1Njc0YTdjN2ZiOGMyZTA1NjA2YTMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjY3Y2RhODJkYTYwNjIzOGUwNWU2MjM5OTU2OWM1ZWUwMzk5MzQxOTY0OGFlNWQ0M2EyYmY4Y2Q2MzQ3ZjgyNjMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6Ijg4MDdkNTJiMTU2OGZlY2I1NTQ5YTVkZWVlM2VlNjRiYzI2YzIzMDY0YTI0ZWU3M2EzODFhOTBiZjFlYTZiYWUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjoxLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjQxMmNhMzQ1Y2NmNzViZjljMDgwNmJjZTY5NWJlOGRlODA4Yjc5OTg0MjUxYTdhNTRkMjAyY2Y2MTAxZGQ0NTEifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_e97ec6c64ae94c7b94a4a9bd99351b00",
+      "statement": "HorizontalLineToolState commits a horizontal line on a single click (one click completes the drawing and exits drawing mode) and its updatePoint mutates price only, never the anchor time, so the line stays horizontal; targets are keyed by drawing id alone.",
+      "evidence": [
+        {
+          "resource": "repo://frontend/src/lib/components/charts/plugins/horizontal-line/mouse.ts#L20-L54",
+          "version": "repo-lines-v1:sha256:32cdd809cb98a471136b0828fb72ebacf64dad4ab65361d072e90a3ff7e01c7f:eyJzZWxlY3RlZExpbmVDb3VudCI6MzUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImVhZjIyY2YwNzMyNTkyYzI0NzE0MWNiZTYxZWZhMTEwMTI2MTJmNWEzMTIyYjlhZjliYmFmNTJmNTcyNGQxOTQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjM0MzAwODA2OGQzNTBhZWEzMmRhNGU2MzI2NDliYWNlOGUyOTlhNTBiMTQ3N2U3YTUyZTcyZDIwNDkxMzdkNmIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImY2OTFiZGZhOTM1ZTI4OGVkMjdmZGRhZmViMDM3MmIwYjFmZDM5NjMwNDg4YTZlOWU0MDg1NzNmNjE5Yzc0NGIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjoyLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImQwMzk5NDVmNzEzY2VjY2MyYTJiZTk4MWFiNWM1ZWVhMzdmOTVmOTc2OWU1NzVjZDhlZDlhOWZjYmFmZGYwNmEifQ"
+        },
+        {
+          "resource": "repo://frontend/src/lib/components/charts/plugins/horizontal-line/state.ts#L11-L64",
+          "version": "repo-lines-v1:sha256:dc1f6f0c449304804721228c37b9958a87037c79b9131e5a28afa07c5045deea:eyJzZWxlY3RlZExpbmVDb3VudCI6NTQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImVhZjIyY2YwNzMyNTkyYzI0NzE0MWNiZTYxZWZhMTEwMTI2MTJmNWEzMTIyYjlhZjliYmFmNTJmNTcyNGQxOTQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjY3Y2RhODJkYTYwNjIzOGUwNWU2MjM5OTU2OWM1ZWUwMzk5MzQxOTY0OGFlNWQ0M2EyYmY4Y2Q2MzQ3ZjgyNjMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjhmMzJmZTE4OTYyZTBjZjQ1MjBmNjc4MzE1ZDNmMjkwNWRlMGY3NzM4Y2ZhYTBkMWIzNmQxZTRiNzJjMmE4ODIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjoxLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjQxMmNhMzQ1Y2NmNzViZjljMDgwNmJjZTY5NWJlOGRlODA4Yjc5OTg0MjUxYTdhNTRkMjAyY2Y2MTAxZGQ0NTEifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_f08c1f60590d4ece981515f4891295fb",
+      "statement": "MeasurePrimitive snaps the second click and each endpoint drag to horizontal or vertical using snapMeasureAngle against the opposite endpoint (15 degree default threshold in the finance layer) and builds its label from the pure computeMeasure plus formatMeasureLabel(delta, percent, { bars, elapsedSeconds }), deriving the bar count from logical indices and elapsed time from the epoch anchors.",
+      "evidence": [
+        {
+          "resource": "repo://frontend/src/lib/components/charts/plugins/measure/measure-primitive.ts#L249-L266",
+          "version": "repo-lines-v1:sha256:5e8d6cb8e5e32f2d43c61975fa559a0fc28a6edf48c58e5f1d3fa24e592572f4:eyJzZWxlY3RlZExpbmVDb3VudCI6MTgsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjM1NjcyYTM5YTc0MTY4YmYwZTJmMmMyNjkxNTE5MTBiMjI0OTIzYzc0ZTkwYjcxMGRlMDIxZGQyY2ZjNmVhMTciLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjllN2U1OWQ4NWVlZDAwYWFiZTE0MmUxYTI5MTc4NWMxYzJmMGUxZTU3OWMyOGIxNjUzYTgyNWQ4NzY1ODVlODMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImYzYWIxOTUwZjU5ZThiZWE0OTBhN2Q3ZTJhZjk0MjkxZjdkMzMyNzZmZGRhNDVjMWJiOTVhNzM2MTg1NDdhZDAiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjQyNjYzZDhiNDY1ODYzNGIyNDBiMzc0ZmIxMmE2YzJlZjAzN2JkZGMxM2IwM2ZjY2Q0NDczYjRiMDBhOThhNDMifQ"
+        },
+        {
+          "resource": "repo://frontend/src/lib/components/charts/plugins/measure/measure-primitive.ts#L88-L150",
+          "version": "repo-lines-v1:sha256:fac43fa6b61c194d08e86bf980423b42d40cb1fada087d8aeacc8f93fa248acc:eyJzZWxlY3RlZExpbmVDb3VudCI6NjMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImI3ZmI5YTA3YzNmZmVjZjk5MzY0ZTZmZjkwMGFlMTYwNjU5ZWU1ZWUxOGM1YzFhODEwYTA4ZmUyNDBkNTgzNWEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjY3Y2RhODJkYTYwNjIzOGUwNWU2MjM5OTU2OWM1ZWUwMzk5MzQxOTY0OGFlNWQ0M2EyYmY4Y2Q2MzQ3ZjgyNjMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjIwYWUwMTJiZmM5NDI2NGU5ODI0M2NhOTZhNzQ0YjEzZThkYWZjOWYzZTk1ZmQ3ZmFiZGVmNTlkMGU1MTRhMWUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjE3NzY0NWU2YTRiOGQ1NjM1YmZiZTY4NzY3MzgwZDQ4MDVkMDNjYTJlOGEwMGMyNGNhMGY4ZDk0YjI2ZDU1YzUifQ"
+        },
+        {
+          "resource": "repo://frontend/src/lib/utils/finance/measure.ts#L34-L56",
+          "version": "repo-lines-v1:sha256:2c868b5077b0b69ec09fa7e7292d1a96a13788a2050a091111aba76a14aa3fef:eyJzZWxlY3RlZExpbmVDb3VudCI6MjMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjMzZTZhZTkwZGNjYjQ3MjgwZTc5M2YxYmFiZTcwNDBmYTk5YTAxNmFhMTQ3MTI1ZjIyODE0NTdhN2RjN2I4YzEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQxMmNhMzQ1Y2NmNzViZjljMDgwNmJjZTY5NWJlOGRlODA4Yjc5OTg0MjUxYTdhNTRkMjAyY2Y2MTAxZGQ0NTEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImU3YjUzMWY0NTE1ODgzZmU1YWJhMWQxMmZjZDMzYWQ2YmNjOWM3Zjc2YTdkOTUxODkxZWQyY2M3YzU3ZWVlNTYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjBiNmQzOTQ5ZTIxOGNhMjhlODNiMTQ3YjkwOGM1MGJjYmVjMTY1MzNiMGQ1MTdjYzBhYWZmOGVjYmU1MTcyOWMifQ"
+        },
+        {
+          "resource": "repo://frontend/src/lib/utils/finance/measure.ts#L92-L132",
+          "version": "repo-lines-v1:sha256:45f67accfa4b84375ea3bbec4dea96c04967bfc6691d9521b306c2a22cdeb4c2:eyJzZWxlY3RlZExpbmVDb3VudCI6NDEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImQ1OTEzYmRjNTQ1YmYyMDA4NTk4ZDZiNWYxZmVkM2ZmMTdiNzJhNjk4MmJjZWZlNDkzNjVkMzg4ZTQ0MjhkOWIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQxMmNhMzQ1Y2NmNzViZjljMDgwNmJjZTY5NWJlOGRlODA4Yjc5OTg0MjUxYTdhNTRkMjAyY2Y2MTAxZGQ0NTEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjI4NDAzOGZkNGYwNTcyYWQyMWQ1OTgzYTA1YTk3NzMzMWE1NDI0ZTM4NjQ1Zjc4MmNjMDA0MTg5NzI5ZjczZWQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjExZTJkYjBmMTcxZTE4ZmI1OWVjNDc3OTkwNjIzY2NmZTAwYjE2ZjAwYmI3NmM2MTMyODM4ODQ1YjBmZDBlZmMifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_d45c6262f3b64c03bd30eae69280c34b",
+      "statement": "The three newer tools (measure, horizontal-line, free-form-line) share DelegatingPaneView (renderer plus zOrder, forwarding update(data)) for their pane views, while fibonacci and elliott-wave keep their own pane-view.ts implementations that do the same thing inline.",
+      "evidence": [
+        {
+          "resource": "repo://frontend/src/lib/components/charts/plugins/fibonacci/pane-view.ts#L1-L20",
+          "version": "repo-lines-v1:sha256:5a8cb680f0d6d4d549f88eaaa025dadfd1856f8917a067a21e228bde3be8140f:eyJzZWxlY3RlZExpbmVDb3VudCI6MjAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImMxYjdmOTA3OGU5ZTRlMWE0OWRiZDk4MmZiZmIxYWU5ZmVlMzU5NDlhNjhhNTdiN2FiNWE4NGE5ZDcyZTA1MmIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImQ1MWIxNGE0YjA5ZmI4ZWY4NjYxZDRmYjJhNmZmZmJiMThhNTFkNjA1Mjc1ZTIwZTQ2NGQxNzI4MTQyMTIyNGEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjowLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjUxMTFhYTVkNjVmNzY0ODZlNmMyYzhmMTk3MzQzMjNkYmI2ZjBjZDU5NjVkZTk5YmVhZDFjMjdjNzVjMzk5MmYifQ"
+        },
+        {
+          "resource": "repo://frontend/src/lib/components/charts/plugins/helpers/primitive/delegating-pane-view.ts#L13-L41",
+          "version": "repo-lines-v1:sha256:09c2ab8caf2df6fc3eb71087630029d053fba24568691250387d594bcfeea6e8:eyJzZWxlY3RlZExpbmVDb3VudCI6MjksImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImVhZjIyY2YwNzMyNTkyYzI0NzE0MWNiZTYxZWZhMTEwMTI2MTJmNWEzMTIyYjlhZjliYmFmNTJmNTcyNGQxOTQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQxMmNhMzQ1Y2NmNzViZjljMDgwNmJjZTY5NWJlOGRlODA4Yjc5OTg0MjUxYTdhNTRkMjAyY2Y2MTAxZGQ0NTEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjA4ODc1Mzk1MzRhM2VmZjhiZjZkYTQzYTQyNmJjOGQxOWM2NjU2MDExOTllZmRiYWZlNmFlNWMwYTcyNWMwYWYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
+        },
+        {
+          "resource": "repo://frontend/src/lib/components/charts/plugins/measure/pane-view.ts#L1-L5",
+          "version": "repo-lines-v1:sha256:bd0eb078175756d590d14872a6f6eb59d34ab630a9b106d1b5596e40d95fdec7:eyJzZWxlY3RlZExpbmVDb3VudCI6NSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiOTMzNzc5NDBhNDE5ZjEyYTgyZTJjN2RlNzg2NjFjODhmNzBmNGUzZGFmNjUzMmNlOTBkZThlZTAyNjJkMmE0MyIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiY2QzMTg0ZjZjNmQxYjM4YzBmN2RkYmU0MzVlNjZjOWNmYWExZDIzMGRiOTdkYWE3NDBiN2ZkMjdlYzJhZmQzOCIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjAsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiZTNiMGM0NDI5OGZjMWMxNDlhZmJmNGM4OTk2ZmI5MjQyN2FlNDFlNDY0OWI5MzRjYTQ5NTk5MWI3ODUyYjg1NSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiYWYzYzJkNGE2MTc5MzlkOGU4MDdmN2QyOGRjNzNiMDJjM2ZkNTYyNDFhMjIwMzFkNTllMWFjYWFhYzU2YjU4NyJ9"
+        }
+      ]
+    },
+    {
+      "id": "claim_5372c90467dc4f00a448f0f68f5602ac",
+      "statement": "ElliottWaveState holds the degree (cycle | primary | intermediate), wave type (impulse | corrective), the DegreeWaveCount collection, the in-progress wave id and selection/hover/drag targets; addPoint creates a wave with a generateUUID id when needed, assigns the next label (0..5 for impulse, [0, 'A', 'B', 'C'] for corrective), records wave3Target/wave5Target as points 3 and 5 are placed and exits drawing mode at MAX_IMPULSE_POINTS (6) or MAX_CORRECTIVE_POINTS (4); every anchor is normalized to epoch seconds on ingestion.",
+      "evidence": [
+        {
+          "resource": "repo://frontend/src/lib/components/charts/plugins/elliott-wave/constants.ts#L148-L149",
+          "version": "repo-lines-v1:sha256:1e198a999449860237d255862f98a93f2aa339cde5750b220262a78d9df8dc23:eyJzZWxlY3RlZExpbmVDb3VudCI6MiwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiNGYxOTQ3MWZlMWI3Y2ZhMmU5ZDcyZWM0YzJkNjI2YzNkYTU1NmRkMzEwMDNjMjI4ZmQwMmU5M2ZjYjdhZDgxZiIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiM2U3Yjg1YzFkNzJiZDNmOGQ0NTU1ZDc3YjNiOTUwZTBlYzM3NGE3NjNmN2NiM2QwYjBkN2FhNzdjMmVmMDE5NCIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiYzJlNTRkYTc1Njg1NDhkNWY4NzlhM2Y1NmJmOTFlYjRjMjMyMWRiMzFkNDNjNGE5NmRiNzA2NjVmZTE3N2Q3MiIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiODlkNDkxN2JkMzI4ZDVjMzcxMDhhYmFhOWRkM2Q3NmMwYjQ4NTBmNzg3YWRkMjRjMTM0ZTkzNzM3ZGZkN2VkMSJ9"
+        },
+        {
+          "resource": "repo://frontend/src/lib/components/charts/plugins/elliott-wave/state.ts#L265-L329",
+          "version": "repo-lines-v1:sha256:35ad5114fea80032864ff8c090ca75404038079871145a3ad25339f8ad29177c:eyJzZWxlY3RlZExpbmVDb3VudCI6NjUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijc1MjMyZDMwMTk0YTZjMGU3NDllYmVlMjhiNTg1MDc0YWY2NzkwMzZkODk4ODVmMTc1ZDU2ODQ2ZmFkZmFlMTQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjY3Y2RhODJkYTYwNjIzOGUwNWU2MjM5OTU2OWM1ZWUwMzk5MzQxOTY0OGFlNWQ0M2EyYmY4Y2Q2MzQ3ZjgyNjMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjlhOWJlZTNiNWY5ZWMwNDFlNWUyNWVmZTJjOGJiMDI2MDI5MjU3Zjk0YzYzNWUyNDA1ZjI5YTBlMmE4ZmU0NTgiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImIyNzRkYjNiNjNhM2FmMWYxYjA1YjcyN2ZlZGE0Yjk1MWU2YTE0NTJmZGMxODJlN2NhZTQxMDdmNzYxNWEwZGYifQ"
+        },
+        {
+          "resource": "repo://frontend/src/lib/utils/finance/elliott-wave.ts#L4-L4",
+          "version": "repo-lines-v1:sha256:059a2a79488d1e9cea01a64aae8ae3580c04aa4c0febf3973e39d927c70db3f3:eyJzZWxlY3RlZExpbmVDb3VudCI6MSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiMDU5YTJhNzk0ODhkMWU5Y2VhMDFhNjRhYWU4YWUzNTgwYzA0YWE0YzBmZWJmMzk3M2UzOWQ5MjdjNzBkYjNmMyIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiMDU5YTJhNzk0ODhkMWU5Y2VhMDFhNjRhYWU4YWUzNTgwYzA0YWE0YzBmZWJmMzk3M2UzOWQ5MjdjNzBkYjNmMyIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiODFiNDA1NGNjZTZjNjQ1MzkxMDJmZmJiZWYxOTlkNjhiNGZkZWU4NGE5MzIxZTFkNDJhNmQ5NDBlYThkODA4OSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiYmViYTdkYWI1OGM4ZTUwOWZmMjM3MWFmMDJjY2IyNjM0MGEyZmQwOWVjMjc5M2RkZWQwYjIyNWE1NWRlZTYwOCJ9"
+        }
+      ]
+    },
+    {
+      "id": "claim_fd33ba1f285f4959873ed5895e7756b4",
+      "statement": "ElliottWaveState.updatePoint locates the wave by explicit wave id, then selected wave, then degree (falling back to the last matching wave of the degree) and keeps wave3Target/wave5Target in sync when point 3 or 5 moves; clearWave resolves in the order selected wave, wave by id, selected wave of the requested degree, latest wave of the degree, and removeWave clears any hover, drag, selection or in-progress reference to the removed wave.",
+      "evidence": [
+        {
+          "resource": "repo://frontend/src/lib/components/charts/plugins/elliott-wave/state.ts#L331-L385",
+          "version": "repo-lines-v1:sha256:3a9c41726534eb19018237f93bd109f46e731de3c25ccbcb9c5b83504717fd5d:eyJzZWxlY3RlZExpbmVDb3VudCI6NTUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjhmOTc0ZmQ2Y2ZiZmEyMjM4ZDdiMDQ5MTQxODFmNzZhYTI4NDllYTkyYTkzOGFjYjg4M2JiMjVkYjY1N2Q2NmIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjY3Y2RhODJkYTYwNjIzOGUwNWU2MjM5OTU2OWM1ZWUwMzk5MzQxOTY0OGFlNWQ0M2EyYmY4Y2Q2MzQ3ZjgyNjMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjFmMDdkYWNjNTA2NmMxZTVlMDE3ODVlMWY1OGM4MWEyMTBmNmI4MDkyNGIxNGZhY2ExM2IyZGU5MzI2NThmYTciLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjczNzAxYTE3NjY5ZDhmMjgyMmJiYTBiNWYyOTY2M2VjZGExZTFhZmM0NmMxY2MwMTg2ZmQ1NmRjYWExYjJlNjYifQ"
+        },
+        {
+          "resource": "repo://frontend/src/lib/components/charts/plugins/elliott-wave/state.ts#L387-L455",
+          "version": "repo-lines-v1:sha256:7489d7ee1d928b8f83bbec7fa57f62031d35b0f87784c3e3779cfe6ae0762679:eyJzZWxlY3RlZExpbmVDb3VudCI6NjksImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImJhZDY0ZTRmZWUzNGY1MmVkN2EzN2E1MGJkNDdlYTFkYzlkYjMxYjkyNTk1OGM1MmNlYjg2NTY0ZTA4YjdmYTUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjY3Y2RhODJkYTYwNjIzOGUwNWU2MjM5OTU2OWM1ZWUwMzk5MzQxOTY0OGFlNWQ0M2EyYmY4Y2Q2MzQ3ZjgyNjMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImY3YWJlM2M0ZjU5OWMzOGM2OWQ2ZmQyY2MzMWE2ZDVlZjE4YTZhYzg2OTVkMTY3MTAzMzBkNjlkMzMzMzFjNDgiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImM2ZGY4YmYyYjQzMjZkMmJiY2M0ZWM4ODUyMzkwM2I5ZjVlNDRjMjVkYjNlZWEzNDIxODUzMGRiYjllZmEyYzgifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_117e09ec55574a88a2196fe7192f5301",
+      "statement": "The elliott-wave mouse adapter resolves a snapped pointer position for placement clicks, drag moves and the preview ghost: a candle-wick candidate only when snapToWicks is enabled and a candle exists at the pointer time, plus a Fibonacci-level candidate only when the nearest active level is within the pixel tolerance (independent of snapToWicks); the closer candidate wins and pixel-space ties go to the wick. Because plugins may not import each other, the fib level prices are pushed in from the chart owner via setFibLevelPrices.",
+      "evidence": [
+        {
+          "resource": "repo://frontend/src/lib/components/charts/plugins/elliott-wave/elliott-wave.ts#L202-L210",
+          "version": "repo-lines-v1:sha256:603a22f039ec9bc91133f8e28ba5b48dd0d079cc069a65bda2fbb33ca379c9a8:eyJzZWxlY3RlZExpbmVDb3VudCI6OSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiZWQ5ZDhjYTJiY2E2YmJkMTZiNTljYmY1MmI0MzVkM2U3Njc2MDcxOTg2NDU2NzRhN2M3ZmI4YzJlMDU2MDZhMyIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNDg3N2E2Yjk2MTRmNzUyNGE4YjAxMWVkOTAxZTBiYmQ1MmYzNTk2YWZiMDAzNTE2NzY3NjBmOGE4MDdhNThiYiIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiOTlkNzYwYzAwNTYwNDVhYzkwZGZhN2RmNzk2ZDIwMzQ1ZGY5ZTQzNjk0ZTdiMjU0OGM4OGRiNjhiNDBiNzM3NiIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiNzY0ZjhkYzAzYTE5OTdkYzdhZDU1YTRlZjRmYjc3MGRiNmUyYTFhNWUwNzA1YmUwZmFlNmQ3NWFlZGZhZWY2NiJ9"
+        },
+        {
+          "resource": "repo://frontend/src/lib/components/charts/plugins/elliott-wave/mouse.ts#L114-L172",
+          "version": "repo-lines-v1:sha256:4147d5487967e46f25e6b685a59f19aa7862f40991f2f1f676085ad93ef33066:eyJzZWxlY3RlZExpbmVDb3VudCI6NTksImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImVkOWQ4Y2EyYmNhNmJiZDE2YjU5Y2JmNTJiNDM1ZDNlNzY3NjA3MTk4NjQ1Njc0YTdjN2ZiOGMyZTA1NjA2YTMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAxYmE0NzE5YzgwYjZmZTkxMWIwOTFhN2MwNTEyNGI2NGVlZWNlOTY0ZTA5YzA1OGVmOGY5ODA1ZGFjYTU0NmIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImFmMjY4MzM0ZDIxYTNhZTdkYmYwZTk2ODNmMjczYzg2OWZhNWFhMWQyMTg3YTdkZDM5MTIwN2VjNWMwNmRhNDgiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImQxZjBjOTMwMWYwMjdhZTBmOWIyYmZjYTdhNGJiZjA0MzdiOTUyNjkyZGZhNDA2MmRmYjE0YWI3NDEyNTIyMWMifQ"
+        },
+        {
+          "resource": "repo://frontend/src/lib/components/charts/security-chart.svelte#L716-L722",
+          "version": "repo-lines-v1:sha256:0750de5ab28860f773de210d9dcea270d8d6ef6603a9bb7c15fb3abb67e8d21f:eyJzZWxlY3RlZExpbmVDb3VudCI6NywiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiZTBiY2ExN2MzYjI0YzY1ZDc2OTIwN2I2ZjdlMGU0NTZmMDc4YzY1Y2JmMDc1NmQ4YmNhYzBkYTU1ZTE3OWY4NiIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiMGE3MzQ5MmQ4OTQ2YjFkMGY5ZDljMDRiNzA0YTkyMGYyNGY4OWVmN2M3ZjczMTFhODU5OWQxMGM3ZjYzNThkMCIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiMjA2NmNjZWY3ODE3ODEwNTk3ODliMGE2MDg0OWJjZDU2ODVjNDNhNjNjNjEzNGUyMzMwYzQ3MGE0NTRmMjcyYyIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiNDE3ODk5NjE4Y2I4OTEyNjM0NTEwY2YwNjQ3NGQzN2U5MjA2ZWYxYjIyYWExMTYwMmEzOTBjMDNjNTc2YjYwMiJ9"
+        }
+      ]
+    },
+    {
+      "id": "claim_ee62989cbc1a49c1ae5a8fed37541890",
+      "statement": "FibonacciToolState manages one retracement (two anchors) and one extension (three anchors) plus pending points: addPoint advances the click progression (two clicks complete a retracement, three an extension), stores the drawing, clears pending points and exits drawing mode; updatePoint supports per-index drag updates; clear(tool?) clears one or both tools along with any hover/drag/selection referencing them; setDrawings/setRetracement/setExtension run anchors through the finance-layer normalizers and drop a selection whose drawing disappeared; every mutation fires drawingsChanged with a defensively copied SecurityFibonacciTools.",
+      "evidence": [
+        {
+          "resource": "repo://frontend/src/lib/components/charts/plugins/fibonacci/state.ts#L125-L231",
+          "version": "repo-lines-v1:sha256:fff7098f2845255c199ef62f09456dd39531a324d814c27ed858c7123bc8e848:eyJzZWxlY3RlZExpbmVDb3VudCI6MTA3LCJmaXJzdFNlbGVjdGVkTGluZUhhc2giOiI3NjZmNjgxYmMwODg1NzUxOWU0M2Q3NzdhY2FmYmZjNzIyMmFkMjRjNjgwODMwMTk5YzFkMGYwY2VlNDJjNGVmIiwibGFzdFNlbGVjdGVkTGluZUhhc2giOiI2N2NkYTgyZGE2MDYyMzhlMDVlNjIzOTk1NjljNWVlMDM5OTM0MTk2NDhhZTVkNDNhMmJmOGNkNjM0N2Y4MjYzIiwicHJlY2VkaW5nQ29udGV4dExpbmVDb3VudCI6MywicHJlY2VkaW5nQ29udGV4dEhhc2giOiI2Njk4N2Y5MWQ1MGM2YTM1ODNkNzMyYjVkMWRkMWVmNmZkNTFlYWJmNGFjY2EzOTVjOGM5NTY2MmNiNTMwN2QyIiwiZm9sbG93aW5nQ29udGV4dExpbmVDb3VudCI6MywiZm9sbG93aW5nQ29udGV4dEhhc2giOiI3YWI2NGE2OWM2ZTNiMzZiYzFlYTc0ZjRlNjk0M2E1YjQ2NzM0OTdlY2RkMTc5N2MzZTRkOWY3YWUwZmEzZGY3In0"
+        },
+        {
+          "resource": "repo://frontend/src/lib/components/charts/plugins/fibonacci/state.ts#L233-L329",
+          "version": "repo-lines-v1:sha256:1084edbdaa67c89b6a5ca23090633132797f94e142336d57dbe4b614e7830d86:eyJzZWxlY3RlZExpbmVDb3VudCI6OTcsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjhmOTc0ZmQ2Y2ZiZmEyMjM4ZDdiMDQ5MTQxODFmNzZhYTI4NDllYTkyYTkzOGFjYjg4M2JiMjVkYjY1N2Q2NmIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjY3Y2RhODJkYTYwNjIzOGUwNWU2MjM5OTU2OWM1ZWUwMzk5MzQxOTY0OGFlNWQ0M2EyYmY4Y2Q2MzQ3ZjgyNjMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjFmMDdkYWNjNTA2NmMxZTVlMDE3ODVlMWY1OGM4MWEyMTBmNmI4MDkyNGIxNGZhY2ExM2IyZGU5MzI2NThmYTciLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjU3NjI3ZjhhOGY0YzA4OWZiOGM5OGQ3N2FhMTcyZjYxMDUwMzU4ODgwZmYwN2Q2YTA4NzA1Y2FmY2U0ZGYxODMifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_93658363a8364c8ea9375d7ea3da8f8a",
+      "statement": "The fibonacci mouse adapter uses HIT_TEST_RADIUS 14, maps hits to { tool, pointIndex }, adds line hit-testing against projected level lines using the distance to the clamped x-range, and snaps placed points to candle wicks through the shared adjustPosition hook; FibonacciPrimitive computes projected points and levels in _calculateRendererData and exposes doubleClicked(), which the page turns into the fib width modal.",
+      "evidence": [
+        {
+          "resource": "repo://frontend/src/lib/components/charts/plugins/fibonacci/constants.ts#L1-L1",
+          "version": "repo-lines-v1:sha256:f8d1090b94284cfb7bb073262403c65ba324e7620d3a66471f5cf1b37a94ced2:eyJzZWxlY3RlZExpbmVDb3VudCI6MSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiZjhkMTA5MGI5NDI4NGNmYjdiYjA3MzI2MjQwM2M2NWJhMzI0ZTc2MjBkM2E2NjQ3MWY1Y2YxYjM3YTk0Y2VkMiIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiZjhkMTA5MGI5NDI4NGNmYjdiYjA3MzI2MjQwM2M2NWJhMzI0ZTc2MjBkM2E2NjQ3MWY1Y2YxYjM3YTk0Y2VkMiIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjAsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiZTNiMGM0NDI5OGZjMWMxNDlhZmJmNGM4OTk2ZmI5MjQyN2FlNDFlNDY0OWI5MzRjYTQ5NTk5MWI3ODUyYjg1NSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiMmFlOWIzNjZiMGUxZDk4MGMxMjM1MTA4NDZiNzE0YjE2OTA1ZGFmNzlkZDBlNGRlMzI5NThjMTYzNWQ1ZDJhYiJ9"
+        },
+        {
+          "resource": "repo://frontend/src/lib/components/charts/plugins/fibonacci/fibonacci-primitive.ts#L136-L140",
+          "version": "repo-lines-v1:sha256:dd19cb476f73d897f95c5e28a03ea28208d5e0eca1823ae021b383649f645441:eyJzZWxlY3RlZExpbmVDb3VudCI6NSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiOGE5NTczYTE0OTVhY2FjZDZmODQ5MWJiN2VjNWU0NmIxYjMzNDIyMDM3M2MyYzEwYjIzZWIyZGQ4ODQwNmE0YSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiMmEzOWU5MDZkZTZhMGQ0MDJjYzk1NjFjMTk5NWMyNmE5OWUwZjJhZjMwODI3ODFmNmQ2NjIyYmI4ODNhNDNkZSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiMWNiNWY4NTBiZThhNTdjYjRlYWE2MmFmM2FhYmJmMmU5MGY3Yjk2NjMwNzEzZjZlNDEwMTNiOTBjMzE4Y2QxYiIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiMDQwMzcxYzI3YTNjNmJkYjQyNTRhODhhOTBlMTAzMWFlYTMyNzc1MjY0MDlhMmY4NDEyNGU2YmU1MTEyY2RlYiJ9"
+        },
+        {
+          "resource": "repo://frontend/src/lib/components/charts/plugins/fibonacci/mouse.ts#L27-L73",
+          "version": "repo-lines-v1:sha256:6b23b178a08af3824298e59d46d9b48c778bf9d1bfabe16de0435a7535aa39d8:eyJzZWxlY3RlZExpbmVDb3VudCI6NDcsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImVhZjIyY2YwNzMyNTkyYzI0NzE0MWNiZTYxZWZhMTEwMTI2MTJmNWEzMTIyYjlhZjliYmFmNTJmNTcyNGQxOTQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjY3Y2RhODJkYTYwNjIzOGUwNWU2MjM5OTU2OWM1ZWUwMzk5MzQxOTY0OGFlNWQ0M2EyYmY4Y2Q2MzQ3ZjgyNjMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImY2OTFiZGZhOTM1ZTI4OGVkMjdmZGRhZmViMDM3MmIwYjFmZDM5NjMwNDg4YTZlOWU0MDg1NzNmNjE5Yzc0NGIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjQ3ZTM3ZjhlYjY1NTVjMGNiMDkyZjNjZDhkNmJhYmQyMTFlNGZhMWQ1ZmEwZGJkN2NmMmVkY2M2NDk5NWI4M2EifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_a4bc147b88504579b17e4df0c61af573",
+      "statement": "user-price-alerts deliberately does not extend DrawingPrimitiveBase: it has its own MouseHandlers because it needs pointer positions over the price scale that the shared handler clips away, and it exposes both pane views and price-axis pane views. attached() creates one UserAlertPricePaneView(false) and one UserAlertPricePaneView(true) and subscribes alertsChanged, mouseMoved and clicked to requestUpdate; a click in the price-scale button column (xPositionRelativeToPriceScale within the button width) adds an alert at series.coordinateToPrice(y) and a click on a hovered alert's remove button removes it.",
+      "evidence": [
+        {
+          "resource": "repo://frontend/src/lib/components/charts/plugins/user-price-alerts/user-price-alerts.ts#L165-L171",
+          "version": "repo-lines-v1:sha256:5c3c8b173d2567cad8cb7111300e4f19a4fcbcac951099e9fa37b9b2f462b475:eyJzZWxlY3RlZExpbmVDb3VudCI6NywiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiN2FmZTkyZWUzMmZmNTM4YjFlNDg5MThjZGIyNTRlYzM0MTgwM2QwNGRlMGI4Nzg4ZWU5NTRiMTM2MDI1NDVlYyIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNjdjZGE4MmRhNjA2MjM4ZTA1ZTYyMzk5NTY5YzVlZTAzOTkzNDE5NjQ4YWU1ZDQzYTJiZjhjZDYzNDdmODI2MyIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiOWJjNWNkNmE2ZmM2ZDg1MTY5M2JhMWEzYzdhZjBlOTM1ZWNhMmJmZTM5NjhkMTRmYTQ3N2FjODhhM2ZhMzhkMyIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiMGU0NjlhOTNjOGNkMGYyMzU0ZTMzOGVmNTg2NDNjOTkwYzY1MzZkNTNjYjdmZTQ2YjhlZjU5ZDhiOGE2NjhkYiJ9"
+        },
+        {
+          "resource": "repo://frontend/src/lib/components/charts/plugins/user-price-alerts/user-price-alerts.ts#L86-L130",
+          "version": "repo-lines-v1:sha256:9d52d7a149de476b32849a0a684134ec21cfd0a9745461194383ecfa2713451a:eyJzZWxlY3RlZExpbmVDb3VudCI6NDUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjNjYzliNjVjOTNlN2ZmYzQ4MDc4M2FhNWQxYTY5NTQ4NDIyZTM3NWNkYjlmZjYxNjIxMTYzOWUxM2E0YzE1NjYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjY3Y2RhODJkYTYwNjIzOGUwNWU2MjM5OTU2OWM1ZWUwMzk5MzQxOTY0OGFlNWQ0M2EyYmY4Y2Q2MzQ3ZjgyNjMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjY5YjBmYzdjNjljZWNkZWIxY2I0M2JlZDBkNzc3ZjJjMDE5YmJjOTk1NDRlOWI5NjAwYTFkZTYzN2VlODcyMWMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjcxNzViZjU1MTc4Yjc2NmVjOTAzYzFiYTcyYzllMzkyY2QwZGFhNzIwMDBiMDRmZWE3YjU0NGI1YWRlYzc0NmMifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_6fae9d5228a24fe48f159b5d743ee3da",
+      "statement": "UserPriceAlerts.updateAllViews computes renderer data once and pushes it to both the pane views and the price-axis pane views, picks the alert closest to the pointer within showCentreLabelDistance (50), and sets the current cursor to 'pointer' when the pointer is over the add button or a remove button; hitTest reports externalId 'user-alerts-primitive'. UserAlertsState stores alerts in a Map with price-descending array view and generates random 6-digit ids, regenerating on collision.",
+      "evidence": [
+        {
+          "resource": "repo://frontend/src/lib/components/charts/plugins/user-price-alerts/constants.ts#L11-L11",
+          "version": "repo-lines-v1:sha256:72e32fe203d438906b0b117259862bb5ecbceb1ee6ca1bee76e944f87a628ee0:eyJzZWxlY3RlZExpbmVDb3VudCI6MSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiNzJlMzJmZTIwM2Q0Mzg5MDZiMGIxMTcyNTk4NjJiYjVlY2JjZWIxZWU2Y2ExYmVlNzZlOTQ0Zjg3YTYyOGVlMCIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNzJlMzJmZTIwM2Q0Mzg5MDZiMGIxMTcyNTk4NjJiYjVlY2JjZWIxZWU2Y2ExYmVlNzZlOTQ0Zjg3YTYyOGVlMCIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiYzcxNGM1Y2NhZDg3MWRiZDA0ZGNkYzNmMzIzMzM0NTE2ZGU4ZDY0MmQxYzQ2ODc3MzhjYzc2ZmFlNzdmZThiNiIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiOTlhNzk5ZDNhY2VhOGFlNmUxMWU1YTNmNDk2OGFmMzM2YzQxODE4N2I5YmMyODQ4NTNiMzBkNWNkYjQwN2ViOCJ9"
+        },
+        {
+          "resource": "repo://frontend/src/lib/components/charts/plugins/user-price-alerts/state.ts#L60-L90",
+          "version": "repo-lines-v1:sha256:c32718ab8448ec92e10d98b59e1c0bd88799d0f2018e316005ca849991872d98:eyJzZWxlY3RlZExpbmVDb3VudCI6MzEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjBiOGUzMTNkNDQzZDU0NWQxMjYxM2FjZDgxMTJlODY5NDFmNTdmY2UyNGMzNjJmOTE3MDZhZWRjNGM4NWY4YmEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjY3Y2RhODJkYTYwNjIzOGUwNWU2MjM5OTU2OWM1ZWUwMzk5MzQxOTY0OGFlNWQ0M2EyYmY4Y2Q2MzQ3ZjgyNjMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImQxNGU0NWNlMjhiNDE4NmI4ZWNjYzMyNDA3MzBlMzJlYzQ0YTY5MTUzZDkxYjU3MGY5OGNlMGM4NDU0Mzk4ODgiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjoxLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjQxMmNhMzQ1Y2NmNzViZjljMDgwNmJjZTY5NWJlOGRlODA4Yjc5OTg0MjUxYTdhNTRkMjAyY2Y2MTAxZGQ0NTEifQ"
+        },
+        {
+          "resource": "repo://frontend/src/lib/components/charts/plugins/user-price-alerts/user-price-alerts.ts#L132-L159",
+          "version": "repo-lines-v1:sha256:c0241b12cb89acf5853ed9bbf6500d8eded9f88dfd78cbcb36b8afb5f6a97ff0:eyJzZWxlY3RlZExpbmVDb3VudCI6MjgsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImM1MDFlZWFkZmFhNmE3ZDMxNTRlMjgwMDRmMTliZDRiOWUwNWQ1OThmYjJlYWMyZWMyYTQxNjU4MzA2OWVjNTEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjY3Y2RhODJkYTYwNjIzOGUwNWU2MjM5OTU2OWM1ZWUwMzk5MzQxOTY0OGFlNWQ0M2EyYmY4Y2Q2MzQ3ZjgyNjMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImYzOWZhNjU5ZjA3ZWVhZmU3YmU3ZTM1MWY0ZTlkZDcyM2QwNmQzYjM3MDA2MDg2YjI1MjU0YWQzZmIwY2QxNTUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjdkZDAyYzVjY2JiMmY0MTZiNDg0OGRkOTM1YzdjOWI1YjZiZDdmYzEyNjFhMjMyMDk4M2FlYzZmNWFhY2JhNmQifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_402f1e7d6fb0402bbe5004b155ab2d33",
+      "statement": "helpers/delegate.ts supplies the Delegate<T1>/ISubscription<T1> publisher-subscriber surface used by every state class and mouse adapter: linkedObject is the ownership handle consumed by unsubscribeAll(linkedObject) (primitives pass `this` so cleanup is exhaustive), single-shot listeners are removed before the callback runs, and fire iterates a snapshot of the listener list so a callback that subscribes or unsubscribes during dispatch cannot corrupt the loop.",
+      "evidence": [
+        {
+          "resource": "repo://frontend/src/lib/components/charts/plugins/helpers/delegate.ts#L15-L54",
+          "version": "repo-lines-v1:sha256:2d1349324f0c4d43b189008c65c76ae7bfb7e366f5c7fa5f509c07d8a4f24d8e:eyJzZWxlY3RlZExpbmVDb3VudCI6NDAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjY0ZTJhYmRiMDdkMDg1ZTFiOWVmMjgwZGYwOGQ2ZmQzYWVjZTkxNGMxNjFkNzc5ZGZkMDAzNDlhNWY5MjhiZTkiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjY3Y2RhODJkYTYwNjIzOGUwNWU2MjM5OTU2OWM1ZWUwMzk5MzQxOTY0OGFlNWQ0M2EyYmY4Y2Q2MzQ3ZjgyNjMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImVkOTI4MTMzOWQ3ZGRiZmJjYTRiYWMxMDJhZTVlZDA3NGM1MmYzMmVlMTk1ZDE2NTFlMWIwYWQ3NWMwZDE5YTUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjoxLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjQxMmNhMzQ1Y2NmNzViZjljMDgwNmJjZTY5NWJlOGRlODA4Yjc5OTg0MjUxYTdhNTRkMjAyY2Y2MTAxZGQ0NTEifQ"
+        },
+        {
+          "resource": "repo://frontend/src/lib/components/charts/plugins/helpers/primitive/drawing-primitive-base.ts#L176-L185",
+          "version": "repo-lines-v1:sha256:53af2695c3221878501122c5673af35adf56a709f37b837bdb6d5e8483bced0c:eyJzZWxlY3RlZExpbmVDb3VudCI6MTAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjhiNTU3ODI1MzkyNmY0NjY0MzIxODM0YTBmYmFiNjJlYTcwNTVhOWIzYzA3ZDQ0NGRhOTMxN2Y2OWE5NWZhODEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjY3Y2RhODJkYTYwNjIzOGUwNWU2MjM5OTU2OWM1ZWUwMzk5MzQxOTY0OGFlNWQ0M2EyYmY4Y2Q2MzQ3ZjgyNjMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImVkNzAwY2ZhNzgyODk2MTMyOTNiYzEwNzBhYmNiMTg5MzFkZTI3YzZmMGU4ZDM3YWJkNjE2MjBmOGYwMDU5YjgiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImQ3NjYzZTkzZmU1YTU5OWZkYjdiMThkZDVjZTc1MTYyMzM0ZmUwNDNmMGQ3NTMxODZiOWVhMmVmOTEyMWVmNWYifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_9bdd82d53f894fd3a17c6261c56f6146",
+      "statement": "helpers/time/time.ts provides DEFAULT_FUTURE_BARS = 100, the shape-preserving timeToEpochSeconds/epochSecondsToTime round trip across UTCTimestamp, date string and BusinessDay, addIntervalToTime, barsBetweenTimes, computeIntervalSeconds (median spacing of the most recent candles) and generateFutureWhitespace; resolveAnchorEpoch binary-searches the greatest candle at or before an epoch (clamped to the first candle) and returns null for an epoch past the last candle.",
+      "evidence": [
+        {
+          "resource": "repo://frontend/src/lib/components/charts/plugins/helpers/time/time.ts#L4-L51",
+          "version": "repo-lines-v1:sha256:4a0e5dbca7493ca3b5f3de51b8915a3c9a60a8b59e0c5cf35e8c6856318ed749:eyJzZWxlY3RlZExpbmVDb3VudCI6NDgsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjkzMmMzZTQ5OGE4ZTFlYmFjMjVlM2NjM2EyYjc2OTc0ODU2NGY2ZDFkMjFlMThhOWU1NTkyZmM0NzI3YTMyMGUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQxMmNhMzQ1Y2NmNzViZjljMDgwNmJjZTY5NWJlOGRlODA4Yjc5OTg0MjUxYTdhNTRkMjAyY2Y2MTAxZGQ0NTEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjU2OGViNzI1YzAwOTUyYzE1ZGYyM2RkYWE3MzFiYTgxZDUwMmI0ZWIwMDFlOTZiOTk4MzdmOThlNjFiNDZkMzgiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjEyZjE0ZGJlOGIxYzVmM2NjNDM2ZWI3ZDlkZTE4MmM1NDRiMWNmNTUxZDhhYWU0MDVmNmViNWJhMDc1ZWY1YjYifQ"
+        },
+        {
+          "resource": "repo://frontend/src/lib/components/charts/plugins/helpers/time/time.ts#L94-L140",
+          "version": "repo-lines-v1:sha256:a4207a23c2a4e07841dc74dce1a01feaf67d8abb1aa4546754f49ebcacfdbc63:eyJzZWxlY3RlZExpbmVDb3VudCI6NDcsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjMyMzZiMzA2MGE2YzlmY2FhOGYzZWE5ZTcxNTk0MTI3ZDNlYWM0MjkxY2ZiOWVmMjlkMGYyYWYzZDUyZmQ2MTciLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjgxNjdiNjA3MGU4MWI4MTExYjg1ZjdhZThmZWE4MjkwODQwOWFlMDIyMDE1NjU3NWUyMjNkNmZjYzAxM2E4YzgiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImExYzM1YjI0NDQzZDdhYTZhN2YxNmUyMmQyNjdmYTkyYzg0MTA3ZDg5N2I2MGUyZWFhMzA3Y2UzN2ZlZWNlZGEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjIzOTBjZmFkZjQwZTM2NjcxNjY1OWU5NjkzZTI2NTkzMTliMzI4YmZmNjRkMjE1MDRkYTcyNGE3NWZjOWUwZTkifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_993d841256cd4976a0b093f95a8ada19",
+      "statement": "TimeProjector binds to the chart via attach() and to data via updateCandles(), then projects both ways: inside the historical range it delegates to the time scale's timeToCoordinate/coordinateToTime, and beyond the last candle it extrapolates from the last time plus whole bar intervals and maps them through logical bar indices. epochToCoordinate(epoch) is the drawing-anchor entry point — it snaps the epoch to the candle at or before it and reuses the future-projection path for anchors past the last candle, which is what keeps a drawing created on one timeframe on the containing bar of every other.",
+      "evidence": [
+        {
+          "resource": "repo://frontend/src/lib/components/charts/plugins/helpers/time/time-projector.ts#L22-L47",
+          "version": "repo-lines-v1:sha256:0f5261351f409aef9da1be5dfb00dc97fdd01c7bc6cc12a09da77810b155e9f1:eyJzZWxlY3RlZExpbmVDb3VudCI6MjYsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjFkMjFiNjJkMjg0MTBiOGFiYWY0MmUzMzdhYzRjOWRiZGU1NTllZmJiNzBmNzI2YzBjMTUzMWMxNDJkZWM3YzciLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjY3Y2RhODJkYTYwNjIzOGUwNWU2MjM5OTU2OWM1ZWUwMzk5MzQxOTY0OGFlNWQ0M2EyYmY4Y2Q2MzQ3ZjgyNjMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6Ijg4ZjczOTBiNzRkZjY2YzU2ZTI3MDhlMGM3NjEwN2QyYzI4ODc5ODZlMmVmZjQwZjNiZGM4MjNmYWIxZWU1M2EiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImMyMThkNmYwOTEwMWUyM2ZiY2E3YzIxYjBlODg0ZDM5MjIyZjMwMTNjMmZjNzg1ZDY2NjBkODkzMzQ3ODg3NWMifQ"
+        },
+        {
+          "resource": "repo://frontend/src/lib/components/charts/plugins/helpers/time/time-projector.ts#L93-L123",
+          "version": "repo-lines-v1:sha256:d38c41228274ca22932b5a5318100fb7283472d9aadd65fb7ced407b7541ae1a:eyJzZWxlY3RlZExpbmVDb3VudCI6MzEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImVkOWQ4Y2EyYmNhNmJiZDE2YjU5Y2JmNTJiNDM1ZDNlNzY3NjA3MTk4NjQ1Njc0YTdjN2ZiOGMyZTA1NjA2YTMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjY3Y2RhODJkYTYwNjIzOGUwNWU2MjM5OTU2OWM1ZWUwMzk5MzQxOTY0OGFlNWQ0M2EyYmY4Y2Q2MzQ3ZjgyNjMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImEwNGM3ZjZlNWFiZTk1NjNiNTUwZTk5NmE4OTNmZjI1OTZmNzhiMGI3ZWY4MzNhN2ZjM2ViZjc2Y2E5NzhkMDUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjMyMWM5MGI4ZjkxOWZkMzhmYzJiMzA4MWJkY2MxMjEwYmJjMTlhMDViMzgwZWIzZDRjNmQzZDhhYTE5ZDViNjYifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_c55ee93ac9824528a36cba154a95855c",
+      "statement": "ChartMouseHandlers<TPoint, TTarget, TOriginal> is the shared interaction engine configured with hitTestRadius, toTarget(point) and optional adjustPosition/hitTestLine; attached() registers mousemove/mousedown/mouseup/click/dblclick/mouseleave/contextmenu on the chart element plus window-level mouseup and keydown, and detached() removes all of them along with every delegate.",
+      "evidence": [
+        {
+          "resource": "repo://frontend/src/lib/components/charts/plugins/helpers/mouse/chart-mouse-handlers.ts#L8-L32",
+          "version": "repo-lines-v1:sha256:8e192347056889f4a6b1f256ed8d7f5ff537827e0cf7ccf01f823121e435ba2f:eyJzZWxlY3RlZExpbmVDb3VudCI6MjUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjM0ZmZjYmExNGFkODQxZjE1MTg3Y2FlNDllMjQyOTczY2E3OWE2M2FiOTU0YjUzMmNiM2E1N2Q0Zjk5YTVhY2MiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQxMmNhMzQ1Y2NmNzViZjljMDgwNmJjZTY5NWJlOGRlODA4Yjc5OTg0MjUxYTdhNTRkMjAyY2Y2MTAxZGQ0NTEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImI4MjgwMmEzZmEyYjllOGVhNWUzMDNkOTdmMzg3ZDM1MjFhMmRkYjZiY2Q5ZWI5YThkZjZiZjIxNzJlZGM1YTEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjM3MGU0OWE1MmQ3NzUwZGY2OGM5MTZjMzJkZGE3NDVmOWNmNzhlMTc1YzIxODNmYTUzODQxMDJhYjUxNDNjYTQifQ"
+        },
+        {
+          "resource": "repo://frontend/src/lib/components/charts/plugins/helpers/mouse/chart-mouse-handlers.ts#L81-L154",
+          "version": "repo-lines-v1:sha256:2169434cf31e6b73e94e3beb877dd13eac102a7f3d4e686447697ec6cb4ad609:eyJzZWxlY3RlZExpbmVDb3VudCI6NzQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjY4ZWEwM2NjNmIwNjRhZmU0NzgyMDUyYjNmMWNhMzRlMzRjYWViZDAxYjZjYjE3MzBmNzRjZTdlMWMxNmE5ZjciLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjY3Y2RhODJkYTYwNjIzOGUwNWU2MjM5OTU2OWM1ZWUwMzk5MzQxOTY0OGFlNWQ0M2EyYmY4Y2Q2MzQ3ZjgyNjMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImY3OWNjMmFlNDhhOWNlMTU5ZjRhODM1OGUzYjcwYTU5NGE3YzU2NzUxMTJjNDc1ZTAxZDc1MDZhMDg3MTQzYWIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImY2OThjMmY0MTU2ZDZlNTUzM2M1YWRkNzY5OGUzNjdjOTNhNjBhMWUzOWVkNzlhYTY1NmNlMTE0MzEzNDc3OTkifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_5be241d7fe274bf48b99d04d31d5840d",
+      "statement": "ChartMouseHandlers clips to the plot area (subtracting the price-scale width and time-scale height) so points outside carry null time/price and are never turned into placements; its hit-test contract is boundary-inclusive at hitTestRadius with exact-distance ties resolving first-wins by array order; a drag sets _dragHappened, which suppresses the trailing click and dblclick so a drag never also places or selects; drags and drawing mode disable pressed-move scroll (restored on drag end or mode exit) and drawing mode hides the horizontal crosshair line; right-click and Escape fire cancelRequested while drawing.",
+      "evidence": [
+        {
+          "resource": "repo://frontend/src/lib/components/charts/plugins/helpers/mouse/chart-mouse-handlers.ts#L290-L343",
+          "version": "repo-lines-v1:sha256:e7b46920c2cb84eb85ea66512bda08d108379a644396a8b3ddf9253daa2ba096:eyJzZWxlY3RlZExpbmVDb3VudCI6NTQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjZhOTM0ZDFkMzg2YWQ3MjMyNTFjYjkxYTI2NzEzZWRmMGEyMGJiMDg0ZjZlOGRmMzBiYTExZWI2ZjBlNGNiZWIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjY3Y2RhODJkYTYwNjIzOGUwNWU2MjM5OTU2OWM1ZWUwMzk5MzQxOTY0OGFlNWQ0M2EyYmY4Y2Q2MzQ3ZjgyNjMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjFjYjVmODUwYmU4YTU3Y2I0ZWFhNjJhZjNhYWJiZjJlOTBmN2I5NjYzMDcxM2Y2ZTQxMDEzYjkwYzMxOGNkMWIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjBiNGFhYTcwNmFkZGJhOTRlZDBlZDJiNDFiMWMyMWY4N2UzMWE0ZTlhN2EyM2IwODQ3MTFlMDdiYTBjNTViY2QifQ"
+        },
+        {
+          "resource": "repo://frontend/src/lib/components/charts/plugins/helpers/mouse/chart-mouse-handlers.ts#L389-L491",
+          "version": "repo-lines-v1:sha256:9c6864ce55437d7d6cf46541f9a77399c275613c1b8b348c3267275f46a14cc6:eyJzZWxlY3RlZExpbmVDb3VudCI6MTAzLCJmaXJzdFNlbGVjdGVkTGluZUhhc2giOiJmZDM2OTEyM2MyMjdkOGU3ZjVmNWIwZTFmYTE2MmQyN2U4ZWYzOGMwZjY4OWZmNjRkMjFhMjkyNGFkZTFlMmI3IiwibGFzdFNlbGVjdGVkTGluZUhhc2giOiI2N2NkYTgyZGE2MDYyMzhlMDVlNjIzOTk1NjljNWVlMDM5OTM0MTk2NDhhZTVkNDNhMmJmOGNkNjM0N2Y4MjYzIiwicHJlY2VkaW5nQ29udGV4dExpbmVDb3VudCI6MywicHJlY2VkaW5nQ29udGV4dEhhc2giOiIyM2ZiNzAyOTE2MTk3MTEzMmQ4NmE5Njg5NmI3MGFmZTZhYTk3YTU2MDVlNTA0ZGZiZGJmNTk4NzAxZTNiNzM4IiwiZm9sbG93aW5nQ29udGV4dExpbmVDb3VudCI6MywiZm9sbG93aW5nQ29udGV4dEhhc2giOiI2MmI2ZTZjM2NmYWZlYjE1YmU4NzI5Y2JkZWRhMzA2OWE4MzZlMzdiZGFmZWRjZjc3OWIyMjVhNGViYzhhY2I3In0"
+        }
+      ]
+    },
+    {
+      "id": "claim_6521ad26fb714aed9742257a25408e63",
+      "statement": "helpers/mouse/snap.ts provides the pure snapping helpers snapPriceToWick (ties resolve to high), findNearestLevel (filters non-finite values; pixel tolerance stays the caller's job), buildCandleLookup and findCandleByTime (O(1) lookup keyed by normalized epoch seconds); helpers/mouse/geometry.ts provides pointToSegmentDistance, used by the measure and free-form-line line hit tests.",
+      "evidence": [
+        {
+          "resource": "repo://frontend/src/lib/components/charts/plugins/helpers/mouse/geometry.ts#L1-L20",
+          "version": "repo-lines-v1:sha256:723401caa6ef31b86e60ca60d07e68c67aedd33f7f286efc0477bf074701b183:eyJzZWxlY3RlZExpbmVDb3VudCI6MjAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImVhZjIyY2YwNzMyNTkyYzI0NzE0MWNiZTYxZWZhMTEwMTI2MTJmNWEzMTIyYjlhZjliYmFmNTJmNTcyNGQxOTQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQxMmNhMzQ1Y2NmNzViZjljMDgwNmJjZTY5NWJlOGRlODA4Yjc5OTg0MjUxYTdhNTRkMjAyY2Y2MTAxZGQ0NTEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjowLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
+        },
+        {
+          "resource": "repo://frontend/src/lib/components/charts/plugins/helpers/mouse/snap.ts#L5-L59",
+          "version": "repo-lines-v1:sha256:ca8f11d89846d252f8d67f7924b6b24c3de6491268bb4b46506aa09e0fbc663a:eyJzZWxlY3RlZExpbmVDb3VudCI6NTUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImVhZjIyY2YwNzMyNTkyYzI0NzE0MWNiZTYxZWZhMTEwMTI2MTJmNWEzMTIyYjlhZjliYmFmNTJmNTcyNGQxOTQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQxMmNhMzQ1Y2NmNzViZjljMDgwNmJjZTY5NWJlOGRlODA4Yjc5OTg0MjUxYTdhNTRkMjAyY2Y2MTAxZGQ0NTEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6Ijc1ZjVkMDkwODk3ODUzZTQ4OTAyZjI1YzY5MGIxMTcxNjdiOThiNGJmOTUzZTJhN2IyYmZiZjFhMDNkNzQyMjMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
+        },
+        {
+          "resource": "repo://frontend/src/lib/components/charts/plugins/measure/mouse.ts#L47-L58",
+          "version": "repo-lines-v1:sha256:5e75eab07a964baa9fbc72c2279a700c005361e6593126f7f079f349e2216323:eyJzZWxlY3RlZExpbmVDb3VudCI6MTIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjcwNDg1YjlkYjA0Y2ZhMWVkNmMzNjExMWE2OWJlZjY3YzdhNjg2NDA5OThhNGNmOGJlNWVlMDk0YzNjMDFhOGYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjY3Y2RhODJkYTYwNjIzOGUwNWU2MjM5OTU2OWM1ZWUwMzk5MzQxOTY0OGFlNWQ0M2EyYmY4Y2Q2MzQ3ZjgyNjMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImQxNzVhOTNjMzllYzRhNzk5ZGMxZWJkNWM2N2Y2NDAyNGZjNjUxYmFkN2I4ZWFjNDI0NjllODhjYmZkYzE4NWEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjoxLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjQxMmNhMzQ1Y2NmNzViZjljMDgwNmJjZTY5NWJlOGRlODA4Yjc5OTg0MjUxYTdhNTRkMjAyY2Y2MTAxZGQ0NTEifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_e0a86501c46e44c99d78c5aba35d525f",
+      "statement": "helpers/dimensions/positions.ts converts media coordinates to pixel-snapped bitmap geometry: positionsLine returns a centred { position, length } and positionsBox returns a start plus length of abs(delta) + 1 (so a 1 px box stays visible). helpers/renderer/ layers drawAnchorHandle (anchor dot with optional hover/drag rings, used by fibonacci, measure, horizontal-line and free-form-line) and drawChartLabel (pixel-aligned text box with optional accent bar) on top of that math, exported with shared handle/label constants from the barrel. New canvas code must work inside target.useBitmapCoordinateSpace(...) and derive geometry from those helpers to stay crisp on high-DPI displays.",
+      "evidence": [
+        {
+          "resource": "repo://frontend/src/lib/components/charts/plugins/helpers/dimensions/positions.ts#L15-L47",
+          "version": "repo-lines-v1:sha256:34dfc6bb004c7937dc4f746768b71b577e15c1bcc27fff4ecae1b7753c196581:eyJzZWxlY3RlZExpbmVDb3VudCI6MzMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijk3NDI0YmYwMzY3ZGQ5NDBkNjA0NzVjMzI3YTc4N2FlMTBiYzFjNmEwMDZmYTlkMTIyYzBiY2VlZWExNjczMTMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImNjM2EyMDc3NGQ1YzJiYjRjNzkwYzE4ODkwYTljNDk0Y2NiNTEwZmM4ZThjMDllYzc0NTE5YmMxNjRmYzc4NGIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImU4NjM4MjE3NWM4YjU0MDljNDMxMTVjYmNjMGI4YjZlMWVlNGJkMzMzMTYwOGJmYzE3YWNkMzA4MTA5NjBkZGIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjoxLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjQxMmNhMzQ1Y2NmNzViZjljMDgwNmJjZTY5NWJlOGRlODA4Yjc5OTg0MjUxYTdhNTRkMjAyY2Y2MTAxZGQ0NTEifQ"
+        },
+        {
+          "resource": "repo://frontend/src/lib/components/charts/plugins/helpers/renderer/index.ts#L1-L21",
+          "version": "repo-lines-v1:sha256:f558952eb21df25519f577915a380f3f89119df0e7d47365666654f1111760cf:eyJzZWxlY3RlZExpbmVDb3VudCI6MjEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjExNzQ0MjkwOTg3MDNlNjM0Y2M2NjRlNDk3NWQxNGFjNDkxMjc0OWU1MTYyNGFiMWEzNTNiZTI0NzNmOWMxMGIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjM5YjYzMmJlM2UzNjVlZDIwNzkwNWEyYjkzZWEwYzI1NTgwNzlkZTg5ZGRhYjMzODZmYWNiNTQyNmUxMDU1M2UiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjowLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
+        },
+        {
+          "resource": "repo://frontend/src/lib/components/charts/plugins/measure/pane-renderer.ts#L4-L4",
+          "version": "repo-lines-v1:sha256:701b37c3ef95b216d478e4a77c45ee232ffc94d920dd8335f43501cd0ef107e2:eyJzZWxlY3RlZExpbmVDb3VudCI6MSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiNzAxYjM3YzNlZjk1YjIxNmQ0NzhlNGE3N2M0NWVlMjMyZmZjOTRkOTIwZGQ4MzM1ZjQzNTAxY2QwZWYxMDdlMiIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNzAxYjM3YzNlZjk1YjIxNmQ0NzhlNGE3N2M0NWVlMjMyZmZjOTRkOTIwZGQ4MzM1ZjQzNTAxY2QwZWYxMDdlMiIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiMWUxN2U1ZWM1MzUwN2MwNjcxZjUwODZiZDMwMTg3MGI3MzlkYTkwM2YwMGY4ZDYzMDZiZjVjNmIwYTVlNmQzYyIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiN2MxZjA2OWM5YjU2ZGFiYTBjZDMzODViZWUzY2JlMzg0MTJhOGVmYWU1N2I1NGRkMTUxZTdkZDcwNmU5OGM1ZiJ9"
+        }
+      ]
+    },
+    {
+      "id": "claim_2b77879567b24fec89735a2d70d8c1e3",
+      "statement": "The finance layer is the lowest layer and must not import from plugins/helpers/: drawing-time.ts documents that its normalizeDrawingTime duplicates the plugins' helpers/time/timeToEpochSeconds on purpose. normalizeDrawingTime accepts an epoch number, ISO date string or BusinessDay and returns UTCTimestamp, falling back to 0 for invalid or missing values, and every state class, per-security normalizer and equality helper uses it so legacy date-string anchors equal their epoch form and drawings stay put across timeframe switches.",
+      "evidence": [
+        {
+          "resource": "repo://frontend/src/lib/components/charts/plugins/helpers/time/time.ts#L6-L17",
+          "version": "repo-lines-v1:sha256:64ae30893ad4560cd53ddfabd01ab9d3f3d0dc6f91132b01cdd1d150ee4d09f4:eyJzZWxlY3RlZExpbmVDb3VudCI6MTIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjI2ZWY3NjViYTJjNjliZGZhYTQ4NDkzNDkxMjNlN2I5MTVjMGJjZGMxNDUyNWNkODM4Y2MwZjZjYzkwNjFkYmQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQxMmNhMzQ1Y2NmNzViZjljMDgwNmJjZTY5NWJlOGRlODA4Yjc5OTg0MjUxYTdhNTRkMjAyY2Y2MTAxZGQ0NTEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjcwMDQzN2ZlODg0MzBlNzExOWYxNzFiMDA2YzMwY2JlZmNmMDY1NDAzNDA4YzFmYmQ0OTM2NmM4N2ViZmU5NTciLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImViMjI2ZmJlYmRiMDBkY2MzYjNmMjA1ZDgwNDg0MmViODlmZDFjYWRhODk1ODU4NmI3NTliMmYwZGYwN2E4ZjgifQ"
+        },
+        {
+          "resource": "repo://frontend/src/lib/utils/finance/drawing-time.ts#L1-L26",
+          "version": "repo-lines-v1:sha256:1ad4bd2bf85422a4eb8cf5cf11a5348a00cbf644927a7b9246d7459228e291b3:eyJzZWxlY3RlZExpbmVDb3VudCI6MjYsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjFlYWY1NjdlMjYxYzdkODExNmRjMGQwMDVjNjU1ZDM4YmUwNGFmOTdmNzNhN2E2MjkwMGUxNTU4NmYwZTAxM2YiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQxMmNhMzQ1Y2NmNzViZjljMDgwNmJjZTY5NWJlOGRlODA4Yjc5OTg0MjUxYTdhNTRkMjAyY2Y2MTAxZGQ0NTEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjowLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_c4cf9a1055834239825705e289781860",
+      "statement": "Finance-layer equality functions are the guard that stops the chart's $effect sync from re-setting a primitive and causing a preference write-back: areDrawingCollectionsEqual compares order-sensitively treating null/undefined as empty, areSecurityDrawingsEqual treats missing or empty collections as equal, and areSecurityElliottWavesEqual id-normalizes both sides first via getWaveIdentity (a deterministic hash-based id derived from index, degree, type and points) so a wave without a persisted id compares equal to its id-bearing counterpart.",
+      "evidence": [
+        {
+          "resource": "repo://frontend/src/lib/utils/finance/drawings.ts#L272-L302",
+          "version": "repo-lines-v1:sha256:c615c1d9867921732ce0f708d47d23030d8d3adb5aa979bdcab8df30d274bcb9:eyJzZWxlY3RlZExpbmVDb3VudCI6MzEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImVhZjIyY2YwNzMyNTkyYzI0NzE0MWNiZTYxZWZhMTEwMTI2MTJmNWEzMTIyYjlhZjliYmFmNTJmNTcyNGQxOTQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQxMmNhMzQ1Y2NmNzViZjljMDgwNmJjZTY5NWJlOGRlODA4Yjc5OTg0MjUxYTdhNTRkMjAyY2Y2MTAxZGQ0NTEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjI4MzEyZmMxMTJhOThkYjNjZGMzNGNkNTE2ZjU5NDYwZTBkNDA5MjJkNzNmZTE3OTVjNmFkMzIyNDdhODE5N2QiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
+        },
+        {
+          "resource": "repo://frontend/src/lib/utils/finance/elliott-wave.ts#L156-L215",
+          "version": "repo-lines-v1:sha256:9d8288b8266b90206e731dad9558d4a1fda115880f2cf2d348aab5682a8ffc0c:eyJzZWxlY3RlZExpbmVDb3VudCI6NjAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImNmNWJlZGIzNzkxOTkyMzBjNjUwMDBmYzhhMzI0ZGRkNTI4ZmIwNDY2YzZiYWI4NTQxNDliMWNhMmU1YjkyNGEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAxYmE0NzE5YzgwYjZmZTkxMWIwOTFhN2MwNTEyNGI2NGVlZWNlOTY0ZTA5YzA1OGVmOGY5ODA1ZGFjYTU0NmIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjIyMGI5NzYyMzkwYzk5NDBhOTRkMDg5YTQ1NjZmMDg5OTEyOWI2ZTIxMmExNWI1YzA4Y2I2YWM0MWY0NGQ2ZDUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjI4MzEyZmMxMTJhOThkYjNjZGMzNGNkNTE2ZjU5NDYwZTBkNDA5MjJkNzNmZTE3OTVjNmFkMzIyNDdhODE5N2QifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_3333cfbe240a48fdac6f7a4bc5a3ca49",
+      "statement": "generateUUID() lives in $lib/utils/finance/rewind.ts and is used for wave ids, drawing ids and client-side snapshot ids; it falls back crypto.randomUUID to crypto.getRandomValues to Math.random because non-secure HTTP contexts lack randomUUID.",
+      "evidence": [
+        {
+          "resource": "repo://frontend/src/lib/utils/finance/rewind.ts#L29-L52",
+          "version": "repo-lines-v1:sha256:7bb1c527fa85c0bec38134cc3209a22d194be91151b9281adcb7dcbabb0ace06:eyJzZWxlY3RlZExpbmVDb3VudCI6MjQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImVhZjIyY2YwNzMyNTkyYzI0NzE0MWNiZTYxZWZhMTEwMTI2MTJmNWEzMTIyYjlhZjliYmFmNTJmNTcyNGQxOTQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQxMmNhMzQ1Y2NmNzViZjljMDgwNmJjZTY5NWJlOGRlODA4Yjc5OTg0MjUxYTdhNTRkMjAyY2Y2MTAxZGQ0NTEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImFhZmIzODcwYzY3YjM0NWUzYmI3YjgxMTljYWI1MDBiNWEwYTk3OTk3MWNhZDUyNmUwY2E5NjdjNjcyNjlhZGYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImQ0YThkNmQ2NjRhZTZiY2FkNGU0N2QxODliNzBlMWIxYjllY2ZiYzQyZjg2OTFmYjE0NmI1YWFiZmQ0ODFjM2QifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_c8b5bcc5df754b5286b3814a61159a6c",
+      "statement": "ChartDrawingsService (frontend/src/lib/services/ChartDrawingsService.svelte.ts) is a Svelte-runes class that owns all drawing state for one security page and is the only writer of drawing preferences and snapshots. The security page constructs one instance per page, registers it with setChartDrawingsService(...) and descendants read it via getChartDrawingsService(); DrawingToolbar accepts a service prop and falls back to the context instance. Constructor dependencies (securityId, userPreferences, displayCandles, getChartRef, onWaveAlertsReconcile/onPreferencesChanged/onChartSettingsOpen, userPreferencesService, snapshotsService, toast) are injectable for tests.",
+      "evidence": [
+        {
+          "resource": "repo://frontend/src/lib/components/charts/drawing-toolbar.svelte#L74-L74",
+          "version": "repo-lines-v1:sha256:2dcf253f1cedeaa3addd03f7e034ea1488930ec1ccc521a85ea2807821686149:eyJzZWxlY3RlZExpbmVDb3VudCI6MSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiMmRjZjI1M2YxY2VkZWFhM2FkZGQwM2Y3ZTAzNGVhMTQ4ODkzMGVjMWNjYzUyMWE4NWVhMjgwNzgyMTY4NjE0OSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiMmRjZjI1M2YxY2VkZWFhM2FkZGQwM2Y3ZTAzNGVhMTQ4ODkzMGVjMWNjYzUyMWE4NWVhMjgwNzgyMTY4NjE0OSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiOTcyM2Y3YjFkODczNjM5NDQwOTBhNmFhNGM2YzVmN2NkZWM0MjZkYmExMThiYmYwZGQ5YzU4Y2Q3NDQ5MDI3MiIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiZDhhOWI3YjczZTBmNWI0ZTM2YzBlNDQ3YWZkNzg5MzI4ZTFmYjg2ZjhmYTZmMTc3YTEwNzcwYWQ4ZGRmZTE2NiJ9"
+        },
+        {
+          "resource": "repo://frontend/src/lib/services/ChartDrawingsService.svelte.ts#L1056-L1070",
+          "version": "repo-lines-v1:sha256:f14d76736c371cf2349331214f3bd4870f1a8143c416b29e72db1231717ddf13:eyJzZWxlY3RlZExpbmVDb3VudCI6MTUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjgzMmI3MjljMGFiMDcwNTNkMjhhZTUzMWQ3NzQ0MzllZGE5NzE1OWE5ZjU3NGM1NzhjNzc2MGM0YTU4NGQyY2YiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQxMmNhMzQ1Y2NmNzViZjljMDgwNmJjZTY5NWJlOGRlODA4Yjc5OTg0MjUxYTdhNTRkMjAyY2Y2MTAxZGQ0NTEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjU0YmE3MjYzYzEwODcwMmE1NWNjOWRjZjU4MWYxMTMzMzc4Mjk3NmRlN2U2MDRkMTIxNWU2ZDhjZjUxYTA4ZmYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
+        },
+        {
+          "resource": "repo://frontend/src/lib/services/ChartDrawingsService.svelte.ts#L231-L252",
+          "version": "repo-lines-v1:sha256:a00bbaecbd8431cb014c3cca07ba4a0e8b4ec67769ecd0117985a509e1af8c09:eyJzZWxlY3RlZExpbmVDb3VudCI6MjIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImY0ZTBjMDdjN2M0OTYzZTc5N2M5NDAzMmJlYmE4YWFkMDczOWY0OGEyZjA0ZWU4NzYwYzkwZTQ0MTNlYzRjZDYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjY3Y2RhODJkYTYwNjIzOGUwNWU2MjM5OTU2OWM1ZWUwMzk5MzQxOTY0OGFlNWQ0M2EyYmY4Y2Q2MzQ3ZjgyNjMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjAzOWRkNGE0ZDRmN2MzNTBjNDAxMmQ5NDQ4Mjg4YmE3ZTJiNDlhOGEyZDA3ZWI2MzBmNThmMzA0NzQ4NTZiYTYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjVkMmIzN2ZlODU3YzljNzAxZDk2MzQyNmY5ZGU1MDU4NmQzMjUwNWI5YjkyMmEzZjI1ODdmM2M5NzJlOTRiMDgifQ"
+        },
+        {
+          "resource": "repo://frontend/src/routes/security/%5Bsecurity_id%5D/%2Bpage.svelte#L98-L103",
+          "version": "repo-lines-v1:sha256:00169945b7d91af5538c5199e1deb9b2e9b4f2477bcac2e557f570e975dbe985:eyJzZWxlY3RlZExpbmVDb3VudCI6NiwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiMmRmOTJlYzg2YjE3ZGY0NWJhNzk5YzMzNTZkYmE5OWE5Zjk0Mzk5MWI0MjgzMGIxYjJlNzQzMDczMjRmZTJlYSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiMmYzMzI5NTI0ZWFlYTAyY2IwOTU0NDRlZGQ3YTQwZGRjOTI5NzI4ZGU1OWE2Mzg4MGY1Yjg2NzYwZmRhMzE2NyIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiYjBjYmIyYTFmOTBjN2FhMzFiMTU0NDA3YmQ3NDU4ZDkwYTdhMDkyZWE2NmQ0NTE0NTI1M2YzNDk4Y2Q1MjI2YSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiMWFkYWM2NGNhOWQ1OTRiYzk2ZjNlNDQ1N2FhODUwNTBmMmRmYjBlZjQ5N2ZkZjk3ZGU3M2M0Nzg5ZjI4MThlMCJ9"
+        }
+      ]
+    },
+    {
+      "id": "claim_274f1638be5a4d6982f1583f3ebf99d1",
+      "statement": "ChartDrawingsService owns the active tool flags (activeWaveDegree, activeWaveType, activeFibTool and isDrawingWave/isDrawingFib/isDrawingMeasure/isDrawingHorizontalLine/isDrawingLine), the five selections, the per-security context (securityId, userPreferences, displayCandles), snapshot/rewind state (snapshots, isTimelineVisible, timelinePosition, saveFeedback) and derived getters (isRewound, securityElliottWaves/securityFibonacciTools/securityDrawings, activeSnapshot, effective* slices, canUndo/canRedo, isDrawing*Effective). Tool activation and selection are mutually exclusive, and selecting or toggling any tool while rewound first clears timelinePosition so the user's click is not swallowed.",
+      "evidence": [
+        {
+          "resource": "repo://frontend/src/lib/services/ChartDrawingsService.svelte.ts#L120-L157",
+          "version": "repo-lines-v1:sha256:88135cb0222611196e189aa53c139ea0f7e980c71b143d447e0384903a8ed005:eyJzZWxlY3RlZExpbmVDb3VudCI6MzgsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImY5ZTgyZTBkYzM1YzU4NmRlMzYwZmQ1NmM1YjdhMmIyYzIzZTZkNTI5NDgwMzMxZmRkYzAwOGFiMDI4YmViMjMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjI3ZGFlMjY5NDhiMDg4NGQxOTZlOGQ0Njk0MWJmMjkxMDcxMjdjODViMDI2MzJjNzNiMThiM2I1MWRlYzhkZGMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjliZThjYzg0NThkMDgyMzEzM2IyNzA0ZWNjNzlkMGU3OTMwZTU1Mzg3YTIzMjJmNDdiOWVmNjgzZTBmNjdjNDkiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjRjODJkMjVlMzliZjdjZGNjZmFmM2UxMTE3NTAyZjNmMWYzMTIzZGYzN2Y5N2EwOWJlNGQ0MzIwOWNlNDc0NGYifQ"
+        },
+        {
+          "resource": "repo://frontend/src/lib/services/ChartDrawingsService.svelte.ts#L286-L360",
+          "version": "repo-lines-v1:sha256:09f71d1859d9e34c116abd8cf8acdc43c028e3bfc179560f605a11c81c3ef4ad:eyJzZWxlY3RlZExpbmVDb3VudCI6NzUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjgwNzlmZWIzNzFkMTcyMGRhNzVjZTZlODMzNzUyMzFlNmE2MzExY2EyMzYxZTZmZTViYmUwODdjMDM3OTQzMWQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImNjM2EyMDc3NGQ1YzJiYjRjNzkwYzE4ODkwYTljNDk0Y2NiNTEwZmM4ZThjMDllYzc0NTE5YmMxNjRmYzc4NGIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjIyN2JiN2JkNzk1NzQ3OTNjNzE3N2RiMzAyZDljMTZjZmJhZGMzZGI5OGI0Yzg3OWVjYzlhOTRjZjM5N2FkZTIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImMyYTYyZTBlN2M1ODNiZTYxNDZmMTIzZTFiYzNiNTcyOTdjY2U3OGE0YjI5MWY4NTAwZmM0ODQwNzlmMmFlODgifQ"
+        },
+        {
+          "resource": "repo://frontend/src/lib/services/ChartDrawingsService.svelte.ts#L421-L469",
+          "version": "repo-lines-v1:sha256:a3acf50388a9330595acc0b028c67cf4bafe6e99b1a84b0e5c3e5afa7dc4611d:eyJzZWxlY3RlZExpbmVDb3VudCI6NDksImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImI5MGYxZjdlMGU1ZmEzZTlkZThlZDA3YzUxYzI3ODhlNzhhNmUxMzAyZTVlZDU3NzRiOTUxZGU2NzBmNTM0MWMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImNjM2EyMDc3NGQ1YzJiYjRjNzkwYzE4ODkwYTljNDk0Y2NiNTEwZmM4ZThjMDllYzc0NTE5YmMxNjRmYzc4NGIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImE4YzdmYjYzOTYyNWQ4ZTU2MThjNmNiYmZkN2M1ZDU2MGM2MGMwY2VkMTUxNWRkMzAyYTgwZTY5Mjc0NjE1MTQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUxMDg5NTg2NThhZWZlZWFlMjA2MzQ3OTZlN2FmMmQ3ZGRlNTkyYmNmYWEyNjRmZTZiOTBhNmU2MGViZTJlMzAifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_5ed6715df66c42e69bf47ca0300d2696",
+      "statement": "Every drawing mutation handler rebuilds the relevant per-security slice with a finance-layer helper and persists it through userPreferencesService.patchPreferences({...}) (a partial PATCH to /accounts/me/preferences): handleWaveChange via updateSecurityElliottWaves, handleFibChange/handleFibLevelsChange/handleFibWidthSave via updateSecurityFibonacciTools, and handleDrawingChange/handleRemoveDrawing (plus the measure/horizontal-line/line wrappers) via updateSecurityDrawings/removeSecurityDrawings. Wave changes additionally trigger onWaveAlertsReconcile so wave-target price alerts stay in sync.",
+      "evidence": [
+        {
+          "resource": "repo://frontend/src/lib/api/userPreferencesService.ts#L1-L20",
+          "version": "repo-lines-v1:sha256:b7984d1ca93f92c6a28d1a1ea15ed0b8ee7653fadf579f169f9d540ae62ed10d:eyJzZWxlY3RlZExpbmVDb3VudCI6MjAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImNlNWFmODcwZjMyMGY3MDJmYWI1NmMyN2I5ZGIxMGRiZThkMjFhMTQ0ODZmNGNiYmE3YjY4ZGNhNTE1MDY4YTMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjlkMjZjN2ZjMzA1MWJkNTdjM2NlY2RlNDU1MDQ1OWFkMDQzZmFlMjNiNDE3YjIwZWI2ZDI2NGZmZTk3YTMyNmQiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjowLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjNmYWEwYjBjYmQ0ZGQ1N2RmYzQzYmEyYTM5NjQxMjJkNjRlNzM5ZmFlNTRmYjUyMDFmMDU5YThkMjI3NTIxOTkifQ"
+        },
+        {
+          "resource": "repo://frontend/src/lib/services/ChartDrawingsService.svelte.ts#L610-L694",
+          "version": "repo-lines-v1:sha256:5ac65c0621bfb6e0c22c00a656a5f4163aa6bf887ede72842d5e26e579d3eb0c:eyJzZWxlY3RlZExpbmVDb3VudCI6ODUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjdlN2MzODQ4YjJjZDBlMWQwMGNjOTcwZDJmMmRkOTA0OWJmMGU3NGM3ZTQ2NzM5Y2M2NmMyNDRiNTQzYjM5MTEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImNjM2EyMDc3NGQ1YzJiYjRjNzkwYzE4ODkwYTljNDk0Y2NiNTEwZmM4ZThjMDllYzc0NTE5YmMxNjRmYzc4NGIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjIyZjJmZjVmZWVjNjBmNTg3YzhmYWU0ZTg3ZjgwOWE2NjFjZmZlZDZiNDdhYWU1ZjZkNmEyNjUzYWE4OTUyZWYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjU5YTQ4YjRkNjBkZjZlMWU4YmY0YTY5MjczOTMyNjdkMjQ1ZmY2OWFiZjA2Njc5OWU3NDkzYzIxZWVhNTNjNzIifQ"
+        },
+        {
+          "resource": "repo://frontend/src/lib/services/ChartDrawingsService.svelte.ts#L804-L891",
+          "version": "repo-lines-v1:sha256:ca045c722a9236c55c1bc1c8e70345786dfbb70ca7f484b344fbaa2d5e53f025:eyJzZWxlY3RlZExpbmVDb3VudCI6ODgsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjE1NDJhYjI2MDZiZDBiNjg2ODA5ZTFjMGRjNDhmZDRlMzVjMGE3NmQwNDZmMjI3NTgwM2Y1ZmMzYjE5ZjE3N2QiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImNjM2EyMDc3NGQ1YzJiYjRjNzkwYzE4ODkwYTljNDk0Y2NiNTEwZmM4ZThjMDllYzc0NTE5YmMxNjRmYzc4NGIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImVhNTc3NTJiZDJmNTdkNjA4MzQ4MzUzMGIyYjg4NDUzYWExMWRlZTM5Mjg0YjNiODY5Y2Y4YjZmYWI4YjQ2ZTMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjViNThjODg1Mjc3NTA2M2YzNTMzZmE4MDY2MzA5M2ZkMWNhYjY4NDQ0YTBjYTFiNzJkNzUyZWJiZmY4YWFhYWMifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_5d374a0c5ada4253bc9f40cb44eb4ac5",
+      "statement": "normalizeDrawingsPreferences runs at the preference-loading seam (constructor and setPreferences) and normalizes every security's drawings to epoch anchors. Without it the restored date-string anchors would differ from what the primitives derive on feed-in, the chart's $effect equality guard would see a difference, and the app would write one extra preference patch per tool on first load. setSecurity(id) resets tool state and re-initializes (or clears) the history manager, and getCurrentDrawingState() returns the three per-security slices or all-null when there is no security.",
+      "evidence": [
+        {
+          "resource": "repo://frontend/src/lib/services/ChartDrawingsService.svelte.ts#L104-L118",
+          "version": "repo-lines-v1:sha256:7c5c70df6468592cf1c0397dba765fe435087430a99848a4bfe626022a1766ce:eyJzZWxlY3RlZExpbmVDb3VudCI6MTUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImVhZjIyY2YwNzMyNTkyYzI0NzE0MWNiZTYxZWZhMTEwMTI2MTJmNWEzMTIyYjlhZjliYmFmNTJmNTcyNGQxOTQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQxMmNhMzQ1Y2NmNzViZjljMDgwNmJjZTY5NWJlOGRlODA4Yjc5OTg0MjUxYTdhNTRkMjAyY2Y2MTAxZGQ0NTEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImFkNWRlZjczNDNkNWMwOTIyOTAyOWM4MDM1MTEwZGNiNmJkMGU0MTk3MDkxNjY5MGQ5Yzc2YWM5NGNiYzNhNjEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImJhNjIzMzhlMzQ2Y2ExOTdhNjJkZTgzMjVlYWRjOTcwZDlmYWQ1ZmY3NzFlMGRkYjA2ZDhhYjIyYWI5NmE3MzIifQ"
+        },
+        {
+          "resource": "repo://frontend/src/lib/services/ChartDrawingsService.svelte.ts#L258-L276",
+          "version": "repo-lines-v1:sha256:5bb13caca40ea9470175af0cdc2ce956f7cbe4af5d7fb71ec9ab0ff8eab87c17:eyJzZWxlY3RlZExpbmVDb3VudCI6MTksImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImM5MTVkNmU0NDhiMGM3MWM1ZDJmMzFjZjE5M2ZmM2ZhNzgwMDY5YmIwYTI3MGMzZGY4ZDY1ODE0NTQ1Yjc0Y2UiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImNjM2EyMDc3NGQ1YzJiYjRjNzkwYzE4ODkwYTljNDk0Y2NiNTEwZmM4ZThjMDllYzc0NTE5YmMxNjRmYzc4NGIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImFmZWRjZmJkNDgyNDZlZjcyNDE3ZDVjZjJiOWIyMWJhMDZhNTA4M2I2MjBjMmE5OThjNmNmY2NlZmJhNTY4YzkiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImNlZmJhNWE5OGUyMWVjOTVlYjZjYTM0YThkYjRmOTY2ODUyZjM1NzkzODQ1YmRkYzhkNTJiYmE1ZmEyMDU3M2IifQ"
+        },
+        {
+          "resource": "repo://frontend/src/lib/services/ChartDrawingsService.svelte.ts#L495-L508",
+          "version": "repo-lines-v1:sha256:b9a14be506b66e001e81de926a795179ded5465062b8912a39521707a433c39c:eyJzZWxlY3RlZExpbmVDb3VudCI6MTQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImU3MDJhMDQ2ZjQzYmEzY2QwMTIwMTYyMjljZDg4OTYwNzNjZmJlYmVjMGE1NWZkOGJhYTliZTFmODZkNDM5M2MiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjY3Y2RhODJkYTYwNjIzOGUwNWU2MjM5OTU2OWM1ZWUwMzk5MzQxOTY0OGFlNWQ0M2EyYmY4Y2Q2MzQ3ZjgyNjMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjMzZTBlOWVjMjM4MWNkNGQ4MjE1MWY4ZTFjNjg2OTI2M2MxNzhhYjM4MDM4ZmFlOTlkOGNmNmRiNWI3MzgyMjYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6Ijc3MDNkZmQ0MGY0ZWEzYjMyZjkxNjg3OGEyNjg4MjA4NGFjZTJlYmUxZWJhMmQ3N2M5MjhlNGUyZjdiYzEzM2EifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_faf4dd8c65394661854f2d349e3bb18a",
+      "statement": "DrawingHistoryManager (finance/drawing-history.ts) keeps undo and redo stacks of deep-cloned SecurityDrawingState snapshots with maxHistory 100 by default and notifies subscribers so the service can recompute canUndo/canRedo. A coalesced push stores the state in _pendingCoalescedState instead of pushing (flushed by a later non-coalesced push, startCoalescing/stopCoalescing, undo, redo or getCurrentState); flushing skips the push when areDrawingStatesEqual says nothing changed; a non-coalesced push is a no-op when the state equals the stack top, and any real push clears the redo stack; canUndo is true with more than one entry or a pending coalesced state; init seeds the base entry and clear empties both stacks.",
+      "evidence": [
+        {
+          "resource": "repo://frontend/src/lib/utils/finance/drawing-history.ts#L139-L196",
+          "version": "repo-lines-v1:sha256:50f719eed6a1a0910fd828e151fc6e78d7a5b05127618d990ef4cdf136241573:eyJzZWxlY3RlZExpbmVDb3VudCI6NTgsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImYwMzU4ZjY4NjM1NDkzNmFiMTJjNzU4MTI3MDg0NzliMjU0NjEwYzA1YjAzNzg0ZDk1ZGY2MzViMGQ1NTczYjQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjY3Y2RhODJkYTYwNjIzOGUwNWU2MjM5OTU2OWM1ZWUwMzk5MzQxOTY0OGFlNWQ0M2EyYmY4Y2Q2MzQ3ZjgyNjMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjgyYTE3YjBlMmU3NzhlMGU5ODU2ZjhjODdhZDZlNTkyZDEyYmM4YzE2ODY5ZGRiODZhZWY5OTljMWNlNDAxMDkiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjoxLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjQxMmNhMzQ1Y2NmNzViZjljMDgwNmJjZTY5NWJlOGRlODA4Yjc5OTg0MjUxYTdhNTRkMjAyY2Y2MTAxZGQ0NTEifQ"
+        },
+        {
+          "resource": "repo://frontend/src/lib/utils/finance/drawing-history.ts#L54-L137",
+          "version": "repo-lines-v1:sha256:a5d0cbebb379995c4cda3e1475c13b99266e2578484d7485d923acc1455438be:eyJzZWxlY3RlZExpbmVDb3VudCI6ODQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImVhZjIyY2YwNzMyNTkyYzI0NzE0MWNiZTYxZWZhMTEwMTI2MTJmNWEzMTIyYjlhZjliYmFmNTJmNTcyNGQxOTQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjY3Y2RhODJkYTYwNjIzOGUwNWU2MjM5OTU2OWM1ZWUwMzk5MzQxOTY0OGFlNWQ0M2EyYmY4Y2Q2MzQ3ZjgyNjMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImYyOTY0MDc5YzNjNWM4MTUyMGVmMzNhMmI5ZDJlMTVhMWI4NGQ3MjgwZGI4NTkwZGNkNjU3NDdlM2UwMTJhNDAiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjkzOWM5NGYxNjI5YjllYjc3Mjg0YTRhMmYxYzIyZTNiNGU2NDYyN2M3MDczNzFkMGQ1MDQ3OGRhOTE4MWJkYzMifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_b8da598c24d043488d9e152f9dfaa212",
+      "statement": "The service drives history through recordDrawingStateChange({coalesce}), which refuses to record while _isApplyingHistory is set, while rewound, or without a security id — keeping an undo from being recorded as a new edit. handleDrawingDragStart sets isDraggingDrawing, clears the pending preference patch and starts coalescing; while dragging the change handlers record with coalesce: true and stash the new slice instead of patching (no network traffic); handleDrawingDragEnd stops coalescing and issues exactly one patchPreferences (plus a wave-alert reconcile when elliott_waves was involved), so a drag with no moves patches nothing.",
+      "evidence": [
+        {
+          "resource": "repo://frontend/src/lib/services/ChartDrawingsService.svelte.ts#L510-L536",
+          "version": "repo-lines-v1:sha256:f97ebb3cb7d543f95471e960bd010deb248076b8ac53523b91c7853ad597cba2:eyJzZWxlY3RlZExpbmVDb3VudCI6MjcsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImYwOTYxMmZlM2E5NWFiYjJjNDBlYjUyZWM1Mzg1N2YwMjMyMjk5NmY0YWRkZDg2OGU0ZTI4ZjgxZWJhOGQ3MGUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImNjM2EyMDc3NGQ1YzJiYjRjNzkwYzE4ODkwYTljNDk0Y2NiNTEwZmM4ZThjMDllYzc0NTE5YmMxNjRmYzc4NGIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjYwZDllOWNjYzYzMWIzNWVlN2NhMzhiNzNjODIzZDFiYjhhYzBhN2UyMjk5MzJmZjE5ZWM3MzYyMjdmYzBkZTYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImMwNjhiNGMyMjMwNGUyMzRlYmFlMGU1OTM4OTNiOTJiOWY3MGM1Mjg3ODIzNWM2Y2Y3YWE3MGNkNmE1NzgxNGQifQ"
+        },
+        {
+          "resource": "repo://frontend/src/lib/services/ChartDrawingsService.svelte.ts#L819-L835",
+          "version": "repo-lines-v1:sha256:d47c1466689f31a0677269c0bfd99021b00090bd3eaf1a73daf1e856ebd7ae85:eyJzZWxlY3RlZExpbmVDb3VudCI6MTcsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImI1ZDczMmNhNDAzZTA1OTBjMTBiMjE4MmRiODZkMDJkNTk5YTYyMTRmM2QzN2MyNzk3OWEwYjgyZjgyYzU1Y2QiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjhkMzE0ZGZmMWQ4NWMyMGVkYjAyYTU0ZWE5ZTlkYmU1MDJlNmZlZDJmNmJmZDEyNzk4MTk0NmMzYzdjNDIxMjYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjJmZmJjM2VmZjRhNzE1YzkwZGZlODM3Y2E0ZmU2ZWNlZGQxMTk2MzVjZTVkNTg3MzU5ZmNlNjdkNDQwODg2Y2IiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjZhYjQ0ZTM1ZWM3ZmFlMjk5YTExN2MzMGI5YmFjM2E3ZDNkMzlkMDMxMmM2NjczNWQ0YmQ1MTdmMzJlODdjMWUifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_0e0956102380497d94a374eb93a372d9",
+      "statement": "handleUndo/handleRedo return immediately when rewound or without a security id, then applyRestoredDrawingState(restored) sets _isApplyingHistory, rebuilds the three per-security maps (deleting a security key when the restored slice is null), clears selections, patches preferences with all three maps at once, calls onPreferencesChanged, reconciles wave alerts, and always resets _isApplyingHistory in a finally block.",
+      "evidence": [
+        {
+          "resource": "repo://frontend/src/lib/services/ChartDrawingsService.svelte.ts#L538-L550",
+          "version": "repo-lines-v1:sha256:a00e4d8e446b99e2cd6e841eb226b604f24b600e780cad3908d078f5d8fd3fe6:eyJzZWxlY3RlZExpbmVDb3VudCI6MTMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImFiYzY4YmU4NWExZTZkNTBhMzE1NGM4ZTMxYWIyZWM1YTk1YWUzMGFkZTRmYTdmNjFhZjJlZWE4YmYzNzkwMTQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImNjM2EyMDc3NGQ1YzJiYjRjNzkwYzE4ODkwYTljNDk0Y2NiNTEwZmM4ZThjMDllYzc0NTE5YmMxNjRmYzc4NGIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImE4YzdmYjYzOTYyNWQ4ZTU2MThjNmNiYmZkN2M1ZDU2MGM2MGMwY2VkMTUxNWRkMzAyYTgwZTY5Mjc0NjE1MTQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImI4MmZiZmMyNmQ4NzI4MDNiMjIyODdkZGMyZDY1MTZiMDFjMzgzNGNlYTI4Mjg0Njc2ZjNhNTk1OWI2YzNhOTcifQ"
+        },
+        {
+          "resource": "repo://frontend/src/lib/services/ChartDrawingsService.svelte.ts#L552-L608",
+          "version": "repo-lines-v1:sha256:9b448b2e743b004ccf76ed3a4fa7f03c7c58ef0cb7004fe2f9821950e5359255:eyJzZWxlY3RlZExpbmVDb3VudCI6NTcsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImVjOTBkYzVmZDJhNzUwNzVmY2MwMmI2MjA3N2JiZDI5N2I2MTNmNWI0ZjRiNmNjNTU2YjcxODUzMzQwOGQ0ODAiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjY3Y2RhODJkYTYwNjIzOGUwNWU2MjM5OTU2OWM1ZWUwMzk5MzQxOTY0OGFlNWQ0M2EyYmY4Y2Q2MzQ3ZjgyNjMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImVkYTVmZWY1YzE2YWExY2JlYWRlYTcyYjJhMTA0NjdjYmJhMmRiZTc0YmIxZDhjMDJkYjlkNmY1OTIxNDhiZDciLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjcyN2QyZGRiZmMxMTY4ZmM4NjNlMTk2YTY2MDIyZDUwMzY0YjNiNmE5NGRlOGJjNTM3NTkxNzNlZTM2NjI1MTcifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_b51f6ce6aa8b4a82815227d21daa7471",
+      "statement": "The page forwards window keydown into ChartDrawingsService.handleKeyDown(event, chartRef), which ignores events originating from inputs, textareas or content-editable elements: Delete/Backspace deletes the selected wave, fib tool, measure, horizontal line or free-form line; Escape calls cancelActiveDrawing(); Cmd/Ctrl+Z undoes (with Shift, redoes); Cmd/Ctrl+Y redoes; Cmd/Ctrl+S saves a snapshot; and Cmd/Ctrl+, opens chart settings through onChartSettingsOpen. The deletion and undo/redo/save branches are no-ops while rewound.",
+      "evidence": [
+        {
+          "resource": "repo://frontend/src/lib/services/ChartDrawingsService.svelte.ts#L971-L1042",
+          "version": "repo-lines-v1:sha256:7d424369f19c58f00a92e75021b72939a0c43817851f4a5929148c0e8808ff89:eyJzZWxlY3RlZExpbmVDb3VudCI6NzIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjRkYmVlZmVkOTFmYmY5ZWY2YWMzNzM3Y2JlZTEzODRjYzkxYWVjNzg5NmI3NGJhMDllNjk1YjU2MjU3NmVkMDEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImNjM2EyMDc3NGQ1YzJiYjRjNzkwYzE4ODkwYTljNDk0Y2NiNTEwZmM4ZThjMDllYzc0NTE5YmMxNjRmYzc4NGIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImE4YzdmYjYzOTYyNWQ4ZTU2MThjNmNiYmZkN2M1ZDU2MGM2MGMwY2VkMTUxNWRkMzAyYTgwZTY5Mjc0NjE1MTQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjJlODFmMGRjZmFjZTU5MmY3MjViNjJhZTdkYWNhODQwYTJhZDVkOWM4MDUyMTA0YmE0ZThhMjhkZGRiNGYxNzkifQ"
+        },
+        {
+          "resource": "repo://frontend/src/routes/security/%5Bsecurity_id%5D/%2Bpage.svelte#L774-L779",
+          "version": "repo-lines-v1:sha256:690040a7705185f128523e8104f98a6882c5a4171a62041f8447553fc5e975e1:eyJzZWxlY3RlZExpbmVDb3VudCI6NiwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiNTM5NTg5NzI2NTRjYTczNmFjOWQ5ZWFiODZiMjNkMmU1YTg0YTU5OWY2YzVmY2IzYzFhZjMyZjUwOTA5M2RmYyIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiMjc2NmJlZjg1NTc4MjlmYzc3ZjY3MDA3ZGI5Y2U5ZmY5OGE1ZmI1ZWUyNjg3ZWY4NjhkMTUzYjAwM2I4MjVlZSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiOGY4MmU3NzQ1NmUzOGE3N2EyNjJkZDM0ZjU0MjExMzA0NDUyMTAwYzk0ODg5MDFmNjZkMWJkODY4OGViYTQyOCIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiYWVjMTdmNTZkZjgwYTA5Y2NiODRjOWYyZTIzNTU1ZGQ2ZWQ0ZDBiYzRlYjQ4ZjFhZTE3MzNkOTM2MDc2ZmJhYiJ9"
+        }
+      ]
+    },
+    {
+      "id": "claim_83a596a16f914fac848a290b6fb53f4f",
+      "statement": "Rewind is a strictly read-only mode switched by isRewound (timelinePosition !== null): every mutation handler early-returns (recordDrawingStateChange, handleUndo/handleRedo, handleWaveChange/handleClearWave, handleFibChange/handleClearFib/handleFibLevelsChange/handleFibWidthSave, handleDrawingChange/handleRemoveDrawing, handleSaveSnapshot, all five setDrawing*Mode setters and the Delete/undo/redo/save branches of handleKeyDown); canUndo/canRedo and every isDrawing*Effective getter are forced false; activeSnapshot resolves via findSnapshotAtOrBefore(this.snapshots, this.timelinePosition); and the effective* getters read the snapshot's drawings instead of live preferences.",
+      "evidence": [
+        {
+          "resource": "repo://frontend/src/lib/services/ChartDrawingsService.svelte.ts#L166-L229",
+          "version": "repo-lines-v1:sha256:b47a79474e2a9436bbed2602d36a13c7c19ce76a0ff233f4a1bbed7435f96277:eyJzZWxlY3RlZExpbmVDb3VudCI6NjQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjY4YzdmNGEzNTFmYzE5OGI4OWM2YzVmZTUzNjhiODI0MDMxZGI1MTA4YzM0ZWIwZjc1MzBhNzAyMjU3ZWIxNzIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjY3Y2RhODJkYTYwNjIzOGUwNWU2MjM5OTU2OWM1ZWUwMzk5MzQxOTY0OGFlNWQ0M2EyYmY4Y2Q2MzQ3ZjgyNjMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjRjNGNiN2U2OWFjNWQ4ZmIzNzkyZjI5N2RjMDdhMjlkMDgwMjEyZTUyZWEzMmFhNjQ2ODZlOTU2ODUzZDc1MWIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjE3MDM4MWNiM2MxMzYxYzMyMzZkZDczNzI4ZjQ3ODcwM2UyYWRiNjA4ZTQ5OWI2MGYwYzg1ODVlMzBiNWE3N2IifQ"
+        },
+        {
+          "resource": "repo://frontend/src/lib/services/ChartDrawingsService.svelte.ts#L366-L419",
+          "version": "repo-lines-v1:sha256:3c4a4f56f97c6626cbb8f46ce5838616be2f2552408fa1387c7b45604e8b33af:eyJzZWxlY3RlZExpbmVDb3VudCI6NTQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImJlMTdhZmJkNjc4M2E1ZDZjNGE3NmQ3YWVkOTVmNGQ1YzQyMmMyYTQyOTQyZDE5OTJlMTAzZmQyOGUzOTIwODgiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImNjM2EyMDc3NGQ1YzJiYjRjNzkwYzE4ODkwYTljNDk0Y2NiNTEwZmM4ZThjMDllYzc0NTE5YmMxNjRmYzc4NGIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjY4ZDEyZGYxMTk3MGFmYmVmZTM1M2I0MGNjZTkwY2U1NTYxNzA3OTUxN2RiODkwMjU0ZjIzMmVmOTY1YWYyZTkiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImFlNjExY2VhNjg2ODc5Zjk5N2RhYTBjMGQzYTcwNjFlZWY1MDkxZmM0Mjk2MjRkMzM4NzU2NzVjNzM3MjQwNjMifQ"
+        },
+        {
+          "resource": "repo://frontend/src/lib/services/ChartDrawingsService.svelte.ts#L917-L918",
+          "version": "repo-lines-v1:sha256:db43b31f571f1fd7d47575a87753e43858c329513ce8677c70539b9e9ccc9a3c:eyJzZWxlY3RlZExpbmVDb3VudCI6MiwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiN2M4YThiODhlNTg5ZTlkN2YzMzdhYWQ2MDhmNjljNWM3NTZjZjRjNjhlZTI3ZmE1NDkxODRkZjU3YzU3NDQ1MCIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiZWQwMTA2YmQ4ODMxZmJlMjI0ZDQxZWIwOTUwODU4YjFjMGVlNzQ2MjRjZjAyNDg0ZGU2YjZmM2YzYjY1NmIxYSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiYThjN2ZiNjM5NjI1ZDhlNTYxOGM2Y2JiZmQ3YzVkNTYwYzYwYzBjZWQxNTE1ZGQzMDJhODBlNjkyNzQ2MTUxNCIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiYjlkNWJkM2FjNzU5ZDdhNDEzZjA3ODUwMTFhZTc0MDRjMDcwOThlMDlkNzc5MDk3OTc4ZTgyMjBmYWE4YTFlZiJ9"
+        }
+      ]
+    },
+    {
+      "id": "claim_da9a792ba4eb459c92f59844f47b0b55",
+      "statement": "ChartSnapshotModel (src/market/model.py) maps to the market_chart_snapshots table created by migration bea77d72aaf1_add_market_chart_snapshots: UUID primary key, security_id FK to market_securities.id with ON DELETE CASCADE, user_id, drawings JSON, data_window JSON, captured_at DateTime(timezone=True) (client-supplied or now(UTC)) and created_at, plus the composite index ix_market_chart_snapshots_security_user_captured on (security_id, user_id, captured_at).",
+      "evidence": [
+        {
+          "resource": "repo://migrations/versions/bea77d72aaf1_add_market_chart_snapshots.py#L20-L35",
+          "version": "repo-lines-v1:sha256:864a4550d1d75ad87783cd8efff7085812ff541521b7b5d1e69d0461ab75d9ae:eyJzZWxlY3RlZExpbmVDb3VudCI6MTYsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImVmODc2NjQ5ODM4M2FmYjA3NjIwYzg3YzAzNjVjYjYwMzEzMjljOGVjMWVhMGYyYTMwYzNlZTk1YzRmYjhiOGYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjVhODg0MTI1ZjU3ZjdkN2M5NzU3ODNiMGRmMzk2N2U2NjIyNGNkMWFhYTRkYTA1MDU0NmUyNzg3YzI2M2E2ZWEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjlkZWUzNTQ3N2MyOTQ1YTZhNjVjZTJlNWJiMmRjNmNiNjdlM2VkNjI0ODY3NmNlZmRiMjU0ZmZhZmZjY2NiMDUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjQzZjA2MWIwMDdjZGJlOWRiMjkyOTA0OTY2M2M4OTBlYTJjYmY5YjQ2ODIzMGJhZGI5MjQ5YTg0MGI2Y2ZiMTAifQ"
+        },
+        {
+          "resource": "repo://src/market/model.py#L214-L238",
+          "version": "repo-lines-v1:sha256:36dcf56cbb0e95279f4c2dfb443321c8fe497d99ba27f0cf0ca498a0eef59074:eyJzZWxlY3RlZExpbmVDb3VudCI6MjUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjYzMWFmOGQ1ZDk4YzhlZTczMGFmNDI2OTcwYThkMzRlNTZmZTY4YWE4MGE2ZjQ3ZDZjMjE4MzUyYTQ5YjI4MzUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjMwYzFmMTg4ZjE0MmVkN2E4MjQ2ODBiMjA3MTcyYzU1MTliYzYxNGE0OGZkYTdjZjE2N2VkYjhkZGY3OTk1NmMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjhjYzRhN2QxY2M3OTZhYmEzZTQ2NzIzMzI3ZjUxN2U5ZjgxMTk4MmQyNTBmMDcwMjk4NmU0YjU3NjRhZDk1ODkiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_22580e5ddc9041cd94b70d0b2a653264",
+      "statement": "SqlAlchemyChartSnapshotRepository implements the abstract ChartSnapshotRepository: the read path is SELECT ... WHERE security_id = ? AND user_id = ? ORDER BY captured_at ASC (ascending order is part of the contract because the frontend timeline treats snapshots[0] as the oldest); create normalizes captured_at to UTC (attaching UTC when naive), inserts, commits, refreshes and returns ChartSnapshotRead; delete is scoped by id AND user_id, so a non-owner delete is a silent no-op.",
+      "evidence": [
+        {
+          "resource": "repo://src/market/repository.py#L296-L310",
+          "version": "repo-lines-v1:sha256:79f91bad254c294fe2a701ccf6c59c9791ee1e563621d2a3368ac6e1f0b316b9:eyJzZWxlY3RlZExpbmVDb3VudCI6MTUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijc5MDI4MmZjMjUwNDhjMWQxNmUzYzY3ZGE3NjdiNjVlNGUzNTMxMGMyMDAwZTRmYmNkNDA4MTQ0ZWI3OTdiMmEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjkxN2YxMTY5ZTVhM2E0ZjNlZWFhN2JmNmIwZTYxYTkzNmI1N2FhNWNhZmMyM2MyZjNiNDQ2ZjJjNmQ2YzZjNGMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjZhMjhmMzA0MGRmYmViNjhjYzk0NjA4NDdiODVkYjU5ZDNlMGFkNzA5Nzk5NzFhNzM0YzQ5NWEyMTBiOWViN2QiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjoxLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImYwNjJlNThlYTBiMGZkMTk1YmEwNzY2MTNiNjMwZDU5ZTY3YmQ0NzBiYjE5ZTk3YTIwYzkwMjM2NmU1YmEwZTYifQ"
+        },
+        {
+          "resource": "repo://src/market/repository_sqlalchemy.py#L1233-L1272",
+          "version": "repo-lines-v1:sha256:7fcc86a0136856160afdb16043b40ab4851bec2927bb27d7e81281e5db5666bd:eyJzZWxlY3RlZExpbmVDb3VudCI6NDAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImU5Y2U4ZWU2YzQ1MGViZmUyMzIwZGE1YjQ2MDFiZDQ2MWE1MmVmODA5NWYxOTkwZDNhNDRlNzVlMGIzOTJkYTAiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjU5MDlhNTNhNjE4ZDAyOGUxZDMwMDBjMGE3YWJjZWVjYmU1ZmIzN2Y0ZTUxMWVmZTQ2NjQzZmFkNmU2Njg3MmYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjcwMTk2NTE4MGM0OTVlZGVkMmI2NTZmNWIxMzQ5ZWQ1MzBlNGMxM2Y2MzVkNzgzMTdmNWNhZWUxMDViMjhhYmEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImExNWMxY2I2Y2IwYzM3MTU3OGFkNjVlYWE1MzNmZTE1MWY5Y2VmMzQ3NTM5NmY3ZDhkMjdjOGQxZTcyOTJhNWUifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_3e2c38c1cb704d3cbf9dd768fd2079fa",
+      "statement": "The market router exposes the snapshot surface under /api/v1/market: GET /market/securities/{security_id}/snapshots returns the current user's snapshots, POST the same path returns 201 with the created ChartSnapshotRead, and DELETE /market/securities/{security_id}/snapshots/{snapshot_id} returns 204. All three depend on current_user and apply the user_id scope in the repository rather than the handler; ChartSnapshotCreate accepts drawings, data_window and an optional captured_at, while ChartSnapshotRead adds id, security_id, user_id, captured_at and created_at.",
+      "evidence": [
+        {
+          "resource": "repo://src/market/router.py#L719-L767",
+          "version": "repo-lines-v1:sha256:0b0361765f89ab303a6fec038e6b5c56c49091f5db38041f1c72f1705bc89440:eyJzZWxlY3RlZExpbmVDb3VudCI6NDksImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImE0MWJkMTY3Mzc5NjE1MzBiOGExMWE2ZTM5Y2M3ZDUyYzY4MmVjNDYzNWZkMWY1NDkwM2Y0MzA0NjQ5MzRkYTUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImJkNmIzMzVkN2RkNmY5YTJjYjU5ZmJhMjY5MWY3NmEzODk5ZDFlMDY2MjY1YTQ0ODI2MzNkNjYwY2ViMmFiMTMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjliY2Y4N2U1NmFmNmVmYWZlODM1MzI1M2UzZTUzZGYwMzEwOWRmYzZkOGMyYjkyNzBhMTNkODUxMGMwMDZkZGUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImFkYmE5OTUzMGQ4ZTI4MGFiNDkxYzFmYzU4ZTg0NzZkNjc5ZTZiYzM1OWEzZDE4MmRjODY0NmJmMTQxMTEyMDkifQ"
+        },
+        {
+          "resource": "repo://src/market/schema.py#L288-L306",
+          "version": "repo-lines-v1:sha256:35638a2484f914554aee6a7667dd3b0758b307a93cd8286843117562dd691e85:eyJzZWxlY3RlZExpbmVDb3VudCI6MTksImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImMxZDg5ZjNhMDk2NmRhNzk5MDk1M2UzZmIxOWQyNDkzMzgwNjE5NWZkNTU4MmNjZWIzOWE4NzY4NzA4ODQ4ZmEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAxYmE0NzE5YzgwYjZmZTkxMWIwOTFhN2MwNTEyNGI2NGVlZWNlOTY0ZTA5YzA1OGVmOGY5ODA1ZGFjYTU0NmIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjJmZTI0Mzk5ZDZiM2Q3ZjJmOWRhOTExZTAwMzEyZjE2ZDk5NTYyODY2Y2E4ZTJiMzNiNWU1MDY3Y2Y5ODQwODMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjMxMDA4MWFlY2I2ZTFlMzk2MGM1NzhjMDA3NGVhNzUwNDRiMjZiY2FmMTNhZWI4NGRiZTA5NTljZmZjNDA2NDYifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_33e1eb350a904dc6acbbdb5d053ca5c6",
+      "statement": "frontend/src/lib/api/snapshotsService.ts is a thin ApiClient subclass exposing getSnapshots(securityId, token?), createSnapshot(securityId, { drawings, data_window, captured_at? }, token?) and deleteSnapshot(securityId, snapshotId, token?), plus the conventional getSnapshotsService(customFetch?) factory and snapshotsService singleton; requests carry credentials: 'include' and throw ApiError on non-OK responses. deleteSnapshot and the backend DELETE route are implemented and unit-tested, but the security page never calls them — deleting snapshots is an existing extension point, not a missing endpoint.",
+      "evidence": [
+        {
+          "resource": "repo://frontend/src/lib/api/apiClient.ts#L3-L42",
+          "version": "repo-lines-v1:sha256:7bd9844e2d8e45e1d81a9ffc33a681f273a0cac8117958d3d81c0f608ba4bdfe:eyJzZWxlY3RlZExpbmVDb3VudCI6NDAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjhjNjY2YjMxZDg5YzBmMDJjMWRlZDRiYjUzOTRiZGUyODQxMGQ3ZWYxMmRhMzE2NmRkMjQ1OGY4ODM0OTFmMDUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImFlZWY2Yzg1NDYyN2RhOGVlYjkxYzkxNDlhOWJkNWY2OTljODk0NGZjZmIxMTYyZTM4YzRjZTEzYmMxNWJjMGQiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjoyLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjU3NmRjMGQwYmE5Y2JlZTQxZTczNDhjNmM2ZGYwY2FlY2I3NzllODg3ODVkOWY3OTMyYjg2ZTcwNGU4MzI3ZTciLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjIyZjJmZjVmZWVjNjBmNTg3YzhmYWU0ZTg3ZjgwOWE2NjFjZmZlZDZiNDdhYWU1ZjZkNmEyNjUzYWE4OTUyZWYifQ"
+        },
+        {
+          "resource": "repo://frontend/src/lib/api/snapshotsService.test.ts#L160-L211",
+          "version": "repo-lines-v1:sha256:0c091f09090074343955f488de5a0bbebf4ab9f8b16cf8ff31141ae334f2b057:eyJzZWxlY3RlZExpbmVDb3VudCI6NTIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAyMjNlMGIxZTQwOWZiZDliYjFkZjAyMzYxM2EwYjY1M2ExOTI4MDAwMmZjYzZkZTZkZjFmZTBjNGJhYWNlNWYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImI0MWE5MTUyNjYwOTZhNDg2MTdjZTVmYjJjODk5MzUzYzQ2ODc4OWVlZDM0YjYwOGUzYTY1NDllOGFkNjExYTIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImZiNmI3MDgxZTQ1NGQ4NDM1MGNiYmYzN2FjM2VlNjliODQ4ZjEzMjViOGRhOTM1OWM2MjY5ODg1MDBlNGNlOGYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjRiYmIzMDdkODg2MWE0MGFhODgzZmZiNTNkZjgxZmNkMTlmMTg1MGRiMzY5YWQ3ZTYzYjNjM2YzYzAwYzQ3MTEifQ"
+        },
+        {
+          "resource": "repo://frontend/src/lib/api/snapshotsService.ts#L10-L47",
+          "version": "repo-lines-v1:sha256:8f7326b6e997b66c008b0f851aab2e050efb9061d2da6cbaa69179ab9b6e31a3:eyJzZWxlY3RlZExpbmVDb3VudCI6MzgsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImI4OTJjODliYmMwYWEwZjAwZjcwMDc5NWRkNDA5Yzg2OGQ0ZTE3YzAxOWEwYmIzNDU3ZjM1NjlhYWU1MGZiNDUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImQ2YTYwYTA5OGNjY2IyOTk4Yzc2MzgzOTBhY2NiNzc4ZGFjZmIxZWQ4ZjQzMjMzMjJhNzJjNGMwODFhMDcyMjgiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImY3ZDEwMTA4ZTNhYTM1OTRjYTgzMTZiOTllODA5ZWM0ZjllNDlmOTdmMmViZDY1N2QwYzdhMmZmNDM5MTQ1NTgiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_9d08c31c083e4b1484a4a8cbbfb8a4fa",
+      "statement": "finance/rewind.ts defines the wire model (RewindSnapshot with id, captured_at, drawings and data_window; RewindDrawings with elliott_waves, fibonacci_tools and drawings; RewindDataWindow with first and last) and the pure snapshot algebra: captureSnapshot builds a client-side id and ISO-8601 UTC captured_at; getSnapshots returns an ascending-by-captured_at copy; findSnapshotAtOrBefore returns the latest snapshot at or before a time, null when the time precedes the first snapshot, and the last snapshot when the time is after it (overloaded for a flat array and for a map plus security id); areSnapshotsEqual compares data_window plus drawings structurally and intentionally ignores id, captured_at and the backend metadata fields, which is what gives save-dedupe semantics, treating 'no fibonacci tools' and 'empty fibonacci tools' as equal.",
+      "evidence": [
+        {
+          "resource": "repo://frontend/src/lib/utils/finance/rewind.ts#L185-L213",
+          "version": "repo-lines-v1:sha256:52a78230226a294edda3c29768723ff3cd89774f81d42234413363da1be9d45c:eyJzZWxlY3RlZExpbmVDb3VudCI6MjksImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImVhZjIyY2YwNzMyNTkyYzI0NzE0MWNiZTYxZWZhMTEwMTI2MTJmNWEzMTIyYjlhZjliYmFmNTJmNTcyNGQxOTQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQxMmNhMzQ1Y2NmNzViZjljMDgwNmJjZTY5NWJlOGRlODA4Yjc5OTg0MjUxYTdhNTRkMjAyY2Y2MTAxZGQ0NTEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImE0OTYyZWQwNmVlZWY4MDFkNmE3NWJjYjcxNDk0NTBmMTQxYTczMmMwZmUyYmZjNGZmOTc1OTIxNTcwMzA4NWQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
+        },
+        {
+          "resource": "repo://frontend/src/lib/utils/finance/rewind.ts#L57-L164",
+          "version": "repo-lines-v1:sha256:f05a5498fec059b4bab8b997089f987762833609660590ed559446d0d14260cd:eyJzZWxlY3RlZExpbmVDb3VudCI6MTA4LCJmaXJzdFNlbGVjdGVkTGluZUhhc2giOiIwZTNlZDE1OTZmNjM4NWQzZjQ5MGZlMmZjMmQ0YjFkNGNjODk1NGZmNzc0MWM3MzZlMWE5NTA5NjRmYzk5Y2MxIiwibGFzdFNlbGVjdGVkTGluZUhhc2giOiI0MTJjYTM0NWNjZjc1YmY5YzA4MDZiY2U2OTViZThkZTgwOGI3OTk4NDI1MWE3YTU0ZDIwMmNmNjEwMWRkNDUxIiwicHJlY2VkaW5nQ29udGV4dExpbmVDb3VudCI6MywicHJlY2VkaW5nQ29udGV4dEhhc2giOiJiZDAxNGE4YzYxOTQxYTNmZGQ3NTVhYTkzZTA0MTZkMzZlMGU1MGVkMDBmODlhOTk1ZDlhY2QzNDU2YWFlY2JkIiwiZm9sbG93aW5nQ29udGV4dExpbmVDb3VudCI6MywiZm9sbG93aW5nQ29udGV4dEhhc2giOiJiZjVlMWI5YzUzZjQ3MzY0MDEzYjU3NjU3ODIxNTI3ZGYwYzA1YzllMGYxNWUxYjc0OTdhN2JlYTE3MzhiMDFjIn0"
+        },
+        {
+          "resource": "repo://frontend/src/lib/utils/finance/rewind.ts#L8-L27",
+          "version": "repo-lines-v1:sha256:d438b4e90fdcdf7731c3634ba9a9c6896a48431ba9ab435defd231652c73064a:eyJzZWxlY3RlZExpbmVDb3VudCI6MjAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjgyNzUwNzE0ZDdjOWFkOWVhM2VlMTc4MDRlNzJjNzUyYTRhMjU0NjUyNDE3MDE1NGQ1YjFmYzU2MDUyYWM2MjYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQxMmNhMzQ1Y2NmNzViZjljMDgwNmJjZTY5NWJlOGRlODA4Yjc5OTg0MjUxYTdhNTRkMjAyY2Y2MTAxZGQ0NTEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjIxYjcxZTVjMjg0NGRjNjczNjZjZjA4OTdiM2NhNmY2NjAxOWZiMDA3NDlmODU1ZDVkOThkOWQyMDY4ZGNhNzQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjE2ODQxYWUxOGU5MWI3NjE2YTU0YWVkYjczNWViYWI3N2I4NTU3ZWMxNjY0NDU5MDE4MmYyNTI3OWY3ZjZjOGMifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_4bb84379bf5546519679e5a66175d9d0",
+      "statement": "handleSaveSnapshot(candles?) bails out when rewound, without a security id or without displayed candles; builds drawings from the live elliott waves, fibonacci tools and new-tool drawings and skips the save silently unless there is at least one wave point, one fib tool or one new-tool drawing; builds data_window from the first/last displayed candle times (normalizeCandleTime renders a BusinessDay as YYYY-MM-DD); calls captureSnapshot and compares against the newest stored snapshot with areSnapshotsEqual, showing 'Chart snapshot already up to date' without POSTing when equal; otherwise it POSTs via snapshotsService.createSnapshot, appends the server-returned snapshot, reveals the timeline and shows 'Chart snapshot saved'. showSaveFeedback flips the toolbar icon to a check mark for 1.5 s, and failures log and show an error toast without touching the timeline.",
+      "evidence": [
+        {
+          "resource": "repo://frontend/src/lib/services/ChartDrawingsService.svelte.ts#L893-L902",
+          "version": "repo-lines-v1:sha256:d2c68adc7252e4e6f2f43fb6cdaccfd326e08d02919e79d2691e97b6899329bc:eyJzZWxlY3RlZExpbmVDb3VudCI6MTAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImRjNzNlYjQ3MzM5MWIwYjk2YjFiZWQ3ZmQ2MTcwZTYyYjFhY2RmZWU3NjE1MjA2YTE4YjBmYzEwMjBjNWQ5YWEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImNjM2EyMDc3NGQ1YzJiYjRjNzkwYzE4ODkwYTljNDk0Y2NiNTEwZmM4ZThjMDllYzc0NTE5YmMxNjRmYzc4NGIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjM5NDIyZTNhNjMxMmQwZjY4YTAwNjY4NGJiNmYxZjhkZDQxZGUyZmQxYjRiOWY2YmEyNmE2YTZmNmM5YzRjMjgiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjQxNWQ2ZmFiY2ZhZWI5NzVlOGRlNDE0NDM5MzkxMzcxOGZhYTQ1Y2NjODlhOTg5YTlmOWQxM2MyYzlkMjI0MWYifQ"
+        },
+        {
+          "resource": "repo://frontend/src/lib/services/ChartDrawingsService.svelte.ts#L917-L969",
+          "version": "repo-lines-v1:sha256:4056c8095140f6d29fe21a04cbef12929e21aac0833cdaa923005603efa47574:eyJzZWxlY3RlZExpbmVDb3VudCI6NTMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjdjOGE4Yjg4ZTU4OWU5ZDdmMzM3YWFkNjA4ZjY5YzVjNzU2Y2Y0YzY4ZWUyN2ZhNTQ5MTg0ZGY1N2M1NzQ0NTAiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImNjM2EyMDc3NGQ1YzJiYjRjNzkwYzE4ODkwYTljNDk0Y2NiNTEwZmM4ZThjMDllYzc0NTE5YmMxNjRmYzc4NGIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImE4YzdmYjYzOTYyNWQ4ZTU2MThjNmNiYmZkN2M1ZDU2MGM2MGMwY2VkMTUxNWRkMzAyYTgwZTY5Mjc0NjE1MTQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImI4Y2YxNDMyNjU1NWY2MmEzY2M1OTc2ZmNlNjk1OTRhYTIyMzIxMjNlNDA0NzBiMDJlN2RhMmU3MTg2NmU0ODUifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_81b7de47fb264d33950b51eba3c00389",
+      "statement": "loadSnapshots() runs on page load alongside alerts and holdings; it sorts the fetched snapshots by Date.parse(captured_at) ascending (defensively re-establishing the backend ordering) and sets isTimelineVisible = true when the security already has snapshots.",
+      "evidence": [
+        {
+          "resource": "repo://frontend/src/lib/services/ChartDrawingsService.svelte.ts#L904-L915",
+          "version": "repo-lines-v1:sha256:591854af57281972a7a4ad976aa9745adb862112816fab95cec9b6fcf29fa582:eyJzZWxlY3RlZExpbmVDb3VudCI6MTIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjYwZmUzN2U4YTA0ZmNjMWRmYjk3MWIwNzk3ZTcyM2ExY2NiNDAxMDk3YWQwODQwZWUyNTI4YmQzZjExOGY0ZDQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImNjM2EyMDc3NGQ1YzJiYjRjNzkwYzE4ODkwYTljNDk0Y2NiNTEwZmM4ZThjMDllYzc0NTE5YmMxNjRmYzc4NGIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjEyMzIxZGRiZTU0NjVhMDYxZWEyYjQzMDUxNGIxNDhkZTdjYWRiN2M1MzZiZTQ0MjU0YTVkMGRlMTViNjQ0OWIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjYwYjY2NzlmZjQ1ZGQyNDUzYmM2ZWJkOWE4MzM0NTI2MmY1YzJjOWQ5MjFhMzJkYWUzYTM1OWNlMDc4ZTk0YjcifQ"
+        },
+        {
+          "resource": "repo://frontend/src/routes/security/%5Bsecurity_id%5D/%2Bpage.svelte#L747-L747",
+          "version": "repo-lines-v1:sha256:f777f2909b5b3ae62ac9a03d13566fc8e97887398c942dc7cf45a5e3a396a5fa:eyJzZWxlY3RlZExpbmVDb3VudCI6MSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiZjc3N2YyOTA5YjViM2FlNjJhYzlhMDNkMTM1NjZmYzhlOTc4ODczOThjOTQyZGM3Y2Y0NWE1ZTNhMzk2YTVmYSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiZjc3N2YyOTA5YjViM2FlNjJhYzlhMDNkMTM1NjZmYzhlOTc4ODczOThjOTQyZGM3Y2Y0NWE1ZTNhMzk2YTVmYSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiY2YzM2U2ZTc5NjVkNTIzYjg3ZGE0OGEyMTk0ZjNkNjAwOTA2ODIxZTEzYjQ4MDY0ZGFlMWU2NTc0MzY3NjIxZiIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiNzdiMGE3Y2RiZmI0NWY2NWM2MjI1N2I4NWFjMmI0YWE1NmM5MWY4MmQ3OTk0NmFlNjI5YjYzYjc2NzMyYTVjZiJ9"
+        }
+      ]
+    },
+    {
+      "id": "claim_a29d19d554be4c24b81a00bd8f578909",
+      "statement": "frontend/src/lib/components/charts/rewind-timeline.ts (component-local, distinct from $lib/utils/finance/rewind.ts) holds the timeline geometry: sliceCandlesBefore(candles, cutoff) filters candles with parseCandleTime to time <= cutoff and returns the original array when the cutoff is null or invalid so 'not rewound' is a no-op; snapshotTimelineDomain(snapshots, now) returns epoch-ms first = Date.parse(snapshots[0].captured_at) (falling back to now) and last = now, forcing last = first + 1 when the domain would be degenerate; timeToFraction and fractionToTime map between time and a clamped [0, 1] fraction.",
+      "evidence": [
+        {
+          "resource": "repo://frontend/src/lib/components/charts/rewind-timeline.ts#L10-L66",
+          "version": "repo-lines-v1:sha256:73fbb1a94bb3abb38a987c7755d3e42d9e2203b85d1617a438488bf1e107321e:eyJzZWxlY3RlZExpbmVDb3VudCI6NTcsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImVhZjIyY2YwNzMyNTkyYzI0NzE0MWNiZTYxZWZhMTEwMTI2MTJmNWEzMTIyYjlhZjliYmFmNTJmNTcyNGQxOTQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQxMmNhMzQ1Y2NmNzViZjljMDgwNmJjZTY5NWJlOGRlODA4Yjc5OTg0MjUxYTdhNTRkMjAyY2Y2MTAxZGQ0NTEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImNkMTYxMWM2OGU2ZjkzMjdhNjUyMjVlMjMxYzNlNzQ4ODU3YWEyMTkxZTVlZmJmOWNiY2U0YjAxNzNlNTVlYmMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_49646d55e13543b5953936da2bb50d60",
+      "statement": "rewind-timeline.svelte renders the track, one marker button per snapshot positioned by timeToFraction(Date.parse(snapshot.captured_at)) and keyed by snapshot.id, the playhead (timeToFraction(position ?? now)), a 'Back to now' button while rewound and the 'Now' label, or a 'No rewind snapshots yet' empty state. Scrubbing uses pointer events with setPointerCapture; updatePositionFromPointer computes a clamped fraction from the track rect and sets position = null when the fraction is >= 0.995, which is how dragging to the right edge returns to live data; a window-level pointerup/pointercancel handler ends a drag that finishes outside the track; position is $bindable with an optional onScrub callback, and clicking a marker snaps position to that snapshot's captured_at.",
+      "evidence": [
+        {
+          "resource": "repo://frontend/src/lib/components/charts/rewind-timeline.svelte#L27-L88",
+          "version": "repo-lines-v1:sha256:6d8008b96023278a63e561f62eb0256d4a0cc426878402b3bca5aa0d988ed229:eyJzZWxlY3RlZExpbmVDb3VudCI6NjIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjBmOGZjZDkxOTk3ZWU2ZWJjYTk2YjRmZmFjNjRhYjdlNDU3NzczNmFlZGMxNTViODMxODY4OTIxN2MyOGU3ODUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijc1MTZkYTk5YjQ5N2E2ZWI3MzEzOTRmMmY3ZDIzZWQ2MjkxYjIxOGUyNzc4NGIzOWM0YTBmZGNmNDdjMjhhY2QiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImU2MjNkYTc3MTRhNDJkYzZlMTRhMTQ0NWM3YzQxNjhjNGVlODk1ODZhN2RkYjZlMmMxNDE5NDVjOGZlMDFkMjUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjYwMjI5MDg0ZTM3YWM2Yzc1ZDc2ZmI0ZjZkNWM2YjE1YmQ5YjZhYmMzZjU5NDVjNGRlMTE4NjUxYWFhZjQ2M2IifQ"
+        },
+        {
+          "resource": "repo://frontend/src/lib/components/charts/rewind-timeline.svelte#L94-L168",
+          "version": "repo-lines-v1:sha256:e4376ff3facd30a06b74a32ce1cb788da37c86c4534601bf84b0886a438dc270:eyJzZWxlY3RlZExpbmVDb3VudCI6NzUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImVjYWRjNDNiOTVhZjNhNjc0ZTE3ZjgyOWY5MTE2ZmQwYTA5OWRmYTExYzNhZjkyMTVhZDY0ZjI1MGM4NWU1NmMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImRjOWQyZDIyYmZlMDg2MzhiMzBiMzI3NGQ0MjEwZWI3MzI0ZDA2OTQ3NDc4MmQ4NTM2ZWExNjIwYTFlNzBmYTkiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjE2NDUxNDNhMmIyZjc4YjMyNmU4YTllMGUyZWZkNTNlYzYzYTZhZDIyZjZkZDY5MTI5NGQ5MDA1YWNjN2M0M2EiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImJhMWJkODc3MjQ1N2RlYTY2NjlkYWE2Y2YyMGM1OTI1ZDM5NDY4NjY2MTM4YTQ4ZGFmMWZkNDA5MDU4N2FjZjkifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_1905bb0cc2a640248a61f8892a528f16",
+      "statement": "The security page derives everything from the service's timelinePosition: displayCandles is sliceCandlesBefore(allDisplayCandles, timelinePosition) while rewound and all candles otherwise, and is fed back into the service via setDisplayCandles and passed to the chart; timelineNow is the timestamp of the last displayed candle rather than wall-clock time so the 'Now' end of the track lines up with the newest bar; an $effect watching timelinePosition calls refreshActiveIndicators(); getRewoundCandlesPayload builds an IndicatorCandle[] from sliceCandlesBefore(rawCandles, timelinePosition) so an oscillator shows the values it would have had at that instant (caller-supplied candles bypass the indicator cache); RewindTimeline renders only while isTimelineVisible and is bound two-way to drawingsService.timelinePosition; and rewind also stops history fetching (hasMoreData={!isRewound && hasMoreData}) and disables the wave-alert reconcile.",
+      "evidence": [
+        {
+          "resource": "repo://frontend/src/routes/security/%5Bsecurity_id%5D/%2Bpage.svelte#L1038-L1043",
+          "version": "repo-lines-v1:sha256:75c445399f08a048cd1055a80fc90ef1c916cfdf659e910f2fe1a6ef2053e928:eyJzZWxlY3RlZExpbmVDb3VudCI6NiwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiNDY1MGQxYzNiODM2YTQwNjljYTE1ODE0NTA5N2FjNzRkZGVkNjIwZjRmZGIyYjZlYmFmMmQzNDBjYjUyNmMxZiIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiYjk1NzgzNDU5M2I3ZjkyNWZhZTEzMDRhNGNkM2QwZjc4OWY4YmQxYWI2M2FjMThiZDliN2IxZGI3NjZiZTc0ZiIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiYWM0NmRlYjY4MzRkNjhjZWYxZDNmZWI0N2ZkMjg0NDI2YmQ3NzQ4Y2I4YWJkNDg5MzBkZmZkYjNmNDEyMGYxMSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiY2M3OGRlZGFkYzM5NTQ3MjRlNmY4ODY3ODJjZGE5NjEyOWEyZTc0MWYyZjVkOWNmYTdjZTAxNDA5NGE5NzE0OCJ9"
+        },
+        {
+          "resource": "repo://frontend/src/routes/security/%5Bsecurity_id%5D/%2Bpage.svelte#L113-L147",
+          "version": "repo-lines-v1:sha256:31c24b9aa7e4342d59f84a99e75a6432ddfba03f2944e7e7ece24f79013fec9a:eyJzZWxlY3RlZExpbmVDb3VudCI6MzUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjNmNWFmM2ZmODY4ZGQxNmM1OWRhNzg2OGJiZmI5MWQ1YzdhZGJiZjI0ZjlmNmZkN2JjMjdmNjk2ZjYwMjZkNWEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjBhNzM0OTJkODk0NmIxZDBmOWQ5YzA0YjcwNGE5MjBmMjRmODllZjdjN2Y3MzExYTg1OTlkMTBjN2Y2MzU4ZDAiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImVjYzIyMzU1Y2Q5OTRkNGFhNzA5YmUzM2Q0ZjA4YjQzYThkMDMyMDJmYTk1ZTM0NjU3ZWVlNTJkY2Q5ZTA0NDAiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjUzYjM3MDZhZjIxNWQxNjBiOWQ1ZTVhN2QyNmU3YTM5OGJiNDYyZjdjMGIzNzU5ZDdiMjRlZDRlOTk1NzZlNzMifQ"
+        },
+        {
+          "resource": "repo://frontend/src/routes/security/%5Bsecurity_id%5D/%2Bpage.svelte#L332-L345",
+          "version": "repo-lines-v1:sha256:1c6e77212bb4231d212088030ca43c4d872d1f7034797144421aa6452cd8a0b2:eyJzZWxlY3RlZExpbmVDb3VudCI6MTQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImRiZDU3N2E2N2Y3OGQyNzA1NTlmNGZhMzgzZWRiNWM0N2M4OTAwODJjODk0NTNlMWQ5Y2RmY2U4NjMzYTQyZGQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjY3Y2RhODJkYTYwNjIzOGUwNWU2MjM5OTU2OWM1ZWUwMzk5MzQxOTY0OGFlNWQ0M2EyYmY4Y2Q2MzQ3ZjgyNjMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImIyNGU2NmZiMmVjNDdhMmVhZDNmNzZhMzdmMzFhNWZjMTE4NjQyNjJiODAzMjZhODIyYWI3N2Q5MzAyMDUxOTQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImIzYjBkOGFmNWM0NWUyMzZhNjdiNWI1NGUzNDRlY2Q0NzRjOWM5NWY5Y2RiN2I1MDZlY2ZjODQ4MDkzODQ5NzMifQ"
+        },
+        {
+          "resource": "repo://frontend/src/routes/security/%5Bsecurity_id%5D/%2Bpage.svelte#L466-L472",
+          "version": "repo-lines-v1:sha256:57a7445720e8727386cf69fb1cc6b863b64c6380e92a1a2bbd44958ab67f415c:eyJzZWxlY3RlZExpbmVDb3VudCI6NywiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiZTkwNDI4MGU0YjQyYjk0ZGZlMGJhM2NiNzE3MzFjNzEwZjg4OWEwYTU2MmFmNDU4OGQyZDZhMzU0ZjM0OTg4YiIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNjdjZGE4MmRhNjA2MjM4ZTA1ZTYyMzk5NTY5YzVlZTAzOTkzNDE5NjQ4YWU1ZDQzYTJiZjhjZDYzNDdmODI2MyIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiNDY0M2MyMjI5ZTQ0NDZiZTE1ZTFmOTBiMjk1ZWI1ZjUwMTk5N2QzOGExNTRmNWFiMjFmYWFjMGY4ZDRhMmQ3OSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiZGNhOTdjOGVkZjhhMGUzOTgwNzBhYzZmZDU4N2UxMjhmNTBlYjk0NWUxY2FmODkxMWJiMGUyZDYzNzljZDEyNSJ9"
+        }
+      ]
+    },
+    {
+      "id": "claim_b85f260f92364d3380b06e3bd27b7827",
+      "statement": "security-chart.svelte constructs one primitive per tool and attaches each to the price series (UserPriceAlerts, ElliottWavesPrimitive, FibonacciPrimitive, MeasurePrimitive, HorizontalLinePrimitive, FreeFormLinePrimitive). For every drawing primitive it subscribes drawingsChanged to the matching page handler, drawingModeChanged to restore handleScroll.pressedMouseMove once no drawing tool is active, selectionChanged to mirror the selection into the bound selected* props, and dragStarted/dragEnded to the service's history coalescing hooks; it feeds state back through $effect sync blocks that compare current primitive state with incoming props using the finance-layer equality helpers before calling the setter, pushes candle data via setCandles(...), and destroys every primitive in the teardown before chart.remove(). Cross-plugin snapping is resolved by the page: fibSnapPrices = getActiveFibLevelPrices(fibonacciTools) is pushed into the elliott primitive with a content-signature guard because the derived array is fresh on every tools change.",
+      "evidence": [
+        {
+          "resource": "repo://frontend/src/lib/components/charts/security-chart.svelte#L1116-L1121",
+          "version": "repo-lines-v1:sha256:d8771391c39fb52bc27ca8dc324544aa8965b9a89615aca904b985e705a49950:eyJzZWxlY3RlZExpbmVDb3VudCI6NiwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiN2E4OWQ0NTc5MGQ0ODg0MmY5NjM2NDY2ZjllMzUwZjE5MThhMjVmYTcxMmQwNjYwOTY3MDU2ODFlNTIzNzY3NCIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiMzU5ZTgwMTFkMzg0YTIzYmRmNWYyNjdiNWRjM2Q3NmM0MWJiNDJlY2VjOWU0YjAwNGVkN2Y5Nzc4ZDYxMDUxOCIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiNzg3YzI3NTg1ZDQwMTE2MTRlYWU4NWFiZDg2NGEwNzA3NzBlMWQ4ZmY0ODk5YmJiM2Q3ZGZhZTUzOTJjYjYyMCIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiZDMxOTFhNzNlMDZlZTE4MWQxYzA0YWMzMTg2MWU0YjVmMWZkZDI1YjdkNTIxOGNlMWUxY2IwZDAzYjc1MmQ2ZSJ9"
+        },
+        {
+          "resource": "repo://frontend/src/lib/components/charts/security-chart.svelte#L716-L722",
+          "version": "repo-lines-v1:sha256:0750de5ab28860f773de210d9dcea270d8d6ef6603a9bb7c15fb3abb67e8d21f:eyJzZWxlY3RlZExpbmVDb3VudCI6NywiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiZTBiY2ExN2MzYjI0YzY1ZDc2OTIwN2I2ZjdlMGU0NTZmMDc4YzY1Y2JmMDc1NmQ4YmNhYzBkYTU1ZTE3OWY4NiIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiMGE3MzQ5MmQ4OTQ2YjFkMGY5ZDljMDRiNzA0YTkyMGYyNGY4OWVmN2M3ZjczMTFhODU5OWQxMGM3ZjYzNThkMCIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiMjA2NmNjZWY3ODE3ODEwNTk3ODliMGE2MDg0OWJjZDU2ODVjNDNhNjNjNjEzNGUyMzMwYzQ3MGE0NTRmMjcyYyIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiNDE3ODk5NjE4Y2I4OTEyNjM0NTEwY2YwNjQ3NGQzN2U5MjA2ZWYxYjIyYWExMTYwMmEzOTBjMDNjNTc2YjYwMiJ9"
+        },
+        {
+          "resource": "repo://frontend/src/lib/components/charts/security-chart.svelte#L864-L1031",
+          "version": "repo-lines-v1:sha256:8c771f03cf36e233100aa958e76ede8cff7db181ef1f499b6aae86465ed25296:eyJzZWxlY3RlZExpbmVDb3VudCI6MTY4LCJmaXJzdFNlbGVjdGVkTGluZUhhc2giOiIzYjEzNzA2MGM5NzZlZGEyODE4Njc5MDZiYjI4NmMyMGM0NWRiMDE1OGE2ZjVlMzMyNmZmNDFiOTExN2YwNWIwIiwibGFzdFNlbGVjdGVkTGluZUhhc2giOiI3YjMwNTllNjA4OGY2Y2IwMTZjZmEyMWJkZDcwMmM0YzMxNjA1YWU4ZDBlYmZjZWI4N2I2NzIzODQ5MzAxNTYxIiwicHJlY2VkaW5nQ29udGV4dExpbmVDb3VudCI6MywicHJlY2VkaW5nQ29udGV4dEhhc2giOiIyMWUzZTAzOTJjMDhkOGYxZmY5OWViMmM1ZDkwM2ZiZTk0MWVkMzQyZGQ5YzhkMDNlOWM4MjhiYTMzYTJhZjdmIiwiZm9sbG93aW5nQ29udGV4dExpbmVDb3VudCI6MywiZm9sbG93aW5nQ29udGV4dEhhc2giOiJhYTdmNTcyODY2YWU0ZjBlODIwOGVlY2QwM2EzNTBhMWM5NTNkMDc5NGMxZWMxMjEyOWVhNTVlZTVjZDg5ZGQ2In0"
+        }
+      ]
+    },
+    {
+      "id": "claim_6800f8677116421abe0ec8236ee18892",
+      "statement": "Tests are colocated per plugin and per helper and follow frontend/AGENTS.md: plugin suites (elliott-wave, fibonacci, measure, horizontal-line, free-form-line, user-price-alerts), helper suites (chart-mouse-handlers, geometry, snap, time, time-projector, drawing-primitive-base, base-collection-state, delegating-pane-view, handle-renderer, label-renderer) and finance suites (drawings, drawing-time, drawing-history, rewind, measure, fibonacci, elliott-wave). Mocking is mandatory — lightweight-charts is replaced with a vi.mock factory, canvas targets are faked (useBitmapCoordinateSpace invoking the callback with a fake BitmapCoordinatesRenderingScope plus a recording 2D context double) and every API client a subject calls is mocked, so no test touches a real backend or chart.",
+      "evidence": [
+        {
+          "resource": "repo://frontend/AGENTS.md#L169-L181",
+          "version": "repo-lines-v1:sha256:5731aba56ad8dca679b4020494fcdec6d33509fa4373ea0c6b3bbaa91e059718:eyJzZWxlY3RlZExpbmVDb3VudCI6MTMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjdiNTk0MmM4ZTIzMjIxNjQzMGEyOTI2NTg0YjlmNTYxNmVlNGJiN2I4YTU3YzU2OTZhNTFmM2YzZWEwZWJiNGYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImFmOTY3N2EzMjg0Y2ZlNGE5YWYwNGI2ZmI1NjExYmU0NDVkMzgxMDYwNGI4NmYzZTA5YWQ3ZTMwMmE5Nzc1NzMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImIxNGRkYmI1ZjhmYmFhY2M0MGU5MDA4ODFjM2UzMGQyM2M1YThiNGRkNDcxZGM1MjExYTM0YmU1M2UzZWRiMTAiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjExOWVmMjFhNzkzYjJiYTBiYmYxM2Y1YzU2MzUwYWMyYjA4MmFmMGFkOTMzYzhlZjM4NTg5YTQ2NjgxMGJlODMifQ"
+        },
+        {
+          "resource": "repo://frontend/src/lib/components/charts/plugins/helpers/renderer/handle-renderer.test.ts#L19-L58",
+          "version": "repo-lines-v1:sha256:cbd634b090e414831cf2c109e7ac2e11e8cd99d5b67c5265e7f3a707c833d5d1:eyJzZWxlY3RlZExpbmVDb3VudCI6NDAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAyZTIyODNiMDFjODI4MjU3YjBjMmZlMDc0OGM3N2Q0OGE1NGY4MDkyZDBkNGUzNTNiMGQ5ZTg0ZGZiM2YxYWYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQxMmNhMzQ1Y2NmNzViZjljMDgwNmJjZTY5NWJlOGRlODA4Yjc5OTg0MjUxYTdhNTRkMjAyY2Y2MTAxZGQ0NTEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImM1OTBlYTNjOTQzNWY4NjYwYmIyYzdjMWQzZjVmNjE2MzE4MGJjZjM1NjA1NGI5NDc5ZTc3MGFjNzVhZWU2ZDciLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImZlZWE4NTU1ZWY2ZTAzNjM2ODAzZGYxMTdiNTg4YmQxYTc5YWNhY2IyMzdiYjFhMmFhNjIyZjg1MTkwZGY1MDkifQ"
+        },
+        {
+          "resource": "repo://frontend/src/lib/components/charts/plugins/measure/measure.test.ts#L171-L171",
+          "version": "repo-lines-v1:sha256:0568d83870f659626c2dfacee27adf1628ef238b954a012239ff7e57f95b007a:eyJzZWxlY3RlZExpbmVDb3VudCI6MSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiMDU2OGQ4Mzg3MGY2NTk2MjZjMmRmYWNlZTI3YWRmMTYyOGVmMjM4Yjk1NGEwMTIyMzlmZjdlNTdmOTViMDA3YSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiMDU2OGQ4Mzg3MGY2NTk2MjZjMmRmYWNlZTI3YWRmMTYyOGVmMjM4Yjk1NGEwMTIyMzlmZjdlNTdmOTViMDA3YSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiNDQwMzM3MWI1NjE0MjRhMmUzNzE3MzQ0OGMyMTg0OWJhYTE4MDFjYjM1MTBhY2M4NmU1NDMzMjliYWFmYzllNCIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiZjRmNWU1NzIyMWMwMTU5NWYyNTZhNzNmYWJlMTkxOTljNmM1YmNmMWZjNWJiYjFkMjFhMTJmNGE1OWY5Y2Q0OCJ9"
+        }
+      ]
+    },
+    {
+      "id": "claim_a2726ac07c2e4f55addc005df9add6d9",
+      "statement": "ChartDrawingsService.test.ts injects UserPreferencesServiceLike, SnapshotsServiceLike and ToastLike doubles plus the callbacks, and covers tool mutual exclusion, Delete/Backspace deletion, Escape cancellation, undo/redo orchestration and keyboard shortcuts, drag coalescing (deferred patch, single commit, no patch without moves), legacy-anchor normalization without a write-back, and snapshot save / empty-drawings skip / dedupe / effective-drawings-while-rewound. Rewind coverage spans three levels: pure helpers (finance/rewind.test.ts and rewind-timeline.test.ts), the component (scrub, markers, 'Back to now', empty state) and the page ('Rewind Save Snapshot', 'Rewind Scrub and Drawing Restore').",
+      "evidence": [
+        {
+          "resource": "repo://frontend/src/lib/services/ChartDrawingsService.test.ts#L21-L97",
+          "version": "repo-lines-v1:sha256:19dc88633f80c142e02df7c0806ccb7a93df3561056ad6dd6e67bf76d2303dd9:eyJzZWxlY3RlZExpbmVDb3VudCI6NzcsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImI4MmNjODU0NTM2NWUwZWQ2MTYxODcxY2Y0NmIwYzM1MGMwZDA5ZTdhMTNkNmIzNWUxZDA0NzI1ZTA1OGM1ZDUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImZjMWIzZDA1ZTg0MmQ0MDZlZDM1YmQzNmEyZDEyY2ZkNTM1NDRmYWMwMzM2ZmM3NDhhYjE3YzJiYTY0MzkyMWEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImI3MDYxNjU0ZDMwZWNiZDI5NDY2NDY1ODA2NmYzMDczODNiNjU4YmQ3OTI5MzcwNTU5ZmRhMGFkZDE2YjczMzUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6Ijc4NjZjNGM4MTRkMmNjZTJkMGZmNjU3MGQ0YWY5MTY5ZjI1NDUxNjkyOGQyOWI5OGZmYTIxMGY1NGQ5YmU5NTQifQ"
+        },
+        {
+          "resource": "repo://frontend/src/lib/services/ChartDrawingsService.test.ts#L460-L600",
+          "version": "repo-lines-v1:sha256:2edc05451bdbb73c9a659ac8cf02d20773539717a5de6ae3b98d526473ac95a3:eyJzZWxlY3RlZExpbmVDb3VudCI6MTQxLCJmaXJzdFNlbGVjdGVkTGluZUhhc2giOiI0NGEzOWE3OTJkMWZlYzA5MDdkODE5NTlkODljZTI2MzFjODA2M2ZjZTRiZDFmYzUzOGJhNWE2OGJhZWRkY2IzIiwibGFzdFNlbGVjdGVkTGluZUhhc2giOiJhZmIyMDExNWViNmI2MDZlMmE4ZTliNTFmYmZkNDkyNTc1NThiODI1MDgwM2E2ZDA4NDEzMjg0ZGViN2Q2YWE0IiwicHJlY2VkaW5nQ29udGV4dExpbmVDb3VudCI6MywicHJlY2VkaW5nQ29udGV4dEhhc2giOiJmYjZiNzA4MWU0NTRkODQzNTBjYmJmMzdhYzNlZTY5Yjg0OGYxMzI1YjhkYTkzNTljNjI2OTg4NTAwZTRjZThmIiwiZm9sbG93aW5nQ29udGV4dExpbmVDb3VudCI6MywiZm9sbG93aW5nQ29udGV4dEhhc2giOiJhOTllOGQ2Yjg3MTUwZjIxMTAxYjVjNDM3NmU0ODdlNDc5MjQ4ZTM4OGUzM2QzMGIzYTNkNGU3YzZhNzcxZDI1In0"
+        },
+        {
+          "resource": "repo://frontend/src/routes/security/%5Bsecurity_id%5D/page.svelte.test.ts#L2226-L2226",
+          "version": "repo-lines-v1:sha256:5df9feed336a06cbc45ff1ae5bb8c7050a225155a8972ceedd98c944812a0bfb:eyJzZWxlY3RlZExpbmVDb3VudCI6MSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiNWRmOWZlZWQzMzZhMDZjYmM0NWZmMWFlNWJiOGM3MDUwYTIyNTE1NWE4OTcyY2VlZGQ5OGM5NDQ4MTJhMGJmYiIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNWRmOWZlZWQzMzZhMDZjYmM0NWZmMWFlNWJiOGM3MDUwYTIyNTE1NWE4OTcyY2VlZGQ5OGM5NDQ4MTJhMGJmYiIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiMTEyNDNmY2U3Zjg1Y2U3MDNmNmQ3ZDVmODRlNTU5MDRiZjA3OGFmNzI3MzEzMGE0MGZhMjkxYmQ4NTAwMTMxMSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiOTMwNzM2MzQxMTQxMmU4NzUxNGMyZWQ0MWJmZWMzN2M4NWI0ZDdjZTM2M2EwZmJlZTA2NWMzMTdhY2VlOGU1ZSJ9"
+        },
+        {
+          "resource": "repo://frontend/src/routes/security/%5Bsecurity_id%5D/page.svelte.test.ts#L2753-L2753",
+          "version": "repo-lines-v1:sha256:a0a3501793f333017fd87cb1fd49c7b76c9479df7f4c5a4ab497aa3a07bfd4bf:eyJzZWxlY3RlZExpbmVDb3VudCI6MSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiYTBhMzUwMTc5M2YzMzMwMTdmZDg3Y2IxZmQ0OWM3Yjc2Yzk0NzlkZjdmNGM1YTRhYjQ5N2FhM2EwN2JmZDRiZiIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiYTBhMzUwMTc5M2YzMzMwMTdmZDg3Y2IxZmQ0OWM3Yjc2Yzk0NzlkZjdmNGM1YTRhYjQ5N2FhM2EwN2JmZDRiZiIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiMTEyNDNmY2U3Zjg1Y2U3MDNmNmQ3ZDVmODRlNTU5MDRiZjA3OGFmNzI3MzEzMGE0MGZhMjkxYmQ4NTAwMTMxMSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiOTMwNzM2MzQxMTQxMmU4NzUxNGMyZWQ0MWJmZWMzN2M4NWI0ZDdjZTM2M2EwZmJlZTA2NWMzMTdhY2VlOGU1ZSJ9"
+        }
+      ]
+    },
+    {
+      "id": "claim_8312b5642b49482ebc8c4b264b097677",
+      "statement": "tests/routers/test_chart_snapshots.py asserts 201 create, ascending captured_at ordering on read, 204 delete, per-user isolation (a non-owner GET returns [] and a non-owner DELETE still returns 204 while leaving the row intact), 401 for all three routes unauthenticated, and ON DELETE CASCADE when the security is removed. Frontend suites are run with ./scripts/agent-test <path> while iterating and ./scripts/agent-test frontend before finishing.",
+      "evidence": [
+        {
+          "resource": "repo://scripts/agent-test",
+          "version": "repo-file-v1:sha256:cfefa47f2163370e3550c9faf2e97cd995ebb2fad651dfbdef77e6c0519990e4"
+        },
+        {
+          "resource": "repo://tests/routers/test_chart_snapshots.py#L26-L206",
+          "version": "repo-lines-v1:sha256:7ee53fc90473f479f573c94ef52a8ea6c15fec53c7db95f4515ec000e13b827e:eyJzZWxlY3RlZExpbmVDb3VudCI6MTgxLCJmaXJzdFNlbGVjdGVkTGluZUhhc2giOiIzY2M5OWFjMTY1NzBjMTIyMzA1Nzc5M2U5OGExMzA2YzBhY2Y0NmYxNjBlOTgwNGEwYWNmOGY5ZDdhMTlkMDhmIiwibGFzdFNlbGVjdGVkTGluZUhhc2giOiJhOTQ5NDgxODdlNWNjY2M3YWNkOWY5Y2I4ZTcyNzU4ZThkNzQ2OTNkZWU0YWMwNzAwODY0YTRhYjhhZTE3N2YyIiwicHJlY2VkaW5nQ29udGV4dExpbmVDb3VudCI6MywicHJlY2VkaW5nQ29udGV4dEhhc2giOiJiZWMyYjEzOTZjOGExYWQ1MGQyMWU0ODBlZjliMDE5NmVlZTY3NjY4MWU2NzU0YmM2NDY0Yzc0Y2FkYmJhNjEwIiwiZm9sbG93aW5nQ29udGV4dExpbmVDb3VudCI6MCwiZm9sbG93aW5nQ29udGV4dEhhc2giOiJlM2IwYzQ0Mjk4ZmMxYzE0OWFmYmY0Yzg5OTZmYjkyNDI3YWU0MWU0NjQ5YjkzNGNhNDk1OTkxYjc4NTJiODU1In0"
+        }
+      ]
+    }
+  ],
+  "verification": {
+    "by": "openwiki/0.5.2",
+    "at": "2026-09-23T13:18:56.288Z"
+  }
+}

@@ -1,9 +1,10 @@
 ---
 type: "Reference"
 title: "Testing & Verification"
-description: "How correctness is verified in retail-portfolio: the pytest domain/layer layout, PostgreSQL testcontainer and session-isolation fixtures, the global Redis/Huey/WebSocket mocks, the Vitest/jsdom setup with its shim set, the agent-test harness gates, and the three CI jobs."
-tags: [testing, pytest, vitest, fixtures, testcontainers, ci, mocking]
 openwiki_generated: true
+verified:
+  - by: openwiki/0.5.2
+    at: 2026-09-23T13:18:56.288Z
 sources:
   - id: openwiki-source-164e2da859b5277df81c7d94
     resource: repo://.github/workflows/ci.yml
@@ -13,16 +14,36 @@ sources:
     resource: repo://docker-compose.yml
   - id: openwiki-source-e483fd3285d99d05c7b265cf
     resource: repo://frontend/AGENTS.md
+  - id: openwiki-source-e4c0fc375f25de5ad7c90c07
+    resource: repo://frontend/src/hooks.server.test.ts
   - id: openwiki-source-c1ff2d3bb9ce20a09dbdf815
     resource: repo://frontend/src/lib/api/apiClient.test.ts
+  - id: openwiki-source-79ab4be5bb9a442622e97b06
+    resource: repo://frontend/src/lib/api/async-data.test.ts
   - id: openwiki-source-ea1800bc022b11f33fe010f9
     resource: repo://frontend/src/lib/components/auth/login-form.test.ts
+  - id: openwiki-source-705c6811ccfd4985cb1df1f1
+    resource: repo://frontend/src/lib/components/charts/plugins/measure/measure.test.ts
   - id: openwiki-source-c3b7cc10403cbc15934d0991
     resource: repo://frontend/src/lib/components/charts/security-chart.test.ts
+  - id: openwiki-source-1007bc6701fb4097100e19cd
+    resource: repo://frontend/src/lib/components/holdings/holdingsService.test.ts
   - id: openwiki-source-eaf28afd746bbeb265c93c7b
     resource: repo://frontend/src/lib/components/watchlist/watchlistService.test.ts
+  - id: openwiki-source-3d46e0e4fc9170ea7e68535e
+    resource: repo://frontend/src/lib/services/ChartDrawingsService.test.ts
+  - id: openwiki-source-e2afbf47da64ed8c20530aec
+    resource: repo://frontend/src/routes/holdings/page.server.test.ts
+  - id: openwiki-source-8609a03f095ca0ae9b6d35bd
+    resource: repo://frontend/src/routes/holdings/page.svelte.test.ts
+  - id: openwiki-source-23b2c24e0397108b043ab98b
+    resource: repo://frontend/src/routes/layout.test.ts
+  - id: openwiki-source-ef52d86cb1b594166ee23058
+    resource: repo://frontend/src/routes/settings/security/page.svelte.test.ts
   - id: openwiki-source-b307a9988e1f7e9f57f8c56b
     resource: repo://frontend/src/setupTest.ts
+  - id: openwiki-source-a893f51acc4cb0c9f3b93fc4
+    resource: repo://frontend/svelte.config.js
   - id: openwiki-source-378e3cf05ab0d05d335c68d5
     resource: repo://frontend/vite.config.ts
   - id: openwiki-source-05ccef8d4cf1698187f20464
@@ -31,20 +52,34 @@ sources:
     resource: repo://scripts/agent-test
   - id: openwiki-source-230f617cb6d47154ef463034
     resource: repo://src/AGENTS.md
+  - id: openwiki-source-8a673764df1ebbb3a306a4f9
+    resource: repo://tests/commands/test_seed.py
   - id: openwiki-source-f0a6e7dc03522b2682f88655
     resource: repo://tests/conftest.py
   - id: openwiki-source-eb90d18c3483a2892215101e
     resource: repo://tests/email/test_email_service.py
+  - id: openwiki-source-0cd0d2a12792b1a0170af21f
+    resource: repo://tests/email/test_templates.py
+  - id: openwiki-source-4d6176b7c69b021f632eff11
+    resource: repo://tests/fixtures/account.py
   - id: openwiki-source-72d49ab5efc81ce4cfa6acf9
     resource: repo://tests/fixtures/auth.py
+  - id: openwiki-source-8295812d0316ddff4644768f
+    resource: repo://tests/fixtures/market.py
   - id: openwiki-source-3e40a51fdce055a3dcf42d36
     resource: repo://tests/fixtures/redis.py
   - id: openwiki-source-8ff946921bcd1055eadbc5ac
     resource: repo://tests/integration/brokers/test_wealthsimple.py
+  - id: openwiki-source-aac020a8d896b587762e3998
+    resource: repo://tests/market/test_indicator_cache.py
   - id: openwiki-source-4a4ca3cbe0b274d6c82e4e15
     resource: repo://tests/market/test_indicator_client.py
   - id: openwiki-source-d5f24b3551e2c9a796e0c850
     resource: repo://tests/market/test_indicator_compute_api.py
+  - id: openwiki-source-876bd707d5c9fbf88d12b5e6
+    resource: repo://tests/market/test_search_router.py
+  - id: openwiki-source-cbdd5210d3634181abff2019
+    resource: repo://tests/market/test_security_search_cache.py
   - id: openwiki-source-d59cda026d403e42927334dd
     resource: repo://tests/tasks/test_redis_concurrency.py
   - id: openwiki-source-8b176c94b018259ee14f35b7
@@ -53,11 +88,9 @@ sources:
     resource: repo://tests/test_migrations_autogenerate.py
   - id: openwiki-source-da833519b72f73ce64d59b2b
     resource: repo://tests/ws/test_manager.py
-generated: { by: "openwiki/0.5.2", at: "2026-09-20T12:50:16.306Z" }
-verified:
-  - by: openwiki/0.5.2
-    at: 2026-09-20T12:50:16.306Z
+generated: { by: "openwiki/0.5.2", at: "2026-09-23T13:18:56.288Z" }
 ---
+
 
 # Testing & Verification
 
@@ -74,8 +107,11 @@ Tests live in `tests/` and run against PostgreSQL. `pyproject.toml` owns the pyt
 - `pythonpath = [".", "src"]`, `cache_dir = "./.cache/pytest"`.
 - `addopts` is tuned for low-volume output: `-q`, `--tb=line`, `--no-header`, `--no-summary`, `--disable-warnings`, `--show-capture=no`.
 - Coverage is always on: `--cov=src` with `--cov-report=json:coverage.json` and `--cov-report=` (the terminal report is suppressed so agents can read the JSON artifact instead).
+- `filterwarnings` silences the `slowapi` `DeprecationWarning` that would otherwise reappear in every run.
 
 `[tool.coverage.run]` sets `source = ["src"]`, `branch = true` and omits `tests/*` and `migrations/*`; `[tool.coverage.report]` uses `show_missing = true` with the usual `pragma: no cover` / `__main__` / `NotImplementedError` / `TYPE_CHECKING` exclusions.
+
+Async suites carry `@pytest.mark.anyio` (the newer suites) or `@pytest.mark.asyncio`; both `anyio` and `pytest-asyncio` are in the `dev` dependency group, so match the marker already used in the file you are extending.
 
 ### Suite layout
 
@@ -84,12 +120,13 @@ The tree is organized by domain **and** by architectural layer, mirroring the DD
 | Path | Focus |
 |------|-------|
 | `tests/routers/` | FastAPI endpoint tests — auth (incl. 2FA/passkey/token revocation), accounts, portfolios, market, chart snapshots, CSV inspect/import endpoints, integration, documents, notes, sync status, rate limiting, worker dashboard, unauthenticated access |
-| `tests/services/` | Service/API-layer behaviour — auth APIs and services, account service and API, position API, market service, CSV account service |
+| `tests/services/` | Service/API-layer behaviour — auth APIs and services, account service and API, position service and API, market service, CSV account service |
 | `tests/repositories/` | SQLAlchemy repository tests (`test_repository_sqlalchemy.py`) |
 | `tests/tasks/` | Huey task tests — account, integration, market, and Redis concurrency |
 | `tests/market/` | Market domain: indicators (pure math, caching, client, compute API), Heikin-Ashi, EODHD gateway, security API and search cache, price alerts (repository, evaluation service, dispatch task), plus `tests/market/commands/` for CLI commands |
 | `tests/account/` | Account model/sync behaviour, plus `tests/account/commands/` and `tests/account/csv/` (CSV parser) |
 | `tests/auth/commands/` | Auth CLI commands (`create_test_user`, `create_test_token`) |
+| `tests/commands/` | Top-level CLI commands — `seed_data` (incl. idempotency) and `flush_market_data` |
 | `tests/integration/brokers/` | Broker integration tests driven by `StubWealthsimpleAPI` / `StubWSAPISession` from `src/stubs/wealthsimple.py` |
 | `tests/email/` | Email service and template rendering, with `src.core.email.aiosmtplib.SMTP` patched in every test |
 | `tests/ws/` | WebSocket `ConnectionManager` and router |
@@ -148,7 +185,7 @@ The docstring records why the `src.main` patches matter: `main.py` binds those n
 
 ### Redis fake
 
-`tests/fixtures/redis.py` provides the autouse `fake_redis_manager` fixture (function scope). It builds a `FakeRedisManager` whose `client()` async context manager yields a `FakeRedis` — a dict-backed async stand-in implementing `get`, `set` (including `nx`/`ex`), `setex`, `getdel`, `delete`, `incr`, `expire`, `scan`, `ping`, `publish`, `sadd`/`srem`/`smembers` and `aclose`. The fixture `monkeypatch.setattr`s the `client` attribute on **three** singletons — `src.core.redis.redis_manager`, `src.auth.api.default_redis_manager` and `src.auth.service.default_redis_manager` — because auth (token denylist, 2FA/passkey challenges), the security search cache and integration sync status all import those same objects. Tests that need to assert on stored state request `mock_redis_storage`, which returns the backing `FakeRedis` (for example `tests/routers/test_auth.py` checks that logout writes a `token:deny:` key). Tests that deliberately exercise the real `RedisManager` construct their own instance — see `tests/tasks/test_redis_concurrency.py`, which also patches `redis.asyncio.from_url` — and are unaffected.
+`tests/fixtures/redis.py` provides the autouse `fake_redis_manager` fixture (function scope). It builds a `FakeRedisManager` whose `client()` async context manager yields a `FakeRedis` — a dict-backed async stand-in implementing `get`, `set` (including `nx`/`ex`), `setex`, `getdel`, `delete`, `incr`, `expire`, `scan`, `ping`, `publish`, `sadd`/`srem`/`smembers` and `aclose`. The fixture `monkeypatch.setattr`s the `client` attribute on **three** singletons — `src.core.redis.redis_manager`, `src.auth.api.default_redis_manager` and `src.auth.service.default_redis_manager` — because auth (token denylist, 2FA/passkey challenges), the security search cache and integration sync status all import those same objects. Tests that need to assert on stored state request `mock_redis_storage`, which returns the backing `FakeRedis` (for example `tests/routers/test_auth.py` checks that logout writes a `token:deny:` key). Tests that deliberately exercise the real `RedisManager` construct their own instance — see `tests/tasks/test_redis_concurrency.py`, which also patches `redis.asyncio.from_url` — and are unaffected. Caches that take a client by constructor rather than through the singleton (e.g. `IndicatorCache`, `SecuritySearchCache`) are given their own local fake or `AsyncMock` instead.
 
 ### HTTP/clients and email
 
@@ -157,9 +194,11 @@ The docstring records why the `src.main` patches matter: `main.py` binds those n
 - `MockEodhdGateway` implements `MarketGateway` (search, `get_price_on_date`, `get_prices`, `get_intraday_prices`) returning fixed payloads and delegating search to `StubEodhdGateway`; `auth_client`/`client` monkeypatch `src.market.eodhd.eodhd_gateway_factory` to return it (patched in the source module because `src/market/__init__.py` imports from there for DI registration).
 - Both clients also patch `EmailService.send_verification_email` to a no-op async function, so router tests never reach SMTP.
 - Both use `LifespanManager(app)` plus `httpx.AsyncClient` over `ASGITransport` against the real FastAPI app with `base_url="http://test"`. `auth_client` additionally carries `Authorization: Bearer <token>` minted through `UserApi.create_access_token`, while the bare `client` is unauthenticated. `test_user` and `other_user` persist verified users (Argon2-hashed via `_password_hasher`) for ownership/authorization tests.
-- `tests/fixtures/account.py` seeds accounts, portfolios, positions, securities and integration users (including `other_user_account` for cross-user denial); `tests/fixtures/market.py` seeds watchlists and securities.
+- `tests/fixtures/account.py` seeds accounts, portfolios, positions, securities and integration users (including `other_user_account`, `other_user_portfolio` and `other_user_external_user` for cross-user denial); `tests/fixtures/market.py` seeds watchlists.
 
-SMTP is patched at the transport boundary in `tests/email/test_email_service.py` with `patch("src.core.email.aiosmtplib.SMTP")`. Broker APIs are exercised through the `src/stubs/wealthsimple.py` stubs in `tests/integration/brokers/test_wealthsimple.py` rather than by network calls.
+Where the app resolves collaborators through its `svcs` registry instead of a module-level factory, suites override the registry directly: `tests/market/test_search_router.py` registers `AsyncMock`/`MagicMock` replacements for `SecuritySearchCache` and `MarketGateway` on `app.state.svcs_registry`.
+
+SMTP is patched at the transport boundary in `tests/email/test_email_service.py` with `patch("src.core.email.aiosmtplib.SMTP")`; template suites render through `src.core.email.jinja_env` without any transport at all. Broker APIs are exercised through the `src/stubs/wealthsimple.py` stubs in `tests/integration/brokers/test_wealthsimple.py` rather than by network calls.
 
 ### Migration drift test
 
@@ -196,13 +235,21 @@ docker compose exec backend uv run pytest
 | No-op `Element.prototype.scrollIntoView = vi.fn()` | L36-L38 | jsdom does not implement `scrollIntoView`, but bits-ui's `Command` calls it on the active item and on the closest group heading to keep the highlighted option in view. Those calls happen asynchronously, so the rejection surfaces as `TypeError: closestGroupHeader?.scrollIntoView is not a function` — reported by vitest as unhandled errors for any test rendering a grouped Command. Tests assert on state, not scrolling. |
 | `vi.stubGlobal('location', …)` | L41-L58 | Replaces `window.location` with a `URL('http://localhost/')`-derived object exposing `href`/`origin`/`protocol`/`host`/`hostname`/`port`/`pathname`/`search`/`hash` plus `assign`, `replace`, `reload` and `toString` spies, so navigation is assertable and consistent with `environmentOptions.url`. |
 
+Shims that only some suites need stay in those suites: `Path2D` and `ResizeObserver` polyfills are declared at the top of the chart suites, and `window.matchMedia` is defined inside `src/routes/layout.test.ts`.
+
 ### Conventions
 
-Suite files are colocated with the code they cover (`src/**/*.test.ts`) — API clients under `src/lib/api/`, utilities under `src/lib/utils/`, components next to their `.svelte` file, and route-level tests (`hooks.server.test.ts`, `routes/layout.test.ts`, `routes/security/[security_id]/page.svelte.test.ts`). Because SvelteKit runtime modules do not exist under jsdom, tests mock them explicitly with `vi.mock('$app/paths', …)`, `vi.mock('$app/navigation', …)`, `vi.mock('$app/forms', …)` and `vi.mock('$app/stores', …)`. Fetch-based clients mock `global.fetch` (see `src/lib/api/apiClient.test.ts`, which also asserts the raised `ApiError` for 401/404).
+Suite files are colocated with the code they cover (`src/**/*.test.ts`) — API clients under `src/lib/api/`, utilities under `src/lib/utils/`, components next to their `.svelte` file, route-level tests in the route directory, and cross-cutting rune services next to their `.svelte.ts` file in `src/lib/services/`. Because SvelteKit runtime modules do not exist under jsdom, tests mock them explicitly with `vi.mock('$app/paths', …)`, `vi.mock('$app/navigation', …)`, `vi.mock('$app/forms', …)` and `vi.mock('$app/stores', …)`. Fetch-based clients mock `global.fetch` (see `src/lib/api/apiClient.test.ts`, which also asserts the raised `ApiError` for 401/404). Two aliases are used interchangeably in imports: `$lib/*` (SvelteKit) and `@/*`, which maps to `./src/lib/*` through `svelte.config.js`.
 
-Service-layer suites follow the mandated pattern one level up: `src/lib/components/watchlist/watchlistService.test.ts` mocks the API module (`vi.mock('@/api/marketService', () => ({ getMarketService: vi.fn() }))`) and then returns a hand-built client object whose every method is a `vi.fn()` — `getWatchlists`, `createWatchlist`, `renameWatchlist`, `deleteWatchlist`, `addSecurityToWatchlist`, `removeSecurityFromWatchlist`, … — so `WatchlistService` can be driven as a plain class with no SvelteKit runtime and no network. (`@/*` maps to `./src/lib/*` through `svelte.config.js`.)
+Which mocking seam a suite uses follows the shape of the code under test:
 
-Chart tests mock the `lightweight-charts` module wholesale: `src/lib/components/charts/security-chart.test.ts` defines `Path2D` and `ResizeObserver` polyfills, then `vi.mock('lightweight-charts', …)` returning a `createChart` stub with mocked time scale, price scales, series, `attachPrimitive`, range/visible-range subscriptions and crosshair callbacks. `frontend/AGENTS.md` documents the expected depth for chart-plugin suites: state transitions, mouse-adapter hit-testing/snapping/drag lifecycle, renderer geometry and canvas draw calls, and full primitive lifecycle (`attached`/`detached`/`destroy`, `updateAllViews`, `hitTest` cursor resolution).
+- **API clients** mock `global.fetch` (`apiClient`, `accountClient`, `authService`, `indicatorsService`, `snapshotsService`, …) and assert the URL/method/payload plus the error mapping.
+- **Service classes that pull their client from a module factory** mock that module and return a hand-built object. `src/lib/components/watchlist/watchlistService.test.ts` mocks `@/api/marketService` as `{ getMarketService: vi.fn() }` and hands back a client whose every method is a `vi.fn()` — `search`, `createOrUpdateSecurity`, `getWatchlists`, `createWatchlist`, `renameWatchlist`, `updateWatchlistSort`, `deleteWatchlist`, `addSecurityToWatchlist`, `removeSecurityFromWatchlist`, `reorderWatchlistSecurities`, `addToWatchlist`, `removeFromWatchlist` — so `WatchlistService` is driven as a plain class with no SvelteKit runtime and no network. `src/lib/components/holdings/holdingsService.test.ts` uses the same shape against `$lib/api/accountService` and covers paging until `offset` reaches `total`, the stale-total guard, and returning the caught `ApiError` so callers can route a 401.
+- **Service classes that take their collaborators as constructor arguments need no `vi.mock` at all.** `src/lib/services/ChartDrawingsService.test.ts` constructs the service with stubbed `userPreferencesService.patchPreferences`, `snapshotsService.createSnapshot`/`getSnapshots`, a `toast` double and `vi.fn()` callbacks, then asserts on state and on the exact `patchPreferences` payloads — tool mutual exclusion, Delete/Backspace/Escape handling, undo/redo history, drag coalescing (patches deferred during a drag and committed once on `handleDrawingDragEnd`), and legacy anchor normalization that must not trigger a write-back.
+- **Route tests come in pairs.** `page.server.test.ts` mocks the API service modules and drives `load`/`actions` with a hand-built `Cookies`/`RequestEvent` object; `page.svelte.test.ts` renders the page with `render(Page, { props: { data } })` and asserts the shell-first contract — skeleton rows before the post-navigation load resolves, rows appearing without user action, sequential page loading, per-currency totals, and the 401 path that calls `goto('/auth/login?clear_session=true')`. `src/lib/api/async-data.test.ts` unit-tests that seam (`redirectOn401`) directly, with `$app/navigation` and `$app/paths` mocked.
+- **Third-party and browser APIs are mocked too**: `mode-watcher`, `@simplewebauthn/browser`, `qrcode` and `$env/static/private` all appear in `vi.mock` calls, and `vi.hoisted` is used where a mock must exist before the imports are evaluated. `src/hooks.server.test.ts` is the one suite that opts out of jsdom with a `// @vitest-environment node` pragma so it can verify JWT handling with `jose` against a mocked `JWT_SECRET`.
+
+Chart tests split the same way. `src/lib/components/charts/security-chart.test.ts` defines `Path2D` and `ResizeObserver` polyfills, then `vi.mock('lightweight-charts', …)` returning a `createChart` stub with mocked time scale, price scales, series, `attachPrimitive`, range/visible-range subscriptions and crosshair callbacks. The plugin suites next to each primitive (`plugins/measure/measure.test.ts`, `plugins/horizontal-line/`, `plugins/free-form-line/`, `plugins/fibonacci/`, `plugins/elliott-wave/`, `plugins/user-price-alerts/`) instead import only *types* from the library and hand-build `IChartApi`/`ISeriesApi` doubles plus a canvas target that records draw calls, then walk the four layers `frontend/AGENTS.md` requires: state transitions and delegate firing, mouse-adapter hit-testing/snapping/drag lifecycle, renderer geometry and canvas draw calls (`moveTo`, `lineTo`, `arc`, `fill`, `stroke`, `fillText`, `setLineDash` under a 2× bitmap scope), and full primitive lifecycle (`attached`/`detached`/`destroy`, `updateAllViews`, `hitTest` cursor resolution, `TimeProjector` projection of future whitespace). Shared plumbing has its own suites under `plugins/helpers/`, and pure finance math is tested separately under `src/lib/utils/finance/` because plugins are not allowed to own formulas.
 
 ```bash
 # Inside the frontend container

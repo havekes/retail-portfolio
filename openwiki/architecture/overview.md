@@ -1,14 +1,24 @@
 ---
 type: architecture
 title: Architecture Overview
-description: System-level runtime map of retail-portfolio — the FastAPI backend process (lifespan migrations, svcs registry, WebSocket manager, Huey dashboard), the Huey worker, the SvelteKit SSR frontend, the Go indicator sidecar, PostgreSQL, Redis and mailcrab, how HTTP routes are mounted under /api/v1, health/readiness endpoints, middleware and error-handling safety nets, and the backend layer rules.
-tags: [architecture, fastapi, huey, sveltekit, redis, postgresql, dependency-injection, websockets, request-lifecycle]
+description: System-level runtime map of retail-portfolio — the FastAPI process (lifespan migrations, svcs registry, middleware order, error handling), the Huey worker, the SvelteKit SSR frontend, the Go indicator sidecar, PostgreSQL/Redis/mailcrab, route mounting under /api/v1, health probes, the backend layer rules, and the commands that verify a change.
+tags: [architecture, fastapi, huey, sveltekit, postgresql, redis, dependency-injection, request-lifecycle, docker-compose]
 verified:
   - by: openwiki/0.5.2
-    at: 2026-09-18T20:16:58.058Z
+    at: 2026-09-23T13:18:56.288Z
 sources:
+  - id: openwiki-source-164e2da859b5277df81c7d94
+    resource: repo://.github/workflows/ci.yml
+  - id: openwiki-source-8037e2358a2c4f9b2c722a11
+    resource: repo://AGENTS.md
+  - id: openwiki-source-11ef2d56dffda152beeb9f84
+    resource: repo://docker-compose.prod.yml
   - id: openwiki-source-b79fbbd921df689b4bbdc82f
     resource: repo://docker-compose.yml
+  - id: openwiki-source-bb1ebe868e35e9e500714501
+    resource: repo://Dockerfile
+  - id: openwiki-source-e483fd3285d99d05c7b265cf
+    resource: repo://frontend/AGENTS.md
   - id: openwiki-source-0bdf50a0b0b0618dd3a5abe8
     resource: repo://frontend/src/hooks.server.ts
   - id: openwiki-source-23775c3de52f3ab95a13cb8b
@@ -31,6 +41,8 @@ sources:
     resource: repo://src/config/limiter.py
   - id: openwiki-source-e1e5885568a239055161be95
     resource: repo://src/config/services.py
+  - id: openwiki-source-d1e4e10eebd8f4d4314bc43f
+    resource: repo://src/config/settings.py
   - id: openwiki-source-0b05f99dd1a5c08ae3ebc4a5
     resource: repo://src/core/exception.py
   - id: openwiki-source-bb9b5d3400aa107e32ebff27
@@ -39,8 +51,10 @@ sources:
     resource: repo://src/main.py
   - id: openwiki-source-336c8d4ea788e2c5f7cddd73
     resource: repo://src/market/__init__.py
-  - id: openwiki-source-689c3cecf701f8b197038e75
-    resource: repo://src/market/task.py
+  - id: openwiki-source-d8383d22d61483b00080a280
+    resource: repo://src/market/router.py
+  - id: openwiki-source-9fc85bceeb3edfbe3ab56a7c
+    resource: repo://src/market/service.py
   - id: openwiki-source-c8a9ed75dfc5d7332062ae40
     resource: repo://src/worker_dashboard/router.py
   - id: openwiki-source-7a8d629077019775a9fec3d3
@@ -55,61 +69,78 @@ sources:
     resource: repo://tests/test_main.py
   - id: openwiki-source-f0abc296482c495e6bdb9e20
     resource: repo://tests/test_request_id.py
-generated: { by: "openwiki/0.5.2", at: "2026-09-18T20:16:58.058Z" }
+generated: { by: "openwiki/0.5.2", at: "2026-09-23T13:18:56.288Z" }
 ---
 
 # Architecture Overview
 
 `retail-portfolio` is a portfolio tracker for the retail investor. It runs as a small
 set of cooperating containers: a FastAPI backend, a Huey worker process, a SvelteKit SSR
-frontend, a stateless Go indicator sidecar, plus PostgreSQL, Redis and mailcrab.
+frontend, a stateless Go indicator sidecar, plus PostgreSQL, Redis and — in dev only —
+mailcrab.
 
 This page is the system-level map: which process owns what, how the app starts, how a
-request flows, and which layer rules hold the backend together. Per-domain detail lives
-in [Backend Domains](./domains.md); configuration and DI seams in
-[Configuration](./configuration.md); the UI in [Frontend Architecture](./frontend.md)
-and [Charting](./charting.md); authentication in
-[Authentication & Authorization](./authentication.md); developer/CI workflows in
-[Workflows](../operations/workflows.md) and [Testing](../operations/testing.md).
+request flows, which layer rules hold the backend together, and which commands verify a
+change. Per-domain detail lives in [Backend Domains](./domains.md); configuration and DI
+seams in [Configuration](./configuration.md); the UI shell in
+[Frontend Architecture](./frontend.md); the chart surface in [Charting](./charting.md)
+and drawing/snapshot internals in
+[Chart Drawings, Plugins & Rewind](./chart-drawings-and-rewind.md); the asynchronous
+runtime in [Realtime, Background Jobs & the Worker](../workflows/realtime-and-background-jobs.md);
+the per-user preference contract in [User Preferences](../concepts/user-preferences.md);
+authentication in [Authentication & Authorization](./authentication.md); developer/CI
+workflows in [Development, CI & Change Workflows](../operations/workflows.md) and
+[Testing & Verification](../operations/testing.md).
 
 ## Processes and containers
 
-`docker-compose.yml` is the supported way to run the stack (`docker compose up -d`);
-the backend and frontend are then available on `http://localhost:8001` and
-`http://localhost:8002`, with interactive API docs at
-`http://localhost:8001/redoc`. A production compose file swaps the dev commands for
-built images and fixed ports, but keeps the same service topology.
+`docker-compose.yml` is the supported way to run the stack (`docker compose up -d`, or
+`just up` to inject the host Docker group id): the backend is then on
+`http://localhost:8001` (interactive API docs at `/redoc`, ping at `/api/ping`) and the
+frontend on `http://localhost:8002`. Every port is Compose-interpolated from the single
+root `.env`, so ports are changed there rather than in the Compose file.
 
 ```mermaid
 flowchart TD
-    Browser["Browser"] -->|HTTP :8002| Frontend["frontend: SvelteKit SSR node"]
+    Browser["Browser"] -->|HTTP :8002| Frontend["frontend: SvelteKit SSR"]
     Frontend -->|"SSR fetch VITE_INTERNAL_API_URL"| Backend["backend: uvicorn src.main:app"]
     Browser -->|"browser fetch VITE_API_BASE_URL"| Backend
     Browser -->|WebSocket /api/ws| Backend
-    Browser -->|HTTP| Indicator["indicator-service: Go sidecar :8080"]
     Backend -->|PostgreSQL| Postgres[("postgres:18")]
     Backend -->|"Huey queue + Pub/Sub + rate limit + status keys"| RedisStore[("redis:7")]
     Backend -->|SMTP| Mailcrab["mailcrab dev SMTP/UI"]
-    Backend -->|"POST /compute"| Indicator
-    Worker["worker: huey_consumer src.worker.huey"] -->|PostgreSQL NullPool| Postgres
+    Backend -->|"POST /compute"| Indicator["indicator-service: Go sidecar :8080"]
+    Worker["worker: huey_consumer src.worker.huey"] -->|"PostgreSQL NullPool"| Postgres
     Worker -->|"task queue + Pub/Sub publish"| RedisStore
     Worker -->|SMTP| Mailcrab
-    Worker -->|"POST /compute via worker registry"| Indicator
 ```
 
 Container topology: the browser reaches the SvelteKit SSR app, which server-side-fetches
-the backend over the Compose network; backend and worker share PostgreSQL and Redis, and
-both can call the Go indicator sidecar.
+the backend over the Compose network; backend and worker share PostgreSQL and Redis; and
+the backend is the only caller of the Go indicator sidecar. The sidecar publishes host
+port `${INDICATOR_SERVICE_PORT:-8085}` for manual inspection, but no frontend code holds
+its URL.
 
 | Service | Role |
 |---------|------|
 | `backend` | FastAPI app served by `uvicorn src.main:app`; owns HTTP, WebSocket, migrations, rate limiting and error handling |
-| `worker` | `huey_consumer src.worker.huey -w 2 --worker-type thread --periodic`; runs background and periodic tasks |
-| `frontend` | SvelteKit SSR dev server / Node adapter build; talks to the backend over `/api/v1` |
+| `worker` | Huey consumer; dev command is `uv run -m watchfiles "huey_consumer src.worker.huey -w 2 --worker-type thread --periodic" src/` |
+| `frontend` | SvelteKit dev server (`npm run dev`, container port 8100) in dev; the Node adapter build in prod |
 | `indicator-service` | Stateless Go calculator exposed at `POST /compute` and `GET /health`; no auth, internal network only |
 | `postgres` | Primary datastore (PostgreSQL 18) |
 | `redis` | Huey task queue, WebSocket Pub/Sub fan-out, slowapi rate-limit storage, sync/2FA/denylist keys |
 | `mailcrab` | Dev SMTP sink + web UI for outgoing email |
+
+`docker-compose.prod.yml` keeps the same shape but is not a drop-in copy: it builds the
+images (`build: .` for backend and worker, `build: ./frontend`), pins ports
+(`8000:8000`, `80:3000`, `8085:8080`), drops the debug ports and **has no `mailcrab`
+service**, and its worker command is `huey_consumer src.worker.huey -w 2 --worker-type
+thread` — without `--periodic`, so Huey's periodic schedules only fire under the dev
+Compose file. The root `Dockerfile` builds a `python:3.14-slim` image whose `CMD` runs
+`uvicorn src.main:app --host 0.0.0.0 --port 8000 --workers 4
+--timeout-graceful-shutdown 30` and whose `HEALTHCHECK` probes `/health/live`; each of
+those four worker processes executes the lifespan, and therefore `alembic upgrade head`,
+at startup.
 
 The indicator sidecar is deliberately public-network-free: it exposes no authentication
 and no rate limiting, so it must stay on the internal Docker network.
@@ -134,13 +165,13 @@ the single place where process-scoped resources are created and torn down:
 
 Inside the `async with registry:` block the lifespan yields
 `{"svcs_registry": registry}`; teardown then calls `close_worker_dashboard`,
-`ws_manager.close()` and `redis_manager.close()`. In `dev`, the module also calls
-`debugpy.listen(("0.0.0.0", 5678))` at import time, which is why Compose publishes a
-backend debug port.
+`ws_manager.close()` and `redis_manager.close()`. The lifespan body wraps its yield in a
+`try/except` so a failure during yield is logged instead of silently killing shutdown.
 
-`app` is constructed with `debug=settings.environment != "prod"` and the module calls
-`init_logging()` (Rich handlers in dev, JSON lines with `request_id` in prod) before the
-first request.
+In `dev`, the module also calls `debugpy.listen(("0.0.0.0", 5678))` at import time, which
+is why Compose publishes a backend debug port. `app` is constructed with
+`debug=settings.environment != "prod"`, and the module calls `init_logging()` (Rich
+handlers in dev, JSON lines with `request_id` in prod) before the first request.
 
 ## Route mounting and entrypoints
 
@@ -166,78 +197,92 @@ top-level surface is:
 
 | Path | Owner | Notes |
 |------|-------|-------|
-| `/api/v1/...` | `v1` router aggregating every domain router | e.g. `/api/v1/auth/*`, `/api/v1/accounts/*`, `/api/v1/securities/*` |
+| `/api/v1/...` | `v1` router aggregating every domain router | e.g. `/api/v1/auth/*`, `/api/v1/accounts/*`, `/api/v1/market/*`, `/api/v1/integration/*`, `/api/v1/external/*` |
 | `/api/ws` | `src/ws/router.py` | WebSocket endpoint, not under `/api/v1` |
 | `/api/ping` | `src/main.py` | Simple DB-backed healthcheck |
-| `/health/live` | `src/main.py` | Liveness probe used by the Compose healthcheck |
+| `/health/live` | `src/main.py` | Liveness probe used by the Compose and image healthchecks |
 | `/health/ready` | `src/main.py` | Readiness probe: DB + Redis |
 | `/worker/api/...` | `src/worker_dashboard/router.py` | Huey dashboard: `/worker/api/tasks` plus `/worker/api/updates` WebSocket |
 
 Older documentation that describes routes as bare `/api` without the `/v1` segment is
-wrong: domain routers themselves are prefix-less (e.g. `auth_router` is
-`APIRouter(prefix="/auth")`) and get their `/api/v1` prefix only here. The frontend
+wrong: domain routers themselves are prefix-less relative to that (for example
+`auth_router` is `APIRouter(prefix="/auth")`, `account_router` is `/accounts`,
+`market_router` is `/market`) and get their `/api/v1` prefix only here. The frontend
 `apiClient` hard-codes the same `/api/v1` base.
 
 Other process entrypoints: `src/worker.py` is the Huey consumer module, and
-`src/commands/seed.py` is a standalone CLI seed command for reference data and dev
-fixtures.
+`src/commands/seed.py` / `src/commands/flush_market_data.py` are standalone CLI commands
+for reference data and market-data maintenance.
 
 ## Request lifecycle
 
-Every HTTP request passes through the middleware stack installed in `src/main.py`
-(Starlette applies middleware in reverse order of `add_middleware`, so
-`RequestIdMiddleware` is outermost and wraps the CORS layers):
+Every HTTP request passes through the middleware stack installed in `src/main.py`. The
+registration order in source is `RequestIdMiddleware`, then `app.state.limiter` plus the
+`RateLimitExceeded` handler, then `SlowAPIMiddleware`, then the two function middlewares
+`reset_rate_limit_state_middleware` and `cors_exception_middleware`, and finally
+`CORSMiddleware`. Starlette prepends each `add_middleware` call to the front of its user
+middleware list and builds the stack so that the first entry is outermost — the
+reverse-order rule, where the middleware registered last is the outermost — so the
+effective inbound order is the reverse of registration: `CORSMiddleware`,
+`cors_exception_middleware`, `reset_rate_limit_state_middleware`, `SlowAPIMiddleware`,
+`RequestIdMiddleware`, then the router.
 
-- `RequestIdMiddleware` (`src/core/middleware.py`) — reads or generates `X-Request-ID`,
-  stores it on `request.state`, binds it into a contextvar for log correlation, echoes
-  it back on the response, and logs one entry/exit line per request (4xx at `warning`,
-  everything else at `info`) with `duration_ms`.
-- `SlowAPIMiddleware` plus the `reset_rate_limit_state_middleware` shim — rate limiting
-  backed by `src/config/limiter.py`, keyed by user id decoded from the `auth_token`
-  cookie (or `authorization` header) with an IP fallback, using Redis storage outside
-  `test` (`memory://` in tests).
-- `cors_exception_middleware` — safety net that converts an escaping exception into a
-  `500` JSON response and re-injects CORS headers manually.
 - `CORSMiddleware` — configured from comma-separated `cors_allow_origins`,
   `cors_allow_methods` and `cors_allow_headers`; outside `prod` it additionally allows
-  `allow_origin_regex=r"https?://.*"`, with `allow_credentials=True`.
+  `allow_origin_regex=r"https?://.*"`, with `allow_credentials=True`. Being outermost, it
+  also short-circuits preflight requests before they reach the inner middleware.
+- `cors_exception_middleware` — safety net that converts an escaping exception into a
+  `500` JSON response and re-injects CORS headers manually. Sitting inside the CORS layer
+  but outside the rate-limit and request-ID middleware, it is normally what turns an
+  unmapped route exception into a `500` before the exception can reach the app-level
+  `Exception` handler registered on the outermost Starlette error middleware.
+- `reset_rate_limit_state_middleware` plus `SlowAPIMiddleware` — rate limiting backed by
+  `src/config/limiter.py`, keyed by `user_or_ip_key_func` (the user id decoded from the
+  `auth_token` cookie or `authorization` header, falling back to the remote address) with
+  Redis storage outside `test` and `memory://` in tests; the shim deletes
+  `request.state._rate_limiting_complete` so slowapi state does not leak between calls.
+- `RequestIdMiddleware` (`src/core/middleware.py`) — reads or generates `X-Request-ID`,
+  stores it on `request.state`, binds it into a contextvar for log correlation, echoes it
+  back on the response, and logs one entry/exit line per request (4xx at `warning`,
+  everything else at `info`) with `duration_ms`.
 
 ```mermaid
 sequenceDiagram
     participant C as Client
+    participant Cors as CORSMiddleware
+    participant Ce as cors_exception_middleware
+    participant Rl as Rate limiting
     participant Rid as RequestIdMiddleware
-    participant Rl as SlowAPIMiddleware
-    participant Cors as CORS layers
     participant R as Domain router under /api/v1
     participant S as Service or domain API
-    participant Repo as Repository
     participant DB as PostgreSQL
 
-    C->>Rid: HTTP request
-    Rid->>Rid: bind or generate X-Request-ID
-    Rid->>Rl: call next
+    C->>Cors: HTTP request
+    Cors->>Cors: apply CORS policy
+    Cors->>Ce: call next
+    Ce->>Rl: call next
     Rl->>Rl: enforce limiter quota
-    Rl->>Cors: call next
-    Cors->>R: call next
+    Rl->>Rid: call next
+    Rid->>Rid: bind or generate X-Request-ID
+    Rid->>R: call next
     R->>R: resolve DepContainer from app.state.svcs_registry
     R->>S: aget service and call business method
-    S->>Repo: repository call
-    Repo->>DB: async session query
-    DB-->>Repo: rows
-    Repo-->>S: schemas
+    S->>DB: async session query
+    DB-->>S: rows
     S-->>R: schemas or api_types
-    R-->>Cors: JSON response
-    Cors-->>Rl: response with CORS headers
-    Rl-->>Rid: response
+    R-->>Rid: JSON response
     Rid->>Rid: log exit plus duration_ms
-    Rid-->>C: response with X-Request-ID
+    Rid-->>Rl: response with X-Request-ID
+    Rl-->>Ce: response
+    Ce-->>Cors: response
+    Cors-->>C: response with CORS headers
 
-    Note over Rid,Cors: An exception escaping the stack is caught by cors_exception_middleware, which returns 500 with CORS headers
+    Note over Ce,Rid: An exception escaping the inner layers is caught by cors_exception_middleware, which returns 500 with CORS headers
 ```
 
-Request lifecycle from `X-Request-ID` binding through rate limiting, router resolution,
-service/repository work and the response back out — with the CORS safety net catching
-anything that escapes.
+Request lifecycle from the CORS layers down through rate limiting and `X-Request-ID`
+binding, then router resolution, service/repository work and the response back out — with
+the CORS safety net catching anything that escapes.
 
 ### Handlers and responses
 
@@ -258,13 +303,13 @@ another domain's repositories.
 
 | Endpoint | Behavior |
 |----------|----------|
-| `/health/live` | Always `200 {"status": "alive"}`; used by the Compose healthcheck |
+| `/health/live` | Always `200 {"status": "alive"}`; used by the Compose and image healthchecks |
 | `/health/ready` | Executes `select(1)` on a resolved `AsyncSession` **and** `PING`s Redis via `redis_manager.client()`; returns `200 {"status": "ready", ...}` when every check is `ok`, otherwise `503 {"status": "degraded", ...}` |
 | `/api/ping` | Resolves a session and runs `select(1)`, returning `{"ping": "pong", "database": "ok" \| "error"}` — it reports DB failure in the body rather than failing the request |
 
 The two kinds are deliberately distinct: liveness must not depend on downstream
-services, readiness must. `tests/test_main.py` asserts both shapes, and
-`/api/ping` returning `"pong"` is the smoke test the README points at.
+services, readiness must. `tests/test_main.py` asserts both shapes, and `/api/ping`
+returning `"pong"` is the smoke test the README points at.
 
 ## Dependencies and cross-domain calls
 
@@ -281,11 +326,10 @@ Dependency injection is centralized in `src/config/services.py`. Each domain exp
    `register_market_stub_services` versus `register_integration_services` /
    `register_market_services`).
 
-The worker follows the same wiring but builds its own registry in
-`setup_worker_services` (`@huey.on_startup()`), with a `DatabaseSessionManager`
-constructed with `poolclass=NullPool` to avoid "operation in progress" errors across
-`asyncio.run()` task cycles, and stores it on `huey.svcs_registry`. Tasks resolve
-services through `svcs.Container(huey.svcs_registry)`.
+The same function is what the worker calls, so the API and the worker resolve the same
+interfaces — only the session manager differs (see the realtime page). A new repository,
+service or domain API becomes resolvable only once it is registered in its domain's
+`register_*_services`.
 
 Cross-domain access always goes through public domain APIs, never foreign repositories.
 `PositionService` is the canonical orchestrator: it depends on its own
@@ -304,6 +348,9 @@ must not break, from `src/AGENTS.md`:
   migrations and are never returned to clients.
 - **Cross-domain calls happen only through the other domain's `api.py` APIs and
   `api_types.py`.** A service must not import another domain's repository or schema.
+  A router *may* use its own domain's repositories directly — the market watchlist,
+  alert, note, document and snapshot routes do exactly that — but never a foreign
+  domain's.
 - **Routers own HTTP concerns; services do not raise `HTTPException`** (the
   authorization service is the documented exception). Domain errors inherit from
   `EntityNotFoundError` / `AuthorizationError` in `src/core/exception.py`, or are mapped
@@ -311,55 +358,39 @@ must not break, from `src/AGENTS.md`:
 - **Services are registered as factories and resolved from the registry** — never
   instantiated by hand inside a request.
 - **Editing a model requires an Alembic migration** following the
-  `<hash>_<description>.py` naming convention.
+  `<hash>_<description>.py` naming convention, shipped in the same change.
 
 Domains documented from this base: `account`, `auth`, `market`, `integration`, `ws`,
 `core`, `config` — see [Backend Domains](./domains.md) for models, public APIs, services
 and extension recipes.
 
-## WebSockets
+## Realtime and background work (orientation)
 
-`src/ws/manager.py` holds a process-global `ConnectionManager` singleton with
-`active_connections: dict[UserId, list[WebSocket]]` keyed per user. Messages are
-published to the Redis Pub/Sub channel `ws_messages`; the main-loop listener task
-(`_listen_for_messages`) receives them and delivers to local connections. A publishing
-call from a worker thread lazily initializes a Redis client for *that* event loop
-(`_clients: dict[AbstractEventLoop, Redis]`), which is what lets Huey worker threads
-broadcast into the API process. If Redis is unavailable, `send_personal_message` falls
-back to local broadcast instead of raising, and the listener restarts itself after a
-delay if it dies.
+Two cross-process mechanisms matter at the system level; both are documented in full on
+[Realtime, Background Jobs & the Worker](../workflows/realtime-and-background-jobs.md).
 
-`/api/ws` (`src/ws/router.py`) accepts either a short-lived signed ticket (query param
-`ticket`, produced by `POST /api/v1/auth/ws-ticket`, a `URLSafeTimedSerializer` payload
-with `max_age=30` and `salt="ws-ticket"`) or a session token from the `auth_token`
-cookie / `sec-websocket-protocol` header resolved through `UserApi`. Tickets are
-single-use: `_check_ticket_not_replayed` sets a `ws-ticket-used:<sha256>` Redis key with
-`nx=True, ex=30` and closes with code `1008` on replay. Event payload schemas and the
-`WsEventType` enum live in `src/ws/api_types.py`.
+- **The worker.** `src/worker.py` defines the Huey instance (`RedisHuey` everywhere
+  except `test`, where it is `MemoryHuey`), builds its own `svcs` registry in
+  `@huey.on_startup()` with a `NullPool` session manager, and imports the task modules
+  (`src/account/task.py`, `src/integration/task.py`, `src/market/task.py`) at module
+  bottom so their decorators register. Task bodies are synchronous Huey functions that
+  bridge into async logic with `asyncio.run(...)` and re-bind the originating
+  `request_id` into the log contextvar; their triggers, retries and cascade live on the
+  realtime page.
+- **The WebSocket fan-out.** `src/ws/manager.py` holds a process-global
+  `ConnectionManager` with a per-`UserId` connection registry and one Redis client per
+  event loop; publishers write to the `ws_messages` Pub/Sub channel and the main-loop
+  listener delivers to local connections, so a Huey worker thread can push into the API
+  process, with a local-broadcast fallback if Redis is unavailable. `/api/ws` accepts
+  either a short-lived signed ticket (`POST /api/v1/auth/ws-ticket`, `salt="ws-ticket"`,
+  `max_age=30`) or the `auth_token` cookie / `sec-websocket-protocol` token, and closes
+  with code `1008` on failure or on a replayed ticket (`ws-ticket-used:<sha256>` Redis
+  key with `nx=True, ex=30`). The worker dashboard mirrors the pattern at
+  `/worker/api/updates`.
 
-The worker dashboard mirrors this pattern at `/worker/api/updates`, reusing the same
-ticket helper and the dashboard package's own `WebSocketManager`.
-
-## Background work
-
-The Huey consumer (`src/worker.py`) uses `RedisHuey` in every environment except `test`,
-where it uses `MemoryHuey` — task modules can therefore be imported without a broker in
-tests. Task modules are imported at the bottom of `src/worker.py` precisely so their
-decorators register: `src/account/task.py`, `src/integration/task.py`,
-`src/market/task.py`.
-
-- `src/integration/task.py` syncs broker positions and emits WebSocket sync-progress
-  events.
-- `src/market/task.py` owns `generate_note_title_task` and the periodic
-  `daily_price_update` (`crontab(hour="0", minute="0")`).
-- `src/account/task.py` exposes `recalculate_all_account_totals_task`, which recalculates
-  account totals and pushes `AccountTotalsUpdatedMessage` per user.
-
-Tasks bridge sync Huey and async business logic with `asyncio.run(...)`, re-bind the
-originating `request_id` into the contextvar so worker logs stay correlatable with the
-request that enqueued them, and tolerate missing services (`if huey.svcs_registry is
-None: return`). The dashboard mounted at `/worker/api` (Huey task list authenticated by
-`current_user`) is how task history is inspected.
+The Huey dashboard mounted at `/worker/api` is the operational window into task history:
+its task routes carry `Depends(current_user)`, and its WebSocket reuses the ticket
+helper.
 
 ## Error handling
 
@@ -373,14 +404,10 @@ shape:
 | `RateLimitExceeded` | slowapi handler | slowapi's `_rate_limit_exceeded_handler` |
 | `Exception` (catch-all) | `500` | `{"detail": "Internal Server Error", "error": ...}`, where `error` is the exception string outside `prod` and the literal `"Internal Error"` in `prod` |
 
-Both `cors_exception_middleware` and the catch-all handler apply the same
-`prod` redaction rule, and both log via `logger.exception`. `src/main.py` also wraps the
-lifespan body in `try/except` so a failure during yield is logged rather than silently
-killing shutdown.
-
-Focused tests for this behavior are `tests/test_main.py` (health, ping, handler logging
-and redaction) and `tests/test_request_id.py` (header generation, preservation, log
-context, 4xx warning).
+Both `cors_exception_middleware` and the catch-all handler apply the same `prod`
+redaction rule, and both log via `logger.exception`. Focused tests for this behavior are
+`tests/test_main.py` (health, ping, handler logging and redaction) and
+`tests/test_request_id.py` (header generation, preservation, log context, 4xx warning).
 
 ## Frontend
 
@@ -400,17 +427,53 @@ layer over `/api/v1`.
 Two base URLs matter: `VITE_INTERNAL_API_URL` (`http://backend:8000` in Compose) is used
 for server-side loads, while `VITE_API_BASE_URL` is the browser-visible backend. The SSR
 guard verifies JWTs with `JWT_SECRET`, which Compose derives from the backend's
-`SECRET_KEY` so the two can never drift.
+`SECRET_KEY` so the two can never drift, and rejects any token whose `scope` is not
+`access`.
 
 See [Frontend Architecture](./frontend.md) for route, state and charting detail, and
 [Authentication & Authorization](./authentication.md) for the token and 2FA flows.
+
+## Verifying a change
+
+The global constraints below apply to every change, not just backend ones:
+
+- **Docker-only commands.** Run development commands inside the containers —
+  `docker compose exec <backend|frontend> <command>`; the host is never the reference
+  environment, and CI runs the same checks.
+- **Use the agent harness.** `./scripts/agent-test` (shorthand `just test`) is the
+  primary test entrypoint: Gate 0 (lint + type checker, halting before tests), Gate 1
+  (a path argument, targeted and fail-fast) and Gate 2 (no argument, full regression
+  with an Index/Traces summary). Raw `docker compose exec … pytest`/`vitest` is the
+  fallback.
+- **Model edits require a migration.** Editing a backend model means generating the
+  Alembic revision named `<hash>_<description>.py` in the same change.
+- **Tests never depend on external services.** No test may dial Redis, HTTP APIs
+  (EODHD, broker APIs), SMTP or DNS; the ephemeral testcontainers PostgreSQL is the only
+  allowed infrastructure dependency, and frontend tests mock every API client. A test
+  that makes a real network call is broken by definition.
+
+CI (`.github/workflows/ci.yml`) mirrors this in three jobs: backend
+(`uv run ty check`, `uv run ruff check` + `uv run ruff format --check`, `uv run pytest`),
+frontend (`npm run check`, `npm run lint`, `npm run test:run` with the `VITE_*` and
+`JWT_SECRET` variables set but no backend running) and indicator-service
+(`go vet ./...`, `go build ./...`, `go test ./...`).
 
 ## Relationship to the other pages
 
 - [Configuration](./configuration.md) — the single root `.env`, `Settings`, registry
   seams, database/Redis managers, logging and rate limiting.
 - [Backend Domains](./domains.md) — per-domain models, APIs, services, routers.
-- [Frontend Architecture](./frontend.md) and [Charting](./charting.md).
+- [Frontend Architecture](./frontend.md) — shell, routes, clients and SSR rules.
+- [Charting](./charting.md) — chart surface, panes, indicators, price alerts.
+- [Chart Drawings, Plugins & Rewind](./chart-drawings-and-rewind.md) — drawing plugins,
+  drawing persistence and the snapshot/rewind pipeline.
+- [Realtime, Background Jobs & the Worker](../workflows/realtime-and-background-jobs.md)
+  — task semantics, the price-update cascade, Pub/Sub fan-out, sync-status keys.
+- [User Preferences](../concepts/user-preferences.md) — the per-user preferences column
+  and its read/write matrix.
 - [Authentication & Authorization](./authentication.md) — token, 2FA and passkey flows.
-- [Workflows](../operations/workflows.md) and [Testing](../operations/testing.md).
+- [External Services & Adapters](../integrations/external-services.md) — EODHD,
+  Wealthsimple, the AI endpoint, SMTP, Redis and the indicator sidecar.
+- [Development, CI & Change Workflows](../operations/workflows.md) and
+  [Testing & Verification](../operations/testing.md).
 - [Quickstart](../quickstart.md) — the short onboarding path through these pages.
