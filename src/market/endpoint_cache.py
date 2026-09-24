@@ -1,13 +1,12 @@
 """Endpoint-level response cache for the service-to-service data endpoints.
 
-This is a distinct layer above the gateway-level cache in
-:mod:`src.market.cache`: ``CachedMarketGateway`` caches raw provider reads
-inside the gateway, while :class:`EndpointResponseCache` caches the unified
-JSON responses the data endpoints (T08/T09) return. Both may be active.
+:class:`EndpointResponseCache` is the single canonical data-plane cache layer:
+it caches the unified JSON responses the data endpoints (T08/T09) return under
+``market:ep``. The gateway below it (the FMP/Polygon composite) is uncached, so
+each data-plane response is stored exactly once.
 
-Endpoints run on the event loop, so unlike the gateway wrapper this cache is
-async-native: it awaits ``redis_manager.client()`` directly instead of using the
-synchronous ``_CacheBridge`` (which would block the loop). Every Redis failure
+Endpoints run on the event loop, so this cache is async-native: it awaits
+``redis_manager.client()`` directly with no thread hopping. Every Redis failure
 degrades to a live fetch and never propagates.
 """
 
@@ -37,7 +36,7 @@ logger = logging.getLogger(__name__)
 T = TypeVar("T")
 
 # Readable, scan-friendly prefix so endpoint entries can be invalidated by
-# pattern (``market:ep:*``) without touching the gateway-level keys.
+# pattern (``market:ep:*``).
 _CACHE_KEY_PREFIX = "market:ep"
 
 # data class -> Settings field holding its TTL (seconds). Read at call time so

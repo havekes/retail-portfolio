@@ -13,7 +13,6 @@ import svcs
 
 from src.config.services import register_market_stub_services
 from src.market import register_market_services
-from src.market.cache import CachedMarketGateway
 from src.market.composite import (
     CompositeMarketGateway,
     composite_market_gateway_factory,
@@ -38,25 +37,21 @@ def test_data_plane_key_is_a_distinct_market_gateway_key():
 
 
 @pytest.mark.anyio
-async def test_live_registration_resolves_cache_wrapped_composite():
+async def test_live_registration_resolves_bare_composite():
     resolved = await _resolve(register_market_services, DataPlaneMarketGateway)
 
-    assert isinstance(resolved, CachedMarketGateway)
-    composite = resolved._inner
-    assert isinstance(composite, CompositeMarketGateway)
-    assert isinstance(composite._fmp, StubFmpGateway)
-    assert isinstance(composite._polygon, StubPolygonGateway)
+    assert isinstance(resolved, CompositeMarketGateway)
+    assert isinstance(resolved._fmp, StubFmpGateway)
+    assert isinstance(resolved._polygon, StubPolygonGateway)
 
 
 @pytest.mark.anyio
-async def test_stub_registration_resolves_cache_wrapped_composite():
+async def test_stub_registration_resolves_bare_composite():
     resolved = await _resolve(register_market_stub_services, DataPlaneMarketGateway)
 
-    assert isinstance(resolved, CachedMarketGateway)
-    composite = resolved._inner
-    assert isinstance(composite, CompositeMarketGateway)
-    assert isinstance(composite._fmp, StubFmpGateway)
-    assert isinstance(composite._polygon, StubPolygonGateway)
+    assert isinstance(resolved, CompositeMarketGateway)
+    assert isinstance(resolved._fmp, StubFmpGateway)
+    assert isinstance(resolved._polygon, StubPolygonGateway)
 
 
 @pytest.mark.anyio
@@ -86,20 +81,20 @@ class CountingFmpGateway(StubFmpGateway):
         return super().get_key_metrics(symbol, exchange=exchange)
 
 
-def test_data_plane_gateway_is_cache_wrapped(monkeypatch, mock_redis_storage: FakeRedis):
+def test_data_plane_gateway_writes_no_gateway_cache_keys(
+    monkeypatch, mock_redis_storage: FakeRedis
+):
     counting = CountingFmpGateway()
     monkeypatch.setattr("src.market.composite.fmp_gateway_factory", lambda: counting)
 
     gateway = composite_market_gateway_factory()
-    assert isinstance(gateway, CachedMarketGateway)
+    assert isinstance(gateway, CompositeMarketGateway)
 
     first = gateway.get_key_metrics("AAPL")
     second = gateway.get_key_metrics("AAPL")
 
     assert first == second
-    # The provider is hit exactly once; the second read is served from cache.
-    assert counting.calls["get_key_metrics"] == 1
-    assert any(
-        key.startswith("market:gw:get_key_metrics:")
-        for key in mock_redis_storage.data
-    )
+    # The gateway caches nothing itself: both reads reach the provider. Caching
+    # happens once, above the gateway, in ``EndpointResponseCache``.
+    assert counting.calls["get_key_metrics"] == 2
+    assert not any(key.startswith("market:gw:") for key in mock_redis_storage.data)
