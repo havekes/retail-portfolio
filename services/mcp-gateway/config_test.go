@@ -29,6 +29,105 @@ func TestLoadConfig(t *testing.T) {
 		if cfg.Port != "9090" {
 			t.Errorf("Port = %q", cfg.Port)
 		}
+		if cfg.Environment != "dev" {
+			t.Errorf("Environment = %q, want %q", cfg.Environment, "dev")
+		}
+		if cfg.LogLevel != "" {
+			t.Errorf("LogLevel = %q, want empty", cfg.LogLevel)
+		}
+	})
+
+	t.Run("environment default dev when unset or whitespace", func(t *testing.T) {
+		for _, envVal := range []string{"", "   "} {
+			cfg, err := loadConfig(envMap(map[string]string{
+				"BACKEND_BASE_URL":          "http://backend:8000",
+				"MARKET_DATA_SERVICE_TOKEN": "test-token",
+				"ENVIRONMENT":               envVal,
+			}))
+			if err != nil {
+				t.Fatalf("unexpected error for ENVIRONMENT=%q: %v", envVal, err)
+			}
+			if cfg.Environment != "dev" {
+				t.Errorf("Environment = %q, want %q", cfg.Environment, "dev")
+			}
+		}
+	})
+
+	t.Run("environment parsed for prod and dev", func(t *testing.T) {
+		cases := []struct {
+			input string
+			want  string
+		}{
+			{"prod", "prod"},
+			{"PROD", "prod"},
+			{"  prod  ", "prod"},
+			{"dev", "dev"},
+			{"DEV", "dev"},
+			{"  dev  ", "dev"},
+		}
+		for _, tc := range cases {
+			cfg, err := loadConfig(envMap(map[string]string{
+				"BACKEND_BASE_URL":          "http://backend:8000",
+				"MARKET_DATA_SERVICE_TOKEN": "test-token",
+				"ENVIRONMENT":               tc.input,
+			}))
+			if err != nil {
+				t.Fatalf("unexpected error for ENVIRONMENT=%q: %v", tc.input, err)
+			}
+			if cfg.Environment != tc.want {
+				t.Errorf("ENVIRONMENT %q: got %q, want %q", tc.input, cfg.Environment, tc.want)
+			}
+		}
+	})
+
+	t.Run("valid LOG_LEVEL values", func(t *testing.T) {
+		cases := []struct {
+			input string
+			want  string
+		}{
+			{"DEBUG", "DEBUG"},
+			{"debug", "DEBUG"},
+			{"  debug  ", "DEBUG"},
+			{"INFO", "INFO"},
+			{"info", "INFO"},
+			{"WARN", "WARN"},
+			{"warn", "WARN"},
+			{"WARNING", "WARNING"},
+			{"warning", "WARNING"},
+			{"ERROR", "ERROR"},
+			{"error", "ERROR"},
+		}
+		for _, tc := range cases {
+			cfg, err := loadConfig(envMap(map[string]string{
+				"BACKEND_BASE_URL":          "http://backend:8000",
+				"MARKET_DATA_SERVICE_TOKEN": "test-token",
+				"LOG_LEVEL":                 tc.input,
+			}))
+			if err != nil {
+				t.Fatalf("unexpected error for LOG_LEVEL=%q: %v", tc.input, err)
+			}
+			if cfg.LogLevel != tc.want {
+				t.Errorf("LOG_LEVEL %q: got %q, want %q", tc.input, cfg.LogLevel, tc.want)
+			}
+		}
+	})
+
+	t.Run("invalid LOG_LEVEL returns error", func(t *testing.T) {
+		const token = "secret-token-123"
+		cfg, err := loadConfig(envMap(map[string]string{
+			"BACKEND_BASE_URL":          "http://backend:8000",
+			"MARKET_DATA_SERVICE_TOKEN": token,
+			"LOG_LEVEL":                 "INVALID",
+		}))
+		if err == nil {
+			t.Fatalf("expected error for invalid LOG_LEVEL, got cfg: %+v", cfg)
+		}
+		if !strings.Contains(err.Error(), "LOG_LEVEL") {
+			t.Errorf("error %q does not mention LOG_LEVEL", err)
+		}
+		if strings.Contains(err.Error(), token) {
+			t.Errorf("error leaked the token: %q", err)
+		}
 	})
 
 	t.Run("port defaults to 8080", func(t *testing.T) {

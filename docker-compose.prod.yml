@@ -68,6 +68,7 @@ services:
     restart: always
     # Internal network only by design; no host port is published.
     environment:
+      ENVIRONMENT: "${ENVIRONMENT:-prod}"
       BACKEND_BASE_URL: "http://backend:8000"
       MARKET_DATA_SERVICE_TOKEN: "${MARKET_DATA_SERVICE_TOKEN:?MARKET_DATA_SERVICE_TOKEN must be set}"
     depends_on:
