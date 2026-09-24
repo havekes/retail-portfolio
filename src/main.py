@@ -28,6 +28,7 @@ from src.core.exception import AuthorizationError, EntityNotFoundError
 from src.core.middleware import RequestIdMiddleware
 from src.integration.router import institutions_router, integration_router
 from src.integration.sync_status import redis_manager
+from src.market.data_router import data_router
 from src.market.gateway import DataPlaneMarketGateway
 from src.market.router import market_router
 from src.worker_dashboard import (
@@ -177,6 +178,7 @@ v1.include_router(auth_router)
 v1.include_router(institutions_router)
 v1.include_router(integration_router)
 v1.include_router(market_router)
+v1.include_router(data_router)
 
 app.include_router(v1)
 app.include_router(ws_router)

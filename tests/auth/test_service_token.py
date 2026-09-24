@@ -61,6 +61,22 @@ def test_blank_service_token_unauthorized(client: TestClient) -> None:
     assert response.status_code == 401
 
 
+def test_non_ascii_service_token_unauthorized(client: TestClient) -> None:
+    """A non-ASCII header must yield 401, never a ``TypeError`` -> 500.
+
+    Starlette decodes header bytes as latin-1, so a non-ASCII token reaches the
+    dependency as a ``str``; comparing bytes avoids ``compare_digest``'s
+    ``TypeError`` on non-ASCII ``str`` operands.
+    """
+    # Raw bytes: httpx refuses a non-ASCII ``str`` header before it reaches the
+    # server, so send the latin-1 bytes Starlette will decode.
+    response = client.get(
+        "/protected", headers={b"X-Service-Token": b"tok\xe9n"}
+    )
+
+    assert response.status_code == 401
+
+
 def test_no_cookie_fallback(client: TestClient) -> None:
     """A user JWT cookie must not satisfy the service-token dependency."""
     response = client.get("/protected", cookies={"auth_token": "some-jwt-token"})

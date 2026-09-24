@@ -87,6 +87,33 @@ class PriceSchema(BaseModel):
         )
 
 
+class PriceBar(BaseModel):
+    """A single daily OHLC bar for the service-to-service data plane.
+
+    Deliberately narrower than :class:`PriceSchema`: it drops the
+    DB-flavoured ``id`` / ``security_id`` fields so the unified JSON exposes
+    only what a data consumer needs.
+    """
+
+    date: date
+    open: Decimal
+    high: Decimal
+    low: Decimal
+    close: Decimal
+    volume: int
+    adjusted_close: Decimal | None = None
+
+
+class PriceHistoryResponse(BaseModel):
+    """Unified daily price-history response for the data endpoints."""
+
+    symbol: str
+    exchange: str | None = None
+    from_date: date
+    to_date: date
+    items: list[PriceBar]
+
+
 class IntradayPriceSchema(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
