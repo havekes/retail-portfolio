@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
 	"net/http"
@@ -729,4 +730,269 @@ func structJSONFields(typ reflect.Type) []string {
 	}
 	sort.Strings(fields)
 	return fields
+}
+
+func newTestSessionWithEnv(t *testing.T, backendURL, env string) *mcp.ClientSession {
+	t.Helper()
+	client := mustClient(t, backendURL, "test-token", env)
+	srv := httptest.NewServer(newRouter(newMCPServer(client, env)))
+	t.Cleanup(srv.Close)
+
+	mcpClient := mcp.NewClient(&mcp.Implementation{Name: "test-client", Version: "0.0.1"}, nil)
+	session, err := mcpClient.Connect(context.Background(), &mcp.StreamableClientTransport{
+		Endpoint:             srv.URL + "/mcp",
+		DisableStandaloneSSE: true,
+	}, nil)
+	if err != nil {
+		t.Fatalf("connect to /mcp: %v", err)
+	}
+	t.Cleanup(func() { _ = session.Close() })
+	return session
+}
+
+func TestTools_DevExecutionLogging(t *testing.T) {
+	var buf bytes.Buffer
+	logger, err := newLogger(&buf, "dev", "DEBUG")
+	if err != nil {
+		t.Fatalf("newLogger error: %v", err)
+	}
+	prev := setSlogDefault(logger)
+	defer setSlogDefault(prev)
+
+	backend, _ := newStubBackend(t, http.StatusOK, `{"symbol":"AAPL","prices":[{"date":"2024-01-01","open":"10","high":"12","low":"9","close":"11","volume":100}]}`)
+	session := newTestSessionWithEnv(t, backend.URL, "dev")
+
+	res := callTool(t, session, "get_price_history", map[string]any{
+		"symbol": "AAPL",
+		"from":   "2024-01-01",
+		"to":     "2024-01-02",
+	})
+	if res.IsError {
+		t.Fatalf("callTool returned error: %+v", res)
+	}
+
+	out := buf.String()
+	if !strings.Contains(out, "DEBUG") {
+		t.Errorf("expected DEBUG logs in dev mode, got:\n%s", out)
+	}
+	if !strings.Contains(out, "tool=get_price_history") {
+		t.Errorf("expected tool name in logs, got:\n%s", out)
+	}
+	if !strings.Contains(out, "arguments=") || !strings.Contains(out, "AAPL") {
+		t.Errorf("expected arguments in logs, got:\n%s", out)
+	}
+	if !strings.Contains(out, "duration=") {
+		t.Errorf("expected duration in logs, got:\n%s", out)
+	}
+	if !strings.Contains(out, "response=") || !strings.Contains(out, "2024-01-01") {
+		t.Errorf("expected response payload content in logs, got:\n%s", out)
+	}
+}
+
+func TestTools_ErrorLogging(t *testing.T) {
+	t.Run("input validation error", func(t *testing.T) {
+		var buf bytes.Buffer
+		logger, err := newLogger(&buf, "prod", "INFO")
+		if err != nil {
+			t.Fatalf("newLogger error: %v", err)
+		}
+		prev := setSlogDefault(logger)
+		defer setSlogDefault(prev)
+
+		backend, _ := newStubBackend(t, http.StatusOK, `{}`)
+		session := newTestSessionWithEnv(t, backend.URL, "prod")
+
+		res := callTool(t, session, "get_price_history", map[string]any{
+			"symbol": "AAPL",
+			"from":   "2024-01-05",
+			"to":     "2024-01-01", // from > to
+		})
+		if !res.IsError {
+			t.Fatal("expected error for invalid dates")
+		}
+
+		out := buf.String()
+		if !strings.Contains(out, `"level":"ERROR"`) {
+			t.Errorf("expected ERROR level log, got:\n%s", out)
+		}
+		if !strings.Contains(out, `"tool":"get_price_history"`) {
+			t.Errorf("expected tool name in log, got:\n%s", out)
+		}
+		if !strings.Contains(out, `"arguments":`) {
+			t.Errorf("expected arguments in log, got:\n%s", out)
+		}
+		if !strings.Contains(out, `"error_class":"ErrValidation"`) {
+			t.Errorf("expected error_class ErrValidation, got:\n%s", out)
+		}
+		if !strings.Contains(out, `"status":400`) {
+			t.Errorf("expected status 400, got:\n%s", out)
+		}
+		if !strings.Contains(out, `"detail":`) {
+			t.Errorf("expected detail in log, got:\n%s", out)
+		}
+	})
+
+	t.Run("422 backend validation error", func(t *testing.T) {
+		var buf bytes.Buffer
+		logger, err := newLogger(&buf, "prod", "INFO")
+		if err != nil {
+			t.Fatalf("newLogger error: %v", err)
+		}
+		prev := setSlogDefault(logger)
+		defer setSlogDefault(prev)
+
+		backend, _ := newStubBackend(t, http.StatusUnprocessableEntity, `{"detail":"from must be before to"}`)
+		session := newTestSessionWithEnv(t, backend.URL, "prod")
+
+		res := callTool(t, session, "get_price_history", map[string]any{
+			"symbol": "AAPL",
+			"from":   "2024-01-01",
+			"to":     "2024-01-02",
+		})
+		if !res.IsError {
+			t.Fatal("expected error on 422")
+		}
+
+		out := buf.String()
+		if !strings.Contains(out, `"level":"ERROR"`) {
+			t.Errorf("expected ERROR level log, got:\n%s", out)
+		}
+		if !strings.Contains(out, `"tool":"get_price_history"`) {
+			t.Errorf("expected tool name in log, got:\n%s", out)
+		}
+		if !strings.Contains(out, `"error_class":"ErrValidation"`) {
+			t.Errorf("expected error_class ErrValidation, got:\n%s", out)
+		}
+		if !strings.Contains(out, `"status":422`) {
+			t.Errorf("expected status 422, got:\n%s", out)
+		}
+		if !strings.Contains(out, `"detail":`) {
+			t.Errorf("expected detail in log, got:\n%s", out)
+		}
+	})
+
+	t.Run("401 configuration error", func(t *testing.T) {
+		var buf bytes.Buffer
+		logger, err := newLogger(&buf, "prod", "INFO")
+		if err != nil {
+			t.Fatalf("newLogger error: %v", err)
+		}
+		prev := setSlogDefault(logger)
+		defer setSlogDefault(prev)
+
+		backend, _ := newStubBackend(t, http.StatusUnauthorized, `{"detail":"bad token"}`)
+		session := newTestSessionWithEnv(t, backend.URL, "prod")
+
+		res := callTool(t, session, "get_fundamentals", map[string]any{
+			"symbol": "AAPL",
+		})
+		if !res.IsError {
+			t.Fatal("expected error on 401")
+		}
+
+		out := buf.String()
+		if !strings.Contains(out, `"level":"ERROR"`) {
+			t.Errorf("expected ERROR level log, got:\n%s", out)
+		}
+		if !strings.Contains(out, `"tool":"get_fundamentals"`) {
+			t.Errorf("expected tool name in log, got:\n%s", out)
+		}
+		if !strings.Contains(out, `"error_class":"ErrConfiguration"`) {
+			t.Errorf("expected error_class ErrConfiguration, got:\n%s", out)
+		}
+		if !strings.Contains(out, `"status":401`) {
+			t.Errorf("expected status 401, got:\n%s", out)
+		}
+	})
+
+	t.Run("500 provider error", func(t *testing.T) {
+		var buf bytes.Buffer
+		logger, err := newLogger(&buf, "prod", "INFO")
+		if err != nil {
+			t.Fatalf("newLogger error: %v", err)
+		}
+		prev := setSlogDefault(logger)
+		defer setSlogDefault(prev)
+
+		backend, _ := newStubBackend(t, http.StatusInternalServerError, `{"detail":"provider down"}`)
+		session := newTestSessionWithEnv(t, backend.URL, "prod")
+
+		res := callTool(t, session, "get_fundamentals", map[string]any{
+			"symbol": "AAPL",
+		})
+		if !res.IsError {
+			t.Fatal("expected error on 500")
+		}
+
+		out := buf.String()
+		if !strings.Contains(out, `"level":"ERROR"`) {
+			t.Errorf("expected ERROR level log, got:\n%s", out)
+		}
+		if !strings.Contains(out, `"tool":"get_fundamentals"`) {
+			t.Errorf("expected tool name in log, got:\n%s", out)
+		}
+		if !strings.Contains(out, `"error_class":"ErrProvider"`) {
+			t.Errorf("expected error_class ErrProvider, got:\n%s", out)
+		}
+		if !strings.Contains(out, `"status":500`) {
+			t.Errorf("expected status 500, got:\n%s", out)
+		}
+	})
+
+	t.Run("ErrNoData 404 does not emit ERROR log and logs completion in dev", func(t *testing.T) {
+		var buf bytes.Buffer
+		logger, err := newLogger(&buf, "dev", "DEBUG")
+		if err != nil {
+			t.Fatalf("newLogger error: %v", err)
+		}
+		prev := setSlogDefault(logger)
+		defer setSlogDefault(prev)
+
+		backend, _ := newStubBackend(t, http.StatusNotFound, `{"detail":"not found"}`)
+		session := newTestSessionWithEnv(t, backend.URL, "dev")
+
+		res := callTool(t, session, "get_fundamentals", map[string]any{
+			"symbol": "AAPL",
+		})
+		if res.IsError {
+			t.Fatal("ErrNoData should not be an error in tool result")
+		}
+
+		out := buf.String()
+		// Verify no ERROR logs were emitted for tool execution failed
+		for _, line := range strings.Split(out, "\n") {
+			if strings.Contains(line, "tool execution failed") {
+				t.Fatalf("ErrNoData should not emit 'tool execution failed' log: %s", line)
+			}
+		}
+
+		// Verify dev completion log was emitted
+		if !strings.Contains(out, "tool execution completed") {
+			t.Errorf("expected 'tool execution completed' in dev log, got:\n%s", out)
+		}
+		if !strings.Contains(out, noDataMessage) {
+			t.Errorf("expected noDataMessage in dev log, got:\n%s", out)
+		}
+	})
+}
+
+func TestTools_ProviderNameCompliance(t *testing.T) {
+	var buf bytes.Buffer
+	logger, err := newLogger(&buf, "dev", "DEBUG")
+	if err != nil {
+		t.Fatalf("newLogger error: %v", err)
+	}
+	prev := setSlogDefault(logger)
+	defer setSlogDefault(prev)
+
+	backend, _ := newStubBackend(t, http.StatusOK, `{"symbol":"AAPL","prices":[]}`)
+	session := newTestSessionWithEnv(t, backend.URL, "dev")
+
+	callTool(t, session, "get_price_history", map[string]any{
+		"symbol": "AAPL",
+		"from":   "2024-01-01",
+		"to":     "2024-01-02",
+	})
+
+	assertNoProviderName(t, "tool execution log", buf.String())
 }

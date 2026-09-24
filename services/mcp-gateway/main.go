@@ -30,7 +30,7 @@ func main() {
 		os.Exit(1)
 	}
 
-	client, err := NewBackendClient(cfg.BackendBaseURL, cfg.ServiceToken)
+	client, err := NewBackendClient(cfg.BackendBaseURL, cfg.ServiceToken, cfg.Environment)
 	if err != nil {
 		slog.Error("mcp-gateway backend client error",
 			slog.String("service", "mcp-gateway"),
@@ -42,11 +42,12 @@ func main() {
 		os.Exit(1)
 	}
 
-	router := newRouter(newMCPServer(client))
+	router := newRouter(newMCPServer(client, cfg.Environment))
+	handler := loggingMiddleware(router, cfg.Environment)
 
 	server := &http.Server{
 		Addr:    ":" + cfg.Port,
-		Handler: router,
+		Handler: handler,
 		// ReadTimeout bounds how long a client may take to send a request.
 		ReadTimeout: 15 * time.Second,
 		// WriteTimeout is deliberately unlimited (0): the MCP streamable HTTP
