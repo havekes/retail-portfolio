@@ -16,6 +16,11 @@ os.environ["ENVIRONMENT"] = "test"
 os.environ["STUB_EXTERNAL_API"] = "true"
 # Baseline service token so prod-path settings tests pass the startup validator.
 os.environ["MARKET_DATA_SERVICE_TOKEN"] = "test-market-data-service-token"
+# Baseline data-plane provider keys so prod-path settings tests pass the
+# FMP/Polygon startup validator (stub mode is on, but Settings() in tests may
+# be built with ENVIRONMENT=prod).
+os.environ["FMP_API_KEY"] = "test-fmp-api-key"
+os.environ["POLYGON_API_KEY"] = "test-polygon-api-key"
 
 from src.core.enum import AccountTypeEnum
 from src.core.enum import InstitutionEnum

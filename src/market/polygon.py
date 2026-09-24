@@ -53,6 +53,12 @@ DEFAULT_TIMEOUT_SECONDS = 10
 _OPTIONS_SNAPSHOT_PATH = "/v3/snapshot/options"
 _PAGE_LIMIT = 250
 
+# Defensive upper bound on followed ``next_url`` pages. Polygon's cursor is
+# opaque: a sticky or looping ``next_url`` would otherwise keep the caller in
+# the pagination loop forever. Ten pages of 250 contracts is far beyond any
+# realistic chain this gateway serves.
+_MAX_PAGES = 10
+
 _HTTP_OK = 200
 _HTTP_NOT_FOUND = 404
 _HTTP_UNAUTHORIZED = frozenset({401, 403})
@@ -120,6 +126,14 @@ def _to_int(value: object) -> int | None:
         raise MarketDataProviderError(_PROVIDER_ERROR_MESSAGE) from exc
 
 
+def _to_str(value: object) -> str | None:
+    """Coerce a Polygon scalar to a non-blank ``str`` or ``None``."""
+    if value is None:
+        return None
+    text = str(value).strip()
+    return text or None
+
+
 def _to_date(value: object) -> date:
     """Coerce a Polygon ``YYYY-MM-DD`` scalar to ``date``.
 
@@ -180,10 +194,17 @@ class PolygonGateway(MarketGateway):
         payload = self._request_json(url, underlying)
         entries.extend(self._parse_entries(payload, underlying))
 
+        pages_fetched = 1
         next_url = payload.get("next_url") if isinstance(payload, dict) else None
         while isinstance(next_url, str) and next_url:
+            if pages_fetched >= _MAX_PAGES:
+                logger.error(
+                    "Options chain pagination exceeded the %d page cap", _MAX_PAGES
+                )
+                raise MarketDataProviderError(_PROVIDER_ERROR_MESSAGE)
             page = self._request_json(self._with_api_key(next_url), underlying)
             entries.extend(self._parse_entries(page, underlying))
+            pages_fetched += 1
             next_url = page.get("next_url") if isinstance(page, dict) else None
 
         entries = self._apply_strike_range(entries, strike_min, strike_max)
@@ -265,12 +286,17 @@ class PolygonGateway(MarketGateway):
             raise TypeError(msg)
 
         ticker = str(details["ticker"])
+        shares_per_contract = _to_int(details.get("shares_per_contract"))
         contract = OptionsContract(
             contract_ticker=ticker,
             symbol=_split_occ_ticker(ticker) or fallback_symbol,
             strike_price=_to_required_decimal(details["strike_price"]),
             expiration_date=_to_date(details["expiration_date"]),
             contract_type=details["contract_type"],
+            shares_per_contract=(
+                shares_per_contract if shares_per_contract is not None else 100
+            ),
+            primary_exchange=_to_str(details.get("primary_exchange")),
         )
 
         greeks: OptionsGreeks | None = None
@@ -367,5 +393,14 @@ class PolygonGateway(MarketGateway):
 
 
 def polygon_gateway_factory() -> MarketGateway:
-    """Build the Polygon-backed gateway from settings."""
+    """Build the Polygon-backed gateway from settings.
+
+    Mirrors ``fmp_gateway_factory``/``eodhd_gateway_factory``: when
+    ``STUB_EXTERNAL_API=true`` the offline stub is returned instead, so the
+    composed data-plane gateway is fully deterministic in stub mode.
+    """
+    if settings.stub_external_api:
+        from src.stubs.polygon import StubPolygonGateway  # noqa: PLC0415
+
+        return StubPolygonGateway(api_key=settings.polygon_api_key)
     return PolygonGateway(api_key=settings.polygon_api_key)

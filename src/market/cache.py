@@ -605,9 +605,10 @@ def _run_cache_op[T](coro: Coroutine[Any, Any, T]) -> T:
 
     NOTE: being a synchronous bridge, a caller that is itself on an async event
     loop (e.g. ``src/market/api.py``) blocks that loop for one Redis round-trip
-    per cache operation while waiting here. That is deliberate until the async
-    caching layer / gateway wiring lands in T06; the bounded wait in
-    :meth:`_CacheBridge.run` keeps the block finite.
+    per cache operation while waiting here. That is accepted for now (T06 wired
+    the gateway but did not make endpoints async-first); the bounded wait in
+    :meth:`_CacheBridge.run` keeps the block finite, and the Redis clients are
+    configured with bounded socket timeouts (see ``src/core/redis.py``).
     """
     return _cache_bridge.run(coro)
 

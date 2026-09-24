@@ -148,3 +148,19 @@ class MarketGateway(ABC):
         """
         _ = symbol, expiration, contract_type, strike_min, strike_max
         raise MarketDataProviderError(_CAPABILITY_NOT_SUPPORTED)
+
+
+class DataPlaneMarketGateway(MarketGateway):
+    """svcs registration key for the provider-agnostic data-plane gateway.
+
+    This class carries no behaviour of its own; it exists solely as a distinct
+    registration key so the new FMP/Polygon data plane can coexist with the
+    legacy ``MarketGateway`` binding.
+
+    The legacy ``MarketGateway`` binding stays on EODHD (``eodhd_gateway_factory``)
+    so existing price-fetch flows (``repository_eodhd``, ``MarketService``) are
+    untouched. The data-plane key is what T08/T09 endpoints resolve; it is bound
+    to the composed, cache-wrapped FMP/Polygon gateway
+    (``composite_market_gateway_factory``). Callers receive a
+    ``MarketGateway``-typed instance.
+    """

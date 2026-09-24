@@ -118,5 +118,35 @@ class Settings(BaseSettings):
             raise ValueError(msg)
         return self
 
+    @model_validator(mode="after")
+    def validate_market_provider_keys(self) -> Self:
+        """Require the data-plane provider keys outside dev/test.
+
+        The provider-agnostic data-plane gateway routes prices/fundamentals to
+        FMP and options to Polygon, so both keys are required whenever real
+        providers are used. Dev/test and stub mode (``STUB_EXTERNAL_API=true``)
+        are exempt: the stub gateways are offline and need no credentials.
+        """
+        if self.environment.lower() in ("dev", "test") or self.stub_external_api:
+            return self
+
+        missing = [
+            name
+            for name, value in (
+                ("FMP_API_KEY", self.fmp_api_key),
+                ("POLYGON_API_KEY", self.polygon_api_key),
+            )
+            if not value or not value.strip()
+        ]
+        if missing:
+            msg = " ".join(
+                f"{name} must be set when running outside dev/test environments "
+                "with stub mode disabled (or set STUB_EXTERNAL_API=true to use "
+                "the offline stub gateway)."
+                for name in missing
+            )
+            raise ValueError(msg)
+        return self
+
 
 settings = Settings()

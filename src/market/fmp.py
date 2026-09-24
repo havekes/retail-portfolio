@@ -413,22 +413,34 @@ class FmpGateway(MarketGateway):
         ]
 
     def lookup_symbol(self, query: str) -> list[SymbolLookupResult]:
-        """Look up symbols/companies matching a free-text query."""
+        """Look up symbols/companies matching a free-text query.
+
+        Rows without a usable ``symbol`` are skipped rather than raising: FMP
+        occasionally omits fields, and a structural surprise in one row must
+        not fail the whole lookup (mirrors the tolerating-missing-fields
+        convention used by ``search``).
+        """
         payload = self._get_json("api/v3/symbol-search", {"query": query})
         results = payload if isinstance(payload, list) else []
-        return [
-            SymbolLookupResult(
-                symbol=result["symbol"],
-                name=result.get("name") or "",
-                exchange=result.get("exchange"),
-                exchange_short_name=result.get("exchangeShortName"),
-                currency=result.get("currency"),
-                security_type=result.get("type"),
-                country=result.get("country"),
+        lookups: list[SymbolLookupResult] = []
+        for result in results:
+            if not isinstance(result, dict):
+                continue
+            symbol = _to_str(result.get("symbol"))
+            if symbol is None:
+                continue
+            lookups.append(
+                SymbolLookupResult(
+                    symbol=symbol,
+                    name=result.get("name") or "",
+                    exchange=result.get("exchange"),
+                    exchange_short_name=result.get("exchangeShortName"),
+                    currency=result.get("currency"),
+                    security_type=result.get("type"),
+                    country=result.get("country"),
+                )
             )
-            for result in results
-            if isinstance(result, dict)
-        ]
+        return lookups
 
     # ------------------------------------------------------------------ #
     # Fundamentals capabilities.
