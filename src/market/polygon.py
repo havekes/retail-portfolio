@@ -198,10 +198,13 @@ class PolygonGateway(MarketGateway):
         next_url = payload.get("next_url") if isinstance(payload, dict) else None
         while isinstance(next_url, str) and next_url:
             if pages_fetched >= _MAX_PAGES:
-                logger.error(
-                    "Options chain pagination exceeded the %d page cap", _MAX_PAGES
+                # A sticky/looping cursor must not discard the pages already
+                # fetched (or hang): stop paging and serve the truncated chain.
+                logger.warning(
+                    "Options chain pagination truncated at the %d page cap",
+                    _MAX_PAGES,
                 )
-                raise MarketDataProviderError(_PROVIDER_ERROR_MESSAGE)
+                break
             page = self._request_json(self._with_api_key(next_url), underlying)
             entries.extend(self._parse_entries(page, underlying))
             pages_fetched += 1

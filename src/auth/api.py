@@ -307,8 +307,12 @@ async def require_service_token(
     Deliberately independent of user JWT auth: reads only the ``X-Service-Token``
     header and the configured secret, with no cookie fallback.
     """
+    # Compare as bytes: ``compare_digest`` rejects a non-ASCII ``str`` operand
+    # with ``TypeError`` (→ 500), which Starlette's latin-1 header decoding can
+    # produce. Byte operands keep the constant-time comparison for any header.
     if not x_service_token or not secrets.compare_digest(
-        x_service_token, settings.market_data_service_token
+        x_service_token.encode(),
+        settings.market_data_service_token.encode(),
     ):
         raise HTTPException(401, "Service token invalid")
 
