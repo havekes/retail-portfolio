@@ -7,6 +7,7 @@ network (no DNS, no HTTP, no Redis).
 
 from datetime import date
 from decimal import Decimal
+from typing import cast
 from unittest.mock import patch
 
 import pytest
@@ -19,10 +20,12 @@ from src.market.exception import (
     MarketDataProviderError,
 )
 from src.market.polygon import (
+    _MAX_PAGES,
     PolygonGateway,
     _split_occ_ticker,
     polygon_gateway_factory,
 )
+from src.stubs.polygon import StubPolygonGateway
 
 
 class FakeResponse:
@@ -165,6 +168,8 @@ def test_get_options_chain_parses_mocked_payload(mock_get):
     assert call.contract.strike_price == Decimal("150")
     assert call.contract.expiration_date == date(2025, 1, 17)
     assert call.contract.contract_type == "call"
+    assert call.contract.shares_per_contract == 100
+    assert call.contract.primary_exchange == "BATO"
     assert call.quote.implied_volatility == Decimal("0.2417")
     assert call.quote.open_interest == 8421
     assert call.quote.day_volume == 1875
@@ -206,6 +211,24 @@ def test_missing_optional_snapshot_fields_are_tolerated(mock_get):
     assert entry.quote.open_interest is None
     assert entry.quote.day_volume is None
     assert entry.quote.greeks is None
+    # Missing contract metadata falls back to the T01 defaults.
+    assert entry.contract.shares_per_contract == 100
+    assert entry.contract.primary_exchange is None
+
+
+@patch("src.market.polygon.requests.get")
+def test_contract_details_pass_through_shares_and_exchange(mock_get):
+    result = _result("O:AAPL250117C00150000", 150.0, "2025-01-17", "call")
+    details = cast("dict[str, object]", result["details"])
+    details["shares_per_contract"] = 10
+    details["primary_exchange"] = "CBOE"
+    mock_get.return_value = FakeResponse(payload=_snapshot([result]))
+
+    chain = PolygonGateway(api_key="k").get_options_chain("AAPL")
+
+    contract = chain.contracts[0].contract
+    assert contract.shares_per_contract == 10
+    assert contract.primary_exchange == "CBOE"
 
 
 # --------------------------------------------------------------------------- #
@@ -406,6 +429,21 @@ def test_next_url_with_existing_api_key_is_not_duplicated(mock_get):
     assert second_url.count("apiKey=") == 1
 
 
+@patch("src.market.polygon.requests.get")
+def test_sticky_next_url_is_capped_and_raises(mock_get):
+    sticky = "https://api.polygon.io/v3/snapshot/options/AAPL?cursor=sticky"
+    mock_get.side_effect = lambda *args, **kwargs: FakeResponse(
+        payload=_snapshot([CALL], next_url=sticky)
+    )
+
+    with pytest.raises(MarketDataProviderError) as exc_info:
+        PolygonGateway(api_key="k").get_options_chain("AAPL")
+
+    # The loop bails once the page cap is reached instead of hanging forever.
+    assert mock_get.call_count == _MAX_PAGES
+    assert "polygon" not in str(exc_info.value).lower()
+
+
 # --------------------------------------------------------------------------- #
 # Factory.
 # --------------------------------------------------------------------------- #
@@ -414,9 +452,35 @@ def test_next_url_with_existing_api_key_is_not_duplicated(mock_get):
 def test_polygon_gateway_factory_uses_settings_key(monkeypatch):
     from src.market import polygon as polygon_module
 
+    monkeypatch.setattr(polygon_module.settings, "stub_external_api", False)
     monkeypatch.setattr(polygon_module.settings, "polygon_api_key", "factory-key")
 
     gateway = polygon_gateway_factory()
 
     assert isinstance(gateway, PolygonGateway)
     assert gateway._api_key == "factory-key"
+
+
+def test_polygon_gateway_factory_returns_stub_in_stub_mode(monkeypatch):
+    from src.market import polygon as polygon_module
+
+    monkeypatch.setattr(polygon_module.settings, "stub_external_api", True)
+
+    gateway = polygon_gateway_factory()
+
+    assert isinstance(gateway, StubPolygonGateway)
+
+
+def test_stub_polygon_gateway_serves_deterministic_options():
+    gateway = StubPolygonGateway(api_key="stub")
+
+    chain = gateway.get_options_chain("AAPL")
+    assert chain.underlying_symbol == "AAPL"
+    assert chain.as_of == date(2024, 12, 2)
+    assert len(chain.contracts) == 4
+
+    filtered = gateway.get_options_chain("AAPL", contract_type="put")
+    assert {entry.contract.contract_type for entry in filtered.contracts} == {"put"}
+
+    with pytest.raises(MarketDataNotFoundError):
+        gateway.get_options_chain("ZZZZ")

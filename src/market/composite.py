@@ -1,0 +1,180 @@
+"""Provider-agnostic composite market data gateway.
+
+``CompositeMarketGateway`` implements the T01 ``MarketGateway`` contract for the
+new data plane by routing each capability to the provider that owns it:
+
+* prices, search, symbol lookup and every fundamentals capability -> FMP;
+* options chains -> Polygon.
+
+The composite is wrapped once in T05's :class:`CachedMarketGateway` by
+:func:`composite_market_gateway_factory`, which is what the provider-agnostic
+``DataPlaneMarketGateway`` svcs key resolves to. The legacy ``MarketGateway``
+binding stays on EODHD, so existing price-fetch flows are untouched.
+"""
+
+from datetime import date, datetime
+from decimal import Decimal
+from typing import Literal
+
+from src.market.api_types import (
+    BalanceSheet,
+    CashFlowStatement,
+    CompanyProfile,
+    FinancialRatios,
+    HistoricalPrice,
+    IncomeStatement,
+    IntradayHistoricalPrice,
+    KeyMetrics,
+    OptionsChain,
+    SecurityId,
+    SecuritySearchResult,
+    SymbolLookupResult,
+)
+from src.market.cache import CachedMarketGateway
+from src.market.fmp import fmp_gateway_factory
+from src.market.gateway import MarketGateway
+from src.market.polygon import polygon_gateway_factory
+
+
+class CompositeMarketGateway(MarketGateway):
+    """Routes each ``MarketGateway`` capability to its owning provider.
+
+    Prices, search, symbol lookup and fundamentals are delegated to ``fmp``;
+    options chains are delegated to ``polygon``. The composite adds no caching
+    of its own: :func:`composite_market_gateway_factory` wraps it in
+    ``CachedMarketGateway`` exactly once.
+    """
+
+    def __init__(self, fmp: MarketGateway, polygon: MarketGateway) -> None:
+        self._fmp = fmp
+        self._polygon = polygon
+
+    def search(self, query: str) -> list[SecuritySearchResult]:
+        """Search for securities by query string (FMP)."""
+        return self._fmp.search(query)
+
+    def get_price_on_date(
+        self,
+        security_id: SecurityId,
+        symbol: str,
+        exchange: str,
+        date: date,
+    ) -> HistoricalPrice | None:
+        """Get price for a security on a specific date (FMP)."""
+        return self._fmp.get_price_on_date(security_id, symbol, exchange, date)
+
+    def get_prices(
+        self,
+        security_id: SecurityId,
+        symbol: str,
+        exchange: str,
+        from_date: date,
+        to_date: date,
+    ) -> list[HistoricalPrice]:
+        """Get historical prices for a security within a date range (FMP)."""
+        return self._fmp.get_prices(security_id, symbol, exchange, from_date, to_date)
+
+    def get_intraday_prices(  # noqa: PLR0913, PLR0917
+        self,
+        security_id: SecurityId,
+        symbol: str,
+        exchange: str,
+        from_datetime: datetime,
+        to_datetime: datetime,
+        interval: str = "1h",
+    ) -> list[IntradayHistoricalPrice]:
+        """Get intraday prices for a security within a datetime range (FMP).
+
+        FMP itself keeps this capability unsupported (T02), so the provider's
+        provider-agnostic "capability not supported" error surfaces unchanged.
+        """
+        return self._fmp.get_intraday_prices(
+            security_id,
+            symbol,
+            exchange,
+            from_datetime,
+            to_datetime,
+            interval=interval,
+        )
+
+    def lookup_symbol(self, query: str) -> list[SymbolLookupResult]:
+        """Look up symbols/companies matching a free-text query (FMP)."""
+        return self._fmp.lookup_symbol(query)
+
+    def get_company_profile(self, symbol: str) -> CompanyProfile:
+        """Get the company profile for a symbol (FMP)."""
+        return self._fmp.get_company_profile(symbol)
+
+    def get_income_statement(
+        self,
+        symbol: str,
+        period: str = "annual",
+        limit: int = 5,
+    ) -> list[IncomeStatement]:
+        """Get income statements for a symbol (FMP)."""
+        return self._fmp.get_income_statement(symbol, period, limit)
+
+    def get_balance_sheet(
+        self,
+        symbol: str,
+        period: str = "annual",
+        limit: int = 5,
+    ) -> list[BalanceSheet]:
+        """Get balance sheets for a symbol (FMP)."""
+        return self._fmp.get_balance_sheet(symbol, period, limit)
+
+    def get_cash_flow_statement(
+        self,
+        symbol: str,
+        period: str = "annual",
+        limit: int = 5,
+    ) -> list[CashFlowStatement]:
+        """Get cash-flow statements for a symbol (FMP)."""
+        return self._fmp.get_cash_flow_statement(symbol, period, limit)
+
+    def get_key_metrics(self, symbol: str) -> KeyMetrics:
+        """Get the key metrics / valuation snapshot for a symbol (FMP)."""
+        return self._fmp.get_key_metrics(symbol)
+
+    def get_financial_ratios(
+        self,
+        symbol: str,
+        period: str = "annual",
+    ) -> FinancialRatios:
+        """Get financial ratios for a symbol (FMP)."""
+        return self._fmp.get_financial_ratios(symbol, period)
+
+    def get_options_chain(
+        self,
+        symbol: str,
+        *,
+        expiration: date | None = None,
+        contract_type: Literal["call", "put"] | None = None,
+        strike_min: Decimal | None = None,
+        strike_max: Decimal | None = None,
+    ) -> OptionsChain:
+        """Get the options chain for an underlying symbol (Polygon)."""
+        return self._polygon.get_options_chain(
+            symbol,
+            expiration=expiration,
+            contract_type=contract_type,
+            strike_min=strike_min,
+            strike_max=strike_max,
+        )
+
+
+def composite_market_gateway_factory() -> MarketGateway:
+    """Build the cache-wrapped provider-agnostic data-plane gateway.
+
+    Constructs the FMP and Polygon gateways directly (mirroring
+    ``repository_eodhd.py::eodhd_price_repository_factory`` calling
+    ``eodhd_gateway_factory()``) and wraps the composite once in the T05 cache.
+    Both provider factories are stub-aware, so ``STUB_EXTERNAL_API=true``
+    yields a fully offline composite.
+    """
+    return CachedMarketGateway(
+        CompositeMarketGateway(
+            fmp=fmp_gateway_factory(),
+            polygon=polygon_gateway_factory(),
+        )
+    )
