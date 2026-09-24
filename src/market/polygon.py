@@ -6,10 +6,13 @@ the provider-agnostic options types (``OptionsContract``, ``OptionsQuote``,
 ``OptionsGreeks``, ``OptionsChainEntry`` and ``OptionsChain``).
 
 The gateway mirrors the plain ``requests`` HTTP conventions of
-``src/market/eodhd.py``: a single ``requests.get(..., timeout=10)`` per page
-(``next_url`` pagination is followed to the end). All outbound HTTP goes
-through ``requests.get`` so tests can patch it
-(``@patch("src.market.polygon.requests.get")``) and make zero network calls.
+``src/market/eodhd.py`` but keeps one persistent :class:`requests.Session`
+alive for the gateway's lifetime, so every page of a paginated options fetch
+(``next_url`` is followed to the end) reuses the same pooled TCP/TLS
+connection instead of paying a fresh handshake per page. All outbound HTTP
+goes through that session's ``get``, so tests can patch the class
+(``@patch("src.market.polygon.requests.Session")``) and make zero network
+calls.
 
 Error translation is provider-agnostic: an unknown underlying or empty chain
 becomes ``MarketDataNotFoundError``, credential failures (HTTP 401/403) become
@@ -152,6 +155,7 @@ class PolygonGateway(MarketGateway):
 
     _api_key: str
     _base_url: str
+    _session: requests.Session
 
     def __init__(
         self,
@@ -160,6 +164,13 @@ class PolygonGateway(MarketGateway):
     ) -> None:
         self._api_key = api_key
         self._base_url = base_url.rstrip("/")
+        # One session for the gateway's lifetime: pooled connections are
+        # reused across the pages of a single options-chain fetch.
+        self._session = requests.Session()
+
+    def close(self) -> None:
+        """Close the session, releasing any pooled connections."""
+        self._session.close()
 
     def get_options_chain(
         self,
@@ -234,7 +245,7 @@ class PolygonGateway(MarketGateway):
         Raw URLs and response bodies never reach callers; they are logged only.
         """
         try:
-            response = requests.get(url, timeout=DEFAULT_TIMEOUT_SECONDS)
+            response = self._session.get(url, timeout=DEFAULT_TIMEOUT_SECONDS)
         except requests.RequestException as exc:
             logger.exception("Options chain request failed")
             raise MarketDataProviderError(_PROVIDER_ERROR_MESSAGE) from exc

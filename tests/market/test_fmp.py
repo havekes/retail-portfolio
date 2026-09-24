@@ -66,8 +66,27 @@ def _gateway(
         if isinstance(handler, httpx.MockTransport)
         else httpx.MockTransport(handler)
     )
-    http_client = httpx.Client(transport=transport)
-    return FmpGateway(api_key="test-key", base_url=base_url, client=http_client)
+    return FmpGateway(api_key="test-key", base_url=base_url, client=_client(transport))
+
+
+# Every ``httpx.Client`` a test constructs is registered here and closed on
+# teardown, so no test leaves a client (or its pooled connections) dangling.
+_OPEN_CLIENTS: list[httpx.Client] = []
+
+
+@pytest.fixture(autouse=True)
+def _close_http_clients():
+    """Close all ``httpx.Client`` instances a test built (AC3: no leaks)."""
+    yield
+    while _OPEN_CLIENTS:
+        _OPEN_CLIENTS.pop().close()
+
+
+def _client(transport: httpx.MockTransport) -> httpx.Client:
+    """Build a mock-transport client and track it for teardown."""
+    client = httpx.Client(transport=transport)
+    _OPEN_CLIENTS.append(client)
+    return client
 
 
 # --------------------------------------------------------------------------- #
@@ -324,7 +343,7 @@ def test_fmp_http_client_appends_api_key_and_raises_on_non_2xx():
     client = FmpHttpClient(
         api_key="abc",
         base_url="https://fmp.test",
-        client=httpx.Client(transport=httpx.MockTransport(handler)),
+        client=_client(httpx.MockTransport(handler)),
     )
     assert client.get_json("api/v3/profile/AAPL") == {"ok": True}
     assert seen["apikey"] == "abc"
@@ -337,7 +356,7 @@ def test_fmp_gateway_accepts_injected_http_client():
     client = FmpHttpClient(
         api_key="abc",
         base_url="https://fmp.test",
-        client=httpx.Client(transport=transport),
+        client=_client(transport),
     )
     gateway = FmpGateway(api_key="abc", client=client)
     prices = gateway.get_prices(
@@ -348,6 +367,52 @@ def test_fmp_gateway_accepts_injected_http_client():
         to_date=date(2024, 1, 5),
     )
     assert len(prices) == 2
+
+
+# --------------------------------------------------------------------------- #
+# Lifecycle: closing owned clients, leaving injected clients alone.
+# --------------------------------------------------------------------------- #
+
+
+def test_fmp_gateway_close_closes_its_owned_http_client():
+    gateway = FmpGateway(api_key="abc", base_url="https://fmp.test")
+    inner = gateway._client
+
+    gateway.close()
+
+    assert inner._client.is_closed
+
+
+def test_fmp_gateway_close_leaves_injected_client_open():
+    injected = _client(
+        httpx.MockTransport(lambda _request: httpx.Response(200, json={}))
+    )
+
+    gateway = FmpGateway(api_key="abc", client=injected)
+    gateway.close()
+
+    # The injected client is the caller's responsibility (httpx ownership).
+    assert not injected.is_closed
+
+
+def test_fmp_http_client_close_leaves_injected_client_open():
+    injected = _client(
+        httpx.MockTransport(lambda _request: httpx.Response(200, json={}))
+    )
+
+    FmpHttpClient(api_key="abc", client=injected).close()
+
+    assert not injected.is_closed
+
+
+def test_fmp_http_client_close_closes_its_own_client():
+    client = FmpHttpClient(api_key="abc", base_url="https://fmp.test")
+    try:
+        client.close()
+        assert client._client.is_closed
+    finally:
+        # ``close`` is idempotent; guard test teardown just in case.
+        client.close()
 
 
 # --------------------------------------------------------------------------- #
