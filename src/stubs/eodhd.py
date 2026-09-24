@@ -909,8 +909,14 @@ class StubEodhdGateway(MarketGateway):
         ]
         return [SymbolLookupResult(**payload) for payload in matches]
 
-    def get_company_profile(self, symbol: str) -> CompanyProfile:
+    def get_company_profile(
+        self,
+        symbol: str,
+        *,
+        exchange: str | None = None,
+    ) -> CompanyProfile:
         """Get the company profile for a symbol."""
+        _ = exchange  # Fixtures are symbol-keyed; exchange is customer-agnostic.
         normalized = self._resolve_symbol(symbol)
         return CompanyProfile(**_COMPANY_PROFILES[normalized])
 
@@ -919,9 +925,11 @@ class StubEodhdGateway(MarketGateway):
         symbol: str,
         period: str = "annual",
         limit: int = 5,
+        *,
+        exchange: str | None = None,
     ) -> list[IncomeStatement]:
         """Get income statements for a symbol."""
-        _ = period
+        _ = period, exchange
         normalized = self._resolve_symbol(symbol)
         return [
             IncomeStatement(**payload)
@@ -933,9 +941,11 @@ class StubEodhdGateway(MarketGateway):
         symbol: str,
         period: str = "annual",
         limit: int = 5,
+        *,
+        exchange: str | None = None,
     ) -> list[BalanceSheet]:
         """Get balance sheets for a symbol."""
-        _ = period
+        _ = period, exchange
         normalized = self._resolve_symbol(symbol)
         return [
             BalanceSheet(**payload) for payload in _BALANCE_SHEETS[normalized][:limit]
@@ -946,17 +956,25 @@ class StubEodhdGateway(MarketGateway):
         symbol: str,
         period: str = "annual",
         limit: int = 5,
+        *,
+        exchange: str | None = None,
     ) -> list[CashFlowStatement]:
         """Get cash-flow statements for a symbol."""
-        _ = period
+        _ = period, exchange
         normalized = self._resolve_symbol(symbol)
         return [
             CashFlowStatement(**payload)
             for payload in _CASH_FLOW_STATEMENTS[normalized][:limit]
         ]
 
-    def get_key_metrics(self, symbol: str) -> KeyMetrics:
+    def get_key_metrics(
+        self,
+        symbol: str,
+        *,
+        exchange: str | None = None,
+    ) -> KeyMetrics:
         """Get the key metrics / valuation snapshot for a symbol."""
+        _ = exchange  # Fixtures are symbol-keyed; exchange is customer-agnostic.
         normalized = self._resolve_symbol(symbol)
         return KeyMetrics(**_KEY_METRICS[normalized])
 
@@ -964,9 +982,11 @@ class StubEodhdGateway(MarketGateway):
         self,
         symbol: str,
         period: str = "annual",
+        *,
+        exchange: str | None = None,
     ) -> FinancialRatios:
         """Get financial ratios for a symbol."""
-        _ = period
+        _ = period, exchange
         normalized = self._resolve_symbol(symbol)
         return FinancialRatios(**_FINANCIAL_RATIOS[normalized])
 

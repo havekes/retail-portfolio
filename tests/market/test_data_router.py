@@ -18,11 +18,18 @@ from uuid import UUID
 import pytest
 from asgi_lifespan import LifespanManager
 from httpx import ASGITransport, AsyncClient
+from pydantic import BaseModel
 
 from src.config.settings import settings
 from src.main import app
 from src.market.api_types import (
+    BalanceSheet,
+    CashFlowStatement,
+    CompanyProfile,
+    FinancialRatios,
     HistoricalPrice,
+    IncomeStatement,
+    KeyMetrics,
     OptionsChain,
     OptionsChainEntry,
     OptionsContract,
@@ -45,6 +52,8 @@ _PRICES_URL = "/api/v1/market/data/prices/AAPL"
 _PRICES_QUERY = "?from=2026-01-01&to=2026-01-31"
 _SEARCH_URL = "/api/v1/market/data/symbols/search"
 _OPTIONS_URL = "/api/v1/market/data/options/AAPL"
+_FUNDAMENTALS_URL = "/api/v1/market/data/fundamentals/AAPL"
+_STATEMENTS_URL = "/api/v1/market/data/fundamentals/AAPL/statements"
 
 _PROVIDER_NAMES = ("polygon", "fmp", "eodhd", "finnhub")
 
@@ -59,6 +68,12 @@ def mock_gateway() -> MagicMock:
     gateway.get_prices.return_value = []
     gateway.lookup_symbol.return_value = []
     gateway.get_options_chain.return_value = OptionsChain(underlying_symbol="AAPL")
+    gateway.get_company_profile.return_value = _company_profile()
+    gateway.get_key_metrics.return_value = _key_metrics()
+    gateway.get_financial_ratios.return_value = _financial_ratios()
+    gateway.get_income_statement.return_value = [_income_statement()]
+    gateway.get_balance_sheet.return_value = [_balance_sheet()]
+    gateway.get_cash_flow_statement.return_value = [_cash_flow_statement()]
     return gateway
 
 
@@ -130,6 +145,83 @@ def _options_chain() -> OptionsChain:
                 ),
             )
         ],
+    )
+
+
+def _company_profile(symbol: str = "AAPL") -> CompanyProfile:
+    return CompanyProfile(
+        symbol=symbol,
+        company_name="Apple Inc.",
+        market_cap=Decimal("3400000000000"),
+        sector="Technology",
+        industry="Consumer Electronics",
+        ceo="Tim Cook",
+        full_time_employees=164000,
+        currency="USD",
+    )
+
+
+def _key_metrics(symbol: str = "AAPL") -> KeyMetrics:
+    return KeyMetrics(
+        symbol=symbol,
+        date=date(2024, 9, 28),
+        fiscal_year="2024",
+        period="FY",
+        market_cap=Decimal("3400000000000"),
+        pe_ratio=Decimal("36.28"),
+        enterprise_value_over_ebitda=Decimal("25.14"),
+    )
+
+
+def _financial_ratios(symbol: str = "AAPL") -> FinancialRatios:
+    return FinancialRatios(
+        symbol=symbol,
+        date=date(2024, 9, 28),
+        fiscal_year="2024",
+        period="FY",
+        gross_profit_margin=Decimal("0.4621"),
+        return_on_equity=Decimal("1.6466"),
+        debt_to_equity=Decimal("1.87"),
+    )
+
+
+def _income_statement(symbol: str = "AAPL") -> IncomeStatement:
+    return IncomeStatement(
+        date=date(2024, 9, 28),
+        symbol=symbol,
+        reported_currency="USD",
+        fiscal_year="2024",
+        period="FY",
+        revenue=Decimal("391035000000"),
+        gross_profit=Decimal("180683000000"),
+        net_income=Decimal("93736000000"),
+        eps_diluted=Decimal("6.08"),
+    )
+
+
+def _balance_sheet(symbol: str = "AAPL") -> BalanceSheet:
+    return BalanceSheet(
+        date=date(2024, 9, 28),
+        symbol=symbol,
+        reported_currency="USD",
+        fiscal_year="2024",
+        period="FY",
+        total_assets=Decimal("364980000000"),
+        total_liabilities=Decimal("308030000000"),
+        total_equity=Decimal("56950000000"),
+    )
+
+
+def _cash_flow_statement(symbol: str = "AAPL") -> CashFlowStatement:
+    return CashFlowStatement(
+        date=date(2024, 9, 28),
+        symbol=symbol,
+        reported_currency="USD",
+        fiscal_year="2024",
+        period="FY",
+        net_income=Decimal("93736000000"),
+        operating_cash_flow=Decimal("118254000000"),
+        free_cash_flow=Decimal("108807000000"),
     )
 
 
@@ -362,6 +454,8 @@ async def test_provider_failure_is_generic(
         f"{_PRICES_URL}{_PRICES_QUERY}",
         f"{_SEARCH_URL}?q=apple",
         _OPTIONS_URL,
+        _FUNDAMENTALS_URL,
+        f"{_STATEMENTS_URL}?statement=income",
     ],
 )
 async def test_missing_token_returns_401(
@@ -373,6 +467,10 @@ async def test_missing_token_returns_401(
     mock_gateway.get_prices.assert_not_called()
     mock_gateway.lookup_symbol.assert_not_called()
     mock_gateway.get_options_chain.assert_not_called()
+    mock_gateway.get_company_profile.assert_not_called()
+    mock_gateway.get_key_metrics.assert_not_called()
+    mock_gateway.get_financial_ratios.assert_not_called()
+    mock_gateway.get_income_statement.assert_not_called()
 
 
 @pytest.mark.anyio
@@ -433,3 +531,304 @@ async def test_strike_min_above_max_returns_422(client: AsyncClient) -> None:
     )
 
     assert response.status_code == 422
+
+
+# --------------------------------------------------------------------------- #
+# AC1/AC2: fundamentals overview and statements unified JSON shapes.
+# --------------------------------------------------------------------------- #
+
+
+@pytest.mark.anyio
+async def test_fundamentals_returns_profile_metrics_and_ratios(
+    client: AsyncClient, mock_gateway: MagicMock
+) -> None:
+    response = await client.get(_FUNDAMENTALS_URL, headers=_headers())
+
+    assert response.status_code == 200
+    body = response.json()
+    profile = body["profile"]
+    assert profile["company_name"] == "Apple Inc."
+    assert Decimal(str(profile["market_cap"])) == Decimal("3400000000000")
+    assert profile["ceo"] == "Tim Cook"
+    assert profile["currency"] == "USD"
+
+    key_metrics = body["key_metrics"]
+    assert Decimal(str(key_metrics["pe_ratio"])) == Decimal("36.28")
+    assert Decimal(str(key_metrics["enterprise_value_over_ebitda"])) == Decimal(
+        "25.14"
+    )
+
+    ratios = body["ratios"]
+    assert Decimal(str(ratios["gross_profit_margin"])) == Decimal("0.4621")
+    assert Decimal(str(ratios["return_on_equity"])) == Decimal("1.6466")
+
+
+@pytest.mark.anyio
+async def test_fundamentals_forwards_exchange_to_gateway(
+    client: AsyncClient, mock_gateway: MagicMock
+) -> None:
+    response = await client.get(
+        f"{_FUNDAMENTALS_URL}?exchange=LSE", headers=_headers()
+    )
+
+    assert response.status_code == 200
+    mock_gateway.get_company_profile.assert_called_once_with("AAPL", exchange="LSE")
+    mock_gateway.get_key_metrics.assert_called_once_with("AAPL", exchange="LSE")
+    mock_gateway.get_financial_ratios.assert_called_once_with("AAPL", exchange="LSE")
+
+
+@pytest.mark.anyio
+@pytest.mark.parametrize(
+    ("statement", "method_name", "model", "field", "value"),
+    [
+        ("income", "get_income_statement", IncomeStatement, "revenue", "391035000000"),
+        ("balance", "get_balance_sheet", BalanceSheet, "total_assets", "364980000000"),
+        (
+            "cashflow",
+            "get_cash_flow_statement",
+            CashFlowStatement,
+            "operating_cash_flow",
+            "118254000000",
+        ),
+    ],
+)
+async def test_statements_returns_full_fmp_shape(
+    client: AsyncClient,
+    mock_gateway: MagicMock,
+    statement: str,
+    method_name: str,
+    model: type[BaseModel],
+    field: str,
+    value: str,
+) -> None:
+    response = await client.get(
+        f"{_STATEMENTS_URL}?statement={statement}", headers=_headers()
+    )
+
+    assert response.status_code == 200
+    body = response.json()
+    assert isinstance(body, list)
+    assert len(body) == 1
+
+    row = body[0]
+    # The full FMP-shaped line-item set is preserved: no invented, merged or
+    # silently dropped fields.
+    assert set(row) == set(model.model_fields)
+    assert row["date"] == "2024-09-28"
+    assert row["symbol"] == "AAPL"
+    assert row["period"] == "FY"
+    assert row["fiscal_year"] == "2024"
+    assert Decimal(str(row[field])) == Decimal(value)
+
+    # The provider read receives the requested statement/period/limit.
+    getattr(mock_gateway, method_name).assert_called_once_with(
+        "AAPL", "annual", 5, exchange=None
+    )
+
+
+@pytest.mark.anyio
+async def test_statements_accepts_quarter_and_limit(
+    client: AsyncClient, mock_gateway: MagicMock
+) -> None:
+    response = await client.get(
+        f"{_STATEMENTS_URL}?statement=income&period=quarter&limit=2",
+        headers=_headers(),
+    )
+
+    assert response.status_code == 200
+    mock_gateway.get_income_statement.assert_called_once_with(
+        "AAPL", "quarter", 2, exchange=None
+    )
+
+
+@pytest.mark.anyio
+async def test_statements_forwards_exchange_to_gateway(
+    client: AsyncClient, mock_gateway: MagicMock
+) -> None:
+    response = await client.get(
+        f"{_STATEMENTS_URL}?statement=income&exchange=LSE", headers=_headers()
+    )
+
+    assert response.status_code == 200
+    mock_gateway.get_income_statement.assert_called_once_with(
+        "AAPL", "annual", 5, exchange="LSE"
+    )
+
+
+# --------------------------------------------------------------------------- #
+# AC2: invalid statement/period/limit yields 422.
+# --------------------------------------------------------------------------- #
+
+
+@pytest.mark.anyio
+@pytest.mark.parametrize(
+    "query",
+    [
+        "statement=q4",
+        "statement=income&period=fiscal",
+        "statement=income&limit=0",
+        "statement=income&limit=21",
+    ],
+)
+async def test_statements_invalid_params_return_422(
+    client: AsyncClient, mock_gateway: MagicMock, query: str
+) -> None:
+    response = await client.get(f"{_STATEMENTS_URL}?{query}", headers=_headers())
+
+    assert response.status_code == 422
+    mock_gateway.get_income_statement.assert_not_called()
+
+
+# --------------------------------------------------------------------------- #
+# AC4/AC5: structured 404 and generic 502-503 with no provider names.
+# --------------------------------------------------------------------------- #
+
+
+@pytest.mark.anyio
+@pytest.mark.parametrize(
+    "method_name",
+    ["get_company_profile", "get_key_metrics", "get_financial_ratios"],
+)
+async def test_fundamentals_unknown_symbol_returns_404(
+    client: AsyncClient, mock_gateway: MagicMock, method_name: str
+) -> None:
+    getattr(mock_gateway, method_name).side_effect = MarketDataNotFoundError("ZZZZ")
+
+    response = await client.get(
+        "/api/v1/market/data/fundamentals/ZZZZ", headers=_headers()
+    )
+
+    assert response.status_code == 404
+    assert "ZZZZ" in response.json()["detail"]
+
+
+@pytest.mark.anyio
+async def test_statements_unknown_symbol_returns_404(
+    client: AsyncClient, mock_gateway: MagicMock
+) -> None:
+    mock_gateway.get_income_statement.side_effect = MarketDataNotFoundError("ZZZZ")
+
+    response = await client.get(
+        "/api/v1/market/data/fundamentals/ZZZZ/statements?statement=income",
+        headers=_headers(),
+    )
+
+    assert response.status_code == 404
+    assert "ZZZZ" in response.json()["detail"]
+
+
+@pytest.mark.anyio
+async def test_empty_statements_returns_404_and_caches_empty(
+    client: AsyncClient, mock_gateway: MagicMock
+) -> None:
+    mock_gateway.get_income_statement.return_value = []
+    url = f"{_STATEMENTS_URL}?statement=income"
+
+    first = await client.get(url, headers=_headers())
+    second = await client.get(url, headers=_headers())
+
+    assert first.status_code == 404
+    assert second.status_code == 404
+    # The empty successful result was cached, so the gateway ran exactly once.
+    mock_gateway.get_income_statement.assert_called_once()
+
+
+@pytest.mark.anyio
+@pytest.mark.parametrize(
+    ("side_effect", "expected_status"),
+    [
+        (MarketDataProviderError("raw upstream failure"), 502),
+        (MarketDataConfigurationError("raw config failure"), 503),
+    ],
+)
+@pytest.mark.parametrize(
+    "url",
+    [_FUNDAMENTALS_URL, f"{_STATEMENTS_URL}?statement=income"],
+)
+async def test_fundamentals_provider_failure_is_generic(
+    client: AsyncClient,
+    mock_gateway: MagicMock,
+    side_effect: Exception,
+    expected_status: int,
+    url: str,
+) -> None:
+    mock_gateway.get_company_profile.side_effect = side_effect
+    mock_gateway.get_income_statement.side_effect = side_effect
+
+    response = await client.get(url, headers=_headers())
+
+    assert response.status_code == expected_status
+    detail = response.json()["detail"].lower()
+    assert "raw" not in detail
+    for provider in _PROVIDER_NAMES:
+        assert provider not in detail
+
+
+# --------------------------------------------------------------------------- #
+# AC3: every fundamentals route is served through the endpoint response cache.
+# --------------------------------------------------------------------------- #
+
+
+@pytest.mark.anyio
+async def test_repeated_fundamentals_is_cached_under_metrics_class(
+    client: AsyncClient, mock_gateway: MagicMock, mock_redis_storage: FakeRedis
+) -> None:
+    first = await client.get(_FUNDAMENTALS_URL, headers=_headers())
+    second = await client.get(_FUNDAMENTALS_URL, headers=_headers())
+
+    assert first.status_code == second.status_code == 200
+    assert first.json() == second.json()
+    mock_gateway.get_company_profile.assert_called_once()
+    mock_gateway.get_key_metrics.assert_called_once()
+    mock_gateway.get_financial_ratios.assert_called_once()
+    keys = _endpoint_keys(mock_redis_storage, "market:ep:metrics:fundamentals:")
+    assert len(keys) == 1
+
+
+@pytest.mark.anyio
+async def test_repeated_statements_is_cached_under_statements_class(
+    client: AsyncClient, mock_gateway: MagicMock, mock_redis_storage: FakeRedis
+) -> None:
+    url = f"{_STATEMENTS_URL}?statement=balance"
+
+    first = await client.get(url, headers=_headers())
+    second = await client.get(url, headers=_headers())
+
+    assert first.status_code == second.status_code == 200
+    assert first.json() == second.json()
+    mock_gateway.get_balance_sheet.assert_called_once()
+    keys = _endpoint_keys(mock_redis_storage, "market:ep:statements:statements:")
+    assert len(keys) == 1
+
+
+@pytest.mark.anyio
+async def test_statements_failure_is_not_cached(
+    client: AsyncClient, mock_gateway: MagicMock
+) -> None:
+    url = f"{_STATEMENTS_URL}?statement=income"
+    mock_gateway.get_income_statement.side_effect = MarketDataProviderError("boom")
+
+    first = await client.get(url, headers=_headers())
+    assert first.status_code == 502
+
+    # Heal the gateway: the failed fetch must not have been cached, so the next
+    # request refetches and succeeds.
+    mock_gateway.get_income_statement.side_effect = None
+    mock_gateway.get_income_statement.return_value = [_income_statement()]
+
+    second = await client.get(url, headers=_headers())
+    assert second.status_code == 200
+    assert mock_gateway.get_income_statement.call_count == 2
+
+
+@pytest.mark.anyio
+@pytest.mark.parametrize(
+    "url",
+    [_FUNDAMENTALS_URL, f"{_STATEMENTS_URL}?statement=income"],
+)
+async def test_new_routes_non_ascii_token_returns_401_not_500(
+    client: AsyncClient, url: str
+) -> None:
+    response = await client.get(url, headers={b"X-Service-Token": b"tok\xe9n"})
+
+    assert response.status_code == 401

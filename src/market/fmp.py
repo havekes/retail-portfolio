@@ -448,13 +448,13 @@ class FmpGateway(MarketGateway):
     # Each capability is a ``_fetch_`` / ``_parse_`` pair: the fetch builds the
     # FMP endpoint call (with period/limit params) and the parse translates the
     # payload into the T01 unified types. Profile/key-metrics/ratios return a
-    # single object (first row); statements return every row. The gateway
-    # contract only carries ``symbol`` for these methods, so tickers are mapped
-    # with a neutral exchange (pass-through) as in T02.
+    # single object (first row); statements return every row. ``exchange`` is an
+    # optional keyword forwarded so non-US symbols map to their FMP ticker
+    # suffix; when omitted the neutral (pass-through) exchange is used as in T02.
     # ------------------------------------------------------------------ #
 
-    def _fetch_company_profile(self, symbol: str) -> object:
-        ticker = map_to_fmp_ticker(symbol, "")
+    def _fetch_company_profile(self, symbol: str, exchange: str | None) -> object:
+        ticker = map_to_fmp_ticker(symbol, exchange or "")
         return self._get_json(f"api/v3/profile/{ticker}")
 
     def _parse_company_profile(self, payload: object, symbol: str) -> CompanyProfile:
@@ -484,12 +484,23 @@ class FmpGateway(MarketGateway):
             is_actively_trading=_to_bool(row.get("isActivelyTrading")),
         )
 
-    def get_company_profile(self, symbol: str) -> CompanyProfile:
-        payload = self._fetch_company_profile(symbol)
+    def get_company_profile(
+        self,
+        symbol: str,
+        *,
+        exchange: str | None = None,
+    ) -> CompanyProfile:
+        payload = self._fetch_company_profile(symbol, exchange)
         return self._parse_company_profile(payload, symbol)
 
-    def _fetch_income_statement(self, symbol: str, period: str, limit: int) -> object:
-        ticker = map_to_fmp_ticker(symbol, "")
+    def _fetch_income_statement(
+        self,
+        symbol: str,
+        period: str,
+        limit: int,
+        exchange: str | None,
+    ) -> object:
+        ticker = map_to_fmp_ticker(symbol, exchange or "")
         params = {"period": period, "limit": str(limit)}
         return self._get_json(f"api/v3/income-statement/{ticker}", params)
 
@@ -558,13 +569,23 @@ class FmpGateway(MarketGateway):
         symbol: str,
         period: str = "annual",
         limit: int = 5,
+        *,
+        exchange: str | None = None,
     ) -> list[IncomeStatement]:
         validated_period = _validate_period(period)
-        payload = self._fetch_income_statement(symbol, validated_period, limit)
+        payload = self._fetch_income_statement(
+            symbol, validated_period, limit, exchange
+        )
         return self._parse_income_statement(payload, symbol)
 
-    def _fetch_balance_sheet(self, symbol: str, period: str, limit: int) -> object:
-        ticker = map_to_fmp_ticker(symbol, "")
+    def _fetch_balance_sheet(
+        self,
+        symbol: str,
+        period: str,
+        limit: int,
+        exchange: str | None,
+    ) -> object:
+        ticker = map_to_fmp_ticker(symbol, exchange or "")
         params = {"period": period, "limit": str(limit)}
         return self._get_json(f"api/v3/balance-sheet-statement/{ticker}", params)
 
@@ -620,15 +641,21 @@ class FmpGateway(MarketGateway):
         symbol: str,
         period: str = "annual",
         limit: int = 5,
+        *,
+        exchange: str | None = None,
     ) -> list[BalanceSheet]:
         validated_period = _validate_period(period)
-        payload = self._fetch_balance_sheet(symbol, validated_period, limit)
+        payload = self._fetch_balance_sheet(symbol, validated_period, limit, exchange)
         return self._parse_balance_sheet(payload, symbol)
 
     def _fetch_cash_flow_statement(
-        self, symbol: str, period: str, limit: int
+        self,
+        symbol: str,
+        period: str,
+        limit: int,
+        exchange: str | None,
     ) -> object:
-        ticker = map_to_fmp_ticker(symbol, "")
+        ticker = map_to_fmp_ticker(symbol, exchange or "")
         params = {"period": period, "limit": str(limit)}
         return self._get_json(f"api/v3/cash-flow-statement/{ticker}", params)
 
@@ -694,13 +721,17 @@ class FmpGateway(MarketGateway):
         symbol: str,
         period: str = "annual",
         limit: int = 5,
+        *,
+        exchange: str | None = None,
     ) -> list[CashFlowStatement]:
         validated_period = _validate_period(period)
-        payload = self._fetch_cash_flow_statement(symbol, validated_period, limit)
+        payload = self._fetch_cash_flow_statement(
+            symbol, validated_period, limit, exchange
+        )
         return self._parse_cash_flow_statement(payload, symbol)
 
-    def _fetch_key_metrics(self, symbol: str) -> object:
-        ticker = map_to_fmp_ticker(symbol, "")
+    def _fetch_key_metrics(self, symbol: str, exchange: str | None) -> object:
+        ticker = map_to_fmp_ticker(symbol, exchange or "")
         return self._get_json(f"api/v3/key-metrics/{ticker}")
 
     def _parse_key_metrics(self, payload: object, symbol: str) -> KeyMetrics:
@@ -732,12 +763,22 @@ class FmpGateway(MarketGateway):
             working_capital=_to_decimal(row.get("workingCapital")),
         )
 
-    def get_key_metrics(self, symbol: str) -> KeyMetrics:
-        payload = self._fetch_key_metrics(symbol)
+    def get_key_metrics(
+        self,
+        symbol: str,
+        *,
+        exchange: str | None = None,
+    ) -> KeyMetrics:
+        payload = self._fetch_key_metrics(symbol, exchange)
         return self._parse_key_metrics(payload, symbol)
 
-    def _fetch_financial_ratios(self, symbol: str, period: str) -> object:
-        ticker = map_to_fmp_ticker(symbol, "")
+    def _fetch_financial_ratios(
+        self,
+        symbol: str,
+        period: str,
+        exchange: str | None,
+    ) -> object:
+        ticker = map_to_fmp_ticker(symbol, exchange or "")
         return self._get_json(f"api/v3/ratios/{ticker}", {"period": period})
 
     def _parse_financial_ratios(self, payload: object, symbol: str) -> FinancialRatios:
@@ -770,9 +811,11 @@ class FmpGateway(MarketGateway):
         self,
         symbol: str,
         period: str = "annual",
+        *,
+        exchange: str | None = None,
     ) -> FinancialRatios:
         validated_period = _validate_period(period)
-        payload = self._fetch_financial_ratios(symbol, validated_period)
+        payload = self._fetch_financial_ratios(symbol, validated_period, exchange)
         return self._parse_financial_ratios(payload, symbol)
 
     def get_intraday_prices(  # noqa: PLR0913, PLR0917
