@@ -17,13 +17,19 @@ import hashlib
 import json
 import logging
 from collections.abc import Awaitable, Callable, Mapping
+from datetime import datetime, time
 from typing import Any, TypeVar
 
 from pydantic import BaseModel
 
 from src.config.settings import settings
 from src.core.redis import redis_manager
-from src.market.cache import _NULL_SENTINEL, _canonicalize, _normalize_query
+from src.market.cache import (
+    _NULL_SENTINEL,
+    _canonicalize,
+    _canonicalize_datetime,
+    _normalize_query,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -46,15 +52,40 @@ _TTL_SETTING_FIELDS: dict[str, str] = {
 _DEFAULT_TTL_SECONDS = 3_600
 
 
+def _canonicalize_param(value: Any) -> Any:
+    """Canonicalize one request parameter for the endpoint cache key.
+
+    ``datetime`` bounds keep full hour/minute precision (via
+    :func:`_canonicalize_datetime`) so two intraday windows on the same day
+    never collide — for an intraday data class the time range is materially
+    part of the request, not noise. The one exception is a midnight
+    ``datetime``: it carries no intraday information, so it collapses to its
+    calendar date and stays equivalent to the matching daily ``date`` bound.
+    Every other value delegates to the shared :func:`_canonicalize`.
+    """
+    if isinstance(value, datetime):
+        if value.time() == time(0, 0):
+            return _canonicalize(value)
+        return _canonicalize_datetime(value)
+    if isinstance(value, dict):
+        return {str(key): _canonicalize_param(item) for key, item in value.items()}
+    if isinstance(value, list | tuple):
+        return [_canonicalize_param(item) for item in value]
+    return _canonicalize(value)
+
+
 def _cache_key(data_class: str, endpoint: str, params: Mapping[str, Any]) -> str:
     """Build a deterministic, readable cache key for an endpoint response.
 
     ``data_class`` and ``endpoint`` stay in the clear for debugging and
     scan-based invalidation; the request parameters are content-hashed so
-    equivalent inputs (``date`` vs calendar-aligned ``datetime``,
-    ``Decimal("10.5")`` vs ``"10.50"``) share one entry.
+    equivalent inputs (``date`` vs midnight ``datetime``,
+    ``Decimal("10.5")`` vs ``"10.50"``) share one entry while intraday windows
+    keep their hour/minute precision.
     """
-    canonical = {str(name): _canonicalize(value) for name, value in params.items()}
+    canonical = {
+        str(name): _canonicalize_param(value) for name, value in params.items()
+    }
     query = canonical.get("query")
     if isinstance(query, str):
         canonical["query"] = _normalize_query(query)

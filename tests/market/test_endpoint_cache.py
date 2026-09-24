@@ -167,17 +167,52 @@ def test_key_is_order_independent() -> None:
 
 def test_equivalent_date_and_datetime_share_a_key() -> None:
     as_dates = _cache_key("prices", "daily", PRICE_PARAMS)
-    as_datetimes = _cache_key(
+    as_midnight_datetimes = _cache_key(
         "prices",
         "daily",
         {
             "symbol": "AAPL",
-            "from_date": datetime(2024, 1, 2, 15, 30),  # noqa: DTZ001
-            "to_date": datetime(2024, 1, 5, 9, 0),  # noqa: DTZ001
+            "from_date": datetime(2024, 1, 2, 0, 0),  # noqa: DTZ001
+            "to_date": datetime(2024, 1, 5, 0, 0),  # noqa: DTZ001
         },
     )
 
-    assert as_dates == as_datetimes
+    assert as_dates == as_midnight_datetimes
+
+
+def test_distinct_intraday_windows_on_same_day_have_distinct_keys() -> None:
+    morning = _cache_key(
+        "prices",
+        "intraday",
+        {
+            "symbol": "AAPL",
+            "from_datetime": datetime(2024, 1, 2, 9, 30),  # noqa: DTZ001
+            "to_datetime": datetime(2024, 1, 2, 12, 0),  # noqa: DTZ001
+        },
+    )
+    afternoon = _cache_key(
+        "prices",
+        "intraday",
+        {
+            "symbol": "AAPL",
+            "from_datetime": datetime(2024, 1, 2, 13, 0),  # noqa: DTZ001
+            "to_datetime": datetime(2024, 1, 2, 16, 0),  # noqa: DTZ001
+        },
+    )
+    calendar_day = _cache_key(
+        "prices",
+        "intraday",
+        {
+            "symbol": "AAPL",
+            "from_datetime": date(2024, 1, 2),
+            "to_datetime": date(2024, 1, 2),
+        },
+    )
+
+    assert morning != afternoon
+    # A non-midnight intraday bound must not collapse onto the calendar date.
+    assert morning != calendar_day
+    assert afternoon != calendar_day
 
 
 def test_equivalent_decimal_strike_bounds_share_a_key() -> None:
