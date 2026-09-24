@@ -756,11 +756,18 @@ class CachedMarketGateway(MarketGateway):
             "lookup_symbol", key, lambda: self._inner.lookup_symbol(query)
         )
 
-    def get_company_profile(self, symbol: str) -> CompanyProfile:
+    def get_company_profile(
+        self,
+        symbol: str,
+        *,
+        exchange: str | None = None,
+    ) -> CompanyProfile:
         """Get the company profile for a symbol."""
-        key = _cache_key("get_company_profile", symbol=symbol)
+        key = _cache_key("get_company_profile", symbol=symbol, exchange=exchange)
         return self._get_or_fetch(
-            "get_company_profile", key, lambda: self._inner.get_company_profile(symbol)
+            "get_company_profile",
+            key,
+            lambda: self._inner.get_company_profile(symbol, exchange=exchange),
         )
 
     def get_income_statement(
@@ -768,15 +775,23 @@ class CachedMarketGateway(MarketGateway):
         symbol: str,
         period: str = "annual",
         limit: int = 5,
+        *,
+        exchange: str | None = None,
     ) -> list[IncomeStatement]:
         """Get income statements for a symbol."""
         key = _cache_key(
-            "get_income_statement", symbol=symbol, period=period, limit=limit
+            "get_income_statement",
+            symbol=symbol,
+            period=period,
+            limit=limit,
+            exchange=exchange,
         )
         return self._get_or_fetch(
             "get_income_statement",
             key,
-            lambda: self._inner.get_income_statement(symbol, period, limit),
+            lambda: self._inner.get_income_statement(
+                symbol, period, limit, exchange=exchange
+            ),
         )
 
     def get_balance_sheet(
@@ -784,13 +799,23 @@ class CachedMarketGateway(MarketGateway):
         symbol: str,
         period: str = "annual",
         limit: int = 5,
+        *,
+        exchange: str | None = None,
     ) -> list[BalanceSheet]:
         """Get balance sheets for a symbol."""
-        key = _cache_key("get_balance_sheet", symbol=symbol, period=period, limit=limit)
+        key = _cache_key(
+            "get_balance_sheet",
+            symbol=symbol,
+            period=period,
+            limit=limit,
+            exchange=exchange,
+        )
         return self._get_or_fetch(
             "get_balance_sheet",
             key,
-            lambda: self._inner.get_balance_sheet(symbol, period, limit),
+            lambda: self._inner.get_balance_sheet(
+                symbol, period, limit, exchange=exchange
+            ),
         )
 
     def get_cash_flow_statement(
@@ -798,35 +823,57 @@ class CachedMarketGateway(MarketGateway):
         symbol: str,
         period: str = "annual",
         limit: int = 5,
+        *,
+        exchange: str | None = None,
     ) -> list[CashFlowStatement]:
         """Get cash-flow statements for a symbol."""
         key = _cache_key(
-            "get_cash_flow_statement", symbol=symbol, period=period, limit=limit
+            "get_cash_flow_statement",
+            symbol=symbol,
+            period=period,
+            limit=limit,
+            exchange=exchange,
         )
         return self._get_or_fetch(
             "get_cash_flow_statement",
             key,
-            lambda: self._inner.get_cash_flow_statement(symbol, period, limit),
+            lambda: self._inner.get_cash_flow_statement(
+                symbol, period, limit, exchange=exchange
+            ),
         )
 
-    def get_key_metrics(self, symbol: str) -> KeyMetrics:
+    def get_key_metrics(
+        self,
+        symbol: str,
+        *,
+        exchange: str | None = None,
+    ) -> KeyMetrics:
         """Get the key metrics / valuation snapshot for a symbol."""
-        key = _cache_key("get_key_metrics", symbol=symbol)
+        key = _cache_key("get_key_metrics", symbol=symbol, exchange=exchange)
         return self._get_or_fetch(
-            "get_key_metrics", key, lambda: self._inner.get_key_metrics(symbol)
+            "get_key_metrics",
+            key,
+            lambda: self._inner.get_key_metrics(symbol, exchange=exchange),
         )
 
     def get_financial_ratios(
         self,
         symbol: str,
         period: str = "annual",
+        *,
+        exchange: str | None = None,
     ) -> FinancialRatios:
         """Get financial ratios for a symbol."""
-        key = _cache_key("get_financial_ratios", symbol=symbol, period=period)
+        key = _cache_key(
+            "get_financial_ratios",
+            symbol=symbol,
+            period=period,
+            exchange=exchange,
+        )
         return self._get_or_fetch(
             "get_financial_ratios",
             key,
-            lambda: self._inner.get_financial_ratios(symbol, period),
+            lambda: self._inner.get_financial_ratios(symbol, period, exchange=exchange),
         )
 
     def get_options_chain(

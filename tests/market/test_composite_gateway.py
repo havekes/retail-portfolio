@@ -95,27 +95,33 @@ class FakeFmpGateway(MarketGateway):
         self._record("lookup_symbol", (query,))
         return [SymbolLookupResult(symbol="AAPL", name="Apple Inc.")]
 
-    def get_company_profile(self, symbol: str) -> CompanyProfile:
+    def get_company_profile(
+        self, symbol: str, *, exchange=None
+    ) -> CompanyProfile:
         self._record("get_company_profile", (symbol,))
         return CompanyProfile(symbol=symbol, company_name="Apple Inc.")
 
-    def get_income_statement(self, symbol, period="annual", limit=5):
+    def get_income_statement(self, symbol, period="annual", limit=5, *, exchange=None):
         self._record("get_income_statement", (symbol, period, limit))
         return [IncomeStatement(date=FROM_DATE, symbol=symbol)]
 
-    def get_balance_sheet(self, symbol, period="annual", limit=5):
+    def get_balance_sheet(self, symbol, period="annual", limit=5, *, exchange=None):
         self._record("get_balance_sheet", (symbol, period, limit))
         return [BalanceSheet(date=FROM_DATE, symbol=symbol)]
 
-    def get_cash_flow_statement(self, symbol, period="annual", limit=5):
+    def get_cash_flow_statement(
+        self, symbol, period="annual", limit=5, *, exchange=None
+    ):
         self._record("get_cash_flow_statement", (symbol, period, limit))
         return [CashFlowStatement(date=FROM_DATE, symbol=symbol)]
 
-    def get_key_metrics(self, symbol: str) -> KeyMetrics:
+    def get_key_metrics(self, symbol: str, *, exchange=None) -> KeyMetrics:
         self._record("get_key_metrics", (symbol,))
         return KeyMetrics(symbol=symbol, date=FROM_DATE)
 
-    def get_financial_ratios(self, symbol, period="annual") -> FinancialRatios:
+    def get_financial_ratios(
+        self, symbol, period="annual", *, exchange=None
+    ) -> FinancialRatios:
         self._record("get_financial_ratios", (symbol, period))
         return FinancialRatios(symbol=symbol, date=FROM_DATE)
 
