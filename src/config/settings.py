@@ -53,6 +53,13 @@ class Settings(BaseSettings):
     redis_url: str = "redis://localhost:6379/0"
     sync_ttl_seconds: int = 300
 
+    # Market gateway cache TTLs (seconds), per data class
+    gateway_ttl_search_seconds: int = 1_209_600  # 14 days
+    gateway_ttl_prices_seconds: int = 3_600  # 1 hour (daily + intraday)
+    gateway_ttl_statements_seconds: int = 86_400  # 1 day
+    gateway_ttl_metrics_seconds: int = 86_400  # 1 day (incl. profile / lookup)
+    gateway_ttl_options_seconds: int = 1_800  # 30 minutes
+
     # 2FA / TOTP
     totp_max_attempts: int = 5
     totp_lockout_seconds: int = 900
