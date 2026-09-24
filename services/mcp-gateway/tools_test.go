@@ -397,7 +397,13 @@ func TestToolsMapBackendErrors(t *testing.T) {
 		wantText string
 	}{
 		{"404 is no data", http.StatusNotFound, `{"detail":"No market data found for 'AAPL'."}`, false, noDataMessage},
-		{"422 is no data", http.StatusUnprocessableEntity, `{"detail":"bad range"}`, false, noDataMessage},
+		{
+			"422 is validation",
+			http.StatusUnprocessableEntity,
+			`{"detail":[{"loc":["query","expiry"],"msg":"invalid date","type":"value_error"}]}`,
+			true,
+			"expiry invalid date",
+		},
 		{"401 is configuration", http.StatusUnauthorized, `{"detail":"Service token invalid"}`, true, ErrConfiguration.Error()},
 		{"403 is configuration", http.StatusForbidden, `{"detail":"forbidden"}`, true, ErrConfiguration.Error()},
 		{"500 is provider", http.StatusInternalServerError, `{"detail":"upstream exploded"}`, true, ErrProvider.Error()},

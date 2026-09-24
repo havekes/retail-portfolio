@@ -15,9 +15,10 @@ import (
 //
 //   - declares a typed input struct (the SDK infers the input schema from it and
 //     rejects calls that omit a required field before the handler runs);
-//   - validates and normalizes its input in a prepare method, so no input can
-//     trigger a backend 422 (which the client classifies as ErrNoData and would
-//     otherwise be misreported as "no data");
+//   - validates and normalizes its input in a prepare method, so most invalid
+//     input is rejected before the backend is called; a backend 422 that still
+//     slips through is classified as ErrValidation and surfaced as an actionable
+//     error rather than "no data";
 //   - calls the backend through the BackendClient and shapes the result through
 //     runTool, implementing the T10 error contract.
 //
@@ -203,7 +204,8 @@ func noDataResult() *mcp.CallToolResult {
 }
 
 // errorResult builds an error result from err. Only ever passed locally
-// synthesized messages or the generic error sentinels, whose Error() text
+// synthesized messages — including the agent-safe validation message parsed
+// from a backend 422 by the client — or the generic error sentinels, whose text
 // contains no status, body, token or provider detail.
 func errorResult(err error) *mcp.CallToolResult {
 	result := &mcp.CallToolResult{}
@@ -213,12 +215,17 @@ func errorResult(err error) *mcp.CallToolResult {
 
 // mapBackendError maps a BackendClient error onto a tool result:
 //
+//   - ErrValidation ⇒ an error result carrying the backend's validation message
+//     (falling back to the generic sentinel text), so an agent can correct its
+//     parameters instead of being told there is no data;
 //   - ErrNoData ⇒ a successful "no data" result;
 //   - ErrConfiguration / ErrProvider ⇒ an error result carrying the generic
 //     sentinel text (backendError hides the status/body detail);
 //   - anything else ⇒ a generic catch-all error.
 func mapBackendError(err error) *mcp.CallToolResult {
 	switch {
+	case errors.Is(err, ErrValidation):
+		return errorResult(errors.New(validationErrorMessage(err)))
 	case errors.Is(err, ErrNoData):
 		return noDataResult()
 	case errors.Is(err, ErrConfiguration), errors.Is(err, ErrProvider):
@@ -226,6 +233,19 @@ func mapBackendError(err error) *mcp.CallToolResult {
 	default:
 		return errorResult(errors.New("tool call failed"))
 	}
+}
+
+// validationErrorMessage returns the agent-safe validation text carried by an
+// ErrValidation backendError, falling back to the generic sentinel text when the
+// 422 body was unparsable.
+func validationErrorMessage(err error) string {
+	var backendErr *backendError
+	if errors.As(err, &backendErr) {
+		if message := backendErr.ValidationMessage(); message != "" {
+			return message
+		}
+	}
+	return ErrValidation.Error()
 }
 
 // --------------------------------------------------------------------------- //
