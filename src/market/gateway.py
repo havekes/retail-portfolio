@@ -33,37 +33,51 @@ class MarketGateway(ABC):
     @abstractmethod
     def get_price_on_date(
         self,
-        security_id: SecurityId,
         symbol: str,
         exchange: str,
         date: date,
+        security_id: SecurityId | None = None,
     ) -> HistoricalPrice | None:
-        """Get price for a security on a specific date."""
+        """Get price for a security on a specific date.
+
+        Prices are keyed by ``symbol``/``exchange``; ``security_id`` identifies
+        the persisted security and is optional. Provider-agnostic callers (the
+        data plane) omit it, and the returned price's ``security_id`` is then
+        ``None``. Callers persisting the result must supply it.
+        """
         ...
 
     @abstractmethod
     def get_prices(
         self,
-        security_id: SecurityId,
         symbol: str,
         exchange: str,
         from_date: date,
         to_date: date,
+        security_id: SecurityId | None = None,
     ) -> list[HistoricalPrice]:
-        """Get historical prices for a security within a date range."""
+        """Get historical prices for a security within a date range.
+
+        ``security_id`` is optional and only labels the returned prices for
+        persistence; see :meth:`get_price_on_date`.
+        """
         ...
 
     @abstractmethod
     def get_intraday_prices(  # noqa: PLR0913, PLR0917
         self,
-        security_id: SecurityId,
         symbol: str,
         exchange: str,
         from_datetime: datetime,
         to_datetime: datetime,
         interval: str = "1h",
+        security_id: SecurityId | None = None,
     ) -> list[IntradayHistoricalPrice]:
-        """Get intraday prices for a security within a datetime range."""
+        """Get intraday prices for a security within a datetime range.
+
+        ``security_id`` is optional and only labels the returned prices for
+        persistence; see :meth:`get_price_on_date`.
+        """
         ...
 
     # ------------------------------------------------------------------ #

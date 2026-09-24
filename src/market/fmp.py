@@ -336,7 +336,7 @@ class FmpGateway(MarketGateway):
     def _parse_historical(
         self,
         payload: object,
-        security_id: SecurityId,
+        security_id: SecurityId | None,
         symbol: str,
         exchange: str,
     ) -> list[HistoricalPrice]:
@@ -373,35 +373,39 @@ class FmpGateway(MarketGateway):
 
     def get_price_on_date(
         self,
-        security_id: SecurityId,
         symbol: str,
         exchange: str,
         date: date,
+        security_id: SecurityId | None = None,
     ) -> HistoricalPrice | None:
         prices = self._fetch_prices(
-            security_id, symbol, exchange, from_date=date, to_date=date
+            symbol, exchange, from_date=date, to_date=date, security_id=security_id
         )
         return prices[0] if prices else None
 
     def get_prices(
         self,
-        security_id: SecurityId,
         symbol: str,
         exchange: str,
         from_date: date,
         to_date: date,
+        security_id: SecurityId | None = None,
     ) -> list[HistoricalPrice]:
         return self._fetch_prices(
-            security_id, symbol, exchange, from_date=from_date, to_date=to_date
+            symbol,
+            exchange,
+            from_date=from_date,
+            to_date=to_date,
+            security_id=security_id,
         )
 
     def _fetch_prices(
         self,
-        security_id: SecurityId,
         symbol: str,
         exchange: str,
         from_date: date,
         to_date: date,
+        security_id: SecurityId | None = None,
     ) -> list[HistoricalPrice]:
         payload = self._fetch_historical(symbol, exchange, from_date, to_date)
         return self._parse_historical(payload, security_id, symbol, exchange)
@@ -833,12 +837,12 @@ class FmpGateway(MarketGateway):
 
     def get_intraday_prices(  # noqa: PLR0913, PLR0917
         self,
-        security_id: SecurityId,
         symbol: str,
         exchange: str,
         from_datetime: datetime,
         to_datetime: datetime,
         interval: str = "1h",
+        security_id: SecurityId | None = None,
     ) -> list[IntradayHistoricalPrice]:
         # Intraday reads are not part of this ticket; the price-alert path uses
         # EODHD. Kept concrete so the gateway satisfies the ABC, raising the

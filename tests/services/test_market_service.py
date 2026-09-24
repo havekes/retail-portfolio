@@ -127,11 +127,11 @@ class MockEodhdGateway(MarketGateway):
         return []
 
     @override
-    def get_price_on_date(self, security_id, symbol, exchange, date):
+    def get_price_on_date(self, symbol, exchange, date, security_id=None):
         return None
 
     @override
-    def get_prices(self, security_id, symbol, exchange, from_date, to_date):
+    def get_prices(self, symbol, exchange, from_date, to_date, security_id=None):
         if self.should_fail:
             msg = "API Error"
             raise RuntimeError(msg)
@@ -152,12 +152,12 @@ class MockEodhdGateway(MarketGateway):
     @override
     def get_intraday_prices(
         self,
-        security_id,
         symbol,
         exchange,
         from_datetime,
         to_datetime,
         interval="1h",
+        security_id=None,
     ):
         if self.should_fail:
             msg = "API Error"
@@ -246,13 +246,11 @@ async def test_update_daily_prices_failure_continues():
 
     class FlakyGateway(MockEodhdGateway):
         @override
-        def get_prices(self, security_id, symbol, exchange, from_date, to_date):
+        def get_prices(self, symbol, exchange, from_date, to_date, security_id=None):
             if symbol == "BAD":
                 msg = "API Error"
                 raise RuntimeError(msg)
-            return super().get_prices(
-                security_id, symbol, exchange, from_date, to_date
-            )
+            return super().get_prices(symbol, exchange, from_date, to_date, security_id)
 
     service = MarketService(
         gateway=FlakyGateway(),
@@ -339,18 +337,23 @@ async def test_update_intraday_prices_failure_continues():
         @override
         def get_intraday_prices(
             self,
-            security_id,
             symbol,
             exchange,
             from_datetime,
             to_datetime,
             interval="1h",
+            security_id=None,
         ):
             if symbol == "BAD":
                 msg = "API Error"
                 raise RuntimeError(msg)
             return super().get_intraday_prices(
-                security_id, symbol, exchange, from_datetime, to_datetime, interval
+                symbol,
+                exchange,
+                from_datetime,
+                to_datetime,
+                interval,
+                security_id,
             )
 
     service = MarketService(
@@ -423,17 +426,17 @@ async def test_fetch_and_save_intraday_prices_custom_range():
         @override
         def get_intraday_prices(
             self,
-            security_id,
             symbol,
             exchange,
             from_datetime,
             to_datetime,
             interval="1h",
+            security_id=None,
         ):
             self.captured_from_datetime = from_datetime
             self.captured_to_datetime = to_datetime
             return super().get_intraday_prices(
-                security_id, symbol, exchange, from_datetime, to_datetime, interval
+                symbol, exchange, from_datetime, to_datetime, interval, security_id
             )
 
     gateway = CustomGateway()
@@ -476,12 +479,12 @@ async def test_fetch_and_save_intraday_prices_empty():
         @override
         def get_intraday_prices(
             self,
-            security_id,
             symbol,
             exchange,
             from_datetime,
             to_datetime,
             interval="1h",
+            security_id=None,
         ):
             return []
 

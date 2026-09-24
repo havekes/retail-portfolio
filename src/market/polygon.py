@@ -371,10 +371,10 @@ class PolygonGateway(MarketGateway):
 
     def get_price_on_date(
         self,
-        security_id: SecurityId,
         symbol: str,
         exchange: str,
         date: date,
+        security_id: SecurityId | None = None,
     ) -> HistoricalPrice | None:
         """Single-date prices are not supported by this gateway."""
         _ = security_id, symbol, exchange, date
@@ -382,11 +382,11 @@ class PolygonGateway(MarketGateway):
 
     def get_prices(
         self,
-        security_id: SecurityId,
         symbol: str,
         exchange: str,
         from_date: date,
         to_date: date,
+        security_id: SecurityId | None = None,
     ) -> list[HistoricalPrice]:
         """Historical prices are not supported by this gateway."""
         _ = security_id, symbol, exchange, from_date, to_date
@@ -394,12 +394,12 @@ class PolygonGateway(MarketGateway):
 
     def get_intraday_prices(  # noqa: PLR0913, PLR0917
         self,
-        security_id: SecurityId,
         symbol: str,
         exchange: str,
         from_datetime: datetime,
         to_datetime: datetime,
         interval: str = "1h",
+        security_id: SecurityId | None = None,
     ) -> list[IntradayHistoricalPrice]:
         """Intraday prices are not supported by this gateway."""
         _ = security_id, symbol, exchange, from_datetime, to_datetime, interval
