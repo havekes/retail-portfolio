@@ -787,6 +787,9 @@ class StubFmpGateway(MarketGateway):
             symbol.upper() for symbol in (fail_on_symbols or ())
         )
 
+    def close(self) -> None:
+        """No-op: the stub owns no HTTP client to release."""
+
     def _resolve_symbol(self, symbol: str) -> str:
         """Normalize a symbol and enforce the stub's failure/not-found paths."""
         normalized = symbol.strip().upper()

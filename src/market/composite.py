@@ -6,17 +6,20 @@ new data plane by routing each capability to the provider that owns it:
 * prices, search, symbol lookup and every fundamentals capability -> FMP;
 * options chains -> Polygon.
 
-:func:`composite_market_gateway_factory` returns the bare composite, which is
-what the provider-agnostic ``DataPlaneMarketGateway`` svcs key resolves to.
+:func:`composite_market_gateway_factory` is a closeable generator factory
+that yields the bare composite, which is what the provider-agnostic
+``DataPlaneMarketGateway`` svcs key resolves to; the generator's ``finally``
+releases the provider HTTP clients on container teardown.
 Data-plane caching lives one layer up, in
 :class:`~src.market.endpoint_cache.EndpointResponseCache` (``market:ep``), so
 each response is stored exactly once. The legacy ``MarketGateway`` binding
 stays on EODHD, so existing price-fetch flows are untouched.
 """
 
+from collections.abc import Generator
 from datetime import date, datetime
 from decimal import Decimal
-from typing import Literal
+from typing import Literal, Protocol, cast
 
 from src.market.api_types import (
     BalanceSheet,
@@ -37,6 +40,12 @@ from src.market.gateway import MarketGateway
 from src.market.polygon import polygon_gateway_factory
 
 
+class _Closeable(Protocol):
+    """Structural type for a gateway with lifecycle cleanup."""
+
+    def close(self) -> None: ...
+
+
 class CompositeMarketGateway(MarketGateway):
     """Routes each ``MarketGateway`` capability to its owning provider.
 
@@ -49,6 +58,17 @@ class CompositeMarketGateway(MarketGateway):
     def __init__(self, fmp: MarketGateway, polygon: MarketGateway) -> None:
         self._fmp = fmp
         self._polygon = polygon
+
+    def close(self) -> None:
+        """Release the provider clients owned by this composite.
+
+        Closes the FMP HTTP client and the Polygon HTTP session so their
+        pooled connections are freed when the owning svcs container is torn
+        down. Provider lifecycle hooks are structural (not part of the
+        ``MarketGateway`` contract), hence the casts.
+        """
+        cast("_Closeable", self._fmp).close()
+        cast("_Closeable", self._polygon).close()
 
     def search(self, query: str) -> list[SecuritySearchResult]:
         """Search for securities by query string (FMP)."""
@@ -184,18 +204,33 @@ class CompositeMarketGateway(MarketGateway):
         )
 
 
-def composite_market_gateway_factory() -> MarketGateway:
+def composite_market_gateway_factory() -> Generator[MarketGateway]:
     """Build the provider-agnostic data-plane gateway.
 
     Constructs the FMP and Polygon gateways directly (mirroring
     ``repository_eodhd.py::eodhd_price_repository_factory`` calling
-    ``eodhd_gateway_factory()``) and returns the bare composite. Data-plane
+    ``eodhd_gateway_factory()``) and yields the bare composite. Data-plane
     caching is applied once, above the gateway, by
     :class:`~src.market.endpoint_cache.EndpointResponseCache`. Both provider
     factories are stub-aware, so ``STUB_EXTERNAL_API=true`` yields a fully
     offline composite.
+
+    Closeable generator factory, mirroring
+    ``indicator_service_client_factory``'s cleanup contract: svcs tears the
+    generator down when the owning container is closed, which closes the FMP
+    HTTP client and the Polygon HTTP session so their pooled connections are
+    released. Sync (not async) because the data plane is sync: the gateway is
+    resolved synchronously in ``data_router`` (``services.get``), and svcs
+    refuses to enter async factories through sync ``get``. The providers are
+    only closed on this path — direct ``fmp_gateway_factory`` /
+    ``polygon_gateway_factory`` call sites keep today's caller-owned
+    behaviour.
     """
-    return CompositeMarketGateway(
+    gateway = CompositeMarketGateway(
         fmp=fmp_gateway_factory(),
         polygon=polygon_gateway_factory(),
     )
+    try:
+        yield gateway
+    finally:
+        gateway.close()

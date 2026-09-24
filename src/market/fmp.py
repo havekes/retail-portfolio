@@ -227,6 +227,15 @@ class FmpHttpClient:
         self.base_url = base_url.rstrip("/")
         self.timeout = timeout
         self._client = client or httpx.Client(timeout=timeout)
+        # Only a client this instance created itself may be closed by it; an
+        # injected client stays the caller's responsibility (mirrors
+        # ``IndicatorServiceClient`` and ``httpx.Client`` ownership semantics).
+        self._owns_client = client is None
+
+    def close(self) -> None:
+        """Close the internally owned HTTP client, releasing pooled connections."""
+        if self._owns_client:
+            self._client.close()
 
     def get_json(self, path: str, params: dict[str, str] | None = None) -> object:
         """GET ``path`` with the API key appended and return parsed JSON.
@@ -264,6 +273,10 @@ class FmpGateway(MarketGateway):
             self._client = FmpHttpClient(
                 api_key=api_key, base_url=base_url, client=client
             )
+
+    def close(self) -> None:
+        """Close the underlying FMP HTTP client, releasing pooled connections."""
+        self._client.close()
 
     def _get_json(self, path: str, params: dict[str, str] | None = None) -> object:
         """GET ``path`` translating transport/status failures to provider errors.
