@@ -430,18 +430,21 @@ def test_next_url_with_existing_api_key_is_not_duplicated(mock_get):
 
 
 @patch("src.market.polygon.requests.get")
-def test_sticky_next_url_is_capped_and_raises(mock_get):
+def test_sticky_next_url_is_truncated_at_cap(mock_get):
+    """A looping cursor stops at the page cap and serves the pages already fetched."""
     sticky = "https://api.polygon.io/v3/snapshot/options/AAPL?cursor=sticky"
     mock_get.side_effect = lambda *args, **kwargs: FakeResponse(
         payload=_snapshot([CALL], next_url=sticky)
     )
 
-    with pytest.raises(MarketDataProviderError) as exc_info:
-        PolygonGateway(api_key="k").get_options_chain("AAPL")
+    chain = PolygonGateway(api_key="k").get_options_chain("AAPL")
 
-    # The loop bails once the page cap is reached instead of hanging forever.
+    # The loop bails once the page cap is reached instead of hanging forever,
+    # and the accumulated contracts are returned rather than discarded.
     assert mock_get.call_count == _MAX_PAGES
-    assert "polygon" not in str(exc_info.value).lower()
+    assert len(chain.contracts) == _MAX_PAGES
+    assert chain.contracts[0].contract.contract_ticker == "O:AAPL250117C00150000"
+    assert "polygon" not in chain.underlying_symbol.lower()
 
 
 # --------------------------------------------------------------------------- #
