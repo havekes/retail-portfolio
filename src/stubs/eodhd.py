@@ -9,16 +9,608 @@ from uuid import UUID
 import pandas as pd
 
 from src.market.api_types import (
+    BalanceSheet,
+    CashFlowStatement,
+    CompanyProfile,
     EodhdSearchResult,
+    FinancialRatios,
     HistoricalPrice,
+    IncomeStatement,
     IntradayHistoricalPrice,
+    KeyMetrics,
+    OptionsChain,
+    OptionsChainEntry,
+    OptionsContract,
+    OptionsQuote,
     SecuritySearchResult,
+    SymbolLookupResult,
 )
+from src.market.exception import MarketDataNotFoundError, MarketDataProviderError
 from src.market.gateway import MarketGateway
 from src.market.schema import SecuritySchema
 
 MAX_INTRADAY_STEPS = 10000
 MARKET_CLOSE_HOUR = 16
+
+# --------------------------------------------------------------------------- #
+# Deterministic fundamentals / options fixtures for the stub gateway.
+#
+# Payloads are offline, static dicts shaped like the reference provider
+# responses so the stub mirrors the public contract exactly. Only the
+# fundamentals/options capabilities use these; prices/search remain generated.
+# --------------------------------------------------------------------------- #
+
+STUB_AS_OF_DATE = date(2024, 12, 2)
+
+_KNOWN_SYMBOLS = ("AAPL", "MSFT")
+
+_SYMBOL_LOOKUPS: dict[str, dict[str, Any]] = {
+    "AAPL": {
+        "symbol": "AAPL",
+        "name": "Apple Inc.",
+        "exchange": "NASDAQ Global Select",
+        "exchange_short_name": "NASDAQ",
+        "currency": "USD",
+        "security_type": "Common Stock",
+        "country": "US",
+    },
+    "MSFT": {
+        "symbol": "MSFT",
+        "name": "Microsoft Corporation",
+        "exchange": "NASDAQ Global Select",
+        "exchange_short_name": "NASDAQ",
+        "currency": "USD",
+        "security_type": "Common Stock",
+        "country": "US",
+    },
+    "RY": {
+        "symbol": "RY",
+        "name": "Royal Bank of Canada",
+        "exchange": "Toronto Stock Exchange",
+        "exchange_short_name": "TSX",
+        "currency": "CAD",
+        "security_type": "Common Stock",
+        "country": "CA",
+    },
+    "TD": {
+        "symbol": "TD",
+        "name": "Toronto-Dominion Bank",
+        "exchange": "Toronto Stock Exchange",
+        "exchange_short_name": "TSX",
+        "currency": "CAD",
+        "security_type": "Common Stock",
+        "country": "CA",
+    },
+}
+
+_COMPANY_PROFILES: dict[str, dict[str, Any]] = {
+    "AAPL": {
+        "symbol": "AAPL",
+        "company_name": "Apple Inc.",
+        "market_cap": "3400000000000",
+        "sector": "Technology",
+        "industry": "Consumer Electronics",
+        "beta": "1.24",
+        "price": "229.87",
+        "website": "https://www.apple.com",
+        "description": (
+            "Apple Inc. designs, manufactures, and markets smartphones, "
+            "personal computers, tablets, wearables, and accessories."
+        ),
+        "ceo": "Tim Cook",
+        "full_time_employees": 164000,
+        "exchange_short_name": "NASDAQ",
+        "exchange": "NASDAQ Global Select",
+        "currency": "USD",
+        "ipo_date": "1980-12-12",
+        "cik": "0000320193",
+        "isin": "US0378331005",
+        "image": "https://images.example.com/AAPL.png",
+        "is_actively_trading": True,
+    },
+    "MSFT": {
+        "symbol": "MSFT",
+        "company_name": "Microsoft Corporation",
+        "market_cap": "3100000000000",
+        "sector": "Technology",
+        "industry": "Software - Infrastructure",
+        "beta": "0.91",
+        "price": "417.11",
+        "website": "https://www.microsoft.com",
+        "description": (
+            "Microsoft Corporation develops and licenses software, services, "
+            "devices, and solutions worldwide."
+        ),
+        "ceo": "Satya Nadella",
+        "full_time_employees": 228000,
+        "exchange_short_name": "NASDAQ",
+        "exchange": "NASDAQ Global Select",
+        "currency": "USD",
+        "ipo_date": "1986-03-13",
+        "cik": "0000789019",
+        "isin": "US5949181045",
+        "image": "https://images.example.com/MSFT.png",
+        "is_actively_trading": True,
+    },
+}
+
+_INCOME_STATEMENTS: dict[str, list[dict[str, Any]]] = {
+    "AAPL": [
+        {
+            "date": "2024-09-28",
+            "symbol": "AAPL",
+            "reported_currency": "USD",
+            "cik": "0000320193",
+            "filling_date": "2024-11-01",
+            "accepted_date": "2024-11-01 06:01:36",
+            "fiscal_year": "2024",
+            "period": "FY",
+            "revenue": "391035000000",
+            "cost_of_revenue": "210352000000",
+            "gross_profit": "180683000000",
+            "research_and_development_expenses": "31370000000",
+            "selling_general_and_administrative_expenses": "26097000000",
+            "operating_expenses": "57467000000",
+            "operating_income": "123216000000",
+            "interest_expense": "0",
+            "other_income_expense": "-12830000000",
+            "income_tax_expense": "29749000000",
+            "net_income": "93736000000",
+            "eps": "6.11",
+            "eps_diluted": "6.08",
+            "weighted_average_shares_outstanding": "15343783000",
+            "weighted_average_shares_outstanding_diluted": "15408095000",
+        },
+        {
+            "date": "2023-09-30",
+            "symbol": "AAPL",
+            "reported_currency": "USD",
+            "cik": "0000320193",
+            "filling_date": "2023-11-03",
+            "accepted_date": "2023-11-03 06:01:15",
+            "fiscal_year": "2023",
+            "period": "FY",
+            "revenue": "383285000000",
+            "cost_of_revenue": "214137000000",
+            "gross_profit": "169148000000",
+            "research_and_development_expenses": "29915000000",
+            "selling_general_and_administrative_expenses": "24932000000",
+            "operating_expenses": "54847000000",
+            "operating_income": "114301000000",
+            "interest_expense": "3933000000",
+            "other_income_expense": "-565000000",
+            "income_tax_expense": "16741000000",
+            "net_income": "96995000000",
+            "eps": "6.16",
+            "eps_diluted": "6.13",
+            "weighted_average_shares_outstanding": "15744231000",
+            "weighted_average_shares_outstanding_diluted": "15812547000",
+        },
+    ],
+    "MSFT": [
+        {
+            "date": "2024-06-30",
+            "symbol": "MSFT",
+            "reported_currency": "USD",
+            "cik": "0000789019",
+            "filling_date": "2024-07-30",
+            "accepted_date": "2024-07-30 16:06:16",
+            "fiscal_year": "2024",
+            "period": "FY",
+            "revenue": "245122000000",
+            "cost_of_revenue": "74114000000",
+            "gross_profit": "171008000000",
+            "research_and_development_expenses": "29510000000",
+            "selling_general_and_administrative_expenses": "30620000000",
+            "operating_expenses": "60130000000",
+            "operating_income": "109433000000",
+            "interest_expense": "2269000000",
+            "other_income_expense": "-1568000000",
+            "income_tax_expense": "10945000000",
+            "net_income": "88136000000",
+            "eps": "11.86",
+            "eps_diluted": "11.8",
+            "weighted_average_shares_outstanding": "7440000000",
+            "weighted_average_shares_outstanding_diluted": "7469000000",
+        },
+        {
+            "date": "2023-06-30",
+            "symbol": "MSFT",
+            "reported_currency": "USD",
+            "cik": "0000789019",
+            "filling_date": "2023-07-27",
+            "accepted_date": "2023-07-27 16:04:57",
+            "fiscal_year": "2023",
+            "period": "FY",
+            "revenue": "211915000000",
+            "cost_of_revenue": "65863000000",
+            "gross_profit": "146052000000",
+            "research_and_development_expenses": "27195000000",
+            "selling_general_and_administrative_expenses": "29641000000",
+            "operating_expenses": "56836000000",
+            "operating_income": "88523000000",
+            "interest_expense": "1968000000",
+            "other_income_expense": "288000000",
+            "income_tax_expense": "16950000000",
+            "net_income": "72361000000",
+            "eps": "9.72",
+            "eps_diluted": "9.68",
+            "weighted_average_shares_outstanding": "7447000000",
+            "weighted_average_shares_outstanding_diluted": "7472000000",
+        },
+    ],
+}
+
+_BALANCE_SHEETS: dict[str, list[dict[str, Any]]] = {
+    "AAPL": [
+        {
+            "date": "2024-09-28",
+            "symbol": "AAPL",
+            "reported_currency": "USD",
+            "cik": "0000320193",
+            "fiscal_year": "2024",
+            "period": "FY",
+            "total_assets": "364980000000",
+            "current_assets": "152987000000",
+            "total_liabilities": "308030000000",
+            "current_liabilities": "176392000000",
+            "total_debt": "106629000000",
+            "cash_and_cash_equivalents": "29943000000",
+            "inventory": "7286000000",
+            "receivables": "33410000000",
+            "payables": "68960000000",
+            "goodwill": "0",
+            "retained_earnings": "-19154000000",
+            "total_equity": "56950000000",
+            "common_stock": "83276000000",
+            "net_debt": "76686000000",
+        },
+        {
+            "date": "2023-09-30",
+            "symbol": "AAPL",
+            "reported_currency": "USD",
+            "cik": "0000320193",
+            "fiscal_year": "2023",
+            "period": "FY",
+            "total_assets": "352583000000",
+            "current_assets": "143566000000",
+            "total_liabilities": "290437000000",
+            "current_liabilities": "145308000000",
+            "total_debt": "111088000000",
+            "cash_and_cash_equivalents": "29965000000",
+            "inventory": "6331000000",
+            "receivables": "29508000000",
+            "payables": "62611000000",
+            "goodwill": "0",
+            "retained_earnings": "-2144000000",
+            "total_equity": "62146000000",
+            "common_stock": "73812000000",
+            "net_debt": "81123000000",
+        },
+    ],
+    "MSFT": [
+        {
+            "date": "2024-06-30",
+            "symbol": "MSFT",
+            "reported_currency": "USD",
+            "cik": "0000789019",
+            "fiscal_year": "2024",
+            "period": "FY",
+            "total_assets": "512163000000",
+            "current_assets": "159734000000",
+            "total_liabilities": "243686000000",
+            "current_liabilities": "125286000000",
+            "total_debt": "97383000000",
+            "cash_and_cash_equivalents": "18315000000",
+            "inventory": "1246000000",
+            "receivables": "56924000000",
+            "payables": "21996000000",
+            "goodwill": "119220000000",
+            "retained_earnings": "173140000000",
+            "total_equity": "268477000000",
+            "common_stock": "100923000000",
+            "net_debt": "79068000000",
+        },
+        {
+            "date": "2023-06-30",
+            "symbol": "MSFT",
+            "reported_currency": "USD",
+            "cik": "0000789019",
+            "fiscal_year": "2023",
+            "period": "FY",
+            "total_assets": "411976000000",
+            "current_assets": "184257000000",
+            "total_liabilities": "205753000000",
+            "current_liabilities": "104149000000",
+            "total_debt": "84983000000",
+            "cash_and_cash_equivalents": "34704000000",
+            "inventory": "2500000000",
+            "receivables": "48688000000",
+            "payables": "18095000000",
+            "goodwill": "67886000000",
+            "retained_earnings": "118848000000",
+            "total_equity": "206223000000",
+            "common_stock": "93718000000",
+            "net_debt": "50279000000",
+        },
+    ],
+}
+
+_CASH_FLOW_STATEMENTS: dict[str, list[dict[str, Any]]] = {
+    "AAPL": [
+        {
+            "date": "2024-09-28",
+            "symbol": "AAPL",
+            "reported_currency": "USD",
+            "cik": "0000320193",
+            "fiscal_year": "2024",
+            "period": "FY",
+            "net_income": "93736000000",
+            "operating_cash_flow": "118254000000",
+            "investing_cash_flow": "2935000000",
+            "financing_cash_flow": "-121983000000",
+            "capital_expenditure": "-9447000000",
+            "free_cash_flow": "108807000000",
+            "dividends_paid": "-15234000000",
+            "stock_based_compensation": "11688000000",
+            "cash_change": "-7943000000",
+        },
+        {
+            "date": "2023-09-30",
+            "symbol": "AAPL",
+            "reported_currency": "USD",
+            "cik": "0000320193",
+            "fiscal_year": "2023",
+            "period": "FY",
+            "net_income": "96995000000",
+            "operating_cash_flow": "110543000000",
+            "investing_cash_flow": "3705000000",
+            "financing_cash_flow": "-108488000000",
+            "capital_expenditure": "-10959000000",
+            "free_cash_flow": "99584000000",
+            "dividends_paid": "-15025000000",
+            "stock_based_compensation": "10833000000",
+            "cash_change": "5760000000",
+        },
+    ],
+    "MSFT": [
+        {
+            "date": "2024-06-30",
+            "symbol": "MSFT",
+            "reported_currency": "USD",
+            "cik": "0000789019",
+            "fiscal_year": "2024",
+            "period": "FY",
+            "net_income": "88136000000",
+            "operating_cash_flow": "118548000000",
+            "investing_cash_flow": "-97415000000",
+            "financing_cash_flow": "-37706000000",
+            "capital_expenditure": "-44477000000",
+            "free_cash_flow": "74071000000",
+            "dividends_paid": "-21771000000",
+            "stock_based_compensation": "10755000000",
+            "cash_change": "-16573000000",
+        },
+        {
+            "date": "2023-06-30",
+            "symbol": "MSFT",
+            "reported_currency": "USD",
+            "cik": "0000789019",
+            "fiscal_year": "2023",
+            "period": "FY",
+            "net_income": "72361000000",
+            "operating_cash_flow": "87582000000",
+            "investing_cash_flow": "-22680000000",
+            "financing_cash_flow": "-43939000000",
+            "capital_expenditure": "-28107000000",
+            "free_cash_flow": "59475000000",
+            "dividends_paid": "-19800000000",
+            "stock_based_compensation": "9611000000",
+            "cash_change": "20963000000",
+        },
+    ],
+}
+
+_KEY_METRICS: dict[str, dict[str, Any]] = {
+    "AAPL": {
+        "symbol": "AAPL",
+        "date": "2024-09-28",
+        "fiscal_year": "2024",
+        "period": "FY",
+        "market_cap": "3400000000000",
+        "enterprise_value": "3476686000000",
+        "pe_ratio": "36.28",
+        "peg_ratio": "2.11",
+        "price_to_sales_ratio": "8.69",
+        "price_to_book_ratio": "59.71",
+        "enterprise_value_over_ebitda": "25.14",
+        "ev_to_sales": "8.89",
+        "dividend_yield": "0.0044",
+        "payout_ratio": "0.16",
+        "current_ratio": "0.87",
+        "quick_ratio": "0.83",
+        "debt_to_equity": "1.87",
+        "working_capital": "-23405000000",
+    },
+    "MSFT": {
+        "symbol": "MSFT",
+        "date": "2024-06-30",
+        "fiscal_year": "2024",
+        "period": "FY",
+        "market_cap": "3100000000000",
+        "enterprise_value": "3179068000000",
+        "pe_ratio": "35.18",
+        "peg_ratio": "2.31",
+        "price_to_sales_ratio": "12.65",
+        "price_to_book_ratio": "11.55",
+        "enterprise_value_over_ebitda": "23.48",
+        "ev_to_sales": "12.97",
+        "dividend_yield": "0.0072",
+        "payout_ratio": "0.25",
+        "current_ratio": "1.27",
+        "quick_ratio": "1.26",
+        "debt_to_equity": "0.36",
+        "working_capital": "34448000000",
+    },
+}
+
+_FINANCIAL_RATIOS: dict[str, dict[str, Any]] = {
+    "AAPL": {
+        "symbol": "AAPL",
+        "date": "2024-09-28",
+        "fiscal_year": "2024",
+        "period": "FY",
+        "gross_profit_margin": "0.4621",
+        "operating_profit_margin": "0.3151",
+        "net_profit_margin": "0.2397",
+        "return_on_assets": "0.2568",
+        "return_on_equity": "1.6466",
+        "return_on_capital_employed": "0.5708",
+        "interest_coverage": "0.0",
+        "quick_ratio": "0.8261",
+        "current_ratio": "0.8673",
+        "debt_to_equity": "1.8727",
+        "price_earnings_ratio": "36.28",
+        "book_value_per_share": "3.85",
+        "dividend_yield": "0.0044",
+    },
+    "MSFT": {
+        "symbol": "MSFT",
+        "date": "2024-06-30",
+        "fiscal_year": "2024",
+        "period": "FY",
+        "gross_profit_margin": "0.6976",
+        "operating_profit_margin": "0.4464",
+        "net_profit_margin": "0.3596",
+        "return_on_assets": "0.1720",
+        "return_on_equity": "0.3283",
+        "return_on_capital_employed": "0.2876",
+        "interest_coverage": "48.23",
+        "quick_ratio": "1.2567",
+        "current_ratio": "1.2749",
+        "debt_to_equity": "0.3628",
+        "price_earnings_ratio": "35.18",
+        "book_value_per_share": "36.12",
+        "dividend_yield": "0.0072",
+    },
+}
+
+_OPTIONS_CHAINS: dict[str, list[dict[str, Any]]] = {
+    "AAPL": [
+        {
+            "contract": {
+                "contract_ticker": "O:AAPL250117C00150000",
+                "symbol": "AAPL",
+                "strike_price": "150",
+                "expiration_date": "2025-01-17",
+                "contract_type": "call",
+                "shares_per_contract": 100,
+                "primary_exchange": "BATO",
+                "active": True,
+            },
+            "quote": {
+                "implied_volatility": "0.2812",
+                "open_interest": 12453,
+                "day_volume": 3120,
+                "day_open": "78.10",
+                "day_high": "82.45",
+                "day_low": "77.90",
+                "day_close": "81.30",
+                "greeks": {
+                    "delta": "0.9412",
+                    "gamma": "0.0031",
+                    "theta": "-0.0412",
+                    "vega": "0.1287",
+                    "rho": "0.0521",
+                },
+            },
+        },
+        {
+            "contract": {
+                "contract_ticker": "O:AAPL250117C00230000",
+                "symbol": "AAPL",
+                "strike_price": "230",
+                "expiration_date": "2025-01-17",
+                "contract_type": "call",
+                "shares_per_contract": 100,
+                "primary_exchange": "BATO",
+                "active": True,
+            },
+            "quote": {
+                "implied_volatility": "0.2417",
+                "open_interest": 8421,
+                "day_volume": 1875,
+                "day_open": "9.75",
+                "day_high": "11.20",
+                "day_low": "9.55",
+                "day_close": "10.60",
+                "greeks": {
+                    "delta": "0.5314",
+                    "gamma": "0.0128",
+                    "theta": "-0.0731",
+                    "vega": "0.3412",
+                    "rho": "0.0318",
+                },
+            },
+        },
+        {
+            "contract": {
+                "contract_ticker": "O:AAPL250117P00150000",
+                "symbol": "AAPL",
+                "strike_price": "150",
+                "expiration_date": "2025-01-17",
+                "contract_type": "put",
+                "shares_per_contract": 100,
+                "primary_exchange": "BATO",
+                "active": True,
+            },
+            "quote": {
+                "implied_volatility": "0.3142",
+                "open_interest": 5210,
+                "day_volume": 640,
+                "day_open": "0.52",
+                "day_high": "0.61",
+                "day_low": "0.47",
+                "day_close": "0.49",
+                "greeks": {
+                    "delta": "-0.0588",
+                    "gamma": "0.0031",
+                    "theta": "-0.0187",
+                    "vega": "0.1287",
+                    "rho": "-0.0121",
+                },
+            },
+        },
+        {
+            "contract": {
+                "contract_ticker": "O:AAPL250117P00200000",
+                "symbol": "AAPL",
+                "strike_price": "200",
+                "expiration_date": "2025-01-17",
+                "contract_type": "put",
+                "shares_per_contract": 100,
+                "primary_exchange": "BATO",
+                "active": True,
+            },
+            "quote": {
+                "implied_volatility": "0.2688",
+                "open_interest": 15102,
+                "day_volume": 4021,
+                "day_open": "3.10",
+                "day_high": "3.55",
+                "day_low": "2.95",
+                "day_close": "3.20",
+                "greeks": {
+                    "delta": "-0.2287",
+                    "gamma": "0.0121",
+                    "theta": "-0.0512",
+                    "vega": "0.3189",
+                    "rho": "-0.0210",
+                },
+            },
+        },
+    ],
+}
 
 
 class StubEodhdAPIClient:
@@ -180,14 +772,45 @@ class StubEodhdAPIClient:
 
 
 class StubEodhdGateway(MarketGateway):
-    """Stub EODHD gateway for testing."""
+    """Stub EODHD gateway for testing.
+
+    Prices and search are generated deterministically; the fundamentals and
+    options capabilities return static, offline fixtures for a small set of
+    known symbols (AAPL, MSFT). Unknown symbols raise
+    ``MarketDataNotFoundError`` and symbols listed in ``fail_on_symbols``
+    raise ``MarketDataProviderError``.
+    """
 
     _client: StubEodhdAPIClient
     _api_key: str
+    _unknown_symbols: frozenset[str]
+    _fail_on_symbols: frozenset[str]
 
-    def __init__(self, api_key: str) -> None:
+    def __init__(
+        self,
+        api_key: str,
+        *,
+        unknown_symbols: set[str] | None = None,
+        fail_on_symbols: set[str] | None = None,
+    ) -> None:
         self._api_key = api_key
         self._client = StubEodhdAPIClient(api_key)
+        self._unknown_symbols = frozenset(
+            symbol.upper() for symbol in (unknown_symbols or ())
+        )
+        self._fail_on_symbols = frozenset(
+            symbol.upper() for symbol in (fail_on_symbols or ())
+        )
+
+    def _resolve_symbol(self, symbol: str) -> str:
+        """Normalize a symbol and enforce the stub's failure/not-found paths."""
+        normalized = symbol.strip().upper()
+        if normalized in self._fail_on_symbols:
+            msg = f"Market data provider failure for symbol '{normalized}'."
+            raise MarketDataProviderError(msg)
+        if normalized in self._unknown_symbols or normalized not in _KNOWN_SYMBOLS:
+            raise MarketDataNotFoundError(normalized)
+        return normalized
 
     def search(self, query: str) -> list[SecuritySearchResult]:
         """Search for securities."""
@@ -384,3 +1007,103 @@ class StubEodhdGateway(MarketGateway):
             )
 
         return prices
+
+    # ------------------------------------------------------------------ #
+    # Fundamentals / options capabilities (static deterministic fixtures).
+    # ------------------------------------------------------------------ #
+
+    def lookup_symbol(self, query: str) -> list[SymbolLookupResult]:
+        """Look up symbols/companies matching a free-text query."""
+        clean_query = query.strip().upper()
+        matches = [
+            payload
+            for payload in _SYMBOL_LOOKUPS.values()
+            if not clean_query
+            or clean_query in payload["symbol"].upper()
+            or clean_query in payload["name"].upper()
+        ]
+        return [SymbolLookupResult(**payload) for payload in matches]
+
+    def get_company_profile(self, symbol: str) -> CompanyProfile:
+        """Get the company profile for a symbol."""
+        normalized = self._resolve_symbol(symbol)
+        return CompanyProfile(**_COMPANY_PROFILES[normalized])
+
+    def get_income_statement(
+        self,
+        symbol: str,
+        period: str = "annual",
+        limit: int = 5,
+    ) -> list[IncomeStatement]:
+        """Get income statements for a symbol."""
+        _ = period
+        normalized = self._resolve_symbol(symbol)
+        return [
+            IncomeStatement(**payload)
+            for payload in _INCOME_STATEMENTS[normalized][:limit]
+        ]
+
+    def get_balance_sheet(
+        self,
+        symbol: str,
+        period: str = "annual",
+        limit: int = 5,
+    ) -> list[BalanceSheet]:
+        """Get balance sheets for a symbol."""
+        _ = period
+        normalized = self._resolve_symbol(symbol)
+        return [
+            BalanceSheet(**payload) for payload in _BALANCE_SHEETS[normalized][:limit]
+        ]
+
+    def get_cash_flow_statement(
+        self,
+        symbol: str,
+        period: str = "annual",
+        limit: int = 5,
+    ) -> list[CashFlowStatement]:
+        """Get cash-flow statements for a symbol."""
+        _ = period
+        normalized = self._resolve_symbol(symbol)
+        return [
+            CashFlowStatement(**payload)
+            for payload in _CASH_FLOW_STATEMENTS[normalized][:limit]
+        ]
+
+    def get_key_metrics(self, symbol: str) -> KeyMetrics:
+        """Get the key metrics / valuation snapshot for a symbol."""
+        normalized = self._resolve_symbol(symbol)
+        return KeyMetrics(**_KEY_METRICS[normalized])
+
+    def get_financial_ratios(
+        self,
+        symbol: str,
+        period: str = "annual",
+    ) -> FinancialRatios:
+        """Get financial ratios for a symbol."""
+        _ = period
+        normalized = self._resolve_symbol(symbol)
+        return FinancialRatios(**_FINANCIAL_RATIOS[normalized])
+
+    def get_options_chain(
+        self,
+        symbol: str,
+        *,
+        expiration: date | None = None,
+    ) -> OptionsChain:
+        """Get the options chain for an underlying symbol."""
+        normalized = self._resolve_symbol(symbol)
+        entries = [
+            OptionsChainEntry(
+                contract=OptionsContract(**payload["contract"]),
+                quote=OptionsQuote(**payload["quote"]),
+            )
+            for payload in _OPTIONS_CHAINS.get(normalized, [])
+            if expiration is None
+            or payload["contract"]["expiration_date"] == expiration.isoformat()
+        ]
+        return OptionsChain(
+            underlying_symbol=normalized,
+            as_of=STUB_AS_OF_DATE,
+            contracts=entries,
+        )
