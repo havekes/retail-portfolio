@@ -2,11 +2,22 @@ from abc import ABC, abstractmethod
 from datetime import date, datetime
 
 from src.market.api_types import (
+    BalanceSheet,
+    CashFlowStatement,
+    CompanyProfile,
+    FinancialRatios,
     HistoricalPrice,
+    IncomeStatement,
     IntradayHistoricalPrice,
+    KeyMetrics,
+    OptionsChain,
     SecurityId,
     SecuritySearchResult,
+    SymbolLookupResult,
 )
+from src.market.exception import MarketDataProviderError
+
+_CAPABILITY_NOT_SUPPORTED = "capability not supported by this provider"
 
 
 class MarketGateway(ABC):
@@ -52,3 +63,77 @@ class MarketGateway(ABC):
     ) -> list[IntradayHistoricalPrice]:
         """Get intraday prices for a security within a datetime range."""
         ...
+
+    # ------------------------------------------------------------------ #
+    # Optional capabilities.
+    #
+    # These are non-abstract on purpose: gateways that only serve prices and
+    # search (e.g. the existing EODHD-backed gateway) stay concrete and
+    # instantiable. The default body raises a provider-agnostic error that
+    # later tickets (and caching/proxy wrappers) can rely on. Implementations
+    # that support a capability override the method.
+    # ------------------------------------------------------------------ #
+
+    def lookup_symbol(self, query: str) -> list[SymbolLookupResult]:
+        """Look up symbols/companies matching a free-text query."""
+        _ = query
+        raise MarketDataProviderError(_CAPABILITY_NOT_SUPPORTED)
+
+    def get_company_profile(self, symbol: str) -> CompanyProfile:
+        """Get the company profile for a symbol."""
+        _ = symbol
+        raise MarketDataProviderError(_CAPABILITY_NOT_SUPPORTED)
+
+    def get_income_statement(
+        self,
+        symbol: str,
+        period: str = "annual",
+        limit: int = 5,
+    ) -> list[IncomeStatement]:
+        """Get income statements for a symbol."""
+        _ = symbol, period, limit
+        raise MarketDataProviderError(_CAPABILITY_NOT_SUPPORTED)
+
+    def get_balance_sheet(
+        self,
+        symbol: str,
+        period: str = "annual",
+        limit: int = 5,
+    ) -> list[BalanceSheet]:
+        """Get balance sheets for a symbol."""
+        _ = symbol, period, limit
+        raise MarketDataProviderError(_CAPABILITY_NOT_SUPPORTED)
+
+    def get_cash_flow_statement(
+        self,
+        symbol: str,
+        period: str = "annual",
+        limit: int = 5,
+    ) -> list[CashFlowStatement]:
+        """Get cash-flow statements for a symbol."""
+        _ = symbol, period, limit
+        raise MarketDataProviderError(_CAPABILITY_NOT_SUPPORTED)
+
+    def get_key_metrics(self, symbol: str) -> KeyMetrics:
+        """Get the key metrics / valuation snapshot for a symbol."""
+        _ = symbol
+        raise MarketDataProviderError(_CAPABILITY_NOT_SUPPORTED)
+
+    def get_financial_ratios(
+        self,
+        symbol: str,
+        period: str = "annual",
+    ) -> FinancialRatios:
+        """Get financial ratios for a symbol."""
+        _ = symbol, period
+        raise MarketDataProviderError(_CAPABILITY_NOT_SUPPORTED)
+
+    def get_options_chain(
+        self,
+        symbol: str,
+        *,
+        expiration: date | None = None,
+    ) -> OptionsChain:
+        """Get the options chain for an underlying symbol."""
+        _ = symbol, expiration
+        raise MarketDataProviderError(_CAPABILITY_NOT_SUPPORTED)
