@@ -30,6 +30,7 @@ from src.market.cache import (
     _canonicalize_datetime,
     _normalize_query,
 )
+from src.market.exception import MarketDataNotFoundError
 
 logger = logging.getLogger(__name__)
 
@@ -51,6 +52,42 @@ _TTL_SETTING_FIELDS: dict[str, str] = {
 
 # Fallback when an endpoint reports a data class without a configured TTL.
 _DEFAULT_TTL_SECONDS = 3_600
+
+# Marker for a negative ("symbol/dataset not found") entry. It is a one-key
+# mapping whose value is the label (usually the symbol) the provider reported
+# missing, so a re-raise can rebuild an equivalent ``MarketDataNotFoundError``.
+# No legitimate endpoint payload shares this shape.
+_NEGATIVE_CACHE_KEY = "__market_data_not_found__"
+
+
+class _NegativeHit:
+    """Cached negative entry, carrying the label the provider reported missing."""
+
+    __slots__ = ("label",)
+
+    def __init__(self, label: str) -> None:
+        self.label = label
+
+
+def _negative_hit(value: Any) -> _NegativeHit | None:
+    """Return a :class:`_NegativeHit` when ``value`` is the negative marker."""
+    if isinstance(value, dict) and list(value) == [_NEGATIVE_CACHE_KEY]:
+        return _NegativeHit(str(value[_NEGATIVE_CACHE_KEY]))
+    return None
+
+
+def _negative_ttl() -> int:
+    """Resolve the negative-cache TTL at call time so config changes apply."""
+    return int(settings.endpoint_ttl_negative_seconds)
+
+
+def _param_label(params: Mapping[str, Any]) -> str:
+    """Best-effort label for a negative entry when the error carries none."""
+    for field in ("symbol", "query"):
+        value = params.get(field)
+        if isinstance(value, str) and value:
+            return value
+    return "unknown"
 
 
 def _canonicalize_param(value: Any) -> Any:
@@ -127,11 +164,17 @@ def _encode_payload(payload: Any) -> str:
 def _decode_payload(payload: str, model: type[BaseModel] | None) -> Any:
     """Deserialize a cached payload, optionally validating it against ``model``.
 
-    Raises on malformed payloads; the caller treats that as a cache miss.
+    The null sentinel decodes to ``None`` and the negative marker to a
+    :class:`_NegativeHit` — both before any model validation, so a marker is
+    never mistaken for malformed data. Raises on malformed payloads; the caller
+    treats that as a cache miss.
     """
     decoded: Any = json.loads(payload)
     if decoded == _NULL_SENTINEL:
         return None
+    negative = _negative_hit(decoded)
+    if negative is not None:
+        return negative
     if model is None:
         return decoded
     if isinstance(decoded, list):
@@ -144,9 +187,10 @@ class EndpointResponseCache:
 
     T08/T09 handlers adopt :meth:`cached_response` for the whole get-or-fetch
     behaviour, or use :meth:`get` / :meth:`set` directly when they need finer
-    control. Only successful responses should be cached: the wrapper naturally
-    stores just the happy path of ``fetch``, and direct callers must not call
-    :meth:`set` after the gateway raised.
+    control. Successful responses are cached under the data class TTL; a
+    :class:`MarketDataNotFoundError` from ``fetch`` is cached under the shorter
+    negative TTL so repeat lookups of a missing symbol never reach the provider;
+    every other failure propagates uncached.
     """
 
     async def get(
@@ -162,10 +206,14 @@ class EndpointResponseCache:
         ``model`` optionally validates the decoded payload (each list item or
         the object) into typed values. A payload that fails to decode is logged
         and treated as a miss. A cached ``None`` result also reads back as
-        ``None``; use :meth:`cached_response` when the distinction matters.
+        ``None``; use :meth:`cached_response` when the distinction matters. A
+        cached negative entry reads back as a miss too — the raw marker is never
+        returned to a caller.
         """
         hit, value = await self._lookup(_cache_key(data_class, endpoint, params), model)
-        return value if hit else None
+        if not hit or isinstance(value, _NegativeHit):
+            return None
+        return value
 
     async def set(
         self,
@@ -197,14 +245,29 @@ class EndpointResponseCache:
         """Serve an endpoint response from cache, or fetch and cache it.
 
         On a hit the stored payload is returned (validated when ``model`` is
-        given); on a miss ``fetch`` is awaited and its result stored. A fetch
-        that raises propagates and is never cached.
+        given); a cached negative entry re-raises the equivalent
+        :class:`MarketDataNotFoundError`. On a miss ``fetch`` is awaited and its
+        result stored. A ``fetch`` that raises :class:`MarketDataNotFoundError`
+        is stored under the negative TTL and re-raised; any other exception
+        propagates uncached.
         """
         key = _cache_key(data_class, endpoint, params)
         hit, value = await self._lookup(key, model)
         if hit:
+            if isinstance(value, _NegativeHit):
+                raise MarketDataNotFoundError(value.label)
             return value
-        result = await fetch()
+        try:
+            result = await fetch()
+        except MarketDataNotFoundError as exc:
+            label = exc.symbol or _param_label(params)
+            await self._store(
+                key,
+                data_class,
+                {_NEGATIVE_CACHE_KEY: label},
+                _negative_ttl(),
+            )
+            raise
         await self._store(key, data_class, result, None)
         return result
 
