@@ -3,7 +3,7 @@
 import random
 from datetime import UTC, date, datetime, timedelta
 from decimal import Decimal
-from typing import Any
+from typing import Any, Literal
 from uuid import UUID
 
 import pandas as pd
@@ -1090,18 +1090,38 @@ class StubEodhdGateway(MarketGateway):
         symbol: str,
         *,
         expiration: date | None = None,
+        contract_type: Literal["call", "put"] | None = None,
+        strike_min: Decimal | None = None,
+        strike_max: Decimal | None = None,
     ) -> OptionsChain:
-        """Get the options chain for an underlying symbol."""
+        """Get the options chain for an underlying symbol.
+
+        Honours the provider-agnostic filters (expiry, option type and strike
+        range). A known symbol without options still returns an empty chain
+        rather than raising.
+        """
         normalized = self._resolve_symbol(symbol)
-        entries = [
-            OptionsChainEntry(
-                contract=OptionsContract(**payload["contract"]),
-                quote=OptionsQuote(**payload["quote"]),
+        entries: list[OptionsChainEntry] = []
+        for payload in _OPTIONS_CHAINS.get(normalized, []):
+            contract = payload["contract"]
+            if (
+                expiration is not None
+                and contract["expiration_date"] != expiration.isoformat()
+            ):
+                continue
+            if contract_type is not None and contract["contract_type"] != contract_type:
+                continue
+            strike = Decimal(contract["strike_price"])
+            if strike_min is not None and strike < strike_min:
+                continue
+            if strike_max is not None and strike > strike_max:
+                continue
+            entries.append(
+                OptionsChainEntry(
+                    contract=OptionsContract(**contract),
+                    quote=OptionsQuote(**payload["quote"]),
+                )
             )
-            for payload in _OPTIONS_CHAINS.get(normalized, [])
-            if expiration is None
-            or payload["contract"]["expiration_date"] == expiration.isoformat()
-        ]
         return OptionsChain(
             underlying_symbol=normalized,
             as_of=STUB_AS_OF_DATE,

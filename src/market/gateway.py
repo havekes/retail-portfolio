@@ -1,5 +1,7 @@
 from abc import ABC, abstractmethod
 from datetime import date, datetime
+from decimal import Decimal
+from typing import Literal
 
 from src.market.api_types import (
     BalanceSheet,
@@ -133,7 +135,16 @@ class MarketGateway(ABC):
         symbol: str,
         *,
         expiration: date | None = None,
+        contract_type: Literal["call", "put"] | None = None,
+        strike_min: Decimal | None = None,
+        strike_max: Decimal | None = None,
     ) -> OptionsChain:
-        """Get the options chain for an underlying symbol."""
-        _ = symbol, expiration
+        """Get the options chain for an underlying symbol.
+
+        The optional keyword filters are provider-agnostic: ``expiration``
+        restricts to a single expiry, ``contract_type`` to calls or puts and
+        ``strike_min``/``strike_max`` to a strike range. Implementations may
+        apply them upstream or locally; callers never need provider knowledge.
+        """
+        _ = symbol, expiration, contract_type, strike_min, strike_max
         raise MarketDataProviderError(_CAPABILITY_NOT_SUPPORTED)
