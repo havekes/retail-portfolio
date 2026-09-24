@@ -6,6 +6,7 @@ cache is exercised on a running event loop, exactly as the T08/T09 endpoints
 will use it.
 """
 
+import json
 from datetime import date, datetime
 from decimal import Decimal
 from typing import Any
@@ -21,8 +22,13 @@ from src.market import register_market_services
 from src.market.api_types import HistoricalPrice
 from src.market.endpoint_cache import (
     EndpointResponseCache,
+    _NEGATIVE_CACHE_KEY,
     _cache_key,
     endpoint_response_cache_factory,
+)
+from src.market.exception import (
+    MarketDataNotFoundError,
+    MarketDataProviderError,
 )
 from tests.fixtures.redis import FakeRedis
 
@@ -30,6 +36,7 @@ PRICES_TTL = 3_600
 STATEMENTS_TTL = 86_400
 METRICS_TTL = 86_400
 OPTIONS_TTL = 1_800
+NEGATIVE_TTL = 300
 OVERRIDE_TTL = 5
 
 PRICE_PARAMS: dict[str, Any] = {
@@ -49,6 +56,18 @@ class FakeGateway:
     async def fetch(self) -> Any:
         self.calls += 1
         return self.result
+
+
+class RaisingGateway:
+    """Async fetch stub that counts invocations and always raises ``exc``."""
+
+    def __init__(self, exc: Exception) -> None:
+        self.exc = exc
+        self.calls = 0
+
+    async def fetch(self) -> Any:
+        self.calls += 1
+        raise self.exc
 
 
 @pytest.fixture
@@ -253,6 +272,7 @@ def test_default_ttls_are_sane() -> None:
     assert settings.endpoint_ttl_statements_seconds == STATEMENTS_TTL
     assert settings.endpoint_ttl_metrics_seconds == METRICS_TTL
     assert settings.endpoint_ttl_options_seconds == OPTIONS_TTL
+    assert settings.endpoint_ttl_negative_seconds == NEGATIVE_TTL
 
 
 @pytest.mark.anyio
@@ -434,6 +454,122 @@ async def test_null_result_is_cached_as_a_sentinel(
     keys = _endpoint_keys(mock_redis_storage)
     assert len(keys) == 1
     assert mock_redis_storage.data[keys[0]] == '{"null": true}'
+
+
+# --------------------------------------------------------------------------- #
+# Negative caching: a provider-reported missing symbol is cached under the
+# negative TTL and re-raised on a hit, so repeat lookups never reach upstream.
+# --------------------------------------------------------------------------- #
+
+
+@pytest.mark.anyio
+async def test_not_found_is_cached_under_negative_ttl(
+    cache: EndpointResponseCache,
+    mock_redis_storage: FakeRedis,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    recorded = _install_recording_setex(monkeypatch, mock_redis_storage)
+    gateway = RaisingGateway(MarketDataNotFoundError("ZZZZ"))
+
+    with pytest.raises(MarketDataNotFoundError):
+        await cache.cached_response("prices", "history", PRICE_PARAMS, gateway.fetch)
+
+    assert gateway.calls == 1
+    # Exactly one write, under the negative TTL (not the prices class TTL).
+    assert [ttl for _, ttl in recorded] == [NEGATIVE_TTL]
+    keys = _endpoint_keys(mock_redis_storage)
+    assert len(keys) == 1
+    assert json.loads(mock_redis_storage.data[keys[0]]) == {_NEGATIVE_CACHE_KEY: "ZZZZ"}
+
+
+@pytest.mark.anyio
+async def test_cached_not_found_re_raises_without_refetching(
+    cache: EndpointResponseCache,
+    mock_redis_storage: FakeRedis,
+) -> None:
+    gateway = RaisingGateway(MarketDataNotFoundError("ZZZZ"))
+
+    with pytest.raises(MarketDataNotFoundError):
+        await cache.cached_response("prices", "history", PRICE_PARAMS, gateway.fetch)
+
+    with pytest.raises(MarketDataNotFoundError):
+        await cache.cached_response("prices", "history", PRICE_PARAMS, gateway.fetch)
+
+    # The second call was served from the negative entry: no second fetch.
+    assert gateway.calls == 1
+
+
+@pytest.mark.anyio
+async def test_cached_not_found_decodes_back_through_a_model(
+    cache: EndpointResponseCache,
+    mock_redis_storage: FakeRedis,
+) -> None:
+    gateway = RaisingGateway(MarketDataNotFoundError("ZZZZ"))
+
+    with pytest.raises(MarketDataNotFoundError):
+        await cache.cached_response(
+            "options",
+            "chain",
+            PRICE_PARAMS,
+            gateway.fetch,
+            model=HistoricalPrice,
+        )
+
+    # A model must not swallow the marker: the hit still re-raises.
+    with pytest.raises(MarketDataNotFoundError):
+        await cache.cached_response(
+            "options",
+            "chain",
+            PRICE_PARAMS,
+            gateway.fetch,
+            model=HistoricalPrice,
+        )
+
+    assert gateway.calls == 1
+
+
+@pytest.mark.anyio
+async def test_negative_ttl_is_read_from_settings_at_call_time(
+    cache: EndpointResponseCache,
+    mock_redis_storage: FakeRedis,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    recorded = _install_recording_setex(monkeypatch, mock_redis_storage)
+    monkeypatch.setattr(settings, "endpoint_ttl_negative_seconds", OVERRIDE_TTL)
+    gateway = RaisingGateway(MarketDataNotFoundError("ZZZZ"))
+
+    with pytest.raises(MarketDataNotFoundError):
+        await cache.cached_response("prices", "history", PRICE_PARAMS, gateway.fetch)
+
+    assert [ttl for _, ttl in recorded] == [OVERRIDE_TTL]
+
+
+@pytest.mark.anyio
+async def test_get_treats_a_cached_not_found_as_a_miss(
+    cache: EndpointResponseCache,
+    mock_redis_storage: FakeRedis,
+) -> None:
+    gateway = RaisingGateway(MarketDataNotFoundError("ZZZZ"))
+
+    with pytest.raises(MarketDataNotFoundError):
+        await cache.cached_response("prices", "history", PRICE_PARAMS, gateway.fetch)
+
+    # The raw marker never leaks through the direct read API.
+    assert await cache.get("prices", "history", PRICE_PARAMS) is None
+
+
+@pytest.mark.anyio
+async def test_transient_failure_is_not_cached(
+    cache: EndpointResponseCache,
+    mock_redis_storage: FakeRedis,
+) -> None:
+    gateway = RaisingGateway(MarketDataProviderError("boom"))
+
+    with pytest.raises(MarketDataProviderError):
+        await cache.cached_response("prices", "history", PRICE_PARAMS, gateway.fetch)
+
+    assert gateway.calls == 1
+    assert _endpoint_keys(mock_redis_storage) == []
 
 
 # --------------------------------------------------------------------------- #
