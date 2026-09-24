@@ -27,9 +27,11 @@ const (
 //     `mcp.TextContent` — not the backend response verbatim.
 //   - Error mapping: `errors.Is(err, ErrNoData)` is a *successful* result whose
 //     text says no data is available (404 can be a cached empty result within
-//     the TTL, so it is not "invalid symbol"); `ErrConfiguration` and
-//     `ErrProvider` become `result.SetError(err)` using the client's generic
-//     message. Non-ErrNoData errors are never unwrapped to surface detail.
+//     the TTL, so it is not "invalid symbol"); `ErrValidation` becomes
+//     `result.SetError` carrying the parsed, agent-safe validation message;
+//     `ErrConfiguration` and `ErrProvider` become `result.SetError(err)` using
+//     the client's generic message. Backend status/body detail is never
+//     unwrapped; only the parsed validation message is forwarded.
 //   - Tool names, descriptions, and result text contain no provider name.
 func newMCPServer(client *BackendClient) *mcp.Server {
 	server := mcp.NewServer(&mcp.Implementation{
