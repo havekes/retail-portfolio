@@ -51,7 +51,7 @@ class EodhdSearchResult(BaseModel):
 
 class HistoricalPrice(BaseModel):
     id: int | None = None
-    security_id: SecurityId
+    security_id: SecurityId | None = None
     date: date
     open: Decimal
     high: Decimal
@@ -63,7 +63,7 @@ class HistoricalPrice(BaseModel):
 
 class IntradayHistoricalPrice(BaseModel):
     id: int | None = None
-    security_id: SecurityId
+    security_id: SecurityId | None = None
     timestamp: AwareDatetime
     open: Decimal
     high: Decimal

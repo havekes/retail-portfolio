@@ -13,7 +13,6 @@ from collections.abc import AsyncIterator
 from datetime import date
 from decimal import Decimal
 from unittest.mock import MagicMock
-from uuid import UUID
 
 import pytest
 from asgi_lifespan import LifespanManager
@@ -108,7 +107,7 @@ async def client(
 def _historical_price(day: date = date(2026, 1, 2)) -> HistoricalPrice:
     return HistoricalPrice(
         id=1,
-        security_id=UUID(int=0),
+        security_id=None,
         date=day,
         open=Decimal("150.00"),
         high=Decimal("155.00"),
@@ -342,6 +341,11 @@ async def test_repeated_prices_request_is_a_cache_hit(
     assert first.status_code == second.status_code == 200
     assert first.json() == second.json()
     mock_gateway.get_prices.assert_called_once()
+    # The data plane has no security identity: the call carries symbol/exchange
+    # and no fabricated placeholder id.
+    args, kwargs = mock_gateway.get_prices.call_args
+    assert args == ("AAPL", "", date(2026, 1, 1), date(2026, 1, 31))
+    assert "security_id" not in kwargs
     assert (
         len(
             _endpoint_keys(

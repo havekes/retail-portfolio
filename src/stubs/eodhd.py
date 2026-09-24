@@ -775,10 +775,10 @@ class StubEodhdGateway(MarketGateway):
 
     def get_price_on_date(
         self,
-        security_id: UUID,
         symbol: str,
         exchange: str,
         date: date,
+        security_id: UUID | None = None,
     ) -> HistoricalPrice | None:
         """Get price for a security on a specific date."""
         eodhd_symbol = f"{symbol}.{exchange}"
@@ -806,11 +806,11 @@ class StubEodhdGateway(MarketGateway):
 
     def get_prices(
         self,
-        security_id: UUID,
         symbol: str,
         exchange: str,
         from_date: date,
         to_date: date,
+        security_id: UUID | None = None,
     ) -> list[HistoricalPrice]:
         """Get historical prices for a security."""
         eodhd_symbol = f"{symbol}.{exchange}"
@@ -841,12 +841,12 @@ class StubEodhdGateway(MarketGateway):
 
     def get_intraday_prices(  # noqa: PLR0913, PLR0917
         self,
-        security_id: UUID,
         symbol: str,
         exchange: str,
         from_datetime: datetime,
         to_datetime: datetime,
         interval: str = "1h",
+        security_id: UUID | None = None,
     ) -> list[IntradayHistoricalPrice]:
         """Get intraday prices for a security."""
         if interval != "1h":

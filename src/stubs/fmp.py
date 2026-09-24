@@ -802,7 +802,7 @@ class StubFmpGateway(MarketGateway):
 
     def _generate_prices(
         self,
-        security_id: UUID,
+        security_id: UUID | None,
         symbol: str,
         from_date: date,
         to_date: date,
@@ -850,10 +850,10 @@ class StubFmpGateway(MarketGateway):
 
     def get_price_on_date(
         self,
-        security_id: UUID,
         symbol: str,
         exchange: str,
         date: date,
+        security_id: UUID | None = None,
     ) -> HistoricalPrice | None:
         """Get the price for a security on a specific date."""
         _ = exchange  # Price generation is symbol-driven in stub mode.
@@ -865,11 +865,11 @@ class StubFmpGateway(MarketGateway):
 
     def get_prices(
         self,
-        security_id: UUID,
         symbol: str,
         exchange: str,
         from_date: date,
         to_date: date,
+        security_id: UUID | None = None,
     ) -> list[HistoricalPrice]:
         """Get historical prices for a security within a date range."""
         _ = exchange  # Price generation is symbol-driven in stub mode.
@@ -880,12 +880,12 @@ class StubFmpGateway(MarketGateway):
 
     def get_intraday_prices(  # noqa: PLR0913, PLR0917
         self,
-        security_id: UUID,
         symbol: str,
         exchange: str,
         from_datetime: datetime,
         to_datetime: datetime,
         interval: str = "1h",
+        security_id: UUID | None = None,
     ) -> list[IntradayHistoricalPrice]:
         """Get intraday prices for a security (deterministic hourly bars)."""
         _ = exchange  # Price generation is symbol-driven in stub mode.

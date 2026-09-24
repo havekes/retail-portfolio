@@ -67,9 +67,9 @@ class FakeFmpGateway(MarketGateway):
         ]
 
     def get_price_on_date(
-        self, security_id, symbol, exchange, date
+        self, symbol, exchange, date, security_id=None
     ) -> HistoricalPrice | None:
-        self._record("get_price_on_date", (security_id, symbol, exchange, date))
+        self._record("get_price_on_date", (symbol, exchange, date, security_id))
         return HistoricalPrice(
             security_id=security_id,
             date=date,
@@ -81,16 +81,22 @@ class FakeFmpGateway(MarketGateway):
             volume=10,
         )
 
-    def get_prices(self, security_id, symbol, exchange, from_date, to_date):
-        self._record("get_prices", (security_id, symbol, exchange, from_date, to_date))
+    def get_prices(self, symbol, exchange, from_date, to_date, security_id=None):
+        self._record("get_prices", (symbol, exchange, from_date, to_date, security_id))
         return []
 
     def get_intraday_prices(
-        self, security_id, symbol, exchange, from_datetime, to_datetime, interval="1h"
+        self,
+        symbol,
+        exchange,
+        from_datetime,
+        to_datetime,
+        interval="1h",
+        security_id=None,
     ):
         self._record(
             "get_intraday_prices",
-            (security_id, symbol, exchange, from_datetime, to_datetime, interval),
+            (symbol, exchange, from_datetime, to_datetime, interval, security_id),
         )
         if self.intraday_error is not None:
             raise self.intraday_error
@@ -170,14 +176,20 @@ class FakePolygonGateway(MarketGateway):
     def search(self, query):
         raise AssertionError("Polygon must not receive search calls")
 
-    def get_price_on_date(self, security_id, symbol, exchange, date):
+    def get_price_on_date(self, symbol, exchange, date, security_id=None):
         raise AssertionError("Polygon must not receive price calls")
 
-    def get_prices(self, security_id, symbol, exchange, from_date, to_date):
+    def get_prices(self, symbol, exchange, from_date, to_date, security_id=None):
         raise AssertionError("Polygon must not receive price calls")
 
     def get_intraday_prices(
-        self, security_id, symbol, exchange, from_datetime, to_datetime, interval="1h"
+        self,
+        symbol,
+        exchange,
+        from_datetime,
+        to_datetime,
+        interval="1h",
+        security_id=None,
     ):
         raise AssertionError("Polygon must not receive intraday calls")
 
@@ -192,16 +204,16 @@ def fakes() -> tuple[FakeFmpGateway, FakePolygonGateway, CompositeMarketGateway]
 def test_price_capabilities_route_to_fmp(fakes):
     fmp, _polygon, composite = fakes
 
-    composite.get_price_on_date(SID, "AAPL", "NASDAQ", FROM_DATE)
-    composite.get_prices(SID, "AAPL", "NASDAQ", FROM_DATE, TO_DATE)
-    composite.get_intraday_prices(SID, "AAPL", "NASDAQ", FROM_DT, TO_DT)
+    composite.get_price_on_date("AAPL", "NASDAQ", FROM_DATE, SID)
+    composite.get_prices("AAPL", "NASDAQ", FROM_DATE, TO_DATE, SID)
+    composite.get_intraday_prices("AAPL", "NASDAQ", FROM_DT, TO_DT, security_id=SID)
 
     assert [name for name, *_ in fmp.calls] == [
         "get_price_on_date",
         "get_prices",
         "get_intraday_prices",
     ]
-    assert fmp.calls[0][1] == (SID, "AAPL", "NASDAQ", FROM_DATE)
+    assert fmp.calls[0][1] == ("AAPL", "NASDAQ", FROM_DATE, SID)
 
 
 def test_search_and_lookup_route_to_fmp(fakes):
@@ -264,7 +276,7 @@ def test_unsupported_capability_error_surfaces_unchanged(fakes):
     fmp.intraday_error = MarketDataProviderError("capability not supported")
 
     with pytest.raises(MarketDataProviderError, match="capability not supported"):
-        composite.get_intraday_prices(SID, "AAPL", "NASDAQ", FROM_DT, TO_DT)
+        composite.get_intraday_prices("AAPL", "NASDAQ", FROM_DT, TO_DT, security_id=SID)
 
 
 def test_composite_delegates_every_call_and_adds_no_caching(fakes):

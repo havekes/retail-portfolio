@@ -47,10 +47,10 @@ class EodhdGateway(MarketGateway):
 
     def get_price_on_date(
         self,
-        security_id: SecurityId,
         symbol: str,
         exchange: str,
         date: date,
+        security_id: SecurityId | None = None,
     ) -> HistoricalPrice | None:
         eodhd_symbol = f"{symbol}.{exchange}"
         data = self._client.get_historical_data(
@@ -77,11 +77,11 @@ class EodhdGateway(MarketGateway):
 
     def get_prices(
         self,
-        security_id: SecurityId,
         symbol: str,
         exchange: str,
         from_date: date,
         to_date: date,
+        security_id: SecurityId | None = None,
     ) -> list[HistoricalPrice]:
         eodhd_symbol = f"{symbol}.{exchange}"
         logger.info("Fetching data for security: %s", eodhd_symbol)
@@ -119,12 +119,12 @@ class EodhdGateway(MarketGateway):
 
     def get_intraday_prices(  # noqa: PLR0913, PLR0917, PLR0912, C901
         self,
-        security_id: SecurityId,
         symbol: str,
         exchange: str,
         from_datetime: datetime,
         to_datetime: datetime,
         interval: str = "1h",
+        security_id: SecurityId | None = None,
     ) -> list[IntradayHistoricalPrice]:
         if interval != "1h":
             msg = f"Unsupported interval '{interval}'. Only '1h' interval is supported."
