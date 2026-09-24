@@ -52,11 +52,14 @@ query parameter names are a stable contract defined in
 
 ### Error taxonomy
 
-The client normalizes every failure into one of three classes (`errors.Is`):
+The client normalizes every failure into one of four classes (`errors.Is`):
 
-- **`ErrNoData`** — HTTP 404/422. There is no data for this request *right
+- **`ErrNoData`** — HTTP 404. There is no data for this request *right
   now*. A 404 may be a cached empty result within the cache TTL, so it is
   **not** "invalid symbol".
+- **`ErrValidation`** — HTTP 422. The request's parameters failed backend
+  validation. A parsed, agent-safe validation message is forwarded so the caller
+  can retry with corrected parameters (unlike `ErrNoData`).
 - **`ErrConfiguration`** — HTTP 401/403. The service token was rejected; this
   is an operator problem.
 - **`ErrProvider`** — HTTP 5xx, unexpected statuses, non-JSON bodies, timeouts,
@@ -94,9 +97,10 @@ it. Every tool name, description and result string is provider-agnostic.
 | `get_company_details`      | `symbol`, `exchange?`                                           | `GET /api/v1/market/data/fundamentals/{symbol}`                 | Profile projection of the aggregate       |
 | `search_symbols`           | `q`                                                             | `GET /api/v1/market/data/symbols/search`                        | Symbol lookup results                     |
 
-Inputs are validated or clamped in the handler before any backend call, so a bad
-argument never becomes a backend `422` (which the client classifies as
-`ErrNoData` and would otherwise be misreported as "no data"):
+Inputs are validated or clamped in the handler before any backend call, so most
+bad arguments never reach the backend. A backend `422` that still occurs is
+classified as `ErrValidation` — not `ErrNoData` — so it is reported as an
+actionable error rather than "no data":
 
 - `symbol` is trimmed, required, and at most 32 characters.
 - `get_price_history` requires `from <= to`; both parse as `YYYY-MM-DD`.
@@ -112,6 +116,9 @@ argument never becomes a backend `422` (which the client classifies as
 - **`ErrNoData` is a successful result** whose text is `No market data is
   available for this request.` A 404 may be a cached empty result within the
   cache TTL, so it is never phrased as "invalid symbol".
+- `ErrValidation` becomes `result.SetError(err)` carrying the backend's parsed
+  validation message (or the generic sentinel text when the body is
+  unparsable).
 - `ErrConfiguration` / `ErrProvider` become `result.SetError(err)` carrying the
   client's generic sentinel text. Backend status/body detail, the service token,
   and any provider name never reach the tool result.
