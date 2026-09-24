@@ -69,6 +69,9 @@ class Settings(BaseSettings):
     endpoint_ttl_metrics_seconds: int = 86_400  # 1 day
     endpoint_ttl_options_seconds: int = 1_800  # 30 minutes
     endpoint_ttl_search_seconds: int = 3_600  # 1 hour (symbol lookup)
+    # Negative cache TTL (seconds) for symbols/datasets a provider reports
+    # missing; protects upstream quotas from repeated lookups of the same miss.
+    endpoint_ttl_negative_seconds: int = 300  # 5 minutes
 
     # 2FA / TOTP
     totp_max_attempts: int = 5

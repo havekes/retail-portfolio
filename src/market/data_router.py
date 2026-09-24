@@ -148,7 +148,6 @@ async def market_data_prices(
                 gateway, normalized_symbol, exchange, from_, to
             )
         except (
-            MarketDataNotFoundError,
             MarketDataProviderError,
             MarketDataConfigurationError,
         ) as exc:
@@ -173,13 +172,18 @@ async def market_data_prices(
             ],
         )
 
-    response = await cache.cached_response(
-        data_class="prices",
-        endpoint="history",
-        params=params,
-        fetch=fetch,
-        model=PriceHistoryResponse,
-    )
+    try:
+        response = await cache.cached_response(
+            data_class="prices",
+            endpoint="history",
+            params=params,
+            fetch=fetch,
+            model=PriceHistoryResponse,
+        )
+    except MarketDataNotFoundError as exc:
+        # A missing symbol is negative-cached by the wrapper; translate the
+        # re-raised domain error here so the 404 is served from cache on repeat.
+        raise _map_market_error(normalized_symbol, exc) from exc
 
     # Raised after the cache wrapper so an empty window is cached exactly like a
     # populated one (a stable 404 for the TTL) instead of being re-fetched.
@@ -268,19 +272,23 @@ async def market_data_options(  # noqa: PLR0913, PLR0917
                 strike_max=strike_max,
             )
         except (
-            MarketDataNotFoundError,
             MarketDataProviderError,
             MarketDataConfigurationError,
         ) as exc:
             raise _map_market_error(normalized_symbol, exc) from exc
 
-    return await cache.cached_response(
-        data_class="options",
-        endpoint="chain",
-        params=params,
-        fetch=fetch,
-        model=OptionsChain,
-    )
+    try:
+        return await cache.cached_response(
+            data_class="options",
+            endpoint="chain",
+            params=params,
+            fetch=fetch,
+            model=OptionsChain,
+        )
+    except MarketDataNotFoundError as exc:
+        # Unknown underlying / no matching contracts: negative-cached by the
+        # wrapper, translated to a 404 here.
+        raise _map_market_error(normalized_symbol, exc) from exc
 
 
 @data_router.get("/fundamentals/{symbol}")
