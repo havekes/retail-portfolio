@@ -1,8 +1,9 @@
 # ruff: noqa: PLR2004, SLF001
 """Tests for the Polygon options-chain gateway.
 
-Every test patches ``src.market.polygon.requests.get``: no test dials the
-network (no DNS, no HTTP, no Redis).
+Every test patches ``src.market.polygon.requests.Session`` (the class), never a
+call site: no test dials the network (no DNS, no HTTP, no Redis). The gateway
+reuses one session across pagination pages, which the reuse test asserts.
 """
 
 from datetime import date
@@ -149,9 +150,11 @@ def test_split_occ_ticker_derives_underlying():
 # --------------------------------------------------------------------------- #
 
 
-@patch("src.market.polygon.requests.get")
-def test_get_options_chain_parses_mocked_payload(mock_get):
-    mock_get.return_value = FakeResponse(payload=_snapshot([CALL, PUT]))
+@patch("src.market.polygon.requests.Session")
+def test_get_options_chain_parses_mocked_payload(session_cls):
+    session_cls.return_value.get.return_value = FakeResponse(
+        payload=_snapshot([CALL, PUT])
+    )
     gateway = PolygonGateway(api_key="test-key")
 
     chain = gateway.get_options_chain("aapl")
@@ -186,14 +189,15 @@ def test_get_options_chain_parses_mocked_payload(mock_get):
     assert put.contract.contract_ticker == "O:AAPL250117P00150000"
     assert put.quote.implied_volatility == Decimal("0.2612")
 
+    mock_get = session_cls.return_value.get
     url = mock_get.call_args.args[0]
     assert "apiKey=test-key" in url
     assert "limit=250" in url
     assert mock_get.call_args.kwargs["timeout"] == 10
 
 
-@patch("src.market.polygon.requests.get")
-def test_missing_optional_snapshot_fields_are_tolerated(mock_get):
+@patch("src.market.polygon.requests.Session")
+def test_missing_optional_snapshot_fields_are_tolerated(session_cls):
     sparse: dict[str, object] = {
         "details": {
             "ticker": "O:AAPL250117C00150000",
@@ -202,7 +206,9 @@ def test_missing_optional_snapshot_fields_are_tolerated(mock_get):
             "strike_price": 150.0,
         }
     }
-    mock_get.return_value = FakeResponse(payload=_snapshot([sparse]))
+    session_cls.return_value.get.return_value = FakeResponse(
+        payload=_snapshot([sparse])
+    )
 
     chain = PolygonGateway(api_key="k").get_options_chain("AAPL")
 
@@ -216,13 +222,15 @@ def test_missing_optional_snapshot_fields_are_tolerated(mock_get):
     assert entry.contract.primary_exchange is None
 
 
-@patch("src.market.polygon.requests.get")
-def test_contract_details_pass_through_shares_and_exchange(mock_get):
+@patch("src.market.polygon.requests.Session")
+def test_contract_details_pass_through_shares_and_exchange(session_cls):
     result = _result("O:AAPL250117C00150000", 150.0, "2025-01-17", "call")
     details = cast("dict[str, object]", result["details"])
     details["shares_per_contract"] = 10
     details["primary_exchange"] = "CBOE"
-    mock_get.return_value = FakeResponse(payload=_snapshot([result]))
+    session_cls.return_value.get.return_value = FakeResponse(
+        payload=_snapshot([result])
+    )
 
     chain = PolygonGateway(api_key="k").get_options_chain("AAPL")
 
@@ -236,9 +244,9 @@ def test_contract_details_pass_through_shares_and_exchange(mock_get):
 # --------------------------------------------------------------------------- #
 
 
-@patch("src.market.polygon.requests.get")
-def test_expiration_and_contract_type_are_query_params(mock_get):
-    mock_get.return_value = FakeResponse(payload=_snapshot([PUT]))
+@patch("src.market.polygon.requests.Session")
+def test_expiration_and_contract_type_are_query_params(session_cls):
+    session_cls.return_value.get.return_value = FakeResponse(payload=_snapshot([PUT]))
 
     chain = PolygonGateway(api_key="k").get_options_chain(
         "AAPL",
@@ -246,19 +254,21 @@ def test_expiration_and_contract_type_are_query_params(mock_get):
         contract_type="put",
     )
 
-    url = mock_get.call_args.args[0]
+    url = session_cls.return_value.get.call_args.args[0]
     assert "expiration_date=2025-01-17" in url
     assert "contract_type=put" in url
     assert len(chain.contracts) == 1
     assert chain.contracts[0].contract.contract_type == "put"
 
 
-@patch("src.market.polygon.requests.get")
-def test_strike_range_is_filtered_locally(mock_get):
+@patch("src.market.polygon.requests.Session")
+def test_strike_range_is_filtered_locally(session_cls):
     low = _result("O:AAPL250117C00100000", 100.0, "2025-01-17", "call")
     mid = _result("O:AAPL250117C00150000", 150.0, "2025-01-17", "call")
     high = _result("O:AAPL250117C00200000", 200.0, "2025-01-17", "call")
-    mock_get.return_value = FakeResponse(payload=_snapshot([low, mid, high]))
+    session_cls.return_value.get.return_value = FakeResponse(
+        payload=_snapshot([low, mid, high])
+    )
 
     chain = PolygonGateway(api_key="k").get_options_chain(
         "AAPL",
@@ -270,15 +280,17 @@ def test_strike_range_is_filtered_locally(mock_get):
         Decimal("150")
     ]
     # Strike bounds are applied client-side, never sent upstream.
-    url = mock_get.call_args.args[0]
+    url = session_cls.return_value.get.call_args.args[0]
     assert "strike" not in url.lower()
 
 
-@patch("src.market.polygon.requests.get")
-def test_strike_range_only_minimum(mock_get):
+@patch("src.market.polygon.requests.Session")
+def test_strike_range_only_minimum(session_cls):
     low = _result("O:AAPL250117C00100000", 100.0, "2025-01-17", "call")
     high = _result("O:AAPL250117C00200000", 200.0, "2025-01-17", "call")
-    mock_get.return_value = FakeResponse(payload=_snapshot([low, high]))
+    session_cls.return_value.get.return_value = FakeResponse(
+        payload=_snapshot([low, high])
+    )
 
     chain = PolygonGateway(api_key="k").get_options_chain(
         "AAPL", strike_min=Decimal("150")
@@ -294,9 +306,9 @@ def test_strike_range_only_minimum(mock_get):
 # --------------------------------------------------------------------------- #
 
 
-@patch("src.market.polygon.requests.get")
-def test_http_404_raises_not_found(mock_get):
-    mock_get.return_value = FakeResponse(status_code=404)
+@patch("src.market.polygon.requests.Session")
+def test_http_404_raises_not_found(session_cls):
+    session_cls.return_value.get.return_value = FakeResponse(status_code=404)
 
     with pytest.raises(MarketDataNotFoundError) as exc_info:
         PolygonGateway(api_key="k").get_options_chain("ZZZZ")
@@ -305,9 +317,9 @@ def test_http_404_raises_not_found(mock_get):
     assert "polygon" not in str(exc_info.value).lower()
 
 
-@patch("src.market.polygon.requests.get")
-def test_empty_chain_raises_not_found(mock_get):
-    mock_get.return_value = FakeResponse(payload=_snapshot([]))
+@patch("src.market.polygon.requests.Session")
+def test_empty_chain_raises_not_found(session_cls):
+    session_cls.return_value.get.return_value = FakeResponse(payload=_snapshot([]))
 
     with pytest.raises(MarketDataNotFoundError) as exc_info:
         PolygonGateway(api_key="k").get_options_chain("AAPL")
@@ -316,20 +328,18 @@ def test_empty_chain_raises_not_found(mock_get):
     assert "polygon" not in str(exc_info.value).lower()
 
 
-@patch("src.market.polygon.requests.get")
-def test_filters_that_empty_the_chain_raise_not_found(mock_get):
-    mock_get.return_value = FakeResponse(payload=_snapshot([CALL]))
+@patch("src.market.polygon.requests.Session")
+def test_filters_that_empty_the_chain_raise_not_found(session_cls):
+    session_cls.return_value.get.return_value = FakeResponse(payload=_snapshot([CALL]))
 
     with pytest.raises(MarketDataNotFoundError):
-        PolygonGateway(api_key="k").get_options_chain(
-            "AAPL", strike_min=Decimal("999")
-        )
+        PolygonGateway(api_key="k").get_options_chain("AAPL", strike_min=Decimal("999"))
 
 
 @pytest.mark.parametrize("status", [401, 403])
-@patch("src.market.polygon.requests.get")
-def test_unauthorized_raises_configuration_error(mock_get, status):
-    mock_get.return_value = FakeResponse(status_code=status)
+@patch("src.market.polygon.requests.Session")
+def test_unauthorized_raises_configuration_error(session_cls, status):
+    session_cls.return_value.get.return_value = FakeResponse(status_code=status)
 
     with pytest.raises(MarketDataConfigurationError) as exc_info:
         PolygonGateway(api_key="k").get_options_chain("AAPL")
@@ -338,9 +348,9 @@ def test_unauthorized_raises_configuration_error(mock_get, status):
 
 
 @pytest.mark.parametrize("status", [500, 502, 429])
-@patch("src.market.polygon.requests.get")
-def test_non_200_raises_provider_error(mock_get, status):
-    mock_get.return_value = FakeResponse(status_code=status)
+@patch("src.market.polygon.requests.Session")
+def test_non_200_raises_provider_error(session_cls, status):
+    session_cls.return_value.get.return_value = FakeResponse(status_code=status)
 
     with pytest.raises(MarketDataProviderError) as exc_info:
         PolygonGateway(api_key="k").get_options_chain("AAPL")
@@ -348,9 +358,11 @@ def test_non_200_raises_provider_error(mock_get, status):
     assert "polygon" not in str(exc_info.value).lower()
 
 
-@patch("src.market.polygon.requests.get")
-def test_request_exception_raises_provider_error(mock_get):
-    mock_get.side_effect = requests.ConnectionError("connection refused")
+@patch("src.market.polygon.requests.Session")
+def test_request_exception_raises_provider_error(session_cls):
+    session_cls.return_value.get.side_effect = requests.ConnectionError(
+        "connection refused"
+    )
 
     with pytest.raises(MarketDataProviderError) as exc_info:
         PolygonGateway(api_key="k").get_options_chain("AAPL")
@@ -359,9 +371,11 @@ def test_request_exception_raises_provider_error(mock_get):
     assert "connection refused" not in str(exc_info.value).lower()
 
 
-@patch("src.market.polygon.requests.get")
-def test_undecodable_payload_raises_provider_error(mock_get):
-    mock_get.return_value = FakeResponse(payload=None, json_error=True)
+@patch("src.market.polygon.requests.Session")
+def test_undecodable_payload_raises_provider_error(session_cls):
+    session_cls.return_value.get.return_value = FakeResponse(
+        payload=None, json_error=True
+    )
 
     with pytest.raises(MarketDataProviderError) as exc_info:
         PolygonGateway(api_key="k").get_options_chain("AAPL")
@@ -369,16 +383,16 @@ def test_undecodable_payload_raises_provider_error(mock_get):
     assert "polygon" not in str(exc_info.value).lower()
 
 
-@patch("src.market.polygon.requests.get")
-def test_missing_results_key_raises_provider_error(mock_get):
-    mock_get.return_value = FakeResponse(payload={"status": "OK"})
+@patch("src.market.polygon.requests.Session")
+def test_missing_results_key_raises_provider_error(session_cls):
+    session_cls.return_value.get.return_value = FakeResponse(payload={"status": "OK"})
 
     with pytest.raises(MarketDataProviderError):
         PolygonGateway(api_key="k").get_options_chain("AAPL")
 
 
-@patch("src.market.polygon.requests.get")
-def test_malformed_contract_raises_provider_error(mock_get):
+@patch("src.market.polygon.requests.Session")
+def test_malformed_contract_raises_provider_error(session_cls):
     malformed: dict[str, object] = {
         "details": {
             "ticker": "O:AAPL250117C00150000",
@@ -387,7 +401,9 @@ def test_malformed_contract_raises_provider_error(mock_get):
             "strike_price": 150.0,
         }
     }
-    mock_get.return_value = FakeResponse(payload=_snapshot([malformed]))
+    session_cls.return_value.get.return_value = FakeResponse(
+        payload=_snapshot([malformed])
+    )
 
     with pytest.raises(MarketDataProviderError):
         PolygonGateway(api_key="k").get_options_chain("AAPL")
@@ -398,10 +414,10 @@ def test_malformed_contract_raises_provider_error(mock_get):
 # --------------------------------------------------------------------------- #
 
 
-@patch("src.market.polygon.requests.get")
-def test_next_url_is_followed_and_entries_merged(mock_get):
+@patch("src.market.polygon.requests.Session")
+def test_next_url_is_followed_and_entries_merged(session_cls):
     next_url = "https://api.polygon.io/v3/snapshot/options/AAPL?cursor=abc"
-    mock_get.side_effect = [
+    session_cls.return_value.get.side_effect = [
         FakeResponse(payload=_snapshot([CALL], next_url=next_url)),
         FakeResponse(payload=_snapshot([PUT])),
     ]
@@ -409,31 +425,61 @@ def test_next_url_is_followed_and_entries_merged(mock_get):
     chain = PolygonGateway(api_key="k").get_options_chain("AAPL")
 
     assert len(chain.contracts) == 2
+    mock_get = session_cls.return_value.get
     assert mock_get.call_count == 2
     second_url = mock_get.call_args_list[1].args[0]
     assert second_url.startswith(next_url)
     assert "apiKey=k" in second_url
 
 
-@patch("src.market.polygon.requests.get")
-def test_next_url_with_existing_api_key_is_not_duplicated(mock_get):
+@patch("src.market.polygon.requests.Session")
+def test_single_session_is_reused_across_pagination(session_cls):
+    """One ``requests.Session`` is constructed and reused for every page (AC1)."""
+    next_url = "https://api.polygon.io/v3/snapshot/options/AAPL?cursor=abc"
+    session_cls.return_value.get.side_effect = [
+        FakeResponse(payload=_snapshot([CALL], next_url=next_url)),
+        FakeResponse(payload=_snapshot([PUT])),
+    ]
+
+    chain = PolygonGateway(api_key="k").get_options_chain("AAPL")
+
+    # Exactly one session was created, and both the first page and the
+    # ``next_url`` page went through that same session.
+    session_cls.assert_called_once_with()
+    mock_get = session_cls.return_value.get
+    assert mock_get.call_count == 2
+    assert mock_get.call_args_list[0].args[0] != mock_get.call_args_list[1].args[0]
+    assert len(chain.contracts) == 2
+
+
+@patch("src.market.polygon.requests.Session")
+def test_close_closes_the_session(session_cls):
+    gateway = PolygonGateway(api_key="k")
+
+    gateway.close()
+
+    session_cls.return_value.close.assert_called_once_with()
+
+
+@patch("src.market.polygon.requests.Session")
+def test_next_url_with_existing_api_key_is_not_duplicated(session_cls):
     next_url = "https://api.polygon.io/v3/snapshot/options/AAPL?cursor=abc&apiKey=k"
-    mock_get.side_effect = [
+    session_cls.return_value.get.side_effect = [
         FakeResponse(payload=_snapshot([CALL], next_url=next_url)),
         FakeResponse(payload=_snapshot([PUT])),
     ]
 
     PolygonGateway(api_key="k").get_options_chain("AAPL")
 
-    second_url = mock_get.call_args_list[1].args[0]
+    second_url = session_cls.return_value.get.call_args_list[1].args[0]
     assert second_url.count("apiKey=") == 1
 
 
-@patch("src.market.polygon.requests.get")
-def test_sticky_next_url_is_truncated_at_cap(mock_get):
+@patch("src.market.polygon.requests.Session")
+def test_sticky_next_url_is_truncated_at_cap(session_cls):
     """A looping cursor stops at the page cap and serves the pages already fetched."""
     sticky = "https://api.polygon.io/v3/snapshot/options/AAPL?cursor=sticky"
-    mock_get.side_effect = lambda *args, **kwargs: FakeResponse(
+    session_cls.return_value.get.side_effect = lambda *args, **kwargs: FakeResponse(
         payload=_snapshot([CALL], next_url=sticky)
     )
 
@@ -441,7 +487,7 @@ def test_sticky_next_url_is_truncated_at_cap(mock_get):
 
     # The loop bails once the page cap is reached instead of hanging forever,
     # and the accumulated contracts are returned rather than discarded.
-    assert mock_get.call_count == _MAX_PAGES
+    assert session_cls.return_value.get.call_count == _MAX_PAGES
     assert len(chain.contracts) == _MAX_PAGES
     assert chain.contracts[0].contract.contract_ticker == "O:AAPL250117C00150000"
     assert "polygon" not in chain.underlying_symbol.lower()
@@ -459,9 +505,25 @@ def test_polygon_gateway_factory_uses_settings_key(monkeypatch):
     monkeypatch.setattr(polygon_module.settings, "polygon_api_key", "factory-key")
 
     gateway = polygon_gateway_factory()
+    try:
+        assert isinstance(gateway, PolygonGateway)
+        assert gateway._api_key == "factory-key"
+    finally:
+        # The factory-created gateway owns a real session; close it so the
+        # test leaves no unclosed client behind.
+        gateway.close()
+
+
+@patch("src.market.polygon.requests.Session")
+def test_polygon_gateway_factory_creates_the_pooled_session(session_cls, monkeypatch):
+    from src.market import polygon as polygon_module
+
+    monkeypatch.setattr(polygon_module.settings, "stub_external_api", False)
+
+    gateway = polygon_gateway_factory()
 
     assert isinstance(gateway, PolygonGateway)
-    assert gateway._api_key == "factory-key"
+    session_cls.assert_called_once_with()
 
 
 def test_polygon_gateway_factory_returns_stub_in_stub_mode(monkeypatch):
