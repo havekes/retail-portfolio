@@ -31,9 +31,17 @@ internal network only.
 | `BACKEND_BASE_URL`          | yes      | —       | Backend origin, e.g. `http://backend:8000`.                       |
 | `MARKET_DATA_SERVICE_TOKEN` | yes      | —       | Shared secret sent as `X-Service-Token` to the data plane.        |
 | `PORT`                      | no       | `8080`  | HTTP listen port.                                                 |
+| `ENVIRONMENT`               | no       | `dev`   | Deployment environment (`prod` or `dev`). Configures logging handler and default level. |
+| `LOG_LEVEL`                 | no       | —       | Log level override (`DEBUG`, `INFO`, `WARN`/`WARNING`, `ERROR`).  |
 
 A missing or unusable required value is a startup error. The token value is
 never logged and never appears in an error message.
+
+Structured logging uses Go standard library `log/slog`. When `ENVIRONMENT=prod`,
+logging emits JSON lines via `slog.NewJSONHandler` with a default level of `INFO`.
+When `ENVIRONMENT=dev` (or unset), logging emits human-readable text via
+`slog.NewTextHandler` with a default level of `DEBUG`. Setting `LOG_LEVEL`
+overrides the default log level for the active handler.
 
 ## Backend data plane
 
