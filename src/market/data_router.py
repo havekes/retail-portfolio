@@ -6,8 +6,8 @@ MCP gateway in T10/T11). They are deliberately separate from the user-JWT
 
 * authentication is the shared-secret ``require_service_token`` dependency;
 * every route resolves the ``DataPlaneMarketGateway`` svcs key (the composed
-  FMP/Polygon gateway wrapped in the gateway-level cache) and serves through
-  the T13 :class:`EndpointResponseCache`;
+  FMP/Polygon gateway) and serves through the T13
+  :class:`EndpointResponseCache` — the single canonical data-plane cache;
 * error mapping stays here: an unknown symbol becomes a structured 404 and a
   provider outage a generic 502/503 — a provider name never appears in a
   response body.
@@ -102,8 +102,8 @@ async def _fetch_prices(
 ) -> list[HistoricalPrice]:
     """Bridge the sync gateway read onto the event loop.
 
-    ``MarketGateway.get_prices`` is synchronous (the composed gateway wraps
-    ``requests``/sync-Redis calls), so it must not run on the loop.
+    ``MarketGateway.get_prices`` is synchronous (the composed gateway performs
+    blocking provider HTTP), so it must not run on the loop.
     """
     return await asyncio.to_thread(
         gateway.get_prices,
