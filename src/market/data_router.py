@@ -203,19 +203,23 @@ async def market_data_symbol_search(
         try:
             return await asyncio.to_thread(gateway.lookup_symbol, q)
         except (
-            MarketDataNotFoundError,
             MarketDataProviderError,
             MarketDataConfigurationError,
         ) as exc:
             raise _map_market_error(q, exc) from exc
 
-    results = await cache.cached_response(
-        data_class="search",
-        endpoint="symbol_lookup",
-        params=params,
-        fetch=fetch,
-        model=SymbolLookupResult,
-    )
+    try:
+        results = await cache.cached_response(
+            data_class="search",
+            endpoint="symbol_lookup",
+            params=params,
+            fetch=fetch,
+            model=SymbolLookupResult,
+        )
+    except MarketDataNotFoundError as exc:
+        # An unknown query is negative-cached by the wrapper; translate the
+        # re-raised domain error here so the 404 is served from cache on repeat.
+        raise _map_market_error(q, exc) from exc
 
     if not results:
         raise HTTPException(
@@ -313,7 +317,6 @@ async def market_data_fundamentals(
                 gateway.get_financial_ratios, normalized_symbol, exchange=exchange
             )
         except (
-            MarketDataNotFoundError,
             MarketDataProviderError,
             MarketDataConfigurationError,
         ) as exc:
@@ -325,13 +328,18 @@ async def market_data_fundamentals(
             ratios=ratios,
         )
 
-    return await cache.cached_response(
-        data_class="metrics",
-        endpoint="fundamentals",
-        params=params,
-        fetch=fetch,
-        model=CompanyFundamentals,
-    )
+    try:
+        return await cache.cached_response(
+            data_class="metrics",
+            endpoint="fundamentals",
+            params=params,
+            fetch=fetch,
+            model=CompanyFundamentals,
+        )
+    except MarketDataNotFoundError as exc:
+        # An unknown symbol is negative-cached by the wrapper; translate the
+        # re-raised domain error here so the 404 is served from cache on repeat.
+        raise _map_market_error(normalized_symbol, exc) from exc
 
 
 @data_router.get("/fundamentals/{symbol}/statements")
@@ -391,21 +399,25 @@ async def market_data_statements(  # noqa: PLR0913, PLR0917
                 exchange=exchange,
             )
         except (
-            MarketDataNotFoundError,
             MarketDataProviderError,
             MarketDataConfigurationError,
         ) as exc:
             raise _map_market_error(normalized_symbol, exc) from exc
 
-    results = await cache.cached_response(
-        data_class="statements",
-        endpoint="statements",
-        params=params,
-        fetch=fetch,
-        # The statement lists are plain FMP-shaped dicts on the cache hit; the
-        # response schema is documented by the route's return annotation.
-        model=None,
-    )
+    try:
+        results = await cache.cached_response(
+            data_class="statements",
+            endpoint="statements",
+            params=params,
+            fetch=fetch,
+            # The statement lists are plain FMP-shaped dicts on the cache hit; the
+            # response schema is documented by the route's return annotation.
+            model=None,
+        )
+    except MarketDataNotFoundError as exc:
+        # An unknown symbol is negative-cached by the wrapper; translate the
+        # re-raised domain error here so the 404 is served from cache on repeat.
+        raise _map_market_error(normalized_symbol, exc) from exc
 
     # Raised after the cache wrapper so an empty successful result (if a
     # provider ever returns one) is cached as a stable 404 for the TTL.
