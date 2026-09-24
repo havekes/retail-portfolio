@@ -494,3 +494,150 @@ type OptionsChain struct {
 	AsOf             *string             `json:"as_of,omitempty"`
 	Contracts        []OptionsChainEntry `json:"contracts"`
 }
+
+// Statement literal values accepted by the backend statements route
+// (data_router.market_data_statements). They are the only values ever placed on
+// the wire.
+const (
+	statementIncome   = "income"
+	statementBalance  = "balance"
+	statementCashflow = "cashflow"
+)
+
+// IncomeStatement is one reporting period of the income statement
+// (api_types.IncomeStatement). Header fields date and symbol are required;
+// every line item is optional.
+type IncomeStatement struct {
+	Date                                    string   `json:"date"`
+	Symbol                                  string   `json:"symbol"`
+	ReportedCurrency                        *string  `json:"reported_currency,omitempty"`
+	CIK                                     *string  `json:"cik,omitempty"`
+	FillingDate                             *string  `json:"filling_date,omitempty"`
+	AcceptedDate                            *string  `json:"accepted_date,omitempty"`
+	FiscalYear                              *string  `json:"fiscal_year,omitempty"`
+	Period                                  *string  `json:"period,omitempty"`
+	Revenue                                 *Decimal `json:"revenue,omitempty"`
+	CostOfRevenue                           *Decimal `json:"cost_of_revenue,omitempty"`
+	GrossProfit                             *Decimal `json:"gross_profit,omitempty"`
+	ResearchAndDevelopmentExpenses          *Decimal `json:"research_and_development_expenses,omitempty"`
+	SellingGeneralAndAdministrativeExpenses *Decimal `json:"selling_general_and_administrative_expenses,omitempty"`
+	OperatingExpenses                       *Decimal `json:"operating_expenses,omitempty"`
+	OperatingIncome                         *Decimal `json:"operating_income,omitempty"`
+	InterestExpense                         *Decimal `json:"interest_expense,omitempty"`
+	OtherIncomeExpense                      *Decimal `json:"other_income_expense,omitempty"`
+	IncomeTaxExpense                        *Decimal `json:"income_tax_expense,omitempty"`
+	NetIncome                               *Decimal `json:"net_income,omitempty"`
+	EPS                                     *Decimal `json:"eps,omitempty"`
+	EPSDiluted                              *Decimal `json:"eps_diluted,omitempty"`
+	WeightedAverageSharesOutstanding        *Decimal `json:"weighted_average_shares_outstanding,omitempty"`
+	WeightedAverageSharesOutstandingDiluted *Decimal `json:"weighted_average_shares_outstanding_diluted,omitempty"`
+}
+
+// BalanceSheet is one reporting period of the balance sheet
+// (api_types.BalanceSheet).
+type BalanceSheet struct {
+	Date                   string   `json:"date"`
+	Symbol                 string   `json:"symbol"`
+	ReportedCurrency       *string  `json:"reported_currency,omitempty"`
+	CIK                    *string  `json:"cik,omitempty"`
+	FiscalYear             *string  `json:"fiscal_year,omitempty"`
+	Period                 *string  `json:"period,omitempty"`
+	TotalAssets            *Decimal `json:"total_assets,omitempty"`
+	CurrentAssets          *Decimal `json:"current_assets,omitempty"`
+	TotalLiabilities       *Decimal `json:"total_liabilities,omitempty"`
+	CurrentLiabilities     *Decimal `json:"current_liabilities,omitempty"`
+	TotalDebt              *Decimal `json:"total_debt,omitempty"`
+	CashAndCashEquivalents *Decimal `json:"cash_and_cash_equivalents,omitempty"`
+	Inventory              *Decimal `json:"inventory,omitempty"`
+	Receivables            *Decimal `json:"receivables,omitempty"`
+	Payables               *Decimal `json:"payables,omitempty"`
+	Goodwill               *Decimal `json:"goodwill,omitempty"`
+	RetainedEarnings       *Decimal `json:"retained_earnings,omitempty"`
+	TotalEquity            *Decimal `json:"total_equity,omitempty"`
+	CommonStock            *Decimal `json:"common_stock,omitempty"`
+	NetDebt                *Decimal `json:"net_debt,omitempty"`
+}
+
+// CashFlowStatement is one reporting period of the cash-flow statement
+// (api_types.CashFlowStatement).
+type CashFlowStatement struct {
+	Date                   string   `json:"date"`
+	Symbol                 string   `json:"symbol"`
+	ReportedCurrency       *string  `json:"reported_currency,omitempty"`
+	CIK                    *string  `json:"cik,omitempty"`
+	FiscalYear             *string  `json:"fiscal_year,omitempty"`
+	Period                 *string  `json:"period,omitempty"`
+	NetIncome              *Decimal `json:"net_income,omitempty"`
+	OperatingCashFlow      *Decimal `json:"operating_cash_flow,omitempty"`
+	InvestingCashFlow      *Decimal `json:"investing_cash_flow,omitempty"`
+	FinancingCashFlow      *Decimal `json:"financing_cash_flow,omitempty"`
+	CapitalExpenditure     *Decimal `json:"capital_expenditure,omitempty"`
+	FreeCashFlow           *Decimal `json:"free_cash_flow,omitempty"`
+	DividendsPaid          *Decimal `json:"dividends_paid,omitempty"`
+	StockBasedCompensation *Decimal `json:"stock_based_compensation,omitempty"`
+	CashChange             *Decimal `json:"cash_change,omitempty"`
+}
+
+// decodeStatementList decodes the raw statements body for statement into the
+// matching statement-specific Go type and returns it as any.
+//
+// The backend statements route returns a bare list whose item type is a union
+// (income / balance / cashflow); the body is therefore fetched as json.RawMessage
+// and decoded strictly here. Decoding rejects unknown fields so a payload for
+// one statement type cannot silently decode as another (a balance sheet carries
+// keys the income struct does not define), and every item must carry the
+// required date and symbol header fields.
+//
+// A decode failure is a plain error: the tool layer maps it onto the generic
+// provider-failure result, so a cache-hit shape change is never reported as
+// "no data".
+func decodeStatementList(raw json.RawMessage, statement string) (any, error) {
+	switch statement {
+	case statementIncome:
+		var items []IncomeStatement
+		if err := decodeStatementItems(raw, &items); err != nil {
+			return nil, err
+		}
+		for _, item := range items {
+			if item.Date == "" || item.Symbol == "" {
+				return nil, errors.New("statement item is missing the date or symbol field")
+			}
+		}
+		return items, nil
+	case statementBalance:
+		var items []BalanceSheet
+		if err := decodeStatementItems(raw, &items); err != nil {
+			return nil, err
+		}
+		for _, item := range items {
+			if item.Date == "" || item.Symbol == "" {
+				return nil, errors.New("statement item is missing the date or symbol field")
+			}
+		}
+		return items, nil
+	case statementCashflow:
+		var items []CashFlowStatement
+		if err := decodeStatementItems(raw, &items); err != nil {
+			return nil, err
+		}
+		for _, item := range items {
+			if item.Date == "" || item.Symbol == "" {
+				return nil, errors.New("statement item is missing the date or symbol field")
+			}
+		}
+		return items, nil
+	default:
+		return nil, fmt.Errorf("unknown statement type %q", statement)
+	}
+}
+
+// decodeStatementItems strictly decodes a statement list, rejecting unknown
+// fields. A JSON null body decodes to an empty list.
+func decodeStatementItems(raw json.RawMessage, out any) error {
+	decoder := json.NewDecoder(strings.NewReader(string(raw)))
+	decoder.DisallowUnknownFields()
+	if err := decoder.Decode(out); err != nil {
+		return fmt.Errorf("decoding statement list: %w", err)
+	}
+	return nil
+}
