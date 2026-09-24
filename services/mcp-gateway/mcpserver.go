@@ -1,6 +1,10 @@
 package main
 
-import "github.com/modelcontextprotocol/go-sdk/mcp"
+import (
+	"strings"
+
+	"github.com/modelcontextprotocol/go-sdk/mcp"
+)
 
 // Server identity reported to MCP clients during initialize. The name is
 // provider-agnostic on purpose: an agent must never learn which upstream
@@ -33,11 +37,17 @@ const (
 //     the client's generic message. Backend status/body detail is never
 //     unwrapped; only the parsed validation message is forwarded.
 //   - Tool names, descriptions, and result text contain no provider name.
-func newMCPServer(client *BackendClient) *mcp.Server {
+func newMCPServer(client *BackendClient, env ...string) *mcp.Server {
+	environment := defaultEnvironment
+	if len(env) > 0 && strings.TrimSpace(env[0]) != "" {
+		environment = strings.TrimSpace(env[0])
+	} else if client != nil && client.env != "" {
+		environment = client.env
+	}
 	server := mcp.NewServer(&mcp.Implementation{
 		Name:    serverName,
 		Version: serverVersion,
 	}, nil)
-	registerTools(server, client)
+	registerTools(server, client, environment)
 	return server
 }

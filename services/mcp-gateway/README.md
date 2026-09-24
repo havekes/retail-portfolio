@@ -43,6 +43,29 @@ When `ENVIRONMENT=dev` (or unset), logging emits human-readable text via
 `slog.NewTextHandler` with a default level of `DEBUG`. Setting `LOG_LEVEL`
 overrides the default log level for the active handler.
 
+### HTTP request logging middleware
+
+All inbound HTTP requests to `/health` and `/mcp` pass through structured logging middleware:
+- Every request completion is logged at `INFO` level with `method`, `path`, `remote_addr`, `status`, and `duration`.
+- In `ENVIRONMENT=dev`, incoming request details are logged at `DEBUG` level with `method`, `path`, `headers`, `query`, and request `body` (bounded up to 64KB).
+- Sensitive headers (`Authorization`, `X-Service-Token`, `Cookie`, `Set-Cookie`) are automatically redacted with `"[REDACTED]"` in log output.
+- The middleware supports `http.Flusher` pass-through so real-time MCP streaming SSE responses are flushed immediately.
+
+### Tool execution logging
+
+MCP tool calls in `tools.go` are instrumented:
+- In `ENVIRONMENT=dev`: tool invocations are logged at `DEBUG` level with `tool` and `arguments`. Tool completions are logged at `DEBUG` level with `tool`, `duration`, and `response` payload content.
+- Tool execution errors (validation failures, 422 backend parameter errors, 401 configuration issues, 500 provider errors) are logged at `ERROR` level with `tool`, `arguments`, `error_class`, `status`, and diagnostic `detail` (from Go-side `backendError.Detail()`).
+- Diagnostic `detail` is retained only for Go-side logging and is never exposed in user-facing tool error results.
+- `ErrNoData` (404) is classified as a normal outcome and does not emit `ERROR` logs.
+
+### Outbound backend client logging
+
+Outbound HTTP calls to the backend data plane in `backendclient.go` are instrumented:
+- In `ENVIRONMENT=dev`: outbound requests (`method`, `url`, `query`) and responses (`method`, `url`, `status`, `duration`) are logged at `DEBUG` level.
+- Non-2xx responses and transport/network errors are logged at `ERROR` level with `status`, `detail`, and endpoint `url`.
+- `MARKET_DATA_SERVICE_TOKEN` and the `X-Service-Token` header value are never logged.
+
 ## Backend data plane
 
 Every request is sent to `BACKEND_BASE_URL + /api/v1/market/data/...` with the
