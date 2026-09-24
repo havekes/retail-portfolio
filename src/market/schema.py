@@ -75,8 +75,12 @@ class PriceSchema(BaseModel):
 
     @classmethod
     def from_historical_price(cls, historical_price: HistoricalPrice) -> Self:
+        security_id = historical_price.security_id
+        if security_id is None:
+            msg = "Cannot persist a historical price without a security id."
+            raise ValueError(msg)
         return cls(
-            security_id=historical_price.security_id,
+            security_id=security_id,
             date=historical_price.date,
             open=historical_price.open,
             high=historical_price.high,

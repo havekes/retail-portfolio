@@ -38,7 +38,6 @@ import logging
 from datetime import date
 from decimal import Decimal
 from typing import Annotated, Literal
-from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, Query
 from svcs.fastapi import DepContainer
@@ -65,13 +64,6 @@ from src.market.schema import PriceBar, PriceHistoryResponse
 logger = logging.getLogger(__name__)
 
 data_router = APIRouter(prefix="/market/data")
-
-# The data-plane gateway's ``get_prices`` signature still requires a
-# ``security_id`` (it satisfies the DB-backed gateway contract), but a data-plane
-# request has no security identity: prices are keyed by symbol/exchange. This nil
-# UUID is a placeholder only — it never reaches a provider and is dropped when
-# mapping to :class:`PriceBar`.
-_NIL_SECURITY_ID = UUID(int=0)
 
 _PROVIDER_UNAVAILABLE_DETAIL = "Market data provider is unavailable."
 
@@ -107,7 +99,6 @@ async def _fetch_prices(
     """
     return await asyncio.to_thread(
         gateway.get_prices,
-        _NIL_SECURITY_ID,
         symbol,
         exchange or "",
         from_date,

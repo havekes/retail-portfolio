@@ -76,33 +76,33 @@ class CompositeMarketGateway(MarketGateway):
 
     def get_price_on_date(
         self,
-        security_id: SecurityId,
         symbol: str,
         exchange: str,
         date: date,
+        security_id: SecurityId | None = None,
     ) -> HistoricalPrice | None:
         """Get price for a security on a specific date (FMP)."""
-        return self._fmp.get_price_on_date(security_id, symbol, exchange, date)
+        return self._fmp.get_price_on_date(symbol, exchange, date, security_id)
 
     def get_prices(
         self,
-        security_id: SecurityId,
         symbol: str,
         exchange: str,
         from_date: date,
         to_date: date,
+        security_id: SecurityId | None = None,
     ) -> list[HistoricalPrice]:
         """Get historical prices for a security within a date range (FMP)."""
-        return self._fmp.get_prices(security_id, symbol, exchange, from_date, to_date)
+        return self._fmp.get_prices(symbol, exchange, from_date, to_date, security_id)
 
     def get_intraday_prices(  # noqa: PLR0913, PLR0917
         self,
-        security_id: SecurityId,
         symbol: str,
         exchange: str,
         from_datetime: datetime,
         to_datetime: datetime,
         interval: str = "1h",
+        security_id: SecurityId | None = None,
     ) -> list[IntradayHistoricalPrice]:
         """Get intraday prices for a security within a datetime range (FMP).
 
@@ -110,12 +110,12 @@ class CompositeMarketGateway(MarketGateway):
         provider-agnostic "capability not supported" error surfaces unchanged.
         """
         return self._fmp.get_intraday_prices(
-            security_id,
             symbol,
             exchange,
             from_datetime,
             to_datetime,
             interval=interval,
+            security_id=security_id,
         )
 
     def lookup_symbol(self, query: str) -> list[SymbolLookupResult]:

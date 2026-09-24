@@ -384,3 +384,18 @@ def test_stub_price_and_search_behaviour_unchanged():
         to_date=date(2024, 1, 5),
     )
     assert len(prices) == 4
+
+
+def test_stub_prices_without_security_id_are_unlabelled():
+    """A provider-agnostic read passes no security id; prices stay unlabelled."""
+    gateway = StubEodhdGateway(api_key="stub_key")
+
+    prices = gateway.get_prices(
+        symbol="AAPL",
+        exchange="US",
+        from_date=date(2024, 1, 2),
+        to_date=date(2024, 1, 5),
+    )
+
+    assert len(prices) == 4
+    assert all(price.security_id is None for price in prices)
