@@ -187,7 +187,7 @@ func TestBackendClientErrorTaxonomy(t *testing.T) {
 		want   error
 	}{
 		{"404 is no data", http.StatusNotFound, `{"detail":"No market data found."}`, ErrNoData},
-		{"422 is no data", http.StatusUnprocessableEntity, `{"detail":"bad range"}`, ErrNoData},
+		{"422 is validation", http.StatusUnprocessableEntity, `{"detail":"bad range"}`, ErrValidation},
 		{"401 is configuration", http.StatusUnauthorized, `{"detail":"Service token invalid"}`, ErrConfiguration},
 		{"403 is configuration", http.StatusForbidden, `{"detail":"forbidden"}`, ErrConfiguration},
 		{"500 is provider", http.StatusInternalServerError, `{"detail":"boom"}`, ErrProvider},
@@ -206,6 +206,51 @@ func TestBackendClientErrorTaxonomy(t *testing.T) {
 			}
 			if !errors.Is(err, tc.want) {
 				t.Fatalf("errors.Is(err, %v) = false; err = %v", tc.want, err)
+			}
+		})
+	}
+}
+
+func TestBackendClientValidationMessage(t *testing.T) {
+	// A 422 is a validation failure, never "no data": it must classify as
+	// ErrValidation (and not ErrNoData) and carry an agent-safe message parsed
+	// from the FastAPI body when one is present.
+	tests := []struct {
+		name string
+		body string
+		want string
+	}{
+		{"string detail", `{"detail":"expiry must be a valid date"}`, "expiry must be a valid date"},
+		{
+			"pydantic detail array",
+			`{"detail":[{"loc":["query","expiry"],"msg":"invalid date","type":"value_error"}]}`,
+			"expiry invalid date",
+		},
+		{"empty body", ``, ErrValidation.Error()},
+		{"non-JSON body", `<html>nope</html>`, ErrValidation.Error()},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			srv, _ := newStubBackend(t, http.StatusUnprocessableEntity, tc.body)
+			client := mustClient(t, srv.URL, "test-token")
+
+			_, err := client.Fundamentals(context.Background(), "AAPL", "")
+			if err == nil {
+				t.Fatal("expected an error")
+			}
+			if !errors.Is(err, ErrValidation) {
+				t.Fatalf("errors.Is(err, ErrValidation) = false; err = %v", err)
+			}
+			if errors.Is(err, ErrNoData) {
+				t.Fatalf("errors.Is(err, ErrNoData) = true for a 422; err = %v", err)
+			}
+			var backendErr *backendError
+			if !errors.As(err, &backendErr) {
+				t.Fatalf("err is %T, want *backendError", err)
+			}
+			if got := backendErr.ValidationMessage(); got != tc.want {
+				t.Errorf("ValidationMessage() = %q, want %q", got, tc.want)
 			}
 		})
 	}
@@ -364,6 +409,7 @@ func TestBackendClientErrorsNeverLeakSecretsOrProviders(t *testing.T) {
 		body   string
 	}{
 		{"no data", http.StatusNotFound, `{"detail":"No market data found for 'AAPL'."}`},
+		{"validation", http.StatusUnprocessableEntity, `{"detail":"expiry must be a valid date"}`},
 		{"configuration", http.StatusUnauthorized, `{"detail":"Service token invalid"}`},
 		{"provider", http.StatusInternalServerError, `{"detail":"upstream exploded"}`},
 		{"non-json", http.StatusOK, `not json`},
@@ -391,7 +437,7 @@ func TestBackendClientErrorsNeverLeakSecretsOrProviders(t *testing.T) {
 		})
 	}
 
-	for _, sentinel := range []error{ErrNoData, ErrConfiguration, ErrProvider} {
+	for _, sentinel := range []error{ErrNoData, ErrValidation, ErrConfiguration, ErrProvider} {
 		for _, provider := range providerNames {
 			if strings.Contains(strings.ToLower(sentinel.Error()), strings.ToLower(provider)) {
 				t.Errorf("sentinel %v leaks provider %q", sentinel, provider)
