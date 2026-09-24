@@ -38,6 +38,9 @@ class Settings(BaseSettings):
     # Market API (FMP)
     fmp_api_key: str = ""
 
+    # Market API (Polygon)
+    polygon_api_key: str = ""
+
     # Indicator Service
     indicator_service_url: str = "http://localhost:8080"
 
