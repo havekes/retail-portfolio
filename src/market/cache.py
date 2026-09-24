@@ -5,6 +5,7 @@ import json
 import logging
 import threading
 from collections.abc import AsyncIterator, Callable, Coroutine, Sequence
+from concurrent.futures import TimeoutError as FutureTimeoutError
 from datetime import date, datetime, timedelta
 from decimal import Decimal
 from typing import Any, Literal, cast
@@ -404,6 +405,21 @@ async def security_search_cache_factory() -> SecuritySearchCache:
 _CACHE_KEY_PREFIX = "market:gw"
 _NULL_SENTINEL: dict[str, bool] = {"null": True}
 
+# Upper bound on how long a single cache operation may block its caller. Redis
+# clients are configured with ``socket_timeout=None``, so without this a stalled
+# server (or a dead background loop) would hang every caller instead of
+# degrading to the wrapped gateway.
+_CACHE_OP_TIMEOUT = 5.0
+
+
+class CacheOpTimeoutError(RuntimeError):
+    """Raised when a cache operation outlives the bounded bridge wait.
+
+    ``_get_or_fetch`` handles it like any other cache failure: log a warning
+    and fall back to the wrapped gateway.
+    """
+
+
 # method name -> Settings field holding the per-data-class TTL (seconds).
 _TTL_SETTING_FIELDS: dict[str, str] = {
     "search": "gateway_ttl_search_seconds",
@@ -466,8 +482,12 @@ def _canonicalize(value: Any) -> Any:  # noqa: PLR0911
         return value.date().isoformat()
     if isinstance(value, date):
         return value.isoformat()
-    if isinstance(value, UUID | Decimal):
+    if isinstance(value, UUID):
         return str(value)
+    if isinstance(value, Decimal):
+        # ``normalize`` drops insignificant trailing zeros so equivalent
+        # decimals (``Decimal("10.5")`` / ``Decimal("10.50")``) share a key.
+        return str(value.normalize())
     if isinstance(value, BaseModel):
         return value.model_dump(mode="json")
     if isinstance(value, dict):
@@ -541,7 +561,36 @@ class _CacheBridge:
         return self._loop
 
     def run[T](self, coro: Coroutine[Any, Any, T]) -> T:
-        return asyncio.run_coroutine_threadsafe(coro, self.loop()).result()
+        """Run ``coro`` on the background loop with a bounded wait.
+
+        A stalled Redis socket or a dead background loop must never hang the
+        caller: once ``_CACHE_OP_TIMEOUT`` elapses the future is cancelled
+        best-effort, a loop whose thread has died is dropped so the next call
+        recreates it, and :class:`CacheOpTimeoutError` is raised so the caller
+        degrades to the wrapped gateway.
+        """
+        future = asyncio.run_coroutine_threadsafe(coro, self.loop())
+        try:
+            return future.result(timeout=_CACHE_OP_TIMEOUT)
+        except FutureTimeoutError as e:
+            logger.warning(
+                "Gateway cache operation timed out after %.1fs; "
+                "degrading to the provider",
+                _CACHE_OP_TIMEOUT,
+            )
+            future.cancel()
+            self._recreate_loop_if_dead()
+            msg = f"cache operation exceeded {_CACHE_OP_TIMEOUT}s"
+            raise CacheOpTimeoutError(msg) from e
+
+    def _recreate_loop_if_dead(self) -> None:
+        """Drop the background loop if its thread is no longer running."""
+        loop = self._loop
+        if loop is None or loop.is_closed() or loop.is_running():
+            return
+        with self._lock:
+            if self._loop is loop and not loop.is_running():
+                self._loop = None
 
 
 _cache_bridge = _CacheBridge()
@@ -553,6 +602,12 @@ def _run_cache_op[T](coro: Coroutine[Any, Any, T]) -> T:
     Always targets the shared background loop — never the caller's loop and
     never ``asyncio.run`` — so it is safe whether or not the calling thread
     already has a running event loop.
+
+    NOTE: being a synchronous bridge, a caller that is itself on an async event
+    loop (e.g. ``src/market/api.py``) blocks that loop for one Redis round-trip
+    per cache operation while waiting here. That is deliberate until the async
+    caching layer / gateway wiring lands in T06; the bounded wait in
+    :meth:`_CacheBridge.run` keeps the block finite.
     """
     return _cache_bridge.run(coro)
 

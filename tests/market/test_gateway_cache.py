@@ -11,6 +11,7 @@ import asyncio
 import json
 from collections import defaultdict
 from datetime import UTC, date, datetime
+from decimal import Decimal
 from uuid import uuid4
 
 import pytest
@@ -30,7 +31,12 @@ from src.market.api_types import (
     SecuritySearchResult,
     SymbolLookupResult,
 )
-from src.market.cache import CachedMarketGateway, _cache_key
+from src.market.cache import (
+    CacheOpTimeoutError,
+    CachedMarketGateway,
+    _cache_key,
+    _run_cache_op,
+)
 from src.market.gateway import MarketGateway
 from src.stubs.eodhd import StubEodhdGateway
 from tests.fixtures.redis import FakeRedis
@@ -391,6 +397,16 @@ def test_options_filters_change_the_key(
     assert len(_gateway_keys(mock_redis_storage)) == 3
 
 
+def test_equivalent_decimal_strike_bounds_share_a_key(
+    gateway: CachedMarketGateway, inner: RecordingGateway, mock_redis_storage: FakeRedis
+) -> None:
+    gateway.get_options_chain("AAPL", strike_min=Decimal("10.50"))
+    gateway.get_options_chain("AAPL", strike_min=Decimal("10.5"))
+
+    assert inner.calls["get_options_chain"] == 1
+    assert len(_gateway_keys(mock_redis_storage)) == 1
+
+
 # --------------------------------------------------------------------------- #
 # AC3: per-data-class TTLs are applied and configurable.
 # --------------------------------------------------------------------------- #
@@ -508,6 +524,35 @@ def test_payload_with_wrong_shape_is_treated_as_a_miss(
 
     assert isinstance(result, list)
     assert inner.calls["get_prices"] == 2
+
+
+def test_stalled_cache_op_times_out_and_falls_through_to_provider(
+    gateway: CachedMarketGateway,
+    inner: RecordingGateway,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    async def hanging_get(key: str) -> str | None:
+        await asyncio.sleep(999)
+        return None
+
+    monkeypatch.setattr(CachedMarketGateway, "_async_get", staticmethod(hanging_get))
+    # Keep the regression test fast; production uses the 5s module default.
+    monkeypatch.setattr("src.market.cache._CACHE_OP_TIMEOUT", 0.05)
+
+    result = gateway.get_key_metrics("AAPL")
+
+    assert isinstance(result, KeyMetrics)
+    assert inner.calls["get_key_metrics"] == 1
+
+
+def test_cache_bridge_raises_on_timeout(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setattr("src.market.cache._CACHE_OP_TIMEOUT", 0.05)
+
+    async def hang() -> None:
+        await asyncio.sleep(999)
+
+    with pytest.raises(CacheOpTimeoutError):
+        _run_cache_op(hang())
 
 
 # --------------------------------------------------------------------------- #
