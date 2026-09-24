@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"log/slog"
 	"net/http"
 	"net/url"
 	"strconv"
@@ -202,11 +203,13 @@ type BackendClient struct {
 	baseURL    *url.URL
 	token      string
 	httpClient *http.Client
+	env        string
 }
 
 // NewBackendClient validates baseURL and builds a client. baseURL must be an
-// absolute http(s) origin; a trailing slash is tolerated.
-func NewBackendClient(baseURL, token string) (*BackendClient, error) {
+// absolute http(s) origin; a trailing slash is tolerated. Optional env specifies
+// the runtime environment ("dev", "prod"), defaulting to "dev".
+func NewBackendClient(baseURL, token string, env ...string) (*BackendClient, error) {
 	trimmed := strings.TrimRight(strings.TrimSpace(baseURL), "/")
 	if trimmed == "" {
 		return nil, errors.New("backend base URL is required")
@@ -222,11 +225,22 @@ func NewBackendClient(baseURL, token string) (*BackendClient, error) {
 		return nil, errors.New("backend base URL must include a host")
 	}
 
+	environment := defaultEnvironment
+	if len(env) > 0 && strings.TrimSpace(env[0]) != "" {
+		environment = strings.TrimSpace(env[0])
+	}
+
 	return &BackendClient{
 		baseURL:    parsed,
 		token:      token,
 		httpClient: &http.Client{Timeout: defaultHTTPTimeout},
+		env:        environment,
 	}, nil
+}
+
+// isDev reports whether this client is running in a development environment.
+func (c *BackendClient) isDev() bool {
+	return isDev(c.env)
 }
 
 // Prices returns daily OHLC history for symbol.
@@ -352,40 +366,101 @@ func (c *BackendClient) Statements(
 // out. Every failure is normalized to one of the ErrNoData / ErrValidation /
 // ErrConfiguration / ErrProvider classes.
 func (c *BackendClient) get(ctx context.Context, path string, query url.Values, out any) error {
-	endpoint, err := url.Parse(c.baseURL.String() + dataPlanePath + path)
+	start := time.Now()
+	rawURL := c.baseURL.String() + dataPlanePath + path
+	endpoint, err := url.Parse(rawURL)
 	if err != nil {
-		return &backendError{class: ErrProvider, detail: err.Error()}
+		bErr := &backendError{class: ErrProvider, detail: err.Error()}
+		slog.ErrorContext(ctx, "backend request failed",
+			slog.String("url", rawURL),
+			slog.Int("status", 0),
+			slog.String("detail", bErr.Detail()),
+		)
+		return bErr
 	}
 	endpoint.RawQuery = query.Encode()
+	reqURL := endpoint.String()
 
-	req, err := http.NewRequestWithContext(ctx, http.MethodGet, endpoint.String(), nil)
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, reqURL, nil)
 	if err != nil {
-		return &backendError{class: ErrProvider, detail: err.Error()}
+		bErr := &backendError{class: ErrProvider, detail: err.Error()}
+		slog.ErrorContext(ctx, "backend request failed",
+			slog.String("url", reqURL),
+			slog.Int("status", 0),
+			slog.String("detail", bErr.Detail()),
+		)
+		return bErr
 	}
 	req.Header.Set(serviceTokenHeader, c.token)
 	req.Header.Set("Accept", "application/json")
 
+	if c.isDev() {
+		slog.DebugContext(ctx, "backend request",
+			slog.String("method", http.MethodGet),
+			slog.String("url", reqURL),
+			slog.String("query", query.Encode()),
+		)
+	}
+
 	resp, err := c.httpClient.Do(req)
+	duration := time.Since(start)
 	if err != nil {
-		return &backendError{class: ErrProvider, detail: err.Error()}
+		bErr := &backendError{class: ErrProvider, detail: err.Error()}
+		slog.ErrorContext(ctx, "backend request failed",
+			slog.String("url", reqURL),
+			slog.Int("status", 0),
+			slog.String("detail", bErr.Detail()),
+		)
+		return bErr
 	}
 	defer resp.Body.Close()
 
+	if c.isDev() {
+		slog.DebugContext(ctx, "backend response",
+			slog.String("method", http.MethodGet),
+			slog.String("url", reqURL),
+			slog.Int("status", resp.StatusCode),
+			slog.Duration("duration", duration),
+		)
+	}
+
 	body, err := io.ReadAll(io.LimitReader(resp.Body, maxResponseBytes))
 	if err != nil {
-		return &backendError{class: ErrProvider, status: resp.StatusCode, detail: err.Error()}
+		bErr := &backendError{class: ErrProvider, status: resp.StatusCode, detail: err.Error()}
+		slog.ErrorContext(ctx, "backend request failed",
+			slog.String("url", reqURL),
+			slog.Int("status", resp.StatusCode),
+			slog.String("detail", bErr.Detail()),
+		)
+		return bErr
 	}
 
 	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
-		return classifyBackendError(resp.StatusCode, body)
+		bErr := classifyBackendError(resp.StatusCode, body)
+		var detail string
+		if be, ok := bErr.(*backendError); ok {
+			detail = be.Detail()
+		}
+		slog.ErrorContext(ctx, "backend request failed",
+			slog.String("url", reqURL),
+			slog.Int("status", resp.StatusCode),
+			slog.String("detail", detail),
+		)
+		return bErr
 	}
 
 	if err := json.Unmarshal(body, out); err != nil {
-		return &backendError{
+		bErr := &backendError{
 			class:  ErrProvider,
 			status: resp.StatusCode,
 			detail: "malformed response from the market data service",
 		}
+		slog.ErrorContext(ctx, "backend request failed",
+			slog.String("url", reqURL),
+			slog.Int("status", resp.StatusCode),
+			slog.String("detail", bErr.Detail()),
+		)
+		return bErr
 	}
 	return nil
 }

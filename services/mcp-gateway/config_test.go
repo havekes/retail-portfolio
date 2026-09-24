@@ -209,3 +209,30 @@ func TestLoadConfig(t *testing.T) {
 		}
 	})
 }
+
+func TestIsDev(t *testing.T) {
+	cases := []struct {
+		env      string
+		expected bool
+	}{
+		{"dev", true},
+		{"DEV", true},
+		{"  dev  ", true},
+		{"", true},
+		{"   ", true},
+		{"prod", false},
+		{"PROD", false},
+		{"production", false},
+		{"staging", false},
+		{"test", false},
+	}
+
+	for _, tc := range cases {
+		t.Run("env_"+tc.env, func(t *testing.T) {
+			got := isDev(tc.env)
+			if got != tc.expected {
+				t.Errorf("isDev(%q) = %v, want %v", tc.env, got, tc.expected)
+			}
+		})
+	}
+}
