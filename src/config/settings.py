@@ -44,6 +44,9 @@ class Settings(BaseSettings):
     # Indicator Service
     indicator_service_url: str = "http://localhost:8080"
 
+    # Service-to-service auth (MCP gateway -> data endpoints), sent as X-Service-Token
+    market_data_service_token: str = ""
+
     # AI API
     ai_api_endpoint: str = "https://api.openai.com/v1/chat/completions"
     ai_api_key: str = ""
@@ -95,6 +98,21 @@ class Settings(BaseSettings):
                 "SECRET_KEY must be set and at least 32 characters long "
                 "when running outside dev/test environments. Generate a secure key "
                 "with: openssl rand -hex 32 or python -c "
+                '"import secrets; print(secrets.token_hex(32))"'
+            )
+            raise ValueError(msg)
+        return self
+
+    @model_validator(mode="after")
+    def validate_service_token(self) -> Self:
+        if self.environment.lower() not in ("dev", "test") and (
+            not self.market_data_service_token
+            or not self.market_data_service_token.strip()
+        ):
+            msg = (
+                "MARKET_DATA_SERVICE_TOKEN must be set when running outside "
+                "dev/test environments. Generate a secure token with: "
+                "openssl rand -hex 32 or python -c "
                 '"import secrets; print(secrets.token_hex(32))"'
             )
             raise ValueError(msg)

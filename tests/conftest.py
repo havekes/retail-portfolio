@@ -14,6 +14,8 @@ os.environ["SECRET_KEY"] = (
 )
 os.environ["ENVIRONMENT"] = "test"
 os.environ["STUB_EXTERNAL_API"] = "true"
+# Baseline service token so prod-path settings tests pass the startup validator.
+os.environ["MARKET_DATA_SERVICE_TOKEN"] = "test-market-data-service-token"
 
 from src.core.enum import AccountTypeEnum
 from src.core.enum import InstitutionEnum
