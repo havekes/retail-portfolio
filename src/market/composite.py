@@ -6,10 +6,12 @@ new data plane by routing each capability to the provider that owns it:
 * prices, search, symbol lookup and every fundamentals capability -> FMP;
 * options chains -> Polygon.
 
-The composite is wrapped once in T05's :class:`CachedMarketGateway` by
-:func:`composite_market_gateway_factory`, which is what the provider-agnostic
-``DataPlaneMarketGateway`` svcs key resolves to. The legacy ``MarketGateway``
-binding stays on EODHD, so existing price-fetch flows are untouched.
+:func:`composite_market_gateway_factory` returns the bare composite, which is
+what the provider-agnostic ``DataPlaneMarketGateway`` svcs key resolves to.
+Data-plane caching lives one layer up, in
+:class:`~src.market.endpoint_cache.EndpointResponseCache` (``market:ep``), so
+each response is stored exactly once. The legacy ``MarketGateway`` binding
+stays on EODHD, so existing price-fetch flows are untouched.
 """
 
 from datetime import date, datetime
@@ -30,7 +32,6 @@ from src.market.api_types import (
     SecuritySearchResult,
     SymbolLookupResult,
 )
-from src.market.cache import CachedMarketGateway
 from src.market.fmp import fmp_gateway_factory
 from src.market.gateway import MarketGateway
 from src.market.polygon import polygon_gateway_factory
@@ -41,8 +42,8 @@ class CompositeMarketGateway(MarketGateway):
 
     Prices, search, symbol lookup and fundamentals are delegated to ``fmp``;
     options chains are delegated to ``polygon``. The composite adds no caching
-    of its own: :func:`composite_market_gateway_factory` wraps it in
-    ``CachedMarketGateway`` exactly once.
+    of its own: data-plane responses are cached once, above the gateway, by
+    :class:`~src.market.endpoint_cache.EndpointResponseCache`.
     """
 
     def __init__(self, fmp: MarketGateway, polygon: MarketGateway) -> None:
@@ -184,17 +185,17 @@ class CompositeMarketGateway(MarketGateway):
 
 
 def composite_market_gateway_factory() -> MarketGateway:
-    """Build the cache-wrapped provider-agnostic data-plane gateway.
+    """Build the provider-agnostic data-plane gateway.
 
     Constructs the FMP and Polygon gateways directly (mirroring
     ``repository_eodhd.py::eodhd_price_repository_factory`` calling
-    ``eodhd_gateway_factory()``) and wraps the composite once in the T05 cache.
-    Both provider factories are stub-aware, so ``STUB_EXTERNAL_API=true``
-    yields a fully offline composite.
+    ``eodhd_gateway_factory()``) and returns the bare composite. Data-plane
+    caching is applied once, above the gateway, by
+    :class:`~src.market.endpoint_cache.EndpointResponseCache`. Both provider
+    factories are stub-aware, so ``STUB_EXTERNAL_API=true`` yields a fully
+    offline composite.
     """
-    return CachedMarketGateway(
-        CompositeMarketGateway(
-            fmp=fmp_gateway_factory(),
-            polygon=polygon_gateway_factory(),
-        )
+    return CompositeMarketGateway(
+        fmp=fmp_gateway_factory(),
+        polygon=polygon_gateway_factory(),
     )

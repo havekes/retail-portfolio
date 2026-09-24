@@ -255,3 +255,21 @@ def test_unsupported_capability_error_surfaces_unchanged(fakes):
 
     with pytest.raises(MarketDataProviderError, match="capability not supported"):
         composite.get_intraday_prices(SID, "AAPL", "NASDAQ", FROM_DT, TO_DT)
+
+
+def test_composite_delegates_every_call_and_adds_no_caching(fakes):
+    """The composite routes to the owning provider on every call — no cache."""
+    fmp, polygon, composite = fakes
+
+    composite.get_key_metrics("AAPL")
+    composite.get_key_metrics("AAPL")
+    composite.get_options_chain("AAPL")
+    composite.get_options_chain("AAPL")
+
+    # Repeated reads reach the providers each time: data-plane caching lives
+    # above the gateway, in ``EndpointResponseCache``.
+    assert [name for name, *_ in fmp.calls] == ["get_key_metrics", "get_key_metrics"]
+    assert [name for name, *_ in polygon.calls] == [
+        "get_options_chain",
+        "get_options_chain",
+    ]
