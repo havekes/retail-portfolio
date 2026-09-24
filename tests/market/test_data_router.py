@@ -449,6 +449,70 @@ async def test_unknown_underlying_options_is_negative_cached(
 
 
 @pytest.mark.anyio
+async def test_unknown_symbol_search_is_negative_cached(
+    client: AsyncClient, mock_gateway: MagicMock, mock_redis_storage: FakeRedis
+) -> None:
+    mock_gateway.lookup_symbol.side_effect = MarketDataNotFoundError("ZZZZ")
+    url = f"{_SEARCH_URL}?q=ZZZZ"
+
+    first = await client.get(url, headers=_headers())
+    second = await client.get(url, headers=_headers())
+
+    assert first.status_code == second.status_code == 404
+    assert first.json()["detail"] == second.json()["detail"]
+    # The 404 was negative-cached: the upstream gateway ran exactly once.
+    mock_gateway.lookup_symbol.assert_called_once_with("ZZZZ")
+
+    keys = _endpoint_keys(mock_redis_storage, "market:ep:search:symbol_lookup:")
+    assert len(keys) == 1
+
+
+@pytest.mark.anyio
+@pytest.mark.parametrize(
+    "method_name",
+    ["get_company_profile", "get_key_metrics", "get_financial_ratios"],
+)
+async def test_unknown_fundamentals_symbol_is_negative_cached(
+    client: AsyncClient,
+    mock_gateway: MagicMock,
+    mock_redis_storage: FakeRedis,
+    method_name: str,
+) -> None:
+    getattr(mock_gateway, method_name).side_effect = MarketDataNotFoundError("ZZZZ")
+    url = "/api/v1/market/data/fundamentals/ZZZZ"
+
+    first = await client.get(url, headers=_headers())
+    second = await client.get(url, headers=_headers())
+
+    assert first.status_code == second.status_code == 404
+    assert first.json()["detail"] == second.json()["detail"]
+    # The 404 was negative-cached: the upstream gateway ran exactly once.
+    getattr(mock_gateway, method_name).assert_called_once()
+
+    keys = _endpoint_keys(mock_redis_storage, "market:ep:metrics:fundamentals:")
+    assert len(keys) == 1
+
+
+@pytest.mark.anyio
+async def test_unknown_statements_symbol_is_negative_cached(
+    client: AsyncClient, mock_gateway: MagicMock, mock_redis_storage: FakeRedis
+) -> None:
+    mock_gateway.get_income_statement.side_effect = MarketDataNotFoundError("ZZZZ")
+    url = f"{_STATEMENTS_URL}?statement=income"
+
+    first = await client.get(url, headers=_headers())
+    second = await client.get(url, headers=_headers())
+
+    assert first.status_code == second.status_code == 404
+    assert first.json()["detail"] == second.json()["detail"]
+    # The 404 was negative-cached: the upstream gateway ran exactly once.
+    mock_gateway.get_income_statement.assert_called_once()
+
+    keys = _endpoint_keys(mock_redis_storage, "market:ep:statements:statements:")
+    assert len(keys) == 1
+
+
+@pytest.mark.anyio
 async def test_transient_provider_failure_is_not_negative_cached(
     client: AsyncClient, mock_gateway: MagicMock
 ) -> None:
@@ -461,6 +525,34 @@ async def test_transient_provider_failure_is_not_negative_cached(
     # A 5xx must propagate uncached: the gateway is retried on the next request.
     assert first.status_code == second.status_code == 502
     assert mock_gateway.get_prices.call_count == 2
+
+
+@pytest.mark.anyio
+@pytest.mark.parametrize(
+    ("side_effect", "expected_status"),
+    [
+        (MarketDataProviderError("raw upstream failure"), 502),
+        (MarketDataConfigurationError("raw config failure"), 503),
+    ],
+)
+async def test_search_provider_failure_is_generic(
+    client: AsyncClient,
+    mock_gateway: MagicMock,
+    side_effect: Exception,
+    expected_status: int,
+) -> None:
+    mock_gateway.lookup_symbol.side_effect = side_effect
+
+    first = await client.get(f"{_SEARCH_URL}?q=apple", headers=_headers())
+    second = await client.get(f"{_SEARCH_URL}?q=apple", headers=_headers())
+
+    # A 5xx must propagate uncached: the gateway is retried on the next request.
+    assert first.status_code == second.status_code == expected_status
+    assert mock_gateway.lookup_symbol.call_count == 2
+    detail = first.json()["detail"].lower()
+    assert "raw" not in detail
+    for provider in _PROVIDER_NAMES:
+        assert provider not in detail
 
 
 @pytest.mark.anyio

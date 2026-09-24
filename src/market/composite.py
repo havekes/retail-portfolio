@@ -17,9 +17,10 @@ stays on EODHD, so existing price-fetch flows are untouched.
 """
 
 from collections.abc import Generator
+from contextlib import suppress
 from datetime import date, datetime
 from decimal import Decimal
-from typing import Literal, Protocol, cast
+from typing import Literal
 
 from src.market.api_types import (
     BalanceSheet,
@@ -40,10 +41,16 @@ from src.market.gateway import MarketGateway
 from src.market.polygon import polygon_gateway_factory
 
 
-class _Closeable(Protocol):
-    """Structural type for a gateway with lifecycle cleanup."""
+def _close_provider(provider: object) -> None:
+    """Call ``provider.close()`` when the provider exposes a callable hook.
 
-    def close(self) -> None: ...
+    Provider lifecycle cleanup is structural rather than part of the
+    ``MarketGateway`` contract, so the attribute is resolved at runtime: a
+    provider without ``close`` is skipped instead of raising mid-teardown.
+    """
+    close_hook = getattr(provider, "close", None)
+    if callable(close_hook):
+        close_hook()
 
 
 class CompositeMarketGateway(MarketGateway):
@@ -65,10 +72,11 @@ class CompositeMarketGateway(MarketGateway):
         Closes the FMP HTTP client and the Polygon HTTP session so their
         pooled connections are freed when the owning svcs container is torn
         down. Provider lifecycle hooks are structural (not part of the
-        ``MarketGateway`` contract), hence the casts.
+        ``MarketGateway`` contract), so ``close`` is resolved defensively: a
+        provider without the hook is skipped rather than raising mid-teardown.
         """
-        cast("_Closeable", self._fmp).close()
-        cast("_Closeable", self._polygon).close()
+        for provider in (self._fmp, self._polygon):
+            _close_provider(provider)
 
     def search(self, query: str) -> list[SecuritySearchResult]:
         """Search for securities by query string (FMP)."""
@@ -226,10 +234,18 @@ def composite_market_gateway_factory() -> Generator[MarketGateway]:
     ``polygon_gateway_factory`` call sites keep today's caller-owned
     behaviour.
     """
-    gateway = CompositeMarketGateway(
-        fmp=fmp_gateway_factory(),
-        polygon=polygon_gateway_factory(),
-    )
+    fmp = fmp_gateway_factory()
+    try:
+        polygon = polygon_gateway_factory()
+    except Exception:
+        # Partial construction: the FMP client already holds pooled HTTP
+        # connections, so release it before propagating. Any teardown failure
+        # is suppressed so the original construction error wins.
+        with suppress(Exception):
+            _close_provider(fmp)
+        raise
+
+    gateway = CompositeMarketGateway(fmp=fmp, polygon=polygon)
     try:
         yield gateway
     finally:
