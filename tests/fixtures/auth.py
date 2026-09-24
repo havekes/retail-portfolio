@@ -37,10 +37,10 @@ class MockEodhdGateway(MarketGateway):
 
     def get_price_on_date(
         self,
-        security_id: UUID,
         symbol: str,
         exchange: str,
         date: date,
+        security_id: UUID | None = None,
     ) -> HistoricalPrice | None:
         """Return a mock price result."""
         _ = symbol, exchange  # Unused in mock
@@ -57,11 +57,11 @@ class MockEodhdGateway(MarketGateway):
 
     def get_prices(
         self,
-        security_id: UUID,
         symbol: str,
         exchange: str,
         from_date: date,
         to_date: date,
+        security_id: UUID | None = None,
     ) -> list[HistoricalPrice]:
         """Return a mock price list."""
         _ = symbol, exchange, to_date  # Unused in mock
@@ -80,12 +80,12 @@ class MockEodhdGateway(MarketGateway):
 
     def get_intraday_prices(  # noqa: PLR0913, PLR0917
         self,
-        security_id: UUID,
         symbol: str,
         exchange: str,
         from_datetime: datetime,
         to_datetime: datetime,
         interval: str = "1h",
+        security_id: UUID | None = None,
     ) -> list[IntradayHistoricalPrice]:
         """Return a mock intraday price list."""
         _ = symbol, exchange, to_datetime, interval

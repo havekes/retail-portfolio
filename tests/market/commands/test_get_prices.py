@@ -17,8 +17,10 @@ def test_get_prices_default_args():
         main()
 
     mock_gateway.get_prices.assert_called_once()
-    sec = mock_gateway.get_prices.call_args[0][0]
-    assert sec.symbol == "GOOG"
+    args, kwargs = mock_gateway.get_prices.call_args
+    assert args[0] == "GOOG"
+    assert args[1] == "US"
+    assert kwargs["security_id"] is not None
     mock_rprint.assert_called_once_with([100.0, 101.0])
 
 
@@ -35,6 +37,8 @@ def test_get_prices_with_custom_dates():
         main()
 
     mock_gateway.get_prices.assert_called_once()
-    kwargs = mock_gateway.get_prices.call_args[1]
+    args, kwargs = mock_gateway.get_prices.call_args
+    assert args[0] == "GOOG"
     assert kwargs["from_date"] == "2026-01-01"
     assert kwargs["to_date"] == "2026-01-10"
+    assert kwargs["security_id"] is not None
