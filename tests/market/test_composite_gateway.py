@@ -23,7 +23,10 @@ from src.market.api_types import (
     SecuritySearchResult,
     SymbolLookupResult,
 )
-from src.market.composite import CompositeMarketGateway
+from src.market.composite import (
+    CompositeMarketGateway,
+    composite_market_gateway_factory,
+)
 from src.market.exception import MarketDataProviderError
 from src.market.gateway import MarketGateway
 
@@ -304,3 +307,98 @@ def test_close_releases_both_providers(fakes):
 
     assert fmp.closed
     assert polygon.closed
+
+
+class _FakeNoCloseGateway(MarketGateway):
+    """A provider that implements the price contract but exposes no ``close``."""
+
+    def search(self, query):
+        raise AssertionError("not used")
+
+    def get_price_on_date(self, symbol, exchange, date, security_id=None):
+        raise AssertionError("not used")
+
+    def get_prices(self, symbol, exchange, from_date, to_date, security_id=None):
+        raise AssertionError("not used")
+
+    def get_intraday_prices(
+        self,
+        symbol,
+        exchange,
+        from_datetime,
+        to_datetime,
+        interval="1h",
+        security_id=None,
+    ):
+        raise AssertionError("not used")
+
+
+def test_close_skips_providers_without_close():
+    """Teardown is defensive: a provider missing ``close`` must not raise."""
+    fmp = _FakeNoCloseGateway()
+    polygon = FakePolygonGateway()
+    composite = CompositeMarketGateway(fmp=fmp, polygon=polygon)
+
+    composite.close()
+
+    assert polygon.closed
+
+
+def test_factory_closes_both_providers_on_teardown(monkeypatch):
+    fmp = FakeFmpGateway()
+    polygon = FakePolygonGateway()
+    monkeypatch.setattr("src.market.composite.fmp_gateway_factory", lambda: fmp)
+    monkeypatch.setattr(
+        "src.market.composite.polygon_gateway_factory", lambda: polygon
+    )
+
+    generator = composite_market_gateway_factory()
+    gateway = next(generator)
+    assert isinstance(gateway, CompositeMarketGateway)
+    assert not fmp.closed
+    assert not polygon.closed
+
+    generator.close()
+
+    assert fmp.closed
+    assert polygon.closed
+
+
+def test_factory_closes_fmp_when_polygon_construction_fails(monkeypatch):
+    """A failure after the FMP client exists must not leak it."""
+    fmp = FakeFmpGateway()
+    monkeypatch.setattr("src.market.composite.fmp_gateway_factory", lambda: fmp)
+
+    def failing_polygon_factory():
+        raise RuntimeError("polygon construction failed")
+
+    monkeypatch.setattr(
+        "src.market.composite.polygon_gateway_factory", failing_polygon_factory
+    )
+
+    with pytest.raises(RuntimeError, match="polygon construction failed"):
+        next(composite_market_gateway_factory())
+
+    assert fmp.closed
+
+
+def test_factory_propagates_original_error_when_cleanup_fails(monkeypatch):
+    """A failing cleanup must not mask the construction failure."""
+
+    class ExplodingFmpGateway(FakeFmpGateway):
+        def close(self) -> None:
+            raise RuntimeError("cleanup failed")
+
+    monkeypatch.setattr(
+        "src.market.composite.fmp_gateway_factory", lambda: ExplodingFmpGateway()
+    )
+
+    def failing_polygon_factory():
+        raise RuntimeError("polygon construction failed")
+
+    monkeypatch.setattr(
+        "src.market.composite.polygon_gateway_factory", failing_polygon_factory
+    )
+
+    with pytest.raises(RuntimeError, match="polygon construction failed"):
+        next(composite_market_gateway_factory())
