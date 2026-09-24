@@ -32,6 +32,7 @@ from src.market.model import (
     SecurityDocumentModel,
     SecurityModel,
     SecurityNoteModel,
+    SecurityNoteSummaryModel,
     WatchlistModel,
     WatchlistsSecuritiesModel,
 )
@@ -43,6 +44,7 @@ from src.market.repository import (
     SecurityBrokerRepository,
     SecurityDocumentRepository,
     SecurityNoteRepository,
+    SecurityNoteSummaryRepository,
     SecurityRepository,
     WatchlistRepository,
 )
@@ -51,6 +53,8 @@ from src.market.schema import (
     ChartSnapshotCreate,
     ChartSnapshotRead,
     IntradayPriceSchema,
+    NoteSummaryResponse,
+    NoteSummaryWrite,
     PriceAlertRead,
     PriceAlertWrite,
     PriceSchema,
@@ -1150,6 +1154,19 @@ class SqlAlchemySecurityNoteRepository(SecurityNoteRepository):
             await self._session.commit()
 
     @override
+    async def update_title_and_summary(
+        self, note_id: int, title: str, summary: str | None
+    ) -> None:
+        result = await self._session.execute(
+            select(SecurityNoteModel).where(SecurityNoteModel.id == note_id)
+        )
+        note_model = result.scalar_one_or_none()
+        if note_model:
+            note_model.title = title
+            note_model.summary = summary
+            await self._session.commit()
+
+    @override
     async def delete(self, note_id: int, user_id: UserId) -> None:
         await self._session.execute(
             delete(SecurityNoteModel)
@@ -1163,6 +1180,75 @@ async def sqlalchemy_security_note_repository_factory(
     container: Container,
 ) -> SqlAlchemySecurityNoteRepository:
     return SqlAlchemySecurityNoteRepository(
+        session=await container.aget(AsyncSession),
+    )
+
+
+class SqlAlchemySecurityNoteSummaryRepository(SecurityNoteSummaryRepository):
+    _session: AsyncSession
+
+    def __init__(self, session: AsyncSession):
+        self._session = session
+
+    @override
+    async def get(
+        self, security_id: SecurityId, user_id: UserId
+    ) -> NoteSummaryResponse | None:
+        result = await self._session.execute(
+            select(SecurityNoteSummaryModel)
+            .where(SecurityNoteSummaryModel.security_id == security_id)
+            .where(SecurityNoteSummaryModel.user_id == user_id)
+        )
+        row = result.scalar_one_or_none()
+        return NoteSummaryResponse.model_validate(row) if row else None
+
+    @override
+    async def upsert(
+        self, summary: NoteSummaryWrite, security_id: SecurityId, user_id: UserId
+    ) -> NoteSummaryResponse:
+        """Insert or update the summary row, stamping the DB transaction time.
+
+        ``summary.generated_at`` is intentionally ignored in favour of
+        ``func.now()`` so the stored timestamp always comes from the database
+        clock.
+        """
+        result = await self._session.execute(
+            select(SecurityNoteSummaryModel)
+            .where(SecurityNoteSummaryModel.security_id == security_id)
+            .where(SecurityNoteSummaryModel.user_id == user_id)
+        )
+        row = result.scalar_one_or_none()
+        if row is None:
+            row = SecurityNoteSummaryModel(
+                security_id=security_id,
+                user_id=user_id,
+                short_summary=summary.short_summary,
+                long_summary=summary.long_summary,
+                generated_at=func.now(),
+            )
+        else:
+            row.short_summary = summary.short_summary
+            row.long_summary = summary.long_summary
+            row.generated_at = func.now()
+        self._session.add(row)
+        await self._session.commit()
+        await self._session.refresh(row)
+        return NoteSummaryResponse.model_validate(row)
+
+    @override
+    async def delete(self, security_id: SecurityId, user_id: UserId) -> None:
+        await self._session.execute(
+            delete(SecurityNoteSummaryModel)
+            .where(SecurityNoteSummaryModel.security_id == security_id)
+            .where(SecurityNoteSummaryModel.user_id == user_id)
+        )
+        await self._session.commit()
+
+
+async def sqlalchemy_security_note_summary_repository_factory(
+    container: Container,
+) -> SqlAlchemySecurityNoteSummaryRepository:
+    return SqlAlchemySecurityNoteSummaryRepository(
         session=await container.aget(AsyncSession),
     )
 

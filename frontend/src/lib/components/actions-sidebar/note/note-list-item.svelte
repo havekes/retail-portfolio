@@ -41,6 +41,11 @@
 	<div class="flex-1 space-y-1 pr-2">
 		<div class="text-xs text-muted-foreground">{formatDate(note.created_at)}</div>
 		<div class="line-clamp-2 text-sm">{preview}</div>
+		{#if note.summary}
+			<div class="line-clamp-2 text-xs text-muted-foreground">{note.summary}</div>
+		{:else}
+			<div class="text-xs text-muted-foreground italic">Summarizing…</div>
+		{/if}
 	</div>
 	<button
 		onclick={handleDelete}

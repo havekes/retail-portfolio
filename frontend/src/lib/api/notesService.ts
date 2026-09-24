@@ -6,6 +6,7 @@ export interface SecurityNote {
 	security_id: string;
 	user_id: string;
 	title?: string;
+	summary?: string | null;
 	content: string;
 	created_at: string;
 	updated_at: string;
@@ -17,6 +18,12 @@ export interface SecurityNoteCreateRequest {
 
 export interface SecurityNoteUpdateRequest {
 	content: string;
+}
+
+export interface SecurityNoteSummary {
+	short_summary: string | null;
+	long_summary: string | null;
+	generated_at: string | null;
 }
 
 export class NotesService extends ApiClient {
@@ -38,7 +45,7 @@ export class NotesService extends ApiClient {
 		noteId: number,
 		request: SecurityNoteUpdateRequest
 	): Promise<SecurityNote> {
-		return await this.patch<SecurityNote, SecurityNoteUpdateRequest>(
+		return await this.put<SecurityNote, SecurityNoteUpdateRequest>(
 			`/market/securities/${securityId}/notes/${noteId}`,
 			request
 		);
@@ -46,6 +53,10 @@ export class NotesService extends ApiClient {
 
 	async deleteNote(securityId: string, noteId: number): Promise<void> {
 		return await this.delete(`/market/securities/${securityId}/notes/${noteId}`);
+	}
+
+	async getLatestSummary(securityId: string): Promise<SecurityNoteSummary> {
+		return await this.get<SecurityNoteSummary>(`/market/securities/${securityId}/ai/notes-summary`);
 	}
 }
 

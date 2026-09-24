@@ -11,12 +11,18 @@ from fastapi.exceptions import HTTPException
 from svcs.fastapi import DepContainer
 
 from src.auth.api import current_user
-from src.auth.api_types import User
+from src.auth.api_types import User, UserId
 from src.config.limiter import limiter
 from src.config.settings import settings
 from src.core.context import get_request_id
 from src.core.pagination import PaginatedResponse, PaginationParams
-from src.market.ai_service import AIService
+from src.market.ai_service import (
+    AIService,
+    clean_note_title,
+    clean_short_summary,
+    derive_short_summary,
+    normalize_long_summary,
+)
 from src.market.api import SecurityApi
 from src.market.api_types import SecurityId, SecuritySearchResult, WatchlistId
 from src.market.cache import IndicatorCache, SecuritySearchCache
@@ -43,6 +49,7 @@ from src.market.repository import (
     PriceRepository,
     SecurityDocumentRepository,
     SecurityNoteRepository,
+    SecurityNoteSummaryRepository,
     SecurityRepository,
     WatchlistRepository,
 )
@@ -58,6 +65,7 @@ from src.market.schema import (
     IntradayPriceSchema,
     MACDPoint,
     MAPoint,
+    NoteSummaryResponse,
     PriceAlertRead,
     PriceAlertWrite,
     PriceHistoryRead,
@@ -84,7 +92,17 @@ from src.market.service import (
     aggregate_weekly_prices,
     convert_to_heikin_ashi,
 )
-from src.market.task import generate_note_title_task
+from src.market.task import (
+    generate_note_summary_task,
+    generate_note_title_task,
+    mark_task_cancelled,
+)
+from src.market.task_labels import (
+    note_summary_label,
+    note_title_label,
+    record_task_label,
+    revoke_labelled_task,
+)
 from src.worker import huey
 
 logger = logging.getLogger(__name__)
@@ -573,6 +591,71 @@ async def market_delete_alert(
 
 
 # Security Notes endpoints
+async def _cancel_labelled_task(
+    request: Request, label: str, task_name: str, reason: str
+) -> None:
+    """Revoke the queued task under *label* and mark it cancelled.
+
+    Best-effort: failures are logged and swallowed so a delete request never
+    fails because of revocation bookkeeping.
+    """
+    task_id = await revoke_labelled_task(label)
+    if task_id is None:
+        return
+
+    state = getattr(request.app.state, "huey_dashboard", None)
+    db = state.get("db") if isinstance(state, dict) else None
+    if db is None:
+        logger.warning(
+            "No huey dashboard db available to mark task %s as cancelled", task_id
+        )
+        return
+
+    await mark_task_cancelled(db, task_id, task_name, reason)
+
+
+async def _dispatch_note_summary_task(security_id: SecurityId, user_id: UserId) -> None:
+    """Dispatch (and label) the persisted-summary regeneration task."""
+    summary_result = generate_note_summary_task(
+        security_id, user_id, request_id=get_request_id()
+    )
+    await record_task_label(note_summary_label(user_id, security_id), summary_result.id)
+
+
+def _sanitize_note_read(note: SecurityNoteRead) -> SecurityNoteRead:
+    """Clean a note's legacy AI fields on read so markers never render.
+
+    Rows persisted before the response cleaner existed may still carry
+    reasoning markers (``<thought>``/``[think]``) or markdown in their title
+    and one-sentence summary. Cleaning on read is idempotent, keeps the UI
+    clean without a data migration, and the next dispatched regeneration
+    replaces the stored row for good.
+    """
+    return note.model_copy(
+        update={
+            "title": clean_note_title(note.title),
+            "summary": clean_short_summary(note.summary),
+        }
+    )
+
+
+def _sanitize_summary_read(summary: NoteSummaryResponse) -> NoteSummaryResponse:
+    """Self-heal the persisted two-part summary on read (legacy rows).
+
+    Strips reasoning/markdown, re-applies the app-side caps and re-derives the
+    short digest from the cleaned long part when it is missing.
+    """
+    long_summary = (
+        normalize_long_summary(summary.long_summary) if summary.long_summary else None
+    )
+    short_summary = clean_short_summary(summary.short_summary)
+    if short_summary is None and long_summary:
+        short_summary = derive_short_summary(long_summary) or None
+    return summary.model_copy(
+        update={"short_summary": short_summary, "long_summary": long_summary}
+    )
+
+
 @market_router.get("/securities/{security_id}/notes")
 async def market_get_notes(
     user: Annotated[User, Depends(current_user)],
@@ -589,7 +672,10 @@ async def market_get_notes(
     )
     logger.info("Retrieved %d notes for security %s", len(notes), security_id)
     return PaginatedResponse(
-        items=notes, total=total, offset=pagination.offset, limit=pagination.limit
+        items=[_sanitize_note_read(note) for note in notes],
+        total=total,
+        offset=pagination.offset,
+        limit=pagination.limit,
     )
 
 
@@ -608,7 +694,12 @@ async def market_create_note(
     logger.info("Created note %d for security %s", created_note.id, security_id)
 
     # Trigger title generation in background
-    generate_note_title_task(created_note.id, request_id=get_request_id())
+    title_result = generate_note_title_task(
+        created_note.id, request_id=get_request_id()
+    )
+    await record_task_label(note_title_label(user.id, created_note.id), title_result.id)
+    # Regenerate the persisted note summary in background
+    await _dispatch_note_summary_task(security_id, user.id)
 
     return created_note
 
@@ -629,13 +720,17 @@ async def market_update_note(
     logger.info("Updated note %d for security %s", note_id, security_id)
 
     # Trigger title update in background
-    generate_note_title_task(note_id, request_id=get_request_id())
+    title_result = generate_note_title_task(note_id, request_id=get_request_id())
+    await record_task_label(note_title_label(user.id, note_id), title_result.id)
+    # Regenerate the persisted note summary in background (replace-on-write)
+    await _dispatch_note_summary_task(security_id, user.id)
 
     return updated_note
 
 
 @market_router.delete("/securities/{security_id}/notes/{note_id}")
 async def market_delete_note(
+    request: Request,
     user: Annotated[User, Depends(current_user)],
     security_id: SecurityId,
     note_id: int,
@@ -645,8 +740,28 @@ async def market_delete_note(
     Delete a note for a security
     """
     note_repository = await services.aget(SecurityNoteRepository)
+
+    # Cancel the note's queued title task and the (security, user) summary task
+    # before the fresh summary dispatch replaces the summary label.
+    await _cancel_labelled_task(
+        request,
+        note_title_label(user.id, note_id),
+        "generate_note_title_task",
+        "note deleted before execution",
+    )
+    await _cancel_labelled_task(
+        request,
+        note_summary_label(user.id, security_id),
+        "generate_note_summary_task",
+        "note deleted before execution",
+    )
+
     await note_repository.delete(note_id, user.id)
     logger.info("Deleted note %d for security %s", note_id, security_id)
+
+    # Regenerate the persisted note summary in background (clears it if this
+    # was the last note)
+    await _dispatch_note_summary_task(security_id, user.id)
 
 
 # Security Documents endpoints
@@ -1050,7 +1165,13 @@ async def market_ai_summarize_notes(
     """
     ai_service = await services.aget(AIService)
     try:
-        content = await ai_service.summarize_notes(security_id, user.id)
+        summary = await ai_service.summarize_notes(security_id, user.id)
+        # This endpoint renders one text blob; the on-demand "Summarize Notes"
+        # action shows the full paragraph, so the short digest is prefixed as a
+        # lead-in and the long part is the body.
+        content = summary["long_summary"]
+        if summary["short_summary"]:
+            content = f"{summary['short_summary']}\n\n{summary['long_summary']}"
         return AIAnalysisResponse(
             content=content, generated_at=datetime.now(UTC).isoformat()
         )
@@ -1058,6 +1179,26 @@ async def market_ai_summarize_notes(
         raise HTTPException(status_code=504, detail="AI analysis timed out") from None
     except RuntimeError as e:
         raise HTTPException(status_code=503, detail=str(e)) from None
+
+
+@market_router.get("/securities/{security_id}/ai/notes-summary")
+async def market_get_notes_summary(
+    user: Annotated[User, Depends(current_user)],
+    security_id: SecurityId,
+    services: DepContainer,
+) -> NoteSummaryResponse:
+    """
+    Get the latest persisted AI summary of the user's notes for a security.
+    """
+    security_repository = await services.aget(SecurityRepository)
+    await security_repository.get_by_id_or_fail(security_id)
+
+    summary_repository = await services.aget(SecurityNoteSummaryRepository)
+    summary = await summary_repository.get(security_id, user.id)
+    if summary is None:
+        logger.info("No notes summary found for security %s", security_id)
+        return NoteSummaryResponse()
+    return _sanitize_summary_read(summary)
 
 
 @market_router.post("/securities/{security_id}/ai/portfolio-debate")

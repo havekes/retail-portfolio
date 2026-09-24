@@ -91,6 +91,7 @@ def register_market_stub_services(registry: Registry) -> None:
         SecurityBrokerRepository,
         SecurityDocumentRepository,
         SecurityNoteRepository,
+        SecurityNoteSummaryRepository,
         SecurityRepository,
         WatchlistRepository,
     )
@@ -104,6 +105,7 @@ def register_market_stub_services(registry: Registry) -> None:
         sqlalchemy_security_broker_repository_factory,
         sqlalchemy_security_document_repository_factory,
         sqlalchemy_security_note_repository_factory,
+        sqlalchemy_security_note_summary_repository_factory,
         sqlalchemy_security_repository_factory,
         sqlalchemy_watchlist_repository_factory,
     )
@@ -134,6 +136,10 @@ def register_market_stub_services(registry: Registry) -> None:
     )
     registry.register_factory(
         SecurityNoteRepository, sqlalchemy_security_note_repository_factory
+    )
+    registry.register_factory(
+        SecurityNoteSummaryRepository,
+        sqlalchemy_security_note_summary_repository_factory,
     )
     registry.register_factory(
         SecurityDocumentRepository, sqlalchemy_security_document_repository_factory

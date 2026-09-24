@@ -17,6 +17,7 @@ from sqlalchemy import (
     Index,
     Integer,
     String,
+    Text,
     UniqueConstraint,
     Uuid,
     func,
@@ -26,6 +27,7 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 from src.auth.api_types import UserId
 from src.config.database import BaseModel
 from src.market.api_types import EodhdSearchResult, SecurityId, WatchlistId
+from src.market.schema import MAX_SHORT_SUMMARY_LENGTH
 
 
 class SecurityModel(BaseModel):  # pylint: disable=too-few-public-methods
@@ -185,6 +187,7 @@ class SecurityNoteModel(BaseModel):
     )
     user_id: Mapped[UserId] = mapped_column(Uuid)
     title: Mapped[str | None] = mapped_column(String, nullable=True)
+    summary: Mapped[str | None] = mapped_column(String, nullable=True)
     content: Mapped[str] = mapped_column(String)
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), default=func.now()
@@ -192,6 +195,30 @@ class SecurityNoteModel(BaseModel):
     updated_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), default=func.now(), onupdate=func.now()
     )
+
+
+class SecurityNoteSummaryModel(BaseModel):
+    """Persisted latest AI summary of a user's notes for one security.
+
+    ``generated_at`` always carries the database transaction time
+    (``func.now()``) — the application never supplies it, so there is a single
+    clock and no app/DB skew.
+    """
+
+    __tablename__ = "market_security_note_summaries"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    security_id: Mapped[SecurityId] = mapped_column(
+        Uuid, ForeignKey("market_securities.id", ondelete="CASCADE")
+    )
+    user_id: Mapped[UserId] = mapped_column(Uuid)
+    short_summary: Mapped[str] = mapped_column(String(MAX_SHORT_SUMMARY_LENGTH))
+    long_summary: Mapped[str] = mapped_column(Text)
+    generated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), default=func.now()
+    )
+
+    __table_args__ = (UniqueConstraint("security_id", "user_id"),)
 
 
 class SecurityDocumentModel(BaseModel):

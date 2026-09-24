@@ -13,6 +13,8 @@ from src.market.schema import (
     ChartSnapshotCreate,
     ChartSnapshotRead,
     IntradayPriceSchema,
+    NoteSummaryResponse,
+    NoteSummaryWrite,
     PriceAlertRead,
     PriceAlertWrite,
     PriceSchema,
@@ -268,8 +270,32 @@ class SecurityNoteRepository(ABC):
         pass
 
     @abstractmethod
+    async def update_title_and_summary(
+        self, note_id: int, title: str, summary: str | None
+    ) -> None:
+        """Persist the AI-generated title and one-sentence summary for a note."""
+
+    @abstractmethod
     async def delete(self, note_id: int, user_id: UserId) -> None:
         pass
+
+
+class SecurityNoteSummaryRepository(ABC):
+    @abstractmethod
+    async def get(
+        self, security_id: SecurityId, user_id: UserId
+    ) -> NoteSummaryResponse | None:
+        pass
+
+    @abstractmethod
+    async def upsert(
+        self, summary: NoteSummaryWrite, security_id: SecurityId, user_id: UserId
+    ) -> NoteSummaryResponse:
+        """Insert or update the two-part summary (short digest + paragraph)."""
+
+    @abstractmethod
+    async def delete(self, security_id: SecurityId, user_id: UserId) -> None:
+        """Remove the stored summary for (security, user); no-op if absent."""
 
 
 class SecurityDocumentRepository(ABC):
