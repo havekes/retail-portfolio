@@ -28,6 +28,7 @@ from src.core.exception import AuthorizationError, EntityNotFoundError
 from src.core.middleware import RequestIdMiddleware
 from src.integration.router import institutions_router, integration_router
 from src.integration.sync_status import redis_manager
+from src.market.gateway import DataPlaneMarketGateway
 from src.market.router import market_router
 from src.worker_dashboard import (
     close_worker_dashboard,
@@ -57,6 +58,11 @@ async def lifespan_context(app: FastAPI):
     registry = svcs.Registry()
     app.state.svcs_registry = registry
     register_services(registry, sessionmanager)
+
+    # Resolve the provider-agnostic data-plane gateway eagerly so a missing
+    # provider key or a broken registration fails at boot, not on first request.
+    async with svcs.Container(registry) as container:
+        await container.aget(DataPlaneMarketGateway)
 
     # Initialize WebSocket manager
     await ws_manager.init_redis(settings.redis_url)

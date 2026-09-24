@@ -1131,6 +1131,26 @@ def test_search_tolerates_rows_missing_name_and_symbol():
     assert results[2].name == ""
 
 
+def test_lookup_symbol_skips_rows_without_a_usable_symbol():
+    def handler(_request: httpx.Request) -> httpx.Response:
+        return httpx.Response(
+            200,
+            json=[
+                {"symbol": "AAPL", "name": "Apple Inc.", "exchange": "NASDAQ"},
+                {"name": "No Symbol Inc.", "exchange": "NASDAQ"},
+                {},
+                "not-a-dict",
+                {"symbol": "   ", "name": "Blank Symbol"},
+            ],
+        )
+
+    lookups = _gateway(handler).lookup_symbol("apple")
+
+    # Structural surprises in a row are skipped, never raised.
+    assert [item.symbol for item in lookups] == ["AAPL"]
+    assert lookups[0].name == "Apple Inc."
+
+
 # --------------------------------------------------------------------------- #
 # Stub gateway fundamentals.
 # --------------------------------------------------------------------------- #
