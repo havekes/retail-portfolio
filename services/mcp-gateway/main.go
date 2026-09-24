@@ -4,7 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
-	"log"
+	"log/slog"
 	"net/http"
 	"os"
 	"os/signal"
@@ -21,12 +21,25 @@ var healthResponse = json.RawMessage(`{"status":"ok"}`)
 func main() {
 	cfg, err := loadConfig(os.Getenv)
 	if err != nil {
-		log.Fatalf("mcp-gateway configuration error: %v\n", err)
+		slog.Error("mcp-gateway configuration error", slog.Any("error", err))
+		os.Exit(1)
+	}
+
+	if _, err := initLogger(cfg); err != nil {
+		slog.Error("mcp-gateway logger initialization error", slog.Any("error", err))
+		os.Exit(1)
 	}
 
 	client, err := NewBackendClient(cfg.BackendBaseURL, cfg.ServiceToken)
 	if err != nil {
-		log.Fatalf("mcp-gateway backend client error: %v\n", err)
+		slog.Error("mcp-gateway backend client error",
+			slog.String("service", "mcp-gateway"),
+			slog.String("port", cfg.Port),
+			slog.String("backend_url", cfg.BackendBaseURL),
+			slog.String("environment", cfg.Environment),
+			slog.Any("error", err),
+		)
+		os.Exit(1)
 	}
 
 	router := newRouter(newMCPServer(client))
@@ -53,6 +66,12 @@ func main() {
 
 	go func() {
 		<-sig
+		slog.Info("mcp-gateway shutting down",
+			slog.String("service", "mcp-gateway"),
+			slog.String("port", cfg.Port),
+			slog.String("backend_url", cfg.BackendBaseURL),
+			slog.String("environment", cfg.Environment),
+		)
 
 		// Shutdown signal with grace period of 10 seconds
 		shutdownCtx, shutdownCancel := context.WithTimeout(serverCtx, 10*time.Second)
@@ -61,27 +80,55 @@ func main() {
 		go func() {
 			<-shutdownCtx.Done()
 			if errors.Is(shutdownCtx.Err(), context.DeadlineExceeded) {
-				log.Println("graceful shutdown timed out.. forcing exit.")
+				slog.Error("graceful shutdown timed out.. forcing exit",
+					slog.String("service", "mcp-gateway"),
+					slog.String("port", cfg.Port),
+					slog.String("backend_url", cfg.BackendBaseURL),
+					slog.String("environment", cfg.Environment),
+				)
 			}
 		}()
 
 		// Trigger graceful shutdown
 		err := server.Shutdown(shutdownCtx)
 		if err != nil {
-			log.Printf("server shutdown error: %v\n", err)
+			slog.Error("server shutdown error",
+				slog.String("service", "mcp-gateway"),
+				slog.String("port", cfg.Port),
+				slog.String("backend_url", cfg.BackendBaseURL),
+				slog.String("environment", cfg.Environment),
+				slog.Any("error", err),
+			)
 		}
 		serverStopCtx()
 	}()
 
-	log.Printf("mcp-gateway listening on port %s\n", cfg.Port)
+	slog.Info("mcp-gateway listening",
+		slog.String("service", "mcp-gateway"),
+		slog.String("port", cfg.Port),
+		slog.String("backend_url", cfg.BackendBaseURL),
+		slog.String("environment", cfg.Environment),
+	)
 	err = server.ListenAndServe()
 	if err != nil && !errors.Is(err, http.ErrServerClosed) {
-		log.Fatalf("server failed to start: %v\n", err)
+		slog.Error("server failed to start",
+			slog.String("service", "mcp-gateway"),
+			slog.String("port", cfg.Port),
+			slog.String("backend_url", cfg.BackendBaseURL),
+			slog.String("environment", cfg.Environment),
+			slog.Any("error", err),
+		)
+		os.Exit(1)
 	}
 
 	// Wait for server context to be stopped
 	<-serverCtx.Done()
-	log.Println("mcp-gateway stopped")
+	slog.Info("mcp-gateway stopped",
+		slog.String("service", "mcp-gateway"),
+		slog.String("port", cfg.Port),
+		slog.String("backend_url", cfg.BackendBaseURL),
+		slog.String("environment", cfg.Environment),
+	)
 }
 
 // newRouter wires the liveness probe and the MCP streamable HTTP endpoint.

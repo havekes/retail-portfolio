@@ -18,13 +18,20 @@ import (
 //     backend data-plane endpoints. Required. The value is never logged or
 //     embedded in an error message.
 //   - PORT: HTTP listen port. Optional, defaults to "8080".
+//   - ENVIRONMENT: deployment environment ("prod" or "dev"). Optional, defaults to "dev".
+//   - LOG_LEVEL: log level override ("DEBUG", "INFO", "WARN"/"WARNING", "ERROR"). Optional.
 type Config struct {
 	BackendBaseURL string
 	ServiceToken   string
 	Port           string
+	Environment    string
+	LogLevel       string
 }
 
-const defaultPort = "8080"
+const (
+	defaultPort        = "8080"
+	defaultEnvironment = "dev"
+)
 
 // loadConfig reads the gateway configuration from getenv.
 //
@@ -34,10 +41,26 @@ const defaultPort = "8080"
 // A missing or unusable required value is a startup error: the returned error
 // names the offending variable but never echoes the token value.
 func loadConfig(getenv func(string) string) (Config, error) {
+	env := strings.ToLower(strings.TrimSpace(getenv("ENVIRONMENT")))
+	if env == "" {
+		env = defaultEnvironment
+	}
+
+	logLevel := strings.ToUpper(strings.TrimSpace(getenv("LOG_LEVEL")))
+	if logLevel != "" {
+		switch logLevel {
+		case "DEBUG", "INFO", "WARN", "WARNING", "ERROR":
+		default:
+			return Config{}, fmt.Errorf("invalid LOG_LEVEL %q: must be DEBUG, INFO, WARN, WARNING, or ERROR", logLevel)
+		}
+	}
+
 	cfg := Config{
 		BackendBaseURL: strings.TrimSpace(getenv("BACKEND_BASE_URL")),
 		ServiceToken:   strings.TrimSpace(getenv("MARKET_DATA_SERVICE_TOKEN")),
 		Port:           strings.TrimSpace(getenv("PORT")),
+		Environment:    env,
+		LogLevel:       logLevel,
 	}
 
 	if cfg.BackendBaseURL == "" {

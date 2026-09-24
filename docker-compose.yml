@@ -128,6 +128,7 @@ services:
     ports:
       - "${MCP_GATEWAY_PORT:-8086}:8080"
     environment:
+      ENVIRONMENT: "${ENVIRONMENT:-dev}"
       BACKEND_BASE_URL: "${BACKEND_BASE_URL:-http://backend:8000}"
       MARKET_DATA_SERVICE_TOKEN: "${MARKET_DATA_SERVICE_TOKEN:-dev-market-data-token}"
     depends_on:
