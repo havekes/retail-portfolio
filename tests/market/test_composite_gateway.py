@@ -41,6 +41,11 @@ class FakeFmpGateway(MarketGateway):
     def __init__(self) -> None:
         self.calls: list[tuple[str, tuple[object, ...], dict[str, object]]] = []
         self.intraday_error: MarketDataProviderError | None = None
+        self.closed = False
+
+    def close(self) -> None:
+        """Record that the composite released this provider."""
+        self.closed = True
 
     def _record(
         self, name: str, args: tuple[object, ...], kwargs: dict[str, object] | None = None
@@ -131,6 +136,11 @@ class FakePolygonGateway(MarketGateway):
 
     def __init__(self) -> None:
         self.calls: list[tuple[str, tuple[object, ...], dict[str, object]]] = []
+        self.closed = False
+
+    def close(self) -> None:
+        """Record that the composite released this provider."""
+        self.closed = True
 
     def get_options_chain(
         self,
@@ -273,3 +283,12 @@ def test_composite_delegates_every_call_and_adds_no_caching(fakes):
         "get_options_chain",
         "get_options_chain",
     ]
+
+
+def test_close_releases_both_providers(fakes):
+    fmp, polygon, composite = fakes
+
+    composite.close()
+
+    assert fmp.closed
+    assert polygon.closed
