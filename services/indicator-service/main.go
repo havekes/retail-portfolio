@@ -22,7 +22,7 @@ func main() {
 	logger := SetupLogger(env, logLevel, os.Stdout)
 	slog.SetDefault(logger)
 
-	router := NewRouter()
+	router := NewRouter(logger)
 
 	server := &http.Server{
 		Addr:         ":" + port,
