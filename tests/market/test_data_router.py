@@ -403,6 +403,63 @@ async def test_unknown_symbol_returns_structured_404(
 
 
 @pytest.mark.anyio
+async def test_unknown_symbol_prices_is_negative_cached(
+    client: AsyncClient, mock_gateway: MagicMock, mock_redis_storage: FakeRedis
+) -> None:
+    mock_gateway.get_prices.side_effect = MarketDataNotFoundError("ZZZZ")
+    url = "/api/v1/market/data/prices/ZZZZ?from=2026-01-01&to=2026-01-31"
+
+    first = await client.get(url, headers=_headers())
+    second = await client.get(url, headers=_headers())
+
+    assert first.status_code == second.status_code == 404
+    assert first.json()["detail"] == second.json()["detail"]
+    # The 404 was negative-cached: the upstream gateway ran exactly once.
+    mock_gateway.get_prices.assert_called_once()
+
+    detail = first.json()["detail"].lower()
+    for provider in _PROVIDER_NAMES:
+        assert provider not in detail
+
+    keys = _endpoint_keys(mock_redis_storage, "market:ep:prices:history:")
+    assert len(keys) == 1
+
+
+@pytest.mark.anyio
+async def test_unknown_underlying_options_is_negative_cached(
+    client: AsyncClient, mock_gateway: MagicMock, mock_redis_storage: FakeRedis
+) -> None:
+    mock_gateway.get_options_chain.side_effect = MarketDataNotFoundError("ZZZZ")
+    url = "/api/v1/market/data/options/ZZZZ"
+
+    first = await client.get(url, headers=_headers())
+    second = await client.get(url, headers=_headers())
+
+    assert first.status_code == second.status_code == 404
+    assert first.json()["detail"] == second.json()["detail"]
+    # No second Polygon read for the same missing underlying.
+    mock_gateway.get_options_chain.assert_called_once()
+
+    keys = _endpoint_keys(mock_redis_storage, "market:ep:options:chain:")
+    assert len(keys) == 1
+
+
+@pytest.mark.anyio
+async def test_transient_provider_failure_is_not_negative_cached(
+    client: AsyncClient, mock_gateway: MagicMock
+) -> None:
+    mock_gateway.get_prices.side_effect = MarketDataProviderError("raw upstream failure")
+    url = f"{_PRICES_URL}{_PRICES_QUERY}"
+
+    first = await client.get(url, headers=_headers())
+    second = await client.get(url, headers=_headers())
+
+    # A 5xx must propagate uncached: the gateway is retried on the next request.
+    assert first.status_code == second.status_code == 502
+    assert mock_gateway.get_prices.call_count == 2
+
+
+@pytest.mark.anyio
 async def test_empty_search_returns_404_and_caches_the_empty_result(
     client: AsyncClient, mock_gateway: MagicMock
 ) -> None:
