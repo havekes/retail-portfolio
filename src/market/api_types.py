@@ -301,6 +301,20 @@ class FinancialRatios(BaseModel):
     dividend_yield: Decimal | None = None
 
 
+class CompanyFundamentals(BaseModel):
+    """Company details plus the key metrics and ratios overview.
+
+    Aggregate returned by ``GET /api/v1/market/data/fundamentals/{symbol}``
+    (the T10 MCP contract): the T01 FMP-shaped ``profile``, ``key_metrics`` and
+    ``ratios`` objects, each field-for-field. Kept required (not optional) so a
+    response always carries the full overview.
+    """
+
+    profile: CompanyProfile
+    key_metrics: KeyMetrics
+    ratios: FinancialRatios
+
+
 class SymbolLookupResult(BaseModel):
     """Symbol / company lookup result.
 

@@ -940,8 +940,14 @@ class StubFmpGateway(MarketGateway):
     # Fundamentals capabilities (static deterministic fixtures).
     # ------------------------------------------------------------------ #
 
-    def get_company_profile(self, symbol: str) -> CompanyProfile:
+    def get_company_profile(
+        self,
+        symbol: str,
+        *,
+        exchange: str | None = None,
+    ) -> CompanyProfile:
         """Get the company profile for a symbol."""
+        _ = exchange  # Fixtures are symbol-keyed; exchange is customer-agnostic.
         normalized = self._resolve_symbol(symbol)
         return CompanyProfile(**_FUNDAMENTAL_PROFILES[normalized])
 
@@ -950,8 +956,11 @@ class StubFmpGateway(MarketGateway):
         symbol: str,
         period: str = "annual",
         limit: int = 5,
+        *,
+        exchange: str | None = None,
     ) -> list[IncomeStatement]:
         """Get income statements for a symbol."""
+        _ = exchange  # Fixtures are symbol-keyed; exchange is customer-agnostic.
         _validate_period(period)
         normalized = self._resolve_symbol(symbol)
         return [
@@ -964,8 +973,11 @@ class StubFmpGateway(MarketGateway):
         symbol: str,
         period: str = "annual",
         limit: int = 5,
+        *,
+        exchange: str | None = None,
     ) -> list[BalanceSheet]:
         """Get balance sheets for a symbol."""
+        _ = exchange  # Fixtures are symbol-keyed; exchange is customer-agnostic.
         _validate_period(period)
         normalized = self._resolve_symbol(symbol)
         return [
@@ -978,8 +990,11 @@ class StubFmpGateway(MarketGateway):
         symbol: str,
         period: str = "annual",
         limit: int = 5,
+        *,
+        exchange: str | None = None,
     ) -> list[CashFlowStatement]:
         """Get cash-flow statements for a symbol."""
+        _ = exchange  # Fixtures are symbol-keyed; exchange is customer-agnostic.
         _validate_period(period)
         normalized = self._resolve_symbol(symbol)
         return [
@@ -987,8 +1002,14 @@ class StubFmpGateway(MarketGateway):
             for row in _FUNDAMENTAL_CASH_FLOW_STATEMENTS[normalized][:limit]
         ]
 
-    def get_key_metrics(self, symbol: str) -> KeyMetrics:
+    def get_key_metrics(
+        self,
+        symbol: str,
+        *,
+        exchange: str | None = None,
+    ) -> KeyMetrics:
         """Get the key metrics / valuation snapshot for a symbol."""
+        _ = exchange  # Fixtures are symbol-keyed; exchange is customer-agnostic.
         normalized = self._resolve_symbol(symbol)
         return KeyMetrics(**_FUNDAMENTAL_KEY_METRICS[normalized])
 
@@ -996,8 +1017,11 @@ class StubFmpGateway(MarketGateway):
         self,
         symbol: str,
         period: str = "annual",
+        *,
+        exchange: str | None = None,
     ) -> FinancialRatios:
         """Get financial ratios for a symbol."""
+        _ = exchange  # Fixtures are symbol-keyed; exchange is customer-agnostic.
         _validate_period(period)
         normalized = self._resolve_symbol(symbol)
         return FinancialRatios(**_FUNDAMENTAL_FINANCIAL_RATIOS[normalized])

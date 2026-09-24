@@ -101,48 +101,68 @@ class CompositeMarketGateway(MarketGateway):
         """Look up symbols/companies matching a free-text query (FMP)."""
         return self._fmp.lookup_symbol(query)
 
-    def get_company_profile(self, symbol: str) -> CompanyProfile:
+    def get_company_profile(
+        self,
+        symbol: str,
+        *,
+        exchange: str | None = None,
+    ) -> CompanyProfile:
         """Get the company profile for a symbol (FMP)."""
-        return self._fmp.get_company_profile(symbol)
+        return self._fmp.get_company_profile(symbol, exchange=exchange)
 
     def get_income_statement(
         self,
         symbol: str,
         period: str = "annual",
         limit: int = 5,
+        *,
+        exchange: str | None = None,
     ) -> list[IncomeStatement]:
         """Get income statements for a symbol (FMP)."""
-        return self._fmp.get_income_statement(symbol, period, limit)
+        return self._fmp.get_income_statement(symbol, period, limit, exchange=exchange)
 
     def get_balance_sheet(
         self,
         symbol: str,
         period: str = "annual",
         limit: int = 5,
+        *,
+        exchange: str | None = None,
     ) -> list[BalanceSheet]:
         """Get balance sheets for a symbol (FMP)."""
-        return self._fmp.get_balance_sheet(symbol, period, limit)
+        return self._fmp.get_balance_sheet(symbol, period, limit, exchange=exchange)
 
     def get_cash_flow_statement(
         self,
         symbol: str,
         period: str = "annual",
         limit: int = 5,
+        *,
+        exchange: str | None = None,
     ) -> list[CashFlowStatement]:
         """Get cash-flow statements for a symbol (FMP)."""
-        return self._fmp.get_cash_flow_statement(symbol, period, limit)
+        return self._fmp.get_cash_flow_statement(
+            symbol, period, limit, exchange=exchange
+        )
 
-    def get_key_metrics(self, symbol: str) -> KeyMetrics:
+    def get_key_metrics(
+        self,
+        symbol: str,
+        *,
+        exchange: str | None = None,
+    ) -> KeyMetrics:
         """Get the key metrics / valuation snapshot for a symbol (FMP)."""
-        return self._fmp.get_key_metrics(symbol)
+        return self._fmp.get_key_metrics(symbol, exchange=exchange)
 
     def get_financial_ratios(
         self,
         symbol: str,
         period: str = "annual",
+        *,
+        exchange: str | None = None,
     ) -> FinancialRatios:
         """Get financial ratios for a symbol (FMP)."""
-        return self._fmp.get_financial_ratios(symbol, period)
+        return self._fmp.get_financial_ratios(symbol, period, exchange=exchange)
 
     def get_options_chain(
         self,

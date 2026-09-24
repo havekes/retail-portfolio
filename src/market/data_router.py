@@ -19,6 +19,16 @@ gateway (T10/T11); do not rename them:
 * ``GET /api/v1/market/data/symbols/search`` — ``q``
 * ``GET /api/v1/market/data/options/{symbol}`` — ``expiry``, ``option_type``,
   ``strike_min``, ``strike_max``
+* ``GET /api/v1/market/data/fundamentals/{symbol}`` — ``exchange``
+* ``GET /api/v1/market/data/fundamentals/{symbol}/statements`` — ``statement``
+  (``income``/``balance``/``cashflow``), ``period`` (``annual``/``quarter``),
+  ``limit``, ``exchange``
+
+``exchange`` is forwarded to the gateway on every route that accepts it so
+non-US symbols map to the provider's ticker suffix; the fundamentals overview
+returns the FMP-shaped profile plus key metrics and ratios, and the statements
+route returns the full FMP-shaped statement list for the requested
+``statement``/``period``.
 """
 
 from __future__ import annotations
@@ -34,7 +44,15 @@ from fastapi import APIRouter, Depends, HTTPException, Query
 from svcs.fastapi import DepContainer
 
 from src.auth.api import require_service_token
-from src.market.api_types import HistoricalPrice, OptionsChain, SymbolLookupResult
+from src.market.api_types import (
+    BalanceSheet,
+    CashFlowStatement,
+    CompanyFundamentals,
+    HistoricalPrice,
+    IncomeStatement,
+    OptionsChain,
+    SymbolLookupResult,
+)
 from src.market.endpoint_cache import EndpointResponseCache
 from src.market.exception import (
     MarketDataConfigurationError,
@@ -263,3 +281,139 @@ async def market_data_options(  # noqa: PLR0913, PLR0917
         fetch=fetch,
         model=OptionsChain,
     )
+
+
+@data_router.get("/fundamentals/{symbol}")
+async def market_data_fundamentals(
+    _svc: Annotated[None, Depends(require_service_token)],
+    symbol: str,
+    services: DepContainer,
+    exchange: Annotated[str | None, Query()] = None,
+) -> CompanyFundamentals:
+    """Company details plus key metrics and ratios, served through the cache.
+
+    The response keeps the FMP-shaped ``profile``, ``key_metrics`` and
+    ``ratios`` objects field-for-field; ``exchange`` is forwarded so non-US
+    symbols map to the provider's ticker suffix.
+    """
+    normalized_symbol = symbol.upper()
+    gateway = services.get(DataPlaneMarketGateway)
+    cache = await services.aget(EndpointResponseCache)
+
+    params = {"symbol": normalized_symbol, "exchange": exchange}
+
+    async def fetch() -> CompanyFundamentals:
+        try:
+            profile = await asyncio.to_thread(
+                gateway.get_company_profile, normalized_symbol, exchange=exchange
+            )
+            key_metrics = await asyncio.to_thread(
+                gateway.get_key_metrics, normalized_symbol, exchange=exchange
+            )
+            ratios = await asyncio.to_thread(
+                gateway.get_financial_ratios, normalized_symbol, exchange=exchange
+            )
+        except (
+            MarketDataNotFoundError,
+            MarketDataProviderError,
+            MarketDataConfigurationError,
+        ) as exc:
+            raise _map_market_error(normalized_symbol, exc) from exc
+
+        return CompanyFundamentals(
+            profile=profile,
+            key_metrics=key_metrics,
+            ratios=ratios,
+        )
+
+    return await cache.cached_response(
+        data_class="metrics",
+        endpoint="fundamentals",
+        params=params,
+        fetch=fetch,
+        model=CompanyFundamentals,
+    )
+
+
+@data_router.get("/fundamentals/{symbol}/statements")
+async def market_data_statements(  # noqa: PLR0913, PLR0917
+    _svc: Annotated[None, Depends(require_service_token)],
+    symbol: str,
+    statement: Annotated[Literal["income", "balance", "cashflow"], Query()],
+    services: DepContainer,
+    period: Annotated[Literal["annual", "quarter"], Query()] = "annual",
+    limit: Annotated[int, Query(ge=1, le=20)] = 5,
+    exchange: Annotated[str | None, Query()] = None,
+) -> list[IncomeStatement] | list[BalanceSheet] | list[CashFlowStatement]:
+    """Full FMP-shaped statement list for a symbol, served through the cache.
+
+    ``statement`` and ``period`` are ``Literal``-typed so an invalid value is a
+    FastAPI 422; the selected provider read keeps every line item the provider
+    returns (the response is the bare statement list, matching the search
+    route). ``exchange`` is forwarded for non-US ticker mapping.
+    """
+    normalized_symbol = symbol.upper()
+    gateway = services.get(DataPlaneMarketGateway)
+    cache = await services.aget(EndpointResponseCache)
+
+    params = {
+        "symbol": normalized_symbol,
+        "statement": statement,
+        "period": period,
+        "limit": limit,
+        "exchange": exchange,
+    }
+
+    async def fetch() -> (
+        list[IncomeStatement] | list[BalanceSheet] | list[CashFlowStatement]
+    ):
+        try:
+            if statement == "income":
+                return await asyncio.to_thread(
+                    gateway.get_income_statement,
+                    normalized_symbol,
+                    period,
+                    limit,
+                    exchange=exchange,
+                )
+            if statement == "balance":
+                return await asyncio.to_thread(
+                    gateway.get_balance_sheet,
+                    normalized_symbol,
+                    period,
+                    limit,
+                    exchange=exchange,
+                )
+            return await asyncio.to_thread(
+                gateway.get_cash_flow_statement,
+                normalized_symbol,
+                period,
+                limit,
+                exchange=exchange,
+            )
+        except (
+            MarketDataNotFoundError,
+            MarketDataProviderError,
+            MarketDataConfigurationError,
+        ) as exc:
+            raise _map_market_error(normalized_symbol, exc) from exc
+
+    results = await cache.cached_response(
+        data_class="statements",
+        endpoint="statements",
+        params=params,
+        fetch=fetch,
+        # The statement lists are plain FMP-shaped dicts on the cache hit; the
+        # response schema is documented by the route's return annotation.
+        model=None,
+    )
+
+    # Raised after the cache wrapper so an empty successful result (if a
+    # provider ever returns one) is cached as a stable 404 for the TTL.
+    if not results:
+        raise HTTPException(
+            status_code=404,
+            detail=f"No market data found for symbol '{normalized_symbol}'.",
+        )
+
+    return results

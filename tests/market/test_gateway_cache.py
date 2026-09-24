@@ -80,29 +80,33 @@ class RecordingGateway(StubEodhdGateway):
         self.calls["lookup_symbol"] += 1
         return super().lookup_symbol(query)
 
-    def get_company_profile(self, symbol: str) -> CompanyProfile:
+    def get_company_profile(self, symbol: str, *, exchange=None) -> CompanyProfile:
         self.calls["get_company_profile"] += 1
-        return super().get_company_profile(symbol)
+        return super().get_company_profile(symbol, exchange=exchange)
 
-    def get_income_statement(self, symbol, period="annual", limit=5):
+    def get_income_statement(self, symbol, period="annual", limit=5, *, exchange=None):
         self.calls["get_income_statement"] += 1
-        return super().get_income_statement(symbol, period, limit)
+        return super().get_income_statement(symbol, period, limit, exchange=exchange)
 
-    def get_balance_sheet(self, symbol, period="annual", limit=5):
+    def get_balance_sheet(self, symbol, period="annual", limit=5, *, exchange=None):
         self.calls["get_balance_sheet"] += 1
-        return super().get_balance_sheet(symbol, period, limit)
+        return super().get_balance_sheet(symbol, period, limit, exchange=exchange)
 
-    def get_cash_flow_statement(self, symbol, period="annual", limit=5):
+    def get_cash_flow_statement(
+        self, symbol, period="annual", limit=5, *, exchange=None
+    ):
         self.calls["get_cash_flow_statement"] += 1
-        return super().get_cash_flow_statement(symbol, period, limit)
+        return super().get_cash_flow_statement(
+            symbol, period, limit, exchange=exchange
+        )
 
-    def get_key_metrics(self, symbol: str) -> KeyMetrics:
+    def get_key_metrics(self, symbol: str, *, exchange=None) -> KeyMetrics:
         self.calls["get_key_metrics"] += 1
-        return super().get_key_metrics(symbol)
+        return super().get_key_metrics(symbol, exchange=exchange)
 
-    def get_financial_ratios(self, symbol, period="annual"):
+    def get_financial_ratios(self, symbol, period="annual", *, exchange=None):
         self.calls["get_financial_ratios"] += 1
-        return super().get_financial_ratios(symbol, period)
+        return super().get_financial_ratios(symbol, period, exchange=exchange)
 
     def get_options_chain(
         self,
@@ -458,6 +462,21 @@ def test_ttl_is_read_from_settings_at_call_time(
     gateway.get_options_chain("AAPL")
 
     assert recorded == [OVERRIDE_TTL]
+
+
+def test_exchange_is_part_of_the_gateway_cache_key(
+    gateway: CachedMarketGateway,
+    inner: RecordingGateway,
+    mock_redis_storage: FakeRedis,
+) -> None:
+    gateway.get_company_profile("AAPL")
+    gateway.get_company_profile("AAPL", exchange="LSE")
+    gateway.get_company_profile("AAPL")
+
+    # Distinct exchanges get distinct entries; the repeated default-exchange
+    # read is served from cache.
+    assert len(_gateway_keys(mock_redis_storage)) == 2
+    assert inner.calls["get_company_profile"] == 2
 
 
 # --------------------------------------------------------------------------- #
