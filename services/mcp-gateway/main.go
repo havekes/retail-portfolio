@@ -32,10 +32,15 @@ func main() {
 	router := newRouter(newMCPServer(client))
 
 	server := &http.Server{
-		Addr:         ":" + cfg.Port,
-		Handler:      router,
-		ReadTimeout:  15 * time.Second,
-		WriteTimeout: 15 * time.Second,
+		Addr:    ":" + cfg.Port,
+		Handler: router,
+		// ReadTimeout bounds how long a client may take to send a request.
+		ReadTimeout: 15 * time.Second,
+		// WriteTimeout is deliberately unlimited (0): the MCP streamable HTTP
+		// transport keeps SSE/streaming responses open for as long as the
+		// session lives, and any finite deadline would truncate them mid-stream.
+		// IdleTimeout still reaps dead connections.
+		WriteTimeout: 0,
 		IdleTimeout:  60 * time.Second,
 	}
 
