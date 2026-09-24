@@ -122,3 +122,70 @@ def test_secret_key_valid_in_prod(monkeypatch, tmp_path):
     assert s.secret_key == "a" * 32
 
 
+def test_service_token_required_in_prod(monkeypatch, tmp_path):
+    monkeypatch.chdir(tmp_path)
+    monkeypatch.setenv("ENVIRONMENT", "prod")
+    monkeypatch.setenv("SECRET_KEY", "a" * 32)
+    monkeypatch.setenv("MARKET_DATA_SERVICE_TOKEN", "")
+
+    with pytest.raises(
+        ValidationError, match="MARKET_DATA_SERVICE_TOKEN must be set"
+    ):
+        Settings()
+
+
+def test_service_token_whitespace_only_in_prod(monkeypatch, tmp_path):
+    monkeypatch.chdir(tmp_path)
+    monkeypatch.setenv("ENVIRONMENT", "prod")
+    monkeypatch.setenv("SECRET_KEY", "a" * 32)
+    monkeypatch.setenv("MARKET_DATA_SERVICE_TOKEN", "   ")
+
+    with pytest.raises(
+        ValidationError, match="MARKET_DATA_SERVICE_TOKEN must be set"
+    ):
+        Settings()
+
+
+def test_service_token_required_in_staging(monkeypatch, tmp_path):
+    monkeypatch.chdir(tmp_path)
+    monkeypatch.setenv("ENVIRONMENT", "staging")
+    monkeypatch.setenv("SECRET_KEY", "a" * 32)
+    monkeypatch.setenv("MARKET_DATA_SERVICE_TOKEN", "")
+
+    with pytest.raises(
+        ValidationError, match="MARKET_DATA_SERVICE_TOKEN must be set"
+    ):
+        Settings()
+
+
+def test_service_token_allowed_empty_in_dev(monkeypatch, tmp_path):
+    monkeypatch.chdir(tmp_path)
+    monkeypatch.setenv("ENVIRONMENT", "dev")
+    monkeypatch.setenv("MARKET_DATA_SERVICE_TOKEN", "")
+
+    s = Settings()
+    assert s.environment == "dev"
+    assert s.market_data_service_token == ""
+
+
+def test_service_token_allowed_empty_in_test(monkeypatch, tmp_path):
+    monkeypatch.chdir(tmp_path)
+    monkeypatch.setenv("ENVIRONMENT", "test")
+    monkeypatch.setenv("MARKET_DATA_SERVICE_TOKEN", "")
+
+    s = Settings()
+    assert s.environment == "test"
+    assert s.market_data_service_token == ""
+
+
+def test_service_token_valid_in_prod(monkeypatch, tmp_path):
+    monkeypatch.chdir(tmp_path)
+    monkeypatch.setenv("ENVIRONMENT", "prod")
+    monkeypatch.setenv("SECRET_KEY", "a" * 32)
+    monkeypatch.setenv("MARKET_DATA_SERVICE_TOKEN", "a" * 64)
+
+    s = Settings()
+    assert s.environment == "prod"
+    assert s.market_data_service_token == "a" * 64
+
+
