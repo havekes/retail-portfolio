@@ -10,7 +10,7 @@ Read the [AGENTS.md](./AGENTS.md) file for agent guidelines and [openwiki/quicks
 - Create the root `.env` by copying the tracked template: `cp .env.example .env`
 - The backend, worker, Compose interpolation, and the frontend dev server all read this one root `.env` (it is gitignored; `.env.example` is the tracked sample).
 
-> **Migrating an existing checkout:** `src/.env` and `frontend/.env` are obsolete. Move any custom values (for example `VITE_*` overrides from `frontend/.env`, backend overrides from `src/.env`) into the root `.env`, then delete both files.
+> **Migrating an existing checkout:** `src/.env` and `frontend/.env` are obsolete. Move any custom values (for example `VITE_*` overrides from `frontend/.env`, backend overrides from `src/.env`) into the root `.env`, then delete both files. Existing checkouts must also add `MARKET_DATA_SERVICE_TOKEN` to the root `.env` (use the dev default `dev-market-data-token`, or a real secret); without it the backend data plane returns `401` to the MCP gateway.
 
 Using Docker compose is the only supported way to run the application: `docker compose up -d`
 

@@ -42,13 +42,13 @@ Every request is sent to `BACKEND_BASE_URL + /api/v1/market/data/...` with the
 query parameter names are a stable contract defined in
 `src/market/data_router.py`; do not rename them.
 
-| Client method  | Backend route                                              | Query                                            |
-| -------------- | ---------------------------------------------------------- | ------------------------------------------------ |
-| `Prices`       | `GET /prices/{symbol}`                                     | `from`, `to`, `exchange`                         |
-| `SymbolSearch` | `GET /symbols/search`                                      | `q`                                              |
-| `OptionsChain` | `GET /options/{symbol}`                                    | `expiry`, `option_type`, `strike_min`, `strike_max` |
-| `Fundamentals` | `GET /fundamentals/{symbol}`                               | `exchange`                                       |
-| `Statements`   | `GET /fundamentals/{symbol}/statements`                    | `statement`, `period`, `limit`, `exchange`       |
+| Client method  | Backend route                                                   | Query                                               |
+| -------------- | --------------------------------------------------------------- | --------------------------------------------------- |
+| `Prices`       | `GET /api/v1/market/data/prices/{symbol}`                       | `from`, `to`, `exchange`                            |
+| `SymbolSearch` | `GET /api/v1/market/data/symbols/search`                        | `q`                                                 |
+| `OptionsChain` | `GET /api/v1/market/data/options/{symbol}`                      | `expiry`, `option_type`, `strike_min`, `strike_max` |
+| `Fundamentals` | `GET /api/v1/market/data/fundamentals/{symbol}`                 | `exchange`                                          |
+| `Statements`   | `GET /api/v1/market/data/fundamentals/{symbol}/statements`      | `statement`, `period`, `limit`, `exchange`          |
 
 ### Error taxonomy
 
@@ -81,18 +81,18 @@ structs (the SDK infers and validates the input schema). `newMCPServer` (in
 `mcpserver.go`) accepts the `*BackendClient` so the tool handlers can close over
 it. Every tool name, description and result string is provider-agnostic.
 
-| Tool                       | Inputs                                                          | Backend route                               | Returns                                   |
-| -------------------------- | --------------------------------------------------------------- | ------------------------------------------- | ----------------------------------------- |
-| `get_price_history`        | `symbol`, `from`, `to`, `exchange?`                             | `GET /prices/{symbol}`                      | Daily OHLC history                        |
-| `get_fundamentals`         | `symbol`, `exchange?`                                           | `GET /fundamentals/{symbol}`                | Profile + key metrics + ratios aggregate  |
-| `get_options_chain`        | `symbol`, `expiry?`, `option_type?`, `strike_min?`, `strike_max?` | `GET /options/{symbol}`                     | Options chain                             |
-| `get_income_statement`     | `symbol`, `period?`, `limit?`, `exchange?`                      | `GET /fundamentals/{symbol}/statements`     | Income statements                         |
-| `get_balance_sheet`        | `symbol`, `period?`, `limit?`, `exchange?`                      | `GET /fundamentals/{symbol}/statements`     | Balance sheets                            |
-| `get_cash_flow_statement`  | `symbol`, `period?`, `limit?`, `exchange?`                      | `GET /fundamentals/{symbol}/statements`     | Cash-flow statements                      |
-| `get_key_metrics`          | `symbol`, `exchange?`                                           | `GET /fundamentals/{symbol}`                | Key-metrics projection of the aggregate   |
-| `get_financial_ratios`     | `symbol`, `exchange?`                                           | `GET /fundamentals/{symbol}`                | Ratios projection of the aggregate        |
-| `get_company_details`      | `symbol`, `exchange?`                                           | `GET /fundamentals/{symbol}`                | Profile projection of the aggregate       |
-| `search_symbols`           | `q`                                                             | `GET /symbols/search`                       | Symbol lookup results                     |
+| Tool                       | Inputs                                                          | Backend route                                                   | Returns                                   |
+| -------------------------- | --------------------------------------------------------------- | --------------------------------------------------------------- | ----------------------------------------- |
+| `get_price_history`        | `symbol`, `from`, `to`, `exchange?`                             | `GET /api/v1/market/data/prices/{symbol}`                       | Daily OHLC history                        |
+| `get_fundamentals`         | `symbol`, `exchange?`                                           | `GET /api/v1/market/data/fundamentals/{symbol}`                 | Profile + key metrics + ratios aggregate  |
+| `get_options_chain`        | `symbol`, `expiry?`, `option_type?`, `strike_min?`, `strike_max?` | `GET /api/v1/market/data/options/{symbol}`                      | Options chain                             |
+| `get_income_statement`     | `symbol`, `period?`, `limit?`, `exchange?`                      | `GET /api/v1/market/data/fundamentals/{symbol}/statements`      | Income statements                         |
+| `get_balance_sheet`        | `symbol`, `period?`, `limit?`, `exchange?`                      | `GET /api/v1/market/data/fundamentals/{symbol}/statements`      | Balance sheets                            |
+| `get_cash_flow_statement`  | `symbol`, `period?`, `limit?`, `exchange?`                      | `GET /api/v1/market/data/fundamentals/{symbol}/statements`      | Cash-flow statements                      |
+| `get_key_metrics`          | `symbol`, `exchange?`                                           | `GET /api/v1/market/data/fundamentals/{symbol}`                 | Key-metrics projection of the aggregate   |
+| `get_financial_ratios`     | `symbol`, `exchange?`                                           | `GET /api/v1/market/data/fundamentals/{symbol}`                 | Ratios projection of the aggregate        |
+| `get_company_details`      | `symbol`, `exchange?`                                           | `GET /api/v1/market/data/fundamentals/{symbol}`                 | Profile projection of the aggregate       |
+| `search_symbols`           | `q`                                                             | `GET /api/v1/market/data/symbols/search`                        | Symbol lookup results                     |
 
 Inputs are validated or clamped in the handler before any backend call, so a bad
 argument never becomes a backend `422` (which the client classifies as
