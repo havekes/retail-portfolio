@@ -31,6 +31,10 @@ sources:
     resource: repo://scripts/agent-test
   - id: openwiki-source-230f617cb6d47154ef463034
     resource: repo://src/AGENTS.md
+  - id: openwiki-source-7e553d4de9ffa4164f9f1869
+    resource: repo://tests/commands/test_flush_market_data.py
+  - id: openwiki-source-8a673764df1ebbb3a306a4f9
+    resource: repo://tests/commands/test_seed.py
   - id: openwiki-source-f0a6e7dc03522b2682f88655
     resource: repo://tests/conftest.py
   - id: openwiki-source-eb90d18c3483a2892215101e
@@ -53,10 +57,10 @@ sources:
     resource: repo://tests/test_migrations_autogenerate.py
   - id: openwiki-source-da833519b72f73ce64d59b2b
     resource: repo://tests/ws/test_manager.py
-generated: { by: "openwiki/0.5.2", at: "2026-09-20T12:50:16.306Z" }
+generated: { by: "openwiki/0.6.0", at: "2026-09-24T13:08:10.397Z" }
 verified:
-  - by: openwiki/0.5.2
-    at: 2026-09-20T12:50:16.306Z
+  - by: openwiki/0.6.0
+    at: 2026-09-24T13:08:10.397Z
 ---
 
 # Testing & Verification
@@ -90,6 +94,7 @@ The tree is organized by domain **and** by architectural layer, mirroring the DD
 | `tests/market/` | Market domain: indicators (pure math, caching, client, compute API), Heikin-Ashi, EODHD gateway, security API and search cache, price alerts (repository, evaluation service, dispatch task), plus `tests/market/commands/` for CLI commands |
 | `tests/account/` | Account model/sync behaviour, plus `tests/account/commands/` and `tests/account/csv/` (CSV parser) |
 | `tests/auth/commands/` | Auth CLI commands (`create_test_user`, `create_test_token`) |
+| `tests/commands/` | Top-level `src/commands/` CLI entrypoints — `seed_data` idempotency and `flush_market_data` (`flush_all`, `flush_security`, `main`) |
 | `tests/integration/brokers/` | Broker integration tests driven by `StubWealthsimpleAPI` / `StubWSAPISession` from `src/stubs/wealthsimple.py` |
 | `tests/email/` | Email service and template rendering, with `src.core.email.aiosmtplib.SMTP` patched in every test |
 | `tests/ws/` | WebSocket `ConnectionManager` and router |
@@ -200,7 +205,7 @@ docker compose exec backend uv run pytest
 
 Suite files are colocated with the code they cover (`src/**/*.test.ts`) — API clients under `src/lib/api/`, utilities under `src/lib/utils/`, components next to their `.svelte` file, and route-level tests (`hooks.server.test.ts`, `routes/layout.test.ts`, `routes/security/[security_id]/page.svelte.test.ts`). Because SvelteKit runtime modules do not exist under jsdom, tests mock them explicitly with `vi.mock('$app/paths', …)`, `vi.mock('$app/navigation', …)`, `vi.mock('$app/forms', …)` and `vi.mock('$app/stores', …)`. Fetch-based clients mock `global.fetch` (see `src/lib/api/apiClient.test.ts`, which also asserts the raised `ApiError` for 401/404).
 
-Service-layer suites follow the mandated pattern one level up: `src/lib/components/watchlist/watchlistService.test.ts` mocks the API module (`vi.mock('@/api/marketService', () => ({ getMarketService: vi.fn() }))`) and then returns a hand-built client object whose every method is a `vi.fn()` — `getWatchlists`, `createWatchlist`, `renameWatchlist`, `deleteWatchlist`, `addSecurityToWatchlist`, `removeSecurityFromWatchlist`, … — so `WatchlistService` can be driven as a plain class with no SvelteKit runtime and no network. (`@/*` maps to `./src/lib/*` through `svelte.config.js`.)
+Service-layer suites follow the mandated pattern one level up: `src/lib/components/watchlist/watchlistService.test.ts` mocks the API module (`vi.mock('@/api/marketService', () => ({ getMarketService: vi.fn() }))`, L12-L14) and its `makeClient()` helper (L47-L62) returns a hand-built client object whose every method is a `vi.fn()` — `search`, `createOrUpdateSecurity`, `getWatchlists`, `createWatchlist`, `renameWatchlist`, `updateWatchlistSort`, `deleteWatchlist`, `addSecurityToWatchlist`, `removeSecurityFromWatchlist`, `reorderWatchlistSecurities`, `addToWatchlist`, `removeFromWatchlist` — and `beforeEach` wires it in with `vi.mocked(getMarketService).mockReturnValue(client as unknown as MarketService)`, so `WatchlistService` can be driven as a plain class while the assertions read its reactive state (`watchlists`, `isLoading`, `error`) with no SvelteKit runtime and no network. (`@/*` maps to `./src/lib/*` through `svelte.config.js`.)
 
 Chart tests mock the `lightweight-charts` module wholesale: `src/lib/components/charts/security-chart.test.ts` defines `Path2D` and `ResizeObserver` polyfills, then `vi.mock('lightweight-charts', …)` returning a `createChart` stub with mocked time scale, price scales, series, `attachPrimitive`, range/visible-range subscriptions and crosshair callbacks. `frontend/AGENTS.md` documents the expected depth for chart-plugin suites: state transitions, mouse-adapter hit-testing/snapping/drag lifecycle, renderer geometry and canvas draw calls, and full primitive lifecycle (`attached`/`detached`/`destroy`, `updateAllViews`, `hitTest` cursor resolution).
 

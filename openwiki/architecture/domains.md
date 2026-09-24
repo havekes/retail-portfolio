@@ -3,14 +3,13 @@ type: architecture
 title: Backend Domains
 description: Catalog of the backend domains and their owned systems — account (accounts, positions, portfolios, institutions, CSV templating), auth, market (securities, prices, intraday prices, watchlists, alerts, notes, documents, chart snapshots, indicators, AI), integration (broker gateways), ws (fan-out), core and config — with each domain's models, public APIs, services, router surface, business rules, cross-domain dependencies, and the extension recipes for new domains, gateways, and institutions.
 tags: [backend, domain-driven-design, fastapi, repositories, services, dependency-injection, routers, extension-points]
-verified:
-  - by: openwiki/0.5.2
-    at: 2026-09-20T12:50:16.306Z
 sources:
   - id: openwiki-source-ebee543967c6f3e7a101e271
     resource: repo://alembic.ini
   - id: openwiki-source-45599bb9a8794a9c90b7e20d
     resource: repo://frontend/src/lib/api/apiClient.ts
+  - id: openwiki-source-07e78ebb43c13654a939c9b4
+    resource: repo://migrations/versions/4c2ed77e7738_add_watchlist_sort_membership_added_at_.py
   - id: openwiki-source-f2a11e03c22959177c73ac6b
     resource: repo://src/account/csv/parser.py
   - id: openwiki-source-97d0ee047d10357439465331
@@ -59,6 +58,8 @@ sources:
     resource: repo://src/market/__init__.py
   - id: openwiki-source-01883905c6624d1aafed4cfd
     resource: repo://src/market/api.py
+  - id: openwiki-source-519cedd3ce6282336c277ff0
+    resource: repo://src/market/enum.py
   - id: openwiki-source-0759916706da37d0d3bef090
     resource: repo://src/market/exception.py
   - id: openwiki-source-b5c9dababd9a2ff2d28150b0
@@ -73,6 +74,8 @@ sources:
     resource: repo://src/market/repository.py
   - id: openwiki-source-d8383d22d61483b00080a280
     resource: repo://src/market/router.py
+  - id: openwiki-source-ef56252cb773f63950e8458e
+    resource: repo://src/market/schema.py
   - id: openwiki-source-9fc85bceeb3edfbe3ab56a7c
     resource: repo://src/market/service.py
   - id: openwiki-source-689c3cecf701f8b197038e75
@@ -81,7 +84,10 @@ sources:
     resource: repo://src/ws/manager.py
   - id: openwiki-source-d63e02f817074e4280e045ae
     resource: repo://src/ws/router.py
-generated: { by: "openwiki/0.5.2", at: "2026-09-20T12:50:16.306Z" }
+generated: { by: "openwiki/0.6.0", at: "2026-09-24T13:08:10.397Z" }
+verified:
+  - by: openwiki/0.6.0
+    at: 2026-09-24T13:08:10.397Z
 ---
 
 # Backend Domains
@@ -131,7 +137,7 @@ erDiagram
   Watchlist ||--o{ WatchlistsSecurities : lists
   Security ||--o{ WatchlistsSecurities : listed_in
 ```
-*Cross-domain entity relationships: user-owned aggregates fan out from `User`, while every market table except account positions holds a real foreign key to `Security`.*
+*Cross-domain entity relationships: user-owned aggregates fan out from `User`, while every market table except account positions holds a real foreign key to `Security`. `WatchlistsSecurities` is not a bare join table — it also stores the `added_at`/`position` metadata that gives a watchlist its order.*
 
 `SecurityBroker` stores the broker symbol/exchange mapping plus the raw EODHD search results used to resolve it. Every market-owned table references `market_securities.id` with a real foreign key; the one cross-domain exception is `account_positions.security_id` in the account domain, which is a plain UUID column so positions can point at a security without a database-level constraint across domains.
 
@@ -165,7 +171,7 @@ erDiagram
 ### Services (source: `src/account/service/`)
 
 - `AccountService` (`account.py`): get, ownership/`check_accounts_belong_to_user`, delete.
-- `PositionService` (`position.py`): `sync_account_positions`, `get_total_for_account`, `get_account_holdings`, `get_holdings_by_security`, plus the `_calculate_holding`/`_currency_convert` helpers. It depends on `MarketPricesApi` and `SecurityApi` (market), `IntegrationAccountApi`/`IntegrationUserApi` (integration), and a bare `CurrencyConverter()` for FX.
+- `PositionService` (`position.py`): `sync_account_positions`, `get_total_for_account`, `get_account_holdings`, `get_user_holdings` (all accounts of a user, grouped by account), `get_holdings_by_security`, plus the `_calculate_holding`/`_compute_price`/`_compute_cost`/`_currency_convert` helpers. It depends on `MarketPricesApi` and `SecurityApi` (market), `IntegrationAccountApi`/`IntegrationUserApi` (integration), and a bare `CurrencyConverter()` for FX. Every holding value is computed in the security's currency and then converted into the account currency, so a position whose security is missing is still reported with zeroed pricing rather than an error.
 - `PortfolioService` (`portfolio.py`): CRUD and account-membership sync with ownership validation.
 - `CsvAccountService` (`csv_account.py`): `inspect_csv`, `import_accounts`, `sync_account_from_csv`, `sync_account_csv_positions`. It resolves every position through `SecurityApi.get_or_create_from_broker`, wraps failures in `SecurityResolutionError`, and stamps `update_last_sync_at`.
 
@@ -191,8 +197,9 @@ erDiagram
 - `POST /csv/import` — multipart upload of selected `account_numbers` with optional `currencies` JSON map
 - `POST /{account_id}/csv-sync` — re-import one existing account from a CSV export
 - `PATCH /{account_id}/rename`, `DELETE /{account_id}`
-- `GET /{account_id}/totals`, `GET /{account_id}/holdings`, `GET /holdings/{security_id}`
-- `POST /{account_id}/sync` — rate-limited `3/minute`; enqueues broker position sync
+- `GET /{account_id}/totals`, `GET /{account_id}/holdings` (`AccountHoldingsRead`)
+- `GET /holdings`, `GET /holdings/{security_id}` — paged user-wide holdings aggregated across accounts
+- `POST /{account_id}/sync` — rate-limited `3/minute`; enqueues broker position sync and returns `{"accepted": true}`
 
 The CSV endpoints accept `institution_id`/`account_numbers`/`currencies` either as multipart `Form` fields or as query parameters with the same alias; `institution_id` and `account_numbers` are required (422 otherwise). Account numbers accept a JSON list string, a comma-separated string, or repeated values, deduplicated in order.
 
@@ -248,8 +255,8 @@ Login and 2FA verification set the `httponly`/`secure` `auth_token` cookie (7-da
 | `SecurityBrokerModel` | `market_securities_broker` | `institution_id`, `broker_symbol`, `broker_exchange`, `broker_name`, `mapped_symbol`, `mapped_exchange`, `security_id` (FK), `search_results` (JSON) | Indexed on `(institution_id, broker_symbol, broker_exchange)` |
 | `PriceModel` | `market_prices` | `security_id` (FK), `date`, OHLC + `adjusted_close` as `DECIMAL(16,8)`, `volume` | Unique `(security_id, date)` |
 | `IntradayPriceModel` | `market_intraday_prices` | `security_id` (FK), `timestamp: timestamptz`, OHLCV | Unique `(security_id, timestamp)`; 1-hour candles |
-| `WatchlistModel` | `market_watchlists` | `id: UUID`, `user_id`, `name`; `securities` relationship via `lazy="selectin"` | Unique `(user_id, name)`; the user's default list is the one literally named `"Default"` |
-| `WatchlistsSecuritiesModel` | `market_watchlists_securities` | composite PK, `ondelete="CASCADE"` both sides | Many-to-many |
+| `WatchlistModel` | `market_watchlists` | `id: UUID`, `user_id`, `name`, `sort` (server default `"custom"`) | Unique `(user_id, name)`; the user's default list is the one literally named `"Default"` |
+| `WatchlistsSecuritiesModel` | `market_watchlists_securities` | composite PK, `added_at`, application-managed `position`, `ondelete="CASCADE"` both sides | Ordered many-to-many; the association row carries the ordering metadata |
 | `PriceAlertModel` | `market_price_alerts` | `security_id`, `user_id`, `target_price`, `condition`, `source` (default `manual`), `triggered_at` | Null `triggered_at` = active |
 | `SecurityNoteModel` | `market_security_notes` | `security_id`, `user_id`, nullable `title`, `content`, timestamps | Title filled asynchronously by AI |
 | `SecurityDocumentModel` | `market_security_documents` | `security_id`, `user_id`, `filename`, `file_path`, `file_size`, `file_type` | File bytes under `settings.upload_path` |
@@ -284,7 +291,7 @@ Requires `current_user` on every route. Endpoint surface:
 - `GET /prices/{security_id}` — `interval` ∈ `1d|1w|1m|1h|4h`. Daily/weekly/monthly require `from_date` and `to_date` (422 otherwise) and aggregate in-process; intraday reads `market_intraday_prices` and lazily backfills via `MarketService.fetch_and_save_intraday_prices` when the window is stale.
 - `GET /search` and `GET /securities/search` — EODHD search, cached
 - `GET /securities/{security_id}`, `POST /security` (create-or-get)
-- Watchlists: `GET /watchlists` (each item embeds its securities), `POST /watchlists` (201), `PATCH /watchlists/{watchlist_id}`, `DELETE /watchlists/{watchlist_id}` (204), `GET /watchlists/{watchlist_id}/securities` (paginated), `POST|DELETE /watchlists/{watchlist_id}/securities/{security_id}`, and the default-watchlist shortcuts `POST|DELETE /watchlists/securities/{security_id}`
+- Watchlists: `GET /watchlists` (each item embeds its securities), `POST /watchlists` (201), `PATCH /watchlists/{watchlist_id}` (partial: rename and/or `sort`), `DELETE /watchlists/{watchlist_id}` (204), `GET /watchlists/{watchlist_id}/securities` (paginated), `POST|DELETE /watchlists/{watchlist_id}/securities/{security_id}`, `PUT /watchlists/{watchlist_id}/securities/order` (rewrites the manual ordering, 422 on a non-permutation payload), and the default-watchlist shortcuts `POST|DELETE /watchlists/securities/{security_id}`
 - `GET|POST /securities/{security_id}/alerts`, `DELETE /securities/{security_id}/alerts/{alert_id}`
 - `GET|POST /securities/{security_id}/notes`, `PUT|DELETE /securities/{security_id}/notes/{note_id}`
 - `GET|POST /securities/{security_id}/documents`, `DELETE /securities/{security_id}/documents/{doc_id}`
@@ -299,16 +306,18 @@ Watchlists are the one market feature with a full CRUD surface rather than per-s
 
 | Method | Behaviour |
 |--------|-----------|
-| `get_by_user(user_id)` | All watchlists for the user with their securities eagerly loaded (`selectinload`) and each security price-enriched |
+| `get_by_user(user_id)` | All watchlists for the user, each with `sort` and its securities loaded in `position` order (then `added_at`) and price-enriched |
 | `create(user_id, name)` | Insert; an `IntegrityError` from the `(user_id, name)` unique constraint becomes `WatchlistDuplicateNameError` (rolled back, session still usable) |
 | `rename(watchlist_id, user_id, name)` | Ownership check, then rename; duplicate names raise the same error |
+| `update_sort(watchlist_id, user_id, sort)` | Ownership check, then persist the `WatchlistSortMode` (`custom`, `name_asc`, `price_change_desc`, `price_change_asc`, `date_added`, `date_added_asc`) |
+| `set_security_order(watchlist_id, user_id, ordered_security_ids)` | Rewrites membership `position` values to `0..n-1`; the payload must be an exact permutation of the current membership (duplicates, missing, or foreign IDs are rejected with `WatchlistOrderIdentityError` *before* any write), and re-sending the current order is a no-op |
 | `delete(watchlist_id, user_id)` | Ownership check, then delete; membership rows disappear through `ondelete="CASCADE"` |
 | `create_default(user_id)` | Creates the literal `"Default"` watchlist; part of the repository contract but not currently invoked by any router |
 | `add_security` / `remove_security` | Default-watchlist shortcuts: they resolve the user's `"Default"` watchlist (creating it on first add, tolerating a concurrent-create `IntegrityError` by re-reading) and then delegate to the per-watchlist methods; `remove_security` with no default watchlist raises `WatchlistNotFoundError` for the nil UUID |
-| `add_security_to_watchlist` / `remove_security_from_watchlist` | Idempotent membership edits on one watchlist; unknown `security_id` raises `SecurityNotFoundError`, and removing a non-member is a successful no-op |
+| `add_security_to_watchlist` / `remove_security_from_watchlist` | Idempotent membership edits on one watchlist; unknown `security_id` raises `SecurityNotFoundError`, and removing a non-member is a successful no-op. Adds append at `max(position) + 1`, which the implementation documents as not concurrency-safe |
 | `get_securities(watchlist_id, user_id, offset, limit)` | Ownership check, then a `symbol`-ordered page plus total, price-enriched |
 
-Two invariants matter when changing this code. First, **every operation is scoped to the owning `user_id`, and a watchlist that does not exist *or* is owned by another user is reported as `WatchlistNotFoundError`** — deliberately indistinguishable, so a caller cannot probe for other users' watchlist IDs; the global `EntityNotFoundError` handler turns that into a 404. `WatchlistDuplicateNameError`, by contrast, is a plain `Exception` (not an `EntityNotFoundError`) precisely so the router can translate it to 409 instead of letting the global handler emit 404. Second, `WatchlistRead` responses embed securities already enriched with `current_price`, `daily_price_change`, and `daily_price_change_percent`, computed in one batched window query over the latest two closes per security — so a watchlist read is not a bare join, and adding a field to the enrichment means touching `_fetch_price_metrics` rather than the router.
+Two invariants matter when changing this code. First, **every operation is scoped to the owning `user_id`, and a watchlist that does not exist *or* is owned by another user is reported as `WatchlistNotFoundError`** — deliberately indistinguishable, so a caller cannot probe for other users' watchlist IDs; the global `EntityNotFoundError` handler turns that into a 404. `WatchlistDuplicateNameError` and `WatchlistOrderIdentityError`, by contrast, are plain `Exception` subclasses (not `EntityNotFoundError`s) precisely so the router can translate them to 409 and 422 respectively instead of letting the global handler emit 404. Second, membership metadata is not a bare join: `WatchlistRead.securities` holds `WatchlistSecuritySchema` values that carry `added_at`/`position` in addition to price fields, and because the `secondary` relationship cannot order by or carry association columns, the repository queries `market_watchlists_securities` explicitly. The `PATCH` handler also has to prove ownership for a payload that changes nothing: when neither `name` nor `sort` is supplied it reads the user's watchlists and raises `WatchlistNotFoundError` if the ID is not among them. Price enrichment is likewise a separate concern — `_fetch_price_metrics` computes `current_price`, `daily_price_change`, and `daily_price_change_percent` in one batched window query over the latest two closes per security — so adding an enrichment field means touching `_fetch_price_metrics` rather than the router.
 
 ### Business rules
 
@@ -317,6 +326,7 @@ Two invariants matter when changing this code. First, **every operation is scope
 - Note create and update both enqueue `generate_note_title_task(note_id, request_id=...)`, which regenerates the title with AI in the worker.
 - Documents are written to `settings.upload_path` under a random `uuid4` filename with the original extension; only metadata goes to the database.
 - Price alerts are evaluated only when `triggered_at IS NULL`.
+- Watchlist ordering is application-managed: each membership row stores an explicit `position`, additions append at the end, and reordering is a full-list replacement validated as an exact permutation before any row is written.
 - AI endpoints surface upstream failures as 503/504 rather than 500.
 
 ## integration
@@ -442,4 +452,4 @@ flowchart TD
 
 ## Focused tests
 
-Tests are grouped by concern rather than strictly by domain: router-level tests in `tests/routers/` (`test_auth.py` for 2FA and passkey flows, `test_accounts.py`, `test_csv_account_endpoints.py`, `test_csv_inspect.py`, `test_portfolios.py`, `test_market.py` for prices and the full watchlist surface, `test_chart_snapshots.py`, `test_notes.py`, `test_documents.py`, `test_sync_status.py`, `test_rate_limit.py`), service-level tests in `tests/services/` (`test_auth_services.py`, `test_position_api.py`, `test_csv_account_service.py`, `test_market_service.py`), repository tests in `tests/repositories/` (`test_repository_sqlalchemy.py` covers watchlist create/rename/delete, cross-user `WatchlistNotFoundError`, and price enrichment), domain unit tests in `tests/account/` and `tests/market/` (`test_models_and_sync.py`, `tests/account/csv/test_parser.py`, `test_security_api.py`, `test_indicator_compute_api.py`, `test_indicator_cache.py`, `test_alert_evaluation_service.py`), broker tests in `tests/integration/brokers/`, and WebSocket tests in `tests/ws/`. Tests must not depend on external services — see [Testing](../operations/testing.md).
+Tests are grouped by concern rather than strictly by domain: router-level tests in `tests/routers/` (`test_auth.py` for 2FA and passkey flows, `test_accounts.py`, `test_csv_account_endpoints.py`, `test_csv_inspect.py`, `test_portfolios.py`, `test_market.py` for prices and the full watchlist surface — including `PUT /watchlists/{id}/securities/order`, whose persisted positions are asserted directly — `test_chart_snapshots.py`, `test_notes.py`, `test_documents.py`, `test_sync_status.py`, `test_rate_limit.py`), service-level tests in `tests/services/` (`test_auth_services.py`, `test_position_api.py`, `test_csv_account_service.py`, `test_market_service.py`), repository tests in `tests/repositories/` (`test_repository_sqlalchemy.py` covers watchlist create/rename/delete, cross-user `WatchlistNotFoundError`, `sort` and position-ordered membership metadata on every read path, `set_security_order` idempotency plus rejection of non-permutation payloads before any write, and price enrichment), domain unit tests in `tests/account/` and `tests/market/` (`test_models_and_sync.py`, `tests/account/csv/test_parser.py`, `test_security_api.py`, `test_indicator_compute_api.py`, `test_indicator_cache.py`, `test_alert_evaluation_service.py`), broker tests in `tests/integration/brokers/`, and WebSocket tests in `tests/ws/`. Tests must not depend on external services — see [Testing](../operations/testing.md).

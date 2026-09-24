@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "pageVersion": "sha256:cf7206a6377238b92356f4ea0ae32323a8a0a74be259fcf75b2cf8aecde1fbf1",
+  "pageVersion": "sha256:ad95dd68e61ab9402924ff2b2f16f214ea60c24579945f58c0472d29b02c4e0d",
   "claims": [
     {
       "id": "claim_dc41cb6365fb48fa9d83873704c74cfb",
@@ -365,10 +365,128 @@
           "version": "repo-lines-v1:sha256:8f955503902b5a1cc135625a9bad813a703089419870f9ee7e463343463639b3:eyJzZWxlY3RlZExpbmVDb3VudCI6NCwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiOGI2YjRiOWIxYzMzMDE0NDQxZmMwZTc5ZTMyNDUxMDJkMjM0NWQ2NDgxZWMxNWQ5ZjMzYzg2MzYwNWQ5MDA5YyIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiMDFiYTQ3MTljODBiNmZlOTExYjA5MWE3YzA1MTI0YjY0ZWVlY2U5NjRlMDljMDU4ZWY4Zjk4MDVkYWNhNTQ2YiIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiNDQ5MzA4MjQxNTJlYmUxMjllZGE1OThmYWExNzVmNDY5YTgxZDhiMmRiMGFjMDNmNDI2MWEyYTQxYjgwZTMwMyIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiM2Q0MzA2ZmE3ZTdlOTZmNTcyMzlkYTg5MmNmOTM5MTBjMzlhMjhlMGQ2YjQ3OGE0MmI3ZWUxZDMxNjljYTllYyJ9"
         }
       ]
+    },
+    {
+      "id": "claim_34af7dc9ea3d4b439ee147754af83275",
+      "statement": "Institution listing is filtered in the repository: get_all_enabled_integrations selects institutions where integration_enabled is True, and only that flag decides which institutions the connect UI can show.",
+      "evidence": [
+        {
+          "resource": "repo://src/account/api/institution.py#L13-L28",
+          "version": "repo-lines-v1:sha256:19c262538ccb8b856549e766af805efca4272073afd3246c375ff2e2709dd8e0:eyJzZWxlY3RlZExpbmVDb3VudCI6MTYsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImFhNzlmOWVkYmIyMzM5NWNiMGYwYWJlNjkzYTMwMjUzZGVmMzgyM2FjZWU5M2I1NDQ2ZDFhOWQ2NTA5Mjk2YTgiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImJhYWU4YTBjYTc2Zjk4ZjdiN2RjNzk4NDk1MWQ2M2U1N2RiM2M2NDU1NzljYTUxYmFkNmE1MzlkNjE0ZWRiYmUiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6Ijk2NTQ3YzVhNGU4YzM4OWEyNDUxOTAxZjUxN2RiYmU1ODFiZWJjM2UzZjJhYTcxMzhiZDk3ZTYyY2UzYjRjMGQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjQwMDE2ZmRlNDczZTRkMzljNzQ5MDRiZmJjM2U5ODg1ZGYyYTMwMjhmNzZkZDVjNTVhYWRhMDhhNDg4MTQ1ZTgifQ"
+        },
+        {
+          "resource": "repo://src/account/repository_sqlalchemy.py#L42-L52",
+          "version": "repo-lines-v1:sha256:6d8561b7005085a35ec2e9fbeb5252670a9089940dd362969a7d8b13747149d5:eyJzZWxlY3RlZExpbmVDb3VudCI6MTEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ0ZGE5MzUwMDE5ZGMxZTY2NzQ1MjY0Mzg3MzE2MTk5NzIyNWU5Y2U2MDEwN2FmN2I2NGY4NDBkZGVjZmRhNGYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImJhYWU4YTBjYTc2Zjk4ZjdiN2RjNzk4NDk1MWQ2M2U1N2RiM2M2NDU1NzljYTUxYmFkNmE1MzlkNjE0ZWRiYmUiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjM0ZTc3ODIzMTYxODRjOWU4OGM5NGEzYWVkYmRiNzQzMzE1ZWZiNmY4MGIxMjU3MmU4NDVjY2IyYTc3ZWZiNzkiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImY0MGNhNWY5NWVkMDFiOWIzNWQ1YTY2YjU4NWJiMjNmYzNlNjgyNzY0ZTg1MGMzMGYzMTEzNDI0MWYyMDVlNzAifQ"
+        },
+        {
+          "resource": "repo://src/integration/router.py#L39-L48",
+          "version": "repo-lines-v1:sha256:c13f734824a786e80195b686fe8ad7cbaeb452316ceffe75e4382fd63ea971a7:eyJzZWxlY3RlZExpbmVDb3VudCI6MTAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjBjZTY2NDNlZjIwYWQ4YjI5NWY1OWMzZWYwNGI5NTg1OTk0ZDBjNDAzYjgxZjc2MjI5NDk1MDI0YTg5YWUyOTQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ3OGMzMDBkMmM4MDhiNDgzYjg3MDM1ZjdiOTA4ZTkzODY2NjBlZGE5YmQzZjljMmE3ZmRhYjg1ZGRmNGQ2NDYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjE0NTYxMjUxM2RlNzg2NzkzZWM2MDRiN2QyOTIyMjRjM2ZmYTlhMDY1ZDNiNzYyYzljNTY3MDUxZTVhNzViZjUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImZkODk3MjkxNzY5NzU5ODJmZmEyZWUzYjZlMjI4YzdhMTAyODUxNTliMjkzODg4MDMyMjYzMzMxOGJhZWJiYzQifQ"
+        },
+        {
+          "resource": "repo://tests/routers/test_integration.py#L5-L30",
+          "version": "repo-lines-v1:sha256:19b9f58c6a70261701844c2789eb5999ee5357fe7c62cfacf623cb8e9f1ee98e:eyJzZWxlY3RlZExpbmVDb3VudCI6MjYsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImI3YTgzMWZhNDcyNmZjMjMxNTE0NGY5YTA1NWJmZWMyNWYxYWZkMTI2YWFmZjU3YWZmYmU5NDBlZjVjNmE3MzUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjZjMTljOTk1MzM3ZTcyNzgwZjI4YjI1NjU3MjZkNjZmNmYwOTI3NjY1MjZiNDlmMDczNDNjNmI4YzAxZTBkNWIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImM3OTAzMGRkMGIzNGU5NmMyNGQ1ZTZiMmUxNTE5OGYwZjQyNWJlYTFkMDA3MzExZTQ1OTg1Njk3OGU3MjM0MDciLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_f0068b69e89643a287cfa6b2c7dc391b",
+      "statement": "WealthsimpleApiGateway.login translates every vendor failure into an ExternalAPIError subclass: LoginFailedException to LoginFailedError, OTPRequiredException to OTPRequiredError, ManualLoginRequired to SessionExpiredError and UnexpectedException to UnknownError, and it raises LoginFailedError when no cached session exists and the caller supplied no password.",
+      "evidence": [
+        {
+          "resource": "repo://src/integration/brokers/wealthsimple.py#L126-L147",
+          "version": "repo-lines-v1:sha256:6b06085f0aabad6205de5b9aca65884c07540dceb9337d0ede47d3c96172eed0:eyJzZWxlY3RlZExpbmVDb3VudCI6MjIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImI1NjljYjA5MjgwZWUwNzgxOTQ1ZTQ4ZDQwNDFiZDJkZmFhZTY5MWFkMmVhYmY1ZDNjYmEwODQ2YzcyMTZjYWEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImQxMDQyNGJkZTNhZDkxZmY4ZGFlYTgxYTRhYTUwNGIyZmU5ZDM3OTIzZjU5Mzc5MTUyZDU0M2Q3YjRkZWFmNzEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6Ijk4MGY5Y2Q5N2Y1OTUxYWI3MDc5MzY0Yzk4ODQwYTcxYWI2OWViZDYyZDEyYzMxYjExMzBjYWU2MWRkNTFlOWQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjE0MzQ1NTgxNmZhNTFjNDc1ZjY2NmUzNGZjYWE4NTk5MTRiYWE1MTQyYzYxYjgyOGMyOWE4YTZmMzhlODE4NTQifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_c3041a0fdfa34380b61852f4274726a3",
+      "statement": "POST /external/positions/import is rate-limited 3/minute like the accounts import route, and it remains a synchronous variant that writes positions inline in the request rather than on the Huey worker.",
+      "evidence": [
+        {
+          "resource": "repo://src/integration/router.py#L212-L268",
+          "version": "repo-lines-v1:sha256:ecc14b83433cbda68117e1b7f8c3260eb99f3c3d91d55c86b9f90afe7490d1cf:eyJzZWxlY3RlZExpbmVDb3VudCI6NTcsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImVjOGNmOGYxOWU0MDlkOGZiZDQ2NDVjYWIyMWZlNjdkN2EwMjg3NDg3MzU0MjU5ZDY3YTcwYmViODc4ZDY0ZDMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImY0MmI0NzI5M2ZiOTAyMjhmZWQ5ZmY2Njc5YzVlMzBlZjE4Y2RhODE0NjEwMWIyNTc5ZGFmYzk5NTQ1YWNlYTIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImE1NDVjNmU5NGMzYTgwYmI2YzVjMWM0MzU3NGEwOWMwODEyNzg1YTllZWVhOGNlMGM3ZTZkNWU0MTMxYWVjOTUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_6b987e1711ea494ea23c889221d0a1bd",
+      "statement": "Wealthsimple session tokens are namespaced per external username in the keyring under the service name retail_portfolio_wealthsimple.{username} with key \"session\", and BrokerApiGateway.__init__ installs keyrings.alt.file.PlaintextKeyring so that material is unencrypted on disk.",
+      "evidence": [
+        {
+          "resource": "repo://src/integration/brokers/__init__.py#L19-L22",
+          "version": "repo-lines-v1:sha256:8f955503902b5a1cc135625a9bad813a703089419870f9ee7e463343463639b3:eyJzZWxlY3RlZExpbmVDb3VudCI6NCwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiOGI2YjRiOWIxYzMzMDE0NDQxZmMwZTc5ZTMyNDUxMDJkMjM0NWQ2NDgxZWMxNWQ5ZjMzYzg2MzYwNWQ5MDA5YyIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiMDFiYTQ3MTljODBiNmZlOTExYjA5MWE3YzA1MTI0YjY0ZWVlY2U5NjRlMDljMDU4ZWY4Zjk4MDVkYWNhNTQ2YiIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiNDQ5MzA4MjQxNTJlYmUxMjllZGE1OThmYWExNzVmNDY5YTgxZDhiMmRiMGFjMDNmNDI2MWEyYTQxYjgwZTMwMyIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiM2Q0MzA2ZmE3ZTdlOTZmNTcyMzlkYTg5MmNmOTM5MTBjMzlhMjhlMGQ2YjQ3OGE0MmI3ZWUxZDMxNjljYTllYyJ9"
+        },
+        {
+          "resource": "repo://src/integration/brokers/wealthsimple.py#L61-L80",
+          "version": "repo-lines-v1:sha256:a2cfedb11487f544326e13747c2b6fe342827962a9dea73b79e8cce4aef26cdd:eyJzZWxlY3RlZExpbmVDb3VudCI6MjAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjgzZDY3Mjc5NmM0NzJhM2E5NTAwOTRkNGRhZDk5MDhhZGU4YWU5MWE2YjJiZjBkOWFjOTQzNmZhMDZhMGMzYWEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImFmZmFjNDAxMWYyZjIxNTljYzA2ZTgyMjA1MmU4OGMzY2E3MDc0Y2QzZDJmN2Y5YjAyYjAwMmEwMjNhZmIxMDIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6Ijg5YTVlMDJmMTdmZWRiMDNlZTk0ZDhkYmU5NzA3NDhjNGZhZGUzZjQxOWQyMmUwNWY4N2Y3OGVmNTgwMWQ1NDgiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImMwOGYxNjgyNjMxZmRiMDIwMzM0YmU5ZTUxNWYwZGYxNDZlMTM0NzBiMDRlOTc5ZWI0NmFlM2RmN2ZkYzY3MzMifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_2ac824b36f1c4d099af00606862da756",
+      "statement": "The sync failure email renders ExternalAccountErrorEmailData through EmailService.send_external_account_error_email into the external_account_error.html/.txt templates with the subject 'Sync Error: {account_name} ({institution_name})'.",
+      "evidence": [
+        {
+          "resource": "repo://src/core/email.py#L154-L177",
+          "version": "repo-lines-v1:sha256:f3362de0cd675dd87f274eea148c8dc7e6e9d5d486d3740fd77b17e9e645a3ce:eyJzZWxlY3RlZExpbmVDb3VudCI6MjQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImJiYzUyMTY5OGIxNzE5MThjZWU3ZjM2MWNjMWZhNjZhMjk4ZjQ3MDg3ODA0OTJjZGQ0Zjk2ZmRmMjA4YzMwMTEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjU5MDlhNTNhNjE4ZDAyOGUxZDMwMDBjMGE3YWJjZWVjYmU1ZmIzN2Y0ZTUxMWVmZTQ2NjQzZmFkNmU2Njg3MmYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImYyNGRlOGRiYzU4YmIyMmRjNDIzNjhlODY3MWMyNmJhOWQ1NGVhZmEzZWE5OWJkYzM2N2ZlZmFiOTJhMzE2OTEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
+        },
+        {
+          "resource": "repo://src/integration/task.py#L185-L218",
+          "version": "repo-lines-v1:sha256:b3e5f8e5c5ca852e4eab02e85845cadee7640cf1ee11778c631f349cb3b4fd1e:eyJzZWxlY3RlZExpbmVDb3VudCI6MzQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjY4OWYxMzA3NDc5ZGQ5Y2YwMTIwNzBiZGE4M2U2ZjI5NWEwMDM4MWU3NTA5YTQyYjU3M2Y3ZjExMGZkMmIyYTUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjMwYzFmMTg4ZjE0MmVkN2E4MjQ2ODBiMjA3MTcyYzU1MTliYzYxNGE0OGZkYTdjZjE2N2VkYjhkZGY3OTk1NmMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjhjYzRhN2QxY2M3OTZhYmEzZTQ2NzIzMzI3ZjUxN2U5ZjgxMTk4MmQyNTBmMDcwMjk4NmU0YjU3NjRhZDk1ODkiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjlhYTIwYWJjMjEzYTM3YmRlNTE0OTQ0ZGRhMjFhMDMxNjBlNjI2NTExM2RhYzQ0NDNkOTliM2FmNmQyMWMwMTAifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_02a4320b6b5940bbbb1a39000f6c2ba3",
+      "statement": "The Huey instance backing the sync task is a MemoryHueyWithRegistry under ENVIRONMENT=test and a RedisHueyWithRegistry bound to settings.redis_url otherwise, and on worker startup the svcs registry is built with a NullPool DatabaseSessionManager because tasks cycle through asyncio.run().",
+      "evidence": [
+        {
+          "resource": "repo://src/worker.py#L21-L50",
+          "version": "repo-lines-v1:sha256:9cb1c3b307c9618c628fce0ef1ae08b3d89e8197e2bef914f994cf9437f10b8a:eyJzZWxlY3RlZExpbmVDb3VudCI6MzAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjdkOWRhNDRkMWE0MTMxMDEyOTMzZjRiZGJlOTIzZTM0MDNhY2M4NTc3YmQxM2NjMjA3NjNjZDVjZjliM2M4MzYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImVmY2RhYzdjYzk5OTFlZTAxNTM4MDg2MmJlYTUwMTRkODAzMzc4MmYyYmFhOWY4ZmNiYWI5YjgyMjcxZDMwNDkiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6Ijg1NDEyNzMwOWZkZTJiZWUxOWQzODY1MWRkOWU5ZmJiZmQzM2E5MGM2Yjc1ODk4NjY4MzM3N2U1YmNjNzUyOWUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUwNzM3MjczOTNhM2I4YjIyOThjMDY1YjI1NTg4MjAxN2YxMjQyZjQ5ZjRmOTUwNGQ1YTI3ZGQ5MDA3NmRkYzAifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_df26c9ac3d9b4599a7a0164f669b048c",
+      "statement": "Adding a broker also requires registering a stub gateway in src/config/services.py::register_integration_stub_services, because stub selection happens at registry-construction time based on settings.stub_external_api rather than inside get_broker_gateway_class.",
+      "evidence": [
+        {
+          "resource": "repo://src/config/services.py#L14-L62",
+          "version": "repo-lines-v1:sha256:e92a7c9d045314c1ba5328b71fe8a185e1d41d958cd158bf752823fe975711d5:eyJzZWxlY3RlZExpbmVDb3VudCI6NDksImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImUwNTE3NmQ4M2M0MGQyZjUxY2NjODYzNzlmY2Y2NTc2NmUxYjM3NzU3YmE1Njk1MTM5NTM3NDEzZDViZDQ4NjEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImYzMTgyMDQ0ZjEzMzdhNWUxZTQ0ZWVlOGU3MWY2NDkyOWJlNTNiY2UwMmRiY2ZkZTRiZGI0NDc0MDAzNjJjZDEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImQwY2I4MWQ1YzNhYmI0MDhjY2I1ZDRiODI4ZmEwZThjYTA0MGFjNWZkMjNiYWE5ZDBjM2FiN2RlYTI2NGQ2YjIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6Ijg1YjA2NTFkMWVmMzFiNTBmNzAyOTRhNmI1ODA2YzY1ZTllYzYwYTk1MzQ0YWYyM2UxYTRiMmQyMWUwNzg0MDAifQ"
+        },
+        {
+          "resource": "repo://src/stubs/wealthsimple.py#L271-L272",
+          "version": "repo-lines-v1:sha256:79389e8d883feb5d3d08e80b2cb8c5d4ec456d00f1b3ec65d176bd72e50a4d5b:eyJzZWxlY3RlZExpbmVDb3VudCI6MiwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiNjI2NmJmODY4ZTBjY2RmNjNkYmM4NGQwOTdmMTE1MDJlZWQ4MWEyYzMyNGYxMjAzZDU4YTQxMWRhOTg4ZTc1NiIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiZWMzNWI2OGZlMDA4M2E0OGNhM2ZkNmE4NTM3Nzg4YTM0ZmVkYzg2YmE3MTM2YjNjYjc2MWRiMzBkNDY4OTAyZSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiMWY5NDc2ZjIzNzIwMDU5MDQ2ZjliZDdkYjVkYmZiNWVlYmUzOWZkYzVmZTUyN2ZjYzBiZWRmYTAzYzNkNTg4MyIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiNjA3Zjk4NWIxNDgxNWNjYWRlODhhMGZkYzExMDMwZmNjODZmN2E5NDQxMWI1ZDg4Njc4YjY5NDVkM2I3YjMzZCJ9"
+        }
+      ]
+    },
+    {
+      "id": "claim_54b0afbc67f443b48adbba03f333dae9",
+      "statement": "tests/integration/brokers/test_wealthsimple.py drives the gateway entirely through StubWealthsimpleAPI/StubWSAPISession with keyring patched, covering session save/get, the login translation paths, account parsing with and without netDeposits, the positional edge cases (cash position, malformed market data, unsupported primary exchange) and the helper symbol/exchange mappings.",
+      "evidence": [
+        {
+          "resource": "repo://tests/integration/brokers/test_wealthsimple.py#L224-L403",
+          "version": "repo-lines-v1:sha256:034385d075d1c611b799d12d48b93cb9a4aa1faf64ca37bbf43c9a509b620a1f:eyJzZWxlY3RlZExpbmVDb3VudCI6MTgwLCJmaXJzdFNlbGVjdGVkTGluZUhhc2giOiIwZTg2NDMyMjg4NjdhNTE4OGRmYTZjNGRmYjY5MmQ5ZGM1MjVkZjRhYWQ2M2Y0ZGIyNmRjYzViYjg3NjMwMzc4IiwibGFzdFNlbGVjdGVkTGluZUhhc2giOiI5MDA5Y2ZjMTA4Y2NkYjgzN2NjYjMyNTVkYjBiMWU0MjFhYTVmODYzNTkyZjU0OTA5MzEyM2FmYmQ4NzRkYjJiIiwicHJlY2VkaW5nQ29udGV4dExpbmVDb3VudCI6MywicHJlY2VkaW5nQ29udGV4dEhhc2giOiI3ODVjODEyM2YxNjFjMzkwYWYzOWUyYmQxMTM4NmZlNmExNTkxZDlmOWI4YmRmMTJlMzk2NmFmMjU3OGYwODBlIiwiZm9sbG93aW5nQ29udGV4dExpbmVDb3VudCI6MywiZm9sbG93aW5nQ29udGV4dEhhc2giOiIzN2Q5YjI1NWJkZDJmZjI3OGRmNzE5NjZiZmYzYTllYTA5ZDYxMjhlNTBlMTk0YjhkZTYxMjc5NjYyZGU0OGMwIn0"
+        },
+        {
+          "resource": "repo://tests/integration/brokers/test_wealthsimple.py#L52-L78",
+          "version": "repo-lines-v1:sha256:ff22556e9270699f4d1535090d1f92d11aaa1634df077a4b439edc4a9486b593:eyJzZWxlY3RlZExpbmVDb3VudCI6MjcsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjBjNTRmMDc2N2EwZjMyY2E2YTQxNDM3YzFlNWZkYTBiNGQ4NmFjMDM3MzNkOTE4Y2IzZGI3YjUyNDMzMzVmZmQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjkwNTRjZTE1ZjA2YWIwZDE5YTBkMTFkYzBiZTBlNTMzMzdhZGRlZjk3N2FhMmQzZmMyN2Y0ZTVmNTJmYjc5NjgiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjhjYzRhN2QxY2M3OTZhYmEzZTQ2NzIzMzI3ZjUxN2U5ZjgxMTk4MmQyNTBmMDcwMjk4NmU0YjU3NjRhZDk1ODkiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjljMjkwMWE0YmY2YWMxMDI0NzU4ZWM0NTFkYmVlOTRlNGMwOTE2Nzc0MDJmYmExN2NjNTQ1NDdiYmM1ZGJmODEifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_737a6272b88646b5bdf6d06f6a3d8ffe",
+      "statement": "tests/tasks/test_integration.py also pins the Redis bookkeeping contract directly: mark_sync_started is awaited once at the beginning and mark_sync_finished once at the end on both the success path and a broker failure path.",
+      "evidence": [
+        {
+          "resource": "repo://tests/tasks/test_integration.py#L251-L375",
+          "version": "repo-lines-v1:sha256:11c0c660dc52e4a215ca35204b34703bc29226bec84e2b853f773de1a375d1d3:eyJzZWxlY3RlZExpbmVDb3VudCI6MTI1LCJmaXJzdFNlbGVjdGVkTGluZUhhc2giOiIzZjcwZTNiM2VjZTU3YzM0MDhjY2U0ZDIwMGVhNTM2ZGViY2ZiM2EyMDJlYjQxOTExNDNiMzJiNWM0YWE2OThmIiwibGFzdFNlbGVjdGVkTGluZUhhc2giOiI4MGFhNWIxZTc2MTRiNjk2NDczMmMwZWFhZDZiY2E4NTkyZmYxN2RlODE2NmM0OWJlNmY4Y2MyZTlkMzhjYTI5IiwicHJlY2VkaW5nQ29udGV4dExpbmVDb3VudCI6MywicHJlY2VkaW5nQ29udGV4dEhhc2giOiI1YWI3YjI3MmFiNGUyNTE3NWI1ZmQyNGMxM2NmZTU2MzQyNTE0YzAyNzk0NmYwM2I1MzA1ZGYyMDMzNzg3OWY5IiwiZm9sbG93aW5nQ29udGV4dExpbmVDb3VudCI6MywiZm9sbG93aW5nQ29udGV4dEhhc2giOiI1YWI3YjI3MmFiNGUyNTE3NWI1ZmQyNGMxM2NmZTU2MzQyNTE0YzAyNzk0NmYwM2I1MzA1ZGYyMDMzNzg3OWY5In0"
+        }
+      ]
     }
   ],
   "verification": {
-    "by": "openwiki/0.5.2",
-    "at": "2026-09-18T20:16:58.058Z"
+    "by": "openwiki/0.6.0",
+    "at": "2026-09-24T13:08:10.397Z"
   }
 }

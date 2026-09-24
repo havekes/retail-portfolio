@@ -3,9 +3,6 @@ type: architecture
 title: Architecture Overview
 description: System-level runtime map of retail-portfolio — the FastAPI backend process (lifespan migrations, svcs registry, WebSocket manager, Huey dashboard), the Huey worker, the SvelteKit SSR frontend, the Go indicator sidecar, PostgreSQL, Redis and mailcrab, how HTTP routes are mounted under /api/v1, health/readiness endpoints, middleware and error-handling safety nets, and the backend layer rules.
 tags: [architecture, fastapi, huey, sveltekit, redis, postgresql, dependency-injection, websockets, request-lifecycle]
-verified:
-  - by: openwiki/0.5.2
-    at: 2026-09-18T20:16:58.058Z
 sources:
   - id: openwiki-source-b79fbbd921df689b4bbdc82f
     resource: repo://docker-compose.yml
@@ -39,6 +36,8 @@ sources:
     resource: repo://src/main.py
   - id: openwiki-source-336c8d4ea788e2c5f7cddd73
     resource: repo://src/market/__init__.py
+  - id: openwiki-source-d8383d22d61483b00080a280
+    resource: repo://src/market/router.py
   - id: openwiki-source-689c3cecf701f8b197038e75
     resource: repo://src/market/task.py
   - id: openwiki-source-c8a9ed75dfc5d7332062ae40
@@ -55,7 +54,10 @@ sources:
     resource: repo://tests/test_main.py
   - id: openwiki-source-f0abc296482c495e6bdb9e20
     resource: repo://tests/test_request_id.py
-generated: { by: "openwiki/0.5.2", at: "2026-09-18T20:16:58.058Z" }
+generated: { by: "openwiki/0.6.0", at: "2026-09-24T13:08:10.397Z" }
+verified:
+  - by: openwiki/0.6.0
+    at: 2026-09-24T13:08:10.397Z
 ---
 
 # Architecture Overview
@@ -166,7 +168,7 @@ top-level surface is:
 
 | Path | Owner | Notes |
 |------|-------|-------|
-| `/api/v1/...` | `v1` router aggregating every domain router | e.g. `/api/v1/auth/*`, `/api/v1/accounts/*`, `/api/v1/securities/*` |
+| `/api/v1/...` | `v1` router aggregating every domain router | e.g. `/api/v1/auth/*`, `/api/v1/accounts/*`, `/api/v1/market/*` |
 | `/api/ws` | `src/ws/router.py` | WebSocket endpoint, not under `/api/v1` |
 | `/api/ping` | `src/main.py` | Simple DB-backed healthcheck |
 | `/health/live` | `src/main.py` | Liveness probe used by the Compose healthcheck |
@@ -340,6 +342,12 @@ single-use: `_check_ticket_not_replayed` sets a `ws-ticket-used:<sha256>` Redis 
 The worker dashboard mirrors this pattern at `/worker/api/updates`, reusing the same
 ticket helper and the dashboard package's own `WebSocketManager`.
 
+This section is only the seam. The full mechanism — publish-to-delivery ordering, the
+per-loop Redis client rationale, the ticket/replay contract, the Redis-backed
+`account_syncs:active:{user_id}` status set, the browser-side reconnect timer and
+status-poll fallback — is documented in
+[Realtime Sync & Notifications](../workflows/realtime-sync-and-notifications.md).
+
 ## Background work
 
 The Huey consumer (`src/worker.py`) uses `RedisHuey` in every environment except `test`,
@@ -350,8 +358,11 @@ decorators register: `src/account/task.py`, `src/integration/task.py`,
 
 - `src/integration/task.py` syncs broker positions and emits WebSocket sync-progress
   events.
-- `src/market/task.py` owns `generate_note_title_task` and the periodic
-  `daily_price_update` (`crontab(hour="0", minute="0")`).
+- `src/market/task.py` owns the on-demand `generate_note_title_task`, the periodic
+  `daily_price_update` (`crontab(hour="0", minute="0")`) and the periodic
+  `hourly_intraday_price_update` (`crontab(minute="0")`), which fans out to
+  `recalculate_all_account_totals_task` and `check_and_dispatch_price_alerts`, the
+  latter enqueuing the retrying `alert_email_dispatch_task`.
 - `src/account/task.py` exposes `recalculate_all_account_totals_task`, which recalculates
   account totals and pushes `AccountTotalsUpdatedMessage` per user.
 
@@ -374,9 +385,12 @@ shape:
 | `Exception` (catch-all) | `500` | `{"detail": "Internal Server Error", "error": ...}`, where `error` is the exception string outside `prod` and the literal `"Internal Error"` in `prod` |
 
 Both `cors_exception_middleware` and the catch-all handler apply the same
-`prod` redaction rule, and both log via `logger.exception`. `src/main.py` also wraps the
-lifespan body in `try/except` so a failure during yield is logged rather than silently
-killing shutdown.
+`prod` redaction rule, and both log via `logger.exception`. The domain handlers do not
+log at all in `prod` (existence and authorization failures stay out of production logs);
+outside `prod` they log `str(error)` for `EntityNotFoundError` and
+`error.log_message()` for `AuthorizationError`, with `exc_info` attached in `dev`.
+`src/main.py` also wraps the lifespan body in `try/except` so a failure during yield is
+logged rather than silently killing shutdown.
 
 Focused tests for this behavior are `tests/test_main.py` (health, ping, handler logging
 and redaction) and `tests/test_request_id.py` (header generation, preservation, log
@@ -400,7 +414,10 @@ layer over `/api/v1`.
 Two base URLs matter: `VITE_INTERNAL_API_URL` (`http://backend:8000` in Compose) is used
 for server-side loads, while `VITE_API_BASE_URL` is the browser-visible backend. The SSR
 guard verifies JWTs with `JWT_SECRET`, which Compose derives from the backend's
-`SECRET_KEY` so the two can never drift.
+`SECRET_KEY` so the two can never drift. It rejects any token whose `scope` claim is not
+`access` (e.g. `mfa_pending`) by deleting the cookie, redirects unauthenticated
+non-`/auth` visitors to `/auth/login` with a `303`, and bounces an already-authenticated
+visitor away from `/auth/login` and `/auth/signup` back to `/`.
 
 See [Frontend Architecture](./frontend.md) for route, state and charting detail, and
 [Authentication & Authorization](./authentication.md) for the token and 2FA flows.
@@ -412,5 +429,11 @@ See [Frontend Architecture](./frontend.md) for route, state and charting detail,
 - [Backend Domains](./domains.md) — per-domain models, APIs, services, routers.
 - [Frontend Architecture](./frontend.md) and [Charting](./charting.md).
 - [Authentication & Authorization](./authentication.md) — token, 2FA and passkey flows.
+- [User Preferences Contract](../concepts/user-preferences.md) — the persisted
+  preference blob, its GET/PUT/PATCH semantics and which server load owns which key.
+- [Realtime Sync & Notifications](../workflows/realtime-sync-and-notifications.md) — the
+  `ws_messages` fan-out, `/api/ws` ticket auth, the account-sync status keys, the worker
+  dashboard channel and the browser-side reconnect/poll behavior this page only
+  sketches.
 - [Workflows](../operations/workflows.md) and [Testing](../operations/testing.md).
 - [Quickstart](../quickstart.md) — the short onboarding path through these pages.

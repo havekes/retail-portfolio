@@ -1,11 +1,11 @@
 ---
 type: reference
 title: Quickstart & Task Routing
-description: Entry point to the retail-portfolio wiki — what the repository is, how to run the Docker Compose stack, where every system lives, and a task-routing table that points backend, frontend, chart, auth, broker-sync, CSV, market-data, AI, integration, money, holdings-read-path, dev-workflow and testing work at the right page.
+description: Entry point to the retail-portfolio wiki — what the repository is, how to run the Docker Compose stack, where each system lives, and a task-routing table that points backend, frontend, chart, auth, broker-sync, CSV, market-data, AI, integration, money, holdings, security-workspace, realtime-notification, user-preference, dev-workflow and testing work at the right page.
 tags: [quickstart, task-routing, onboarding, repository-map, development-workflow]
 verified:
-  - by: openwiki/0.5.2
-    at: 2026-09-21T14:49:00.510Z
+  - by: openwiki/0.6.0
+    at: 2026-09-24T13:08:10.397Z
 sources:
   - id: openwiki-source-5f5b95b3d6a215fa02ceb945
     resource: repo://.env.example
@@ -21,10 +21,24 @@ sources:
     resource: repo://docker-compose.yml
   - id: openwiki-source-e483fd3285d99d05c7b265cf
     resource: repo://frontend/AGENTS.md
+  - id: openwiki-source-5a9632506263846c9a1b69f8
+    resource: repo://frontend/src/lib/api/alertsService.ts
+  - id: openwiki-source-76ee282c456ba62f6c69a0d4
+    resource: repo://frontend/src/lib/api/documentsService.ts
+  - id: openwiki-source-31c465e6b7d0d36afe3ffe00
+    resource: repo://frontend/src/lib/api/indicatorsService.ts
+  - id: openwiki-source-2ed8861d3f5737d726cd80c1
+    resource: repo://frontend/src/lib/api/notesService.ts
+  - id: openwiki-source-b3e4be2ad686e33030d95480
+    resource: repo://frontend/src/lib/api/snapshotsService.ts
+  - id: openwiki-source-8a88da80cc6ed6d98b2035f2
+    resource: repo://frontend/src/lib/api/userPreferencesService.ts
   - id: openwiki-source-09dad1559edc73c5b154a081
     resource: repo://frontend/src/lib/components/holdings/holdings-table.svelte
   - id: openwiki-source-3f8311916804417f28db7f0d
     resource: repo://frontend/src/lib/components/layout/app-sidebar-actions.svelte
+  - id: openwiki-source-eef5ac7399b1df0963154b1a
+    resource: repo://frontend/src/routes/%2Blayout.server.ts
   - id: openwiki-source-846f5f71a06546739c7f1ccb
     resource: repo://frontend/src/routes/%2Bpage.server.ts
   - id: openwiki-source-b8584948ed4a6fee33406f78
@@ -43,7 +57,19 @@ sources:
     resource: repo://scripts/docker-gid.sh
   - id: openwiki-source-230f617cb6d47154ef463034
     resource: repo://src/AGENTS.md
-generated: { by: "openwiki/0.5.2", at: "2026-09-21T14:49:00.510Z" }
+  - id: openwiki-source-0fc95643a33a61845b4e45e3
+    resource: repo://src/auth/model.py
+  - id: openwiki-source-c8a9ed75dfc5d7332062ae40
+    resource: repo://src/worker_dashboard/router.py
+  - id: openwiki-source-fabd6161da6a6b733306f7ce
+    resource: repo://src/ws/api_types.py
+  - id: openwiki-source-9c5ae74acc82cf270945cf3d
+    resource: repo://src/ws/manager.py
+  - id: openwiki-source-346e26038016b0d379bc804e
+    resource: repo://src/ws/README.md
+  - id: openwiki-source-d63e02f817074e4280e045ae
+    resource: repo://src/ws/router.py
+generated: { by: "openwiki/0.6.0", at: "2026-09-24T13:08:10.397Z" }
 ---
 
 # Quickstart & Task Routing
@@ -120,6 +146,9 @@ CI (`.github/workflows/ci.yml`) runs the same verification in three jobs: backen
 | An outbound dependency: EODHD, Wealthsimple, the AI endpoint, SMTP/mailcrab, Redis, the indicator sidecar | [External Services & Adapters](./integrations/external-services.md) |
 | Money, currency conversion, totals, holdings/P&L math, rounding | [Money & Currency Handling](./concepts/money-and-currency.md) |
 | The holdings read path: the accounts dashboard, `/accounts/[id]`, cross-account `/holdings`, holdings table columns/grouping/preferences | [Accounts & Holdings Views](./workflows/accounts-and-holdings-views.md) |
+| The `/security/[security_id]` workspace, its actions sidebar, note/document/alert CRUD, document upload | [Security Detail Workspace & Actions Sidebar](./workflows/security-workspace.md) |
+| WebSocket delivery, the `ConnectionManager`, the `ws_messages` channel, sync-status keys, client reconnect | [Realtime Sync & Notifications](./workflows/realtime-sync-and-notifications.md) |
+| The persisted preferences blob — keys, endpoints, which load owns which key, fallback behavior | [User Preferences Contract](./concepts/user-preferences.md) |
 | How to run, ship and change: Compose stack, in-container commands, agent-test harness, worktrees, migrations, CI, OpenSpec | [Development, CI & Change Workflows](./operations/workflows.md) |
 | The pytest/Vitest layout, fixtures, mandatory mocking, harness gates, CI matrix | [Testing & Verification](./operations/testing.md) |
 

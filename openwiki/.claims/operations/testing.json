@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "pageVersion": "sha256:995c578fe96ca183e7331f3b2b5d4703679bc333df76058c1c25b7fe4499a485",
+  "pageVersion": "sha256:7581bf44e5728bef0092c6b24b7d68907f0ba79216ceb851367dcce1b84fef25",
   "claims": [
     {
       "id": "claim_378287f072a04458b7482923bc24f4c5",
@@ -268,7 +268,7 @@
       "evidence": [
         {
           "resource": "repo://frontend/src/lib/components/watchlist/watchlistService.test.ts#L11-L66",
-          "version": "repo-lines-v1:sha256:9f8c2f164ae9e0c4d295901fc72f6cdfa17e3d2bcfc7e975fe2df2ef07947939:eyJzZWxlY3RlZExpbmVDb3VudCI6NTYsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImNhMGU4M2I3MmNhYTFlNTdiNDIyYThmYTZlZjc0ZDQ4OGEwYTI2YzgxZWRkMDNjMmFlMzJhOWM1ZmIyODBjOGMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImY2ZjViNDBiMTU4NDU3ZDE3ODY0ZjIxNzkwNzg2ZGQ1YTJlY2RiNjRiNjZhNjUxZjc4OGQ0ZTI1Y2QzMzAzZDIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjdkMjhhNGFkNDM2ZjQyNjU1MzY4NTc1NjI4MTg5OGMyODY0MTRlNjU1ZWQ1ODExNGE2MzNjZWQ4MTk4ZjUzNWEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjhiY2ZiYWMyOTRjNTkyMmI2YzJlYmViYmMwZDU1YzBjMmI5NzQ2YTVkODdiYjIyMzI4OWI4OTZhYWEzZDdlMzgifQ"
+          "version": "repo-lines-v1:sha256:7a5ffeda74f092310f3c596b4790be977dd43478ade159856770adebf6f5a92d:eyJzZWxlY3RlZExpbmVDb3VudCI6NjUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImNhMGU4M2I3MmNhYTFlNTdiNDIyYThmYTZlZjc0ZDQ4OGEwYTI2YzgxZWRkMDNjMmFlMzJhOWM1ZmIyODBjOGMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImY2ZjViNDBiMTU4NDU3ZDE3ODY0ZjIxNzkwNzg2ZGQ1YTJlY2RiNjRiNjZhNjUxZjc4OGQ0ZTI1Y2QzMzAzZDIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjdkMjhhNGFkNDM2ZjQyNjU1MzY4NTc1NjI4MTg5OGMyODY0MTRlNjU1ZWQ1ODExNGE2MzNjZWQ4MTk4ZjUzNWEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjhiY2ZiYWMyOTRjNTkyMmI2YzJlYmViYmMwZDU1YzBjMmI5NzQ2YTVkODdiYjIyMzI4OWI4OTZhYWEzZDdlMzgifQ"
         }
       ]
     },
@@ -307,10 +307,24 @@
           "version": "repo-lines-v1:sha256:b5282bb7b054eb6da0b482f09a9e57fb89eec9d64a8341825941210d54bc4e34:eyJzZWxlY3RlZExpbmVDb3VudCI6MjAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjNmNDgwMDAyMGEwNjc1YjRlY2M3YjY5OTgyNTRmNzAwYjgwOTlkMzIwOGM5MTA2NzNiNDdkYjg0MDBmNGMwOTkiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjE1Y2YzYTVjM2I0MzYwYWIwNDBlNTI5M2YxMWRkZGQxNWY1ZWEwNTc0ZWEzYmNkM2ZiOWJmYTlmNDI0NjEwMTciLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjgzODZhNDZmMmU1MzlhODJjNmI3NDVjZTJiNmI4NDJiODBlMGEzYTg1YzY1YzRkZjNmYTNjNDQyNjRkMDhhN2EiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImJlYzJiMTM5NmM4YTFhZDUwZDIxZTQ4MGVmOWIwMTk2ZWVlNjc2NjgxZTY3NTRiYzY0NjRjNzRjYWRiYmE2MTAifQ"
         }
       ]
+    },
+    {
+      "id": "claim_e35fd9644735484bb6fa17f35ec61a4d",
+      "statement": "The backend pytest tree has a top-level `tests/commands/` package that exercises the `src/commands/` CLI entrypoints: `tests/commands/test_seed.py` drives `seed_data` (including idempotency and the dev-environment path, asserting inserted users, securities, accounts and institutions) and `tests/commands/test_flush_market_data.py` covers `flush_all`, `flush_security` and `main`, so CLI command behaviour is verified against the PostgreSQL fixture rather than by running the commands out-of-process.",
+      "evidence": [
+        {
+          "resource": "repo://tests/commands/test_flush_market_data.py#L10-L30",
+          "version": "repo-lines-v1:sha256:7ffad6b73528a4b60f75aeac006da9361b640819f55ac9fc9ddf22a40c414b39:eyJzZWxlY3RlZExpbmVDb3VudCI6MjEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjE4ZDMwNjZjYTFmODJmMWJiMjBmODY1OTc1MjUyM2I2MGE5NDk3NGE1YmYxM2M3N2JkY2Y4YzdjZTU0YTM1ZGMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjkzZjJhZGNiYWUyODA5YjhhZjIzYmFiYTkzMjY3MTgxZWU0YmE2YTY1OTBiNzY4YjQ3ZmE5OWI1OGE0MGE5MWEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjBmM2FkZjYwNDE4NDg5NWZiMDYyMzc1NjBhOWRjOGY3MWMwMmU0YTQzYmFkNmMyNjllOWFkNWI4YzA2YWI3NzUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjExMzU4OTM2ZjJmYjAyZjljOTdhNTNhMjBiODgwZmJlMmQ3NzAzZTlmOTA3OWU5ZGMxYTI3NzNmNmNkMzljOWYifQ"
+        },
+        {
+          "resource": "repo://tests/commands/test_seed.py#L14-L30",
+          "version": "repo-lines-v1:sha256:2e2f39c289924d12f32117b6273cf74258e06786fc62aca2c74c0d873bd8d589:eyJzZWxlY3RlZExpbmVDb3VudCI6MTcsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImI3YTgzMWZhNDcyNmZjMjMxNTE0NGY5YTA1NWJmZWMyNWYxYWZkMTI2YWFmZjU3YWZmYmU5NDBlZjVjNmE3MzUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjY5MTAzYWI0Y2MyMWQzY2YwNmY3OTJmYmI4OGZmYWIyZjc1ZjJjYjg0N2JiY2YzMWMyNDI5OGQzMWQ0YzFmMjMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjA1NGRiZGFlYTI1ODY3NTFjYjU1MDA0ZGM5NzIxOGFkZDhkYmNhNTI4NzkxNWNkMGIzYjEwNDUwNWE2Y2Y0NDQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImFmZmVlOWU2MWRlNDlmZjY3MzM3ODkzMTAyZTcyMmViN2U4YzQ0YzgzZTU1ZWEyMDAyYTg2YWJjY2M2MjY0YmMifQ"
+        }
+      ]
     }
   ],
   "verification": {
-    "by": "openwiki/0.5.2",
-    "at": "2026-09-20T12:50:16.306Z"
+    "by": "openwiki/0.6.0",
+    "at": "2026-09-24T13:08:10.397Z"
   }
 }

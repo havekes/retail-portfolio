@@ -1,3 +1,4 @@
 # Files
 
 - [Money & Currency Handling](money-and-currency.md) - The cross-cutting money model behind totals, holdings, P&L, and CSV import — backend Decimal plus stockholm Money/Currency in API types, per-account/position currency with CurrencyConverter aggregation, the frontend Money shape and its formatting helpers, average-cost and holdings math, and the rounding/mixed-currency pitfalls to avoid when changing any of it.
+- [User Preferences Contract](user-preferences.md) - The single persisted per-user preferences blob — its JSON column on auth_users, the GET/PUT/PATCH endpoints and their exclude_none plus JSONB-merge semantics, the frontend UserPreferences interface and ownership split between the root layout load and page loads, and the shape-check and silent-fallback rules that keep a preferences outage from breaking a render.

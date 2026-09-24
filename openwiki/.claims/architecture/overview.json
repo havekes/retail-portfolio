@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "pageVersion": "sha256:0b63afd819257f5e6a5f5c82a9badb71a8d6954125cb604db14eec3f485044b9",
+  "pageVersion": "sha256:f313ef9c24c143888e45f2a6098e8065b843815fcbefaa4632ba2a42ae641c86",
   "claims": [
     {
       "id": "claim_af3b03e3ba854f68ac50e0d040bc8cd1",
@@ -70,7 +70,7 @@
     },
     {
       "id": "claim_a19d9f94e17046298946fc02c1d4525b",
-      "statement": "HTTP API routes live under `/api/v1`: `src/main.py` creates one `APIRouter(prefix=\"/api/v1\")`, includes the account, portfolio, auth, institutions, integration and market domain routers into it, and mounts it on the app; domain routers are themselves prefix-less relative to that (for example `auth_router` is `APIRouter(prefix=\"/auth\")`), so older documentation describing bare `/api` paths without the `/v1` segment is inaccurate.",
+      "statement": "HTTP API routes live under `/api/v1`: `src/main.py` creates one `APIRouter(prefix=\"/api/v1\")`, includes the account, portfolio, auth, institutions, integration and market domain routers into it, and mounts it on the app; domain routers define their own segment on top of that (for example `auth_router` is `APIRouter(prefix=\"/auth\")` and `market_router` is `APIRouter(prefix=\"/market\")`), so older documentation describing bare `/api` paths without the `/v1` segment is inaccurate.",
       "evidence": [
         {
           "resource": "repo://src/auth/router.py#L51-L51",
@@ -79,6 +79,10 @@
         {
           "resource": "repo://src/main.py#L167-L178",
           "version": "repo-lines-v1:sha256:89630a787886fd7fe30a47a630106db902e2f91c20e9d58aa8726c2f637401f7:eyJzZWxlY3RlZExpbmVDb3VudCI6MTIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ5Y2E0ODI0OTlmYjhiN2JmYWUzZjBlYTk1M2FiMDdmMzA0MjNlYTVlY2I5ZDQyYjhkNGI1NDM5ODU0NGRhZWIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAxYmE0NzE5YzgwYjZmZTkxMWIwOTFhN2MwNTEyNGI2NGVlZWNlOTY0ZTA5YzA1OGVmOGY5ODA1ZGFjYTU0NmIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjM0MGNmNDg1NTYyYTlmN2VhMDdmOTNiNTlmZDU5ZWQzNjkxZjQ2MTZhY2E2MWY4MmEwM2UwNDM5NWE1ZmQyZTciLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImMwYWJjZDRmNzg5ZGFkODZiOGVkN2U1OTJlNmQ5ZTdkNjhjNTM4MTI4YmJlOTEwMGZkNWY5MTE2NjE0NjFkZTAifQ"
+        },
+        {
+          "resource": "repo://src/market/router.py#L92-L92",
+          "version": "repo-lines-v1:sha256:18d2f7c958d30109d67f26f128178c65d227b79837b559a1b9f230e5c37bd515:eyJzZWxlY3RlZExpbmVDb3VudCI6MSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiMThkMmY3Yzk1OGQzMDEwOWQ2N2YyNmYxMjgxNzhjNjVkMjI3Yjc5ODM3YjU1OWExYjlmMjMwZTVjMzdiZDUxNSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiMThkMmY3Yzk1OGQzMDEwOWQ2N2YyNmYxMjgxNzhjNjVkMjI3Yjc5ODM3YjU1OWExYjlmMjMwZTVjMzdiZDUxNSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiZTVjMWM0NjJlMmEzOWQ3NDc1OWY1ZTFiMTI2Zjc2ODNhMmI3MzAxMThlMThmNTEyMmIwOGNlZGVlYjY1MGUyMyIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiMTc0ZDMxMjI4ODUxZTg4NTFkOTgyMGZjYTkzYjg0YjczNTAyNGY0OWMwYjdmZmFlMDBkMzU5ZmUxOWY2ZGY5YyJ9"
         }
       ]
     },
@@ -190,7 +194,7 @@
     },
     {
       "id": "claim_a52a280993e04bd38f3d402126688e22",
-      "statement": "`src/main.py` registers global exception handlers that map `EntityNotFoundError` and `AuthorizationError` to `404` with an `{\"error\": ...}` body (deliberately hiding existence from unauthorized callers), `RateLimitExceeded` to slowapi's handler, and any other `Exception` to `500`, where the error detail is the exception string outside `prod` and the literal `\"Internal Error\"` in `prod`.",
+      "statement": "`src/main.py` registers global exception handlers that map `EntityNotFoundError` and `AuthorizationError` to `404` with an `{\"error\": ...}` body (deliberately hiding existence from unauthorized callers) and any other `Exception` to `500`, where the error detail is the exception string outside `prod` and the literal `\"Internal Error\"` in `prod`; the two domain handlers log nothing at all in `prod`, while outside `prod` they log `str(error)` / `error.log_message()` with `exc_info` in `dev`. `RateLimitExceeded` is routed to slowapi's `_rate_limit_exceeded_handler`.",
       "evidence": [
         {
           "resource": "repo://src/main.py#L102-L102",
@@ -201,8 +205,8 @@
           "version": "repo-lines-v1:sha256:1332f838d383214195395d6ee1c449e76287a7616ee6edfdf6e5d93c3cb8512e:eyJzZWxlY3RlZExpbmVDb3VudCI6MzQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImU0ZTIzZjJkMjYwNGQ2NGZmNWQwZjZkZTk0NDIxYzI5YjBmZGFmODRlNDAwNmNlYTllMDc2YzFjODdiN2JmYzQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjIwMjU2NDFhNTAyMzYyYjI0Nzk3ODVhOTE0NWUxNDdlM2I3ZWQ2ZmMzYTliOWNiODczMzc4MTBiNzUxNjgxNjgiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjczMDMyNWY5ODBiNGFiZTBhNWJmZGViMmQzZWI5MzQ4NzZkM2EwNDMzMjU2NDQ0NzJjMTM2Y2NhMDJiOWE4MGEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
         },
         {
-          "resource": "repo://tests/test_main.py#L104-L140",
-          "version": "repo-lines-v1:sha256:d9f8741e8f1d69751a0746d32a967220c449dbc56452f158c9119c46eb19335e:eyJzZWxlY3RlZExpbmVDb3VudCI6MzcsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImI3YTgzMWZhNDcyNmZjMjMxNTE0NGY5YTA1NWJmZWMyNWYxYWZkMTI2YWFmZjU3YWZmYmU5NDBlZjVjNmE3MzUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAxYmE0NzE5YzgwYjZmZTkxMWIwOTFhN2MwNTEyNGI2NGVlZWNlOTY0ZTA5YzA1OGVmOGY5ODA1ZGFjYTU0NmIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjI1MmZjNzA5NTM0YTM5Mjc1MzRiMzAzMmFlMGI3Y2EyOWRmNWE0NDU1YTI1ZDliNDdmNWE5NzY4YTZhNDhjMDYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjMzYmNhNmIyODdhNzgxNzMwZGFlYzc3ZDMyMmI0MjExMjU5N2I5MjU2Mjc1OTViYzlhMGZkM2UwZmVlZGRkMmEifQ"
+          "resource": "repo://tests/test_main.py#L104-L146",
+          "version": "repo-lines-v1:sha256:390e29592764c1b3102d527a6ee42eaa660446861ed26be697692afe8cb595ff:eyJzZWxlY3RlZExpbmVDb3VudCI6NDMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImI3YTgzMWZhNDcyNmZjMjMxNTE0NGY5YTA1NWJmZWMyNWYxYWZkMTI2YWFmZjU3YWZmYmU5NDBlZjVjNmE3MzUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjMwYzFmMTg4ZjE0MmVkN2E4MjQ2ODBiMjA3MTcyYzU1MTliYzYxNGE0OGZkYTdjZjE2N2VkYjhkZGY3OTk1NmMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjI1MmZjNzA5NTM0YTM5Mjc1MzRiMzAzMmFlMGI3Y2EyOWRmNWE0NDU1YTI1ZDliNDdmNWE5NzY4YTZhNDhjMDYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
         }
       ]
     },
@@ -272,15 +276,23 @@
     },
     {
       "id": "claim_cf601b730f424bff97eabbf412c68c46",
-      "statement": "Background work spans three task modules: `src/integration/task.py` syncs broker positions and emits WebSocket sync-progress events, `src/market/task.py` owns `generate_note_title_task` plus the periodic `daily_price_update` on `crontab(hour=\"0\", minute=\"0\")`, and `src/account/task.py` exposes `recalculate_all_account_totals_task`, which recalculates account totals and pushes `AccountTotalsUpdatedMessage` per user; tasks bridge synchronous Huey to async logic with `asyncio.run(...)` and re-bind the originating `request_id` into the contextvar.",
+      "statement": "Background work spans three task modules: `src/integration/task.py` syncs broker positions and emits WebSocket sync-progress events; `src/market/task.py` owns the on-demand `generate_note_title_task`, the periodic `daily_price_update` on `crontab(hour=\"0\", minute=\"0\")` and the periodic `hourly_intraday_price_update` on `crontab(minute=\"0\")`, which fans out to `recalculate_all_account_totals_task` and `check_and_dispatch_price_alerts` (which in turn enqueues the `retries=3` `alert_email_dispatch_task`); and `src/account/task.py` exposes `recalculate_all_account_totals_task`, which recalculates account totals and pushes `AccountTotalsUpdatedMessage` per user. Tasks bridge synchronous Huey to async logic with `asyncio.run(...)` and re-bind the originating `request_id` into the contextvar.",
       "evidence": [
         {
           "resource": "repo://src/account/task.py#L13-L55",
           "version": "repo-lines-v1:sha256:59483e75c482b81900e13b112eed73b253473023fe1b6a12cf69d3ef1ae12ed6:eyJzZWxlY3RlZExpbmVDb3VudCI6NDMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjFlYzk2YzNlNjFhNjEyOWRiYWQ0ODFmMmI3NDAxOWM4YzdjYzI4NGQ5YjE5YTMzNTU0ZmE5MTdlYTIzYmQzYzgiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjUxMDM0ODFjNTdkMGYwZGMwZjc2Y2QyY2M4YjM2MDRjNGU4Mjk2ZGE0MTIyYWRkMTllODE3NDVkYzdlMzMxYTYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjYyMDA5N2U0YWE1MDA2OGJhMTU3ZjlhMjczOWZhZDg2OTk1ZTFlMGNkY2NkYWRjNTg5N2MyMDM0Yzc0ZDNlZmEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
         },
         {
+          "resource": "repo://src/market/task.py#L139-L220",
+          "version": "repo-lines-v1:sha256:fb321f3909df3f096783a1f50d119cc50abee507b77760fac2303e137832f233:eyJzZWxlY3RlZExpbmVDb3VudCI6ODIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjFlYzk2YzNlNjFhNjEyOWRiYWQ0ODFmMmI3NDAxOWM4YzdjYzI4NGQ5YjE5YTMzNTU0ZmE5MTdlYTIzYmQzYzgiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjI3Zjc4YzA5MzZjNTBiYTJjNzU1MjE0ZjU3MTRhN2I0NjUzZjBkOTNiY2M0OTk2NjEwMWM0OTlmNGZiNDZhNmIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjI2YjU4YzcyMTUyMzViYmU5ZjBjNGM3MTA0MDU2Yzk5NmNlMGQ5M2I2NzYyZTQwYjQ4MjVhMWEzZDA4N2Q0OGMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
+        },
+        {
           "resource": "repo://src/market/task.py#L23-L60",
           "version": "repo-lines-v1:sha256:8190016a85285905f0033de80c0699a1c45d7df32702d17f6312eb2ab46aadb4:eyJzZWxlY3RlZExpbmVDb3VudCI6MzgsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjFlYzk2YzNlNjFhNjEyOWRiYWQ0ODFmMmI3NDAxOWM4YzdjYzI4NGQ5YjE5YTMzNTU0ZmE5MTdlYTIzYmQzYzgiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImY5OGE4NTZhZGRkNTQ4ZjYyNWNiZTc4M2UxZjgzMDA0NzBmZmQzODE0YWYzYmM0ZTEwMGRhOWRjNjZlYzYyODMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjYyMDA5N2U0YWE1MDA2OGJhMTU3ZjlhMjczOWZhZDg2OTk1ZTFlMGNkY2NkYWRjNTg5N2MyMDM0Yzc0ZDNlZmEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjBhMTZjMjcxZDA3MDRkNDY4NWI2YzBkMTdjZjBjNzNhNzhlOTMwMGVhNTFhMWM3NDdhMmU0YjM0NGQ4MzE2MjYifQ"
+        },
+        {
+          "resource": "repo://src/market/task.py#L89-L137",
+          "version": "repo-lines-v1:sha256:dd39cbeabe0be643782a8a1461faf9462a5ec2521d70188e886fda38fd802e7f:eyJzZWxlY3RlZExpbmVDb3VudCI6NDksImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImQ3NjI5NDQyZjhiYzQwZmZiYjhlODY0ZTdlYWMxYjNjNTE3MDBkNjkxZDJlM2FmODA1ZWM3ODVkOGIzNTFkYTYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAxYmE0NzE5YzgwYjZmZTkxMWIwOTFhN2MwNTEyNGI2NGVlZWNlOTY0ZTA5YzA1OGVmOGY5ODA1ZGFjYTU0NmIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImIzZGYyYWNmMDZlOGMzZjAzYzcxMzVjNmU4YWM1YTljYTU0MzJhYmUwNmE3NGFjYTBmZGQ5YTUzYTAwOGY5ODciLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjY3MDk0Y2RkZWMyMmVjODFhMjFmM2ZmNzVkMDc0M2M3Y2ZlNzg0NzA1OWVmNDQxYzgxYWY4MTNkYThhYjJkNDIifQ"
         },
         {
           "resource": "repo://src/worker.py#L59-L62",
@@ -369,10 +381,34 @@
           "version": "repo-lines-v1:sha256:f9a0f412357259106261aca6bbcd92dc7623ba9f93927494da6342b75938e2a2:eyJzZWxlY3RlZExpbmVDb3VudCI6NCwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiNWY5ZGU1ZWYxN2I0ZjE0MzgyMmQ5ZDYwMWYwZDFjZWYxNTIzMTViNmVjM2M2YzllNGE4YzE1NTk4YzRkN2NkNyIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiZDcxZjU5NjEzNzExMzJiMDA2ZmYwYzVmYmI2YTFhMDNlZTlhODFhYTNiMWU1OWUxZjgxMjAzMzFhODhiMjQ0NCIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiNmM0YTM5ZmE5NDEyNzNjMDU5ZDA4M2I5YWNjODRmODVhNjdhN2U4MjhlYmNkYWUyMjZhMDA1MjM4YTE0MGI5OCIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiMzYwZGExMWU5N2QwMWM1MGQwZmM2ZDRkZmM5YjU4ZDNhYzc3M2QyZTYzZTQxNTI1Y2VlNzIzZDVjZTlkOWRlMiJ9"
         }
       ]
+    },
+    {
+      "id": "claim_195b5d67e35944dfb9729290d0cabca7",
+      "statement": "`frontend/src/hooks.server.ts` is the SSR route guard: it verifies the `auth_token` cookie as an HS256 JWT with `JWT_SECRET`, deletes the cookie and drops `locals.user` when verification fails or the `scope` claim is not `access`, redirects unauthenticated non-`/auth` visitors to `/auth/login` with status `303`, and redirects an authenticated visitor away from `/auth/login` and `/auth/signup` back to `/`.",
+      "evidence": [
+        {
+          "resource": "repo://docker-compose.yml#L83-L86",
+          "version": "repo-lines-v1:sha256:971a6d9a95b01b9e9bd8f3af88484a1122aa81aae83a714617fe7a6a391120a1:eyJzZWxlY3RlZExpbmVDb3VudCI6NCwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiYzQ3Y2YwMGZlZmFhMzFhNDM4Y2FmY2IyNmE4NTNhNjYwOWMwZTljMzYyY2MyNWEwZWUzOGFiZjkzZGYxMWI5ZSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNmI2ZTBjNDY2NWU4ZTBmZGQxMjY5MzlmN2ZiMDI3ZWY0NzEzZTIxZjQ5NzU5MGQ4N2ZmMDcyNTFkMTlmZDI0NyIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiMjU2YmFiYjJmODM5NzkwOTk0MWVjNmVlMjRlZGE4NTlkNDllZjkyNjgzMmY5NjY3ZTBjMjViOTMzNjQ5MzI5YiIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiYTEwYjYyYmVmZWIxNGM2NzlmMGRmMjNiOTBkN2EwODE3ZDNlNTJiZjA0ZmQ1ZjU3ZmMyNDM3NmZiZTA5YTlkNSJ9"
+        },
+        {
+          "resource": "repo://frontend/src/hooks.server.ts#L12-L62",
+          "version": "repo-lines-v1:sha256:8b3f712d5595bf443a6e3718d7c5b8160d178ff19ef37bb0803508eab972f1e2:eyJzZWxlY3RlZExpbmVDb3VudCI6NTEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjA1MDNhYTBkNmY1MDc4YTZiMTg1MDhkZWQwYmJjZDQ3ODdiZGEyY2NmMDk1YmY2OWY5ODAyNmY5YmM5MmI0ZWIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjE2ZTM5OGI5NGJlYWIzNTk1NDA0MDU0MzdiYzE5ZWNjY2FjYjE5NGE0OWI3OTM2MDc0NjBjNjllMTJkNWQyZmIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjAwNGI3YjExN2Q5NDc3YTM0ZTI2YTczZmM1OGE1NDg0Yzg0YTkxZTdmNjI4YTFlZTE0Mjk3ZWMyNTcxYTBmYjUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjoxLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImFhMWQxYTYzMzkwMjI5Yzc5ODM0N2U4M2EwNDA1NDQxYzk0MDAwMzUyODRhZDE2OGMxYmY2Y2RmMWQ3MGEzNzAifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_2b506ae3a72a41599800b40eb2b42d02",
+      "statement": "Background task modules are imported at the bottom of `src/worker.py` (`src/account/task.py`, `src/integration/task.py`, `src/market/task.py`) so their Huey task decorators register, which means a new task module must be added to that import list to be picked up by the consumer.",
+      "evidence": [
+        {
+          "resource": "repo://src/worker.py#L59-L62",
+          "version": "repo-lines-v1:sha256:f6ac7d8d434b36bc31003b0a4fdfc1d6f6e2cfe07fd14876532b41ae2994ee08:eyJzZWxlY3RlZExpbmVDb3VudCI6NCwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiMjc5ZDEyNTNmNjk5MDg2MTQ1MThhMjZlNzk1ODg3ZjE0ZWMwNTFmYjkwMjFiZmJiZGNlM2MxM2VjMWJlMjFkMiIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiMTgxYmY1OTUxNDdlNzI2MTU0MWUxNWRjZDU3MzU5ZDg0MDRjNDQ2NzMyNzRmYzAwMzIyYjRmZDg1ZjY1NjQwOSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiODNiYWJlZWRhNzJiMjhlNjcwZjE3N2VkODE3ZWNmNWQxYjczNzFhZjVhMDk5ODI3ZTFkYTA3NjdlODI4YmMyMyIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjAsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiZTNiMGM0NDI5OGZjMWMxNDlhZmJmNGM4OTk2ZmI5MjQyN2FlNDFlNDY0OWI5MzRjYTQ5NTk5MWI3ODUyYjg1NSJ9"
+        }
+      ]
     }
   ],
   "verification": {
-    "by": "openwiki/0.5.2",
-    "at": "2026-09-18T20:16:58.058Z"
+    "by": "openwiki/0.6.0",
+    "at": "2026-09-24T13:08:10.397Z"
   }
 }

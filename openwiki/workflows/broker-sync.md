@@ -1,11 +1,8 @@
 ---
 type: workflow
 title: Broker Connect, Import & Position Sync
-description: The end-to-end broker flow in retail-portfolio — listing integration-enabled institutions, logging in to Wealthsimple with credential/OTP handling and keyring session caching, importing broker users/accounts/positions, the Huey sync task that resolves broker symbols into market securities and replaces positions per account, the Redis active-sync bookkeeping and WebSocket events, the frontend accounts list that consumes them, and the error-to-message mapping plus failure email.
+description: The end-to-end broker flow in retail-portfolio — listing integration-enabled institutions, logging in to Wealthsimple with credential/OTP handling and keyring session caching, importing broker users/accounts/positions, the Huey sync task that resolves broker symbols into market securities and replaces positions per account, the Redis active-sync bookkeeping and WebSocket progress events, the frontend accounts list that consumes them, and the error-to-message mapping plus failure email.
 tags: [broker-integration, wealthsimple, huey, websockets, redis, position-sync, background-tasks, keyring]
-verified:
-  - by: openwiki/0.5.2
-    at: 2026-09-18T20:16:58.058Z
 sources:
   - id: openwiki-source-fd678aa0f01fc30bd938c51f
     resource: repo://frontend/src/lib/components/accounts/accounts-list.svelte.ts
@@ -13,6 +10,8 @@ sources:
     resource: repo://frontend/src/lib/components/brokers/broker-login-modal.svelte.ts
   - id: openwiki-source-717c8d779a49c004fc5cb8ec
     resource: repo://src/account/api/account.py
+  - id: openwiki-source-6ba20f333b1d7e2852467c2c
+    resource: repo://src/account/api/institution.py
   - id: openwiki-source-b307cf68f1a91cdd844faf8b
     resource: repo://src/account/api/position.py
   - id: openwiki-source-47a2f392d8d40be78e711787
@@ -21,8 +20,12 @@ sources:
     resource: repo://src/account/router.py
   - id: openwiki-source-3f52b6a4e0898f1abe448990
     resource: repo://src/account/service/position.py
+  - id: openwiki-source-e1e5885568a239055161be95
+    resource: repo://src/config/services.py
   - id: openwiki-source-d1e4e10eebd8f4d4314bc43f
     resource: repo://src/config/settings.py
+  - id: openwiki-source-48649ac2a96482e88e048106
+    resource: repo://src/core/email.py
   - id: openwiki-source-6a6a2e379c607f943e74eba0
     resource: repo://src/integration/api.py
   - id: openwiki-source-3ebdf3bdd0e5fec66ea8c288
@@ -41,6 +44,8 @@ sources:
     resource: repo://src/integration/task.py
   - id: openwiki-source-01883905c6624d1aafed4cfd
     resource: repo://src/market/api.py
+  - id: openwiki-source-49a515c9449d205d8513d8a6
+    resource: repo://src/stubs/wealthsimple.py
   - id: openwiki-source-7a8d629077019775a9fec3d3
     resource: repo://src/worker.py
   - id: openwiki-source-fabd6161da6a6b733306f7ce
@@ -61,7 +66,10 @@ sources:
     resource: repo://tests/routers/test_sync_status.py
   - id: openwiki-source-d1793d747b8abce8c0959943
     resource: repo://tests/tasks/test_integration.py
-generated: { by: "openwiki/0.5.2", at: "2026-09-18T20:16:58.058Z" }
+verified:
+  - by: openwiki/0.6.0
+    at: 2026-09-24T13:08:10.397Z
+generated: { by: "openwiki/0.6.0", at: "2026-09-24T13:08:10.397Z" }
 ---
 
 # Broker Connect, Import & Position Sync
@@ -80,7 +88,8 @@ Three invariants govern the whole flow and should be treated as contracts:
 1. **Credentials are never persisted.** The external password (and OTP) exist only for the
    duration of the login call. What survives is an `integration_users` row (user, institution,
    external username, display name) plus a broker *session token* cached in the OS keyring by the
-   gateway.
+   gateway. The keyring itself is the plaintext one — see
+   [Credentials and the keyring](#credentials-and-the-keyring).
 2. **Position sync replaces positions per account.** `PositionApi.create` groups by account and
    calls `PositionRepository.sync_by_account`, which deletes every position row for that account
    before inserting the new set — so a partial vendor response cannot leave stale holdings behind.
@@ -92,8 +101,8 @@ Three invariants govern the whole flow and should be treated as contracts:
 
 | Layer | Entrypoint | Responsibility |
 |-------|-----------|----------------|
-| Frontend client | `frontend/src/lib/api/brokerClient.ts` | `/integration/institutions`, `/external/users`, `/external/users/{id}/accounts`, `/external/{institution}/login`, `/external/accounts/import` |
-| Frontend state | `brokers-list.svelte.ts`, `brokerService.svelte.ts`, `connect-broker-modal.svelte.ts`, `broker-login-modal.svelte.ts`, `sync-accounts-modal.svelte.ts` | institution list, login form incl. OTP step, account selection/unsync |
+| Frontend client | `frontend/src/lib/api/brokerClient.ts`, `frontend/src/lib/api/accountClient.ts` | `/integration/institutions`, `/external/users`, `/external/users/{id}/accounts`, `/external/{institution}/login`, `/external/accounts/import`, `/accounts/{id}/sync`, `/accounts/sync-status` |
+| Frontend state | `brokers-list.svelte.ts`, `brokers-list-item.svelte.ts`, `brokerService.svelte.ts`, `connect-broker-modal.svelte.ts`, `broker-login-modal.svelte.ts`, `sync-accounts-modal.svelte.ts` | institution list, login form incl. OTP step, account selection/unsync |
 | FastAPI routers | `src/integration/router.py` (`integration_router` = `/external`, `institutions_router` = `/integration`), `src/account/router.py` | HTTP surface, auth, rate limiting, task enqueue |
 | Broker gateway | `src/integration/brokers/wealthsimple.py` | `ws-api` login/session handling, account and position parsing |
 | Task | `src/integration/task.py` | `sync_account_positions_task` Huey task, sync events, error mapping, failure email |
@@ -106,12 +115,14 @@ Three invariants govern the whole flow and should be treated as contracts:
 ## Institution listing
 
 `GET /api/v1/integration/institutions` returns every institution with integrations enabled
-(`InstitutionApi.get_all_enabled_integrations`). This is the *only* filter on what a user can
-connect: an institution row with `integration_enabled = false` is invisible to the UI even though
+(`InstitutionApi.get_all_enabled_integrations`, backed by
+`InstitutionRepository.get_all_enabled_integrations`, which filters on
+`integration_enabled.is_(True)`). This is the *only* filter on what a user can connect: an
+institution row with `integration_enabled = false` is invisible to the UI even though
 `get_broker_gateway_class` knows how to handle it. The integration test
 `tests/routers/test_integration.py` flips that flag directly in `account_institutions` and asserts
 the response contains exactly the Wealthsimple entry, which is the observable definition of
-"enabled".
+"enabled"; the seed command sets the same flag for Wealthsimple.
 
 ## Connect, import and sync
 
@@ -176,7 +187,8 @@ position write happens inside the Huey worker, never in the request that trigger
 login, so a failed login still leaves the `integration_users` record (with refreshed
 `last_used_at`) in place. `WealthsimpleApiGateway.login` is a two-stage dance:
 
-- it reads the cached session from the keyring and probes it with `get_accounts()`;
+- it reads the cached session from the keyring (`keyring.get_password` under
+  `retail_portfolio_wealthsimple.{username}` / `"session"`) and probes it with `get_accounts()`;
 - only when no session exists does it call `ws.login_internal(username, password, otp,
   persist_session_fct=self._save_session)`.
 
@@ -186,11 +198,14 @@ with `detail="INVALID_CREDENTIALS"`. Those literal strings are the contract the 
 on: `broker-login-modal.svelte.ts` switches to the OTP field when the message is `OTP_REQUIRED`
 and shows "Invalid username or password" for `INVALID_CREDENTIALS`, falling back to a generic
 message otherwise. Any other login error (`UnknownError`, `SessionExpiredError`) reaches the
-generic branch, so the modal never shows an empty error.
+generic branch, so the modal never shows an empty error. A login request with no password (the
+OTP-only submission after the first round-trip) is translated to `LoginFailedError` as well.
 
 A missing cached session is normal (first login), and `SessionDoesNotExistError` is
 `ExternalAPIError`'s subclass — but note that `login` *catches* it internally: it is the signal to
-perform a real credential login, not a user-facing failure.
+perform a real credential login, not a user-facing failure. `ManualLoginRequired` is translated to
+`SessionExpiredError`, and an `UnexpectedException` is captured with the last raw vendor response
+logged before being raised as `UnknownError`.
 
 ### Import: accounts then positions
 
@@ -206,17 +221,19 @@ perform a real credential login, not a user-facing failure.
 5. enqueues one `sync_account_positions_task` per newly created account, forwarding
    `get_request_id()` so the worker's logs correlate with the request.
 
-`POST /external/positions/import` is a separate, nearly-duplicate path that does the position work
-*inline* in the request instead of on the worker: it loads the account and its broker id, calls
+`POST /external/positions/import` is a separate path that does the position work *inline* in the
+request instead of on the worker: it loads the account and its broker id, calls
 `broker.get_positions_by_account`, resolves each symbol via
-`SecurityApi.get_or_create_from_broker`, and writes through `PositionApi.create`. It is not
-rate-limited and not the path the UI drives for broker accounts; the account list's sync button and
-the import flow both go through the Huey task. Treat it as a synchronous variant that shares the
-same invariants.
+`SecurityApi.get_or_create_from_broker`, and writes through `PositionApi.create`. It is also
+rate-limited `3/minute`, but it is not the path the UI drives for broker accounts; the account
+list's sync button and the import flow both go through the Huey task. Treat it as a synchronous
+variant that shares the same invariants.
 
 Importing is also how *un*-syncing is expressed: `sync-accounts-modal.svelte.ts` diffs the checked
 set against the user's internal accounts and calls `accountClient.deleteAccount` for every account
 whose checkbox was cleared, so "deselect a broker account" is a local delete, not a broker call.
+When anything is being unsynced the modal first opens a confirmation step and only then performs
+the import + delete pair.
 
 ### The sync task
 
@@ -226,7 +243,8 @@ from the FastAPI lifecycle. It takes the `user_id`, the `Account`, the `broker_a
 set up in `src/worker.py::setup_worker_services` (with `NullPool`, precisely because tasks cycle
 through `asyncio.run()`); the task asserts `huey.svcs_registry is not None` and raises
 `RuntimeError("Worker registry not initialized")` otherwise. It restores the parent request id in
-the context var and resets it in a `finally`.
+the context var and resets it in a `finally`. Under `ENVIRONMENT=test` the module-level `huey` is a
+`MemoryHueyWithRegistry`; otherwise it is a `RedisHueyWithRegistry` bound to `settings.redis_url`.
 
 Inside the container, `_do_sync_positions` is strictly ordered:
 
@@ -257,7 +275,7 @@ raw search results. Zero search results raise `ValueError` — which is not in
 `_SYNC_ERROR_MESSAGE_MAPPING`, so it surfaces to the user as the generic unexpected-error message.
 
 The `SecurityBroker` row is the durable cache: once a broker symbol resolves, later syncs are a
-single indexed lookups. Two mapping functions exist for the same transformation —
+single indexed lookup. Two mapping functions exist for the same transformation —
 `SecurityApi._map_eodhd_exchange` uses `.get(...)` and passes unknown exchanges through, while
 `WealthsimpleApiGateway._map_eodhd_exchange` indexes the dict directly and raises `KeyError`. They
 are not interchangeable; see [External Services & Adapters](../integrations/external-services.md).
@@ -310,13 +328,13 @@ sync tasks for the same account; the set is a set, so the second `SADD` is a no-
 
 ## WebSocket delivery
 
-`src/ws/manager.py` keeps `active_connections: dict[UserId, list[WebSocket]]` per user and one
-Redis client **per running event loop** — that loop-keyed design is what lets the same singleton be
-called both from the FastAPI request loop and from a worker's `asyncio.run()` loop.
-`send_personal_message` publishes `{"user_id": ..., "message": ...}` to the `ws_messages` channel,
-lazily initializing a client when the calling loop has none; if Redis is unreachable it falls back
-to `_send_to_local_connections`, and the listener task restarts itself after a 5s delay on
-unexpected error. The full architecture is in `src/ws/README.md`.
+`src/ws/manager.py` keeps `active_connections: dict[UserId, list[WebSocket]]` per user and fan-outs
+each message through Redis pub/sub so that a `sync_started` emitted by the worker reaches a browser
+connected to a *different* FastAPI instance. Delivery is best-effort: the client is not guaranteed
+to see either edge, which is why the frontend keeps a polling fallback. The pub/sub channel, the
+ticket handshake, the per-event-loop Redis client and the reconnect behavior are documented in
+detail on the realtime/notifications page; this page only cares about *which* events the broker
+flow emits.
 
 The task emits three events from `src/ws/api_types.py`, each an `AccountSyncMessage` serialized
 with `model_dump(mode="json")`:
@@ -331,10 +349,6 @@ with `model_dump(mode="json")`:
 `src/account/task.py::recalculate_all_account_totals_task`, the hourly totals broadcast — it is not
 part of the broker sync path.
 
-Because the message is published to Redis and delivered by whichever process holds the socket, a
-`sync_started` emitted by the worker reaches a browser connected to a *different* FastAPI instance.
-That also means delivery is best-effort: the client is not guaranteed to see either edge.
-
 ## Frontend consumption
 
 `AccountsListState` (`frontend/src/lib/components/accounts/accounts-list.svelte.ts`) owns the
@@ -342,10 +356,8 @@ browser side of the contract.
 
 **Handshake.** On construction (browser only) it calls `authService.getWsTicket()` and opens
 `new WebSocket(`${wsUrl}?ticket=...`)`; without a ticket it logs a warning and aborts rather than
-connecting unauthenticated. `src/ws/router.py` verifies the ticket with `URLSafeTimedSerializer`,
-`salt="ws-ticket"`, `max_age=30`, rejects a replay by setting a SHA-256 hash key with
-`nx=True, ex=30`, and closes with code `1008` on any failure. The ticket origin (in the backend)
-lives in the auth `/auth/ws-ticket` endpoint.
+connecting unauthenticated. The ticket verification, replay protection and close-code behavior live
+in `src/ws/router.py` and are covered on the realtime/notifications page.
 
 **State.** Two runes-backed fields track the sync: `syncingAccountIds` (a `SvelteSet<string>`) and
 `syncErrors` (`Record<string, string | null>`). Incoming events mutate them directly:
@@ -401,18 +413,23 @@ to "An unexpected error occurred while syncing your account positions. Please tr
 institution label from `InstitutionEnum(...).name.replace("_", " ").title()` (falling back to
 `str(account.institution_id)` when the id is not in the enum — covered by
 `test_sync_account_positions_task_sends_email_unmapped_institution_fallback`), and sends an
-`ExternalAccountErrorEmailData` with the deep link `{settings.frontend_url}/accounts`. The whole
-email attempt is nested in its own `try/except`: `EmailSendError` is logged and swallowed so the
-sync failure still surfaces, and a user with no email only produces a warning. The `sync_failed`
-event is emitted **after** that attempt and before the exception is re-raised, so the task fails
-observably while the user still gets both signals.
+`ExternalAccountErrorEmailData` with the deep link `{settings.frontend_url}/accounts`. That data
+class is rendered by `EmailService.send_external_account_error_email` into the
+`external_account_error.html` / `.txt` templates with subject
+`Sync Error: {account_name} ({institution_name})`. The whole email attempt is nested in its own
+`try/except`: `EmailSendError` is logged and swallowed so the sync failure still surfaces, and a
+user with no email only produces a warning. The `sync_failed` event is emitted **after** that
+attempt and before the exception is re-raised, so the task fails observably while the user still
+gets both signals.
 
-The email path is shared with the vendor boundary described in
-[External Services & Adapters](../integrations/external-services.md), which also documents the
-plaintext keyring caveat: `BrokerApiGateway.__init__` installs `keyrings.alt.file.PlaintextKeyring`,
-so cached Wealthsimple session tokens are unencrypted on disk, guarded only by a `TODO secure this
-before staging deployment` comment. Treat any new credential or session field as inheriting that
-storage.
+### Credentials and the keyring
+
+`BrokerApiGateway.__init__` installs `keyrings.alt.file.PlaintextKeyring`, so cached Wealthsimple
+session tokens are unencrypted on disk, guarded only by a `TODO secure this before staging
+deployment` comment. The gateway's `_keyring_prefix` is `retail_portfolio_wealthsimple`, and the
+username is appended, so token material is namespaced per external username. Treat any new
+credential or session field as inheriting that storage. The vendor boundary itself is described in
+[External Services & Adapters](../integrations/external-services.md).
 
 ## Configuration and operations
 
@@ -438,26 +455,31 @@ mocked, never live** (`src/AGENTS.md`, restated in
 `STUB_EXTERNAL_API=true` before the app import, the autouse `fake_redis_manager` fixture replaces
 `redis_manager.client` with a dict-backed `FakeRedis` (implementing `sadd`/`srem`/`smembers`, which
 is why the sync set works in tests), and `global_mocks` forces `huey.immediate = True` plus patches
-`ConnectionManager.send_personal_message`.
+`ConnectionManager.send_personal_message` and the worker-dashboard lifecycle hooks bound in
+`src.main`.
 
 Representative focused tests:
 
 - `tests/tasks/test_integration.py` — the sync task's full success path (asserts the resolved
   security, `update_net_deposits(account.id, 5000.0)`, `update_last_sync_at`, and exactly two
-  `send_personal_message` calls with `sync_started` then `sync_finished`), the
-  `RuntimeError` for an uninitialized registry, the two `_do_sync_positions` guards, and one test
-  per error-mapping entry asserting the exact email body and `frontend_url` deeplink — including
-  `sync_failed` as the last socket call when the email itself throws.
+  `send_personal_message` calls with `sync_started` then `sync_finished`), the `mark_sync_started`
+  / `mark_sync_finished` pairing on both success and failure, the `RuntimeError` for an
+  uninitialized registry, the two `_do_sync_positions` guards, and one test per error-mapping entry
+  asserting the exact email body and `frontend_url` deeplink — including `sync_failed` as the last
+  socket call when the email itself throws or when the user has no email.
 - `tests/account/test_models_and_sync.py` — `PositionService.sync_account_positions` raising
   `ApiSyncDisabledError` for a CSV account, and the `api_sync_enabled` default of `True`.
 - `tests/services/test_position_api.py` — `PositionApi.create` (via `sync_by_account`) replacing
   existing positions for an account.
 - `tests/routers/test_sync_status.py` — the sync-status endpoint's empty, scoped, unauthenticated
   and Redis-unavailable cases.
+- `tests/routers/test_integration.py` — `/integration/institutions` returning `[]` when nothing is
+  enabled and exactly the Wealthsimple entry after flipping `integration_enabled`.
 - `tests/integration/brokers/test_wealthsimple.py` — the gateway driven entirely through
   `StubWealthsimpleAPI` / `StubWSAPISession` from `src/stubs/wealthsimple.py`, with `keyring`
-  patched, covering session save/get, the OTP and login-failure translations, and account/position
-  parsing.
+  patched, covering session save/get, the OTP and login-failure translations, account parsing with
+  and without `netDeposits`, positional edge cases (cash position, malformed market data,
+  unsupported primary exchange) and the helper mappings.
 - `frontend/src/lib/components/accounts/accounts-list.test.ts` — mocks `WebSocket`,
   `accountClient` and `authService.getWsTicket`, so no socket or fetch is real.
 
@@ -466,7 +488,8 @@ Representative focused tests:
 Adding a broker means: a `BrokerApiGateway` subclass with its own `_keyring_prefix` and
 `InstitutionEnum`; an entry in `get_broker_gateway_class` (which currently raises `KeyError` for any
 id other than `WEALTHSIMPLE`); vendor-error translation onto `ExternalAPIError` subclasses; a stub
-under `src/stubs/`; and a registration in `src/integration/registry.py`. If the new broker
-introduces a failure mode with actionable user guidance, it also needs a sentence in
-`_SYNC_ERROR_MESSAGE_MAPPING`. The seed data requirement — an `account_institutions` row with
-`integration_enabled = true` — is what makes the institution appear at all.
+under `src/stubs/` registered by `register_integration_stub_services` in `src/config/services.py`;
+and a registration in `src/integration/registry.py`. If the new broker introduces a failure mode
+with actionable user guidance, it also needs a sentence in `_SYNC_ERROR_MESSAGE_MAPPING`. The seed
+data requirement — an `account_institutions` row with `integration_enabled = true` — is what makes
+the institution appear at all.
