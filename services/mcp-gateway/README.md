@@ -9,10 +9,6 @@ The service is a thin transport and client layer only. It holds no provider
 credentials, calls no provider directly, and talks exclusively to the backend's
 service-to-service data plane.
 
-> **Tools arrive in T11.** This ticket (T10) stands up the skeleton: config,
-> the backend client, the MCP transport, `/health`, and the Dockerfile. T10
-> registers **zero** tools — `tools/list` intentionally returns an empty list.
-
 ## Endpoints
 
 ### `GET /health`
@@ -77,13 +73,48 @@ Tool names, descriptions, log lines, error strings, and this README must never
 mention an upstream provider brand. Keep the vocabulary provider-agnostic
 ("market data"). This applies to the whole module, including test files.
 
-## Tool contract (T11)
+## Tools
 
-Tools are added by a single `tools.go::registerTools(*mcp.Server, *BackendClient)`
-function using the SDK's generic `mcp.AddTool` with typed input structs.
-`newMCPServer` (in `mcpserver.go`) accepts the `*BackendClient` so the tool
-handlers can close over it. See the doc comment on `newMCPServer` for the full
-contract, including the `ErrNoData`-is-a-successful-result rule.
+Tools are registered by a single `tools.go::registerTools(*mcp.Server,
+*BackendClient)` function using the SDK's generic `mcp.AddTool` with typed input
+structs (the SDK infers and validates the input schema). `newMCPServer` (in
+`mcpserver.go`) accepts the `*BackendClient` so the tool handlers can close over
+it. Every tool name, description and result string is provider-agnostic.
+
+| Tool                       | Inputs                                                          | Backend route                               | Returns                                   |
+| -------------------------- | --------------------------------------------------------------- | ------------------------------------------- | ----------------------------------------- |
+| `get_price_history`        | `symbol`, `from`, `to`, `exchange?`                             | `GET /prices/{symbol}`                      | Daily OHLC history                        |
+| `get_fundamentals`         | `symbol`, `exchange?`                                           | `GET /fundamentals/{symbol}`                | Profile + key metrics + ratios aggregate  |
+| `get_options_chain`        | `symbol`, `expiry?`, `option_type?`, `strike_min?`, `strike_max?` | `GET /options/{symbol}`                     | Options chain                             |
+| `get_income_statement`     | `symbol`, `period?`, `limit?`, `exchange?`                      | `GET /fundamentals/{symbol}/statements`     | Income statements                         |
+| `get_balance_sheet`        | `symbol`, `period?`, `limit?`, `exchange?`                      | `GET /fundamentals/{symbol}/statements`     | Balance sheets                            |
+| `get_cash_flow_statement`  | `symbol`, `period?`, `limit?`, `exchange?`                      | `GET /fundamentals/{symbol}/statements`     | Cash-flow statements                      |
+| `get_key_metrics`          | `symbol`, `exchange?`                                           | `GET /fundamentals/{symbol}`                | Key-metrics projection of the aggregate   |
+| `get_financial_ratios`     | `symbol`, `exchange?`                                           | `GET /fundamentals/{symbol}`                | Ratios projection of the aggregate        |
+| `get_company_details`      | `symbol`, `exchange?`                                           | `GET /fundamentals/{symbol}`                | Profile projection of the aggregate       |
+| `search_symbols`           | `q`                                                             | `GET /symbols/search`                       | Symbol lookup results                     |
+
+Inputs are validated or clamped in the handler before any backend call, so a bad
+argument never becomes a backend `422` (which the client classifies as
+`ErrNoData` and would otherwise be misreported as "no data"):
+
+- `symbol` is trimmed, required, and at most 32 characters.
+- `get_price_history` requires `from <= to`; both parse as `YYYY-MM-DD`.
+- `get_options_chain` accepts `option_type` of `call` or `put`, parses `expiry`
+  as `YYYY-MM-DD`, and requires `strike_min <= strike_max`.
+- statement tools accept `period` of `annual` (default) or `quarter`; `limit` is
+  clamped to 1–20 with a default of 5.
+- `search_symbols` requires a trimmed query of 1–100 characters.
+
+### Tool result contract
+
+- Success: a single `mcp.TextContent` holding the JSON-encoded payload.
+- **`ErrNoData` is a successful result** whose text is `No market data is
+  available for this request.` A 404 may be a cached empty result within the
+  cache TTL, so it is never phrased as "invalid symbol".
+- `ErrConfiguration` / `ErrProvider` become `result.SetError(err)` carrying the
+  client's generic sentinel text. Backend status/body detail, the service token,
+  and any provider name never reach the tool result.
 
 ## Development
 

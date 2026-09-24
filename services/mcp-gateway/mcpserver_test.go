@@ -56,7 +56,7 @@ func TestHealthEndpointRejectsNonGet(t *testing.T) {
 	}
 }
 
-func TestMCPInitializeAndEmptyToolList(t *testing.T) {
+func TestMCPInitializeAndToolList(t *testing.T) {
 	srv := httptest.NewServer(newTestRouter(t))
 	t.Cleanup(srv.Close)
 
@@ -85,7 +85,23 @@ func TestMCPInitializeAndEmptyToolList(t *testing.T) {
 	if err != nil {
 		t.Fatalf("tools/list: %v", err)
 	}
-	if len(tools.Tools) != 0 {
-		t.Errorf("T10 must register no tools, got %d: %+v", len(tools.Tools), tools.Tools)
+
+	got := make(map[string]*mcp.Tool, len(tools.Tools))
+	for _, tool := range tools.Tools {
+		got[tool.Name] = tool
+	}
+	if len(got) != len(expectedToolNames) {
+		t.Errorf("tool count = %d, want %d: %+v", len(got), len(expectedToolNames), tools.Tools)
+	}
+	for _, name := range expectedToolNames {
+		if _, ok := got[name]; !ok {
+			t.Errorf("tool %q is not registered", name)
+		}
+	}
+
+	// Criterion: no tool name or description may mention an upstream provider.
+	for _, tool := range tools.Tools {
+		assertNoProviderName(t, "tool name", tool.Name)
+		assertNoProviderName(t, "tool description", tool.Description)
 	}
 }
