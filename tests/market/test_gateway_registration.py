@@ -81,9 +81,9 @@ class CountingFmpGateway(StubFmpGateway):
         super().__init__(api_key="stub")
         self.calls: dict[str, int] = defaultdict(int)
 
-    def get_key_metrics(self, symbol: str):
+    def get_key_metrics(self, symbol: str, *, exchange=None):
         self.calls["get_key_metrics"] += 1
-        return super().get_key_metrics(symbol)
+        return super().get_key_metrics(symbol, exchange=exchange)
 
 
 def test_data_plane_gateway_is_cache_wrapped(monkeypatch, mock_redis_storage: FakeRedis):

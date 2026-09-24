@@ -81,9 +81,17 @@ class MarketGateway(ABC):
         _ = query
         raise MarketDataProviderError(_CAPABILITY_NOT_SUPPORTED)
 
-    def get_company_profile(self, symbol: str) -> CompanyProfile:
-        """Get the company profile for a symbol."""
-        _ = symbol
+    def get_company_profile(
+        self,
+        symbol: str,
+        *,
+        exchange: str | None = None,
+    ) -> CompanyProfile:
+        """Get the company profile for a symbol.
+
+        ``exchange`` is optional and forwarded for non-US ticker mapping.
+        """
+        _ = symbol, exchange
         raise MarketDataProviderError(_CAPABILITY_NOT_SUPPORTED)
 
     def get_income_statement(
@@ -91,9 +99,14 @@ class MarketGateway(ABC):
         symbol: str,
         period: str = "annual",
         limit: int = 5,
+        *,
+        exchange: str | None = None,
     ) -> list[IncomeStatement]:
-        """Get income statements for a symbol."""
-        _ = symbol, period, limit
+        """Get income statements for a symbol.
+
+        ``exchange`` is optional and forwarded for non-US ticker mapping.
+        """
+        _ = symbol, period, limit, exchange
         raise MarketDataProviderError(_CAPABILITY_NOT_SUPPORTED)
 
     def get_balance_sheet(
@@ -101,9 +114,14 @@ class MarketGateway(ABC):
         symbol: str,
         period: str = "annual",
         limit: int = 5,
+        *,
+        exchange: str | None = None,
     ) -> list[BalanceSheet]:
-        """Get balance sheets for a symbol."""
-        _ = symbol, period, limit
+        """Get balance sheets for a symbol.
+
+        ``exchange`` is optional and forwarded for non-US ticker mapping.
+        """
+        _ = symbol, period, limit, exchange
         raise MarketDataProviderError(_CAPABILITY_NOT_SUPPORTED)
 
     def get_cash_flow_statement(
@@ -111,23 +129,41 @@ class MarketGateway(ABC):
         symbol: str,
         period: str = "annual",
         limit: int = 5,
+        *,
+        exchange: str | None = None,
     ) -> list[CashFlowStatement]:
-        """Get cash-flow statements for a symbol."""
-        _ = symbol, period, limit
+        """Get cash-flow statements for a symbol.
+
+        ``exchange`` is optional and forwarded for non-US ticker mapping.
+        """
+        _ = symbol, period, limit, exchange
         raise MarketDataProviderError(_CAPABILITY_NOT_SUPPORTED)
 
-    def get_key_metrics(self, symbol: str) -> KeyMetrics:
-        """Get the key metrics / valuation snapshot for a symbol."""
-        _ = symbol
+    def get_key_metrics(
+        self,
+        symbol: str,
+        *,
+        exchange: str | None = None,
+    ) -> KeyMetrics:
+        """Get the key metrics / valuation snapshot for a symbol.
+
+        ``exchange`` is optional and forwarded for non-US ticker mapping.
+        """
+        _ = symbol, exchange
         raise MarketDataProviderError(_CAPABILITY_NOT_SUPPORTED)
 
     def get_financial_ratios(
         self,
         symbol: str,
         period: str = "annual",
+        *,
+        exchange: str | None = None,
     ) -> FinancialRatios:
-        """Get financial ratios for a symbol."""
-        _ = symbol, period
+        """Get financial ratios for a symbol.
+
+        ``exchange`` is optional and forwarded for non-US ticker mapping.
+        """
+        _ = symbol, period, exchange
         raise MarketDataProviderError(_CAPABILITY_NOT_SUPPORTED)
 
     def get_options_chain(
