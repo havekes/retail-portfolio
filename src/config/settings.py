@@ -35,6 +35,9 @@ class Settings(BaseSettings):
     # Market API (Eodhd)
     eodhd_api_key: str = ""
 
+    # Market API (FMP)
+    fmp_api_key: str = ""
+
     # Indicator Service
     indicator_service_url: str = "http://localhost:8080"
 
