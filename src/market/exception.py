@@ -46,3 +46,44 @@ class WatchlistDuplicateNameError(Exception):
     def __init__(self, name: str):
         self.name = name
         super().__init__(f"A watchlist named '{name}' already exists.")
+
+
+class MarketDataNotFoundError(Exception):
+    """Raised when market data for a symbol is not available.
+
+    Provider-agnostic: neither the type nor the message names the upstream
+    data source. Deliberately not an ``EntityNotFoundError`` so the global
+    handler does not translate it to a 404; callers decide the mapping.
+    """
+
+    def __init__(self, symbol: str, detail: str | None = None) -> None:
+        self.symbol = symbol
+        message = f"No market data found for symbol '{symbol}'."
+        if detail:
+            message = f"{message} {detail}"
+        super().__init__(message)
+
+
+class MarketDataProviderError(Exception):
+    """Raised when the upstream market data source fails or is unavailable.
+
+    Provider-agnostic: neither the type nor the default message names the
+    upstream data source.
+    """
+
+    def __init__(self, message: str = "The market data provider is unavailable."):
+        super().__init__(message)
+
+
+class MarketDataConfigurationError(Exception):
+    """Raised when market data provider configuration is missing or invalid.
+
+    Provider-agnostic: neither the type nor the default message names the
+    upstream data source.
+    """
+
+    def __init__(
+        self,
+        message: str = "Market data provider configuration is invalid.",
+    ):
+        super().__init__(message)
