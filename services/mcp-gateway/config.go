@@ -95,3 +95,14 @@ func validateBaseURL(raw string) error {
 	}
 	return nil
 }
+
+// isDev reports whether env corresponds to a development environment.
+// An empty environment string defaults to "dev" per defaultEnvironment.
+func isDev(env string) bool {
+	norm := strings.ToLower(strings.TrimSpace(env))
+	if norm == "" {
+		norm = defaultEnvironment
+	}
+	return norm == "dev"
+}
+

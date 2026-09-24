@@ -1,9 +1,11 @@
 package main
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"io"
 	"net/http"
 	"net/http/httptest"
@@ -44,9 +46,9 @@ func newStubBackend(t *testing.T, status int, body string) (*httptest.Server, *c
 	return srv, cap
 }
 
-func mustClient(t *testing.T, baseURL, token string) *BackendClient {
+func mustClient(t *testing.T, baseURL, token string, env ...string) *BackendClient {
 	t.Helper()
-	client, err := NewBackendClient(baseURL, token)
+	client, err := NewBackendClient(baseURL, token, env...)
 	if err != nil {
 		t.Fatalf("NewBackendClient(%q): %v", baseURL, err)
 	}
@@ -445,3 +447,148 @@ func TestBackendClientErrorsNeverLeakSecretsOrProviders(t *testing.T) {
 		}
 	}
 }
+
+func TestBackendClient_Logging(t *testing.T) {
+	const secretToken = "super-secret-backend-token-12345"
+
+	t.Run("dev outbound request and response logging", func(t *testing.T) {
+		var buf bytes.Buffer
+		logger, err := newLogger(&buf, "dev", "DEBUG")
+		if err != nil {
+			t.Fatalf("newLogger: %v", err)
+		}
+		prev := setSlogDefault(logger)
+		defer setSlogDefault(prev)
+
+		srv, _ := newStubBackend(t, http.StatusOK, `{"symbol":"AAPL","prices":[]}`)
+		client := mustClient(t, srv.URL, secretToken, "dev")
+
+		ctx := context.Background()
+		from, _ := time.Parse("2006-01-02", "2024-01-01")
+		to, _ := time.Parse("2006-01-02", "2024-01-02")
+		_, err = client.Prices(ctx, "AAPL", from, to, "")
+		if err != nil {
+			t.Fatalf("Prices error: %v", err)
+		}
+
+		out := buf.String()
+		if !strings.Contains(out, "backend request") {
+			t.Errorf("expected 'backend request' in log, got:\n%s", out)
+		}
+		if !strings.Contains(out, "method=GET") {
+			t.Errorf("expected method=GET in log, got:\n%s", out)
+		}
+		if !strings.Contains(out, "/api/v1/market/data/prices/AAPL") {
+			t.Errorf("expected endpoint URL in log, got:\n%s", out)
+		}
+		if !strings.Contains(out, "from=2024-01-01") || !strings.Contains(out, "to=2024-01-02") {
+			t.Errorf("expected query params in log, got:\n%s", out)
+		}
+		if !strings.Contains(out, "status=200") {
+			t.Errorf("expected status=200 in log, got:\n%s", out)
+		}
+
+		// Token check
+		if strings.Contains(out, secretToken) {
+			t.Fatalf("secret token was logged: %s", out)
+		}
+		if strings.Contains(out, serviceTokenHeader) {
+			t.Fatalf("X-Service-Token header was logged: %s", out)
+		}
+	})
+
+	t.Run("outbound error logging on non-2xx statuses", func(t *testing.T) {
+		statuses := []struct {
+			status int
+			body   string
+		}{
+			{status: http.StatusNotFound, body: `{"detail":"no price data"}`},
+			{status: http.StatusUnprocessableEntity, body: `{"detail":[{"loc":["query","from"],"msg":"invalid date"}]}`},
+			{status: http.StatusInternalServerError, body: `internal server failure`},
+		}
+
+		for _, tc := range statuses {
+			var buf bytes.Buffer
+			logger, err := newLogger(&buf, "prod", "INFO")
+			if err != nil {
+				t.Fatalf("newLogger: %v", err)
+			}
+			prev := setSlogDefault(logger)
+			defer setSlogDefault(prev)
+
+			srv, _ := newStubBackend(t, tc.status, tc.body)
+			client := mustClient(t, srv.URL, secretToken, "prod")
+
+			_, err = client.SymbolSearch(context.Background(), "AAPL")
+			if err == nil {
+				t.Fatalf("expected error for status %d", tc.status)
+			}
+
+			out := buf.String()
+			if !strings.Contains(out, `"level":"ERROR"`) {
+				t.Errorf("expected ERROR level log for status %d, got:\n%s", tc.status, out)
+			}
+			if !strings.Contains(out, `"status":`+fmt.Sprintf("%d", tc.status)) {
+				t.Errorf("expected status %d in log, got:\n%s", tc.status, out)
+			}
+			if !strings.Contains(out, `"detail":`) {
+				t.Errorf("expected detail in log, got:\n%s", out)
+			}
+			if strings.Contains(out, secretToken) {
+				t.Fatalf("secret token was logged on error: %s", out)
+			}
+		}
+	})
+
+	t.Run("outbound error logging on network errors", func(t *testing.T) {
+		var buf bytes.Buffer
+		logger, err := newLogger(&buf, "prod", "INFO")
+		if err != nil {
+			t.Fatalf("newLogger: %v", err)
+		}
+		prev := setSlogDefault(logger)
+		defer setSlogDefault(prev)
+
+		// Unreachable port / connection refused
+		client := mustClient(t, "http://127.0.0.1:54321", secretToken, "prod")
+
+		_, err = client.SymbolSearch(context.Background(), "AAPL")
+		if err == nil {
+			t.Fatal("expected network error")
+		}
+
+		out := buf.String()
+		if !strings.Contains(out, `"level":"ERROR"`) {
+			t.Errorf("expected ERROR level log on network error, got:\n%s", out)
+		}
+		if !strings.Contains(out, `"status":0`) {
+			t.Errorf("expected status:0 on network error, got:\n%s", out)
+		}
+		if !strings.Contains(out, `"detail":`) {
+			t.Errorf("expected detail on network error, got:\n%s", out)
+		}
+		if strings.Contains(out, secretToken) {
+			t.Fatalf("secret token was logged on network error: %s", out)
+		}
+	})
+}
+
+func TestBackendClient_ProviderNameCompliance(t *testing.T) {
+	var buf bytes.Buffer
+	logger, err := newLogger(&buf, "dev", "DEBUG")
+	if err != nil {
+		t.Fatalf("newLogger: %v", err)
+	}
+	prev := setSlogDefault(logger)
+	defer setSlogDefault(prev)
+
+	srv, _ := newStubBackend(t, http.StatusOK, `{"symbol":"AAPL","prices":[]}`)
+	client := mustClient(t, srv.URL, "token", "dev")
+
+	from, _ := time.Parse("2006-01-02", "2024-01-01")
+	to, _ := time.Parse("2006-01-02", "2024-01-02")
+	_, _ = client.Prices(context.Background(), "AAPL", from, to, "")
+
+	assertNoProviderName(t, "backend client log", buf.String())
+}
+
