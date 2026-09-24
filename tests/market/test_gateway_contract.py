@@ -6,7 +6,7 @@ JSON samples and the deterministic ``StubEodhdGateway`` fixtures. No network,
 no Redis.
 """
 
-from datetime import date
+from datetime import UTC, date, datetime
 from decimal import Decimal
 from unittest.mock import patch
 from uuid import uuid4
@@ -398,4 +398,30 @@ def test_stub_prices_without_security_id_are_unlabelled():
     )
 
     assert len(prices) == 4
+    assert all(price.security_id is None for price in prices)
+
+
+def test_stub_price_on_date_without_security_id_is_unlabelled():
+    """A provider-agnostic single-date read passes no security id."""
+    gateway = StubEodhdGateway(api_key="stub_key")
+
+    price = gateway.get_price_on_date("AAPL", "US", date(2024, 1, 2))
+
+    assert price is not None
+    assert price.security_id is None
+
+
+def test_stub_intraday_prices_without_security_id_are_unlabelled():
+    """A provider-agnostic intraday read passes no security id."""
+    gateway = StubEodhdGateway(api_key="stub_key")
+
+    prices = gateway.get_intraday_prices(
+        symbol="AAPL",
+        exchange="US",
+        from_datetime=datetime(2026, 7, 28, 10, 0, tzinfo=UTC),
+        to_datetime=datetime(2026, 7, 28, 14, 0, tzinfo=UTC),
+        interval="1h",
+    )
+
+    assert len(prices) == 5
     assert all(price.security_id is None for price in prices)
