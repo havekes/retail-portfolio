@@ -80,7 +80,7 @@ func TestLoggingMiddleware_InboundRequests(t *testing.T) {
 			defer setSlogDefault(prev)
 
 			client := mustClient(t, "http://backend.invalid", "test-token", "prod")
-			server := newMCPServer(client, "prod")
+			server := newMCPServer(client, Config{Environment: "prod"})
 			router := newRouter(server)
 			handler := loggingMiddleware(router, "prod")
 

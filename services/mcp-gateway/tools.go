@@ -44,18 +44,11 @@ const (
 const noDataMessage = "No market data is available for this request."
 
 // registerTools attaches every market-data tool to server, closing over client.
-func registerTools(server *mcp.Server, client *BackendClient, env ...string) {
-	environment := defaultEnvironment
-	if len(env) > 0 && strings.TrimSpace(env[0]) != "" {
-		environment = strings.TrimSpace(env[0])
-	} else if client != nil && client.env != "" {
-		environment = client.env
-	}
-
+func registerTools(server *mcp.Server, client *BackendClient, cfg Config) {
 	addTool(server, "get_price_history",
 		"Daily open/high/low/close price history for a symbol over a date range, with an optional exchange filter.",
 		func(ctx context.Context, _ *mcp.CallToolRequest, in priceHistoryInput) (*mcp.CallToolResult, any, error) {
-			return runTool(ctx, "get_price_history", environment, in, priceHistoryInput.prepare, func(ctx context.Context, r priceHistoryRequest) (any, error) {
+			return runTool(ctx, "get_price_history", cfg, in, priceHistoryInput.prepare, func(ctx context.Context, r priceHistoryRequest) (any, error) {
 				return client.Prices(ctx, r.symbol, r.from, r.to, r.exchange)
 			})
 		})
@@ -63,7 +56,7 @@ func registerTools(server *mcp.Server, client *BackendClient, env ...string) {
 	addTool(server, "get_fundamentals",
 		"Analysis-ready fundamentals for a symbol: company profile, key metrics and financial ratios in one payload.",
 		func(ctx context.Context, _ *mcp.CallToolRequest, in fundamentalsInput) (*mcp.CallToolResult, any, error) {
-			return runTool(ctx, "get_fundamentals", environment, in, fundamentalsInput.prepare, func(ctx context.Context, r fundamentalsRequest) (any, error) {
+			return runTool(ctx, "get_fundamentals", cfg, in, fundamentalsInput.prepare, func(ctx context.Context, r fundamentalsRequest) (any, error) {
 				return client.Fundamentals(ctx, r.symbol, r.exchange)
 			})
 		})
@@ -71,27 +64,27 @@ func registerTools(server *mcp.Server, client *BackendClient, env ...string) {
 	addTool(server, "get_options_chain",
 		"Options chain for an underlying symbol with optional expiry, contract-type and strike filters.",
 		func(ctx context.Context, _ *mcp.CallToolRequest, in optionsChainInput) (*mcp.CallToolResult, any, error) {
-			return runTool(ctx, "get_options_chain", environment, in, optionsChainInput.prepare, func(ctx context.Context, r optionsChainRequest) (any, error) {
+			return runTool(ctx, "get_options_chain", cfg, in, optionsChainInput.prepare, func(ctx context.Context, r optionsChainRequest) (any, error) {
 				return client.OptionsChain(ctx, r.symbol, r.expiry, r.optionType, r.strikeMin, r.strikeMax)
 			})
 		})
 
 	addTool(server, "get_income_statement",
 		"Income statements for a symbol, optionally filtered by reporting period and limited to the most recent periods.",
-		statementHandler(client, "get_income_statement", statementIncome, environment))
+		statementHandler(client, "get_income_statement", statementIncome, cfg))
 
 	addTool(server, "get_balance_sheet",
 		"Balance sheets for a symbol, optionally filtered by reporting period and limited to the most recent periods.",
-		statementHandler(client, "get_balance_sheet", statementBalance, environment))
+		statementHandler(client, "get_balance_sheet", statementBalance, cfg))
 
 	addTool(server, "get_cash_flow_statement",
 		"Cash-flow statements for a symbol, optionally filtered by reporting period and limited to the most recent periods.",
-		statementHandler(client, "get_cash_flow_statement", statementCashflow, environment))
+		statementHandler(client, "get_cash_flow_statement", statementCashflow, cfg))
 
 	addTool(server, "get_key_metrics",
 		"Key valuation metrics for a symbol: market cap, multiples, yields and leverage ratios.",
 		func(ctx context.Context, _ *mcp.CallToolRequest, in fundamentalsInput) (*mcp.CallToolResult, any, error) {
-			return runTool(ctx, "get_key_metrics", environment, in, fundamentalsInput.prepare, func(ctx context.Context, r fundamentalsRequest) (any, error) {
+			return runTool(ctx, "get_key_metrics", cfg, in, fundamentalsInput.prepare, func(ctx context.Context, r fundamentalsRequest) (any, error) {
 				raw, err := client.Fundamentals(ctx, r.symbol, r.exchange)
 				if err != nil {
 					return nil, err
@@ -107,7 +100,7 @@ func registerTools(server *mcp.Server, client *BackendClient, env ...string) {
 	addTool(server, "get_financial_ratios",
 		"Financial ratios for a symbol: margins, returns, liquidity and leverage.",
 		func(ctx context.Context, _ *mcp.CallToolRequest, in fundamentalsInput) (*mcp.CallToolResult, any, error) {
-			return runTool(ctx, "get_financial_ratios", environment, in, fundamentalsInput.prepare, func(ctx context.Context, r fundamentalsRequest) (any, error) {
+			return runTool(ctx, "get_financial_ratios", cfg, in, fundamentalsInput.prepare, func(ctx context.Context, r fundamentalsRequest) (any, error) {
 				raw, err := client.Fundamentals(ctx, r.symbol, r.exchange)
 				if err != nil {
 					return nil, err
@@ -123,7 +116,7 @@ func registerTools(server *mcp.Server, client *BackendClient, env ...string) {
 	addTool(server, "get_company_details",
 		"Company profile details for a symbol: name, sector, industry, employees and identifiers.",
 		func(ctx context.Context, _ *mcp.CallToolRequest, in fundamentalsInput) (*mcp.CallToolResult, any, error) {
-			return runTool(ctx, "get_company_details", environment, in, fundamentalsInput.prepare, func(ctx context.Context, r fundamentalsRequest) (any, error) {
+			return runTool(ctx, "get_company_details", cfg, in, fundamentalsInput.prepare, func(ctx context.Context, r fundamentalsRequest) (any, error) {
 				raw, err := client.Fundamentals(ctx, r.symbol, r.exchange)
 				if err != nil {
 					return nil, err
@@ -139,7 +132,7 @@ func registerTools(server *mcp.Server, client *BackendClient, env ...string) {
 	addTool(server, "search_symbols",
 		"Search for symbols and companies by name or ticker fragment.",
 		func(ctx context.Context, _ *mcp.CallToolRequest, in searchSymbolsInput) (*mcp.CallToolResult, any, error) {
-			return runTool(ctx, "search_symbols", environment, in, searchSymbolsInput.prepare, func(ctx context.Context, r searchSymbolsRequest) (any, error) {
+			return runTool(ctx, "search_symbols", cfg, in, searchSymbolsInput.prepare, func(ctx context.Context, r searchSymbolsRequest) (any, error) {
 				return client.SymbolSearch(ctx, r.query)
 			})
 		})
@@ -168,15 +161,9 @@ func decodeFundamentals(raw json.RawMessage) (CompanyFundamentals, error) {
 
 // statementHandler builds the handler for one statement tool. statement is
 // fixed by the tool; it is never an input.
-func statementHandler(client *BackendClient, toolName, statement string, env ...string) mcp.ToolHandlerFor[statementInput, any] {
-	environment := defaultEnvironment
-	if len(env) > 0 && strings.TrimSpace(env[0]) != "" {
-		environment = strings.TrimSpace(env[0])
-	} else if client != nil && client.env != "" {
-		environment = client.env
-	}
+func statementHandler(client *BackendClient, toolName, statement string, cfg Config) mcp.ToolHandlerFor[statementInput, any] {
 	return func(ctx context.Context, _ *mcp.CallToolRequest, in statementInput) (*mcp.CallToolResult, any, error) {
-		return runTool(ctx, toolName, environment, in, statementInput.prepare, func(ctx context.Context, r statementRequest) (any, error) {
+		return runTool(ctx, toolName, cfg, in, statementInput.prepare, func(ctx context.Context, r statementRequest) (any, error) {
 			raw, err := client.Statements(ctx, r.symbol, statement, r.period, r.limit, r.exchange)
 			if err != nil {
 				return nil, err
@@ -202,13 +189,14 @@ func statementHandler(client *BackendClient, toolName, statement string, env ...
 // per the T10 error contract.
 func runTool[In, Req any](
 	ctx context.Context,
-	toolName, env string,
+	toolName string,
+	cfg Config,
 	in In,
 	prepare func(In) (Req, error),
 	doBackend func(context.Context, Req) (any, error),
 ) (*mcp.CallToolResult, any, error) {
 	start := time.Now()
-	if isDev(env) {
+	if isDev(cfg.Environment) {
 		slog.DebugContext(ctx, "tool invocation",
 			slog.String("tool", toolName),
 			slog.Any("arguments", in),
@@ -232,7 +220,7 @@ func runTool[In, Req any](
 
 	if err != nil {
 		if errors.Is(err, ErrNoData) {
-			if isDev(env) {
+			if isDev(cfg.Environment) {
 				slog.DebugContext(ctx, "tool execution completed",
 					slog.String("tool", toolName),
 					slog.Duration("duration", duration),
@@ -273,7 +261,7 @@ func runTool[In, Req any](
 	}
 
 	res, out, retErr := successResult(payload)
-	if isDev(env) && res != nil && len(res.Content) > 0 {
+	if isDev(cfg.Environment) && res != nil && len(res.Content) > 0 {
 		var responseText string
 		if tc, ok := res.Content[0].(*mcp.TextContent); ok {
 			responseText = tc.Text

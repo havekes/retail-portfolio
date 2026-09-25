@@ -48,9 +48,19 @@ func newStubBackend(t *testing.T, status int, body string) (*httptest.Server, *c
 	return srv, cap
 }
 
-func mustClient(t *testing.T, baseURL, token string, env ...string) *BackendClient {
+func mustClient(t *testing.T, baseURL, token string, envOpts ...string) *BackendClient {
 	t.Helper()
-	client, err := NewBackendClient(baseURL, token, defaultMaxConcurrency, env...)
+	environment := defaultEnvironment
+	if len(envOpts) > 0 && strings.TrimSpace(envOpts[0]) != "" {
+		environment = strings.TrimSpace(envOpts[0])
+	}
+	cfg := Config{
+		BackendBaseURL: baseURL,
+		ServiceToken:   token,
+		Environment:    environment,
+		MaxConcurrency: defaultMaxConcurrency,
+	}
+	client, err := NewBackendClient(cfg)
 	if err != nil {
 		t.Fatalf("NewBackendClient(%q): %v", baseURL, err)
 	}
@@ -59,7 +69,7 @@ func mustClient(t *testing.T, baseURL, token string, env ...string) *BackendClie
 
 func TestNewBackendClientRejectsBadBaseURL(t *testing.T) {
 	for _, raw := range []string{"", "   ", "not-a-url", "ftp://backend:8000", "http://"} {
-		if _, err := NewBackendClient(raw, "token", defaultMaxConcurrency); err == nil {
+		if _, err := NewBackendClient(Config{BackendBaseURL: raw, ServiceToken: "token", MaxConcurrency: defaultMaxConcurrency}); err == nil {
 			t.Errorf("NewBackendClient(%q) = nil error, want error", raw)
 		}
 	}
@@ -67,7 +77,7 @@ func TestNewBackendClientRejectsBadBaseURL(t *testing.T) {
 
 func TestNewBackendClientRejectsInvalidMaxConcurrency(t *testing.T) {
 	for _, val := range []int{0, -1, -10} {
-		if _, err := NewBackendClient("http://backend:8000", "token", val); err == nil {
+		if _, err := NewBackendClient(Config{BackendBaseURL: "http://backend:8000", ServiceToken: "token", MaxConcurrency: val}); err == nil {
 			t.Errorf("NewBackendClient with maxConcurrency=%d expected error, got nil", val)
 		}
 	}
@@ -666,7 +676,11 @@ func TestBackendClient_ConcurrencyCap(t *testing.T) {
 	}))
 	defer srv.Close()
 
-	client, err := NewBackendClient(srv.URL, "token", 2)
+	client, err := NewBackendClient(Config{
+		BackendBaseURL: srv.URL,
+		ServiceToken:   "token",
+		MaxConcurrency: 2,
+	})
 	if err != nil {
 		t.Fatalf("NewBackendClient: %v", err)
 	}
@@ -746,7 +760,12 @@ func TestBackendClient_ConcurrencySaturationLogging(t *testing.T) {
 		}
 	})
 
-	client, err := NewBackendClient(srv.URL, secretToken, 1, "prod")
+	client, err := NewBackendClient(Config{
+		BackendBaseURL: srv.URL,
+		ServiceToken:   secretToken,
+		MaxConcurrency: 1,
+		Environment:    "prod",
+	})
 	if err != nil {
 		t.Fatalf("NewBackendClient: %v", err)
 	}
@@ -837,7 +856,11 @@ func TestBackendClient_ContextCanceledWhileQueued(t *testing.T) {
 		}
 	})
 
-	client, err := NewBackendClient(srv.URL, "token", 1)
+	client, err := NewBackendClient(Config{
+		BackendBaseURL: srv.URL,
+		ServiceToken:   "token",
+		MaxConcurrency: 1,
+	})
 	if err != nil {
 		t.Fatalf("NewBackendClient: %v", err)
 	}
