@@ -60,13 +60,25 @@ MCP tool calls in `tools.go` are instrumented:
 - Diagnostic `detail` is retained only for Go-side logging and is never exposed in user-facing tool error results.
 - `ErrNoData` (404) is classified as a normal outcome and does not emit `ERROR` logs.
 
-### Outbound backend client logging / Backpressure
+### Outbound backend transport logging / Backpressure
 
-Outbound HTTP calls to the backend data plane in `backendclient.go` are instrumented:
-- In `ENVIRONMENT=dev`: outbound requests (`method`, `url`, `query`) and responses (`method`, `url`, `status`, `duration`) are logged at `DEBUG` level.
+Outbound HTTP calls to backend data planes in `transport.go` are instrumented:
+- In `ENVIRONMENT=dev`: outbound requests (`method`, `url`, `query`) and responses (`method`, `url`, `status`, `duration`) are logged at `DEBUG` level. Both `GET` and `POST` operations are supported and logged.
 - Non-2xx responses and transport/network errors are logged at `ERROR` level with `status`, `detail`, and endpoint `url`.
-- Outbound backend calls exceeding `MAX_CONCURRENCY` queue behind the semaphore and emit a `WARN` log record (`"backend concurrency limit reached, queuing call"`).
-- `MARKET_DATA_SERVICE_TOKEN` and the `X-Service-Token` header value are never logged.
+- Outbound backend calls exceeding `MAX_CONCURRENCY` queue behind the shared transport semaphore and emit a `WARN` log record (`"backend concurrency limit reached, queuing call"`).
+- `MARKET_DATA_SERVICE_TOKEN` and any domain `X-Service-Token` header values are never logged.
+
+## Generalized transport architecture
+
+All outbound backend communication flows through a centralized `Transport` (`transport.go`) that manages:
+- HTTP client lifecycle, timeouts (`15s`), and headers (`Accept: application/json`).
+- Outbound concurrency bounding across all route groups via a semaphore channel sized by `MAX_CONCURRENCY`.
+- Method-agnostic execution (`Get` and `Post` wrapping `Do`) with automatic JSON request body serialization and JSON response decoding.
+- Response size limiting (`8 MiB` max buffered) and error detail truncation (`512` characters).
+- Standardized error classification (`ErrNoData`, `ErrValidation`, `ErrConfiguration`, `ErrProvider`).
+- Development and production logging with automatic token redaction.
+
+On top of the shared `Transport`, domains isolate their path prefix and service authentication token using `RouteGroup` instances via `transport.NewRouteGroup(prefix, token)`.
 
 ## Backend data plane
 
@@ -160,6 +172,49 @@ actionable error rather than "no data":
 - `ErrConfiguration` / `ErrProvider` become `result.SetError(err)` carrying the
   client's generic sentinel text. Backend status/body detail, the service token,
   and any provider name never reach the tool result.
+
+## Adding a new tool domain
+
+Adding a second data plane or domain (for example, portfolios, watchlists, or orders) follows a clean 3-step workflow using the generalized transport without modifying existing client methods:
+
+1. **Configure route group and token**:
+   Define domain-specific service tokens and prefix configurations in `config.go` (e.g. `PORTFOLIO_SERVICE_TOKEN`). When initializing the service, create a new `RouteGroup` from the shared `Transport`:
+   ```go
+   portfolioGroup := transport.NewRouteGroup("/api/v1/portfolio", cfg.PortfolioServiceToken)
+   ```
+
+2. **Create domain client**:
+   Create a dedicated domain client file (e.g. `portfolioclient.go`) wrapping `*RouteGroup`. Implement typed domain methods calling `group.Get` or `group.Post`:
+   ```go
+   type PortfolioClient struct {
+       group *RouteGroup
+   }
+
+   func NewPortfolioClient(transport *Transport, token string) *PortfolioClient {
+       return &PortfolioClient{
+           group: transport.NewRouteGroup("/api/v1/portfolio", token),
+       }
+   }
+
+   func (c *PortfolioClient) CreatePosition(ctx context.Context, req CreatePositionRequest) (json.RawMessage, error) {
+       var out json.RawMessage
+       if err := c.group.Post(ctx, "/positions", nil, req, &out); err != nil {
+           return nil, err
+       }
+       return out, nil
+   }
+   ```
+
+3. **Register MCP tools**:
+   Define typed tool inputs and register tools in a domain tool registration function (e.g. `registerPortfolioTools` in `tools.go` or a domain tools file) closing over the domain client:
+   ```go
+   addTool(server, "create_position", "Create a new position in the portfolio.",
+       func(ctx context.Context, _ *mcp.CallToolRequest, in createPositionInput) (*mcp.CallToolResult, any, error) {
+           return runTool(ctx, "create_position", cfg, in, createPositionInput.prepare, func(ctx context.Context, r createPositionRequest) (any, error) {
+               return portfolioClient.CreatePosition(ctx, r)
+           })
+       })
+   ```
 
 ## Development
 

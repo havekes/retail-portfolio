@@ -13,7 +13,7 @@ import (
 func newTestRouter(t *testing.T) http.Handler {
 	t.Helper()
 	client := mustClient(t, "http://backend.invalid", "test-token")
-	return newRouter(newMCPServer(client))
+	return newRouter(newMCPServer(client, Config{Environment: "dev"}))
 }
 
 func TestHealthEndpoint(t *testing.T) {

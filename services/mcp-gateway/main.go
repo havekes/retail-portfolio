@@ -30,7 +30,7 @@ func main() {
 		os.Exit(1)
 	}
 
-	client, err := NewBackendClient(cfg.BackendBaseURL, cfg.ServiceToken, cfg.MaxConcurrency, cfg.Environment)
+	client, err := NewBackendClient(cfg)
 	if err != nil {
 		slog.Error("mcp-gateway backend client error",
 			slog.String("service", "mcp-gateway"),
@@ -43,7 +43,7 @@ func main() {
 		os.Exit(1)
 	}
 
-	router := newRouter(newMCPServer(client, cfg.Environment))
+	router := newRouter(newMCPServer(client, cfg))
 	handler := loggingMiddleware(router, cfg.Environment)
 
 	server := &http.Server{
