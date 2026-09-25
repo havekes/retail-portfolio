@@ -1,7 +1,9 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent, waitFor } from '@testing-library/svelte';
 import Page from './+page.svelte';
-import type { UserHolding } from '$lib/types/account';
+import type { UserHolding, Account } from '$lib/types/account';
+import { AccountType, Institution } from '$lib/types/account';
+import type { Portfolio } from '$lib/types/portfolio';
 import {
 	HOLDINGS_TABLE_DEFAULT_CONFIG,
 	normalizeHoldingsTableConfig
@@ -126,6 +128,10 @@ function makeData(
 		holdings_table_config: typeof HOLDINGS_TABLE_DEFAULT_CONFIG;
 		group_mode: HoldingsGroupMode;
 		elliott_waves: Record<string, SecurityElliottWaves> | null;
+		portfolios: Portfolio[];
+		accounts: Account[];
+		portfolio_id: string | null;
+		account_id: string | null;
 	}> = {}
 ) {
 	return {
@@ -136,6 +142,10 @@ function makeData(
 		holdings_table_config: HOLDINGS_TABLE_DEFAULT_CONFIG,
 		group_mode: 'none' as HoldingsGroupMode,
 		elliott_waves: null as Record<string, SecurityElliottWaves> | null,
+		portfolios: [] as Portfolio[],
+		accounts: [] as Account[],
+		portfolio_id: null as string | null,
+		account_id: null as string | null,
 		...overrides
 	};
 }
@@ -514,5 +524,108 @@ describe('Holdings page (+page.svelte)', () => {
 		// AAPL latest_price is 100, wave 5 target is 200 -> upside +100%
 		expect(screen.getByTestId('ew-primary-upside')).toHaveTextContent('+100.00%');
 		expect(screen.getByTestId('ew-primary-target')).toHaveTextContent('$200.00');
+	});
+
+	describe('portfolio and account filtering', () => {
+		const testAccount1: Account = {
+			id: 'acc-1',
+			name: 'TFSA',
+			external_id: 'ext-1',
+			account_type_id: AccountType.TFSA,
+			institution_id: Institution.Questrade,
+			currency: 'CAD',
+			is_active: true,
+			api_sync_enabled: false,
+			created_at: new Date('2025-01-01')
+		};
+
+		const testAccount2: Account = {
+			id: 'acc-2',
+			name: 'RRSP',
+			external_id: 'ext-2',
+			account_type_id: AccountType.RRSP,
+			institution_id: Institution.Questrade,
+			currency: 'CAD',
+			is_active: true,
+			api_sync_enabled: false,
+			created_at: new Date('2025-01-01')
+		};
+
+		const testPortfolio: Portfolio = {
+			id: 'port-1',
+			name: 'Retirement',
+			accounts: [testAccount2]
+		};
+
+		it('filters displayed holdings to portfolio accounts when portfolio_id is provided in data', async () => {
+			await renderWithHoldings([aaplTfsa, aaplRrsp, msftRrsp], {
+				portfolios: [testPortfolio],
+				accounts: [testAccount1, testAccount2],
+				portfolio_id: 'port-1'
+			});
+
+			// Only acc-2 holdings (aaplRrsp and msftRrsp) should be rendered
+			const rows = screen.getAllByTestId('holding-row');
+			expect(rows).toHaveLength(2);
+			expect(screen.queryByText('TFSA')).not.toBeInTheDocument();
+			expect(screen.getAllByText('RRSP')).toHaveLength(2);
+		});
+
+		it('renders filter trigger button and allows selecting specific portfolio, account, and all', async () => {
+			await renderWithHoldings([aaplTfsa, aaplRrsp, msftRrsp], {
+				portfolios: [testPortfolio],
+				accounts: [testAccount1, testAccount2]
+			});
+
+			const filterTrigger = screen.getByTestId('holdings-filter-trigger');
+			expect(filterTrigger).toBeInTheDocument();
+			expect(filterTrigger).toHaveTextContent('All');
+
+			// Open dropdown
+			await fireEvent.click(filterTrigger);
+
+			const portfolioOption = await screen.findByTestId('filter-portfolio-port-1');
+			const accountOption = await screen.findByTestId('filter-account-acc-1');
+			const allOption = await screen.findByTestId('filter-all');
+
+			expect(portfolioOption).toBeInTheDocument();
+			expect(accountOption).toBeInTheDocument();
+			expect(allOption).toBeInTheDocument();
+
+			// Select portfolio
+			await fireEvent.click(portfolioOption);
+			expect(goto).toHaveBeenCalledWith('/holdings?portfolio_id=port-1', expect.anything());
+
+			// Filtered to acc-2 (2 rows)
+			expect(screen.getAllByTestId('holding-row')).toHaveLength(2);
+
+			// Select account
+			await fireEvent.click(filterTrigger);
+			await fireEvent.click(await screen.findByTestId('filter-account-acc-1'));
+			expect(goto).toHaveBeenCalledWith('/holdings?account_id=acc-1', expect.anything());
+			expect(screen.getAllByTestId('holding-row')).toHaveLength(1);
+
+			// Reset to All
+			await fireEvent.click(filterTrigger);
+			await fireEvent.click(await screen.findByTestId('filter-all'));
+			expect(goto).toHaveBeenCalledWith('/holdings', expect.anything());
+			expect(screen.getAllByTestId('holding-row')).toHaveLength(3);
+		});
+
+		it('updates currency totals when holdings are filtered by portfolio', async () => {
+			await renderWithHoldings([aaplTfsa, aaplRrsp, msftRrsp], {
+				portfolios: [testPortfolio],
+				accounts: [testAccount1, testAccount2]
+			});
+
+			// Initial CAD total: 1000 + 500 + 400 = 1900
+			expect(screen.getByTestId('currency-total-CAD')).toHaveTextContent('$1,900.00');
+
+			// Filter to portfolio port-1 (only acc-2: 500 + 400 = 900)
+			await fireEvent.click(screen.getByTestId('holdings-filter-trigger'));
+			await fireEvent.click(await screen.findByTestId('filter-portfolio-port-1'));
+
+			expect(screen.getByTestId('currency-total-CAD')).toHaveTextContent('$900.00');
+		});
 	});
 });
