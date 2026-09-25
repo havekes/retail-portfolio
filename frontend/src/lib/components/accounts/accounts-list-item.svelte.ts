@@ -1,9 +1,13 @@
 import { accountClient } from '$lib/api/accountClient';
-import type { AccountTotals } from '@/types/account';
+import type { AccountTotals, Holding } from '@/types/account';
 
 export class AccountsListItemState {
 	private totalsCache = $state<Record<string, AccountTotals>>({});
+	private holdingsCache = $state<Record<string, Holding[]>>({});
 	private version = $state(0);
+
+	isExpanded = $state(false);
+	holdingsPromise = $state<Promise<Holding[]> | null>(null);
 
 	constructor(private getAccountId: () => string) {}
 
@@ -20,9 +24,39 @@ export class AccountsListItemState {
 		}
 	}
 
+	async fetchAccountHoldings(id: string): Promise<Holding[]> {
+		if (this.holdingsCache[id]) return this.holdingsCache[id];
+
+		try {
+			const res = await accountClient.getAccountHoldings(id);
+			const items = res?.items ?? [];
+			this.holdingsCache[id] = items;
+			return items;
+		} catch (error) {
+			console.error('Failed to fetch account holdings', error);
+			throw error;
+		}
+	}
+
+	toggleExpanded() {
+		this.isExpanded = !this.isExpanded;
+		if (this.isExpanded) {
+			const id = this.getAccountId();
+			if (this.holdingsCache[id]) {
+				this.holdingsPromise = Promise.resolve(this.holdingsCache[id]);
+			} else {
+				this.holdingsPromise = this.fetchAccountHoldings(id);
+			}
+		}
+	}
+
 	invalidateCache(id: string) {
 		delete this.totalsCache[id];
+		delete this.holdingsCache[id];
 		this.version++;
+		if (this.isExpanded) {
+			this.holdingsPromise = this.fetchAccountHoldings(id);
+		}
 	}
 
 	totals = $derived.by(() => {
@@ -31,5 +65,9 @@ export class AccountsListItemState {
 
 	getAccountTotals(id: string): AccountTotals | undefined {
 		return this.totalsCache[id];
+	}
+
+	getAccountHoldings(id: string): Holding[] | undefined {
+		return this.holdingsCache[id];
 	}
 }
