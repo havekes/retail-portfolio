@@ -183,6 +183,51 @@ describe('HoldingsService', () => {
 		expect(service.groupedHoldings).toHaveLength(2);
 	});
 
+	it('filters rows by portfolio account IDs and restores on clearFilter', () => {
+		service.rows = [
+			makeHolding('h-1', { account_id: 'acc-1' }),
+			makeHolding('h-2', { account_id: 'acc-2' }),
+			makeHolding('h-3', { account_id: 'acc-3' })
+		];
+
+		expect(service.rows).toHaveLength(3);
+
+		service.filterByPortfolio('port-1', ['acc-1', 'acc-3']);
+		expect(service.rows).toHaveLength(2);
+		expect(service.rows.map((r) => r.id)).toEqual(['h-1', 'h-3']);
+
+		service.clearFilter();
+		expect(service.rows).toHaveLength(3);
+	});
+
+	it('filters rows by account ID', () => {
+		service.rows = [
+			makeHolding('h-1', { account_id: 'acc-1' }),
+			makeHolding('h-2', { account_id: 'acc-2' }),
+			makeHolding('h-3', { account_id: 'acc-3' })
+		];
+
+		service.filterByAccount('acc-2');
+		expect(service.rows).toHaveLength(1);
+		expect(service.rows[0].id).toBe('h-2');
+	});
+
+	it('updates groupedHoldings when active filter changes', () => {
+		service.rows = [
+			makeHolding('h-1', { security_id: 'sec-aapl', account_id: 'acc-1', quantity: 10 }),
+			makeHolding('h-2', { security_id: 'sec-aapl', account_id: 'acc-2', quantity: 5 }),
+			makeHolding('h-3', { security_id: 'sec-msft', account_id: 'acc-3', quantity: 2 })
+		];
+
+		service.setGroupBy('stock');
+		expect(service.groupedHoldings).toHaveLength(2);
+
+		service.filterByPortfolio('port-1', ['acc-1']);
+		expect(service.groupedHoldings).toHaveLength(1);
+		expect(service.groupedHoldings[0].security_symbol).toBe('AAPL');
+		expect(service.groupedHoldings[0].quantity).toBe(10);
+	});
+
 	it('getHoldingsService(customFetch) returns an isolated service instance', () => {
 		const isolated = getHoldingsService(vi.fn() as unknown as typeof fetch);
 		expect(isolated).toBeInstanceOf(HoldingsService);
