@@ -10,11 +10,15 @@
 	import { AccountsListItemState } from './accounts-list-item.svelte.js';
 	import { ModalState } from '@/utils/modal-state.svelte';
 	import UpdateAccountCsvModal from './update-account-csv-modal.svelte';
+	import AccountInlineHoldings from './account-inline-holdings.svelte';
 	import RefreshCw from '@lucide/svelte/icons/refresh-cw';
+	import ChevronDown from '@lucide/svelte/icons/chevron-down';
+	import ChevronRight from '@lucide/svelte/icons/chevron-right';
 	import * as DropdownMenu from '../ui/dropdown-menu';
 	import ConfirmationModal from '../ui/confirmation-modal/confirmation-modal.svelte';
 	import EllipsisVertical from '@lucide/svelte/icons/ellipsis-vertical';
 	import { Button } from '../ui/button';
+	import { formatRelativeSyncTime } from '$lib/utils/date';
 
 	let {
 		account,
@@ -43,11 +47,24 @@
 	const itemState = new AccountsListItemState(() => account.id);
 	const csvModalState = new ModalState<void>();
 	let showDeleteModal = $state(false);
+	let localSyncOverride = $state<Date | null>(null);
+	const effectiveLastSyncAt = $derived(localSyncOverride ?? account.last_sync_at);
+	let lastKnownSyncAt: Date | string | null | undefined;
 	let wasSyncing = false;
+
+	$effect(() => {
+		if (account.last_sync_at !== lastKnownSyncAt) {
+			lastKnownSyncAt = account.last_sync_at;
+			localSyncOverride = null;
+		}
+	});
 
 	$effect(() => {
 		if (wasSyncing && !isSyncing) {
 			itemState.invalidateCache(account.id);
+			if (!syncError) {
+				localSyncOverride = new Date();
+			}
 		}
 		wasSyncing = isSyncing ?? false;
 	});
@@ -63,14 +80,30 @@
 	{/if}
 
 	<div class="flex-1 space-y-2">
-		<div class="flex justify-between">
-			<EditableTitle
-				value={account.name}
-				onSave={onRename}
-				action="?/renameAccount"
-				id={account.id}
-				href={`/accounts/${account.id}`}
-			/>
+		<div class="flex items-center justify-between">
+			<div class="flex items-center gap-1">
+				<Button
+					variant="ghost"
+					size="icon"
+					class="h-8 w-8 shrink-0 text-muted-foreground hover:text-foreground"
+					aria-label={itemState.isExpanded ? 'Collapse holdings' : 'Expand holdings'}
+					aria-expanded={itemState.isExpanded}
+					onclick={() => itemState.toggleExpanded()}
+				>
+					{#if itemState.isExpanded}
+						<ChevronDown class="h-4 w-4" />
+					{:else}
+						<ChevronRight class="h-4 w-4" />
+					{/if}
+				</Button>
+				<EditableTitle
+					value={account.name}
+					onSave={onRename}
+					action="?/renameAccount"
+					id={account.id}
+					href={`/accounts/${account.id}`}
+				/>
+			</div>
 			<div class="flex items-center gap-2">
 				{#await itemState.totals}
 					<Skeleton class="h-8 w-24 rounded-full bg-background p-2" />
@@ -150,7 +183,7 @@
 			</div>
 		</div>
 		<div class="flex items-center justify-between text-sm text-muted-foreground">
-			<div class="flex items-center gap-x-2">
+			<div class="flex flex-wrap items-center gap-x-2">
 				<span>{getAccountTypeLabel(account.account_type_id)}</span>
 				<span>•</span>
 				<Badge
@@ -166,6 +199,8 @@
 						({account.broker_display_name})
 					{/if}
 				</span>
+				<span>•</span>
+				<span>{formatRelativeSyncTime(effectiveLastSyncAt)}</span>
 			</div>
 			{#if syncError}
 				<span class="text-xs font-medium text-destructive">
@@ -173,6 +208,23 @@
 				</span>
 			{/if}
 		</div>
+
+		{#if itemState.isExpanded}
+			<div class="border-t border-border/50 pt-3">
+				{#await itemState.holdingsPromise}
+					<div class="space-y-2 py-2">
+						<Skeleton class="h-8 w-full" />
+						<Skeleton class="h-8 w-full" />
+					</div>
+				{:then holdings}
+					<AccountInlineHoldings holdings={holdings ?? []} accountCurrency={account.currency} />
+				{:catch}
+					<div class="py-3 text-center text-sm text-destructive">
+						Failed to load holdings. Please try again.
+					</div>
+				{/await}
+			</div>
+		{/if}
 	</div>
 </div>
 
