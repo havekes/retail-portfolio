@@ -92,7 +92,11 @@ func registerTools(server *mcp.Server, client *BackendClient, env ...string) {
 		"Key valuation metrics for a symbol: market cap, multiples, yields and leverage ratios.",
 		func(ctx context.Context, _ *mcp.CallToolRequest, in fundamentalsInput) (*mcp.CallToolResult, any, error) {
 			return runTool(ctx, "get_key_metrics", environment, in, fundamentalsInput.prepare, func(ctx context.Context, r fundamentalsRequest) (any, error) {
-				fundamentals, err := client.Fundamentals(ctx, r.symbol, r.exchange)
+				raw, err := client.Fundamentals(ctx, r.symbol, r.exchange)
+				if err != nil {
+					return nil, err
+				}
+				fundamentals, err := decodeFundamentals(raw)
 				if err != nil {
 					return nil, err
 				}
@@ -104,7 +108,11 @@ func registerTools(server *mcp.Server, client *BackendClient, env ...string) {
 		"Financial ratios for a symbol: margins, returns, liquidity and leverage.",
 		func(ctx context.Context, _ *mcp.CallToolRequest, in fundamentalsInput) (*mcp.CallToolResult, any, error) {
 			return runTool(ctx, "get_financial_ratios", environment, in, fundamentalsInput.prepare, func(ctx context.Context, r fundamentalsRequest) (any, error) {
-				fundamentals, err := client.Fundamentals(ctx, r.symbol, r.exchange)
+				raw, err := client.Fundamentals(ctx, r.symbol, r.exchange)
+				if err != nil {
+					return nil, err
+				}
+				fundamentals, err := decodeFundamentals(raw)
 				if err != nil {
 					return nil, err
 				}
@@ -116,7 +124,11 @@ func registerTools(server *mcp.Server, client *BackendClient, env ...string) {
 		"Company profile details for a symbol: name, sector, industry, employees and identifiers.",
 		func(ctx context.Context, _ *mcp.CallToolRequest, in fundamentalsInput) (*mcp.CallToolResult, any, error) {
 			return runTool(ctx, "get_company_details", environment, in, fundamentalsInput.prepare, func(ctx context.Context, r fundamentalsRequest) (any, error) {
-				fundamentals, err := client.Fundamentals(ctx, r.symbol, r.exchange)
+				raw, err := client.Fundamentals(ctx, r.symbol, r.exchange)
+				if err != nil {
+					return nil, err
+				}
+				fundamentals, err := decodeFundamentals(raw)
 				if err != nil {
 					return nil, err
 				}
@@ -142,6 +154,16 @@ func addTool[In any](
 	handler mcp.ToolHandlerFor[In, any],
 ) {
 	mcp.AddTool(server, &mcp.Tool{Name: name, Description: description}, handler)
+}
+
+// decodeFundamentals unmarshals raw fundamentals JSON into CompanyFundamentals
+// so projection tools can extract their target section.
+func decodeFundamentals(raw json.RawMessage) (CompanyFundamentals, error) {
+	var f CompanyFundamentals
+	if err := json.Unmarshal(raw, &f); err != nil {
+		return CompanyFundamentals{}, err
+	}
+	return f, nil
 }
 
 // statementHandler builds the handler for one statement tool. statement is

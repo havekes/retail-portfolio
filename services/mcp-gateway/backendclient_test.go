@@ -274,7 +274,7 @@ func TestBackendClientDecodesRealBackendShapes(t *testing.T) {
 				 "adjusted_close": "153.50"}
 			]
 		}`)
-		history, err := mustClient(t, srv.URL, "test-token").Prices(
+		raw, err := mustClient(t, srv.URL, "test-token").Prices(
 			context.Background(),
 			"aapl",
 			time.Date(2026, 1, 1, 0, 0, 0, 0, time.UTC),
@@ -284,18 +284,19 @@ func TestBackendClientDecodesRealBackendShapes(t *testing.T) {
 		if err != nil {
 			t.Fatalf("Prices: %v", err)
 		}
-		if history.Symbol != "AAPL" || history.Exchange != nil {
-			t.Errorf("header = %+v", history)
+		var history map[string]json.RawMessage
+		if err := json.Unmarshal(raw, &history); err != nil {
+			t.Fatalf("raw is not a JSON object: %v", err)
 		}
-		if len(history.Items) != 1 {
-			t.Fatalf("items = %d, want 1", len(history.Items))
+		if string(history["symbol"]) != `"AAPL"` {
+			t.Errorf("symbol = %s, want %q", history["symbol"], "AAPL")
 		}
-		bar := history.Items[0]
-		if bar.Open != Decimal("150.00") || bar.Volume != 1_000_000 {
-			t.Errorf("bar = %+v", bar)
+		var items []map[string]json.RawMessage
+		if err := json.Unmarshal(history["items"], &items); err != nil {
+			t.Fatalf("items is not a JSON array: %v", err)
 		}
-		if bar.AdjustedClose == nil || *bar.AdjustedClose != Decimal("153.50") {
-			t.Errorf("adjusted_close = %v", bar.AdjustedClose)
+		if len(items) != 1 {
+			t.Fatalf("items = %d, want 1", len(items))
 		}
 	})
 
@@ -312,11 +313,15 @@ func TestBackendClientDecodesRealBackendShapes(t *testing.T) {
 			"ratios": {"symbol": "AAPL", "date": "2024-09-28",
 				"gross_profit_margin": "0.4621", "debt_to_equity": "1.87"}
 		}`)
-		fundamentals, err := mustClient(t, srv.URL, "test-token").Fundamentals(
+		raw, err := mustClient(t, srv.URL, "test-token").Fundamentals(
 			context.Background(), "AAPL", "",
 		)
 		if err != nil {
 			t.Fatalf("Fundamentals: %v", err)
+		}
+		var fundamentals CompanyFundamentals
+		if err := json.Unmarshal(raw, &fundamentals); err != nil {
+			t.Fatalf("unmarshal fundamentals: %v", err)
 		}
 		if fundamentals.Profile.CompanyName != "Apple Inc." {
 			t.Errorf("company_name = %q", fundamentals.Profile.CompanyName)
@@ -351,25 +356,25 @@ func TestBackendClientDecodesRealBackendShapes(t *testing.T) {
 						"theta": "-0.0731", "vega": "0.3412", "rho": null}}}
 			]
 		}`)
-		chain, err := mustClient(t, srv.URL, "test-token").OptionsChain(
+		raw, err := mustClient(t, srv.URL, "test-token").OptionsChain(
 			context.Background(), "AAPL", nil, "", nil, nil,
 		)
 		if err != nil {
 			t.Fatalf("OptionsChain: %v", err)
 		}
-		if chain.UnderlyingSymbol != "AAPL" || len(chain.Contracts) != 1 {
-			t.Fatalf("chain = %+v", chain)
+		var chain map[string]json.RawMessage
+		if err := json.Unmarshal(raw, &chain); err != nil {
+			t.Fatalf("raw is not a JSON object: %v", err)
 		}
-		entry := chain.Contracts[0]
-		if entry.Contract.ContractType != "call" || entry.Contract.StrikePrice != Decimal("150") {
-			t.Errorf("contract = %+v", entry.Contract)
+		if string(chain["underlying_symbol"]) != `"AAPL"` {
+			t.Errorf("underlying_symbol = %s, want %q", chain["underlying_symbol"], "AAPL")
 		}
-		if entry.Quote.OpenInterest == nil || *entry.Quote.OpenInterest != Decimal("8421") {
-			t.Errorf("open_interest = %v", entry.Quote.OpenInterest)
+		var contracts []map[string]json.RawMessage
+		if err := json.Unmarshal(chain["contracts"], &contracts); err != nil {
+			t.Fatalf("contracts is not a JSON array: %v", err)
 		}
-		if entry.Quote.Greeks == nil || entry.Quote.Greeks.Delta == nil ||
-			*entry.Quote.Greeks.Delta != Decimal("0.5314") {
-			t.Errorf("greeks = %+v", entry.Quote.Greeks)
+		if len(contracts) != 1 {
+			t.Fatalf("contracts len = %d, want 1", len(contracts))
 		}
 	})
 
@@ -387,6 +392,27 @@ func TestBackendClientDecodesRealBackendShapes(t *testing.T) {
 		}
 		if len(decoded) != 1 || string(decoded[0]["revenue"]) != `"391035000000"` {
 			t.Errorf("decoded = %v", decoded)
+		}
+	})
+
+	t.Run("statements tolerate unknown fields", func(t *testing.T) {
+		srv, _ := newStubBackend(t, http.StatusOK, `[{"date": "2024-09-28", "symbol": "AAPL", "revenue": "391035000000", "extra_backend_field": "test"}]`)
+		raw, err := mustClient(t, srv.URL, "test-token").Statements(
+			context.Background(), "AAPL", "income", "annual", 5, "",
+		)
+		if err != nil {
+			t.Fatalf("Statements: %v", err)
+		}
+		items, err := decodeStatementList(raw, "income")
+		if err != nil {
+			t.Fatalf("decodeStatementList failed on unknown field: %v", err)
+		}
+		incomeItems, ok := items.([]IncomeStatement)
+		if !ok || len(incomeItems) != 1 {
+			t.Fatalf("unexpected items: %+v", items)
+		}
+		if incomeItems[0].Revenue == nil || *incomeItems[0].Revenue != Decimal("391035000000") {
+			t.Errorf("revenue = %v", incomeItems[0].Revenue)
 		}
 	})
 }
