@@ -1,8 +1,6 @@
 package main
 
 import (
-	"strings"
-
 	"github.com/modelcontextprotocol/go-sdk/mcp"
 )
 
@@ -37,17 +35,11 @@ const (
 //     the client's generic message. Backend status/body detail is never
 //     unwrapped; only the parsed validation message is forwarded.
 //   - Tool names, descriptions, and result text contain no provider name.
-func newMCPServer(client *BackendClient, env ...string) *mcp.Server {
-	environment := defaultEnvironment
-	if len(env) > 0 && strings.TrimSpace(env[0]) != "" {
-		environment = strings.TrimSpace(env[0])
-	} else if client != nil && client.env != "" {
-		environment = client.env
-	}
+func newMCPServer(client *BackendClient, cfg Config) *mcp.Server {
 	server := mcp.NewServer(&mcp.Implementation{
 		Name:    serverName,
 		Version: serverVersion,
 	}, nil)
-	registerTools(server, client, environment)
+	registerTools(server, client, cfg)
 	return server
 }

@@ -44,7 +44,7 @@ func assertNoProviderName(t *testing.T, label, text string) {
 func newTestSession(t *testing.T, backendURL string) *mcp.ClientSession {
 	t.Helper()
 	client := mustClient(t, backendURL, "test-token")
-	srv := httptest.NewServer(newRouter(newMCPServer(client)))
+	srv := httptest.NewServer(newRouter(newMCPServer(client, Config{Environment: "dev"})))
 	t.Cleanup(srv.Close)
 
 	mcpClient := mcp.NewClient(&mcp.Implementation{Name: "test-client", Version: "0.0.1"}, nil)
@@ -748,7 +748,7 @@ func structJSONFields(typ reflect.Type) []string {
 func newTestSessionWithEnv(t *testing.T, backendURL, env string) *mcp.ClientSession {
 	t.Helper()
 	client := mustClient(t, backendURL, "test-token", env)
-	srv := httptest.NewServer(newRouter(newMCPServer(client, env)))
+	srv := httptest.NewServer(newRouter(newMCPServer(client, Config{Environment: env})))
 	t.Cleanup(srv.Close)
 
 	mcpClient := mcp.NewClient(&mcp.Implementation{Name: "test-client", Version: "0.0.1"}, nil)
