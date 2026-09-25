@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"net/url"
+	"strconv"
 	"strings"
 )
 
@@ -20,17 +21,21 @@ import (
 //   - PORT: HTTP listen port. Optional, defaults to "8080".
 //   - ENVIRONMENT: deployment environment ("prod" or "dev"). Optional, defaults to "dev".
 //   - LOG_LEVEL: log level override ("DEBUG", "INFO", "WARN"/"WARNING", "ERROR"). Optional.
+//   - MAX_CONCURRENCY: maximum concurrent outbound requests to the backend data
+//     plane. Optional, defaults to 10. Must be a positive integer.
 type Config struct {
 	BackendBaseURL string
 	ServiceToken   string
 	Port           string
 	Environment    string
 	LogLevel       string
+	MaxConcurrency int
 }
 
 const (
-	defaultPort        = "8080"
-	defaultEnvironment = "dev"
+	defaultPort           = "8080"
+	defaultEnvironment    = "dev"
+	defaultMaxConcurrency = 10
 )
 
 // loadConfig reads the gateway configuration from getenv.
@@ -55,12 +60,23 @@ func loadConfig(getenv func(string) string) (Config, error) {
 		}
 	}
 
+	maxConcurrencyStr := strings.TrimSpace(getenv("MAX_CONCURRENCY"))
+	maxConcurrency := defaultMaxConcurrency
+	if maxConcurrencyStr != "" {
+		val, err := strconv.Atoi(maxConcurrencyStr)
+		if err != nil || val <= 0 {
+			return Config{}, fmt.Errorf("invalid MAX_CONCURRENCY %q: must be a positive integer", maxConcurrencyStr)
+		}
+		maxConcurrency = val
+	}
+
 	cfg := Config{
 		BackendBaseURL: strings.TrimSpace(getenv("BACKEND_BASE_URL")),
 		ServiceToken:   strings.TrimSpace(getenv("MARKET_DATA_SERVICE_TOKEN")),
 		Port:           strings.TrimSpace(getenv("PORT")),
 		Environment:    env,
 		LogLevel:       logLevel,
+		MaxConcurrency: maxConcurrency,
 	}
 
 	if cfg.BackendBaseURL == "" {

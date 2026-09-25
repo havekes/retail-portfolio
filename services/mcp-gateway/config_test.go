@@ -35,6 +35,9 @@ func TestLoadConfig(t *testing.T) {
 		if cfg.LogLevel != "" {
 			t.Errorf("LogLevel = %q, want empty", cfg.LogLevel)
 		}
+		if cfg.MaxConcurrency != defaultMaxConcurrency {
+			t.Errorf("MaxConcurrency = %d, want %d", cfg.MaxConcurrency, defaultMaxConcurrency)
+		}
 	})
 
 	t.Run("environment default dev when unset or whitespace", func(t *testing.T) {
@@ -127,6 +130,68 @@ func TestLoadConfig(t *testing.T) {
 		}
 		if strings.Contains(err.Error(), token) {
 			t.Errorf("error leaked the token: %q", err)
+		}
+	})
+
+	t.Run("MAX_CONCURRENCY default when unset or whitespace", func(t *testing.T) {
+		for _, val := range []string{"", "   "} {
+			cfg, err := loadConfig(envMap(map[string]string{
+				"BACKEND_BASE_URL":          "http://backend:8000",
+				"MARKET_DATA_SERVICE_TOKEN": "test-token",
+				"MAX_CONCURRENCY":           val,
+			}))
+			if err != nil {
+				t.Fatalf("unexpected error for MAX_CONCURRENCY=%q: %v", val, err)
+			}
+			if cfg.MaxConcurrency != defaultMaxConcurrency {
+				t.Errorf("MaxConcurrency for %q = %d, want %d", val, cfg.MaxConcurrency, defaultMaxConcurrency)
+			}
+		}
+	})
+
+	t.Run("valid MAX_CONCURRENCY values", func(t *testing.T) {
+		cases := []struct {
+			input string
+			want  int
+		}{
+			{"1", 1},
+			{"5", 5},
+			{"50", 50},
+			{" 25 ", 25},
+		}
+		for _, tc := range cases {
+			cfg, err := loadConfig(envMap(map[string]string{
+				"BACKEND_BASE_URL":          "http://backend:8000",
+				"MARKET_DATA_SERVICE_TOKEN": "test-token",
+				"MAX_CONCURRENCY":           tc.input,
+			}))
+			if err != nil {
+				t.Fatalf("unexpected error for MAX_CONCURRENCY=%q: %v", tc.input, err)
+			}
+			if cfg.MaxConcurrency != tc.want {
+				t.Errorf("MAX_CONCURRENCY %q: got %d, want %d", tc.input, cfg.MaxConcurrency, tc.want)
+			}
+		}
+	})
+
+	t.Run("invalid MAX_CONCURRENCY returns error", func(t *testing.T) {
+		const token = "secret-token-123"
+		invalidVals := []string{"0", "-1", "-10", "abc", "1.5"}
+		for _, val := range invalidVals {
+			cfg, err := loadConfig(envMap(map[string]string{
+				"BACKEND_BASE_URL":          "http://backend:8000",
+				"MARKET_DATA_SERVICE_TOKEN": token,
+				"MAX_CONCURRENCY":           val,
+			}))
+			if err == nil {
+				t.Fatalf("expected error for MAX_CONCURRENCY=%q, got cfg: %+v", val, cfg)
+			}
+			if !strings.Contains(err.Error(), "MAX_CONCURRENCY") {
+				t.Errorf("error %q does not mention MAX_CONCURRENCY", err)
+			}
+			if strings.Contains(err.Error(), token) {
+				t.Errorf("error leaked the token: %q", err)
+			}
 		}
 	})
 
