@@ -200,16 +200,23 @@ func truncateDetail(s string) string {
 // BackendClient is a typed HTTP client for the backend data plane. It sends the
 // shared service token on every request and never touches a provider directly.
 type BackendClient struct {
-	baseURL    *url.URL
-	token      string
-	httpClient *http.Client
-	env        string
+	baseURL        *url.URL
+	token          string
+	httpClient     *http.Client
+	env            string
+	maxConcurrency int
+	sem            chan struct{}
 }
 
 // NewBackendClient validates baseURL and builds a client. baseURL must be an
-// absolute http(s) origin; a trailing slash is tolerated. Optional env specifies
+// absolute http(s) origin; a trailing slash is tolerated. maxConcurrency caps
+// concurrent outbound requests and must be > 0. Optional env specifies
 // the runtime environment ("dev", "prod"), defaulting to "dev".
-func NewBackendClient(baseURL, token string, env ...string) (*BackendClient, error) {
+func NewBackendClient(baseURL, token string, maxConcurrency int, env ...string) (*BackendClient, error) {
+	if maxConcurrency <= 0 {
+		return nil, errors.New("max concurrency must be greater than 0")
+	}
+
 	trimmed := strings.TrimRight(strings.TrimSpace(baseURL), "/")
 	if trimmed == "" {
 		return nil, errors.New("backend base URL is required")
@@ -231,11 +238,18 @@ func NewBackendClient(baseURL, token string, env ...string) (*BackendClient, err
 	}
 
 	return &BackendClient{
-		baseURL:    parsed,
-		token:      token,
-		httpClient: &http.Client{Timeout: defaultHTTPTimeout},
-		env:        environment,
+		baseURL:        parsed,
+		token:          token,
+		httpClient:     &http.Client{Timeout: defaultHTTPTimeout},
+		env:            environment,
+		maxConcurrency: maxConcurrency,
+		sem:            make(chan struct{}, maxConcurrency),
 	}, nil
+}
+
+// MaxConcurrency returns the maximum number of concurrent outbound requests allowed.
+func (c *BackendClient) MaxConcurrency() int {
+	return c.maxConcurrency
 }
 
 // isDev reports whether this client is running in a development environment.
@@ -380,6 +394,24 @@ func (c *BackendClient) get(ctx context.Context, path string, query url.Values, 
 	}
 	endpoint.RawQuery = query.Encode()
 	reqURL := endpoint.String()
+
+	select {
+	case c.sem <- struct{}{}:
+	case <-ctx.Done():
+		bErr := &backendError{class: ErrProvider, detail: ctx.Err().Error()}
+		slog.ErrorContext(ctx, "backend request failed", slog.String("url", reqURL), slog.Int("status", 0), slog.String("detail", bErr.Detail()))
+		return bErr
+	default:
+		slog.WarnContext(ctx, "backend concurrency limit reached, queuing call", slog.Int("max_concurrency", c.maxConcurrency), slog.String("url", reqURL))
+		select {
+		case c.sem <- struct{}{}:
+		case <-ctx.Done():
+			bErr := &backendError{class: ErrProvider, detail: ctx.Err().Error()}
+			slog.ErrorContext(ctx, "backend request failed", slog.String("url", reqURL), slog.Int("status", 0), slog.String("detail", bErr.Detail()))
+			return bErr
+		}
+	}
+	defer func() { <-c.sem }()
 
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, reqURL, nil)
 	if err != nil {
