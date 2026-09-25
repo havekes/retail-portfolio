@@ -30,13 +30,14 @@ func main() {
 		os.Exit(1)
 	}
 
-	client, err := NewBackendClient(cfg.BackendBaseURL, cfg.ServiceToken, cfg.Environment)
+	client, err := NewBackendClient(cfg.BackendBaseURL, cfg.ServiceToken, cfg.MaxConcurrency, cfg.Environment)
 	if err != nil {
 		slog.Error("mcp-gateway backend client error",
 			slog.String("service", "mcp-gateway"),
 			slog.String("port", cfg.Port),
 			slog.String("backend_url", cfg.BackendBaseURL),
 			slog.String("environment", cfg.Environment),
+			slog.Int("max_concurrency", cfg.MaxConcurrency),
 			slog.Any("error", err),
 		)
 		os.Exit(1)
@@ -72,6 +73,7 @@ func main() {
 			slog.String("port", cfg.Port),
 			slog.String("backend_url", cfg.BackendBaseURL),
 			slog.String("environment", cfg.Environment),
+			slog.Int("max_concurrency", cfg.MaxConcurrency),
 		)
 
 		// Shutdown signal with grace period of 10 seconds
@@ -86,6 +88,7 @@ func main() {
 					slog.String("port", cfg.Port),
 					slog.String("backend_url", cfg.BackendBaseURL),
 					slog.String("environment", cfg.Environment),
+					slog.Int("max_concurrency", cfg.MaxConcurrency),
 				)
 			}
 		}()
@@ -98,6 +101,7 @@ func main() {
 				slog.String("port", cfg.Port),
 				slog.String("backend_url", cfg.BackendBaseURL),
 				slog.String("environment", cfg.Environment),
+				slog.Int("max_concurrency", cfg.MaxConcurrency),
 				slog.Any("error", err),
 			)
 		}
@@ -109,6 +113,7 @@ func main() {
 		slog.String("port", cfg.Port),
 		slog.String("backend_url", cfg.BackendBaseURL),
 		slog.String("environment", cfg.Environment),
+		slog.Int("max_concurrency", cfg.MaxConcurrency),
 	)
 	err = server.ListenAndServe()
 	if err != nil && !errors.Is(err, http.ErrServerClosed) {
@@ -117,6 +122,7 @@ func main() {
 			slog.String("port", cfg.Port),
 			slog.String("backend_url", cfg.BackendBaseURL),
 			slog.String("environment", cfg.Environment),
+			slog.Int("max_concurrency", cfg.MaxConcurrency),
 			slog.Any("error", err),
 		)
 		os.Exit(1)
@@ -129,6 +135,7 @@ func main() {
 		slog.String("port", cfg.Port),
 		slog.String("backend_url", cfg.BackendBaseURL),
 		slog.String("environment", cfg.Environment),
+		slog.Int("max_concurrency", cfg.MaxConcurrency),
 	)
 }
 

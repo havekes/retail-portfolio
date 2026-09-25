@@ -33,6 +33,7 @@ internal network only.
 | `PORT`                      | no       | `8080`  | HTTP listen port.                                                 |
 | `ENVIRONMENT`               | no       | `dev`   | Deployment environment (`prod` or `dev`). Configures logging handler and default level. |
 | `LOG_LEVEL`                 | no       | —       | Log level override (`DEBUG`, `INFO`, `WARN`/`WARNING`, `ERROR`).  |
+| `MAX_CONCURRENCY`           | no       | `10`    | Maximum concurrent outbound requests to the backend data plane. Must be a positive integer. |
 
 A missing or unusable required value is a startup error. The token value is
 never logged and never appears in an error message.
@@ -59,11 +60,12 @@ MCP tool calls in `tools.go` are instrumented:
 - Diagnostic `detail` is retained only for Go-side logging and is never exposed in user-facing tool error results.
 - `ErrNoData` (404) is classified as a normal outcome and does not emit `ERROR` logs.
 
-### Outbound backend client logging
+### Outbound backend client logging / Backpressure
 
 Outbound HTTP calls to the backend data plane in `backendclient.go` are instrumented:
 - In `ENVIRONMENT=dev`: outbound requests (`method`, `url`, `query`) and responses (`method`, `url`, `status`, `duration`) are logged at `DEBUG` level.
 - Non-2xx responses and transport/network errors are logged at `ERROR` level with `status`, `detail`, and endpoint `url`.
+- Outbound backend calls exceeding `MAX_CONCURRENCY` queue behind the semaphore and emit a `WARN` log record (`"backend concurrency limit reached, queuing call"`).
 - `MARKET_DATA_SERVICE_TOKEN` and the `X-Service-Token` header value are never logged.
 
 ## Backend data plane

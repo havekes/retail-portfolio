@@ -11,6 +11,8 @@ import (
 	"net/http/httptest"
 	"net/url"
 	"strings"
+	"sync"
+	"sync/atomic"
 	"testing"
 	"time"
 )
@@ -48,7 +50,7 @@ func newStubBackend(t *testing.T, status int, body string) (*httptest.Server, *c
 
 func mustClient(t *testing.T, baseURL, token string, env ...string) *BackendClient {
 	t.Helper()
-	client, err := NewBackendClient(baseURL, token, env...)
+	client, err := NewBackendClient(baseURL, token, defaultMaxConcurrency, env...)
 	if err != nil {
 		t.Fatalf("NewBackendClient(%q): %v", baseURL, err)
 	}
@@ -57,8 +59,16 @@ func mustClient(t *testing.T, baseURL, token string, env ...string) *BackendClie
 
 func TestNewBackendClientRejectsBadBaseURL(t *testing.T) {
 	for _, raw := range []string{"", "   ", "not-a-url", "ftp://backend:8000", "http://"} {
-		if _, err := NewBackendClient(raw, "token"); err == nil {
+		if _, err := NewBackendClient(raw, "token", defaultMaxConcurrency); err == nil {
 			t.Errorf("NewBackendClient(%q) = nil error, want error", raw)
+		}
+	}
+}
+
+func TestNewBackendClientRejectsInvalidMaxConcurrency(t *testing.T) {
+	for _, val := range []int{0, -1, -10} {
+		if _, err := NewBackendClient("http://backend:8000", "token", val); err == nil {
+			t.Errorf("NewBackendClient with maxConcurrency=%d expected error, got nil", val)
 		}
 	}
 }
@@ -616,5 +626,288 @@ func TestBackendClient_ProviderNameCompliance(t *testing.T) {
 	_, _ = client.Prices(context.Background(), "AAPL", from, to, "")
 
 	assertNoProviderName(t, "backend client log", buf.String())
+}
+
+type syncBuffer struct {
+	mu  sync.Mutex
+	buf bytes.Buffer
+}
+
+func (s *syncBuffer) Write(p []byte) (int, error) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	return s.buf.Write(p)
+}
+
+func (s *syncBuffer) String() string {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	return s.buf.String()
+}
+
+func TestBackendClient_ConcurrencyCap(t *testing.T) {
+	var inFlight atomic.Int32
+	var maxInFlight atomic.Int32
+
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		cur := inFlight.Add(1)
+		for {
+			old := maxInFlight.Load()
+			if cur <= old || maxInFlight.CompareAndSwap(old, cur) {
+				break
+			}
+		}
+		time.Sleep(25 * time.Millisecond)
+		inFlight.Add(-1)
+
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusOK)
+		_, _ = io.WriteString(w, `{"symbol":"AAPL","prices":[]}`)
+	}))
+	defer srv.Close()
+
+	client, err := NewBackendClient(srv.URL, "token", 2)
+	if err != nil {
+		t.Fatalf("NewBackendClient: %v", err)
+	}
+	if client.MaxConcurrency() != 2 {
+		t.Errorf("MaxConcurrency() = %d, want 2", client.MaxConcurrency())
+	}
+
+	from, _ := time.Parse("2006-01-02", "2024-01-01")
+	to, _ := time.Parse("2006-01-02", "2024-01-02")
+
+	const totalRequests = 10
+	var wg sync.WaitGroup
+	errCh := make(chan error, totalRequests)
+
+	for i := 0; i < totalRequests; i++ {
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			_, err := client.Prices(context.Background(), "AAPL", from, to, "")
+			if err != nil {
+				errCh <- err
+			}
+		}()
+	}
+
+	wg.Wait()
+	close(errCh)
+
+	for err := range errCh {
+		t.Errorf("unexpected request error: %v", err)
+	}
+
+	maxObserved := maxInFlight.Load()
+	if maxObserved > 2 {
+		t.Errorf("maxInFlight was %d, want <= 2", maxObserved)
+	}
+	if maxObserved < 2 {
+		t.Errorf("expected concurrency to reach 2, but maxInFlight was %d", maxObserved)
+	}
+}
+
+func TestBackendClient_ConcurrencySaturationLogging(t *testing.T) {
+	var buf syncBuffer
+	logger, err := newLogger(&buf, "prod", "INFO")
+	if err != nil {
+		t.Fatalf("newLogger: %v", err)
+	}
+	prev := setSlogDefault(logger)
+	defer setSlogDefault(prev)
+
+	const secretToken = "super-secret-token-xyz"
+	firstStarted := make(chan struct{})
+	releaseFirst := make(chan struct{})
+
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		select {
+		case <-firstStarted:
+			// Subsequent requests proceed immediately
+		default:
+			close(firstStarted)
+			select {
+			case <-releaseFirst:
+			case <-time.After(5 * time.Second):
+			}
+		}
+
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusOK)
+		_, _ = io.WriteString(w, `{"symbol":"AAPL","prices":[]}`)
+	}))
+	defer srv.Close()
+	t.Cleanup(func() {
+		select {
+		case <-releaseFirst:
+		default:
+			close(releaseFirst)
+		}
+	})
+
+	client, err := NewBackendClient(srv.URL, secretToken, 1, "prod")
+	if err != nil {
+		t.Fatalf("NewBackendClient: %v", err)
+	}
+
+	from, _ := time.Parse("2006-01-02", "2024-01-01")
+	to, _ := time.Parse("2006-01-02", "2024-01-02")
+
+	var wg sync.WaitGroup
+
+	// First request occupies the single semaphore slot.
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+		_, _ = client.Prices(context.Background(), "AAPL", from, to, "")
+	}()
+
+	// Wait until request 1 has reached the server handler (holding the semaphore slot).
+	select {
+	case <-firstStarted:
+	case <-time.After(5 * time.Second):
+		t.Fatal("timed out waiting for first request to reach backend")
+	}
+
+	// Second request will be blocked on the semaphore and should log saturation warning.
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+		_, _ = client.Prices(context.Background(), "AAPL", from, to, "")
+	}()
+
+	// Wait for saturation log to appear.
+	deadline := time.Now().Add(3 * time.Second)
+	var logged bool
+	for time.Now().Before(deadline) {
+		if strings.Contains(buf.String(), "backend concurrency limit reached, queuing call") {
+			logged = true
+			break
+		}
+		time.Sleep(10 * time.Millisecond)
+	}
+
+	// Release first request so both complete cleanly.
+	close(releaseFirst)
+	wg.Wait()
+
+	if !logged {
+		t.Errorf("expected WARN log 'backend concurrency limit reached, queuing call', got:\n%s", buf.String())
+	}
+	out := buf.String()
+	if !strings.Contains(out, `"level":"WARN"`) {
+		t.Errorf("expected level WARN in log, got:\n%s", out)
+	}
+	if !strings.Contains(out, `"max_concurrency":1`) {
+		t.Errorf("expected max_concurrency:1 in log, got:\n%s", out)
+	}
+	if strings.Contains(out, secretToken) {
+		t.Fatalf("secret token was leaked in saturation log: %s", out)
+	}
+	assertNoProviderName(t, "concurrency saturation log", out)
+}
+
+func TestBackendClient_ContextCanceledWhileQueued(t *testing.T) {
+	firstStarted := make(chan struct{})
+	releaseFirst := make(chan struct{})
+
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		select {
+		case <-firstStarted:
+			// Subsequent requests proceed immediately
+		default:
+			close(firstStarted)
+			select {
+			case <-releaseFirst:
+			case <-time.After(5 * time.Second):
+			}
+		}
+
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusOK)
+		_, _ = io.WriteString(w, `{"symbol":"AAPL","prices":[]}`)
+	}))
+	defer srv.Close()
+	t.Cleanup(func() {
+		select {
+		case <-releaseFirst:
+		default:
+			close(releaseFirst)
+		}
+	})
+
+	client, err := NewBackendClient(srv.URL, "token", 1)
+	if err != nil {
+		t.Fatalf("NewBackendClient: %v", err)
+	}
+
+	from, _ := time.Parse("2006-01-02", "2024-01-01")
+	to, _ := time.Parse("2006-01-02", "2024-01-02")
+
+	// Occupy the only slot
+	go func() {
+		_, _ = client.Prices(context.Background(), "AAPL", from, to, "")
+	}()
+
+	select {
+	case <-firstStarted:
+	case <-time.After(5 * time.Second):
+		t.Fatal("timed out waiting for first request to occupy slot")
+	}
+
+	// Issue second call with already canceled context
+	canceledCtx, cancel := context.WithCancel(context.Background())
+	cancel()
+
+	done := make(chan error, 1)
+	go func() {
+		_, err := client.Prices(canceledCtx, "AAPL", from, to, "")
+		done <- err
+	}()
+
+	select {
+	case err := <-done:
+		if err == nil {
+			t.Fatal("expected error on canceled context, got nil")
+		}
+		if !errors.Is(err, ErrProvider) {
+			t.Errorf("expected ErrProvider, got: %v", err)
+		}
+		var bErr *backendError
+		if errors.As(err, &bErr) {
+			if !strings.Contains(bErr.Detail(), context.Canceled.Error()) {
+				t.Errorf("expected detail to mention context canceled, got: %q", bErr.Detail())
+			}
+		}
+	case <-time.After(2 * time.Second):
+		t.Fatal("call with canceled context hung waiting on concurrency semaphore")
+	}
+
+	// Also verify a context that is canceled while waiting in the queue
+	ctxToCancel, cancelQueue := context.WithCancel(context.Background())
+	queueDone := make(chan error, 1)
+	go func() {
+		_, err := client.Prices(ctxToCancel, "AAPL", from, to, "")
+		queueDone <- err
+	}()
+
+	// Brief pause to ensure goroutine is queued behind semaphore
+	time.Sleep(30 * time.Millisecond)
+	cancelQueue()
+
+	select {
+	case err := <-queueDone:
+		if err == nil {
+			t.Fatal("expected error on context canceled while queued, got nil")
+		}
+		if !errors.Is(err, ErrProvider) {
+			t.Errorf("expected ErrProvider, got: %v", err)
+		}
+	case <-time.After(2 * time.Second):
+		t.Fatal("call canceled while queued hung waiting on concurrency semaphore")
+	}
+
+	close(releaseFirst)
 }
 
