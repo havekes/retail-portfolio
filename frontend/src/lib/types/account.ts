@@ -11,6 +11,7 @@ export interface Account {
 	net_deposits?: number;
 	is_active: boolean;
 	api_sync_enabled: boolean;
+	last_sync_at?: string | Date | null;
 	created_at: Date;
 }
 
