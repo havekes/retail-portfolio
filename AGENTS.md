@@ -7,6 +7,7 @@
 
 - **Backend work** (Python/FastAPI: `src/`, `tests/`, `migrations/`): follow `src/AGENTS.md`.
 - **Frontend work** (SvelteKit: `frontend/`): follow `frontend/AGENTS.md`.
+- **Go microservices work** (`services/indicator-service/`, `services/mcp-gateway/`): follow `services/<service>/README.md`.
 
 Each guide holds the full command list (tests, migrations, linting, type checks) and architecture rules for its area.
 
@@ -14,7 +15,7 @@ Each guide holds the full command list (tests, migrations, linting, type checks)
 
 ## Development Commands
 
-All development commands **must** be executed inside Docker: `docker compose exec <backend|frontend> <command>` — see the area guide above for the exact commands. CI runs the same checks.
+Backend and frontend development commands **must** be executed inside Docker: `docker compose exec <backend|frontend> <command>` — see the area guide above for the exact commands. Go microservice checks run via the Go toolchain (`go test ./...`, `go vet ./...`) or via `just`. CI runs the same checks.
 
 ## Testing with the agent harness
 
@@ -23,8 +24,10 @@ All development commands **must** be executed inside Docker: `docker compose exe
 - **While developing** — targeted, fail-fast, pre-flight included:
   - Backend: `./scripts/agent-test tests/routers/test_auth.py`
   - Frontend: `./scripts/agent-test frontend/src/lib/api/apiClient.test.ts`
+  - Go services: `just test-indicator-service` / `just test-mcp-gateway` (or `cd services/<service> && go test ./...`)
 - **Before finishing a task** — Gate 0 (lint/type) + full regression for the ecosystems auto-detected from the git diff:
-  - `./scripts/agent-test` (add `--all` to force both ecosystems)
+  - `./scripts/agent-test` (add `--all` to force both backend and frontend)
+  - Full parallel regression across all ecosystems (backend, frontend, Go microservices): `just test-all`
 - **Pre-flight only** — `./scripts/agent-test --gate0-only` (or `just check`).
 - **Flags** — `--backend` / `--frontend`, `--all`, `--no-gate0`, `--local`, `--json`, `--max-chars N`.
 

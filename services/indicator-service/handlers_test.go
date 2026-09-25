@@ -5,8 +5,30 @@ import (
 	"encoding/json"
 	"net/http"
 	"net/http/httptest"
+	"strings"
 	"testing"
 )
+
+func parseLogRecords(output string) []map[string]any {
+	lines := strings.Split(strings.TrimSpace(output), "\n")
+	var records []map[string]any
+	for _, line := range lines {
+		var rec map[string]any
+		if err := json.Unmarshal([]byte(line), &rec); err == nil {
+			records = append(records, rec)
+		}
+	}
+	return records
+}
+
+func findLogRecord(records []map[string]any, msg string) map[string]any {
+	for _, rec := range records {
+		if rec["msg"] == msg {
+			return rec
+		}
+	}
+	return nil
+}
 
 func TestHealthHandler(t *testing.T) {
 	router := NewRouter()
@@ -37,6 +59,38 @@ func TestHealthHandler(t *testing.T) {
 	}
 }
 
+func TestHealthHandler_MethodNotAllowed_Logging(t *testing.T) {
+	buf := &bytes.Buffer{}
+	logger := SetupLogger("prod", "", buf)
+	router := NewRouter(logger)
+
+	req := httptest.NewRequest(http.MethodPost, "/health", nil)
+	rec := httptest.NewRecorder()
+	router.ServeHTTP(rec, req)
+
+	if rec.Code != http.StatusMethodNotAllowed {
+		t.Fatalf("expected status 405, got %d", rec.Code)
+	}
+
+	records := parseLogRecords(buf.String())
+	warnRecord := findLogRecord(records, "method not allowed")
+	if warnRecord == nil {
+		t.Fatalf("expected warn log with msg 'method not allowed', got:\n%s", buf.String())
+	}
+	if warnRecord["level"] != "WARN" {
+		t.Errorf("expected WARN level, got %v", warnRecord["level"])
+	}
+	if warnRecord["path"] != "/health" {
+		t.Errorf("expected path /health, got %v", warnRecord["path"])
+	}
+	if _, ok := warnRecord["request_id"]; !ok {
+		t.Errorf("expected request_id in warn log, got %+v", warnRecord)
+	}
+	if errStr, ok := warnRecord["error"].(string); !ok || errStr != "method not allowed" {
+		t.Errorf("expected error field 'method not allowed', got %+v", warnRecord)
+	}
+}
+
 func TestComputeHandler_MethodNotAllowed(t *testing.T) {
 	router := NewRouter()
 	req := httptest.NewRequest(http.MethodGet, "/compute", nil)
@@ -48,8 +102,43 @@ func TestComputeHandler_MethodNotAllowed(t *testing.T) {
 	}
 }
 
+func TestComputeHandler_MethodNotAllowed_Logging(t *testing.T) {
+	buf := &bytes.Buffer{}
+	logger := SetupLogger("prod", "", buf)
+	router := NewRouter(logger)
+
+	req := httptest.NewRequest(http.MethodGet, "/compute", nil)
+	rec := httptest.NewRecorder()
+	router.ServeHTTP(rec, req)
+
+	if rec.Code != http.StatusMethodNotAllowed {
+		t.Fatalf("expected status 405, got %d", rec.Code)
+	}
+
+	records := parseLogRecords(buf.String())
+	warnRecord := findLogRecord(records, "method not allowed")
+	if warnRecord == nil {
+		t.Fatalf("expected warn log with msg 'method not allowed', got:\n%s", buf.String())
+	}
+	if warnRecord["level"] != "WARN" {
+		t.Errorf("expected WARN level, got %v", warnRecord["level"])
+	}
+	if warnRecord["path"] != "/compute" {
+		t.Errorf("expected path /compute, got %v", warnRecord["path"])
+	}
+	if _, ok := warnRecord["request_id"]; !ok {
+		t.Errorf("expected request_id in warn log, got %+v", warnRecord)
+	}
+	if errStr, ok := warnRecord["error"].(string); !ok || errStr != "method not allowed" {
+		t.Errorf("expected error field 'method not allowed', got %+v", warnRecord)
+	}
+}
+
 func TestComputeHandler_InvalidJSON(t *testing.T) {
-	router := NewRouter()
+	buf := &bytes.Buffer{}
+	logger := SetupLogger("prod", "", buf)
+	router := NewRouter(logger)
+
 	req := httptest.NewRequest(http.MethodPost, "/compute", bytes.NewBufferString("{invalid-json}"))
 	rec := httptest.NewRecorder()
 	router.ServeHTTP(rec, req)
@@ -57,10 +146,31 @@ func TestComputeHandler_InvalidJSON(t *testing.T) {
 	if rec.Code != http.StatusBadRequest {
 		t.Errorf("expected status 400, got %d", rec.Code)
 	}
+
+	records := parseLogRecords(buf.String())
+	errRecord := findLogRecord(records, "malformed json payload")
+	if errRecord == nil {
+		t.Fatalf("expected error log with msg 'malformed json payload', got:\n%s", buf.String())
+	}
+	if errRecord["level"] != "ERROR" {
+		t.Errorf("expected ERROR level, got %v", errRecord["level"])
+	}
+	if errRecord["path"] != "/compute" {
+		t.Errorf("expected path /compute, got %v", errRecord["path"])
+	}
+	if _, ok := errRecord["request_id"]; !ok {
+		t.Errorf("expected request_id in error log, got %+v", errRecord)
+	}
+	if errStr, ok := errRecord["error"].(string); !ok || errStr == "" {
+		t.Errorf("expected non-empty error field in error log, got %+v", errRecord)
+	}
 }
 
 func TestComputeHandler_UnknownIndicator(t *testing.T) {
-	router := NewRouter()
+	buf := &bytes.Buffer{}
+	logger := SetupLogger("prod", "", buf)
+	router := NewRouter(logger)
+
 	payload := ComputeRequest{
 		Interval: "1d",
 		Candles: []Candle{
@@ -77,6 +187,24 @@ func TestComputeHandler_UnknownIndicator(t *testing.T) {
 
 	if rec.Code != http.StatusBadRequest {
 		t.Errorf("expected status 400 for unknown indicator, got %d", rec.Code)
+	}
+
+	records := parseLogRecords(buf.String())
+	errRecord := findLogRecord(records, "indicator calculation failed")
+	if errRecord == nil {
+		t.Fatalf("expected error log with msg 'indicator calculation failed', got:\n%s", buf.String())
+	}
+	if errRecord["level"] != "ERROR" {
+		t.Errorf("expected ERROR level, got %v", errRecord["level"])
+	}
+	if errRecord["path"] != "/compute" {
+		t.Errorf("expected path /compute, got %v", errRecord["path"])
+	}
+	if _, ok := errRecord["request_id"]; !ok {
+		t.Errorf("expected request_id in error log, got %+v", errRecord)
+	}
+	if errStr, ok := errRecord["error"].(string); !ok || errStr == "" {
+		t.Errorf("expected non-empty error field in error log, got %+v", errRecord)
 	}
 }
 

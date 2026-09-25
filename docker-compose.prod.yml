@@ -53,6 +53,27 @@ services:
     restart: always
     ports:
       - "8085:8080"
+    environment:
+      ENVIRONMENT: "${ENVIRONMENT:-prod}"
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:8080/health || exit 1"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 5s
+
+  mcp-gateway:
+    build: ./services/mcp-gateway
+    container_name: retail-portfolio-mcp-gateway
+    restart: always
+    # Internal network only by design; no host port is published.
+    environment:
+      ENVIRONMENT: "${ENVIRONMENT:-prod}"
+      BACKEND_BASE_URL: "http://backend:8000"
+      MARKET_DATA_SERVICE_TOKEN: "${MARKET_DATA_SERVICE_TOKEN:?MARKET_DATA_SERVICE_TOKEN must be set}"
+    depends_on:
+      backend:
+        condition: service_healthy
     healthcheck:
       test: ["CMD-SHELL", "wget -qO- http://localhost:8080/health || exit 1"]
       interval: 30s

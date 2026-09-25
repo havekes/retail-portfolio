@@ -75,8 +75,12 @@ class PriceSchema(BaseModel):
 
     @classmethod
     def from_historical_price(cls, historical_price: HistoricalPrice) -> Self:
+        security_id = historical_price.security_id
+        if security_id is None:
+            msg = "Cannot persist a historical price without a security id."
+            raise ValueError(msg)
         return cls(
-            security_id=historical_price.security_id,
+            security_id=security_id,
             date=historical_price.date,
             open=historical_price.open,
             high=historical_price.high,
@@ -85,6 +89,33 @@ class PriceSchema(BaseModel):
             adjusted_close=historical_price.adjusted_close,
             volume=historical_price.volume,
         )
+
+
+class PriceBar(BaseModel):
+    """A single daily OHLC bar for the service-to-service data plane.
+
+    Deliberately narrower than :class:`PriceSchema`: it drops the
+    DB-flavoured ``id`` / ``security_id`` fields so the unified JSON exposes
+    only what a data consumer needs.
+    """
+
+    date: date
+    open: Decimal
+    high: Decimal
+    low: Decimal
+    close: Decimal
+    volume: int
+    adjusted_close: Decimal | None = None
+
+
+class PriceHistoryResponse(BaseModel):
+    """Unified daily price-history response for the data endpoints."""
+
+    symbol: str
+    exchange: str | None = None
+    from_date: date
+    to_date: date
+    items: list[PriceBar]
 
 
 class IntradayPriceSchema(BaseModel):

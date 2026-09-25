@@ -122,3 +122,159 @@ def test_secret_key_valid_in_prod(monkeypatch, tmp_path):
     assert s.secret_key == "a" * 32
 
 
+def test_service_token_required_in_prod(monkeypatch, tmp_path):
+    monkeypatch.chdir(tmp_path)
+    monkeypatch.setenv("ENVIRONMENT", "prod")
+    monkeypatch.setenv("SECRET_KEY", "a" * 32)
+    monkeypatch.setenv("MARKET_DATA_SERVICE_TOKEN", "")
+
+    with pytest.raises(
+        ValidationError, match="MARKET_DATA_SERVICE_TOKEN must be set"
+    ):
+        Settings()
+
+
+def test_service_token_whitespace_only_in_prod(monkeypatch, tmp_path):
+    monkeypatch.chdir(tmp_path)
+    monkeypatch.setenv("ENVIRONMENT", "prod")
+    monkeypatch.setenv("SECRET_KEY", "a" * 32)
+    monkeypatch.setenv("MARKET_DATA_SERVICE_TOKEN", "   ")
+
+    with pytest.raises(
+        ValidationError, match="MARKET_DATA_SERVICE_TOKEN must be set"
+    ):
+        Settings()
+
+
+def test_service_token_required_in_staging(monkeypatch, tmp_path):
+    monkeypatch.chdir(tmp_path)
+    monkeypatch.setenv("ENVIRONMENT", "staging")
+    monkeypatch.setenv("SECRET_KEY", "a" * 32)
+    monkeypatch.setenv("MARKET_DATA_SERVICE_TOKEN", "")
+
+    with pytest.raises(
+        ValidationError, match="MARKET_DATA_SERVICE_TOKEN must be set"
+    ):
+        Settings()
+
+
+def test_service_token_allowed_empty_in_dev(monkeypatch, tmp_path):
+    monkeypatch.chdir(tmp_path)
+    monkeypatch.setenv("ENVIRONMENT", "dev")
+    monkeypatch.setenv("MARKET_DATA_SERVICE_TOKEN", "")
+
+    s = Settings()
+    assert s.environment == "dev"
+    assert s.market_data_service_token == ""
+
+
+def test_service_token_allowed_empty_in_test(monkeypatch, tmp_path):
+    monkeypatch.chdir(tmp_path)
+    monkeypatch.setenv("ENVIRONMENT", "test")
+    monkeypatch.setenv("MARKET_DATA_SERVICE_TOKEN", "")
+
+    s = Settings()
+    assert s.environment == "test"
+    assert s.market_data_service_token == ""
+
+
+def test_service_token_valid_in_prod(monkeypatch, tmp_path):
+    monkeypatch.chdir(tmp_path)
+    monkeypatch.setenv("ENVIRONMENT", "prod")
+    monkeypatch.setenv("SECRET_KEY", "a" * 32)
+    monkeypatch.setenv("MARKET_DATA_SERVICE_TOKEN", "a" * 64)
+
+    s = Settings()
+    assert s.environment == "prod"
+    assert s.market_data_service_token == "a" * 64
+
+
+def test_market_provider_keys_required_in_prod(monkeypatch, tmp_path):
+    monkeypatch.chdir(tmp_path)
+    monkeypatch.setenv("ENVIRONMENT", "prod")
+    monkeypatch.setenv("SECRET_KEY", "a" * 32)
+    monkeypatch.setenv("STUB_EXTERNAL_API", "false")
+    monkeypatch.setenv("FMP_API_KEY", "")
+    monkeypatch.setenv("POLYGON_API_KEY", "")
+
+    with pytest.raises(ValidationError) as exc_info:
+        Settings()
+
+    message = str(exc_info.value)
+    assert "FMP_API_KEY must be set" in message
+    assert "POLYGON_API_KEY must be set" in message
+
+
+def test_fmp_key_required_in_prod(monkeypatch, tmp_path):
+    monkeypatch.chdir(tmp_path)
+    monkeypatch.setenv("ENVIRONMENT", "prod")
+    monkeypatch.setenv("SECRET_KEY", "a" * 32)
+    monkeypatch.setenv("STUB_EXTERNAL_API", "false")
+    monkeypatch.setenv("FMP_API_KEY", "   ")
+    monkeypatch.setenv("POLYGON_API_KEY", "polygon-key")
+
+    with pytest.raises(ValidationError, match="FMP_API_KEY must be set"):
+        Settings()
+
+
+def test_polygon_key_required_in_prod(monkeypatch, tmp_path):
+    monkeypatch.chdir(tmp_path)
+    monkeypatch.setenv("ENVIRONMENT", "prod")
+    monkeypatch.setenv("SECRET_KEY", "a" * 32)
+    monkeypatch.setenv("STUB_EXTERNAL_API", "false")
+    monkeypatch.setenv("FMP_API_KEY", "fmp-key")
+    monkeypatch.setenv("POLYGON_API_KEY", "")
+
+    with pytest.raises(ValidationError, match="POLYGON_API_KEY must be set"):
+        Settings()
+
+
+def test_market_provider_keys_allowed_empty_in_dev(monkeypatch, tmp_path):
+    monkeypatch.chdir(tmp_path)
+    monkeypatch.setenv("ENVIRONMENT", "dev")
+    monkeypatch.setenv("STUB_EXTERNAL_API", "false")
+    monkeypatch.setenv("FMP_API_KEY", "")
+    monkeypatch.setenv("POLYGON_API_KEY", "")
+
+    s = Settings()
+    assert s.environment == "dev"
+    assert s.fmp_api_key == ""
+
+
+def test_market_provider_keys_allowed_empty_in_test(monkeypatch, tmp_path):
+    monkeypatch.chdir(tmp_path)
+    monkeypatch.setenv("ENVIRONMENT", "test")
+    monkeypatch.setenv("STUB_EXTERNAL_API", "false")
+    monkeypatch.setenv("FMP_API_KEY", "")
+    monkeypatch.setenv("POLYGON_API_KEY", "")
+
+    s = Settings()
+    assert s.environment == "test"
+
+
+def test_market_provider_keys_bypassed_in_stub_mode(monkeypatch, tmp_path):
+    monkeypatch.chdir(tmp_path)
+    monkeypatch.setenv("ENVIRONMENT", "prod")
+    monkeypatch.setenv("SECRET_KEY", "a" * 32)
+    monkeypatch.setenv("STUB_EXTERNAL_API", "true")
+    monkeypatch.setenv("FMP_API_KEY", "")
+    monkeypatch.setenv("POLYGON_API_KEY", "")
+
+    s = Settings()
+    assert s.environment == "prod"
+    assert s.stub_external_api is True
+
+
+def test_market_provider_keys_valid_in_prod(monkeypatch, tmp_path):
+    monkeypatch.chdir(tmp_path)
+    monkeypatch.setenv("ENVIRONMENT", "prod")
+    monkeypatch.setenv("SECRET_KEY", "a" * 32)
+    monkeypatch.setenv("STUB_EXTERNAL_API", "false")
+    monkeypatch.setenv("FMP_API_KEY", "fmp-key")
+    monkeypatch.setenv("POLYGON_API_KEY", "polygon-key")
+
+    s = Settings()
+    assert s.fmp_api_key == "fmp-key"
+    assert s.polygon_api_key == "polygon-key"
+
+

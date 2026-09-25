@@ -3,8 +3,10 @@ import hashlib
 import json
 import logging
 from collections.abc import AsyncIterator, Sequence
-from datetime import date, datetime, timedelta
+from datetime import date, datetime
+from decimal import Decimal
 from typing import Any
+from uuid import UUID
 
 import redis.asyncio as aioredis
 from pydantic import BaseModel
@@ -368,3 +370,59 @@ class SecuritySearchCache:
 async def security_search_cache_factory() -> SecuritySearchCache:
     """Factory function to create security search cache instance."""
     return SecuritySearchCache(redis_manager=redis_manager)
+
+
+# --------------------------------------------------------------------------- #
+# Shared cache-key helpers.
+#
+# These are consumed by :mod:`src.market.endpoint_cache`, the single canonical
+# data-plane cache layer, so key canonicalization stays in one module.
+# --------------------------------------------------------------------------- #
+
+_NULL_SENTINEL: dict[str, bool] = {"null": True}
+
+
+def _normalize_query(value: str) -> str:
+    """Normalize a free-text query so equivalent inputs share a cache key."""
+    return " ".join(value.strip().lower().split())
+
+
+def _canonicalize_datetime(value: datetime) -> str:
+    """Keep the full timestamp for intraday windows.
+
+    Daily windows intentionally collapse ``date`` and ``datetime`` to a
+    calendar date (see :func:`_canonicalize`), but intraday requests carry a
+    materially different time range on the same day, so their key must keep
+    hour/minute precision to avoid serving the wrong window.
+    """
+    return value.isoformat()
+
+
+def _canonicalize(value: Any) -> Any:  # noqa: PLR0911
+    """Reduce a cache-key argument to a JSON-serializable primitive.
+
+    ``datetime`` is reduced to its calendar date (matching
+    ``IndicatorCache._normalize_window_bound``) so equivalent ``date`` and
+    ``datetime`` window bounds share a key.
+    """
+    if value is None:
+        return None
+    if isinstance(value, datetime):
+        return value.date().isoformat()
+    if isinstance(value, date):
+        return value.isoformat()
+    if isinstance(value, UUID):
+        return str(value)
+    if isinstance(value, Decimal):
+        # ``normalize`` drops insignificant trailing zeros so equivalent
+        # decimals (``Decimal("10.5")`` / ``Decimal("10.50")``) share a key.
+        return str(value.normalize())
+    if isinstance(value, BaseModel):
+        return value.model_dump(mode="json")
+    if isinstance(value, dict):
+        return {str(key): _canonicalize(item) for key, item in value.items()}
+    if isinstance(value, list | tuple):
+        return [_canonicalize(item) for item in value]
+    if isinstance(value, str | int | float | bool):
+        return value
+    return str(value)
