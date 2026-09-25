@@ -12,6 +12,7 @@ from __future__ import annotations
 from collections.abc import AsyncIterator
 from datetime import date
 from decimal import Decimal
+import threading
 from unittest.mock import MagicMock
 
 import pytest
@@ -731,6 +732,36 @@ async def test_fundamentals_forwards_exchange_to_gateway(
 
 
 @pytest.mark.anyio
+async def test_fundamentals_reads_issued_concurrently(
+    client: AsyncClient, mock_gateway: MagicMock
+) -> None:
+    barrier = threading.Barrier(3, timeout=5.0)
+
+    def side_effect_profile(*args: object, **kwargs: object) -> CompanyProfile:
+        barrier.wait()
+        return _company_profile()
+
+    def side_effect_metrics(*args: object, **kwargs: object) -> KeyMetrics:
+        barrier.wait()
+        return _key_metrics()
+
+    def side_effect_ratios(*args: object, **kwargs: object) -> FinancialRatios:
+        barrier.wait()
+        return _financial_ratios()
+
+    mock_gateway.get_company_profile.side_effect = side_effect_profile
+    mock_gateway.get_key_metrics.side_effect = side_effect_metrics
+    mock_gateway.get_financial_ratios.side_effect = side_effect_ratios
+
+    response = await client.get(_FUNDAMENTALS_URL, headers=_headers())
+
+    assert response.status_code == 200
+    mock_gateway.get_company_profile.assert_called_once()
+    mock_gateway.get_key_metrics.assert_called_once()
+    mock_gateway.get_financial_ratios.assert_called_once()
+
+
+@pytest.mark.anyio
 @pytest.mark.parametrize(
     ("statement", "method_name", "model", "field", "value"),
     [
@@ -909,6 +940,36 @@ async def test_fundamentals_provider_failure_is_generic(
     mock_gateway.get_income_statement.side_effect = side_effect
 
     response = await client.get(url, headers=_headers())
+
+    assert response.status_code == expected_status
+    detail = response.json()["detail"].lower()
+    assert "raw" not in detail
+    for provider in _PROVIDER_NAMES:
+        assert provider not in detail
+
+
+@pytest.mark.anyio
+@pytest.mark.parametrize(
+    "failing_method",
+    ["get_company_profile", "get_key_metrics", "get_financial_ratios"],
+)
+@pytest.mark.parametrize(
+    ("side_effect", "expected_status"),
+    [
+        (MarketDataProviderError("fmp provider raw failure"), 502),
+        (MarketDataConfigurationError("polygon missing api key"), 503),
+    ],
+)
+async def test_fundamentals_concurrent_partial_failure(
+    client: AsyncClient,
+    mock_gateway: MagicMock,
+    failing_method: str,
+    side_effect: Exception,
+    expected_status: int,
+) -> None:
+    getattr(mock_gateway, failing_method).side_effect = side_effect
+
+    response = await client.get(_FUNDAMENTALS_URL, headers=_headers())
 
     assert response.status_code == expected_status
     detail = response.json()["detail"].lower()
