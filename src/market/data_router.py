@@ -307,14 +307,22 @@ async def market_data_fundamentals(
 
     async def fetch() -> CompanyFundamentals:
         try:
-            profile = await asyncio.to_thread(
-                gateway.get_company_profile, normalized_symbol, exchange=exchange
-            )
-            key_metrics = await asyncio.to_thread(
-                gateway.get_key_metrics, normalized_symbol, exchange=exchange
-            )
-            ratios = await asyncio.to_thread(
-                gateway.get_financial_ratios, normalized_symbol, exchange=exchange
+            profile, key_metrics, ratios = await asyncio.gather(
+                asyncio.to_thread(
+                    gateway.get_company_profile,
+                    normalized_symbol,
+                    exchange=exchange,
+                ),
+                asyncio.to_thread(
+                    gateway.get_key_metrics,
+                    normalized_symbol,
+                    exchange=exchange,
+                ),
+                asyncio.to_thread(
+                    gateway.get_financial_ratios,
+                    normalized_symbol,
+                    exchange=exchange,
+                ),
             )
         except (
             MarketDataProviderError,
