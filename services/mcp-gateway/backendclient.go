@@ -251,7 +251,7 @@ func (c *BackendClient) Prices(
 	symbol string,
 	from, to time.Time,
 	exchange string,
-) (PriceHistory, error) {
+) (json.RawMessage, error) {
 	query := url.Values{}
 	query.Set("from", from.Format("2006-01-02"))
 	query.Set("to", to.Format("2006-01-02"))
@@ -259,9 +259,9 @@ func (c *BackendClient) Prices(
 		query.Set("exchange", exchange)
 	}
 
-	var out PriceHistory
+	var out json.RawMessage
 	if err := c.get(ctx, "/prices/"+url.PathEscape(normalizeSymbol(symbol)), query, &out); err != nil {
-		return PriceHistory{}, err
+		return nil, err
 	}
 	return out, nil
 }
@@ -269,11 +269,11 @@ func (c *BackendClient) Prices(
 // SymbolSearch looks up symbols/companies by free-text query.
 //
 // GET /api/v1/market/data/symbols/search?q=
-func (c *BackendClient) SymbolSearch(ctx context.Context, query string) ([]SymbolLookupResult, error) {
+func (c *BackendClient) SymbolSearch(ctx context.Context, query string) (json.RawMessage, error) {
 	values := url.Values{}
 	values.Set("q", query)
 
-	var out []SymbolLookupResult
+	var out json.RawMessage
 	if err := c.get(ctx, "/symbols/search", values, &out); err != nil {
 		return nil, err
 	}
@@ -289,7 +289,7 @@ func (c *BackendClient) OptionsChain(
 	expiry *time.Time,
 	optionType string,
 	strikeMin, strikeMax *float64,
-) (OptionsChain, error) {
+) (json.RawMessage, error) {
 	query := url.Values{}
 	if expiry != nil {
 		query.Set("expiry", expiry.Format("2006-01-02"))
@@ -304,9 +304,9 @@ func (c *BackendClient) OptionsChain(
 		query.Set("strike_max", formatFloat(*strikeMax))
 	}
 
-	var out OptionsChain
+	var out json.RawMessage
 	if err := c.get(ctx, "/options/"+url.PathEscape(normalizeSymbol(symbol)), query, &out); err != nil {
-		return OptionsChain{}, err
+		return nil, err
 	}
 	return out, nil
 }
@@ -317,15 +317,15 @@ func (c *BackendClient) OptionsChain(
 func (c *BackendClient) Fundamentals(
 	ctx context.Context,
 	symbol, exchange string,
-) (CompanyFundamentals, error) {
+) (json.RawMessage, error) {
 	query := url.Values{}
 	if exchange != "" {
 		query.Set("exchange", exchange)
 	}
 
-	var out CompanyFundamentals
+	var out json.RawMessage
 	if err := c.get(ctx, "/fundamentals/"+url.PathEscape(normalizeSymbol(symbol)), query, &out); err != nil {
-		return CompanyFundamentals{}, err
+		return nil, err
 	}
 	return out, nil
 }
@@ -517,38 +517,6 @@ func (d Decimal) MarshalJSON() ([]byte, error) {
 	return json.Marshal(string(d))
 }
 
-// PriceBar is one daily OHLC bar (schema.PriceBar).
-type PriceBar struct {
-	Date          string   `json:"date"`
-	Open          Decimal  `json:"open"`
-	High          Decimal  `json:"high"`
-	Low           Decimal  `json:"low"`
-	Close         Decimal  `json:"close"`
-	Volume        int64    `json:"volume"`
-	AdjustedClose *Decimal `json:"adjusted_close,omitempty"`
-}
-
-// PriceHistory is the unified daily price-history response
-// (schema.PriceHistoryResponse).
-type PriceHistory struct {
-	Symbol   string     `json:"symbol"`
-	Exchange *string    `json:"exchange,omitempty"`
-	FromDate string     `json:"from_date"`
-	ToDate   string     `json:"to_date"`
-	Items    []PriceBar `json:"items"`
-}
-
-// SymbolLookupResult is one symbol-search hit (api_types.SymbolLookupResult).
-type SymbolLookupResult struct {
-	Symbol            string  `json:"symbol"`
-	Name              string  `json:"name"`
-	Exchange          *string `json:"exchange,omitempty"`
-	ExchangeShortName *string `json:"exchange_short_name,omitempty"`
-	Currency          *string `json:"currency,omitempty"`
-	SecurityType      *string `json:"security_type,omitempty"`
-	Country           *string `json:"country,omitempty"`
-}
-
 // CompanyProfile is the company-details object (api_types.CompanyProfile).
 type CompanyProfile struct {
 	Symbol            string   `json:"symbol"`
@@ -621,52 +589,6 @@ type CompanyFundamentals struct {
 	Profile    CompanyProfile  `json:"profile"`
 	KeyMetrics KeyMetrics      `json:"key_metrics"`
 	Ratios     FinancialRatios `json:"ratios"`
-}
-
-// OptionsContract is an options contract reference (api_types.OptionsContract).
-type OptionsContract struct {
-	ContractTicker    string  `json:"contract_ticker"`
-	Symbol            string  `json:"symbol"`
-	StrikePrice       Decimal `json:"strike_price"`
-	ExpirationDate    string  `json:"expiration_date"`
-	ContractType      string  `json:"contract_type"`
-	SharesPerContract int64   `json:"shares_per_contract"`
-	PrimaryExchange   *string `json:"primary_exchange,omitempty"`
-	Active            bool    `json:"active"`
-}
-
-// OptionsGreeks is the greeks object (api_types.OptionsGreeks).
-type OptionsGreeks struct {
-	Delta *Decimal `json:"delta,omitempty"`
-	Gamma *Decimal `json:"gamma,omitempty"`
-	Theta *Decimal `json:"theta,omitempty"`
-	Vega  *Decimal `json:"vega,omitempty"`
-	Rho   *Decimal `json:"rho,omitempty"`
-}
-
-// OptionsQuote is the per-contract snapshot (api_types.OptionsQuote).
-type OptionsQuote struct {
-	ImpliedVolatility *Decimal       `json:"implied_volatility,omitempty"`
-	OpenInterest      *Decimal       `json:"open_interest,omitempty"`
-	DayVolume         *int64         `json:"day_volume,omitempty"`
-	DayOpen           *Decimal       `json:"day_open,omitempty"`
-	DayHigh           *Decimal       `json:"day_high,omitempty"`
-	DayLow            *Decimal       `json:"day_low,omitempty"`
-	DayClose          *Decimal       `json:"day_close,omitempty"`
-	Greeks            *OptionsGreeks `json:"greeks,omitempty"`
-}
-
-// OptionsChainEntry pairs a contract with its snapshot (api_types.OptionsChainEntry).
-type OptionsChainEntry struct {
-	Contract OptionsContract `json:"contract"`
-	Quote    OptionsQuote    `json:"quote"`
-}
-
-// OptionsChain is the options-chain aggregate (api_types.OptionsChain).
-type OptionsChain struct {
-	UnderlyingSymbol string              `json:"underlying_symbol"`
-	AsOf             *string             `json:"as_of,omitempty"`
-	Contracts        []OptionsChainEntry `json:"contracts"`
 }
 
 // Statement literal values accepted by the backend statements route
@@ -757,10 +679,8 @@ type CashFlowStatement struct {
 //
 // The backend statements route returns a bare list whose item type is a union
 // (income / balance / cashflow); the body is therefore fetched as json.RawMessage
-// and decoded strictly here. Decoding rejects unknown fields so a payload for
-// one statement type cannot silently decode as another (a balance sheet carries
-// keys the income struct does not define), and every item must carry the
-// required date and symbol header fields.
+// and decoded here. Unknown fields are ignored so new backend fields do not break
+// decoding, and every item must carry the required date and symbol header fields.
 //
 // A decode failure is a plain error: the tool layer maps it onto the generic
 // provider-failure result, so a cache-hit shape change is never reported as
@@ -805,11 +725,10 @@ func decodeStatementList(raw json.RawMessage, statement string) (any, error) {
 	}
 }
 
-// decodeStatementItems strictly decodes a statement list, rejecting unknown
-// fields. A JSON null body decodes to an empty list.
+// decodeStatementItems decodes a statement list, ignoring unknown fields.
+// A JSON null body decodes to an empty list.
 func decodeStatementItems(raw json.RawMessage, out any) error {
 	decoder := json.NewDecoder(strings.NewReader(string(raw)))
-	decoder.DisallowUnknownFields()
 	if err := decoder.Decode(out); err != nil {
 		return fmt.Errorf("decoding statement list: %w", err)
 	}

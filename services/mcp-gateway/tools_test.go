@@ -171,7 +171,12 @@ func TestToolsCallBackendAndReturnData(t *testing.T) {
 				"from": "2026-01-01", "to": "2026-01-31", "exchange": "nasdaq",
 			},
 			assert: func(t *testing.T, raw string) {
-				var got PriceHistory
+				var got struct {
+					Symbol string `json:"symbol"`
+					Items  []struct {
+						Close Decimal `json:"close"`
+					} `json:"items"`
+				}
 				if err := json.Unmarshal([]byte(raw), &got); err != nil {
 					t.Fatalf("decode PriceHistory: %v", err)
 				}
@@ -216,7 +221,10 @@ func TestToolsCallBackendAndReturnData(t *testing.T) {
 				"expiry": "2026-01-16", "option_type": "call", "strike_min": "100", "strike_max": "200",
 			},
 			assert: func(t *testing.T, raw string) {
-				var got OptionsChain
+				var got struct {
+					UnderlyingSymbol string `json:"underlying_symbol"`
+					Contracts        []any  `json:"contracts"`
+				}
 				if err := json.Unmarshal([]byte(raw), &got); err != nil {
 					t.Fatalf("decode OptionsChain: %v", err)
 				}
@@ -347,11 +355,11 @@ func TestToolsCallBackendAndReturnData(t *testing.T) {
 			wantPath:  "/api/v1/market/data/symbols/search",
 			wantQuery: map[string]string{"q": "apple"},
 			assert: func(t *testing.T, raw string) {
-				var got []SymbolLookupResult
+				var got []map[string]any
 				if err := json.Unmarshal([]byte(raw), &got); err != nil {
 					t.Fatalf("decode search results: %v", err)
 				}
-				if len(got) != 1 || got[0].Symbol != "AAPL" {
+				if len(got) != 1 || got[0]["symbol"] != "AAPL" {
 					t.Errorf("payload = %+v", got)
 				}
 			},
@@ -438,9 +446,9 @@ func TestToolsMapBackendErrors(t *testing.T) {
 }
 
 func TestStatementToolDecodeFailureIsProviderError(t *testing.T) {
-	// A balance-sheet payload served on the income path must not be reshaped
-	// into income items: it is surfaced as a generic tool error, never "no data".
-	backend, _ := newStubBackend(t, http.StatusOK, balanceSheetFixture)
+	// A payload missing required header fields served on the statement path
+	// cannot be decoded: it is surfaced as a generic tool error, never "no data".
+	backend, _ := newStubBackend(t, http.StatusOK, `[{"revenue":"1"}]`)
 	session := newTestSession(t, backend.URL)
 
 	result := callTool(t, session, "get_income_statement", map[string]any{"symbol": "AAPL"})
@@ -598,8 +606,7 @@ func TestToolsRejectMissingRequiredInputAtSDK(t *testing.T) {
 }
 
 // Full statement fixtures: every key equals exactly the corresponding Go
-// struct's JSON field set (T09 carry-over). The strict decoder rejects any
-// extra key, so a cross-statement payload cannot silently decode.
+// struct's JSON field set (T09 carry-over).
 const (
 	incomeStatementFixture = `[{
 		"date": "2024-09-28", "symbol": "AAPL", "reported_currency": "USD", "cik": "0000320193",
@@ -668,12 +675,18 @@ func TestDecodeStatementListFieldSetContract(t *testing.T) {
 		}
 	})
 
-	t.Run("cross-statement payload fails", func(t *testing.T) {
-		if _, err := decodeStatementList([]byte(balanceSheetFixture), statementIncome); err == nil {
-			t.Error("balance fixture decoded as income, want error")
+	t.Run("tolerates unknown fields", func(t *testing.T) {
+		raw := `[{"date": "2024-09-28", "symbol": "AAPL", "custom_line_item": "100"}]`
+		items, err := decodeStatementList([]byte(raw), statementIncome)
+		if err != nil {
+			t.Fatalf("decodeStatementList failed on unknown field: %v", err)
 		}
-		if _, err := decodeStatementList([]byte(incomeStatementFixture), statementBalance); err == nil {
-			t.Error("income fixture decoded as balance, want error")
+		incomeItems, ok := items.([]IncomeStatement)
+		if !ok || len(incomeItems) != 1 {
+			t.Fatalf("unexpected items: %+v", items)
+		}
+		if incomeItems[0].Date != "2024-09-28" || incomeItems[0].Symbol != "AAPL" {
+			t.Errorf("decoded item = %+v", incomeItems[0])
 		}
 	})
 
