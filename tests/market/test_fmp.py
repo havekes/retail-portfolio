@@ -123,7 +123,8 @@ _PLR0911 = ""
 
 def test_get_prices_parses_mocked_payload():
     def handler(request: httpx.Request) -> httpx.Response:
-        assert request.url.path == "/api/v3/historical-price-full/AAPL"
+        assert request.url.path == "/stable/historical-price-eod/full"
+        assert request.url.params["symbol"] == "AAPL"
         assert request.url.params["from"] == "2024-01-04"
         assert request.url.params["to"] == "2024-01-05"
         assert request.url.params["apikey"] == "test-key"
@@ -178,6 +179,7 @@ def test_get_prices_maps_non_us_ticker():
 
     def handler(request: httpx.Request) -> httpx.Response:
         captured["path"] = request.url.path
+        captured["symbol"] = request.url.params.get("symbol", "")
         return httpx.Response(200, json={"historical": []})
 
     gateway = _gateway(handler)
@@ -190,12 +192,13 @@ def test_get_prices_maps_non_us_ticker():
             to_date=date(2024, 1, 5),
         )
 
-    assert captured["path"] == "/api/v3/historical-price-full/RY.TO"
+    assert captured["path"] == "/stable/historical-price-eod/full"
+    assert captured["symbol"] == "RY.TO"
 
 
 def test_search_maps_to_symbol_lookup_results():
     def handler(request: httpx.Request) -> httpx.Response:
-        assert request.url.path == "/api/v3/symbol-search"
+        assert request.url.path in ("/stable/search-symbol", "/stable/search-name")
         assert request.url.params["query"] == "apple"
         return httpx.Response(
             200,
@@ -345,7 +348,7 @@ def test_fmp_http_client_appends_api_key_and_raises_on_non_2xx():
         base_url="https://fmp.test",
         client=_client(httpx.MockTransport(handler)),
     )
-    assert client.get_json("api/v3/profile/AAPL") == {"ok": True}
+    assert client.get_json("stable/profile", {"symbol": "AAPL"}) == {"ok": True}
     assert seen["apikey"] == "abc"
 
 
@@ -732,7 +735,8 @@ _RATIOS_PAYLOAD: list[dict[str, Any]] = [
 
 def test_get_company_profile_parses_mocked_payload():
     def handler(request: httpx.Request) -> httpx.Response:
-        assert request.url.path == "/api/v3/profile/AAPL"
+        assert request.url.path == "/stable/profile"
+        assert request.url.params["symbol"] == "AAPL"
         assert request.url.params["apikey"] == "test-key"
         return httpx.Response(200, json=_PROFILE_PAYLOAD)
 
@@ -762,7 +766,8 @@ def test_get_company_profile_parses_mocked_payload():
 
 def test_get_income_statement_parses_mocked_payload():
     def handler(request: httpx.Request) -> httpx.Response:
-        assert request.url.path == "/api/v3/income-statement/AAPL"
+        assert request.url.path == "/stable/income-statement"
+        assert request.url.params["symbol"] == "AAPL"
         assert request.url.params["period"] == "annual"
         assert request.url.params["limit"] == "5"
         return httpx.Response(200, json=_INCOME_PAYLOAD)
@@ -800,7 +805,8 @@ def test_get_income_statement_parses_mocked_payload():
 
 def test_get_balance_sheet_parses_mocked_payload():
     def handler(request: httpx.Request) -> httpx.Response:
-        assert request.url.path == "/api/v3/balance-sheet-statement/AAPL"
+        assert request.url.path == "/stable/balance-sheet-statement"
+        assert request.url.params["symbol"] == "AAPL"
         assert request.url.params["period"] == "annual"
         assert request.url.params["limit"] == "5"
         return httpx.Response(200, json=_BALANCE_PAYLOAD)
@@ -834,7 +840,8 @@ def test_get_balance_sheet_parses_mocked_payload():
 
 def test_get_cash_flow_statement_parses_mocked_payload():
     def handler(request: httpx.Request) -> httpx.Response:
-        assert request.url.path == "/api/v3/cash-flow-statement/AAPL"
+        assert request.url.path == "/stable/cash-flow-statement"
+        assert request.url.params["symbol"] == "AAPL"
         assert request.url.params["period"] == "annual"
         assert request.url.params["limit"] == "5"
         return httpx.Response(200, json=_CASH_FLOW_PAYLOAD)
@@ -863,7 +870,8 @@ def test_get_cash_flow_statement_parses_mocked_payload():
 
 def test_get_key_metrics_parses_mocked_payload():
     def handler(request: httpx.Request) -> httpx.Response:
-        assert request.url.path == "/api/v3/key-metrics/AAPL"
+        assert request.url.path == "/stable/key-metrics"
+        assert request.url.params["symbol"] == "AAPL"
         return httpx.Response(200, json=_METRICS_PAYLOAD)
 
     metrics = _gateway(handler).get_key_metrics("AAPL")
@@ -891,7 +899,8 @@ def test_get_key_metrics_parses_mocked_payload():
 
 def test_get_financial_ratios_parses_mocked_payload():
     def handler(request: httpx.Request) -> httpx.Response:
-        assert request.url.path == "/api/v3/ratios/AAPL"
+        assert request.url.path == "/stable/ratios"
+        assert request.url.params["symbol"] == "AAPL"
         assert request.url.params["period"] == "annual"
         return httpx.Response(200, json=_RATIOS_PAYLOAD)
 
