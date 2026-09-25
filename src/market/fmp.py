@@ -20,6 +20,7 @@ Error translation is provider-agnostic: upstream not-found becomes
 import logging
 from datetime import date, datetime
 from decimal import Decimal, InvalidOperation
+from typing import Any
 
 import httpx
 
@@ -77,6 +78,7 @@ _CONFIGURATION_ERROR_TOKENS = (
     "limit rate",
     "limit reach",
     "requests count exceeds",
+    "legacy endpoint",
 )
 
 
@@ -305,8 +307,12 @@ class FmpGateway(MarketGateway):
     ) -> object:
         """Fetch the raw historical payload, translating upstream failures."""
         ticker = map_to_fmp_ticker(symbol, exchange)
-        params = {"from": from_date.isoformat(), "to": to_date.isoformat()}
-        return self._get_json(f"api/v3/historical-price-full/{ticker}", params)
+        params = {
+            "symbol": ticker,
+            "from": from_date.isoformat(),
+            "to": to_date.isoformat(),
+        }
+        return self._get_json("stable/historical-price-eod/full", params)
 
     def _raise_for_error_payload(
         self, payload: object, symbol: str, exchange: str
@@ -343,9 +349,13 @@ class FmpGateway(MarketGateway):
         """Translate an FMP historical payload into provider-agnostic prices."""
         self._raise_for_error_payload(payload, symbol, exchange)
 
-        rows: object = payload.get("historical") if isinstance(payload, dict) else None
+        rows: object = (
+            payload
+            if isinstance(payload, list)
+            else (payload.get("historical") if isinstance(payload, dict) else None)
+        )
         if not isinstance(rows, list) or not rows:
-            error_symbol = f"{symbol}.{exchange}"
+            error_symbol = f"{symbol}.{exchange}" if exchange else symbol
             raise MarketDataNotFoundError(error_symbol, detail=_NOT_FOUND_DETAIL)
 
         prices: list[HistoricalPrice] = []
@@ -353,6 +363,7 @@ class FmpGateway(MarketGateway):
             if not isinstance(row, dict):
                 continue
             try:
+                adj_close = _pick(row, "adjClose", "close")
                 prices.append(
                     HistoricalPrice(
                         security_id=security_id,
@@ -361,7 +372,7 @@ class FmpGateway(MarketGateway):
                         high=Decimal(str(row["high"])),
                         low=Decimal(str(row["low"])),
                         close=Decimal(str(row["close"])),
-                        adjusted_close=Decimal(str(row["adjClose"])),
+                        adjusted_close=Decimal(str(adj_close)),
                         volume=int(row["volume"]),
                     )
                 )
@@ -410,9 +421,30 @@ class FmpGateway(MarketGateway):
         payload = self._fetch_historical(symbol, exchange, from_date, to_date)
         return self._parse_historical(payload, security_id, symbol, exchange)
 
+    def _fetch_search(self, query: str) -> list[dict[str, Any]]:
+        """Fetch search results from FMP stable search-symbol and search-name endpoints.
+
+        FMP's stable API splits symbol lookup into ``search-symbol``
+        (ticker matches) and ``search-name`` (company name matches). Querying
+        ``search-symbol`` first, and falling back to ``search-name`` if no
+        matches are found, covers both ticker and company-name searches.
+        """
+        payload = self._get_json("stable/search-symbol", {"query": query})
+        self._raise_for_error_payload(payload, query, "")
+        results = (
+            [item for item in payload if isinstance(item, dict)]
+            if isinstance(payload, list)
+            else []
+        )
+        if not results:
+            fallback = self._get_json("stable/search-name", {"query": query})
+            self._raise_for_error_payload(fallback, query, "")
+            if isinstance(fallback, list):
+                results = [item for item in fallback if isinstance(item, dict)]
+        return results
+
     def search(self, query: str) -> list[SecuritySearchResult]:
-        payload = self._get_json("api/v3/symbol-search", {"query": query})
-        results = payload if isinstance(payload, list) else []
+        results = self._fetch_search(query)
         return [
             SecuritySearchResult(
                 code=result.get("symbol") or "",
@@ -426,7 +458,6 @@ class FmpGateway(MarketGateway):
                 country=result.get("country") or "",
             )
             for result in results
-            if isinstance(result, dict)
         ]
 
     def lookup_symbol(self, query: str) -> list[SymbolLookupResult]:
@@ -437,12 +468,9 @@ class FmpGateway(MarketGateway):
         not fail the whole lookup (mirrors the tolerating-missing-fields
         convention used by ``search``).
         """
-        payload = self._get_json("api/v3/symbol-search", {"query": query})
-        results = payload if isinstance(payload, list) else []
+        results = self._fetch_search(query)
         lookups: list[SymbolLookupResult] = []
         for result in results:
-            if not isinstance(result, dict):
-                continue
             symbol = _to_str(result.get("symbol"))
             if symbol is None:
                 continue
@@ -451,7 +479,9 @@ class FmpGateway(MarketGateway):
                     symbol=symbol,
                     name=result.get("name") or "",
                     exchange=result.get("exchange"),
-                    exchange_short_name=result.get("exchangeShortName"),
+                    exchange_short_name=_to_str(
+                        _pick(result, "exchangeShortName", "exchange")
+                    ),
                     currency=result.get("currency"),
                     security_type=result.get("type"),
                     country=result.get("country"),
@@ -472,7 +502,7 @@ class FmpGateway(MarketGateway):
 
     def _fetch_company_profile(self, symbol: str, exchange: str | None) -> object:
         ticker = map_to_fmp_ticker(symbol, exchange or "")
-        return self._get_json(f"api/v3/profile/{ticker}")
+        return self._get_json("stable/profile", {"symbol": ticker})
 
     def _parse_company_profile(self, payload: object, symbol: str) -> CompanyProfile:
         self._raise_for_error_payload(payload, symbol, "")
@@ -491,7 +521,7 @@ class FmpGateway(MarketGateway):
             description=_to_str(row.get("description")),
             ceo=_to_str(row.get("ceo")),
             full_time_employees=_to_int(row.get("fullTimeEmployees")),
-            exchange_short_name=_to_str(row.get("exchangeShortName")),
+            exchange_short_name=_to_str(_pick(row, "exchangeShortName", "exchange")),
             exchange=_to_str(row.get("exchange")),
             currency=_to_str(row.get("currency")),
             ipo_date=_to_date(row.get("ipoDate")),
@@ -518,8 +548,8 @@ class FmpGateway(MarketGateway):
         exchange: str | None,
     ) -> object:
         ticker = map_to_fmp_ticker(symbol, exchange or "")
-        params = {"period": period, "limit": str(limit)}
-        return self._get_json(f"api/v3/income-statement/{ticker}", params)
+        params = {"symbol": ticker, "period": period, "limit": str(limit)}
+        return self._get_json("stable/income-statement", params)
 
     def _parse_income_statement(
         self, payload: object, symbol: str
@@ -538,7 +568,7 @@ class FmpGateway(MarketGateway):
                     symbol=_to_str(row.get("symbol")) or symbol,
                     reported_currency=_to_str(row.get("reportedCurrency")),
                     cik=_to_str(row.get("cik")),
-                    filling_date=_to_date(row.get("fillingDate")),
+                    filling_date=_to_date(_pick(row, "fillingDate", "filingDate")),
                     accepted_date=_to_datetime(row.get("acceptedDate")),
                     fiscal_year=_to_str(_pick(row, "fiscalYear", "calendarYear")),
                     period=_to_str(row.get("period")),
@@ -603,8 +633,8 @@ class FmpGateway(MarketGateway):
         exchange: str | None,
     ) -> object:
         ticker = map_to_fmp_ticker(symbol, exchange or "")
-        params = {"period": period, "limit": str(limit)}
-        return self._get_json(f"api/v3/balance-sheet-statement/{ticker}", params)
+        params = {"symbol": ticker, "period": period, "limit": str(limit)}
+        return self._get_json("stable/balance-sheet-statement", params)
 
     def _parse_balance_sheet(self, payload: object, symbol: str) -> list[BalanceSheet]:
         self._raise_for_error_payload(payload, symbol, "")
@@ -673,8 +703,8 @@ class FmpGateway(MarketGateway):
         exchange: str | None,
     ) -> object:
         ticker = map_to_fmp_ticker(symbol, exchange or "")
-        params = {"period": period, "limit": str(limit)}
-        return self._get_json(f"api/v3/cash-flow-statement/{ticker}", params)
+        params = {"symbol": ticker, "period": period, "limit": str(limit)}
+        return self._get_json("stable/cash-flow-statement", params)
 
     def _parse_cash_flow_statement(
         self, payload: object, symbol: str
@@ -720,7 +750,14 @@ class FmpGateway(MarketGateway):
                     ),
                     capital_expenditure=_to_decimal(row.get("capitalExpenditure")),
                     free_cash_flow=_to_decimal(row.get("freeCashFlow")),
-                    dividends_paid=_to_decimal(row.get("dividendsPaid")),
+                    dividends_paid=_to_decimal(
+                        _pick(
+                            row,
+                            "dividendsPaid",
+                            "netDividendsPaid",
+                            "commonDividendsPaid",
+                        )
+                    ),
                     stock_based_compensation=_to_decimal(
                         row.get("stockBasedCompensation")
                     ),
@@ -749,7 +786,7 @@ class FmpGateway(MarketGateway):
 
     def _fetch_key_metrics(self, symbol: str, exchange: str | None) -> object:
         ticker = map_to_fmp_ticker(symbol, exchange or "")
-        return self._get_json(f"api/v3/key-metrics/{ticker}")
+        return self._get_json("stable/key-metrics", {"symbol": ticker, "limit": "1"})
 
     def _parse_key_metrics(self, payload: object, symbol: str) -> KeyMetrics:
         self._raise_for_error_payload(payload, symbol, "")
@@ -764,19 +801,23 @@ class FmpGateway(MarketGateway):
             period=_to_str(row.get("period")),
             market_cap=_to_decimal(row.get("marketCap")),
             enterprise_value=_to_decimal(row.get("enterpriseValue")),
-            pe_ratio=_to_decimal(row.get("peRatio")),
-            peg_ratio=_to_decimal(row.get("pegRatio")),
+            pe_ratio=_to_decimal(_pick(row, "peRatio", "priceToEarningsRatio")),
+            peg_ratio=_to_decimal(_pick(row, "pegRatio", "priceToEarningsGrowthRatio")),
             price_to_sales_ratio=_to_decimal(row.get("priceToSalesRatio")),
             price_to_book_ratio=_to_decimal(row.get("priceToBookRatio")),
             enterprise_value_over_ebitda=_to_decimal(
                 row.get("enterpriseValueOverEBITDA")
             ),
             ev_to_sales=_to_decimal(row.get("evToSales")),
-            dividend_yield=_to_decimal(row.get("dividendYield")),
-            payout_ratio=_to_decimal(row.get("payoutRatio")),
+            dividend_yield=_to_decimal(
+                _pick(row, "dividendYield", "dividendYieldPercentage")
+            ),
+            payout_ratio=_to_decimal(_pick(row, "payoutRatio", "dividendPayoutRatio")),
             current_ratio=_to_decimal(row.get("currentRatio")),
             quick_ratio=_to_decimal(row.get("quickRatio")),
-            debt_to_equity=_to_decimal(_pick(row, "debtToEquity", "debtEquityRatio")),
+            debt_to_equity=_to_decimal(
+                _pick(row, "debtToEquity", "debtEquityRatio", "debtToEquityRatio")
+            ),
             working_capital=_to_decimal(row.get("workingCapital")),
         )
 
@@ -796,7 +837,9 @@ class FmpGateway(MarketGateway):
         exchange: str | None,
     ) -> object:
         ticker = map_to_fmp_ticker(symbol, exchange or "")
-        return self._get_json(f"api/v3/ratios/{ticker}", {"period": period})
+        return self._get_json(
+            "stable/ratios", {"symbol": ticker, "period": period, "limit": "1"}
+        )
 
     def _parse_financial_ratios(self, payload: object, symbol: str) -> FinancialRatios:
         self._raise_for_error_payload(payload, symbol, "")
@@ -815,13 +858,21 @@ class FmpGateway(MarketGateway):
             return_on_assets=_to_decimal(row.get("returnOnAssets")),
             return_on_equity=_to_decimal(row.get("returnOnEquity")),
             return_on_capital_employed=_to_decimal(row.get("returnOnCapitalEmployed")),
-            interest_coverage=_to_decimal(row.get("interestCoverage")),
+            interest_coverage=_to_decimal(
+                _pick(row, "interestCoverage", "interestCoverageRatio")
+            ),
             quick_ratio=_to_decimal(row.get("quickRatio")),
             current_ratio=_to_decimal(row.get("currentRatio")),
-            debt_to_equity=_to_decimal(_pick(row, "debtToEquity", "debtEquityRatio")),
-            price_earnings_ratio=_to_decimal(row.get("priceEarningsRatio")),
+            debt_to_equity=_to_decimal(
+                _pick(row, "debtToEquity", "debtEquityRatio", "debtToEquityRatio")
+            ),
+            price_earnings_ratio=_to_decimal(
+                _pick(row, "priceEarningsRatio", "priceToEarningsRatio")
+            ),
             book_value_per_share=_to_decimal(row.get("bookValuePerShare")),
-            dividend_yield=_to_decimal(row.get("dividendYield")),
+            dividend_yield=_to_decimal(
+                _pick(row, "dividendYield", "dividendYieldPercentage")
+            ),
         )
 
     def get_financial_ratios(
