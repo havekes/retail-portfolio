@@ -48,6 +48,7 @@
 				// prefetches are fire-and-forget: nothing render-related awaits
 				// them, so the current page still paints and stays interactive
 				// first. Ordering matches the 1-9/0 shortcuts below.
+				prefetchUrl('/portfolios');
 				prefetchUrl('/watchlists');
 				prefetchUrl('/holdings');
 				for (const security of watchlistService.defaultWatchlistSecurities.slice(0, 10)) {
@@ -98,6 +99,13 @@
 		if (e.key === '/') {
 			e.preventDefault();
 			globalSearchOpen = !globalSearchOpen;
+			return;
+		}
+
+		if (e.key === 'p' || e.key === 'P') {
+			e.preventDefault();
+			prefetchUrl('/portfolios');
+			void goto(resolve('/portfolios'));
 			return;
 		}
 

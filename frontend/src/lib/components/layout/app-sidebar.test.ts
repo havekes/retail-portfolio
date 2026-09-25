@@ -176,13 +176,17 @@ describe('AppSidebar Modular Components', () => {
 			expect(onToggleSearch).toHaveBeenCalledTimes(1);
 		});
 
-		it('shows keyboard shortcut hints for Watchlists and Holdings', () => {
+		it('shows keyboard shortcut hints for Portfolios, Watchlists, and Holdings', () => {
 			render(AppSidebarTestHarness, {
 				props: {
 					open: true,
 					securities: mockSecurities
 				}
 			});
+
+			const portfoliosLink = screen.getByRole('link', { name: /portfolios/i });
+			expect(portfoliosLink).toHaveTextContent('p');
+			expect(portfoliosLink).toHaveAttribute('href', '/portfolios');
 
 			const watchlistsLink = screen.getByRole('link', { name: /watchlists/i });
 			expect(watchlistsLink).toHaveTextContent('w');

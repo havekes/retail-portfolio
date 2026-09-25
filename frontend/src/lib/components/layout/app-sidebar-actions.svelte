@@ -4,6 +4,7 @@
 	import Search from '@lucide/svelte/icons/search';
 	import List from '@lucide/svelte/icons/list';
 	import ChartPie from '@lucide/svelte/icons/chart-pie';
+	import Briefcase from '@lucide/svelte/icons/briefcase';
 	import { resolve } from '$app/paths';
 	import { getContext } from 'svelte';
 
@@ -20,6 +21,19 @@
 				<Kbd.Group class="ml-auto group-data-[collapsible=icon]:hidden">
 					<Kbd.Root>/</Kbd.Root>
 				</Kbd.Group>
+			</Sidebar.MenuButton>
+		</Sidebar.MenuItem>
+		<Sidebar.MenuItem>
+			<Sidebar.MenuButton tooltipContent="Portfolios (p)">
+				{#snippet child({ props })}
+					<a href={resolve('/portfolios')} {...props}>
+						<Briefcase class="h-4 w-4 shrink-0" />
+						<span class="text-base">Portfolios</span>
+						<Kbd.Group class="ml-auto group-data-[collapsible=icon]:hidden">
+							<Kbd.Root>p</Kbd.Root>
+						</Kbd.Group>
+					</a>
+				{/snippet}
 			</Sidebar.MenuButton>
 		</Sidebar.MenuItem>
 		<Sidebar.MenuItem>

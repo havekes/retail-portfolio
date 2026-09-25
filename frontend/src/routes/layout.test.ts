@@ -182,8 +182,11 @@ describe('Root +layout.svelte', () => {
 			expect(screen.getByPlaceholderText('Search for a company or symbol...')).toBeInTheDocument();
 		});
 
-		it('navigates to watchlists on "w" and holdings on "h"', async () => {
+		it('navigates to portfolios on "p", watchlists on "w", and holdings on "h"', async () => {
 			const content = renderLayout();
+
+			await pressKey(content, 'p');
+			expect(goto).toHaveBeenCalledWith('/portfolios');
 
 			await pressKey(content, 'w');
 			expect(goto).toHaveBeenCalledWith('/watchlists');
@@ -285,9 +288,10 @@ describe('Root +layout.svelte', () => {
 			renderLayout();
 			capturedWatchlistService!.defaultWatchlistSecurities = securities(11);
 
-			await waitFor(() => expect(preloadData).toHaveBeenCalledTimes(12));
+			await waitFor(() => expect(preloadData).toHaveBeenCalledTimes(13));
 
 			expect(vi.mocked(preloadData).mock.calls.map(([url]) => url)).toEqual([
+				'/portfolios',
 				'/watchlists',
 				'/holdings',
 				...securities(10).map((security) => `/security/${security.id}`)

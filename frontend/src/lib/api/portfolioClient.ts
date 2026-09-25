@@ -2,8 +2,15 @@ import { ApiClient } from './apiClient';
 import type { Portfolio, PortfolioCreatePayload } from '@/types/portfolio';
 
 export class PortfolioClient extends ApiClient {
-	async createPortfolio(payload: PortfolioCreatePayload): Promise<Portfolio> {
-		return this.post<Portfolio, PortfolioCreatePayload>('/portfolios/', payload);
+	async getPortfolios(token?: string | null): Promise<Portfolio[]> {
+		return this.get<Portfolio[]>('/portfolios/', {}, token);
+	}
+
+	async createPortfolio(
+		payload: PortfolioCreatePayload,
+		token?: string | null
+	): Promise<Portfolio> {
+		return this.post<Portfolio, PortfolioCreatePayload>('/portfolios/', payload, undefined, token);
 	}
 }
 
