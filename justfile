@@ -15,9 +15,17 @@ test-backend:
 test-frontend:
     @./scripts/agent-test frontend
 
-# Full regression for both ecosystems.
-test-all:
-    @./scripts/agent-test --all
+# Indicator service regression (Go).
+test-indicator-service:
+    @cd services/indicator-service && go test ./...
+
+# MCP gateway regression (Go).
+test-mcp-gateway:
+    @cd services/mcp-gateway && go test ./...
+
+# Full regression across all ecosystems (parallel).
+[parallel]
+test-all: test-backend test-frontend test-indicator-service test-mcp-gateway
 
 # Lint + type checks only (Gate 0) for auto-detected ecosystems.
 check:
