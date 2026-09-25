@@ -1,0 +1,2325 @@
+{
+  "components": {
+    "schemas": {
+      "BalanceSheet": {
+        "description": "Balance sheet for a reporting period.\n\nMirrors the ``/balance-sheet-statement/`` endpoint. Header fields\n(``date``, ``symbol``, ``reportedCurrency``, ``cik``, ``fiscalYear``,\n``period``) plus ``totalAssets``, ``currentAssets``, ``totalLiabilities``,\n``currentLiabilities``, ``totalDebt``, ``cashAndCashEquivalents``,\n``inventory``, ``receivables``, ``payables``, ``goodwill``,\n``retainedEarnings``, ``totalEquity``, ``commonStock``, ``netDebt``.",
+        "properties": {
+          "cash_and_cash_equivalents": {
+            "anyOf": [
+              {
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Cash And Cash Equivalents"
+          },
+          "cik": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Cik"
+          },
+          "common_stock": {
+            "anyOf": [
+              {
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Common Stock"
+          },
+          "current_assets": {
+            "anyOf": [
+              {
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Current Assets"
+          },
+          "current_liabilities": {
+            "anyOf": [
+              {
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Current Liabilities"
+          },
+          "date": {
+            "format": "date",
+            "title": "Date",
+            "type": "string"
+          },
+          "fiscal_year": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Fiscal Year"
+          },
+          "goodwill": {
+            "anyOf": [
+              {
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Goodwill"
+          },
+          "inventory": {
+            "anyOf": [
+              {
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Inventory"
+          },
+          "net_debt": {
+            "anyOf": [
+              {
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Net Debt"
+          },
+          "payables": {
+            "anyOf": [
+              {
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Payables"
+          },
+          "period": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Period"
+          },
+          "receivables": {
+            "anyOf": [
+              {
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Receivables"
+          },
+          "reported_currency": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reported Currency"
+          },
+          "retained_earnings": {
+            "anyOf": [
+              {
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Retained Earnings"
+          },
+          "symbol": {
+            "title": "Symbol",
+            "type": "string"
+          },
+          "total_assets": {
+            "anyOf": [
+              {
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Total Assets"
+          },
+          "total_debt": {
+            "anyOf": [
+              {
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Total Debt"
+          },
+          "total_equity": {
+            "anyOf": [
+              {
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Total Equity"
+          },
+          "total_liabilities": {
+            "anyOf": [
+              {
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Total Liabilities"
+          }
+        },
+        "required": [
+          "date",
+          "symbol"
+        ],
+        "title": "BalanceSheet",
+        "type": "object"
+      },
+      "CashFlowStatement": {
+        "description": "Cash-flow statement for a reporting period.\n\nMirrors the ``/cash-flow-statement/`` endpoint. Header fields\n(``date``, ``symbol``, ``reportedCurrency``, ``cik``, ``fiscalYear``,\n``period``) plus ``netIncome``, ``operatingCashFlow``,\n``investingCashFlow``, ``financingCashFlow``, ``capitalExpenditure``,\n``freeCashFlow``, ``dividendsPaid``, ``stockBasedCompensation``,\n``cashChange``.",
+        "properties": {
+          "capital_expenditure": {
+            "anyOf": [
+              {
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Capital Expenditure"
+          },
+          "cash_change": {
+            "anyOf": [
+              {
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Cash Change"
+          },
+          "cik": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Cik"
+          },
+          "date": {
+            "format": "date",
+            "title": "Date",
+            "type": "string"
+          },
+          "dividends_paid": {
+            "anyOf": [
+              {
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Dividends Paid"
+          },
+          "financing_cash_flow": {
+            "anyOf": [
+              {
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Financing Cash Flow"
+          },
+          "fiscal_year": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Fiscal Year"
+          },
+          "free_cash_flow": {
+            "anyOf": [
+              {
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Free Cash Flow"
+          },
+          "investing_cash_flow": {
+            "anyOf": [
+              {
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Investing Cash Flow"
+          },
+          "net_income": {
+            "anyOf": [
+              {
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Net Income"
+          },
+          "operating_cash_flow": {
+            "anyOf": [
+              {
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Operating Cash Flow"
+          },
+          "period": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Period"
+          },
+          "reported_currency": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reported Currency"
+          },
+          "stock_based_compensation": {
+            "anyOf": [
+              {
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Stock Based Compensation"
+          },
+          "symbol": {
+            "title": "Symbol",
+            "type": "string"
+          }
+        },
+        "required": [
+          "date",
+          "symbol"
+        ],
+        "title": "CashFlowStatement",
+        "type": "object"
+      },
+      "CompanyFundamentals": {
+        "description": "Company details plus the key metrics and ratios overview.\n\nAggregate returned by ``GET /api/v1/market/data/fundamentals/{symbol}``\n(the T10 MCP contract): the T01 FMP-shaped ``profile``, ``key_metrics`` and\n``ratios`` objects, each field-for-field. Kept required (not optional) so a\nresponse always carries the full overview.",
+        "properties": {
+          "key_metrics": {
+            "$ref": "#/components/schemas/KeyMetrics"
+          },
+          "profile": {
+            "$ref": "#/components/schemas/CompanyProfile"
+          },
+          "ratios": {
+            "$ref": "#/components/schemas/FinancialRatios"
+          }
+        },
+        "required": [
+          "profile",
+          "key_metrics",
+          "ratios"
+        ],
+        "title": "CompanyFundamentals",
+        "type": "object"
+      },
+      "CompanyProfile": {
+        "description": "Company profile / details.\n\nMirrors the ``/profile-v3/`` endpoint (``/profile/`` on the stable API):\n``symbol``, ``companyName``, ``marketCap``, ``sector``, ``industry``,\n``beta``, ``price``, ``website``, ``description``, ``ceo``,\n``fullTimeEmployees``, ``exchangeShortName``, ``exchange``, ``currency``,\n``ipoDate``, ``cik``, ``isin``, ``image``, ``isActivelyTrading``.",
+        "properties": {
+          "beta": {
+            "anyOf": [
+              {
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Beta"
+          },
+          "ceo": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Ceo"
+          },
+          "cik": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Cik"
+          },
+          "company_name": {
+            "title": "Company Name",
+            "type": "string"
+          },
+          "currency": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Currency"
+          },
+          "description": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Description"
+          },
+          "exchange": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Exchange"
+          },
+          "exchange_short_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Exchange Short Name"
+          },
+          "full_time_employees": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Full Time Employees"
+          },
+          "image": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Image"
+          },
+          "industry": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Industry"
+          },
+          "ipo_date": {
+            "anyOf": [
+              {
+                "format": "date",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Ipo Date"
+          },
+          "is_actively_trading": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Is Actively Trading"
+          },
+          "isin": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Isin"
+          },
+          "market_cap": {
+            "anyOf": [
+              {
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Market Cap"
+          },
+          "price": {
+            "anyOf": [
+              {
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Price"
+          },
+          "sector": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Sector"
+          },
+          "symbol": {
+            "title": "Symbol",
+            "type": "string"
+          },
+          "website": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Website"
+          }
+        },
+        "required": [
+          "symbol",
+          "company_name"
+        ],
+        "title": "CompanyProfile",
+        "type": "object"
+      },
+      "FinancialRatios": {
+        "description": "Financial ratios for a symbol / period.\n\nMirrors the ``/ratios/`` endpoint (``/ratios/:period=v3/``). Header fields\n(``date``, ``symbol``, ``fiscalYear``, ``period``) plus\n``grossProfitMargin``, ``operatingProfitMargin``, ``netProfitMargin``,\n``returnOnAssets``, ``returnOnEquity``, ``returnOnCapitalEmployed``,\n``interestCoverage``, ``quickRatio``, ``currentRatio``, ``debtToEquity``,\n``priceEarningsRatio``, ``bookValuePerShare``, ``dividendYield``.",
+        "properties": {
+          "book_value_per_share": {
+            "anyOf": [
+              {
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Book Value Per Share"
+          },
+          "current_ratio": {
+            "anyOf": [
+              {
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Current Ratio"
+          },
+          "date": {
+            "format": "date",
+            "title": "Date",
+            "type": "string"
+          },
+          "debt_to_equity": {
+            "anyOf": [
+              {
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Debt To Equity"
+          },
+          "dividend_yield": {
+            "anyOf": [
+              {
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Dividend Yield"
+          },
+          "fiscal_year": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Fiscal Year"
+          },
+          "gross_profit_margin": {
+            "anyOf": [
+              {
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Gross Profit Margin"
+          },
+          "interest_coverage": {
+            "anyOf": [
+              {
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Interest Coverage"
+          },
+          "net_profit_margin": {
+            "anyOf": [
+              {
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Net Profit Margin"
+          },
+          "operating_profit_margin": {
+            "anyOf": [
+              {
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Operating Profit Margin"
+          },
+          "period": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Period"
+          },
+          "price_earnings_ratio": {
+            "anyOf": [
+              {
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Price Earnings Ratio"
+          },
+          "quick_ratio": {
+            "anyOf": [
+              {
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Quick Ratio"
+          },
+          "return_on_assets": {
+            "anyOf": [
+              {
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Return On Assets"
+          },
+          "return_on_capital_employed": {
+            "anyOf": [
+              {
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Return On Capital Employed"
+          },
+          "return_on_equity": {
+            "anyOf": [
+              {
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Return On Equity"
+          },
+          "symbol": {
+            "title": "Symbol",
+            "type": "string"
+          }
+        },
+        "required": [
+          "symbol",
+          "date"
+        ],
+        "title": "FinancialRatios",
+        "type": "object"
+      },
+      "HTTPValidationError": {
+        "properties": {
+          "detail": {
+            "items": {
+              "$ref": "#/components/schemas/ValidationError"
+            },
+            "title": "Detail",
+            "type": "array"
+          }
+        },
+        "title": "HTTPValidationError",
+        "type": "object"
+      },
+      "IncomeStatement": {
+        "description": "Income statement for a reporting period.\n\nMirrors the ``/income-statement/`` endpoint: ``date``, ``symbol``,\n``reportedCurrency``, ``cik``, ``fillingDate``, ``acceptedDate``,\n``fiscalYear``, ``period``, ``revenue``, ``costOfRevenue``,\n``grossProfit``, ``researchAndDevelopmentExpenses``,\n``sellingGeneralAndAdministrativeExpenses``, ``operatingExpenses``,\n``operatingIncome``, ``interestExpense``, ``otherIncomeExpense``,\n``incomeTaxExpense``, ``netIncome``, ``eps``, ``epsDiluted``,\n``weightedAverageSharesOutstanding``,\n``weightedAverageSharesOutstandingDiluted``.",
+        "properties": {
+          "accepted_date": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Accepted Date"
+          },
+          "cik": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Cik"
+          },
+          "cost_of_revenue": {
+            "anyOf": [
+              {
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Cost Of Revenue"
+          },
+          "date": {
+            "format": "date",
+            "title": "Date",
+            "type": "string"
+          },
+          "eps": {
+            "anyOf": [
+              {
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Eps"
+          },
+          "eps_diluted": {
+            "anyOf": [
+              {
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Eps Diluted"
+          },
+          "filling_date": {
+            "anyOf": [
+              {
+                "format": "date",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Filling Date"
+          },
+          "fiscal_year": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Fiscal Year"
+          },
+          "gross_profit": {
+            "anyOf": [
+              {
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Gross Profit"
+          },
+          "income_tax_expense": {
+            "anyOf": [
+              {
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Income Tax Expense"
+          },
+          "interest_expense": {
+            "anyOf": [
+              {
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Interest Expense"
+          },
+          "net_income": {
+            "anyOf": [
+              {
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Net Income"
+          },
+          "operating_expenses": {
+            "anyOf": [
+              {
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Operating Expenses"
+          },
+          "operating_income": {
+            "anyOf": [
+              {
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Operating Income"
+          },
+          "other_income_expense": {
+            "anyOf": [
+              {
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Other Income Expense"
+          },
+          "period": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Period"
+          },
+          "reported_currency": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reported Currency"
+          },
+          "research_and_development_expenses": {
+            "anyOf": [
+              {
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Research And Development Expenses"
+          },
+          "revenue": {
+            "anyOf": [
+              {
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Revenue"
+          },
+          "selling_general_and_administrative_expenses": {
+            "anyOf": [
+              {
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Selling General And Administrative Expenses"
+          },
+          "symbol": {
+            "title": "Symbol",
+            "type": "string"
+          },
+          "weighted_average_shares_outstanding": {
+            "anyOf": [
+              {
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Weighted Average Shares Outstanding"
+          },
+          "weighted_average_shares_outstanding_diluted": {
+            "anyOf": [
+              {
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Weighted Average Shares Outstanding Diluted"
+          }
+        },
+        "required": [
+          "date",
+          "symbol"
+        ],
+        "title": "IncomeStatement",
+        "type": "object"
+      },
+      "KeyMetrics": {
+        "description": "Key metrics / valuation snapshot for a symbol.\n\nMirrors the ``/key-metrics/`` endpoint. Header fields (``date``,\n``symbol``, ``fiscalYear``, ``period``) plus ``marketCap``,\n``enterpriseValue``, ``peRatio``, ``pegRatio``, ``priceToSalesRatio``,\n``priceToBookRatio``, ``enterpriseValueOverEBITDA``, ``evToSales``,\n``dividendYield``, ``payoutRatio``, ``currentRatio``, ``quickRatio``,\n``debtToEquity``, ``workingCapital``.",
+        "properties": {
+          "current_ratio": {
+            "anyOf": [
+              {
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Current Ratio"
+          },
+          "date": {
+            "format": "date",
+            "title": "Date",
+            "type": "string"
+          },
+          "debt_to_equity": {
+            "anyOf": [
+              {
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Debt To Equity"
+          },
+          "dividend_yield": {
+            "anyOf": [
+              {
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Dividend Yield"
+          },
+          "enterprise_value": {
+            "anyOf": [
+              {
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Enterprise Value"
+          },
+          "enterprise_value_over_ebitda": {
+            "anyOf": [
+              {
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Enterprise Value Over Ebitda"
+          },
+          "ev_to_sales": {
+            "anyOf": [
+              {
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Ev To Sales"
+          },
+          "fiscal_year": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Fiscal Year"
+          },
+          "market_cap": {
+            "anyOf": [
+              {
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Market Cap"
+          },
+          "payout_ratio": {
+            "anyOf": [
+              {
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Payout Ratio"
+          },
+          "pe_ratio": {
+            "anyOf": [
+              {
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Pe Ratio"
+          },
+          "peg_ratio": {
+            "anyOf": [
+              {
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Peg Ratio"
+          },
+          "period": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Period"
+          },
+          "price_to_book_ratio": {
+            "anyOf": [
+              {
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Price To Book Ratio"
+          },
+          "price_to_sales_ratio": {
+            "anyOf": [
+              {
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Price To Sales Ratio"
+          },
+          "quick_ratio": {
+            "anyOf": [
+              {
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Quick Ratio"
+          },
+          "symbol": {
+            "title": "Symbol",
+            "type": "string"
+          },
+          "working_capital": {
+            "anyOf": [
+              {
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Working Capital"
+          }
+        },
+        "required": [
+          "symbol",
+          "date"
+        ],
+        "title": "KeyMetrics",
+        "type": "object"
+      },
+      "OptionsChain": {
+        "description": "Options chain for an underlying symbol.\n\nAggregate of the flat snapshot shape: the ``underlying_symbol``, an\noptional ``as_of`` date, and one ``OptionsChainEntry`` per contract.",
+        "properties": {
+          "as_of": {
+            "anyOf": [
+              {
+                "format": "date",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "As Of"
+          },
+          "contracts": {
+            "default": [],
+            "items": {
+              "$ref": "#/components/schemas/OptionsChainEntry"
+            },
+            "title": "Contracts",
+            "type": "array"
+          },
+          "underlying_symbol": {
+            "title": "Underlying Symbol",
+            "type": "string"
+          }
+        },
+        "required": [
+          "underlying_symbol"
+        ],
+        "title": "OptionsChain",
+        "type": "object"
+      },
+      "OptionsChainEntry": {
+        "description": "A single contract plus its snapshot quote (flat snapshot shape).",
+        "properties": {
+          "contract": {
+            "$ref": "#/components/schemas/OptionsContract"
+          },
+          "quote": {
+            "$ref": "#/components/schemas/OptionsQuote"
+          }
+        },
+        "required": [
+          "contract",
+          "quote"
+        ],
+        "title": "OptionsChainEntry",
+        "type": "object"
+      },
+      "OptionsContract": {
+        "description": "An options contract reference record.\n\nMirrors the options contracts reference endpoint\n(``/v3/reference/options/contracts/``): ``contract_ticker``,\n``underlying_ticker`` (exposed as ``symbol``), ``strike_price``,\n``expiration_date``, ``contract_type`` (``call`` / ``put``),\n``shares_per_contract``, ``primary_exchange``, ``active``.",
+        "properties": {
+          "active": {
+            "default": true,
+            "title": "Active",
+            "type": "boolean"
+          },
+          "contract_ticker": {
+            "title": "Contract Ticker",
+            "type": "string"
+          },
+          "contract_type": {
+            "enum": [
+              "call",
+              "put"
+            ],
+            "title": "Contract Type",
+            "type": "string"
+          },
+          "expiration_date": {
+            "format": "date",
+            "title": "Expiration Date",
+            "type": "string"
+          },
+          "primary_exchange": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Primary Exchange"
+          },
+          "shares_per_contract": {
+            "default": 100,
+            "title": "Shares Per Contract",
+            "type": "integer"
+          },
+          "strike_price": {
+            "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+            "title": "Strike Price",
+            "type": "string"
+          },
+          "symbol": {
+            "title": "Symbol",
+            "type": "string"
+          }
+        },
+        "required": [
+          "contract_ticker",
+          "symbol",
+          "strike_price",
+          "expiration_date",
+          "contract_type"
+        ],
+        "title": "OptionsContract",
+        "type": "object"
+      },
+      "OptionsGreeks": {
+        "description": "Option greeks from a snapshot.\n\nMirrors the ``greeks`` object of the options snapshot endpoint:\n``delta``, ``gamma``, ``theta``, ``vega``, ``rho``.",
+        "properties": {
+          "delta": {
+            "anyOf": [
+              {
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Delta"
+          },
+          "gamma": {
+            "anyOf": [
+              {
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Gamma"
+          },
+          "rho": {
+            "anyOf": [
+              {
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Rho"
+          },
+          "theta": {
+            "anyOf": [
+              {
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Theta"
+          },
+          "vega": {
+            "anyOf": [
+              {
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Vega"
+          }
+        },
+        "title": "OptionsGreeks",
+        "type": "object"
+      },
+      "OptionsQuote": {
+        "description": "Market snapshot for a single options contract.\n\nMirrors the options snapshot endpoint (``/v3/snapshot/options/``):\n``implied_volatility``, ``open_interest``, ``day_volume``, OHLC day\nfields (``day_open`` / ``day_high`` / ``day_low`` / ``day_close``) and the\nnested ``greeks`` object.",
+        "properties": {
+          "day_close": {
+            "anyOf": [
+              {
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Day Close"
+          },
+          "day_high": {
+            "anyOf": [
+              {
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Day High"
+          },
+          "day_low": {
+            "anyOf": [
+              {
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Day Low"
+          },
+          "day_open": {
+            "anyOf": [
+              {
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Day Open"
+          },
+          "day_volume": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Day Volume"
+          },
+          "greeks": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/OptionsGreeks"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "implied_volatility": {
+            "anyOf": [
+              {
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Implied Volatility"
+          },
+          "open_interest": {
+            "anyOf": [
+              {
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+                "type": "string"
+              },
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Open Interest"
+          }
+        },
+        "title": "OptionsQuote",
+        "type": "object"
+      },
+      "PriceBar": {
+        "description": "A single daily OHLC bar for the service-to-service data plane.\n\nDeliberately narrower than :class:`PriceSchema`: it drops the\nDB-flavoured ``id`` / ``security_id`` fields so the unified JSON exposes\nonly what a data consumer needs.",
+        "properties": {
+          "adjusted_close": {
+            "anyOf": [
+              {
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Adjusted Close"
+          },
+          "close": {
+            "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+            "title": "Close",
+            "type": "string"
+          },
+          "date": {
+            "format": "date",
+            "title": "Date",
+            "type": "string"
+          },
+          "high": {
+            "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+            "title": "High",
+            "type": "string"
+          },
+          "low": {
+            "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+            "title": "Low",
+            "type": "string"
+          },
+          "open": {
+            "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+            "title": "Open",
+            "type": "string"
+          },
+          "volume": {
+            "title": "Volume",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "date",
+          "open",
+          "high",
+          "low",
+          "close",
+          "volume"
+        ],
+        "title": "PriceBar",
+        "type": "object"
+      },
+      "PriceHistoryResponse": {
+        "description": "Unified daily price-history response for the data endpoints.",
+        "properties": {
+          "exchange": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Exchange"
+          },
+          "from_date": {
+            "format": "date",
+            "title": "From Date",
+            "type": "string"
+          },
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/PriceBar"
+            },
+            "title": "Items",
+            "type": "array"
+          },
+          "symbol": {
+            "title": "Symbol",
+            "type": "string"
+          },
+          "to_date": {
+            "format": "date",
+            "title": "To Date",
+            "type": "string"
+          }
+        },
+        "required": [
+          "symbol",
+          "from_date",
+          "to_date",
+          "items"
+        ],
+        "title": "PriceHistoryResponse",
+        "type": "object"
+      },
+      "SymbolLookupResult": {
+        "description": "Symbol / company lookup result.\n\nMirrors the reference symbol-search / ``stock-screener`` shape:\n``symbol``, ``name``, ``exchange``, ``exchangeShortName``, ``currency``,\n``type`` (``security_type``), ``country``.",
+        "properties": {
+          "country": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Country"
+          },
+          "currency": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Currency"
+          },
+          "exchange": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Exchange"
+          },
+          "exchange_short_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Exchange Short Name"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "security_type": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Security Type"
+          },
+          "symbol": {
+            "title": "Symbol",
+            "type": "string"
+          }
+        },
+        "required": [
+          "symbol",
+          "name"
+        ],
+        "title": "SymbolLookupResult",
+        "type": "object"
+      },
+      "ValidationError": {
+        "properties": {
+          "ctx": {
+            "title": "Context",
+            "type": "object"
+          },
+          "input": {
+            "title": "Input"
+          },
+          "loc": {
+            "items": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "integer"
+                }
+              ]
+            },
+            "title": "Location",
+            "type": "array"
+          },
+          "msg": {
+            "title": "Message",
+            "type": "string"
+          },
+          "type": {
+            "title": "Error Type",
+            "type": "string"
+          }
+        },
+        "required": [
+          "loc",
+          "msg",
+          "type"
+        ],
+        "title": "ValidationError",
+        "type": "object"
+      }
+    }
+  },
+  "info": {
+    "title": "Market Data Plane Contract",
+    "version": "1.0.0"
+  },
+  "openapi": "3.1.0",
+  "paths": {
+    "/api/v1/market/data/fundamentals/{symbol}": {
+      "get": {
+        "description": "Company details plus key metrics and ratios, served through the cache.\n\nThe response keeps the FMP-shaped ``profile``, ``key_metrics`` and\n``ratios`` objects field-for-field; ``exchange`` is forwarded so non-US\nsymbols map to the provider's ticker suffix.",
+        "operationId": "market_data_fundamentals_api_v1_market_data_fundamentals__symbol__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "symbol",
+            "required": true,
+            "schema": {
+              "title": "Symbol",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "exchange",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Exchange"
+            }
+          },
+          {
+            "in": "header",
+            "name": "X-Service-Token",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Service-Token"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CompanyFundamentals"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Market Data Fundamentals"
+      }
+    },
+    "/api/v1/market/data/fundamentals/{symbol}/statements": {
+      "get": {
+        "description": "Full FMP-shaped statement list for a symbol, served through the cache.\n\n``statement`` and ``period`` are ``Literal``-typed so an invalid value is a\nFastAPI 422; the selected provider read keeps every line item the provider\nreturns (the response is the bare statement list, matching the search\nroute). ``exchange`` is forwarded for non-US ticker mapping.",
+        "operationId": "market_data_statements_api_v1_market_data_fundamentals__symbol__statements_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "symbol",
+            "required": true,
+            "schema": {
+              "title": "Symbol",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "statement",
+            "required": true,
+            "schema": {
+              "enum": [
+                "income",
+                "balance",
+                "cashflow"
+              ],
+              "title": "Statement",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "period",
+            "required": false,
+            "schema": {
+              "default": "annual",
+              "enum": [
+                "annual",
+                "quarter"
+              ],
+              "title": "Period",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "schema": {
+              "default": 5,
+              "maximum": 20,
+              "minimum": 1,
+              "title": "Limit",
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "exchange",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Exchange"
+            }
+          },
+          {
+            "in": "header",
+            "name": "X-Service-Token",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Service-Token"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "anyOf": [
+                    {
+                      "items": {
+                        "$ref": "#/components/schemas/IncomeStatement"
+                      },
+                      "type": "array"
+                    },
+                    {
+                      "items": {
+                        "$ref": "#/components/schemas/BalanceSheet"
+                      },
+                      "type": "array"
+                    },
+                    {
+                      "items": {
+                        "$ref": "#/components/schemas/CashFlowStatement"
+                      },
+                      "type": "array"
+                    }
+                  ],
+                  "title": "Response Market Data Statements Api V1 Market Data Fundamentals  Symbol  Statements Get"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Market Data Statements"
+      }
+    },
+    "/api/v1/market/data/options/{symbol}": {
+      "get": {
+        "description": "Options chain for an underlying, mirroring the Polygon contract shape.",
+        "operationId": "market_data_options_api_v1_market_data_options__symbol__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "symbol",
+            "required": true,
+            "schema": {
+              "title": "Symbol",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "expiry",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "format": "date",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Expiry"
+            }
+          },
+          {
+            "in": "query",
+            "name": "option_type",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "enum": [
+                    "call",
+                    "put"
+                  ],
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Option Type"
+            }
+          },
+          {
+            "in": "query",
+            "name": "strike_min",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "number"
+                },
+                {
+                  "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Strike Min"
+            }
+          },
+          {
+            "in": "query",
+            "name": "strike_max",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "number"
+                },
+                {
+                  "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Strike Max"
+            }
+          },
+          {
+            "in": "header",
+            "name": "X-Service-Token",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Service-Token"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OptionsChain"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Market Data Options"
+      }
+    },
+    "/api/v1/market/data/prices/{symbol}": {
+      "get": {
+        "description": "Daily price history for a symbol, served through the endpoint cache.",
+        "operationId": "market_data_prices_api_v1_market_data_prices__symbol__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "symbol",
+            "required": true,
+            "schema": {
+              "title": "Symbol",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "from",
+            "required": true,
+            "schema": {
+              "format": "date",
+              "title": "From",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "to",
+            "required": true,
+            "schema": {
+              "format": "date",
+              "title": "To",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "exchange",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Exchange"
+            }
+          },
+          {
+            "in": "header",
+            "name": "X-Service-Token",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Service-Token"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PriceHistoryResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Market Data Prices"
+      }
+    },
+    "/api/v1/market/data/symbols/search": {
+      "get": {
+        "description": "Symbol/company lookup by free-text query, served through the cache.",
+        "operationId": "market_data_symbol_search_api_v1_market_data_symbols_search_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "q",
+            "required": true,
+            "schema": {
+              "maxLength": 100,
+              "minLength": 1,
+              "title": "Q",
+              "type": "string"
+            }
+          },
+          {
+            "in": "header",
+            "name": "X-Service-Token",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Service-Token"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/SymbolLookupResult"
+                  },
+                  "title": "Response Market Data Symbol Search Api V1 Market Data Symbols Search Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Market Data Symbol Search"
+      }
+    }
+  }
+}

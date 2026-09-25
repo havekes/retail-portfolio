@@ -71,15 +71,20 @@ Outbound HTTP calls to the backend data plane in `backendclient.go` are instrume
 Every request is sent to `BACKEND_BASE_URL + /api/v1/market/data/...` with the
 `X-Service-Token` header and `Accept: application/json`. The route paths and
 query parameter names are a stable contract defined in
-`src/market/data_router.py`; do not rename them.
+`src/market/data_router.py` and published as an OpenAPI contract snapshot artifact at
+[`tests/market/contracts/data_plane_openapi.json`](../../tests/market/contracts/data_plane_openapi.json).
+The artifact is the committed source of truth; parity is verified by both
+backend contract tests (`tests/market/test_data_plane_contract.py`) and Go
+client tests (`services/mcp-gateway/contract_test.go`). Do not rename or alter
+routes and query parameters without updating the contract snapshot.
 
-| Client method  | Backend route                                                   | Query                                               |
-| -------------- | --------------------------------------------------------------- | --------------------------------------------------- |
-| `Prices`       | `GET /api/v1/market/data/prices/{symbol}`                       | `from`, `to`, `exchange`                            |
-| `SymbolSearch` | `GET /api/v1/market/data/symbols/search`                        | `q`                                                 |
-| `OptionsChain` | `GET /api/v1/market/data/options/{symbol}`                      | `expiry`, `option_type`, `strike_min`, `strike_max` |
-| `Fundamentals` | `GET /api/v1/market/data/fundamentals/{symbol}`                 | `exchange`                                          |
-| `Statements`   | `GET /api/v1/market/data/fundamentals/{symbol}/statements`      | `statement`, `period`, `limit`, `exchange`          |
+| Client method  | Backend route                                                   | Query                                               | Contract snapshot                                                                 |
+| -------------- | --------------------------------------------------------------- | --------------------------------------------------- | --------------------------------------------------------------------------------- |
+| `Prices`       | `GET /api/v1/market/data/prices/{symbol}`                       | `from`, `to`, `exchange`                            | [`data_plane_openapi.json`](../../tests/market/contracts/data_plane_openapi.json) |
+| `SymbolSearch` | `GET /api/v1/market/data/symbols/search`                        | `q`                                                 | [`data_plane_openapi.json`](../../tests/market/contracts/data_plane_openapi.json) |
+| `OptionsChain` | `GET /api/v1/market/data/options/{symbol}`                      | `expiry`, `option_type`, `strike_min`, `strike_max` | [`data_plane_openapi.json`](../../tests/market/contracts/data_plane_openapi.json) |
+| `Fundamentals` | `GET /api/v1/market/data/fundamentals/{symbol}`                 | `exchange`                                          | [`data_plane_openapi.json`](../../tests/market/contracts/data_plane_openapi.json) |
+| `Statements`   | `GET /api/v1/market/data/fundamentals/{symbol}/statements`      | `statement`, `period`, `limit`, `exchange`          | [`data_plane_openapi.json`](../../tests/market/contracts/data_plane_openapi.json) |
 
 ### Error taxonomy
 
