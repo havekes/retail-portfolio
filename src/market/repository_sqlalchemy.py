@@ -32,6 +32,7 @@ from src.market.model import (
     SecurityDocumentModel,
     SecurityModel,
     SecurityNoteModel,
+    SecurityValuationModel,
     WatchlistModel,
     WatchlistsSecuritiesModel,
 )
@@ -44,6 +45,7 @@ from src.market.repository import (
     SecurityDocumentRepository,
     SecurityNoteRepository,
     SecurityRepository,
+    SecurityValuationRepository,
     WatchlistRepository,
 )
 from src.market.schema import (
@@ -60,6 +62,8 @@ from src.market.schema import (
     SecurityNoteRead,
     SecurityNoteWrite,
     SecuritySchema,
+    SecurityValuationRead,
+    SecurityValuationWrite,
     WatchlistRead,
     WatchlistSecuritySchema,
 )
@@ -1277,5 +1281,79 @@ async def sqlalchemy_chart_snapshot_repository_factory(
     container: Container,
 ) -> SqlAlchemyChartSnapshotRepository:
     return SqlAlchemyChartSnapshotRepository(
+        session=await container.aget(AsyncSession),
+    )
+
+
+class SqlAlchemySecurityValuationRepository(SecurityValuationRepository):
+    _session: AsyncSession
+
+    def __init__(self, session: AsyncSession):
+        self._session = session
+
+    @override
+    async def get_by_security_and_user(
+        self, security_id: SecurityId, user_id: UserId
+    ) -> SecurityValuationRead | None:
+        result = await self._session.execute(
+            select(SecurityValuationModel)
+            .where(SecurityValuationModel.security_id == security_id)
+            .where(SecurityValuationModel.user_id == user_id)
+        )
+        model = result.scalar_one_or_none()
+        if model is None:
+            return None
+        return SecurityValuationRead.model_validate(model)
+
+    @override
+    async def upsert(
+        self,
+        valuation: SecurityValuationWrite,
+        security_id: SecurityId,
+        user_id: UserId,
+    ) -> SecurityValuationRead:
+        result = await self._session.execute(
+            select(SecurityValuationModel)
+            .where(SecurityValuationModel.security_id == security_id)
+            .where(SecurityValuationModel.user_id == user_id)
+        )
+        model = result.scalar_one_or_none()
+        now = datetime.now(UTC)
+        if model is not None:
+            model.lower_bound = valuation.lower_bound
+            model.upper_bound = valuation.upper_bound
+            model.updated_at = now
+        else:
+            model = SecurityValuationModel(
+                security_id=security_id,
+                user_id=user_id,
+                lower_bound=valuation.lower_bound,
+                upper_bound=valuation.upper_bound,
+                created_at=now,
+                updated_at=now,
+            )
+            self._session.add(model)
+        await self._session.commit()
+        await self._session.refresh(model)
+        return SecurityValuationRead.model_validate(model)
+
+    @override
+    async def get_batch_by_user_and_securities(
+        self, security_ids: list[SecurityId], user_id: UserId
+    ) -> list[SecurityValuationRead]:
+        if not security_ids:
+            return []
+        result = await self._session.execute(
+            select(SecurityValuationModel)
+            .where(SecurityValuationModel.user_id == user_id)
+            .where(SecurityValuationModel.security_id.in_(security_ids))
+        )
+        return [SecurityValuationRead.model_validate(m) for m in result.scalars()]
+
+
+async def sqlalchemy_security_valuation_repository_factory(
+    container: Container,
+) -> SqlAlchemySecurityValuationRepository:
+    return SqlAlchemySecurityValuationRepository(
         session=await container.aget(AsyncSession),
     )

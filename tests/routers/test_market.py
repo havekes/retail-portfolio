@@ -1088,3 +1088,65 @@ async def test_create_alert_invalid_source_returns_422(auth_client, test_securit
         json={"target_price": "100.00", "condition": "above", "source": "bogus"},
     )
     assert response.status_code == 422
+
+
+@pytest.mark.anyio
+async def test_get_valuation_not_found(auth_client, test_security):
+    """GET valuation returns 404 when not set."""
+    response = await auth_client.get(
+        f"/api/v1/market/securities/{test_security.id}/valuation"
+    )
+    assert response.status_code == 404
+
+
+@pytest.mark.anyio
+async def test_put_and_get_valuation(auth_client, test_security):
+    """PUT valuation creates/updates and GET returns it."""
+    put_response = await auth_client.put(
+        f"/api/v1/market/securities/{test_security.id}/valuation",
+        json={"lower_bound": "25.50", "upper_bound": "60.00"},
+    )
+    assert put_response.status_code == 200
+    data = put_response.json()
+    assert data["security_id"] == str(test_security.id)
+    assert float(data["lower_bound"]) == 25.50
+    assert float(data["upper_bound"]) == 60.00
+
+    # Retrieve
+    get_response = await auth_client.get(
+        f"/api/v1/market/securities/{test_security.id}/valuation"
+    )
+    assert get_response.status_code == 200
+    get_data = get_response.json()
+    assert get_data["id"] == data["id"]
+    assert float(get_data["lower_bound"]) == 25.50
+    assert float(get_data["upper_bound"]) == 60.00
+
+
+@pytest.mark.anyio
+async def test_batch_valuations_endpoint(auth_client, test_security):
+    """GET and POST batch endpoints return valuations for requested security IDs."""
+    await auth_client.put(
+        f"/api/v1/market/securities/{test_security.id}/valuation",
+        json={"lower_bound": "15.00", "upper_bound": "35.00"},
+    )
+
+    # GET batch with query parameter
+    get_res = await auth_client.get(
+        f"/api/v1/market/securities/valuation/batch?security_ids={test_security.id}"
+    )
+    assert get_res.status_code == 200
+    items = get_res.json()
+    assert len(items) == 1
+    assert items[0]["security_id"] == str(test_security.id)
+
+    # POST batch with body
+    post_res = await auth_client.post(
+        "/api/v1/market/securities/valuation/batch",
+        json={"security_ids": [str(test_security.id)]},
+    )
+    assert post_res.status_code == 200
+    post_items = post_res.json()
+    assert len(post_items) == 1
+    assert post_items[0]["security_id"] == str(test_security.id)
+
