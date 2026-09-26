@@ -44,6 +44,7 @@ from src.market.repository import (
     SecurityDocumentRepository,
     SecurityNoteRepository,
     SecurityRepository,
+    SecurityValuationRepository,
     WatchlistRepository,
 )
 from src.market.schema import (
@@ -70,6 +71,9 @@ from src.market.schema import (
     SecurityNoteRead,
     SecurityNoteWrite,
     SecuritySchema,
+    SecurityValuationBatchRequest,
+    SecurityValuationRead,
+    SecurityValuationWrite,
     TechnicalIndicatorsRead,
     WatchlistCreate,
     WatchlistOrderUpdate,
@@ -1088,3 +1092,47 @@ async def market_ai_portfolio_debate(  # noqa: PLR0913, PLR0917
         raise HTTPException(status_code=504, detail="AI analysis timed out") from None
     except RuntimeError as e:
         raise HTTPException(status_code=503, detail=str(e)) from None
+
+
+@market_router.get("/securities/valuation/batch")
+async def market_get_valuations_batch(
+    user: Annotated[User, Depends(current_user)],
+    services: DepContainer,
+    security_ids: Annotated[list[SecurityId] | None, Query()] = None,
+) -> list[SecurityValuationRead]:
+    repo = await services.aget(SecurityValuationRepository)
+    return await repo.get_batch_by_user_and_securities(security_ids or [], user.id)
+
+
+@market_router.post("/securities/valuation/batch")
+async def market_post_valuations_batch(
+    user: Annotated[User, Depends(current_user)],
+    services: DepContainer,
+    payload: SecurityValuationBatchRequest,
+) -> list[SecurityValuationRead]:
+    repo = await services.aget(SecurityValuationRepository)
+    return await repo.get_batch_by_user_and_securities(payload.security_ids, user.id)
+
+
+@market_router.get("/securities/{security_id}/valuation")
+async def market_get_security_valuation(
+    user: Annotated[User, Depends(current_user)],
+    security_id: SecurityId,
+    services: DepContainer,
+) -> SecurityValuationRead:
+    repo = await services.aget(SecurityValuationRepository)
+    valuation = await repo.get_by_security_and_user(security_id, user.id)
+    if valuation is None:
+        raise HTTPException(status_code=404, detail="Valuation not found")
+    return valuation
+
+
+@market_router.put("/securities/{security_id}/valuation")
+async def market_put_security_valuation(
+    user: Annotated[User, Depends(current_user)],
+    security_id: SecurityId,
+    payload: SecurityValuationWrite,
+    services: DepContainer,
+) -> SecurityValuationRead:
+    repo = await services.aget(SecurityValuationRepository)
+    return await repo.upsert(payload, security_id, user.id)

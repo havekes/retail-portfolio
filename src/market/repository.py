@@ -22,6 +22,8 @@ from src.market.schema import (
     SecurityNoteRead,
     SecurityNoteWrite,
     SecuritySchema,
+    SecurityValuationRead,
+    SecurityValuationWrite,
     WatchlistRead,
 )
 
@@ -308,4 +310,27 @@ class ChartSnapshotRepository(ABC):
 
     @abstractmethod
     async def delete(self, snapshot_id: UUID, user_id: UserId) -> None:
+        pass
+
+
+class SecurityValuationRepository(ABC):
+    @abstractmethod
+    async def get_by_security_and_user(
+        self, security_id: SecurityId, user_id: UserId
+    ) -> SecurityValuationRead | None:
+        pass
+
+    @abstractmethod
+    async def upsert(
+        self,
+        valuation: SecurityValuationWrite,
+        security_id: SecurityId,
+        user_id: UserId,
+    ) -> SecurityValuationRead:
+        pass
+
+    @abstractmethod
+    async def get_batch_by_user_and_securities(
+        self, security_ids: list[SecurityId], user_id: UserId
+    ) -> list[SecurityValuationRead]:
         pass

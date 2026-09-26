@@ -236,3 +236,32 @@ class ChartSnapshotModel(BaseModel):
             "captured_at",
         ),
     )
+
+
+class SecurityValuationModel(BaseModel):
+    __tablename__ = "market_security_valuations"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    user_id: Mapped[UserId] = mapped_column(Uuid)
+    security_id: Mapped[SecurityId] = mapped_column(
+        Uuid, ForeignKey("market_securities.id", ondelete="CASCADE")
+    )
+    lower_bound: Mapped[Decimal] = mapped_column(DECIMAL(16, 8))
+    upper_bound: Mapped[Decimal] = mapped_column(DECIMAL(16, 8))
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), default=func.now()
+    )
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), default=func.now(), onupdate=func.now()
+    )
+
+    __table_args__ = (
+        UniqueConstraint(
+            "user_id", "security_id", name="valuation_user_security_unique"
+        ),
+        Index(
+            "ix_market_security_valuations_user_security",
+            "user_id",
+            "security_id",
+        ),
+    )

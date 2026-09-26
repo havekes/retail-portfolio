@@ -92,6 +92,7 @@ def register_market_stub_services(registry: Registry) -> None:
         SecurityDocumentRepository,
         SecurityNoteRepository,
         SecurityRepository,
+        SecurityValuationRepository,
         WatchlistRepository,
     )
     from src.market.repository_eodhd import (  # noqa: PLC0415
@@ -105,6 +106,7 @@ def register_market_stub_services(registry: Registry) -> None:
         sqlalchemy_security_document_repository_factory,
         sqlalchemy_security_note_repository_factory,
         sqlalchemy_security_repository_factory,
+        sqlalchemy_security_valuation_repository_factory,
         sqlalchemy_watchlist_repository_factory,
     )
     from src.market.service import (  # noqa: PLC0415
@@ -125,6 +127,9 @@ def register_market_stub_services(registry: Registry) -> None:
     )
     registry.register_factory(
         SecurityRepository, sqlalchemy_security_repository_factory
+    )
+    registry.register_factory(
+        SecurityValuationRepository, sqlalchemy_security_valuation_repository_factory
     )
     registry.register_factory(
         WatchlistRepository, sqlalchemy_watchlist_repository_factory
