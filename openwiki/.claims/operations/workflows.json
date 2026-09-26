@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "pageVersion": "sha256:d581462d26d446c554bc9de4588ef8e53720963656ef23af887b117d04e846cf",
+  "pageVersion": "sha256:def13ce183925faedfe5aa1da4f18b2914496e3ab4c3f1b382f06f5f9c0e424d",
   "claims": [
     {
       "id": "claim_7ecb499131d4460ab8b3effeff51e886",
@@ -454,11 +454,11 @@
     },
     {
       "id": "claim_522631345eba46e49ff58c95cbd7b5db",
-      "statement": "The OpenWiki block at the end of `AGENTS.md` (imported wholesale by the `CLAUDE.md` stub) frames the generated `openwiki/` tree as optional just-in-time context rather than required startup reading, treats source code and tests as authoritative, and instructs agents not to hand-edit generated pages but to change source and docs and let the scheduled OpenWiki workflow regenerate them.",
+      "statement": "The OpenWiki block at the end of `AGENTS.md` (delimited by `<!-- OPENWIKI:START -->` / `<!-- OPENWIKI:END -->` and imported wholesale by the `CLAUDE.md` stub) declares a retrieval-first consumption policy for the generated `openwiki/` tree: agents must not enumerate, preload or search wikis at task start, they use `openwiki_search` for just-in-time context and `openwiki_read` for the relevant complete sections when the user asks or when unfamiliar architecture or dependency behavior materially affects the task, a `workspace_required` response means asking which listed workspace to use and retrying with its ID, `openwiki_list_workspaces`/`openwiki_list_wikis` exist for discovering workspace membership, and when the retrieval tools are unavailable the fallback is reading `openwiki/quickstart.md` and following its links.",
       "evidence": [
         {
-          "resource": "repo://AGENTS.md#L42-L52",
-          "version": "repo-lines-v1:sha256:2066111756019639fd4ad6a1c6bd7323a3db5fdcf9d2b66a57aa9fac5e0ba943:eyJzZWxlY3RlZExpbmVDb3VudCI6MTEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjVmMTgwZjljMTI2OTAzYmNjMzMxYWE5NTQ1NmU0OTQ0NGE3ZDRkMDExZThhMmE4M2Y1ZGM4NzAyMzkxODEyZDAiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAxYmE0NzE5YzgwYjZmZTkxMWIwOTFhN2MwNTEyNGI2NGVlZWNlOTY0ZTA5YzA1OGVmOGY5ODA1ZGFjYTU0NmIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjhhMzYzMTA1MjUzZGY5MDkyODhlNDcwODFkNzRlMzYyMDdkNmQ4OGU4NzU4MWJjZTlkZTk5ZDllYzVhZDJkODkiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjoxLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjA5Zjc4NzE0ODkzYWE3Nzk0MmNlYTFjNGEyZTAyMzFkYmI3ZmEyYTQxYTcwYzgxNDYwYTNjNjc1NjJkYTNhYWEifQ"
+          "resource": "repo://AGENTS.md#L42-L55",
+          "version": "repo-lines-v1:sha256:6c90a8ee260419ce52c98ce902d593546e4e6c9b455577ea517f64e10c04699c:eyJzZWxlY3RlZExpbmVDb3VudCI6MTQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjVmMTgwZjljMTI2OTAzYmNjMzMxYWE5NTQ1NmU0OTQ0NGE3ZDRkMDExZThhMmE4M2Y1ZGM4NzAyMzkxODEyZDAiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImFiNTM5NTNiZmI3MmMxMjYyYmJhZTJlYWNhNzJjYWJmMWFmNDk5MjdhMGJiYTExNTdiMmQ1YmRiMjg1YzRiZDIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjhhMzYzMTA1MjUzZGY5MDkyODhlNDcwODFkNzRlMzYyMDdkNmQ4OGU4NzU4MWJjZTlkZTk5ZDllYzVhZDJkODkiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjoyLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjMwODlkZjkzZjhiYTU3YTRkZGJmZDhmMDEzOTYyYzM5NzhjZTRkYjY4MTk5YzRkYTY2NjY0OWIwOTk2Y2VkYTkifQ"
         },
         {
           "resource": "repo://CLAUDE.md#L1-L7",
@@ -547,10 +547,20 @@
           "version": "repo-file-v1:sha256:fd0cfaf7b046268e24fecef9fa78771d82cf72c0d0461c170851c290351cb002"
         }
       ]
+    },
+    {
+      "id": "claim_fb4b092fe3f044f6b3c2a343ca84f51c",
+      "statement": "The OpenWiki block in `AGENTS.md` keeps source code and tests authoritative (a brief's unknowns and review items are verification gaps rather than requirements), prefers the narrowest quiet validation that proves the changed behavior while preserving complete failure output, and instructs agents not to hand-edit generated OpenWiki pages but to update source code and docs and let the scheduled workflow regenerate the `openwiki/` tree.",
+      "evidence": [
+        {
+          "resource": "repo://AGENTS.md#L52-L55",
+          "version": "repo-lines-v1:sha256:9eb409c08e8de7aa64760c896b4418feccc8ecb3129b33d529cbdcf4c07d2d1a:eyJzZWxlY3RlZExpbmVDb3VudCI6NCwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiMmNiM2Q0YTQ2NjliZGM3YTQwZDk4MDc3MzVkZjYwOGJmZTMxZDM4NjA2N2M5OTliNzUwYWFjNjMyYzFiNmQzMSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiYWI1Mzk1M2JmYjcyYzEyNjJiYmFlMmVhY2E3MmNhYmYxYWY0OTkyN2EwYmJhMTE1N2IyZDViZGIyODVjNGJkMiIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiOWM5MGE3YjU5ZmEwNjFhOTU2YzE5MTIxOTkyYWQ4ZDFmOTk2ZGMwOGE3YjQ1ODhlYjJjYjk4MzU0YjdmMTU0ZCIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjIsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiMzA4OWRmOTNmOGJhNTdhNGRkYmZkOGYwMTM5NjJjMzk3OGNlNGRiNjgxOTljNGRhNjY2NjQ5YjA5OTZjZWRhOSJ9"
+        }
+      ]
     }
   ],
   "verification": {
-    "by": "openwiki/0.5.2",
-    "at": "2026-09-23T13:18:56.288Z"
+    "by": "openwiki/0.6.0",
+    "at": "2026-09-26T12:38:50.029Z"
   }
 }

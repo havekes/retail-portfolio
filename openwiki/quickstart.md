@@ -1,11 +1,8 @@
 ---
 type: reference
 title: Quickstart & Task Routing
-description: Entry point to the retail-portfolio wiki — what the repository is, how to run the Docker Compose stack from the single root .env, where every system lives, and a task-routing table that points backend-domain, config/DI, frontend-shell, chart-surface, chart-drawings-and-rewind, realtime-and-background-jobs, user-preferences, holdings-read-path, broker/CSV/market-data/AI, money, integration, dev-workflow and testing work at the owning page.
-tags: [quickstart, task-routing, onboarding, repository-map, development-workflow]
-verified:
-  - by: openwiki/0.5.2
-    at: 2026-09-23T13:18:56.288Z
+description: Entry point to the retail-portfolio wiki — what the repository is, how to run the Docker Compose stack from the single root .env, where each system lives, how agents are expected to consume the generated wiki, and a task-routing table that points backend-domain, config/DI, frontend-shell, chart-surface, chart-drawings-and-rewind, realtime-and-background-jobs, user-preferences, holdings-read-path, broker/CSV/market-data/AI, money, integration, dev-workflow, testing and agent-guidance work at the owning page.
+tags: [quickstart, task-routing, onboarding, repository-map, development-workflow, openwiki]
 sources:
   - id: openwiki-source-5f5b95b3d6a215fa02ceb945
     resource: repo://.env.example
@@ -47,6 +44,8 @@ sources:
     resource: repo://scripts/agent-test
   - id: openwiki-source-d313a882430947b02725046e
     resource: repo://scripts/docker-gid.sh
+  - id: openwiki-source-3871c7364a9411872d29e162
+    resource: repo://scripts/opencode-go-session-fetch.mjs
   - id: openwiki-source-230f617cb6d47154ef463034
     resource: repo://src/AGENTS.md
   - id: openwiki-source-11b9d806fcc6dd6e7747ed87
@@ -55,7 +54,10 @@ sources:
     resource: repo://src/worker_dashboard/router.py
   - id: openwiki-source-7a8d629077019775a9fec3d3
     resource: repo://src/worker.py
-generated: { by: "openwiki/0.5.2", at: "2026-09-23T13:18:56.288Z" }
+generated: { by: "openwiki/0.6.0", at: "2026-09-26T12:38:50.029Z" }
+verified:
+  - by: openwiki/0.6.0
+    at: 2026-09-26T12:38:50.029Z
 ---
 
 # Quickstart & Task Routing
@@ -99,8 +101,8 @@ move any custom values into the root `.env` and delete them.
 `worker` is a separate container from `backend`: it runs
 `huey_consumer src.worker.huey -w 2 --worker-type thread --periodic` under `watchfiles`
 reload, so task changes are picked up without restarting Compose. Nothing in a request
-path runs those tasks, and the job view is served by the backend process, not the worker —
-see [Realtime, Background Jobs & the Worker](./workflows/realtime-and-background-jobs.md).
+path runs those tasks, and the dashboard API is mounted on the backend app, not the
+worker — see [Realtime, Background Jobs & the Worker](./workflows/realtime-and-background-jobs.md).
 
 Two configuration details bite when ports change: the frontend service receives
 `JWT_SECRET` derived from the root `SECRET_KEY` (Compose fails fast if `SECRET_KEY` is
@@ -121,12 +123,12 @@ CI (`.github/workflows/ci.yml`) runs the same verification in three jobs: backen
 | `src/` | FastAPI backend, split into domains (`account`, `auth`, `market`, `integration`, `ws`) plus cross-cutting `core`, `config` and `worker_dashboard` |
 | `frontend/` | SvelteKit SSR app: routes, services, API clients, components |
 | `services/indicator-service/` | Go indicator sidecar (stateless calculator) |
-| `migrations/` | Alembic revisions |
+| `migrations/` | Alembic revisions (configured as the Alembic `script_location`) |
 | `tests/` | Backend pytest suites, organized by domain and layer |
 | `src/stubs/` | Stub external gateways used by tests and `STUB_EXTERNAL_API` mode |
 | `src/commands/` | Seeding and market-data flush CLI entrypoints |
 | `openspec/` | Canonical capability specs and active/archived change artifacts |
-| `scripts/` | `agent-test` harness, `setup-agent-worktree.sh`, `docker-gid.sh` |
+| `scripts/` | `agent-test` harness, `setup-agent-worktree.sh`, `docker-gid.sh`, the OpenWiki preload shim (`opencode-go-session-fetch.mjs`) |
 | `.github/workflows/` | CI (`ci.yml`) and the scheduled OpenWiki refresh (`openwiki-update.yml`) |
 
 ## If you are changing X, read Y
@@ -149,8 +151,9 @@ CI (`.github/workflows/ci.yml`) runs the same verification in three jobs: backen
 | The worker: task registries, periodic/on-demand jobs, retries, the Redis WebSocket fan-out, sync-status keys, the frontend consumer | [Realtime, Background Jobs & the Worker](./workflows/realtime-and-background-jobs.md) |
 | An outbound dependency: EODHD, Wealthsimple, the AI endpoint, SMTP/mailcrab, Redis, the indicator sidecar | [External Services & Adapters](./integrations/external-services.md) |
 | Money, currency conversion, totals, holdings/P&L math, rounding | [Money & Currency Handling](./concepts/money-and-currency.md) |
-| How to run, ship and change: Compose stack, in-container commands, agent-test harness, worktrees, migrations, CI, OpenSpec | [Development, CI & Change Workflows](./operations/workflows.md) |
+| How to run, ship and change: Compose stack, in-container commands, agent-test harness, worktrees, migrations, CI, OpenSpec, the OpenWiki refresh | [Development, CI & Change Workflows](./operations/workflows.md) |
 | The pytest/Vitest layout, fixtures, mandatory mocking, harness gates, CI matrix | [Testing & Verification](./operations/testing.md) |
+| Agent guidance and this wiki: `AGENTS.md`, `src/AGENTS.md`, `frontend/AGENTS.md`, the `CLAUDE.md` stub, the OpenWiki block and its consumption policy | [Development, CI & Change Workflows](./operations/workflows.md) |
 
 ## Non-negotiables
 
@@ -182,9 +185,51 @@ task:
   files and Docker resources collide.
 - **Spec-driven changes.** Non-trivial work goes through OpenSpec in `openspec/`
   (propose → apply → archive); canonical specs live in `openspec/specs/<capability>/spec.md`.
-- **The generated wiki is optional context.** `openwiki/` is a generated evidence index, not
-  required startup reading. Source code and tests are authoritative: when a page and the code
-  disagree, trust the code and report the drift. Unknowns in an agent brief are verification
-  gaps, not automatic requirements; prefer the narrowest quiet validation that proves the
-  changed behavior, and preserve complete failure output. Do not hand-edit generated pages —
-  update source/docs and let the scheduled OpenWiki workflow regenerate them.
+- **Source code and tests are authoritative; the generated wiki is optional context.**
+  `openwiki/` is just-in-time context, not required startup reading, and its pages must not be
+  hand-edited — see [Consuming the generated wiki](#consuming-the-generated-wiki).
+
+## Consuming the generated wiki
+
+The `openwiki/` tree is generated documentation, refreshed by the scheduled
+`.github/workflows/openwiki-update.yml` workflow (daily, plus `workflow_dispatch`), which
+runs `openwiki code --update` and opens a pull request on the `openwiki/update` branch
+limited to `add-paths: openwiki`. Documentation therefore lands through review, never as a
+direct commit. Do not hand-edit these pages unless explicitly asked: update source code and
+docs and let the workflow regenerate them.
+
+The OpenWiki block at the end of `AGENTS.md` (delimited by `<!-- OPENWIKI:START -->` /
+`<!-- OPENWIKI:END -->`, and imported wholesale by the `CLAUDE.md` stub) defines how agents
+are meant to use it. It is the authoritative statement of consumption policy: if it and
+this page disagree, the block wins.
+
+- **Do not enumerate, preload, or search wikis at task start.** Retrieval applies when the
+  user asks for it, when unfamiliar architecture or dependency behavior materially affects
+  the task, or when source inspection leaves an important uncertainty — and it stops once
+  the question is grounded.
+- **Use the retrieval tools when those conditions apply.** `openwiki_search` supplies
+  just-in-time context; `openwiki_read` returns the relevant complete sections. If search
+  returns `workspace_required`, ask which listed workspace to use and retry with its ID.
+- **`openwiki_list_workspaces` / `openwiki_list_wikis`** are for when workspace membership
+  itself needs to be discovered.
+- **If the retrieval tools are unavailable**, read `openwiki/quickstart.md` and follow its
+  links — this page and the table above are the entry point.
+- **Source code and tests stay authoritative.** A brief's unknowns and review items are
+  verification gaps, not automatic requirements.
+- **Validate narrowly and quietly.** Prefer the narrowest validation that proves the changed
+  behavior, and preserve complete failure output.
+
+```mermaid
+flowchart TD
+    Q["Need context for this task?"] --> A{"Did the user ask, does unfamiliar architecture or dependency behavior materially matter, or did source reading leave an uncertainty?"}
+    A -- no --> S["Stay in the source — do not preload or search the wiki"]
+    A -- yes --> T{"OpenWiki retrieval tools available?"}
+    T -- no --> F["Read openwiki/quickstart.md and follow its links"]
+    T -- yes --> R["openwiki_search for just-in-time context, then openwiki_read for the relevant complete sections"]
+    R --> W{"Search returned workspace_required?"}
+    W -- yes --> K["Ask which listed workspace to use, then retry with its ID"]
+    K --> R
+    W -- no --> G["Stop once the question is grounded — source code and tests remain authoritative"]
+```
+
+How an agent decides whether to consult the generated wiki, and what to do when retrieval needs a workspace.
