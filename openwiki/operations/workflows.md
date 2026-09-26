@@ -1,11 +1,11 @@
 ---
 type: "Reference"
 title: "Development, CI & Change Workflows"
-description: "The operational map for retail-portfolio: running the Docker Compose stack from the single root .env, the in-container command list and agent-test harness, git-worktree isolation for parallel agents, Alembic migration rules, the seeding and market-data CLI commands, how the Huey consumer and dashboard are run and mounted, CI, the deployment surface, and the OpenSpec propose/apply/archive workflow with its three mirrored tool definitions."
-tags: ["operations", "ci", "docker-compose", "agent-workflow", "migrations", "huey", "openspec", "deployment", "worktrees"]
+description: "The operational map for retail-portfolio: running the Docker Compose stack from the single root .env, the in-container command list and agent-test harness, git-worktree isolation for parallel agents, Alembic migration rules, the seeding and market-data CLI commands, how the Huey consumer and dashboard are run and mounted, CI, the deployment surface, the OpenSpec propose/apply/archive workflow with its three mirrored tool definitions, and the scheduled OpenWiki refresh with its retrieval-first consumption policy."
+tags: ["operations", "ci", "docker-compose", "agent-workflow", "migrations", "huey", "openspec", "deployment", "worktrees", "openwiki"]
 verified:
-  - by: openwiki/0.5.2
-    at: 2026-09-23T13:18:56.288Z
+  - by: openwiki/0.6.0
+    at: 2026-09-26T12:38:50.029Z
 sources:
   - id: openwiki-source-b6d79691ae8158aab326e9d3
     resource: repo://.agent/workflows/opsx-apply.md
@@ -89,7 +89,7 @@ sources:
     resource: repo://tests/commands/test_seed.py
   - id: openwiki-source-573b283ce7220c507e717dec
     resource: repo://tests/test_migrations_autogenerate.py
-generated: { by: "openwiki/0.5.2", at: "2026-09-23T13:18:56.288Z" }
+generated: { by: "openwiki/0.6.0", at: "2026-09-26T12:38:50.029Z" }
 ---
 
 # Development, CI & Change Workflows
@@ -509,9 +509,31 @@ add all three mirrors — a change to only one silently diverges per tool.
 4. `peter-evans/create-pull-request@v7` opens a PR on the `openwiki/update` branch limited to
    `add-paths: openwiki` (`docs: update OpenWiki`).
 
-Documentation therefore lands through review, never as a direct commit to `main`. The
-generated `openwiki/` tree is refreshed by this workflow — the OpenWiki block at the end of
-`AGENTS.md` (imported wholesale by the `CLAUDE.md` stub) frames it as optional just-in-time
-context rather than required startup reading, treats source code and tests as authoritative,
-and instructs agents not to hand-edit generated pages but to change source and docs and let
-OpenWiki regenerate.
+Documentation therefore lands through review, never as a direct commit to `main`.
+
+### What the OpenWiki block in `AGENTS.md` instructs
+
+The generated `openwiki/` tree is refreshed by this workflow, and the OpenWiki block at the end of
+`AGENTS.md` (delimited by `<!-- OPENWIKI:START -->` / `<!-- OPENWIKI:END -->`, imported wholesale
+by the `CLAUDE.md` stub) declares a **retrieval-first** consumption policy for agents:
+
+- **Do not enumerate, preload, or search wikis at task start.** `openwiki/` is just-in-time
+  context, not required startup reading. Retrieval applies when the user asks for it, when
+  unfamiliar architecture or dependency behavior materially affects the task, or when source
+  inspection leaves an important uncertainty — and it stops once the question is grounded.
+- When those conditions apply and the retrieval tools are available, `openwiki_search` supplies
+  just-in-time context and `openwiki_read` returns the relevant complete sections. A
+  `workspace_required` response means asking which listed workspace to use and retrying with its
+  ID; `openwiki_list_workspaces` / `openwiki_list_wikis` exist for discovering workspace
+  membership itself.
+- When the retrieval tools are unavailable, the fallback is to read `openwiki/quickstart.md` and
+  follow its links to the relevant pages.
+- **Source code and tests stay authoritative.** A brief's unknowns and review items are
+  verification gaps, not automatic requirements.
+- Prefer the narrowest quiet validation that proves the changed behavior, and preserve complete
+  failure output.
+- Do not hand-edit generated OpenWiki pages unless explicitly asked; update source code and docs
+  instead and let the scheduled workflow regenerate them.
+
+That block is the authoritative statement of consumption policy — if it and this page disagree
+about how the wiki is meant to be used, the block wins.
