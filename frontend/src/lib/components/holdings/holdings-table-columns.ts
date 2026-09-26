@@ -14,6 +14,7 @@ export const HOLDINGS_TABLE_COLUMN_IDS = [
 	'average_cost',
 	'latest_price',
 	'total_value',
+	'percent_of_total',
 	'profit_loss',
 	'ew_primary_target',
 	'ew_cycle_target'
@@ -34,6 +35,7 @@ export const HOLDINGS_TABLE_COLUMNS: readonly HoldingsTableColumn[] = [
 	{ id: 'average_cost', label: 'Average', alignRight: true },
 	{ id: 'latest_price', label: 'Price', alignRight: true },
 	{ id: 'total_value', label: 'Total Value', alignRight: true },
+	{ id: 'percent_of_total', label: '% of Total', alignRight: true },
 	{ id: 'profit_loss', label: 'Return', alignRight: true },
 	{ id: 'ew_primary_target', label: 'EW Primary', alignRight: true },
 	{ id: 'ew_cycle_target', label: 'EW Cycle', alignRight: true }
@@ -52,6 +54,7 @@ export const HOLDINGS_TABLE_DEFAULT_WIDTHS: Record<HoldingsTableColumnId, number
 	average_cost: 150,
 	latest_price: 150,
 	total_value: 170,
+	percent_of_total: 120,
 	profit_loss: 160,
 	ew_primary_target: 150,
 	ew_cycle_target: 150
@@ -68,6 +71,7 @@ export const HOLDINGS_TABLE_COLUMN_MIN_WIDTHS: Record<HoldingsTableColumnId, num
 	average_cost: 110,
 	latest_price: 110,
 	total_value: 130,
+	percent_of_total: 90,
 	profit_loss: 120,
 	ew_primary_target: 120,
 	ew_cycle_target: 120
@@ -80,6 +84,7 @@ export const HOLDINGS_TABLE_COLUMN_MAX_WIDTHS: Record<HoldingsTableColumnId, num
 	average_cost: 220,
 	latest_price: 220,
 	total_value: 260,
+	percent_of_total: 200,
 	profit_loss: 240,
 	ew_primary_target: 240,
 	ew_cycle_target: 240

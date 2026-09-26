@@ -62,6 +62,19 @@ describe('holdings-table-columns', () => {
 				HOLDINGS_TABLE_DEFAULT_WIDTHS.ew_cycle_target
 			);
 		});
+
+		it('clamps percent_of_total within bounds', () => {
+			expect(clampColumnWidth('percent_of_total', 50)).toBe(
+				HOLDINGS_TABLE_COLUMN_MIN_WIDTHS.percent_of_total
+			);
+			expect(clampColumnWidth('percent_of_total', 500)).toBe(
+				HOLDINGS_TABLE_COLUMN_MAX_WIDTHS.percent_of_total
+			);
+			expect(clampColumnWidth('percent_of_total', 150)).toBe(150);
+			expect(clampColumnWidth('percent_of_total', Number.NaN)).toBe(
+				HOLDINGS_TABLE_DEFAULT_WIDTHS.percent_of_total
+			);
+		});
 	});
 
 	describe('HOLDINGS_TABLE_COLUMNS', () => {
@@ -75,6 +88,17 @@ describe('holdings-table-columns', () => {
 			expect(HOLDINGS_TABLE_COLUMN_IDS).toContain('ew_primary_target');
 			expect(HOLDINGS_TABLE_COLUMN_IDS).toContain('ew_cycle_target');
 			expect(HOLDINGS_TABLE_COLUMN_IDS).not.toContain('profit_loss_percent');
+		});
+
+		it('includes percent_of_total with label "% of Total" and alignRight: true immediately after total_value', () => {
+			const totalValueIdx = HOLDINGS_TABLE_COLUMNS.findIndex((c) => c.id === 'total_value');
+			const percentOfTotalCol = HOLDINGS_TABLE_COLUMNS[totalValueIdx + 1];
+			expect(percentOfTotalCol).toEqual({
+				id: 'percent_of_total',
+				label: '% of Total',
+				alignRight: true
+			});
+			expect(HOLDINGS_TABLE_COLUMN_IDS[totalValueIdx + 1]).toBe('percent_of_total');
 		});
 	});
 
@@ -107,6 +131,17 @@ describe('holdings-table-columns', () => {
 			const attempt = toggleColumnVisibility(initial, 'security_symbol');
 			expect(attempt.visible).toContain('security_symbol');
 			expect(attempt).toBe(initial);
+		});
+
+		it('toggles percent_of_total column visibility while preserving canonical order', () => {
+			const initial = HOLDINGS_TABLE_DEFAULT_CONFIG;
+			expect(initial.visible).toContain('percent_of_total');
+
+			const hidden = toggleColumnVisibility(initial, 'percent_of_total');
+			expect(hidden.visible).not.toContain('percent_of_total');
+
+			const restored = toggleColumnVisibility(hidden, 'percent_of_total');
+			expect(restored.visible).toEqual(HOLDINGS_TABLE_DEFAULT_CONFIG.visible);
 		});
 	});
 
@@ -187,6 +222,15 @@ describe('holdings-table-columns', () => {
 
 			const restored = normalizeHoldingsTableConfig(JSON.parse(JSON.stringify(config)));
 			expect(restored).toEqual(config);
+		});
+
+		it('normalizes and preserves percent_of_total width and visibility', () => {
+			const config = normalizeHoldingsTableConfig({
+				widths: { percent_of_total: 135 },
+				visible: ['security_symbol', 'total_value', 'percent_of_total']
+			});
+			expect(config.widths.percent_of_total).toBe(135);
+			expect(config.visible).toEqual(['security_symbol', 'total_value', 'percent_of_total']);
 		});
 
 		it('returns a fresh object that does not alias the defaults', () => {

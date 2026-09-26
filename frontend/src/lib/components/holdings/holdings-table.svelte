@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { resolve } from '$app/paths';
+	import { SvelteMap } from 'svelte/reactivity';
 	import type { UserHolding } from '$lib/types/account';
 	import {
 		getLatestWaveCount,
@@ -14,6 +15,11 @@
 	import ChevronUp from '@lucide/svelte/icons/chevron-up';
 	import ChevronDown from '@lucide/svelte/icons/chevron-down';
 	import { cn } from '$lib/utils';
+	import {
+		calculatePercentOfTotal,
+		calculatePercentOfAccount,
+		formatHoldingPercent
+	} from '$lib/utils/finance/holdings-metrics';
 	import {
 		HOLDINGS_TABLE_COLUMNS,
 		HOLDINGS_TABLE_STICKY_COLUMN_ID,
@@ -111,6 +117,12 @@
 
 	const formatPercent = (value: number) => `${value >= 0 ? '+' : ''}${value.toFixed(2)}%`;
 
+	type HoldingAccountBadge = {
+		name: string;
+		account_id?: string;
+		percent_of_account: number;
+	};
+
 	type HoldingRowView = {
 		id: string;
 		security_id: string;
@@ -125,14 +137,29 @@
 		price_date?: string;
 		total_value: number;
 		unconverted_total_value: number;
+		percent_of_total: number;
 		profit_loss: number | null;
 		unconverted_profit_loss: number | null;
 		account_names: string[];
+		accounts: HoldingAccountBadge[];
 		ew_primary_target: number | null;
 		ew_primary_upside: number | null;
 		ew_cycle_target: number | null;
 		ew_cycle_upside: number | null;
 	};
+
+	const totalPortfolioValue = $derived(holdings.reduce((sum, h) => sum + (h.total_value ?? 0), 0));
+
+	const accountTotals = $derived.by(() => {
+		const map = new SvelteMap<string, number>();
+		for (const h of holdings) {
+			const key = h.account_name || h.account_id;
+			if (key) {
+				map.set(key, (map.get(key) ?? 0) + (h.total_value ?? 0));
+			}
+		}
+		return map;
+	});
 
 	const baseRows = $derived.by<HoldingRowView[]>(() => {
 		if (groupBy === 'stock' || groupBy === 'company') {
@@ -145,6 +172,35 @@
 				const cycleWave = getLatestWaveCount(elliottWaves?.[g.security_id], 'cycle');
 				const ew_cycle_target = getWaveTargetPrice(cycleWave, 'wave5');
 				const ew_cycle_upside = calculateUpsidePercentage(ew_cycle_target, g.latest_price);
+
+				const percent_of_total = calculatePercentOfTotal(g.total_value, totalPortfolioValue);
+
+				const accountHoldingMap = new SvelteMap<
+					string,
+					{ name: string; account_id?: string; value: number }
+				>();
+				for (const row of g.rows) {
+					const key = row.account_name || row.account_id;
+					if (!key) continue;
+					const existing = accountHoldingMap.get(key);
+					if (existing) {
+						existing.value += row.total_value ?? 0;
+					} else {
+						accountHoldingMap.set(key, {
+							name: row.account_name || row.account_id || '',
+							account_id: row.account_id,
+							value: row.total_value ?? 0
+						});
+					}
+				}
+
+				const accounts: HoldingAccountBadge[] = Array.from(accountHoldingMap.entries()).map(
+					([key, item]) => ({
+						name: item.name,
+						account_id: item.account_id,
+						percent_of_account: calculatePercentOfAccount(item.value, accountTotals.get(key) ?? 0)
+					})
+				);
 
 				return {
 					id: g.id,
@@ -160,9 +216,11 @@
 					price_date: g.price_date,
 					total_value: g.total_value,
 					unconverted_total_value: g.unconverted_total_value,
+					percent_of_total,
 					profit_loss: g.profit_loss,
 					unconverted_profit_loss: g.unconverted_profit_loss,
 					account_names: g.account_names,
+					accounts,
 					ew_primary_target,
 					ew_primary_upside,
 					ew_cycle_target,
@@ -180,6 +238,21 @@
 			const ew_cycle_target = getWaveTargetPrice(cycleWave, 'wave5');
 			const ew_cycle_upside = calculateUpsidePercentage(ew_cycle_target, row.latest_price);
 
+			const percent_of_total = calculatePercentOfTotal(row.total_value, totalPortfolioValue);
+			const accountKey = row.account_name || row.account_id;
+			const accounts: HoldingAccountBadge[] = accountKey
+				? [
+						{
+							name: row.account_name || row.account_id || '',
+							account_id: row.account_id,
+							percent_of_account: calculatePercentOfAccount(
+								row.total_value,
+								accountTotals.get(accountKey) ?? 0
+							)
+						}
+					]
+				: [];
+
 			return {
 				id: row.id,
 				security_id: row.security_id,
@@ -194,9 +267,11 @@
 				price_date: row.price_date,
 				total_value: row.total_value,
 				unconverted_total_value: row.unconverted_total_value,
+				percent_of_total,
 				profit_loss: row.profit_loss,
 				unconverted_profit_loss: row.unconverted_profit_loss,
 				account_names: row.account_name ? [row.account_name] : [],
+				accounts,
 				ew_primary_target,
 				ew_primary_upside,
 				ew_cycle_target,
@@ -232,6 +307,9 @@
 	): string | number | null | undefined {
 		if (column === 'account_name') {
 			return row.account_names.length > 0 ? row.account_names.join(', ') : null;
+		}
+		if (column === 'percent_of_total') {
+			return row.percent_of_total;
 		}
 		if (column === 'ew_primary_target') {
 			return row.ew_primary_upside ?? row.ew_primary_target;
@@ -343,13 +421,16 @@
 		{/if}
 		{#if isVisible('account_name')}
 			<Table.Cell data-testid="account-cell" class="border-r border-border/40 px-4 py-2 text-sm">
-				{#if row.account_names.length === 0}
+				{#if row.accounts.length === 0}
 					-
 				{:else}
 					<div class="flex flex-wrap items-center gap-1">
-						{#each row.account_names as name (name)}
+						{#each row.accounts as account (account.account_id ?? account.name)}
 							<Badge variant="secondary" class="text-[10px] font-normal text-muted-foreground">
-								{name}
+								<span class="text-[10px] font-normal text-muted-foreground">{account.name}</span>
+								<span class="ml-1 text-muted-foreground/70"
+									>{formatHoldingPercent(account.percent_of_account)}</span
+								>
 							</Badge>
 						{/each}
 					</div>
@@ -401,6 +482,16 @@
 						</span>
 					{/if}
 				</div>
+			</Table.Cell>
+		{/if}
+		{#if isVisible('percent_of_total')}
+			<Table.Cell
+				data-testid="percent-of-total-cell"
+				class="border-r border-border/40 px-4 py-2 text-right"
+			>
+				<span data-testid="percent-of-total" class="text-xs font-medium tabular-nums">
+					{formatHoldingPercent(row.percent_of_total)}
+				</span>
 			</Table.Cell>
 		{/if}
 		{#if isVisible('profit_loss')}
