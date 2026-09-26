@@ -94,6 +94,16 @@ export interface WatchlistUpdate {
 	sort?: WatchlistSort;
 }
 
+export interface SecurityValuationRead {
+	id: number;
+	user_id: string;
+	security_id: string;
+	lower_bound: number | string;
+	upper_bound: number | string;
+	created_at: string;
+	updated_at: string;
+}
+
 export class MarketService extends ApiClient {
 	async search(query: string): Promise<MarketSearchResult[]> {
 		return await this.get<MarketSearchResult[]>(`/market/search?q=${query}`);
@@ -240,6 +250,21 @@ export class MarketService extends ApiClient {
 	): Promise<WatchlistRead> {
 		return await this.put<WatchlistRead, { security_ids: string[] }>(
 			`/market/watchlists/${watchlistId}/securities/order`,
+			{ security_ids: securityIds },
+			{},
+			token
+		);
+	}
+
+	async getValuationsBatch(
+		securityIds: string[],
+		token?: string | null
+	): Promise<SecurityValuationRead[]> {
+		if (securityIds.length === 0) {
+			return [];
+		}
+		return await this.post<SecurityValuationRead[], { security_ids: string[] }>(
+			'/market/securities/valuation/batch',
 			{ security_ids: securityIds },
 			{},
 			token

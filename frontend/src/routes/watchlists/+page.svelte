@@ -3,7 +3,12 @@
 	import { page } from '$app/stores';
 	import { getWatchlistService } from '$lib/components/watchlist/watchlistService.svelte';
 	import { userPreferencesService } from '$lib/api/userPreferencesService';
-	import type { WatchlistRead, WatchlistSort } from '$lib/api/marketService';
+	import {
+		getMarketService,
+		type SecurityValuationRead,
+		type WatchlistRead,
+		type WatchlistSort
+	} from '$lib/api/marketService';
 	import PageHeader from '$lib/components/layout/app-header.svelte';
 	import { Button } from '$lib/components/ui/button/index.js';
 	import { Input } from '$lib/components/ui/input/index.js';
@@ -16,6 +21,7 @@
 		formatDateAdded,
 		formatPrice,
 		formatPriceChangePercent,
+		formatValuationRange,
 		handleReorderKeydown,
 		moveItem,
 		normalizeWatchlistSort,
@@ -59,6 +65,7 @@
 	];
 
 	const watchlistService = getWatchlistService();
+	const marketService = getMarketService();
 	const openGlobalSearch = getContext<((watchlist?: WatchlistRead | null) => void) | undefined>(
 		'openGlobalSearch'
 	);
@@ -83,6 +90,39 @@
 	const isInitialLoading = $derived(
 		watchlistService.isLoading && watchlistService.watchlists.length === 0
 	);
+
+	let valuations = $state<Record<string, SecurityValuationRead>>({});
+	const securityIds = $derived([
+		...new Set(watchlists.flatMap((w) => w.securities.map((s) => s.id)))
+	]);
+
+	$effect(() => {
+		const ids = securityIds;
+		if (ids.length === 0) {
+			valuations = {};
+			return;
+		}
+
+		let cancelled = false;
+		marketService
+			.getValuationsBatch(ids)
+			.then((data) => {
+				if (!cancelled) {
+					const map: Record<string, SecurityValuationRead> = {};
+					for (const val of data) {
+						map[val.security_id] = val;
+					}
+					valuations = map;
+				}
+			})
+			.catch(() => {
+				// Non-fatal if valuations fail to load; rows fall back to '—'
+			});
+
+		return () => {
+			cancelled = true;
+		};
+	});
 
 	let isReorderMode = $state(false);
 	let draggedIndex = $state<number | null>(null);
@@ -584,6 +624,22 @@
 								watchlist.securities,
 								normalizeWatchlistSort(watchlist.sort)
 							)}
+							<div
+								class="flex items-center gap-2 px-2 text-xs font-medium text-muted-foreground"
+								aria-hidden="true"
+							>
+								{#if isSecurityReorderActive(watchlist)}
+									<span class="h-4 w-4 shrink-0"></span>
+								{/if}
+								<div class={cn(WATCHLIST_ROW_DATA_TRACKS, 'flex-1 px-2')}>
+									<span>Security</span>
+									<span class="hidden md:block">Added</span>
+									<span class="hidden justify-self-end md:block">Valuation</span>
+									<span class="justify-self-end">Price</span>
+									<span class="justify-self-end">Change</span>
+								</div>
+								<span class="h-8 w-8 shrink-0"></span>
+							</div>
 							<ul aria-label={`${watchlist.name} securities list`} class="flex flex-col gap-1">
 								{#each sortedSecurities as security, securityIndex (security.id)}
 									{@const securityReorderActive = isSecurityReorderActive(watchlist)}
@@ -643,6 +699,12 @@
 												title="Added"
 											>
 												{formatDateAdded(security.added_at) ?? '-'}
+											</span>
+											<span
+												class="hidden justify-self-end truncate text-xs text-muted-foreground tabular-nums md:block"
+												title="Valuation"
+											>
+												{formatValuationRange(valuations[security.id])}
 											</span>
 											<span class="justify-self-end text-sm font-medium tabular-nums">
 												{formatPrice(security.current_price)}

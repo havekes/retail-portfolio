@@ -7,14 +7,28 @@ import type { WatchlistRead, WatchlistSecuritySchema, WatchlistSort } from '$lib
  * needs complete class names) so every row in a watchlist renders identical
  * column tracks and the price/pill columns start at the same offset.
  *
- * Tracks: symbol/name (fluid) · date added (`md` and up) · price · % change pill.
+ * Tracks: symbol/name (fluid) · date added (`md` and up) · valuation range (`md` and up) · price · % change pill.
  * Below `md` the date track is dropped from the template and its cell is
  * hidden, so the remaining tracks keep the same offsets on every row. The date
  * cell is always rendered (a dash when the timestamp is absent) so the price
  * and pill always occupy their own tracks regardless of missing data.
  */
 export const WATCHLIST_ROW_DATA_TRACKS =
-	'grid grid-cols-[minmax(0,1fr)_5rem_6rem] gap-2 md:grid-cols-[minmax(0,1fr)_6.5rem_5rem_6rem]';
+	'grid grid-cols-[minmax(0,1fr)_5rem_6rem] gap-2 md:grid-cols-[minmax(0,1fr)_6.5rem_7.5rem_5rem_6rem]';
+
+export interface WatchlistColumnHeader {
+	id: string;
+	label: string;
+	headerClass?: string;
+}
+
+export const WATCHLIST_HEADERS: readonly WatchlistColumnHeader[] = [
+	{ id: 'security', label: 'Security' },
+	{ id: 'date_added', label: 'Added', headerClass: 'hidden md:block' },
+	{ id: 'valuation', label: 'Valuation', headerClass: 'hidden md:block justify-self-end' },
+	{ id: 'price', label: 'Price', headerClass: 'justify-self-end' },
+	{ id: 'change', label: 'Change', headerClass: 'justify-self-end' }
+] as const;
 
 const WATCHLIST_SORT_KEYS: WatchlistSort[] = [
 	'custom',
@@ -218,4 +232,31 @@ export function formatDateAdded(added: string | null | undefined): string | null
 		year: 'numeric',
 		timeZone: 'UTC'
 	});
+}
+
+/**
+ * Formats a security valuation range e.g. "20.00 – 50.00" with an en dash (\u2013).
+ * Returns "—" (em dash \u2014) when valuation is absent or bounds cannot be formatted.
+ */
+export function formatValuationRange(
+	valuation?: {
+		lower_bound?: number | string | null;
+		upper_bound?: number | string | null;
+	} | null
+): string {
+	if (
+		!valuation ||
+		valuation.lower_bound == null ||
+		valuation.lower_bound === '' ||
+		valuation.upper_bound == null ||
+		valuation.upper_bound === ''
+	) {
+		return '—';
+	}
+	const lower = formatPrice(valuation.lower_bound);
+	const upper = formatPrice(valuation.upper_bound);
+	if (lower === '-' || upper === '-') {
+		return '—';
+	}
+	return `${lower} \u2013 ${upper}`;
 }

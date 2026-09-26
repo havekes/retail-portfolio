@@ -4,11 +4,14 @@ import {
 	formatDateAdded,
 	formatPrice,
 	formatPriceChangePercent,
+	formatValuationRange,
 	handleReorderKeydown,
 	moveItem,
 	normalizeWatchlistSort,
 	sortSecurities,
-	sortWatchlistsByOrder
+	sortWatchlistsByOrder,
+	WATCHLIST_HEADERS,
+	WATCHLIST_ROW_DATA_TRACKS
 } from './watchlist-utils';
 
 function makeWatchlist(id: string, name: string): WatchlistRead {
@@ -362,6 +365,67 @@ describe('watchlist-utils', () => {
 
 		it('returns null for unparseable input', () => {
 			expect(formatDateAdded('not-a-date')).toBeNull();
+		});
+	});
+
+	describe('WATCHLIST_ROW_DATA_TRACKS', () => {
+		it('contains a 7.5rem valuation track on md breakpoints', () => {
+			expect(WATCHLIST_ROW_DATA_TRACKS).toContain(
+				'md:grid-cols-[minmax(0,1fr)_6.5rem_7.5rem_5rem_6rem]'
+			);
+		});
+	});
+
+	describe('WATCHLIST_HEADERS', () => {
+		it('asserts presence, order, and styling of canonical watchlist headers', () => {
+			expect(WATCHLIST_HEADERS.map((h) => h.id)).toEqual([
+				'security',
+				'date_added',
+				'valuation',
+				'price',
+				'change'
+			]);
+			expect(WATCHLIST_HEADERS.map((h) => h.label)).toEqual([
+				'Security',
+				'Added',
+				'Valuation',
+				'Price',
+				'Change'
+			]);
+			expect(WATCHLIST_HEADERS.find((h) => h.id === 'valuation')?.headerClass).toContain(
+				'hidden md:block justify-self-end'
+			);
+		});
+	});
+
+	describe('formatValuationRange', () => {
+		it('formats numeric lower and upper bounds with en-dash', () => {
+			expect(formatValuationRange({ lower_bound: 20, upper_bound: 50 })).toBe('20.00 – 50.00');
+		});
+
+		it('formats string lower and upper bounds correctly', () => {
+			expect(formatValuationRange({ lower_bound: '20.00', upper_bound: '50.50' })).toBe(
+				'20.00 – 50.50'
+			);
+		});
+
+		it('returns "—" for null or undefined valuation', () => {
+			expect(formatValuationRange(null)).toBe('—');
+			expect(formatValuationRange(undefined)).toBe('—');
+		});
+
+		it('returns "—" when either bound is missing or empty', () => {
+			expect(formatValuationRange({ lower_bound: 20 })).toBe('—');
+			expect(formatValuationRange({ upper_bound: 50 })).toBe('—');
+			expect(formatValuationRange({ lower_bound: null, upper_bound: 50 })).toBe('—');
+			expect(formatValuationRange({ lower_bound: 20, upper_bound: null })).toBe('—');
+			expect(formatValuationRange({ lower_bound: '', upper_bound: 50 })).toBe('—');
+			expect(formatValuationRange({ lower_bound: 20, upper_bound: '' })).toBe('—');
+		});
+
+		it('returns "—" for non-numeric bound values', () => {
+			expect(formatValuationRange({ lower_bound: 'abc', upper_bound: 50 })).toBe('—');
+			expect(formatValuationRange({ lower_bound: 20, upper_bound: 'xyz' })).toBe('—');
 		});
 	});
 });
