@@ -11,11 +11,33 @@ const PAGE_SIZE = 50;
 // Safety valve against a stale `total` from the server: never page forever.
 const MAX_PAGES = 100;
 
+export type HoldingsFilter =
+	| { type: 'all' }
+	| { type: 'portfolio'; portfolioId: string; accountIds: string[] }
+	| { type: 'account'; accountId: string };
+
 export class HoldingsService {
-	rows = $state<UserHolding[]>([]);
+	allRows = $state<UserHolding[]>([]);
+	filter = $state<HoldingsFilter>({ type: 'all' });
 	isLoading = $state(false);
 	errorMessage = $state<string | null>(null);
 	groupBy = $state<HoldingsGroupMode>('none');
+
+	get rows(): UserHolding[] {
+		const filter = this.filter;
+		if (filter.type === 'portfolio') {
+			return this.allRows.filter((r) => filter.accountIds.includes(r.account_id));
+		}
+		if (filter.type === 'account') {
+			return this.allRows.filter((r) => r.account_id === filter.accountId);
+		}
+		return this.allRows;
+	}
+
+	set rows(value: UserHolding[]) {
+		this.allRows = value;
+	}
+
 	groupedHoldings = $derived.by<HoldingsGroup[]>(() => groupHoldings(this.rows, this.groupBy));
 	private client: AccountService;
 
@@ -25,6 +47,18 @@ export class HoldingsService {
 
 	setGroupBy(mode: HoldingsGroupMode) {
 		this.groupBy = mode;
+	}
+
+	filterByPortfolio(portfolioId: string, accountIds: string[]) {
+		this.filter = { type: 'portfolio', portfolioId, accountIds };
+	}
+
+	filterByAccount(accountId: string) {
+		this.filter = { type: 'account', accountId };
+	}
+
+	clearFilter() {
+		this.filter = { type: 'all' };
 	}
 
 	/**
