@@ -10,7 +10,16 @@ export class AccountsListItemState {
 	isExpanded = $state(false);
 	holdingsPromise = $state<Promise<Holding[]> | null>(null);
 
-	constructor(private getAccountId: () => string) {}
+	constructor(
+		private getAccountId: () => string,
+		initialExpanded = false
+	) {
+		this.isExpanded = initialExpanded;
+		if (initialExpanded) {
+			const id = this.getAccountId();
+			this.holdingsPromise = this.fetchAccountHoldings(id);
+		}
+	}
 
 	async fetchAccountTotals(id: string): Promise<AccountTotals> {
 		if (this.totalsCache[id]) return this.totalsCache[id];

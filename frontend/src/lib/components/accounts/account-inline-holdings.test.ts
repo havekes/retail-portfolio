@@ -131,4 +131,17 @@ describe('AccountInlineHoldings', () => {
 
 		expect(screen.getByText('No holdings found for this account.')).toBeInTheDocument();
 	});
+
+	it('renders security symbol/name links with rounded hover background classes', () => {
+		render(AccountInlineHoldings, {
+			props: {
+				holdings: sampleHoldings,
+				accountCurrency: 'CAD'
+			}
+		});
+
+		const tdLink = screen.getByText('TD').closest('a');
+		expect(tdLink).toHaveClass('rounded-md');
+		expect(tdLink).toHaveClass('hover:bg-background/60');
+	});
 });

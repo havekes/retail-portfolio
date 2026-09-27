@@ -4,14 +4,23 @@
 	import * as DropdownMenu from '../ui/dropdown-menu';
 	import Button from '../ui/button/button.svelte';
 	import ChevronDown from '@lucide/svelte/icons/chevron-down';
-	import { onMount } from 'svelte';
-	import { untrack } from 'svelte';
+	import { onMount, untrack, getContext, setContext } from 'svelte';
+	import { page } from '$app/stores';
+	import { SvelteSet } from 'svelte/reactivity';
 	import { AccountsListState } from './accounts-list.svelte.js';
 	import type { Account } from '@/types/account';
 	import CreatePortfolioModal from './create-portfolio-modal.svelte';
 	import ImportAccountCsvModal from './import-account-csv-modal.svelte';
 
 	let { accounts = [] }: { accounts?: Account[] } = $props();
+
+	const contextExpandedIds = getContext<string[] | Set<string> | undefined>(
+		'initialExpandedAccountIds'
+	);
+	const initialExpandedIds =
+		contextExpandedIds ?? ($page?.data?.expanded_account_ids as string[] | undefined) ?? [];
+	const expandedAccountIds = new SvelteSet<string>(initialExpandedIds);
+	setContext('expandedAccountIds', expandedAccountIds);
 
 	// Seed the state from the initial accounts prop; the state class owns the
 	// list afterwards (websocket syncs, fetches), so only the initial value matters.

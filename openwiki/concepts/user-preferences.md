@@ -232,6 +232,7 @@ carries the cookie). No other module talks to the endpoint directly.
 | --- | --- | --- | --- |
 | `sidebar_open` | root `+layout.server.ts` → `sidebarOpen` seed | root `+layout.svelte` `handleSidebarOpenChange` | fire-and-forget (`.catch(console.error)`) |
 | `collapsed_watchlist_ids` | root `+layout.server.ts` → `$page.data` → `AppSidebarWatchlist` | `AppSidebarWatchlist.toggleCollapsed` | fire-and-forget |
+| `expanded_account_ids` | root `+layout.server.ts` → `$page.data` → `AccountsList` / `AccountsListItem` | `AccountsListItem.toggleExpanded` | fire-and-forget (`.catch(console.error)`) |
 | `watchlist_order` | root `+layout.server.ts` → `AppSidebarWatchlist` (`sortWatchlistsByOrder`) and `/watchlists` via `$page.data` | `/watchlists` `moveWatchlist` (drag-and-drop and keyboard share it) | surfaced: the optimistic order is rolled back and `watchlistService.error` is set, rendered in the page's alert |
 | `holdings_table` | `/holdings` `+page.server.ts` → `holdings_table_config` → page `tableConfig` | `/holdings` `handleToggleColumn` / `handleConfigChange` → `saveHoldingsTableConfig` | surfaced: page-level `persistError` rendered in a destructive alert |
 | `holdings_group` | `/holdings` `+page.server.ts` → `group_mode` → `HoldingsService.setGroupBy` | `/holdings` `handleGroupToggle` → `saveHoldingsGroupMode` | surfaced: page-level `persistError` |
@@ -272,10 +273,11 @@ loads must pass the token explicitly (`cookies.get('auth_token')`), while browse
 readers use the singleton:
 
 - **Root layout load** (`frontend/src/routes/+layout.server.ts`) — reads `sidebar_open`,
-  `collapsed_watchlist_ids` and `watchlist_order` for every authenticated request, guarded
+  `collapsed_watchlist_ids`, `watchlist_order` and `expanded_account_ids` for every authenticated request, guarded
   per key by a type check (`typeof prefs.sidebar_open === 'boolean'`,
-  `Array.isArray(prefs.collapsed_watchlist_ids)`, `Array.isArray(prefs.watchlist_order)`)
-  with defaults `true`, `[]` and `null`. The whole request sits in a `try/catch` that
+  `Array.isArray(prefs.collapsed_watchlist_ids)`, `Array.isArray(prefs.watchlist_order)`,
+  `Array.isArray(prefs.expanded_account_ids)`)
+  with defaults `true`, `[]`, `null` and `[]`. The whole request sits in a `try/catch` that
   silently falls back, and the read is skipped entirely when `locals.user` is unset.
 - **`/holdings` load** (`frontend/src/routes/holdings/+page.server.ts`) — reads
   `holdings_table`, `holdings_group` and `elliott_waves` in its **own** `try/catch`, because
@@ -292,15 +294,18 @@ readers use the singleton:
 Components resolve a layout-read key from the most local source available:
 `AppSidebarWatchlist` prefers a `setContext` value injected by test harnesses, then
 `$page.data.watchlist_order` / `$page.data.collapsed_watchlist_ids`, then falls back.
+Similarly, `AccountsList` / `AccountsListItem` read `initialExpandedAccountIds` from context,
+then `$page.data.expanded_account_ids`, then fall back to empty set.
 
 ## Failure semantics
 
 The split between silent and surfaced persistence failures is intentional and follows the
 surfaces:
 
-- **Fire-and-forget**: layout and sidebar writes. `+layout.svelte` patches `sidebar_open`
-  with `.catch(console.error)`, and `AppSidebarWatchlist.toggleCollapsed` patches
-  `collapsed_watchlist_ids` the same way. A failed write never blocks the interaction that
+- **Fire-and-forget**: layout, sidebar, and account card writes. `+layout.svelte` patches `sidebar_open`
+  with `.catch(console.error)`, `AppSidebarWatchlist.toggleCollapsed` patches
+  `collapsed_watchlist_ids` the same way, and `AccountsListItem.toggleExpanded` patches
+  `expanded_account_ids` the same way. A failed write never blocks the interaction that
   triggered it; the local UI state stays changed and the preference simply is not saved.
 - **Surfaced in-page**: the `/holdings` page's `persist(promise, fallback)` helper clears
   `persistError`, captures the rejection message (or the fallback string) and renders it in
@@ -345,7 +350,8 @@ alerts.
 | `tests/routers/test_account_unauth.py` | 401 for `GET`, `PUT` and `PATCH` without a token |
 | `tests/routers/test_market.py` | `test_indicator_preferences_endpoints_return_404` — the removed per-security endpoints stay removed |
 | `frontend/src/lib/api/userPreferencesService.test.ts` | GET/PUT/PATCH verbs and paths, `tokenOverride` headers, an empty `{}` response resolving without throwing, `wave_settings` nested bodies, `mergeChartPreferences` |
-| `frontend/src/routes/layout.test.ts` | root load reads `collapsed_watchlist_ids` and `watchlist_order`, defaults to `[]` / `null` when absent |
+| `frontend/src/routes/layout.test.ts` | root load reads `collapsed_watchlist_ids`, `watchlist_order` and `expanded_account_ids`, defaults to `[]` / `null` / `[]` when absent |
+| `frontend/src/lib/components/accounts/accounts-list-item.test.ts` | expansion state restored on load, persisted to preferences on toggle |
 | `frontend/src/routes/holdings/page.server.test.ts` | the load returns exactly `holdings_table_config`, `group_mode`, `elliott_waves`; a rejected preferences request yields defaults while holdings still load; holdings are never fetched in the server load |
 | `frontend/src/lib/components/holdings/holdings-table-prefs.test.ts`, `holdings-group-prefs.test.ts` | normalization and single-key PATCH payloads, tolerated rejections, no write on load |
 | `frontend/src/routes/security/[security_id]/page.svelte.test.ts` | pane heights restored on load, persisted as a whole map, and reset sent as `null` |
