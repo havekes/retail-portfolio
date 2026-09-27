@@ -19,7 +19,14 @@ vi.mock('$lib/api/accountClient', () => {
 	};
 });
 
+vi.mock('$lib/api/userPreferencesService', () => ({
+	userPreferencesService: {
+		patchPreferences: vi.fn().mockResolvedValue({})
+	}
+}));
+
 import { accountClient } from '$lib/api/accountClient';
+import { userPreferencesService } from '$lib/api/userPreferencesService';
 
 describe('AccountsListItem', () => {
 	const mockAccount = {
@@ -37,6 +44,7 @@ describe('AccountsListItem', () => {
 
 	beforeEach(() => {
 		vi.clearAllMocks();
+		vi.mocked(userPreferencesService.patchPreferences).mockResolvedValue({});
 		vi.mocked(accountClient.getAccountTotals).mockResolvedValue({
 			value: { value: '100', units: 100, nanos: 0, currencyCode: 'CAD' },
 			cost: { value: '50', units: 50, nanos: 0, currencyCode: 'CAD' }
@@ -78,13 +86,20 @@ describe('AccountsListItem', () => {
 		const titleElement = screen.getByText('My Test Account');
 		expect(titleElement).toBeInTheDocument();
 
-		// Click the edit button (pencil icon)
+		// Assert no static pencil button is rendered next to the title
 		const editButton = titleElement.parentElement?.querySelector('button');
-		expect(editButton).toBeInTheDocument();
-		await fireEvent.click(editButton!);
+		expect(editButton).toBeNull();
+
+		// Open 3-dots actions menu
+		const menuButton = screen.getByRole('button', { name: 'Account actions' });
+		await fireEvent.click(menuButton);
+
+		// Click "Rename" option
+		const renameOption = await screen.findByRole('menuitem', { name: /Rename/i });
+		await fireEvent.click(renameOption);
 
 		// Now it should show an input
-		const input = screen.getByRole('textbox');
+		const input = await screen.findByRole('textbox');
 		expect(input).toBeInTheDocument();
 		expect((input as HTMLInputElement).value).toBe('My Test Account');
 
@@ -555,6 +570,134 @@ describe('AccountsListItem', () => {
 				await screen.findByText('Failed to load holdings. Please try again.')
 			).toBeInTheDocument();
 			expect(screen.getByText('My Test Account')).toBeInTheDocument();
+		});
+	});
+
+	describe('Account Card Polish and Enhancements (F-ACCOUNTS-T03)', () => {
+		it('renders 3-dots menu containing "Rename" with Pencil icon (default variant) and "Delete account" with Trash2 icon (destructive variant)', async () => {
+			render(AccountsListItem, {
+				props: {
+					account: mockAccount
+				}
+			});
+
+			const menuButton = screen.getByRole('button', { name: 'Account actions' });
+			await fireEvent.click(menuButton);
+
+			const renameOption = await screen.findByRole('menuitem', { name: /Rename/i });
+			expect(renameOption).toBeInTheDocument();
+			expect(renameOption).toHaveAttribute('data-variant', 'default');
+			expect(renameOption.querySelector('svg')).toBeInTheDocument();
+
+			const deleteOption = await screen.findByRole('menuitem', { name: /Delete account/i });
+			expect(deleteOption).toBeInTheDocument();
+			expect(deleteOption).toHaveAttribute('data-variant', 'destructive');
+			expect(deleteOption.querySelector('svg')).toBeInTheDocument();
+		});
+
+		it('sync button immediately precedes the 3-dots button in the DOM order', async () => {
+			render(AccountsListItem, {
+				props: {
+					account: mockAccount
+				}
+			});
+
+			const syncButton = await screen.findByRole('button', { name: 'Sync positions' });
+			const dotsButton = screen.getByRole('button', { name: 'Account actions' });
+
+			expect(syncButton.nextElementSibling).toBe(dotsButton);
+			expect(dotsButton.previousElementSibling).toBe(syncButton);
+		});
+
+		it('applies rounded hover styling to account title link, sync button, and 3-dots button', async () => {
+			render(AccountsListItem, {
+				props: {
+					account: mockAccount
+				}
+			});
+
+			const titleLink = screen.getByText('My Test Account').closest('a');
+			expect(titleLink).toHaveClass('rounded-md');
+			expect(titleLink).toHaveClass('hover:bg-background/60');
+
+			const syncButton = await screen.findByRole('button', { name: 'Sync positions' });
+			expect(syncButton).toHaveClass('rounded-md');
+			expect(syncButton).toHaveClass('hover:bg-background/60');
+
+			const dotsButton = screen.getByRole('button', { name: 'Account actions' });
+			expect(dotsButton).toHaveClass('rounded-md');
+			expect(dotsButton).toHaveClass('hover:bg-background/60');
+		});
+
+		it('displays total profit/loss with + prefix and emerald class when positive', async () => {
+			vi.mocked(accountClient.getAccountTotals).mockResolvedValue({
+				value: { value: '100', units: 100, nanos: 0, currencyCode: 'CAD' },
+				cost: { value: '50', units: 50, nanos: 0, currencyCode: 'CAD' }
+			});
+
+			render(AccountsListItem, {
+				props: {
+					account: mockAccount
+				}
+			});
+
+			const profitLossElement = await screen.findByText('+$50.00');
+			expect(profitLossElement).toBeInTheDocument();
+			expect(profitLossElement).toHaveClass('text-emerald-600');
+		});
+
+		it('displays total profit/loss with - prefix and rose class when negative', async () => {
+			vi.mocked(accountClient.getAccountTotals).mockResolvedValue({
+				value: { value: '25', units: 25, nanos: 0, currencyCode: 'CAD' },
+				cost: { value: '50', units: 50, nanos: 0, currencyCode: 'CAD' }
+			});
+
+			render(AccountsListItem, {
+				props: {
+					account: mockAccount
+				}
+			});
+
+			const profitLossElement = await screen.findByText('-$25.00');
+			expect(profitLossElement).toBeInTheDocument();
+			expect(profitLossElement).toHaveClass('text-rose-600');
+		});
+
+		it('persists expanded state to user preferences when caret is toggled', async () => {
+			render(AccountsListItem, {
+				props: {
+					account: mockAccount
+				}
+			});
+
+			const caretButton = screen.getByRole('button', { name: 'Expand holdings' });
+			await fireEvent.click(caretButton);
+
+			expect(userPreferencesService.patchPreferences).toHaveBeenCalledWith({
+				expanded_account_ids: ['acc-1']
+			});
+
+			const collapseButton = screen.getByRole('button', { name: 'Collapse holdings' });
+			await fireEvent.click(collapseButton);
+
+			expect(userPreferencesService.patchPreferences).toHaveBeenCalledWith({
+				expanded_account_ids: []
+			});
+		});
+
+		it('initializes as expanded and fetches holdings when initialExpanded is true', async () => {
+			render(AccountsListItem, {
+				props: {
+					account: mockAccount,
+					initialExpanded: true
+				}
+			});
+
+			const caretButton = screen.getByRole('button', { name: 'Collapse holdings' });
+			expect(caretButton).toBeInTheDocument();
+			expect(caretButton).toHaveAttribute('aria-expanded', 'true');
+
+			expect(accountClient.getAccountHoldings).toHaveBeenCalledWith('acc-1');
 		});
 	});
 });

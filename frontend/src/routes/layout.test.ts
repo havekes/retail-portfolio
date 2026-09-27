@@ -85,7 +85,8 @@ describe('Root +layout.svelte', () => {
 					user: null,
 					sidebar_open: true,
 					collapsed_watchlist_ids: [],
-					watchlist_order: null
+					watchlist_order: null,
+					expanded_account_ids: []
 				},
 				children
 			}
@@ -106,7 +107,8 @@ describe('Root +layout.svelte', () => {
 					user: { id: 'u1', email: 'test@example.com' },
 					sidebar_open: true,
 					collapsed_watchlist_ids: [],
-					watchlist_order: null
+					watchlist_order: null,
+					expanded_account_ids: []
 				},
 				children
 			}
@@ -132,7 +134,8 @@ describe('Root +layout.svelte', () => {
 					user: { id: 'u1', email: 'test@example.com' },
 					sidebar_open: true,
 					collapsed_watchlist_ids: [],
-					watchlist_order: null
+					watchlist_order: null,
+					expanded_account_ids: []
 				},
 				children
 			}
@@ -162,7 +165,8 @@ describe('Root +layout.svelte', () => {
 						user: { id: 'u1', email: 'test@example.com' },
 						sidebar_open: true,
 						collapsed_watchlist_ids: [],
-						watchlist_order: null
+						watchlist_order: null,
+						expanded_account_ids: []
 					},
 					children
 				}
@@ -270,7 +274,8 @@ describe('Root +layout.svelte', () => {
 						user: { id: 'u1', email: 'test@example.com' },
 						sidebar_open: true,
 						collapsed_watchlist_ids: [],
-						watchlist_order: null
+						watchlist_order: null,
+						expanded_account_ids: []
 					},
 					children
 				}
@@ -305,7 +310,8 @@ describe('Root +layout.svelte', () => {
 						user: null,
 						sidebar_open: true,
 						collapsed_watchlist_ids: [],
-						watchlist_order: null
+						watchlist_order: null,
+						expanded_account_ids: []
 					},
 					children
 				}
@@ -378,7 +384,8 @@ describe('Root +layout.svelte', () => {
 						user: { id: 'u1', email: 'test@example.com' },
 						sidebar_open: true,
 						collapsed_watchlist_ids: [],
-						watchlist_order: null
+						watchlist_order: null,
+						expanded_account_ids: []
 					},
 					children
 				}
@@ -441,6 +448,25 @@ describe('Root +layout.svelte', () => {
 		it('defaults watchlist_order to null when absent', async () => {
 			const data = await load(loadEvent({ sidebar_open: true }));
 			expect(data.watchlist_order).toBeNull();
+		});
+
+		it('defaults expanded_account_ids to empty array when the preference is absent', async () => {
+			const data = await load(loadEvent({ sidebar_open: true }));
+			expect(data.expanded_account_ids).toEqual([]);
+		});
+
+		it('reads expanded_account_ids from preferences', async () => {
+			const data = await load(
+				loadEvent({ sidebar_open: true, expanded_account_ids: ['acc-1', 'acc-2'] })
+			);
+			expect(data.expanded_account_ids).toEqual(['acc-1', 'acc-2']);
+		});
+
+		it('defaults expanded_account_ids to empty array when preference is not an array', async () => {
+			const data = await load(
+				loadEvent({ sidebar_open: true, expanded_account_ids: 'invalid-non-array' })
+			);
+			expect(data.expanded_account_ids).toEqual([]);
 		});
 	});
 });
