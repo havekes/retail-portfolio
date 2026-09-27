@@ -15,6 +15,8 @@
 	import ChevronUp from '@lucide/svelte/icons/chevron-up';
 	import ChevronDown from '@lucide/svelte/icons/chevron-down';
 	import { cn } from '$lib/utils';
+	import type { SecurityValuation } from '$lib/api/marketService';
+	import { formatValuationRange } from '$lib/utils/finance/valuation';
 	import {
 		calculatePercentOfTotal,
 		calculatePercentOfAccount,
@@ -38,6 +40,7 @@
 		tableConfig?: HoldingsTableConfig | null;
 		onConfigChange?: (config: HoldingsTableConfig) => void;
 		elliottWaves?: Record<string, SecurityElliottWaves> | null;
+		valuations?: Record<string, SecurityValuation> | null;
 	};
 
 	let {
@@ -47,7 +50,8 @@
 		emptyMessage = 'No holdings yet.',
 		tableConfig = null,
 		onConfigChange,
-		elliottWaves = null
+		elliottWaves = null,
+		valuations = null
 	}: Props = $props();
 
 	// Writable derived: normalizes the consumer's config, but a drag can
@@ -146,6 +150,8 @@
 		ew_primary_upside: number | null;
 		ew_cycle_target: number | null;
 		ew_cycle_upside: number | null;
+		valuation_lower: number | null;
+		valuation_upper: number | null;
 	};
 
 	const totalPortfolioValue = $derived(holdings.reduce((sum, h) => sum + (h.total_value ?? 0), 0));
@@ -202,6 +208,16 @@
 					})
 				);
 
+				const val = valuations?.[g.security_id];
+				const valuation_lower =
+					val?.lower_bound !== undefined && val?.lower_bound !== null
+						? Number(val.lower_bound)
+						: null;
+				const valuation_upper =
+					val?.upper_bound !== undefined && val?.upper_bound !== null
+						? Number(val.upper_bound)
+						: null;
+
 				return {
 					id: g.id,
 					security_id: g.security_id,
@@ -224,7 +240,9 @@
 					ew_primary_target,
 					ew_primary_upside,
 					ew_cycle_target,
-					ew_cycle_upside
+					ew_cycle_upside,
+					valuation_lower,
+					valuation_upper
 				};
 			});
 		}
@@ -253,6 +271,16 @@
 					]
 				: [];
 
+			const val = valuations?.[row.security_id];
+			const valuation_lower =
+				val?.lower_bound !== undefined && val?.lower_bound !== null
+					? Number(val.lower_bound)
+					: null;
+			const valuation_upper =
+				val?.upper_bound !== undefined && val?.upper_bound !== null
+					? Number(val.upper_bound)
+					: null;
+
 			return {
 				id: row.id,
 				security_id: row.security_id,
@@ -275,7 +303,9 @@
 				ew_primary_target,
 				ew_primary_upside,
 				ew_cycle_target,
-				ew_cycle_upside
+				ew_cycle_upside,
+				valuation_lower,
+				valuation_upper
 			};
 		});
 	});
@@ -316,6 +346,19 @@
 		}
 		if (column === 'ew_cycle_target') {
 			return row.ew_cycle_upside ?? row.ew_cycle_target;
+		}
+		if (column === 'valuation_range') {
+			if (
+				row.valuation_lower !== null &&
+				row.valuation_lower !== undefined &&
+				Number.isFinite(row.valuation_lower) &&
+				row.valuation_upper !== null &&
+				row.valuation_upper !== undefined &&
+				Number.isFinite(row.valuation_upper)
+			) {
+				return (row.valuation_lower + row.valuation_upper) / 2;
+			}
+			return null;
 		}
 		return row[column as keyof HoldingRowView] as string | number | null | undefined;
 	}
@@ -568,6 +611,16 @@
 				{:else}
 					<span class="text-sm text-muted-foreground">-</span>
 				{/if}
+			</Table.Cell>
+		{/if}
+		{#if isVisible('valuation_range')}
+			<Table.Cell
+				data-testid="valuation-range-cell"
+				class="border-r border-border/40 px-4 py-2 text-right"
+			>
+				<span data-testid="valuation-range" class="text-xs font-medium tabular-nums">
+					{formatValuationRange(row.valuation_lower, row.valuation_upper)}
+				</span>
 			</Table.Cell>
 		{/if}
 	</Table.Row>

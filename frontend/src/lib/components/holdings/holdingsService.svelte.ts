@@ -1,5 +1,11 @@
 import { getContext, setContext } from 'svelte';
+import { SvelteSet } from 'svelte/reactivity';
 import { getAccountService, type AccountService } from '$lib/api/accountService';
+import {
+	getMarketService,
+	type MarketService,
+	type SecurityValuation
+} from '$lib/api/marketService';
 import type { UserHolding } from '$lib/types/account';
 import {
 	groupHoldings,
@@ -19,6 +25,7 @@ export type HoldingsFilter =
 export class HoldingsService {
 	allRows = $state<UserHolding[]>([]);
 	filter = $state<HoldingsFilter>({ type: 'all' });
+	valuations = $state<Record<string, SecurityValuation>>({});
 	isLoading = $state(false);
 	errorMessage = $state<string | null>(null);
 	groupBy = $state<HoldingsGroupMode>('none');
@@ -40,9 +47,11 @@ export class HoldingsService {
 
 	groupedHoldings = $derived.by<HoldingsGroup[]>(() => groupHoldings(this.rows, this.groupBy));
 	private client: AccountService;
+	private marketClient: MarketService;
 
 	constructor(customFetch?: typeof fetch) {
 		this.client = getAccountService(customFetch);
+		this.marketClient = getMarketService(customFetch);
 	}
 
 	setGroupBy(mode: HoldingsGroupMode) {
@@ -85,6 +94,34 @@ export class HoldingsService {
 			}
 
 			this.rows = collected;
+
+			const uniqueSecurityIds = Array.from(
+				new SvelteSet(collected.map((h) => h.security_id).filter((id): id is string => Boolean(id)))
+			);
+
+			if (uniqueSecurityIds.length > 0) {
+				try {
+					const batchValuations = await this.marketClient.getValuationsBatch(
+						uniqueSecurityIds,
+						token
+					);
+					const valMap: Record<string, SecurityValuation> = {};
+					for (const val of batchValuations) {
+						if (val.security_id) {
+							valMap[val.security_id] = {
+								...val,
+								lower_bound: Number(val.lower_bound),
+								upper_bound: Number(val.upper_bound)
+							};
+						}
+					}
+					this.valuations = valMap;
+				} catch {
+					this.valuations = {};
+				}
+			} else {
+				this.valuations = {};
+			}
 
 			return null;
 		} catch (error) {

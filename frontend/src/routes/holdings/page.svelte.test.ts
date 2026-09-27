@@ -23,6 +23,10 @@ vi.mock('$lib/api/accountService', () => ({
 	getAccountService: vi.fn()
 }));
 
+vi.mock('$lib/api/marketService', () => ({
+	getMarketService: vi.fn()
+}));
+
 vi.mock('$lib/api/userPreferencesService', () => ({
 	getUserPreferencesService: vi.fn()
 }));
@@ -30,12 +34,14 @@ vi.mock('$lib/api/userPreferencesService', () => ({
 import { goto } from '$app/navigation';
 import { ApiError } from '$lib/api/apiClient';
 import { getAccountService, type AccountService } from '$lib/api/accountService';
+import { getMarketService, type MarketService } from '$lib/api/marketService';
 import {
 	getUserPreferencesService,
 	type UserPreferencesService
 } from '$lib/api/userPreferencesService';
 
 const getUserHoldings = vi.fn();
+const getValuationsBatch = vi.fn();
 const getPreferences = vi.fn();
 const patchPreferences = vi.fn();
 
@@ -180,9 +186,14 @@ describe('Holdings page (+page.svelte)', () => {
 		getUserHoldings.mockResolvedValue(pageOf([]));
 		getPreferences.mockResolvedValue({});
 		patchPreferences.mockResolvedValue({});
+		getValuationsBatch.mockReset();
+		getValuationsBatch.mockResolvedValue([]);
 		vi.mocked(getAccountService).mockReturnValue({
 			getUserHoldings
 		} as unknown as AccountService);
+		vi.mocked(getMarketService).mockReturnValue({
+			getValuationsBatch
+		} as unknown as MarketService);
 		vi.mocked(getUserPreferencesService).mockReturnValue({
 			getPreferences,
 			patchPreferences
@@ -628,5 +639,24 @@ describe('Holdings page (+page.svelte)', () => {
 
 			expect(screen.getByTestId('currency-total-CAD')).toHaveTextContent('$900.00');
 		});
+	});
+
+	it('toggles Valuation Range column from settings dropdown and persists preference', async () => {
+		await renderWithHoldings([aaplTfsa]);
+
+		expect(screen.getByTestId('column-col-valuation_range')).toBeInTheDocument();
+
+		await fireEvent.click(screen.getByTestId('display-settings-trigger'));
+		const toggle = await screen.findByTestId('column-toggle-valuation_range');
+		expect(toggle).toBeInTheDocument();
+
+		await fireEvent.click(toggle);
+		expect(screen.queryByTestId('column-col-valuation_range')).not.toBeInTheDocument();
+
+		await waitFor(() => expect(patchPreferences).toHaveBeenCalled());
+		const lastPayload = patchPreferences.mock.calls.at(-1)?.[0] as {
+			holdings_table: { visible: string[] };
+		};
+		expect(lastPayload.holdings_table.visible).not.toContain('valuation_range');
 	});
 });

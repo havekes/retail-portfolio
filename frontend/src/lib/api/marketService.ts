@@ -104,6 +104,17 @@ export interface SecurityValuationRead {
 	updated_at: string;
 }
 
+/** Numeric view of a valuation used by the holdings table after normalization. */
+export interface SecurityValuation {
+	id?: number;
+	user_id?: string;
+	security_id: string;
+	lower_bound: number;
+	upper_bound: number;
+	created_at?: string;
+	updated_at?: string;
+}
+
 export class MarketService extends ApiClient {
 	async search(query: string): Promise<MarketSearchResult[]> {
 		return await this.get<MarketSearchResult[]>(`/market/search?q=${query}`);
@@ -260,7 +271,7 @@ export class MarketService extends ApiClient {
 		securityIds: string[],
 		token?: string | null
 	): Promise<SecurityValuationRead[]> {
-		if (securityIds.length === 0) {
+		if (!securityIds || securityIds.length === 0) {
 			return [];
 		}
 		return await this.post<SecurityValuationRead[], { security_ids: string[] }>(

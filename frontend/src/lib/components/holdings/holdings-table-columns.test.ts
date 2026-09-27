@@ -75,6 +75,19 @@ describe('holdings-table-columns', () => {
 				HOLDINGS_TABLE_DEFAULT_WIDTHS.percent_of_total
 			);
 		});
+
+		it('clamps valuation_range within bounds', () => {
+			expect(clampColumnWidth('valuation_range', 50)).toBe(
+				HOLDINGS_TABLE_COLUMN_MIN_WIDTHS.valuation_range
+			);
+			expect(clampColumnWidth('valuation_range', 500)).toBe(
+				HOLDINGS_TABLE_COLUMN_MAX_WIDTHS.valuation_range
+			);
+			expect(clampColumnWidth('valuation_range', 180)).toBe(180);
+			expect(clampColumnWidth('valuation_range', Number.NaN)).toBe(
+				HOLDINGS_TABLE_DEFAULT_WIDTHS.valuation_range
+			);
+		});
 	});
 
 	describe('HOLDINGS_TABLE_COLUMNS', () => {
@@ -99,6 +112,16 @@ describe('holdings-table-columns', () => {
 				alignRight: true
 			});
 			expect(HOLDINGS_TABLE_COLUMN_IDS[totalValueIdx + 1]).toBe('percent_of_total');
+		});
+
+		it('includes valuation_range with label "Valuation Range" and alignRight: true', () => {
+			const col = HOLDINGS_TABLE_COLUMNS.find((c) => c.id === 'valuation_range');
+			expect(col).toEqual({
+				id: 'valuation_range',
+				label: 'Valuation Range',
+				alignRight: true
+			});
+			expect(HOLDINGS_TABLE_COLUMN_IDS).toContain('valuation_range');
 		});
 	});
 
@@ -141,6 +164,17 @@ describe('holdings-table-columns', () => {
 			expect(hidden.visible).not.toContain('percent_of_total');
 
 			const restored = toggleColumnVisibility(hidden, 'percent_of_total');
+			expect(restored.visible).toEqual(HOLDINGS_TABLE_DEFAULT_CONFIG.visible);
+		});
+
+		it('toggles valuation_range column visibility while preserving canonical order', () => {
+			const initial = HOLDINGS_TABLE_DEFAULT_CONFIG;
+			expect(initial.visible).toContain('valuation_range');
+
+			const hidden = toggleColumnVisibility(initial, 'valuation_range');
+			expect(hidden.visible).not.toContain('valuation_range');
+
+			const restored = toggleColumnVisibility(hidden, 'valuation_range');
 			expect(restored.visible).toEqual(HOLDINGS_TABLE_DEFAULT_CONFIG.visible);
 		});
 	});
@@ -231,6 +265,15 @@ describe('holdings-table-columns', () => {
 			});
 			expect(config.widths.percent_of_total).toBe(135);
 			expect(config.visible).toEqual(['security_symbol', 'total_value', 'percent_of_total']);
+		});
+
+		it('normalizes and preserves valuation_range width and visibility', () => {
+			const config = normalizeHoldingsTableConfig({
+				widths: { valuation_range: 210 },
+				visible: ['security_symbol', 'total_value', 'valuation_range']
+			});
+			expect(config.widths.valuation_range).toBe(210);
+			expect(config.visible).toEqual(['security_symbol', 'total_value', 'valuation_range']);
 		});
 
 		it('returns a fresh object that does not alias the defaults', () => {

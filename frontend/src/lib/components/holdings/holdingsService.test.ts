@@ -4,12 +4,18 @@ vi.mock('$lib/api/accountService', () => ({
 	getAccountService: vi.fn()
 }));
 
+vi.mock('$lib/api/marketService', () => ({
+	getMarketService: vi.fn()
+}));
+
 import { getAccountService, type AccountService } from '$lib/api/accountService';
+import { getMarketService, type MarketService } from '$lib/api/marketService';
 import { ApiError } from '$lib/api/apiClient';
 import { HoldingsService, getHoldingsService } from './holdingsService.svelte';
 import type { UserHolding } from '$lib/types/account';
 
 const getUserHoldings = vi.fn();
+const getValuationsBatch = vi.fn();
 
 function makeHolding(id: string, overrides: Partial<UserHolding> = {}): UserHolding {
 	return {
@@ -54,11 +60,16 @@ describe('HoldingsService', () => {
 		vi.mocked(getAccountService).mockReturnValue({
 			getUserHoldings
 		} as unknown as AccountService);
+		vi.mocked(getMarketService).mockReturnValue({
+			getValuationsBatch
+		} as unknown as MarketService);
+		getValuationsBatch.mockResolvedValue([]);
 		service = new HoldingsService();
 	});
 
 	it('starts with empty, idle state and no grouping', () => {
 		expect(service.rows).toEqual([]);
+		expect(service.valuations).toEqual({});
 		expect(service.isLoading).toBe(false);
 		expect(service.errorMessage).toBeNull();
 		expect(service.groupBy).toBe('none');
@@ -234,5 +245,70 @@ describe('HoldingsService', () => {
 		expect(isolated).not.toBe(service);
 		isolated.rows = [makeHolding('h-x')];
 		expect(service.rows).toEqual([]);
+	});
+
+	describe('batch valuations', () => {
+		it('fetches valuations in batch for distinct security_ids and maps by security_id with numeric bounds', async () => {
+			getUserHoldings.mockResolvedValueOnce(
+				page(
+					[
+						makeHolding('h-1', { security_id: 'sec-aapl' }),
+						makeHolding('h-2', { security_id: 'sec-msft' }),
+						makeHolding('h-3', { security_id: 'sec-aapl' })
+					],
+					3,
+					0
+				)
+			);
+			getValuationsBatch.mockResolvedValueOnce([
+				{
+					security_id: 'sec-aapl',
+					lower_bound: '150.00',
+					upper_bound: '220.00'
+				},
+				{
+					security_id: 'sec-msft',
+					lower_bound: 300,
+					upper_bound: 400
+				}
+			]);
+
+			await service.load('test-token');
+
+			expect(getValuationsBatch).toHaveBeenCalledWith(['sec-aapl', 'sec-msft'], 'test-token');
+			expect(service.valuations['sec-aapl']).toEqual({
+				security_id: 'sec-aapl',
+				lower_bound: 150,
+				upper_bound: 220
+			});
+			expect(service.valuations['sec-msft']).toEqual({
+				security_id: 'sec-msft',
+				lower_bound: 300,
+				upper_bound: 400
+			});
+		});
+
+		it('gracefully falls back to empty valuations when batch valuation lookup fails without failing holdings load', async () => {
+			getUserHoldings.mockResolvedValueOnce(
+				page([makeHolding('h-1', { security_id: 'sec-aapl' })], 1, 0)
+			);
+			getValuationsBatch.mockRejectedValueOnce(new Error('Valuation service timeout'));
+
+			const result = await service.load();
+
+			expect(result).toBeNull();
+			expect(service.rows).toHaveLength(1);
+			expect(service.valuations).toEqual({});
+			expect(service.errorMessage).toBeNull();
+		});
+
+		it('does not call getValuationsBatch when holdings are empty', async () => {
+			getUserHoldings.mockResolvedValueOnce(page([], 0, 0));
+
+			await service.load();
+
+			expect(getValuationsBatch).not.toHaveBeenCalled();
+			expect(service.valuations).toEqual({});
+		});
 	});
 });

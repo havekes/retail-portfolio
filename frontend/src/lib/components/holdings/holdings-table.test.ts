@@ -3,6 +3,7 @@ import { render, screen, fireEvent, within } from '@testing-library/svelte';
 import HoldingsTable from './holdings-table.svelte';
 import type { UserHolding } from '$lib/types/account';
 import type { SecurityElliottWaves } from '$lib/utils/finance/elliott-wave';
+import type { SecurityValuation } from '$lib/api/marketService';
 import {
 	HOLDINGS_TABLE_COLUMN_IDS,
 	normalizeHoldingsTableConfig,
@@ -663,6 +664,21 @@ describe('HoldingsTable', () => {
 			await fireEvent.pointerUp(handle, { clientX: -10_000, pointerId: 1 });
 		});
 
+		it('clamps Valuation Range resize handle within [120, 260] bounds', async () => {
+			render(HoldingsTable, { props: { holdings: sortRows } });
+
+			const handle = screen.getByTestId('column-resize-valuation_range');
+
+			await fireEvent.pointerDown(handle, { clientX: 100, pointerId: 1 });
+			await fireEvent.pointerMove(handle, { clientX: 10_000, pointerId: 1 });
+			expect(screen.getByTestId('column-col-valuation_range').style.width).toBe('260px');
+
+			await fireEvent.pointerMove(handle, { clientX: -10_000, pointerId: 1 });
+			expect(screen.getByTestId('column-col-valuation_range').style.width).toBe('120px');
+
+			await fireEvent.pointerUp(handle, { clientX: -10_000, pointerId: 1 });
+		});
+
 		it('emits the clamped config once the drag ends', async () => {
 			const onConfigChange = vi.fn();
 			render(HoldingsTable, { props: { holdings: sortRows, onConfigChange } });
@@ -727,7 +743,7 @@ describe('HoldingsTable', () => {
 
 			render(HoldingsTable, { props: { holdings: sortRows, tableConfig } });
 
-			expect(screen.getAllByRole('columnheader')).toHaveLength(10);
+			expect(screen.getAllByRole('columnheader')).toHaveLength(11);
 			expect(screen.getByTestId('column-col-quantity').style.width).toBe('180px');
 		});
 	});
@@ -853,6 +869,100 @@ describe('HoldingsTable', () => {
 			expect(within(accountCell).getByText('40.0%')).toBeInTheDocument();
 			expect(within(accountCell).getByText('RRSP')).toBeInTheDocument();
 			expect(within(accountCell).getByText('100.0%')).toBeInTheDocument();
+		});
+	});
+
+	describe('Valuation Range', () => {
+		it('renders formatted valuation ranges for securities with valuations and "—" for securities without', () => {
+			const mockValuations: Record<string, SecurityValuation> = {
+				'sec-z': {
+					security_id: 'sec-z',
+					lower_bound: 20,
+					upper_bound: 50
+				},
+				'sec-m': {
+					security_id: 'sec-m',
+					lower_bound: 1200.5,
+					upper_bound: 1500.75
+				}
+			};
+
+			render(HoldingsTable, { props: { holdings: sortRows, valuations: mockValuations } });
+
+			const zRow = rowBySymbol('ZZZ');
+			expect(within(zRow).getByTestId('valuation-range')).toHaveTextContent('20.00 – 50.00');
+
+			const mRow = rowBySymbol('MMM');
+			expect(within(mRow).getByTestId('valuation-range')).toHaveTextContent('1,200.50 – 1,500.75');
+
+			const aRow = rowBySymbol('AAA');
+			expect(within(aRow).getByTestId('valuation-range')).toHaveTextContent('—');
+		});
+
+		it('sorts by Valuation Range ascending and descending with unvalued securities sorted last', async () => {
+			const mockValuations: Record<string, SecurityValuation> = {
+				'sec-z': {
+					security_id: 'sec-z',
+					lower_bound: 20,
+					upper_bound: 50 // midpoint 35
+				},
+				'sec-m': {
+					security_id: 'sec-m',
+					lower_bound: 10,
+					upper_bound: 20 // midpoint 15
+				}
+			};
+
+			render(HoldingsTable, { props: { holdings: sortRows, valuations: mockValuations } });
+
+			const valuationHeader = screen.getByRole('columnheader', { name: /Valuation Range/i });
+
+			// Click Valuation Range -> desc first: ZZZ (35), MMM (15), AAA (null)
+			await fireEvent.click(valuationHeader);
+			expect(renderedSymbols()).toEqual(['ZZZ', 'MMM', 'AAA']);
+
+			// Click Valuation Range again -> asc: MMM (15), ZZZ (35), AAA (null)
+			await fireEvent.click(valuationHeader);
+			expect(renderedSymbols()).toEqual(['MMM', 'ZZZ', 'AAA']);
+		});
+
+		it('displays and sorts valuations in "Group by stock" mode', async () => {
+			const mockValuations: Record<string, SecurityValuation> = {
+				'sec-aapl': {
+					security_id: 'sec-aapl',
+					lower_bound: 150,
+					upper_bound: 250 // midpoint 200
+				},
+				'sec-msft': {
+					security_id: 'sec-msft',
+					lower_bound: 300,
+					upper_bound: 400 // midpoint 350
+				}
+			};
+
+			render(HoldingsTable, {
+				props: {
+					holdings: groupRows,
+					groupBy: 'stock',
+					valuations: mockValuations
+				}
+			});
+
+			const aaplRow = rowBySymbol('AAPL');
+			expect(within(aaplRow).getByTestId('valuation-range')).toHaveTextContent('150.00 – 250.00');
+
+			const msftRow = rowBySymbol('MSFT');
+			expect(within(msftRow).getByTestId('valuation-range')).toHaveTextContent('300.00 – 400.00');
+
+			const valuationHeader = screen.getByRole('columnheader', { name: /Valuation Range/i });
+
+			// Sort Valuation Range desc -> MSFT (350), AAPL (200)
+			await fireEvent.click(valuationHeader);
+			expect(renderedSymbols()).toEqual(['MSFT', 'AAPL']);
+
+			// Sort Valuation Range asc -> AAPL (200), MSFT (350)
+			await fireEvent.click(valuationHeader);
+			expect(renderedSymbols()).toEqual(['AAPL', 'MSFT']);
 		});
 	});
 });

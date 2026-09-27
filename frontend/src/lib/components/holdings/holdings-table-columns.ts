@@ -17,7 +17,8 @@ export const HOLDINGS_TABLE_COLUMN_IDS = [
 	'percent_of_total',
 	'profit_loss',
 	'ew_primary_target',
-	'ew_cycle_target'
+	'ew_cycle_target',
+	'valuation_range'
 ] as const;
 
 export type HoldingsTableColumnId = (typeof HOLDINGS_TABLE_COLUMN_IDS)[number];
@@ -38,7 +39,8 @@ export const HOLDINGS_TABLE_COLUMNS: readonly HoldingsTableColumn[] = [
 	{ id: 'percent_of_total', label: '% of Total', alignRight: true },
 	{ id: 'profit_loss', label: 'Return', alignRight: true },
 	{ id: 'ew_primary_target', label: 'EW Primary', alignRight: true },
-	{ id: 'ew_cycle_target', label: 'EW Cycle', alignRight: true }
+	{ id: 'ew_cycle_target', label: 'EW Cycle', alignRight: true },
+	{ id: 'valuation_range', label: 'Valuation Range', alignRight: true }
 ];
 
 /**
@@ -57,7 +59,8 @@ export const HOLDINGS_TABLE_DEFAULT_WIDTHS: Record<HoldingsTableColumnId, number
 	percent_of_total: 120,
 	profit_loss: 160,
 	ew_primary_target: 150,
-	ew_cycle_target: 150
+	ew_cycle_target: 150,
+	valuation_range: 160
 };
 
 /** Fallback floor/ceiling used when a column has no explicit override. */
@@ -74,7 +77,8 @@ export const HOLDINGS_TABLE_COLUMN_MIN_WIDTHS: Record<HoldingsTableColumnId, num
 	percent_of_total: 90,
 	profit_loss: 120,
 	ew_primary_target: 120,
-	ew_cycle_target: 120
+	ew_cycle_target: 120,
+	valuation_range: 120
 };
 
 export const HOLDINGS_TABLE_COLUMN_MAX_WIDTHS: Record<HoldingsTableColumnId, number> = {
@@ -87,7 +91,8 @@ export const HOLDINGS_TABLE_COLUMN_MAX_WIDTHS: Record<HoldingsTableColumnId, num
 	percent_of_total: 200,
 	profit_loss: 240,
 	ew_primary_target: 240,
-	ew_cycle_target: 240
+	ew_cycle_target: 240,
+	valuation_range: 260
 };
 
 export type HoldingsTableConfig = {
