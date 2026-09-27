@@ -1,7 +1,31 @@
 import type { Time } from 'lightweight-charts';
 import { normalizeDrawingTime } from './drawing-time';
 
-export type WaveDegree = 'cycle' | 'primary' | 'intermediate';
+export const ALL_WAVE_DEGREES = [
+	'grand_supercycle',
+	'supercycle',
+	'cycle',
+	'primary',
+	'intermediate',
+	'minor',
+	'minute',
+	'minuette',
+	'subminuette'
+] as const;
+
+export type WaveDegree = (typeof ALL_WAVE_DEGREES)[number];
+
+export const WAVE_DEGREE_LABELS: Record<WaveDegree, string> = {
+	grand_supercycle: 'Grand Supercycle',
+	supercycle: 'Supercycle',
+	cycle: 'Cycle',
+	primary: 'Primary',
+	intermediate: 'Intermediate',
+	minor: 'Minor',
+	minute: 'Minute',
+	minuette: 'Minuette',
+	subminuette: 'Subminuette'
+};
 
 export type WaveType = 'impulse' | 'corrective';
 
@@ -38,9 +62,16 @@ export interface SecurityElliottWaves {
  * `null` disables that degree's wave-target alerts. Keys are snake_case for JSON parity.
  */
 export interface WaveAlertPercents {
-	cycle: { wave3: number | null; wave5: number | null };
-	primary: { wave3: number | null; wave5: number | null };
+	grand_supercycle?: { wave3: number | null; wave5: number | null };
+	supercycle?: { wave3: number | null; wave5: number | null };
+	cycle?: { wave3: number | null; wave5: number | null };
+	primary?: { wave3: number | null; wave5: number | null };
 	intermediate?: { wave3: number | null; wave5: number | null };
+	minor?: { wave3: number | null; wave5: number | null };
+	minute?: { wave3: number | null; wave5: number | null };
+	minuette?: { wave3: number | null; wave5: number | null };
+	subminuette?: { wave3: number | null; wave5: number | null };
+	[key: string]: { wave3: number | null; wave5: number | null } | undefined;
 }
 
 export interface WaveSettings {

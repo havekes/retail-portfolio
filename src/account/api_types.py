@@ -92,6 +92,10 @@ class UserPreferences(BaseModel):
     elliott_waves: dict[str, Any] | None = None
     fibonacci_tools: dict[str, Any] | None = None
     wave_settings: dict[str, Any] | None = None
+    chart_hide_labels: bool | None = None
+    chart_auto_scale: bool | None = None
+    chart_log_scale: bool | None = None
+    show_valuation_band: bool | None = None
     watchlist_order: list[str] | None = None
     watchlist_sort: dict[str, str] | None = None
 

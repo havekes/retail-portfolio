@@ -957,17 +957,29 @@ async def market_compute_indicators(  # noqa: C901, PLR0912, PLR0915
             elif request.interval == PriceInterval.ONE_MONTH:
                 prices_sorted = aggregate_monthly_prices(prices_sorted)
 
-            candles = [
-                IndicatorCandleSchema(
-                    time=p.date.isoformat(),
-                    open=float(p.open),
-                    high=float(p.high),
-                    low=float(p.low),
-                    close=float(p.close),
-                    volume=float(p.volume),
+            candles = []
+            for p in prices_sorted:
+                split_ratio = (
+                    float(p.adjusted_close) / float(p.close)
+                    if p.adjusted_close is not None
+                    and float(p.close) != 0
+                    and float(p.adjusted_close) != float(p.close)
+                    else 1.0
                 )
-                for p in prices_sorted
-            ]
+                candles.append(
+                    IndicatorCandleSchema(
+                        time=p.date.isoformat(),
+                        open=float(p.open) * split_ratio,
+                        high=float(p.high) * split_ratio,
+                        low=float(p.low) * split_ratio,
+                        close=(
+                            float(p.adjusted_close)
+                            if split_ratio != 1.0
+                            else float(p.close)
+                        ),
+                        volume=float(p.volume),
+                    )
+                )
         else:
             from_dt, to_dt = _to_datetime_range(request.from_date, request.to_date)
             intraday_repository = await services.aget(IntradayPriceRepository)

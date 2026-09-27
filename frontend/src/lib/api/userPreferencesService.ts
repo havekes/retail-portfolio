@@ -73,6 +73,9 @@ export interface UserPreferences {
 	drawings?: Record<string, SecurityDrawings> | null;
 	wave_settings?: WaveSettings | null;
 	chart_hide_labels?: boolean | null;
+	chart_auto_scale?: boolean | null;
+	chart_log_scale?: boolean | null;
+	show_valuation_band?: boolean | null;
 	watchlist_order?: string[] | null;
 	holdings_table?: HoldingsTableConfig | null;
 	holdings_group?: HoldingsGroupMode | null;

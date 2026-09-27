@@ -143,7 +143,13 @@ vi.mock('lightweight-charts', () => {
 		},
 		CandlestickSeries: 'CandlestickSeries',
 		LineSeries: 'LineSeries',
-		HistogramSeries: 'HistogramSeries'
+		HistogramSeries: 'HistogramSeries',
+		PriceScaleMode: {
+			Normal: 0,
+			Logarithmic: 1,
+			Percentage: 2,
+			IndexedTo100: 3
+		}
 	};
 });
 
@@ -169,6 +175,7 @@ import { FibonacciPrimitive } from './plugins/fibonacci/fibonacci-primitive';
 import { MeasurePrimitive } from './plugins/measure/measure-primitive';
 import { HorizontalLinePrimitive } from './plugins/horizontal-line/horizontal-line-primitive';
 import { FreeFormLinePrimitive } from './plugins/free-form-line/free-form-line-primitive';
+import { ValuationBandPrimitive } from './plugins/valuation-band/valuation-band';
 import type { SecurityDrawings } from '$lib/utils/finance/drawings';
 import {
 	MAX_PANE_FRACTION,
@@ -334,7 +341,12 @@ describe('SecurityChart - Infinite Scroll & Logical Range', () => {
 
 		const mainChartOptions = calls[0][1];
 		expect(mainChartOptions?.leftPriceScale).toEqual({ visible: false });
-		expect(mainChartOptions?.rightPriceScale).toEqual({ visible: true, minimumWidth: 75 });
+		expect(mainChartOptions?.rightPriceScale).toEqual({
+			visible: true,
+			minimumWidth: 75,
+			autoScale: true,
+			mode: 0
+		});
 	});
 
 	it('initializes chart with crosshair mode Normal', () => {
@@ -3157,6 +3169,80 @@ describe('SecurityChart - Free-form Line Integration', () => {
 
 		expect(mainChart.applyOptions).toHaveBeenCalledWith({
 			handleScroll: { pressedMouseMove: true }
+		});
+	});
+
+	describe('SecurityChart - Price Scale Toggles (autoScale and logScale)', () => {
+		it('applies autoScale and logScale changes to mainChart priceScale(right)', async () => {
+			const { rerender } = render(SecurityChart, {
+				props: { candles: initialCandles, autoScale: true, logScale: false }
+			});
+			await tick();
+
+			const createdCharts = vi.mocked(createChart).mock.results.map((r) => r.value);
+			const mainChart = createdCharts[createdCharts.length - 1];
+			const rightScale = mainChart.priceScale('right');
+
+			vi.mocked(rightScale.applyOptions).mockClear();
+
+			await rerender({ candles: initialCandles, autoScale: false, logScale: true });
+			await tick();
+
+			expect(rightScale.applyOptions).toHaveBeenCalledWith({
+				autoScale: false,
+				mode: 1 // PriceScaleMode.Logarithmic
+			});
+		});
+	});
+
+	describe('SecurityChart - Elliott Wave Double Click & Degree Update', () => {
+		it('invokes onWaveDoubleClick when elliottWavesPrimitive.doubleClicked() fires', async () => {
+			const onWaveDoubleClick = vi.fn();
+			render(SecurityChart, {
+				props: {
+					candles: initialCandles,
+					onWaveDoubleClick
+				}
+			});
+			await tick();
+
+			const elliottPrimitive = mockAttachPrimitive.mock.calls.find(
+				(c) => c[0] instanceof ElliottWavesPrimitive
+			)?.[0] as ElliottWavesPrimitive;
+			expect(elliottPrimitive).toBeDefined();
+
+			// Fire doubleClicked on primitive
+			/* eslint-disable-next-line @typescript-eslint/no-explicit-any */
+			(elliottPrimitive as any)._doubleClicked.fire({ degree: 'cycle', waveId: 'wave-abc' });
+
+			expect(onWaveDoubleClick).toHaveBeenCalledWith('cycle', 'wave-abc');
+		});
+	});
+
+	describe('SecurityChart - Valuation Band Overlay', () => {
+		it('attaches valuation band primitive and updates range', async () => {
+			const { rerender } = render(SecurityChart, {
+				props: {
+					candles: initialCandles,
+					valuation: { lower_bound: 100, upper_bound: 150 },
+					showValuationBand: true
+				}
+			});
+			await tick();
+
+			const valPrimitive = mockAttachPrimitive.mock.calls.find(
+				(c) => c[0] instanceof ValuationBandPrimitive
+			)?.[0] as ValuationBandPrimitive;
+			expect(valPrimitive).toBeDefined();
+
+			await rerender({
+				candles: initialCandles,
+				valuation: { lower_bound: 120, upper_bound: 180 },
+				showValuationBand: true
+			});
+			await tick();
+
+			expect(valPrimitive).toBeDefined();
 		});
 	});
 });

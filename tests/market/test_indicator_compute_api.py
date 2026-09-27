@@ -494,3 +494,49 @@ async def test_compute_sidecar_failure_propagation(
             json=payload,
         )
         assert resp_504.status_code == 504
+
+
+@pytest.mark.anyio
+async def test_compute_scales_split_adjusted_candles(
+    auth_client, test_security, db_session
+):
+    # Historical price with a 2-for-1 split: close was 100, adjusted_close is 50
+    price = PriceModel(
+        security_id=test_security.id,
+        date=date(2026, 1, 15),
+        open=Decimal("100.00"),
+        high=Decimal("110.00"),
+        low=Decimal("95.00"),
+        close=Decimal("100.00"),
+        adjusted_close=Decimal("50.00"),
+        volume=1000000,
+    )
+    db_session.add(price)
+    await db_session.commit()
+
+    payload = {
+        "interval": "1d",
+        "chart_style": "candlestick",
+        "indicators": [{"type": "SMA", "period": 10}],
+    }
+
+    mock_compute = AsyncMock(
+        return_value={"SMA": [{"time": "2026-01-15", "value": 50.0}]}
+    )
+
+    with patch.object(IndicatorServiceClient, "compute", mock_compute):
+        resp = await auth_client.post(
+            f"/api/v1/market/securities/{test_security.id}/indicators/compute",
+            json=payload,
+        )
+        assert resp.status_code == 200
+        assert mock_compute.await_count == 1
+        _, kwargs = mock_compute.call_args
+        candles = kwargs["candles"]
+        assert len(candles) == 1
+        assert candles[0].open == 50.0
+        assert candles[0].high == 55.0
+        assert candles[0].low == 47.5
+        assert candles[0].close == 50.0
+        assert candles[0].volume == 1000000.0
+

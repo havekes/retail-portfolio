@@ -4,7 +4,8 @@
 		createChart,
 		CrosshairMode,
 		LineSeries,
-		HistogramSeries
+		HistogramSeries,
+		PriceScaleMode
 	} from 'lightweight-charts';
 	import type { Time, IChartApi, ISeriesApi, IPriceLine, SeriesType } from 'lightweight-charts';
 	import { onMount } from 'svelte';
@@ -17,6 +18,7 @@
 	import type { UserAlertInfo } from './plugins/user-price-alerts/state';
 	import type { PriceAlert } from '$lib/api/alertsService';
 	import { ElliottWavesPrimitive } from './plugins/elliott-wave/elliott-wave';
+	import { ValuationBandPrimitive } from './plugins/valuation-band/valuation-band';
 	import type {
 		DegreeWaveCount,
 		SecurityElliottWaves,
@@ -100,6 +102,7 @@
 	let measurePrimitive = $state<MeasurePrimitive | null>(null);
 	let horizontalLinePrimitive = $state<HorizontalLinePrimitive | null>(null);
 	let freeFormLinePrimitive = $state<FreeFormLinePrimitive | null>(null);
+	let valuationBandPrimitive = $state<ValuationBandPrimitive | null>(null);
 
 	let {
 		candles = [],
@@ -152,7 +155,13 @@
 		onDrawingDragStart,
 		onDrawingDragEnd,
 		futureBars = DEFAULT_FUTURE_BARS,
-		onPaneHeightsChange
+		onPaneHeightsChange,
+		autoScale = true,
+		logScale = false,
+		valuation = null,
+		showValuation = true,
+		showValuationBand,
+		onWaveDoubleClick
 	} = $props<{
 		candles?: Candle[];
 		containerId?: string;
@@ -209,7 +218,17 @@
 		onDrawingDragEnd?: () => void;
 		futureBars?: number;
 		onPaneHeightsChange?: (heights: PaneHeights | null) => void;
+		autoScale?: boolean;
+		logScale?: boolean;
+		valuation?: { lower_bound: number; upper_bound: number } | null;
+		showValuation?: boolean;
+		showValuationBand?: boolean;
+		onWaveDoubleClick?: (degree: WaveDegree, waveId?: string | null) => void;
 	}>();
+
+	const isValuationBandVisible = $derived(
+		showValuationBand !== undefined ? showValuationBand : showValuation
+	);
 
 	let avgPriceLine: IPriceLine | null = null;
 	let previousFirstCandleTime: Time | null = null;
@@ -593,6 +612,23 @@
 
 	$effect(() => {
 		if (!chartInstance) return;
+		chartInstance.priceScale('right').applyOptions({
+			autoScale: autoScale !== false,
+			mode: logScale ? PriceScaleMode.Logarithmic : PriceScaleMode.Normal
+		});
+	});
+
+	$effect(() => {
+		if (!valuationBandPrimitive) return;
+		valuationBandPrimitive.setRange(
+			valuation && isValuationBandVisible ? valuation.lower_bound : null,
+			valuation && isValuationBandVisible ? valuation.upper_bound : null,
+			isValuationBandVisible
+		);
+	});
+
+	$effect(() => {
+		if (!chartInstance) return;
 		const isDrawing = Boolean(
 			isDrawingWave || isDrawingFib || isDrawingMeasure || isDrawingHorizontalLine || isDrawingLine
 		);
@@ -835,7 +871,9 @@
 			},
 			rightPriceScale: {
 				visible: true,
-				minimumWidth: DEFAULT_PRICE_SCALE_MIN_WIDTH
+				minimumWidth: DEFAULT_PRICE_SCALE_MIN_WIDTH,
+				autoScale: autoScale !== false,
+				mode: logScale ? PriceScaleMode.Logarithmic : PriceScaleMode.Normal
 			}
 		});
 
@@ -856,6 +894,13 @@
 			wickUpColor: '#26a69a',
 			wickDownColor: '#ef5350'
 		});
+
+		valuationBandPrimitive = new ValuationBandPrimitive(
+			valuation && isValuationBandVisible ? valuation.lower_bound : null,
+			valuation && isValuationBandVisible ? valuation.upper_bound : null,
+			isValuationBandVisible
+		);
+		seriesInstance.attachPrimitive(valuationBandPrimitive);
 
 		updatePanes();
 
@@ -921,6 +966,9 @@
 
 		elliottWavesPrimitive.dragStarted().subscribe(() => onDrawingDragStart?.());
 		elliottWavesPrimitive.dragEnded().subscribe(() => onDrawingDragEnd?.());
+		elliottWavesPrimitive.doubleClicked().subscribe((hit) => {
+			onWaveDoubleClick?.(hit.degree, hit.waveId);
+		});
 
 		fibonacciPrimitive = new FibonacciPrimitive({
 			activeTool: activeFibTool,
@@ -1559,6 +1607,14 @@
 
 	export function setSelectedLineId(id: string | null) {
 		freeFormLinePrimitive?.select(id);
+	}
+
+	export function updateWaveDegree(waveId: string, newDegree: WaveDegree): boolean {
+		return elliottWavesPrimitive?.updateWaveDegree(waveId, newDegree) ?? false;
+	}
+
+	export function getValuationBandPrimitive(): ValuationBandPrimitive | null {
+		return valuationBandPrimitive;
 	}
 </script>
 

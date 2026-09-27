@@ -23,6 +23,11 @@
 		initialSection = 'general',
 		chartHideLabels = false,
 		onSaveChartHideLabels,
+		chartAutoScale = true,
+		onSaveChartAutoScale,
+		chartLogScale = false,
+		onSaveChartLogScale,
+		onSaveGeneral,
 		waveSettings = null,
 		onSaveWaveSettings,
 		activeTool = 'retracement',
@@ -43,6 +48,15 @@
 		initialSection?: 'general' | 'waves' | 'fibonacci';
 		chartHideLabels?: boolean;
 		onSaveChartHideLabels?: (hide: boolean) => void | Promise<void>;
+		chartAutoScale?: boolean;
+		onSaveChartAutoScale?: (autoScale: boolean) => void | Promise<void>;
+		chartLogScale?: boolean;
+		onSaveChartLogScale?: (logScale: boolean) => void | Promise<void>;
+		onSaveGeneral?: (options: {
+			hideLabels: boolean;
+			autoScale: boolean;
+			logScale: boolean;
+		}) => void | Promise<void>;
 		waveSettings?: WaveSettings | null;
 		onSaveWaveSettings?: (settings: WaveSettings) => void | Promise<void>;
 		activeTool?: FibToolType | null;
@@ -70,16 +84,28 @@
 	// General Section State & Handlers
 	// ---------------------------------------------------------------------------
 	let draftChartHideLabels = $state<boolean>(untrack(() => Boolean(chartHideLabels)));
+	let draftChartAutoScale = $state<boolean>(untrack(() => chartAutoScale !== false));
+	let draftChartLogScale = $state<boolean>(untrack(() => Boolean(chartLogScale)));
 
 	function syncGeneralFromProps() {
 		draftChartHideLabels = Boolean(chartHideLabels);
+		draftChartAutoScale = chartAutoScale !== false;
+		draftChartLogScale = Boolean(chartLogScale);
 	}
 
 	let prevChartHideLabels: boolean | undefined;
+	let prevChartAutoScale: boolean | undefined;
+	let prevChartLogScale: boolean | undefined;
 	$effect(() => {
-		if (chartHideLabels !== prevChartHideLabels) {
+		if (
+			chartHideLabels !== prevChartHideLabels ||
+			chartAutoScale !== prevChartAutoScale ||
+			chartLogScale !== prevChartLogScale
+		) {
 			syncGeneralFromProps();
 			prevChartHideLabels = chartHideLabels;
+			prevChartAutoScale = chartAutoScale;
+			prevChartLogScale = chartLogScale;
 		}
 	});
 
@@ -91,6 +117,13 @@
 
 	function handleSaveGeneral() {
 		onSaveChartHideLabels?.(draftChartHideLabels);
+		onSaveChartAutoScale?.(draftChartAutoScale);
+		onSaveChartLogScale?.(draftChartLogScale);
+		onSaveGeneral?.({
+			hideLabels: draftChartHideLabels,
+			autoScale: draftChartAutoScale,
+			logScale: draftChartLogScale
+		});
 		open = false;
 		onClose?.();
 	}
@@ -465,6 +498,50 @@
 						</label>
 						<p class="text-xs text-muted-foreground">
 							Hide right-axis price scale labels for indicators and average price lines.
+						</p>
+					</div>
+				</div>
+
+				<!-- Auto Vertical Scaling Toggle -->
+				<div class="flex items-start space-x-3 rounded-md border p-3">
+					<Checkbox
+						id="chart-auto-scale"
+						checked={draftChartAutoScale}
+						onCheckedChange={(checked) => (draftChartAutoScale = checked === true)}
+						data-testid="auto-scale-checkbox"
+						aria-label="Auto vertical scaling"
+					/>
+					<div class="space-y-1 leading-none">
+						<label
+							for="chart-auto-scale"
+							class="cursor-pointer text-sm leading-none font-medium peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+						>
+							Auto vertical scaling
+						</label>
+						<p class="text-xs text-muted-foreground">
+							Automatically fit price scale vertically to visible candles and indicators.
+						</p>
+					</div>
+				</div>
+
+				<!-- Logarithmic Price Scale Toggle -->
+				<div class="flex items-start space-x-3 rounded-md border p-3">
+					<Checkbox
+						id="chart-log-scale"
+						checked={draftChartLogScale}
+						onCheckedChange={(checked) => (draftChartLogScale = checked === true)}
+						data-testid="log-scale-checkbox"
+						aria-label="Logarithmic price scale"
+					/>
+					<div class="space-y-1 leading-none">
+						<label
+							for="chart-log-scale"
+							class="cursor-pointer text-sm leading-none font-medium peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+						>
+							Logarithmic price scale
+						</label>
+						<p class="text-xs text-muted-foreground">
+							Display prices on a logarithmic scale instead of linear scale.
 						</p>
 					</div>
 				</div>
