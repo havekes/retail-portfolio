@@ -497,39 +497,25 @@
 		}
 	}
 
-	async function handleChartHideLabelsChange(hideLabels: boolean) {
+	async function handleGeneralSettingsChange(settings: {
+		hideLabels: boolean;
+		autoScale: boolean;
+		logScale: boolean;
+	}) {
 		userPreferences = {
 			...(userPreferences ?? {}),
-			chart_hide_labels: hideLabels
+			chart_hide_labels: settings.hideLabels,
+			chart_auto_scale: settings.autoScale,
+			chart_log_scale: settings.logScale
 		};
 		try {
-			await userPreferencesService.patchPreferences({ chart_hide_labels: hideLabels });
+			await userPreferencesService.patchPreferences({
+				chart_hide_labels: settings.hideLabels,
+				chart_auto_scale: settings.autoScale,
+				chart_log_scale: settings.logScale
+			});
 		} catch (err) {
-			console.error('Failed to persist chart hide labels preference:', err);
-		}
-	}
-
-	async function handleChartAutoScaleChange(autoScale: boolean) {
-		userPreferences = {
-			...(userPreferences ?? {}),
-			chart_auto_scale: autoScale
-		};
-		try {
-			await userPreferencesService.patchPreferences({ chart_auto_scale: autoScale });
-		} catch (err) {
-			console.error('Failed to persist chart auto scale preference:', err);
-		}
-	}
-
-	async function handleChartLogScaleChange(logScale: boolean) {
-		userPreferences = {
-			...(userPreferences ?? {}),
-			chart_log_scale: logScale
-		};
-		try {
-			await userPreferencesService.patchPreferences({ chart_log_scale: logScale });
-		} catch (err) {
-			console.error('Failed to persist chart log scale preference:', err);
+			console.error('Failed to persist general chart settings preferences:', err);
 		}
 	}
 
@@ -1036,11 +1022,9 @@
 							<ChartSettingsModal
 								bind:open={isChartSettingsOpen}
 								chartHideLabels={Boolean(userPreferences?.chart_hide_labels)}
-								onSaveChartHideLabels={handleChartHideLabelsChange}
 								chartAutoScale={userPreferences?.chart_auto_scale ?? true}
-								onSaveChartAutoScale={handleChartAutoScaleChange}
 								chartLogScale={Boolean(userPreferences?.chart_log_scale)}
-								onSaveChartLogScale={handleChartLogScaleChange}
+								onSaveGeneral={handleGeneralSettingsChange}
 								waveSettings={userPreferences?.wave_settings}
 								onSaveWaveSettings={handleWaveSettingsChange}
 								activeTool={drawingsService.activeFibTool}
