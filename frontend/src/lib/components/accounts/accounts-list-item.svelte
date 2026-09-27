@@ -54,14 +54,20 @@
 	} = $props();
 
 	const contextExpandedIds = getContext<SvelteSet<string> | undefined>('expandedAccountIds');
-	const contextInitialIds = getContext<string[] | undefined>('initialExpandedAccountIds');
+	const contextInitialIds = getContext<string[] | Set<string> | undefined>(
+		'initialExpandedAccountIds'
+	);
 	const pageExpandedIds = $page?.data?.expanded_account_ids as string[] | undefined;
 
 	const isInitiallyExpanded = untrack(
 		() =>
 			initialExpanded ??
-			contextExpandedIds?.has(account.id) ??
-			(contextInitialIds ? contextInitialIds.includes(account.id) : undefined) ??
+			(contextExpandedIds ? contextExpandedIds.has(account.id) : undefined) ??
+			(contextInitialIds !== undefined
+				? Array.isArray(contextInitialIds)
+					? contextInitialIds.includes(account.id)
+					: Boolean((contextInitialIds as Set<string>)?.has?.(account.id))
+				: undefined) ??
 			(pageExpandedIds ? pageExpandedIds.includes(account.id) : false)
 	);
 
