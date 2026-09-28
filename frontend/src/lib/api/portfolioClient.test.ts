@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { PortfolioClient, getPortfolioClient } from './portfolioClient';
-import type { Portfolio, PortfolioCreatePayload } from '@/types/portfolio';
+import type { Portfolio, PortfolioCreatePayload, PortfolioUpdatePayload } from '@/types/portfolio';
 import { ApiError } from './apiClient';
 
 describe('PortfolioClient', () => {
@@ -98,6 +98,81 @@ describe('PortfolioClient', () => {
 				body: JSON.stringify(payload)
 			})
 		);
+	});
+
+	it('should send PATCH to /portfolios/:id with payload and token in updatePortfolio', async () => {
+		const payload: PortfolioUpdatePayload = {
+			name: 'Renamed Portfolio'
+		};
+		const updated: Portfolio = {
+			id: 'port-1',
+			name: 'Renamed Portfolio',
+			accounts: []
+		};
+
+		vi.mocked(global.fetch).mockResolvedValue({
+			ok: true,
+			status: 200,
+			json: async () => updated
+		} as Response);
+
+		const result = await client.updatePortfolio('port-1', payload, 'token-123');
+
+		expect(result).toEqual(updated);
+		expect(global.fetch).toHaveBeenCalledWith(
+			expect.stringContaining('/portfolios/port-1'),
+			expect.objectContaining({
+				method: 'PATCH',
+				headers: expect.objectContaining({
+					Authorization: 'Bearer token-123',
+					'Content-Type': 'application/json'
+				}),
+				body: JSON.stringify(payload)
+			})
+		);
+	});
+
+	it('should throw ApiError when updatePortfolio fails', async () => {
+		vi.mocked(global.fetch).mockResolvedValue({
+			ok: false,
+			status: 404,
+			json: async () => ({ detail: 'Portfolio not found' })
+		} as Response);
+
+		await expect(client.updatePortfolio('port-999', { name: 'Test' }, 'token')).rejects.toThrow(
+			ApiError
+		);
+	});
+
+	it('should send DELETE to /portfolios/:id with token in deletePortfolio', async () => {
+		vi.mocked(global.fetch).mockResolvedValue({
+			ok: true,
+			status: 204,
+			json: async () => ({})
+		} as Response);
+
+		await client.deletePortfolio('port-1', 'token-123');
+
+		expect(global.fetch).toHaveBeenCalledWith(
+			expect.stringContaining('/portfolios/port-1'),
+			expect.objectContaining({
+				method: 'DELETE',
+				headers: expect.objectContaining({
+					Authorization: 'Bearer token-123',
+					'Content-Type': 'application/json'
+				})
+			})
+		);
+	});
+
+	it('should throw ApiError when deletePortfolio fails', async () => {
+		vi.mocked(global.fetch).mockResolvedValue({
+			ok: false,
+			status: 404,
+			json: async () => ({ detail: 'Portfolio not found' })
+		} as Response);
+
+		await expect(client.deletePortfolio('port-999', 'token')).rejects.toThrow(ApiError);
 	});
 
 	it('getPortfolioClient returns a client using custom fetch', async () => {

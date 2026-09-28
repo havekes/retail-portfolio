@@ -13,3 +13,7 @@ export interface PortfolioCreatePayload {
 	name: string;
 	accounts: string[];
 }
+
+export interface PortfolioUpdatePayload {
+	name: string;
+}

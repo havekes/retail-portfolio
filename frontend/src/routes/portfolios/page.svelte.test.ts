@@ -66,6 +66,7 @@ describe('/portfolios +page.svelte', () => {
 			sidebar_open: true,
 			collapsed_watchlist_ids: [],
 			watchlist_order: null,
+			expanded_account_ids: [],
 			portfolios: mockPortfolios,
 			...overrides
 		};
