@@ -20,7 +20,8 @@ const mocks = vi.hoisted(() => ({
 		removeSecurityFromWatchlist: vi.fn(),
 		reorderWatchlistSecurities: vi.fn(),
 		addToWatchlist: vi.fn(),
-		removeFromWatchlist: vi.fn()
+		removeFromWatchlist: vi.fn(),
+		getValuationsBatch: vi.fn().mockResolvedValue([])
 	},
 	preferences: {
 		patchPreferences: vi.fn().mockResolvedValue({}),
@@ -103,6 +104,7 @@ beforeEach(() => {
 	vi.resetAllMocks();
 	mocks.preferences.patchPreferences.mockResolvedValue({});
 	mocks.preferences.getPreferences.mockResolvedValue({});
+	mocks.client.getValuationsBatch.mockResolvedValue([]);
 	service = new WatchlistService();
 	mocks.service = service;
 });
@@ -233,6 +235,69 @@ describe('Watchlists page - rendering and sections', () => {
 		expect(screen.getByRole('button', { name: 'Create watchlist' })).toBeInTheDocument();
 		expect(screen.queryByRole('button', { name: /show watchlists/i })).not.toBeInTheDocument();
 		expect(screen.queryByRole('button', { name: /hide watchlists/i })).not.toBeInTheDocument();
+	});
+});
+
+describe('Watchlists page - valuation column', () => {
+	it('renders Valuation column header in watchlist table headers with hidden md:block', () => {
+		renderPage([defaultList()]);
+
+		const section = screen.getByRole('region', { name: 'Default securities' });
+		const header = within(section).getByText('Valuation');
+
+		expect(header).toBeInTheDocument();
+		expect(header).toHaveClass('hidden', 'md:block', 'justify-self-end');
+	});
+
+	it('invokes mocks.client.getValuationsBatch with security IDs from loaded watchlists', async () => {
+		renderPage([defaultList(), techList()]);
+
+		await waitFor(() => {
+			expect(mocks.client.getValuationsBatch).toHaveBeenCalledWith(['sec-1', 'sec-2', 'sec-3']);
+		});
+	});
+
+	it('renders formatted valuation range when valuation data is returned from getValuationsBatch', async () => {
+		mocks.client.getValuationsBatch.mockResolvedValue([
+			{
+				id: 1,
+				user_id: 'user-1',
+				security_id: 'sec-1',
+				lower_bound: 20,
+				upper_bound: 50,
+				created_at: '2026-01-01T00:00:00Z',
+				updated_at: '2026-01-01T00:00:00Z'
+			}
+		]);
+
+		renderPage([watchlist('wl-val', 'Valuation List', [security('sec-1', 'AAPL')])]);
+
+		const section = screen.getByRole('region', { name: 'Valuation List securities' });
+		const valuationCell = within(section).getByTitle('Valuation');
+
+		await waitFor(() => {
+			expect(valuationCell).toHaveTextContent('20.00 – 50.00');
+		});
+	});
+
+	it('renders "—" when no valuation is set for that security', async () => {
+		mocks.client.getValuationsBatch.mockResolvedValue([]);
+
+		renderPage([watchlist('wl-val', 'Valuation List', [security('sec-1', 'AAPL')])]);
+
+		const section = screen.getByRole('region', { name: 'Valuation List securities' });
+		const valuationCell = within(section).getByTitle('Valuation');
+
+		expect(valuationCell).toHaveTextContent('—');
+	});
+
+	it('verifies valuation cell has classes hidden md:block and justify-self-end', () => {
+		renderPage([watchlist('wl-val', 'Valuation List', [security('sec-1', 'AAPL')])]);
+
+		const section = screen.getByRole('region', { name: 'Valuation List securities' });
+		const valuationCell = within(section).getByTitle('Valuation');
+
+		expect(valuationCell).toHaveClass('hidden', 'md:block', 'justify-self-end', 'tabular-nums');
 	});
 });
 
