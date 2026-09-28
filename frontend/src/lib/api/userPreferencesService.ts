@@ -77,6 +77,7 @@ export interface UserPreferences {
 	holdings_table?: HoldingsTableConfig | null;
 	holdings_group?: HoldingsGroupMode | null;
 	indicator_pane_heights?: Record<string, number> | null;
+	expanded_account_ids?: string[] | null;
 }
 
 export class UserPreferencesService extends ApiClient {

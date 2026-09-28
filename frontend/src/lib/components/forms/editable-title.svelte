@@ -5,9 +5,14 @@
 	import Button from '../ui/button/button.svelte';
 	import { enhance } from '$app/forms';
 	import { resolve } from '$app/paths';
+	import { cn } from '$lib/utils.js';
+	import { tick } from 'svelte';
 
 	let {
 		value = $bindable(),
+		isEditing = $bindable(false),
+		showEditButton = true,
+		linkClass = '',
 		onSave,
 		containerClass = '',
 		textClass = 'font-semibold text-lg',
@@ -17,6 +22,9 @@
 		id
 	}: {
 		value: string;
+		isEditing?: boolean;
+		showEditButton?: boolean;
+		linkClass?: string;
 		onSave?: (newValue: string) => void;
 		containerClass?: string;
 		textClass?: string;
@@ -25,12 +33,33 @@
 		name?: string;
 		id?: string;
 	} = $props();
-	let isEditing = $state(false);
+
 	let tempValue = $state(value);
+	let inputRef = $state<HTMLInputElement | null>(null);
+	let wasEditing = false;
+
+	$effect(() => {
+		if (isEditing && !wasEditing) {
+			tempValue = value;
+			void tick().then(() => {
+				inputRef?.focus();
+				inputRef?.select();
+			});
+		} else if (!isEditing) {
+			tempValue = value;
+		}
+		wasEditing = isEditing;
+	});
 
 	const save = (e: KeyboardEvent | MouseEvent) => {
-		if (e instanceof KeyboardEvent && e.key !== 'Enter') {
-			return;
+		if (e instanceof KeyboardEvent) {
+			if (e.key === 'Escape') {
+				isEditing = false;
+				return;
+			}
+			if (e.key !== 'Enter') {
+				return;
+			}
 		}
 
 		if (!action) {
@@ -44,9 +73,6 @@
 	};
 
 	const toggleEdit = () => {
-		if (!isEditing) {
-			tempValue = value;
-		}
 		isEditing = !isEditing;
 	};
 </script>
@@ -70,9 +96,11 @@
 				class="flex items-center gap-2"
 			>
 				<Input
+					bind:ref={inputRef}
 					{name}
 					bind:value={tempValue}
 					onkeydown={(e) => e.key === 'Escape' && (isEditing = false)}
+					autofocus
 				/>
 				{#if id}
 					<input type="hidden" name="id" value={id} />
@@ -87,7 +115,7 @@
 				</Button>
 			</form>
 		{:else}
-			<Input bind:value={tempValue} onkeydown={save} />
+			<Input bind:ref={inputRef} bind:value={tempValue} onkeydown={save} autofocus />
 			<Button
 				variant="ghost"
 				size="icon-sm"
@@ -99,19 +127,21 @@
 		{/if}
 	{:else}
 		{#if href}
-			<a href={resolve(href as unknown as '/')} class="hover:underline {textClass}">
+			<a href={resolve(href as unknown as '/')} class={cn('hover:underline', textClass, linkClass)}>
 				{value}
 			</a>
 		{:else}
-			<div class={textClass}>{value}</div>
+			<div class={cn(textClass, linkClass)}>{value}</div>
 		{/if}
-		<Button
-			variant="ghost"
-			size="icon-sm"
-			onclick={toggleEdit}
-			class="shrink-0 cursor-pointer text-muted-foreground hover:text-foreground"
-		>
-			<Pencil size={14} />
-		</Button>
+		{#if showEditButton}
+			<Button
+				variant="ghost"
+				size="icon-sm"
+				onclick={toggleEdit}
+				class="shrink-0 cursor-pointer text-muted-foreground hover:text-foreground"
+			>
+				<Pencil size={14} />
+			</Button>
+		{/if}
 	{/if}
 </div>

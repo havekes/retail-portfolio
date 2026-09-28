@@ -5,6 +5,7 @@ export const load: LayoutServerLoad = async ({ locals, fetch, cookies }) => {
 	let sidebar_open = true;
 	let collapsed_watchlist_ids: string[] = [];
 	let watchlist_order: string[] | null = null;
+	let expanded_account_ids: string[] = [];
 
 	if (locals.user) {
 		const token = cookies.get('auth_token');
@@ -20,6 +21,9 @@ export const load: LayoutServerLoad = async ({ locals, fetch, cookies }) => {
 			if (prefs && Array.isArray(prefs.watchlist_order)) {
 				watchlist_order = prefs.watchlist_order;
 			}
+			if (prefs && Array.isArray(prefs.expanded_account_ids)) {
+				expanded_account_ids = prefs.expanded_account_ids;
+			}
 		} catch {
 			// Fall back to default open state if preferences request fails
 		}
@@ -29,6 +33,7 @@ export const load: LayoutServerLoad = async ({ locals, fetch, cookies }) => {
 		user: locals.user,
 		sidebar_open,
 		collapsed_watchlist_ids,
-		watchlist_order
+		watchlist_order,
+		expanded_account_ids
 	};
 };

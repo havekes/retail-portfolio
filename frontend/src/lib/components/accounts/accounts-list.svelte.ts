@@ -95,6 +95,7 @@ export class AccountsListState {
 					console.log('Sync finished for account:', accountId);
 					this.syncingAccountIds.delete(accountId);
 					this.syncErrors[accountId] = null;
+					await this.fetchAccounts();
 				} else if (data.type === WsEventType.SYNC_FAILED) {
 					console.log('Sync failed for account:', accountId);
 					this.syncingAccountIds.delete(accountId);

@@ -44,6 +44,7 @@ describe('Security Settings Page (+page.svelte)', () => {
 		sidebar_open: true,
 		collapsed_watchlist_ids: [],
 		watchlist_order: null,
+		expanded_account_ids: [],
 		status: {
 			totp_enabled: false,
 			recovery_codes_remaining: 0
@@ -94,6 +95,7 @@ describe('Security Settings Page (+page.svelte)', () => {
 					sidebar_open: true,
 					collapsed_watchlist_ids: [],
 					watchlist_order: null,
+					expanded_account_ids: [],
 					status: {
 						totp_enabled: true,
 						recovery_codes_remaining: 6
@@ -123,6 +125,7 @@ describe('Security Settings Page (+page.svelte)', () => {
 					sidebar_open: true,
 					collapsed_watchlist_ids: [],
 					watchlist_order: null,
+					expanded_account_ids: [],
 					status: {
 						totp_enabled: true,
 						recovery_codes_remaining: 8
@@ -181,6 +184,7 @@ describe('Security Settings Page (+page.svelte)', () => {
 					sidebar_open: true,
 					collapsed_watchlist_ids: [],
 					watchlist_order: null,
+					expanded_account_ids: [],
 					status: {
 						totp_enabled: false,
 						recovery_codes_remaining: 0

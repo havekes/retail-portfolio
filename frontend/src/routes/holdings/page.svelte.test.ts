@@ -133,6 +133,7 @@ function makeData(
 		sidebar_open: true,
 		collapsed_watchlist_ids: [] as string[],
 		watchlist_order: null as string[] | null,
+		expanded_account_ids: [] as string[],
 		holdings_table_config: HOLDINGS_TABLE_DEFAULT_CONFIG,
 		group_mode: 'none' as HoldingsGroupMode,
 		elliott_waves: null as Record<string, SecurityElliottWaves> | null,
