@@ -383,6 +383,16 @@ class SqlAlchemyPortfolioRepository(PortfolioRepository):
         return portfolio
 
     @override
+    async def update(self, portfolio_id: PortfolioId, name: str) -> PortfolioRead:
+        portfolio_model = await self._session.get(PortfolioModel, portfolio_id)
+        if portfolio_model:
+            portfolio_model.name = name
+            await self._session.commit()
+        portfolio = await self.get(portfolio_id)
+        assert portfolio is not None, "Portfolio should exist after update"
+        return portfolio
+
+    @override
     async def delete(self, portfolio_id: PortfolioId) -> None:
         portfolio_model = await self._session.get(PortfolioModel, portfolio_id)
         if portfolio_model:
