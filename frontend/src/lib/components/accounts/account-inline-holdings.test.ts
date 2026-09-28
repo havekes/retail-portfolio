@@ -132,7 +132,7 @@ describe('AccountInlineHoldings', () => {
 		expect(screen.getByText('No holdings found for this account.')).toBeInTheDocument();
 	});
 
-	it('renders security symbol/name links with rounded hover background classes', () => {
+	it('renders security symbol/name links with rounded hover background classes, dark hover classes, and uniform full width', () => {
 		render(AccountInlineHoldings, {
 			props: {
 				holdings: sampleHoldings,
@@ -143,5 +143,25 @@ describe('AccountInlineHoldings', () => {
 		const tdLink = screen.getByText('TD').closest('a');
 		expect(tdLink).toHaveClass('rounded-md');
 		expect(tdLink).toHaveClass('hover:bg-background/60');
+		expect(tdLink).toHaveClass('dark:hover:bg-background/60');
+		expect(tdLink).toHaveClass('w-full');
+		expect(tdLink).not.toHaveClass('w-fit');
+
+		const bnsLink = screen.getByText('BNS').closest('a');
+		expect(bnsLink).toHaveClass('w-full');
+		expect(bnsLink).not.toHaveClass('w-fit');
+	});
+
+	it('renders security symbol without hover underline', () => {
+		render(AccountInlineHoldings, {
+			props: {
+				holdings: sampleHoldings,
+				accountCurrency: 'CAD'
+			}
+		});
+
+		const tdSymbol = screen.getByText('TD');
+		expect(tdSymbol).not.toHaveClass('group-hover:underline');
+		expect(tdSymbol).not.toHaveClass('underline');
 	});
 });

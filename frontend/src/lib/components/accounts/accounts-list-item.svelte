@@ -148,7 +148,7 @@
 				<Button
 					variant="ghost"
 					size="icon"
-					class="h-8 w-8 shrink-0 rounded-md text-muted-foreground transition-colors hover:bg-background/60 hover:text-foreground"
+					class="h-8 w-8 shrink-0 rounded-md text-muted-foreground transition-colors hover:bg-background/60 hover:text-foreground dark:hover:bg-background/60"
 					aria-label={itemState.isExpanded ? 'Collapse holdings' : 'Expand holdings'}
 					aria-expanded={itemState.isExpanded}
 					onclick={toggleExpanded}
@@ -167,7 +167,7 @@
 					href={`/accounts/${account.id}`}
 					showEditButton={false}
 					bind:isEditing={isEditingTitle}
-					linkClass="rounded-md px-2 py-1 transition-colors hover:bg-background/60 hover:no-underline"
+					linkClass="rounded-md px-2 py-1 transition-colors hover:bg-background/60 dark:hover:bg-background/60 hover:no-underline"
 				/>
 			</div>
 			<div class="flex items-center gap-2">
@@ -210,7 +210,7 @@
 							<Tooltip.Trigger
 								class={cn(
 									buttonVariants({ variant: 'ghost', size: 'icon' }),
-									'rounded-md transition-colors hover:bg-background/60'
+									'rounded-md transition-colors hover:bg-background/60 dark:hover:bg-background/60'
 								)}
 								aria-label="Syncing positions"
 								disabled
@@ -228,7 +228,7 @@
 							<Tooltip.Trigger
 								class={cn(
 									buttonVariants({ variant: 'ghost', size: 'icon' }),
-									'rounded-md transition-colors hover:bg-background/60'
+									'rounded-md transition-colors hover:bg-background/60 dark:hover:bg-background/60'
 								)}
 								aria-label={account.api_sync_enabled ? 'Sync positions' : 'Update from CSV'}
 								onclick={() => {
@@ -254,14 +254,14 @@
 								{...props}
 								variant="ghost"
 								size="icon"
-								class="rounded-md transition-colors hover:bg-background/60"
+								class="rounded-md transition-colors hover:bg-background/60 dark:hover:bg-background/60"
 								aria-label="Account actions"
 							>
 								<EllipsisVertical class="h-4 w-4" />
 							</Button>
 						{/snippet}
 					</DropdownMenu.Trigger>
-					<DropdownMenu.Content>
+					<DropdownMenu.Content align="end">
 						<DropdownMenu.Item
 							onSelect={() => {
 								isEditingTitle = true;

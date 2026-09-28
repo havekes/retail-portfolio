@@ -40,9 +40,9 @@
 					<Table.Cell class="px-4 py-2">
 						<a
 							href={resolve(`/security/${holding.security_id}`)}
-							class="group -mx-2 -my-1 flex w-fit flex-col rounded-md px-2 py-1 transition-colors hover:bg-background/60"
+							class="group -mx-2 -my-1 flex w-full flex-col rounded-md px-2 py-1 transition-colors hover:bg-background/60 dark:hover:bg-background/60"
 						>
-							<span class="text-sm font-semibold text-primary group-hover:underline">
+							<span class="text-sm font-semibold text-primary">
 								{holding.security_symbol}
 							</span>
 							{#if holding.security_name}
