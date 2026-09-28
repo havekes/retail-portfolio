@@ -609,24 +609,49 @@ describe('AccountsListItem', () => {
 			expect(dotsButton.previousElementSibling).toBe(syncButton);
 		});
 
-		it('applies rounded hover styling to account title link, sync button, and 3-dots button', async () => {
+		it('applies rounded hover and dark hover styling to account title link, sync button, 3-dots button, and chevron button', async () => {
 			render(AccountsListItem, {
 				props: {
 					account: mockAccount
 				}
 			});
 
+			const chevronButton = screen.getByRole('button', { name: 'Expand holdings' });
+			expect(chevronButton).toHaveClass('rounded-md');
+			expect(chevronButton).toHaveClass('hover:bg-background/60');
+			expect(chevronButton).toHaveClass('dark:hover:bg-background/60');
+
 			const titleLink = screen.getByText('My Test Account').closest('a');
 			expect(titleLink).toHaveClass('rounded-md');
 			expect(titleLink).toHaveClass('hover:bg-background/60');
+			expect(titleLink).toHaveClass('dark:hover:bg-background/60');
 
 			const syncButton = await screen.findByRole('button', { name: 'Sync positions' });
 			expect(syncButton).toHaveClass('rounded-md');
 			expect(syncButton).toHaveClass('hover:bg-background/60');
+			expect(syncButton).toHaveClass('dark:hover:bg-background/60');
 
 			const dotsButton = screen.getByRole('button', { name: 'Account actions' });
 			expect(dotsButton).toHaveClass('rounded-md');
 			expect(dotsButton).toHaveClass('hover:bg-background/60');
+			expect(dotsButton).toHaveClass('dark:hover:bg-background/60');
+		});
+
+		it('aligns 3-dots dropdown menu content to end', async () => {
+			render(AccountsListItem, {
+				props: {
+					account: mockAccount
+				}
+			});
+
+			const menuButton = screen.getByRole('button', { name: 'Account actions' });
+			await fireEvent.click(menuButton);
+
+			await waitFor(() => {
+				const dropdownContent = document.querySelector('[data-slot="dropdown-menu-content"]');
+				expect(dropdownContent).toBeInTheDocument();
+				expect(dropdownContent).toHaveAttribute('data-align', 'end');
+			});
 		});
 
 		it('displays total profit/loss with + prefix and emerald class when positive', async () => {
