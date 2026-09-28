@@ -2,16 +2,18 @@
 	import PageHeader from '$lib/components/layout/app-header.svelte';
 	import PortfolioListItem from './portfolio-list-item.svelte';
 	import { portfolioClient } from '$lib/api/portfolioClient';
+	import type { Portfolio } from '$lib/types/portfolio';
 	import type { PageData } from './$types';
 
 	let { data }: { data: PageData } = $props();
 
-	let portfolios = $derived(data.portfolios ?? []);
+	let localPortfolios = $state<Portfolio[] | null>(null);
+	const portfolios = $derived(localPortfolios ?? data.portfolios ?? []);
 
 	async function handleRename(portfolioId: string, newName: string) {
 		try {
 			await portfolioClient.updatePortfolio(portfolioId, { name: newName });
-			portfolios = portfolios.map((p) => (p.id === portfolioId ? { ...p, name: newName } : p));
+			localPortfolios = portfolios.map((p) => (p.id === portfolioId ? { ...p, name: newName } : p));
 		} catch (error) {
 			console.error('Failed to rename portfolio:', error);
 		}
@@ -20,7 +22,7 @@
 	async function handleDelete(portfolioId: string) {
 		try {
 			await portfolioClient.deletePortfolio(portfolioId);
-			portfolios = portfolios.filter((p) => p.id !== portfolioId);
+			localPortfolios = portfolios.filter((p) => p.id !== portfolioId);
 		} catch (error) {
 			console.error('Failed to delete portfolio:', error);
 		}
