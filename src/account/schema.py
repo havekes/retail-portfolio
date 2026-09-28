@@ -205,6 +205,10 @@ class PortfolioCreate(BaseModel):
     accounts: list[AccountId]
 
 
+class PortfolioUpdateRequest(BaseModel):
+    name: str = Field(..., min_length=1)
+
+
 class PortfolioRead(PortfolioSchema):
     accounts: list[AccountSchema]
 

@@ -120,5 +120,9 @@ class PortfolioRepository(ABC):
         pass
 
     @abstractmethod
+    async def update(self, portfolio_id: PortfolioId, name: str) -> PortfolioRead:
+        pass
+
+    @abstractmethod
     async def delete(self, portfolio_id: PortfolioId) -> None:
         pass

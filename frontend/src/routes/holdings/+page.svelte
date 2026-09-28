@@ -3,7 +3,13 @@
 	import HoldingsTable from '$lib/components/holdings/holdings-table.svelte';
 	import * as Alert from '$lib/components/ui/alert/index.js';
 	import * as DropdownMenu from '$lib/components/ui/dropdown-menu/index.js';
+	import { Button } from '$lib/components/ui/button/index.js';
 	import Settings2 from '@lucide/svelte/icons/settings-2';
+	import Filter from '@lucide/svelte/icons/filter';
+	import ChevronDown from '@lucide/svelte/icons/chevron-down';
+	import Check from '@lucide/svelte/icons/check';
+	import { goto } from '$app/navigation';
+	import { resolve } from '$app/paths';
 	import { HoldingsService } from '$lib/components/holdings/holdingsService.svelte';
 	import { redirectOn401 } from '$lib/api/async-data';
 	import { saveHoldingsTableConfig } from '$lib/components/holdings/holdings-table-prefs';
@@ -28,6 +34,19 @@
 	const service = new HoldingsService();
 	service.setGroupBy(data.group_mode);
 
+	// Synchronize filter from data.portfolio_id or data.account_id
+	$effect(() => {
+		if (data.portfolio_id) {
+			const portfolio = data.portfolios?.find((p) => p.id === data.portfolio_id);
+			const accountIds = portfolio ? portfolio.accounts.map((a) => a.id) : [];
+			service.filterByPortfolio(data.portfolio_id, accountIds);
+		} else if (data.account_id) {
+			service.filterByAccount(data.account_id);
+		} else {
+			service.clearFilter();
+		}
+	});
+
 	// Holdings rows are fetched after navigation so the shell renders instantly.
 	// `$effect` never runs during SSR, so this mount-time trigger stays browser-only
 	// and fires exactly once; the sequential pagination waterfall lives in the service.
@@ -40,6 +59,73 @@
 			}
 		})();
 	});
+
+	const activePortfolio = $derived(
+		service.filter.type === 'portfolio'
+			? data.portfolios?.find(
+					(p) => p.id === (service.filter as { portfolioId: string }).portfolioId
+				)
+			: null
+	);
+
+	const activeAccount = $derived(
+		service.filter.type === 'account'
+			? data.accounts?.find((a) => a.id === (service.filter as { accountId: string }).accountId)
+			: null
+	);
+
+	const selectedFilterLabel = $derived.by(() => {
+		if (service.filter.type === 'portfolio') {
+			return activePortfolio?.name ?? 'Portfolio';
+		}
+		if (service.filter.type === 'account') {
+			return activeAccount?.name ?? 'Account';
+		}
+		return 'All';
+	});
+
+	const pageSubtitle = $derived.by(() => {
+		if (service.filter.type === 'portfolio' && activePortfolio) {
+			return `Holdings in ${activePortfolio.name}`;
+		}
+		if (service.filter.type === 'account' && activeAccount) {
+			return `Holdings in ${activeAccount.name}`;
+		}
+		return 'All holdings across your accounts';
+	});
+
+	const emptyMessage = $derived(
+		service.filter.type !== 'all' && service.allRows.length > 0 && service.rows.length === 0
+			? 'No holdings match the selected filter.'
+			: 'No holdings yet. Import an account to see your holdings here.'
+	);
+
+	function handleSelectFilter(type: 'all' | 'portfolio' | 'account', id?: string) {
+		if (type === 'portfolio' && id) {
+			const portfolio = data.portfolios?.find((p) => p.id === id);
+			const accountIds = portfolio ? portfolio.accounts.map((a) => a.id) : [];
+			service.filterByPortfolio(id, accountIds);
+			void goto(resolve(`/holdings?portfolio_id=${id}` as unknown as '/'), {
+				replaceState: true,
+				noScroll: true,
+				keepFocus: true
+			});
+		} else if (type === 'account' && id) {
+			service.filterByAccount(id);
+			void goto(resolve(`/holdings?account_id=${id}` as unknown as '/'), {
+				replaceState: true,
+				noScroll: true,
+				keepFocus: true
+			});
+		} else {
+			service.clearFilter();
+			void goto(resolve('/holdings'), {
+				replaceState: true,
+				noScroll: true,
+				keepFocus: true
+			});
+		}
+	}
 
 	const prefsService = getUserPreferencesService();
 
@@ -143,7 +229,7 @@
 </svelte:head>
 
 <div class="flex h-full flex-col overflow-hidden bg-background">
-	<PageHeader title="Holdings" subtitle="All holdings across your accounts">
+	<PageHeader title="Holdings" subtitle={pageSubtitle}>
 		{#snippet actions()}
 			<div class="flex items-center gap-6">
 				{#each currencyTotals as total (total.currency)}
@@ -182,45 +268,109 @@
 						{/if}
 					</div>
 				{/each}
-				<DropdownMenu.Root>
-					<DropdownMenu.Trigger>
-						{#snippet child({ props })}
-							<button
-								{...props}
-								type="button"
-								data-testid="display-settings-trigger"
-								aria-label="Display settings"
-								title="Display settings"
-								class="inline-flex size-8 items-center justify-center rounded-md border border-input bg-background text-muted-foreground shadow-xs transition-colors hover:bg-accent hover:text-accent-foreground"
+				<div class="flex items-center gap-2">
+					<DropdownMenu.Root>
+						<DropdownMenu.Trigger>
+							{#snippet child({ props })}
+								<Button
+									{...props}
+									variant="outline"
+									size="sm"
+									data-testid="holdings-filter-trigger"
+									class="flex h-8 items-center gap-2"
+								>
+									<Filter size={14} />
+									<span>{selectedFilterLabel}</span>
+									<ChevronDown size={14} class="text-muted-foreground" />
+								</Button>
+							{/snippet}
+						</DropdownMenu.Trigger>
+						<DropdownMenu.Content align="end" class="w-56">
+							<DropdownMenu.Item
+								data-testid="filter-all"
+								class="flex items-center justify-between"
+								onSelect={() => handleSelectFilter('all')}
 							>
-								<Settings2 size={16} />
-							</button>
-						{/snippet}
-					</DropdownMenu.Trigger>
-					<DropdownMenu.Content align="end" class="w-48">
-						<DropdownMenu.Label>View options</DropdownMenu.Label>
-						<DropdownMenu.CheckboxItem
-							data-testid="group-by-stock"
-							checked={service.groupBy === 'stock' || service.groupBy === 'company'}
-							onCheckedChange={handleGroupToggle}
-						>
-							Group by stock
-						</DropdownMenu.CheckboxItem>
-						<DropdownMenu.Separator />
-						<DropdownMenu.Label>Visible columns</DropdownMenu.Label>
-						<DropdownMenu.Separator />
-						{#each HOLDINGS_TABLE_COLUMNS as column (column.id)}
+								<span>All</span>
+								{#if service.filter.type === 'all'}
+									<Check size={14} />
+								{/if}
+							</DropdownMenu.Item>
+							{#if data.portfolios && data.portfolios.length > 0}
+								<DropdownMenu.Separator />
+								<DropdownMenu.Label>Portfolios</DropdownMenu.Label>
+								{#each data.portfolios as portfolio (portfolio.id)}
+									<DropdownMenu.Item
+										data-testid={`filter-portfolio-${portfolio.id}`}
+										class="flex items-center justify-between"
+										onSelect={() => handleSelectFilter('portfolio', portfolio.id)}
+									>
+										<span class="truncate">{portfolio.name}</span>
+										{#if service.filter.type === 'portfolio' && (service.filter as { portfolioId: string }).portfolioId === portfolio.id}
+											<Check size={14} />
+										{/if}
+									</DropdownMenu.Item>
+								{/each}
+							{/if}
+							{#if data.accounts && data.accounts.length > 0}
+								<DropdownMenu.Separator />
+								<DropdownMenu.Label>Accounts</DropdownMenu.Label>
+								{#each data.accounts as account (account.id)}
+									<DropdownMenu.Item
+										data-testid={`filter-account-${account.id}`}
+										class="flex items-center justify-between"
+										onSelect={() => handleSelectFilter('account', account.id)}
+									>
+										<span class="truncate">{account.name}</span>
+										{#if service.filter.type === 'account' && (service.filter as { accountId: string }).accountId === account.id}
+											<Check size={14} />
+										{/if}
+									</DropdownMenu.Item>
+								{/each}
+							{/if}
+						</DropdownMenu.Content>
+					</DropdownMenu.Root>
+
+					<DropdownMenu.Root>
+						<DropdownMenu.Trigger>
+							{#snippet child({ props })}
+								<button
+									{...props}
+									type="button"
+									data-testid="display-settings-trigger"
+									aria-label="Display settings"
+									title="Display settings"
+									class="inline-flex size-8 items-center justify-center rounded-md border border-input bg-background text-muted-foreground shadow-xs transition-colors hover:bg-accent hover:text-accent-foreground"
+								>
+									<Settings2 size={16} />
+								</button>
+							{/snippet}
+						</DropdownMenu.Trigger>
+						<DropdownMenu.Content align="end" class="w-48">
+							<DropdownMenu.Label>View options</DropdownMenu.Label>
 							<DropdownMenu.CheckboxItem
-								checked={tableConfig.visible.includes(column.id)}
-								disabled={column.id === HOLDINGS_TABLE_STICKY_COLUMN_ID}
-								onCheckedChange={() => handleToggleColumn(column.id)}
-								data-testid={`column-toggle-${column.id}`}
+								data-testid="group-by-stock"
+								checked={service.groupBy === 'stock' || service.groupBy === 'company'}
+								onCheckedChange={handleGroupToggle}
 							>
-								{column.label}
+								Group by stock
 							</DropdownMenu.CheckboxItem>
-						{/each}
-					</DropdownMenu.Content>
-				</DropdownMenu.Root>
+							<DropdownMenu.Separator />
+							<DropdownMenu.Label>Visible columns</DropdownMenu.Label>
+							<DropdownMenu.Separator />
+							{#each HOLDINGS_TABLE_COLUMNS as column (column.id)}
+								<DropdownMenu.CheckboxItem
+									checked={tableConfig.visible.includes(column.id)}
+									disabled={column.id === HOLDINGS_TABLE_STICKY_COLUMN_ID}
+									onCheckedChange={() => handleToggleColumn(column.id)}
+									data-testid={`column-toggle-${column.id}`}
+								>
+									{column.label}
+								</DropdownMenu.CheckboxItem>
+							{/each}
+						</DropdownMenu.Content>
+					</DropdownMenu.Root>
+				</div>
 			</div>
 		{/snippet}
 	</PageHeader>
@@ -241,7 +391,7 @@
 			{tableConfig}
 			onConfigChange={handleConfigChange}
 			elliottWaves={data.elliott_waves}
-			emptyMessage="No holdings yet. Import an account to see your holdings here."
+			{emptyMessage}
 		/>
 	</main>
 </div>

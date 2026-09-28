@@ -237,3 +237,81 @@ async def test_portfolio_accounts_update_empty(auth_client, test_portfolios):
     assert result["id"] == str(portfolio_id)
     # Portfolio should now have no accounts
     assert len(result["accounts"]) == 0
+
+
+@pytest.mark.anyio
+async def test_portfolio_update_success(auth_client, test_portfolios):
+    """Test portfolio_update successfully renames a portfolio."""
+    portfolio_id = test_portfolios[0].id
+    new_name = "Updated Portfolio Name"
+
+    response = await auth_client.patch(
+        f"/api/v1/portfolios/{portfolio_id}",
+        json={"name": new_name},
+    )
+
+    assert response.status_code == 200
+    result = response.json()
+    assert result["id"] == str(portfolio_id)
+    assert result["name"] == new_name
+
+    # Verify updated name appears in portfolio list
+    list_response = await auth_client.get("/api/v1/portfolios/")
+    assert list_response.status_code == 200
+    portfolios = list_response.json()
+    matching = [p for p in portfolios if p["id"] == str(portfolio_id)]
+    assert len(matching) == 1
+    assert matching[0]["name"] == new_name
+
+
+@pytest.mark.anyio
+async def test_portfolio_update_not_found(auth_client):
+    """Test portfolio_update raises 404 for non-existent portfolio."""
+    fake_id = uuid4()
+
+    response = await auth_client.patch(
+        f"/api/v1/portfolios/{fake_id}",
+        json={"name": "New Name"},
+    )
+
+    assert response.status_code == 404
+
+
+@pytest.mark.anyio
+async def test_portfolio_update_not_owned(auth_client, other_user_portfolio):
+    """Test portfolio_update raises 404 for portfolio not owned by user."""
+    portfolio_id = other_user_portfolio.id
+
+    response = await auth_client.patch(
+        f"/api/v1/portfolios/{portfolio_id}",
+        json={"name": "New Name"},
+    )
+
+    assert response.status_code == 404
+
+
+@pytest.mark.anyio
+async def test_portfolio_update_empty_name(auth_client, test_portfolios):
+    """Test portfolio_update raises 422 for empty name."""
+    portfolio_id = test_portfolios[0].id
+
+    response = await auth_client.patch(
+        f"/api/v1/portfolios/{portfolio_id}",
+        json={"name": ""},
+    )
+
+    assert response.status_code == 422
+
+
+@pytest.mark.anyio
+async def test_portfolio_update_missing_name(auth_client, test_portfolios):
+    """Test portfolio_update raises 422 for missing name field."""
+    portfolio_id = test_portfolios[0].id
+
+    response = await auth_client.patch(
+        f"/api/v1/portfolios/{portfolio_id}",
+        json={},
+    )
+
+    assert response.status_code == 422
+
