@@ -391,6 +391,7 @@
 			{tableConfig}
 			onConfigChange={handleConfigChange}
 			elliottWaves={data.elliott_waves}
+			valuations={service.valuations}
 			{emptyMessage}
 		/>
 	</main>

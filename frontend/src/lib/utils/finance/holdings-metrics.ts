@@ -181,3 +181,44 @@ export function filterCandlesForPeriod(
 	const cutoffTime = cutoff.getTime();
 	return candles.filter((c) => parseCandleTimeToDate(c.time).getTime() >= cutoffTime);
 }
+
+/**
+ * Calculates a holding's percentage of total portfolio value.
+ * Returns (holdingValue / totalPortfolioValue) * 100 if totalPortfolioValue > 0 and inputs are finite, else 0.
+ */
+export function calculatePercentOfTotal(holdingValue: number, totalPortfolioValue: number): number {
+	if (
+		!Number.isFinite(holdingValue) ||
+		!Number.isFinite(totalPortfolioValue) ||
+		totalPortfolioValue <= 0
+	) {
+		return 0;
+	}
+	return (holdingValue / totalPortfolioValue) * 100;
+}
+
+/**
+ * Calculates a holding's percentage of its account total value.
+ * Returns (holdingValue / accountTotalValue) * 100 if accountTotalValue > 0 and inputs are finite, else 0.
+ */
+export function calculatePercentOfAccount(holdingValue: number, accountTotalValue: number): number {
+	if (
+		!Number.isFinite(holdingValue) ||
+		!Number.isFinite(accountTotalValue) ||
+		accountTotalValue <= 0
+	) {
+		return 0;
+	}
+	return (holdingValue / accountTotalValue) * 100;
+}
+
+/**
+ * Formats a percentage number with 1 decimal place (e.g. 14.2%).
+ * Returns '-' if the value is null, undefined, or non-finite.
+ */
+export function formatHoldingPercent(value: number | null | undefined): string {
+	if (value === null || value === undefined || !Number.isFinite(value)) {
+		return '-';
+	}
+	return `${value.toFixed(1)}%`;
+}

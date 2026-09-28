@@ -3,6 +3,7 @@ import { render, screen, fireEvent, within } from '@testing-library/svelte';
 import HoldingsTable from './holdings-table.svelte';
 import type { UserHolding } from '$lib/types/account';
 import type { SecurityElliottWaves } from '$lib/utils/finance/elliott-wave';
+import type { SecurityValuation } from '$lib/api/marketService';
 import {
 	HOLDINGS_TABLE_COLUMN_IDS,
 	normalizeHoldingsTableConfig,
@@ -424,8 +425,8 @@ describe('HoldingsTable', () => {
 		expect(within(aRow).queryByTestId('ew-primary-upside')).not.toBeInTheDocument();
 		expect(within(aRow).queryByTestId('ew-cycle-upside')).not.toBeInTheDocument();
 		const aCells = within(aRow).getAllByRole('cell');
-		expect(aCells[7]).toHaveTextContent('-');
 		expect(aCells[8]).toHaveTextContent('-');
+		expect(aCells[9]).toHaveTextContent('-');
 	});
 
 	it('features visible separator borders on header cells and resize handles, with header hover isolation', () => {
@@ -663,6 +664,21 @@ describe('HoldingsTable', () => {
 			await fireEvent.pointerUp(handle, { clientX: -10_000, pointerId: 1 });
 		});
 
+		it('clamps Valuation Range resize handle within [120, 260] bounds', async () => {
+			render(HoldingsTable, { props: { holdings: sortRows } });
+
+			const handle = screen.getByTestId('column-resize-valuation_range');
+
+			await fireEvent.pointerDown(handle, { clientX: 100, pointerId: 1 });
+			await fireEvent.pointerMove(handle, { clientX: 10_000, pointerId: 1 });
+			expect(screen.getByTestId('column-col-valuation_range').style.width).toBe('260px');
+
+			await fireEvent.pointerMove(handle, { clientX: -10_000, pointerId: 1 });
+			expect(screen.getByTestId('column-col-valuation_range').style.width).toBe('120px');
+
+			await fireEvent.pointerUp(handle, { clientX: -10_000, pointerId: 1 });
+		});
+
 		it('emits the clamped config once the drag ends', async () => {
 			const onConfigChange = vi.fn();
 			render(HoldingsTable, { props: { holdings: sortRows, onConfigChange } });
@@ -727,8 +743,226 @@ describe('HoldingsTable', () => {
 
 			render(HoldingsTable, { props: { holdings: sortRows, tableConfig } });
 
-			expect(screen.getAllByRole('columnheader')).toHaveLength(9);
+			expect(screen.getAllByRole('columnheader')).toHaveLength(11);
 			expect(screen.getByTestId('column-col-quantity').style.width).toBe('180px');
+		});
+	});
+
+	describe('% of Total and Account Badge', () => {
+		it('renders "% of Total" column immediately adjacent to Total Value with correct portfolio percentage formatted to 1 decimal place', () => {
+			render(HoldingsTable, { props: { holdings: sortRows } });
+
+			const headers = screen.getAllByRole('columnheader');
+			const totalValueIndex = headers.findIndex((h) => h.textContent?.includes('Total Value'));
+			const percentOfTotalIndex = headers.findIndex((h) => h.textContent?.includes('% of Total'));
+			expect(percentOfTotalIndex).toBe(totalValueIndex + 1);
+
+			const zRow = rowBySymbol('ZZZ');
+			expect(within(zRow).getByTestId('percent-of-total')).toHaveTextContent('8.2%');
+
+			const aRow = rowBySymbol('AAA');
+			expect(within(aRow).getByTestId('percent-of-total')).toHaveTextContent('82.0%');
+
+			const mRow = rowBySymbol('MMM');
+			expect(within(mRow).getByTestId('percent-of-total')).toHaveTextContent('9.8%');
+		});
+
+		it('sorts holdings table by "% of Total" column ascending and descending', async () => {
+			render(HoldingsTable, { props: { holdings: sortRows } });
+
+			const percentHeader = screen.getByRole('columnheader', { name: /% of Total/i });
+			// Default sort was total_value desc (AAA: 500, MMM: 200, ZZZ: 50).
+			// Clicking % of Total sorts desc first
+			await fireEvent.click(percentHeader);
+			expect(renderedSymbols()).toEqual(['AAA', 'MMM', 'ZZZ']);
+
+			// Clicking again sorts asc (ZZZ: 6.7%, MMM: 26.7%, AAA: 66.7%)
+			await fireEvent.click(percentHeader);
+			expect(renderedSymbols()).toEqual(['ZZZ', 'MMM', 'AAA']);
+		});
+
+		it('renders account badge with holding percentage of account value for single holding and multiple holdings within the same account', () => {
+			const testHoldings: UserHolding[] = [
+				makeRow({
+					id: 'h-1',
+					security_id: 'sec-1',
+					security_symbol: 'S1',
+					security_name: 'Security 1',
+					total_value: 300,
+					account_id: 'acc-1',
+					account_name: 'TFSA'
+				}),
+				makeRow({
+					id: 'h-2',
+					security_id: 'sec-2',
+					security_symbol: 'S2',
+					security_name: 'Security 2',
+					total_value: 700,
+					account_id: 'acc-1',
+					account_name: 'TFSA'
+				}),
+				makeRow({
+					id: 'h-3',
+					security_id: 'sec-3',
+					security_symbol: 'S3',
+					security_name: 'Security 3',
+					total_value: 500,
+					account_id: 'acc-2',
+					account_name: 'RRSP'
+				})
+			];
+			render(HoldingsTable, { props: { holdings: testHoldings } });
+
+			const s1Row = rowBySymbol('S1');
+			const s1AccountCell = within(s1Row).getByTestId('account-cell');
+			expect(within(s1AccountCell).getByText('TFSA')).toBeInTheDocument();
+			expect(within(s1AccountCell).getByText('30.0%')).toBeInTheDocument();
+
+			const s2Row = rowBySymbol('S2');
+			const s2AccountCell = within(s2Row).getByTestId('account-cell');
+			expect(within(s2AccountCell).getByText('TFSA')).toBeInTheDocument();
+			expect(within(s2AccountCell).getByText('70.0%')).toBeInTheDocument();
+
+			const s3Row = rowBySymbol('S3');
+			const s3AccountCell = within(s3Row).getByTestId('account-cell');
+			expect(within(s3AccountCell).getByText('RRSP')).toBeInTheDocument();
+			expect(within(s3AccountCell).getByText('100.0%')).toBeInTheDocument();
+		});
+
+		it('renders account badges with respective account holding percentages in "Group by stock" mode', () => {
+			const testHoldings: UserHolding[] = [
+				makeRow({
+					id: 'h-a-1',
+					security_id: 'sec-shared',
+					security_symbol: 'SHARE',
+					security_name: 'Shared Corp',
+					total_value: 400,
+					account_id: 'acc-tfsa',
+					account_name: 'TFSA'
+				}),
+				makeRow({
+					id: 'h-a-2',
+					security_id: 'sec-other',
+					security_symbol: 'OTHER',
+					security_name: 'Other Corp',
+					total_value: 600,
+					account_id: 'acc-tfsa',
+					account_name: 'TFSA'
+				}),
+				makeRow({
+					id: 'h-b-1',
+					security_id: 'sec-shared',
+					security_symbol: 'SHARE',
+					security_name: 'Shared Corp',
+					total_value: 200,
+					account_id: 'acc-rrsp',
+					account_name: 'RRSP'
+				})
+			];
+			render(HoldingsTable, { props: { holdings: testHoldings, groupBy: 'stock' } });
+
+			const shareRow = rowBySymbol('SHARE');
+			expect(within(shareRow).getByTestId('percent-of-total')).toHaveTextContent('50.0%');
+
+			const accountCell = within(shareRow).getByTestId('account-cell');
+			expect(within(accountCell).getByText('TFSA')).toBeInTheDocument();
+			expect(within(accountCell).getByText('40.0%')).toBeInTheDocument();
+			expect(within(accountCell).getByText('RRSP')).toBeInTheDocument();
+			expect(within(accountCell).getByText('100.0%')).toBeInTheDocument();
+		});
+	});
+
+	describe('Valuation Range', () => {
+		it('renders formatted valuation ranges for securities with valuations and "—" for securities without', () => {
+			const mockValuations: Record<string, SecurityValuation> = {
+				'sec-z': {
+					security_id: 'sec-z',
+					lower_bound: 20,
+					upper_bound: 50
+				},
+				'sec-m': {
+					security_id: 'sec-m',
+					lower_bound: 1200.5,
+					upper_bound: 1500.75
+				}
+			};
+
+			render(HoldingsTable, { props: { holdings: sortRows, valuations: mockValuations } });
+
+			const zRow = rowBySymbol('ZZZ');
+			expect(within(zRow).getByTestId('valuation-range')).toHaveTextContent('20.00 – 50.00');
+
+			const mRow = rowBySymbol('MMM');
+			expect(within(mRow).getByTestId('valuation-range')).toHaveTextContent('1,200.50 – 1,500.75');
+
+			const aRow = rowBySymbol('AAA');
+			expect(within(aRow).getByTestId('valuation-range')).toHaveTextContent('—');
+		});
+
+		it('sorts by Valuation Range ascending and descending with unvalued securities sorted last', async () => {
+			const mockValuations: Record<string, SecurityValuation> = {
+				'sec-z': {
+					security_id: 'sec-z',
+					lower_bound: 20,
+					upper_bound: 50 // midpoint 35
+				},
+				'sec-m': {
+					security_id: 'sec-m',
+					lower_bound: 10,
+					upper_bound: 20 // midpoint 15
+				}
+			};
+
+			render(HoldingsTable, { props: { holdings: sortRows, valuations: mockValuations } });
+
+			const valuationHeader = screen.getByRole('columnheader', { name: /Valuation Range/i });
+
+			// Click Valuation Range -> desc first: ZZZ (35), MMM (15), AAA (null)
+			await fireEvent.click(valuationHeader);
+			expect(renderedSymbols()).toEqual(['ZZZ', 'MMM', 'AAA']);
+
+			// Click Valuation Range again -> asc: MMM (15), ZZZ (35), AAA (null)
+			await fireEvent.click(valuationHeader);
+			expect(renderedSymbols()).toEqual(['MMM', 'ZZZ', 'AAA']);
+		});
+
+		it('displays and sorts valuations in "Group by stock" mode', async () => {
+			const mockValuations: Record<string, SecurityValuation> = {
+				'sec-aapl': {
+					security_id: 'sec-aapl',
+					lower_bound: 150,
+					upper_bound: 250 // midpoint 200
+				},
+				'sec-msft': {
+					security_id: 'sec-msft',
+					lower_bound: 300,
+					upper_bound: 400 // midpoint 350
+				}
+			};
+
+			render(HoldingsTable, {
+				props: {
+					holdings: groupRows,
+					groupBy: 'stock',
+					valuations: mockValuations
+				}
+			});
+
+			const aaplRow = rowBySymbol('AAPL');
+			expect(within(aaplRow).getByTestId('valuation-range')).toHaveTextContent('150.00 – 250.00');
+
+			const msftRow = rowBySymbol('MSFT');
+			expect(within(msftRow).getByTestId('valuation-range')).toHaveTextContent('300.00 – 400.00');
+
+			const valuationHeader = screen.getByRole('columnheader', { name: /Valuation Range/i });
+
+			// Sort Valuation Range desc -> MSFT (350), AAPL (200)
+			await fireEvent.click(valuationHeader);
+			expect(renderedSymbols()).toEqual(['MSFT', 'AAPL']);
+
+			// Sort Valuation Range asc -> AAPL (200), MSFT (350)
+			await fireEvent.click(valuationHeader);
+			expect(renderedSymbols()).toEqual(['AAPL', 'MSFT']);
 		});
 	});
 });

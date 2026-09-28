@@ -333,41 +333,45 @@ describe('MarketService', () => {
 		await expect(service.createWatchlist('Default', 'test-token')).rejects.toBeInstanceOf(ApiError);
 	});
 
-	it('should return empty array without network request when securityIds is empty', async () => {
-		const result = await service.getValuationsBatch([]);
-		expect(result).toEqual([]);
-		expect(global.fetch).not.toHaveBeenCalled();
-	});
+	describe('getValuationsBatch', () => {
+		it('returns empty array immediately without fetch when securityIds is empty', async () => {
+			const result = await service.getValuationsBatch([]);
+			expect(result).toEqual([]);
+			expect(global.fetch).not.toHaveBeenCalled();
+		});
 
-	it('should call getValuationsBatch with POST, security_ids payload, and token', async () => {
-		const mockValuations: SecurityValuationRead[] = [
-			{
-				id: 1,
-				user_id: 'user-1',
-				security_id: 's1',
-				lower_bound: '20.00',
-				upper_bound: '50.00',
-				created_at: '2026-01-01T00:00:00Z',
-				updated_at: '2026-01-01T00:00:00Z'
-			}
-		];
-		vi.mocked(global.fetch).mockResolvedValue({
-			ok: true,
-			status: 200,
-			json: async () => mockValuations
-		} as Response);
+		it('dispatches POST /market/securities/valuation/batch with security_ids and returns parsed valuations', async () => {
+			const mockValuations: SecurityValuationRead[] = [
+				{
+					id: 1,
+					user_id: 'user-1',
+					security_id: 'sec-1',
+					lower_bound: '150.50',
+					upper_bound: '200.00',
+					created_at: '2026-01-01T00:00:00Z',
+					updated_at: '2026-01-01T00:00:00Z'
+				}
+			];
+			vi.mocked(global.fetch).mockResolvedValue({
+				ok: true,
+				status: 200,
+				json: async () => mockValuations
+			} as Response);
 
-		const result = await service.getValuationsBatch(['s1', 's2'], 'test-token');
+			const result = await service.getValuationsBatch(['sec-1', 'sec-2'], 'test-token');
 
-		expect(global.fetch).toHaveBeenCalledWith(
-			expect.stringContaining('/api/v1/market/securities/valuation/batch'),
-			expect.objectContaining({
-				method: 'POST',
-				body: JSON.stringify({ security_ids: ['s1', 's2'] }),
-				headers: expect.objectContaining({ Authorization: 'Bearer test-token' })
-			})
-		);
-		expect(result).toEqual(mockValuations);
+			expect(global.fetch).toHaveBeenCalledWith(
+				expect.stringContaining('/api/v1/market/securities/valuation/batch'),
+				expect.objectContaining({
+					method: 'POST',
+					body: JSON.stringify({ security_ids: ['sec-1', 'sec-2'] }),
+					headers: expect.objectContaining({
+						Authorization: 'Bearer test-token'
+					})
+				})
+			);
+			expect(result).toEqual(mockValuations);
+		});
 	});
 });
 

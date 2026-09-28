@@ -5,7 +5,10 @@ import {
 	getPeriodCutoffDate,
 	getBenchmarkPrice,
 	calculateHoldingGain,
-	filterCandlesForPeriod
+	filterCandlesForPeriod,
+	calculatePercentOfTotal,
+	calculatePercentOfAccount,
+	formatHoldingPercent
 } from './holdings-metrics';
 
 describe('holdings-metrics', () => {
@@ -265,6 +268,63 @@ describe('holdings-metrics', () => {
 		it('returns empty array if no candles meet cutoff', () => {
 			const oldCandles: Candle[] = [{ time: '2020-01-01', open: 50, high: 55, low: 49, close: 52 }];
 			expect(filterCandlesForPeriod(oldCandles, '1D', refDate)).toEqual([]);
+		});
+	});
+
+	describe('calculatePercentOfTotal', () => {
+		it('calculates percentage of total correctly', () => {
+			expect(calculatePercentOfTotal(2500, 10000)).toBe(25);
+			expect(calculatePercentOfTotal(142, 1000)).toBeCloseTo(14.2, 5);
+		});
+
+		it('returns 0 when totalPortfolioValue is zero or negative', () => {
+			expect(calculatePercentOfTotal(500, 0)).toBe(0);
+			expect(calculatePercentOfTotal(500, -1000)).toBe(0);
+		});
+
+		it('returns 0 when inputs are NaN or non-finite', () => {
+			expect(calculatePercentOfTotal(NaN, 1000)).toBe(0);
+			expect(calculatePercentOfTotal(100, NaN)).toBe(0);
+			expect(calculatePercentOfTotal(Infinity, 1000)).toBe(0);
+			expect(calculatePercentOfTotal(100, Infinity)).toBe(0);
+		});
+	});
+
+	describe('calculatePercentOfAccount', () => {
+		it('calculates percentage of account correctly', () => {
+			expect(calculatePercentOfAccount(300, 1200)).toBe(25);
+			expect(calculatePercentOfAccount(50, 200)).toBe(25);
+		});
+
+		it('returns 0 when accountTotalValue is zero or negative', () => {
+			expect(calculatePercentOfAccount(100, 0)).toBe(0);
+			expect(calculatePercentOfAccount(100, -500)).toBe(0);
+		});
+
+		it('returns 0 when inputs are NaN or non-finite', () => {
+			expect(calculatePercentOfAccount(NaN, 500)).toBe(0);
+			expect(calculatePercentOfAccount(100, NaN)).toBe(0);
+			expect(calculatePercentOfAccount(Infinity, 500)).toBe(0);
+		});
+	});
+
+	describe('formatHoldingPercent', () => {
+		it('formats positive and zero percentages to 1 decimal place', () => {
+			expect(formatHoldingPercent(14.234)).toBe('14.2%');
+			expect(formatHoldingPercent(0)).toBe('0.0%');
+			expect(formatHoldingPercent(100)).toBe('100.0%');
+		});
+
+		it('formats negative percentages to 1 decimal place', () => {
+			expect(formatHoldingPercent(-5.67)).toBe('-5.7%');
+		});
+
+		it('returns "-" for null, undefined, and non-finite values', () => {
+			expect(formatHoldingPercent(null)).toBe('-');
+			expect(formatHoldingPercent(undefined)).toBe('-');
+			expect(formatHoldingPercent(NaN)).toBe('-');
+			expect(formatHoldingPercent(Infinity)).toBe('-');
+			expect(formatHoldingPercent(-Infinity)).toBe('-');
 		});
 	});
 });
