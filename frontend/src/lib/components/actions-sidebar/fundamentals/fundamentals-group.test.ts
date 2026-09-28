@@ -40,7 +40,7 @@ describe('FundamentalsGroup Component', () => {
 		});
 	});
 
-	it('renders valuation range when valuation exists', async () => {
+	it('renders valuation range when valuation exists and checkbox is positioned next to display', async () => {
 		const mockValuation: SecurityValuationRead = {
 			id: 1,
 			user_id: 'u-1',
@@ -60,8 +60,14 @@ describe('FundamentalsGroup Component', () => {
 
 		await waitFor(() => {
 			expect(screen.getByText('Fair Value Range')).toBeInTheDocument();
-			expect(screen.getByText('$100.00 – $150.00')).toBeInTheDocument();
-			expect(screen.getByLabelText('Show on chart')).toBeInTheDocument();
+			const rangeEl = screen.getByText('$100.00 – $150.00');
+			expect(rangeEl).toBeInTheDocument();
+			const checkbox = screen.getByLabelText('Show on chart');
+			expect(checkbox).toBeInTheDocument();
+			// Checkbox should be a sibling in the same flex container next to rangeEl
+			expect(rangeEl.parentElement).toContainElement(checkbox);
+			// Default showOverlay is true
+			expect(checkbox).toBeChecked();
 		});
 	});
 

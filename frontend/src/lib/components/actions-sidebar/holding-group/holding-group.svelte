@@ -14,17 +14,23 @@
 	import type { SecuritySchema } from '@/api/marketService';
 	import type { Candle } from '@/utils/finance/candle';
 	import { moneyToNumber } from '$lib/types/money';
+	import Checkbox from '@/components/ui/checkbox/checkbox.svelte';
+	import { userPreferencesService } from '$lib/api/userPreferencesService';
 
 	let {
 		securityId,
 		security,
 		candles = [],
-		expanded = $bindable(true)
+		expanded = $bindable(true),
+		showAveragePrice = $bindable(true),
+		onToggleAveragePrice
 	} = $props<{
 		securityId?: string;
 		security?: SecuritySchema | { id?: string; symbol?: string; name?: string; currency?: string };
 		candles?: Candle[];
 		expanded?: boolean;
+		showAveragePrice?: boolean;
+		onToggleAveragePrice?: (enabled: boolean) => void;
 	}>();
 
 	const effectiveSecurityId = $derived(securityId ?? security?.id);
@@ -88,6 +94,32 @@
 	const handleExpandToggle = () => {
 		expanded = !expanded;
 	};
+
+	const handleToggleAveragePrice = async (checked: boolean | 'indeterminate') => {
+		const val = checked === true;
+		showAveragePrice = val;
+		onToggleAveragePrice?.(val);
+		try {
+			const prefs = await userPreferencesService.getPreferences().catch(() => null);
+			const existingIndicators = prefs?.indicators ?? {};
+			const currentAvgPrice = existingIndicators.avgPrice ?? {
+				enabled: true,
+				color: '#2962FF',
+				settings: {}
+			};
+			await userPreferencesService.patchPreferences({
+				indicators: {
+					...existingIndicators,
+					avgPrice: {
+						...currentAvgPrice,
+						enabled: val
+					}
+				}
+			});
+		} catch (err) {
+			console.error('Failed to save average price preference:', err);
+		}
+	};
 </script>
 
 <HoldingsModal
@@ -127,14 +159,23 @@
 			{:else}
 				<div class="space-y-1 py-2 text-sm">
 					<div class="mb-2 flex items-center justify-between rounded-md bg-muted/40 px-2 py-1.5">
-						<div class="flex flex-col">
-							<span class="text-xs text-muted-foreground">Average</span>
-							<span class="font-semibold text-foreground">
-								{new Intl.NumberFormat('en-US', {
-									style: 'currency',
-									currency: holdings[0]?.currency ?? security?.currency ?? 'USD'
-								}).format(blendedAverageCost(holdings))}
-							</span>
+						<div class="flex items-center gap-2">
+							<div class="flex flex-col">
+								<span class="text-xs text-muted-foreground">Average</span>
+								<span class="font-semibold text-foreground">
+									{new Intl.NumberFormat('en-US', {
+										style: 'currency',
+										currency: holdings[0]?.currency ?? security?.currency ?? 'USD'
+									}).format(blendedAverageCost(holdings))}
+								</span>
+							</div>
+							<Checkbox
+								id="show-average-price-overlay"
+								checked={showAveragePrice}
+								onCheckedChange={handleToggleAveragePrice}
+								aria-label="Show average price on chart"
+								title="Show average price on chart"
+							/>
 						</div>
 						<div class="flex flex-col text-right">
 							<span class="text-xs text-muted-foreground">% of Portfolio</span>

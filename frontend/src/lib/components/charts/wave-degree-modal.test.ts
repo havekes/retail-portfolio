@@ -1,18 +1,29 @@
 import { describe, it, expect, vi } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/svelte';
 import WaveDegreeModal from './wave-degree-modal.svelte';
-import { ALL_WAVE_DEGREES, WAVE_DEGREE_LABELS } from '$lib/utils/finance/elliott-wave';
+import {
+	ALL_WAVE_DEGREES,
+	SUPPORTED_WAVE_DEGREES,
+	WAVE_DEGREE_LABELS
+} from '$lib/utils/finance/elliott-wave';
 
 describe('WaveDegreeModal', () => {
-	it('renders all 9 wave degree options', () => {
+	it('renders only supported wave degree options (cycle, primary, intermediate)', () => {
 		render(WaveDegreeModal, {
 			open: true,
 			currentDegree: 'cycle'
 		});
 
-		for (const deg of ALL_WAVE_DEGREES) {
+		for (const deg of SUPPORTED_WAVE_DEGREES) {
 			expect(screen.getByTestId(`degree-option-${deg}`)).toBeInTheDocument();
 			expect(screen.getByText(WAVE_DEGREE_LABELS[deg])).toBeInTheDocument();
+		}
+
+		for (const deg of ALL_WAVE_DEGREES) {
+			if (!SUPPORTED_WAVE_DEGREES.includes(deg as (typeof SUPPORTED_WAVE_DEGREES)[number])) {
+				expect(screen.queryByTestId(`degree-option-${deg}`)).not.toBeInTheDocument();
+				expect(screen.queryByText(WAVE_DEGREE_LABELS[deg])).not.toBeInTheDocument();
+			}
 		}
 	});
 

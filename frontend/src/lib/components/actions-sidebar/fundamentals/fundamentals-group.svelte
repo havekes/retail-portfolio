@@ -6,7 +6,6 @@
 	import SidebarError from '../sidebar-error.svelte';
 	import Button from '@/components/ui/button/button.svelte';
 	import Checkbox from '@/components/ui/checkbox/checkbox.svelte';
-	import Label from '@/components/ui/label/label.svelte';
 	import Pencil from '@lucide/svelte/icons/pencil';
 	import Plus from '@lucide/svelte/icons/plus';
 	import { valuationClient, type SecurityValuationRead } from '$lib/api/valuationClient';
@@ -132,18 +131,18 @@
 								Edit
 							</button>
 						</div>
-						<div class="mt-1 font-semibold text-foreground">
-							{formatCurrency(valuation.lower_bound)} – {formatCurrency(valuation.upper_bound)}
+						<div class="mt-1 flex items-center justify-between">
+							<span class="font-semibold text-foreground">
+								{formatCurrency(valuation.lower_bound)} – {formatCurrency(valuation.upper_bound)}
+							</span>
+							<Checkbox
+								id="show-valuation-overlay"
+								checked={showOverlay}
+								onCheckedChange={handleToggleOverlay}
+								aria-label="Show on chart"
+								title="Show on chart"
+							/>
 						</div>
-					</div>
-
-					<div class="flex items-center justify-between px-1">
-						<Label for="show-valuation-overlay" class="cursor-pointer text-xs">Show on chart</Label>
-						<Checkbox
-							id="show-valuation-overlay"
-							checked={showOverlay}
-							onCheckedChange={handleToggleOverlay}
-						/>
 					</div>
 				</div>
 			{/if}

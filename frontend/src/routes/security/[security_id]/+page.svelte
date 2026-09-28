@@ -519,6 +519,20 @@
 		}
 	}
 
+	async function handleAutoScaleChange(autoScale: boolean) {
+		userPreferences = {
+			...(userPreferences ?? {}),
+			chart_auto_scale: autoScale
+		};
+		try {
+			await userPreferencesService.patchPreferences({
+				chart_auto_scale: autoScale
+			});
+		} catch (err) {
+			console.error('Failed to persist chart auto scale preference:', err);
+		}
+	}
+
 	async function handlePaneHeightsChange(heights: Record<string, number> | null) {
 		// PATCH replaces the whole `indicator_pane_heights` key — always send the full object.
 		userPreferences = {
@@ -958,6 +972,7 @@
 								hideLabels={Boolean(userPreferences?.chart_hide_labels)}
 								autoScale={userPreferences?.chart_auto_scale ?? true}
 								logScale={Boolean(userPreferences?.chart_log_scale)}
+								onAutoScaleChange={handleAutoScaleChange}
 								{valuation}
 								showValuation={showValuationOverlay}
 								showValuationBand={showValuationOverlay}
@@ -1078,7 +1093,16 @@
 			</div>
 			<div class="flex h-full min-h-0 w-64 flex-col border-l bg-sidebar text-sidebar-foreground">
 				<Sidebar.Content class="min-h-0 flex-1 overflow-y-auto">
-					<HoldingsGroup securityId={security.id} {security} candles={rawCandles} expanded={true} />
+					<HoldingsGroup
+						securityId={security.id}
+						{security}
+						candles={rawCandles}
+						expanded={true}
+						bind:showAveragePrice={indicatorConfigs.avgPrice.enabled}
+						onToggleAveragePrice={(enabled) => {
+							indicatorConfigs.avgPrice.enabled = enabled;
+						}}
+					/>
 					<FundamentalsGroup
 						securityId={security.id}
 						currency={security.currency}
