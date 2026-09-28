@@ -1,11 +1,8 @@
 ---
 type: workflow
 title: Accounts & Holdings Views (read path)
-description: The read path from stored positions to the accounts dashboard, the account-scoped holdings page and the cross-account holdings page — the HoldingRead / UserHoldingRead / AccountHoldingsRead contract, PositionService aggregation and currency conversion, the post-navigation paging loop in HoldingsService, client-side stock grouping with weighted average cost, column/group preference persistence, the per-currency header buckets, and the tests that pin all of it.
+description: The read path from stored positions to the accounts dashboard, the account-scoped holdings page and the cross-account holdings page — the HoldingRead / UserHoldingRead / AccountHoldingsRead contract, PositionService aggregation and currency conversion, the post-navigation paging loop in HoldingsService, the accounts-list state machine behind the dashboard, client-side stock grouping with weighted average cost, and column/group preference persistence.
 tags: [holdings, accounts, read-path, ssr, pagination, preferences, positions, sveltekit, frontend]
-verified:
-  - by: openwiki/0.5.2
-    at: 2026-09-23T13:18:56.288Z
 sources:
   - id: openwiki-source-2163c40f6e8490dcf5aa468a
     resource: repo://frontend/src/lib/api/accountClient.ts
@@ -17,10 +14,20 @@ sources:
     resource: repo://frontend/src/lib/api/async-data.ts
   - id: openwiki-source-8a88da80cc6ed6d98b2035f2
     resource: repo://frontend/src/lib/api/userPreferencesService.ts
+  - id: openwiki-source-40bac4520c0afcaa86e30ffa
+    resource: repo://frontend/src/lib/components/accounts/account-inline-holdings.svelte
+  - id: openwiki-source-b263e02920f61e43137888d6
+    resource: repo://frontend/src/lib/components/accounts/accounts-list-item.svelte
   - id: openwiki-source-6b925971f5b4fc13a6f28950
     resource: repo://frontend/src/lib/components/accounts/accounts-list-item.svelte.ts
+  - id: openwiki-source-173b643850b61054416e45dd
+    resource: repo://frontend/src/lib/components/accounts/accounts-list.svelte
+  - id: openwiki-source-fd678aa0f01fc30bd938c51f
+    resource: repo://frontend/src/lib/components/accounts/accounts-list.svelte.ts
   - id: openwiki-source-4f3435ca26a18e3ad6af3c6a
     resource: repo://frontend/src/lib/components/accounts/holdings-table.svelte
+  - id: openwiki-source-f7a85a16715b70491338f670
+    resource: repo://frontend/src/lib/components/forms/editable-title.svelte
   - id: openwiki-source-2b5c65a8e8914a903f3fcddc
     resource: repo://frontend/src/lib/components/holdings/holdings-group-prefs.test.ts
   - id: openwiki-source-6b8f62e7820ba8cb30d8c4fe
@@ -43,6 +50,8 @@ sources:
     resource: repo://frontend/src/lib/utils/finance/holdings-group.test.ts
   - id: openwiki-source-220b9f175d4e727ca2186d48
     resource: repo://frontend/src/lib/utils/finance/holdings-group.ts
+  - id: openwiki-source-eef5ac7399b1df0963154b1a
+    resource: repo://frontend/src/routes/%2Blayout.server.ts
   - id: openwiki-source-846f5f71a06546739c7f1ccb
     resource: repo://frontend/src/routes/%2Bpage.server.ts
   - id: openwiki-source-2e4402e7dddbb6b3ddb90928
@@ -59,6 +68,8 @@ sources:
     resource: repo://frontend/src/routes/holdings/page.server.test.ts
   - id: openwiki-source-8609a03f095ca0ae9b6d35bd
     resource: repo://frontend/src/routes/holdings/page.svelte.test.ts
+  - id: openwiki-source-23b2c24e0397108b043ab98b
+    resource: repo://frontend/src/routes/layout.test.ts
   - id: openwiki-source-47a2f392d8d40be78e711787
     resource: repo://src/account/repository_sqlalchemy.py
   - id: openwiki-source-30de42522595a37de333f4dd
@@ -77,7 +88,10 @@ sources:
     resource: repo://tests/routers/test_accounts.py
   - id: openwiki-source-352057a2a0d0cce12ede5cdf
     resource: repo://tests/services/test_position_service.py
-generated: { by: "openwiki/0.5.2", at: "2026-09-23T13:18:56.288Z" }
+generated: { by: "openwiki/0.6.0", at: "2026-09-28T16:25:02.439Z" }
+verified:
+  - by: openwiki/0.6.0
+    at: 2026-09-28T16:25:02.439Z
 ---
 
 # Accounts & Holdings Views (read path)
@@ -225,11 +239,16 @@ in the source.
   `PositionService.get_account_holdings`, returning `AccountHoldingsRead`.
 - `GET /accounts/holdings/{security_id}` → `PositionService.get_holdings_by_security`.
 - `GET /accounts/{account_id}/totals` → `PositionService.get_total_for_account`
-  (the dashboard's per-account badge).
+  (the dashboard's per-account badge). The route resolves the account, runs the
+  same ownership check, and passes `account.currency` so the service converts into
+  the account's own currency.
 - `GET`/`PUT`/`PATCH /accounts/me/preferences` → `UserApi.get_preferences` /
   `save_preferences` / `patch_preferences`. `PATCH` calls
   `payload.model_dump(exclude_none=True)` and merges at the **top level** via
   SQLAlchemy `JSONB || JSONB`, so one key per write is the race-safe shape.
+- Account lifecycle used by the dashboard: `GET /accounts/` (the list),
+  `PATCH /accounts/{account_id}/rename`, `DELETE /accounts/{account_id}`,
+  `POST /accounts/{account_id}/sync`, `GET /accounts/sync-status`.
 
 Pagination parameters come from `src/core/pagination.py`: `offset` defaults to `0`
 and `limit` defaults to `50` with `ge=1, le=100`.
@@ -463,7 +482,8 @@ column switches from `Account` to `Accounts` when grouping is on.
 The Elliott Wave columns come from the `elliott_waves` preference read in the same
 load (`getLatestWaveCount` / `getWaveTargetPrice` / `calculateUpsidePercentage` from
 `$lib/utils/finance/elliott-wave`) — display-only projections over the same rows,
-covered by [Charting, Drawing Tools & Rewind](../architecture/charting.md).
+<!-- openwiki: broken internal link [../architecture/chart-drawing-and-rewind.md] file "../architecture/chart-drawing-and-rewind.md" does not exist. Fix the href or restore the target, then delete this comment. -->
+covered by [Charting, Drawing Tools & Rewind](../architecture/chart-drawing-and-rewind.md).
 
 ### Per-currency header totals
 
@@ -490,19 +510,142 @@ of already-converted values — never a cross-currency sum.
 
 ### The accounts dashboard
 
-`/` is the only one of the three surfaces that does not read holdings rows.
-`frontend/src/routes/+page.server.ts` loads the account list with
+`/` is the only one of the three surfaces that does not read holdings rows in its
+server load. `frontend/src/routes/+page.server.ts` loads the account list with
 `getAccountClient(fetch).getAccounts(token)` → `GET /accounts/`
-(`AccountRepository.get_by_user`, ordered by account name) and
-`frontend/src/routes/+page.svelte` renders `AccountsList` from `data.accounts`.
-Each row then reads its own totals through `accounts-list-item.svelte`, whose
-`AccountsListItemState.totals` derived fetches `accountClient.getAccountTotals(id)`
-→ `GET /accounts/{id}/totals` → `PositionService.get_total_for_account(account_id,
-account.currency)`. That method walks the account's positions, prices each one and
+(`AccountRepository.get_by_user`, ordered by account name), and
+`frontend/src/routes/+page.svelte` renders `AccountsList` from `data.accounts` —
+nothing else. The server load owns only the list and the standard SSR error
+mapping; the richer account-row behaviour lives in the client state classes.
+
+Each row then reads its own totals through `accounts-list-item.svelte`. The
+component constructs `AccountsListItemState(() => account.id, isInitiallyExpanded)`
+and renders `{#await itemState.totals}`: `totals` is a derived promise that calls
+`fetchAccountTotals(id)` → `accountClient.getAccountTotals(id)` →
+`GET /accounts/{id}/totals` → `PositionService.get_total_for_account(account_id,
+account.currency)`, which walks the account's positions, prices each one and
 converts into the account currency, returning `AccountTotals` (`cost` and `value`
-as `Money`). The result is cached per account inside the component state and
-invalidated when an in-flight sync completes (`wasSyncing && !isSyncing`); it drives
-the account's value badge, while the account name links to `/accounts/{id}`.
+as `Money`). The resolved flavor renders `money(totals.value)` plus
+`value − cost` as a colour-coded P/L; the `{:catch}` branch renders
+`Total: failed to load`, so a totals outage degrades one badge rather than the page.
+
+`AccountsListItemState` (`accounts-list-item.svelte.ts`) is the per-row cache:
+
+- `totalsCache` and `holdingsCache` are `$state<Record<string, …>>` maps keyed by
+  account id; `fetchAccountTotals` and `fetchAccountHoldings` both return the cached
+  entry when present and otherwise fetch and store it.
+- `version` is a monotonic counter that `invalidateCache(id)` bumps after deleting
+  both cache entries; the `totals` derived re-evaluates because it reads `version`,
+  which is how a completed sync re-runs the totals request.
+- `isExpanded` plus `holdingsPromise` drive the inline holdings expansion; the
+  constructor pre-fetches holdings when `initialExpanded` is true, and
+  `toggleExpanded()` reuses the cached array through `Promise.resolve(...)` when
+  one exists.
+- `invalidateCache` also re-issues `fetchAccountHoldings` when the row is currently
+  expanded, and `getAccountTotals(id)` / `getAccountHoldings(id)` expose the cache
+  for synchronous reads.
+- `totals` short-circuits during SSR: when `!browser` it returns a never-resolving
+  `new Promise`, so no totals request is issued while the dashboard HTML is
+  generated and the item renders its skeleton until hydration.
+
+The row also keeps `localSyncOverride` (a timestamp applied when a sync finishes
+without error) and a `lastKnownSyncAt` guard that clears the override when the
+account's own `last_sync_at` changes. The name link points at `/accounts/{id}`;
+`EditableTitle` posts the `?/renameAccount` form action, which the dashboard's
+`+page.server.ts` `actions` object forwards to `PATCH /accounts/{id}/rename`.
+
+### The accounts-list state machine
+
+`frontend/src/lib/components/accounts/accounts-list.svelte` is the container. It
+builds the expansion context (`expandedAccountIds`, seeded from
+`initialExpandedAccountIds` context or `page.data.expanded_account_ids`), and
+constructs exactly one `AccountsListState` from the initial `accounts` prop
+(`untrack`ed — the state class owns the list afterwards, including websocket-driven
+refetches). A `+layout.server.ts` load supplies `expanded_account_ids` (defaulting
+to `[]` for a missing or non-array preference), which is how expansion survives a
+reload; the layout key is documented in
+[User Preferences & Cross-Session State](../concepts/user-preferences.md).
+
+`AccountsListState` (`accounts-list.svelte.ts`) is the dashboard's controller:
+
+| Concern | State / method | Behaviour |
+| --- | --- | --- |
+| List | `accounts`, `isLoading`, `fetchAccounts()` | `getAccounts()` result; loading covers the whole refetch |
+| Selection mode | `selectionMode`, `selectedAccounts`, `toggleSelectionMode()`, `cancelSelection()`, `toggleAccountSelection(id)` | entering selection is one-way via the control (there is no toggle-off other than `cancelSelection`); ids accumulate in order |
+| Portfolio creation | `createPortfolioModal: ModalState<string[]>`, `isCreatePortfolioDisabled`, `handleCreatePortfolioClick()` | the header button creates the portfolio directly in selection mode and otherwise *starts* selection; disabled while in selection mode with nothing selected |
+| CSV import | `importCsvModal: ModalState<void>` | opened from the header; `onSuccess` refetches accounts |
+| Grouping | `groupBy: 'none' \| 'institution' \| 'accountType'`, `groupByLabels`, `groupedAccounts` | async derived over `group(this.accounts, key)`, labelling with `getInstitutionLabel` / `getAccountTypeLabel` and falling back to `All Accounts` for a null key |
+| Sync tracking | `syncingAccountIds: SvelteSet<string>`, `syncErrors: Record<string, string \| null>` | mutated by websocket events and by `syncAccount`; per-row badges come from these |
+| Connection | `wsConnected`, `ws` (private) | drives the header's Live/Disconnected dot |
+| Rename | `renameAccount(id, name)` | mutates the local account object in place; the request itself is the SvelteKit form action |
+| Delete | `deleteAccount(id)` | `DELETE /accounts/{id}`, then removes the account, its selection entry, its sync error and its syncing flag, and shows a success toast; a failure leaves the list intact and shows an error toast |
+
+Rendering is `{#await state.groupedAccounts}`: skeleton rows while the grouping
+promise resolves, then one group heading per bucket when `groupBy !== 'none'`, then
+one `AccountsListItem` per account with `selectionMode`, `isSelected`, `isSyncing`,
+`syncError` and the `onToggleSelection` / `onSync` / `onRename` /
+`onAccountUpdated` / `onDelete` callbacks wired back to the state. `onAccountUpdated`
+and the CSV modal's `onSuccess` both call `fetchAccounts()`, so a CSV upload or a
+rename round-trip refreshes the whole list.
+
+Sync and websocket behaviour is owned elsewhere and is not re-derived here: the
+handshake, the event-to-badge mapping, hydration from `GET /accounts/sync-status`,
+reconnect, the bounded `waitForSyncFinish` fallback poll and the server-side
+`POST /accounts/{id}/sync` gate are described in
+[Broker Connect, Import & Position Sync](./broker-sync.md) and
+<!-- openwiki: broken internal link [./realtime-and-background-jobs.md] file "./realtime-and-background-jobs.md" does not exist. Fix the href or restore the target, then delete this comment. -->
+[Realtime, Background Jobs & the Worker](./realtime-and-background-jobs.md). The
+contract this page depends on is narrow: the state class reacts to
+`sync_started` / `sync_finished` / `sync_failed` events for an `account_id` by
+mutating `syncingAccountIds` and `syncErrors`, refetching accounts on
+`sync_finished`, and the per-row item clears `localSyncOverride` inside a
+`$effect` that detects the `wasSyncing && !isSyncing` edge — that edge is what
+invalidates `AccountsListItemState` (totals **and** holdings) so the badge picks up
+the new positions. The same edge sets `localSyncOverride = new Date()` when there
+is no `syncError`, which is why "Synced just now" appears without waiting for the
+refetch. The `UpdateAccountCsvModal` success handler also calls
+`invalidateCache(account.id)` before `onAccountUpdated?.()`.
+
+```mermaid
+stateDiagram-v2
+    [*] --> Idle
+    Idle --> Syncing: onSync or sync_started
+    Syncing --> Finished: sync_finished (refetch accounts)
+    Syncing --> Failed: sync_failed (row error text)
+    Syncing --> Finished: waitForSyncFinish sees the id gone
+    Syncing --> TimedOut: 60s deadline
+    state Finished {
+        [*] --> Invalidate
+        Invalidate: wasSyncing and not isSyncing invalidates totals and holdings
+        Invalidate --> Stamp: no syncError sets localSyncOverride
+    }
+```
+
+### The inline holdings expansion
+
+Expanding a dashboard row is a third holdings read, distinct from the
+`/accounts/[id]` page: `accounts-list-item.svelte` renders
+`AccountInlineHoldings` with `holdings={holdings ?? []}` and
+`accountCurrency={account.currency}` inside another `{#await}` over
+`itemState.holdingsPromise`. `AccountInlineHoldings`
+(`account-inline-holdings.svelte`) is presentational and deliberately smaller than
+either table: five fixed columns (Symbol, Quantity, Price, Total Value, Return),
+no column config, no grouping and no sorting. `Price` formats `latest_price` in
+`security_currency` (falling back to the account currency) and shows `-` when the
+price is absent; `Total Value` and `Return` use the account currency; the symbol
+links to `/security/{security_id}`; and an empty array renders
+`No holdings found for this account.`. The expansion therefore reads
+`GET /accounts/{id}/holdings` (through `AccountClient.getAccountHoldings`, which
+sends no pagination) and shows at most the backend's default first page of 50
+positions — the same truncation caveat as the account page.
+
+Expansion state is persisted, not local: the caret calls
+`itemState.toggleExpanded()`, adds or deletes the id in the shared
+`expandedAccountIds` set, and fires
+`userPreferencesService.patchPreferences({ expanded_account_ids: Array.from(...) })`
+with `.catch(console.error)` — a single top-level key, so a concurrent writer of
+another key survives. The module-level `userPreferencesService` singleton is used
+directly here (unlike the `/holdings` page's injected instance).
 
 ### The account-scoped table
 
@@ -515,20 +658,27 @@ payload (`total_value`, `net_deposits`, `total_profit_loss`,
 `total_profit_loss_percent`, `currency`) and the body through a different, simpler
 presentational component, `frontend/src/lib/components/accounts/holdings-table.svelte`
 (props: `holdings`, `totalAccountValue`). It has no column configuration or grouping,
-sorts by any `Holding` key, shows native-currency values with the account-currency
-value as a secondary line when the currencies differ, and annotates each row with
-its share of the account total (`total_value / totalAccountValue`). The page renders
-the table only when `data.holdings.items.length > 0`.
+sorts by any `Holding` key (starting at `total_value` descending, flipping
+direction on a repeated header click, always placing null/undefined last), shows
+native-currency values with the account-currency value as a secondary line when
+the currencies differ, and annotates each row with its share of the account total
+(`total_value / totalAccountValue`) plus a `converted_average_cost`-based P/L
+percentage. The page renders the table only when
+`data.holdings.items.length > 0`; the empty-state row inside the component is
+therefore unreachable from this route. Rename on this page is the same
+`?/renameAccount` form action, handled by the account page's own `actions`.
 
 ## Preferences persistence contract
 
-Two preference keys drive these surfaces, both persisted through
-`UserPreferencesService` (`frontend/src/lib/api/userPreferencesService.ts`) and both
+Three preference keys drive these surfaces, all persisted through
+`UserPreferencesService` (`frontend/src/lib/api/userPreferencesService.ts`) and all
 declared on `UserPreferences`:
 
 - `holdings_table` — the whole `HoldingsTableConfig` (`widths` record plus `visible`
   id list).
 - `holdings_group` — the group mode (`'none' | 'stock' | 'company'`).
+- `expanded_account_ids` — the dashboard's expanded row ids, read by
+  `+layout.server.ts` and written by `accounts-list-item.svelte`.
 
 **One key per write.** `frontend/src/lib/components/holdings/holdings-table-prefs.ts`
 and `holdings-group-prefs.ts` expose `saveHoldingsTableConfig(service, config)` and
@@ -537,16 +687,21 @@ and `holdings-group-prefs.ts` expose `saveHoldingsTableConfig(service, config)` 
 `patchPreferences({ holdings_group: mode })`. Because the backend `PATCH` merges
 the JSON body at the top level (`preferences || payload` in
 `src/auth/repository_sqlalchemy.py`), writing a single top-level key cannot drop
-another component's key — a concurrent `timeframe` or `sidebar_open` write survives.
-Nested values are replaced wholesale, so a second writer of the *same* key is still
-last-write-wins.
+another component's key — a concurrent `timeframe`, `sidebar_open` or
+`expanded_account_ids` write survives. Nested values are replaced wholesale, so a
+second writer of the *same* key is still last-write-wins. On the dashboard the
+expansion write follows the same rule, pushing the **whole** accumulator array
+(`expanded_account_ids`), which is why two rows toggling at once can race on that
+key.
 
-**Injected service, not the module singleton.** Both modules declare only a
+**Injected service, not the module singleton.** Both prefs modules declare only a
 structural `{ getPreferences(tokenOverride?), patchPreferences(prefs, tokenOverride?) }`
 type, so callers and tests pass any instance instead of importing the module-level
 `userPreferencesService`. This is what keeps SSR free of shared mutable state (the
-"no global instances" rule in `frontend/AGENTS.md`, gotcha 3). The page holds one
-`getUserPreferencesService()` instance for its write path.
+"no global instances" rule in `frontend/AGENTS.md`, gotcha 3). The `/holdings` page
+holds one `getUserPreferencesService()` instance for its write path; the dashboard
+row uses the module singleton, which is safe because the expansion toggle is
+browser-only.
 
 **Normalize on both ends of the pipe.**
 
@@ -569,7 +724,8 @@ type, so callers and tests pass any instance instead of importing the module-lev
 - `loadHoldingsTableConfig` / `loadHoldingsGroupMode` swallow a rejected
   `getPreferences()` and return the defaults; the page's own SSR path does the same
   inline (it normalizes `prefs?.holdings_table` / `prefs?.holdings_group` after a
-  single `getPreferences` call rather than calling the two loaders).
+  single `getPreferences` call rather than calling the two loaders). The layout load
+  applies the same shape guard to `expanded_account_ids`, accepting only an array.
 
 **Ownership split for the table config.** The page owns `tableConfig` state and
 persistence; `holdings-table.svelte` derives `config` from the `tableConfig` prop via
@@ -614,7 +770,8 @@ optimistic UI change stays applied. The group toggle behaves the same way and ca
    `try/catch` that falls back to `normalizeHoldingsTableConfig(null)`,
    `normalizeHoldingsGroupMode(null)` and `elliott_waves = null`. Lifting that catch
    turns a preference outage into a failed page even though the rows load fine
-   afterwards.
+   afterwards. The dashboard's layout load keeps the same posture for
+   `expanded_account_ids` and the account row keeps it for totals (`{:catch}`).
 7. **Header totals bucket by row `currency` and are never summed across
    currencies.** The backend already converted each row into its account currency,
    so cross-bucket arithmetic would be meaningless.
@@ -630,12 +787,28 @@ optimistic UI change stays applied. The group toggle behaves the same way and ca
    defaults apply (`offset = 0`, `limit = 50`), while `AccountHoldingsRead.total` is
    the account's full position count and `total_value` covers every position.
    Accounts with more than 50 positions show truncated rows next to complete header
-   totals until the client passes pagination. Note also that the account header's
-   P/L switches from cost-based to cash-flow-based (`total_value − net_deposits`)
-   as soon as `net_deposits` is set.
+   totals until the client passes pagination. The dashboard's inline expansion has
+   exactly the same limit. Note also that the account header's P/L switches from
+   cost-based to cash-flow-based (`total_value − net_deposits`) as soon as
+   `net_deposits` is set.
 10. **The sticky column stays visible.** Hiding `security_symbol` collapses the
     sticky layout: `toggleColumnVisibility` refuses it, the menu disables it, and
     `normalizeHoldingsTableConfig` re-adds it to any stored `visible` list.
+11. **`AccountsListItemState` is the only per-row cache, and it is invalidated on
+    the sync edge.** Totals and holdings are memoized under `totalsCache` /
+    `holdingsCache` and only drop on `invalidateCache`, which is called from the
+    `wasSyncing && !isSyncing` effect and from the CSV-update success handler. A new
+    write path that mutates positions must call it (or the list-level refetch will
+    update the account row but leave a stale badge and stale inline holdings).
+12. **The `totals` derived must keep its SSR short-circuit.** Replacing the
+    `if (!browser) return new Promise(() => {})` guard with a direct fetch turns the
+    dashboard HTML render into a fan-out of one `GET /accounts/{id}/totals` per
+    account.
+13. **Expansion is persisted as one whole array under `expanded_account_ids`.**
+    Any change to which ids are stored, or to the context default
+    (`page.data.expanded_account_ids` → `initialExpandedAccountIds` → prop), changes
+    both the layout load and the row; the layout guards on `Array.isArray` and the
+    row must stay tolerant of a stale id for a deleted account.
 
 ## Extension points and safe-change notes
 
@@ -663,6 +836,22 @@ strings intentionally collapse to `'none'`), then wire the control in
 must keep normalizing safely. Note the page currently renders a single boolean
 "Group by stock" checkbox whose checked state covers both `'stock'` and `'company'`.
 
+**Changing the dashboard row contract.** `AccountsListItem`'s props (`account`,
+`selectionMode`, `isSelected`, `onToggleSelection`, `isSyncing`, `onSync`,
+`syncError`, `onRename`, `onAccountUpdated`, `onDelete`, `initialExpanded`) are the
+whole interface between `AccountsListState` and the row — a new per-account action
+means a new prop plus a handler on the state and a wire-up in `accounts-list.svelte`.
+Because `state.accounts` is mutated in place by `renameAccount` and replaced by
+`fetchAccounts`, the row must keep reading from the `account` prop rather than
+caching a copy.
+
+**Changing what a dashboard row fetches.** `AccountsListItemState` issues
+`GET /accounts/{id}/totals` on mount (post-hydration) and
+`GET /accounts/{id}/holdings` on first expansion. Adding a third per-row request
+multiplies by the number of accounts; prefer extending `AccountTotals` /
+`AccountHoldingsRead` over adding a call, and keep the caching + invalidation
+contract from invariant 11.
+
 **Changing page size or pagination assumptions.** `PAGE_SIZE` / `MAX_PAGES` now
 exist in exactly one place,
 `frontend/src/lib/components/holdings/holdingsService.svelte.ts`. The backend side
@@ -670,7 +859,8 @@ is `PaginationParams` (`limit` default 50, hard ceiling 100) and the repository
 defaults (`get_by_user(..., limit=50)`, `get_by_account(..., limit=None)`).
 `AccountClient.getAccountHoldings` is the one client call that does not pass
 pagination, so adding `offset`/`limit` there is the change that lets the
-account-scoped page render more than the first 50 positions.
+account-scoped page (and the inline expansion) render more than the first 50
+positions.
 
 **Changing what the endpoint paginates.** `PositionRepository.get_by_user` currently
 pages `PositionModel` rows for the user's accounts. Switching to per-account or
@@ -691,7 +881,9 @@ non-fatal `try/catch` in `+page.server.ts` using
 return, and persist it with a single top-level key through `patchPreferences` —
 ideally via a small `load*`/`save*` helper module that takes the injected structural
 service type so SSR keeps no shared instances. Add a `normalize*` function for
-anything a browser could have stored in an older shape.
+anything a browser could have stored in an older shape. If the layout must know the
+key (as with `expanded_account_ids`), extend `+layout.server.ts` and return it from
+there too.
 
 **Operational characteristics to preserve.** Each holdings page request fans out
 into per-position security and latest-price lookups, and `get_account_holdings`
@@ -721,10 +913,17 @@ the network; the router tests run against the Postgres test container.
 | `frontend/src/lib/components/holdings/holdings-group-prefs.test.ts` | `normalizeHoldingsGroupMode` maps `'stock'`/`'company'` to `'stock'` and everything else to `'none'`; load tolerates missing keys and rejected requests; save patches exactly `{ holdings_group: mode }`; the real-service round-trip asserts the `GET`/`PATCH` endpoint and body. |
 | `frontend/src/lib/api/accountService.test.ts` | `getUserHoldings(offset, limit, token)` builds `/accounts/holdings?offset=…&limit=…`, defaults to `0`/`50`, sends `credentials: 'include'` and forwards the token as a Bearer header — the client contract the paging loop depends on. |
 | `frontend/src/lib/utils/finance/holdings-group.test.ts` | Strict one-group-per-`security_id` merging with summed aggregates, both quantity-weighted average costs, combined/deduped account names and `account_count`; `'company'` behaving as `'stock'`; first-appearance ordering; merging a security held in accounts with different currencies into one CAD-labelled row; null-safety for P/L and average cost; partial P/L summing; empty input; `'none'` producing one group per row in original order without merging. |
+| `frontend/src/lib/components/accounts/accounts-list.test.ts` | Mocks `WebSocket`, `$lib/api/accountClient`, `$lib/api/brokerClient`, `$lib/api/authService` and the toast module. Pins the header's `Import CSV` entry point opening the import modal; `AccountsListState.deleteAccount` removing the account, its selection entry, its syncing flag, its sync error and showing the success toast on success; the failure path keeping the account and showing the error toast; and the full overflow-menu → confirmation-modal → `deleteAccount` → row removal flow. |
+| `frontend/src/lib/components/accounts/accounts-list-item.test.ts` | Mocks `$app/paths`, `$lib/api/accountClient` (`getAccountTotals`, `getAccountHoldings`, `syncAccountCsv`) and `$lib/api/userPreferencesService`. Pins rename via the overflow menu without mutating props, the sync button calling `onSync` only when `api_sync_enabled`, opening the CSV update modal when it is not, the CSV-success path invoking `onAccountUpdated` and re-fetching totals (`getAccountTotals` called twice); the relative last-sync label states including the `isSyncing` true→false transition stamping "Synced just now" and the sync-error case leaving "Never synced"; the caret's `aria-expanded` toggling, `getAccountHoldings('acc-1')` on expand, the five-column inline table with the `/security/sec-1` link, collapse hiding it, the empty-state message, and a holdings failure showing `Failed to load holdings. Please try again.` without breaking the card; the `+`/`-` P/L colouring from `AccountTotals`; the `expanded_account_ids` patch on expand (`['acc-1']`) and collapse (`[]`); and `initialExpanded` fetching holdings immediately. |
+| `frontend/src/routes/layout.test.ts` | The layout load's `expanded_account_ids` handling: defaulting to `[]` when absent and when the stored value is not an array, and reading `['acc-1', 'acc-2']` through from preferences. |
 | `tests/routers/test_accounts.py` | `test_user_holdings_success_across_accounts` (two accounts, `total == 2`, every `HoldingRead` field plus account context present), `test_user_holdings_isolation` (another user's position is never returned), `test_user_holdings_pagination` (three positions across three accounts, `total == 3` while `limit=2` pages them disjointly), `test_user_holdings_empty` (`total == 0`, empty `items`); `test_account_holdings_success` and `test_account_holdings_isolation`; the security-holdings tests including calculated values and the zero-value default; preference round-trip, partial-merge and cross-component-isolation tests. |
 | `tests/routers/test_account_unauth.py` | `GET /accounts/holdings` returns 401 without auth, alongside the unauthenticated cases for the preferences `GET`/`PUT`/`PATCH` endpoints and account rename. |
 | `tests/services/test_position_service.py` | `get_user_holdings` groups the repository's positions per account, returns `UserHoldingRead` items stamped with the right `account_id`/`account_name`, preserves quantities and symbol, forwards `(user_id, 0, 50)` to `get_by_user`, and resolves the account only once per account rather than once per position. |
 
 The neighbouring `average-cost.test.ts` and `holdings-metrics.test.ts` cover
 `blendedAverageCost` and the candle/benchmark helpers; neither is used by these three
-routes (they back the security detail page and the holdings modal).
+routes (they back the security detail page and the holdings modal). `tests/routers/test_sync_status.py`
+and the `MockWebSocket` stub in `frontend/src/lib/components/accounts/accounts-list.test.ts`
+are the sync-side suites; the socket contract itself is covered by
+<!-- openwiki: broken internal link [./realtime-and-background-jobs.md] file "./realtime-and-background-jobs.md" does not exist. Fix the href or restore the target, then delete this comment. -->
+[Realtime, Background Jobs & the Worker](./realtime-and-background-jobs.md).

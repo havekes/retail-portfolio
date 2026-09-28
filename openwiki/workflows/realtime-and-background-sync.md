@@ -4,29 +4,31 @@ title: Realtime, Background Jobs & the Worker
 description: The cross-process asynchronous runtime of retail-portfolio — the Huey worker and its two service registries, periodic and on-demand tasks, the hourly price-update cascade with isolated enqueues and retries, the Redis pub/sub WebSocket fan-out with per-event-loop clients and ticket auth, the Redis account-sync status keys, the frontend consumer that hydrates and polls them, and the worker dashboard at /worker/api.
 tags: [huey, background-jobs, worker, periodic-tasks, websockets, redis, pub-sub, task-scheduling, sync-status, svelte]
 verified:
-  - by: openwiki/0.5.2
-    at: 2026-09-23T13:18:56.288Z
+  - by: openwiki/0.6.0
+    at: 2026-09-28T16:25:02.439Z
 sources:
-  - id: openwiki-source-cd4675c5fd5ca12b56790138
-    resource: repo://.opencode/reviews/2026-08-25-architecture.md
   - id: openwiki-source-11ef2d56dffda152beeb9f84
     resource: repo://docker-compose.prod.yml
   - id: openwiki-source-b79fbbd921df689b4bbdc82f
     resource: repo://docker-compose.yml
+  - id: openwiki-source-2163c40f6e8490dcf5aa468a
+    resource: repo://frontend/src/lib/api/accountClient.ts
   - id: openwiki-source-f54a8f5650d3e422303f29e8
     resource: repo://frontend/src/lib/api/authService.ts
+  - id: openwiki-source-173b643850b61054416e45dd
+    resource: repo://frontend/src/lib/components/accounts/accounts-list.svelte
   - id: openwiki-source-fd678aa0f01fc30bd938c51f
     resource: repo://frontend/src/lib/components/accounts/accounts-list.svelte.ts
   - id: openwiki-source-8215679cbfdaaa5ed7bc8531
     resource: repo://frontend/src/lib/types/websocket.ts
   - id: openwiki-source-30de42522595a37de333f4dd
     resource: repo://src/account/router.py
+  - id: openwiki-source-3f52b6a4e0898f1abe448990
+    resource: repo://src/account/service/position.py
   - id: openwiki-source-b911aefb4dbb6f043ed2380e
     resource: repo://src/account/task.py
   - id: openwiki-source-822ca61471a547e89400439b
     resource: repo://src/auth/router.py
-  - id: openwiki-source-02cbef0402c147c4ffdbf79d
-    resource: repo://src/config/database.py
   - id: openwiki-source-d1e4e10eebd8f4d4314bc43f
     resource: repo://src/config/settings.py
   - id: openwiki-source-70d8c574139672173efc9a77
@@ -43,8 +45,6 @@ sources:
     resource: repo://src/main.py
   - id: openwiki-source-417f64db491a1fd8e8f4bda0
     resource: repo://src/market/alert_service.py
-  - id: openwiki-source-d8383d22d61483b00080a280
-    resource: repo://src/market/router.py
   - id: openwiki-source-689c3cecf701f8b197038e75
     resource: repo://src/market/task.py
   - id: openwiki-source-c8a9ed75dfc5d7332062ae40
@@ -65,25 +65,19 @@ sources:
     resource: repo://tests/fixtures/redis.py
   - id: openwiki-source-d5c9f4df4fbcc94d2b38189f
     resource: repo://tests/market/test_alert_email_dispatch_task.py
-  - id: openwiki-source-3fc8ae58de9c48599e06465d
-    resource: repo://tests/market/test_check_and_dispatch_price_alerts.py
   - id: openwiki-source-2669a2552e3657a5af8af4b9
     resource: repo://tests/routers/test_sync_status.py
   - id: openwiki-source-f0bb1945da9ad36de5e92591
     resource: repo://tests/routers/test_worker_dashboard.py
   - id: openwiki-source-b0c29edcbfef3a92f664c095
     resource: repo://tests/tasks/test_account.py
-  - id: openwiki-source-d1793d747b8abce8c0959943
-    resource: repo://tests/tasks/test_integration.py
   - id: openwiki-source-33d5d706a9193e5e20aa44ce
     resource: repo://tests/tasks/test_market.py
   - id: openwiki-source-d59cda026d403e42927334dd
     resource: repo://tests/tasks/test_redis_concurrency.py
-  - id: openwiki-source-da833519b72f73ce64d59b2b
-    resource: repo://tests/ws/test_manager.py
   - id: openwiki-source-ce5690229e2d57cc7f25e9a0
     resource: repo://tests/ws/test_router.py
-generated: { by: "openwiki/0.5.2", at: "2026-09-23T13:18:56.288Z" }
+generated: { by: "openwiki/0.6.0", at: "2026-09-28T16:25:02.439Z" }
 ---
 
 # Realtime, Background Jobs & the Worker
@@ -108,10 +102,8 @@ Related pages: the broker flow that drives the sync task is in
 [Broker Connect, Import & Position Sync](./broker-sync.md); the price-update cascade's market
 semantics in [Market Data, Indicators & the Price Update Cascade](./market-data-and-indicators.md);
 the async note-title task in [AI Analysis Flows](./ai-analysis.md); settings and DI wiring in
-[Configuration](../architecture/configuration.md); the domain map in
-[Backend Domains](../architecture/domains.md); process/container topology in
-[Architecture Overview](../architecture/overview.md); the mock-only testing rule in
-[Testing & Verification](../operations/testing.md).
+[Configuration](../architecture/configuration.md); process/container topology in
+[Architecture Overview](../architecture/overview.md).
 
 ## The worker instance and its two registries
 
@@ -182,7 +174,8 @@ container, and restart the worker.
 Every task body is a thin synchronous wrapper over `asyncio.run(<async impl>)`; the async
 implementation holds the logic and the container. Huey's own default retry count applies to
 everything except `alert_email_dispatch_task`, which is the only task in the repo that declares
-`retries=3` (pinned by `tests/market/test_alert_email_dispatch_task.py`).
+`retries=3` (pinned by `tests/market/test_alert_email_dispatch_task.py`, which asserts
+`alert_email_dispatch_task.settings["default_retries"] == 3`).
 
 ## The periodic price cascade
 
@@ -216,8 +209,11 @@ isolation is the explicit subject of
 `get_active_alerts_for_evaluation()` and one bulk `get_latest_intraday_close_by_security()` map,
 and hands both to the *pure* `AlertEvaluationService.evaluate` (inclusive comparisons; a missing
 price skips the alert). Each triggered alert is enqueued as a separate
-`alert_email_dispatch_task(alert.alert_id, run_ts)` where `run_ts` is the evaluation timestamp
-threaded forward; an enqueue that raises is logged and skipped, and the loop continues.
+`alert_email_dispatch_task(alert.alert_id, run_ts)` where `run_ts = datetime.now(UTC)` is the
+evaluation timestamp threaded forward; an enqueue that raises is logged and skipped, and the loop
+continues. The evaluation semantics and the MarketService side belong to
+[Market Data, Indicators & the Price Update Cascade](./market-data-and-indicators.md); this page
+owns only the task wiring.
 
 **Stage 3 — `alert_email_dispatch_task`.** Declares `retries=3` and delegates to
 `AlertEvaluationService.dispatch_alert_email`, which implements **email-then-mark**:
@@ -245,9 +241,10 @@ the regression pinned by `test_worker_command_enables_periodic_scheduling`, whic
 
 `sync_account_positions_task(user_id, account, broker_account_id, broker_class, request_id=None)` is
 enqueued synchronously from the request path — by `POST /api/v1/accounts/{account_id}/sync`
-(rate-limited `3/minute`, via `PositionService` → `IntegrationAccountApi`) and once per newly
-imported broker account in `POST /external/accounts/import` — with `get_request_id()` forwarded so
-worker logs correlate with the request.
+(rate-limited `3/minute`, via `PositionService` → `IntegrationAccountApi.sync_account_positions`,
+which forwards `get_request_id()`) and once per newly imported broker account in the broker import
+route. The route-side gate and the vendor gateway are covered in
+[Broker Connect, Import & Position Sync](./broker-sync.md).
 
 ```mermaid
 flowchart TD
@@ -273,8 +270,7 @@ Ordering is the contract:
 1. `mark_sync_started(user_id, account.id)` in its own `try/except` that only logs — a Redis outage
    must not abort a sync that would otherwise succeed.
 2. Publish `sync_started` (`AccountSyncMessage`, serialized with `model_dump(mode="json")`).
-3. `_do_sync_positions` — see [Broker Connect, Import & Position Sync](./broker-sync.md) for the
-   symbol resolution and replace-per-account write.
+3. `_do_sync_positions` — symbol resolution and the replace-per-account position write.
 4. Publish `sync_finished`.
 5. On any exception: log, attempt `_send_sync_error_email` inside its own `try/except` (a mail
    failure is swallowed so the sync failure still surfaces), publish `sync_failed`, then
@@ -370,8 +366,10 @@ The ticket branch enforces single use: `_check_ticket_not_replayed` computes
 `sha256(ticket)` and runs `SET ws-ticket-used:<hash> "1" NX EX 30` on a short-lived client. `None`
 means the key already existed → the connection is closed with code **1008**. On a Redis exception the
 helper logs and returns `True`, i.e. it **fails open**: during a Redis outage replay protection is
-silently disabled rather than locking users out (the archived architecture review calls this out as
-an observation, not a defect to fix blindly).
+silently disabled rather than locking users out. All three branches are pinned by
+`tests/ws/test_router.py` (`test_check_ticket_not_replayed_first_use`,
+`test_check_ticket_not_replayed_already_used`,
+`test_check_ticket_not_replayed_exception_handled`).
 
 Every other authentication outcome also closes with **1008**: a replayed ticket, an unparsable or
 expired ticket, a token that fails verification, or no credential at all. On success the router
@@ -400,54 +398,73 @@ may still be running.
 `GET /api/v1/accounts/sync-status` (behind `current_user`) returns
 `{"account_ids": [str(id), ...]}` for the caller only, and translates `redis.RedisError` into
 **503** `"Sync status service unavailable"`. `tests/routers/test_sync_status.py` pins the empty
-result, the per-user scoping, the unauthenticated 401/403 and the Redis-down 503.
+result, the per-user scoping (`mock_get.assert_awaited_once_with(test_user.id)`), the
+unauthenticated 401/403 and the Redis-down 503.
+
+`src/core/redis.py` is the sibling per-loop client owner used by this path (as opposed to the
+WebSocket manager's private map): `RedisManager.client()` is an async context manager that prunes
+closed-loop clients, lazily creates a `decode_responses=True` client for the running loop, and
+yields it. `tests/tasks/test_redis_concurrency.py` exercises both managers with the same
+two-threads/two-loops pattern.
 
 ## The frontend consumer
 
 `AccountsListState` (`frontend/src/lib/components/accounts/accounts-list.svelte.ts`) is the only
-browser-side consumer of the fan-out. In the constructor, browser-only, it calls `initWebSocket()`:
+browser-side consumer of the fan-out. Its constructor calls `initWebSocket()` when `browser` is
+true; the socket, the connected flag, the syncing set and the per-account error map all live on the
+state class.
 
-- **URL.** Derived from `VITE_API_BASE_URL` when it starts with `http` (mapping `https`→`wss:`,
-  `http`→`ws:`, keeping the host and appending `/api/ws`), otherwise from `window.location`. So the
-  socket always points at the API origin, never the SSR server.
-- **Ticket.** `await authService.getWsTicket()` (`POST /auth/ws-ticket`); if the call throws or
-  returns no ticket it logs a warning and **aborts** rather than connecting unauthenticated.
-- **Connect.** `new WebSocket(`${wsUrl}?ticket=${encodeURIComponent(ticket)}`)`.
+- **URL.** Derived from `import.meta.env.VITE_API_BASE_URL` when it starts with `http` (mapping
+  `https`→`wss:`, otherwise `ws:`, stripping the scheme, taking the first host segment and appending
+  `/api/ws`), otherwise from `window.location` with the matching protocol. So the socket always
+  points at the API origin, never the SSR server.
+- **Ticket.** `await authService.getWsTicket()` (`POST /auth/ws-ticket`), mapping the response to
+  `data?.ticket ?? null` and catching any rejection to `null`; when no ticket is obtained it logs
+  `'Failed to obtain WebSocket ticket. Aborting connection.'` and **returns without connecting** —
+  there is no unauthenticated attempt and no retry for this failure.
+- **Connect.** `new WebSocket(`${wsUrl}?ticket=${encodeURIComponent(ticket)}`)` — the ticket travels
+  as an encoded query param, matching the server's ticket branch.
 
 **Hydrate on open.** `onopen` sets `wsConnected = true` and calls `hydrateSyncStatus()`, which
 issues one `GET /accounts/sync-status` and adds every returned id to `syncingAccountIds`, guarded by
-a `syncStatusHydrated` flag so a reload mid-sync shows the correct badges and repeated opens do not
-re-poll. `wsConnected` also drives the "Live"/"Disconnected" indicator in the component.
+a `syncStatusHydrated` flag so a single connection lifetime polls only once. `wsConnected` drives the
+"Live"/"Disconnected" dot in `accounts-list.svelte`. A failed hydration is logged and leaves the flag
+unset, so it will be retried the next time the socket opens.
 
-**Events.** `onmessage` parses the payload and switches on `data.type`:
+**Events.** `onmessage` parses the payload, reads `account_id`, and switches on `data.type`:
 
-| Event | Effect |
-|-------|--------|
-| `sync_started` | add id to `syncingAccountIds`, clear `syncErrors[id]` |
-| `sync_finished` | remove id, clear the error |
-| `sync_failed` | remove id, set `'Failed to sync. Please try again.'` |
+| Event | Effect on the state |
+|-------|---------------------|
+| `sync_started` | add the id to `syncingAccountIds`, set `syncErrors[id] = null` |
+| `sync_finished` | remove the id, clear the error, **`await this.fetchAccounts()`** to pick up the new positions |
+| `sync_failed` | remove the id, set `'Failed to sync. Please try again.'` |
 
-`frontend/src/lib/types/websocket.ts` declares only those three values, so an
-`account_totals_updated` payload (the hourly totals broadcast) matches no branch and changes no
-state in this component.
+A parse failure is caught and logged without touching state. `frontend/src/lib/types/websocket.ts`
+declares only `SYNC_STARTED` / `SYNC_FINISHED` / `SYNC_FAILED` (values `sync_started`,
+`sync_finished`, `sync_failed`) plus `WsMessage` and `AccountSyncMessage`, so the backend's fourth
+event, `account_totals_updated` (emitted per active account by `recalculate_all_account_totals_task`),
+matches no branch and changes no state in this component.
 
-**Reconnect.** `onclose` sets `wsConnected = false`, **resets** `syncStatusHydrated` so the next open
-re-hydrates, and re-invokes `initWebSocket()` after a fixed 5000 ms `setTimeout`. `destroy()` closes
-the socket and nulls the reference.
+**Reconnect.** `onclose` sets `wsConnected = false`, **resets** `syncStatusHydrated = false` so the
+next open re-hydrates, and re-invokes `initWebSocket()` after a fixed 5000 ms `setTimeout` — a fresh
+ticket is fetched on every attempt. `destroy()` closes the socket and nulls the reference.
 
 **The independent polling deadline.** `syncAccount(id)` optimistically marks the account syncing,
-POSTs `/accounts/{id}/sync`, and then awaits `waitForSyncFinish(id)`. That helper is deliberately
-independent of the socket — the code comments that the WS message may be lost if Redis pub/sub
-fails:
+clears its error, POSTs `/accounts/{id}/sync`, and then awaits `waitForSyncFinish(id)`. That helper is
+deliberately independent of the socket — the code comments that the WS message may be lost if Redis
+pub/sub fails:
 
 - poll `GET /accounts/sync-status` every **1500 ms** until a **60000 ms** deadline;
 - once the backend stops reporting the id, wait a **5000 ms grace period** for the socket message;
 - if `syncingAccountIds` still holds the id, clear it, clear the error and `fetchAccounts()` to pick
   up the new totals;
-- a status-endpoint failure is swallowed and the loop keeps waiting;
+- a status-endpoint failure is caught and the loop keeps waiting;
 - on deadline the id is cleared and `'Sync took too long. Check account status.'` is set;
 - a failure of the POST itself clears the id and sets `'Request failed. Please check your
   connection.'`.
+
+`frontend/src/lib/components/accounts/accounts-list.test.ts` mocks `WebSocket`, `accountClient` and
+`authService.getWsTicket`, so no test opens a real socket or performs a real fetch.
 
 ## The worker dashboard at `/worker/api`
 
@@ -455,19 +472,18 @@ fails:
 and mounts huey-dashboard's task router under `/tasks` with `dependencies=[Depends(current_user)]`,
 so `GET /worker/api/tasks/` and `GET /worker/api/tasks/{task_id}` are authenticated API endpoints
 (`tests/routers/test_worker_dashboard.py` asserts **401** without credentials and 200/404 with them).
+The task data itself comes from the huey-dashboard `TaskDatabase` populated by the worker's signals.
 
 It also serves the dashboard's live updates WebSocket at `/worker/api/updates` (and
 `/worker/api/updates/`), which reuses the same two credential shapes as `/api/ws`: a signed ticket
 validated by `_check_ticket_not_replayed` imported from `src.ws.router` plus
 `serializer.loads(..., max_age=30, salt="ws-ticket")`, or the `auth_token` cookie /
-`sec-websocket-protocol` token resolved through `UserApi`. Any failure closes with code **1008**;
-success appends the socket to the huey-dashboard `WebSocketManager`.
-
-> **Historical note.** The archived architecture review (`.opencode/reviews/2026-08-25-architecture.md`)
-> flagged `/worker/api` as unauthenticated — at the time the mounted huey-dashboard router carried
-> only a logging dependency. Verified against current source: the task routes now carry
-> `Depends(current_user)` and the update socket authenticates via ticket or token, so the finding is
-> remediated. Treat the review entry as history, not as a live gap.
+`sec-websocket-protocol` token resolved through `UserApi`. Any failure closes with code **1008**.
+On success the router accepts the socket — passing the token as the negotiated subprotocol when the
+client requested one, otherwise plain `manager.connect(websocket)` — and then echoes `Message
+received: <data>` for every inbound text frame until `WebSocketDisconnect` calls
+`manager.disconnect(websocket)`. The endpoint installs the same `X-Request-ID`-or-`uuid4()` request id
+and resets the contextvar in a `finally`.
 
 Wiring and lifecycle live in `src/worker_dashboard/setup.py`: `init_worker_dashboard` creates an
 async engine and a huey-dashboard `TaskDatabase`, calls `db.ensure_table()`, stores
@@ -513,7 +529,7 @@ or a real socket.** `tests/conftest.py` enforces it globally:
   bound them, avoiding real `AsyncRedis` connections whose teardown costs ~4 s per test;
 - the autouse `fake_redis_manager` fixture (`tests/fixtures/redis.py`) swaps the
   `src.core.redis.redis_manager` client for a dict-backed `FakeRedis` implementing
-  `set(nx=...)`, `sadd`/`srem`/`smembers` and `publish`.
+  `set(nx=...)`, `sadd`/`srem`/`smembers`, `expire` and `publish`.
 
 Representative focused tests:
 
@@ -521,7 +537,8 @@ Representative focused tests:
   periodic-task registry membership (`huey._registry.periodic_tasks`), both isolated enqueues and
   their failure paths, and the compose `--periodic` regression guard.
 - `tests/tasks/test_account.py` — task registration, `asyncio.run` bridging, inactive-account
-  skipping, per-account error isolation, and the missing-registry `RuntimeError`.
+  skipping, per-account error isolation, the broadcast payload shape, and the missing-registry
+  `RuntimeError`.
 - `tests/tasks/test_integration.py` — sync task success and failure with `mark_sync_started`/
   `mark_sync_finished` assertions, the email per mapped exception, and email-failure resilience.
 - `tests/tasks/test_redis_concurrency.py` — two threads, two loops, two clients, closed-loop pruning

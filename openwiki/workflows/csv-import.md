@@ -3,9 +3,6 @@ type: workflow
 title: CSV Account Import & Sync
 description: The institution-configured CSV flow in retail-portfolio — how an Institution.csv_format positional template plus header aliases turns a broker export into discovered accounts, the parser's validation error taxonomy, the inspect / import / csv-sync lifecycle that creates or replaces accounts and positions, cash-option filtering, security resolution, and the Wealthsimple template defined and seeded in src/commands/seed.py.
 tags: [csv-import, account-import, institutions, parser, positions, wealthsimple, seed-data, extension-points]
-verified:
-  - by: openwiki/0.5.2
-    at: 2026-09-18T20:16:58.058Z
 sources:
   - id: openwiki-source-f32d819e11ad3b608d268d4d
     resource: repo://frontend/src/lib/api/accountClient.test.ts
@@ -13,6 +10,10 @@ sources:
     resource: repo://frontend/src/lib/api/accountClient.ts
   - id: openwiki-source-b263e02920f61e43137888d6
     resource: repo://frontend/src/lib/components/accounts/accounts-list-item.svelte
+  - id: openwiki-source-62f44b01b7d2721632295b10
+    resource: repo://frontend/src/lib/components/accounts/accounts-list-item.test.ts
+  - id: openwiki-source-173b643850b61054416e45dd
+    resource: repo://frontend/src/lib/components/accounts/accounts-list.svelte
   - id: openwiki-source-a6a2896af3666a2e99fd45ff
     resource: repo://frontend/src/lib/components/accounts/import-account-csv-modal.svelte
   - id: openwiki-source-8610665a5cfe4ada7f537ae2
@@ -41,6 +42,8 @@ sources:
     resource: repo://src/account/router.py
   - id: openwiki-source-1626edf71c16b09327c00182
     resource: repo://src/account/service/csv_account.py
+  - id: openwiki-source-3f52b6a4e0898f1abe448990
+    resource: repo://src/account/service/position.py
   - id: openwiki-source-dfd9a181d2f58b1a466b8c27
     resource: repo://src/commands/seed.py
   - id: openwiki-source-fd173f0cb9d58ea27b5992d2
@@ -59,14 +62,17 @@ sources:
     resource: repo://tests/routers/test_csv_inspect.py
   - id: openwiki-source-bdf80b8c9a7522e0ac30fb12
     resource: repo://tests/services/test_csv_account_service.py
-generated: { by: "openwiki/0.5.2", at: "2026-09-18T20:16:58.058Z" }
+generated: { by: "openwiki/0.6.0", at: "2026-09-28T16:25:02.439Z" }
+verified:
+  - by: openwiki/0.6.0
+    at: 2026-09-28T16:25:02.439Z
 ---
 
 # CSV Account Import & Sync
 
 Some institutions give users a downloadable holdings export instead of an API. That
 file becomes a set of accounts through one template string stored on the institution
-row, one generic parser that never contains broker-specific code, and one service
+row, one template-driven parser, and one service
 that reuses the same security-resolution and position-replacement machinery the
 broker path uses. The domain catalog is in
 [Backend Domains](../architecture/domains.md), the sibling broker flow in
@@ -75,8 +81,10 @@ contract in [Money & Currency Handling](../concepts/money-and-currency.md), the
 frontend conventions in [Frontend Architecture](../architecture/frontend.md), and
 the mock-only testing rule in [Testing & Verification](../operations/testing.md).
 
-There is no per-broker CSV code and no per-broker branch in the parser. Supporting a
-new broker CSV means editing data, not code — see
+There is no per-broker module and no per-broker branch in the parser: the only
+broker-flavored knowledge baked into shared code is the `sec-c-` cash prefix, which
+`is_cash_row` treats as cash for any institution. Supporting a new broker CSV otherwise
+means editing data, not code — see
 [The institution configuration seam](#the-institution-configuration-seam).
 
 ## The template contract
@@ -326,11 +334,14 @@ Per matching account:
 - **New account** — `AccountSchema` is constructed with a fresh `uuid4()`,
   `external_id = disc_acc.account_number`, `name` and `broker_display_name` both set to
   the CSV `account_name`, `integration_user_id=None`, and **`api_sync_enabled=False`**.
-  That flag is the load-bearing choice: CSV accounts have no broker session, so the
-  broker sync path refuses them and the frontend's refresh control changes meaning —
-  the account-list item renders `Sync positions` when `api_sync_enabled` is true and
-  `Update from CSV` (opening the update modal) when it is false. The account is created,
-  positions are written, and again the refreshed row is returned.
+  That flag is the load-bearing choice: CSV accounts have no broker session, so
+  `POST /accounts/{account_id}/sync` rejects them with a 400
+  (`"API sync is not enabled for account {account_id}"`, the same check
+  `PositionService.sync_account_positions` enforces), and the frontend's refresh control
+  changes meaning — `accounts-list-item.svelte` renders `Sync positions` when
+  `api_sync_enabled` is true and `Update from CSV`, which opens the update modal, when it
+  is false. The account is created, positions are written, and again the refreshed row is
+  returned.
 
 The response is a `list[AccountSchema]`, so the frontend gets the final account rows
 with their server-assigned ids and `last_sync_at`.
@@ -554,12 +565,18 @@ The modal is reachable from `accounts-list.svelte`, `brokers-list.svelte` and
 ### update-account-csv-modal.svelte
 
 A single-step dialog for one account: title `Update account from CSV`, description
-naming the account, the same drag/drop + 10 MB + `.csv` validation, and a button that
-calls `syncAccountCsv(account.id, file)`. It never sends an institution or account
-number — the account id in the path is the whole addressing scheme. It is opened from
-the refresh control of `accounts-list-item.svelte`, which renders `Update from CSV`
-instead of `Sync positions` precisely when `account.api_sync_enabled` is false, i.e.
-for CSV-imported accounts.
+naming the account, the same drag/drop + 10 MB + `.csv` validation, and an `Upload CSV`
+button that calls `syncAccountCsv(account.id, file)`. It never sends an institution or
+account number — the account id in the path is the whole addressing scheme.
+
+It is rendered unconditionally by each `accounts-list-item.svelte` row, driven by that
+row's `csvModalState` and opened from the refresh control, which renders the tooltip and
+`aria-label` `Sync positions` when `account.api_sync_enabled` is true and `Update from
+CSV` — the branch that opens the modal instead of calling `onSync` — when it is false,
+i.e. for CSV-imported accounts. Its `onSuccess` invalidates that row's cached totals and
+holdings (`itemState.invalidateCache(account.id)`) and then calls the parent's
+`onAccountUpdated`, which is how `accounts-list.svelte` refetches the account list after a
+CSV upload. The two branches are pinned by `accounts-list-item.test.ts`.
 
 Both modals surface the backend `detail` string verbatim, so the parser messages
 ("Header mismatch at column 1: expected 'account_name', got 'unknown_column'") are what
@@ -596,6 +613,10 @@ users actually read.
   retention, API-error display, `bind:open` without `ModalState`, the action badges,
   and currency overrides; `update-account-csv-modal.test.ts` covers the single-account
   variant.
+- `frontend/src/lib/components/accounts/accounts-list-item.test.ts` — the account-row
+  refresh control: `onSync` for `api_sync_enabled` accounts, the CSV update modal instead
+  of sync for CSV accounts, and the cache invalidation plus `onAccountUpdated` refresh
+  after a successful upload.
 
 ## Related pages
 

@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "pageVersion": "sha256:bcd6b9bb0e5f16344b4ef7c34cbaa44a692300f2c64b62c9d047ae23c5e6cbb4",
+  "pageVersion": "sha256:e1a836864de53dcda0ae1b816b050f04c056d4f1d16628d39453b47936613f3b",
   "claims": [
     {
       "id": "claim_57d81a51dd4b4889bc9bbc27362fce94",
@@ -334,11 +334,15 @@
     },
     {
       "id": "claim_3ecc9fda3ec847419b8c539c2c406212",
-      "statement": "The accounts dashboard `/` reads only the account list (`GET /accounts/`, ordered by account name) in its server load and defers each row's value to a client-side `GET /accounts/{id}/totals` call that `PositionService.get_total_for_account` resolves by pricing the account's positions, converting into the account currency and returning `AccountTotals` (`cost`/`value` as `Money`); the per-item state caches the result and invalidates it when a sync finishes, and the dashboard itself renders no holdings rows.",
+      "statement": "The accounts dashboard `/` server load reads only the account list (`GET /accounts/`, ordered by account name) and defers each row's value to a client-side `GET /accounts/{id}/totals` call that `PositionService.get_total_for_account` resolves by pricing the account's positions, converting into the account currency and returning `AccountTotals` (`cost`/`value` as `Money`); `AccountsListItemState` (`frontend/src/lib/components/accounts/accounts-list-item.svelte.ts#L10-L34`) is the per-row cache holding `totalsCache`/`holdingsCache`, a `version` counter and `isExpanded`/`holdingsPromise`, with `totals` derived from `version` and short-circuited outside the browser, and `invalidateCache` is invoked when a sync finishes (`wasSyncing && !isSyncing`) so the badge re-fetches; the dashboard itself renders no holdings rows.",
       "evidence": [
         {
-          "resource": "repo://frontend/src/lib/components/accounts/accounts-list-item.svelte.ts#L10-L34",
-          "version": "repo-lines-v1:sha256:d49aff71c490a144ed465989a0361d18a9b99c28b128507cc5d4d9438a51c584:eyJzZWxlY3RlZExpbmVDb3VudCI6MjUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjI5Mjc3MTk0ZDFmZDFhZDk5MzQ4NDFkZDg0ZWU5MWVkYjU3YmRkODc3NzU5ZGY4YjNmNzM2MGNjYjVhMDQ3MDIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjY3Y2RhODJkYTYwNjIzOGUwNWU2MjM5OTU2OWM1ZWUwMzk5MzQxOTY0OGFlNWQ0M2EyYmY4Y2Q2MzQ3ZjgyNjMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImU1OWZiOGUwMzFlYTdkYWY3YzNlNGIzZDAxNDU4OTBhOTM5OGUxYjI1ZjgwNjgxNTg0YTFiYTg1NDkxYWYxNWYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjoxLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjQxMmNhMzQ1Y2NmNzViZjljMDgwNmJjZTY5NWJlOGRlODA4Yjc5OTg0MjUxYTdhNTRkMjAyY2Y2MTAxZGQ0NTEifQ"
+          "resource": "repo://frontend/src/lib/components/accounts/accounts-list-item.svelte#L118-L133",
+          "version": "repo-lines-v1:sha256:62b4c673a9262cd96a41521ff314cf9aa26ed70c4ff8b24405dc9846ecf7ef9d:eyJzZWxlY3RlZExpbmVDb3VudCI6MTYsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjRmZmYwNjMzNDhhMWUxYTMyNTEzZWFjYzAxNmZjMjVjZmZlZjBiNGM5MGJmMGM4ODhlZDU4NTdmMjEzYTMyZGMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjBhNzM0OTJkODk0NmIxZDBmOWQ5YzA0YjcwNGE5MjBmMjRmODllZjdjN2Y3MzExYTg1OTlkMTBjN2Y2MzU4ZDAiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjE2MjI1ZGUxZWVkMTFjNWY5OGJlOTMxZjBiYTBhZDNhMDEyN2U4ZGQ0Y2VjYzEzODJiMTNjZWNhMWViNDdjZjMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImI4YzJjMGNkMzk0NzYyY2EyNDNhYjlmODBjYWJlYmVjZDYyZGIwYjBhMDhmYmJjNDNjZTlhYzkzODE1MzlhZDAifQ"
+        },
+        {
+          "resource": "repo://frontend/src/lib/components/accounts/accounts-list-item.svelte.ts#L1-L86",
+          "version": "repo-lines-v1:sha256:c783466b25c024c6e77d7be28118034cc4083de15d995e3b9472eb5c8b43a5a3:eyJzZWxlY3RlZExpbmVDb3VudCI6ODYsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImZhOWNjYjY5MmM2NDM4MDFhMjZjODE5MjNlZDkwYTJlZmYxYTM5YWE3NGQyZWVhYTZkODA2ZTljMTE5OGMwNmEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQxMmNhMzQ1Y2NmNzViZjljMDgwNmJjZTY5NWJlOGRlODA4Yjc5OTg0MjUxYTdhNTRkMjAyY2Y2MTAxZGQ0NTEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjowLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
         },
         {
           "resource": "repo://frontend/src/routes/%2Bpage.server.ts#L7-L25",
@@ -453,10 +457,156 @@
           "version": "repo-lines-v1:sha256:4ede5bfd18f6bdfc2944cd790964bdec07d75f1fa334fd417e402095e0043180:eyJzZWxlY3RlZExpbmVDb3VudCI6NjQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjE0ODg0OGY1OGZkYjhiYWRhOWNiZjhkY2JhMzRjYTRlYjZlMWIyZGZiMTMxOTljMDliMjkzMjMwZDE5ZDRjNWIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjRkODliNWRlYTc1NjA3Y2VmZjhmNzZiNzE2NTczYWQ4YWFhYzU3ZjMwOGY0M2UyODUzZmYzN2MwMTAyMWU5ZjAiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjE4MzU4NzIwMWMwYTIwYThhNzJmYTAyNGNlMjE3OTYzOGQ3MDAyMDYyZDZiOWUyZDU3ZjRkZTUyZWQ3YTUyMzAiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjRhNWQ0M2YxZmZiZDc5YzAwZDRlMjVhODNmYjdjZDgzNDEzNWIyMGQ4NjU0YjlmOThhMmY1Mzg3NDk4MTFlNjcifQ"
         }
       ]
+    },
+    {
+      "id": "claim_cc88e5b20f8f4fd9b34032634ed8132f",
+      "statement": "The accounts dashboard's controller is `AccountsListState` in `frontend/src/lib/components/accounts/accounts-list.svelte.ts`, instantiated exactly once by `accounts-list.svelte` from the initial `accounts` prop; it owns the account list (`fetchAccounts`), selection mode with a selected-id list and a `createPortfolioModal`/`importCsvModal` pair, institution/account-type grouping via an async `groupedAccounts` derivation, the `syncingAccountIds`/`syncErrors` maps fed by websocket events, and rename/delete operations, with `deleteAccount` issuing `DELETE /accounts/{id}` and pruning the account from the list, selection, sync errors and syncing set while a failure leaves the list intact.",
+      "evidence": [
+        {
+          "resource": "repo://frontend/src/lib/components/accounts/accounts-list.svelte#L15-L36",
+          "version": "repo-lines-v1:sha256:9999e1ed980238a63a2b66083c5b5fb73ff6bd8d44a1fca326076e90be05bbbb:eyJzZWxlY3RlZExpbmVDb3VudCI6MjIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjYzOGY0ZjI2NWMxNzkyN2FlNzA1N2Q4NzFhN2YxZmE1Y2NhMmExMTgzNDdhZDk4ZjhmYTBkMWQxNjViYjFmYTYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjJmMzU4ZjAzNzFhNmU3MzJjNDM0MDMzMjIzNTE5OWRjZDkxZWJjNDYyMzlhNWRkY2ZlNmY5YTYzZTZlYmVjZmUiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjdjMmYzYjE2ZmFjZmVmZDNkYTBjODIwNmQzNjczYTYwYWRiYzg0NDFkZmFmODY4ZGQ4Mjk2NzMyNjg2NDkxNzUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjJhNzgyODdiMmVkZGFkZGIyYzNmNTE5YTYzMzYxN2NiZmFkMGI0MTU3ZjFiYjI0M2RmMzUyOWMxYzIzMTEwYTQifQ"
+        },
+        {
+          "resource": "repo://frontend/src/lib/components/accounts/accounts-list.svelte#L82-L121",
+          "version": "repo-lines-v1:sha256:0d9e6596e38e0cc4a097ef7303f06ff757dc8e11a4bdb3abe2e0e3ead2f00ec1:eyJzZWxlY3RlZExpbmVDb3VudCI6NDAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjNmZTE4OTljMjQ3N2YyYjBmMDEzNjc3Mjg1NDVlYjVlYjllNTNjNDEzNjA2NGU5NGFlZWRkZjQxYTBmMzU2ODUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjVlYjUxNjU4YzRmZjAzNWZlY2RlYjRjMjY5ZWZiMmQzM2E2N2FjOTkyOGEyYTZjMmQyZDlhMTQ2MzBhMGVjMzUiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjRjZWRkZDk0NzZhNDRmYmIwYzE4ZDNiNGYyYjVjYjM0ZDEwYjAzYzRlZTYwZjBiNzFjMzhhZWFmNjg2NTc1YzIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImEzMTQ0MjBjMTRkMGRkYmIwMDFiYjA4NTkxMjg2YzY4YTZmYmM4NzQ3YjY1MTc2ZTg5OTdiNDE1OGJhMDMyZGQifQ"
+        },
+        {
+          "resource": "repo://frontend/src/lib/components/accounts/accounts-list.svelte.ts#L140-L208",
+          "version": "repo-lines-v1:sha256:e1d4485a811d8cad99d56aa29a4e3362f7c1ac17111404ea9be61b4bb0201476:eyJzZWxlY3RlZExpbmVDb3VudCI6NjksImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImM3Zjg5MzYwNGIzMTZjNjI5YWZiM2MwZDQzZTQzZjA5Nzg0NDc0NGE3YmQ1YjZlYjlmMGJiMGM3ZDQ0OGI3OWMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjY3Y2RhODJkYTYwNjIzOGUwNWU2MjM5OTU2OWM1ZWUwMzk5MzQxOTY0OGFlNWQ0M2EyYmY4Y2Q2MzQ3ZjgyNjMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjIyZjJmZjVmZWVjNjBmNTg3YzhmYWU0ZTg3ZjgwOWE2NjFjZmZlZDZiNDdhYWU1ZjZkNmEyNjUzYWE4OTUyZWYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjEwMzc3YjY1NjA3YmFiODRlNzQ4NzFmYzYxZTk4MWZkZTdlYzZiMDg4N2Q3NTEyZTZjNDg4MDJjNjdjOGM2ZDAifQ"
+        },
+        {
+          "resource": "repo://frontend/src/lib/components/accounts/accounts-list.svelte.ts#L18-L50",
+          "version": "repo-lines-v1:sha256:82ff39a0eb009f84d92842b31f96b3f0a1b9f89cecdc1d8d15f0cdfb820d3c3d:eyJzZWxlY3RlZExpbmVDb3VudCI6MzMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjdjNjYwNjNlZGI5Zjg4ODYzZGI5ZTg2YjA4MjdmZWUzNjUxYTNhNTg0NTc3NzNkN2MxNTc2OTY3YmU3YjQ0YTIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjY3Y2RhODJkYTYwNjIzOGUwNWU2MjM5OTU2OWM1ZWUwMzk5MzQxOTY0OGFlNWQ0M2EyYmY4Y2Q2MzQ3ZjgyNjMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImU3NDRhY2RhMmQ1NGMwNTQzYzY0ZWU4ZGY2YmVlMzY2YWNlZWYyYjU2MmY4ZWYwNTkyMzkxODc1N2RjNDdjZTEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjE3ZjQ1M2U1MWFhOTViOWEzNDZlYjRmNGZhMTM2MmIwYTA0ZTQxYWY3MGQ2NGNmY2MyNzhmMWExODZlYzg5OGYifQ"
+        },
+        {
+          "resource": "repo://frontend/src/lib/components/accounts/accounts-list.svelte.ts#L256-L275",
+          "version": "repo-lines-v1:sha256:8ab6cad438e067d2ec44f8f896f56ecd6efd26c02bdd30bb12c1c8e14c9be63f:eyJzZWxlY3RlZExpbmVDb3VudCI6MjAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImI2Mjg2ZWVhZjc2NjM1MmE5NmE2YmJlY2ZkOTFlYmVhN2U4MTNhMzRiYmQ5Zjk0M2E3ZjBhNWRhYzc0YjA3OTMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjY3Y2RhODJkYTYwNjIzOGUwNWU2MjM5OTU2OWM1ZWUwMzk5MzQxOTY0OGFlNWQ0M2EyYmY4Y2Q2MzQ3ZjgyNjMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjI0MjcxZTk2YWViYzBlMGJhZjcyYjNmZTI2MzYzMGE2MDE3M2I3OTBkNzE1YTE4MzI2NTVlYjg5YjlhZDhjMTciLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjoxLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjQxMmNhMzQ1Y2NmNzViZjljMDgwNmJjZTY5NWJlOGRlODA4Yjc5OTg0MjUxYTdhNTRkMjAyY2Y2MTAxZGQ0NTEifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_94ab1cb98deb465999e35dfea31062e3",
+      "statement": "Dashboard account rows expand inline into a third, smaller holdings read: `AccountsListItem` renders `AccountInlineHoldings` from `itemState.holdingsPromise` (a `GET /accounts/{id}/holdings` through `AccountClient.getAccountHoldings`, which sends no pagination so the backend's default first page of 50 positions is shown), and each expansion toggle writes the whole accumulator array `{ expanded_account_ids: [...] }` through `userPreferencesService.patchPreferences`; `+layout.server.ts` reads that key back, defaulting to `[]` when absent or not an array, and feeds it into the expansion context used by `accounts-list.svelte`.",
+      "evidence": [
+        {
+          "resource": "repo://frontend/src/lib/api/accountClient.ts#L27-L29",
+          "version": "repo-lines-v1:sha256:24df83aeeda1fce41122e4e137acff937ac804e06dca01fd25a213b5cdfbb15b:eyJzZWxlY3RlZExpbmVDb3VudCI6MywiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiOWQ5YTljMmVlNjgwNmQ0YjZmMWUyOTA5MTg1MzQ4MjBkZjE3MjY3MmEyYmZhNmM5MTExODY2YjQ2ZjUxYTQzZCIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNjdjZGE4MmRhNjA2MjM4ZTA1ZTYyMzk5NTY5YzVlZTAzOTkzNDE5NjQ4YWU1ZDQzYTJiZjhjZDYzNDdmODI2MyIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiNzBlZGQ5ZWExZTczY2I4Njg0MjQyMTU5Y2UzYjE4OTYyNGFhZDA3MjJiYmNmYzI5NmE1YjI5YTVkMmJkMWM4NiIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiZGE1YTFlOWU1YjM2NWI3ZDMyMmIzNDdjMjJjNzljNzg3N2U0NGExNjJmNjEyNzIwMzVlNzAwY2ExNjQ3NThhOCJ9"
+        },
+        {
+          "resource": "repo://frontend/src/lib/components/accounts/account-inline-holdings.svelte#L26-L96",
+          "version": "repo-lines-v1:sha256:8755c99e7f4436e0e859808a2fff51b61e8b1de4c2bbb6c8cd8517fcc1b52ace:eyJzZWxlY3RlZExpbmVDb3VudCI6NzEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjM2NDZmNWQyYzgzZGIyMjcxNWVjMWY0Zjc2NTVmM2EyNWQwNjIwZWVlNGVkZTE5OGIyOTdkMDNhZDJlOGNmZmIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjVlYjUxNjU4YzRmZjAzNWZlY2RlYjRjMjY5ZWZiMmQzM2E2N2FjOTkyOGEyYTZjMmQyZDlhMTQ2MzBhMGVjMzUiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImM2ZjYzMTMwNTdlODgzZGQ5MWZhMThkYzdkMDE2ODAyY2VhZWRmZjczNzc0ZTI0ZGVmZDRhODVmOTVkZmU3Y2MiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
+        },
+        {
+          "resource": "repo://frontend/src/lib/components/accounts/accounts-list-item.svelte#L106-L116",
+          "version": "repo-lines-v1:sha256:4c98c074ea8e3f801d48b7cf0fe1e6e579a463b5f2208989e3bde90139b5d858:eyJzZWxlY3RlZExpbmVDb3VudCI6MTEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjhhNDkwNjAyYzVjMTdjZGY0NWFlNDg5ODI5MDFmYTBiYmZlMzU4MTQ0M2FlZTRhM2IxMjQ1ODVjMTkxMTk5Y2EiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjY3Y2RhODJkYTYwNjIzOGUwNWU2MjM5OTU2OWM1ZWUwMzk5MzQxOTY0OGFlNWQ0M2EyYmY4Y2Q2MzQ3ZjgyNjMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImE4YzdmYjYzOTYyNWQ4ZTU2MThjNmNiYmZkN2M1ZDU2MGM2MGMwY2VkMTUxNWRkMzAyYTgwZTY5Mjc0NjE1MTQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjY4MmQyZDQxYTczYmY5YWFiZmY0NjUxNjY3MGUwZjA3NzcxZjMwZTNkZDVlNTA3MDJiNTYyNWRkMzY1YWZjZjcifQ"
+        },
+        {
+          "resource": "repo://frontend/src/lib/components/accounts/accounts-list-item.svelte#L313-L328",
+          "version": "repo-lines-v1:sha256:1231f23abcb556a3f9ca0be0b4d0cea017d59eb6cb9c3577572006bcacc86658:eyJzZWxlY3RlZExpbmVDb3VudCI6MTYsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjVjZjEzZWYxYmE0YjdmNGU0NzFlMTJmNDI2MDBmZmY5NjUxYzYyNjQ5NDRmOTNlNWEwOTU2MzZlOTIwZDEyYTMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjMzM2I2ZjBjODA3NTgwNGNmMDgyOWQzNDQ0YjI1Y2M4ZTc2ZmE2MzY2MjEzYTYxYjA4YzY1ZTk0OTBmMTk0ZDQiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjBhZDBhYTgwZWJhMDZjNzRhZmQzN2Y2MzNkNjgyNTAwOTIzZjMyY2QxZjM0YmE2ZDAyMTQzZmNmZTQwMGYyNWIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjVmNjBjMGU1YWMwZTVmODBkYWQzMmQ0N2JjNmM4YWI5NGZkNGYyOGIxYmZlY2U2Nzg3MzYzNDM2Yjc2M2QxZWMifQ"
+        },
+        {
+          "resource": "repo://frontend/src/lib/components/accounts/accounts-list.svelte#L17-L23",
+          "version": "repo-lines-v1:sha256:67e5e162e72e8aadab4cc515d1c1af6c2bdb437b968d2bffeb5fac02155b3aad:eyJzZWxlY3RlZExpbmVDb3VudCI6NywiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiMTk0NGQ1MjBhYTNiNWY4NTk0MDU4MDhjYzJiOGMyYWRhOTcyNjk5OTJjOTA5OTA1ZWQ3ZTdhNDY3ZjZlMGY4ZCIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiMGZiYWE0ZmJmNzM2MDQ4ZTRhMWI1ZDM5ZjlhYjVkODBjNTIwNmM0ZmIwM2JmNDRjNzA3NjE1MWY2MmRhNDA2YSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiM2MwYTg0NmYxNDY5OGJkN2MzYzU2MDY2ZmUzNTU4ZTFkN2MwNWNiNDg5MGU5NDlkMWM4ZjFmNmU2NzhiNDc3YSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiN2IyNmY5MWRiNTQwMWEwMWMzMzJjZjJiYWQxZjc5NTgyMmM5NzVhY2M5YzEyMmI5ZjIyYWZiZmI4OWI3NDVkOSJ9"
+        },
+        {
+          "resource": "repo://frontend/src/routes/%2Blayout.server.ts#L4-L38",
+          "version": "repo-lines-v1:sha256:e346d71528b177c9935b8e7c8e3c1ae3e91790bac02a8a7e877480a6e9694db3:eyJzZWxlY3RlZExpbmVDb3VudCI6MzUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjZiZjY1OTVmZjIxYjZlNDBjOWU4NzQ1OGI3YzIyZTNjZjdhYTU3ZjBiZDQ2NmM4ZTg5NTI5YTc2M2VmNjZkMzIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImNjM2EyMDc3NGQ1YzJiYjRjNzkwYzE4ODkwYTljNDk0Y2NiNTEwZmM4ZThjMDllYzc0NTE5YmMxNjRmYzc4NGIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjczNzA2YTI5ZmRlZTllNmRiNGMyYmUzMWEwZWY5MWI1NzRiY2Q4YjBlZTQ5NThjZGIyM2ViYzg4NWVlYzFmOGIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjoxLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImFhMWQxYTYzMzkwMjI5Yzc5ODM0N2U4M2EwNDA1NDQxYzk0MDAwMzUyODRhZDE2OGMxYmY2Y2RmMWQ3MGEzNzAifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_5d0f3af9a5df4a41bc6a790411fc960e",
+      "statement": "The accounts dashboard row's sync-finished edge is the invalidation trigger for its per-row caches: an `$effect` in `accounts-list-item.svelte` fires `itemState.invalidateCache(account.id)` on the `wasSyncing && !isSyncing` transition and sets `localSyncOverride` to the current time when there is no `syncError`, while the `UpdateAccountCsvModal` success handler invalidates the same cache before calling `onAccountUpdated`; the websocket handshake, badge event mapping, sync-status hydration, reconnect, fallback poll and the server-side sync gate are owned by the broker-sync and realtime/background-jobs pages.",
+      "evidence": [
+        {
+          "resource": "repo://frontend/src/lib/components/accounts/accounts-list-item.svelte#L118-L133",
+          "version": "repo-lines-v1:sha256:62b4c673a9262cd96a41521ff314cf9aa26ed70c4ff8b24405dc9846ecf7ef9d:eyJzZWxlY3RlZExpbmVDb3VudCI6MTYsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjRmZmYwNjMzNDhhMWUxYTMyNTEzZWFjYzAxNmZjMjVjZmZlZjBiNGM5MGJmMGM4ODhlZDU4NTdmMjEzYTMyZGMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjBhNzM0OTJkODk0NmIxZDBmOWQ5YzA0YjcwNGE5MjBmMjRmODllZjdjN2Y3MzExYTg1OTlkMTBjN2Y2MzU4ZDAiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjE2MjI1ZGUxZWVkMTFjNWY5OGJlOTMxZjBiYTBhZDNhMDEyN2U4ZGQ0Y2VjYzEzODJiMTNjZWNhMWViNDdjZjMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImI4YzJjMGNkMzk0NzYyY2EyNDNhYjlmODBjYWJlYmVjZDYyZGIwYjBhMDhmYmJjNDNjZTlhYzkzODE1MzlhZDAifQ"
+        },
+        {
+          "resource": "repo://frontend/src/lib/components/accounts/accounts-list-item.svelte#L339-L346",
+          "version": "repo-lines-v1:sha256:07d0ae7ac22ca1b8c81eaf29c9773e9039ce212335a49f73eec970be97a95f1a:eyJzZWxlY3RlZExpbmVDb3VudCI6OCwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiODE5YTc1MmZhNDE4MzY3MThmM2IxYjM1MWNiN2U1OGM3ODQ4MmRkZTQ1MGMyY2JkMTJmMmUzNTE0NmQxMjMxYyIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNzA5ODk3ODRiOTEwNzgwZTI0MzdjNmU3YTllNTA4NjUzM2E4NDhjZTExNTJjMDgxNzE5MmM3NTkzZmI2MzI2OCIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiMDY1NzQ5N2Q0NWZmOGUxNTcxZTc4MzhkYmVhMDA5YzQ1ZWU1YTY0ZDdkOGM5NGUyODgwN2VlN2M2NTE2OTE3ZiIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjAsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiZTNiMGM0NDI5OGZjMWMxNDlhZmJmNGM4OTk2ZmI5MjQyN2FlNDFlNDY0OWI5MzRjYTQ5NTk5MWI3ODUyYjg1NSJ9"
+        },
+        {
+          "resource": "repo://frontend/src/lib/components/accounts/accounts-list-item.svelte.ts#L63-L70",
+          "version": "repo-lines-v1:sha256:9006fec093b1bcd21a87ffdce13458e336c636c24392637c1671c98a50d0d1bf:eyJzZWxlY3RlZExpbmVDb3VudCI6OCwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiYzJmMDNjZjJhNGY5ODMzM2ViN2IwMTE3ZDBmMzQ1YjUzZDViZmFlYzQ0OGU2YTljODI5MmExMTc3NTRlYTZlYiIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNjdjZGE4MmRhNjA2MjM4ZTA1ZTYyMzk5NTY5YzVlZTAzOTkzNDE5NjQ4YWU1ZDQzYTJiZjhjZDYzNDdmODI2MyIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiMjJmMmZmNWZlZWM2MGY1ODdjOGZhZTRlODdmODA5YTY2MWNmZmVkNmI0N2FhZTVmNmQ2YTI2NTNhYTg5NTJlZiIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiM2IyNjNlNGNiZGQwZTNlYzdlNzdiYjgwMzk5YWQzMjMwYjVhZDBhNWM3NjExNTc1ZWUzNTRmNDFhOTc4ZWQwYyJ9"
+        },
+        {
+          "resource": "repo://frontend/src/lib/components/accounts/accounts-list.svelte.ts#L85-L107",
+          "version": "repo-lines-v1:sha256:accdd90fcfa98801c2c8d5073ca507d6fc347b910c39504091eaca4ee0b06125:eyJzZWxlY3RlZExpbmVDb3VudCI6MjMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjY2OTU2N2Q0YTJlNWY3ZmEwZWYwZjJkZDFkMWMxNTE2MGU3MjU1YWJiNzFmYjdlOGEzZDhhNjgwN2M0OTZkYjYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjM2MGI4OGEwNWQ1YjUzODQ3NjAyMjliZTYwNTcyZmU2MmIxYzI5Y2RjNTdlZGI1ZTY5NTFkYWE0ZmQ0NmM4MDMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjVlYzM1MmIyYzliYTUzOTc5MDEyNTEzM2Q1ZWIzMmY4NWVjNWE2MTZiMzJkOTg0NjczOTkyYTkxYzk4MDI2NDkiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjMzNjY2MWMwMzBiYzk4M2JlOWYyYmMxMGU2MmE0ZWE2NTA5YjU5NmUzM2YyNGJiN2ExNTQ1MWIxMGExYjJlMjAifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_5078fdfaf9f84022b0197b125a54e22b",
+      "statement": "`AccountsListState` recovers from a lost websocket sync-finished message by a bounded fallback poll: `syncAccount` optimistically adds the account to `syncingAccountIds`, POSTs `/accounts/{id}/sync` and then calls `waitForSyncFinish`, which polls `GET /accounts/sync-status` every 1.5s against a 60s deadline and, once the backend no longer reports the id, waits a 5s grace period before clearing state and refetching accounts — a request failure sets 'Request failed. Please check your connection.' and a deadline expiry sets 'Sync took too long. Check account status.'.",
+      "evidence": [
+        {
+          "resource": "repo://frontend/src/lib/api/accountClient.ts#L35-L41",
+          "version": "repo-lines-v1:sha256:324856812bfe1e493184314a6a7ca7a1c6d9ac94aaaeeaf480e85916864d2b4b:eyJzZWxlY3RlZExpbmVDb3VudCI6NywiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiY2RjMGZlMzA5Y2FhODcxODliZmRhNjcxNWFmMDNhNTU3ZTIzOGNmMWQ5ZWE1ZDcwNjdjYjUxYzIzYjc5MzhkYSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNjdjZGE4MmRhNjA2MjM4ZTA1ZTYyMzk5NTY5YzVlZTAzOTkzNDE5NjQ4YWU1ZDQzYTJiZjhjZDYzNDdmODI2MyIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiODRhZGFkODIzNWE3NmE2NDBkN2U5ZjU1ODhjNzJkZTk0NWM1ZTI0OTRiYTcxMjI4OThhMTNlMTAxYmNkZDQ4MCIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiZWU0ZDI5ZTk5NWYxMGM5MjQ5ZjFlZjQyZmE2MTY1ZWM0ZjI2MWY3NzA3OGQzM2E5YTU0NDY5NGNlZGMzM2M1YiJ9"
+        },
+        {
+          "resource": "repo://frontend/src/lib/components/accounts/accounts-list.svelte.ts#L210-L254",
+          "version": "repo-lines-v1:sha256:44f7ca6a3bf67375e7e200bffa0debe07453130aa7ee99bc243a0a2f57cd6e7d:eyJzZWxlY3RlZExpbmVDb3VudCI6NDUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijk5YTg3OGI5MGJjNmNiZWY1Y2M1NzI1MWJhYmI0YmYwNzY3M2Q2YWJiYTUyYjc5NTg2MWM0ZjU1NGM4NmQyMWQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjY3Y2RhODJkYTYwNjIzOGUwNWU2MjM5OTU2OWM1ZWUwMzk5MzQxOTY0OGFlNWQ0M2EyYmY4Y2Q2MzQ3ZjgyNjMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjIyZjJmZjVmZWVjNjBmNTg3YzhmYWU0ZTg3ZjgwOWE2NjFjZmZlZDZiNDdhYWU1ZjZkNmEyNjUzYWE4OTUyZWYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjJmMzViYWYyZDAwOTdmZjE2YTY5MDBiMWVmZTc0YWFmNWFiZjA2NWNlNTBkZDJjNTczYjRmMmU4MWVlMTlhZTUifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_c83ffa0d121c495c90d8001eb605f48e",
+      "statement": "The dashboard's rename path is a SvelteKit form action rather than a client-state call: `EditableTitle` posts to `?/renameAccount`, the dashboard `+page.server.ts` `actions` object validates the `name` and `id` fields and forwards `PATCH /accounts/{id}/rename`, returning `fail(400)`/`fail(status)` on error, and `AccountRenameRequest` is applied server-side after the shared ownership check; `AccountsListState.renameAccount` only mutates the local account object in place.",
+      "evidence": [
+        {
+          "resource": "repo://frontend/src/lib/components/accounts/accounts-list.svelte.ts#L256-L261",
+          "version": "repo-lines-v1:sha256:3aa9778bedea685ae9eaa993b655149cfe7762971d78e1b41c63fceb8378a421:eyJzZWxlY3RlZExpbmVDb3VudCI6NiwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiYjYyODZlZWFmNzY2MzUyYTk2YTZiYmVjZmQ5MWViZWE3ZTgxM2EzNGJiZDlmOTQzYTdmMGE1ZGFjNzRiMDc5MyIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNjdjZGE4MmRhNjA2MjM4ZTA1ZTYyMzk5NTY5YzVlZTAzOTkzNDE5NjQ4YWU1ZDQzYTJiZjhjZDYzNDdmODI2MyIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiMjQyNzFlOTZhZWJjMGUwYmFmNzJiM2ZlMjYzNjMwYTYwMTczYjc5MGQ3MTVhMTgzMjY1NWViODliOWFkOGMxNyIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiODcxYzc2NTQ3ZWFlMTBkZjhjNmE4NjA0ZTNjODI5NTg5ODJiODUyZGQzZTFmNGEzMmFmYzVhNTdjNTI1YzZiZiJ9"
+        },
+        {
+          "resource": "repo://frontend/src/lib/components/forms/editable-title.svelte#L80-L116",
+          "version": "repo-lines-v1:sha256:1f73ab89f38c968de35a6cf27b723ca48154d9e4dfda4c8fc0680ebaf8453900:eyJzZWxlY3RlZExpbmVDb3VudCI6MzcsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjRlZTE0YjYzMDhlOTVlYmQ2YjgxNDNhYTFhOTY1NTQzM2M1MGRkOGM2NmVjMjMzNjg0OTNlNjU1ODkxNWFlMjMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijk2NDM5MjQ3MjI2YmE3OGU0YjRiNDVlN2RhMGQ4ZmU3ZGI3YTY4YjQ2MjBmNzMyODkzYWY4NmFjYzExZjdjNTgiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImM2ZjYzMTMwNTdlODgzZGQ5MWZhMThkYzdkMDE2ODAyY2VhZWRmZjczNzc0ZTI0ZGVmZDRhODVmOTVkZmU3Y2MiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjA3NDU3OTVlMjkwNDkzYWFiMTc2OGMxOWUxZDk2ZWQ1M2U2M2QwMTlkOGE3MDc0NmRmZTRiZDEwODJhNjU3OTUifQ"
+        },
+        {
+          "resource": "repo://frontend/src/routes/%2Bpage.server.ts#L27-L54",
+          "version": "repo-lines-v1:sha256:6705a7a63517d4a3c44e421d89e226b5d039fa00b4475df6038ae6c8fc05c312:eyJzZWxlY3RlZExpbmVDb3VudCI6MjgsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImEyY2QzMDVkZWY1MDJiMDhhZmIwYjAzNDU0MzU1Zjg5YzgwNjBkYjZmZWIxYzFhMDhkOWFkY2I1YTVkMGY3NmUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImFhMWQxYTYzMzkwMjI5Yzc5ODM0N2U4M2EwNDA1NDQxYzk0MDAwMzUyODRhZDE2OGMxYmY2Y2RmMWQ3MGEzNzAiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImU0ZDBkOGJhYjYzYTNkNmY2ZWJhYzZkYjQ5MjE4MTJhYTA2YjRlYjk0ZjY0NWJmYzU3ODMxZjdlZDYwNzdmNDkiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
+        },
+        {
+          "resource": "repo://src/account/router.py#L389-L405",
+          "version": "repo-lines-v1:sha256:12395737a6563d6abc044a6d60781386ec9da98de118b798b94c8df034ffb115:eyJzZWxlY3RlZExpbmVDb3VudCI6MTcsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImY5NzMwNmMxYWE2YjNlYmVkMTYxNjBlZjQ1ODc4NDZkMmQ1MGFmM2E1ZjE2YzljNTg1ZTc1YTg2OWI5MjM3M2IiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAzZGE0M2QxYzJjZmNhYTJmMmY5ZmE4ZWE3NTE1MTM3ZjA0MDJhYjg0YWQyYTNhMmY0ODg3ZTRlMTZkNDU0NWQiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjY2NDA4MmE3YTEzYzE0YjFiN2E1NzMyZDlmMTczMTc3NDFlYmVmNjZjOGZiOTUzNTUwZTZjYWYyZjc0YTM5M2EiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImQyYmIyYjk0MjdhNzZjNzU4YWQ4YjNlYzY4YzI1ODUxZDljMWQxYjFhNWNiYjlmNjg2MzFkMjc3NGJkMzM1NDMifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_db586477b40443748aab2baae574548e",
+      "statement": "`/` is the only one of the three read surfaces whose dashboard shell carries no holdings rows and no pagination: the account list is unbounded (`AccountRepository.get_by_user` has no limit) and each rendered row triggers its own totals request only after hydration because `AccountsListItemState.totals` returns a never-resolving promise when `!browser`, so server-side rendering issues no per-account totals fan-out.",
+      "evidence": [
+        {
+          "resource": "repo://frontend/src/lib/components/accounts/accounts-list-item.svelte#L174-L206",
+          "version": "repo-lines-v1:sha256:12a350adefb9d6b56358839053a695fd3fc66683da091d59fb47eb5e939d3da7:eyJzZWxlY3RlZExpbmVDb3VudCI6MzMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjZiMTE2MzZhNWRmMTZhNmNiNmRmNjBmNmJkN2MxMzZlNmM4ZmQwMzM1YzhjNDAxZDFjM2RlZjA5YjllMTBiODYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImRlMmJkNTNkNDY5NWQ5ZmIzNTYwZmY3OGFkZDAzNmMzMTk3NjQ4OTFhMDVjOGUzYjI4NGRlZTI4ZTk1NGI0NTIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjY2NzY3YTc5ZTI1ZDJiOWZiYjYyMTM2OGRiMjI1MzBlNzM2ZTllNTIwMWZiZmJkMTFiMDU3ZDFmYmFhZGIwMzEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjEyNjI3MjI2YTgzMDYzOTdiMWJjOGJkYWZjNGJjMzkxM2E4YzAxYjgxMTg5MDVjNDk5NjQ5ZTMxMTg4NGVmMjIifQ"
+        },
+        {
+          "resource": "repo://frontend/src/lib/components/accounts/accounts-list-item.svelte.ts#L72-L77",
+          "version": "repo-lines-v1:sha256:8829bc057c5bbd1c80dff8ec273a20c813fe81bba903c563d05beab8ce5a7046:eyJzZWxlY3RlZExpbmVDb3VudCI6NiwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiOWE4ZGQ3NWYzNzZkMDJhZjUzMGM0MTY3ZWE3ZDM5ZGIyOWY1NWQ1NTUzMzhjZTJmOWNlNWI0Mzg5ODU4YzhjNCIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiMGE3MzQ5MmQ4OTQ2YjFkMGY5ZDljMDRiNzA0YTkyMGYyNGY4OWVmN2M3ZjczMTFhODU5OWQxMGM3ZjYzNThkMCIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiMjJmMmZmNWZlZWM2MGY1ODdjOGZhZTRlODdmODA5YTY2MWNmZmVkNmI0N2FhZTVmNmQ2YTI2NTNhYTg5NTJlZiIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiMTljZGQ0OTU3ODcxMzc0NDdlMTdiODIyM2U5NTg5MzFmN2NmYzFiYWFkNjYyZTMwNmRmNWJjOGExMzA3MGYwZSJ9"
+        },
+        {
+          "resource": "repo://src/account/repository_sqlalchemy.py#L117-L128",
+          "version": "repo-lines-v1:sha256:94463909c3da402e69e68b8b150bc28e1cac3b36bb50ce4fe6ffc6ebe277f12d:eyJzZWxlY3RlZExpbmVDb3VudCI6MTIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImU4OGY1YjY2MjRjMmE2MTZlMWI2MTk5YjM0Mjc3ZTBlNThjZGU4ZmQ1ZjBiZjc3MTIxNDFjYmM3MTcwYWE1NGMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImJhYWU4YTBjYTc2Zjk4ZjdiN2RjNzk4NDk1MWQ2M2U1N2RiM2M2NDU1NzljYTUxYmFkNmE1MzlkNjE0ZWRiYmUiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjA2ZGNmYzI5NWNhYjMxNzcyNmExZGQxMzU2NzY2YTBlMzA5NDY2MjdhMGEzZGNjZDI3NGYyMDI4MzMwNzk2MTAiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjA3MDg4ZDM0MzE0YmE0ZTA3YThjYmQxYmVmMjhmNjgxNjQ2ZmEyMGZhNTdjMGIzY2FkZDVkNTZlMzEyNGQwYzAifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_64ede7962f74438ea792a75baac6a740",
+      "statement": "The `expanded_account_ids` preference is read by `frontend/src/routes/+layout.server.ts` under the same non-fatal posture as the other preference reads (a rejected `getPreferences` falls back to defaults), which is why the dashboard's expanded rows survive a reload without a second preference request in the dashboard load itself.",
+      "evidence": [
+        {
+          "resource": "repo://frontend/src/routes/%2Blayout.server.ts#L10-L30",
+          "version": "repo-lines-v1:sha256:46146a2a299df15d4e3251844f8823d314e5a51e5418670365e81aa34fdfc792:eyJzZWxlY3RlZExpbmVDb3VudCI6MjEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImQ1NjczM2U5NjZlNWZlODg1YTliY2Y4MmVlMzBhM2IyM2NlMDkxNjBjZDUzYTA1NTE1NTZhMzMwYmVlYzVjZDIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjY3Y2RhODJkYTYwNjIzOGUwNWU2MjM5OTU2OWM1ZWUwMzk5MzQxOTY0OGFlNWQ0M2EyYmY4Y2Q2MzQ3ZjgyNjMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImFiODM2NWM3NDY3NTJmMGYxMDg2NzlmMjdhMDY5Nzg2ODBhYWNkOWNiNjkwYzNmNjAyNDg1OTU2OWIzODNkY2EiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImFjZjdlZmJlNTRhNjU5YzI3NDNmODMyMTIzZTM5MWQyOWFhODI3ZWQ0MWQwYjVkM2E4YTRjMDkwOWUyYzNlODcifQ"
+        },
+        {
+          "resource": "repo://frontend/src/routes/layout.test.ts#L453-L470",
+          "version": "repo-lines-v1:sha256:c0fb67b1ec49ff4d10190bc250ed0bc9addb7e0cc96348ed9a84d2af80105c9b:eyJzZWxlY3RlZExpbmVDb3VudCI6MTgsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjJlYzdlZjJmYTZlMTI3MmVmOTNiODVmNGIzODQ5MDlmZTdiMzkyYjg1ODYyMDI1MmRjNzRhOWFlOGNiZjc0ZDYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjZhMmEzYjc2ZTEyY2UxNTM3OWQwNWYyODY5ZGM0ODMyZGU3NTg5MDUzYjQ5YmZmMjM3ZTQyNWM3MjM3ODAxNTQiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6Ijk3YjhlNGVlNTQxY2E2Y2MyZGJhNDIxM2VhNzRhZWFhYjlmNjgxMTBlY2JmZGMxNTFiMmYzZjE1ODQ2NjJmNmEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjoyLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImMzMWExNDMyMDk0YzllODliMzZjZWY3MzE0NThjMDIzNWNkZmE3MjgwNDE0NjU2NDJjZjcyN2E5Y2Q4ZjQyNTQifQ"
+        }
+      ]
     }
   ],
   "verification": {
-    "by": "openwiki/0.5.2",
-    "at": "2026-09-23T13:18:56.288Z"
+    "by": "openwiki/0.6.0",
+    "at": "2026-09-28T16:25:02.439Z"
   }
 }

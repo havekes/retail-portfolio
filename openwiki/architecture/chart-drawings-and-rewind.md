@@ -3,9 +3,6 @@ type: architecture
 title: Chart Drawings, Plugins & Rewind
 description: The chart drawing system end to end — the per-plugin series-primitive contract and helper stack, the finance-math boundary, ChartDrawingsService as the single owner of drawing state, preference persistence, undo/redo and snapshot saving, and the snapshot-to-rewind pipeline from Postgres to the security page.
 tags: [charting, drawing-tools, series-primitives, chart-plugins, snapshots, rewind, undo-redo, svelte]
-verified:
-  - by: openwiki/0.5.2
-    at: 2026-09-23T13:18:56.288Z
 sources:
   - id: openwiki-source-e483fd3285d99d05c7b265cf
     resource: repo://frontend/AGENTS.md
@@ -17,6 +14,10 @@ sources:
     resource: repo://frontend/src/lib/api/snapshotsService.ts
   - id: openwiki-source-8a88da80cc6ed6d98b2035f2
     resource: repo://frontend/src/lib/api/userPreferencesService.ts
+  - id: openwiki-source-8d8c8f5b3c5ae19764891d20
+    resource: repo://frontend/src/lib/components/actions-sidebar/price-alert/price-alert-group.svelte
+  - id: openwiki-source-f1a69079c6731ec5b560ceda
+    resource: repo://frontend/src/lib/components/actions-sidebar/price-alert/price-alert-modal.svelte
   - id: openwiki-source-fb99e8c672ac1be25256c5d6
     resource: repo://frontend/src/lib/components/charts/drawing-toolbar.svelte
   - id: openwiki-source-0899a375901b4e4ae6956de0
@@ -129,7 +130,10 @@ sources:
     resource: repo://src/market/schema.py
   - id: openwiki-source-82fce7bf4b134cbc785c3714
     resource: repo://tests/routers/test_chart_snapshots.py
-generated: { by: "openwiki/0.5.2", at: "2026-09-23T13:18:56.288Z" }
+generated: { by: "openwiki/0.6.0", at: "2026-09-28T16:25:02.439Z" }
+verified:
+  - by: openwiki/0.6.0
+    at: 2026-09-28T16:25:02.439Z
 ---
 
 The chart drawing system has three layers that must stay separate: **primitives** (lightweight-charts series primitives that own interaction and canvas rendering), **helpers** (shared plumbing under `plugins/helpers/`), and **pure finance math** (`$lib/utils/finance/`). Above them sits one page-owned orchestrator, `ChartDrawingsService`, which is the only thing that persists drawings, keeps undo/redo history, and saves/loads rewind snapshots. This page documents the contracts inside each layer, the per-plugin directory rules, and the snapshot → rewind data path.
@@ -142,6 +146,8 @@ The chart drawing system has three layers that must stay separate: **primitives*
 | Orchestration | `frontend/src/lib/services/ChartDrawingsService.svelte.ts` | active tool/selection state, preference persistence, undo/redo, snapshot save/dedupe, rewind mode |
 | Persistence | `src/market/*` + `frontend/src/lib/api/snapshotsService.ts` | `market_chart_snapshots` table, user-scoped CRUD, HTTP surface |
 | Timeline UI | `rewind-timeline.svelte` + `rewind-timeline.ts` | track geometry, markers, playhead, scrubbing |
+
+Neighbouring pages hold the rest of the picture: the [chart surface, panes and indicators](./charting.md) own `security-chart.svelte` itself (mount/series lifecycle, candle updates, pagination, the price-alert *panel*); the [user-preferences](../concepts/user-preferences.md) page owns the persistence key table; and [Testing](../operations/testing.md) owns the mock conventions this subsystem's suites follow.
 
 ## The per-plugin directory contract
 
@@ -258,7 +264,9 @@ The plugin's mouse adapter supplies `hitTestRadius: HIT_TEST_RADIUS` (14 px), ma
 
 ### `user-price-alerts`: the deliberate exception
 
-`frontend/src/lib/components/charts/plugins/user-price-alerts/` renders price alerts as a series primitive but is **not** built on `DrawingPrimitiveBase`. It has its own `MouseHandlers` (it needs pointer positions over the price scale, which the shared handler clips away) and exposes both pane views and **price-axis pane views**:
+`frontend/src/lib/components/charts/plugins/user-price-alerts/` renders price alerts as a series primitive but is **not** built on `DrawingPrimitiveBase`. It has its own `MouseHandlers` (it needs pointer positions over the price scale, which the shared handler clips away) and exposes both pane views and **price-axis pane views**.
+
+> **Scope note.** This primitive is the only part of `user-price-alerts` this page owns. The user-facing alert panel — the sidebar Price Alerts group (`actions-sidebar/price-alert/*`), its create modal and delete confirmation, and the page-level `alertsService` load/create/delete flow that feeds this primitive — is documented on the Security Detail Page Surfaces page. Treat the delegates and renderer geometry below as the chart-side contract; go there for panel behaviour.
 
 - `UserPriceAlerts.attached` creates one `UserAlertPricePaneView(false)` and one `UserAlertPricePaneView(true)`, attaches the mouse handlers and subscribes `alertsChanged`, `mouseMoved` and `clicked` to `requestUpdate`. A click inside the price-scale button column (`xPositionRelativeToPriceScale` within the button width) adds an alert at `series.coordinateToPrice(y)`; a click on a hovered alert's remove button removes it.
 - `updateAllViews` computes renderer data **once** for both renderers, finds the alert closest to the pointer within `showCentreLabelDistance`, and sets `_hoveringID` / `_currentCursor = 'pointer'` when the pointer is over the add button or a remove button. `hitTest()` reports `externalId: 'user-alerts-primitive'`.

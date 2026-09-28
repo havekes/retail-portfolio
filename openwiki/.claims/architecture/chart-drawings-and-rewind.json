@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "pageVersion": "sha256:cb8c7531b4ba9a56624365572c1ddd78b517659c9f5bd7ea85cbe0b3874ee7f3",
+  "pageVersion": "sha256:8b758d243a9e6ba4e3a4e42d887c6f013ea683bdfbacdd2630d34fc5aaf89aab",
   "claims": [
     {
       "id": "claim_3585c07100e94b8683559dea580757c0",
@@ -837,10 +837,50 @@
           "version": "repo-lines-v1:sha256:7ee53fc90473f479f573c94ef52a8ea6c15fec53c7db95f4515ec000e13b827e:eyJzZWxlY3RlZExpbmVDb3VudCI6MTgxLCJmaXJzdFNlbGVjdGVkTGluZUhhc2giOiIzY2M5OWFjMTY1NzBjMTIyMzA1Nzc5M2U5OGExMzA2YzBhY2Y0NmYxNjBlOTgwNGEwYWNmOGY5ZDdhMTlkMDhmIiwibGFzdFNlbGVjdGVkTGluZUhhc2giOiJhOTQ5NDgxODdlNWNjY2M3YWNkOWY5Y2I4ZTcyNzU4ZThkNzQ2OTNkZWU0YWMwNzAwODY0YTRhYjhhZTE3N2YyIiwicHJlY2VkaW5nQ29udGV4dExpbmVDb3VudCI6MywicHJlY2VkaW5nQ29udGV4dEhhc2giOiJiZWMyYjEzOTZjOGExYWQ1MGQyMWU0ODBlZjliMDE5NmVlZTY3NjY4MWU2NzU0YmM2NDY0Yzc0Y2FkYmJhNjEwIiwiZm9sbG93aW5nQ29udGV4dExpbmVDb3VudCI6MCwiZm9sbG93aW5nQ29udGV4dEhhc2giOiJlM2IwYzQ0Mjk4ZmMxYzE0OWFmYmY0Yzg5OTZmYjkyNDI3YWU0MWU0NjQ5YjkzNGNhNDk1OTkxYjc4NTJiODU1In0"
         }
       ]
+    },
+    {
+      "id": "claim_520782acef5a4e3dad7ddf5a52d98b14",
+      "statement": "`user-price-alerts` is split across two ownership boundaries: this page owns only the chart-side series primitive (`plugins/user-price-alerts/` — its `MouseHandlers`, pane views, price-axis pane views, delegates and renderers), while the user-facing alert panel (the sidebar Price Alerts group under `actions-sidebar/price-alert/*`, its create modal and delete confirmation, and the page-level `alertsService` load/create/delete flow feeding the primitive) is owned by the Security Detail Page Surfaces page. The security page bridges the two by pushing `alerts` into `setAlerts([{ id: String(a.id), price: a.target_price }])` and turning the primitive's `alertAdded`/`alertRemoved` delegates into `onAddAlert`/`onRemoveAlert` calls.",
+      "evidence": [
+        {
+          "resource": "repo://frontend/src/lib/components/actions-sidebar/price-alert/price-alert-group.svelte#L1-L114",
+          "version": "repo-lines-v1:sha256:92b12d2bd2f7eb9558e857d87b28d6317c9804ed43d1f87a88ce374428a0a3c0:eyJzZWxlY3RlZExpbmVDb3VudCI6MTE0LCJmaXJzdFNlbGVjdGVkTGluZUhhc2giOiI5NGFiYzhlZDc1NDM4MjIwNjVjMDI5ZjVlYTI1MmQxMjIzZDc2YWE3ZDJkM2Q0ZmIxMjU4MTJmNmI1YTk5ZGRmIiwibGFzdFNlbGVjdGVkTGluZUhhc2giOiIzMTQwOWI4Y2UyMDFkN2IxNzFhNTRhNDI5MzY5MTQyY2FkNDFkYmRmYjEyOWNiMmE5MjUzZGRkYjEwZmI0MzZiIiwicHJlY2VkaW5nQ29udGV4dExpbmVDb3VudCI6MCwicHJlY2VkaW5nQ29udGV4dEhhc2giOiJlM2IwYzQ0Mjk4ZmMxYzE0OWFmYmY0Yzg5OTZmYjkyNDI3YWU0MWU0NjQ5YjkzNGNhNDk1OTkxYjc4NTJiODU1IiwiZm9sbG93aW5nQ29udGV4dExpbmVDb3VudCI6MCwiZm9sbG93aW5nQ29udGV4dEhhc2giOiJlM2IwYzQ0Mjk4ZmMxYzE0OWFmYmY0Yzg5OTZmYjkyNDI3YWU0MWU0NjQ5YjkzNGNhNDk1OTkxYjc4NTJiODU1In0"
+        },
+        {
+          "resource": "repo://frontend/src/lib/components/charts/plugins/user-price-alerts/user-price-alerts.ts#L29-L159",
+          "version": "repo-lines-v1:sha256:747fb1c2dd45e4e44f4050cce4d56b51092e3a0bff60085f030eb90ccd72e3bf:eyJzZWxlY3RlZExpbmVDb3VudCI6MTMxLCJmaXJzdFNlbGVjdGVkTGluZUhhc2giOiIyMDAyMTdjYmU1NTg0Y2NkMWU5N2EwNGMwNjA1MWJmYWVmZDIyOWVjM2FmMzgyODFiYjc2ZWYzMDczOTg1MDE2IiwibGFzdFNlbGVjdGVkTGluZUhhc2giOiI2N2NkYTgyZGE2MDYyMzhlMDVlNjIzOTk1NjljNWVlMDM5OTM0MTk2NDhhZTVkNDNhMmJmOGNkNjM0N2Y4MjYzIiwicHJlY2VkaW5nQ29udGV4dExpbmVDb3VudCI6MywicHJlY2VkaW5nQ29udGV4dEhhc2giOiJkZmJkMmFjZmZiODBkNTYwODA5ZDc2MDUxMDc1NTUyNzNjM2ExZDQyNjUzNGRjZTRhN2YzMTEwNmFjNjYyZTk3IiwiZm9sbG93aW5nQ29udGV4dExpbmVDb3VudCI6MywiZm9sbG93aW5nQ29udGV4dEhhc2giOiI3ZGQwMmM1Y2NiYjJmNDE2YjQ4NDhkZDkzNWM3YzliNWI2YmQ3ZmMxMjYxYTIzMjA5ODNhZWM2ZjVhYWNiYTZkIn0"
+        },
+        {
+          "resource": "repo://frontend/src/lib/components/charts/security-chart.svelte#L517-L525",
+          "version": "repo-lines-v1:sha256:5fc3a14f70974d126ba9623baf3c5293fe6e05c2cf700b3e614f237beb222ad8:eyJzZWxlY3RlZExpbmVDb3VudCI6OSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiNGZmZjA2MzM0OGExZTFhMzI1MTNlYWNjMDE2ZmMyNWNmZmVmMGI0YzkwYmYwYzg4OGVkNTg1N2YyMTNhMzJkYyIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiMGE3MzQ5MmQ4OTQ2YjFkMGY5ZDljMDRiNzA0YTkyMGYyNGY4OWVmN2M3ZjczMTFhODU5OWQxMGM3ZjYzNThkMCIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiZjE4YTNjNWZmMDhkZDc5NjAwOWU2MWU2NjU3NTZjNWE1NjdhOTJhNTFlODY0ZDUzOTE5MTU3NzE0NmM0ZGUxYiIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiMjA2NmNjZWY3ODE3ODEwNTk3ODliMGE2MDg0OWJjZDU2ODVjNDNhNjNjNjEzNGUyMzMwYzQ3MGE0NTRmMjcyYyJ9"
+        },
+        {
+          "resource": "repo://frontend/src/lib/components/charts/security-chart.svelte#L862-L879",
+          "version": "repo-lines-v1:sha256:b6beaeb82d5cd943b8f2f730b9a1e123871de2b475434d1731326e4aea9433ef:eyJzZWxlY3RlZExpbmVDb3VudCI6MTgsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAwMTM4Yzg4MDcyMDIyMTFkMmMxYzEwYWE4YzE0MDhmOTNjNzIzMTcyMjBiNTk3NDNhZmRhMWFkZThjMjgyMjAiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjZhMmEzYjc2ZTEyY2UxNTM3OWQwNWYyODY5ZGM0ODMyZGU3NTg5MDUzYjQ5YmZmMjM3ZTQyNWM3MjM3ODAxNTQiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImFhNDEyMDllNWFmMzAzNmQ3NTk5MDBlMjQ3MGFiODhmNzMzMjc2M2Y3M2ZiYTI4ZGQ5YzliMDdmY2FlYjljYmIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjAyZGZhNTc0YWQ4YzJhMGIyM2RjMmYzNmQ4ZTE1NmYxNDgwOTBhZTdkMmY1NWRjMzQ5OTk5YTc2YjE2YWI5YzUifQ"
+        },
+        {
+          "resource": "repo://frontend/src/routes/security/%5Bsecurity_id%5D/%2Bpage.svelte#L441-L449",
+          "version": "repo-lines-v1:sha256:e81ae32ccea3875c8f5cb42b6be95555b7c38527ea8133552793e5b9c626aa9b:eyJzZWxlY3RlZExpbmVDb3VudCI6OSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiOGNmMGMyNzY1Mjc1MTg5OTg4NDk3YWU1ODk4NTBiOGI4MTczNDAxZmY2NTlhZjlkMDdlMWE2ZTM4Y2Q1N2I0OSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNjdjZGE4MmRhNjA2MjM4ZTA1ZTYyMzk5NTY5YzVlZTAzOTkzNDE5NjQ4YWU1ZDQzYTJiZjhjZDYzNDdmODI2MyIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiMjJmMmZmNWZlZWM2MGY1ODdjOGZhZTRlODdmODA5YTY2MWNmZmVkNmI0N2FhZTVmNmQ2YTI2NTNhYTg5NTJlZiIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiNmE5NDRiZmJkMTk3OTE4NjEzN2JjOTc3NTA2NjJmOTlhYWZkYjFlMjU3ODUyNDQ3NTc4OTIxY2UzMGMzOGI3NyJ9"
+        }
+      ]
+    },
+    {
+      "id": "claim_1d4aeddc38024e1a8f094522ad3452d2",
+      "statement": "The price-alert primitive is the only `user-price-alerts` actor that this page documents; the sidebar Price Alerts group (`price-alert-group.svelte`) is a `GroupTitle`-headed `Sidebar.Group` whose list, create modal and delete confirmation are rendered from the `alerts` prop or fetched through `alertsService.getAlerts`, so its panel behaviour must be traced there rather than in the primitive.",
+      "evidence": [
+        {
+          "resource": "repo://frontend/src/lib/components/actions-sidebar/price-alert/price-alert-group.svelte#L14-L114",
+          "version": "repo-lines-v1:sha256:ea3f0ec201f710afbdc0ef9e0b3d69190df1b72567b403beb15cfd2df0e4ef4e:eyJzZWxlY3RlZExpbmVDb3VudCI6MTAxLCJmaXJzdFNlbGVjdGVkTGluZUhhc2giOiJjMGE4ZDI4Y2QwNzgyNTU1MjA0YjgwZDdmMzQ0MmU4NGNiMDJmYzIyNzQ0NjRkNDk2NTBjYTVjYzQ5YjI4N2UxIiwibGFzdFNlbGVjdGVkTGluZUhhc2giOiIzMTQwOWI4Y2UyMDFkN2IxNzFhNTRhNDI5MzY5MTQyY2FkNDFkYmRmYjEyOWNiMmE5MjUzZGRkYjEwZmI0MzZiIiwicHJlY2VkaW5nQ29udGV4dExpbmVDb3VudCI6MywicHJlY2VkaW5nQ29udGV4dEhhc2giOiJmZjQ4ZTkzMzI5OTBhNGFlYWFkMDMyOGYyYjA4OWRhODNmM2FlNzM0NWVjODVhZGExNzRjNjc2MjgyOGIyOTYxIiwiZm9sbG93aW5nQ29udGV4dExpbmVDb3VudCI6MCwiZm9sbG93aW5nQ29udGV4dEhhc2giOiJlM2IwYzQ0Mjk4ZmMxYzE0OWFmYmY0Yzg5OTZmYjkyNDI3YWU0MWU0NjQ5YjkzNGNhNDk1OTkxYjc4NTJiODU1In0"
+        },
+        {
+          "resource": "repo://frontend/src/lib/components/actions-sidebar/price-alert/price-alert-modal.svelte#L13-L60",
+          "version": "repo-lines-v1:sha256:8f5afd973d2c3ec1d555c121e6ca7530ad33b66104c06bf99d007e31c3bbf2a3:eyJzZWxlY3RlZExpbmVDb3VudCI6NDgsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjVhZmY2Nzg4MTY1Nzk0YmM2NGVmMWRlMzI3ZmEwYjM3YWI3OWMxZjNlN2Q1ZjdmOGE0NGJiNmIzM2I4NjkzMWIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjY0ZWZjNDk0MThkMjZkY2YxMjliMjJhNmFhMjExMDhjZWVjMzc2NzdhMzJkMDhlOWQ1ZmVlMzVkZGE2NmJiOWQiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjM0OWZkMGU2ZjA5NjYzNGVlNTZiZDczM2YxNTM3N2JkN2M5OWFmZWYxMDU3OTI2M2MyNTQ0NzdjYWRiMDBhOGIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImM2ZjYzMTMwNTdlODgzZGQ5MWZhMThkYzdkMDE2ODAyY2VhZWRmZjczNzc0ZTI0ZGVmZDRhODVmOTVkZmU3Y2MifQ"
+        }
+      ]
     }
   ],
   "verification": {
-    "by": "openwiki/0.5.2",
-    "at": "2026-09-23T13:18:56.288Z"
+    "by": "openwiki/0.6.0",
+    "at": "2026-09-28T16:25:02.439Z"
   }
 }

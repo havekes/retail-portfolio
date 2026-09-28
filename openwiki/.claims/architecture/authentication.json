@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "pageVersion": "sha256:ae6b2badf64c77ed7003758fde835caa4dce0c46ba4b3a17b6602a8e1c9e32cd",
+  "pageVersion": "sha256:a859fe44686bad345a187042a21a8118e5ce94873412ee8f2793c1950644c531",
   "claims": [
     {
       "id": "claim_ceb913d68ca541f89ee4b6829bd092a2",
@@ -388,7 +388,7 @@
         },
         {
           "resource": "repo://frontend/src/lib/components/accounts/accounts-list.svelte.ts#L52-L115",
-          "version": "repo-lines-v1:sha256:ee00494b22ac14f843d2bf999cc1ca1385a2cab4da6eab5b7cabde9768df39f8:eyJzZWxlY3RlZExpbmVDb3VudCI6NjQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImY1YWEzYTQzNjdlY2VmMTY4ZjM3YWI2NzYyMDc5ZTMzOTdhMzU0YTRhYjc2MzYyZjc2ODRlNDQzNDljODZiODIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjY3Y2RhODJkYTYwNjIzOGUwNWU2MjM5OTU2OWM1ZWUwMzk5MzQxOTY0OGFlNWQ0M2EyYmY4Y2Q2MzQ3ZjgyNjMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjIyZjJmZjVmZWVjNjBmNTg3YzhmYWU0ZTg3ZjgwOWE2NjFjZmZlZDZiNDdhYWU1ZjZkNmEyNjUzYWE4OTUyZWYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImU3Y2E5NjFlYTg5MzA0YzliMjc2NGJiMmJmM2QxYjg0ZDM2YmEyYTE5OWI5OTUxNzQ4ZDYzYmQ4MDJjNTczNjYifQ"
+          "version": "repo-lines-v1:sha256:9f293fd7980c7dbc1d41f20b0e2758becd3c4a6d5a1f784f875aedfa617cb1fe:eyJzZWxlY3RlZExpbmVDb3VudCI6NjUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImY1YWEzYTQzNjdlY2VmMTY4ZjM3YWI2NzYyMDc5ZTMzOTdhMzU0YTRhYjc2MzYyZjc2ODRlNDQzNDljODZiODIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjY3Y2RhODJkYTYwNjIzOGUwNWU2MjM5OTU2OWM1ZWUwMzk5MzQxOTY0OGFlNWQ0M2EyYmY4Y2Q2MzQ3ZjgyNjMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjIyZjJmZjVmZWVjNjBmNTg3YzhmYWU0ZTg3ZjgwOWE2NjFjZmZlZDZiNDdhYWU1ZjZkNmEyNjUzYWE4OTUyZWYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImU3Y2E5NjFlYTg5MzA0YzliMjc2NGJiMmJmM2QxYjg0ZDM2YmEyYTE5OWI5OTUxNzQ4ZDYzYmQ4MDJjNTczNjYifQ"
         }
       ]
     },
@@ -554,7 +554,7 @@
     }
   ],
   "verification": {
-    "by": "openwiki/0.5.2",
-    "at": "2026-09-18T20:16:58.058Z"
+    "by": "openwiki/0.6.0",
+    "at": "2026-09-28T16:25:02.439Z"
   }
 }

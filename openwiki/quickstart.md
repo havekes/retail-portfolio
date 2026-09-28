@@ -1,7 +1,7 @@
 ---
 type: reference
 title: Quickstart & Task Routing
-description: Entry point to the retail-portfolio wiki — what the repository is, how to run the Docker Compose stack from the single root .env, where each system lives, how agents are expected to consume the generated wiki, and a task-routing table that points backend-domain, config/DI, frontend-shell, chart-surface, chart-drawings-and-rewind, realtime-and-background-jobs, user-preferences, holdings-read-path, broker/CSV/market-data/AI, money, integration, dev-workflow, testing and agent-guidance work at the owning page.
+description: Entry point to the retail-portfolio wiki — what the repository is, how to run the Docker Compose stack from the single root .env, where each system lives, how agents are expected to consume the generated wiki, and a task-routing table that points backend-domain, config/DI, frontend-shell, chart-surface, chart-drawings-and-rewind, realtime-and-background-jobs, user-preferences, holdings-read-path, security-detail-panel, watchlists-and-sidebar, broker/CSV/market-data/AI, money, integration, dev-workflow, testing and agent-guidance work at the owning page.
 tags: [quickstart, task-routing, onboarding, repository-map, development-workflow, openwiki]
 sources:
   - id: openwiki-source-5f5b95b3d6a215fa02ceb945
@@ -24,6 +24,10 @@ sources:
     resource: repo://frontend/src/lib/components/holdings/holdings-table.svelte
   - id: openwiki-source-3f8311916804417f28db7f0d
     resource: repo://frontend/src/lib/components/layout/app-sidebar-actions.svelte
+  - id: openwiki-source-d57b417669cd777cd7bd205b
+    resource: repo://frontend/src/lib/components/layout/app-sidebar-watchlist.svelte
+  - id: openwiki-source-04059ae9c861b675fbebe0d7
+    resource: repo://frontend/src/lib/components/watchlist/watchlistService.svelte.ts
   - id: openwiki-source-846f5f71a06546739c7f1ccb
     resource: repo://frontend/src/routes/%2Bpage.server.ts
   - id: openwiki-source-b8584948ed4a6fee33406f78
@@ -32,6 +36,10 @@ sources:
     resource: repo://frontend/src/routes/holdings/%2Bpage.server.ts
   - id: openwiki-source-17695a0429275bdf8c6b0e99
     resource: repo://frontend/src/routes/holdings/%2Bpage.svelte
+  - id: openwiki-source-a680cc2053312375d46bcfe4
+    resource: repo://frontend/src/routes/watchlists/%2Bpage.server.ts
+  - id: openwiki-source-68c192b8e5d3899c314276cf
+    resource: repo://frontend/src/routes/watchlists/%2Bpage.svelte
   - id: openwiki-source-378e3cf05ab0d05d335c68d5
     resource: repo://frontend/vite.config.ts
   - id: openwiki-source-c59fe4336a371ea1052a01dd
@@ -54,10 +62,10 @@ sources:
     resource: repo://src/worker_dashboard/router.py
   - id: openwiki-source-7a8d629077019775a9fec3d3
     resource: repo://src/worker.py
-generated: { by: "openwiki/0.6.0", at: "2026-09-26T12:38:50.029Z" }
+generated: { by: "openwiki/0.6.0", at: "2026-09-28T16:25:02.439Z" }
 verified:
   - by: openwiki/0.6.0
-    at: 2026-09-26T12:38:50.029Z
+    at: 2026-09-28T16:25:02.439Z
 ---
 
 # Quickstart & Task Routing
@@ -102,6 +110,7 @@ move any custom values into the root `.env` and delete them.
 `huey_consumer src.worker.huey -w 2 --worker-type thread --periodic` under `watchfiles`
 reload, so task changes are picked up without restarting Compose. Nothing in a request
 path runs those tasks, and the dashboard API is mounted on the backend app, not the
+<!-- openwiki: broken internal link [./workflows/realtime-and-background-jobs.md] file "./workflows/realtime-and-background-jobs.md" does not exist. Fix the href or restore the target, then delete this comment. -->
 worker — see [Realtime, Background Jobs & the Worker](./workflows/realtime-and-background-jobs.md).
 
 Two configuration details bite when ports change: the frontend service receives
@@ -133,6 +142,9 @@ CI (`.github/workflows/ci.yml`) runs the same verification in three jobs: backen
 
 ## If you are changing X, read Y
 
+The routing table below is keyed by **the change you are making**, not by module name.
+Every other page in this wiki is reachable from it.
+
 | You are changing… | Read |
 |---|---|
 | Anything at the system level: processes, startup, request flow, layer rules | [Architecture Overview](./architecture/overview.md) |
@@ -144,10 +156,13 @@ CI (`.github/workflows/ci.yml`) runs the same verification in three jobs: backen
 | Anything persisted per user: the `/accounts/me/preferences` contract, key ownership, merge/`exclude_none` semantics | [User Preferences](./concepts/user-preferences.md) |
 | Signup/login, the `auth_token` JWT, 2FA/TOTP, passkeys, ownership authorization, the WS ticket | [Authentication & Authorization](./architecture/authentication.md) |
 | The holdings read path: the accounts dashboard, `/accounts/[id]`, cross-account `/holdings`, holdings table columns/grouping/preferences | [Accounts & Holdings Views](./workflows/accounts-and-holdings-views.md) |
+| The non-chart panels of `/security/[security_id]`: the actions-sidebar group contract, notes/documents CRUD and uploads, the holdings modal, price-alert panels, the page-level data-wave and preference orchestration | [Security Detail Page Surfaces](./workflows/security-detail-page-surfaces.md) |
+| Watchlists and the app shell: watchlist CRUD/membership/reorder, multi-watchlist reads with price enrichment, `WatchlistService` client state, sidebar groups and collapse/reorder, the `/watchlists` page, global search, ticker/section shortcuts | [Watchlists, Sidebar & Global Navigation](./workflows/watchlists-and-sidebar.md) |
 | Broker connect, Wealthsimple login/OTP, position import and the Huey sync task | [Broker Connect, Import & Position Sync](./workflows/broker-sync.md) |
 | CSV templates, account discovery, the inspect → import → sync lifecycle | [CSV Account Import & Sync](./workflows/csv-import.md) |
 | Price fetches/backfill, daily & intraday tasks, the downstream recalc/alert cascade, indicator computation | [Market Data, Indicators & the Price Update Cascade](./workflows/market-data-and-indicators.md) |
 | AI context assembly, fundamentals/notes/debate endpoints, the async title task | [AI Analysis Flows](./workflows/ai-analysis.md) |
+<!-- openwiki: broken internal link [./workflows/realtime-and-background-jobs.md] file "./workflows/realtime-and-background-jobs.md" does not exist. Fix the href or restore the target, then delete this comment. -->
 | The worker: task registries, periodic/on-demand jobs, retries, the Redis WebSocket fan-out, sync-status keys, the frontend consumer | [Realtime, Background Jobs & the Worker](./workflows/realtime-and-background-jobs.md) |
 | An outbound dependency: EODHD, Wealthsimple, the AI endpoint, SMTP/mailcrab, Redis, the indicator sidecar | [External Services & Adapters](./integrations/external-services.md) |
 | Money, currency conversion, totals, holdings/P&L math, rounding | [Money & Currency Handling](./concepts/money-and-currency.md) |

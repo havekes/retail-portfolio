@@ -3,9 +3,6 @@ type: Reference
 title: External Services & Adapters
 description: Catalog of every outbound dependency in retail-portfolio — EODHD market data, Wealthsimple brokerage via ws-api, the OpenAI-compatible AI endpoint, SMTP email, Redis and the Go indicator sidecar — with the adapter, configuration variables, stub counterparts, failure mapping and security caveats that own each boundary.
 tags: [integrations, external-services, adapters, eodhd, wealthsimple, ai, smtp, redis, stubs, configuration, security]
-verified:
-  - by: openwiki/0.5.2
-    at: 2026-09-18T20:16:58.058Z
 sources:
   - id: openwiki-source-5f5b95b3d6a215fa02ceb945
     resource: repo://.env.example
@@ -31,6 +28,8 @@ sources:
     resource: repo://src/integration/brokers/exception.py
   - id: openwiki-source-aa78a7160d509484cbcaaf33
     resource: repo://src/integration/brokers/wealthsimple.py
+  - id: openwiki-source-1d65188722b62c70565d1cc3
+    resource: repo://src/integration/registry.py
   - id: openwiki-source-cf06e2dd885c3f0f11447b4f
     resource: repo://src/integration/sync_status.py
   - id: openwiki-source-1bc1a904875e872775adbd74
@@ -77,7 +76,10 @@ sources:
     resource: repo://tests/market/test_indicator_client.py
   - id: openwiki-source-382eb74e97d472ad5d0b6234
     resource: repo://tests/routers/test_notes.py
-generated: { by: "openwiki/0.5.2", at: "2026-09-18T20:16:58.058Z" }
+generated: { by: "openwiki/0.6.0", at: "2026-09-28T16:25:02.439Z" }
+verified:
+  - by: openwiki/0.6.0
+    at: 2026-09-28T16:25:02.439Z
 ---
 
 # External Services & Adapters
@@ -117,17 +119,29 @@ caller changes. The concrete stub classes registered by the stub path are:
 
 | Abstract key | Live factory | Stub class registered |
 |--------------|--------------|-----------------------|
+| `WealthsimpleApiGateway` | `wealthsimple_api_wrapper_factory` (→ `WealthsimpleApiGateway`) | `StubWealthsimpleApiGateway` (`src/stubs/wealthsimple.py`) |
 | `MarketGateway` | `eodhd_gateway_factory` (→ `EodhdGateway`) | `StubEodhdGateway` (via the factory re-check) |
 | `PriceRepository` | `eodhd_price_repository_factory` | same — it wraps `eodhd_gateway_factory` |
 | `AIService` | `ai_service_factory` (→ `AIService`) | `StubAIService` (`src/stubs/ai.py`) |
-| `WealthsimpleApiGateway` | `wealthsimple_api_wrapper_factory` | `StubWealthsimpleApiGateway` (`src/stubs/wealthsimple.py`) |
+
+The two registration functions are otherwise parallel: `register_integration_stub_services`
+and `register_integration_services` register the same `IntegrationUserRepository`,
+`IntegrationUserService` and API keys, differing only in the gateway factory;
+`register_market_stub_services` mirrors `register_market_services` key for key, and both
+use `eodhd_gateway_factory` for `MarketGateway` and `indicator_service_client_factory` for
+`IndicatorServiceClient`, so the stub switch does not touch the sidecar client.
 
 Two details matter when changing anything here:
 
-- The stub registrations are imported **lazily inside the function bodies** of
-  `register_integration_stub_services` / `register_market_stub_services`. This is
-  deliberate: importing the stub modules eagerly would pull vendor SDKs
-  (`ws_api`, `eodhd`) onto the wrong path. Keep the local imports local.
+- `register_integration_stub_services` and `register_market_stub_services` import their
+  other modules **lazily inside the function bodies** (the `# noqa: PLC0415` blocks) so the
+  live modules are not pulled in on the stub path. The **one exception** is
+  `StubWealthsimpleApiGateway`, imported eagerly at module scope of
+  `src/config/services.py`: unlike `src/integration/brokers/wealthsimple.py`, which starts
+  with `from ws_api import WealthsimpleAPI`, the stub module has no vendor SDK import, so
+  pulling it in early is safe. `StubAIService` and `StubEodhdGateway` remain lazily
+  imported — the latter inside `eodhd_gateway_factory` itself. Keep the remaining imports
+  local.
 - `eodhd_gateway_factory` **re-checks** `settings.stub_external_api` itself and returns
   `StubEodhdGateway` when the flag is set — even when the *live* registration path runs.
   So there are two independent checks for the EODHD gateway. They must stay consistent:

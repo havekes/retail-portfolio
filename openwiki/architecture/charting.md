@@ -3,9 +3,6 @@ type: architecture
 title: "Charting: Chart Surface, Panes & Indicators"
 description: "The chart rendering surface of the security route: security-chart.svelte's mount/series/primitive lifecycle, candle updates, pagination and future whitespace, the scaleMargins price-scale pane model with custom pane heights, timeframe and chart-style preferences, the server-side indicator compute path and its out-of-order guard, chart settings, and the price-alert primitive."
 tags: [charting, lightweight-charts, indicators, panes, price-alerts, chart-preferences, svelte]
-verified:
-  - by: openwiki/0.5.2
-    at: 2026-09-23T13:18:56.288Z
 sources:
   - id: openwiki-source-e483fd3285d99d05c7b265cf
     resource: repo://frontend/AGENTS.md
@@ -25,6 +22,8 @@ sources:
     resource: repo://frontend/src/lib/chart/indicator-pane-layout.ts
   - id: openwiki-source-6fefb7b02941c114f4550918
     resource: repo://frontend/src/lib/components/charts/chart-settings-modal.svelte
+  - id: openwiki-source-a9460eb617e8b683c329d161
+    resource: repo://frontend/src/lib/components/charts/plugins/bands-indicator.ts
   - id: openwiki-source-e03b7d6203bf399f13c8a612
     resource: repo://frontend/src/lib/components/charts/plugins/fibonacci/fibonacci.test.ts
   - id: openwiki-source-c19a08eca0dccf2c925cc86a
@@ -63,7 +62,10 @@ sources:
     resource: repo://src/market/router.py
   - id: openwiki-source-9fc85bceeb3edfbe3ab56a7c
     resource: repo://src/market/service.py
-generated: { by: "openwiki/0.5.2", at: "2026-09-23T13:18:56.288Z" }
+generated: { by: "openwiki/0.6.0", at: "2026-09-28T16:25:02.439Z" }
+verified:
+  - by: openwiki/0.6.0
+    at: 2026-09-28T16:25:02.439Z
 ---
 
 This page covers the chart *surface*: the `lightweight-charts` wrapper, its data and pane lifecycle, chart preferences, the indicator pipeline and the price-alert primitive. Drawing tools, their series-primitive plugins, drawing persistence and the snapshot/rewind pipeline are documented on [Chart Drawings, Plugins & Rewind](./chart-drawings-and-rewind.md) — this page only points at them.
@@ -172,7 +174,7 @@ flowchart TD
 
 The candle `$effect` is the only writer of series data; the visible-range subscription drives pagination and whitespace expansion from the same prop.
 
-Pagination lives on the same subscription: when `range.from <= 10 && !isLoadingMore && hasMoreData`, the component sets `isLoadingMore = true` and calls `onLoadMoreData()`. The page's `handleLoadMoreData` guards with `shouldFetchMoreData(...)`, fetches the older window for the active interval, maps/sorts candles, merges with `mergeCandles` (dedupe by `String(time)`, prepend), recomputes Heikin-Ashi candles and refreshes indicators — setting `hasMoreData = false` when the fetch is empty or adds nothing. An `$effect` also forces `isLoadingMore = false` whenever `hasMoreData` goes false.
+Pagination lives on the same subscription: when `range.from <= 10 && !isLoadingMore && hasMoreData`, the component sets `isLoadingMore = true` and calls `onLoadMoreData()`. The page's `handleLoadMoreData` bails first when the page is rewound and then guards with `shouldFetchMoreData(...)`, fetches the older window for the active interval, maps/sorts candles, merges with `mergeCandles` (dedupe by `String(time)`, prepend), recomputes Heikin-Ashi candles and refreshes indicators — setting `hasMoreData = false` when the fetch is empty or adds nothing. An `$effect` also forces `isLoadingMore = false` whenever `hasMoreData` goes false.
 
 Future whitespace is what makes drawing *ahead* of the last candle possible. `generateFutureWhitespace(candles, count)` returns `[]` for fewer than two candles or a non-positive count, derives the bar interval from the median spacing of the most recent candles (`computeIntervalSeconds`, last 8 spacings) and appends `count` whitespace points one interval apart via `addIntervalToTime`, preserving the reference candle's `Time` shape (epoch seconds vs. `YYYY-MM-DD` vs. `BusinessDay`). `checkAndExpandWhitespace(range)` re-enters only when it is not already updating, grows the count when the visible range approaches the right edge (threshold `max(lastCandleIndex + 1, currentEndIndex - 30)`, target `ceil(range.to - lastCandleIndex) + 100`) or when the container is wide enough to need more bars (`ceil(clientWidth / 4) + 100`), and re-applies the previously saved visible logical range so the expansion is invisible to the user.
 
@@ -221,7 +223,7 @@ The component renders one absolutely-positioned resize handle per *adjacent* pan
 
 ### Persistence: the `indicator_pane_heights` preference
 
-The page owns persistence:
+The page owns persistence, and `indicator_pane_heights?: Record<string, number> | null` is a field of the `UserPreferences` interface in `$lib/api/userPreferencesService.ts`:
 
 - `handlePaneHeightsChange(heights)` updates local `userPreferences` and PATCHes `{ indicator_pane_heights: heights }` — the whole key every time, because PATCH replaces it; a reset sends `null`.
 - `applySavedPaneHeights(prefs)` calls `chartRef?.setPaneHeights?.(heights)` behind a `setTimeout(..., 100)` so the chart ref is bound first, and does nothing when the stored map is absent or empty. It runs both from the init chain and from `onPreferencesLoaded`.
@@ -283,7 +285,7 @@ The route validates the window (`from_date <= to_date`, otherwise 422), then:
 - builds candles from the daily price repository (aggregating to weekly or monthly when asked) or from the intraday repository (aggregating to 4h), or uses `request.candles` verbatim;
 - converts to Heikin-Ashi server-side when `chart_style === 'heikin_ashi'`;
 - calls the external indicator service through `IndicatorServiceClient.compute` (timeouts become 504, connection errors and 5xx become 503);
-- **consults and populates `IndicatorCache` only when `request.candles` is absent**. That is the point of the caller-supplied path: the rewind payload (`getRewoundCandlesPayload()`, which slices `rawCandles` at the timeline position) must never be served from, or written to, the cache, because the cache key describes security + interval + chart style + a digest of the canonical indicator specs and the date window — not the caller's candle set.
+- **consults and populates `IndicatorCache` only when `request.candles` is absent**. That is the point of the caller-supplied path: the rewind payload (`getRewoundCandlesPayload()`, which slices `rawCandles` at the timeline position) must never be served from, or written to, the cache, because the cache key describes security + interval + chart style + a SHA-256 digest of the canonical indicator specs and the date window — not the caller's candle set.
 
 ### Round trip and the out-of-order guard
 
@@ -350,16 +352,17 @@ The modal is opened from the toolbar settings button or with `Cmd/Ctrl+,`, which
 - `UserAlertsState` stores alerts in a `Map`, exposes `alertAdded` / `alertRemoved` / `alertChanged` / `alertsChanged` delegates, keeps a price-descending array view, and generates random 6-digit ids, regenerating on collision.
 - Rendering uses `positionsLine` for the alert line, the centre label, its divider and the price-scale label.
 
-The chart component bridges the primitive to the backend: an `$effect` pushes `alerts` into `setAlerts([{ id: String(a.id), price: a.target_price }])`; `alertAdded` derives the condition from the last candle close (`price > close ? 'above' : 'below'`) and calls `onAddAlert`; `alertRemoved` parses the string id back to a number and calls `onRemoveAlert`. The page then creates/deletes through `AlertsService` and reloads the alert list, so the primitive always renders server state.
+The chart component bridges the primitive to the backend: an `$effect` pushes `alerts` into `setAlerts([{ id: String(a.id), price: a.target_price }])`; `alertAdded` derives the condition from the last candle close (`price > close ? 'above' : 'below'`) and calls `onAddAlert`; `alertRemoved` parses the string id back to a number and calls `onRemoveAlert`. The page then creates/deletes through `AlertsService` and reloads the alert list, so the primitive always renders server state. The alert list/creation/editing UI itself lives in [Security Detail Page Surfaces](../workflows/security-detail-page-surfaces.md); this page owns only what the chart binds.
 
 ### Wave-derived alerts
 
-Wave targets produce real price alerts with `source: 'wave'`. `handleWaveSettingsChange` (and the drawings service's wave-change path) call `scheduleWaveAlertsReconcile`, which chains `reconcileWaveAlertsForSecurity` onto a single promise — `onWaveChange` fires once per placed point, and concurrent reconciles reading stale `alerts` state would double-create. The reconcile reads `wave_settings` (defaulting to `DEFAULT_WAVE_SETTINGS`), computes desired levels with `computeWaveAlertLevels(settings, securityElliottWaves, lastClose)`, diffs them with `reconcileWaveAlerts(alerts, desired)`, applies the deletes and creates in parallel and calls `loadAlerts()` when anything changed. The initial page load also reconciles, but only after preferences have loaded, so a failed preference fetch can never mass-delete wave alerts. A reconcile failure only logs — the next run self-heals.
+Wave targets produce real price alerts with `source: 'wave'`. `handleWaveSettingsChange` (and the drawings service's wave-change path) call `scheduleWaveAlertsReconcile`, which chains `reconcileWaveAlertsForSecurity` onto a single promise — `onWaveChange` fires once per placed point, and concurrent reconciles reading stale `alerts` state would double-create. The reconcile reads `wave_settings` (defaulting to `DEFAULT_WAVE_SETTINGS`), computes desired levels with `computeWaveAlertLevels(settings, securityElliottWaves, lastClose)`, diffs them with `reconcileWaveAlerts(alerts, desired)`, applies the deletes and creates in parallel and calls `loadAlerts()` when anything changed. Both `scheduleWaveAlertsReconcile` and the reconcile body no-op while the chart is rewound, so scrubbing the timeline cannot mutate live alerts. The initial page load also reconciles, but only after preferences have loaded, so a failed preference fetch can never mass-delete wave alerts. A reconcile failure only logs — the next run self-heals.
 
 ## Related rendering surfaces
 
 - `utils/date.ts` supplies the chart's time formatting: `formatLocalTime` renders epoch seconds as `YYYY-MM-DD HH:mm` and passes date strings through unchanged (and formats a `BusinessDay` object itself), while `formatLocalTickMark` returns `null` for non-numeric times and otherwise formats by `TickMarkType` (year / month / day / time / time-with-seconds). `getChartDateWindow` is the shared window helper for both the initial load and every timeframe change.
 - `sparkline.svelte` is a chart-library-free SVG sparkline: it derives values from numbers or `Candle.close`, builds a Catmull-Rom smoothed line plus an area path in a fixed `0 0 100 height` view box, colors by first-vs-last trend (or an explicit `isPositive`/`color`), and is used by the holdings views — it never touches `lightweight-charts`.
+- `bands-indicator.ts` is the only indicator-attached series primitive: it draws the Bollinger band fill as a polygon between the upper and lower `LineSeries` in a `bottom`-z-order pane view, and is detached explicitly by `removeIndicator('bb')` before its three series are removed.
 
 ## Testing conventions
 

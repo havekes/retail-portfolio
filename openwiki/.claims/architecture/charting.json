@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "pageVersion": "sha256:a8724753acfe863dbd6125da36ceab330802eff7fc3b1d37604133ca1e45a6c8",
+  "pageVersion": "sha256:7eec8b3376f5b785df898a6a3b71d164f1fe8fa0944635d0865c17b0c2dc0893",
   "claims": [
     {
       "id": "claim_5df96f2816c44d53858f0d0400053d41",
@@ -321,8 +321,8 @@
       "statement": "Pane heights persist through the indicator_pane_heights user preference: the page's handlePaneHeightsChange updates local userPreferences and PATCHes the whole key (sending null on reset, because PATCH replaces it), and applySavedPaneHeights restores a stored map by calling chartRef.setPaneHeights behind a setTimeout(..., 100) so the chart ref is bound first, no-oping when the stored map is absent or empty.",
       "evidence": [
         {
-          "resource": "repo://frontend/src/lib/api/userPreferencesService.ts#L63-L80",
-          "version": "repo-lines-v1:sha256:aebac163f6422fcf5a66443cbd73ed845c4ef9495d1ff3751869909feb689688:eyJzZWxlY3RlZExpbmVDb3VudCI6MTgsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjljZDMyNGJjZjhhYjc1MjI2ODc5ZTE3YzIyZTYyNDQ2MWUxNGZiNjRiMzEwMjQzZmZjNTQ1NjNkYWYxNzgyNDQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQxMmNhMzQ1Y2NmNzViZjljMDgwNmJjZTY5NWJlOGRlODA4Yjc5OTg0MjUxYTdhNTRkMjAyY2Y2MTAxZGQ0NTEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImFhOTc3ODQyYWRjMmUwOTYzODMzM2Q2NDM4NmFmNzRkZTUwZjg2OGQyYzI2NzVhOWRmNzdhYWI2ZGM1ODcyMGQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImQ3ZDE5MDA5MTZhMjkyOTI1MWY0NDg3N2MyZTRiMjgxNTcyYmY2MGFiM2NlNGQ2YWQyMTFiNTFiOTJkMGZjNDIifQ"
+          "resource": "repo://frontend/src/lib/api/userPreferencesService.ts#L63-L81",
+          "version": "repo-lines-v1:sha256:51250ea2aaca0bef74d98279cbb13f4808236a1ee299d6ac3ae4215fbc2ad068:eyJzZWxlY3RlZExpbmVDb3VudCI6MTksImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjljZDMyNGJjZjhhYjc1MjI2ODc5ZTE3YzIyZTYyNDQ2MWUxNGZiNjRiMzEwMjQzZmZjNTQ1NjNkYWYxNzgyNDQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQxMmNhMzQ1Y2NmNzViZjljMDgwNmJjZTY5NWJlOGRlODA4Yjc5OTg0MjUxYTdhNTRkMjAyY2Y2MTAxZGQ0NTEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImFhOTc3ODQyYWRjMmUwOTYzODMzM2Q2NDM4NmFmNzRkZTUwZjg2OGQyYzI2NzVhOWRmNzdhYWI2ZGM1ODcyMGQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImQ3ZDE5MDA5MTZhMjkyOTI1MWY0NDg3N2MyZTRiMjgxNTcyYmY2MGFiM2NlNGQ2YWQyMTFiNTFiOTJkMGZjNDIifQ"
         },
         {
           "resource": "repo://frontend/src/routes/security/%5Bsecurity_id%5D/%2Bpage.svelte#L518-L536",
@@ -507,10 +507,58 @@
           "version": "repo-lines-v1:sha256:a63ea1faf64eb1a8771c4f0525a9fd1302e1f911bddb93fa942c7ff33de48335:eyJzZWxlY3RlZExpbmVDb3VudCI6MjMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjE0M2E5YjFmOWY4ZTdmNGJmMTcwNTE0ZDg2NDEzOWQ0NGYxMjVjMDBkNGEzYjhkODM0MWE3NmQ5ZjI1YjY4YTgiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjA2MzcwYTI1ZGE5OGVjZmViODAzNGVjODdhZTAyMTJhODQyMThmOTAzNDk0MGNlZjZlOWM1MTQ5NjM2MzE0OWUiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjVlZGFiN2Y5MzY4MjE4NTJkMjIwNjYzZjE1NzAxMjJjYjhiNDQ3MTI4OTM2OWY2OWI3MDYyNDViMTQ4OTMyMzEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjYyOWM5YzdhMmRjZjRjMjQwZGU1MTE1Njk1MWY4NzIzODY3NzNiNzBlNmEwMjJjZjliZDNlNjZiZmRhOTgxNDMifQ"
         }
       ]
+    },
+    {
+      "id": "claim_a5c7df3110064740ae8219a5451ead22",
+      "statement": "Wave-derived price-alert reconciliation is suppressed while the chart is rewound: both scheduleWaveAlertsReconcile and reconcileWaveAlertsForSecurity return early when isRewound is true, so scrubbing the rewind timeline cannot create or delete live wave alerts; the same serialized-promise chain still prevents concurrent reconciles from double-creating.",
+      "evidence": [
+        {
+          "resource": "repo://frontend/src/routes/security/%5Bsecurity_id%5D/%2Bpage.svelte#L461-L504",
+          "version": "repo-lines-v1:sha256:27cab7181a8743c2b8deccafa0916256b2fd762f987c9331602b793ede5e1620:eyJzZWxlY3RlZExpbmVDb3VudCI6NDQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjgzNGQwYzA1ZjM0MDgwNDNjNjI5MWE3Mzk5MTBjMDI0MThjYTgxN2ZlOTg4NmZhODBiZWQ5MWVhMzEyNTJkZmIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjY3Y2RhODJkYTYwNjIzOGUwNWU2MjM5OTU2OWM1ZWUwMzk5MzQxOTY0OGFlNWQ0M2EyYmY4Y2Q2MzQ3ZjgyNjMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjIyZjJmZjVmZWVjNjBmNTg3YzhmYWU0ZTg3ZjgwOWE2NjFjZmZlZDZiNDdhYWU1ZjZkNmEyNjUzYWE4OTUyZWYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjI3MWYwNGU2ZmY5NGJiYjdhYjljZmE1MmFlOWQxMzAxYmU1MjExNGYyOTczYmZjMTYzMmMxMGJjNzMxODUyZDUifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_71da3de79afb412790c6efa1900ee6dd",
+      "statement": "handleLoadMoreData bails out immediately when the chart is rewound (isRewound) before its shouldFetchMoreData guard, so pagination cannot append live history to a rewound candle set.",
+      "evidence": [
+        {
+          "resource": "repo://frontend/src/routes/security/%5Bsecurity_id%5D/%2Bpage.svelte#L231-L294",
+          "version": "repo-lines-v1:sha256:950b0d59fdb99a117cdbf34b5bdcde34e133e6d47160b604f499c00dc1085e93:eyJzZWxlY3RlZExpbmVDb3VudCI6NjQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijg5NzAzMTVlNDA5MzcxZWIxM2JjNTE5YWYyNDRmZjBkYzlmMTM3M2FhZTRmN2RiMDNkNzJiNzcwYTFlOWU0NDciLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjY3Y2RhODJkYTYwNjIzOGUwNWU2MjM5OTU2OWM1ZWUwMzk5MzQxOTY0OGFlNWQ0M2EyYmY4Y2Q2MzQ3ZjgyNjMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjIyZjJmZjVmZWVjNjBmNTg3YzhmYWU0ZTg3ZjgwOWE2NjFjZmZlZDZiNDdhYWU1ZjZkNmEyNjUzYWE4OTUyZWYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImMyZGJkMjQxZGU4MzEwZTAzZDUyYmI5ZTY4ZjI1MjBlNTMwNzRhMzNlZDc3ZGViYjlhZWYwZDlkNjBmNjdlYzkifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_68f7493ab5944d4aab97d3a466a9547a",
+      "statement": "BandsIndicator is the only indicator-attached series primitive: it renders the Bollinger band fill as a polygon between the upper and lower edges in a 'bottom' z-order pane view, and removeIndicator('bb') detaches it explicitly before removing the three Bollinger LineSeries.",
+      "evidence": [
+        {
+          "resource": "repo://frontend/src/lib/components/charts/plugins/bands-indicator.ts#L28-L83",
+          "version": "repo-lines-v1:sha256:b2ed725250a36a31abcb1cb8fcb9faafc9529b1f9b17bcd8c7d8b35b2548bf8c:eyJzZWxlY3RlZExpbmVDb3VudCI6NTYsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImE0MWQ1M2Y5NTQyYmFiMDVkNjBkNGQyY2Q4NTExZjEyNzE0NWVjMjNjOGVkYzFlZDIwNmM1M2Q3YjY5MWJlNDMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQxMmNhMzQ1Y2NmNzViZjljMDgwNmJjZTY5NWJlOGRlODA4Yjc5OTg0MjUxYTdhNTRkMjAyY2Y2MTAxZGQ0NTEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjFkZTBiYmZjN2UyMTU1MjZiZWVjMjQxZDMzOTJlYjUwMzExYjA2MzUxMzNkZGM2MTU0ZjU4MzIwYzg1NzE1MGQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjUyOTJhYTU4ZDBiODI1M2Q2MTg5ZTk1MjQyZTc0YzdlYWRjZjNkMDVlNDlhODM1MjcxOWUwYzBlMDRkNmVjNjcifQ"
+        },
+        {
+          "resource": "repo://frontend/src/lib/components/charts/security-chart.svelte#L1389-L1397",
+          "version": "repo-lines-v1:sha256:b9816f19592b8dd347c505bcaee785b123935125cfffbf0a5fb1af9331b40ef0:eyJzZWxlY3RlZExpbmVDb3VudCI6OSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiNDc1M2UwNGI2OWU2NTYzYzIwZDUyNDkwMWE5M2QyMjdkODA5ODQ1ZDFjMTI1MDkwYTg0OGJiNTFiMTgwMTg0NCIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNjRlZmM0OTQxOGQyNmRjZjEyOWIyMmE2YWEyMTEwOGNlZWMzNzY3N2EzMmQwOGU5ZDVmZWUzNWRkYTY2YmI5ZCIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiZmEwZDE0MWI5YjNlNzEwMmY1MTkzOWEwZGVlZGNiMWM2NjRmMzYzMDZiMTMyYTU2YjdmNGI3YTE4MWI4YjBmMCIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiMTc5ZGRjMWY5ODAyMjUzM2M0NjYzMzgwOTNjZGRmZDA3YTkwOTFmNmUzM2VjYTIyNTY2MjM5YzhmNmZiYjE2ZSJ9"
+        }
+      ]
+    },
+    {
+      "id": "claim_35a2529a827b463bacf291bfe250cc11",
+      "statement": "Alert group/list/create/edit CRUD UI is out of scope for this page: the charting page documents only the chart-bound alert rendering (the UserPriceAlerts primitive and the page's add/remove/reload bridge), and defers the alert group and modal CRUD surfaces to the Security Detail Page Surfaces page.",
+      "evidence": [
+        {
+          "resource": "repo://frontend/src/lib/components/charts/security-chart.svelte#L517-L525",
+          "version": "repo-lines-v1:sha256:5fc3a14f70974d126ba9623baf3c5293fe6e05c2cf700b3e614f237beb222ad8:eyJzZWxlY3RlZExpbmVDb3VudCI6OSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiNGZmZjA2MzM0OGExZTFhMzI1MTNlYWNjMDE2ZmMyNWNmZmVmMGI0YzkwYmYwYzg4OGVkNTg1N2YyMTNhMzJkYyIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiMGE3MzQ5MmQ4OTQ2YjFkMGY5ZDljMDRiNzA0YTkyMGYyNGY4OWVmN2M3ZjczMTFhODU5OWQxMGM3ZjYzNThkMCIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiZjE4YTNjNWZmMDhkZDc5NjAwOWU2MWU2NjU3NTZjNWE1NjdhOTJhNTFlODY0ZDUzOTE5MTU3NzE0NmM0ZGUxYiIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiMjA2NmNjZWY3ODE3ODEwNTk3ODliMGE2MDg0OWJjZDU2ODVjNDNhNjNjNjEzNGUyMzMwYzQ3MGE0NTRmMjcyYyJ9"
+        },
+        {
+          "resource": "repo://frontend/src/routes/security/%5Bsecurity_id%5D/%2Bpage.svelte#L552-L565",
+          "version": "repo-lines-v1:sha256:5755f7a414907de143e881c46073d2673e5887350e55f8605ed612762bf8c9a6:eyJzZWxlY3RlZExpbmVDb3VudCI6MTQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjkwZDc4NjAwNTMxMWZhMmFhYjgyNjRkZTE4Mjg5MDA4MjhiZGU1OGI4OTYxZTdhOWU5NTc2NTBhMzIwYjgxYjEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjViNzA1MzA3Mzc2ZDNiYmExN2MzMjQzNWYzNTE5OTBiMTVlYzU1Y2Q3MTVjY2NkOTg4ZDMzZmYxNDY1Njg1MmIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjhiMjQ4MzEwMTA3YmQ2ZmE2NTI4NDRkOGQwYjZlZTc1MDRkZDYyZDExMDg2MGVlNTE0ZWEyYjA3ZGZjZDU1YzEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjI2MjRiMTIwODJkZTJhZDcwNjU3ZjRlMmEwNmU0NWJlZTMzOWYzZDNiZmEwODFlM2I4MjFlNzJmZDlhNmY2YmEifQ"
+        }
+      ]
     }
   ],
   "verification": {
-    "by": "openwiki/0.5.2",
-    "at": "2026-09-23T13:18:56.288Z"
+    "by": "openwiki/0.6.0",
+    "at": "2026-09-28T16:25:02.439Z"
   }
 }

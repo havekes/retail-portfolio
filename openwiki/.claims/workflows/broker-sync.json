@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "pageVersion": "sha256:cf7206a6377238b92356f4ea0ae32323a8a0a74be259fcf75b2cf8aecde1fbf1",
+  "pageVersion": "sha256:65b010af9f12ef951fd9793687fd838a3b67bc64e3616e845bb91101028f7729",
   "claims": [
     {
       "id": "claim_dc41cb6365fb48fa9d83873704c74cfb",
@@ -112,7 +112,7 @@
     },
     {
       "id": "claim_db39db23703e4d99a6ffba677fcf8cec",
-      "statement": "POST /external/positions/import is a separate synchronous variant that performs the same symbol-resolution and position-write work inline in the request instead of on the Huey worker, and is not rate-limited.",
+      "statement": "POST /external/positions/import is a separate synchronous variant, rate-limited 3/minute like the account import, that performs the same symbol-resolution and position-write work inline in the request instead of on the Huey worker.",
       "evidence": [
         {
           "resource": "repo://src/integration/router.py#L212-L268",
@@ -244,7 +244,7 @@
         },
         {
           "resource": "repo://frontend/src/lib/components/accounts/accounts-list.svelte.ts#L85-L106",
-          "version": "repo-lines-v1:sha256:84f41c289e0910d117a3ce0073e00a88cb36b1da28d99f5180dc9e487f23bf2d:eyJzZWxlY3RlZExpbmVDb3VudCI6MjIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjY2OTU2N2Q0YTJlNWY3ZmEwZWYwZjJkZDFkMWMxNTE2MGU3MjU1YWJiNzFmYjdlOGEzZDhhNjgwN2M0OTZkYjYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjM2MGI4OGEwNWQ1YjUzODQ3NjAyMjliZTYwNTcyZmU2MmIxYzI5Y2RjNTdlZGI1ZTY5NTFkYWE0ZmQ0NmM4MDMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjVlYzM1MmIyYzliYTUzOTc5MDEyNTEzM2Q1ZWIzMmY4NWVjNWE2MTZiMzJkOTg0NjczOTkyYTkxYzk4MDI2NDkiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjMzNjY2MWMwMzBiYzk4M2JlOWYyYmMxMGU2MmE0ZWE2NTA5YjU5NmUzM2YyNGJiN2ExNTQ1MWIxMGExYjJlMjAifQ"
+          "version": "repo-lines-v1:sha256:accdd90fcfa98801c2c8d5073ca507d6fc347b910c39504091eaca4ee0b06125:eyJzZWxlY3RlZExpbmVDb3VudCI6MjMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjY2OTU2N2Q0YTJlNWY3ZmEwZWYwZjJkZDFkMWMxNTE2MGU3MjU1YWJiNzFmYjdlOGEzZDhhNjgwN2M0OTZkYjYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjM2MGI4OGEwNWQ1YjUzODQ3NjAyMjliZTYwNTcyZmU2MmIxYzI5Y2RjNTdlZGI1ZTY5NTFkYWE0ZmQ0NmM4MDMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjVlYzM1MmIyYzliYTUzOTc5MDEyNTEzM2Q1ZWIzMmY4NWVjNWE2MTZiMzJkOTg0NjczOTkyYTkxYzk4MDI2NDkiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjMzNjY2MWMwMzBiYzk4M2JlOWYyYmMxMGU2MmE0ZWE2NTA5YjU5NmUzM2YyNGJiN2ExNTQ1MWIxMGExYjJlMjAifQ"
         }
       ]
     },
@@ -254,7 +254,7 @@
       "evidence": [
         {
           "resource": "repo://frontend/src/lib/components/accounts/accounts-list.svelte.ts#L79-L137",
-          "version": "repo-lines-v1:sha256:70a5edb8d3d9f27fee479f1687c465596b2a4012fd2fdf3918fc24afeaceca4f:eyJzZWxlY3RlZExpbmVDb3VudCI6NTksImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjE5MjA2MDI3MDcxN2ZmMDQ2ZmU4MzA2YTY1NTYzODYxZDlmNTVjYmRhMDRkNDcxNWEyZTZkYzIxYjhhMzk1NTYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjY3Y2RhODJkYTYwNjIzOGUwNWU2MjM5OTU2OWM1ZWUwMzk5MzQxOTY0OGFlNWQ0M2EyYmY4Y2Q2MzQ3ZjgyNjMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImVjZGE2ZGE1ZGNhZDgzNjUzNzQ1MDg4NGQ1ZTYwOThmNWU1MWM0MTZmNWY2N2U2MTE5M2VmOWE2ZGExMGVhN2IiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjUwN2MzOWY2N2EzNTRiNGIzN2UyYTc5OTQ2NTAyNjY4YjRmYTJlOTE2YjYwNjY5MTdhM2U2NzA3MWNlNmFmYzcifQ"
+          "version": "repo-lines-v1:sha256:3115c4ab690dfbcd51a60913953129526bbc9f0e2aa5ce3691669207139b702d:eyJzZWxlY3RlZExpbmVDb3VudCI6NjAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjE5MjA2MDI3MDcxN2ZmMDQ2ZmU4MzA2YTY1NTYzODYxZDlmNTVjYmRhMDRkNDcxNWEyZTZkYzIxYjhhMzk1NTYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjY3Y2RhODJkYTYwNjIzOGUwNWU2MjM5OTU2OWM1ZWUwMzk5MzQxOTY0OGFlNWQ0M2EyYmY4Y2Q2MzQ3ZjgyNjMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImVjZGE2ZGE1ZGNhZDgzNjUzNzQ1MDg4NGQ1ZTYwOThmNWU1MWM0MTZmNWY2N2U2MTE5M2VmOWE2ZGExMGVhN2IiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjUwN2MzOWY2N2EzNTRiNGIzN2UyYTc5OTQ2NTAyNjY4YjRmYTJlOTE2YjYwNjY5MTdhM2U2NzA3MWNlNmFmYzcifQ"
         }
       ]
     },
@@ -365,10 +365,80 @@
           "version": "repo-lines-v1:sha256:8f955503902b5a1cc135625a9bad813a703089419870f9ee7e463343463639b3:eyJzZWxlY3RlZExpbmVDb3VudCI6NCwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiOGI2YjRiOWIxYzMzMDE0NDQxZmMwZTc5ZTMyNDUxMDJkMjM0NWQ2NDgxZWMxNWQ5ZjMzYzg2MzYwNWQ5MDA5YyIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiMDFiYTQ3MTljODBiNmZlOTExYjA5MWE3YzA1MTI0YjY0ZWVlY2U5NjRlMDljMDU4ZWY4Zjk4MDVkYWNhNTQ2YiIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiNDQ5MzA4MjQxNTJlYmUxMjllZGE1OThmYWExNzVmNDY5YTgxZDhiMmRiMGFjMDNmNDI2MWEyYTQxYjgwZTMwMyIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiM2Q0MzA2ZmE3ZTdlOTZmNTcyMzlkYTg5MmNmOTM5MTBjMzlhMjhlMGQ2YjQ3OGE0MmI3ZWUxZDMxNjljYTllYyJ9"
         }
       ]
+    },
+    {
+      "id": "claim_8b06f7fe7d4e46e285385c0be44029ec",
+      "statement": "An AccountSyncMessage carries only a type and an account_id: the failure reason is never sent over the socket, and because the event is published to Redis and delivered by whichever process holds the socket, delivery is best-effort and the client is not guaranteed to see either edge.",
+      "evidence": [
+        {
+          "resource": "repo://src/integration/task.py#L246-L283",
+          "version": "repo-lines-v1:sha256:40a7829b2a0af43ca9990bb1280a9ec41e0ba37a8c2091e111a2d6d0ef152bab:eyJzZWxlY3RlZExpbmVDb3VudCI6MzgsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijk1NzgwNWMzZmU3YWM2MzA3NGY2OWNkYjI1YjlhY2Q3YTg2NzkyZGZlNTQwODE4YWM0Zjg3NjRiNDllN2QxNGEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQxNjFjZTliMTJjOGMxZGQwOWU3MTcwMWUzNzU3Mjk3OGU1MWU3YTQ3ZDA4ZDAwYzEwM2JkODE2NmU3NTFjNzciLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjlmNDliNDgzMzgzOTBjNDZjYWYxN2ZiODgzYTA4Y2JjZWNlMTVjZTgyODIyZGZjOGZhNDRhNmEyMWI4ZWE1ZjIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImU2YjYyZWQ5OWZlMzI2ZGE0MDc0NTEyNGVhN2I4ZDUxZTQxZTU0NDc2ODE0OTVkMGY3OTE2NjIyZGJmZmU1YjAifQ"
+        },
+        {
+          "resource": "repo://src/ws/api_types.py#L8-L21",
+          "version": "repo-lines-v1:sha256:a37b7940da3db9cf5d4d80d33fc8d9695d3d143b0de99172db122112ff7f62c3:eyJzZWxlY3RlZExpbmVDb3VudCI6MTQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImM0Zjg0NGE2YTA5ZTk1YWRiMTU0ZWJkZDE2NzJlOGU4MzdiMGFhZGRhZTNmZWU5MTVhYTE0MWUzYjFkYjQ4MTQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAxYmE0NzE5YzgwYjZmZTkxMWIwOTFhN2MwNTEyNGI2NGVlZWNlOTY0ZTA5YzA1OGVmOGY5ODA1ZGFjYTU0NmIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjMyMjU4ZDk2YTM1ZmVkNmM1NDA2NzU2NmUzZDQyNDRiNDAzNzNkOTFjZmExZTFlZGQyNmYzMjM1ZTE0ZGEwMGQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjNiZjc4NWM4YTU3ZTliNDY2Y2RhODhjNjk4ZGYwZmUzNDE5MzcyYmFkMDkwZjg1ZWNjZWU2NjExOTE0NzY4NDcifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_f95f68742e4d472c892b65b7ec10ac04",
+      "statement": "ACCOUNT_TOTALS_UPDATED exists on the same WsEventType enum as the sync events but belongs to the hourly totals broadcast (recalculate_all_account_totals_task) and is not part of the broker sync path.",
+      "evidence": [
+        {
+          "resource": "repo://src/ws/api_types.py#L8-L21",
+          "version": "repo-lines-v1:sha256:a37b7940da3db9cf5d4d80d33fc8d9695d3d143b0de99172db122112ff7f62c3:eyJzZWxlY3RlZExpbmVDb3VudCI6MTQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImM0Zjg0NGE2YTA5ZTk1YWRiMTU0ZWJkZDE2NzJlOGU4MzdiMGFhZGRhZTNmZWU5MTVhYTE0MWUzYjFkYjQ4MTQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAxYmE0NzE5YzgwYjZmZTkxMWIwOTFhN2MwNTEyNGI2NGVlZWNlOTY0ZTA5YzA1OGVmOGY5ODA1ZGFjYTU0NmIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjMyMjU4ZDk2YTM1ZmVkNmM1NDA2NzU2NmUzZDQyNDRiNDAzNzNkOTFjZmExZTFlZGQyNmYzMjM1ZTE0ZGEwMGQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjNiZjc4NWM4YTU3ZTliNDY2Y2RhODhjNjk4ZGYwZmUzNDE5MzcyYmFkMDkwZjg1ZWNjZWU2NjExOTE0NzY4NDcifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_0036dbae7e5e4f1b87050b0f7b1133f0",
+      "statement": "The Redis sync-status set is display state, not a lock: nothing prevents two sync tasks for the same account, so the second SADD is a no-op and the first SREM can clear the badge while the second task is still running.",
+      "evidence": [
+        {
+          "resource": "repo://src/integration/sync_status.py#L16-L30",
+          "version": "repo-lines-v1:sha256:f10a7ed6507fc23a8d026826876113bae0b6a7e0932574d5438ffead4ad91b2f:eyJzZWxlY3RlZExpbmVDb3VudCI6MTUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImNiYTlhY2NhMzEzODU5NjdiZDBlNjM2ZTJmOGZkNTEzMTFjYmFiYTNmNGU5ZTU2MWFkNzFjZjM4ZDFhODZmYmYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjRlYmU4MDViY2ViZjc3NjU5OTQwY2JkODAyNDNlNDcyZGIxODUyNjQ5NjkzZTBlMzBlYjMwOTZmYTkyNGRlNTgiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImJjM2U5OGFkZDQ0ZTIyZTNjNzQ5Y2UyYTg1Njg0NjE4M2M2YmJjMjE4Y2RmNTgwYWE2ODc1NGYxYzA0MjAzM2QiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_41ffa979dcee4435840e3ce36ec7735f",
+      "statement": "On sync_finished the accounts list removes the id, clears the error and awaits fetchAccounts(), so the refreshed list picks up the newly written positions; the component feeds syncingAccountIds.has(account.id) and syncErrors[account.id] into each account row.",
+      "evidence": [
+        {
+          "resource": "repo://frontend/src/lib/components/accounts/accounts-list.svelte#L105-L106",
+          "version": "repo-lines-v1:sha256:70127d059a0614729bd30c65b06140ce3b31e36f6b250913ef062de5c42577c4:eyJzZWxlY3RlZExpbmVDb3VudCI6MiwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiOGNmNjI5ZmUwYjI1Y2E4NmQ5YmY0MDAyNjcxZjJjNWM3ODRmZmI3MDY3MTYwOTFmMGU2OWJjMThmYWQ5Mjk3MiIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNWYxYjlmYWViMWVlOGU1ZTgxYzM1MDU5N2U3MWY5NDNjZWJmYzU0MmRhOGI2YzZjN2JiOWUxMDk2MDc1NWQxYSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiNDg0ODM2NjI1YzRmYWJiMjIxZmNhODlhMTc5YWY0N2QwZjJiMGNlODc5NTllOTZmMDUyNTg1NjljMjhiYmFkYyIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiODJhNDI3ZTlkNmE4ODU4OWY4M2JlMjU1ODVmMzY1MTQxNDYxNWM5Mzk3YjI4NDQ3NDE5OTZiOTdmZThhYzk5NSJ9"
+        },
+        {
+          "resource": "repo://frontend/src/lib/components/accounts/accounts-list.svelte.ts#L140-L147",
+          "version": "repo-lines-v1:sha256:bb284a72d3e7fcadb70ad72e181d245565f2f46b34e2156bf761c02f5e4bec45:eyJzZWxlY3RlZExpbmVDb3VudCI6OCwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiYzdmODkzNjA0YjMxNmM2MjlhZmIzYzBkNDNlNDNmMDk3ODQ0NzQ0YTdiZDViNmViOWYwYmIwYzdkNDQ4Yjc5YyIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNjdjZGE4MmRhNjA2MjM4ZTA1ZTYyMzk5NTY5YzVlZTAzOTkzNDE5NjQ4YWU1ZDQzYTJiZjhjZDYzNDdmODI2MyIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiMjJmMmZmNWZlZWM2MGY1ODdjOGZhZTRlODdmODA5YTY2MWNmZmVkNmI0N2FhZTVmNmQ2YTI2NTNhYTg5NTJlZiIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiM2Q1ZWY3NThhNmUyMDhjMzk3MDlkMjhhNDkxMTlmODBhNmNmOTBkMzhjMzdhNTIxMWJiYTJiNDY2NDg1OTQxMiJ9"
+        },
+        {
+          "resource": "repo://frontend/src/lib/components/accounts/accounts-list.svelte.ts#L90-L103",
+          "version": "repo-lines-v1:sha256:7b1164fbbf0f4bc4137cf5fd2a9db722760c5d91cd557d7a916fea8707aa1aa9:eyJzZWxlY3RlZExpbmVDb3VudCI6MTQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImFiYmZkMjYxOTEzYjgzYzZlNTE3ZWQ1MWE4ZDk1Y2EyNTJhMGI2MDI0Nzg0ZTY5OTRlZDc5MGJlODM4ZDVjMWUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjRkYzc2MDIwYmFlNzA1NzdlNjRiMzMwZGNhODNmZGYyNGYzZDc1OTNhMDE1NGQ4YWJlYzZkYzYzZjU4OTdmZDkiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImQ1M2EwZWQzODg2ZDE1YmUxMGMwMTU0YzVhOGI0YTBlNTQ3Mjg3OTM0NzNhN2E5YjZhM2UxYjE3NGE3NjljNjgiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjJmNmM0ZTRmNDY0MDA2MTk4ZDYyZGMwMDY3MDc3MDNhYTAzNjQ3ZGVlM2ZlMDE4ZGYyZjhjMWRhNmM0YWE2YTEifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_cf25d6dc1de9400b8aab8c5f46ace113",
+      "statement": "SecurityApi.get_or_create_from_broker raises a bare ValueError when the market search returns zero results, which is not in _SYNC_ERROR_MESSAGE_MAPPING, so an unresolvable broker symbol surfaces to the user as the generic unexpected-error message; CSV import instead wraps that ValueError in a SecurityResolutionError.",
+      "evidence": [
+        {
+          "resource": "repo://src/account/service/csv_account.py#L258-L266",
+          "version": "repo-lines-v1:sha256:c4f191b87adbd7235e49e1f67af5a0c86e4948f5a3369f170859320e7892a26c:eyJzZWxlY3RlZExpbmVDb3VudCI6OSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiOTU3ODA1YzNmZTdhYzYzMDc0ZjY5Y2RiMjViOWFjZDdhODY3OTJkZmU1NDA4MThhYzRmODc2NGI0OWU3ZDE0YSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiMTE5NjJiMDY2YmM1NjJlMDY1NjMzNjcyN2YwYjc0ODI4MjZjZmRhZTYwNjI1N2IzMDdkMDM2MzhkMTM3NzExOCIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiMWUwZTRjMTE5MWNhZjY3NjkyMTlkMzk5MzFmMDJmMzVhNTVjNmRiNjEwOTc1NzYxOWM2ZDZjNzMwZjc5ZGY3MiIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiNDQ5ZmE3NTdlMWI2Y2QxNGI2NjlhMzJhNDM5ZWE0YmI1NTI0NTJjYzkxZDZjNTU0YzY2Mjc1NmZiOTY4NWVhMSJ9"
+        },
+        {
+          "resource": "repo://src/integration/task.py#L119-L182",
+          "version": "repo-lines-v1:sha256:c964c2a9bc38e740caa3a68a85fce61a4023ff74c131d327e746796223462c49:eyJzZWxlY3RlZExpbmVDb3VudCI6NjQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImMwMDI5NWI2YTViOWUyMzdmYTgzMWRkMjZkNjRjYmQxY2U3ODQ4MWRlMWVjODgwNTc1YmUyNTcyMmZjMDhjZGUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjMwYzFmMTg4ZjE0MmVkN2E4MjQ2ODBiMjA3MTcyYzU1MTliYzYxNGE0OGZkYTdjZjE2N2VkYjhkZGY3OTk1NmMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjllNWRhZTU3OTQ5MzQ4YzFmYTk2ZjQ3YzgwNWRmYjg2OWE3YmI5ZmE1NDBmNmY5NWRjODY4MjRhYmY3Y2NjODMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjllMzE1NWRmMWE1MDM3MzE1OWZmMjkxZjE0ZmI0NDQ1MTk0NGE1N2MyMmEyNmIyNGJhNGQ1ZDU0ZWM0NDBiYzgifQ"
+        },
+        {
+          "resource": "repo://src/market/api.py#L135-L137",
+          "version": "repo-lines-v1:sha256:378aff51b1d8c26471f2d45103f6af3dbd06fb636d41feda9bf4852bedcde585:eyJzZWxlY3RlZExpbmVDb3VudCI6MywiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiMmY2ZjAwMGMxMmViZWYyY2NlYWQxNTlmZGNmNTNkM2Y5ZmMzMDFiM2VjNDg1MzE1MTBjM2FhNGI3M2YxYzg4MSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiMjVhYmE0Mjg3Y2RiOTU2MWQ0ZTFiMjI0NTM4ZTI1MmFhYjQwNzRkMTQyMjhiNzY0NDkyMGZlZDU1ODk3YzU0MSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiYjljZGRlYzRmMDg5MTJlZjdkOThiYzdkYWVjYzRlMTY4NGViYWY4YzA2NDZkMjMzYTg2YmZiYzM1ZTJkMTY4NSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiMGIwYzcyZTg0ZTMwM2Y4ODNkYjE1OTdlNTFlZDY1NzJhZTY0ODA3ZmEyMGE3ZDk3Y2RiNWI0NGEzOWM0M2Q5ZiJ9"
+        }
+      ]
     }
   ],
   "verification": {
-    "by": "openwiki/0.5.2",
-    "at": "2026-09-18T20:16:58.058Z"
+    "by": "openwiki/0.6.0",
+    "at": "2026-09-28T16:25:02.439Z"
   }
 }

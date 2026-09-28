@@ -3,9 +3,6 @@ type: "Workflow"
 title: "Market Data, Indicators & the Price Update Cascade"
 description: "How EODHD-backed market data enters and is transformed: the read-through price repository, historical and intraday reads, the nightly and hourly Huey tasks and the enqueue cascade they trigger, and the indicator compute path from the FastAPI route to the Go sidecar with Redis caching."
 tags: [market-data, eodhd, indicators, price-alerts, huey, redis, sidecar, intraday, caching, svelte]
-verified:
-  - by: openwiki/0.5.2
-    at: 2026-09-18T20:16:58.058Z
 sources:
   - id: openwiki-source-5f5b95b3d6a215fa02ceb945
     resource: repo://.env.example
@@ -62,6 +59,9 @@ sources:
   - id: openwiki-source-876bd707d5c9fbf88d12b5e6
     resource: repo://tests/market/test_search_router.py
 generated: { by: "openwiki/0.5.2", at: "2026-09-18T20:16:58.058Z" }
+verified:
+  - by: openwiki/0.6.0
+    at: 2026-09-28T16:25:02.439Z
 ---
 
 # Market Data, Indicators & the Price Update Cascade

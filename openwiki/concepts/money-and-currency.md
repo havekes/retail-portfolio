@@ -3,9 +3,6 @@ type: concept
 title: Money & Currency Handling
 description: The cross-cutting money model behind totals, holdings, P&L, and CSV import — backend Decimal plus stockholm Money/Currency in API types, per-account/position currency with CurrencyConverter aggregation, the frontend Money shape and its formatting helpers, average-cost and holdings math, and the rounding/mixed-currency pitfalls to avoid when changing any of it.
 tags: [money, currency, decimal, stockholm, fx-conversion, holdings, precision]
-verified:
-  - by: openwiki/0.5.2
-    at: 2026-09-20T12:50:16.306Z
 sources:
   - id: openwiki-source-b263e02920f61e43137888d6
     resource: repo://frontend/src/lib/components/accounts/accounts-list-item.svelte
@@ -45,7 +42,10 @@ sources:
     resource: repo://tests/routers/test_accounts.py
   - id: openwiki-source-b0c29edcbfef3a92f664c095
     resource: repo://tests/tasks/test_account.py
-generated: { by: "openwiki/0.5.2", at: "2026-09-20T12:50:16.306Z" }
+generated: { by: "openwiki/0.6.0", at: "2026-09-28T16:25:02.439Z" }
+verified:
+  - by: openwiki/0.6.0
+    at: 2026-09-28T16:25:02.439Z
 ---
 
 # Money & Currency Handling
@@ -204,9 +204,21 @@ This works by accident, not by design. Two failure modes follow:
 
 `money(m)` renders `$${amount.toLocaleString()}` — a bare `$` with no currency
 code and no fixed decimals, so it is only safe for display where the currency is
-already shown separately. `accounts-list-item.svelte` uses it for account totals
-(the account `currency` is rendered as a separate badge), while
-`holdings-table.svelte` deliberately uses `Intl.NumberFormat` with an explicit
+already shown separately.
+
+The current account-totals / P&L formatting site splits the two conventions.
+In `accounts-list-item.svelte` the totals trigger renders
+`money(totals.value)` and, in the tooltip, `money(totals.value)` /
+`money(totals.cost)` — the bare-`$` path (the account `currency` is rendered as a
+separate badge in the same row). The P/L figure next to it does **not** use
+`money()`: the component defines its own `formatCurrency` helper wrapping
+`Intl.NumberFormat('en-CA', { style: 'currency', currency })` and calls it as
+`formatCurrency(profitLoss, account.currency)`, where
+`profitLoss = moneyToNumber(totals.value) - moneyToNumber(totals.cost)`. So the
+totals row mixes both formatting paths in one place, and any change to how an
+account's currency is displayed must account for the `money()` label and the
+`Intl` P/L being produced two different ways. `holdings-table.svelte` (and the
+inline holdings view) consistently use `Intl.NumberFormat` with an explicit
 currency instead, because a holdings table shows securities in several
 currencies at once.
 
@@ -281,7 +293,9 @@ boundaries:
   `AccountHoldingsRead` is a third thing when `net_deposits` is set — total value
   minus deposits. The frontend labels all three near each other
   (`accounts-list-item.svelte` tooltip shows both `money(totals.value)` and
-  `money(totals.cost)`; `holdings-table.svelte` shows `profit_loss` per row).
+  `money(totals.cost)` alongside a P/L line that adds `moneyToNumber(value) -
+  moneyToNumber(cost)` and formats it with `formatCurrency`; `holdings-table.svelte`
+  shows `profit_loss` per row).
   Swapping cost and value, or mixing the cash-flow P&L with the per-holding P&L,
   is not a cosmetic bug — it changes the number users would act on.
 

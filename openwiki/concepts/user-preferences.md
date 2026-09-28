@@ -1,11 +1,8 @@
 ---
 type: concept
-title: User Preferences
-description: The cross-cutting per-user preferences contract — one permissive JSON column on auth_users, the GET/PUT/PATCH /accounts/me/preferences surface with exclude_none and top-level JSONB merge semantics, the complete read/write ownership matrix for every preference key, and the fire-and-forget versus surfaced failure split.
+title: User Preferences & Cross-Session State
+description: The per-user preference contract on GET/PUT/PATCH /accounts/me/preferences — the JSON column and top-level JSONB merge semantics, which component reads and writes each key, exclude_none and write-failure fallbacks, and the fallback defaults applied on read.
 tags: [preferences, persistence, api-contract, sveltekit, ssr, jsonb, layout, holdings, charting]
-verified:
-  - by: openwiki/0.5.2
-    at: 2026-09-23T13:18:56.288Z
 sources:
   - id: openwiki-source-95a24be7f44e810285a4bb5e
     resource: repo://frontend/src/lib/api/userPreferencesService.test.ts
@@ -13,6 +10,12 @@ sources:
     resource: repo://frontend/src/lib/api/userPreferencesService.ts
   - id: openwiki-source-fd6bc3ef355365f09e91de6e
     resource: repo://frontend/src/lib/chart-preferences.ts
+  - id: openwiki-source-b263e02920f61e43137888d6
+    resource: repo://frontend/src/lib/components/accounts/accounts-list-item.svelte
+  - id: openwiki-source-62f44b01b7d2721632295b10
+    resource: repo://frontend/src/lib/components/accounts/accounts-list-item.test.ts
+  - id: openwiki-source-173b643850b61054416e45dd
+    resource: repo://frontend/src/lib/components/accounts/accounts-list.svelte
   - id: openwiki-source-f50fd17f703650bc2f4f496d
     resource: repo://frontend/src/lib/components/actions-sidebar/holding-group/holdings-modal.svelte
   - id: openwiki-source-27ac4f8f6dce69da0f92d693
@@ -71,22 +74,26 @@ sources:
     resource: repo://tests/routers/test_accounts.py
   - id: openwiki-source-a4d537c22eb76e76a0ffde6e
     resource: repo://tests/routers/test_market.py
-generated: { by: "openwiki/0.5.2", at: "2026-09-23T13:18:56.288Z" }
+generated: { by: "openwiki/0.6.0", at: "2026-09-28T16:25:02.439Z" }
+verified:
+  - by: openwiki/0.6.0
+    at: 2026-09-28T16:25:02.439Z
 ---
 
-# User Preferences
+# User Preferences & Cross-Session State
 
 Every UI setting that must survive a sign-out and follow a user across devices lives in a
 single permissive JSON document attached to the user row and served by
 `/accounts/me/preferences`. This page owns that contract: the storage shape, the three
-endpoints and their write semantics, the read/write matrix for every key, and the failure
-rules that differ per surface. The chart-side details of *how* the values are applied are
-owned elsewhere — see [Charting](./../architecture/charting.md) for timeframe, chart style,
+endpoints and their write semantics, which key each component owns, and the failure rules
+that differ per surface. The chart-side details of *how* the values are applied are owned
+elsewhere — see [Charting](./../architecture/charting.md) for timeframe, chart style,
 indicators and pane heights, and
 [Chart Drawings, Plugins & Rewind](./../architecture/chart-drawings-and-rewind.md) for
-`elliott_waves`, `fibonacci_tools` and `drawings`. The holdings surfaces that read two of
-these keys are covered by
-[Accounts & Holdings Views](./../workflows/accounts-and-holdings-views.md).
+`elliott_waves`, `fibonacci_tools` and `drawings`. The holdings and sidebar surfaces that
+read some of these keys are covered by
+[Accounts & Holdings Views](./../workflows/accounts-and-holdings-views.md) and
+[Watchlists & Sidebar](./../workflows/watchlists-and-sidebar.md).
 
 ## Storage
 
@@ -136,10 +143,13 @@ and declares only a subset of the keys the frontend actually uses (`timeframe`,
   still typed, so a malformed declared field (for example a non-list `watchlist_order`)
   is rejected with a 422 before it reaches the column.
 - **The declared list is advisory and drift-prone.** The authoritative key list is the
-  `UserPreferences` interface in `frontend/src/lib/api/userPreferencesService.ts` plus the
-  components that write each key plus the router tests. Treat any other inventory
-  (including planning drafts such as `.opencode/features/user-chart-preferences.md`, which
-  predates most of the keys) as stale.
+  `UserPreferences` interface in `frontend/src/lib/api/userPreferencesService.ts` (which
+  additionally declares `sidebar_watchlists`, `collapsed_watchlist_ids`, `drawings`,
+  `chart_hide_labels`, `holdings_table`, `holdings_group`, `indicator_pane_heights` and
+  `expanded_account_ids`) plus the components that write each key plus the router tests.
+  Treat any other inventory (including planning drafts such as
+  `.opencode/features/user-chart-preferences.md`, which predates most of the keys) as
+  stale.
 
 ### `exclude_none` and delete semantics
 
@@ -228,11 +238,15 @@ server-side `fetch` and pass the `auth_token` cookie explicitly, and a module si
 `userPreferencesService` used from browser components (where `credentials: 'include'`
 carries the cookie). No other module talks to the endpoint directly.
 
+The key list below is derived from the current `UserPreferences` interface; the two
+layout-scoped keys that were added most recently (`collapsed_watchlist_ids`,
+`expanded_account_ids`) are read by the root layout load rather than by a page.
+
 | Key | Read by | Written by | Write-failure handling |
 | --- | --- | --- | --- |
-| `sidebar_open` | root `+layout.server.ts` → `sidebarOpen` seed | root `+layout.svelte` `handleSidebarOpenChange` | fire-and-forget (`.catch(console.error)`) |
-| `collapsed_watchlist_ids` | root `+layout.server.ts` → `$page.data` → `AppSidebarWatchlist` | `AppSidebarWatchlist.toggleCollapsed` | fire-and-forget |
-| `expanded_account_ids` | root `+layout.server.ts` → `$page.data` → `AccountsList` / `AccountsListItem` | `AccountsListItem.toggleExpanded` | fire-and-forget (`.catch(console.error)`) |
+| `sidebar_open` | root `+layout.server.ts` → `data.sidebar_open` seed in `+layout.svelte` | root `+layout.svelte` `handleSidebarOpenChange` | fire-and-forget (`.catch(console.error)`) |
+| `collapsed_watchlist_ids` | root `+layout.server.ts` → `$page.data` (or the `initialCollapsedWatchlistIds` context) → `AppSidebarWatchlist` | `AppSidebarWatchlist.toggleCollapsed` (whole array) | fire-and-forget (`.catch(console.error)`) |
+| `expanded_account_ids` | root `+layout.server.ts` → `$page.data` → `AccountsList` (seeds the shared `SvelteSet`) and `AccountsListItem` | `AccountsListItem.toggleExpanded` (whole array) | fire-and-forget (`.catch(console.error)`) |
 | `watchlist_order` | root `+layout.server.ts` → `AppSidebarWatchlist` (`sortWatchlistsByOrder`) and `/watchlists` via `$page.data` | `/watchlists` `moveWatchlist` (drag-and-drop and keyboard share it) | surfaced: the optimistic order is rolled back and `watchlistService.error` is set, rendered in the page's alert |
 | `holdings_table` | `/holdings` `+page.server.ts` → `holdings_table_config` → page `tableConfig` | `/holdings` `handleToggleColumn` / `handleConfigChange` → `saveHoldingsTableConfig` | surfaced: page-level `persistError` rendered in a destructive alert |
 | `holdings_group` | `/holdings` `+page.server.ts` → `group_mode` → `HoldingsService.setGroupBy` | `/holdings` `handleGroupToggle` → `saveHoldingsGroupMode` | surfaced: page-level `persistError` |
@@ -272,13 +286,15 @@ Preferences are read in three different places, and the split matters because th
 loads must pass the token explicitly (`cookies.get('auth_token')`), while browser-side
 readers use the singleton:
 
-- **Root layout load** (`frontend/src/routes/+layout.server.ts`) — reads `sidebar_open`,
-  `collapsed_watchlist_ids`, `watchlist_order` and `expanded_account_ids` for every authenticated request, guarded
-  per key by a type check (`typeof prefs.sidebar_open === 'boolean'`,
-  `Array.isArray(prefs.collapsed_watchlist_ids)`, `Array.isArray(prefs.watchlist_order)`,
-  `Array.isArray(prefs.expanded_account_ids)`)
-  with defaults `true`, `[]`, `null` and `[]`. The whole request sits in a `try/catch` that
-  silently falls back, and the read is skipped entirely when `locals.user` is unset.
+- **Root layout load** (`frontend/src/routes/+layout.server.ts`) — reads four keys for every
+  authenticated request: `sidebar_open`, `collapsed_watchlist_ids`, `watchlist_order` and
+  `expanded_account_ids`. Each is guarded by its own type check
+  (`typeof prefs.sidebar_open === 'boolean'`, `Array.isArray(...)` for the other three) and
+  defaults to `true`, `[]`, `null` and `[]` respectively — so a malformed or absent value
+  degrades to the default rather than propagating. The whole request sits in a `try/catch`
+  that silently swallows failures, and the read is skipped entirely when `locals.user` is
+  unset. The four values are returned alongside `user`, which is how `$page.data` becomes
+  the transport for the sidebar and accounts components.
 - **`/holdings` load** (`frontend/src/routes/holdings/+page.server.ts`) — reads
   `holdings_table`, `holdings_group` and `elliott_waves` in its **own** `try/catch`, because
   it deliberately awaits only the cheap preference-derived keys and lets holdings rows load
@@ -286,16 +302,24 @@ readers use the singleton:
   `normalizeHoldingsTableConfig(null)`, `'none'` and `null` waves.
 - **`/watchlists` load** (`frontend/src/routes/watchlists/+page.server.ts`) — reads nothing
   from preferences and returns `{ watchlists: [] }`; the page takes `watchlist_order` from
-  `$page.data`, i.e. from the root layout load.
+  `$page.data` (falling back to the same value on `data`), i.e. from the root layout load.
 - **Security route load** (`frontend/src/routes/security/[security_id]/+page.server.ts`) —
   returns only `security_id`; the page and `IndicatorsGroup` fetch preferences client-side
   after navigation, so the chart shell paints first.
 
-Components resolve a layout-read key from the most local source available:
-`AppSidebarWatchlist` prefers a `setContext` value injected by test harnesses, then
-`$page.data.watchlist_order` / `$page.data.collapsed_watchlist_ids`, then falls back.
-Similarly, `AccountsList` / `AccountsListItem` read `initialExpandedAccountIds` from context,
-then `$page.data.expanded_account_ids`, then fall back to empty set.
+Components resolve a layout-read key from the most local source available, which is what
+keeps the components renderable in isolation (tests inject context instead of a real
+load):
+
+- `AppSidebarWatchlist` prefers a `setContext` value injected by test harnesses
+  (`initialWatchlistOrder`, `initialCollapsedWatchlistIds`), then `$page.data.watchlist_order`
+  / `$page.data.collapsed_watchlist_ids`, then falls back to `null` / `[]`.
+- `AccountsList` seeds one shared `SvelteSet('expandedAccountIds')` from the
+  `initialExpandedAccountIds` context, then `$page.data.expanded_account_ids`, then `[]`, and
+  publishes it under the `expandedAccountIds` context.
+- `AccountsListItem` resolves its initial expanded state in precedence order:
+  the `initialExpanded` prop, then the live `expandedAccountIds` context, then
+  `initialExpandedAccountIds`, then `$page.data.expanded_account_ids`, then `false`.
 
 ## Failure semantics
 
@@ -314,7 +338,7 @@ surfaces:
   error through `watchlistService.error`.
 - **Logged only**: every security-page and `ChartDrawingsService` write (`timeframe`,
   `chart_style`, `indicators`, `chart_hide_labels`, `wave_settings`,
-  `indicator_pane_heights`, `holdings_period`, `elliot_waves`, `fibonacci_tools`,
+  `indicator_pane_heights`, `holdings_period`, `elliott_waves`, `fibonacci_tools`,
   `drawings`). Chart mutations are optimistic and self-healing, so a lost write shows up as
   a setting that does not come back on the next load rather than as an error banner.
 
@@ -350,9 +374,10 @@ alerts.
 | `tests/routers/test_account_unauth.py` | 401 for `GET`, `PUT` and `PATCH` without a token |
 | `tests/routers/test_market.py` | `test_indicator_preferences_endpoints_return_404` — the removed per-security endpoints stay removed |
 | `frontend/src/lib/api/userPreferencesService.test.ts` | GET/PUT/PATCH verbs and paths, `tokenOverride` headers, an empty `{}` response resolving without throwing, `wave_settings` nested bodies, `mergeChartPreferences` |
-| `frontend/src/routes/layout.test.ts` | root load reads `collapsed_watchlist_ids`, `watchlist_order` and `expanded_account_ids`, defaults to `[]` / `null` / `[]` when absent |
-| `frontend/src/lib/components/accounts/accounts-list-item.test.ts` | expansion state restored on load, persisted to preferences on toggle |
+| `frontend/src/routes/layout.test.ts` | root load reads `collapsed_watchlist_ids`, `watchlist_order` and `expanded_account_ids`, defaulting to `[]` / `null` / `[]` when absent and to `[]` when a value is not an array |
+| `frontend/src/lib/components/accounts/accounts-list-item.test.ts` | expansion persisted to preferences on caret toggle (whole-array patch: `['acc-1']` then `[]`) and initial `initialExpanded` expansion |
 | `frontend/src/routes/holdings/page.server.test.ts` | the load returns exactly `holdings_table_config`, `group_mode`, `elliott_waves`; a rejected preferences request yields defaults while holdings still load; holdings are never fetched in the server load |
 | `frontend/src/lib/components/holdings/holdings-table-prefs.test.ts`, `holdings-group-prefs.test.ts` | normalization and single-key PATCH payloads, tolerated rejections, no write on load |
-| `frontend/src/routes/security/[security_id]/page.svelte.test.ts` | pane heights restored on load, persisted as a whole map, and reset sent as `null` |
+| `frontend/src/routes/security/[security_id]/page.svelte.test.ts` | pane heights restored on load, persisted as a whole map, and reset sent as `null`; `chart_hide_labels` persisted on General-tab save |
+| `frontend/src/routes/watchlists/page.svelte.test.ts` | `watchlist_order` drives `sortWatchlistsByOrder` and is patched on reorder |
 | `frontend/src/lib/components/actions-sidebar/holding-group/holdings-modal.test.ts` | `holdings_period` restored on open, invalid values falling back to `ALL`, selection persisted |

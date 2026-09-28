@@ -3,9 +3,6 @@ type: architecture
 title: Architecture Overview
 description: System-level runtime map of retail-portfolio — the FastAPI process (lifespan migrations, svcs registry, middleware order, error handling), the Huey worker, the SvelteKit SSR frontend, the Go indicator sidecar, PostgreSQL/Redis/mailcrab, route mounting under /api/v1, health probes, the backend layer rules, and the commands that verify a change.
 tags: [architecture, fastapi, huey, sveltekit, postgresql, redis, dependency-injection, request-lifecycle, docker-compose]
-verified:
-  - by: openwiki/0.5.2
-    at: 2026-09-23T13:18:56.288Z
 sources:
   - id: openwiki-source-164e2da859b5277df81c7d94
     resource: repo://.github/workflows/ci.yml
@@ -47,6 +44,8 @@ sources:
     resource: repo://src/core/exception.py
   - id: openwiki-source-bb9b5d3400aa107e32ebff27
     resource: repo://src/core/middleware.py
+  - id: openwiki-source-1d65188722b62c70565d1cc3
+    resource: repo://src/integration/registry.py
   - id: openwiki-source-11b9d806fcc6dd6e7747ed87
     resource: repo://src/main.py
   - id: openwiki-source-336c8d4ea788e2c5f7cddd73
@@ -69,7 +68,10 @@ sources:
     resource: repo://tests/test_main.py
   - id: openwiki-source-f0abc296482c495e6bdb9e20
     resource: repo://tests/test_request_id.py
-generated: { by: "openwiki/0.5.2", at: "2026-09-23T13:18:56.288Z" }
+generated: { by: "openwiki/0.6.0", at: "2026-09-28T16:25:02.439Z" }
+verified:
+  - by: openwiki/0.6.0
+    at: 2026-09-28T16:25:02.439Z
 ---
 
 # Architecture Overview
@@ -86,6 +88,7 @@ seams in [Configuration](./configuration.md); the UI shell in
 [Frontend Architecture](./frontend.md); the chart surface in [Charting](./charting.md)
 and drawing/snapshot internals in
 [Chart Drawings, Plugins & Rewind](./chart-drawings-and-rewind.md); the asynchronous
+<!-- openwiki: broken internal link [../workflows/realtime-and-background-jobs.md] file "../workflows/realtime-and-background-jobs.md" does not exist. Fix the href or restore the target, then delete this comment. -->
 runtime in [Realtime, Background Jobs & the Worker](../workflows/realtime-and-background-jobs.md);
 the per-user preference contract in [User Preferences](../concepts/user-preferences.md);
 authentication in [Authentication & Authorization](./authentication.md); developer/CI
@@ -313,8 +316,8 @@ returning `"pong"` is the smoke test the README points at.
 
 ## Dependencies and cross-domain calls
 
-Dependency injection is centralized in `src/config/services.py`. Each domain exports a
-`register_*_services(registry)` function (`src/core/registry.py`,
+Dependency injection is centralized in `src/config/services.py`. Each domain owns a
+`register_*_services(registry)` function next to its code (`src/core/registry.py`,
 `src/account/registry.py`, `src/auth/__init__.py`, `src/integration/registry.py`,
 `src/market/__init__.py`), and `register_services` always:
 
@@ -322,9 +325,19 @@ Dependency injection is centralized in `src/config/services.py`. Each domain exp
 2. registers core services (`EmailService`);
 3. registers account and auth services unconditionally;
 4. picks the stub or live registration set for the market and integration domains based
-   on `settings.stub_external_api` (`register_integration_stub_services` /
-   `register_market_stub_services` versus `register_integration_services` /
-   `register_market_services`).
+   on `settings.stub_external_api`.
+
+The two domains whose behaviour depends on external APIs have **two** registration
+functions each, and only half of them live in the domain package: the integration and
+market *live* sets are `register_integration_services` (`src/integration/registry.py`)
+and `register_market_services` (`src/market/__init__.py`), while the *stub* sets
+`register_integration_stub_services` and `register_market_stub_services` are defined
+inline in `src/config/services.py`. Both market sets cover the same repository, cache,
+API and service list; they differ only in the gateway-adjacent bindings, chiefly
+`AIService`, which the stub set binds to `StubAIService` and the live set to
+`ai_service_factory`. The practical consequence for a change is that a new market
+repository, service or domain API has to be added in `src/market/__init__.py` **and**
+mirrored in `register_market_stub_services`, or the two registration modes drift apart.
 
 The same function is what the worker calls, so the API and the worker resolve the same
 interfaces — only the session manager differs (see the realtime page). A new repository,
@@ -367,6 +380,7 @@ and extension recipes.
 ## Realtime and background work (orientation)
 
 Two cross-process mechanisms matter at the system level; both are documented in full on
+<!-- openwiki: broken internal link [../workflows/realtime-and-background-jobs.md] file "../workflows/realtime-and-background-jobs.md" does not exist. Fix the href or restore the target, then delete this comment. -->
 [Realtime, Background Jobs & the Worker](../workflows/realtime-and-background-jobs.md).
 
 - **The worker.** `src/worker.py` defines the Huey instance (`RedisHuey` everywhere
@@ -467,6 +481,7 @@ frontend (`npm run check`, `npm run lint`, `npm run test:run` with the `VITE_*` 
 - [Charting](./charting.md) — chart surface, panes, indicators, price alerts.
 - [Chart Drawings, Plugins & Rewind](./chart-drawings-and-rewind.md) — drawing plugins,
   drawing persistence and the snapshot/rewind pipeline.
+<!-- openwiki: broken internal link [../workflows/realtime-and-background-jobs.md] file "../workflows/realtime-and-background-jobs.md" does not exist. Fix the href or restore the target, then delete this comment. -->
 - [Realtime, Background Jobs & the Worker](../workflows/realtime-and-background-jobs.md)
   — task semantics, the price-update cascade, Pub/Sub fan-out, sync-status keys.
 - [User Preferences](../concepts/user-preferences.md) — the per-user preferences column

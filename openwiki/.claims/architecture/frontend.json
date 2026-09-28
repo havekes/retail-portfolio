@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "pageVersion": "sha256:ce3a8d2dec8dd93ade19303994527f22fe7cb85bcdee5f1f92cf85cc56cadacf",
+  "pageVersion": "sha256:a183a175c6b787ae39e440a415a6c73cef8ef2dfd9c44fc7e97f71096b1c45e4",
   "claims": [
     {
       "id": "claim_228fa2aa0c164d8caa3a5b1c7d543592",
@@ -46,7 +46,7 @@
       "evidence": [
         {
           "resource": "repo://frontend/src/routes/%2Blayout.server.ts#L4-L34",
-          "version": "repo-lines-v1:sha256:f103e0658cf69ff7d1cc59944041c8602a584e00d913a9de9e216a6e9dc1f709:eyJzZWxlY3RlZExpbmVDb3VudCI6MzEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjZiZjY1OTVmZjIxYjZlNDBjOWU4NzQ1OGI3YzIyZTNjZjdhYTU3ZjBiZDQ2NmM4ZTg5NTI5YTc2M2VmNjZkMzIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImFhMWQxYTYzMzkwMjI5Yzc5ODM0N2U4M2EwNDA1NDQxYzk0MDAwMzUyODRhZDE2OGMxYmY2Y2RmMWQ3MGEzNzAiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjczNzA2YTI5ZmRlZTllNmRiNGMyYmUzMWEwZWY5MWI1NzRiY2Q4YjBlZTQ5NThjZGIyM2ViYzg4NWVlYzFmOGIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
+          "version": "repo-lines-v1:sha256:6f6920f49e6476614e425aaf8d188ec57fdeac0d6d23e746728312c608291d85:eyJzZWxlY3RlZExpbmVDb3VudCI6MzYsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjZiZjY1OTVmZjIxYjZlNDBjOWU4NzQ1OGI3YzIyZTNjZjdhYTU3ZjBiZDQ2NmM4ZTg5NTI5YTc2M2VmNjZkMzIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImFhMWQxYTYzMzkwMjI5Yzc5ODM0N2U4M2EwNDA1NDQxYzk0MDAwMzUyODRhZDE2OGMxYmY2Y2RmMWQ3MGEzNzAiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjczNzA2YTI5ZmRlZTllNmRiNGMyYmUzMWEwZWY5MWI1NzRiY2Q4YjBlZTQ5NThjZGIyM2ViYzg4NWVlYzFmOGIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
         }
       ]
     },
@@ -88,7 +88,7 @@
       "evidence": [
         {
           "resource": "repo://frontend/src/lib/components/forms/editable-title.svelte#L6-L60",
-          "version": "repo-lines-v1:sha256:c0a34f026f8260adbe297d3114d5fc68445a66d6ae6d63bfc008e88f99b1ce49:eyJzZWxlY3RlZExpbmVDb3VudCI6NTUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjgxY2U0MWQ5NGU5OGEzMjdhMzhlMjBkZDg1MmUxODBmN2QzOTViZjViZTM1YWQ1ODI4MDc2YTJlZDUwMDIzNzMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImRlNDdmMGQ2Y2RmN2RhNzhlNTczZTVjMmM3NjU1OGM3MjQxMmM1Y2I0YjcxMzQ2OTBiNDk5MDY2NGMwNmRhZGUiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImM1YTk0YWM5ZDc1MThkMjgxNzQzZjcyMmNkN2Y3MjM0MzE0ZmYxYmYzMDU4N2ZkOTk0MjMwN2QwZTAxMmQ3MTMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6Ijc4OGU0YzcxMzgwZTlhYjRjMDM4Njc2YzczZWJmNmJmZjdhOTUyYjNlMTI5MDIzM2Q1Njc1M2M2MWM5MWRlYjgifQ"
+          "version": "repo-lines-v1:sha256:10f9f1460d5da4a95bd5bf242761c795e9690a49209cc87cfebcbf040c2fcf80:eyJzZWxlY3RlZExpbmVDb3VudCI6ODEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjgxY2U0MWQ5NGU5OGEzMjdhMzhlMjBkZDg1MmUxODBmN2QzOTViZjViZTM1YWQ1ODI4MDc2YTJlZDUwMDIzNzMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImRlNDdmMGQ2Y2RmN2RhNzhlNTczZTVjMmM3NjU1OGM3MjQxMmM1Y2I0YjcxMzQ2OTBiNDk5MDY2NGMwNmRhZGUiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImM1YTk0YWM5ZDc1MThkMjgxNzQzZjcyMmNkN2Y3MjM0MzE0ZmYxYmYzMDU4N2ZkOTk0MjMwN2QwZTAxMmQ3MTMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6Ijc4OGU0YzcxMzgwZTlhYjRjMDM4Njc2YzczZWJmNmJmZjdhOTUyYjNlMTI5MDIzM2Q1Njc1M2M2MWM5MWRlYjgifQ"
         },
         {
           "resource": "repo://frontend/src/routes/accounts/%5Bid%5D/%2Bpage.server.ts#L28-L50",
@@ -230,7 +230,7 @@
         },
         {
           "resource": "repo://frontend/src/lib/components/accounts/accounts-list.svelte#L14-L22",
-          "version": "repo-lines-v1:sha256:24236b35aa5e7ca80d3d26c28f1730feb16ee1d1255aed7f4f24752058ab89e7:eyJzZWxlY3RlZExpbmVDb3VudCI6OSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiNjM4ZjRmMjY1YzE3OTI3YWU3MDU3ZDg3MWE3ZjFmYTVjY2EyYTExODM0N2FkOThmOGZhMGQxZDE2NWJiMWZhNiIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiMGE3MzQ5MmQ4OTQ2YjFkMGY5ZDljMDRiNzA0YTkyMGYyNGY4OWVmN2M3ZjczMTFhODU5OWQxMGM3ZjYzNThkMCIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiN2MyZjNiMTZmYWNmZWZkM2RhMGM4MjA2ZDM2NzNhNjBhZGJjODQ0MWRmYWY4NjhkZDgyOTY3MzI2ODY0OTE3NSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiY2QyMzllNDQyYjkxMDk3OWI0Njk4OTUyYTI3N2E4ZGY0OTIzMjU1YjRjYWUzMzMyMTg1YjM0ZDliNWZlYzc3MCJ9"
+          "version": "repo-lines-v1:sha256:ca18d7966d3790a41e57500540bf1c92d1b7c8070b1bbfe89c862907670b35a4:eyJzZWxlY3RlZExpbmVDb3VudCI6MTcsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjYzOGY0ZjI2NWMxNzkyN2FlNzA1N2Q4NzFhN2YxZmE1Y2NhMmExMTgzNDdhZDk4ZjhmYTBkMWQxNjViYjFmYTYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjBhNzM0OTJkODk0NmIxZDBmOWQ5YzA0YjcwNGE5MjBmMjRmODllZjdjN2Y3MzExYTg1OTlkMTBjN2Y2MzU4ZDAiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjdjMmYzYjE2ZmFjZmVmZDNkYTBjODIwNmQzNjczYTYwYWRiYzg0NDFkZmFmODY4ZGQ4Mjk2NzMyNjg2NDkxNzUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImNkMjM5ZTQ0MmI5MTA5NzliNDY5ODk1MmEyNzdhOGRmNDkyMzI1NWI0Y2FlMzMzMjE4NWIzNGQ5YjVmZWM3NzAifQ"
         },
         {
           "resource": "repo://frontend/src/lib/components/accounts/accounts-list.svelte.ts#L18-L50",
@@ -348,11 +348,15 @@
     },
     {
       "id": "claim_cc5078e67a3645f698455fbc28822e02",
-      "statement": "AccountsListState opens a WebSocket to /api/ws (URL derived from an absolute VITE_API_BASE_URL when present, otherwise from window.location) using a short-lived signed ticket from authService.getWsTicket(), maintains syncingAccountIds and syncErrors from the sync_started, sync_finished, and sync_failed event types, hydrates in-flight syncs from the sync-status endpoint on open, and reconnects on a 5-second timer after close.",
+      "statement": "AccountsListState opens a WebSocket to /api/ws (URL derived from an absolute VITE_API_BASE_URL when present, otherwise from window.location) using a short-lived signed ticket from authService.getWsTicket(), maintains syncingAccountIds and syncErrors from the sync_started, sync_finished, and sync_failed event types (refetching the account list on a finish), hydrates in-flight syncs from the sync-status endpoint on open, and reconnects on a 5-second timer after close.",
       "evidence": [
         {
-          "resource": "repo://frontend/src/lib/components/accounts/accounts-list.svelte.ts#L52-L137",
-          "version": "repo-lines-v1:sha256:65c10daac9be5dff9342710bf527d55c98e0d186ec367c0464121c05b6b6271c:eyJzZWxlY3RlZExpbmVDb3VudCI6ODYsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImY1YWEzYTQzNjdlY2VmMTY4ZjM3YWI2NzYyMDc5ZTMzOTdhMzU0YTRhYjc2MzYyZjc2ODRlNDQzNDljODZiODIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjY3Y2RhODJkYTYwNjIzOGUwNWU2MjM5OTU2OWM1ZWUwMzk5MzQxOTY0OGFlNWQ0M2EyYmY4Y2Q2MzQ3ZjgyNjMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjIyZjJmZjVmZWVjNjBmNTg3YzhmYWU0ZTg3ZjgwOWE2NjFjZmZlZDZiNDdhYWU1ZjZkNmEyNjUzYWE4OTUyZWYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjUwN2MzOWY2N2EzNTRiNGIzN2UyYTc5OTQ2NTAyNjY4YjRmYTJlOTE2YjYwNjY5MTdhM2U2NzA3MWNlNmFmYzcifQ"
+          "resource": "repo://frontend/src/lib/components/accounts/accounts-list.svelte.ts#L52-L77",
+          "version": "repo-lines-v1:sha256:e55209a9a52d2371799ee78359dd4c11973bf82219e2687c6247691bcaae7671:eyJzZWxlY3RlZExpbmVDb3VudCI6MjYsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImY1YWEzYTQzNjdlY2VmMTY4ZjM3YWI2NzYyMDc5ZTMzOTdhMzU0YTRhYjc2MzYyZjc2ODRlNDQzNDljODZiODIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjYzZmQ1M2Y0Njk5YzYxYzcwNTEzOTM5NTc5Njc3NTZhNDQ3Y2ExNjA5OGM2NzgwMjJhMGY3MTAzZDEyZTA5OGIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjIyZjJmZjVmZWVjNjBmNTg3YzhmYWU0ZTg3ZjgwOWE2NjFjZmZlZDZiNDdhYWU1ZjZkNmEyNjUzYWE4OTUyZWYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6Ijg1MTU5Y2FjNWQzN2NjY2JiNWYwZWY1NmRlYjExYjQxMjdhNDNmMDljYzRmNmFiYjU3NWVlMDk0MzJkOGMxNTMifQ"
+        },
+        {
+          "resource": "repo://frontend/src/lib/components/accounts/accounts-list.svelte.ts#L79-L138",
+          "version": "repo-lines-v1:sha256:3115c4ab690dfbcd51a60913953129526bbc9f0e2aa5ce3691669207139b702d:eyJzZWxlY3RlZExpbmVDb3VudCI6NjAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjE5MjA2MDI3MDcxN2ZmMDQ2ZmU4MzA2YTY1NTYzODYxZDlmNTVjYmRhMDRkNDcxNWEyZTZkYzIxYjhhMzk1NTYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjY3Y2RhODJkYTYwNjIzOGUwNWU2MjM5OTU2OWM1ZWUwMzk5MzQxOTY0OGFlNWQ0M2EyYmY4Y2Q2MzQ3ZjgyNjMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImVjZGE2ZGE1ZGNhZDgzNjUzNzQ1MDg4NGQ1ZTYwOThmNWU1MWM0MTZmNWY2N2U2MTE5M2VmOWE2ZGExMGVhN2IiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjUwN2MzOWY2N2EzNTRiNGIzN2UyYTc5OTQ2NTAyNjY4YjRmYTJlOTE2YjYwNjY5MTdhM2U2NzA3MWNlNmFmYzcifQ"
         },
         {
           "resource": "repo://frontend/src/lib/types/websocket.ts#L1-L13",
@@ -384,7 +388,7 @@
         },
         {
           "resource": "repo://frontend/src/routes/layout.test.ts#L242-L367",
-          "version": "repo-lines-v1:sha256:b6cf9b9b9db749b23ef2d2c8b4b783c0d1bb70638c3004657c16301e4a02def8:eyJzZWxlY3RlZExpbmVDb3VudCI6MTI2LCJmaXJzdFNlbGVjdGVkTGluZUhhc2giOiI5NTI0MzljMmJjNjI0ZThmZTlmYWUxZWMxNjQzZTg4MDJmMjY2ZWFjYmIxYTIzYzBiN2YyNWZkMTVjMjVhYzA2IiwibGFzdFNlbGVjdGVkTGluZUhhc2giOiIwYTczNDkyZDg5NDZiMWQwZjlkOWMwNGI3MDRhOTIwZjI0Zjg5ZWY3YzdmNzMxMWE4NTk5ZDEwYzdmNjM1OGQwIiwicHJlY2VkaW5nQ29udGV4dExpbmVDb3VudCI6MywicHJlY2VkaW5nQ29udGV4dEhhc2giOiJmYjZiNzA4MWU0NTRkODQzNTBjYmJmMzdhYzNlZTY5Yjg0OGYxMzI1YjhkYTkzNTljNjI2OTg4NTAwZTRjZThmIiwiZm9sbG93aW5nQ29udGV4dExpbmVDb3VudCI6MywiZm9sbG93aW5nQ29udGV4dEhhc2giOiIzNDc4MzQ2ZGE2ODg4YmYyNTFkOTM5NzZhNTY5OWFhZTg3YzFlYjM0NWUxYzNlMGZlNGI5MDAzZjJhZjk5ODYzIn0"
+          "version": "repo-lines-v1:sha256:1a8872fa98dac0fea69e3fc2d451847613ee1b64415c91771c4a1ca3d3eff5fd:eyJzZWxlY3RlZExpbmVDb3VudCI6MTI4LCJmaXJzdFNlbGVjdGVkTGluZUhhc2giOiI5NTI0MzljMmJjNjI0ZThmZTlmYWUxZWMxNjQzZTg4MDJmMjY2ZWFjYmIxYTIzYzBiN2YyNWZkMTVjMjVhYzA2IiwibGFzdFNlbGVjdGVkTGluZUhhc2giOiIwYTczNDkyZDg5NDZiMWQwZjlkOWMwNGI3MDRhOTIwZjI0Zjg5ZWY3YzdmNzMxMWE4NTk5ZDEwYzdmNjM1OGQwIiwicHJlY2VkaW5nQ29udGV4dExpbmVDb3VudCI6MywicHJlY2VkaW5nQ29udGV4dEhhc2giOiJmYjZiNzA4MWU0NTRkODQzNTBjYmJmMzdhYzNlZTY5Yjg0OGYxMzI1YjhkYTkzNTljNjI2OTg4NTAwZTRjZThmIiwiZm9sbG93aW5nQ29udGV4dExpbmVDb3VudCI6MywiZm9sbG93aW5nQ29udGV4dEhhc2giOiIzNDc4MzQ2ZGE2ODg4YmYyNTFkOTM5NzZhNTY5OWFhZTg3YzFlYjM0NWUxYzNlMGZlNGI5MDAzZjJhZjk5ODYzIn0"
         }
       ]
     },
@@ -430,7 +434,7 @@
       "evidence": [
         {
           "resource": "repo://frontend/src/lib/types/account.ts#L1-L128",
-          "version": "repo-lines-v1:sha256:cf92fbfe22c6134d308ad46f5fa3cba49bfc6a772bb55954c6bf3e5975585eb7:eyJzZWxlY3RlZExpbmVDb3VudCI6MTI4LCJmaXJzdFNlbGVjdGVkTGluZUhhc2giOiI2MDkxYmM2MGNiYzgwNzA3N2FjYmYzMTQxNGE0YzQ3NWRmMDQ5OTY0OTJkMTUzODdhMzMwZTMyMjRmZDdmMjA1IiwibGFzdFNlbGVjdGVkTGluZUhhc2giOiI0MTJjYTM0NWNjZjc1YmY5YzA4MDZiY2U2OTViZThkZTgwOGI3OTk4NDI1MWE3YTU0ZDIwMmNmNjEwMWRkNDUxIiwicHJlY2VkaW5nQ29udGV4dExpbmVDb3VudCI6MCwicHJlY2VkaW5nQ29udGV4dEhhc2giOiJlM2IwYzQ0Mjk4ZmMxYzE0OWFmYmY0Yzg5OTZmYjkyNDI3YWU0MWU0NjQ5YjkzNGNhNDk1OTkxYjc4NTJiODU1IiwiZm9sbG93aW5nQ29udGV4dExpbmVDb3VudCI6MCwiZm9sbG93aW5nQ29udGV4dEhhc2giOiJlM2IwYzQ0Mjk4ZmMxYzE0OWFmYmY0Yzg5OTZmYjkyNDI3YWU0MWU0NjQ5YjkzNGNhNDk1OTkxYjc4NTJiODU1In0"
+          "version": "repo-lines-v1:sha256:40abe347a1d710d4ea49f8072ca722e850e5125e2d7e73c23bc67d68893c84fb:eyJzZWxlY3RlZExpbmVDb3VudCI6MTI5LCJmaXJzdFNlbGVjdGVkTGluZUhhc2giOiI2MDkxYmM2MGNiYzgwNzA3N2FjYmYzMTQxNGE0YzQ3NWRmMDQ5OTY0OTJkMTUzODdhMzMwZTMyMjRmZDdmMjA1IiwibGFzdFNlbGVjdGVkTGluZUhhc2giOiI0MTJjYTM0NWNjZjc1YmY5YzA4MDZiY2U2OTViZThkZTgwOGI3OTk4NDI1MWE3YTU0ZDIwMmNmNjEwMWRkNDUxIiwicHJlY2VkaW5nQ29udGV4dExpbmVDb3VudCI6MCwicHJlY2VkaW5nQ29udGV4dEhhc2giOiJlM2IwYzQ0Mjk4ZmMxYzE0OWFmYmY0Yzg5OTZmYjkyNDI3YWU0MWU0NjQ5YjkzNGNhNDk1OTkxYjc4NTJiODU1IiwiZm9sbG93aW5nQ29udGV4dExpbmVDb3VudCI6MCwiZm9sbG93aW5nQ29udGV4dEhhc2giOiJlM2IwYzQ0Mjk4ZmMxYzE0OWFmYmY0Yzg5OTZmYjkyNDI3YWU0MWU0NjQ5YjkzNGNhNDk1OTkxYjc4NTJiODU1In0"
         },
         {
           "resource": "repo://frontend/src/lib/types/money.ts#L1-L22",
@@ -490,7 +494,7 @@
     },
     {
       "id": "claim_eea1a0addfc144d38fd6e35163267ce1",
-      "statement": "The frontend extension points are consistent: a new backend area is a class extending ApiClient exported as both a getXClient factory and a default instance; a new page either uses the standard load shape (401-delete-and-redirect / ApiError-to-error) when its payload must be awaited, or returns only cheap route-identity/preference keys and gives the page a *.svelte.ts service whose load() returns the caught error for redirectOn401; a new stateful feature is a Foo.svelte.ts rune class with isLoading and message-valued error state instantiated in the component that owns the state (as /holdings does with HoldingsService and the security route with SecurityPageDataService) or provided from +layout.svelte; and a new preference is a field added to UserPreferences in userPreferencesService.ts, patched from the component with patchPreferences, where shell-driving preferences are additionally read in +layout.server.ts's load behind a shape check inside the existing try/catch while page-scoped ones like holdings_table and holdings_group are read in that page's own +page.server.ts load inside a nested try/catch.",
+      "statement": "The frontend extension points are consistent: a new backend area is a class extending ApiClient exported as both a getXClient factory and a default instance; a new page either uses the standard load shape (401-delete-and-redirect / ApiError-to-error) when its payload must be awaited, or returns only cheap route-identity/preference keys and gives the page a *.svelte.ts service whose load() returns the caught error for redirectOn401; a new stateful feature is a Foo.svelte.ts rune class with isLoading and message-valued error state instantiated in the component that owns the state (as /holdings does with HoldingsService and the security route with SecurityPageDataService) or provided from +layout.svelte; and a new preference is a field added to UserPreferences in userPreferencesService.ts, patched from the component with patchPreferences, where shell-driving preferences are additionally read in +layout.server.ts's load (sidebar_open, collapsed_watchlist_ids, watchlist_order, expanded_account_ids) behind shape checks inside the existing try/catch while page-scoped ones like holdings_table and holdings_group are read in that page's own +page.server.ts load inside a nested try/catch.",
       "evidence": [
         {
           "resource": "repo://frontend/AGENTS.md#L98-L165",
@@ -501,12 +505,12 @@
           "version": "repo-lines-v1:sha256:66eb0f0509d6cbe0a35eea5dc6f6207234d3f2311bf4a3a5bfa47bafb59f85d5:eyJzZWxlY3RlZExpbmVDb3VudCI6MTEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjNiZGNhYzU0MTk4Y2JmMmVkNTJlOGJmOGIzNDFkNjM4NjgzMjQ4YTE2MjhhOTI1NDczZmMxMWYyMzNmODQ1ZjQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjY3Y2RhODJkYTYwNjIzOGUwNWU2MjM5OTU2OWM1ZWUwMzk5MzQxOTY0OGFlNWQ0M2EyYmY4Y2Q2MzQ3ZjgyNjMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImYyOTY0MDc5YzNjNWM4MTUyMGVmMzNhMmI5ZDJlMTVhMWI4NGQ3MjgwZGI4NTkwZGNkNjU3NDdlM2UwMTJhNDAiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjA2OTUwYzQwYjdiNTE3YzQ3MDJjODliMTZlNzdjYTZmYWI5YmYxMGQxZjczZDI4YWE1MDQ5NTg5NmIyY2E0YzQifQ"
         },
         {
-          "resource": "repo://frontend/src/lib/api/userPreferencesService.ts#L63-L80",
-          "version": "repo-lines-v1:sha256:aebac163f6422fcf5a66443cbd73ed845c4ef9495d1ff3751869909feb689688:eyJzZWxlY3RlZExpbmVDb3VudCI6MTgsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjljZDMyNGJjZjhhYjc1MjI2ODc5ZTE3YzIyZTYyNDQ2MWUxNGZiNjRiMzEwMjQzZmZjNTQ1NjNkYWYxNzgyNDQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQxMmNhMzQ1Y2NmNzViZjljMDgwNmJjZTY5NWJlOGRlODA4Yjc5OTg0MjUxYTdhNTRkMjAyY2Y2MTAxZGQ0NTEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImFhOTc3ODQyYWRjMmUwOTYzODMzM2Q2NDM4NmFmNzRkZTUwZjg2OGQyYzI2NzVhOWRmNzdhYWI2ZGM1ODcyMGQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImQ3ZDE5MDA5MTZhMjkyOTI1MWY0NDg3N2MyZTRiMjgxNTcyYmY2MGFiM2NlNGQ2YWQyMTFiNTFiOTJkMGZjNDIifQ"
+          "resource": "repo://frontend/src/lib/api/userPreferencesService.ts#L63-L81",
+          "version": "repo-lines-v1:sha256:51250ea2aaca0bef74d98279cbb13f4808236a1ee299d6ac3ae4215fbc2ad068:eyJzZWxlY3RlZExpbmVDb3VudCI6MTksImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjljZDMyNGJjZjhhYjc1MjI2ODc5ZTE3YzIyZTYyNDQ2MWUxNGZiNjRiMzEwMjQzZmZjNTQ1NjNkYWYxNzgyNDQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQxMmNhMzQ1Y2NmNzViZjljMDgwNmJjZTY5NWJlOGRlODA4Yjc5OTg0MjUxYTdhNTRkMjAyY2Y2MTAxZGQ0NTEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImFhOTc3ODQyYWRjMmUwOTYzODMzM2Q2NDM4NmFmNzRkZTUwZjg2OGQyYzI2NzVhOWRmNzdhYWI2ZGM1ODcyMGQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImQ3ZDE5MDA5MTZhMjkyOTI1MWY0NDg3N2MyZTRiMjgxNTcyYmY2MGFiM2NlNGQ2YWQyMTFiNTFiOTJkMGZjNDIifQ"
         },
         {
-          "resource": "repo://frontend/src/routes/%2Blayout.server.ts#L4-L34",
-          "version": "repo-lines-v1:sha256:f103e0658cf69ff7d1cc59944041c8602a584e00d913a9de9e216a6e9dc1f709:eyJzZWxlY3RlZExpbmVDb3VudCI6MzEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjZiZjY1OTVmZjIxYjZlNDBjOWU4NzQ1OGI3YzIyZTNjZjdhYTU3ZjBiZDQ2NmM4ZTg5NTI5YTc2M2VmNjZkMzIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImFhMWQxYTYzMzkwMjI5Yzc5ODM0N2U4M2EwNDA1NDQxYzk0MDAwMzUyODRhZDE2OGMxYmY2Y2RmMWQ3MGEzNzAiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjczNzA2YTI5ZmRlZTllNmRiNGMyYmUzMWEwZWY5MWI1NzRiY2Q4YjBlZTQ5NThjZGIyM2ViYzg4NWVlYzFmOGIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
+          "resource": "repo://frontend/src/routes/%2Blayout.server.ts#L4-L38",
+          "version": "repo-lines-v1:sha256:e346d71528b177c9935b8e7c8e3c1ae3e91790bac02a8a7e877480a6e9694db3:eyJzZWxlY3RlZExpbmVDb3VudCI6MzUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjZiZjY1OTVmZjIxYjZlNDBjOWU4NzQ1OGI3YzIyZTNjZjdhYTU3ZjBiZDQ2NmM4ZTg5NTI5YTc2M2VmNjZkMzIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImNjM2EyMDc3NGQ1YzJiYjRjNzkwYzE4ODkwYTljNDk0Y2NiNTEwZmM4ZThjMDllYzc0NTE5YmMxNjRmYzc4NGIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjczNzA2YTI5ZmRlZTllNmRiNGMyYmUzMWEwZWY5MWI1NzRiY2Q4YjBlZTQ5NThjZGIyM2ViYzg4NWVlYzFmOGIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjoxLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImFhMWQxYTYzMzkwMjI5Yzc5ODM0N2U4M2EwNDA1NDQxYzk0MDAwMzUyODRhZDE2OGMxYmY2Y2RmMWQ3MGEzNzAifQ"
         },
         {
           "resource": "repo://frontend/src/routes/holdings/%2Bpage.server.ts#L7-L31",
@@ -578,19 +582,23 @@
     },
     {
       "id": "claim_8e1f1ae0b00e4765910078e056f227c3",
-      "statement": "Layout-level preferences are server-loaded and client-persisted in one round trip: sidebar_open, collapsed_watchlist_ids and watchlist_order are read in +layout.server.ts and written back with userPreferencesService.patchPreferences from the component owning the interaction (the layout's sidebar handler, AppSidebarWatchlist.toggleCollapsed, and the /watchlists reorder handler), always as fire-and-forget calls that only log on failure — except the /watchlists reorder, which reverts its optimistic state and surfaces the message. Page-scoped holdings preferences follow the same write path but are read by the /holdings load: holdings_table and holdings_group feed holdings_table_config and group_mode, are patched through saveHoldingsTableConfig / saveHoldingsGroupMode, and their rejections are surfaced in a page-level persistError instead of only being logged. Per-watchlist security sort is not a preference at all — it lives on WatchlistRead.sort and is persisted through WatchlistService.setSort. sidebar_watchlists is declared on UserPreferences but is not read by any component or load.",
+      "statement": "Layout-level preferences are server-loaded and client-persisted in one round trip: the root load returns sidebar_open, collapsed_watchlist_ids, watchlist_order and expanded_account_ids, and the shell-driving ones are written back with userPreferencesService.patchPreferences from the component owning the interaction (the layout's sidebar handler, the sidebar watchlist's toggleCollapsed, the /watchlists reorder handler, and the accounts list row expand/collapse for expanded_account_ids), always as fire-and-forget calls that only log on failure — except the /watchlists reorder, which reverts its optimistic state and surfaces the message. Page-scoped holdings preferences follow the same write path but are read by the /holdings load: holdings_table and holdings_group feed holdings_table_config and group_mode, are patched through saveHoldingsTableConfig / saveHoldingsGroupMode, and their rejections are surfaced in a page-level persistError instead of only being logged. Per-watchlist security sort is not a preference at all — it lives on WatchlistRead.sort and is persisted through WatchlistService.setSort. sidebar_watchlists is declared on UserPreferences but is not read by any component or load.",
       "evidence": [
         {
-          "resource": "repo://frontend/src/lib/api/userPreferencesService.ts#L63-L80",
-          "version": "repo-lines-v1:sha256:aebac163f6422fcf5a66443cbd73ed845c4ef9495d1ff3751869909feb689688:eyJzZWxlY3RlZExpbmVDb3VudCI6MTgsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjljZDMyNGJjZjhhYjc1MjI2ODc5ZTE3YzIyZTYyNDQ2MWUxNGZiNjRiMzEwMjQzZmZjNTQ1NjNkYWYxNzgyNDQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQxMmNhMzQ1Y2NmNzViZjljMDgwNmJjZTY5NWJlOGRlODA4Yjc5OTg0MjUxYTdhNTRkMjAyY2Y2MTAxZGQ0NTEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImFhOTc3ODQyYWRjMmUwOTYzODMzM2Q2NDM4NmFmNzRkZTUwZjg2OGQyYzI2NzVhOWRmNzdhYWI2ZGM1ODcyMGQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImQ3ZDE5MDA5MTZhMjkyOTI1MWY0NDg3N2MyZTRiMjgxNTcyYmY2MGFiM2NlNGQ2YWQyMTFiNTFiOTJkMGZjNDIifQ"
+          "resource": "repo://frontend/src/lib/api/userPreferencesService.ts#L63-L81",
+          "version": "repo-lines-v1:sha256:51250ea2aaca0bef74d98279cbb13f4808236a1ee299d6ac3ae4215fbc2ad068:eyJzZWxlY3RlZExpbmVDb3VudCI6MTksImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjljZDMyNGJjZjhhYjc1MjI2ODc5ZTE3YzIyZTYyNDQ2MWUxNGZiNjRiMzEwMjQzZmZjNTQ1NjNkYWYxNzgyNDQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQxMmNhMzQ1Y2NmNzViZjljMDgwNmJjZTY5NWJlOGRlODA4Yjc5OTg0MjUxYTdhNTRkMjAyY2Y2MTAxZGQ0NTEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImFhOTc3ODQyYWRjMmUwOTYzODMzM2Q2NDM4NmFmNzRkZTUwZjg2OGQyYzI2NzVhOWRmNzdhYWI2ZGM1ODcyMGQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImQ3ZDE5MDA5MTZhMjkyOTI1MWY0NDg3N2MyZTRiMjgxNTcyYmY2MGFiM2NlNGQ2YWQyMTFiNTFiOTJkMGZjNDIifQ"
+        },
+        {
+          "resource": "repo://frontend/src/lib/components/accounts/accounts-list-item.svelte#L108-L118",
+          "version": "repo-lines-v1:sha256:cb44d5ac73ee0538157a6bacc1cc32c6926dc46bf202b27dc1df420cbd91691e:eyJzZWxlY3RlZExpbmVDb3VudCI6MTEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjNlMTdjYTk3MmI1ZTQ1ZWZmNjU3OTJhODA3NDc0NWZmNmM3ZTY1YzJlMDMxNWRiZmE1OTNjMzUyZWQ4OTU2M2YiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjRmZmYwNjMzNDhhMWUxYTMyNTEzZWFjYzAxNmZjMjVjZmZlZjBiNGM5MGJmMGM4ODhlZDU4NTdmMjEzYTMyZGMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImU2N2I3NzQ3NzIyN2VjYWE5NTAzMTE3MjZlMDRmOWU2OWJiNmJkYzU3NThjZmMyMWNmYzQ5MmUxNmE1ZWUzMjkiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjBkZWZhYzZiZjIwMDMzZjg0ZDM0MmY0NDU5N2Q5YjA3NmZkZTlmYjQyNTdlZDliMWM3ZGE3NWI0ZDU1MDI3Y2IifQ"
         },
         {
           "resource": "repo://frontend/src/lib/components/layout/app-sidebar-watchlist.svelte#L34-L43",
           "version": "repo-lines-v1:sha256:dba3e4a522392e60cfdc3169e51e4983e4516dc7ab35f5e433e5b9f7f2161bd5:eyJzZWxlY3RlZExpbmVDb3VudCI6MTAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImUzM2RlMTRiMDdmOTQ5NGU5MDVlOGRkYzFkNmQ1ZGUxNjI1Y2IyNmJhNjEwNDBlNDgxMWQ3ZDZkNzg5YzJjMjQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjY3Y2RhODJkYTYwNjIzOGUwNWU2MjM5OTU2OWM1ZWUwMzk5MzQxOTY0OGFlNWQ0M2EyYmY4Y2Q2MzQ3ZjgyNjMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImY5OWVhNDRmZGM4YWVkNDI5NjJjZDg3N2IzOThlZjIwNjg1MTgzNGZlYTIxOTgxMTc0YjI4N2Y4NTBmYTA3YWEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjlkMDJkYWNhZDg4NTYzNTA0YTdlYTZmZWU2MDJhMGNhOWVkZmU0YjJmZWY2YjMwZmUwMTE5ZjlmZWFjMzhiYzQifQ"
         },
         {
-          "resource": "repo://frontend/src/routes/%2Blayout.server.ts#L4-L34",
-          "version": "repo-lines-v1:sha256:f103e0658cf69ff7d1cc59944041c8602a584e00d913a9de9e216a6e9dc1f709:eyJzZWxlY3RlZExpbmVDb3VudCI6MzEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjZiZjY1OTVmZjIxYjZlNDBjOWU4NzQ1OGI3YzIyZTNjZjdhYTU3ZjBiZDQ2NmM4ZTg5NTI5YTc2M2VmNjZkMzIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImFhMWQxYTYzMzkwMjI5Yzc5ODM0N2U4M2EwNDA1NDQxYzk0MDAwMzUyODRhZDE2OGMxYmY2Y2RmMWQ3MGEzNzAiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjczNzA2YTI5ZmRlZTllNmRiNGMyYmUzMWEwZWY5MWI1NzRiY2Q4YjBlZTQ5NThjZGIyM2ViYzg4NWVlYzFmOGIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
+          "resource": "repo://frontend/src/routes/%2Blayout.server.ts#L4-L38",
+          "version": "repo-lines-v1:sha256:e346d71528b177c9935b8e7c8e3c1ae3e91790bac02a8a7e877480a6e9694db3:eyJzZWxlY3RlZExpbmVDb3VudCI6MzUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjZiZjY1OTVmZjIxYjZlNDBjOWU4NzQ1OGI3YzIyZTNjZjdhYTU3ZjBiZDQ2NmM4ZTg5NTI5YTc2M2VmNjZkMzIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImNjM2EyMDc3NGQ1YzJiYjRjNzkwYzE4ODkwYTljNDk0Y2NiNTEwZmM4ZThjMDllYzc0NTE5YmMxNjRmYzc4NGIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjczNzA2YTI5ZmRlZTllNmRiNGMyYmUzMWEwZWY5MWI1NzRiY2Q4YjBlZTQ5NThjZGIyM2ViYzg4NWVlYzFmOGIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjoxLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImFhMWQxYTYzMzkwMjI5Yzc5ODM0N2U4M2EwNDA1NDQxYzk0MDAwMzUyODRhZDE2OGMxYmY2Y2RmMWQ3MGEzNzAifQ"
         },
         {
           "resource": "repo://frontend/src/routes/%2Blayout.svelte#L27-L31",
@@ -658,7 +666,7 @@
     },
     {
       "id": "claim_5389f86c1afb417dbdbbc28b94d10c11",
-      "statement": "Route-level tests exercise the shell and page components directly with mocked clients instead of a running server: routes/layout.test.ts renders +layout.svelte with a createRawSnippet child to assert the unauthenticated bare-children path versus the Sidebar.Provider path, drives the keyboard shortcuts and their typing/modifier guards, asserts the prefetch order and one-shot behavior, and calls the +layout.server.ts load with a fake event to check collapsed_watchlist_ids and watchlist_order defaults; routes/watchlists/page.svelte.test.ts mocks the market client and preferences service while keeping a real WatchlistService instance (mocking only getWatchlistService) so the page's $derived ordering and sorting run against real rune state; routes/security/[security_id]/page.server.test.ts asserts the load returns only security_id; and the colocated /holdings suites mock $lib/api/accountService and $lib/api/userPreferencesService (plus $app/paths and $app/navigation in the component test) to drive the load, the post-navigation paging, and the page's grouping, column visibility and per-currency totals without any backend.",
+      "statement": "Route-level tests exercise the shell and page components directly with mocked clients instead of a running server: routes/layout.test.ts renders +layout.svelte with a createRawSnippet child to assert the unauthenticated bare-children path versus the Sidebar.Provider path, drives the keyboard shortcuts and their typing/modifier guards, asserts the prefetch order and one-shot behavior, and calls the +layout.server.ts load with a fake event to check collapsed_watchlist_ids, watchlist_order and expanded_account_ids defaults; routes/watchlists/page.svelte.test.ts mocks the market client and preferences service while keeping a real WatchlistService instance (mocking only getWatchlistService) so the page's $derived ordering and sorting run against real rune state; routes/security/[security_id]/page.server.test.ts asserts the load returns only security_id; and the colocated /holdings suites mock $lib/api/accountService and $lib/api/userPreferencesService (plus $app/paths and $app/navigation in the component test) to drive the load, the post-navigation paging, and the page's grouping, column visibility and per-currency totals without any backend.",
       "evidence": [
         {
           "resource": "repo://frontend/src/routes/holdings/page.server.test.ts#L47-L109",
@@ -669,12 +677,16 @@
           "version": "repo-lines-v1:sha256:5853dc1b45f51dc533b65ea1110a26b68aae163f10393e9c98ee129573729b8c:eyJzZWxlY3RlZExpbmVDb3VudCI6MjMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijk2MzhjZDllNDMxNjQ3MTdmZDRiNTc0ODZmN2Q1NWNkMzZjODI1MThiZjk1NzJkNjY1MDg4ZGFkYzMyZTZjNjgiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjFlNzk0OWI0ZmYzYzFlZTEwZTdkMTJjOTVkZTkyM2I2ZDAzOWMwZWI2OWFlZmQwMzgwODc5YzY2Y2IyODRiMjMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImZmNWQ1M2MxMWIyNGE5YmY5MzlhNGUwZmM2NDUwMDI2YjY1YzkxYzAwOGI0NTViODMzMTliMWE3NjQ3OTRlOTciLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjQ4NjcyNzNlZTJiNWU5NmRmMTg2YjZmNjA0YzMyMTI1MDhlNGIwY2NkZjQ5ODc2OThkZWMyOGE0OTMzMDIyZTEifQ"
         },
         {
-          "resource": "repo://frontend/src/routes/layout.test.ts#L242-L445",
-          "version": "repo-lines-v1:sha256:2747779527c0bfa9294905d9c975f0c12107707f105496c65c244c9cf5858250:eyJzZWxlY3RlZExpbmVDb3VudCI6MjA0LCJmaXJzdFNlbGVjdGVkTGluZUhhc2giOiI5NTI0MzljMmJjNjI0ZThmZTlmYWUxZWMxNjQzZTg4MDJmMjY2ZWFjYmIxYTIzYzBiN2YyNWZkMTVjMjVhYzA2IiwibGFzdFNlbGVjdGVkTGluZUhhc2giOiIwYTczNDkyZDg5NDZiMWQwZjlkOWMwNGI3MDRhOTIwZjI0Zjg5ZWY3YzdmNzMxMWE4NTk5ZDEwYzdmNjM1OGQwIiwicHJlY2VkaW5nQ29udGV4dExpbmVDb3VudCI6MywicHJlY2VkaW5nQ29udGV4dEhhc2giOiJmYjZiNzA4MWU0NTRkODQzNTBjYmJmMzdhYzNlZTY5Yjg0OGYxMzI1YjhkYTkzNTljNjI2OTg4NTAwZTRjZThmIiwiZm9sbG93aW5nQ29udGV4dExpbmVDb3VudCI6MSwiZm9sbG93aW5nQ29udGV4dEhhc2giOiJmNmY1YjQwYjE1ODQ1N2QxNzg2NGYyMTc5MDc4NmRkNWEyZWNkYjY0YjY2YTY1MWY3ODhkNGUyNWNkMzMwM2QyIn0"
+          "resource": "repo://frontend/src/routes/layout.test.ts#L246-L372",
+          "version": "repo-lines-v1:sha256:30f2b28d85930ab6348aeba3398acb646253d06f2fba388f2bcae88ae29b7e9c:eyJzZWxlY3RlZExpbmVDb3VudCI6MTI3LCJmaXJzdFNlbGVjdGVkTGluZUhhc2giOiI5NTI0MzljMmJjNjI0ZThmZTlmYWUxZWMxNjQzZTg4MDJmMjY2ZWFjYmIxYTIzYzBiN2YyNWZkMTVjMjVhYzA2IiwibGFzdFNlbGVjdGVkTGluZUhhc2giOiI2YTJhM2I3NmUxMmNlMTUzNzlkMDVmMjg2OWRjNDgzMmRlNzU4OTA1M2I0OWJmZjIzN2U0MjVjNzIzNzgwMTU0IiwicHJlY2VkaW5nQ29udGV4dExpbmVDb3VudCI6MywicHJlY2VkaW5nQ29udGV4dEhhc2giOiJmYjZiNzA4MWU0NTRkODQzNTBjYmJmMzdhYzNlZTY5Yjg0OGYxMzI1YjhkYTkzNTljNjI2OTg4NTAwZTRjZThmIiwiZm9sbG93aW5nQ29udGV4dExpbmVDb3VudCI6MywiZm9sbG93aW5nQ29udGV4dEhhc2giOiIwYzY0MmJmNjEyOGM3OTE3Y2M0MjQ2YmM3M2E0ZTE3NzY5YjNhOTk2YTY5ZjZmYWQ2ZDgwNjhlM2Y4YjhlZmE4In0"
         },
         {
-          "resource": "repo://frontend/src/routes/layout.test.ts#L65-L122",
-          "version": "repo-lines-v1:sha256:59e50fb9f632ed69d677642e81253021da7bd067c5318915b46611c550a99d02:eyJzZWxlY3RlZExpbmVDb3VudCI6NTgsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjcwMzQ2NTJjYWVkNGFlOTc5YjI4MTMzMzM1MDg5NjZhMWRmOTJiYjFkODgwYWIxY2RhODRmNzM3NWQ5OGNhNWIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjBhNzM0OTJkODk0NmIxZDBmOWQ5YzA0YjcwNGE5MjBmMjRmODllZjdjN2Y3MzExYTg1OTlkMTBjN2Y2MzU4ZDAiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjZmNDE3MmIyODhjZWExMWEzOWIxZDJlMTcyOTc0NDRhNTQ0MDBlOTRkYmIzYmFlODQxMDI2ZWRiYTc0MTJiNTgiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImI5OGUyN2FkYjllODdkOTczNjEyZThiOGQ0ZDAxYzY2ZDU0YWNjNzljNjhhZGY5YjIzNGZjMTI4ZDU1OWI0NTkifQ"
+          "resource": "repo://frontend/src/routes/layout.test.ts#L375-L471",
+          "version": "repo-lines-v1:sha256:3b3a54bdaa0190fbba2453f99c23cff6b3116cd819442ed9e3488a804cf9dbe5:eyJzZWxlY3RlZExpbmVDb3VudCI6OTcsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImY3OTQwMjUwNjg2OGNiOGRkNWM5MDNiZjc2MzM3NTVhNDRjY2Q0M2FhZmZiYjhiNmVjZmYwODY2ZjNhNTJhMGIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjBhNzM0OTJkODk0NmIxZDBmOWQ5YzA0YjcwNGE5MjBmMjRmODllZjdjN2Y3MzExYTg1OTlkMTBjN2Y2MzU4ZDAiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImZiNmI3MDgxZTQ1NGQ4NDM1MGNiYmYzN2FjM2VlNjliODQ4ZjEzMjViOGRhOTM1OWM2MjY5ODg1MDBlNGNlOGYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjoxLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImY2ZjViNDBiMTU4NDU3ZDE3ODY0ZjIxNzkwNzg2ZGQ1YTJlY2RiNjRiNjZhNjUxZjc4OGQ0ZTI1Y2QzMzAzZDIifQ"
+        },
+        {
+          "resource": "repo://frontend/src/routes/layout.test.ts#L65-L124",
+          "version": "repo-lines-v1:sha256:6658b2e245c8ed1659e70f382116541a340c50ab5fb242ee443ad1bf1387236d:eyJzZWxlY3RlZExpbmVDb3VudCI6NjAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjcwMzQ2NTJjYWVkNGFlOTc5YjI4MTMzMzM1MDg5NjZhMWRmOTJiYjFkODgwYWIxY2RhODRmNzM3NWQ5OGNhNWIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjBhNzM0OTJkODk0NmIxZDBmOWQ5YzA0YjcwNGE5MjBmMjRmODllZjdjN2Y3MzExYTg1OTlkMTBjN2Y2MzU4ZDAiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjZmNDE3MmIyODhjZWExMWEzOWIxZDJlMTcyOTc0NDRhNTQ0MDBlOTRkYmIzYmFlODQxMDI2ZWRiYTc0MTJiNTgiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImI5OGUyN2FkYjllODdkOTczNjEyZThiOGQ0ZDAxYzY2ZDU0YWNjNzljNjhhZGY5YjIzNGZjMTI4ZDU1OWI0NTkifQ"
         },
         {
           "resource": "repo://frontend/src/routes/security/%5Bsecurity_id%5D/page.server.test.ts#L45-L72",
@@ -766,11 +778,11 @@
     },
     {
       "id": "claim_a1690ffdc6e640d4a90b28205de434d6",
-      "statement": "UserPreferences in lib/api/userPreferencesService.ts carries the holdings preferences holdings_table (HoldingsTableConfig from components/holdings/holdings-table-columns) and holdings_group (HoldingsGroupMode from lib/utils/finance/holdings-group) alongside the sidebar, watchlist, holdings_period, chart (timeframe, chart_style, indicators, chart_hide_labels, indicator_pane_heights) and drawing (elliott_waves, fibonacci_tools, drawings, wave_settings) fields, and the same module re-exports the Elliott-wave, Fibonacci and drawing persistence shapes that are declared under $lib/utils/finance/.",
+      "statement": "UserPreferences in lib/api/userPreferencesService.ts carries the holdings preferences holdings_table (HoldingsTableConfig from components/holdings/holdings-table-columns) and holdings_group (HoldingsGroupMode from lib/utils/finance/holdings-group) alongside the sidebar, watchlist, holdings_period, chart (timeframe, chart_style, indicators, chart_hide_labels, indicator_pane_heights) and drawing (elliott_waves, fibonacci_tools, drawings, wave_settings) fields plus an expanded_account_ids array, and the same module re-exports the Elliott-wave, Fibonacci and drawing persistence shapes that are declared under $lib/utils/finance/.",
       "evidence": [
         {
-          "resource": "repo://frontend/src/lib/api/userPreferencesService.ts#L35-L80",
-          "version": "repo-lines-v1:sha256:7e254685d80e7d7e8ae36e5bc5776e54d8b24226ea578c82d493d2d8a6c806aa:eyJzZWxlY3RlZExpbmVDb3VudCI6NDYsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImQ5MzJlZjU1ODlhNjg1OGE5MjUwMDM2M2E1MjlmZmFkMTgyZTc5OTU1YzliNTBiYWEyOTUzZTMwMGZiNTc4NDMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQxMmNhMzQ1Y2NmNzViZjljMDgwNmJjZTY5NWJlOGRlODA4Yjc5OTg0MjUxYTdhNTRkMjAyY2Y2MTAxZGQ0NTEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImJhMmQ4NmU3ZTAyMjFkMjliY2RkMDU1ZGUyZDE4OWNkZTA4MDU3MDEyYzExYzY3Y2Y5OTJkMThkNWMwZjgxYzciLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImQ3ZDE5MDA5MTZhMjkyOTI1MWY0NDg3N2MyZTRiMjgxNTcyYmY2MGFiM2NlNGQ2YWQyMTFiNTFiOTJkMGZjNDIifQ"
+          "resource": "repo://frontend/src/lib/api/userPreferencesService.ts#L35-L81",
+          "version": "repo-lines-v1:sha256:39f021ed3b8ed38331e446a91a2d132184f135ac3edc6e618c0ee8ade4b7a556:eyJzZWxlY3RlZExpbmVDb3VudCI6NDcsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImQ5MzJlZjU1ODlhNjg1OGE5MjUwMDM2M2E1MjlmZmFkMTgyZTc5OTU1YzliNTBiYWEyOTUzZTMwMGZiNTc4NDMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQxMmNhMzQ1Y2NmNzViZjljMDgwNmJjZTY5NWJlOGRlODA4Yjc5OTg0MjUxYTdhNTRkMjAyY2Y2MTAxZGQ0NTEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImJhMmQ4NmU3ZTAyMjFkMjliY2RkMDU1ZGUyZDE4OWNkZTA4MDU3MDEyYzExYzY3Y2Y5OTJkMThkNWMwZjgxYzciLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImQ3ZDE5MDA5MTZhMjkyOTI1MWY0NDg3N2MyZTRiMjgxNTcyYmY2MGFiM2NlNGQ2YWQyMTFiNTFiOTJkMGZjNDIifQ"
         }
       ]
     },
@@ -842,7 +854,7 @@
         },
         {
           "resource": "repo://frontend/src/routes/layout.test.ts#L146-L240",
-          "version": "repo-lines-v1:sha256:0a03b313326e5fe16e8f7aae6233c65bc43ef3ea2494cf7799a69de2d5304795:eyJzZWxlY3RlZExpbmVDb3VudCI6OTUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImVmNTJhY2I3OWU4NDRkMjJkNWY1YmQ3YzZkNTc0N2EzN2E4MWFiZTE3M2M1Y2Y0MmE5MTdkZDg5NTgwZTQyNjYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjBhNzM0OTJkODk0NmIxZDBmOWQ5YzA0YjcwNGE5MjBmMjRmODllZjdjN2Y3MzExYTg1OTlkMTBjN2Y2MzU4ZDAiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImNmNjg3YTBmM2RmMWYzMjQ2ZjllZjdkMGM4MjE3OGM0YzNjZDZmYmE4Nzc5YWJlMjk1ODY3NTk2MDg2NDU2YzkiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjZiZjM0NjhlZWE2ZDFhOTA1NjRkZmJjNzQwOGRlNjU2OTkyYjJlMDcwNTk3MmU0ZjkyZmJiNjcxYjYyYzY5ZDYifQ"
+          "version": "repo-lines-v1:sha256:9975cf587b1ff1f67e32e4b83c33d0a1afbe6f874bfd739af0023f1b6ea2489e:eyJzZWxlY3RlZExpbmVDb3VudCI6OTYsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImVmNTJhY2I3OWU4NDRkMjJkNWY1YmQ3YzZkNTc0N2EzN2E4MWFiZTE3M2M1Y2Y0MmE5MTdkZDg5NTgwZTQyNjYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjBhNzM0OTJkODk0NmIxZDBmOWQ5YzA0YjcwNGE5MjBmMjRmODllZjdjN2Y3MzExYTg1OTlkMTBjN2Y2MzU4ZDAiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImNmNjg3YTBmM2RmMWYzMjQ2ZjllZjdkMGM4MjE3OGM0YzNjZDZmYmE4Nzc5YWJlMjk1ODY3NTk2MDg2NDU2YzkiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjZiZjM0NjhlZWE2ZDFhOTA1NjRkZmJjNzQwOGRlNjU2OTkyYjJlMDcwNTk3MmU0ZjkyZmJiNjcxYjYyYzY5ZDYifQ"
         }
       ]
     },
@@ -856,7 +868,7 @@
         },
         {
           "resource": "repo://frontend/src/routes/layout.test.ts#L242-L367",
-          "version": "repo-lines-v1:sha256:b6cf9b9b9db749b23ef2d2c8b4b783c0d1bb70638c3004657c16301e4a02def8:eyJzZWxlY3RlZExpbmVDb3VudCI6MTI2LCJmaXJzdFNlbGVjdGVkTGluZUhhc2giOiI5NTI0MzljMmJjNjI0ZThmZTlmYWUxZWMxNjQzZTg4MDJmMjY2ZWFjYmIxYTIzYzBiN2YyNWZkMTVjMjVhYzA2IiwibGFzdFNlbGVjdGVkTGluZUhhc2giOiIwYTczNDkyZDg5NDZiMWQwZjlkOWMwNGI3MDRhOTIwZjI0Zjg5ZWY3YzdmNzMxMWE4NTk5ZDEwYzdmNjM1OGQwIiwicHJlY2VkaW5nQ29udGV4dExpbmVDb3VudCI6MywicHJlY2VkaW5nQ29udGV4dEhhc2giOiJmYjZiNzA4MWU0NTRkODQzNTBjYmJmMzdhYzNlZTY5Yjg0OGYxMzI1YjhkYTkzNTljNjI2OTg4NTAwZTRjZThmIiwiZm9sbG93aW5nQ29udGV4dExpbmVDb3VudCI6MywiZm9sbG93aW5nQ29udGV4dEhhc2giOiIzNDc4MzQ2ZGE2ODg4YmYyNTFkOTM5NzZhNTY5OWFhZTg3YzFlYjM0NWUxYzNlMGZlNGI5MDAzZjJhZjk5ODYzIn0"
+          "version": "repo-lines-v1:sha256:1a8872fa98dac0fea69e3fc2d451847613ee1b64415c91771c4a1ca3d3eff5fd:eyJzZWxlY3RlZExpbmVDb3VudCI6MTI4LCJmaXJzdFNlbGVjdGVkTGluZUhhc2giOiI5NTI0MzljMmJjNjI0ZThmZTlmYWUxZWMxNjQzZTg4MDJmMjY2ZWFjYmIxYTIzYzBiN2YyNWZkMTVjMjVhYzA2IiwibGFzdFNlbGVjdGVkTGluZUhhc2giOiIwYTczNDkyZDg5NDZiMWQwZjlkOWMwNGI3MDRhOTIwZjI0Zjg5ZWY3YzdmNzMxMWE4NTk5ZDEwYzdmNjM1OGQwIiwicHJlY2VkaW5nQ29udGV4dExpbmVDb3VudCI6MywicHJlY2VkaW5nQ29udGV4dEhhc2giOiJmYjZiNzA4MWU0NTRkODQzNTBjYmJmMzdhYzNlZTY5Yjg0OGYxMzI1YjhkYTkzNTljNjI2OTg4NTAwZTRjZThmIiwiZm9sbG93aW5nQ29udGV4dExpbmVDb3VudCI6MywiZm9sbG93aW5nQ29udGV4dEhhc2giOiIzNDc4MzQ2ZGE2ODg4YmYyNTFkOTM5NzZhNTY5OWFhZTg3YzFlYjM0NWUxYzNlMGZlNGI5MDAzZjJhZjk5ODYzIn0"
         }
       ]
     },
@@ -877,10 +889,98 @@
           "version": "repo-lines-v1:sha256:25b0f44179bffeecf69e694bf4bd1c9d85615f610bf93cd019d15f0bd2a4b818:eyJzZWxlY3RlZExpbmVDb3VudCI6MTQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImVkOWQ4Y2EyYmNhNmJiZDE2YjU5Y2JmNTJiNDM1ZDNlNzY3NjA3MTk4NjQ1Njc0YTdjN2ZiOGMyZTA1NjA2YTMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjY3Y2RhODJkYTYwNjIzOGUwNWU2MjM5OTU2OWM1ZWUwMzk5MzQxOTY0OGFlNWQ0M2EyYmY4Y2Q2MzQ3ZjgyNjMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjIyZjJmZjVmZWVjNjBmNTg3YzhmYWU0ZTg3ZjgwOWE2NjFjZmZlZDZiNDdhYWU1ZjZkNmEyNjUzYWE4OTUyZWYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImE1ZmViM2U3Zjg2YjI1NGZlNzRlNWYwZDkwZDAyOTk5MjMyMDgxMmYwZGFlM2Y5NzhkNTFkOWM0YzQzY2M0YTAifQ"
         }
       ]
+    },
+    {
+      "id": "claim_2da930a8a56a4f43add5b81ef3593811",
+      "statement": "expanded_account_ids is the newest shell-driving preference and follows the same seams as the older layout keys: the root layout load carries it alongside sidebar_open, collapsed_watchlist_ids and watchlist_order, AccountsList seeds its initial expanded set from an 'initialExpandedAccountIds' context value (a test-harness seam) before falling back to $page.data.expanded_account_ids, and the individual account rows patch the key back.",
+      "evidence": [
+        {
+          "resource": "repo://frontend/src/lib/components/accounts/accounts-list-item.svelte#L108-L118",
+          "version": "repo-lines-v1:sha256:cb44d5ac73ee0538157a6bacc1cc32c6926dc46bf202b27dc1df420cbd91691e:eyJzZWxlY3RlZExpbmVDb3VudCI6MTEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjNlMTdjYTk3MmI1ZTQ1ZWZmNjU3OTJhODA3NDc0NWZmNmM3ZTY1YzJlMDMxNWRiZmE1OTNjMzUyZWQ4OTU2M2YiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjRmZmYwNjMzNDhhMWUxYTMyNTEzZWFjYzAxNmZjMjVjZmZlZjBiNGM5MGJmMGM4ODhlZDU4NTdmMjEzYTMyZGMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImU2N2I3NzQ3NzIyN2VjYWE5NTAzMTE3MjZlMDRmOWU2OWJiNmJkYzU3NThjZmMyMWNmYzQ5MmUxNmE1ZWUzMjkiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjBkZWZhYzZiZjIwMDMzZjg0ZDM0MmY0NDU5N2Q5YjA3NmZkZTlmYjQyNTdlZDliMWM3ZGE3NWI0ZDU1MDI3Y2IifQ"
+        },
+        {
+          "resource": "repo://frontend/src/lib/components/accounts/accounts-list.svelte#L15-L27",
+          "version": "repo-lines-v1:sha256:b1ae2919c38e3a525683ac1d50cd88e4cf609edf906d5525393c326d7b1ef780:eyJzZWxlY3RlZExpbmVDb3VudCI6MTMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjYzOGY0ZjI2NWMxNzkyN2FlNzA1N2Q4NzFhN2YxZmE1Y2NhMmExMTgzNDdhZDk4ZjhmYTBkMWQxNjViYjFmYTYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImYyNzdlMDBjMTVjNTg3MGYwZWYxZTFlZmVjMTIxOTc4ZjcwZWYyMmNhNjRmMDI3ZDFhNTQ4MDk5ZThkOGM0MDciLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjdjMmYzYjE2ZmFjZmVmZDNkYTBjODIwNmQzNjczYTYwYWRiYzg0NDFkZmFmODY4ZGQ4Mjk2NzMyNjg2NDkxNzUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjE2NzA2ZmI4Njg5MmQ5MDZiZWY1YmMzNzdlNTE4MGY0NmViM2YzZGRlMjRlNWQ4ZWNkZTgyMzNiMzU2NmRiN2EifQ"
+        },
+        {
+          "resource": "repo://frontend/src/routes/%2Blayout.server.ts#L4-L38",
+          "version": "repo-lines-v1:sha256:e346d71528b177c9935b8e7c8e3c1ae3e91790bac02a8a7e877480a6e9694db3:eyJzZWxlY3RlZExpbmVDb3VudCI6MzUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjZiZjY1OTVmZjIxYjZlNDBjOWU4NzQ1OGI3YzIyZTNjZjdhYTU3ZjBiZDQ2NmM4ZTg5NTI5YTc2M2VmNjZkMzIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImNjM2EyMDc3NGQ1YzJiYjRjNzkwYzE4ODkwYTljNDk0Y2NiNTEwZmM4ZThjMDllYzc0NTE5YmMxNjRmYzc4NGIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjczNzA2YTI5ZmRlZTllNmRiNGMyYmUzMWEwZWY5MWI1NzRiY2Q4YjBlZTQ5NThjZGIyM2ViYzg4NWVlYzFmOGIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjoxLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImFhMWQxYTYzMzkwMjI5Yzc5ODM0N2U4M2EwNDA1NDQxYzk0MDAwMzUyODRhZDE2OGMxYmY2Y2RmMWQ3MGEzNzAifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_d085628ffe6548bea4eb17a54afe303c",
+      "statement": "AppSidebarWatchlist and AccountsList resolve their preference-backed state through the same two-step seam — a setContext/getContext value injected by a test harness first (initialWatchlistOrder / initialCollapsedWatchlistIds, initialExpandedAccountIds), then the $page.data fallback written by the root layout load — which keeps the preference plumbing testable without a running layout.",
+      "evidence": [
+        {
+          "resource": "repo://frontend/src/lib/components/accounts/accounts-list.svelte#L17-L23",
+          "version": "repo-lines-v1:sha256:67e5e162e72e8aadab4cc515d1c1af6c2bdb437b968d2bffeb5fac02155b3aad:eyJzZWxlY3RlZExpbmVDb3VudCI6NywiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiMTk0NGQ1MjBhYTNiNWY4NTk0MDU4MDhjYzJiOGMyYWRhOTcyNjk5OTJjOTA5OTA1ZWQ3ZTdhNDY3ZjZlMGY4ZCIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiMGZiYWE0ZmJmNzM2MDQ4ZTRhMWI1ZDM5ZjlhYjVkODBjNTIwNmM0ZmIwM2JmNDRjNzA3NjE1MWY2MmRhNDA2YSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiM2MwYTg0NmYxNDY5OGJkN2MzYzU2MDY2ZmUzNTU4ZTFkN2MwNWNiNDg5MGU5NDlkMWM4ZjFmNmU2NzhiNDc3YSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiN2IyNmY5MWRiNTQwMWEwMWMzMzJjZjJiYWQxZjc5NTgyMmM5NzVhY2M5YzEyMmI5ZjIyYWZiZmI4OWI3NDVkOSJ9"
+        },
+        {
+          "resource": "repo://frontend/src/lib/components/layout/app-sidebar-watchlist.svelte#L20-L32",
+          "version": "repo-lines-v1:sha256:aaffc369cf798e9feddf0301ca02f1b49f59d32b27a2c8848587c56d79148b97:eyJzZWxlY3RlZExpbmVDb3VudCI6MTMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAwM2JkMmJkZDAxN2M0YWNmYTQxZmRlYmJjMGRlMTViZDM3MmVjZDljOTU4MGQ5OWY3NDA3YWIzMzI5OGIzN2UiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjcxNmM2ODhkYzlkYjNjNjhkNmI0MDY3YmE5ZTY2YmE0Y2NmYzM0MDJmMmE5NzAyNWMzZTRlZWEyODkzMWM4ZWYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjZlZGQ5ODBlZDI1MmJhNDdkNmQ2MzhlZTk3YzE1MzhlMzRhZDRhZmU4NzRhMTM3ZjQyZmQxY2Q2NWZkNDI5YzYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjYyMjE4ZWQyNDE0NzBkOWIyNjg5YjBkYzkwNjUzYjYwN2Y2OWY5YWE3Y2VkZjUxYTI2NTMyNmZhNGEwMDg0MzkifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_7172d527d6934460ae7bf8a81dc86c0d",
+      "statement": "layout.test.ts pins the shell's observable contract: an unauthenticated render shows only the raw children while an authenticated render adds Sidebar.Provider (class overflow-hidden) plus AppSidebar and a min-w-0 Sidebar.Inset; '/' opens global search, w and h navigate to /watchlists and /holdings, 1-9/0 navigate to the first nine/tenth default-watchlist security, and both typing targets (INPUT/TEXTAREA/SELECT/contenteditable) and modifier combinations are ignored; and repeated shortcut presses still prefetch each URL exactly once while a rejected prefetch is swallowed yet navigation proceeds.",
+      "evidence": [
+        {
+          "resource": "repo://frontend/src/routes/layout.test.ts#L149-L244",
+          "version": "repo-lines-v1:sha256:9975cf587b1ff1f67e32e4b83c33d0a1afbe6f874bfd739af0023f1b6ea2489e:eyJzZWxlY3RlZExpbmVDb3VudCI6OTYsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImVmNTJhY2I3OWU4NDRkMjJkNWY1YmQ3YzZkNTc0N2EzN2E4MWFiZTE3M2M1Y2Y0MmE5MTdkZDg5NTgwZTQyNjYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjBhNzM0OTJkODk0NmIxZDBmOWQ5YzA0YjcwNGE5MjBmMjRmODllZjdjN2Y3MzExYTg1OTlkMTBjN2Y2MzU4ZDAiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImNmNjg3YTBmM2RmMWYzMjQ2ZjllZjdkMGM4MjE3OGM0YzNjZDZmYmE4Nzc5YWJlMjk1ODY3NTk2MDg2NDU2YzkiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjZiZjM0NjhlZWE2ZDFhOTA1NjRkZmJjNzQwOGRlNjU2OTkyYjJlMDcwNTk3MmU0ZjkyZmJiNjcxYjYyYzY5ZDYifQ"
+        },
+        {
+          "resource": "repo://frontend/src/routes/layout.test.ts#L289-L372",
+          "version": "repo-lines-v1:sha256:94eceab41912ec530e1e77db01e7ea02481e92bf0106aa155a5f792f37593f02:eyJzZWxlY3RlZExpbmVDb3VudCI6ODQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImY1OTRmMzU4ODM1NTFiMTIxODNiNTJhZGFmMzkwNWY3OTRkMjllZGVkOWFjOTY2ZmJkMzE1NGEwOTUzZWI0YzQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjZhMmEzYjc2ZTEyY2UxNTM3OWQwNWYyODY5ZGM0ODMyZGU3NTg5MDUzYjQ5YmZmMjM3ZTQyNWM3MjM3ODAxNTQiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImE2YmFkYTk5MGQ2OTlkYmQ4NTU4MGJhMmQxNzNiMGQzMTNmMzVhODA4MWNjOTlkMmY2MTFjN2M1MTQ5NWE1NWEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjBjNjQyYmY2MTI4Yzc5MTdjYzQyNDZiYzczYTRlMTc3NjliM2E5OTZhNjlmNmZhZDZkODA2OGUzZjhiOGVmYTgifQ"
+        },
+        {
+          "resource": "repo://frontend/src/routes/layout.test.ts#L65-L124",
+          "version": "repo-lines-v1:sha256:6658b2e245c8ed1659e70f382116541a340c50ab5fb242ee443ad1bf1387236d:eyJzZWxlY3RlZExpbmVDb3VudCI6NjAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjcwMzQ2NTJjYWVkNGFlOTc5YjI4MTMzMzM1MDg5NjZhMWRmOTJiYjFkODgwYWIxY2RhODRmNzM3NWQ5OGNhNWIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjBhNzM0OTJkODk0NmIxZDBmOWQ5YzA0YjcwNGE5MjBmMjRmODllZjdjN2Y3MzExYTg1OTlkMTBjN2Y2MzU4ZDAiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjZmNDE3MmIyODhjZWExMWEzOWIxZDJlMTcyOTc0NDRhNTQ0MDBlOTRkYmIzYmFlODQxMDI2ZWRiYTc0MTJiNTgiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImI5OGUyN2FkYjllODdkOTczNjEyZThiOGQ0ZDAxYzY2ZDU0YWNjNzljNjhhZGY5YjIzNGZjMTI4ZDU1OWI0NTkifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_90796a56f2e84540b8a8dd8f9a273368",
+      "statement": "layout.test.ts also pins the async shell behavior: with data.user set the layout calls getWatchlists exactly once and redirects to /auth/login?clear_session=true (and nothing else) when that load rejects with ApiError 401, while an unauthenticated render never calls getWatchlists and never prefetches.",
+      "evidence": [
+        {
+          "resource": "repo://frontend/src/routes/layout.test.ts#L302-L324",
+          "version": "repo-lines-v1:sha256:33d022cdf40781fcab2b032a18051b9252d6c56c4fec14b4b85328827b2da031:eyJzZWxlY3RlZExpbmVDb3VudCI6MjMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImMwOGU1ODE1OThmMmEwNjg0ZTQwYjg3NzdkYjZjNDlmZjc1MTdjZGYzYWFlZmM4MDY3M2Y5MzZhMzljOGNkNDAiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjZhMmEzYjc2ZTEyY2UxNTM3OWQwNWYyODY5ZGM0ODMyZGU3NTg5MDUzYjQ5YmZmMjM3ZTQyNWM3MjM3ODAxNTQiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImNkOTUwYWU1NDE2ZTE4NjMxNjJiNDBlMDY4MTA5MGMyNGVkNThjMmUxZDNlYzZlNjFkMGMwMmVhZDk0YjA5YzEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjUyNTMxN2I1MjZiZjc2YmEyZWU3MDFjMTFhMzE2YjIzZjMyN2ZlMzJkOWNhN2I3YjA4MDg5ZmRmZjQxYWFhM2YifQ"
+        },
+        {
+          "resource": "repo://frontend/src/routes/layout.test.ts#L375-L412",
+          "version": "repo-lines-v1:sha256:80c81858aac7df7a30bd2b1f13beb207355f5ac0a6c3f292d38f28df93536b4d:eyJzZWxlY3RlZExpbmVDb3VudCI6MzgsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImY3OTQwMjUwNjg2OGNiOGRkNWM5MDNiZjc2MzM3NTVhNDRjY2Q0M2FhZmZiYjhiNmVjZmYwODY2ZjNhNTJhMGIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjBhNzM0OTJkODk0NmIxZDBmOWQ5YzA0YjcwNGE5MjBmMjRmODllZjdjN2Y3MzExYTg1OTlkMTBjN2Y2MzU4ZDAiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImZiNmI3MDgxZTQ1NGQ4NDM1MGNiYmYzN2FjM2VlNjliODQ4ZjEzMjViOGRhOTM1OWM2MjY5ODg1MDBlNGNlOGYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjFkZTAzZjY2MTFhZTc4NWNiOWZiMGQ4ZTYxZDMwZmU5NjFiODc2NGIxM2QyMjkwMzY2MzMyZTI0OGU1NWY3ZWUifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_b5318f5a64c14964800ef0e8c0989172",
+      "statement": "The root load's preference hydration is covered directly by calling load with a fake event whose getUserPreferencesService is mocked: collapsed_watchlist_ids and expanded_account_ids default to empty arrays (and a non-array value is rejected), watchlist_order defaults to null, and provided values are copied through.",
+      "evidence": [
+        {
+          "resource": "repo://frontend/src/routes/layout.test.ts#L414-L471",
+          "version": "repo-lines-v1:sha256:883c9037fd89cd090929cf457a06eb4a5464f9444573d88f3fb2a31d35676819:eyJzZWxlY3RlZExpbmVDb3VudCI6NTgsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImJjYmMxNmVmZTkzNDNiYzc5ZDEyNmNlYzIzOTFjMzIzNDQ2ZjQ4ODYzMjNmOGMwNmFhZTdiMTk0YjE2Mzg2YTkiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjBhNzM0OTJkODk0NmIxZDBmOWQ5YzA0YjcwNGE5MjBmMjRmODllZjdjN2Y3MzExYTg1OTlkMTBjN2Y2MzU4ZDAiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImZiNmI3MDgxZTQ1NGQ4NDM1MGNiYmYzN2FjM2VlNjliODQ4ZjEzMjViOGRhOTM1OWM2MjY5ODg1MDBlNGNlOGYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjoxLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImY2ZjViNDBiMTU4NDU3ZDE3ODY0ZjIxNzkwNzg2ZGQ1YTJlY2RiNjRiNjZhNjUxZjc4OGQ0ZTI1Y2QzMzAzZDIifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_48fc4ea8f7194cc6b4fbf2a64a3c534f",
+      "statement": "EditableTitle is the shared inline-edit control behind the rename form actions: with an action prop it renders a method=POST form wrapped in enhance from $app/forms and commits the bound value (and optional onSave callback) only when result.type === 'success', while without one it falls back to a purely local onSave path; Escape cancels in both modes and Enter commits in the local mode.",
+      "evidence": [
+        {
+          "resource": "repo://frontend/src/lib/components/forms/editable-title.svelte#L11-L35",
+          "version": "repo-lines-v1:sha256:0ad8a1b8d2d9bbb09326091d12da1f733e4cac3c3bdffef76657b80f49c1bb58:eyJzZWxlY3RlZExpbmVDb3VudCI6MjUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImMwYThkMjhjZDA3ODI1NTUyMDRiODBkN2YzNDQyZTg0Y2IwMmZjMjI3NDQ2NGQ0OTY1MGNhNWNjNDliMjg3ZTEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjBhOGI2YWEzNzNhMzE0OTQwMGEzZTExMTQwZTQ5Mjk5N2MzYzM4NjRiMWQ4YjJkNzY4NjY5NTVkNTAyMmVhNmMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjQ2MWI5OWRkOGRkNzc5ZmYwNDNhNzZlMDUwNWRlNDI0YzBlN2I4MWFkMWM3ODZhNTBmM2QwOWQ1OTlkMDgzNzAiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjlhZTBmNTY5YmQxNjhiNGMzY2VjOTdiZmM5OWI4ZWU1NzVlZmJlNTM5ZmM0ZDY1NGRhYzc1MWIxNzlmNWRlMDgifQ"
+        },
+        {
+          "resource": "repo://frontend/src/lib/components/forms/editable-title.svelte#L54-L95",
+          "version": "repo-lines-v1:sha256:1d9dddd5bd765fca1dc968ba0960b4dafbb1fee6b680c8274aa8466e67f5ede5:eyJzZWxlY3RlZExpbmVDb3VudCI6NDIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQwNTA1NTE1Zjc5MWVmYjNlNGU0ZjU4ZjFjY2E1YjJkMzEyMzMzYmZiZDBiMTEzZWZhZDc3NjA4NTg3NTczNmEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjJkOGQ3YTIxMDA3ZWY2ODFlN2FmYmM2NmJmN2Y4YjM1ZDk0NTUzNTU4OTM3NWQwOWMyZGZmODM4YzJmYzllMGIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjllZDAxNGM0YzVlYTg2MDhmNWM2NDBkZjk0MmI5ZGFkODJhODZhODE3ZmZlYTVkY2IxMTlmYjY2YzYxOTdiZjQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImM4MzdlZWNjNmJmMTViOTViNmQyYmI1YTM2MTE5YWEwZTdlODM3YjM2MmZhNDNlNmMwNTZjZjNhMjMzZDE5YTkifQ"
+        }
+      ]
     }
   ],
   "verification": {
-    "by": "openwiki/0.5.2",
-    "at": "2026-09-23T13:18:56.288Z"
+    "by": "openwiki/0.6.0",
+    "at": "2026-09-28T16:25:02.439Z"
   }
 }

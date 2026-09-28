@@ -4,8 +4,8 @@ title: Authentication & Authorization
 description: The cross-stack identity system — signup and email verification, password/TOTP/passkey login, HS256 access and mfa_pending JWTs, the httponly auth_token cookie, the SvelteKit SSR guard that re-verifies the same secret with jose, Redis-backed challenge/lockout/denylist state, the signed WebSocket ticket, and 404-not-403 ownership authorization.
 tags: [authentication, authorization, security, jwt, webauthn, totp, sveltekit]
 verified:
-  - by: openwiki/0.5.2
-    at: 2026-09-18T20:16:58.058Z
+  - by: openwiki/0.6.0
+    at: 2026-09-28T16:25:02.439Z
 sources:
   - id: openwiki-source-5f5b95b3d6a215fa02ceb945
     resource: repo://.env.example
@@ -83,7 +83,7 @@ sources:
     resource: repo://tests/routers/test_auth.py
   - id: openwiki-source-ce5690229e2d57cc7f25e9a0
     resource: repo://tests/ws/test_router.py
-generated: { by: "openwiki/0.5.2", at: "2026-09-18T20:16:58.058Z" }
+generated: { by: "openwiki/0.6.0", at: "2026-09-28T16:25:02.439Z" }
 ---
 
 # Authentication & Authorization
@@ -281,7 +281,8 @@ The browser cannot send the `httponly` cookie in a way the WebSocket handshake h
 
 - `POST /api/v1/auth/ws-ticket` requires the `auth_token` cookie (it is not a Bearer-authenticated route), validates it via `UserApi.get_current_user_from_token`, and returns `{"ticket": URLSafeTimedSerializer(settings.secret_key).dumps(json.dumps({"user_id": ..., "jti": uuid4()}), salt="ws-ticket")}`.
 - `GET`-upgraded `/api/ws` (`src/ws/router.py`) prefers the `ticket` query parameter: it first marks `ws-ticket-used:{sha256(ticket)}` in Redis with `SET NX EX 30` (a replay, or a Redis error — the check fails open — is handled separately), then `serializer.loads(ticket, max_age=30, salt="ws-ticket")`. Without a ticket it falls back to the `auth_token` cookie or `sec-websocket-protocol` header verified through `UserApi`. Any failure closes the socket with code **1008**.
-- `frontend/src/lib/components/accounts/accounts-list.svelte.ts` fetches a ticket through `authService.getWsTicket()` and connects to `/api/ws?ticket=...`, reconnecting every 5 seconds on close. The worker dashboard WebSocket (`src/worker_dashboard/router.py`) reuses the same `ws-ticket` and replay helper, while its REST task routes are gated by `Depends(current_user)`.
+- The browser consumer of this ticket is `AccountsListState` in `frontend/src/lib/components/accounts/accounts-list.svelte.ts`, which calls `authService.getWsTicket()`, connects to `/api/ws?ticket=...`, and reconnects every 5 seconds on close. The surrounding sync state machine — ticket handshake, `sync_started`/`sync_finished`/`sync_failed` handling, status hydration, and the polling fallback — is owned by [`/openwiki/architecture/frontend.md`](/openwiki/architecture/frontend.md) and the realtime/broker-sync workflows; this page only covers the credential that gates the handshake.
+- The worker dashboard WebSocket (`src/worker_dashboard/router.py`) reuses the same `ws-ticket` and replay helper, while its REST task routes are gated by `Depends(current_user)`.
 
 ## Ownership authorization
 

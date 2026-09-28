@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "pageVersion": "sha256:b239a01617615d2c4cfa7bb95bfa2f7816ad44d26c58a224c05057119bd6d7ea",
+  "pageVersion": "sha256:9f7a20f6f2f8deebfa33080b7390e3b7269b63da04ebab5d349fb7ec4122c1c4",
   "claims": [
     {
       "id": "claim_378287f072a04458b7482923bc24f4c5",
@@ -489,10 +489,48 @@
           "version": "repo-lines-v1:sha256:f864a957650dbf173f3366f4b237c618d5385199f22ee3f782bbadef69a656b7:eyJzZWxlY3RlZExpbmVDb3VudCI6OSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiYTQzOWRmODAwY2I4NjQ2NGNlMjM1ZGJiOTA3Njg2NmFiZjgxMjZlMjNiYjg5MjgyYjFiMjU4NmYxMWFhOTY3OCIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNjdjZGE4MmRhNjA2MjM4ZTA1ZTYyMzk5NTY5YzVlZTAzOTkzNDE5NjQ4YWU1ZDQzYTJiZjhjZDYzNDdmODI2MyIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiNjM4N2ZlNTg1YzBjZjlkZjQ1ZGJiNzdmYWQ5MTMzMzQxNmViYWI4Yjc1ZWQyZTQ5OTlkNGMyMmQ5YzZiYjYzYyIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiODlmOWI2OTI1ODZmNTNhYzQ3ODAxZmQ2ZTRkZjg3MWY2NmRjMjFlMTZjODU0ZDkxNzA1NmQ0MWNiZWI3MjE4MiJ9"
         }
       ]
+    },
+    {
+      "id": "claim_521f1bf408d2478ab6136fb0247f15c7",
+      "statement": "The frontend route-test-pair convention (a `page.server.test.ts` driving `load`/`actions` with a hand-built `Cookies`/`RequestEvent` object, paired with a `page.svelte.test.ts` rendering the page and asserting the shell-first contract) covers the `holdings/`, `watchlists/`, `security/[security_id]/` and `auth/login/` routes, while `src/routes/layout.test.ts` is the single-file exception that exercises both the `+layout.svelte` component and the `./+layout.server` load.",
+      "evidence": [
+        {
+          "resource": "repo://frontend/src/routes/auth/login/page.server.test.ts",
+          "version": "repo-file-v1:sha256:aa8c4c2fbd448226250c3523ff2fb74df41319e33b94eb69042c8a42faaa49aa"
+        },
+        {
+          "resource": "repo://frontend/src/routes/holdings/page.server.test.ts",
+          "version": "repo-file-v1:sha256:0d779112ddfb1cc45148f0fd174bbceadd4e6ac7dc82991fb4fe0dce1a45f876"
+        },
+        {
+          "resource": "repo://frontend/src/routes/holdings/page.svelte.test.ts",
+          "version": "repo-file-v1:sha256:43e735b69910017b5664b9522e9377d71805a599ea67fd7982e915425210bff1"
+        },
+        {
+          "resource": "repo://frontend/src/routes/layout.test.ts#L3-L4",
+          "version": "repo-lines-v1:sha256:6f7db28f8da10d2abffbfc8432275cc03083b845c258b6f6813b6174f5fa0e9e:eyJzZWxlY3RlZExpbmVDb3VudCI6MiwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiNDJmNzA2NzhlZTllYjMzY2MwZmZmZDA5ZWY0MDMzZmNkZGFiZmZkNzIyMTU2NjAyODViYWQ0YjZiYTc0MWNkNCIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiYjllN2Y0ODNkZTg2ZmY2NDc5YjEzNGEyZmE3MTFiYmNhYmM3ZjY4MjQ3ZGQwNGJkODIzYWM3OTVlYmNlNGMwMCIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjIsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiOGUxYzU5NTVkYTUzYTFiODc5OGQ3MmE1NDkyMzE3MTRhOGU5YTkxMDM3YWNlODM0ZWFmYTg4NWE5OWE4ODI1ZSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiOTk5NjA5MGRjMDIzOGNmNDNlZDU5YzRjOGI3ZWJiZGI2ZWVjN2M5YzAxMjdhNjIyODE0Mjg3MmVlMzU5ZTk5MCJ9"
+        },
+        {
+          "resource": "repo://frontend/src/routes/security/%5Bsecurity_id%5D/page.server.test.ts",
+          "version": "repo-file-v1:sha256:f0206ce82d2ee5c8f7d983fd3ede1f5eb8a1d91a71b6e2f895ad05b8a5904960"
+        },
+        {
+          "resource": "repo://frontend/src/routes/security/%5Bsecurity_id%5D/page.svelte.test.ts",
+          "version": "repo-file-v1:sha256:55e07bcad2ca56014b0a89336d37f9188d681f34b653b6962ab964e82a628681"
+        },
+        {
+          "resource": "repo://frontend/src/routes/watchlists/page.server.test.ts",
+          "version": "repo-file-v1:sha256:1984597cc673b8b39ee2b0fe7a0ca0db53ac8e675b2011454c7fa5afeb7f6f62"
+        },
+        {
+          "resource": "repo://frontend/src/routes/watchlists/page.svelte.test.ts",
+          "version": "repo-file-v1:sha256:b318674e99dd1bede87efcacd8491c7be9a72e10941499d916fe199e2c3f06f5"
+        }
+      ]
     }
   ],
   "verification": {
-    "by": "openwiki/0.5.2",
-    "at": "2026-09-23T13:18:56.288Z"
+    "by": "openwiki/0.6.0",
+    "at": "2026-09-28T16:25:02.439Z"
   }
 }

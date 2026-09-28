@@ -1,11 +1,8 @@
 ---
 type: "Reference"
 title: "Configuration, Dependency Injection & Cross-Cutting Runtime"
-description: "How retail-portfolio loads settings from the single root .env, selects stub or live integrations, wires the svcs registry for the API and the Huey worker, and provides database, Redis, rate limiting, request-ID and logging infrastructure."
+description: "How retail-portfolio loads settings from the single root .env, selects stub or live integrations through the svcs registry, and provides the database, Redis, rate limiting, request-ID and logging infrastructure shared by the API and the Huey worker."
 tags: ["configuration", "dependency-injection", "settings", "database", "redis", "logging", "middleware", "operations"]
-verified:
-  - by: openwiki/0.5.2
-    at: 2026-09-18T20:16:58.058Z
 sources:
   - id: openwiki-source-5f5b95b3d6a215fa02ceb945
     resource: repo://.env.example
@@ -49,12 +46,18 @@ sources:
     resource: repo://src/core/redis.py
   - id: openwiki-source-75209be2251e0ad122f157ff
     resource: repo://src/core/registry.py
+  - id: openwiki-source-3ebdf3bdd0e5fec66ea8c288
+    resource: repo://src/integration/brokers/__init__.py
+  - id: openwiki-source-aa78a7160d509484cbcaaf33
+    resource: repo://src/integration/brokers/wealthsimple.py
   - id: openwiki-source-1d65188722b62c70565d1cc3
     resource: repo://src/integration/registry.py
   - id: openwiki-source-fd173f0cb9d58ea27b5992d2
     resource: repo://src/integration/router.py
   - id: openwiki-source-cf06e2dd885c3f0f11447b4f
     resource: repo://src/integration/sync_status.py
+  - id: openwiki-source-1bc1a904875e872775adbd74
+    resource: repo://src/integration/task.py
   - id: openwiki-source-11b9d806fcc6dd6e7747ed87
     resource: repo://src/main.py
   - id: openwiki-source-336c8d4ea788e2c5f7cddd73
@@ -71,6 +74,10 @@ sources:
     resource: repo://src/market/service.py
   - id: openwiki-source-689c3cecf701f8b197038e75
     resource: repo://src/market/task.py
+  - id: openwiki-source-9ed7a4f9509af660d4ea8a18
+    resource: repo://src/stubs/ai.py
+  - id: openwiki-source-49a515c9449d205d8513d8a6
+    resource: repo://src/stubs/wealthsimple.py
   - id: openwiki-source-c8a9ed75dfc5d7332062ae40
     resource: repo://src/worker_dashboard/router.py
   - id: openwiki-source-7a8d629077019775a9fec3d3
@@ -89,7 +96,10 @@ sources:
     resource: repo://tests/test_request_id.py
   - id: openwiki-source-f51fde6b44381acc41cc36e5
     resource: repo://tests/test_settings.py
-generated: { by: "openwiki/0.5.2", at: "2026-09-18T20:16:58.058Z" }
+generated: { by: "openwiki/0.6.0", at: "2026-09-28T16:25:02.439Z" }
+verified:
+  - by: openwiki/0.6.0
+    at: 2026-09-28T16:25:02.439Z
 ---
 
 # Configuration, Dependency Injection & Cross-Cutting Runtime
@@ -107,7 +117,9 @@ The tracked `.env.example` at the repository root is the single source of config
 | Docker Compose | Compose interpolates `${ENVIRONMENT}`, `${BACKEND_PORT}`, `${FRONTEND_PORT}`, `${DOCKER_GID}`, the debug ports and the `VITE_*` values from the same file |
 | Frontend service | Compose forwards `VITE_API_BASE_URL`, `VITE_INTERNAL_API_URL` and `VITE_ALLOWED_HOSTS` to the `frontend` container, and maps `SECRET_KEY` → `JWT_SECRET` |
 
-The `SECRET_KEY` → `JWT_SECRET` mapping is the load-bearing one: `docker-compose.yml` declares `JWT_SECRET: "${SECRET_KEY:?SECRET_KEY must be set in the root .env}"`, so the SvelteKit SSR route guard in `frontend/src/hooks.server.ts` verifies `auth_token` with exactly the HS256 key the backend signs with (`UserApi.create_access_token`). Compose fails fast if `SECRET_KEY` is missing, and no second secret exists to drift. See [Authentication](./authentication.md) for the token lifecycle.
+The `SECRET_KEY` → `JWT_SECRET` mapping is the load-bearing one: `docker-compose.yml` declares `JWT_SECRET: "${SECRET_KEY:?SECRET_KEY must be set in the root .env}"`, so the SvelteKit SSR route guard in `frontend/src/hooks.server.ts` verifies `auth_token` with exactly the HS256 key the backend signs with (`UserApi.create_access_token`). Compose fails fast if `SECRET_KEY` is missing, and no second secret exists to drift.
+
+Note that `.env.example` does **not** carry a `STUB_EXTERNAL_API` line: the dev Compose stack runs against live integrations by default, and the stub flag is an opt-in set by tests (or manually) through the environment.
 
 `Settings.model_config` deliberately pins `env_file=(".env",)` and `extra="ignore"`: stray files such as `src/.env` are ignored, unknown keys are tolerated, and process environment variables win over file values. `tests/test_settings.py` locks in all four behaviors (root-file loading, `src/.env` being ignored, defaults when no file exists, env-var override).
 
@@ -115,15 +127,16 @@ The `SECRET_KEY` → `JWT_SECRET` mapping is the load-bearing one: `docker-compo
 
 `src/config/settings.py` holds the whole contract. Defaults mirror the Compose dev stack, so a missing variable degrades to a working dev value rather than a crash. Notable groups and how each is consumed:
 
-- **Runtime mode.** `environment` defaults to `"prod"` and is branched on across the codebase: migrations are skipped in `test`, `debugpy.listen(("0.0.0.0", 5678))` runs only in `dev`, cookie `httponly`/`secure` flags and error-detail redaction are enabled in `prod`, and the worker swaps `RedisHuey` for `MemoryHuey` in `test`.
+- **Runtime mode.** `environment` defaults to `"prod"` and is branched on across the codebase: migrations are skipped in `test`, `debugpy.listen(("0.0.0.0", 5678))` runs only in `dev`, cookie `httponly`/`secure` flags and error-detail redaction are driven by `prod`, the CORS regex is relaxed outside `prod`, and the worker swaps `RedisHuey` for `MemoryHuey` in `test`.
 - **`secret_key`.** Validated by a `model_validator(mode="after")`: outside `dev`/`test` it must be non-empty and at least `MIN_SECRET_KEY_LENGTH = 32` characters, otherwise `Settings()` raises. It signs JWTs (`src/auth/api.py`), email-verification tokens (`URLSafeTimedSerializer` in `src/auth/service.py`), WebSocket tickets (`src/ws/router.py`, `src/worker_dashboard/router.py`) and is the slowapi key-function decode key.
 - **`log_level`.** Optional override; `init_logging()` falls back to `WARNING` in `test` and `DEBUG` otherwise.
 - **`database_url` / `echo_sql`.** Consumed when constructing the process-wide `DatabaseSessionManager` and passed to the Huey dashboard.
 - **CORS.** `cors_allow_origins`, `cors_allow_methods` and `cors_allow_headers` are comma-split at app construction; outside `prod` the app additionally permits `allow_origin_regex=r"https?://.*"`.
-- **`stub_external_api`.** The stub/live switch described below.
-- **`upload_path`.** Root directory for security-document uploads; the router creates it with `mkdir(parents=True, exist_ok=True)` and writes files under generated UUID names.
-- **Market / indicator / AI.** `eodhd_api_key`, `indicator_service_url`, `ai_api_endpoint`, `ai_api_key`, `ai_api_model` are read inside the corresponding factories rather than at construction.
-- **Redis.** `redis_url`, plus `sync_ttl_seconds` used as the TTL for the account-sync status key set.
+- **`stub_external_api`.** The stub/live switch described below; defaults to `False`.
+- **`upload_path`.** Root directory for security-document uploads. It gates the whole upload subsystem: `src/market/router.py` reads it per request, creates the directory with `mkdir(parents=True, exist_ok=True)` and writes files under generated UUID names. A misconfigured or unwritable path fails uploads at request time, not at startup.
+- **`indicator_service_url`.** Base URL for the indicator-service sidecar; `indicator_service_client_factory` in `src/market/service.py` reads it when building the request-scoped `IndicatorServiceClient`. Point it at a live sidecar or indicator computation fails at first use.
+- **Market / AI.** `eodhd_api_key`, `ai_api_endpoint`, `ai_api_key`, `ai_api_model` are read inside the corresponding factories rather than at construction.
+- **Redis.** `redis_url`, plus `sync_ttl_seconds` used as the TTL for the account-sync status key set (`src/integration/sync_status.py`).
 - **TOTP.** `totp_max_attempts` and `totp_lockout_seconds` drive the 2FA attempt counter and Redis lockout.
 - **WebAuthn.** `webauthn_rp_id`, `webauthn_rp_name`, `webauthn_origin`, `webauthn_challenge_ttl_seconds` configure passkey registration/assertion and the stored challenge lifetime.
 - **Email.** `smtp_host`, `smtp_port`, `smtp_use_tls`, `smtp_user`, `smtp_password`, `smtp_sender_email`, `email_verification_token_expiry_hours`. A `field_validator(mode="before")` on `smtp_sender_email` substitutes `noreply@retail-portfolio.local` when the value is blank.
@@ -136,24 +149,46 @@ The `SECRET_KEY` → `JWT_SECRET` mapping is the load-bearing one: `docker-compo
 Services are resolved through the `svcs` library. `src/config/services.py::register_services(registry, sessionmanager)` is the one registration entry point, shared by the API process and the worker, and it always:
 
 1. registers the session factory — `registry.register_factory(AsyncSession, sessionmanager.session)` — which is how the database session reaches every repository factory;
-2. calls `register_core_services` (which registers the `EmailService` value);
+2. calls `register_core_services`, which registers the `EmailService` value;
 3. calls `register_account_services` and `register_auth_services` unconditionally;
 4. picks stub or live registrations for the market and integration domains based on `settings.stub_external_api`.
 
-Each domain exports its own `register_*_services(registry)` from a `registry.py` module or package `__init__` (`src/account/registry.py`, `src/auth/__init__.py`, `src/integration/registry.py`, `src/market/__init__.py`, `src/core/registry.py`). **This is the extension point: a new repository, service or domain API must be added to its domain's `register_*_services` function to be resolvable.** Services not registered there cannot be `aget`-ed and will fail at resolution time.
+Each live domain exports its own `register_*_services(registry)` from a `registry.py` module or package `__init__` (`src/account/registry.py`, `src/auth/__init__.py`, `src/integration/registry.py`, `src/market/__init__.py`, `src/core/registry.py`). **This is the extension point: a new repository, service or domain API must be added to its domain's `register_*_services` function to be resolvable.** Services not registered there cannot be `aget`-ed and will fail at resolution time.
 
 ### Stub vs. live selection
 
-`register_services` short-circuits to `register_integration_stub_services` and `register_market_stub_services` when `settings.stub_external_api` is true, otherwise to `register_integration_services` and `register_market_services`. The two paths register the *same abstract keys* with different factories, so callers are unaffected:
+`register_services` short-circuits to `register_integration_stub_services` and `register_market_stub_services` when `settings.stub_external_api` is true, otherwise to `register_integration_services` and `register_market_services`. The two stub functions live in `src/config/services.py` — **not** in the domain modules — and use function-local imports so that vendor SDKs and stub modules are only imported on the path that needs them (the module-level import list only pulls in `StubWealthsimpleApiGateway`).
 
-| Key | Live factory | Stub factory |
-|-----|--------------|--------------|
+The integration pair is a clean swap of the same abstract key:
+
+| Key | Live factory (`src/integration/registry.py`) | Stub factory (`src/config/services.py`) |
+|-----|---------------------------------------------|-----------------------------------------|
 | `WealthsimpleApiGateway` | `wealthsimple_api_wrapper_factory` | `StubWealthsimpleApiGateway` |
+| `IntegrationUserRepository` | `sqlalchemy_integration_user_repository_factory` | same factory |
+| `IntegrationUserService` | `integration_user_service_factory` | same factory |
+| `IntegrationUserApi` | `integration_api_factory` | same factory |
+| `IntegrationAccountApi` | `integration_account_api_factory` | same factory |
+
+The market pair is **not** a symmetric swap. `register_market_stub_services` registers almost exactly the same key/factory set as `register_market_services`; the only registry-level difference is the AI service:
+
+| Key | Live factory | Stub-path factory |
+|-----|--------------|-------------------|
 | `AIService` | `ai_service_factory` | `StubAIService` |
+| `MarketGateway` | `eodhd_gateway_factory` | `eodhd_gateway_factory` (identical) |
+| `PriceRepository` | `eodhd_price_repository_factory` | `eodhd_price_repository_factory` (identical) |
+| all other repositories, caches, APIs and `AlertEvaluationService` | unchanged | unchanged |
 
-The market stub path additionally registers the concrete stub module symbols lazily inside the function body (`from src.stubs.ai import StubAIService`, `from src.stubs.eodhd import ...`) to avoid importing stub or live vendor SDKs on the wrong path.
+So the EODHD stub is **not** selected by the registry: `MarketGateway` is registered with the same `eodhd_gateway_factory` on both paths, and that factory itself re-checks the flag — `eodhd_gateway_factory()` returns `StubEodhdGateway(api_key=settings.eodhd_api_key)` when `settings.stub_external_api` is true and `EodhdGateway(api_key=settings.eodhd_api_key)` otherwise. The two mechanisms (registry branch and in-factory branch) must stay consistent: when the flag is true the in-factory branch is what actually yields the stub gateway, and code that resolves `MarketGateway` directly through `eodhd_gateway_factory` (outside the registry) still gets a stub.
 
-`STUB_EXTERNAL_API=true` is set in `tests/conftest.py` before the app is imported, so the entire suite runs without EODHD, Wealthsimple, or AI credentials. There is a second, independent guard: `src/market/eodhd.py::eodhd_gateway_factory` itself re-checks `settings.stub_external_api` and returns `StubEodhdGateway` instead of `EodhdGateway`, so the live-registration path still yields a stub gateway when the flag is set. The two mechanisms must stay consistent — flipping one without the other changes which `MarketGateway` implementation callers receive.
+In total the `stub_external_api` flag selects three stub implementations, each for a different external dependency:
+
+- **AI** — `StubAIService` (`src/stubs/ai.py`), registered under the `AIService` key on the market stub path. It returns canned Markdown for `analyze_fundamentals`, `summarize_notes` and `analyze_portfolio_fit`; unlike the live `AIService` it subclasses nothing and takes no repositories.
+- **EODHD** — `StubEodhdGateway` (`src/stubs/eodhd.py`), returned by `eodhd_gateway_factory` for the `MarketGateway` key. Note that `register_market_stub_services` also registers `PriceRepository` → `eodhd_price_repository_factory`, so the price repository follows the gateway it resolves rather than switching on the flag itself.
+- **Wealthsimple** — `StubWealthsimpleApiGateway` (`src/stubs/wealthsimple.py`), registered under the `WealthsimpleApiGateway` key on the integration stub path. It subclasses `BrokerApiGateway` (the same base as the live gateway), not `WealthsimpleApiGateway`, so the registry key is the live class while the resolved instance is the stub.
+
+Taken together, the contract callers rely on is: the abstract keys are stable, and the concrete implementation behind them changes with the flag. A change that adds a new stubbed dependency must register the same key on the stub path (or branch inside its factory, as EODHD does).
+
+`STUB_EXTERNAL_API=true` is set in `tests/conftest.py` before the app is imported, so the entire suite runs without EODHD, Wealthsimple, or AI credentials.
 
 ### Consumption: HTTP vs. worker
 
@@ -163,8 +198,8 @@ This second registry differs in one consequential way: it is constructed with a 
 
 Because `huey.svcs_registry` only exists inside a running worker, task bodies guard on it:
 
-- `src/market/task.py` and `src/account/task.py` raise `RuntimeError("Worker registry not initialized")` for critical periodic work (`_daily_price_update`, `_hourly_intraday_price_update`, `_recalculate_all_account_totals`);
-- best-effort tasks (`_generate_note_title`, `_check_and_dispatch_price_alerts`) return early instead;
+- `src/market/task.py` (`_daily_price_update`, `_hourly_intraday_price_update`), `src/account/task.py` (`_recalculate_all_account_totals`) and `src/integration/task.py` (`_sync_account_positions_task`) raise `RuntimeError("Worker registry not initialized")` for critical work;
+- best-effort tasks (`_generate_note_title`, `_check_and_dispatch_price_alerts`, `_alert_email_dispatch`) return early instead;
 - every task then opens `async with Container(huey.svcs_registry) as svcs_container:` and resolves its services by `aget`.
 
 Tests exercise this boundary by patching `huey.svcs_registry` with `MagicMock()` or `None` (`tests/tasks/test_account.py`, `tests/market/test_alert_email_dispatch_task.py`) and by asserting that task modules register themselves on import (`"src.account.task.recalculate_all_account_totals_task" in huey._registry._registry`).
@@ -184,14 +219,16 @@ flowchart TD
     G --> H
     H --> I{"Registered in register_services"}
     I -->|"no"| J["Resolution error"]
-    I -->|"yes"| K{"stub_external_api"}
-    K -->|"true"| L["Stub factory"]
-    K -->|"false"| M["Live factory"]
-    L --> N["AsyncSession from the process session manager"]
-    M --> N
+    I -->|"yes"| K{"Key on the stub path"}
+    K -->|"AIService, WealthsimpleApiGateway"| L["Stub class factory"]
+    K -->|"MarketGateway"| M["eodhd_gateway_factory re-checks stub_external_api"]
+    K -->|"everything else"| N["Live factory unchanged"]
+    L --> O["AsyncSession from the process session manager"]
+    M --> O
+    N --> O
 ```
 
-Caption: how a process, then a request or task, reaches a service instance through the registry, and where the stub/live switch applies.
+Caption: how a process, then a request or task, reaches a service instance through the registry, and where the stub/live switch applies — at the registry for AI and Wealthsimple, inside the factory for EODHD, and nowhere for the rest.
 
 ## Database, migrations and Redis
 
@@ -201,7 +238,7 @@ A module-level `sessionmanager` is created from `settings.database_url` and `set
 
 Migrations run automatically: `lifespan_context` calls `run_migrations()` through `asyncio.to_thread` unless `environment == "test"`, and `run_migrations()` runs `alembic.command.upgrade(Config("alembic.ini"), "head")`. `migrations/env.py` imports every domain `model` module for its side effect of registering tables on `BaseModel.metadata`, then overrides `sqlalchemy.url` from the `DATABASE_URL` environment variable, rewriting `postgresql+asyncpg://` to synchronous `postgresql://` because Alembic runs a sync engine with `poolclass=NullPool`. Adding a model class to an already-imported domain module needs no change in `env.py`; adding a whole new domain model module does.
 
-`src/core/redis.py` exposes the `redis_manager = RedisManager(settings.redis_url)` singleton. `RedisManager` keeps **one client per running event loop** in a dict guarded by a `threading.Lock`; `client()` prunes and asynchronously closes entries whose loop has already closed, then lazily creates a `decode_responses=True` client for the current loop. That loop-keyed design is what makes the same singleton usable from the request loop, the WebSocket listener and `asyncio.run()` task loops. Consumers are the auth token denylist and 2FA/passkey state, the market indicator and search caches, account sync status, and the WebSocket fan-out. Two hedge against a different Redis URL: `indicator_cache_factory` builds its own client from `settings.redis_url` with `decode_responses=False` (binary-safe indicator payloads), and `security_search_cache_factory` passes the shared manager. Tests replace the singleton's `client` attribute with an in-memory fake (`tests/fixtures/redis.py`), so no test needs a Redis server.
+`src/core/redis.py` exposes the `redis_manager = RedisManager(settings.redis_url)` singleton. `RedisManager` keeps **one client per running event loop** in a dict guarded by a `threading.Lock`; `client()` prunes and asynchronously closes entries whose loop has already closed, then lazily creates a `decode_responses=True` client for the current loop. That loop-keyed design is what makes the same singleton usable from the request loop, the WebSocket listener and `asyncio.run()` task loops. Consumers are the auth token denylist and 2FA/passkey state, the market indicator and search caches, account sync status, and the WebSocket fan-out. Two repos hedge against a different Redis URL or encoding: `indicator_cache_factory` builds its own client from `settings.redis_url` with `decode_responses=False` (binary-safe indicator payloads), and `security_search_cache_factory` passes the shared manager. Tests replace the singleton's `client` attribute with an in-memory fake (`tests/fixtures/redis.py`), so no test needs a Redis server.
 
 `/health/ready` in `src/main.py` is the runtime probe for both: it executes `select(1)` through the container-resolved `AsyncSession`, pings Redis via `redis_manager.client()`, and returns `503` with `{"status": "degraded", ...}` unless both report `ok`.
 
@@ -229,7 +266,7 @@ Both shapes call `logging.basicConfig(..., force=True)`, clear handlers on every
 
 ## Where the environment variables are consumed
 
-`ENVIRONMENT` drives debug flags, migration skipping, CORS regex, error-detail redaction, Huey backend choice and the log format. `SECRET_KEY` and `SMTP_*` / `FRONTEND_URL` are read by `src/auth` and `src/core/email.py`. `EODHD_API_KEY`, `INDICATOR_SERVICE_URL`, `AI_API_*` are read inside the market factories, so a bad value surfaces as a failed resolution or a stubbed response rather than at startup. `UPLOAD_PATH` is read per upload request. `WEBAUTHN_*`, `TOTP_*` and `SYNC_TTL_SECONDS` are read at call time in `src/auth/service.py` and `src/integration/sync_status.py`.
+`ENVIRONMENT` drives debug flags, migration skipping, CORS regex, error-detail redaction, cookie flags, Huey backend choice and the log format. `SECRET_KEY` and `SMTP_*` / `FRONTEND_URL` are read by `src/auth` and `src/core/email.py`. `EODHD_API_KEY`, `INDICATOR_SERVICE_URL`, `AI_API_*` are read inside the market factories, so a bad value surfaces as a failed resolution or a stubbed response rather than at startup. `UPLOAD_PATH` is read per upload request. `WEBAUTHN_*`, `TOTP_*` and `SYNC_TTL_SECONDS` are read at call time in `src/auth/service.py` and `src/integration/sync_status.py`.
 
 Operationally, changing `.env` requires restarting the containers: the backend and worker load it at process start, and Compose interpolation is resolved at `docker compose up` time, so port and frontend URL changes need a recreate, not just a restart. Environments configured outside Compose (CI, tests) must set `SECRET_KEY` before importing `src.main` or `Settings()` validation fails, as `tests/conftest.py` does explicitly.
 
@@ -238,9 +275,8 @@ Operationally, changing `.env` requires restarting the containers: the backend a
 - [Architecture Overview](./overview.md) — entry points and per-request flow.
 - [Authentication](./authentication.md) — JWT/`SECRET_KEY` lifecycle, TOTP and WebAuthn settings.
 - [Backend Domains](./domains.md) — what each domain's services and repositories do.
-<!-- openwiki: broken internal link [./testing.md] file "./testing.md" does not exist. Fix the href or restore the target, then delete this comment. -->
-- [Testing](./testing.md) — how `test` environment variables and fixtures isolate the suite.
-<!-- openwiki: broken internal link [./workflows.md] file "./workflows.md" does not exist. Fix the href or restore the target, then delete this comment. -->
-- [Operations & Workflows](./workflows.md) — running the stack and the worker.
-<!-- openwiki: broken internal link [./external-services.md] file "./external-services.md" does not exist. Fix the href or restore the target, then delete this comment. -->
-- [External Services](./external-services.md) — EODHD, Wealthsimple and AI boundary details.
+- [External Services](../integrations/external-services.md) — EODHD, Wealthsimple and AI boundary details, including the stubs.
+- [Operations & Workflows](../operations/workflows.md) — running the stack and the worker.
+- [Testing](../operations/testing.md) — how `test` environment variables and fixtures isolate the suite.
+<!-- openwiki: broken internal link [../workflows/realtime-and-background-jobs.md] file "../workflows/realtime-and-background-jobs.md" does not exist. Fix the href or restore the target, then delete this comment. -->
+- [Realtime & Background Jobs](../workflows/realtime-and-background-jobs.md) — the Huey task lifecycle that consumes `huey.svcs_registry`.

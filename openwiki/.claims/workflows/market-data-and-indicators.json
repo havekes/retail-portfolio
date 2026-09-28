@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "pageVersion": "sha256:644da31548ae30e62b7e0898233f2f62437ddf65284a860de8dbc0c87d067667",
+  "pageVersion": "sha256:2778ad2f7d243b521947a68969861e77dafbf4ea758bf17caf2b9207e3fffb15",
   "claims": [
     {
       "id": "claim_6165b866151d4d2585d1837a02f0e02a",
@@ -143,12 +143,12 @@
       "statement": "POST /market/securities/{security_id}/indicators/compute validates and normalizes the date/datetime union before comparing bounds (reversed window → 422, avoiding a TypeError from naive/aware comparison), consults the IndicatorCache only when the caller supplied no candles, resolves candles from PriceRepository (daily/weekly/monthly, aggregated per interval, time as a date ISO string) or IntradayPriceRepository (time as integer epoch seconds), applies convert_to_heikin_ashi before dispatch when chart_style is heikin_ashi, calls IndicatorServiceClient.compute, and writes the cache only for the server-resolved path.",
       "evidence": [
         {
-          "resource": "repo://src/market/router.py#L743-L887",
+          "resource": "repo://src/market/router.py#L871-L1015",
           "version": "repo-lines-v1:sha256:e6180903a276304a2a9bdf02b709a439728de04528884bb129c84ecae5da71f0:eyJzZWxlY3RlZExpbmVDb3VudCI6MTQ1LCJmaXJzdFNlbGVjdGVkTGluZUhhc2giOiJlMmRkNDJjNjU3ZjdjNmI2MTk2YmZjOTJkZDQ5OTA2ZWY1YTlmNmI3Y2E0Y2IyOWFmOWFmN2MxZDIwZGIwMGFiIiwibGFzdFNlbGVjdGVkTGluZUhhc2giOiI3MjA4NTMyOTEwY2ZjZWZlNTg3MDNkNDM0NDVhOWMyMDJiMTI0ODc3MmYxNmVmNWExNjMwZTYyZjI1ZGYwMjc0IiwicHJlY2VkaW5nQ29udGV4dExpbmVDb3VudCI6MywicHJlY2VkaW5nQ29udGV4dEhhc2giOiJkNzIyMzEwNmZkODc0MmI3MGVhMjMzZjlkYzM1OWY0YjAyYmJiMDY5YjcyODNlZWY3NjI0OTk1MTZiZDdiOWM4IiwiZm9sbG93aW5nQ29udGV4dExpbmVDb3VudCI6MywiZm9sbG93aW5nQ29udGV4dEhhc2giOiJmZjAyOWFiMDI1OWYzOTdiZGVmMzIyYmM1YjRiOTg5MDI5OWU1NDJlOTMzMjJjYjc0NzNkYTgyM2FkZjZiZjYyIn0"
         },
         {
           "resource": "repo://src/market/schema.py#L271-L303",
-          "version": "repo-lines-v1:sha256:bdc8b5b3bc6b34d4e43b7a6b5ee819fb9c05275549b3d4184941472fcaa92b4c:eyJzZWxlY3RlZExpbmVDb3VudCI6MzMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjdiYTBlOGIyOTJkZTQyNDA5Yzg2ZTIxNjlhNmQ1N2IwZTljYWIzOGM2Y2JlYThjYjBkNzE3Nzc3YTU1YjVmZjEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjdiZDhjMWVjYjkzMjM0YTg4N2M1Y2EwMmU3MWU5NjgwZjMzYTQ4MzdjNjkzYzA1ODJhNTEwYTQxOGVjYTkyOTYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjAxZDdkNmQ0YmZjM2MwNWQ2ZjMwZjA5ODA0YTNmOTZmNTI2OWM2ZmUxNjQwZDUzZThkYWEzN2U1Mzc2OTAxNjkiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
+          "version": "repo-lines-v1:sha256:092f2c83f74cd1d795bd175cf76b70e65d3ea06fbe6dc57095f8026310808f73:eyJzZWxlY3RlZExpbmVDb3VudCI6MzMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImZlY2RmNWQzOWUyYzI5NjU3MzRlZDhjNWQzYmIxMjBhZmJkYjViMjNhOTJkNGQ2NDRlZDE4ODI1NGI5Y2QyYmQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjYzNjY3MmJkOWMzMWJjNDA5NWQ3YzZiYmJlZmU5ZjJjOTg4NjkyMDRiNGZlN2Y5MTU5Yjk2MjdlOGMxNzMzNjIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImY1OGNkMGQ4YWRmYjY1ODhmZTIzMTY2MTJlOWQzMGY2MmM5OGQ2ZTM3ODFiMDg0NzU3MTBjNjI5ZTVmZDVlNjIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImRlZjBjNTMwN2ZlZWFlYjJhNGU2MzYwMzY3MTAwYmNlM2NhOWY4NGQwMTdjNTZlMTcxZmMxNTdhY2RhYWI5MzIifQ"
         },
         {
           "resource": "repo://tests/market/test_indicator_compute_api.py#L333-L441",
@@ -340,7 +340,7 @@
     }
   ],
   "verification": {
-    "by": "openwiki/0.5.2",
-    "at": "2026-09-18T20:16:58.058Z"
+    "by": "openwiki/0.6.0",
+    "at": "2026-09-28T16:25:02.439Z"
   }
 }

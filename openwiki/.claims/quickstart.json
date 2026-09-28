@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "pageVersion": "sha256:eb458fec835b7771ea552681cb52797fd255d6baa67826836cd42e7c90740a7d",
+  "pageVersion": "sha256:97e5b473d65635ab3ef2e04687d70328fa74cfbdcf264444c35453588b0f6af6",
   "claims": [
     {
       "id": "claim_9bd0ec86d7b94a8584961b72b1da8ef4",
@@ -501,10 +501,36 @@
           "version": "repo-lines-v1:sha256:9618c0b8b047be356fb1aea3c0b7510059aeecef0d50b8d2a109ac2bc16bcbdd:eyJzZWxlY3RlZExpbmVDb3VudCI6MSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiOTYxOGMwYjhiMDQ3YmUzNTZmYjFhZWEzYzBiNzUxMDA1OWFlZWNlZjBkNTBiOGQyYTEwOWFjMmJjMTZiY2JkZCIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiOTYxOGMwYjhiMDQ3YmUzNTZmYjFhZWEzYzBiNzUxMDA1OWFlZWNlZjBkNTBiOGQyYTEwOWFjMmJjMTZiY2JkZCIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiY2M5NmIzZmEwNDc4YTY1NTZkMWUxNWY0MDgzMTdjMDFiZmY4MjJmNDA2NzdmOGJkNmI3OGVlNjRjNzgwY2MwMiIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiOGQ0YzRmOWZmZmRmOTQ0OGEwMTY4YTUzNTQ4OTEwYWQxM2I5NzM5ZmY1NjE0NDc1Zjc2ZDU0MmU3YzZiYmExOCJ9"
         }
       ]
+    },
+    {
+      "id": "claim_8230475ca84540e381a9dea6ee21b24d",
+      "statement": "The quickstart routing table is keyed by the change a reader is making rather than by module name, and points the two surface-level workflows at dedicated pages: watchlist and app-shell work (watchlist CRUD/membership/reorder, multi-watchlist reads with price enrichment, the WatchlistService client state behind the sidebar groups and the /watchlists page, global search, ticker/section shortcuts) at Watchlists, Sidebar & Global Navigation, and non-chart security-page work (the actions-sidebar group contract, notes/documents CRUD and uploads, the holdings modal, price-alert panels, the page-level data-wave and preference orchestration) at Security Detail Page Surfaces.",
+      "evidence": [
+        {
+          "resource": "repo://frontend/src/lib/components/layout/app-sidebar-actions.svelte#L38-L50",
+          "version": "repo-lines-v1:sha256:0e41ded0b79a44985451cece9826b346eb7a4015ac391ee6c98c2e22f98a2f4f:eyJzZWxlY3RlZExpbmVDb3VudCI6MTMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImQ4NmE2ZWUyMjg2M2VjNzI2YjZmMzFiNjA0YjljMGQ3MmY0YWJhNDYxYzAzMzVlYmI2Yjk5ZTg5MmI5Yjc4NTEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjdlYTAzODc0OGVlMTVjOWI1ZWQ0MTQxMjRhNDE3ZDMwYTNmNGQ0NzQ4MzEyZWUzMzA5ZGM5NWNiZDE2ZDI4NTkiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImI1MzE2YzY0ZDY4YWFkYTZlNjI2MzNlYWM4N2Q1N2Q5MmJjNzg5M2YwNTQ4YmI1M2U3ZTE5YWIyMTkwYmYxOWQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjoyLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImY2NzEwYmRlMzk2ZjcwYWE1NDE5MDYyOTI4OThiNzFhYzNjMzg0OTI2YjEwZWZkMDZhNzk4NWQ1YzRiMmY5NTQifQ"
+        },
+        {
+          "resource": "repo://frontend/src/lib/components/layout/app-sidebar-watchlist.svelte",
+          "version": "repo-file-v1:sha256:96667fa4538f1c593ad06cbe81f8966c987c127c04839ea2706389d3ef904e32"
+        },
+        {
+          "resource": "repo://frontend/src/lib/components/watchlist/watchlistService.svelte.ts",
+          "version": "repo-file-v1:sha256:868fbd23f90d28717dc5c6d41af7d6ca83acdbe89bcc26218d7d3d71d6429a3b"
+        },
+        {
+          "resource": "repo://frontend/src/routes/watchlists/%2Bpage.server.ts",
+          "version": "repo-file-v1:sha256:ef0bcd7b85e523824223fa6d51f758cb62f0c4b9d38b45d4b9c7eeb620ec0fd8"
+        },
+        {
+          "resource": "repo://frontend/src/routes/watchlists/%2Bpage.svelte#L1-L61",
+          "version": "repo-lines-v1:sha256:d22768c92a6389fdb65d6a7f14d7ae3a56197b69d96eb85abc432383d5ac3fce:eyJzZWxlY3RlZExpbmVDb3VudCI6NjEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijk0YWJjOGVkNzU0MzgyMjA2NWMwMjlmNWVhMjUyZDEyMjNkNzZhYTdkMmQzZDRmYjEyNTgxMmY2YjVhOTlkZGYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImM3NWI5ZDk5ZTg2NDZjOTRjYWU5MWYzMmQzZjEwMDQ1YmY4MTJiMGUxMTNiMTAzMWVmNDc3NGJhZGFmMmY4ZjIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjowLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzNDU4Njg4NWUwNDJhNzkyNWU4MThhZGFkYmNlMmY3NDViNGFiYWZmZTE4ZWI0NmQzYzY3NzQwYTNlNmUwMjgifQ"
+        }
+      ]
     }
   ],
   "verification": {
     "by": "openwiki/0.6.0",
-    "at": "2026-09-26T12:38:50.029Z"
+    "at": "2026-09-28T16:25:02.439Z"
   }
 }
