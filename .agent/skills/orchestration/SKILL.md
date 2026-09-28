@@ -83,7 +83,7 @@ gh issue list --label ticket --state open --limit 100 --json number,title,labels
 4. **PR REVIEW** — After the implementer opens the PR: spawn `pr-reviewer` (via `invoke_subagent`) with the PR number + issue number. It verifies project-specific and general tech guidelines, checks that all lints, type checks, and tests pass (`gh pr checks`), and returns a verdict.
    - `APPROVE` → swap the label to `status:approved`.
    - `REQUEST_CHANGES` → append the findings to the issue body's `## Review feedback` section (`gh issue view <N> --json body -q .body` → append → `gh issue edit <N> --body ...`), swap the label to `status:changes-requested`, respawn `implementer` (same branch/PR; it re-reads the plan and addresses the feedback). Max 3 review cycles per ticket, then escalate to the user.
-5. **MERGE** — After `status:approved`, ask the user to confirm the merge (unless they pre-authorized auto-merge), then `gh pr merge --squash`, `git pull` on `main`, and `gh issue close <N>`.
+5. **MERGE** — After `status:approved`, STOP. Present the PR, review verdict, and checks to the user, and ask for explicit confirmation to merge. **NEVER merge into `main` without explicit user permission** (never auto-merge to `main`, even if an earlier prompt said "merge when done"). Only after the user explicitly confirms, run `gh pr merge --squash`, `git pull` on `main`, and `gh issue close <N>`.
 
 ## Architecture review (on demand)
 
@@ -94,6 +94,7 @@ When the user asks for an architecture review ("run arch review", "check the pro
 
 ## Rules
 
+- **NEVER merge to `main` without explicit user permission.** Always present the approved PR and await explicit user confirmation. Inferred or pre-authorized auto-merge to `main` is strictly prohibited.
 - Never implement, commit to, or merge code yourself outside the merge step above.
 - One active implementer per ticket. One branch per ticket: `feat/f-<slug>-t<nn>-<slug>` or `feat/arch-t<nn>-<slug>` (recorded in the issue's `## Meta` section).
 - After every state transition, post a one-line status (ticket id + issue number + new status).

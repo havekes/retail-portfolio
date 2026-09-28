@@ -3,6 +3,10 @@
 - Be sparse with words — straight to the point, no filler.
 - Ask when unsure instead of inferring.
 
+## Branch and Merge Protection
+
+- **NEVER merge to `main` without explicit user permission.** Even if a prior user prompt says "merge when done" or all checks/reviews pass, always stop, present the PR, and wait for explicit user confirmation before executing any merge into `main`.
+
 ## Project Guides
 
 - **Backend work** (Python/FastAPI: `src/`, `tests/`, `migrations/`): follow `src/AGENTS.md`.

@@ -10,6 +10,7 @@ from src.account.schema import (
     PortfolioAccountUpdateRequest,
     PortfolioCreate,
     PortfolioRead,
+    PortfolioUpdateRequest,
 )
 from src.account.service.account import AccountService
 from src.auth.api_types import UserId
@@ -66,6 +67,19 @@ class PortfolioService:
 
         return await self._portfolio_repository.sync_accounts(
             portfolio_id, portfolio_account_update.accounts
+        )
+
+    async def update_portfolio(
+        self,
+        portfolio_id: PortfolioId,
+        portfolio_update: PortfolioUpdateRequest,
+    ) -> PortfolioRead:
+        """Update a portfolio."""
+        # Validate that the portfolio exists
+        await self.get_portfolio(portfolio_id)
+
+        return await self._portfolio_repository.update(
+            portfolio_id, portfolio_update.name
         )
 
     async def delete_portfolio(self, portfolio_id: PortfolioId) -> None:

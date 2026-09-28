@@ -50,6 +50,7 @@ from src.account.schema import (
     PortfolioAccountUpdateRequest,
     PortfolioCreate,
     PortfolioRead,
+    PortfolioUpdateRequest,
     UserHoldingRead,
 )
 from src.account.service.account import AccountService
@@ -117,6 +118,28 @@ async def portfolio_accounts_sync(
         user_id=user.id,
         portfolio_id=portfolio_id,
         portfolio_account_update=portfolio_account_update_request,
+    )
+
+
+@portfolio_router.patch("/{portfolio_id}")
+async def portfolio_update(
+    portfolio_id: PortfolioId,
+    portfolio_update_request: PortfolioUpdateRequest,
+    user: Annotated[User, Depends(current_user)],
+    services: DepContainer,
+) -> PortfolioRead:
+    """
+    Update a portfolio name.
+    """
+    authorization_api = await services.aget(AuthorizationApi)
+    portfolio_service = await services.aget(PortfolioService)
+
+    portfolio = await portfolio_service.get_portfolio(portfolio_id)
+    authorization_api.check_entity_owned_by_user(user, portfolio)
+
+    return await portfolio_service.update_portfolio(
+        portfolio_id=portfolio_id,
+        portfolio_update=portfolio_update_request,
     )
 
 

@@ -4,9 +4,16 @@ export interface Portfolio {
 	id: string;
 	name: string;
 	accounts: Account[];
+	user_id?: string;
+	created_at?: string | null;
+	deleted_at?: string | null;
 }
 
 export interface PortfolioCreatePayload {
 	name: string;
 	accounts: string[];
+}
+
+export interface PortfolioUpdatePayload {
+	name: string;
 }
