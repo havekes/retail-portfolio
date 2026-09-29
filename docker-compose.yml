@@ -44,6 +44,7 @@ services:
     user: 1000:1000
     ports:
       - "${WORKER_DEBUG_PORT:-8091}:5678"
+      - "${WORKER_METRICS_PORT:-8004}:8004"
     volumes:
       - ./:/app
     working_dir: /app
@@ -63,6 +64,7 @@ services:
       HOME: /app
       HUEY_DASHBOARD_WORKER: 1
       PYTHONPATH: /app
+      WORKER_METRICS_PORT: "${WORKER_METRICS_PORT:-8004}"
 
   frontend:
     image: node:latest
