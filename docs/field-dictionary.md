@@ -79,19 +79,29 @@ minimum an implementation must emit; later tickets may add fields without a brea
 
 - **Purpose:** one record per inbound HTTP request, for latency and status cohort analysis.
 - **Producing ticket:** F-OBS-T12.
-- **Boundary:** `src/core/middleware.py`, at the same point as the existing access log (which stays
-  unchanged — this event complements, not replaces, it).
+- **Boundary:** `src/core/middleware.py`, `RequestIdMiddleware.dispatch` — the same point as the
+  existing access log, which stays unchanged (still exactly one line per request). The event is
+  emitted on the success path and, with `status=500`, when the request raises.
 
 | Field                     | Type   | Notes                                                              |
 | ------------------------- | ------ | ------------------------------------------------------------------ |
-| `route` _(required)_      | string | Route template, never the raw path with identifiers.                |
+| `route` _(required)_      | string | Matched route template, never the raw path with identifiers.        |
 | `method` _(required)_     | string | HTTP method.                                                       |
-| `status` _(required)_     | int    | Response status code.                                              |
-| `duration_ms` _(required)_| float  | Request duration.                                                  |
-| `request_bytes`           | int    | Request body size.                                                 |
-| `response_bytes`          | int    | Response body size.                                                |
-| `user_id`                 | string | Present when the request is authenticated.                         |
-| `client_host`             | string | Client host.                                                       |
+| `status` _(required)_     | int    | Response status code (`500` when the request raised).               |
+| `duration_ms` _(required)_| float  | Request duration in milliseconds.                                  |
+| `request_bytes`           | int    | Request `content-length`; omitted when the request had no body.      |
+| `response_bytes`          | int    | Response `content-length`; omitted for streamed/chunked responses.   |
+| `user_id`                 | string | Present when the request's token decoded; no database lookup runs.    |
+| `client_host`             | string | Client host, or `unknown` when the ASGI server provided none.         |
+
+**Route label.** `route` is the `path` of the matched Starlette route. App-level routes keep their
+path (`/api/ping`); routes declared on an included `APIRouter` are recorded relative to that
+router's prefix (`/auth/login`). When no route matched — `404` and friends — the event carries
+`route="unmatched"`; the raw URL path is never emitted.
+
+**Identity.** `user_id` comes from decoding the `auth_token` cookie or the `Authorization: Bearer`
+header with the JWT-only `UserApi.decode_token` — no database or revocation check runs on this
+boundary, and any decode failure leaves the field absent.
 
 ```json
 {
@@ -102,36 +112,52 @@ minimum an implementation must emit; later tickets may add fields without a brea
   "deploy_id": "1a2b3c4",
   "environment": "prod",
   "timestamp": "2026-09-29T10:15:00.123456+00:00",
-  "route": "/api/v1/portfolio/{account_id}",
+  "route": "/accounts/{account_id}/holdings",
   "method": "GET",
   "status": 200,
   "duration_ms": 42.7,
   "response_bytes": 1873,
-  "user_id": "usr_123"
+  "client_host": "203.0.113.7",
+  "user_id": "9f8b7c6d-5e4f-4a3b-9c2d-1e0f2a3b4c5d"
 }
 ```
+
+An unmatched route emits the same shape with `"route": "unmatched"` and `"status": 404`.
 
 ## `auth.event`
 
 - **Purpose:** authentication boundary outcomes (login, 2FA verification, passkey login).
 - **Producing ticket:** F-OBS-T12.
-- **Boundary:** `src/auth/router.py` success and failure paths.
+- **Boundary:** `src/auth/router.py` (`_emit_auth_event`) at the login, 2FA-verify and passkey-login
+  success and failure paths, alongside the existing `auth.*` log records (unchanged).
 
-| Field                        | Type   | Notes                                                       |
-| ---------------------------- | ------ | ----------------------------------------------------------- |
-| `outcome` _(required)_       | string | `success`, `failure`, ...                                    |
-| `event_type` _(required)_    | string | `login`, `2fa_verify`, `passkey_login`, ...                   |
-| `user_id`                    | string | Present on success when known.                               |
-| `failure_reason`             | string | Failure class only — never a credential or PII value.        |
+| Field                        | Type   | Notes                                                        |
+| ---------------------------- | ------ | ------------------------------------------------------------- |
+| `outcome` _(required)_       | string | `success`, `failure` or `challenge` (2FA challenge issued).    |
+| `event_type` _(required)_    | string | `login`, `2fa_verify` or `passkey_login`.                      |
+| `user_id`                    | string | Present on success (the authenticated user); absent on failure. |
+| `failure_reason`             | string | Failure class only — never a credential or PII value.          |
+
+`failure_reason` is one of: `invalid_credentials`, `email_unverified` (login); `token_invalid`,
+`user_inactive`, `code_invalid` (2FA verification); `verification_failed` (passkey login).
+`outcome="failure"` marks the span `ERROR`, so every failed attempt is retained unconditionally.
 
 No password, email address, OTP code or token value may be part of this event.
 
 ```json
 {
   "event.name": "auth.event",
+  "outcome": "challenge",
+  "event_type": "login"
+}
+```
+
+```json
+{
+  "event.name": "auth.event",
   "outcome": "failure",
-  "event_type": "login",
-  "failure_reason": "invalid_credentials"
+  "event_type": "2fa_verify",
+  "failure_reason": "code_invalid"
 }
 ```
 
