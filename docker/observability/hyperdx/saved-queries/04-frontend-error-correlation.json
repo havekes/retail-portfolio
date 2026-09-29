@@ -1,0 +1,20 @@
+{
+  "scenario": "frontend-error-correlation",
+  "name": "Frontend error correlation - exception.type inbox and toast trace lookup",
+  "purpose": "Work the shared error inbox: every backend, worker and frontend exception is one record with exception.type set, so a single search covers the stack; a frontend toast's correlation id pasted into the trace view then shows the backend trace that produced the failed call.",
+  "hyperdx": {
+    "where": "exception.type:*",
+    "whereLanguage": "lucene",
+    "select": "timestamp, service.name, error_name, exception.type, exception.message, preview, correlation_id, route, deploy_id, release, trace_id",
+    "orderBy": "timestamp DESC",
+    "tags": ["error-inbox", "frontend"]
+  },
+  "operator_notes": [
+    "Narrow the inbox with AND service.name:frontend for browser reports, AND deploy_id:1a2b3c4 for a release, or AND task_name:sync_account_positions_task for worker records.",
+    "Triage order: deploy_id/release tags first, then task_name for Huey records, then route and error_name for frontend records.",
+    "A frontend toast shows a 32-hex id (showToastForApiError renders ApiError.requestId). Paste it into the trace view, or use the SQL fallback below - correlation_id is accepted only as a valid 32-hex trace id, anything else is dropped at intake (FrontendExceptionRequest._normalize_correlation_id)."
+  ],
+  "clickhouse_sql": "SELECT\n    Timestamp,\n    ServiceName AS service_name,\n    SpanAttributes['error_name'] AS error_name,\n    SpanAttributes['exception.type'] AS exception_type,\n    SpanAttributes['exception.message'] AS exception_message,\n    SpanAttributes['preview'] AS preview,\n    SpanAttributes['correlation_id'] AS correlation_id,\n    SpanAttributes['route'] AS route,\n    SpanAttributes['deploy_id'] AS deploy_id,\n    SpanAttributes['release'] AS release,\n    SpanAttributes['trace_id'] AS trace_id\nFROM default.otel_traces\nWHERE SpanAttributes['exception.type'] != ''\n  AND Timestamp > now() - INTERVAL 1 DAY\nORDER BY Timestamp DESC\nLIMIT 100",
+  "expected_result": "Exception records newest first, service_name showing which process reported them; backend and worker records are the exception span itself, frontend records carry service_name 'frontend' with route/error_name/preview. For a toast id, the fallback lookup is: WHERE SpanAttributes['correlation_id'] = '0123456789abcdef0123456789abcdef' OR SpanAttributes['trace_id'] = '0123456789abcdef0123456789abcdef'.",
+  "sampling_and_retention": "Exception records ride error spans (span status ERROR), so the tail-sampling policy retains them at 100 percent. These records are not catalog events: they carry exception.type and no event.name, so the row-level TTL falls through to the 30-day fallback tier (README section 5)."
+}
