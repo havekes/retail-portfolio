@@ -304,5 +304,55 @@ describe('errorReporter', () => {
 
 			expect(errorSpy).toHaveBeenCalledWith('Failed to save chart snapshot');
 		});
+
+		// A 4xx is an expected outcome the caller already renders: the toast (with
+		// its correlation id) still fires, but nothing lands in the error inbox.
+		it.each([400, 404, 409, 499])(
+			'does not report ApiError status %i but still shows the toast',
+			(status) => {
+				const errorSpy = vi.spyOn(toast, 'error');
+				const error = new ApiError(status, 'Client error', undefined, TRACE_ID);
+
+				showToastForApiError(
+					error,
+					'Failed to delete account. Please try again.',
+					toast,
+					transport
+				);
+
+				expect(errorSpy).toHaveBeenCalledWith('Failed to delete account. Please try again.', {
+					correlationId: TRACE_ID
+				});
+				expect(transport).not.toHaveBeenCalled();
+			}
+		);
+
+		it('still reports a 5xx ApiError', async () => {
+			const error = new ApiError(500, 'Boom', undefined, TRACE_ID);
+
+			showToastForApiError(error, 'Failed to delete account. Please try again.', toast, transport);
+
+			await vi.waitFor(() => expect(transport).toHaveBeenCalledTimes(1));
+			expect(transport.mock.calls[0][0]).toMatchObject({
+				name: 'ApiError',
+				message: 'Boom',
+				correlation_id: TRACE_ID
+			});
+		});
+
+		it('still reports a failure that is not an ApiError', async () => {
+			showToastForApiError(
+				new Error('Network error'),
+				'Failed to save chart snapshot',
+				toast,
+				transport
+			);
+
+			await vi.waitFor(() => expect(transport).toHaveBeenCalledTimes(1));
+			expect(transport.mock.calls[0][0]).toMatchObject({
+				name: 'Error',
+				message: 'Network error'
+			});
+		});
 	});
 });
