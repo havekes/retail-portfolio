@@ -166,8 +166,9 @@ describe('errorReporter', () => {
 			expect(payload.correlation_id).toBe(TRACE_ID);
 		});
 
-		it('is idempotent per reporter and stops reporting once disposed', async () => {
+		it('is idempotent per reporter and stops reporting once disposed', () => {
 			const reporter = vi.fn();
+			const removeListener = vi.spyOn(window, 'removeEventListener');
 			const first = trackGlobalErrors(reporter);
 			const second = trackGlobalErrors(reporter);
 			disposers.push(first);
@@ -180,8 +181,33 @@ describe('errorReporter', () => {
 			expect(reporter).toHaveBeenCalledTimes(2);
 
 			first();
-			dispatchWindowError(new TypeError('after dispose'));
-			expect(reporter).toHaveBeenCalledTimes(2);
+
+			// Disposal must unregister both listeners, not merely stop reporting.
+			expect(removeListener).toHaveBeenCalledWith('error', expect.any(Function));
+			expect(removeListener).toHaveBeenCalledWith('unhandledrejection', expect.any(Function));
+
+			// With the reporter gone, an `error` event reaches the window with no
+			// listener; vitest's jsdom environment turns exactly that into an
+			// `uncaughtException` ("Uncaught Exception: after dispose") which fails the
+			// run even though every test passed. Keep a test-local capturing listener
+			// installed for the assertion window so the dispatched error is consumed
+			// instead of leaking out of the suite.
+			const afterDispose: unknown[] = [];
+			const capture = (event: ErrorEvent) => {
+				event.preventDefault();
+				afterDispose.push(event.error);
+			};
+			window.addEventListener('error', capture);
+
+			try {
+				dispatchWindowError(new TypeError('after dispose'));
+				dispatchUnhandledRejection(new Error('after dispose'));
+
+				expect(reporter).toHaveBeenCalledTimes(2);
+				expect(afterDispose).toEqual([expect.any(TypeError)]);
+			} finally {
+				window.removeEventListener('error', capture);
+			}
 		});
 
 		it('uses the injected transport, never fetch', async () => {
