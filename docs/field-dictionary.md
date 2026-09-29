@@ -323,7 +323,7 @@ API keys, service tokens and raw user-scoped cache keys never appear here.
 | ------------------------------ | ------ | ----------------------------------------- |
 | `alerts_evaluated` _(required)_| int    | Alerts evaluated in the run.               |
 | `alerts_triggered` _(required)_| int    | Alerts that triggered.                     |
-| `symbol_outcomes`              | object | Bounded per-symbol outcomes (JSON-serialized). |
+| `symbol_outcomes`              | object | Bounded per-symbol outcomes (JSON-serialized); max 50 symbols plus `"truncated": true`. |
 | `duration_ms` _(required)_     | float  | Run duration.                              |
 | `run_at` _(required)_          | string | ISO-8601 run timestamp.                    |
 | `outcome` _(required)_         | string | `success`, `failure`, ...                   |
@@ -343,14 +343,14 @@ API keys, service tokens and raw user-scoped cache keys never appear here.
 
 - **Purpose:** WebSocket publish and delivery, closing the trace across process boundaries.
 - **Producing ticket:** F-OBS-T15.
-- **Boundary:** `src/ws/manager.py` (`send_personal_message`).
+- **Boundary:** `src/ws/manager.py` (`send_personal_message` at publish, `_listen_for_messages` at delivery).
 
 | Field                   | Type   | Notes                                          |
 | ----------------------- | ------ | ----------------------------------------------- |
 | `user_id` _(required)_  | string | Target user.                                    |
 | `message_type` _(required)_ | string | Message type only — never the payload body.  |
-| `connection_count`      | int    | Live connections for the user.                   |
-| `outcome` _(required)_  | string | `delivered`, `failed`, ...                       |
+| `connection_count`      | int    | Live connections for the user (publisher-local at publish). |
+| `outcome` _(required)_  | string | `published`/`publish_failed` at publish; `delivered`/`delivery_failed` at delivery. |
 | `duration_ms`           | float  | Publish/delivery duration.                       |
 
 No message body contents beyond the message type, and no PII or holdings data.
