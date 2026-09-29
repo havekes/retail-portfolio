@@ -1,5 +1,6 @@
 import asyncio
 import logging
+import time
 from datetime import UTC, datetime
 
 from huey import crontab
@@ -14,11 +15,38 @@ from src.market.repository import (
     PriceAlertRepository,
     SecurityNoteRepository,
 )
+from src.market.schema import AlertForEvaluation
 from src.market.service import MarketService
-from src.observability import capture_task_context, restore_task_context
+from src.observability import capture_task_context, emit_event, restore_task_context
 from src.worker import huey
 
 logger = logging.getLogger(__name__)
+
+#: Upper bound on the per-symbol outcomes carried by one ``alert.evaluated`` event.
+_MAX_SYMBOL_OUTCOMES = 50
+
+
+def _elapsed_ms(started: float) -> float:
+    """Return milliseconds elapsed since a ``time.monotonic()`` reading."""
+    return round((time.monotonic() - started) * 1000, 3)
+
+
+def _symbol_outcomes(
+    active_alerts: list[AlertForEvaluation],
+    triggered_alerts: list[AlertForEvaluation],
+) -> dict[str, str | bool]:
+    """Build the bounded per-symbol outcome mapping for ``alert.evaluated``."""
+    unique_symbols = list(
+        dict.fromkeys(alert.security_symbol for alert in active_alerts)
+    )
+    triggered_symbols = {alert.security_symbol for alert in triggered_alerts}
+    symbol_outcomes: dict[str, str | bool] = {
+        symbol: "triggered" if symbol in triggered_symbols else "no_trigger"
+        for symbol in unique_symbols[:_MAX_SYMBOL_OUTCOMES]
+    }
+    if len(unique_symbols) > _MAX_SYMBOL_OUTCOMES:
+        symbol_outcomes["truncated"] = True
+    return symbol_outcomes
 
 
 @huey.task()
@@ -172,7 +200,9 @@ async def _check_and_dispatch_price_alerts() -> None:
     if huey.svcs_registry is None:
         return
 
+    started = time.monotonic()
     run_ts = datetime.now(UTC)
+    run_at = run_ts.isoformat()
 
     async with Container(huey.svcs_registry) as svcs_container:
         alert_service: AlertEvaluationService = await svcs_container.aget(
@@ -189,31 +219,63 @@ async def _check_and_dispatch_price_alerts() -> None:
         active_alerts = await alert_repo.get_active_alerts_for_evaluation()
         if not active_alerts:
             logger.info("No active price alerts to evaluate.")
+            emit_event(
+                "alert.evaluated",
+                alerts_evaluated=0,
+                alerts_triggered=0,
+                duration_ms=_elapsed_ms(started),
+                run_at=run_at,
+                outcome="success",
+            )
             return
 
         logger.info("Evaluating %d active price alert(s).", len(active_alerts))
 
-        # Fetch latest intraday close for all securities (single query)
-        latest_prices = await intraday_repo.get_latest_intraday_close_by_security()
-
-        # Delegate evaluation to the service
-        triggered_alerts = alert_service.evaluate(active_alerts, latest_prices)
-
-        triggered_count = len(triggered_alerts)
+        triggered_alerts: list[AlertForEvaluation] = []
+        triggered_count = 0
         enqueued_count = 0
-        for alert in triggered_alerts:
-            try:
-                # Enqueue Stage 3 email dispatch
-                alert_email_dispatch_task(
-                    alert.alert_id, run_ts, **capture_task_context()
-                )
-                enqueued_count += 1
-            except Exception:
-                logger.exception(
-                    "Failed to enqueue alert email dispatch for alert %d",
-                    alert.alert_id,
-                )
-                continue
+        try:
+            # Fetch latest intraday close for all securities (single query)
+            latest_prices = await intraday_repo.get_latest_intraday_close_by_security()
+
+            # Delegate evaluation to the service
+            triggered_alerts = alert_service.evaluate(active_alerts, latest_prices)
+            triggered_count = len(triggered_alerts)
+
+            for alert in triggered_alerts:
+                try:
+                    # Enqueue Stage 3 email dispatch
+                    alert_email_dispatch_task(
+                        alert.alert_id, run_ts, **capture_task_context()
+                    )
+                    enqueued_count += 1
+                except Exception:
+                    logger.exception(
+                        "Failed to enqueue alert email dispatch for alert %d",
+                        alert.alert_id,
+                    )
+                    continue
+        except Exception:
+            emit_event(
+                "alert.evaluated",
+                alerts_evaluated=len(active_alerts),
+                alerts_triggered=triggered_count,
+                duration_ms=_elapsed_ms(started),
+                run_at=run_at,
+                outcome="failure",
+                error_slug="alert_evaluation_failed",
+            )
+            raise
+
+        emit_event(
+            "alert.evaluated",
+            alerts_evaluated=len(active_alerts),
+            alerts_triggered=triggered_count,
+            symbol_outcomes=_symbol_outcomes(active_alerts, triggered_alerts),
+            duration_ms=_elapsed_ms(started),
+            run_at=run_at,
+            outcome="success",
+        )
 
         logger.info(
             "Price alert evaluation complete. evaluated=%d triggered=%d enqueued=%d",
