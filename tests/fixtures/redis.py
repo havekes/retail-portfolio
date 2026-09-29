@@ -10,12 +10,55 @@ Redis server or DNS. Tests that need to inspect stored keys can request the
 
 from __future__ import annotations
 
+import asyncio
 import builtins
 import contextlib
 import fnmatch
 from collections.abc import AsyncIterator
+from typing import Any
 
 import pytest
+
+
+class FakePubSub:
+    """In-memory pub/sub stand-in for ``redis.asyncio.client.PubSub``.
+
+    Subscriptions are registered on the owning :class:`FakeRedis`, which fans
+    published messages out to every subscriber's queue. This lets tests drive a
+    real ``ConnectionManager`` listener without a Redis server.
+    """
+
+    def __init__(self, redis: FakeRedis) -> None:
+        self._redis = redis
+        self._channels: set[str] = set()
+        self._queue: asyncio.Queue[dict[str, Any]] = asyncio.Queue()
+        self.closed = False
+
+    async def subscribe(self, *channels: str) -> None:
+        for channel in channels:
+            self._channels.add(channel)
+            self._redis._subscribers.setdefault(channel, set()).add(self)
+
+    async def unsubscribe(self, *channels: str) -> None:
+        targets = set(channels) if channels else set(self._channels)
+        for channel in targets:
+            self._channels.discard(channel)
+            subscribers = self._redis._subscribers.get(channel)
+            if subscribers is not None:
+                subscribers.discard(self)
+                if not subscribers:
+                    self._redis._subscribers.pop(channel, None)
+
+    async def listen(self) -> AsyncIterator[dict[str, Any]]:
+        while True:
+            yield await self._queue.get()
+
+    async def aclose(self) -> None:
+        self.closed = True
+        await self.unsubscribe()
+
+    def _deliver(self, channel: str, data: str) -> None:
+        self._queue.put_nowait({"type": "message", "channel": channel, "data": data})
 
 
 class FakeRedis:
@@ -24,6 +67,7 @@ class FakeRedis:
     def __init__(self) -> None:
         self.data: dict[str, str] = {}
         self._sets: dict[str, set[str]] = {}
+        self._subscribers: dict[str, set[FakePubSub]] = {}
 
     async def get(self, key: str) -> str | None:
         return self.data.get(key)
@@ -79,7 +123,13 @@ class FakeRedis:
         return True
 
     async def publish(self, channel: str, message: str) -> int:
-        return 0
+        subscribers = tuple(self._subscribers.get(channel, ()))
+        for subscriber in subscribers:
+            subscriber._deliver(channel, message)
+        return len(subscribers)
+
+    def pubsub(self) -> FakePubSub:
+        return FakePubSub(self)
 
     async def sadd(self, key: str, *members: str) -> int:
         bucket = self._sets.setdefault(key, set())
@@ -102,7 +152,10 @@ class FakeRedis:
         return set(self._sets.get(key, set()))
 
     async def aclose(self) -> None:
-        return None
+        subscribers = {s for group in self._subscribers.values() for s in group}
+        for subscriber in subscribers:
+            await subscriber.aclose()
+        self._subscribers.clear()
 
 
 class FakeRedisManager:
