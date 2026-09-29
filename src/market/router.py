@@ -15,7 +15,6 @@ from src.auth.api import current_user
 from src.auth.api_types import User
 from src.config.limiter import limiter
 from src.config.settings import settings
-from src.core.context import get_request_id
 from src.core.pagination import PaginatedResponse, PaginationParams
 from src.core.redis import redis_manager
 from src.market.ai_service import AIService
@@ -99,6 +98,7 @@ from src.market.service import (
     convert_to_heikin_ashi,
 )
 from src.market.task import generate_note_title_task
+from src.observability import capture_task_context
 from src.worker import huey
 
 logger = logging.getLogger(__name__)
@@ -757,7 +757,7 @@ async def market_create_note(
     logger.info("Created note %d for security %s", created_note.id, security_id)
 
     # Trigger title generation in background
-    generate_note_title_task(created_note.id, request_id=get_request_id())
+    generate_note_title_task(created_note.id, **capture_task_context())
 
     return created_note
 
@@ -778,7 +778,7 @@ async def market_update_note(
     logger.info("Updated note %d for security %s", note_id, security_id)
 
     # Trigger title update in background
-    generate_note_title_task(note_id, request_id=get_request_id())
+    generate_note_title_task(note_id, **capture_task_context())
 
     return updated_note
 
