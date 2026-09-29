@@ -1,0 +1,20 @@
+{
+  "scenario": "cross-process-failure-tracing",
+  "name": "Cross-process failure tracing - huey.task error_slug to trace",
+  "purpose": "Turn a worker failure into the whole request story: find the huey.task record carrying an error_slug, copy its trace_id, and open that trace to see the originating http.request, the market.data.fetched provider calls, portfolio.sync.failed and the ws.delivery hand-off that share it.",
+  "hyperdx": {
+    "where": "event.name:huey.task AND error_slug:external_api_error",
+    "whereLanguage": "lucene",
+    "select": "timestamp, trace_id, task_name, task_id, queue, status, retries, duration_ms, error_slug, deploy_id",
+    "orderBy": "timestamp DESC",
+    "tags": ["wide-events", "failure-tracing"]
+  },
+  "operator_notes": [
+    "Swap error_slug:external_api_error for the failure class you are chasing; any truthy error_slug marks the span ERROR and is retained at 100 percent.",
+    "Wait out the gateway decision window (decision_wait 10s plus the 5s batch timeout, README section 6) before querying - a failure emitted a moment ago is not yet in ClickHouse.",
+    "Then paste the row's trace_id into the trace view: trace_id is the one correlation id shared by backend, worker, Redis pub/sub and the browser (docs/field-dictionary.md section Envelope)."
+  ],
+  "clickhouse_sql": "SELECT\n    Timestamp,\n    SpanAttributes['trace_id'] AS trace_id,\n    SpanAttributes['task_name'] AS task_name,\n    SpanAttributes['task_id'] AS task_id,\n    SpanAttributes['queue'] AS queue,\n    SpanAttributes['status'] AS status,\n    toInt64OrZero(SpanAttributes['retries']) AS retries,\n    toFloat64OrZero(SpanAttributes['duration_ms']) AS duration_ms,\n    SpanAttributes['error_slug'] AS error_slug,\n    SpanAttributes['deploy_id'] AS deploy_id\nFROM default.otel_traces\nWHERE SpanAttributes['event.name'] = 'huey.task'\n  AND SpanAttributes['error_slug'] = 'external_api_error'\nORDER BY Timestamp DESC\nLIMIT 50",
+  "expected_result": "Recent failed huey.task rows with their trace_id. Grouping by trace_id in the trace view then shows the same trace's http.request, market.data.fetched, portfolio.sync.failed and ws.delivery spans - the cross-process hand-off in one waterfall.",
+  "sampling_and_retention": "Failure records are retained unconditionally: a truthy error_slug (or a failed/failure outcome) marks the span ERROR and the tail-sampling policy keeps the whole trace at 100 percent. The decision and the event.sample_rate stamp are trace-bound, so every span in the trace shares them. Retention tier: 30 days (README section 5)."
+}
