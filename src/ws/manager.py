@@ -8,11 +8,32 @@ from uuid import UUID
 
 import redis.asyncio as aioredis
 from fastapi import WebSocket
+from opentelemetry import context, propagate
+from opentelemetry.context import Context
 from starlette.websockets import WebSocketState
 
 from src.auth.api_types import UserId
 
 logger = logging.getLogger(__name__)
+
+
+def extract_trace_context(carrier: Any) -> Context | None:
+    """Extract a W3C trace context from a pub/sub envelope carrier.
+
+    Returns ``None`` when the carrier is absent, not a mapping, or cannot be
+    parsed, so callers always fall back to delivering without a remote context.
+    """
+    if not isinstance(carrier, dict) or not carrier:
+        return None
+    try:
+        return propagate.extract(carrier)
+    except Exception:
+        logger.warning(
+            "Malformed trace carrier in pub/sub envelope; delivering without "
+            "remote trace context",
+            exc_info=True,
+        )
+        return None
 
 
 class ConnectionManager:
@@ -113,7 +134,21 @@ class ConnectionManager:
                             user_id,
                             msg_payload,
                         )
-                        await self._send_to_local_connections(user_id, msg_payload)
+                        remote_ctx = extract_trace_context(
+                            data.get("carrier") or data.get("trace_carrier")
+                        )
+                        token = (
+                            context.attach(remote_ctx)
+                            if remote_ctx is not None
+                            else None
+                        )
+                        try:
+                            await self._send_to_local_connections(user_id, msg_payload)
+                        finally:
+                            # The listener outlives any single message: never let
+                            # one message's context leak into the next delivery.
+                            if token is not None:
+                                context.detach(token)
                     except Exception:
                         logger.exception("Failed to process message from Redis")
         except asyncio.CancelledError:
@@ -185,10 +220,17 @@ class ConnectionManager:
                 await self._send_to_local_connections(user_id, message)
                 return
 
-        payload = {
+        payload: dict[str, Any] = {
             "user_id": str(user_id),
             "message": message,
         }
+
+        # Carry the producing trace context across the process boundary so the
+        # consumer-side delivery is traced within the same trace.
+        carrier: dict[str, str] = {}
+        propagate.inject(carrier)
+        if carrier:
+            payload["carrier"] = carrier
 
         if redis is None:
             await self._send_to_local_connections(user_id, message)
