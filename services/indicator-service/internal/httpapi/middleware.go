@@ -1,15 +1,24 @@
 package httpapi
 
 import (
+	"bufio"
 	"bytes"
 	"context"
 	"crypto/rand"
 	"fmt"
 	"io"
 	"log/slog"
+	"net"
 	"net/http"
 	"strings"
 	"time"
+
+	"go.opentelemetry.io/otel"
+	"go.opentelemetry.io/otel/attribute"
+	"go.opentelemetry.io/otel/propagation"
+	"go.opentelemetry.io/otel/trace"
+
+	"retail-portfolio/services/indicator-service/internal/observability"
 )
 
 type contextKey string
@@ -97,6 +106,60 @@ func (rw *statusResponseWriter) Write(b []byte) (int, error) {
 func (rw *statusResponseWriter) Unwrap() http.ResponseWriter {
 	return rw.ResponseWriter
 }
+
+// Status returns the response status code, defaulting to 200 if not written.
+func (rw *statusResponseWriter) Status() int {
+	if !rw.written {
+		return http.StatusOK
+	}
+	return rw.statusCode
+}
+
+// Flush forwards to the underlying writer when it supports flushing.
+func (rw *statusResponseWriter) Flush() {
+	if flusher, ok := rw.ResponseWriter.(http.Flusher); ok {
+		flusher.Flush()
+	}
+}
+
+// Hijack forwards to the underlying writer when it supports hijacking.
+func (rw *statusResponseWriter) Hijack() (net.Conn, *bufio.ReadWriter, error) {
+	if hijacker, ok := rw.ResponseWriter.(http.Hijacker); ok {
+		return hijacker.Hijack()
+	}
+	return nil, nil, http.ErrNotSupported
+}
+
+// TraceMiddleware continues an inbound traceparent and produces the server span
+// for the request. The span is set on the request context so handler spans
+// become its children.
+func TraceMiddleware(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		statusWriter, ok := w.(*statusResponseWriter)
+		if !ok {
+			statusWriter = newStatusResponseWriter(w)
+			w = statusWriter
+		}
+
+		ctx := otel.GetTextMapPropagator().Extract(r.Context(), propagation.HeaderCarrier(r.Header))
+		ctx, span := observability.Tracer().Start(
+			ctx,
+			r.Method+" "+r.URL.Path,
+			trace.WithSpanKind(trace.SpanKindServer),
+			trace.WithAttributes(
+				attribute.String("http.method", r.Method),
+				attribute.String("http.route", r.URL.Path),
+			),
+		)
+		defer func() {
+			span.SetAttributes(attribute.Int("http.status_code", statusWriter.Status()))
+			span.End()
+		}()
+
+		next.ServeHTTP(w, r.WithContext(ctx))
+	})
+}
+
 
 // LoggingMiddleware creates an HTTP middleware that logs request details,
 // propagates or generates an X-Request-ID, tracks latency, and binds a scoped

@@ -14,6 +14,7 @@ import (
 	"retail-portfolio/services/indicator-service/internal/config"
 	"retail-portfolio/services/indicator-service/internal/httpapi"
 	"retail-portfolio/services/indicator-service/internal/logging"
+	"retail-portfolio/services/indicator-service/internal/observability"
 )
 
 func main() {
@@ -29,6 +30,10 @@ func main() {
 		os.Exit(1)
 	}
 	slog.SetDefault(logger)
+
+	// Initialise telemetry before the router is built so tracers resolve to
+	// the configured provider, and keep the shutdown handle to flush spans on exit.
+	shutdownOTel := observability.SetupOTel(context.Background())
 
 	router := httpapi.NewRouter(logger)
 
@@ -96,6 +101,17 @@ func main() {
 
 	// Wait for server context to be stopped
 	<-serverCtx.Done()
+
+	// Flush pending spans before the process exits.
+	flushCtx, flushCancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer flushCancel()
+	if err := shutdownOTel(flushCtx); err != nil {
+		logger.Error("otel shutdown error",
+			slog.String("service", "indicator-service"),
+			slog.String("error", err.Error()),
+		)
+	}
+
 	logger.Info("indicator-service stopped",
 		slog.String("service", "indicator-service"),
 		slog.String("port", cfg.Port),
