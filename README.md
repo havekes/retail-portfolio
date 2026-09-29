@@ -19,6 +19,10 @@ Using Docker compose is the only supported way to run the application: `docker c
 - Interactive API documentation at `http://localhost:8001/redoc`
 - Frontend will be running at `http://localhost:8002/` (override with `FRONTEND_PORT` in root `.env`)
 
+### Observability
+
+For local telemetry (ClickStack + Prometheus), run `just obs-up` — see the [Observability runbook](docker/observability/README.md).
+
 ### During development
 
 It is recommended to always run commands from inside the container: `docker compose exec [backend|frontend] <command>`
