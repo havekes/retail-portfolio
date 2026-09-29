@@ -14,6 +14,7 @@ import { group, type GroupBy } from '@/group';
 import { WsEventType, type AccountSyncMessage } from '@/types/websocket';
 import { ModalState } from '@/utils/modal-state.svelte';
 import { toast } from '$lib/components/ui/toast';
+import { showToastForApiError } from '$lib/api/errorReporter';
 
 export class AccountsListState {
 	accounts = $state<Account[]>([]);
@@ -277,7 +278,7 @@ export class AccountsListState {
 			toast.success('Account deleted successfully');
 		} catch (error) {
 			console.error('Failed to delete account', error);
-			toast.error('Failed to delete account. Please try again.');
+			showToastForApiError(error, 'Failed to delete account. Please try again.');
 		}
 	}
 }

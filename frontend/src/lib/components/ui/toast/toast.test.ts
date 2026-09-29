@@ -67,6 +67,20 @@ describe('ToastState', () => {
 		expect(customToast.toasts).toHaveLength(1);
 	});
 
+	it('carries an optional correlation id through the error variant', () => {
+		customToast.error('Failed to delete account. Please try again.', {
+			correlationId: '4bf92f3577b34da6a3ce929d0e0e4736'
+		});
+
+		expect(customToast.toasts[0].correlationId).toBe('4bf92f3577b34da6a3ce929d0e0e4736');
+	});
+
+	it('omits the correlation id when none is provided', () => {
+		customToast.error('Failed to delete account. Please try again.');
+
+		expect(customToast.toasts[0].correlationId).toBeUndefined();
+	});
+
 	it('removes a specific toast by id and clears its timer', () => {
 		const id1 = customToast.add('First');
 		const id2 = customToast.add('Second');
@@ -94,6 +108,26 @@ describe('Toaster Component', () => {
 
 	afterEach(() => {
 		toast.clear();
+	});
+
+	it('renders the correlation id for support when one is present', async () => {
+		render(Toaster);
+
+		toast.error('Failed to delete account. Please try again.', {
+			correlationId: '4bf92f3577b34da6a3ce929d0e0e4736'
+		});
+
+		const correlation = await screen.findByTestId('toast-correlation-id');
+		expect(correlation).toHaveTextContent('4bf92f3577b34da6a3ce929d0e0e4736');
+	});
+
+	it('renders no correlation line when the toast has none', async () => {
+		render(Toaster);
+
+		toast.error('Failed to save snapshot');
+
+		expect(await screen.findByText('Failed to save snapshot')).toBeInTheDocument();
+		expect(screen.queryByTestId('toast-correlation-id')).not.toBeInTheDocument();
 	});
 
 	it('renders toasts and dismisses on close button click', async () => {
