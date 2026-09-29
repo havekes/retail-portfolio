@@ -3,6 +3,7 @@ import time
 import uuid
 from typing import Any
 
+from opentelemetry import context, propagate, trace
 from starlette import status
 from starlette.middleware.base import BaseHTTPMiddleware, RequestResponseEndpoint
 from starlette.requests import Request
@@ -23,8 +24,23 @@ class RequestIdMiddleware(BaseHTTPMiddleware):
     async def dispatch(
         self, request: Request, call_next: RequestResponseEndpoint
     ) -> Response:
-        header_request_id = request.headers.get("X-Request-ID")
-        request_id = header_request_id or str(uuid.uuid4())
+        otel_token: object | None = None
+        current_span = trace.get_current_span()
+        span_ctx = current_span.get_span_context()
+
+        if not span_ctx.is_valid:
+            extracted_ctx = propagate.extract(request.headers)
+            extracted_span = trace.get_current_span(extracted_ctx)
+            extracted_span_ctx = extracted_span.get_span_context()
+            if extracted_span_ctx.is_valid:
+                otel_token = context.attach(extracted_ctx)
+                span_ctx = extracted_span_ctx
+
+        active_trace_id = (
+            trace.format_trace_id(span_ctx.trace_id) if span_ctx.is_valid else None
+        )
+        header_request_id = (request.headers.get("X-Request-ID") or "").strip() or None
+        request_id = header_request_id or active_trace_id or str(uuid.uuid4())
 
         request.state.request_id = request_id
         token = set_request_id(request_id)
@@ -66,3 +82,5 @@ class RequestIdMiddleware(BaseHTTPMiddleware):
             return response
         finally:
             request_id_ctx_var.reset(token)
+            if otel_token is not None:
+                context.detach(otel_token)

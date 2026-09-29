@@ -1,8 +1,20 @@
+import io
 import json
 import logging
 from unittest.mock import MagicMock, patch
 
-from src.config.logging import FallbackRichHandler, JsonFormatter, init_logging
+from opentelemetry import trace
+from rich.console import Console
+
+from src.config.logging import (
+    FallbackRichHandler,
+    JsonFormatter,
+    RequestIdFilter,
+    init_logging,
+)
+from src.config.settings import settings
+from src.core.context import request_id_ctx_var, set_request_id
+from src.observability import bootstrap_observability, get_tracer, reset_observability
 
 
 def test_json_formatter_basic():
@@ -227,3 +239,142 @@ def test_init_logging_custom_log_level():
         assert mock_basic_config.called
         kwargs = mock_basic_config.call_args.kwargs
         assert kwargs["level"] == logging.INFO
+
+
+def test_json_formatter_carries_trace_id_and_deploy_id():
+    formatter = JsonFormatter()
+    record = logging.LogRecord(
+        name="test_logger",
+        level=logging.INFO,
+        pathname="test.py",
+        lineno=10,
+        msg="Structured event",
+        args=(),
+        exc_info=None,
+    )
+    record.trace_id = "4bf92f3577b34da6a3ce929d0e0e4736"
+    record.deploy_id = "test-deploy-42"
+    record.request_id = "4bf92f3577b34da6a3ce929d0e0e4736"
+
+    formatted = formatter.format(record)
+    data = json.loads(formatted)
+
+    assert data["trace_id"] == "4bf92f3577b34da6a3ce929d0e0e4736"
+    assert data["deploy_id"] == "test-deploy-42"
+    assert data["request_id"] == "4bf92f3577b34da6a3ce929d0e0e4736"
+
+
+def test_json_formatter_default_trace_id_and_deploy_id():
+    formatter = JsonFormatter()
+    record = logging.LogRecord(
+        name="test_logger",
+        level=logging.INFO,
+        pathname="test.py",
+        lineno=10,
+        msg="Default event",
+        args=(),
+        exc_info=None,
+    )
+
+    formatted = formatter.format(record)
+    data = json.loads(formatted)
+
+    assert data["trace_id"] == "-"
+    assert data["deploy_id"] == settings.deploy_id
+    assert data["request_id"] == "-"
+
+
+def test_request_id_filter_unifies_with_active_span():
+    bootstrap_observability()
+    try:
+        tracer = get_tracer("test.tracer")
+        log_filter = RequestIdFilter()
+        with tracer.start_as_current_span("test-span") as span:
+            active_trace_id = trace.format_trace_id(span.get_span_context().trace_id)
+            record = logging.LogRecord(
+                name="test_logger",
+                level=logging.INFO,
+                pathname="test.py",
+                lineno=10,
+                msg="Inside span",
+                args=(),
+                exc_info=None,
+            )
+            assert log_filter.filter(record) is True
+            assert getattr(record, "trace_id") == active_trace_id
+            assert getattr(record, "request_id") == active_trace_id
+            assert getattr(record, "deploy_id") == settings.deploy_id
+    finally:
+        reset_observability()
+
+
+def test_request_id_filter_fallback_without_span():
+    reset_observability()
+    log_filter = RequestIdFilter()
+    record = logging.LogRecord(
+        name="test_logger",
+        level=logging.INFO,
+        pathname="test.py",
+        lineno=10,
+        msg="Outside span",
+        args=(),
+        exc_info=None,
+    )
+    assert log_filter.filter(record) is True
+    assert getattr(record, "trace_id") == "-"
+    assert getattr(record, "request_id") == "-"
+    assert getattr(record, "deploy_id") == settings.deploy_id
+
+    # Fallback to contextvar when set
+    token = set_request_id("ctx-fallback-id")
+    try:
+        record_ctx = logging.LogRecord(
+            name="test_logger",
+            level=logging.INFO,
+            pathname="test.py",
+            lineno=10,
+            msg="With contextvar",
+            args=(),
+            exc_info=None,
+        )
+        assert log_filter.filter(record_ctx) is True
+        assert getattr(record_ctx, "trace_id") == "-"
+        assert getattr(record_ctx, "request_id") == "ctx-fallback-id"
+        assert getattr(record_ctx, "deploy_id") == settings.deploy_id
+    finally:
+        request_id_ctx_var.reset(token)
+
+
+def test_dev_rich_handler_with_unified_trace_id():
+    bootstrap_observability()
+    try:
+        buf = io.StringIO()
+        console = Console(file=buf, force_terminal=True, width=120)
+        handler = FallbackRichHandler(
+            console=console,
+            rich_tracebacks=True,
+        )
+        handler.setFormatter(logging.Formatter("[%(request_id)s] %(message)s"))
+        handler.addFilter(RequestIdFilter())
+
+        tracer = get_tracer("test.dev_rich")
+        with tracer.start_as_current_span("dev_span") as span:
+            active_trace_id = trace.format_trace_id(span.get_span_context().trace_id)
+            record = logging.LogRecord(
+                name="test_logger",
+                level=logging.INFO,
+                pathname="test.py",
+                lineno=10,
+                msg="Dev unified trace message",
+                args=(),
+                exc_info=None,
+            )
+            handler.handle(record)
+            output = buf.getvalue()
+            assert active_trace_id in output
+            assert "Dev unified trace message" in output
+            assert getattr(record, "request_id") == active_trace_id
+            assert getattr(record, "trace_id") == active_trace_id
+    finally:
+        reset_observability()
+
