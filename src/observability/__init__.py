@@ -7,6 +7,11 @@ from src.observability.bootstrap import (
     reset_observability,
     shutdown_observability,
 )
+from src.observability.events import (
+    CATALOG_EVENTS,
+    EventEnvelope,
+    emit_event,
+)
 from src.observability.instrumentation import (
     instrument_auto,
     instrument_fastapi,
@@ -31,11 +36,14 @@ from src.observability.tasks import (
 )
 
 __all__ = [
+    "CATALOG_EVENTS",
     "REDACTED_MASK",
+    "EventEnvelope",
     "RedactingSpanProcessor",
     "bootstrap_observability",
     "capture_task_context",
     "create_resource",
+    "emit_event",
     "get_tracer",
     "instrument_auto",
     "instrument_fastapi",
