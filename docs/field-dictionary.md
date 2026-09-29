@@ -24,6 +24,25 @@ Every event — regardless of name — carries exactly these attributes. They ar
 | `timestamp`               | string | ISO-8601 UTC timestamp taken at emission time.                               |
 | `timestamp_unix_millis`   | int    | The same instant as Unix epoch milliseconds.                                 |
 
+### Sampling decision fields
+
+Tail-based sampling runs in the `otel-sampler` gateway (F-OBS-T16), **not** in `emit_event`, so these
+attributes are never set by call sites: `transform/sampling_stamp`
+(`docker/observability/otelcol-sampling.yaml`) writes them onto every span that reached ClickHouse.
+
+| Attribute           | Type  | Description                                                                                                                                  |
+| ------------------- | ----- | -------------------------------------------------------------------------------------------------------------------------------------------- |
+| `event.sampled`     | bool  | Always `true` on a stored span — the gateway drops the traces it does not retain.                                                             |
+| `event.sample_rate` | float | Applied decision: `1` (100%) for the error cohorts (`error_slug`, failure `outcome`, span status `ERROR`), `OTEL_SAMPLER_SUCCESS_PERCENT` (default `7`, band 5–10) for the successful bulk. |
+
+The decision is **trace-bound**: a `huey.task` failure and every other span of its trace (the
+originating `http.request`, the `market.data.fetched` provider calls, `portfolio.sync.failed`,
+`ws.delivery`) share one decision and one stamp — a retained `huey.task` means the whole trace is
+present, and a trace the policy drops loses all of its spans together. Standalone events are
+single-span traces, so for them the percentage applies per record. Reads over the successful bulk
+are representative samples, not complete counts — divide by `event.sample_rate` for an estimate or
+compare cohorts by rate (see `docker/observability/README.md` § 6 and § 8).
+
 ## Rules and conventions
 
 - **One event, one telemetry record.** `emit_event` never emits more than one span. When an active
@@ -56,6 +75,11 @@ SELECT Timestamp, SpanAttributes['event.name'], SpanAttributes['deploy_id']
 FROM default.otel_traces
 WHERE SpanAttributes['event.name'] = 'portfolio.sync.completed'
 ```
+
+The saved, version-controlled queries for the operator scenarios (deploy verification, anomaly
+cohorts, cross-process failure tracing, frontend error correlation) live in
+`docker/observability/hyperdx/`; the workflow, dashboard and error-inbox triage are documented in
+`docker/observability/README.md` § 8.
 
 ## Catalog events
 
