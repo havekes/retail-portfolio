@@ -6,7 +6,15 @@ from sqlalchemy.pool import NullPool
 from svcs import Registry
 
 from src.config.settings import settings
-from src.observability import capture_exception
+from src.observability import (
+    STATUS_FAILED,
+    STATUS_INTERRUPTED,
+    STATUS_SUCCESS,
+    capture_exception,
+    emit_task_event,
+    error_slug_for_error,
+    record_task_start,
+)
 
 
 class HueyWithRegistry:
@@ -107,6 +115,39 @@ def capture_worker_task_error(signal, task, exc=None):
             f"Worker task {getattr(task, 'name', 'unknown')} failed with no exception"
         )
     capture_exception(error, service_name="worker", task=task)
+
+
+@huey.signal(signals.SIGNAL_EXECUTING)
+def record_worker_task_started(signal, task, exc=None):
+    """Remember when a task started so its terminal event can report a duration."""
+    _ = signal, exc
+    record_task_start(task)
+
+
+@huey.signal(signals.SIGNAL_COMPLETE)
+def record_worker_task_completed(signal, task, exc=None):
+    """Emit the success ``huey.task`` event for a completed task."""
+    _ = signal, exc
+    emit_task_event(task, STATUS_SUCCESS)
+
+
+@huey.signal(signals.SIGNAL_ERROR)
+def record_worker_task_failed(signal, task, exc=None):
+    """Emit the failure ``huey.task`` event for an errored task.
+
+    Huey also emits ``SIGNAL_RETRYING`` when the task will be retried; only
+    ``SIGNAL_ERROR`` emits here so a retried attempt is recorded exactly once.
+    """
+    _ = signal
+    error = exc if exc is not None else sys.exc_info()[1]
+    emit_task_event(task, STATUS_FAILED, error_slug=error_slug_for_error(error))
+
+
+@huey.signal(signals.SIGNAL_INTERRUPTED)
+def record_worker_task_interrupted(signal, task, exc=None):
+    """Emit the ``huey.task`` event for a task interrupted before completion."""
+    _ = signal, exc
+    emit_task_event(task, STATUS_INTERRUPTED)
 
 
 # Import tasks to ensure they are registered with Huey

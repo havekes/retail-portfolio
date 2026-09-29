@@ -1,15 +1,18 @@
-"""Trace-context propagation across Huey task boundaries.
+"""Huey task helpers: trace-context propagation and failure classification.
 
 Captures the ambient W3C trace context (``traceparent``) plus the correlation ID
 at enqueue time and restores it inside the worker, so
 ``http.request -> huey.task -> downstream work`` shares a single trace ID.
 
 Tasks that are enqueued without any ambient context simply start a fresh root
-trace, and explicit ``request_id`` values keep working unchanged.
+trace, and explicit ``request_id`` values keep working unchanged. The module also
+exposes :func:`error_slug_for_error`, the shared stable failure classifier used by
+the worker task events and the account sync events.
 """
 
 from __future__ import annotations
 
+import re
 from collections.abc import Iterator
 from contextlib import contextmanager
 from contextvars import Token
@@ -27,6 +30,27 @@ from src.core.context import (
 from src.observability.bootstrap import get_tracer
 
 TASK_TRACER_NAME = "src.observability.tasks"
+
+#: Slug returned when an exception cannot be classified.
+UNKNOWN_ERROR_SLUG = "unknown_error"
+
+_ACRONYM_BOUNDARY_PATTERN = re.compile(r"(.)([A-Z][a-z]+)")
+_WORD_BOUNDARY_PATTERN = re.compile(r"([a-z0-9])([A-Z])")
+
+
+def error_slug_for_error(exc: BaseException | None) -> str:
+    """Return a stable snake_case slug for an exception's class.
+
+    ``ExternalAPIError`` becomes ``external_api_error`` so failure cohorts can be
+    grouped by a low-cardinality slug instead of raw, unbounded messages.
+    """
+    name = type(exc).__name__ if exc is not None else ""
+    if not name:
+        return UNKNOWN_ERROR_SLUG
+
+    slug = _ACRONYM_BOUNDARY_PATTERN.sub(r"\1_\2", name)
+    slug = _WORD_BOUNDARY_PATTERN.sub(r"\1_\2", slug).lower()
+    return slug or UNKNOWN_ERROR_SLUG
 
 
 def capture_task_context(request_id: str | None = None) -> dict[str, str | None]:
@@ -88,6 +112,8 @@ def restore_task_context(
 
 __all__ = [
     "TASK_TRACER_NAME",
+    "UNKNOWN_ERROR_SLUG",
     "capture_task_context",
+    "error_slug_for_error",
     "restore_task_context",
 ]
