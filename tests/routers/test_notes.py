@@ -59,7 +59,9 @@ async def test_create_note_triggers_title_generation(auth_client, test_security,
         created_note_id = response.json()["id"]
         
         # Verify the task was called
-        mock_task.assert_called_once_with(created_note_id, request_id=ANY)
+        mock_task.assert_called_once_with(
+            created_note_id, request_id=ANY, traceparent=ANY
+        )
         
         # Manually run the async part of the task with our mocked container
         await _generate_note_title(created_note_id)
@@ -117,7 +119,7 @@ async def test_update_note_triggers_title_generation(auth_client, test_security,
         assert response.status_code == 200
         
         # Verify the task was called
-        mock_task.assert_called_once_with(note_id, request_id=ANY)
+        mock_task.assert_called_once_with(note_id, request_id=ANY, traceparent=ANY)
         
         # Manually run the async part of the task
         await _generate_note_title(note_id)
