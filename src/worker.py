@@ -1,9 +1,12 @@
-from huey import MemoryHuey, RedisHuey
+import sys
+
+from huey import MemoryHuey, RedisHuey, signals
 from huey_dashboard import init_worker_signals
 from sqlalchemy.pool import NullPool
 from svcs import Registry
 
 from src.config.settings import settings
+from src.observability import capture_exception
 
 
 class HueyWithRegistry:
@@ -92,6 +95,18 @@ def teardown_worker_services():
     if huey.svcs_registry is not None:
         huey.svcs_registry.close()
     shutdown_observability()
+
+
+@huey.signal(signals.SIGNAL_ERROR)
+def capture_worker_task_error(signal, task, exc=None):
+    """Capture unhandled Huey task failures in the error inbox."""
+    _ = signal
+    error = exc if exc is not None else sys.exc_info()[1]
+    if error is None:
+        error = RuntimeError(
+            f"Worker task {getattr(task, 'name', 'unknown')} failed with no exception"
+        )
+    capture_exception(error, service_name="worker", task=task)
 
 
 # Import tasks to ensure they are registered with Huey
