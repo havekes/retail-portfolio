@@ -43,6 +43,13 @@ logger = logging.getLogger(__name__)
 SYNC_COMPLETED_EVENT = "portfolio.sync.completed"
 SYNC_FAILED_EVENT = "portfolio.sync.failed"
 
+#: Task name Huey reports for the account-sync task. Huey names the task class
+#: after the bare function name when no explicit name is passed, but older
+#: Huey releases (and any future change that passes an explicit name) can
+#: report a fully-qualified ``<module>.<func>`` name instead — the interrupted
+#: handler therefore compares only the final dotted segment.
+SYNC_ACCOUNT_POSITIONS_TASK_NAME = "sync_account_positions_task"
+
 #: Bounded set of provider-call outcomes recorded on a sync event.
 PROVIDER_CALL_KEYS: frozenset[str] = frozenset(
     {
@@ -452,7 +459,11 @@ async def _sync_account_positions_task(  # noqa: PLR0913, PLR0917
 def handle_interrupted_task(signal, task, exc=None):
     _ = signal
     _ = exc
-    if task.name == "sync_account_positions_task":
+    # Huey 3.4.0 reports the bare function name at SIGNAL_INTERRUPTED time
+    # (observed: ``task.name == "sync_account_positions_task"``); other Huey
+    # versions report ``<module>.<func>``. Comparing only the final dotted
+    # segment keeps this branch correct either way.
+    if task.name.rsplit(".", 1)[-1] == SYNC_ACCOUNT_POSITIONS_TASK_NAME:
         try:
             user_id = task.args[0]
             account = task.args[1]
