@@ -255,19 +255,22 @@ No password, email address, OTP code or token value may be part of this event.
 
 - **Purpose:** provider and data-plane fetches, for freshness-lag and per-provider cohort analysis.
 - **Producing ticket:** F-OBS-T14.
-- **Boundary:** `src/market/eodhd.py`, `fmp.py`, `polygon.py`, `gateway.py`, `data_router.py`.
+- **Boundary:** `src/market/gateway.py` (`record_fetch`), applied at the fetch call sites in
+  `src/market/repository_eodhd.py`, `src/market/service.py` and `src/market/api.py`, so both the
+  real EODHD gateway (`eodhd.py`) and the stubs emit through one path.
 
 | Field                  | Type   | Notes                                              |
 | ---------------------- | ------ | --------------------------------------------------- |
 | `symbol` _(required)_  | string | Instrument symbol.                                  |
-| `dataset` _(required)_ | string | Dataset or endpoint class.                          |
+| `dataset` _(required)_ | string | Dataset or endpoint class (`eod`, `intraday`, `search`). |
 | `provider` _(required)_| string | Internal provider dimension (kept by redaction).     |
 | `exchange`             | string | Exchange code.                                      |
 | `cache_state`          | string | `fresh`, `stale`, `miss`, ...                       |
 | `freshness_lag_ms`     | int    | Age of the returned data.                            |
 | `duration_ms` _(required)_ | float | Fetch duration.                                  |
-| `outcome` _(required)_ | string | `success`, `failure`, ...                            |
+| `outcome` _(required)_ | string | `success` or `failure` (`failure` marks the span `ERROR`). |
 | `row_count`            | int    | Rows returned.                                       |
+| `error_slug`           | string | Stable failure class; present on `failure` only.     |
 
 API keys, service tokens and raw user-scoped cache keys never appear here.
 
@@ -276,9 +279,9 @@ API keys, service tokens and raw user-scoped cache keys never appear here.
   "event.name": "market.data.fetched",
   "symbol": "AAPL",
   "dataset": "eod",
-  "provider": "market-data",
+  "provider": "eodhd",
   "exchange": "US",
-  "cache_state": "fresh",
+  "cache_state": "miss",
   "freshness_lag_ms": 1200,
   "duration_ms": 185.3,
   "outcome": "success",
@@ -290,22 +293,23 @@ API keys, service tokens and raw user-scoped cache keys never appear here.
 
 - **Purpose:** cache boundary reads, to explain stale-price cohorts by cache state.
 - **Producing ticket:** F-OBS-T14.
-- **Boundary:** `src/market/cache.py`, `src/market/endpoint_cache.py`.
+- **Boundary:** `src/market/cache.py` (`IndicatorCache`, `SecuritySearchCache`).
 
 | Field                     | Type   | Notes                                             |
 | ------------------------- | ------ | -------------------------------------------------- |
-| `cache_kind` _(required)_ | string | Which cache implementation.                         |
-| `key_class` _(required)_  | string | Key class/namespace — never the raw user-scoped key. |
-| `outcome` _(required)_    | string | `hit`, `miss` or `negative`.                        |
-| `ttl_seconds`             | int    | Configured TTL.                                     |
+| `cache_kind` _(required)_ | string | Which cache implementation (`indicator`, `security_search`). |
+| `key_class` _(required)_  | string | Static cache-namespace label — never the raw user-scoped key. |
+| `outcome` _(required)_    | string | `hit`, `miss`, `negative` or `write`.               |
+| `ttl_seconds`             | int    | Configured TTL for the read/write.                  |
+| `error_slug`              | string | Stable failure class (e.g. `cache_error`) on a failed read. |
 
 ```json
 {
   "event.name": "market.cache.accessed",
-  "cache_kind": "endpoint_response",
-  "key_class": "indicator_history",
+  "cache_kind": "security_search",
+  "key_class": "security_search",
   "outcome": "miss",
-  "ttl_seconds": 3600
+  "ttl_seconds": 2592000
 }
 ```
 
