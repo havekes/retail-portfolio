@@ -1433,7 +1433,8 @@
 				crosshairMarkerVisible: true,
 				priceLineVisible: false,
 				lastValueVisible: !hideLabels,
-				title: hideLabels ? '' : `${indicator.label} Upper`
+				title: hideLabels ? '' : `${indicator.label} Upper`,
+				autoscaleInfoProvider: () => null
 			});
 			const middle = chartInstance.addSeries(LineSeries, {
 				color: hexToRgba(color, 1),
@@ -1441,7 +1442,8 @@
 				crosshairMarkerVisible: true,
 				priceLineVisible: false,
 				lastValueVisible: !hideLabels,
-				title: hideLabels ? '' : indicator.label
+				title: hideLabels ? '' : indicator.label,
+				autoscaleInfoProvider: () => null
 			});
 			const lower = chartInstance.addSeries(LineSeries, {
 				color: hexToRgba(color, 0.5),
@@ -1449,7 +1451,8 @@
 				crosshairMarkerVisible: true,
 				priceLineVisible: false,
 				lastValueVisible: !hideLabels,
-				title: hideLabels ? '' : `${indicator.label} Lower`
+				title: hideLabels ? '' : `${indicator.label} Lower`,
+				autoscaleInfoProvider: () => null
 			});
 
 			const bandsPrimitive = new BandsIndicator(
@@ -1487,7 +1490,8 @@
 			crosshairMarkerVisible: true,
 			priceLineVisible: !hideLabels,
 			lastValueVisible: !hideLabels,
-			title: hideLabels ? '' : indicator.label
+			title: hideLabels ? '' : indicator.label,
+			autoscaleInfoProvider: () => null
 		});
 
 		indicatorSeries.set(indicator.type, series);

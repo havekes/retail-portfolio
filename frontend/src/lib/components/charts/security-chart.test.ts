@@ -3363,4 +3363,58 @@ describe('SecurityChart - Free-form Line Integration', () => {
 			expect(valPrimitive).toBeDefined();
 		});
 	});
+
+	describe('SecurityChart - Overlay Indicators Autoscale Exclusion', () => {
+		it('configures overlay indicators (MAs and Bollinger Bands) with autoscaleInfoProvider returning null to only scale to candles', async () => {
+			const { component: comp } = render(SecurityChart, {
+				props: {
+					candles: initialCandles
+				}
+			});
+			const component = comp as unknown as SecurityChartInstance;
+			const createdCharts = vi.mocked(createChart).mock.results.map((r) => r.value);
+			const mainChart = createdCharts[createdCharts.length - 1];
+
+			/* eslint-disable-next-line @typescript-eslint/no-explicit-any */
+			const addSeriesCalls: any[] = vi.mocked(mainChart.addSeries).mock.calls;
+
+			// Candlestick series does not have autoscaleInfoProvider returning null
+			const candleSeriesOptions = addSeriesCalls[0]?.[1];
+			expect(candleSeriesOptions?.autoscaleInfoProvider).toBeUndefined();
+
+			// Regular overlay indicator (e.g. ma50)
+			component.addIndicator({
+				type: 'ma50',
+				label: '50 Day MA',
+				color: '#3b82f6',
+				data: [{ time: '2024-01-10', value: 150 }]
+			});
+			await tick();
+
+			const maCall = addSeriesCalls.find((c) => c[1]?.title === '50 Day MA');
+			expect(maCall).toBeDefined();
+			expect(maCall[1].autoscaleInfoProvider).toBeDefined();
+			expect(maCall[1].autoscaleInfoProvider()).toBeNull();
+
+			// Bollinger Bands overlay indicator (bb: upper, middle, lower)
+			component.addIndicator({
+				type: 'bb',
+				label: 'BB',
+				color: '#8b5cf6',
+				data: [{ time: '2024-01-10', upper: 160, middle: 150, lower: 140 }]
+			});
+			await tick();
+
+			const bbUpperCall = addSeriesCalls.find((c) => c[1]?.title === 'BB Upper');
+			const bbMiddleCall = addSeriesCalls.find((c) => c[1]?.title === 'BB');
+			const bbLowerCall = addSeriesCalls.find((c) => c[1]?.title === 'BB Lower');
+
+			expect(bbUpperCall).toBeDefined();
+			expect(bbUpperCall[1].autoscaleInfoProvider()).toBeNull();
+			expect(bbMiddleCall).toBeDefined();
+			expect(bbMiddleCall[1].autoscaleInfoProvider()).toBeNull();
+			expect(bbLowerCall).toBeDefined();
+			expect(bbLowerCall[1].autoscaleInfoProvider()).toBeNull();
+		});
+	});
 });
