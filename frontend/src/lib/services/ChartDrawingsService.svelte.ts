@@ -5,6 +5,7 @@ import type { UserPreferences } from '$lib/api/userPreferencesService';
 import { userPreferencesService } from '$lib/api/userPreferencesService';
 import { snapshotsService } from '$lib/api/snapshotsService';
 import { toast } from '$lib/components/ui/toast/index.js';
+import { showToastForApiError } from '$lib/api/errorReporter';
 import type {
 	DegreeWaveCount,
 	SecurityElliottWaves,
@@ -1009,7 +1010,7 @@ export class ChartDrawingsService {
 			this._toast.success('Chart snapshot saved');
 		} catch (err) {
 			console.error('Failed to persist rewind snapshot:', err);
-			this._toast.error('Failed to save chart snapshot');
+			showToastForApiError(err, 'Failed to save chart snapshot', this._toast);
 		}
 	};
 

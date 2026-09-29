@@ -5,6 +5,8 @@ export type ToastType = 'success' | 'error' | 'info' | 'warning';
 export interface ToastOptions {
 	duration?: number;
 	type?: ToastType;
+	/** Backend correlation id (trace id) surfaced for support/HyperDX lookups. */
+	correlationId?: string;
 }
 
 export interface Toast {
@@ -12,6 +14,7 @@ export interface Toast {
 	message: string;
 	type: ToastType;
 	duration: number;
+	correlationId?: string;
 }
 
 export class ToastState {
@@ -20,9 +23,16 @@ export class ToastState {
 	private timers = new SvelteMap<string, ReturnType<typeof setTimeout>>();
 
 	add(message: string, options?: ToastOptions): string;
-	add(item: { message: string; type?: ToastType; duration?: number }): string;
+	add(item: {
+		message: string;
+		type?: ToastType;
+		duration?: number;
+		correlationId?: string;
+	}): string;
 	add(
-		messageOrItem: string | { message: string; type?: ToastType; duration?: number },
+		messageOrItem:
+			| string
+			| { message: string; type?: ToastType; duration?: number; correlationId?: string },
 		options?: ToastOptions
 	): string {
 		const message = typeof messageOrItem === 'string' ? messageOrItem : messageOrItem.message;
@@ -34,6 +44,10 @@ export class ToastState {
 			typeof messageOrItem === 'object' && messageOrItem.duration !== undefined
 				? messageOrItem.duration
 				: (options?.duration ?? this.defaultDuration);
+		const correlationId =
+			typeof messageOrItem === 'object' && messageOrItem.correlationId !== undefined
+				? messageOrItem.correlationId
+				: options?.correlationId;
 
 		const id = `toast-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`;
 
@@ -43,6 +57,9 @@ export class ToastState {
 			type,
 			duration
 		};
+		if (correlationId) {
+			item.correlationId = correlationId;
+		}
 
 		this.toasts.push(item);
 

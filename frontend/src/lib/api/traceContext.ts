@@ -129,3 +129,37 @@ export function traceIdFromTraceparent(traceparent?: string | null): string | un
  * build/dev-server start, so changing the compose env needs a service restart.
  */
 export const deployId: string = import.meta.env.VITE_DEPLOY_ID || 'dev';
+
+/**
+ * Browser-only registry of the trace id of the most recent outgoing request.
+ *
+ * `ApiClient.buildHeaders` records the trace it just stamped on a request so a
+ * later failure that is *not* an `ApiError` (an unhandled `TypeError`, say) can
+ * still be correlated to the request that preceded it. It holds a single
+ * client-side value and must never be written during SSR — module state is
+ * shared across requests on the server (see frontend `AGENTS.md`, Gotcha 3).
+ */
+let lastBrowserTraceId: string | undefined;
+
+/**
+ * Records the trace id of the most recent browser request. No-op for anything
+ * that is not a valid, non-zero 32-hex trace id. Call from the browser only.
+ */
+export function rememberCurrentTraceId(traceId?: string | null): void {
+	if (!traceId) return;
+
+	const candidate = traceId.trim().toLowerCase();
+	if (!TRACE_ID_PATTERN.test(candidate) || candidate === ZERO_TRACE_ID) return;
+
+	lastBrowserTraceId = candidate;
+}
+
+/** The last browser-request trace id, or `undefined` when none was seen yet. */
+export function currentTraceId(): string | undefined {
+	return lastBrowserTraceId;
+}
+
+/** Clears the registry (used by tests to avoid leaking state between cases). */
+export function forgetCurrentTraceId(): void {
+	lastBrowserTraceId = undefined;
+}
