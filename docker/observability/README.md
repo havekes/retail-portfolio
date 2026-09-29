@@ -229,6 +229,19 @@ Requires a running overlay with a valid `HYPERDX_API_KEY` (README § 2).
 
 Record the observed before/after counts when running this for a release or when tuning the percentage.
 
+### Observed baseline
+
+Measured directly against the gateway (collector `0.161.0`, same pipeline and policies, exporter redirected to a local sink because the live ClickStack needs a team API key) on 2026-09-29, with `OTEL_SAMPLER_SUCCESS_PERCENT=7` and a burst of 500 `status=200` + 20 `status=500` + 20 `outcome=failure` + 10 `error_slug`-only single-span traces:
+
+| Cohort | Sent | Retained | Rate |
+| --- | --- | --- | --- |
+| `http.request` `status=200` | 500 | 36 | 7.2% (in the 5-10 band) |
+| `http.request` `status=500` | 20 | 20 | 100%, span status promoted to `Error` |
+| `auth.event` `outcome=failure` | 20 | 20 | 100% |
+| `market.cache.accessed` (`error_slug` only) | 10 | 10 | 100% |
+
+Every retained span carried `event.sampled=true`, with `event.sample_rate` `7` for the bulk and `1` for the failure cohorts.
+
 ---
 
 ## 7. Persistence, Teardown & Rollback
