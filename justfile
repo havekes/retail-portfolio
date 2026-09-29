@@ -27,3 +27,11 @@ check:
 # can reach testcontainers (see docker-compose.yml group_add).
 up:
     @DOCKER_GID=$(./scripts/docker-gid.sh) docker compose up -d
+
+# Start dev stack with observability overlay (ClickStack + Prometheus).
+obs-up:
+    @DOCKER_GID=$(./scripts/docker-gid.sh) docker compose -f docker-compose.yml -f docker-compose.observability.yml --profile observability up -d
+
+# Stop dev stack and observability overlay.
+obs-down:
+    @docker compose -f docker-compose.yml -f docker-compose.observability.yml --profile observability down
