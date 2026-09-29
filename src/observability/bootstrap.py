@@ -9,6 +9,7 @@ from opentelemetry.sdk.trace import TracerProvider
 
 from src.config.settings import Settings
 from src.config.settings import settings as app_settings
+from src.observability.redaction import RedactingSpanProcessor
 
 if TYPE_CHECKING:
     from opentelemetry.sdk.trace import SpanProcessor
@@ -128,6 +129,8 @@ def bootstrap_observability(
     provider = TracerProvider(resource=resource)
 
     if span_processor is not None:
+        if not isinstance(span_processor, RedactingSpanProcessor):
+            provider.add_span_processor(RedactingSpanProcessor())
         provider.add_span_processor(span_processor)
     elif is_telemetry_enabled(effective_settings):
         # Exporter packages are imported lazily to avoid side effects on import.
@@ -146,6 +149,7 @@ def bootstrap_observability(
 
         headers = parse_otlp_headers(effective_settings.otel_exporter_otlp_headers)
         exporter = OTLPSpanExporter(endpoint=endpoint, headers=headers)
+        provider.add_span_processor(RedactingSpanProcessor())
         provider.add_span_processor(BatchSpanProcessor(exporter))
 
     trace.set_tracer_provider(provider)
