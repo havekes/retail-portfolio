@@ -4,11 +4,17 @@ import { ApiError } from '$lib/api/apiClient';
 import type { Portfolio } from '$lib/types/portfolio';
 
 const mockGetPortfolios = vi.fn();
+const traceCapture = vi.hoisted(() => ({
+	inboundTraceparent: undefined as string | null | undefined
+}));
 
 vi.mock('$lib/api/portfolioClient', () => ({
-	getPortfolioClient: () => ({
-		getPortfolios: mockGetPortfolios
-	})
+	getPortfolioClient: (_fetch?: typeof fetch, inboundTraceparent?: string | null) => {
+		traceCapture.inboundTraceparent = inboundTraceparent;
+		return {
+			getPortfolios: mockGetPortfolios
+		};
+	}
 }));
 
 const mockDeleteAuthCookie = vi.fn();
@@ -32,11 +38,15 @@ function createMockCookies(token?: string): Cookies {
 	} as unknown as Cookies;
 }
 
-function createMockEvent(cookies: Cookies): Parameters<typeof load>[0] {
+function createMockEvent(
+	cookies: Cookies,
+	headers: Record<string, string> = {}
+): Parameters<typeof load>[0] {
 	return {
 		cookies,
 		fetch: vi.fn() as unknown as typeof fetch,
 		url: new URL('http://localhost/portfolios'),
+		request: new Request('http://localhost/portfolios', { headers }),
 		params: {},
 		route: { id: '/portfolios' },
 		locals: {},
@@ -70,6 +80,23 @@ describe('/portfolios +page.server.ts load', () => {
 
 		expect(mockGetPortfolios).toHaveBeenCalledWith('test-token');
 		expect(result).toEqual({ portfolios: mockPortfolios });
+	});
+
+	it('forwards the inbound request traceparent to the backend client', async () => {
+		const inbound = '00-4bf92f3577b34da6a3ce929d0e0e4736-00f067aa0ba902b7-01';
+		mockGetPortfolios.mockResolvedValueOnce([]);
+
+		await load(createMockEvent(cookies, { traceparent: inbound }));
+
+		expect(traceCapture.inboundTraceparent).toBe(inbound);
+	});
+
+	it('passes no traceparent when the inbound request has none', async () => {
+		mockGetPortfolios.mockResolvedValueOnce([]);
+
+		await load(createMockEvent(cookies));
+
+		expect(traceCapture.inboundTraceparent).toBeUndefined();
 	});
 
 	it('deletes auth cookie and redirects on 401 ApiError', async () => {

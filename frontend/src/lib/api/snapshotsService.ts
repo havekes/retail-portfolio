@@ -42,6 +42,8 @@ export class SnapshotsService extends ApiClient {
 	}
 }
 
-export const getSnapshotsService = (customFetch?: typeof fetch) =>
-	new SnapshotsService(customFetch);
+export const getSnapshotsService = (
+	customFetch?: typeof fetch,
+	inboundTraceparent?: string | null
+) => new SnapshotsService(customFetch, inboundTraceparent);
 export const snapshotsService = getSnapshotsService();

@@ -48,5 +48,6 @@ export class BrokerClient extends ApiClient {
 	}
 }
 
-export const getBrokerClient = (customFetch?: typeof fetch) => new BrokerClient(customFetch);
+export const getBrokerClient = (customFetch?: typeof fetch, inboundTraceparent?: string | null) =>
+	new BrokerClient(customFetch, inboundTraceparent);
 export const brokerClient = getBrokerClient();

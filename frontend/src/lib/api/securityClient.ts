@@ -102,5 +102,6 @@ export class SecurityClient extends ApiClient {
 	}
 }
 
-export const getSecurityClient = (customFetch?: typeof fetch) => new SecurityClient(customFetch);
+export const getSecurityClient = (customFetch?: typeof fetch, inboundTraceparent?: string | null) =>
+	new SecurityClient(customFetch, inboundTraceparent);
 export const securityClient = getSecurityClient();

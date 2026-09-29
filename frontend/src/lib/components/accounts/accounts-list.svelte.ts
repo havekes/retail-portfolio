@@ -50,6 +50,13 @@ export class AccountsListState {
 	}
 
 	private async initWebSocket() {
+		// Trace correlation for in-browser WebSocket joins is intentionally not
+		// attempted: the browser cannot set arbitrary handshake headers on
+		// `new WebSocket`, and src/ws/router.py reads the correlation id only from
+		// the `X-Request-ID` header. Forwarding it therefore needs a backend
+		// protocol change (e.g. accepting it as a query param), which is out of
+		// scope here. The backend-side carrier (F-OBS-T08) already links the WS
+		// session to the trace of the sync request that triggered it.
 		let wsUrl: string;
 		const apiBaseUrl = import.meta.env.VITE_API_BASE_URL;
 
