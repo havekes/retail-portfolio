@@ -169,23 +169,24 @@ No password, email address, OTP code or token value may be part of this event.
 
 | Field             | Type   | Notes                                              |
 | ----------------- | ------ | -------------------------------------------------- |
-| `task_name` _(required)_ | string | Dotted task name.                           |
+| `task_name` _(required)_ | string | Registered task name.                       |
 | `task_id` _(required)_   | string | Huey task id.                               |
-| `queue`                  | string | Queue name.                                  |
-| `retries`                | int    | Attempt count.                               |
-| `status` _(required)_    | string | `success`, `failed`, ...                     |
-| `duration_ms` _(required)_ | float | Execution duration.                          |
+| `queue`                  | string | Huey queue (instance) name.                  |
+| `retries`                | int    | Retry counter: `0` on the first attempt.       |
+| `status` _(required)_    | string | `success`, `failed` or `interrupted`.         |
+| `duration_ms` _(required)_ | float | Execution duration; omitted when no start time was recorded (e.g. a task interrupted before executing). |
 | `error_slug`             | string | Present on failure; marks the span `ERROR`.  |
 
 ```json
 {
   "event.name": "huey.task",
-  "task_name": "integration.task.sync_account_positions_task",
+  "task_name": "sync_account_positions_task",
   "task_id": "b1f0c0d2-...",
+  "queue": "retail-portfolio",
   "status": "failed",
   "retries": 1,
   "duration_ms": 1830.4,
-  "error_slug": "broker_timeout"
+  "error_slug": "external_api_error"
 }
 ```
 
@@ -204,7 +205,7 @@ No password, email address, OTP code or token value may be part of this event.
 | `positions_seen` _(required)_ | int  | Positions returned by the broker.                          |
 | `positions_changed` _(required)_ | int | Positions persisted as changed.                          |
 | `duration_ms` _(required)_  | float  | Total sync duration.                                       |
-| `provider_calls`            | object | Bounded per-provider call outcomes (JSON-serialized).      |
+| `provider_calls`            | object | Bounded per-provider call outcomes (JSON-serialized): `positions_fetch`, `positions_persist`, `accounts_reconcile`, `securities_resolved`. |
 | `outcome` _(required)_      | string | `success` for this event.                                  |
 
 ```json
