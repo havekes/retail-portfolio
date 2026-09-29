@@ -105,7 +105,13 @@ async def test_unhandled_backend_exception_captured_with_metadata(monkeypatch):
 
     assert response.status_code == 500
 
-    spans = exporter.get_finished_spans()
+    # The request boundary also emits its own `http.request` wide event, so the
+    # single exception record is selected explicitly.
+    spans = [
+        span
+        for span in exporter.get_finished_spans()
+        if span.name == "backend.exception"
+    ]
     assert len(spans) == 1
     span = spans[0]
     assert span.name == "backend.exception"
@@ -146,7 +152,11 @@ async def test_cors_safety_net_captures_and_deduplicates():
         )
 
     assert response.status_code == 500
-    spans = exporter.get_finished_spans()
+    spans = [
+        span
+        for span in exporter.get_finished_spans()
+        if span.name == "backend.exception"
+    ]
     # Middleware safety net and FastAPI handler must not double-report.
     assert len(spans) == 1
     assert spans[0].attributes is not None
