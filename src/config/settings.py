@@ -47,6 +47,10 @@ class Settings(BaseSettings):
     redis_url: str = "redis://localhost:6379/0"
     sync_ttl_seconds: int = 300
 
+    # Observability / Metrics
+    worker_metrics_port: int = 8004
+    enable_metrics: bool = True
+
     # 2FA / TOTP
     totp_max_attempts: int = 5
     totp_lockout_seconds: int = 900

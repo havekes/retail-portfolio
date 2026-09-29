@@ -45,9 +45,31 @@ def setup_worker_services():
         {"echo": settings.echo_sql, "poolclass": NullPool},
     )
 
+    import src.config.database  # noqa: PLC0415
+
+    src.config.database.sessionmanager = worker_sessionmanager
+
     registry = Registry()
     register_services(registry, worker_sessionmanager)
     huey.svcs_registry = registry
+
+    if settings.environment != "test" and settings.enable_metrics:
+        import prometheus_client  # noqa: PLC0415
+
+        from src.core.metrics import (  # noqa: PLC0415
+            REGISTRY,
+            start_worker_metrics_updater,
+        )
+
+        prometheus_client.start_http_server(
+            port=settings.worker_metrics_port,
+            addr="0.0.0.0",  # noqa: S104
+            registry=REGISTRY,
+        )
+        start_worker_metrics_updater(
+            sessionmanager=worker_sessionmanager,
+            huey_instance=huey,
+        )
 
 
 @huey.on_shutdown()
