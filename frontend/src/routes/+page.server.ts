@@ -1,11 +1,12 @@
 import { getAccountClient } from '$lib/api/accountClient';
+import { extractTraceparent } from '$lib/api/traceContext';
 import { deleteAuthCookie } from '$lib/server/auth-cookie';
 import { error, fail, redirect } from '@sveltejs/kit';
 import { ApiError } from '$lib/api/apiClient';
 import type { Actions, PageServerLoad } from './$types';
 
-export const load: PageServerLoad = async ({ fetch, cookies }) => {
-	const accountClient = getAccountClient(fetch);
+export const load: PageServerLoad = async ({ fetch, cookies, request }) => {
+	const accountClient = getAccountClient(fetch, extractTraceparent(request.headers));
 	const token = cookies.get('auth_token');
 	try {
 		const accounts = await accountClient.getAccounts(token);
@@ -39,7 +40,7 @@ export const actions: Actions = {
 		}
 
 		const token = cookies.get('auth_token');
-		const accountClient = getAccountClient(fetch);
+		const accountClient = getAccountClient(fetch, extractTraceparent(request.headers));
 		try {
 			await accountClient.renameAccount(id, name, token);
 		} catch (err) {

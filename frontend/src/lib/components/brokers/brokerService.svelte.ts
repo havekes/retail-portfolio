@@ -9,8 +9,8 @@ export class BrokerService {
 	error = $state<string | null>(null);
 	private client: BrokerClient;
 
-	constructor(customFetch?: typeof fetch) {
-		this.client = getBrokerClient(customFetch);
+	constructor(customFetch?: typeof fetch, inboundTraceparent?: string | null) {
+		this.client = getBrokerClient(customFetch, inboundTraceparent);
 	}
 
 	async getAvailableInstitutions(): Promise<BackendInstitution[]> {
@@ -58,9 +58,9 @@ export function setBrokerService() {
 	return service;
 }
 
-export function getBrokerService(customFetch?: typeof fetch) {
+export function getBrokerService(customFetch?: typeof fetch, inboundTraceparent?: string | null) {
 	if (customFetch) {
-		return new BrokerService(customFetch);
+		return new BrokerService(customFetch, inboundTraceparent);
 	}
 	return getContext<BrokerService>(BROKER_SERVICE_KEY) ?? new BrokerService();
 }
