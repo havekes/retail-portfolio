@@ -1652,11 +1652,13 @@ describe('SecurityChart - Oscillator Panes & Custom Price Scales', () => {
 		});
 	});
 
-	describe('price scale wheel zooming', () => {
-		it('zooms price scale visible range and stops propagation when wheel event occurs over price scale', async () => {
+	describe('price scale wheel zooming and drag interactions', () => {
+		it('zooms price scale visible range and stops propagation when wheel event occurs over price scale and invokes onAutoScaleChange(false)', async () => {
+			const onAutoScaleChange = vi.fn();
 			const { container } = render(SecurityChart, {
 				props: {
-					candles: initialCandles
+					candles: initialCandles,
+					onAutoScaleChange
 				}
 			});
 
@@ -1704,6 +1706,122 @@ describe('SecurityChart - Oscillator Panes & Custom Price Scales', () => {
 					to: expect.any(Number)
 				})
 			);
+			expect(onAutoScaleChange).toHaveBeenCalledWith(false);
+		});
+
+		it('gradually zooms price scale in logarithmic mode using log coordinates and invokes onAutoScaleChange(false)', async () => {
+			const onAutoScaleChange = vi.fn();
+			const { container } = render(SecurityChart, {
+				props: {
+					candles: initialCandles,
+					logScale: true,
+					onAutoScaleChange
+				}
+			});
+
+			const mainContainer = container.querySelector('#main-chart') as HTMLElement;
+			Object.defineProperty(mainContainer, 'clientWidth', { value: 800, configurable: true });
+			Object.defineProperty(mainContainer, 'clientHeight', { value: 600, configurable: true });
+			vi.spyOn(mainContainer, 'getBoundingClientRect').mockReturnValue({
+				left: 0,
+				top: 0,
+				right: 800,
+				bottom: 600,
+				width: 800,
+				height: 600,
+				x: 0,
+				y: 0,
+				toJSON: () => {}
+			});
+
+			const createdCharts = vi.mocked(createChart).mock.results.map((r) => r.value);
+			const mainChart = createdCharts[createdCharts.length - 1];
+			const candlestickSeries = mainChart.addSeries.mock.results[0].value;
+			const priceScale = candlestickSeries.priceScale();
+
+			const wheelEvent = new WheelEvent('wheel', {
+				clientX: 760,
+				clientY: 300,
+				deltaY: 100,
+				bubbles: true,
+				cancelable: true
+			});
+
+			mainContainer.dispatchEvent(wheelEvent);
+			await tick();
+
+			// For range [100, 200], logFrom is ~6.0, logTo is ~6.301
+			// Resulting from and to should be log coordinates close to ~5.996 and ~6.305
+			expect(priceScale.setVisibleRange).toHaveBeenCalledWith(
+				expect.objectContaining({
+					from: expect.closeTo(5.996, 2),
+					to: expect.closeTo(6.305, 2)
+				})
+			);
+			expect(onAutoScaleChange).toHaveBeenCalledWith(false);
+		});
+
+		it('invokes onAutoScaleChange(false) when price scale is dragged vertically', async () => {
+			const onAutoScaleChange = vi.fn();
+			const { container } = render(SecurityChart, {
+				props: {
+					candles: initialCandles,
+					onAutoScaleChange
+				}
+			});
+
+			const mainContainer = container.querySelector('#main-chart') as HTMLElement;
+			Object.defineProperty(mainContainer, 'clientWidth', { value: 800, configurable: true });
+			Object.defineProperty(mainContainer, 'clientHeight', { value: 600, configurable: true });
+			vi.spyOn(mainContainer, 'getBoundingClientRect').mockReturnValue({
+				left: 0,
+				top: 0,
+				right: 800,
+				bottom: 600,
+				width: 800,
+				height: 600,
+				x: 0,
+				y: 0,
+				toJSON: () => {}
+			});
+
+			// Mouse down over price scale (x >= 750)
+			await fireEvent.mouseDown(mainContainer, { clientX: 760, clientY: 200 });
+			// Move vertically (> 2px)
+			await fireEvent.mouseMove(mainContainer, { clientX: 760, clientY: 250 });
+
+			expect(onAutoScaleChange).toHaveBeenCalledWith(false);
+		});
+
+		it('does not invoke onAutoScaleChange when dragged vertically over the main chart canvas', async () => {
+			const onAutoScaleChange = vi.fn();
+			const { container } = render(SecurityChart, {
+				props: {
+					candles: initialCandles,
+					onAutoScaleChange
+				}
+			});
+
+			const mainContainer = container.querySelector('#main-chart') as HTMLElement;
+			Object.defineProperty(mainContainer, 'clientWidth', { value: 800, configurable: true });
+			Object.defineProperty(mainContainer, 'clientHeight', { value: 600, configurable: true });
+			vi.spyOn(mainContainer, 'getBoundingClientRect').mockReturnValue({
+				left: 0,
+				top: 0,
+				right: 800,
+				bottom: 600,
+				width: 800,
+				height: 600,
+				x: 0,
+				y: 0,
+				toJSON: () => {}
+			});
+
+			// Mouse down over canvas (x < 750)
+			await fireEvent.mouseDown(mainContainer, { clientX: 400, clientY: 200 });
+			await fireEvent.mouseMove(mainContainer, { clientX: 400, clientY: 250 });
+
+			expect(onAutoScaleChange).not.toHaveBeenCalled();
 		});
 
 		it('does not intercept wheel events over the main chart canvas', async () => {

@@ -161,7 +161,8 @@
 		valuation = null,
 		showValuation = true,
 		showValuationBand,
-		onWaveDoubleClick
+		onWaveDoubleClick,
+		onAutoScaleChange
 	} = $props<{
 		candles?: Candle[];
 		containerId?: string;
@@ -224,6 +225,7 @@
 		showValuation?: boolean;
 		showValuationBand?: boolean;
 		onWaveDoubleClick?: (degree: WaveDegree, waveId?: string | null) => void;
+		onAutoScaleChange?: (autoScale: boolean) => void;
 	}>();
 
 	const isValuationBandVisible = $derived(
@@ -1106,6 +1108,13 @@
 		freeFormLinePrimitive.dragStarted().subscribe(() => onDrawingDragStart?.());
 		freeFormLinePrimitive.dragEnded().subscribe(() => onDrawingDragEnd?.());
 
+		const toLogCoord = (price: number): number => {
+			const m = Math.abs(price);
+			if (m < 1e-15) return 0;
+			const res = Math.log10(m + 0.0001) + 4;
+			return price < 0 ? -res : res;
+		};
+
 		const handleWheel = (event: WheelEvent) => {
 			if (!containerRef || !chartInstance || !seriesInstance) return;
 			const rect = containerRef.getBoundingClientRect();
@@ -1126,20 +1135,79 @@
 				if (delta === 0) return;
 
 				const factor = delta > 0 ? 1.025 : 0.975;
-				const span = currentRange.to - currentRange.from;
-				const newSpan = span * factor;
-				const mid = (currentRange.from + currentRange.to) / 2;
-				const from = mid - newSpan / 2;
-				const to = mid + newSpan / 2;
+				let from: number;
+				let to: number;
+
+				if (logScale) {
+					const logFrom = toLogCoord(currentRange.from);
+					const logTo = toLogCoord(currentRange.to);
+					const logSpan = logTo - logFrom;
+					const newLogSpan = logSpan * factor;
+					const mid = (logFrom + logTo) / 2;
+					from = mid - newLogSpan / 2;
+					to = mid + newLogSpan / 2;
+				} else {
+					const span = currentRange.to - currentRange.from;
+					const newSpan = span * factor;
+					const mid = (currentRange.from + currentRange.to) / 2;
+					from = mid - newSpan / 2;
+					to = mid + newSpan / 2;
+				}
 
 				if (to > from) {
 					priceScale.setVisibleRange?.({ from, to });
+					onAutoScaleChange?.(false);
 				}
 			}
 		};
 
+		let isDraggingPriceScale = false;
+		let priceScaleStartY = 0;
+		let priceScaleDragged = false;
+
+		const handlePriceScaleDown = (event: MouseEvent | PointerEvent) => {
+			if (!containerRef || !seriesInstance) return;
+			const rect = containerRef.getBoundingClientRect();
+			const x = event.clientX - rect.left;
+			const priceScale = seriesInstance.priceScale();
+			const priceScaleWidth =
+				(priceScale && typeof priceScale.width === 'function' ? priceScale.width() : 0) ||
+				DEFAULT_PRICE_SCALE_MIN_WIDTH;
+
+			if (x >= containerRef.clientWidth - priceScaleWidth) {
+				isDraggingPriceScale = true;
+				priceScaleStartY = event.clientY;
+				priceScaleDragged = false;
+			}
+		};
+
+		const handlePriceScaleMove = (event: MouseEvent | PointerEvent) => {
+			if (!isDraggingPriceScale) return;
+			if (Math.abs(event.clientY - priceScaleStartY) > 2) {
+				if (!priceScaleDragged) {
+					priceScaleDragged = true;
+					onAutoScaleChange?.(false);
+				}
+			}
+		};
+
+		const handlePriceScaleUp = () => {
+			isDraggingPriceScale = false;
+			priceScaleDragged = false;
+		};
+
 		const container = containerRef;
 		container.addEventListener('wheel', handleWheel, { capture: true, passive: false });
+		container.addEventListener('mousedown', handlePriceScaleDown);
+		container.addEventListener('mousemove', handlePriceScaleMove);
+		window.addEventListener('mousemove', handlePriceScaleMove);
+		container.addEventListener('mouseup', handlePriceScaleUp);
+		window.addEventListener('mouseup', handlePriceScaleUp);
+		container.addEventListener('pointerdown', handlePriceScaleDown as EventListener);
+		container.addEventListener('pointermove', handlePriceScaleMove as EventListener);
+		window.addEventListener('pointermove', handlePriceScaleMove as EventListener);
+		container.addEventListener('pointerup', handlePriceScaleUp as EventListener);
+		window.addEventListener('pointerup', handlePriceScaleUp as EventListener);
 
 		const resizeObserver = new ResizeObserver(() => {
 			if (
@@ -1160,6 +1228,16 @@
 
 		return () => {
 			container.removeEventListener('wheel', handleWheel, { capture: true });
+			container.removeEventListener('mousedown', handlePriceScaleDown);
+			container.removeEventListener('mousemove', handlePriceScaleMove);
+			window.removeEventListener('mousemove', handlePriceScaleMove);
+			container.removeEventListener('mouseup', handlePriceScaleUp);
+			window.removeEventListener('mouseup', handlePriceScaleUp);
+			container.removeEventListener('pointerdown', handlePriceScaleDown as EventListener);
+			container.removeEventListener('pointermove', handlePriceScaleMove as EventListener);
+			window.removeEventListener('pointermove', handlePriceScaleMove as EventListener);
+			container.removeEventListener('pointerup', handlePriceScaleUp as EventListener);
+			window.removeEventListener('pointerup', handlePriceScaleUp as EventListener);
 			resizeObserver.disconnect();
 			userAlertsPrimitive?.destroy();
 			elliottWavesPrimitive?.destroy();

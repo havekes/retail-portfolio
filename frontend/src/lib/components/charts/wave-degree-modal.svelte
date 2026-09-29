@@ -3,7 +3,7 @@
 	import { Button } from '$lib/components/ui/button/index.js';
 	import { Label } from '$lib/components/ui/label/index.js';
 	import {
-		ALL_WAVE_DEGREES,
+		SUPPORTED_WAVE_DEGREES,
 		WAVE_DEGREE_LABELS,
 		type WaveDegree
 	} from '$lib/utils/finance/elliott-wave';
@@ -56,7 +56,7 @@
 				Degree
 			</Label>
 			<div class="grid max-h-[300px] grid-cols-1 gap-1.5 overflow-y-auto pr-1">
-				{#each ALL_WAVE_DEGREES as deg (deg)}
+				{#each SUPPORTED_WAVE_DEGREES as deg (deg)}
 					<button
 						type="button"
 						role="radio"

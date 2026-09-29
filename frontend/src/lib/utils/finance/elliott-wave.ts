@@ -27,6 +27,42 @@ export const WAVE_DEGREE_LABELS: Record<WaveDegree, string> = {
 	subminuette: 'Subminuette'
 };
 
+export const SUPPORTED_WAVE_DEGREES = ['cycle', 'primary', 'intermediate'] as const;
+
+export type SupportedWaveDegree = (typeof SUPPORTED_WAVE_DEGREES)[number];
+
+export interface SupportedWaveDegreeInfo {
+	degree: SupportedWaveDegree;
+	label: string;
+	impulseNotation: string;
+	correctiveNotation: string;
+}
+
+export const SUPPORTED_WAVE_DEGREE_CONFIGS: Record<SupportedWaveDegree, SupportedWaveDegreeInfo> = {
+	cycle: {
+		degree: 'cycle',
+		label: 'Cycle',
+		impulseNotation: 'I',
+		correctiveNotation: 'A'
+	},
+	primary: {
+		degree: 'primary',
+		label: 'Primary',
+		impulseNotation: '①',
+		correctiveNotation: 'Ⓐ'
+	},
+	intermediate: {
+		degree: 'intermediate',
+		label: 'Intermediate',
+		impulseNotation: '1',
+		correctiveNotation: '(A)'
+	}
+};
+
+export const SUPPORTED_WAVE_DEGREE_LIST: SupportedWaveDegreeInfo[] = SUPPORTED_WAVE_DEGREES.map(
+	(degree) => SUPPORTED_WAVE_DEGREE_CONFIGS[degree]
+);
+
 export type WaveType = 'impulse' | 'corrective';
 
 export type WavePointId = 0 | 1 | 2 | 3 | 4 | 5 | 'A' | 'B' | 'C';

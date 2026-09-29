@@ -356,4 +356,64 @@ describe('HoldingGroup Component', () => {
 			errorSpy.mockRestore();
 		});
 	});
+
+	describe('Average Price overlay toggle', () => {
+		it('renders the Average Price overlay checkbox checked by default directly next to Average Price display', async () => {
+			render(HoldingGroup, {
+				props: {
+					securityId: 'sec-123',
+					security: mockSecurity
+				}
+			});
+
+			await waitFor(() => {
+				expect(screen.getByText('Average')).toBeInTheDocument();
+				expect(screen.getByText('$113.33')).toBeInTheDocument();
+			});
+
+			const checkbox = screen.getByLabelText('Show average price on chart');
+			expect(checkbox).toBeInTheDocument();
+			expect(checkbox).toBeChecked();
+
+			const avgEl = screen.getByText('Average');
+			expect(avgEl.closest('.flex')?.parentElement).toContainElement(checkbox);
+		});
+
+		it('toggles average price and persists to user preferences without clobbering other indicators', async () => {
+			vi.mocked(userPreferencesService.getPreferences).mockResolvedValue({
+				indicators: {
+					rsi: { enabled: true, color: '#f00', settings: { period: 14 } }
+				}
+			});
+
+			const onToggleAveragePrice = vi.fn();
+			render(HoldingGroup, {
+				props: {
+					securityId: 'sec-123',
+					security: mockSecurity,
+					showAveragePrice: true,
+					onToggleAveragePrice
+				}
+			});
+
+			await waitFor(() => {
+				expect(screen.getByLabelText('Show average price on chart')).toBeInTheDocument();
+			});
+
+			const checkbox = screen.getByLabelText('Show average price on chart');
+			await fireEvent.click(checkbox);
+
+			expect(onToggleAveragePrice).toHaveBeenCalledWith(false);
+			expect(userPreferencesService.patchPreferences).toHaveBeenCalledWith({
+				indicators: {
+					rsi: { enabled: true, color: '#f00', settings: { period: 14 } },
+					avgPrice: {
+						enabled: false,
+						color: '#2962FF',
+						settings: {}
+					}
+				}
+			});
+		});
+	});
 });

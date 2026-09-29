@@ -2177,6 +2177,34 @@ describe('Security Page - Chart Settings Modal & Wave Settings Integration', () 
 			expect(mockChartProps.logScale).toBe(false);
 		});
 	});
+
+	it('updates and persists chart_auto_scale: false when onAutoScaleChange(false) fires from SecurityChart', async () => {
+		vi.mocked(userPreferencesService.getPreferences).mockResolvedValue({
+			chart_auto_scale: true
+		});
+
+		render(PageComponent, { props: { data: mockData } });
+
+		await waitFor(() => {
+			expect(mockChartProps).not.toBeNull();
+		});
+
+		// @ts-expect-error - mockChartProps typed as Record
+		expect(mockChartProps.autoScale).toBe(true);
+
+		// Invoke onAutoScaleChange callback on SecurityChart
+		// @ts-expect-error - mockChartProps typed as Record
+		mockChartProps.onAutoScaleChange?.(false);
+
+		expect(userPreferencesService.patchPreferences).toHaveBeenCalledWith({
+			chart_auto_scale: false
+		});
+
+		await waitFor(() => {
+			// @ts-expect-error - mockChartProps typed as Record
+			expect(mockChartProps.autoScale).toBe(false);
+		});
+	});
 });
 
 describe('Security Page - Top Toolbar', () => {

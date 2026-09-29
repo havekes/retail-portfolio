@@ -14,17 +14,23 @@
 	import type { SecuritySchema } from '@/api/marketService';
 	import type { Candle } from '@/utils/finance/candle';
 	import { moneyToNumber } from '$lib/types/money';
+	import Checkbox from '@/components/ui/checkbox/checkbox.svelte';
+	import { userPreferencesService } from '$lib/api/userPreferencesService';
 
 	let {
 		securityId,
 		security,
 		candles = [],
-		expanded = $bindable(true)
+		expanded = $bindable(true),
+		showAveragePrice = $bindable(true),
+		onToggleAveragePrice
 	} = $props<{
 		securityId?: string;
 		security?: SecuritySchema | { id?: string; symbol?: string; name?: string; currency?: string };
 		candles?: Candle[];
 		expanded?: boolean;
+		showAveragePrice?: boolean;
+		onToggleAveragePrice?: (enabled: boolean) => void;
 	}>();
 
 	const effectiveSecurityId = $derived(securityId ?? security?.id);
@@ -88,6 +94,32 @@
 	const handleExpandToggle = () => {
 		expanded = !expanded;
 	};
+
+	const handleToggleAveragePrice = async (checked: boolean | 'indeterminate') => {
+		const val = checked === true;
+		showAveragePrice = val;
+		onToggleAveragePrice?.(val);
+		try {
+			const prefs = await userPreferencesService.getPreferences().catch(() => null);
+			const existingIndicators = prefs?.indicators ?? {};
+			const currentAvgPrice = existingIndicators.avgPrice ?? {
+				enabled: true,
+				color: '#2962FF',
+				settings: {}
+			};
+			await userPreferencesService.patchPreferences({
+				indicators: {
+					...existingIndicators,
+					avgPrice: {
+						...currentAvgPrice,
+						enabled: val
+					}
+				}
+			});
+		} catch (err) {
+			console.error('Failed to save average price preference:', err);
+		}
+	};
 </script>
 
 <HoldingsModal
@@ -136,11 +168,20 @@
 								}).format(blendedAverageCost(holdings))}
 							</span>
 						</div>
-						<div class="flex flex-col text-right">
-							<span class="text-xs text-muted-foreground">% of Portfolio</span>
-							<span class="font-semibold text-foreground">
-								{portfolioPercentage !== null ? `${portfolioPercentage.toFixed(2)}%` : '0.00%'}
-							</span>
+						<div class="flex items-center gap-2.5">
+							<div class="flex flex-col text-right">
+								<span class="text-xs text-muted-foreground">% of Portfolio</span>
+								<span class="font-semibold text-foreground">
+									{portfolioPercentage !== null ? `${portfolioPercentage.toFixed(2)}%` : '0.00%'}
+								</span>
+							</div>
+							<Checkbox
+								id="show-average-price-overlay"
+								checked={showAveragePrice}
+								onCheckedChange={handleToggleAveragePrice}
+								aria-label="Show average price on chart"
+								title="Show average price on chart"
+							/>
 						</div>
 					</div>
 
