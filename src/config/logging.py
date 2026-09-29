@@ -10,7 +10,7 @@ from rich.logging import RichHandler
 from rich.traceback import install
 
 from src.config.settings import settings
-from src.core.context import get_request_id
+from src.core.context import get_request_id, get_trace_id
 
 
 class FallbackRichHandler(RichHandler):
@@ -34,10 +34,17 @@ class FallbackRichHandler(RichHandler):
 
 
 class RequestIdFilter(logging.Filter):
-    """Filter that injects request_id from contextvars into log records."""
+    """Filter that injects request_id and trace correlation fields into log records."""
 
     def filter(self, record: logging.LogRecord) -> bool:
-        record.request_id = get_request_id() or "-"
+        trace_id = get_trace_id()
+        if trace_id:
+            record.trace_id = trace_id
+            record.request_id = trace_id
+        else:
+            record.trace_id = getattr(record, "trace_id", "-")
+            record.request_id = get_request_id() or getattr(record, "request_id", "-")
+        record.deploy_id = getattr(record, "deploy_id", settings.deploy_id)
         return True
 
 
@@ -51,6 +58,8 @@ class JsonFormatter(logging.Formatter):
             "logger": record.name,
             "message": record.getMessage(),
             "request_id": getattr(record, "request_id", "-"),
+            "trace_id": getattr(record, "trace_id", "-"),
+            "deploy_id": getattr(record, "deploy_id", settings.deploy_id),
         }
 
         for field in ("user_id", "domain", "duration_ms"):
@@ -115,6 +124,10 @@ def init_logging() -> None:
             handlers=[handler],
             force=True,
         )
+
+    root_logger = logging.getLogger()
+    if not any(isinstance(f, RequestIdFilter) for f in root_logger.filters):
+        root_logger.addFilter(RequestIdFilter())
 
     # Suppress verbose third-party loggers
     for logger_name in [
