@@ -1,14 +1,21 @@
 # ruff: noqa: PLR2004, SLF001
 import fnmatch
+import json
 from datetime import date, datetime
-from typing import cast
+from typing import Any, cast
 from unittest.mock import AsyncMock
 
 import pytest
+from opentelemetry.sdk.trace.export import SimpleSpanProcessor
+from opentelemetry.sdk.trace.export.in_memory_span_exporter import (
+    InMemorySpanExporter,
+)
 from redis.asyncio.client import Redis
 
+from src.config.settings import Settings
 from src.market.cache import IndicatorCache
 from src.market.schema import IndicatorSpecSchema
+from src.observability import bootstrap_observability, reset_observability
 
 
 class FakeRedis:
@@ -49,6 +56,46 @@ def fake_redis() -> FakeRedis:
 @pytest.fixture
 def indicator_cache(fake_redis: FakeRedis) -> IndicatorCache:
     return IndicatorCache(redis_client=cast("Redis", fake_redis), cache_ttl=3600)
+
+
+@pytest.fixture(autouse=True)
+def _cleanup_observability():
+    yield
+    reset_observability()
+
+
+@pytest.fixture
+def span_exporter() -> InMemorySpanExporter:
+    exporter = InMemorySpanExporter()
+    bootstrap_observability(
+        service_name="backend",
+        settings=Settings(
+            environment="test",
+            deploy_id="deploy-abc123",
+            service_version="1.2.3",
+        ),
+        span_processor=SimpleSpanProcessor(exporter),
+    )
+    return exporter
+
+
+def _cache_attributes(exporter: InMemorySpanExporter) -> dict[str, Any]:
+    spans = [
+        span
+        for span in exporter.get_finished_spans()
+        if span.name == "market.cache.accessed"
+    ]
+    assert len(spans) == 1, f"expected one cache event, got {len(spans)}"
+    attributes = spans[0].attributes
+    assert attributes is not None
+    return dict(attributes)
+
+
+def _assert_raw_key_absent(exporter: InMemorySpanExporter, raw_key: str) -> None:
+    for span in exporter.get_finished_spans():
+        for name, value in (span.attributes or {}).items():
+            assert raw_key not in str(name)
+            assert raw_key not in str(value)
 
 
 def test_get_cache_key_structure(indicator_cache: IndicatorCache):
@@ -298,3 +345,127 @@ async def test_flush_all(indicator_cache: IndicatorCache):
     )
     await indicator_cache.flush_all()
     assert await indicator_cache.get("sec-1", [spec], interval="1d") is None
+
+
+# ============================================================================
+# Wide events: market.cache.accessed
+# ============================================================================
+
+
+@pytest.mark.anyio
+async def test_cache_miss_emits_wide_event(
+    indicator_cache: IndicatorCache,
+    fake_redis: FakeRedis,
+    span_exporter: InMemorySpanExporter,
+):
+    spec = IndicatorSpecSchema(type="SMA", period=20)
+
+    assert await indicator_cache.get("sec-1", [spec], interval="1d") is None
+
+    attributes = _cache_attributes(span_exporter)
+    assert attributes["event.name"] == "market.cache.accessed"
+    assert attributes["cache_kind"] == "indicator"
+    assert attributes["key_class"] == "indicator"
+    assert attributes["outcome"] == "miss"
+    assert attributes["ttl_seconds"] == 3600
+    assert "error_slug" not in attributes
+
+    raw_key = indicator_cache._get_cache_key(security_id="sec-1", indicators=[spec])
+    _assert_raw_key_absent(span_exporter, raw_key)
+    assert fake_redis.storage == {}
+
+
+@pytest.mark.anyio
+async def test_cache_hit_emits_wide_event(
+    indicator_cache: IndicatorCache,
+    fake_redis: FakeRedis,
+    span_exporter: InMemorySpanExporter,
+):
+    spec = IndicatorSpecSchema(id="SMA_20", type="SMA", period=20)
+    data = {"indicators": {"SMA_20": [{"time": "2026-01-01", "value": 100.0}]}}
+    raw_key = indicator_cache._get_cache_key(
+        security_id="sec-1", indicators=[spec], interval="1d"
+    )
+    fake_redis.storage[raw_key] = json.dumps(data)
+
+    assert await indicator_cache.get("sec-1", [spec], interval="1d") == data
+
+    attributes = _cache_attributes(span_exporter)
+    assert attributes["cache_kind"] == "indicator"
+    assert attributes["key_class"] == "indicator"
+    assert attributes["outcome"] == "hit"
+    assert attributes["ttl_seconds"] == 3600
+    _assert_raw_key_absent(span_exporter, raw_key)
+
+
+@pytest.mark.anyio
+async def test_cached_empty_payload_emits_negative_outcome(
+    indicator_cache: IndicatorCache,
+    fake_redis: FakeRedis,
+    span_exporter: InMemorySpanExporter,
+):
+    spec = IndicatorSpecSchema(type="SMA", period=20)
+    raw_key = indicator_cache._get_cache_key(security_id="sec-1", indicators=[spec])
+    fake_redis.storage[raw_key] = json.dumps({})
+
+    assert await indicator_cache.get("sec-1", [spec], interval="1d") == {}
+
+    attributes = _cache_attributes(span_exporter)
+    assert attributes["outcome"] == "negative"
+    assert attributes["cache_kind"] == "indicator"
+    assert attributes["key_class"] == "indicator"
+    _assert_raw_key_absent(span_exporter, raw_key)
+
+
+@pytest.mark.anyio
+async def test_cache_write_emits_wide_event(
+    indicator_cache: IndicatorCache,
+    span_exporter: InMemorySpanExporter,
+):
+    spec = IndicatorSpecSchema(type="SMA", period=20)
+
+    await indicator_cache.set(
+        security_id="sec-1",
+        indicators=[spec],
+        interval="1d",
+        data={"indicators": {}},
+    )
+
+    attributes = _cache_attributes(span_exporter)
+    assert attributes["cache_kind"] == "indicator"
+    assert attributes["key_class"] == "indicator"
+    assert attributes["outcome"] == "write"
+    assert attributes["ttl_seconds"] == 3600
+
+    raw_key = indicator_cache._get_cache_key(
+        security_id="sec-1", indicators=[spec], interval="1d"
+    )
+    _assert_raw_key_absent(span_exporter, raw_key)
+
+
+@pytest.mark.anyio
+async def test_cache_redis_error_emits_miss_with_error_slug(
+    span_exporter: InMemorySpanExporter,
+):
+    broken_redis = AsyncMock()
+    broken_redis.get.side_effect = RuntimeError("Redis down")
+    cache = IndicatorCache(redis_client=broken_redis)
+
+    assert await cache.get("sec-1", [IndicatorSpecSchema(type="SMA", period=20)]) is None
+
+    attributes = _cache_attributes(span_exporter)
+    assert attributes["outcome"] == "miss"
+    assert attributes["cache_kind"] == "indicator"
+    assert attributes["key_class"] == "indicator"
+    assert attributes["error_slug"] == "cache_error"
+
+
+@pytest.mark.anyio
+async def test_no_event_when_no_cache_access_happens(
+    indicator_cache: IndicatorCache,
+    span_exporter: InMemorySpanExporter,
+):
+    assert await indicator_cache.get("sec-1", []) is None
+    await indicator_cache.set("sec-1", [], data={"foo": "bar"})
+
+    assert span_exporter.get_finished_spans() == ()
