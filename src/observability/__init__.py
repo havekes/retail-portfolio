@@ -12,6 +12,10 @@ from src.observability.events import (
     EventEnvelope,
     emit_event,
 )
+from src.observability.exceptions import (
+    capture_exception,
+    should_capture_telemetry,
+)
 from src.observability.instrumentation import (
     instrument_auto,
     instrument_fastapi,
@@ -41,6 +45,7 @@ __all__ = [
     "EventEnvelope",
     "RedactingSpanProcessor",
     "bootstrap_observability",
+    "capture_exception",
     "capture_task_context",
     "create_resource",
     "emit_event",
@@ -60,6 +65,7 @@ __all__ = [
     "redact_value",
     "reset_observability",
     "restore_task_context",
+    "should_capture_telemetry",
     "shutdown_observability",
     "uninstrument_auto",
 ]
