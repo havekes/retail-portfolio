@@ -486,6 +486,246 @@ async def test_delivery_span_is_child_of_producer_span(cm, span_exporter):
     assert delivery.parent.span_id == producer_ctx.span_id
 
 
+# --------------------------------------------------------------------------- #
+# Wide event emission (F-OBS-T15)
+# --------------------------------------------------------------------------- #
+
+
+def _ws_delivery_spans(exporter: InMemorySpanExporter) -> list[Any]:
+    return [
+        span for span in exporter.get_finished_spans() if span.name == "ws.delivery"
+    ]
+
+
+def _ws_delivery_attributes(span: Any) -> dict[str, Any]:
+    assert span.attributes is not None
+    return dict(span.attributes)
+
+
+@pytest.mark.asyncio
+async def test_send_personal_message_emits_published_delivery_event(cm, span_exporter):
+    user_id = uuid4()
+    mock_redis = AsyncMock()
+    cm._clients[asyncio.get_running_loop()] = mock_redis
+    cm.active_connections[user_id] = [MagicMock(), MagicMock()]
+    msg = {"type": "account_totals_updated", "payload": "not-telemetry"}
+
+    with producer_span() as (producer_ctx, _carrier):
+        await cm._orig_send_personal_message(msg, user_id)
+
+    spans = _ws_delivery_spans(span_exporter)
+    assert len(spans) == 1
+    attributes = _ws_delivery_attributes(spans[0])
+    assert attributes["event.name"] == "ws.delivery"
+    assert attributes["outcome"] == "published"
+    assert attributes["message_type"] == "account_totals_updated"
+    assert attributes["connection_count"] == 2
+    assert attributes["user_id"] == str(user_id)
+    assert isinstance(attributes["duration_ms"], float)
+    assert spans[0].context.trace_id == producer_ctx.trace_id
+    assert attributes["parent_span_id"] == format(producer_ctx.span_id, "016x")
+
+
+@pytest.mark.asyncio
+async def test_send_personal_message_emits_one_event_per_call(cm, span_exporter):
+    user_id = uuid4()
+    mock_redis = AsyncMock()
+    cm._clients[asyncio.get_running_loop()] = mock_redis
+
+    with patch.object(cm, "_send_to_local_connections", new=AsyncMock()):
+        await cm._orig_send_personal_message({"type": "ping"}, user_id)
+        await cm._orig_send_personal_message({"type": "ping"}, user_id)
+
+    spans = _ws_delivery_spans(span_exporter)
+    assert len(spans) == 2
+    assert all(
+        _ws_delivery_attributes(span)["outcome"] == "published" for span in spans
+    )
+
+
+@pytest.mark.asyncio
+async def test_send_personal_message_emits_publish_failed_on_publish_error(
+    cm, span_exporter
+):
+    user_id = uuid4()
+    mock_redis = AsyncMock()
+    mock_redis.publish.side_effect = Exception("Publish error")
+    cm._clients[asyncio.get_running_loop()] = mock_redis
+    msg = {"type": "ping"}
+    mock_local = AsyncMock()
+
+    with (
+        patch.object(cm, "_send_to_local_connections", new=mock_local),
+        producer_span() as (producer_ctx, _carrier),
+    ):
+        await cm._orig_send_personal_message(msg, user_id)
+
+    spans = _ws_delivery_spans(span_exporter)
+    assert len(spans) == 1
+    attributes = _ws_delivery_attributes(spans[0])
+    assert attributes["outcome"] == "publish_failed"
+    assert attributes["message_type"] == "ping"
+    assert attributes["user_id"] == str(user_id)
+    assert spans[0].context.trace_id == producer_ctx.trace_id
+    mock_local.assert_called_once_with(user_id, msg)
+
+
+@pytest.mark.asyncio
+async def test_send_personal_message_emits_publish_failed_on_init_failure(
+    cm, span_exporter
+):
+    """No Redis connection resolves to exactly one publish_failed event."""
+    user_id = uuid4()
+    mock_local = AsyncMock()
+    msg = {"type": "ping"}
+
+    with (
+        patch.object(cm, "get_redis_client", return_value=None),
+        patch.object(
+            cm, "_orig_init_redis", side_effect=Exception("Redis init failed")
+        ),
+        patch.object(cm, "_send_to_local_connections", new=mock_local),
+    ):
+        await cm._orig_send_personal_message(msg, user_id)
+
+    spans = _ws_delivery_spans(span_exporter)
+    assert len(spans) == 1
+    attributes = _ws_delivery_attributes(spans[0])
+    assert attributes["outcome"] == "publish_failed"
+    mock_local.assert_called_once_with(user_id, msg)
+
+
+@pytest.mark.asyncio
+async def test_listen_for_messages_delivery_event_shares_producer_trace_id(
+    cm, span_exporter
+):
+    user_id = uuid4()
+    ws = MagicMock()
+    ws.client_state = WebSocketState.CONNECTED
+    ws.send_json = AsyncMock()
+    cm.active_connections[user_id] = [ws]
+
+    with producer_span() as (producer_ctx, carrier):
+        pass
+
+    mock_redis = pubsub_redis(envelope(user_id, {"type": "ping"}, carrier=carrier))
+
+    with patch.object(cm, "get_redis_client", return_value=mock_redis):
+        await cm._listen_for_messages()
+
+    spans = _ws_delivery_spans(span_exporter)
+    assert len(spans) == 1
+    delivery = spans[0]
+    attributes = _ws_delivery_attributes(delivery)
+    assert attributes["outcome"] == "delivered"
+    assert attributes["message_type"] == "ping"
+    assert attributes["connection_count"] == 1
+    assert attributes["user_id"] == str(user_id)
+    assert isinstance(attributes["duration_ms"], float)
+    assert delivery.context.trace_id == producer_ctx.trace_id
+    assert delivery.parent is not None
+    assert delivery.parent.span_id == producer_ctx.span_id
+
+
+@pytest.mark.asyncio
+async def test_listen_for_messages_emits_delivery_failed_when_delivery_raises(
+    cm, span_exporter
+):
+    user_id = uuid4()
+    mock_redis = pubsub_redis(envelope(user_id, {"type": "ping"}))
+
+    with (
+        patch.object(cm, "get_redis_client", return_value=mock_redis),
+        patch.object(
+            cm,
+            "_send_to_local_connections",
+            new=AsyncMock(side_effect=Exception("send failed")),
+        ),
+    ):
+        await cm._listen_for_messages()
+
+    spans = _ws_delivery_spans(span_exporter)
+    assert len(spans) == 1
+    attributes = _ws_delivery_attributes(spans[0])
+    assert attributes["outcome"] == "delivery_failed"
+    assert attributes["message_type"] == "ping"
+    assert attributes["user_id"] == str(user_id)
+
+
+@pytest.mark.asyncio
+async def test_listen_for_messages_emits_delivery_failed_for_unparseable_envelope(
+    cm, span_exporter
+):
+    mock_redis = pubsub_redis(json.dumps({"user_id": "not-a-uuid", "message": {}}))
+
+    with patch.object(cm, "get_redis_client", return_value=mock_redis):
+        await cm._listen_for_messages()
+
+    spans = _ws_delivery_spans(span_exporter)
+    assert len(spans) == 1
+    attributes = _ws_delivery_attributes(spans[0])
+    assert attributes["outcome"] == "delivery_failed"
+    assert attributes["user_id"] == "unknown"
+    assert attributes["connection_count"] == 0
+
+
+@pytest.mark.asyncio
+async def test_ws_delivery_events_never_carry_the_message_body(cm, span_exporter):
+    user_id = uuid4()
+    redis = FakeRedis()
+    received = asyncio.Event()
+    ws = MagicMock()
+    ws.client_state = WebSocketState.CONNECTED
+
+    async def send_json(_payload):
+        received.set()
+
+    ws.send_json = AsyncMock(side_effect=send_json)
+    cm.active_connections[user_id] = [ws]
+
+    msg = {
+        "type": "account_totals_updated",
+        "account_id": "SENTINEL-ACCT",
+        "totals": {"cash": "SENTINEL-CASH"},
+    }
+
+    with patch.object(cm, "get_redis_client", return_value=redis):
+        listener = asyncio.create_task(cm._listen_for_messages())
+        try:
+            await wait_for(lambda: "ws_messages" in redis._subscribers)
+
+            await cm._orig_send_personal_message(msg, user_id)
+
+            await asyncio.wait_for(received.wait(), timeout=5)
+            await wait_for(lambda: len(_ws_delivery_spans(span_exporter)) == 2)
+        finally:
+            listener.cancel()
+            with contextlib.suppress(asyncio.CancelledError):
+                await listener
+
+    spans = _ws_delivery_spans(span_exporter)
+    assert len(spans) == 2
+    for span in spans:
+        attributes = _ws_delivery_attributes(span)
+        for key, value in attributes.items():
+            assert "SENTINEL" not in str(key)
+            assert "SENTINEL" not in str(value)
+    assert {_ws_delivery_attributes(span)["outcome"] for span in spans} == {
+        "published",
+        "delivered",
+    }
+
+    # The delivery event still carries the message type (and nothing else).
+    delivered = next(
+        span
+        for span in spans
+        if _ws_delivery_attributes(span)["outcome"] == "delivered"
+    )
+    assert _ws_delivery_attributes(delivered)["message_type"] == (
+        "account_totals_updated"
+    )
+
+
 @pytest.mark.asyncio
 async def test_listen_for_messages_delivers_without_trace_context(cm, span_exporter):
     user_id = uuid4()
