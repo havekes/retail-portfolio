@@ -55,6 +55,7 @@ export interface ChartInstance {
 	getSelectedHorizontalLineId?: () => string | null;
 	getSelectedLineId?: () => string | null;
 	setPaneHeights?: (heights: Record<string, number> | null) => void;
+	updateWaveDegree?: (waveId: string, newDegree: WaveDegree) => boolean;
 	[key: string]: unknown;
 }
 
@@ -639,6 +640,50 @@ export class ChartDrawingsService {
 			console.error('Failed to persist elliott waves preference:', err);
 		}
 		this.options.onWaveAlertsReconcile?.();
+	};
+
+	handleWaveDegreeChange = async (
+		newDegree: WaveDegree,
+		waveId?: string | null,
+		currentDegree?: WaveDegree
+	) => {
+		if (this.isRewound || !this.securityId) return;
+		const currentWaves = this.userPreferences?.elliott_waves?.[this.securityId]?.waves ?? [];
+		let waveIndex = -1;
+		if (waveId) {
+			waveIndex = currentWaves.findIndex((w) => w.id === waveId);
+		}
+		if (waveIndex === -1 && currentDegree) {
+			waveIndex = currentWaves.findLastIndex((w) => w.degree === currentDegree);
+		}
+		if (waveIndex === -1) return;
+
+		const targetWave = currentWaves[waveIndex];
+		if (targetWave.degree === newDegree) return;
+
+		const updatedWave: DegreeWaveCount = {
+			...targetWave,
+			degree: newDegree
+		};
+		const updatedWaves = [
+			...currentWaves.slice(0, waveIndex),
+			updatedWave,
+			...currentWaves.slice(waveIndex + 1)
+		];
+		await this.handleWaveChange(newDegree, updatedWave, { waves: updatedWaves });
+		this.activeWaveDegree = newDegree;
+	};
+
+	updateWaveDegree = async (
+		waveId: string,
+		newDegree: WaveDegree,
+		chartRef?: ChartInstance | null
+	) => {
+		const ref = chartRef ?? this.options.getChartRef?.();
+		if (ref && typeof ref.updateWaveDegree === 'function') {
+			ref.updateWaveDegree(waveId, newDegree);
+		}
+		await this.handleWaveDegreeChange(newDegree, waveId);
 	};
 
 	handleClearWave = async (degree?: WaveDegree, chartRef?: ChartInstance | null) => {

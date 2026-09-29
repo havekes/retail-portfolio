@@ -4,7 +4,8 @@
 		createChart,
 		CrosshairMode,
 		LineSeries,
-		HistogramSeries
+		HistogramSeries,
+		PriceScaleMode
 	} from 'lightweight-charts';
 	import type { Time, IChartApi, ISeriesApi, IPriceLine, SeriesType } from 'lightweight-charts';
 	import { onMount } from 'svelte';
@@ -17,6 +18,7 @@
 	import type { UserAlertInfo } from './plugins/user-price-alerts/state';
 	import type { PriceAlert } from '$lib/api/alertsService';
 	import { ElliottWavesPrimitive } from './plugins/elliott-wave/elliott-wave';
+	import { ValuationBandPrimitive } from './plugins/valuation-band/valuation-band';
 	import type {
 		DegreeWaveCount,
 		SecurityElliottWaves,
@@ -100,6 +102,7 @@
 	let measurePrimitive = $state<MeasurePrimitive | null>(null);
 	let horizontalLinePrimitive = $state<HorizontalLinePrimitive | null>(null);
 	let freeFormLinePrimitive = $state<FreeFormLinePrimitive | null>(null);
+	let valuationBandPrimitive = $state<ValuationBandPrimitive | null>(null);
 
 	let {
 		candles = [],
@@ -152,7 +155,14 @@
 		onDrawingDragStart,
 		onDrawingDragEnd,
 		futureBars = DEFAULT_FUTURE_BARS,
-		onPaneHeightsChange
+		onPaneHeightsChange,
+		autoScale = true,
+		logScale = false,
+		valuation = null,
+		showValuation = true,
+		showValuationBand,
+		onWaveDoubleClick,
+		onAutoScaleChange
 	} = $props<{
 		candles?: Candle[];
 		containerId?: string;
@@ -209,7 +219,18 @@
 		onDrawingDragEnd?: () => void;
 		futureBars?: number;
 		onPaneHeightsChange?: (heights: PaneHeights | null) => void;
+		autoScale?: boolean;
+		logScale?: boolean;
+		valuation?: { lower_bound: number; upper_bound: number } | null;
+		showValuation?: boolean;
+		showValuationBand?: boolean;
+		onWaveDoubleClick?: (degree: WaveDegree, waveId?: string | null) => void;
+		onAutoScaleChange?: (autoScale: boolean) => void;
 	}>();
+
+	const isValuationBandVisible = $derived(
+		showValuationBand !== undefined ? showValuationBand : showValuation
+	);
 
 	let avgPriceLine: IPriceLine | null = null;
 	let previousFirstCandleTime: Time | null = null;
@@ -593,6 +614,23 @@
 
 	$effect(() => {
 		if (!chartInstance) return;
+		chartInstance.priceScale('right').applyOptions({
+			autoScale: autoScale !== false,
+			mode: logScale ? PriceScaleMode.Logarithmic : PriceScaleMode.Normal
+		});
+	});
+
+	$effect(() => {
+		if (!valuationBandPrimitive) return;
+		valuationBandPrimitive.setRange(
+			valuation && isValuationBandVisible ? valuation.lower_bound : null,
+			valuation && isValuationBandVisible ? valuation.upper_bound : null,
+			isValuationBandVisible
+		);
+	});
+
+	$effect(() => {
+		if (!chartInstance) return;
 		const isDrawing = Boolean(
 			isDrawingWave || isDrawingFib || isDrawingMeasure || isDrawingHorizontalLine || isDrawingLine
 		);
@@ -835,7 +873,9 @@
 			},
 			rightPriceScale: {
 				visible: true,
-				minimumWidth: DEFAULT_PRICE_SCALE_MIN_WIDTH
+				minimumWidth: DEFAULT_PRICE_SCALE_MIN_WIDTH,
+				autoScale: autoScale !== false,
+				mode: logScale ? PriceScaleMode.Logarithmic : PriceScaleMode.Normal
 			}
 		});
 
@@ -856,6 +896,13 @@
 			wickUpColor: '#26a69a',
 			wickDownColor: '#ef5350'
 		});
+
+		valuationBandPrimitive = new ValuationBandPrimitive(
+			valuation && isValuationBandVisible ? valuation.lower_bound : null,
+			valuation && isValuationBandVisible ? valuation.upper_bound : null,
+			isValuationBandVisible
+		);
+		seriesInstance.attachPrimitive(valuationBandPrimitive);
 
 		updatePanes();
 
@@ -921,6 +968,9 @@
 
 		elliottWavesPrimitive.dragStarted().subscribe(() => onDrawingDragStart?.());
 		elliottWavesPrimitive.dragEnded().subscribe(() => onDrawingDragEnd?.());
+		elliottWavesPrimitive.doubleClicked().subscribe((hit) => {
+			onWaveDoubleClick?.(hit.degree, hit.waveId);
+		});
 
 		fibonacciPrimitive = new FibonacciPrimitive({
 			activeTool: activeFibTool,
@@ -1058,6 +1108,13 @@
 		freeFormLinePrimitive.dragStarted().subscribe(() => onDrawingDragStart?.());
 		freeFormLinePrimitive.dragEnded().subscribe(() => onDrawingDragEnd?.());
 
+		const toLogCoord = (price: number): number => {
+			const m = Math.abs(price);
+			if (m < 1e-15) return 0;
+			const res = Math.log10(m + 0.0001) + 4;
+			return price < 0 ? -res : res;
+		};
+
 		const handleWheel = (event: WheelEvent) => {
 			if (!containerRef || !chartInstance || !seriesInstance) return;
 			const rect = containerRef.getBoundingClientRect();
@@ -1078,20 +1135,79 @@
 				if (delta === 0) return;
 
 				const factor = delta > 0 ? 1.025 : 0.975;
-				const span = currentRange.to - currentRange.from;
-				const newSpan = span * factor;
-				const mid = (currentRange.from + currentRange.to) / 2;
-				const from = mid - newSpan / 2;
-				const to = mid + newSpan / 2;
+				let from: number;
+				let to: number;
+
+				if (logScale) {
+					const logFrom = toLogCoord(currentRange.from);
+					const logTo = toLogCoord(currentRange.to);
+					const logSpan = logTo - logFrom;
+					const newLogSpan = logSpan * factor;
+					const mid = (logFrom + logTo) / 2;
+					from = mid - newLogSpan / 2;
+					to = mid + newLogSpan / 2;
+				} else {
+					const span = currentRange.to - currentRange.from;
+					const newSpan = span * factor;
+					const mid = (currentRange.from + currentRange.to) / 2;
+					from = mid - newSpan / 2;
+					to = mid + newSpan / 2;
+				}
 
 				if (to > from) {
 					priceScale.setVisibleRange?.({ from, to });
+					onAutoScaleChange?.(false);
 				}
 			}
 		};
 
+		let isDraggingPriceScale = false;
+		let priceScaleStartY = 0;
+		let priceScaleDragged = false;
+
+		const handlePriceScaleDown = (event: MouseEvent | PointerEvent) => {
+			if (!containerRef || !seriesInstance) return;
+			const rect = containerRef.getBoundingClientRect();
+			const x = event.clientX - rect.left;
+			const priceScale = seriesInstance.priceScale();
+			const priceScaleWidth =
+				(priceScale && typeof priceScale.width === 'function' ? priceScale.width() : 0) ||
+				DEFAULT_PRICE_SCALE_MIN_WIDTH;
+
+			if (x >= containerRef.clientWidth - priceScaleWidth) {
+				isDraggingPriceScale = true;
+				priceScaleStartY = event.clientY;
+				priceScaleDragged = false;
+			}
+		};
+
+		const handlePriceScaleMove = (event: MouseEvent | PointerEvent) => {
+			if (!isDraggingPriceScale) return;
+			if (Math.abs(event.clientY - priceScaleStartY) > 2) {
+				if (!priceScaleDragged) {
+					priceScaleDragged = true;
+					onAutoScaleChange?.(false);
+				}
+			}
+		};
+
+		const handlePriceScaleUp = () => {
+			isDraggingPriceScale = false;
+			priceScaleDragged = false;
+		};
+
 		const container = containerRef;
 		container.addEventListener('wheel', handleWheel, { capture: true, passive: false });
+		container.addEventListener('mousedown', handlePriceScaleDown);
+		container.addEventListener('mousemove', handlePriceScaleMove);
+		window.addEventListener('mousemove', handlePriceScaleMove);
+		container.addEventListener('mouseup', handlePriceScaleUp);
+		window.addEventListener('mouseup', handlePriceScaleUp);
+		container.addEventListener('pointerdown', handlePriceScaleDown as EventListener);
+		container.addEventListener('pointermove', handlePriceScaleMove as EventListener);
+		window.addEventListener('pointermove', handlePriceScaleMove as EventListener);
+		container.addEventListener('pointerup', handlePriceScaleUp as EventListener);
+		window.addEventListener('pointerup', handlePriceScaleUp as EventListener);
 
 		const resizeObserver = new ResizeObserver(() => {
 			if (
@@ -1112,6 +1228,16 @@
 
 		return () => {
 			container.removeEventListener('wheel', handleWheel, { capture: true });
+			container.removeEventListener('mousedown', handlePriceScaleDown);
+			container.removeEventListener('mousemove', handlePriceScaleMove);
+			window.removeEventListener('mousemove', handlePriceScaleMove);
+			container.removeEventListener('mouseup', handlePriceScaleUp);
+			window.removeEventListener('mouseup', handlePriceScaleUp);
+			container.removeEventListener('pointerdown', handlePriceScaleDown as EventListener);
+			container.removeEventListener('pointermove', handlePriceScaleMove as EventListener);
+			window.removeEventListener('pointermove', handlePriceScaleMove as EventListener);
+			container.removeEventListener('pointerup', handlePriceScaleUp as EventListener);
+			window.removeEventListener('pointerup', handlePriceScaleUp as EventListener);
 			resizeObserver.disconnect();
 			userAlertsPrimitive?.destroy();
 			elliottWavesPrimitive?.destroy();
@@ -1307,7 +1433,8 @@
 				crosshairMarkerVisible: true,
 				priceLineVisible: false,
 				lastValueVisible: !hideLabels,
-				title: hideLabels ? '' : `${indicator.label} Upper`
+				title: hideLabels ? '' : `${indicator.label} Upper`,
+				autoscaleInfoProvider: () => null
 			});
 			const middle = chartInstance.addSeries(LineSeries, {
 				color: hexToRgba(color, 1),
@@ -1315,7 +1442,8 @@
 				crosshairMarkerVisible: true,
 				priceLineVisible: false,
 				lastValueVisible: !hideLabels,
-				title: hideLabels ? '' : indicator.label
+				title: hideLabels ? '' : indicator.label,
+				autoscaleInfoProvider: () => null
 			});
 			const lower = chartInstance.addSeries(LineSeries, {
 				color: hexToRgba(color, 0.5),
@@ -1323,7 +1451,8 @@
 				crosshairMarkerVisible: true,
 				priceLineVisible: false,
 				lastValueVisible: !hideLabels,
-				title: hideLabels ? '' : `${indicator.label} Lower`
+				title: hideLabels ? '' : `${indicator.label} Lower`,
+				autoscaleInfoProvider: () => null
 			});
 
 			const bandsPrimitive = new BandsIndicator(
@@ -1361,7 +1490,8 @@
 			crosshairMarkerVisible: true,
 			priceLineVisible: !hideLabels,
 			lastValueVisible: !hideLabels,
-			title: hideLabels ? '' : indicator.label
+			title: hideLabels ? '' : indicator.label,
+			autoscaleInfoProvider: () => null
 		});
 
 		indicatorSeries.set(indicator.type, series);
@@ -1559,6 +1689,14 @@
 
 	export function setSelectedLineId(id: string | null) {
 		freeFormLinePrimitive?.select(id);
+	}
+
+	export function updateWaveDegree(waveId: string, newDegree: WaveDegree): boolean {
+		return elliottWavesPrimitive?.updateWaveDegree(waveId, newDegree) ?? false;
+	}
+
+	export function getValuationBandPrimitive(): ValuationBandPrimitive | null {
+		return valuationBandPrimitive;
 	}
 </script>
 

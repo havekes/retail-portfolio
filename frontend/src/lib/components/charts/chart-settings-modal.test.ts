@@ -11,6 +11,9 @@ import {
 
 describe('ChartSettingsModal Component', () => {
 	let mockOnSaveChartHideLabels = vi.fn<(hide: boolean) => void>();
+	let mockOnSaveChartAutoScale = vi.fn<(autoScale: boolean) => void>();
+	let mockOnSaveChartLogScale = vi.fn<(logScale: boolean) => void>();
+	let mockOnSaveGeneral = vi.fn();
 	let mockOnSaveWaveSettings = vi.fn<(settings: WaveSettings) => void>();
 	let mockOnFibLevelsChange = vi.fn<(tool: FibToolType, levels: FibLevelConfig[]) => void>();
 	let mockOnFibWidthChange =
@@ -20,6 +23,9 @@ describe('ChartSettingsModal Component', () => {
 	beforeEach(() => {
 		vi.clearAllMocks();
 		mockOnSaveChartHideLabels = vi.fn<(hide: boolean) => void>();
+		mockOnSaveChartAutoScale = vi.fn<(autoScale: boolean) => void>();
+		mockOnSaveChartLogScale = vi.fn<(logScale: boolean) => void>();
+		mockOnSaveGeneral = vi.fn();
 		mockOnSaveWaveSettings = vi.fn<(settings: WaveSettings) => void>();
 		mockOnFibLevelsChange = vi.fn<(tool: FibToolType, levels: FibLevelConfig[]) => void>();
 		mockOnFibWidthChange =
@@ -220,6 +226,127 @@ describe('ChartSettingsModal Component', () => {
 			await fireEvent.click(cancelBtn);
 
 			expect(mockOnSaveChartHideLabels).not.toHaveBeenCalled();
+			expect(mockOnClose).toHaveBeenCalledTimes(1);
+		});
+
+		it('defaults auto-scale to checked (true) and log-scale to unchecked (false) when not provided', () => {
+			render(ChartSettingsModal, {
+				props: {
+					open: true
+				}
+			});
+
+			expect(screen.getByTestId('auto-scale-checkbox')).toHaveAttribute('aria-checked', 'true');
+			expect(screen.getByTestId('log-scale-checkbox')).toHaveAttribute('aria-checked', 'false');
+		});
+
+		it('reflects custom initial states from props (chartAutoScale: false, chartLogScale: true)', () => {
+			const { rerender } = render(ChartSettingsModal, {
+				props: {
+					open: true,
+					chartAutoScale: false,
+					chartLogScale: true
+				}
+			});
+
+			expect(screen.getByTestId('auto-scale-checkbox')).toHaveAttribute('aria-checked', 'false');
+			expect(screen.getByTestId('log-scale-checkbox')).toHaveAttribute('aria-checked', 'true');
+
+			rerender({ open: true, chartAutoScale: true, chartLogScale: false });
+			expect(screen.getByTestId('auto-scale-checkbox')).toHaveAttribute('aria-checked', 'true');
+			expect(screen.getByTestId('log-scale-checkbox')).toHaveAttribute('aria-checked', 'false');
+		});
+
+		it('toggles auto-scale and log-scale checkboxes and saves updated values on Save click', async () => {
+			render(ChartSettingsModal, {
+				props: {
+					open: true,
+					chartAutoScale: true,
+					chartLogScale: false,
+					onSaveChartAutoScale: mockOnSaveChartAutoScale,
+					onSaveChartLogScale: mockOnSaveChartLogScale,
+					onClose: mockOnClose
+				}
+			});
+
+			const autoScaleCheckbox = screen.getByTestId('auto-scale-checkbox');
+			const logScaleCheckbox = screen.getByTestId('log-scale-checkbox');
+
+			await fireEvent.click(autoScaleCheckbox);
+			await fireEvent.click(logScaleCheckbox);
+
+			const saveBtn = screen.getByTestId('save-general-btn');
+			await fireEvent.click(saveBtn);
+
+			expect(mockOnSaveChartAutoScale).toHaveBeenCalledTimes(1);
+			expect(mockOnSaveChartAutoScale).toHaveBeenCalledWith(false);
+			expect(mockOnSaveChartLogScale).toHaveBeenCalledTimes(1);
+			expect(mockOnSaveChartLogScale).toHaveBeenCalledWith(true);
+			expect(mockOnClose).toHaveBeenCalledTimes(1);
+		});
+
+		it('reverts draft state on Cancel click without firing save callbacks', async () => {
+			const { rerender } = render(ChartSettingsModal, {
+				props: {
+					open: true,
+					chartAutoScale: true,
+					chartLogScale: false,
+					onSaveChartAutoScale: mockOnSaveChartAutoScale,
+					onSaveChartLogScale: mockOnSaveChartLogScale,
+					onClose: mockOnClose
+				}
+			});
+
+			const autoScaleCheckbox = screen.getByTestId('auto-scale-checkbox');
+			const logScaleCheckbox = screen.getByTestId('log-scale-checkbox');
+
+			await fireEvent.click(autoScaleCheckbox);
+			await fireEvent.click(logScaleCheckbox);
+
+			const cancelBtn = screen.getByTestId('cancel-general-btn');
+			await fireEvent.click(cancelBtn);
+
+			expect(mockOnSaveChartAutoScale).not.toHaveBeenCalled();
+			expect(mockOnSaveChartLogScale).not.toHaveBeenCalled();
+			expect(mockOnClose).toHaveBeenCalledTimes(1);
+
+			// Reopening modal reflects the original props, not discarded draft values
+			rerender({
+				open: true,
+				chartAutoScale: true,
+				chartLogScale: false,
+				onSaveChartAutoScale: mockOnSaveChartAutoScale,
+				onSaveChartLogScale: mockOnSaveChartLogScale,
+				onClose: mockOnClose
+			});
+			expect(screen.getByTestId('auto-scale-checkbox')).toHaveAttribute('aria-checked', 'true');
+			expect(screen.getByTestId('log-scale-checkbox')).toHaveAttribute('aria-checked', 'false');
+		});
+
+		it('calls onSaveGeneral with all general settings when Save is clicked', async () => {
+			render(ChartSettingsModal, {
+				props: {
+					open: true,
+					chartHideLabels: false,
+					chartAutoScale: true,
+					chartLogScale: false,
+					onSaveGeneral: mockOnSaveGeneral,
+					onClose: mockOnClose
+				}
+			});
+
+			await fireEvent.click(screen.getByTestId('hide-labels-checkbox'));
+			await fireEvent.click(screen.getByTestId('auto-scale-checkbox'));
+			await fireEvent.click(screen.getByTestId('log-scale-checkbox'));
+
+			await fireEvent.click(screen.getByTestId('save-general-btn'));
+
+			expect(mockOnSaveGeneral).toHaveBeenCalledTimes(1);
+			expect(mockOnSaveGeneral).toHaveBeenCalledWith({
+				hideLabels: true,
+				autoScale: false,
+				logScale: true
+			});
 			expect(mockOnClose).toHaveBeenCalledTimes(1);
 		});
 	});

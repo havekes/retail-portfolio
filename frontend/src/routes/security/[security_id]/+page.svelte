@@ -1,8 +1,7 @@
 <script lang="ts">
 	import { untrack, onDestroy } from 'svelte';
-	import type { Time, UTCTimestamp } from 'lightweight-charts';
 	import { getMarketService } from '$lib/api/marketService';
-	import { convertToHeikinAshi } from '@/utils/finance/candle';
+	import { convertToHeikinAshi, mapPriceToCandle } from '@/utils/finance/candle';
 	import { resolve } from '$app/paths';
 	import type { Candle } from '@/utils/finance/candle';
 	import PageHeader from '@/components/layout/app-header.svelte';
@@ -12,12 +11,14 @@
 	import NotesGroup from '@/components/actions-sidebar/note/note-group.svelte';
 	import DocumentsGroup from '@/components/actions-sidebar/document/document-group.svelte';
 	import AIAnalysisGroup from '$lib/components/actions-sidebar/ai/ai-analysis-group.svelte';
+	import FundamentalsGroup from '@/components/actions-sidebar/fundamentals/fundamentals-group.svelte';
 	import type { UserPreferences } from '$lib/api/userPreferencesService';
 	import { userPreferencesService, type ChartStyle } from '$lib/api/userPreferencesService';
 	import { alertsService, type PriceAlert } from '$lib/api/alertsService';
 	import { blendedAverageCost } from '@/utils/finance/average-cost';
 	import HoldingsGroup from '@/components/actions-sidebar/holding-group/holding-group.svelte';
 	import { accountService, type AccountHoldingRead } from '@/api/accountService';
+	import { valuationClient, type SecurityValuationRead } from '$lib/api/valuationClient';
 	import type { IndicatorData } from '$lib/components/charts/security-chart.svelte';
 	import Star from '@lucide/svelte/icons/star';
 	import Settings from '@lucide/svelte/icons/settings';
@@ -40,10 +41,11 @@
 	} from '$lib/api/indicatorsService';
 	import { createIndicatorConfigs, type IndicatorDefault } from '$lib/chart/indicator-defaults';
 	import { getChartDateWindow } from '$lib/utils/date';
-	import type { WaveSettings } from '$lib/utils/finance/elliott-wave';
+	import type { WaveSettings, WaveDegree } from '$lib/utils/finance/elliott-wave';
 	import { DEFAULT_WAVE_SETTINGS } from '$lib/utils/finance/elliott-wave';
 	import { computeWaveAlertLevels, reconcileWaveAlerts } from '$lib/utils/finance/wave-alerts';
 	import ChartSettingsModal from '$lib/components/charts/chart-settings-modal.svelte';
+	import WaveDegreeModal from '$lib/components/charts/wave-degree-modal.svelte';
 	import FibWidthModal from '$lib/components/charts/fib-width-modal.svelte';
 	import DrawingToolbar from '$lib/components/charts/drawing-toolbar.svelte';
 	import type { FibToolType } from '$lib/utils/finance/fibonacci';
@@ -94,6 +96,11 @@
 	let isChartSettingsOpen = $state(false);
 	let isFibWidthModalOpen = $state(false);
 	let modalFibTool = $state<FibToolType>('retracement');
+	let isWaveDegreeModalOpen = $state(false);
+	let modalWaveDegree = $state<WaveDegree>('cycle');
+	let modalWaveId = $state<string | null>(null);
+	let valuation = $state<SecurityValuationRead | null>(null);
+	let showValuationOverlay = $state(true);
 
 	const drawingsService = setChartDrawingsService(
 		new ChartDrawingsService({
@@ -183,20 +190,9 @@
 			}
 			timeframeError = null;
 
-			const mappedCandles: Candle[] = priceResponse.items.map((p) => {
-				const timeVal =
-					isIntraday && p.timestamp
-						? (Math.floor(new Date(p.timestamp).getTime() / 1000) as UTCTimestamp)
-						: ((p.date ?? '') as Time);
-				return {
-					time: timeVal,
-					open: Number(p.open),
-					high: Number(p.high),
-					low: Number(p.low),
-					close: Number(p.close),
-					volume: Number(p.volume)
-				};
-			});
+			const mappedCandles: Candle[] = priceResponse.items.map((p) =>
+				mapPriceToCandle(p, isIntraday)
+			);
 
 			mappedCandles.sort((a, b) => {
 				if (typeof a.time === 'number' && typeof b.time === 'number') {
@@ -253,20 +249,9 @@
 			}
 
 			const isIntraday = selectedInterval === '1h' || selectedInterval === '4h';
-			const mappedCandles: Candle[] = priceResponse.items.map((p) => {
-				const timeVal =
-					isIntraday && p.timestamp
-						? (Math.floor(new Date(p.timestamp).getTime() / 1000) as UTCTimestamp)
-						: ((p.date ?? '') as Time);
-				return {
-					time: timeVal,
-					open: Number(p.open),
-					high: Number(p.high),
-					low: Number(p.low),
-					close: Number(p.close),
-					volume: Number(p.volume)
-				};
-			});
+			const mappedCandles: Candle[] = priceResponse.items.map((p) =>
+				mapPriceToCandle(p, isIntraday)
+			);
 
 			mappedCandles.sort((a, b) => {
 				if (typeof a.time === 'number' && typeof b.time === 'number') {
@@ -458,6 +443,15 @@
 		}
 	}
 
+	async function loadValuation() {
+		if (!security?.id) return;
+		try {
+			valuation = await valuationClient.getValuation(security.id);
+		} catch (err) {
+			console.error('Failed to load valuation:', err);
+		}
+	}
+
 	// Serialized reconcile chain — `onWaveChange` fires per point while drawing, and concurrent
 	// reconciles reading stale `alerts` would double-create. Chaining onto a single promise keeps
 	// every run sequential so each sees the previous run's applied state.
@@ -503,15 +497,39 @@
 		}
 	}
 
-	async function handleChartHideLabelsChange(hideLabels: boolean) {
+	async function handleGeneralSettingsChange(settings: {
+		hideLabels: boolean;
+		autoScale: boolean;
+		logScale: boolean;
+	}) {
 		userPreferences = {
 			...(userPreferences ?? {}),
-			chart_hide_labels: hideLabels
+			chart_hide_labels: settings.hideLabels,
+			chart_auto_scale: settings.autoScale,
+			chart_log_scale: settings.logScale
 		};
 		try {
-			await userPreferencesService.patchPreferences({ chart_hide_labels: hideLabels });
+			await userPreferencesService.patchPreferences({
+				chart_hide_labels: settings.hideLabels,
+				chart_auto_scale: settings.autoScale,
+				chart_log_scale: settings.logScale
+			});
 		} catch (err) {
-			console.error('Failed to persist chart hide labels preference:', err);
+			console.error('Failed to persist general chart settings preferences:', err);
+		}
+	}
+
+	async function handleAutoScaleChange(autoScale: boolean) {
+		userPreferences = {
+			...(userPreferences ?? {}),
+			chart_auto_scale: autoScale
+		};
+		try {
+			await userPreferencesService.patchPreferences({
+				chart_auto_scale: autoScale
+			});
+		} catch (err) {
+			console.error('Failed to persist chart auto scale preference:', err);
 		}
 	}
 
@@ -645,6 +663,9 @@
 
 	async function onPreferencesLoaded(prefs: UserPreferences) {
 		userPreferences = prefs;
+		if (prefs.show_valuation_band !== undefined && prefs.show_valuation_band !== null) {
+			showValuationOverlay = prefs.show_valuation_band;
+		}
 		applySavedPaneHeights(prefs);
 		drawingsService.setPreferences(prefs);
 
@@ -719,6 +740,9 @@
 						try {
 							const prefs = await userPreferencesService.getPreferences();
 							userPreferences = prefs;
+							if (prefs.show_valuation_band !== undefined && prefs.show_valuation_band !== null) {
+								showValuationOverlay = prefs.show_valuation_band;
+							}
 							applySavedPaneHeights(prefs);
 							drawingsService.setPreferences(prefs);
 						} catch (err) {
@@ -729,22 +753,19 @@
 					}
 
 					// Convert to lightweight-charts format and sort properly (oldest to newest)
-					const mappedCandles: Candle[] = items.map((p) => ({
-						time: p.timestamp
-							? (Math.floor(new Date(p.timestamp).getTime() / 1000) as UTCTimestamp)
-							: ((p.date ?? '') as Time),
-						open: Number(p.open),
-						high: Number(p.high),
-						low: Number(p.low),
-						close: Number(p.close),
-						volume: Number(p.volume)
-					}));
+					const isIntraday = selectedInterval === '1h' || selectedInterval === '4h';
+					const mappedCandles: Candle[] = items.map((p) => mapPriceToCandle(p, isIntraday));
 
 					hasMoreData = true;
 					isLoadingMore = false;
 					rawCandles = mappedCandles;
 					haCandles = convertToHeikinAshi(mappedCandles);
-					await Promise.all([loadAlerts(), loadHoldings(), drawingsService.loadSnapshots()]);
+					await Promise.all([
+						loadAlerts(),
+						loadHoldings(),
+						loadValuation(),
+						drawingsService.loadSnapshots()
+					]);
 
 					// Initial-load reconcile: gated on preferences being loaded so a failed fetch never
 					// mass-deletes wave alerts. Soft navigation re-runs the effect per security.
@@ -949,6 +970,17 @@
 								candles={displayCandles}
 								bind:this={chartRef}
 								hideLabels={Boolean(userPreferences?.chart_hide_labels)}
+								autoScale={userPreferences?.chart_auto_scale ?? true}
+								logScale={Boolean(userPreferences?.chart_log_scale)}
+								onAutoScaleChange={handleAutoScaleChange}
+								{valuation}
+								showValuation={showValuationOverlay}
+								showValuationBand={showValuationOverlay}
+								onWaveDoubleClick={(degree, waveId) => {
+									modalWaveDegree = degree;
+									modalWaveId = waveId ?? null;
+									isWaveDegreeModalOpen = true;
+								}}
 								{alerts}
 								onAddAlert={handleCreateAlert}
 								onRemoveAlert={handleDeleteAlert}
@@ -1005,7 +1037,9 @@
 							<ChartSettingsModal
 								bind:open={isChartSettingsOpen}
 								chartHideLabels={Boolean(userPreferences?.chart_hide_labels)}
-								onSaveChartHideLabels={handleChartHideLabelsChange}
+								chartAutoScale={userPreferences?.chart_auto_scale ?? true}
+								chartLogScale={Boolean(userPreferences?.chart_log_scale)}
+								onSaveGeneral={handleGeneralSettingsChange}
 								waveSettings={userPreferences?.wave_settings}
 								onSaveWaveSettings={handleWaveSettingsChange}
 								activeTool={drawingsService.activeFibTool}
@@ -1034,6 +1068,18 @@
 									: drawingsService.effectiveFibonacciTools?.extension}
 								onSave={drawingsService.handleFibWidthSave}
 							/>
+							<WaveDegreeModal
+								bind:open={isWaveDegreeModalOpen}
+								currentDegree={modalWaveDegree}
+								waveId={modalWaveId}
+								onSave={(degree, waveId) => {
+									void drawingsService.updateWaveDegree(
+										waveId ?? modalWaveId ?? '',
+										degree,
+										chartRef
+									);
+								}}
+							/>
 						</div>
 						{#if drawingsService.isTimelineVisible}
 							<RewindTimeline
@@ -1047,7 +1093,22 @@
 			</div>
 			<div class="flex h-full min-h-0 w-64 flex-col border-l bg-sidebar text-sidebar-foreground">
 				<Sidebar.Content class="min-h-0 flex-1 overflow-y-auto">
-					<HoldingsGroup securityId={security.id} {security} candles={rawCandles} expanded={true} />
+					<HoldingsGroup
+						securityId={security.id}
+						{security}
+						candles={rawCandles}
+						expanded={true}
+						bind:showAveragePrice={indicatorConfigs.avgPrice.enabled}
+						onToggleAveragePrice={(enabled) => {
+							indicatorConfigs.avgPrice.enabled = enabled;
+						}}
+					/>
+					<FundamentalsGroup
+						securityId={security.id}
+						currency={security.currency}
+						bind:valuation
+						bind:showOverlay={showValuationOverlay}
+					/>
 					<IndicatorsGroup
 						expanded={true}
 						{indicatorConfigs}

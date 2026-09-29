@@ -694,4 +694,46 @@ describe('ChartDrawingsService', () => {
 			expect(service.getEffectiveSecurityDrawings().lines).toEqual([snapLine]);
 		});
 	});
+
+	describe('Wave degree updates', () => {
+		it('updates wave degree, notifies chart instance, and patches preferences', async () => {
+			const initialWave = {
+				id: 'wave-1',
+				degree: 'cycle' as const,
+				type: 'impulse' as const,
+				points: [
+					{ wave: 0 as const, time: '2024-01-01' as unknown as Time, price: 100 },
+					{ wave: 1 as const, time: '2024-01-02' as unknown as Time, price: 120 }
+				]
+			};
+
+			const mockChartInstance = {
+				addIndicator: vi.fn(),
+				removeIndicator: vi.fn(),
+				updateWaveDegree: vi.fn()
+			} as unknown as ChartInstance;
+
+			const service = createService({
+				userPreferences: {
+					elliott_waves: {
+						'sec-1': {
+							waves: [initialWave]
+						}
+					}
+				}
+			});
+
+			await service.updateWaveDegree('wave-1', 'primary', mockChartInstance);
+
+			expect(mockChartInstance.updateWaveDegree).toHaveBeenCalledWith('wave-1', 'primary');
+			expect(mockPatchPreferences).toHaveBeenCalledWith({
+				elliott_waves: {
+					'sec-1': {
+						waves: [{ ...initialWave, degree: 'primary' }]
+					}
+				}
+			});
+			expect(service.activeWaveDegree).toBe('primary');
+		});
+	});
 });

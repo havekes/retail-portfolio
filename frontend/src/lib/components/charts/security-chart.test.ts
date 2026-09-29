@@ -143,7 +143,13 @@ vi.mock('lightweight-charts', () => {
 		},
 		CandlestickSeries: 'CandlestickSeries',
 		LineSeries: 'LineSeries',
-		HistogramSeries: 'HistogramSeries'
+		HistogramSeries: 'HistogramSeries',
+		PriceScaleMode: {
+			Normal: 0,
+			Logarithmic: 1,
+			Percentage: 2,
+			IndexedTo100: 3
+		}
 	};
 });
 
@@ -169,6 +175,7 @@ import { FibonacciPrimitive } from './plugins/fibonacci/fibonacci-primitive';
 import { MeasurePrimitive } from './plugins/measure/measure-primitive';
 import { HorizontalLinePrimitive } from './plugins/horizontal-line/horizontal-line-primitive';
 import { FreeFormLinePrimitive } from './plugins/free-form-line/free-form-line-primitive';
+import { ValuationBandPrimitive } from './plugins/valuation-band/valuation-band';
 import type { SecurityDrawings } from '$lib/utils/finance/drawings';
 import {
 	MAX_PANE_FRACTION,
@@ -334,7 +341,12 @@ describe('SecurityChart - Infinite Scroll & Logical Range', () => {
 
 		const mainChartOptions = calls[0][1];
 		expect(mainChartOptions?.leftPriceScale).toEqual({ visible: false });
-		expect(mainChartOptions?.rightPriceScale).toEqual({ visible: true, minimumWidth: 75 });
+		expect(mainChartOptions?.rightPriceScale).toEqual({
+			visible: true,
+			minimumWidth: 75,
+			autoScale: true,
+			mode: 0
+		});
 	});
 
 	it('initializes chart with crosshair mode Normal', () => {
@@ -1640,11 +1652,13 @@ describe('SecurityChart - Oscillator Panes & Custom Price Scales', () => {
 		});
 	});
 
-	describe('price scale wheel zooming', () => {
-		it('zooms price scale visible range and stops propagation when wheel event occurs over price scale', async () => {
+	describe('price scale wheel zooming and drag interactions', () => {
+		it('zooms price scale visible range and stops propagation when wheel event occurs over price scale and invokes onAutoScaleChange(false)', async () => {
+			const onAutoScaleChange = vi.fn();
 			const { container } = render(SecurityChart, {
 				props: {
-					candles: initialCandles
+					candles: initialCandles,
+					onAutoScaleChange
 				}
 			});
 
@@ -1692,6 +1706,122 @@ describe('SecurityChart - Oscillator Panes & Custom Price Scales', () => {
 					to: expect.any(Number)
 				})
 			);
+			expect(onAutoScaleChange).toHaveBeenCalledWith(false);
+		});
+
+		it('gradually zooms price scale in logarithmic mode using log coordinates and invokes onAutoScaleChange(false)', async () => {
+			const onAutoScaleChange = vi.fn();
+			const { container } = render(SecurityChart, {
+				props: {
+					candles: initialCandles,
+					logScale: true,
+					onAutoScaleChange
+				}
+			});
+
+			const mainContainer = container.querySelector('#main-chart') as HTMLElement;
+			Object.defineProperty(mainContainer, 'clientWidth', { value: 800, configurable: true });
+			Object.defineProperty(mainContainer, 'clientHeight', { value: 600, configurable: true });
+			vi.spyOn(mainContainer, 'getBoundingClientRect').mockReturnValue({
+				left: 0,
+				top: 0,
+				right: 800,
+				bottom: 600,
+				width: 800,
+				height: 600,
+				x: 0,
+				y: 0,
+				toJSON: () => {}
+			});
+
+			const createdCharts = vi.mocked(createChart).mock.results.map((r) => r.value);
+			const mainChart = createdCharts[createdCharts.length - 1];
+			const candlestickSeries = mainChart.addSeries.mock.results[0].value;
+			const priceScale = candlestickSeries.priceScale();
+
+			const wheelEvent = new WheelEvent('wheel', {
+				clientX: 760,
+				clientY: 300,
+				deltaY: 100,
+				bubbles: true,
+				cancelable: true
+			});
+
+			mainContainer.dispatchEvent(wheelEvent);
+			await tick();
+
+			// For range [100, 200], logFrom is ~6.0, logTo is ~6.301
+			// Resulting from and to should be log coordinates close to ~5.996 and ~6.305
+			expect(priceScale.setVisibleRange).toHaveBeenCalledWith(
+				expect.objectContaining({
+					from: expect.closeTo(5.996, 2),
+					to: expect.closeTo(6.305, 2)
+				})
+			);
+			expect(onAutoScaleChange).toHaveBeenCalledWith(false);
+		});
+
+		it('invokes onAutoScaleChange(false) when price scale is dragged vertically', async () => {
+			const onAutoScaleChange = vi.fn();
+			const { container } = render(SecurityChart, {
+				props: {
+					candles: initialCandles,
+					onAutoScaleChange
+				}
+			});
+
+			const mainContainer = container.querySelector('#main-chart') as HTMLElement;
+			Object.defineProperty(mainContainer, 'clientWidth', { value: 800, configurable: true });
+			Object.defineProperty(mainContainer, 'clientHeight', { value: 600, configurable: true });
+			vi.spyOn(mainContainer, 'getBoundingClientRect').mockReturnValue({
+				left: 0,
+				top: 0,
+				right: 800,
+				bottom: 600,
+				width: 800,
+				height: 600,
+				x: 0,
+				y: 0,
+				toJSON: () => {}
+			});
+
+			// Mouse down over price scale (x >= 750)
+			await fireEvent.mouseDown(mainContainer, { clientX: 760, clientY: 200 });
+			// Move vertically (> 2px)
+			await fireEvent.mouseMove(mainContainer, { clientX: 760, clientY: 250 });
+
+			expect(onAutoScaleChange).toHaveBeenCalledWith(false);
+		});
+
+		it('does not invoke onAutoScaleChange when dragged vertically over the main chart canvas', async () => {
+			const onAutoScaleChange = vi.fn();
+			const { container } = render(SecurityChart, {
+				props: {
+					candles: initialCandles,
+					onAutoScaleChange
+				}
+			});
+
+			const mainContainer = container.querySelector('#main-chart') as HTMLElement;
+			Object.defineProperty(mainContainer, 'clientWidth', { value: 800, configurable: true });
+			Object.defineProperty(mainContainer, 'clientHeight', { value: 600, configurable: true });
+			vi.spyOn(mainContainer, 'getBoundingClientRect').mockReturnValue({
+				left: 0,
+				top: 0,
+				right: 800,
+				bottom: 600,
+				width: 800,
+				height: 600,
+				x: 0,
+				y: 0,
+				toJSON: () => {}
+			});
+
+			// Mouse down over canvas (x < 750)
+			await fireEvent.mouseDown(mainContainer, { clientX: 400, clientY: 200 });
+			await fireEvent.mouseMove(mainContainer, { clientX: 400, clientY: 250 });
+
+			expect(onAutoScaleChange).not.toHaveBeenCalled();
 		});
 
 		it('does not intercept wheel events over the main chart canvas', async () => {
@@ -3157,6 +3287,134 @@ describe('SecurityChart - Free-form Line Integration', () => {
 
 		expect(mainChart.applyOptions).toHaveBeenCalledWith({
 			handleScroll: { pressedMouseMove: true }
+		});
+	});
+
+	describe('SecurityChart - Price Scale Toggles (autoScale and logScale)', () => {
+		it('applies autoScale and logScale changes to mainChart priceScale(right)', async () => {
+			const { rerender } = render(SecurityChart, {
+				props: { candles: initialCandles, autoScale: true, logScale: false }
+			});
+			await tick();
+
+			const createdCharts = vi.mocked(createChart).mock.results.map((r) => r.value);
+			const mainChart = createdCharts[createdCharts.length - 1];
+			const rightScale = mainChart.priceScale('right');
+
+			vi.mocked(rightScale.applyOptions).mockClear();
+
+			await rerender({ candles: initialCandles, autoScale: false, logScale: true });
+			await tick();
+
+			expect(rightScale.applyOptions).toHaveBeenCalledWith({
+				autoScale: false,
+				mode: 1 // PriceScaleMode.Logarithmic
+			});
+		});
+	});
+
+	describe('SecurityChart - Elliott Wave Double Click & Degree Update', () => {
+		it('invokes onWaveDoubleClick when elliottWavesPrimitive.doubleClicked() fires', async () => {
+			const onWaveDoubleClick = vi.fn();
+			render(SecurityChart, {
+				props: {
+					candles: initialCandles,
+					onWaveDoubleClick
+				}
+			});
+			await tick();
+
+			const elliottPrimitive = mockAttachPrimitive.mock.calls.find(
+				(c) => c[0] instanceof ElliottWavesPrimitive
+			)?.[0] as ElliottWavesPrimitive;
+			expect(elliottPrimitive).toBeDefined();
+
+			// Fire doubleClicked on primitive
+			/* eslint-disable-next-line @typescript-eslint/no-explicit-any */
+			(elliottPrimitive as any)._doubleClicked.fire({ degree: 'cycle', waveId: 'wave-abc' });
+
+			expect(onWaveDoubleClick).toHaveBeenCalledWith('cycle', 'wave-abc');
+		});
+	});
+
+	describe('SecurityChart - Valuation Band Overlay', () => {
+		it('attaches valuation band primitive and updates range', async () => {
+			const { rerender } = render(SecurityChart, {
+				props: {
+					candles: initialCandles,
+					valuation: { lower_bound: 100, upper_bound: 150 },
+					showValuationBand: true
+				}
+			});
+			await tick();
+
+			const valPrimitive = mockAttachPrimitive.mock.calls.find(
+				(c) => c[0] instanceof ValuationBandPrimitive
+			)?.[0] as ValuationBandPrimitive;
+			expect(valPrimitive).toBeDefined();
+
+			await rerender({
+				candles: initialCandles,
+				valuation: { lower_bound: 120, upper_bound: 180 },
+				showValuationBand: true
+			});
+			await tick();
+
+			expect(valPrimitive).toBeDefined();
+		});
+	});
+
+	describe('SecurityChart - Overlay Indicators Autoscale Exclusion', () => {
+		it('configures overlay indicators (MAs and Bollinger Bands) with autoscaleInfoProvider returning null to only scale to candles', async () => {
+			const { component: comp } = render(SecurityChart, {
+				props: {
+					candles: initialCandles
+				}
+			});
+			const component = comp as unknown as SecurityChartInstance;
+			const createdCharts = vi.mocked(createChart).mock.results.map((r) => r.value);
+			const mainChart = createdCharts[createdCharts.length - 1];
+
+			/* eslint-disable-next-line @typescript-eslint/no-explicit-any */
+			const addSeriesCalls: any[] = vi.mocked(mainChart.addSeries).mock.calls;
+
+			// Candlestick series does not have autoscaleInfoProvider returning null
+			const candleSeriesOptions = addSeriesCalls[0]?.[1];
+			expect(candleSeriesOptions?.autoscaleInfoProvider).toBeUndefined();
+
+			// Regular overlay indicator (e.g. ma50)
+			component.addIndicator({
+				type: 'ma50',
+				label: '50 Day MA',
+				color: '#3b82f6',
+				data: [{ time: '2024-01-10', value: 150 }]
+			});
+			await tick();
+
+			const maCall = addSeriesCalls.find((c) => c[1]?.title === '50 Day MA');
+			expect(maCall).toBeDefined();
+			expect(maCall[1].autoscaleInfoProvider).toBeDefined();
+			expect(maCall[1].autoscaleInfoProvider()).toBeNull();
+
+			// Bollinger Bands overlay indicator (bb: upper, middle, lower)
+			component.addIndicator({
+				type: 'bb',
+				label: 'BB',
+				color: '#8b5cf6',
+				data: [{ time: '2024-01-10', upper: 160, middle: 150, lower: 140 }]
+			});
+			await tick();
+
+			const bbUpperCall = addSeriesCalls.find((c) => c[1]?.title === 'BB Upper');
+			const bbMiddleCall = addSeriesCalls.find((c) => c[1]?.title === 'BB');
+			const bbLowerCall = addSeriesCalls.find((c) => c[1]?.title === 'BB Lower');
+
+			expect(bbUpperCall).toBeDefined();
+			expect(bbUpperCall[1].autoscaleInfoProvider()).toBeNull();
+			expect(bbMiddleCall).toBeDefined();
+			expect(bbMiddleCall[1].autoscaleInfoProvider()).toBeNull();
+			expect(bbLowerCall).toBeDefined();
+			expect(bbLowerCall[1].autoscaleInfoProvider()).toBeNull();
 		});
 	});
 });

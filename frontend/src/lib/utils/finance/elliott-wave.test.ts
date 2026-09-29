@@ -14,6 +14,10 @@ import {
 	getWaveAlertPercent,
 	areWaveSettingsEqual,
 	DEFAULT_WAVE_SETTINGS,
+	SUPPORTED_WAVE_DEGREES,
+	SUPPORTED_WAVE_DEGREE_CONFIGS,
+	SUPPORTED_WAVE_DEGREE_LIST,
+	ALL_WAVE_DEGREES,
 	type DegreeWaveCount,
 	type SecurityElliottWaves,
 	type WaveDegree,
@@ -1032,6 +1036,49 @@ describe('elliott-wave finance utilities', () => {
 			};
 			expect(getWaveAlertPercent(nonFinite, 'cycle', 'wave3')).toBe(null);
 			expect(getWaveAlertPercent(nonFinite, 'cycle', 'wave5')).toBe(null);
+		});
+	});
+
+	describe('SUPPORTED_WAVE_DEGREES and notation metadata', () => {
+		it('exports cycle, primary, and intermediate as supported degrees', () => {
+			expect(SUPPORTED_WAVE_DEGREES).toEqual(['cycle', 'primary', 'intermediate']);
+			expect(SUPPORTED_WAVE_DEGREES).toHaveLength(3);
+			for (const deg of SUPPORTED_WAVE_DEGREES) {
+				expect(ALL_WAVE_DEGREES).toContain(deg);
+			}
+		});
+
+		it('provides correct display labels and notation labels for supported degrees', () => {
+			expect(SUPPORTED_WAVE_DEGREE_CONFIGS.cycle).toEqual({
+				degree: 'cycle',
+				label: 'Cycle',
+				impulseNotation: 'I',
+				correctiveNotation: 'A'
+			});
+			expect(SUPPORTED_WAVE_DEGREE_CONFIGS.primary).toEqual({
+				degree: 'primary',
+				label: 'Primary',
+				impulseNotation: '①',
+				correctiveNotation: 'Ⓐ'
+			});
+			expect(SUPPORTED_WAVE_DEGREE_CONFIGS.intermediate).toEqual({
+				degree: 'intermediate',
+				label: 'Intermediate',
+				impulseNotation: '1',
+				correctiveNotation: '(A)'
+			});
+		});
+
+		it('exports ordered SUPPORTED_WAVE_DEGREE_LIST matching configurations', () => {
+			expect(SUPPORTED_WAVE_DEGREE_LIST).toHaveLength(3);
+			expect(SUPPORTED_WAVE_DEGREE_LIST.map((c) => c.degree)).toEqual([
+				'cycle',
+				'primary',
+				'intermediate'
+			]);
+			expect(SUPPORTED_WAVE_DEGREE_LIST[0]).toBe(SUPPORTED_WAVE_DEGREE_CONFIGS.cycle);
+			expect(SUPPORTED_WAVE_DEGREE_LIST[1]).toBe(SUPPORTED_WAVE_DEGREE_CONFIGS.primary);
+			expect(SUPPORTED_WAVE_DEGREE_LIST[2]).toBe(SUPPORTED_WAVE_DEGREE_CONFIGS.intermediate);
 		});
 	});
 });

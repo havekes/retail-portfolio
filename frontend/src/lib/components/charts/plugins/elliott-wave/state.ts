@@ -454,6 +454,22 @@ export class ElliottWaveState {
 		return true;
 	}
 
+	public updateWaveDegree(waveId: string, newDegree: WaveDegree): boolean {
+		const wave = this._waves.find((w) => w.id === waveId);
+		if (!wave) return false;
+		if (wave.degree === newDegree) return true;
+
+		wave.degree = newDegree;
+		if (this._selectedWaveId === waveId) {
+			this.setSelectedDegree(newDegree);
+		}
+		this._wavePointsChanged.fire({
+			degree: newDegree,
+			waveCount: wave
+		});
+		return true;
+	}
+
 	public setHoveredPoint(point: PointTarget | null): void {
 		const changed =
 			this._hoveredPoint?.degree !== point?.degree ||

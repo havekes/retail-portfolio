@@ -2790,6 +2790,45 @@ describe('Elliott Wave Plugin', () => {
 				expect(loadedPrimitive.getWaveCount('cycle')?.wave3Target).toBe(180);
 				expect(loadedPrimitive.getWaveCount('primary')?.type).toBe('corrective');
 			});
+
+			it('fires doubleClicked when double-clicking on an Elliott wave', () => {
+				const onDoubleClicked = vi.fn();
+				primitive.doubleClicked().subscribe(onDoubleClicked);
+				// eslint-disable-next-line @typescript-eslint/no-explicit-any
+				(primitive as any)._mouseHandlers.doubleClicked().fire({
+					degree: 'cycle',
+					waveId: 'wave-double-click-1',
+					wave: 1
+				});
+				expect(onDoubleClicked).toHaveBeenCalledWith({
+					degree: 'cycle',
+					waveId: 'wave-double-click-1'
+				});
+			});
+
+			it('updates wave degree and requests render update via updateWaveDegree', () => {
+				const requestUpdateMock = vi.fn();
+				// eslint-disable-next-line @typescript-eslint/no-explicit-any
+				(primitive as any)._requestUpdate = requestUpdateMock;
+				primitive.setWaves([
+					{
+						id: 'wave-to-update',
+						degree: 'cycle',
+						type: 'impulse',
+						points: [
+							{ wave: 0, time: '2024-01-01' as Time, price: 100 },
+							{ wave: 1, time: '2024-01-02' as Time, price: 120 }
+						]
+					}
+				]);
+
+				const success = primitive.updateWaveDegree('wave-to-update', 'primary');
+				expect(success).toBe(true);
+
+				const wave = primitive.getAllWaves().find((w) => w.id === 'wave-to-update');
+				expect(wave?.degree).toBe('primary');
+				expect(requestUpdateMock).toHaveBeenCalled();
+			});
 		});
 	});
 

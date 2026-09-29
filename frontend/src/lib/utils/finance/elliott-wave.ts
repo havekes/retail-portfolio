@@ -1,7 +1,67 @@
 import type { Time } from 'lightweight-charts';
 import { normalizeDrawingTime } from './drawing-time';
 
-export type WaveDegree = 'cycle' | 'primary' | 'intermediate';
+export const ALL_WAVE_DEGREES = [
+	'grand_supercycle',
+	'supercycle',
+	'cycle',
+	'primary',
+	'intermediate',
+	'minor',
+	'minute',
+	'minuette',
+	'subminuette'
+] as const;
+
+export type WaveDegree = (typeof ALL_WAVE_DEGREES)[number];
+
+export const WAVE_DEGREE_LABELS: Record<WaveDegree, string> = {
+	grand_supercycle: 'Grand Supercycle',
+	supercycle: 'Supercycle',
+	cycle: 'Cycle',
+	primary: 'Primary',
+	intermediate: 'Intermediate',
+	minor: 'Minor',
+	minute: 'Minute',
+	minuette: 'Minuette',
+	subminuette: 'Subminuette'
+};
+
+export const SUPPORTED_WAVE_DEGREES = ['cycle', 'primary', 'intermediate'] as const;
+
+export type SupportedWaveDegree = (typeof SUPPORTED_WAVE_DEGREES)[number];
+
+export interface SupportedWaveDegreeInfo {
+	degree: SupportedWaveDegree;
+	label: string;
+	impulseNotation: string;
+	correctiveNotation: string;
+}
+
+export const SUPPORTED_WAVE_DEGREE_CONFIGS: Record<SupportedWaveDegree, SupportedWaveDegreeInfo> = {
+	cycle: {
+		degree: 'cycle',
+		label: 'Cycle',
+		impulseNotation: 'I',
+		correctiveNotation: 'A'
+	},
+	primary: {
+		degree: 'primary',
+		label: 'Primary',
+		impulseNotation: '①',
+		correctiveNotation: 'Ⓐ'
+	},
+	intermediate: {
+		degree: 'intermediate',
+		label: 'Intermediate',
+		impulseNotation: '1',
+		correctiveNotation: '(A)'
+	}
+};
+
+export const SUPPORTED_WAVE_DEGREE_LIST: SupportedWaveDegreeInfo[] = SUPPORTED_WAVE_DEGREES.map(
+	(degree) => SUPPORTED_WAVE_DEGREE_CONFIGS[degree]
+);
 
 export type WaveType = 'impulse' | 'corrective';
 
@@ -38,9 +98,16 @@ export interface SecurityElliottWaves {
  * `null` disables that degree's wave-target alerts. Keys are snake_case for JSON parity.
  */
 export interface WaveAlertPercents {
-	cycle: { wave3: number | null; wave5: number | null };
-	primary: { wave3: number | null; wave5: number | null };
+	grand_supercycle?: { wave3: number | null; wave5: number | null };
+	supercycle?: { wave3: number | null; wave5: number | null };
+	cycle?: { wave3: number | null; wave5: number | null };
+	primary?: { wave3: number | null; wave5: number | null };
 	intermediate?: { wave3: number | null; wave5: number | null };
+	minor?: { wave3: number | null; wave5: number | null };
+	minute?: { wave3: number | null; wave5: number | null };
+	minuette?: { wave3: number | null; wave5: number | null };
+	subminuette?: { wave3: number | null; wave5: number | null };
+	[key: string]: { wave3: number | null; wave5: number | null } | undefined;
 }
 
 export interface WaveSettings {

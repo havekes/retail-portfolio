@@ -101,6 +101,17 @@ vi.mock('@/api/accountService', () => ({
 	}
 }));
 
+vi.mock('$lib/api/valuationClient', () => ({
+	valuationClient: {
+		getValuation: vi.fn().mockResolvedValue(null),
+		setValuation: vi.fn()
+	},
+	getValuationClient: () => ({
+		getValuation: vi.fn().mockResolvedValue(null),
+		setValuation: vi.fn()
+	})
+}));
+
 const mockWatchlistService = {
 	hasSecurity: vi.fn().mockReturnValue(false),
 	toggleSecurity: vi.fn(),
@@ -1998,7 +2009,9 @@ describe('Security Page - Chart Settings Modal & Wave Settings Integration', () 
 		await fireEvent.click(saveBtn);
 
 		expect(userPreferencesService.patchPreferences).toHaveBeenCalledWith({
-			chart_hide_labels: true
+			chart_hide_labels: true,
+			chart_auto_scale: true,
+			chart_log_scale: false
 		});
 
 		await waitFor(() => {
@@ -2119,6 +2132,78 @@ describe('Security Page - Chart Settings Modal & Wave Settings Integration', () 
 		await fireEvent.keyDown(inputEl, { key: ',', ctrlKey: true });
 		expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
 		document.body.removeChild(inputEl);
+	});
+
+	it('reflects initial chart_auto_scale and chart_log_scale and batches updates via onSaveGeneral', async () => {
+		vi.mocked(userPreferencesService.getPreferences).mockResolvedValue({
+			chart_auto_scale: false,
+			chart_log_scale: true,
+			chart_hide_labels: false
+		});
+
+		render(PageComponent, { props: { data: mockData } });
+
+		await waitFor(() => {
+			expect(mockChartProps).not.toBeNull();
+		});
+
+		// @ts-expect-error - mockChartProps typed as Record
+		expect(mockChartProps.autoScale).toBe(false);
+		// @ts-expect-error - mockChartProps typed as Record
+		expect(mockChartProps.logScale).toBe(true);
+
+		const settingsBtn = await screen.findByRole('button', { name: /Open chart settings/i });
+		await fireEvent.click(settingsBtn);
+
+		const autoScaleCheckbox = screen.getByTestId('auto-scale-checkbox');
+		const logScaleCheckbox = screen.getByTestId('log-scale-checkbox');
+
+		await fireEvent.click(autoScaleCheckbox); // false -> true
+		await fireEvent.click(logScaleCheckbox); // true -> false
+
+		const saveBtn = screen.getByTestId('save-general-btn');
+		await fireEvent.click(saveBtn);
+
+		expect(userPreferencesService.patchPreferences).toHaveBeenCalledWith({
+			chart_hide_labels: false,
+			chart_auto_scale: true,
+			chart_log_scale: false
+		});
+
+		await waitFor(() => {
+			// @ts-expect-error - mockChartProps typed as Record
+			expect(mockChartProps.autoScale).toBe(true);
+			// @ts-expect-error - mockChartProps typed as Record
+			expect(mockChartProps.logScale).toBe(false);
+		});
+	});
+
+	it('updates and persists chart_auto_scale: false when onAutoScaleChange(false) fires from SecurityChart', async () => {
+		vi.mocked(userPreferencesService.getPreferences).mockResolvedValue({
+			chart_auto_scale: true
+		});
+
+		render(PageComponent, { props: { data: mockData } });
+
+		await waitFor(() => {
+			expect(mockChartProps).not.toBeNull();
+		});
+
+		// @ts-expect-error - mockChartProps typed as Record
+		expect(mockChartProps.autoScale).toBe(true);
+
+		// Invoke onAutoScaleChange callback on SecurityChart
+		// @ts-expect-error - mockChartProps typed as Record
+		mockChartProps.onAutoScaleChange?.(false);
+
+		expect(userPreferencesService.patchPreferences).toHaveBeenCalledWith({
+			chart_auto_scale: false
+		});
+
+		await waitFor(() => {
+			// @ts-expect-error - mockChartProps typed as Record
+			expect(mockChartProps.autoScale).toBe(false);
+		});
 	});
 });
 

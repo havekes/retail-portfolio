@@ -136,10 +136,156 @@ export const INTERMEDIATE_STYLE: DegreeVisualConfig = {
 	}
 };
 
+export const GRAND_SUPERCYCLE_STYLE: DegreeVisualConfig = {
+	degree: 'grand_supercycle',
+	name: 'Grand Supercycle',
+	color: '#ec4899',
+	badgeBgColor: '#be185d',
+	badgeTextColor: '#ffffff',
+	badgeBorderColor: '#f472b6',
+	hoverRingColor: 'rgba(236, 72, 153, 0.4)',
+	selectedRingColor: 'rgba(236, 72, 153, 0.7)',
+	lineWidth: 1.5,
+	nodeRadius: 7,
+	formatLabel: (wave: WavePointId, type?: WaveType) => {
+		if (wave === 0) return '';
+		if (wave === 'A' || wave === 'B' || wave === 'C') return `[${wave}]`;
+		if (type === 'corrective' && typeof wave === 'number') {
+			const letter = NUMERIC_TO_CORRECTIVE_LETTER[wave];
+			return letter ? `[${letter}]` : '';
+		}
+		return typeof wave === 'number' ? `[${CYCLE_ROMAN_NUMERALS[wave] ?? wave}]` : '';
+	}
+};
+
+export const SUPERCYCLE_STYLE: DegreeVisualConfig = {
+	degree: 'supercycle',
+	name: 'Supercycle',
+	color: '#8b5cf6',
+	badgeBgColor: '#6d28d9',
+	badgeTextColor: '#ffffff',
+	badgeBorderColor: '#c4b5fd',
+	hoverRingColor: 'rgba(139, 92, 246, 0.4)',
+	selectedRingColor: 'rgba(139, 92, 246, 0.7)',
+	lineWidth: 1,
+	nodeRadius: 6,
+	formatLabel: (wave: WavePointId, type?: WaveType) => {
+		if (wave === 0) return '';
+		if (wave === 'A' || wave === 'B' || wave === 'C') return `(${wave})`;
+		if (type === 'corrective' && typeof wave === 'number') {
+			const letter = NUMERIC_TO_CORRECTIVE_LETTER[wave];
+			return letter ? `(${letter})` : '';
+		}
+		return typeof wave === 'number' ? `(${CYCLE_ROMAN_NUMERALS[wave] ?? wave})` : '';
+	}
+};
+
+export const MINOR_STYLE: DegreeVisualConfig = {
+	degree: 'minor',
+	name: 'Minor',
+	color: '#ef4444',
+	badgeBgColor: '#b91c1c',
+	badgeTextColor: '#ffffff',
+	badgeBorderColor: '#fca5a5',
+	hoverRingColor: 'rgba(239, 68, 68, 0.4)',
+	selectedRingColor: 'rgba(239, 68, 68, 0.7)',
+	lineWidth: 1,
+	nodeRadius: 5,
+	formatLabel: (wave: WavePointId, type?: WaveType) => {
+		if (wave === 0) return '';
+		if (wave === 'A' || wave === 'B' || wave === 'C') return wave;
+		if (type === 'corrective' && typeof wave === 'number') {
+			const letter = NUMERIC_TO_CORRECTIVE_LETTER[wave];
+			return letter ?? '';
+		}
+		return typeof wave === 'number' ? String(wave) : '';
+	}
+};
+
+export const MINUTE_STYLE: DegreeVisualConfig = {
+	degree: 'minute',
+	name: 'Minute',
+	color: '#06b6d4',
+	badgeBgColor: '#0e7490',
+	badgeTextColor: '#ffffff',
+	badgeBorderColor: '#67e8f9',
+	hoverRingColor: 'rgba(6, 182, 212, 0.4)',
+	selectedRingColor: 'rgba(6, 182, 212, 0.7)',
+	lineWidth: 1,
+	nodeRadius: 5,
+	formatLabel: (wave: WavePointId, type?: WaveType) => {
+		if (wave === 0) return '';
+		const lowerRoman: Record<number, string> = { 1: 'i', 2: 'ii', 3: 'iii', 4: 'iv', 5: 'v' };
+		if (wave === 'A' || wave === 'B' || wave === 'C') return wave.toLowerCase();
+		if (type === 'corrective' && typeof wave === 'number') {
+			const letter = NUMERIC_TO_CORRECTIVE_LETTER[wave];
+			return letter ? letter.toLowerCase() : '';
+		}
+		return typeof wave === 'number' ? (lowerRoman[wave] ?? String(wave)) : '';
+	}
+};
+
+export const MINUETTE_STYLE: DegreeVisualConfig = {
+	degree: 'minuette',
+	name: 'Minuette',
+	color: '#84cc16',
+	badgeBgColor: '#4d7c0f',
+	badgeTextColor: '#ffffff',
+	badgeBorderColor: '#bef264',
+	hoverRingColor: 'rgba(132, 204, 22, 0.4)',
+	selectedRingColor: 'rgba(132, 204, 22, 0.7)',
+	lineWidth: 1,
+	nodeRadius: 4,
+	formatLabel: (wave: WavePointId, type?: WaveType) => {
+		if (wave === 0) return '';
+		const lowerRoman: Record<number, string> = {
+			1: '(i)',
+			2: '(ii)',
+			3: '(iii)',
+			4: '(iv)',
+			5: '(v)'
+		};
+		if (wave === 'A' || wave === 'B' || wave === 'C') return `(${wave.toLowerCase()})`;
+		if (type === 'corrective' && typeof wave === 'number') {
+			const letter = NUMERIC_TO_CORRECTIVE_LETTER[wave];
+			return letter ? `(${letter.toLowerCase()})` : '';
+		}
+		return typeof wave === 'number' ? (lowerRoman[wave] ?? `(${wave})`) : '';
+	}
+};
+
+export const SUBMINUETTE_STYLE: DegreeVisualConfig = {
+	degree: 'subminuette',
+	name: 'Subminuette',
+	color: '#f97316',
+	badgeBgColor: '#c2410c',
+	badgeTextColor: '#ffffff',
+	badgeBorderColor: '#fdba74',
+	hoverRingColor: 'rgba(249, 115, 22, 0.4)',
+	selectedRingColor: 'rgba(249, 115, 22, 0.7)',
+	lineWidth: 1,
+	nodeRadius: 4,
+	formatLabel: (wave: WavePointId, type?: WaveType) => {
+		if (wave === 0) return '';
+		if (wave === 'A' || wave === 'B' || wave === 'C') return wave.toLowerCase();
+		if (type === 'corrective' && typeof wave === 'number') {
+			const letter = NUMERIC_TO_CORRECTIVE_LETTER[wave];
+			return letter ? letter.toLowerCase() : '';
+		}
+		return typeof wave === 'number' ? String(wave) : '';
+	}
+};
+
 export const DEGREE_STYLES: Record<WaveDegree, DegreeVisualConfig> = {
+	grand_supercycle: GRAND_SUPERCYCLE_STYLE,
+	supercycle: SUPERCYCLE_STYLE,
 	cycle: CYCLE_STYLE,
 	primary: PRIMARY_STYLE,
-	intermediate: INTERMEDIATE_STYLE
+	intermediate: INTERMEDIATE_STYLE,
+	minor: MINOR_STYLE,
+	minute: MINUTE_STYLE,
+	minuette: MINUETTE_STYLE,
+	subminuette: SUBMINUETTE_STYLE
 };
 
 export const HIT_TEST_RADIUS = 14;

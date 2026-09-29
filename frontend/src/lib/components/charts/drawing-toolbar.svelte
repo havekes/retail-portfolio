@@ -1,5 +1,9 @@
 <script lang="ts">
-	import type { WaveDegree, WaveType } from '$lib/utils/finance/elliott-wave';
+	import {
+		SUPPORTED_WAVE_DEGREE_LIST,
+		type WaveDegree,
+		type WaveType
+	} from '$lib/utils/finance/elliott-wave';
 	import type { FibToolType } from '$lib/utils/finance/fibonacci';
 	import {
 		type ChartDrawingsService,
@@ -210,39 +214,19 @@
 			<DropdownMenu.Content side="right" align="start" class="z-50 min-w-44">
 				<DropdownMenu.Label>Degree</DropdownMenu.Label>
 				<DropdownMenu.Separator />
-				<DropdownMenu.Item
-					onSelect={() => handleSelectWave('cycle', 'impulse')}
-					onclick={() => handleSelectWave('cycle', 'impulse')}
-					class="flex items-center justify-between {activeWaveDegree === 'cycle' &&
-					activeWaveType === 'impulse'
-						? 'font-medium'
-						: ''}"
-				>
-					<span class="flex-1">Cycle</span>
-					<span class="text-muted-foreground">I</span>
-				</DropdownMenu.Item>
-				<DropdownMenu.Item
-					onSelect={() => handleSelectWave('primary', 'impulse')}
-					onclick={() => handleSelectWave('primary', 'impulse')}
-					class="flex items-center justify-between {activeWaveDegree === 'primary' &&
-					activeWaveType === 'impulse'
-						? 'font-medium'
-						: ''}"
-				>
-					<span class="flex-1">Primary</span>
-					<span class="text-muted-foreground">①</span>
-				</DropdownMenu.Item>
-				<DropdownMenu.Item
-					onSelect={() => handleSelectWave('intermediate', 'impulse')}
-					onclick={() => handleSelectWave('intermediate', 'impulse')}
-					class="flex items-center justify-between {activeWaveDegree === 'intermediate' &&
-					activeWaveType === 'impulse'
-						? 'font-medium'
-						: ''}"
-				>
-					<span class="flex-1">Intermediate</span>
-					<span class="text-muted-foreground">1</span>
-				</DropdownMenu.Item>
+				{#each SUPPORTED_WAVE_DEGREE_LIST as info (info.degree)}
+					<DropdownMenu.Item
+						onSelect={() => handleSelectWave(info.degree, 'impulse')}
+						onclick={() => handleSelectWave(info.degree, 'impulse')}
+						class="flex items-center justify-between {activeWaveDegree === info.degree &&
+						activeWaveType === 'impulse'
+							? 'font-medium'
+							: ''}"
+					>
+						<span class="flex-1">{info.label}</span>
+						<span class="text-muted-foreground">{info.impulseNotation}</span>
+					</DropdownMenu.Item>
+				{/each}
 			</DropdownMenu.Content>
 		</DropdownMenu.Root>
 
@@ -277,39 +261,19 @@
 			<DropdownMenu.Content side="right" align="start" class="z-50 min-w-44">
 				<DropdownMenu.Label>Degree</DropdownMenu.Label>
 				<DropdownMenu.Separator />
-				<DropdownMenu.Item
-					onSelect={() => handleSelectWave('cycle', 'corrective')}
-					onclick={() => handleSelectWave('cycle', 'corrective')}
-					class="flex items-center justify-between {activeWaveDegree === 'cycle' &&
-					activeWaveType === 'corrective'
-						? 'font-medium'
-						: ''}"
-				>
-					<span class="flex-1">Cycle</span>
-					<span class="text-muted-foreground">A</span>
-				</DropdownMenu.Item>
-				<DropdownMenu.Item
-					onSelect={() => handleSelectWave('primary', 'corrective')}
-					onclick={() => handleSelectWave('primary', 'corrective')}
-					class="flex items-center justify-between {activeWaveDegree === 'primary' &&
-					activeWaveType === 'corrective'
-						? 'font-medium'
-						: ''}"
-				>
-					<span class="flex-1">Primary</span>
-					<span class="text-muted-foreground">Ⓐ</span>
-				</DropdownMenu.Item>
-				<DropdownMenu.Item
-					onSelect={() => handleSelectWave('intermediate', 'corrective')}
-					onclick={() => handleSelectWave('intermediate', 'corrective')}
-					class="flex items-center justify-between {activeWaveDegree === 'intermediate' &&
-					activeWaveType === 'corrective'
-						? 'font-medium'
-						: ''}"
-				>
-					<span class="flex-1">Intermediate</span>
-					<span class="text-muted-foreground">(A)</span>
-				</DropdownMenu.Item>
+				{#each SUPPORTED_WAVE_DEGREE_LIST as info (info.degree)}
+					<DropdownMenu.Item
+						onSelect={() => handleSelectWave(info.degree, 'corrective')}
+						onclick={() => handleSelectWave(info.degree, 'corrective')}
+						class="flex items-center justify-between {activeWaveDegree === info.degree &&
+						activeWaveType === 'corrective'
+							? 'font-medium'
+							: ''}"
+					>
+						<span class="flex-1">{info.label}</span>
+						<span class="text-muted-foreground">{info.correctiveNotation}</span>
+					</DropdownMenu.Item>
+				{/each}
 			</DropdownMenu.Content>
 		</DropdownMenu.Root>
 

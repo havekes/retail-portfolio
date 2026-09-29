@@ -1,5 +1,5 @@
 import type { Time } from 'lightweight-charts';
-import type { ISubscription } from '../helpers/delegate';
+import { Delegate, type ISubscription } from '../helpers/delegate';
 import type {
 	DegreeWaveCount,
 	WaveDegree,
@@ -32,6 +32,7 @@ export class ElliottWavesPrimitive extends DrawingPrimitiveBase<
 > {
 	private _snapToWicks: boolean = false;
 	private _fibLevelPrices: number[] = [];
+	private _doubleClicked: Delegate<{ degree: WaveDegree; waveId?: string | null }> = new Delegate();
 
 	constructor(initialState?: {
 		activeDegree?: WaveDegree;
@@ -101,6 +102,10 @@ export class ElliottWavesPrimitive extends DrawingPrimitiveBase<
 			this._requestUpdate?.();
 		});
 
+		this._subscribe(this._mouseHandlers.doubleClicked(), (hit) => {
+			this._doubleClicked.fire({ degree: hit.degree, waveId: hit.waveId ?? null });
+		});
+
 		this._subscribe(this._mouseHandlers.emptyAreaClicked(), () => {
 			this._state.setSelectedWaveId(null);
 			this._state.setSelectedDegree(null);
@@ -116,6 +121,23 @@ export class ElliottWavesPrimitive extends DrawingPrimitiveBase<
 			);
 			this._requestUpdate?.();
 		});
+	}
+
+	public doubleClicked(): ISubscription<{ degree: WaveDegree; waveId?: string | null }> {
+		return this._doubleClicked;
+	}
+
+	public updateWaveDegree(waveId: string, newDegree: WaveDegree): boolean {
+		const updated = this._state.updateWaveDegree(waveId, newDegree);
+		if (updated) {
+			this._requestUpdate?.();
+		}
+		return updated;
+	}
+
+	override destroy(): void {
+		super.destroy();
+		this._doubleClicked.destroy();
 	}
 
 	// State and Public API Accessors

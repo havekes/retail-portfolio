@@ -253,4 +253,33 @@ describe('UserPreferencesService', () => {
 
 		expect(res.wave_settings).toEqual(waveSettings);
 	});
+
+	it('patchPreferences correctly sends and serializes chart_auto_scale and chart_log_scale', async () => {
+		const patchPayload: Partial<UserPreferences> = {
+			chart_auto_scale: false,
+			chart_log_scale: true
+		};
+		const mockResponse: UserPreferences = {
+			chart_auto_scale: false,
+			chart_log_scale: true
+		};
+
+		vi.mocked(global.fetch).mockResolvedValue({
+			ok: true,
+			json: async () => mockResponse
+		} as Response);
+
+		const service = new UserPreferencesService();
+		const res = await service.patchPreferences(patchPayload);
+
+		expect(global.fetch).toHaveBeenCalledWith(
+			expect.stringContaining('/accounts/me/preferences'),
+			expect.objectContaining({
+				method: 'PATCH',
+				body: JSON.stringify({ chart_auto_scale: false, chart_log_scale: true })
+			})
+		);
+		expect(res.chart_auto_scale).toBe(false);
+		expect(res.chart_log_scale).toBe(true);
+	});
 });
