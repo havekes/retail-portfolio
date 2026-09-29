@@ -17,11 +17,16 @@ from src.observability.redaction import (
     redact_string,
     redact_value,
 )
+from src.observability.tasks import (
+    capture_task_context,
+    restore_task_context,
+)
 
 __all__ = [
     "REDACTED_MASK",
     "RedactingSpanProcessor",
     "bootstrap_observability",
+    "capture_task_context",
     "create_resource",
     "get_tracer",
     "is_sensitive_key",
@@ -33,5 +38,6 @@ __all__ = [
     "redact_string",
     "redact_value",
     "reset_observability",
+    "restore_task_context",
     "shutdown_observability",
 ]
