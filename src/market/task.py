@@ -15,18 +15,28 @@ from src.market.repository import (
     SecurityNoteRepository,
 )
 from src.market.service import MarketService
+from src.observability import capture_task_context, restore_task_context
 from src.worker import huey
 
 logger = logging.getLogger(__name__)
 
 
 @huey.task()
-def generate_note_title_task(note_id: int, request_id: str | None = None) -> None:
+def generate_note_title_task(
+    note_id: int,
+    request_id: str | None = None,
+    traceparent: str | None = None,
+) -> None:
     """Huey task to generate note title using AI."""
     if request_id is None:
         request_id = get_request_id()
 
-    asyncio.run(_generate_note_title(note_id, request_id=request_id))
+    with restore_task_context(
+        "generate_note_title_task",
+        request_id=request_id,
+        traceparent=traceparent,
+    ):
+        asyncio.run(_generate_note_title(note_id, request_id=request_id))
 
 
 async def _generate_note_title(note_id: int, request_id: str | None = None) -> None:
@@ -61,8 +71,10 @@ def daily_price_update() -> None:
 
     Runs in the huey-worker process via thread workers.
     Uses asyncio.run() to execute the async business logic.
+    Periodic tasks have no enqueuer, so they root their own trace.
     """
-    asyncio.run(_daily_price_update())
+    with restore_task_context("daily_price_update"):
+        asyncio.run(_daily_price_update())
 
 
 async def _daily_price_update() -> None:
@@ -92,8 +104,10 @@ def hourly_intraday_price_update() -> None:
 
     Runs in the huey-worker process via thread workers.
     Uses asyncio.run() to execute the async business logic.
+    Periodic tasks have no enqueuer, so they root their own trace.
     """
-    asyncio.run(_hourly_intraday_price_update())
+    with restore_task_context("hourly_intraday_price_update"):
+        asyncio.run(_hourly_intraday_price_update())
 
 
 async def _hourly_intraday_price_update() -> None:
@@ -122,7 +136,7 @@ async def _hourly_intraday_price_update() -> None:
         # Enqueue account totals recalculation (isolated — failure doesn't abort)
         if huey.svcs_registry is not None:
             try:
-                recalculate_all_account_totals_task()
+                recalculate_all_account_totals_task(**capture_task_context())
             except Exception:
                 logger.exception(
                     "Failed to enqueue recalculate_all_account_totals_task"
@@ -131,19 +145,27 @@ async def _hourly_intraday_price_update() -> None:
         # Enqueue Stage 2: price alert evaluation (isolated — failure doesn't abort)
         if huey.svcs_registry is not None:
             try:
-                check_and_dispatch_price_alerts()
+                check_and_dispatch_price_alerts(**capture_task_context())
             except Exception:
                 logger.exception("Failed to enqueue check_and_dispatch_price_alerts")
 
 
 @huey.task()
-def check_and_dispatch_price_alerts() -> None:
+def check_and_dispatch_price_alerts(
+    request_id: str | None = None,
+    traceparent: str | None = None,
+) -> None:
     """Stage 2: Evaluate all active price alerts and dispatch emails for triggered ones.
 
     Called at the end of the hourly intraday price update (Stage 1).
     Delegates evaluation to AlertEvaluationService.
     """
-    asyncio.run(_check_and_dispatch_price_alerts())
+    with restore_task_context(
+        "check_and_dispatch_price_alerts",
+        request_id=request_id,
+        traceparent=traceparent,
+    ):
+        asyncio.run(_check_and_dispatch_price_alerts())
 
 
 async def _check_and_dispatch_price_alerts() -> None:
@@ -182,7 +204,9 @@ async def _check_and_dispatch_price_alerts() -> None:
         for alert in triggered_alerts:
             try:
                 # Enqueue Stage 3 email dispatch
-                alert_email_dispatch_task(alert.alert_id, run_ts)
+                alert_email_dispatch_task(
+                    alert.alert_id, run_ts, **capture_task_context()
+                )
                 enqueued_count += 1
             except Exception:
                 logger.exception(
@@ -200,13 +224,23 @@ async def _check_and_dispatch_price_alerts() -> None:
 
 
 @huey.task(retries=3)
-def alert_email_dispatch_task(alert_id: int, run_ts: datetime) -> None:
+def alert_email_dispatch_task(
+    alert_id: int,
+    run_ts: datetime,
+    request_id: str | None = None,
+    traceparent: str | None = None,
+) -> None:
     """Stage 3: Send email for a triggered price alert, then mark as triggered.
 
     Delegates to AlertEvaluationService.dispatch_alert_email.
     retries=3: transient SMTP/DB failures are retried before giving up.
     """
-    asyncio.run(_alert_email_dispatch(alert_id, run_ts))
+    with restore_task_context(
+        "alert_email_dispatch_task",
+        request_id=request_id,
+        traceparent=traceparent,
+    ):
+        asyncio.run(_alert_email_dispatch(alert_id, run_ts))
 
 
 async def _alert_email_dispatch(alert_id: int, run_ts: datetime) -> None:

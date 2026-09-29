@@ -29,6 +29,7 @@ from src.integration.exception import (
 from src.integration.repository import IntegrationUserRepository
 from src.integration.sync_status import mark_sync_finished, mark_sync_started
 from src.market.api import SecurityApi
+from src.observability import restore_task_context
 from src.worker import huey
 from src.ws.api_types import AccountSyncMessage, WsEventType
 from src.ws.manager import ws_manager
@@ -37,12 +38,13 @@ logger = logging.getLogger(__name__)
 
 
 @huey.task()
-def sync_account_positions_task(
+def sync_account_positions_task(  # noqa: PLR0913, PLR0917
     user_id: UserId,
     account: Account,
     broker_account_id: BrokerAccountId,
     broker_class: type[BrokerApiGateway],
     request_id: str | None = None,
+    traceparent: str | None = None,
 ) -> None:
     """
     Huey task to sync positions for newly imported accounts
@@ -52,11 +54,20 @@ def sync_account_positions_task(
     if request_id is None:
         request_id = get_request_id()
 
-    asyncio.run(
-        _sync_account_positions_task(
-            user_id, account, broker_account_id, broker_class, request_id=request_id
+    with restore_task_context(
+        "sync_account_positions_task",
+        request_id=request_id,
+        traceparent=traceparent,
+    ):
+        asyncio.run(
+            _sync_account_positions_task(
+                user_id,
+                account,
+                broker_account_id,
+                broker_class,
+                request_id=request_id,
+            )
         )
-    )
 
 
 async def _do_sync_positions(
