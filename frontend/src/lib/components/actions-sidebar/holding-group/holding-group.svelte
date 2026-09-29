@@ -159,14 +159,20 @@
 			{:else}
 				<div class="space-y-1 py-2 text-sm">
 					<div class="mb-2 flex items-center justify-between rounded-md bg-muted/40 px-2 py-1.5">
-						<div class="flex items-center gap-2">
-							<div class="flex flex-col">
-								<span class="text-xs text-muted-foreground">Average</span>
+						<div class="flex flex-col">
+							<span class="text-xs text-muted-foreground">Average</span>
+							<span class="font-semibold text-foreground">
+								{new Intl.NumberFormat('en-US', {
+									style: 'currency',
+									currency: holdings[0]?.currency ?? security?.currency ?? 'USD'
+								}).format(blendedAverageCost(holdings))}
+							</span>
+						</div>
+						<div class="flex items-center gap-2.5">
+							<div class="flex flex-col text-right">
+								<span class="text-xs text-muted-foreground">% of Portfolio</span>
 								<span class="font-semibold text-foreground">
-									{new Intl.NumberFormat('en-US', {
-										style: 'currency',
-										currency: holdings[0]?.currency ?? security?.currency ?? 'USD'
-									}).format(blendedAverageCost(holdings))}
+									{portfolioPercentage !== null ? `${portfolioPercentage.toFixed(2)}%` : '0.00%'}
 								</span>
 							</div>
 							<Checkbox
@@ -176,12 +182,6 @@
 								aria-label="Show average price on chart"
 								title="Show average price on chart"
 							/>
-						</div>
-						<div class="flex flex-col text-right">
-							<span class="text-xs text-muted-foreground">% of Portfolio</span>
-							<span class="font-semibold text-foreground">
-								{portfolioPercentage !== null ? `${portfolioPercentage.toFixed(2)}%` : '0.00%'}
-							</span>
 						</div>
 					</div>
 
