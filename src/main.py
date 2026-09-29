@@ -33,6 +33,7 @@ from src.market.router import market_router
 from src.observability import (
     bootstrap_observability,
     get_tracer,
+    instrument_auto,
     shutdown_observability,
 )
 from src.worker_dashboard import (
@@ -171,6 +172,11 @@ app.add_middleware(
     allow_methods=[origin.strip() for origin in settings.cors_allow_methods.split(",")],
     allow_headers=[origin.strip() for origin in settings.cors_allow_headers.split(",")],
 )
+
+# Instrument after the middleware declarations: the server span has to wrap
+# every middleware (including RequestIdMiddleware, the only access logger) so
+# that DB/Redis/httpx spans raised while handling a request become its children.
+instrument_auto(app)
 
 init_logging()
 logger.info("Starting application")

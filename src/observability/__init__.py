@@ -7,6 +7,14 @@ from src.observability.bootstrap import (
     reset_observability,
     shutdown_observability,
 )
+from src.observability.instrumentation import (
+    instrument_auto,
+    instrument_fastapi,
+    instrument_httpx,
+    instrument_redis,
+    instrument_sqlalchemy,
+    uninstrument_auto,
+)
 from src.observability.redaction import (
     REDACTED_MASK,
     RedactingSpanProcessor,
@@ -24,6 +32,11 @@ __all__ = [
     "bootstrap_observability",
     "create_resource",
     "get_tracer",
+    "instrument_auto",
+    "instrument_fastapi",
+    "instrument_httpx",
+    "instrument_redis",
+    "instrument_sqlalchemy",
     "is_sensitive_key",
     "is_telemetry_enabled",
     "parse_otlp_headers",
@@ -34,4 +47,5 @@ __all__ = [
     "redact_value",
     "reset_observability",
     "shutdown_observability",
+    "uninstrument_auto",
 ]
