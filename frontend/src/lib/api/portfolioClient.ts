@@ -31,5 +31,8 @@ export class PortfolioClient extends ApiClient {
 	}
 }
 
-export const getPortfolioClient = (customFetch?: typeof fetch) => new PortfolioClient(customFetch);
+export const getPortfolioClient = (
+	customFetch?: typeof fetch,
+	inboundTraceparent?: string | null
+) => new PortfolioClient(customFetch, inboundTraceparent);
 export const portfolioClient = getPortfolioClient();
