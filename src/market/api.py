@@ -15,7 +15,7 @@ from src.market.api_types import (
 )
 from src.market.cache import SecuritySearchCache
 from src.market.eodhd import eodhd_gateway_factory
-from src.market.gateway import MarketGateway
+from src.market.gateway import MARKET_DATA_PROVIDER, MarketGateway, record_fetch
 from src.market.repository import (
     PriceRepository,
     SecurityBrokerRepository,
@@ -120,7 +120,14 @@ class SecurityApi:
             search_results = await self._search_cache.get(query)
 
         if search_results is None:
-            search_results = self._gateway.search(query=query)
+            with record_fetch(
+                symbol=mapped_symbol,
+                dataset="search",
+                provider=MARKET_DATA_PROVIDER,
+                exchange=mapped_exchange,
+            ) as fetch:
+                search_results = self._gateway.search(query=query)
+                fetch.row_count = len(search_results)
             if self._search_cache is not None:
                 await self._search_cache.set(query, search_results)
 
