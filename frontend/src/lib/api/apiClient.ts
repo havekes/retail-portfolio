@@ -2,6 +2,7 @@ import { browser } from '$app/environment';
 import {
 	deriveChildTraceparent,
 	generateTraceparent,
+	rememberCurrentTraceId,
 	traceIdFromTraceparent
 } from './traceContext';
 
@@ -42,6 +43,11 @@ export abstract class ApiClient {
 	 * trace id). SSR clients continue the inbound page-request trace by deriving
 	 * a child span per call; browser requests start a fresh trace. Explicit
 	 * caller-supplied `headers` win over the defaults.
+	 *
+	 * Browser requests also register their trace id as the "current" one so
+	 * non-API errors can be correlated to the request that preceded them. The
+	 * write is gated on `browser` because module state must not carry across
+	 * SSR requests.
 	 */
 	protected buildHeaders(
 		headers?: Record<string, string>,
@@ -52,11 +58,16 @@ export abstract class ApiClient {
 			? deriveChildTraceparent(this.inboundTraceparent)
 			: generateTraceparent();
 
+		const traceId = traceIdFromTraceparent(traceparent);
+		if (browser) {
+			rememberCurrentTraceId(traceId);
+		}
+
 		return {
 			...(options?.json ? { 'Content-Type': 'application/json' } : {}),
 			...(tokenOverride ? { Authorization: `Bearer ${tokenOverride}` } : {}),
 			traceparent,
-			'X-Request-ID': traceIdFromTraceparent(traceparent) ?? traceparent,
+			'X-Request-ID': traceId ?? traceparent,
 			...headers
 		};
 	}
