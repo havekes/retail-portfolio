@@ -67,6 +67,10 @@ class Settings(BaseSettings):
     # missing; protects upstream quotas from repeated lookups of the same miss.
     endpoint_ttl_negative_seconds: int = 300  # 5 minutes
 
+    # Observability / Metrics
+    worker_metrics_port: int = 8004
+    enable_metrics: bool = True
+
     # 2FA / TOTP
     totp_max_attempts: int = 5
     totp_lockout_seconds: int = 900
