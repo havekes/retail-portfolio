@@ -29,8 +29,16 @@ def setup_worker_services():
     from src.config.database import DatabaseSessionManager  # noqa: PLC0415
     from src.config.logging import init_logging  # noqa: PLC0415
     from src.config.services import register_services  # noqa: PLC0415
+    from src.observability import (  # noqa: PLC0415
+        bootstrap_observability,
+        get_tracer,
+    )
 
     init_logging()
+    bootstrap_observability(service_name="worker")
+    tracer = get_tracer("src.worker")
+    with tracer.start_as_current_span("worker.startup") as span:
+        span.set_attribute("startup.status", "ok")
 
     init_worker_signals(
         huey=huey,  # ty: ignore[invalid-argument-type]
@@ -74,8 +82,11 @@ def setup_worker_services():
 
 @huey.on_shutdown()
 def teardown_worker_services():
+    from src.observability import shutdown_observability  # noqa: PLC0415
+
     if huey.svcs_registry is not None:
         huey.svcs_registry.close()
+    shutdown_observability()
 
 
 # Import tasks to ensure they are registered with Huey

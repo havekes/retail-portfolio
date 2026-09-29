@@ -32,6 +32,11 @@ from src.integration.sync_status import redis_manager
 from src.market.data_router import data_router
 from src.market.gateway import DataPlaneMarketGateway
 from src.market.router import market_router
+from src.observability import (
+    bootstrap_observability,
+    get_tracer,
+    shutdown_observability,
+)
 from src.worker_dashboard import (
     close_worker_dashboard,
     init_worker_dashboard,
@@ -52,6 +57,11 @@ def run_migrations():
 
 @asynccontextmanager
 async def lifespan_context(app: FastAPI):
+    bootstrap_observability(service_name="backend")
+    tracer = get_tracer("src.main")
+    with tracer.start_as_current_span("backend.startup") as span:
+        span.set_attribute("startup.status", "ok")
+
     # Run migrations (skip in test env — tables created via metadata.create_all)
     if settings.environment != "test":
         await asyncio.to_thread(run_migrations)
@@ -87,6 +97,7 @@ async def lifespan_context(app: FastAPI):
     await close_worker_dashboard(app)
     await ws_manager.close()
     await redis_manager.close()
+    shutdown_observability()
 
 
 logger = logging.getLogger(__name__)
