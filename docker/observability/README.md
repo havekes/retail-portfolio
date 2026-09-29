@@ -1,6 +1,6 @@
 # Observability Overlay Runbook (ClickStack + tail sampling + Prometheus)
 
-This runbook documents the local Docker Compose observability overlay introduced in ticket `F-OBS-T01` and extended in `F-OBS-T16`. The overlay adds a dev-only telemetry stack:
+This runbook documents the local Docker Compose observability overlay introduced in ticket `F-OBS-T01` and extended in `F-OBS-T16` (sampling/retention) and `F-OBS-T20` (analysis workflow, §8). The overlay adds a dev-only telemetry stack:
 - **ClickStack all-in-one** (`clickhouse/clickstack-all-in-one:2.39.1`): ClickHouse, embedded OpenTelemetry Collector, MongoDB, and the HyperDX UI/API.
 - **Tail-sampling gateway** (`otel/opentelemetry-collector-contrib:0.161.0`, service `otel-sampler`): owns the F-OBS-T16 sampling and decision-stamping policy and forwards the retained traces to ClickStack.
 - **Prometheus** (`prom/prometheus:v3.13.4`): Scrapes itself and the OpenTelemetry Collector metrics on port 8888.
@@ -271,3 +271,86 @@ docker run --rm \
   validate --config /etc/otelcol/config.yaml
 ```
 Both environment variables must be set (the compose service defaults them). The parse-only policy assertions live in `tests/observability/test_sampling_config.py`.
+
+---
+
+## 8. Analysis Workflow & Saved Queries
+
+Sections 1-2 bring the overlay up; from there the analysis loop is queries only — no code change
+and no new event. The version-controlled query set lives in `docker/observability/hyperdx/` (see
+`hyperdx/README.md` for export/import), with the raw ClickHouse SQL embedded in each file so results
+can be confirmed without the UI.
+
+### 8.1 Getting to a queryable overlay
+
+1. `just obs-up` (§1) and create the first HyperDX user (§2). Adding teammates later is a UI action
+   in the same team (**Team Settings**); no code or volume step is needed beyond `HYPERDX_API_KEY`
+   in the root `.env`.
+2. Produce data — the §6 burst, normal app usage, or a manual account sync.
+3. Wait out the gateway decision window (`decision_wait` 10s plus the 5s batch timeout, §6) before
+   querying: a fresh event is not in ClickHouse yet.
+
+### 8.2 The four analysis scenarios
+
+| Scenario | HyperDX search | Version-controlled file |
+| --- | --- | --- |
+| Deploy verification | `event.name:portfolio.sync.completed` filtered by `trigger` and `user_id` | `hyperdx/saved-queries/01-deploy-verification.json` |
+| Anomaly cohorts | `event.name:market.data.fetched` by `provider` x `cache_state` with `freshness_lag_ms` quantiles | `hyperdx/saved-queries/02-anomaly-cohorts.json` |
+| Cross-process failure tracing | `event.name:huey.task AND error_slug:<slug>`, then open the row's `trace_id` | `hyperdx/saved-queries/03-cross-process-failure-tracing.json` |
+| Frontend error correlation | `exception.type:*`, then paste the toast id into the trace lookup | `hyperdx/saved-queries/04-frontend-error-correlation.json` |
+
+Each file carries the search fields plus a `clickhouse_sql` fallback runnable in `clickhouse-client`
+(§3), the expected result shape and the sampling/TTL caveat that applies (§5, §6). Failure cohorts
+are retained at 100%; the successful bulk is an `OTEL_SAMPLER_SUCCESS_PERCENT`% sample (default 7),
+so compare rates rather than absolute counts.
+
+### 8.3 Dashboard
+
+`hyperdx/dashboard.json` is the minimal, importable dashboard (HyperDX **Dashboards → Import
+Dashboard**; the import form maps the placeholder connection name to this instance's ClickHouse
+connection — see `hyperdx/README.md`):
+
+- **p95 sync duration by broker** for accounts with more than 100 positions — the
+  definition-of-done query, a read-time `quantile(0.95)` over `portfolio.sync.completed` with
+  `positions_seen > 100`, grouped by `broker`; no code change is involved.
+- **Sync error rate** — `portfolio.sync.failed` against `portfolio.sync.completed`, plus the
+  `http.request` `status = 500` count.
+- **Queue depth** — not a wide event: it is the Prometheus `queue_depth` gauge (scraped from
+  `worker:8004/metrics`, §4) and the Huey dashboard at `/worker/api`. The panel is a signpost so
+  the dashboard does not pretend the signal is queryable in ClickHouse.
+
+### 8.4 Error-inbox triage
+
+Backend, worker and frontend exceptions land in `default.otel_traces` through the same
+`capture_exception` sink (`src/observability/exceptions.py`), so one search covers the stack:
+
+- HyperDX: `exception.type:*` — narrow with `service.name:frontend`, `deploy_id:<id>` or
+  `task_name:<task>`.
+- Triage order: `deploy_id`/`release` tags first, then `task_name` for Huey records, then `route`
+  and `error_name` for frontend records.
+- Field shape per record: `exception.type`, `exception.message`, `exception.stacktrace`,
+  `error_name`, `preview`, `correlation_id`, `route`, `deploy_id`, `release`, `task_name`
+  (`src/observability/router.py`, `src/observability/exceptions.py`).
+- Frontend toast: `showToastForApiError` renders `ApiError.requestId`, the backend trace id. Paste
+  the 32-hex id into the trace view, or query
+  `WHERE SpanAttributes['correlation_id'] = '<id>' OR SpanAttributes['trace_id'] = '<id>'`.
+  `correlation_id` is accepted only as a valid 32-hex trace id
+  (`FrontendExceptionRequest._normalize_correlation_id`); anything else is dropped at intake.
+
+### 8.5 How to add a new event
+
+1. Add the name to the `CATALOG_EVENTS` frozenset in `src/observability/events.py` and emit it via
+   `emit_event` at the boundary.
+2. Document its fields in `docs/field-dictionary.md` (§Catalog events); the docs-consistency test
+   `tests/observability/test_field_dictionary.py` pins the dictionary and the catalog together.
+3. Add a retention branch for the new class in `docker/observability/clickhouse-ttl.sql` and
+   re-apply it (§5).
+4. Check §6: a failure must surface a truthy `error_slug` or a failure `outcome`/status so the
+   sampler retains it at 100%.
+
+### 8.6 Redaction boundary
+
+All wide-event fields pass `redact_event_fields` (`src/observability/redaction.py`) before export;
+sensitive keys and token/JWT/email patterns are masked, while `PROTECTED_KEYS` (`provider`,
+`broker`, ...) are kept as internal telemetry dimensions. The full rules live in
+`docs/field-dictionary.md` §Rules — not duplicated here.

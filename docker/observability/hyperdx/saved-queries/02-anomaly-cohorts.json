@@ -1,0 +1,19 @@
+{
+  "scenario": "anomaly-cohorts",
+  "name": "Anomaly cohorts - market.data.fetched by provider and cache_state",
+  "purpose": "Explain a stale-price report: group provider fetches by provider and cache_state and compare freshness-lag and duration quantiles, so an anomalous cohort (for example provider=X cache_state=stale) stands out from the baseline before drilling into symbols.",
+  "hyperdx": {
+    "where": "event.name:market.data.fetched",
+    "whereLanguage": "lucene",
+    "select": "timestamp, provider, symbol, dataset, exchange, cache_state, freshness_lag_ms, duration_ms, outcome, row_count, error_slug, trace_id",
+    "orderBy": "timestamp DESC",
+    "tags": ["wide-events", "anomaly-investigation"]
+  },
+  "operator_notes": [
+    "Narrow a suspected symbol with AND symbol:AAPL, or a provider with AND provider:eodhd; keep the first pass unfiltered so the cohort comparison is honest.",
+    "The same trace_id also holds the cache-boundary probe (market.cache.accessed) and, for sync-driven fetches, the enclosing huey.task span - paste it into the trace view for the full call chain."
+  ],
+  "clickhouse_sql": "SELECT\n    SpanAttributes['provider'] AS provider,\n    SpanAttributes['cache_state'] AS cache_state,\n    count() AS sampled_fetches,\n    quantile(0.5)(toInt64OrZero(SpanAttributes['freshness_lag_ms'])) AS p50_freshness_lag_ms,\n    quantile(0.95)(toInt64OrZero(SpanAttributes['freshness_lag_ms'])) AS p95_freshness_lag_ms,\n    quantile(0.95)(toFloat64OrZero(SpanAttributes['duration_ms'])) AS p95_duration_ms,\n    countIf(SpanAttributes['outcome'] = 'failure') AS failures\nFROM default.otel_traces\nWHERE SpanAttributes['event.name'] = 'market.data.fetched'\n  AND Timestamp > now() - INTERVAL 14 DAY\nGROUP BY provider, cache_state\nORDER BY p95_freshness_lag_ms DESC",
+  "expected_result": "One row per (provider, cache_state) cohort present in the window, ordered by the worst p95 freshness lag. The stale cohort to investigate is the row with an elevated p95_freshness_lag_ms against its own baseline; symbol is deliberately not in the GROUP BY so the cohort stays visible.",
+  "sampling_and_retention": "market.data.fetched sits in the 14-day TTL tier (README section 5), and successful fetches are sampled at about OTEL_SAMPLER_SUCCESS_PERCENT percent (default 7); failures (outcome=failure, error_slug) are retained at 100 percent. Reads over the successful bulk are representative, not exhaustive. The cache-boundary event market.cache.accessed has a shorter 7-day tier."
+}

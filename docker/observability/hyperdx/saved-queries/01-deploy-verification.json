@@ -1,0 +1,20 @@
+{
+  "scenario": "deploy-verification",
+  "name": "Deploy verification - portfolio.sync.completed by trigger and user",
+  "purpose": "Confirm a sync-logic change immediately after deploy: duration, positions changed and provider-call outcomes for a manual sync, scoped to the operator's own user_id and the deploy_id that carried the change.",
+  "hyperdx": {
+    "where": "event.name:portfolio.sync.completed AND trigger:manual",
+    "whereLanguage": "lucene",
+    "select": "timestamp, deploy_id, trigger, user_id, broker, account_id, duration_ms, positions_seen, positions_changed, provider_calls, outcome",
+    "orderBy": "timestamp DESC",
+    "tags": ["wide-events", "deploy-verification"]
+  },
+  "operator_notes": [
+    "Scope the search to your own sync: add AND user_id:usr_123 (your id) to the WHERE box; compare releases by adding AND deploy_id:1a2b3c4.",
+    "Manual syncs carry trigger:manual, scheduled runs trigger:scheduled - the second is the regression baseline.",
+    "provider_calls is JSON-serialized (positions_fetch, positions_persist, accounts_reconcile, securities_resolved); open a row to inspect it instead of adding it to the column list."
+  ],
+  "clickhouse_sql": "SELECT\n    SpanAttributes['trigger'] AS trigger,\n    SpanAttributes['user_id'] AS user_id,\n    SpanAttributes['deploy_id'] AS deploy_id,\n    count() AS sampled_syncs,\n    quantile(0.5)(toFloat64OrZero(SpanAttributes['duration_ms'])) AS p50_duration_ms,\n    quantile(0.95)(toFloat64OrZero(SpanAttributes['duration_ms'])) AS p95_duration_ms,\n    sum(toInt64OrZero(SpanAttributes['positions_changed'])) AS positions_changed\nFROM default.otel_traces\nWHERE SpanAttributes['event.name'] = 'portfolio.sync.completed'\n  AND SpanAttributes['trigger'] = 'manual'\n  AND SpanAttributes['user_id'] = 'usr_123' -- replace with your own user id\n  AND Timestamp > now() - INTERVAL 1 DAY\nGROUP BY trigger, user_id, deploy_id\nORDER BY sampled_syncs DESC",
+  "expected_result": "One row per (trigger, user_id, deploy_id) in the window; a fresh manual sync shows up within seconds of the gateway decision window (README section 6). p95_duration_ms and positions_changed are the fields to eyeball against the pre-deploy baseline.",
+  "sampling_and_retention": "portfolio.sync.completed is part of the successful bulk: only about OTEL_SAMPLER_SUCCESS_PERCENT percent (default 7) of those traces are stored, so counts are a sample - compare rates, not absolute counts, and divide by event.sample_rate for an estimate. Failures in the same window are complete: portfolio.sync.failed is retained at 100 percent. Retention tier: 30 days (README section 5)."
+}
