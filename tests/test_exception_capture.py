@@ -208,9 +208,9 @@ def test_failing_huey_task_captured_with_task_name_and_trace_id(monkeypatch):
         huey.immediate = original_immediate
 
     spans = exporter.get_finished_spans()
-    assert len(spans) == 1
-    span = spans[0]
-    assert span.name == "worker.exception"
+    # A failing task emits both its exception record and its huey.task event.
+    assert sorted(span.name for span in spans) == ["huey.task", "worker.exception"]
+    span = next(record for record in spans if record.name == "worker.exception")
     assert span.attributes is not None
     assert span.attributes["service"] == "worker"
     assert span.attributes["service.name"] == "worker"
