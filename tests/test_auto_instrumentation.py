@@ -80,10 +80,18 @@ class _StubPoolResponse:
 class _OfflineAsyncPool:
     """Connection pool stand-in that answers without opening a socket."""
 
-    def __init__(self, body: bytes) -> None:
+    def __init__(
+        self, body: bytes, captured_headers: dict[str, str] | None = None
+    ) -> None:
         self._body = body
+        self.captured_headers = captured_headers if captured_headers is not None else {}
 
-    async def handle_async_request(self, request: httpx.Request) -> _StubPoolResponse:
+    async def handle_async_request(self, request: Any) -> _StubPoolResponse:
+        # httpcore hands the pool byte-pair headers rather than httpx's str map.
+        for key, value in request.headers:
+            str_key = key.decode("latin-1") if isinstance(key, bytes) else key
+            str_value = value.decode("latin-1") if isinstance(value, bytes) else value
+            self.captured_headers[str_key] = str_value
         return _StubPoolResponse(self._body)
 
     async def aclose(self) -> None:
@@ -96,10 +104,15 @@ class _OfflineAsyncPool:
         return None
 
 
-def _offline_async_transport(body: bytes = b'{"ok": true}') -> httpx.AsyncHTTPTransport:
+def _offline_async_transport(
+    body: bytes = b'{"ok": true}',
+    captured_headers: dict[str, str] | None = None,
+) -> httpx.AsyncHTTPTransport:
     """A real instrumented httpx transport backed by an offline stub pool."""
     transport = httpx.AsyncHTTPTransport()
-    transport._pool = cast("Any", _OfflineAsyncPool(body))  # noqa: SLF001
+    transport._pool = cast(  # noqa: SLF001
+        "Any", _OfflineAsyncPool(body, captured_headers)
+    )
     return transport
 
 
@@ -297,6 +310,35 @@ async def test_database_httpx_and_redis_child_spans(span_exporter):
         span.context.trace_id for span in (*db_spans, *http_spans, *redis_spans)
     }
     assert trace_ids == {server_span.context.trace_id}
+
+
+@pytest.mark.anyio
+async def test_outbound_httpx_span_carries_traceparent_header(span_exporter):
+    """The httpx leg to indicator-service carries the W3C traceparent header."""
+    captured: dict[str, str] = {}
+    client = httpx.AsyncClient(
+        transport=_offline_async_transport(captured_headers=captured)
+    )
+    try:
+        response = await client.post("http://indicator-service/compute", json={})
+    finally:
+        await client.aclose()
+
+    assert response.status_code == 200
+
+    httpx_spans = [
+        span
+        for span in _finished_spans(span_exporter)
+        if dict(span.attributes or {}).get("http.url")
+        == "http://indicator-service/compute"
+    ]
+    assert len(httpx_spans) == 1, [span.name for span in _finished_spans(span_exporter)]
+
+    traceparent = captured.get("traceparent")
+    assert traceparent is not None, captured
+    parts = traceparent.split("-")
+    assert parts[1] == f"{httpx_spans[0].context.trace_id:032x}"
+    assert parts[2] == f"{httpx_spans[0].context.span_id:016x}"
 
 
 @pytest.mark.anyio
