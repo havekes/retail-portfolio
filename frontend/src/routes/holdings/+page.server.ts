@@ -3,6 +3,7 @@ import { normalizeHoldingsTableConfig } from '$lib/components/holdings/holdings-
 import { normalizeHoldingsGroupMode } from '$lib/components/holdings/holdings-group-prefs';
 import { getPortfolioClient } from '$lib/api/portfolioClient';
 import { getAccountClient } from '$lib/api/accountClient';
+import { extractTraceparent } from '$lib/api/traceContext';
 import { deleteAuthCookie } from '$lib/server/auth-cookie';
 import { ApiError } from '$lib/api/apiClient';
 import { redirect } from '@sveltejs/kit';
@@ -11,10 +12,11 @@ import type { Account } from '$lib/types/account';
 import type { SecurityElliottWaves } from '$lib/utils/finance/elliott-wave';
 import type { PageServerLoad } from './$types';
 
-export const load: PageServerLoad = async ({ fetch, cookies, url }) => {
+export const load: PageServerLoad = async ({ fetch, cookies, url, request }) => {
 	const token = cookies.get('auth_token');
 	const portfolio_id = url.searchParams.get('portfolio_id');
 	const account_id = url.searchParams.get('account_id');
+	const inboundTraceparent = extractTraceparent(request.headers);
 
 	// Only the cheap, preferences, portfolios, and accounts keys are awaited: holdings rows load
 	// asynchronously after navigation so the page shell renders instantly.
@@ -26,9 +28,9 @@ export const load: PageServerLoad = async ({ fetch, cookies, url }) => {
 
 	try {
 		const [prefsResult, portfoliosResult, accountsResult] = await Promise.allSettled([
-			getUserPreferencesService(fetch).getPreferences(token),
-			getPortfolioClient(fetch).getPortfolios(token),
-			getAccountClient(fetch).getAccounts(token)
+			getUserPreferencesService(fetch, inboundTraceparent).getPreferences(token),
+			getPortfolioClient(fetch, inboundTraceparent).getPortfolios(token),
+			getAccountClient(fetch, inboundTraceparent).getAccounts(token)
 		]);
 
 		for (const res of [prefsResult, portfoliosResult, accountsResult]) {
