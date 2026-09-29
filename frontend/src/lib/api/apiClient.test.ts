@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { ApiClient, ApiError } from './apiClient';
-import { traceIdFromTraceparent } from './traceContext';
+import { currentTraceId, forgetCurrentTraceId, traceIdFromTraceparent } from './traceContext';
 
 const TRACEPARENT_PATTERN = /^00-[0-9a-f]{32}-[0-9a-f]{16}-0[01]$/;
 const INBOUND_TRACEPARENT = '00-4bf92f3577b34da6a3ce929d0e0e4736-00f067aa0ba902b7-01';
@@ -179,6 +179,15 @@ describe('ApiClient', () => {
 			const headers = lastRequestHeaders();
 			expect(headers.traceparent).toBe(INBOUND_TRACEPARENT);
 			expect(headers['X-Request-ID']).toBe('custom');
+		});
+
+		it('records the outgoing trace id as the current browser trace', async () => {
+			forgetCurrentTraceId();
+
+			await client.testGet();
+
+			const headers = lastRequestHeaders();
+			expect(currentTraceId()).toBe(traceIdFromTraceparent(headers.traceparent));
 		});
 	});
 

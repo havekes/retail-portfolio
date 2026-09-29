@@ -39,6 +39,7 @@ from src.observability import (
     instrument_auto,
     shutdown_observability,
 )
+from src.observability.router import observability_router
 from src.worker_dashboard import (
     close_worker_dashboard,
     init_worker_dashboard,
@@ -200,6 +201,7 @@ v1.include_router(institutions_router)
 v1.include_router(integration_router)
 v1.include_router(market_router)
 v1.include_router(data_router)
+v1.include_router(observability_router)
 
 app.include_router(v1)
 app.include_router(ws_router)

@@ -1,11 +1,14 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import {
+	currentTraceId,
 	deployId,
 	deriveChildTraceparent,
 	extractTraceparent,
+	forgetCurrentTraceId,
 	generateTraceparent,
 	isValidTraceparent,
 	parseTraceparent,
+	rememberCurrentTraceId,
 	traceIdFromTraceparent
 } from './traceContext';
 
@@ -141,6 +144,38 @@ describe('traceContext', () => {
 			expect(extractTraceparent({ traceparent: '   ' })).toBeUndefined();
 			expect(extractTraceparent(undefined)).toBeUndefined();
 			expect(extractTraceparent(null)).toBeUndefined();
+		});
+	});
+
+	describe('current browser trace registry', () => {
+		const TRACE_ID = '4bf92f3577b34da6a3ce929d0e0e4736';
+
+		afterEach(() => {
+			forgetCurrentTraceId();
+		});
+
+		it('remembers a valid trace id, normalised to lowercase hex', () => {
+			rememberCurrentTraceId(TRACE_ID.toUpperCase());
+
+			expect(currentTraceId()).toBe(TRACE_ID);
+		});
+
+		it('ignores empty, malformed and all-zero trace ids', () => {
+			rememberCurrentTraceId(TRACE_ID);
+
+			rememberCurrentTraceId('');
+			rememberCurrentTraceId('not-a-trace-id');
+			rememberCurrentTraceId('0'.repeat(32));
+			rememberCurrentTraceId(undefined);
+
+			expect(currentTraceId()).toBe(TRACE_ID);
+		});
+
+		it('forgets the current trace id on request', () => {
+			rememberCurrentTraceId(TRACE_ID);
+			forgetCurrentTraceId();
+
+			expect(currentTraceId()).toBeUndefined();
 		});
 	});
 
