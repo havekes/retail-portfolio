@@ -2,13 +2,24 @@
 import asyncio
 import contextlib
 import json
+from collections.abc import Iterator
+from contextlib import contextmanager
+from typing import Any
 from unittest.mock import AsyncMock, MagicMock, patch
 from uuid import uuid4
 
 import pytest
+from opentelemetry import propagate, trace
+from opentelemetry.sdk.trace.export import SimpleSpanProcessor
+from opentelemetry.sdk.trace.export.in_memory_span_exporter import InMemorySpanExporter
+from opentelemetry.trace import SpanContext
 from starlette.websockets import WebSocketState
 
+from src.config.settings import Settings
+from src.core.context import get_trace_id
+from src.observability import bootstrap_observability, get_tracer, reset_observability
 from src.ws.manager import ConnectionManager
+from tests.fixtures.redis import FakeRedis
 
 
 @pytest.fixture
@@ -19,6 +30,58 @@ def cm():
     manager._clients.clear()
     if manager._pubsub_task and not manager._pubsub_task.done():
         manager._pubsub_task.cancel()
+
+
+@pytest.fixture
+def span_exporter() -> Iterator[InMemorySpanExporter]:
+    """Install a real tracer provider exporting spans to memory."""
+    exporter = InMemorySpanExporter()
+    bootstrap_observability(
+        service_name="backend",
+        settings=Settings(environment="test"),
+        span_processor=SimpleSpanProcessor(exporter),
+    )
+    try:
+        yield exporter
+    finally:
+        reset_observability()
+
+
+@contextmanager
+def producer_span() -> Iterator[tuple[SpanContext, dict[str, str]]]:
+    """Start a span and capture the W3C carrier a publisher would inject."""
+    tracer = get_tracer("test.ws.producer")
+    with tracer.start_as_current_span("ws.producer") as span:
+        carrier: dict[str, str] = {}
+        propagate.inject(carrier)
+        yield span.get_span_context(), carrier
+
+
+def envelope(user_id: Any, message: dict[str, Any], **extra: Any) -> str:
+    return json.dumps({"user_id": str(user_id), "message": message, **extra})
+
+
+def pubsub_redis(*messages: str) -> MagicMock:
+    """A mocked Redis whose pub/sub listener yields ``messages`` once."""
+
+    async def gen():
+        for data in messages:
+            yield {"type": "message", "data": data}
+
+    mock_pubsub = MockPubSub(gen)
+    mock_redis = MagicMock()
+    mock_redis.pubsub.return_value = mock_pubsub
+    return mock_redis
+
+
+async def wait_for(predicate, timeout: float = 5.0) -> None:
+    loop = asyncio.get_running_loop()
+    deadline = loop.time() + timeout
+    while not predicate():
+        if loop.time() > deadline:
+            msg = "condition not met before timeout"
+            raise TimeoutError(msg)
+        await asyncio.sleep(0)
 
 
 @pytest.mark.asyncio
@@ -293,3 +356,295 @@ async def test_listen_for_messages_restarts_on_error(cm):
         # Clean up created task
         if cm._pubsub_task:
             await cm._pubsub_task
+
+
+# --------------------------------------------------------------------------- #
+# Trace context propagation over Redis pub/sub (F-OBS-T08)
+# --------------------------------------------------------------------------- #
+
+
+@pytest.mark.asyncio
+async def test_send_personal_message_injects_trace_context(cm, span_exporter):
+    user_id = uuid4()
+    mock_redis = AsyncMock()
+    cm._clients[asyncio.get_running_loop()] = mock_redis
+    msg = {"content": "hello"}
+
+    with producer_span() as (producer_ctx, injected_carrier):
+        await cm._orig_send_personal_message(msg, user_id)
+
+    channel, raw_payload = mock_redis.publish.call_args.args
+    assert channel == "ws_messages"
+    payload = json.loads(raw_payload)
+    assert payload["user_id"] == str(user_id)
+    assert payload["message"] == msg
+    assert payload["carrier"] == injected_carrier
+
+    extracted_ctx = trace.get_current_span(
+        propagate.extract(payload["carrier"])
+    ).get_span_context()
+    assert extracted_ctx.trace_id == producer_ctx.trace_id
+    assert extracted_ctx.span_id == producer_ctx.span_id
+
+
+@pytest.mark.asyncio
+async def test_send_personal_message_without_active_trace_publishes_legacy_envelope(
+    cm, span_exporter
+):
+    assert get_trace_id() is None
+
+    user_id = uuid4()
+    mock_redis = AsyncMock()
+    cm._clients[asyncio.get_running_loop()] = mock_redis
+    msg = {"content": "hello"}
+
+    await cm._orig_send_personal_message(msg, user_id)
+
+    expected_payload = json.dumps({"user_id": str(user_id), "message": msg})
+    mock_redis.publish.assert_called_once_with("ws_messages", expected_payload)
+
+
+@pytest.mark.asyncio
+async def test_listen_for_messages_restores_producer_trace_context(cm, span_exporter):
+    user_id = uuid4()
+    observed: list[str | None] = []
+
+    async def record(_user_id, _message):
+        observed.append(get_trace_id())
+
+    with producer_span() as (producer_ctx, carrier):
+        expected_trace_id = trace.format_trace_id(producer_ctx.trace_id)
+
+    mock_redis = pubsub_redis(
+        envelope(user_id, {"type": "ping"}, carrier=carrier),
+    )
+
+    with (
+        patch.object(cm, "get_redis_client", return_value=mock_redis),
+        patch.object(cm, "_send_to_local_connections", new=record),
+    ):
+        await cm._listen_for_messages()
+
+    assert observed == [expected_trace_id]
+
+
+@pytest.mark.asyncio
+async def test_listen_for_messages_accepts_trace_carrier_alias(cm, span_exporter):
+    user_id = uuid4()
+    observed: list[str | None] = []
+
+    async def record(_user_id, _message):
+        observed.append(get_trace_id())
+
+    with producer_span() as (producer_ctx, carrier):
+        expected_trace_id = trace.format_trace_id(producer_ctx.trace_id)
+
+    mock_redis = pubsub_redis(
+        envelope(user_id, {"type": "ping"}, trace_carrier=carrier),
+    )
+
+    with (
+        patch.object(cm, "get_redis_client", return_value=mock_redis),
+        patch.object(cm, "_send_to_local_connections", new=record),
+    ):
+        await cm._listen_for_messages()
+
+    assert observed == [expected_trace_id]
+
+
+@pytest.mark.asyncio
+async def test_delivery_span_is_child_of_producer_span(cm, span_exporter):
+    user_id = uuid4()
+    tracer = get_tracer("test.ws.delivery")
+    ws = MagicMock()
+    ws.client_state = WebSocketState.CONNECTED
+
+    async def send_json(_payload):
+        with tracer.start_as_current_span("ws.delivery"):
+            pass
+
+    ws.send_json = AsyncMock(side_effect=send_json)
+    cm.active_connections[user_id] = [ws]
+
+    with producer_span() as (producer_ctx, carrier):
+        pass
+
+    mock_redis = pubsub_redis(
+        envelope(user_id, {"type": "ping"}, carrier=carrier),
+    )
+
+    with patch.object(cm, "get_redis_client", return_value=mock_redis):
+        await cm._listen_for_messages()
+
+    delivery = next(
+        span
+        for span in span_exporter.get_finished_spans()
+        if span.name == "ws.delivery"
+    )
+    assert delivery.context.trace_id == producer_ctx.trace_id
+    assert delivery.parent is not None
+    assert delivery.parent.span_id == producer_ctx.span_id
+
+
+@pytest.mark.asyncio
+async def test_listen_for_messages_delivers_without_trace_context(cm, span_exporter):
+    user_id = uuid4()
+    observed: list[str | None] = []
+
+    async def record(_user_id, _message):
+        observed.append(get_trace_id())
+
+    mock_redis = pubsub_redis(envelope(user_id, {"type": "ping"}))
+
+    with (
+        patch.object(cm, "get_redis_client", return_value=mock_redis),
+        patch.object(cm, "_send_to_local_connections", new=record),
+    ):
+        await cm._listen_for_messages()
+
+    assert observed == [None]
+
+
+@pytest.mark.asyncio
+async def test_listen_for_messages_tolerates_malformed_carriers(cm, span_exporter):
+    user_id = uuid4()
+    delivered: list[dict[str, Any]] = []
+
+    async def record(_user_id, message):
+        delivered.append(message)
+
+    mock_redis = pubsub_redis(
+        envelope(user_id, {"n": 1}),
+        envelope(user_id, {"n": 2}, carrier="not-a-dict"),
+        envelope(user_id, {"n": 3}, carrier={"traceparent": "garbage"}),
+        envelope(user_id, {"n": 4}, carrier={"traceparent": 12345}),
+        envelope(user_id, {"n": 5}, carrier=[]),
+        envelope(user_id, {"n": 6}, trace_carrier=None),
+    )
+
+    with (
+        patch.object(cm, "get_redis_client", return_value=mock_redis),
+        patch.object(cm, "_send_to_local_connections", new=record),
+    ):
+        await cm._listen_for_messages()
+
+    assert [message["n"] for message in delivered] == [1, 2, 3, 4, 5, 6]
+
+
+@pytest.mark.asyncio
+async def test_listen_for_messages_does_not_leak_context_between_messages(
+    cm, span_exporter
+):
+    user_id = uuid4()
+    observed: list[str | None] = []
+
+    async def record(_user_id, _message):
+        observed.append(get_trace_id())
+
+    with producer_span() as (producer_ctx, carrier):
+        expected_trace_id = trace.format_trace_id(producer_ctx.trace_id)
+
+    mock_redis = pubsub_redis(
+        envelope(user_id, {"n": 1}, carrier=carrier),
+        envelope(user_id, {"n": 2}),
+    )
+
+    with (
+        patch.object(cm, "get_redis_client", return_value=mock_redis),
+        patch.object(cm, "_send_to_local_connections", new=record),
+    ):
+        await cm._listen_for_messages()
+
+    assert observed == [expected_trace_id, None]
+
+
+@pytest.mark.asyncio
+async def test_send_personal_message_fallback_on_init_failure_keeps_trace(
+    cm, span_exporter
+):
+    user_id = uuid4()
+    msg = {"content": "hello"}
+    observed: list[str | None] = []
+
+    async def record(_user_id, _message):
+        observed.append(get_trace_id())
+
+    tracer = get_tracer("test.ws.producer")
+    with (
+        patch.object(cm, "get_redis_client", return_value=None),
+        patch.object(cm, "_orig_init_redis", side_effect=Exception("Redis init failed")),
+        patch.object(cm, "_send_to_local_connections", new=record),
+        tracer.start_as_current_span("ws.producer") as span,
+    ):
+        expected_trace_id = trace.format_trace_id(span.get_span_context().trace_id)
+        await cm._orig_send_personal_message(msg, user_id)
+
+    assert observed == [expected_trace_id]
+
+
+@pytest.mark.asyncio
+async def test_send_personal_message_fallback_on_publish_failure_keeps_trace(
+    cm, span_exporter
+):
+    user_id = uuid4()
+    msg = {"content": "hello"}
+    observed: list[str | None] = []
+
+    async def record(_user_id, _message):
+        observed.append(get_trace_id())
+
+    mock_redis = AsyncMock()
+    mock_redis.publish.side_effect = Exception("Publish error")
+    cm._clients[asyncio.get_running_loop()] = mock_redis
+
+    tracer = get_tracer("test.ws.producer")
+    with (
+        patch.object(cm, "_send_to_local_connections", new=record),
+        tracer.start_as_current_span("ws.producer") as span,
+    ):
+        expected_trace_id = trace.format_trace_id(span.get_span_context().trace_id)
+        await cm._orig_send_personal_message(msg, user_id)
+
+    assert observed == [expected_trace_id]
+
+
+@pytest.mark.asyncio
+async def test_trace_context_survives_fake_redis_pubsub_round_trip(cm, span_exporter):
+    """End-to-end: publish -> FakePubSub listener -> WebSocket delivery."""
+    user_id = uuid4()
+    redis = FakeRedis()
+    tracer = get_tracer("test.ws.delivery")
+    delivered = asyncio.Event()
+
+    ws = MagicMock()
+    ws.client_state = WebSocketState.CONNECTED
+
+    async def send_json(_payload):
+        with tracer.start_as_current_span("ws.delivery"):
+            delivered.set()
+
+    ws.send_json = AsyncMock(side_effect=send_json)
+    cm.active_connections[user_id] = [ws]
+
+    with patch.object(cm, "get_redis_client", return_value=redis):
+        listener = asyncio.create_task(cm._listen_for_messages())
+        try:
+            await wait_for(lambda: "ws_messages" in redis._subscribers)
+
+            with producer_span() as (producer_ctx, _carrier):
+                await cm._orig_send_personal_message({"type": "ping"}, user_id)
+
+            await asyncio.wait_for(delivered.wait(), timeout=5)
+        finally:
+            listener.cancel()
+            with contextlib.suppress(asyncio.CancelledError):
+                await listener
+
+    delivery = next(
+        span
+        for span in span_exporter.get_finished_spans()
+        if span.name == "ws.delivery"
+    )
+    assert delivery.context.trace_id == producer_ctx.trace_id
+    assert delivery.parent is not None
+    assert delivery.parent.span_id == producer_ctx.span_id
