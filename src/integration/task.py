@@ -1,6 +1,9 @@
 import asyncio
 import logging
+import time
+from dataclasses import dataclass, field
 from decimal import Decimal
+from typing import Any
 
 from huey import signals
 from svcs import Container
@@ -31,12 +34,96 @@ from src.integration.repository import IntegrationUserRepository
 from src.integration.sync_status import mark_sync_finished, mark_sync_started
 from src.market.api import SecurityApi
 from src.market.fx import FxRateProvider
-from src.observability import restore_task_context
+from src.observability import emit_event, error_slug_for_error, restore_task_context
 from src.worker import huey
 from src.ws.api_types import AccountSyncMessage, WsEventType
 from src.ws.manager import ws_manager
 
 logger = logging.getLogger(__name__)
+
+#: Catalog events emitted for the account sync flow.
+SYNC_COMPLETED_EVENT = "portfolio.sync.completed"
+SYNC_FAILED_EVENT = "portfolio.sync.failed"
+
+#: Bounded set of provider-call outcomes recorded on a sync event.
+PROVIDER_CALL_KEYS: frozenset[str] = frozenset(
+    {
+        "positions_fetch",
+        "positions_persist",
+        "accounts_reconcile",
+        "securities_resolved",
+    }
+)
+
+
+@dataclass
+class _SyncEventBuilder:
+    """Incrementally collected fields for one account sync wide event."""
+
+    account_id: str
+    user_id: str
+    broker: str
+    trigger: str = "manual"
+    started_at: float = field(default_factory=time.monotonic)
+    positions_seen: int = 0
+    positions_changed: int = 0
+    provider_calls: dict[str, str | int] = field(default_factory=dict)
+
+    def note_provider_call(self, key: str, value: str | int) -> None:
+        """Record a bounded provider-call outcome; unknown keys are ignored."""
+        if key in PROVIDER_CALL_KEYS:
+            self.provider_calls[key] = value
+
+    def base_fields(self) -> dict[str, Any]:
+        """Return the identity fields shared by the completed/failed events."""
+        return {
+            "account_id": self.account_id,
+            "user_id": self.user_id,
+            "broker": self.broker,
+            "trigger": self.trigger,
+        }
+
+    def duration_ms(self) -> float:
+        """Return the elapsed sync time in milliseconds."""
+        return round((time.monotonic() - self.started_at) * 1000, 3)
+
+
+def _broker_dimension(institution_id: Any) -> str:
+    """Return the internal broker dimension for an account's institution."""
+    try:
+        return InstitutionEnum(institution_id).name.lower()
+    except TypeError, ValueError:
+        return str(institution_id)
+
+
+def _build_sync_event_builder(
+    user_id: UserId,
+    account: Account,
+    trigger: str,
+) -> _SyncEventBuilder:
+    """Seed the incremental sync event with the account identity."""
+    return _SyncEventBuilder(
+        account_id=str(account.id),
+        user_id=str(user_id),
+        broker=_broker_dimension(account.institution_id),
+        trigger=trigger,
+    )
+
+
+def _emit_sync_event(name: str, fields: dict[str, Any]) -> None:
+    """Emit a sync wide event without ever affecting the sync itself."""
+    try:
+        emit_event(name, **fields)
+    except Exception as error:  # noqa: BLE001
+        logger.debug("Failed to emit %s event: %s", name, error)
+
+
+def _persisted_position_count(persisted: Any, fallback: int) -> int:
+    """Return how many positions the persistence layer reports as changed."""
+    try:
+        return len(persisted)
+    except TypeError:
+        return fallback
 
 
 @huey.task()
@@ -47,11 +134,16 @@ def sync_account_positions_task(  # noqa: PLR0913, PLR0917
     broker_class: type[BrokerApiGateway],
     request_id: str | None = None,
     traceparent: str | None = None,
+    trigger: str = "manual",
 ) -> None:
     """
     Huey task to sync positions for newly imported accounts
     and notify the frontend via WebSockets.
     Runs in the huey-worker process, isolated from the FastAPI lifecycle.
+
+    ``trigger`` records why the sync ran (``manual`` for a user-initiated import
+    or retry, ``scheduled`` for a background run); it stays last and defaulted so
+    in-flight messages serialized before this field was introduced still work.
     """
     if request_id is None:
         request_id = get_request_id()
@@ -68,6 +160,7 @@ def sync_account_positions_task(  # noqa: PLR0913, PLR0917
                 broker_account_id,
                 broker_class,
                 request_id=request_id,
+                trigger=trigger,
             )
         )
 
@@ -77,6 +170,7 @@ async def _do_sync_positions(
     broker_account_id: BrokerAccountId,
     broker_class: type[BrokerApiGateway],
     svcs_container: Container,
+    builder: _SyncEventBuilder,
 ) -> None:
     security_api = await svcs_container.aget(SecurityApi)
     integration_user_repository = await svcs_container.aget(IntegrationUserRepository)
@@ -93,14 +187,21 @@ async def _do_sync_positions(
         raise IntegrationUserNotFoundError(account.integration_user_id)
 
     broker = await svcs_container.aget(broker_class)
-    broker_positions = await broker.get_positions_by_account(
-        integration_user=integration_user,
-        broker_account_id=broker_account_id,
-    )
+    try:
+        broker_positions = await broker.get_positions_by_account(
+            integration_user=integration_user,
+            broker_account_id=broker_account_id,
+        )
+    except Exception:
+        builder.note_provider_call("positions_fetch", "failed")
+        raise
+    builder.note_provider_call("positions_fetch", "success")
+    builder.positions_seen = len(broker_positions)
 
     position_api = await svcs_container.aget(PositionApi)
 
     positions_api_types = []
+    securities_resolved = 0
     for broker_position in broker_positions:
         security = await security_api.get_or_create_from_broker(
             institution_id=integration_user.institution_id,
@@ -108,12 +209,22 @@ async def _do_sync_positions(
             broker_exchange=broker_position.exchange,
             broker_name=broker_position.name,
         )
+        securities_resolved += 1
 
         positions_api_types.append(
             broker_position.to_position(account_id=account.id, security_id=security.id)
         )
+    builder.note_provider_call("securities_resolved", securities_resolved)
 
-    await position_api.create(positions_api_types)
+    try:
+        persisted_positions = await position_api.create(positions_api_types)
+    except Exception:
+        builder.note_provider_call("positions_persist", "failed")
+        raise
+    builder.note_provider_call("positions_persist", "success")
+    builder.positions_changed = _persisted_position_count(
+        persisted_positions, len(positions_api_types)
+    )
 
     account_api = await svcs_container.aget(AccountApi)
 
@@ -134,23 +245,30 @@ async def _do_sync_positions(
         )
 
     # Sync account details (net_deposits)
-    broker_accounts = await broker.get_accounts(integration_user)
-    broker_account = next(
-        (a for a in broker_accounts if a.id == broker_account_id), None
-    )
-    if broker_account:
-        await account_api.update_net_deposits(
-            account.id,
-            (
-                float(broker_account.net_deposits)
-                if broker_account.net_deposits is not None
-                else None
-            ),
+    try:
+        broker_accounts = await broker.get_accounts(integration_user)
+        broker_account = next(
+            (a for a in broker_accounts if a.id == broker_account_id), None
         )
-        broker_value = float(broker_account.value)
-        await account_api.update_broker_value(account.id, broker_value)
-        await _reconcile_broker_value(account, broker_value, svcs_container)
-        await account_api.update_last_sync_at(account.id)
+        if broker_account:
+            await account_api.update_net_deposits(
+                account.id,
+                (
+                    float(broker_account.net_deposits)
+                    if broker_account.net_deposits is not None
+                    else None
+                ),
+            )
+            broker_value = float(broker_account.value)
+            await account_api.update_broker_value(account.id, broker_value)
+            await _reconcile_broker_value(account, broker_value, svcs_container)
+            await account_api.update_last_sync_at(account.id)
+        builder.note_provider_call(
+            "accounts_reconcile", "success" if broker_account else "skipped"
+        )
+    except Exception:
+        builder.note_provider_call("accounts_reconcile", "failed")
+        raise
 
 
 async def _reconcile_broker_value(
@@ -323,12 +441,13 @@ async def _send_sync_error_email(
     )
 
 
-async def _sync_account_positions_task(
+async def _sync_account_positions_task(  # noqa: PLR0913, PLR0917
     user_id: UserId,
     account: Account,
     broker_account_id: BrokerAccountId,
     broker_class: type[BrokerApiGateway],
     request_id: str | None = None,
+    trigger: str = "manual",
 ) -> None:
     """
     Async implementation of sync_positions_task.
@@ -338,6 +457,7 @@ async def _sync_account_positions_task(
         raise RuntimeError(msg)
 
     req_token = set_request_id(request_id) if request_id else None
+    sync_event = _build_sync_event_builder(user_id, account, trigger)
 
     try:
         async with Container(huey.svcs_registry) as svcs_container:
@@ -358,7 +478,11 @@ async def _sync_account_positions_task(
                 )
 
                 await _do_sync_positions(
-                    account, broker_account_id, broker_class, svcs_container
+                    account,
+                    broker_account_id,
+                    broker_class,
+                    svcs_container,
+                    sync_event,
                 )
 
                 # Send sync_finished websocket message
@@ -368,8 +492,31 @@ async def _sync_account_positions_task(
                     ).model_dump(mode="json"),
                     user_id,
                 )
+
+                _emit_sync_event(
+                    SYNC_COMPLETED_EVENT,
+                    {
+                        **sync_event.base_fields(),
+                        "positions_seen": sync_event.positions_seen,
+                        "positions_changed": sync_event.positions_changed,
+                        "provider_calls": dict(sync_event.provider_calls),
+                        "outcome": "success",
+                        "duration_ms": sync_event.duration_ms(),
+                    },
+                )
             except Exception as exc:
                 logger.exception("Failed to sync positions for account %s", account.id)
+                # Emitted before the mail/websocket side effects so the failure
+                # record survives even when those fail in turn.
+                _emit_sync_event(
+                    SYNC_FAILED_EVENT,
+                    {
+                        **sync_event.base_fields(),
+                        "outcome": "failure",
+                        "error_slug": error_slug_for_error(exc),
+                        "duration_ms": sync_event.duration_ms(),
+                    },
+                )
                 try:
                     await _send_sync_error_email(user_id, account, exc, svcs_container)
                 except Exception:
