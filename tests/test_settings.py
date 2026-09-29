@@ -122,3 +122,36 @@ def test_secret_key_valid_in_prod(monkeypatch, tmp_path):
     assert s.secret_key == "a" * 32
 
 
+def test_otel_settings_defaults(monkeypatch, tmp_path):
+    monkeypatch.chdir(tmp_path)
+    monkeypatch.delenv("OTEL_SDK_DISABLED", raising=False)
+    monkeypatch.delenv("OTEL_EXPORTER_OTLP_ENDPOINT", raising=False)
+    monkeypatch.delenv("OTEL_EXPORTER_OTLP_HEADERS", raising=False)
+    monkeypatch.delenv("DEPLOY_ID", raising=False)
+    monkeypatch.delenv("SERVICE_VERSION", raising=False)
+
+    s = Settings()
+    assert s.otel_sdk_disabled is False
+    assert s.otel_exporter_otlp_endpoint is None
+    assert s.otel_exporter_otlp_headers is None
+    assert s.deploy_id == "dev"
+    assert s.service_version == "0.0.0"
+
+
+def test_otel_settings_env_var_overrides(monkeypatch, tmp_path):
+    monkeypatch.chdir(tmp_path)
+    monkeypatch.setenv("OTEL_SDK_DISABLED", "true")
+    monkeypatch.setenv("OTEL_EXPORTER_OTLP_ENDPOINT", "http://clickstack:4318")
+    monkeypatch.setenv("OTEL_EXPORTER_OTLP_HEADERS", "authorization=token123")
+    monkeypatch.setenv("DEPLOY_ID", "deploy-456")
+    monkeypatch.setenv("SERVICE_VERSION", "1.2.3")
+
+    s = Settings()
+    assert s.otel_sdk_disabled is True
+    assert s.otel_exporter_otlp_endpoint == "http://clickstack:4318"
+    assert s.otel_exporter_otlp_headers == "authorization=token123"
+    assert s.deploy_id == "deploy-456"
+    assert s.service_version == "1.2.3"
+
+
+
