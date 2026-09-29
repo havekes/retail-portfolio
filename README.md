@@ -21,6 +21,10 @@ Using Docker compose is the only supported way to run the application: `docker c
 - Indicator service at `http://127.0.0.1:8004` (override with `INDICATOR_SERVICE_PORT` in root `.env`)
 - MCP gateway at `http://127.0.0.1:8005` (override with `MCP_GATEWAY_PORT` in root `.env`)
 
+### Observability
+
+For local telemetry (ClickStack + Prometheus), run `just obs-up` — see the [Observability runbook](docker/observability/README.md).
+
 ### During development
 
 It is recommended to always run commands from inside the container: `docker compose exec [backend|frontend] <command>`
