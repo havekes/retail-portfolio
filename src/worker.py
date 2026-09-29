@@ -32,6 +32,7 @@ def setup_worker_services():
     from src.observability import (  # noqa: PLC0415
         bootstrap_observability,
         get_tracer,
+        instrument_auto,
     )
 
     init_logging()
@@ -56,6 +57,10 @@ def setup_worker_services():
     import src.config.database  # noqa: PLC0415
 
     src.config.database.sessionmanager = worker_sessionmanager
+
+    # Instrument after the worker engine exists so it is attached explicitly;
+    # engines created later are covered by the global create_engine hooks.
+    instrument_auto()
 
     registry = Registry()
     register_services(registry, worker_sessionmanager)
