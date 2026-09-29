@@ -32,6 +32,7 @@ from src.integration.sync_status import redis_manager
 from src.market.router import market_router
 from src.observability import (
     bootstrap_observability,
+    capture_exception,
     get_tracer,
     instrument_auto,
     shutdown_observability,
@@ -139,6 +140,8 @@ async def cors_exception_middleware(request: Request, call_next: Any) -> Any:
         else:
             logger.exception("Unhandled exception in middleware safety net:")
 
+        capture_exception(exc, service_name="backend", request=request)
+
         allowed_origins = [
             origin.strip() for origin in settings.cors_allow_origins.split(",")
         ]
@@ -245,12 +248,15 @@ async def ping(services: DepContainer) -> dict[str, Any]:
 
 
 @app.exception_handler(Exception)
-async def catch_all_exception_handler(_: Request, exc: Exception):
+async def catch_all_exception_handler(request: Request, exc: Exception):
     # Use a safer logging call to avoid potential formatting errors
     if settings.environment == "dev":
         logger.exception("Unhandled exception caught by FastAPI handler:", exc_info=exc)  # noqa: LOG004
     else:
         logger.exception("Unhandled exception caught by FastAPI handler:")  # noqa: LOG004
+
+    capture_exception(exc, service_name="backend", request=request)
+
     return JSONResponse(
         status_code=500,
         content={
