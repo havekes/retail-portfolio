@@ -24,9 +24,11 @@ async def test_request_id_generated_when_missing():
             assert response.status_code == 200
             assert "X-Request-ID" in response.headers
             header_val = response.headers["X-Request-ID"]
-            # Verify valid UUID format
+            # The auto-instrumentation unifies X-Request-ID with the server
+            # span's trace id (32 hex chars); without an active span a UUID4 is
+            # generated instead. Both forms must round-trip through uuid.UUID.
             parsed_uuid = uuid.UUID(header_val)
-            assert str(parsed_uuid) == header_val
+            assert parsed_uuid.hex == header_val.replace("-", "")
 
 
 @pytest.mark.anyio

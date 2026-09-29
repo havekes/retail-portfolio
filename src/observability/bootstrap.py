@@ -100,10 +100,17 @@ def reset_observability() -> None:
         trace._TRACER_PROVIDER = None  # noqa: SLF001
         if hasattr(trace, "_TRACER_PROVIDER_SET_ONCE"):
             trace._TRACER_PROVIDER_SET_ONCE._done = False  # noqa: SLF001
-        if hasattr(trace, "_PROXY_TRACER_PROVIDER") and hasattr(
-            trace, "ProxyTracerProvider"
-        ):
-            trace._PROXY_TRACER_PROVIDER = trace.ProxyTracerProvider()  # noqa: SLF001
+        # Keep the module-level proxy provider instance: tracers handed out
+        # while no provider was configured delegate through it, so replacing
+        # the object would strand every already-created instrumented tracer.
+        # Reset the delegate (and any cached tracers) instead.
+        proxy_provider = getattr(trace, "_PROXY_TRACER_PROVIDER", None)
+        if proxy_provider is not None:
+            if getattr(proxy_provider, "_provider", None) is not None:
+                proxy_provider._provider = None  # noqa: SLF001
+            tracer_cache = getattr(proxy_provider, "_tracer_cache", None)
+            if isinstance(tracer_cache, dict):
+                tracer_cache.clear()
     except AttributeError, TypeError:
         pass
 
