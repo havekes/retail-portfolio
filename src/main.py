@@ -25,6 +25,7 @@ from src.config.logging import init_logging
 from src.config.services import register_services
 from src.config.settings import settings
 from src.core.exception import AuthorizationError, EntityNotFoundError
+from src.core.metrics import router as metrics_router
 from src.core.middleware import RequestIdMiddleware
 from src.integration.router import institutions_router, integration_router
 from src.integration.sync_status import redis_manager
@@ -175,6 +176,7 @@ v1.include_router(market_router)
 app.include_router(v1)
 app.include_router(ws_router)
 app.include_router(worker_dashboard_router)
+app.include_router(metrics_router)
 
 
 @app.get("/health/live")
