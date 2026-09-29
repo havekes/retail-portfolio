@@ -30,7 +30,7 @@ from src.market.api_types import (
     SecurityId,
     SecuritySearchResult,
 )
-from src.market.gateway import MarketGateway, freshness_lag_ms
+from src.market.gateway import MarketGateway, freshness_lag_ms, record_fetch
 from src.market.repository import (
     IntradayPriceRepository,
     PriceRepository,
@@ -152,11 +152,16 @@ class _RaisingGateway(StubEodhdGateway):
         raise RuntimeError("provider down")
 
 
-def _service(gateway: MarketGateway) -> MarketService:
+def _service(
+    gateway: MarketGateway,
+    *,
+    price_repository: AsyncMock | None = None,
+    security_repository: AsyncMock | None = None,
+) -> MarketService:
     return MarketService(
         gateway=gateway,
-        price_repository=AsyncMock(spec=PriceRepository),
-        security_repository=AsyncMock(spec=SecurityRepository),
+        price_repository=price_repository or AsyncMock(spec=PriceRepository),
+        security_repository=security_repository or AsyncMock(spec=SecurityRepository),
         intraday_price_repository=AsyncMock(spec=IntradayPriceRepository),
     )
 
@@ -283,6 +288,98 @@ async def test_service_price_history_fetch_emits_event(
         datetime.now(UTC).date() - date(2000, 1, 3)
     ).days + 1
     assert isinstance(attributes["freshness_lag_ms"], int)
+
+
+@pytest.mark.anyio
+async def test_service_daily_eod_fetch_emits_event_per_security(
+    span_exporter: InMemorySpanExporter,
+) -> None:
+    securities = [
+        _security(symbol="AAPL", exchange="US"),
+        _security(symbol="MSFT", exchange="US"),
+    ]
+    security_repository = AsyncMock(spec=SecurityRepository)
+    security_repository.get_all_active_securities.return_value = securities
+    service = _service(
+        StubEodhdGateway(api_key=STUB_API_KEY),
+        security_repository=security_repository,
+    )
+
+    result = await service.update_daily_prices_for_all_securities()
+
+    assert result == {"success": 2, "failure": 0}
+    spans = _fetch_spans(span_exporter)
+    assert len(spans) == 2
+    emitted = [dict(span.attributes or {}) for span in spans]
+    assert [attributes["symbol"] for attributes in emitted] == ["AAPL", "MSFT"]
+    for attributes in emitted:
+        assert attributes["event.name"] == "market.data.fetched"
+        assert attributes["dataset"] == "eod"
+        assert attributes["provider"] == "eodhd"
+        assert attributes["exchange"] == "US"
+        assert attributes["outcome"] == "success"
+        assert attributes["duration_ms"] > 0
+        assert attributes["row_count"] > 0
+        assert isinstance(attributes["freshness_lag_ms"], int)
+    _assert_no_secret_material(span_exporter)
+
+
+@pytest.mark.anyio
+async def test_service_daily_eod_failure_emits_event_and_returns_false(
+    span_exporter: InMemorySpanExporter,
+) -> None:
+    security_repository = AsyncMock(spec=SecurityRepository)
+    security_repository.get_all_active_securities.return_value = [_security()]
+    price_repository = AsyncMock(spec=PriceRepository)
+    service = _service(
+        _RaisingGateway(api_key=STUB_API_KEY),
+        price_repository=price_repository,
+        security_repository=security_repository,
+    )
+
+    result = await service.update_daily_prices_for_all_securities()
+
+    # One bad security is counted as a failure, not raised out of the gather.
+    assert result == {"success": 0, "failure": 1}
+    price_repository.save_prices.assert_not_awaited()
+    attributes = _single_fetch_attributes(span_exporter)
+    assert attributes["dataset"] == "eod"
+    assert attributes["symbol"] == "AAPL"
+    assert attributes["exchange"] == "US"
+    assert attributes["provider"] == "eodhd"
+    assert attributes["outcome"] == "failure"
+    assert attributes["error_slug"] == "runtime_error"
+    assert attributes["duration_ms"] > 0
+    assert "row_count" not in attributes
+
+
+def test_record_fetch_failure_emit_does_not_mask_original_exception(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    emissions: list[tuple[str, dict[str, Any]]] = []
+
+    def _raising_emit(name: str, **fields: Any) -> None:
+        emissions.append((name, fields))
+        raise RuntimeError("telemetry backend down")
+
+    monkeypatch.setattr("src.market.gateway.emit_event", _raising_emit)
+
+    with (
+        pytest.raises(RuntimeError, match="provider down"),
+        record_fetch(symbol="AAPL", dataset="eod", exchange="US"),
+    ):
+        raise RuntimeError("provider down")
+
+    # Exactly one failure event was attempted, and it did not replace the
+    # provider exception that was in flight.
+    assert len(emissions) == 1
+    name, fields = emissions[0]
+    assert name == "market.data.fetched"
+    assert fields["dataset"] == "eod"
+    assert fields["symbol"] == "AAPL"
+    assert fields["exchange"] == "US"
+    assert fields["outcome"] == "failure"
+    assert fields["error_slug"] == "runtime_error"
 
 
 @pytest.mark.anyio
