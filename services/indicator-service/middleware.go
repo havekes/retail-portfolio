@@ -5,8 +5,11 @@ import (
 	"context"
 	"crypto/rand"
 	"encoding/hex"
+	"fmt"
 	"net"
 	"net/http"
+	"os"
+	"time"
 
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/attribute"
@@ -34,11 +37,13 @@ func withRequestID(ctx context.Context, id string) context.Context {
 	return context.WithValue(ctx, requestIDKey{}, id)
 }
 
-// newRequestID generates a random correlation id.
+// newRequestID generates a random correlation id, falling back to a
+// time/pid-derived value when the entropy source fails so callers never see an
+// empty id.
 func newRequestID() string {
 	buf := make([]byte, 16)
 	if _, err := rand.Read(buf); err != nil {
-		return ""
+		return fmt.Sprintf("fallback-%x-%x", time.Now().UnixNano(), os.Getpid())
 	}
 	return hex.EncodeToString(buf)
 }
