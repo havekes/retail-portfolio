@@ -136,3 +136,88 @@ async def test_get_user_holdings_groups_by_account_and_stamps_context():
     position_repository.get_by_user.assert_awaited_once_with(user_id, 0, 50)
     # Account context is resolved once per account, not once per position.
     assert account_service.get_account.await_count == 2
+
+
+@pytest.mark.anyio
+async def test_get_total_for_account_includes_free_cash():
+    """Verify get_total_for_account adds account free_cash to totals.value and totals.cost."""
+    account_id = uuid4()
+    account = _account(account_id, "Test Account")
+    account.free_cash = 250.0
+
+    security = _security(uuid4())
+    position = _position(1, account_id, security.id, "10")
+
+    position_repository = AsyncMock(spec=PositionRepository)
+    position_repository.get_by_account = AsyncMock(return_value=([position], 1))
+
+    account_service = AsyncMock(spec=AccountService)
+    account_service.get_account = AsyncMock(return_value=account)
+
+    security_service = AsyncMock(spec=SecurityApi)
+    security_service.get_by_id = AsyncMock(return_value=security)
+
+    market_prices = AsyncMock(spec=MarketPricesApi)
+    from stockholm import Money
+    market_prices.get_latest_close = AsyncMock(return_value=Money(100.0, "USD"))
+
+    service = PositionService(
+        account_service=account_service,
+        fx_rates=CurrencyConverter(),
+        integration_account_api=AsyncMock(),
+        integration_user_api=AsyncMock(),
+        market_prices=market_prices,
+        position_repository=position_repository,
+        security_service=security_service,
+    )
+
+    totals = await service.get_total_for_account(account_id, Currency("USD"))
+
+    # cost: 10 * $10 (avg_cost) + $250 (free cash) = $350
+    assert float(totals.cost.amount) == 350.0
+    # value: 10 * $100 (market close) + $250 (free cash) = $1250
+    assert float(totals.value.amount) == 1250.0
+
+
+@pytest.mark.anyio
+async def test_get_account_holdings_includes_free_cash():
+    """Verify get_account_holdings adds free_cash to total_value and reflects in P/L."""
+    account_id = uuid4()
+    account = _account(account_id, "Test Account")
+    account.free_cash = 500.0
+    account.net_deposits = 1000.0
+
+    security = _security(uuid4())
+    position = _position(1, account_id, security.id, "10")
+
+    position_repository = AsyncMock(spec=PositionRepository)
+    position_repository.get_by_account = AsyncMock(return_value=([position], 1))
+
+    account_service = AsyncMock(spec=AccountService)
+    account_service.get_account = AsyncMock(return_value=account)
+
+    security_service = AsyncMock(spec=SecurityApi)
+    security_service.get_by_id = AsyncMock(return_value=security)
+
+    market_prices = AsyncMock(spec=MarketPricesApi)
+    market_prices.get_latest_price = AsyncMock(return_value=_price(security.id))
+
+    service = PositionService(
+        account_service=account_service,
+        fx_rates=CurrencyConverter(),
+        integration_account_api=AsyncMock(),
+        integration_user_api=AsyncMock(),
+        market_prices=market_prices,
+        position_repository=position_repository,
+        security_service=security_service,
+    )
+
+    holdings_read = await service.get_account_holdings(account_id, offset=0, limit=50)
+
+    # 10 * 100 (price) + 500 (free cash) = 1500
+    assert holdings_read.total_value == 1500.0
+    # 1500 (value) - 1000 (net deposits) = 500
+    assert holdings_read.total_profit_loss == 500.0
+    # 500 / 1000 * 100 = 50.0%
+    assert holdings_read.total_profit_loss_percent == 50.0
+    assert holdings_read.free_cash == 500.0
