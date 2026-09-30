@@ -6,6 +6,11 @@ account sync status). The autouse ``fake_redis_manager`` fixture replaces that
 singleton's client with an in-memory fake, so the whole suite runs without a
 Redis server or DNS. Tests that need to inspect stored keys can request the
 ``mock_redis_storage`` fixture.
+
+The fake also covers pub/sub: :class:`FakePubSub` registers its subscriptions on
+the owning fake Redis, which fans published messages out to every subscriber's
+queue, so a real ``ConnectionManager`` listener can be driven end to end with no
+Redis server.
 """
 
 from __future__ import annotations

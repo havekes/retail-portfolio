@@ -168,7 +168,7 @@ The application emitters always emit; sampling happens **only** in the gateway. 
 | 2 | `error-slug-present` | `string_attribute` (`error_slug`, regex `.+`) | Retains 100% of traces carrying a non-empty `error_slug` |
 | 3 | `success-bulk` | `probabilistic` | Retains `OTEL_SAMPLER_SUCCESS_PERCENT`% (default **7**, band **5-10**) of everything else |
 
-Tail sampling stops at the first matching policy, so the probabilistic bulk can never shadow a failure.
+The policy set is a union — a trace is kept if *any* policy matches — so the probabilistic bulk can never shadow a failure, regardless of order.
 
 `transform/error_marking` runs *before* the sampler and promotes the wide-event failure signals to span status `ERROR`, mirroring `_error_reason()` in `src/observability/events.py`: a truthy `error_slug`, an `outcome` of `failed`/`failure`/`error`, and — because an int `status` is invisible to the application-side heuristic — `http.request` with `status == 500`.
 
@@ -270,7 +270,7 @@ docker run --rm \
   otel/opentelemetry-collector-contrib:0.161.0 \
   validate --config /etc/otelcol/config.yaml
 ```
-Both environment variables must be set (the compose service defaults them). The parse-only policy assertions live in `tests/observability/test_sampling_config.py`.
+`HYPERDX_API_KEY` must be set (the compose service defaults it); `OTEL_SAMPLER_SUCCESS_PERCENT` falls back to its inline `7` default. The parse-only policy assertions live in `tests/observability/test_sampling_config.py`.
 
 ---
 

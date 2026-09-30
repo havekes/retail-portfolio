@@ -81,7 +81,7 @@ func resourceAttributes(t *testing.T) map[string]string {
 
 	attrs := map[string]string{}
 	for _, attr := range BuildResource().Attributes() {
-		attrs[string(attr.Key)] = attr.Value.Emit()
+		attrs[string(attr.Key)] = attr.Value.String()
 	}
 	return attrs
 }
