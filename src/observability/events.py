@@ -44,6 +44,12 @@ ATTRIBUTE_TIMESTAMP_UNIX_MILLIS = "timestamp_unix_millis"
 #: Field values that mark an event as a failure worth retaining unconditionally.
 FAILURE_OUTCOMES: frozenset[str] = frozenset({"error", "failed", "failure"})
 
+#: Span status description set when an integer ``status`` is a 5xx.
+HTTP_ERROR_STATUS_REASON = "http_status_5xx"
+
+#: Lowest integer HTTP status treated as a server failure.
+HTTP_SERVER_ERROR_STATUS = 500
+
 _PRIMITIVE_TYPES: tuple[type, ...] = (bool, int, float, str)
 _RESOURCE_ATTRIBUTE_KEYS: tuple[tuple[str, str], ...] = (
     (ATTRIBUTE_SERVICE_NAME, "service.name"),
@@ -161,6 +167,14 @@ def _error_reason(fields: dict[str, Any]) -> str | None:
         value = fields.get(key)
         if isinstance(value, str) and value.strip().lower() in FAILURE_OUTCOMES:
             return value.strip().lower()
+    status = fields.get("status")
+    # ``bool`` subclasses ``int``; a boolean status is never an HTTP 5xx.
+    if (
+        isinstance(status, int)
+        and not isinstance(status, bool)
+        and status >= HTTP_SERVER_ERROR_STATUS
+    ):
+        return HTTP_ERROR_STATUS_REASON
     return None
 
 
