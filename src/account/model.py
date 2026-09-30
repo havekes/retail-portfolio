@@ -50,6 +50,7 @@ class AccountModel(BaseModel):
     currency: Mapped[str] = mapped_column(String)
     broker_display_name: Mapped[str | None] = mapped_column(String, nullable=True)
     net_deposits: Mapped[Decimal | None] = mapped_column(Float, nullable=True)
+    free_cash: Mapped[float] = mapped_column(Float, default=0.0, server_default="0.0")
     is_active: Mapped[bool] = mapped_column(Boolean, default=True)
     api_sync_enabled: Mapped[bool] = mapped_column(Boolean, default=True)
     created_at: Mapped[datetime] = mapped_column(

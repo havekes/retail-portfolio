@@ -776,6 +776,41 @@ async def test_sqlalchemy_security_broker_repository_get_by_broker(
 
 
 @pytest.mark.anyio
+async def test_sqlalchemy_security_repository_get_or_create_updates_currency(
+    db_session: AsyncSession,
+):
+    """Test that get_or_create updates existing security's currency when it differs."""
+    security_repo = SqlAlchemySecurityRepository(db_session)
+
+    initial_schema = SecuritySchema(
+        id=uuid.uuid4(),
+        symbol="CURRTEST",
+        exchange="TO",
+        currency="USD",
+        name="Currency Test Security",
+        isin=None,
+        is_active=True,
+        updated_at=datetime.datetime.now(datetime.UTC),
+    )
+    created = await security_repo.get_or_create(initial_schema)
+    assert created.currency == "USD"
+
+    updated_schema = SecuritySchema(
+        id=uuid.uuid4(),
+        symbol="CURRTEST",
+        exchange="TO",
+        currency="CAD",
+        name="Currency Test Security",
+        isin=None,
+        is_active=True,
+        updated_at=datetime.datetime.now(datetime.UTC),
+    )
+    fetched = await security_repo.get_or_create(updated_schema)
+    assert fetched.id == created.id
+    assert fetched.currency == "CAD"
+
+
+@pytest.mark.anyio
 async def test_account_repository_delete_cascades(
     db_session: AsyncSession, seed_reference_data: None
 ):

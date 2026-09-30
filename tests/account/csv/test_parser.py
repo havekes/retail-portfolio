@@ -48,6 +48,7 @@ def test_parser_valid_single_account():
     assert acc.account_type_id == AccountTypeEnum.TFSA
     assert acc.account_type_name == "TFSA"
     assert acc.currency == "CAD"
+    assert acc.free_cash == 500.0
     assert acc.positions_count == 1
     assert len(acc.positions) == 1
 
@@ -282,4 +283,72 @@ def test_parser_ignores_option_rows():
     assert acc.positions_count == 1
     assert len(acc.positions) == 1
     assert acc.positions[0].symbol == "VGRO"
+
+
+def test_is_cash_row_distinguishes_etf_from_cash():
+    """Verify is_cash_row does not flag ETFs/equities named CASH as cash, but flags currency/cash."""
+    # ETF / Equity with symbol "CASH" is NOT a cash row
+    assert is_cash_row("CASH", "EXCHANGE_TRADED_FUND") is False
+    assert is_cash_row("CASH", "ETF") is False
+    assert is_cash_row("CASH", "Equity") is False
+    assert is_cash_row("CASH", "Stock") is False
+    assert is_cash_row("CASH", "Mutual_Fund") is False
+    assert is_cash_row("CASH", "Exchange Traded Fund") is False
+
+    # Actual cash / currency rows
+    assert is_cash_row("CASH", "Cash") is True
+    assert is_cash_row("CASH", None) is True
+    assert is_cash_row("CAD", "CURRENCY") is True
+    assert is_cash_row("USD", "CURRENCY") is True
+    assert is_cash_row("sec-c-cad", "Cash") is True
+    assert is_cash_row("sec-c-usd", "Cash") is True
+    assert is_cash_row(None, "Cash") is True
+    assert is_cash_row("", "Cash") is True
+
+
+def test_parser_parses_cash_etf_as_position():
+    """Verify Wealthsimple CSV row for ETF with symbol CASH is parsed as a position."""
+    csv_content = (
+        f"{WS_HEADER}\n"
+        "My TFSA,Tax-Free Savings Account,Personal,W123456789,"
+        "CASH,TSX,XTSE,Global X High Interest Savings ETF,EXCHANGE_TRADED_FUND,200,LONG,"
+        "50.00,CAD,10000.00,CAD,10000.00,CAD,10000.00,CAD,0.00,CAD\n"
+    )
+
+    accounts = GenericCsvParser.parse(csv_content, WEALTHSIMPLE_CSV_FORMAT)
+
+    assert len(accounts) == 1
+    acc = accounts[0]
+    assert acc.positions_count == 1
+    assert len(acc.positions) == 1
+    assert acc.positions[0].symbol == "CASH"
+    assert acc.positions[0].quantity == Decimal("200")
+    assert acc.positions[0].average_cost == Decimal("50.0000")
+    assert acc.free_cash == 0.0
+
+
+def test_parser_accumulates_currency_rows_into_free_cash():
+    """Verify CURRENCY rows accumulate into free_cash and are not included in positions."""
+    csv_content = (
+        f"{WS_HEADER}\n"
+        "My TFSA,Tax-Free Savings Account,Personal,W123456789,"
+        "CAD,TSX,,Canadian Dollar,CURRENCY,1250.50,LONG,"
+        "1.00,CAD,1250.50,CAD,1250.50,CAD,1250.50,CAD,0.00,CAD\n"
+        "My TFSA,Tax-Free Savings Account,Personal,W123456789,"
+        "sec-c-cad,TSX,,Canadian Dollar,Cash,750.25,LONG,"
+        "1.00,CAD,750.25,CAD,750.25,CAD,750.25,CAD,0.00,CAD\n"
+        "My TFSA,Tax-Free Savings Account,Personal,W123456789,"
+        "VGRO,TSX,XTSE,Vanguard Growth ETF Portfolio,Equity,100,LONG,"
+        "32.50,CAD,3000.00,CAD,3000.00,CAD,3250.00,CAD,250.00,CAD\n"
+    )
+
+    accounts = GenericCsvParser.parse(csv_content, WEALTHSIMPLE_CSV_FORMAT)
+
+    assert len(accounts) == 1
+    acc = accounts[0]
+    assert acc.free_cash == 2000.75
+    assert acc.positions_count == 1
+    assert len(acc.positions) == 1
+    assert acc.positions[0].symbol == "VGRO"
+
 

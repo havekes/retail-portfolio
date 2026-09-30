@@ -36,6 +36,7 @@ class AccountSchema(BaseModel):
     currency: Currency
     broker_display_name: str | None = None
     net_deposits: float | None = None
+    free_cash: float = 0.0
     is_active: bool = True
     api_sync_enabled: bool = True
     created_at: datetime | None = None
@@ -181,6 +182,7 @@ class AccountHoldingsRead(PaginatedResponse[HoldingRead]):
     total_profit_loss: float
     total_profit_loss_percent: float | None = None
     net_deposits: float | None = None
+    free_cash: float = 0.0
     currency: str
 
 

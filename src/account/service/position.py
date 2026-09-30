@@ -173,6 +173,10 @@ class PositionService:
             account, all_positions
         )
 
+        if account.free_cash:
+            free_cash_money = Money(account.free_cash, account.currency)
+            total_value += free_cash_money
+
         # Fetch paginated positions
         positions, total = await self._position_repository.get_by_account(
             account_id, offset=offset, limit=limit
@@ -201,6 +205,7 @@ class PositionService:
             total_profit_loss=float(total_profit_loss.amount),
             total_profit_loss_percent=total_profit_loss_percent,
             net_deposits=account.net_deposits,
+            free_cash=account.free_cash,
             currency=str(account.currency),
         )
 
@@ -208,6 +213,7 @@ class PositionService:
         self, account_id: AccountId, currency: BaseCurrency
     ) -> AccountTotals:
         """Calculate total cost and current value for an account in a currency."""
+        account = await self._account_service.get_account(account_id)
         positions, _ = await self._position_repository.get_by_account(account_id)
 
         total_cost = Money(0, currency)
@@ -224,6 +230,12 @@ class PositionService:
             total_price = total_price + self._currency_convert(
                 unconverted_price, str(currency)
             )
+
+        if account.free_cash:
+            free_cash_money = Money(account.free_cash, account.currency)
+            converted_cash = self._currency_convert(free_cash_money, str(currency))
+            total_cost = total_cost + converted_cash
+            total_price = total_price + converted_cash
 
         return AccountTotals(
             cost=total_cost,
@@ -278,9 +290,10 @@ class PositionService:
 
     def _compute_cost(self, position: PositionSchema, security: Security) -> Money:
         """Compute the total cost for a position based on quantity and average cost."""
+        position_currency = position.currency or str(security.currency)
         cost = round(position.quantity * (position.average_cost or 0), 2)
 
-        return Money(cost, security.currency)
+        return Money(cost, position_currency)
 
     def _currency_convert(self, value: Money, to_currency: str) -> Money:
         """Convert a Money amount to the specified target currency."""
@@ -315,7 +328,10 @@ class PositionService:
         # Base values in native stock currency
         unconverted_total_value = round(current_price_money * quantity, 2)
         unconverted_cost = Money(round(quantity * avg_cost, 2), position_currency)
-        unconverted_pl = unconverted_total_value - unconverted_cost
+        converted_unconverted_total_value = self._currency_convert(
+            unconverted_total_value, position_currency
+        )
+        unconverted_pl = converted_unconverted_total_value - unconverted_cost
 
         # Converted values in account currency
         value_money = self._currency_convert(
@@ -351,7 +367,7 @@ class PositionService:
             profit_loss=float(pl_money.amount),
             currency=str(account.currency),
             security_currency=position_currency,
-            unconverted_total_value=float(unconverted_total_value.amount),
+            unconverted_total_value=float(converted_unconverted_total_value.amount),
             converted_average_cost=float(converted_average_cost.amount),
             converted_latest_price=float(converted_latest_price.amount),
             unconverted_profit_loss=float(unconverted_pl.amount),

@@ -62,7 +62,7 @@ describe('AccountInlineHoldings', () => {
 		}
 	];
 
-	it('renders table headers Symbol, Quantity, Price, Total Value, and Return', () => {
+	it('renders table headers Symbol, Account Value, Price, and Return', () => {
 		render(AccountInlineHoldings, {
 			props: {
 				holdings: sampleHoldings,
@@ -71,10 +71,24 @@ describe('AccountInlineHoldings', () => {
 		});
 
 		expect(screen.getByRole('columnheader', { name: 'Symbol' })).toBeInTheDocument();
-		expect(screen.getByRole('columnheader', { name: 'Quantity' })).toBeInTheDocument();
+		expect(screen.getByRole('columnheader', { name: 'Account Value' })).toBeInTheDocument();
 		expect(screen.getByRole('columnheader', { name: 'Price' })).toBeInTheDocument();
-		expect(screen.getByRole('columnheader', { name: 'Total Value' })).toBeInTheDocument();
 		expect(screen.getByRole('columnheader', { name: 'Return' })).toBeInTheDocument();
+		expect(screen.queryByRole('columnheader', { name: 'Quantity' })).not.toBeInTheDocument();
+		expect(screen.queryByRole('columnheader', { name: 'Total Value' })).not.toBeInTheDocument();
+	});
+
+	it('renders Account Value with formatCurrency for each holding', () => {
+		render(AccountInlineHoldings, {
+			props: {
+				holdings: sampleHoldings,
+				accountCurrency: 'CAD'
+			}
+		});
+
+		expect(screen.getByText('$4,500.00')).toBeInTheDocument();
+		expect(screen.getByText('$1,500.00')).toBeInTheDocument();
+		expect(screen.getByText('$5,000.00')).toBeInTheDocument();
 	});
 
 	it('renders symbols and links to /security/[id]', () => {
@@ -93,7 +107,7 @@ describe('AccountInlineHoldings', () => {
 		expect(bnsLink).toHaveAttribute('href', '/security/sec-2');
 	});
 
-	it('renders positive return with + prefix and negative return with - prefix', () => {
+	it('renders return percentage pill and signed currency amount', () => {
 		render(AccountInlineHoldings, {
 			props: {
 				holdings: sampleHoldings,
@@ -101,10 +115,16 @@ describe('AccountInlineHoldings', () => {
 			}
 		});
 
-		// TD: positive return (+500)
+		// TD: positive return (+12.50% pill, +$500.00 currency below)
+		const tdPill = screen.getByText('+12.50%');
+		expect(tdPill).toBeInTheDocument();
+		expect(tdPill).toHaveClass('text-emerald-600');
 		expect(screen.getByText(/\+\$500\.00/)).toBeInTheDocument();
 
-		// BNS: negative return (-250)
+		// BNS: negative return (-14.29% pill, -$250.00 currency below)
+		const bnsPill = screen.getByText('-14.29%');
+		expect(bnsPill).toBeInTheDocument();
+		expect(bnsPill).toHaveClass('text-rose-600');
 		expect(screen.getByText(/-\$250\.00/)).toBeInTheDocument();
 	});
 

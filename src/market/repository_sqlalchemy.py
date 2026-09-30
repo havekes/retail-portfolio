@@ -96,6 +96,10 @@ class SqlAlchemySecurityRepository(SecurityRepository):
         existing_security = existing.scalar_one_or_none()
 
         if existing_security:
+            if existing_security.currency != security.currency:
+                existing_security.currency = security.currency
+                await self._session.commit()
+                await self._session.refresh(existing_security)
             return SecuritySchema.model_validate(existing_security)
 
         # If not exists, insert the new security
