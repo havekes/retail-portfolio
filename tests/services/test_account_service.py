@@ -60,6 +60,14 @@ class MockAccountRepository(AccountRepository):
         pass
 
     @override
+    async def update_free_cash(
+        self, account_id: AccountId, free_cash: float
+    ) -> None:
+        for account in self.accounts:
+            if account.id == account_id:
+                account.free_cash = free_cash
+
+    @override
     async def update_currency(
         self, account_id: AccountId, currency: str
     ) -> AccountSchema:

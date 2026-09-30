@@ -164,6 +164,13 @@ class SqlAlchemyAccountRepository(AccountRepository):
             await self._session.commit()
 
     @override
+    async def update_free_cash(self, account_id: AccountId, free_cash: float) -> None:
+        account_model = await self._session.get(AccountModel, account_id)
+        if account_model:
+            account_model.free_cash = free_cash
+            await self._session.commit()
+
+    @override
     async def update_currency(
         self, account_id: AccountId, currency: str
     ) -> AccountSchema:
