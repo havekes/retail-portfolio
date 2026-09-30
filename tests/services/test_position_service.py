@@ -221,3 +221,48 @@ async def test_get_account_holdings_includes_free_cash():
     # 500 / 1000 * 100 = 50.0%
     assert holdings_read.total_profit_loss_percent == 50.0
     assert holdings_read.free_cash == 500.0
+
+
+@pytest.mark.anyio
+async def test_get_account_holdings_currency_mismatch_position_cad_security_usd():
+    """Verify get_account_holdings computes without CurrencyMismatchError when position.currency == 'CAD' and security.currency == 'USD'."""
+    account_id = uuid4()
+    account = _account(account_id, "Test Account")
+    account.currency = Currency("CAD")
+
+    security = _security(uuid4())
+    security.currency = Currency("USD")
+
+    position = _position(1, account_id, security.id, "10")
+    position.currency = "CAD"
+    position.average_cost = Decimal("12.0")
+
+    position_repository = AsyncMock(spec=PositionRepository)
+    position_repository.get_by_account = AsyncMock(return_value=([position], 1))
+
+    account_service = AsyncMock(spec=AccountService)
+    account_service.get_account = AsyncMock(return_value=account)
+
+    security_service = AsyncMock(spec=SecurityApi)
+    security_service.get_by_id = AsyncMock(return_value=security)
+
+    market_prices = AsyncMock(spec=MarketPricesApi)
+    market_prices.get_latest_price = AsyncMock(return_value=_price(security.id))
+
+    service = PositionService(
+        account_service=account_service,
+        fx_rates=CurrencyConverter(),
+        integration_account_api=AsyncMock(),
+        integration_user_api=AsyncMock(),
+        market_prices=market_prices,
+        position_repository=position_repository,
+        security_service=security_service,
+    )
+
+    holdings_read = await service.get_account_holdings(account_id, offset=0, limit=50)
+
+    assert len(holdings_read.items) == 1
+    holding = holdings_read.items[0]
+    assert holding.security_currency == "CAD"
+    assert holding.unconverted_total_value > 0
+    assert holding.unconverted_profit_loss is not None

@@ -290,9 +290,10 @@ class PositionService:
 
     def _compute_cost(self, position: PositionSchema, security: Security) -> Money:
         """Compute the total cost for a position based on quantity and average cost."""
+        position_currency = position.currency or str(security.currency)
         cost = round(position.quantity * (position.average_cost or 0), 2)
 
-        return Money(cost, security.currency)
+        return Money(cost, position_currency)
 
     def _currency_convert(self, value: Money, to_currency: str) -> Money:
         """Convert a Money amount to the specified target currency."""
@@ -327,7 +328,10 @@ class PositionService:
         # Base values in native stock currency
         unconverted_total_value = round(current_price_money * quantity, 2)
         unconverted_cost = Money(round(quantity * avg_cost, 2), position_currency)
-        unconverted_pl = unconverted_total_value - unconverted_cost
+        converted_unconverted_total_value = self._currency_convert(
+            unconverted_total_value, position_currency
+        )
+        unconverted_pl = converted_unconverted_total_value - unconverted_cost
 
         # Converted values in account currency
         value_money = self._currency_convert(
@@ -363,7 +367,7 @@ class PositionService:
             profit_loss=float(pl_money.amount),
             currency=str(account.currency),
             security_currency=position_currency,
-            unconverted_total_value=float(unconverted_total_value.amount),
+            unconverted_total_value=float(converted_unconverted_total_value.amount),
             converted_average_cost=float(converted_average_cost.amount),
             converted_latest_price=float(converted_latest_price.amount),
             unconverted_profit_loss=float(unconverted_pl.amount),
