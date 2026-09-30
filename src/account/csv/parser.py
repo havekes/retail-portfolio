@@ -141,7 +141,7 @@ def _parse_cash_amount(row_dict: dict[str, str]) -> float:
             try:
                 cleaned = val_str.replace(",", "").replace("$", "")
                 return float(Decimal(cleaned))
-            except InvalidOperation, ValueError:
+            except (InvalidOperation, ValueError):  # fmt: skip
                 continue
     return 0.0
 

@@ -588,7 +588,7 @@ describe('AccountsListItem', () => {
 			expect(renameOption).toHaveAttribute('data-variant', 'default');
 			expect(renameOption.querySelector('svg')).toBeInTheDocument();
 
-			const deleteOption = await screen.findByRole('menuitem', { name: /Delete/i });
+			const deleteOption = await screen.findByRole('menuitem', { name: /^Delete$/i });
 			expect(deleteOption).toBeInTheDocument();
 			expect(deleteOption).toHaveAttribute('data-variant', 'destructive');
 			expect(deleteOption.querySelector('svg')).toBeInTheDocument();
