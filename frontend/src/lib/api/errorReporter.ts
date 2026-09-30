@@ -259,15 +259,23 @@ export interface ErrorToastTarget {
  * is rendered in the toast so support can paste it straight into HyperDX; for
  * anything else the last browser trace id is used as context. The caller keeps
  * ownership of the user-facing message.
+ *
+ * Client errors (4xx) are expected outcomes the caller already renders, so they
+ * are not reported to the error inbox (F-OBS-FIX-T03) — the toast and its
+ * correlation id still fire for every failure. Server errors (5xx) and anything
+ * that is not an `ApiError` are reported. `transport` is injectable for tests,
+ * mirroring `reportError`.
  */
 export function showToastForApiError(
 	error: unknown,
 	fallbackMessage: string,
-	target: ErrorToastTarget = toast
+	target: ErrorToastTarget = toast,
+	transport: ErrorTransport | null = defaultTransport
 ): unknown {
 	const correlationId = correlationIdFor(error);
 
-	void reportError(error, { correlationId });
+	const isHandledClientError = error instanceof ApiError && error.status < 500;
+	if (!isHandledClientError) void reportError(error, { correlationId }, transport);
 
 	return correlationId
 		? target.error(fallbackMessage, { correlationId })
