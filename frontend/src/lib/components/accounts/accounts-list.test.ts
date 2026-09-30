@@ -246,3 +246,41 @@ describe('AccountsList - Account deletion flow', () => {
 		expect(toast.success).toHaveBeenCalledWith('Account deleted successfully');
 	});
 });
+
+describe('AccountsList - Settings and Group by', () => {
+	beforeEach(() => {
+		vi.clearAllMocks();
+		class MockWebSocket {
+			onopen: (() => void) | null = null;
+			onmessage: ((e: MessageEvent) => void) | null = null;
+			onclose: (() => void) | null = null;
+			close = vi.fn();
+		}
+		global.WebSocket = MockWebSocket as unknown as typeof WebSocket;
+
+		vi.mocked(accountClient.getAccounts).mockResolvedValue(mockAccounts);
+		vi.mocked(accountClient.getSyncStatus).mockResolvedValue({ account_ids: [] });
+		vi.mocked(brokerClient.getAvailableInstitutions).mockResolvedValue([]);
+	});
+
+	it('renders Settings icon button and clicking it opens dropdown with "Group by" section and options', async () => {
+		render(AccountsList, {
+			props: {
+				accounts: mockAccounts
+			}
+		});
+
+		const settingsBtn = screen.getByRole('button', { name: 'Settings' });
+		expect(settingsBtn).toBeInTheDocument();
+		expect(settingsBtn.querySelector('svg')).toBeInTheDocument();
+
+		await fireEvent.click(settingsBtn);
+
+		await waitFor(() => {
+			expect(screen.getByText('Group by')).toBeInTheDocument();
+			expect(screen.getByText('None')).toBeInTheDocument();
+			expect(screen.getByText('Institution')).toBeInTheDocument();
+			expect(screen.getByText('Account type')).toBeInTheDocument();
+		});
+	});
+});

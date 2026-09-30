@@ -3,7 +3,7 @@
 	import { Skeleton } from '../ui/skeleton';
 	import * as DropdownMenu from '../ui/dropdown-menu';
 	import Button from '../ui/button/button.svelte';
-	import ChevronDown from '@lucide/svelte/icons/chevron-down';
+	import Settings2 from '@lucide/svelte/icons/settings-2';
 	import { onMount, untrack, getContext, setContext } from 'svelte';
 	import { page } from '$app/stores';
 	import { SvelteSet } from 'svelte/reactivity';
@@ -56,24 +56,26 @@
 			<DropdownMenu.Root>
 				<DropdownMenu.Trigger>
 					{#snippet child({ props })}
-						<Button {...props} variant="outline">
-							Group by: {state.groupByLabels[state.groupBy]}
-							<ChevronDown />
+						<Button {...props} variant="outline" size="icon" aria-label="Settings" title="Settings">
+							<Settings2 class="h-4 w-4" />
 						</Button>
 					{/snippet}
 				</DropdownMenu.Trigger>
-				<DropdownMenu.Content>
-					<DropdownMenu.RadioGroup bind:value={state.groupBy}>
-						<DropdownMenu.RadioItem value="none">
-							{state.groupByLabels.none}
-						</DropdownMenu.RadioItem>
-						<DropdownMenu.RadioItem value="institution">
-							{state.groupByLabels.institution}
-						</DropdownMenu.RadioItem>
-						<DropdownMenu.RadioItem value="accountType">
-							{state.groupByLabels.accountType}
-						</DropdownMenu.RadioItem>
-					</DropdownMenu.RadioGroup>
+				<DropdownMenu.Content align="end">
+					<DropdownMenu.Group>
+						<DropdownMenu.Label>Group by</DropdownMenu.Label>
+						<DropdownMenu.RadioGroup bind:value={state.groupBy}>
+							<DropdownMenu.RadioItem value="none">
+								{state.groupByLabels.none}
+							</DropdownMenu.RadioItem>
+							<DropdownMenu.RadioItem value="institution">
+								{state.groupByLabels.institution}
+							</DropdownMenu.RadioItem>
+							<DropdownMenu.RadioItem value="accountType">
+								{state.groupByLabels.accountType}
+							</DropdownMenu.RadioItem>
+						</DropdownMenu.RadioGroup>
+					</DropdownMenu.Group>
 				</DropdownMenu.Content>
 			</DropdownMenu.Root>
 		</div>

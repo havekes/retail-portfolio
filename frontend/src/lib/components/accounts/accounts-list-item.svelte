@@ -2,9 +2,10 @@
 	import { getAccountTypeLabel, getInstitutionLabel, type Account } from '@/types/account';
 	import { Badge } from '$lib/components/ui/badge/index.js';
 	import { Checkbox } from '$lib/components/ui/checkbox/index.js';
-	import EditableTitle from '../forms/editable-title.svelte';
 	import Skeleton from '../ui/skeleton/skeleton.svelte';
-	import { money, moneyToNumber } from '@/types/money';
+	import { moneyToNumber } from '@/types/money';
+	import TotalProfitLossButtons from '../total-profit-loss-buttons.svelte';
+	import RenameAccountModal from './rename-account-modal.svelte';
 	import * as Tooltip from '../ui/tooltip';
 	import { buttonVariants } from '../ui/button';
 	import { AccountsListItemState } from './accounts-list-item.svelte.js';
@@ -24,6 +25,7 @@
 	import { cn } from '$lib/utils.js';
 	import { getContext, untrack } from 'svelte';
 	import { page } from '$app/stores';
+	import { resolve } from '$app/paths';
 	import { SvelteSet } from 'svelte/reactivity';
 	import { userPreferencesService } from '$lib/api/userPreferencesService.js';
 
@@ -86,22 +88,11 @@
 	const itemState = new AccountsListItemState(() => account.id, isInitiallyExpanded);
 	const csvModalState = new ModalState<void>();
 	let showDeleteModal = $state(false);
-	let isEditingTitle = $state(false);
+	let showRenameModal = $state(false);
 	let localSyncOverride = $state<Date | null>(null);
 	const effectiveLastSyncAt = $derived(localSyncOverride ?? account.last_sync_at);
 	let lastKnownSyncAt: Date | string | null | undefined;
 	let wasSyncing = false;
-
-	const formatCurrency = (amount: number, currency: string) => {
-		try {
-			return new Intl.NumberFormat('en-CA', {
-				style: 'currency',
-				currency: currency
-			}).format(amount);
-		} catch {
-			return `$${amount.toFixed(2)}`;
-		}
-	};
 
 	function toggleExpanded() {
 		itemState.toggleExpanded();
@@ -159,48 +150,28 @@
 						<ChevronRight class="h-4 w-4" />
 					{/if}
 				</Button>
-				<EditableTitle
-					value={account.name}
-					onSave={onRename}
-					action="?/renameAccount"
-					id={account.id}
-					href={`/accounts/${account.id}`}
-					showEditButton={false}
-					bind:isEditing={isEditingTitle}
-					linkClass="rounded-md px-2 py-1 transition-colors hover:bg-background/60 dark:hover:bg-background/60 hover:no-underline"
-				/>
+				<a
+					href={resolve(`/accounts/${account.id}`)}
+					class="rounded-md px-2 py-1 font-medium transition-colors hover:bg-background/60 hover:no-underline dark:hover:bg-background/60"
+				>
+					{account.name}
+				</a>
 			</div>
 			<div class="flex items-center gap-2">
 				{#await itemState.totals}
-					<Skeleton class="h-8 w-28 rounded-full bg-background p-2" />
+					<Skeleton class="h-8 w-48 rounded-full bg-background p-2" />
 				{:then totals}
 					{@const val = moneyToNumber(totals.value)}
 					{@const cost = moneyToNumber(totals.cost)}
 					{@const profitLoss = val - cost}
-					<Tooltip.Provider>
-						<Tooltip.Root>
-							<Tooltip.Trigger
-								class={cn(buttonVariants({ variant: 'outline' }), 'flex items-center gap-1.5')}
-							>
-								<span>{money(totals.value)}</span>
-								<span
-									class={profitLoss >= 0
-										? 'font-medium text-emerald-600 dark:text-emerald-400'
-										: 'font-medium text-rose-600 dark:text-rose-400'}
-								>
-									{(profitLoss >= 0 ? '+' : '') + formatCurrency(profitLoss, account.currency)}
-								</span>
-							</Tooltip.Trigger>
-							<Tooltip.Content>
-								<p>Total value: {money(totals.value)}</p>
-								<p>Total cost: {money(totals.cost)}</p>
-								<p>
-									Profit/Loss: {(profitLoss >= 0 ? '+' : '') +
-										formatCurrency(profitLoss, account.currency)}
-								</p>
-							</Tooltip.Content>
-						</Tooltip.Root>
-					</Tooltip.Provider>
+					{@const returnPercent = cost > 0 ? (profitLoss / cost) * 100 : null}
+					<TotalProfitLossButtons
+						totalValue={totals.value}
+						costBasis={totals.cost}
+						{profitLoss}
+						{returnPercent}
+						currency={account.currency}
+					/>
 				{:catch}
 					<div class="text-sm">Total: failed to load</div>
 				{/await}
@@ -264,7 +235,7 @@
 					<DropdownMenu.Content align="end">
 						<DropdownMenu.Item
 							onSelect={() => {
-								isEditingTitle = true;
+								showRenameModal = true;
 							}}
 						>
 							<Pencil class="h-4 w-4" />
@@ -334,6 +305,12 @@
 	title="Delete account"
 	description={`Are you sure you want to delete "${account.name}"? This action cannot be undone.`}
 	onconfirm={() => onDelete?.()}
+/>
+
+<RenameAccountModal
+	bind:open={showRenameModal}
+	currentName={account.name}
+	onsave={(newName) => onRename?.(newName)}
 />
 
 <UpdateAccountCsvModal

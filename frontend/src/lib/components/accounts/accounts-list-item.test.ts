@@ -82,12 +82,13 @@ describe('AccountsListItem', () => {
 			}
 		});
 
-		// Ensure it renders the title
+		// Ensure it renders the title as a link
 		const titleElement = screen.getByText('My Test Account');
 		expect(titleElement).toBeInTheDocument();
+		expect(titleElement.closest('a')).toHaveAttribute('href', `/accounts/${mockAccount.id}`);
 
-		// Assert no static pencil button is rendered next to the title
-		const editButton = titleElement.parentElement?.querySelector('button');
+		// Assert no static pencil/edit button is rendered next to the title
+		const editButton = titleElement.parentElement?.querySelector('button[aria-label*="edit" i]');
 		expect(editButton).toBeNull();
 
 		// Open 3-dots actions menu
@@ -98,19 +99,22 @@ describe('AccountsListItem', () => {
 		const renameOption = await screen.findByRole('menuitem', { name: /Rename/i });
 		await fireEvent.click(renameOption);
 
-		// Now it should show an input
-		const input = await screen.findByRole('textbox');
+		// Now it should show the RenameAccountModal
+		expect(await screen.findByRole('heading', { name: 'Rename account' })).toBeInTheDocument();
+		const input = screen.getByLabelText('Account Name') as HTMLInputElement;
 		expect(input).toBeInTheDocument();
-		expect((input as HTMLInputElement).value).toBe('My Test Account');
+		expect(input.value).toBe('My Test Account');
 
 		// Change the input value
 		await fireEvent.input(input, { target: { value: 'Updated Account Name' } });
 
-		const form = input.closest('form');
-		if (form) {
-			const submitBtn = form.querySelector('button[type="submit"]');
-			expect(submitBtn).toBeInTheDocument();
-		}
+		// Click Save button
+		const saveBtn = screen.getByRole('button', { name: 'Save' });
+		await fireEvent.click(saveBtn);
+
+		await waitFor(() => {
+			expect(onRenameMock).toHaveBeenCalledWith('Updated Account Name');
+		});
 	});
 
 	it('should call onSync when refresh button is clicked on an account with api_sync_enabled true', async () => {
@@ -174,7 +178,7 @@ describe('AccountsListItem', () => {
 		});
 
 		// Initial fetch of account totals
-		await screen.findByText('$100');
+		await screen.findByText('$100.00');
 		expect(accountClient.getAccountTotals).toHaveBeenCalledTimes(1);
 
 		// Click to open modal
@@ -685,6 +689,23 @@ describe('AccountsListItem', () => {
 			const profitLossElement = await screen.findByText('-$25.00');
 			expect(profitLossElement).toBeInTheDocument();
 			expect(profitLossElement).toHaveClass('text-rose-600');
+		});
+
+		it('renders split total value and profit/loss buttons using TotalProfitLossButtons', async () => {
+			vi.mocked(accountClient.getAccountTotals).mockResolvedValue({
+				value: { value: '100', units: 100, nanos: 0, currencyCode: 'CAD' },
+				cost: { value: '50', units: 50, nanos: 0, currencyCode: 'CAD' }
+			});
+
+			render(AccountsListItem, {
+				props: {
+					account: mockAccount
+				}
+			});
+
+			expect(await screen.findByText('$100.00')).toBeInTheDocument();
+			expect(await screen.findByText('+100.00%')).toBeInTheDocument();
+			expect(await screen.findByText('+$50.00')).toBeInTheDocument();
 		});
 
 		it('persists expanded state to user preferences when caret is toggled', async () => {
