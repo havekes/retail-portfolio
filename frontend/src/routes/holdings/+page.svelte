@@ -228,7 +228,9 @@
 	<title>Holdings</title>
 </svelte:head>
 
-<div class="flex h-full flex-col overflow-hidden bg-background">
+<!-- Bound to the viewport so `main` owns the scroll: the page header stays put
+     while the (long) holdings table scrolls underneath it. -->
+<div class="flex h-svh max-h-svh min-h-0 flex-1 flex-col overflow-hidden bg-background">
 	<PageHeader title="Holdings" subtitle={pageSubtitle}>
 		{#snippet actions()}
 			<div class="flex items-center gap-6">
@@ -357,7 +359,6 @@
 							</DropdownMenu.CheckboxItem>
 							<DropdownMenu.Separator />
 							<DropdownMenu.Label>Visible columns</DropdownMenu.Label>
-							<DropdownMenu.Separator />
 							{#each HOLDINGS_TABLE_COLUMNS as column (column.id)}
 								<DropdownMenu.CheckboxItem
 									checked={tableConfig.visible.includes(column.id)}
@@ -390,6 +391,7 @@
 			isLoading={service.isLoading}
 			{tableConfig}
 			onConfigChange={handleConfigChange}
+			onAccountClick={(accountId) => handleSelectFilter('account', accountId)}
 			elliottWaves={data.elliott_waves}
 			valuations={service.valuations}
 			{emptyMessage}

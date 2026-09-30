@@ -303,8 +303,7 @@ describe('HoldingsTable', () => {
 
 		// Check w-fit rounded button hover styling, px-2 py-1, and absence of w-full / negative margins
 		for (const link of links) {
-			expect(link.className).toContain('hover:bg-accent');
-			expect(link.className).toContain('hover:text-accent-foreground');
+			expect(link.className).toContain('hover:bg-background/60');
 			expect(link.className).toContain('w-fit');
 			expect(link.className).toContain('rounded-md');
 			expect(link.className).toContain('px-2');
@@ -348,6 +347,102 @@ describe('HoldingsTable', () => {
 		expect(badge.className).toContain('text-muted-foreground');
 
 		expect(cells[1]).toHaveTextContent('-');
+	});
+
+	it('renders account badges as buttons that report the clicked account id', async () => {
+		const onAccountClick = vi.fn();
+		render(HoldingsTable, {
+			props: {
+				holdings: [
+					makeRow({
+						id: 'h-1',
+						security_id: 'sec-1',
+						security_symbol: 'ONE',
+						security_name: 'One Corp',
+						total_value: 300,
+						account_id: 'acc-1',
+						account_name: 'TFSA'
+					}),
+					makeRow({
+						id: 'h-2',
+						security_id: 'sec-2',
+						security_symbol: 'TWO',
+						security_name: 'Two Corp',
+						total_value: 700,
+						account_id: 'acc-2',
+						account_name: 'RRSP'
+					})
+				],
+				onAccountClick
+			}
+		});
+
+		const tfsaButton = within(rowBySymbol('ONE')).getByRole('button', { name: 'Filter by TFSA' });
+		expect(tfsaButton).toHaveAttribute('data-account-id', 'acc-1');
+		await fireEvent.click(tfsaButton);
+		expect(onAccountClick).toHaveBeenCalledWith('acc-1');
+
+		await fireEvent.click(
+			within(rowBySymbol('TWO')).getByRole('button', { name: 'Filter by RRSP' })
+		);
+		expect(onAccountClick).toHaveBeenLastCalledWith('acc-2');
+	});
+
+	it('reports the correct account id per badge for grouped rows', async () => {
+		const onAccountClick = vi.fn();
+		render(HoldingsTable, {
+			props: {
+				groupBy: 'stock',
+				onAccountClick,
+				holdings: [
+					makeRow({
+						id: 'h-a-1',
+						security_id: 'sec-shared',
+						security_symbol: 'SHARE',
+						security_name: 'Shared Corp',
+						total_value: 400,
+						account_id: 'acc-tfsa',
+						account_name: 'TFSA'
+					}),
+					makeRow({
+						id: 'h-b-1',
+						security_id: 'sec-shared',
+						security_symbol: 'SHARE',
+						security_name: 'Shared Corp',
+						total_value: 200,
+						account_id: 'acc-rrsp',
+						account_name: 'RRSP'
+					})
+				]
+			}
+		});
+
+		const row = rowBySymbol('SHARE');
+		await fireEvent.click(within(row).getByRole('button', { name: 'Filter by TFSA' }));
+		expect(onAccountClick).toHaveBeenCalledWith('acc-tfsa');
+
+		await fireEvent.click(within(row).getByRole('button', { name: 'Filter by RRSP' }));
+		expect(onAccountClick).toHaveBeenLastCalledWith('acc-rrsp');
+	});
+
+	it('renders non-interactive account badges when no click handler is provided', () => {
+		render(HoldingsTable, {
+			props: {
+				holdings: [
+					makeRow({
+						id: 'h-1',
+						security_id: 'sec-1',
+						security_symbol: 'ONE',
+						security_name: 'One Corp',
+						account_id: 'acc-1',
+						account_name: 'TFSA'
+					})
+				]
+			}
+		});
+
+		expect(screen.queryByTestId('account-badge')).not.toBeInTheDocument();
+		expect(screen.getByText('TFSA')).toBeInTheDocument();
 	});
 
 	it('renders Return column with percentage pill badge on top and dollar value underneath', () => {
@@ -438,7 +533,8 @@ describe('HoldingsTable', () => {
 		const headers = screen.getAllByRole('columnheader');
 		for (const th of headers) {
 			expect(th.className).toContain('border-r');
-			expect(th.className).toContain('border-border/40');
+			expect(th.className).toContain('border-r-border/40');
+			expect(th.className).toContain('border-b');
 			expect(th.className).toContain('transition-colors');
 			expect(th.className).toContain('hover:bg-muted/50');
 			expect(th.className).toContain('group/head');
@@ -587,38 +683,33 @@ describe('HoldingsTable', () => {
 		expect(screen.getByLabelText('Resize Accounts column')).toBeInTheDocument();
 	});
 
-	it('applies zebra striping, hover, and border styling to rows and sticky Security cell', () => {
+	it('applies opaque zebra/hover tints to rows, inherited by the sticky Security cell, with borders on cells', () => {
 		render(HoldingsTable, { props: { holdings: groupRows, groupBy: null } });
 
 		const rows = screen.getAllByTestId('holding-row');
 		expect(rows.length).toBeGreaterThan(0);
 		for (const row of rows) {
-			expect(row.className).toContain('group');
-			expect(row.className).toContain('border-b');
-			expect(row.className).toContain('border-border');
-			expect(row.className).toContain('even:bg-muted/50');
-			expect(row.className).toContain('hover:bg-muted/80');
+			expect(row.className).toContain('bg-background');
+			expect(row.className).toContain('even:bg-table-row-striped');
+			expect(row.className).toContain('hover:bg-table-row-hover');
 		}
 
-		// Sticky Security cell on each row matches even zebra striping, hover background, and border
+		// Sticky Security cell inherits the row's opaque background (no separate tint or transition)
 		const securityCells = rows.map((r) => within(r).getByTestId('security-symbol').closest('td')!);
 		for (const cell of securityCells) {
 			expect(cell.className).toContain('sticky');
 			expect(cell.className).toContain('left-0');
-			expect(cell.className).toContain('bg-background');
-			expect(cell.className).toContain('group-even:bg-muted/50');
-			expect(cell.className).toContain('group-hover:bg-muted/80');
-			expect(cell.className).toContain('group-even:group-hover:bg-muted/80');
-			expect(cell.className).toContain('border-r');
-			expect(cell.className).toContain('border-border/40');
+			expect(cell.className).toContain('bg-inherit');
+			expect(cell.className).not.toContain('group-hover:');
 		}
 
-		// All cells across the row have softened column border-r border-border/40
-		const firstRow = rows[0];
-		const cells = within(firstRow).getAllByRole('cell');
+		// Borders live on every cell so the sticky column carries its own
+		const cells = within(rows[0]).getAllByRole('cell');
 		for (const cell of cells) {
 			expect(cell.className).toContain('border-r');
-			expect(cell.className).toContain('border-border/40');
+			expect(cell.className).toContain('border-r-border/40');
+			expect(cell.className).toContain('border-b');
+			expect(cell.className).toContain('border-b-border');
 		}
 	});
 

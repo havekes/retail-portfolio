@@ -39,6 +39,7 @@
 		emptyMessage?: string;
 		tableConfig?: HoldingsTableConfig | null;
 		onConfigChange?: (config: HoldingsTableConfig) => void;
+		onAccountClick?: (accountId: string) => void;
 		elliottWaves?: Record<string, SecurityElliottWaves> | null;
 		valuations?: Record<string, SecurityValuation> | null;
 	};
@@ -50,6 +51,7 @@
 		emptyMessage = 'No holdings yet.',
 		tableConfig = null,
 		onConfigChange,
+		onAccountClick,
 		elliottWaves = null,
 		valuations = null
 	}: Props = $props();
@@ -154,6 +156,12 @@
 		valuation_upper: number | null;
 	};
 
+	// Fields shared by a single holding and a grouped holding.
+	type HoldingRowSource = Omit<
+		HoldingRowView,
+		'percent_of_total' | 'account_names' | 'accounts' | `ew_${string}` | `valuation_${string}`
+	>;
+
 	const totalPortfolioValue = $derived(holdings.reduce((sum, h) => sum + (h.total_value ?? 0), 0));
 
 	const accountTotals = $derived.by(() => {
@@ -167,148 +175,72 @@
 		return map;
 	});
 
-	const baseRows = $derived.by<HoldingRowView[]>(() => {
-		if (groupBy === 'stock' || groupBy === 'company') {
-			const groups = groupHoldings(holdings, 'stock');
-			return groups.map((g) => {
-				const primaryWave = getLatestWaveCount(elliottWaves?.[g.security_id], 'primary');
-				const ew_primary_target = getWaveTargetPrice(primaryWave, 'wave5');
-				const ew_primary_upside = calculateUpsidePercentage(ew_primary_target, g.latest_price);
+	const toNumberOrNull = (value: unknown): number | null =>
+		value === undefined || value === null ? null : Number(value);
 
-				const cycleWave = getLatestWaveCount(elliottWaves?.[g.security_id], 'cycle');
-				const ew_cycle_target = getWaveTargetPrice(cycleWave, 'wave5');
-				const ew_cycle_upside = calculateUpsidePercentage(ew_cycle_target, g.latest_price);
-
-				const percent_of_total = calculatePercentOfTotal(g.total_value, totalPortfolioValue);
-
-				const accountHoldingMap = new SvelteMap<
-					string,
-					{ name: string; account_id?: string; value: number }
-				>();
-				for (const row of g.rows) {
-					const key = row.account_name || row.account_id;
-					if (!key) continue;
-					const existing = accountHoldingMap.get(key);
-					if (existing) {
-						existing.value += row.total_value ?? 0;
-					} else {
-						accountHoldingMap.set(key, {
-							name: row.account_name || row.account_id || '',
-							account_id: row.account_id,
-							value: row.total_value ?? 0
-						});
-					}
-				}
-
-				const accounts: HoldingAccountBadge[] = Array.from(accountHoldingMap.entries()).map(
-					([key, item]) => ({
-						name: item.name,
-						account_id: item.account_id,
-						percent_of_account: calculatePercentOfAccount(item.value, accountTotals.get(key) ?? 0)
-					})
-				);
-
-				const val = valuations?.[g.security_id];
-				const valuation_lower =
-					val?.lower_bound !== undefined && val?.lower_bound !== null
-						? Number(val.lower_bound)
-						: null;
-				const valuation_upper =
-					val?.upper_bound !== undefined && val?.upper_bound !== null
-						? Number(val.upper_bound)
-						: null;
-
-				return {
-					id: g.id,
-					security_id: g.security_id,
-					security_symbol: g.security_symbol,
-					security_name: g.security_name,
-					currency: g.currency,
-					security_currency: g.security_currency,
-					quantity: g.quantity,
-					average_cost: g.average_cost,
-					converted_average_cost: g.converted_average_cost,
-					latest_price: g.latest_price,
-					price_date: g.price_date,
-					total_value: g.total_value,
-					unconverted_total_value: g.unconverted_total_value,
-					percent_of_total,
-					profit_loss: g.profit_loss,
-					unconverted_profit_loss: g.unconverted_profit_loss,
-					account_names: g.account_names,
-					accounts,
-					ew_primary_target,
-					ew_primary_upside,
-					ew_cycle_target,
-					ew_cycle_upside,
-					valuation_lower,
-					valuation_upper
-				};
-			});
+	/** Per-account share of each holding, keyed by account name (or id). */
+	function accountBadges(rows: UserHolding[]): HoldingAccountBadge[] {
+		const byAccount = new SvelteMap<string, { name: string; account_id?: string; value: number }>();
+		for (const row of rows) {
+			const key = row.account_name || row.account_id;
+			if (!key) continue;
+			const existing = byAccount.get(key);
+			if (existing) {
+				existing.value += row.total_value ?? 0;
+			} else {
+				byAccount.set(key, { name: key, account_id: row.account_id, value: row.total_value ?? 0 });
+			}
 		}
+		return Array.from(byAccount, ([key, item]) => ({
+			name: item.name,
+			account_id: item.account_id,
+			percent_of_account: calculatePercentOfAccount(item.value, accountTotals.get(key) ?? 0)
+		}));
+	}
 
-		return holdings.map((row) => {
-			const primaryWave = getLatestWaveCount(elliottWaves?.[row.security_id], 'primary');
-			const ew_primary_target = getWaveTargetPrice(primaryWave, 'wave5');
-			const ew_primary_upside = calculateUpsidePercentage(ew_primary_target, row.latest_price);
+	function toRowView(
+		source: HoldingRowSource,
+		rows: UserHolding[],
+		account_names: string[]
+	): HoldingRowView {
+		const waves = elliottWaves?.[source.security_id];
+		const ew_primary_target = getWaveTargetPrice(getLatestWaveCount(waves, 'primary'), 'wave5');
+		const ew_cycle_target = getWaveTargetPrice(getLatestWaveCount(waves, 'cycle'), 'wave5');
+		const valuation = valuations?.[source.security_id];
 
-			const cycleWave = getLatestWaveCount(elliottWaves?.[row.security_id], 'cycle');
-			const ew_cycle_target = getWaveTargetPrice(cycleWave, 'wave5');
-			const ew_cycle_upside = calculateUpsidePercentage(ew_cycle_target, row.latest_price);
+		return {
+			id: source.id,
+			security_id: source.security_id,
+			security_symbol: source.security_symbol,
+			security_name: source.security_name,
+			currency: source.currency,
+			security_currency: source.security_currency,
+			quantity: source.quantity,
+			average_cost: source.average_cost,
+			converted_average_cost: source.converted_average_cost,
+			latest_price: source.latest_price,
+			price_date: source.price_date,
+			total_value: source.total_value,
+			unconverted_total_value: source.unconverted_total_value,
+			percent_of_total: calculatePercentOfTotal(source.total_value, totalPortfolioValue),
+			profit_loss: source.profit_loss,
+			unconverted_profit_loss: source.unconverted_profit_loss,
+			account_names,
+			accounts: accountBadges(rows),
+			ew_primary_target,
+			ew_primary_upside: calculateUpsidePercentage(ew_primary_target, source.latest_price),
+			ew_cycle_target,
+			ew_cycle_upside: calculateUpsidePercentage(ew_cycle_target, source.latest_price),
+			valuation_lower: toNumberOrNull(valuation?.lower_bound),
+			valuation_upper: toNumberOrNull(valuation?.upper_bound)
+		};
+	}
 
-			const percent_of_total = calculatePercentOfTotal(row.total_value, totalPortfolioValue);
-			const accountKey = row.account_name || row.account_id;
-			const accounts: HoldingAccountBadge[] = accountKey
-				? [
-						{
-							name: row.account_name || row.account_id || '',
-							account_id: row.account_id,
-							percent_of_account: calculatePercentOfAccount(
-								row.total_value,
-								accountTotals.get(accountKey) ?? 0
-							)
-						}
-					]
-				: [];
-
-			const val = valuations?.[row.security_id];
-			const valuation_lower =
-				val?.lower_bound !== undefined && val?.lower_bound !== null
-					? Number(val.lower_bound)
-					: null;
-			const valuation_upper =
-				val?.upper_bound !== undefined && val?.upper_bound !== null
-					? Number(val.upper_bound)
-					: null;
-
-			return {
-				id: row.id,
-				security_id: row.security_id,
-				security_symbol: row.security_symbol,
-				security_name: row.security_name,
-				currency: row.currency,
-				security_currency: row.security_currency,
-				quantity: row.quantity,
-				average_cost: row.average_cost,
-				converted_average_cost: row.converted_average_cost,
-				latest_price: row.latest_price,
-				price_date: row.price_date,
-				total_value: row.total_value,
-				unconverted_total_value: row.unconverted_total_value,
-				percent_of_total,
-				profit_loss: row.profit_loss,
-				unconverted_profit_loss: row.unconverted_profit_loss,
-				account_names: row.account_name ? [row.account_name] : [],
-				accounts,
-				ew_primary_target,
-				ew_primary_upside,
-				ew_cycle_target,
-				ew_cycle_upside,
-				valuation_lower,
-				valuation_upper
-			};
-		});
-	});
+	const baseRows = $derived.by<HoldingRowView[]>(() =>
+		groupBy === 'stock' || groupBy === 'company'
+			? groupHoldings(holdings, 'stock').map((g) => toRowView(g, g.rows, g.account_names))
+			: holdings.map((h) => toRowView(h, [h], h.account_name ? [h.account_name] : []))
+	);
 
 	function profitLossPercent(row: HoldingRowView): number | null {
 		if (row.profit_loss === null || row.profit_loss === undefined) return null;
@@ -317,15 +249,11 @@
 		return (row.profit_loss / costBasis) * 100;
 	}
 
-	function getPillClass(changePercent: number | null | undefined): string {
-		if (changePercent == null || Number.isNaN(Number(changePercent))) {
-			return 'text-muted-foreground bg-muted/40 border-border/40';
-		}
-		const num = Number(changePercent);
-		if (num > 0) {
+	function getPillClass(changePercent: number): string {
+		if (changePercent > 0) {
 			return 'text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 border-emerald-500/20';
 		}
-		if (num < 0) {
+		if (changePercent < 0) {
 			return 'text-rose-600 dark:text-rose-400 bg-rose-500/10 border-rose-500/20';
 		}
 		return 'text-muted-foreground bg-muted/40 border-border/40';
@@ -348,17 +276,10 @@
 			return row.ew_cycle_upside ?? row.ew_cycle_target;
 		}
 		if (column === 'valuation_range') {
-			if (
-				row.valuation_lower !== null &&
-				row.valuation_lower !== undefined &&
-				Number.isFinite(row.valuation_lower) &&
-				row.valuation_upper !== null &&
-				row.valuation_upper !== undefined &&
-				Number.isFinite(row.valuation_upper)
-			) {
-				return (row.valuation_lower + row.valuation_upper) / 2;
-			}
-			return null;
+			const { valuation_lower: lower, valuation_upper: upper } = row;
+			return lower !== null && upper !== null && Number.isFinite(lower) && Number.isFinite(upper)
+				? (lower + upper) / 2
+				: null;
 		}
 		return row[column as keyof HoldingRowView] as string | number | null | undefined;
 	}
@@ -387,6 +308,10 @@
 		})
 	);
 
+	// Borders live on cells (the table uses separate borders) so the sticky
+	// security column carries its own borders while scrolling horizontally.
+	const CELL = 'border-r border-b border-r-border/40 border-b-border px-4 py-2';
+
 	function handleSort(column: HoldingsTableColumnId) {
 		if (sortColumn === column) {
 			sortDirection = sortDirection === 'asc' ? 'desc' : 'asc';
@@ -400,7 +325,7 @@
 {#snippet sortHeader(column: HoldingsTableColumn, width: number)}
 	{@const label = column.id === 'account_name' && groupBy ? 'Accounts' : column.label}
 	<Table.Head
-		class={`group/head relative h-10 cursor-pointer border-r border-border/40 px-4 py-2 transition-colors select-none hover:bg-muted/50 ${column.alignRight ? 'text-right' : ''}`}
+		class={`group/head relative h-10 cursor-pointer border-r border-b border-r-border/40 border-b-border px-4 py-2 transition-colors select-none hover:bg-muted/50 ${column.alignRight ? 'text-right' : ''}`}
 		onclick={() => handleSort(column.id)}
 	>
 		<button
@@ -438,19 +363,55 @@
 	</Table.Head>
 {/snippet}
 
+{#snippet pillStack(
+	percent: number | null,
+	detail: string | null,
+	pillTestId: string,
+	detailTestId: string
+)}
+	{#if detail !== null}
+		<div class="flex flex-col items-end gap-0.5 leading-tight">
+			{#if percent !== null}
+				<span
+					data-testid={pillTestId}
+					class={cn(
+						'inline-flex items-center rounded-md border px-1.5 py-0.5 text-xs font-semibold tabular-nums',
+						getPillClass(percent)
+					)}
+				>
+					{formatPercent(percent)}
+				</span>
+			{/if}
+			<span data-testid={detailTestId} class="text-xs text-muted-foreground tabular-nums">
+				{detail}
+			</span>
+		</div>
+	{:else}
+		<span class="text-sm text-muted-foreground">-</span>
+	{/if}
+{/snippet}
+
+{#snippet accountBadge(account: HoldingAccountBadge)}
+	<Badge variant="secondary" class="text-[10px] font-normal text-muted-foreground">
+		<span class="text-[10px] font-normal text-muted-foreground">{account.name}</span>
+		<span class="ml-1 text-muted-foreground/70"
+			>{formatHoldingPercent(account.percent_of_account)}</span
+		>
+	</Badge>
+{/snippet}
+
 {#snippet holdingRow(row: HoldingRowView)}
+	<!-- Opaque row tints: the sticky cell inherits the row's (animated) background. -->
 	<Table.Row
 		data-testid="holding-row"
-		class="group border-b border-border transition-colors even:bg-muted/50 hover:bg-muted/80"
+		class="border-b-0 bg-background even:bg-table-row-striped hover:bg-table-row-hover"
 	>
 		{#if isVisible('security_symbol')}
-			<Table.Cell
-				class="sticky left-0 z-10 border-r border-border/40 bg-background px-4 py-2 group-even:bg-muted/50 group-hover:bg-muted/80 group-even:group-hover:bg-muted/80"
-			>
+			<Table.Cell class={cn(CELL, 'sticky left-0 z-10 bg-inherit')}>
 				<a
 					data-testid="security-link"
 					href={resolve(`/security/${row.security_id}`)}
-					class="flex w-fit flex-col rounded-md px-2 py-1 transition-colors hover:bg-accent hover:text-accent-foreground"
+					class="flex w-fit flex-col rounded-md px-2 py-1 transition-colors hover:bg-background/60"
 				>
 					<span
 						data-testid="security-symbol"
@@ -463,25 +424,33 @@
 			</Table.Cell>
 		{/if}
 		{#if isVisible('account_name')}
-			<Table.Cell data-testid="account-cell" class="border-r border-border/40 px-4 py-2 text-sm">
+			<Table.Cell data-testid="account-cell" class={cn(CELL, 'text-sm')}>
 				{#if row.accounts.length === 0}
 					-
 				{:else}
 					<div class="flex flex-wrap items-center gap-1">
 						{#each row.accounts as account (account.account_id ?? account.name)}
-							<Badge variant="secondary" class="text-[10px] font-normal text-muted-foreground">
-								<span class="text-[10px] font-normal text-muted-foreground">{account.name}</span>
-								<span class="ml-1 text-muted-foreground/70"
-									>{formatHoldingPercent(account.percent_of_account)}</span
+							{#if onAccountClick && account.account_id}
+								<button
+									type="button"
+									data-testid="account-badge"
+									data-account-id={account.account_id}
+									aria-label={`Filter by ${account.name}`}
+									class="cursor-pointer rounded-full transition-opacity hover:opacity-80 focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none"
+									onclick={() => onAccountClick(account.account_id as string)}
 								>
-							</Badge>
+									{@render accountBadge(account)}
+								</button>
+							{:else}
+								{@render accountBadge(account)}
+							{/if}
 						{/each}
 					</div>
 				{/if}
 			</Table.Cell>
 		{/if}
 		{#if isVisible('quantity')}
-			<Table.Cell class="border-r border-border/40 px-4 py-2 text-right text-xs tabular-nums">
+			<Table.Cell class={cn(CELL, 'text-right text-xs tabular-nums')}>
 				{row.quantity.toLocaleString(undefined, {
 					minimumFractionDigits: 0,
 					maximumFractionDigits: 4
@@ -489,7 +458,7 @@
 			</Table.Cell>
 		{/if}
 		{#if isVisible('average_cost')}
-			<Table.Cell class="border-r border-border/40 px-4 py-2 text-right">
+			<Table.Cell class={cn(CELL, 'text-right')}>
 				<span class="text-xs text-muted-foreground tabular-nums">
 					{row.average_cost !== null && row.average_cost !== undefined
 						? formatCurrency(row.average_cost, row.security_currency)
@@ -498,7 +467,7 @@
 			</Table.Cell>
 		{/if}
 		{#if isVisible('latest_price')}
-			<Table.Cell class="border-r border-border/40 px-4 py-2 text-right">
+			<Table.Cell class={cn(CELL, 'text-right')}>
 				{#if row.latest_price !== null && row.latest_price !== undefined}
 					<div
 						class="flex flex-col items-end leading-tight"
@@ -514,7 +483,7 @@
 			</Table.Cell>
 		{/if}
 		{#if isVisible('total_value')}
-			<Table.Cell class="border-r border-border/40 px-4 py-2 text-right">
+			<Table.Cell class={cn(CELL, 'text-right')}>
 				<div class="flex flex-col items-end leading-tight">
 					<span class="text-sm font-medium tabular-nums">
 						{formatCurrency(row.total_value, row.currency)}
@@ -528,96 +497,50 @@
 			</Table.Cell>
 		{/if}
 		{#if isVisible('percent_of_total')}
-			<Table.Cell
-				data-testid="percent-of-total-cell"
-				class="border-r border-border/40 px-4 py-2 text-right"
-			>
+			<Table.Cell data-testid="percent-of-total-cell" class={cn(CELL, 'text-right')}>
 				<span data-testid="percent-of-total" class="text-xs font-medium tabular-nums">
 					{formatHoldingPercent(row.percent_of_total)}
 				</span>
 			</Table.Cell>
 		{/if}
 		{#if isVisible('profit_loss')}
-			<Table.Cell class="border-r border-border/40 px-4 py-2 text-right">
-				{#if row.profit_loss !== null && row.profit_loss !== undefined}
-					{@const plPercent = profitLossPercent(row)}
-					<div class="flex flex-col items-end gap-0.5 leading-tight">
-						{#if plPercent !== null}
-							<span
-								data-testid="profit-loss-percent"
-								class={cn(
-									'inline-flex items-center rounded-md border px-1.5 py-0.5 text-xs font-semibold tabular-nums',
-									getPillClass(plPercent)
-								)}
-							>
-								{formatPercent(plPercent)}
-							</span>
-						{/if}
-						<span data-testid="profit-loss" class="text-xs text-muted-foreground tabular-nums">
-							{row.profit_loss >= 0 ? '+' : ''}{formatCurrency(row.profit_loss, row.currency)}
-						</span>
-					</div>
-				{:else}
-					<span class="text-sm text-muted-foreground">-</span>
-				{/if}
+			<Table.Cell class={cn(CELL, 'text-right')}>
+				{@render pillStack(
+					profitLossPercent(row),
+					row.profit_loss === null || row.profit_loss === undefined
+						? null
+						: `${row.profit_loss >= 0 ? '+' : ''}${formatCurrency(row.profit_loss, row.currency)}`,
+					'profit-loss-percent',
+					'profit-loss'
+				)}
 			</Table.Cell>
 		{/if}
 		{#if isVisible('ew_primary_target')}
-			<Table.Cell class="border-r border-border/40 px-4 py-2 text-right">
-				{#if row.ew_primary_target !== null && row.ew_primary_target !== undefined}
-					<div class="flex flex-col items-end gap-0.5 leading-tight">
-						{#if row.ew_primary_upside !== null && row.ew_primary_upside !== undefined}
-							<span
-								data-testid="ew-primary-upside"
-								class={cn(
-									'inline-flex items-center rounded-md border px-1.5 py-0.5 text-xs font-semibold tabular-nums',
-									getPillClass(row.ew_primary_upside)
-								)}
-							>
-								{formatPercent(row.ew_primary_upside)}
-							</span>
-						{/if}
-						<span
-							data-testid="ew-primary-target"
-							class="text-xs text-muted-foreground tabular-nums"
-						>
-							{formatCurrency(row.ew_primary_target, row.security_currency)}
-						</span>
-					</div>
-				{:else}
-					<span class="text-sm text-muted-foreground">-</span>
-				{/if}
+			<Table.Cell class={cn(CELL, 'text-right')}>
+				{@render pillStack(
+					row.ew_primary_upside,
+					row.ew_primary_target === null
+						? null
+						: formatCurrency(row.ew_primary_target, row.security_currency),
+					'ew-primary-upside',
+					'ew-primary-target'
+				)}
 			</Table.Cell>
 		{/if}
 		{#if isVisible('ew_cycle_target')}
-			<Table.Cell class="border-r border-border/40 px-4 py-2 text-right">
-				{#if row.ew_cycle_target !== null && row.ew_cycle_target !== undefined}
-					<div class="flex flex-col items-end gap-0.5 leading-tight">
-						{#if row.ew_cycle_upside !== null && row.ew_cycle_upside !== undefined}
-							<span
-								data-testid="ew-cycle-upside"
-								class={cn(
-									'inline-flex items-center rounded-md border px-1.5 py-0.5 text-xs font-semibold tabular-nums',
-									getPillClass(row.ew_cycle_upside)
-								)}
-							>
-								{formatPercent(row.ew_cycle_upside)}
-							</span>
-						{/if}
-						<span data-testid="ew-cycle-target" class="text-xs text-muted-foreground tabular-nums">
-							{formatCurrency(row.ew_cycle_target, row.security_currency)}
-						</span>
-					</div>
-				{:else}
-					<span class="text-sm text-muted-foreground">-</span>
-				{/if}
+			<Table.Cell class={cn(CELL, 'text-right')}>
+				{@render pillStack(
+					row.ew_cycle_upside,
+					row.ew_cycle_target === null
+						? null
+						: formatCurrency(row.ew_cycle_target, row.security_currency),
+					'ew-cycle-upside',
+					'ew-cycle-target'
+				)}
 			</Table.Cell>
 		{/if}
 		{#if isVisible('valuation_range')}
-			<Table.Cell
-				data-testid="valuation-range-cell"
-				class="border-r border-border/40 px-4 py-2 text-right"
-			>
+			<Table.Cell data-testid="valuation-range-cell" class={cn(CELL, 'text-right')}>
 				<span data-testid="valuation-range" class="text-xs font-medium tabular-nums">
 					{formatValuationRange(row.valuation_lower, row.valuation_upper)}
 				</span>
@@ -627,7 +550,7 @@
 {/snippet}
 
 <div class="w-full">
-	<Table.Root>
+	<Table.Root class="border-separate border-spacing-0">
 		<colgroup>
 			{#each visibleColumns as column (column.id)}
 				<col data-testid={`column-col-${column.id}`} style="width: {config.widths[column.id]}px;" />
@@ -640,17 +563,17 @@
 				{/each}
 			</Table.Row>
 		</Table.Header>
-		<Table.Body>
+		<Table.Body class="[&_tr:last-child>td]:border-b-0">
 			{#if isLoading}
 				{#each SKELETON_ROW_INDEXES as rowIndex (rowIndex)}
 					<Table.Row data-testid="skeleton-row">
 						{#each visibleColumns as column (column.id)}
 							<Table.Cell
-								class={`px-4 py-3 ${
-									column.id === HOLDINGS_TABLE_STICKY_COLUMN_ID
-										? 'sticky left-0 z-10 bg-background'
-										: ''
-								}`}
+								class={cn(
+									'border-b border-b-border px-4 py-3',
+									column.id === HOLDINGS_TABLE_STICKY_COLUMN_ID &&
+										'sticky left-0 z-10 bg-background'
+								)}
 							>
 								<div class="h-4 w-full animate-pulse rounded bg-muted"></div>
 							</Table.Cell>

@@ -206,7 +206,7 @@ describe('AccountsListItem', () => {
 		expect(menuButton).toBeInTheDocument();
 	});
 
-	it('clicking overflow menu button displays "Delete account" option', async () => {
+	it('clicking overflow menu button displays "Delete" option', async () => {
 		render(AccountsListItem, {
 			props: {
 				account: mockAccount
@@ -216,10 +216,10 @@ describe('AccountsListItem', () => {
 		const menuButton = screen.getByRole('button', { name: 'Account actions' });
 		await fireEvent.click(menuButton);
 
-		expect(await screen.findByText('Delete account')).toBeInTheDocument();
+		expect(await screen.findByText('Delete')).toBeInTheDocument();
 	});
 
-	it('clicking "Delete account" opens confirmation modal with title and warning description', async () => {
+	it('clicking "Delete" opens confirmation modal with title and warning description', async () => {
 		render(AccountsListItem, {
 			props: {
 				account: mockAccount
@@ -229,7 +229,7 @@ describe('AccountsListItem', () => {
 		const menuButton = screen.getByRole('button', { name: 'Account actions' });
 		await fireEvent.click(menuButton);
 
-		const deleteOption = await screen.findByText('Delete account');
+		const deleteOption = await screen.findByText('Delete');
 		await fireEvent.click(deleteOption);
 
 		await waitFor(() => {
@@ -254,7 +254,7 @@ describe('AccountsListItem', () => {
 		const menuButton = screen.getByRole('button', { name: 'Account actions' });
 		await fireEvent.click(menuButton);
 
-		const deleteOption = await screen.findByText('Delete account');
+		const deleteOption = await screen.findByText('Delete');
 		await fireEvent.click(deleteOption);
 
 		await waitFor(() => {
@@ -290,7 +290,7 @@ describe('AccountsListItem', () => {
 		const menuButton = screen.getByRole('button', { name: 'Account actions' });
 		await fireEvent.click(menuButton);
 
-		const deleteOption = await screen.findByText('Delete account');
+		const deleteOption = await screen.findByText('Delete');
 		await fireEvent.click(deleteOption);
 
 		await waitFor(() => {
@@ -574,7 +574,7 @@ describe('AccountsListItem', () => {
 	});
 
 	describe('Account Card Polish and Enhancements (F-ACCOUNTS-T03)', () => {
-		it('renders 3-dots menu containing "Rename" with Pencil icon (default variant) and "Delete account" with Trash2 icon (destructive variant)', async () => {
+		it('renders 3-dots menu containing "Rename" with Pencil icon (default variant) and "Delete" with Trash2 icon (destructive variant)', async () => {
 			render(AccountsListItem, {
 				props: {
 					account: mockAccount
@@ -589,7 +589,7 @@ describe('AccountsListItem', () => {
 			expect(renameOption).toHaveAttribute('data-variant', 'default');
 			expect(renameOption.querySelector('svg')).toBeInTheDocument();
 
-			const deleteOption = await screen.findByRole('menuitem', { name: /Delete account/i });
+			const deleteOption = await screen.findByRole('menuitem', { name: /Delete/i });
 			expect(deleteOption).toBeInTheDocument();
 			expect(deleteOption).toHaveAttribute('data-variant', 'destructive');
 			expect(deleteOption.querySelector('svg')).toBeInTheDocument();

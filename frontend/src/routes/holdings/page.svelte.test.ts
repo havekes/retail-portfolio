@@ -624,6 +624,20 @@ describe('Holdings page (+page.svelte)', () => {
 			expect(screen.getAllByTestId('holding-row')).toHaveLength(3);
 		});
 
+		it('filters the list by account when an account badge is clicked', async () => {
+			await renderWithHoldings([aaplTfsa, aaplRrsp, msftRrsp], {
+				accounts: [testAccount1, testAccount2]
+			});
+
+			expect(screen.getAllByTestId('holding-row')).toHaveLength(3);
+
+			await fireEvent.click(screen.getByRole('button', { name: 'Filter by TFSA' }));
+
+			expect(goto).toHaveBeenCalledWith('/holdings?account_id=acc-1', expect.anything());
+			expect(screen.getAllByTestId('holding-row')).toHaveLength(1);
+			expect(screen.getByTestId('holdings-filter-trigger')).toHaveTextContent('TFSA');
+		});
+
 		it('updates currency totals when holdings are filtered by portfolio', async () => {
 			await renderWithHoldings([aaplTfsa, aaplRrsp, msftRrsp], {
 				portfolios: [testPortfolio],

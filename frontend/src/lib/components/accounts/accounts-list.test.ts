@@ -219,8 +219,8 @@ describe('AccountsList - Account deletion flow', () => {
 		const actionsBtn = screen.getByRole('button', { name: 'Account actions' });
 		await fireEvent.click(actionsBtn);
 
-		// Click "Delete account" option
-		const deleteOption = await screen.findByText('Delete account');
+		// Click "Delete" option
+		const deleteOption = await screen.findByText('Delete');
 		await fireEvent.click(deleteOption);
 
 		// Confirmation modal should appear
