@@ -152,6 +152,31 @@ class _RaisingGateway(StubEodhdGateway):
         raise RuntimeError("provider down")
 
 
+class _EmptyGateway(StubEodhdGateway):
+    """Stub gateway whose fetches succeed with an empty result set."""
+
+    def get_prices(
+        self,
+        security_id: SecurityId,
+        symbol: str,
+        exchange: str,
+        from_date: date,
+        to_date: date,
+    ) -> list[HistoricalPrice]:
+        return []
+
+    def get_intraday_prices(  # noqa: PLR0913, PLR0917
+        self,
+        security_id: SecurityId,
+        symbol: str,
+        exchange: str,
+        from_datetime: datetime,
+        to_datetime: datetime,
+        interval: str = "1h",
+    ) -> list[IntradayHistoricalPrice]:
+        return []
+
+
 def _service(
     gateway: MarketGateway,
     *,
@@ -288,6 +313,26 @@ async def test_service_price_history_fetch_emits_event(
         datetime.now(UTC).date() - date(2000, 1, 3)
     ).days + 1
     assert isinstance(attributes["freshness_lag_ms"], int)
+
+
+@pytest.mark.anyio
+async def test_service_empty_price_window_emits_success_event_row_count_zero(
+    span_exporter: InMemorySpanExporter,
+) -> None:
+    service = _service(_EmptyGateway(api_key=STUB_API_KEY))
+
+    result = await service._update_security_prices(
+        _security(), date(2026, 9, 1), date(2026, 9, 10)
+    )
+
+    assert result is True
+    attributes = _single_fetch_attributes(span_exporter)
+    assert attributes["event.name"] == "market.data.fetched"
+    assert attributes["dataset"] == "eod"
+    assert attributes["outcome"] == "success"
+    assert attributes["row_count"] == 0
+    assert "freshness_lag_ms" not in attributes
+    _assert_no_secret_material(span_exporter)
 
 
 @pytest.mark.anyio
