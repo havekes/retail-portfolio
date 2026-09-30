@@ -187,15 +187,27 @@ class MarketService:
         self, security: SecuritySchema, from_date: date, to_date: date
     ) -> bool:
         try:
-            # Gateway returns a list of HistoricalPrice
-            prices = await asyncio.to_thread(
-                self._gateway.get_prices,
-                security.symbol,
-                security.exchange,
-                from_date=from_date,
-                to_date=to_date,
-                security_id=security.id,
-            )
+            with record_fetch(
+                symbol=security.symbol,
+                dataset="eod",
+                provider=MARKET_DATA_PROVIDER,
+                exchange=security.exchange,
+            ) as fetch:
+                # Gateway returns a list of HistoricalPrice
+                prices = await asyncio.to_thread(
+                    self._gateway.get_prices,
+                    security.symbol,
+                    security.exchange,
+                    from_date=from_date,
+                    to_date=to_date,
+                    security_id=security.id,
+                )
+                fetch.row_count = len(prices)
+                fetch.freshness_lag_ms = (
+                    freshness_lag_ms(max(price.date for price in prices))
+                    if prices
+                    else None
+                )
         except Exception:
             # Catching general Exception to prevent one failure from stopping jobs
             logger.exception("Failed to update prices for security %s", security.symbol)
