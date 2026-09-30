@@ -1,3 +1,4 @@
+import logging
 import re
 from abc import ABC, abstractmethod
 from collections.abc import Iterator
@@ -18,6 +19,8 @@ from src.observability import emit_event
 #: Upstream provider identity is allowed in telemetry only — never in a user- or
 #: agent-facing payload.
 MARKET_DATA_PROVIDER = "eodhd"
+
+logger = logging.getLogger(__name__)
 
 _CAMEL_BOUNDARY = re.compile(r"(?<=[a-z0-9])(?=[A-Z])")
 
@@ -146,25 +149,30 @@ def record_fetch(
     Synchronous and thread-safe (plain ``perf_counter_ns``) so it can wrap calls
     dispatched through ``asyncio.to_thread`` from the caller's side. An exception
     from the wrapped call is reported with ``outcome="failure"`` and a stable
-    ``error_slug``, then re-raised so existing handlers keep working.
+    ``error_slug``, then re-raised so existing handlers keep working. Failure
+    telemetry is best-effort: it can never replace the provider exception it
+    reports.
     """
     record = MarketFetch(cache_state=cache_state)
     started = perf_counter_ns()
     try:
         yield record
     except Exception as error:
-        emit_market_data_fetched(
-            symbol=symbol,
-            dataset=dataset,
-            provider=provider,
-            exchange=exchange,
-            cache_state=record.cache_state,
-            freshness_lag_ms=record.freshness_lag_ms,
-            duration_ms=(perf_counter_ns() - started) / 1_000_000,
-            outcome="failure",
-            row_count=record.row_count,
-            error_slug=error_slug_from_exception(error),
-        )
+        try:
+            emit_market_data_fetched(
+                symbol=symbol,
+                dataset=dataset,
+                provider=provider,
+                exchange=exchange,
+                cache_state=record.cache_state,
+                freshness_lag_ms=record.freshness_lag_ms,
+                duration_ms=(perf_counter_ns() - started) / 1_000_000,
+                outcome="failure",
+                row_count=record.row_count,
+                error_slug=error_slug_from_exception(error),
+            )
+        except Exception as emit_error:  # noqa: BLE001
+            logger.debug("Market fetch telemetry emission failed: %s", emit_error)
         raise
     else:
         emit_market_data_fetched(
