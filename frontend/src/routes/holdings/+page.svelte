@@ -4,9 +4,8 @@
 	import * as Alert from '$lib/components/ui/alert/index.js';
 	import * as DropdownMenu from '$lib/components/ui/dropdown-menu/index.js';
 	import { Button } from '$lib/components/ui/button/index.js';
+	import TotalProfitLossButtons from '$lib/components/total-profit-loss-buttons.svelte';
 	import Settings2 from '@lucide/svelte/icons/settings-2';
-	import Filter from '@lucide/svelte/icons/filter';
-	import ChevronDown from '@lucide/svelte/icons/chevron-down';
 	import Check from '@lucide/svelte/icons/check';
 	import { goto } from '$app/navigation';
 	import { resolve } from '$app/paths';
@@ -16,7 +15,6 @@
 	import { saveHoldingsGroupMode } from '$lib/components/holdings/holdings-group-prefs';
 	import { getUserPreferencesService } from '$lib/api/userPreferencesService';
 	import { SvelteMap } from 'svelte/reactivity';
-	import { cn } from '$lib/utils';
 	import {
 		HOLDINGS_TABLE_COLUMNS,
 		HOLDINGS_TABLE_STICKY_COLUMN_ID,
@@ -73,16 +71,6 @@
 			? data.accounts?.find((a) => a.id === (service.filter as { accountId: string }).accountId)
 			: null
 	);
-
-	const selectedFilterLabel = $derived.by(() => {
-		if (service.filter.type === 'portfolio') {
-			return activePortfolio?.name ?? 'Portfolio';
-		}
-		if (service.filter.type === 'account') {
-			return activeAccount?.name ?? 'Account';
-		}
-		return 'All';
-	});
 
 	const pageSubtitle = $derived.by(() => {
 		if (service.filter.type === 'portfolio' && activePortfolio) {
@@ -176,7 +164,10 @@
 
 		return [...buckets.values()].map((bucket) => ({
 			...bucket,
-			returnPercent: bucket.costBasis > 0 ? (bucket.profitLoss / bucket.costBasis) * 100 : null
+			returnPercent:
+				bucket.hasProfitLoss && bucket.costBasis > 0
+					? (bucket.profitLoss / bucket.costBasis) * 100
+					: null
 		}));
 	});
 
@@ -203,25 +194,6 @@
 		tableConfig = nextConfig;
 		persist(saveHoldingsTableConfig(prefsService, nextConfig), 'Failed to save column preferences');
 	}
-
-	const formatCurrency = (amount: number, currency: string) =>
-		new Intl.NumberFormat('en-CA', { style: 'currency', currency }).format(amount);
-
-	function getPillClass(changePercent: number | null | undefined): string {
-		if (changePercent == null || Number.isNaN(Number(changePercent))) {
-			return 'text-muted-foreground bg-muted/40 border-border/40';
-		}
-		const num = Number(changePercent);
-		if (num > 0) {
-			return 'text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 border-emerald-500/20';
-		}
-		if (num < 0) {
-			return 'text-rose-600 dark:text-rose-400 bg-rose-500/10 border-rose-500/20';
-		}
-		return 'text-muted-foreground bg-muted/40 border-border/40';
-	}
-
-	const formatPercent = (value: number) => `${value >= 0 ? '+' : ''}${value.toFixed(2)}%`;
 </script>
 
 <svelte:head>
@@ -235,143 +207,96 @@
 		{#snippet actions()}
 			<div class="flex items-center gap-6">
 				{#each currencyTotals as total (total.currency)}
-					<div class="flex items-center gap-3" data-testid={`currency-total-${total.currency}`}>
-						<div class="flex flex-col items-end leading-tight">
-							<span class="text-[10px] tracking-tight text-muted-foreground uppercase">
-								{total.currency} TOTAL
-							</span>
-							<span class="text-base font-semibold text-foreground tabular-nums">
-								{formatCurrency(total.totalValue, total.currency)}
-							</span>
-						</div>
-						{#if total.hasProfitLoss}
-							<div class="flex flex-col items-end gap-0.5 leading-tight">
-								{#if total.returnPercent !== null}
-									<span
-										data-testid={`currency-return-percent-${total.currency}`}
-										class={cn(
-											'inline-flex items-center rounded-md border px-1.5 py-0.5 text-xs font-semibold tabular-nums',
-											getPillClass(total.returnPercent)
-										)}
-									>
-										{formatPercent(total.returnPercent)}
-									</span>
-								{/if}
-								<span
-									data-testid={`currency-profit-loss-${total.currency}`}
-									class="text-xs text-muted-foreground tabular-nums"
-								>
-									{total.profitLoss >= 0 ? '+' : ''}{formatCurrency(
-										total.profitLoss,
-										total.currency
-									)}
-								</span>
-							</div>
-						{/if}
-					</div>
+					<TotalProfitLossButtons
+						totalValue={total.totalValue}
+						profitLoss={total.hasProfitLoss ? total.profitLoss : null}
+						returnPercent={total.returnPercent}
+						currency={total.currency}
+						testIdPrefix={`currency-${total.currency}`}
+					/>
 				{/each}
-				<div class="flex items-center gap-2">
-					<DropdownMenu.Root>
-						<DropdownMenu.Trigger>
-							{#snippet child({ props })}
-								<Button
-									{...props}
-									variant="outline"
-									size="sm"
-									data-testid="holdings-filter-trigger"
-									class="flex h-8 items-center gap-2"
-								>
-									<Filter size={14} />
-									<span>{selectedFilterLabel}</span>
-									<ChevronDown size={14} class="text-muted-foreground" />
-								</Button>
-							{/snippet}
-						</DropdownMenu.Trigger>
-						<DropdownMenu.Content align="end" class="w-56">
-							<DropdownMenu.Item
-								data-testid="filter-all"
-								class="flex items-center justify-between"
-								onSelect={() => handleSelectFilter('all')}
+				<DropdownMenu.Root>
+					<DropdownMenu.Trigger>
+						{#snippet child({ props })}
+							<Button
+								{...props}
+								variant="outline"
+								size="icon"
+								data-testid="display-settings-trigger"
+								aria-label="Settings"
+								title="Settings"
 							>
-								<span>All</span>
-								{#if service.filter.type === 'all'}
-									<Check size={14} />
-								{/if}
-							</DropdownMenu.Item>
-							{#if data.portfolios && data.portfolios.length > 0}
-								<DropdownMenu.Separator />
-								<DropdownMenu.Label>Portfolios</DropdownMenu.Label>
-								{#each data.portfolios as portfolio (portfolio.id)}
-									<DropdownMenu.Item
-										data-testid={`filter-portfolio-${portfolio.id}`}
-										class="flex items-center justify-between"
-										onSelect={() => handleSelectFilter('portfolio', portfolio.id)}
-									>
-										<span class="truncate">{portfolio.name}</span>
-										{#if service.filter.type === 'portfolio' && (service.filter as { portfolioId: string }).portfolioId === portfolio.id}
-											<Check size={14} />
-										{/if}
-									</DropdownMenu.Item>
-								{/each}
+								<Settings2 class="h-4 w-4" />
+							</Button>
+						{/snippet}
+					</DropdownMenu.Trigger>
+					<DropdownMenu.Content align="end" class="w-56">
+						<DropdownMenu.Label>Filter</DropdownMenu.Label>
+						<DropdownMenu.Item
+							data-testid="filter-all"
+							class="flex items-center justify-between"
+							onSelect={() => handleSelectFilter('all')}
+						>
+							<span>All</span>
+							{#if service.filter.type === 'all'}
+								<Check size={14} />
 							{/if}
-							{#if data.accounts && data.accounts.length > 0}
-								<DropdownMenu.Separator />
-								<DropdownMenu.Label>Accounts</DropdownMenu.Label>
-								{#each data.accounts as account (account.id)}
-									<DropdownMenu.Item
-										data-testid={`filter-account-${account.id}`}
-										class="flex items-center justify-between"
-										onSelect={() => handleSelectFilter('account', account.id)}
-									>
-										<span class="truncate">{account.name}</span>
-										{#if service.filter.type === 'account' && (service.filter as { accountId: string }).accountId === account.id}
-											<Check size={14} />
-										{/if}
-									</DropdownMenu.Item>
-								{/each}
-							{/if}
-						</DropdownMenu.Content>
-					</DropdownMenu.Root>
-
-					<DropdownMenu.Root>
-						<DropdownMenu.Trigger>
-							{#snippet child({ props })}
-								<button
-									{...props}
-									type="button"
-									data-testid="display-settings-trigger"
-									aria-label="Display settings"
-									title="Display settings"
-									class="inline-flex size-8 items-center justify-center rounded-md border border-input bg-background text-muted-foreground shadow-xs transition-colors hover:bg-accent hover:text-accent-foreground"
-								>
-									<Settings2 size={16} />
-								</button>
-							{/snippet}
-						</DropdownMenu.Trigger>
-						<DropdownMenu.Content align="end" class="w-48">
-							<DropdownMenu.Label>View options</DropdownMenu.Label>
-							<DropdownMenu.CheckboxItem
-								data-testid="group-by-stock"
-								checked={service.groupBy === 'stock' || service.groupBy === 'company'}
-								onCheckedChange={handleGroupToggle}
-							>
-								Group by stock
-							</DropdownMenu.CheckboxItem>
+						</DropdownMenu.Item>
+						{#if data.portfolios && data.portfolios.length > 0}
 							<DropdownMenu.Separator />
-							<DropdownMenu.Label>Visible columns</DropdownMenu.Label>
-							{#each HOLDINGS_TABLE_COLUMNS as column (column.id)}
-								<DropdownMenu.CheckboxItem
-									checked={tableConfig.visible.includes(column.id)}
-									disabled={column.id === HOLDINGS_TABLE_STICKY_COLUMN_ID}
-									onCheckedChange={() => handleToggleColumn(column.id)}
-									data-testid={`column-toggle-${column.id}`}
+							<DropdownMenu.Label>Portfolios</DropdownMenu.Label>
+							{#each data.portfolios as portfolio (portfolio.id)}
+								<DropdownMenu.Item
+									data-testid={`filter-portfolio-${portfolio.id}`}
+									class="flex items-center justify-between"
+									onSelect={() => handleSelectFilter('portfolio', portfolio.id)}
 								>
-									{column.label}
-								</DropdownMenu.CheckboxItem>
+									<span class="truncate">{portfolio.name}</span>
+									{#if service.filter.type === 'portfolio' && (service.filter as { portfolioId: string }).portfolioId === portfolio.id}
+										<Check size={14} />
+									{/if}
+								</DropdownMenu.Item>
 							{/each}
-						</DropdownMenu.Content>
-					</DropdownMenu.Root>
-				</div>
+						{/if}
+						{#if data.accounts && data.accounts.length > 0}
+							<DropdownMenu.Separator />
+							<DropdownMenu.Label>Accounts</DropdownMenu.Label>
+							{#each data.accounts as account (account.id)}
+								<DropdownMenu.Item
+									data-testid={`filter-account-${account.id}`}
+									class="flex items-center justify-between"
+									onSelect={() => handleSelectFilter('account', account.id)}
+								>
+									<span class="truncate">{account.name}</span>
+									{#if service.filter.type === 'account' && (service.filter as { accountId: string }).accountId === account.id}
+										<Check size={14} />
+									{/if}
+								</DropdownMenu.Item>
+							{/each}
+						{/if}
+						<DropdownMenu.Separator />
+						<DropdownMenu.Label>View options</DropdownMenu.Label>
+						<DropdownMenu.CheckboxItem
+							data-testid="group-by-stock"
+							checked={service.groupBy === 'stock' || service.groupBy === 'company'}
+							onCheckedChange={handleGroupToggle}
+						>
+							Group by stock
+						</DropdownMenu.CheckboxItem>
+						<DropdownMenu.Separator />
+						<DropdownMenu.Label>Visible columns</DropdownMenu.Label>
+						{#each HOLDINGS_TABLE_COLUMNS as column (column.id)}
+							<DropdownMenu.CheckboxItem
+								checked={tableConfig.visible.includes(column.id)}
+								disabled={column.id === HOLDINGS_TABLE_STICKY_COLUMN_ID}
+								onCheckedChange={() => handleToggleColumn(column.id)}
+								data-testid={`column-toggle-${column.id}`}
+							>
+								{column.label}
+							</DropdownMenu.CheckboxItem>
+						{/each}
+					</DropdownMenu.Content>
+				</DropdownMenu.Root>
 			</div>
 		{/snippet}
 	</PageHeader>
