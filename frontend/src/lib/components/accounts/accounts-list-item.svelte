@@ -277,7 +277,7 @@
 							}}
 						>
 							<Trash2 class="h-4 w-4" />
-							Delete account
+							Delete
 						</DropdownMenu.Item>
 					</DropdownMenu.Content>
 				</DropdownMenu.Root>
