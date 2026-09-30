@@ -53,7 +53,7 @@ func ComputeHandler(w http.ResponseWriter, r *http.Request) {
 	// (wrong method, oversized or malformed body) are covered by the server
 	// span installed by TraceMiddleware.
 	statusWriter, _ := w.(*statusResponseWriter)
-	ctx, span := tracer().Start(r.Context(), "POST /compute")
+	_, span := tracer().Start(r.Context(), "POST /compute")
 	defer func() {
 		if statusWriter != nil {
 			span.SetAttributes(attribute.Int("http.status_code", statusWriter.Status()))
@@ -64,7 +64,6 @@ func ComputeHandler(w http.ResponseWriter, r *http.Request) {
 		attribute.Int("indicators.count", len(req.Indicators)),
 		attribute.Int("candles.count", len(req.Candles)),
 	)
-	r = r.WithContext(ctx)
 
 	resp := ComputeResponse{
 		Indicators: make(map[string]any),

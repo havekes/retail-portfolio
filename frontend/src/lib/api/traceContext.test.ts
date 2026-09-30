@@ -30,23 +30,6 @@ describe('traceContext', () => {
 			expect(traceIdFromTraceparent(first)).not.toBe(traceIdFromTraceparent(second));
 		});
 
-		it('reuses a supplied valid trace id while rotating the span id', () => {
-			const traceId = '4bf92f3577b34da6a3ce929d0e0e4736';
-			const first = generateTraceparent(traceId);
-			const second = generateTraceparent(traceId);
-
-			expect(traceIdFromTraceparent(first)).toBe(traceId);
-			expect(traceIdFromTraceparent(second)).toBe(traceId);
-			expect(parseTraceparent(first)?.spanId).not.toBe(parseTraceparent(second)?.spanId);
-		});
-
-		it('ignores a malformed or all-zero supplied trace id', () => {
-			expect(traceIdFromTraceparent(generateTraceparent('not-a-trace-id'))).not.toBe(
-				'not-a-trace-id'
-			);
-			expect(traceIdFromTraceparent(generateTraceparent('0'.repeat(32)))).not.toBe('0'.repeat(32));
-		});
-
 		it('derives deterministic ids from a mocked crypto source', () => {
 			const getRandomValues = vi
 				.spyOn(crypto, 'getRandomValues')

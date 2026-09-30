@@ -149,9 +149,9 @@ def record_fetch(
     Synchronous and thread-safe (plain ``perf_counter_ns``) so it can wrap calls
     dispatched through ``asyncio.to_thread`` from the caller's side. An exception
     from the wrapped call is reported with ``outcome="failure"`` and a stable
-    ``error_slug``, then re-raised so existing handlers keep working. Failure
-    telemetry is best-effort: it can never replace the provider exception it
-    reports.
+    ``error_slug``, then re-raised so existing handlers keep working. Telemetry
+    is best-effort on both paths: a raising emit can never replace a provider
+    exception nor change a successful fetch into a failed one.
     """
     record = MarketFetch(cache_state=cache_state)
     started = perf_counter_ns()
@@ -175,14 +175,17 @@ def record_fetch(
             logger.debug("Market fetch telemetry emission failed: %s", emit_error)
         raise
     else:
-        emit_market_data_fetched(
-            symbol=symbol,
-            dataset=dataset,
-            provider=provider,
-            exchange=exchange,
-            cache_state=record.cache_state,
-            freshness_lag_ms=record.freshness_lag_ms,
-            duration_ms=(perf_counter_ns() - started) / 1_000_000,
-            outcome="success",
-            row_count=record.row_count,
-        )
+        try:
+            emit_market_data_fetched(
+                symbol=symbol,
+                dataset=dataset,
+                provider=provider,
+                exchange=exchange,
+                cache_state=record.cache_state,
+                freshness_lag_ms=record.freshness_lag_ms,
+                duration_ms=(perf_counter_ns() - started) / 1_000_000,
+                outcome="success",
+                row_count=record.row_count,
+            )
+        except Exception as emit_error:  # noqa: BLE001
+            logger.debug("Market fetch telemetry emission failed: %s", emit_error)

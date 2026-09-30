@@ -458,7 +458,7 @@ async def _sync_account_positions_task(  # noqa: PLR0913, PLR0917
 @huey.signal(signals.SIGNAL_INTERRUPTED)
 def handle_interrupted_task(signal, task, exc=None):
     _ = signal
-    _ = exc
+    logger.debug("Interrupted task %s reported exc: %r", task.id, exc)
     # Huey 3.4.0 reports the bare function name at SIGNAL_INTERRUPTED time
     # (observed: ``task.name == "sync_account_positions_task"``); other Huey
     # versions report ``<module>.<func>``. Comparing only the final dotted

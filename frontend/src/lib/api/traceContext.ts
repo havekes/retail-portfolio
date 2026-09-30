@@ -72,16 +72,12 @@ export function isValidTraceparent(value?: string | null): boolean {
 }
 
 /**
- * Builds a new `traceparent`, starting a fresh trace unless a valid 32-hex
- * `traceId` is supplied.
+ * Builds a new `traceparent`, starting a fresh trace.
  */
-export function generateTraceparent(traceId?: string | null): string {
-	const parentTraceId =
-		traceId && TRACE_ID_PATTERN.test(traceId) && traceId !== ZERO_TRACE_ID
-			? traceId
-			: randomHex(16);
+export function generateTraceparent(): string {
+	const traceId = randomHex(16);
 
-	return `00-${parentTraceId}-${randomHex(8)}-${DEFAULT_FLAGS}`;
+	return `00-${traceId}-${randomHex(8)}-${DEFAULT_FLAGS}`;
 }
 
 /**
