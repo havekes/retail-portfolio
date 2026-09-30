@@ -602,3 +602,141 @@ async def test_csv_account_service_factory():
 
     service = await csv_account_service_factory(container)
     assert isinstance(service, CsvAccountService)
+
+
+@pytest.mark.asyncio
+async def test_import_accounts_persists_free_cash_for_new_account():
+    inst_repo = AsyncMock(spec=InstitutionRepository)
+    inst_repo.get.return_value = _create_mock_institution(inst_id=1)
+    parser = MagicMock(spec=GenericCsvParser)
+    parser.parse.return_value = [
+        CsvDiscoveredAccount(
+            account_number="ACC-1",
+            account_name="TFSA",
+            account_type_id=AccountTypeEnum.TFSA.value,
+            account_type_name="TFSA",
+            currency="CAD",
+            free_cash=1500.50,
+            positions_count=0,
+            positions=[],
+        )
+    ]
+    account_repo = AsyncMock(spec=AccountRepository)
+    account_repo.get_by_user.return_value = []
+    created_id = uuid4()
+
+    def mock_create(acc: AccountSchema):
+        acc_dict = acc.model_dump()
+        acc_dict["id"] = created_id
+        return AccountSchema.model_validate(acc_dict)
+
+    account_repo.create.side_effect = mock_create
+    account_repo.get.return_value = AccountSchema(
+        id=created_id,
+        external_id="ACC-1",
+        name="TFSA",
+        user_id=uuid4(),
+        account_type_id=AccountTypeEnum.TFSA,
+        institution_id=InstitutionEnum.WEALTHSIMPLE,
+        currency=Currency.CAD,
+        free_cash=1500.50,
+    )
+    service = _create_service(
+        account_repo=account_repo,
+        inst_repo=inst_repo,
+        parser=parser,
+    )
+
+    result = await service.import_accounts(
+        user_id=uuid4(),
+        institution_id=1,
+        account_numbers=["ACC-1"],
+        csv_content="content",
+    )
+    assert len(result) == 1
+    created_call = account_repo.create.call_args[0][0]
+    assert created_call.free_cash == 1500.50
+
+
+@pytest.mark.asyncio
+async def test_import_accounts_persists_free_cash_for_existing_account():
+    inst_repo = AsyncMock(spec=InstitutionRepository)
+    inst_repo.get.return_value = _create_mock_institution(inst_id=1)
+    parser = MagicMock(spec=GenericCsvParser)
+    parser.parse.return_value = [
+        CsvDiscoveredAccount(
+            account_number="ACC-1",
+            account_name="TFSA",
+            account_type_id=AccountTypeEnum.TFSA.value,
+            account_type_name="TFSA",
+            currency="CAD",
+            free_cash=2500.75,
+            positions_count=0,
+            positions=[],
+        )
+    ]
+    account_repo = AsyncMock(spec=AccountRepository)
+    existing_id = uuid4()
+    existing_acc = AccountSchema(
+        id=existing_id,
+        external_id="ACC-1",
+        name="TFSA",
+        user_id=uuid4(),
+        account_type_id=AccountTypeEnum.TFSA,
+        institution_id=InstitutionEnum.WEALTHSIMPLE,
+        currency=Currency.CAD,
+        free_cash=0.0,
+    )
+    account_repo.get_by_user.return_value = [existing_acc]
+    account_repo.get.return_value = existing_acc
+    service = _create_service(
+        account_repo=account_repo,
+        inst_repo=inst_repo,
+        parser=parser,
+    )
+
+    await service.import_accounts(
+        user_id=uuid4(),
+        institution_id=1,
+        account_numbers=["ACC-1"],
+        csv_content="content",
+    )
+    account_repo.update_free_cash.assert_awaited_once_with(existing_id, 2500.75)
+
+
+@pytest.mark.asyncio
+async def test_sync_account_from_csv_persists_free_cash():
+    account_id = uuid4()
+    target_account = AccountSchema(
+        id=account_id,
+        external_id="EXTERNAL-TARGET",
+        name="Target TFSA",
+        user_id=uuid4(),
+        account_type_id=AccountTypeEnum.TFSA,
+        institution_id=InstitutionEnum.WEALTHSIMPLE,
+        currency=Currency.CAD,
+    )
+    inst_repo = AsyncMock(spec=InstitutionRepository)
+    inst_repo.get.return_value = _create_mock_institution(inst_id=1)
+    parser = MagicMock(spec=GenericCsvParser)
+    parser.parse.return_value = [
+        CsvDiscoveredAccount(
+            account_number="EXTERNAL-TARGET",
+            account_name="Target TFSA",
+            account_type_id=AccountTypeEnum.TFSA.value,
+            account_type_name="TFSA",
+            currency="CAD",
+            free_cash=800.0,
+            positions_count=0,
+            positions=[],
+        )
+    ]
+    account_repo = AsyncMock(spec=AccountRepository)
+    account_repo.get.return_value = target_account
+    service = _create_service(
+        account_repo=account_repo, inst_repo=inst_repo, parser=parser
+    )
+
+    result = await service.sync_account_from_csv(target_account, "content")
+    account_repo.update_free_cash.assert_awaited_once_with(account_id, 800.0)
+    assert result == target_account

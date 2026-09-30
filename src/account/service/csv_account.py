@@ -158,6 +158,9 @@ class CsvAccountService:
                     await self._account_repository.update_currency(
                         existing.id, chosen_currency
                     )
+                await self._account_repository.update_free_cash(
+                    existing.id, disc_acc.free_cash
+                )
                 # update holdings
                 await self.sync_account_csv_positions(
                     account_id=existing.id,
@@ -178,6 +181,7 @@ class CsvAccountService:
                     institution_id=InstitutionEnum(raw_institution_id),
                     currency=Currency(chosen_currency),
                     broker_display_name=disc_acc.account_name,
+                    free_cash=disc_acc.free_cash,
                     is_active=True,
                     api_sync_enabled=False,
                 )
@@ -226,6 +230,10 @@ class CsvAccountService:
         )
         if matching_account is None:
             raise AccountNotInCsvError(target_account.external_id)
+
+        await self._account_repository.update_free_cash(
+            target_account.id, matching_account.free_cash
+        )
 
         await self.sync_account_csv_positions(
             account_id=target_account.id,

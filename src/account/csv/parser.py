@@ -105,12 +105,45 @@ def is_cash_row(symbol: str | None, security_type: str | None) -> bool:
     """Detect cash or non-equity holding rows."""
     sec_clean = (security_type or "").strip().lower()
     sym_clean = (symbol or "").strip().lower()
+
+    if sec_clean.replace(" ", "_") in (
+        "exchange_traded_fund",
+        "etf",
+        "equity",
+        "stock",
+        "mutual_fund",
+    ):
+        return False
+
     return (
         not sym_clean
-        or sec_clean == "cash"
+        or sec_clean in ("cash", "currency")
         or sym_clean == "cash"
+        or sym_clean in ("cad", "usd")
         or sym_clean.startswith("sec-c-")
     )
+
+
+def _parse_cash_amount(row_dict: dict[str, str]) -> float:
+    """Extract cash amount from row dictionary.
+
+    Checks quantity, market_value, and book_value.
+    """
+    for key in (
+        "quantity",
+        "market_value",
+        "book_value",
+        "book_value_cad",
+        "book_value_market",
+    ):
+        val_str = row_dict.get(key, "").strip()
+        if val_str:
+            try:
+                cleaned = val_str.replace(",", "").replace("$", "")
+                return float(Decimal(cleaned))
+            except InvalidOperation, ValueError:
+                continue
+    return 0.0
 
 
 OCC_OPTION_PATTERN = re.compile(r"^[A-Za-z0-9.\-/]{1,6}\s*\d{6}[CPcp]\d{1,8}(\.\d+)?$")
@@ -280,8 +313,15 @@ class GenericCsvParser:
                     "account_type_id": acc_type_id,
                     "account_type_name": acc_type_name,
                     "currency": currency,
+                    "free_cash": 0.0,
                     "positions": [],
                 }
+
+            symbol = row_dict.get("symbol", "").strip()
+            security_type = row_dict.get("security_type", "").strip()
+            if is_cash_row(symbol, security_type):
+                accounts_data[account_num]["free_cash"] += _parse_cash_amount(row_dict)
+                continue
 
             position = _parse_position(
                 row_dict, row_idx, accounts_data[account_num]["currency"]
@@ -296,6 +336,7 @@ class GenericCsvParser:
                 account_type_id=accounts_data[acc_num]["account_type_id"],
                 account_type_name=accounts_data[acc_num]["account_type_name"],
                 currency=accounts_data[acc_num]["currency"],
+                free_cash=round(accounts_data[acc_num]["free_cash"], 2),
                 positions_count=len(accounts_data[acc_num]["positions"]),
                 positions=accounts_data[acc_num]["positions"],
             )

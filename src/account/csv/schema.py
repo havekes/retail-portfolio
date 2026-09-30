@@ -28,6 +28,7 @@ class CsvDiscoveredAccount(BaseModel):
     account_type_id: AccountTypeEnum
     account_type_name: str
     currency: str
+    free_cash: float = 0.0
     positions_count: int
     positions: list[CsvPositionRecord] = Field(default_factory=list)
     exists: bool = False
