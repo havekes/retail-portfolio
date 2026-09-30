@@ -399,6 +399,35 @@ def test_surface_exception_records_redacted():
     assert redacted_direct["provider"] == "wealthsimple"
 
 
+def test_redact_event_fields_scrubs_exception_message_and_stacktrace():
+    """Pin the entry point the frontend intake goes through (F-OBS-FIX-T03).
+
+    ``capture_exception`` and ``emit_event`` both scrub via
+    ``redact_event_fields``, so the two exception keys must survive as keys while
+    their values lose the credential patterns the intake forwards.
+    """
+    jwt_in_error = "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJleGMifQ.secret_exc_sig"
+    email_in_error = "failing_user@example.com"
+    fields = {
+        "exception.message": (
+            f"Request failed with Bearer {jwt_in_error} for {email_in_error}"
+        ),
+        "exception.stacktrace": f"RuntimeError: Bearer {jwt_in_error}",
+    }
+
+    redacted = redact_event_fields(fields)
+
+    # Keys are preserved (never silently dropped)...
+    assert set(redacted) == set(fields)
+    # ...and the secrets inside them are scrubbed.
+    assert redacted["exception.message"] == (
+        f"Request failed with Bearer {REDACTED_MASK} for {REDACTED_MASK}"
+    )
+    assert redacted["exception.stacktrace"] == f"RuntimeError: Bearer {REDACTED_MASK}"
+    for secret in (jwt_in_error, email_in_error):
+        assert secret not in str(redacted)
+
+
 def test_redact_value_nested_structures():
     data = {
         "users": [

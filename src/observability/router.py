@@ -11,7 +11,9 @@ records inherit the backend ``deploy_id``/``release`` tags.
 The request model is a trust boundary: the browser payload is attacker
 controllable, so every field is length-capped and screened before it becomes a
 telemetry attribute. :mod:`src.observability.redaction` runs afterwards on the
-way out (`capture_exception` -> `_record_on_span`).
+way out (`capture_exception` -> `_record_on_span`). Intake is also rate limited
+per authenticated user so a runaway SPA loop cannot flood the error inbox
+(F-OBS-FIX-T03).
 """
 
 from __future__ import annotations
@@ -19,11 +21,12 @@ from __future__ import annotations
 import re
 from typing import Annotated, Any
 
-from fastapi import APIRouter, Depends, Response, status
+from fastapi import APIRouter, Depends, Request, Response, status
 from pydantic import BaseModel, Field, field_validator
 
 from src.auth.api import current_user
 from src.auth.api_types import User
+from src.config.limiter import limiter
 from src.observability.exceptions import capture_exception
 
 observability_router = APIRouter(prefix="/observability")
@@ -113,7 +116,9 @@ def _preview(payload: FrontendExceptionRequest) -> str:
     status_code=status.HTTP_204_NO_CONTENT,
     summary="Record a browser exception in the shared error inbox",
 )
+@limiter.limit("30/minute")
 async def capture_frontend_exception(
+    request: Request,  # noqa: ARG001
     payload: FrontendExceptionRequest,
     user: Annotated[User, Depends(current_user)],
 ) -> Response:
@@ -122,6 +127,10 @@ async def capture_frontend_exception(
     Returns ``204`` with no body on purpose: the browser only needs an
     acknowledgement, and echoing the payload back would reflect
     attacker-controlled content.
+
+    Rate limited to 30/minute per authenticated user (IP fallback for a
+    missing/invalid token; see :func:`src.config.limiter.user_or_ip_key_func`):
+    a real user never reports that often, but a runaway SPA loop would.
     """
     attributes: dict[str, Any] = {
         "error_name": payload.name,

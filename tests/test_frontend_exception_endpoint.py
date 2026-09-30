@@ -3,7 +3,9 @@
 The endpoint is a trust boundary: the browser payload is attacker controllable,
 so these tests pin both the happy path (one capture, ``service_name="frontend"``,
 correlation id + route attributes) and the screening of hostile input. No
-tracing backend, Redis or HTTP egress is involved.
+tracing backend, Redis or HTTP egress is involved. Since F-OBS-FIX-T03 the
+endpoint is additionally rate limited per authenticated user; those tests use the
+in-memory limiter storage that ``ENVIRONMENT=test`` selects.
 """
 
 from __future__ import annotations
@@ -11,8 +13,9 @@ from __future__ import annotations
 from typing import Any
 from uuid import UUID
 
+import jwt
 import pytest
-from fastapi import APIRouter, FastAPI
+from fastapi import APIRouter, FastAPI, Request
 from httpx import ASGITransport, AsyncClient
 from opentelemetry.sdk.trace.export import SimpleSpanProcessor
 from opentelemetry.sdk.trace.export.in_memory_span_exporter import (
@@ -21,6 +24,7 @@ from opentelemetry.sdk.trace.export.in_memory_span_exporter import (
 
 from src.auth.api import current_user
 from src.auth.api_types import User
+from src.config.limiter import limiter, user_or_ip_key_func
 from src.config.settings import Settings
 from src.config.settings import settings as app_settings
 from src.main import app
@@ -280,3 +284,86 @@ def test_frontend_exception_request_model_defaults():
     assert payload.stack is None
     assert payload.correlation_id is None
     assert payload.route is None
+
+
+# --------------------------------------------------------------------------- #
+# F-OBS-FIX-T03 — intake is rate limited per authenticated user
+# --------------------------------------------------------------------------- #
+
+# Kept in sync with the ``@limiter.limit("30/minute")`` decorator on
+# ``capture_frontend_exception``.
+RATE_LIMIT_MAX = 30
+
+
+@pytest.fixture
+def reset_limiter():
+    """Isolate slowapi's in-memory counters from neighbouring tests."""
+    limiter.reset()
+    yield
+    # The cap is 30/minute on one key: without the teardown reset the following
+    # tests in this module (and suite) would inherit a spent budget.
+    limiter.reset()
+
+
+@pytest.mark.anyio
+async def test_frontend_exception_is_rate_limited_after_the_cap(
+    authenticated_app: FastAPI, monkeypatch, reset_limiter
+):
+    monkeypatch.setattr(
+        router_module, "capture_exception", lambda exc, **kwargs: None
+    )
+
+    transport = ASGITransport(app=authenticated_app)
+    async with AsyncClient(transport=transport, base_url="http://test") as client:
+        for _ in range(RATE_LIMIT_MAX):
+            response = await client.post(ENDPOINT, json=VALID_PAYLOAD)
+            assert response.status_code == 204
+
+        # The decorator is only applied when the endpoint takes a `Request`
+        # parameter — without it this would stay 204 forever.
+        response = await client.post(ENDPOINT, json=VALID_PAYLOAD)
+
+    assert response.status_code == 429
+
+
+def _build_request(
+    headers: dict[str, str] | None = None,
+    client_ip: str = "192.168.1.100",
+) -> Request:
+    """Build a bare ``Request`` so the limiter key function can be probed."""
+    header_list = [
+        (k.lower().encode("latin-1"), v.encode("latin-1"))
+        for k, v in (headers or {}).items()
+    ]
+    scope = {
+        "type": "http",
+        "method": "POST",
+        "path": ENDPOINT,
+        "headers": header_list,
+        "client": (client_ip, 12345),
+    }
+    return Request(scope)
+
+
+def test_frontend_exception_limit_key_is_the_authenticated_user():
+    """The 30/minute budget is per user, not per client IP.
+
+    ``get_remote_address`` is constant under ``ASGITransport``, so requesting the
+    same budget through varying IPs cannot tell user keying and IP keying apart;
+    the honest pin is the key function itself.
+    """
+    token = jwt.encode(
+        {"user_id": "user-rl-1"}, app_settings.secret_key, algorithm="HS256"
+    )
+    first = _build_request(
+        headers={"Authorization": f"Bearer {token}"}, client_ip="10.0.0.1"
+    )
+    second = _build_request(
+        headers={"Authorization": f"Bearer {token}"}, client_ip="10.0.0.2"
+    )
+
+    assert user_or_ip_key_func(first) == "user:user-rl-1"
+    assert user_or_ip_key_func(second) == "user:user-rl-1"
+
+    # ... and that key function is the one the endpoint's limiter is built with.
+    assert app.state.limiter is limiter
