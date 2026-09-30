@@ -4,7 +4,7 @@
 	import { type VariantProps, tv } from "tailwind-variants";
 
 	export const buttonVariants = tv({
-		base: "focus-visible:border-ring focus-visible:ring-ring/50 aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive dark:aria-invalid:border-destructive/50 rounded-lg border border-transparent bg-clip-padding text-sm font-medium focus-visible:ring-3 active:not-aria-[haspopup]:translate-y-px aria-invalid:ring-3 [&_svg:not([class*='size-'])]:size-4 group/button inline-flex shrink-0 items-center justify-center whitespace-nowrap transition-all outline-none select-none disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:shrink-0",
+		base: "focus-visible:border-ring focus-visible:ring-ring/50 aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive dark:aria-invalid:border-destructive/50 rounded-lg border border-transparent bg-clip-padding text-sm font-medium focus-visible:ring-3 active:translate-y-px data-[button-press=false]:active:translate-y-0 aria-invalid:ring-3 [&_svg:not([class*='size-'])]:size-4 group/button inline-flex shrink-0 items-center justify-center whitespace-nowrap transition-all outline-none select-none disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:shrink-0",
 		variants: {
 			variant: {
 				default: "bg-primary text-primary-foreground [a]:hover:bg-primary/80",
@@ -24,10 +24,15 @@
 				"icon-sm": "size-7 rounded-[min(var(--radius-md),12px)] in-data-[slot=button-group]:rounded-lg",
 				"icon-lg": "size-9",
 			},
+			pressable: {
+				true: "",
+				false: "active:translate-y-0",
+			},
 		},
 		defaultVariants: {
 			variant: "default",
 			size: "default",
+			pressable: true,
 		},
 	});
 
@@ -38,6 +43,7 @@
 		WithElementRef<HTMLAnchorAttributes> & {
 			variant?: ButtonVariant;
 			size?: ButtonSize;
+			pressEffect?: boolean;
 		};
 </script>
 <script lang="ts">
@@ -51,15 +57,19 @@
 		type = "button",
 		disabled,
 		children,
+		pressEffect = true,
 		...restProps
 	}: ButtonProps = $props();
+
+	const isPressEnabled = $derived(pressEffect && restProps["data-button-press"] !== "false");
 </script>
 
 {#if href}
 	<a
 		bind:this={ref}
 		data-slot="button"
-		class={cn(buttonVariants({ variant, size }), className)}
+		data-button-press={isPressEnabled ? "true" : "false"}
+		class={cn(buttonVariants({ variant, size, pressable: isPressEnabled }), className)}
 		href={disabled ? undefined : resolve(href as unknown as "/")}
 		aria-disabled={disabled}
 		role={disabled ? "link" : undefined}
@@ -72,7 +82,8 @@
 	<button
 		bind:this={ref}
 		data-slot="button"
-		class={cn(buttonVariants({ variant, size }), className)}
+		data-button-press={isPressEnabled ? "true" : "false"}
+		class={cn(buttonVariants({ variant, size, pressable: isPressEnabled }), className)}
 		{type}
 		{disabled}
 		{...restProps}
