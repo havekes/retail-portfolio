@@ -9,6 +9,7 @@ export interface Account {
 	currency: string;
 	broker_display_name?: string;
 	net_deposits?: number;
+	free_cash?: number;
 	is_active: boolean;
 	api_sync_enabled: boolean;
 	last_sync_at?: string | Date | null;
@@ -105,6 +106,7 @@ export interface AccountHoldings extends PaginatedResponse<Holding> {
 	total_profit_loss: number;
 	total_profit_loss_percent: number | null;
 	net_deposits: number | null;
+	free_cash?: number;
 	currency: string;
 }
 

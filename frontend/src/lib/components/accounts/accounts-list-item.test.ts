@@ -441,7 +441,7 @@ describe('AccountsListItem', () => {
 			expect(screen.getByRole('button', { name: 'Collapse holdings' })).toBeInTheDocument();
 		});
 
-		it('expanding triggers getAccountHoldings and displays the lightweight holdings table with all 5 columns and row data', async () => {
+		it('expanding triggers getAccountHoldings and displays the lightweight holdings table with all 4 columns and row data', async () => {
 			vi.mocked(accountClient.getAccountHoldings).mockResolvedValue({
 				account_id: 'acc-1',
 				account_name: 'My Test Account',
@@ -469,15 +469,14 @@ describe('AccountsListItem', () => {
 
 			// Check table headers
 			expect(await screen.findByRole('columnheader', { name: 'Symbol' })).toBeInTheDocument();
-			expect(screen.getByRole('columnheader', { name: 'Quantity' })).toBeInTheDocument();
+			expect(screen.getByRole('columnheader', { name: 'Account Value' })).toBeInTheDocument();
 			expect(screen.getByRole('columnheader', { name: 'Price' })).toBeInTheDocument();
-			expect(screen.getByRole('columnheader', { name: 'Total Value' })).toBeInTheDocument();
 			expect(screen.getByRole('columnheader', { name: 'Return' })).toBeInTheDocument();
 
 			// Check holding row data
 			expect(screen.getByText('AAPL')).toBeInTheDocument();
 			expect(screen.getByText('Apple Inc.')).toBeInTheDocument();
-			expect(screen.getByText('10')).toBeInTheDocument();
+			expect(screen.getByText('$1,750.00')).toBeInTheDocument();
 
 			const symbolLink = screen.getByText('AAPL').closest('a');
 			expect(symbolLink).toHaveAttribute('href', '/security/sec-1');
