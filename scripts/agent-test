@@ -60,6 +60,8 @@ IGNORED_PREFIXES = (
     ".github/",
     ".opencode/",
     ".agent/",
+    ".claude/",
+    ".ai/",
     "scripts/",
     "frontend/node_modules/",
 )

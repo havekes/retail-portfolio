@@ -1,40 +1,25 @@
 ---
 name: quality-check
-description: Run backend, frontend, or all linting, type checking, and test suites, and fix any detected issues.
+description: Run backend, frontend, or all lint, type-check, and test suites via ./scripts/agent-test and fix every reported issue.
 ---
 
 # Quality Check & Fix
 
-Run quality checks (linting, type checking, tests) for backend, frontend, or both, then fix any issues.
+Argument `target`: `backend` | `frontend` | `all` (default: auto-detect from the git diff).
 
-## Arguments
-- `target` (optional): `backend` | `frontend` | `all` (default: `all` if unspecified)
+## Run
 
-## 1. Commands
+- Auto-detect: `./scripts/agent-test`
+- Specific: `./scripts/agent-test --backend` | `--frontend` | `--all`
+- Lint/types only: `./scripts/agent-test --gate0-only`
 
-### Backend (`target` = `backend` or `all`)
-- **Lint**: `uv run ruff check`
-- **Format**: `uv run ruff format --check`
-- **Types**: `uv run ty check`
-- **Tests**: `uv run pytest`
+The harness runs inside Docker, sanitizes and caps output. Gate 0 (lint + types) halts before tests when it fails — fix those first.
 
-*(If using Docker Compose: `docker compose exec backend uv run <command>`)*
+## Fix loop
 
-### Frontend (`target` = `frontend` or `all`, in `frontend/`)
-- **Lint**: `npm run lint`
-- **Types**: `npm run check`
-- **Tests**: `npm run test:run`
+1. **Lint/format**: `docker compose exec backend uv run ruff check --fix` and `... uv run ruff format`; `docker compose exec frontend npm run format`, then fix remaining eslint errors by hand.
+2. **Types**: fix signatures/annotations from the reported diagnostics.
+3. **Tests**: iterate on one failure with `./scripts/agent-test <test file>`; fix root causes, not assertions.
+4. Re-run the full command from **Run** until clean.
 
-## 2. Execution Workflow
-
-1. **Parse Target**: Determine whether to run `backend`, `frontend`, or `all` based on input.
-2. **Run Checks**: Execute specified target commands.
-3. **Fix Issues**:
-   - **Lint**: Run `uv run ruff check --fix` / `uv run ruff format` or fix code/Svelte lint errors.
-   - **Types**: Inspect `ty check` / `npm run check` errors and fix type signatures or annotations.
-   - **Tests**: Inspect failure tracebacks from `pytest` / `npm run test:run` and fix root causes.
-4. **Re-verify**: Re-run targeted check commands until all pass with zero errors.
-
-## 3. File output
-
-If you capture check output or logs to disk, write them to `.opencode/scratch/` — never the repo root or `/tmp`.
+Tests never call external services — mock Redis/HTTP/SMTP (backend) and API calls (frontend). Captured logs → `.ai/scratch/`.

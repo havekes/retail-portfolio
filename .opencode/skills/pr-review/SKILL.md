@@ -1,54 +1,48 @@
 ---
 name: pr-review
-description: Use when reviewing a pull request that implements a ticket (a GitHub issue labeled "ticket"). Provides the review checklist (correctness, acceptance criteria, scope, tests, security, conventions) and the APPROVE / REQUEST_CHANGES verdict format.
+description: Use when reviewing a pull request that implements a ticket (a GitHub issue labeled "ticket"). Provides the review checklist (acceptance criteria, correctness, scope, tests, security, conventions) and the APPROVE / REQUEST_CHANGES verdict format.
 ---
 
 # PR Review
 
-Review the PR against its ticket — the ticket's acceptance criteria are the contract.
+The ticket's acceptance criteria are the contract. Read-only: never modify code, issues, or PRs.
 
 ## Inputs
 
-- Ticket's GitHub issue number: `gh issue view <N> --comments` (objective, scope, acceptance criteria, review history).
-- PR number: `gh pr view <N>`, `gh pr diff <N>`, `gh pr checks <N>`.
+- Ticket: `gh issue view <N> --comments` (criteria, plan, review history).
+- PR: `gh pr view <P>`, `gh pr diff <P>`, `gh pr checks <P>`.
+
+Read the diff first, then only the surrounding code needed to judge it (callers, callees, neighboring tests) — not whole modules. Don't re-run tests locally; CI (`gh pr checks`) is the source of truth. Pending checks → say so in Notes. Failing checks → `blocker`.
 
 ## Checklist
 
-1. **Acceptance criteria** — every box in the ticket is demonstrably satisfied by the diff. Missing criterion = automatic REQUEST_CHANGES.
-2. **Correctness** — logic errors, off-by-ones, error handling (no swallowed exceptions in Python; no unhandled promise rejections in TS), transaction boundaries where writes span multiple tables.
-3. **Scope discipline** — diff contains only what the ticket scoped. Flag unrelated changes as `scope` findings (they belong in a follow-up ticket).
-4. **Tests/verification** — new behavior is covered or the PR body shows concrete verification. Untested critical paths = at least a `major`. Tests must ALWAYS mock external APIs and never make real network calls.
-5. **Security & data safety** — SQL injection, missing input validation on endpoints, secrets in code, unsafe file handling (upload endpoint!), path traversal.
-6. **Conventions & fit** — matches existing project patterns and the documented stack (`AGENTS.md` guides); migrations are idempotent/auto-applied as the plan requires; API shapes match what later tickets will consume.
-7. **Clarity** — names, structure, comments where non-obvious. Don't nitpick style that tooling should own.
+1. **Acceptance criteria** — each is demonstrably met by the diff. Missing criterion = `blocker`.
+2. **Correctness** — logic errors, edge cases, error handling (no swallowed exceptions; no unhandled promise rejections), transactions around multi-table writes.
+3. **Scope** — only what the ticket scoped; unrelated changes are `scope` findings for a follow-up.
+4. **Tests** — new behavior covered, or the PR body shows concrete verification. Untested critical path ≥ `major`. Any test hitting a real external service (Redis, HTTP, SMTP, frontend API) = `major`.
+5. **Security** — injection, missing input validation, secrets, unsafe file handling, path traversal.
+6. **Fit** — matches `AGENTS.md` / area-guide conventions; model changes ship a migration; API shapes match what dependent tickets' plans expect.
+7. **Plan deviations** — each listed deviation is justified; unlisted ones are findings.
+8. **Clarity** — naming and structure. Don't nitpick what tooling owns.
 
-## Severity levels
+## Severity
 
-- `blocker` — broken, unsafe, or fails acceptance criteria.
-- `major` — real defect or missing test coverage on a critical path.
-- `minor` — improvement the author should apply now.
-- `nit` — optional.
+`blocker` (broken, unsafe, fails criteria) · `major` (real defect, missing critical coverage) · `minor` (apply now) · `nit` (optional).
+Any `blocker`/`major` → REQUEST_CHANGES. Otherwise APPROVE, listing the rest as follow-ups.
 
-Verdict rule: any `blocker` or `major` → REQUEST_CHANGES. Only `minor`/`nit` → APPROVE (list them as follow-up suggestions).
-
-## Output format (your entire final message)
+## Output (your entire final message)
 
 ```
 VERDICT: APPROVE | REQUEST_CHANGES
 
 ## Findings
-1. [severity] file:line — <issue> → <concrete suggested fix>
-2. ...
+1. [severity] file:line — <issue> → <concrete fix>
 
 ## Criteria check
-- [x]/[ ] <each acceptance criterion from the ticket>
+- [x]/[ ] <each acceptance criterion>
 
 ## Notes
-<Anything the orchestrator should know: scope observations, follow-up ticket ideas. Omit if empty.>
+<Scope observations, follow-up ideas, pending checks. Omit if empty.>
 ```
 
-Be specific and self-contained — the orchestrator pastes your findings into the ticket and the implementer works from them without seeing this conversation.
-
-## File output
-
-You write no persistent files — the verdict message is the output. If you capture diffs or notes to disk, put them in `.opencode/scratch/` — never the repo root or `/tmp`.
+Self-contained: the orchestrator pastes findings into the issue and the implementer works from them alone. No persistent files; any captured notes go to `.ai/scratch/`.

@@ -1,80 +1,72 @@
 ---
 name: ticket-execution
-description: Use when executing a planned work ticket (a GitHub issue labeled "ticket") — branch/worktree setup, following the issue's ## Plan section, commit style, running builds and tests, addressing PR review feedback, and opening the pull request with gh.
+description: Use when executing a planned work ticket (a GitHub issue labeled "ticket") — branch/worktree setup, following the issue's ## Plan section, commits, verification with ./scripts/agent-test, addressing PR review feedback, and opening the pull request with gh.
 ---
 
 # Ticket Execution
 
-Turn one planned ticket into one clean pull request. The issue's `## Plan` section tells you **how** — your job is to execute it faithfully and verify every acceptance criterion.
+Turn one planned ticket into one clean PR. The issue's `## Plan` is your contract for the **how**; the acceptance criteria are the contract for the **what**.
 
 ## 1. Set up
 
-- Read the issue completely with `gh issue view <N> --comments`: objective, scope, acceptance criteria, `## Plan` (your contract for the how), `## Review feedback` (present on respawns), and `## Technical notes`.
-- If the issue body has **no `## Plan` section or it is empty**, stop and report back — the ticket-planning step was skipped; the orchestrator must run it first.
-- The branch name is in the issue's `## Meta` section (`branch:`). Base work on current `main`:
-  - Sequential run (main checkout): `git fetch origin && git checkout -b <branch> origin/main`
-  - Parallel run (orchestrator assigned a worktree): use `scripts/setup-agent-worktree.sh <worktree-path> <branch>` (which creates the worktree and a dynamic `.env`), then `cd <worktree-path> && docker compose up -d`, and work **only inside that worktree's isolated containers**. If you were spawned with an isolated worktree workspace by `invoke_subagent`, use that workspace instead and ensure the unique `.env` logic is applied before running `docker compose up -d`.
+- `gh issue view <N> --comments`: objective, scope, acceptance criteria, `## Plan`, `## Technical notes`, `## Review feedback` (on respawns).
+- `## Plan` missing or empty → stop and report; the orchestrator must get it planned first.
+- Branch = `branch:` in `## Meta`.
+  - Main checkout: `git fetch origin && git checkout -b <branch> origin/main` (respawn: `git checkout <branch>`).
+  - Parallel run: `scripts/setup-agent-worktree.sh <worktree-path> <branch>`, then `cd <worktree-path> && docker compose up -d`; work and run every command **only** inside that worktree (its `.env` isolates ports and the compose project). If your tool gave you an isolated workspace instead, still apply the script's `.env` logic before `docker compose up -d`.
+- Legacy paths in old issues: `.agent/<dir>/…` / `.opencode/<dir>/…` now live at `.ai/<dir>/…`.
+- Read the area guide for what you touch: `src/AGENTS.md` (backend) and/or `frontend/AGENTS.md`.
 - Never commit on `main`.
 
-## 2. Execute the plan
+## 2. Execute
 
-- Follow the plan's ordered steps and file list. It maps to the acceptance criteria — don't skip steps.
-- If reality diverged since planning (code moved, a dependency merged differently), deviate **minimally** and record every deviation for the PR body.
-- Stay inside the ticket's **In scope**. Respect **Out of scope** literally — a plan step that drifts out of scope is a red flag, not an invitation.
-- Follow existing project conventions (read neighboring code first). Match the stack: Python/FastAPI backend (uv-managed), SvelteKit + Tailwind + shadcn-svelte frontend, PostgreSQL, Alembic migrations.
-- Small, coherent commits with imperative messages (`Add receipt schema migrations`, `Wire upload endpoint to vision pipeline`).
-- If review feedback exists: address every finding, or justify the exception in the PR body.
+- Follow the plan's steps and file list in order.
+- The plan was written before its dependencies merged. If reality diverged (moved code, different upstream contract), deviate **minimally** and record each deviation for the PR body. If the plan is fundamentally wrong, stop and report — don't silently re-plan.
+- Stay inside **In scope**; treat **Out of scope** literally. No drive-by refactors.
+- Match neighboring code. Backend model change ⇒ generate the Alembic migration (`docker compose exec backend uv run alembic revision --autogenerate -m "<msg>"`).
+- Small, coherent commits, imperative subjects (`Add receipt schema migration`).
+- Review feedback present: address every finding, or justify the exception in the PR body.
 
 ## 3. Verify
 
-Before opening the PR, run the relevant checks and make them pass:
+All checks run through the harness (Docker-backed, output capped):
 
-- Backend: `uv run ruff check`, `uv run ruff format --check`, `uv run ty check`, `uv run pytest`
-- Migrations (when touching models): `uv run alembic upgrade head` (or `uv run alembic check`)
-- Frontend (in `frontend/`): `npm run lint`, `npm run check`, `npm run test:run`, `npm run build`
-- Every acceptance criterion: verify it concretely (run it, query it, or test it — not by inspection). The plan's **Verification** section is your checklist.
+- While iterating: `./scripts/agent-test <test file>` (fail-fast, one target).
+- Before the PR: `./scripts/agent-test` — Gate 0 (lint + types) then full regression for the touched ecosystems. Must pass.
+- Each acceptance criterion: verify concretely per the plan's **Verification** (run/test/query — not by inspection).
+- Tests mock all outbound I/O (Redis, HTTP, SMTP; frontend API calls).
 
 ## 4. Open the PR
 
-```
-gh pr create --title "<TICKET-ID>: <ticket title>" --body <body>
-```
-
-PR body template:
+`gh pr create --title "<ID>: <ticket title>" --body-file .ai/scratch/<id>-pr.md`
 
 ```markdown
 ## Ticket
-<TICKET-ID> — <title> (Refs #<issue-number>)
+<ID> — <title> (Refs #<issue>)
 
 ## What changed
-- <bullet per logical change>
+- <per logical change>
 
 ## Acceptance criteria verification
-- [x] <criterion> — <how it was verified: command/test/output>
+- [x] <criterion> — <how verified>
 
 ## Plan deviations
-<Omit if none. One bullet per deviation from the ticket's ## Plan and why reality required it.>
+<Omit if none.>
 
 ## Review feedback addressed
-<Omit on first submission. On respawn: one bullet per finding → how it was addressed, or why not.>
+<Omit on first submission. Per finding → fix, or why not.>
 
 ## Out of scope / follow-ups
-<Anything discovered but deliberately not done. Omit if empty.>
+<Omit if none.>
 ```
 
-Use `Refs #<issue-number>`, not `Closes` — the orchestrator closes the issue after merge.
+Use `Refs #N`, never `Closes` — the orchestrator closes after merge. On respawn, push to the same branch; the PR updates.
 
 ## 5. Report back
 
-Final message to the orchestrator with: branch name, PR URL, implementation summary (bullets), exact verification commands + results, out-of-scope observations. Do not touch the issue's labels or close it — the orchestrator owns state.
-
-## File output
-
-- Temp files (PR body payloads, captured verification logs) go to `.opencode/scratch/` inside the checkout you are working in (main checkout or assigned worktree) — never the repo root or `/tmp`.
-- You produce no persistent local files — the branch, commits, and PR are the output.
+Final message: branch, PR URL, what was implemented (bullets), plan deviations, verification commands + results, out-of-scope observations.
 
 ## Never
 
-- No merges, no force-push, no rebasing onto anything but `origin/main`, no edits to other issues or their labels.
-- No unrequested refactors of code outside the ticket's blast radius.
-- No re-planning on the fly: if the plan is fundamentally wrong (not just stale), report back instead of silently rewriting the approach.
+- Merge, force-push, rebase onto anything but `origin/main`, or touch issue labels/state.
+- Leave temp files outside `.ai/scratch/` (of the checkout you work in). No other persistent local files — branch, commits, and PR are the output.

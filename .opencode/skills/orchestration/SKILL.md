@@ -1,102 +1,75 @@
 ---
 name: orchestration
-description: Use when orchestrating the project's feature pipeline — turning a rough idea, a feature spec from .opencode/features/, or architecture findings into executed PRs by spawning the custom worker subagents (ticket-writer, planner, implementer, arch-reviewer) and owning all ticket state transitions. Tickets are GitHub issues labeled "ticket", managed via the gh CLI. Trigger on requests like "groom feature <slug>", "run arch review", or when resuming in-flight ticket work.
+description: Use when orchestrating the project's feature pipeline — turning a rough idea, a feature spec from .ai/features/, or architecture findings into executed PRs by spawning worker subagents (spec-writer, implementer, pr-reviewer, arch-reviewer) and owning all ticket state transitions. Tickets are GitHub issues labeled "ticket", managed via the gh CLI. Trigger on "groom feature <slug>", "run arch review", or when resuming in-flight ticket work.
 ---
 
 # Orchestration
 
-You are the ORCHESTRATOR for this project. You turn work sources — a rough idea from the user, feature specs in `.opencode/features/`, or architecture findings — into executed work by spawning specialized worker subagents. You never write implementation code yourself — you coordinate, track state, and gate quality.
+You are the ORCHESTRATOR. You turn work sources into merged-ready PRs by spawning worker subagents. You never write implementation code — you coordinate, track state, and gate quality.
 
-> **Why this is a skill, not a custom agent:** opencode loads this skill from the `orchestrator` agent, which spawns workers via the `task` tool (`subagent_type` = agent name). Keeping the logic in a skill makes it reusable and keeps the agent thin.
+## Tool bindings
 
-## Ticket system of record
+| | Spawn a worker | Continue a worker (e.g. answers to its questions) | Parallel isolation |
+| --- | --- | --- | --- |
+| Claude Code | `Agent` tool, `subagent_type` = worker name (skill is preloaded) | `SendMessage` to the same agent | `scripts/setup-agent-worktree.sh` (not `isolation: worktree`) |
+| opencode | `task` tool, `subagent_type` = worker name | respawn with the Q&A appended | `scripts/setup-agent-worktree.sh` |
+| Antigravity | `invoke_subagent` by agent name | respawn with the Q&A appended | `invoke_subagent` `branch` workspace, or the script — the `.env` port logic from the script is required either way |
 
-Tickets are **GitHub issues** in this repo, created and managed with the `gh` CLI:
+Workers do not inherit your conversation: every prompt must be self-contained — mode/input, issue number(s), repo root, worktree path if parallel, and any feedback context. Unless the binding preloads it, tell the worker to load its skill first.
 
-- Title: `<TICKET-ID>: <title>` (e.g. `P3-T01: Add receipt schema`).
-- Every pipeline ticket carries the label `ticket` plus exactly one `status:*` label.
-- The body follows the `ticket-writing` skill template (`## Meta`, `## Objective`, `## Scope`, `## Acceptance criteria`, `## Technical notes`, `## Plan`, `## Review feedback`).
+## Workers
 
-### Label bootstrap (once per repo — verify before first ticket creation)
+| Worker | Job | Skill |
+| --- | --- | --- |
+| `spec-writer` | Idea / spec / arch report → planned ticket issues; or `plan #N` for existing issues | `spec-writing` |
+| `implementer` | Execute one ticket's plan on its branch, open a PR | `ticket-execution` |
+| `pr-reviewer` | Review a PR against its ticket; APPROVE / REQUEST_CHANGES | `pr-review` |
+| `arch-reviewer` | Architecture health check → report in `.ai/reviews/` | `architecture-review` |
 
-```bash
-gh label create ticket --force
-gh label create status:pending --force
-gh label create status:planned --force
-gh label create status:in-progress --force
-gh label create status:in-review --force
-gh label create status:changes-requested --force
-gh label create status:approved --force
-```
+You load `feature-definition` yourself (optional pre-step for fuzzy ideas).
 
-## Roles you spawn (via the `task` tool, `subagent_type` = name)
+## Tickets
 
-| Worker          | Job                                                                          | Loads skill           |
-| --------------- | ---------------------------------------------------------------------------- | --------------------- |
-| `ticket-writer` | Shape a rough idea (or a ready spec) into ticket issues; asks clarifying questions first | `ticket-writing`      |
-| `planner`       | Plan how to implement one ticket; writes the issue body's `## Plan` section  | `ticket-planning`     |
-| `implementer`   | Execute one ticket's plan on its own branch and open a PR                    | `ticket-execution`    |
-| `pr-reviewer`   | Review a PR against its ticket; verdict APPROVE/CHANGES                      | `pr-review`           |
-| `arch-reviewer` | On-demand architecture health check; emits improvement tickets               | `architecture-review` |
-
-You also load the `feature-definition` skill yourself when the user brings a raw feature idea (optional pre-step) — it produces the spec that `ticket-writer` later grooms.
-
-Always tell the worker (in its task prompt) to load its skill first, and give it: the issue number, the repo root, the branch name, and any feedback context it needs. Workers do not inherit your conversation — every task prompt must be self-contained.
-
-## Ticket state machine (you own ALL transitions)
+GitHub issues titled `<ID>: <title>`, labeled `ticket` + exactly one `status:*`. Body template: `spec-writing` skill.
 
 ```
-status:pending → status:planned → status:in-progress → status:in-review → status:approved → CLOSED
-                          ↑           |
-                          └─ status:changes-requested ←┘
+status:pending ──(spec-writer plan)──► status:planned ──► status:in-progress ──► status:in-review ──► status:approved ──► CLOSED
+                                            ▲                                           │
+                                            └──────── status:changes-requested ◄────────┘
 ```
 
-- Transition: `gh issue edit <N> --remove-label status:<old> --add-label status:<new>`
-- Done: `gh issue close <N>`
-- Workers report results in their final message; YOU run the label transitions and update issue bodies (record the PR number, append `## Review feedback`). Workers never touch labels or close issues. (The planner's single allowed mutation is the issue body's `## Plan` section.)
-
-### Session start / resume
-
-Rebuild state with:
-
-```bash
-gh issue list --label ticket --state open --limit 100 --json number,title,labels,body
-```
-
-(plus recently closed tickets for context) and resume where things left off.
+- New tickets are created directly as `status:planned`. `status:pending` = ticket without a usable plan (legacy, or plan invalidated).
+- Transition: `gh issue edit <N> --remove-label status:<old> --add-label status:<new>`. You own ALL transitions and closures; workers never touch labels. After each, post one line: id, #N, new status.
+- Label bootstrap (first run only): `gh label create <name> --force` for `ticket` and each `status:*` above.
+- Resume: `gh issue list --label ticket --state open --limit 100 --json number,title,labels` — fetch a body only for the ticket you act on (`gh issue view <N>`).
+- Dependency check: each `depends_on` id (in `## Meta`) is closed — `gh issue list --label ticket --state all --search "<ID>" --json number,title,state`; match the exact `<ID>:` title prefix (if several match, the open one decides).
 
 ## Workflow
 
-1. **IDEA → TICKETS** — When the user brings a rough idea (or names a ready feature spec, e.g. "groom feature `<slug>`"):
-   - Optional: for a large or fuzzy idea, load the `feature-definition` skill first — it grounds the idea in the current project state and writes `.opencode/features/<slug>.md` for the user to approve (`status: ready`). Skip it for ideas that are already clear.
-   - Ensure the label bootstrap above has run.
-   - Spawn `ticket-writer` with the idea text (or the spec path — verify `status: ready` first; if `draft`, ask the user to approve it). It explores the current state and returns clarifying questions if anything is unclear — relay the user's answers back to it before it creates anything. If a previous arch review has open findings or open `ARCH` tickets, pass their paths/numbers along.
-   - It creates one GitHub issue per work unit. Verify with `gh issue list --label ticket`, present a numbered list with dependencies, and wait for the user's go-ahead (skip the wait in fully autonomous mode).
-2. **TICKET PLANNING** — For each `status:pending` ticket whose `depends_on` (in its `## Meta` section) are all closed:
-   - Spawn `planner` with the issue number.
-   - On success: swap the label to `status:planned`.
-   - If the planner flags the ticket as mis-sized, ambiguous, or blocked on unmerged dependencies: pause it and ask the user before proceeding.
-3. **TICKET EXECUTION** — For each `status:planned` ticket:
-   - Swap the label to `status:in-progress`.
-   - Spawn `implementer` with the issue number. Independent tickets may run **in parallel**, but then each parallel implementer MUST get its own git worktree (`../retail-portfolio-<ticket-id>`) and run `scripts/setup-agent-worktree.sh` to avoid Docker conflicts — sequential work uses the main checkout.
-   - On success: record the PR number on the issue (`gh issue comment <N> --body "PR: <url>"`), swap the label to `status:in-review`. On failure: report to the user and pause that ticket.
-4. **PR REVIEW** — After the implementer opens the PR: spawn `pr-reviewer` with the PR number + issue number. It verifies project-specific and general tech guidelines, checks that all lints, type checks, and tests pass (`gh pr checks`), and returns a verdict.
-   - `APPROVE` → swap the label to `status:approved`.
-   - `REQUEST_CHANGES` → append the findings to the issue body's `## Review feedback` section (`gh issue view <N> --json body -q .body` → append → `gh issue edit <N> --body ...`), swap the label to `status:changes-requested`, respawn `implementer` (same branch/PR; it re-reads the plan and addresses the feedback). Max 3 review cycles per ticket, then escalate to the user.
-5. **MERGE** — After `status:approved`, ask the user to confirm the merge (unless they pre-authorized auto-merge), then `gh pr merge --squash`, `git pull` on `main`, and `gh issue close <N>`.
+1. **SOURCE → TICKETS**
+   - Fuzzy idea: optionally load `feature-definition` → `.ai/features/<slug>.md`; proceed only after the user flips it to `status: ready`.
+   - Spawn `spec-writer` (mode `create`) with the idea text, the spec path, or an arch report path. If it returns clarifying questions, relay them to the user and pass the answers back (see bindings). Pass along open `ARCH-T` issue numbers that overlap.
+   - Verify with `gh issue list --label ticket --label status:planned`; present a numbered list with dependencies; wait for the user's go-ahead (skip in fully autonomous mode).
+   - Tickets in `status:pending` (legacy or invalidated): spawn `spec-writer` in `plan` mode with their issue numbers (batch related ones in one spawn), then swap each to `status:planned`.
+2. **EXECUTION** — for each `status:planned` ticket whose `depends_on` are all closed:
+   - Swap to `status:in-progress`, spawn `implementer` with the issue number.
+   - Parallel only for independent tickets, each in its own worktree `../retail-portfolio-<ticket-id>` via `scripts/setup-agent-worktree.sh`; sequential work uses the main checkout.
+   - Success: `gh issue comment <N> --body "PR: <url>"`, swap to `status:in-review`.
+   - Implementer reports the plan is fundamentally wrong: swap to `status:pending`, respawn `spec-writer` in `plan` mode with the implementer's findings, then back to step 2.
+   - Other failure: report to the user, pause the ticket.
+3. **REVIEW** — spawn `pr-reviewer` with PR number + issue number.
+   - `APPROVE` → `status:approved`.
+   - `REQUEST_CHANGES` → append findings under the issue's `## Review feedback` (`gh issue view <N> --json body -q .body` → append → `gh issue edit <N> --body-file .ai/scratch/<id>-body.md`), swap to `status:changes-requested`, respawn `implementer` (same branch/PR). Max 3 cycles, then escalate.
+4. **MERGE** — after `status:approved`, STOP. Present PR, verdict, and checks; ask for explicit confirmation. Only then: `gh pr merge --squash`, `git pull` on `main`, `gh issue close <N>`.
 
 ## Architecture review (on demand)
 
-When the user asks for an architecture review ("run arch review", "check the project's architecture"):
-- Spawn `arch-reviewer` (with the user's focus area if given).
-- It writes a report to `.opencode/reviews/` and creates one GitHub issue per actionable finding (id prefix `ARCH-T`).
-- Present the verdict and the ticket list. Ask the user whether to schedule the `ARCH` tickets now — they flow through the normal pipeline starting at step 2 (TICKET PLANNING).
+"run arch review" → spawn `arch-reviewer` (with the user's focus area, if any). Present its verdict and findings. If the user wants them ticketed: spawn `spec-writer` in `create` mode with the report path, then continue at step 2.
 
 ## Rules
 
-- Never implement, commit to, or merge code yourself outside the merge step above.
-- One active implementer per ticket. One branch per ticket: `feat/f-<slug>-t<nn>-<slug>` or `feat/arch-t<nn>-<slug>` (recorded in the issue's `## Meta` section).
-- After every state transition, post a one-line status (ticket id + issue number + new status).
-- Verify `depends_on` tickets are actually closed before planning: `gh issue list --label ticket --state all --search "<ID> in:title"`.
-- If a worker stalls or fails twice, stop and ask the user instead of retrying blindly.
-- Write temp files (issue-body payloads for `gh issue edit`, captured command output) to `.opencode/scratch/` and pipeline working notes to `.opencode/plans/` — never the repo root or `/tmp`.
+- **NEVER merge into `main` without explicit user permission** — not even if an earlier prompt said "merge when done" or everything passes. Pre-authorized auto-merge to `main` is prohibited.
+- Never implement or commit code yourself.
+- One implementer per ticket; one branch per ticket (from `## Meta`).
+- A worker that stalls or fails twice → stop and ask the user.
+- Temp files (issue-body payloads, captured output) → `.ai/scratch/`; working notes → `.ai/plans/`. Never the repo root or `/tmp`.

@@ -5,51 +5,25 @@ description: Generate a concise, high-quality git commit message following the 5
 
 # Commit Message
 
-Generate a clear, short, and to-the-point Git commit message by inspecting local changes (staged and unstaged diffs).
+Write a short, to-the-point commit message for the local changes.
 
-## 1. Inspect the Diffs
+## 1. Inspect
 
-Run git commands to inspect repository changes:
-- `git status` to view untracked, modified, and staged files.
-- `git diff --cached` to view staged changes.
-- `git diff` to view unstaged changes.
-- `git diff HEAD` to view all combined changes.
+- `git status --short` — what changed (staged vs. unstaged vs. untracked).
+- `git diff HEAD --stat`, then `git diff HEAD -- <file>` only for files whose intent isn't obvious from the stat. Use `--cached` instead of `HEAD` if only staged changes will be committed.
 
-If there are no changes, inform the user that there is nothing to commit.
+No changes → say there is nothing to commit.
 
-## 2. Commit Message Structure (50/72 Rule)
+## 2. Format (50/72)
 
-Follow Git commit message standards:
+- **Subject**: ≤50 chars, imperative (`Add`, not `Added`/`Adds`), capitalized, no trailing period.
+- Blank line.
+- **Body**: wrap at 72; explain *what* and *why*, not *how*. Omit for trivial changes.
 
-### Subject Line (Max 50 Characters)
-- **Length**: Strict maximum of 50 characters.
-- **Mood**: Use imperative mood (e.g., `Add feature` instead of `Added feature` or `Adds feature`).
-- **Capitalization**: Capitalize the first word.
-- **Punctuation**: Do not end with a period.
-- **Clarity**: Short and to the point summary of the core change.
+## 3. Output
 
-### Blank Line
-- Include a blank line between the subject line and the body.
+The message in a `text` code block, then a ready-to-run command:
 
-### Body (Wrapped at 72 Characters)
-- **Line Length**: Wrap lines strictly at 72 characters.
-- **Content**: Explain *what* changed and *why* (the motive/reasoning), not *how* (the code diff shows how).
-- **Tone**: Keep it concise and to the point.
-- **Omission**: Skip the body if the subject line fully explains a trivial change (e.g., minor typo fix).
-
-## 3. Output Format
-
-Present the commit message formatted clearly in a code block and provide a ready-to-run git commit command:
-
-```text
-Subject line under 50 characters
-
-Optional body wrapped at 72 characters explaining what and why.
-Can be multiple paragraphs or bullet points if needed.
-```
-
-Suggested command:
 ```bash
-git commit -m "Subject line" -m "Body line 1
-Body line 2"
+git commit -m "Subject line" -m "Body wrapped at 72 chars."
 ```

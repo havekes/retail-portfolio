@@ -1,0 +1,54 @@
+## Plan
+
+**Approach:** Harmonize anchor styling and resting visibility across all five drawing plugins by standardizing on blue fill (`#2962FF`), white border (`#ffffff`), radius 5, and active-only highlight rings. Implement line segment hit-testing in `mouse.ts` and line selection subscriptions across horizontal-line, free-form line, and measure tools, enhance the measure tool with cursor angle snapping, arrowhead rendering, and bars/elapsed-time label metrics, and introduce a session `DrawingHistoryManager` in `$lib/utils/finance/` wired to `Ctrl/Cmd+Z` and `Ctrl/Cmd+Shift+Z`/`Ctrl/Cmd+Y` in `+page.svelte`.
+
+**Files:**
+- `frontend/src/lib/utils/finance/measure.ts` — modify: add `snapMeasureAngle` for cursor dominance snapping, `formatElapsedTime`, and `formatBarsCount`; update `formatMeasureLabel` to include bars and elapsed time.
+- `frontend/src/lib/utils/finance/measure.test.ts` — modify: test angle snapping, elapsed time formatting, bar count formatting, and extended label generation.
+- `frontend/src/lib/utils/finance/drawing-history.ts` — create: implement `DrawingHistoryManager` session snapshot stack and `areDrawingStatesEqual` across waves, fibonacci, and security drawings.
+- `frontend/src/lib/utils/finance/drawing-history.test.ts` — create: unit tests for undo/redo push, undo, redo, canUndo, canRedo, and state deduplication.
+- `frontend/src/lib/components/charts/plugins/horizontal-line/mouse.ts` — modify: implement `setProjectedLines` and `hitTestLine` for line distance across pane width.
+- `frontend/src/lib/components/charts/plugins/horizontal-line/horizontal-line-primitive.ts` — modify: supply projected lines to mouse handler and subscribe `mouseHandlers.lineClicked()` to select line.
+- `frontend/src/lib/components/charts/plugins/horizontal-line/pane-renderer.ts` — modify: hide anchor handles on resting unselected/unhovered lines, and restrict highlight ring strictly to active hovered/dragged points.
+- `frontend/src/lib/components/charts/plugins/horizontal-line/horizontal-line.test.ts` — modify: update renderer tests for resting handle visibility and active-only highlight; test line hit-testing and selection.
+- `frontend/src/lib/components/charts/plugins/free-form-line/mouse.ts` — modify: implement `setProjectedLines` and `hitTestLine` calculating perpendicular distance to segment p1-p2.
+- `frontend/src/lib/components/charts/plugins/free-form-line/free-form-line-primitive.ts` — modify: pass projected segments to mouse handler and subscribe `mouseHandlers.lineClicked()` to select line.
+- `frontend/src/lib/components/charts/plugins/free-form-line/pane-renderer.ts` — modify: hide anchor handles on resting unselected/unhovered lines, and restrict highlight ring strictly to active hovered/dragged points.
+- `frontend/src/lib/components/charts/plugins/free-form-line/free-form-line.test.ts` — modify: update renderer tests for resting handle visibility and active-only highlight; test line hit-testing and selection.
+- `frontend/src/lib/components/charts/plugins/measure/mouse.ts` — modify: implement `setProjectedLines` and `hitTestLine` for connecting line segment.
+- `frontend/src/lib/components/charts/plugins/measure/measure-primitive.ts` — modify: apply `snapMeasureAngle` during preview/placement, calculate bars and elapsed time in `_calculateRendererData`, pass projected lines, and subscribe `mouseHandlers.lineClicked()`.
+- `frontend/src/lib/components/charts/plugins/measure/pane-renderer.ts` — modify: hide handles on resting unselected/unhovered measures, restrict highlight ring to active points, and draw directional arrowhead at p2.
+- `frontend/src/lib/components/charts/plugins/measure/measure.test.ts` — modify: update renderer tests for resting handle visibility, active highlight ring, and arrowhead; test angle snapping, line hit-testing, and label metrics.
+- `frontend/src/lib/components/charts/plugins/fibonacci/pane-renderer.ts` — modify: restrict highlight ring in `_drawAnchorHandle` strictly to active hovered/dragged points (`point.isHovered || point.isDragging`).
+- `frontend/src/lib/components/charts/plugins/fibonacci/fibonacci.test.ts` — modify: update tests to expect highlight rings only on active hovered/dragged anchor points.
+- `frontend/src/lib/components/charts/plugins/elliott-wave/constants.ts` — modify: standardize `HANDLE_RADIUS = 5`, `DEFAULT_HANDLE_COLOR = '#2962FF'`, and `DEFAULT_HANDLE_BORDER_COLOR = '#ffffff'`.
+- `frontend/src/lib/components/charts/plugins/elliott-wave/pane-renderer.ts` — modify: draw blue/white radius 5 anchor dots when drawing, hovered, or selected; hide them on resting unhovered unselected waves; restrict highlight ring to active hovered/dragged points.
+- `frontend/src/lib/components/charts/plugins/elliott-wave/elliott-wave.test.ts` — modify: update tests to verify anchor dot styling (blue fill, white border, radius 5), resting hidden state, and active-only highlight ring.
+- `frontend/src/routes/security/[security_id]/+page.svelte` — modify: integrate `DrawingHistoryManager`, track mutation history, handle `Ctrl/Cmd+Z` and `Ctrl/Cmd+Shift+Z`/`Ctrl/Cmd+Y` in `handleKeyDown` to restore and patch preferences, and ensure Delete/Backspace works and persists across all tools.
+- `frontend/src/routes/security/[security_id]/page.svelte.test.ts` — modify: add test coverage for Delete/Backspace deletion across tools and session undo/redo keyboard actions.
+
+**Steps:**
+1. In `frontend/src/lib/utils/finance/measure.ts` and `measure.test.ts`, implement and test `snapMeasureAngle(p1, p2, thresholdDegrees = 15)` returning `'horizontal'`, `'vertical'`, or `'diagonal'`, `formatElapsedTime(seconds)` (`Xd`, `Xh`, `Xm`), `formatBarsCount(bars)`, and update `formatMeasureLabel` to include ` · {bars} bars, {elapsed}` when metrics are supplied.
+2. In `frontend/src/lib/utils/finance/drawing-history.ts` and `drawing-history.test.ts`, implement and test `DrawingHistoryManager` with `init`, `push`, `undo`, `redo`, `canUndo`, `canRedo`, and snapshot equality comparison across all drawing types (`SecurityDrawingState`).
+3. In `frontend/src/lib/components/charts/plugins/horizontal-line/`, update `pane-renderer.ts` to omit handles on unselected/unhovered drawings and highlight rings only when `point.isHovered || point.isDragging`. In `mouse.ts`, add `hitTestLine` checking distance to horizontal y-level. In `horizontal-line-primitive.ts`, forward projected lines and subscribe `lineClicked()` to select the line. Update `horizontal-line.test.ts`.
+4. In `frontend/src/lib/components/charts/plugins/free-form-line/`, update `pane-renderer.ts` to omit handles on resting lines and highlight rings only on active points. In `mouse.ts`, add `hitTestLine` calculating perpendicular distance to segment p1-p2. In `free-form-line-primitive.ts`, forward projected lines and subscribe `lineClicked()`. Update `free-form-line.test.ts`.
+5. In `frontend/src/lib/components/charts/plugins/measure/`, update `pane-renderer.ts` to omit handles on resting measures, highlight rings only on active points, and draw a directional arrowhead at `p2`. In `mouse.ts`, add `hitTestLine`. In `measure-primitive.ts`, apply `snapMeasureAngle`, calculate bar count and elapsed time, forward projected lines, and subscribe `lineClicked()`. Update `measure.test.ts`.
+6. In `frontend/src/lib/components/charts/plugins/fibonacci/`, update `pane-renderer.ts` `_drawAnchorHandle` to render highlight rings only when `point.isHovered || point.isDragging`. Update `fibonacci.test.ts`.
+7. In `frontend/src/lib/components/charts/plugins/elliott-wave/`, update `constants.ts` and `pane-renderer.ts` to render movable anchor handles with `#2962FF` fill, `#ffffff` border, and `HANDLE_RADIUS = 5` when drawing/hovered/selected, hide anchor dots on resting waves, and render highlight rings exclusively around the active hovered/dragged point. Update `elliott-wave.test.ts`.
+8. In `frontend/src/routes/security/[security_id]/+page.svelte` and `page.svelte.test.ts`, wire `DrawingHistoryManager` to initialize on load, record drawing changes, execute undo/redo on `Ctrl/Cmd+Z` and `Ctrl/Cmd+Shift+Z`/`Ctrl/Cmd+Y`, and verify Delete/Backspace deletion across horizontal lines, free-form lines, measures, fibonacci, and elliott waves.
+9. Run full frontend quality check (`npm run check` and `npm run test`) to ensure all tests pass and build succeeds.
+
+**Verification:**
+- Point styling & visibility: Run `npm test -- --run frontend/src/lib/components/charts/plugins/{horizontal-line,free-form-line,measure,fibonacci,elliott-wave}/` — verify handles render blue #2962FF with white border and radius 5 only when hovered/dragged/selected or drawing, and 0 handle arcs are drawn on resting unhovered drawings.
+- Active point highlight: Run tests for all 5 plugins — verify only the hovered/dragged anchor point receives a highlight ring, and selecting a drawing does not render rings around all its points.
+- Measure axis snapping & metrics: Run `npm test -- --run frontend/src/lib/utils/finance/measure.test.ts` and `frontend/src/lib/components/charts/plugins/measure/measure.test.ts` — verify dominant horizontal movement snaps price delta to 0, dominant vertical snaps time delta to 0, balanced movement preserves diagonal, and label displays formatted bars and elapsed time (e.g. `+2.50 (+5.0%) · 12 bars, 12d`).
+- Measure arrowhead: Run `npm test -- --run frontend/src/lib/components/charts/plugins/measure/measure.test.ts` — verify arrowhead rendering calls at endpoint `p2` oriented along segment.
+- Line selection hit-testing: Run tests for `horizontal-line.test.ts`, `free-form-line.test.ts`, and `measure.test.ts` — verify clicking within `HIT_TEST_RADIUS` of line segments fires `lineClicked` and selects the drawing.
+- Keyboard deletion & persistence: Run `npm test -- --run frontend/src/routes/security/` — verify pressing Delete or Backspace removes the selected drawing (horizontal line, free-form line, measure, fib, wave) and calls `userPreferencesService.patchPreferences`.
+- Session undo & redo: Run `npm test -- --run frontend/src/lib/utils/finance/drawing-history.test.ts` and `frontend/src/routes/security/` — verify `Ctrl+Z` / `Cmd+Z` reverts mutations and `Ctrl+Shift+Z` / `Cmd+Shift+Z` / `Ctrl+Y` re-applies mutations within the session.
+- Full suite: Run `npm run check` and `npm run test` in `frontend/` — verify clean build and all tests pass.
+
+**Risks / watch-outs:**
+- Existing unit tests for renderers currently assert specific arc call counts that assume resting handles or multi-point selection rings; each test suite must be updated in tandem with renderer changes.
+- In `+page.svelte`, keyboard shortcuts must check `!target.closest('input, textarea, [contenteditable="true"]')` to prevent intercepting native text editing undo/redo.
+- Drag mutations fire `drawingsChanged` continuously during mouse movement; the history manager must coalesce drag movements so a full drag constitutes a single undo step.
