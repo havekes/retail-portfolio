@@ -134,8 +134,8 @@ def test_tail_sampling_retains_errors_unconditionally() -> None:
     assert values == [".+"]
     assert slug_policy["string_attribute"]["enabled_regex_matching"] is True
 
-    # Tail sampling stops at the first matching policy: the probabilistic bulk
-    # must come last so it never shadows an error-retention rule.
+    # The policy set is a union (order cannot shadow), but the probabilistic
+    # bulk stays listed last so the error cohorts read as the primary rules.
     types = [p["type"] for p in policies]
     assert types[-1] == "probabilistic"
     assert "probabilistic" not in types[:-1]
@@ -178,7 +178,7 @@ def test_sampling_stamp_exposes_the_applied_decision() -> None:
 
     assert 'set(span.attributes["event.sampled"], true)' in joined
     assert (
-        f'set(span.attributes["event.sample_rate"], ${{env:{SUCCESS_PERCENT_ENV}}})'
+        f'set(span.attributes["event.sample_rate"], ${{env:{SUCCESS_PERCENT_ENV}:-7}})'
         in joined
     )
     assert re.search(
