@@ -274,27 +274,37 @@ describe('Holdings page (+page.svelte)', () => {
 	it('buckets header totals per currency instead of summing across them', async () => {
 		await renderWithHoldings([aaplTfsa, aaplRrsp, aaplUsd]);
 
-		const cad = screen.getByTestId('currency-total-CAD');
-		expect(cad).toHaveTextContent('CAD TOTAL');
-		expect(cad).toHaveTextContent('$1,500.00');
+		const cadTotalBtn = screen.getByTestId('currency-CAD-total-value');
+		expect(cadTotalBtn).toHaveTextContent('$1,500.00');
 
-		const cadReturnPill = screen.getByTestId('currency-return-percent-CAD');
+		const cadReturnPill = screen.getByTestId('currency-CAD-return-percent');
 		expect(cadReturnPill).toHaveTextContent('+3.33%');
 		expect(cadReturnPill.className).toContain('text-emerald-600');
 
-		const cadPl = screen.getByTestId('currency-profit-loss-CAD');
+		const cadPl = screen.getByTestId('currency-CAD-profit-loss-value');
 		expect(cadPl).toHaveTextContent('+$50.00');
 
-		const usd = screen.getByTestId('currency-total-USD');
-		expect(usd).toHaveTextContent('USD TOTAL');
-		expect(usd).toHaveTextContent('$200.00');
+		const usdTotalBtn = screen.getByTestId('currency-USD-total-value');
+		expect(usdTotalBtn).toHaveTextContent('US$200.00');
 
-		const usdReturnPill = screen.getByTestId('currency-return-percent-USD');
+		const usdReturnPill = screen.getByTestId('currency-USD-return-percent');
 		expect(usdReturnPill).toHaveTextContent('+20.00%');
 		expect(usdReturnPill.className).toContain('text-emerald-600');
 
-		const usdPl = screen.getByTestId('currency-profit-loss-USD');
+		const usdPl = screen.getByTestId('currency-USD-profit-loss-value');
 		expect(usdPl).toHaveTextContent('+US$20.00');
+	});
+
+	it('renders currency totals using TotalProfitLossButtons with split value and profit/loss buttons', async () => {
+		await renderWithHoldings([aaplTfsa]);
+
+		const totalValueBtn = screen.getByTestId('currency-CAD-total-value');
+		const profitLossBtn = screen.getByTestId('currency-CAD-profit-loss');
+		expect(totalValueBtn).toBeInTheDocument();
+		expect(profitLossBtn).toBeInTheDocument();
+		expect(totalValueBtn).toHaveTextContent('$1,000.00');
+		expect(screen.getByTestId('currency-CAD-return-percent')).toHaveTextContent('+10.00%');
+		expect(screen.getByTestId('currency-CAD-profit-loss-value')).toHaveTextContent('+$100.00');
 	});
 
 	it('renders negative return % pill badge with negative styling', async () => {
@@ -313,10 +323,10 @@ describe('Holdings page (+page.svelte)', () => {
 
 		await renderWithHoldings([losingHolding]);
 
-		const pill = screen.getByTestId('currency-return-percent-CAD');
+		const pill = screen.getByTestId('currency-CAD-return-percent');
 		expect(pill).toHaveTextContent('-20.00%');
 		expect(pill.className).toContain('text-rose-600');
-		expect(screen.getByTestId('currency-profit-loss-CAD')).toHaveTextContent('-$200.00');
+		expect(screen.getByTestId('currency-CAD-profit-loss-value')).toHaveTextContent('-$200.00');
 	});
 
 	it('handles currency bucket with zero cost basis or missing profit/loss gracefully', async () => {
@@ -348,27 +358,28 @@ describe('Holdings page (+page.svelte)', () => {
 		await renderWithHoldings([zeroCostHolding, noPlHolding]);
 
 		// Zero cost basis -> returnPercent is null, pill badge omitted, but dollar profit/loss is displayed
-		expect(screen.queryByTestId('currency-return-percent-CAD')).not.toBeInTheDocument();
-		expect(screen.getByTestId('currency-profit-loss-CAD')).toHaveTextContent('+$500.00');
+		expect(screen.queryByTestId('currency-CAD-return-percent')).not.toBeInTheDocument();
+		expect(screen.getByTestId('currency-CAD-profit-loss-value')).toHaveTextContent('+$500.00');
 
 		// Missing profit/loss -> hasProfitLoss is false, right side (pill and dollar P/L) is omitted
-		expect(screen.queryByTestId('currency-return-percent-USD')).not.toBeInTheDocument();
-		expect(screen.queryByTestId('currency-profit-loss-USD')).not.toBeInTheDocument();
-		expect(screen.getByTestId('currency-total-USD')).toHaveTextContent('$500.00');
+		expect(screen.queryByTestId('currency-USD-return-percent')).not.toBeInTheDocument();
+		expect(screen.queryByTestId('currency-USD-profit-loss-value')).not.toBeInTheDocument();
+		expect(screen.getByTestId('currency-USD-total-value')).toHaveTextContent('US$500.00');
 	});
 
 	it('renders unified icon-only settings trigger button and no standalone group checkbox in header', async () => {
 		await renderWithHoldings([aaplTfsa]);
 
-		const trigger = screen.getByRole('button', { name: 'Display settings' });
+		const trigger = screen.getByRole('button', { name: 'Settings' });
 		expect(trigger).toBeInTheDocument();
 		expect(trigger).toHaveAttribute('data-testid', 'display-settings-trigger');
-		expect(trigger).toHaveAttribute('aria-label', 'Display settings');
-		expect(trigger).toHaveAttribute('title', 'Display settings');
+		expect(trigger).toHaveAttribute('aria-label', 'Settings');
+		expect(trigger).toHaveAttribute('title', 'Settings');
 
 		// Standalone checkbox outside dropdown is not present
 		expect(screen.queryByRole('checkbox', { name: 'Group by stock' })).not.toBeInTheDocument();
 		expect(screen.queryByTestId('column-visibility-trigger')).not.toBeInTheDocument();
+		expect(screen.queryByTestId('holdings-filter-trigger')).not.toBeInTheDocument();
 	});
 
 	it('toggling "Group by stock" merges rows into single rows per stock without refetching', async () => {
@@ -431,7 +442,7 @@ describe('Holdings page (+page.svelte)', () => {
 		expect(screen.getByTestId('empty-state')).toHaveTextContent(
 			'No holdings yet. Import an account to see your holdings here.'
 		);
-		expect(screen.queryByTestId('currency-total-CAD')).not.toBeInTheDocument();
+		expect(screen.queryByTestId('currency-CAD-total-value')).not.toBeInTheDocument();
 	});
 
 	it('shows the holdings-error alert with the real message when the async load fails', async () => {
@@ -583,18 +594,19 @@ describe('Holdings page (+page.svelte)', () => {
 			expect(screen.getAllByText('RRSP')).toHaveLength(2);
 		});
 
-		it('renders filter trigger button and allows selecting specific portfolio, account, and all', async () => {
+		it('renders filter options in settings dropdown and allows selecting specific portfolio, account, and all', async () => {
 			await renderWithHoldings([aaplTfsa, aaplRrsp, msftRrsp], {
 				portfolios: [testPortfolio],
 				accounts: [testAccount1, testAccount2]
 			});
 
-			const filterTrigger = screen.getByTestId('holdings-filter-trigger');
-			expect(filterTrigger).toBeInTheDocument();
-			expect(filterTrigger).toHaveTextContent('All');
+			expect(screen.queryByTestId('holdings-filter-trigger')).not.toBeInTheDocument();
+
+			const settingsTrigger = screen.getByTestId('display-settings-trigger');
+			expect(settingsTrigger).toBeInTheDocument();
 
 			// Open dropdown
-			await fireEvent.click(filterTrigger);
+			await fireEvent.click(settingsTrigger);
 
 			const portfolioOption = await screen.findByTestId('filter-portfolio-port-1');
 			const accountOption = await screen.findByTestId('filter-account-acc-1');
@@ -612,13 +624,13 @@ describe('Holdings page (+page.svelte)', () => {
 			expect(screen.getAllByTestId('holding-row')).toHaveLength(2);
 
 			// Select account
-			await fireEvent.click(filterTrigger);
+			await fireEvent.click(settingsTrigger);
 			await fireEvent.click(await screen.findByTestId('filter-account-acc-1'));
 			expect(goto).toHaveBeenCalledWith('/holdings?account_id=acc-1', expect.anything());
 			expect(screen.getAllByTestId('holding-row')).toHaveLength(1);
 
 			// Reset to All
-			await fireEvent.click(filterTrigger);
+			await fireEvent.click(settingsTrigger);
 			await fireEvent.click(await screen.findByTestId('filter-all'));
 			expect(goto).toHaveBeenCalledWith('/holdings', expect.anything());
 			expect(screen.getAllByTestId('holding-row')).toHaveLength(3);
@@ -635,7 +647,8 @@ describe('Holdings page (+page.svelte)', () => {
 
 			expect(goto).toHaveBeenCalledWith('/holdings?account_id=acc-1', expect.anything());
 			expect(screen.getAllByTestId('holding-row')).toHaveLength(1);
-			expect(screen.getByTestId('holdings-filter-trigger')).toHaveTextContent('TFSA');
+			expect(screen.getByText('Holdings in TFSA')).toBeInTheDocument();
+			expect(screen.queryByTestId('holdings-filter-trigger')).not.toBeInTheDocument();
 		});
 
 		it('updates currency totals when holdings are filtered by portfolio', async () => {
@@ -645,13 +658,13 @@ describe('Holdings page (+page.svelte)', () => {
 			});
 
 			// Initial CAD total: 1000 + 500 + 400 = 1900
-			expect(screen.getByTestId('currency-total-CAD')).toHaveTextContent('$1,900.00');
+			expect(screen.getByTestId('currency-CAD-total-value')).toHaveTextContent('$1,900.00');
 
 			// Filter to portfolio port-1 (only acc-2: 500 + 400 = 900)
-			await fireEvent.click(screen.getByTestId('holdings-filter-trigger'));
+			await fireEvent.click(screen.getByTestId('display-settings-trigger'));
 			await fireEvent.click(await screen.findByTestId('filter-portfolio-port-1'));
 
-			expect(screen.getByTestId('currency-total-CAD')).toHaveTextContent('$900.00');
+			expect(screen.getByTestId('currency-CAD-total-value')).toHaveTextContent('$900.00');
 		});
 	});
 
