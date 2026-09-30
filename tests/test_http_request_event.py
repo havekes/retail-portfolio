@@ -21,7 +21,7 @@ from opentelemetry.sdk.trace.export import SimpleSpanProcessor
 from opentelemetry.sdk.trace.export.in_memory_span_exporter import (
     InMemorySpanExporter,
 )
-from opentelemetry.trace import SpanKind
+from opentelemetry.trace import SpanKind, StatusCode
 
 from src.config.settings import Settings
 from src.core.middleware import RequestIdMiddleware
@@ -32,6 +32,7 @@ from src.observability import (
     reset_observability,
     uninstrument_auto,
 )
+from src.observability.events import HTTP_ERROR_STATUS_REASON
 
 DEPLOY_ID = "deploy-test-http-events"
 EVENT_NAME = "http.request"
@@ -182,6 +183,11 @@ async def test_http_request_event_for_failing_request(
     assert attributes["status"] == 500
     assert isinstance(attributes["duration_ms"], float)
     assert "user_id" not in attributes
+
+    # The emitter itself marks the int 5xx status as a span ERROR, so failure
+    # retention no longer depends on the collector-side transform alone.
+    assert span.status.status_code is StatusCode.ERROR
+    assert span.status.description == HTTP_ERROR_STATUS_REASON
 
     access_records = [
         record for record in caplog.records if record.name == "src.core.middleware"

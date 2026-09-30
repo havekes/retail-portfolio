@@ -24,6 +24,7 @@ from src.observability import (
     is_telemetry_enabled,
     reset_observability,
 )
+from src.observability.events import HTTP_ERROR_STATUS_REASON
 
 FIELD_DICTIONARY_PATH = (
     Path(__file__).resolve().parents[1] / "docs" / "field-dictionary.md"
@@ -235,6 +236,55 @@ def test_emit_event_error_status_marking(
         _event_span(span_exporter, "portfolio.sync.completed").status.status_code
         is StatusCode.UNSET
     )
+
+
+def test_emit_event_marks_integer_5xx_status_as_error(
+    span_exporter: InMemorySpanExporter,
+) -> None:
+    """An int 5xx status is a failure even without a slug or failure word."""
+    emit_event("http.request", route="/api/boom", method="GET", status=500)
+    emit_event("http.request", route="/api/unavailable", method="GET", status=503)
+
+    spans: dict[int, ReadableSpan] = {}
+    for span in span_exporter.get_finished_spans():
+        if span.name == "http.request":
+            assert span.attributes is not None
+            status = span.attributes["status"]
+            assert isinstance(status, int)
+            spans[status] = span
+
+    assert set(spans) == {500, 503}
+    for status, span in spans.items():
+        assert span.status.status_code is StatusCode.ERROR, status
+        assert span.status.description == HTTP_ERROR_STATUS_REASON, status
+
+
+def test_emit_event_leaves_integer_status_below_500_unset(
+    span_exporter: InMemorySpanExporter,
+) -> None:
+    """Int 2xx/4xx statuses are not treated as emitter-level failures."""
+    emit_event("http.request", route="/api/ping", method="GET", status=200)
+    emit_event("http.request", route="/api/missing", method="GET", status=404)
+
+    spans = [
+        span
+        for span in span_exporter.get_finished_spans()
+        if span.name == "http.request"
+    ]
+    assert len(spans) == 2
+    for span in spans:
+        assert span.status.status_code is StatusCode.UNSET
+        assert span.status.description is None
+
+
+def test_emit_event_ignores_boolean_status(
+    span_exporter: InMemorySpanExporter,
+) -> None:
+    """`bool` subclasses `int`; a boolean status must not look like a 5xx."""
+    emit_event("http.request", route="/api/ping", method="GET", status=True)
+
+    span = _event_span(span_exporter, "http.request")
+    assert span.status.status_code is StatusCode.UNSET
 
 
 def test_emit_event_queryable_by_event_name(

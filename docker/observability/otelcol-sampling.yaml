@@ -44,8 +44,9 @@ receivers:
 
 processors:
   # Promote the wide-event failure signals to span status ERROR before sampling.
-  # Mirrors `_error_reason()` in `src/observability/events.py`, which cannot mark
-  # the int `status` of `http.request` (its failure detection is string-only).
+  # Mirrors `_error_reason()` in `src/observability/events.py` as defence in
+  # depth: the emitter itself already marks an int 5xx `status` (plus its
+  # `error_slug` and string `status`/`outcome` failure words).
   transform/error_marking:
     error_mode: ignore
     trace_statements:
