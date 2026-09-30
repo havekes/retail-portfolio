@@ -467,7 +467,7 @@ func spanAttribute(t *testing.T, span sdktrace.ReadOnlySpan, key string) string 
 	t.Helper()
 	for _, attr := range span.Attributes() {
 		if string(attr.Key) == key {
-			return attr.Value.Emit()
+			return attr.Value.String()
 		}
 	}
 	t.Fatalf("span %q has no attribute %q", span.Name(), key)

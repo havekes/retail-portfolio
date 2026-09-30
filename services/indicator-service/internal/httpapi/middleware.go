@@ -160,7 +160,6 @@ func TraceMiddleware(next http.Handler) http.Handler {
 	})
 }
 
-
 // LoggingMiddleware creates an HTTP middleware that logs request details,
 // propagates or generates an X-Request-ID, tracks latency, and binds a scoped
 // logger into the request context.

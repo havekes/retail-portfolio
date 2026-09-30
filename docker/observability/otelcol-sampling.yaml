@@ -10,7 +10,8 @@
 # `otel-sampler:4318` (overlay-scoped `OTEL_EXPORTER_OTLP_ENDPOINT`) and the
 # retained traces are forwarded to ClickStack's own OTLP receiver.
 #
-# Policy, in evaluation order (tail sampling stops at the first matching policy):
+# Policy set (tail sampling retains a trace if ANY policy matches; policy order
+# never makes one policy shadow another):
 #   1. `errors-all`         — every trace containing a span with status ERROR is
 #                             kept at 100%. `transform/error_marking` promotes
 #                             the wide-event failure signals (`error_slug`,
@@ -21,8 +22,8 @@
 #                             `error_slug` attribute is kept at 100%, even if a
 #                             future emitter ever forgets to set span status.
 #   3. `success-bulk`       — everything else is sampled probabilistically at
-#                             `${env:OTEL_SAMPLER_SUCCESS_PERCENT}` (default 7%,
-#                             the configured 5-10% band).
+#                             `${env:OTEL_SAMPLER_SUCCESS_PERCENT:-7}` (default
+#                             7%, the configured 5-10% band).
 #
 # `transform/sampling_stamp` then stamps every span that survived sampling with
 # the applied decision: `event.sampled=true` and `event.sample_rate` (1.0 for
@@ -80,7 +81,7 @@ processors:
       - name: success-bulk
         type: probabilistic
         probabilistic:
-          sampling_percentage: ${env:OTEL_SAMPLER_SUCCESS_PERCENT}
+          sampling_percentage: ${env:OTEL_SAMPLER_SUCCESS_PERCENT:-7}
 
   # Stamp the applied decision on every span that survived sampling. Both the
   # `event.sampled` flag and the resolved `event.sample_rate` are queryable in
@@ -91,7 +92,7 @@ processors:
       - context: span
         statements:
           - set(span.attributes["event.sampled"], true)
-          - set(span.attributes["event.sample_rate"], ${env:OTEL_SAMPLER_SUCCESS_PERCENT})
+          - set(span.attributes["event.sample_rate"], ${env:OTEL_SAMPLER_SUCCESS_PERCENT:-7})
           - set(span.attributes["event.sample_rate"], 1.0) where span.attributes["error_slug"] != nil or span.attributes["outcome"] == "failed" or span.attributes["outcome"] == "failure" or span.attributes["outcome"] == "error" or span.status.code == STATUS_CODE_ERROR
 
   batch:
