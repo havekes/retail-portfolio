@@ -21,6 +21,9 @@ logger = logging.getLogger(__name__)
 #: Message type recorded when a payload carries no ``type`` key.
 _UNKNOWN_MESSAGE_TYPE = "unknown"
 
+#: ``user_id`` recorded when a delivery fails before one could be resolved.
+_UNKNOWN_USER_ID = "unknown"
+
 
 def _elapsed_ms(started: float) -> float:
     """Return milliseconds elapsed since a ``time.monotonic()`` reading."""
@@ -187,7 +190,7 @@ class ConnectionManager:
                             user_id=(
                                 str(user_id)
                                 if user_id is not None
-                                else _UNKNOWN_MESSAGE_TYPE
+                                else _UNKNOWN_USER_ID
                             ),
                             message_type=_message_type(msg_payload),
                             connection_count=(
