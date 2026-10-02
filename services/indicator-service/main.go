@@ -3,7 +3,7 @@ package main
 import (
 	"context"
 	"errors"
-	"log"
+	"log/slog"
 	"net/http"
 	"os"
 	"os/signal"
@@ -12,12 +12,17 @@ import (
 )
 
 func main() {
+	env := os.Getenv("ENVIRONMENT")
+	logLevel := os.Getenv("LOG_LEVEL")
 	port := os.Getenv("PORT")
 	if port == "" {
 		port = "8080"
 	}
 
-	router := NewRouter()
+	logger := SetupLogger(env, logLevel, os.Stdout)
+	slog.SetDefault(logger)
+
+	router := NewRouter(logger)
 
 	server := &http.Server{
 		Addr:         ":" + port,
@@ -44,25 +49,48 @@ func main() {
 		go func() {
 			<-shutdownCtx.Done()
 			if errors.Is(shutdownCtx.Err(), context.DeadlineExceeded) {
-				log.Println("graceful shutdown timed out.. forcing exit.")
+				logger.Warn("graceful shutdown timed out.. forcing exit",
+					slog.String("service", "indicator-service"),
+					slog.String("port", port),
+					slog.String("environment", env),
+				)
 			}
 		}()
 
 		// Trigger graceful shutdown
 		err := server.Shutdown(shutdownCtx)
 		if err != nil {
-			log.Printf("server shutdown error: %v\n", err)
+			logger.Error("server shutdown error",
+				slog.String("service", "indicator-service"),
+				slog.String("port", port),
+				slog.String("environment", env),
+				slog.String("error", err.Error()),
+			)
 		}
 		serverStopCtx()
 	}()
 
-	log.Printf("indicator-service listening on port %s\n", port)
+	logger.Info("indicator-service listening",
+		slog.String("service", "indicator-service"),
+		slog.String("port", port),
+		slog.String("environment", env),
+	)
 	err := server.ListenAndServe()
 	if err != nil && !errors.Is(err, http.ErrServerClosed) {
-		log.Fatalf("server failed to start: %v\n", err)
+		logger.Error("server failed to start",
+			slog.String("service", "indicator-service"),
+			slog.String("port", port),
+			slog.String("environment", env),
+			slog.String("error", err.Error()),
+		)
+		os.Exit(1)
 	}
 
 	// Wait for server context to be stopped
 	<-serverCtx.Done()
-	log.Println("indicator-service stopped")
+	logger.Info("indicator-service stopped",
+		slog.String("service", "indicator-service"),
+		slog.String("port", port),
+		slog.String("environment", env),
+	)
 }

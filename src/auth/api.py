@@ -1,4 +1,5 @@
 import contextlib
+import secrets
 from collections.abc import AsyncGenerator
 from datetime import UTC, datetime, timedelta
 from typing import Annotated
@@ -6,7 +7,7 @@ from uuid import UUID, uuid4
 
 import jwt
 from argon2 import PasswordHasher
-from fastapi import Depends, HTTPException, Request
+from fastapi import Depends, Header, HTTPException, Request
 from fastapi.security import OAuth2PasswordBearer
 from pydantic import BaseModel, ValidationError
 from svcs import Container
@@ -293,6 +294,27 @@ async def authorization_api_factory(
     return AuthorizationApi(
         user_service=await user_api_factory(container),
     )
+
+
+_SERVICE_TOKEN_HEADER = "X-Service-Token"  # noqa: S105
+
+
+async def require_service_token(
+    x_service_token: Annotated[str | None, Header(alias=_SERVICE_TOKEN_HEADER)] = None,
+) -> None:
+    """Verify the shared service token for service-to-service requests.
+
+    Deliberately independent of user JWT auth: reads only the ``X-Service-Token``
+    header and the configured secret, with no cookie fallback.
+    """
+    # Compare as bytes: ``compare_digest`` rejects a non-ASCII ``str`` operand
+    # with ``TypeError`` (→ 500), which Starlette's latin-1 header decoding can
+    # produce. Byte operands keep the constant-time comparison for any header.
+    if not x_service_token or not secrets.compare_digest(
+        x_service_token.encode(),
+        settings.market_data_service_token.encode(),
+    ):
+        raise HTTPException(401, "Service token invalid")
 
 
 async def get_token(
