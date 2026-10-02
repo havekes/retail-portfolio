@@ -1,13 +1,13 @@
 {
   "schemaVersion": 1,
-  "pageVersion": "sha256:644da31548ae30e62b7e0898233f2f62437ddf65284a860de8dbc0c87d067667",
+  "pageVersion": "sha256:618e6539f3f036f1528fcf6dfe2fc6a8db3e0c3c8b27b5f50bb154c5076281fc",
   "claims": [
     {
       "id": "claim_6165b866151d4d2585d1837a02f0e02a",
       "statement": "EodhdPriceRepository is the only registered PriceRepository and works read-through: get_prices reads the DB range, fetches the same range from EODHD, and persists the union with EODHD rows winning per date; get_latest_price only refetches when the stored close predates the last expected NYSE trading day (weekends and holidays.NYSE() skipped); get_price_on_date falls back to EODHD and saves the result; save_price/save_prices raise NotImplementedError so writes must go through the inner DB repository or MarketService.",
       "evidence": [
         {
-          "resource": "repo://src/market/__init__.py#L58-L63",
+          "resource": "repo://src/market/__init__.py#L60-L65",
           "version": "repo-lines-v1:sha256:04f7ee4d2527ef665b1a2b8f268b82e5c1e82315611cd552dd4a7328893cedf7:eyJzZWxlY3RlZExpbmVDb3VudCI6NiwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiZmMzNGZiZWZiYTIxZDcyZjk3NDcwMzcyY2FmYzNlYzMwMzM1MGU2YzYwM2E4ZDM5OTc0NzRiZmZiMDNiZGY3OCIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiMzBjMWYxODhmMTQyZWQ3YTgyNDY4MGIyMDcxNzJjNTUxOWJjNjE0YTQ4ZmRhN2NmMTY3ZWRiOGRkZjc5OTU2YyIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiYTk4YjA2M2Q5YjQ3ZTY1Mzc5NjI1NTcyY2NlMTk3NjY5ZDU3NjdlMTJjMThiZTA3NTY1MmI4Y2Q5ODFjZThkNSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiZGRhYWRlMmVlNjIzZWJmYmM0Mzg2MThhZDVlNWJkYTAyMjNjNjYwMDFmYTk5NTgxMzA5NDQ3YmNhNDY4MTgzMSJ9"
         },
         {
@@ -35,7 +35,7 @@
       "statement": "GET /market/prices/{security_id} requires from_date and to_date (422 otherwise) for 1d/1w/1m and derives weekly/monthly candles in-process via aggregate_weekly_prices and aggregate_monthly_prices; for intraday intervals it reads IntradayPriceRepository and triggers an on-demand backfill through MarketService.fetch_and_save_intraday_prices when the result is empty or its first candle starts more than 4 days after from_date, then aggregates 4h buckets via aggregate_4h_candles.",
       "evidence": [
         {
-          "resource": "repo://src/market/router.py#L167-L301",
+          "resource": "repo://src/market/router.py#L179-L313",
           "version": "repo-lines-v1:sha256:2f73536824c8016414b1aa5d488b05bb4c5a041b3dd4a47c6025ed9a41ec0e76:eyJzZWxlY3RlZExpbmVDb3VudCI6MTM1LCJmaXJzdFNlbGVjdGVkTGluZUhhc2giOiJjYmE0ODBmYmVjOGFlYzcwNDFiNGNkZmYzMTk1NTA4MDA4OWY1MTg1ZGIxNGJiYzZhMjQ5MGU0MjM1MjYxODcxIiwibGFzdFNlbGVjdGVkTGluZUhhc2giOiIzMGMxZjE4OGYxNDJlZDdhODI0NjgwYjIwNzE3MmM1NTE5YmM2MTRhNDhmZGE3Y2YxNjdlZGI4ZGRmNzk5NTZjIiwicHJlY2VkaW5nQ29udGV4dExpbmVDb3VudCI6MywicHJlY2VkaW5nQ29udGV4dEhhc2giOiI1Njc5NDAzMWM0ZWFjYzNjNzY5NGIwYjJjNWMzYTk5OWFiNmIyNWJlNDM3ODk0YmM2ZmIyOTlhMDliOTJlNDBkIiwiZm9sbG93aW5nQ29udGV4dExpbmVDb3VudCI6MywiZm9sbG93aW5nQ29udGV4dEhhc2giOiI0YzRiMzk5MjVlOTAwZWIwOTk5ODc3NGU3YjgwY2U3ZTllMzkwOWRlZTljNWFiOTBkZDE3YWUyNTU1ZjZmZGQ3In0"
         },
         {
@@ -133,7 +133,7 @@
           "version": "repo-lines-v1:sha256:a16be3676bd7e3fdf3cdb93ea338c79f181a596191cc1cd3a2f154c95e8b09df:eyJzZWxlY3RlZExpbmVDb3VudCI6ODMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjllYWY1YTlhOGIyMzE4M2EyN2UyMzY1N2UzZjU2MTQwZWFmNTljM2Q1NDBlZGFkMDJkZGIyYTRiNGM0ZTg2YjEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAxYmE0NzE5YzgwYjZmZTkxMWIwOTFhN2MwNTEyNGI2NGVlZWNlOTY0ZTA5YzA1OGVmOGY5ODA1ZGFjYTU0NmIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjJiMWNkNWNlZTc0Y2QxMzRhNzA0NDgxNjhiMGE1ZDQ5ZmY2YWFiOTQ0ODkwODY2MDFhY2EzYTcwMTBlNGNkOTEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImVmZGI3OTA5MjI5MjIwYjJjNzMyY2Y5MzI3ZDA0NDRiNzZlYTRmMzFkY2VhMzBkMDMxMmU2NjBlOGNmNWUyNTkifQ"
         },
         {
-          "resource": "repo://src/market/router.py#L646-L740",
+          "resource": "repo://src/market/router.py#L774-L868",
           "version": "repo-lines-v1:sha256:655d4591f4629cce73db99146b823923cc6d20a522d4756ab0f2e4dcdb7a6c13:eyJzZWxlY3RlZExpbmVDb3VudCI6OTUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjViNzQ2ZjhlNjVhM2E3YzcyMTQ3ZGFlNzZmZjkwMDk1ZjhmZGQ1NTkwMDQyNGE0Njg4MzBiZjFmZGZkNmEyZmUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImZhMTFjMDU2N2QwYTVmOWU5YjEzNWY2NWNkMjUzNzJkZmQ2Mjg3NzVmN2MxZWQyNTNmOGJhZDQyZGQyZDY2NjkiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjBhZDY4ZDMyZTQwOTQxYTBjNWE1ZTAzYTExZTNhMGNiOWMyYmYwY2VlMmY1ZmQyN2NkNzU1YzdhMjJmYzY4ODQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImY0NzZjNTI4NmE2ZjU0M2E1NzdhN2IzOTI2MzI2YTg5ZDk5NjU4NmQ4NmNiNDRlMzcwOWJlYWRjYzU2ZDc5ZDUifQ"
         }
       ]
@@ -143,12 +143,12 @@
       "statement": "POST /market/securities/{security_id}/indicators/compute validates and normalizes the date/datetime union before comparing bounds (reversed window → 422, avoiding a TypeError from naive/aware comparison), consults the IndicatorCache only when the caller supplied no candles, resolves candles from PriceRepository (daily/weekly/monthly, aggregated per interval, time as a date ISO string) or IntradayPriceRepository (time as integer epoch seconds), applies convert_to_heikin_ashi before dispatch when chart_style is heikin_ashi, calls IndicatorServiceClient.compute, and writes the cache only for the server-resolved path.",
       "evidence": [
         {
-          "resource": "repo://src/market/router.py#L743-L887",
-          "version": "repo-lines-v1:sha256:e6180903a276304a2a9bdf02b709a439728de04528884bb129c84ecae5da71f0:eyJzZWxlY3RlZExpbmVDb3VudCI6MTQ1LCJmaXJzdFNlbGVjdGVkTGluZUhhc2giOiJlMmRkNDJjNjU3ZjdjNmI2MTk2YmZjOTJkZDQ5OTA2ZWY1YTlmNmI3Y2E0Y2IyOWFmOWFmN2MxZDIwZGIwMGFiIiwibGFzdFNlbGVjdGVkTGluZUhhc2giOiI3MjA4NTMyOTEwY2ZjZWZlNTg3MDNkNDM0NDVhOWMyMDJiMTI0ODc3MmYxNmVmNWExNjMwZTYyZjI1ZGYwMjc0IiwicHJlY2VkaW5nQ29udGV4dExpbmVDb3VudCI6MywicHJlY2VkaW5nQ29udGV4dEhhc2giOiJkNzIyMzEwNmZkODc0MmI3MGVhMjMzZjlkYzM1OWY0YjAyYmJiMDY5YjcyODNlZWY3NjI0OTk1MTZiZDdiOWM4IiwiZm9sbG93aW5nQ29udGV4dExpbmVDb3VudCI6MywiZm9sbG93aW5nQ29udGV4dEhhc2giOiJmZjAyOWFiMDI1OWYzOTdiZGVmMzIyYmM1YjRiOTg5MDI5OWU1NDJlOTMzMjJjYjc0NzNkYTgyM2FkZjZiZjYyIn0"
+          "resource": "repo://src/market/router.py#L871-L1027",
+          "version": "repo-lines-v1:sha256:f00ed2c539e16a670969f962081548a57528cf06630ad1b2ac02f81b89fa0da2:eyJzZWxlY3RlZExpbmVDb3VudCI6MTU3LCJmaXJzdFNlbGVjdGVkTGluZUhhc2giOiJlMmRkNDJjNjU3ZjdjNmI2MTk2YmZjOTJkZDQ5OTA2ZWY1YTlmNmI3Y2E0Y2IyOWFmOWFmN2MxZDIwZGIwMGFiIiwibGFzdFNlbGVjdGVkTGluZUhhc2giOiI3MjA4NTMyOTEwY2ZjZWZlNTg3MDNkNDM0NDVhOWMyMDJiMTI0ODc3MmYxNmVmNWExNjMwZTYyZjI1ZGYwMjc0IiwicHJlY2VkaW5nQ29udGV4dExpbmVDb3VudCI6MywicHJlY2VkaW5nQ29udGV4dEhhc2giOiJkNzIyMzEwNmZkODc0MmI3MGVhMjMzZjlkYzM1OWY0YjAyYmJiMDY5YjcyODNlZWY3NjI0OTk1MTZiZDdiOWM4IiwiZm9sbG93aW5nQ29udGV4dExpbmVDb3VudCI6MywiZm9sbG93aW5nQ29udGV4dEhhc2giOiJmZjAyOWFiMDI1OWYzOTdiZGVmMzIyYmM1YjRiOTg5MDI5OWU1NDJlOTMzMjJjYjc0NzNkYTgyM2FkZjZiZjYyIn0"
         },
         {
-          "resource": "repo://src/market/schema.py#L271-L303",
-          "version": "repo-lines-v1:sha256:bdc8b5b3bc6b34d4e43b7a6b5ee819fb9c05275549b3d4184941472fcaa92b4c:eyJzZWxlY3RlZExpbmVDb3VudCI6MzMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjdiYTBlOGIyOTJkZTQyNDA5Yzg2ZTIxNjlhNmQ1N2IwZTljYWIzOGM2Y2JlYThjYjBkNzE3Nzc3YTU1YjVmZjEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjdiZDhjMWVjYjkzMjM0YTg4N2M1Y2EwMmU3MWU5NjgwZjMzYTQ4MzdjNjkzYzA1ODJhNTEwYTQxOGVjYTkyOTYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjAxZDdkNmQ0YmZjM2MwNWQ2ZjMwZjA5ODA0YTNmOTZmNTI2OWM2ZmUxNjQwZDUzZThkYWEzN2U1Mzc2OTAxNjkiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
+          "resource": "repo://src/market/schema.py#L330-L341",
+          "version": "repo-lines-v1:sha256:66eb9069f6d70436126dc9b1cb1acfd8f073d40bd3e927127195f20d57c859cc:eyJzZWxlY3RlZExpbmVDb3VudCI6MTIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjI5MWY0ZGZlODhmODMzYzc1NTQ3MzI0YjUwOWU4OTk2N2IxODVmNDgxMjcxYjM4YzFkNmU2OGQ1YmNiYzI1OTYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAxYmE0NzE5YzgwYjZmZTkxMWIwOTFhN2MwNTEyNGI2NGVlZWNlOTY0ZTA5YzA1OGVmOGY5ODA1ZGFjYTU0NmIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjcyYmFlNTY1MDA4ZWUyMzZjZDRjNWQ1OTc2YjAzODhhN2EyYzYwMTNlZmM2ZDQ4ZTUzZWUxNzZiZDkwYzRjMzEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjU5MTFiYmZhZWE2OTdhYTIxYTEyZDA2ZWE0OTRiZGM2M2UxZjdjOWZiMGE0MGEwZmJmZTA4OGVmZGI3YTljM2QifQ"
         },
         {
           "resource": "repo://tests/market/test_indicator_compute_api.py#L333-L441",
@@ -193,7 +193,7 @@
       "statement": "GET /market/search and its alias GET /market/securities/search share one handler that is cache-first against SecuritySearchCache and only calls MarketGateway.search on a miss, then writes the results back; the endpoints require an authenticated user and a query of length 1..100.",
       "evidence": [
         {
-          "resource": "repo://src/market/router.py#L106-L132",
+          "resource": "repo://src/market/router.py#L118-L144",
           "version": "repo-lines-v1:sha256:1b80be4763ba1d925a276dce9c46ab00034f29a38844d93cca81695157763386:eyJzZWxlY3RlZExpbmVDb3VudCI6MjcsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjYzNmI3NGM1MGUwNTk1ZDM0N2Y2ZWRjZjZjODlhNmEzMTQzMDdjMGFlZDc1Mzg1MzMwNDYzYjg3NGZhYWY4M2QiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjcwZTRmYjRkNDIzZWMzZTYwYTFkMDNkYjA4OGU1N2U4YjM1MjIxZDkxMzg0OTM2YTg4ZmQ5Mzg5NzllZDlkOTYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImIyOTEzMmNkYmNlM2RlOTk3MjZmNjYxMDI4YWFkOThlYmMxZTJiMTIxNGE3YjNmODc4ZTUzODg1MTRiZTYwNzgiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImVjYzJlYjUxM2I4YTJlZWFkMjliZmExYjhkZGZlNmUzMTBhN2UyMjdjMzZlZTgwYmExYjZjZWIyY2Q4YzE2NWYifQ"
         },
         {
@@ -279,11 +279,11 @@
           "version": "repo-lines-v1:sha256:09d6382d208a06d1554904f99870453d5d133c1f85e86982261015cf5fc1d260:eyJzZWxlY3RlZExpbmVDb3VudCI6NTQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjVjYjUzNGVmNDM1NTEzMTY3MGQzYjJmNTQwOWZmNGFlMWMyNTFlN2VhNWIxYzFmMDVlNTA2M2VjMzY5MmE5MTAiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQxMmNhMzQ1Y2NmNzViZjljMDgwNmJjZTY5NWJlOGRlODA4Yjc5OTg0MjUxYTdhNTRkMjAyY2Y2MTAxZGQ0NTEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjdhMzk2ZTBlNWQ1MWFhNGE2ZDJmNjhlOWY2ZGZiYjM2M2EwNzQyM2IyZDg0Zjg4YjllZWEwZTBjMWYwOTQzYzgiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjQzYWI3ZGQzNjc4ZDg4NjI2YzdkNmMzOGYzM2ZlMDJjZDljYmU3ZTdiODNiMGM4M2E3MDQ0MWVjYTg0OGM5OTQifQ"
         },
         {
-          "resource": "repo://frontend/src/routes/security/%5Bsecurity_id%5D/%2Bpage.svelte#L642-L719",
+          "resource": "repo://frontend/src/routes/security/%5Bsecurity_id%5D/%2Bpage.svelte#L332-L409",
           "version": "repo-lines-v1:sha256:96ca510bc3a60e9b88fb7c7fc97cf53b5fbcd37274dbd574daf44e5a932f7d1d:eyJzZWxlY3RlZExpbmVDb3VudCI6NzgsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImQzNzk1MmFiYmY3YjVlNWRlMWVkNDEwNjJjODQ5ZWIyZmNlOWViNzA4MmFmZWI0OTRiZTZmMTRiYTI0MDgwMmQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjY3Y2RhODJkYTYwNjIzOGUwNWU2MjM5OTU2OWM1ZWUwMzk5MzQxOTY0OGFlNWQ0M2EyYmY4Y2Q2MzQ3ZjgyNjMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImEwYTg3NTZhOThiOTVlZTU3NWJlZWU0NjAwNDhjN2ZjOTdhNjdhZDRkZDE1NWFjMWE4NTk3ZWM2NWM0ZmEyODAiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6Ijg0ZTYyNDNhYjM0MTNlYTc3YmQ3NDgwODMyYzhjMTJlMDgyYjIzZTNjMDMzYzQyNmQ5YjIzNDBlMTQ3YmQ3OTEifQ"
         },
         {
-          "resource": "repo://frontend/src/routes/security/%5Bsecurity_id%5D/%2Bpage.svelte#L862-L928",
+          "resource": "repo://frontend/src/routes/security/%5Bsecurity_id%5D/%2Bpage.svelte#L596-L662",
           "version": "repo-lines-v1:sha256:834adedbfb05d1caaab91b48e92d9382aefeffdcd5a9e89f47460203b67a36c2:eyJzZWxlY3RlZExpbmVDb3VudCI6NjcsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImY3MDdiMTc5Mzg1YmNmMmQxMzRlYjY1YjIxNjBjNmU1OTIxZWI5NTQ1ZGFlMGE3MzFmMjMyYWM5ZmRlYTNmMDUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjY3Y2RhODJkYTYwNjIzOGUwNWU2MjM5OTU2OWM1ZWUwMzk5MzQxOTY0OGFlNWQ0M2EyYmY4Y2Q2MzQ3ZjgyNjMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImVkOTU4ZDA5MDY1NDdjNTYzYzZiODg2ZDJiZDNlMTFhNDI4NzU2YmRkYmZkMjIwYzhhMmJmOGFiZDk3MTE2MWUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjAyNTI4ZTY5MTM0MTA2MjQ1OWQxZDZkMzkwYTVjNTNlYzQwMzBjYmU0NmVhZDMwZmM4OTY3NjM5NzE5OWY1NjAifQ"
         }
       ]
@@ -293,15 +293,15 @@
       "statement": "The chart's rewind feature is why the compute request accepts caller-supplied candles: a rewound request sends the sliced candle array so indicators reflect the values they would have had at that instant, and because the backend only reads or writes the indicator cache when no candles are supplied, that request bypasses caching entirely.",
       "evidence": [
         {
-          "resource": "repo://frontend/src/routes/security/%5Bsecurity_id%5D/%2Bpage.svelte#L685-L691",
+          "resource": "repo://frontend/src/routes/security/%5Bsecurity_id%5D/%2Bpage.svelte#L375-L381",
           "version": "repo-lines-v1:sha256:8d2ef3095b8ed9f41e11e48da46f91c061a2eb90a9badeb2fe578531a5dd146f:eyJzZWxlY3RlZExpbmVDb3VudCI6NywiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiZmIwYWQ2NTFlZDEzZThmYTI5MGU2NWFkOWRhOWJjZDZjYTc2NzQzMGI3OTFmY2NhZTcwMjNhNDRiOWQyMDNmMCIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiMzYwYjg4YTA1ZDViNTM4NDc2MDIyOWJlNjA1NzJmZTYyYjFjMjljZGM1N2VkYjVlNjk1MWRhYTRmZDQ2YzgwMyIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiZWQ5NThkMDkwNjU0N2M1NjNjNmI4ODZkMmJkM2UxMWE0Mjg3NTZiZGRiZmQyMjBjOGEyYmY4YWJkOTcxMTYxZSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiY2I1MTY0MzM0N2I5MDhjZDYzMWIzMWE5NmQ2NjI3MTQ1MzQ0MjczYmIzYTYwMjZiNjAwZTJlMWFlMWViZDI2NSJ9"
         },
         {
-          "resource": "repo://src/market/router.py#L766-L782",
+          "resource": "repo://src/market/router.py#L894-L910",
           "version": "repo-lines-v1:sha256:cc294761b68c5cef7de13dc67ef7d8e6f32dc8575f8c6176ea2871a0ed81df9a:eyJzZWxlY3RlZExpbmVDb3VudCI6MTcsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImJiMmE3ZWU3Nzk4MzliZmUzZmM1NTRiNmNjYjkyYTIyMDc0ZTcwZGZiMDVlZDc1ODE5MTc2NDA4MjcyY2MxYTkiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAxYmE0NzE5YzgwYjZmZTkxMWIwOTFhN2MwNTEyNGI2NGVlZWNlOTY0ZTA5YzA1OGVmOGY5ODA1ZGFjYTU0NmIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImY3MGY2OWUyMDc1Yzc1NTgwMjY0OTM0ZjgzZjBlNGM3NjJjNmYzN2I1ZGQ5NDc1MTBkZDUzMDExMjMwNjUyNTUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjcwYWE1NWVkODhmYTM3NDljNmZkYjBiZWM4NzdkOTczMWYwOTc4ODEzOTZmNDMxMmUwOGVmMzI5ZDdjN2Y4YmEifQ"
         },
         {
-          "resource": "repo://src/market/router.py#L876-L885",
+          "resource": "repo://src/market/router.py#L1016-L1025",
           "version": "repo-lines-v1:sha256:900c19ab2c36f42a7616874d3dc7529e2938e1056abaddf2d90d1e4c8912b267:eyJzZWxlY3RlZExpbmVDb3VudCI6MTAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImJiMmE3ZWU3Nzk4MzliZmUzZmM1NTRiNmNjYjkyYTIyMDc0ZTcwZGZiMDVlZDc1ODE5MTc2NDA4MjcyY2MxYTkiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjU5MDlhNTNhNjE4ZDAyOGUxZDMwMDBjMGE3YWJjZWVjYmU1ZmIzN2Y0ZTUxMWVmZTQ2NjQzZmFkNmU2Njg3MmYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjRkNDliYzdkMzBhN2EyNjU3ZjkxZjA1NzcxN2JiNTRiMmIyM2QyYjAxZWU4YzY4YWVhNTJkYjFjMzMyNTYzNzQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImJlZDdjZDJlYmM4YjUzMjQ1ODUzZjkyOWMyYzU4MWE0MGMwMjQxMjgzOWFlNDhkM2Q5N2NiZGE2Nzk2ODljYjUifQ"
         }
       ]
@@ -337,10 +337,52 @@
           "version": "repo-lines-v1:sha256:adce00e3f98f12c61a70c8518d5587cf54f6976cdd9ac58eee05d37d44fa7a6d:eyJzZWxlY3RlZExpbmVDb3VudCI6MTIzLCJmaXJzdFNlbGVjdGVkTGluZUhhc2giOiJhOGMyODI2YWU3ZTI3NzVjOWM3OGUwZDg3OTk0ODY5MzAwZGEzYTJiMWEyOWVhMmYzZTk0ODRiNzA4NGEyNTczIiwibGFzdFNlbGVjdGVkTGluZUhhc2giOiJmNDg2ZmY1Y2Y5MzYzYjQ0MjkzMzY4MDNiMmM5NjBlNzNkYThjNDdmYTBjNmY2NzY1OGQxNGIzMjNjZDIyZDM0IiwicHJlY2VkaW5nQ29udGV4dExpbmVDb3VudCI6MywicHJlY2VkaW5nQ29udGV4dEhhc2giOiI3YWU3Y2I2MjAyZTliY2E5MjBhZDhhZWE4MGJlYTViOGE2Yzg2MjJmZDVlOGE3Y2YzMDJlZmRhYzk4YzM4Y2NjIiwiZm9sbG93aW5nQ29udGV4dExpbmVDb3VudCI6MSwiZm9sbG93aW5nQ29udGV4dEhhc2giOiIxOGU5OTIzMmNkM2EzMDlmNTBjYmQ2ZjY2MjEyN2VlYWFmY2UxZjczNjI5MmRlZmIxMTNkOTgxYTIwYzdkODUyIn0"
         }
       ]
+    },
+    {
+      "id": "claim_24ec24b831d54d9b9b8c25013b164d84",
+      "statement": "When mapping stored daily prices into compute-request candles, the router split-adjusts each candle: it derives a split_ratio of adjusted_close/close whenever they differ and close is non-zero, multiplies open/high/low by that ratio, and sets close to adjusted_close — so a historical split (e.g. 100 → 50 adjusted) reaches the sidecar as fully adjusted OHLC values.",
+      "evidence": [
+        {
+          "resource": "repo://src/market/router.py#L960-L982",
+          "version": "repo-lines-v1:sha256:18e8f394f917001e4e82d03bd1c3e2e1074c8ab698a6fa3b8bae15471dcdeeeb:eyJzZWxlY3RlZExpbmVDb3VudCI6MjMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjFiODhmNmM2NzI3YmYzNDNhM2RjZDJkYzQ0ZDExZDExZGM2NzRkOTYzNDI4NjhhYjkwMzUxM2FjMTc0MDk1M2MiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjUxMDM0ODFjNTdkMGYwZGMwZjc2Y2QyY2M4YjM2MDRjNGU4Mjk2ZGE0MTIyYWRkMTllODE3NDVkYzdlMzMxYTYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImVkNjYwNDJiOTE4YmJmYWI0MmYwZTNkN2Y3ZmFjZTA0MDZiN2QzNWQ0YzIyMDllMmU1ZWEwZTgyMjFkNjE5NGEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjZkYTFjYjgyZmY5MWM0MDAwNGZkMjA5Nzg3YzgyZmM2MjUwOTY5YzJiMTc4MTQ0YjFjMDljYmFkYTk5ZmQxYjIifQ"
+        },
+        {
+          "resource": "repo://tests/market/test_indicator_compute_api.py#L499-L542",
+          "version": "repo-lines-v1:sha256:2b8b21c463fa5cf8714bc228ab030ca7dac0992d2f1ed0b48a0f9cfbb0539ca9:eyJzZWxlY3RlZExpbmVDb3VudCI6NDQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImI3YTgzMWZhNDcyNmZjMjMxNTE0NGY5YTA1NWJmZWMyNWYxYWZkMTI2YWFmZjU3YWZmYmU5NDBlZjVjNmE3MzUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAxYmE0NzE5YzgwYjZmZTkxMWIwOTFhN2MwNTEyNGI2NGVlZWNlOTY0ZTA5YzA1OGVmOGY5ODA1ZGFjYTU0NmIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjcwNmE4MzAxNzBiYTMxZDUwYmYzYzY2NjA4MjI2Mzk1YWU0MGNjN2FiODgzMTAyODBhZDhhYmU2NTI0MmNlYzQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_af2a389cb590462aaf6fe4fc66a6fdcf",
+      "statement": "The Go sidecar has a dedicated CI job `.github/workflows/ci.yml` (job id `indicator-service`) that sets up Go 1.27, runs `go mod download`, then `go vet ./...`, `go build ./...` and `go test ./...` inside `services/indicator-service` — so the sidecar's math and HTTP contract are gated independently of the Python and frontend jobs.",
+      "evidence": [
+        {
+          "resource": "repo://.github/workflows/ci.yml#L78-L108",
+          "version": "repo-lines-v1:sha256:b94c2d33e741768b2caa5d0261f07c1a2da4d5e8c8f4d67e7a011281a46c70a4:eyJzZWxlY3RlZExpbmVDb3VudCI6MzEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjU0OTc2YThhZDZhZTQ2YWYzOGU0MGQ4ZWMyOGY4NDU5ZmExNWI1Y2JiYjQ0N2IxNmI0ZTdlZmRmYWMzZWI5ZWQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjY5MDYyYzUxZGRmNDUzNmRlYzNiMWZkMjI1YjA1YWFlZjk2ZTQ3MmJhMGI5ODk2MjRlYTc5NzA1YWYwZTJhODciLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImI0YmVlMDgyMmQ2OTE5ZGQ4YTQxODExN2VhZjRlMmYwYjZkMTc5Mzc5MzM0Y2UxYzI2M2VjNTBjZDg5ZjE0NDYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
+        },
+        {
+          "resource": "repo://services/indicator-service/README.md#L190-L197",
+          "version": "repo-lines-v1:sha256:dec695657a309721c473b696db139fc0e063a5c2b81ea3f88c6afe758188eb8b:eyJzZWxlY3RlZExpbmVDb3VudCI6OCwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiNmU3ZjRiMzZhYzljZTBkMDZkY2Q3MmNjYzI0ZWIyOTBlY2NhM2RhZGNlZTM2Y2Q2NDE2ODlhMjgwNDhjODU0NCIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiN2Q4MzUwNTdhOTNjNzdkNTU5OTBhMjZlZWIxYzVmOTczNmI3Y2JlMmY4YzJmODZiMjRlMjRhY2IyODdjNzQzNCIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiOGJmNDZiNDVjMmUwYTE5MjY5NjI2Y2VlMDkxNWU5YzNhZjRkZWI3MzlhMTE1YWVhZjE4ODI1NzQ5MDJmMTk5MiIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiZDRjMDFlYzM3OTE2MzUxMWM4NWQ1MDRhNTg4MjhkNDIyY2JiNzg0YTFmOWRiMTU5M2IzM2E1Zjc1Yzc4ZDBjYyJ9"
+        }
+      ]
+    },
+    {
+      "id": "claim_69d1102d8ecd41888f8630e92dbcc2d3",
+      "statement": "The sidecar entrypoint `main.go` listens on `PORT` (default `8080`) with 15s read/write and 60s idle timeouts, registers only the /health and /compute handlers via NewRouter, and shuts down gracefully on SIGHUP/SIGINT/SIGTERM/SIGQUIT with a 10s grace period; it installs no auth or rate-limiting middleware, so network isolation is the sidecar's only access control.",
+      "evidence": [
+        {
+          "resource": "repo://services/indicator-service/handlers.go#L73-L79",
+          "version": "repo-lines-v1:sha256:2d9429852fd2120b5ce1eecbce7af7757ca22744fb20275b75abbfd5ce50b007:eyJzZWxlY3RlZExpbmVDb3VudCI6NywiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiZjRmMGY5MzY4NjMxMTJhYzY2ODA3NjE0YWNlZmRkNWFlYmM4NjgxNTljZmVmN2FlYjZhZjAyMzE3NjYyZmY1MiIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNDEyY2EzNDVjY2Y3NWJmOWMwODA2YmNlNjk1YmU4ZGU4MDhiNzk5ODQyNTFhN2E1NGQyMDJjZjYxMDFkZDQ1MSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiZWIwZjc0NGMyYzFhNmJkZTEyMTZiZmEzMTljZWJmOGNkNjZiOGUxYzk1NGY0OWU3NzA3YTkwN2Y1OWE2ZmVjNSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjAsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiZTNiMGM0NDI5OGZjMWMxNDlhZmJmNGM4OTk2ZmI5MjQyN2FlNDFlNDY0OWI5MzRjYTQ5NTk5MWI3ODUyYjg1NSJ9"
+        },
+        {
+          "resource": "repo://services/indicator-service/main.go#L14-L68",
+          "version": "repo-lines-v1:sha256:9dbd643cb08632abcc9b53b9554c2925ea1db7cdf40b77fc7f1d0f5fc4a05067:eyJzZWxlY3RlZExpbmVDb3VudCI6NTUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjMxNWQ2NGY5NzFiMjRmNzAxZDM0Yzc3ZjEyNWFkOTNkNzBiN2I0MGEwMmMwMjM2YjA0NTM5M2UyNGJmNmI1ZmQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQxMmNhMzQ1Y2NmNzViZjljMDgwNmJjZTY5NWJlOGRlODA4Yjc5OTg0MjUxYTdhNTRkMjAyY2Y2MTAxZGQ0NTEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6Ijc5ZWRkNzJiYTZiNDAwODNjZTk1MjY5ZmE1NmZjZjNhYzFiZDk4MjIxYWE2NjIxYTY4M2Y3ZDU2MzJiYjIxZDUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
+        }
+      ]
     }
   ],
   "verification": {
-    "by": "openwiki/0.5.2",
-    "at": "2026-09-18T20:16:58.058Z"
+    "by": "openwiki/0.6.1",
+    "at": "2026-10-02T14:25:20.147Z"
   }
 }

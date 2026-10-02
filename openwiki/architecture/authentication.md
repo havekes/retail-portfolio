@@ -4,8 +4,8 @@ title: Authentication & Authorization
 description: The cross-stack identity system — signup and email verification, password/TOTP/passkey login, HS256 access and mfa_pending JWTs, the httponly auth_token cookie, the SvelteKit SSR guard that re-verifies the same secret with jose, Redis-backed challenge/lockout/denylist state, the signed WebSocket ticket, and 404-not-403 ownership authorization.
 tags: [authentication, authorization, security, jwt, webauthn, totp, sveltekit]
 verified:
-  - by: openwiki/0.5.2
-    at: 2026-09-18T20:16:58.058Z
+  - by: openwiki/0.6.1
+    at: 2026-10-02T14:25:20.147Z
 sources:
   - id: openwiki-source-5f5b95b3d6a215fa02ceb945
     resource: repo://.env.example
@@ -17,6 +17,8 @@ sources:
     resource: repo://frontend/src/hooks.server.test.ts
   - id: openwiki-source-0bdf50a0b0b0618dd3a5abe8
     resource: repo://frontend/src/hooks.server.ts
+  - id: openwiki-source-c6899c16b51d0089c637d6b9
+    resource: repo://frontend/src/lib/api/async-data.ts
   - id: openwiki-source-f54a8f5650d3e422303f29e8
     resource: repo://frontend/src/lib/api/authService.ts
   - id: openwiki-source-5195d7eced2c4e5b239413fc
@@ -37,6 +39,16 @@ sources:
     resource: repo://frontend/src/routes/auth/login/page.server.test.ts
   - id: openwiki-source-3816828f924dd95fc901e9c4
     resource: repo://frontend/src/routes/auth/logout/%2Bpage.server.ts
+  - id: openwiki-source-17695a0429275bdf8c6b0e99
+    resource: repo://frontend/src/routes/holdings/%2Bpage.svelte
+  - id: openwiki-source-a3e043cd646e68c425bd541e
+    resource: repo://frontend/src/routes/portfolios/%2Bpage.server.ts
+  - id: openwiki-source-33c886f28072e35f81eadfae
+    resource: repo://frontend/src/routes/security/%5Bsecurity_id%5D/%2Bpage.server.ts
+  - id: openwiki-source-67b769eb99d4518b98fe1ca7
+    resource: repo://frontend/src/routes/security/%5Bsecurity_id%5D/%2Bpage.svelte
+  - id: openwiki-source-51676b3163748937a7f6b22d
+    resource: repo://frontend/src/routes/security/%5Bsecurity_id%5D/page-data.svelte.ts
   - id: openwiki-source-7e59195247c1404e69c86c72
     resource: repo://frontend/src/routes/settings/security/%2Bpage.server.ts
   - id: openwiki-source-30de42522595a37de333f4dd
@@ -83,7 +95,7 @@ sources:
     resource: repo://tests/routers/test_auth.py
   - id: openwiki-source-ce5690229e2d57cc7f25e9a0
     resource: repo://tests/ws/test_router.py
-generated: { by: "openwiki/0.5.2", at: "2026-09-18T20:16:58.058Z" }
+generated: { by: "openwiki/0.6.1", at: "2026-10-02T14:25:20.147Z" }
 ---
 
 # Authentication & Authorization
@@ -123,6 +135,17 @@ The domain follows the standard backend layering: routers delegate to services a
 | WebSocket ticket | `itsdangerous` signed JSON `{user_id, jti}`, salt `ws-ticket` | verified with `max_age=30` | Query parameter; single-use Redis key |
 | WebAuthn challenge | base64url challenge | `settings.webauthn_challenge_ttl_seconds` (default 300 s) | Redis keys `webauthn:challenge:reg:{user_id}` / `webauthn:challenge:auth:{challenge}` |
 | TOTP secret / recovery codes | base32 secret; `xxxxxxxx-xxxxxxxx` codes | persistent | `auth_totp.secret` (plaintext), `auth_recovery_codes.code_hash` (argon2) |
+
+The lifetimes are deliberately nested so that no artifact outlives the trust it encodes:
+
+<!-- openwiki: mermaid parse failed and this diagram was converted to a text fence so it does not break rendering. Fix the diagram source and restore the mermaid fence. Parser error: Heuristic: an unescaped angle bracket inside a label breaks rendering; rephrase the label. -->
+```text
+flowchart LR
+    A["WebAuthn challenge<br/>300 s Redis TTL"] --> B["MFA token<br/>5 min"] --> C["Access token<br/>24 h JWT exp"] --> D["auth_token cookie<br/>7 day max_age"]
+    C --> E["Denylist entry<br/>setex for remaining exp"]
+```
+
+Caption: token and challenge lifetimes, shortest-lived first; each outer layer can only be obtained with a live inner one, and every artifact can be invalidated before its natural expiry.
 
 Persistent state lives in five tables (`src/auth/model.py`): `auth_users` (`is_active`, `is_verified`, `last_login_at`, `preferences`), `auth_verification_tokens` (unique `token`, `expires_at`, `is_used`), `auth_totp` (unique per `user_id`), `auth_recovery_codes` (per-user argon2 hashes with `is_used`/`used_at`), and `auth_passkeys` (unique `credential_id`, `public_key`, `sign_count`, `transports`). The TOTP, recovery-code, and passkey tables cascade on user deletion.
 
@@ -261,11 +284,39 @@ The SvelteKit logout action (`frontend/src/routes/auth/logout/+page.server.ts`) 
 - Any verification failure deletes the cookie through `deleteAuthCookie`.
 - Authenticated users hitting `/auth/login` or `/auth/signup` are redirected to `/`; a `clear_session=true` query parameter on those two pages forces the cookie away and renders the login page, breaking the redirect loop that a stale cookie used to cause.
 
+```mermaid
+flowchart TD
+    A["Request arrives"] --> B{"auth_token cookie present?"}
+    B -- no --> C{"path starts with /auth?"}
+    B -- yes --> D["jose.jwtVerify with HS256 JWT_SECRET"]
+    D --> E{"signature and exp valid and scope is access?"}
+    E -- no --> F["deleteAuthCookie, locals.user stays null"]
+    E -- yes --> G["locals.user set from user_id and sub"]
+    F --> C
+    G --> H{"clear_session=true on login or signup?"}
+    H -- yes --> I["deleteAuthCookie and render the page"]
+    H -- no --> J{"locals.user set and path is login or signup?"}
+    J -- yes --> K["redirect 303 to /"]
+    J -- no --> L["resolve the request"]
+    C -- no --> M["redirect 303 to /auth/login"]
+    C -- yes --> N["resolve the request"]
+```
+
+Caption: the SSR guard in `frontend/src/hooks.server.ts`, including the scope downgrade, the `clear_session=true` escape hatch, and the two redirect directions.
+
 `frontend/src/lib/server/auth-cookie.ts` holds `AUTH_COOKIE_OPTS` (`path: '/'`, `httpOnly: true`, `sameSite: 'lax'`, `secure: !dev`). Browsers only honor a delete when the attributes match the stored cookie, so this object must stay in sync with the `cookies.set('auth_token', ...)` calls in the login actions.
 
 ### Per-load 401 recovery
 
-Server loads pass `cookies.get('auth_token')` to the API clients as a Bearer override (`ApiClient` also sends `credentials: 'include'`, so both transports work). When a load catches an `ApiError` with status `401`, it deletes the cookie and throws `redirect(303, '/auth/login?clear_session=true')`; other statuses become `error(status, message)`. This pattern is repeated in `/`, `/accounts/[id]`, `/brokers`, `/security/[security_id]`, and `/settings/security`, and `settings/security` additionally redirects up front when no token is present. The login form surfaces the backend's 403 with the "Email not verified. Please check your inbox for a verification link." message.
+There are two recovery seams, one server-side and one client-side, and they exist because a route may fetch its data either during SSR or after navigation.
+
+**Server loads** pass `cookies.get('auth_token')` to the API clients as a Bearer override (`ApiClient` also sends `credentials: 'include'`, so both transports work). When a load catches an `ApiError` with status `401`, it calls `deleteAuthCookie(cookies)` and throws `redirect(303, '/auth/login?clear_session=true')`; other statuses become `error(status, message)`. This pattern is repeated in the loads for `/`, `/accounts/[id]`, `/brokers`, `/holdings`, `/portfolios`, and `/settings/security` — with `/settings/security` additionally redirecting up front when no token is present at all.
+
+**Client-side, post-navigation loads** cannot delete the `httponly` cookie, so they route through the shared seam `redirectOn401` in `frontend/src/lib/api/async-data.ts`: on an `ApiError` with status 401 it `goto`s `/auth/login?clear_session=true` and returns `true` so the caller stops rather than rendering its own error state; any other error returns `false` and the caller surfaces `err.message` in-page. `/holdings`, `/security/[security_id]` (via `page-data.svelte.ts`), and the layout-owned watchlist load all use it. Note the asymmetry with the server seam: the client seam does **not** clear the cookie itself, it delegates to the SSR guard, which is the only layer that can.
+
+`/security/[security_id]` is the clearest example of the split — its `+page.server.ts` awaits only the route identity, and the security record plus price series load after navigation through `SecurityPageDataService`, whose caught 401 flows into `redirectOn401`.
+
+The login form surfaces the backend's 403 with the "Email not verified. Please check your inbox for a verification link." message.
 
 ### Login UI
 
@@ -280,8 +331,9 @@ Server loads pass `cookies.get('auth_token')` to the API clients as a Bearer ove
 The browser cannot send the `httponly` cookie in a way the WebSocket handshake handler trusts alone, so the client first exchanges its session for a short-lived signed ticket:
 
 - `POST /api/v1/auth/ws-ticket` requires the `auth_token` cookie (it is not a Bearer-authenticated route), validates it via `UserApi.get_current_user_from_token`, and returns `{"ticket": URLSafeTimedSerializer(settings.secret_key).dumps(json.dumps({"user_id": ..., "jti": uuid4()}), salt="ws-ticket")}`.
-- `GET`-upgraded `/api/ws` (`src/ws/router.py`) prefers the `ticket` query parameter: it first marks `ws-ticket-used:{sha256(ticket)}` in Redis with `SET NX EX 30` (a replay, or a Redis error — the check fails open — is handled separately), then `serializer.loads(ticket, max_age=30, salt="ws-ticket")`. Without a ticket it falls back to the `auth_token` cookie or `sec-websocket-protocol` header verified through `UserApi`. Any failure closes the socket with code **1008**.
-- `frontend/src/lib/components/accounts/accounts-list.svelte.ts` fetches a ticket through `authService.getWsTicket()` and connects to `/api/ws?ticket=...`, reconnecting every 5 seconds on close. The worker dashboard WebSocket (`src/worker_dashboard/router.py`) reuses the same `ws-ticket` and replay helper, while its REST task routes are gated by `Depends(current_user)`.
+- `GET`-upgraded `/api/ws` (`src/ws/router.py`) prefers the `ticket` query parameter: it first marks `ws-ticket-used:{sha256(ticket)}` in Redis with `SET NX EX 30` (a replay is refused; a Redis error fails open and the ticket is accepted), then `serializer.loads(ticket, max_age=30, salt="ws-ticket")`. Without a ticket it falls back to the `auth_token` cookie or `sec-websocket-protocol` header verified through `UserApi`. Any failure closes the socket with code **1008**.
+- `frontend/src/lib/components/accounts/accounts-list.svelte.ts` fetches a ticket through `authService.getWsTicket()` in `initWebSocket`, aborts the connection attempt (logging a warning, with no retry) when no ticket comes back, and otherwise opens `${wsUrl}?ticket=${encodeURIComponent(ticket)}` — where `wsUrl` is derived from `VITE_API_BASE_URL` when it is an absolute http(s) origin and from `window.location` otherwise. On close it schedules `initWebSocket` again 5 seconds later, so a single failed ticket fetch permanently ends the connection for that page instance while an accepted ticket is re-minted on each reconnect.
+- The worker dashboard WebSocket (`src/worker_dashboard/router.py`) reuses the same `ws-ticket` and replay helper, while its REST task routes are gated by `Depends(current_user)`.
 
 ## Ownership authorization
 
@@ -296,8 +348,8 @@ These are contracts a change must not silently break. Each is enforced in code t
 3. **Email verification is required before login.** `UserApi.login` raises the 403 unverified branch before any token is minted; `is_verified` defaults to `False` on the model and schema.
 4. **Verification tokens are single-use and superseded.** Any new token invalidates all previous ones for the user, and a successful verification marks the row used. Removing either the `invalidate_tokens_for_user` call or the `mark_as_used` call reopens replay of old links.
 5. **Authorization returns 404, not 403.** `check_entity_owned_by_user` and the `AuthorizationError` handler both use 404 so existence is not leaked.
-6. **Redis-backed challenge, lockout, and denylist state is authoritative.** WebAuthn challenges are consumed with `getdel` (single use), the 2FA counter gates verification before any code comparison and carries a TTL, and revoked tokens are denied for their remaining lifetime. Any code path that bypasses these (for example a Redis-less fallback that accepts a challenge) breaks the guarantee.
-7. **The cookie contract is symmetric.** `AUTH_COOKIE_OPTS` must match the `cookies.set('auth_token', ...)` calls, or deletes silently no-op and users stay "logged in" with a dead session.
+6. **Redis-backed challenge, lockout, and denylist state is authoritative.** WebAuthn challenges are consumed with `getdel` (single use), the 2FA counter gates verification before any code comparison and carries a TTL, and revoked tokens are denied for their remaining lifetime. Any code path that bypasses these (for example a Redis-less fallback that accepts a challenge) breaks the guarantee. The WS-ticket replay guard is the one deliberate exception: it fails open on a Redis error, because it is best-effort hardening on top of the ticket's own signature and 30 s window.
+7. **The cookie contract is symmetric.** `AUTH_COOKIE_OPTS` must match the `cookies.set('auth_token', ...)` calls, or deletes silently no-op and users stay "logged in" with a dead session. Client-side code cannot delete the cookie at all and must hand off to the SSR guard via `?clear_session=true`.
 8. **The `auth_token` cookie is `httponly`.** Both the backend (in prod) and the SSR actions set it that way, and all browser-side access goes through SSR loads rather than JavaScript. The token is additionally returned in the JSON body for Bearer clients — that is a deliberate convenience with an extra exposure surface.
 9. **Auth tests must mock every outbound dependency.** Backend tests must not touch Redis, SMTP, or any HTTP API; the autouse `fake_redis_manager` fixture swaps the shared Redis client, email sending is patched, and EODHD/broker gateways are stubbed. Frontend tests must mock every API client and SvelteKit module they touch. See `src/AGENTS.md` and `frontend/AGENTS.md` — a test that dials a real service is broken by definition, not a service-availability problem.
 10. **Rate limits stay on the sensitive routes.** Signup, login, 2FA verify, resend, and both passkey authenticate routes are decorated with `@limiter.limit`, keyed by verified identity or IP.
@@ -315,6 +367,7 @@ These are contracts a change must not silently break. Each is enforced in code t
 
 - **A new login factor** slots in as a service under `src/auth/service.py`, a route group on `auth_router`, and a branch in `UserApi.login` (or a standalone endpoint like the passkey verify route) — but it must end by minting tokens through `UserApi.create_access_token` and set the cookie the same way, so the SSR guard and `/2fa/*` routes keep working.
 - **A new token purpose** means a new `scope` value plus a matching assertion on both the backend and the SSR guard; reuse the `jti` + `token:deny:` mechanism if the token should be revocable.
+- **A new authenticated route** must decide which recovery seam it uses: an SSR load calls `deleteAuthCookie` and redirects, while a post-navigation load hands its error to `redirectOn401`. Forgetting both leaves a dead session rendering as an in-page error.
 - **Resource authorization for a new domain** should call `AuthorizationApi.check_entity_owned_by_user` rather than comparing ids, to keep the 404 semantics uniform.
 - **Frontend auth UI** belongs in `frontend/src/lib/components/security/` (state in `securityService.svelte.ts`, calls in `securityClient.ts`); components should not call `fetch` directly.
 
@@ -322,6 +375,6 @@ These are contracts a change must not silently break. Each is enforced in code t
 
 - `tests/routers/test_auth.py` is the reference suite: signup/login/unverified paths, verification-token success and rejection, 2FA challenge without a cookie, TOTP and recovery-code verification, reused recovery code, lockout (429) and counter reset, expired and forged MFA tokens, rejection of `mfa_pending` tokens on authenticated endpoints, passkey register/authenticate incl. challenge expiry and replay, logout denylist, `last_login_at`, and audit logging.
 - `tests/services/test_auth_api.py` covers `UserApi` decisions directly (challenge vs. session, unknown-email error parity, revoked-token rejection) and `tests/services/test_auth_services.py` covers the TOTP, recovery-code, email-verification, and passkey services including lockout and replay.
-- `tests/ws/test_router.py` covers ticket replay (`_check_ticket_not_replayed`), invalid signatures, valid tickets, and cookie/header token fallbacks, all against the in-memory Redis fake.
-- Frontend: `frontend/src/hooks.server.test.ts` signs tokens with `jose` in-test (mocking `$env/static/private` to supply `JWT_SECRET`) and asserts the scope/expiry/redirect/`clear_session` behaviors; `frontend/src/routes/auth/login/page.server.test.ts` asserts cookie setting and the 2FA/passkey/403 branches for the form actions.
+- `tests/ws/test_router.py` covers ticket replay (`_check_ticket_not_replayed`, including the fail-open path when Redis raises), invalid signatures, valid tickets, and cookie/header token fallbacks, all against an `AsyncMock`ed Redis client.
+- Frontend: `frontend/src/hooks.server.test.ts` signs tokens with `jose` in-test (mocking `$env/static/private` to supply `JWT_SECRET`) and asserts the scope/expiry/redirect/`clear_session` behaviors; `frontend/src/routes/auth/login/page.server.test.ts` asserts cookie setting and the 2FA/passkey/403 branches for the form actions; `frontend/src/lib/api/async-data.test.ts` pins `redirectOn401`'s 401-versus-other-error decision.
 - Never let these tests reach SMTP, Redis, or the network. The backend fixtures patch email sending and swap the Redis client (`tests/fixtures/auth.py`, `tests/fixtures/redis.py`); frontend tests mock the API clients and SvelteKit runtime modules.

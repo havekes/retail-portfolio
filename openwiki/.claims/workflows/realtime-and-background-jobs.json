@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "pageVersion": "sha256:db687614fcd68af03a78fe182017adc8aab7842acb967218e69c90ce0a4c7617",
+  "pageVersion": "sha256:7dbe0c4a25ebb6ce88f745bc967856818d51cdb9396033f36c9c1d2e1a6bef49",
   "claims": [
     {
       "id": "claim_bbf8133c92a24e1189d471bdedd5bd2a",
@@ -167,7 +167,7 @@
       "statement": "The broker sync task is enqueued synchronously from the request path by POST /api/v1/accounts/{account_id}/sync (rate-limited 3/minute, via PositionService and IntegrationAccountApi) and once per newly imported broker account in the broker import route, both forwarding get_request_id() so worker logs correlate with the originating request.",
       "evidence": [
         {
-          "resource": "repo://src/account/router.py#L504-L539",
+          "resource": "repo://src/account/router.py#L527-L562",
           "version": "repo-lines-v1:sha256:0b440ee568b0009f373998f0caa05d6bdd22b321033e87becad3275be1d423b8:eyJzZWxlY3RlZExpbmVDb3VudCI6MzYsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjdlNThmZTdiZDRmMmIyYTczNGM0ZDk1ZmY2ZDE5YTk4YjUwMWQ0MzhmMWJlNGNhZjk5ZTEwMTkyYmI0OGJjZTEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjgyN2IzYzZlNmVlYjAyYzA1OTViMTQxZmFkYTZmNmY3NTZlYTg3ODgwMzQxZDQxZmQwY2M2NzMyNzA0NDQwYWUiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjhjYzRhN2QxY2M3OTZhYmEzZTQ2NzIzMzI3ZjUxN2U5ZjgxMTk4MmQyNTBmMDcwMjk4NmU0YjU3NjRhZDk1ODkiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
         },
         {
@@ -281,7 +281,7 @@
       "statement": "GET /api/v1/accounts/sync-status returns {\"account_ids\": [...]} for the authenticated user only and translates redis.RedisError into HTTP 503 \"Sync status service unavailable\".",
       "evidence": [
         {
-          "resource": "repo://src/account/router.py#L155-L167",
+          "resource": "repo://src/account/router.py#L178-L190",
           "version": "repo-lines-v1:sha256:7de1a34620fa321b1de6a2bdea8d00cf6a6ac2ee5a7d81e460ca2837e8b6ebdd:eyJzZWxlY3RlZExpbmVDb3VudCI6MTMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjBkYjFmNWFiNjU1M2RhMWUzOWI4NDA4ZmFmYzQwYTNkOTQyMzdlYjNjYmRjOTViNTE1Y2ZjMDMzNzUyNmM4NGMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjY5Mzk3ZWExYjYwMmUzZTIwNzJmYzA4ZTg3MTEyYTRlZDcxYzJlNGYwODY1ZjQ5ZDg0MTk4ZDIxZGNjMDE1MzkiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjM5M2I2ZGE1MDljOWVlMDg3MWE3ZDZhYTMyYzg5ZTExYzVjMzNjNjg2YTE5NGFkYWQxYmUxOTZjYWE4NWM5MDEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjRhY2YzOGI2YmQ2NzkwOGYxNWViN2MxMGY0MjY4YTczNGY3MWJhOWI4NGExNTZkZjlmOWFiOGUyNDRiNWE5MzAifQ"
         },
         {
@@ -292,11 +292,11 @@
     },
     {
       "id": "claim_d805268ca2bd401abf6b68c1ec42e63a",
-      "statement": "AccountsListState hydrates sync state exactly once per connection open by reading GET /accounts/sync-status (guarded by a syncStatusHydrated flag that onclose resets), maps sync_started/sync_finished/sync_failed onto its syncingAccountIds set and syncErrors record, and reconnects after a fixed 5000 ms timeout on close.",
+      "statement": "AccountsListState hydrates sync state by reading GET /accounts/sync-status from ws.onopen (guarded by a syncStatusHydrated flag that onclose resets), maps sync_started/sync_finished/sync_failed onto its syncingAccountIds set and syncErrors record (sync_finished additionally awaits fetchAccounts()), and reconnects after a fixed 5000 ms timeout when onclose fires.",
       "evidence": [
         {
-          "resource": "repo://frontend/src/lib/components/accounts/accounts-list.svelte.ts#L79-L137",
-          "version": "repo-lines-v1:sha256:70a5edb8d3d9f27fee479f1687c465596b2a4012fd2fdf3918fc24afeaceca4f:eyJzZWxlY3RlZExpbmVDb3VudCI6NTksImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjE5MjA2MDI3MDcxN2ZmMDQ2ZmU4MzA2YTY1NTYzODYxZDlmNTVjYmRhMDRkNDcxNWEyZTZkYzIxYjhhMzk1NTYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjY3Y2RhODJkYTYwNjIzOGUwNWU2MjM5OTU2OWM1ZWUwMzk5MzQxOTY0OGFlNWQ0M2EyYmY4Y2Q2MzQ3ZjgyNjMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImVjZGE2ZGE1ZGNhZDgzNjUzNzQ1MDg4NGQ1ZTYwOThmNWU1MWM0MTZmNWY2N2U2MTE5M2VmOWE2ZGExMGVhN2IiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjUwN2MzOWY2N2EzNTRiNGIzN2UyYTc5OTQ2NTAyNjY4YjRmYTJlOTE2YjYwNjY5MTdhM2U2NzA3MWNlNmFmYzcifQ"
+          "resource": "repo://frontend/src/lib/components/accounts/accounts-list.svelte.ts#L79-L138",
+          "version": "repo-lines-v1:sha256:3115c4ab690dfbcd51a60913953129526bbc9f0e2aa5ce3691669207139b702d:eyJzZWxlY3RlZExpbmVDb3VudCI6NjAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjE5MjA2MDI3MDcxN2ZmMDQ2ZmU4MzA2YTY1NTYzODYxZDlmNTVjYmRhMDRkNDcxNWEyZTZkYzIxYjhhMzk1NTYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjY3Y2RhODJkYTYwNjIzOGUwNWU2MjM5OTU2OWM1ZWUwMzk5MzQxOTY0OGFlNWQ0M2EyYmY4Y2Q2MzQ3ZjgyNjMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImVjZGE2ZGE1ZGNhZDgzNjUzNzQ1MDg4NGQ1ZTYwOThmNWU1MWM0MTZmNWY2N2U2MTE5M2VmOWE2ZGExMGVhN2IiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjUwN2MzOWY2N2EzNTRiNGIzN2UyYTc5OTQ2NTAyNjY4YjRmYTJlOTE2YjYwNjY5MTdhM2U2NzA3MWNlNmFmYzcifQ"
         },
         {
           "resource": "repo://frontend/src/lib/types/websocket.ts#L1-L13",
@@ -309,7 +309,7 @@
       "statement": "syncAccount awaits waitForSyncFinish, an intentionally independent poll of GET /accounts/sync-status every 1500 ms with a 60000 ms deadline and a 5000 ms grace period once the backend stops reporting the account, because the WebSocket message may be lost if Redis pub/sub fails; it clears state and refetches accounts when the socket message never arrives, and reports a timeout or a request failure through syncErrors.",
       "evidence": [
         {
-          "resource": "repo://frontend/src/lib/components/accounts/accounts-list.svelte.ts#L209-L253",
+          "resource": "repo://frontend/src/lib/components/accounts/accounts-list.svelte.ts#L210-L254",
           "version": "repo-lines-v1:sha256:44f7ca6a3bf67375e7e200bffa0debe07453130aa7ee99bc243a0a2f57cd6e7d:eyJzZWxlY3RlZExpbmVDb3VudCI6NDUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijk5YTg3OGI5MGJjNmNiZWY1Y2M1NzI1MWJhYmI0YmYwNzY3M2Q2YWJiYTUyYjc5NTg2MWM0ZjU1NGM4NmQyMWQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjY3Y2RhODJkYTYwNjIzOGUwNWU2MjM5OTU2OWM1ZWUwMzk5MzQxOTY0OGFlNWQ0M2EyYmY4Y2Q2MzQ3ZjgyNjMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjIyZjJmZjVmZWVjNjBmNTg3YzhmYWU0ZTg3ZjgwOWE2NjFjZmZlZDZiNDdhYWU1ZjZkNmEyNjUzYWE4OTUyZWYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjJmMzViYWYyZDAwOTdmZjE2YTY5MDBiMWVmZTc0YWFmNWFiZjA2NWNlNTBkZDJjNTczYjRmMmU4MWVlMTlhZTUifQ"
         }
       ]
@@ -319,8 +319,8 @@
       "statement": "WsEventType declares sync_started, sync_finished, sync_failed and account_totals_updated, carried by AccountSyncMessage and AccountTotalsUpdatedMessage; the frontend enum declares only the three sync values, so an account_totals_updated payload matches no branch in AccountsListState.",
       "evidence": [
         {
-          "resource": "repo://frontend/src/lib/components/accounts/accounts-list.svelte.ts#L85-L106",
-          "version": "repo-lines-v1:sha256:84f41c289e0910d117a3ce0073e00a88cb36b1da28d99f5180dc9e487f23bf2d:eyJzZWxlY3RlZExpbmVDb3VudCI6MjIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjY2OTU2N2Q0YTJlNWY3ZmEwZWYwZjJkZDFkMWMxNTE2MGU3MjU1YWJiNzFmYjdlOGEzZDhhNjgwN2M0OTZkYjYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjM2MGI4OGEwNWQ1YjUzODQ3NjAyMjliZTYwNTcyZmU2MmIxYzI5Y2RjNTdlZGI1ZTY5NTFkYWE0ZmQ0NmM4MDMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjVlYzM1MmIyYzliYTUzOTc5MDEyNTEzM2Q1ZWIzMmY4NWVjNWE2MTZiMzJkOTg0NjczOTkyYTkxYzk4MDI2NDkiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjMzNjY2MWMwMzBiYzk4M2JlOWYyYmMxMGU2MmE0ZWE2NTA5YjU5NmUzM2YyNGJiN2ExNTQ1MWIxMGExYjJlMjAifQ"
+          "resource": "repo://frontend/src/lib/components/accounts/accounts-list.svelte.ts#L85-L107",
+          "version": "repo-lines-v1:sha256:accdd90fcfa98801c2c8d5073ca507d6fc347b910c39504091eaca4ee0b06125:eyJzZWxlY3RlZExpbmVDb3VudCI6MjMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjY2OTU2N2Q0YTJlNWY3ZmEwZWYwZjJkZDFkMWMxNTE2MGU3MjU1YWJiNzFmYjdlOGEzZDhhNjgwN2M0OTZkYjYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjM2MGI4OGEwNWQ1YjUzODQ3NjAyMjliZTYwNTcyZmU2MmIxYzI5Y2RjNTdlZGI1ZTY5NTFkYWE0ZmQ0NmM4MDMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjVlYzM1MmIyYzliYTUzOTc5MDEyNTEzM2Q1ZWIzMmY4NWVjNWE2MTZiMzJkOTg0NjczOTkyYTkxYzk4MDI2NDkiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjMzNjY2MWMwMzBiYzk4M2JlOWYyYmMxMGU2MmE0ZWE2NTA5YjU5NmUzM2YyNGJiN2ExNTQ1MWIxMGExYjJlMjAifQ"
         },
         {
           "resource": "repo://frontend/src/lib/types/websocket.ts#L1-L13",
@@ -351,7 +351,7 @@
       "statement": "generate_note_title_task is the on-demand task enqueued by the security-note create and update routes with the current request id; its async body returns early when huey.svcs_registry is absent and otherwise resolves SecurityNoteRepository and AIService to generate and persist the title.",
       "evidence": [
         {
-          "resource": "repo://src/market/router.py#L610-L632",
+          "resource": "repo://src/market/router.py#L614-L636",
           "version": "repo-lines-v1:sha256:91ada3f64e1357fd6bff9e9bf539809a042aa2ad8ab64075342e7d6205bd351d:eyJzZWxlY3RlZExpbmVDb3VudCI6MjMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjYxODgzZmFkYzYwMTAxZmFmMGYxZDJjMjE4OWU4ZDk0NTIzZTc5NjljYzM0MTY1YWMwZDRlZGRkNzYyMzUwYTAiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImIzZTNkNDNlNDUwMTE3MTI1MTdiZTc2NmNjYjZlMDBiYTBmNGU3OTdlZGJiYzRlZDk1ZjZhMzhiNjYyNmNiZjIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjE1MDkyOTZkNjZiYWZkZjM1ZmQ5NmVhMjY2OTE1ZjBhMzc2YWYwOWY0Mzk3YzAxNDI3ZDExNTAwMTUwYzE4NGQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImU5ZWRjNjFlN2Y5Mzg4ODFhZTBlZTFjZWJkODFjZDIzMDQ1NjQ4NThhMjkzMWQ5NTBjYjJjODczZTdhZWRmYzUifQ"
         },
         {
@@ -362,10 +362,10 @@
     },
     {
       "id": "claim_844f67163e7c4da3b1cbfc13016be5b6",
-      "statement": "The worker dashboard router is mounted at /worker/api: its huey-dashboard task routes carry dependencies=[Depends(current_user)] and its WebSocket at /worker/api/updates (and the trailing-slash variant) authenticates via the shared _check_ticket_not_replayed helper plus a salt=\"ws-ticket\" max_age=30 payload, or via the auth_token cookie / sec-websocket-protocol token, closing with code 1008 on failure. The archived architecture review's finding that /worker/api was unauthenticated is therefore remediated in current source.",
+      "statement": "The worker dashboard router is mounted at /worker/api: its huey-dashboard task routes carry dependencies=[Depends(current_user)] and its WebSocket at /worker/api/updates (and the trailing-slash variant) authenticates via the shared _check_ticket_not_replayed helper plus a salt=\"ws-ticket\" max_age=30 payload, or via the auth_token cookie / sec-websocket-protocol token, closing with code 1008 on failure. The archived 2026-08-25 architecture review's finding (now stored at .ai/reviews/2026-08-25-architecture.md) that /worker/api was unauthenticated is therefore remediated in current source.",
       "evidence": [
         {
-          "resource": "repo://.opencode/reviews/2026-08-25-architecture.md#L27-L31",
+          "resource": "repo://.ai/reviews/2026-08-25-architecture.md#L27-L31",
           "version": "repo-lines-v1:sha256:1da15b3b21765e8c5139079318d34842c0a43fa16048d95cb2e05872d5b9489b:eyJzZWxlY3RlZExpbmVDb3VudCI6NSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiNjE0YTk0YWEyZGM5YjYzMmM5YTc5Yzk1NjhjNDFiOWJlNmFkZjUyOTVmMDFjNWVhMDE3ODRmNTZhNjViNzAwOSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNGIyODYzYmIyZTY5NmExZDllOGU2MWMyNzJiZjVkYjY2ZDRiMzk1NmFhNjI5ZWFlZDlmZWIwNzhhZGFkMzFlMCIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiNjVlOGYzYTc0ODE4ZDQwYTBkNDJjZGM4NTAzMjc5ZTc5ZTA2ZTA4OTAyNjg4MGViZjZhMzU3NmI1ZThjN2UyMiIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiYzAxODkyMzEzMmRmNGYyMWNiNWJiOWQ0MjM0OWY1MDc3NDY0MjFkOWQ5ZjY5Y2NkODNlNGIzN2UyYmNjZTE0MSJ9"
         },
         {
@@ -409,10 +409,188 @@
           "version": "repo-lines-v1:sha256:3ec5318dc4f0887f33c3db5c04328a2188a1430ce587d062723c4b7ad2b09f9b:eyJzZWxlY3RlZExpbmVDb3VudCI6OSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiNjNjMzFmMDcxOGM0ZmU4NGNkNWZmNzc4NDhhN2Q2ODIwODk0NDdmZTAyNjhlMDY3OGI0M2MwMDMwY2U0MTg1OCIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiYTMwM2VjZGQ0YTRkMTBmMTljNzNmZDQyZmQxMjQzN2ZkMzM1NGE4MjY4MTYwNWRhNTI1NWE5N2EzOTA2OGRiYiIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjAsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiZTNiMGM0NDI5OGZjMWMxNDlhZmJmNGM4OTk2ZmI5MjQyN2FlNDFlNDY0OWI5MzRjYTQ5NTk5MWI3ODUyYjg1NSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiNTViNmU4NzA2YjQzMDQ3ZjJhNmRiNjdmMTMyNjM4NTk1NjA0ZTY3ZjM2OTY2ODc2Y2UwMTU4ZjAwNTNlNmJkMSJ9"
         }
       ]
+    },
+    {
+      "id": "claim_3011fba70a074c90a787701e6dfe1e69",
+      "statement": "AccountsListState is the only browser-side WebSocket consumer in the frontend: it is the sole `new WebSocket` call site, uses the account sync-status endpoint, and is mocked (WebSocket, accountClient, authService.getWsTicket) in accounts-list.test.ts so no socket or fetch is real.",
+      "evidence": [
+        {
+          "resource": "repo://frontend/src/lib/components/accounts/accounts-list.svelte.ts#L18-L123",
+          "version": "repo-lines-v1:sha256:6f12879968e1e80ff1a6e8f2bbfd728485d57c80935f41ffcbe068a747c77b8f:eyJzZWxlY3RlZExpbmVDb3VudCI6MTA2LCJmaXJzdFNlbGVjdGVkTGluZUhhc2giOiI3YzY2MDYzZWRiOWY4ODg2M2RiOWU4NmIwODI3ZmVlMzY1MWEzYTU4NDU3NzczZDdjMTU3Njk2N2JlN2I0NGEyIiwibGFzdFNlbGVjdGVkTGluZUhhc2giOiI2N2NkYTgyZGE2MDYyMzhlMDVlNjIzOTk1NjljNWVlMDM5OTM0MTk2NDhhZTVkNDNhMmJmOGNkNjM0N2Y4MjYzIiwicHJlY2VkaW5nQ29udGV4dExpbmVDb3VudCI6MywicHJlY2VkaW5nQ29udGV4dEhhc2giOiJlNzQ0YWNkYTJkNTRjMDU0M2M2NGVlOGRmNmJlZTM2NmFjZWVmMmI1NjJmOGVmMDU5MjM5MTg3NTdkYzQ3Y2UxIiwiZm9sbG93aW5nQ29udGV4dExpbmVDb3VudCI6MywiZm9sbG93aW5nQ29udGV4dEhhc2giOiI4ODMyZTZmYzllZjBhNzE2MjdlN2Y2N2UzZDJmYmM4YjJhZjI3YjcxMjM0N2E0MDlhZGY3ZDgzOWU1NWRhZWVkIn0"
+        },
+        {
+          "resource": "repo://frontend/src/lib/components/accounts/accounts-list.test.ts#L10-L33",
+          "version": "repo-lines-v1:sha256:2acc35cc2498f4ba3a318b79442c58c0ef5b204a2eeb880042f2fa7e4f019a4e:eyJzZWxlY3RlZExpbmVDb3VudCI6MjQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjU3NDU3ZjIxNjQ0OGIzZjgyZDhhYmQ1YmY0ZjU5ZmViMGE0ZGU4Nzc3NzU0M2NjMjRkMzUyYzI0YzgzZDA1YmIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjViNzQxZDJjMDhlNmY1MTBiN2U5YTI2NGYzNzhmOWNlMDA0OWE1MDRlMGU3ZWY1ZDY3Y2QzZWE4MTNmODU0NzQiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImM0YjY4MjIwNGYwZDQwNzE0NmI2YjIyNzM2MWRkZmEwY2YzZTA5NGY3NTExOTUyYjM0YTJhZTBiOWZmZTQ2MjEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6Ijc4N2MwMTdmOTdlMjYwYWVlODg1YTFmMTJkMWE5NGI1MGI2YzczNWVlZGRjODM0MzI0YmRhYTJmNThjNGU0OGYifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_ce4c0026850147078dc2fbe4ef45d945",
+      "statement": "GET /accounts/sync-status (behind current_user) returns {\"account_ids\": [str(id), ...]} for the caller only and maps redis.RedisError to a 503 \"Sync status service unavailable\"; tests/routers/test_sync_status.py pins the empty result, per-user scoping (the call runs with the authenticated user's id), unauthenticated 401/403 and Redis-down 503.",
+      "evidence": [
+        {
+          "resource": "repo://src/account/router.py#L178-L190",
+          "version": "repo-lines-v1:sha256:7de1a34620fa321b1de6a2bdea8d00cf6a6ac2ee5a7d81e460ca2837e8b6ebdd:eyJzZWxlY3RlZExpbmVDb3VudCI6MTMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjBkYjFmNWFiNjU1M2RhMWUzOWI4NDA4ZmFmYzQwYTNkOTQyMzdlYjNjYmRjOTViNTE1Y2ZjMDMzNzUyNmM4NGMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjY5Mzk3ZWExYjYwMmUzZTIwNzJmYzA4ZTg3MTEyYTRlZDcxYzJlNGYwODY1ZjQ5ZDg0MTk4ZDIxZGNjMDE1MzkiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjM5M2I2ZGE1MDljOWVlMDg3MWE3ZDZhYTMyYzg5ZTExYzVjMzNjNjg2YTE5NGFkYWQxYmUxOTZjYWE4NWM5MDEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjRhY2YzOGI2YmQ2NzkwOGYxNWViN2MxMGY0MjY4YTczNGY3MWJhOWI4NGExNTZkZjlmOWFiOGUyNDRiNWE5MzAifQ"
+        },
+        {
+          "resource": "repo://tests/routers/test_sync_status.py#L10-L73",
+          "version": "repo-lines-v1:sha256:280c29715b11ebbb05efd3962e93a13fdda5986e0088c3fc05766a514b38544d:eyJzZWxlY3RlZExpbmVDb3VudCI6NjQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImI3YTgzMWZhNDcyNmZjMjMxNTE0NGY5YTA1NWJmZWMyNWYxYWZkMTI2YWFmZjU3YWZmYmU5NDBlZjVjNmE3MzUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjRhZTkzNGZjOTllZmRlNzMwODQzNTc1YmJiODI0YjA2MjBlNmYyNjY3Y2Q5ZWY1OTBhYWZkMTY0MjJiNzJmYzEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImZhYTY0NGQ2MWFkZjY3Y2FjNjg5ZWI5YmFjNzNlZmYxZTk5MGM0YjJjNzM1OWY4ZGE3Yjc2YTYwODQ2N2MyZWUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_e1c14f78009f440b83f43fb84e8cbfc4",
+      "statement": "sync_account_positions_task is enqueued synchronously from the request path: POST /api/v1/accounts/{account_id}/sync (rate-limited 3/minute, ownership-checked, 400 when api_sync_enabled is false, delegating through PositionService to IntegrationAccountApi) and once per newly imported account in the broker import route, both forwarding get_request_id() as the task's request_id.",
+      "evidence": [
+        {
+          "resource": "repo://src/account/router.py#L527-L560",
+          "version": "repo-lines-v1:sha256:043e0e1f9da051ae3551673cb0a02dc60139101a395a65f40228b14d8b00c6c0:eyJzZWxlY3RlZExpbmVDb3VudCI6MzQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjdlNThmZTdiZDRmMmIyYTczNGM0ZDk1ZmY2ZDE5YTk4YjUwMWQ0MzhmMWJlNGNhZjk5ZTEwMTkyYmI0OGJjZTEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjlmMzJhMDVhZTk5MzUxMzk0ZDljYzkzN2JmOWY4MTNlNmRiZWJmNThjNWUzZjk1ZjcyZmExZWQ4ZmFkYzAxMjgiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjhjYzRhN2QxY2M3OTZhYmEzZTQ2NzIzMzI3ZjUxN2U5ZjgxMTk4MmQyNTBmMDcwMjk4NmU0YjU3NjRhZDk1ODkiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjoyLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjE5OTYxZjQ1MTk2NjkyZWU5MjAzNjkxMzg2NGVhNmYzY2NhNGY2MWExYWVhYTE0NTQxNjAxYzJmNmIxODMzZjEifQ"
+        },
+        {
+          "resource": "repo://src/integration/api.py#L40-L53",
+          "version": "repo-lines-v1:sha256:5f7de1db1f2cf5168aadee49bfdc620c643ae905f1233d1bb85055d12461e7f1:eyJzZWxlY3RlZExpbmVDb3VudCI6MTQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjhlMTkxOWJhMzE2OTZhNjkyYWUwZTI1NWFjY2NjNGE0M2RmM2FiMjhjODk0ODhiNzNlODdjMWVjYWYwNjVhMzIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjU5MDlhNTNhNjE4ZDAyOGUxZDMwMDBjMGE3YWJjZWVjYmU1ZmIzN2Y0ZTUxMWVmZTQ2NjQzZmFkNmU2Njg3MmYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjMxMzliNjQ2OTlmNDcyNzQyMDMxN2U3ODM3YmM0ZmU2ODIzYzkwN2YwN2Y1ZDdkZmMxMGQ5NzZiNjNjODI2YjciLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjBjYmVjYzNlNGEwMTViNmJmYjE4ZTA2NzU4ZTA0NmJmODEyNDI3MGI5YWFhMWVlMmI2NjdiNzYwYTU2OWU2ZjMifQ"
+        },
+        {
+          "resource": "repo://src/integration/router.py#L200-L207",
+          "version": "repo-lines-v1:sha256:33279029fa5f1e3bddd169a84994b870fc01076daceb0fde2e9a44b5c8a16433:eyJzZWxlY3RlZExpbmVDb3VudCI6OCwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiZWMzNWQyYTQ1YmM0NGRmZWUwOTQ0MmI2NTNhZmEyOTAzNTM3ZWRlY2E2NGNkMDUwNmFmZGU4N2MwNWM3MGI3YSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNTkwOWE1M2E2MThkMDI4ZTFkMzAwMGMwYTdhYmNlZWNiZTVmYjM3ZjRlNTExZWZlNDY2NDNmYWQ2ZTY2ODcyZiIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiY2ZhODFhNmEzY2RlZDk0YjJjMmFmODY2MDJhNzY5MzBkYmE0ZTk3MjJjOWY3ZTlkZTIzNDQ0YzYxM2I1OTk2MSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiNzE1YzkwNjllNTljNDYxOTAxYjQyYjU2MWE3Y2Q4ZTgzMWQzN2ZiYWE1NDAzOGEwMWFhODI5OTc5NzUzMDBjOSJ9"
+        }
+      ]
+    },
+    {
+      "id": "claim_20d799f17e3f4e03b5671905b8fa3c08",
+      "statement": "The account sync task also declares a @huey.signal(signals.SIGNAL_INTERRUPTED) handler that matches task.name == \"sync_account_positions_task\", reads task.args[0]/task.args[1] and runs mark_sync_finished via asyncio.run, so an interrupted consumer does not leave the account in the Redis active-sync set.",
+      "evidence": [
+        {
+          "resource": "repo://src/integration/task.py#L291-L307",
+          "version": "repo-lines-v1:sha256:ab8cc41a213fdf95840aed21c74d628a60566bbf7844a2006d34d32f99cf503b:eyJzZWxlY3RlZExpbmVDb3VudCI6MTcsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjUyMzU5ODcyMjQ1MWMwZDRiNjQyYTkxMDNlZDFkMDQwNzI3NzAzN2UxOGM1MjAzYWZjYmJkNjM5ZTJjZTM0YjciLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImMyMmZmMzUwMWNiNzNkOWQ1ZTk4YzZiNjgwMzEwZjNlOTlmNjdkMDk2NDlhNWExOGY1NDgzNTFhOWVhMDJjM2UiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImUyZDY3ZjFjMDc0MDlhNDAyZThiYWViYWY4YzYwOGY2YWRkYzJlNGU2MTgwMThlY2YyNmMxMjg5OTEzNGIzYmMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_a2da067f84ab4d22b8d841aaa29dc2d2",
+      "statement": "The worker registry is created by @huey.on_startup() setup_worker_services, which calls init_logging(), wires huey-dashboard signals via init_worker_signals, constructs a fresh DatabaseSessionManager with NullPool (tasks run asyncio.run per invocation, so a pooled engine reused across short-lived loops errors), registers the full service graph on a new svcs Registry and assigns it to huey.svcs_registry; @huey.on_shutdown() closes that registry.",
+      "evidence": [
+        {
+          "resource": "repo://src/worker.py#L9-L57",
+          "version": "repo-lines-v1:sha256:9ddd6932ecb905d03f819c503fdabb181284b44df402e83826655cb32ada07dc:eyJzZWxlY3RlZExpbmVDb3VudCI6NDksImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijk5ODQ2ODcyNGYzZDM5MjE4YmY5NGIwMmU3NjVlYWExZjI3ZmRmOTlhOGEyZTMzNjY3OWQxODhlNDlmYjU0NWEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAxYmE0NzE5YzgwYjZmZTkxMWIwOTFhN2MwNTEyNGI2NGVlZWNlOTY0ZTA5YzA1OGVmOGY5ODA1ZGFjYTU0NmIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6Ijg2MTM1N2UwMDQ3NWMxN2ViNjYzY2I1YTljMDAwYzQ2ZTk2MzcxYTBkZDZhOWNlNzM3NmJmMWRmZTJjNTNkZjkiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjdmZWFlOGEwMGZiMjM3Mzg1MTdlMzhhZGViYTRjNzgyODYzOGQ5MjM1NTI3ODFkNjY4MjE0ZGY5MzY1NDQyMGMifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_5902ab167b6d4fcf982694c51fc83a2e",
+      "statement": "Task bodies guard the missing registry differently: _daily_price_update, _hourly_intraday_price_update, _recalculate_all_account_totals and _sync_account_positions_task raise RuntimeError(\"Worker registry not initialized\"), while _generate_note_title, _check_and_dispatch_price_alerts and _alert_email_dispatch return early, so a task accidentally invoked outside a worker degrades differently per task.",
+      "evidence": [
+        {
+          "resource": "repo://src/account/task.py#L24-L27",
+          "version": "repo-lines-v1:sha256:8d81e0aeed611bfa3b4670d021612746c030b3ae9666339be501a18b99cb8404:eyJzZWxlY3RlZExpbmVDb3VudCI6NCwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiY2M3ODM1YjE5NmNlYzJmYmU2ZWEzYjA1OWJhN2FjODViOTkxYmYwYjJjMGM2ODA5MWVmMTNlMzc5ZmIzOThiYyIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNmRiYmUzZTQxYTZhNzA5YmYxNjhhZjM3MjExODQxYjIyYTEyNWM0ZDY2NzMwMGY0Y2Y3ODI5ZmNhYTgxNDliYyIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiYjFhZjk4NDYzYTg4ZjFkYWQ0MmE0YTcxZDAxNzgzZjRhZGVjODg4YmMyNTc3NWRkMzdlMWFjYjgwNTdkNGYyMyIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiOGY4MWRhNTE0Y2E5NmEwMTMzYjdlYmVjOGM2MTNlZGNhMmRiZDQxYzAwMTMyNTZhOGFlNWVjOGJmZDk1NWFlMyJ9"
+        },
+        {
+          "resource": "repo://src/integration/task.py#L231-L233",
+          "version": "repo-lines-v1:sha256:52290f915869bbe09d25dfe6a77ff67d1cedf6be7675196e58573fb0657e690f:eyJzZWxlY3RlZExpbmVDb3VudCI6MywiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiNjU0YTZiNGI3OGRmZDIyNmNjNzdmOTIwMzkyM2EwYTQ5ZDdkNDZlMGI4ODgwYTQwYWUyOTUzNjJhYzE0NTBkOSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNmRiYmUzZTQxYTZhNzA5YmYxNjhhZjM3MjExODQxYjIyYTEyNWM0ZDY2NzMwMGY0Y2Y3ODI5ZmNhYTgxNDliYyIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiMjE3Zjk1ZWNkNDM3M2I4ZmFhMzJhYmE1ZGM5YWMxNDkyY2FlMTg1MDE2YmRlNmU1ZGFiM2RlNjQ3ZmZmZmJkZSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiN2M5OTA0ZjU4NDU4NTA2OWQyNzNlNjkxNmQzMzJkOWMyNGQ0NzcxZGEyNTY5MjZlMDVlNWExNjZkZmNkNGY0YiJ9"
+        },
+        {
+          "resource": "repo://src/market/task.py#L149-L151",
+          "version": "repo-lines-v1:sha256:00f44a6f5d6803af267a2b8cccf9d725d6acfb29e7f753ceaa7f789afbe379c9:eyJzZWxlY3RlZExpbmVDb3VudCI6MywiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiYjM1ZGE2NDQwYzg2YjY1MjlmMzQzYTdlMGJmZjlmZDM2NTI5NGE2ZDM0OTJkZjM1NzkyMWI0NmU5NzUxODFlOSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiYWI1YzgyNjMyZmM4MmQ0YjJjMzQwZjQyNTU4YmEzZGZhMzFjNzY1NWRmNmZjYzE2OGI0ZmRjZTU3ZmFjNjA0MyIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiN2JmZDI3Mzg2NDIwMGY3NmNkOGM3MzE1MTY1ODkzYzE5ZmYwOTJhMmYzZmEwZGMyNjJhOWJlZjFhYTQ5OTFhMSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiNjllOTE4ZmFiODIyYzBiOThiNThjMWMyNzczNzM2NjEyODljZGRjNzQwMDBmY2U5ZmRiMmRhNjNlYjllMGUyNSJ9"
+        },
+        {
+          "resource": "repo://src/market/task.py#L212-L214",
+          "version": "repo-lines-v1:sha256:c3e20bb994d2eb5b6549e16bdd60052fcb97e105b247f579aa19ee22e86f8ed0:eyJzZWxlY3RlZExpbmVDb3VudCI6MywiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiOWZkYTdhNzI5MjhiM2I2MjkzZTM3NmUzNGRkYWIxY2I4MTg3YzQ4ZjdmZGNlZjlkM2VjODE3Yzc3MDkzNDQxYSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiYWI1YzgyNjMyZmM4MmQ0YjJjMzQwZjQyNTU4YmEzZGZhMzFjNzY1NWRmNmZjYzE2OGI0ZmRjZTU3ZmFjNjA0MyIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiYmEwYTI1NGJiYjViZTgxZDM3MWI3YTE2MDZkNTZiYjllMjNmZjMyNDM0OTE5NzE5ZGFlNTQ0NTZjNGVjZWNjZSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiYWYxZmY0YzU4MGQ0OWVlZTNiMTFlYTFhZjBkYTdkZDYyMjIzNzdmY2E2YTgzODM2ZGZlNGQyZTJjOTQ4YmU5OSJ9"
+        },
+        {
+          "resource": "repo://src/market/task.py#L32-L34",
+          "version": "repo-lines-v1:sha256:ea422894d869f2654d8f888c9e9ded0d97da3a894d535ec86ec120339452ed88:eyJzZWxlY3RlZExpbmVDb3VudCI6MywiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiMmEzOTk3MDNhZmM3YmUyNmU1YWY4N2QxODRmODE4NzAxMDkzNmY2OGNhMDBkMDBiOWIzMjhhZTRjMzdmZDk1OCIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiYWI1YzgyNjMyZmM4MmQ0YjJjMzQwZjQyNTU4YmEzZGZhMzFjNzY1NWRmNmZjYzE2OGI0ZmRjZTU3ZmFjNjA0MyIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiMjMwMTM4Nzc5NTRmNjM3NWUwZWM2ZjJlZDk3YjVmODdkMWY5MzVmN2M2NzYxODcxOGYyOTcxZWIyYmEyMWM5OSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiN2M5OTA0ZjU4NDU4NTA2OWQyNzNlNjkxNmQzMzJkOWMyNGQ0NzcxZGEyNTY5MjZlMDVlNWExNjZkZmNkNGY0YiJ9"
+        },
+        {
+          "resource": "repo://src/market/task.py#L68-L71",
+          "version": "repo-lines-v1:sha256:83888c715689808e9939135899a67583db584b96d0e32b210d45f153600d7d3d:eyJzZWxlY3RlZExpbmVDb3VudCI6NCwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiZmJmYjIxNzQ1MTBjZGQ4MWUxOTQzYTY5NGY0YmRjZDdlMzdlZDViYzYwM2ZhNmZlNmU1MzBkY2ExZGE0NDllNCIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNmRiYmUzZTQxYTZhNzA5YmYxNjhhZjM3MjExODQxYjIyYTEyNWM0ZDY2NzMwMGY0Y2Y3ODI5ZmNhYTgxNDliYyIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiOTE1M2JkMTVjOWJmNWMwNGMxODM1NDQ4ZjAwODdmZmU2Y2RkYjc3YTljZjAwNWQ2NTI3ODA3YmYwZDczY2NjOSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiYTdlYmNkZGUxMTY2NzlkM2IyYmYyZDVkZWQyMzJjZmIyYzZiNDgxZWM3NmJlYWNhYTk1MDc2YmEzYTQxMmI5ZiJ9"
+        }
+      ]
+    },
+    {
+      "id": "claim_787e9a841ef7406eb95e090f506da5cd",
+      "statement": "Recalculating totals broadcasts AccountTotalsUpdatedMessage (type account_totals_updated with account_id and totals) per active account — inactive accounts are skipped and each account's failure is logged without aborting the loop — and tests/ws/test_router.py pins the message's JSON serialization. No frontend consumer handles that event type.",
+      "evidence": [
+        {
+          "resource": "repo://src/account/task.py#L36-L54",
+          "version": "repo-lines-v1:sha256:751cd8a15a6442e5a975c9dbc89807dd932518e34014f60102b4c0729876b1d3:eyJzZWxlY3RlZExpbmVDb3VudCI6MTksImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjNjYWZjYjM2MmE4NzU0NGEyNGUzNjRlYmRlMDMwZmI1MDgxMjA2NTBlNTIyZmQ4OWFlMzc3ZDY1MjE3NWM3YWQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjRiY2Y1ZmNiNjk5ZjE5ZGY5NDQyM2Y3NjgwYmE0MmM4Y2NjZTcwNjRjYThhZDNjNTNlNGJkNDFmM2M2MmI0NDMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6Ijk2ODY1YzlmNTgwNDk2OGRmMjI5YWRmODJiYmI5ZmEzNWMwY2YzNzg2NjcxM2JlZjBkZTdjN2I4YmJiZjExMjgiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjoxLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjUxMDM0ODFjNTdkMGYwZGMwZjc2Y2QyY2M4YjM2MDRjNGU4Mjk2ZGE0MTIyYWRkMTllODE3NDVkYzdlMzMxYTYifQ"
+        },
+        {
+          "resource": "repo://src/ws/api_types.py#L23-L26",
+          "version": "repo-lines-v1:sha256:be1666329dcb1f5d520766fec8ae7c54b747f3252afe324413aa213af59c86ce:eyJzZWxlY3RlZExpbmVDb3VudCI6NCwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiZTliY2U1YmQxZDE2OGU3MGMyMjY5NGRkOGQxNGI4M2U3ZmZiZjJiOWE5YzQxOTY5YmJmZjM0YjRkNWY3YzlhMyIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiYmU3MmIyNmRhNWYxZDJiYTU3OGY5NjAzYzlkNmViNTExNjU1NjVhN2RkOTM2OTgyODAwZTg3NzExODU5OWJjYSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiNjE5Nzk0NjNlNTY4NzhlMzdmODE3ZDk5NzJhMjhmNmJiOGZiZjdhNDQ0OTAzYmZhZTkzNDA3OWEyODBkZTliNSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjAsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiZTNiMGM0NDI5OGZjMWMxNDlhZmJmNGM4OTk2ZmI5MjQyN2FlNDFlNDY0OWI5MzRjYTQ5NTk5MWI3ODUyYjg1NSJ9"
+        },
+        {
+          "resource": "repo://tests/ws/test_router.py#L182-L195",
+          "version": "repo-lines-v1:sha256:bf6525bf9e49ef5aab6cd2394a17ea108be0ffda296ed8d8bc2ab9a9c0c72438:eyJzZWxlY3RlZExpbmVDb3VudCI6MTQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjgxYjNlOTk5NDRkNWQxMDM3MzVlZmRjYjRiNjIwZWY1ZWNhNzE3MDZiN2NlMWU0ZGZjNTkzNDIwMTRmYjBkMDAiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImJiZmVlYTNhZjhjMzJjZDBhMGQzNGNmZDQ1YTQ4OGM3YmE1NDgwNDMyOWRkOGQ4NDk3NGRmYTkwNmVlNGVmNGMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6Ijk4Y2FmYjE4NGFiNGFjOWQzYTlkYWRlZDI2NmZmMGQ1MzUyNjFjZmU5ZDUxNDAzYTM0OGJmOTQ2Nzk5NTM3MmYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjdlZDcyOTRlMDlmNTdhZTM2ZGMxNDkwZjM5NmMyOTc0ZmE1Mjg0OWIyYTBiMDA3MDYyMGZiYWM2NDY3MWU5MWIifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_8d80e6ab62784e81b0a5af93a19511f8",
+      "statement": "check_and_dispatch_price_alerts returns early when there are no active alerts (before querying intraday prices), otherwise loads get_active_alerts_for_evaluation() plus one bulk get_latest_intraday_close_by_security() map and delegates to the pure AlertEvaluationService.evaluate, enqueuing one alert_email_dispatch_task(alert.alert_id, run_ts) per triggered alert with the evaluation timestamp threaded forward and individual enqueue failures logged and skipped.",
+      "evidence": [
+        {
+          "resource": "repo://src/market/task.py#L139-L199",
+          "version": "repo-lines-v1:sha256:f27acc88ec44ddec7897691b74ad896c3b194b41bd5e9e5d71538fe4fb736224:eyJzZWxlY3RlZExpbmVDb3VudCI6NjEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjFlYzk2YzNlNjFhNjEyOWRiYWQ0ODFmMmI3NDAxOWM4YzdjYzI4NGQ5YjE5YTMzNTU0ZmE5MTdlYTIzYmQzYzgiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjU5MDlhNTNhNjE4ZDAyOGUxZDMwMDBjMGE3YWJjZWVjYmU1ZmIzN2Y0ZTUxMWVmZTQ2NjQzZmFkNmU2Njg3MmYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjI2YjU4YzcyMTUyMzViYmU5ZjBjNGM3MTA0MDU2Yzk5NmNlMGQ5M2I2NzYyZTQwYjQ4MjVhMWEzZDA4N2Q0OGMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjdkZjZkYWFhN2RmYmUzZmQxZjU4NDIxNjY0MzkxNTM4NDg4MTA2Y2QxMWVmMDZmNTM5ZmQ5OTM3NTQ1N2E5ZjAifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_3e7fce20309544d0b8fb8cac14053c94",
+      "statement": "alert_email_dispatch_task declares retries=3 and _alert_email_dispatch returns early (no delivery) when huey.svcs_registry is None, making the missing-registry behaviour of the only retried task a silent no-op rather than a recorded failure.",
+      "evidence": [
+        {
+          "resource": "repo://src/market/task.py#L202-L220",
+          "version": "repo-lines-v1:sha256:1a4a3288c46c844f3be9fcfdae78eb8eabe4d371a172fb44c6404699c87e7b8d:eyJzZWxlY3RlZExpbmVDb3VudCI6MTksImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImNkOTcyMmQ4YzA2OTdkMzMzMWI2ZDgyMmY3MTJlNWNlYjgzNmFjYjk3Yzc5ZjIwZjhlNDhmN2QxMmVhYmZkNTAiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjI3Zjc4YzA5MzZjNTBiYTJjNzU1MjE0ZjU3MTRhN2I0NjUzZjBkOTNiY2M0OTk2NjEwMWM0OTlmNGZiNDZhNmIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImIzZGYyYWNmMDZlOGMzZjAzYzcxMzVjNmU4YWM1YTljYTU0MzJhYmUwNmE3NGFjYTBmZGQ5YTUzYTAwOGY5ODciLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_ed96a358eb524003961b73a918cca968",
+      "statement": "The fan-out's ConnectionManager singleton owns a user-keyed local connection dict, a per-event-loop Redis client map guarded by a threading.Lock, and a single _pubsub_task; get_redis_client() returns the client of the currently running loop or None when no loop is running, and init_redis() prunes and aclose()s clients for closed loops, creates a decode_responses client for the current loop, and with run_listener=True (default) starts _listen_for_messages only when no live listener exists, logging a warning when restarting a finished one.",
+      "evidence": [
+        {
+          "resource": "repo://src/ws/manager.py#L18-L71",
+          "version": "repo-lines-v1:sha256:b6b9d368cf30d51fc6fef928145faa9ce6ee7e08c2bd6f6af08dc00905eb3d8d:eyJzZWxlY3RlZExpbmVDb3VudCI6NTQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjBlZDc1MzgzOTUyODU4NWI5YzVkOTNhZTNhYjE5YzUwN2VhYjkyZGFkZDAzNjNkNjZiN2Q3ZTUxN2M2MzVkMzQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjgzNmU0ZTI2NDg3NWU1NzliODRmOWM0ODNjZTM0MzhjNDkyNzlkMTVkZjIzODFjYjI3NmY2NDc5NzkyMmQ4NGEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjYyMDA5N2U0YWE1MDA2OGJhMTU3ZjlhMjczOWZhZDg2OTk1ZTFlMGNkY2NkYWRjNTg5N2MyMDM0Yzc0ZDNlZmEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImI0ODBkMjljNjY1NjQ0MTRmNWYyYWYzMTczYzA2OGVlNDAyZTYwZmJkODFhNmMzNWM3OGE0ZjVjOWE2NzhjMGQifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_f79226bba9d348fbaa560b83f83904f7",
+      "statement": "send_personal_message resolves the current loop's Redis client, lazily initializes a publish-only client (run_listener=False) when none exists, publishes json.dumps({\"user_id\": str(user_id), \"message\": message}) to the ws_messages channel, and falls back to _send_to_local_connections both when lazy init fails and when publish raises, so a Redis outage degrades to same-process delivery instead of dropping the event.",
+      "evidence": [
+        {
+          "resource": "repo://src/ws/manager.py#L172-L202",
+          "version": "repo-lines-v1:sha256:664cf2c57f5f6cd9784f1f6410fc818f352c6bef708a75afb4557f68998f508d:eyJzZWxlY3RlZExpbmVDb3VudCI6MzEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjRkZTY2OTk0NDExMjVhMTk0ZWU2YzJmNGM4YTM2NDc5Y2Q3NDA2ODdhZmJmNDMwNzM2ZDNhMDdmYTlkYWI4YjAiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjJiOTA5NmEwMDc5N2E3YjZjOWJiMzFjZGQ1ZjY5Zjc5MGU5MWI2MzgyNWFlZmY1M2NiZjMwY2Y4NDNiODcyZjIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImUzYWU5NWRiMjg1YmQ0YzhjMmQ2MGI4ZjVhYmI5ZjgxMWQyOGU1ZmJhMDhkYTMxNDUzMzAwNWIxMzUxNmM2ZmYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjRkNTc2MjMwMTU2NGYzNDJkZDRlMzZmOGNiYWM2YWJhMTNkYjk3Yzg0MjIzNzg5OWFjNTE3NTE0M2M1YjBhMTIifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_5706d94ff4de4c67ad0daf83cefc9579",
+      "statement": "GET /api/ws authenticates a ?ticket= query parameter (replay guard then serializer.loads with max_age=30 and salt=\"ws-ticket\"), else the auth_token cookie or sec-websocket-protocol header resolved through UserApi, closing with code 1008 for every failure; on success it negotiates the token as subprotocol when the header was used, calls ws_manager.connect, loops on receive_text() until WebSocketDisconnect triggers disconnect, and installs an X-Request-ID or fresh uuid4() request id reset in a finally.",
+      "evidence": [
+        {
+          "resource": "repo://src/ws/router.py#L40-L100",
+          "version": "repo-lines-v1:sha256:63413bb4add89f256d63b0f00b3c0fe377f645d9eea43b5b6b3aec85deb42612:eyJzZWxlY3RlZExpbmVDb3VudCI6NjEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImY5NGUyZTM3YmE1YjA4YjI0MTMzZDljMTYyODA4YTMyODI2NzlhYzgxNjQyZGNkOWFkYzFhYjZkMjk5ZDBmOWIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImRlZmMwZmIxZTE0YTI2Yjk3YjVlNzRlYTc0ODEwMWI1ZGJiYjY3ZmJkN2NjMzM4MGQ1OTQ2MGVlMzE2NmJkODUiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6Ijg1OTIzNWJhMTJhYTc5MTAzYWE2YmVlMGEzNmU4NjBjM2Y0OGE5MzdiNTVlNzlmM2YwZmY1ZWVlODM3ZmJkNmIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_90847233146a438d9bf0f806b19b3113",
+      "statement": "The worker dashboard WebSocket echoes each received text frame back to the client; the tests use that echo as the successful-handshake assertion for ticket, trailing-slash ticket, cookie and sec-websocket-protocol handshakes, while every unauthenticated, invalid-token, replayed-ticket and invalid-signature attempt fails with WebSocketDisconnect code 1008.",
+      "evidence": [
+        {
+          "resource": "repo://src/worker_dashboard/router.py#L86-L119",
+          "version": "repo-lines-v1:sha256:6f80e62edc2e0d42fe8325d8fb0bfd4d99a2cd8976ec925bf81969d6e26f042a:eyJzZWxlY3RlZExpbmVDb3VudCI6MzQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImJmZjcwMTQwYzlhMzEzOTRjZjUwNzBlZDFhZWZmNDg1MDE2MWI0MTMyYjg3MzIxMzFlY2NjM2Y1ZTE1OWQ4MzciLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImRlZmMwZmIxZTE0YTI2Yjk3YjVlNzRlYTc0ODEwMWI1ZGJiYjY3ZmJkN2NjMzM4MGQ1OTQ2MGVlMzE2NmJkODUiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjAyMTQ2NjU1Y2E1NjgwMzdlNzAxZTlmZjk3YjY2ZWRmOGQ1ZDhiZDdmMGJiNTQ5ZTAwMDA1ZjBlNTY4YzJhY2YiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
+        },
+        {
+          "resource": "repo://tests/routers/test_worker_dashboard.py#L175-L318",
+          "version": "repo-lines-v1:sha256:ecca3432df83d235f583a31b2c4028e8495a57d65adc7d358fbda05b80d4dfae:eyJzZWxlY3RlZExpbmVDb3VudCI6MTQ0LCJmaXJzdFNlbGVjdGVkTGluZUhhc2giOiI4OGZlZTM5ZGExZDYyMzU0ZDg0ZmFjYTE2MzhhZWExMzdlNjJkYThmMDYzNjgwMzA3Yzc3MmIxM2FiNzM5MDNkIiwibGFzdFNlbGVjdGVkTGluZUhhc2giOiJjMDE0YWViMDE1ZThiOGU3MTA3YzU0MjZmYzg2NmRmZjlkYmFjMjYwYzZmMTE2YWMzNTg2MWI3MDk5OThjOGZlIiwicHJlY2VkaW5nQ29udGV4dExpbmVDb3VudCI6MywicHJlY2VkaW5nQ29udGV4dEhhc2giOiJiMWNlNmQzMzc1ZTg5ZTEyMDBkNDI2ODA3ODY3YmY3ZjEyZTJjNDE0ZDZiZjI1YWU5NWY1OTFhNjcxZDZiMzZlIiwiZm9sbG93aW5nQ29udGV4dExpbmVDb3VudCI6MiwiZm9sbG93aW5nQ29udGV4dEhhc2giOiI3ZjMyNzlkMDBmYjRkMzRmOTkxYjlkMmRhNjA5ZWQzNDA2NmY3YTY2OGM0ZTQ1MTczNWJkYWU1Yzc1OWI5ZmFhIn0"
+        }
+      ]
     }
   ],
   "verification": {
-    "by": "openwiki/0.5.2",
-    "at": "2026-09-23T13:18:56.288Z"
+    "by": "openwiki/0.6.1",
+    "at": "2026-10-02T14:25:20.147Z"
   }
 }

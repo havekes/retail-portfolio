@@ -3,12 +3,9 @@ type: workflow
 title: Realtime, Background Jobs & the Worker
 description: The cross-process asynchronous runtime of retail-portfolio — the Huey worker and its two service registries, periodic and on-demand tasks, the hourly price-update cascade with isolated enqueues and retries, the Redis pub/sub WebSocket fan-out with per-event-loop clients and ticket auth, the Redis account-sync status keys, the frontend consumer that hydrates and polls them, and the worker dashboard at /worker/api.
 tags: [huey, background-jobs, worker, periodic-tasks, websockets, redis, pub-sub, task-scheduling, sync-status, svelte]
-verified:
-  - by: openwiki/0.5.2
-    at: 2026-09-23T13:18:56.288Z
 sources:
-  - id: openwiki-source-cd4675c5fd5ca12b56790138
-    resource: repo://.opencode/reviews/2026-08-25-architecture.md
+  - id: openwiki-source-f3f760255077b0dab1a7b5f1
+    resource: repo://.ai/reviews/2026-08-25-architecture.md
   - id: openwiki-source-11ef2d56dffda152beeb9f84
     resource: repo://docker-compose.prod.yml
   - id: openwiki-source-b79fbbd921df689b4bbdc82f
@@ -17,6 +14,8 @@ sources:
     resource: repo://frontend/src/lib/api/authService.ts
   - id: openwiki-source-fd678aa0f01fc30bd938c51f
     resource: repo://frontend/src/lib/components/accounts/accounts-list.svelte.ts
+  - id: openwiki-source-937241c9304dc49d0693729b
+    resource: repo://frontend/src/lib/components/accounts/accounts-list.test.ts
   - id: openwiki-source-8215679cbfdaaa5ed7bc8531
     resource: repo://frontend/src/lib/types/websocket.ts
   - id: openwiki-source-30de42522595a37de333f4dd
@@ -83,7 +82,10 @@ sources:
     resource: repo://tests/ws/test_manager.py
   - id: openwiki-source-ce5690229e2d57cc7f25e9a0
     resource: repo://tests/ws/test_router.py
-generated: { by: "openwiki/0.5.2", at: "2026-09-23T13:18:56.288Z" }
+generated: { by: "openwiki/0.6.1", at: "2026-10-02T14:25:20.147Z" }
+verified:
+  - by: openwiki/0.6.1
+    at: 2026-10-02T14:25:20.147Z
 ---
 
 # Realtime, Background Jobs & the Worker
@@ -107,7 +109,8 @@ Three contracts hold the design together:
 Related pages: the broker flow that drives the sync task is in
 [Broker Connect, Import & Position Sync](./broker-sync.md); the price-update cascade's market
 semantics in [Market Data, Indicators & the Price Update Cascade](./market-data-and-indicators.md);
-the async note-title task in [AI Analysis Flows](./ai-analysis.md); settings and DI wiring in
+the async note-title task in [AI Analysis Flows](./ai-analysis.md); the ticket's identity context
+in [Authentication & Authorization](../architecture/authentication.md); settings and DI wiring in
 [Configuration](../architecture/configuration.md); the domain map in
 [Backend Domains](../architecture/domains.md); process/container topology in
 [Architecture Overview](../architecture/overview.md); the mock-only testing rule in
@@ -357,7 +360,8 @@ short-lived signed ticket first.
 `POST /api/v1/auth/ws-ticket` (`src/auth/router.py`) requires the `auth_token` cookie (else **401**),
 resolves the user through `UserApi.get_current_user_from_token`, and returns
 `URLSafeTimedSerializer(settings.secret_key).dumps(json.dumps({"user_id": ..., "jti": ...}),
-salt="ws-ticket")`.
+salt="ws-ticket")`. The full identity contract behind that cookie is in
+[Authentication & Authorization](../architecture/authentication.md).
 
 `GET /api/ws` (`src/ws/router.py`) then accepts two credential shapes:
 
@@ -371,7 +375,7 @@ The ticket branch enforces single use: `_check_ticket_not_replayed` computes
 means the key already existed → the connection is closed with code **1008**. On a Redis exception the
 helper logs and returns `True`, i.e. it **fails open**: during a Redis outage replay protection is
 silently disabled rather than locking users out (the archived architecture review calls this out as
-an observation, not a defect to fix blindly).
+an observation, not a defect to fix blindly — see the historical note at the end of this page).
 
 Every other authentication outcome also closes with **1008**: a replayed ticket, an unparsable or
 expired ticket, a token that fails verification, or no credential at all. On success the router
@@ -405,7 +409,8 @@ result, the per-user scoping, the unauthenticated 401/403 and the Redis-down 503
 ## The frontend consumer
 
 `AccountsListState` (`frontend/src/lib/components/accounts/accounts-list.svelte.ts`) is the only
-browser-side consumer of the fan-out. In the constructor, browser-only, it calls `initWebSocket()`:
+browser-side consumer of the fan-out — it is the sole `new WebSocket(...)` call site in the frontend
+sources. In the constructor, browser-only, it calls `initWebSocket()`:
 
 - **URL.** Derived from `VITE_API_BASE_URL` when it starts with `http` (mapping `https`→`wss:`,
   `http`→`ws:`, keeping the host and appending `/api/ws`), otherwise from `window.location`. So the
@@ -424,12 +429,15 @@ re-poll. `wsConnected` also drives the "Live"/"Disconnected" indicator in the co
 | Event | Effect |
 |-------|--------|
 | `sync_started` | add id to `syncingAccountIds`, clear `syncErrors[id]` |
-| `sync_finished` | remove id, clear the error |
+| `sync_finished` | remove id, clear the error, `await fetchAccounts()` to pick up new totals |
 | `sync_failed` | remove id, set `'Failed to sync. Please try again.'` |
 
 `frontend/src/lib/types/websocket.ts` declares only those three values, so an
-`account_totals_updated` payload (the hourly totals broadcast) matches no branch and changes no
-state in this component.
+`account_totals_updated` payload — server-side `WsEventType` also carries
+`ACCOUNT_TOTALS_UPDATED` and `AccountTotalsUpdatedMessage` — matches no branch and changes no state
+in this component. The accounts list learns about new totals through `fetchAccounts()` instead; the
+row-level cache invalidation that follows is in
+[Accounts & Holdings Views](./accounts-and-holdings-views.md).
 
 **Reconnect.** `onclose` sets `wsConnected = false`, **resets** `syncStatusHydrated` so the next open
 re-hydrates, and re-invokes `initWebSocket()` after a fixed 5000 ms `setTimeout`. `destroy()` closes
@@ -461,13 +469,9 @@ It also serves the dashboard's live updates WebSocket at `/worker/api/updates` (
 validated by `_check_ticket_not_replayed` imported from `src.ws.router` plus
 `serializer.loads(..., max_age=30, salt="ws-ticket")`, or the `auth_token` cookie /
 `sec-websocket-protocol` token resolved through `UserApi`. Any failure closes with code **1008**;
-success appends the socket to the huey-dashboard `WebSocketManager`.
-
-> **Historical note.** The archived architecture review (`.opencode/reviews/2026-08-25-architecture.md`)
-> flagged `/worker/api` as unauthenticated — at the time the mounted huey-dashboard router carried
-> only a logging dependency. Verified against current source: the task routes now carry
-> `Depends(current_user)` and the update socket authenticates via ticket or token, so the finding is
-> remediated. Treat the review entry as history, not as a live gap.
+success appends the socket to the huey-dashboard `WebSocketManager` (via `manager.connect`, or
+directly to `active_connections` when a subprotocol was negotiated) and then echoes each received
+text frame. A missing or unregistered `app.state.svcs_registry` makes the token branch fail closed.
 
 Wiring and lifecycle live in `src/worker_dashboard/setup.py`: `init_worker_dashboard` creates an
 async engine and a huey-dashboard `TaskDatabase`, calls `db.ensure_table()`, stores
@@ -478,6 +482,12 @@ lifespan calls the former at startup and the latter on shutdown. On the worker s
 `setup_worker_services` calls `init_worker_signals(huey=huey, db_url=..., redis_url=...)`, and the
 dev compose file sets `HUEY_DASHBOARD_WORKER: 1` so the consumer process emits the signal events the
 dashboard subscribes to.
+
+> **Historical note.** The 2026-08-25 architecture review (`.ai/reviews/2026-08-25-architecture.md`,
+> Finding 3, now archived) flagged `/worker/api` as unauthenticated — at the time the mounted
+> huey-dashboard router carried only a logging dependency. Verified against current source: the task
+> routes now carry `Depends(current_user)` and the update socket authenticates via ticket or token,
+> so the finding is remediated. Treat that review entry as history, not as a live gap.
 
 ## Configuration and operations
 

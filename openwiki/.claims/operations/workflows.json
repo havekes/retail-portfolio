@@ -1,13 +1,13 @@
 {
   "schemaVersion": 1,
-  "pageVersion": "sha256:def13ce183925faedfe5aa1da4f18b2914496e3ab4c3f1b382f06f5f9c0e424d",
+  "pageVersion": "sha256:ee8adb619efd04d9162c335efe753fd5915112aa462a6c04dd0dca92f7e57bcc",
   "claims": [
     {
       "id": "claim_7ecb499131d4460ab8b3effeff51e886",
       "statement": "Docker Compose is the only supported way to run the application locally, and all development commands must be executed inside the backend or frontend container via `docker compose exec <service> <command>`, because CI runs the same checks.",
       "evidence": [
         {
-          "resource": "repo://AGENTS.md#L15-L17",
+          "resource": "repo://AGENTS.md#L19-L21",
           "version": "repo-lines-v1:sha256:72339c27e276600743b00237fd0c7bbd0458009c005d63ecce5173f7c9f1b5e0:eyJzZWxlY3RlZExpbmVDb3VudCI6MywiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiYjdjNGY1Y2FjNTQ4MTZlZWQxNjRkMzY1NmJlMzc2NGJhOTcwNDBlNDlkM2ZjYzhlNDc3MzM2ZjNlMWIzNzdiYiIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiMzhmYjBlMzU1MjE5ZDE4ZjU5ZTViODNkZmMwMTQ4ZmVlMzIxM2I4YzU5ZDZlNGZlNGM1NWE3Mzk0Mzg1NDc3NiIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiZjkyNDVmMjlkOGZhMTI3ZjlmNmJkMzk2NGRhMjY0ZmY3ODQxZTRjNWIyMzFjNTRkZjUwYjUyOTFhNGEzZTg0YyIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiNjZhNGYwMmEyNDRhYjIxNzQ4ODAwMjRmODMyMTc4OGYzMDcwNzJjNDdlZDA0OWYzMzczMjIzOTUxODQ0YTNhNiJ9"
         },
         {
@@ -57,7 +57,7 @@
       "statement": "For parallel work, `scripts/setup-agent-worktree.sh <worktree-path> <branch-name>` creates a git worktree (branching from `origin/main` when the branch does not exist) and writes a worktree root `.env` seeded from the main checkout's `.env`, falling back to `.env.example` and failing when neither exists; it then deletes and re-appends `COMPOSE_PROJECT_NAME` (derived from the worktree directory name), `DOCKER_GID` and all seven discovered free ports, so re-runs leave no stale entries and concurrent agents get independent Compose projects without file or Docker conflicts.",
       "evidence": [
         {
-          "resource": "repo://AGENTS.md#L33-L41",
+          "resource": "repo://AGENTS.md#L37-L45",
           "version": "repo-lines-v1:sha256:c07eff454f47baa7c5217409e89c7857952d742f1ed7c95a75fd30fa6b40da80:eyJzZWxlY3RlZExpbmVDb3VudCI6OSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiNmI2YzkwYWM2NTIxODc5ZDQ2MjkyZjUzYjlkOGI1MDhjMmNjYTEwMWU0N2JlMzg3MzJiNjBjMzI2NWU5NjQwOCIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiMDFiYTQ3MTljODBiNmZlOTExYjA5MWE3YzA1MTI0YjY0ZWVlY2U5NjRlMDljMDU4ZWY4Zjk4MDVkYWNhNTQ2YiIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiNTBmMDVmMjg2NzgzNThjNjlkM2M1NjE4YTA3NmUwNmZmNWJmYTBmM2M0MWQwMzk0OWM4NDA1MTk0MTI2OTc3ZiIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiNTliNDhjMWM5M2FmNjMyZDBkNTRmMzc1ZjM0YmU2M2JmZTA4NGRhMjFkYmY5OGQ4OWYyYzUxNzRmNGY1NjZlYSJ9"
         },
         {
@@ -71,7 +71,7 @@
       "statement": "`./scripts/agent-test` is the primary test entrypoint for agents (shorthand `just test …`), running on the host through `docker compose exec -T <service>` unless already inside a container or `--local` is given, sanitizing output and hard-capping it at `--max-chars` (default 3000).",
       "evidence": [
         {
-          "resource": "repo://AGENTS.md#L19-L31",
+          "resource": "repo://AGENTS.md#L23-L35",
           "version": "repo-lines-v1:sha256:443d98f020ec63ba19068e67bfc06da637fb9bb9b53a35d542a84fadc423a252:eyJzZWxlY3RlZExpbmVDb3VudCI6MTMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjNjOGZiMTg2OTU0Y2E1MWE2M2ViNDVmM2JiYzZhNzE0NDE2MmNmYjg2NGU0N2U2OGQxN2MyYjBkYTY3ODkxNTAiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijc0NDE5NzE1YWU5MzQ4M2MwOTk3ZTlkMWVkNDNjMWFiYmZiZGJmNTdiNTc4YmRiZjY5MDgzOTk3YTMxYmE0ZjgiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjE2ZjdmYWY4OGI2OTFhNTdkMzc4OGMxMzU5NzJmMzU5ODc0OWNjMTRlNDcxYmJiMWY1OGM4NzMzZWJhNWQ5ZTkiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjNkNTFlOGY1NmE0YjA2ZmNmNDRlMTI5NjQ2N2I3NTJjZDU0NzAyOGJkYmJlYmNjZTVjMTJjZTAxODNhNjk1NjUifQ"
         },
         {
@@ -79,7 +79,7 @@
           "version": "repo-lines-v1:sha256:d0f47a17df34760c719a182717351d668fd8d15d20594821df46e01332d2344e:eyJzZWxlY3RlZExpbmVDb3VudCI6MjQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImQ2ODJjYmRiNGM4YjA3NTE4YmY0ODZjNTg5OTBmYzM5MTc4M2FhMjBhOTE2YmZiMjdhZDIxMWViMWQ1YzM2NDIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImEzMDNlY2RkNGE0ZDEwZjE5YzczZmQ0MmZkMTI0MzdmZDMzNTRhODI2ODE2MDVkYTUyNTVhOTdhMzkwNjhkYmIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjowLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjU1YjZlODcwNmI0MzA0N2YyYTZkYjY3ZjEzMjYzODU5NTYwNGU2N2YzNjk2Njg3NmNlMDE1OGYwMDUzZTZiZDEifQ"
         },
         {
-          "resource": "repo://scripts/agent-test#L201-L224",
+          "resource": "repo://scripts/agent-test#L203-L226",
           "version": "repo-lines-v1:sha256:8010326eecd6809a0a6c9e3eba8be7ddcd266341c5eba835886fac5e6927fd6a:eyJzZWxlY3RlZExpbmVDb3VudCI6MjQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImJlZjdmMWJkNDY0ZjcxYzM1MTBhMjdjODBmY2FiZDNhMGRhNzIzZTdmMzg3M2YwZDE4YWM2OTY2MjQ4ZDQ4ZGIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjU5MDlhNTNhNjE4ZDAyOGUxZDMwMDBjMGE3YWJjZWVjYmU1ZmIzN2Y0ZTUxMWVmZTQ2NjQzZmFkNmU2Njg3MmYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjA3YTNlMjQwNzZkZWQ0OTc3ODRhNzdkNGQ5ZjYyYTY4ZWE0ZTA4YTViNjFjOWIxYzAwZWU1MzMxYjk4YjJlYWIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjRhOWJiNGIyM2UxY2ZlN2MyZWYwZjAyZjE1NWM4NzI2ODY0ZDNlMDUxNTQyZmQzNTdjNzhkZjZhMTBhNGMzYWYifQ"
         }
       ]
@@ -89,19 +89,19 @@
       "statement": "The harness has three gates: Gate 0 runs lint/type checks (backend `ruff check`, `ruff format --check`, `ty check`; frontend `svelte-kit sync`, `svelte-check`, `eslint -f json`, `prettier --check .`) and halts without running any tests on failure; Gate 1 runs a path target with fail-fast; Gate 2 auto-detects ecosystems from the git diff and renders an Index plus Traces for the first 1–2 failures.",
       "evidence": [
         {
-          "resource": "repo://AGENTS.md#L23-L31",
+          "resource": "repo://AGENTS.md#L27-L35",
           "version": "repo-lines-v1:sha256:aab9518a01920a61301f19d9c2a05800c93a2abac8ca862c4d6cc6186dc3daf7:eyJzZWxlY3RlZExpbmVDb3VudCI6OSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiM2VjYWIwN2JmYWJkYWI4YzUzZmUyN2Y2NmY2YWI4ZGYwYTI5ODA5NDg2ZTE4ODVlMWQxMzY1ODFiNDA1M2ZmYyIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNzQ0MTk3MTVhZTkzNDgzYzA5OTdlOWQxZWQ0M2MxYWJiZmJkYmY1N2I1NzhiZGJmNjkwODM5OTdhMzFiYTRmOCIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiZjg1NTFjZmJiMWJlYzc3Y2Y4YjQwODU5YzUxYTRkZGI3MDUxNTNhYmY2YjNmNTk1MGM4ZTkxYjExYjQ5N2E3MCIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiM2Q1MWU4ZjU2YTRiMDZmY2Y0NGUxMjk2NDY3Yjc1MmNkNTQ3MDI4YmRiYmViY2NlNWMxMmNlMDE4M2E2OTU2NSJ9"
         },
         {
-          "resource": "repo://scripts/agent-test#L256-L318",
+          "resource": "repo://scripts/agent-test#L258-L320",
           "version": "repo-lines-v1:sha256:c677d00f674d64e2706fcb2c29730a15ef8d4a46048367de6bf591050885df8a:eyJzZWxlY3RlZExpbmVDb3VudCI6NjMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjkxNzJiNzNmMjVjNDQwMGYzNjlkNDU0M2JkZTNjYTNlYWMxYWQwMTY1YjAxMDA2ZWQ4MjNkZWRkZjc5MzQxY2MiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjY1NmEwYjMwMTI3YmJiZjE1NTE0ZGVhMjNhMTlkYTQ3ZWQ5OTRkMjdkODAwOTA3NWM3MDRiYTQ5NzAzMjkzMzIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjA3YTNlMjQwNzZkZWQ0OTc3ODRhNzdkNGQ5ZjYyYTY4ZWE0ZTA4YTViNjFjOWIxYzAwZWU1MzMxYjk4YjJlYWIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjRhOWJiNGIyM2UxY2ZlN2MyZWYwZjAyZjE1NWM4NzI2ODY0ZDNlMDUxNTQyZmQzNTdjNzhkZjZhMTBhNGMzYWYifQ"
         },
         {
-          "resource": "repo://scripts/agent-test#L463-L556",
+          "resource": "repo://scripts/agent-test#L465-L558",
           "version": "repo-lines-v1:sha256:f1a50a559d83caf270ef09fb4d9cd05b822787c0639626c8a8e75f51869f0834:eyJzZWxlY3RlZExpbmVDb3VudCI6OTQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjhlZWE1YzkyMWNiNDczMGRmM2RiY2U0OWNmOTA4MGUyNjUwZTMwNmRiZWM0MzljMDg2OGM3MmI2ZTNlYzNhZTQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjMwYzFmMTg4ZjE0MmVkN2E4MjQ2ODBiMjA3MTcyYzU1MTliYzYxNGE0OGZkYTdjZjE2N2VkYjhkZGY3OTk1NmMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjhjODU4YmY2OGVmZjE4NjU0Njg1ODM2MzkyODM0MDg0MTljZDBlZGYzMzMxNjU3MDE0OGU5ZGFlZjliZDRlODUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjRhOWJiNGIyM2UxY2ZlN2MyZWYwZjAyZjE1NWM4NzI2ODY0ZDNlMDUxNTQyZmQzNTdjNzhkZjZhMTBhNGMzYWYifQ"
         },
         {
-          "resource": "repo://scripts/agent-test#L580-L605",
+          "resource": "repo://scripts/agent-test#L582-L607",
           "version": "repo-lines-v1:sha256:e3d7f51bb7672f7ecee13ab727da1dd199830713629e7efe06a969b8a18837e5:eyJzZWxlY3RlZExpbmVDb3VudCI6MjYsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjM2NDVlZjU5MzI0NTNiY2JiY2FjOGRlZTAxZTJjMDhhOTcyMDFjZjEyOGRlNmEwOWZkN2M0ZWQ4ZDY5NzExMzgiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjkzNzIwNDY4Njk5ZjVjODZmMGRjZDIxMjc1ZGIyYzJiNjc1ZDQyMWEzMmVkYWM4MDFlZjhmMTE4NGJjZTYzM2EiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6Ijg4OTEzZDg0ZDgyMDYxM2FmNmU1MzMxNjZjY2U4MjFlMDIzYjA5ZDk5M2M4ZGM5MjcwMmU3MGM0OWY3OTgxZTIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjRhOWJiNGIyM2UxY2ZlN2MyZWYwZjAyZjE1NWM4NzI2ODY0ZDNlMDUxNTQyZmQzNTdjNzhkZjZhMTBhNGMzYWYifQ"
         }
       ]
@@ -115,22 +115,22 @@
           "version": "repo-lines-v1:sha256:a5940377f1273989f7e70a2aa6129543bf480fdc28a1aa7d19633a79d3b38bcb:eyJzZWxlY3RlZExpbmVDb3VudCI6MjksImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijk5NDk3ZjZkOTNiNTAyMjk5NDA2ZGI2MjQ3OGFlMGI5OGZkMGFmMTIzMDJiNzk1NGMxZTFkMzdmN2ZkODg3NDUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImQxMjUyYjRhYmQ2Y2RhZjUwYzE4ZTY5ZGI0YmRjNTI1ZGI3NTkyNGRmNmUyYzY0Njc4YTYxMjAyODI5YmEyZWMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjowLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
         },
         {
-          "resource": "repo://scripts/agent-test#L613-L631",
+          "resource": "repo://scripts/agent-test#L615-L633",
           "version": "repo-lines-v1:sha256:ab18e8d8ddac5baa25d2d451cf8546b31dcd80afc8a4221a6a969fe580143bee:eyJzZWxlY3RlZExpbmVDb3VudCI6MTksImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjcxYzY4MmM0NDRiZjYzODhkNmNmMGIwNTgzMzVhMjUxNDRhYTQwODZkODcxYTAzMTJkMjNkYzlmZjc5NTdmNmMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImU0ZDMzM2JkZTlmMTgxNzI0YTliMGZlMjAyMWRhNGVjZjJiMTlhYTFkMDc1NDc4MGVhMmEyOWRlYWJkMDQzZjAiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjA3YTNlMjQwNzZkZWQ0OTc3ODRhNzdkNGQ5ZjYyYTY4ZWE0ZTA4YTViNjFjOWIxYzAwZWU1MzMxYjk4YjJlYWIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUxODcwMGRmMmI2MWRkZDhhZTViYmNkODUwNzIwMGVjYzI0MGM4MzlkNTUyNjVmMTAyNGQyMmU1OTk1NTIyNDMifQ"
         }
       ]
     },
     {
       "id": "claim_a4d2f7e512ba4c1a85cefdcbb35fcf8a",
-      "statement": "The agent harness covers only the backend and frontend ecosystems; the Go indicator service under `services/indicator-service` is exercised by its own CI job rather than by the harness.",
+      "statement": "The agent harness covers only the backend and frontend ecosystems; the Go indicator service under `services/indicator-service` is exercised by its own CI job rather than by the harness (the harness script never references `indicator-service` or any Go tooling).",
       "evidence": [
         {
           "resource": "repo://.github/workflows/ci.yml#L78-L108",
           "version": "repo-lines-v1:sha256:b94c2d33e741768b2caa5d0261f07c1a2da4d5e8c8f4d67e7a011281a46c70a4:eyJzZWxlY3RlZExpbmVDb3VudCI6MzEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjU0OTc2YThhZDZhZTQ2YWYzOGU0MGQ4ZWMyOGY4NDU5ZmExNWI1Y2JiYjQ0N2IxNmI0ZTdlZmRmYWMzZWI5ZWQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjY5MDYyYzUxZGRmNDUzNmRlYzNiMWZkMjI1YjA1YWFlZjk2ZTQ3MmJhMGI5ODk2MjRlYTc5NzA1YWYwZTJhODciLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImI0YmVlMDgyMmQ2OTE5ZGQ4YTQxODExN2VhZjRlMmYwYjZkMTc5Mzc5MzM0Y2UxYzI2M2VjNTBjZDg5ZjE0NDYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
         },
         {
-          "resource": "repo://scripts/agent-test#L50-L65",
-          "version": "repo-lines-v1:sha256:115e0da8cce0a90452dc433241a94ace5fb15adc1652c7b8bb00c61c4fb4b475:eyJzZWxlY3RlZExpbmVDb3VudCI6MTYsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImVmZjQ1YTM2NTI5ZmU3MWQ3NGE2ZTdiNmJkNzQ5ZDI1ZDYzZGY3YWRiMjY1OWEzZjMyMzhmMmM1NGM2MzFhMDMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImZhZmJhMDUyN2MzOTUzYzRiNmUwZTViNTczOWJhODM2MTJmODA1M2JjZGM5NDY2NzMwMTkzY2QxZDU5MGI0MDgiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImRmOTFkYTBiYTk0NDU2NTY1ZTBhNzQ5MjhkYTljNjNhZTgwNjA2Yjg4YWJlMzIyNTFmMjNiODYxMzhlZGQ4NzIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjViYWNiMjc2MDQ0Y2I4M2FjMzJhN2E3Y2NkMzM0YTQ1NjE4OTE1OGE3ZDJmZWJkOTZhMjQ2ODlmOWU5ZDNiYmIifQ"
+          "resource": "repo://scripts/agent-test#L40-L51",
+          "version": "repo-lines-v1:sha256:dec2a8bef03eff20b7ebb0f42617818aebad314b84f6de3e4246839243a14e78:eyJzZWxlY3RlZExpbmVDb3VudCI6MTIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjU3ZjhkZWZiNzQxZjFkYWYyMzY0MDY0MWQzZDdjMWRiY2JiOWQ0Mjk2ZGE0YmVmYTJjOTZkZWFmZWEwZTEwMGMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjdhMGRmZDE4MGY3NzhlYzUyNzRlYmI2ZWFmM2IwNDExODY2ZTI4MGJjYzUwZjYxODM3ZjRiOWFjMjc5YTYyNTkiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImU3YTc2M2IzYTVlZGRkZDExODVjMWYyMGE0ZGNkNGVlY2JlYTJkYWQyMWYyMGJlYWNkNmQxYzhlNTViZjg1YzciLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjZhN2MwMmY0Y2QzYjg0ODE2NDE2ZmRiNWZjMWJlNzJmMTA5M2QzMmUzYWY1YjA4ZGRkNTk2YmZiNmFjODVlODgifQ"
         },
         {
           "resource": "repo://services/indicator-service/calculator_test.go",
@@ -143,7 +143,7 @@
       "statement": "Editing a backend model mandates generating an Alembic migration, and all migration files must follow the `<hash>_<description>.py` naming; manual SQL migrations should be created with the autogenerate command and use `op.execute()` inside the generated revision.",
       "evidence": [
         {
-          "resource": "repo://AGENTS.md#L6-L13",
+          "resource": "repo://AGENTS.md#L10-L17",
           "version": "repo-lines-v1:sha256:e81183bcbaa78cb42842b9db417c1bdb06dc9e76dd2fff40750651139768fc41:eyJzZWxlY3RlZExpbmVDb3VudCI6OCwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiMjA1NTU3NDQyZDAzYjg2OTE0Nzc2NjQxZjYzODA0NWJjZDY1YWVkNmFhYzYyYzE1YTZmMmUxNTk3ODg3YzMwMSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiMGEzMmQwMDU1ODliNDE2N2RkMGNhNTYzOGMzYjQ1Mzc3OTZiZDA2YjFjOTFhNGQ1MGZiOTVkOWU0NDQ0OGU4NCIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiNWM2MWE3MDUzMjE5ZTdjNzgxZGI2NjJhYTY1YjRlYTViOWFjZjcxZDk0MjcyNGQ1NzZiZjAxMjI5YTMyYjBkOCIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiZjFlNjAzYzE0MTlmMTgzMmUxMWU3MjY2NThjYWUzMDNmYzJhMGZlZjcwOGQzNDMxNjZhMzY4N2EwNTQyYjgxNiJ9"
         },
         {
@@ -374,11 +374,15 @@
     },
     {
       "id": "claim_d13b69321e634834a72820a326a46902",
-      "statement": "The four OpenSpec stages — propose, explore, apply and archive — are mirrored as both workflows/slash commands and skills across three directories, `.agent/`, `.opencode/` and `.github/` (`.github/prompts/*.prompt.md`, `.github/skills/`); there is no `.claude/` directory, since `CLAUDE.md` is a stub that imports `AGENTS.md`.",
+      "statement": "The four OpenSpec stages — propose, explore, apply and archive — are mirrored across four tool directories: `.agent/` (`.agent/workflows/opsx-*.md`), `.claude/` (`.claude/commands/opsx/{propose,explore,apply,archive}.md`), `.opencode/` (`.opencode/command/opsx-*.md`) and `.github/` (`.github/prompts/opsx-*.prompt.md`), each backed by matching skill directories; there is no `CLAUDE.md` file.",
       "evidence": [
         {
           "resource": "repo://.agent/workflows/opsx-apply.md",
           "version": "repo-file-v1:sha256:f0318bb977fe7d44faf696060937199b3c4227a0668a00fb5e4418c9c2c08ce4"
+        },
+        {
+          "resource": "repo://.claude/commands/opsx/propose.md",
+          "version": "repo-file-v1:sha256:a124c194a3348ee4e8aa41edb03aeb63444946a6aa3d60365fea6b124e733168"
         },
         {
           "resource": "repo://.github/prompts/opsx-archive.prompt.md",
@@ -387,10 +391,6 @@
         {
           "resource": "repo://.opencode/command/opsx-propose.md",
           "version": "repo-file-v1:sha256:38c79d395a4e3d3e748ca7cbd4229f47a9279d53dcc9d8a87665ceca4322222f"
-        },
-        {
-          "resource": "repo://CLAUDE.md#L1-L7",
-          "version": "repo-lines-v1:sha256:cd617c809957b5aeb601ce9856109475f6da8ed78835148d17c3097dd4daa848:eyJzZWxlY3RlZExpbmVDb3VudCI6NywiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiNWYxODBmOWMxMjY5MDNiY2MzMzFhYTk1NDU2ZTQ5NDQ0YTdkNGQwMTFlOGEyYTgzZjVkYzg3MDIzOTE4MTJkMCIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiMDlmNzg3MTQ4OTNhYTc3OTQyY2VhMWM0YTJlMDIzMWRiYjdmYTJhNDFhNzBjODE0NjBhM2M2NzU2MmRhM2FhYSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjAsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiZTNiMGM0NDI5OGZjMWMxNDlhZmJmNGM4OTk2ZmI5MjQyN2FlNDFlNDY0OWI5MzRjYTQ5NTk5MWI3ODUyYjg1NSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjAsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiZTNiMGM0NDI5OGZjMWMxNDlhZmJmNGM4OTk2ZmI5MjQyN2FlNDFlNDY0OWI5MzRjYTQ5NTk5MWI3ODUyYjg1NSJ9"
         }
       ]
     },
@@ -454,15 +454,11 @@
     },
     {
       "id": "claim_522631345eba46e49ff58c95cbd7b5db",
-      "statement": "The OpenWiki block at the end of `AGENTS.md` (delimited by `<!-- OPENWIKI:START -->` / `<!-- OPENWIKI:END -->` and imported wholesale by the `CLAUDE.md` stub) declares a retrieval-first consumption policy for the generated `openwiki/` tree: agents must not enumerate, preload or search wikis at task start, they use `openwiki_search` for just-in-time context and `openwiki_read` for the relevant complete sections when the user asks or when unfamiliar architecture or dependency behavior materially affects the task, a `workspace_required` response means asking which listed workspace to use and retrying with its ID, `openwiki_list_workspaces`/`openwiki_list_wikis` exist for discovering workspace membership, and when the retrieval tools are unavailable the fallback is reading `openwiki/quickstart.md` and following its links.",
+      "statement": "The OpenWiki block at the end of `AGENTS.md` (delimited by `<!-- OPENWIKI:START -->` / `<!-- OPENWIKI:END -->`) declares a retrieval-first consumption policy for the generated `openwiki/` tree: agents must not enumerate, preload or search wikis at task start, they use `openwiki_search` for just-in-time context and `openwiki_read` for the relevant complete sections when the user asks or when unfamiliar architecture or dependency behavior materially affects the task, a `workspace_required` response means asking which listed workspace to use and retrying with its ID, `openwiki_list_workspaces`/`openwiki_list_wikis` exist for discovering workspace membership, and when the retrieval tools are unavailable the fallback is reading `openwiki/quickstart.md` and following its links.",
       "evidence": [
         {
-          "resource": "repo://AGENTS.md#L42-L55",
+          "resource": "repo://AGENTS.md#L46-L59",
           "version": "repo-lines-v1:sha256:6c90a8ee260419ce52c98ce902d593546e4e6c9b455577ea517f64e10c04699c:eyJzZWxlY3RlZExpbmVDb3VudCI6MTQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjVmMTgwZjljMTI2OTAzYmNjMzMxYWE5NTQ1NmU0OTQ0NGE3ZDRkMDExZThhMmE4M2Y1ZGM4NzAyMzkxODEyZDAiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImFiNTM5NTNiZmI3MmMxMjYyYmJhZTJlYWNhNzJjYWJmMWFmNDk5MjdhMGJiYTExNTdiMmQ1YmRiMjg1YzRiZDIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjhhMzYzMTA1MjUzZGY5MDkyODhlNDcwODFkNzRlMzYyMDdkNmQ4OGU4NzU4MWJjZTlkZTk5ZDllYzVhZDJkODkiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjoyLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjMwODlkZjkzZjhiYTU3YTRkZGJmZDhmMDEzOTYyYzM5NzhjZTRkYjY4MTk5YzRkYTY2NjY0OWIwOTk2Y2VkYTkifQ"
-        },
-        {
-          "resource": "repo://CLAUDE.md#L1-L7",
-          "version": "repo-lines-v1:sha256:cd617c809957b5aeb601ce9856109475f6da8ed78835148d17c3097dd4daa848:eyJzZWxlY3RlZExpbmVDb3VudCI6NywiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiNWYxODBmOWMxMjY5MDNiY2MzMzFhYTk1NDU2ZTQ5NDQ0YTdkNGQwMTFlOGEyYTgzZjVkYzg3MDIzOTE4MTJkMCIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiMDlmNzg3MTQ4OTNhYTc3OTQyY2VhMWM0YTJlMDIzMWRiYjdmYTJhNDFhNzBjODE0NjBhM2M2NzU2MmRhM2FhYSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjAsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiZTNiMGM0NDI5OGZjMWMxNDlhZmJmNGM4OTk2ZmI5MjQyN2FlNDFlNDY0OWI5MzRjYTQ5NTk5MWI3ODUyYjg1NSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjAsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiZTNiMGM0NDI5OGZjMWMxNDlhZmJmNGM4OTk2ZmI5MjQyN2FlNDFlNDY0OWI5MzRjYTQ5NTk5MWI3ODUyYjg1NSJ9"
         }
       ]
     },
@@ -517,34 +513,34 @@
       "statement": "The agent harness writes machine-readable reports to `.cache/agent-test/backend.xml` for the backend and `frontend/.cache/agent-test/frontend.json` for the frontend (deleting any stale report first so a missing report is meaningful), and exits 1 when anything failed, errored, or the runner itself failed.",
       "evidence": [
         {
-          "resource": "repo://scripts/agent-test#L232-L237",
+          "resource": "repo://scripts/agent-test#L234-L239",
           "version": "repo-lines-v1:sha256:40128312562a3182384944b97995582bd72198e12a7420a2af9effea9c82faea:eyJzZWxlY3RlZExpbmVDb3VudCI6NiwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiMmE0Yzc4N2NkNzY0OWIxMmM4MGZjZDQ4MmQ0MmIwMDViNDNlNjkxZTAyOGMyYWY1ZTgyMmNmMzMzMzJmMDZjOSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNmY5NzBhNDAwYmMxZDM4ZWIyZjZiODIxZTQ3N2NkNmUxODM0ZGM2NTg1ZTEzNDkzNjRkNGMxNTU5ZTBjNGVmNyIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiMDdhM2UyNDA3NmRlZDQ5Nzc4NGE3N2Q0ZDlmNjJhNjhlYTRlMDhhNWI2MWM5YjFjMDBlZTUzMzFiOThiMmVhYiIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiODkyMDQ0MzVlMTliMjc2OTE5MjA5YjM1OTQxZGU4MzNlNmJmM2E3ZmZhZGU3NTk1ZDY2OWI2Y2ViYjg1NmZlMCJ9"
         },
         {
-          "resource": "repo://scripts/agent-test#L413-L444",
+          "resource": "repo://scripts/agent-test#L415-L446",
           "version": "repo-lines-v1:sha256:150ce83afbcdfe191f3f654e578316b817959ae68ca926b1d7c9ac8b588f18af:eyJzZWxlY3RlZExpbmVDb3VudCI6MzIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjkzOWRkM2ViOTlhMjNiZWVjNWI2MmFmNjk2NWMxYzcwNDI5YWEwMjQ1ODdjZGRhZmY5MTIyOTBlOGJmNWIyZGYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImZhMTFjMDU2N2QwYTVmOWU5YjEzNWY2NWNkMjUzNzJkZmQ2Mjg3NzVmN2MxZWQyNTNmOGJhZDQyZGQyZDY2NjkiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImQ3MjIzMTA2ZmQ4NzQyYjcwZWEyMzNmOWRjMzU5ZjRiMDJiYmIwNjliNzI4M2VlZjc2MjQ5OTUxNmJkN2I5YzgiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjRhOWJiNGIyM2UxY2ZlN2MyZWYwZjAyZjE1NWM4NzI2ODY0ZDNlMDUxNTQyZmQzNTdjNzhkZjZhMTBhNGMzYWYifQ"
         },
         {
-          "resource": "repo://scripts/agent-test#L744-L745",
+          "resource": "repo://scripts/agent-test#L746-L747",
           "version": "repo-lines-v1:sha256:24ea94e18d8666294ab542baa404c309b767e59479e0ade2f2ac8c07475c0a60:eyJzZWxlY3RlZExpbmVDb3VudCI6MiwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiMWRmMjRjZDZlZGQzZDQxMmY3YmZjNDMyODU1ZWJhMTZlNmZiNzI3MmIzMjc2NzNhOTllNTI5MDc1OTg1YmU3YSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiODhmZWMwYTcyZmI4ZTQzYmY5NzU3ZjBmNGI1ZWUwMjBjZDA0MDQwNzVkNWFkMjdiYTNmZDZjYWM2NDZhODllNiIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiMzhhMWU1MWYyODI0ZDM0MDMwMTVlM2MwMjQwODdjNjE1MmQ5NjZhNTdjNGEyMGZhZmUxOTU5ZDI2ZmU1ZTdkNyIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiM2Q0MTM0MGNjMjM5YTE1OWNlOWI2MDIyZTlmNjMyMjgzMmUyZWFkNzZjYWU5ZTQ3NTRkMjEwZWI4ZmI2ZDVlOCJ9"
         }
       ]
     },
     {
       "id": "claim_f005a34c98824542992d91d982f6c39d",
-      "statement": "Adding an OpenSpec stage means adding all three tool mirrors (`.agent/`, `.opencode/`, `.github/`) because a change to only one silently diverges per tool; `.agent/skills/` and `.opencode/skills/` additionally hold a wider non-OpenSpec skill catalogue (architecture-review, commit-message, feature-definition, orchestration, pr-review, quality-check, ticket-execution, ticket-planning, ticket-writing), and `.opencode/opencode.json` sets the default agent `orchestrator` plus per-agent models.",
+      "statement": "Adding an OpenSpec stage means adding all four tool mirrors (`.agent/`, `.claude/`, `.opencode/`, `.github/`) because a change to only one silently diverges per tool; the wider non-OpenSpec skill catalogue (architecture-review, commit-message, feature-definition, orchestration, pr-review, quality-check, spec-writing, ticket-execution) exists in `.agent/skills/`, `.claude/skills/` and `.opencode/skills/` but not in `.github/skills/`, which holds only the four `openspec-*` skills, and `.opencode/opencode.json` sets the default agent `orchestrator`, maps each agent to an `opencode-go/*` model and permits `external_directory` access to `~/projects/**`.",
       "evidence": [
+        {
+          "resource": "repo://.claude/skills/orchestration/SKILL.md#L1-L18",
+          "version": "repo-lines-v1:sha256:53880eb7ac33125e7b067d70a76c8510ea7e95fcb360c6a63affe320e81b9f85:eyJzZWxlY3RlZExpbmVDb3VudCI6MTgsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImY1MmQ3MTExMDNkNTBhNDM3ODMwYzZmYmNkMDRmYjRiYWI0OWEwZjgyZjZkMjZkMWM3OTFjNmU4NDg4ZGQwOTAiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijk3ZTI3ZjlkNjA2MTYxNmNlYWIxZGY3NzJkZTMxMzhmZmNlM2JiNTE2MGE5MjAxMjI5MDQ0YmE3NmZmZjBmZTYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjowLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjUzN2U3YzAwMDgwODQ4ZWUwMGMxNmMzNTZiZDk0YmVmMTQxOGY4NTg4ZjUzNjNhZDQ3ZGU3ZGUxZTU3MjNjMzcifQ"
+        },
         {
           "resource": "repo://.github/skills/openspec-propose/SKILL.md",
           "version": "repo-file-v1:sha256:a41d8fda28db18ff9afd548fdc4076c89e492460ac3b8ee0fa4cb33b7034a3e0"
         },
         {
-          "resource": "repo://.opencode/opencode.json#L1-L28",
-          "version": "repo-lines-v1:sha256:d05cdccf651b4ec15e3790e03957e8d462a3d923aabc626682340f499924c48d:eyJzZWxlY3RlZExpbmVDb3VudCI6MjgsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImE2ZmIwOGZkYTFhY2I5NTdiNjExNmJkMzc4MTFhMWZlNDFhMDE2MTFjMDYzMWVkYmY3ODZkNjg4OWEyN2E1NWMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjI3ZTU3ODhkNWQ5ZDczZDI0YTgxZGJjMGE1YTc0YmZhODJjOWMzYjNhZjk5ZTUyYWY3OTZlOTBiNDY4YThhM2QiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjowLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjoxLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjQxMmNhMzQ1Y2NmNzViZjljMDgwNmJjZTY5NWJlOGRlODA4Yjc5OTg0MjUxYTdhNTRkMjAyY2Y2MTAxZGQ0NTEifQ"
-        },
-        {
-          "resource": "repo://.opencode/skills/orchestration/SKILL.md",
-          "version": "repo-file-v1:sha256:fd0cfaf7b046268e24fecef9fa78771d82cf72c0d0461c170851c290351cb002"
+          "resource": "repo://.opencode/opencode.json#L1-L26",
+          "version": "repo-lines-v1:sha256:9e04bdff2d17f633d84eb8cb8c5d2b21e6cce90a7ee93c3f6427beca9eef40e8:eyJzZWxlY3RlZExpbmVDb3VudCI6MjYsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImE2ZmIwOGZkYTFhY2I5NTdiNjExNmJkMzc4MTFhMWZlNDFhMDE2MTFjMDYzMWVkYmY3ODZkNjg4OWEyN2E1NWMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQxMmNhMzQ1Y2NmNzViZjljMDgwNmJjZTY5NWJlOGRlODA4Yjc5OTg0MjUxYTdhNTRkMjAyY2Y2MTAxZGQ0NTEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjowLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
         }
       ]
     },
@@ -553,14 +549,46 @@
       "statement": "The OpenWiki block in `AGENTS.md` keeps source code and tests authoritative (a brief's unknowns and review items are verification gaps rather than requirements), prefers the narrowest quiet validation that proves the changed behavior while preserving complete failure output, and instructs agents not to hand-edit generated OpenWiki pages but to update source code and docs and let the scheduled workflow regenerate the `openwiki/` tree.",
       "evidence": [
         {
-          "resource": "repo://AGENTS.md#L52-L55",
+          "resource": "repo://AGENTS.md#L56-L59",
           "version": "repo-lines-v1:sha256:9eb409c08e8de7aa64760c896b4418feccc8ecb3129b33d529cbdcf4c07d2d1a:eyJzZWxlY3RlZExpbmVDb3VudCI6NCwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiMmNiM2Q0YTQ2NjliZGM3YTQwZDk4MDc3MzVkZjYwOGJmZTMxZDM4NjA2N2M5OTliNzUwYWFjNjMyYzFiNmQzMSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiYWI1Mzk1M2JmYjcyYzEyNjJiYmFlMmVhY2E3MmNhYmYxYWY0OTkyN2EwYmJhMTE1N2IyZDViZGIyODVjNGJkMiIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiOWM5MGE3YjU5ZmEwNjFhOTU2YzE5MTIxOTkyYWQ4ZDFmOTk2ZGMwOGE3YjQ1ODhlYjJjYjk4MzU0YjdmMTU0ZCIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjIsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiMzA4OWRmOTNmOGJhNTdhNGRkYmZkOGYwMTM5NjJjMzk3OGNlNGRiNjgxOTljNGRhNjY2NjQ5YjA5OTZjZWRhOSJ9"
+        }
+      ]
+    },
+    {
+      "id": "claim_4e23cd58991e4f12acbf7c05731b97f9",
+      "statement": "Subagent definitions are mirrored alongside the skills: `.agent/agents/`, `.claude/agents/` and `.opencode/agents/` each define `spec-writer`, `implementer`, `pr-reviewer` and `arch-reviewer` (with `.opencode/agents/` additionally defining `orchestrator`), and each is a thin prompt that preloads the matching skill (`spec-writing`, `ticket-execution`, `pr-review`, `architecture-review`).",
+      "evidence": [
+        {
+          "resource": "repo://.agent/agents/spec-writer.md",
+          "version": "repo-file-v1:sha256:0eca0c347549b6e44b9d08966b3d4cbfac99d93e669683862ce701f7490f0213"
+        },
+        {
+          "resource": "repo://.claude/agents/implementer.md#L1-L13",
+          "version": "repo-lines-v1:sha256:420bc62980668a3219664647f155adbd8ba02dfc5077bca390331c70b665bee9:eyJzZWxlY3RlZExpbmVDb3VudCI6MTMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImY1MmQ3MTExMDNkNTBhNDM3ODMwYzZmYmNkMDRmYjRiYWI0OWEwZjgyZjZkMjZkMWM3OTFjNmU4NDg4ZGQwOTAiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAxYmE0NzE5YzgwYjZmZTkxMWIwOTFhN2MwNTEyNGI2NGVlZWNlOTY0ZTA5YzA1OGVmOGY5ODA1ZGFjYTU0NmIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjowLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjoxLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjI3OTdmZTI5NDVmMDAxZDM3NjFkMmVlNmU0NGE0YTczZjFmNTNkYzZkOTcwYjBjNWYwZmM1ZWMxMDc5NjdjMDYifQ"
+        },
+        {
+          "resource": "repo://.opencode/agents/orchestrator.md",
+          "version": "repo-file-v1:sha256:04d3b541d600497f9935be071e10211f0f38012052e8968a2d5acdc103cdc820"
+        }
+      ]
+    },
+    {
+      "id": "claim_300f9df987014d3193835b5c450083ba",
+      "statement": "Beyond OpenSpec, the `orchestration` skill runs a ticket pipeline over GitHub issues labelled `ticket` plus exactly one `status:*` label: the orchestrator spawns `spec-writer`, then `implementer` (one ticket per branch and PR, parallel tickets isolated in `../retail-portfolio-<ticket-id>` worktrees while sequential work uses the main checkout), then `pr-reviewer` for at most 3 review cycles, owns every label transition and closure, never writes implementation code, and always stops before merging.",
+      "evidence": [
+        {
+          "resource": "repo://.claude/skills/orchestration/SKILL.md#L20-L75",
+          "version": "repo-lines-v1:sha256:382f740981659f0ae35db828c1fb53486d98acb0c867c752f2d057240ad16e31:eyJzZWxlY3RlZExpbmVDb3VudCI6NTYsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjZmYmYzNjhjNTNlNjczOGY1NjhmMThhZGM1YzQ2NDFkMmRiZTIwZmIyZTczYzU3YjY5ZmZlZDg0ODNjNGUwNzMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImE2MDgzMjgzYTExMWQ1ZmVjZDE0ODdhNTNmYzA3NzE1OGJlMGRjMDNhM2Q3MThmYjVkN2ViYjhjOWU4ODcyN2YiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjdlNDk4ZTZkNjc1OTE1MTEyMzhhYzQ1ZjI4YTVlYjI3MzFjYzlkZWE2ZTQyNTk0N2M1Y2ZiNDUyZTdhNGY1ZWYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
+        },
+        {
+          "resource": "repo://AGENTS.md#L6-L8",
+          "version": "repo-lines-v1:sha256:958c778daed133a8a030ef4156cdcd744917083b14938f7cc2306c12d2f0fd99:eyJzZWxlY3RlZExpbmVDb3VudCI6MywiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiOGY0MWE2ODQ1ODU1Y2NjZjgwOWMxYTVjY2YzNjYzNTRkZWU1OTI1MWFkNzhlNTk0YzQzYmU4N2E2MWZiMWY0MCIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiMGE4OGU5OTZhMWQ4ZTMwNjRkN2Y1ZDdmNWE2Yzg5OTQ3N2U2ZDJiMzgwNTkwYmNhYjRhZDM0ZWEwNjQ0YWY4OSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiNWM2MWE3MDUzMjE5ZTdjNzgxZGI2NjJhYTY1YjRlYTViOWFjZjcxZDk0MjcyNGQ1NzZiZjAxMjI5YTMyYjBkOCIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiYWZmYTcyMmI5MzkzYTA1YjM1YzdjNTdkMWExYmRmOWJjY2FmMzlhMTE1MTY4ZjkzNWNlZThjYzZmMWQ1NTQ0OCJ9"
         }
       ]
     }
   ],
   "verification": {
-    "by": "openwiki/0.6.0",
-    "at": "2026-09-26T12:38:50.029Z"
+    "by": "openwiki/0.6.1",
+    "at": "2026-10-02T14:25:20.147Z"
   }
 }

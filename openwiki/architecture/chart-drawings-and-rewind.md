@@ -3,9 +3,6 @@ type: architecture
 title: Chart Drawings, Plugins & Rewind
 description: The chart drawing system end to end — the per-plugin series-primitive contract and helper stack, the finance-math boundary, ChartDrawingsService as the single owner of drawing state, preference persistence, undo/redo and snapshot saving, and the snapshot-to-rewind pipeline from Postgres to the security page.
 tags: [charting, drawing-tools, series-primitives, chart-plugins, snapshots, rewind, undo-redo, svelte]
-verified:
-  - by: openwiki/0.5.2
-    at: 2026-09-23T13:18:56.288Z
 sources:
   - id: openwiki-source-e483fd3285d99d05c7b265cf
     resource: repo://frontend/AGENTS.md
@@ -130,6 +127,9 @@ sources:
   - id: openwiki-source-82fce7bf4b134cbc785c3714
     resource: repo://tests/routers/test_chart_snapshots.py
 generated: { by: "openwiki/0.5.2", at: "2026-09-23T13:18:56.288Z" }
+verified:
+  - by: openwiki/0.6.1
+    at: 2026-10-02T14:25:20.147Z
 ---
 
 The chart drawing system has three layers that must stay separate: **primitives** (lightweight-charts series primitives that own interaction and canvas rendering), **helpers** (shared plumbing under `plugins/helpers/`), and **pure finance math** (`$lib/utils/finance/`). Above them sits one page-owned orchestrator, `ChartDrawingsService`, which is the only thing that persists drawings, keeps undo/redo history, and saves/loads rewind snapshots. This page documents the contracts inside each layer, the per-plugin directory rules, and the snapshot → rewind data path.

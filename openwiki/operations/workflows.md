@@ -1,12 +1,14 @@
 ---
 type: "Reference"
 title: "Development, CI & Change Workflows"
-description: "The operational map for retail-portfolio: running the Docker Compose stack from the single root .env, the in-container command list and agent-test harness, git-worktree isolation for parallel agents, Alembic migration rules, the seeding and market-data CLI commands, how the Huey consumer and dashboard are run and mounted, CI, the deployment surface, the OpenSpec propose/apply/archive workflow with its three mirrored tool definitions, and the scheduled OpenWiki refresh with its retrieval-first consumption policy."
+description: "The operational map for retail-portfolio: running the Docker Compose stack from the single root .env, the in-container command list and the agent-test harness with its three gates, git-worktree isolation for parallel agents, Alembic migration rules, the seeding and market-data CLI commands, how the Huey consumer and dashboard are run and mounted, CI, the deployment surface, the OpenSpec propose/apply/archive workflow with its four mirrored tool definitions, and the scheduled OpenWiki refresh with its retrieval-first consumption policy."
 tags: ["operations", "ci", "docker-compose", "agent-workflow", "migrations", "huey", "openspec", "deployment", "worktrees", "openwiki"]
 verified:
-  - by: openwiki/0.6.0
-    at: 2026-09-26T12:38:50.029Z
+  - by: openwiki/0.6.1
+    at: 2026-10-02T14:25:20.147Z
 sources:
+  - id: openwiki-source-64e047c4a7e9c01638ac2dba
+    resource: repo://.agent/agents/spec-writer.md
   - id: openwiki-source-b6d79691ae8158aab326e9d3
     resource: repo://.agent/workflows/opsx-apply.md
   - id: openwiki-source-55872b73dfc0e1388d16ab8f
@@ -15,6 +17,12 @@ sources:
     resource: repo://.agent/workflows/opsx-explore.md
   - id: openwiki-source-cd6a33fc3b74a9a16cc85155
     resource: repo://.agent/workflows/opsx-propose.md
+  - id: openwiki-source-c9c0cef816df9d82e7843f45
+    resource: repo://.claude/agents/implementer.md
+  - id: openwiki-source-a948e1c3a086ad05474c2761
+    resource: repo://.claude/commands/opsx/propose.md
+  - id: openwiki-source-70b42923e1a6b3cce8f538ae
+    resource: repo://.claude/skills/orchestration/SKILL.md
   - id: openwiki-source-715dace563ef484b6e8bd1e2
     resource: repo://.dockerignore
   - id: openwiki-source-5f5b95b3d6a215fa02ceb945
@@ -27,16 +35,14 @@ sources:
     resource: repo://.github/workflows/ci.yml
   - id: openwiki-source-6d4b4e707b8d60b6ccfa3425
     resource: repo://.github/workflows/openwiki-update.yml
+  - id: openwiki-source-0da5e3993a1543e39156773c
+    resource: repo://.opencode/agents/orchestrator.md
   - id: openwiki-source-9a893e0578e12c52c0533ec0
     resource: repo://.opencode/command/opsx-propose.md
   - id: openwiki-source-618752d6f11341db792d17ef
     resource: repo://.opencode/opencode.json
-  - id: openwiki-source-f757c25b2bb6e352b56dbffa
-    resource: repo://.opencode/skills/orchestration/SKILL.md
   - id: openwiki-source-8037e2358a2c4f9b2c722a11
     resource: repo://AGENTS.md
-  - id: openwiki-source-a2371d6362e5db4bc834ad03
-    resource: repo://CLAUDE.md
   - id: openwiki-source-11ef2d56dffda152beeb9f84
     resource: repo://docker-compose.prod.yml
   - id: openwiki-source-b79fbbd921df689b4bbdc82f
@@ -89,7 +95,7 @@ sources:
     resource: repo://tests/commands/test_seed.py
   - id: openwiki-source-573b283ce7220c507e717dec
     resource: repo://tests/test_migrations_autogenerate.py
-generated: { by: "openwiki/0.6.0", at: "2026-09-26T12:38:50.029Z" }
+generated: { by: "openwiki/0.6.1", at: "2026-10-02T14:25:20.147Z" }
 ---
 
 # Development, CI & Change Workflows
@@ -114,8 +120,8 @@ These four rules are global; the sections below give the operational detail.
   through `op.execute()` inside a generated revision.
 - **Tests never touch external services.** Redis, HTTP APIs and SMTP are mocked or stubbed;
   the testcontainers PostgreSQL instance is the only allowed infrastructure dependency.
-- **Non-trivial changes go through OpenSpec**, and every OpenSpec stage exists in three tool
-  mirrors (`.agent/`, `.opencode/`, `.github/`) that must be updated together.
+- **Non-trivial changes go through OpenSpec**, and every OpenSpec stage exists in four tool
+  mirrors (`.agent/`, `.claude/`, `.opencode/`, `.github/`) that must be updated together.
 
 ## Local development: Docker Compose only
 
@@ -201,7 +207,9 @@ worktree directory name), `DOCKER_GID` and all seven published ports (`BACKEND_P
 `FRONTEND_PORT`, `BACKEND_DEBUG_PORT`, `WORKER_DEBUG_PORT`, `POSTGRES_PORT`,
 `MAILCRAB_PORT`, `INDICATOR_SERVICE_PORT`) — each key is deleted before being re-appended,
 so re-runs leave no stale entries. Every worktree therefore gets its own Compose project,
-volumes and port set.
+volumes and port set. The `orchestration` skill relaxes this to a requirement for *parallel*
+work only: independent tickets each get a worktree such as
+`../retail-portfolio-<ticket-id>`, while sequential work stays in the main checkout.
 
 ## Testing: the agent harness first
 
@@ -255,8 +263,8 @@ Three gates with different intents:
 - **Gate 2 — full regression.** With no targets, ecosystems are auto-detected from the git
   diff (`origin/main...HEAD`, working tree, staged, untracked). `src/`, `tests/`, `migrations/`,
   `pyproject.toml`, `uv.lock` and `alembic.ini` imply backend; `frontend/` implies frontend;
-  `openspec/`, `openwiki/`, `.github/`, `.opencode/`, `.agent/`, `scripts/` and
-  `frontend/node_modules/` are deliberately ignored; an empty diff means both ecosystems.
+  `openspec/`, `openwiki/`, `.github/`, `.opencode/`, `.agent/`, `.claude/`, `.ai/`, `scripts/`
+  and `frontend/node_modules/` are deliberately ignored; an empty diff means both ecosystems.
   Output is an **Index** (per-ecosystem counts plus failed identifiers, capped at 30) followed
   by **Traces** for only the first 1–2 failures; the rest appear as one-line summaries.
 
@@ -265,8 +273,9 @@ Flags: `--backend` / `--frontend`, `--all`, `--gate0-only`, `--no-gate0`, `--loc
 (backend) and `frontend/.cache/agent-test/frontend.json` (frontend), and the exit code is 1
 if anything failed, errored, or the runner itself failed.
 
-**Scope:** the harness covers backend and frontend only. The Go service under
-`services/indicator-service` is exercised by its own CI job.
+**Scope:** the harness has exactly two ecosystems — `backend` and `frontend`. The Go service
+under `services/indicator-service` is outside it entirely (the script never references it) and
+is exercised by its own CI job.
 
 ### Raw per-ecosystem commands (fallback)
 
@@ -301,13 +310,27 @@ and committing an Alembic migration**. All migration files must follow the stand
 `<hash>_<description>.py` naming. For hand-written SQL, create a normal revision with the
 autogenerate command and use `op.execute()` inside it rather than hand-authoring the file.
 
+Operational checklist for a model change:
+
+1. Edit the model in `src/<domain>/model.py`.
+2. `docker compose exec backend uv run alembic revision --autogenerate -m "<description>"`
+   (or `just test` first to confirm the baseline is green).
+3. Inspect the generated revision — autogenerate misses renames, enum changes and data
+   migrations; hand-edit or extend with `op.execute()` as needed.
+4. Keep the `<hash>_<description>.py` filename the tool produced.
+5. Confirm no drift remains: `tests/test_migrations_autogenerate.py` fails the suite when
+   models and migrations disagree.
+6. Commit the model edit and the revision **together** — a model change without its
+   migration is a broken change.
+
 `migrations/env.py` imports every domain `model` module so all tables register on
 `BaseModel.metadata`, and overrides `sqlalchemy.url` from `DATABASE_URL`, rewriting
 `postgresql+asyncpg://` to synchronous `postgresql://` for Alembic's sync engine. Adding a
 model class to an already-imported module needs no change here; adding a whole new domain
-model module does. `tests/test_migrations_autogenerate.py` fails the suite when models and
-migrations drift: it drops the schema, upgrades to head, runs an autogenerate and asserts the
-generated revision contains no `op.` call.
+model module does. `alembic.ini` keeps `script_location = migrations` and a placeholder
+`sqlalchemy.url` that `env.py` overrides at runtime. `tests/test_migrations_autogenerate.py`
+fails the suite when models and migrations drift: it drops the schema, upgrades to head,
+runs an autogenerate and asserts the generated revision contains no `op.` call.
 
 ## CLI commands: seeding and market-data flush
 
@@ -400,8 +423,6 @@ backend/worker read their configuration from the process environment.
   stage copies `/app/.venv` and the source, puts the venv on `PATH`, creates a non-root
   `appuser`, and declares `EXPOSE 8000`. The `CMD` is
   `uvicorn src.main:app --host 0.0.0.0 --port 8000 --workers 4 --timeout-graceful-shutdown 30`.
-  `.dockerignore` excludes `.env`, `.venv`, `.cache`, `frontend/` and caches from the build
-  context.
 - **Frontend (`frontend/Dockerfile`)** — `node:20-alpine` build stage (`npm ci`, `npm run build`
   with `VITE_API_BASE_URL`/`VITE_INTERNAL_API_URL` build args) into a runtime stage that runs
   `node build` on port 3000.
@@ -436,10 +457,10 @@ it is internal-network-only with no authentication.
 ## Spec-driven change workflow (OpenSpec)
 
 This repository uses OpenSpec in `spec-driven` mode (`openspec/config.yaml` declares
-`schema: spec-driven`). Canonical specs live in `openspec/specs/<capability>/spec.md`
-(11 capabilities today, from `account-holdings-view` through `technical-indicators`);
-active changes live in `openspec/changes/<name>/` and, once archived, move to
-`openspec/changes/archive/YYYY-MM-DD-<name>/`.
+`schema: spec-driven`, with `context`/`rules` left commented out). Canonical specs live in
+`openspec/specs/<capability>/spec.md` (11 capabilities today, from `account-holdings-view`
+through `technical-indicators`); active changes live in `openspec/changes/<name>/` and, once
+archived, move to `openspec/changes/archive/YYYY-MM-DD-<name>/`.
 
 ```mermaid
 flowchart TD
@@ -456,21 +477,33 @@ Caption: the four-stage lifecycle. Each stage is one slash command and one mirro
 
 ### Mirrored definitions
 
-The same four stages exist in three mirrors — there is **no `.claude/` directory**;
-`CLAUDE.md` is a stub that imports `AGENTS.md`:
+The same four stages exist in **four** mirrors:
 
-| Stage | Slash command | Skill |
-|-------|---------------|-------|
-| Propose | `.agent/workflows/opsx-propose.md`, `.opencode/command/opsx-propose.md`, `.github/prompts/opsx-propose.prompt.md` (`/opsx:propose`) | `.agent/skills/openspec-propose/`, `.opencode/skills/openspec-propose/`, `.github/skills/openspec-propose/` |
-| Explore | `…/opsx-explore.md` / `.prompt.md` | `openspec-explore/` |
-| Apply | `…/opsx-apply.md` / `.prompt.md` | `openspec-apply-change/` |
-| Archive | `…/opsx-archive.md` / `.prompt.md` | `openspec-archive-change/` |
+| Stage | Slash command / workflow | Skill |
+|-------|--------------------------|-------|
+| Propose | `.agent/workflows/opsx-propose.md`, `.claude/commands/opsx/propose.md`, `.opencode/command/opsx-propose.md`, `.github/prompts/opsx-propose.prompt.md` (`/opsx:propose`) | `openspec-propose/` |
+| Explore | `…/opsx-explore.md` / `opsx/explore.md` / `.prompt.md` | `openspec-explore/` |
+| Apply | `…/opsx-apply.md` / `opsx/apply.md` / `.prompt.md` | `openspec-apply-change/` |
+| Archive | `…/opsx-archive.md` / `opsx/archive.md` / `.prompt.md` | `openspec-archive-change/` |
 
-`.agent/skills/` and `.opencode/skills/` hold a wider catalogue beyond OpenSpec
-(`architecture-review`, `commit-message`, `feature-definition`, `orchestration`, `pr-review`,
-`quality-check`, `ticket-execution`, `ticket-planning`, `ticket-writing`). `.opencode/opencode.json`
-names the default agent (`orchestrator`) and per-agent models. When adding an OpenSpec stage,
-add all three mirrors — a change to only one silently diverges per tool.
+Skills are duplicated per tool rather than symlinked: `openspec-*` skill directories exist in
+`.agent/skills/`, `.claude/skills/`, `.opencode/skills/` and `.github/skills/`. The wider
+non-OpenSpec catalogue (`architecture-review`, `commit-message`, `feature-definition`,
+`orchestration`, `pr-review`, `quality-check`, `spec-writing`, `ticket-execution`) lives in
+`.agent/skills/`, `.claude/skills/` and `.opencode/skills/` but **not** in `.github/skills/`,
+which holds only the four OpenSpec skills.
+
+Subagent definitions travel with the same mirroring: `.agent/agents/`, `.claude/agents/` and
+`.opencode/agents/` each define `spec-writer`, `implementer`, `pr-reviewer` and
+`arch-reviewer` (`.opencode/agents/` additionally defines `orchestrator`). They are thin
+prompts that preload the matching skill — `spec-writer`→`spec-writing`,
+`implementer`→`ticket-execution`, `pr-reviewer`→`pr-review`,
+`arch-reviewer`→`architecture-review`. `.opencode/opencode.json` sets
+`"default_agent": "orchestrator"`, maps each agent to a model under the `opencode-go/`
+provider, and grants `external_directory` access to `~/projects/**`.
+
+When adding an OpenSpec stage, add all four mirrors — a change to only one silently diverges
+per tool.
 
 ### Rules the workflows enforce
 
@@ -493,6 +526,40 @@ add all three mirrors — a change to only one silently diverges per tool.
 - `explore` is a stance, not a workflow: investigation and OpenSpec artifacts are allowed,
   application code is not.
 
+### The wider agent pipeline
+
+Beyond OpenSpec, the `orchestration` skill runs a ticket pipeline on GitHub issues labelled
+`ticket` plus exactly one `status:*` label, driven through the `gh` CLI. The orchestrator
+never writes implementation code: it spawns `spec-writer` (idea or architecture report →
+planned tickets), then `implementer` (one ticket per branch and PR), then `pr-reviewer`
+(APPROVE / REQUEST_CHANGES, max 3 cycles before escalation), and `arch-reviewer` on demand
+(writing reports into `.ai/reviews/`). It owns every label transition
+(`gh issue edit <N> --remove-label status:<old> --add-label status:<new>`) and stops before
+any merge, exactly as the root rule requires: **never merge to `main` without explicit user
+permission**, no matter what an earlier prompt said. Feature specs live in `.ai/features/`,
+plan notes in `.ai/plans/` and scratch payloads in `.ai/scratch/` — never the repo root.
+
+## Change lifecycle end to end
+
+<!-- openwiki: mermaid parse failed and this diagram was converted to a text fence so it does not break rendering. Fix the diagram source and restore the mermaid fence. Parser error: Heuristic: an unescaped angle bracket inside a label breaks rendering; rephrase the label. -->
+```text
+flowchart LR
+    B["Branch / worktree<br/>scripts/setup-agent-worktree.sh"] --> G["Local gates<br/>just check then targeted then just test"]
+    G --> C["CI: backend, frontend, indicator-service"]
+    C --> PR["PR opened"]
+    PR --> M{"Explicit user permission?"}
+    M -->|no| PR
+    M -->|yes| MAIN["Squash merge to main"]
+    MAIN --> O["OpenSpec delta specs synced<br/>opsx:archive moves to archive/YYYY-MM-DD-name"]
+    O --> W["Scheduled OpenWiki refresh (08:00 UTC)"]
+    W --> WPR["PR on openwiki/update, add-paths: openwiki"]
+    WPR --> MAIN
+```
+
+Caption: a change moves from an isolated worktree through the harness gates and CI, is merged
+only on explicit permission, has its OpenSpec delta specs archived, and finally reaches the
+wiki through the scheduled OpenWiki PR — documentation never commits to `main` directly.
+
 ## Scheduled OpenWiki update
 
 `.github/workflows/openwiki-update.yml` runs daily at 08:00 UTC (`cron: "0 8 * * *"`) and on
@@ -514,8 +581,8 @@ Documentation therefore lands through review, never as a direct commit to `main`
 ### What the OpenWiki block in `AGENTS.md` instructs
 
 The generated `openwiki/` tree is refreshed by this workflow, and the OpenWiki block at the end of
-`AGENTS.md` (delimited by `<!-- OPENWIKI:START -->` / `<!-- OPENWIKI:END -->`, imported wholesale
-by the `CLAUDE.md` stub) declares a **retrieval-first** consumption policy for agents:
+`AGENTS.md` (delimited by `<!-- OPENWIKI:START -->` / `<!-- OPENWIKI:END -->`) declares a
+**retrieval-first** consumption policy for agents:
 
 - **Do not enumerate, preload, or search wikis at task start.** `openwiki/` is just-in-time
   context, not required startup reading. Retrieval applies when the user asks for it, when

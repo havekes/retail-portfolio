@@ -1,11 +1,8 @@
 ---
 type: architecture
 title: Frontend Architecture
-description: SvelteKit 2 / Svelte 5 SSR application structure — the route map, the post-navigation data-wave pattern (page-owned *.svelte.ts services plus redirectOn401), the ApiClient layer over /api/v1 with SSR token override, runes-based state/service classes, the layout/sidebar/global-search/watchlist composition, and the SSR pitfalls the codebase enforces.
+description: SvelteKit 2 / Svelte 5 SSR application structure — the route map, the post-navigation data-wave pattern (page-owned *.svelte.ts services plus redirectOn401), the ApiClient layer over /api/v1 with the SSR token override, runes-based state/service classes, the layout/sidebar/global-search/watchlist composition, and the SSR pitfalls the codebase enforces.
 tags: [frontend, sveltekit, svelte5, runes, ssr, api-client, state-management]
-verified:
-  - by: openwiki/0.5.2
-    at: 2026-09-23T13:18:56.288Z
 sources:
   - id: openwiki-source-e483fd3285d99d05c7b265cf
     resource: repo://frontend/AGENTS.md
@@ -33,6 +30,10 @@ sources:
     resource: repo://frontend/src/lib/api/snapshotsService.ts
   - id: openwiki-source-8a88da80cc6ed6d98b2035f2
     resource: repo://frontend/src/lib/api/userPreferencesService.ts
+  - id: openwiki-source-32d69207445712b7946a1c1d
+    resource: repo://frontend/src/lib/api/valuationClient.ts
+  - id: openwiki-source-b263e02920f61e43137888d6
+    resource: repo://frontend/src/lib/components/accounts/accounts-list-item.svelte
   - id: openwiki-source-173b643850b61054416e45dd
     resource: repo://frontend/src/lib/components/accounts/accounts-list.svelte
   - id: openwiki-source-fd678aa0f01fc30bd938c51f
@@ -105,6 +106,12 @@ sources:
     resource: repo://frontend/src/routes/holdings/page.svelte.test.ts
   - id: openwiki-source-23b2c24e0397108b043ab98b
     resource: repo://frontend/src/routes/layout.test.ts
+  - id: openwiki-source-a3e043cd646e68c425bd541e
+    resource: repo://frontend/src/routes/portfolios/%2Bpage.server.ts
+  - id: openwiki-source-c62194180fe1461fdf76c5b3
+    resource: repo://frontend/src/routes/portfolios/%2Bpage.svelte
+  - id: openwiki-source-2171f8bd9fc1ccaa5f71f407
+    resource: repo://frontend/src/routes/portfolios/page.server.test.ts
   - id: openwiki-source-33c886f28072e35f81eadfae
     resource: repo://frontend/src/routes/security/%5Bsecurity_id%5D/%2Bpage.server.ts
   - id: openwiki-source-67b769eb99d4518b98fe1ca7
@@ -129,7 +136,10 @@ sources:
     resource: repo://frontend/svelte.config.js
   - id: openwiki-source-378e3cf05ab0d05d335c68d5
     resource: repo://frontend/vite.config.ts
-generated: { by: "openwiki/0.5.2", at: "2026-09-23T13:18:56.288Z" }
+generated: { by: "openwiki/0.6.1", at: "2026-10-02T14:25:20.147Z" }
+verified:
+  - by: openwiki/0.6.1
+    at: 2026-10-02T14:25:20.147Z
 ---
 
 # Frontend Architecture
@@ -142,7 +152,7 @@ Three separations shape every file:
 2. **Reactive state lives in class instances in `*.svelte.ts`,** not in components, and is never exported as a module-level instance (SSR bleed).
 3. **HTTP lives in pure `.ts` clients** that subclass `ApiClient` and never touch Svelte reactivity.
 
-The auth axis — hooks, cookie handling, login/2FA/passkey flows — is documented in [Authentication & Authorization](/openwiki/architecture/authentication.md); chart internals in [Charting](/openwiki/architecture/charting.md) (render surface, indicators, panes) and [Chart Drawings & Rewind](/openwiki/architecture/chart-drawings-and-rewind.md) (drawing plugins, drawing persistence, snapshots).
+The auth axis — hooks, cookie handling, login/2FA/passkey flows — is documented in [Authentication & Authorization](authentication.md); chart internals in [Charting](charting.md) (render surface, indicators, panes) and [Chart Drawings & Rewind](chart-drawings-and-rewind.md) (drawing plugins, drawing persistence, snapshots).
 
 ## Project structure
 
@@ -168,7 +178,8 @@ Routes are file-based. The "server load" column states what the load actually aw
 |-------|-------------|------------------|
 | `/` | `getAccountClient(fetch).getAccounts(token)`; action `renameAccount` (requires `id` + `name` in the form body) | `AccountsList` — portfolio dashboard |
 | `/accounts/[id]` | `getAccountHoldings(params.id, token)`; action `renameAccount` bound to the path param | `HoldingsTable` (`components/accounts/holdings-table.svelte`), `EditableTitle`, totals header |
-| `/holdings` | preference keys only — `getUserPreferencesService(fetch).getPreferences(token)` behind a non-fatal nested `try`/`catch`, normalized into `holdings_table_config`, `group_mode`, and `elliott_waves`. Rows are *post-navigation* | `HoldingsTable` (`components/holdings/holdings-table.svelte`) behind a per-currency totals header with a display-settings dropdown |
+| `/portfolios` | `getPortfolioClient(fetch).getPortfolios(token)`, with the standard `401 → deleteAuthCookie + redirect` / `ApiError → error(status, message)` shape | portfolio list with inline rename and delete |
+| `/holdings` | portfolio/account/preference keys only — `Promise.allSettled` over `getPreferences`, `getPortfolios` and `getAccounts`, normalized into `holdings_table_config`, `group_mode`, `elliott_waves`, `portfolios`, `accounts`, plus the `portfolio_id` / `account_id` query params. Rows are *post-navigation* | `HoldingsTable` (`components/holdings/holdings-table.svelte`) behind a per-currency totals header, a portfolio/account filter and a display-settings dropdown |
 | `/brokers` | `getBrokerService(fetch).getBrokerUsers(token)` | `BrokersList` (connected broker users, CSV import) |
 | `/watchlists` | nothing — returns `{ watchlists: [] }`. Watchlists are *post-navigation*, owned by the layout | per-watchlist sections with price/change pills, create/rename/delete, watchlist and per-list security reordering, per-list security sorting |
 | `/security/[security_id]` | route identity only — `{ security_id }`, `error(400, …)` when the param is absent. Identity and the `1d` series are *post-navigation* | security chart plus the actions sidebar groups |
@@ -179,7 +190,7 @@ Routes are file-based. The "server load" column states what the load actually aw
 | `/auth/verify-email` | `load` reads the `token` query param and calls `verifyEmail`, returning a `success`/`error` status | status display |
 | any | `+error.svelte` | fallback error shell |
 
-`+layout.server.ts` runs for every route and returns `{ user, sidebar_open, collapsed_watchlist_ids, watchlist_order }`. When `locals.user` is set it calls `getUserPreferencesService(fetch).getPreferences(token)` once and copies each field across only after a shape check (`typeof prefs.sidebar_open === 'boolean'`, `Array.isArray` for `collapsed_watchlist_ids` and `watchlist_order`). The whole call sits in a `try`/`catch` that swallows the failure, so an unreachable preferences endpoint degrades to the defaults — `sidebar_open: true`, an empty collapsed-id list, and `null` order — instead of breaking every page render. `+layout.svelte` then either wraps children in `Sidebar.Provider` + `AppSidebar` (authenticated) or renders bare children (login/signup).
+`+layout.server.ts` runs for every route and returns `{ user, sidebar_open, collapsed_watchlist_ids, watchlist_order, expanded_account_ids }`. When `locals.user` is set it calls `getUserPreferencesService(fetch).getPreferences(token)` once and copies each field across only after a shape check (`typeof prefs.sidebar_open === 'boolean'`, `Array.isArray` for the three id/order arrays). The whole call sits in a `try`/`catch` that swallows the failure, so an unreachable preferences endpoint degrades to the defaults — `sidebar_open: true`, empty collapsed-id and expanded-account lists, and `null` order — instead of breaking every page render. `+layout.svelte` then either wraps children in `Sidebar.Provider` + `AppSidebar` (authenticated) or renders bare children (login/signup).
 
 ### Holdings surfaces
 
@@ -190,16 +201,16 @@ Holdings are rendered by two independent tables, one per scope:
 | `/accounts/[id]` | `AccountClient.getAccountHoldings(id, token)` → `AccountHoldings` (account totals plus paginated `Holding` items), awaited in the load | `components/accounts/holdings-table.svelte` |
 | `/holdings` | `AccountService.getUserHoldings(offset, limit, token)` → `UserHolding[]` across every account, paged after navigation | `components/holdings/holdings-table.svelte` |
 
-`/holdings` is the user-wide view: it is the only surface that combines grouping across accounts with column visibility, column resizing, and per-currency header totals, and it reads its own persisted preferences in its own `load` (`holdings_table`, `holdings_group`, `elliott_waves`) rather than in the root layout load. The endpoint contract, the pagination loop, the grouping math, and the column/group preference helpers are documented in [Accounts and Holdings views](/openwiki/workflows/accounts-and-holdings-views.md); this page covers only how the shell supplies them.
+`/holdings` is the user-wide view: it is the only surface that combines grouping across accounts with a portfolio/account filter, column visibility, column resizing, per-currency header totals and batch security valuations. Its own `load` reads the page-scoped preferences (`holdings_table`, `holdings_group`, `elliott_waves`) *and* the `portfolios` / `accounts` lists used to build the filter menu. The endpoint contract, the pagination loop, the grouping math, and the column/group preference helpers are documented in [Accounts and Holdings views](../workflows/accounts-and-holdings-views.md); this page covers only how the shell supplies them.
 
 ## The post-navigation data wave
 
-Three routes deliberately render a complete shell before their data exists. Their `+page.server.ts` returns only what is cheap and stable — route identity or preference-derived keys — and a page-owned rune service performs the real fetch from an `$effect`, which never runs during SSR.
+Three routes deliberately render a complete shell before their heavy data exists. Their `+page.server.ts` returns only what is cheap and stable — route identity or preference-derived keys — and a page-owned rune service performs the real fetch from an `$effect`, which never runs during SSR.
 
 | Route | Server load returns | Post-navigation fetch | Owner |
 |-------|---------------------|-----------------------|-------|
 | `/security/[security_id]` | `{ security_id }` | security identity + `1d` price series in parallel | `SecurityPageDataService` (`routes/security/[security_id]/page-data.svelte.ts`) |
-| `/holdings` | `{ holdings_table_config, group_mode, elliott_waves }` | every page of `getUserHoldings` | `HoldingsService` (`lib/components/holdings/holdingsService.svelte.ts`) |
+| `/holdings` | `{ holdings_table_config, group_mode, elliott_waves, portfolios, accounts, portfolio_id, account_id }` | every page of `getUserHoldings` plus a batch valuation request | `HoldingsService` (`lib/components/holdings/holdingsService.svelte.ts`) |
 | `/watchlists` | `{ watchlists: [] }` | `GET /market/watchlists` | `WatchlistService`, owned by `+layout.svelte` and read from context |
 
 The services follow one contract so the shell never has to special-case them: each `load()` **never throws**. It stores the message in its own error state (`error` / `errorMessage`) and returns the caught error, or `null` on success. The calling `$effect` passes a non-null result to `redirectOn401` from `$lib/api/async-data.ts`:
@@ -241,18 +252,19 @@ The shell-first wave: the load returns only route identity, the page-owned servi
 
 ### Preference-driven layout data
 
-Layout-level state is server-loaded and client-persisted in one round trip: the root load hydrates the shell, and every later change is a `PATCH /accounts/me/preferences` from the component that owns the interaction. The `UserPreferences` interface in `lib/api/userPreferencesService.ts` is the single shape all of this shares, and it also re-exports the Elliott-wave, Fibonacci and drawing persistence shapes declared under `lib/utils/finance/`. [User Preferences](/openwiki/concepts/user-preferences.md) owns the full key-by-key read/write matrix; the layout-relevant subset is:
+Layout-level state is server-loaded and client-persisted in one round trip: the root load hydrates the shell, and every later change is a `PATCH /accounts/me/preferences` from the component that owns the interaction. The `UserPreferences` interface in `lib/api/userPreferencesService.ts` is the single shape all of this shares, and it also re-exports the Elliott-wave, Fibonacci and drawing persistence shapes declared under `lib/utils/finance/`. [User Preferences](../concepts/user-preferences.md) owns the full key-by-key read/write matrix; the layout-relevant subset is:
 
 | Preference | Read by | Written by |
 |------------|---------|------------|
 | `sidebar_open` | `+layout.server.ts` → `sidebarOpen` seed | `+layout.svelte` `handleSidebarOpenChange` |
 | `collapsed_watchlist_ids` | `+layout.server.ts` → `AppSidebarWatchlist` | `AppSidebarWatchlist.toggleCollapsed` |
 | `watchlist_order` | `+layout.server.ts` → `AppSidebarWatchlist` and `/watchlists` | `/watchlists` reorder (drag-and-drop or keyboard) |
+| `expanded_account_ids` | `+layout.server.ts` → `AccountsList` / `AccountsListItem` via `$page.data` | the account row's `toggleExpanded` |
 | `holdings_table` | `/holdings` `+page.server.ts` → `holdings_table_config` → `tableConfig` | `/holdings` column visibility and column-width handlers via `saveHoldingsTableConfig` |
 | `holdings_group` | `/holdings` `+page.server.ts` → `group_mode` → `HoldingsService.setGroupBy` | `/holdings` "Group by stock" toggle via `saveHoldingsGroupMode` |
 | `sidebar_watchlists` | — (declared, not consumed by any component) | — |
 
-Writes from the layout and the sidebar are fire-and-forget — `userPreferencesService.patchPreferences({ … }).catch(console.error)` — so a failed persistence never blocks the UI interaction that triggered it. The `/holdings` page differs in how it reports a failure rather than in how it writes: its `persist()` helper still patches through the same service, but captures the rejection into a page-level `persistError` that the page renders in a destructive alert above the table instead of only logging it. Because the loads also feed `$page.data`, a component may read a preference either from its own `data` prop or from `$page.data` — `AppSidebarWatchlist` prefers a `setContext` value injected by test harnesses, then `$page.data.watchlist_order` / `$page.data.collapsed_watchlist_ids`, and only then falls back to a null order and an empty collapse set.
+Writes from the layout and the sidebar are fire-and-forget — `userPreferencesService.patchPreferences({ … }).catch(console.error)` — so a failed persistence never blocks the UI interaction that triggered it. The `/holdings` page differs in how it reports a failure rather than in how it writes: its `persist()` helper still patches through the same service, but captures the rejection into a page-level `persistError` that the page renders in a destructive alert above the table instead of only logging it. Because the loads also feed `$page.data`, a component may read a preference either from its own `data` prop or from `$page.data` — `AppSidebarWatchlist` prefers a `setContext` value injected by test harnesses, then `$page.data.watchlist_order` / `$page.data.collapsed_watchlist_ids`, and only then falls back to a null order and an empty collapse set; `AccountsListItem` resolves its initial expanded state the same way from `expanded_account_ids`.
 
 Note that per-watchlist *security sort* is no longer a preference: it is a column on the watchlist itself (`WatchlistRead.sort`), persisted by `WatchlistService.setSort` through `PATCH /market/watchlists/{id}`.
 
@@ -329,7 +341,9 @@ export const load: PageServerLoad = async ({ params, fetch, cookies }) => {
 };
 ```
 
-The custom `fetch` from SvelteKit's load context is always passed to the client factory; the raw `auth_token` is passed alongside as an explicit `Authorization: Bearer` override, because a server-to-server `fetch` does not automatically forward the browser's cookie. `ApiError` handling is uniform: `401` deletes the cookie and redirects to `/auth/login?clear_session=true`, any other status is re-thrown as a SvelteKit `error(status, message)`, and unknown failures become `error(500, 'Internal Server Error')`. Shell-first loads (`/holdings`, `/watchlists`, `/security/[security_id]`) deliberately skip that shape because they perform no authenticated request at all.
+The custom `fetch` from SvelteKit's load context is always passed to the client factory; the raw `auth_token` is passed alongside as an explicit `Authorization: Bearer` override, because a server-to-server `fetch` does not automatically forward the browser's cookie. `ApiError` handling is uniform: `401` deletes the cookie and redirects to `/auth/login?clear_session=true`, any other status is re-thrown as a SvelteKit `error(status, message)`, and unknown failures become `error(500, 'Internal Server Error')`. Shell-first loads (`/watchlists`, `/security/[security_id]`) deliberately skip that shape because they perform no authenticated request at all.
+
+`/holdings` is the hybrid case: it awaits only cheap keys, so it uses `Promise.allSettled` rather than `Promise.all`, then scans the three settled results and throws the same `401 → deleteAuthCookie + redirect(303, '/auth/login?clear_session=true')` when *any* rejection is an `ApiError` with `status === 401`. Non-401 failures of an individual call are not fatal — the corresponding default (`normalizeHoldingsTableConfig(null)`, `normalizeHoldingsGroupMode(null)`, `null` waves, empty lists) survives into the returned data, so a preferences outage never blocks the page.
 
 ### Form actions
 
@@ -347,7 +361,7 @@ export const actions: Actions = {
 };
 ```
 
-`EditableTitle` is the shared inline-edit component that drives this: it either posts to a form action (`action="?/renameAccount"`) or calls an `onSave` callback. Login is the exception that writes cookies directly — each of its three actions (`login`, `verify2fa`, `passkeyLogin`) sets `auth_token` with `path: '/'`, `httpOnly`, `sameSite: 'lax'`, `secure: !dev`, and a one-week `maxAge`, keeping the attributes in sync with `AUTH_COOKIE_OPTS` in `$lib/server/auth-cookie`.
+`EditableTitle` is the shared inline-edit component that drives this: it either posts to a form action (`action="?/renameAccount"`) or calls an `onSave` callback, and `use:enhance` re-runs the load. Login is the exception that writes cookies directly — each of its three actions (`login`, `verify2fa`, `passkeyLogin`) sets `auth_token` with `path: '/'`, `httpOnly`, `sameSite: 'lax'`, `secure: !dev`, and a one-week `maxAge`, keeping the attributes in sync with `AUTH_COOKIE_OPTS` in `$lib/server/auth-cookie`.
 
 ## API client layer
 
@@ -360,8 +374,9 @@ export const actions: Actions = {
 | `AuthService` | `authService.ts` | `/auth/` login, 2FA verify, passkey auth, signup, verify-email, logout, WS ticket |
 | `SecurityClient` | `securityClient.ts` | `/auth/2fa/*` and `/auth/passkeys/*` (TOTP status/setup/activate/disable/recovery codes, passkey register/rename/delete) |
 | `BrokerClient` | `brokerClient.ts` | `/integration/institutions`, `/external/users`, broker login, account import |
-| `MarketService` | `marketService.ts` | `/market/` search, prices (history + last-close), securities, watchlists (list, create, rename/sort, delete, membership, reorder) |
-| `PortfolioClient` | `portfolioClient.ts` | `POST /portfolios/` |
+| `MarketService` | `marketService.ts` | `/market/` search, prices (history + last-close), securities, watchlists (list, create, rename/sort, delete, membership, reorder), batch security valuations (`POST /market/securities/valuation/batch`) |
+| `PortfolioClient` | `portfolioClient.ts` | `/portfolios/` (list, create, rename, delete) |
+| `ValuationClient` | `valuationClient.ts` | `/market/securities/{id}/valuation` (single + batch, 404 returns `null`) |
 | `UserPreferencesService` | `userPreferencesService.ts` | `/accounts/me/preferences` (get, put, patch) |
 | `IndicatorsService` | `indicatorsService.ts` | `/market/securities/{id}/indicators` and `/indicators/compute` |
 | `AlertsService` | `alertsService.ts` | `/market/securities/{id}/alerts` |
@@ -410,10 +425,10 @@ export class DataService {
 
 Representative instances:
 
-- **`AccountsListState`** (`components/accounts/accounts-list.svelte.ts`) — owns the account list, selection mode, `groupBy`, a `SvelteSet` of syncing account ids, and a `Record<string, string \| null>` of per-account sync errors. Its constructor seeds from the SSR-provided accounts, and when `browser` is true it opens the sync WebSocket.
+- **`AccountsListState`** (`components/accounts/accounts-list.svelte.ts`) — owns the account list, selection mode, `groupBy`, a `SvelteSet` of syncing account ids, and a `Record<string, string \| null>` of per-account sync errors. Its constructor seeds from the SSR-provided accounts, and when `browser` is true it opens the sync WebSocket; the `AccountsList` component also publishes a `expandedAccountIds` `SvelteSet` and a store-backed `AccountsListItemState` per row.
 - **`AccountsListItemState`** — a per-row totals cache keyed by account id, invalidated by bumping a `version` rune that a `$derived.by` dependency reads.
-- **`BrokerService`**, **`WatchlistService`**, **`SecurityService`** — domain facades over the corresponding client, exposing `isLoading`, `error`, and typed data attributes. `WatchlistService` is the most stateful of the three: it owns the `watchlists` array, derives `defaultWatchlistSecurities` and `activeWatchlist`, and exposes create/rename/delete, both membership styles, sort, and reorder; `SecurityService` additionally holds TOTP/passkey state and drives the WebAuthn registration call.
-- **`HoldingsService`** (`components/holdings/holdingsService.svelte.ts`) — the `/holdings` page instantiates its own instance at component init and seeds the group mode from the server load, so toggling grouping never triggers a refetch; `groupBy` plus the `$derived.by` `groupedHoldings` delegate to `groupHoldings(rows, mode)` in `lib/utils/finance/holdings-group.ts`. Its `load(token)` pages `getUserHoldings` with `PAGE_SIZE = 50` and a `MAX_PAGES = 100` stale-`total` valve, keeps the previous rows when a page fails, stores the thrown message, and returns the caught error for the caller to route. The module also exports a `setHoldingsService()` / `getHoldingsService(customFetch?)` context pair under `Symbol('holdings-service')`, where the `customFetch` call returns an isolated instance; that context is not consumed by any production component.
+- **`BrokerService`**, **`WatchlistService`**, **`SecurityService`** — domain facades over the corresponding client, exposing `isLoading`, `error`, and typed data attributes. `WatchlistService` is the most stateful of the three: it owns the `watchlists` array, derives `defaultWatchlist`/`defaultWatchlistSecurities`/`activeWatchlist`, and exposes create/rename/delete, both membership styles, sort, and reorder; `SecurityService` additionally holds TOTP/passkey state and drives the WebAuthn registration call.
+- **`HoldingsService`** (`components/holdings/holdingsService.svelte.ts`) — the `/holdings` page instantiates its own instance at component init and seeds the group mode from the server load, so toggling grouping never triggers a refetch. It holds `allRows` plus a `filter` discriminant (`all` / `portfolio` / `account`) so the portfolio/account filter is applied in memory through a `rows` getter, and it fetches batch `valuations` for the distinct `security_id`s after the rows land (`getValuationsBatch`, non-fatal when it rejects). `groupBy` plus the `$derived.by` `groupedHoldings` delegate to `groupHoldings(rows, mode)` in `lib/utils/finance/holdings-group.ts`. Its `load(token)` pages `getUserHoldings` with `PAGE_SIZE = 50` and a `MAX_PAGES = 100` stale-`total` valve, keeps the previous rows when a page fails, stores the thrown message, and returns the caught error for the caller to route. The module also exports a `setHoldingsService()` / `getHoldingsService(customFetch?)` context pair under `Symbol('holdings-service')`, where the `customFetch` call returns an isolated instance; that context is not consumed by any production component.
 - **`SecurityPageDataService`** (`routes/security/[security_id]/page-data.svelte.ts`) — the security route's layer-2 state, owning the post-navigation wave described above.
 - **`ModalState<T>`** (`lib/utils/modal-state.svelte.ts`) — a reusable `isOpen` / `data` / `open()` / `close()` / `reset()` rune class shared by every create/view/delete modal.
 - **`BrokersListState`**, `connect-broker-modal.svelte.ts`, `sync-accounts-modal.svelte.ts`, `broker-login-modal.svelte.ts` — broker list and modal state.
@@ -451,23 +466,23 @@ Those three are the services the root layout provides. `HoldingsService` follows
 The layout is also the owner of app-wide client state and the place where layout-scoped services are born:
 
 - `setBrokerService()`, `setSecurityService()`, and `setWatchlistService()` run at component init, and the returned `watchlistService` is kept in scope.
-- A single `$effect` runs once `data.user` is set: it awaits `watchlistService.loadWatchlists()`, routes a non-null error through `redirectOn401`, and then warms the shortcut targets. That one instance is what the sidebar, the `/watchlists` page, and the numeric ticker shortcuts read.
-- The same effect prefetches `/watchlists`, `/holdings`, and up to ten default-watchlist securities with `preloadData(resolve(url))`. Prefetches are fire-and-forget, each URL is warmed at most once via a per-instance `SvelteSet` (never module scope), and a rejected prefetch is swallowed because the real navigation load still runs.
+- A single `$effect` runs once `data.user` is set: it awaits `watchlistService.loadWatchlists()`, routes a non-null error through `redirectOn401` (and stops when it handled a 401), and then warms the shortcut targets. That one instance is what the sidebar, the `/watchlists` page, and the numeric ticker shortcuts read.
+- The same effect prefetches `/portfolios`, `/watchlists`, `/holdings`, and up to ten default-watchlist securities with `preloadData(resolve(url))`. Prefetches are fire-and-forget, each URL is warmed at most once via a per-instance `SvelteSet` (never module scope), and a rejected prefetch is swallowed because the real navigation load still runs.
 - `globalSearchOpen` and `globalSearchTargetWatchlist` are `$state` here, published to descendants through `setContext('toggleGlobalSearch', …)` and `setContext('openGlobalSearch', (watchlist?) => …)`.
 - `GlobalSearch` is rendered at layout level with `bind:open` and `bind:targetWatchlist`, so any page can open search pre-targeted at a watchlist.
 
-A document-level `handleKeydown` on `<svelte:document>` provides modifier-free shortcuts: `/` toggles global search, `w` goes to `/watchlists`, `h` goes to `/holdings`, and `1`–`9`/`0` open the first nine/tenth security of the default watchlist. The handler returns early when a modifier is held or the event target is an `INPUT`, `TEXTAREA`, `SELECT`, or `contenteditable` element, so shortcuts never steal keystrokes from a form.
+A document-level `handleKeydown` on `<svelte:document>` provides modifier-free shortcuts: `/` toggles global search, `p` goes to `/portfolios`, `w` goes to `/watchlists`, `h` goes to `/holdings`, and `1`–`9`/`0` open the first nine/tenth security of the default watchlist (prefetching the target before navigating). The handler returns early when meta/ctrl/alt is held or the event target is an `INPUT`, `TEXTAREA`, `SELECT`, or `contenteditable` element, so shortcuts never steal keystrokes from a form.
 
 `AppSidebar` is `collapsible="icon"` and stacks four pieces:
 
-- `AppSidebarHeader` — brand link to `/` plus the sidebar trigger.
-- `AppSidebarActions` — a **Search** entry that calls the `toggleGlobalSearch` context callback (hinted `/`), a **Watchlists** link to `/watchlists` (`w`), and a **Holdings** link to `/holdings` (`h`); the two links are built with `resolve()` from `$app/paths`.
+- `AppSidebarHeader` — brand link to `/` ("Portfolio dashboard") plus the sidebar trigger.
+- `AppSidebarActions` — a **Search** entry that calls the `toggleGlobalSearch` context callback (hinted `/`), a **Portfolios** link to `/portfolios` (`p`), a **Watchlists** link to `/watchlists` (`w`), and a **Holdings** link to `/holdings` (`h`); every link is built with `resolve()` from `$app/paths`.
 - `AppSidebarWatchlist` — renders every watchlist from `getWatchlistService().watchlists` as a collapsible group, not just the default one.
 - `AppSidebarProfile` — footer dropdown with the user email and navigation to `/brokers`, `/settings/security`, and a native `POST` form to `/auth/logout`.
 
 ### Watchlist state, ordering, and the sidebar
 
-`WatchlistService` (in `components/watchlist/watchlistService.svelte.ts`) is the one client-side owner of watchlist data. Its constructor does nothing but wire a `MarketService` through `getMarketService(customFetch)`; there is no resolve-then-fetch step, because `GET /market/watchlists` already returns each watchlist with its securities embedded. `loadWatchlists(token)` stores that array directly. `defaultWatchlistSecurities` is a `$derived` lookup — `this.watchlists.find((w) => w.name === 'Default')?.securities ?? []` — and `hasSecurity` / `toggleSecurity` are built on it, which is why the default-list shortcut endpoints (`addToWatchlist` / `removeFromWatchlist`) work without a watchlist id.
+`WatchlistService` (in `components/watchlist/watchlistService.svelte.ts`) is the one client-side owner of watchlist data. Its constructor does nothing but wire a `MarketService` through `getMarketService(customFetch)`; there is no resolve-then-fetch step, because `GET /market/watchlists` already returns each watchlist with its securities embedded. `loadWatchlists(token)` stores that array directly and returns `null` / the caught error per the async-data contract. `defaultWatchlist` is a `$derived` lookup — `this.watchlists.find((w) => w.name === 'Default') ?? null` — `defaultWatchlistSecurities` derives from it, and `hasSecurity` / `toggleSecurity` are built on that list, which is why the default-list shortcut endpoints (`addToWatchlist` / `removeFromWatchlist`) work without a watchlist id.
 
 Every write that returns a `WatchlistRead` funnels through `replaceWatchlist(updated)`, which swaps a single element of the array by id, so changing one list never disturbs the others; only `createWatchlist` (append) and `deleteWatchlist` (filter) touch the array as a whole. Two writes are optimistic:
 
@@ -484,6 +499,8 @@ Ordering and collapse state are presentation concerns layered on top:
 - `/watchlists` keeps its own `watchlistOrder` `$state` seeded from `data` or `$page.data`, renders each list's securities through `sortSecurities`, and persists reorders with `patchPreferences({ watchlist_order })` — optimistically, restoring both the order snapshot and the service array if the patch rejects, and surfacing the message through `watchlistService.error`. It seeds `watchlistService.watchlists` from its SSR data only when the service is still empty, so the layout's `loadWatchlists` remains authoritative once it has run.
 - `/watchlists` also owns per-list security reordering, offered one list at a time and only while that list's persisted sort is `custom`; moves go through `WatchlistService.reorderSecurities` (drag-and-drop or arrow keys) and re-focus the grab handle after the keyed re-render.
 
+The `/watchlists` page reads the shared `WatchlistService` instance from context, renders one section per list with security links to `/security/{id}`, formatted price and daily-change pills, a valuation column fed by a batched `getValuationsBatch` effect, inline rename, a confirmation-modal delete, per-watchlist sort selection (through `WatchlistService.setSort`, i.e. `PATCH /market/watchlists/{id}` — not a preference), and a watchlist Reorder mode with drag-and-drop or keyboard moves. Each section's `+` button calls the layout's `openGlobalSearch` context callback with that watchlist.
+
 `GlobalSearch` is a `Command.Dialog` bound to `open` from the layout and to a `$bindable` `targetWatchlist`. It debounces (300 ms) `marketService.search(query)`, groups results by `security_type`, and on select calls `createOrUpdateSecurity` then `goto('/security/{id}')`. The star button is target-aware: it resolves the bound target against the service's current watchlists (`activeTargetWatchlist`), matches the result against that list's securities by symbol + exchange, and then
 
 - with a target — removes the existing membership via `removeSecurityFromWatchlist`, or creates the security and calls `addSecurityToWatchlist` for the target id;
@@ -494,10 +511,10 @@ Closing the dialog resets the query, the results, and the bound `targetWatchlist
 ## Type and money conventions
 
 - Backend payloads are mirrored as snake_case field names (`account_id`, `security_symbol`, `average_cost`, `totals`/`cost`); the frontend does not camel-case them.
-- `lib/types/account.ts` holds `Account`, `Holding`, `UserHolding`, `AccountHoldings`, `AccountTotals`, plus the `AccountType` and `Institution` enums and their `getAccountTypeLabel` / `getInstitutionLabel` helpers (each accepting an optional `translate` callback for future i18n).
-- `UserHolding` is `Holding` plus `account_id` / `account_name`, mirroring the backend `UserHoldingRead` returned by the user-wide `GET /accounts/holdings`, which is why the `/holdings` table can render an Account column and group one stock across accounts. `AccountHoldings` extends `PaginatedResponse<Holding>` with the account-level totals (`total_value`, `total_profit_loss`, `total_profit_loss_percent`, `net_deposits`, `currency`) that `/accounts/[id]` renders in its header.
+- `lib/types/account.ts` holds `Account`, `Holding`, `UserHolding`, `AccountHoldings`, `AccountTotals`, `AccountGroupKeys`, the CSV import shapes, plus the `AccountType` and `Institution` enums and their `getAccountTypeLabel` / `getInstitutionLabel` helpers (each accepting an optional `translate` callback for future i18n).
+- `UserHolding` is `Holding` plus `account_id` / `account_name`, mirroring the backend `UserHoldingRead` returned by the user-wide `GET /accounts/holdings`, which is why the `/holdings` table can render an Account column and group one stock across accounts. `AccountHoldings` extends `PaginatedResponse<Holding>` with the account-level totals (`total_value`, `total_profit_loss`, `total_profit_loss_percent`, `net_deposits`, `free_cash`, `currency`) that `/accounts/[id]` renders in its header.
 - List endpoints return `PaginatedResponse<T>` (`lib/types/pagination.ts`); clients expose `.items`.
-- `Money` is `{ value?: string; units?: number; nanos?: number; currencyCode?: string }`. `moneyToNumber` prefers integer `units` plus `nanos / 1e9` and falls back to parsing the string `value`; `money(m)` renders `$<localized number>`. Account totals arrive as nested `{ cost: Money, value: Money }`. See [Money and Currency](/openwiki/concepts/money-and-currency.md) for the backend contract behind these fields.
+- `Money` is `{ value?: string; units?: number; nanos?: number; currencyCode?: string }`. `moneyToNumber` prefers integer `units` plus `nanos / 1e9` and falls back to parsing the string `value`; `money(m)` renders `$<localized number>`. Account totals arrive as nested `{ cost: Money, value: Money }`. See [Money and Currency](../concepts/money-and-currency.md) for the backend contract behind these fields.
 - Chart and domain math types live under `lib/utils/finance/` (Elliott waves, Fibonacci, drawings, rewind, holdings metrics) and are re-exported by `userPreferencesService.ts` for the persistence shapes.
 
 ## UI stack
@@ -511,16 +528,17 @@ Closing the dialog resets the query, the results, and the bound `targetWatchlist
 
 Vitest with `jsdom`, `@testing-library/svelte`, and `@testing-library/user-event`. `vite.config.ts` sets `environment: 'jsdom'`, `url: 'http://localhost/'`, `setupFiles: ['./src/setupTest.ts']`, and includes `src/**/*.{test,spec}.{js,ts}`; `setupTest.ts` registers jest-dom, stubs `window.location`, no-ops `Element.prototype.scrollIntoView` (bits-ui's `Command` calls it on the active item and group heading), suppresses the DEV-only `derived_inert` console warning that bits-ui's dismissible-layer emits, and defers teardown ~50 ms so bits-ui body-scroll-lock timers do not throw after jsdom is destroyed.
 
-**All API calls must be mocked.** CI runs without a backend, so any unmocked `fetch` fails with `ECONNREFUSED` and makes the suite flaky. Tests `vi.mock` every client module the component depends on and stub every method it calls, and they mock framework/third-party modules that reach the network or the DOM (`$app/forms`, `$app/paths`, `$app/navigation`, `$app/stores`, `lightweight-charts`). Websocket tests replace `global.WebSocket` with a mock class. `hooks.server.test.ts` runs under `// @vitest-environment node` with `$env/static/private` mocked and signs real JWTs with `jose`. Coverage is 60+ suites colocated with their sources (`lib/api`, `lib/components/**`, `lib/utils/finance`, `routes/**`); see [Testing](/openwiki/operations/testing.md).
+**All API calls must be mocked.** CI runs without a backend, so any unmocked `fetch` fails with `ECONNREFUSED` and makes the suite flaky; a test that performs a real `fetch()`/XHR is broken by definition. Tests `vi.mock` every client module the component depends on and stub every method it calls, and they mock framework/third-party modules that reach the network or the DOM (`$app/forms`, `$app/paths`, `$app/navigation`, `$app/stores`, `lightweight-charts`). When a suite needs real rune state it mocks only the accessor — `routes/watchlists/page.svelte.test.ts` keeps a real `WatchlistService` while mocking `getWatchlistService` to return it. Websocket tests replace `global.WebSocket` with a mock class. `hooks.server.test.ts` runs under `// @vitest-environment node` with `$env/static/private` mocked and signs real JWTs with `jose`. Coverage is 60+ suites colocated with their sources (`lib/api`, `lib/components/**`, `lib/utils/finance`, `routes/**`); see [Testing](../operations/testing.md).
 
 Route-level tests exercise the shell and page components directly rather than through a running server:
 
-- `routes/layout.test.ts` renders `+layout.svelte` with a `createRawSnippet` child to assert the unauthenticated bare-children path versus the `Sidebar.Provider` path, drives the keyboard shortcuts and their typing/modifier guards, asserts the prefetch order (`/watchlists`, `/holdings`, then the first ten default-watchlist securities, each at most once, with failures swallowed), and calls the `+layout.server.ts` load with a fake event to check that `collapsed_watchlist_ids` and `watchlist_order` default correctly when preferences omit them.
-- `routes/watchlists/page.svelte.test.ts` mocks the market client and the preferences service while keeping a real `WatchlistService` instance (mocking only `getWatchlistService`) so the page's `$derived` ordering and sorting run against real rune state.
-- The colocated `/holdings` suites mock `$lib/api/accountService` and `$lib/api/userPreferencesService` (plus `$app/paths` and `$app/navigation` in the component test) to drive the load, the post-navigation `HoldingsService.load()` paging, and the page's grouping, column visibility and per-currency totals without any backend.
+- `routes/layout.test.ts` renders `+layout.svelte` with a `createRawSnippet` child to assert the unauthenticated bare-children path versus the `Sidebar.Provider` path, drives the keyboard shortcuts and their typing/modifier guards, asserts the prefetch order (`/portfolios`, `/watchlists`, `/holdings`, then the first ten default-watchlist securities, each at most once, with failures swallowed), and calls the `+layout.server.ts` load with a fake event to check that `collapsed_watchlist_ids`, `watchlist_order` and `expanded_account_ids` default correctly when preferences omit them or send a non-array.
+- `routes/watchlists/page.svelte.test.ts` mocks the market client and the preferences service while keeping a real `WatchlistService` instance so the page's `$derived` ordering, sorting, reorder modes and targeted-search integration run against real rune state.
+- The colocated `/holdings` suites mock `$lib/api/accountService`, `$lib/api/marketService` and `$lib/api/userPreferencesService` (plus `$app/paths` and `$app/navigation` in the component test) to drive the load, the post-navigation `HoldingsService.load()` paging, the per-currency totals and the portfolio/account filtering without any backend. `page.server.test.ts` asserts the returned key set and that `getUserHoldings` is never called, that a preferences rejection falls back to the default table config / flat grouping / `null` waves, and that a 401 from *any* of the three settled calls deletes the cookie and redirects.
+- `routes/portfolios/page.server.test.ts` asserts the awaited list, the `401 → deleteAuthCookie + redirect` path and the `ApiError → error(status, message)` path.
 - `routes/security/[security_id]/page.server.test.ts` asserts the load returns *only* `security_id` and never touches the security or price endpoints, which is how the shell-first contract is kept honest.
 
-`lib/components/holdings/` carries the pure helpers and presentational table (`holdings-table-columns`, `holdings-table-prefs`, `holdings-group-prefs`, `holdings-table`, and a `holdingsService` suite that injects a mocked `getAccountService`). The presentational table only needs `$app/paths` mocked, which is the rule working as intended: no network work, no network mock.
+`lib/components/holdings/` carries the pure helpers and presentational table (`holdings-table-columns`, `holdings-table-prefs`, `holdings-group-prefs`, `holdings-table`, and a `holdingsService` suite that injects a mocked `getAccountService` / `getMarketService`). The presentational table only needs `$app/paths` mocked, which is the rule working as intended: no network work, no network mock.
 
 ```bash
 npm run test:run   # vitest run
@@ -529,11 +547,11 @@ npm run lint       # prettier --check . && eslint .
 npm run format     # prettier --write .
 ```
 
-Per `frontend/AGENTS.md`, frontend commands run inside the `frontend` docker-compose service and lint/type-check/test/format are mandatory before submission.
+Per `frontend/AGENTS.md`, frontend commands run inside the `frontend` docker-compose service (`docker compose exec frontend`), and lint/type-check/test/format are mandatory before submission. The `./scripts/agent-test frontend/src/...` harness runs them for a targeted path while developing, and `./scripts/agent-test frontend` runs the full regression before finishing.
 
 ## Extension points
 
 - **New backend area** → add a class extending `ApiClient` in `lib/api/`, export both `getXClient(customFetch?)` and a default instance, and use the factory in `+page.server.ts` so SSR keeps the request `fetch`.
-- **New page** → decide which side of the data wave it belongs on. If the shell can render without the data, return only cheap keys from `+page.server.ts` and give the page a `*.svelte.ts` service whose `load()` returns the caught error for `redirectOn401`. Otherwise use the standard `load` (and `actions` for mutations) with the `401 → deleteAuthCookie + redirect` / `ApiError → error(status, message)` shape, and keep `+page.svelte` a shell over a domain component.
+- **New page** → decide which side of the data wave it belongs on. If the shell can render without the data, return only cheap keys from `+page.server.ts` and give the page a `*.svelte.ts` service whose `load()` returns the caught error for `redirectOn401`. Otherwise use the standard `load` (and `actions` for mutations) with the `401 → deleteAuthCookie + redirect` / `ApiError → error(status, message)` shape, and keep `+page.svelte` a shell over a domain component. A page that mixes both — as `/holdings` does — awaits the cheap keys with `Promise.allSettled`, throws the 401 redirect if any settled call carried one, and lets the rest degrade to defaults.
 - **New stateful feature** → a `Foo.svelte.ts` rune class with `isLoading`/message-valued error fields and orchestration methods; instantiate it in the component that owns the state (as `/holdings` does with `HoldingsService` and the security route does with `SecurityPageDataService`) or provide it from `+layout.svelte` via `setContext` for genuinely app-wide state, and never as a module-level instance.
-- **New preference** → add the field to `UserPreferences` in `userPreferencesService.ts` and patch it from the component with `userPreferencesService.patchPreferences({ … })`. A preference that drives the shell (`sidebar_open`, `collapsed_watchlist_ids`, `watchlist_order`) additionally belongs in `+layout.server.ts`'s load so the first render already reflects it; a page-scoped preference (`holdings_table`, `holdings_group`) belongs in that page's own `+page.server.ts` load instead. Either way add a shape check and keep the surrounding `try`/`catch` so a preferences outage still renders — `/holdings` falls back to the default table config, flat rows, and `null` Elliott waves. Per-watchlist sort is the counter-example: it is stored on the watchlist row, not in preferences.
+- **New preference** → add the field to `UserPreferences` in `userPreferencesService.ts` and patch it from the component with `userPreferencesService.patchPreferences({ … })`. A preference that drives the shell (`sidebar_open`, `collapsed_watchlist_ids`, `watchlist_order`, `expanded_account_ids`) additionally belongs in `+layout.server.ts`'s load so the first render already reflects it; a page-scoped preference (`holdings_table`, `holdings_group`) belongs in that page's own `+page.server.ts` load instead. Either way add a shape check and keep the surrounding `try`/`catch` so a preferences outage still renders — `/holdings` falls back to the default table config, flat rows, and `null` Elliott waves. Per-watchlist sort is the counter-example: it is stored on the watchlist row, not in preferences.

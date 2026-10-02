@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "pageVersion": "sha256:bcd6b9bb0e5f16344b4ef7c34cbaa44a692300f2c64b62c9d047ae23c5e6cbb4",
+  "pageVersion": "sha256:7dc871e1c9a98721b5edab0c7e0c0bc119cc3bc7b5320f0984afc7c079856784",
   "claims": [
     {
       "id": "claim_57d81a51dd4b4889bc9bbc27362fce94",
@@ -11,7 +11,7 @@
           "version": "repo-lines-v1:sha256:171cdcf09a4e55899e26d57432634457a8476401e252b48373ead7c596332ccb:eyJzZWxlY3RlZExpbmVDb3VudCI6MTEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImM3MGNmMThjOWI0ODQ1ZWQzNDliNmQ1NjliNzI5OTI0OGI5ZGUwMmE4NDc0NTQzOTM1NDNlNmEwOTg4ZDU5YmUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjY3Y2RhODJkYTYwNjIzOGUwNWU2MjM5OTU2OWM1ZWUwMzk5MzQxOTY0OGFlNWQ0M2EyYmY4Y2Q2MzQ3ZjgyNjMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjExZmRjYWU4NGM0YTkxYzljZGVlYWVjMTg4NDUyYjAyZjA5NGRjYmRkYTlhYzRiYmVjM2ViZGNiODZlYzUzOGYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjZhZjVmMjJhZjFkNTU1ZjA0MDY0YjQ0OWMwNTJlYzIwMjU4Y2M1NzMzNzJhN2U1YTgxNTc2MzJhNThlOTUwMTkifQ"
         },
         {
-          "resource": "repo://src/account/repository_sqlalchemy.py#L226-L245",
+          "resource": "repo://src/account/repository_sqlalchemy.py#L233-L252",
           "version": "repo-lines-v1:sha256:b7be10ca7298324ba638ec4933cf770651dc4d7bf15dd4c3cd4200ec3c55f55f:eyJzZWxlY3RlZExpbmVDb3VudCI6MjAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ0ZGE5MzUwMDE5ZGMxZTY2NzQ1MjY0Mzg3MzE2MTk5NzIyNWU5Y2U2MDEwN2FmN2I2NGY4NDBkZGVjZmRhNGYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjdmYzQ4ZjEyYzNhZjI2ZDY5NGZmZGQ2NGFlNGU3NGIwZWI1YTIzNGNjZGRhYzdlNmNjNGJjZjBmMDYzOWQ2M2MiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjE4MDAxYmI1Y2FiNTYwNTMzNzlhYzY1N2M4OTE3YjQ4OGY4ZWRlZWUwMmVjNDBhMTgzZmY5N2NhZmNkZmRlNWMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImNjMzgxMGI5YTViYmRhN2ZjZjY5ODVmM2M5NTI2NDRiOGJmYzAzZDAwMmUxMDVlZTkwMzJkYjhiZTA3Yjg2NTYifQ"
         },
         {
@@ -43,22 +43,22 @@
       "statement": "`PositionService.get_account_holdings` computes `total_value` and `total_profit_loss` over every position of the account (an unlimited `get_by_account` call) while returning only one paginated page of `items`, and when `account.net_deposits` is set it recomputes `total_profit_loss` as `total_value - Money(net_deposits, account.currency)` with `total_profit_loss_percent` only when `net_deposits != 0`.",
       "evidence": [
         {
-          "resource": "repo://src/account/repository_sqlalchemy.py#L204-L224",
-          "version": "repo-lines-v1:sha256:aeb81488a47c4f8c35a50651c0dfadd86903cb32f459459c58412cff4c320c8c:eyJzZWxlY3RlZExpbmVDb3VudCI6MjEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ0ZGE5MzUwMDE5ZGMxZTY2NzQ1MjY0Mzg3MzE2MTk5NzIyNWU5Y2U2MDEwN2FmN2I2NGY4NDBkZGVjZmRhNGYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjdmYzQ4ZjEyYzNhZjI2ZDY5NGZmZGQ2NGFlNGU3NGIwZWI1YTIzNGNjZGRhYzdlNmNjNGJjZjBmMDYzOWQ2M2MiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjM0ZTc3ODIzMTYxODRjOWU4OGM5NGEzYWVkYmRiNzQzMzE1ZWZiNmY4MGIxMjU3MmU4NDVjY2IyYTc3ZWZiNzkiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImQ4MDk1NWVjNjBjYzgwZjAzZWJmN2Q4OTAyYTgxYjlhZmJmMGY0OTBlYTczMGNlNDBjMmIxOWVkMDI5YWQ2NzQifQ"
+          "resource": "repo://src/account/repository_sqlalchemy.py#L204-L231",
+          "version": "repo-lines-v1:sha256:0781222738ab5968f43cccc88aabab7ca62b01d3baa26f51f7eb8bc045e0c99a:eyJzZWxlY3RlZExpbmVDb3VudCI6MjgsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAxYmE0NzE5YzgwYjZmZTkxMWIwOTFhN2MwNTEyNGI2NGVlZWNlOTY0ZTA5YzA1OGVmOGY5ODA1ZGFjYTU0NmIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjdmYzQ4ZjEyYzNhZjI2ZDY5NGZmZGQ2NGFlNGU3NGIwZWI1YTIzNGNjZGRhYzdlNmNjNGJjZjBmMDYzOWQ2M2MiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImE0MThlODVkMmNiY2U5NzA0ZmI4NDcxZThlM2JiNzA3ZjU5YTczYmUwNDNjZGZiZTVmNWE3Mzg4MDMwYTkxOWMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImQ4MDk1NWVjNjBjYzgwZjAzZWJmN2Q4OTAyYTgxYjlhZmJmMGY0OTBlYTczMGNlNDBjMmIxOWVkMDI5YWQ2NzQifQ"
         },
         {
-          "resource": "repo://src/account/service/position.py#L164-L205",
-          "version": "repo-lines-v1:sha256:913fdbee56896ba62840b716b72bbcfca0a72eafe2d3047def31a63ad4daa7d4:eyJzZWxlY3RlZExpbmVDb3VudCI6NDIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjJlNTkwNWRkMzdiZjIzMmM5ZTE3OWE1N2EwZGNiYmFiNWE1YmM0MGY2NGUzNWVhYTc2YzljZTJhZDBhMGRjNGQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjU5MDlhNTNhNjE4ZDAyOGUxZDMwMDBjMGE3YWJjZWVjYmU1ZmIzN2Y0ZTUxMWVmZTQ2NjQzZmFkNmU2Njg3MmYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjY4ZmZjYzcwMGY3NWQ2Yjk5Y2U3Zjg2MTJmOTRiNGI4OWI2M2UyOTgxNTkyNDI2OTA4Mjc5ODNmMmM4OTRmNWQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjFkODdjNzExZmRmM2JhYWY2ZDg2YWFiMGZmM2I1NTVkNWU2NTk2MmNiODBlZWZjZjMwMWQ3NTYyZTM4M2E1ZDkifQ"
+          "resource": "repo://src/account/service/position.py#L164-L210",
+          "version": "repo-lines-v1:sha256:09a396606e7bd01fa8968b9ed18eb271c276025ce4bf9b664849d01dda174bac:eyJzZWxlY3RlZExpbmVDb3VudCI6NDcsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjJlNTkwNWRkMzdiZjIzMmM5ZTE3OWE1N2EwZGNiYmFiNWE1YmM0MGY2NGUzNWVhYTc2YzljZTJhZDBhMGRjNGQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjU5MDlhNTNhNjE4ZDAyOGUxZDMwMDBjMGE3YWJjZWVjYmU1ZmIzN2Y0ZTUxMWVmZTQ2NjQzZmFkNmU2Njg3MmYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjY4ZmZjYzcwMGY3NWQ2Yjk5Y2U3Zjg2MTJmOTRiNGI4OWI2M2UyOTgxNTkyNDI2OTA4Mjc5ODNmMmM4OTRmNWQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjFkODdjNzExZmRmM2JhYWY2ZDg2YWFiMGZmM2I1NTVkNWU2NTk2MmNiODBlZWZjZjMwMWQ3NTYyZTM4M2E1ZDkifQ"
         }
       ]
     },
     {
       "id": "claim_d6b54e5e124e45d291bf0a15b5317370",
-      "statement": "`HoldingRead` carries both native-currency values (`average_cost`, `unconverted_total_value`, `unconverted_profit_loss`, `security_currency`) and account-currency values (`total_value`, `profit_loss`, `currency`, `converted_average_cost`, `converted_latest_price`); `UserHoldingRead` adds `account_id`/`account_name` and `AccountHoldingsRead` extends `PaginatedResponse[HoldingRead]` with account identity, totals, `net_deposits` and `currency`.",
+      "statement": "`HoldingRead` carries both native-currency values (`average_cost`, `unconverted_total_value`, `unconverted_profit_loss`, `security_currency`) and account-currency values (`total_value`, `profit_loss`, `currency`, `converted_average_cost`, `converted_latest_price`), plus identity and price metadata (`id`, `security_id`, `security_symbol`, `security_name`, `latest_price`, `price_date`, `updated_at`); `UserHoldingRead` adds `account_id`/`account_name` and `AccountHoldingsRead` extends `PaginatedResponse[HoldingRead]` with account identity, totals, `total_profit_loss_percent`, `net_deposits`, `free_cash` and `currency`.",
       "evidence": [
         {
-          "resource": "repo://src/account/schema.py#L130-L185",
-          "version": "repo-lines-v1:sha256:048656c08da2e041bb5b43ac31c56d0584688a51ed661e2d99070fdceb2af93b:eyJzZWxlY3RlZExpbmVDb3VudCI6NTYsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImNkZjFjMGVlOGRmZWJiMzY2NGM1ZWIyYTI5M2FmYWZmZTg1YzQ3MjRkNThkNTUwZGUzODBmNTM5YTRiMWVlMjgiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAxYmE0NzE5YzgwYjZmZTkxMWIwOTFhN2MwNTEyNGI2NGVlZWNlOTY0ZTA5YzA1OGVmOGY5ODA1ZGFjYTU0NmIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImE3NzJiZDZhMGUyOWFlMmJhOTdjOTUxMGJlNTI0NDk1OWY4YzVkYTRhNTQ4Y2RhM2MyMjZkYmVjODBlYTdkZmQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6Ijg5NzEzYWE4N2EzNmQ4ZWExMjcwODVjNGJiZTA1OGJkMWQxOTM3NWE3ZGYyN2M3ZWIxYTFmY2QwOGM1OGMwMDIifQ"
+          "resource": "repo://src/account/schema.py#L153-L186",
+          "version": "repo-lines-v1:sha256:34a91a1704e6b84261e68bcaf3260a1f64737e0c3ee9387b6cf372af28386056:eyJzZWxlY3RlZExpbmVDb3VudCI6MzQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImU2ZDQ3YzFhOTc4OTljMTE1YzI4NGZlYzAwZTVkMmM0ZjI0MzI5ZDc2Njg3NTFmYWJhMzRhNDU2ZDVlMDZjMGUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImRmMjU5ZTFjODJkNmYzM2M0OGU4YTIwNmQ3ZTM5ZjU0NmNhMzE1MThlOGZlMmVjMWEwZjEwZjc5NGMyMGJiZmYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6Ijc4ZmExNzBkYjA2ODc1MWJmOTg4NGE2NTNjMWFhMmFkM2YzZmViMWQ3NThkZDcyZGQzZjg3OWViZDc3OWNjMzAiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjkzNWVlNjFjOWVhOWYyNGJmMzQxZGIzNTNiZjQ1NTllOWIzZDIwODMwODViNDAxMWRmOGJhMWI0NjM3MWI0ZmYifQ"
         }
       ]
     },
@@ -67,11 +67,11 @@
       "statement": "Authorization differs per holdings endpoint: `GET /accounts/holdings` is scoped implicitly by the repository's join on `AccountModel.user_id`, whereas `GET /accounts/{account_id}/holdings` and `GET /accounts/{account_id}/totals` look the account up and call `authorization_api.check_entity_owned_by_user` before delegating to `PositionService`.",
       "evidence": [
         {
-          "resource": "repo://src/account/router.py#L429-L448",
+          "resource": "repo://src/account/router.py#L452-L471",
           "version": "repo-lines-v1:sha256:ceeecee14770794ce3d2c6a350f28bf6af9dc61c6860b3e59c3e8cde99f82760:eyJzZWxlY3RlZExpbmVDb3VudCI6MjAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjgwYjc1ZDdlZjIxMGRiMmRjMjY0Yzg1OGQzYTAzZDIyNTI5NjhlNzVkY2U4NTYzNTRiZDEwYmFhMDcyNTE3NGMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjhkZmI4ZjQ0MzQ0NzdlOGM3NTJmODA1ZWVlZmU5ZDNiNThiYmQyMWQyMGZlNGMwZmYwOTdjZjViZWYwMDlkMTEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjBhZDY4ZDMyZTQwOTQxYTBjNWE1ZTAzYTExZTNhMGNiOWMyYmYwY2VlMmY1ZmQyN2NkNzU1YzdhMjJmYzY4ODQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjZkNjA1YTNhNzAzODdmOGFkMWUxNDc4YTRhODU3MjlmNzQwODc2ZWZlMjJjM2I2NjY5NWJiMDRhM2VmY2FlYjEifQ"
         },
         {
-          "resource": "repo://src/account/router.py#L451-L501",
+          "resource": "repo://src/account/router.py#L474-L524",
           "version": "repo-lines-v1:sha256:32eaf2aa94975b9d8c471353b3a88ebf7d0f09289a196167d34a5ecba710ff2a:eyJzZWxlY3RlZExpbmVDb3VudCI6NTEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjU1YTQ2OTNhYmFmZDViYzczODZlOWYwNTNjOWExYjljNmUxY2YwZjgzNTJiNGQ3ZTUxN2VmNTY3NTk0YmMxZGIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjMwYzFmMTg4ZjE0MmVkN2E4MjQ2ODBiMjA3MTcyYzU1MTliYzYxNGE0OGZkYTdjZjE2N2VkYjhkZGY3OTk1NmMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImQ0MmYyYzdmNzc4N2FkMTgyNTE0OTgxZmYzMmFlMWE4NWY0NGQxZWY4ZTY2ZTgzOWQ2MGZmMDg5Y2Q1ZDJkMWIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjRmMzIxNGNlOWE4OWZhODFlZTM2Mzg0NTBlMzQ4NTlmYzMwZWIyMzY5OGRmZTRjMzI3MGEyZDIwODcwZTUzODIifQ"
         },
         {
@@ -85,7 +85,7 @@
       "statement": "`_calculate_holdings` silently skips a position whose security cannot be resolved (it logs \"Security not found for position ...\" and continues), so a holdings page can return fewer rows than the position count in `total`.",
       "evidence": [
         {
-          "resource": "repo://src/account/service/position.py#L233-L266",
+          "resource": "repo://src/account/service/position.py#L245-L278",
           "version": "repo-lines-v1:sha256:7fa37c0e12b74847752928dcbdd947a164903269adab6943fcc3ab8000a0c763:eyJzZWxlY3RlZExpbmVDb3VudCI6MzQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImM0NzM5NThkNjZjZWYxMjU0N2E0MGFlYmViM2Y3NTI4NmU1MmE3ZDI3Mjc3MzczZWI1NTM4MGE5NDNlZGViM2QiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImVjZWZjNWE0ZTUwZDgxMmNkMTk5ZDEwYjkxMzkzYWM5ZDZiYzVkMGU0ODQ4ZDNlMGM2MDNmMmNkZGZhZjcyNWIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjE4MmUzOWM1NzZhMzY4Mzg5NmUyOGY5MTQxZjM2MzI5OTRkMGY5ZWUzZjIzODkzM2U4ZTU4ODEwZWFlYzhkODYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjMzMzZiM2JkMzkwYWFjY2E4MzBjNTEyYzEwMTQ1MjE1NzM2ZjYyNDBmY2M1MmM4YzY2MTNiN2U2ZTQ3ZTk5NjYifQ"
         }
       ]
@@ -95,7 +95,7 @@
       "statement": "`PositionService.get_holdings_by_security` fills the repository's `AccountHoldingRead` placeholder rows (`total_value=0.0`, `currency=\"\"`) with `quantity × latest close` in the security currency, `account_total_value` from `get_total_for_account` and `account_percentage` only when the account total is positive, and returns an ambiguous `([], 0)` when the security is unknown — behaviour the source marks with a TODO.",
       "evidence": [
         {
-          "resource": "repo://src/account/repository_sqlalchemy.py#L247-L279",
+          "resource": "repo://src/account/repository_sqlalchemy.py#L254-L286",
           "version": "repo-lines-v1:sha256:de2ca8ff0d8b7c84ecc1fd547ffb4b471e3461fa933f668bdfbb3b5b62381f0f:eyJzZWxlY3RlZExpbmVDb3VudCI6MzMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ0ZGE5MzUwMDE5ZGMxZTY2NzQ1MjY0Mzg3MzE2MTk5NzIyNWU5Y2U2MDEwN2FmN2I2NGY4NDBkZGVjZmRhNGYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjdmYzQ4ZjEyYzNhZjI2ZDY5NGZmZGQ2NGFlNGU3NGIwZWI1YTIzNGNjZGRhYzdlNmNjNGJjZjBmMDYzOWQ2M2MiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjE4MDAxYmI1Y2FiNTYwNTMzNzlhYzY1N2M4OTE3YjQ4OGY4ZWRlZWUwMmVjNDBhMTgzZmY5N2NhZmNkZmRlNWMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjMxODRjY2ExNjlkZmIzMjU5OGMzMDk5ZGFhNzUxZTFkYWRlMGQxZDViOTNmMTQ0ODlkYjhjMjFmNzNlM2ZkNDUifQ"
         },
         {
@@ -106,21 +106,21 @@
     },
     {
       "id": "claim_9d49d0f8d71142bca6e279df6e8cf64c",
-      "statement": "The `/holdings` load reads `holdings_table`, `holdings_group` and `elliott_waves` in a `try/catch` that treats a preferences failure as non-fatal: it falls back to `normalizeHoldingsTableConfig(null)`, `normalizeHoldingsGroupMode(null)` and `null`, and returns exactly those three preference-derived keys — it never awaits or returns holdings rows.",
+      "statement": "The `/holdings` load reads preferences, portfolios and the account list in one `Promise.allSettled` and returns exactly seven keys — `holdings_table_config`, `group_mode`, `elliott_waves`, `portfolios`, `accounts`, `portfolio_id` and `account_id` — falling back to `normalizeHoldingsTableConfig(null)`, `normalizeHoldingsGroupMode(null)`, `null` waves and empty arrays for any non-401 rejection; it never awaits or returns holdings rows.",
       "evidence": [
         {
-          "resource": "repo://frontend/src/routes/holdings/%2Bpage.server.ts#L7-L31",
-          "version": "repo-lines-v1:sha256:02c5178171ef855f96a423b0870bfea49f860967af6d769f70ac161dbd9454a2:eyJzZWxlY3RlZExpbmVDb3VudCI6MjUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjRlM2Q1N2FlMTIwM2IxZmZjNTYxNDRmMDUzYjhlYTJjNjY4NWY4MmZlNDExZDFhNGZiY2YzM2NlZTA2NjBmMjIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImFhMWQxYTYzMzkwMjI5Yzc5ODM0N2U4M2EwNDA1NDQxYzk0MDAwMzUyODRhZDE2OGMxYmY2Y2RmMWQ3MGEzNzAiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjZmNzQzNjZhMmU1MjdkMTBkYjZlMDliNDE0NGJhNGNkZDA5ZWJhYjkxZDY0Y2FjYmYzYjc3ZGJmYzMxYTE3ZWIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
+          "resource": "repo://frontend/src/routes/holdings/%2Bpage.server.ts#L14-L79",
+          "version": "repo-lines-v1:sha256:9407e3867ab745bd99ec49c43331429c6515ecd0b46afe1202a955f0dbe1e883:eyJzZWxlY3RlZExpbmVDb3VudCI6NjYsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjA1ZGMxZDEwNWEwYTBjZjg4ZWE3YThlZDk1NTNkOGY2MTdmN2EyYWM5NzczZDZiNmFhNTFjZDEwZWVjYWRjNTciLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImFhMWQxYTYzMzkwMjI5Yzc5ODM0N2U4M2EwNDA1NDQxYzk0MDAwMzUyODRhZDE2OGMxYmY2Y2RmMWQ3MGEzNzAiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjZmNzQzNjZhMmU1MjdkMTBkYjZlMDliNDE0NGJhNGNkZDA5ZWJhYjkxZDY0Y2FjYmYzYjc3ZGJmYzMxYTE3ZWIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
         },
         {
-          "resource": "repo://frontend/src/routes/holdings/page.server.test.ts#L55-L109",
-          "version": "repo-lines-v1:sha256:dcf826fe15e4660935a59d3d75fc372dd1d333e88488a7f71d051d97e1033032:eyJzZWxlY3RlZExpbmVDb3VudCI6NTUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjdhMGJiYzFhMTIxOGUwNGU4MThjYjUwNDMzOGNhNDA3M2Q3YjIzMDM5ODg0ZmYyOTJjOGM4ZjEyZDk5OGJkZWQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjBhNzM0OTJkODk0NmIxZDBmOWQ5YzA0YjcwNGE5MjBmMjRmODllZjdjN2Y3MzExYTg1OTlkMTBjN2Y2MzU4ZDAiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImMxZmFmMzBjYmQ2NjZjMGVkODFjZmJkMTI0YzY2MTdiMTc0ZThkNWE5NGUyNjIwODkwNjQyZjFiMjBlMzUwZWIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjoxLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImY2ZjViNDBiMTU4NDU3ZDE3ODY0ZjIxNzkwNzg2ZGQ1YTJlY2RiNjRiNjZhNjUxZjc4OGQ0ZTI1Y2QzMzAzZDIifQ"
+          "resource": "repo://frontend/src/routes/holdings/page.server.test.ts#L78-L168",
+          "version": "repo-lines-v1:sha256:3ca2829187aaf00d61f215017f23f8c2281882e9b7026a22bd5ff70df1cd1e29:eyJzZWxlY3RlZExpbmVDb3VudCI6OTEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjY5ZTE5OWVjNmZlMzkxZTU3ODdjYzhhZDA4NDdkNDBmNjdhMWI5ZTRiN2FjNGM1MmIxYTZhN2RhZDI5OTViNWUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjBhNzM0OTJkODk0NmIxZDBmOWQ5YzA0YjcwNGE5MjBmMjRmODllZjdjN2Y3MzExYTg1OTlkMTBjN2Y2MzU4ZDAiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6Ijk4YWQ0ZDY4MTc0M2I3ZGY3NTM4OTA3MWVmOTJkOWJiOGRkMTlkYmI2NzJjNzQwNTNlYTEwYzMzNGQxZmE4MTIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImU3ODk1N2NjNzBkZmJjMzcxNzZiNjI1MTM1MWI2NmRmOTEwYWQ1MTlmMjM2ZjU5OTY4OWFlYjYzYjdmNjhhZWEifQ"
         }
       ]
     },
     {
       "id": "claim_0827cbf7931842f38c81901317334a64",
-      "statement": "SSR requests pass the `auth_token` cookie explicitly as a Bearer override because `ApiClient.get` only sets `Authorization: Bearer` when a token override is supplied (it always sets `credentials: 'include'`); the `/` and `/accounts/[id]` loads map a 401 to `deleteAuthCookie` plus a 303 redirect to `/auth/login?clear_session=true`, other `ApiError` statuses to Kit errors and anything else to a 500, while the `/holdings` load's only SSR request is the non-fatal preferences read and its post-navigation 401 is routed through `redirectOn401`, which `goto`s `/auth/login?clear_session=true` without deleting the httpOnly cookie client-side (`hooks.server.ts` clears it when the login page resolves).",
+      "statement": "SSR requests pass the `auth_token` cookie explicitly as a Bearer override because `ApiClient.get` only sets `Authorization: Bearer` when a token override is supplied (it always sets `credentials: 'include'`); the `/`, `/accounts/[id]` and `/holdings` loads map a 401 from their awaited requests to `deleteAuthCookie` plus a 303 redirect to `/auth/login?clear_session=true` (`/holdings` detects it by inspecting each `Promise.allSettled` result and re-throwing the 303 through its `catch`), other `ApiError` statuses in the two single-request loads to Kit errors and anything else to a 500, while the `/holdings` post-navigation 401 is routed through `redirectOn401`, which `goto`s `/auth/login?clear_session=true` without deleting the httpOnly cookie client-side (`hooks.server.ts` clears it when the login page resolves).",
       "evidence": [
         {
           "resource": "repo://frontend/src/lib/api/apiClient.ts#L46-L64",
@@ -135,16 +135,20 @@
           "version": "repo-lines-v1:sha256:c38e2912979d04abc7484073e3994696ec1256bb013f8810219d20004dac92c6:eyJzZWxlY3RlZExpbmVDb3VudCI6MjAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImY0NWU2N2UwNDI5NjcwNjQ2OTJhYWU2YzgwNmIxMGJmMjBhZWNjY2QwOTU1MGU2N2E0ZWI4MzQ5OTQ0ZjE3NDEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImFhMWQxYTYzMzkwMjI5Yzc5ODM0N2U4M2EwNDA1NDQxYzk0MDAwMzUyODRhZDE2OGMxYmY2Y2RmMWQ3MGEzNzAiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjM3ZDVjYTQwMmU2NjgxNTFmMTE2Y2RkN2FiZDhjMWMzYWQ2Mzg1YjcyOWNlZWEwMjViMGJhYWNkYTFiYjE1MDciLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjcwOTg5ODE5MWFjMmRlYzcwOTM0NDhkODE3OTFhNTIwMWE4NTVkYmI2NTJjNWRhN2ZhMDJiMTYzNTgxZGJmMmEifQ"
         },
         {
-          "resource": "repo://frontend/src/routes/holdings/%2Bpage.server.ts#L7-L31",
-          "version": "repo-lines-v1:sha256:02c5178171ef855f96a423b0870bfea49f860967af6d769f70ac161dbd9454a2:eyJzZWxlY3RlZExpbmVDb3VudCI6MjUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjRlM2Q1N2FlMTIwM2IxZmZjNTYxNDRmMDUzYjhlYTJjNjY4NWY4MmZlNDExZDFhNGZiY2YzM2NlZTA2NjBmMjIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImFhMWQxYTYzMzkwMjI5Yzc5ODM0N2U4M2EwNDA1NDQxYzk0MDAwMzUyODRhZDE2OGMxYmY2Y2RmMWQ3MGEzNzAiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjZmNzQzNjZhMmU1MjdkMTBkYjZlMDliNDE0NGJhNGNkZDA5ZWJhYjkxZDY0Y2FjYmYzYjc3ZGJmYzMxYTE3ZWIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
+          "resource": "repo://frontend/src/routes/holdings/%2Bpage.server.ts#L27-L68",
+          "version": "repo-lines-v1:sha256:6a5b5171e8f3450075e748bff5eeb9310ab33590a1a38b18a139bc1d4a5d24e9:eyJzZWxlY3RlZExpbmVDb3VudCI6NDIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjdlM2E0NTcyOWZhZjk3ZmNkYjUxYTYyOTExM2EyM2EzZDczZTRiOGY2NTliMmFkYjY2ZDExZjk2NGE4YTdhYjAiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjY3Y2RhODJkYTYwNjIzOGUwNWU2MjM5OTU2OWM1ZWUwMzk5MzQxOTY0OGFlNWQ0M2EyYmY4Y2Q2MzQ3ZjgyNjMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjgzZDk4MjU0YmI4MDEyYmU4NmZlYTE5OWNkMmE2MzhmMDIyYjQ2MTBlMTgxMjk3YjkzODIxODMzZDRmMzA4YjEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImE1ODY1ZmJmYzVlNzM1MGNjZWRjMmNiZGE2MmU4ZGMwMDI2MTliMGMzY2Y3ZDVhMTFhNjMzMWJmNDgzNWQzMTQifQ"
         },
         {
-          "resource": "repo://frontend/src/routes/holdings/%2Bpage.svelte#L31-L42",
-          "version": "repo-lines-v1:sha256:cbc584e7435397ad376ec61ce1c0c9207dd55400f31027f8fd84649e137735af:eyJzZWxlY3RlZExpbmVDb3VudCI6MTIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImUwZjc0NDk2YzQ1ZGRhNTYwMTM4NmQyZDQ3YzE1NDVlYjJiMjg1MmI2MDliNDg5ZTIzMmRjNmZiYTJlZTY3MTgiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjBhNzM0OTJkODk0NmIxZDBmOWQ5YzA0YjcwNGE5MjBmMjRmODllZjdjN2Y3MzExYTg1OTlkMTBjN2Y2MzU4ZDAiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjE0NjVhNTQzOGZlOGJlMzcxMDFjYTY3OTgwMjA5NGQ4Yjc0ZmUxMmJmNWEzYmFiZDIwNGYzMzlkYTFkMTY1MzkiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImFiN2M5OGVkZDViZTA0NDk0MWYyYmVmZjUzZjBkOWI4OTgxZGQwODBmZGI3OTliMGIxZWZkNThmNTVjYjdkZGQifQ"
+          "resource": "repo://frontend/src/routes/holdings/%2Bpage.svelte#L53-L61",
+          "version": "repo-lines-v1:sha256:e6f782499e115c749ecd221f931b74fbfc9c3b3005085859eec0d0552172adfe:eyJzZWxlY3RlZExpbmVDb3VudCI6OSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiNGZmZjA2MzM0OGExZTFhMzI1MTNlYWNjMDE2ZmMyNWNmZmVmMGI0YzkwYmYwYzg4OGVkNTg1N2YyMTNhMzJkYyIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiMGE3MzQ5MmQ4OTQ2YjFkMGY5ZDljMDRiNzA0YTkyMGYyNGY4OWVmN2M3ZjczMTFhODU5OWQxMGM3ZjYzNThkMCIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiYzc1MjVjNmNiZDU5ZWUwOGJlZDBlYjVjYTBlMWM5ZDk5MTJhZTU4NTZiMDRmOTgwNTRiMmUzMTc4MDQ5NTFmNiIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiNjI4M2M1YWY1YzEwOWNmNWI4YmZkZTcyMTE1NjM4N2RkMTZiNmFmNjRlYTlmM2M4ZWJmY2M3YzQwODEzY2NmMyJ9"
         },
         {
-          "resource": "repo://frontend/src/routes/holdings/page.svelte.test.ts#L415-L435",
-          "version": "repo-lines-v1:sha256:25da3d57bfc339317841b2d54a88e03468985ad1ef28b306f788a6821ccf8aed:eyJzZWxlY3RlZExpbmVDb3VudCI6MjEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjVjZjI2NGZkZmU3NjJjNDQzZTVkZjdkMzVhZWQyNDVhZDEwZDQ5MGQyYjBlZTlhOTliMDE4YWY2YmE0MmNlYTciLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjBhNzM0OTJkODk0NmIxZDBmOWQ5YzA0YjcwNGE5MjBmMjRmODllZjdjN2Y3MzExYTg1OTlkMTBjN2Y2MzU4ZDAiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImVkNWNhMDJlZmZjMjNhNmU1ZGJiMTI0NTcwZjEzNWVhYzAyNzIxOGY2ZWU5OGNhM2VjZTY4OTM2ZDM2MDVjMTUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjQxZjljYzZkOTJkYzViZTA0NDQ4NDJmYzMzMDI0MjRiOGU5NDk0NDFiYWJiZjE0MTQ4NzY1YTM1Y2QxYjFkMTkifQ"
+          "resource": "repo://frontend/src/routes/holdings/page.server.test.ts#L170-L184",
+          "version": "repo-lines-v1:sha256:40491a7eee48f6a6c9669707b8d68b171ec4ec6464ba26560af15bf26f110b27:eyJzZWxlY3RlZExpbmVDb3VudCI6MTUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjgyODhiYmU4NTk2NWViOTRmZjJmYzZjMGJhOGE2YTQwMjIzZjUxNzMzNmIyYmUzYjc0MGRlYTdlZGM0MjFmMDciLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjBhNzM0OTJkODk0NmIxZDBmOWQ5YzA0YjcwNGE5MjBmMjRmODllZjdjN2Y3MzExYTg1OTlkMTBjN2Y2MzU4ZDAiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6Ijk0ZWQ0OTMzMWI4YTRkNThiYzQwYzg0YmU5MGZkYTEyMWJiOWY0M2JjNTg4NDNjYzU2ZDYxZGVlY2EzZGMxM2QiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjoxLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImY2ZjViNDBiMTU4NDU3ZDE3ODY0ZjIxNzkwNzg2ZGQ1YTJlY2RiNjRiNjZhNjUxZjc4OGQ0ZTI1Y2QzMzAzZDIifQ"
+        },
+        {
+          "resource": "repo://frontend/src/routes/holdings/page.svelte.test.ts#L450-L457",
+          "version": "repo-lines-v1:sha256:2b8c4ca48d9558e6c087d52b39d4fcfb4d5c3f4fd54913c984c022a80257dc35:eyJzZWxlY3RlZExpbmVDb3VudCI6OCwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiZTQ5MDRiYWU2ZTJmZTljZjY0NWUwNDBhYWJjNGEzMGI2NzBjMWExZDFlODk5MmU0NTIyYzU3NWQ1NzM1YTQ2OCIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiMGE3MzQ5MmQ4OTQ2YjFkMGY5ZDljMDRiNzA0YTkyMGYyNGY4OWVmN2M3ZjczMTFhODU5OWQxMGM3ZjYzNThkMCIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiZDhjZmVjYTFmNGY5NTNjMGM3OTNjOTQzMTAxMzU4MjczMjE1ODU0YWVlNTc3OTcwOGNmNmRhMDZhYzFjOGU3ZiIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiNDFmOWNjNmQ5MmRjNWJlMDQ0NDg0MmZjMzMwMjQyNGI4ZTk0OTQ0MWJhYmJmMTQxNDg3NjVhMzVjZDFiMWQxOSJ9"
         }
       ]
     },
@@ -153,11 +157,11 @@
       "statement": "`/holdings` derives its header totals by bucketing `service.rows` on `row.currency` in a `SvelteMap`: it sums `total_value`, sums non-null `profit_loss` (tracking `hasProfitLoss`), accumulates `costBasis` as `quantity × (converted_average_cost ?? average_cost ?? 0)` only when positive, and computes `returnPercent` only when `costBasis > 0` — values are never summed across currency buckets.",
       "evidence": [
         {
-          "resource": "repo://frontend/src/routes/holdings/%2Bpage.svelte#L53-L95",
+          "resource": "repo://frontend/src/routes/holdings/%2Bpage.svelte#L139-L181",
           "version": "repo-lines-v1:sha256:f73c28009544186701e60d43554172e01d11bb97ad40cbc6d761898d6f8ddbd8:eyJzZWxlY3RlZExpbmVDb3VudCI6NDMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjkxNjg0M2YxZGRiYTBjZTU4MTg4NjRlOTI0MTYxOTRjNDkyMWM1NTFlMjI4NWI5Nzk3ODE3NjIxYTRiYjkwYzQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjBhNzM0OTJkODk0NmIxZDBmOWQ5YzA0YjcwNGE5MjBmMjRmODllZjdjN2Y3MzExYTg1OTlkMTBjN2Y2MzU4ZDAiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImVmOWJmOGRkNzcyM2FmMTEyZWM3NGUyMTkxY2JlY2M0NzkzYWNiMDg1MjUwZWUyZWMzYWRjNWQ0ZTliYTVjYzQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImY5ZTVlYmFhMGJiNTRhZWRhNWRhNzA4OGEzZGY2YjYxYTRkZWU1ZDhhYWJjZWM4NmJhMWI1ODdmMjkxMjUwOGYifQ"
         },
         {
-          "resource": "repo://frontend/src/routes/holdings/page.svelte.test.ts#L252-L336",
+          "resource": "repo://frontend/src/routes/holdings/page.svelte.test.ts#L274-L358",
           "version": "repo-lines-v1:sha256:34d832de2651d2a1533af483499a08bda3f6492a3f3f735e9e6a0487d26f6fac:eyJzZWxlY3RlZExpbmVDb3VudCI6ODUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImVhMWM4MjZmZjMwNzkyZjBmMDkxYThhMjI5NGFhMGI4MzczNTBmMWU1N2I2Zjk5NGNmYzNjNTBmZDVjZDAyNzYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjBhNzM0OTJkODk0NmIxZDBmOWQ5YzA0YjcwNGE5MjBmMjRmODllZjdjN2Y3MzExYTg1OTlkMTBjN2Y2MzU4ZDAiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjVmYmM4ZDg5NzU2ODA1NGE4NmU4MjE2MDJiMWYxZTQ4YzdmMjM3OGM1MWU2MzcwNWRmOTA0OWRmMzZiODBiZTkiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImViZGEwNTNlNmYxZDI4NThjNjk4NWUwYTU1OTZiMTVjNzQ0NjNjNmEwNDI0NTMwYzliNzZmMzRkYTk0ZTgwY2QifQ"
         }
       ]
@@ -182,37 +186,45 @@
     },
     {
       "id": "claim_9a36238445aa4fef8ad1ca1475efb4b5",
-      "statement": "The `/holdings` page owns its `HoldingsService` instance instead of reading a layout context: it constructs the service, seeds the group mode with `setGroupBy(data.group_mode)`, and triggers `service.load()` from a single `$effect` so the rows arrive after navigation; toggling grouping is therefore a pure client-side derivation that never refetches holdings, and `getHoldingsService` remains the context/custom-fetch accessor for other callers.",
+      "statement": "The `/holdings` page owns its `HoldingsService` instance instead of reading a layout context: it constructs the service, seeds the group mode with `setGroupBy(data.group_mode)`, seeds the account/portfolio filter from `data.portfolio_id`/`data.account_id` in an effect, and triggers `service.load()` from a single `$effect` so the rows arrive after navigation; toggling grouping is therefore a pure client-side derivation that never refetches holdings, and `getHoldingsService` remains the context/custom-fetch accessor for other callers.",
       "evidence": [
         {
-          "resource": "repo://frontend/src/lib/components/holdings/holdingsService.svelte.ts#L14-L28",
-          "version": "repo-lines-v1:sha256:b3e9e12f931031de545772e082146e767536c1f6f1b2861888895a3c8e273ae1:eyJzZWxlY3RlZExpbmVDb3VudCI6MTUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjgxNjdmM2MzZTA2ODNhODI0NjEyMGQ4MDdlMWQ3MjVlNDU3ZDZhMmM4YjNiYmZjMzkxYjU3ZGJiN2YyN2U1NDMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjY3Y2RhODJkYTYwNjIzOGUwNWU2MjM5OTU2OWM1ZWUwMzk5MzQxOTY0OGFlNWQ0M2EyYmY4Y2Q2MzQ3ZjgyNjMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImI1NDE4YWY2MjUxOGUyMmZkYzBjMDZjNDNmZjE1YWNhNDI1NjRlMjAyZmNjNDIyYTllNjcyMTNiMDJjY2E0YmIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjFjY2Y1YzhiNjQ0ZDliNDQ1ZThmNDVlZTVjNGIwOWMwMTczYjdlODAzODllYmIyZjQ0MjJlOTllMzIwNGFlN2UifQ"
-        },
-        {
-          "resource": "repo://frontend/src/lib/components/holdings/holdingsService.svelte.ts#L66-L79",
+          "resource": "repo://frontend/src/lib/components/holdings/holdingsService.svelte.ts#L137-L150",
           "version": "repo-lines-v1:sha256:f29b365e36f199bfd15e2498f70f941188b01d855d563b29ab09d75b8099e703:eyJzZWxlY3RlZExpbmVDb3VudCI6MTQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjRlMDdmZDUzZjEyYzJhYWNjNjJhYjU4MDliYTc3OWNkOGQ2YzdhMTVjZGU5MTUxYjY5NTlkNzk2OWFmNmE2NTgiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQxMmNhMzQ1Y2NmNzViZjljMDgwNmJjZTY5NWJlOGRlODA4Yjc5OTg0MjUxYTdhNTRkMjAyY2Y2MTAxZGQ0NTEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImYyOTY0MDc5YzNjNWM4MTUyMGVmMzNhMmI5ZDJlMTVhMWI4NGQ3MjgwZGI4NTkwZGNkNjU3NDdlM2UwMTJhNDAiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
         },
         {
-          "resource": "repo://frontend/src/routes/holdings/%2Bpage.svelte#L24-L42",
-          "version": "repo-lines-v1:sha256:9ee46fbd322a114fbe791a26cf547eb662d1814394127cb21c1f71c3d612c884:eyJzZWxlY3RlZExpbmVDb3VudCI6MTksImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijc4YTA4ZTZmNDlkYzBkODRhNGZmNTRlOWVmYmU5ZWRmZjM2YWRkNjk1NjQxMjBjMWE1ODU2MDIwOTM5OGZiNDQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjBhNzM0OTJkODk0NmIxZDBmOWQ5YzA0YjcwNGE5MjBmMjRmODllZjdjN2Y3MzExYTg1OTlkMTBjN2Y2MzU4ZDAiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6Ijg5OTdmMzcyYzJlMGQyMDgyODFjYWNjMWRkYjk3YTNjOThjZTUwMDFiZjcyMDQzZDE0NTRiMTAxMTQzMGY2OGIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImFiN2M5OGVkZDViZTA0NDk0MWYyYmVmZjUzZjBkOWI4OTgxZGQwODBmZGI3OTliMGIxZWZkNThmNTVjYjdkZGQifQ"
+          "resource": "repo://frontend/src/lib/components/holdings/holdingsService.svelte.ts#L25-L79",
+          "version": "repo-lines-v1:sha256:09902b6ed718b8db8ab35028c92e9887841f249b1a77857e9a836de145e5409a:eyJzZWxlY3RlZExpbmVDb3VudCI6NTUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjgxNjdmM2MzZTA2ODNhODI0NjEyMGQ4MDdlMWQ3MjVlNDU3ZDZhMmM4YjNiYmZjMzkxYjU3ZGJiN2YyN2U1NDMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjMwMDU4OTY2YzA2OTUwM2Q4OTczYTExZjJlZDBkOGFjYWI2ZmQ4MWFhNjYwNGUyYzM5Yzc0ODZkYWFkODJhODgiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjVhOWJjMTY2OGVlZmNjZjEzNTU0NWM0ZWQ2ZDNiZjBhZTY1YmE5MTE2M2MyZjJiNTFiMTFiNmEyMGJlNjNmMjIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6Ijg4OTNiNTQ5YjQzYzg5MDc3YzdkOThhMmFmNGFmODY0YTQ5OWZhMTFmZWYyZWFiMzE1OGQwNmU4MWQ3NmYyOTQifQ"
         },
         {
-          "resource": "repo://frontend/src/routes/holdings/page.svelte.test.ts#L352-L394",
-          "version": "repo-lines-v1:sha256:3e73a334a0832f16747afd8a4e1f1484e3fc85edde009f23240ba82aa57a3924:eyJzZWxlY3RlZExpbmVDb3VudCI6NDMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjBhMDRjNTMzMWNkNmUzZDA0MjRlNzY1NjZkMzdhNWViNmVmYzMzOThmZDk2NWI4ZWQ0ZDM2MDk3OTI2YzE5YzMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjBhNzM0OTJkODk0NmIxZDBmOWQ5YzA0YjcwNGE5MjBmMjRmODllZjdjN2Y3MzExYTg1OTlkMTBjN2Y2MzU4ZDAiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImYzM2M5MDg5NjBkZDhiZjE0YTM1NGJiMWYxNzA2N2M2NWNlNDYzYWQ4YmFjN2NkMmUzYjUxNDg2MDRmM2QzZjQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImY3MWEzZTZkZTRjZmI0MWE0OTRmNWI0MDBkZjNhNmFhNGViZThkZDA3MDVhYjg1MzljOTRmYjE1MzQ5MTczNjgifQ"
+          "resource": "repo://frontend/src/routes/holdings/%2Bpage.svelte#L30-L61",
+          "version": "repo-lines-v1:sha256:e7fcf28d0f5c24e846972a3f71c17711e7c354005c8dc4c2ca72577782dcd2c1:eyJzZWxlY3RlZExpbmVDb3VudCI6MzIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijc4YTA4ZTZmNDlkYzBkODRhNGZmNTRlOWVmYmU5ZWRmZjM2YWRkNjk1NjQxMjBjMWE1ODU2MDIwOTM5OGZiNDQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjBhNzM0OTJkODk0NmIxZDBmOWQ5YzA0YjcwNGE5MjBmMjRmODllZjdjN2Y3MzExYTg1OTlkMTBjN2Y2MzU4ZDAiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6Ijg5OTdmMzcyYzJlMGQyMDgyODFjYWNjMWRkYjk3YTNjOThjZTUwMDFiZjcyMDQzZDE0NTRiMTAxMTQzMGY2OGIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjYyODNjNWFmNWMxMDljZjViOGJmZGU3MjExNTYzODdkZDE2YjZhZjY0ZWE5ZjNjOGViZmNjN2M0MDgxM2NjZjMifQ"
+        },
+        {
+          "resource": "repo://frontend/src/routes/holdings/page.svelte.test.ts#L374-L407",
+          "version": "repo-lines-v1:sha256:98c1a1c9a2b3caf0504ffbe3b425ca1c12897c1f2daadbf9ffad3278c786b465:eyJzZWxlY3RlZExpbmVDb3VudCI6MzQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjBhMDRjNTMzMWNkNmUzZDA0MjRlNzY1NjZkMzdhNWViNmVmYzMzOThmZDk2NWI4ZWQ0ZDM2MDk3OTI2YzE5YzMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjBhNzM0OTJkODk0NmIxZDBmOWQ5YzA0YjcwNGE5MjBmMjRmODllZjdjN2Y3MzExYTg1OTlkMTBjN2Y2MzU4ZDAiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImYzM2M5MDg5NjBkZDhiZjE0YTM1NGJiMWYxNzA2N2M2NWNlNDYzYWQ4YmFjN2NkMmUzYjUxNDg2MDRmM2QzZjQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjQwOWIwNjcxNjVhOWU2YzA2MWEyODYyMWI4ZmQ4MTBjMjZkYzU3MmY2YTEyMmQ0MmQyMmQ5YmYyYmEzNzg0MTYifQ"
         }
       ]
     },
     {
       "id": "claim_05a12a6d779948ae906bac27f15e086d",
-      "statement": "`HoldingsService.load()` is the sole implementation of the collect-every-page contract: it loops `getUserHoldings(offset, PAGE_SIZE, token)` sequentially with `PAGE_SIZE = 50` and the `MAX_PAGES = 100` stale-total cap, breaks early on an empty page, toggles `isLoading` around the whole loop, never throws (it stores the message in `errorMessage`, keeps the previously loaded rows, and returns the caught error or `null`), and clears the error on the next success.",
+      "statement": "`HoldingsService.load()` is the sole implementation of the collect-every-page contract: it loops `getUserHoldings(offset, PAGE_SIZE, token)` sequentially with `PAGE_SIZE = 50` and the `MAX_PAGES = 100` stale-total cap, breaks early on an empty page, toggles `isLoading` around the whole loop, never throws (it stores the message in `errorMessage`, keeps the previously loaded rows, and returns the caught error or `null`), clears the error on the next success, and — after the loop — issues at most one non-fatal `getValuationsBatch` for the distinct `security_id`s inside its own `try/catch` that degrades to an empty `valuations` map.",
       "evidence": [
         {
           "resource": "repo://frontend/src/lib/components/holdings/holdingsService.svelte.ts#L10-L63",
-          "version": "repo-lines-v1:sha256:35a66e43c63190d0d90f2a79e37e7e7203ccaf693cc82c642304d3d6ef785fd2:eyJzZWxlY3RlZExpbmVDb3VudCI6NTQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjY0ODQwODQ5Y2FkZjdiNzQwYmZlYjFiOWM4MWRlZDE5ZWQ4OWUzOTMyZmM1OGRkYmJjZTQ2N2IzYTRiNGZiN2YiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjY3Y2RhODJkYTYwNjIzOGUwNWU2MjM5OTU2OWM1ZWUwMzk5MzQxOTY0OGFlNWQ0M2EyYmY4Y2Q2MzQ3ZjgyNjMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjgwNzEzN2ZhZTVjMjI2OGRlYWIxNmY0MTU1YjA0MzRmYzkwOGU0NDM5YmY1MjczNzU2NWEwYWEyODc0MGMxMmIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImVkMWRiNjU2M2E2YTRkMmI1NzVkYWI2ZTgwOGVmNWVjYWJmYjkyNTRhMDMyYzYyZmE2NmE2MDhmNDEzYjVmY2EifQ"
+          "version": "repo-lines-v1:sha256:74bd78ef2d60bbce32bc51dbb8fcc49946e8543fda406133c6ed96fb5c940320:eyJzZWxlY3RlZExpbmVDb3VudCI6NTQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImU4MjAwOTY0YTk3ODYzNTUyMmIyYWIwOTBjNjUwNjVkOGVmOGU4NWM0NzMwYmIyZWIwNDYwZDM0YzY3N2RkYmIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjY3Y2RhODJkYTYwNjIzOGUwNWU2MjM5OTU2OWM1ZWUwMzk5MzQxOTY0OGFlNWQ0M2EyYmY4Y2Q2MzQ3ZjgyNjMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjQ3Zjk2MmIwYTcyNjM2NjBkMGNlNWY2YjRiZDIzMmM0MTc5YjJmOWEzN2IyMGMzODU4YzExZDhkMmNlM2I3ZmIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImM0YTRmNjk3ODRhNGNjZWFiZGQ1MzFlZGNkNzNhODgxMDAwNjcwZWZhODgxMjM5MTA0OWU1OTRiN2EwMTg5MzgifQ"
         },
         {
-          "resource": "repo://frontend/src/lib/components/holdings/holdingsService.test.ts#L68-L162",
-          "version": "repo-lines-v1:sha256:3ae6a5a4062d3a7ce1dac6636a238c6c9cb2dcc04ebc8cab0659ce7a24ac4a37:eyJzZWxlY3RlZExpbmVDb3VudCI6OTUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjczYjkyNjU5YzNhZjFjNDcxOTBlYjIxNjNkMmFlYzE3NmQ1NDMyYjIwYmUwYmYwYzQ5YTQ5M2VkYWZkMWM3MWEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjBhNzM0OTJkODk0NmIxZDBmOWQ5YzA0YjcwNGE5MjBmMjRmODllZjdjN2Y3MzExYTg1OTlkMTBjN2Y2MzU4ZDAiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjJkYTc5NzQ4NjNjOTI1MWJmOTJhZGVlYmRjNTdmZDQwYmIyM2U1YmVmOGE3MjkxMjlhZTBhZGNmZDk3MzQ5MjMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImFmMGNkODQ1NjA0NjZjYmNlMDMxYWRlMzUzODY4MDEzODVlNmQwYThiM2M1YzgzY2QxZTAwNDAwODM5NmQ0MzQifQ"
+          "resource": "repo://frontend/src/lib/components/holdings/holdingsService.svelte.ts#L96-L134",
+          "version": "repo-lines-v1:sha256:871b632d40f045b25bf612283344db4667d1ec79304ac3b171f92669e7354e18:eyJzZWxlY3RlZExpbmVDb3VudCI6MzksImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjgzYjFhYzI5NzkyMTdkNDU0NGZmYzc1ZGJiYzFhMDFmODNlMDBkNzAxNDIyMTgzZjNkMTJjY2I2OWY2YTFmN2UiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjY3Y2RhODJkYTYwNjIzOGUwNWU2MjM5OTU2OWM1ZWUwMzk5MzQxOTY0OGFlNWQ0M2EyYmY4Y2Q2MzQ3ZjgyNjMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImJiYmUxOTY0YWJiNjVkNTA5OTA4ZTIyZDQ1MWRkN2U0OTJjMTgyNDM3OWQ3MjA2NmE4MzQ0NjIwYjFmODNkNjkiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImVkMWRiNjU2M2E2YTRkMmI1NzVkYWI2ZTgwOGVmNWVjYWJmYjkyNTRhMDMyYzYyZmE2NmE2MDhmNDEzYjVmY2EifQ"
+        },
+        {
+          "resource": "repo://frontend/src/lib/components/holdings/holdingsService.test.ts#L250-L313",
+          "version": "repo-lines-v1:sha256:7c656ae9abee23a49fcf909f5e1e8101461dfde89505726b112ba55cab226dad:eyJzZWxlY3RlZExpbmVDb3VudCI6NjQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjBhZmIxNWJkZGI5NTRhZTgyYjVkOTAyNjYwNDE4NTIwNjdiZjg0NzI4MTc2NmM3NDQxNDM4NzQ2MjBkM2JmMzYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjBhNzM0OTJkODk0NmIxZDBmOWQ5YzA0YjcwNGE5MjBmMjRmODllZjdjN2Y3MzExYTg1OTlkMTBjN2Y2MzU4ZDAiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjdhNzhjZjczNDFmMjk4YWVmNmFkYWUxMWQ1NWZiOWI3NzY5MGVjN2NiMWEwNWJjYTMxN2QwYjUzZDk5ZjFiMzEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjoxLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImY2ZjViNDBiMTU4NDU3ZDE3ODY0ZjIxNzkwNzg2ZGQ1YTJlY2RiNjRiNjZhNjUxZjc4OGQ0ZTI1Y2QzMzAzZDIifQ"
+        },
+        {
+          "resource": "repo://frontend/src/lib/components/holdings/holdingsService.test.ts#L79-L162",
+          "version": "repo-lines-v1:sha256:91491a5a7d2efec2a5c819b5ed6391996685853bd29c3ea387dff94abf9ba875:eyJzZWxlY3RlZExpbmVDb3VudCI6ODQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjczYjkyNjU5YzNhZjFjNDcxOTBlYjIxNjNkMmFlYzE3NmQ1NDMyYjIwYmUwYmYwYzQ5YTQ5M2VkYWZkMWM3MWEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjBhNzM0OTJkODk0NmIxZDBmOWQ5YzA0YjcwNGE5MjBmMjRmODllZjdjN2Y3MzExYTg1OTlkMTBjN2Y2MzU4ZDAiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjJkYTc5NzQ4NjNjOTI1MWJmOTJhZGVlYmRjNTdmZDQwYmIyM2U1YmVmOGE3MjkxMjlhZTBhZGNmZDk3MzQ5MjMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjhmMzVjOGE4MjBjOGQ4YjgxZTU5YzhmMDcwNThjYWUwZDIzZDg1YzExOGU0N2QzOTJmZmJmM2FlNzZhZTMwZWIifQ"
         },
         {
           "resource": "repo://src/core/pagination.py#L8-L16",
@@ -225,15 +237,15 @@
       "statement": "`holdings-table.svelte` stays presentational: it derives a normalized `HoldingsTableConfig` from the `tableConfig` prop, keeps a local copy so a column drag gives immediate feedback, and emits the final clamped config once at pointer-up via `onConfigChange`, while the `/holdings` page owns persistence and pushes write failures into a `holdings-error` alert without reverting the optimistic UI change.",
       "evidence": [
         {
-          "resource": "repo://frontend/src/lib/components/holdings/holdings-table.svelte#L47-L104",
+          "resource": "repo://frontend/src/lib/components/holdings/holdings-table.svelte#L59-L116",
           "version": "repo-lines-v1:sha256:2ded8b1631a6fe42cf6906aefa99bac7857d74236f96901fb5e84ceac3e41a05:eyJzZWxlY3RlZExpbmVDb3VudCI6NTgsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAwYjdhOGJiMzU1MWQxMzk3Y2NjYTY1NzM5MWZiMDAwODVjYmYwZTVjYWVhYWJjZThmNDIyMGZkOTRjMGE1OTAiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjY3Y2RhODJkYTYwNjIzOGUwNWU2MjM5OTU2OWM1ZWUwMzk5MzQxOTY0OGFlNWQ0M2EyYmY4Y2Q2MzQ3ZjgyNjMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjI4ZmI3ZTI3M2JiOGFlMjllNjg1YjNiYzk3NmFlYjE5MmIxYzRmYTM2MThjZDk3YThlYjNjOTNiMDRiN2JmYjciLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjNmODJlMDUyYjdiMzJhMDNiYWRlY2Q0YjcwMzg4NzIzOTdhMGY3Y2UxZWYxMjk0ZDkwYTZhYmM2YzE5NWNhZTgifQ"
         },
         {
-          "resource": "repo://frontend/src/routes/holdings/%2Bpage.svelte#L97-L119",
+          "resource": "repo://frontend/src/routes/holdings/%2Bpage.svelte#L183-L205",
           "version": "repo-lines-v1:sha256:4f697ca073e9489c0a60e26ae247d4873dead6d3c288b234ee6faea041f97be0:eyJzZWxlY3RlZExpbmVDb3VudCI6MjMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImM0MDM4Y2EwNDE3ZGM3MTI2YmQzMWFmYzQ2MjFlYWVhZjNhZDUxNmMzOTAyNjBlM2EwZDI5NWZhNTc3ZDc4OWIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjY3Y2RhODJkYTYwNjIzOGUwNWU2MjM5OTU2OWM1ZWUwMzk5MzQxOTY0OGFlNWQ0M2EyYmY4Y2Q2MzQ3ZjgyNjMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImNkYzZmYzBkNTUyNGUyMDc0ZDQ2MWFkMDUwNTIwODhkNmU5ZjI5ZDdhZWQyNjIwZWZkM2YyYzdlMDExNzMxMzEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImYyM2U5ZDUzZWRlNGI0M2MwYzBhNzZlZDJiNDZhNzE3MzFhMmEzMzNkZmZkYjZkMDk5YWYwNjc1Njg1MGE3YTAifQ"
         },
         {
-          "resource": "repo://frontend/src/routes/holdings/page.svelte.test.ts#L437-L451",
+          "resource": "repo://frontend/src/routes/holdings/page.svelte.test.ts#L459-L473",
           "version": "repo-lines-v1:sha256:d76c7a9be24e19cccf797f205a5dbf5d1287e155762ab3da5060d1bc7a4725c6:eyJzZWxlY3RlZExpbmVDb3VudCI6MTUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjE2ZmVmY2U4ZTE0MWZlZDhmNjc0Y2M5MmJlY2MzZWIxMTM3YzI5NmM4MzNkYWQyYmJiZTE5MDFmMDk4YWVhZmYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjBhNzM0OTJkODk0NmIxZDBmOWQ5YzA0YjcwNGE5MjBmMjRmODllZjdjN2Y3MzExYTg1OTlkMTBjN2Y2MzU4ZDAiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjAxZWU3MDgwYTA0N2Q1MTQwNjA4MzQ3Y2I3NzM4NmY2ZmZmZjhkMzEyZjEzN2U2ZTRiZjhlMzZhNTAzOTAxMzYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImMyODkwZjk1OTlmOTNkMjU5NWFkY2Q5MWIwZTA5ZTFkNDUwODA1MGZmZTc0NGU5MWZhMTQ4MDA5ZjllZGJkZjUifQ"
         }
       ]
@@ -243,7 +255,7 @@
       "statement": "`holdings_table` and `holdings_group` are persisted one top-level key at a time (`patchPreferences({ holdings_table: config })` / `patchPreferences({ holdings_group: mode })`) through an injected structural prefs service instead of the module singleton, matching the backend's top-level JSONB `||` merge so a concurrent write to a different preference key cannot be dropped (nested values of the same key remain last-write-wins).",
       "evidence": [
         {
-          "resource": "repo://frontend/src/lib/api/userPreferencesService.ts#L80-L90",
+          "resource": "repo://frontend/src/lib/api/userPreferencesService.ts#L103-L113",
           "version": "repo-lines-v1:sha256:40df238a3f4974afb6092439f2d4e985c0b1a7a19af9c17d5130c015bcf25425:eyJzZWxlY3RlZExpbmVDb3VudCI6MTEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjFkZGMyN2Q4ZTk5NzRkYWExYTdiOWEzOTE4YTYwMzk4YThiNWRlNTk0ZDYxZjNmYzlkMTVjNzM2ZjM2MGU5NjIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjY3Y2RhODJkYTYwNjIzOGUwNWU2MjM5OTU2OWM1ZWUwMzk5MzQxOTY0OGFlNWQ0M2EyYmY4Y2Q2MzQ3ZjgyNjMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjExZmRjYWU4NGM0YTkxYzljZGVlYWVjMTg4NDUyYjAyZjA5NGRjYmRkYTlhYzRiYmVjM2ViZGNiODZlYzUzOGYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjI5OTI1ZDRkYWQxYWFjYmI4N2NkZGQ0YmJmZTYxYjgwY2JlNzk4OWMwNzEwMDI3M2EyNDEyZTBkNzgwYjk0MjQifQ"
         },
         {
@@ -255,7 +267,7 @@
           "version": "repo-lines-v1:sha256:93f9a38d2283fc4b0f32fd5b570058549c79b0e47e869754aa12fe06f80d99b7:eyJzZWxlY3RlZExpbmVDb3VudCI6MzksImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImVhZjIyY2YwNzMyNTkyYzI0NzE0MWNiZTYxZWZhMTEwMTI2MTJmNWEzMTIyYjlhZjliYmFmNTJmNTcyNGQxOTQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQxMmNhMzQ1Y2NmNzViZjljMDgwNmJjZTY5NWJlOGRlODA4Yjc5OTg0MjUxYTdhNTRkMjAyY2Y2MTAxZGQ0NTEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImVhOWZjZDU5Mzc0YzdjN2JiNTZhMTJhMjIwYzc3MTNmMmI3YTVlNjEwMWZiNmUxNDM2ZWQwMDc2N2RlZjQ4Y2UiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
         },
         {
-          "resource": "repo://src/account/router.py#L194-L206",
+          "resource": "repo://src/account/router.py#L217-L229",
           "version": "repo-lines-v1:sha256:30b24c7482ffb83328489aa1bed0c4dde25087214175962bf4637114289af579:eyJzZWxlY3RlZExpbmVDb3VudCI6MTMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAzZGQzM2M4YTFkYzk5ZmM0MzNhMzgzNTY4ODJhNmMwYWU4NDg3YjgzMDc2YzljMzE3YThiMmVjZDg5OTJkYmMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjMwYzFmMTg4ZjE0MmVkN2E4MjQ2ODBiMjA3MTcyYzU1MTliYzYxNGE0OGZkYTdjZjE2N2VkYjhkZGY3OTk1NmMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjQ5MDdlODBiZmE5MjRlNDAxZmNjOGM0ZGY1YTM3Y2RmYTgwNDA2MTBlMDVkMjc0NmJhNmM3ZWJhMjQxYjk1MDUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImJiMzE0NWM2N2ZhNzZiN2VkNjk4Nzk2NjY5MmY3NTlhMjhkZDkwMmY2NDBkOGJmOTIzYzBiODQ2OTcyNTZiNzgifQ"
         },
         {
@@ -269,12 +281,12 @@
       "statement": "`normalizeHoldingsTableConfig` guarantees a usable config from any stored shape: non-object/missing input yields defaults, unknown column ids are dropped from `widths` and `visible`, widths are clamped by `clampColumnWidth` (non-finite → default), surviving `visible` ids are re-ordered to canonical `HOLDINGS_TABLE_COLUMN_IDS` order with the sticky column force-included, an empty or fully invalid `visible` list falls back to all columns, and the returned object never aliases the defaults.",
       "evidence": [
         {
-          "resource": "repo://frontend/src/lib/components/holdings/holdings-table-columns.test.ts#L113-L202",
-          "version": "repo-lines-v1:sha256:17c808110e737c5767a9b3f01e940f58ec1bff598d05a55f227b9a66c7c51a91:eyJzZWxlY3RlZExpbmVDb3VudCI6OTAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjFkYWE3M2I2NjhhMzU1YjBiMDRlZjgwZWQ1YjFlMTM1NTU5YjY0YWU3OWIzNzNkNzZiYzNjMTBlMDdlZWE4YzciLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjBhNzM0OTJkODk0NmIxZDBmOWQ5YzA0YjcwNGE5MjBmMjRmODllZjdjN2Y3MzExYTg1OTlkMTBjN2Y2MzU4ZDAiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImZiNmI3MDgxZTQ1NGQ4NDM1MGNiYmYzN2FjM2VlNjliODQ4ZjEzMjViOGRhOTM1OWM2MjY5ODg1MDBlNGNlOGYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjoxLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImY2ZjViNDBiMTU4NDU3ZDE3ODY0ZjIxNzkwNzg2ZGQ1YTJlY2RiNjRiNjZhNjUxZjc4OGQ0ZTI1Y2QzMzAzZDIifQ"
+          "resource": "repo://frontend/src/lib/components/holdings/holdings-table-columns.test.ts#L182-L289",
+          "version": "repo-lines-v1:sha256:ce6d8bf4ca32b46aa45f4e4a7331b6cc2cc8fe59d25e31750ecd6616b45270bf:eyJzZWxlY3RlZExpbmVDb3VudCI6MTA4LCJmaXJzdFNlbGVjdGVkTGluZUhhc2giOiIxZGFhNzNiNjY4YTM1NWIwYjA0ZWY4MGVkNWIxZTEzNTU1OWI2NGFlNzliMzczZDc2YmMzYzEwZTA3ZWVhOGM3IiwibGFzdFNlbGVjdGVkTGluZUhhc2giOiIwYTczNDkyZDg5NDZiMWQwZjlkOWMwNGI3MDRhOTIwZjI0Zjg5ZWY3YzdmNzMxMWE4NTk5ZDEwYzdmNjM1OGQwIiwicHJlY2VkaW5nQ29udGV4dExpbmVDb3VudCI6MywicHJlY2VkaW5nQ29udGV4dEhhc2giOiJmYjZiNzA4MWU0NTRkODQzNTBjYmJmMzdhYzNlZTY5Yjg0OGYxMzI1YjhkYTkzNTljNjI2OTg4NTAwZTRjZThmIiwiZm9sbG93aW5nQ29udGV4dExpbmVDb3VudCI6MSwiZm9sbG93aW5nQ29udGV4dEhhc2giOiJmNmY1YjQwYjE1ODQ1N2QxNzg2NGYyMTc5MDc4NmRkNWEyZWNkYjY0YjY2YTY1MWY3ODhkNGUyNWNkMzMwM2QyIn0"
         },
         {
           "resource": "repo://frontend/src/lib/components/holdings/holdings-table-columns.ts#L108-L182",
-          "version": "repo-lines-v1:sha256:4390fcce38423d3ab9c7d8b6b47a4f983a7ced153f144b0f7537f6741c145f3f:eyJzZWxlY3RlZExpbmVDb3VudCI6NzUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImQ1NjM4Y2QyNWExNWE5YjMxM2RmYTQxNzY0YTVhYzIxNzM4NDU3YmViZWUwOWQ2YWZlMzViZGIxNGZlN2I1MzkiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQxMmNhMzQ1Y2NmNzViZjljMDgwNmJjZTY5NWJlOGRlODA4Yjc5OTg0MjUxYTdhNTRkMjAyY2Y2MTAxZGQ0NTEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjI1YmIxYWY1MjFiZWNkNTVkNzA1NmE4YTlhMGRkMWViY2RhMWZjNzlmZjIzZjc0NTc3NmY0OTk1ODMzNTI5MjMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
+          "version": "repo-lines-v1:sha256:b58ac62fe6b25d55748a20279f915b8be42151c479db8141a1df630762935ae5:eyJzZWxlY3RlZExpbmVDb3VudCI6NzUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjYxNGUxZmQyNGRmYTVhZjZiOGFiZTExM2NiZWUzZjZhMTFlYWNmYjE2MjZjMjZhOTEyOTc4MGNmZWYzYjIyY2YiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImI1ZDk4N2ViMTBiMjVjZTJkM2JkOTI5ZDNiYThkOTBlNGJhYzY5NjQ5NmMyODhmZjBhODBiZWFhZmE2NTU5NTUiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImNkZjVjNjNjMGVhNWMzYjUzNjA3ZDEwMWVhMzYyNzgxNDlkOTQ5ZTMwYmQ0NDI1YzhjMjY0YjhjMzljODllNDMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImI1ZjMzODY4MTYwNjc2MWI0ODcwMTMyZDFjNzczYjNlN2M5NDgyODJiYTllZWM0Yjc2ZDhjYmNjZjUyZjMwOTgifQ"
         }
       ]
     },
@@ -284,19 +296,19 @@
       "evidence": [
         {
           "resource": "repo://frontend/src/lib/components/holdings/holdings-table-columns.ts#L116-L146",
-          "version": "repo-lines-v1:sha256:24dff8b8b3e96bbc3614b5c5fc6065ec086089958922d2f40a8c086a879cd5e2:eyJzZWxlY3RlZExpbmVDb3VudCI6MzEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImVhZjIyY2YwNzMyNTkyYzI0NzE0MWNiZTYxZWZhMTEwMTI2MTJmNWEzMTIyYjlhZjliYmFmNTJmNTcyNGQxOTQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQxMmNhMzQ1Y2NmNzViZjljMDgwNmJjZTY5NWJlOGRlODA4Yjc5OTg0MjUxYTdhNTRkMjAyY2Y2MTAxZGQ0NTEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjY1OTQ3NmJmOWJiMzQ3YWNhZmNjYjdmZmMyMzQxN2JmNzY3ZTE1NDc0NmQ2ODZmMWI3MDYxNmNkMGVkYjJhZTciLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjgxNzQzNWMxMmI1MWFiZDE4NjIxOTBjOTVlMGVjYjM0MWY0YWFlN2QyYWZjYWU0OGM2ZWQ1OTY5MTdlMzdiOWEifQ"
+          "version": "repo-lines-v1:sha256:5f8b21fcb1c845c5cd4c3490fbda1987419657ec4bc6c5505aca18be96c2c1a6:eyJzZWxlY3RlZExpbmVDb3VudCI6MzEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQxMmNhMzQ1Y2NmNzViZjljMDgwNmJjZTY5NWJlOGRlODA4Yjc5OTg0MjUxYTdhNTRkMjAyY2Y2MTAxZGQ0NTEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjY3Y2RhODJkYTYwNjIzOGUwNWU2MjM5OTU2OWM1ZWUwMzk5MzQxOTY0OGFlNWQ0M2EyYmY4Y2Q2MzQ3ZjgyNjMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImVjZmZjODVlYjFlNmIyZjg1OWQ2MjMyOThkMmEyNzY4NDUzOWY1NTcwOWM1NWYzYjNlYzQyYmJhY2YzMmFlY2YiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImRkMGVhYzYyYWQxY2VmZWE2ZDg4YjU5YjYzZWNiZjBkZWFhMDYzMjdjMDk0YzU1NDk4ZTczZTE4M2MyNDI2OGMifQ"
         },
         {
-          "resource": "repo://frontend/src/lib/components/holdings/holdings-table-columns.ts#L42-L46",
-          "version": "repo-lines-v1:sha256:cf33eb630271a9ed5bdd9082c5b443202daf5c2dd09bbacfd0e303575b2cf300:eyJzZWxlY3RlZExpbmVDb3VudCI6NSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiZWFmMjJjZjA3MzI1OTJjMjQ3MTQxY2JlNjFlZmExMTAxMjYxMmY1YTMxMjJiOWFmOWJiYWY1MmY1NzI0ZDE5NCIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiMDQ3ZGFhZjU4ZGQ4OWUxYjg3YzRkYTMxNWZiZmVjNjdlYzY1NWM2YmIwMzg1ZjgwMTg5MGQ4MmEzMDczM2NjNCIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiNmI1N2VkNjA3MGM0YmE0OTg1MjRkODZhYjNjNDRlYjExNmRkMDQzNzA3MTJkYmIzYzI1MWJlMDRjNjljMWExNiIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiZGU0YWEzYTYwMTA5NDEyYTI2NGJlZDk2YWJlOTFiOThmZTVlODAyMjM1ZDdjY2RiMTM3YzcwNWIwZTFjNmFlMSJ9"
+          "resource": "repo://frontend/src/lib/components/holdings/holdings-table-columns.ts#L42-L50",
+          "version": "repo-lines-v1:sha256:38ea65e5e4c752131d4b3b5a2801c38cddfa346a160c108efafd911801a25dd8:eyJzZWxlY3RlZExpbmVDb3VudCI6OSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiZDAwYzY0MTU0MDkwZTIwNTUyNzMzNWJhNzk4ODU4Nzc2OWU2ZDg5MzQzZTkxNmQ3YTYwOTRlMGFmYzhhZjYwYiIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiMDQ3ZGFhZjU4ZGQ4OWUxYjg3YzRkYTMxNWZiZmVjNjdlYzY1NWM2YmIwMzg1ZjgwMTg5MGQ4MmEzMDczM2NjNCIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiZWE4ZmIzMjJiMjAxZDM4YzJhN2U4NjU4NDRhMTdmNmZiNTNiMjNhN2E0YTY0MjUyOWNjODFhZDg0Y2QzNzExMCIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiZGU0YWEzYTYwMTA5NDEyYTI2NGJlZDk2YWJlOTFiOThmZTVlODAyMjM1ZDdjY2RiMTM3YzcwNWIwZTFjNmFlMSJ9"
         },
         {
-          "resource": "repo://frontend/src/lib/components/holdings/holdings-table.svelte#L320-L345",
-          "version": "repo-lines-v1:sha256:8e8f60b1cf1f4b8b0b45d98a1aeb0ddb09cdf06d182f5eead08048b2bd7e06fb:eyJzZWxlY3RlZExpbmVDb3VudCI6MjYsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImViYjk5YzYyYmEwZTgwODg4YmRiYjEyZTYzN2RlYjI0ZjU5NDI1ZmYzMmQ0NjcwNDE2MTU1YjNiNGMzODEwNmUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjI0ZDdmMTNjMTFiN2JmMjhlMTcxZjZhZDY2ZjBiMDAzMTQ4ODM4NGZhNjY5YzMyZjM5MGRkZDI1ZThiZmYxZWQiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjBlZmY0NGVmYjZlOWI0NDk5NzdlOGQyNmViMWU4NjY3ZGM3NjJjYTI5MzJlMjFlYzhlZjhkZGRjZmU0MDY3NTQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjY0ZDlhZjY4ZGQ4OTU0ODhjNzk5NGVjMWZiMzBkMjZiMDc0YWFlN2U2MmNkODg3NjJkZTIxN2FkYmE5YjcxZDUifQ"
+          "resource": "repo://frontend/src/lib/components/holdings/holdings-table.svelte#L409-L425",
+          "version": "repo-lines-v1:sha256:67f72f3aa48dc51ec0cf81840e480d7b42a292b9e3c3e69c95203e79e22b89e5:eyJzZWxlY3RlZExpbmVDb3VudCI6MTcsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjhkN2FlZGEzMTg0NjY1MTJmNjMyMWY0MTkxZTg4ZGU0MTM0NzU1Y2Y4ZTkxMTk0Y2IwZmI4NDQ4YzI3ZDJmMTIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjMzM2I2ZjBjODA3NTgwNGNmMDgyOWQzNDQ0YjI1Y2M4ZTc2ZmE2MzY2MjEzYTYxYjA4YzY1ZTk0OTBmMTk0ZDQiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjIzMDlhMGRhYWI5OWQ5YTlkZDFkZmU1YjM4MzE5NDM1MjgzZjNkYmI2MTVmZGIxMGZlZTYyZTA3OTRjOTM3ZjEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjBmNmRlMTQwZjhmYjc5NTA3NTYxNmM0NDBkN2U0ODM3OTYzZDdkMjAxNzk2Nzg3MDhmYzU3MWU1NTU3N2Q2OWQifQ"
         },
         {
-          "resource": "repo://frontend/src/routes/holdings/%2Bpage.svelte#L199-L208",
-          "version": "repo-lines-v1:sha256:695b5876ee2c37159b47ca791804e588feedfb063a2de0f974b700d18fad764e:eyJzZWxlY3RlZExpbmVDb3VudCI6MTAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAzZGIzNzU4Y2UwMzlmODRmMDNiMzUzNTBiNmMxNmIyOGI4YjUzMjg2NzE0NDVjNjU4ZjU1NjAwNTIzOGRiY2YiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImViZGE1MWIyNWU2ODg2YzRmYWY3MmJlYzgyNjQyOGY1MjQ2MmIzZWZiNmQ1N2U4M2JhMThhZjRjOWExYWEzZGEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjM0NDM2NzBkNmVmZGUxODk4NDNmN2NjMjI5ZDM2MGU3MGVhNmIzNDgzY2Y3ZDg3M2I3MGIwZDdmNzI3MGVjMTEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImMxODkzYzI3ODgzMWUxNTcwNDQ0ZDk5NjI1ZWY0Y2Y3YWY0MjVhYzJjOWE4NGMyYmI2ODAxNzIxOTZlN2Q3YjcifQ"
+          "resource": "repo://frontend/src/routes/holdings/%2Bpage.svelte#L361-L371",
+          "version": "repo-lines-v1:sha256:76ea6266d8dd7176132ef83b85c8cc10c2debf7c7f2115f67b3e726d3f324770:eyJzZWxlY3RlZExpbmVDb3VudCI6MTEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImNiOTY0ZWFiYWU5MDA5MzljYWY2YTYyZGM3NGIwZTdiNDEyOTZjZTIxZjNiNTZiM2E1MTA3ZTU0MzM0NjhjMTkiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImE1YzJiZjEwZTE5ZDlmMTYwZWFlZWEzMzY4YTE3MzllMjQwNDkwYTQ5NjkwMzU4MGI1YzRjMTg5ZWRkZDBlMGEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImY1NzdhMjI1NWZiMjg4MzI3YjhiM2ZmYjY5NTMwMTlmZWY2MjUyZDMxMzA3YTlmMmQ4YTA3YWMwYzVhNTNjNTgiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjEyNmRkYTVkY2U3MzA5YzA5OTE0OTg1ZDU0NTBmZDg0M2UzZDgxOWNlOWU2MmE5MTUyOTY0NGQ2YTFiZGM5YzIifQ"
         }
       ]
     },
@@ -323,8 +335,8 @@
           "version": "repo-lines-v1:sha256:24df83aeeda1fce41122e4e137acff937ac804e06dca01fd25a213b5cdfbb15b:eyJzZWxlY3RlZExpbmVDb3VudCI6MywiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiOWQ5YTljMmVlNjgwNmQ0YjZmMWUyOTA5MTg1MzQ4MjBkZjE3MjY3MmEyYmZhNmM5MTExODY2YjQ2ZjUxYTQzZCIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNjdjZGE4MmRhNjA2MjM4ZTA1ZTYyMzk5NTY5YzVlZTAzOTkzNDE5NjQ4YWU1ZDQzYTJiZjhjZDYzNDdmODI2MyIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiNzBlZGQ5ZWExZTczY2I4Njg0MjQyMTU5Y2UzYjE4OTYyNGFhZDA3MjJiYmNmYzI5NmE1YjI5YTVkMmJkMWM4NiIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiZGE1YTFlOWU1YjM2NWI3ZDMyMmIzNDdjMjJjNzljNzg3N2U0NGExNjJmNjEyNzIwMzVlNzAwY2ExNjQ3NThhOCJ9"
         },
         {
-          "resource": "repo://src/account/service/position.py#L164-L205",
-          "version": "repo-lines-v1:sha256:913fdbee56896ba62840b716b72bbcfca0a72eafe2d3047def31a63ad4daa7d4:eyJzZWxlY3RlZExpbmVDb3VudCI6NDIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjJlNTkwNWRkMzdiZjIzMmM5ZTE3OWE1N2EwZGNiYmFiNWE1YmM0MGY2NGUzNWVhYTc2YzljZTJhZDBhMGRjNGQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjU5MDlhNTNhNjE4ZDAyOGUxZDMwMDBjMGE3YWJjZWVjYmU1ZmIzN2Y0ZTUxMWVmZTQ2NjQzZmFkNmU2Njg3MmYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjY4ZmZjYzcwMGY3NWQ2Yjk5Y2U3Zjg2MTJmOTRiNGI4OWI2M2UyOTgxNTkyNDI2OTA4Mjc5ODNmMmM4OTRmNWQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjFkODdjNzExZmRmM2JhYWY2ZDg2YWFiMGZmM2I1NTVkNWU2NTk2MmNiODBlZWZjZjMwMWQ3NTYyZTM4M2E1ZDkifQ"
+          "resource": "repo://src/account/service/position.py#L164-L210",
+          "version": "repo-lines-v1:sha256:09a396606e7bd01fa8968b9ed18eb271c276025ce4bf9b664849d01dda174bac:eyJzZWxlY3RlZExpbmVDb3VudCI6NDcsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjJlNTkwNWRkMzdiZjIzMmM5ZTE3OWE1N2EwZGNiYmFiNWE1YmM0MGY2NGUzNWVhYTc2YzljZTJhZDBhMGRjNGQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjU5MDlhNTNhNjE4ZDAyOGUxZDMwMDBjMGE3YWJjZWVjYmU1ZmIzN2Y0ZTUxMWVmZTQ2NjQzZmFkNmU2Njg3MmYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjY4ZmZjYzcwMGY3NWQ2Yjk5Y2U3Zjg2MTJmOTRiNGI4OWI2M2UyOTgxNTkyNDI2OTA4Mjc5ODNmMmM4OTRmNWQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjFkODdjNzExZmRmM2JhYWY2ZDg2YWFiMGZmM2I1NTVkNWU2NTk2MmNiODBlZWZjZjMwMWQ3NTYyZTM4M2E1ZDkifQ"
         },
         {
           "resource": "repo://src/core/pagination.py#L8-L16",
@@ -334,27 +346,27 @@
     },
     {
       "id": "claim_3ecc9fda3ec847419b8c539c2c406212",
-      "statement": "The accounts dashboard `/` reads only the account list (`GET /accounts/`, ordered by account name) in its server load and defers each row's value to a client-side `GET /accounts/{id}/totals` call that `PositionService.get_total_for_account` resolves by pricing the account's positions, converting into the account currency and returning `AccountTotals` (`cost`/`value` as `Money`); the per-item state caches the result and invalidates it when a sync finishes, and the dashboard itself renders no holdings rows.",
+      "statement": "The accounts dashboard `/` reads only the account list (`GET /accounts/`, ordered by account name) in its server load and defers each row's value to a client-side `GET /accounts/{id}/totals` call that `PositionService.get_total_for_account` resolves by pricing the account's positions, converting into the account currency (plus converted free cash) and returning `AccountTotals` (`cost`/`value` as `Money`); the per-item state caches the result and invalidates it when a sync finishes, and the dashboard itself renders no holdings rows.",
       "evidence": [
         {
           "resource": "repo://frontend/src/lib/components/accounts/accounts-list-item.svelte.ts#L10-L34",
-          "version": "repo-lines-v1:sha256:d49aff71c490a144ed465989a0361d18a9b99c28b128507cc5d4d9438a51c584:eyJzZWxlY3RlZExpbmVDb3VudCI6MjUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjI5Mjc3MTk0ZDFmZDFhZDk5MzQ4NDFkZDg0ZWU5MWVkYjU3YmRkODc3NzU5ZGY4YjNmNzM2MGNjYjVhMDQ3MDIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjY3Y2RhODJkYTYwNjIzOGUwNWU2MjM5OTU2OWM1ZWUwMzk5MzQxOTY0OGFlNWQ0M2EyYmY4Y2Q2MzQ3ZjgyNjMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImU1OWZiOGUwMzFlYTdkYWY3YzNlNGIzZDAxNDU4OTBhOTM5OGUxYjI1ZjgwNjgxNTg0YTFiYTg1NDkxYWYxNWYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjoxLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjQxMmNhMzQ1Y2NmNzViZjljMDgwNmJjZTY5NWJlOGRlODA4Yjc5OTg0MjUxYTdhNTRkMjAyY2Y2MTAxZGQ0NTEifQ"
+          "version": "repo-lines-v1:sha256:6b3e85af658f0d7bc35600f93eca2bc14c80070ec385117facdf05cd79a56859:eyJzZWxlY3RlZExpbmVDb3VudCI6MjUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjJlYzFiNjc2NWU4Yjk3YTQyZTQ3MjUxNzAxNDMwY2EzYjhjOTk0NThmNDRhZTM5OGZiOGY3MjY4NTE5MTE5NjgiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjY0ZWZjNDk0MThkMjZkY2YxMjliMjJhNmFhMjExMDhjZWVjMzc2NzdhMzJkMDhlOWQ1ZmVlMzVkZGE2NmJiOWQiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImVlNmNhZTc1ZjEzOGRlYTAyYjU2YjY3Y2ZjZTM1MDBiYjU0OTI3OWY4MTVhZDUwMDMwNjE0ODQ5NDdhOGYyOTYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjFkZTYyZmM0YjQ4ZTBjOTU0N2U1YzBkOGU4NTJmMGU0MDU4MjRkODZjMDkzNGRkNzcyODdjYzlmOTRjYTQzZGMifQ"
         },
         {
           "resource": "repo://frontend/src/routes/%2Bpage.server.ts#L7-L25",
           "version": "repo-lines-v1:sha256:d1bd8454861b38348c245ce5cfba20921c6226d8f17fee42904ad024815c031a:eyJzZWxlY3RlZExpbmVDb3VudCI6MTksImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjRlM2Q1N2FlMTIwM2IxZmZjNTYxNDRmMDUzYjhlYTJjNjY4NWY4MmZlNDExZDFhNGZiY2YzM2NlZTA2NjBmMjIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImFhMWQxYTYzMzkwMjI5Yzc5ODM0N2U4M2EwNDA1NDQxYzk0MDAwMzUyODRhZDE2OGMxYmY2Y2RmMWQ3MGEzNzAiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImIwMDk0NDA3ZWYzYmExZTk0OTY4ZGIzZTgyNjI5Y2Y4YWZlMDZkZjIyMjI1ZGZkYTVjMDE3MTM4OTg2YWM2NmYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjI4MGFhMDYyN2FjMDNkZmNmMzA3NmUzYWI4ODI4ZDJhZDViZjhlMGFiMmU2MTdjNDVkYjhjM2UyN2VjODQyOGMifQ"
         },
         {
-          "resource": "repo://frontend/src/routes/%2Bpage.svelte#L1-L10",
-          "version": "repo-lines-v1:sha256:79f92be51de3f0449405ef66e099c17a6401cb7d8879a17d7e9b0f32b588a2dd:eyJzZWxlY3RlZExpbmVDb3VudCI6MTAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijk0YWJjOGVkNzU0MzgyMjA2NWMwMjlmNWVhMjUyZDEyMjNkNzZhYTdkMmQzZDRmYjEyNTgxMmY2YjVhOTlkZGYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAxYmE0NzE5YzgwYjZmZTkxMWIwOTFhN2MwNTEyNGI2NGVlZWNlOTY0ZTA5YzA1OGVmOGY5ODA1ZGFjYTU0NmIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjowLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjoxLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImI2ZjY2N2UwOTIwY2Y4NGIyNTZkYjAyNGFkZDZmMTU0ODNiMjM1N2NmMTAxMGU3OTE5OWMzZWQ1ODIxNDhmYmIifQ"
+          "resource": "repo://frontend/src/routes/%2Bpage.svelte#L1-L11",
+          "version": "repo-lines-v1:sha256:c40257e9b2ec6fa153756650faf4ed763885d20b0cf2680e293c06c96eef71a8:eyJzZWxlY3RlZExpbmVDb3VudCI6MTEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijk0YWJjOGVkNzU0MzgyMjA2NWMwMjlmNWVhMjUyZDEyMjNkNzZhYTdkMmQzZDRmYjEyNTgxMmY2YjVhOTlkZGYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImI2ZjY2N2UwOTIwY2Y4NGIyNTZkYjAyNGFkZDZmMTU0ODNiMjM1N2NmMTAxMGU3OTE5OWMzZWQ1ODIxNDhmYmIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjowLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
         },
         {
           "resource": "repo://src/account/repository_sqlalchemy.py#L116-L128",
           "version": "repo-lines-v1:sha256:0fea7eaa52784c310822bcdfce8ef294d3592512594f64060f63c11b20f38f8c:eyJzZWxlY3RlZExpbmVDb3VudCI6MTMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ0ZGE5MzUwMDE5ZGMxZTY2NzQ1MjY0Mzg3MzE2MTk5NzIyNWU5Y2U2MDEwN2FmN2I2NGY4NDBkZGVjZmRhNGYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImJhYWU4YTBjYTc2Zjk4ZjdiN2RjNzk4NDk1MWQ2M2U1N2RiM2M2NDU1NzljYTUxYmFkNmE1MzlkNjE0ZWRiYmUiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6Ijg4Y2MzYmQ5ZTE3YzQwNzBiNDE1NTc0NWNiNTE5OTBhN2JmMjEyZjY1YjZhMGMwMzlmZWZhNjAwMThjNTA4OWEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjA3MDg4ZDM0MzE0YmE0ZTA3YThjYmQxYmVmMjhmNjgxNjQ2ZmEyMGZhNTdjMGIzY2FkZDVkNTZlMzEyNGQwYzAifQ"
         },
         {
-          "resource": "repo://src/account/service/position.py#L207-L231",
-          "version": "repo-lines-v1:sha256:0a22482c87b3523ce7a4da4615aeb37e7b5b00db154601a31a929c52edc9f194:eyJzZWxlY3RlZExpbmVDb3VudCI6MjUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjJhMTdiNmY3NDFmY2Y0NWQ3ZGFjMmQ3ZmRhMTc3YTU2Mzk4NWIxNDE5MjI4NWZlY2JiZWM0MjY0ZGYwNzFkZWEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjU5MDlhNTNhNjE4ZDAyOGUxZDMwMDBjMGE3YWJjZWVjYmU1ZmIzN2Y0ZTUxMWVmZTQ2NjQzZmFkNmU2Njg3MmYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImU0YmM3MzBkYTQzOTdmNWJmNTc0NmRlNDM5NzUyNGM2NmRlNTNjMTdkZWQ3ZTg2Yjc5ZDRjYWExNWI5MTBkNDMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjdjNzQ2MjQ1NGQxNTYxOTM0MTUwOWViYjIwZTVmOTY5YzcwNmNlNDlkNDFjN2FlYmI0MmQ0MTU2M2Q2YWQ0MDIifQ"
+          "resource": "repo://src/account/service/position.py#L212-L243",
+          "version": "repo-lines-v1:sha256:4e78d3ccd12a7eb71747d9f1744df3dc567b126fdac7b77aa1872bc75a1cd63d:eyJzZWxlY3RlZExpbmVDb3VudCI6MzIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjJhMTdiNmY3NDFmY2Y0NWQ3ZGFjMmQ3ZmRhMTc3YTU2Mzk4NWIxNDE5MjI4NWZlY2JiZWM0MjY0ZGYwNzFkZWEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjU5MDlhNTNhNjE4ZDAyOGUxZDMwMDBjMGE3YWJjZWVjYmU1ZmIzN2Y0ZTUxMWVmZTQ2NjQzZmFkNmU2Njg3MmYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImU0YmM3MzBkYTQzOTdmNWJmNTc0NmRlNDM5NzUyNGM2NmRlNTNjMTdkZWQ3ZTg2Yjc5ZDRjYWExNWI5MTBkNDMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjdjNzQ2MjQ1NGQxNTYxOTM0MTUwOWViYjIwZTVmOTY5YzcwNmNlNDlkNDFjN2FlYmI0MmQ0MTU2M2Q2YWQ0MDIifQ"
         }
       ]
     },
@@ -378,7 +390,7 @@
     },
     {
       "id": "claim_cc6dab40cd534146a85a2eb7c9420513",
-      "statement": "The holdings read path's test suites follow the repository's mocking contract: the frontend suites mock every API client and framework module that performs network or browser work (`$lib/api/accountService`, `$lib/api/userPreferencesService`, `$app/paths`, `$app/navigation`) and never call the backend, pinning the preference-only load and its paging absence, the `HoldingsService` paging loop and stale-total guards, per-currency bucketing, grouping toggles, the `redirectOn401` path and single-key preference writes; the backend suites mock `PositionRepository`, `AccountService`, `SecurityApi` and `MarketPricesApi` and pin user isolation, pagination and per-account stamping.",
+      "statement": "The holdings read path's test suites follow the repository's mocking contract: the frontend suites mock every API client and framework module that performs network or browser work (`$lib/api/accountService`, `$lib/api/marketService`, `$lib/api/userPreferencesService`, `$lib/api/portfolioClient`, `$lib/api/accountClient`, `$lib/server/auth-cookie`, `$app/paths`, `$app/navigation`) and never call the backend, pinning the preference/portfolio/account-only load and its paging absence, the `HoldingsService` paging loop, stale-total guards, batch-valuation degradation and filter derivation, per-currency bucketing, grouping toggles, the `redirectOn401` path and single-key preference writes; the backend suites mock `PositionRepository`, `AccountService`, `SecurityApi` and `MarketPricesApi` and pin user isolation, pagination and per-account stamping.",
       "evidence": [
         {
           "resource": "repo://frontend/src/lib/components/holdings/holdings-table-prefs.test.ts#L15-L24",
@@ -386,15 +398,15 @@
         },
         {
           "resource": "repo://frontend/src/lib/components/holdings/holdingsService.test.ts#L1-L12",
-          "version": "repo-lines-v1:sha256:416538252e352dc20acb9be6f00791008b308777becf9367a4f83bc689a7d48d:eyJzZWxlY3RlZExpbmVDb3VudCI6MTIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImIzOTJjZjY5OTM0OTQ1ZGRlZmY3ZDIwZGUxODVkMTU5M2YzY2JjZjhhNzE0MDI1YzY4MGY0MWY0ODkzZjFhY2QiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjViZjhkMjgwNGNmOGJmOTc0NDZmZGI5YzA4NjQxNDE5ZWM1MGM2ZDEwN2ZhNjliOGRjZjJmYmEzMDQyODQ3NWYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjowLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImQ5NWU2YWQyYTJiZDBlNjBiYTczMGYwMWQwMjI2OWVmNmRjNGEzYTA5MGY0MjgwOTZhNTQ5MmIxOWVjZDA4MGUifQ"
+          "version": "repo-lines-v1:sha256:a300f04e4c68b1bbcbde519393908bf483850b6e4837ef523285f38de3b238a5:eyJzZWxlY3RlZExpbmVDb3VudCI6MTIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImIzOTJjZjY5OTM0OTQ1ZGRlZmY3ZDIwZGUxODVkMTU5M2YzY2JjZjhhNzE0MDI1YzY4MGY0MWY0ODkzZjFhY2QiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjI4YzFmMDk4OGJjY2I0YWQyOWE3YWNkOWQxMjNkMjRkOWE5NmU2NWQ0ZWZmYzE2ZWU2Y2FmZmI3YTA1MmVmMmQiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjowLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjQ5NTMwZTE3NmI5N2RmZDNlZDMzYmJjNTY5Nzc2Y2QzM2MzM2I1ZTA1YTY4MDUwOGNkYTFkNzYwNjVhMDNkNzUifQ"
         },
         {
-          "resource": "repo://frontend/src/routes/holdings/page.server.test.ts#L1-L47",
-          "version": "repo-lines-v1:sha256:e8e2835fadd2b9f8deb9cc196b869a7db3ff1a1d1245adac3ce7ada24eed74a1:eyJzZWxlY3RlZExpbmVDb3VudCI6NDcsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImIzOTJjZjY5OTM0OTQ1ZGRlZmY3ZDIwZGUxODVkMTU5M2YzY2JjZjhhNzE0MDI1YzY4MGY0MWY0ODkzZjFhY2QiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjNjYmVlYTI0ZTM0MDhhODI0Y2RiOTQ5ZTQ3NzAyYTk3ZWIzNTkxNGMyNmVlOWY3NzA0YjNhZGYzZjU1NmI4YjkiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjowLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImU1ZTRjZTU3ZmVkZTM1OTFiMzRhZjczMGU0NDU2N2M2OTIyMjA2NGYxNTdlM2M0YzEzY2IyYjk1NWZjMWJkOTcifQ"
+          "resource": "repo://frontend/src/routes/holdings/page.server.test.ts#L8-L47",
+          "version": "repo-lines-v1:sha256:adddb42d637d2e42a0dbfed211062fb6b6f6f46b2b9638135c688397c4b1e3ab:eyJzZWxlY3RlZExpbmVDb3VudCI6NDAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijc4OGI4MTQ3YWM4NzkyNmUzNDJiNzg1NTJhNDNmYmYzMWZjYjI3MmY2OWY1ZjFjM2FkM2I2YzNkN2RkMjU0ZjMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImY5Mzc0NzEwZTljZGRjOThlODRjNjlmYTBlZDg4NGJiNGM5YjUzNjA3ZGZiZmUxMGE0MTRlNWViZjRhYWNkYjUiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImZmY2E3ZTIwMDY4ZWU3Y2Y5OGE5ODJjY2VlZWQ5NTdmZmVkOGIzMzk2MDBmNzdmYTc2NDEzYzk4NWU0MWI0Y2IiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjcwZWIwMjYxMzc3M2RjYzI3ODFkMDJhNjVjMGYzOWRhYWE3ZDQ3NmJhYmM4ZWU5YTlkMTU3MTNmY2FmZTdlYzkifQ"
         },
         {
-          "resource": "repo://frontend/src/routes/holdings/page.svelte.test.ts#L12-L34",
-          "version": "repo-lines-v1:sha256:5853dc1b45f51dc533b65ea1110a26b68aae163f10393e9c98ee129573729b8c:eyJzZWxlY3RlZExpbmVDb3VudCI6MjMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijk2MzhjZDllNDMxNjQ3MTdmZDRiNTc0ODZmN2Q1NWNkMzZjODI1MThiZjk1NzJkNjY1MDg4ZGFkYzMyZTZjNjgiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjFlNzk0OWI0ZmYzYzFlZTEwZTdkMTJjOTVkZTkyM2I2ZDAzOWMwZWI2OWFlZmQwMzgwODc5YzY2Y2IyODRiMjMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImZmNWQ1M2MxMWIyNGE5YmY5MzlhNGUwZmM2NDUwMDI2YjY1YzkxYzAwOGI0NTViODMzMTliMWE3NjQ3OTRlOTciLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjQ4NjcyNzNlZTJiNWU5NmRmMTg2YjZmNjA0YzMyMTI1MDhlNGIwY2NkZjQ5ODc2OThkZWMyOGE0OTMzMDIyZTEifQ"
+          "resource": "repo://frontend/src/routes/holdings/page.svelte.test.ts#L14-L45",
+          "version": "repo-lines-v1:sha256:8e07f3e58397bf8f6ccfebe268859e101e3a2ce0503262c54d45d40d59815b28:eyJzZWxlY3RlZExpbmVDb3VudCI6MzIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijk2MzhjZDllNDMxNjQ3MTdmZDRiNTc0ODZmN2Q1NWNkMzZjODI1MThiZjk1NzJkNjY1MDg4ZGFkYzMyZTZjNjgiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImZjOTRhMTRjZjA4NTFmMDA0MjJkNzMxYTgzNzdjOTkxMTg3NDk1NmU3YzY2ZjJkZDNlNGFlNjdmZmViNjU1ZmIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImZmNWQ1M2MxMWIyNGE5YmY5MzlhNGUwZmM2NDUwMDI2YjY1YzkxYzAwOGI0NTViODMzMTliMWE3NjQ3OTRlOTciLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImY2NDc0NzUwMjIwYWJlZTA5ZTg3MWEzOTI0ODA3ZWU4NmQ5NzNlMWE4MjIyN2M4MjY0MTdkYmUxOTdiYWExMWEifQ"
         },
         {
           "resource": "repo://tests/routers/test_account_unauth.py#L14-L20",
@@ -412,23 +424,27 @@
     },
     {
       "id": "claim_5a53faa4306e4d6497998e33502acaa4",
-      "statement": "The `/holdings` read path is split into three phases: the SSR load returns only the preference-derived keys `holdings_table_config`, `group_mode` and `elliott_waves` (and a test asserts `getUserHoldings` is never called from the load), the browser-only `$effect` then drives `HoldingsService.load()` to page every position, and user interactions afterwards issue single-key `PATCH /accounts/me/preferences` writes — so the shell paints skeletons before any holdings request and the page survives a failed load with an in-page `holdings-error` alert.",
+      "statement": "The `/holdings` read path is split into three phases: the SSR load returns only the preference- and filter-context-derived keys (and a test asserts `getUserHoldings` is never called from the load), the browser-only `$effect` then drives `HoldingsService.load()` to page every position and fetch one batch valuation, and user interactions afterwards issue single-key `PATCH /accounts/me/preferences` writes and `goto`-only URL/filter updates — so the shell paints skeletons before any holdings request and the page survives a failed load with an in-page `holdings-error` alert.",
       "evidence": [
         {
-          "resource": "repo://frontend/src/routes/holdings/%2Bpage.server.ts#L7-L31",
-          "version": "repo-lines-v1:sha256:02c5178171ef855f96a423b0870bfea49f860967af6d769f70ac161dbd9454a2:eyJzZWxlY3RlZExpbmVDb3VudCI6MjUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjRlM2Q1N2FlMTIwM2IxZmZjNTYxNDRmMDUzYjhlYTJjNjY4NWY4MmZlNDExZDFhNGZiY2YzM2NlZTA2NjBmMjIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImFhMWQxYTYzMzkwMjI5Yzc5ODM0N2U4M2EwNDA1NDQxYzk0MDAwMzUyODRhZDE2OGMxYmY2Y2RmMWQ3MGEzNzAiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjZmNzQzNjZhMmU1MjdkMTBkYjZlMDliNDE0NGJhNGNkZDA5ZWJhYjkxZDY0Y2FjYmYzYjc3ZGJmYzMxYTE3ZWIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
+          "resource": "repo://frontend/src/routes/holdings/%2Bpage.server.ts#L14-L79",
+          "version": "repo-lines-v1:sha256:9407e3867ab745bd99ec49c43331429c6515ecd0b46afe1202a955f0dbe1e883:eyJzZWxlY3RlZExpbmVDb3VudCI6NjYsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjA1ZGMxZDEwNWEwYTBjZjg4ZWE3YThlZDk1NTNkOGY2MTdmN2EyYWM5NzczZDZiNmFhNTFjZDEwZWVjYWRjNTciLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImFhMWQxYTYzMzkwMjI5Yzc5ODM0N2U4M2EwNDA1NDQxYzk0MDAwMzUyODRhZDE2OGMxYmY2Y2RmMWQ3MGEzNzAiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjZmNzQzNjZhMmU1MjdkMTBkYjZlMDliNDE0NGJhNGNkZDA5ZWJhYjkxZDY0Y2FjYmYzYjc3ZGJmYzMxYTE3ZWIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
         },
         {
-          "resource": "repo://frontend/src/routes/holdings/%2Bpage.svelte#L31-L42",
-          "version": "repo-lines-v1:sha256:cbc584e7435397ad376ec61ce1c0c9207dd55400f31027f8fd84649e137735af:eyJzZWxlY3RlZExpbmVDb3VudCI6MTIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImUwZjc0NDk2YzQ1ZGRhNTYwMTM4NmQyZDQ3YzE1NDVlYjJiMjg1MmI2MDliNDg5ZTIzMmRjNmZiYTJlZTY3MTgiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjBhNzM0OTJkODk0NmIxZDBmOWQ5YzA0YjcwNGE5MjBmMjRmODllZjdjN2Y3MzExYTg1OTlkMTBjN2Y2MzU4ZDAiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjE0NjVhNTQzOGZlOGJlMzcxMDFjYTY3OTgwMjA5NGQ4Yjc0ZmUxMmJmNWEzYmFiZDIwNGYzMzlkYTFkMTY1MzkiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImFiN2M5OGVkZDViZTA0NDk0MWYyYmVmZjUzZjBkOWI4OTgxZGQwODBmZGI3OTliMGIxZWZkNThmNTVjYjdkZGQifQ"
+          "resource": "repo://frontend/src/routes/holdings/%2Bpage.svelte#L53-L61",
+          "version": "repo-lines-v1:sha256:e6f782499e115c749ecd221f931b74fbfc9c3b3005085859eec0d0552172adfe:eyJzZWxlY3RlZExpbmVDb3VudCI6OSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiNGZmZjA2MzM0OGExZTFhMzI1MTNlYWNjMDE2ZmMyNWNmZmVmMGI0YzkwYmYwYzg4OGVkNTg1N2YyMTNhMzJkYyIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiMGE3MzQ5MmQ4OTQ2YjFkMGY5ZDljMDRiNzA0YTkyMGYyNGY4OWVmN2M3ZjczMTFhODU5OWQxMGM3ZjYzNThkMCIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiYzc1MjVjNmNiZDU5ZWUwOGJlZDBlYjVjYTBlMWM5ZDk5MTJhZTU4NTZiMDRmOTgwNTRiMmUzMTc4MDQ5NTFmNiIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiNjI4M2M1YWY1YzEwOWNmNWI4YmZkZTcyMTE1NjM4N2RkMTZiNmFmNjRlYTlmM2M4ZWJmY2M3YzQwODEzY2NmMyJ9"
         },
         {
-          "resource": "repo://frontend/src/routes/holdings/page.server.test.ts#L55-L94",
-          "version": "repo-lines-v1:sha256:c77288c900b0f08f24b023f814cd4392f6547f6e28fe7e8d1159b123cb2307ed:eyJzZWxlY3RlZExpbmVDb3VudCI6NDAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjdhMGJiYzFhMTIxOGUwNGU4MThjYjUwNDMzOGNhNDA3M2Q3YjIzMDM5ODg0ZmYyOTJjOGM4ZjEyZDk5OGJkZWQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjBhNzM0OTJkODk0NmIxZDBmOWQ5YzA0YjcwNGE5MjBmMjRmODllZjdjN2Y3MzExYTg1OTlkMTBjN2Y2MzU4ZDAiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImMxZmFmMzBjYmQ2NjZjMGVkODFjZmJkMTI0YzY2MTdiMTc0ZThkNWE5NGUyNjIwODkwNjQyZjFiMjBlMzUwZWIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImJiYzcyZjczZDA3ODlmZjQyOWMzNWJjN2UyOWFmYzBmZmY3YjQ2M2YzNTkxZGRjYTc2NDI0OWUyMDYzOTQwYjUifQ"
+          "resource": "repo://frontend/src/routes/holdings/page.server.test.ts#L143-L168",
+          "version": "repo-lines-v1:sha256:d53856b2cbd61650cfd5dbd2198e48df7e1e7258b68af4a0ab7121107cba5957:eyJzZWxlY3RlZExpbmVDb3VudCI6MjYsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImJiY2RlYTUwOWU3ODNkYTdkMzkwMmY1ZTIwODY3MjNhYjA0ZDVlNzFhMmQ4NjI1MTVkOTljZTlhMjA1MmU1ZWUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjBhNzM0OTJkODk0NmIxZDBmOWQ5YzA0YjcwNGE5MjBmMjRmODllZjdjN2Y3MzExYTg1OTlkMTBjN2Y2MzU4ZDAiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImM5N2EzOGUzN2RiMDA0MWY2ZWU1NTQxM2M0ODYzOTcyOTIwNjNkNTg0YmNmZTQyZjJiZGJmMmQ2ZTg1YTkxODkiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImU3ODk1N2NjNzBkZmJjMzcxNzZiNjI1MTM1MWI2NmRmOTEwYWQ1MTlmMjM2ZjU5OTY4OWFlYjYzYjdmNjhhZWEifQ"
         },
         {
-          "resource": "repo://frontend/src/routes/holdings/page.svelte.test.ts#L181-L221",
-          "version": "repo-lines-v1:sha256:c157a5392bca6ea617c3e2782b29276c7e6c43263c0c2f222c1b9fe61af60725:eyJzZWxlY3RlZExpbmVDb3VudCI6NDEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjYwYjNjNjI4NDNlMWQzYjJjYmM5NzEwMGUxOWI0MjRiYmFlNjBhOTY3Yjk0NmEzZmI3ZWI1ZDFhZTIyMmIzOTQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjBhNzM0OTJkODk0NmIxZDBmOWQ5YzA0YjcwNGE5MjBmMjRmODllZjdjN2Y3MzExYTg1OTlkMTBjN2Y2MzU4ZDAiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjBhNmZlMjYyOWVlZWNkODNhZjNlM2RlYzU1M2NlNTZiNDgwODk0MTAyYjA3YjY3ZTdlYjIwMmI2YzQ5YjU5MTEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjU0MzU3NTFjMDk3MzdmMmM1MTdhNDM2ZGQ4MGY5MGFjOWM5NDcyNWRjYzBlZGU5MjJjYWNhODkzZTZmMGU3MmYifQ"
+          "resource": "repo://frontend/src/routes/holdings/page.svelte.test.ts#L203-L234",
+          "version": "repo-lines-v1:sha256:0df1c073b7e7e3a4437430bbbaadae66515f4fb44b779d10cffc2b0b752f93fd:eyJzZWxlY3RlZExpbmVDb3VudCI6MzIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjYwYjNjNjI4NDNlMWQzYjJjYmM5NzEwMGUxOWI0MjRiYmFlNjBhOTY3Yjk0NmEzZmI3ZWI1ZDFhZTIyMmIzOTQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjBhNzM0OTJkODk0NmIxZDBmOWQ5YzA0YjcwNGE5MjBmMjRmODllZjdjN2Y3MzExYTg1OTlkMTBjN2Y2MzU4ZDAiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjBhNmZlMjYyOWVlZWNkODNhZjNlM2RlYzU1M2NlNTZiNDgwODk0MTAyYjA3YjY3ZTdlYjIwMmI2YzQ5YjU5MTEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjY5MWUyOTJjOGM1MDYwNjM3MGU1NWVjMjRmYTdlNWZhNmE3OTViMThlNGJmNDg0MWFkOTU3ZTdhYWUwZjJhNWQifQ"
+        },
+        {
+          "resource": "repo://frontend/src/routes/holdings/page.svelte.test.ts#L437-L448",
+          "version": "repo-lines-v1:sha256:4b2022ab96cc06943dab1c93a04cf0dc28b9b68668b6a589691b8aac396025cb:eyJzZWxlY3RlZExpbmVDb3VudCI6MTIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjVjZjI2NGZkZmU3NjJjNDQzZTVkZjdkMzVhZWQyNDVhZDEwZDQ5MGQyYjBlZTlhOTliMDE4YWY2YmE0MmNlYTciLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjBhNzM0OTJkODk0NmIxZDBmOWQ5YzA0YjcwNGE5MjBmMjRmODllZjdjN2Y3MzExYTg1OTlkMTBjN2Y2MzU4ZDAiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImVkNWNhMDJlZmZjMjNhNmU1ZGJiMTI0NTcwZjEzNWVhYzAyNzIxOGY2ZWU5OGNhM2VjZTY4OTM2ZDM2MDVjMTUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjhhMWM2NWE0Y2FhZjMzYTZmNDgyOTEyNzFjNzVkNDA1YzEzZTgzOWQwNzQ5NzU1YjgyODJhOWJiOTVlYzQyZjIifQ"
         }
       ]
     },
@@ -441,22 +457,124 @@
           "version": "repo-lines-v1:sha256:6775e037c2680bc8da671dd87e6b0d2816b3760e15699873c16999080566cc6a:eyJzZWxlY3RlZExpbmVDb3VudCI6MzksImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjU5NDk0MTI5Y2E1NGQ4YjE0ZmZiYTVmNDA3OWM1OGRmMTQxODJiYjIyMWM5MmI2NjEwMGU3YTkxMjI3OGEyOWEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQwMDEwNWU1NWQ4MDUyNjI4ODhjYzU3MzA4YTJjMDY2NWE1ZWQyMjI3NjIxYTk2MDMyZjBmMzhhYmY1ZDhlZTQiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjcwZjcyNWI5MGJmYTE1YjViOTdhMTJjYzM0YjRjMGQ5OTg0MjJiMzJhYzBkZTUwMTIxODY4ODVmZjJiMjE1NDMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjhkMTFkNmZjZjYyMWM3MzRmMDdjNWIxNThhNDEwODg4NGFkMjE5OTc5OTE0MTBmMjIxNmFiNzIxYTI2NTIzODMifQ"
         },
         {
-          "resource": "repo://frontend/src/routes/holdings/%2Bpage.svelte#L53-L95",
+          "resource": "repo://frontend/src/routes/holdings/%2Bpage.svelte#L139-L181",
           "version": "repo-lines-v1:sha256:f73c28009544186701e60d43554172e01d11bb97ad40cbc6d761898d6f8ddbd8:eyJzZWxlY3RlZExpbmVDb3VudCI6NDMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjkxNjg0M2YxZGRiYTBjZTU4MTg4NjRlOTI0MTYxOTRjNDkyMWM1NTFlMjI4NWI5Nzk3ODE3NjIxYTRiYjkwYzQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjBhNzM0OTJkODk0NmIxZDBmOWQ5YzA0YjcwNGE5MjBmMjRmODllZjdjN2Y3MzExYTg1OTlkMTBjN2Y2MzU4ZDAiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImVmOWJmOGRkNzcyM2FmMTEyZWM3NGUyMTkxY2JlY2M0NzkzYWNiMDg1MjUwZWUyZWMzYWRjNWQ0ZTliYTVjYzQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImY5ZTVlYmFhMGJiNTRhZWRhNWRhNzA4OGEzZGY2YjYxYTRkZWU1ZDhhYWJjZWM4NmJhMWI1ODdmMjkxMjUwOGYifQ"
         },
         {
-          "resource": "repo://src/account/service/position.py#L164-L205",
-          "version": "repo-lines-v1:sha256:913fdbee56896ba62840b716b72bbcfca0a72eafe2d3047def31a63ad4daa7d4:eyJzZWxlY3RlZExpbmVDb3VudCI6NDIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjJlNTkwNWRkMzdiZjIzMmM5ZTE3OWE1N2EwZGNiYmFiNWE1YmM0MGY2NGUzNWVhYTc2YzljZTJhZDBhMGRjNGQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjU5MDlhNTNhNjE4ZDAyOGUxZDMwMDBjMGE3YWJjZWVjYmU1ZmIzN2Y0ZTUxMWVmZTQ2NjQzZmFkNmU2Njg3MmYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjY4ZmZjYzcwMGY3NWQ2Yjk5Y2U3Zjg2MTJmOTRiNGI4OWI2M2UyOTgxNTkyNDI2OTA4Mjc5ODNmMmM4OTRmNWQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjFkODdjNzExZmRmM2JhYWY2ZDg2YWFiMGZmM2I1NTVkNWU2NTk2MmNiODBlZWZjZjMwMWQ3NTYyZTM4M2E1ZDkifQ"
+          "resource": "repo://src/account/service/position.py#L164-L210",
+          "version": "repo-lines-v1:sha256:09a396606e7bd01fa8968b9ed18eb271c276025ce4bf9b664849d01dda174bac:eyJzZWxlY3RlZExpbmVDb3VudCI6NDcsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjJlNTkwNWRkMzdiZjIzMmM5ZTE3OWE1N2EwZGNiYmFiNWE1YmM0MGY2NGUzNWVhYTc2YzljZTJhZDBhMGRjNGQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjU5MDlhNTNhNjE4ZDAyOGUxZDMwMDBjMGE3YWJjZWVjYmU1ZmIzN2Y0ZTUxMWVmZTQ2NjQzZmFkNmU2Njg3MmYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjY4ZmZjYzcwMGY3NWQ2Yjk5Y2U3Zjg2MTJmOTRiNGI4OWI2M2UyOTgxNTkyNDI2OTA4Mjc5ODNmMmM4OTRmNWQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjFkODdjNzExZmRmM2JhYWY2ZDg2YWFiMGZmM2I1NTVkNWU2NTk2MmNiODBlZWZjZjMwMWQ3NTYyZTM4M2E1ZDkifQ"
         },
         {
-          "resource": "repo://src/account/service/position.py#L301-L364",
-          "version": "repo-lines-v1:sha256:4ede5bfd18f6bdfc2944cd790964bdec07d75f1fa334fd417e402095e0043180:eyJzZWxlY3RlZExpbmVDb3VudCI6NjQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjE0ODg0OGY1OGZkYjhiYWRhOWNiZjhkY2JhMzRjYTRlYjZlMWIyZGZiMTMxOTljMDliMjkzMjMwZDE5ZDRjNWIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjRkODliNWRlYTc1NjA3Y2VmZjhmNzZiNzE2NTczYWQ4YWFhYzU3ZjMwOGY0M2UyODUzZmYzN2MwMTAyMWU5ZjAiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjE4MzU4NzIwMWMwYTIwYThhNzJmYTAyNGNlMjE3OTYzOGQ3MDAyMDYyZDZiOWUyZDU3ZjRkZTUyZWQ3YTUyMzAiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjRhNWQ0M2YxZmZiZDc5YzAwZDRlMjVhODNmYjdjZDgzNDEzNWIyMGQ4NjU0YjlmOThhMmY1Mzg3NDk4MTFlNjcifQ"
+          "resource": "repo://src/account/service/position.py#L314-L380",
+          "version": "repo-lines-v1:sha256:be02f28cc2803b71cd453b9dbf49fff570511aac0c700b2e6a0cea21e7490157:eyJzZWxlY3RlZExpbmVDb3VudCI6NjcsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjE0ODg0OGY1OGZkYjhiYWRhOWNiZjhkY2JhMzRjYTRlYjZlMWIyZGZiMTMxOTljMDliMjkzMjMwZDE5ZDRjNWIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjRkODliNWRlYTc1NjA3Y2VmZjhmNzZiNzE2NTczYWQ4YWFhYzU3ZjMwOGY0M2UyODUzZmYzN2MwMTAyMWU5ZjAiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjE4MzU4NzIwMWMwYTIwYThhNzJmYTAyNGNlMjE3OTYzOGQ3MDAyMDYyZDZiOWUyZDU3ZjRkZTUyZWQ3YTUyMzAiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjRhNWQ0M2YxZmZiZDc5YzAwZDRlMjVhODNmYjdjZDgzNDEzNWIyMGQ4NjU0YjlmOThhMmY1Mzg3NDk4MTFlNjcifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_96cd37b7c8aa4357940e54572d5d363e",
+      "statement": "The `/holdings` SSR load's three requests are settled independently: every `Promise.allSettled` result is inspected for an `ApiError` with status 401, which triggers `deleteAuthCookie(cookies)` and a 303 redirect (re-thrown through the load's `catch`), while any other rejection is tolerated — a preferences outage leaves the normalized defaults and a portfolio or account-list outage leaves an empty array, so the page still renders and the filter dropdown simply has fewer options.",
+      "evidence": [
+        {
+          "resource": "repo://frontend/src/routes/holdings/%2Bpage.server.ts#L27-L68",
+          "version": "repo-lines-v1:sha256:6a5b5171e8f3450075e748bff5eeb9310ab33590a1a38b18a139bc1d4a5d24e9:eyJzZWxlY3RlZExpbmVDb3VudCI6NDIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjdlM2E0NTcyOWZhZjk3ZmNkYjUxYTYyOTExM2EyM2EzZDczZTRiOGY2NTliMmFkYjY2ZDExZjk2NGE4YTdhYjAiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjY3Y2RhODJkYTYwNjIzOGUwNWU2MjM5OTU2OWM1ZWUwMzk5MzQxOTY0OGFlNWQ0M2EyYmY4Y2Q2MzQ3ZjgyNjMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjgzZDk4MjU0YmI4MDEyYmU4NmZlYTE5OWNkMmE2MzhmMDIyYjQ2MTBlMTgxMjk3YjkzODIxODMzZDRmMzA4YjEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImE1ODY1ZmJmYzVlNzM1MGNjZWRjMmNiZGE2MmU4ZGMwMDI2MTliMGMzY2Y3ZDVhMTFhNjMzMWJmNDgzNWQzMTQifQ"
+        },
+        {
+          "resource": "repo://frontend/src/routes/holdings/page.server.test.ts#L151-L168",
+          "version": "repo-lines-v1:sha256:31765bd056e447ad36d6c91900842d4fb98ccd981012ed449217b01e764b729f:eyJzZWxlY3RlZExpbmVDb3VudCI6MTgsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjdlYmY0NzcxNzI3NDcxYmFmM2EyY2I1ZGM0YmQ2YjJkZWMzODQ4ODAyYmNjMDYxOTViYTU1ZDVmOTMzNTUzNjAiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjBhNzM0OTJkODk0NmIxZDBmOWQ5YzA0YjcwNGE5MjBmMjRmODllZjdjN2Y3MzExYTg1OTlkMTBjN2Y2MzU4ZDAiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6Ijk0ZWQ0OTMzMWI4YTRkNThiYzQwYzg0YmU5MGZkYTEyMWJiOWY0M2JjNTg4NDNjYzU2ZDYxZGVlY2EzZGMxM2QiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImU3ODk1N2NjNzBkZmJjMzcxNzZiNjI1MTM1MWI2NmRmOTEwYWQ1MTlmMjM2ZjU5OTY4OWFlYjYzYjdmNjhhZWEifQ"
+        },
+        {
+          "resource": "repo://frontend/src/routes/holdings/page.server.test.ts#L170-L184",
+          "version": "repo-lines-v1:sha256:40491a7eee48f6a6c9669707b8d68b171ec4ec6464ba26560af15bf26f110b27:eyJzZWxlY3RlZExpbmVDb3VudCI6MTUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjgyODhiYmU4NTk2NWViOTRmZjJmYzZjMGJhOGE2YTQwMjIzZjUxNzMzNmIyYmUzYjc0MGRlYTdlZGM0MjFmMDciLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjBhNzM0OTJkODk0NmIxZDBmOWQ5YzA0YjcwNGE5MjBmMjRmODllZjdjN2Y3MzExYTg1OTlkMTBjN2Y2MzU4ZDAiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6Ijk0ZWQ0OTMzMWI4YTRkNThiYzQwYzg0YmU5MGZkYTEyMWJiOWY0M2JjNTg4NDNjYzU2ZDYxZGVlY2EzZGMxM2QiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjoxLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImY2ZjViNDBiMTU4NDU3ZDE3ODY0ZjIxNzkwNzg2ZGQ1YTJlY2RiNjRiNjZhNjUxZjc4OGQ0ZTI1Y2QzMzAzZDIifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_c233438f78b448e8a5b24243f5f6ecd7",
+      "statement": "`HoldingsService` splits fetched rows into `allRows` and a derived `rows` getter over a `HoldingsFilter` (`all`, `portfolio` with its account ids, or `account`), with `filterByPortfolio` / `filterByAccount` / `clearFilter` replacing the filter; filtering is therefore a pure client-side derivation (no refetch) that also drives `groupedHoldings` and the page's per-currency header totals, and the page mirrors the selection into the URL via `goto('/holdings?portfolio_id=…' | '/holdings?account_id=…' | '/holdings', { replaceState: true })` from the header filter dropdown or an account-badge click.",
+      "evidence": [
+        {
+          "resource": "repo://frontend/src/lib/components/holdings/holdingsService.svelte.ts#L20-L71",
+          "version": "repo-lines-v1:sha256:19686ad62827d83513898c1203dd9c7f62d9f5573a595d65c9e797ee5de95d5b:eyJzZWxlY3RlZExpbmVDb3VudCI6NTIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjRlNDc5NmM2ZTY3N2ZhMDQ3ZmEzNWNlOWVmMDUzMWM1OGQ4YTc5NmEzZmM3OTY5ZDI3OTY1YjcyMWMwYWZlY2UiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjY3Y2RhODJkYTYwNjIzOGUwNWU2MjM5OTU2OWM1ZWUwMzk5MzQxOTY0OGFlNWQ0M2EyYmY4Y2Q2MzQ3ZjgyNjMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImI1NDE4YWY2MjUxOGUyMmZkYzBjMDZjNDNmZjE1YWNhNDI1NjRlMjAyZmNjNDIyYTllNjcyMTNiMDJjY2E0YmIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjFjY2Y1YzhiNjQ0ZDliNDQ1ZThmNDVlZTVjNGIwOWMwMTczYjdlODAzODllYmIyZjQ0MjJlOTllMzIwNGFlN2UifQ"
+        },
+        {
+          "resource": "repo://frontend/src/lib/components/holdings/holdingsService.test.ts#L197-L240",
+          "version": "repo-lines-v1:sha256:58293ff9a2f2df9d7c43f25df336fcb9c1b732287d8aee84e491b38082efbfb8:eyJzZWxlY3RlZExpbmVDb3VudCI6NDQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImUwMmQ4NzlkYmViNmNiNDgwZTRkOTRiYTkxNGRmM2UxMDQyNmQ5YjU2MzIxN2Q5OWViNDc2ZTk0MzU2MTBkMmUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjBhNzM0OTJkODk0NmIxZDBmOWQ5YzA0YjcwNGE5MjBmMjRmODllZjdjN2Y3MzExYTg1OTlkMTBjN2Y2MzU4ZDAiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImQ3NTk3YWVjNTVhYWE5ZjViNDIwMWU5ZDczODljZjA2NjliMzk4ZjY5ZjgxMDdhNjAxMDc5NmJjODc3MjIyMTkiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImNiOTJjNTMyYWVlMzkyNTQ1MmEyOWI4MjA3MDhlMTAyYjZmM2NhNzM2YjVlZTg2NWVlOTgwOTM3NWQwMjM5NmYifQ"
+        },
+        {
+          "resource": "repo://frontend/src/routes/holdings/%2Bpage.svelte#L103-L128",
+          "version": "repo-lines-v1:sha256:b2be1fe9d8230cbaea8f3438b277157597b26f1591bce0405a243a2a6bc4f665:eyJzZWxlY3RlZExpbmVDb3VudCI6MjYsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImZhZjUyZDEwNGIzMTAxOGNmNTQzOTNiN2NiMDQ5YzFhOWIxMWZmNzgzN2ExY2NmZWMwOTEzN2EyMjJkMzY4ZDYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjY3Y2RhODJkYTYwNjIzOGUwNWU2MjM5OTU2OWM1ZWUwMzk5MzQxOTY0OGFlNWQ0M2EyYmY4Y2Q2MzQ3ZjgyNjMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImE2YTdlNzdmMWU3OTdhZDIzMmYyNzhhNjE2MDhkNTZhNWM4MWM2MGY5OGYwYjNjMTZjY2FlMjc3NGI2NzVlOWMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImFiN2M5OGVkZDViZTA0NDk0MWYyYmVmZjUzZjBkOWI4OTgxZGQwODBmZGI3OTliMGIxZWZkNThmNTVjYjdkZGQifQ"
+        },
+        {
+          "resource": "repo://frontend/src/routes/holdings/%2Bpage.svelte#L37-L48",
+          "version": "repo-lines-v1:sha256:b0227e3b3b4e579011e7c278914deb5d6f3de6216c5cc09090cfdab707426505:eyJzZWxlY3RlZExpbmVDb3VudCI6MTIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjU3MWFjMzY2ZTJjMDVhYzkwMWRlMGM4MzI3M2U0NmNkY2JiNmNjZDRjNjRiZmVkMDA5NmU1NTNlY2I2YzhlODIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjBhNzM0OTJkODk0NmIxZDBmOWQ5YzA0YjcwNGE5MjBmMjRmODllZjdjN2Y3MzExYTg1OTlkMTBjN2Y2MzU4ZDAiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjE0NjVhNTQzOGZlOGJlMzcxMDFjYTY3OTgwMjA5NGQ4Yjc0ZmUxMmJmNWEzYmFiZDIwNGYzMzlkYTFkMTY1MzkiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjQyODU4Y2EyYmI1NzMwZGNlZDI2NjIzNDE4YjM3N2VjMWM2YWJkN2E0NjYwZGQ5NjhhZTI2ZjFjY2E3MGFlYjAifQ"
+        },
+        {
+          "resource": "repo://frontend/src/routes/holdings/page.svelte.test.ts#L541-L655",
+          "version": "repo-lines-v1:sha256:0b228f24f53fa0928a912e5e445e49b60a13db3e702cad3fde2885677f5f27d3:eyJzZWxlY3RlZExpbmVDb3VudCI6MTE1LCJmaXJzdFNlbGVjdGVkTGluZUhhc2giOiI0YTkyMTA2MDQ0Yzc5YTc2NzhmYTVlZDhkMjU2YTEzMDg0NmZmZTY2ZmNiNDJlYzE2YTNhMjUyMTVjNjc0ZTRkIiwibGFzdFNlbGVjdGVkTGluZUhhc2giOiI2YTJhM2I3NmUxMmNlMTUzNzlkMDVmMjg2OWRjNDgzMmRlNzU4OTA1M2I0OWJmZjIzN2U0MjVjNzIzNzgwMTU0IiwicHJlY2VkaW5nQ29udGV4dExpbmVDb3VudCI6MywicHJlY2VkaW5nQ29udGV4dEhhc2giOiIxZGI5MTk0MWYxNzQyYmVhYTk5MTU5MDZkYWRhMWIzNWUyMTFkZTg5NmJkYjlhYzY2ODhhMmNiY2U5NzBlMmQ2IiwiZm9sbG93aW5nQ29udGV4dExpbmVDb3VudCI6MywiZm9sbG93aW5nQ29udGV4dEhhc2giOiI1ODNmMGE3Y2U1NTFhN2U1NmJjYzhhNmQ0ZDQxMTRhZjgyZWU2NjFlNmVmMjk3NjUwMjM0ZjMwOWNhODE4YTIzIn0"
+        }
+      ]
+    },
+    {
+      "id": "claim_315e5528895b45c4a97222c9af3a386b",
+      "statement": "The holdings table's account column renders one interactive account badge per account rather than a plain name, each carrying that row's share of the account's own value (`calculatePercentOfAccount`), the row's share of the currently displayed portfolio value is exposed as the `percent_of_total` column (`calculatePercentOfTotal` over the visible rows, so the denominator follows the active filter), and the newest `valuation_range` column projects the `valuations` map into a two-bound range with the midpoint used for sorting and an em dash for unvalued securities.",
+      "evidence": [
+        {
+          "resource": "repo://frontend/src/lib/components/holdings/holdings-table.svelte#L181-L237",
+          "version": "repo-lines-v1:sha256:69017f4dcd91fdf9297469d6bc9d7c13f698535528606a279fde04668208b30d:eyJzZWxlY3RlZExpbmVDb3VudCI6NTcsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijk1ZGNhYmE3Y2Y2ZTBjZmRmNjM2ZGIxNDUzZDEzMTJiNGY2OWNiOWU5NTg1NzgzMzQ3ZDY4YThiOWU5NTAxZDYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjY3Y2RhODJkYTYwNjIzOGUwNWU2MjM5OTU2OWM1ZWUwMzk5MzQxOTY0OGFlNWQ0M2EyYmY4Y2Q2MzQ3ZjgyNjMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjgwNmY3ZmYxNWM4YzY2MmFlNzY0ZjdkMTQ0NDA3YjQ5MGY4MTU3MjA0YmM2ODdmNzE1NzFkNjk2YjljMjE4NjUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImRkODdhYWFiMzA0Yzk1MTUwMzI3YWYyYmY2YTIzZTdhYTk5YTE3NGUwNjZmZmViNzgzMjA0MGYzNDFmZGI0MWYifQ"
+        },
+        {
+          "resource": "repo://frontend/src/lib/components/holdings/holdings-table.svelte#L262-L285",
+          "version": "repo-lines-v1:sha256:8eb4a8027e482f77f2c78766aecde559b7f59ee276248c43ac06deb38a7273cc:eyJzZWxlY3RlZExpbmVDb3VudCI6MjQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjBmYmUzMTVhM2IzMTlkM2FmNWFmMDU2OWIwMmE5YTBkNDRiZWIxYmVlYjEzOTcyODk2MThiMzI2ZGFjNTIzZGYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjY3Y2RhODJkYTYwNjIzOGUwNWU2MjM5OTU2OWM1ZWUwMzk5MzQxOTY0OGFlNWQ0M2EyYmY4Y2Q2MzQ3ZjgyNjMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjRkZWZkMDUwM2Y4ZDkzMjRkMGUxYzg5MjgyNTEyZWM0ZWVlODlkYmM4ZjZmZWU1Y2RjYTJjNTI4ZWExNWFjNTEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6Ijk5Y2E0MmMyNTUwNmU4ZDc5NWQ4NmEyZTJhN2Y2YmExNWU2MDY3MDIzYjkzMzU0NDkxODA4MjZhMTg5NGEyNTkifQ"
+        },
+        {
+          "resource": "repo://frontend/src/lib/components/holdings/holdings-table.svelte#L542-L548",
+          "version": "repo-lines-v1:sha256:9813b5ed7cd6706114ce3c91f76bae6ad002d7ab36f2c106b914cea84cefb3e8:eyJzZWxlY3RlZExpbmVDb3VudCI6NywiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiNDUyNDk5N2FjMmEzMjI5NDVmYjNkOGU2YjEyMWI4ZjA0M2E3Yzc3ZWUwYmQ3NjQyYjc2MTNiNDZkY2E1ZjRiNSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiMzMzYjZmMGM4MDc1ODA0Y2YwODI5ZDM0NDRiMjVjYzhlNzZmYTYzNjYyMTNhNjFiMDhjNjVlOTQ5MGYxOTRkNCIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiNTFmMjc0OTQwODA0ZGFmMTc1NmRlNDRlOGNiMzQ3NjQzOGRmOWQ2ODgzMDVmY2QwYzQwNzI3NjIwMGIzNGMyNyIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiYzBhMWIwZmNjYmNjYzg1ZTM4NzkxY2I1ODBhNGVhYWMyMWFjM2QwNTE2MTU1NmJmY2E1ODE1NzQyMzk0M2Y2MCJ9"
+        },
+        {
+          "resource": "repo://frontend/src/lib/components/holdings/holdings-table.test.ts#L842-L963",
+          "version": "repo-lines-v1:sha256:3b3c055b531bb8fb9e8b63d5d24fc97857c08eb76a389a04c75f67392797dec9:eyJzZWxlY3RlZExpbmVDb3VudCI6MTIyLCJmaXJzdFNlbGVjdGVkTGluZUhhc2giOiI5ZjY4MzVjMTIyMmI3ODMzZjUxNzAyNmJlN2M4MGRiNGUxYzFmM2Y4ZWIyNTU5ODA3ZWFmMGU1MzM2YWY1Y2VlIiwibGFzdFNlbGVjdGVkTGluZUhhc2giOiI2YTJhM2I3NmUxMmNlMTUzNzlkMDVmMjg2OWRjNDgzMmRlNzU4OTA1M2I0OWJmZjIzN2U0MjVjNzIzNzgwMTU0IiwicHJlY2VkaW5nQ29udGV4dExpbmVDb3VudCI6MywicHJlY2VkaW5nQ29udGV4dEhhc2giOiJmYjZiNzA4MWU0NTRkODQzNTBjYmJmMzdhYzNlZTY5Yjg0OGYxMzI1YjhkYTkzNTljNjI2OTg4NTAwZTRjZThmIiwiZm9sbG93aW5nQ29udGV4dExpbmVDb3VudCI6MywiZm9sbG93aW5nQ29udGV4dEhhc2giOiJlNzU3Y2EwMGJhMDc4Y2NjNDdlZGFjZmNiYjY5NDQ0OGNiYjFmMzQyNTg5ZTNjZjIwNzM0ZmI3MjllMzhiNmY5In0"
+        },
+        {
+          "resource": "repo://frontend/src/lib/utils/finance/valuation.ts#L11-L25",
+          "version": "repo-lines-v1:sha256:b6033bffea183227fb1a7f92ff2350bf0a6fb830459336575885763271533e46:eyJzZWxlY3RlZExpbmVDb3VudCI6MTUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImU3YWE5YWUwOGNhNjM0ZTRiMjc4OTE1YjdjNTg2NTNjZmEzMWE2YWNiMzE1OTU5NDEyNDBiNzc2MjcxY2QwZjYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQxMmNhMzQ1Y2NmNzViZjljMDgwNmJjZTY5NWJlOGRlODA4Yjc5OTg0MjUxYTdhNTRkMjAyY2Y2MTAxZGQ0NTEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6Ijc3YmI0Y2UyNTY5ZjI0ZjdiZTA1NzQyMDIxZWVjNzQ3NDY2YjQ1MGNiZTUwY2ExNjlkYjczZjRlY2FkY2E4YWEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_f6bbcb0d5ffe4193874f593047d9bd4d",
+      "statement": "The holdings table's header controls are consolidated into a single icon-only `display-settings-trigger` dropdown that holds both the \"Group by stock\" checkbox (`group-by-stock`, checked for `'stock'` or `'company'`) and one `column-toggle-{id}` item per entry in `HOLDINGS_TABLE_COLUMNS`, with the sticky column's item `disabled`; there is no standalone group checkbox or column-visibility trigger.",
+      "evidence": [
+        {
+          "resource": "repo://frontend/src/lib/components/holdings/holdings-table-columns.ts#L32-L50",
+          "version": "repo-lines-v1:sha256:3e33f708ae7326596fdd92598d2044a9b115b72300912d78767ce33c3b7fa23c:eyJzZWxlY3RlZExpbmVDb3VudCI6MTksImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijk0OGY0ZDZmNGEyMjE2MTRlZWZkN2M0MWUwZDI1ODFhZjkwZDY3OTVmNjU0ZWVlNzRhNzczNDQzNzM2ZjRhMjUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjA0N2RhYWY1OGRkODllMWI4N2M0ZGEzMTVmYmZlYzY3ZWM2NTVjNmJiMDM4NWY4MDE4OTBkODJhMzA3MzNjYzQiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjBhYTFmNTAyNjhlNjk2NDBjNmNlMTAwMjY1MTJmZTQ2NDAxOTNlZjE3OGI4YTBhODFhMzZlMjM5MTc0MTIyNDMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImRlNGFhM2E2MDEwOTQxMmEyNjRiZWQ5NmFiZTkxYjk4ZmU1ZTgwMjIzNWQ3Y2NkYjEzN2M3MDViMGUxYzZhZTEifQ"
+        },
+        {
+          "resource": "repo://frontend/src/routes/holdings/%2Bpage.svelte#L336-L373",
+          "version": "repo-lines-v1:sha256:a6bfd94b258e507d1edee5f9f682c603017da876716a307c19c7148d4641c462:eyJzZWxlY3RlZExpbmVDb3VudCI6MzgsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImNmNDE3NDJhYjNmZTI1NDdlYmI4Zjk0NGU3Y2YxMTY3MTAxMmY2Nzk5YTZlNjJlYjk1ZjFlMjk1ZjJiOTI3YjUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjRhMjZlNmI5YWJkM2Y1MGU4MjExNjM3NTJhMDg0OTU3NjBjNzgxZTE1YmE0MTI3MTg1OTRiZjBkNjZhNzA5MGQiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjVhZDJlYjZiMDU2OTIzZWI1OTY2OTYxNWRkYTY0YzNjODg2YjFhZjMwOWM5MDllNDc2NmFmZjYzMTc2MzU4MTciLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImZmNTczMjM2ZTdiYzAxNjMxOGIwNzM3NDFkYzc3Y2M0ZWQ0MGQ0NWY3MDZhODU2MWY3NjM0NDUzMDJlYjc5YWYifQ"
+        },
+        {
+          "resource": "repo://frontend/src/routes/holdings/page.svelte.test.ts#L360-L372",
+          "version": "repo-lines-v1:sha256:78e9d64353b69dfc92c0c2ee5f53c538694a1b1cea60902c271d5086abb372aa:eyJzZWxlY3RlZExpbmVDb3VudCI6MTMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjcxNmZmM2NjYTRmNDJmOGJhZjk4NTIxNGEyZGRmZDU3YTk0YTVmYzM1ZTk0NTViM2Y2ZjlmODcyODAxZTgwNmIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjBhNzM0OTJkODk0NmIxZDBmOWQ5YzA0YjcwNGE5MjBmMjRmODllZjdjN2Y3MzExYTg1OTlkMTBjN2Y2MzU4ZDAiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImIzYTQ0M2IxOGI5ZDY4M2FjOWMxZDVkNTcyMDgyZjMxMTRhZGJhNTVmYTI3MzU0NDBkNTU2MzJhYmM2Nzc5MzEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjIzNTU0YWYwNjczNmI3Zjk1MzJkZWU3YjI3Zjc4MDkxNjQ3NTVhOTBlNDFkZTcwYTI2M2RkMGNhMmUwNjI5NmMifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_20220fde28e040cf9a8581962cb1a39f",
+      "statement": "`GET /accounts/{account_id}/holdings` accepts the shared `PaginationParams` dependency, so the router route can page an account's positions, but the frontend's `AccountClient.getAccountHoldings(id, token)` sends no `offset`/`limit`, leaving the backend defaults (`offset = 0`, `limit = 50`) in effect while `AccountHoldingsRead.total` and the header totals cover every position of the account.",
+      "evidence": [
+        {
+          "resource": "repo://frontend/src/lib/api/accountClient.ts#L27-L29",
+          "version": "repo-lines-v1:sha256:24df83aeeda1fce41122e4e137acff937ac804e06dca01fd25a213b5cdfbb15b:eyJzZWxlY3RlZExpbmVDb3VudCI6MywiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiOWQ5YTljMmVlNjgwNmQ0YjZmMWUyOTA5MTg1MzQ4MjBkZjE3MjY3MmEyYmZhNmM5MTExODY2YjQ2ZjUxYTQzZCIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNjdjZGE4MmRhNjA2MjM4ZTA1ZTYyMzk5NTY5YzVlZTAzOTkzNDE5NjQ4YWU1ZDQzYTJiZjhjZDYzNDdmODI2MyIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiNzBlZGQ5ZWExZTczY2I4Njg0MjQyMTU5Y2UzYjE4OTYyNGFhZDA3MjJiYmNmYzI5NmE1YjI5YTVkMmJkMWM4NiIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiZGE1YTFlOWU1YjM2NWI3ZDMyMmIzNDdjMjJjNzljNzg3N2U0NGExNjJmNjEyNzIwMzVlNzAwY2ExNjQ3NThhOCJ9"
+        },
+        {
+          "resource": "repo://src/account/router.py#L507-L524",
+          "version": "repo-lines-v1:sha256:b794a4334a2906a6cda1be848f835678fb34e4f4b6f7d614c6d45ca8a9e1a219:eyJzZWxlY3RlZExpbmVDb3VudCI6MTgsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImNjYWQ0Y2ZhMjMwMzczODYxOGYyZGIwZWU3OTA1NTJlMGM4MTZiNjJmMmFiOThiYTNhZjI0M2Q1MWE1NTM5NWYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjMwYzFmMTg4ZjE0MmVkN2E4MjQ2ODBiMjA3MTcyYzU1MTliYzYxNGE0OGZkYTdjZjE2N2VkYjhkZGY3OTk1NmMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjhjYzRhN2QxY2M3OTZhYmEzZTQ2NzIzMzI3ZjUxN2U5ZjgxMTk4MmQyNTBmMDcwMjk4NmU0YjU3NjRhZDk1ODkiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjRmMzIxNGNlOWE4OWZhODFlZTM2Mzg0NTBlMzQ4NTlmYzMwZWIyMzY5OGRmZTRjMzI3MGEyZDIwODcwZTUzODIifQ"
         }
       ]
     }
   ],
   "verification": {
-    "by": "openwiki/0.5.2",
-    "at": "2026-09-23T13:18:56.288Z"
+    "by": "openwiki/0.6.1",
+    "at": "2026-10-02T14:25:20.147Z"
   }
 }

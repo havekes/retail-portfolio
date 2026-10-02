@@ -2,9 +2,6 @@
 type: "Reference"
 title: "Testing & Verification"
 openwiki_generated: true
-verified:
-  - by: openwiki/0.5.2
-    at: 2026-09-23T13:18:56.288Z
 sources:
   - id: openwiki-source-164e2da859b5277df81c7d94
     resource: repo://.github/workflows/ci.yml
@@ -20,6 +17,8 @@ sources:
     resource: repo://frontend/src/lib/api/apiClient.test.ts
   - id: openwiki-source-79ab4be5bb9a442622e97b06
     resource: repo://frontend/src/lib/api/async-data.test.ts
+  - id: openwiki-source-c6899c16b51d0089c637d6b9
+    resource: repo://frontend/src/lib/api/async-data.ts
   - id: openwiki-source-ea1800bc022b11f33fe010f9
     resource: repo://frontend/src/lib/components/auth/login-form.test.ts
   - id: openwiki-source-705c6811ccfd4985cb1df1f1
@@ -88,7 +87,10 @@ sources:
     resource: repo://tests/test_migrations_autogenerate.py
   - id: openwiki-source-da833519b72f73ce64d59b2b
     resource: repo://tests/ws/test_manager.py
-generated: { by: "openwiki/0.5.2", at: "2026-09-23T13:18:56.288Z" }
+generated: { by: "openwiki/0.6.1", at: "2026-10-02T14:25:20.147Z" }
+verified:
+  - by: openwiki/0.6.1
+    at: 2026-10-02T14:25:20.147Z
 ---
 
 
@@ -244,9 +246,9 @@ Suite files are colocated with the code they cover (`src/**/*.test.ts`) — API 
 Which mocking seam a suite uses follows the shape of the code under test:
 
 - **API clients** mock `global.fetch` (`apiClient`, `accountClient`, `authService`, `indicatorsService`, `snapshotsService`, …) and assert the URL/method/payload plus the error mapping.
-- **Service classes that pull their client from a module factory** mock that module and return a hand-built object. `src/lib/components/watchlist/watchlistService.test.ts` mocks `@/api/marketService` as `{ getMarketService: vi.fn() }` and hands back a client whose every method is a `vi.fn()` — `search`, `createOrUpdateSecurity`, `getWatchlists`, `createWatchlist`, `renameWatchlist`, `updateWatchlistSort`, `deleteWatchlist`, `addSecurityToWatchlist`, `removeSecurityFromWatchlist`, `reorderWatchlistSecurities`, `addToWatchlist`, `removeFromWatchlist` — so `WatchlistService` is driven as a plain class with no SvelteKit runtime and no network. `src/lib/components/holdings/holdingsService.test.ts` uses the same shape against `$lib/api/accountService` and covers paging until `offset` reaches `total`, the stale-total guard, and returning the caught `ApiError` so callers can route a 401.
+- **Service classes that pull their client from a module factory** mock that module and return a hand-built object. `src/lib/components/watchlist/watchlistService.test.ts` mocks `@/api/marketService` as `{ getMarketService: vi.fn() }` and hands back a client whose every method is a `vi.fn()` — `search`, `createOrUpdateSecurity`, `getWatchlists`, `createWatchlist`, `renameWatchlist`, `updateWatchlistSort`, `deleteWatchlist`, `addSecurityToWatchlist`, `removeSecurityFromWatchlist`, `reorderWatchlistSecurities`, `addToWatchlist`, `removeFromWatchlist` — so `WatchlistService` is driven as a plain class with no SvelteKit runtime and no network. `src/lib/components/holdings/holdingsService.test.ts` mocks two factories in the same style — `$lib/api/accountService` (`getAccountService`) and `$lib/api/marketService` (`getMarketService`) — handing back `{ getUserHoldings }` and `{ getValuationsBatch }` doubles, and covers paging until `offset` reaches `total`, the stale-total guard, returning the caught `ApiError` so callers can route a 401, group-by/filter derivation, and the batch-valuation path (distinct `security_id`s, string→number coercion, and the graceful fallback to empty valuations when the batch lookup rejects).
 - **Service classes that take their collaborators as constructor arguments need no `vi.mock` at all.** `src/lib/services/ChartDrawingsService.test.ts` constructs the service with stubbed `userPreferencesService.patchPreferences`, `snapshotsService.createSnapshot`/`getSnapshots`, a `toast` double and `vi.fn()` callbacks, then asserts on state and on the exact `patchPreferences` payloads — tool mutual exclusion, Delete/Backspace/Escape handling, undo/redo history, drag coalescing (patches deferred during a drag and committed once on `handleDrawingDragEnd`), and legacy anchor normalization that must not trigger a write-back.
-- **Route tests come in pairs.** `page.server.test.ts` mocks the API service modules and drives `load`/`actions` with a hand-built `Cookies`/`RequestEvent` object; `page.svelte.test.ts` renders the page with `render(Page, { props: { data } })` and asserts the shell-first contract — skeleton rows before the post-navigation load resolves, rows appearing without user action, sequential page loading, per-currency totals, and the 401 path that calls `goto('/auth/login?clear_session=true')`. `src/lib/api/async-data.test.ts` unit-tests that seam (`redirectOn401`) directly, with `$app/navigation` and `$app/paths` mocked.
+- **Route tests come in pairs.** `page.server.test.ts` mocks the API service modules (`accountService`, `userPreferencesService`, `portfolioClient`, `accountClient`, plus `$lib/server/auth-cookie`) with `vi.fn()` doubles and drives `load`/`actions` with a hand-built `Cookies`/`RequestEvent` object; in `src/routes/holdings/page.server.test.ts` the assertions that matter are that the server load never fetches holdings, that a failing `getPreferences` degrades to `HOLDINGS_TABLE_DEFAULT_CONFIG` with `group_mode: 'none'` and null `elliott_waves`, and that a 401 `ApiError` from any service deletes the auth cookie and throws a 303 redirect to `/auth/login?clear_session=true`. `page.svelte.test.ts` renders the page with `render(Page, { props: { data } })` and asserts the shell-first contract — skeleton rows before the post-navigation load resolves, rows appearing without user action, sequential page loading, per-currency totals, and the 401 path that calls `goto('/auth/login?clear_session=true')`. `src/lib/api/async-data.test.ts` unit-tests that seam (`redirectOn401`) directly, with `$app/navigation` and `$app/paths` mocked: it returns `true` and navigates only for a 401 `ApiError`, and returns `false` for a non-401 `ApiError`, a plain `Error` and `null`.
 - **Third-party and browser APIs are mocked too**: `mode-watcher`, `@simplewebauthn/browser`, `qrcode` and `$env/static/private` all appear in `vi.mock` calls, and `vi.hoisted` is used where a mock must exist before the imports are evaluated. `src/hooks.server.test.ts` is the one suite that opts out of jsdom with a `// @vitest-environment node` pragma so it can verify JWT handling with `jose` against a mocked `JWT_SECRET`.
 
 Chart tests split the same way. `src/lib/components/charts/security-chart.test.ts` defines `Path2D` and `ResizeObserver` polyfills, then `vi.mock('lightweight-charts', …)` returning a `createChart` stub with mocked time scale, price scales, series, `attachPrimitive`, range/visible-range subscriptions and crosshair callbacks. The plugin suites next to each primitive (`plugins/measure/measure.test.ts`, `plugins/horizontal-line/`, `plugins/free-form-line/`, `plugins/fibonacci/`, `plugins/elliott-wave/`, `plugins/user-price-alerts/`) instead import only *types* from the library and hand-build `IChartApi`/`ISeriesApi` doubles plus a canvas target that records draw calls, then walk the four layers `frontend/AGENTS.md` requires: state transitions and delegate firing, mouse-adapter hit-testing/snapping/drag lifecycle, renderer geometry and canvas draw calls (`moveTo`, `lineTo`, `arc`, `fill`, `stroke`, `fillText`, `setLineDash` under a 2× bitmap scope), and full primitive lifecycle (`attached`/`detached`/`destroy`, `updateAllViews`, `hitTest` cursor resolution, `TimeProjector` projection of future whitespace). Shared plumbing has its own suites under `plugins/helpers/`, and pure finance math is tested separately under `src/lib/utils/finance/` because plugins are not allowed to own formulas.

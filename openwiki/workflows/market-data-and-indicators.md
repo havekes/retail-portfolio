@@ -3,12 +3,11 @@ type: "Workflow"
 title: "Market Data, Indicators & the Price Update Cascade"
 description: "How EODHD-backed market data enters and is transformed: the read-through price repository, historical and intraday reads, the nightly and hourly Huey tasks and the enqueue cascade they trigger, and the indicator compute path from the FastAPI route to the Go sidecar with Redis caching."
 tags: [market-data, eodhd, indicators, price-alerts, huey, redis, sidecar, intraday, caching, svelte]
-verified:
-  - by: openwiki/0.5.2
-    at: 2026-09-18T20:16:58.058Z
 sources:
   - id: openwiki-source-5f5b95b3d6a215fa02ceb945
     resource: repo://.env.example
+  - id: openwiki-source-164e2da859b5277df81c7d94
+    resource: repo://.github/workflows/ci.yml
   - id: openwiki-source-b79fbbd921df689b4bbdc82f
     resource: repo://docker-compose.yml
   - id: openwiki-source-31c465e6b7d0d36afe3ffe00
@@ -19,6 +18,8 @@ sources:
     resource: repo://services/indicator-service/calculator.go
   - id: openwiki-source-95aa045141f9e53c82a0bc2b
     resource: repo://services/indicator-service/handlers.go
+  - id: openwiki-source-34cb4ee7457dd79b53e785af
+    resource: repo://services/indicator-service/main.go
   - id: openwiki-source-692344b8dd5d47fcc6f9bfe0
     resource: repo://services/indicator-service/README.md
   - id: openwiki-source-b911aefb4dbb6f043ed2380e
@@ -61,7 +62,10 @@ sources:
     resource: repo://tests/market/test_indicator_compute_api.py
   - id: openwiki-source-876bd707d5c9fbf88d12b5e6
     resource: repo://tests/market/test_search_router.py
-generated: { by: "openwiki/0.5.2", at: "2026-09-18T20:16:58.058Z" }
+generated: { by: "openwiki/0.6.1", at: "2026-10-02T14:25:20.147Z" }
+verified:
+  - by: openwiki/0.6.1
+    at: 2026-10-02T14:25:20.147Z
 ---
 
 # Market Data, Indicators & the Price Update Cascade
@@ -72,7 +76,7 @@ Market data has three moving parts that must not be confused with one another:
 2. **Scheduling** — two Huey periodic tasks (`daily_price_update` nightly, `hourly_intraday_price_update` every hour) walk all active securities and, in the hourly case, fan out into a cascade of enqueued follow-up tasks.
 3. **Derived series** — technical indicators are computed on demand by a stateless Go sidecar (`services/indicator-service`) behind `POST /market/securities/{security_id}/indicators/compute`, with Redis result caching.
 
-See [Domains](../architecture/domains.md) for the module map and service registration, [Charting](../architecture/charting.md) for how the frontend consumes these series, [External Services](../integrations/external-services.md) for EODHD, and [Operations workflows](../operations/workflows.md) for the periodic-task schedule.
+See [Domains](../architecture/domains.md) for the module map and service registration, [Charting](../architecture/charting.md) for how the frontend consumes these series, [External Services](../integrations/external-services.md) for EODHD, and [Realtime & Background Jobs](realtime-and-background-jobs.md) for the periodic-task schedule.
 
 ## Ingestion: the EODHD-backed price repository
 
@@ -170,7 +174,7 @@ The handler's control flow is:
 2. **Cache lookup only when the caller supplied no candles** — a caller-supplied candle array describes a synthetic series (the chart's rewind slice) and must never be served from, or written to, the per-security cache.
 3. Resolve candles:
    - Caller-supplied candles are used as given.
-   - Daily/weekly/monthly: read `PriceRepository` over the date window (or filter `get_by_security` in-memory when a bound is only partly present), sort, aggregate `1w`/`1m`, and map into `IndicatorCandleSchema` with `time = p.date.isoformat()`.
+   - Daily/weekly/monthly: read `PriceRepository` over the date window (or filter `get_by_security` in-memory when a bound is only partly present), sort, aggregate `1w`/`1m`, and map into `IndicatorCandleSchema` with `time = p.date.isoformat()`. Each OHLC value is **split-adjusted**: a `split_ratio` of `adjusted_close / close` is computed when the two differ, open/high/low are multiplied by it and close becomes `adjusted_close`, so a historical 2-for-1 split does not distort indicator math.
    - Intraday: read `IntradayPriceRepository` over a converted datetime range, sort by timestamp, aggregate `4h`, and map with `time = int(c.timestamp.timestamp())` — epoch seconds, which the sidecar passes through untouched.
 4. If `chart_style == "heikin_ashi"`, convert with `convert_to_heikin_ashi` **before** dispatch (the first candle uses `ha_open = (open+close)/2`; later candles chain from the previous HA open/close).
 5. `IndicatorServiceClient.compute(interval, candles, indicators)` → `POST <base_url>/compute`.
@@ -188,25 +192,27 @@ sequenceDiagram
     Page->>Route: interval, chart_style, indicators, optional candles
     alt no caller candles
         Route->>Cache: get security, indicators, interval, style, window
-    end
-    Cache-->>Route: cached payload or miss
-    alt cache hit
-        Route-->>Page: IndicatorComputeResponse
-    else cache miss
-        Route->>Repo: read prices for interval and window
-        Repo-->>Route: daily or intraday candles
-        opt heikin_ashi
-            Route->>Route: convert_to_heikin_ashi
+        alt cache hit
+            Cache-->>Route: cached payload
+            Route-->>Page: IndicatorComputeResponse
+        else cache miss
+            Cache-->>Route: miss
         end
-        Route->>Client: compute(interval, candles, indicators)
-        Client->>Sidecar: POST /compute
-        Sidecar-->>Client: 200 with indicators map
-        Client-->>Route: indicators map
-        opt no caller candles
-            Route->>Cache: set same key with TTL
-        end
-        Route-->>Page: IndicatorComputeResponse
     end
+    Note over Route: on miss, resolve candles
+    Route->>Repo: read prices for interval and window
+    Repo-->>Route: daily or intraday candles
+    opt heikin_ashi
+        Route->>Route: convert_to_heikin_ashi
+    end
+    Route->>Client: compute(interval, candles, indicators)
+    Client->>Sidecar: POST /compute
+    Sidecar-->>Client: 200 with indicators map
+    Client-->>Route: indicators map
+    opt no caller candles
+        Route->>Cache: set same key with TTL
+    end
+    Route-->>Page: IndicatorComputeResponse
 ```
 
 The indicator round trip: cache and price reads are skipped for caller-supplied candles, and cache write-back only happens for the server-resolved path.
@@ -220,7 +226,9 @@ The indicator round trip: cache and price reads are skipped for caller-supplied 
 - **`400`** covers an invalid JSON body (`{"error": "invalid json body: …"}`) and an unsupported indicator type (`{"error": "unsupported indicator type: <type>"}`). The body is capped at 10MB via `http.MaxBytesReader`.
 - Supported types: `sma`, `ema`, `bb` (`bollinger`, `bollinger_bands`), `macd`, `rsi`, `obv`, and the `ma50`/`ma200`/`ma50w`/`ma200w` family with day/week aliases. Parameter resolution is **top-level field (> 0) → `settings` map → built-in default**. The `ma*` types rescale their period to the requested interval (`ScalePeriod`), e.g. `ma50` on `1h` becomes an SMA over 350 candles; unknown intervals are left unscaled.
 
-**There is no authentication and no rate limiting on this service.** It is intended for the internal Docker network only and must never be exposed publicly; the FastAPI backend is its only intended client.
+**There is no authentication and no rate limiting on this service.** It is intended for the internal Docker network only and must never be exposed publicly; the FastAPI backend is its only intended client. Nothing in `main.go` adds middleware, so network isolation is the only access control.
+
+The main entrypoint (`main.go`) listens on `PORT` (default `8080`) with 15s read/write and 60s idle timeouts, and shuts down gracefully on `SIGINT`/`SIGTERM` with a 10s grace period. CI runs a dedicated `indicator-service` job (`.github/workflows/ci.yml`) with Go 1.27 that runs `go mod download`, `go vet ./...`, `go build ./...` and `go test ./...` in `services/indicator-service`.
 
 ### Caching and error mapping
 
@@ -261,7 +269,7 @@ The chart's rewind feature is the reason `candles` is in the request at all: rep
 Backend tests stub both EODHD and the sidecar; **no test requires a live service**.
 
 - `tests/market/test_indicator_client.py` — `httpx.MockTransport` against `IndicatorServiceClient`: success unwrapping, `504` on timeout, `503` on connect error and on upstream `500`, `400` pass-through, single owned client reuse, and `aclose` closing only an owned client.
-- `tests/market/test_indicator_compute_api.py` — router-level: `401` unauthenticated, `404` unknown security, `422` for a reversed and for a mixed timezone date range, custom candles with `heikin_ashi`, interval/timestamp shaping (`1h` sends integer epoch `time`), cache hit/miss behaviour (sidecar called once), the read/write window being identical, and `503` propagation.
+- `tests/market/test_indicator_compute_api.py` — router-level: `401` unauthenticated, `404` unknown security, `422` for a reversed and for a mixed timezone date range, custom candles with `heikin_ashi`, interval/timestamp shaping (`1h` sends integer epoch `time`), cache hit/miss behaviour (sidecar called once), the read/write window being identical, split-adjusted candle shaping, and `503`/`504` propagation.
 - `tests/market/test_indicator_cache.py` — key structure (5 or 6 colon-separated parts), canonical ordering independence, interval/chart-style differentiation, date/datetime window equivalence, window isolation, graceful Redis-error handling, `invalidate_security`, `flush_all`.
 - `tests/market/test_search_router.py`, `tests/market/test_security_search_cache.py` — cache hit skips the gateway; miss queries it and writes the cache.
 - `tests/market/test_alert_evaluation_service.py` — inclusive boundaries, missing-price skip, already-triggered/not-found no-ops, email-then-mark, and that a send exception propagates for retry. `tests/market/test_check_and_dispatch_price_alerts.py` and `test_alert_email_dispatch_task.py` cover task wiring (early return with no alerts, one enqueue per triggered alert, isolated enqueue failure, `retries=3`).

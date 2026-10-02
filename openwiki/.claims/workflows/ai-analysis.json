@@ -1,13 +1,13 @@
 {
   "schemaVersion": 1,
-  "pageVersion": "sha256:2db7863fb5a3636dc73280bb8e4dd49aa1a1b4f47f671fee677456aad5e67e5f",
+  "pageVersion": "sha256:8621a26a01c7f782324dafd0a412a5be4767de90c47211999d959587b8e3315a",
   "claims": [
     {
       "id": "claim_7aa77c31d1214bcd821bed54caa4ce23",
       "statement": "`AIService` (`src/market/ai_service.py`) is the single owner of AI behavior in retail-portfolio: it assembles context from the security, price and note repositories, builds prompts, calls an OpenAI-compatible chat completions endpoint via `AsyncOpenAI`, and is consumed by both the three market-router AI endpoints and the asynchronous note-title Huey task.",
       "evidence": [
         {
-          "resource": "repo://src/market/__init__.py#L91-L91",
+          "resource": "repo://src/market/__init__.py#L96-L96",
           "version": "repo-lines-v1:sha256:c87fb99eb6e898a7fb5271aacdb54e17519b9977b681ebb91aff21c2fa3bb1a7:eyJzZWxlY3RlZExpbmVDb3VudCI6MSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiYzg3ZmI5OWViNmU4OThhN2ZiNTI3MWFhY2RiNTRlMTc1MTliOTk3N2I2ODFlYmI5MWFmZjIxYzJmYTNiYjFhNyIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiYzg3ZmI5OWViNmU4OThhN2ZiNTI3MWFhY2RiNTRlMTc1MTliOTk3N2I2ODFlYmI5MWFmZjIxYzJmYTNiYjFhNyIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiZjUxMWZlZDA2ZGE0ZDg1ZjZkZTg2YjAyOGZjZTFlOWRjMmNkZDdmMDI3YTA2MThmYTVmMzIxZDBlZjRhYWY0ZSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjEsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiYTQ5NmVhZWQ0MzVjZGI5MjBiNzg0NDc1YzYwMmQ4OTY1N2NiZGQ4Y2RkOTczMmMxNjFmOTdiNDE5NWNjOWUzOSJ9"
         },
         {
@@ -15,7 +15,7 @@
           "version": "repo-lines-v1:sha256:21be2468d7e2814a5ffda162165cd6f12ce87339632eba4d91d999d7a5962b96:eyJzZWxlY3RlZExpbmVDb3VudCI6MjAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImRmMDI2YTVhNzcyMDExZWE3MjIzZDE5NjQyYTM0NDExZjU3MTg1NmEyMjVmODI4ZTM0ODA3YWY0YmEwNmQ2ZWUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjFkMTFiMTIxMmRmNGExNmMxYjFlMTIyOGNiMzg3NWIyYmQ1OGNhZjQ2OTNjNzYzNWM0MWJiMGZhZmI2MDNkYzAiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjJmZTI0Mzk5ZDZiM2Q3ZjJmOWRhOTExZTAwMzEyZjE2ZDk5NTYyODY2Y2E4ZTJiMzNiNWU1MDY3Y2Y5ODQwODMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjBlNTEzMTEzMDM1NGUxOWNiNWM2YzFkMmJmMjZhZTc5NTRiY2M1ZmZlMjAxMmM3NmQzM2M3ZmUzOThmNDVjYWQifQ"
         },
         {
-          "resource": "repo://src/market/router.py#L890-L966",
+          "resource": "repo://src/market/router.py#L1030-L1106",
           "version": "repo-lines-v1:sha256:2253466eb102c5a581ffeff49f6077e4237a87247fefa8512ae1e3af711a18df:eyJzZWxlY3RlZExpbmVDb3VudCI6NzcsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjkwMGY4N2IzMDA4MmNlZjI1YmVjMjE5MDE4ZTQyODA3NWRiZTZkNjRjNzJhNjgxYzkwY2I1OGQyNzcxMWJhOTgiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImMyNGY3NzNjZjEzMTg4MjRiNTdmNThiOGY1YTAwNThjNzJhYjc5YjI5YjMwYjIwYTg3NjhkMTU3ODc5ZTU0OWIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjczMDMyNWY5ODBiNGFiZTBhNWJmZGViMmQzZWI5MzQ4NzZkM2EwNDMzMjU2NDQ0NzJjMTM2Y2NhMDJiOWE4MGEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
         },
         {
@@ -49,11 +49,11 @@
       "statement": "The three AI endpoints are authenticated `POST` routes rate-limited at `5/minute` and all return `AIAnalysisResponse` (`content`, `generated_at`) with `generated_at` stamped in the router as `datetime.now(UTC).isoformat()`: `/securities/{security_id}/ai/fundamentals`, `/securities/{security_id}/ai/summarize-notes`, and `/securities/{security_id}/ai/portfolio-debate`, the last accepting `AIAnalysisRequest.portfolio_context` and substituting `\"No portfolio context provided.\"` when it is missing.",
       "evidence": [
         {
-          "resource": "repo://src/market/router.py#L891-L966",
+          "resource": "repo://src/market/router.py#L1031-L1106",
           "version": "repo-lines-v1:sha256:7a5d7bb0ee9d8e3e98743172b47d6b099d20cac3d78f95e16fc6d13ce39f7a2e:eyJzZWxlY3RlZExpbmVDb3VudCI6NzYsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjJmMDRlOTgxMjM5NjlhNzZiMWQ4NTRlOTBjNTQ1YWIyNWY2MGYwNjY0ZWZlZmFlYTlkMGRhZGY2ZGQ1NjY1YzIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImMyNGY3NzNjZjEzMTg4MjRiNTdmNThiOGY1YTAwNThjNzJhYjc5YjI5YjMwYjIwYTg3NjhkMTU3ODc5ZTU0OWIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImZmMDI5YWIwMjU5ZjM5N2JkZWYzMjJiYzViNGI5ODkwMjk5ZTU0MmU5MzMyMmNiNzQ3M2RhODIzYWRmNmJmNjIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
         },
         {
-          "resource": "repo://src/market/schema.py#L242-L248",
+          "resource": "repo://src/market/schema.py#L279-L285",
           "version": "repo-lines-v1:sha256:879eabe548825e67c5fb3054f20ad73edde346a6990e1e7a3848bf780ecb9d8a:eyJzZWxlY3RlZExpbmVDb3VudCI6NywiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiNDU5ODZjYjQ5ZjE2MWJlY2MzZTdhNjU2MThmZjUyYTAzNWJmYjJjYjYxNDk3ZDkyNTg5ZjcwMDY5NTE3YjAzNCIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNTA1YmEwYTYwMjJkNzNhNGVkYmI4ZjMxZWY2YjUxODUzMzg1YTlhNjkyMjVhNGI5MTc4MmJlNmJmYzA1MzcwNCIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiMTIzYTIzNzg3MTlmODRhMzY3ZWM5YjA3YjQ5ZDRlZTc3MGYzZGUyZDYyNjkzZGY4YmNlZTM0ZTRiNWJmZWY3YiIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiZjNiYThmOGY1ODQ2NTYzNjg1NWE2OTdhMzM3MjFjNDYwMmIxNDUyMzgzYmEyOTZhNTc2MWM0MmE5Y2RmNTVjMCJ9"
         }
       ]
@@ -87,12 +87,16 @@
           "version": "repo-lines-v1:sha256:42f65154ef69ea6253b1235e82e2d457c6c7d3107a2f0eceaece8c17b9338416:eyJzZWxlY3RlZExpbmVDb3VudCI6NywiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiYTBmMDk5ODkwZjlhMTE5ZDY1ZDk2Y2NkNzllNWFmMGJmMmI4NGU3MmU4NjNjZjcyNWU0YmYyYjBlY2M3OThjOSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNmRiYmUzZTQxYTZhNzA5YmYxNjhhZjM3MjExODQxYjIyYTEyNWM0ZDY2NzMwMGY0Y2Y3ODI5ZmNhYTgxNDliYyIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiNmNlMjI3NGU5ODNlNWFmMzdlM2NhZTYwYTk2NTZlODAxODliNTJkNjkwNGM3NWIzNzEzMmQwYjk5YzkxN2RkZSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiMWMxYzc0ZGUyOTUxNzJkYmZlMWNiMTZjODVhMmM0OTUyNDQ5ZTcwMjMyYjllYzE1OTE0NjExZGJlZTc0OWJiNSJ9"
         },
         {
-          "resource": "repo://src/market/router.py#L904-L912",
-          "version": "repo-lines-v1:sha256:6a8b6e46ae46ca28cd9a68495b76ccb3700186e03cffb9ceabf1b22bb06abbcd:eyJzZWxlY3RlZExpbmVDb3VudCI6OSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiYWRhNWM2NmUxN2IxNDUzOTc4MzRiOGM4NTRkYzQxOTNlMjEyNTE4MGE4OTk2YTE0YzMxODgzMzI2YjJlZmJjZiIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiYzI0Zjc3M2NmMTMxODgyNGI1N2Y1OGI4ZjVhMDA1OGM3MmFiNzliMjliMzBiMjBhODc2OGQxNTc4NzllNTQ5YiIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiNGNmNThkMDg4NmE2OGQzODdhMjc4NDQ1ODVjZjEzZDVmOWY0ZjViOWRkYWE0YWI3ODRmYjkyYjFiZmU5NGU3NCIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiYmE5MzM0ZjUxMDYxODY1NDk0ZjcxMTEyMzAzZDU4M2RkNGM3ZjhmOTMxOTVkYWViYmZmMzdlNzZkNTczYzk2MSJ9"
+          "resource": "repo://src/market/router.py#L1049-L1052",
+          "version": "repo-lines-v1:sha256:e77d844d7513d75921c6223ce8395859d0178043b3dc3d49162799268f5fb44b:eyJzZWxlY3RlZExpbmVDb3VudCI6NCwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiOTIyODcxNmJlYjcxZmYzZDI1M2U5MGVhNTY0YWMxOTM0MTljMjA0MzI0MWEyYzQ2MzEwM2I1OTAxZmNhMjQwNSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiYzI0Zjc3M2NmMTMxODgyNGI1N2Y1OGI4ZjVhMDA1OGM3MmFiNzliMjliMzBiMjBhODc2OGQxNTc4NzllNTQ5YiIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiNWU2Mjc4YjRjNzgxMTM1Y2NkNDQ0NWVmMTI1N2VmZWU1NjMxZjlhZGMxNWJmNjU2ZmU4MmJlMmY3MzRhY2VhNiIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiYmE5MzM0ZjUxMDYxODY1NDk0ZjcxMTEyMzAzZDU4M2RkNGM3ZjhmOTMxOTVkYWViYmZmMzdlNzZkNTczYzk2MSJ9"
         },
         {
-          "resource": "repo://src/market/router.py#L963-L966",
-          "version": "repo-lines-v1:sha256:e77d844d7513d75921c6223ce8395859d0178043b3dc3d49162799268f5fb44b:eyJzZWxlY3RlZExpbmVDb3VudCI6NCwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiOTIyODcxNmJlYjcxZmYzZDI1M2U5MGVhNTY0YWMxOTM0MTljMjA0MzI0MWEyYzQ2MzEwM2I1OTAxZmNhMjQwNSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiYzI0Zjc3M2NmMTMxODgyNGI1N2Y1OGI4ZjVhMDA1OGM3MmFiNzliMjliMzBiMjBhODc2OGQxNTc4NzllNTQ5YiIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiNWU2Mjc4YjRjNzgxMTM1Y2NkNDQ0NWVmMTI1N2VmZWU1NjMxZjlhZGMxNWJmNjU2ZmU4MmJlMmY3MzRhY2VhNiIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjAsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiZTNiMGM0NDI5OGZjMWMxNDlhZmJmNGM4OTk2ZmI5MjQyN2FlNDFlNDY0OWI5MzRjYTQ5NTk5MWI3ODUyYjg1NSJ9"
+          "resource": "repo://src/market/router.py#L1073-L1076",
+          "version": "repo-lines-v1:sha256:e77d844d7513d75921c6223ce8395859d0178043b3dc3d49162799268f5fb44b:eyJzZWxlY3RlZExpbmVDb3VudCI6NCwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiOTIyODcxNmJlYjcxZmYzZDI1M2U5MGVhNTY0YWMxOTM0MTljMjA0MzI0MWEyYzQ2MzEwM2I1OTAxZmNhMjQwNSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiYzI0Zjc3M2NmMTMxODgyNGI1N2Y1OGI4ZjVhMDA1OGM3MmFiNzliMjliMzBiMjBhODc2OGQxNTc4NzllNTQ5YiIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiNWU2Mjc4YjRjNzgxMTM1Y2NkNDQ0NWVmMTI1N2VmZWU1NjMxZjlhZGMxNWJmNjU2ZmU4MmJlMmY3MzRhY2VhNiIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiY2Q3ZTEwYWJjZmY5OTc1Y2RkNWYxNTRkMWJkZGVmNjVjMGNjNTM0NTk5MDhmYzFmMDVkYTUyYzNhYWE4NmJjMiJ9"
+        },
+        {
+          "resource": "repo://src/market/router.py#L1103-L1106",
+          "version": "repo-lines-v1:sha256:e77d844d7513d75921c6223ce8395859d0178043b3dc3d49162799268f5fb44b:eyJzZWxlY3RlZExpbmVDb3VudCI6NCwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiOTIyODcxNmJlYjcxZmYzZDI1M2U5MGVhNTY0YWMxOTM0MTljMjA0MzI0MWEyYzQ2MzEwM2I1OTAxZmNhMjQwNSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiYzI0Zjc3M2NmMTMxODgyNGI1N2Y1OGI4ZjVhMDA1OGM3MmFiNzliMjliMzBiMjBhODc2OGQxNTc4NzllNTQ5YiIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiNWU2Mjc4YjRjNzgxMTM1Y2NkNDQ0NWVmMTI1N2VmZWU1NjMxZjlhZGMxNWJmNjU2ZmU4MmJlMmY3MzRhY2VhNiIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiM2RmNDJlNjYwMDJiMjUyZmNlYmYwMjMyZTdlMGVkMDMxNGQ4OTQyY2UyM2JjZGY3OWYyYzgyMWM5NDg3MTdlYSJ9"
         }
       ]
     },
@@ -125,7 +129,7 @@
       "statement": "Note title generation is asynchronous: `market_create_note` and `market_update_note` persist the note and then enqueue `generate_note_title_task(note_id, request_id=get_request_id())`, returning the note before any title exists.",
       "evidence": [
         {
-          "resource": "repo://src/market/router.py#L472-L510",
+          "resource": "repo://src/market/router.py#L600-L638",
           "version": "repo-lines-v1:sha256:aef04cd848600c9955c1622e794d993eee5ec06d0f35bd80f492dbee92a22300:eyJzZWxlY3RlZExpbmVDb3VudCI6MzksImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijg5ZDhkNDcyNDIyZTcwMmYyMzBjOGIxYjdjMWRlYWQ1NzFjMTFiMTE2YWUwYzA5NjFkMzM4NzUzY2M3YTNjYmIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjRjNmEzN2FiZWQwZDU2Y2U1MDljYjc4ODViMzA3NzJlY2YzZTlkY2U2NGQwZTc5MGIzMzNlZWUwZmI0MzgzMzgiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjhjYzRhN2QxY2M3OTZhYmEzZTQ2NzIzMzI3ZjUxN2U5ZjgxMTk4MmQyNTBmMDcwMjk4NmU0YjU3NjRhZDk1ODkiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImI2ZjhhNmU1ZmIxMDk4YTA5MTRlOTA5YjA3OGFiZWZiODliNGJkMmJmZTI2MTY3NjMzYTI1ZGM0YmY2YjIyYTEifQ"
         },
         {
@@ -139,7 +143,7 @@
       "statement": "`_generate_note_title` returns early when `huey.svcs_registry is None`, resolves `SecurityNoteRepository` and `AIService` from a `Container` built on that registry, warns and returns if the note id no longer exists, calls `ai_service.generate_note_title(note.content)`, writes the result via `note_repository.update_title(note_id, title)`, and restores the request-id context var token in a `finally` block.",
       "evidence": [
         {
-          "resource": "repo://src/market/repository_sqlalchemy.py#L748-L756",
+          "resource": "repo://src/market/repository_sqlalchemy.py#L1150-L1158",
           "version": "repo-lines-v1:sha256:655dc7474bf4c44333280103650fe96fe2cbec3ab4232cbe87a50c0df4a1b5f5:eyJzZWxlY3RlZExpbmVDb3VudCI6OSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiNDRkYTkzNTAwMTlkYzFlNjY3NDUyNjQzODczMTYxOTk3MjI1ZTljZTYwMTA3YWY3YjY0Zjg0MGRkZWNmZGE0ZiIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiMzQ2MTU4OTY5NTk2YWFmYjlmOWJlMDk1MTQwYzBlYTEzMGFkNjkzYmJkZmZkYmZkYjc2MjQ1YmY2NGI2NjIzZSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiOTIzMTc1OWYyOGM3MTY1OTJmM2I5OTJlNDNjYThjMmI0ZWQzZGU4NjJjNTgyZWMxNmU1NzkxZDcxMzJiY2ZkNyIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiZDBiNDM4YjUyYzQ3NjYxNmFiNTdlMzYzYWIxYjllMzhmNmQwZTQ2Y2EwZWY3YmY0MmEwMzdmY2YwZmZkMTIxMiJ9"
         },
         {
@@ -163,8 +167,8 @@
       "statement": "Stub versus real AI selection is a single switch: `register_services` branches on `settings.stub_external_api`, and when `STUB_EXTERNAL_API` is enabled `register_market_stub_services` registers `registry.register_factory(AIService, StubAIService)` instead of `ai_service_factory`.",
       "evidence": [
         {
-          "resource": "repo://src/config/services.py#L116-L150",
-          "version": "repo-lines-v1:sha256:ccd8863794eb63c661bf96b2dd3698eafdf05f1bc2079b16963e1a8aaa32111d:eyJzZWxlY3RlZExpbmVDb3VudCI6MzUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImRjZDUxOWMzYjliOGY5ZThiNmZlNzU5YjA2ZTg2ZjA1NmFjMjYwMTZiOWQwOWQyOTlkODMwMTE0YmQyZWRiM2IiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImI4ZTI2YzJiZTdhZWYxMjM3NWRiNTM4NDg5OWE4YjRlMTY5YzQ0ODg0NGZhMDBhZjFjOGJiY2I4ZDcyZjFmNzYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6Ijc2ODc4OTgxM2JiZmUzNzFhODhmMjYxMjczNWM2MmZhNWFkYjIyN2NkODYwYTM1MjY5MGIxMGE4YjI2MzQyOTciLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjoxLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImE0OTZlYWVkNDM1Y2RiOTIwYjc4NDQ3NWM2MDJkODk2NTdjYmRkOGNkZDk3MzJjMTYxZjk3YjQxOTVjYzllMzkifQ"
+          "resource": "repo://src/config/services.py#L118-L155",
+          "version": "repo-lines-v1:sha256:2510a4f9e8e8e3caa0eea2da5b7124f0ace3f3762adb5de7a7289cc767d39857:eyJzZWxlY3RlZExpbmVDb3VudCI6MzgsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImRjZDUxOWMzYjliOGY5ZThiNmZlNzU5YjA2ZTg2ZjA1NmFjMjYwMTZiOWQwOWQyOTlkODMwMTE0YmQyZWRiM2IiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImI4ZTI2YzJiZTdhZWYxMjM3NWRiNTM4NDg5OWE4YjRlMTY5YzQ0ODg0NGZhMDBhZjFjOGJiY2I4ZDcyZjFmNzYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6Ijc2ODc4OTgxM2JiZmUzNzFhODhmMjYxMjczNWM2MmZhNWFkYjIyN2NkODYwYTM1MjY5MGIxMGE4YjI2MzQyOTciLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjoxLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImE0OTZlYWVkNDM1Y2RiOTIwYjc4NDQ3NWM2MDJkODk2NTdjYmRkOGNkZDk3MzJjMTYxZjk3YjQxOTVjYzllMzkifQ"
         },
         {
           "resource": "repo://src/config/services.py#L27-L33",
@@ -249,10 +253,96 @@
           "version": "repo-lines-v1:sha256:bd885d6e90dabd205c2d5a9cebb457929a8ee7a7872b2de26ee37924b02701e2:eyJzZWxlY3RlZExpbmVDb3VudCI6MTQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijk0YmRiYzJiMWFmODIyMWY0NDYwMmExMjQ5MTQwYzkxOGU5MjRkYWMxYWQ2MWIwYWU5YzUzMTNiZjQ4ZTU1NDkiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjY3Y2RhODJkYTYwNjIzOGUwNWU2MjM5OTU2OWM1ZWUwMzk5MzQxOTY0OGFlNWQ0M2EyYmY4Y2Q2MzQ3ZjgyNjMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImE0MTIzNTg5NWQ1MGUzYjE2ZjMwMDZkZTkxYTFmOTlkMzgwNGVmNzBjNTUxNWNiMWM0YzkxYWU0M2E5MjgxNzUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjhjNDY4NzA1YWQzYWFmNTg3Mjc5Zjk3NDk5YjdhZTcyNTI1YmM3NjAzNTU2MTA2NWIzYmVlNWZkMGY5MjcxNTkifQ"
         }
       ]
+    },
+    {
+      "id": "claim_ac6923b903e4488d8c00cf09c00999d9",
+      "statement": "The three AI analysis endpoints (fundamentals, summarize-notes, portfolio-debate) are each decorated with `@limiter.limit(\"5/minute\")`, where `limiter` is the slowapi instance in `src/config/limiter.py` keyed by authenticated user id extracted from the JWT (falling back to remote IP) and using `memory://` storage when `settings.environment` is `test` and `settings.redis_url` otherwise.",
+      "evidence": [
+        {
+          "resource": "repo://src/config/limiter.py#L12-L34",
+          "version": "repo-lines-v1:sha256:e8a3502661ff9353745e7df42261f3214e3c5975db6fbbb4e307df802fe99668:eyJzZWxlY3RlZExpbmVDb3VudCI6MjMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjNlYWJjYWVlY2VkOGM5ZWU3NzhmNWFhMDJmNDc1NjMxOTNmYjUxNjYzYTUwZWRkOGJkMjAxMWZkZjY4Y2Q0YmQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImZhZmJhMDUyN2MzOTUzYzRiNmUwZTViNTczOWJhODM2MTJmODA1M2JjZGM5NDY2NzMwMTkzY2QxZDU5MGI0MDgiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6Ijg2MTM1N2UwMDQ3NWMxN2ViNjYzY2I1YTljMDAwYzQ2ZTk2MzcxYTBkZDZhOWNlNzM3NmJmMWRmZTJjNTNkZjkiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
+        },
+        {
+          "resource": "repo://src/market/router.py#L1031-L1032",
+          "version": "repo-lines-v1:sha256:d955f8191c176ba8fab3c49c11b10cc68e73963be5003501cc6c2667b2066935:eyJzZWxlY3RlZExpbmVDb3VudCI6MiwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiMmYwNGU5ODEyMzk2OWE3NmIxZDg1NGU5MGM1NDVhYjI1ZjYwZjA2NjRlZmVmYWVhOWQwZGFkZjZkZDU2NjVjMiIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiZjI1ZWMwNDA2NmU1ODU5NjA3MjQ5Y2NmZjBkMTFhNGQ5ZDliMmVhN2EyZGQyODRjYjZiNTM4MGFiZTNjNDgzZCIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiZmYwMjlhYjAyNTlmMzk3YmRlZjMyMmJjNWI0Yjk4OTAyOTllNTQyZTkzMzIyY2I3NDczZGE4MjNhZGY2YmY2MiIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiNjVkNzZmMWNiNDlmMTYxZjE4OGJmODc5MTEwMDJmMDk5NzgwZmNmM2IxYzNjOGU1YzNiMmFhNjM4YzI4NzAwZSJ9"
+        },
+        {
+          "resource": "repo://src/market/router.py#L1055-L1056",
+          "version": "repo-lines-v1:sha256:102549e1adc1736c3c413d5df53be053266a8bc13afd8afa361a73a0e63b9ee8:eyJzZWxlY3RlZExpbmVDb3VudCI6MiwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiMmE3NTAzN2VkYTVhOTNkYmUzYWMyYmY1N2UyYTEzNDQ4Mzc5OTBkMDI0NDQ2YTFhMTllYWM0MjZlYjkyMTRkYSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiZjI1ZWMwNDA2NmU1ODU5NjA3MjQ5Y2NmZjBkMTFhNGQ5ZDliMmVhN2EyZGQyODRjYjZiNTM4MGFiZTNjNDgzZCIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiYzUxYmZjZjY3MWQ1YTJmYzhhZDFlZTUzYjc0OGM1MmFiOGZjODIyOWU0OGYzYzRjYjk3YjM3MmM1MGM1NjA0MCIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiYTU1MDUzM2Q0MzQ0NTZjMjNiZTBlYjVmZjVlNTM3MDE0MjkzMjk1NzA4MGZlM2FkMDVkMGY1NmI2MGI0MDVlNSJ9"
+        },
+        {
+          "resource": "repo://src/market/router.py#L1079-L1080",
+          "version": "repo-lines-v1:sha256:7fdfc0819a7ecebc1454041f5bc1618d6beaf100c2966b4f296b9d9287a47c35:eyJzZWxlY3RlZExpbmVDb3VudCI6MiwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiZDczYzMxNjNjMTBmM2Q2MzNhNzc2ZmE4YTgzZjQ4OWQ4ODA2M2EzOTMxN2VkMTcyNTdmMTQwYWU5NWI4MWU5MCIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiZjI1ZWMwNDA2NmU1ODU5NjA3MjQ5Y2NmZjBkMTFhNGQ5ZDliMmVhN2EyZGQyODRjYjZiNTM4MGFiZTNjNDgzZCIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiYzUxYmZjZjY3MWQ1YTJmYzhhZDFlZTUzYjc0OGM1MmFiOGZjODIyOWU0OGYzYzRjYjk3YjM3MmM1MGM1NjA0MCIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiNGY1ZGYyM2JhOWRmZWJiYTA4ZDY0MmM1OGNiY2VlYTc3OTI2NDg2NmM5NmNlYmViMzNlOGZhMGVjYzhmMTM5NiJ9"
+        }
+      ]
+    },
+    {
+      "id": "claim_f331f51f0a684ce9b9c875857be1d70a",
+      "statement": "The AI response dialog's \"Save as Note\" action calls `notesService.createNote(securityId, { content: \"AI Analysis (<title>):\\n\\n<content>\" })`, so saving an AI result posts to the notes endpoint and therefore re-enqueues `generate_note_title_task` for the newly created note.",
+      "evidence": [
+        {
+          "resource": "repo://frontend/src/lib/components/actions-sidebar/ai/ai-response-dialog.svelte#L35-L46",
+          "version": "repo-lines-v1:sha256:2ac99e368c13ec6714fe6c834cf29c2e13bc26e364914b9a359c2d382206d135:eyJzZWxlY3RlZExpbmVDb3VudCI6MTIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQyMTM4YTU2YzUwMzk1YWFlYzgyMzUwOGVmNzU4YTRiZjQ4M2UwZTk4NTYwYTVkMjhlZjFjOGE4YmE1OGE1ZDIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjY3Y2RhODJkYTYwNjIzOGUwNWU2MjM5OTU2OWM1ZWUwMzk5MzQxOTY0OGFlNWQ0M2EyYmY4Y2Q2MzQ3ZjgyNjMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjBlNDE4MDI2YmE0YjEzZTA2ZmVkZGM2ZTQyNTdiYzg4YjcyZDU0NzMyYWQ3NjRjOWVhZmJiYzdjMmUwYTE3ZWYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6Ijk1MWUzMDRmY2MwMWUzMDNhZjg2ZDlhMWZlMjI3MzM2MGYyYzAwYmI3NzVkNGY2MDNlZGM1OGM4MWE0NmEwOTIifQ"
+        },
+        {
+          "resource": "repo://src/market/router.py#L600-L617",
+          "version": "repo-lines-v1:sha256:548768f83cedb1e168ac9a29aea56fba63a045ef217a985435556bd18cde6a71:eyJzZWxlY3RlZExpbmVDb3VudCI6MTgsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijg5ZDhkNDcyNDIyZTcwMmYyMzBjOGIxYjdjMWRlYWQ1NzFjMTFiMTE2YWUwYzA5NjFkMzM4NzUzY2M3YTNjYmIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjY2ZmVmMjI1N2JlOTUwNjI2NjY3MDM0MDVjZWU5NTlkZjBkZmJlODVhZTY1NTFmYmViYjkyYTQ3ZTRlMThmMDYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjhjYzRhN2QxY2M3OTZhYmEzZTQ2NzIzMzI3ZjUxN2U5ZjgxMTk4MmQyNTBmMDcwMjk4NmU0YjU3NjRhZDk1ODkiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjQwZDExMDY2NTM5MDg5NzM5NzFlMjJmNGI5YzM2ZjE5ODdhOGZlNDY4Y2RiZmRlMzdjMWFiZjQyNjY1MmY2ZWQifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_5d87ac858b8348ed9cbec47b86736f3a",
+      "statement": "Because `StubAIService` lacks `generate_note_title`, the note-title tests deliberately bypass the container stub switch: `tests/routers/test_notes.py` resolves `AIService` to `AsyncMock(spec=AIService)` (with `generate_note_title.return_value` set to the expected title) through a patched `src.market.task.Container`, rather than relying on `STUB_EXTERNAL_API`.",
+      "evidence": [
+        {
+          "resource": "repo://src/stubs/ai.py#L12-L58",
+          "version": "repo-lines-v1:sha256:12ba96cd7b47225b74df0a9cf4d1c9b53cffb819830737b9b819d50e80d8936b:eyJzZWxlY3RlZExpbmVDb3VudCI6NDcsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjNiNjUwYTQ0OGY1NGYxYWVjMmU5ZmM0ZWU3MTFlMTUyZTRjYWExNTgzZTdhM2UzMGYxMWEyYTZmNWRlMWU4ZTgiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjU5MDlhNTNhNjE4ZDAyOGUxZDMwMDBjMGE3YWJjZWVjYmU1ZmIzN2Y0ZTUxMWVmZTQ2NjQzZmFkNmU2Njg3MmYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjYyMDA5N2U0YWE1MDA2OGJhMTU3ZjlhMjczOWZhZDg2OTk1ZTFlMGNkY2NkYWRjNTg5N2MyMDM0Yzc0ZDNlZmEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
+        },
+        {
+          "resource": "repo://tests/routers/test_notes.py#L25-L72",
+          "version": "repo-lines-v1:sha256:2c294cce6300ab80fd5f3d34f0f771f32c62101de7f01d440015ec95e437b3ab:eyJzZWxlY3RlZExpbmVDb3VudCI6NDgsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImI3YTgzMWZhNDcyNmZjMjMxNTE0NGY5YTA1NWJmZWMyNWYxYWZkMTI2YWFmZjU3YWZmYmU5NDBlZjVjNmE3MzUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjMzYmEwNDFkYzBjM2ZiZGJhNmMyZTgzMTI2OTcwOTYyMjE1ZDNlY2NlYjNmYjE3NmIwNzI1Yjc2NTIyZDk1MzYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjFjNTcxODlhYjViYjZmNDNjYzJiYWRjZTlhYzIxZTM4NzBlNWRlNzEzNDBjMTRhZWNhYmJjZDIxMGNiOTE1NTkiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImE1YWYwNTZmMjAzZTRkM2I3N2ZmNjUyYzM3NTAxMTY4NDhjYjgxMDg2NGM5NDhiNDdiMTE4OGU5MTY1NmM2YmUifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_7b1368621d934cce8e49349869ec74fe",
+      "statement": "The note title is nullable at both layers — `SecurityNoteRead.title: str | None = None` in `src/market/schema.py` and `title: Mapped[str | None] = mapped_column(String, nullable=True)` on `SecurityNoteModel` in `src/market/model.py` — which is what allows the `generate_note_title` fallback text (or a null from a failed write-back) to be stored.",
+      "evidence": [
+        {
+          "resource": "repo://src/market/ai_service.py#L317-L322",
+          "version": "repo-lines-v1:sha256:f0f4e1ec0b1e7d953e9af7fcf7794d45cb253b6dc5fe563b61efd713778a2585:eyJzZWxlY3RlZExpbmVDb3VudCI6NiwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiOGM0YTYzZTUyMDg4MTkzYmMwMzk3MmNkMTU1MTE0NmI5NGJmMzBlZDZiY2M5ZTUwZDMyMjExMWE4YjE1MDRmMCIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiMjg4OGQ1ODU5NzlhNmViNGU3YjZlYTM3MDY2NjU1OGQzNzI3MDQ1MWIwYmJlNmQzZjA1ODY3NGQ3NDBhNDY3MSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiMThiMDdkNjRiMDcwOGU4MTdhNjdkYTllMzQ5MmY0OTU2ZDM4MzQxOThmNjQzNzA1NmM4OTg2NzkwOWVhYjYyYyIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiODM3N2RhOGJhNThjYWQxMzJkYTUyNjA0M2QzNTllODZlMWM5OWZmMzBjNWE3Y2U1OWI2OWEwODg0NTk4ZTlhMiJ9"
+        },
+        {
+          "resource": "repo://src/market/model.py#L187-L187",
+          "version": "repo-lines-v1:sha256:1fe1207b1a56d91a6f1a94cb4828e0569766f1796e9d2fb6519201f7c2a541d0:eyJzZWxlY3RlZExpbmVDb3VudCI6MSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiMWZlMTIwN2IxYTU2ZDkxYTZmMWE5NGNiNDgyOGUwNTY5NzY2ZjE3OTZlOWQyZmI2NTE5MjAxZjdjMmE1NDFkMCIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiMWZlMTIwN2IxYTU2ZDkxYTZmMWE5NGNiNDgyOGUwNTY5NzY2ZjE3OTZlOWQyZmI2NTE5MjAxZjdjMmE1NDFkMCIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiNzM3YWVkZDg4OTFmYzRhY2JkYmVmZjU1NzVmYTRmYTY4MDJiYjZjYjgzOWIxODIxZDEzYzVmMGU5NzRlODdiNCIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiMjhhMzRkZWMyZmFkYWRmYmZkYTM2N2IzMjgxNTUwNGVkNGQzZGE2NjViYTQ4M2Y4ZGQ4ZThkZDQxNTdiYjliMiJ9"
+        },
+        {
+          "resource": "repo://src/market/schema.py#L215-L224",
+          "version": "repo-lines-v1:sha256:bf3d8a51c039cd5ca74dee4b2dbfcacc6033a34800851adda2628b2979c8b80d:eyJzZWxlY3RlZExpbmVDb3VudCI6MTAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjYzNTU3OGIyNDRkZGNmYTVlZmJmMzRlZTZmMTA0OGI5OWFhNDE5OTgyZDFkNTAwODc1NjIzODAyNGQ5MWRmODUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjkzNTc0YjU5NzUxNTVjOTkwYmRmOGRjZTE5NzM2ZGI4YzM1OTNmNTNlMTZkY2U1N2IzNGNkMGFlZTE2ZGQ5ZWIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjcxMTgxZjE2MGJhM2ExOTYyNzVlM2Y1YzJmMmRmYmY1NzNkNDZlODFiMTcwYTFmN2FlMzE5MGM2YTgzNjAyNWQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImFkZmI3ZGY0ZTNmYjEyNTc0N2I3Y2IxNWYzMmNiOWM4ZTg1NzQ2YjVjMDFlZmNmZGUyNTIyMDA3NmI5MmZhYWIifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_1bf966e8d3c4445490bf8edcc300e2d3",
+      "statement": "Both the HTTP process (`lifespan_context` in `src/main.py`) and the Huey worker (`setup_worker_services` in `src/worker.py`) build their `svcs` registry by calling the same `register_services`, so the `settings.stub_external_api` branch that chooses `StubAIService` versus `ai_service_factory` applies identically to the API and the note-title task.",
+      "evidence": [
+        {
+          "resource": "repo://src/config/services.py#L14-L33",
+          "version": "repo-lines-v1:sha256:809d295ee815eb982bf9e52c76be36f766177874fe6e006ccc9cfaa89211951a:eyJzZWxlY3RlZExpbmVDb3VudCI6MjAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImUwNTE3NmQ4M2M0MGQyZjUxY2NjODYzNzlmY2Y2NTc2NmUxYjM3NzU3YmE1Njk1MTM5NTM3NDEzZDViZDQ4NjEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjE0Yjg2OTM3MTMyNGE1NDg5OWQ1MDliMzY4OGE1YTZmNjRhYjQ5N2RjYTRmMDBjNmM3ZjU5ZGU1ZDdkNjYwY2MiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImQwY2I4MWQ1YzNhYmI0MDhjY2I1ZDRiODI4ZmEwZThjYTA0MGFjNWZkMjNiYWE5ZDBjM2FiN2RlYTI2NGQ2YjIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImQ1NDE3NjU4ZWVmMmVmYzA1ODkxYzk4MjcwNmMzNGQ4YzQ4ODkyOTZjYWI5NzEyZWRhZjYwZGFlZWU5ZmQzYTMifQ"
+        },
+        {
+          "resource": "repo://src/main.py#L50-L59",
+          "version": "repo-lines-v1:sha256:6f7ff1d605729bde643c71c24b2b2997691a38998fab264c77ef9ac27d768aaf:eyJzZWxlY3RlZExpbmVDb3VudCI6MTAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijg3Y2ZmM2YxNzg0MmRlYzZlN2U5MWMzZTNiOGZjZTBhODIyZmMzMTEyNzM4MWIwMGY0NGE5ZjEzMzMzMDNhMmUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjNjNTVkZDExMjg4NDUzY2ZjNmNlZDIxYjlmMDkxYTQ5NDk3Mzc3N2Q1YWM1YmM1NjI2MWE1NTczYWUzMTI4MzIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjJmMWI3NzExMTNiNTY5OTExMWUzOGJlMzg1OWMwYThlZTU1NTJjZGU2ZTVlM2E2MTAyZjU1NjIxZGE5M2ZhZTAiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjUyZjA5YWE4ZjIwYzJhYjg1ZGQ2MGEzZTNkMjA2MjAxYWU3YmI5YzNmZmI3NjJlOTg4ZWI2ZWE1ZjVhNGMwZjUifQ"
+        },
+        {
+          "resource": "repo://src/worker.py#L27-L50",
+          "version": "repo-lines-v1:sha256:84e0997a340e888c697d5b7ee207fd30b8d3c911f5a3ee1817428ef932ea2800:eyJzZWxlY3RlZExpbmVDb3VudCI6MjQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImEwM2UyMGU3ZmU1Y2ZlMGYxZGMwMDczYzNkNTU2OTlkZWMzMjY5YTMwZGFmYmJkNGQzMmY2YzU2MDk4N2JkNDQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImVmY2RhYzdjYzk5OTFlZTAxNTM4MDg2MmJlYTUwMTRkODAzMzc4MmYyYmFhOWY4ZmNiYWI5YjgyMjcxZDMwNDkiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6Ijc3YjFhNGRiMDg5OTE2ZmY5YjRmZTM4NjFjMmQyYzk4NWI0YTVlMzRmODRiYjI3NTg1MjkzMDIxOGJiNDVmZGEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUwNzM3MjczOTNhM2I4YjIyOThjMDY1YjI1NTg4MjAxN2YxMjQyZjQ5ZjRmOTUwNGQ1YTI3ZGQ5MDA3NmRkYzAifQ"
+        }
+      ]
     }
   ],
   "verification": {
-    "by": "openwiki/0.5.2",
-    "at": "2026-09-18T20:16:58.058Z"
+    "by": "openwiki/0.6.1",
+    "at": "2026-10-02T14:25:20.147Z"
   }
 }

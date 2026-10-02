@@ -3,10 +3,9 @@ type: architecture
 title: Architecture Overview
 description: System-level runtime map of retail-portfolio — the FastAPI process (lifespan migrations, svcs registry, middleware order, error handling), the Huey worker, the SvelteKit SSR frontend, the Go indicator sidecar, PostgreSQL/Redis/mailcrab, route mounting under /api/v1, health probes, the backend layer rules, and the commands that verify a change.
 tags: [architecture, fastapi, huey, sveltekit, postgresql, redis, dependency-injection, request-lifecycle, docker-compose]
-verified:
-  - by: openwiki/0.5.2
-    at: 2026-09-23T13:18:56.288Z
 sources:
+  - id: openwiki-source-5f5b95b3d6a215fa02ceb945
+    resource: repo://.env.example
   - id: openwiki-source-164e2da859b5277df81c7d94
     resource: repo://.github/workflows/ci.yml
   - id: openwiki-source-8037e2358a2c4f9b2c722a11
@@ -51,6 +50,8 @@ sources:
     resource: repo://src/main.py
   - id: openwiki-source-336c8d4ea788e2c5f7cddd73
     resource: repo://src/market/__init__.py
+  - id: openwiki-source-0fd23e2899c3441d3c49cae4
+    resource: repo://src/market/eodhd.py
   - id: openwiki-source-d8383d22d61483b00080a280
     resource: repo://src/market/router.py
   - id: openwiki-source-9fc85bceeb3edfbe3ab56a7c
@@ -69,7 +70,10 @@ sources:
     resource: repo://tests/test_main.py
   - id: openwiki-source-f0abc296482c495e6bdb9e20
     resource: repo://tests/test_request_id.py
-generated: { by: "openwiki/0.5.2", at: "2026-09-23T13:18:56.288Z" }
+generated: { by: "openwiki/0.6.1", at: "2026-10-02T14:25:20.147Z" }
+verified:
+  - by: openwiki/0.6.1
+    at: 2026-10-02T14:25:20.147Z
 ---
 
 # Architecture Overview
@@ -319,12 +323,22 @@ Dependency injection is centralized in `src/config/services.py`. Each domain exp
 `src/market/__init__.py`), and `register_services` always:
 
 1. registers `AsyncSession` as a factory over `sessionmanager.session`;
-2. registers core services (`EmailService`);
+2. registers core services (`EmailService` as an already-built value);
 3. registers account and auth services unconditionally;
 4. picks the stub or live registration set for the market and integration domains based
    on `settings.stub_external_api` (`register_integration_stub_services` /
    `register_market_stub_services` versus `register_integration_services` /
    `register_market_services`).
+
+The two market sets are near-identical: `src/market/__init__.py::register_market_services`
+registers the EODHD gateway and price repository alongside the SQLAlchemy repositories,
+caches, `IndicatorServiceClient`, the `MarketPricesApi` / `SecurityApi` domain APIs and the
+`MarketService`, `AIService` and `AlertEvaluationService` services; the stub variant in
+`src/config/services.py` repeats that list but binds `AIService` to `StubAIService`. Note
+that `settings.stub_external_api` defaults to `False` and is not set in `.env.example`, so
+the dev stack runs the live registration set. The flag is also read a second time inside
+`eodhd_gateway_factory`, which returns `StubEodhdGateway` when it is on — so the stub
+switch is not confined to `register_services`.
 
 The same function is what the worker calls, so the API and the worker resolve the same
 interfaces — only the session manager differs (see the realtime page). A new repository,

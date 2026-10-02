@@ -1,11 +1,8 @@
 ---
 type: workflow
 title: AI Analysis Flows
-description: How retail-portfolio wires AI analysis — context assembly from security, price and note repositories, the fundamentals/summarize-notes/portfolio-debate endpoints, the asynchronous note-title Huey task, model and key configuration, stub selection, and the timeout and fallback behavior that must be preserved.
+description: How retail-portfolio wires AI analysis — context assembly from security, price and note repositories, the fundamentals/summarize-notes/portfolio-debate endpoints, the asynchronous note-title Huey task, model and key configuration, stub selection, and the timeout and failure behavior that must be preserved.
 tags: [ai, workflow, market, huey, openai, notes]
-verified:
-  - by: openwiki/0.5.2
-    at: 2026-09-18T20:16:58.058Z
 sources:
   - id: openwiki-source-a060da477a3f50343e05eb0d
     resource: repo://frontend/src/lib/api/aiService.ts
@@ -15,14 +12,20 @@ sources:
     resource: repo://frontend/src/lib/components/actions-sidebar/ai/ai-analysis-group.svelte
   - id: openwiki-source-bb330fd6b1093a4f646d73e7
     resource: repo://frontend/src/lib/components/actions-sidebar/ai/ai-response-dialog.svelte
+  - id: openwiki-source-4c3d639efe14a5f50763de50
+    resource: repo://src/config/limiter.py
   - id: openwiki-source-e1e5885568a239055161be95
     resource: repo://src/config/services.py
   - id: openwiki-source-d1e4e10eebd8f4d4314bc43f
     resource: repo://src/config/settings.py
+  - id: openwiki-source-11b9d806fcc6dd6e7747ed87
+    resource: repo://src/main.py
   - id: openwiki-source-336c8d4ea788e2c5f7cddd73
     resource: repo://src/market/__init__.py
   - id: openwiki-source-8ccbd431016696bd10c55c71
     resource: repo://src/market/ai_service.py
+  - id: openwiki-source-cc33fb93093886e62b166a26
+    resource: repo://src/market/model.py
   - id: openwiki-source-8ba9c7034638e16be9336256
     resource: repo://src/market/repository_sqlalchemy.py
   - id: openwiki-source-d8383d22d61483b00080a280
@@ -39,7 +42,10 @@ sources:
     resource: repo://tests/conftest.py
   - id: openwiki-source-382eb74e97d472ad5d0b6234
     resource: repo://tests/routers/test_notes.py
-generated: { by: "openwiki/0.5.2", at: "2026-09-18T20:16:58.058Z" }
+generated: { by: "openwiki/0.6.1", at: "2026-10-02T14:25:20.147Z" }
+verified:
+  - by: openwiki/0.6.1
+    at: 2026-10-02T14:25:20.147Z
 ---
 
 # AI Analysis Flows
@@ -84,7 +90,9 @@ All three are `POST`, require an authenticated user (`Depends(current_user)`), a
 | `POST /api/v1/market/securities/{security_id}/ai/summarize-notes` | `summarize_notes` | No request body. Short-circuits to the literal `"No notes found for this security."` when the user has no notes — **no provider call is made**, so this path never returns 503/504. |
 | `POST /api/v1/market/securities/{security_id}/ai/portfolio-debate` | `analyze_portfolio_fit` | Takes `AIAnalysisRequest` (`portfolio_context: str \| None`). The router substitutes `"No portfolio context provided."` for a missing or empty value before calling the service. |
 
-The frontend client `AIService` (`frontend/src/lib/api/aiService.ts`) mirrors exactly these three methods and posts `{}` as the body for the two bodyless routes. The sidebar group (`frontend/src/lib/components/actions-sidebar/ai/ai-analysis-group.svelte`) exposes them as "Explain Fundamentals", "Summarize Notes" and "Portfolio Debate"; the portfolio action currently sends the placeholder string `'Analyzing in isolation for now.'` as `portfolio_context` rather than real holdings. Results render in `ai-response-dialog.svelte`, which offers retry on failure and "Save as Note" — the latter posts to the notes endpoint and therefore itself re-triggers title generation.
+The rate limit uses `src/config/limiter.py`'s `limiter`, keyed by the authenticated user (falling back to remote IP), with `memory://` storage in test and Redis otherwise. The request and response bodies are defined once in `src/market/schema.py` (`AIAnalysisRequest`, `AIAnalysisResponse`).
+
+The frontend client `AIService` (`frontend/src/lib/api/aiService.ts`) mirrors exactly these three methods and posts `{}` as the body for the two bodyless routes. The sidebar group (`frontend/src/lib/components/actions-sidebar/ai/ai-analysis-group.svelte`) exposes them as "Explain Fundamentals", "Summarize Notes" and "Portfolio Debate"; it is mounted from the security detail page (`frontend/src/routes/security/[security_id]/+page.svelte`), and the portfolio action currently sends the placeholder string `'Analyzing in isolation for now.'` as `portfolio_context` rather than real holdings. Results render in `ai-response-dialog.svelte`, which offers retry on failure and "Save as Note" — the latter posts to the notes endpoint (`notesService.createNote`) prefixed with `AI Analysis (<title>):` and therefore itself re-triggers title generation.
 
 ### Request sequence
 
@@ -115,11 +123,11 @@ Caption: one AI analysis request from the sidebar to the provider and back, incl
 
 - The system message fixes the assistant persona ("helpful financial analysis assistant") and asks for markdown; the user message is the built context prompt.
 - Request parameters are `temperature=0.7`, `max_tokens=2000`, `timeout=timeout` (60 s default). The model comes from `self._api_model`, i.e. `settings.ai_api_model`.
-- Any exception is logged with `logger.exception("AI API request failed")` and re-raised as `RuntimeError("AI service unavailable: ...")` **from None**, so the traceback is suppressed and the message is the only signal.
+- Any exception raised during the SDK call itself is logged with `logger.exception("AI API request failed")` and re-raised as `RuntimeError("AI service unavailable: ...")` **from None**, so the traceback is suppressed and the message is the only signal.
 - Empty content raises `RuntimeError("AI response content is empty")`; non-string content raises `TypeError("AI response content is not a string")`.
 - DeepSeek-style ` thinking...` blocks are stripped with a DOTALL regex and the result is `.strip()`ed before returning.
 
-The router maps these precisely: `TimeoutError` → **504** `"AI analysis timed out"`, `RuntimeError` → **503** with the exception text as `detail`. A `TypeError` is **not** caught and surfaces as a 500, so any change that makes content non-string is a behavior change, not a cosmetic one. The frontend surfaces the `detail` string through `ApiClient`'s `extractErrorMessage` (`frontend/src/lib/api/apiClient.ts`) and offers a retry button.
+The emptiness and type checks run in the `else` branch of the `try/except`, so their exceptions keep their own types. The router maps this precisely and identically in all three handlers: `TimeoutError` → **504** `"AI analysis timed out"`, `RuntimeError` → **503** with the exception text as `detail`. A `TypeError` is **not** caught and surfaces as a 500, so any change that makes content non-string is a behavior change, not a cosmetic one. The frontend surfaces the `detail` string through `ApiClient`'s `extractErrorMessage` (`frontend/src/lib/api/apiClient.ts`), which raises an `ApiError` carrying the status and message, and the dialog offers a retry button.
 
 ## Model and credential configuration
 
@@ -127,9 +135,9 @@ The router maps these precisely: `TimeoutError` → **504** `"AI analysis timed 
 
 | Setting | Env var | Use |
 | --- | --- | --- |
-| `ai_api_endpoint` | `AI_API_ENDPOINT` | Base URL after `.replace("/chat/completions", "")` |
-| `ai_api_key` | `AI_API_KEY` | `AsyncOpenAI` credentials |
-| `ai_api_model` | `AI_API_MODEL` | Model for the three analysis calls |
+| `ai_api_endpoint` | `AI_API_ENDPOINT` | Base URL after `.replace("/chat/completions", "")`; defaults to the OpenAI completions URL |
+| `ai_api_key` | `AI_API_KEY` | `AsyncOpenAI` credentials; defaults to the empty string |
+| `ai_api_model` | `AI_API_MODEL` | Model for the three analysis calls; defaults to the empty string |
 
 The constructor builds `AsyncOpenAI(api_key=..., base_url=api_endpoint.replace("/chat/completions", ""))`, which is what allows `AI_API_ENDPOINT` to be either a bare base URL or a full completions path. Credential handling, the dev default endpoint and the "unset key only fails later" caveat belong to [External Services](../integrations/external-services.md) — do not duplicate them here.
 
@@ -181,15 +189,17 @@ Caption: the asynchronous note-title path, from enqueue in the request to write-
 - The system prompt demands a title of **maximum 50 characters**; `MAX_TITLE_LENGTH = 50` (`src/market/ai_service.py`) is the enforced cap.
 - After the call the result is stripped, a matching pair of surrounding double or single quotes is removed, and the string is finally sliced to `title_str[:MAX_TITLE_LENGTH]` — so an over-long title is truncated, not rejected.
 - Empty content raises `RuntimeError("AI failed to generate a title")` and non-string content raises `TypeError("AI title is not a string")`, but **both are swallowed** by the enclosing `except Exception`, which logs and returns a fallback: `content[:MAX_TITLE_LENGTH - 3] + "..."` for long notes, else the raw content.
-- Consequence: note creation and update can never fail because of the AI provider, and the stored `title` column can contain the note's own text. `SecurityNoteRead.title` is nullable (`src/market/schema.py`).
+- Consequence: note creation and update can never fail because of the AI provider, and the stored `title` column can contain the note's own text. `SecurityNoteRead.title` is nullable (`src/market/schema.py`) and the `SecurityNoteModel.title` column is `nullable=True` (`src/market/model.py`).
 
 ## Stub mode and testing
 
 Stub selection is a single switch. `register_services` (`src/config/services.py`) branches on `settings.stub_external_api`: when `STUB_EXTERNAL_API` is enabled it calls `register_market_stub_services`, which registers `registry.register_factory(AIService, StubAIService)` instead of `ai_service_factory`. `StubAIService` (`src/stubs/ai.py`) accepts `*args, **kwargs`, so it is a drop-in for the constructor, and implements `analyze_fundamentals`, `summarize_notes` and `analyze_portfolio_fit` returning fixed markdown strings. It has **no** `generate_note_title` method — the stub therefore covers the three HTTP endpoints only, and any code path that resolves `AIService` and calls `generate_note_title` under stub mode will fail with `AttributeError`.
 
-The test suite enables this mode globally: `tests/conftest.py` sets `os.environ["STUB_EXTERNAL_API"] = "true"` before importing the app, alongside `ENVIRONMENT="test"`. **AI calls must be stubbed in tests** — the suite never constructs `AsyncOpenAI` and requires neither an API key nor a reachable provider. Two mechanisms do the stubbing:
+That asymmetry is exactly why the note-title tests do not rely on the container switch: `tests/routers/test_notes.py` replaces `AIService` with `AsyncMock(spec=AIService)` so the missing stub method never matters.
 
-- Container-level: `STUB_EXTERNAL_API` resolves `AIService` to `StubAIService` for every test that goes through `register_services`.
+The test suite enables stub mode globally: `tests/conftest.py` sets `os.environ["STUB_EXTERNAL_API"] = "true"` before importing the app, alongside `ENVIRONMENT="test"`. **AI calls must be stubbed in tests** — the suite never constructs `AsyncOpenAI` and requires neither an API key nor a reachable provider. Two mechanisms do the stubbing:
+
+- Container-level: `STUB_EXTERNAL_API` resolves `AIService` to `StubAIService` for every test that goes through `register_services` (e.g. the app's `lifespan_context` in `src/main.py`, which builds the registry from the same `register_services` call).
 - Test-level: `tests/routers/test_notes.py` patches `src.market.task.Container` with a mock whose `aget` returns `AsyncMock(spec=AIService)` for `AIService` and a real `SqlAlchemySecurityNoteRepository` for `SecurityNoteRepository`, patches `huey.svcs_registry` with a `MagicMock`, patches `src.market.router.generate_note_title_task` to assert the enqueue arguments, and then awaits `_generate_note_title(...)` directly. This is the reference pattern for testing anything AI-related: mock the service, then drive the async inner function rather than the Huey wrapper. `huey.immediate = True` (set session-wide in `conftest.py`) keeps the rest of the worker synchronous.
 
 ## Invariants to preserve when changing prompts or payloads
