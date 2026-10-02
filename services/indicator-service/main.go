@@ -17,11 +17,17 @@ func main() {
 		port = "8080"
 	}
 
+	// Initialise telemetry before the router is built so tracers resolve to
+	// the configured provider, and keep the shutdown handle to flush spans on
+	// exit.
+	shutdownOTel := setupOTel(context.Background())
+
 	router := NewRouter()
+	handler := TraceMiddleware(RequestIDMiddleware(router))
 
 	server := &http.Server{
 		Addr:         ":" + port,
-		Handler:      router,
+		Handler:      handler,
 		ReadTimeout:  15 * time.Second,
 		WriteTimeout: 15 * time.Second,
 		IdleTimeout:  60 * time.Second,
@@ -64,5 +70,13 @@ func main() {
 
 	// Wait for server context to be stopped
 	<-serverCtx.Done()
+
+	// Flush pending spans before the process exits.
+	flushCtx, flushCancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer flushCancel()
+	if err := shutdownOTel(flushCtx); err != nil {
+		log.Printf("otel shutdown error: %v\n", err)
+	}
+
 	log.Println("indicator-service stopped")
 }

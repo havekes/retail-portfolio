@@ -3,6 +3,8 @@ package main
 import (
 	"encoding/json"
 	"net/http"
+
+	"go.opentelemetry.io/otel/attribute"
 )
 
 // HealthHandler handles GET /health requests.
@@ -46,6 +48,22 @@ func ComputeHandler(w http.ResponseWriter, r *http.Request) {
 		_ = json.NewEncoder(w).Encode(ErrorResponse{Error: "invalid json body: " + err.Error()})
 		return
 	}
+
+	// The compute span covers the calculation only; transport failures
+	// (wrong method, oversized or malformed body) are covered by the server
+	// span installed by TraceMiddleware.
+	statusWriter, _ := w.(*statusResponseWriter)
+	_, span := tracer().Start(r.Context(), "POST /compute")
+	defer func() {
+		if statusWriter != nil {
+			span.SetAttributes(attribute.Int("http.status_code", statusWriter.Status()))
+		}
+		span.End()
+	}()
+	span.SetAttributes(
+		attribute.Int("indicators.count", len(req.Indicators)),
+		attribute.Int("candles.count", len(req.Candles)),
+	)
 
 	resp := ComputeResponse{
 		Indicators: make(map[string]any),

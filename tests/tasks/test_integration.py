@@ -1,4 +1,5 @@
 import asyncio
+import logging
 from datetime import UTC, datetime
 from decimal import Decimal
 from typing import cast
@@ -6,6 +7,7 @@ from unittest.mock import AsyncMock, MagicMock, patch
 from uuid import uuid4
 
 import pytest
+from huey import signals
 from stockholm import Currency
 
 from src.account.api.account import AccountApi
@@ -36,6 +38,7 @@ from src.integration.repository import IntegrationUserRepository
 from src.integration.schema import IntegrationUserSchema
 from src.integration.task import (
     _sync_account_positions_task,
+    handle_interrupted_task,
     sync_account_positions_task,
 )
 from src.market.api import SecurityApi
@@ -1018,4 +1021,100 @@ async def test_sync_account_positions_task_no_user_email_resilience(
 
         mock_mark_started.assert_awaited_once_with(user_id, mock_account.id)
         mock_mark_finished.assert_awaited_once_with(user_id, mock_account.id)
+
+
+# --- SIGNAL_INTERRUPTED cleanup handler -------------------------------------
+#
+# ``handle_interrupted_task`` is invoked directly with a real ``Task`` instance
+# built by the registered ``TaskWrapper.s(...)``; no Huey worker, queue or Redis
+# is involved (the autouse ``fake_redis_manager`` fixture keeps Redis out).
+
+
+def test_interrupted_task_name_is_bare_in_locked_huey(mock_account):
+    """Lock the task name Huey 3.4.0 actually reports for an interrupted task.
+
+    Huey names the task class after the bare function name
+    (``TaskWrapper.create_task``: ``if not name: name = func.__name__``) and
+    ``Task.__init__`` sets ``self.name = type(self).__name__``, so the live
+    SIGNAL_INTERRUPTED payload carries ``"sync_account_positions_task"`` — not
+    the ``src.integration.task.sync_account_positions_task`` FQN the original
+    ticket assumed (that is upstream Huey <= 2.x behaviour). A dependency bump
+    that changes the naming fails this test loudly.
+    """
+    task = sync_account_positions_task.s(mock_account.user_id, mock_account)
+
+    assert sync_account_positions_task.name is None
+    assert task.name == "sync_account_positions_task"
+    assert task.args[0] == mock_account.user_id
+    assert task.args[1] is mock_account
+
+
+def test_interrupted_sync_task_marks_sync_finished(mock_account):
+    """AC1: an interrupted sync task cleans up its sync status."""
+    user_id = mock_account.user_id
+    task = sync_account_positions_task.s(user_id, mock_account)
+    mock_mark_finished = AsyncMock()
+
+    with patch("src.integration.task.mark_sync_finished", mock_mark_finished):
+        handle_interrupted_task(signals.SIGNAL_INTERRUPTED, task)
+
+    mock_mark_finished.assert_awaited_once_with(user_id, mock_account.id)
+
+
+def test_interrupted_dotted_sync_task_name_marks_sync_finished(mock_account):
+    """AC1: the cleanup branch also matches a fully-qualified task name.
+
+    Guards the defensive ``rsplit(".", 1)[-1]`` normalization against a Huey
+    release that reports ``<module>.<func>`` instead of the bare name.
+    """
+    user_id = mock_account.user_id
+    task = sync_account_positions_task.s(user_id, mock_account)
+    task.name = "src.integration.task.sync_account_positions_task"
+    mock_mark_finished = AsyncMock()
+
+    with patch("src.integration.task.mark_sync_finished", mock_mark_finished):
+        handle_interrupted_task(signals.SIGNAL_INTERRUPTED, task)
+
+    mock_mark_finished.assert_awaited_once_with(user_id, mock_account.id)
+
+
+@pytest.mark.parametrize("other_name", ["src.account.task.another_task", "another_task"])
+def test_interrupted_other_task_does_not_cleanup(other_name):
+    """AC2: only the sync task triggers cleanup."""
+    task = MagicMock()
+    task.name = other_name
+    task.args = ("some-user-id", MagicMock(id="some-account-id"))
+    mock_mark_finished = AsyncMock()
+
+    with patch("src.integration.task.mark_sync_finished", mock_mark_finished):
+        handle_interrupted_task(signals.SIGNAL_INTERRUPTED, task)
+
+    mock_mark_finished.assert_not_awaited()
+
+
+def test_interrupted_sync_task_with_missing_args_is_logged(mock_account, caplog):
+    """A malformed payload must not raise out of the signal handler."""
+    task = sync_account_positions_task.s(mock_account.user_id)
+    assert task.name == "sync_account_positions_task"
+
+    with caplog.at_level(logging.ERROR, logger="src.integration.task"):
+        handle_interrupted_task(signals.SIGNAL_INTERRUPTED, task)
+
+    assert "Failed to clean up interrupted task" in caplog.text
+
+
+def test_interrupted_cleanup_error_is_swallowed(mock_account, caplog):
+    """A failing cleanup marks nothing but must not raise out of the handler."""
+    user_id = mock_account.user_id
+    task = sync_account_positions_task.s(user_id, mock_account)
+    mock_mark_finished = AsyncMock(side_effect=RuntimeError("redis unavailable"))
+
+    with (
+        caplog.at_level(logging.ERROR, logger="src.integration.task"),
+        patch("src.integration.task.mark_sync_finished", mock_mark_finished),
+    ):
+        handle_interrupted_task(signals.SIGNAL_INTERRUPTED, task)
+
+    mock_mark_finished.assert_awaited_once_with(user_id, mock_account.id)
+    assert "Failed to clean up interrupted task" in caplog.text
 

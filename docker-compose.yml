@@ -44,6 +44,7 @@ services:
     user: 1000:1000
     ports:
       - "${WORKER_DEBUG_PORT:-8091}:5678"
+      - "${WORKER_METRICS_PORT:-8004}:8004"
     volumes:
       - ./:/app
     working_dir: /app
@@ -63,6 +64,7 @@ services:
       HOME: /app
       HUEY_DASHBOARD_WORKER: 1
       PYTHONPATH: /app
+      WORKER_METRICS_PORT: "${WORKER_METRICS_PORT:-8004}"
 
   frontend:
     image: node:latest
@@ -80,6 +82,10 @@ services:
       VITE_API_BASE_URL: "${VITE_API_BASE_URL:-http://localhost:8001}"
       VITE_INTERNAL_API_URL: "${VITE_INTERNAL_API_URL:-http://backend:8000}"
       VITE_ALLOWED_HOSTS: "${VITE_ALLOWED_HOSTS:-localhost}"
+      # Deployment identifier for frontend error/trace tagging, mirroring the
+      # backend's DEPLOY_ID (src/config/settings.py). Read at dev-server/build
+      # start; restart the service after changing it.
+      VITE_DEPLOY_ID: "${DEPLOY_ID:-dev}"
       # SSR route guard secret. Derive it from SECRET_KEY (root .env) so the token
       # verification in frontend/src/hooks.server.ts can never drift from the
       # backend's HS256 signing key. See ARCH-T09.

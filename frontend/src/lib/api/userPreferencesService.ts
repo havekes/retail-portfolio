@@ -113,6 +113,8 @@ export class UserPreferencesService extends ApiClient {
 	}
 }
 
-export const getUserPreferencesService = (customFetch?: typeof fetch) =>
-	new UserPreferencesService(customFetch);
+export const getUserPreferencesService = (
+	customFetch?: typeof fetch,
+	inboundTraceparent?: string | null
+) => new UserPreferencesService(customFetch, inboundTraceparent);
 export const userPreferencesService = getUserPreferencesService();

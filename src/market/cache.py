@@ -14,10 +14,48 @@ from src.config.settings import settings
 from src.core.redis import RedisManager, redis_manager
 from src.market.api_types import SecuritySearchResult
 from src.market.schema import IndicatorSpecSchema
+from src.observability import emit_event
 
 logger = logging.getLogger(__name__)
 
 DEFAULT_SEARCH_CACHE_TTL = 2_592_000  # 30 days in seconds
+
+#: Static cache-namespace labels used as the ``key_class`` telemetry dimension.
+#: These are deliberately constants: the raw user-scoped ``cache_key`` must
+#: never be emitted.
+CACHE_KIND_INDICATOR = "indicator"
+CACHE_KIND_SECURITY_SEARCH = "security_search"
+
+#: Failure class attached to a ``market.cache.accessed`` miss caused by Redis.
+CACHE_ERROR_SLUG = "cache_error"
+
+
+def _emit_cache_accessed(
+    *,
+    cache_kind: str,
+    key_class: str,
+    outcome: str,
+    ttl_seconds: int | None = None,
+    error_slug: str | None = None,
+) -> None:
+    """
+    Emit one ``market.cache.accessed`` wide event, best-effort only.
+
+    Telemetry must never change cache behaviour, so any emission failure is
+    swallowed. ``key_class`` is a static cache-namespace label, never the raw
+    user-scoped cache key.
+    """
+    try:
+        emit_event(
+            "market.cache.accessed",
+            cache_kind=cache_kind,
+            key_class=key_class,
+            outcome=outcome,
+            ttl_seconds=ttl_seconds,
+            error_slug=error_slug,
+        )
+    except Exception as error:  # noqa: BLE001
+        logger.debug("Cache telemetry emission failed: %s", error)
 
 
 class IndicatorCache:
@@ -163,15 +201,35 @@ class IndicatorCache:
             cached_data = await self._redis.get(cache_key)
         except Exception as e:  # noqa: BLE001
             logger.warning("Cache get error: %s", e)
+            _emit_cache_accessed(
+                cache_kind=CACHE_KIND_INDICATOR,
+                key_class=CACHE_KIND_INDICATOR,
+                outcome="miss",
+                ttl_seconds=self._cache_ttl,
+                error_slug=CACHE_ERROR_SLUG,
+            )
             return None
         else:
             if cached_data:
                 logger.debug(
                     "Cache hit for security %s indicators %s", security_id, indicators
                 )
-                return json.loads(cached_data)
+                payload = json.loads(cached_data)
+                _emit_cache_accessed(
+                    cache_kind=CACHE_KIND_INDICATOR,
+                    key_class=CACHE_KIND_INDICATOR,
+                    outcome="negative" if payload == {} else "hit",
+                    ttl_seconds=self._cache_ttl,
+                )
+                return payload
             logger.debug(
                 "Cache miss for security %s indicators %s", security_id, indicators
+            )
+            _emit_cache_accessed(
+                cache_kind=CACHE_KIND_INDICATOR,
+                key_class=CACHE_KIND_INDICATOR,
+                outcome="miss",
+                ttl_seconds=self._cache_ttl,
             )
             return None
 
@@ -217,6 +275,13 @@ class IndicatorCache:
             logger.debug("Cached indicators for security %s", security_id)
         except Exception as e:  # noqa: BLE001
             logger.warning("Cache set error: %s", e)
+        else:
+            _emit_cache_accessed(
+                cache_kind=CACHE_KIND_INDICATOR,
+                key_class=CACHE_KIND_INDICATOR,
+                outcome="write",
+                ttl_seconds=self._cache_ttl,
+            )
 
     async def invalidate_security(self, security_id: str) -> None:
         """
@@ -319,6 +384,12 @@ class SecuritySearchCache:
                 cached_data = await client.get(cache_key)
 
             if cached_data is None:
+                _emit_cache_accessed(
+                    cache_kind=CACHE_KIND_SECURITY_SEARCH,
+                    key_class=CACHE_KIND_SECURITY_SEARCH,
+                    outcome="miss",
+                    ttl_seconds=self._cache_ttl,
+                )
                 return None
 
             items = json.loads(cached_data)
@@ -328,12 +399,33 @@ class SecuritySearchCache:
                     query,
                     type(items).__name__,
                 )
+                _emit_cache_accessed(
+                    cache_kind=CACHE_KIND_SECURITY_SEARCH,
+                    key_class=CACHE_KIND_SECURITY_SEARCH,
+                    outcome="miss",
+                    ttl_seconds=self._cache_ttl,
+                )
                 return None
 
-            return [SecuritySearchResult.model_validate(item) for item in items]
+            results = [SecuritySearchResult.model_validate(item) for item in items]
         except Exception as e:  # noqa: BLE001
             logger.warning("Cache get error for query %s: %s", query, e)
+            _emit_cache_accessed(
+                cache_kind=CACHE_KIND_SECURITY_SEARCH,
+                key_class=CACHE_KIND_SECURITY_SEARCH,
+                outcome="miss",
+                ttl_seconds=self._cache_ttl,
+                error_slug=CACHE_ERROR_SLUG,
+            )
             return None
+
+        _emit_cache_accessed(
+            cache_kind=CACHE_KIND_SECURITY_SEARCH,
+            key_class=CACHE_KIND_SECURITY_SEARCH,
+            outcome="negative" if not results else "hit",
+            ttl_seconds=self._cache_ttl,
+        )
+        return results
 
     async def set(
         self,
@@ -363,6 +455,13 @@ class SecuritySearchCache:
             logger.debug("Cached %d search results for query %s", len(results), query)
         except Exception as e:  # noqa: BLE001
             logger.warning("Cache set error for query %s: %s", query, e)
+        else:
+            _emit_cache_accessed(
+                cache_kind=CACHE_KIND_SECURITY_SEARCH,
+                key_class=CACHE_KIND_SECURITY_SEARCH,
+                outcome="write",
+                ttl_seconds=effective_ttl,
+            )
 
 
 async def security_search_cache_factory() -> SecuritySearchCache:

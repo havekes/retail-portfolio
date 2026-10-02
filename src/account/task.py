@@ -3,6 +3,7 @@ import logging
 
 from svcs import Container
 
+from src.observability import restore_task_context
 from src.worker import huey
 from src.ws.api_types import AccountTotalsUpdatedMessage
 from src.ws.manager import ws_manager
@@ -11,14 +12,22 @@ logger = logging.getLogger(__name__)
 
 
 @huey.task()
-def recalculate_all_account_totals_task() -> None:
+def recalculate_all_account_totals_task(
+    request_id: str | None = None,
+    traceparent: str | None = None,
+) -> None:
     """Huey task to recalculate totals for all active accounts and broadcast
     via WebSocket.
 
     Runs in the huey-worker process via thread workers.
     Uses asyncio.run() to execute the async business logic.
     """
-    asyncio.run(_recalculate_all_account_totals())
+    with restore_task_context(
+        "recalculate_all_account_totals_task",
+        request_id=request_id,
+        traceparent=traceparent,
+    ):
+        asyncio.run(_recalculate_all_account_totals())
 
 
 async def _recalculate_all_account_totals() -> None:

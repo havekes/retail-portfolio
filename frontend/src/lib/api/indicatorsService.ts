@@ -72,6 +72,8 @@ export class IndicatorsService extends ApiClient {
 	}
 }
 
-export const getIndicatorsService = (customFetch?: typeof fetch) =>
-	new IndicatorsService(customFetch);
+export const getIndicatorsService = (
+	customFetch?: typeof fetch,
+	inboundTraceparent?: string | null
+) => new IndicatorsService(customFetch, inboundTraceparent);
 export const indicatorsService = getIndicatorsService();

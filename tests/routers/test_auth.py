@@ -4,17 +4,24 @@ import base64
 import logging
 import uuid
 from datetime import UTC, datetime, timedelta
+from typing import Any
 from unittest.mock import MagicMock, patch
 
 import jwt
 import pytest
+from opentelemetry.sdk.trace.export import SimpleSpanProcessor
+from opentelemetry.sdk.trace.export.in_memory_span_exporter import (
+    InMemorySpanExporter,
+)
+from opentelemetry.trace import StatusCode
 from webauthn.authentication.verify_authentication_response import (
     VerifiedAuthentication,
 )
 from webauthn.helpers import bytes_to_base64url
 from webauthn.registration.verify_registration_response import VerifiedRegistration
 
-from src.config.settings import settings
+from src.config.settings import Settings, settings
+from src.observability import bootstrap_observability, reset_observability
 
 # `mock_redis_storage` (in-memory Redis backing store) is provided globally by
 # tests/fixtures/redis.py.
@@ -1099,6 +1106,7 @@ async def test_passkey_authenticate_verify_success(
     client, test_user, auth_client, mock_redis_storage
 ):
     """Test POST /api/v1/auth/passkey/authenticate/verify logs user in and sets cookie."""
+    exporter = _install_auth_event_exporter()
     raw_cred_bytes = b"my_registered_passkey_cred_id"
     raw_cred_b64 = bytes_to_base64url(raw_cred_bytes)
 
@@ -1163,6 +1171,11 @@ async def test_passkey_authenticate_verify_success(
         assert "access_token" in result
         assert result["user"]["email"] == test_user.email
         assert "auth_token" in verify_resp.cookies
+
+    event = _auth_event(exporter, "success", "passkey_login")
+    assert event["user_id"] == str(test_user.id)
+    _assert_auth_event_envelope(event)
+    _assert_no_credentials_in_auth_events(exporter)
 
 
 @pytest.mark.anyio
@@ -1524,3 +1537,232 @@ async def test_auth_audit_logging(client, auth_client, test_user, caplog):
 
     await auth_client.delete(f"/api/v1/auth/passkeys/{passkey_id}")
     assert "auth.passkey_deleted" in caplog.text
+
+
+# --------------------------------------------------------------------------- #
+# F-OBS-T12 — auth.event wide events
+# --------------------------------------------------------------------------- #
+
+AUTH_EVENT = "auth.event"
+AUTH_EVENT_DEPLOY_ID = "deploy-test-auth-events"
+#: Credential fixtures defined in this module; none may reach an event.
+AUTH_EVENT_EMAILS = ("test@example.com", "other@example.com")
+AUTH_EVENT_SECRETS = ("testpass", "otherpass", "newpassword123", "wrongpass")
+AUTH_EVENT_SENSITIVE_KEYS = (
+    "email",
+    "password",
+    "token",
+    "access_token",
+    "mfa_token",
+    "auth_token",
+    "code",
+    "otp",
+)
+
+
+def _install_auth_event_exporter() -> InMemorySpanExporter:
+    """Rebind the process provider to an in-memory exporter, after the lifespan."""
+    exporter = InMemorySpanExporter()
+    reset_observability()
+    bootstrap_observability(
+        service_name="backend",
+        settings=Settings(environment="test", deploy_id=AUTH_EVENT_DEPLOY_ID),
+        span_processor=SimpleSpanProcessor(exporter),
+    )
+    return exporter
+
+
+@pytest.fixture(autouse=True)
+def _detach_auth_event_exporter():
+    """Drop the per-test provider so later tests see the normal test setup."""
+    yield
+    reset_observability()
+
+
+def _auth_event_spans(exporter: InMemorySpanExporter) -> list[Any]:
+    return [span for span in exporter.get_finished_spans() if span.name == AUTH_EVENT]
+
+
+def _auth_event_span(
+    exporter: InMemorySpanExporter, outcome: str, event_type: str
+) -> Any:
+    """Return the single auth.event record matching an outcome and event type."""
+    matches = [
+        span
+        for span in _auth_event_spans(exporter)
+        if (span.attributes or {}).get("outcome") == outcome
+        and (span.attributes or {}).get("event_type") == event_type
+    ]
+    assert len(matches) == 1, [dict(span.attributes or {}) for span in matches]
+    return matches[0]
+
+
+def _auth_event(
+    exporter: InMemorySpanExporter, outcome: str, event_type: str
+) -> dict[str, Any]:
+    return dict(_auth_event_span(exporter, outcome, event_type).attributes or {})
+
+
+def _assert_auth_event_envelope(attributes: dict[str, Any]) -> None:
+    assert attributes["event.name"] == AUTH_EVENT
+    assert attributes["service.name"] == "backend"
+    assert attributes["deploy_id"] == AUTH_EVENT_DEPLOY_ID
+    assert attributes["environment"] == "test"
+    assert len(str(attributes["trace_id"])) == 32
+    assert len(str(attributes["span_id"])) == 16
+    assert isinstance(attributes["timestamp_unix_millis"], int)
+
+
+def _assert_no_credentials_in_auth_events(exporter: InMemorySpanExporter) -> None:
+    """No auth.event record may carry a credential, an OTP or an email address."""
+    spans = _auth_event_spans(exporter)
+    assert spans, "no auth.event record was emitted"
+    for span in spans:
+        attributes = dict(span.attributes or {})
+        for key in AUTH_EVENT_SENSITIVE_KEYS:
+            assert key not in attributes, (key, attributes)
+        for value in attributes.values():
+            if not isinstance(value, str):
+                continue
+            for email in AUTH_EVENT_EMAILS:
+                assert email not in value, (email, attributes)
+            for secret in AUTH_EVENT_SECRETS:
+                assert secret not in value, (attributes)
+
+
+@pytest.mark.anyio
+async def test_login_success_emits_auth_event(auth_client, test_user):
+    """A successful login emits one auth.event with outcome and user_id."""
+    exporter = _install_auth_event_exporter()
+
+    response = await auth_client.post(
+        "/api/v1/auth/login",
+        json={"email": test_user.email, "password": "testpass"},
+    )
+    assert response.status_code == 200
+
+    assert len(_auth_event_spans(exporter)) == 1
+    event = _auth_event(exporter, "success", "login")
+    assert event["user_id"] == str(test_user.id)
+    assert isinstance(event["user_id"], str)
+    assert "failure_reason" not in event
+    _assert_auth_event_envelope(event)
+    _assert_no_credentials_in_auth_events(exporter)
+
+
+@pytest.mark.anyio
+async def test_login_failure_emits_auth_event_without_identity(auth_client, other_user):
+    """A failed login emits auth.event with a reason class and no identity."""
+    exporter = _install_auth_event_exporter()
+
+    response = await auth_client.post(
+        "/api/v1/auth/login",
+        json={"email": other_user.email, "password": "wrongpass"},
+    )
+    assert response.status_code == 401
+
+    span = _auth_event_span(exporter, "failure", "login")
+    event = dict(span.attributes or {})
+    assert event["failure_reason"] == "invalid_credentials"
+    assert "user_id" not in event
+    # Failures are marked ERROR so the sampling policy always retains them.
+    assert span.status.status_code == StatusCode.ERROR
+    _assert_auth_event_envelope(event)
+    _assert_no_credentials_in_auth_events(exporter)
+
+
+@pytest.mark.anyio
+async def test_2fa_login_events_report_outcome_and_user_id(auth_client, test_user):
+    """2FA flow emits challenge, failure and success outcomes, none leaking PII."""
+    import pyotp
+
+    exporter = _install_auth_event_exporter()
+
+    setup_resp = await auth_client.post("/api/v1/auth/2fa/totp/setup")
+    secret = setup_resp.json()["secret"]
+    totp = pyotp.TOTP(secret)
+    activate_resp = await auth_client.post(
+        "/api/v1/auth/2fa/totp/activate",
+        json={"code": totp.now()},
+    )
+    assert activate_resp.status_code == 200
+
+    # 2FA enabled: login issues a challenge instead of a session.
+    login_resp = await auth_client.post(
+        "/api/v1/auth/login",
+        json={"email": test_user.email, "password": "testpass"},
+    )
+    assert login_resp.status_code == 200
+    assert login_resp.json()["requires_2fa"] is True
+
+    challenge = _auth_event(exporter, "challenge", "login")
+    assert "user_id" not in challenge
+    _assert_auth_event_envelope(challenge)
+
+    # Wrong code: failure with the reason class, still no identity.
+    failed = await auth_client.post(
+        "/api/v1/auth/2fa/login-verify",
+        json={"mfa_token": login_resp.json()["mfa_token"], "code": "000000"},
+    )
+    assert failed.status_code == 401
+
+    failure = _auth_event(exporter, "failure", "2fa_verify")
+    assert failure["failure_reason"] == "code_invalid"
+    assert "user_id" not in failure
+
+    # Fresh challenge, correct code: success carries the user id.
+    second_login = await auth_client.post(
+        "/api/v1/auth/login",
+        json={"email": test_user.email, "password": "testpass"},
+    )
+    verified = await auth_client.post(
+        "/api/v1/auth/2fa/login-verify",
+        json={
+            "mfa_token": second_login.json()["mfa_token"],
+            "code": totp.now(),
+        },
+    )
+    assert verified.status_code == 200
+
+    success = _auth_event(exporter, "success", "2fa_verify")
+    assert success["user_id"] == str(test_user.id)
+    assert "failure_reason" not in success
+    _assert_auth_event_envelope(success)
+    _assert_no_credentials_in_auth_events(exporter)
+
+
+@pytest.mark.anyio
+async def test_passkey_login_failure_emits_auth_event(client):
+    """A rejected passkey verification emits a failure auth.event and stays 401."""
+    exporter = _install_auth_event_exporter()
+
+    unknown_cred_b64 = bytes_to_base64url(b"auth_event_unknown_credential_id")
+    client_data_json = (
+        '{"type": "webauthn.get", "challenge": "some_challenge", '
+        '"origin": "http://localhost:8100"}'
+    )
+    response = await client.post(
+        "/api/v1/auth/passkey/authenticate/verify",
+        json={
+            "credential": {
+                "id": unknown_cred_b64,
+                "rawId": unknown_cred_b64,
+                "response": {
+                    "clientDataJSON": bytes_to_base64url(client_data_json.encode()),
+                    "authenticatorData": bytes_to_base64url(b"auth_data"),
+                    "signature": bytes_to_base64url(b"sig"),
+                },
+                "type": "public-key",
+            },
+        },
+    )
+
+    # The HTTP behavior of the failure path is unchanged.
+    assert response.status_code == 401
+    assert "Passkey not recognized" in response.json()["detail"]
+
+    event = _auth_event(exporter, "failure", "passkey_login")
+    assert event["failure_reason"] == "verification_failed"
+    assert "user_id" not in event
+    _assert_auth_event_envelope(event)
+    _assert_no_credentials_in_auth_events(exporter)

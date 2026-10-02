@@ -1,7 +1,8 @@
 import { getUserPreferencesService } from '$lib/api/userPreferencesService';
+import { extractTraceparent } from '$lib/api/traceContext';
 import type { LayoutServerLoad } from './$types';
 
-export const load: LayoutServerLoad = async ({ locals, fetch, cookies }) => {
+export const load: LayoutServerLoad = async ({ locals, fetch, cookies, request }) => {
 	let sidebar_open = true;
 	let collapsed_watchlist_ids: string[] = [];
 	let watchlist_order: string[] | null = null;
@@ -9,7 +10,7 @@ export const load: LayoutServerLoad = async ({ locals, fetch, cookies }) => {
 
 	if (locals.user) {
 		const token = cookies.get('auth_token');
-		const prefService = getUserPreferencesService(fetch);
+		const prefService = getUserPreferencesService(fetch, extractTraceparent(request.headers));
 		try {
 			const prefs = await prefService.getPreferences(token);
 			if (prefs && typeof prefs.sidebar_open === 'boolean') {

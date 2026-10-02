@@ -45,6 +45,14 @@
 
 			<div class="flex-1 text-sm font-medium text-foreground">
 				{item.message}
+				{#if item.correlationId}
+					<span
+						class="mt-1 block font-mono text-xs font-normal text-muted-foreground"
+						data-testid="toast-correlation-id"
+					>
+						Report this: {item.correlationId}
+					</span>
+				{/if}
 			</div>
 
 			<button

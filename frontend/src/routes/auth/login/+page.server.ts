@@ -1,6 +1,7 @@
 import { dev } from '$app/environment';
 import { AuthService, type PasskeyAuthenticateVerifyRequest } from '$lib/api/authService';
 import { ApiError } from '$lib/api/apiClient';
+import { extractTraceparent } from '$lib/api/traceContext';
 import { fail, redirect } from '@sveltejs/kit';
 import type { Actions } from './$types';
 
@@ -17,7 +18,7 @@ export const actions: Actions = {
 			});
 		}
 
-		const authService = new AuthService(fetch);
+		const authService = new AuthService(fetch, extractTraceparent(request.headers));
 
 		try {
 			const response = await authService.login({ email, password });
@@ -80,7 +81,7 @@ export const actions: Actions = {
 			});
 		}
 
-		const authService = new AuthService(fetch);
+		const authService = new AuthService(fetch, extractTraceparent(request.headers));
 
 		try {
 			const response = await authService.loginVerify2Fa({
@@ -134,7 +135,7 @@ export const actions: Actions = {
 			return fail(400, { message: 'Invalid credential payload' });
 		}
 
-		const authService = new AuthService(fetch);
+		const authService = new AuthService(fetch, extractTraceparent(request.headers));
 
 		try {
 			const response = await authService.verifyPasskeyAuth({
