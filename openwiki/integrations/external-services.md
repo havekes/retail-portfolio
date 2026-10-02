@@ -3,9 +3,6 @@ type: Reference
 title: External Services & Adapters
 description: Catalog of every outbound dependency in retail-portfolio — EODHD market data, Wealthsimple brokerage via ws-api, the OpenAI-compatible AI endpoint, SMTP email, Redis and the Go indicator sidecar — with the adapter, configuration variables, stub counterparts, failure mapping and security caveats that own each boundary.
 tags: [integrations, external-services, adapters, eodhd, wealthsimple, ai, smtp, redis, stubs, configuration, security]
-verified:
-  - by: openwiki/0.5.2
-    at: 2026-09-18T20:16:58.058Z
 sources:
   - id: openwiki-source-5f5b95b3d6a215fa02ceb945
     resource: repo://.env.example
@@ -31,6 +28,8 @@ sources:
     resource: repo://src/integration/brokers/exception.py
   - id: openwiki-source-aa78a7160d509484cbcaaf33
     resource: repo://src/integration/brokers/wealthsimple.py
+  - id: openwiki-source-1d65188722b62c70565d1cc3
+    resource: repo://src/integration/registry.py
   - id: openwiki-source-cf06e2dd885c3f0f11447b4f
     resource: repo://src/integration/sync_status.py
   - id: openwiki-source-1bc1a904875e872775adbd74
@@ -77,7 +76,10 @@ sources:
     resource: repo://tests/market/test_indicator_client.py
   - id: openwiki-source-382eb74e97d472ad5d0b6234
     resource: repo://tests/routers/test_notes.py
-generated: { by: "openwiki/0.5.2", at: "2026-09-18T20:16:58.058Z" }
+generated: { by: "openwiki/0.6.1", at: "2026-10-02T14:25:20.147Z" }
+verified:
+  - by: openwiki/0.6.1
+    at: 2026-10-02T14:25:20.147Z
 ---
 
 # External Services & Adapters
@@ -97,6 +99,31 @@ The single deliberate exception is `EodhdPriceRepository`, which is both a repos
 (Postgres) and an adapter (`MarketGateway`), showing the "repository_*.py = alternative
 backend" convention described in `src/AGENTS.md`.
 
+```mermaid
+flowchart LR
+    subgraph backend["FastAPI backend and Huey worker"]
+        MG["MarketGateway"]
+        PR["PriceRepository"]
+        AI["AIService"]
+        BW["WealthsimpleApiGateway"]
+        EM["EmailService"]
+        IC["IndicatorServiceClient"]
+        RM["RedisManager singleton"]
+    end
+    MG --> EODHD["EODHD REST API eodhd.com"]
+    PR --> EODHD
+    AI --> AIEP["OpenAI-compatible AI endpoint"]
+    BW --> WSAPI["ws-api Wealthsimple client"]
+    BW --> KR["OS keyring on local disk"]
+    EM --> SMTP["SMTP server"]
+    RM --> RED["Redis: caches, sync status, pub/sub, Huey broker"]
+    IC --> SIDE["Go indicator sidecar over HTTP"]
+```
+
+Caption: the outbound dependency map — which internal component owns which external
+boundary, including the two indirect ones (the keyring the broker adapter writes to and
+Redis, which carries both cache traffic and the Huey broker).
+
 ## The stub/live switch
 
 `STUB_EXTERNAL_API` is the **only** mechanism that selects stub versus live adapters,
@@ -112,26 +139,47 @@ else:
     register_market_services(registry)
 ```
 
-Both branches register the **same abstract keys** with different factories, so no
-caller changes. The concrete stub classes registered by the stub path are:
+The four registration functions do not live in the same module. Only the two **stub**
+functions are defined in `src/config/services.py`; the live ones live with their own
+domain — `register_integration_services` in `src/integration/registry.py` and
+`register_market_services` in `src/market/__init__.py`. `register_services` imports the
+live pair at module top level and the stub pair is a plain local-to-the-file reference,
+so the stub bodies stay reachable without an import cycle.
 
-| Abstract key | Live factory | Stub class registered |
+Both branches register the **same abstract keys** with different factories, so no
+caller changes. The keys that actually differ between the two paths are:
+
+| Abstract key (stub-mode owner) | Live factory | Stub class registered |
 |--------------|--------------|-----------------------|
 | `MarketGateway` | `eodhd_gateway_factory` (→ `EodhdGateway`) | `StubEodhdGateway` (via the factory re-check) |
 | `PriceRepository` | `eodhd_price_repository_factory` | same — it wraps `eodhd_gateway_factory` |
 | `AIService` | `ai_service_factory` (→ `AIService`) | `StubAIService` (`src/stubs/ai.py`) |
 | `WealthsimpleApiGateway` | `wealthsimple_api_wrapper_factory` | `StubWealthsimpleApiGateway` (`src/stubs/wealthsimple.py`) |
 
+Everything else registered by `register_market_stub_services` and
+`register_integration_stub_services` — the SQLAlchemy repositories for market data,
+notes, alerts, valuations, watchlists, documents, chart snapshots and intraday prices,
+plus `IndicatorCache`, `SecuritySearchCache`, `IndicatorServiceClient`,
+`MarketPricesApi`, `SecurityApi`, `MarketService`, `AlertEvaluationService`,
+`IntegrationUserRepository`, `IntegrationUserService`, `IntegrationUserApi` and
+`IntegrationAccountApi` — is a duplicate of the live registrations, kept in step by hand.
+The two stub functions are therefore a full mirror of the live path; adding a service to
+one path without the other makes the registry incomplete in whichever mode you forgot.
+
 Two details matter when changing anything here:
 
 - The stub registrations are imported **lazily inside the function bodies** of
-  `register_integration_stub_services` / `register_market_stub_services`. This is
-  deliberate: importing the stub modules eagerly would pull vendor SDKs
-  (`ws_api`, `eodhd`) onto the wrong path. Keep the local imports local.
+  `register_integration_stub_services` / `register_market_stub_services` (every import
+  carries `# noqa: PLC0415`). This is deliberate: `src/config/services.py` is imported by
+  the worker as well as the web process, and importing the stub modules eagerly would pull
+  vendor SDKs (`ws_api`, `eodhd`) onto the wrong path. Keep the local imports local. Note
+  the stub path also imports the *live* `WealthsimpleApiGateway` (for its factory key) and
+  `eodhd_gateway_factory` — only the stub classes themselves are imported lazily.
 - `eodhd_gateway_factory` **re-checks** `settings.stub_external_api` itself and returns
-  `StubEodhdGateway` when the flag is set — even when the *live* registration path runs.
-  So there are two independent checks for the EODHD gateway. They must stay consistent:
-  flipping one without the other silently changes which `MarketGateway` callers receive.
+  `StubEodhdGateway` when the flag is set — even when the *live* registration path runs
+  (`src/market/eodhd.py` also imports the stub lazily inside that branch). So there are two
+  independent checks for the EODHD gateway. They must stay consistent: flipping one without
+  the other silently changes which `MarketGateway` callers receive.
 
 `tests/conftest.py` sets `os.environ["STUB_EXTERNAL_API"] = "true"` **before** importing
 the app, so the whole suite resolves stubs and needs neither EODHD, Wealthsimple, nor AI
@@ -141,9 +189,9 @@ stack therefore runs against the **live** adapters, with `EODHD_API_KEY="demo"`,
 
 ```mermaid
 flowchart TD
-    A["register_services called"] --> B{"settings.stub_external_api"}
-    B -->|"true"| C["register_integration_stub_services + register_market_stub_services"]
-    B -->|"false"| D["register_integration_services + register_market_services"]
+    A["register_services called in src/config/services.py"] --> B{"settings.stub_external_api"}
+    B -->|"true"| C["register_integration_stub_services + register_market_stub_services in src/config/services.py"]
+    B -->|"false"| D["register_integration_services in src/integration/registry.py + register_market_services in src/market/__init__.py"]
     C --> E["WealthsimpleApiGateway resolved to StubWealthsimpleApiGateway"]
     C --> F["AIService resolved to StubAIService"]
     D --> G["wealthsimple_api_wrapper_factory resolves WealthsimpleApiGateway"]
@@ -153,6 +201,9 @@ flowchart TD
     I --> J{"eodhd_gateway_factory re-checks the flag"}
     J -->|"true"| K["StubEodhdGateway returns deterministic fake candles"]
     J -->|"false"| L["EodhdGateway calls the eodhd SDK and eodhd.com search URL"]
+    C --> Q["Both stub paths also register the unchanged services"]
+    D --> Q
+    Q --> R["SQLAlchemy repositories, IndicatorCache, SecuritySearchCache, IndicatorServiceClient, MarketService, integration services"]
     G --> M["SessionExpiredError or OTPRequiredError surface as HTTP errors and a sync error email"]
     H --> N["RuntimeError becomes HTTP 503 AI service unavailable and TimeoutError becomes 504"]
     L --> O["requests search has a 10s timeout and no retry"]
@@ -161,7 +212,8 @@ flowchart TD
 
 Caption: adapter selection under stub versus live mode, and where each boundary's
 failures surface — broker session errors inside the sync task, AI failures at the
-router, and EODHD failures at the repository or search route.
+router, and EODHD failures at the repository or search route. Only the four adapters in
+the middle band differ between modes; the bottom band is mirrored on both paths.
 
 ## EODHD market data
 
@@ -470,7 +522,10 @@ The mechanisms already in place, in preference order:
 
 - **New outbound dependency**: define an abstract interface, a live adapter, a stub in
   `src/stubs/`, a factory that branches on `settings.stub_external_api` (or is registered
-  from the stub function), and register both paths in the domain's `register_*_services`.
+  from the stub function), and register both paths — live in the domain's
+  `register_*_services` (`src/integration/registry.py`, `src/market/__init__.py`), stub in
+  `register_*_stub_services` (`src/config/services.py`). The two registration sites are
+  separate files, so a new key must be added to both.
 - **New broker institution**: extend `get_broker_gateway_class`, add a `BrokerApiGateway`
   subclass with its own keyring prefix and `InstitutionEnum`, map its vendor errors onto
   `ExternalAPIError` subclasses, and add a sentence to `_SYNC_ERROR_MESSAGE_MAPPING` if the

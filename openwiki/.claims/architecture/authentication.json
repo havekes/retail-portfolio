@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "pageVersion": "sha256:ae6b2badf64c77ed7003758fde835caa4dce0c46ba4b3a17b6602a8e1c9e32cd",
+  "pageVersion": "sha256:6cc414c6c060fa3dc98b59e8029d4e396b768c20f0d18abeb6b7b27507d3773e",
   "claims": [
     {
       "id": "claim_ceb913d68ca541f89ee4b6829bd092a2",
@@ -271,7 +271,7 @@
       "statement": "`AuthorizationApi.check_entity_owned_by_user` raises 404 `Entity does not exist` when the entity is `None` or owned by another user, account/portfolio/integration routers call it instead of comparing ids, and `src/main.py` maps `AuthorizationError` to 404 so existence is never confirmed with 403.",
       "evidence": [
         {
-          "resource": "repo://src/account/router.py#L108-L108",
+          "resource": "repo://src/account/router.py#L110-L110",
           "version": "repo-lines-v1:sha256:ef07bdee681d3156f3edff350ebfc35ffe4bbb340115102f4ad06d619d859a82:eyJzZWxlY3RlZExpbmVDb3VudCI6MSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiZWYwN2JkZWU2ODFkMzE1NmYzZWRmZjM1MGViZmMzNWZmZTRiYmIzNDAxMTUxMDJmNGFkMDZkNjE5ZDg1OWE4MiIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiZWYwN2JkZWU2ODFkMzE1NmYzZWRmZjM1MGViZmMzNWZmZTRiYmIzNDAxMTUxMDJmNGFkMDZkNjE5ZDg1OWE4MiIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiMWZlMDhhZjE3N2M4NzM0MWI5NzIyOWQxNWNlMTU1NThkMWQxZTQ3Zjk4Njc0MDc3NTIzN2MwMWJhOWFkZmRkYSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiNDc0OGU5NzZiYTQ4NGQwNTZhZjkzNjM2YjFiZGE0NjMxY2M3NGUyNzhmNGQ4OWQ4MmYzOTBhOTg2YjkwM2FlZiJ9"
         },
         {
@@ -320,11 +320,19 @@
     },
     {
       "id": "claim_6e9cc9ccfa03496aa4f42455bbcbc24c",
-      "statement": "Server loads that receive a 401 from the backend call `deleteAuthCookie` and redirect to `/auth/login?clear_session=true`, a pattern repeated on `/`, `/accounts/[id]`, `/brokers`, `/security/[security_id]`, and `/settings/security`.",
+      "statement": "Server loads that receive a 401 from the backend call `deleteAuthCookie(cookies)` and redirect to `/auth/login?clear_session=true`, a pattern used by the loads for `/`, `/accounts/[id]`, `/brokers`, `/holdings`, `/portfolios`, and `/settings/security`, while the client-side post-navigation seam `redirectOn401` in `frontend/src/lib/api/async-data.ts` instead `goto`s the same URL without deleting the httponly cookie, delegating the clear to the SSR guard.",
       "evidence": [
+        {
+          "resource": "repo://frontend/src/lib/api/async-data.ts#L1-L24",
+          "version": "repo-lines-v1:sha256:946720d5fab9cba3d3293ab0ac5f0ff8ccc23407f052a0af38cb871b1d3a033e:eyJzZWxlY3RlZExpbmVDb3VudCI6MjQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjVhMDM4MWZiNzI1OWJmOGYwMWI1NzUyMGEzYzViZGMwNjE1MmVmNmMyZTRlNTEwOGYyM2M0NjRhZDk3ZTg0Y2UiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQxMmNhMzQ1Y2NmNzViZjljMDgwNmJjZTY5NWJlOGRlODA4Yjc5OTg0MjUxYTdhNTRkMjAyY2Y2MTAxZGQ0NTEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjowLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
+        },
         {
           "resource": "repo://frontend/src/routes/%2Bpage.server.ts#L7-L25",
           "version": "repo-lines-v1:sha256:d1bd8454861b38348c245ce5cfba20921c6226d8f17fee42904ad024815c031a:eyJzZWxlY3RlZExpbmVDb3VudCI6MTksImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjRlM2Q1N2FlMTIwM2IxZmZjNTYxNDRmMDUzYjhlYTJjNjY4NWY4MmZlNDExZDFhNGZiY2YzM2NlZTA2NjBmMjIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImFhMWQxYTYzMzkwMjI5Yzc5ODM0N2U4M2EwNDA1NDQxYzk0MDAwMzUyODRhZDE2OGMxYmY2Y2RmMWQ3MGEzNzAiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImIwMDk0NDA3ZWYzYmExZTk0OTY4ZGIzZTgyNjI5Y2Y4YWZlMDZkZjIyMjI1ZGZkYTVjMDE3MTM4OTg2YWM2NmYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjI4MGFhMDYyN2FjMDNkZmNmMzA3NmUzYWI4ODI4ZDJhZDViZjhlMGFiMmU2MTdjNDVkYjhjM2UyN2VjODQyOGMifQ"
+        },
+        {
+          "resource": "repo://frontend/src/routes/portfolios/%2Bpage.server.ts#L7-L24",
+          "version": "repo-lines-v1:sha256:edf6d3efd15dd868c2a1a1795ce75bb0beacdffd190a08bdbc1b40e79f87d236:eyJzZWxlY3RlZExpbmVDb3VudCI6MTgsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjRlM2Q1N2FlMTIwM2IxZmZjNTYxNDRmMDUzYjhlYTJjNjY4NWY4MmZlNDExZDFhNGZiY2YzM2NlZTA2NjBmMjIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImFhMWQxYTYzMzkwMjI5Yzc5ODM0N2U4M2EwNDA1NDQxYzk0MDAwMzUyODRhZDE2OGMxYmY2Y2RmMWQ3MGEzNzAiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImRkYzNkMjY1NWFhMzc0ZjNiNjI4NjRiZDllNGZlNTY5YWI0OWE4MTFlMTFjNDJmMWFjMmQ3Mjk1MTBhZWFkNDIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
         },
         {
           "resource": "repo://frontend/src/routes/settings/security/%2Bpage.server.ts#L7-L33",
@@ -380,15 +388,15 @@
     },
     {
       "id": "claim_562e629a1dac4d5d98d1cde001f69c7e",
-      "statement": "`authService.getWsTicket()` is used by the accounts list state, which connects to `/api/ws?ticket=...` and reconnects every 5 seconds on close.",
+      "statement": "`authService.getWsTicket()` is used by the accounts list state in `initWebSocket`, which derives the `/api/ws` URL from `VITE_API_BASE_URL` or `window.location`, aborts without retrying when no ticket is returned, opens `?ticket=...`, and schedules `initWebSocket` again 5 seconds after close.",
       "evidence": [
         {
           "resource": "repo://frontend/src/lib/api/authService.ts#L94-L96",
           "version": "repo-lines-v1:sha256:f564fd556eccc10094fd70119a0314c348060db4095ef026aec76e0d6e379378:eyJzZWxlY3RlZExpbmVDb3VudCI6MywiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiY2IzNmZkM2U0MmY2YzhhMWM5NmU3Nzg2YTA4MDZiOWY0ODczMTgzY2FmZjM1ZDBiNDg5NTk0OTNmYjQzMGJhYyIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNjdjZGE4MmRhNjA2MjM4ZTA1ZTYyMzk5NTY5YzVlZTAzOTkzNDE5NjQ4YWU1ZDQzYTJiZjhjZDYzNDdmODI2MyIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiNmIzYTNjYTMyNWQ0MjU5OWI2ZjVjY2E1ZjUxY2ZkMGQyZTM0ZDU0MmUyMzA5YjU1ZjVkZDBiYzViZmVkNWE2NSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiMjI1N2E0YjE3Njc3YzY2NTg2NjliMjI4ZWUwODQ1ZDBlYzRhMDk5YWRkMzk3Y2EzN2FlZTdiZTE2Y2E0NWI0NSJ9"
         },
         {
-          "resource": "repo://frontend/src/lib/components/accounts/accounts-list.svelte.ts#L52-L115",
-          "version": "repo-lines-v1:sha256:ee00494b22ac14f843d2bf999cc1ca1385a2cab4da6eab5b7cabde9768df39f8:eyJzZWxlY3RlZExpbmVDb3VudCI6NjQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImY1YWEzYTQzNjdlY2VmMTY4ZjM3YWI2NzYyMDc5ZTMzOTdhMzU0YTRhYjc2MzYyZjc2ODRlNDQzNDljODZiODIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjY3Y2RhODJkYTYwNjIzOGUwNWU2MjM5OTU2OWM1ZWUwMzk5MzQxOTY0OGFlNWQ0M2EyYmY4Y2Q2MzQ3ZjgyNjMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjIyZjJmZjVmZWVjNjBmNTg3YzhmYWU0ZTg3ZjgwOWE2NjFjZmZlZDZiNDdhYWU1ZjZkNmEyNjUzYWE4OTUyZWYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImU3Y2E5NjFlYTg5MzA0YzliMjc2NGJiMmJmM2QxYjg0ZDM2YmEyYTE5OWI5OTUxNzQ4ZDYzYmQ4MDJjNTczNjYifQ"
+          "resource": "repo://frontend/src/lib/components/accounts/accounts-list.svelte.ts#L52-L116",
+          "version": "repo-lines-v1:sha256:9f293fd7980c7dbc1d41f20b0e2758becd3c4a6d5a1f784f875aedfa617cb1fe:eyJzZWxlY3RlZExpbmVDb3VudCI6NjUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImY1YWEzYTQzNjdlY2VmMTY4ZjM3YWI2NzYyMDc5ZTMzOTdhMzU0YTRhYjc2MzYyZjc2ODRlNDQzNDljODZiODIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjY3Y2RhODJkYTYwNjIzOGUwNWU2MjM5OTU2OWM1ZWUwMzk5MzQxOTY0OGFlNWQ0M2EyYmY4Y2Q2MzQ3ZjgyNjMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjIyZjJmZjVmZWVjNjBmNTg3YzhmYWU0ZTg3ZjgwOWE2NjFjZmZlZDZiNDdhYWU1ZjZkNmEyNjUzYWE4OTUyZWYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImU3Y2E5NjFlYTg5MzA0YzliMjc2NGJiMmJmM2QxYjg0ZDM2YmEyYTE5OWI5OTUxNzQ4ZDYzYmQ4MDJjNTczNjYifQ"
         }
       ]
     },
@@ -551,10 +559,46 @@
           "version": "repo-lines-v1:sha256:65328fa8e8f0212fcab728f26cd1399478ebcf8746f1a79cf9c529eb535817b8:eyJzZWxlY3RlZExpbmVDb3VudCI6MTMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjNmNjhjMWM3ODY0OTc4NWFhNGNiOTYxNzk5YzgzNmNkMWE2YjA3ODg4NjlmOTUyOGJhYTMxM2E0YTZkZDRhMTIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjcyODIxZTJlZjRlODFjMWIyMmIzODczM2M5ZGMyNzg2MDQ3OGE5MDY5MGI4ZTZiMDI2OGQ5ZWE4YTMwMmM2N2IiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImIyZDNmNGQ4OGQ1YmVjM2I0MTY2M2FiYjJiODYxNTM4ZTg2NzliYTBjYTdmYjVkZTMyNWUxMDczYTA3MzYyMjYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjNkNDEzNDBjYzIzOWExNTljZTliNjAyMmU5ZjYzMjI4MzJlMmVhZDc2Y2FlOWU0NzU0ZDIxMGViOGZiNmQ1ZTgifQ"
         }
       ]
+    },
+    {
+      "id": "claim_f0ad8e7464ec4ed89209ba79afdfcb9d",
+      "statement": "`/security/[security_id]` splits its load: `+page.server.ts` awaits only the route identity, and the security record plus price series are fetched after navigation by `SecurityPageDataService`, whose caught error is passed to the shared `redirectOn401` seam by the page component; `/holdings` uses the same client-side seam for its post-navigation holdings load.",
+      "evidence": [
+        {
+          "resource": "repo://frontend/src/routes/holdings/%2Bpage.svelte#L53-L61",
+          "version": "repo-lines-v1:sha256:e6f782499e115c749ecd221f931b74fbfc9c3b3005085859eec0d0552172adfe:eyJzZWxlY3RlZExpbmVDb3VudCI6OSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiNGZmZjA2MzM0OGExZTFhMzI1MTNlYWNjMDE2ZmMyNWNmZmVmMGI0YzkwYmYwYzg4OGVkNTg1N2YyMTNhMzJkYyIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiMGE3MzQ5MmQ4OTQ2YjFkMGY5ZDljMDRiNzA0YTkyMGYyNGY4OWVmN2M3ZjczMTFhODU5OWQxMGM3ZjYzNThkMCIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiYzc1MjVjNmNiZDU5ZWUwOGJlZDBlYjVjYTBlMWM5ZDk5MTJhZTU4NTZiMDRmOTgwNTRiMmUzMTc4MDQ5NTFmNiIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiNjI4M2M1YWY1YzEwOWNmNWI4YmZkZTcyMTE1NjM4N2RkMTZiNmFmNjRlYTlmM2M4ZWJmY2M3YzQwODEzY2NmMyJ9"
+        },
+        {
+          "resource": "repo://frontend/src/routes/security/%5Bsecurity_id%5D/%2Bpage.server.ts#L4-L15",
+          "version": "repo-lines-v1:sha256:43c3db3e586787154ab3ca5e53ab820b1e2c12dc9e07b380c6669fb4313ed77c:eyJzZWxlY3RlZExpbmVDb3VudCI6MTIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjgyNGM4N2QyNTU4YTA5OTE3MDBhMWU3M2ZjZDQ3OWUwYmRiMjgxZWMxMmIzNmM3N2I5OTI2MGI5ZjY1YmExM2MiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImFhMWQxYTYzMzkwMjI5Yzc5ODM0N2U4M2EwNDA1NDQxYzk0MDAwMzUyODRhZDE2OGMxYmY2Y2RmMWQ3MGEzNzAiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjA4Y2YyYTczZjY1MzMwNGMwZmVlMzlhODUwMTdiNmY0NDVlOGVkZWY3YTczYjQwMzg3NjdhYWU3NzZiYTZiOWMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
+        },
+        {
+          "resource": "repo://frontend/src/routes/security/%5Bsecurity_id%5D/%2Bpage.svelte#L725-L735",
+          "version": "repo-lines-v1:sha256:c539bd9829d147e2cb8ef71dd2381ceaf7d5fe24af61cd604de7cee758154821:eyJzZWxlY3RlZExpbmVDb3VudCI6MTEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijk1NjNlN2UzNzE4MjIxNjc5ZGY1N2UzMmE2YjVlMTA1YTYwMDQwZTQ0MDZiNjViMDNhYTdjNDU1MDhlYzU3YTgiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImU0YWMzZTA0MWVlZmI0NjEwODcyZmY3Y2I3ODQ4MzM1Y2ZjODhiMWRkOWYyZGQxNDAxN2EwYzBjM2VjMjI0ODAiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjBjZjc1ZTBmZjJkMzExODZlMDNjMmU3MGIwYzQ4M2JjNGYzNTQwNDExMTZjOWVhM2E4ZjQ0YTgwYmQ5OWQwMjIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImM2M2IyMDJlNThlOTU4ZGUzNjAxYTMyMGM3YzFhYjAyM2ZmOTFkOGJjY2NiNjRkMTU5YmE5OWJmODZkNTE3YjcifQ"
+        },
+        {
+          "resource": "repo://frontend/src/routes/security/%5Bsecurity_id%5D/page-data.svelte.ts#L22-L68",
+          "version": "repo-lines-v1:sha256:b7de1ca65da9612ec3e8b982788bc827069b7dc154a0a06e8ba73cd90da8d5a2:eyJzZWxlY3RlZExpbmVDb3VudCI6NDcsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImVkOWQ4Y2EyYmNhNmJiZDE2YjU5Y2JmNTJiNDM1ZDNlNzY3NjA3MTk4NjQ1Njc0YTdjN2ZiOGMyZTA1NjA2YTMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjY3Y2RhODJkYTYwNjIzOGUwNWU2MjM5OTU2OWM1ZWUwMzk5MzQxOTY0OGFlNWQ0M2EyYmY4Y2Q2MzQ3ZjgyNjMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImZmOGFjZTQyODhlZmNlNDc0Yzk3ZTE1MzcyMzI1ZDBiYmYxYWNkOWVkOTYxY2NiMWEyYWExM2Y2M2Q5MmY5NmQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjoxLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjQxMmNhMzQ1Y2NmNzViZjljMDgwNmJjZTY5NWJlOGRlODA4Yjc5OTg0MjUxYTdhNTRkMjAyY2Y2MTAxZGQ0NTEifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_16060e9a27af4f2da4ed4c422464d55b",
+      "statement": "The WS-ticket replay guard in `_check_ticket_not_replayed` fails open: when the Redis `SET NX EX 30` call raises, it logs the exception and returns `True` so the ticket is accepted, because the guard is best-effort hardening on top of the ticket's signature and 30-second window.",
+      "evidence": [
+        {
+          "resource": "repo://src/ws/router.py#L21-L38",
+          "version": "repo-lines-v1:sha256:c78b7ea932a93cef5122b65eb39a98ed454164320912e7f92689d1b14fa4db4a:eyJzZWxlY3RlZExpbmVDb3VudCI6MTgsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjVmZDFmMGY4MGVkZWQyNzQ2NDY5Yjk0MTZkNTJlNmZlMWM3MmFmOWI0NjkxMjM4YzBjYzE0ZmE0NjAzOWNlMWEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAxYmE0NzE5YzgwYjZmZTkxMWIwOTFhN2MwNTEyNGI2NGVlZWNlOTY0ZTA5YzA1OGVmOGY5ODA1ZGFjYTU0NmIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjRjNTNjMDhmNWYzMDlkZGVjNmNkOGRhY2I1OTRjZmExMjkzZGY1ZWEwYTRmMTE3ZDY5YmQ0NWRiMDM4MmZiNmUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImMyNGUwMWI2YjAxNWM0MzAwYThjOWI5NTMxMjM2NjMzNWNlODQ0MjJlMWE1OGMzYzFhYTdiZTAyNjc2NzVkYzMifQ"
+        },
+        {
+          "resource": "repo://tests/ws/test_router.py#L82-L90",
+          "version": "repo-lines-v1:sha256:44110bde8f99debfb798bf5882a3ee542ba9b99dc0839d0524214a39601305da:eyJzZWxlY3RlZExpbmVDb3VudCI6OSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiYmQ5OTQyZGViN2RiYWJjMTE0YjFjNDhkMDJkYTQ2Mzg2ZTlhY2E1MTVhNTJmYjdiM2M0MTJkYzYyNzkyMWIwOCIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiZmZmMzE5YzI0ODhhNDlkYTU1ODA5MDNmZDlmMTMyNzliMjI4YjBlMWMyYTllY2FlNGI3MTQxMzBlMzk4ZWUyYSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiMTYwN2M3ZDNlMDcyNTFkOWIwMzJjMGNlYTNkZjQ0MGIyYTI4OTFhMjdjY2RiZmM0MjdlNWUwZWZiYTk2YWExZiIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiZTYyN2JiNTBjZDZkOTk5MjExMTA2MDE1OTg2MmUzNzgwNjA4MmJkNTM2NDc2MmI0Mjg1MjUyZjVhMDdhYjZiNyJ9"
+        }
+      ]
     }
   ],
   "verification": {
-    "by": "openwiki/0.5.2",
-    "at": "2026-09-18T20:16:58.058Z"
+    "by": "openwiki/0.6.1",
+    "at": "2026-10-02T14:25:20.147Z"
   }
 }

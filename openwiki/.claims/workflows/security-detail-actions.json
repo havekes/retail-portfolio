@@ -1,0 +1,408 @@
+{
+  "schemaVersion": 1,
+  "pageVersion": "sha256:2bfc0f4703f992c9a4f0bd6074e7d5e3c09b4018caf480cd16ad218f8b47dc66",
+  "claims": [
+    {
+      "id": "claim_82644739562a483c83cb28e5a0cab00c",
+      "statement": "The /security/[security_id] server load returns only `{ security_id }` (throwing 400 when the param is absent) and deliberately never fetches the security identity or its price series, so the page shell and titlebar render instantly.",
+      "evidence": [
+        {
+          "resource": "repo://frontend/src/routes/security/%5Bsecurity_id%5D/%2Bpage.server.ts#L1-L15",
+          "version": "repo-lines-v1:sha256:7080d89f3c00cb2125c938bc82f249b43be40ae725a82d96db7c878f9076f87e:eyJzZWxlY3RlZExpbmVDb3VudCI6MTUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImJlMGYxNWQ5NGYzYzkwNDM3ZDk5ZTczZTRkOGY1ZjFmODM4OGQ5NGUwOWI1ZWZmMjg1ZGI0OGM1OTBlZTRjMTQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImFhMWQxYTYzMzkwMjI5Yzc5ODM0N2U4M2EwNDA1NDQxYzk0MDAwMzUyODRhZDE2OGMxYmY2Y2RmMWQ3MGEzNzAiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjowLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
+        },
+        {
+          "resource": "repo://frontend/src/routes/security/%5Bsecurity_id%5D/page.server.test.ts#L45-L71",
+          "version": "repo-lines-v1:sha256:25827024998fc9118d4ec9a4b96a8cc10640941ce8bb1a2cd3daae9e19122729:eyJzZWxlY3RlZExpbmVDb3VudCI6MjcsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjIxMjU2ZDI1ZWFlYmEzNjI4OWQ3NGMzNTg1NTA1YmQ1ZGZiY2U2NTRhMzg1NDU0M2JmYTk4ZTk4OWI5YjM3ZTIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjBhNzM0OTJkODk0NmIxZDBmOWQ5YzA0YjcwNGE5MjBmMjRmODllZjdjN2Y3MzExYTg1OTlkMTBjN2Y2MzU4ZDAiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjQ5ZmI2Zjg0M2IxNzczZGJhNjZiNzI4YjdmMmViNzAxYmE0NzZkNjNlYTBmMGJkMmI1YzQ4OGU1MmYzODM1MWYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjoxLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImY2ZjViNDBiMTU4NDU3ZDE3ODY0ZjIxNzkwNzg2ZGQ1YTJlY2RiNjRiNjZhNjUxZjc4OGQ0ZTI1Y2QzMzAzZDIifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_50c0fb3b6a1a415891869cf26ec91338",
+      "statement": "SecurityPageDataService is a page-owned rune class that fetches the security identity and the default `1d` price series in parallel after navigation; its load() never throws (returning null on success, the caught error on failure), treats an empty series as a successful load whose message lands in `error`, and discards its result via a loadSeq guard when a newer soft navigation superseded it.",
+      "evidence": [
+        {
+          "resource": "repo://frontend/src/routes/security/%5Bsecurity_id%5D/page-data.svelte.ts#L12-L68",
+          "version": "repo-lines-v1:sha256:f001a1e82665ec75b0ba42eccba6c013441659a558e98ebcb968d9ea5509bb03:eyJzZWxlY3RlZExpbmVDb3VudCI6NTcsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImMyMDk3OGQ3ZmRkNTMwZGM5MzllYTQzODJjOWEwNzAzZTE4YWJhYjkzNDM2ZGZhZDdlZjkyN2I0NGE3MTg1NDkiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjY3Y2RhODJkYTYwNjIzOGUwNWU2MjM5OTU2OWM1ZWUwMzk5MzQxOTY0OGFlNWQ0M2EyYmY4Y2Q2MzQ3ZjgyNjMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjUxYWRmNjYwZmIxNzE4MWM5NWFkMWE4MmFkODBkZGVhNjVlZDMzNDc0NDlmZmNmZGNjNzBkMzFiZDZiYzBjZjYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjoxLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjQxMmNhMzQ1Y2NmNzViZjljMDgwNmJjZTY5NWJlOGRlODA4Yjc5OTg0MjUxYTdhNTRkMjAyY2Y2MTAxZGQ0NTEifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_92c94edc6f8c4314aa33b4bbd5a4af09",
+      "statement": "The security page's single mount effect (keyed on data.security_id) resets drawing and pagination state, routes a non-null load error through redirectOn401, loads user preferences once, fans out Promise.all over loadAlerts/loadHoldings/loadValuation/drawingsService.loadSnapshots, dynamically imports the chart component, and force-refetches the active timeframe when it is not `1d`.",
+      "evidence": [
+        {
+          "resource": "repo://frontend/src/routes/security/%5Bsecurity_id%5D/%2Bpage.svelte#L707-L794",
+          "version": "repo-lines-v1:sha256:538227dd6501068cc75af1adbc2654e94bce35c9d9d6aab3d29c67c14f95f51b:eyJzZWxlY3RlZExpbmVDb3VudCI6ODgsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImYwNjY4OGFjNGJhOTQ3NTM2NDgwMzk5ODNhYWFjOWM3ZjU5ZjRkOGU1NzA0MjM4ZDQ4ODNlYjgyMjM0NmZhYzAiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjBhNzM0OTJkODk0NmIxZDBmOWQ5YzA0YjcwNGE5MjBmMjRmODllZjdjN2Y3MzExYTg1OTlkMTBjN2Y2MzU4ZDAiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjIyZjJmZjVmZWVjNjBmNTg3YzhmYWU0ZTg3ZjgwOWE2NjFjZmZlZDZiNDdhYWU1ZjZkNmEyNjUzYWE4OTUyZWYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjAxMDhkNmM3MTRkNWQ1NWM1ZDk2Y2E2ZTExM2I3MGM4ZTRhYTM3OTk0MTUyYzI2MTk3ZWMzMDJmMjg1N2FkOWUifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_633d7a78722943efbf3a494bdfda0701",
+      "statement": "The security page renders a dedicated `w-64` sidebar column mounting seven actions-sidebar groups in fixed order — Holdings, Fundamentals, Indicators, Price Alerts, Notes, Documents, AI Analysis — with only PriceAlertsGroup and FundamentalsGroup holding a bidirectional bindable contract back into the page's `alerts` and `valuation`/`showOverlay` state.",
+      "evidence": [
+        {
+          "resource": "repo://frontend/src/routes/security/%5Bsecurity_id%5D/%2Bpage.svelte#L1094-L1124",
+          "version": "repo-lines-v1:sha256:6a679df43a299c368f58c2e6a233c7fd54b3fe7f38a9860d78c5ae519fc23bd4:eyJzZWxlY3RlZExpbmVDb3VudCI6MzEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjI5NmEwZGZhZjYxYzk4MjgzZmMxNzY3NjY5MjgzZjc1Y2Q3NDhiZDE4NmNlMjQ5OWQwZWMxNGI0OGQ0MjY1MzYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImE4NTQwOWVhNjA5OWI4YzhmMDYwMmM3OTM0ZjZkNTlkMWM5ZjQ4ODA5OWRhY2JjZTI3MTk5ZTBlNmVjYTU0NDciLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImQ0MmQxOTJkZWUyNTU0ZWE2OTY3YmRjM2MyMmQ2NjM5ZmQzMTA4MmVhMjRiNDI5OGRhMWY1ZTkyMTlkYzJjODQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjY4M2Q3ZTNmYTc5NDEzMjUwNjlkYTE4M2YzNWEyN2ExMGU4MGNjMWMwYzJhYmQyYzVmYjM0MGU2ODQ1YzY1MWQifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_29d65475d79147cda30c03c7c085e095",
+      "statement": "Sidebar groups share two primitives — group-title.svelte (expand/collapse header with an optional action icon button) and sidebar-error.svelte (destructive message card with optional retry) — but differ in load gating: Notes, Documents and AI Analysis fetch as soon as securityId exists regardless of expanded, while Price Alerts and Fundamentals fetch only when expanded is true.",
+      "evidence": [
+        {
+          "resource": "repo://frontend/src/lib/components/actions-sidebar/fundamentals/fundamentals-group.svelte#L60-L66",
+          "version": "repo-lines-v1:sha256:f0405f6d84bc80d648f9ea7d566edbff26dbe818835ebd31f96ebea263e2c589:eyJzZWxlY3RlZExpbmVDb3VudCI6NywiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiNGZmZjA2MzM0OGExZTFhMzI1MTNlYWNjMDE2ZmMyNWNmZmVmMGI0YzkwYmYwYzg4OGVkNTg1N2YyMTNhMzJkYyIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiMGE3MzQ5MmQ4OTQ2YjFkMGY5ZDljMDRiNzA0YTkyMGYyNGY4OWVmN2M3ZjczMTFhODU5OWQxMGM3ZjYzNThkMCIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiYThjN2ZiNjM5NjI1ZDhlNTYxOGM2Y2JiZmQ3YzVkNTYwYzYwYzBjZWQxNTE1ZGQzMDJhODBlNjkyNzQ2MTUxNCIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiMDE5MzIyNTgwZDlmMWYwMTlmNmJhMTcyZDAxZTliMzI0OWJkMDdlMDU1NmQ3MzQ0MWE2YTA0Y2I4ZDE5MjZjMCJ9"
+        },
+        {
+          "resource": "repo://frontend/src/lib/components/actions-sidebar/group-title.svelte#L1-L43",
+          "version": "repo-lines-v1:sha256:5949b9ce28881d2016dcb03c1ef9bdf0ea25404473f874f0609a40e5dea57390:eyJzZWxlY3RlZExpbmVDb3VudCI6NDMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijk0YWJjOGVkNzU0MzgyMjA2NWMwMjlmNWVhMjUyZDEyMjNkNzZhYTdkMmQzZDRmYjEyNTgxMmY2YjVhOTlkZGYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjA2ZmU5OTlhNWM0MzE0ZTdlNjM2ZDhlYWZhYTlkNTBmNmE1MTQ5YmY3NzkzYWEyNDFiNmE5NmJjYmZiZjhjMzUiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjowLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
+        },
+        {
+          "resource": "repo://frontend/src/lib/components/actions-sidebar/note/note-group.svelte#L67-L71",
+          "version": "repo-lines-v1:sha256:dbde1a0feca1a66c6570fe512151f1c4658e7fd9659ec1a4a925c060cf8b7db0:eyJzZWxlY3RlZExpbmVDb3VudCI6NSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiNGZmZjA2MzM0OGExZTFhMzI1MTNlYWNjMDE2ZmMyNWNmZmVmMGI0YzkwYmYwYzg4OGVkNTg1N2YyMTNhMzJkYyIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiMGE3MzQ5MmQ4OTQ2YjFkMGY5ZDljMDRiNzA0YTkyMGYyNGY4OWVmN2M3ZjczMTFhODU5OWQxMGM3ZjYzNThkMCIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiMDIyZTI3NTYzZTFkYzZhMzU2NWIxOWU1MDZhY2NmMDI2MjFjZWRiYWIzMjEzNTA2NmRkYTVkNmZhZDdiMDRkYSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiOGM0Njg3MDVhZDNhYWY1ODcyNzlmOTc0OTliN2FlNzI1MjViYzc2MDM1NTYxMDY1YjNiZWU1ZmQwZjkyNzE1OSJ9"
+        },
+        {
+          "resource": "repo://frontend/src/lib/components/actions-sidebar/price-alert/price-alert-group.svelte#L69-L75",
+          "version": "repo-lines-v1:sha256:727eace949f590b843d53032f1bbb9a99aa1b461a6b7a372a7099e7832b73b99:eyJzZWxlY3RlZExpbmVDb3VudCI6NywiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiNGZmZjA2MzM0OGExZTFhMzI1MTNlYWNjMDE2ZmMyNWNmZmVmMGI0YzkwYmYwYzg4OGVkNTg1N2YyMTNhMzJkYyIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiMGE3MzQ5MmQ4OTQ2YjFkMGY5ZDljMDRiNzA0YTkyMGYyNGY4OWVmN2M3ZjczMTFhODU5OWQxMGM3ZjYzNThkMCIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiYThjN2ZiNjM5NjI1ZDhlNTYxOGM2Y2JiZmQ3YzVkNTYwYzYwYzBjZWQxNTE1ZGQzMDJhODBlNjkyNzQ2MTUxNCIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiYmZkNTQ1Mjk0ZjNlZGFjZjVlMGQxNGYyZTM1Y2E1ZGI4N2I0ZGRjNjU3ZTQxZWEwNDgyYmI1YTgzNjFhOTIyMSJ9"
+        },
+        {
+          "resource": "repo://frontend/src/lib/components/actions-sidebar/sidebar-error.svelte#L1-L20",
+          "version": "repo-lines-v1:sha256:cf78c37ad228326ca41d2e779711bfb85bd1063513c968b2d1f6d45de00355cf:eyJzZWxlY3RlZExpbmVDb3VudCI6MjAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijk0YWJjOGVkNzU0MzgyMjA2NWMwMjlmNWVhMjUyZDEyMjNkNzZhYTdkMmQzZDRmYjEyNTgxMmY2YjVhOTlkZGYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjVlYjUxNjU4YzRmZjAzNWZlY2RlYjRjMjY5ZWZiMmQzM2E2N2FjOTkyOGEyYTZjMmQyZDlhMTQ2MzBhMGVjMzUiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjowLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_a2da81e5e7644947bc1ae920c105a5ec",
+      "statement": "PriceAlertsGroup is dual-mode: when the page passes a truthy bindable `alerts` prop the group's effect adopts it and never fetches (refresh is driven entirely by the page's loadAlerts()), and only when mounted without the prop does it run its own fetchAlerts() with skeleton, SidebarError retry and empty state.",
+      "evidence": [
+        {
+          "resource": "repo://frontend/src/lib/components/actions-sidebar/price-alert/price-alert-group.svelte#L14-L76",
+          "version": "repo-lines-v1:sha256:8ad2c00e836dcd032b36cd2cd04cf00fa1cda50d47b9f8789a93e1a27be09420:eyJzZWxlY3RlZExpbmVDb3VudCI6NjMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImMwYThkMjhjZDA3ODI1NTUyMDRiODBkN2YzNDQyZTg0Y2IwMmZjMjI3NDQ2NGQ0OTY1MGNhNWNjNDliMjg3ZTEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjJmMzU4ZjAzNzFhNmU3MzJjNDM0MDMzMjIzNTE5OWRjZDkxZWJjNDYyMzlhNWRkY2ZlNmY5YTYzZTZlYmVjZmUiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImZmNDhlOTMzMjk5MGE0YWVhYWQwMzI4ZjJiMDg5ZGE4M2YzYWU3MzQ1ZWM4NWFkYTE3NGM2NzYyODI4YjI5NjEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjI0NDMxN2IyZjkzYmJmOTEwMDEyY2YxNWQ2NWJmODcxN2FmOGNkZmVmYjEwNjRjZjJlYzQ1ZjJhODI0OTk0YTQifQ"
+        },
+        {
+          "resource": "repo://frontend/src/routes/security/%5Bsecurity_id%5D/%2Bpage.svelte#L1119-L1119",
+          "version": "repo-lines-v1:sha256:60e83ec60d0dde809466221ade25283b4d8987eae05588f1863080a28d801bd2:eyJzZWxlY3RlZExpbmVDb3VudCI6MSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiNjBlODNlYzYwZDBkZGU4MDk0NjYyMjFhZGUyNTI4M2I0ZDg5ODdlYWUwNTU4OGYxODYzMDgwYTI4ZDgwMWJkMiIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNjBlODNlYzYwZDBkZGU4MDk0NjYyMjFhZGUyNTI4M2I0ZDg5ODdlYWUwNTU4OGYxODYzMDgwYTI4ZDgwMWJkMiIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiOGQ4MDYyYzc4OTFmNWRhMjUwZWExYmZhYTRhZjQwYmVhZjI1NDM0ODEzZjc5MGU5ZDIyZTQzZWI0OGRjZTQ2ZSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiZjYyZDY0MmMzMDc2OGQ1MWI4NjUyYmRmMDJkNzk2YWNkYmE2MmY0OGNhNDBhMDU3MzZkNDA4NjhmNGQ4MWQwNyJ9"
+        },
+        {
+          "resource": "repo://frontend/src/routes/security/%5Bsecurity_id%5D/%2Bpage.svelte#L426-L434",
+          "version": "repo-lines-v1:sha256:e81ae32ccea3875c8f5cb42b6be95555b7c38527ea8133552793e5b9c626aa9b:eyJzZWxlY3RlZExpbmVDb3VudCI6OSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiOGNmMGMyNzY1Mjc1MTg5OTg4NDk3YWU1ODk4NTBiOGI4MTczNDAxZmY2NTlhZjlkMDdlMWE2ZTM4Y2Q1N2I0OSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNjdjZGE4MmRhNjA2MjM4ZTA1ZTYyMzk5NTY5YzVlZTAzOTkzNDE5NjQ4YWU1ZDQzYTJiZjhjZDYzNDdmODI2MyIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiMjJmMmZmNWZlZWM2MGY1ODdjOGZhZTRlODdmODA5YTY2MWNmZmVkNmI0N2FhZTVmNmQ2YTI2NTNhYTg5NTJlZiIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiNmE5NDRiZmJkMTk3OTE4NjEzN2JjOTc3NTA2NjJmOTlhYWZkYjFlMjU3ODUyNDQ3NTc4OTIxY2UzMGMzOGI3NyJ9"
+        }
+      ]
+    },
+    {
+      "id": "claim_9d8101bf257c444da7b3e08aaf779d68",
+      "statement": "Price alerts are stored in `market_price_alerts` with target_price DECIMAL(16,8), condition, source (defaulting to `manual`), nullable triggered_at and created_at, and are exposed to the frontend through alertsService's three user-scoped routes: GET/POST /market/securities/{id}/alerts and DELETE /market/securities/{id}/alerts/{alertId}.",
+      "evidence": [
+        {
+          "resource": "repo://frontend/src/lib/api/alertsService.ts#L4-L36",
+          "version": "repo-lines-v1:sha256:ba08d47ca86dd26734d94ecb5d4b4ccba7caacc93b8fbf4a7ed8e4d680f3b58b:eyJzZWxlY3RlZExpbmVDb3VudCI6MzMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjM3MzI0MGQyZjlkOWUxNWE1YWYyYzM4MGJhMzg5ZjViM2FlMWI4YWIyYzA3NmRiMzQ1YjRhMGI2ZmE0NDI0YzIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQxMmNhMzQ1Y2NmNzViZjljMDgwNmJjZTY5NWJlOGRlODA4Yjc5OTg0MjUxYTdhNTRkMjAyY2Y2MTAxZGQ0NTEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjI5ODZmYWEyYTNmYTUxOWVmY2ExYzZhNzYyMWY4YjlmZTM2MTc3NzBjYzgyMmVhNmMyM2VmOWExYzRhMDZiNDQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjoyLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjA1MjlkMmJiODgxMzkwYmFmY2ZlNTUxYWYwNDkxNzc0MWFhYTc2ODFhNTY0NzBmNTlmNzEwN2JiNzgxYzQ2ZTIifQ"
+        },
+        {
+          "resource": "repo://src/market/model.py#L160-L176",
+          "version": "repo-lines-v1:sha256:b7dfa9bb839e3049fa9f14cdffc66554b7c24a25abf877668fcb192d04080a23:eyJzZWxlY3RlZExpbmVDb3VudCI6MTcsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImM5M2MzYjZlOTg2NzU5NjJjOWU1MTJiOGZkYmQyOWE3MDZhYWJlYWUxMDQzMzZhMGUzODM3NTRmOTkxYjZlMzIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjMwYzFmMTg4ZjE0MmVkN2E4MjQ2ODBiMjA3MTcyYzU1MTliYzYxNGE0OGZkYTdjZjE2N2VkYjhkZGY3OTk1NmMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjhjYzRhN2QxY2M3OTZhYmEzZTQ2NzIzMzI3ZjUxN2U5ZjgxMTk4MmQyNTBmMDcwMjk4NmU0YjU3NjRhZDk1ODkiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjNjYWUyZGE5Nzk1MTRmMjkwZjE3MmMyYWZkNDEzN2YyMDZkYTYxMGI5ODBlNjVkZmE0Y2Y1Yjg2NWI1YjlhMTYifQ"
+        },
+        {
+          "resource": "repo://src/market/router.py#L527-L576",
+          "version": "repo-lines-v1:sha256:f2befc19279ec1497ef5499bc30f19ff70f5544c6708efe83d88455d25b8687e:eyJzZWxlY3RlZExpbmVDb3VudCI6NTAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjA3ZmNkYjMwNjVhM2Y0YzQ4NTI0MTM5NmVmNTNjMWVhZTc2MTA0NGRjOTViYmViYjIwODI0NDhmZjE3OTEyZjUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImY3MGYzYmIwMDkxMGExZmFiMTY5ODg2YjdjYjVkNTFjNzQ3ODc0NzNjYTk0YTJlNmRkYzkwNmI4MjdlMDlhZmQiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImQ3MjIzMTA2ZmQ4NzQyYjcwZWEyMzNmOWRjMzU5ZjRiMDJiYmIwNjliNzI4M2VlZjc2MjQ5OTUxNmJkN2I5YzgiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImQ4ZWFhMTFiMDA2Mjg1NTZmNjk0NDg5MGYwZjFkZDdjZTg0YjBiNjZhMThmMzcwZWNiNWU3MzEyYWFmMmFkY2QifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_bd8ee9b87b39415a8cd5ac25059fc6f9",
+      "statement": "Manual alert creation goes through price-alert-modal.svelte, which validates targetPrice > 0 client-side, defaults condition to `below`, resets its inputs when the modal closes, submits on Enter, and omits `source` so the row takes the database default `manual`.",
+      "evidence": [
+        {
+          "resource": "repo://frontend/src/lib/components/actions-sidebar/price-alert/price-alert-modal.svelte#L18-L62",
+          "version": "repo-lines-v1:sha256:c4e6a01fe042516707b4ee28894d3cbe0fa5007dd8276e4ecb7fdbcbbcdd4fc0:eyJzZWxlY3RlZExpbmVDb3VudCI6NDUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQyOGM2N2Q5NDI4NjRlOTMxYjRiZGNhMzc2MTQzYTg2YjJmM2YzMTkzZjUzNTM1YWFmOGM0YTcyOTY0NzIyNTYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjJmMzU4ZjAzNzFhNmU3MzJjNDM0MDMzMjIzNTE5OWRjZDkxZWJjNDYyMzlhNWRkY2ZlNmY5YTYzZTZlYmVjZmUiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjE4ODEzMmM1MmMzZDRiZjNiNjcyMTczNDIzM2Y1YzEzYWJjODJkNmEzNDJmODQyNjkzYzdmM2FmNWFlMmZkZGMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjllMzNmODljYTBlYTY4YTQ4YTk0OWYxN2M4YmMzNWM2Nzc1MzAzZjQ1M2IyMjU1NmRlNjU1YzI4ODZmNWI0MDcifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_44eb7d3b7bdf466eb9cf0e7b0e9fb66b",
+      "statement": "Wave-driven alert reconcile is computed by two pure functions: computeWaveAlertLevels iterates cycle/primary × wave3/wave5, skips null percents and missing targets, and derives level = roundTo8dp(targetPrice × percent / 100) with condition from comparison to currentPrice; reconcileWaveAlerts diffs desired against stored alerts, never returns a manual (source !== 'wave') alert in toDelete, and dedupes desired levels by (condition, level) so a second run against applied state yields empty sets.",
+      "evidence": [
+        {
+          "resource": "repo://frontend/src/lib/utils/finance/wave-alerts.ts#L26-L136",
+          "version": "repo-lines-v1:sha256:6416e00cfc5fa35522f4d16331ad1f66aefe6a168495ae6711d0e9d5056d7391:eyJzZWxlY3RlZExpbmVDb3VudCI6MTExLCJmaXJzdFNlbGVjdGVkTGluZUhhc2giOiJlYWYyMmNmMDczMjU5MmMyNDcxNDFjYmU2MWVmYTExMDEyNjEyZjVhMzEyMmI5YWY5YmJhZjUyZjU3MjRkMTk0IiwibGFzdFNlbGVjdGVkTGluZUhhc2giOiI0MjI0N2NlYWViYmUzNGUyNjNhZTMxODVjNTcxMjBiYjQzMDQyMjViOTkzYzY0NWFlZmMzNDgwNWJmYWQ2YTU3IiwicHJlY2VkaW5nQ29udGV4dExpbmVDb3VudCI6MywicHJlY2VkaW5nQ29udGV4dEhhc2giOiI3NDk5OWNlYzY0ZmU5OTNjYTEzNWIxOGRkOWU5NmYwNGQ5ZjBhM2I5YmIyYTAwZmIzYmVmNjg0MDk2NjU4MmQ3IiwiZm9sbG93aW5nQ29udGV4dExpbmVDb3VudCI6MSwiZm9sbG93aW5nQ29udGV4dEhhc2giOiI0MTJjYTM0NWNjZjc1YmY5YzA4MDZiY2U2OTViZThkZTgwOGI3OTk4NDI1MWE3YTU0ZDIwMmNmNjEwMWRkNDUxIn0"
+        }
+      ]
+    },
+    {
+      "id": "claim_66b8e6c44be6433abbb6abd7b415a0e7",
+      "statement": "The page's wave-alert reconcile applies deletes then creates and reloads alerts only when something changed; it short-circuits while the rewind timeline is engaged, serializes runs onto a single waveAlertsReconcileSeq promise chain so concurrent onWaveChange events cannot double-create from stale state, gates the initial-load reconcile on userPreferences !== null so a failed preference fetch cannot mass-delete wave alerts, and swallows all failures so drawing is never broken.",
+      "evidence": [
+        {
+          "resource": "repo://frontend/src/routes/security/%5Bsecurity_id%5D/%2Bpage.svelte#L455-L498",
+          "version": "repo-lines-v1:sha256:27cab7181a8743c2b8deccafa0916256b2fd762f987c9331602b793ede5e1620:eyJzZWxlY3RlZExpbmVDb3VudCI6NDQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjgzNGQwYzA1ZjM0MDgwNDNjNjI5MWE3Mzk5MTBjMDI0MThjYTgxN2ZlOTg4NmZhODBiZWQ5MWVhMzEyNTJkZmIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjY3Y2RhODJkYTYwNjIzOGUwNWU2MjM5OTU2OWM1ZWUwMzk5MzQxOTY0OGFlNWQ0M2EyYmY4Y2Q2MzQ3ZjgyNjMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjIyZjJmZjVmZWVjNjBmNTg3YzhmYWU0ZTg3ZjgwOWE2NjFjZmZlZDZiNDdhYWU1ZjZkNmEyNjUzYWE4OTUyZWYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjhjNzk1ZGQwNDYwN2M5ZDc2NTA5ZThjYTVjZDU5MzFlYmFmYjNhNzViZTQ1ZTI5MzkxNzNiYjg0NjUxMzFmNjkifQ"
+        },
+        {
+          "resource": "repo://frontend/src/routes/security/%5Bsecurity_id%5D/%2Bpage.svelte#L770-L774",
+          "version": "repo-lines-v1:sha256:8a9aee71cc223afc18b7655df1b870212d87b6ffb382d10b5201c922682dc397:eyJzZWxlY3RlZExpbmVDb3VudCI6NSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiY2ZiYTA5NzliNjQyOTgxYWRjOTJlZjM4OTA0ZmViMjRjNjc2NDVhYjQ5YTc3ZDdkOTk4MmU0NmQ5NTI2Njg3NyIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiMTBkZjgxYjA0NmY1ODA2NTkzOGQ0OTRlYWUxMmU1N2MwNDAyZGVlNTU2NjBmNjBkMzYwOTQ2MDY4ZWVjMjNjNSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiZDAzOTFmM2UxMzk0YjZmNDkyZGFkMzAzYTBkODhhZWFjZGM0M2RiMjllZjdhZTE5ZWE1MmJiMDJmMGZlNGRlMyIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiZTdiMWY5M2M0MDZjMTA1ZGVhOWI3YWZmNTUwYmEyYmRhNzRlYjAzM2I2MDBkYmM1MTVlZDJiYzU5YzgxYjFkNCJ9"
+        }
+      ]
+    },
+    {
+      "id": "claim_508918c1af2a480ca6566c2256f9091f",
+      "statement": "Price triggers are delivered out of band by a backend Huey job, not by the security page: check_and_dispatch_price_alerts enqueues AlertEvaluationService.dispatch_alert_email, which evaluates conditions inclusively (latest >= target for above, latest <= target for below), skips alerts whose security has no intraday price, sends the email first and only then marks triggered_at so a failed send is retried.",
+      "evidence": [
+        {
+          "resource": "repo://src/market/alert_service.py#L51-L180",
+          "version": "repo-lines-v1:sha256:3061271d7db1cbbeb9756223d1432450550f27ec909e7324ea2a2c4dd69c4563:eyJzZWxlY3RlZExpbmVDb3VudCI6MTMwLCJmaXJzdFNlbGVjdGVkTGluZUhhc2giOiI0MWFiY2QwY2M2OTEzZDRmNTFlYjIxZTRmNWFmYzJlOTBmODZkMzZhNDUwYmI0MmNiMDVjNmYzZTBkNzA2ZjhjIiwibGFzdFNlbGVjdGVkTGluZUhhc2giOiI1OTA5YTUzYTYxOGQwMjhlMWQzMDAwYzBhN2FiY2VlY2JlNWZiMzdmNGU1MTFlZmU0NjY0M2ZhZDZlNjY4NzJmIiwicHJlY2VkaW5nQ29udGV4dExpbmVDb3VudCI6MywicHJlY2VkaW5nQ29udGV4dEhhc2giOiI0YWNiNmM3ZDU3ZGY0ZTAyOTBmMjQ0ZDI2YjQwOWNiMjRjYzg5YWM4YWVlNGJiN2NkYjhkYTQxZmU2ZWM3ZTIwIiwiZm9sbG93aW5nQ29udGV4dExpbmVDb3VudCI6MywiZm9sbG93aW5nQ29udGV4dEhhc2giOiIxMTBmYWQ0MDE0NzE5OTM1NWU2NmVkZTgyNjFiMmQyZDc4ODQyYzg1MGVkZmViMGYzNGQ1ODg3YmZjNDI3YWYxIn0"
+        },
+        {
+          "resource": "repo://src/market/task.py#L140-L196",
+          "version": "repo-lines-v1:sha256:804fcc2d676903ef88c98c919a5c02d7c857187e78ce290af897dd6628bb29b1:eyJzZWxlY3RlZExpbmVDb3VudCI6NTcsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijk5OGE3OWQ3ZDNlMmEzZTQxYzllNGJiZWE2NzJiNjUwOWQxMDM5YjkwODAyM2E2YWFjNzI3MzgzNmU5ZGY4NzciLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjY1M2UwMWM5MzFjMmI1Njc2MmJlZGVlZjIyYTBhYTNlYTdlNDk2NGFkNTZmNmYzMzhkY2RiMjBlZTYxNTBjMTciLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImRhN2Y2MTk5OThiMmFiNDMwNjMwMWE5YTM3NmQ5ZmZmYjZiM2EzNDE2ODllZjNhZmI4NTc3ODJkNmE4ZmI1ZTMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjY0ZDlmMGUwODcxZmRlNTA2NjM4NTUxYzRkZjBkZjA1MWQ2MWIxMmY2YTg4NzQ3OWQwM2VmNjA4MzEzYzA1YzkifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_7a6079ad6fb2440c80d21f06e298b67e",
+      "statement": "openspec/specs/price-alerts/spec.md documents behaviour the implementation lacks: there is no creation confirmation message, triggered alerts are not sorted to the top and are distinguished only by an icon swap plus a triggered date, and notification is email-only rather than in-app plus optional email.",
+      "evidence": [
+        {
+          "resource": "repo://frontend/src/lib/components/actions-sidebar/price-alert/price-alert-list-item.svelte#L50-L66",
+          "version": "repo-lines-v1:sha256:b886997403ed8ced0286cf05ba40bc6dfb4092d5515ee0ea038fae0624bdd7ee:eyJzZWxlY3RlZExpbmVDb3VudCI6MTcsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijc4ZGI2ZWYxM2U3MmVjNjFhOTA3YTIwNTU4MDkzNzFlODk4YzhiNDkwMDJjNGYwZTRjZGFmMGQ2ODljYzQ0ODciLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImE0NDFhMTRmMDIxZjI2MTEyN2NhNTE0ZWQwYjNiZTlmMjUwOTczNTlhOGU1ZGRhNzEwMTNlNjRiNGE1MWQwY2YiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImE1ZmI3NDk3YmZkZDUyMjMzNzVkYzk0NWYzYTJmZDgwOTNlZTg3MGIwODU5OWFlNmM2YmQ1MTBlNTk5YTRkMzgiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjViZWY5NmE0OTY2YTY2MTYzOWMwYTRjYTUzNDRiMjBhN2IyMjBlMjdjY2IyZDM2MWFjMzhhNTYyNmExN2JmMzIifQ"
+        },
+        {
+          "resource": "repo://openspec/specs/price-alerts/spec.md#L11-L71",
+          "version": "repo-lines-v1:sha256:4377f6e09a26ae10655b1f32e009401bcde8ed2646ce6d804683129c8d4097fb:eyJzZWxlY3RlZExpbmVDb3VudCI6NjEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjliYmQ4MmFkNzk2NTc4ZTE1ZDAxOGEwYzgwYzNmZmQ0YWUwM2Q1YTBkMTRmZTZhN2I4YzdkZDU4Nzk0YTNjNmQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjE4OTEwM2Q0NTdiNjllOTA0OGMyNzBkMDQxYTk5Y2U5MDFmNmQ3NWVkYTkyNmM4MDA1YWRiOTdmM2I0NTIxZDMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImYzNTMxMzJlZWZmOGRhZjQwZGNiN2VlZDA0Y2YzNzJmOGNkOGU5ODhiNTMwZWQzZGQxNTFiZmU2ODJjNzliYzkiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_1918e0dddc3c47bba70a80c3fdb4963b",
+      "statement": "Indicator preferences are persisted exclusively by indicator-group.svelte, which assigns its local `preferences` before awaiting the patchPreferences call to avoid a lost-update race and only invokes onIndicatorToggle on patch success, so a failed write leaves the chart and the stored preference divergent until reload.",
+      "evidence": [
+        {
+          "resource": "repo://frontend/src/lib/components/actions-sidebar/indicator/indicator-group.svelte#L180-L213",
+          "version": "repo-lines-v1:sha256:2f91dcb3d8a1148038265664eb81d5826666370a869e076ed511eed75bebdda7:eyJzZWxlY3RlZExpbmVDb3VudCI6MzQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjhmZDc1ODViZGMzMTRkNTAxNTVkZWY5OWU4NTk4YWUwNDQ0NjRjNDgxODVjNGZjMGE2ZWIzNjEwMDY3NjYxMmIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjBhNzM0OTJkODk0NmIxZDBmOWQ5YzA0YjcwNGE5MjBmMjRmODllZjdjN2Y3MzExYTg1OTlkMTBjN2Y2MzU4ZDAiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjIyZjJmZjVmZWVjNjBmNTg3YzhmYWU0ZTg3ZjgwOWE2NjFjZmZlZDZiNDdhYWU1ZjZkNmEyNjUzYWE4OTUyZWYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjhjNDY4NzA1YWQzYWFmNTg3Mjc5Zjk3NDk5YjdhZTcyNTI1YmM3NjAzNTU2MTA2NWIzYmVlNWZkMGY5MjcxNTkifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_2fb9db13224d4d8b8bf0cff5a0a598a1",
+      "statement": "Indicator settings and reset resolve `enabled` from the persisted preference rather than the page's indicatorConfigs (which is stale after a sidebar toggle), and resetSettings restores color plus numeric fields to INDICATOR_DEFAULTS while preserving the enabled flag and deliberately keeping the modal open.",
+      "evidence": [
+        {
+          "resource": "repo://frontend/src/lib/components/actions-sidebar/indicator/indicator-config-modal.svelte#L40-L46",
+          "version": "repo-lines-v1:sha256:2a8805046662769c835ad8eee02b3a5f3567103a227443468f412bb58e741927:eyJzZWxlY3RlZExpbmVDb3VudCI6NywiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiNDk2MDRlYjU3Njg4ZDQ2NmE4YmQwZjQ0M2RkY2FiOGRhNjUwNjI0MzJlZDUxNzdiZjZlN2RlZjBkZmFlMjEyZiIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNjdjZGE4MmRhNjA2MjM4ZTA1ZTYyMzk5NTY5YzVlZTAzOTkzNDE5NjQ4YWU1ZDQzYTJiZjhjZDYzNDdmODI2MyIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiNGQ3ZmZjZDNjMGM5NzZjYWJiYjkwNmU2NDY3MjdmZDU4Mzg2NmUyN2IwNmE3Y2M4ZGE2NmY5OTllN2ZkMzFmNCIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiZDYyNzgxM2EyNDRmZGU5NTJjOTQ4MmNkNWU5YzMyYjNjZjM5MzBjY2Y4OWIwM2RlNjU0NDdkNzZhZDcwYzRhYSJ9"
+        },
+        {
+          "resource": "repo://frontend/src/lib/components/actions-sidebar/indicator/indicator-group.svelte#L79-L163",
+          "version": "repo-lines-v1:sha256:8d4c8db1597f2e16356a3865c4ef94dabc760e71f025fb9c80ca465fba79a906:eyJzZWxlY3RlZExpbmVDb3VudCI6ODUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjNmYjU0MTA2ZDU1Mjk1YzA2NjkwNDBiMDRkYWM2YTY1YmE0YjNjZjFjYWQ2NmIxNzBhYjU0NWMwZDFiNDVmOTciLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjY3Y2RhODJkYTYwNjIzOGUwNWU2MjM5OTU2OWM1ZWUwMzk5MzQxOTY0OGFlNWQ0M2EyYmY4Y2Q2MzQ3ZjgyNjMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImJiNjg5MGNhM2M4MzBiNjA5ZGM3YzI5M2Y2YjdhNjZjMWUwYmQ1M2M1NmRjYzc1NWFhYTZhYTRhNDYxMDM3ZDEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjY3Njg0Y2M1YTE4MWIwNjA5MTVlMDdkMzI3ODdiZTU0MGY1N2YzYjk1MTFiMjk3NWVhMzlmMjY5YTA1ODg2ZDYifQ"
+        },
+        {
+          "resource": "repo://frontend/src/lib/components/actions-sidebar/indicator/indicator-group.test.ts#L67-L80",
+          "version": "repo-lines-v1:sha256:452299398411fa43108bd90eef67fd1a2623e0d9d037fba0367506914d217fd7:eyJzZWxlY3RlZExpbmVDb3VudCI6MTQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijg2MDFmYjczYmZkZmZiOWVhYTkzMzllZmM3MTIwMTQyZTUwZWU0MTQwYWJhZWFhMDM2OTRhMTYyYjE3ZTA1MWIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImY5N2M1MDBjOTRlOTc2Yzk4MjNiMDU3NDcwNGVlOWRiNDc2Y2VkNGRmYzdiMDJkNjdlMzY2ZjNlZWE2NmE2ZTUiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjkzNzFiY2ZjMDkwMmUzMjQ5MmNkYjAxMzYyNzg4YjY0ZDBjMjg1NGQ3Yjc1MmNkNTBjZDJlYWU1NjU4ZGEzY2UiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjIwODE1MmQ3YWMzYjE5OGM3NjkzOTE3M2QwNmQ4MDM2ZDI3N2Y3MjVkMTEwMzE3MTM0ZjA5M2Q2N2Y0Y2VlY2MifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_deba3a78020d46558d4a9a93eba1dbaf",
+      "statement": "The page computes indicator series by posting IndicatorSpecs to POST /market/securities/{security_id}/indicators/compute: per-indicator toggles bump indicatorSeq[id] and drop stale responses, while refreshActiveIndicators batches all enabled indicators under one activeRefreshSeq and includes an explicit `candles` payload sliced from the rewind timeline when the chart is rewound.",
+      "evidence": [
+        {
+          "resource": "repo://frontend/src/lib/api/indicatorsService.ts#L40-L72",
+          "version": "repo-lines-v1:sha256:6a3f7c893e193dd81185bea281519158abf54d1cf284a4c5b623e5e3e0eea565:eyJzZWxlY3RlZExpbmVDb3VudCI6MzMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImYyZDI0ODYzMWZmZjQzMzMzNTEzNzY1ZTQ1YzIyNzRmZWUxN2NhYzVlMTY4OTJhYzMxMTc2MjgyZDBhYzJlNTQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjY3Y2RhODJkYTYwNjIzOGUwNWU2MjM5OTU2OWM1ZWUwMzk5MzQxOTY0OGFlNWQ0M2EyYmY4Y2Q2MzQ3ZjgyNjMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjI1ZDA2YWRmZTQ4MDgyMmQ0ZWY5MjE2OWFkN2MyYWFiYjQ3MTRkOWE2NTY3MmNjY2VhMWM0NDcyNzY2NDU5MWUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjJkYTcwYmQ4YzgwOTdhMzRkNWNlMjhjNTg0OTBhOWRlZjhjYjc1YjZmMWU0MDUwMjU4MzhiNzYwMjRiNzI2M2UifQ"
+        },
+        {
+          "resource": "repo://frontend/src/routes/security/%5Bsecurity_id%5D/%2Bpage.svelte#L317-L409",
+          "version": "repo-lines-v1:sha256:670f2f555e46fcdfd07463edb451ad45f09acf4969b1c10904e79417e06780db:eyJzZWxlY3RlZExpbmVDb3VudCI6OTMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImRiZDU3N2E2N2Y3OGQyNzA1NTlmNGZhMzgzZWRiNWM0N2M4OTAwODJjODk0NTNlMWQ5Y2RmY2U4NjMzYTQyZGQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjY3Y2RhODJkYTYwNjIzOGUwNWU2MjM5OTU2OWM1ZWUwMzk5MzQxOTY0OGFlNWQ0M2EyYmY4Y2Q2MzQ3ZjgyNjMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImIyNGU2NmZiMmVjNDdhMmVhZDNmNzZhMzdmMzFhNWZjMTE4NjQyNjJiODAzMjZhODIyYWI3N2Q5MzAyMDUxOTQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6Ijg0ZTYyNDNhYjM0MTNlYTc3YmQ3NDgwODMyYzhjMTJlMDgyYjIzZTNjMDMzYzQyNmQ5YjIzNDBlMTQ3YmQ3OTEifQ"
+        },
+        {
+          "resource": "repo://frontend/src/routes/security/%5Bsecurity_id%5D/%2Bpage.svelte#L590-L662",
+          "version": "repo-lines-v1:sha256:64c63d81e166a3b491b900eed195923e455c38758448cf50341dd96f40f8def6:eyJzZWxlY3RlZExpbmVDb3VudCI6NzMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjZjZjdhZmQyMDFiZmU2Y2Y3NTQ3N2YwMDgxNjRmMTFmMjEzYmE0MjYzMDdkZjAxYWFmZjlhMTI1MTE4MTA3ZTQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjY3Y2RhODJkYTYwNjIzOGUwNWU2MjM5OTU2OWM1ZWUwMzk5MzQxOTY0OGFlNWQ0M2EyYmY4Y2Q2MzQ3ZjgyNjMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjIyZjJmZjVmZWVjNjBmNTg3YzhmYWU0ZTg3ZjgwOWE2NjFjZmZlZDZiNDdhYWU1ZjZkNmEyNjUzYWE4OTUyZWYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjAyNTI4ZTY5MTM0MTA2MjQ1OWQxZDZkMzkwYTVjNTNlYzQwMzBjYmU0NmVhZDMwZmM4OTY3NjM5NzE5OWY1NjAifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_870cbd80183847fdb46955ad57fcc214",
+      "statement": "IndicatorsGroup is the source of the page's indicator defaults: it calls onPreferencesLoaded(preferences) after its own getPreferences(), and the page's handler applies chart style, a non-persisting timeframe change and each saved indicator's enabled/color/settings, scheduling setTimeout(() => onIndicatorToggle(id, true), 100) per enabled indicator to wait for chartRef to bind.",
+      "evidence": [
+        {
+          "resource": "repo://frontend/src/lib/components/actions-sidebar/indicator/indicator-group.svelte#L165-L178",
+          "version": "repo-lines-v1:sha256:df1892282cd63f280576ef151a64604066b43306261ec969013172d56a7ea912:eyJzZWxlY3RlZExpbmVDb3VudCI6MTQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImZkMGQ3ZmU3ZGQyMWVlMjA3NjdkMDc0MzUwMWVhYWRmMGQ1MGJhOWRlNTNhOWU2Yzc0OWY3Y2I1MDdiM2FkZTYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjY3Y2RhODJkYTYwNjIzOGUwNWU2MjM5OTU2OWM1ZWUwMzk5MzQxOTY0OGFlNWQ0M2EyYmY4Y2Q2MzQ3ZjgyNjMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjIyZjJmZjVmZWVjNjBmNTg3YzhmYWU0ZTg3ZjgwOWE2NjFjZmZlZDZiNDdhYWU1ZjZkNmEyNjUzYWE4OTUyZWYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImQwNGRjM2E0NGRmZWYxMTlkMTk5ZDFhODg3YjY0NjM2ZGIxZjg2YTc1MWM0ODlmMDE0MmJiYzQ1MDg0OGU2YzQifQ"
+        },
+        {
+          "resource": "repo://frontend/src/routes/security/%5Bsecurity_id%5D/%2Bpage.svelte#L664-L705",
+          "version": "repo-lines-v1:sha256:2a0e4d6a2df213094d0753703def5347990d41f94b310aabd265b57e1e4397aa:eyJzZWxlY3RlZExpbmVDb3VudCI6NDIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjkwMjkyOGYyYTRiZmM2Zjc3MWRhZDlmNzViNDlmYWM0MGUxM2U3MDFmYjQ0ZDllZDk4YzU0ZDc1ZGQyZjUyNGEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjY3Y2RhODJkYTYwNjIzOGUwNWU2MjM5OTU2OWM1ZWUwMzk5MzQxOTY0OGFlNWQ0M2EyYmY4Y2Q2MzQ3ZjgyNjMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjIyZjJmZjVmZWVjNjBmNTg3YzhmYWU0ZTg3ZjgwOWE2NjFjZmZlZDZiNDdhYWU1ZjZkNmEyNjUzYWE4OTUyZWYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImJmODY2ODExYTE2MWVjM2YzNGQ2NDZiYzRiZmI2ZjE0Mjg1M2FmYWZkNWYyZWE2M2I3NDRkOWYyZjc5ZDAxZDEifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_14011c30f8f544e0a874b92aaca72c20",
+      "statement": "Notes are managed by note-group.svelte over notesService's four routes on /market/securities/{id}/notes; the group fetches on mount whenever securityId is set, sorts descending by created_at, treats an ApiError with status 404 as an empty list rather than an error, and the view dialog doubles as the editor by patching through notesService.updateNote.",
+      "evidence": [
+        {
+          "resource": "repo://frontend/src/lib/api/notesService.ts#L22-L50",
+          "version": "repo-lines-v1:sha256:04e2a4a92cdb70654b7e272cb5a991e1bcdcbf09dee7c48b0b13e9d87d44f921:eyJzZWxlY3RlZExpbmVDb3VudCI6MjksImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjNkZjk5YTVjNTkxOGJlMzBlNTJjZTYyZGFkODk1N2Y5ZDBlYjQzMGVlYzYzNGI5NDE1YjU1M2Q4ZjYzMDgzNGEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQxMmNhMzQ1Y2NmNzViZjljMDgwNmJjZTY5NWJlOGRlODA4Yjc5OTg0MjUxYTdhNTRkMjAyY2Y2MTAxZGQ0NTEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjU2YzdhN2Q5ZDNiYWNkYmI3MGQzZWRkMjAyOWI5NTZjNWIyODU4MDkxNTIxZDZhMDdkOTU4MmI3ZTdhMjJlODIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjoyLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImRkMGM1NjIxZWEyOWMwNDRlOWY4YjM1YTYzZDE2YmIxYmQ0ZmY0MjY1YTAyZmYyY2NhNGQzMjRjODYwMjNmNGUifQ"
+        },
+        {
+          "resource": "repo://frontend/src/lib/components/actions-sidebar/note/note-group.svelte#L29-L71",
+          "version": "repo-lines-v1:sha256:20f64f6894ceb8c4a9f3ad729698fbbe806fbb2256617712bf658ce7aa952201:eyJzZWxlY3RlZExpbmVDb3VudCI6NDMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjJjODBmN2U3YmYxODNiOWRmNzkwMzY2NjYzYzFiNjhkNjcyM2ViN2ZlMTk5OTNhNDlhZGFlODM3OTQwMGQ1ZWYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjBhNzM0OTJkODk0NmIxZDBmOWQ5YzA0YjcwNGE5MjBmMjRmODllZjdjN2Y3MzExYTg1OTlkMTBjN2Y2MzU4ZDAiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjkyMjg0YjZhMmVmZjY0NTU5NjI4YzE2MjhiOGJkODNjMDVmMTExYzgwNWUwMzJiZTU0MWZjMGFmZDc2MmJlNGEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjhjNDY4NzA1YWQzYWFmNTg3Mjc5Zjk3NDk5YjdhZTcyNTI1YmM3NjAzNTU2MTA2NWIzYmVlNWZkMGY5MjcxNTkifQ"
+        },
+        {
+          "resource": "repo://frontend/src/lib/components/actions-sidebar/note/note-view-dialog.svelte#L23-L51",
+          "version": "repo-lines-v1:sha256:15d2552961ccf45a79880bc475d58265c2eda6abfaa1f85cf6615672b65089d5:eyJzZWxlY3RlZExpbmVDb3VudCI6MjksImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjZiZjg5MzZmNjBlMmU1MDYzYTY4MTQ3NzRkOGU5YjUwMTZjOWIyNDJkOThiMTI2MmJkNzBlZmM0MGE4YTZkZTYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjBhNzM0OTJkODk0NmIxZDBmOWQ5YzA0YjcwNGE5MjBmMjRmODllZjdjN2Y3MzExYTg1OTlkMTBjN2Y2MzU4ZDAiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjQ4YTU3ZjE3YTJkNWI3MWM3NGQ1MjcyMTY3OTJmOTQwNzAzNDU3MWQ3NjMxYTE2OTQ1OWUwOWYxNWI1NWViODEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjM5M2M3NTRiYTg0ZTNiZTI3YmI2YWQzZGU0ODdhNTI5NjlmYWM0NDg0OWVmZTZiNGJlYzIxMDc0ZWZhNDNhZmMifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_e5f686b460b74b4f9db47b7c2638ae1c",
+      "statement": "The backend fires generate_note_title_task on both note creation and note update, so a note's `title` is filled asynchronously while the sidebar list item renders `content`, not the generated title.",
+      "evidence": [
+        {
+          "resource": "repo://frontend/src/lib/components/actions-sidebar/note/note-list-item.svelte",
+          "version": "repo-file-v1:sha256:8658582692f9346f37df5abbc4e2ddb205eaed8566594ef814818ee705eb5a7e"
+        },
+        {
+          "resource": "repo://src/market/router.py#L600-L638",
+          "version": "repo-lines-v1:sha256:aef04cd848600c9955c1622e794d993eee5ec06d0f35bd80f492dbee92a22300:eyJzZWxlY3RlZExpbmVDb3VudCI6MzksImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijg5ZDhkNDcyNDIyZTcwMmYyMzBjOGIxYjdjMWRlYWQ1NzFjMTFiMTE2YWUwYzA5NjFkMzM4NzUzY2M3YTNjYmIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjRjNmEzN2FiZWQwZDU2Y2U1MDljYjc4ODViMzA3NzJlY2YzZTlkY2U2NGQwZTc5MGIzMzNlZWUwZmI0MzgzMzgiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjhjYzRhN2QxY2M3OTZhYmEzZTQ2NzIzMzI3ZjUxN2U5ZjgxMTk4MmQyNTBmMDcwMjk4NmU0YjU3NjRhZDk1ODkiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImI2ZjhhNmU1ZmIxMDk4YTA5MTRlOTA5YjA3OGFiZWZiODliNGJkMmJmZTI2MTY3NjMzYTI1ZGM0YmY2YjIyYTEifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_55bdbcdc429d40268620b85fa688f643",
+      "statement": "openspec/specs/security-notes/spec.md requires rich text formatting, a first-100-characters summary, a visible sort indicator with ascending-order toggle and scroll-position preservation, none of which exist in the implementation; its Group/ListItem/Modal requirements (skeleton, SidebarError retry, ModalState, keyboard delete, Enter-to-submit) are implemented as written.",
+      "evidence": [
+        {
+          "resource": "repo://frontend/src/lib/components/actions-sidebar/note/note-group.svelte#L84-L108",
+          "version": "repo-lines-v1:sha256:20e1b9bb647cade8159ea53c6169f1475b458c97d201f4a0e0272deb0c579549:eyJzZWxlY3RlZExpbmVDb3VudCI6MjUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjUxZjI3MjdhZjBhYzA0ODcwMjYyYTgyYzI2MmM1MTY3MTdjNDNhZTg1N2M4MGUzOTFkZDUyZDZhYjE5YjVkZDciLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjA5MDQ4ZjM1YTY2MjZmYmIyMzlkMTVmY2ViOTBkODdmMDU1ZDViNzYyMTMwNzAzMjAzOGI4MzM4ODZjMTRjN2YiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjcwOGQwMzc4ZTc0ZTM0N2FmMTE0MDA1YmNhOWFhMzY5NDMyOTVmYjExNWI0M2YxZDI2Mzk2NTg2MzdhMDJiNDIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjljOWIzMDdmYjEyODZlYjUxZjY0MWI0YTU1MWYxNGI0ZDNkYWQ1YjQyZDEzY2VkN2VhOTM0YTRkYTMyYzk0ZGMifQ"
+        },
+        {
+          "resource": "repo://frontend/src/lib/components/actions-sidebar/note/note-list-item.svelte",
+          "version": "repo-file-v1:sha256:8658582692f9346f37df5abbc4e2ddb205eaed8566594ef814818ee705eb5a7e"
+        },
+        {
+          "resource": "repo://openspec/specs/security-notes/spec.md#L6-L114",
+          "version": "repo-lines-v1:sha256:7ea168ce87113c1b8d7bbda4c8033822d919d029f508ab9eb232cf1fa1e980af:eyJzZWxlY3RlZExpbmVDb3VudCI6MTA5LCJmaXJzdFNlbGVjdGVkTGluZUhhc2giOiI4NmEwMDJiYjk4ODYwYTk5OTM4MDRmMmU5MjMwMzk2MDU5ZTg1YjY3ZGI2ZDNiY2VlOTk2NzRhNTViZjUyZDIzIiwibGFzdFNlbGVjdGVkTGluZUhhc2giOiJiNDlhNjFjNTcyNTBhYmRhNmYzOWIzZjU3Y2NjMjZlNGNjYzkzZTgwMGVmNzkzMDM2MWZiN2QyZDljYWUxYWRkIiwicHJlY2VkaW5nQ29udGV4dExpbmVDb3VudCI6MywicHJlY2VkaW5nQ29udGV4dEhhc2giOiIxYTEzNTY2YzA4YWQ0NmI0ZjFiMDVlZDAzNzU1ZWI4NDkxNTM1Yjg0MzI2NGE4NDU5YTg0NTVjMzEyYjllNjVjIiwiZm9sbG93aW5nQ29udGV4dExpbmVDb3VudCI6MCwiZm9sbG93aW5nQ29udGV4dEhhc2giOiJlM2IwYzQ0Mjk4ZmMxYzE0OWFmYmY0Yzg5OTZmYjkyNDI3YWU0MWU0NjQ5YjkzNGNhNDk1OTkxYjc4NTJiODU1In0"
+        }
+      ]
+    },
+    {
+      "id": "claim_eb17ca7b1a4e4e9b8f770e3b7da8fa52",
+      "statement": "Document upload and delete mirror the notes flow over documentsService, but documentsService.getDocuments types the response as a bare SecurityDocument[] rather than a paginated envelope (matching the unpaginated backend handler), and upload validation of allowed MIME types and the 10MB cap happens only client-side in document-upload-dialog.svelte before the FormData POST.",
+      "evidence": [
+        {
+          "resource": "repo://frontend/src/lib/api/documentsService.ts#L22-L44",
+          "version": "repo-lines-v1:sha256:c1f33a94f51bf29cd3250e7b96d18739c915d586734452b10aa3f9bf43d4f0b4:eyJzZWxlY3RlZExpbmVDb3VudCI6MjMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjBiY2FmODIwN2I2ODg4ZWI2ZjVlZjU5MjlhOTQyY2U2NzU4NGM4MjEzMmRjMTQ2N2FiMDlmMWZmZGJlNTAwOTkiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQxMmNhMzQ1Y2NmNzViZjljMDgwNmJjZTY5NWJlOGRlODA4Yjc5OTg0MjUxYTdhNTRkMjAyY2Y2MTAxZGQ0NTEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6Ijg3N2YxODkwNmEyMDJhZGQ4N2RmOGU2NjU3MTIxZjk0YmRkNmEzM2MzOGVlZjY5YTY2NTc2ZGJiZjlkYzdhMTMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjoyLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6Ijk2YmNlYmM1NjQxYzlhNGVlZDQyZGY5ZGU5NDdlZTY4ZGQ0NGJkNjcwOTJjZTE1YTM0NTVkYzJkNmJjNjFhNjMifQ"
+        },
+        {
+          "resource": "repo://frontend/src/lib/components/actions-sidebar/document/document-upload-dialog.svelte#L20-L69",
+          "version": "repo-lines-v1:sha256:649f1c5031a2c374414a426bcc7014599a3438dfaf7922f78c245c947903c59f:eyJzZWxlY3RlZExpbmVDb3VudCI6NTAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjNlZmEzYjk4YmU1MDBhOWZmZWY1NmFkNWE4N2EyNGVjOWNiMTA5M2M2MzFkNGQ0NjA3NGU5NWM4ZWZlMzI4ZTQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjY3Y2RhODJkYTYwNjIzOGUwNWU2MjM5OTU2OWM1ZWUwMzk5MzQxOTY0OGFlNWQ0M2EyYmY4Y2Q2MzQ3ZjgyNjMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjIzNmFhMTI0YWYzNTFmMWMyMWY0N2E0ZGI2ZTgwMDJhMWQ3YWQyNDg4Njk0MzVmNmU1NzYyYjJhZjNhNTZkMzEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjI0YjlmMjE5ZTc2MDEzMGQ2MmM1YzFlNmEwZTE3YjA3Y2JjZjNiZTRjZDA2ZTcxNTJkMmFlYTU2ZDU4NDRiYzQifQ"
+        },
+        {
+          "resource": "repo://src/market/router.py#L656-L720",
+          "version": "repo-lines-v1:sha256:1d4f4531ddaf480a8cba668d3e9e45597c79b5645a4962ec118f509fcc1361c5:eyJzZWxlY3RlZExpbmVDb3VudCI6NjUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImYzMGZlYjUyNWRmOTgyYTk4ZGVjMWQwYTc4ZTc1YzIxMzU4ZjRjZGMzYzc3MDQzNmU2ZDkwNDNhMThiMTJlNjIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjFiNzkwY2M1ZDI3ZjU1NDViY2JlYTczNmY5NjhkNTI1NjBjNmI0NWVmOTdkMTBlYjU0MDBiYmM0OGY3ZDA3ZTMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImU5MmE5MTYwNzEwNGY0MDA5ZDc5YWRiYTQwYzUyOGZlMzBmZTkyZDBkOGQ0N2U1MWU4MzY0YmQzOGVmMDRkYWIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6Ijg5NTVmZDc3Njk1MmViZDQzMGQ2MWRkMGY2MjA3MGZlYTdkYWQ5YzU4Njk1ZDcyYzdjMzBkOTZlMDdkNzE4NGIifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_b96fb59d7f134742ad5f0e6ded8ae76c",
+      "statement": "openspec/specs/security-documents/spec.md's server-validated PDF/DOC/DOCX/TXT format list, upload progress indicator, PDF preview with page navigation and filename filter input are absent from the implementation, which allows pdf/png/jpg/jpeg/txt, validates only client-side, and renders no progress bar or search input.",
+      "evidence": [
+        {
+          "resource": "repo://frontend/src/lib/components/actions-sidebar/document/document-list-item.svelte#L32-L52",
+          "version": "repo-lines-v1:sha256:9c97d2fceda5ca8cf4113d0b9a69ae3a49e3cbdcf3138af50dbc70b4d70a4f42:eyJzZWxlY3RlZExpbmVDb3VudCI6MjEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijk5ZDlmNTIzNTAwMzBjNjkxN2M5Nzc2ODUxMjg0ZTRjZTMxMTYwNjY4ZjlkOGMyYjY1MDI1OGFhZDRjYmUyMTEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjY3Y2RhODJkYTYwNjIzOGUwNWU2MjM5OTU2OWM1ZWUwMzk5MzQxOTY0OGFlNWQ0M2EyYmY4Y2Q2MzQ3ZjgyNjMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjY1M2NkM2ZmMTNlZTU0NTZjNDA4NzRlY2IyYTFlZDlhNjQzMjMxZmI4YmE5ODEzMTE3NGE3YjdmMWNhMWNkMzQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjFhNTg2N2QzZGNjNWE1MWNlN2ZjYTMyNzcxOTgyOWQwMTEzMGRhNDU2NzE5MzJlMjkwMzQ2NTBkZjJhNmFiODYifQ"
+        },
+        {
+          "resource": "repo://frontend/src/lib/components/actions-sidebar/document/document-upload-dialog.svelte#L20-L51",
+          "version": "repo-lines-v1:sha256:9a1b108bab3bdedc5ac8cdfc47d810fb01827192e13d9687bd5be12a0a71b637:eyJzZWxlY3RlZExpbmVDb3VudCI6MzIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjNlZmEzYjk4YmU1MDBhOWZmZWY1NmFkNWE4N2EyNGVjOWNiMTA5M2M2MzFkNGQ0NjA3NGU5NWM4ZWZlMzI4ZTQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjY3Y2RhODJkYTYwNjIzOGUwNWU2MjM5OTU2OWM1ZWUwMzk5MzQxOTY0OGFlNWQ0M2EyYmY4Y2Q2MzQ3ZjgyNjMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjIzNmFhMTI0YWYzNTFmMWMyMWY0N2E0ZGI2ZTgwMDJhMWQ3YWQyNDg4Njk0MzVmNmU1NzYyYjJhZjNhNTZkMzEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjE5NzgxMWFkM2IyZDI0Y2E5MDdiOGViZWU1NDdiNjdiMWY3MzA4ZDY0NmE0YjkxNmJlZWYwYTIyMWI0M2M3MzMifQ"
+        },
+        {
+          "resource": "repo://openspec/specs/security-documents/spec.md#L11-L75",
+          "version": "repo-lines-v1:sha256:77ec30915350a2d8222a925f983519b775d6a8ecfde5df598789f46840355d31:eyJzZWxlY3RlZExpbmVDb3VudCI6NjUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjM1ODAxYmI1ZmUwNzkwYzVhOWNiMTU2N2JhODI5MDNlNDA5ZjM0M2Q3OTNmNzkyNjVmNzQ1ZjhiNTJlY2IzYjEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjI0YTM2YmE1NzZiODk4OTQ3MzMxNDA3ZmUxMmUxZWIwMWQ5MzA5MWYzYzk5YjNmM2M0NzhhZTgwZDY3ZmY5NmIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImM1NDdlODk5MzE2NmJlOTUxNjc2Mzc0YTRlMTlmNTY3MjEwZGQ5Y2QyOWUzNTA4NTAzNTg1ZThlZjQxMjE1ZGYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImMwNjk2OTcxYWFhYTk5ZDUzYjc0NzMzNWUwYWU1NjkxMTI3MGQyM2M2M2UzMjkyNGQwY2NjOTQxNjk3YjdkMzAifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_8227a77ef7b44ac586d14d42b0a76ea8",
+      "statement": "AIAnalysisGroup is only a launcher: it defines three static actions calling aiService.analyzeFundamentals/ summarizeNotes/ analyzePortfolioFit, opens AIResponseDialog via ModalState with isLoading true before the request starts, and offers in-dialog retry via handleRetry; it has no SidebarError path, so the spec's AI Analysis error scenario is satisfied only by the dialog's retry.",
+      "evidence": [
+        {
+          "resource": "repo://frontend/src/lib/components/actions-sidebar/ai/ai-analysis-group.svelte#L26-L88",
+          "version": "repo-lines-v1:sha256:318c181153f99c63b30e29a337a5f64613cc077e883b138a32876e7a0c08a613:eyJzZWxlY3RlZExpbmVDb3VudCI6NjMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjdkMDAzYTY2NzYzMDg1ZGJkMGJiMzBiODUyZmRhM2U4YzBkZWNiZTQzOTIxMGYwYjEwMmNjYjBjMWU4NDE5NDkiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjY3Y2RhODJkYTYwNjIzOGUwNWU2MjM5OTU2OWM1ZWUwMzk5MzQxOTY0OGFlNWQ0M2EyYmY4Y2Q2MzQ3ZjgyNjMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImE2Njk4NzM1NzRmNWU5NDY2NGY4MzkwNTU2MmJlYjA4YzFhN2NmOWZkZGNjN2NmOGFjODI3YTdkYzMyNDM0NmEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjhjNDY4NzA1YWQzYWFmNTg3Mjc5Zjk3NDk5YjdhZTcyNTI1YmM3NjAzNTU2MTA2NWIzYmVlNWZkMGY5MjcxNTkifQ"
+        },
+        {
+          "resource": "repo://openspec/specs/ai-security-analysis/spec.md#L92-L111",
+          "version": "repo-lines-v1:sha256:9109628400b5c6fe1f21f0d9aa26cccc11ebe21e1819ddcf267a22d4dedfe06a:eyJzZWxlY3RlZExpbmVDb3VudCI6MjAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAwZTQyMzNmMWIwOTE2OTQxNDE3ODgyNTU0MzY2Mjk0OWQ5ZDAyYjNmNzE4ZGQ1YzYzY2ZiNTkwNWNiY2IzNWUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijg3MzY1YzVhNGZhYmY4MGY0YzZkNWE3MGIwZjJhZTlkNzUzZjk2N2QyOTU4ZWM1MGVlOTJlZmIzYjhiY2YzNzAiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjJkZmZiMmY1NjRlMjg3NDAxOGYwMjQxMGVmMGRjYTE4ZTY3Njg4MjY4ZWJkY2Q2M2UzMjQ1MDkyZjY5ODQ0YWIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_4c963fc0d5cd4960ada9acc337e63511",
+      "statement": "Only HoldingsGroup, FundamentalsGroup, IndicatorsGroup and their modals have dedicated test files under components/actions-sidebar; note-group.svelte, document-group.svelte, price-alert-group.svelte, price-alert-modal.svelte and ai-analysis-group.svelte have no dedicated tests and are exercised only through page.svelte.test.ts mocks.",
+      "evidence": [
+        {
+          "resource": "repo://frontend/src/lib/components/actions-sidebar/fundamentals/fundamentals-group.test.ts#L1-L80",
+          "version": "repo-lines-v1:sha256:991e8ce00cfe33a30387975a00c084df36bfe2d95d9b7e1cae5de8e546f2e794:eyJzZWxlY3RlZExpbmVDb3VudCI6ODAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImIzOTJjZjY5OTM0OTQ1ZGRlZmY3ZDIwZGUxODVkMTU5M2YzY2JjZjhhNzE0MDI1YzY4MGY0MWY0ODkzZjFhY2QiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImZhNjRlOWIwNWJkMWQzYjhjMzQ1N2NmNWIwNTZiY2NiODgzZjcyNTgzN2ExNmJiYTg1YTE2NDg2YWEwYjNhODUiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjowLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImYwNzFhMWRlZmE4ZGE4MDdlYjdlNDI5Yzc0MTI4OTYzMDc3YTYwYjJhMWI4N2NkOGZlMTM0YmQ3YmYwYzY1N2MifQ"
+        },
+        {
+          "resource": "repo://frontend/src/lib/components/actions-sidebar/indicator/indicator-group.test.ts#L1-L80",
+          "version": "repo-lines-v1:sha256:33e1ecd359cbb299c429d2d08c91ab73efc08a333f57f2ea39b0168832ddf710:eyJzZWxlY3RlZExpbmVDb3VudCI6ODAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImIzOTJjZjY5OTM0OTQ1ZGRlZmY3ZDIwZGUxODVkMTU5M2YzY2JjZjhhNzE0MDI1YzY4MGY0MWY0ODkzZjFhY2QiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImY5N2M1MDBjOTRlOTc2Yzk4MjNiMDU3NDcwNGVlOWRiNDc2Y2VkNGRmYzdiMDJkNjdlMzY2ZjNlZWE2NmE2ZTUiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjowLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjIwODE1MmQ3YWMzYjE5OGM3NjkzOTE3M2QwNmQ4MDM2ZDI3N2Y3MjVkMTEwMzE3MTM0ZjA5M2Q2N2Y0Y2VlY2MifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_c0898b521c4240cb9158f4719d7e51db",
+      "statement": "Security-side frontend tests must mock every API client and SvelteKit module they touch: page.svelte.test.ts stubs $app/paths, $app/navigation, marketService, userPreferencesService, alertsService, notesService, documentsService, accountService, valuationClient, watchlistService.svelte, snapshotsService and indicatorsService, and replaces security-chart.svelte with a factory exposing fake addIndicator/removeIndicator/setPaneHeights while capturing the props object for direct handler invocation.",
+      "evidence": [
+        {
+          "resource": "repo://frontend/AGENTS.md#L35-L59",
+          "version": "repo-lines-v1:sha256:31b9f4bd4831c307eafbee590dfcffbca4edd487472e392bf478c39519a9798e:eyJzZWxlY3RlZExpbmVDb3VudCI6MjUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijk1ZTg2ZjY4N2VhMWVhMDRiYTk2Y2M4NzlmMmZmOTI5MjgwNDU4NWVmYTU4NmU3NjA3ODYwNzg4NWVjOTMwMjgiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjA2MzcwYTI1ZGE5OGVjZmViODAzNGVjODdhZTAyMTJhODQyMThmOTAzNDk0MGNlZjZlOWM1MTQ5NjM2MzE0OWUiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjhmMmMxODM4ZThhNDRiMDg3N2M1MmExZmEzZDE2Y2I2MWFiNDM5YWE3ZTkyMDhhMjg0YjQxYWMyNjU4MjQ1ZGMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjYyOWM5YzdhMmRjZjRjMjQwZGU1MTE1Njk1MWY4NzIzODY3NzNiNzBlNmEwMjJjZjliZDNlNjZiZmRhOTgxNDMifQ"
+        },
+        {
+          "resource": "repo://frontend/src/routes/security/%5Bsecurity_id%5D/page.svelte.test.ts#L42-L187",
+          "version": "repo-lines-v1:sha256:369b8953bdb6fb7ee5987ff165e3ba668477bf5765432e7760317fcd46d4404d:eyJzZWxlY3RlZExpbmVDb3VudCI6MTQ2LCJmaXJzdFNlbGVjdGVkTGluZUhhc2giOiI5NjM4Y2Q5ZTQzMTY0NzE3ZmQ0YjU3NDg2ZjdkNTVjZDM2YzgyNTE4YmY5NTcyZDY2NTA4OGRhZGMzMmU2YzY4IiwibGFzdFNlbGVjdGVkTGluZUhhc2giOiJmNmY1YjQwYjE1ODQ1N2QxNzg2NGYyMTc5MDc4NmRkNWEyZWNkYjY0YjY2YTY1MWY3ODhkNGUyNWNkMzMwM2QyIiwicHJlY2VkaW5nQ29udGV4dExpbmVDb3VudCI6MywicHJlY2VkaW5nQ29udGV4dEhhc2giOiI1NGJhNzI2M2MxMDg3MDJhNTVjYzlkY2Y1ODFmMTEzMzM3ODI5NzZkZTdlNjA0ZDEyMTVlNmQ4Y2Y1MWEwOGZmIiwiZm9sbG93aW5nQ29udGV4dExpbmVDb3VudCI6MywiZm9sbG93aW5nQ29udGV4dEhhc2giOiI5N2E1YWE4Mjg1NDc4Yzc1MGFlMGNjNWU3NDc1MzIwNzQ3NDk1ZDhlYTBkZWE3NGVkMjYzNDEwNTdhMmNmN2FmIn0"
+        }
+      ]
+    },
+    {
+      "id": "claim_31d5ea47d57a46339fde4bf1c966a93c",
+      "statement": "The security page's error card merges two error sources: `const error = $derived(pageData.error ?? timeframeError)` surfaces the post-navigation service error and the timeframe switcher's own failure message through the same 'Failed to Load Chart' UI.",
+      "evidence": [
+        {
+          "resource": "repo://frontend/src/routes/security/%5Bsecurity_id%5D/%2Bpage.svelte#L72-L75",
+          "version": "repo-lines-v1:sha256:f93d78c3417685073ce673042113a5679922522bfd7c577dccea74c382476c8f:eyJzZWxlY3RlZExpbmVDb3VudCI6NCwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiNzQyZDc4YzNkYzFkNTA1YTdmMWU3NGY5MzA3NWRjNmUzYjU5ZGVhZDYxNDQ4MzJiMDYyOTA4N2Q4ZDYxZTdlMiIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiMTQ0YjNmNTFiYWJiZjE5M2Q4ODNmM2NmYjY0MTgxYjkwMmFhN2I0YTI1M2E0ZThkZTE5MzA1NWY5ZWI5NzhkZCIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiMTYxMTVmMjhhOGJjOTA1YzU0Y2U3N2U2ZTVlOTU0MGIwOTQ5OWQwMzI2NDkxYTUzM2I5OGZmZGEyMjZjMzlmMiIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiNGFlMWRmYTA2ZTRmN2I4NTRiMjVjODAxYzlmY2RhNGY2NzkyOGQ0YmQxYjQyYjVjYjM1MGNlMDUwZjk0YTMyYyJ9"
+        },
+        {
+          "resource": "repo://frontend/src/routes/security/%5Bsecurity_id%5D/%2Bpage.svelte#L831-L850",
+          "version": "repo-lines-v1:sha256:2c9ea577f7549d7fb27e1444766a993d59054163a6fcdaecfdd830e31efe9641:eyJzZWxlY3RlZExpbmVDb3VudCI6MjAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ0ZjI2ZjM1NTU5MzlkM2JhMmYzZTUyNjk4ZTMzZDM0NjI0NTUxMjQyOWQ1MjRhZjZhM2Y4ZjExODY0MGI0ZTYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImE0NDFhMTRmMDIxZjI2MTEyN2NhNTE0ZWQwYjNiZTlmMjUwOTczNTlhOGU1ZGRhNzEwMTNlNjRiNGE1MWQwY2YiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjYyZGZmYmYyMDA1NDBhYjIxYTdhYmQxYmNhZDkwYzQ0MDMyZDQzZjMxNGQ0ODM5OTY4YzJkYTZmM2M5YWNkOGEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImVlOWYxZmIxOTVmN2M1NTA1MDgzMWFkM2Q0ZWM3YWFhZTZmNjY4ODFiZmY5YTk0MTYxNGUzMGJiM2E0NTk1YjgifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_d2b0fbf3e5d6463ea401829004444875",
+      "statement": "HoldingsGroup fetches per-security holdings via accountService.getHoldings in parallel with accountClient.getAccounts() plus a per-account getAccountTotals call to compute portfolioPercentage, and it is the second writer (besides IndicatorsGroup) of the indicators.avgPrice preference key, patching the whole `indicators` object.",
+      "evidence": [
+        {
+          "resource": "repo://frontend/src/lib/components/actions-sidebar/holding-group/holding-group.svelte#L49-L120",
+          "version": "repo-lines-v1:sha256:83eba1d2f94b89696c16f4b3db45fa98fbe535e876e4b8ffb6ced1d900f282c2:eyJzZWxlY3RlZExpbmVDb3VudCI6NzIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijg0NmM4MDg0NDc4MzMyMzQ5YTM1OWJmYWQxZTg3YzhiNjM5NTY1MzIwOGY0MmI5NTljZjUxODdlZTVkMzc1ZDciLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjcyOTVjYjI1MTUxZjc5ZTkxZmQwMWY3ZjY4NGQ3ZmM1Y2M0ZWMyYmZkMWRhYjgyZjk4YzQwZmIyZWM4ODY5ODAiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImY0OWY3YWYwYmNlNjQ5ZGM0NWQ4NmYwMzlhZDNjNTQxMTZkYjgwYzIxNmEzNmM3ODFkNTAxYjQzYzhkM2U0YzgiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImU3ZmZjMTJlZWMwOTYzZDBiYzZkOTQzYWY4ZDI0NjkzY2IwYTBkNzg2NWE0YTlkMzVhYzQ4ZDk5MzdjZTBmMWMifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_227fa0906b0445ddba3737eb6ff4efb6",
+      "statement": "FundamentalsGroup owns the fair-value range and chart overlay: it fetches valuationClient.getValuation independently of the page's loadValuation (so both round trips write the shared bound `valuation` state), renders loading/error/unset/range states, and its overlay checkbox patches the same show_valuation_band key the page reads on load.",
+      "evidence": [
+        {
+          "resource": "repo://frontend/src/lib/components/actions-sidebar/fundamentals/fundamentals-group.svelte#L46-L83",
+          "version": "repo-lines-v1:sha256:ef365acd2d3c021b306aba7d6311d84c0b0d79e19d7963b97fcc9fde48534aee:eyJzZWxlY3RlZExpbmVDb3VudCI6MzgsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImM3YTgxMmJmYzFmYjU4YjBiYmJmZGJiYzdmNjRjZjJjODQwNmFjMTdhNmE5MzU2ZGU5YTk5NGQ0Y2YwYmM2ZmIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImNjM2EyMDc3NGQ1YzJiYjRjNzkwYzE4ODkwYTljNDk0Y2NiNTEwZmM4ZThjMDllYzc0NTE5YmMxNjRmYzc4NGIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjY4ZGJiYmNmZjFhNzAwNTc2OWM2NmIxMzBiNjMwOTJmODhkMzFlNWQ3ZTkyMjZhYzJiYWE4OWUwMWY3NGQ0NmEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjMwOWQ2NTIwY2U0MmUwODYxY2U5NDQzZDYyYWJjY2M1NGJkNjkyZTdhODEwNGMzNjE3OWQwNTZlYzIyY2Q3YmYifQ"
+        },
+        {
+          "resource": "repo://frontend/src/routes/security/%5Bsecurity_id%5D/%2Bpage.svelte#L446-L453",
+          "version": "repo-lines-v1:sha256:ea48e5b6163435ac409cc86218e6a472d824a1c91c93725751246ac9afe3e464:eyJzZWxlY3RlZExpbmVDb3VudCI6OCwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiZDJlYjk5MDJhNWZiNGFmNTlhMjM1Mzc0ZjJkOGIzMDc1MmU3MDhlY2Q5YzU5YmRjOTQzMDA0MDNhM2JlZDdjYSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNjdjZGE4MmRhNjA2MjM4ZTA1ZTYyMzk5NTY5YzVlZTAzOTkzNDE5NjQ4YWU1ZDQzYTJiZjhjZDYzNDdmODI2MyIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiMjJmMmZmNWZlZWM2MGY1ODdjOGZhZTRlODdmODA5YTY2MWNmZmVkNmI0N2FhZTVmNmQ2YTI2NTNhYTg5NTJlZiIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiODUzMTc0OTc0MmFiZTA1OWJmOTYzYjZkOGFmNGQzMmZmN2MyZTc5NjU1ZjkzNDc5NmY4Y2U0Mzg4MGRiOGI3NyJ9"
+        },
+        {
+          "resource": "repo://frontend/src/routes/security/%5Bsecurity_id%5D/%2Bpage.svelte#L666-L668",
+          "version": "repo-lines-v1:sha256:02edc84b42234b8e6afc8e6cf0824d29dd38f54bf582a186f65eab4c35bcf918:eyJzZWxlY3RlZExpbmVDb3VudCI6MywiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiMmM1YjY4YmUwNWExMjYxY2M5NTA3NjQ5Njk4NzA0ODBkYTA2NDhhODVkZWRjMjg4YjNkMDBkYzIyYzAxM2M4MyIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNjRlZmM0OTQxOGQyNmRjZjEyOWIyMmE2YWEyMTEwOGNlZWMzNzY3N2EzMmQwOGU5ZDVmZWUzNWRkYTY2YmI5ZCIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiMDI1MjhlNjkxMzQxMDYyNDU5ZDFkNmQzOTBhNWM1M2VjNDAzMGNiZTQ2ZWFkMzBmYzg5Njc2Mzk3MTk5ZjU2MCIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiZGMxN2M5MGZmMWQxMzZhZWFlZWYwODNiZjJkZDNkZTk4OGU5NzJmNTU3ZmE1ZjQxODUzYjNkMTEyOGYyNGQ3MiJ9"
+        }
+      ]
+    }
+  ],
+  "verification": {
+    "by": "openwiki/0.6.1",
+    "at": "2026-10-02T14:25:20.147Z"
+  }
+}

@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "pageVersion": "sha256:55100141922012187b543561adbfd0b38822d10615a07820c1bae45830b8fb45",
+  "pageVersion": "sha256:ff9a0673dc385d690bb9652b44b67befa79feea0f1ccb9621803028e8d0a7231",
   "claims": [
     {
       "id": "claim_3145d16e08584588b0f314c0a1920b4f",
@@ -25,7 +25,7 @@
       "statement": "The preferences surface is GET, PUT and PATCH on `/accounts/me/preferences`, mounted under `/api/v1` by `src/main.py`; GET returns `{}` when nothing is saved, and all three endpoints depend on `current_user` so an unauthenticated request returns 401.",
       "evidence": [
         {
-          "resource": "repo://src/account/router.py#L170-L206",
+          "resource": "repo://src/account/router.py#L193-L229",
           "version": "repo-lines-v1:sha256:3e8e40e36e073be6a800e7d4958764ab69bdcc613607ce0e4a256a2a83e622b2:eyJzZWxlY3RlZExpbmVDb3VudCI6MzcsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjkwYTRmMTBmNzUwNjg2YTQzOTM2MTgwZjNmZWZjOTE4MTM1NDlmNDE4ZTQ3MzVlMWJhYmUzMjMxNjQyNTM2N2QiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjMwYzFmMTg4ZjE0MmVkN2E4MjQ2ODBiMjA3MTcyYzU1MTliYzYxNGE0OGZkYTdjZjE2N2VkYjhkZGY3OTk1NmMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjE5YTdjMzVlZjhkZTUzMzhiOWUyMjAxMDdhZjRkMGNkN2NjYjQ4ZmE1ODViM2YzZDZlNTU4MzM0MWQ1ODhlMjAiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImJiMzE0NWM2N2ZhNzZiN2VkNjk4Nzk2NjY5MmY3NTlhMjhkZDkwMmY2NDBkOGJmOTIzYzBiODQ2OTcyNTZiNzgifQ"
         },
         {
@@ -44,15 +44,15 @@
     },
     {
       "id": "claim_2f156fc78d924dd8afb36f736448dd3e",
-      "statement": "The request payload model `UserPreferences` uses `model_config = ConfigDict(extra=\"allow\")` and declares only a subset of the keys the frontend uses, so unknown keys round-trip through storage unchanged while declared fields are still type-validated; the backend declaration is therefore advisory and the authoritative key list lives in the frontend interface and its writers.",
+      "statement": "The request payload model `UserPreferences` uses `model_config = ConfigDict(extra=\"allow\")` and declares a subset of the keys the frontend uses, so unknown keys round-trip through storage unchanged while declared fields are still type-validated; the backend declaration is therefore advisory and the authoritative key list lives in the frontend interface and its writers. The two lists have drifted in both directions: the frontend interface declares `collapsed_watchlist_ids`, `expanded_account_ids`, `drawings`, `holdings_table`, `holdings_group` and `indicator_pane_heights`, which the backend does not, while the backend declares `watchlist_sort`, which the frontend interface does not.",
       "evidence": [
         {
-          "resource": "repo://frontend/src/lib/api/userPreferencesService.ts#L63-L80",
-          "version": "repo-lines-v1:sha256:aebac163f6422fcf5a66443cbd73ed845c4ef9495d1ff3751869909feb689688:eyJzZWxlY3RlZExpbmVDb3VudCI6MTgsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjljZDMyNGJjZjhhYjc1MjI2ODc5ZTE3YzIyZTYyNDQ2MWUxNGZiNjRiMzEwMjQzZmZjNTQ1NjNkYWYxNzgyNDQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQxMmNhMzQ1Y2NmNzViZjljMDgwNmJjZTY5NWJlOGRlODA4Yjc5OTg0MjUxYTdhNTRkMjAyY2Y2MTAxZGQ0NTEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImFhOTc3ODQyYWRjMmUwOTYzODMzM2Q2NDM4NmFmNzRkZTUwZjg2OGQyYzI2NzVhOWRmNzdhYWI2ZGM1ODcyMGQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImQ3ZDE5MDA5MTZhMjkyOTI1MWY0NDg3N2MyZTRiMjgxNTcyYmY2MGFiM2NlNGQ2YWQyMTFiNTFiOTJkMGZjNDIifQ"
+          "resource": "repo://frontend/src/lib/api/userPreferencesService.ts#L63-L84",
+          "version": "repo-lines-v1:sha256:7c3bc25ee06f8d5593f02bdc268db95da854eaaf8452a22d50b1fcc5029d7c96:eyJzZWxlY3RlZExpbmVDb3VudCI6MjIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjljZDMyNGJjZjhhYjc1MjI2ODc5ZTE3YzIyZTYyNDQ2MWUxNGZiNjRiMzEwMjQzZmZjNTQ1NjNkYWYxNzgyNDQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQxMmNhMzQ1Y2NmNzViZjljMDgwNmJjZTY5NWJlOGRlODA4Yjc5OTg0MjUxYTdhNTRkMjAyY2Y2MTAxZGQ0NTEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImFhOTc3ODQyYWRjMmUwOTYzODMzM2Q2NDM4NmFmNzRkZTUwZjg2OGQyYzI2NzVhOWRmNzdhYWI2ZGM1ODcyMGQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImQ3ZDE5MDA5MTZhMjkyOTI1MWY0NDg3N2MyZTRiMjgxNTcyYmY2MGFiM2NlNGQ2YWQyMTFiNTFiOTJkMGZjNDIifQ"
         },
         {
-          "resource": "repo://src/account/api_types.py#L84-L98",
-          "version": "repo-lines-v1:sha256:c8cc17ece535afb73857cfe4ed5e630e3c15a8af6fd63ee4ca735fdf7283f9c8:eyJzZWxlY3RlZExpbmVDb3VudCI6MTUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjE4MjVjMWE4MjYyMzQ3ZGVkMGQ1NWM2YjNiNGIzNzA5ZmI0ZmNjZWUxNDY1YjUxOTZkMTk0NDRjNTVhZTgzYjUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjEzZTVkODVlMzUxMzczMTkzMGNjMjIwZjE2NGIyZjIwM2FhODhiOTRmMDgzYTRjZGE4ZmU2MmZiZmEwZDU0ZTciLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjhjYzRhN2QxY2M3OTZhYmEzZTQ2NzIzMzI3ZjUxN2U5ZjgxMTk4MmQyNTBmMDcwMjk4NmU0YjU3NjRhZDk1ODkiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
+          "resource": "repo://src/account/api_types.py#L84-L102",
+          "version": "repo-lines-v1:sha256:f124b78e4e8a7e28bb4ce8ae5ec56c7b81b37c43e42765f3e1aa7a9ef80186db:eyJzZWxlY3RlZExpbmVDb3VudCI6MTksImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjE4MjVjMWE4MjYyMzQ3ZGVkMGQ1NWM2YjNiNGIzNzA5ZmI0ZmNjZWUxNDY1YjUxOTZkMTk0NDRjNTVhZTgzYjUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjEzZTVkODVlMzUxMzczMTkzMGNjMjIwZjE2NGIyZjIwM2FhODhiOTRmMDgzYTRjZGE4ZmU2MmZiZmEwZDU0ZTciLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjhjYzRhN2QxY2M3OTZhYmEzZTQ2NzIzMzI3ZjUxN2U5ZjgxMTk4MmQyNTBmMDcwMjk4NmU0YjU3NjRhZDk1ODkiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
         }
       ]
     },
@@ -61,7 +61,7 @@
       "statement": "Both write verbs dump with `exclude_none=True`, so an explicit JSON null is never persisted and cannot clear a stored key: PUT replaces the whole document (a partial PUT body is a replace, not a merge), while PATCH can only add or overwrite non-null top-level keys.",
       "evidence": [
         {
-          "resource": "repo://src/account/router.py#L181-L206",
+          "resource": "repo://src/account/router.py#L204-L229",
           "version": "repo-lines-v1:sha256:968e57aa2590f067a13f0cfcd10062c7360f82edf7bee9836ef472a1fbe39e1f:eyJzZWxlY3RlZExpbmVDb3VudCI6MjYsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjMxNzRhMjIyNDE0ZGFhNTY2NzFkOGFkOGE3MGU1ODIxOWZlMmZjOTU0M2RkZjFiZTkxZWM5NWEwYmIxMTY4ZGUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjMwYzFmMTg4ZjE0MmVkN2E4MjQ2ODBiMjA3MTcyYzU1MTliYzYxNGE0OGZkYTdjZjE2N2VkYjhkZGY3OTk1NmMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjdhOGJlYWI4MjJkOWI3ZTQxMTA0M2NjZjQyMjU3OWQ0MWNjMWIyYmUxZDI1Y2YzMGEyM2FkYWZiNTU4ZGM1YjQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImJiMzE0NWM2N2ZhNzZiN2VkNjk4Nzk2NjY5MmY3NTlhMjhkZDkwMmY2NDBkOGJmOTIzYzBiODQ2OTcyNTZiNzgifQ"
         },
         {
@@ -101,40 +101,40 @@
           "version": "repo-lines-v1:sha256:96d94978373eeed88685ef15ab529d0d0bbd0ee815a5ecd149e5f88246d1e0be:eyJzZWxlY3RlZExpbmVDb3VudCI6NDMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAzMDI1NTM5ZmJjMWZkMmE4ODdiMTdjNTIwNTg4NGRmNGQ4MDQyNzVhM2E0ZTVkNjcwMDIyYmZjZmU3N2IwMjEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjBhNzM0OTJkODk0NmIxZDBmOWQ5YzA0YjcwNGE5MjBmMjRmODllZjdjN2Y3MzExYTg1OTlkMTBjN2Y2MzU4ZDAiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjJkM2ZjZDUwNDdmMjk3M2Q3ZjM4NjNhNmYyMDIzOThmMTIxMmE4MTViZmU4MzU0ZjZhMjcxMTVjMDA5NjUzMGIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImJmNjE0YzMxZDI0NTEyYTE3OTk2M2NiMWM4ZGY0MDAwYzFiOTMwYWZlODcyMzMwMDE1MDQ5YTNjNWRjNzU1YmIifQ"
         },
         {
-          "resource": "repo://frontend/src/lib/api/userPreferencesService.ts#L82-L114",
-          "version": "repo-lines-v1:sha256:4b14ec4ba1d04f51c8968d0edede607d16e57d02a70f4f7d5d1fa55e75355be9:eyJzZWxlY3RlZExpbmVDb3VudCI6MzMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjFlZGI2ZWFjMjIzNmYxYzM4NzJhYTU4ODk5ZGM0M2U3YzY3OTJiZmRhYWJhNTY0Mjc5NDIwY2VlMjhiMzQ2ZDIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjYxY2E3Njg4ZmRkODEyYWE2ODIyZDZkYzQ2NGIxMmNhMTQyMjI2NGQ0MDdmYjE1MjBlNGNlNWY1MTAzNjI0YTkiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjU3NjM0YTNmZDljNTgxYjM0YjhmZGY2YWQwZDliYWUyNzdjYTljZmQ0OTNjMjdmZDcwZTBjZDM0YmU4ZmY1MzQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
+          "resource": "repo://frontend/src/lib/api/userPreferencesService.ts#L86-L118",
+          "version": "repo-lines-v1:sha256:4b14ec4ba1d04f51c8968d0edede607d16e57d02a70f4f7d5d1fa55e75355be9:eyJzZWxlY3RlZExpbmVDb3VudCI6MzMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjFlZGI2ZWFjMjIzNmYxYzM4NzJhYTU4ODk5ZGM0M2U3YzY3OTJiZmRhYWJhNTY0Mjc5NDIwY2VlMjhiMzQ2ZDIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjYxY2E3Njg4ZmRkODEyYWE2ODIyZDZkYzQ2NGIxMmNhMTQyMjI2NGQ0MDdmYjE1MjBlNGNlNWY1MTAzNjI0YTkiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjM2NGE4YmY1Mjg2MTM4MzM3MDM2Zjg2NGJmNWE1ZWMwMjE0NzcxODY2Y2ZjNzNjOWVlMzg1OTY4ZGRhZWY5NjkiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
         },
         {
-          "resource": "repo://frontend/src/routes/holdings/%2Bpage.server.ts#L1-L18",
-          "version": "repo-lines-v1:sha256:ae081456e2a24d99f88585300aa8f5be9300b00f5445250d52e382f18c763f1c:eyJzZWxlY3RlZExpbmVDb3VudCI6MTgsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjljMWJhYmJjODhkOTdiMzM5NWE4ODEyZjc4ZTFlNzg0MzUxZTdmNjE4NjUxYTRkMGU5YTNiNTJhNzAyYzc1ZjkiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImQ3OTAyY2JiMzUxNTNmZmU3NWVhNWRlNjliNTBlZmE1ZmI0MjRkZTNkYjU3YTQyMjcxZjgyMTlkNmFlOTA5YmMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjowLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImYwYmUwZTVkMGVhOTNmN2QzNjgzNGZhNjI1OWE4ZjFhZDllMDUxNDU1OGQ3NTVmNGQ5YTQ3YzAzZmMyYTk3YTYifQ"
+          "resource": "repo://frontend/src/routes/holdings/%2Bpage.server.ts#L27-L32",
+          "version": "repo-lines-v1:sha256:b566d26ce912227f9a5375385718960ab456a029dfa8943ebcb7508616221a5a:eyJzZWxlY3RlZExpbmVDb3VudCI6NiwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiN2UzYTQ1NzI5ZmFmOTdmY2RiNTFhNjI5MTEzYTIzYTNkNzNlNGI4ZjY1OWIyYWRiNjZkMTFmOTY0YThhN2FiMCIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNjA3NDg0YjMwMjM0NDdkZDgzYWM3OGJiNjlkOTFlZmExZjExNmFlOTFkYjk1Nzk2ZTBiYjUwOWM0NjJmODNhNSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiODNkOTgyNTRiYjgwMTJiZTg2ZmVhMTk5Y2QyYTYzOGYwMjJiNDYxMGUxODEyOTdiOTM4MjE4MzNkNGYzMDhiMSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiZmE2MTYwZDM1MDViMWUzYjkyNWQwM2IxN2E3YWQ4MmY3MWM0OTZkZGIwMGY3MDBkN2MxNWZhYTg3YWI3YTYwMiJ9"
         }
       ]
     },
     {
       "id": "claim_7b239d4bbb4c45ed9fc9534e7f8a860e",
-      "statement": "The root layout load (`frontend/src/routes/+layout.server.ts`) reads exactly `sidebar_open`, `collapsed_watchlist_ids` and `watchlist_order` on every authenticated request, guarding each with a type check and defaulting to `true`, `[]` and `null`, and swallows any request failure so layout hydration never fails on a preferences outage.",
+      "statement": "The root layout load (`frontend/src/routes/+layout.server.ts`) reads exactly `sidebar_open`, `collapsed_watchlist_ids`, `watchlist_order` and `expanded_account_ids` on every authenticated request, guarding each with a type check and defaulting to `true`, `[]`, `null` and `[]`, and swallows any request failure so layout hydration never fails on a preferences outage.",
       "evidence": [
         {
-          "resource": "repo://frontend/src/routes/%2Blayout.server.ts#L4-L33",
-          "version": "repo-lines-v1:sha256:1582f421542429236eb96180e3c7dc98493fcbc3bb7c1501f603977a9cf14368:eyJzZWxlY3RlZExpbmVDb3VudCI6MzAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjZiZjY1OTVmZjIxYjZlNDBjOWU4NzQ1OGI3YzIyZTNjZjdhYTU3ZjBiZDQ2NmM4ZTg5NTI5YTc2M2VmNjZkMzIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImNjM2EyMDc3NGQ1YzJiYjRjNzkwYzE4ODkwYTljNDk0Y2NiNTEwZmM4ZThjMDllYzc0NTE5YmMxNjRmYzc4NGIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjczNzA2YTI5ZmRlZTllNmRiNGMyYmUzMWEwZWY5MWI1NzRiY2Q4YjBlZTQ5NThjZGIyM2ViYzg4NWVlYzFmOGIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjoxLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImFhMWQxYTYzMzkwMjI5Yzc5ODM0N2U4M2EwNDA1NDQxYzk0MDAwMzUyODRhZDE2OGMxYmY2Y2RmMWQ3MGEzNzAifQ"
+          "resource": "repo://frontend/src/routes/%2Blayout.server.ts#L4-L38",
+          "version": "repo-lines-v1:sha256:e346d71528b177c9935b8e7c8e3c1ae3e91790bac02a8a7e877480a6e9694db3:eyJzZWxlY3RlZExpbmVDb3VudCI6MzUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjZiZjY1OTVmZjIxYjZlNDBjOWU4NzQ1OGI3YzIyZTNjZjdhYTU3ZjBiZDQ2NmM4ZTg5NTI5YTc2M2VmNjZkMzIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImNjM2EyMDc3NGQ1YzJiYjRjNzkwYzE4ODkwYTljNDk0Y2NiNTEwZmM4ZThjMDllYzc0NTE5YmMxNjRmYzc4NGIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjczNzA2YTI5ZmRlZTllNmRiNGMyYmUzMWEwZWY5MWI1NzRiY2Q4YjBlZTQ5NThjZGIyM2ViYzg4NWVlYzFmOGIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjoxLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImFhMWQxYTYzMzkwMjI5Yzc5ODM0N2U4M2EwNDA1NDQxYzk0MDAwMzUyODRhZDE2OGMxYmY2Y2RmMWQ3MGEzNzAifQ"
         },
         {
-          "resource": "repo://frontend/src/routes/layout.test.ts#L407-L444",
-          "version": "repo-lines-v1:sha256:3c057292338d98f9f54e5d924c099923b635fdb1d90a5ecc68c972235dadaedc:eyJzZWxlY3RlZExpbmVDb3VudCI6MzgsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImJjYmMxNmVmZTkzNDNiYzc5ZDEyNmNlYzIzOTFjMzIzNDQ2ZjQ4ODYzMjNmOGMwNmFhZTdiMTk0YjE2Mzg2YTkiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjZhMmEzYjc2ZTEyY2UxNTM3OWQwNWYyODY5ZGM0ODMyZGU3NTg5MDUzYjQ5YmZmMjM3ZTQyNWM3MjM3ODAxNTQiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImZiNmI3MDgxZTQ1NGQ4NDM1MGNiYmYzN2FjM2VlNjliODQ4ZjEzMjViOGRhOTM1OWM2MjY5ODg1MDBlNGNlOGYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjoyLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImMzMWExNDMyMDk0YzllODliMzZjZWY3MzE0NThjMDIzNWNkZmE3MjgwNDE0NjU2NDJjZjcyN2E5Y2Q4ZjQyNTQifQ"
+          "resource": "repo://frontend/src/routes/layout.test.ts#L418-L474",
+          "version": "repo-lines-v1:sha256:f3a12eae42ac3b390ff5ced24a935476c489cfbba3f3b79b26f4f3f9c2dace55:eyJzZWxlY3RlZExpbmVDb3VudCI6NTcsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImJjYmMxNmVmZTkzNDNiYzc5ZDEyNmNlYzIzOTFjMzIzNDQ2ZjQ4ODYzMjNmOGMwNmFhZTdiMTk0YjE2Mzg2YTkiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjZhMmEzYjc2ZTEyY2UxNTM3OWQwNWYyODY5ZGM0ODMyZGU3NTg5MDUzYjQ5YmZmMjM3ZTQyNWM3MjM3ODAxNTQiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImZiNmI3MDgxZTQ1NGQ4NDM1MGNiYmYzN2FjM2VlNjliODQ4ZjEzMjViOGRhOTM1OWM2MjY5ODg1MDBlNGNlOGYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjoyLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImMzMWExNDMyMDk0YzllODliMzZjZWY3MzE0NThjMDIzNWNkZmE3MjgwNDE0NjU2NDJjZjcyN2E5Y2Q4ZjQyNTQifQ"
         }
       ]
     },
     {
       "id": "claim_f45b0a5c4ac645eda67138e0dfb07301",
-      "statement": "The `/holdings` server load reads `holdings_table`, `holdings_group` and `elliott_waves` inside its own `try/catch` and treats a preferences failure as non-fatal, returning `normalizeHoldingsTableConfig(null)`, `'none'` and `null` waves while holdings rows still load after navigation; the `/watchlists` load reads no preference at all (returning `{ watchlists: [] }`) and the security route load returns only `security_id`, with the page fetching preferences client-side.",
+      "statement": "The `/holdings` server load reads `holdings_table`, `holdings_group` and `elliott_waves` through a `Promise.allSettled` that also fetches portfolios and accounts, and treats a preferences rejection as non-fatal — returning `normalizeHoldingsTableConfig(null)`, `'none'` and `null` waves while holdings rows still load after navigation; a 401 from any of the three clients instead clears the auth cookie and throws a 303 redirect to the login route. The `/watchlists` load reads no preference at all (returning `{ watchlists: [] }`) and the security route load returns only `security_id`, with the page fetching preferences client-side.",
       "evidence": [
         {
-          "resource": "repo://frontend/src/routes/holdings/%2Bpage.server.ts#L7-L31",
-          "version": "repo-lines-v1:sha256:02c5178171ef855f96a423b0870bfea49f860967af6d769f70ac161dbd9454a2:eyJzZWxlY3RlZExpbmVDb3VudCI6MjUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjRlM2Q1N2FlMTIwM2IxZmZjNTYxNDRmMDUzYjhlYTJjNjY4NWY4MmZlNDExZDFhNGZiY2YzM2NlZTA2NjBmMjIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImFhMWQxYTYzMzkwMjI5Yzc5ODM0N2U4M2EwNDA1NDQxYzk0MDAwMzUyODRhZDE2OGMxYmY2Y2RmMWQ3MGEzNzAiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjZmNzQzNjZhMmU1MjdkMTBkYjZlMDliNDE0NGJhNGNkZDA5ZWJhYjkxZDY0Y2FjYmYzYjc3ZGJmYzMxYTE3ZWIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
+          "resource": "repo://frontend/src/routes/holdings/%2Bpage.server.ts#L14-L78",
+          "version": "repo-lines-v1:sha256:c931956f609941416bc480cfd058e9a7c4686c0eceec9e693d569d060c7f7513:eyJzZWxlY3RlZExpbmVDb3VudCI6NjUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjA1ZGMxZDEwNWEwYTBjZjg4ZWE3YThlZDk1NTNkOGY2MTdmN2EyYWM5NzczZDZiNmFhNTFjZDEwZWVjYWRjNTciLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImNjM2EyMDc3NGQ1YzJiYjRjNzkwYzE4ODkwYTljNDk0Y2NiNTEwZmM4ZThjMDllYzc0NTE5YmMxNjRmYzc4NGIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjZmNzQzNjZhMmU1MjdkMTBkYjZlMDliNDE0NGJhNGNkZDA5ZWJhYjkxZDY0Y2FjYmYzYjc3ZGJmYzMxYTE3ZWIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjoxLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImFhMWQxYTYzMzkwMjI5Yzc5ODM0N2U4M2EwNDA1NDQxYzk0MDAwMzUyODRhZDE2OGMxYmY2Y2RmMWQ3MGEzNzAifQ"
         },
         {
-          "resource": "repo://frontend/src/routes/holdings/page.server.test.ts#L96-L109",
-          "version": "repo-lines-v1:sha256:df4234701ed16c17e5a290b150098f53b81b1d655d95dd11280a5bf101124e7c:eyJzZWxlY3RlZExpbmVDb3VudCI6MTQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjdlYmY0NzcxNzI3NDcxYmFmM2EyY2I1ZGM0YmQ2YjJkZWMzODQ4ODAyYmNjMDYxOTViYTU1ZDVmOTMzNTUzNjAiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjBhNzM0OTJkODk0NmIxZDBmOWQ5YzA0YjcwNGE5MjBmMjRmODllZjdjN2Y3MzExYTg1OTlkMTBjN2Y2MzU4ZDAiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6Ijk0ZWQ0OTMzMWI4YTRkNThiYzQwYzg0YmU5MGZkYTEyMWJiOWY0M2JjNTg4NDNjYzU2ZDYxZGVlY2EzZGMxM2QiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjoxLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImY2ZjViNDBiMTU4NDU3ZDE3ODY0ZjIxNzkwNzg2ZGQ1YTJlY2RiNjRiNjZhNjUxZjc4OGQ0ZTI1Y2QzMzAzZDIifQ"
+          "resource": "repo://frontend/src/routes/holdings/page.server.test.ts#L151-L184",
+          "version": "repo-lines-v1:sha256:fb4d40f1ee8d8a650d626278e60b29a187d5bbeb29c2b97403fd41c5fa506a94:eyJzZWxlY3RlZExpbmVDb3VudCI6MzQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjdlYmY0NzcxNzI3NDcxYmFmM2EyY2I1ZGM0YmQ2YjJkZWMzODQ4ODAyYmNjMDYxOTViYTU1ZDVmOTMzNTUzNjAiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjBhNzM0OTJkODk0NmIxZDBmOWQ5YzA0YjcwNGE5MjBmMjRmODllZjdjN2Y3MzExYTg1OTlkMTBjN2Y2MzU4ZDAiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6Ijk0ZWQ0OTMzMWI4YTRkNThiYzQwYzg0YmU5MGZkYTEyMWJiOWY0M2JjNTg4NDNjYzU2ZDYxZGVlY2EzZGMxM2QiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjoxLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImY2ZjViNDBiMTU4NDU3ZDE3ODY0ZjIxNzkwNzg2ZGQ1YTJlY2RiNjRiNjZhNjUxZjc4OGQ0ZTI1Y2QzMzAzZDIifQ"
         },
         {
           "resource": "repo://frontend/src/routes/security/%5Bsecurity_id%5D/%2Bpage.server.ts#L7-L15",
@@ -159,11 +159,11 @@
           "version": "repo-lines-v1:sha256:daea8456ca7d8ea95ee2b25282060a5ec06e508dd01098dee814d9be4b5d3d55:eyJzZWxlY3RlZExpbmVDb3VudCI6NSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiMzRkMjc1YjhjMTE0OGQ5MTZjYzVlNWRiZTIxYjE1NTg0MTZmZDlhYjVmOTBkYTAyN2E1ZTQwZTRiMTg2ZjZiNSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNjdjZGE4MmRhNjA2MjM4ZTA1ZTYyMzk5NTY5YzVlZTAzOTkzNDE5NjQ4YWU1ZDQzYTJiZjhjZDYzNDdmODI2MyIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiNjM1YmZlNmYwMDBiZTA2YzA5OWFjY2QzMDRlZDc2YjU0ZWVlMjIyZDU1MTIyOThmY2RjNTY5NTNjZDkyYmZlMCIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiM2UzNDEzYjZiOTE0YzdkMWQzMjExOTQ4ZTg4NjJjYTBkOTI2ZjM3OWEyNDc1ZDY1MTYxNWFiMDNiNTZjMDM5YiJ9"
         },
         {
-          "resource": "repo://frontend/src/routes/holdings/%2Bpage.svelte#L97-L119",
+          "resource": "repo://frontend/src/routes/holdings/%2Bpage.svelte#L183-L205",
           "version": "repo-lines-v1:sha256:4f697ca073e9489c0a60e26ae247d4873dead6d3c288b234ee6faea041f97be0:eyJzZWxlY3RlZExpbmVDb3VudCI6MjMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImM0MDM4Y2EwNDE3ZGM3MTI2YmQzMWFmYzQ2MjFlYWVhZjNhZDUxNmMzOTAyNjBlM2EwZDI5NWZhNTc3ZDc4OWIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjY3Y2RhODJkYTYwNjIzOGUwNWU2MjM5OTU2OWM1ZWUwMzk5MzQxOTY0OGFlNWQ0M2EyYmY4Y2Q2MzQ3ZjgyNjMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImNkYzZmYzBkNTUyNGUyMDc0ZDQ2MWFkMDUwNTIwODhkNmU5ZjI5ZDdhZWQyNjIwZWZkM2YyYzdlMDExNzMxMzEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImYyM2U5ZDUzZWRlNGI0M2MwYzBhNzZlZDJiNDZhNzE3MzFhMmEzMzNkZmZkYjZkMDk5YWYwNjc1Njg1MGE3YTAifQ"
         },
         {
-          "resource": "repo://frontend/src/routes/watchlists/%2Bpage.svelte#L270-L295",
+          "resource": "repo://frontend/src/routes/watchlists/%2Bpage.svelte#L310-L335",
           "version": "repo-lines-v1:sha256:b739391750c7e942b38e7eae43a5221f8ecd27ede8061badbcc5ab29ae8cd8f6:eyJzZWxlY3RlZExpbmVDb3VudCI6MjYsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImFhYjQyMjcxMjBiYjU1MDYzMWMxNDRlMTJkZmRkYzk1NmNiNjRlMjNkODJiMWQyN2VmNTRlYzc0YjhhMzgwZGEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjY3Y2RhODJkYTYwNjIzOGUwNWU2MjM5OTU2OWM1ZWUwMzk5MzQxOTY0OGFlNWQ0M2EyYmY4Y2Q2MzQ3ZjgyNjMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImJhMDMwNDBjYWM0Yjg3ZjU4NjJmMzk4MTUwNmJmMmM3ZjA3MGZlZmZjOTY5N2E0NTVmMTI4MjA1N2FjZmRkOGYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImQ4ODY0NzMzMjE1ZWE2NTNjNzI3NjAxOWQ2MGRiYzhkYzFjNWRmMDJhNmQyYjg1MjIwODNlYmI5YTg0OWQwNzEifQ"
         }
       ]
@@ -173,19 +173,19 @@
       "statement": "`ChartDrawingsService` is the only writer of the `elliott_waves`, `fibonacci_tools` and `drawings` keys, patching them from wave/fib/drawing change handlers, the undo/redo restore path and the deferred drag-end flush, and it reads them back through per-security getters keyed by security id.",
       "evidence": [
         {
-          "resource": "repo://frontend/src/lib/services/ChartDrawingsService.svelte.ts#L170-L183",
+          "resource": "repo://frontend/src/lib/services/ChartDrawingsService.svelte.ts#L171-L184",
           "version": "repo-lines-v1:sha256:aefc16efa5242390ae332571e7dd9622d7c474835c38003a07688daa258c7408:eyJzZWxlY3RlZExpbmVDb3VudCI6MTQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjlhMzgyY2ZlMTI3OTY3NzJiMjAzMjIzMDM0NWNiOGFjNmVmZGNkODU2MGFjNDljNWNhZTNkNzkxMzFjZTEzYjQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjY3Y2RhODJkYTYwNjIzOGUwNWU2MjM5OTU2OWM1ZWUwMzk5MzQxOTY0OGFlNWQ0M2EyYmY4Y2Q2MzQ3ZjgyNjMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjA3NDk4OWQwOWVmNTYxNDk2OGZjMDU2MGE3YWQyZTQ2OTRiNTU4NGUyNGMzNGIzM2MyMmZkN2RkYWI4Nzk4OTMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjcwZDViOTFlNzQxNjNjODQ4MDU0MDQ0ZDg5NjJjNjhlOTA3ZGE5NDUyOWViOTU0Nzc0NGZmNmY2YzUxNWJkMjEifQ"
         },
         {
-          "resource": "repo://frontend/src/lib/services/ChartDrawingsService.svelte.ts#L510-L536",
+          "resource": "repo://frontend/src/lib/services/ChartDrawingsService.svelte.ts#L511-L537",
           "version": "repo-lines-v1:sha256:f97ebb3cb7d543f95471e960bd010deb248076b8ac53523b91c7853ad597cba2:eyJzZWxlY3RlZExpbmVDb3VudCI6MjcsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImYwOTYxMmZlM2E5NWFiYjJjNDBlYjUyZWM1Mzg1N2YwMjMyMjk5NmY0YWRkZDg2OGU0ZTI4ZjgxZWJhOGQ3MGUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImNjM2EyMDc3NGQ1YzJiYjRjNzkwYzE4ODkwYTljNDk0Y2NiNTEwZmM4ZThjMDllYzc0NTE5YmMxNjRmYzc4NGIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjYwZDllOWNjYzYzMWIzNWVlN2NhMzhiNzNjODIzZDFiYjhhYzBhN2UyMjk5MzJmZjE5ZWM3MzYyMjdmYzBkZTYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImMwNjhiNGMyMjMwNGUyMzRlYmFlMGU1OTM4OTNiOTJiOWY3MGM1Mjg3ODIzNWM2Y2Y3YWE3MGNkNmE1NzgxNGQifQ"
         },
         {
-          "resource": "repo://frontend/src/lib/services/ChartDrawingsService.svelte.ts#L552-L608",
+          "resource": "repo://frontend/src/lib/services/ChartDrawingsService.svelte.ts#L553-L609",
           "version": "repo-lines-v1:sha256:9b448b2e743b004ccf76ed3a4fa7f03c7c58ef0cb7004fe2f9821950e5359255:eyJzZWxlY3RlZExpbmVDb3VudCI6NTcsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImVjOTBkYzVmZDJhNzUwNzVmY2MwMmI2MjA3N2JiZDI5N2I2MTNmNWI0ZjRiNmNjNTU2YjcxODUzMzQwOGQ0ODAiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjY3Y2RhODJkYTYwNjIzOGUwNWU2MjM5OTU2OWM1ZWUwMzk5MzQxOTY0OGFlNWQ0M2EyYmY4Y2Q2MzQ3ZjgyNjMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImVkYTVmZWY1YzE2YWExY2JlYWRlYTcyYjJhMTA0NjdjYmJhMmRiZTc0YmIxZDhjMDJkYjlkNmY1OTIxNDhiZDciLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjcyN2QyZGRiZmMxMTY4ZmM4NjNlMTk2YTY2MDIyZDUwMzY0YjNiNmE5NGRlOGJjNTM3NTkxNzNlZTM2NjI1MTcifQ"
         },
         {
-          "resource": "repo://frontend/src/lib/services/ChartDrawingsService.svelte.ts#L804-L867",
+          "resource": "repo://frontend/src/lib/services/ChartDrawingsService.svelte.ts#L849-L912",
           "version": "repo-lines-v1:sha256:3a697c7a41f7858a13d74fa2c19f87248502c3b9de783d3b553fad1f72da4317:eyJzZWxlY3RlZExpbmVDb3VudCI6NjQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjE1NDJhYjI2MDZiZDBiNjg2ODA5ZTFjMGRjNDhmZDRlMzVjMGE3NmQwNDZmMjI3NTgwM2Y1ZmMzYjE5ZjE3N2QiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImNjM2EyMDc3NGQ1YzJiYjRjNzkwYzE4ODkwYTljNDk0Y2NiNTEwZmM4ZThjMDllYzc0NTE5YmMxNjRmYzc4NGIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImVhNTc3NTJiZDJmNTdkNjA4MzQ4MzUzMGIyYjg4NDUzYWExMWRlZTM5Mjg0YjNiODY5Y2Y4YjZmYWI4YjQ2ZTMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImI1MzUwOTQ0NDFjYmVjODIxMTQ4YjdhODgwYzg2YzM5MWRjNmQ3Y2FhZGViOTk0YWRiNzc5M2Q0NjdmZjdjNmMifQ"
         }
       ]
@@ -199,7 +199,7 @@
           "version": "repo-lines-v1:sha256:406375ae744ff77b1396b7b2d9df6d3592ac2e40950a01831af0d3f363eb936e:eyJzZWxlY3RlZExpbmVDb3VudCI6MSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiNDA2Mzc1YWU3NDRmZjc3YjEzOTZiN2IyZDlkZjZkMzU5MmFjMmU0MDk1MGEwMTgzMWFmMGQzZjM2M2ViOTM2ZSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNDA2Mzc1YWU3NDRmZjc3YjEzOTZiN2IyZDlkZjZkMzU5MmFjMmU0MDk1MGEwMTgzMWFmMGQzZjM2M2ViOTM2ZSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiMjkxMWE3NzBmN2U4Nzg4YzBmYjljNjg0MzRiZGVjMWMzZjVjY2Q0NDRhNjhlZjc4N2YxMzQwNWEyYTc4NWYzZCIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiZTVlNDM0NGVhNzYzOTdjYTNmNjZhNWFhMjUxY2EyYTcxNjZkYjU1NDA3ZDhkZDRjMWI2ZmE2MTgwMWNjYmE1MCJ9"
         },
         {
-          "resource": "repo://src/account/api_types.py#L96-L96",
+          "resource": "repo://src/account/api_types.py#L100-L100",
           "version": "repo-lines-v1:sha256:c5de5775de23f0be12df6f0084bfd00a7089d63b66f3c257fda4a674b7fe5864:eyJzZWxlY3RlZExpbmVDb3VudCI6MSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiYzVkZTU3NzVkZTIzZjBiZTEyZGY2ZjAwODRiZmQwMGE3MDg5ZDYzYjY2ZjNjMjU3ZmRhNGE2NzRiN2ZlNTg2NCIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiYzVkZTU3NzVkZTIzZjBiZTEyZGY2ZjAwODRiZmQwMGE3MDg5ZDYzYjY2ZjNjMjU3ZmRhNGE2NzRiN2ZlNTg2NCIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiNjIzYTg5Yjg1NjI2YjdmM2UzODJlNDA0ODYzMjFiZGJjNWQ2ODY3Mzk3OTZiZmZlMzFjZjU4OGM2MWMyYmMyNiIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjIsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiMDU3M2VmY2I0MGY1YmE5YWVkNDg1YmQ2OTFhOTY5ZGRjODdkNWU3NmVlYzk1MDZmYTcwMmY3Y2MwMGZkZDVlOSJ9"
         },
         {
@@ -221,7 +221,7 @@
           "version": "repo-lines-v1:sha256:d1daf77f394c8c664d9d0b61c502c5905de5b7e504d8aa4118dc6b93f5cdd506:eyJzZWxlY3RlZExpbmVDb3VudCI6MTAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImQzYzBlYjMzM2Q3NGNlYjc2OTA4Zjc3NjU5ZTQ4ODRjOGEyZWJjNWRiZTAzZDQ0M2U0Mzg2NjFjYjg5MzIyOTQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQxMmNhMzQ1Y2NmNzViZjljMDgwNmJjZTY5NWJlOGRlODA4Yjc5OTg0MjUxYTdhNTRkMjAyY2Y2MTAxZGQ0NTEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjhmYjA2ZDU3MGI1NGIwYmVmNjgyYjIyNjU2N2Y4ZDBiYjAwM2M4MTY2M2E5ZTg4NGNmODZjMDkyMjExNWYyYmMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjlhZWRiMzM2NGI0NGMzYjE0MDJhNDFkMTUwNjM2OTVhNTZjNWM4YTBmMmU4N2U3YjBjNDg4ZTk5M2Y2Y2NhOTMifQ"
         },
         {
-          "resource": "repo://frontend/src/routes/security/%5Bsecurity_id%5D/%2Bpage.svelte#L153-L155",
+          "resource": "repo://frontend/src/routes/security/%5Bsecurity_id%5D/%2Bpage.svelte#L160-L162",
           "version": "repo-lines-v1:sha256:510a8846ed0bea73ea7654c44575997a4d134fd8966d175e6a3adeec648b6eed:eyJzZWxlY3RlZExpbmVDb3VudCI6MywiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiZTgzNjFmZDAxZDdlYTg2NTc5ZTQ5YTA0YTdlOTY0MzJlZTNmZmUwMTc1N2E1YjYwMzYzZjQ4YjRmZjM0Nzg3NCIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNjdjZGE4MmRhNjA2MjM4ZTA1ZTYyMzk5NTY5YzVlZTAzOTkzNDE5NjQ4YWU1ZDQzYTJiZjhjZDYzNDdmODI2MyIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiZTIyNWNhZTg5NjI5N2RkYzUwOWJhZmYxYTE1ZWQwMWE0MzJkNjgxNWYyMTNhNjlhZGZhY2Y4YjI5YWViZDE1YiIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiNTIxMDZhYWU5MzczMjFhMDg2YzhmNDVhMjM3NjgyNTQyMjcxNzEwMDhlYTJmMTMxNTE1ZTJiOTRiNGFmZmZlZiJ9"
         }
       ]
@@ -239,7 +239,7 @@
           "version": "repo-lines-v1:sha256:3626a90fafccb58c9eb868c5730dc856e48ea6f9c707c7de221ab1f265749253:eyJzZWxlY3RlZExpbmVDb3VudCI6MTksImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImJlNTkyODhiNjlmZmJlZTc4NzEyN2NhOTJmZmI2ZTE3MWIzZDQ1MDJmMjUyYjJjYmZjMGZlZTYyMzY5YmE5N2IiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQxMmNhMzQ1Y2NmNzViZjljMDgwNmJjZTY5NWJlOGRlODA4Yjc5OTg0MjUxYTdhNTRkMjAyY2Y2MTAxZGQ0NTEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImVkOTBjYjJjM2Q1NGMzMDYwYTk5MDM5YjViNTQ1OGYyMmQ0NjcxZDgxNzMyMDc4NWY4NjFhYmUzZmY2N2ZlYTMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjRiNmNjMzNjNDc2ZjMxMWEzMTA3ODBlMDk2ZmNmYWUyZmJhZTNhMjA4NWQwMGNmZDMzMTJhMGI3MjRmMGU5ZmIifQ"
         },
         {
-          "resource": "repo://frontend/src/lib/components/holdings/holdings-table-columns.ts#L155-L182",
+          "resource": "repo://frontend/src/lib/components/holdings/holdings-table-columns.ts#L165-L192",
           "version": "repo-lines-v1:sha256:cfb110b850ed64e4ef681e8af32e55ebbf095b0d416a8799eb79c3e895844a4b:eyJzZWxlY3RlZExpbmVDb3VudCI6MjgsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImM2YTA4MjcyMWI2OTQ2M2I0ZWJjZjc5ZTc2MzVjZGMzNjk1YzhiMTY0YjRmYzg0ZTkzMGVlMWFiYmMxMTExMWIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQxMmNhMzQ1Y2NmNzViZjljMDgwNmJjZTY5NWJlOGRlODA4Yjc5OTg0MjUxYTdhNTRkMjAyY2Y2MTAxZGQ0NTEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjI1YTc0ZDE0ZTFmMTk3OWZjMTgxNzEzNGZkMzBiZmJhZGM3NmZjYWUxMWI0NDlkMGQzNTBjNGNkOTcwYTk4OWUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
         }
       ]
@@ -267,11 +267,11 @@
           "version": "repo-lines-v1:sha256:8d415f67dfbfc1a28f0c4ddc95c4679bbf195246d21f283327a01d560c113c80:eyJzZWxlY3RlZExpbmVDb3VudCI6MzAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjhmZDc1ODViZGMzMTRkNTAxNTVkZWY5OWU4NTk4YWUwNDQ0NjRjNDgxODVjNGZjMGE2ZWIzNjEwMDY3NjYxMmIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjY3Y2RhODJkYTYwNjIzOGUwNWU2MjM5OTU2OWM1ZWUwMzk5MzQxOTY0OGFlNWQ0M2EyYmY4Y2Q2MzQ3ZjgyNjMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjIyZjJmZjVmZWVjNjBmNTg3YzhmYWU0ZTg3ZjgwOWE2NjFjZmZlZDZiNDdhYWU1ZjZkNmEyNjUzYWE4OTUyZWYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImViMmZlZTdmY2RiZjU1Y2VjZWRiZGMwZWRiMGE0ZGMwMjNjMzYwZTFkZDA4ZjUwMDNkNmYyYzhkMjE3YWQzMjkifQ"
         },
         {
-          "resource": "repo://frontend/src/routes/security/%5Bsecurity_id%5D/%2Bpage.svelte#L518-L550",
+          "resource": "repo://frontend/src/routes/security/%5Bsecurity_id%5D/%2Bpage.svelte#L536-L568",
           "version": "repo-lines-v1:sha256:153434851e07de5739aaf34c4dab9cefb44e6d5a05e1865128785aa494e257fa:eyJzZWxlY3RlZExpbmVDb3VudCI6MzMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjMzNWY4ZjdkYTY0ZWRhNjUzMDY4YWViZDBmMzUxNzJkYzE1NGMzZGQ4MDJlY2U3MzFmMmQ2NWFlN2U2ZTMxYmIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjY3Y2RhODJkYTYwNjIzOGUwNWU2MjM5OTU2OWM1ZWUwMzk5MzQxOTY0OGFlNWQ0M2EyYmY4Y2Q2MzQ3ZjgyNjMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjIyZjJmZjVmZWVjNjBmNTg3YzhmYWU0ZTg3ZjgwOWE2NjFjZmZlZDZiNDdhYWU1ZjZkNmEyNjUzYWE4OTUyZWYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImNkZGMzMDVmMzY4YjRkNTY3ZjEzZDI2ODJmOWJhNmM1MjNkYjQzNDUzOWFkYTM3Y2YwNjk5NDFkMGNiMTk0NzMifQ"
         },
         {
-          "resource": "repo://frontend/src/routes/security/%5Bsecurity_id%5D/page.svelte.test.ts#L3572-L3604",
+          "resource": "repo://frontend/src/routes/security/%5Bsecurity_id%5D/page.svelte.test.ts#L3657-L3689",
           "version": "repo-lines-v1:sha256:a66fb89263820379e445c72e9e4caa46689f73fa23f1291b180197d7f43f86f4:eyJzZWxlY3RlZExpbmVDb3VudCI6MzMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImZjODI5MjBiZmMzNmY3MGJjNGVmODY3MTdlMDFiMWE1YTUzY2M4NjFmYmM3YWZlMThmMGQ4NDg0ODViZWVlMDkiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjBhNzM0OTJkODk0NmIxZDBmOWQ5YzA0YjcwNGE5MjBmMjRmODllZjdjN2Y3MzExYTg1OTlkMTBjN2Y2MzU4ZDAiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjkyMDk1M2NkZWNkNDMxOWY1OWM3NTRkMmMzYjgwNzk4NzFhNjlhZWRmZGQ3NWY2ZjdlM2M0ODA0MjY4ZDc5YzciLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjM2YjE1NzI0NzQwOWZkY2QxOTc0MmQzN2FlMzBjNDE5Y2FmZTcwMThiNGFkZDZiNjI2NzIyNGFhYmZjMWEzNmQifQ"
         }
       ]
@@ -281,12 +281,12 @@
       "statement": "A failed preferences read is never fatal and is load-bearing for wave alerts: the security page leaves `userPreferences` null on a fetch failure and gates the initial wave-alert reconcile on preferences having loaded, so a preference outage cannot mass-delete wave-target alerts.",
       "evidence": [
         {
-          "resource": "repo://frontend/src/routes/security/%5Bsecurity_id%5D/%2Bpage.svelte#L474-L504",
-          "version": "repo-lines-v1:sha256:ca6f9ef2e2b8ea76d448c0a9bea2089a3a0ffd006ea02c74caab372d92dda123:eyJzZWxlY3RlZExpbmVDb3VudCI6MzEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjY0MzllMTA0YjM2MDhiZWNkZmJjMzdkMWI2OTgxOWVkNWE5ZTNhNmZiNGE0OWFlYzVjMzkwYjE4NDgxZWZkNmYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjY3Y2RhODJkYTYwNjIzOGUwNWU2MjM5OTU2OWM1ZWUwMzk5MzQxOTY0OGFlNWQ0M2EyYmY4Y2Q2MzQ3ZjgyNjMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImQ3ZDM2ZmMxYTllNDQyNmRmZWE1ZTJmMThiOWM3MzQ4YTU3MjU0ZjVmMzJlMGIxMTE5OWZjZmM0NTcyMjI5ZTQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjI3MWYwNGU2ZmY5NGJiYjdhYjljZmE1MmFlOWQxMzAxYmU1MjExNGYyOTczYmZjMTYzMmMxMGJjNzMxODUyZDUifQ"
+          "resource": "repo://frontend/src/routes/security/%5Bsecurity_id%5D/%2Bpage.svelte#L468-L499",
+          "version": "repo-lines-v1:sha256:eb156c97e15c0c0209eaeedf00af46820a8052c9a4b08e221a0a4b68e53e8893:eyJzZWxlY3RlZExpbmVDb3VudCI6MzIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjY0MzllMTA0YjM2MDhiZWNkZmJjMzdkMWI2OTgxOWVkNWE5ZTNhNmZiNGE0OWFlYzVjMzkwYjE4NDgxZWZkNmYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAxYmE0NzE5YzgwYjZmZTkxMWIwOTFhN2MwNTEyNGI2NGVlZWNlOTY0ZTA5YzA1OGVmOGY5ODA1ZGFjYTU0NmIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImQ3ZDM2ZmMxYTllNDQyNmRmZWE1ZTJmMThiOWM3MzQ4YTU3MjU0ZjVmMzJlMGIxMTE5OWZjZmM0NTcyMjI5ZTQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImNjODkyNDkyNGE0NzFjM2RmZWUyNzlkYmZhMjVlMDIwY2U0NTVkYTA3Mjk0MzNiMDNlMzkzNDFjOTdiNTMyZDEifQ"
         },
         {
-          "resource": "repo://frontend/src/routes/security/%5Bsecurity_id%5D/%2Bpage.svelte#L717-L753",
-          "version": "repo-lines-v1:sha256:d7a99aa1214b28b6e52c8b59cda1a6ad5e19604f87096d1957d0b17997dab797:eyJzZWxlY3RlZExpbmVDb3VudCI6MzcsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImFhNjkyZWVkMzhkNjE0ZDdkNDk5N2NjN2EzN2JjMmE4MWRjNjAxYzRlYzI5ZTlmNWVmNDVhNDNjMzNhYjc2ZDIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjEwZGY4MWIwNDZmNTgwNjU5MzhkNDk0ZWFlMTJlNTdjMDQwMmRlZTU1NjYwZjYwZDM2MDk0NjA2OGVlYzIzYzUiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjBjZmFlMDljOWViNTgyNmMxMTUyN2NjNjExNjQ3MzcwMDBhZjQ1NWRhNTUxMThjMThmZWQyMTdjN2U2ZTkyZGYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImU3YjFmOTNjNDA2YzEwNWRlYTliN2FmZjU1MGJhMmJkYTc0ZWIwMzNiNjAwZGJjNTE1ZWQyYmM1OWM4MWIxZDQifQ"
+          "resource": "repo://frontend/src/routes/security/%5Bsecurity_id%5D/%2Bpage.svelte#L738-L774",
+          "version": "repo-lines-v1:sha256:a13ee9d0c59d4ed81bc50c2b9975924520f56a12a99fa60d22e435b803fed16d:eyJzZWxlY3RlZExpbmVDb3VudCI6MzcsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImFhNjkyZWVkMzhkNjE0ZDdkNDk5N2NjN2EzN2JjMmE4MWRjNjAxYzRlYzI5ZTlmNWVmNDVhNDNjMzNhYjc2ZDIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjEwZGY4MWIwNDZmNTgwNjU5MzhkNDk0ZWFlMTJlNTdjMDQwMmRlZTU1NjYwZjYwZDM2MDk0NjA2OGVlYzIzYzUiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjBjZmFlMDljOWViNTgyNmMxMTUyN2NjNjExNjQ3MzcwMDBhZjQ1NWRhNTUxMThjMThmZWQyMTdjN2U2ZTkyZGYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImU3YjFmOTNjNDA2YzEwNWRlYTliN2FmZjU1MGJhMmJkYTc0ZWIwMzNiNjAwZGJjNTE1ZWQyYmM1OWM4MWIxZDQifQ"
         }
       ]
     },
@@ -325,10 +325,50 @@
           "version": "repo-lines-v1:sha256:d34a5c4eb1e31f38fa4d4b4b6e5fc5f15e88f1b4f1d6b7c6558dcbb76a5244e9:eyJzZWxlY3RlZExpbmVDb3VudCI6ODUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImI3YTgzMWZhNDcyNmZjMjMxNTE0NGY5YTA1NWJmZWMyNWYxYWZkMTI2YWFmZjU3YWZmYmU5NDBlZjVjNmE3MzUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAxYmE0NzE5YzgwYjZmZTkxMWIwOTFhN2MwNTEyNGI2NGVlZWNlOTY0ZTA5YzA1OGVmOGY5ODA1ZGFjYTU0NmIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjBjOTYxYTFiN2NjYjE3Mjg2YzI5NjI3YjZlYjU3MzFlZTNmNzNhYjljMGFiNzM4Mjk1Mjg4MDM4ZjVjNjUwMDIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImNkMTU0MzdiZjZmY2FlMWMxYTkyNzU3N2VhOWM4MjExNDNkZDczZTllM2YxOTVhYWIyNmEwOWI0ZWNlNzEzZWEifQ"
         }
       ]
+    },
+    {
+      "id": "claim_f63fc104945f45a8a39e912668ed7dc1",
+      "statement": "`show_valuation_band` is read by the security page in both its SSR-seeded `onPreferencesLoaded` and its client-side fetch branch to initialize `showValuationOverlay`, and is written only by the fundamentals sidebar group's overlay toggle, which logs patch failures rather than surfacing them.",
+      "evidence": [
+        {
+          "resource": "repo://frontend/src/lib/components/actions-sidebar/fundamentals/fundamentals-group.svelte#L75-L83",
+          "version": "repo-lines-v1:sha256:e9da42b4d4de6888c6219be9659b23fbfbc9988e69651c76cc804258721152a2:eyJzZWxlY3RlZExpbmVDb3VudCI6OSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiNjMyMTE4MmU0YWE0ZTc4N2RmYjVmZmYzOGM1NGMzOTY3YTY2MDM4MmJmNzY2YWU5NmUwNDc0ZTZkZjU1Mzk0MyIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiY2MzYTIwNzc0ZDVjMmJiNGM3OTBjMTg4OTBhOWM0OTRjY2I1MTBmYzhlOGMwOWVjNzQ1MTliYzE2NGZjNzg0YiIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiZWEwNDVmYzI2NTJlYTE4Yjg4MjYxNTNiMjQ0MzE2ZDI4Yzk1NTdjYjVmMjM0NzVjOWI4OTg3MmEyNTM5MDU4NiIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiMzA5ZDY1MjBjZTQyZTA4NjFjZTk0NDNkNjJhYmNjYzU0YmQ2OTJlN2E4MTA0YzM2MTc5ZDA1NmVjMjJjZDdiZiJ9"
+        },
+        {
+          "resource": "repo://frontend/src/routes/security/%5Bsecurity_id%5D/%2Bpage.svelte#L664-L668",
+          "version": "repo-lines-v1:sha256:cf594ac075d0e8627c53e3e20bd6ceafd104bdaef80a90d8fee1e6c2c8840a48:eyJzZWxlY3RlZExpbmVDb3VudCI6NSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiOTAyOTI4ZjJhNGJmYzZmNzcxZGFkOWY3NWI0OWZhYzQwZTEzZTcwMWZiNDRkOWVkOThjNTRkNzVkZDJmNTI0YSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNjRlZmM0OTQxOGQyNmRjZjEyOWIyMmE2YWEyMTEwOGNlZWMzNzY3N2EzMmQwOGU5ZDVmZWUzNWRkYTY2YmI5ZCIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiMjJmMmZmNWZlZWM2MGY1ODdjOGZhZTRlODdmODA5YTY2MWNmZmVkNmI0N2FhZTVmNmQ2YTI2NTNhYTg5NTJlZiIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiZGMxN2M5MGZmMWQxMzZhZWFlZWYwODNiZjJkZDNkZTk4OGU5NzJmNTU3ZmE1ZjQxODUzYjNkMTEyOGYyNGQ3MiJ9"
+        },
+        {
+          "resource": "repo://frontend/src/routes/security/%5Bsecurity_id%5D/%2Bpage.svelte#L738-L747",
+          "version": "repo-lines-v1:sha256:9aa8ac669ef7e099eda9fd2b69f40e916e703a9676b71d9232d7fb06f5cc6b74:eyJzZWxlY3RlZExpbmVDb3VudCI6MTAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImFhNjkyZWVkMzhkNjE0ZDdkNDk5N2NjN2EzN2JjMmE4MWRjNjAxYzRlYzI5ZTlmNWVmNDVhNDNjMzNhYjc2ZDIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijk0MDE3YzU5N2E1YmFiYjFlODUwN2QyYjA5MWY1MTA4OTkxYzVhOWQ1NWY3ZmI2OGUyYTVhOTk5Y2QxNWU0NGYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjBjZmFlMDljOWViNTgyNmMxMTUyN2NjNjExNjQ3MzcwMDBhZjQ1NWRhNTUxMThjMThmZWQyMTdjN2U2ZTkyZGYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImRmNDNmMDhmZTI2MDAwZmY5ZWEyOTllNTMxMzFhZGZlZWMwYjZmZjFmZTFjMWJkOGYzZDRiODlmZDRhMDgxODUifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_5cb91eb2840b4289b4ffc394c26a33ae",
+      "statement": "Watchlist list order and per-watchlist security sort are different storage mechanisms kept deliberately apart: the order of the watchlists themselves is the `watchlist_order` preference owned by the root layout load and the `/watchlists` reorder path, while the sort mode applied to the securities inside one watchlist is the `WatchlistModel.sort` database column (server default `'custom'`, surfaced as `WatchlistRead.sort`), persisted through `PATCH /market/watchlists/{id}` and normalized client-side by `normalizeWatchlistSort` rather than by any preference.",
+      "evidence": [
+        {
+          "resource": "repo://frontend/src/routes/watchlists/%2Bpage.svelte#L304-L335",
+          "version": "repo-lines-v1:sha256:5e0d53856d56f6a72dec94ea10ca60babe4dda60ab529b7458fc7f41e1becce6:eyJzZWxlY3RlZExpbmVDb3VudCI6MzIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImVkOWQ4Y2EyYmNhNmJiZDE2YjU5Y2JmNTJiNDM1ZDNlNzY3NjA3MTk4NjQ1Njc0YTdjN2ZiOGMyZTA1NjA2YTMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjY3Y2RhODJkYTYwNjIzOGUwNWU2MjM5OTU2OWM1ZWUwMzk5MzQxOTY0OGFlNWQ0M2EyYmY4Y2Q2MzQ3ZjgyNjMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjExZmRjYWU4NGM0YTkxYzljZGVlYWVjMTg4NDUyYjAyZjA5NGRjYmRkYTlhYzRiYmVjM2ViZGNiODZlYzUzOGYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImQ4ODY0NzMzMjE1ZWE2NTNjNzI3NjAxOWQ2MGRiYzhkYzFjNWRmMDJhNmQyYjg1MjIwODNlYmI5YTg0OWQwNzEifQ"
+        },
+        {
+          "resource": "repo://frontend/src/routes/watchlists/%2Bpage.svelte#L352-L371",
+          "version": "repo-lines-v1:sha256:cdc0e13a1561737efc9a47576557c03bbc5a078a37cba80eeda5771c29c13c3f:eyJzZWxlY3RlZExpbmVDb3VudCI6MjAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjJlN2NiMTU4YThhOTkwNmIyNDRhNjUyYzU1YWE5NTkxNGVjN2UzOTVmNjlmNmRlZDRkZTdhYjZjYWMyMWI1MWUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjExMjY3ZjE4NTdhODU3ODVjYWVjOTFlZjM5ZTAzMGQyYThmZDcyYWI0MTIzYmI2NDQ0Yzg3ZmI2MjNlNmJhYjMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImVmZDY4ZTcwMmI4NTM5YjQ5MmE4MjQ3ODhmNDk2ZTE1YmE3ZDE5OTRmY2Q5MTM5ZTQ1MTc4OWE3OTI3YTk3YzQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImRlYWI1ODEyMjhhNmEyODcwNzg4YzU5MGJiZDQ1NjhiNjdlZGFjZjhjN2YyZDk2Y2U2NWRhYmFjM2EzYjE1MDAifQ"
+        },
+        {
+          "resource": "repo://src/market/model.py#L148-L148",
+          "version": "repo-lines-v1:sha256:91ed975d8d17b080f5af83d38fff027f536bc2779a11794a7c20e7e1198abc28:eyJzZWxlY3RlZExpbmVDb3VudCI6MSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiOTFlZDk3NWQ4ZDE3YjA4MGY1YWY4M2QzOGZmZjAyN2Y1MzZiYzI3NzlhMTE3OTRhN2MyMGU3ZTExOThhYmMyOCIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiOTFlZDk3NWQ4ZDE3YjA4MGY1YWY4M2QzOGZmZjAyN2Y1MzZiYzI3NzlhMTE3OTRhN2MyMGU3ZTExOThhYmMyOCIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiYWM4MmIwYmU4ZGJiNzdjYTc0NGQ0ZTA5YzA0MTJmMDgzZWY5ZTlmNzZhNzYwMjZhOThkZWQ0OTMxZTkxNmFkMSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiYTE1ODk0ZmU5MzUzZDNlNDc2MjIzMDY0OGM4NWUwOWVhZmUwMDdkZDRjOGI5ZDJhNDI0MjhjMDE4MGI4OWIzOSJ9"
+        },
+        {
+          "resource": "repo://src/market/repository_sqlalchemy.py#L722-L726",
+          "version": "repo-lines-v1:sha256:38841496574a1b23fbad1d46b2e37a36d4c43ce2374531617e7a09c6ae6ea39e:eyJzZWxlY3RlZExpbmVDb3VudCI6NSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiMmFjNTFjMDEwNzg2MmI1YWE5NzA1ZmI1MGU0YTFlYzA1MmUwZmY2NWMyZDgyODcwMzE5MjYyNDNiMDA4NzkxYSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiMzdhMTQ5N2M2NWYxNjRhYjQzZTE4NWRiMTgyYTY2NGZmMjlhNjc2MzAwYTZjZDk1YzQ1YTYxMzhkOWJmMDg1NiIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiOGFmZTRhN2ZlYjNjNWU3ZmI4Y2NmNzBmYTc3MjM0OTFhYzM5ODA5ZGZmMThhZWYyYWI4MTVjMTFmNzYzMzRhMCIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiZjFhMTdmNWI4ODMzZmMyMTRiYzBhMDRmZDAyN2VjMzAwY2FiMTY5NzBlZGUwNjFkY2E2ZWY5MzlmOWJkZjg1NyJ9"
+        }
+      ]
     }
   ],
   "verification": {
-    "by": "openwiki/0.5.2",
-    "at": "2026-09-23T13:18:56.288Z"
+    "by": "openwiki/0.6.1",
+    "at": "2026-10-02T14:25:20.147Z"
   }
 }

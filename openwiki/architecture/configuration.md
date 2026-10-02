@@ -3,9 +3,6 @@ type: "Reference"
 title: "Configuration, Dependency Injection & Cross-Cutting Runtime"
 description: "How retail-portfolio loads settings from the single root .env, selects stub or live integrations, wires the svcs registry for the API and the Huey worker, and provides database, Redis, rate limiting, request-ID and logging infrastructure."
 tags: ["configuration", "dependency-injection", "settings", "database", "redis", "logging", "middleware", "operations"]
-verified:
-  - by: openwiki/0.5.2
-    at: 2026-09-18T20:16:58.058Z
 sources:
   - id: openwiki-source-5f5b95b3d6a215fa02ceb945
     resource: repo://.env.example

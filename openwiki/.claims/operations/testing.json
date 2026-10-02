@@ -1,13 +1,13 @@
 {
   "schemaVersion": 1,
-  "pageVersion": "sha256:b239a01617615d2c4cfa7bb95bfa2f7816ad44d26c58a224c05057119bd6d7ea",
+  "pageVersion": "sha256:42bc66c9d2f6567cc9fa74b6e667a003d14877c8a1f9dc02ed766336eecb0ff0",
   "claims": [
     {
       "id": "claim_378287f072a04458b7482923bc24f4c5",
       "statement": "Tests must never depend on external services: Redis, outbound HTTP APIs, SMTP and DNS are mocked or stubbed across the backend, and all API calls are mocked on the frontend; the ephemeral testcontainers PostgreSQL instance (or TEST_DATABASE_URL) is the only allowed infrastructure dependency, so a test that performs a real network, Redis or SMTP call is broken by definition rather than something to fix by requiring the service.",
       "evidence": [
         {
-          "resource": "repo://AGENTS.md#L13-L13",
+          "resource": "repo://AGENTS.md#L17-L17",
           "version": "repo-lines-v1:sha256:0a32d005589b4167dd0ca5638c3b4537796bd06b1c91a4d50fb95d9e44448e84:eyJzZWxlY3RlZExpbmVDb3VudCI6MSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiMGEzMmQwMDU1ODliNDE2N2RkMGNhNTYzOGMzYjQ1Mzc3OTZiZDA2YjFjOTFhNGQ1MGZiOTVkOWU0NDQ0OGU4NCIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiMGEzMmQwMDU1ODliNDE2N2RkMGNhNTYzOGMzYjQ1Mzc3OTZiZDA2YjFjOTFhNGQ1MGZiOTVkOWU0NDQ0OGU4NCIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiYjk0Zjc4MGJjMDU4NWNmMzgzMTA1NTIzNTFkMTJhM2RhYjAwMjA4ZDUwNWI5YmU3Y2JhZTc2NGVlNDk4NjE0ZiIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiZjFlNjAzYzE0MTlmMTgzMmUxMWU3MjY2NThjYWUzMDNmYzJhMGZlZjcwOGQzNDMxNjZhMzY4N2EwNTQyYjgxNiJ9"
         },
         {
@@ -187,15 +187,15 @@
           "version": "repo-lines-v1:sha256:d0f47a17df34760c719a182717351d668fd8d15d20594821df46e01332d2344e:eyJzZWxlY3RlZExpbmVDb3VudCI6MjQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImQ2ODJjYmRiNGM4YjA3NTE4YmY0ODZjNTg5OTBmYzM5MTc4M2FhMjBhOTE2YmZiMjdhZDIxMWViMWQ1YzM2NDIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImEzMDNlY2RkNGE0ZDEwZjE5YzczZmQ0MmZkMTI0MzdmZDMzNTRhODI2ODE2MDVkYTUyNTVhOTdhMzkwNjhkYmIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjowLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjU1YjZlODcwNmI0MzA0N2YyYTZkYjY3ZjEzMjYzODU5NTYwNGU2N2YzNjk2Njg3NmNlMDE1OGYwMDUzZTZiZDEifQ"
         },
         {
-          "resource": "repo://scripts/agent-test#L256-L318",
+          "resource": "repo://scripts/agent-test#L258-L320",
           "version": "repo-lines-v1:sha256:c677d00f674d64e2706fcb2c29730a15ef8d4a46048367de6bf591050885df8a:eyJzZWxlY3RlZExpbmVDb3VudCI6NjMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjkxNzJiNzNmMjVjNDQwMGYzNjlkNDU0M2JkZTNjYTNlYWMxYWQwMTY1YjAxMDA2ZWQ4MjNkZWRkZjc5MzQxY2MiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjY1NmEwYjMwMTI3YmJiZjE1NTE0ZGVhMjNhMTlkYTQ3ZWQ5OTRkMjdkODAwOTA3NWM3MDRiYTQ5NzAzMjkzMzIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjA3YTNlMjQwNzZkZWQ0OTc3ODRhNzdkNGQ5ZjYyYTY4ZWE0ZTA4YTViNjFjOWIxYzAwZWU1MzMxYjk4YjJlYWIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjRhOWJiNGIyM2UxY2ZlN2MyZWYwZjAyZjE1NWM4NzI2ODY0ZDNlMDUxNTQyZmQzNTdjNzhkZjZhMTBhNGMzYWYifQ"
         },
         {
-          "resource": "repo://scripts/agent-test#L413-L444",
+          "resource": "repo://scripts/agent-test#L415-L446",
           "version": "repo-lines-v1:sha256:150ce83afbcdfe191f3f654e578316b817959ae68ca926b1d7c9ac8b588f18af:eyJzZWxlY3RlZExpbmVDb3VudCI6MzIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjkzOWRkM2ViOTlhMjNiZWVjNWI2MmFmNjk2NWMxYzcwNDI5YWEwMjQ1ODdjZGRhZmY5MTIyOTBlOGJmNWIyZGYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImZhMTFjMDU2N2QwYTVmOWU5YjEzNWY2NWNkMjUzNzJkZmQ2Mjg3NzVmN2MxZWQyNTNmOGJhZDQyZGQyZDY2NjkiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImQ3MjIzMTA2ZmQ4NzQyYjcwZWEyMzNmOWRjMzU5ZjRiMDJiYmIwNjliNzI4M2VlZjc2MjQ5OTUxNmJkN2I5YzgiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjRhOWJiNGIyM2UxY2ZlN2MyZWYwZjAyZjE1NWM4NzI2ODY0ZDNlMDUxNTQyZmQzNTdjNzhkZjZhMTBhNGMzYWYifQ"
         },
         {
-          "resource": "repo://scripts/agent-test#L452-L556",
+          "resource": "repo://scripts/agent-test#L454-L558",
           "version": "repo-lines-v1:sha256:657dbfaee39b855edfe359ec83e5aa074938597b0cea6a74972ce3c272a8b0ad:eyJzZWxlY3RlZExpbmVDb3VudCI6MTA1LCJmaXJzdFNlbGVjdGVkTGluZUhhc2giOiI2MmYzNGM0ZDg2ODI3ODVjMTYwZjg1N2U0NzEyMmU4MTU0YmUxMmVjN2YxOTBmNTMyN2FhZThiYjdlZTQ2ZmMxIiwibGFzdFNlbGVjdGVkTGluZUhhc2giOiIzMGMxZjE4OGYxNDJlZDdhODI0NjgwYjIwNzE3MmM1NTE5YmM2MTRhNDhmZGE3Y2YxNjdlZGI4ZGRmNzk5NTZjIiwicHJlY2VkaW5nQ29udGV4dExpbmVDb3VudCI6MywicHJlY2VkaW5nQ29udGV4dEhhc2giOiIwN2EzZTI0MDc2ZGVkNDk3Nzg0YTc3ZDRkOWY2MmE2OGVhNGUwOGE1YjYxYzliMWMwMGVlNTMzMWI5OGIyZWFiIiwiZm9sbG93aW5nQ29udGV4dExpbmVDb3VudCI6MywiZm9sbG93aW5nQ29udGV4dEhhc2giOiI0YTliYjRiMjNlMWNmZTdjMmVmMGYwMmYxNTVjODcyNjg2NGQzZTA1MTU0MmZkMzU3Yzc4ZGY2YTEwYTRjM2FmIn0"
         }
       ]
@@ -209,8 +209,8 @@
           "version": "repo-lines-v1:sha256:b94c2d33e741768b2caa5d0261f07c1a2da4d5e8c8f4d67e7a011281a46c70a4:eyJzZWxlY3RlZExpbmVDb3VudCI6MzEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjU0OTc2YThhZDZhZTQ2YWYzOGU0MGQ4ZWMyOGY4NDU5ZmExNWI1Y2JiYjQ0N2IxNmI0ZTdlZmRmYWMzZWI5ZWQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjY5MDYyYzUxZGRmNDUzNmRlYzNiMWZkMjI1YjA1YWFlZjk2ZTQ3MmJhMGI5ODk2MjRlYTc5NzA1YWYwZTJhODciLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImI0YmVlMDgyMmQ2OTE5ZGQ4YTQxODExN2VhZjRlMmYwYjZkMTc5Mzc5MzM0Y2UxYzI2M2VjNTBjZDg5ZjE0NDYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
         },
         {
-          "resource": "repo://scripts/agent-test#L50-L65",
-          "version": "repo-lines-v1:sha256:115e0da8cce0a90452dc433241a94ace5fb15adc1652c7b8bb00c61c4fb4b475:eyJzZWxlY3RlZExpbmVDb3VudCI6MTYsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImVmZjQ1YTM2NTI5ZmU3MWQ3NGE2ZTdiNmJkNzQ5ZDI1ZDYzZGY3YWRiMjY1OWEzZjMyMzhmMmM1NGM2MzFhMDMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImZhZmJhMDUyN2MzOTUzYzRiNmUwZTViNTczOWJhODM2MTJmODA1M2JjZGM5NDY2NzMwMTkzY2QxZDU5MGI0MDgiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImRmOTFkYTBiYTk0NDU2NTY1ZTBhNzQ5MjhkYTljNjNhZTgwNjA2Yjg4YWJlMzIyNTFmMjNiODYxMzhlZGQ4NzIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjViYWNiMjc2MDQ0Y2I4M2FjMzJhN2E3Y2NkMzM0YTQ1NjE4OTE1OGE3ZDJmZWJkOTZhMjQ2ODlmOWU5ZDNiYmIifQ"
+          "resource": "repo://scripts/agent-test#L50-L67",
+          "version": "repo-lines-v1:sha256:2beff0027d0cc54bd0748d01f1f1f79bf4cc524305155279aac2cbfe5f43e421:eyJzZWxlY3RlZExpbmVDb3VudCI6MTgsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImVmZjQ1YTM2NTI5ZmU3MWQ3NGE2ZTdiNmJkNzQ5ZDI1ZDYzZGY3YWRiMjY1OWEzZjMyMzhmMmM1NGM2MzFhMDMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImZhZmJhMDUyN2MzOTUzYzRiNmUwZTViNTczOWJhODM2MTJmODA1M2JjZGM5NDY2NzMwMTkzY2QxZDU5MGI0MDgiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImRmOTFkYTBiYTk0NDU2NTY1ZTBhNzQ5MjhkYTljNjNhZTgwNjA2Yjg4YWJlMzIyNTFmMjNiODYxMzhlZGQ4NzIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjViYWNiMjc2MDQ0Y2I4M2FjMzJhN2E3Y2NkMzM0YTQ1NjE4OTE1OGE3ZDJmZWJkOTZhMjQ2ODlmOWU5ZDNiYmIifQ"
         }
       ]
     },
@@ -229,7 +229,7 @@
       "statement": "All development commands must run inside Docker via docker compose exec <backend|frontend>, and before committing the area guides require lint, type checks, formatting and tests; a model edit additionally requires an Alembic autogenerate migration, with the agent harness the preferred entrypoint and the raw pytest/vitest commands the fallback.",
       "evidence": [
         {
-          "resource": "repo://AGENTS.md#L15-L31",
+          "resource": "repo://AGENTS.md#L19-L35",
           "version": "repo-lines-v1:sha256:5fc9b665f6019084e1425421617aa0db604f97ade70588cb609ec2f28181beac:eyJzZWxlY3RlZExpbmVDb3VudCI6MTcsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImI3YzRmNWNhYzU0ODE2ZWVkMTY0ZDM2NTZiZTM3NjRiYTk3MDQwZTQ5ZDNmY2M4ZTQ3NzMzNmYzZTFiMzc3YmIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijc0NDE5NzE1YWU5MzQ4M2MwOTk3ZTlkMWVkNDNjMWFiYmZiZGJmNTdiNTc4YmRiZjY5MDgzOTk3YTMxYmE0ZjgiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImY5MjQ1ZjI5ZDhmYTEyN2Y5ZjZiZDM5NjRkYTI2NGZmNzg0MWU0YzViMjMxYzU0ZGY1MGI1MjkxYTRhM2U4NGMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjNkNTFlOGY1NmE0YjA2ZmNmNDRlMTI5NjQ2N2I3NTJjZDU0NzAyOGJkYmJlYmNjZTVjMTJjZTAxODNhNjk1NjUifQ"
         },
         {
@@ -272,11 +272,15 @@
     },
     {
       "id": "claim_ae8310fa8d054c92b8e697d85a40a8f1",
-      "statement": "Service-layer frontend suites follow the mandated mocking pattern by mocking the API module itself (vi.mock('@/api/marketService', () => ({ getMarketService: vi.fn() }))) and then handing back a hand-built client whose every method is a vi.fn() — search, createOrUpdateSecurity, getWatchlists, createWatchlist, renameWatchlist, updateWatchlistSort, deleteWatchlist, addSecurityToWatchlist, removeSecurityFromWatchlist, reorderWatchlistSecurities, addToWatchlist, removeFromWatchlist — which lets a plain class such as WatchlistService be exercised without SvelteKit runtime modules or network access; HoldingsService uses the same shape against $lib/api/accountService.",
+      "statement": "Service-layer frontend suites follow the mandated mocking pattern: `watchlistService.test.ts` mocks `@/api/marketService` as `{ getMarketService: vi.fn() }` and hands back a client whose every method is a `vi.fn()` — search, createOrUpdateSecurity, getWatchlists, createWatchlist, renameWatchlist, updateWatchlistSort, deleteWatchlist, addSecurityToWatchlist, removeSecurityFromWatchlist, reorderWatchlistSecurities, addToWatchlist, removeFromWatchlist — so a plain class such as WatchlistService is exercised without SvelteKit runtime modules or network access; `holdingsService.test.ts` mocks two factories in the same style, `$lib/api/accountService` (`getAccountService`) and `$lib/api/marketService` (`getMarketService`), returning `{ getUserHoldings }` and `{ getValuationsBatch }` doubles, and covers paging until offset reaches total, the stale-total guard, returning the caught ApiError so callers can route a 401, group-by/filter derivation, and the batch-valuation path including graceful fallback to empty valuations.",
       "evidence": [
         {
-          "resource": "repo://frontend/src/lib/components/holdings/holdingsService.test.ts#L3-L58",
-          "version": "repo-lines-v1:sha256:36f46e56e41e0d963338ff720dce3a6a4380cdee062a6cd5d48a6a6850212a51:eyJzZWxlY3RlZExpbmVDb3VudCI6NTYsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImRkY2YzM2I5NGVkMTU4NTk1ZjdlNGU0M2M4YjhmOTgzMjg1OTVkNzI5OWEwNDAzMzQ0MjQ1ZTIyNGVmYzg5NmYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjBhNzM0OTJkODk0NmIxZDBmOWQ5YzA0YjcwNGE5MjBmMjRmODllZjdjN2Y3MzExYTg1OTlkMTBjN2Y2MzU4ZDAiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjoyLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjA2ODU5Yzk2OGVlNGEyZTc1NjdhNGZlNTU0NTJjNTg1NjhhNTM2NTk2NDJlMTE2ZTc1M2JmOWYzNWJlMjc5NjQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImNmNWMyYzA5Nzc2ZjZlZmQ3NDlmN2MxNjA3MTM5ZjU4OTg4ZGRmYWJmODNmZWY2YmFkM2Y1M2NiZTM4MzhlMGQifQ"
+          "resource": "repo://frontend/src/lib/components/holdings/holdingsService.test.ts#L250-L313",
+          "version": "repo-lines-v1:sha256:7c656ae9abee23a49fcf909f5e1e8101461dfde89505726b112ba55cab226dad:eyJzZWxlY3RlZExpbmVDb3VudCI6NjQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjBhZmIxNWJkZGI5NTRhZTgyYjVkOTAyNjYwNDE4NTIwNjdiZjg0NzI4MTc2NmM3NDQxNDM4NzQ2MjBkM2JmMzYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjBhNzM0OTJkODk0NmIxZDBmOWQ5YzA0YjcwNGE5MjBmMjRmODllZjdjN2Y3MzExYTg1OTlkMTBjN2Y2MzU4ZDAiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjdhNzhjZjczNDFmMjk4YWVmNmFkYWUxMWQ1NWZiOWI3NzY5MGVjN2NiMWEwNWJjYTMxN2QwYjUzZDk5ZjFiMzEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjoxLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImY2ZjViNDBiMTU4NDU3ZDE3ODY0ZjIxNzkwNzg2ZGQ1YTJlY2RiNjRiNjZhNjUxZjc4OGQ0ZTI1Y2QzMzAzZDIifQ"
+        },
+        {
+          "resource": "repo://frontend/src/lib/components/holdings/holdingsService.test.ts#L3-L68",
+          "version": "repo-lines-v1:sha256:e1cdeda7a6da4349654b52ffad37dcf7bdc7f3ec171628bc58153b431d9bd21e:eyJzZWxlY3RlZExpbmVDb3VudCI6NjYsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImRkY2YzM2I5NGVkMTU4NTk1ZjdlNGU0M2M4YjhmOTgzMjg1OTVkNzI5OWEwNDAzMzQ0MjQ1ZTIyNGVmYzg5NmYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjBhNzM0OTJkODk0NmIxZDBmOWQ5YzA0YjcwNGE5MjBmMjRmODllZjdjN2Y3MzExYTg1OTlkMTBjN2Y2MzU4ZDAiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjoyLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjA2ODU5Yzk2OGVlNGEyZTc1NjdhNGZlNTU0NTJjNTg1NjhhNTM2NTk2NDJlMTE2ZTc1M2JmOWYzNWJlMjc5NjQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImNmNWMyYzA5Nzc2ZjZlZmQ3NDlmN2MxNjA3MTM5ZjU4OTg4ZGRmYWJmODNmZWY2YmFkM2Y1M2NiZTM4MzhlMGQifQ"
         },
         {
           "resource": "repo://frontend/src/lib/components/watchlist/watchlistService.test.ts#L12-L14",
@@ -293,19 +297,19 @@
       "statement": "Gate 0 of scripts/agent-test runs exactly 'uv run ruff check --output-format concise', 'uv run ruff format --check' and 'uv run ty check --output-format concise' for the backend and 'npx svelte-kit sync', 'npx svelte-check --tsconfig ./tsconfig.json --output machine', 'npx eslint . -f json' and 'npx prettier --check .' for the frontend, halting with sanitized diagnostics and exit code 1 before any test runs; both test gates parse reports written to .cache/agent-test (backend.xml JUnit XML, frontend.json Vitest JSON) and the process exits 1 when any test failed, errored, or the runner itself failed.",
       "evidence": [
         {
-          "resource": "repo://scripts/agent-test#L256-L271",
+          "resource": "repo://scripts/agent-test#L258-L273",
           "version": "repo-lines-v1:sha256:febd28c81386412e90b01cad6cfb924247f7f47dcb6b85d425d575039a7b75cc:eyJzZWxlY3RlZExpbmVDb3VudCI6MTYsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjkxNzJiNzNmMjVjNDQwMGYzNjlkNDU0M2JkZTNjYTNlYWMxYWQwMTY1YjAxMDA2ZWQ4MjNkZWRkZjc5MzQxY2MiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImFkZDI0NDU4MmI2ZmIwM2QyM2I4NDE1YWJlY2QzNDZiMGM5ZjQ2NmI2Zjc1MmIwNjgxODljZTdlOWEyZGMzNTAiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjA3YTNlMjQwNzZkZWQ0OTc3ODRhNzdkNGQ5ZjYyYTY4ZWE0ZTA4YTViNjFjOWIxYzAwZWU1MzMxYjk4YjJlYWIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjA5ZjQzMjBkYjUzN2Q2YTA0ODdiODJhNDUzZjFhMzNiNzM1YzE4OTg5M2Y0MDcwMWFiOWIyYWRmYTUwOTNmZDcifQ"
         },
         {
-          "resource": "repo://scripts/agent-test#L304-L318",
+          "resource": "repo://scripts/agent-test#L306-L320",
           "version": "repo-lines-v1:sha256:345f963dc51b95a471c4afb05a496d933343115966c860241f55f4c2cde17fc9:eyJzZWxlY3RlZExpbmVDb3VudCI6MTUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjI3YTZiYmZlYzY5ZDMzNzE5MmViNGYyMGUyZDBiNDc1NjQzZGEzOGIyOTNiNmM1ZjBjMDM5MTAwYjkzMGY3ZDAiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjY1NmEwYjMwMTI3YmJiZjE1NTE0ZGVhMjNhMTlkYTQ3ZWQ5OTRkMjdkODAwOTA3NWM3MDRiYTQ5NzAzMjkzMzIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjhjYzRhN2QxY2M3OTZhYmEzZTQ2NzIzMzI3ZjUxN2U5ZjgxMTk4MmQyNTBmMDcwMjk4NmU0YjU3NjRhZDk1ODkiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjRhOWJiNGIyM2UxY2ZlN2MyZWYwZjAyZjE1NWM4NzI2ODY0ZDNlMDUxNTQyZmQzNTdjNzhkZjZhMTBhNGMzYWYifQ"
         },
         {
-          "resource": "repo://scripts/agent-test#L422-L444",
+          "resource": "repo://scripts/agent-test#L424-L446",
           "version": "repo-lines-v1:sha256:a4627adfccfd3e6d7c0fdbfb79c53171c567da8fc7930fcd0ce2725ec51c45a1:eyJzZWxlY3RlZExpbmVDb3VudCI6MjMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjlmNTQ4ZWExNzVmMWY1NGY0ODFlZTg1NjcyNGNhMzI3MjVlMTI0OTQ1OWYwZjA2YzNjMWVkYTg4OGQyNjczZGUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImZhMTFjMDU2N2QwYTVmOWU5YjEzNWY2NWNkMjUzNzJkZmQ2Mjg3NzVmN2MxZWQyNTNmOGJhZDQyZGQyZDY2NjkiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6Ijk2OGI4MDU5ZTUwMTM3YmJiNDYzNGM3YWY5MDQxNjY3Zjg2NDA2MmVmZThlZGQxMzMzMDdiMDUwNjJjNmJhZjQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjRhOWJiNGIyM2UxY2ZlN2MyZWYwZjAyZjE1NWM4NzI2ODY0ZDNlMDUxNTQyZmQzNTdjNzhkZjZhMTBhNGMzYWYifQ"
         },
         {
-          "resource": "repo://scripts/agent-test#L744-L745",
+          "resource": "repo://scripts/agent-test#L746-L747",
           "version": "repo-lines-v1:sha256:24ea94e18d8666294ab542baa404c309b767e59479e0ade2f2ac8c07475c0a60:eyJzZWxlY3RlZExpbmVDb3VudCI6MiwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiMWRmMjRjZDZlZGQzZDQxMmY3YmZjNDMyODU1ZWJhMTZlNmZiNzI3MmIzMjc2NzNhOTllNTI5MDc1OTg1YmU3YSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiODhmZWMwYTcyZmI4ZTQzYmY5NzU3ZjBmNGI1ZWUwMjBjZDA0MDQwNzVkNWFkMjdiYTNmZDZjYWM2NDZhODllNiIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiMzhhMWU1MWYyODI0ZDM0MDMwMTVlM2MwMjQwODdjNjE1MmQ5NjZhNTdjNGEyMGZhZmUxOTU5ZDI2ZmU1ZTdkNyIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiM2Q0MTM0MGNjMjM5YTE1OWNlOWI2MDIyZTlmNjMyMjgzMmUyZWFkNzZjYWU5ZTQ3NTRkMjEwZWI4ZmI2ZDVlOCJ9"
         }
       ]
@@ -344,23 +348,27 @@
     },
     {
       "id": "claim_791620a47b2444dda1afb908470f603e",
-      "statement": "Route-level frontend suites come in page.server.test.ts / page.svelte.test.ts pairs: the server suite mocks the API service modules and drives load/actions with a hand-built Cookies and RequestEvent object (asserting that /holdings never loads holdings in the server load and falls back to HOLDINGS_TABLE_DEFAULT_CONFIG on preference failure), while the component suite renders the page with render(Page, { props: { data } }) and asserts the shell-first contract — skeleton rows before the post-navigation load resolves, rows filling in without user action, sequential page loading, per-currency totals — and the 401 path that calls goto('/auth/login?clear_session=true'); src/lib/api/async-data.test.ts unit-tests that redirect seam directly.",
+      "statement": "Route-level frontend suites come in page.server.test.ts / page.svelte.test.ts pairs: the server suite mocks the API service modules (accountService, userPreferencesService, portfolioClient, accountClient, plus $lib/server/auth-cookie) and drives load/actions with a hand-built Cookies and RequestEvent object, asserting that /holdings never loads holdings in the server load, that a failing getPreferences falls back to HOLDINGS_TABLE_DEFAULT_CONFIG with group_mode 'none' and null elliott_waves, and that a 401 ApiError from any service deletes the auth cookie and throws a 303 redirect to /auth/login?clear_session=true; the component suite renders the page with render(Page, { props: { data } }) and asserts the shell-first contract — skeleton rows before the post-navigation load resolves, rows filling in without user action, sequential page loading, per-currency totals — and the 401 path that calls goto('/auth/login?clear_session=true'); src/lib/api/async-data.test.ts unit-tests that redirect seam directly, with $app/navigation and $app/paths mocked.",
       "evidence": [
         {
           "resource": "repo://frontend/src/lib/api/async-data.test.ts#L1-L47",
           "version": "repo-lines-v1:sha256:f0d5a5c5ed67b32a27b6c46ca2f722039e8706e43089fcabc361bdaa7b493424:eyJzZWxlY3RlZExpbmVDb3VudCI6NDcsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImIzOTJjZjY5OTM0OTQ1ZGRlZmY3ZDIwZGUxODVkMTU5M2YzY2JjZjhhNzE0MDI1YzY4MGY0MWY0ODkzZjFhY2QiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjBhNzM0OTJkODk0NmIxZDBmOWQ5YzA0YjcwNGE5MjBmMjRmODllZjdjN2Y3MzExYTg1OTlkMTBjN2Y2MzU4ZDAiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjowLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjoxLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImY2ZjViNDBiMTU4NDU3ZDE3ODY0ZjIxNzkwNzg2ZGQ1YTJlY2RiNjRiNjZhNjUxZjc4OGQ0ZTI1Y2QzMzAzZDIifQ"
         },
         {
-          "resource": "repo://frontend/src/routes/holdings/page.server.test.ts#L5-L109",
-          "version": "repo-lines-v1:sha256:590cd39434d423a228ad03fd72e9bb688949132c80e6e2b5c38cf39da0c60639:eyJzZWxlY3RlZExpbmVDb3VudCI6MTA1LCJmaXJzdFNlbGVjdGVkTGluZUhhc2giOiI3ODhiODE0N2FjODc5MjZlMzQyYjc4NTUyYTQzZmJmMzFmY2IyNzJmNjlmNWYxYzNhZDNiNmMzZDdkZDI1NGYzIiwibGFzdFNlbGVjdGVkTGluZUhhc2giOiIwYTczNDkyZDg5NDZiMWQwZjlkOWMwNGI3MDRhOTIwZjI0Zjg5ZWY3YzdmNzMxMWE4NTk5ZDEwYzdmNjM1OGQwIiwicHJlY2VkaW5nQ29udGV4dExpbmVDb3VudCI6MywicHJlY2VkaW5nQ29udGV4dEhhc2giOiI0NzA3MWQ3ZGVlMTE0ZjNjYTcxZWQ3MzFlZDBjZDZmOTYyZWQ5NmRjZDJjYzIwZDllMDc1MGZhNTkyNzdkMThkIiwiZm9sbG93aW5nQ29udGV4dExpbmVDb3VudCI6MSwiZm9sbG93aW5nQ29udGV4dEhhc2giOiJmNmY1YjQwYjE1ODQ1N2QxNzg2NGYyMTc5MDc4NmRkNWEyZWNkYjY0YjY2YTY1MWY3ODhkNGUyNWNkMzMwM2QyIn0"
+          "resource": "repo://frontend/src/routes/holdings/page.server.test.ts#L143-L184",
+          "version": "repo-lines-v1:sha256:8ebe50a40a623dbed62c730dd5bf0ab00838783b60df63a4c0e537f6079c2e76:eyJzZWxlY3RlZExpbmVDb3VudCI6NDIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImJiY2RlYTUwOWU3ODNkYTdkMzkwMmY1ZTIwODY3MjNhYjA0ZDVlNzFhMmQ4NjI1MTVkOTljZTlhMjA1MmU1ZWUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjBhNzM0OTJkODk0NmIxZDBmOWQ5YzA0YjcwNGE5MjBmMjRmODllZjdjN2Y3MzExYTg1OTlkMTBjN2Y2MzU4ZDAiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImM5N2EzOGUzN2RiMDA0MWY2ZWU1NTQxM2M0ODYzOTcyOTIwNjNkNTg0YmNmZTQyZjJiZGJmMmQ2ZTg1YTkxODkiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjoxLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImY2ZjViNDBiMTU4NDU3ZDE3ODY0ZjIxNzkwNzg2ZGQ1YTJlY2RiNjRiNjZhNjUxZjc4OGQ0ZTI1Y2QzMzAzZDIifQ"
         },
         {
-          "resource": "repo://frontend/src/routes/holdings/page.svelte.test.ts#L181-L251",
-          "version": "repo-lines-v1:sha256:a785af20ca7cee1a067212c3e2af0efac6bf1b2859706aab7036861a514d351e:eyJzZWxlY3RlZExpbmVDb3VudCI6NzEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjYwYjNjNjI4NDNlMWQzYjJjYmM5NzEwMGUxOWI0MjRiYmFlNjBhOTY3Yjk0NmEzZmI3ZWI1ZDFhZTIyMmIzOTQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAxYmE0NzE5YzgwYjZmZTkxMWIwOTFhN2MwNTEyNGI2NGVlZWNlOTY0ZTA5YzA1OGVmOGY5ODA1ZGFjYTU0NmIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjBhNmZlMjYyOWVlZWNkODNhZjNlM2RlYzU1M2NlNTZiNDgwODk0MTAyYjA3YjY3ZTdlYjIwMmI2YzQ5YjU5MTEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjU2MWQwOTc3ODI5NjJiZWEwNjFmZmQ3NjAzOTBjNjUwMDlkNzMzMzBiOGUwMzQwYTNlYTI4YThiNDkwNmY1N2YifQ"
+          "resource": "repo://frontend/src/routes/holdings/page.server.test.ts#L8-L66",
+          "version": "repo-lines-v1:sha256:f9b2605629d1fe96610ef923aba3407f6164284b8a7fe6573722c95031ea6ef8:eyJzZWxlY3RlZExpbmVDb3VudCI6NTksImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijc4OGI4MTQ3YWM4NzkyNmUzNDJiNzg1NTJhNDNmYmYzMWZjYjI3MmY2OWY1ZjFjM2FkM2I2YzNkN2RkMjU0ZjMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQxMmNhMzQ1Y2NmNzViZjljMDgwNmJjZTY5NWJlOGRlODA4Yjc5OTg0MjUxYTdhNTRkMjAyY2Y2MTAxZGQ0NTEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImZmY2E3ZTIwMDY4ZWU3Y2Y5OGE5ODJjY2VlZWQ5NTdmZmVkOGIzMzk2MDBmNzdmYTc2NDEzYzk4NWU0MWI0Y2IiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImE4ODc3NmYzNGFlNjYxMGI0YmI5ZDRkYWUxN2NjMGVhMjJiYWFmMjJhMmJiODg0ZjQ1NjA4ZTEzYjlkMjRkYjcifQ"
         },
         {
-          "resource": "repo://frontend/src/routes/holdings/page.svelte.test.ts#L415-L435",
-          "version": "repo-lines-v1:sha256:25da3d57bfc339317841b2d54a88e03468985ad1ef28b306f788a6821ccf8aed:eyJzZWxlY3RlZExpbmVDb3VudCI6MjEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjVjZjI2NGZkZmU3NjJjNDQzZTVkZjdkMzVhZWQyNDVhZDEwZDQ5MGQyYjBlZTlhOTliMDE4YWY2YmE0MmNlYTciLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjBhNzM0OTJkODk0NmIxZDBmOWQ5YzA0YjcwNGE5MjBmMjRmODllZjdjN2Y3MzExYTg1OTlkMTBjN2Y2MzU4ZDAiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImVkNWNhMDJlZmZjMjNhNmU1ZGJiMTI0NTcwZjEzNWVhYzAyNzIxOGY2ZWU5OGNhM2VjZTY4OTM2ZDM2MDVjMTUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjQxZjljYzZkOTJkYzViZTA0NDQ4NDJmYzMzMDI0MjRiOGU5NDk0NDFiYWJiZjE0MTQ4NzY1YTM1Y2QxYjFkMTkifQ"
+          "resource": "repo://frontend/src/routes/holdings/page.svelte.test.ts#L203-L272",
+          "version": "repo-lines-v1:sha256:b067a466dde588b1bc7d1e93945fab21861753a6a2b47e8c5c521684cc26296f:eyJzZWxlY3RlZExpbmVDb3VudCI6NzAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjYwYjNjNjI4NDNlMWQzYjJjYmM5NzEwMGUxOWI0MjRiYmFlNjBhOTY3Yjk0NmEzZmI3ZWI1ZDFhZTIyMmIzOTQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjBhNzM0OTJkODk0NmIxZDBmOWQ5YzA0YjcwNGE5MjBmMjRmODllZjdjN2Y3MzExYTg1OTlkMTBjN2Y2MzU4ZDAiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjBhNmZlMjYyOWVlZWNkODNhZjNlM2RlYzU1M2NlNTZiNDgwODk0MTAyYjA3YjY3ZTdlYjIwMmI2YzQ5YjU5MTEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImQyOTRmZDExY2I5OGI3OTNmZDUwODczMWU1NDdiYjU1NjMwMTQxNWY0MzBhNTA2MTQ1N2MxMjQ0MDc0ZTBiOTEifQ"
+        },
+        {
+          "resource": "repo://frontend/src/routes/holdings/page.svelte.test.ts#L450-L457",
+          "version": "repo-lines-v1:sha256:2b8c4ca48d9558e6c087d52b39d4fcfb4d5c3f4fd54913c984c022a80257dc35:eyJzZWxlY3RlZExpbmVDb3VudCI6OCwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiZTQ5MDRiYWU2ZTJmZTljZjY0NWUwNDBhYWJjNGEzMGI2NzBjMWExZDFlODk5MmU0NTIyYzU3NWQ1NzM1YTQ2OCIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiMGE3MzQ5MmQ4OTQ2YjFkMGY5ZDljMDRiNzA0YTkyMGYyNGY4OWVmN2M3ZjczMTFhODU5OWQxMGM3ZjYzNThkMCIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiZDhjZmVjYTFmNGY5NTNjMGM3OTNjOTQzMTAxMzU4MjczMjE1ODU0YWVlNTc3OTcwOGNmNmRhMDZhYzFjOGU3ZiIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiNDFmOWNjNmQ5MmRjNWJlMDQ0NDg0MmZjMzMwMjQyNGI4ZTk0OTQ0MWJhYmJmMTQxNDg3NjVhMzVjZDFiMWQxOSJ9"
         }
       ]
     },
@@ -489,10 +497,28 @@
           "version": "repo-lines-v1:sha256:f864a957650dbf173f3366f4b237c618d5385199f22ee3f782bbadef69a656b7:eyJzZWxlY3RlZExpbmVDb3VudCI6OSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiYTQzOWRmODAwY2I4NjQ2NGNlMjM1ZGJiOTA3Njg2NmFiZjgxMjZlMjNiYjg5MjgyYjFiMjU4NmYxMWFhOTY3OCIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNjdjZGE4MmRhNjA2MjM4ZTA1ZTYyMzk5NTY5YzVlZTAzOTkzNDE5NjQ4YWU1ZDQzYTJiZjhjZDYzNDdmODI2MyIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiNjM4N2ZlNTg1YzBjZjlkZjQ1ZGJiNzdmYWQ5MTMzMzQxNmViYWI4Yjc1ZWQyZTQ5OTlkNGMyMmQ5YzZiYjYzYyIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiODlmOWI2OTI1ODZmNTNhYzQ3ODAxZmQ2ZTRkZjg3MWY2NmRjMjFlMTZjODU0ZDkxNzA1NmQ0MWNiZWI3MjE4MiJ9"
         }
       ]
+    },
+    {
+      "id": "claim_9cd5c41ecf034d01b47cfc0059048522",
+      "statement": "The frontend 401 seam `redirectOn401` returns true and navigates to /auth/login?clear_session=true only for an ApiError whose status is 401; for a non-401 ApiError, a plain Error, or null it returns false without navigating, so callers surface err.message in their own in-page error alert and keep the page shell instead of showing a SvelteKit error page.",
+      "evidence": [
+        {
+          "resource": "repo://frontend/src/lib/api/async-data.test.ts#L20-L47",
+          "version": "repo-lines-v1:sha256:8ab50f90a6768cb585b4613a10cb6dce59c61ec47c47c40fef2cf60252f11465:eyJzZWxlY3RlZExpbmVDb3VudCI6MjgsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjJmYmM4NDk0NzhkODE1YmFmZjBlM2U2YWI1Y2MzYzY0NDhkZDA1ODVkYzJlZDNkNTk0ZWY2OTM3MjU5NmE1NWEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjBhNzM0OTJkODk0NmIxZDBmOWQ5YzA0YjcwNGE5MjBmMjRmODllZjdjN2Y3MzExYTg1OTlkMTBjN2Y2MzU4ZDAiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImJjNWJhZmM2NWQwNDUzMjYxMjQ5ODcwNWUyZWMwODk1YzdkNWVjOGYyMTI1OTJkZDJmNDUzNWI4ZGI2MDVhNTgiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjoxLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImY2ZjViNDBiMTU4NDU3ZDE3ODY0ZjIxNzkwNzg2ZGQ1YTJlY2RiNjRiNjZhNjUxZjc4OGQ0ZTI1Y2QzMzAzZDIifQ"
+        },
+        {
+          "resource": "repo://frontend/src/lib/api/async-data.ts#L5-L24",
+          "version": "repo-lines-v1:sha256:410f06069963f4940704acbd3854983f164227527eccbf33866ea6e46317dd99:eyJzZWxlY3RlZExpbmVDb3VudCI6MjAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImVhZjIyY2YwNzMyNTkyYzI0NzE0MWNiZTYxZWZhMTEwMTI2MTJmNWEzMTIyYjlhZjliYmFmNTJmNTcyNGQxOTQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQxMmNhMzQ1Y2NmNzViZjljMDgwNmJjZTY5NWJlOGRlODA4Yjc5OTg0MjUxYTdhNTRkMjAyY2Y2MTAxZGQ0NTEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImExYTkxMzUzOTBhMzJjMmNlNWQ1YzY3ZjA1MjgxZTA4MmYxNWM0MWVhOWRhZWFkMzkwYWUzNjhjZjkxNWU3OGUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
+        },
+        {
+          "resource": "repo://frontend/src/routes/holdings/page.svelte.test.ts#L437-L457",
+          "version": "repo-lines-v1:sha256:25da3d57bfc339317841b2d54a88e03468985ad1ef28b306f788a6821ccf8aed:eyJzZWxlY3RlZExpbmVDb3VudCI6MjEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjVjZjI2NGZkZmU3NjJjNDQzZTVkZjdkMzVhZWQyNDVhZDEwZDQ5MGQyYjBlZTlhOTliMDE4YWY2YmE0MmNlYTciLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjBhNzM0OTJkODk0NmIxZDBmOWQ5YzA0YjcwNGE5MjBmMjRmODllZjdjN2Y3MzExYTg1OTlkMTBjN2Y2MzU4ZDAiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImVkNWNhMDJlZmZjMjNhNmU1ZGJiMTI0NTcwZjEzNWVhYzAyNzIxOGY2ZWU5OGNhM2VjZTY4OTM2ZDM2MDVjMTUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjQxZjljYzZkOTJkYzViZTA0NDQ4NDJmYzMzMDI0MjRiOGU5NDk0NDFiYWJiZjE0MTQ4NzY1YTM1Y2QxYjFkMTkifQ"
+        }
+      ]
     }
   ],
   "verification": {
-    "by": "openwiki/0.5.2",
-    "at": "2026-09-23T13:18:56.288Z"
+    "by": "openwiki/0.6.1",
+    "at": "2026-10-02T14:25:20.147Z"
   }
 }

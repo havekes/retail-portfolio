@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "pageVersion": "sha256:f954a30aa125e5e6299dbd7ef95bfc363ec57fbdb9e7694589d081e0d0d6e39f",
+  "pageVersion": "sha256:0054a5aaf97f33e0ca92c7003cdd83ed66e41ab94cad96473370e7e2613fe81a",
   "claims": [
     {
       "id": "claim_af3b03e3ba854f68ac50e0d040bc8cd1",
@@ -237,8 +237,8 @@
           "version": "repo-lines-v1:sha256:646940937b107abfe40c858c9562ec9bab5b5f81116960f504cd661de245247a:eyJzZWxlY3RlZExpbmVDb3VudCI6NywiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiYmJlYzExYWQ5YTM4YzE2YWFjZjE2ZGI4OTExODQzOTZmZjIxOWM2MzE5OGViZDZkMjY5YjFkYjc1NjY4ODZlYiIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiMjVkNjA5Y2IwNTU3OTVhMzlkMTgxOTJjZTEzYWMxZjRkOWU5NGRkYjE3NmUxZDYyMjFlNTU5ZjM1YTM3Y2RmNyIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiODQ5NmIyMWQwZjg4ZmExZDUxNDZmZTA0NDlmMjYxNjhkNjNjMzEzNjlkY2Y0ZWM4YTE4MWI2NjhhMjM1YzYzNiIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiZDBjYjgxZDVjM2FiYjQwOGNjYjVkNGI4MjhmYTBlOGNhMDQwYWM1ZmQyM2JhYTlkMGMzYWI3ZGVhMjY0ZDZiMiJ9"
         },
         {
-          "resource": "repo://src/market/__init__.py#L58-L92",
-          "version": "repo-lines-v1:sha256:55917fb933ce0b7a57d45d098e2b31d14ae0ccc27dbc214bc5ac4179b961271e:eyJzZWxlY3RlZExpbmVDb3VudCI6MzUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImZjMzRmYmVmYmEyMWQ3MmY5NzQ3MDM3MmNhZmMzZWMzMDMzNTBlNmM2MDNhOGQzOTk3NDc0YmZmYjAzYmRmNzgiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImE0OTZlYWVkNDM1Y2RiOTIwYjc4NDQ3NWM2MDJkODk2NTdjYmRkOGNkZDk3MzJjMTYxZjk3YjQxOTVjYzllMzkiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImE5OGIwNjNkOWI0N2U2NTM3OTYyNTU3MmNjZTE5NzY2OWQ1NzY3ZTEyYzE4YmUwNzU2NTJiOGNkOTgxY2U4ZDUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
+          "resource": "repo://src/market/__init__.py#L60-L97",
+          "version": "repo-lines-v1:sha256:a1e9ad268f19b18145d1b018d5a53ec719a4a020be682d4e61001f921c6846e0:eyJzZWxlY3RlZExpbmVDb3VudCI6MzgsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImZjMzRmYmVmYmEyMWQ3MmY5NzQ3MDM3MmNhZmMzZWMzMDMzNTBlNmM2MDNhOGQzOTk3NDc0YmZmYjAzYmRmNzgiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImE0OTZlYWVkNDM1Y2RiOTIwYjc4NDQ3NWM2MDJkODk2NTdjYmRkOGNkZDk3MzJjMTYxZjk3YjQxOTVjYzllMzkiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImE5OGIwNjNkOWI0N2U2NTM3OTYyNTU3MmNjZTE5NzY2OWQ1NzY3ZTEyYzE4YmUwNzU2NTJiOGNkOTgxY2U4ZDUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
         }
       ]
     },
@@ -399,7 +399,7 @@
       "statement": "Verification of any change follows global constraints: development commands run inside the containers (`docker compose exec <backend|frontend> <command>`) rather than on the host; `./scripts/agent-test` (shorthand `just test`) is the primary test entrypoint with Gate 0 (lint + type check, halting before tests), Gate 1 (a path argument, fail-fast) and Gate 2 (full regression); and no test may depend on external services — Redis, HTTP APIs, SMTP and DNS are mocked, with the ephemeral testcontainers PostgreSQL as the only allowed infrastructure dependency and all frontend API clients mocked.",
       "evidence": [
         {
-          "resource": "repo://AGENTS.md#L13-L31",
+          "resource": "repo://AGENTS.md#L17-L35",
           "version": "repo-lines-v1:sha256:b0e4960f19f53a217d7ea27000fdaa19c9f4c634507cc16358237999ec78aaca:eyJzZWxlY3RlZExpbmVDb3VudCI6MTksImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjBhMzJkMDA1NTg5YjQxNjdkZDBjYTU2MzhjM2I0NTM3Nzk2YmQwNmIxYzkxYTRkNTBmYjk1ZDllNDQ0NDhlODQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijc0NDE5NzE1YWU5MzQ4M2MwOTk3ZTlkMWVkNDNjMWFiYmZiZGJmNTdiNTc4YmRiZjY5MDgzOTk3YTMxYmE0ZjgiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImI5NGY3ODBiYzA1ODVjZjM4MzEwNTUyMzUxZDEyYTNkYWIwMDIwOGQ1MDViOWJlN2NiYWU3NjRlZTQ5ODYxNGYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjNkNTFlOGY1NmE0YjA2ZmNmNDRlMTI5NjQ2N2I3NTJjZDU0NzAyOGJkYmJlYmNjZTVjMTJjZTAxODNhNjk1NjUifQ"
         },
         {
@@ -441,7 +441,7 @@
           "version": "repo-lines-v1:sha256:cc50eb96070d387a165f8ba04874134f6756e097b630fe6e592a982aab632bd6:eyJzZWxlY3RlZExpbmVDb3VudCI6NSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiZmRhZDBjOTI1Mzg4ZTVjOGYyYjQ0ZGM1YzllMGI4OTQ3MTMzNjA1ZWNlZDlhMDdkNTc5NTIwODYxOTE1YjJiZiIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiYTQ2OWZkODIyNjRjMTVmMTQ5NTUxODljMjQyNzg5NmE1NGZlNmIwM2U4Mjk4OWZmY2MwOWY4NDgzYjk4NjYzOCIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiY2YyNTE4YWViYzY5Nzg1OGQ1Zjc2NDg1ZWJiOGZlMjViNzU5ZGQyNWQ4OGY3MWE0OTEyOTgxYmU5YzdkMWNmMiIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiNmFmYzhkMzBmM2EwZjk2MWFlOWE1MTk2ZTg4MmM2YTIzNTlmNTI1MzUwOTc5MDFhMTBkMjFmZjU3YjIxMmFkZiJ9"
         },
         {
-          "resource": "repo://src/market/router.py#L719-L770",
+          "resource": "repo://src/market/router.py#L723-L774",
           "version": "repo-lines-v1:sha256:957289d3f4061b559ae4ab2011323c2e7a87966c871313ed9efaaa772e6d1c67:eyJzZWxlY3RlZExpbmVDb3VudCI6NTIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImE0MWJkMTY3Mzc5NjE1MzBiOGExMWE2ZTM5Y2M3ZDUyYzY4MmVjNDYzNWZkMWY1NDkwM2Y0MzA0NjQ5MzRkYTUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjViNzQ2ZjhlNjVhM2E3YzcyMTQ3ZGFlNzZmZjkwMDk1ZjhmZGQ1NTkwMDQyNGE0Njg4MzBiZjFmZGZkNmEyZmUiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjliY2Y4N2U1NmFmNmVmYWZlODM1MzI1M2UzZTUzZGYwMzEwOWRmYzZkOGMyYjkyNzBhMTNkODUxMGMwMDZkZGUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjdjOWQyMTU2YjY0ZTdjMjc3MjM3NmM1NzU0MTAzOWU1Njk5N2ExNTgwZGVlMDVjMzM5ZGE1YTBmNDBmYjViNTgifQ"
         }
       ]
@@ -455,7 +455,7 @@
           "version": "repo-lines-v1:sha256:ea492e3accb9eac619c3732b03ef8e80c36f56ccf6ad7859e2b773f44e5e44e4:eyJzZWxlY3RlZExpbmVDb3VudCI6MiwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiZmZiMzUxZWNmMTEwZTEwMmU2YTViZTQ5NDJjNDI4ZGM4OTdiZDMxYmQyZjJkN2I2NTNlOGE3M2RiYzA4MDIwYiIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiOTFjN2MxNDczNzQzMTI5NmExODJlMzNiNWRkYzUyMjA0ZmI3ZTE2YjMzMWFjNmZiZjBiZjVjOTQ1ZWEwNGQ3NyIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiMzg1YzNmZGQzYjRiMWFmZjFmNGUyYWZjMjcxMDY4ZTE5MGE4OTBmMjM3ZmZmNGU3OTkwZTViZTdmY2JhMTc2OCIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiMjY1YTEwOGY5MjBmODM0ZThkYjYxOTI2NTg2NTJmZGZhMDg1NzhhNDRlMDdiMzgyNzhiYzVmY2NhMTYxZTRiZCJ9"
         },
         {
-          "resource": "repo://src/market/router.py#L989-L999",
+          "resource": "repo://src/market/router.py#L1005-L1015",
           "version": "repo-lines-v1:sha256:df1beeab2c1e517c946bb390b4dc27ef6531bbb182bd535b05987793c49d0a81:eyJzZWxlY3RlZExpbmVDb3VudCI6MTEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImVjN2ZmOTlkOTEyNjEyYTllNGM4YWEzNGNkYWZjYzNiNGFiZTAzMDg2MDJjZDQyYWNmZDM0NDI4MzNlMzZkNTkiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAxYmE0NzE5YzgwYjZmZTkxMWIwOTFhN2MwNTEyNGI2NGVlZWNlOTY0ZTA5YzA1OGVmOGY5ODA1ZGFjYTU0NmIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjcxYTQyZjc1MmM4OTMwYzNiNjBjMGFkZDNlZjczYzNlZDc2YTc3NmRhMDkyNmI4OGQ0ZjdlNGY4YzFmZGQyMmEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjM4YjA2NDVkODFhZTFiMmUwOTg5NWJkYWU1YzIxMjkxNjIzYzYxZWNkZGI0OGY3NzM4ZjkxMjVjZGZjNzRjMjYifQ"
         },
         {
@@ -463,10 +463,42 @@
           "version": "repo-lines-v1:sha256:04c13ac7b4b74b397c7cb9cb12d064d55c7eb8068f8dc630bd7af1dc84b0227d:eyJzZWxlY3RlZExpbmVDb3VudCI6OTksImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjNjYzJmZjgxODkzMWRjZGRmM2Q4NzgzM2EzODgzMGEzZjk5MDA0YTExYTc2ZWQ1ZGM1NDIxYTkyN2E3YWRkYjkiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjRiMDZlYjY3Njg3NTUwMzcyZjc4NjMwNjE0YzBmNDgyYTU5MTYxMTgwNmQ2Yjc0YjhjZTYzYWNiMzc0MTVmOWYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImQ3MjIzMTA2ZmQ4NzQyYjcwZWEyMzNmOWRjMzU5ZjRiMDJiYmIwNjliNzI4M2VlZjc2MjQ5OTUxNmJkN2I5YzgiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
         }
       ]
+    },
+    {
+      "id": "claim_bb6fb8ec9e1942c7afb93fc0f8f252f0",
+      "statement": "The live and stub market registration sets are near-identical: `src/market/__init__.py::register_market_services` registers the EODHD gateway and price repository, the nine SQLAlchemy-backed repositories, the two caches, `IndicatorServiceClient`, the `MarketPricesApi`/`SecurityApi` domain APIs and the `MarketService`/`AIService`/`AlertEvaluationService` services, while `register_market_stub_services` in `src/config/services.py` repeats the same list but binds `AIService` to `StubAIService`.",
+      "evidence": [
+        {
+          "resource": "repo://src/config/services.py#L65-L156",
+          "version": "repo-lines-v1:sha256:ae3cee7ae5bd20529ef597c2b4f9fca6a7e553cb369605d0a7bbfc6769dcbecb:eyJzZWxlY3RlZExpbmVDb3VudCI6OTIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImZiN2I2Y2YyODM5NGRlY2NiZWY1YTllMTA2NmZiOTgyZDUxMTg0MGU1MzZhN2ZjMTQ0NTNmMDI4Y2FmZjMxZDYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImE0OTZlYWVkNDM1Y2RiOTIwYjc4NDQ3NWM2MDJkODk2NTdjYmRkOGNkZDk3MzJjMTYxZjk3YjQxOTVjYzllMzkiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjdhMTNiMzI5NGQwNTUzNTZjNjYyNWM0NGJjYTM0NWQ4MmY3YTIwM2ExY2JmYzMzYTAzZWY5ZTA2NGZhOGMxMjMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
+        },
+        {
+          "resource": "repo://src/market/__init__.py#L60-L97",
+          "version": "repo-lines-v1:sha256:a1e9ad268f19b18145d1b018d5a53ec719a4a020be682d4e61001f921c6846e0:eyJzZWxlY3RlZExpbmVDb3VudCI6MzgsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImZjMzRmYmVmYmEyMWQ3MmY5NzQ3MDM3MmNhZmMzZWMzMDMzNTBlNmM2MDNhOGQzOTk3NDc0YmZmYjAzYmRmNzgiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImE0OTZlYWVkNDM1Y2RiOTIwYjc4NDQ3NWM2MDJkODk2NTdjYmRkOGNkZDk3MzJjMTYxZjk3YjQxOTVjYzllMzkiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImE5OGIwNjNkOWI0N2U2NTM3OTYyNTU3MmNjZTE5NzY2OWQ1NzY3ZTEyYzE4YmUwNzU2NTJiOGNkOTgxY2U4ZDUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_96c961d9aa364f7db40579cf0d65c935",
+      "statement": "`settings.stub_external_api` defaults to `False` and is not present in `.env.example`, so the documented dev stack resolves the live market and integration registration sets; the flag is also read a second time inside `eodhd_gateway_factory`, which returns `StubEodhdGateway` when it is enabled, so the stub switch is not confined to `register_services`.",
+      "evidence": [
+        {
+          "resource": "repo://.env.example#L1-L60",
+          "version": "repo-lines-v1:sha256:861f6696ac0c3612cb238b58ac76c78529b066a159cfe9eebf8159ba2161e495:eyJzZWxlY3RlZExpbmVDb3VudCI6NjAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjdiMTAxMTY0NTlhNDc0M2U4MWYwZWE5NWNlNmI0ZWE5NmI2YTlkNGYxZTIzMTQwYmFkMDNiOWU1NDhjODI1NzUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjNiM2Y0NjM2ZDdmYjgxNzg3NTEyM2JmNDhiOWMyZTY4ZGJjOGVhODgzNTVlMGQ1ODE4MTQxNWIyNmE5N2NlYTciLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjowLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
+        },
+        {
+          "resource": "repo://src/config/settings.py#L21-L21",
+          "version": "repo-lines-v1:sha256:f6f28e2e53872816748c967e83374de68415633064d6c88958deb641c723e6ba:eyJzZWxlY3RlZExpbmVDb3VudCI6MSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiZjZmMjhlMmU1Mzg3MjgxNjc0OGM5NjdlODMzNzRkZTY4NDE1NjMzMDY0ZDZjODg5NThkZWI2NDFjNzIzZTZiYSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiZjZmMjhlMmU1Mzg3MjgxNjc0OGM5NjdlODMzNzRkZTY4NDE1NjMzMDY0ZDZjODg5NThkZWI2NDFjNzIzZTZiYSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiNjAyZDY0NjdjYjJlZTBhMDA2MzcyZDk0MTJkM2EyZDcwYWNkODgwNTQ0NTE3NDUxMTA4NTU3YjE5ZDllNGIxNCIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiNDFmYTczMjgzMGQ2ODViYTBmMzhkZjEwYjQ0YjFmMjc4YmNkYzU4NmYzYzAyMDk0ZDYyOTliNmI2OTNhZmYyNSJ9"
+        },
+        {
+          "resource": "repo://src/market/eodhd.py#L218-L223",
+          "version": "repo-lines-v1:sha256:f4db17284a8b3242f357cc49287e20039c46867435c8d3fbdb50886c19370bb6:eyJzZWxlY3RlZExpbmVDb3VudCI6NiwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiMTMyMDExNzI3ZDlmNWIxMDgzMDJkN2Q3OTE3YzM5YmY5YjM3Mjc3NzdkN2I1NzdhZWM1ZjFkNDkwZDQwMjA0ZSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNzk1NmI1MmYzOGQ4MDBiYzM5NjVjOTBlYWQyNTY4MDgxODA3OGMzYWRjNzJiZDQwYzYxYzMyM2FjZDA3ZWJjNyIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiOTcxMzFjZDViYTNiYmZlNzgxMGVmYjgxYWVkZjE0Y2FkOTAyYmExODBjZmUwMDU1OGY5Mzg0ZjdiNzkxMDk4NyIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjAsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiZTNiMGM0NDI5OGZjMWMxNDlhZmJmNGM4OTk2ZmI5MjQyN2FlNDFlNDY0OWI5MzRjYTQ5NTk5MWI3ODUyYjg1NSJ9"
+        }
+      ]
     }
   ],
   "verification": {
-    "by": "openwiki/0.5.2",
-    "at": "2026-09-23T13:18:56.288Z"
+    "by": "openwiki/0.6.1",
+    "at": "2026-10-02T14:25:20.147Z"
   }
 }

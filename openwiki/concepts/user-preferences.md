@@ -3,9 +3,6 @@ type: concept
 title: User Preferences
 description: The cross-cutting per-user preferences contract — one permissive JSON column on auth_users, the GET/PUT/PATCH /accounts/me/preferences surface with exclude_none and top-level JSONB merge semantics, the complete read/write ownership matrix for every preference key, and the fire-and-forget versus surfaced failure split.
 tags: [preferences, persistence, api-contract, sveltekit, ssr, jsonb, layout, holdings, charting]
-verified:
-  - by: openwiki/0.5.2
-    at: 2026-09-23T13:18:56.288Z
 sources:
   - id: openwiki-source-95a24be7f44e810285a4bb5e
     resource: repo://frontend/src/lib/api/userPreferencesService.test.ts
@@ -13,6 +10,8 @@ sources:
     resource: repo://frontend/src/lib/api/userPreferencesService.ts
   - id: openwiki-source-fd6bc3ef355365f09e91de6e
     resource: repo://frontend/src/lib/chart-preferences.ts
+  - id: openwiki-source-e1cb95ad60e9e5df185fb3aa
+    resource: repo://frontend/src/lib/components/actions-sidebar/fundamentals/fundamentals-group.svelte
   - id: openwiki-source-f50fd17f703650bc2f4f496d
     resource: repo://frontend/src/lib/components/actions-sidebar/holding-group/holdings-modal.svelte
   - id: openwiki-source-27ac4f8f6dce69da0f92d693
@@ -65,13 +64,20 @@ sources:
     resource: repo://src/auth/schema.py
   - id: openwiki-source-11b9d806fcc6dd6e7747ed87
     resource: repo://src/main.py
+  - id: openwiki-source-cc33fb93093886e62b166a26
+    resource: repo://src/market/model.py
+  - id: openwiki-source-8ba9c7034638e16be9336256
+    resource: repo://src/market/repository_sqlalchemy.py
   - id: openwiki-source-a76ef50616945a65747f66f9
     resource: repo://tests/routers/test_account_unauth.py
   - id: openwiki-source-1993a34df7bdc60d141f4e15
     resource: repo://tests/routers/test_accounts.py
   - id: openwiki-source-a4d537c22eb76e76a0ffde6e
     resource: repo://tests/routers/test_market.py
-generated: { by: "openwiki/0.5.2", at: "2026-09-23T13:18:56.288Z" }
+generated: { by: "openwiki/0.6.1", at: "2026-10-02T14:25:20.147Z" }
+verified:
+  - by: openwiki/0.6.1
+    at: 2026-10-02T14:25:20.147Z
 ---
 
 # User Preferences
@@ -127,17 +133,24 @@ asserts both directions (user B sees `{}` while user A still sees their document
 ### Permissive payload
 
 `UserPreferences` in `src/account/api_types.py` sets `model_config = ConfigDict(extra="allow")`
-and declares only a subset of the keys the frontend actually uses (`timeframe`,
-`chart_style`, `indicators`, `sidebar_open`, `holdings_period`, `elliott_waves`,
-`fibonacci_tools`, `wave_settings`, `watchlist_order`, `watchlist_sort`). Consequences:
+and declares a subset of the keys the frontend actually uses: `timeframe`, `chart_style`,
+`indicators`, `sidebar_open`, `holdings_period`, `elliott_waves`, `fibonacci_tools`,
+`wave_settings`, `chart_hide_labels`, `chart_auto_scale`, `chart_log_scale`,
+`show_valuation_band`, `watchlist_order`, `watchlist_sort`. Consequences:
 
 - **Unknown keys pass through.** The server is a store, not a schema authority: a key the
-  frontend adds without touching the backend round-trips unchanged. Declared fields are
-  still typed, so a malformed declared field (for example a non-list `watchlist_order`)
-  is rejected with a 422 before it reaches the column.
+  frontend adds without touching the backend round-trips unchanged — `drawings`,
+  `holdings_table`, `holdings_group`, `indicator_pane_heights`, `collapsed_watchlist_ids`
+  and `expanded_account_ids` all persist this way today. Declared fields are still typed, so
+  a malformed declared field (for example a non-list `watchlist_order`) is rejected with a
+  422 before it reaches the column.
 - **The declared list is advisory and drift-prone.** The authoritative key list is the
   `UserPreferences` interface in `frontend/src/lib/api/userPreferencesService.ts` plus the
-  components that write each key plus the router tests. Treat any other inventory
+  components that write each key plus the router tests. The two lists have drifted in both
+  directions: the frontend interface declares `collapsed_watchlist_ids`,
+  `expanded_account_ids`, `drawings`, `holdings_table`, `holdings_group` and
+  `indicator_pane_heights`, which the backend does not declare, while the backend declares
+  `watchlist_sort`, which the frontend interface does not. Treat any other inventory
   (including planning drafts such as `.opencode/features/user-chart-preferences.md`, which
   predates most of the keys) as stale.
 
@@ -171,11 +184,12 @@ with `.returning(UserModel.preferences)`. Two properties follow, and both are lo
 for every writer:
 
 1. **The merge is top-level only.** `indicators`, `wave_settings`, `elliott_waves`,
-   `fibonacci_tools`, `drawings` and `holdings_table` are *values*, not sub-documents: any
-   patch that mentions the key replaces it entirely. `tests/routers/test_accounts.py`
-   documents this explicitly for `wave_settings` ("the top-level wave_settings key is
-   replaced entirely by the JSONB `||` merge"), and the writers say the same in comments
-   ("PATCH replaces the whole `indicator_pane_heights` key — always send the full object").
+   `fibonacci_tools`, `drawings`, `holdings_table` and `indicator_pane_heights` are
+   *values*, not sub-documents: any patch that mentions the key replaces it entirely.
+   `tests/routers/test_accounts.py` documents this explicitly for `wave_settings` ("the
+   top-level wave_settings key is replaced entirely by the JSONB `||` merge"), and the
+   writers say the same in comments ("PATCH replaces the whole `indicator_pane_heights`
+   key — always send the full object").
 2. **One key per write is the race-safe shape.** Because unrelated keys are untouched by a
    single-key patch, independently mounted components (layout, sidebar, chart page,
    holdings page) can patch concurrently without clobbering each other. The
@@ -203,7 +217,7 @@ sequenceDiagram
     participant Page as Route page or component
 
     Browser->>Load: authenticated page request
-    Load->>Prefs: getPreferences(auth_token)
+    Load->>Prefs: getPreferences with auth token
     Prefs->>API: GET with Bearer token
     API-->>Prefs: stored document or empty object
     Prefs-->>Load: preferences or silent catch
@@ -242,7 +256,10 @@ carries the cookie). No other module talks to the endpoint directly.
 | `timeframe` | security page `onPreferencesLoaded` → `changeTimeframe(prefs.timeframe, { persist: false })` | security page `changeTimeframe` persist branch → `updateChartPreferences` | logged only |
 | `chart_style` | security page `onPreferencesLoaded` (falls back to `heikin_ashi`) | security page style buttons → `updateChartPreferences` | logged only |
 | `indicators` | security page `onPreferencesLoaded` (enabled, color, period/stdDev/fast/slow/signal) and `IndicatorsGroup.loadPreferences` | `IndicatorsGroup.toggleIndicator` / `saveSettings` / `resetSettings` (each sends the whole map) | logged only |
-| `chart_hide_labels` | security page → chart `hideLabels` prop and `ChartSettingsModal` | security page `handleChartHideLabelsChange` | logged only |
+| `chart_hide_labels` | security page → chart `hideLabels` prop and `ChartSettingsModal` | security page `handleChartHideLabelsChange` (sent together with auto/log scale) | logged only |
+| `chart_auto_scale` | security page → chart `autoScale` prop and `ChartSettingsModal` | security page `handleGeneralSettingsChange` / `handleAutoScaleChange` | logged only |
+| `chart_log_scale` | security page → chart `logScale` prop and `ChartSettingsModal` | security page `handleGeneralSettingsChange` | logged only |
+| `show_valuation_band` | security page `onPreferencesLoaded` and the client-side fetch branch → `showValuationOverlay` | `fundamentals-group.svelte` `handleToggleOverlay` | logged only |
 | `wave_settings` | security page: wave-alert reconcile (defaulting to `DEFAULT_WAVE_SETTINGS`) and `ChartSettingsModal` | security page `handleWaveSettingsChange` (whole object) | logged only |
 | `indicator_pane_heights` | security page `applySavedPaneHeights` → `chartRef.setPaneHeights` | security page `handlePaneHeightsChange` (whole map or null) | logged only |
 | `holdings_period` | `holdings-modal.svelte` `loadPreferences` on each open, validated against `PERIODS` and defaulting to `ALL` | `holdings-modal.svelte` `handlePeriodSelect` | logged only |
@@ -253,9 +270,13 @@ must not be assumed live:
 - `sidebar_watchlists` — present in the frontend `UserPreferences` interface only; no
   component reads or writes it.
 - `watchlist_sort` — declared on the backend `UserPreferences` model and exercised by
-  `test_preferences_watchlist_order_and_sort`, but no frontend code reads it. Per-watchlist
-  security sort moved to a column on the watchlist itself (`WatchlistRead.sort`, persisted
-  through `PATCH /market/watchlists/{id}`), not to a preference.
+  `test_preferences_watchlist_order_and_sort`, but no frontend code reads or writes it. Keep
+  the boundary explicit: **watchlist list order** (`watchlist_order`, the order of the
+  watchlists themselves) is a preference, while **the sort of the securities inside one
+  watchlist** is a database column on the watchlist row
+  (`WatchlistModel.sort`, `WatchlistRead.sort`, server default `'custom'`), persisted
+  through `PATCH /market/watchlists/{id}` and normalized on the client by
+  `normalizeWatchlistSort`. The two are not interchangeable.
 
 ### Read-merge-write helper
 
@@ -264,7 +285,8 @@ helper that spreads the existing document and defaults `indicators` to `{}` befo
 the partial, so a partial chart write cannot clobber indicator settings. It is unit-tested
 in `userPreferencesService.test.ts` and `page.svelte.test.ts`, but **no production code
 calls it**: the security page's `updateChartPreferences` issues a bare partial PATCH and
-relies on the server's top-level merge instead. Do not cite it as the live mechanism.
+relies on the server's top-level merge instead. Do not cite it as the live mechanism, even
+though its docstring claims the security page uses it.
 
 ## Which load reads what
 
@@ -272,18 +294,20 @@ Preferences are read in three different places, and the split matters because th
 loads must pass the token explicitly (`cookies.get('auth_token')`), while browser-side
 readers use the singleton:
 
-- **Root layout load** (`frontend/src/routes/+layout.server.ts`) — reads `sidebar_open`,
-  `collapsed_watchlist_ids`, `watchlist_order` and `expanded_account_ids` for every authenticated request, guarded
-  per key by a type check (`typeof prefs.sidebar_open === 'boolean'`,
+- **Root layout load** (`frontend/src/routes/+layout.server.ts`) — reads four keys:
+  `sidebar_open`, `collapsed_watchlist_ids`, `watchlist_order` and `expanded_account_ids`
+  for every authenticated request, guarded per key by a type check
+  (`typeof prefs.sidebar_open === 'boolean'`,
   `Array.isArray(prefs.collapsed_watchlist_ids)`, `Array.isArray(prefs.watchlist_order)`,
-  `Array.isArray(prefs.expanded_account_ids)`)
-  with defaults `true`, `[]`, `null` and `[]`. The whole request sits in a `try/catch` that
-  silently falls back, and the read is skipped entirely when `locals.user` is unset.
+  `Array.isArray(prefs.expanded_account_ids)`) with defaults `true`, `[]`, `null` and `[]`.
+  The whole request sits in a `try/catch` that silently falls back, and the read is skipped
+  entirely when `locals.user` is unset.
 - **`/holdings` load** (`frontend/src/routes/holdings/+page.server.ts`) — reads
-  `holdings_table`, `holdings_group` and `elliott_waves` in its **own** `try/catch`, because
-  it deliberately awaits only the cheap preference-derived keys and lets holdings rows load
-  after navigation. A rejected request is non-fatal: the load still returns, with
-  `normalizeHoldingsTableConfig(null)`, `'none'` and `null` waves.
+  `holdings_table`, `holdings_group` and `elliott_waves` alongside portfolios and accounts
+  via `Promise.allSettled`. A rejected preferences request is non-fatal: the load still
+  returns, with `normalizeHoldingsTableConfig(null)`, `'none'` and `null` waves, while
+  holdings rows load after navigation. A 401 from *any* of the three clients clears the auth
+  cookie and throws a 303 redirect to the login route instead of falling back.
 - **`/watchlists` load** (`frontend/src/routes/watchlists/+page.server.ts`) — reads nothing
   from preferences and returns `{ watchlists: [] }`; the page takes `watchlist_order` from
   `$page.data`, i.e. from the root layout load.
@@ -312,11 +336,12 @@ surfaces:
   a destructive alert above the table — it shares that alert slot with `service.errorMessage`.
   The `/watchlists` reorder path rolls the optimistic reorder back before surfacing the
   error through `watchlistService.error`.
-- **Logged only**: every security-page and `ChartDrawingsService` write (`timeframe`,
-  `chart_style`, `indicators`, `chart_hide_labels`, `wave_settings`,
-  `indicator_pane_heights`, `holdings_period`, `elliot_waves`, `fibonacci_tools`,
-  `drawings`). Chart mutations are optimistic and self-healing, so a lost write shows up as
-  a setting that does not come back on the next load rather than as an error banner.
+- **Logged only**: every security-page, `fundamentals-group` and `ChartDrawingsService`
+  write (`timeframe`, `chart_style`, `indicators`, `chart_hide_labels`, `chart_auto_scale`,
+  `chart_log_scale`, `show_valuation_band`, `wave_settings`, `indicator_pane_heights`,
+  `holdings_period`, `elliot_waves`, `fibonacci_tools`, `drawings`). Chart mutations are
+  optimistic and self-healing, so a lost write shows up as a setting that does not come back
+  on the next load rather than as an error banner.
 
 A read failure is never fatal anywhere: the root load and the `/holdings` load both fall
 back to defaults, and the security page leaves `userPreferences` null, which gates the
@@ -328,16 +353,17 @@ alerts.
 - **Add the key to the frontend interface and to every reader/writer; a backend change is
   optional.** `extra="allow"` means a new key persists without touching
   `src/account/api_types.py`, but adding it there keeps the typed surface honest — the two
-  lists drift silently otherwise.
+  lists drift silently otherwise (both directions are already drifted today).
 - **Patch one key at a time.** Multi-key patches widen the window in which a concurrent
   component write can be lost, and nested writes must send the complete value because the
   merge is shallow.
 - **Do not rely on null to clear a value.** `exclude_none=True` drops it on both verbs.
 - **Normalize unvalidated stored values on read.** Because extras bypass validation, the
-  consumers own robustness: `normalizeHoldingsTableConfig` drops unknown column ids and
-  clamps widths, `normalizeHoldingsGroupMode` maps anything that is not `stock`/`company` to
-  `'none'`, and `holdings-modal.svelte` rejects a stored `holdings_period` outside `PERIODS`
-  in favour of `ALL`.
+  consumers own robustness: `normalizeHoldingsTableConfig` drops unknown column ids,
+  clamps widths to per-column bounds and forces the sticky first column visible,
+  `normalizeHoldingsGroupMode` maps anything that is not `stock`/`company` to `'none'`, and
+  `holdings-modal.svelte` rejects a stored `holdings_period` outside `PERIODS` in favour of
+  `ALL`.
 - **Keep the layout read cheap.** The root load runs on every authenticated request; the
   pattern for heavier keys is the `/holdings` route load, which reads its own keys and lets
   the page fetch rows after navigation.
@@ -349,10 +375,10 @@ alerts.
 | `tests/routers/test_accounts.py` | `test_preferences_empty` (`{}` when nothing saved), `test_preferences_roundtrip`, `test_preferences_partial_update` (no fabricated defaults), `test_preferences_isolated`, `test_preferences_patch_from_empty`, `test_preferences_patch_partial_merge`, `test_preferences_patch_cross_component_isolation`, `test_preferences_patch_isolated_across_users`, plus per-key round-trips for `sidebar_open`, `holdings_period`, `elliott_waves`, `fibonacci_tools`, `wave_settings` and `watchlist_order`/`watchlist_sort` |
 | `tests/routers/test_account_unauth.py` | 401 for `GET`, `PUT` and `PATCH` without a token |
 | `tests/routers/test_market.py` | `test_indicator_preferences_endpoints_return_404` — the removed per-security endpoints stay removed |
-| `frontend/src/lib/api/userPreferencesService.test.ts` | GET/PUT/PATCH verbs and paths, `tokenOverride` headers, an empty `{}` response resolving without throwing, `wave_settings` nested bodies, `mergeChartPreferences` |
-| `frontend/src/routes/layout.test.ts` | root load reads `collapsed_watchlist_ids`, `watchlist_order` and `expanded_account_ids`, defaults to `[]` / `null` / `[]` when absent |
+| `frontend/src/lib/api/userPreferencesService.test.ts` | GET/PUT/PATCH verbs and paths, `tokenOverride` headers, an empty `{}` response resolving without throwing, `wave_settings` nested bodies, `mergeChartPreferences`. It mocks `global.fetch` directly rather than importing any other API client |
+| `frontend/src/routes/layout.test.ts` | root load reads `collapsed_watchlist_ids`, `watchlist_order` and `expanded_account_ids`, defaulting to `[]` / `null` / `[]` when absent or non-array |
 | `frontend/src/lib/components/accounts/accounts-list-item.test.ts` | expansion state restored on load, persisted to preferences on toggle |
-| `frontend/src/routes/holdings/page.server.test.ts` | the load returns exactly `holdings_table_config`, `group_mode`, `elliott_waves`; a rejected preferences request yields defaults while holdings still load; holdings are never fetched in the server load |
-| `frontend/src/lib/components/holdings/holdings-table-prefs.test.ts`, `holdings-group-prefs.test.ts` | normalization and single-key PATCH payloads, tolerated rejections, no write on load |
-| `frontend/src/routes/security/[security_id]/page.svelte.test.ts` | pane heights restored on load, persisted as a whole map, and reset sent as `null` |
+| `frontend/src/routes/holdings/page.server.test.ts` | the load returns exactly `holdings_table_config`, `group_mode`, `elliott_waves`, `portfolios`, `accounts`, `portfolio_id`, `account_id`; a rejected preferences request yields defaults while holdings still load; holdings are never fetched in the server load. It mocks `userPreferencesService`, `portfolioClient`, `accountClient` and `auth-cookie` |
+| `frontend/src/lib/components/holdings/holdings-table-prefs.test.ts`, `holdings-group-prefs.test.ts` | normalization and single-key PATCH payloads through an injected service, tolerated rejections, no write on load |
+| `frontend/src/routes/security/[security_id]/page.svelte.test.ts` | pane heights restored on load, persisted as a whole map, and reset sent as `null`; `mergeChartPreferences` read-merge-write contract |
 | `frontend/src/lib/components/actions-sidebar/holding-group/holdings-modal.test.ts` | `holdings_period` restored on open, invalid values falling back to `ALL`, selection persisted |

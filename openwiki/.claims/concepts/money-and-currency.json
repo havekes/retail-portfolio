@@ -1,18 +1,18 @@
 {
   "schemaVersion": 1,
-  "pageVersion": "sha256:1e73b6e7be072a11b2bc98ed99418b211028aa78fd5fac0b0a0f2c3487627e3b",
+  "pageVersion": "sha256:4cf1b83e8d376d9b79100055789052d4ebe2417fa4d70d1545689ad8241e95f2",
   "claims": [
     {
       "id": "claim_1fa7b469a4a341a483fe1a1fc0ed5014",
-      "statement": "The backend money model uses two representations: raw numeric values (prices, position quantity and average_cost) are `Decimal` in the API types, while any currency-tagged amount is `stockholm.Money`, and `Account.currency` / `Security.currency` are `stockholm.currency.Currency` rather than plain strings.",
+      "statement": "The backend money model uses two representations: raw numeric values (prices, position quantity and average_cost) are `Decimal` in the API types and schemas, while any currency-tagged amount is `stockholm.Money`, and `Account.currency` / `Security.currency` are `stockholm.Currency` rather than plain strings; `AccountSchema` adds a `@field_serializer(\"currency\")` that emits the currency code as a string on the wire.",
       "evidence": [
         {
-          "resource": "repo://src/account/api_types.py#L1-L46",
-          "version": "repo-lines-v1:sha256:be5e23cd0fdf4b5700521db06c68c6de1ab6af43b02dd98dbcf9338f01120b93:eyJzZWxlY3RlZExpbmVDb3VudCI6NDYsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjJlZDAyNDdjYzA1Yjg2MWZlYTMzOTFlZTc2NTFhZWM0YmI1NzMwNGI3MWJlNmU5NmQyYjc0ZDE3MWM1NTFmNTUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjYwMWYyM2ZmOTczN2IyMzVkNTM1YjVjYjI2ZDQyMzJjMmJjMTg5MmY4OTZmMTFiODFjMTQ0MWM0ZDEwY2ZjZGMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjowLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImE1YjA3ZmI5OTBkMjZlYmNmM2JlZDM4ZjBkODUxMjY2ODI4YjAxOTBiZGJlMTkxODFjNmIxNDgwMmQ4YTliZWUifQ"
+          "resource": "repo://src/account/api_types.py#L18-L47",
+          "version": "repo-lines-v1:sha256:b603ccdb672f2f5b8ae3d0a3b9e5768b73f669ddf8d544586a9a1b915409dfaf:eyJzZWxlY3RlZExpbmVDb3VudCI6MzAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImRkNjA3ZmUyMGE0MzQ4YjIwNDM0M2MxNDA4NjMwN2NiY2NhNmQ2MDM5MDM3OTQ2MzM5N2I5MmM2N2I1OTU2MWEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAxYmE0NzE5YzgwYjZmZTkxMWIwOTFhN2MwNTEyNGI2NGVlZWNlOTY0ZTA5YzA1OGVmOGY5ODA1ZGFjYTU0NmIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjRiNjZjYzYxOTFiMTZkMDVmYTJjMzhmOTE1ZjQ4MGUzZjk3MWRlYjQ1NDU1NjQwZjI5MGEyYWIzZjQ4OGE1ZjEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6Ijc5YzMyZTg4Njg5NDViNzMzOTNkOGUyYjgxODQ4OGYyNzA3ODczZmM5Y2VjZGFhMjBlODE3NWU1MWY5NmM5ODgifQ"
         },
         {
-          "resource": "repo://src/account/schema.py#L26-L47",
-          "version": "repo-lines-v1:sha256:a7e1e0142047e4f3818eaa037fa317adf6128d2c1ffa3b5a11f6bbf76a9231d3:eyJzZWxlY3RlZExpbmVDb3VudCI6MjIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImE1MTg2OTE3NDYyMDU5NjM5MGJiODU5MTkzMGNlMTE4NDA0ODExZjlkYTBhNjI3ZTk0MmViMDg2Mzg3MzUxZjgiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjA3MTgzYjQxMTA3Y2Q3NjIxMmI2MDViZGE1NzRiOGE0NmJjZDFjNDI5NmM2ZDdlMDMwNDc1OTU4OGJiMDdjYjciLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjhiYTMzZGY3NDBiY2MyZWRmMDJiZjIxYTFiZjk2YWFjOGY1NGRlMzY3ZDNjZjFkNmEyZDBiYmQ4YmM4NDVhYjEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjEwYjFiMTNkMzM1N2NhZWY2YTg4ZWE2OTZiNDgyYWM2ZTE5MjFmN2FiYWU3ZjJmNjcyNTdlMzg3NmYzZWQ4OTEifQ"
+          "resource": "repo://src/account/schema.py#L26-L49",
+          "version": "repo-lines-v1:sha256:457e2498975b1f4091a62d5bf8aaccb2a8ef032e7a7a2f42fed3a7b90f58e6b7:eyJzZWxlY3RlZExpbmVDb3VudCI6MjQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImE1MTg2OTE3NDYyMDU5NjM5MGJiODU5MTkzMGNlMTE4NDA0ODExZjlkYTBhNjI3ZTk0MmViMDg2Mzg3MzUxZjgiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAxYmE0NzE5YzgwYjZmZTkxMWIwOTFhN2MwNTEyNGI2NGVlZWNlOTY0ZTA5YzA1OGVmOGY5ODA1ZGFjYTU0NmIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjhiYTMzZGY3NDBiY2MyZWRmMDJiZjIxYTFiZjk2YWFjOGY1NGRlMzY3ZDNjZjFkNmEyZDBiYmQ4YmM4NDVhYjEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjU0ZTQ0YmFiZmEyOWYzYjM5ODg0MTJmNjg2ZDM2YWU3ZTViMGEwMzQxZjIzNjI5ZjU3NDZiNGQ3ZjI5ODg4ZjQifQ"
         },
         {
           "resource": "repo://src/market/api_types.py#L13-L37",
@@ -39,58 +39,66 @@
       "statement": "Currency conversion is centralized in `PositionService._currency_convert`, which short-circuits when source and target currency codes match and otherwise calls `currency_converter.CurrencyConverter.convert(...)`, rounds to 2 decimal places, and re-wraps the result as `Money`; the `CurrencyConverter` instance is constructed once in `position_service_factory` and injected into the service.",
       "evidence": [
         {
-          "resource": "repo://src/account/service/position.py#L257-L271",
+          "resource": "repo://src/account/service/position.py#L298-L312",
           "version": "repo-lines-v1:sha256:43abc8452ad4a193737193297a622844bbec6e06be3030f4eb131351a6dc1629:eyJzZWxlY3RlZExpbmVDb3VudCI6MTUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImZkZDFjNWVkMzc5OGI2NjMyMmIxY2MzYTJiZDliNTUwZjc5ZjQ1ZTY5NjU2ODM1NjBhMWIzYjEzMTI1MzMxNjUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjI1NGI5MzBmZDBjNmU0NTlmNjFjNTUyNWE3ZDMxMTAyODk0N2IzMWM5YTA4YzIwYzliZjczMzJhNzhiMjEyYjMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImM0MDY0NzYxODVhYWZhNzcxZTIzOTY3NGI0ZThhM2ZlZmVhMzNmNDNhZGQ5MWU2MGFmYTg5ODdiNTY0ZTQyNTMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjNkZjUxMDJkYjQ1YzIwNjQ5N2M1NjE2MThiZDUwNGEzZWMxZDRjN2NlMGMzNzc5OGFmNTMxOTExZWM1Yzg3M2UifQ"
         },
         {
-          "resource": "repo://src/account/service/position.py#L339-L348",
+          "resource": "repo://src/account/service/position.py#L383-L392",
           "version": "repo-lines-v1:sha256:5b5bfbd5694886b2d6c296d2731652a62cc20ff2573749b5efe6f12f9e05c212:eyJzZWxlY3RlZExpbmVDb3VudCI6MTAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImJjYTE0NjIxNjVkMjE2OTQ4MTU3MzdlZWRlMmI2MDk3MGI5ZDEzYTA0NmIyNmQ4N2U0OTFlNTZiZWM0MTJhMzYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjMwYzFmMTg4ZjE0MmVkN2E4MjQ2ODBiMjA3MTcyYzU1MTliYzYxNGE0OGZkYTdjZjE2N2VkYjhkZGY3OTk1NmMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImQ2ZmNlZGVlNjVkNGE5YzFjMmEwNDYwM2FiZjhkNzZkY2I2YzMwY2ZmMjgwMjgyZDZkNTc1YjEyYmI0NWRiOWEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
         }
       ]
     },
     {
       "id": "claim_650f899ab59d4bb1864fb9151ea7c199",
-      "statement": "Conversion is applied per position before accumulation rather than to stored values, so positions never have their `average_cost` rewritten by FX and every accumulator for total cost, total value, and total P&L adds only account-currency `Money` values.",
+      "statement": "Conversion is applied per position before accumulation rather than to stored values, so positions never have their `average_cost` rewritten by FX and every accumulator for total cost, total value, and total P&L adds only account-currency `Money` values; `_currency_convert` short-circuits when source and target codes already match, so the round-to-2-places step only applies on rows that actually need FX.",
       "evidence": [
         {
-          "resource": "repo://src/account/service/position.py#L179-L203",
-          "version": "repo-lines-v1:sha256:0a22482c87b3523ce7a4da4615aeb37e7b5b00db154601a31a929c52edc9f194:eyJzZWxlY3RlZExpbmVDb3VudCI6MjUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjJhMTdiNmY3NDFmY2Y0NWQ3ZGFjMmQ3ZmRhMTc3YTU2Mzk4NWIxNDE5MjI4NWZlY2JiZWM0MjY0ZGYwNzFkZWEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjU5MDlhNTNhNjE4ZDAyOGUxZDMwMDBjMGE3YWJjZWVjYmU1ZmIzN2Y0ZTUxMWVmZTQ2NjQzZmFkNmU2Njg3MmYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImU0YmM3MzBkYTQzOTdmNWJmNTc0NmRlNDM5NzUyNGM2NmRlNTNjMTdkZWQ3ZTg2Yjc5ZDRjYWExNWI5MTBkNDMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjdjNzQ2MjQ1NGQxNTYxOTM0MTUwOWViYjIwZTVmOTY5YzcwNmNlNDlkNDFjN2FlYmI0MmQ0MTU2M2Q2YWQ0MDIifQ"
+          "resource": "repo://src/account/service/position.py#L212-L243",
+          "version": "repo-lines-v1:sha256:4e78d3ccd12a7eb71747d9f1744df3dc567b126fdac7b77aa1872bc75a1cd63d:eyJzZWxlY3RlZExpbmVDb3VudCI6MzIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjJhMTdiNmY3NDFmY2Y0NWQ3ZGFjMmQ3ZmRhMTc3YTU2Mzk4NWIxNDE5MjI4NWZlY2JiZWM0MjY0ZGYwNzFkZWEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjU5MDlhNTNhNjE4ZDAyOGUxZDMwMDBjMGE3YWJjZWVjYmU1ZmIzN2Y0ZTUxMWVmZTQ2NjQzZmFkNmU2Njg3MmYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImU0YmM3MzBkYTQzOTdmNWJmNTc0NmRlNDM5NzUyNGM2NmRlNTNjMTdkZWQ3ZTg2Yjc5ZDRjYWExNWI5MTBkNDMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjdjNzQ2MjQ1NGQxNTYxOTM0MTUwOWViYjIwZTVmOTY5YzcwNmNlNDlkNDFjN2FlYmI0MmQ0MTU2M2Q2YWQ0MDIifQ"
         },
         {
-          "resource": "repo://src/account/service/position.py#L205-L238",
+          "resource": "repo://src/account/service/position.py#L245-L278",
           "version": "repo-lines-v1:sha256:7fa37c0e12b74847752928dcbdd947a164903269adab6943fcc3ab8000a0c763:eyJzZWxlY3RlZExpbmVDb3VudCI6MzQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImM0NzM5NThkNjZjZWYxMjU0N2E0MGFlYmViM2Y3NTI4NmU1MmE3ZDI3Mjc3MzczZWI1NTM4MGE5NDNlZGViM2QiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImVjZWZjNWE0ZTUwZDgxMmNkMTk5ZDEwYjkxMzkzYWM5ZDZiYzVkMGU0ODQ4ZDNlMGM2MDNmMmNkZGZhZjcyNWIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjE4MmUzOWM1NzZhMzY4Mzg5NmUyOGY5MTQxZjM2MzI5OTRkMGY5ZWUzZjIzODkzM2U4ZTU4ODEwZWFlYzhkODYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjMzMzZiM2JkMzkwYWFjY2E4MzBjNTEyYzEwMTQ1MjE1NzM2ZjYyNDBmY2M1MmM4YzY2MTNiN2U2ZTQ3ZTk5NjYifQ"
+        },
+        {
+          "resource": "repo://src/account/service/position.py#L298-L312",
+          "version": "repo-lines-v1:sha256:43abc8452ad4a193737193297a622844bbec6e06be3030f4eb131351a6dc1629:eyJzZWxlY3RlZExpbmVDb3VudCI6MTUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImZkZDFjNWVkMzc5OGI2NjMyMmIxY2MzYTJiZDliNTUwZjc5ZjQ1ZTY5NjU2ODM1NjBhMWIzYjEzMTI1MzMxNjUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjI1NGI5MzBmZDBjNmU0NTlmNjFjNTUyNWE3ZDMxMTAyODk0N2IzMWM5YTA4YzIwYzliZjczMzJhNzhiMjEyYjMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjNkNzI3MWZkYTg1ODRkMzc0MWYxZTBmMWFlM2Y2MDVhOTA1ZjlmMzc1ZjNjNDRhMWU4YzE4ZDZiOTU0MzgwOTgiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjNkZjUxMDJkYjQ1YzIwNjQ5N2M1NjE2MThiZDUwNGEzZWMxZDRjN2NlMGMzNzc5OGFmNTMxOTExZWM1Yzg3M2UifQ"
         }
       ]
     },
     {
       "id": "claim_07a02410667d43e598ca1d78a849ba97",
-      "statement": "`HoldingRead` reports the same logical amounts twice — native values in `security_currency` (`unconverted_total_value`, `latest_price`, `average_cost`, `unconverted_profit_loss`) and converted values in the account `currency` (`total_value`, `profit_loss`, `converted_average_cost`, `converted_latest_price`) — and the holdings table only prints the converted line when `holding.security_currency !== holding.currency`.",
+      "statement": "`HoldingRead` reports the same logical amounts twice — native values in `security_currency` (`unconverted_total_value`, `latest_price`, `average_cost`, `unconverted_profit_loss`) and converted values in the account `currency` (`total_value`, `profit_loss`, `converted_average_cost`, `converted_latest_price`) — and the two frontend holdings tables disagree on prominence: `components/holdings/holdings-table.svelte` leads with the converted `total_value` and shows `unconverted_total_value` as a small secondary line, while `components/accounts/holdings-table.svelte` leads with `unconverted_total_value` and shows `total_value` as the secondary line.",
       "evidence": [
         {
-          "resource": "repo://frontend/src/lib/components/accounts/holdings-table.svelte#L176-L221",
-          "version": "repo-lines-v1:sha256:990693d2ba3d60322a3b8e1d8d10ee220bc3ed9cf93f89f9c82e5d1270c8a345:eyJzZWxlY3RlZExpbmVDb3VudCI6NDYsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjU5MmYwNmYwMTNlMjg2OWNiMWY2ZjMyZGE1MGI2YzI2ZTFjMTdiMGIyOGJkN2VjNDgyNDY4NjA2Y2M0OTc4YWUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjllODYyZDY0MGNmYWUyNjQ1MTI1NTFlYzJhYjVjOTliNTcwMjQ4YTg4MTY1YTFiM2M5YWEwYzY3OGMxYzFmNWMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjhkNjg0MjZlZDllYjI0MjU3YTA4MTM3N2JiOGY2MTJhYjhkNmY3NjE5NjA1MWVmNTZjYzcwNjAzMGVmNWM5YjEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImFlNjNjNDg2NDI5ZmI1NDNmZGVkODI5MTViOWZhNGY2ZjhkNDBjNmM5YzZmZGFiZTYwNzRmOTViYjBlMGNlMmIifQ"
+          "resource": "repo://frontend/src/lib/components/accounts/holdings-table.svelte#L210-L228",
+          "version": "repo-lines-v1:sha256:0eac32b8e90bc6d294ebb64a200a25e575f96b992e19d5cb65c5de589951778c:eyJzZWxlY3RlZExpbmVDb3VudCI6MTksImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjVmYzk4YjE2OWQ5MjY4MTBlNTk3MmFhNWFjZmFmM2FmMTBkNDhiYmEyMTI3OTVkOGYyOTI2NWYzMzU3OTkwYTAiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImY2Yzg0ZWMzOGE2MjAyODAwMTg4ZjNmYTI2ZmJhZWFiMmRmNDRiYjAwMWUyYjVmMmFlNzU5OTA2OGM5NmMzNmUiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjM0NTAxNDdhNzU1OWIxMmY0ZGIwMWVhYmQ3ZmI1NzhkMmMwZjhkMDcxODc2NzYyNDA0Njc4ZWQxYWE5Y2RmNzMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjBiNmVjNmVjNzA2N2I1ZDUxNzQ2ZjA2ZDY2NmIzMDhmNjgxMGI0MmIwYjUwMDkzZWZmOGE5NGEwMjcwMTk4YzUifQ"
         },
         {
-          "resource": "repo://src/account/schema.py#L152-L169",
-          "version": "repo-lines-v1:sha256:16dfa847c02575de39a52d1099987421dc2df91d5728dd4ce89513cfa4c690f1:eyJzZWxlY3RlZExpbmVDb3VudCI6MTgsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImU2ZDQ3YzFhOTc4OTljMTE1YzI4NGZlYzAwZTVkMmM0ZjI0MzI5ZDc2Njg3NTFmYWJhMzRhNDU2ZDVlMDZjMGUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImZkNDg1NDE0NTgyOTVmZTk3NTY3OTdjYjdhYTA4ZjQyMzIyMmRhMzcwMGY5YWJmMThlMDFhM2QzNzVkYTk5MTkiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6Ijc4ZmExNzBkYjA2ODc1MWJmOTg4NGE2NTNjMWFhMmFkM2YzZmViMWQ3NThkZDcyZGQzZjg3OWViZDc3OWNjMzAiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjRlZjA1MzAwOGZlMGY4NmM3YmVmYTgzZTYyZDg2ZmE4YzAyYWQ2ODljZDIxMTlkOWYyZTc4OGRlYjFmZjY1ODIifQ"
+          "resource": "repo://frontend/src/lib/components/holdings/holdings-table.svelte#L485-L498",
+          "version": "repo-lines-v1:sha256:531b93647c992dfb52803b51045e6e88aa65fb57348db9b5c4928723581ce6dd:eyJzZWxlY3RlZExpbmVDb3VudCI6MTQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjMxMjg1YzkyYTExNzBjN2EzZDM4NTFiZDMwYjRkMDZiOWZiYjc1NTUzNWE2NjAzZDQ3MjgzOTcyZGIyMGRjZDYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjMzM2I2ZjBjODA3NTgwNGNmMDgyOWQzNDQ0YjI1Y2M4ZTc2ZmE2MzY2MjEzYTYxYjA4YzY1ZTk0OTBmMTk0ZDQiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImQ5ZjNjMTkxZWVjZTQ5YTdmYzNlMjllYTM2MTg0NWFjNjlmYjNhNjdiNDBmMTIzZmE2ZWJlNDkwMWI1ODkzZDMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImE1ODI5OWZlOTYyZWZiYjFkZTQyOWE4YjdmYTkxOTAzZjUwMWRmODFmMzM0ZmJiM2M0NzE4NWIxMGMzYzlkOGUifQ"
         },
         {
-          "resource": "repo://src/account/service/position.py#L273-L336",
-          "version": "repo-lines-v1:sha256:4ede5bfd18f6bdfc2944cd790964bdec07d75f1fa334fd417e402095e0043180:eyJzZWxlY3RlZExpbmVDb3VudCI6NjQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjE0ODg0OGY1OGZkYjhiYWRhOWNiZjhkY2JhMzRjYTRlYjZlMWIyZGZiMTMxOTljMDliMjkzMjMwZDE5ZDRjNWIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjRkODliNWRlYTc1NjA3Y2VmZjhmNzZiNzE2NTczYWQ4YWFhYzU3ZjMwOGY0M2UyODUzZmYzN2MwMTAyMWU5ZjAiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjE4MzU4NzIwMWMwYTIwYThhNzJmYTAyNGNlMjE3OTYzOGQ3MDAyMDYyZDZiOWUyZDU3ZjRkZTUyZWQ3YTUyMzAiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjRhNWQ0M2YxZmZiZDc5YzAwZDRlMjVhODNmYjdjZDgzNDEzNWIyMGQ4NjU0YjlmOThhMmY1Mzg3NDk4MTFlNjcifQ"
+          "resource": "repo://src/account/schema.py#L153-L170",
+          "version": "repo-lines-v1:sha256:16dfa847c02575de39a52d1099987421dc2df91d5728dd4ce89513cfa4c690f1:eyJzZWxlY3RlZExpbmVDb3VudCI6MTgsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImU2ZDQ3YzFhOTc4OTljMTE1YzI4NGZlYzAwZTVkMmM0ZjI0MzI5ZDc2Njg3NTFmYWJhMzRhNDU2ZDVlMDZjMGUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImZkNDg1NDE0NTgyOTVmZTk3NTY3OTdjYjdhYTA4ZjQyMzIyMmRhMzcwMGY5YWJmMThlMDFhM2QzNzVkYTk5MTkiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6Ijc4ZmExNzBkYjA2ODc1MWJmOTg4NGE2NTNjMWFhMmFkM2YzZmViMWQ3NThkZDcyZGQzZjg3OWViZDc3OWNjMzAiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6Ijg4M2NkNzI0ODVjZjE4YzBlMDNhN2M1MDQ0MDJmY2UyMDI0NmJjNzBjOTNiOTAyODBhZjY3NGU3OTU2M2YxZmIifQ"
+        },
+        {
+          "resource": "repo://src/account/service/position.py#L314-L380",
+          "version": "repo-lines-v1:sha256:be02f28cc2803b71cd453b9dbf49fff570511aac0c700b2e6a0cea21e7490157:eyJzZWxlY3RlZExpbmVDb3VudCI6NjcsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjE0ODg0OGY1OGZkYjhiYWRhOWNiZjhkY2JhMzRjYTRlYjZlMWIyZGZiMTMxOTljMDliMjkzMjMwZDE5ZDRjNWIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjRkODliNWRlYTc1NjA3Y2VmZjhmNzZiNzE2NTczYWQ4YWFhYzU3ZjMwOGY0M2UyODUzZmYzN2MwMTAyMWU5ZjAiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjE4MzU4NzIwMWMwYTIwYThhNzJmYTAyNGNlMjE3OTYzOGQ3MDAyMDYyZDZiOWUyZDU3ZjRkZTUyZWQ3YTUyMzAiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjRhNWQ0M2YxZmZiZDc5YzAwZDRlMjVhODNmYjdjZDgzNDEzNWIyMGQ4NjU0YjlmOThhMmY1Mzg3NDk4MTFlNjcifQ"
         }
       ]
     },
     {
       "id": "claim_22a12249c41c4918a3b5f99c81b9c322",
-      "statement": "`get_total_for_account` returns `AccountTotals(cost, value)` where `cost` is the sum of `quantity × average_cost` and `value` is the sum of `quantity × latest close`, each converted per position; this type is served by `GET /accounts/{account_id}/totals` and pushed over WebSocket as `AccountTotalsUpdatedMessage` by the `recalculate_all_account_totals_task` Huey task.",
+      "statement": "`get_total_for_account` returns `AccountTotals(cost, value)` where `cost` is the sum of `quantity × average_cost` plus `account.free_cash` and `value` is the sum of `quantity × latest close` plus the same `account.free_cash`, each converted per position; this type is served by `GET /accounts/{account_id}/totals` and pushed over WebSocket as `AccountTotalsUpdatedMessage` by the `recalculate_all_account_totals_task` Huey task.",
       "evidence": [
         {
-          "resource": "repo://src/account/router.py#L428-L447",
-          "version": "repo-lines-v1:sha256:ceeecee14770794ce3d2c6a350f28bf6af9dc61c6860b3e59c3e8cde99f82760:eyJzZWxlY3RlZExpbmVDb3VudCI6MjAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjgwYjc1ZDdlZjIxMGRiMmRjMjY0Yzg1OGQzYTAzZDIyNTI5NjhlNzVkY2U4NTYzNTRiZDEwYmFhMDcyNTE3NGMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjhkZmI4ZjQ0MzQ0NzdlOGM3NTJmODA1ZWVlZmU5ZDNiNThiYmQyMWQyMGZlNGMwZmYwOTdjZjViZWYwMDlkMTEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjBhZDY4ZDMyZTQwOTQxYTBjNWE1ZTAzYTExZTNhMGNiOWMyYmYwY2VlMmY1ZmQyN2NkNzU1YzdhMjJmYzY4ODQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImRmZTEzNDgyZWQ1MjJkODgzYmNlZjFlNzM4Y2U1YTc5NWVmZjY0MWJlMzIxY2U2Y2Y0OGMxNTBiMjRjODI5NWIifQ"
+          "resource": "repo://src/account/router.py#L452-L471",
+          "version": "repo-lines-v1:sha256:ceeecee14770794ce3d2c6a350f28bf6af9dc61c6860b3e59c3e8cde99f82760:eyJzZWxlY3RlZExpbmVDb3VudCI6MjAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjgwYjc1ZDdlZjIxMGRiMmRjMjY0Yzg1OGQzYTAzZDIyNTI5NjhlNzVkY2U4NTYzNTRiZDEwYmFhMDcyNTE3NGMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjhkZmI4ZjQ0MzQ0NzdlOGM3NTJmODA1ZWVlZmU5ZDNiNThiYmQyMWQyMGZlNGMwZmYwOTdjZjViZWYwMDlkMTEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjBhZDY4ZDMyZTQwOTQxYTBjNWE1ZTAzYTExZTNhMGNiOWMyYmYwY2VlMmY1ZmQyN2NkNzU1YzdhMjJmYzY4ODQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjZkNjA1YTNhNzAzODdmOGFkMWUxNDc4YTRhODU3MjlmNzQwODc2ZWZlMjJjM2I2NjY5NWJiMDRhM2VmY2FlYjEifQ"
         },
         {
-          "resource": "repo://src/account/service/position.py#L179-L203",
-          "version": "repo-lines-v1:sha256:0a22482c87b3523ce7a4da4615aeb37e7b5b00db154601a31a929c52edc9f194:eyJzZWxlY3RlZExpbmVDb3VudCI6MjUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjJhMTdiNmY3NDFmY2Y0NWQ3ZGFjMmQ3ZmRhMTc3YTU2Mzk4NWIxNDE5MjI4NWZlY2JiZWM0MjY0ZGYwNzFkZWEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjU5MDlhNTNhNjE4ZDAyOGUxZDMwMDBjMGE3YWJjZWVjYmU1ZmIzN2Y0ZTUxMWVmZTQ2NjQzZmFkNmU2Njg3MmYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImU0YmM3MzBkYTQzOTdmNWJmNTc0NmRlNDM5NzUyNGM2NmRlNTNjMTdkZWQ3ZTg2Yjc5ZDRjYWExNWI5MTBkNDMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjdjNzQ2MjQ1NGQxNTYxOTM0MTUwOWViYjIwZTVmOTY5YzcwNmNlNDlkNDFjN2FlYmI0MmQ0MTU2M2Q2YWQ0MDIifQ"
+          "resource": "repo://src/account/service/position.py#L212-L243",
+          "version": "repo-lines-v1:sha256:4e78d3ccd12a7eb71747d9f1744df3dc567b126fdac7b77aa1872bc75a1cd63d:eyJzZWxlY3RlZExpbmVDb3VudCI6MzIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjJhMTdiNmY3NDFmY2Y0NWQ3ZGFjMmQ3ZmRhMTc3YTU2Mzk4NWIxNDE5MjI4NWZlY2JiZWM0MjY0ZGYwNzFkZWEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjU5MDlhNTNhNjE4ZDAyOGUxZDMwMDBjMGE3YWJjZWVjYmU1ZmIzN2Y0ZTUxMWVmZTQ2NjQzZmFkNmU2Njg3MmYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImU0YmM3MzBkYTQzOTdmNWJmNTc0NmRlNDM5NzUyNGM2NmRlNTNjMTdkZWQ3ZTg2Yjc5ZDRjYWExNWI5MTBkNDMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjdjNzQ2MjQ1NGQxNTYxOTM0MTUwOWViYjIwZTVmOTY5YzcwNmNlNDlkNDFjN2FlYmI0MmQ0MTU2M2Q2YWQ0MDIifQ"
         },
         {
           "resource": "repo://src/account/task.py#L13-L54",
@@ -104,15 +112,15 @@
     },
     {
       "id": "claim_acdd08532d4f43129105afa760630b6c",
-      "statement": "When `account.net_deposits` is set, `AccountHoldingsRead.total_profit_loss` is overridden to `total_value - net_deposits` with the percentage reported only when deposits are non-zero; this cash-flow P&L is a distinct quantity from the per-holding `profit_loss` (value minus cost basis) and from `AccountTotals.cost`.",
+      "statement": "`get_account_holdings` adds `account.free_cash` to `total_value` before any override, and when `account.net_deposits` is set, `AccountHoldingsRead.total_profit_loss` is overridden to `total_value - net_deposits` with the percentage reported only when deposits are non-zero; this cash-flow P&L is a distinct quantity from the per-holding `profit_loss` (value minus cost basis) and from `AccountTotals.cost`, and `AccountHoldingsRead` carries a `free_cash` field.",
       "evidence": [
         {
-          "resource": "repo://src/account/schema.py#L172-L179",
-          "version": "repo-lines-v1:sha256:e5c831821b439e6be7f5a90b5807709e4adcfdc7b1045057886d63635d4baa64:eyJzZWxlY3RlZExpbmVDb3VudCI6OCwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiMzFkMDQ0Mjg4Y2E1MjZhMzk3YzhjZjQ1YjNkYjY3Nzg1Nzk2NDU1MzE0NjRlMDc3MWU4OWRiYzNhMjQ4YjhjYSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiZGYyNTllMWM4MmQ2ZjMzYzQ4ZThhMjA2ZDdlMzlmNTQ2Y2EzMTUxOGU4ZmUyZWMxYTBmMTBmNzk0YzIwYmJmZiIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiYTc3MmJkNmEwZTI5YWUyYmE5N2M5NTEwYmU1MjQ0OTU5ZjhjNWRhNGE1NDhjZGEzYzIyNmRiZWM4MGVhN2RmZCIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiOTM1ZWU2MWM5ZWE5ZjI0YmYzNDFkYjM1M2JmNDU1OWU5YjNkMjA4MzA4NWI0MDExZGY4YmExYjQ2MzcxYjRmZiJ9"
+          "resource": "repo://src/account/schema.py#L178-L186",
+          "version": "repo-lines-v1:sha256:075f261a9a4acd290e857a07c766bc5e117a63b4442b6b27621cf76a23c6dbdc:eyJzZWxlY3RlZExpbmVDb3VudCI6OSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiMzFkMDQ0Mjg4Y2E1MjZhMzk3YzhjZjQ1YjNkYjY3Nzg1Nzk2NDU1MzE0NjRlMDc3MWU4OWRiYzNhMjQ4YjhjYSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiZGYyNTllMWM4MmQ2ZjMzYzQ4ZThhMjA2ZDdlMzlmNTQ2Y2EzMTUxOGU4ZmUyZWMxYTBmMTBmNzk0YzIwYmJmZiIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiM2NlYzhiYzU1ZWMzYTZkODk0OTNiZWQ5MGVlODhmZjY2ZmJhNDBmYzI5YmJkMjM2YWQ5OTA4Mjg4ZWU1MDk1ZCIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiOTM1ZWU2MWM5ZWE5ZjI0YmYzNDFkYjM1M2JmNDU1OWU5YjNkMjA4MzA4NWI0MDExZGY4YmExYjQ2MzcxYjRmZiJ9"
         },
         {
-          "resource": "repo://src/account/service/position.py#L155-L177",
-          "version": "repo-lines-v1:sha256:debf20fffe4abca47110db3892418a311bd44ddc7c47b3b27a3c419d5db06a21:eyJzZWxlY3RlZExpbmVDb3VudCI6MjMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjMzY2U2NzU1ZjhiMTgzNGM5YWQxOWMxODNhY2IyZGNkNDUwYWU1MWVjOWNiMzBjMjNjZGE4ZjRiNDA4MDRiYmUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjU5MDlhNTNhNjE4ZDAyOGUxZDMwMDBjMGE3YWJjZWVjYmU1ZmIzN2Y0ZTUxMWVmZTQ2NjQzZmFkNmU2Njg3MmYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImM0MDdlYTA0YTIzOTg2ZDA5Y2M0MTczMGU1MjRiYjg5MzhlYjg2MWE4ZmNmZDAwYmIzMjg1MzA0YTM3NDljNzAiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjFkODdjNzExZmRmM2JhYWY2ZDg2YWFiMGZmM2I1NTVkNWU2NTk2MmNiODBlZWZjZjMwMWQ3NTYyZTM4M2E1ZDkifQ"
+          "resource": "repo://src/account/service/position.py#L164-L210",
+          "version": "repo-lines-v1:sha256:09a396606e7bd01fa8968b9ed18eb271c276025ce4bf9b664849d01dda174bac:eyJzZWxlY3RlZExpbmVDb3VudCI6NDcsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjJlNTkwNWRkMzdiZjIzMmM5ZTE3OWE1N2EwZGNiYmFiNWE1YmM0MGY2NGUzNWVhYTc2YzljZTJhZDBhMGRjNGQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjU5MDlhNTNhNjE4ZDAyOGUxZDMwMDBjMGE3YWJjZWVjYmU1ZmIzN2Y0ZTUxMWVmZTQ2NjQzZmFkNmU2Njg3MmYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjY4ZmZjYzcwMGY3NWQ2Yjk5Y2U3Zjg2MTJmOTRiNGI4OWI2M2UyOTgxNTkyNDI2OTA4Mjc5ODNmMmM4OTRmNWQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjFkODdjNzExZmRmM2JhYWY2ZDg2YWFiMGZmM2I1NTVkNWU2NTk2MmNiODBlZWZjZjMwMWQ3NTYyZTM4M2E1ZDkifQ"
         }
       ]
     },
@@ -135,20 +143,20 @@
       "statement": "Because the API emits `value` strings like `\"500.00 CAD\"` with no `units`, the `units`/`nanos` branch of `moneyToNumber` is effectively unused against the live backend and real responses succeed only because `parseFloat` stops at the first non-numeric character; a serializer or parser change on either side must update both the backend shape and the frontend `Money` type together or amounts silently become wrong or `0`.",
       "evidence": [
         {
-          "resource": "repo://frontend/src/lib/components/accounts/accounts-list-item.svelte#L119-L123",
-          "version": "repo-lines-v1:sha256:c11e5e205de39817f28564c74f92c1fa0ac05959d3f2633b3e689195940b8096:eyJzZWxlY3RlZExpbmVDb3VudCI6NSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiZWNhNTVhNjIyMDFkMDBhYTU2MDU5M2Q2N2U1ZDYyYzBjODYxYTQwNGFjMDk3YzI3OTljNDA3NTdmN2M4MzA2YSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiZGE0MTNkZTFiZjcxYjVmYjE3YzEyMTFhYWJjOWYwZDgwMDA4MDI5ODBkY2I3OTNmNDE2MGMxNDY3MzM4ODI1ZSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiYjgyZWNhYjEyM2U3ZGRkZmZmN2Q4NjE0N2NlMDIwNzNmZmZjNjlkMGIwMTkxZjMyYTVhNWQyYTQwZjU5MTQwMiIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiYmJjNjIzNzQ4YmY5NWY4MjY1NTQ0NDNjYjdiNjU3OTY2ZTQ3NDUxMWZlNTAwMmI5ZTVlZDg5ZjZmMmY5YjJmNSJ9"
+          "resource": "repo://frontend/src/lib/types/money.test.ts#L15-L46",
+          "version": "repo-lines-v1:sha256:a5fcb8653f6ff4d18e555f39a6c395ae623b866baea523929053cecf46257b65:eyJzZWxlY3RlZExpbmVDb3VudCI6MzIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjhhZWI5N2RiMTAyNWMxMGY5NmVmOTNiNThjNTEzZTlmMmUyOGExZTJmMGEzYmU1MTE3N2I4NDhlNmI3MWY1ZDMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjBhNzM0OTJkODk0NmIxZDBmOWQ5YzA0YjcwNGE5MjBmMjRmODllZjdjN2Y3MzExYTg1OTlkMTBjN2Y2MzU4ZDAiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImE2OGVmZTc1Nzk5MGE1ZWZmYWE2MjM2YzgxNzQ4YTZlZmY5YzFjZDE1MDkzNzVmODIzYjc0ZDdiZTlkNTM3MzkiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjYwOTI5MmExYWQ3MWU0YTU5ZjU1MjA3MDg1NGMxNzQzNDQ5MTA0YmMwZjVmYWRhZDMzYmU3YjVjMjY2YzYxZWIifQ"
         },
         {
-          "resource": "repo://frontend/src/lib/types/money.test.ts#L29-L33",
-          "version": "repo-lines-v1:sha256:8e2c072d9ebde22133c0901d78a3f6f9e55824346c82a70e6dee627a201c90ee:eyJzZWxlY3RlZExpbmVDb3VudCI6NSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiZTUwMmQ3MGY5MGIwOTQ2Nzc1YTk2ODczN2UxNTk0YWUxMDQwODY3OThjNWU4Yjc2OTEzY2UwODIzMDkzYWQzNiIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiMGE3MzQ5MmQ4OTQ2YjFkMGY5ZDljMDRiNzA0YTkyMGYyNGY4OWVmN2M3ZjczMTFhODU5OWQxMGM3ZjYzNThkMCIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiOTEwNzFmNWQ1MjdhNTdlODgwZjIyMTU2Njc0YmU5NGY2ZjMwZjMxMDdjM2QyZmFjMzM5NDgzYTUyYTkyNTZhZSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiYzJiMmJhMjI4ODZlNjc4OTY3NGZiODIzYWEwNDJhOTRjYzczZGNjZWY5Njc0NWQyODJhODI5NWFhNGEzYTkyYyJ9"
+          "resource": "repo://frontend/src/lib/types/money.ts#L1-L22",
+          "version": "repo-lines-v1:sha256:25a31f06ae4d952cfae89c93712aec77696ef47a98625a10deeb6107c4417406:eyJzZWxlY3RlZExpbmVDb3VudCI6MjIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImM4MDI5NDJlMDZhZGM4MWU2N2FmYTcyZWUwN2E4NGZhY2ZiYzI4M2RiNDQ1ZTkwNGFkYjkwMDc1YThjNzRkZWMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImFhMWQxYTYzMzkwMjI5Yzc5ODM0N2U4M2EwNDA1NDQxYzk0MDAwMzUyODRhZDE2OGMxYmY2Y2RmMWQ3MGEzNzAiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjowLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
         },
         {
-          "resource": "repo://frontend/src/lib/types/money.ts#L8-L17",
-          "version": "repo-lines-v1:sha256:845ebc0547f25367c8e70a0afb3de5c04198b81b56a04925bb198a5ddb606737:eyJzZWxlY3RlZExpbmVDb3VudCI6MTAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjIwMjgzOGY4MDU5OGY5ZDBhY2VkMTkyMGJlYjdlN2MwNTk0NmM4YWNjZTcwYWVmNThlZGJkNWM0MzRmZWE4MDYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQxMmNhMzQ1Y2NmNzViZjljMDgwNmJjZTY5NWJlOGRlODA4Yjc5OTg0MjUxYTdhNTRkMjAyY2Y2MTAxZGQ0NTEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImIxNWY1YzVjZWYyNjVhYjJmMzgzZGZlZGExNDliY2Y0Mjg0NDdhYWVkNTBmNzRkMTNlOTZmNmUwYjM0NzM0ZTMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImI2YWNiYTMyMGY2MTM1YTZhMDUyMzQxNGU1MjM1YzQyODRkNGM2NjQ2Y2VkMzFhMWVkNDAxZWNjZThiNjE1MDEifQ"
+          "resource": "repo://tests/routers/test_accounts.py#L97-L102",
+          "version": "repo-lines-v1:sha256:4ab037ef70ca0a8841dd454b0d51abcf0fbe2709d68048de8a77f903079778a8:eyJzZWxlY3RlZExpbmVDb3VudCI6NiwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiZTVhMjhmNDQ5ZjY4ZjZiZjkzODVkNzUxYjA4MjRlN2UxZGVjYzM0MGFhZGQzZjdjOWUwNTY3OWVkZGVmODE5ZCIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiMjFmODRhNzFkYTBlNTRjNWU0NzcxNTA4Yjg5YWRmM2EwNjEzMmQ4ZWZiOTMxNDU4ZDI2Yzk1NzBmYWQyMWVjNiIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiZjc2NmVmYmQxNmVkNDVjMTE5NmNlYTQzY2FmYjk0ZTc3MDY1MjUxZjk3OGFkYmIwMjMyYTM0MzU2YjQ4YzRjOCIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiYmVjMmIxMzk2YzhhMWFkNTBkMjFlNDgwZWY5YjAxOTZlZWU2NzY2ODFlNjc1NGJjNjQ2NGM3NGNhZGJiYTYxMCJ9"
         },
         {
-          "resource": "repo://tests/tasks/test_account.py#L101-L102",
-          "version": "repo-lines-v1:sha256:920af3c5b11554ae0a70d5f5cc03df269b3fea5abb4c04140f37169d9badd014:eyJzZWxlY3RlZExpbmVDb3VudCI6MiwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiYTFhYjZmMGJlYWNjYjU3MzhhZGUyY2QyNWUwYjgzZmU1OWUwODY4NDZmYTNhY2FjYTM4ZWUzZDVjZGJiMjk2NCIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNDJhODMwMWVlZGU3NmRjMmViNDM2OTc5YzM5ODMzODQwZjFjZGNkODNjZDg0NDhiODYzNzljMzdlNzAzMTYxMSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiMWNhYjkxOTNiZWM1Yjk2ZTExYTIxNzczY2I0YjA2Y2FlNzFkMWIwYmViZDY3ODQ0MjZhZGNiZWViNDAyZDgxYiIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiNWFiN2IyNzJhYjRlMjUxNzViNWZkMjRjMTNjZmU1NjM0MjUxNGMwMjc5NDZmMDNiNTMwNWRmMjAzMzc4NzlmOSJ9"
+          "resource": "repo://tests/tasks/test_account.py#L99-L103",
+          "version": "repo-lines-v1:sha256:20a07e7973737c0365ecfa6e562915ce96be04dd4f4893dd5541c58652406516:eyJzZWxlY3RlZExpbmVDb3VudCI6NSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiMTE3NTFhMjViOWYyMTM1MTllZTg4ODAxNjZjNjVmZGZkNmUwZGU5MmJjMjAwOWNhYTQ2MTE2NTRjYTM0NDhmMSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiMDFiYTQ3MTljODBiNmZlOTExYjA5MWE3YzA1MTI0YjY0ZWVlY2U5NjRlMDljMDU4ZWY4Zjk4MDVkYWNhNTQ2YiIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiN2ZlNjczMzExNDY1YjUxNjdhMDc5OWVjMjU5ZDNjYWI2ODE2YWE1NTNkNGQ2ZWJhMTVjNzlmMDBiMzU4ZTY1ZiIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiYmI5MzE5YzFhYzkwMTVkM2Y2ZmI4NmI2OTIwZWY2OTRlNjc3MmU2MTBlZDNiMjZlYWNiYWQ2YmZkYzhjOWQ2OSJ9"
         }
       ]
     },
@@ -181,7 +189,7 @@
       "statement": "Precision is lost at defined storage boundaries: `PositionModel.quantity` is `DECIMAL(16, 8)` but `PositionModel.average_cost` is `Float`, `AccountModel.currency` is a plain `String` (while the API type is `Currency`), and `AccountModel.net_deposits` is `Float`.",
       "evidence": [
         {
-          "resource": "repo://src/account/model.py#L210-L224",
+          "resource": "repo://src/account/model.py#L211-L225",
           "version": "repo-lines-v1:sha256:00d47e694cf3c697d867ac6a6bea34763695650d323ca0f76506a6cbbe9402f1:eyJzZWxlY3RlZExpbmVDb3VudCI6MTUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImMwYTNlNGQ2YjViY2Y3YTIyMDQ3N2Y3ZGM5OTc3YmVjNzNlYjFiNzc5OWZlYmJlZWIxMjJmYzk2MTcxZmViMWYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImJkMzkzMzUzZDE3ZjRmNmMxNzU1MjdiNDU2N2EwN2QwZGYwYjZlYjVjZjQ4NjU0ZDhjMzIxYmIzMmMwMDU2NzYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjhjYzRhN2QxY2M3OTZhYmEzZTQ2NzIzMzI3ZjUxN2U5ZjgxMTk4MmQyNTBmMDcwMjk4NmU0YjU3NjRhZDk1ODkiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjA1NDI0ZGViZGYwMDBlYzgxOTk3NDlhOTYyOTk1NWY2Y2FiZWIyNzg1M2IwYzUzYTljOTVkNmJjNTc4NTdmNjkifQ"
         },
         {
@@ -195,7 +203,7 @@
       "statement": "`_currency_convert` rounds each converted amount to 2 decimal places before accumulation, so aggregated totals are sums of rounded per-position values rather than the rounded sum of exact values; changing that rounding changes reported totals for multi-position accounts.",
       "evidence": [
         {
-          "resource": "repo://src/account/service/position.py#L262-L271",
+          "resource": "repo://src/account/service/position.py#L303-L312",
           "version": "repo-lines-v1:sha256:fb4a306d09ebf10bc52dd3936a9ba55793e0bbb0546c201d51900169f200d402:eyJzZWxlY3RlZExpbmVDb3VudCI6MTAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjZjNDliNzliZmQ4ZDJlMjVlZGMyODk2NTQ4OGVlYzNlYjU2ODIwYzRmYjhjMDAzMWI4ODg2ZTEyNGExMTBhY2YiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjI1NGI5MzBmZDBjNmU0NTlmNjFjNTUyNWE3ZDMxMTAyODk0N2IzMWM5YTA4YzIwYzliZjczMzJhNzhiMjEyYjMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjE0ODQwNzI5NGJlNzFiNGRiOWY1M2ZiNTBjNjY3NmQxNWE1ODQ0YzhhMzYwNzFmYjlmNjYzNzk0OTdlZjA2NmEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjNkZjUxMDJkYjQ1YzIwNjQ5N2M1NjE2MThiZDUwNGEzZWMxZDRjN2NlMGMzNzc5OGFmNTMxOTExZWM1Yzg3M2UifQ"
         }
       ]
@@ -205,11 +213,11 @@
       "statement": "`src/account/csv/parser.py` parses quantities and book values as `Decimal` after stripping `,` and `$`, and computes `average_cost` as `(book_value / quantity).quantize(Decimal(\"0.0001\"), rounding=ROUND_HALF_UP)`, returning `None` for non-positive quantity or missing book value.",
       "evidence": [
         {
-          "resource": "repo://src/account/csv/parser.py#L134-L140",
+          "resource": "repo://src/account/csv/parser.py#L167-L173",
           "version": "repo-lines-v1:sha256:fba3bcc7a32bfed853ee4dbc04b3ca7fc66a11fba254c278acf2a12cf222c58f:eyJzZWxlY3RlZExpbmVDb3VudCI6NywiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiYWI4M2RlNWFlZGQ3ODUxZTVjNTg3YmJhYTZjZjZjNmVlMTU1YzVhNWQyMmM2ZTFhZDY3MTMxMTczN2ZiMjk0OSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiN2UwYzU1OGRkZTJhNzdmMDBjNjY4ZjNkNDFkOGMzYWJhYzI3NTQ4MDI5ZDViZTg1NDVkNDQ5MWFmMWZiYWFkMSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiODUxMzZjMjExMTM2NDNiZTk5Nzk2MzI5MzEyNjVlYjRmNjg3NTljMDIwYTFjNTRjN2Y1YzZjMzI1ODI2ZjRiOSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiZDA3YWY0Mjk1OTc5MzE1NjI0NDNiZjU0Y2YwZmRiZmU0M2VlYTlhOWJiNGI4YWE4NTA5OTY0NDYyZjFjNzM2OCJ9"
         },
         {
-          "resource": "repo://src/account/csv/parser.py#L187-L225",
+          "resource": "repo://src/account/csv/parser.py#L220-L258",
           "version": "repo-lines-v1:sha256:a678476995624079ac881c7ad4f0209ac94049665e2c0a4ff5b477a338dd3506:eyJzZWxlY3RlZExpbmVDb3VudCI6MzksImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjdlNmNlMGYyNjdmYmIwNzFjZDNiNTRmMWI2ODMxMDZjY2Y4M2UwNjY1Mjc4ZDY5NmRlMDg2NjY4Mzc1Zjk1MGYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjMwYzFmMTg4ZjE0MmVkN2E4MjQ2ODBiMjA3MTcyYzU1MTliYzYxNGE0OGZkYTdjZjE2N2VkYjhkZGY3OTk1NmMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjdmYzZkNDQyZWUwNGNjMDdhNGJhZDBlMzJkNmMwYmYwNjhkMzk4MjU5Y2I2YjZjNDhiNDQ3YTRmYmYxNDUwN2QiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjIwOTNmZDVmOWUxMzhjYjlhNDA4ODg4NDcyZTA3NWQ1NWNiOGRjYWUwZjRlNjBlZTQxMzEwZGE4NDljYzhiNjcifQ"
         }
       ]
@@ -219,18 +227,18 @@
       "statement": "`get_holdings_by_security` computes `account_percentage` from `MarketPricesApi.get_latest_close` multiplied by quantity, rounded to 2 places, converted to the account currency, then divided by `get_total_for_account(...).value.amount`, so numerator and denominator are both in account currency only because the holding value is converted first.",
       "evidence": [
         {
-          "resource": "repo://src/account/service/position.py#L86-L134",
+          "resource": "repo://src/account/service/position.py#L87-L135",
           "version": "repo-lines-v1:sha256:12873b254c76a4c89ebd0b161eb24ca5582d791a7a42c91047a268b9d555a67a:eyJzZWxlY3RlZExpbmVDb3VudCI6NDksImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImNkYzMyYjZiMTgyY2FlNzVlNjBiMzMwNTk2YmQyMDQ2NGU4ZjJmZjQ3YjQ0MTA1N2VhOTExODlkYWQ4NzMzYmUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImI4ZmFhYjZkMGE3NDA0YTY2OGRmYWQ5NGI2OWI1MjBkZjZiZTJlMTllOWMyMGQyMzYxZmJkNWVmNWZhNTJkOTkiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImEwZjFhODM5ODQzNWVlMDk3ZTA4ZWUwYzRkMWZiN2U0NTdmMTc1ZWYzM2VjODJmMDlkYzI2MTU5ZWZiYzFlNDgiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjI4YTViYWE1YTEzYmNkNTI0YzM3NTdiNjViNjViNzYyNzIwZTUzNzI1ODJhY2JlMGYyYTBlMGI4NjZkNzY5OTAifQ"
         }
       ]
     },
     {
       "id": "claim_14e43630f6e3442aaaf226d36a039f70",
-      "statement": "CSV account currency selection and update affect aggregates: on import an existing account's currency is updated when a different `chosen_currency` is supplied, and new accounts are created with `currency=Currency(chosen_currency)`, defaulting to `CAD` when unspecified.",
+      "statement": "CSV account currency selection and update affect aggregates: on import an existing account's currency is updated when a different `chosen_currency` is supplied, and new accounts are created with `currency=Currency(chosen_currency)`, defaulting to `CAD` when unspecified; the same path also writes `free_cash` from the parsed account row.",
       "evidence": [
         {
-          "resource": "repo://src/account/service/csv_account.py#L148-L183",
-          "version": "repo-lines-v1:sha256:0d755b4973aeea3796ba5df1d4882f82fa9036098619f065fc5e4f4955f30b19:eyJzZWxlY3RlZExpbmVDb3VudCI6MzYsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjMxMTcwN2YxZDFhNjM1YzQyYzI1ODI1M2Q3MWYxYTg5YTFhNGQxOTk3ODE4Y2EzYzkyOGNiNTNiMGU3YTYyZTIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjUxMDM0ODFjNTdkMGYwZGMwZjc2Y2QyY2M4YjM2MDRjNGU4Mjk2ZGE0MTIyYWRkMTllODE3NDVkYzdlMzMxYTYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjYzNmY2ZDBmOTdjZjNkMjYwNTZlNzRhNWM0ZGY3MzE5NjJjYzZiMDIxNmUwNGYzODVmYjFlOTMxNzlhODA3YjEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjRkOWExNzM5NDJkZGY4MzNlMTBiM2M3ZDg3MjdiNGQ4YWRlOTY1ODlkZDIwYmI2MWRhZjY0ODdkZWYwMmVkODAifQ"
+          "resource": "repo://src/account/service/csv_account.py#L140-L197",
+          "version": "repo-lines-v1:sha256:2b2dfdf4137a3e9cd63d1ceb65889008335a7ae30156aced5332596a5304bc9e:eyJzZWxlY3RlZExpbmVDb3VudCI6NTgsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImFiYmI2NThiNjY3YWI3MDhmNDM1NzQxYjYxOTNkZWI0OWM2ZjNhYzI5NGJmOTc3NDYyYzk5MTY3NGVjYmJiOTUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImViNWU5Njk1YmYwODdmZmEwZGJhZDg3Mjg1N2ZkNzY5ZmJlZTgxODNhYTU1OTAwZTI4OWFlMThhZjBkNDZmYzgiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6Ijg1N2U0OWM1N2E5ZDdkNmI0ZGQ1YTVmMGZjOTRkZGUyOWIzNDFlNmNmZDIyMzg4ZDU3MmRiY2JmNTJiYTgwMjUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjFmNDlmNzhjNjQ1ZGM4MTIwZDkxYTgwODlmOGY3Nzk1ZjhjM2FjNjFiZTFkOGM4NDljMWM1OGJiYTRkOGYzNDgifQ"
         }
       ]
     },
@@ -246,25 +254,95 @@
     },
     {
       "id": "claim_b3c260fa54d44bbfb4b7ef7a2966e884",
-      "statement": "Because the FX conversion target is the account's own `currency` (passed as `account.currency` into every `_currency_convert` call site), changing an account's currency re-bases every converted total, value, and P&L for that account without modifying any stored position; CSV import is one path that does this, updating an existing account's currency when a different `chosen_currency` is supplied and creating new accounts with `currency=Currency(chosen_currency)` (defaulting to `CAD`).",
+      "statement": "Because the FX conversion target is the account's own `currency` (passed as `account.currency` into `get_total_for_account` and into every `_currency_convert` call site that builds converted holdings), changing an account's currency re-bases every converted total, value, and P&L for that account without modifying any stored position; CSV import is one path that does this.",
       "evidence": [
         {
-          "resource": "repo://src/account/service/csv_account.py#L142-L184",
-          "version": "repo-lines-v1:sha256:e68f46f6a2ce9936a0555165fd2a8a992bb7b80b93cd1000bb592268cac39d2b:eyJzZWxlY3RlZExpbmVDb3VudCI6NDMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImYxNTg2Nzg4NzQ4ZThiM2E2YWIzNGVkM2Y3Yzk2ZTAxZjQ5OGE2NDRmZjllOWIwNzdmNWVkNWU3ZjJiYjg4ZTMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImE1NWQxMWYxNGI4NTY4ZGQzMTM5NGRjNWZlZmYxOTc3MGRhNjdlNWY5ZjFhNWE5Y2I4NWUzY2IyZGRkNDIyZDMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6Ijc3NmFkYjgwOTI5NTZlZDlkN2FiNDVjNTU3YjFjNTc2MmMzMTYzNjA3YzczM2U3ODRlNTE2ZDNmZTQ1MmIwOWEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjUwNGQwNGE3ZmMyYTM3MzM5NjAxZDliMGNlNDZiN2U1ZDkwMmM5ODdhYjVlODRhZTYyODc2NTdkZGVkYjNlOTAifQ"
+          "resource": "repo://src/account/router.py#L465-L471",
+          "version": "repo-lines-v1:sha256:b2f5860e64e83adf5b87b5627434a00cfc613ebcbed0e3ea42b95b48298c2817:eyJzZWxlY3RlZExpbmVDb3VudCI6NywiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiOGQwODQ1NjdiOTU5MzUzODU4OWUyOGI5YzExOTA2NGRkMmJhN2RiOTFkNmY0MWM1MGM0ZTg5M2RlYWQ3ZTM4ZiIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiOGRmYjhmNDQzNDQ3N2U4Yzc1MmY4MDVlZWVmZTlkM2I1OGJiZDIxZDIwZmU0YzBmZjA5N2NmNWJlZjAwOWQxMSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiYWU2ZDljZDBhZDNiNDJjMmMxZjJhM2U1ZjVkZjVjOTUxNmQ2Mzg4NGFmM2FiOGZiY2U5YTE1OTExYWQxMzZjNSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiNmQ2MDVhM2E3MDM4N2Y4YWQxZTE0NzhhNGE4NTcyOWY3NDA4NzZlZmUyMmMzYjY2Njk1YmIwNGEzZWZjYWViMSJ9"
         },
         {
-          "resource": "repo://src/account/service/position.py#L179-L203",
-          "version": "repo-lines-v1:sha256:0a22482c87b3523ce7a4da4615aeb37e7b5b00db154601a31a929c52edc9f194:eyJzZWxlY3RlZExpbmVDb3VudCI6MjUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjJhMTdiNmY3NDFmY2Y0NWQ3ZGFjMmQ3ZmRhMTc3YTU2Mzk4NWIxNDE5MjI4NWZlY2JiZWM0MjY0ZGYwNzFkZWEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjU5MDlhNTNhNjE4ZDAyOGUxZDMwMDBjMGE3YWJjZWVjYmU1ZmIzN2Y0ZTUxMWVmZTQ2NjQzZmFkNmU2Njg3MmYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImU0YmM3MzBkYTQzOTdmNWJmNTc0NmRlNDM5NzUyNGM2NmRlNTNjMTdkZWQ3ZTg2Yjc5ZDRjYWExNWI5MTBkNDMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjdjNzQ2MjQ1NGQxNTYxOTM0MTUwOWViYjIwZTVmOTY5YzcwNmNlNDlkNDFjN2FlYmI0MmQ0MTU2M2Q2YWQ0MDIifQ"
+          "resource": "repo://src/account/service/csv_account.py#L154-L183",
+          "version": "repo-lines-v1:sha256:b3c9179029ec5e8d56e8b7da8d1a5da7d39a6e9c681b1a627afd370223cfd542:eyJzZWxlY3RlZExpbmVDb3VudCI6MzAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImI2OGQxNDgxYTVmYTk4NDhiZGQ0NmQyMzkxNWZmZjJmYTE5NzVmMmVlYTgwNjAyYWVlYzRiOTdkMGY3M2EwZDIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjFmNjc2ZDg5MmVmZTE5YmM4ODFmZmY0ZjVjZTcwMGFiMGM0NjY0NmVhNzFmZGM1MzdlZmU4ZTA0ZWFhZDM5ZjYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjQyMTg2NWEwMjQ0YmUwZTk4ZjdmZWNmMDI2YWM3NjdmNjBiMTdkMjc1YWVkNzhmM2M2ZjA0YzJhOWEyYmZmZWIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImRiMmE5MTBjODk5M2I4NTUyYmI3MjM4ZjBiZjlkYTcyYzIxMDUxNzk1OWQwMzFkMjUwNzFiZTM1MDdkZDkwMTkifQ"
         },
         {
-          "resource": "repo://src/account/service/position.py#L257-L271",
-          "version": "repo-lines-v1:sha256:43abc8452ad4a193737193297a622844bbec6e06be3030f4eb131351a6dc1629:eyJzZWxlY3RlZExpbmVDb3VudCI6MTUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImZkZDFjNWVkMzc5OGI2NjMyMmIxY2MzYTJiZDliNTUwZjc5ZjQ1ZTY5NjU2ODM1NjBhMWIzYjEzMTI1MzMxNjUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjI1NGI5MzBmZDBjNmU0NTlmNjFjNTUyNWE3ZDMxMTAyODk0N2IzMWM5YTA4YzIwYzliZjczMzJhNzhiMjEyYjMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImM0MDY0NzYxODVhYWZhNzcxZTIzOTY3NGI0ZThhM2ZlZmVhMzNmNDNhZGQ5MWU2MGFmYTg5ODdiNTY0ZTQyNTMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjNkZjUxMDJkYjQ1YzIwNjQ5N2M1NjE2MThiZDUwNGEzZWMxZDRjN2NlMGMzNzc5OGFmNTMxOTExZWM1Yzg3M2UifQ"
+          "resource": "repo://src/account/service/position.py#L212-L243",
+          "version": "repo-lines-v1:sha256:4e78d3ccd12a7eb71747d9f1744df3dc567b126fdac7b77aa1872bc75a1cd63d:eyJzZWxlY3RlZExpbmVDb3VudCI6MzIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjJhMTdiNmY3NDFmY2Y0NWQ3ZGFjMmQ3ZmRhMTc3YTU2Mzk4NWIxNDE5MjI4NWZlY2JiZWM0MjY0ZGYwNzFkZWEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjU5MDlhNTNhNjE4ZDAyOGUxZDMwMDBjMGE3YWJjZWVjYmU1ZmIzN2Y0ZTUxMWVmZTQ2NjQzZmFkNmU2Njg3MmYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImU0YmM3MzBkYTQzOTdmNWJmNTc0NmRlNDM5NzUyNGM2NmRlNTNjMTdkZWQ3ZTg2Yjc5ZDRjYWExNWI5MTBkNDMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjdjNzQ2MjQ1NGQxNTYxOTM0MTUwOWViYjIwZTVmOTY5YzcwNmNlNDlkNDFjN2FlYmI0MmQ0MTU2M2Q2YWQ0MDIifQ"
+        },
+        {
+          "resource": "repo://src/account/service/position.py#L337-L357",
+          "version": "repo-lines-v1:sha256:9b2e03dee9972a433fcd7928fc6f8ef1f16da76eb70f25b97cd9c7bda1226c8e:eyJzZWxlY3RlZExpbmVDb3VudCI6MjEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjE4N2QwY2Q5N2U2MGVhMWFhZTMwOTMwZmMxZjNlZmViMTU3YTI5NGIzZTgzMmYxM2M1OGM4ZWIwOGY2Mjc2MjMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjU5MDlhNTNhNjE4ZDAyOGUxZDMwMDBjMGE3YWJjZWVjYmU1ZmIzN2Y0ZTUxMWVmZTQ2NjQzZmFkNmU2Njg3MmYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjhlYjY1YjllMDk0NTYzNjM1MTJjZDg3MWU4YTkwOWQyOWEzZWNhZWU0ODhiMjc0NDI4ZWJiZTNkY2U1ZjNmZTQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjY4NzY2NzVhOWFhMzY3M2QxZGY4ZDg3YTVlNDk4ODMwZGE5YjVhOWM5YThmZTBkOGJmNDIzYTZhOTdhZmQ1NjEifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_6b1270d8033047019f343a55e29b55ea",
+      "statement": "The `/holdings` route keeps money sane on the client by bucketing rows per `row.currency` in `currencyTotals` and never summing across currencies, computing each bucket's cost basis as `quantity * (converted_average_cost ?? average_cost ?? 0)`, so a row missing `converted_average_cost` contributes a native-currency cost basis to the bucket.",
+      "evidence": [
+        {
+          "resource": "repo://frontend/src/routes/holdings/%2Bpage.svelte#L139-L181",
+          "version": "repo-lines-v1:sha256:f73c28009544186701e60d43554172e01d11bb97ad40cbc6d761898d6f8ddbd8:eyJzZWxlY3RlZExpbmVDb3VudCI6NDMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjkxNjg0M2YxZGRiYTBjZTU4MTg4NjRlOTI0MTYxOTRjNDkyMWM1NTFlMjI4NWI5Nzk3ODE3NjIxYTRiYjkwYzQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjBhNzM0OTJkODk0NmIxZDBmOWQ5YzA0YjcwNGE5MjBmMjRmODllZjdjN2Y3MzExYTg1OTlkMTBjN2Y2MzU4ZDAiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImVmOWJmOGRkNzcyM2FmMTEyZWM3NGUyMTkxY2JlY2M0NzkzYWNiMDg1MjUwZWUyZWMzYWRjNWQ0ZTliYTVjYzQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImY5ZTVlYmFhMGJiNTRhZWRhNWRhNzA4OGEzZGY2YjYxYTRkZWU1ZDhhYWJjZWM4NmJhMWI1ODdmMjkxMjUwOGYifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_e2d5c6b689e14bb29d67561e6a84eda3",
+      "statement": "`src/account/csv/parser.py` derives `average_cost` as `(book_value / quantity).quantize(Decimal(\"0.0001\"), rounding=ROUND_HALF_UP)` returning `None` for non-positive quantity or missing book value, and resolves a position's currency through the fallback chain `currency` → `book_value_currency_market` → `book_value_currency_cad` → account currency, so a row-level currency always overrides the account's.",
+      "evidence": [
+        {
+          "resource": "repo://src/account/csv/parser.py#L167-L173",
+          "version": "repo-lines-v1:sha256:fba3bcc7a32bfed853ee4dbc04b3ca7fc66a11fba254c278acf2a12cf222c58f:eyJzZWxlY3RlZExpbmVDb3VudCI6NywiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiYWI4M2RlNWFlZGQ3ODUxZTVjNTg3YmJhYTZjZjZjNmVlMTU1YzVhNWQyMmM2ZTFhZDY3MTMxMTczN2ZiMjk0OSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiN2UwYzU1OGRkZTJhNzdmMDBjNjY4ZjNkNDFkOGMzYWJhYzI3NTQ4MDI5ZDViZTg1NDVkNDQ5MWFmMWZiYWFkMSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiODUxMzZjMjExMTM2NDNiZTk5Nzk2MzI5MzEyNjVlYjRmNjg3NTljMDIwYTFjNTRjN2Y1YzZjMzI1ODI2ZjRiOSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiZDA3YWY0Mjk1OTc5MzE1NjI0NDNiZjU0Y2YwZmRiZmU0M2VlYTlhOWJiNGI4YWE4NTA5OTY0NDYyZjFjNzM2OCJ9"
+        },
+        {
+          "resource": "repo://src/account/csv/parser.py#L227-L258",
+          "version": "repo-lines-v1:sha256:70a99989fc7d25f466d807b29eb04e78169a1809645438f6f47532f226722703:eyJzZWxlY3RlZExpbmVDb3VudCI6MzIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjJjY2JiM2U4NDkyYmQ2Y2NhNWI4N2IwNTJiOWIwOTBhYzI3YzQ5YjA3NzllNTRmNjYzZmE1N2M3OTQzNTIzMzUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjMwYzFmMTg4ZjE0MmVkN2E4MjQ2ODBiMjA3MTcyYzU1MTliYzYxNGE0OGZkYTdjZjE2N2VkYjhkZGY3OTk1NmMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImU1NWE5YTUxYjc2YjJhNzM1NTVhMzUyMzU3MGMyZjRjZDc0YTgwZWYwNmQ2N2JhOWU5M2ZlNDljZjcwNTAzZDAiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjIwOTNmZDVmOWUxMzhjYjlhNDA4ODg4NDcyZTA3NWQ1NWNiOGRjYWUwZjRlNjBlZTQxMzEwZGE4NDljYzhiNjcifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_7e9eef8d7085442488516e7978acfc53",
+      "statement": "`AccountModel.free_cash` is a `Float` column with a `0.0` server default and `AccountModel.currency` is a plain `String`, while `PositionModel.quantity` is `DECIMAL(16, 8)` and `PositionModel.average_cost` is a `Float` column typed as `Mapped[Decimal | None]`, so cost averages and cash figures are already approximate after a database round-trip.",
+      "evidence": [
+        {
+          "resource": "repo://src/account/model.py#L211-L225",
+          "version": "repo-lines-v1:sha256:00d47e694cf3c697d867ac6a6bea34763695650d323ca0f76506a6cbbe9402f1:eyJzZWxlY3RlZExpbmVDb3VudCI6MTUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImMwYTNlNGQ2YjViY2Y3YTIyMDQ3N2Y3ZGM5OTc3YmVjNzNlYjFiNzc5OWZlYmJlZWIxMjJmYzk2MTcxZmViMWYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImJkMzkzMzUzZDE3ZjRmNmMxNzU1MjdiNDU2N2EwN2QwZGYwYjZlYjVjZjQ4NjU0ZDhjMzIxYmIzMmMwMDU2NzYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjhjYzRhN2QxY2M3OTZhYmEzZTQ2NzIzMzI3ZjUxN2U5ZjgxMTk4MmQyNTBmMDcwMjk4NmU0YjU3NjRhZDk1ODkiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjA1NDI0ZGViZGYwMDBlYzgxOTk3NDlhOTYyOTk1NWY2Y2FiZWIyNzg1M2IwYzUzYTljOTVkNmJjNTc4NTdmNjkifQ"
+        },
+        {
+          "resource": "repo://src/account/model.py#L50-L53",
+          "version": "repo-lines-v1:sha256:f434b00a33d772f023ed6820485082cfa4a475a1dfd09ec231938fd9eb7b670c:eyJzZWxlY3RlZExpbmVDb3VudCI6NCwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiMGFhZjk5ZDlkMGNkYjU3OGE1OGMyZjhjY2FmNjA0Yjc1OTI2OTliYjllZmM5NDUzMDU1ODc5ZGI3MjhlNGJjOCIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiYWQ2YzJmMTE2MzZlYjQxYzlmODA4ZTM2Nzc1YTcwMjk0YmYzZWFkNjlhZGQ2NjMzZDMzN2U4NzVmNWUwMjlhNSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiNTljYTBiMzczOTc4YWViMWJjYTEwZTIzYWEzNzQwYjFiZjIzYTI3ZGRkM2QyYTk4MjkxODk3NTdmYmNlOGFiMiIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiNTU5N2MyYzgxMDI1OTBmOGRmOWJkZjZkMTdlYWMzNWNlZmQ2NGFkN2MxMzk4YmQ5ODI1MzAwNzkxNzAwZWE0ZSJ9"
+        }
+      ]
+    },
+    {
+      "id": "claim_6599309eaf0141b59c9188372a5729db",
+      "statement": "`PositionRepository.get_holdings_by_security` returns `AccountHoldingRead` rows with placeholder `total_value=0.0` and `currency=\"\"`, and only `PositionService.get_holdings_by_security` fills them in — it fetches the latest close, computes `quantity * price`, converts into the account currency, and divides by `get_total_for_account(...).value.amount` to derive `account_percentage`.",
+      "evidence": [
+        {
+          "resource": "repo://src/account/repository_sqlalchemy.py#L256-L286",
+          "version": "repo-lines-v1:sha256:33fba753da9fbdb9228df9ef81568744b13094c0bc3f3421ca6a30b464a2d8cf:eyJzZWxlY3RlZExpbmVDb3VudCI6MzEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjE0NWEwNDEzNjNlMGQ2YTQ1MzlmYzQwOWJjNzMzNDdjNDczM2IzODA0NDVkNWZhZGJmYmM2Y2JhZDY0OTczNjYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjdmYzQ4ZjEyYzNhZjI2ZDY5NGZmZGQ2NGFlNGU3NGIwZWI1YTIzNGNjZGRhYzdlNmNjNGJjZjBmMDYzOWQ2M2MiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImNjMzgxMGI5YTViYmRhN2ZjZjY5ODVmM2M5NTI2NDRiOGJmYzAzZDAwMmUxMDVlZTkwMzJkYjhiZTA3Yjg2NTYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjMxODRjY2ExNjlkZmIzMjU5OGMzMDk5ZGFhNzUxZTFkYWRlMGQxZDViOTNmMTQ0ODlkYjhjMjFmNzNlM2ZkNDUifQ"
+        },
+        {
+          "resource": "repo://src/account/service/position.py#L87-L135",
+          "version": "repo-lines-v1:sha256:12873b254c76a4c89ebd0b161eb24ca5582d791a7a42c91047a268b9d555a67a:eyJzZWxlY3RlZExpbmVDb3VudCI6NDksImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImNkYzMyYjZiMTgyY2FlNzVlNjBiMzMwNTk2YmQyMDQ2NGU4ZjJmZjQ3YjQ0MTA1N2VhOTExODlkYWQ4NzMzYmUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImI4ZmFhYjZkMGE3NDA0YTY2OGRmYWQ5NGI2OWI1MjBkZjZiZTJlMTllOWMyMGQyMzYxZmJkNWVmNWZhNTJkOTkiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImEwZjFhODM5ODQzNWVlMDk3ZTA4ZWUwYzRkMWZiN2U0NTdmMTc1ZWYzM2VjODJmMDlkYzI2MTU5ZWZiYzFlNDgiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjQ4MjMwNTk0ZWM3YzRjOWQ1YjUwNmY4MTMwZTdmOTZiMjdmYzJlMDQzMTBiOGQ0NTAzYTUwMDJlZGM4ZWFhNjIifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_d7cef1810f754ccf878b86f0f232d7e9",
+      "statement": "`tests/services/test_position_service.py` is the focused backend test for the money aggregation contract: it pins free-cash inclusion in both `get_total_for_account` and `get_account_holdings` (including the `net_deposits`-derived `total_profit_loss` and percentage), user-holdings grouping, and the `position.currency == \"CAD\"` / `security.currency == \"USD\"` case that must not raise `CurrencyMismatchError`.",
+      "evidence": [
+        {
+          "resource": "repo://tests/services/test_position_service.py#L141-L223",
+          "version": "repo-lines-v1:sha256:98210f813230a91a5f1074e3be43b565556d2ec5e33ebc775349563a49ba9df6:eyJzZWxlY3RlZExpbmVDb3VudCI6ODMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImI3YTgzMWZhNDcyNmZjMjMxNTE0NGY5YTA1NWJmZWMyNWYxYWZkMTI2YWFmZjU3YWZmYmU5NDBlZjVjNmE3MzUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjkxNGI1MDNlYzk3MmUxZTAxMDJiNTJkNzQ2ZjJkYjViZmI5ZTIzZGFhN2MxZWFkNmRlNGQ2YmI3ZmJlMDAyNDYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImJjYjcyMjhiNTMxOGY1ZjBmMzc3NzVhZjk0OTNmOWI0MDQzNThmYjBkNmFlNDQyYTE0NGUxNmM5YjkyOWVmM2EiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImJlYzJiMTM5NmM4YTFhZDUwZDIxZTQ4MGVmOWIwMTk2ZWVlNjc2NjgxZTY3NTRiYzY0NjRjNzRjYWRiYmE2MTAifQ"
+        },
+        {
+          "resource": "repo://tests/services/test_position_service.py#L226-L268",
+          "version": "repo-lines-v1:sha256:095a784a66e546c0c3152ebacc71a4cb01f648473aabf940b1dd5d213afe9ee9:eyJzZWxlY3RlZExpbmVDb3VudCI6NDMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImI3YTgzMWZhNDcyNmZjMjMxNTE0NGY5YTA1NWJmZWMyNWYxYWZkMTI2YWFmZjU3YWZmYmU5NDBlZjVjNmE3MzUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjI5NGJlNDFlMDAxMzlmYzI1NmZiYjVjMDg2Zjk5Yzk4NGYxZWVmMTAyYmRmMWZhM2Q0NWQ5MDkxOGQ2NmJlYmYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImQxNTkxODdjZDE0OWYzZTAzODQzMTZiZTEyZDM0NWU3ZDQ1YzcyYTg4ODI2MjZlOGQ5MGZhOWNjNDZiYmU1ZjYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
         }
       ]
     }
   ],
   "verification": {
-    "by": "openwiki/0.5.2",
-    "at": "2026-09-20T12:50:16.306Z"
+    "by": "openwiki/0.6.1",
+    "at": "2026-10-02T14:25:20.147Z"
   }
 }

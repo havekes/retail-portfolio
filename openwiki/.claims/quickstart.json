@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "pageVersion": "sha256:eb458fec835b7771ea552681cb52797fd255d6baa67826836cd42e7c90740a7d",
+  "pageVersion": "sha256:41dd4904448a52e7c8a0a8f0a7af8cf7357beeedf9b64ab4cba69027324fce25",
   "claims": [
     {
       "id": "claim_9bd0ec86d7b94a8584961b72b1da8ef4",
@@ -69,7 +69,7 @@
       "statement": "All development commands must be executed inside Docker containers via `docker compose exec <backend|frontend> <command>`; the host environment is never the reference and CI runs the same checks.",
       "evidence": [
         {
-          "resource": "repo://AGENTS.md#L15-L17",
+          "resource": "repo://AGENTS.md#L19-L21",
           "version": "repo-lines-v1:sha256:72339c27e276600743b00237fd0c7bbd0458009c005d63ecce5173f7c9f1b5e0:eyJzZWxlY3RlZExpbmVDb3VudCI6MywiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiYjdjNGY1Y2FjNTQ4MTZlZWQxNjRkMzY1NmJlMzc2NGJhOTcwNDBlNDlkM2ZjYzhlNDc3MzM2ZjNlMWIzNzdiYiIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiMzhmYjBlMzU1MjE5ZDE4ZjU5ZTViODNkZmMwMTQ4ZmVlMzIxM2I4YzU5ZDZlNGZlNGM1NWE3Mzk0Mzg1NDc3NiIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiZjkyNDVmMjlkOGZhMTI3ZjlmNmJkMzk2NGRhMjY0ZmY3ODQxZTRjNWIyMzFjNTRkZjUwYjUyOTFhNGEzZTg0YyIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiNjZhNGYwMmEyNDRhYjIxNzQ4ODAwMjRmODMyMTc4OGYzMDcwNzJjNDdlZDA0OWYzMzczMjIzOTUxODQ0YTNhNiJ9"
         },
         {
@@ -87,7 +87,7 @@
       "statement": "`./scripts/agent-test` (shorthand `just test`) is the primary test harness for agents: it runs inside Docker by default, sanitizes output (ANSI stripping, vendor-frame removal) and hard-caps it at --max-chars (default 3000), and enforces Gate 0 (lint + type checker, halting before tests on failure), Gate 1 (a path argument, targeted and fail-fast) and Gate 2 (no path, full suite with an Index/Traces two-tier summary).",
       "evidence": [
         {
-          "resource": "repo://AGENTS.md#L19-L31",
+          "resource": "repo://AGENTS.md#L23-L35",
           "version": "repo-lines-v1:sha256:443d98f020ec63ba19068e67bfc06da637fb9bb9b53a35d542a84fadc423a252:eyJzZWxlY3RlZExpbmVDb3VudCI6MTMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjNjOGZiMTg2OTU0Y2E1MWE2M2ViNDVmM2JiYzZhNzE0NDE2MmNmYjg2NGU0N2U2OGQxN2MyYjBkYTY3ODkxNTAiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijc0NDE5NzE1YWU5MzQ4M2MwOTk3ZTlkMWVkNDNjMWFiYmZiZGJmNTdiNTc4YmRiZjY5MDgzOTk3YTMxYmE0ZjgiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjE2ZjdmYWY4OGI2OTFhNTdkMzc4OGMxMzU5NzJmMzU5ODc0OWNjMTRlNDcxYmJiMWY1OGM4NzMzZWJhNWQ5ZTkiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjNkNTFlOGY1NmE0YjA2ZmNmNDRlMTI5NjQ2N2I3NTJjZDU0NzAyOGJkYmJlYmNjZTVjMTJjZTAxODNhNjk1NjUifQ"
         },
         {
@@ -113,7 +113,7 @@
           "version": "repo-lines-v1:sha256:a5940377f1273989f7e70a2aa6129543bf480fdc28a1aa7d19633a79d3b38bcb:eyJzZWxlY3RlZExpbmVDb3VudCI6MjksImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijk5NDk3ZjZkOTNiNTAyMjk5NDA2ZGI2MjQ3OGFlMGI5OGZkMGFmMTIzMDJiNzk1NGMxZTFkMzdmN2ZkODg3NDUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImQxMjUyYjRhYmQ2Y2RhZjUwYzE4ZTY5ZGI0YmRjNTI1ZGI3NTkyNGRmNmUyYzY0Njc4YTYxMjAyODI5YmEyZWMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjowLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
         },
         {
-          "resource": "repo://scripts/agent-test#L618-L630",
+          "resource": "repo://scripts/agent-test#L620-L632",
           "version": "repo-lines-v1:sha256:ea0abe9b6cd6c74647929bc34c291829d8ec92af845eab3406f966997c6b9723:eyJzZWxlY3RlZExpbmVDb3VudCI6MTMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjZiZTQzOWE0NzUwMzQyN2E0Yzc5ZjliZDNjM2MzZmMxZjkzZmQxZTdiNGM3YTE1MWQ1YWZhZDA0MDJkMWE4ZWEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImJjNGRmN2EzNTVkMzY1MjY1Zjg5NjM5Mjg1Zjk0ODRkM2E5ZGY2YjZlNTI4MzJjMmIwZGY4OGI3YzM3OWY3YmYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjIwYmFlMzQ2NjUyYzYzODFmYTA1ZGRlZmQ1ZWU5NGYxZjlmYTFhODIwN2QxYjJhNTRlMzNkOGY3ODVhMzIzNDUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjY2NTRlNWVkOWE0YTAxYWViNDgyYWNlYzJlOWY3NjZlYjIxZjg2MzRlODU2NTRhZjg2MGM5ZmQ0ZjFhZjM3MTMifQ"
         }
       ]
@@ -133,7 +133,7 @@
       "statement": "Tests must never depend on external services: backend tests must mock every outbound client (Redis, HTTP APIs such as EODHD and broker APIs, SMTP), frontend tests must mock all API calls, and the ephemeral testcontainers PostgreSQL is the only permitted infrastructure dependency.",
       "evidence": [
         {
-          "resource": "repo://AGENTS.md#L13-L13",
+          "resource": "repo://AGENTS.md#L17-L17",
           "version": "repo-lines-v1:sha256:0a32d005589b4167dd0ca5638c3b4537796bd06b1c91a4d50fb95d9e44448e84:eyJzZWxlY3RlZExpbmVDb3VudCI6MSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiMGEzMmQwMDU1ODliNDE2N2RkMGNhNTYzOGMzYjQ1Mzc3OTZiZDA2YjFjOTFhNGQ1MGZiOTVkOWU0NDQ0OGU4NCIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiMGEzMmQwMDU1ODliNDE2N2RkMGNhNTYzOGMzYjQ1Mzc3OTZiZDA2YjFjOTFhNGQ1MGZiOTVkOWU0NDQ0OGU4NCIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiYjk0Zjc4MGJjMDU4NWNmMzgzMTA1NTIzNTFkMTJhM2RhYjAwMjA4ZDUwNWI5YmU3Y2JhZTc2NGVlNDk4NjE0ZiIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiZjFlNjAzYzE0MTlmMTgzMmUxMWU3MjY2NThjYWUzMDNmYzJhMGZlZjcwOGQzNDMxNjZhMzY4N2EwNTQyYjgxNiJ9"
         },
         {
@@ -179,7 +179,7 @@
       "statement": "Parallel agents must isolate work with the git worktree workflow: `scripts/setup-agent-worktree.sh <worktree-path> <branch-name>` creates the worktree and generates a .env with unique ports so each worktree runs its own Compose stack without file or Docker resource conflicts.",
       "evidence": [
         {
-          "resource": "repo://AGENTS.md#L33-L40",
+          "resource": "repo://AGENTS.md#L37-L44",
           "version": "repo-lines-v1:sha256:787bdf6552034a8778e5e2ad1c336007245d946da9527d334409774c4ad2aca1:eyJzZWxlY3RlZExpbmVDb3VudCI6OCwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiNmI2YzkwYWM2NTIxODc5ZDQ2MjkyZjUzYjlkOGI1MDhjMmNjYTEwMWU0N2JlMzg3MzJiNjBjMzI2NWU5NjQwOCIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNmE1NmMzZTliOGZkMmRkYzA5MmExNDA4ZjY5Y2M2ZjI3MWY2MTk3YTk3ZTY5YmFhOGYxY2IxZjdiNGMzMjkzNSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiNTBmMDVmMjg2NzgzNThjNjlkM2M1NjE4YTA3NmUwNmZmNWJmYTBmM2M0MWQwMzk0OWM4NDA1MTk0MTI2OTc3ZiIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiZWIxYmM1YmM0YTIzN2Y1NzhlNmFmNGE0MTVkMDY0N2Y5OTEwYjAzYjM2NGUxZTI3YzFmMWRiYWE3NDNkMDNiYSJ9"
         }
       ]
@@ -203,7 +203,7 @@
           "version": "repo-lines-v1:sha256:a0dc306c1a9de32a34b75968fd92571ddf3f1508bfd5e4058d0a3cffa74217b4:eyJzZWxlY3RlZExpbmVDb3VudCI6NSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiNDFjZmY0YWQzM2JhOTFiMTQ4ZTFiMWI4MjkwYjhmZmYyN2IyMDNmYWJmZWU1ODcwMjgyZGUzNjczODNiMWJlMiIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiZjE2M2IxZDg3OWExNDlhMTgxMDYyMzk4MmVlZGI5ZjE4N2NmYWRkMmMwZGU2MTIwMTdiNTFkYTNkMDZjMTcxNSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiMTQ1MzgzMGYyZWFiNzljMjA2NTVhMjFmMGVjMTJjMDI2MGY0OGRhMTA4NDg2ZGFmOTljMjViYjlkZjU0NDEzNiIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiNzYzNmYzOWQzMDdhOTAxMDU3MjM4MjIwZDc2MmE4OTQ0MTk5MTExZDJkODI3ZjYyZjhlMmZiY2VmNTgyZTc1NSJ9"
         },
         {
-          "resource": "repo://AGENTS.md#L55-L55",
+          "resource": "repo://AGENTS.md#L59-L59",
           "version": "repo-lines-v1:sha256:ab53953bfb72c1262bbae2eaca72cabf1af49927a0bba1157b2d5bdb285c4bd2:eyJzZWxlY3RlZExpbmVDb3VudCI6MSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiYWI1Mzk1M2JmYjcyYzEyNjJiYmFlMmVhY2E3MmNhYmYxYWY0OTkyN2EwYmJhMTE1N2IyZDViZGIyODVjNGJkMiIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiYWI1Mzk1M2JmYjcyYzEyNjJiYmFlMmVhY2E3MmNhYmYxYWY0OTkyN2EwYmJhMTE1N2IyZDViZGIyODVjNGJkMiIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiNjZjYjMwYThmOTQ4MTMxNDkwODJmM2RjYjkxOWRiMTJmMjIwYjMxYTI5NWZiZWU5NTM1MWNmOGYxNGJhZGEyZSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjIsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiMzA4OWRmOTNmOGJhNTdhNGRkYmZkOGYwMTM5NjJjMzk3OGNlNGRiNjgxOTljNGRhNjY2NjQ5YjA5OTZjZWRhOSJ9"
         }
       ]
@@ -281,25 +281,11 @@
       ]
     },
     {
-      "id": "claim_d55af0c9f7c649a1a005c72dc98903b8",
-      "statement": "AGENTS.md is the root agent guide that delegates backend work (src/, tests/, migrations/) to src/AGENTS.md and frontend work (frontend/) to frontend/AGENTS.md; CLAUDE.md is only a one-line stub that imports AGENTS.md via `@AGENTS.md` and contributes no guidance of its own.",
-      "evidence": [
-        {
-          "resource": "repo://AGENTS.md#L6-L11",
-          "version": "repo-lines-v1:sha256:0e95ba924e0f508f288ecb82e06aa0e2d91f2262bcaf3d611b098515c80c062a:eyJzZWxlY3RlZExpbmVDb3VudCI6NiwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiMjA1NTU3NDQyZDAzYjg2OTE0Nzc2NjQxZjYzODA0NWJjZDY1YWVkNmFhYzYyYzE1YTZmMmUxNTk3ODg3YzMwMSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiZjNiNzM1MDNlZGRhMGI0NjE0MTMxM2JiMGVkN2EzZmZmMDQzYjEzNzYyYWRiYmQxOGVmM2ZmMzY1OTJjNmI0NSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiNWM2MWE3MDUzMjE5ZTdjNzgxZGI2NjJhYTY1YjRlYTViOWFjZjcxZDk0MjcyNGQ1NzZiZjAxMjI5YTMyYjBkOCIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiZjkyNDVmMjlkOGZhMTI3ZjlmNmJkMzk2NGRhMjY0ZmY3ODQxZTRjNWIyMzFjNTRkZjUwYjUyOTFhNGEzZTg0YyJ9"
-        },
-        {
-          "resource": "repo://CLAUDE.md#L1-L7",
-          "version": "repo-lines-v1:sha256:cd617c809957b5aeb601ce9856109475f6da8ed78835148d17c3097dd4daa848:eyJzZWxlY3RlZExpbmVDb3VudCI6NywiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiNWYxODBmOWMxMjY5MDNiY2MzMzFhYTk1NDU2ZTQ5NDQ0YTdkNGQwMTFlOGEyYTgzZjVkYzg3MDIzOTE4MTJkMCIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiMDlmNzg3MTQ4OTNhYTc3OTQyY2VhMWM0YTJlMDIzMWRiYjdmYTJhNDFhNzBjODE0NjBhM2M2NzU2MmRhM2FhYSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjAsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiZTNiMGM0NDI5OGZjMWMxNDlhZmJmNGM4OTk2ZmI5MjQyN2FlNDFlNDY0OWI5MzRjYTQ5NTk5MWI3ODUyYjg1NSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjAsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiZTNiMGM0NDI5OGZjMWMxNDlhZmJmNGM4OTk2ZmI5MjQyN2FlNDFlNDY0OWI5MzRjYTQ5NTk5MWI3ODUyYjg1NSJ9"
-        }
-      ]
-    },
-    {
       "id": "claim_83a7804f0af142909d61b3f34b9e1afd",
       "statement": "The OpenWiki block at the end of AGENTS.md declares a retrieval-first consumption policy for the generated openwiki/ tree: do not enumerate, preload or search wikis at task start; retrieve only when the user asks, when unfamiliar architecture or dependency behavior materially affects the task, or when source inspection leaves an important uncertainty — using openwiki_search for just-in-time context and openwiki_read for the relevant complete sections, treating a workspace_required response as a prompt to ask which listed workspace to use and retry with its ID, and using openwiki_list_workspaces or openwiki_list_wikis when workspace membership itself must be discovered.",
       "evidence": [
         {
-          "resource": "repo://AGENTS.md#L46-L50",
+          "resource": "repo://AGENTS.md#L50-L54",
           "version": "repo-lines-v1:sha256:74148b0734d8c89d0a361dea40303663c37ccc5ff6cb434e934a454201a5a9a9:eyJzZWxlY3RlZExpbmVDb3VudCI6NSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiMWRiNDYwNjYwZjRkNTBhMjVhY2E3Nzk2MTAwMmQzOTcwNWM2NDZkYzI2YThiZmE2NmFlNmY2OTA5NTljNjk1MSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiOGUxNGJmZGNmMzdhOWE0MGQ0ZWNjMWIwNWQwNzhmN2M1ZjFmMDNmZWZkYjllMjVlNTAzOTlkZWE2ZTUwYjQxNSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiMWFmYjk2MDZmNWIwZDhmNjM0YjI2MDM3OGQ2ZWNlMjUzYjVjMTQ0N2E5YmYxZDA0OTM0OTQ0MGE4YjVlYmYwOSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiOGM1MGE4NzVkYzkwNzM3NGE3NzBmNjI0ZDgwOWM2NDlhZTU2NWNlZjI1NDA3OTMzMmEwMjRkNGVmNTFjM2Q1NCJ9"
         }
       ]
@@ -320,14 +306,14 @@
     },
     {
       "id": "claim_f2589e621f024933a5074da9108b4671",
-      "statement": "The accounts/holdings read path that the quickstart routes to the Accounts & Holdings Views page spans three frontend surfaces: the accounts dashboard at `/`, the account-scoped holdings page at `/accounts/[id]`, and the cross-account `/holdings` page (linked from the sidebar actions group), whose table columns and stock/company grouping are driven by the persisted `holdings_table` and `holdings_group` preferences that the route's server load normalizes.",
+      "statement": "The accounts/holdings read path that the quickstart routes to the Accounts & Holdings Views page spans three frontend surfaces: the accounts dashboard at `/` (server load returning accounts), the account-scoped holdings page at `/accounts/[id]` (server load returning account holdings), and the cross-account `/holdings` page (linked from the sidebar actions group), whose table columns and stock/company grouping are driven by the persisted `holdings_table` and `holdings_group` preferences that the route's server load normalizes while the rows themselves load after navigation through HoldingsService.",
       "evidence": [
         {
-          "resource": "repo://frontend/src/lib/components/holdings/holdings-table.svelte#L27-L35",
-          "version": "repo-lines-v1:sha256:8d4a2ceb87a1fcd2d67c2f4c3e28b66326722db61eb69df630bcbc30b09074f4:eyJzZWxlY3RlZExpbmVDb3VudCI6OSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiNDk0Mzc1NGViM2M2ZmY0YjYxYzZkODkzMzVlMmRkZjAyZGNmYzI4MWQ1ZjMwZDIxYjI5MWEyNWNkN2MxZWM5NSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiY2MzYTIwNzc0ZDVjMmJiNGM3OTBjMTg4OTBhOWM0OTRjY2I1MTBmYzhlOGMwOWVjNzQ1MTliYzE2NGZjNzg0YiIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiZTc3ZDY3ZTc5NjVmMjY2MjdkODJjNTU3YTJlNGMxMjM4ZGFhMTgyNDdlYTllNmM5NDNlYjIwZjIyZmUxYmQyMSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiNTE1MDI0Y2I4NGNiMTY0OWZhYmE0YWU1YzhjMTUzYjNiOTA1MTdjNzRkOGM1NGNjYjE0MDI0MzM0MTA0MzUxZSJ9"
+          "resource": "repo://frontend/src/lib/components/holdings/holdings-table.svelte#L35-L57",
+          "version": "repo-lines-v1:sha256:6657cbf5a976a6c992ea60e37aba9b339847f1752d98c69bac162c9adbde6fa0:eyJzZWxlY3RlZExpbmVDb3VudCI6MjMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ5NDM3NTRlYjNjNmZmNGI2MWM2ZDg5MzM1ZTJkZGYwMmRjZmMyODFkNWYzMGQyMWIyOTFhMjVjZDdjMWVjOTUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjA2MDNhNDQ4NDZkNjI1OTRkNDViODhiZmVjZDQxZWQ2OWRhMmQxNGVlZGUzMzNmYjNmNDAyYTAzODRlODkwMTEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImU3N2Q2N2U3OTY1ZjI2NjI3ZDgyYzU1N2EyZTRjMTIzOGRhYTE4MjQ3ZWE5ZTZjOTQzZWIyMGYyMmZlMWJkMjEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjgwMjY3MzFkN2RlNWQ5OGEzY2YzZWQ4ZDdjYmVmMTMwNTkxZTYzYjJjYTU2ZTNmYzZkYzVjMmM1YjgyZGZiNjAifQ"
         },
         {
-          "resource": "repo://frontend/src/lib/components/layout/app-sidebar-actions.svelte#L38-L50",
+          "resource": "repo://frontend/src/lib/components/layout/app-sidebar-actions.svelte#L52-L64",
           "version": "repo-lines-v1:sha256:0e41ded0b79a44985451cece9826b346eb7a4015ac391ee6c98c2e22f98a2f4f:eyJzZWxlY3RlZExpbmVDb3VudCI6MTMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImQ4NmE2ZWUyMjg2M2VjNzI2YjZmMzFiNjA0YjljMGQ3MmY0YWJhNDYxYzAzMzVlYmI2Yjk5ZTg5MmI5Yjc4NTEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjdlYTAzODc0OGVlMTVjOWI1ZWQ0MTQxMjRhNDE3ZDMwYTNmNGQ0NzQ4MzEyZWUzMzA5ZGM5NWNiZDE2ZDI4NTkiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImI1MzE2YzY0ZDY4YWFkYTZlNjI2MzNlYWM4N2Q1N2Q5MmJjNzg5M2YwNTQ4YmI1M2U3ZTE5YWIyMTkwYmYxOWQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjoyLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImY2NzEwYmRlMzk2ZjcwYWE1NDE5MDYyOTI4OThiNzFhYzNjMzg0OTI2YjEwZWZkMDZhNzk4NWQ1YzRiMmY5NTQifQ"
         },
         {
@@ -339,12 +325,12 @@
           "version": "repo-lines-v1:sha256:c38e2912979d04abc7484073e3994696ec1256bb013f8810219d20004dac92c6:eyJzZWxlY3RlZExpbmVDb3VudCI6MjAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImY0NWU2N2UwNDI5NjcwNjQ2OTJhYWU2YzgwNmIxMGJmMjBhZWNjY2QwOTU1MGU2N2E0ZWI4MzQ5OTQ0ZjE3NDEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImFhMWQxYTYzMzkwMjI5Yzc5ODM0N2U4M2EwNDA1NDQxYzk0MDAwMzUyODRhZDE2OGMxYmY2Y2RmMWQ3MGEzNzAiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjM3ZDVjYTQwMmU2NjgxNTFmMTE2Y2RkN2FiZDhjMWMzYWQ2Mzg1YjcyOWNlZWEwMjViMGJhYWNkYTFiYjE1MDciLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjcwOTg5ODE5MWFjMmRlYzcwOTM0NDhkODE3OTFhNTIwMWE4NTVkYmI2NTJjNWRhN2ZhMDJiMTYzNTgxZGJmMmEifQ"
         },
         {
-          "resource": "repo://frontend/src/routes/holdings/%2Bpage.server.ts#L7-L31",
-          "version": "repo-lines-v1:sha256:02c5178171ef855f96a423b0870bfea49f860967af6d769f70ac161dbd9454a2:eyJzZWxlY3RlZExpbmVDb3VudCI6MjUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjRlM2Q1N2FlMTIwM2IxZmZjNTYxNDRmMDUzYjhlYTJjNjY4NWY4MmZlNDExZDFhNGZiY2YzM2NlZTA2NjBmMjIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImFhMWQxYTYzMzkwMjI5Yzc5ODM0N2U4M2EwNDA1NDQxYzk0MDAwMzUyODRhZDE2OGMxYmY2Y2RmMWQ3MGEzNzAiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjZmNzQzNjZhMmU1MjdkMTBkYjZlMDliNDE0NGJhNGNkZDA5ZWJhYjkxZDY0Y2FjYmYzYjc3ZGJmYzMxYTE3ZWIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
+          "resource": "repo://frontend/src/routes/holdings/%2Bpage.server.ts#L14-L31",
+          "version": "repo-lines-v1:sha256:37a7d0a19ef143620e7475703aaa667211207e97853f3aa4009afaafe48952d5:eyJzZWxlY3RlZExpbmVDb3VudCI6MTgsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjA1ZGMxZDEwNWEwYTBjZjg4ZWE3YThlZDk1NTNkOGY2MTdmN2EyYWM5NzczZDZiNmFhNTFjZDEwZWVjYWRjNTciLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjI3OThhMzM0OWEyODllM2M2ODEwZjM5YjQ1Y2EyMWI2M2QwZGUxZTgwM2IwMzNmMzEzOTg3YmU5YmJhNGUwOGUiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjZmNzQzNjZhMmU1MjdkMTBkYjZlMDliNDE0NGJhNGNkZDA5ZWJhYjkxZDY0Y2FjYmYzYjc3ZGJmYzMxYTE3ZWIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImM3NGNiOTQ5ZDgyMTVlOGY1N2YxYTIyNWQ4NWJhMzRlMWZiZjA5MmE3ZGZlNjE4MzQ4Yjc3OWVkODU2YTIyYmYifQ"
         },
         {
-          "resource": "repo://frontend/src/routes/holdings/%2Bpage.svelte#L24-L48",
-          "version": "repo-lines-v1:sha256:5bbd580dbd9c0e67e13b426e8020ee65d013ff21b7de86d7f1d3bc3704a1cf2d:eyJzZWxlY3RlZExpbmVDb3VudCI6MjUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijc4YTA4ZTZmNDlkYzBkODRhNGZmNTRlOWVmYmU5ZWRmZjM2YWRkNjk1NjQxMjBjMWE1ODU2MDIwOTM5OGZiNDQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImFhMGM4YmQ0ODAzMTUxNDE0ZDI3YTBkNjA2MDE3NzgzMDRmZWVmZjYwM2VmMWUzMWNhMmE0YTQyMDJhODIwYTciLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6Ijg5OTdmMzcyYzJlMGQyMDgyODFjYWNjMWRkYjk3YTNjOThjZTUwMDFiZjcyMDQzZDE0NTRiMTAxMTQzMGY2OGIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImZkYjJmOGY3YWVlNTg0OWM4MmZkYmY2MmUxOGMxNjFmNWY1ZTBiMjViNTVlYjA5ZmFlYTA4ZGFlMzdhMTU0M2UifQ"
+          "resource": "repo://frontend/src/routes/holdings/%2Bpage.svelte#L32-L60",
+          "version": "repo-lines-v1:sha256:1455e1fd3a57566fd94e4c483fe05fb790e6d69e322462926c46a2267106735d:eyJzZWxlY3RlZExpbmVDb3VudCI6MjksImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjgxOWYyYzFjMTJlNThkMzJkNzkwZWYwYTc1YjhkNmZmODAwMGFmNGMwNjZlY2I0ZmFlMjhkMjNjNmQxNWExMjIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ5ZDE0YzUzZTk2MjI1ZDIxZDM1OTc0MWY1NDViYTVhNTRmNWFjODczMmE1NWQxZTQ1YTQ1NTY5NzE4YjhhMTciLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjEzOWM1ODdlYzFhNmU3MWJlZjhlMDQ5ZGZhZjdjNDRlNzVjNGI0YWE3MDA3M2I4ZTgwOTczNGQyM2ViMzFmYzgiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjM2NWFjYjE1NjliZWU0NDA5MWNlYzg2MDg4MzdlNzI5NWE5OGFjYmY0M2JiNTZmZDFiMTYyY2EzNWU4ZjU3YmQifQ"
         }
       ]
     },
@@ -455,22 +441,8 @@
       "statement": "When the OpenWiki retrieval tools are unavailable, the AGENTS.md OpenWiki block directs agents to read openwiki/quickstart.md and follow its links; it also states that source code and tests are authoritative so a brief's unknowns and review items are verification gaps rather than automatic requirements, and that agents should prefer the narrowest quiet validation that proves the changed behavior while preserving complete failure output.",
       "evidence": [
         {
-          "resource": "repo://AGENTS.md#L51-L53",
+          "resource": "repo://AGENTS.md#L55-L57",
           "version": "repo-lines-v1:sha256:8c50a875dc907374a770f624d809c649ae565cef254079332a024d4ef51c3d54:eyJzZWxlY3RlZExpbmVDb3VudCI6MywiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiMDc1NTNiMGQ1MmViODI0ZWY0MWU3NmJmNDViNTYyZjFjZTQ4M2ExMjYzZjRmZmI0M2IxMWIwOWEwNzI4NThiYSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiYmNiMzA1ZGNiMTRkY2I0MTUzZTFhM2YyNTk0NjVjZWFkYWRjOWIwNDRhNzkzZGE0MjdkMmM0M2QzYTA5ZDQ5MSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiOTAyZDFlNjcyNTU4MTg3NTZjYjYyYmUxNGViZDVjMWI1M2FlYmQxOGZhZTVkNWMyMGVkYWNiYWZiYjdjZTMzZiIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiNjU1MjQ4YjYyZjU1MmY2Y2I2ZjcxMTA5YzgzY2E0OWZlOTU1MmU5NjYyYTBhZmNjZTdjNjY5YTJiYmEwZWMwYSJ9"
-        }
-      ]
-    },
-    {
-      "id": "claim_a6142243a5a34714b858b80cb37d1b18",
-      "statement": "The OpenWiki block is delimited by `<!-- OPENWIKI:START -->` / `<!-- OPENWIKI:END -->` HTML comment markers in AGENTS.md, and the same markers in CLAUDE.md wrap the `@AGENTS.md` import — so CLAUDE.md pulls in the generated block wholesale and adds no guidance of its own.",
-      "evidence": [
-        {
-          "resource": "repo://AGENTS.md#L42-L57",
-          "version": "repo-lines-v1:sha256:8926524de63a1266e7592d9f1256ec367b67e9fa0583f343808e3e51f19d4990:eyJzZWxlY3RlZExpbmVDb3VudCI6MTYsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjVmMTgwZjljMTI2OTAzYmNjMzMxYWE5NTQ1NmU0OTQ0NGE3ZDRkMDExZThhMmE4M2Y1ZGM4NzAyMzkxODEyZDAiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjA5Zjc4NzE0ODkzYWE3Nzk0MmNlYTFjNGEyZTAyMzFkYmI3ZmEyYTQxYTcwYzgxNDYwYTNjNjc1NjJkYTNhYWEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjhhMzYzMTA1MjUzZGY5MDkyODhlNDcwODFkNzRlMzYyMDdkNmQ4OGU4NzU4MWJjZTlkZTk5ZDllYzVhZDJkODkiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
-        },
-        {
-          "resource": "repo://CLAUDE.md#L1-L7",
-          "version": "repo-lines-v1:sha256:cd617c809957b5aeb601ce9856109475f6da8ed78835148d17c3097dd4daa848:eyJzZWxlY3RlZExpbmVDb3VudCI6NywiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiNWYxODBmOWMxMjY5MDNiY2MzMzFhYTk1NDU2ZTQ5NDQ0YTdkNGQwMTFlOGEyYTgzZjVkYzg3MDIzOTE4MTJkMCIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiMDlmNzg3MTQ4OTNhYTc3OTQyY2VhMWM0YTJlMDIzMWRiYjdmYTJhNDFhNzBjODE0NjBhM2M2NzU2MmRhM2FhYSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjAsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiZTNiMGM0NDI5OGZjMWMxNDlhZmJmNGM4OTk2ZmI5MjQyN2FlNDFlNDY0OWI5MzRjYTQ5NTk5MWI3ODUyYjg1NSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjAsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiZTNiMGM0NDI5OGZjMWMxNDlhZmJmNGM4OTk2ZmI5MjQyN2FlNDFlNDY0OWI5MzRjYTQ5NTk5MWI3ODUyYjg1NSJ9"
         }
       ]
     },
@@ -493,7 +465,7 @@
       "statement": "The repository README points contributors at AGENTS.md for agent guidelines and at the wiki quickstart for an architecture overview, and AGENTS.md names that same quickstart as the entry point to fall back on when OpenWiki retrieval tools are unavailable — so the quickstart page is the wiki's documented routing/entry surface.",
       "evidence": [
         {
-          "resource": "repo://AGENTS.md#L51-L51",
+          "resource": "repo://AGENTS.md#L55-L55",
           "version": "repo-lines-v1:sha256:07553b0d52eb824ef41e76bf45b562f1ce483a1263f4ffb43b11b09a072858ba:eyJzZWxlY3RlZExpbmVDb3VudCI6MSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiMDc1NTNiMGQ1MmViODI0ZWY0MWU3NmJmNDViNTYyZjFjZTQ4M2ExMjYzZjRmZmI0M2IxMWIwOWEwNzI4NThiYSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiMDc1NTNiMGQ1MmViODI0ZWY0MWU3NmJmNDViNTYyZjFjZTQ4M2ExMjYzZjRmZmI0M2IxMWIwOWEwNzI4NThiYSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiOTAyZDFlNjcyNTU4MTg3NTZjYjYyYmUxNGViZDVjMWI1M2FlYmQxOGZhZTVkNWMyMGVkYWNiYWZiYjdjZTMzZiIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiNjZjYjMwYThmOTQ4MTMxNDkwODJmM2RjYjkxOWRiMTJmMjIwYjMxYTI5NWZiZWU5NTM1MWNmOGYxNGJhZGEyZSJ9"
         },
         {
@@ -501,10 +473,114 @@
           "version": "repo-lines-v1:sha256:9618c0b8b047be356fb1aea3c0b7510059aeecef0d50b8d2a109ac2bc16bcbdd:eyJzZWxlY3RlZExpbmVDb3VudCI6MSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiOTYxOGMwYjhiMDQ3YmUzNTZmYjFhZWEzYzBiNzUxMDA1OWFlZWNlZjBkNTBiOGQyYTEwOWFjMmJjMTZiY2JkZCIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiOTYxOGMwYjhiMDQ3YmUzNTZmYjFhZWEzYzBiNzUxMDA1OWFlZWNlZjBkNTBiOGQyYTEwOWFjMmJjMTZiY2JkZCIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiY2M5NmIzZmEwNDc4YTY1NTZkMWUxNWY0MDgzMTdjMDFiZmY4MjJmNDA2NzdmOGJkNmI3OGVlNjRjNzgwY2MwMiIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiOGQ0YzRmOWZmZmRmOTQ0OGEwMTY4YTUzNTQ4OTEwYWQxM2I5NzM5ZmY1NjE0NDc1Zjc2ZDU0MmU3YzZiYmExOCJ9"
         }
       ]
+    },
+    {
+      "id": "claim_5a3ed3f7893a4f228d989f4243f1f22f",
+      "statement": "Agent guidance is split across three files: AGENTS.md is the root guide that delegates backend work (Python/FastAPI: src/, tests/, migrations/) to src/AGENTS.md and frontend work (SvelteKit: frontend/) to frontend/AGENTS.md; each area guide carries that area's command list plus its architecture and testing rules. No CLAUDE.md exists anywhere in the repository, so AGENTS.md and its per-area guides are the authoritative agent guidance and no other agent-configuration file should be assumed.",
+      "evidence": [
+        {
+          "resource": "repo://AGENTS.md#L10-L17",
+          "version": "repo-lines-v1:sha256:e81183bcbaa78cb42842b9db417c1bdb06dc9e76dd2fff40750651139768fc41:eyJzZWxlY3RlZExpbmVDb3VudCI6OCwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiMjA1NTU3NDQyZDAzYjg2OTE0Nzc2NjQxZjYzODA0NWJjZDY1YWVkNmFhYzYyYzE1YTZmMmUxNTk3ODg3YzMwMSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiMGEzMmQwMDU1ODliNDE2N2RkMGNhNTYzOGMzYjQ1Mzc3OTZiZDA2YjFjOTFhNGQ1MGZiOTVkOWU0NDQ0OGU4NCIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiZThlOTIzZDkzMDkxZjMzNTM3Mzg0NTk0NDY5Y2RhYjA4NjMwNDYwZDFlOTQ4YWQ0MjZlNGIwNGFhYTVhOTdkMiIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiZjFlNjAzYzE0MTlmMTgzMmUxMWU3MjY2NThjYWUzMDNmYzJhMGZlZjcwOGQzNDMxNjZhMzY4N2EwNTQyYjgxNiJ9"
+        },
+        {
+          "resource": "repo://AGENTS.md#L19-L21",
+          "version": "repo-lines-v1:sha256:72339c27e276600743b00237fd0c7bbd0458009c005d63ecce5173f7c9f1b5e0:eyJzZWxlY3RlZExpbmVDb3VudCI6MywiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiYjdjNGY1Y2FjNTQ4MTZlZWQxNjRkMzY1NmJlMzc2NGJhOTcwNDBlNDlkM2ZjYzhlNDc3MzM2ZjNlMWIzNzdiYiIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiMzhmYjBlMzU1MjE5ZDE4ZjU5ZTViODNkZmMwMTQ4ZmVlMzIxM2I4YzU5ZDZlNGZlNGM1NWE3Mzk0Mzg1NDc3NiIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiZjkyNDVmMjlkOGZhMTI3ZjlmNmJkMzk2NGRhMjY0ZmY3ODQxZTRjNWIyMzFjNTRkZjUwYjUyOTFhNGEzZTg0YyIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiNjZhNGYwMmEyNDRhYjIxNzQ4ODAwMjRmODMyMTc4OGYzMDcwNzJjNDdlZDA0OWYzMzczMjIzOTUxODQ0YTNhNiJ9"
+        },
+        {
+          "resource": "repo://frontend/AGENTS.md",
+          "version": "repo-file-v1:sha256:bd6f40c1c7e4559738ae0f2a7edf1a5a3421e4ed895a45e779e9d9658f9cca3d"
+        },
+        {
+          "resource": "repo://src/AGENTS.md#L1-L36",
+          "version": "repo-lines-v1:sha256:d00869bea63b4c33be2021b1c9969dd061cc4a1169137bada9b91be79bac64d2:eyJzZWxlY3RlZExpbmVDb3VudCI6MzYsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImZjMzNmNTEwNGIwZDQ2MTFlMmFlZDljYTNjOWFmYTM2MDE3MjBhMzExMGJiNjFlMTg1MzFjNmU5MDJkNmEwNTUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImQxYTFjZDg5NzI0OGNkYjkxYTA1YzU3MWQ4ZjViZDc1NjE1NjE5MzY3Y2M4NjMxNmM0NzU0ZjZlMGU2NGNkZGUiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjowLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjVkMjBlMzhiNDY2MTExNjNkZTU1ZTQ1M2MxMjIyNDg3OTdmYjU2NjVhOTE4M2MyYjM5ZjJiMzFjZjRkNzY1MWYifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_330e1b5b351140a1a038601ec9acebc7",
+      "statement": "The OpenWiki consumption-policy block is delimited by `<!-- OPENWIKI:START -->` / `<!-- OPENWIKI:END -->` HTML comment markers at the end of AGENTS.md, and that block (not this wiki page) is the authoritative statement of how agents use the generated wiki: do not preload or search at task start, use openwiki_search/openwiki_read only when the user asks or unfamiliar architecture materially matters, and treat source code and tests as authoritative.",
+      "evidence": [
+        {
+          "resource": "repo://AGENTS.md#L46-L61",
+          "version": "repo-lines-v1:sha256:8926524de63a1266e7592d9f1256ec367b67e9fa0583f343808e3e51f19d4990:eyJzZWxlY3RlZExpbmVDb3VudCI6MTYsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjVmMTgwZjljMTI2OTAzYmNjMzMxYWE5NTQ1NmU0OTQ0NGE3ZDRkMDExZThhMmE4M2Y1ZGM4NzAyMzkxODEyZDAiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjA5Zjc4NzE0ODkzYWE3Nzk0MmNlYTFjNGEyZTAyMzFkYmI3ZmEyYTQxYTcwYzgxNDYwYTNjNjc1NjJkYTNhYWEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjhhMzYzMTA1MjUzZGY5MDkyODhlNDcwODFkNzRlMzYyMDdkNmQ4OGU4NzU4MWJjZTlkZTk5ZDllYzVhZDJkODkiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_9b42347182ba493c8dbe4f9a0b984754",
+      "statement": "The `/security/[security_id]` route is a two-part system the quickstart routes to the Security Detail Page & Actions Sidebar page: `+page.server.ts` performs a deliberately trivial identity-only load (returning just `security_id`, 400 when the param is missing) and `SecurityPageDataService` in `page-data.svelte.ts` owns the post-navigation data wave that fetches the security identity and its `1d` price series in parallel; the page then mounts a fixed-order actions sidebar of seven independently-loading groups — HoldingsGroup, FundamentalsGroup, IndicatorsGroup, PriceAlertsGroup, NotesGroup, DocumentsGroup, AIAnalysisGroup.",
+      "evidence": [
+        {
+          "resource": "repo://frontend/src/routes/security/%5Bsecurity_id%5D/%2Bpage.server.ts#L4-L15",
+          "version": "repo-lines-v1:sha256:43c3db3e586787154ab3ca5e53ab820b1e2c12dc9e07b380c6669fb4313ed77c:eyJzZWxlY3RlZExpbmVDb3VudCI6MTIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjgyNGM4N2QyNTU4YTA5OTE3MDBhMWU3M2ZjZDQ3OWUwYmRiMjgxZWMxMmIzNmM3N2I5OTI2MGI5ZjY1YmExM2MiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImFhMWQxYTYzMzkwMjI5Yzc5ODM0N2U4M2EwNDA1NDQxYzk0MDAwMzUyODRhZDE2OGMxYmY2Y2RmMWQ3MGEzNzAiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjA4Y2YyYTczZjY1MzMwNGMwZmVlMzlhODUwMTdiNmY0NDVlOGVkZWY3YTczYjQwMzg3NjdhYWU3NzZiYTZiOWMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
+        },
+        {
+          "resource": "repo://frontend/src/routes/security/%5Bsecurity_id%5D/%2Bpage.svelte#L1096-L1123",
+          "version": "repo-lines-v1:sha256:2afec20e09d22c2b184af38501dcc0dca78856be8268d25910ec2e8150f6705f:eyJzZWxlY3RlZExpbmVDb3VudCI6MjgsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImE5ZWFlNTRlYWQ2MWE1MjQ0ODk0ZjI4ZDljZDIyYTBhMzBkOGMxN2U1ZGMwNWVmYjcyYThhMDVmNjRjNzFmMDgiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImI4ZjNjMmQxYWUzMzA3MDFmNzIyOTdhOWFkMDdlMGMwNjkwOTNhZGUxOTlkMGJhMjEyMTk0MTdlNDYxYTIyMWYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImQ2OWI5MjI5YWI1OTlmNzg2YTU5OTBhMjY0MTg5MzA2NDA4NjQ1Njg5ZmI4ODcyNTg3OTYxYzBmOGM1ZTc5ZGQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjA4M2YzMjM3NjMyODczMGQxYjY2NzAxZjE2NzNhMzc4NDY1OTgwMzdmZDI2OGVlNjI2MGEzYTU4Mjk3OGUxZTYifQ"
+        },
+        {
+          "resource": "repo://frontend/src/routes/security/%5Bsecurity_id%5D/page-data.svelte.ts#L22-L68",
+          "version": "repo-lines-v1:sha256:b7de1ca65da9612ec3e8b982788bc827069b7dc154a0a06e8ba73cd90da8d5a2:eyJzZWxlY3RlZExpbmVDb3VudCI6NDcsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImVkOWQ4Y2EyYmNhNmJiZDE2YjU5Y2JmNTJiNDM1ZDNlNzY3NjA3MTk4NjQ1Njc0YTdjN2ZiOGMyZTA1NjA2YTMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjY3Y2RhODJkYTYwNjIzOGUwNWU2MjM5OTU2OWM1ZWUwMzk5MzQxOTY0OGFlNWQ0M2EyYmY4Y2Q2MzQ3ZjgyNjMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImZmOGFjZTQyODhlZmNlNDc0Yzk3ZTE1MzcyMzI1ZDBiYmYxYWNkOWVkOTYxY2NiMWEyYWExM2Y2M2Q5MmY5NmQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjoxLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjQxMmNhMzQ1Y2NmNzViZjljMDgwNmJjZTY5NWJlOGRlODA4Yjc5OTg0MjUxYTdhNTRkMjAyY2Y2MTAxZGQ0NTEifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_94a1a8565c1242c19450ef172de550ff",
+      "statement": "Watchlists, portfolios and security valuation are three distinct surfaces the quickstart routes to the Watchlist, Portfolio & Valuation Surfaces page: watchlists and per-user security valuations are owned by the `market` domain (WatchlistRepository and SecurityValuationRepository in src/market/), while portfolios are owned by the `account` domain (src/account/service/portfolio.py) and listed on `/portfolios`, whose server load redirects to login on a 401 from the portfolio client.",
+      "evidence": [
+        {
+          "resource": "repo://frontend/src/routes/portfolios/%2Bpage.server.ts#L7-L24",
+          "version": "repo-lines-v1:sha256:edf6d3efd15dd868c2a1a1795ce75bb0beacdffd190a08bdbc1b40e79f87d236:eyJzZWxlY3RlZExpbmVDb3VudCI6MTgsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjRlM2Q1N2FlMTIwM2IxZmZjNTYxNDRmMDUzYjhlYTJjNjY4NWY4MmZlNDExZDFhNGZiY2YzM2NlZTA2NjBmMjIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImFhMWQxYTYzMzkwMjI5Yzc5ODM0N2U4M2EwNDA1NDQxYzk0MDAwMzUyODRhZDE2OGMxYmY2Y2RmMWQ3MGEzNzAiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImRkYzNkMjY1NWFhMzc0ZjNiNjI4NjRiZDllNGZlNTY5YWI0OWE4MTFlMTFjNDJmMWFjMmQ3Mjk1MTBhZWFkNDIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
+        },
+        {
+          "resource": "repo://frontend/src/routes/watchlists/%2Bpage.server.ts#L3-L10",
+          "version": "repo-lines-v1:sha256:034001162d5fb7e7b596bcf54a35af9f6a401da33362220b73238eba58b612ff:eyJzZWxlY3RlZExpbmVDb3VudCI6OCwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiZGM3NjJkMzM0M2YzNzE0MWM3Mzc2MjEyZDhiMzMxZjhlNmUwOGE4ZjNiYTEwNWUzZGQzYjM1NDU2OTdiZmZkYSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiYWExZDFhNjMzOTAyMjljNzk4MzQ3ZTgzYTA0MDU0NDFjOTQwMDAzNTI4NGFkMTY4YzFiZjZjZGYxZDcwYTM3MCIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjIsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiODBiMTJmMjg5ZjQwNTA3ZDk2MmJiMTliZjRkOTQwZmIyODAwM2ZmNzY0NTcyY2ZhODUxZTY0ODg1YzhmZjEzNCIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjAsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiZTNiMGM0NDI5OGZjMWMxNDlhZmJmNGM4OTk2ZmI5MjQyN2FlNDFlNDY0OWI5MzRjYTQ5NTk5MWI3ODUyYjg1NSJ9"
+        },
+        {
+          "resource": "repo://src/account/service/portfolio.py",
+          "version": "repo-file-v1:sha256:0b353487f8f350c82f7ebbd2ce90989a5e6c1e7b50d444e15ec88661b408aaef"
+        },
+        {
+          "resource": "repo://src/market/__init__.py#L23-L45",
+          "version": "repo-lines-v1:sha256:02df68eed771739eb2e95b5d035eb1183e6ff7e307509ee4b92462438946e45d:eyJzZWxlY3RlZExpbmVDb3VudCI6MjMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjA0MjM0YmQ1MmFiY2VhZTM4MTI1MjkyNDUzM2NkNzY5ZmQxZWIzYzVjNzdmZjU4ODZhYjNkNzA1MTIzMjkyZTMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImJmNjJjODg4YTc4YjVkNTg2MDk5NjUwNTM3ODZlZmY1ZWQwNDZiM2E2ZTU5Y2NmZWZkMmZlZjBiYjZiMDRhMTAiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImE3MTQyOTM5ZDg1N2MyNmE4MzlkODE2NTgxYjliMTk4NzZhZjJlMTMzMWY0MGMxMjJiNTM4ZWQ3MWMzZGJlMWUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjYxODAwZjJmNTg1OTljNDVlOTNhMmQzNGZkZjQ2NjQ3MjczM2YzODdiYThjM2U5MTI1Y2U1N2Y4ODkwNzUzYzgifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_99340a2d176e4e2fb44a2a2e85c31e28",
+      "statement": "The frontend sidebar shell composes a fixed hierarchy that the quickstart's routing rows assume: app-sidebar.svelte mounts AppSidebarHeader, then an actions group (AppSidebarActions) and AppSidebarWatchlist inside Sidebar.Content, then AppSidebarProfile; AppSidebarActions is the shortcut group linking to `/portfolios`, `/watchlists` and `/holdings` and exposing global search, while the layout owns the initial watchlists fetch that feeds both the sidebar and the 0-9 ticker shortcuts.",
+      "evidence": [
+        {
+          "resource": "repo://frontend/src/lib/components/layout/app-sidebar-actions.svelte#L26-L64",
+          "version": "repo-lines-v1:sha256:53c04f2dafac99653775bc189c19771adcdb4563da5f244543a45f175e2f25dc:eyJzZWxlY3RlZExpbmVDb3VudCI6MzksImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImQ4NmE2ZWUyMjg2M2VjNzI2YjZmMzFiNjA0YjljMGQ3MmY0YWJhNDYxYzAzMzVlYmI2Yjk5ZTg5MmI5Yjc4NTEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjdlYTAzODc0OGVlMTVjOWI1ZWQ0MTQxMjRhNDE3ZDMwYTNmNGQ0NzQ4MzEyZWUzMzA5ZGM5NWNiZDE2ZDI4NTkiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjEyYTljMmFjNzEwYzE3ZmE1YTJiNWM2MmE2ZDhmMmE4YTU5NDMyNTE2ZTQ5Y2Q3NTI5ZWMwMzU3YTMzNGRmZDgiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjoyLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImY2NzEwYmRlMzk2ZjcwYWE1NDE5MDYyOTI4OThiNzFhYzNjMzg0OTI2YjEwZWZkMDZhNzk4NWQ1YzRiMmY5NTQifQ"
+        },
+        {
+          "resource": "repo://frontend/src/lib/components/layout/app-sidebar.svelte#L14-L21",
+          "version": "repo-lines-v1:sha256:821f13dbec30ea9c5e9d191d8359dc1659742bd62b8019cf2cd2a05be62fbf22:eyJzZWxlY3RlZExpbmVDb3VudCI6OCwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiMTI0MzY3YzFmM2FkN2Y3ZmI2NGUxZGZkNGU5NTVkNDQ2NTkwNDI5ZmUyZGM4NDg0YTcxZmE2ZTk4NWZmMWM5ZCIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNmUzMDQ1OGEyNTM3YzhhMDA1MmFhMjU3MWQ0ZGRmZTkxMTgwMzlkMTE5OWMzZmQ1NWRhZWYxNjliNWQ4ZGFhZCIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiMTU4N2NhODY1ZTQ4MWZhZGIyNDU2YTYxZjYyOGZiYmU3M2E0OTJkY2MxYjZhN2E2ZWI1NDNlZTVlODczZjU5NiIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiYThhNmExMzA5NDIxZjhhNGNkNmU3ZDQ1ZTk3NmIxMDE2OTAwZDQwNDZiZmU3NTM2YjZkMjgwMmYyZjg0Mzk5YSJ9"
+        },
+        {
+          "resource": "repo://frontend/src/routes/%2Blayout.svelte#L33-L57",
+          "version": "repo-lines-v1:sha256:60a4111eaa4e66c751f10b671377e4188d645e30143bcecf87405febe24152bd:eyJzZWxlY3RlZExpbmVDb3VudCI6MjUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjNlMTdiM2JlMWVkNzRhNGNhNDc5NmYwOGIzNWVlMzI1NGY2Y2Y4Mzk3M2YxN2ZkNWQzNzU2ODc0MmEwNTg5N2UiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImJhNDY0NWRiZTFjYmRkMzM2N2RlYTQwODZkOTYyZDM5YTM5NDUxN2IzNzg5YzgwNWIwNTI3MDdiYjZiZTJmNDIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjIyZjJmZjVmZWVjNjBmNTg3YzhmYWU0ZTg3ZjgwOWE2NjFjZmZlZDZiNDdhYWU1ZjZkNmEyNjUzYWE4OTUyZWYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImYxOGEzYzVmZjA4ZGQ3OTYwMDllNjFlNjY1NzU2YzVhNTY3YTkyYTUxZTg2NGQ1MzkxOTE1NzcxNDZjNGRlMWIifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_b88cb79153574079b230c07f9f4aba60",
+      "statement": "CI (`.github/workflows/ci.yml`) runs the same verification in three jobs — backend (`uv run ty check`, `ruff check` + `ruff format --check`, `pytest`), frontend (`npm run check`, `npm run lint`, `npm run test:run`) and indicator-service (`go vet`, `go build`, `go test`) — so the container commands described in the quickstart match what CI enforces.",
+      "evidence": [
+        {
+          "resource": "repo://.github/workflows/ci.yml#L13-L76",
+          "version": "repo-lines-v1:sha256:30f00379c4a6bf4df115bd02f328c03fd342bb0aaffccb6495df94762f6799e8:eyJzZWxlY3RlZExpbmVDb3VudCI6NjQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijk2YzgyZWI0NzlhN2VlMWRjMmU4Y2QxMjZjZjA4NTg5ODc2ZjM4ZGFkYWI1NjVhYzMwZjQ0YmQ3OGY2YzMyYjUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjEwY2U1Y2JjMjI0NmQ2MDJmODg2N2UwMDMyNjM1NDI2YzljMWY0YTFjOTc5NTkyOWI4NGM3MTUyOWExYjVmOTEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjM5NWJjOThmYjU5Yzk3ODk1Zjk5MjA4YzNiMzhmYTI0OWU2MzlhZjVlYTI0Y2YyYmNmZTQ1YTliMmEyZjMwNTUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjM4NjBlMGY5YjQwZmYzZGI2MzExODYzNzc1NmE1ZWJjNzE5ODMyZTg4Y2FiN2ZlZGIzNTc5MzQ3YTIyYjhmNjcifQ"
+        },
+        {
+          "resource": "repo://frontend/package.json#L6-L17",
+          "version": "repo-lines-v1:sha256:d3a1bc4e90aef652f879e5f615016319ac194aae33b673cb431e72dda96f9d3a:eyJzZWxlY3RlZExpbmVDb3VudCI6MTIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImI3M2NhMGRkN2QzYTM4OWJiODNhMzhhMWIzYzQ5MzhlZjA5ZDFmZjhiYTYxYzA3NTM4YTE1NTNkNDkyYmEyZjciLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImZlNTAzMjQ5NjI1NjU2ODVhNTljMzk3NWUxYTU0MjRhODE3NWJhNDBmN2RmYTNhMDk2NTc5MTliMjFjZDkyNmIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImQ5YjRkYzMxYjhmZDI3NzY4NmI4OWVkODAwNTg3OTEzODZmYmFjOWFlZWNmMGNmZWZhNjg5ZGZhZWE4MTFmMjEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjJmYTU5ZmMzOGVlOTkyOGZmNGUxZGQyNzY1Y2UyZjAzMTI2ODgwYzM0OTQ1ZjJlZjk2N2RkODc2MzNhMGRhNzUifQ"
+        }
+      ]
     }
   ],
   "verification": {
-    "by": "openwiki/0.6.0",
-    "at": "2026-09-26T12:38:50.029Z"
+    "by": "openwiki/0.6.1",
+    "at": "2026-10-02T14:25:20.147Z"
   }
 }

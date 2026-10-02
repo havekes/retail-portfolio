@@ -1,8 +1,11 @@
 ---
 type: reference
 title: Quickstart & Task Routing
-description: Entry point to the retail-portfolio wiki — what the repository is, how to run the Docker Compose stack from the single root .env, where each system lives, how agents are expected to consume the generated wiki, and a task-routing table that points backend-domain, config/DI, frontend-shell, chart-surface, chart-drawings-and-rewind, realtime-and-background-jobs, user-preferences, holdings-read-path, broker/CSV/market-data/AI, money, integration, dev-workflow, testing and agent-guidance work at the owning page.
+description: Entry point to the retail-portfolio wiki — what the repository is, how to run the Docker Compose stack from the single root .env, where each system lives, how agents are expected to consume the generated wiki, and a task-routing table that points backend-domain, config/DI, frontend-shell, chart-surface, chart-drawings-and-rewind, security-detail-and-actions-sidebar, watchlists/portfolios/valuation, realtime-and-background-jobs, user-preferences, holdings-read-path, broker/CSV/market-data/AI, money, integration, dev-workflow, testing and agent-guidance work at the owning page.
 tags: [quickstart, task-routing, onboarding, repository-map, development-workflow, openwiki]
+verified:
+  - by: openwiki/0.6.1
+    at: 2026-10-02T14:25:20.147Z
 sources:
   - id: openwiki-source-5f5b95b3d6a215fa02ceb945
     resource: repo://.env.example
@@ -12,18 +15,22 @@ sources:
     resource: repo://.github/workflows/openwiki-update.yml
   - id: openwiki-source-8037e2358a2c4f9b2c722a11
     resource: repo://AGENTS.md
-  - id: openwiki-source-a2371d6362e5db4bc834ad03
-    resource: repo://CLAUDE.md
   - id: openwiki-source-b79fbbd921df689b4bbdc82f
     resource: repo://docker-compose.yml
   - id: openwiki-source-e483fd3285d99d05c7b265cf
     resource: repo://frontend/AGENTS.md
+  - id: openwiki-source-1047363cf615000e4c9bb694
+    resource: repo://frontend/package.json
   - id: openwiki-source-45599bb9a8794a9c90b7e20d
     resource: repo://frontend/src/lib/api/apiClient.ts
   - id: openwiki-source-09dad1559edc73c5b154a081
     resource: repo://frontend/src/lib/components/holdings/holdings-table.svelte
   - id: openwiki-source-3f8311916804417f28db7f0d
     resource: repo://frontend/src/lib/components/layout/app-sidebar-actions.svelte
+  - id: openwiki-source-5207f26c1a96220b5e1db104
+    resource: repo://frontend/src/lib/components/layout/app-sidebar.svelte
+  - id: openwiki-source-a8a830617ab03d4b55d49d9a
+    resource: repo://frontend/src/routes/%2Blayout.svelte
   - id: openwiki-source-846f5f71a06546739c7f1ccb
     resource: repo://frontend/src/routes/%2Bpage.server.ts
   - id: openwiki-source-b8584948ed4a6fee33406f78
@@ -32,6 +39,16 @@ sources:
     resource: repo://frontend/src/routes/holdings/%2Bpage.server.ts
   - id: openwiki-source-17695a0429275bdf8c6b0e99
     resource: repo://frontend/src/routes/holdings/%2Bpage.svelte
+  - id: openwiki-source-a3e043cd646e68c425bd541e
+    resource: repo://frontend/src/routes/portfolios/%2Bpage.server.ts
+  - id: openwiki-source-33c886f28072e35f81eadfae
+    resource: repo://frontend/src/routes/security/%5Bsecurity_id%5D/%2Bpage.server.ts
+  - id: openwiki-source-67b769eb99d4518b98fe1ca7
+    resource: repo://frontend/src/routes/security/%5Bsecurity_id%5D/%2Bpage.svelte
+  - id: openwiki-source-51676b3163748937a7f6b22d
+    resource: repo://frontend/src/routes/security/%5Bsecurity_id%5D/page-data.svelte.ts
+  - id: openwiki-source-a680cc2053312375d46bcfe4
+    resource: repo://frontend/src/routes/watchlists/%2Bpage.server.ts
   - id: openwiki-source-378e3cf05ab0d05d335c68d5
     resource: repo://frontend/vite.config.ts
   - id: openwiki-source-c59fe4336a371ea1052a01dd
@@ -46,18 +63,19 @@ sources:
     resource: repo://scripts/docker-gid.sh
   - id: openwiki-source-3871c7364a9411872d29e162
     resource: repo://scripts/opencode-go-session-fetch.mjs
+  - id: openwiki-source-de4e7fa85608340db568fc0c
+    resource: repo://src/account/service/portfolio.py
   - id: openwiki-source-230f617cb6d47154ef463034
     resource: repo://src/AGENTS.md
   - id: openwiki-source-11b9d806fcc6dd6e7747ed87
     resource: repo://src/main.py
+  - id: openwiki-source-336c8d4ea788e2c5f7cddd73
+    resource: repo://src/market/__init__.py
   - id: openwiki-source-c8a9ed75dfc5d7332062ae40
     resource: repo://src/worker_dashboard/router.py
   - id: openwiki-source-7a8d629077019775a9fec3d3
     resource: repo://src/worker.py
-generated: { by: "openwiki/0.6.0", at: "2026-09-26T12:38:50.029Z" }
-verified:
-  - by: openwiki/0.6.0
-    at: 2026-09-26T12:38:50.029Z
+generated: { by: "openwiki/0.6.1", at: "2026-10-02T14:25:20.147Z" }
 ---
 
 # Quickstart & Task Routing
@@ -69,9 +87,12 @@ Huey worker on Redis (`src/worker.py`), a SvelteKit 2 / Svelte 5 SSR frontend
 development is Docker Compose only; the backend, worker, Compose interpolation and the
 frontend dev server all read one root `.env` copied from the tracked `.env.example`.
 
-`AGENTS.md` is the root guide: it delegates backend work to `src/AGENTS.md` and frontend
-work to `frontend/AGENTS.md`. `CLAUDE.md` is a one-line stub that imports `AGENTS.md` via
-`@AGENTS.md` and adds no guidance of its own.
+Agent guidance lives in `AGENTS.md`, which delegates backend work (Python/FastAPI:
+`src/`, `tests/`, `migrations/`) to `src/AGENTS.md` and frontend work (SvelteKit:
+`frontend/`) to `frontend/AGENTS.md`. Those guides hold the command lists and the
+architecture and testing rules for each area. **`CLAUDE.md` no longer exists in this
+repository** — do not look for it, and do not invent agent-configuration files; the
+`AGENTS.md` pair plus its per-area guides are the authoritative agent guidance.
 
 ## Run it
 
@@ -83,6 +104,27 @@ just up        # or: docker compose up -d
 `just up` starts the stack with the host Docker socket's real group id (discovered by
 `scripts/docker-gid.sh`, overridable with `DOCKER_GID`), which is what lets
 testcontainers-backed tests inside the containers reach the daemon.
+
+```mermaid
+flowchart TD
+    Dev["Host browser or agent shell"] --> FE["frontend node:latest — SvelteKit dev server on 8100, published 8002"]
+    Dev --> BE["backend uv python3.14 — uvicorn src.main:app on 8000, published 8001"]
+    Dev --> MC["mailcrab dev SMTP inbox on 1080, published 8003"]
+    Dev --> ID["indicator-service Go sidecar on 8080, published 8085"]
+    Dev --> PG["postgres:18 on 5432"]
+    FE -->|"VITE_INTERNAL_API_URL http://backend:8000"| BE
+    FE -->|"browser uses VITE_API_BASE_URL http://localhost:8001"| BE
+    BE --> PG
+    BE --> RD["redis:7-alpine — Compose network only, not published"]
+    BE --> ID
+    BE --> MC
+    WK["worker — huey_consumer under watchfiles"] --> PG
+    WK --> RD
+    WK --> MC
+    BE -->|"Huey dashboard mounted on the backend app"| WK
+```
+
+Compose services, their published host ports and the internal addresses they reach each other on.
 
 | Service | URL / purpose | Host port (root `.env` override) | Container port |
 |---|---|---|---|
@@ -141,19 +183,21 @@ CI (`.github/workflows/ci.yml`) runs the same verification in three jobs: backen
 | SvelteKit routes, `load`/form actions, API clients, runes-based services, SSR pitfalls | [Frontend Architecture](./architecture/frontend.md) |
 | The chart surface: chart mount/series lifecycle, panes and pane heights, timeframe/chart style, indicator overlays, chart settings, price alerts | [Charting: Chart Surface, Panes & Indicators](./architecture/charting.md) |
 | Drawing tools: series-primitive plugins and helpers, finance math, drawing persistence/undo-redo, chart snapshots and the rewind timeline | [Chart Drawings, Plugins & Rewind](./architecture/chart-drawings-and-rewind.md) |
+| The `/security/[security_id]` page shell, its post-navigation data wave, and the actions sidebar groups (holdings, fundamentals/valuation, indicators, price alerts incl. wave reconcile, notes, documents, AI) | [Security Detail Page & Actions Sidebar](./workflows/security-detail-actions.md) |
+| Watchlists (lists, sort mode, manual reorder, sidebar vs `/watchlists` divergence, the 401 seam), the portfolios list/create surface, and per-user security valuation tracking | [Watchlist, Portfolio & Valuation Surfaces](./workflows/watchlists-portfolios-and-valuation.md) |
 | Anything persisted per user: the `/accounts/me/preferences` contract, key ownership, merge/`exclude_none` semantics | [User Preferences](./concepts/user-preferences.md) |
 | Signup/login, the `auth_token` JWT, 2FA/TOTP, passkeys, ownership authorization, the WS ticket | [Authentication & Authorization](./architecture/authentication.md) |
 | The holdings read path: the accounts dashboard, `/accounts/[id]`, cross-account `/holdings`, holdings table columns/grouping/preferences | [Accounts & Holdings Views](./workflows/accounts-and-holdings-views.md) |
 | Broker connect, Wealthsimple login/OTP, position import and the Huey sync task | [Broker Connect, Import & Position Sync](./workflows/broker-sync.md) |
 | CSV templates, account discovery, the inspect → import → sync lifecycle | [CSV Account Import & Sync](./workflows/csv-import.md) |
-| Price fetches/backfill, daily & intraday tasks, the downstream recalc/alert cascade, indicator computation | [Market Data, Indicators & the Price Update Cascade](./workflows/market-data-and-indicators.md) |
+| Price fetches/backfill, daily & intraday tasks, the downstream recalc/alert cascade, indicator computation, the Go indicator service client and its Redis result cache | [Market Data, Indicators & the Go Indicator Service](./workflows/market-data-and-indicators.md) |
 | AI context assembly, fundamentals/notes/debate endpoints, the async title task | [AI Analysis Flows](./workflows/ai-analysis.md) |
 | The worker: task registries, periodic/on-demand jobs, retries, the Redis WebSocket fan-out, sync-status keys, the frontend consumer | [Realtime, Background Jobs & the Worker](./workflows/realtime-and-background-jobs.md) |
 | An outbound dependency: EODHD, Wealthsimple, the AI endpoint, SMTP/mailcrab, Redis, the indicator sidecar | [External Services & Adapters](./integrations/external-services.md) |
 | Money, currency conversion, totals, holdings/P&L math, rounding | [Money & Currency Handling](./concepts/money-and-currency.md) |
 | How to run, ship and change: Compose stack, in-container commands, agent-test harness, worktrees, migrations, CI, OpenSpec, the OpenWiki refresh | [Development, CI & Change Workflows](./operations/workflows.md) |
 | The pytest/Vitest layout, fixtures, mandatory mocking, harness gates, CI matrix | [Testing & Verification](./operations/testing.md) |
-| Agent guidance and this wiki: `AGENTS.md`, `src/AGENTS.md`, `frontend/AGENTS.md`, the `CLAUDE.md` stub, the OpenWiki block and its consumption policy | [Development, CI & Change Workflows](./operations/workflows.md) |
+| Agent guidance and this wiki: `AGENTS.md`, `src/AGENTS.md`, `frontend/AGENTS.md`, the OpenWiki block and its consumption policy (there is no `CLAUDE.md`) | [Development, CI & Change Workflows](./operations/workflows.md) |
 
 ## Non-negotiables
 
@@ -199,9 +243,8 @@ direct commit. Do not hand-edit these pages unless explicitly asked: update sour
 docs and let the workflow regenerate them.
 
 The OpenWiki block at the end of `AGENTS.md` (delimited by `<!-- OPENWIKI:START -->` /
-`<!-- OPENWIKI:END -->`, and imported wholesale by the `CLAUDE.md` stub) defines how agents
-are meant to use it. It is the authoritative statement of consumption policy: if it and
-this page disagree, the block wins.
+`<!-- OPENWIKI:END -->`) defines how agents are meant to use it. It is the authoritative
+statement of consumption policy: if it and this page disagree, the block wins.
 
 - **Do not enumerate, preload, or search wikis at task start.** Retrieval applies when the
   user asks for it, when unfamiliar architecture or dependency behavior materially affects

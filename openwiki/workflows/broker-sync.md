@@ -3,14 +3,17 @@ type: workflow
 title: Broker Connect, Import & Position Sync
 description: The end-to-end broker flow in retail-portfolio — listing integration-enabled institutions, logging in to Wealthsimple with credential/OTP handling and keyring session caching, importing broker users/accounts/positions, the Huey sync task that resolves broker symbols into market securities and replaces positions per account, the Redis active-sync bookkeeping and WebSocket events, the frontend accounts list that consumes them, and the error-to-message mapping plus failure email.
 tags: [broker-integration, wealthsimple, huey, websockets, redis, position-sync, background-tasks, keyring]
-verified:
-  - by: openwiki/0.5.2
-    at: 2026-09-18T20:16:58.058Z
 sources:
+  - id: openwiki-source-b263e02920f61e43137888d6
+    resource: repo://frontend/src/lib/components/accounts/accounts-list-item.svelte
+  - id: openwiki-source-6b925971f5b4fc13a6f28950
+    resource: repo://frontend/src/lib/components/accounts/accounts-list-item.svelte.ts
   - id: openwiki-source-fd678aa0f01fc30bd938c51f
     resource: repo://frontend/src/lib/components/accounts/accounts-list.svelte.ts
   - id: openwiki-source-b326b5814101571b7ac02f34
     resource: repo://frontend/src/lib/components/brokers/broker-login-modal.svelte.ts
+  - id: openwiki-source-8215679cbfdaaa5ed7bc8531
+    resource: repo://frontend/src/lib/types/websocket.ts
   - id: openwiki-source-717c8d779a49c004fc5cb8ec
     resource: repo://src/account/api/account.py
   - id: openwiki-source-b307cf68f1a91cdd844faf8b
@@ -21,6 +24,8 @@ sources:
     resource: repo://src/account/router.py
   - id: openwiki-source-3f52b6a4e0898f1abe448990
     resource: repo://src/account/service/position.py
+  - id: openwiki-source-b911aefb4dbb6f043ed2380e
+    resource: repo://src/account/task.py
   - id: openwiki-source-d1e4e10eebd8f4d4314bc43f
     resource: repo://src/config/settings.py
   - id: openwiki-source-6a6a2e379c607f943e74eba0
@@ -61,7 +66,10 @@ sources:
     resource: repo://tests/routers/test_sync_status.py
   - id: openwiki-source-d1793d747b8abce8c0959943
     resource: repo://tests/tasks/test_integration.py
-generated: { by: "openwiki/0.5.2", at: "2026-09-18T20:16:58.058Z" }
+generated: { by: "openwiki/0.6.1", at: "2026-10-02T14:25:20.147Z" }
+verified:
+  - by: openwiki/0.6.1
+    at: 2026-10-02T14:25:20.147Z
 ---
 
 # Broker Connect, Import & Position Sync
@@ -164,6 +172,7 @@ sequenceDiagram
     Q->>GW: get_accounts -> update_net_deposits + update_last_sync_at
     Q->>UI: sync_finished
     Q->>X: mark_sync_finished(user, account)
+    UI->>BC: getAccounts (refresh list on sync_finished)
 ```
 
 Caption: the connect → import → sync path. Login is synchronous and request-scoped; every
@@ -349,8 +358,12 @@ lives in the auth `/auth/ws-ticket` endpoint.
 
 **State.** Two runes-backed fields track the sync: `syncingAccountIds` (a `SvelteSet<string>`) and
 `syncErrors` (`Record<string, string | null>`). Incoming events mutate them directly:
-`sync_started` adds the id and clears the error, `sync_finished` removes it and clears the error,
-`sync_failed` removes it and sets `'Failed to sync. Please try again.'`.
+`sync_started` adds the id and clears the error, `sync_finished` removes it, clears the error and
+then awaits `fetchAccounts()` to refresh the whole list, and `sync_failed` removes it and sets
+`'Failed to sync. Please try again.'`. Only those three event types are handled: the frontend
+`WsEventType` enum (`frontend/src/lib/types/websocket.ts`) declares exactly `sync_started`,
+`sync_finished` and `sync_failed`, so unknown message types are parsed and silently ignored by the
+`onmessage` branch chain.
 
 **Hydration and reconnect.** On `open` the state calls `hydrateSyncStatus()`, which reads
 `GET /accounts/sync-status` once (guarded by `syncStatusHydrated`) so a page loaded mid-sync shows
@@ -364,9 +377,15 @@ deadline, 1.5s interval) of the same sync-status endpoint with an explicit comme
 exists: *the WS message may be lost if Redis pub/sub fails*. When the backend no longer reports the
 id it waits a 5-second grace period for the message; if the message still has not arrived it clears
 state and refetches accounts. A timeout sets `'Sync took too long. Check account status.'`, and a
-request failure sets `'Request failed. Please check your connection.'`. Totals are refreshed by
-re-rendering the account rows (each item owns a `totalsCache` with an `invalidateCache`), and the
-hourly `account_totals_updated` broadcast lands on the same component.
+request failure sets `'Request failed. Please check your connection.'`.
+
+**Totals refresh.** Account rows do *not* consume a totals event. `AccountsListItemState`
+(`accounts-list-item.svelte.ts`) caches totals per id in `totalsCache`, and the row's `$effect`
+calls `invalidateCache` on the `isSyncing` → not-syncing transition, which drops both the totals
+and holdings cache, bumps a `version` rune and refetches holdings for an expanded row. The
+`account_totals_updated` message that `src/account/task.py::recalculate_all_account_totals_task`
+still publishes over WebSocket therefore has no client handler on this page — the accounts list
+learns about new totals only through the `fetchAccounts()` / row-invalidate cycle.
 
 **Server-side gate.** `POST /api/v1/accounts/{account_id}/sync` (rate-limited `3/minute`) refuses an
 account with `api_sync_enabled = false` with **400** ("API sync is not enabled for account …") and
@@ -425,9 +444,10 @@ storage.
 | SMTP settings | `SMTP_*` | delivery of the failure email |
 
 Operationally: the task runs in the `huey-worker` process, so a change to `src/integration/task.py`
-requires a worker restart; both the API and the worker load `.env` at process start. The
-`huey_dashboard` is started from `src/main.py` and torn down on shutdown (`src/worker.py` wires the
-worker-side signals).
+requires a worker restart; both the API and the worker load `.env` at process start. The Huey
+dashboard is started from `src/main.py` via `src/worker_dashboard/setup.py::init_worker_dashboard`
+mounted at `/worker/api`, and torn down on shutdown with `close_worker_dashboard`, which closes the
+dashboard's Redis connections (`src/worker.py` wires the worker-side signals).
 
 ## Testing
 
