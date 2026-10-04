@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "pageVersion": "sha256:cf7206a6377238b92356f4ea0ae32323a8a0a74be259fcf75b2cf8aecde1fbf1",
+  "pageVersion": "sha256:5515f6455000d4248405545b037ce85b8abcd0591eaf20462ec62c66ef284409",
   "claims": [
     {
       "id": "claim_dc41cb6365fb48fa9d83873704c74cfb",
@@ -29,7 +29,7 @@
           "version": "repo-lines-v1:sha256:7d87f5bd7a991737c8aadee73ef70ec50a91b3b1c84b1a4e1fc2f0fb8dac4da9:eyJzZWxlY3RlZExpbmVDb3VudCI6MTEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjY1ZjU4MGFkYTY4NGRkNjhhZjY3NmNkMjhkNTUxMTlkOWZkMTljYjA4N2MxMzdiODRjYjQ0ZmRhOGY5OTUyZjkiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijc0OTRkMjUwZWUyYjJjZDc4NzZjOWZlNmY4Y2UyOTQwYWE3YjYwY2U3MDU5NTI5ZjA0MmUxNzljMGNlMzY5NDEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6Ijk2YTY4YjI1MzU5Y2QxZmQ1NDM5MTkyM2FlZDUzYTBlNjFhYTM1MmU5OTJkMzNjNjVmODA0YzY1MWNhYzc0MzkiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImM1ZTc4ZTZhMGZhZGU0MjViMzg2ZDM1MDMwZGNmMTg1NDlmMWRhMGM0ZjAyZTQwYWIxMmIwOTE2ZjBlMDQ1NmYifQ"
         },
         {
-          "resource": "repo://src/account/repository_sqlalchemy.py#L260-L271",
+          "resource": "repo://src/account/repository_sqlalchemy.py#L288-L299",
           "version": "repo-lines-v1:sha256:d63195dfdf55fd183784f08af0de0a8cc91447db57e612c06ee66b81ecc1c5ca:eyJzZWxlY3RlZExpbmVDb3VudCI6MTIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ0ZGE5MzUwMDE5ZGMxZTY2NzQ1MjY0Mzg3MzE2MTk5NzIyNWU5Y2U2MDEwN2FmN2I2NGY4NDBkZGVjZmRhNGYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImM5NDRhMDZiYTQ1NDVkYzQ1YjZjYTQ5ZjM3Y2IyM2JiNjViYWZjZDUyODg3ODQyMDU0ZThkNzM1ZDNiNzhkMzQiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjBkNzFmMjc5Y2IxZjdmZTgwNDlkMTU1ZDE1ODY1MDRiMzhmMTk1MjdlZDhlNWYwYjgwNzFiODE5OWI0MTA0NzIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImI0ZDhiZGMyMzBmNTJlMTJkMzhlMDE1NzFiYzlmMjM4MmQ3ZDg0MzIzNzZlZjFiMzU2ZmE1ZWE4N2Y4NzNjOGYifQ"
         }
       ]
@@ -177,7 +177,7 @@
       "statement": "GET /api/v1/accounts/sync-status returns the authenticated user's active sync account ids and maps a redis.RedisError to HTTP 503 'Sync status service unavailable'.",
       "evidence": [
         {
-          "resource": "repo://src/account/router.py#L154-L166",
+          "resource": "repo://src/account/router.py#L178-L190",
           "version": "repo-lines-v1:sha256:7de1a34620fa321b1de6a2bdea8d00cf6a6ac2ee5a7d81e460ca2837e8b6ebdd:eyJzZWxlY3RlZExpbmVDb3VudCI6MTMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjBkYjFmNWFiNjU1M2RhMWUzOWI4NDA4ZmFmYzQwYTNkOTQyMzdlYjNjYmRjOTViNTE1Y2ZjMDMzNzUyNmM4NGMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjY5Mzk3ZWExYjYwMmUzZTIwNzJmYzA4ZTg3MTEyYTRlZDcxYzJlNGYwODY1ZjQ5ZDg0MTk4ZDIxZGNjMDE1MzkiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjM5M2I2ZGE1MDljOWVlMDg3MWE3ZDZhYTMyYzg5ZTExYzVjMzNjNjg2YTE5NGFkYWQxYmUxOTZjYWE4NWM5MDEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjRhY2YzOGI2YmQ2NzkwOGYxNWViN2MxMGY0MjY4YTczNGY3MWJhOWI4NGExNTZkZjlmOWFiOGUyNDRiNWE5MzAifQ"
         },
         {
@@ -236,25 +236,29 @@
     },
     {
       "id": "claim_028d4911bfb84f4882a9465f7b27f281",
-      "statement": "AccountsListState tracks sync via syncingAccountIds (a SvelteSet) and syncErrors: sync_started adds the id and clears the error, sync_finished removes it and clears the error, and sync_failed removes it and sets 'Failed to sync. Please try again.'",
+      "statement": "AccountsListState tracks sync via syncingAccountIds (a SvelteSet) and syncErrors: sync_started adds the id and clears the error, sync_finished removes the id, clears the error and re-fetches the account list so last_sync_at refreshes, and sync_failed removes it and sets 'Failed to sync. Please try again.'; a malformed frame is logged rather than thrown.",
       "evidence": [
         {
           "resource": "repo://frontend/src/lib/components/accounts/accounts-list.svelte.ts#L28-L32",
           "version": "repo-lines-v1:sha256:184a52c6e95aeee382d314c68273ff3cba478c5be23a4020d1220fe8af5f1763:eyJzZWxlY3RlZExpbmVDb3VudCI6NSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiZGYwODI0ZTUzNjVlZWMzYWU1NjlmMmRiYmMzNzdjYmNmYTNiMzRkMTMzNDY1NWNjMzExNzEzNGYxOTcxYzdjNCIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiN2IwNDMzYjZkNjMyNWM1Yzg2MTBlMWE4MzhkZDAxMGU4NDU3YWM4MDA4M2I4MzZmNDgzOTgwNmNhMzFjYzFiYyIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiOWZkMGRiNzIwMDFmYTY5Njg2YTcyYWQ1NjNhYTQ1ZmY0OTFmODNhMGEwNGM0YTU1MjU1NzQ3ZThkYjMyNjQ5ZiIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiNjkzMGIxYjA0M2NiMDQ3N2U4ZDI3ZGM1MjMwOWY0OGY2MDdhNmRhNjMxZjNmNDhmMjMyZjlhNDcyZDk3YjViZiJ9"
         },
         {
-          "resource": "repo://frontend/src/lib/components/accounts/accounts-list.svelte.ts#L85-L106",
-          "version": "repo-lines-v1:sha256:84f41c289e0910d117a3ce0073e00a88cb36b1da28d99f5180dc9e487f23bf2d:eyJzZWxlY3RlZExpbmVDb3VudCI6MjIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjY2OTU2N2Q0YTJlNWY3ZmEwZWYwZjJkZDFkMWMxNTE2MGU3MjU1YWJiNzFmYjdlOGEzZDhhNjgwN2M0OTZkYjYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjM2MGI4OGEwNWQ1YjUzODQ3NjAyMjliZTYwNTcyZmU2MmIxYzI5Y2RjNTdlZGI1ZTY5NTFkYWE0ZmQ0NmM4MDMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjVlYzM1MmIyYzliYTUzOTc5MDEyNTEzM2Q1ZWIzMmY4NWVjNWE2MTZiMzJkOTg0NjczOTkyYTkxYzk4MDI2NDkiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjMzNjY2MWMwMzBiYzk4M2JlOWYyYmMxMGU2MmE0ZWE2NTA5YjU5NmUzM2YyNGJiN2ExNTQ1MWIxMGExYjJlMjAifQ"
+          "resource": "repo://frontend/src/lib/components/accounts/accounts-list.svelte.ts#L85-L107",
+          "version": "repo-lines-v1:sha256:accdd90fcfa98801c2c8d5073ca507d6fc347b910c39504091eaca4ee0b06125:eyJzZWxlY3RlZExpbmVDb3VudCI6MjMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjY2OTU2N2Q0YTJlNWY3ZmEwZWYwZjJkZDFkMWMxNTE2MGU3MjU1YWJiNzFmYjdlOGEzZDhhNjgwN2M0OTZkYjYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjM2MGI4OGEwNWQ1YjUzODQ3NjAyMjliZTYwNTcyZmU2MmIxYzI5Y2RjNTdlZGI1ZTY5NTFkYWE0ZmQ0NmM4MDMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjVlYzM1MmIyYzliYTUzOTc5MDEyNTEzM2Q1ZWIzMmY4NWVjNWE2MTZiMzJkOTg0NjczOTkyYTkxYzk4MDI2NDkiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjMzNjY2MWMwMzBiYzk4M2JlOWYyYmMxMGU2MmE0ZWE2NTA5YjU5NmUzM2YyNGJiN2ExNTQ1MWIxMGExYjJlMjAifQ"
         }
       ]
     },
     {
       "id": "claim_6b07b4dec93148e5a5346af7a3156140",
-      "statement": "On WebSocket open the accounts list hydrates the sync badge from GET /accounts/sync-status once (guarded by syncStatusHydrated), and on close it resets that guard and reconnects after a fixed 5 second setTimeout.",
+      "statement": "On WebSocket open the accounts list sets wsConnected and hydrates the sync badge from GET /accounts/sync-status once (guarded by syncStatusHydrated, left unset on failure so a later open retries), and on close it sets wsConnected false, resets that guard and reconnects after a fixed 5 second setTimeout.",
       "evidence": [
         {
-          "resource": "repo://frontend/src/lib/components/accounts/accounts-list.svelte.ts#L79-L137",
-          "version": "repo-lines-v1:sha256:70a5edb8d3d9f27fee479f1687c465596b2a4012fd2fdf3918fc24afeaceca4f:eyJzZWxlY3RlZExpbmVDb3VudCI6NTksImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjE5MjA2MDI3MDcxN2ZmMDQ2ZmU4MzA2YTY1NTYzODYxZDlmNTVjYmRhMDRkNDcxNWEyZTZkYzIxYjhhMzk1NTYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjY3Y2RhODJkYTYwNjIzOGUwNWU2MjM5OTU2OWM1ZWUwMzk5MzQxOTY0OGFlNWQ0M2EyYmY4Y2Q2MzQ3ZjgyNjMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImVjZGE2ZGE1ZGNhZDgzNjUzNzQ1MDg4NGQ1ZTYwOThmNWU1MWM0MTZmNWY2N2U2MTE5M2VmOWE2ZGExMGVhN2IiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjUwN2MzOWY2N2EzNTRiNGIzN2UyYTc5OTQ2NTAyNjY4YjRmYTJlOTE2YjYwNjY5MTdhM2U2NzA3MWNlNmFmYzcifQ"
+          "resource": "repo://frontend/src/lib/components/accounts/accounts-list.svelte.ts#L125-L138",
+          "version": "repo-lines-v1:sha256:ffd1ad85772e18a6dd06a10adfcbf32e0c58bf4ce250128c41997de63872069c:eyJzZWxlY3RlZExpbmVDb3VudCI6MTQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjRhYzIzYjZkZjhiN2M4YzU4MzdhYjc3ZTRlNzc1ZDRhZGU1YjU4MDQyYTM3N2M5OTgzMWY3OTc5ZWYzYmJjNTMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjY3Y2RhODJkYTYwNjIzOGUwNWU2MjM5OTU2OWM1ZWUwMzk5MzQxOTY0OGFlNWQ0M2EyYmY4Y2Q2MzQ3ZjgyNjMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjIyZjJmZjVmZWVjNjBmNTg3YzhmYWU0ZTg3ZjgwOWE2NjFjZmZlZDZiNDdhYWU1ZjZkNmEyNjUzYWE4OTUyZWYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjUwN2MzOWY2N2EzNTRiNGIzN2UyYTc5OTQ2NTAyNjY4YjRmYTJlOTE2YjYwNjY5MTdhM2U2NzA3MWNlNmFmYzcifQ"
+        },
+        {
+          "resource": "repo://frontend/src/lib/components/accounts/accounts-list.svelte.ts#L79-L115",
+          "version": "repo-lines-v1:sha256:d630ac1dcbf39f1aff1bf933e62cf750f52fcfe14768d2621a7003b81a95d169:eyJzZWxlY3RlZExpbmVDb3VudCI6MzcsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjE5MjA2MDI3MDcxN2ZmMDQ2ZmU4MzA2YTY1NTYzODYxZDlmNTVjYmRhMDRkNDcxNWEyZTZkYzIxYjhhMzk1NTYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjM2MGI4OGEwNWQ1YjUzODQ3NjAyMjliZTYwNTcyZmU2MmIxYzI5Y2RjNTdlZGI1ZTY5NTFkYWE0ZmQ0NmM4MDMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImVjZGE2ZGE1ZGNhZDgzNjUzNzQ1MDg4NGQ1ZTYwOThmNWU1MWM0MTZmNWY2N2U2MTE5M2VmOWE2ZGExMGVhN2IiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjFiMTM4ZWE5NTI5M2U5MDBiNGJhY2JlZjc5YTBjNDJhNjM4YzM0NGZmNTQ4MzQxOGJmZGM2MDcwNzc2NDVhZWYifQ"
         }
       ]
     },
@@ -263,7 +267,7 @@
       "statement": "syncAccount POSTs the sync endpoint and then runs waitForSyncFinish, a bounded poll (60s deadline, 1.5s interval) of the sync-status endpoint with a 5 second grace period for the WS message; this fallback exists because Redis pub/sub delivery of the finish event may fail, and it clears state and refetches accounts when the backend no longer reports the id.",
       "evidence": [
         {
-          "resource": "repo://frontend/src/lib/components/accounts/accounts-list.svelte.ts#L209-L253",
+          "resource": "repo://frontend/src/lib/components/accounts/accounts-list.svelte.ts#L210-L254",
           "version": "repo-lines-v1:sha256:44f7ca6a3bf67375e7e200bffa0debe07453130aa7ee99bc243a0a2f57cd6e7d:eyJzZWxlY3RlZExpbmVDb3VudCI6NDUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijk5YTg3OGI5MGJjNmNiZWY1Y2M1NzI1MWJhYmI0YmYwNzY3M2Q2YWJiYTUyYjc5NTg2MWM0ZjU1NGM4NmQyMWQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjY3Y2RhODJkYTYwNjIzOGUwNWU2MjM5OTU2OWM1ZWUwMzk5MzQxOTY0OGFlNWQ0M2EyYmY4Y2Q2MzQ3ZjgyNjMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjIyZjJmZjVmZWVjNjBmNTg3YzhmYWU0ZTg3ZjgwOWE2NjFjZmZlZDZiNDdhYWU1ZjZkNmEyNjUzYWE4OTUyZWYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjJmMzViYWYyZDAwOTdmZjE2YTY5MDBiMWVmZTc0YWFmNWFiZjA2NWNlNTBkZDJjNTczYjRmMmU4MWVlMTlhZTUifQ"
         }
       ]
@@ -273,11 +277,11 @@
       "statement": "POST /api/v1/accounts/{account_id}/sync (rate-limited 3/minute) returns HTTP 400 when api_sync_enabled is false, delegates to PositionService.sync_account_positions, which re-checks the flag raising ApiSyncDisabledError and silently returns when account.integration_user_id is None, and finally enqueues the Huey task via IntegrationAccountApi.",
       "evidence": [
         {
-          "resource": "repo://src/account/router.py#L487-L522",
+          "resource": "repo://src/account/router.py#L527-L562",
           "version": "repo-lines-v1:sha256:0b440ee568b0009f373998f0caa05d6bdd22b321033e87becad3275be1d423b8:eyJzZWxlY3RlZExpbmVDb3VudCI6MzYsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjdlNThmZTdiZDRmMmIyYTczNGM0ZDk1ZmY2ZDE5YTk4YjUwMWQ0MzhmMWJlNGNhZjk5ZTEwMTkyYmI0OGJjZTEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjgyN2IzYzZlNmVlYjAyYzA1OTViMTQxZmFkYTZmNmY3NTZlYTg3ODgwMzQxZDQxZmQwY2M2NzMyNzA0NDQwYWUiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjhjYzRhN2QxY2M3OTZhYmEzZTQ2NzIzMzI3ZjUxN2U5ZjgxMTk4MmQyNTBmMDcwMjk4NmU0YjU3NjRhZDk1ODkiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
         },
         {
-          "resource": "repo://src/account/service/position.py#L62-L84",
+          "resource": "repo://src/account/service/position.py#L63-L85",
           "version": "repo-lines-v1:sha256:e3273c79f3502dbfa2af532fa1198d9ceb3bc0d53ee46c2368408884fff7b618:eyJzZWxlY3RlZExpbmVDb3VudCI6MjMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQyZTRkNzhhZjUzNTBlZTNiNWE0YWZkMDNlNzQyZDVkZTk5ZjY2MDc5NmIwMzBkNTg0NmVmM2ZhODIwNjdhOTMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjU5MDlhNTNhNjE4ZDAyOGUxZDMwMDBjMGE3YWJjZWVjYmU1ZmIzN2Y0ZTUxMWVmZTQ2NjQzZmFkNmU2Njg3MmYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImVjNTczOWE5ZGFjOWVmOWJjMjU5NWJlZmE0YzJjMTkwOGZiMTBlYTMwYTg1ZDYzY2RjNzFiNDMxNjIyNzRiNzIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImJlN2FjMjAwZTBlN2FiYjAxMmYxZDk3NDczMmMwZTJlM2NhY2IyNjUwYjY5MDkyZjM0YzY0NTcyNjY1MDhhODAifQ"
         },
         {
@@ -365,10 +369,62 @@
           "version": "repo-lines-v1:sha256:8f955503902b5a1cc135625a9bad813a703089419870f9ee7e463343463639b3:eyJzZWxlY3RlZExpbmVDb3VudCI6NCwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiOGI2YjRiOWIxYzMzMDE0NDQxZmMwZTc5ZTMyNDUxMDJkMjM0NWQ2NDgxZWMxNWQ5ZjMzYzg2MzYwNWQ5MDA5YyIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiMDFiYTQ3MTljODBiNmZlOTExYjA5MWE3YzA1MTI0YjY0ZWVlY2U5NjRlMDljMDU4ZWY4Zjk4MDVkYWNhNTQ2YiIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiNDQ5MzA4MjQxNTJlYmUxMjllZGE1OThmYWExNzVmNDY5YTgxZDhiMmRiMGFjMDNmNDI2MWEyYTQxYjgwZTMwMyIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiM2Q0MzA2ZmE3ZTdlOTZmNTcyMzlkYTg5MmNmOTM5MTBjMzlhMjhlMGQ2YjQ3OGE0MmI3ZWUxZDMxNjljYTllYyJ9"
         }
       ]
+    },
+    {
+      "id": "claim_c932bfb5270e4c73b24b7c27b95499f4",
+      "statement": "POST /external/positions/import is rate-limited 3/minute like POST /external/accounts/import, and performs the symbol-resolution and replace-per-account position write inline in the request under the request's own svcs container rather than in the Huey worker.",
+      "evidence": [
+        {
+          "resource": "repo://src/integration/router.py#L212-L268",
+          "version": "repo-lines-v1:sha256:ecc14b83433cbda68117e1b7f8c3260eb99f3c3d91d55c86b9f90afe7490d1cf:eyJzZWxlY3RlZExpbmVDb3VudCI6NTcsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImVjOGNmOGYxOWU0MDlkOGZiZDQ2NDVjYWIyMWZlNjdkN2EwMjg3NDg3MzU0MjU5ZDY3YTcwYmViODc4ZDY0ZDMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImY0MmI0NzI5M2ZiOTAyMjhmZWQ5ZmY2Njc5YzVlMzBlZjE4Y2RhODE0NjEwMWIyNTc5ZGFmYzk5NTQ1YWNlYTIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImE1NDVjNmU5NGMzYTgwYmI2YzVjMWM0MzU3NGEwOWMwODEyNzg1YTllZWVhOGNlMGM3ZTZkNWU0MTMxYWVjOTUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_1d9800dd26e045e59b83e07268e59fb4",
+      "statement": "Un-syncing a broker account is a local delete, not a broker call: SyncAccountsModalState diffs the checked set against the user's internal accounts and calls accountClient.deleteAccount for each account whose checkbox was cleared, while newly checked external ids go to importBrokerAccounts.",
+      "evidence": [
+        {
+          "resource": "repo://frontend/src/lib/components/brokers/sync-accounts-modal.svelte.ts#L47-L94",
+          "version": "repo-lines-v1:sha256:4c1a9b587d4fc10c36a5716f048a1d17e0d4c30b64400fac4d23bbf03a1046e9:eyJzZWxlY3RlZExpbmVDb3VudCI6NDgsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImIwN2UxZWJlYWZjNDJmNGYxYWUwNTFlYzY0NTZiYTFiZGIzNjI0MmJmZmM3NmQ3NjAyZjcwNGIxZWIxMTBjYTUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImNjM2EyMDc3NGQ1YzJiYjRjNzkwYzE4ODkwYTljNDk0Y2NiNTEwZmM4ZThjMDllYzc0NTE5YmMxNjRmYzc4NGIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjFlNzU5YmM2ZjFhOWNiMjVlYWMzOWI4OGIxZjQ0NDU4YTgwNDI1MzgyMWZhZTI2OTIwMzFhYjk4OTViMWUyNmYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjoxLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjQxMmNhMzQ1Y2NmNzViZjljMDgwNmJjZTY5NWJlOGRlODA4Yjc5OTg0MjUxYTdhNTRkMjAyY2Y2MTAxZGQ0NTEifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_88848672ec6942e781bf15b892b7521e",
+      "statement": "The account row invalidates its cached totals and holdings and stamps a local last-sync override only on the falling edge of isSyncing and only when there is no sync error, so a failed sync does not fake a fresh last_sync_at.",
+      "evidence": [
+        {
+          "resource": "repo://frontend/src/lib/components/accounts/accounts-list-item.svelte#L109-L124",
+          "version": "repo-lines-v1:sha256:62b4c673a9262cd96a41521ff314cf9aa26ed70c4ff8b24405dc9846ecf7ef9d:eyJzZWxlY3RlZExpbmVDb3VudCI6MTYsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjRmZmYwNjMzNDhhMWUxYTMyNTEzZWFjYzAxNmZjMjVjZmZlZjBiNGM5MGJmMGM4ODhlZDU4NTdmMjEzYTMyZGMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjBhNzM0OTJkODk0NmIxZDBmOWQ5YzA0YjcwNGE5MjBmMjRmODllZjdjN2Y3MzExYTg1OTlkMTBjN2Y2MzU4ZDAiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjE2MjI1ZGUxZWVkMTFjNWY5OGJlOTMxZjBiYTBhZDNhMDEyN2U4ZGQ0Y2VjYzEzODJiMTNjZWNhMWViNDdjZjMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImI4YzJjMGNkMzk0NzYyY2EyNDNhYjlmODBjYWJlYmVjZDYyZGIwYjBhMDhmYmJjNDNjZTlhYzkzODE1MzlhZDAifQ"
+        },
+        {
+          "resource": "repo://frontend/src/lib/components/accounts/accounts-list-item.svelte.ts#L63-L70",
+          "version": "repo-lines-v1:sha256:9006fec093b1bcd21a87ffdce13458e336c636c24392637c1671c98a50d0d1bf:eyJzZWxlY3RlZExpbmVDb3VudCI6OCwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiYzJmMDNjZjJhNGY5ODMzM2ViN2IwMTE3ZDBmMzQ1YjUzZDViZmFlYzQ0OGU2YTljODI5MmExMTc3NTRlYTZlYiIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNjdjZGE4MmRhNjA2MjM4ZTA1ZTYyMzk5NTY5YzVlZTAzOTkzNDE5NjQ4YWU1ZDQzYTJiZjhjZDYzNDdmODI2MyIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiMjJmMmZmNWZlZWM2MGY1ODdjOGZhZTRlODdmODA5YTY2MWNmZmVkNmI0N2FhZTVmNmQ2YTI2NTNhYTg5NTJlZiIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiM2IyNjNlNGNiZGQwZTNlYzdlNzdiYjgwMzk5YWQzMjMwYjVhZDBhNWM3NjExNTc1ZWUzNTRmNDFhOTc4ZWQwYyJ9"
+        }
+      ]
+    },
+    {
+      "id": "claim_8d518ffde2e341ca84f916c24bf69d4a",
+      "statement": "Sync task events reach the browser through Redis pub/sub fan-out rather than a direct worker-to-browser connection: the worker publishes on ws_messages and whichever API process holds the user's socket delivers it, so delivery is best-effort and either sync edge can be missed.",
+      "evidence": [
+        {
+          "resource": "repo://frontend/src/lib/components/accounts/accounts-list.svelte.ts#L210-L254",
+          "version": "repo-lines-v1:sha256:44f7ca6a3bf67375e7e200bffa0debe07453130aa7ee99bc243a0a2f57cd6e7d:eyJzZWxlY3RlZExpbmVDb3VudCI6NDUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijk5YTg3OGI5MGJjNmNiZWY1Y2M1NzI1MWJhYmI0YmYwNzY3M2Q2YWJiYTUyYjc5NTg2MWM0ZjU1NGM4NmQyMWQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjY3Y2RhODJkYTYwNjIzOGUwNWU2MjM5OTU2OWM1ZWUwMzk5MzQxOTY0OGFlNWQ0M2EyYmY4Y2Q2MzQ3ZjgyNjMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjIyZjJmZjVmZWVjNjBmNTg3YzhmYWU0ZTg3ZjgwOWE2NjFjZmZlZDZiNDdhYWU1ZjZkNmEyNjUzYWE4OTUyZWYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjJmMzViYWYyZDAwOTdmZjE2YTY5MDBiMWVmZTc0YWFmNWFiZjA2NWNlNTBkZDJjNTczYjRmMmU4MWVlMTlhZTUifQ"
+        },
+        {
+          "resource": "repo://src/integration/task.py#L246-L283",
+          "version": "repo-lines-v1:sha256:40a7829b2a0af43ca9990bb1280a9ec41e0ba37a8c2091e111a2d6d0ef152bab:eyJzZWxlY3RlZExpbmVDb3VudCI6MzgsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijk1NzgwNWMzZmU3YWM2MzA3NGY2OWNkYjI1YjlhY2Q3YTg2NzkyZGZlNTQwODE4YWM0Zjg3NjRiNDllN2QxNGEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQxNjFjZTliMTJjOGMxZGQwOWU3MTcwMWUzNzU3Mjk3OGU1MWU3YTQ3ZDA4ZDAwYzEwM2JkODE2NmU3NTFjNzciLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjlmNDliNDgzMzgzOTBjNDZjYWYxN2ZiODgzYTA4Y2JjZWNlMTVjZTgyODIyZGZjOGZhNDRhNmEyMWI4ZWE1ZjIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImU2YjYyZWQ5OWZlMzI2ZGE0MDc0NTEyNGVhN2I4ZDUxZTQxZTU0NDc2ODE0OTVkMGY3OTE2NjIyZGJmZmU1YjAifQ"
+        },
+        {
+          "resource": "repo://src/ws/manager.py#L172-L202",
+          "version": "repo-lines-v1:sha256:664cf2c57f5f6cd9784f1f6410fc818f352c6bef708a75afb4557f68998f508d:eyJzZWxlY3RlZExpbmVDb3VudCI6MzEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjRkZTY2OTk0NDExMjVhMTk0ZWU2YzJmNGM4YTM2NDc5Y2Q3NDA2ODdhZmJmNDMwNzM2ZDNhMDdmYTlkYWI4YjAiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjJiOTA5NmEwMDc5N2E3YjZjOWJiMzFjZGQ1ZjY5Zjc5MGU5MWI2MzgyNWFlZmY1M2NiZjMwY2Y4NDNiODcyZjIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImUzYWU5NWRiMjg1YmQ0YzhjMmQ2MGI4ZjVhYmI5ZjgxMWQyOGU1ZmJhMDhkYTMxNDUzMzAwNWIxMzUxNmM2ZmYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjRkNTc2MjMwMTU2NGYzNDJkZDRlMzZmOGNiYWM2YWJhMTNkYjk3Yzg0MjIzNzg5OWFjNTE3NTE0M2M1YjBhMTIifQ"
+        }
+      ]
     }
   ],
   "verification": {
-    "by": "openwiki/0.5.2",
-    "at": "2026-09-18T20:16:58.058Z"
+    "by": "openwiki/0.7.0",
+    "at": "2026-10-04T13:39:13.522Z"
   }
 }

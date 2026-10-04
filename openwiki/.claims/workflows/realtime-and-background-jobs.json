@@ -1,14 +1,18 @@
 {
   "schemaVersion": 1,
-  "pageVersion": "sha256:db687614fcd68af03a78fe182017adc8aab7842acb967218e69c90ce0a4c7617",
+  "pageVersion": "sha256:f7c8221d89ced05faba3d81056ed306c69b374bca8f9f610863cdbb1be6f6d43",
   "claims": [
     {
       "id": "claim_bbf8133c92a24e1189d471bdedd5bd2a",
-      "statement": "src/worker.py defines the Huey instance as MemoryHueyWithRegistry when settings.environment is \"test\" and RedisHueyWithRegistry (url=settings.redis_url) otherwise; its @huey.on_startup hook builds a worker-only svcs Registry over a DatabaseSessionManager configured with NullPool, assigns it to huey.svcs_registry, and @huey.on_shutdown closes that registry.",
+      "statement": "src/worker.py defines the Huey instance as MemoryHueyWithRegistry when settings.environment is \"test\" and RedisHueyWithRegistry (url=settings.redis_url) otherwise; its @huey.on_startup hook builds a worker-only svcs Registry by reusing register_services with a DatabaseSessionManager configured with NullPool (so every task's asyncio.run loop avoids pooled-engine \"operation in progress\" errors), assigns it to huey.svcs_registry, and @huey.on_shutdown closes that registry.",
       "evidence": [
         {
           "resource": "repo://src/config/database.py#L17-L25",
           "version": "repo-lines-v1:sha256:c71b4aa5465b04e82141865f2f892be327e75d06dca06d659267ed95f8c6c858:eyJzZWxlY3RlZExpbmVDb3VudCI6OSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiNTU3OGE2NTZkNjgyODhlZDY0NzUzZWFlNzU0Zjk1NzY4NzM3YzkxOWJhOTZmZTRkNDBmZjNkZTlmM2Y1NTQ1YiIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNTkwOWE1M2E2MThkMDI4ZTFkMzAwMGMwYTdhYmNlZWNiZTVmYjM3ZjRlNTExZWZlNDY2NDNmYWQ2ZTY2ODcyZiIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiODYxMzU3ZTAwNDc1YzE3ZWI2NjNjYjVhOWMwMDBjNDZlOTYzNzFhMGRkNmE5Y2U3Mzc2YmYxZGZlMmM1M2RmOSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiYWVlNTA2ODI5N2MwOTdkOTEyODVhOTJmMTRkMGFhY2RlNzM4NDBhODBiY2U0MjBhMGE2OTBkOTU0N2M0MDc2MSJ9"
+        },
+        {
+          "resource": "repo://src/config/services.py#L14-L34",
+          "version": "repo-lines-v1:sha256:6fd115100fdd701665a71cd80ac86e199e1f25a6a2e2bb72dbdf3e20f168a3ae:eyJzZWxlY3RlZExpbmVDb3VudCI6MjEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImUwNTE3NmQ4M2M0MGQyZjUxY2NjODYzNzlmY2Y2NTc2NmUxYjM3NzU3YmE1Njk1MTM5NTM3NDEzZDViZDQ4NjEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAxYmE0NzE5YzgwYjZmZTkxMWIwOTFhN2MwNTEyNGI2NGVlZWNlOTY0ZTA5YzA1OGVmOGY5ODA1ZGFjYTU0NmIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImQwY2I4MWQ1YzNhYmI0MDhjY2I1ZDRiODI4ZmEwZThjYTA0MGFjNWZkMjNiYWE5ZDBjM2FiN2RlYTI2NGQ2YjIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjdmYTcwZmZhYzdhYTk1YWRmOGIxNTFjMjlmZGZhZTExZDIzYzFiOThjODQwMWVlYmJkOTdkZmQ0NWQ4YTA3ZGEifQ"
         },
         {
           "resource": "repo://src/worker.py#L9-L56",
@@ -167,7 +171,7 @@
       "statement": "The broker sync task is enqueued synchronously from the request path by POST /api/v1/accounts/{account_id}/sync (rate-limited 3/minute, via PositionService and IntegrationAccountApi) and once per newly imported broker account in the broker import route, both forwarding get_request_id() so worker logs correlate with the originating request.",
       "evidence": [
         {
-          "resource": "repo://src/account/router.py#L504-L539",
+          "resource": "repo://src/account/router.py#L527-L562",
           "version": "repo-lines-v1:sha256:0b440ee568b0009f373998f0caa05d6bdd22b321033e87becad3275be1d423b8:eyJzZWxlY3RlZExpbmVDb3VudCI6MzYsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjdlNThmZTdiZDRmMmIyYTczNGM0ZDk1ZmY2ZDE5YTk4YjUwMWQ0MzhmMWJlNGNhZjk5ZTEwMTkyYmI0OGJjZTEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjgyN2IzYzZlNmVlYjAyYzA1OTViMTQxZmFkYTZmNmY3NTZlYTg3ODgwMzQxZDQxZmQwY2M2NzMyNzA0NDQwYWUiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjhjYzRhN2QxY2M3OTZhYmEzZTQ2NzIzMzI3ZjUxN2U5ZjgxMTk4MmQyNTBmMDcwMjk4NmU0YjU3NjRhZDk1ODkiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
         },
         {
@@ -281,7 +285,7 @@
       "statement": "GET /api/v1/accounts/sync-status returns {\"account_ids\": [...]} for the authenticated user only and translates redis.RedisError into HTTP 503 \"Sync status service unavailable\".",
       "evidence": [
         {
-          "resource": "repo://src/account/router.py#L155-L167",
+          "resource": "repo://src/account/router.py#L178-L190",
           "version": "repo-lines-v1:sha256:7de1a34620fa321b1de6a2bdea8d00cf6a6ac2ee5a7d81e460ca2837e8b6ebdd:eyJzZWxlY3RlZExpbmVDb3VudCI6MTMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjBkYjFmNWFiNjU1M2RhMWUzOWI4NDA4ZmFmYzQwYTNkOTQyMzdlYjNjYmRjOTViNTE1Y2ZjMDMzNzUyNmM4NGMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjY5Mzk3ZWExYjYwMmUzZTIwNzJmYzA4ZTg3MTEyYTRlZDcxYzJlNGYwODY1ZjQ5ZDg0MTk4ZDIxZGNjMDE1MzkiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjM5M2I2ZGE1MDljOWVlMDg3MWE3ZDZhYTMyYzg5ZTExYzVjMzNjNjg2YTE5NGFkYWQxYmUxOTZjYWE4NWM5MDEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjRhY2YzOGI2YmQ2NzkwOGYxNWViN2MxMGY0MjY4YTczNGY3MWJhOWI4NGExNTZkZjlmOWFiOGUyNDRiNWE5MzAifQ"
         },
         {
@@ -295,8 +299,8 @@
       "statement": "AccountsListState hydrates sync state exactly once per connection open by reading GET /accounts/sync-status (guarded by a syncStatusHydrated flag that onclose resets), maps sync_started/sync_finished/sync_failed onto its syncingAccountIds set and syncErrors record, and reconnects after a fixed 5000 ms timeout on close.",
       "evidence": [
         {
-          "resource": "repo://frontend/src/lib/components/accounts/accounts-list.svelte.ts#L79-L137",
-          "version": "repo-lines-v1:sha256:70a5edb8d3d9f27fee479f1687c465596b2a4012fd2fdf3918fc24afeaceca4f:eyJzZWxlY3RlZExpbmVDb3VudCI6NTksImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjE5MjA2MDI3MDcxN2ZmMDQ2ZmU4MzA2YTY1NTYzODYxZDlmNTVjYmRhMDRkNDcxNWEyZTZkYzIxYjhhMzk1NTYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjY3Y2RhODJkYTYwNjIzOGUwNWU2MjM5OTU2OWM1ZWUwMzk5MzQxOTY0OGFlNWQ0M2EyYmY4Y2Q2MzQ3ZjgyNjMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImVjZGE2ZGE1ZGNhZDgzNjUzNzQ1MDg4NGQ1ZTYwOThmNWU1MWM0MTZmNWY2N2U2MTE5M2VmOWE2ZGExMGVhN2IiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjUwN2MzOWY2N2EzNTRiNGIzN2UyYTc5OTQ2NTAyNjY4YjRmYTJlOTE2YjYwNjY5MTdhM2U2NzA3MWNlNmFmYzcifQ"
+          "resource": "repo://frontend/src/lib/components/accounts/accounts-list.svelte.ts#L79-L138",
+          "version": "repo-lines-v1:sha256:3115c4ab690dfbcd51a60913953129526bbc9f0e2aa5ce3691669207139b702d:eyJzZWxlY3RlZExpbmVDb3VudCI6NjAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjE5MjA2MDI3MDcxN2ZmMDQ2ZmU4MzA2YTY1NTYzODYxZDlmNTVjYmRhMDRkNDcxNWEyZTZkYzIxYjhhMzk1NTYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjY3Y2RhODJkYTYwNjIzOGUwNWU2MjM5OTU2OWM1ZWUwMzk5MzQxOTY0OGFlNWQ0M2EyYmY4Y2Q2MzQ3ZjgyNjMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImVjZGE2ZGE1ZGNhZDgzNjUzNzQ1MDg4NGQ1ZTYwOThmNWU1MWM0MTZmNWY2N2U2MTE5M2VmOWE2ZGExMGVhN2IiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjUwN2MzOWY2N2EzNTRiNGIzN2UyYTc5OTQ2NTAyNjY4YjRmYTJlOTE2YjYwNjY5MTdhM2U2NzA3MWNlNmFmYzcifQ"
         },
         {
           "resource": "repo://frontend/src/lib/types/websocket.ts#L1-L13",
@@ -309,7 +313,7 @@
       "statement": "syncAccount awaits waitForSyncFinish, an intentionally independent poll of GET /accounts/sync-status every 1500 ms with a 60000 ms deadline and a 5000 ms grace period once the backend stops reporting the account, because the WebSocket message may be lost if Redis pub/sub fails; it clears state and refetches accounts when the socket message never arrives, and reports a timeout or a request failure through syncErrors.",
       "evidence": [
         {
-          "resource": "repo://frontend/src/lib/components/accounts/accounts-list.svelte.ts#L209-L253",
+          "resource": "repo://frontend/src/lib/components/accounts/accounts-list.svelte.ts#L210-L254",
           "version": "repo-lines-v1:sha256:44f7ca6a3bf67375e7e200bffa0debe07453130aa7ee99bc243a0a2f57cd6e7d:eyJzZWxlY3RlZExpbmVDb3VudCI6NDUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijk5YTg3OGI5MGJjNmNiZWY1Y2M1NzI1MWJhYmI0YmYwNzY3M2Q2YWJiYTUyYjc5NTg2MWM0ZjU1NGM4NmQyMWQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjY3Y2RhODJkYTYwNjIzOGUwNWU2MjM5OTU2OWM1ZWUwMzk5MzQxOTY0OGFlNWQ0M2EyYmY4Y2Q2MzQ3ZjgyNjMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjIyZjJmZjVmZWVjNjBmNTg3YzhmYWU0ZTg3ZjgwOWE2NjFjZmZlZDZiNDdhYWU1ZjZkNmEyNjUzYWE4OTUyZWYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjJmMzViYWYyZDAwOTdmZjE2YTY5MDBiMWVmZTc0YWFmNWFiZjA2NWNlNTBkZDJjNTczYjRmMmU4MWVlMTlhZTUifQ"
         }
       ]
@@ -319,8 +323,8 @@
       "statement": "WsEventType declares sync_started, sync_finished, sync_failed and account_totals_updated, carried by AccountSyncMessage and AccountTotalsUpdatedMessage; the frontend enum declares only the three sync values, so an account_totals_updated payload matches no branch in AccountsListState.",
       "evidence": [
         {
-          "resource": "repo://frontend/src/lib/components/accounts/accounts-list.svelte.ts#L85-L106",
-          "version": "repo-lines-v1:sha256:84f41c289e0910d117a3ce0073e00a88cb36b1da28d99f5180dc9e487f23bf2d:eyJzZWxlY3RlZExpbmVDb3VudCI6MjIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjY2OTU2N2Q0YTJlNWY3ZmEwZWYwZjJkZDFkMWMxNTE2MGU3MjU1YWJiNzFmYjdlOGEzZDhhNjgwN2M0OTZkYjYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjM2MGI4OGEwNWQ1YjUzODQ3NjAyMjliZTYwNTcyZmU2MmIxYzI5Y2RjNTdlZGI1ZTY5NTFkYWE0ZmQ0NmM4MDMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjVlYzM1MmIyYzliYTUzOTc5MDEyNTEzM2Q1ZWIzMmY4NWVjNWE2MTZiMzJkOTg0NjczOTkyYTkxYzk4MDI2NDkiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjMzNjY2MWMwMzBiYzk4M2JlOWYyYmMxMGU2MmE0ZWE2NTA5YjU5NmUzM2YyNGJiN2ExNTQ1MWIxMGExYjJlMjAifQ"
+          "resource": "repo://frontend/src/lib/components/accounts/accounts-list.svelte.ts#L85-L107",
+          "version": "repo-lines-v1:sha256:accdd90fcfa98801c2c8d5073ca507d6fc347b910c39504091eaca4ee0b06125:eyJzZWxlY3RlZExpbmVDb3VudCI6MjMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjY2OTU2N2Q0YTJlNWY3ZmEwZWYwZjJkZDFkMWMxNTE2MGU3MjU1YWJiNzFmYjdlOGEzZDhhNjgwN2M0OTZkYjYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjM2MGI4OGEwNWQ1YjUzODQ3NjAyMjliZTYwNTcyZmU2MmIxYzI5Y2RjNTdlZGI1ZTY5NTFkYWE0ZmQ0NmM4MDMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjVlYzM1MmIyYzliYTUzOTc5MDEyNTEzM2Q1ZWIzMmY4NWVjNWE2MTZiMzJkOTg0NjczOTkyYTkxYzk4MDI2NDkiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjMzNjY2MWMwMzBiYzk4M2JlOWYyYmMxMGU2MmE0ZWE2NTA5YjU5NmUzM2YyNGJiN2ExNTQ1MWIxMGExYjJlMjAifQ"
         },
         {
           "resource": "repo://frontend/src/lib/types/websocket.ts#L1-L13",
@@ -351,7 +355,7 @@
       "statement": "generate_note_title_task is the on-demand task enqueued by the security-note create and update routes with the current request id; its async body returns early when huey.svcs_registry is absent and otherwise resolves SecurityNoteRepository and AIService to generate and persist the title.",
       "evidence": [
         {
-          "resource": "repo://src/market/router.py#L610-L632",
+          "resource": "repo://src/market/router.py#L614-L636",
           "version": "repo-lines-v1:sha256:91ada3f64e1357fd6bff9e9bf539809a042aa2ad8ab64075342e7d6205bd351d:eyJzZWxlY3RlZExpbmVDb3VudCI6MjMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjYxODgzZmFkYzYwMTAxZmFmMGYxZDJjMjE4OWU4ZDk0NTIzZTc5NjljYzM0MTY1YWMwZDRlZGRkNzYyMzUwYTAiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImIzZTNkNDNlNDUwMTE3MTI1MTdiZTc2NmNjYjZlMDBiYTBmNGU3OTdlZGJiYzRlZDk1ZjZhMzhiNjYyNmNiZjIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjE1MDkyOTZkNjZiYWZkZjM1ZmQ5NmVhMjY2OTE1ZjBhMzc2YWYwOWY0Mzk3YzAxNDI3ZDExNTAwMTUwYzE4NGQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImU5ZWRjNjFlN2Y5Mzg4ODFhZTBlZTFjZWJkODFjZDIzMDQ1NjQ4NThhMjkzMWQ5NTBjYjJjODczZTdhZWRmYzUifQ"
         },
         {
@@ -362,11 +366,15 @@
     },
     {
       "id": "claim_844f67163e7c4da3b1cbfc13016be5b6",
-      "statement": "The worker dashboard router is mounted at /worker/api: its huey-dashboard task routes carry dependencies=[Depends(current_user)] and its WebSocket at /worker/api/updates (and the trailing-slash variant) authenticates via the shared _check_ticket_not_replayed helper plus a salt=\"ws-ticket\" max_age=30 payload, or via the auth_token cookie / sec-websocket-protocol token, closing with code 1008 on failure. The archived architecture review's finding that /worker/api was unauthenticated is therefore remediated in current source.",
+      "statement": "The worker dashboard router is mounted on the backend FastAPI app at /worker/api: its huey-dashboard task routes carry dependencies=[Depends(current_user)] (401 without credentials) and its WebSocket at /worker/api/updates (and the trailing-slash variant) authenticates via the shared _check_ticket_not_replayed helper plus a salt=\"ws-ticket\" max_age=30 payload, or via the auth_token cookie / sec-websocket-protocol token, closing with code 1008 on failure. Finding 3 of the archived architecture review — which lived in .opencode/reviews/2026-08-25-architecture.md and now lives at .ai/reviews/2026-08-25-architecture.md — that /worker/api was unauthenticated is therefore remediated in current source.",
       "evidence": [
         {
-          "resource": "repo://.opencode/reviews/2026-08-25-architecture.md#L27-L31",
+          "resource": "repo://.ai/reviews/2026-08-25-architecture.md#L27-L31",
           "version": "repo-lines-v1:sha256:1da15b3b21765e8c5139079318d34842c0a43fa16048d95cb2e05872d5b9489b:eyJzZWxlY3RlZExpbmVDb3VudCI6NSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiNjE0YTk0YWEyZGM5YjYzMmM5YTc5Yzk1NjhjNDFiOWJlNmFkZjUyOTVmMDFjNWVhMDE3ODRmNTZhNjViNzAwOSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNGIyODYzYmIyZTY5NmExZDllOGU2MWMyNzJiZjVkYjY2ZDRiMzk1NmFhNjI5ZWFlZDlmZWIwNzhhZGFkMzFlMCIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiNjVlOGYzYTc0ODE4ZDQwYTBkNDJjZGM4NTAzMjc5ZTc5ZTA2ZTA4OTAyNjg4MGViZjZhMzU3NmI1ZThjN2UyMiIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiYzAxODkyMzEzMmRmNGYyMWNiNWJiOWQ0MjM0OWY1MDc3NDY0MjFkOWQ5ZjY5Y2NkODNlNGIzN2UyYmNjZTE0MSJ9"
+        },
+        {
+          "resource": "repo://src/main.py#L64-L71",
+          "version": "repo-lines-v1:sha256:4c00ee67f5980a204cfd2a5c57a12c0c7da4cf3bd8fc0185f79727bf7769f5d0:eyJzZWxlY3RlZExpbmVDb3VudCI6OCwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiNWY5ZGU1ZWYxN2I0ZjE0MzgyMmQ5ZDYwMWYwZDFjZWYxNTIzMTViNmVjM2M2YzllNGE4YzE1NTk4YzRkN2NkNyIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiMzBjMWYxODhmMTQyZWQ3YTgyNDY4MGIyMDcxNzJjNTUxOWJjNjE0YTQ4ZmRhN2NmMTY3ZWRiOGRkZjc5OTU2YyIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiNmM0YTM5ZmE5NDEyNzNjMDU5ZDA4M2I5YWNjODRmODVhNjdhN2U4MjhlYmNkYWUyMjZhMDA1MjM4YTE0MGI5OCIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiZjYyOGViMjUzMzdhOWQ2ZGNmZTNiNDlmMDg3ZTU1ZTI1M2ZjN2EzMGFlMzQwMTVlZWFmMDg4YzhjZGI2MmUyMyJ9"
         },
         {
           "resource": "repo://src/worker_dashboard/router.py#L21-L119",
@@ -380,7 +388,7 @@
     },
     {
       "id": "claim_ebe60b84b3dd440ab9e4d334d1737165",
-      "statement": "init_worker_dashboard creates the huey-dashboard task table, stores {\"huey\", \"redis\", \"manager\", \"db\"} on app.state.huey_dashboard, optionally registers the dashboard signal handlers on the running loop and starts the dashboard's Redis pub/sub listener; close_worker_dashboard stops the listener and closes the Redis client, and the dev worker service sets HUEY_DASHBOARD_WORKER: 1 so the consumer emits the signals the dashboard consumes.",
+      "statement": "The worker dashboard API is served by the backend process, not the worker: init_worker_dashboard creates the huey-dashboard task table, stores {\"huey\", \"redis\", \"manager\", \"db\"} on app.state.huey_dashboard, optionally registers the dashboard signal handlers on the running loop and starts the dashboard's Redis pub/sub listener; close_worker_dashboard stops the listener and closes the Redis client, both called from the FastAPI lifespan, while the worker only feeds it by calling init_worker_signals in setup_worker_services and the dev worker service setting HUEY_DASHBOARD_WORKER: 1.",
       "evidence": [
         {
           "resource": "repo://docker-compose.yml#L64-L64",
@@ -389,6 +397,10 @@
         {
           "resource": "repo://src/main.py#L64-L79",
           "version": "repo-lines-v1:sha256:6cbc6f5ffdb59ad950c824d5cd8011ad8dd0bcdc4d144e8a99bb5b3d5a89b183:eyJzZWxlY3RlZExpbmVDb3VudCI6MTYsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjVmOWRlNWVmMTdiNGYxNDM4MjJkOWQ2MDFmMGQxY2VmMTUyMzE1YjZlYzNjNmM5ZTRhOGMxNTU5OGM0ZDdjZDciLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjRmZWJlMmJmNDQ2ZWE0YmM0OWY0MGE0ZjM4NjE5NzFhMjQxMGZkOGU2NjM1YWE3ZDRhNzUzNTc5ZWY4MzBjMDQiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjZjNGEzOWZhOTQxMjczYzA1OWQwODNiOWFjYzg0Zjg1YTY3YTdlODI4ZWJjZGFlMjI2YTAwNTIzOGExNDBiOTgiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjkzMGVmNzc3ODBkZmNkZThlNjgyM2NmOGRlZTI5OGM2YjBmZGM2OGNkNjExNmMzZDcxNmYzMTZiZTliNjBlNDkifQ"
+        },
+        {
+          "resource": "repo://src/worker.py#L35-L39",
+          "version": "repo-lines-v1:sha256:39a471657f58b1041a886ae7b5a3241100db61ed28d5ec6e2e678d2ee181afb4:eyJzZWxlY3RlZExpbmVDb3VudCI6NSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiNmI5MjdhNDhkNzAxNzllZjlhZTIwNTkzZmI5YjViMWE5OTA2Y2U4YzIyZjJmNDVmYzU3NDA0ZjAwMjk5NmRmZiIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiMzBjMWYxODhmMTQyZWQ3YTgyNDY4MGIyMDcxNzJjNTUxOWJjNjE0YTQ4ZmRhN2NmMTY3ZWRiOGRkZjc5OTU2YyIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiNzU5NGRlZTdiNWRiMzQ3MDRhYzM3MjFlOGM0Y2NiNzVjMTU2NTdiY2FmNGVjM2I5Y2I0MDQ5M2U2MDc5NWNlMCIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiOTM3NGVmZDgyOWEyNzE1ZDc2ZTIwNTZiOTVhNzg1NzBlZWJkZjA3YTVmMzA5YWUwNWY4NDhmZDc1NGNjNDgxNyJ9"
         },
         {
           "resource": "repo://src/worker_dashboard/setup.py#L17-L64",
@@ -412,7 +424,7 @@
     }
   ],
   "verification": {
-    "by": "openwiki/0.5.2",
-    "at": "2026-09-23T13:18:56.288Z"
+    "by": "openwiki/0.7.0",
+    "at": "2026-10-04T13:39:13.522Z"
   }
 }

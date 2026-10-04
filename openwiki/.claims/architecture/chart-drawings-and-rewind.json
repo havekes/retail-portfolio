@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "pageVersion": "sha256:cb8c7531b4ba9a56624365572c1ddd78b517659c9f5bd7ea85cbe0b3874ee7f3",
+  "pageVersion": "sha256:0c3a1794c63aaf3b3ec87d394f4cd6ae257ccb73f5d2e4435a02a475bbb4a95c",
   "claims": [
     {
       "id": "claim_3585c07100e94b8683559dea580757c0",
@@ -11,7 +11,7 @@
           "version": "repo-lines-v1:sha256:5731aba56ad8dca679b4020494fcdec6d33509fa4373ea0c6b3bbaa91e059718:eyJzZWxlY3RlZExpbmVDb3VudCI6MTMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjdiNTk0MmM4ZTIzMjIxNjQzMGEyOTI2NTg0YjlmNTYxNmVlNGJiN2I4YTU3YzU2OTZhNTFmM2YzZWEwZWJiNGYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImFmOTY3N2EzMjg0Y2ZlNGE5YWYwNGI2ZmI1NjExYmU0NDVkMzgxMDYwNGI4NmYzZTA5YWQ3ZTMwMmE5Nzc1NzMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImIxNGRkYmI1ZjhmYmFhY2M0MGU5MDA4ODFjM2UzMGQyM2M1YThiNGRkNDcxZGM1MjExYTM0YmU1M2UzZWRiMTAiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjExOWVmMjFhNzkzYjJiYTBiYmYxM2Y1YzU2MzUwYWMyYjA4MmFmMGFkOTMzYzhlZjM4NTg5YTQ2NjgxMGJlODMifQ"
         },
         {
-          "resource": "repo://frontend/src/lib/services/ChartDrawingsService.svelte.ts#L120-L130",
+          "resource": "repo://frontend/src/lib/services/ChartDrawingsService.svelte.ts#L121-L131",
           "version": "repo-lines-v1:sha256:4b263bdbf6b57e2fc4e824053175939ac4dd4acbd023e6b6bba2b16603da4bce:eyJzZWxlY3RlZExpbmVDb3VudCI6MTEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImY5ZTgyZTBkYzM1YzU4NmRlMzYwZmQ1NmM1YjdhMmIyYzIzZTZkNTI5NDgwMzMxZmRkYzAwOGFiMDI4YmViMjMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAxYmE0NzE5YzgwYjZmZTkxMWIwOTFhN2MwNTEyNGI2NGVlZWNlOTY0ZTA5YzA1OGVmOGY5ODA1ZGFjYTU0NmIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjliZThjYzg0NThkMDgyMzEzM2IyNzA0ZWNjNzlkMGU3OTMwZTU1Mzg3YTIzMjJmNDdiOWVmNjgzZTBmNjdjNDkiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjI1NGY3M2I0ZTMyYjQ2OGIyNWI4ZjMxODU2YmM5MTE1ZTMxOThhZTYzNTkxMWRmZGUxZTEyZmVhMTVkMjE4ZWEifQ"
         },
         {
@@ -208,10 +208,10 @@
     },
     {
       "id": "claim_5372c90467dc4f00a448f0f68f5602ac",
-      "statement": "ElliottWaveState holds the degree (cycle | primary | intermediate), wave type (impulse | corrective), the DegreeWaveCount collection, the in-progress wave id and selection/hover/drag targets; addPoint creates a wave with a generateUUID id when needed, assigns the next label (0..5 for impulse, [0, 'A', 'B', 'C'] for corrective), records wave3Target/wave5Target as points 3 and 5 are placed and exits drawing mode at MAX_IMPULSE_POINTS (6) or MAX_CORRECTIVE_POINTS (4); every anchor is normalized to epoch seconds on ingestion.",
+      "statement": "ElliottWaveState holds the active degree (typed as any WaveDegree — the toolbar exposes only the three SUPPORTED_WAVE_DEGREES, cycle, primary and intermediate, and cycle is the constructor default), wave type (impulse | corrective), the DegreeWaveCount collection, the in-progress wave id, selection (selectedDegree + selectedWaveId) and hover/drag targets; addPoint reuses the in-progress wave when its degree and type match the requested ones and otherwise creates one with a generateUUID id, assigns the next label (0..5 for impulse, [0, 'A', 'B', 'C'] for corrective), records wave3Target / wave5Target as points 3 and 5 are placed and exits drawing mode at MAX_IMPULSE_POINTS (6) or MAX_CORRECTIVE_POINTS (4); every anchor is normalized to epoch seconds on ingestion.",
       "evidence": [
         {
-          "resource": "repo://frontend/src/lib/components/charts/plugins/elliott-wave/constants.ts#L148-L149",
+          "resource": "repo://frontend/src/lib/components/charts/plugins/elliott-wave/constants.ts#L294-L295",
           "version": "repo-lines-v1:sha256:1e198a999449860237d255862f98a93f2aa339cde5750b220262a78d9df8dc23:eyJzZWxlY3RlZExpbmVDb3VudCI6MiwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiNGYxOTQ3MWZlMWI3Y2ZhMmU5ZDcyZWM0YzJkNjI2YzNkYTU1NmRkMzEwMDNjMjI4ZmQwMmU5M2ZjYjdhZDgxZiIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiM2U3Yjg1YzFkNzJiZDNmOGQ0NTU1ZDc3YjNiOTUwZTBlYzM3NGE3NjNmN2NiM2QwYjBkN2FhNzdjMmVmMDE5NCIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiYzJlNTRkYTc1Njg1NDhkNWY4NzlhM2Y1NmJmOTFlYjRjMjMyMWRiMzFkNDNjNGE5NmRiNzA2NjVmZTE3N2Q3MiIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiODlkNDkxN2JkMzI4ZDVjMzcxMDhhYmFhOWRkM2Q3NmMwYjQ4NTBmNzg3YWRkMjRjMTM0ZTkzNzM3ZGZkN2VkMSJ9"
         },
         {
@@ -219,8 +219,12 @@
           "version": "repo-lines-v1:sha256:35ad5114fea80032864ff8c090ca75404038079871145a3ad25339f8ad29177c:eyJzZWxlY3RlZExpbmVDb3VudCI6NjUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijc1MjMyZDMwMTk0YTZjMGU3NDllYmVlMjhiNTg1MDc0YWY2NzkwMzZkODk4ODVmMTc1ZDU2ODQ2ZmFkZmFlMTQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjY3Y2RhODJkYTYwNjIzOGUwNWU2MjM5OTU2OWM1ZWUwMzk5MzQxOTY0OGFlNWQ0M2EyYmY4Y2Q2MzQ3ZjgyNjMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjlhOWJlZTNiNWY5ZWMwNDFlNWUyNWVmZTJjOGJiMDI2MDI5MjU3Zjk0YzYzNWUyNDA1ZjI5YTBlMmE4ZmU0NTgiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImIyNzRkYjNiNjNhM2FmMWYxYjA1YjcyN2ZlZGE0Yjk1MWU2YTE0NTJmZGMxODJlN2NhZTQxMDdmNzYxNWEwZGYifQ"
         },
         {
-          "resource": "repo://frontend/src/lib/utils/finance/elliott-wave.ts#L4-L4",
-          "version": "repo-lines-v1:sha256:059a2a79488d1e9cea01a64aae8ae3580c04aa4c0febf3973e39d927c70db3f3:eyJzZWxlY3RlZExpbmVDb3VudCI6MSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiMDU5YTJhNzk0ODhkMWU5Y2VhMDFhNjRhYWU4YWUzNTgwYzA0YWE0YzBmZWJmMzk3M2UzOWQ5MjdjNzBkYjNmMyIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiMDU5YTJhNzk0ODhkMWU5Y2VhMDFhNjRhYWU4YWUzNTgwYzA0YWE0YzBmZWJmMzk3M2UzOWQ5MjdjNzBkYjNmMyIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiODFiNDA1NGNjZTZjNjQ1MzkxMDJmZmJiZWYxOTlkNjhiNGZkZWU4NGE5MzIxZTFkNDJhNmQ5NDBlYThkODA4OSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiYmViYTdkYWI1OGM4ZTUwOWZmMjM3MWFmMDJjY2IyNjM0MGEyZmQwOWVjMjc5M2RkZWQwYjIyNWE1NWRlZTYwOCJ9"
+          "resource": "repo://frontend/src/lib/components/charts/plugins/elliott-wave/state.ts#L27-L38",
+          "version": "repo-lines-v1:sha256:eb6d9dc189aee550ea5c09faa7f33b22d885dfe9236ede601d2ac69fc4a46fa7:eyJzZWxlY3RlZExpbmVDb3VudCI6MTIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImMzMGJlMmRhYmNiNDFhNjM0Njg0ZjJmMzE5MTY0MTQwYjM2YzYzMDJhNzNkNTgyOGE0ZTliN2YxYjQ1OWJjNzQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAxYmE0NzE5YzgwYjZmZTkxMWIwOTFhN2MwNTEyNGI2NGVlZWNlOTY0ZTA5YzA1OGVmOGY5ODA1ZGFjYTU0NmIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjVlMTViYjZjNjkyYTk4NzVjYjIyODdlMjhhMGJmYTljOThhZjRmNzU0MTc4YzA4MWFmZDBlMzJhNjliMTRhZDQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjE5NzRmZjJhNGVlNTQ2Y2VhZWEzMDZlODNiMDBiYzk5ODg5ZjBlMDUyZjUyOThlMjliODNkYmFlNTJmZDFmOGUifQ"
+        },
+        {
+          "resource": "repo://frontend/src/lib/utils/finance/elliott-wave.ts#L4-L30",
+          "version": "repo-lines-v1:sha256:ac0c668238aeec714b7098418b2bdf77af907d6405ce79fc4992398405c30895:eyJzZWxlY3RlZExpbmVDb3VudCI6MjcsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjRmYzRmZjlkN2NjNGI0MjE1YTQ0NWIyZmUzOWY2YzExNWE2MjRhODM2NTA2ZTFjNzI0N2Q2YTJiZjg0MTM2MmYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjlkYTZmNmFlMDkwMjY2NTNlZjMyYzI2MDM2N2RiMjhkMjA4YmM3NjBiMjkyMWYyNTE0ODhkNWI3MzU2OGMzMzEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjgxYjQwNTRjY2U2YzY0NTM5MTAyZmZiYmVmMTk5ZDY4YjRmZGVlODRhOTMyMWUxZDQyYTZkOTQwZWE4ZDgwODkiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUxNjZlMWIxMmI3YzE1YmRlODcwZDkwMzdmNmMxOGMyMzA1ZmMyZmRkNTkwZjkzZWM2ODlmODQyZTZjM2E3N2QifQ"
         }
       ]
     },
@@ -243,7 +247,7 @@
       "statement": "The elliott-wave mouse adapter resolves a snapped pointer position for placement clicks, drag moves and the preview ghost: a candle-wick candidate only when snapToWicks is enabled and a candle exists at the pointer time, plus a Fibonacci-level candidate only when the nearest active level is within the pixel tolerance (independent of snapToWicks); the closer candidate wins and pixel-space ties go to the wick. Because plugins may not import each other, the fib level prices are pushed in from the chart owner via setFibLevelPrices.",
       "evidence": [
         {
-          "resource": "repo://frontend/src/lib/components/charts/plugins/elliott-wave/elliott-wave.ts#L202-L210",
+          "resource": "repo://frontend/src/lib/components/charts/plugins/elliott-wave/elliott-wave.ts#L224-L232",
           "version": "repo-lines-v1:sha256:603a22f039ec9bc91133f8e28ba5b48dd0d079cc069a65bda2fbb33ca379c9a8:eyJzZWxlY3RlZExpbmVDb3VudCI6OSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiZWQ5ZDhjYTJiY2E2YmJkMTZiNTljYmY1MmI0MzVkM2U3Njc2MDcxOTg2NDU2NzRhN2M3ZmI4YzJlMDU2MDZhMyIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNDg3N2E2Yjk2MTRmNzUyNGE4YjAxMWVkOTAxZTBiYmQ1MmYzNTk2YWZiMDAzNTE2NzY3NjBmOGE4MDdhNThiYiIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiOTlkNzYwYzAwNTYwNDVhYzkwZGZhN2RmNzk2ZDIwMzQ1ZGY5ZTQzNjk0ZTdiMjU0OGM4OGRiNjhiNDBiNzM3NiIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiNzY0ZjhkYzAzYTE5OTdkYzdhZDU1YTRlZjRmYjc3MGRiNmUyYTFhNWUwNzA1YmUwZmFlNmQ3NWFlZGZhZWY2NiJ9"
         },
         {
@@ -251,7 +255,7 @@
           "version": "repo-lines-v1:sha256:4147d5487967e46f25e6b685a59f19aa7862f40991f2f1f676085ad93ef33066:eyJzZWxlY3RlZExpbmVDb3VudCI6NTksImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImVkOWQ4Y2EyYmNhNmJiZDE2YjU5Y2JmNTJiNDM1ZDNlNzY3NjA3MTk4NjQ1Njc0YTdjN2ZiOGMyZTA1NjA2YTMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAxYmE0NzE5YzgwYjZmZTkxMWIwOTFhN2MwNTEyNGI2NGVlZWNlOTY0ZTA5YzA1OGVmOGY5ODA1ZGFjYTU0NmIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImFmMjY4MzM0ZDIxYTNhZTdkYmYwZTk2ODNmMjczYzg2OWZhNWFhMWQyMTg3YTdkZDM5MTIwN2VjNWMwNmRhNDgiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImQxZjBjOTMwMWYwMjdhZTBmOWIyYmZjYTdhNGJiZjA0MzdiOTUyNjkyZGZhNDA2MmRmYjE0YWI3NDEyNTIyMWMifQ"
         },
         {
-          "resource": "repo://frontend/src/lib/components/charts/security-chart.svelte#L716-L722",
+          "resource": "repo://frontend/src/lib/components/charts/security-chart.svelte#L754-L760",
           "version": "repo-lines-v1:sha256:0750de5ab28860f773de210d9dcea270d8d6ef6603a9bb7c15fb3abb67e8d21f:eyJzZWxlY3RlZExpbmVDb3VudCI6NywiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiZTBiY2ExN2MzYjI0YzY1ZDc2OTIwN2I2ZjdlMGU0NTZmMDc4YzY1Y2JmMDc1NmQ4YmNhYzBkYTU1ZTE3OWY4NiIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiMGE3MzQ5MmQ4OTQ2YjFkMGY5ZDljMDRiNzA0YTkyMGYyNGY4OWVmN2M3ZjczMTFhODU5OWQxMGM3ZjYzNThkMCIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiMjA2NmNjZWY3ODE3ODEwNTk3ODliMGE2MDg0OWJjZDU2ODVjNDNhNjNjNjEzNGUyMzMwYzQ3MGE0NTRmMjcyYyIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiNDE3ODk5NjE4Y2I4OTEyNjM0NTEwY2YwNjQ3NGQzN2U5MjA2ZWYxYjIyYWExMTYwMmEzOTBjMDNjNTc2YjYwMiJ9"
         }
       ]
@@ -449,7 +453,7 @@
           "version": "repo-lines-v1:sha256:c615c1d9867921732ce0f708d47d23030d8d3adb5aa979bdcab8df30d274bcb9:eyJzZWxlY3RlZExpbmVDb3VudCI6MzEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImVhZjIyY2YwNzMyNTkyYzI0NzE0MWNiZTYxZWZhMTEwMTI2MTJmNWEzMTIyYjlhZjliYmFmNTJmNTcyNGQxOTQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQxMmNhMzQ1Y2NmNzViZjljMDgwNmJjZTY5NWJlOGRlODA4Yjc5OTg0MjUxYTdhNTRkMjAyY2Y2MTAxZGQ0NTEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjI4MzEyZmMxMTJhOThkYjNjZGMzNGNkNTE2ZjU5NDYwZTBkNDA5MjJkNzNmZTE3OTVjNmFkMzIyNDdhODE5N2QiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
         },
         {
-          "resource": "repo://frontend/src/lib/utils/finance/elliott-wave.ts#L156-L215",
+          "resource": "repo://frontend/src/lib/utils/finance/elliott-wave.ts#L223-L282",
           "version": "repo-lines-v1:sha256:9d8288b8266b90206e731dad9558d4a1fda115880f2cf2d348aab5682a8ffc0c:eyJzZWxlY3RlZExpbmVDb3VudCI6NjAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImNmNWJlZGIzNzkxOTkyMzBjNjUwMDBmYzhhMzI0ZGRkNTI4ZmIwNDY2YzZiYWI4NTQxNDliMWNhMmU1YjkyNGEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAxYmE0NzE5YzgwYjZmZTkxMWIwOTFhN2MwNTEyNGI2NGVlZWNlOTY0ZTA5YzA1OGVmOGY5ODA1ZGFjYTU0NmIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjIyMGI5NzYyMzkwYzk5NDBhOTRkMDg5YTQ1NjZmMDg5OTEyOWI2ZTIxMmExNWI1YzA4Y2I2YWM0MWY0NGQ2ZDUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjI4MzEyZmMxMTJhOThkYjNjZGMzNGNkNTE2ZjU5NDYwZTBkNDA5MjJkNzNmZTE3OTVjNmFkMzIyNDdhODE5N2QifQ"
         }
       ]
@@ -469,19 +473,19 @@
       "statement": "ChartDrawingsService (frontend/src/lib/services/ChartDrawingsService.svelte.ts) is a Svelte-runes class that owns all drawing state for one security page and is the only writer of drawing preferences and snapshots. The security page constructs one instance per page, registers it with setChartDrawingsService(...) and descendants read it via getChartDrawingsService(); DrawingToolbar accepts a service prop and falls back to the context instance. Constructor dependencies (securityId, userPreferences, displayCandles, getChartRef, onWaveAlertsReconcile/onPreferencesChanged/onChartSettingsOpen, userPreferencesService, snapshotsService, toast) are injectable for tests.",
       "evidence": [
         {
-          "resource": "repo://frontend/src/lib/components/charts/drawing-toolbar.svelte#L74-L74",
+          "resource": "repo://frontend/src/lib/components/charts/drawing-toolbar.svelte#L78-L78",
           "version": "repo-lines-v1:sha256:2dcf253f1cedeaa3addd03f7e034ea1488930ec1ccc521a85ea2807821686149:eyJzZWxlY3RlZExpbmVDb3VudCI6MSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiMmRjZjI1M2YxY2VkZWFhM2FkZGQwM2Y3ZTAzNGVhMTQ4ODkzMGVjMWNjYzUyMWE4NWVhMjgwNzgyMTY4NjE0OSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiMmRjZjI1M2YxY2VkZWFhM2FkZGQwM2Y3ZTAzNGVhMTQ4ODkzMGVjMWNjYzUyMWE4NWVhMjgwNzgyMTY4NjE0OSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiOTcyM2Y3YjFkODczNjM5NDQwOTBhNmFhNGM2YzVmN2NkZWM0MjZkYmExMThiYmYwZGQ5YzU4Y2Q3NDQ5MDI3MiIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiZDhhOWI3YjczZTBmNWI0ZTM2YzBlNDQ3YWZkNzg5MzI4ZTFmYjg2ZjhmYTZmMTc3YTEwNzcwYWQ4ZGRmZTE2NiJ9"
         },
         {
-          "resource": "repo://frontend/src/lib/services/ChartDrawingsService.svelte.ts#L1056-L1070",
+          "resource": "repo://frontend/src/lib/services/ChartDrawingsService.svelte.ts#L1101-L1115",
           "version": "repo-lines-v1:sha256:f14d76736c371cf2349331214f3bd4870f1a8143c416b29e72db1231717ddf13:eyJzZWxlY3RlZExpbmVDb3VudCI6MTUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjgzMmI3MjljMGFiMDcwNTNkMjhhZTUzMWQ3NzQ0MzllZGE5NzE1OWE5ZjU3NGM1NzhjNzc2MGM0YTU4NGQyY2YiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQxMmNhMzQ1Y2NmNzViZjljMDgwNmJjZTY5NWJlOGRlODA4Yjc5OTg0MjUxYTdhNTRkMjAyY2Y2MTAxZGQ0NTEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjU0YmE3MjYzYzEwODcwMmE1NWNjOWRjZjU4MWYxMTMzMzc4Mjk3NmRlN2U2MDRkMTIxNWU2ZDhjZjUxYTA4ZmYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
         },
         {
-          "resource": "repo://frontend/src/lib/services/ChartDrawingsService.svelte.ts#L231-L252",
+          "resource": "repo://frontend/src/lib/services/ChartDrawingsService.svelte.ts#L232-L253",
           "version": "repo-lines-v1:sha256:a00bbaecbd8431cb014c3cca07ba4a0e8b4ec67769ecd0117985a509e1af8c09:eyJzZWxlY3RlZExpbmVDb3VudCI6MjIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImY0ZTBjMDdjN2M0OTYzZTc5N2M5NDAzMmJlYmE4YWFkMDczOWY0OGEyZjA0ZWU4NzYwYzkwZTQ0MTNlYzRjZDYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjY3Y2RhODJkYTYwNjIzOGUwNWU2MjM5OTU2OWM1ZWUwMzk5MzQxOTY0OGFlNWQ0M2EyYmY4Y2Q2MzQ3ZjgyNjMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjAzOWRkNGE0ZDRmN2MzNTBjNDAxMmQ5NDQ4Mjg4YmE3ZTJiNDlhOGEyZDA3ZWI2MzBmNThmMzA0NzQ4NTZiYTYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjVkMmIzN2ZlODU3YzljNzAxZDk2MzQyNmY5ZGU1MDU4NmQzMjUwNWI5YjkyMmEzZjI1ODdmM2M5NzJlOTRiMDgifQ"
         },
         {
-          "resource": "repo://frontend/src/routes/security/%5Bsecurity_id%5D/%2Bpage.svelte#L98-L103",
+          "resource": "repo://frontend/src/routes/security/%5Bsecurity_id%5D/%2Bpage.svelte#L105-L110",
           "version": "repo-lines-v1:sha256:00169945b7d91af5538c5199e1deb9b2e9b4f2477bcac2e557f570e975dbe985:eyJzZWxlY3RlZExpbmVDb3VudCI6NiwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiMmRmOTJlYzg2YjE3ZGY0NWJhNzk5YzMzNTZkYmE5OWE5Zjk0Mzk5MWI0MjgzMGIxYjJlNzQzMDczMjRmZTJlYSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiMmYzMzI5NTI0ZWFlYTAyY2IwOTU0NDRlZGQ3YTQwZGRjOTI5NzI4ZGU1OWE2Mzg4MGY1Yjg2NzYwZmRhMzE2NyIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiYjBjYmIyYTFmOTBjN2FhMzFiMTU0NDA3YmQ3NDU4ZDkwYTdhMDkyZWE2NmQ0NTE0NTI1M2YzNDk4Y2Q1MjI2YSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiMWFkYWM2NGNhOWQ1OTRiYzk2ZjNlNDQ1N2FhODUwNTBmMmRmYjBlZjQ5N2ZkZjk3ZGU3M2M0Nzg5ZjI4MThlMCJ9"
         }
       ]
@@ -491,34 +495,38 @@
       "statement": "ChartDrawingsService owns the active tool flags (activeWaveDegree, activeWaveType, activeFibTool and isDrawingWave/isDrawingFib/isDrawingMeasure/isDrawingHorizontalLine/isDrawingLine), the five selections, the per-security context (securityId, userPreferences, displayCandles), snapshot/rewind state (snapshots, isTimelineVisible, timelinePosition, saveFeedback) and derived getters (isRewound, securityElliottWaves/securityFibonacciTools/securityDrawings, activeSnapshot, effective* slices, canUndo/canRedo, isDrawing*Effective). Tool activation and selection are mutually exclusive, and selecting or toggling any tool while rewound first clears timelinePosition so the user's click is not swallowed.",
       "evidence": [
         {
-          "resource": "repo://frontend/src/lib/services/ChartDrawingsService.svelte.ts#L120-L157",
+          "resource": "repo://frontend/src/lib/services/ChartDrawingsService.svelte.ts#L121-L158",
           "version": "repo-lines-v1:sha256:88135cb0222611196e189aa53c139ea0f7e980c71b143d447e0384903a8ed005:eyJzZWxlY3RlZExpbmVDb3VudCI6MzgsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImY5ZTgyZTBkYzM1YzU4NmRlMzYwZmQ1NmM1YjdhMmIyYzIzZTZkNTI5NDgwMzMxZmRkYzAwOGFiMDI4YmViMjMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjI3ZGFlMjY5NDhiMDg4NGQxOTZlOGQ0Njk0MWJmMjkxMDcxMjdjODViMDI2MzJjNzNiMThiM2I1MWRlYzhkZGMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjliZThjYzg0NThkMDgyMzEzM2IyNzA0ZWNjNzlkMGU3OTMwZTU1Mzg3YTIzMjJmNDdiOWVmNjgzZTBmNjdjNDkiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjRjODJkMjVlMzliZjdjZGNjZmFmM2UxMTE3NTAyZjNmMWYzMTIzZGYzN2Y5N2EwOWJlNGQ0MzIwOWNlNDc0NGYifQ"
         },
         {
-          "resource": "repo://frontend/src/lib/services/ChartDrawingsService.svelte.ts#L286-L360",
+          "resource": "repo://frontend/src/lib/services/ChartDrawingsService.svelte.ts#L287-L361",
           "version": "repo-lines-v1:sha256:09f71d1859d9e34c116abd8cf8acdc43c028e3bfc179560f605a11c81c3ef4ad:eyJzZWxlY3RlZExpbmVDb3VudCI6NzUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjgwNzlmZWIzNzFkMTcyMGRhNzVjZTZlODMzNzUyMzFlNmE2MzExY2EyMzYxZTZmZTViYmUwODdjMDM3OTQzMWQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImNjM2EyMDc3NGQ1YzJiYjRjNzkwYzE4ODkwYTljNDk0Y2NiNTEwZmM4ZThjMDllYzc0NTE5YmMxNjRmYzc4NGIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjIyN2JiN2JkNzk1NzQ3OTNjNzE3N2RiMzAyZDljMTZjZmJhZGMzZGI5OGI0Yzg3OWVjYzlhOTRjZjM5N2FkZTIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImMyYTYyZTBlN2M1ODNiZTYxNDZmMTIzZTFiYzNiNTcyOTdjY2U3OGE0YjI5MWY4NTAwZmM0ODQwNzlmMmFlODgifQ"
         },
         {
-          "resource": "repo://frontend/src/lib/services/ChartDrawingsService.svelte.ts#L421-L469",
+          "resource": "repo://frontend/src/lib/services/ChartDrawingsService.svelte.ts#L422-L470",
           "version": "repo-lines-v1:sha256:a3acf50388a9330595acc0b028c67cf4bafe6e99b1a84b0e5c3e5afa7dc4611d:eyJzZWxlY3RlZExpbmVDb3VudCI6NDksImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImI5MGYxZjdlMGU1ZmEzZTlkZThlZDA3YzUxYzI3ODhlNzhhNmUxMzAyZTVlZDU3NzRiOTUxZGU2NzBmNTM0MWMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImNjM2EyMDc3NGQ1YzJiYjRjNzkwYzE4ODkwYTljNDk0Y2NiNTEwZmM4ZThjMDllYzc0NTE5YmMxNjRmYzc4NGIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImE4YzdmYjYzOTYyNWQ4ZTU2MThjNmNiYmZkN2M1ZDU2MGM2MGMwY2VkMTUxNWRkMzAyYTgwZTY5Mjc0NjE1MTQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUxMDg5NTg2NThhZWZlZWFlMjA2MzQ3OTZlN2FmMmQ3ZGRlNTkyYmNmYWEyNjRmZTZiOTBhNmU2MGViZTJlMzAifQ"
         }
       ]
     },
     {
       "id": "claim_5ed6715df66c42e69bf47ca0300d2696",
-      "statement": "Every drawing mutation handler rebuilds the relevant per-security slice with a finance-layer helper and persists it through userPreferencesService.patchPreferences({...}) (a partial PATCH to /accounts/me/preferences): handleWaveChange via updateSecurityElliottWaves, handleFibChange/handleFibLevelsChange/handleFibWidthSave via updateSecurityFibonacciTools, and handleDrawingChange/handleRemoveDrawing (plus the measure/horizontal-line/line wrappers) via updateSecurityDrawings/removeSecurityDrawings. Wave changes additionally trigger onWaveAlertsReconcile so wave-target price alerts stay in sync.",
+      "statement": "Every drawing mutation handler rebuilds the relevant per-security slice with a finance-layer helper and persists it through userPreferencesService.patchPreferences({...}) (a partial PATCH to /accounts/me/preferences): handleWaveChange via updateSecurityElliottWaves, handleFibChange/handleFibLevelsChange/handleFibWidthSave via updateSecurityFibonacciTools, and handleDrawingChange/handleRemoveDrawing (plus the measure/horizontal-line/line wrappers) via updateSecurityDrawings/removeSecurityDrawings. Wave changes additionally trigger onWaveAlertsReconcile so wave-target price alerts stay in sync. While a drag is in flight, handleWaveChange, handleFibChange and handleDrawingChange instead stash the new slice in _pendingDrawingPreferences and return without issuing a patch request.",
       "evidence": [
         {
-          "resource": "repo://frontend/src/lib/api/userPreferencesService.ts#L1-L20",
-          "version": "repo-lines-v1:sha256:b7984d1ca93f92c6a28d1a1ea15ed0b8ee7653fadf579f169f9d540ae62ed10d:eyJzZWxlY3RlZExpbmVDb3VudCI6MjAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImNlNWFmODcwZjMyMGY3MDJmYWI1NmMyN2I5ZGIxMGRiZThkMjFhMTQ0ODZmNGNiYmE3YjY4ZGNhNTE1MDY4YTMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjlkMjZjN2ZjMzA1MWJkNTdjM2NlY2RlNDU1MDQ1OWFkMDQzZmFlMjNiNDE3YjIwZWI2ZDI2NGZmZTk3YTMyNmQiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjowLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjNmYWEwYjBjYmQ0ZGQ1N2RmYzQzYmEyYTM5NjQxMjJkNjRlNzM5ZmFlNTRmYjUyMDFmMDU5YThkMjI3NTIxOTkifQ"
+          "resource": "repo://frontend/src/lib/api/userPreferencesService.ts#L103-L113",
+          "version": "repo-lines-v1:sha256:40df238a3f4974afb6092439f2d4e985c0b1a7a19af9c17d5130c015bcf25425:eyJzZWxlY3RlZExpbmVDb3VudCI6MTEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjFkZGMyN2Q4ZTk5NzRkYWExYTdiOWEzOTE4YTYwMzk4YThiNWRlNTk0ZDYxZjNmYzlkMTVjNzM2ZjM2MGU5NjIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjY3Y2RhODJkYTYwNjIzOGUwNWU2MjM5OTU2OWM1ZWUwMzk5MzQxOTY0OGFlNWQ0M2EyYmY4Y2Q2MzQ3ZjgyNjMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjExZmRjYWU4NGM0YTkxYzljZGVlYWVjMTg4NDUyYjAyZjA5NGRjYmRkYTlhYzRiYmVjM2ViZGNiODZlYzUzOGYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjI5OTI1ZDRkYWQxYWFjYmI4N2NkZGQ0YmJmZTYxYjgwY2JlNzk4OWMwNzEwMDI3M2EyNDEyZTBkNzgwYjk0MjQifQ"
         },
         {
-          "resource": "repo://frontend/src/lib/services/ChartDrawingsService.svelte.ts#L610-L694",
-          "version": "repo-lines-v1:sha256:5ac65c0621bfb6e0c22c00a656a5f4163aa6bf887ede72842d5e26e579d3eb0c:eyJzZWxlY3RlZExpbmVDb3VudCI6ODUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjdlN2MzODQ4YjJjZDBlMWQwMGNjOTcwZDJmMmRkOTA0OWJmMGU3NGM3ZTQ2NzM5Y2M2NmMyNDRiNTQzYjM5MTEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImNjM2EyMDc3NGQ1YzJiYjRjNzkwYzE4ODkwYTljNDk0Y2NiNTEwZmM4ZThjMDllYzc0NTE5YmMxNjRmYzc4NGIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjIyZjJmZjVmZWVjNjBmNTg3YzhmYWU0ZTg3ZjgwOWE2NjFjZmZlZDZiNDdhYWU1ZjZkNmEyNjUzYWE4OTUyZWYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjU5YTQ4YjRkNjBkZjZlMWU4YmY0YTY5MjczOTMyNjdkMjQ1ZmY2OWFiZjA2Njc5OWU3NDkzYzIxZWVhNTNjNzIifQ"
+          "resource": "repo://frontend/src/lib/services/ChartDrawingsService.svelte.ts#L611-L643",
+          "version": "repo-lines-v1:sha256:e6a04b07d5fcf85462fbfc682f227abdf6713ce36a54053a51bc82a39e1a3ff1:eyJzZWxlY3RlZExpbmVDb3VudCI6MzMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjdlN2MzODQ4YjJjZDBlMWQwMGNjOTcwZDJmMmRkOTA0OWJmMGU3NGM3ZTQ2NzM5Y2M2NmMyNDRiNTQzYjM5MTEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImNjM2EyMDc3NGQ1YzJiYjRjNzkwYzE4ODkwYTljNDk0Y2NiNTEwZmM4ZThjMDllYzc0NTE5YmMxNjRmYzc4NGIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjIyZjJmZjVmZWVjNjBmNTg3YzhmYWU0ZTg3ZjgwOWE2NjFjZmZlZDZiNDdhYWU1ZjZkNmEyNjUzYWE4OTUyZWYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjFjZWFkODhmNzhjYzg0ZjFiZWZkM2QyMTUxZWI2MDQ4NTAxNmUxZGRlYTMyOTcwYzNiYjc5YTA0N2EzZTFlMmYifQ"
         },
         {
-          "resource": "repo://frontend/src/lib/services/ChartDrawingsService.svelte.ts#L804-L891",
-          "version": "repo-lines-v1:sha256:ca045c722a9236c55c1bc1c8e70345786dfbb70ca7f484b344fbaa2d5e53f025:eyJzZWxlY3RlZExpbmVDb3VudCI6ODgsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjE1NDJhYjI2MDZiZDBiNjg2ODA5ZTFjMGRjNDhmZDRlMzVjMGE3NmQwNDZmMjI3NTgwM2Y1ZmMzYjE5ZjE3N2QiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImNjM2EyMDc3NGQ1YzJiYjRjNzkwYzE4ODkwYTljNDk0Y2NiNTEwZmM4ZThjMDllYzc0NTE5YmMxNjRmYzc4NGIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImVhNTc3NTJiZDJmNTdkNjA4MzQ4MzUzMGIyYjg4NDUzYWExMWRlZTM5Mjg0YjNiODY5Y2Y4YjZmYWI4YjQ2ZTMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjViNThjODg1Mjc3NTA2M2YzNTMzZmE4MDY2MzA5M2ZkMWNhYjY4NDQ0YTBjYTFiNzJkNzUyZWJiZmY4YWFhYWMifQ"
+          "resource": "repo://frontend/src/lib/services/ChartDrawingsService.svelte.ts#L711-L739",
+          "version": "repo-lines-v1:sha256:581c9ea95ede26874c68d0539d34e8d252cd609cafdd0f43c93e482133c88a89:eyJzZWxlY3RlZExpbmVDb3VudCI6MjksImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImUyOWUxNDVmZjFhMmYwNTk2MTA4OWY3ZjgyMjBkMTJhOGQ3YmQzYWE4MTBkYmQ4NTUxNmUyOTRiM2MzNjJhNTQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImNjM2EyMDc3NGQ1YzJiYjRjNzkwYzE4ODkwYTljNDk0Y2NiNTEwZmM4ZThjMDllYzc0NTE5YmMxNjRmYzc4NGIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImE4YzdmYjYzOTYyNWQ4ZTU2MThjNmNiYmZkN2M1ZDU2MGM2MGMwY2VkMTUxNWRkMzAyYTgwZTY5Mjc0NjE1MTQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjU5YTQ4YjRkNjBkZjZlMWU4YmY0YTY5MjczOTMyNjdkMjQ1ZmY2OWFiZjA2Njc5OWU3NDkzYzIxZWVhNTNjNzIifQ"
+        },
+        {
+          "resource": "repo://frontend/src/lib/services/ChartDrawingsService.svelte.ts#L849-L881",
+          "version": "repo-lines-v1:sha256:e9ea92a0edf69e3369457370946a8d3f09768c333504fc28beafd63834c8da2b:eyJzZWxlY3RlZExpbmVDb3VudCI6MzMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjE1NDJhYjI2MDZiZDBiNjg2ODA5ZTFjMGRjNDhmZDRlMzVjMGE3NmQwNDZmMjI3NTgwM2Y1ZmMzYjE5ZjE3N2QiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImNjM2EyMDc3NGQ1YzJiYjRjNzkwYzE4ODkwYTljNDk0Y2NiNTEwZmM4ZThjMDllYzc0NTE5YmMxNjRmYzc4NGIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImVhNTc3NTJiZDJmNTdkNjA4MzQ4MzUzMGIyYjg4NDUzYWExMWRlZTM5Mjg0YjNiODY5Y2Y4YjZmYWI4YjQ2ZTMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjU3NWZmOTg2MDhkMWZiM2ZmZmNjMzgyYzk5YzU5YmMyY2VjOTJlY2Y5OWM1ZTMxZjFiZGQ5ZWViMDY4NDg2MzgifQ"
         }
       ]
     },
@@ -527,15 +535,15 @@
       "statement": "normalizeDrawingsPreferences runs at the preference-loading seam (constructor and setPreferences) and normalizes every security's drawings to epoch anchors. Without it the restored date-string anchors would differ from what the primitives derive on feed-in, the chart's $effect equality guard would see a difference, and the app would write one extra preference patch per tool on first load. setSecurity(id) resets tool state and re-initializes (or clears) the history manager, and getCurrentDrawingState() returns the three per-security slices or all-null when there is no security.",
       "evidence": [
         {
-          "resource": "repo://frontend/src/lib/services/ChartDrawingsService.svelte.ts#L104-L118",
+          "resource": "repo://frontend/src/lib/services/ChartDrawingsService.svelte.ts#L105-L119",
           "version": "repo-lines-v1:sha256:7c5c70df6468592cf1c0397dba765fe435087430a99848a4bfe626022a1766ce:eyJzZWxlY3RlZExpbmVDb3VudCI6MTUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImVhZjIyY2YwNzMyNTkyYzI0NzE0MWNiZTYxZWZhMTEwMTI2MTJmNWEzMTIyYjlhZjliYmFmNTJmNTcyNGQxOTQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQxMmNhMzQ1Y2NmNzViZjljMDgwNmJjZTY5NWJlOGRlODA4Yjc5OTg0MjUxYTdhNTRkMjAyY2Y2MTAxZGQ0NTEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImFkNWRlZjczNDNkNWMwOTIyOTAyOWM4MDM1MTEwZGNiNmJkMGU0MTk3MDkxNjY5MGQ5Yzc2YWM5NGNiYzNhNjEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImJhNjIzMzhlMzQ2Y2ExOTdhNjJkZTgzMjVlYWRjOTcwZDlmYWQ1ZmY3NzFlMGRkYjA2ZDhhYjIyYWI5NmE3MzIifQ"
         },
         {
-          "resource": "repo://frontend/src/lib/services/ChartDrawingsService.svelte.ts#L258-L276",
+          "resource": "repo://frontend/src/lib/services/ChartDrawingsService.svelte.ts#L259-L277",
           "version": "repo-lines-v1:sha256:5bb13caca40ea9470175af0cdc2ce956f7cbe4af5d7fb71ec9ab0ff8eab87c17:eyJzZWxlY3RlZExpbmVDb3VudCI6MTksImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImM5MTVkNmU0NDhiMGM3MWM1ZDJmMzFjZjE5M2ZmM2ZhNzgwMDY5YmIwYTI3MGMzZGY4ZDY1ODE0NTQ1Yjc0Y2UiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImNjM2EyMDc3NGQ1YzJiYjRjNzkwYzE4ODkwYTljNDk0Y2NiNTEwZmM4ZThjMDllYzc0NTE5YmMxNjRmYzc4NGIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImFmZWRjZmJkNDgyNDZlZjcyNDE3ZDVjZjJiOWIyMWJhMDZhNTA4M2I2MjBjMmE5OThjNmNmY2NlZmJhNTY4YzkiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImNlZmJhNWE5OGUyMWVjOTVlYjZjYTM0YThkYjRmOTY2ODUyZjM1NzkzODQ1YmRkYzhkNTJiYmE1ZmEyMDU3M2IifQ"
         },
         {
-          "resource": "repo://frontend/src/lib/services/ChartDrawingsService.svelte.ts#L495-L508",
+          "resource": "repo://frontend/src/lib/services/ChartDrawingsService.svelte.ts#L496-L509",
           "version": "repo-lines-v1:sha256:b9a14be506b66e001e81de926a795179ded5465062b8912a39521707a433c39c:eyJzZWxlY3RlZExpbmVDb3VudCI6MTQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImU3MDJhMDQ2ZjQzYmEzY2QwMTIwMTYyMjljZDg4OTYwNzNjZmJlYmVjMGE1NWZkOGJhYTliZTFmODZkNDM5M2MiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjY3Y2RhODJkYTYwNjIzOGUwNWU2MjM5OTU2OWM1ZWUwMzk5MzQxOTY0OGFlNWQ0M2EyYmY4Y2Q2MzQ3ZjgyNjMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjMzZTBlOWVjMjM4MWNkNGQ4MjE1MWY4ZTFjNjg2OTI2M2MxNzhhYjM4MDM4ZmFlOTlkOGNmNmRiNWI3MzgyMjYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6Ijc3MDNkZmQ0MGY0ZWEzYjMyZjkxNjg3OGEyNjg4MjA4NGFjZTJlYmUxZWJhMmQ3N2M5MjhlNGUyZjdiYzEzM2EifQ"
         }
       ]
@@ -559,11 +567,11 @@
       "statement": "The service drives history through recordDrawingStateChange({coalesce}), which refuses to record while _isApplyingHistory is set, while rewound, or without a security id — keeping an undo from being recorded as a new edit. handleDrawingDragStart sets isDraggingDrawing, clears the pending preference patch and starts coalescing; while dragging the change handlers record with coalesce: true and stash the new slice instead of patching (no network traffic); handleDrawingDragEnd stops coalescing and issues exactly one patchPreferences (plus a wave-alert reconcile when elliott_waves was involved), so a drag with no moves patches nothing.",
       "evidence": [
         {
-          "resource": "repo://frontend/src/lib/services/ChartDrawingsService.svelte.ts#L510-L536",
+          "resource": "repo://frontend/src/lib/services/ChartDrawingsService.svelte.ts#L511-L537",
           "version": "repo-lines-v1:sha256:f97ebb3cb7d543f95471e960bd010deb248076b8ac53523b91c7853ad597cba2:eyJzZWxlY3RlZExpbmVDb3VudCI6MjcsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImYwOTYxMmZlM2E5NWFiYjJjNDBlYjUyZWM1Mzg1N2YwMjMyMjk5NmY0YWRkZDg2OGU0ZTI4ZjgxZWJhOGQ3MGUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImNjM2EyMDc3NGQ1YzJiYjRjNzkwYzE4ODkwYTljNDk0Y2NiNTEwZmM4ZThjMDllYzc0NTE5YmMxNjRmYzc4NGIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjYwZDllOWNjYzYzMWIzNWVlN2NhMzhiNzNjODIzZDFiYjhhYzBhN2UyMjk5MzJmZjE5ZWM3MzYyMjdmYzBkZTYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImMwNjhiNGMyMjMwNGUyMzRlYmFlMGU1OTM4OTNiOTJiOWY3MGM1Mjg3ODIzNWM2Y2Y3YWE3MGNkNmE1NzgxNGQifQ"
         },
         {
-          "resource": "repo://frontend/src/lib/services/ChartDrawingsService.svelte.ts#L819-L835",
+          "resource": "repo://frontend/src/lib/services/ChartDrawingsService.svelte.ts#L864-L880",
           "version": "repo-lines-v1:sha256:d47c1466689f31a0677269c0bfd99021b00090bd3eaf1a73daf1e856ebd7ae85:eyJzZWxlY3RlZExpbmVDb3VudCI6MTcsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImI1ZDczMmNhNDAzZTA1OTBjMTBiMjE4MmRiODZkMDJkNTk5YTYyMTRmM2QzN2MyNzk3OWEwYjgyZjgyYzU1Y2QiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjhkMzE0ZGZmMWQ4NWMyMGVkYjAyYTU0ZWE5ZTlkYmU1MDJlNmZlZDJmNmJmZDEyNzk4MTk0NmMzYzdjNDIxMjYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjJmZmJjM2VmZjRhNzE1YzkwZGZlODM3Y2E0ZmU2ZWNlZGQxMTk2MzVjZTVkNTg3MzU5ZmNlNjdkNDQwODg2Y2IiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjZhYjQ0ZTM1ZWM3ZmFlMjk5YTExN2MzMGI5YmFjM2E3ZDNkMzlkMDMxMmM2NjczNWQ0YmQ1MTdmMzJlODdjMWUifQ"
         }
       ]
@@ -573,11 +581,11 @@
       "statement": "handleUndo/handleRedo return immediately when rewound or without a security id, then applyRestoredDrawingState(restored) sets _isApplyingHistory, rebuilds the three per-security maps (deleting a security key when the restored slice is null), clears selections, patches preferences with all three maps at once, calls onPreferencesChanged, reconciles wave alerts, and always resets _isApplyingHistory in a finally block.",
       "evidence": [
         {
-          "resource": "repo://frontend/src/lib/services/ChartDrawingsService.svelte.ts#L538-L550",
+          "resource": "repo://frontend/src/lib/services/ChartDrawingsService.svelte.ts#L539-L551",
           "version": "repo-lines-v1:sha256:a00e4d8e446b99e2cd6e841eb226b604f24b600e780cad3908d078f5d8fd3fe6:eyJzZWxlY3RlZExpbmVDb3VudCI6MTMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImFiYzY4YmU4NWExZTZkNTBhMzE1NGM4ZTMxYWIyZWM1YTk1YWUzMGFkZTRmYTdmNjFhZjJlZWE4YmYzNzkwMTQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImNjM2EyMDc3NGQ1YzJiYjRjNzkwYzE4ODkwYTljNDk0Y2NiNTEwZmM4ZThjMDllYzc0NTE5YmMxNjRmYzc4NGIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImE4YzdmYjYzOTYyNWQ4ZTU2MThjNmNiYmZkN2M1ZDU2MGM2MGMwY2VkMTUxNWRkMzAyYTgwZTY5Mjc0NjE1MTQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImI4MmZiZmMyNmQ4NzI4MDNiMjIyODdkZGMyZDY1MTZiMDFjMzgzNGNlYTI4Mjg0Njc2ZjNhNTk1OWI2YzNhOTcifQ"
         },
         {
-          "resource": "repo://frontend/src/lib/services/ChartDrawingsService.svelte.ts#L552-L608",
+          "resource": "repo://frontend/src/lib/services/ChartDrawingsService.svelte.ts#L553-L609",
           "version": "repo-lines-v1:sha256:9b448b2e743b004ccf76ed3a4fa7f03c7c58ef0cb7004fe2f9821950e5359255:eyJzZWxlY3RlZExpbmVDb3VudCI6NTcsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImVjOTBkYzVmZDJhNzUwNzVmY2MwMmI2MjA3N2JiZDI5N2I2MTNmNWI0ZjRiNmNjNTU2YjcxODUzMzQwOGQ0ODAiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjY3Y2RhODJkYTYwNjIzOGUwNWU2MjM5OTU2OWM1ZWUwMzk5MzQxOTY0OGFlNWQ0M2EyYmY4Y2Q2MzQ3ZjgyNjMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImVkYTVmZWY1YzE2YWExY2JlYWRlYTcyYjJhMTA0NjdjYmJhMmRiZTc0YmIxZDhjMDJkYjlkNmY1OTIxNDhiZDciLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjcyN2QyZGRiZmMxMTY4ZmM4NjNlMTk2YTY2MDIyZDUwMzY0YjNiNmE5NGRlOGJjNTM3NTkxNzNlZTM2NjI1MTcifQ"
         }
       ]
@@ -587,11 +595,11 @@
       "statement": "The page forwards window keydown into ChartDrawingsService.handleKeyDown(event, chartRef), which ignores events originating from inputs, textareas or content-editable elements: Delete/Backspace deletes the selected wave, fib tool, measure, horizontal line or free-form line; Escape calls cancelActiveDrawing(); Cmd/Ctrl+Z undoes (with Shift, redoes); Cmd/Ctrl+Y redoes; Cmd/Ctrl+S saves a snapshot; and Cmd/Ctrl+, opens chart settings through onChartSettingsOpen. The deletion and undo/redo/save branches are no-ops while rewound.",
       "evidence": [
         {
-          "resource": "repo://frontend/src/lib/services/ChartDrawingsService.svelte.ts#L971-L1042",
+          "resource": "repo://frontend/src/lib/services/ChartDrawingsService.svelte.ts#L1016-L1087",
           "version": "repo-lines-v1:sha256:7d424369f19c58f00a92e75021b72939a0c43817851f4a5929148c0e8808ff89:eyJzZWxlY3RlZExpbmVDb3VudCI6NzIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjRkYmVlZmVkOTFmYmY5ZWY2YWMzNzM3Y2JlZTEzODRjYzkxYWVjNzg5NmI3NGJhMDllNjk1YjU2MjU3NmVkMDEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImNjM2EyMDc3NGQ1YzJiYjRjNzkwYzE4ODkwYTljNDk0Y2NiNTEwZmM4ZThjMDllYzc0NTE5YmMxNjRmYzc4NGIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImE4YzdmYjYzOTYyNWQ4ZTU2MThjNmNiYmZkN2M1ZDU2MGM2MGMwY2VkMTUxNWRkMzAyYTgwZTY5Mjc0NjE1MTQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjJlODFmMGRjZmFjZTU5MmY3MjViNjJhZTdkYWNhODQwYTJhZDVkOWM4MDUyMTA0YmE0ZThhMjhkZGRiNGYxNzkifQ"
         },
         {
-          "resource": "repo://frontend/src/routes/security/%5Bsecurity_id%5D/%2Bpage.svelte#L774-L779",
+          "resource": "repo://frontend/src/routes/security/%5Bsecurity_id%5D/%2Bpage.svelte#L795-L800",
           "version": "repo-lines-v1:sha256:690040a7705185f128523e8104f98a6882c5a4171a62041f8447553fc5e975e1:eyJzZWxlY3RlZExpbmVDb3VudCI6NiwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiNTM5NTg5NzI2NTRjYTczNmFjOWQ5ZWFiODZiMjNkMmU1YTg0YTU5OWY2YzVmY2IzYzFhZjMyZjUwOTA5M2RmYyIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiMjc2NmJlZjg1NTc4MjlmYzc3ZjY3MDA3ZGI5Y2U5ZmY5OGE1ZmI1ZWUyNjg3ZWY4NjhkMTUzYjAwM2I4MjVlZSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiOGY4MmU3NzQ1NmUzOGE3N2EyNjJkZDM0ZjU0MjExMzA0NDUyMTAwYzk0ODg5MDFmNjZkMWJkODY4OGViYTQyOCIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiYWVjMTdmNTZkZjgwYTA5Y2NiODRjOWYyZTIzNTU1ZGQ2ZWQ0ZDBiYzRlYjQ4ZjFhZTE3MzNkOTM2MDc2ZmJhYiJ9"
         }
       ]
@@ -601,15 +609,15 @@
       "statement": "Rewind is a strictly read-only mode switched by isRewound (timelinePosition !== null): every mutation handler early-returns (recordDrawingStateChange, handleUndo/handleRedo, handleWaveChange/handleClearWave, handleFibChange/handleClearFib/handleFibLevelsChange/handleFibWidthSave, handleDrawingChange/handleRemoveDrawing, handleSaveSnapshot, all five setDrawing*Mode setters and the Delete/undo/redo/save branches of handleKeyDown); canUndo/canRedo and every isDrawing*Effective getter are forced false; activeSnapshot resolves via findSnapshotAtOrBefore(this.snapshots, this.timelinePosition); and the effective* getters read the snapshot's drawings instead of live preferences.",
       "evidence": [
         {
-          "resource": "repo://frontend/src/lib/services/ChartDrawingsService.svelte.ts#L166-L229",
+          "resource": "repo://frontend/src/lib/services/ChartDrawingsService.svelte.ts#L167-L230",
           "version": "repo-lines-v1:sha256:b47a79474e2a9436bbed2602d36a13c7c19ce76a0ff233f4a1bbed7435f96277:eyJzZWxlY3RlZExpbmVDb3VudCI6NjQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjY4YzdmNGEzNTFmYzE5OGI4OWM2YzVmZTUzNjhiODI0MDMxZGI1MTA4YzM0ZWIwZjc1MzBhNzAyMjU3ZWIxNzIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjY3Y2RhODJkYTYwNjIzOGUwNWU2MjM5OTU2OWM1ZWUwMzk5MzQxOTY0OGFlNWQ0M2EyYmY4Y2Q2MzQ3ZjgyNjMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjRjNGNiN2U2OWFjNWQ4ZmIzNzkyZjI5N2RjMDdhMjlkMDgwMjEyZTUyZWEzMmFhNjQ2ODZlOTU2ODUzZDc1MWIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjE3MDM4MWNiM2MxMzYxYzMyMzZkZDczNzI4ZjQ3ODcwM2UyYWRiNjA4ZTQ5OWI2MGYwYzg1ODVlMzBiNWE3N2IifQ"
         },
         {
-          "resource": "repo://frontend/src/lib/services/ChartDrawingsService.svelte.ts#L366-L419",
+          "resource": "repo://frontend/src/lib/services/ChartDrawingsService.svelte.ts#L367-L420",
           "version": "repo-lines-v1:sha256:3c4a4f56f97c6626cbb8f46ce5838616be2f2552408fa1387c7b45604e8b33af:eyJzZWxlY3RlZExpbmVDb3VudCI6NTQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImJlMTdhZmJkNjc4M2E1ZDZjNGE3NmQ3YWVkOTVmNGQ1YzQyMmMyYTQyOTQyZDE5OTJlMTAzZmQyOGUzOTIwODgiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImNjM2EyMDc3NGQ1YzJiYjRjNzkwYzE4ODkwYTljNDk0Y2NiNTEwZmM4ZThjMDllYzc0NTE5YmMxNjRmYzc4NGIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjY4ZDEyZGYxMTk3MGFmYmVmZTM1M2I0MGNjZTkwY2U1NTYxNzA3OTUxN2RiODkwMjU0ZjIzMmVmOTY1YWYyZTkiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImFlNjExY2VhNjg2ODc5Zjk5N2RhYTBjMGQzYTcwNjFlZWY1MDkxZmM0Mjk2MjRkMzM4NzU2NzVjNzM3MjQwNjMifQ"
         },
         {
-          "resource": "repo://frontend/src/lib/services/ChartDrawingsService.svelte.ts#L917-L918",
+          "resource": "repo://frontend/src/lib/services/ChartDrawingsService.svelte.ts#L962-L963",
           "version": "repo-lines-v1:sha256:db43b31f571f1fd7d47575a87753e43858c329513ce8677c70539b9e9ccc9a3c:eyJzZWxlY3RlZExpbmVDb3VudCI6MiwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiN2M4YThiODhlNTg5ZTlkN2YzMzdhYWQ2MDhmNjljNWM3NTZjZjRjNjhlZTI3ZmE1NDkxODRkZjU3YzU3NDQ1MCIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiZWQwMTA2YmQ4ODMxZmJlMjI0ZDQxZWIwOTUwODU4YjFjMGVlNzQ2MjRjZjAyNDg0ZGU2YjZmM2YzYjY1NmIxYSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiYThjN2ZiNjM5NjI1ZDhlNTYxOGM2Y2JiZmQ3YzVkNTYwYzYwYzBjZWQxNTE1ZGQzMDJhODBlNjkyNzQ2MTUxNCIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiYjlkNWJkM2FjNzU5ZDdhNDEzZjA3ODUwMTFhZTc0MDRjMDcwOThlMDlkNzc5MDk3OTc4ZTgyMjBmYWE4YTFlZiJ9"
         }
       ]
@@ -633,11 +641,11 @@
       "statement": "SqlAlchemyChartSnapshotRepository implements the abstract ChartSnapshotRepository: the read path is SELECT ... WHERE security_id = ? AND user_id = ? ORDER BY captured_at ASC (ascending order is part of the contract because the frontend timeline treats snapshots[0] as the oldest); create normalizes captured_at to UTC (attaching UTC when naive), inserts, commits, refreshes and returns ChartSnapshotRead; delete is scoped by id AND user_id, so a non-owner delete is a silent no-op.",
       "evidence": [
         {
-          "resource": "repo://src/market/repository.py#L296-L310",
+          "resource": "repo://src/market/repository.py#L298-L312",
           "version": "repo-lines-v1:sha256:79f91bad254c294fe2a701ccf6c59c9791ee1e563621d2a3368ac6e1f0b316b9:eyJzZWxlY3RlZExpbmVDb3VudCI6MTUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijc5MDI4MmZjMjUwNDhjMWQxNmUzYzY3ZGE3NjdiNjVlNGUzNTMxMGMyMDAwZTRmYmNkNDA4MTQ0ZWI3OTdiMmEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjkxN2YxMTY5ZTVhM2E0ZjNlZWFhN2JmNmIwZTYxYTkzNmI1N2FhNWNhZmMyM2MyZjNiNDQ2ZjJjNmQ2YzZjNGMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjZhMjhmMzA0MGRmYmViNjhjYzk0NjA4NDdiODVkYjU5ZDNlMGFkNzA5Nzk5NzFhNzM0YzQ5NWEyMTBiOWViN2QiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjoxLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImYwNjJlNThlYTBiMGZkMTk1YmEwNzY2MTNiNjMwZDU5ZTY3YmQ0NzBiYjE5ZTk3YTIwYzkwMjM2NmU1YmEwZTYifQ"
         },
         {
-          "resource": "repo://src/market/repository_sqlalchemy.py#L1233-L1272",
+          "resource": "repo://src/market/repository_sqlalchemy.py#L1241-L1280",
           "version": "repo-lines-v1:sha256:7fcc86a0136856160afdb16043b40ab4851bec2927bb27d7e81281e5db5666bd:eyJzZWxlY3RlZExpbmVDb3VudCI6NDAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImU5Y2U4ZWU2YzQ1MGViZmUyMzIwZGE1YjQ2MDFiZDQ2MWE1MmVmODA5NWYxOTkwZDNhNDRlNzVlMGIzOTJkYTAiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjU5MDlhNTNhNjE4ZDAyOGUxZDMwMDBjMGE3YWJjZWVjYmU1ZmIzN2Y0ZTUxMWVmZTQ2NjQzZmFkNmU2Njg3MmYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjcwMTk2NTE4MGM0OTVlZGVkMmI2NTZmNWIxMzQ5ZWQ1MzBlNGMxM2Y2MzVkNzgzMTdmNWNhZWUxMDViMjhhYmEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImExNWMxY2I2Y2IwYzM3MTU3OGFkNjVlYWE1MzNmZTE1MWY5Y2VmMzQ3NTM5NmY3ZDhkMjdjOGQxZTcyOTJhNWUifQ"
         }
       ]
@@ -647,7 +655,7 @@
       "statement": "The market router exposes the snapshot surface under /api/v1/market: GET /market/securities/{security_id}/snapshots returns the current user's snapshots, POST the same path returns 201 with the created ChartSnapshotRead, and DELETE /market/securities/{security_id}/snapshots/{snapshot_id} returns 204. All three depend on current_user and apply the user_id scope in the repository rather than the handler; ChartSnapshotCreate accepts drawings, data_window and an optional captured_at, while ChartSnapshotRead adds id, security_id, user_id, captured_at and created_at.",
       "evidence": [
         {
-          "resource": "repo://src/market/router.py#L719-L767",
+          "resource": "repo://src/market/router.py#L723-L771",
           "version": "repo-lines-v1:sha256:0b0361765f89ab303a6fec038e6b5c56c49091f5db38041f1c72f1705bc89440:eyJzZWxlY3RlZExpbmVDb3VudCI6NDksImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImE0MWJkMTY3Mzc5NjE1MzBiOGExMWE2ZTM5Y2M3ZDUyYzY4MmVjNDYzNWZkMWY1NDkwM2Y0MzA0NjQ5MzRkYTUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImJkNmIzMzVkN2RkNmY5YTJjYjU5ZmJhMjY5MWY3NmEzODk5ZDFlMDY2MjY1YTQ0ODI2MzNkNjYwY2ViMmFiMTMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjliY2Y4N2U1NmFmNmVmYWZlODM1MzI1M2UzZTUzZGYwMzEwOWRmYzZkOGMyYjkyNzBhMTNkODUxMGMwMDZkZGUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImFkYmE5OTUzMGQ4ZTI4MGFiNDkxYzFmYzU4ZTg0NzZkNjc5ZTZiYzM1OWEzZDE4MmRjODY0NmJmMTQxMTEyMDkifQ"
         },
         {
@@ -697,26 +705,26 @@
       "statement": "handleSaveSnapshot(candles?) bails out when rewound, without a security id or without displayed candles; builds drawings from the live elliott waves, fibonacci tools and new-tool drawings and skips the save silently unless there is at least one wave point, one fib tool or one new-tool drawing; builds data_window from the first/last displayed candle times (normalizeCandleTime renders a BusinessDay as YYYY-MM-DD); calls captureSnapshot and compares against the newest stored snapshot with areSnapshotsEqual, showing 'Chart snapshot already up to date' without POSTing when equal; otherwise it POSTs via snapshotsService.createSnapshot, appends the server-returned snapshot, reveals the timeline and shows 'Chart snapshot saved'. showSaveFeedback flips the toolbar icon to a check mark for 1.5 s, and failures log and show an error toast without touching the timeline.",
       "evidence": [
         {
-          "resource": "repo://frontend/src/lib/services/ChartDrawingsService.svelte.ts#L893-L902",
+          "resource": "repo://frontend/src/lib/services/ChartDrawingsService.svelte.ts#L938-L947",
           "version": "repo-lines-v1:sha256:d2c68adc7252e4e6f2f43fb6cdaccfd326e08d02919e79d2691e97b6899329bc:eyJzZWxlY3RlZExpbmVDb3VudCI6MTAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImRjNzNlYjQ3MzM5MWIwYjk2YjFiZWQ3ZmQ2MTcwZTYyYjFhY2RmZWU3NjE1MjA2YTE4YjBmYzEwMjBjNWQ5YWEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImNjM2EyMDc3NGQ1YzJiYjRjNzkwYzE4ODkwYTljNDk0Y2NiNTEwZmM4ZThjMDllYzc0NTE5YmMxNjRmYzc4NGIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjM5NDIyZTNhNjMxMmQwZjY4YTAwNjY4NGJiNmYxZjhkZDQxZGUyZmQxYjRiOWY2YmEyNmE2YTZmNmM5YzRjMjgiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjQxNWQ2ZmFiY2ZhZWI5NzVlOGRlNDE0NDM5MzkxMzcxOGZhYTQ1Y2NjODlhOTg5YTlmOWQxM2MyYzlkMjI0MWYifQ"
         },
         {
-          "resource": "repo://frontend/src/lib/services/ChartDrawingsService.svelte.ts#L917-L969",
+          "resource": "repo://frontend/src/lib/services/ChartDrawingsService.svelte.ts#L962-L1014",
           "version": "repo-lines-v1:sha256:4056c8095140f6d29fe21a04cbef12929e21aac0833cdaa923005603efa47574:eyJzZWxlY3RlZExpbmVDb3VudCI6NTMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjdjOGE4Yjg4ZTU4OWU5ZDdmMzM3YWFkNjA4ZjY5YzVjNzU2Y2Y0YzY4ZWUyN2ZhNTQ5MTg0ZGY1N2M1NzQ0NTAiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImNjM2EyMDc3NGQ1YzJiYjRjNzkwYzE4ODkwYTljNDk0Y2NiNTEwZmM4ZThjMDllYzc0NTE5YmMxNjRmYzc4NGIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImE4YzdmYjYzOTYyNWQ4ZTU2MThjNmNiYmZkN2M1ZDU2MGM2MGMwY2VkMTUxNWRkMzAyYTgwZTY5Mjc0NjE1MTQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImI4Y2YxNDMyNjU1NWY2MmEzY2M1OTc2ZmNlNjk1OTRhYTIyMzIxMjNlNDA0NzBiMDJlN2RhMmU3MTg2NmU0ODUifQ"
         }
       ]
     },
     {
       "id": "claim_81b7de47fb264d33950b51eba3c00389",
-      "statement": "loadSnapshots() runs on page load alongside alerts and holdings; it sorts the fetched snapshots by Date.parse(captured_at) ascending (defensively re-establishing the backend ordering) and sets isTimelineVisible = true when the security already has snapshots.",
+      "statement": "loadSnapshots() runs on page load inside the same Promise.all as loadAlerts(), loadHoldings() and loadValuation(); it sorts the fetched snapshots by Date.parse(captured_at) ascending (defensively re-establishing the backend ordering) and sets isTimelineVisible = true when the security already has snapshots.",
       "evidence": [
         {
-          "resource": "repo://frontend/src/lib/services/ChartDrawingsService.svelte.ts#L904-L915",
+          "resource": "repo://frontend/src/lib/services/ChartDrawingsService.svelte.ts#L949-L960",
           "version": "repo-lines-v1:sha256:591854af57281972a7a4ad976aa9745adb862112816fab95cec9b6fcf29fa582:eyJzZWxlY3RlZExpbmVDb3VudCI6MTIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjYwZmUzN2U4YTA0ZmNjMWRmYjk3MWIwNzk3ZTcyM2ExY2NiNDAxMDk3YWQwODQwZWUyNTI4YmQzZjExOGY0ZDQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImNjM2EyMDc3NGQ1YzJiYjRjNzkwYzE4ODkwYTljNDk0Y2NiNTEwZmM4ZThjMDllYzc0NTE5YmMxNjRmYzc4NGIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjEyMzIxZGRiZTU0NjVhMDYxZWEyYjQzMDUxNGIxNDhkZTdjYWRiN2M1MzZiZTQ0MjU0YTVkMGRlMTViNjQ0OWIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjYwYjY2NzlmZjQ1ZGQyNDUzYmM2ZWJkOWE4MzM0NTI2MmY1YzJjOWQ5MjFhMzJkYWUzYTM1OWNlMDc4ZTk0YjcifQ"
         },
         {
-          "resource": "repo://frontend/src/routes/security/%5Bsecurity_id%5D/%2Bpage.svelte#L747-L747",
-          "version": "repo-lines-v1:sha256:f777f2909b5b3ae62ac9a03d13566fc8e97887398c942dc7cf45a5e3a396a5fa:eyJzZWxlY3RlZExpbmVDb3VudCI6MSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiZjc3N2YyOTA5YjViM2FlNjJhYzlhMDNkMTM1NjZmYzhlOTc4ODczOThjOTQyZGM3Y2Y0NWE1ZTNhMzk2YTVmYSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiZjc3N2YyOTA5YjViM2FlNjJhYzlhMDNkMTM1NjZmYzhlOTc4ODczOThjOTQyZGM3Y2Y0NWE1ZTNhMzk2YTVmYSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiY2YzM2U2ZTc5NjVkNTIzYjg3ZGE0OGEyMTk0ZjNkNjAwOTA2ODIxZTEzYjQ4MDY0ZGFlMWU2NTc0MzY3NjIxZiIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiNzdiMGE3Y2RiZmI0NWY2NWM2MjI1N2I4NWFjMmI0YWE1NmM5MWY4MmQ3OTk0NmFlNjI5YjYzYjc2NzMyYTVjZiJ9"
+          "resource": "repo://frontend/src/routes/security/%5Bsecurity_id%5D/%2Bpage.svelte#L763-L768",
+          "version": "repo-lines-v1:sha256:7ba0917e9e59b7d5f797a70dba07c5c98d7c6c51996f66361aa70c10c11e9abe:eyJzZWxlY3RlZExpbmVDb3VudCI6NiwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiMjE1MGU2NjBjOTM4ZWQ2YmRmZjg1Yjk3NjQ4ZjQ1MTg1NmJiYTQ1MzE3MWRjNzIyZTg5ZTQ4MjA1MDFiMTMwMyIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiMWViMmFiOWYzZmY2ZWIwMWVhMjAzYzU2YTE0MTEwZWJkODJkMDk5YTBiMzg1YTM3N2FlMTRhZDNmNWMwOTg0NyIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiY2YzM2U2ZTc5NjVkNTIzYjg3ZGE0OGEyMTk0ZjNkNjAwOTA2ODIxZTEzYjQ4MDY0ZGFlMWU2NTc0MzY3NjIxZiIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiNzdiMGE3Y2RiZmI0NWY2NWM2MjI1N2I4NWFjMmI0YWE1NmM5MWY4MmQ3OTk0NmFlNjI5YjYzYjc2NzMyYTVjZiJ9"
         }
       ]
     },
@@ -749,38 +757,42 @@
       "statement": "The security page derives everything from the service's timelinePosition: displayCandles is sliceCandlesBefore(allDisplayCandles, timelinePosition) while rewound and all candles otherwise, and is fed back into the service via setDisplayCandles and passed to the chart; timelineNow is the timestamp of the last displayed candle rather than wall-clock time so the 'Now' end of the track lines up with the newest bar; an $effect watching timelinePosition calls refreshActiveIndicators(); getRewoundCandlesPayload builds an IndicatorCandle[] from sliceCandlesBefore(rawCandles, timelinePosition) so an oscillator shows the values it would have had at that instant (caller-supplied candles bypass the indicator cache); RewindTimeline renders only while isTimelineVisible and is bound two-way to drawingsService.timelinePosition; and rewind also stops history fetching (hasMoreData={!isRewound && hasMoreData}) and disables the wave-alert reconcile.",
       "evidence": [
         {
-          "resource": "repo://frontend/src/routes/security/%5Bsecurity_id%5D/%2Bpage.svelte#L1038-L1043",
+          "resource": "repo://frontend/src/routes/security/%5Bsecurity_id%5D/%2Bpage.svelte#L1084-L1089",
           "version": "repo-lines-v1:sha256:75c445399f08a048cd1055a80fc90ef1c916cfdf659e910f2fe1a6ef2053e928:eyJzZWxlY3RlZExpbmVDb3VudCI6NiwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiNDY1MGQxYzNiODM2YTQwNjljYTE1ODE0NTA5N2FjNzRkZGVkNjIwZjRmZGIyYjZlYmFmMmQzNDBjYjUyNmMxZiIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiYjk1NzgzNDU5M2I3ZjkyNWZhZTEzMDRhNGNkM2QwZjc4OWY4YmQxYWI2M2FjMThiZDliN2IxZGI3NjZiZTc0ZiIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiYWM0NmRlYjY4MzRkNjhjZWYxZDNmZWI0N2ZkMjg0NDI2YmQ3NzQ4Y2I4YWJkNDg5MzBkZmZkYjNmNDEyMGYxMSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiY2M3OGRlZGFkYzM5NTQ3MjRlNmY4ODY3ODJjZGE5NjEyOWEyZTc0MWYyZjVkOWNmYTdjZTAxNDA5NGE5NzE0OCJ9"
         },
         {
-          "resource": "repo://frontend/src/routes/security/%5Bsecurity_id%5D/%2Bpage.svelte#L113-L147",
+          "resource": "repo://frontend/src/routes/security/%5Bsecurity_id%5D/%2Bpage.svelte#L120-L154",
           "version": "repo-lines-v1:sha256:31c24b9aa7e4342d59f84a99e75a6432ddfba03f2944e7e7ece24f79013fec9a:eyJzZWxlY3RlZExpbmVDb3VudCI6MzUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjNmNWFmM2ZmODY4ZGQxNmM1OWRhNzg2OGJiZmI5MWQ1YzdhZGJiZjI0ZjlmNmZkN2JjMjdmNjk2ZjYwMjZkNWEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjBhNzM0OTJkODk0NmIxZDBmOWQ5YzA0YjcwNGE5MjBmMjRmODllZjdjN2Y3MzExYTg1OTlkMTBjN2Y2MzU4ZDAiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImVjYzIyMzU1Y2Q5OTRkNGFhNzA5YmUzM2Q0ZjA4YjQzYThkMDMyMDJmYTk1ZTM0NjU3ZWVlNTJkY2Q5ZTA0NDAiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjUzYjM3MDZhZjIxNWQxNjBiOWQ1ZTVhN2QyNmU3YTM5OGJiNDYyZjdjMGIzNzU5ZDdiMjRlZDRlOTk1NzZlNzMifQ"
         },
         {
-          "resource": "repo://frontend/src/routes/security/%5Bsecurity_id%5D/%2Bpage.svelte#L332-L345",
+          "resource": "repo://frontend/src/routes/security/%5Bsecurity_id%5D/%2Bpage.svelte#L317-L330",
           "version": "repo-lines-v1:sha256:1c6e77212bb4231d212088030ca43c4d872d1f7034797144421aa6452cd8a0b2:eyJzZWxlY3RlZExpbmVDb3VudCI6MTQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImRiZDU3N2E2N2Y3OGQyNzA1NTlmNGZhMzgzZWRiNWM0N2M4OTAwODJjODk0NTNlMWQ5Y2RmY2U4NjMzYTQyZGQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjY3Y2RhODJkYTYwNjIzOGUwNWU2MjM5OTU2OWM1ZWUwMzk5MzQxOTY0OGFlNWQ0M2EyYmY4Y2Q2MzQ3ZjgyNjMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImIyNGU2NmZiMmVjNDdhMmVhZDNmNzZhMzdmMzFhNWZjMTE4NjQyNjJiODAzMjZhODIyYWI3N2Q5MzAyMDUxOTQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImIzYjBkOGFmNWM0NWUyMzZhNjdiNWI1NGUzNDRlY2Q0NzRjOWM5NWY5Y2RiN2I1MDZlY2ZjODQ4MDkzODQ5NzMifQ"
         },
         {
-          "resource": "repo://frontend/src/routes/security/%5Bsecurity_id%5D/%2Bpage.svelte#L466-L472",
+          "resource": "repo://frontend/src/routes/security/%5Bsecurity_id%5D/%2Bpage.svelte#L460-L466",
           "version": "repo-lines-v1:sha256:57a7445720e8727386cf69fb1cc6b863b64c6380e92a1a2bbd44958ab67f415c:eyJzZWxlY3RlZExpbmVDb3VudCI6NywiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiZTkwNDI4MGU0YjQyYjk0ZGZlMGJhM2NiNzE3MzFjNzEwZjg4OWEwYTU2MmFmNDU4OGQyZDZhMzU0ZjM0OTg4YiIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNjdjZGE4MmRhNjA2MjM4ZTA1ZTYyMzk5NTY5YzVlZTAzOTkzNDE5NjQ4YWU1ZDQzYTJiZjhjZDYzNDdmODI2MyIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiNDY0M2MyMjI5ZTQ0NDZiZTE1ZTFmOTBiMjk1ZWI1ZjUwMTk5N2QzOGExNTRmNWFiMjFmYWFjMGY4ZDRhMmQ3OSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiZGNhOTdjOGVkZjhhMGUzOTgwNzBhYzZmZDU4N2UxMjhmNTBlYjk0NWUxY2FmODkxMWJiMGUyZDYzNzljZDEyNSJ9"
         }
       ]
     },
     {
       "id": "claim_b85f260f92364d3380b06e3bd27b7827",
-      "statement": "security-chart.svelte constructs one primitive per tool and attaches each to the price series (UserPriceAlerts, ElliottWavesPrimitive, FibonacciPrimitive, MeasurePrimitive, HorizontalLinePrimitive, FreeFormLinePrimitive). For every drawing primitive it subscribes drawingsChanged to the matching page handler, drawingModeChanged to restore handleScroll.pressedMouseMove once no drawing tool is active, selectionChanged to mirror the selection into the bound selected* props, and dragStarted/dragEnded to the service's history coalescing hooks; it feeds state back through $effect sync blocks that compare current primitive state with incoming props using the finance-layer equality helpers before calling the setter, pushes candle data via setCandles(...), and destroys every primitive in the teardown before chart.remove(). Cross-plugin snapping is resolved by the page: fibSnapPrices = getActiveFibLevelPrices(fibonacciTools) is pushed into the elliott primitive with a content-signature guard because the derived array is fresh on every tools change.",
+      "statement": "security-chart.svelte constructs one drawing primitive per tool and attaches each to the candlestick series instance (UserPriceAlerts, ElliottWavesPrimitive, FibonacciPrimitive, MeasurePrimitive, HorizontalLinePrimitive, FreeFormLinePrimitive). For every drawing primitive it subscribes the plugin's state-change delegate to the matching page handler (wavePointsChanged → onWaveChange for the waves primitive, drawingsChanged → onFibChange / onMeasureChange / onHorizontalLineChange / onLineChange), drawingModeChanged to restore handleScroll.pressedMouseMove once no drawing tool is active, selectionChanged to mirror the selection into the bound selected* props, and dragStarted / dragEnded to the service's history coalescing hooks; it feeds state back through $effect sync blocks that compare current primitive state with the incoming props using the finance-layer equality helpers before calling the setter, pushes candle data via setCandles(...) (the waves and fibonacci primitives override setCandles to also feed their mouse adapter for wick snapping), and destroys every primitive in the teardown return before chartInstance.remove(). Cross-plugin snapping is resolved by the page: fibSnapPrices = getActiveFibLevelPrices(fibonacciTools) is pushed into the elliott primitive with a content-signature guard because the derived array is fresh on every tools change.",
       "evidence": [
         {
-          "resource": "repo://frontend/src/lib/components/charts/security-chart.svelte#L1116-L1121",
-          "version": "repo-lines-v1:sha256:d8771391c39fb52bc27ca8dc324544aa8965b9a89615aca904b985e705a49950:eyJzZWxlY3RlZExpbmVDb3VudCI6NiwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiN2E4OWQ0NTc5MGQ0ODg0MmY5NjM2NDY2ZjllMzUwZjE5MThhMjVmYTcxMmQwNjYwOTY3MDU2ODFlNTIzNzY3NCIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiMzU5ZTgwMTFkMzg0YTIzYmRmNWYyNjdiNWRjM2Q3NmM0MWJiNDJlY2VjOWU0YjAwNGVkN2Y5Nzc4ZDYxMDUxOCIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiNzg3YzI3NTg1ZDQwMTE2MTRlYWU4NWFiZDg2NGEwNzA3NzBlMWQ4ZmY0ODk5YmJiM2Q3ZGZhZTUzOTJjYjYyMCIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiZDMxOTFhNzNlMDZlZTE4MWQxYzA0YWMzMTg2MWU0YjVmMWZkZDI1YjdkNTIxOGNlMWUxY2IwZDAzYjc1MmQ2ZSJ9"
+          "resource": "repo://frontend/src/lib/components/charts/security-chart.svelte#L1012-L1110",
+          "version": "repo-lines-v1:sha256:11b5a9d3cf14b3279581f6f1d2821604430a97114114670053cc6286dec16de0:eyJzZWxlY3RlZExpbmVDb3VudCI6OTksImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjBlM2FlM2ZiMGQxYTQwNGZjNTRhY2E5OGI2NTlhMDE1ZTVmNTliM2IzNGUzNjM0N2ZmYTQ2ZjAyZmM0NDQ2NWQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAxYmE0NzE5YzgwYjZmZTkxMWIwOTFhN2MwNTEyNGI2NGVlZWNlOTY0ZTA5YzA1OGVmOGY5ODA1ZGFjYTU0NmIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjBmNDkzMzFiYmRlNGEwZTZiMzQ5MTJmNGQ4MWIzZjY5YWVhMDcxOWZmZDFmOWJlODE5NDU4ZGE1NTY2YTM4ZjIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjIyMTY4NzQ5ODQxYzMxODkzMTViZGFmMDI4OWY3NTkxNjQ5OTRjYjMzYzRjMzJmNzgzYjJjNDEyMDU4M2MyMDIifQ"
         },
         {
-          "resource": "repo://frontend/src/lib/components/charts/security-chart.svelte#L716-L722",
-          "version": "repo-lines-v1:sha256:0750de5ab28860f773de210d9dcea270d8d6ef6603a9bb7c15fb3abb67e8d21f:eyJzZWxlY3RlZExpbmVDb3VudCI6NywiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiZTBiY2ExN2MzYjI0YzY1ZDc2OTIwN2I2ZjdlMGU0NTZmMDc4YzY1Y2JmMDc1NmQ4YmNhYzBkYTU1ZTE3OWY4NiIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiMGE3MzQ5MmQ4OTQ2YjFkMGY5ZDljMDRiNzA0YTkyMGYyNGY4OWVmN2M3ZjczMTFhODU5OWQxMGM3ZjYzNThkMCIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiMjA2NmNjZWY3ODE3ODEwNTk3ODliMGE2MDg0OWJjZDU2ODVjNDNhNjNjNjEzNGUyMzMwYzQ3MGE0NTRmMjcyYyIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiNDE3ODk5NjE4Y2I4OTEyNjM0NTEwY2YwNjQ3NGQzN2U5MjA2ZWYxYjIyYWExMTYwMmEzOTBjMDNjNTc2YjYwMiJ9"
+          "resource": "repo://frontend/src/lib/components/charts/security-chart.svelte#L1229-L1249",
+          "version": "repo-lines-v1:sha256:b098bca2a04f34ecefd54c547237ce13700b884166913e4bb91c9b33495f8589:eyJzZWxlY3RlZExpbmVDb3VudCI6MjEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImRmMWNiYzRmNDM3MjI5Y2I3OTY4Yzk1ODI2MjliZjg2YmYzYWFiZjFmODhhOTA4MTRhNTUxYWRlNGE5ZmFkNWYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjM2MGI4OGEwNWQ1YjUzODQ3NjAyMjliZTYwNTcyZmU2MmIxYzI5Y2RjNTdlZGI1ZTY5NTFkYWE0ZmQ0NmM4MDMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjhiNDZhOTljNzE3YTFkYjk0NDYxOGQxMjg4OWIxN2I3ZTkwMGViYTcwNzZhNGVhMzY1NzNjOTU4MzUyMjViNTAiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImNhNzQ3NTM2MTIwZjljOGYxODQyYTI4NDA5ZjMwNGZlMDdjZmU0YjhmOWE3OTE1MTViMjRkMzA0YTE0NjU3MmMifQ"
         },
         {
-          "resource": "repo://frontend/src/lib/components/charts/security-chart.svelte#L864-L1031",
-          "version": "repo-lines-v1:sha256:8c771f03cf36e233100aa958e76ede8cff7db181ef1f499b6aae86465ed25296:eyJzZWxlY3RlZExpbmVDb3VudCI6MTY4LCJmaXJzdFNlbGVjdGVkTGluZUhhc2giOiIzYjEzNzA2MGM5NzZlZGEyODE4Njc5MDZiYjI4NmMyMGM0NWRiMDE1OGE2ZjVlMzMyNmZmNDFiOTExN2YwNWIwIiwibGFzdFNlbGVjdGVkTGluZUhhc2giOiI3YjMwNTllNjA4OGY2Y2IwMTZjZmEyMWJkZDcwMmM0YzMxNjA1YWU4ZDBlYmZjZWI4N2I2NzIzODQ5MzAxNTYxIiwicHJlY2VkaW5nQ29udGV4dExpbmVDb3VudCI6MywicHJlY2VkaW5nQ29udGV4dEhhc2giOiIyMWUzZTAzOTJjMDhkOGYxZmY5OWViMmM1ZDkwM2ZiZTk0MWVkMzQyZGQ5YzhkMDNlOWM4MjhiYTMzYTJhZjdmIiwiZm9sbG93aW5nQ29udGV4dExpbmVDb3VudCI6MywiZm9sbG93aW5nQ29udGV4dEhhc2giOiJhYTdmNTcyODY2YWU0ZjBlODIwOGVlY2QwM2EzNTBhMWM5NTNkMDc5NGMxZWMxMjEyOWVhNTVlZTVjZDg5ZGQ2In0"
+          "resource": "repo://frontend/src/lib/components/charts/security-chart.svelte#L752-L760",
+          "version": "repo-lines-v1:sha256:682e309fa58d16bee2757c66833370aec4b8151c0309b0f6ad3e90d79bc06512:eyJzZWxlY3RlZExpbmVDb3VudCI6OSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiNGZmZjA2MzM0OGExZTFhMzI1MTNlYWNjMDE2ZmMyNWNmZmVmMGI0YzkwYmYwYzg4OGVkNTg1N2YyMTNhMzJkYyIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiMGE3MzQ5MmQ4OTQ2YjFkMGY5ZDljMDRiNzA0YTkyMGYyNGY4OWVmN2M3ZjczMTFhODU5OWQxMGM3ZjYzNThkMCIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiZjE4YTNjNWZmMDhkZDc5NjAwOWU2MWU2NjU3NTZjNWE1NjdhOTJhNTFlODY0ZDUzOTE5MTU3NzE0NmM0ZGUxYiIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiNDE3ODk5NjE4Y2I4OTEyNjM0NTEwY2YwNjQ3NGQzN2U5MjA2ZWYxYjIyYWExMTYwMmEzOTBjMDNjNTc2YjYwMiJ9"
+        },
+        {
+          "resource": "repo://frontend/src/lib/components/charts/security-chart.svelte#L928-L973",
+          "version": "repo-lines-v1:sha256:abbf2161ac3e18b2f5128fdeef553c257ececb648d7d0064b876d5e8cc8b1bc5:eyJzZWxlY3RlZExpbmVDb3VudCI6NDYsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjE3Y2U2YzEzYTYxMWM2OGQxMDBjNTEwNGIyNjEwYTUyNzAxMDFhZTM4ZjY3NDJlYTdlNGMxZWE4ODM4NDg3YmQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjZhMmEzYjc2ZTEyY2UxNTM3OWQwNWYyODY5ZGM0ODMyZGU3NTg5MDUzYjQ5YmZmMjM3ZTQyNWM3MjM3ODAxNTQiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6Ijg3ZmM4Nzk5ZDNhNGY2NGE3NjMyYTliYTEzYjc1NTQ2MmFkZjAzNmNiZjVkOTJkN2U4M2ZjODM0OTAwYTE5MTQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImE1ODg1MjUyMzI5ZmZmNTY1ZjYxOWE5N2NjZmFiZDhhM2FkNjQzZDA3ZDg0Njg0OTM1MWE2ZmUyNjA3MDYzOTMifQ"
         }
       ]
     },
@@ -815,11 +827,11 @@
           "version": "repo-lines-v1:sha256:2edc05451bdbb73c9a659ac8cf02d20773539717a5de6ae3b98d526473ac95a3:eyJzZWxlY3RlZExpbmVDb3VudCI6MTQxLCJmaXJzdFNlbGVjdGVkTGluZUhhc2giOiI0NGEzOWE3OTJkMWZlYzA5MDdkODE5NTlkODljZTI2MzFjODA2M2ZjZTRiZDFmYzUzOGJhNWE2OGJhZWRkY2IzIiwibGFzdFNlbGVjdGVkTGluZUhhc2giOiJhZmIyMDExNWViNmI2MDZlMmE4ZTliNTFmYmZkNDkyNTc1NThiODI1MDgwM2E2ZDA4NDEzMjg0ZGViN2Q2YWE0IiwicHJlY2VkaW5nQ29udGV4dExpbmVDb3VudCI6MywicHJlY2VkaW5nQ29udGV4dEhhc2giOiJmYjZiNzA4MWU0NTRkODQzNTBjYmJmMzdhYzNlZTY5Yjg0OGYxMzI1YjhkYTkzNTljNjI2OTg4NTAwZTRjZThmIiwiZm9sbG93aW5nQ29udGV4dExpbmVDb3VudCI6MywiZm9sbG93aW5nQ29udGV4dEhhc2giOiJhOTllOGQ2Yjg3MTUwZjIxMTAxYjVjNDM3NmU0ODdlNDc5MjQ4ZTM4OGUzM2QzMGIzYTNkNGU3YzZhNzcxZDI1In0"
         },
         {
-          "resource": "repo://frontend/src/routes/security/%5Bsecurity_id%5D/page.svelte.test.ts#L2226-L2226",
+          "resource": "repo://frontend/src/routes/security/%5Bsecurity_id%5D/page.svelte.test.ts#L2311-L2311",
           "version": "repo-lines-v1:sha256:5df9feed336a06cbc45ff1ae5bb8c7050a225155a8972ceedd98c944812a0bfb:eyJzZWxlY3RlZExpbmVDb3VudCI6MSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiNWRmOWZlZWQzMzZhMDZjYmM0NWZmMWFlNWJiOGM3MDUwYTIyNTE1NWE4OTcyY2VlZGQ5OGM5NDQ4MTJhMGJmYiIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNWRmOWZlZWQzMzZhMDZjYmM0NWZmMWFlNWJiOGM3MDUwYTIyNTE1NWE4OTcyY2VlZGQ5OGM5NDQ4MTJhMGJmYiIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiMTEyNDNmY2U3Zjg1Y2U3MDNmNmQ3ZDVmODRlNTU5MDRiZjA3OGFmNzI3MzEzMGE0MGZhMjkxYmQ4NTAwMTMxMSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiOTMwNzM2MzQxMTQxMmU4NzUxNGMyZWQ0MWJmZWMzN2M4NWI0ZDdjZTM2M2EwZmJlZTA2NWMzMTdhY2VlOGU1ZSJ9"
         },
         {
-          "resource": "repo://frontend/src/routes/security/%5Bsecurity_id%5D/page.svelte.test.ts#L2753-L2753",
+          "resource": "repo://frontend/src/routes/security/%5Bsecurity_id%5D/page.svelte.test.ts#L2838-L2838",
           "version": "repo-lines-v1:sha256:a0a3501793f333017fd87cb1fd49c7b76c9479df7f4c5a4ab497aa3a07bfd4bf:eyJzZWxlY3RlZExpbmVDb3VudCI6MSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiYTBhMzUwMTc5M2YzMzMwMTdmZDg3Y2IxZmQ0OWM3Yjc2Yzk0NzlkZjdmNGM1YTRhYjQ5N2FhM2EwN2JmZDRiZiIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiYTBhMzUwMTc5M2YzMzMwMTdmZDg3Y2IxZmQ0OWM3Yjc2Yzk0NzlkZjdmNGM1YTRhYjQ5N2FhM2EwN2JmZDRiZiIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiMTEyNDNmY2U3Zjg1Y2U3MDNmNmQ3ZDVmODRlNTU5MDRiZjA3OGFmNzI3MzEzMGE0MGZhMjkxYmQ4NTAwMTMxMSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiOTMwNzM2MzQxMTQxMmU4NzUxNGMyZWQ0MWJmZWMzN2M4NWI0ZDdjZTM2M2EwZmJlZTA2NWMzMTdhY2VlOGU1ZSJ9"
         }
       ]
@@ -829,18 +841,40 @@
       "statement": "tests/routers/test_chart_snapshots.py asserts 201 create, ascending captured_at ordering on read, 204 delete, per-user isolation (a non-owner GET returns [] and a non-owner DELETE still returns 204 while leaving the row intact), 401 for all three routes unauthenticated, and ON DELETE CASCADE when the security is removed. Frontend suites are run with ./scripts/agent-test <path> while iterating and ./scripts/agent-test frontend before finishing.",
       "evidence": [
         {
-          "resource": "repo://scripts/agent-test",
-          "version": "repo-file-v1:sha256:cfefa47f2163370e3550c9faf2e97cd995ebb2fad651dfbdef77e6c0519990e4"
+          "resource": "repo://frontend/AGENTS.md#L31-L31",
+          "version": "repo-lines-v1:sha256:d35fad65134d432b43a505c43a27055f60f5aed8bbc940c86beab626363dde45:eyJzZWxlY3RlZExpbmVDb3VudCI6MSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiZDM1ZmFkNjUxMzRkNDMyYjQzYTUwNWM0M2EyNzA1NWY2MGY1YWVkOGJiYzk0MGM4NmJlYWI2MjYzNjNkZGU0NSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiZDM1ZmFkNjUxMzRkNDMyYjQzYTUwNWM0M2EyNzA1NWY2MGY1YWVkOGJiYzk0MGM4NmJlYWI2MjYzNjNkZGU0NSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiYzNhZGY4N2M2MGI1YjQ2M2I0MmIyNzIxNTFhZmQwM2U0ZTNjNThlYmVjNGQ4NDc2ODdlYTRlODcwOTliMjdlZiIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiOGYyYzE4MzhlOGE0NGIwODc3YzUyYTFmYTNkMTZjYjYxYWI0MzlhYTdlOTIwOGEyODRiNDFhYzI2NTgyNDVkYyJ9"
         },
         {
           "resource": "repo://tests/routers/test_chart_snapshots.py#L26-L206",
           "version": "repo-lines-v1:sha256:7ee53fc90473f479f573c94ef52a8ea6c15fec53c7db95f4515ec000e13b827e:eyJzZWxlY3RlZExpbmVDb3VudCI6MTgxLCJmaXJzdFNlbGVjdGVkTGluZUhhc2giOiIzY2M5OWFjMTY1NzBjMTIyMzA1Nzc5M2U5OGExMzA2YzBhY2Y0NmYxNjBlOTgwNGEwYWNmOGY5ZDdhMTlkMDhmIiwibGFzdFNlbGVjdGVkTGluZUhhc2giOiJhOTQ5NDgxODdlNWNjY2M3YWNkOWY5Y2I4ZTcyNzU4ZThkNzQ2OTNkZWU0YWMwNzAwODY0YTRhYjhhZTE3N2YyIiwicHJlY2VkaW5nQ29udGV4dExpbmVDb3VudCI6MywicHJlY2VkaW5nQ29udGV4dEhhc2giOiJiZWMyYjEzOTZjOGExYWQ1MGQyMWU0ODBlZjliMDE5NmVlZTY3NjY4MWU2NzU0YmM2NDY0Yzc0Y2FkYmJhNjEwIiwiZm9sbG93aW5nQ29udGV4dExpbmVDb3VudCI6MCwiZm9sbG93aW5nQ29udGV4dEhhc2giOiJlM2IwYzQ0Mjk4ZmMxYzE0OWFmYmY0Yzg5OTZmYjkyNDI3YWU0MWU0NjQ5YjkzNGNhNDk1OTkxYjc4NTJiODU1In0"
         }
       ]
+    },
+    {
+      "id": "claim_d2a577ec4b0e4e5dbb8e5a1e7eecb9cf",
+      "statement": "Retagging a wave's degree is a page-level flow rather than a plugin-local one: the wave-degree modal calls drawingsService.updateWaveDegree(waveId, degree, chartRef), which first asks the chart instance to retag the wave in place (chartRef.updateWaveDegree → ElliottWavesPrimitive.updateWaveDegree → ElliottWaveState.updateWaveDegree, which mutates the wave, re-points the degree selection and fires wavePointsChanged) and then runs handleWaveDegreeChange to locate the wave by id (falling back to the last wave of the previous degree), persist the retagged collection through handleWaveChange and adopt the new degree as the active one.",
+      "evidence": [
+        {
+          "resource": "repo://frontend/src/lib/components/charts/plugins/elliott-wave/state.ts#L457-L471",
+          "version": "repo-lines-v1:sha256:e98c7ccb7c224d4a62a9aeea7153ec4f6a8a5f34cc760e710b5044e9123b7fe8:eyJzZWxlY3RlZExpbmVDb3VudCI6MTUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjZlMDM2MzJlNDQzYTMxODI4MjBkZDAxNDU5NzU5ZTA4OWViMTI1Mzk4MTA0NDUxY2JiYzZkN2YwNWFkMTZiMTgiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjY3Y2RhODJkYTYwNjIzOGUwNWU2MjM5OTU2OWM1ZWUwMzk5MzQxOTY0OGFlNWQ0M2EyYmY4Y2Q2MzQ3ZjgyNjMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImY3YWJlM2M0ZjU5OWMzOGM2OWQ2ZmQyY2MzMWE2ZDVlZjE4YTZhYzg2OTVkMTY3MTAzMzBkNjlkMzMzMzFjNDgiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImM2ZGY4YmYyYjQzMjZkMmJiY2M0ZWM4ODUyMzkwM2I5ZjVlNDRjMjVkYjNlZWEzNDIxODUzMGRiYjllZmEyYzgifQ"
+        },
+        {
+          "resource": "repo://frontend/src/lib/components/charts/security-chart.svelte#L1694-L1695",
+          "version": "repo-lines-v1:sha256:1a7881698108d74db4cbae2220a702cb3ef3395844b487594cc648edfb2ecd1a:eyJzZWxlY3RlZExpbmVDb3VudCI6MiwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiNWU4YjczMDY3Mzg3OWNiZDIwZDdjZDFhZTdmYzJhZTQ4MWQ0YjM0ZDcwNGYwZWVlOGJjMmM5MDFhMGYxNTVjYSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiYTdmOTRhZGY4OTMyM2UzYThkZWVlMGNlMjIzNzQ5OTc2Njg0YzMyNGRjNmI0M2E2ZmJmMzhkYWY3YjYzMTA3MSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiYzNlOTNmMmFlOTE4OWEzZTllODIwZjBlNTg5OWQ0ZGQxZDUyYjZjYzAwZWUzNzViZjg4MTY3Yzc5Y2I0Zjc1NiIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiODRlNGQwMTYxODY4ODYwNjBmMzZkYmU5MDg3Mzg4NGE3MTAxZTBhODBiMjAwNTJkMmE5YzI2MzM5NTFlZjJlMyJ9"
+        },
+        {
+          "resource": "repo://frontend/src/lib/services/ChartDrawingsService.svelte.ts#L645-L687",
+          "version": "repo-lines-v1:sha256:750d5edca1286783a622c637768ebf9488bbb74c64bcff4f85ee7bd7f74bd44a:eyJzZWxlY3RlZExpbmVDb3VudCI6NDMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjliNWI0ZmViNDY5NmRjZjFmYmMyYWZlZjg1ZjkyZWY3NGFhYjVhNzAwODk5ODJiOTA5YjQ0NjhlNzIxYzY1OTgiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImNjM2EyMDc3NGQ1YzJiYjRjNzkwYzE4ODkwYTljNDk0Y2NiNTEwZmM4ZThjMDllYzc0NTE5YmMxNjRmYzc4NGIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImZkOTNjYWQ4YjQyYmI0NmZkMWRiN2I1MTUzYjIyYWVlMmVmNDhiZTFiZWY3ZDVlYTY4MWQwZTllZTUwNGJkMTMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImVlNzFmMTY2MjBjM2QxMDYzMDI3ZGJiNDdjMzlkNTZmYjYzMWJmOTMxYmU0MjA4M2JlZmFiMjZjMjRjMzZmMDEifQ"
+        },
+        {
+          "resource": "repo://frontend/src/routes/security/%5Bsecurity_id%5D/%2Bpage.svelte#L1071-L1082",
+          "version": "repo-lines-v1:sha256:dff1325dd9d3ddecbd0331e24be87f77012e2e2c470f99aa62b5e3778ab08cfa:eyJzZWxlY3RlZExpbmVDb3VudCI6MTIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjFjODUyZjRmZTQ2MGU1NGU2ZGIxODQ1OTdiMzM2MzM3NTkwMTdmOGIxNGY1YzZhYzVlNDRiMzUyNDAyNTlhNWUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImI5NTc4MzQ1OTNiN2Y5MjVmYWUxMzA0YTRjZDNkMGY3ODlmOGJkMWFiNjNhYzE4YmQ5YjdiMWRiNzY2YmU3NGYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImU5MTY0MTA2OTkyODliOGE3ODI2Mzg5MjcxNzg1NWQ3ZWIyN2M3ZDRmOGEwMjdkYzQ5ZDM4Zjc5MGYwMDU3MDgiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImIxOTQ4ZmM4YmQzNzE1ZGE1YTZkOTQ4Mzk4NGQ4OWZiODVhMGE3NmZhNjQxOTAyNTdlMmU0MWE2NDZkYTg2ZWMifQ"
+        }
+      ]
     }
   ],
   "verification": {
-    "by": "openwiki/0.5.2",
-    "at": "2026-09-23T13:18:56.288Z"
+    "by": "openwiki/0.7.0",
+    "at": "2026-10-04T13:39:13.522Z"
   }
 }

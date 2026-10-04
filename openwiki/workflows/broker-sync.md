@@ -3,14 +3,17 @@ type: workflow
 title: Broker Connect, Import & Position Sync
 description: The end-to-end broker flow in retail-portfolio — listing integration-enabled institutions, logging in to Wealthsimple with credential/OTP handling and keyring session caching, importing broker users/accounts/positions, the Huey sync task that resolves broker symbols into market securities and replaces positions per account, the Redis active-sync bookkeeping and WebSocket events, the frontend accounts list that consumes them, and the error-to-message mapping plus failure email.
 tags: [broker-integration, wealthsimple, huey, websockets, redis, position-sync, background-tasks, keyring]
-verified:
-  - by: openwiki/0.5.2
-    at: 2026-09-18T20:16:58.058Z
 sources:
+  - id: openwiki-source-b263e02920f61e43137888d6
+    resource: repo://frontend/src/lib/components/accounts/accounts-list-item.svelte
+  - id: openwiki-source-6b925971f5b4fc13a6f28950
+    resource: repo://frontend/src/lib/components/accounts/accounts-list-item.svelte.ts
   - id: openwiki-source-fd678aa0f01fc30bd938c51f
     resource: repo://frontend/src/lib/components/accounts/accounts-list.svelte.ts
   - id: openwiki-source-b326b5814101571b7ac02f34
     resource: repo://frontend/src/lib/components/brokers/broker-login-modal.svelte.ts
+  - id: openwiki-source-9a7b93ab1b45c9cea19650cc
+    resource: repo://frontend/src/lib/components/brokers/sync-accounts-modal.svelte.ts
   - id: openwiki-source-717c8d779a49c004fc5cb8ec
     resource: repo://src/account/api/account.py
   - id: openwiki-source-b307cf68f1a91cdd844faf8b
@@ -61,7 +64,10 @@ sources:
     resource: repo://tests/routers/test_sync_status.py
   - id: openwiki-source-d1793d747b8abce8c0959943
     resource: repo://tests/tasks/test_integration.py
-generated: { by: "openwiki/0.5.2", at: "2026-09-18T20:16:58.058Z" }
+generated: { by: "openwiki/0.7.0", at: "2026-10-04T13:39:13.522Z" }
+verified:
+  - by: openwiki/0.7.0
+    at: 2026-10-04T13:39:13.522Z
 ---
 
 # Broker Connect, Import & Position Sync
@@ -117,28 +123,27 @@ the response contains exactly the Wealthsimple entry, which is the observable de
 
 ```mermaid
 sequenceDiagram
-    participant UI as BrokersList / AccountsList
+    participant UI as BrokersList and AccountsList
     participant BC as BrokerClient
     participant R as integration_router
     participant SVC as IntegrationUserService
     participant GW as WealthsimpleApiGateway
-    participant API as get_or_create_from_broker
-    participant P as PositionApi
     participant Q as Huey worker
+    participant API as SecurityApi
+    participant P as PositionApi
     participant X as Redis
 
     UI->>BC: getAvailableInstitutions
     BC->>R: GET /integration/institutions
     R-->>BC: integration-enabled institutions
-    UI->>BC: brokerLogin(username, password, otp)
+    UI->>BC: brokerLogin with username, password, otp
     BC->>R: POST /external/wealthsimple/login
-    R->>SVC: get_or_create(user, institution, username)
-    R->>GW: login(username, password, otp)
+    R->>SVC: get_or_create user, institution, username
+    R->>GW: login username, password, otp
     GW->>GW: cached keyring session, else login_internal
     alt OTPRequiredException
         GW-->>R: OTPRequiredError
         R-->>UI: HTTP 400 OTP_REQUIRED
-        UI->>BC: brokerLogin with otp
     else LoginFailedException
         GW-->>R: LoginFailedError
         R-->>UI: HTTP 401 INVALID_CREDENTIALS
@@ -146,28 +151,32 @@ sequenceDiagram
         GW-->>R: True
         R-->>UI: login_succes
     end
-    UI->>BC: importBrokerAccounts(externalUserId, externalAccountIds)
+    UI->>BC: importBrokerAccounts externalUserId, externalAccountIds
     BC->>R: POST /external/accounts/import
-    R->>GW: get_accounts(integration_user)
+    R->>GW: get_accounts integration_user
     R->>R: filter to requested external_account_ids
     R->>R: AccountApi.import_from_broker
     loop each newly imported account
-        R->>Q: sync_account_positions_task(...)
+        R->>Q: sync_account_positions_task
     end
-    Q->>X: mark_sync_started(user, account)
-    Q->>UI: sync_started
+    Q->>X: mark_sync_started user, account
+    Q->>X: publish sync_started
+    X-->>UI: sync_started
     Q->>GW: get_positions_by_account
     loop each broker position
-        Q->>API: get_or_create_from_broker(symbol, exchange, name)
+        Q->>API: get_or_create_from_broker symbol, exchange, name
     end
-    Q->>P: create(positions) -> sync_by_account (delete then insert)
-    Q->>GW: get_accounts -> update_net_deposits + update_last_sync_at
-    Q->>UI: sync_finished
-    Q->>X: mark_sync_finished(user, account)
+    Q->>P: create positions
+    P->>P: sync_by_account, delete then insert
+    Q->>GW: get_accounts for net_deposits and last_sync_at
+    Q->>X: publish sync_finished
+    X-->>UI: sync_finished
+    Q->>X: mark_sync_finished user, account
 ```
 
 Caption: the connect → import → sync path. Login is synchronous and request-scoped; every
-position write happens inside the Huey worker, never in the request that triggers it.
+position write happens inside the Huey worker, never in the request that triggers it, and each
+task event reaches the browser only after Redis pub/sub fan-out.
 
 ### Login and OTP
 
@@ -206,13 +215,14 @@ perform a real credential login, not a user-facing failure.
 5. enqueues one `sync_account_positions_task` per newly created account, forwarding
    `get_request_id()` so the worker's logs correlate with the request.
 
-`POST /external/positions/import` is a separate, nearly-duplicate path that does the position work
-*inline* in the request instead of on the worker: it loads the account and its broker id, calls
-`broker.get_positions_by_account`, resolves each symbol via
-`SecurityApi.get_or_create_from_broker`, and writes through `PositionApi.create`. It is not
-rate-limited and not the path the UI drives for broker accounts; the account list's sync button and
-the import flow both go through the Huey task. Treat it as a synchronous variant that shares the
-same invariants.
+`POST /external/positions/import` (rate-limited `3/minute`) is a separate, nearly-duplicate path
+that does the position work *inline* in the request instead of on the worker: it loads the account
+and its broker id, calls `broker.get_positions_by_account`, resolves each symbol via
+`SecurityApi.get_or_create_from_broker`, and writes through `PositionApi.create`. It is the
+synchronous twin of the worker body and is not the path the UI drives for broker accounts; the
+account list's sync button and the import flow both go through the Huey task. Treat it as a
+synchronous variant that shares the same invariants (including replace-per-account) but runs under
+the request's own `svcs` container and request id.
 
 Importing is also how *un*-syncing is expressed: `sync-accounts-modal.svelte.ts` diffs the checked
 set against the user's internal accounts and calls `accountClient.deleteAccount` for every account
@@ -349,14 +359,20 @@ lives in the auth `/auth/ws-ticket` endpoint.
 
 **State.** Two runes-backed fields track the sync: `syncingAccountIds` (a `SvelteSet<string>`) and
 `syncErrors` (`Record<string, string | null>`). Incoming events mutate them directly:
-`sync_started` adds the id and clears the error, `sync_finished` removes it and clears the error,
-`sync_failed` removes it and sets `'Failed to sync. Please try again.'`.
+`sync_started` adds the id and clears the error, `sync_finished` removes the id, clears the error,
+**and re-fetches the account list** so the refreshed `last_sync_at` lands without a manual reload,
+and `sync_failed` removes the id and sets `'Failed to sync. Please try again.'`. The message payload
+is parsed defensively — a malformed frame is logged and dropped rather than throwing inside
+`onmessage`.
 
-**Hydration and reconnect.** On `open` the state calls `hydrateSyncStatus()`, which reads
-`GET /accounts/sync-status` once (guarded by `syncStatusHydrated`) so a page loaded mid-sync shows
-the correct badges. `onclose` sets `wsConnected = false`, resets the hydration guard, and
-re-connects after a fixed 5-second `setTimeout`. `destroy()` closes the socket — the expected
-teardown for the class instance.
+**Hydration and reconnect.** `onopen` sets `wsConnected = true` and calls `hydrateSyncStatus()`,
+which reads `GET /accounts/sync-status` once (guarded by the `syncStatusHydrated` flag) and `add`s
+every returned id, so a page loaded mid-sync shows the correct badges without waiting for an event.
+A failed hydration call is only logged and leaves the guard unset, so the next `open` retries it.
+`onclose` sets `wsConnected = false`, resets the hydration guard, and re-connects after a fixed
+5-second `setTimeout`; because the guard is reset, the reconnected socket re-hydrates. `destroy()`
+closes the socket — the expected teardown for the class instance, wired to `onMount`'s cleanup in
+`accounts-list.svelte`.
 
 **Manual sync and the fallback poll.** `syncAccount(id)` optimistically adds the id and clears the
 error, POSTs `/accounts/{id}/sync`, and then calls `waitForSyncFinish`, a bounded poll (60s

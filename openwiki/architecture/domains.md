@@ -1,13 +1,15 @@
 ---
 type: architecture
 title: Backend Domains
-description: Catalog of the backend domains and their owned systems — account (accounts, positions, portfolios, institutions, CSV templating, user preferences), auth, market (securities, prices, intraday prices, watchlists with sort and manual ordering, alerts, notes, documents, chart snapshots, indicators, AI), integration (broker gateways), ws (fan-out), core and config — with each domain's models, public APIs, services, router surface, business rules, cross-domain dependencies, and the extension recipes for new domains, brokers, market gateways, CSV institutions and background jobs.
+description: Catalog of the backend domains and their owned systems — account (accounts, positions, portfolios, institutions, CSV templating, user preferences), auth, market (securities, prices, intraday prices, watchlists with sort and manual ordering, alerts, notes, documents, chart snapshots, security valuations, indicators, AI), integration (broker gateways), ws, core and config — with each domain's models, public APIs, services, router surface, business rules, cross-domain dependencies, and the extension recipes for new domains, brokers, market gateways, CSV institutions and background jobs.
 tags: [backend, domain-driven-design, fastapi, repositories, services, dependency-injection, routers, extension-points]
 sources:
   - id: openwiki-source-ebee543967c6f3e7a101e271
     resource: repo://alembic.ini
   - id: openwiki-source-45599bb9a8794a9c90b7e20d
     resource: repo://frontend/src/lib/api/apiClient.ts
+  - id: openwiki-source-6e5921c68bd50d35645d7082
+    resource: repo://migrations/versions/3436586a755f_create_security_valuations.py
   - id: openwiki-source-07e78ebb43c13654a939c9b4
     resource: repo://migrations/versions/4c2ed77e7738_add_watchlist_sort_membership_added_at_.py
   - id: openwiki-source-f2a11e03c22959177c73ac6b
@@ -86,10 +88,10 @@ sources:
     resource: repo://src/ws/manager.py
   - id: openwiki-source-d63e02f817074e4280e045ae
     resource: repo://src/ws/router.py
-generated: { by: "openwiki/0.5.2", at: "2026-09-23T13:18:56.288Z" }
+generated: { by: "openwiki/0.7.0", at: "2026-10-04T13:39:13.522Z" }
 verified:
-  - by: openwiki/0.5.2
-    at: 2026-09-23T13:18:56.288Z
+  - by: openwiki/0.7.0
+    at: 2026-10-04T13:39:13.522Z
 ---
 
 # Backend Domains
@@ -104,9 +106,10 @@ Routers are mounted in `src/main.py` under a single `APIRouter(prefix="/api/v1")
 - **Schemas** live in `schema.py`. Repositories and services exchange schemas, never ORM models.
 - **Public API types** live in `api_types.py` and are the only types that may cross a domain boundary. A service that needs another domain's data imports that domain's API type, not its `schema.py`.
 - **Repositories** define abstract interfaces in `repository.py` and SQLAlchemy implementations in `repository_sqlalchemy.py`. Alternative implementations use `repository_<impl>.py` (for example `repository_eodhd.py`).
-- **Services** hold orchestration and calculations; routers delegate to them and must never reach into a *foreign* domain's repositories. Using the router's own domain repositories directly is allowed and is what the market watchlist, alert, note, document, and snapshot routes do — there is no service layer between them and their repository.
+- **Services** hold orchestration and calculations; routers delegate to them and must never reach into a *foreign* domain's repositories. Using the router's own domain repositories directly is allowed and is what the market watchlist, alert, note, document, snapshot and valuation routes do — there is no service layer between them and their repository.
 - **Exceptions** inherit from `src.core.exception.EntityNotFoundError` or `AuthorizationError` so `src/main.py` can map them to a consistent HTTP status. Domain errors that are not entity/authorization errors are handled explicitly in the router.
-- **MANDATORY:** editing a backend model requires a matching Alembic revision shipped in the same change, and every migration file MUST follow the `<hash>_<description>.py` naming convention under `migrations/versions/` (`alembic.ini` sets `script_location = migrations`; autogenerate with `uv run alembic revision --autogenerate -m "message"`; for manual SQL, create a standard revision and use `op.execute()` inside it). `src/main.py` upgrades to `head` at startup except when `settings.environment == "test"`. `migrations/versions/4c2ed77e7738_add_watchlist_sort_membership_added_at_.py` is the worked example of a model change plus its backfill.
+- **MANDATORY:** editing a backend model requires a matching Alembic revision shipped in the same change, and every migration file MUST follow the `<hash>_<description>.py` naming convention under `migrations/versions/` (`alembic.ini` sets `script_location = migrations`; autogenerate with `uv run alembic revision --autogenerate -m "message"`; for manual SQL, create a standard revision and use `op.execute()` inside it). `src/main.py` upgrades to `head` at startup except when `settings.environment == "test"`. `migrations/versions/4c2ed77e7738_add_watchlist_sort_membership_added_at_.py` is the worked example of a model change plus its backfill; `migrations/versions/3436586a755f_create_security_valuations.py` is the plain `create_table` example for a newer market table.
+- Backend commands run inside Docker (`docker compose exec backend …`), and tests must mock every outbound client — no Redis, HTTP, SMTP or DNS dependency. See [Testing](../operations/testing.md).
 
 ## Entity model
 
@@ -121,6 +124,7 @@ erDiagram
   User ||--o{ SecurityNote : writes
   User ||--o{ SecurityDocument : uploads
   User ||--o{ ChartSnapshot : captures
+  User ||--o{ SecurityValuation : values
   User ||--o{ PriceAlert : sets
   Institution ||--o{ Account : provides
   AccountType ||--o{ Account : classifies
@@ -133,6 +137,7 @@ erDiagram
   Security ||--o{ SecurityNote : annotated_by
   Security ||--o{ SecurityDocument : attaches
   Security ||--o{ ChartSnapshot : snapshots
+  Security ||--o{ SecurityValuation : valued_by
   Security ||--o{ PriceAlert : watched_by
   Portfolio ||--o{ PortfolioAccount : contains
   Account ||--o{ PortfolioAccount : member_of
@@ -153,18 +158,18 @@ The watchlist membership association is an entity in its own right rather than a
 
 | Entity | Table | Key fields | Notes |
 |--------|-------|------------|-------|
-| `AccountModel` | `accounts` | `id: UUID`, `external_id`, `integration_user_id` (FK `integration_users.id`, nullable), `name`, `user_id`, `account_type_id`, `institution_id`, `currency`, `broker_display_name`, `net_deposits`, `is_active`, `api_sync_enabled`, `last_sync_at`, `deleted_at` | Unique on `(user_id, institution_id, external_id)` |
+| `AccountModel` | `accounts` | `id: UUID`, `external_id`, `integration_user_id` (FK `integration_users.id`, nullable), `name`, `user_id`, `account_type_id`, `institution_id`, `currency`, `broker_display_name`, `net_deposits`, `free_cash`, `is_active`, `api_sync_enabled`, `last_sync_at`, `created_at`, `updated_at`, `deleted_at` | Unique on `(user_id, institution_id, external_id)` |
 | `AccountTypeModel` | `account_types` | `id`, `name`, `country`, `tax_advantaged`, `is_active` | Unique on `(name, country)`; reference data seeded by `src/commands/seed.py` |
 | `InstitutionModel` | `account_institutions` | `id`, `name`, `country`, `website`, `is_active`, `integration_enabled`, `csv_import_enabled`, `csv_format` | Unique on `(name, country)`; `csv_format` is the positional column template (see below) |
-| `PositionModel` | `account_positions` | `id: int`, `account_id`, `security_id: UUID`, `quantity: DECIMAL(16,8)`, `average_cost`, `currency(3)`, `updated_at` | Unique on `(account_id, security_id)` |
-| `PortfolioModel` | `portfolios` | `id: UUID`, `user_id`, `name`, `deleted_at` | Unique on `(user_id, name)` |
-| `PortfolioAccountModel` | `portfolio_accounts` | `portfolio_id`, `account_id` (composite PK) | Many-to-many association |
+| `PositionModel` | `account_positions` | `id: int`, `account_id`, `security_id: UUID`, `quantity: DECIMAL(16,8)`, `average_cost` (Float, nullable), `currency(3)`, `updated_at` | Unique on `(account_id, security_id)` |
+| `PortfolioModel` | `portfolios` | `id: UUID`, `user_id`, `name`, `created_at`, `updated_at`, `deleted_at` | Unique on `(user_id, name)` |
+| `PortfolioAccountModel` | `portfolio_accounts` | `portfolio_id`, `account_id` (composite PK), `created_at` | Many-to-many association |
 
-`AccountModel` cascades `all, delete-orphan` to both `positions` and `portfolio_accounts`.
+`AccountModel` cascades `all, delete-orphan` to both `positions` and `portfolio_accounts`; `PortfolioModel` cascades the same way to its `portfolio_accounts`.
 
 ### The `csv_format` template contract
 
-`InstitutionModel.csv_format` is a comma-separated, positional template string that maps each column of a broker's CSV export to a standardized placeholder. The documented vocabulary is `{account_name}`, `{account_type}`, `{account_classification}`, `{account_number}`, `{symbol}`, `{exchange}`, `{mic}`, `{name}`, `{security_type}`, `{quantity}`, `{position_direction}`, `{market_price}`, `{market_price_currency}`, `{book_value_cad}`, `{book_value_currency_cad}`, `{book_value}`, `{currency}`, `{market_value}`, `{market_value_currency}`, `{market_unrealized_returns}`, `{market_unrealized_returns_currency}`. `GenericCsvParser` normalizes both the template and the file header to lowercase snake_case, validates the header count and each position against alias sets, and raises a specific `CsvParserError` subclass on mismatch. Cash rows (`sec-c-*`, blank/`cash` symbol, `security_type == "cash"`) and option rows (OCC-style symbols, `option`/`derivative` security types) are dropped; `average_cost` is derived as `book_value / quantity` quantized to 4 decimals.
+`InstitutionModel.csv_format` is a comma-separated, positional template string that maps each column of a broker's CSV export to a standardized placeholder. The documented vocabulary is `{account_name}`, `{account_type}`, `{account_classification}`, `{account_number}`, `{symbol}`, `{exchange}`, `{mic}`, `{name}`, `{security_type}`, `{quantity}`, `{position_direction}`, `{market_price}`, `{market_price_currency}`, `{book_value_cad}`, `{book_value_currency_cad}`, `{book_value}`, `{currency}`, `{market_value}`, `{market_value_currency}`, `{market_unrealized_returns}`, `{market_unrealized_returns_currency}`. `GenericCsvParser` normalizes both the template and the file header to lowercase snake_case, validates the header count and each position against alias sets, and raises a specific `CsvParserError` subclass on mismatch. Cash rows (`sec-c-*`, blank/`cash` symbol, `security_type == "cash"`) and option rows (OCC-style symbols, `option`/`derivative` security types) are dropped; `average_cost` is derived as `book_value / quantity` quantized to 4 decimals (`ROUND_HALF_UP`), and cash rows found during parsing accumulate into the discovered account's `free_cash`.
 
 `CsvAccountService.validate_csv_institution` is the gate: an institution without `csv_import_enabled` or without a `csv_format` raises `CsvImportDisabledError`, so the template is the only per-institution configuration the parser needs.
 
@@ -177,7 +182,7 @@ The watchlist membership association is an entity in its own right rather than a
 ### Services (source: `src/account/service/`)
 
 - `AccountService` (`account.py`): get, ownership/`check_accounts_belong_to_user`, delete.
-- `PositionService` (`position.py`): `sync_account_positions`, `get_total_for_account`, `get_account_holdings`, `get_holdings_by_security`, `get_user_holdings`, plus the `_calculate_holding`/`_currency_convert` helpers. It depends on `MarketPricesApi` and `SecurityApi` (market), `IntegrationAccountApi`/`IntegrationUserApi` (integration), and a bare `CurrencyConverter()` for FX.
+- `PositionService` (`position.py`): `sync_account_positions`, `get_total_for_account`, `get_account_holdings`, `get_holdings_by_security`, `get_user_holdings`, plus the `_calculate_holdings`/`_calculate_holding`/`_compute_cost`/`_compute_price`/`_currency_convert` helpers. It depends on `MarketPricesApi` and `SecurityApi` (market), `IntegrationAccountApi`/`IntegrationUserApi` (integration), and a bare `CurrencyConverter()` for FX.
 - `PortfolioService` (`portfolio.py`): CRUD and account-membership sync with ownership validation.
 - `CsvAccountService` (`csv_account.py`): `inspect_csv`, `import_accounts`, `sync_account_from_csv`, `sync_account_csv_positions`. It resolves every position through `SecurityApi.get_or_create_from_broker`, wraps failures in `SecurityResolutionError`, and stamps `update_last_sync_at`.
 
@@ -192,28 +197,30 @@ The watchlist membership association is an entity in its own right rather than a
 - `GET /` — portfolios for the current user
 - `POST /` — create
 - `PUT /{portfolio_id}/accounts` — sync portfolio account membership (validates every account belongs to the user)
+- `PATCH /{portfolio_id}` — rename
 - `DELETE /{portfolio_id}` — delete (204)
 
 `account_router` (prefix `/accounts`):
 
 - `GET /` — accounts for the current user
-- `GET /sync-status` — `{"account_ids": [...]}` for accounts with an active sync job, read from Redis; returns 503 on `redis.RedisError`
+- `GET /sync-status` — `{"account_ids": [...]}` for accounts with an active sync job, read from Redis (`account_syncs:active:<user_id>`); returns 503 on `redis.RedisError`
 - `GET|PUT|PATCH /me/preferences` — per-user chart preferences stored on `auth_users.preferences` via `UserApi`. GET returns `{}` when nothing is saved; PUT replaces with `model_dump(exclude_none=True)`; PATCH merges (JSONB `||`) and returns the merged document. The full read/write matrix for every key lives in [User Preferences](../concepts/user-preferences.md).
 - `POST /csv/inspect` — multipart upload, returns `CsvDiscoveredAccount` previews with `exists`/`currency` filled for accounts the user already has
 - `POST /csv/import` — multipart upload of selected `account_numbers` with optional `currencies` JSON map
 - `POST /{account_id}/csv-sync` — re-import one existing account from a CSV export
-- `PATCH /{account_id}/rename`, `DELETE /{account_id}`
-- `GET /{account_id}/totals`, `GET /holdings` (user-wide holdings across every account, paginated), `GET /{account_id}/holdings`, `GET /holdings/{security_id}`
+- `PATCH /{account_id}/rename`, `DELETE /{account_id}` (204)
+- `GET /{account_id}/totals`, `GET /holdings` (user-wide holdings across every account, paginated), `GET /holdings/{security_id}`, `GET /{account_id}/holdings`
 - `POST /{account_id}/sync` — rate-limited `3/minute`; enqueues broker position sync and returns `{"accepted": true}`
 
-The CSV endpoints accept `institution_id`/`account_numbers`/`currencies` either as multipart `Form` fields or as query parameters with the same alias; `institution_id` and `account_numbers` are required (422 otherwise). Account numbers accept a JSON list string, a comma-separated string, or repeated values, deduplicated in order.
+The CSV endpoints accept `institution_id`/`account_numbers`/`currencies` either as multipart `Form` fields or as query parameters with the same alias; `institution_id` and `account_numbers` are required (422 otherwise). Account numbers accept a JSON list string, a comma-separated string, or repeated values, deduplicated in order. Every account-scoped route (`csv-sync`, `rename`, `delete`, `totals`, `holdings`, `sync`) resolves the account, runs `AuthorizationApi.check_entity_owned_by_user`, then acts.
 
 ### Business rules
 
 - Account identity is `(user_id, institution_id, external_id)`.
 - `api_sync_enabled=False` accounts (CSV-imported ones) refuse `POST /{account_id}/sync` with 400 and `PositionService.sync_account_positions` raises `ApiSyncDisabledError`; accounts with `integration_user_id IS NULL` are a silent no-op.
 - Position sync is a full replace: `sync_by_account` deletes all rows for the account then re-inserts, so partial syncs cannot leave stale holdings.
-- Holdings and totals are computed in the security's currency and then converted to the account currency with `CurrencyConverter`; values round-trip through `stockholm.Money`. Money semantics are covered in [Money and currency](../concepts/money-and-currency.md).
+- Holdings and totals are computed in the security/position currency and then converted to the account currency with `CurrencyConverter`; values round-trip through `stockholm.Money`. Money semantics are covered in [Money and currency](../concepts/money-and-currency.md).
+- When `free_cash` is set, it is converted and folded into both sides of `get_total_for_account`, and added to `total_value` in `get_account_holdings`.
 - `total_profit_loss` becomes `total_value - net_deposits`, and `total_profit_loss_percent` is only reported when `net_deposits` is set and non-zero.
 - `get_holdings_by_security` returns an empty list and a zero total when the security itself cannot be resolved (a TODO notes this is ambiguous with "no holdings"), while `_calculate_holdings` logs and skips an individual position whose security is missing so one bad row cannot abort a holdings read.
 
@@ -251,22 +258,23 @@ Login and 2FA verification set the `httponly`/`secure` `auth_token` cookie (7-da
 
 ## market
 
-`src/market` manages securities, daily and intraday prices, watchlists, price alerts, security notes, documents, chart snapshots, technical indicators, and AI analysis. The data-flow walkthrough lives in [Market data and indicators](../workflows/market-data-and-indicators.md).
+`src/market` manages securities, daily and intraday prices, watchlists, price alerts, security notes, documents, chart snapshots, per-user security valuations, technical indicators, and AI analysis. The data-flow walkthrough lives in [Market data and indicators](../workflows/market-data-and-indicators.md); the valuation feature has its own page at [Security Valuations](../concepts/security-valuation.md).
 
 ### Models (source: `src/market/model.py`)
 
 | Entity | Table | Key fields | Notes |
 |--------|-------|------------|-------|
 | `SecurityModel` | `market_securities` | `id: UUID`, `symbol`, `exchange`, `currency`, `name`, `isin`, `is_active`, `updated_at` | Unique `(symbol, exchange)` as `symbol_exchange_unique` |
-| `SecurityBrokerModel` | `market_securities_broker` | `institution_id`, `broker_symbol`, `broker_exchange`, `broker_name`, `mapped_symbol`, `mapped_exchange`, `security_id` (FK), `search_results` (JSON) | Indexed on `(institution_id, broker_symbol, broker_exchange)` |
+| `SecurityBrokerModel` | `market_securities_broker` | `id: BigInteger`, `institution_id`, `broker_symbol`, `broker_exchange`, `broker_name`, `mapped_symbol`, `mapped_exchange`, `security_id` (FK), `search_results` (JSON), `created_at` | Indexed on `(institution_id, broker_symbol, broker_exchange)` |
 | `PriceModel` | `market_prices` | `security_id` (FK), `date`, OHLC + `adjusted_close` as `DECIMAL(16,8)`, `volume` | Unique `(security_id, date)` |
 | `IntradayPriceModel` | `market_intraday_prices` | `security_id` (FK), `timestamp: timestamptz`, OHLCV | Unique `(security_id, timestamp)`; 1-hour candles |
 | `WatchlistModel` | `market_watchlists` | `id: UUID`, `user_id`, `name`, `sort` (`server_default="custom"`), `securities` relationship via `lazy="selectin"` | Unique `(user_id, name)`; the user's default list is the one literally named `"Default"` |
 | `WatchlistsSecuritiesModel` | `market_watchlists_securities` | composite PK, `added_at`, `position` (application-managed), `ondelete="CASCADE"` both sides | Many-to-many with membership metadata; read paths query the association explicitly because a `secondary` relationship cannot order by or carry these columns |
-| `PriceAlertModel` | `market_price_alerts` | `security_id`, `user_id`, `target_price`, `condition`, `source` (default `manual`), `triggered_at` | Null `triggered_at` = active |
-| `SecurityNoteModel` | `market_security_notes` | `security_id`, `user_id`, nullable `title`, `content`, timestamps | Title filled asynchronously by AI |
-| `SecurityDocumentModel` | `market_security_documents` | `security_id`, `user_id`, `filename`, `file_path`, `file_size`, `file_type` | File bytes under `settings.upload_path` |
-| `ChartSnapshotModel` | `market_chart_snapshots` | `id: UUID`, `security_id`, `user_id`, `drawings` (JSON), `data_window` (JSON), `captured_at`, `created_at` | Indexed `(security_id, user_id, captured_at)` |
+| `PriceAlertModel` | `market_price_alerts` | `security_id` (FK, cascade), `user_id`, `target_price`, `condition`, `source` (default `manual`), `triggered_at`, `created_at` | Null `triggered_at` = active |
+| `SecurityNoteModel` | `market_security_notes` | `security_id` (FK, cascade), `user_id`, nullable `title`, `content`, timestamps | Title filled asynchronously by AI |
+| `SecurityDocumentModel` | `market_security_documents` | `security_id` (FK, cascade), `user_id`, `filename`, `file_path`, `file_size`, `file_type` | File bytes under `settings.upload_path` |
+| `ChartSnapshotModel` | `market_chart_snapshots` | `id: UUID`, `security_id` (FK, cascade), `user_id`, `drawings` (JSON), `data_window` (JSON), `captured_at`, `created_at` | Indexed `(security_id, user_id, captured_at)` |
+| `SecurityValuationModel` | `market_security_valuations` | `id: int`, `user_id`, `security_id` (FK, cascade), `lower_bound`/`upper_bound` as `DECIMAL(16,8)`, `created_at`, `updated_at` | Unique `(user_id, security_id)` as `valuation_user_security_unique`; index `ix_market_security_valuations_user_security` |
 
 `src/market/enum.py` holds `PriceInterval` (`1h`, `4h`, `1d`, `1w`, `1m`) and `WatchlistSortMode` (`custom`, `name_asc`, `price_change_desc`, `price_change_asc`, `date_added`, `date_added_asc`).
 
@@ -305,8 +313,26 @@ Requires `current_user` on every route. Endpoint surface:
 - `GET|POST /securities/{security_id}/documents`, `DELETE /securities/{security_id}/documents/{doc_id}`
 - `GET|POST /securities/{security_id}/snapshots` (POST returns 201), `DELETE /securities/{security_id}/snapshots/{snapshot_id}` (204)
 - `GET /securities/{security_id}/indicators` — in-process indicator calculation, Redis-cached
-- `POST /securities/{security_id}/indicators/compute` — candle-series computation delegated to the Go sidecar; accepts caller-supplied `candles` (which bypasses and skips the cache)
+- `POST /securities/{security_id}/indicators/compute` — candle-series computation delegated to the Go sidecar; accepts caller-supplied `candles` (which bypasses and skips the cache) and validates `from_date <= to_date` (422)
+- `GET /securities/{security_id}/valuation` — the current user's fair-value range for one security; 404 when none exists
+- `PUT /securities/{security_id}/valuation` — upsert the range (`SecurityValuationWrite`: `lower_bound`, `upper_bound`)
+- `GET /securities/valuation/batch` — `security_ids` repeated query params
+- `POST /securities/valuation/batch` — body `SecurityValuationBatchRequest`; both batch forms return the subset of the user's valuations that exist
 - `POST /securities/{security_id}/ai/fundamentals`, `/ai/summarize-notes`, `/ai/portfolio-debate` — each rate-limited `5/minute`, mapping `TimeoutError` → 504 and `RuntimeError` → 503
+
+The batch routes are declared before the `{security_id}` routes so `/securities/valuation/batch` is not captured as a security id.
+
+### Security valuations
+
+`SecurityValuationRepository` (`src/market/repository.py`) is the market's second router-only repository contract alongside watchlists — there is no valuation service. `SqlAlchemySecurityValuationRepository` (`src/market/repository_sqlalchemy.py`) implements three methods:
+
+| Method | Behaviour |
+|--------|-----------|
+| `get_by_security_and_user(security_id, user_id)` | Single-row lookup returning `SecurityValuationRead \| None`; the route turns `None` into 404 |
+| `upsert(valuation, security_id, user_id)` | Updates `lower_bound`/`upper_bound` and `updated_at` when the `(user_id, security_id)` row exists, otherwise inserts with both timestamps set to now; commits and refreshes before returning |
+| `get_batch_by_user_and_securities(security_ids, user_id)` | Short-circuits to `[]` for an empty id list, otherwise one `IN` query scoped to `user_id`, so a caller can never read another user's valuations |
+
+The unique constraint `(user_id, security_id)` is what makes the upsert safe to call repeatedly. The full feature — model, routes, frontend client and sidebar modal — is documented on [Security Valuations](../concepts/security-valuation.md).
 
 ### Watchlists
 
@@ -334,8 +360,9 @@ Three invariants matter when changing this code. First, **every operation is sco
 - Note create and update both enqueue `generate_note_title_task(note_id, request_id=...)`, which regenerates the title with AI in the worker.
 - Documents are written to `settings.upload_path` under a random `uuid4` filename with the original extension; only metadata goes to the database.
 - Price alerts are evaluated only when `triggered_at IS NULL`.
+- Security valuations are per `(user_id, security_id)`; the upsert is idempotent because of that unique constraint, and every read path filters by `user_id`.
 - AI endpoints surface upstream failures as 503/504 rather than 500.
-- Changing a market model means shipping its migration in the same change: `market_watchlists.sort` and `market_watchlists_securities.added_at`/`position` arrived together in `migrations/versions/4c2ed77e7738_add_watchlist_sort_membership_added_at_.py`, which backfills deterministically before enforcing `NOT NULL`.
+- Changing a market model means shipping its migration in the same change: `market_watchlists.sort` and `market_watchlists_securities.added_at`/`position` arrived together in `migrations/versions/4c2ed77e7738_add_watchlist_sort_membership_added_at_.py`, which backfills deterministically before enforcing `NOT NULL`, and `market_security_valuations` arrived in `migrations/versions/3436586a755f_create_security_valuations.py`.
 
 ## integration
 
@@ -345,6 +372,7 @@ Three invariants matter when changing this code. First, **every operation is sco
 
 - `IntegrationUserModel` (`src/integration/model.py`, table `integration_users`): `id: UUID`, `user_id`, `institution_id`, `external_user_id`, `display_name`, `last_used_at`; unique on `(user_id, institution_id, external_user_id)`.
 - `IntegrationUser` public API type and `IntegrationUserId` live in `src/integration/api_types.py`; `BrokerAccount`/`BrokerPosition`/`BrokerAccountId` in `src/integration/brokers/api_types.py`.
+- `src/integration/sync_status.py` owns the Redis active-sync marker: `mark_sync_started` / `mark_sync_finished` maintain the set `account_syncs:active:<user_id>` with `settings.sync_ttl_seconds`, and `get_active_syncs(user_id)` is what `GET /accounts/sync-status` reads.
 
 ### Broker gateway (source: `src/integration/brokers/__init__.py`, `wealthsimple.py`)
 
@@ -431,6 +459,7 @@ Dependencies are one-directional in practice; the table lists who calls whom.
 | `account.PositionService` | `IntegrationAccountApi`, `IntegrationUserApi` | Enqueue broker position sync |
 | `account.CsvAccountService` | `SecurityApi`, `PositionApi` | Resolve securities and persist CSV positions |
 | `account.service.AccountService` | `auth.AuthorizationApi` (via routers) | Ownership checks |
+| `account.router` | `integration.sync_status.get_active_syncs` | `GET /accounts/sync-status` Redis read |
 | `integration.router` | `AccountApi`, `PositionApi`, `SecurityApi` | Account/position import |
 | `integration.task` | `SecurityApi`, `PositionApi`, `AccountApi`, `IntegrationUserRepository`, `EmailService`, `ws_manager` | Background broker sync, error email, progress events |
 | `market.SecurityApi` | `MarketGateway`, `MarketPricesApi`, `MarketService` | Broker security resolution and price backfill |
@@ -458,7 +487,17 @@ flowchart TD
 - **Adding CSV support for a new institution.** Set `csv_format` to the positional template matching the broker export and set `csv_import_enabled = True`; the seed command's `WEALTHSIMPLE_CSV_FORMAT` is the worked example. No parser code changes are needed unless new placeholder vocabulary is required.
 - **Adding a background job.** Define it in the owning domain's `task.py` with `@huey.task()` or `@huey.periodic_task(...)`, import the module in `src/worker.py` so it registers, and resolve services through `huey.svcs_registry` inside the task.
 - **Adding a watchlist-sort mode.** Extend `WatchlistSortMode` in `src/market/enum.py`; the repository persists whatever value it is given, so a new mode needs no schema change but does need a client that knows how to order by it.
+- **Adding a router-only repository feature.** For a thin per-user resource inside an existing domain (the watchlist, alert, note, document, snapshot and valuation pattern), add the ABC to the domain's `repository.py`, the SQLAlchemy class plus its `sqlalchemy_*_repository_factory` to `repository_sqlalchemy.py`, and register the factory in the domain's `register_*_services`; then call it directly from the router.
 
 ## Focused tests
 
-Tests are grouped by concern rather than strictly by domain: router-level tests in `tests/routers/` (`test_auth.py` for 2FA and passkey flows, `test_accounts.py`, `test_account_unauth.py`, `test_csv_account_endpoints.py`, `test_csv_inspect.py`, `test_portfolios.py`, `test_market.py` for prices and the full watchlist surface including `PUT .../securities/order`, `test_chart_snapshots.py`, `test_notes.py`, `test_documents.py`, `test_sync_status.py`, `test_integration.py`, `test_rate_limit.py`), service-level tests in `tests/services/` (`test_auth_services.py`, `test_auth_api.py`, `test_position_api.py`, `test_position_service.py`, `test_csv_account_service.py`, `test_market_service.py`), repository tests in `tests/repositories/` (`test_repository_sqlalchemy.py` covers watchlist create/rename/delete, sort and membership metadata, `set_security_order` acceptance and rejection, cross-user `WatchlistNotFoundError`, and price enrichment), task tests in `tests/tasks/` (`test_account.py`, `test_integration.py`, `test_market.py`), domain unit tests in `tests/account/` and `tests/market/` (`test_models_and_sync.py`, `tests/account/csv/test_parser.py`, `test_security_api.py`, `test_indicator_compute_api.py`, `test_indicator_cache.py`, `test_price_alert_repository.py`, `test_alert_evaluation_service.py`), broker tests in `tests/integration/brokers/`, and WebSocket tests in `tests/ws/`. Tests must not depend on external services — see [Testing](../operations/testing.md).
+Tests are grouped by concern rather than strictly by domain:
+
+- Router-level: `tests/routers/test_accounts.py`, `test_account_unauth.py`, `test_auth.py` (2FA and passkey flows), `test_chart_snapshots.py`, `test_csv_account_endpoints.py`, `test_csv_inspect.py`, `test_documents.py`, `test_integration.py`, `test_market.py` (prices and the full watchlist surface including `PUT .../securities/order`), `test_notes.py`, `test_portfolios.py`, `test_rate_limit.py`, `test_sync_status.py`, `test_worker_dashboard.py`.
+- Service-level: `tests/services/test_account_api.py`, `test_account_service.py`, `test_auth_api.py`, `test_auth_services.py`, `test_csv_account_service.py`, `test_market_service.py`, `test_position_api.py`, `test_position_service.py`.
+- Repository-level: `tests/repositories/test_repository_sqlalchemy.py` covers watchlist create/rename/delete, sort and membership metadata, `set_security_order` acceptance and rejection, cross-user `WatchlistNotFoundError`, and price enrichment.
+- Task-level: `tests/tasks/test_account.py`, `test_integration.py`, `test_market.py`, `test_redis_concurrency.py`.
+- Domain unit tests: `tests/account/test_models_and_sync.py`, `tests/account/csv/test_parser.py`, and `tests/market/` — `test_alert_evaluation_service.py`, `test_alert_email_dispatch_task.py`, `test_check_and_dispatch_price_alerts.py`, `test_eodhd.py`, `test_heikin_ashi.py`, `test_indicator_cache.py`, `test_indicator_client.py`, `test_indicator_compute_api.py`, `test_indicators.py`, `test_price_alert_repository.py`, `test_search_router.py`, `test_security_api.py`, `test_security_search_cache.py`, `test_security_valuation_repository.py`.
+- Broker tests: `tests/integration/brokers/test_wealthsimple.py`. WebSocket tests: `tests/ws/test_manager.py`, `test_router.py`.
+
+Tests must not depend on external services — no Redis, HTTP, or SMTP — see [Testing](../operations/testing.md).

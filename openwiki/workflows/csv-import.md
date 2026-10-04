@@ -1,11 +1,8 @@
 ---
 type: workflow
 title: CSV Account Import & Sync
-description: The institution-configured CSV flow in retail-portfolio — how an Institution.csv_format positional template plus header aliases turns a broker export into discovered accounts, the parser's validation error taxonomy, the inspect / import / csv-sync lifecycle that creates or replaces accounts and positions, cash-option filtering, security resolution, and the Wealthsimple template defined and seeded in src/commands/seed.py.
-tags: [csv-import, account-import, institutions, parser, positions, wealthsimple, seed-data, extension-points]
-verified:
-  - by: openwiki/0.5.2
-    at: 2026-09-18T20:16:58.058Z
+description: The institution-configured CSV flow — how an Institution.csv_format positional template plus header aliases turns a broker export into discovered accounts, the parser's validation error taxonomy, cash-to-free-cash and option filtering, the inspect / import / csv-sync lifecycle that creates or replaces accounts and positions, security resolution, and the Wealthsimple template defined and seeded in src/commands/seed.py.
+tags: [csv-import, account-import, institutions, parser, positions, free-cash, wealthsimple, seed-data, extension-points]
 sources:
   - id: openwiki-source-f32d819e11ad3b608d268d4d
     resource: repo://frontend/src/lib/api/accountClient.test.ts
@@ -59,7 +56,10 @@ sources:
     resource: repo://tests/routers/test_csv_inspect.py
   - id: openwiki-source-bdf80b8c9a7522e0ac30fb12
     resource: repo://tests/services/test_csv_account_service.py
-generated: { by: "openwiki/0.5.2", at: "2026-09-18T20:16:58.058Z" }
+generated: { by: "openwiki/0.7.0", at: "2026-10-04T13:39:13.522Z" }
+verified:
+  - by: openwiki/0.7.0
+    at: 2026-10-04T13:39:13.522Z
 ---
 
 # CSV Account Import & Sync
@@ -115,7 +115,8 @@ all normalize differently — the alias table is what bridges the real-world lab
 - `currency` matches `currency`, `book_value_currency_market`,
   `book_value_currency_cad`, `market_price_currency`, `currency_code`.
 - `account_number` matches `account_number`, `account_no`, `account_id`.
-- `account_type` matches `account_type`, `type`; `security_type` also matches `type`.
+- `account_type` matches `account_type`, `type`; `security_type` matches
+  `security_type`, `asset_type`, `type`.
 - `symbol` matches `symbol`, `ticker`; `quantity` matches `quantity`, `qty`,
   `shares`, `units`.
 - `account_name` matches `account_name`, `account`; `name` matches `name`,
@@ -210,19 +211,24 @@ and builds a `row_dict` keyed by template token, tolerating short rows by substi
   check entirely.
 - Accounts are emitted in **first-seen order** (`accounts_order` preserves it), each as
   a `CsvDiscoveredAccount` carrying `account_number`, `account_name`,
-  `account_type_id`, `account_type_name`, `currency`, `positions_count` and the full
-  `positions` list.
+  `account_type_id`, `account_type_name`, `currency`, `free_cash`, `positions_count`
+  and the full `positions` list.
 
-### Row filtering: cash, options, and unsupported assets
+### Row filtering: cash and options
 
-Three predicates decide whether a row becomes a position. They run *before* the
-quantity parse, so a filtered row can never raise `CsvInvalidQuantityError`.
+Two predicates decide whether a row becomes a position or is diverted. They run *before*
+the quantity parse, so a filtered row can never raise `CsvInvalidQuantityError`.
 
-- `is_cash_row(symbol, security_type)` — true when the symbol is empty, the symbol or
-  `security_type` normalizes to `cash`, or the symbol starts with `sec-c-`
-  (Wealthsimple's cash pseudo-symbol, e.g. `sec-c-cad`). Cash rows are dropped. In the
-  router-level fixture the TFSA account has two rows (`VGRO` plus `sec-c-cad`) and
-  reports `positions_count == 1`.
+- `is_cash_row(symbol, security_type)` — an explicit allow-list wins first: a
+  `security_type` of `exchange_traded_fund`, `etf`, `equity`, `stock` or `mutual_fund`
+  is **never** cash, which is what lets a real ETF whose ticker happens to be `CASH`
+  (`Global X High Interest Savings ETF`) import as a position. Otherwise the row is
+  cash when the symbol is empty, the `security_type` is `cash` or `currency`, the
+  symbol is `cash`/`cad`/`usd`, or the symbol starts with `sec-c-` (Wealthsimple's cash
+  pseudo-symbol, e.g. `sec-c-cad`). Cash rows are **not dropped** — they are diverted
+  into `free_cash`, below. In the router-level fixture the TFSA account has two rows
+  (`VGRO` plus `sec-c-cad`) and reports `positions_count == 1` while its `free_cash`
+  picks up the cash row.
 - `is_option_row(symbol, security_type)` — true when `security_type` contains
   `option` or `derivative`, or when the symbol matches `OCC_OPTION_PATTERN`
   (`^[A-Za-z0-9.\-/]{1,6}\s*\d{6}[CPcp]\d{1,8}(\.\d+)?$`). Option rows never reach the
@@ -234,7 +240,28 @@ quantity parse, so a filtered row can never raise `CsvInvalidQuantityError`.
 Everything else — equities, ETFs, funds, anything without a symbol and without a cash
 or option signature — is attempted as a market security. `{position_direction}`
 (`LONG`) and `{market_unrealized_returns}` are parsed by nobody; their presence in a
-template only keeps column indices aligned.
+template only keeps column indices aligned. There is no "unsupported asset type"
+rejection: nothing else is filtered out.
+
+### Free cash
+
+`_parse_cash_amount` turns a cash row into an account-level cash balance rather than a
+position: it takes the first non-empty of `quantity`, `market_value`, `book_value`,
+`book_value_cad`, `book_value_market`, strips `,` and `$`, and converts through
+`Decimal(...)` to a float — an unparseable value just falls through to the next key,
+and a fully unparseable row contributes `0.0`. Per-account totals accumulate across
+cash rows and are rounded to 2 decimals on the emitted `CsvDiscoveredAccount.free_cash`,
+so a Wealthsimple export with a `CAD` currency row and a `sec-c-cad` cash row yields
+`free_cash == 2000.75` and still one position.
+
+The service then persists that number on **every** branch through
+`AccountRepository.update_free_cash` — as an explicit call for an existing account in
+import and for the target of csv-sync, and as the `free_cash` field of the
+`AccountSchema` for a newly created account. Because each call overwrites the column
+outright, cash rows define the account's cash balance on every import or sync rather
+than accumulating across runs. `free_cash` later feeds account and user totals as a
+`Money` amount in the account currency
+([Money & Currency Handling](../concepts/money-and-currency.md)).
 
 ## Lifecycle: inspect, import, csv-sync
 
@@ -266,17 +293,17 @@ flowchart TD
   Parse --> ParseErr["CsvParserError family: empty, template, header count, header column, unsupported account type, missing account number, missing account type, invalid quantity"]
   ParseErr --> Bad["400"]
   Parse -- ok --> InspectMark["Mark exists and overwrite currency for account numbers the user already has at that institution"]
-  InspectMark --> Preview["CsvDiscoveredAccount preview with positions and exists flag"]
+  InspectMark --> Preview["CsvDiscoveredAccount preview with positions, free_cash and exists flag"]
 
   Parse -- ok --> Select["Keep only discovered accounts whose number is requested"]
   Select -- "none match" --> NoMatch["400 NoMatchingAccountsInCsvError"]
   Select -- ok --> Exists{"Account with this external_id already exists"}
-  Exists -- yes --> UpdateCur["Optionally update_currency, then replace positions"]
-  Exists -- no --> Create["Create AccountSchema with api_sync_enabled False, then replace positions"]
+  Exists -- yes --> UpdateCur["Optionally update_currency, write free_cash, then replace positions"]
+  Exists -- no --> Create["Create AccountSchema with api_sync_enabled False and free_cash, then replace positions"]
 
   Parse -- ok --> Find["Find discovered account whose number equals the account external_id"]
   Find -- "none" --> NotInCsv["400 AccountNotInCsvError"]
-  Find -- ok --> Replace["Replace positions"]
+  Find -- ok --> Replace["Write free_cash and replace positions"]
 
   UpdateCur --> Resolve
   Create --> Resolve
@@ -287,7 +314,7 @@ flowchart TD
 ```
 
 *The three entrypoints, the shared institution gate, the parser error branches, the
-create-versus-update split, and the position replacement tail.*
+create-versus-update split, and the free-cash plus position replacement tail.*
 
 ### inspect — discovery and preview
 
@@ -320,17 +347,19 @@ Per matching account:
 - The chosen currency is `account_currencies[number]` (trimmed, uppercased) if
   provided, else the parsed account currency, else `"CAD"`.
 - **Existing account** — if the chosen currency differs from `str(existing.currency)`,
-  `update_currency` is called; then positions are replaced via
-  `sync_account_csv_positions`; then the account is re-read from the repository and that
-  refreshed row is returned.
+  `update_currency` is called; `update_free_cash` writes the parsed cash balance; then
+  positions are replaced via `sync_account_csv_positions`; then the account is re-read
+  from the repository and that refreshed row is returned.
 - **New account** — `AccountSchema` is constructed with a fresh `uuid4()`,
   `external_id = disc_acc.account_number`, `name` and `broker_display_name` both set to
-  the CSV `account_name`, `integration_user_id=None`, and **`api_sync_enabled=False`**.
-  That flag is the load-bearing choice: CSV accounts have no broker session, so the
-  broker sync path refuses them and the frontend's refresh control changes meaning —
-  the account-list item renders `Sync positions` when `api_sync_enabled` is true and
-  `Update from CSV` (opening the update modal) when it is false. The account is created,
-  positions are written, and again the refreshed row is returned.
+  the CSV `account_name`, `integration_user_id=None`, `free_cash` from the parsed cash
+  rows, and **`api_sync_enabled=False`**. That flag is the load-bearing choice: CSV
+  accounts have no broker session, so the broker sync path refuses them
+  (`POST /accounts/{account_id}/sync` returns 400 `API sync is not enabled for account
+  {id}`) and the frontend's refresh control changes meaning — the account-list item
+  renders `Sync positions` when `api_sync_enabled` is true and opens the update modal
+  labelled `Update from CSV` when it is false. The account is created, positions are
+  written, and again the refreshed row is returned.
 
 The response is a `list[AccountSchema]`, so the frontend gets the final account rows
 with their server-assigned ids and `last_sync_at`.
@@ -344,8 +373,9 @@ itself, raising `AccountNotFoundError` if missing). It then validates the accoun
 *own* institution — so a CSV-sync is impossible once CSV import is disabled for that
 institution — parses, and looks for a discovered account whose `account_number` equals
 `target_account.external_id`. No match raises `AccountNotInCsvError(external_id)`; the
-match's positions are written and the refreshed account is fetched and returned,
-re-raising `AccountNotFoundError` if the re-read returns `None`.
+match's `free_cash` is written with `update_free_cash`, its positions are written, and
+the refreshed account is fetched and returned, re-raising `AccountNotFoundError` if the
+re-read returns `None`.
 
 Note the asymmetry with import: csv-sync **never** creates an account, **never** changes
 the currency, and **never** looks at any other discovered account in the file. It is
@@ -371,9 +401,10 @@ semantics:
    before inserting the new set**. This is the same replace-not-merge rule as broker
    sync, and it is why importing a narrower CSV removes holdings: the router test
    replaces a VGRO position with MSFT 75 and asserts exactly one position remains.
-4. If the resolved position list is empty (every row filtered), the service still calls
-   `sync_by_account(account_id, [])`, so an all-cash export clears the account instead
-   of leaving stale rows.
+4. If the resolved position list is empty (every row filtered or every row an option),
+   the service still calls `sync_by_account(account_id, [])`, so an all-cash export
+   clears the position rows instead of leaving stale ones — the account's `free_cash`
+   is written separately and survives that clear-out.
 5. `update_last_sync_at(account_id)` stamps the account, which is why a freshly imported
    account already reports a non-null `last_sync_at` in the import response.
 
@@ -451,7 +482,8 @@ flowchart TD
 The taxonomy is deliberate: parsing failures are 400 with a descriptive `detail`
 string that names the offending column, row, symbol, or account type, and the frontend
 renders `Error.message` verbatim in a destructive alert. Nothing in this flow fails
-silently except book-value parsing (→ `average_cost = None`) and the ignored malformed
+silently except book-value parsing (→ `average_cost = None`), cash rows that carry an
+unparseable amount (→ they contribute `0.0` to `free_cash`), and the ignored malformed
 `currencies` JSON.
 
 ## Extension points
@@ -550,16 +582,18 @@ uses to refresh.
 
 The modal is reachable from `accounts-list.svelte`, `brokers-list.svelte` and
 `connect-broker-modal.svelte`, and it accepts either `bind:open` or a `ModalState`.
+`onSuccess` is what the accounts list uses to `fetchAccounts()` after an import.
 
 ### update-account-csv-modal.svelte
 
 A single-step dialog for one account: title `Update account from CSV`, description
 naming the account, the same drag/drop + 10 MB + `.csv` validation, and a button that
 calls `syncAccountCsv(account.id, file)`. It never sends an institution or account
-number — the account id in the path is the whole addressing scheme. It is opened from
-the refresh control of `accounts-list-item.svelte`, which renders `Update from CSV`
-instead of `Sync positions` precisely when `account.api_sync_enabled` is false, i.e.
-for CSV-imported accounts.
+number — the account id in the path is the whole addressing scheme. It is owned by
+`accounts-list-item.svelte` through a `ModalState`, opened from that row's refresh
+control, which renders `Update from CSV` instead of `Sync positions` precisely when
+`account.api_sync_enabled` is false, i.e. for CSV-imported accounts; its `onSuccess`
+invalidates the row's holdings cache and notifies the list.
 
 Both modals surface the backend `detail` string verbatim, so the parser messages
 ("Header mismatch at column 1: expected 'account_name', got 'unknown_column'") are what
@@ -568,28 +602,31 @@ users actually read.
 ## Focused tests
 
 - `tests/account/csv/test_parser.py` — the template contract end to end: valid single
-  and multi-account parses with cash filtering, real-Wealthsimple header alias
-  acceptance, header count/name mismatches, empty content, the full account-type map
-  including the unsupported case, `calculate_average_cost` edge cases (zero/negative
+  and multi-account parses, cash-row diversion into `free_cash` (including a `CASH`
+  ticker with an ETF security type that must stay a position), real-Wealthsimple header
+  alias acceptance, header count/name mismatches, empty content, the full account-type
+  map including the unsupported case, `calculate_average_cost` edge cases (zero/negative
   quantity, `None` and zero book value, 4-dp rounding), UTF-8 BOM handling, option
   symbol/row detection, and option-row filtering.
 - `tests/services/test_csv_account_service.py` — the institution gate (not found,
   disabled, missing format), empty content, `exists` population, `NoMatchingAccountsInCsvError`,
   update-in-place versus create, currency override for both new and existing accounts,
-  `AccountNotInCsvError`, `SecurityResolutionError`, option skipping in
-  `sync_account_csv_positions`, and the DI factory.
-- `tests/routers/test_csv_inspect.py` — the inspect endpoint's 401/404/400/422 cases,
-  the `WEALTHSIMPLE_CSV_FORMAT` happy path (cash row filtered, per-account currency,
-  derived `average_cost`), `exists` flipping after an import, and the query-parameter
-  `institution_id` fallback.
+  `update_free_cash` on all three branches, `AccountNotInCsvError`,
+  `SecurityResolutionError`, option skipping in `sync_account_csv_positions`, and the DI
+  factory.
+- `tests/routers/test_csv_inspect.py` — the inspect endpoint's 401/404/400 responses
+  (a missing `institution_id` reaches the service as `Institution 99999 not found`,
+  since the form field deserializes to `None`), the `WEALTHSIMPLE_CSV_FORMAT` happy path
+  (cash row diverted, per-account currency, derived `average_cost`), `exists` flipping
+  after an import, and the query-parameter `institution_id` fallback.
 - `tests/routers/test_csv_account_endpoints.py` — import and csv-sync: auth, missing
-  params, disabled institution, empty file, invalid headers, repeat-import update,
+  params (422), disabled institution, empty file, invalid headers, repeat-import update,
   create-with-`api_sync_enabled=False`, database position assertions, position
   replacement via csv-sync, unmatched `external_id`, cross-user 404, missing account
   404, and the explicit `currencies` map.
-- `tests/commands/test_seed.py` — the seeded `WEALTHSIMPLE_CSV_FORMAT` value,
-  `csv_import_enabled`, and idempotency across repeated runs in `dev` and non-`dev`
-  environments.
+- `tests/commands/test_seed.py` — the seeded `WEALTHSIMPLE_CSV_FORMAT` value (compared
+  both against a literal and the imported constant), `csv_import_enabled`, and
+  idempotency across repeated runs in `dev` and non-`dev` environments.
 - `frontend/src/lib/components/accounts/import-account-csv-modal.test.ts` — broker
   filtering and auto-select, file type/size rejection, inspect-then-preview rendering,
   checkbox toggling, import submission with the currency map, back-navigation state
