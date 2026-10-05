@@ -352,6 +352,17 @@ class SecurityValuationRead(BaseModel):
     updated_at: datetime
 
 
+class SecurityValuationHistoryRead(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: int
+    user_id: UserId
+    security_id: SecurityId
+    lower_bound: Decimal
+    upper_bound: Decimal
+    created_at: datetime
+
+
 class SecurityValuationWrite(BaseModel):
     lower_bound: Decimal
     upper_bound: Decimal

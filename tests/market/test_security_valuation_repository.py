@@ -152,3 +152,59 @@ async def test_batch_valuations(
     # Empty batch returns empty list
     empty = await repo.get_batch_by_user_and_securities([], user_id)
     assert empty == []
+
+
+@pytest.mark.anyio
+async def test_upsert_appends_to_history_and_get_history(
+    repo: SqlAlchemySecurityValuationRepository,
+    _test_security: SecurityModel,
+    _test_security_2: SecurityModel,
+):
+    user_id = uuid4()
+    other_user = uuid4()
+
+    # Empty history initially
+    history_empty = await repo.get_history(_test_security.id, user_id)
+    assert history_empty == []
+
+    # First upsert
+    val1 = SecurityValuationWrite(
+        lower_bound=Decimal("50.00"),
+        upper_bound=Decimal("75.50"),
+    )
+    await repo.upsert(val1, _test_security.id, user_id)
+
+    # Second upsert (update)
+    val2 = SecurityValuationWrite(
+        lower_bound=Decimal("60.00"),
+        upper_bound=Decimal("90.00"),
+    )
+    await repo.upsert(val2, _test_security.id, user_id)
+
+    # Upsert for other security and other user
+    await repo.upsert(
+        SecurityValuationWrite(lower_bound=Decimal("10.0"), upper_bound=Decimal("20.0")),
+        _test_security_2.id,
+        user_id,
+    )
+    await repo.upsert(
+        SecurityValuationWrite(lower_bound=Decimal("99.0"), upper_bound=Decimal("100.0")),
+        _test_security.id,
+        other_user,
+    )
+
+    # Fetch history for first security and user
+    history = await repo.get_history(_test_security.id, user_id)
+    assert len(history) == 2
+    assert history[0].lower_bound == Decimal("50.00")
+    assert history[0].upper_bound == Decimal("75.50")
+    assert history[0].user_id == user_id
+    assert history[0].security_id == _test_security.id
+    assert history[0].created_at is not None
+
+    assert history[1].lower_bound == Decimal("60.00")
+    assert history[1].upper_bound == Decimal("90.00")
+    assert history[1].user_id == user_id
+    assert history[1].security_id == _test_security.id
+    assert history[1].created_at >= history[0].created_at
+

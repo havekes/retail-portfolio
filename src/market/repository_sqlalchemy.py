@@ -32,6 +32,7 @@ from src.market.model import (
     SecurityDocumentModel,
     SecurityModel,
     SecurityNoteModel,
+    SecurityValuationHistoryModel,
     SecurityValuationModel,
     WatchlistModel,
     WatchlistsSecuritiesModel,
@@ -62,6 +63,7 @@ from src.market.schema import (
     SecurityNoteRead,
     SecurityNoteWrite,
     SecuritySchema,
+    SecurityValuationHistoryRead,
     SecurityValuationRead,
     SecurityValuationWrite,
     WatchlistRead,
@@ -1337,9 +1339,34 @@ class SqlAlchemySecurityValuationRepository(SecurityValuationRepository):
                 updated_at=now,
             )
             self._session.add(model)
+        history_model = SecurityValuationHistoryModel(
+            security_id=security_id,
+            user_id=user_id,
+            lower_bound=valuation.lower_bound,
+            upper_bound=valuation.upper_bound,
+            created_at=now,
+        )
+        self._session.add(history_model)
         await self._session.commit()
         await self._session.refresh(model)
         return SecurityValuationRead.model_validate(model)
+
+    @override
+    async def get_history(
+        self, security_id: SecurityId, user_id: UserId
+    ) -> list[SecurityValuationHistoryRead]:
+        result = await self._session.execute(
+            select(SecurityValuationHistoryModel)
+            .where(SecurityValuationHistoryModel.security_id == security_id)
+            .where(SecurityValuationHistoryModel.user_id == user_id)
+            .order_by(
+                SecurityValuationHistoryModel.created_at.asc(),
+                SecurityValuationHistoryModel.id.asc(),
+            )
+        )
+        return [
+            SecurityValuationHistoryRead.model_validate(m) for m in result.scalars()
+        ]
 
     @override
     async def get_batch_by_user_and_securities(
