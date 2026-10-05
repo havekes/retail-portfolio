@@ -1055,5 +1055,43 @@ describe('HoldingsTable', () => {
 			await fireEvent.click(valuationHeader);
 			expect(renderedSymbols()).toEqual(['AAPL', 'MSFT']);
 		});
+
+		it('renders upside percentage range and last updated date with color formatting', () => {
+			const mockValuations: Record<string, SecurityValuation> = {
+				'sec-z': {
+					security_id: 'sec-z',
+					lower_bound: 12,
+					upper_bound: 15,
+					updated_at: '2026-10-05T12:00:00Z'
+				},
+				'sec-m': {
+					security_id: 'sec-m',
+					lower_bound: 15,
+					upper_bound: 24,
+					updated_at: '2026-09-15T12:00:00Z'
+				}
+			};
+
+			render(HoldingsTable, { props: { holdings: sortRows, valuations: mockValuations } });
+
+			// sec-z has latest_price = 10. lower=12 (+20%), upper=15 (+50%)
+			const zRow = rowBySymbol('ZZZ');
+			const zUpside = within(zRow).getByTestId('valuation-upside-range');
+			expect(zUpside).toHaveTextContent('+20% – +50%');
+			expect(zUpside).toHaveClass('text-emerald-600');
+			expect(within(zRow).getByTestId('valuation-updated-at')).toHaveTextContent('Oct 5, 2026');
+
+			// sec-m has latest_price = 30. lower=15 (-50%), upper=24 (-20%)
+			const mRow = rowBySymbol('MMM');
+			const mUpside = within(mRow).getByTestId('valuation-upside-range');
+			expect(mUpside).toHaveTextContent('-50% – -20%');
+			expect(mUpside).toHaveClass('text-rose-600');
+			expect(within(mRow).getByTestId('valuation-updated-at')).toHaveTextContent('Sep 15, 2026');
+
+			// sec-a has no valuation
+			const aRow = rowBySymbol('AAA');
+			expect(within(aRow).queryByTestId('valuation-upside-range')).not.toBeInTheDocument();
+			expect(within(aRow).queryByTestId('valuation-updated-at')).not.toBeInTheDocument();
+		});
 	});
 });

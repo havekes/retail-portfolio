@@ -10,6 +10,7 @@
 	import Plus from '@lucide/svelte/icons/plus';
 	import { valuationClient, type SecurityValuationRead } from '$lib/api/valuationClient';
 	import { userPreferencesService } from '$lib/api/userPreferencesService';
+	import { formatDate } from '$lib/utils/date';
 	import ValuationModal from './valuation-modal.svelte';
 	import { ModalState } from '$lib/utils/modal-state.svelte';
 
@@ -18,13 +19,15 @@
 		currency = 'USD',
 		valuation = $bindable<SecurityValuationRead | null>(null),
 		showOverlay = $bindable(true),
-		expanded = $bindable(true)
+		expanded = $bindable(true),
+		onSaved
 	} = $props<{
 		securityId?: string;
 		currency?: string;
 		valuation?: SecurityValuationRead | null;
 		showOverlay?: boolean;
 		expanded?: boolean;
+		onSaved?: (valuation: SecurityValuationRead) => void;
 	}>();
 
 	let isLoading = $state(false);
@@ -87,6 +90,7 @@
 	modalState={valuationModalState}
 	onSaved={(saved) => {
 		valuation = saved;
+		onSaved?.(saved);
 	}}
 />
 
@@ -143,6 +147,11 @@
 								title="Show on chart"
 							/>
 						</div>
+						{#if valuation.updated_at || valuation.created_at}
+							<div data-testid="valuation-updated-at" class="mt-1 text-xs text-muted-foreground">
+								{formatDate(valuation.updated_at || valuation.created_at)}
+							</div>
+						{/if}
 					</div>
 				</div>
 			{/if}
