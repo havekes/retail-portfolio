@@ -22,6 +22,7 @@ import {
 	type LineDrawing
 } from '$lib/utils/finance/drawings';
 import { snapshotsService } from '$lib/api/snapshotsService';
+import { valuationClient } from '$lib/api/valuationClient';
 import { toast } from '$lib/components/ui/toast/index.js';
 if (typeof globalThis.Path2D === 'undefined') {
 	/* eslint-disable-next-line @typescript-eslint/no-explicit-any */
@@ -3242,6 +3243,99 @@ describe('Rewind Scrub and Drawing Restore', () => {
 		await waitFor(() => {
 			// @ts-expect-error - mockChartProps typed as Record
 			expect(mockChartProps.hasMoreData).toBe(true);
+		});
+	});
+
+	it('updates chart valuation to active snapshot valuation while rewound, and restores live valuation on now', async () => {
+		const liveValuation = {
+			id: 1,
+			user_id: 'u-1',
+			security_id: 'sec-1',
+			lower_bound: 150,
+			upper_bound: 200,
+			created_at: '',
+			updated_at: ''
+		};
+		const snapValuation: RewindSnapshot = {
+			id: 'snap-val',
+			captured_at: '2024-01-02T12:00:00.000Z',
+			drawings: {
+				valuation: { lower_bound: 90, upper_bound: 120 }
+			},
+			data_window: { first: '2024-01-01', last: '2024-01-02' }
+		};
+
+		vi.mocked(valuationClient.getValuation).mockResolvedValue(liveValuation);
+		vi.mocked(snapshotsService.getSnapshots).mockResolvedValue([snapValuation]);
+
+		render(PageComponent, { props: { data: threeCandlesData } });
+
+		await waitFor(() => {
+			expect(mockChartProps).not.toBeNull();
+			// @ts-expect-error - mockChartProps typed as Record
+			expect(mockChartProps.valuation).toEqual(liveValuation);
+		});
+
+		expect(await screen.findByTestId('rewind-timeline')).toBeInTheDocument();
+
+		const marker = screen.getByTestId('rewind-snapshot-point');
+		await fireEvent.click(marker);
+
+		await waitFor(() => {
+			// @ts-expect-error - mockChartProps typed as Record
+			expect(mockChartProps.valuation).toEqual({ lower_bound: 90, upper_bound: 120 });
+		});
+
+		const backToNowBtn = screen.getByTestId('rewind-back-to-now');
+		await fireEvent.click(backToNowBtn);
+
+		await waitFor(() => {
+			// @ts-expect-error - mockChartProps typed as Record
+			expect(mockChartProps.valuation).toEqual(liveValuation);
+		});
+	});
+
+	it('saving a valuation creates and persists a rewind snapshot carrying valuation range', async () => {
+		const savedValuation = {
+			id: 2,
+			user_id: 'u-1',
+			security_id: 'sec-1',
+			lower_bound: 130,
+			upper_bound: 170,
+			created_at: '',
+			updated_at: ''
+		};
+		vi.mocked(valuationClient.getValuation).mockResolvedValue(null);
+		vi.mocked(valuationClient.setValuation).mockResolvedValue(savedValuation);
+		vi.mocked(snapshotsService.getSnapshots).mockResolvedValue([]);
+
+		render(PageComponent, { props: { data: threeCandlesData } });
+
+		await waitFor(() => {
+			expect(mockChartProps).not.toBeNull();
+		});
+
+		// Open valuation modal via sidebar button
+		const setValBtn = await screen.findByRole('button', { name: /set valuation range/i });
+		await fireEvent.click(setValBtn);
+
+		const lowerInput = await screen.findByLabelText('Lower Bound');
+		const upperInput = screen.getByLabelText('Upper Bound');
+		const saveButton = screen.getByRole('button', { name: /save valuation/i });
+
+		await fireEvent.input(lowerInput, { target: { value: '130' } });
+		await fireEvent.input(upperInput, { target: { value: '170' } });
+		await fireEvent.click(saveButton);
+
+		await waitFor(() => {
+			expect(snapshotsService.createSnapshot).toHaveBeenCalledWith(
+				'sec-1',
+				expect.objectContaining({
+					drawings: expect.objectContaining({
+						valuation: { lower_bound: 130, upper_bound: 170 }
+					})
+				})
+			);
 		});
 	});
 });

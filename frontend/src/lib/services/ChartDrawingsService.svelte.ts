@@ -36,8 +36,10 @@ import {
 	findSnapshotAtOrBefore,
 	type RewindDrawings,
 	type RewindDataWindow,
-	type RewindSnapshot
+	type RewindSnapshot,
+	type RewindValuation
 } from '$lib/utils/finance/rewind';
+import type { SecurityValuationRead } from '$lib/api/valuationClient';
 import {
 	DrawingHistoryManager,
 	type SecurityDrawingState
@@ -84,6 +86,7 @@ export interface ToastLike {
 export interface ChartDrawingsServiceOptions {
 	securityId?: string | null;
 	userPreferences?: UserPreferences | null;
+	valuation?: RewindValuation | SecurityValuationRead | null;
 	displayCandles?: Candle[];
 	getChartRef?: () => ChartInstance | null;
 	onWaveAlertsReconcile?: () => Promise<void> | void;
@@ -139,6 +142,7 @@ export class ChartDrawingsService {
 	// Context & data
 	securityId = $state<string | null>(null);
 	userPreferences = $state<UserPreferences | null>(null);
+	valuation = $state<RewindValuation | SecurityValuationRead | null>(null);
 	displayCandles = $state<Candle[]>([]);
 
 	// Rewind & snapshot state
@@ -205,6 +209,13 @@ export class ChartDrawingsService {
 		return this.isRewound ? (this.activeSnapshot?.drawings?.drawings ?? {}) : this.securityDrawings;
 	}
 
+	get effectiveValuation(): RewindValuation | SecurityValuationRead | null {
+		if (!this.isRewound) {
+			return this.valuation;
+		}
+		return this.activeSnapshot?.drawings?.valuation ?? null;
+	}
+
 	get canUndo(): boolean {
 		return !this.isRewound && this._canUndo;
 	}
@@ -233,6 +244,7 @@ export class ChartDrawingsService {
 		this.options = options;
 		this.securityId = options.securityId ?? null;
 		this.userPreferences = normalizeDrawingsPreferences(options.userPreferences ?? null);
+		this.valuation = options.valuation ?? null;
 		this.displayCandles = options.displayCandles ?? [];
 		this._userPreferencesService = options.userPreferencesService ?? userPreferencesService;
 		this._snapshotsService = options.snapshotsService ?? snapshotsService;
@@ -278,6 +290,15 @@ export class ChartDrawingsService {
 
 	setDisplayCandles = (candles: Candle[]) => {
 		this.displayCandles = candles;
+	};
+
+	setValuation = (valuation: RewindValuation | SecurityValuationRead | null) => {
+		this.valuation = valuation;
+	};
+
+	handleValuationSave = async (savedValuation: RewindValuation | SecurityValuationRead) => {
+		this.setValuation(savedValuation);
+		await this.handleSaveSnapshot();
 	};
 
 	setTimelinePosition = (pos: Date | null) => {
@@ -968,7 +989,15 @@ export class ChartDrawingsService {
 		const drawings: RewindDrawings = {
 			elliott_waves: this.securityElliottWaves,
 			fibonacci_tools: this.securityFibonacciTools,
-			drawings: this.securityDrawings
+			drawings: this.securityDrawings,
+			...(this.valuation
+				? {
+						valuation: {
+							lower_bound: Number(this.valuation.lower_bound),
+							upper_bound: Number(this.valuation.upper_bound)
+						}
+					}
+				: {})
 		};
 
 		const hasWavePoints = Boolean(
@@ -978,8 +1007,15 @@ export class ChartDrawingsService {
 			drawings.fibonacci_tools?.retracement || drawings.fibonacci_tools?.extension
 		);
 		const hasNewDrawings = !isSecurityDrawingsEmpty(drawings.drawings);
+		const hasValuation = Boolean(
+			drawings.valuation &&
+			typeof drawings.valuation.lower_bound === 'number' &&
+			typeof drawings.valuation.upper_bound === 'number' &&
+			!isNaN(drawings.valuation.lower_bound) &&
+			!isNaN(drawings.valuation.upper_bound)
+		);
 
-		if (!hasWavePoints && !hasFibTools && !hasNewDrawings) {
+		if (!hasWavePoints && !hasFibTools && !hasNewDrawings && !hasValuation) {
 			return;
 		}
 
