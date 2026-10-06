@@ -111,3 +111,20 @@ def test_data_plane_contract_parameters() -> None:
     assert stmt_params["limit"]["required"] is False
     assert stmt_params["exchange"]["in"] == "query"
     assert stmt_params["exchange"]["required"] is False
+
+
+def test_data_plane_contract_has_no_provider_names() -> None:
+    """The public data-plane contract must not contain vendor or provider names."""
+    schema = get_data_plane_openapi(app)
+    serialized = json.dumps(schema).lower()
+    for provider in ("fmp", "financialmodelingprep", "polygon", "eodhd"):
+        assert provider not in serialized, (
+            f"Provider name {provider!r} found in live data-plane OpenAPI schema"
+        )
+
+    if CONTRACT_PATH.exists():
+        committed = CONTRACT_PATH.read_text(encoding="utf-8").lower()
+        for provider in ("fmp", "financialmodelingprep", "polygon", "eodhd"):
+            assert provider not in committed, (
+                f"Provider name {provider!r} found in committed data-plane OpenAPI snapshot"
+            )

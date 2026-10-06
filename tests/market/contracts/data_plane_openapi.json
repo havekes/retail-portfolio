@@ -2,7 +2,7 @@
   "components": {
     "schemas": {
       "BalanceSheet": {
-        "description": "Balance sheet for a reporting period.\n\nMirrors the ``/balance-sheet-statement/`` endpoint. Header fields\n(``date``, ``symbol``, ``reportedCurrency``, ``cik``, ``fiscalYear``,\n``period``) plus ``totalAssets``, ``currentAssets``, ``totalLiabilities``,\n``currentLiabilities``, ``totalDebt``, ``cashAndCashEquivalents``,\n``inventory``, ``receivables``, ``payables``, ``goodwill``,\n``retainedEarnings``, ``totalEquity``, ``commonStock``, ``netDebt``.",
+        "description": "Balance sheet for a reporting period.",
         "properties": {
           "cash_and_cash_equivalents": {
             "anyOf": [
@@ -234,7 +234,7 @@
         "type": "object"
       },
       "CashFlowStatement": {
-        "description": "Cash-flow statement for a reporting period.\n\nMirrors the ``/cash-flow-statement/`` endpoint. Header fields\n(``date``, ``symbol``, ``reportedCurrency``, ``cik``, ``fiscalYear``,\n``period``) plus ``netIncome``, ``operatingCashFlow``,\n``investingCashFlow``, ``financingCashFlow``, ``capitalExpenditure``,\n``freeCashFlow``, ``dividendsPaid``, ``stockBasedCompensation``,\n``cashChange``.",
+        "description": "Cash-flow statement for a reporting period.",
         "properties": {
           "capital_expenditure": {
             "anyOf": [
@@ -406,7 +406,7 @@
         "type": "object"
       },
       "CompanyFundamentals": {
-        "description": "Company details plus the key metrics and ratios overview.\n\nAggregate returned by ``GET /api/v1/market/data/fundamentals/{symbol}``\n(the T10 MCP contract): the T01 FMP-shaped ``profile``, ``key_metrics`` and\n``ratios`` objects, each field-for-field. Kept required (not optional) so a\nresponse always carries the full overview.",
+        "description": "Company details plus key metrics and ratios overview.\n\nAggregate returned by ``GET /api/v1/market/data/fundamentals/{symbol}``:\nthe canonical ``profile``, ``key_metrics`` and ``ratios`` objects, each\nfield-for-field. Kept required (not optional) so a response always carries\nthe full overview.",
         "properties": {
           "key_metrics": {
             "$ref": "#/components/schemas/KeyMetrics"
@@ -427,7 +427,7 @@
         "type": "object"
       },
       "CompanyProfile": {
-        "description": "Company profile / details.\n\nMirrors the ``/profile-v3/`` endpoint (``/profile/`` on the stable API):\n``symbol``, ``companyName``, ``marketCap``, ``sector``, ``industry``,\n``beta``, ``price``, ``website``, ``description``, ``ceo``,\n``fullTimeEmployees``, ``exchangeShortName``, ``exchange``, ``currency``,\n``ipoDate``, ``cik``, ``isin``, ``image``, ``isActivelyTrading``.",
+        "description": "Company profile and overview details.",
         "properties": {
           "beta": {
             "anyOf": [
@@ -637,7 +637,7 @@
         "type": "object"
       },
       "FinancialRatios": {
-        "description": "Financial ratios for a symbol / period.\n\nMirrors the ``/ratios/`` endpoint (``/ratios/:period=v3/``). Header fields\n(``date``, ``symbol``, ``fiscalYear``, ``period``) plus\n``grossProfitMargin``, ``operatingProfitMargin``, ``netProfitMargin``,\n``returnOnAssets``, ``returnOnEquity``, ``returnOnCapitalEmployed``,\n``interestCoverage``, ``quickRatio``, ``currentRatio``, ``debtToEquity``,\n``priceEarningsRatio``, ``bookValuePerShare``, ``dividendYield``.",
+        "description": "Financial ratios for a symbol and reporting period.",
         "properties": {
           "book_value_per_share": {
             "anyOf": [
@@ -848,7 +848,7 @@
         "type": "object"
       },
       "IncomeStatement": {
-        "description": "Income statement for a reporting period.\n\nMirrors the ``/income-statement/`` endpoint: ``date``, ``symbol``,\n``reportedCurrency``, ``cik``, ``fillingDate``, ``acceptedDate``,\n``fiscalYear``, ``period``, ``revenue``, ``costOfRevenue``,\n``grossProfit``, ``researchAndDevelopmentExpenses``,\n``sellingGeneralAndAdministrativeExpenses``, ``operatingExpenses``,\n``operatingIncome``, ``interestExpense``, ``otherIncomeExpense``,\n``incomeTaxExpense``, ``netIncome``, ``eps``, ``epsDiluted``,\n``weightedAverageSharesOutstanding``,\n``weightedAverageSharesOutstandingDiluted``.",
+        "description": "Income statement for a reporting period.",
         "properties": {
           "accepted_date": {
             "anyOf": [
@@ -914,7 +914,7 @@
             ],
             "title": "Eps Diluted"
           },
-          "filling_date": {
+          "filing_date": {
             "anyOf": [
               {
                 "format": "date",
@@ -924,7 +924,7 @@
                 "type": "null"
               }
             ],
-            "title": "Filling Date"
+            "title": "Filing Date"
           },
           "fiscal_year": {
             "anyOf": [
@@ -1116,7 +1116,7 @@
         "type": "object"
       },
       "KeyMetrics": {
-        "description": "Key metrics / valuation snapshot for a symbol.\n\nMirrors the ``/key-metrics/`` endpoint. Header fields (``date``,\n``symbol``, ``fiscalYear``, ``period``) plus ``marketCap``,\n``enterpriseValue``, ``peRatio``, ``pegRatio``, ``priceToSalesRatio``,\n``priceToBookRatio``, ``enterpriseValueOverEBITDA``, ``evToSales``,\n``dividendYield``, ``payoutRatio``, ``currentRatio``, ``quickRatio``,\n``debtToEquity``, ``workingCapital``.",
+        "description": "Key metrics and valuation snapshot for a symbol.",
         "properties": {
           "current_ratio": {
             "anyOf": [
@@ -1832,7 +1832,7 @@
   "paths": {
     "/api/v1/market/data/fundamentals/{symbol}": {
       "get": {
-        "description": "Company details plus key metrics and ratios, served through the cache.\n\nThe response keeps the FMP-shaped ``profile``, ``key_metrics`` and\n``ratios`` objects field-for-field; ``exchange`` is forwarded so non-US\nsymbols map to the provider's ticker suffix.",
+        "description": "Company details plus key metrics and ratios, served through the cache.\n\nThe response keeps the canonical ``profile``, ``key_metrics`` and\n``ratios`` objects field-for-field; ``exchange`` is forwarded so non-US\nsymbols map to the provider's ticker suffix.",
         "operationId": "market_data_fundamentals_api_v1_market_data_fundamentals__symbol__get",
         "parameters": [
           {
@@ -1904,7 +1904,7 @@
     },
     "/api/v1/market/data/fundamentals/{symbol}/statements": {
       "get": {
-        "description": "Full FMP-shaped statement list for a symbol, served through the cache.\n\n``statement`` and ``period`` are ``Literal``-typed so an invalid value is a\nFastAPI 422; the selected provider read keeps every line item the provider\nreturns (the response is the bare statement list, matching the search\nroute). ``exchange`` is forwarded for non-US ticker mapping.",
+        "description": "Statement list for a symbol, served through the cache.\n\n``statement`` and ``period`` are ``Literal``-typed so an invalid value is a\nFastAPI 422; the selected provider read keeps every line item the provider\nreturns (the response is the bare statement list, matching the search\nroute). ``exchange`` is forwarded for non-US ticker mapping.",
         "operationId": "market_data_statements_api_v1_market_data_fundamentals__symbol__statements_get",
         "parameters": [
           {
@@ -2036,7 +2036,7 @@
     },
     "/api/v1/market/data/options/{symbol}": {
       "get": {
-        "description": "Options chain for an underlying, mirroring the Polygon contract shape.",
+        "description": "Options chain for an underlying.",
         "operationId": "market_data_options_api_v1_market_data_options__symbol__get",
         "parameters": [
           {

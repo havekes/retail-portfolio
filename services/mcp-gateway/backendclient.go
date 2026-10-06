@@ -312,7 +312,7 @@ type IncomeStatement struct {
 	Symbol                                  string   `json:"symbol"`
 	ReportedCurrency                        *string  `json:"reported_currency,omitempty"`
 	CIK                                     *string  `json:"cik,omitempty"`
-	FillingDate                             *string  `json:"filling_date,omitempty"`
+	FilingDate                              *string  `json:"filing_date,omitempty"`
 	AcceptedDate                            *string  `json:"accepted_date,omitempty"`
 	FiscalYear                              *string  `json:"fiscal_year,omitempty"`
 	Period                                  *string  `json:"period,omitempty"`
