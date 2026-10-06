@@ -54,7 +54,7 @@ func registerTools(server *mcp.Server, client *BackendClient, cfg Config) {
 		})
 
 	addTool(server, "get_fundamentals",
-		"Analysis-ready fundamentals for a symbol: company profile, key metrics and financial ratios in one payload.",
+		"Analysis-ready fundamentals for a symbol: company profile, key metrics and financial ratios in one payload (metrics and ratios may be null if unavailable).",
 		func(ctx context.Context, _ *mcp.CallToolRequest, in fundamentalsInput) (*mcp.CallToolResult, any, error) {
 			return runTool(ctx, "get_fundamentals", cfg, in, fundamentalsInput.prepare, func(ctx context.Context, r fundamentalsRequest) (any, error) {
 				return client.Fundamentals(ctx, r.symbol, r.exchange)
@@ -93,6 +93,9 @@ func registerTools(server *mcp.Server, client *BackendClient, cfg Config) {
 				if err != nil {
 					return nil, err
 				}
+				if fundamentals.KeyMetrics == nil {
+					return nil, &backendError{class: ErrNoData}
+				}
 				return fundamentals.KeyMetrics, nil
 			})
 		})
@@ -108,6 +111,9 @@ func registerTools(server *mcp.Server, client *BackendClient, cfg Config) {
 				fundamentals, err := decodeFundamentals(raw)
 				if err != nil {
 					return nil, err
+				}
+				if fundamentals.Ratios == nil {
+					return nil, &backendError{class: ErrNoData}
 				}
 				return fundamentals.Ratios, nil
 			})

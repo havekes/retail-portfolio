@@ -252,13 +252,13 @@ class CompanyFundamentals(BaseModel):
 
     Aggregate returned by ``GET /api/v1/market/data/fundamentals/{symbol}``:
     the canonical ``profile``, ``key_metrics`` and ``ratios`` objects, each
-    field-for-field. Kept required (not optional) so a response always carries
-    the full overview.
+    field-for-field. Profile is required; key metrics and ratios are nullable
+    when not reported by upstream providers (e.g. ETFs, recent IPOs).
     """
 
     profile: CompanyProfile
-    key_metrics: KeyMetrics
-    ratios: FinancialRatios
+    key_metrics: KeyMetrics | None = None
+    ratios: FinancialRatios | None = None
 
 
 class SymbolLookupResult(BaseModel):

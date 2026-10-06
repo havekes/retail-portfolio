@@ -469,17 +469,12 @@ async def test_unknown_symbol_search_is_negative_cached(
 
 
 @pytest.mark.anyio
-@pytest.mark.parametrize(
-    "method_name",
-    ["get_company_profile", "get_key_metrics", "get_financial_ratios"],
-)
 async def test_unknown_fundamentals_symbol_is_negative_cached(
     client: AsyncClient,
     mock_gateway: MagicMock,
     mock_redis_storage: FakeRedis,
-    method_name: str,
 ) -> None:
-    getattr(mock_gateway, method_name).side_effect = MarketDataNotFoundError("ZZZZ")
+    mock_gateway.get_company_profile.side_effect = MarketDataNotFoundError("ZZZZ")
     url = "/api/v1/market/data/fundamentals/ZZZZ"
 
     first = await client.get(url, headers=_headers())
@@ -488,7 +483,7 @@ async def test_unknown_fundamentals_symbol_is_negative_cached(
     assert first.status_code == second.status_code == 404
     assert first.json()["detail"] == second.json()["detail"]
     # The 404 was negative-cached: the upstream gateway ran exactly once.
-    getattr(mock_gateway, method_name).assert_called_once()
+    mock_gateway.get_company_profile.assert_called_once()
 
     keys = _endpoint_keys(mock_redis_storage, "market:ep:metrics:fundamentals:")
     assert len(keys) == 1
@@ -718,6 +713,56 @@ async def test_fundamentals_returns_profile_metrics_and_ratios(
 
 
 @pytest.mark.anyio
+async def test_fundamentals_missing_ratios_returns_null_section(
+    client: AsyncClient, mock_gateway: MagicMock
+) -> None:
+    mock_gateway.get_financial_ratios.side_effect = MarketDataNotFoundError("AAPL")
+
+    response = await client.get(_FUNDAMENTALS_URL, headers=_headers())
+
+    assert response.status_code == 200
+    body = response.json()
+    assert body["profile"]["symbol"] == "AAPL"
+    assert body["profile"]["company_name"] == "Apple Inc."
+    assert body["key_metrics"] is not None
+    assert Decimal(str(body["key_metrics"]["pe_ratio"])) == Decimal("36.28")
+    assert body["ratios"] is None
+
+
+@pytest.mark.anyio
+async def test_fundamentals_missing_key_metrics_returns_null_section(
+    client: AsyncClient, mock_gateway: MagicMock
+) -> None:
+    mock_gateway.get_key_metrics.side_effect = MarketDataNotFoundError("AAPL")
+
+    response = await client.get(_FUNDAMENTALS_URL, headers=_headers())
+
+    assert response.status_code == 200
+    body = response.json()
+    assert body["profile"]["symbol"] == "AAPL"
+    assert body["profile"]["company_name"] == "Apple Inc."
+    assert body["key_metrics"] is None
+    assert body["ratios"] is not None
+    assert Decimal(str(body["ratios"]["debt_to_equity"])) == Decimal("1.87")
+
+
+@pytest.mark.anyio
+async def test_fundamentals_missing_both_metrics_and_ratios_returns_null_sections(
+    client: AsyncClient, mock_gateway: MagicMock
+) -> None:
+    mock_gateway.get_key_metrics.side_effect = MarketDataNotFoundError("AAPL")
+    mock_gateway.get_financial_ratios.side_effect = MarketDataNotFoundError("AAPL")
+
+    response = await client.get(_FUNDAMENTALS_URL, headers=_headers())
+
+    assert response.status_code == 200
+    body = response.json()
+    assert body["profile"]["symbol"] == "AAPL"
+    assert body["key_metrics"] is None
+    assert body["ratios"] is None
+
+
+@pytest.mark.anyio
 async def test_fundamentals_forwards_exchange_to_gateway(
     client: AsyncClient, mock_gateway: MagicMock
 ) -> None:
@@ -869,14 +914,10 @@ async def test_statements_invalid_params_return_422(
 
 
 @pytest.mark.anyio
-@pytest.mark.parametrize(
-    "method_name",
-    ["get_company_profile", "get_key_metrics", "get_financial_ratios"],
-)
-async def test_fundamentals_unknown_symbol_returns_404(
-    client: AsyncClient, mock_gateway: MagicMock, method_name: str
+async def test_fundamentals_missing_profile_returns_404(
+    client: AsyncClient, mock_gateway: MagicMock
 ) -> None:
-    getattr(mock_gateway, method_name).side_effect = MarketDataNotFoundError("ZZZZ")
+    mock_gateway.get_company_profile.side_effect = MarketDataNotFoundError("ZZZZ")
 
     response = await client.get(
         "/api/v1/market/data/fundamentals/ZZZZ", headers=_headers()
