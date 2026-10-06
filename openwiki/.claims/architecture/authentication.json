@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "pageVersion": "sha256:ae6b2badf64c77ed7003758fde835caa4dce0c46ba4b3a17b6602a8e1c9e32cd",
+  "pageVersion": "sha256:57b6a87f12650ce170bcc4f1a6d6bd01a9b86c21ca49d5341e1fbf56ac525c67",
   "claims": [
     {
       "id": "claim_ceb913d68ca541f89ee4b6829bd092a2",
@@ -194,7 +194,7 @@
     },
     {
       "id": "claim_3b8da60677ab47859c5344e6d6fd956e",
-      "statement": "2FA verification is throttled through the Redis key `2fa:lockout:{user_id}`: at or above `settings.totp_max_attempts` the request returns 429 before any code comparison, a failed attempt is `INCR`-ed and given `settings.totp_lockout_seconds` TTL, and a successful attempt deletes the key.",
+      "statement": "2FA verification is throttled through the Redis key `2fa:lockout:{user_id}`: at or above `settings.totp_max_attempts` (default 5) the request returns 429 `Too many 2FA attempts. Try again later.` before any code comparison, a missing or unverified TOTP record returns `False` without mutating the counter, a failed attempt is `INCR`-ed and given `settings.totp_lockout_seconds` (default 900 s) TTL, and a successful attempt deletes the key.",
       "evidence": [
         {
           "resource": "repo://src/auth/service.py#L267-L309",
@@ -271,7 +271,7 @@
       "statement": "`AuthorizationApi.check_entity_owned_by_user` raises 404 `Entity does not exist` when the entity is `None` or owned by another user, account/portfolio/integration routers call it instead of comparing ids, and `src/main.py` maps `AuthorizationError` to 404 so existence is never confirmed with 403.",
       "evidence": [
         {
-          "resource": "repo://src/account/router.py#L108-L108",
+          "resource": "repo://src/account/router.py#L110-L110",
           "version": "repo-lines-v1:sha256:ef07bdee681d3156f3edff350ebfc35ffe4bbb340115102f4ad06d619d859a82:eyJzZWxlY3RlZExpbmVDb3VudCI6MSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiZWYwN2JkZWU2ODFkMzE1NmYzZWRmZjM1MGViZmMzNWZmZTRiYmIzNDAxMTUxMDJmNGFkMDZkNjE5ZDg1OWE4MiIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiZWYwN2JkZWU2ODFkMzE1NmYzZWRmZjM1MGViZmMzNWZmZTRiYmIzNDAxMTUxMDJmNGFkMDZkNjE5ZDg1OWE4MiIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiMWZlMDhhZjE3N2M4NzM0MWI5NzIyOWQxNWNlMTU1NThkMWQxZTQ3Zjk4Njc0MDc3NTIzN2MwMWJhOWFkZmRkYSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiNDc0OGU5NzZiYTQ4NGQwNTZhZjkzNjM2YjFiZGE0NjMxY2M3NGUyNzhmNGQ4OWQ4MmYzOTBhOTg2YjkwM2FlZiJ9"
         },
         {
@@ -320,11 +320,19 @@
     },
     {
       "id": "claim_6e9cc9ccfa03496aa4f42455bbcbc24c",
-      "statement": "Server loads that receive a 401 from the backend call `deleteAuthCookie` and redirect to `/auth/login?clear_session=true`, a pattern repeated on `/`, `/accounts/[id]`, `/brokers`, `/security/[security_id]`, and `/settings/security`.",
+      "statement": "SvelteKit server loads that receive a 401 from the backend call `deleteAuthCookie(cookies)` and throw `redirect(303, '/auth/login?clear_session=true')`, a pattern repeated in `/`, `/accounts/[id]`, `/brokers`, `/portfolios`, `/holdings` (which inspects each rejected reason from a `Promise.allSettled`) and `/settings/security` (which also redirects up front when the cookie is absent). `/security/[security_id]` has no backend call in its server load, so its browser-side fetches route 401s through the `redirectOn401` helper instead, which navigates to `/auth/login?clear_session=true` without deleting the httponly cookie and lets the SSR guard perform the deletion.",
       "evidence": [
+        {
+          "resource": "repo://frontend/src/lib/api/async-data.ts#L17-L23",
+          "version": "repo-lines-v1:sha256:a3288d6a750a9c813d1c442c91f88898e9e31e99eb20e2faa5972228a8bcaeb0:eyJzZWxlY3RlZExpbmVDb3VudCI6NywiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiODRjOTUyZGU5NGQ5NGRhMWE5YWZmYjhjZTY4MDA5ZGJiOGEyYWU3YWIwM2Y0YjJjNDZmYjc2NTdjNjNmYTEwZCIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiYzVkNGU4YjVkMTVhOGEyMWM1YzBhMDdkYWY0MDUwODE3ZmViNGM3ZTVmMzhiOTFjNDc5Njk1ZTkxZTVjNGMyOCIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiMDlkNmJkMTU2NmY2NWNlOGJmM2NkODM2ZWQ2NTM3ODhkZTJlNzY1NWIwYjgyZDIxOTE4ZDJlMDRlZTFjMWQ1NyIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjEsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiNDEyY2EzNDVjY2Y3NWJmOWMwODA2YmNlNjk1YmU4ZGU4MDhiNzk5ODQyNTFhN2E1NGQyMDJjZjYxMDFkZDQ1MSJ9"
+        },
         {
           "resource": "repo://frontend/src/routes/%2Bpage.server.ts#L7-L25",
           "version": "repo-lines-v1:sha256:d1bd8454861b38348c245ce5cfba20921c6226d8f17fee42904ad024815c031a:eyJzZWxlY3RlZExpbmVDb3VudCI6MTksImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjRlM2Q1N2FlMTIwM2IxZmZjNTYxNDRmMDUzYjhlYTJjNjY4NWY4MmZlNDExZDFhNGZiY2YzM2NlZTA2NjBmMjIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImFhMWQxYTYzMzkwMjI5Yzc5ODM0N2U4M2EwNDA1NDQxYzk0MDAwMzUyODRhZDE2OGMxYmY2Y2RmMWQ3MGEzNzAiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImIwMDk0NDA3ZWYzYmExZTk0OTY4ZGIzZTgyNjI5Y2Y4YWZlMDZkZjIyMjI1ZGZkYTVjMDE3MTM4OTg2YWM2NmYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjI4MGFhMDYyN2FjMDNkZmNmMzA3NmUzYWI4ODI4ZDJhZDViZjhlMGFiMmU2MTdjNDVkYjhjM2UyN2VjODQyOGMifQ"
+        },
+        {
+          "resource": "repo://frontend/src/routes/holdings/%2Bpage.server.ts#L27-L43",
+          "version": "repo-lines-v1:sha256:c3c13b36dfd9242c236071ec59e0296ce5a65ad814e2c72f30d4994f0da542a2:eyJzZWxlY3RlZExpbmVDb3VudCI6MTcsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjdlM2E0NTcyOWZhZjk3ZmNkYjUxYTYyOTExM2EyM2EzZDczZTRiOGY2NTliMmFkYjY2ZDExZjk2NGE4YTdhYjAiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjY0ZWZjNDk0MThkMjZkY2YxMjliMjJhNmFhMjExMDhjZWVjMzc2NzdhMzJkMDhlOWQ1ZmVlMzVkZGE2NmJiOWQiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjgzZDk4MjU0YmI4MDEyYmU4NmZlYTE5OWNkMmE2MzhmMDIyYjQ2MTBlMTgxMjk3YjkzODIxODMzZDRmMzA4YjEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjhjMDdkNjNkOGRmZGQ1ZTY2ZDE5ODQwZDdlNGZmZDQwZDU4YjNlOGFhNGVjMzE1OWE2OTAyOWNkY2ZiY2Y5OGIifQ"
         },
         {
           "resource": "repo://frontend/src/routes/settings/security/%2Bpage.server.ts#L7-L33",
@@ -380,15 +388,15 @@
     },
     {
       "id": "claim_562e629a1dac4d5d98d1cde001f69c7e",
-      "statement": "`authService.getWsTicket()` is used by the accounts list state, which connects to `/api/ws?ticket=...` and reconnects every 5 seconds on close.",
+      "statement": "`authService.getWsTicket()` (`POST` to `/auth/ws-ticket`) is consumed only by `AccountsListState` in `frontend/src/lib/components/accounts/accounts-list.svelte.ts`: the browser-only constructor calls `initWebSocket()`, derives the socket URL from `VITE_API_BASE_URL` (or `window.location`), fetches the ticket, and aborts with a warning when the fetch rejects or returns no ticket, so no reconnect is scheduled on that path. On success it connects to `/api/ws?ticket=...`, and `onclose` re-runs `initWebSocket()` after a fixed 5000 ms delay, re-fetching a fresh ticket on every reconnect.",
       "evidence": [
         {
           "resource": "repo://frontend/src/lib/api/authService.ts#L94-L96",
           "version": "repo-lines-v1:sha256:f564fd556eccc10094fd70119a0314c348060db4095ef026aec76e0d6e379378:eyJzZWxlY3RlZExpbmVDb3VudCI6MywiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiY2IzNmZkM2U0MmY2YzhhMWM5NmU3Nzg2YTA4MDZiOWY0ODczMTgzY2FmZjM1ZDBiNDg5NTk0OTNmYjQzMGJhYyIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNjdjZGE4MmRhNjA2MjM4ZTA1ZTYyMzk5NTY5YzVlZTAzOTkzNDE5NjQ4YWU1ZDQzYTJiZjhjZDYzNDdmODI2MyIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiNmIzYTNjYTMyNWQ0MjU5OWI2ZjVjY2E1ZjUxY2ZkMGQyZTM0ZDU0MmUyMzA5YjU1ZjVkZDBiYzViZmVkNWE2NSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiMjI1N2E0YjE3Njc3YzY2NTg2NjliMjI4ZWUwODQ1ZDBlYzRhMDk5YWRkMzk3Y2EzN2FlZTdiZTE2Y2E0NWI0NSJ9"
         },
         {
-          "resource": "repo://frontend/src/lib/components/accounts/accounts-list.svelte.ts#L52-L115",
-          "version": "repo-lines-v1:sha256:ee00494b22ac14f843d2bf999cc1ca1385a2cab4da6eab5b7cabde9768df39f8:eyJzZWxlY3RlZExpbmVDb3VudCI6NjQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImY1YWEzYTQzNjdlY2VmMTY4ZjM3YWI2NzYyMDc5ZTMzOTdhMzU0YTRhYjc2MzYyZjc2ODRlNDQzNDljODZiODIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjY3Y2RhODJkYTYwNjIzOGUwNWU2MjM5OTU2OWM1ZWUwMzk5MzQxOTY0OGFlNWQ0M2EyYmY4Y2Q2MzQ3ZjgyNjMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjIyZjJmZjVmZWVjNjBmNTg3YzhmYWU0ZTg3ZjgwOWE2NjFjZmZlZDZiNDdhYWU1ZjZkNmEyNjUzYWE4OTUyZWYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImU3Y2E5NjFlYTg5MzA0YzliMjc2NGJiMmJmM2QxYjg0ZDM2YmEyYTE5OWI5OTUxNzQ4ZDYzYmQ4MDJjNTczNjYifQ"
+          "resource": "repo://frontend/src/lib/components/accounts/accounts-list.svelte.ts#L52-L116",
+          "version": "repo-lines-v1:sha256:9f293fd7980c7dbc1d41f20b0e2758becd3c4a6d5a1f784f875aedfa617cb1fe:eyJzZWxlY3RlZExpbmVDb3VudCI6NjUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImY1YWEzYTQzNjdlY2VmMTY4ZjM3YWI2NzYyMDc5ZTMzOTdhMzU0YTRhYjc2MzYyZjc2ODRlNDQzNDljODZiODIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjY3Y2RhODJkYTYwNjIzOGUwNWU2MjM5OTU2OWM1ZWUwMzk5MzQxOTY0OGFlNWQ0M2EyYmY4Y2Q2MzQ3ZjgyNjMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjIyZjJmZjVmZWVjNjBmNTg3YzhmYWU0ZTg3ZjgwOWE2NjFjZmZlZDZiNDdhYWU1ZjZkNmEyNjUzYWE4OTUyZWYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImU3Y2E5NjFlYTg5MzA0YzliMjc2NGJiMmJmM2QxYjg0ZDM2YmEyYTE5OWI5OTUxNzQ4ZDYzYmQ4MDJjNTczNjYifQ"
         }
       ]
     },
@@ -551,10 +559,96 @@
           "version": "repo-lines-v1:sha256:65328fa8e8f0212fcab728f26cd1399478ebcf8746f1a79cf9c529eb535817b8:eyJzZWxlY3RlZExpbmVDb3VudCI6MTMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjNmNjhjMWM3ODY0OTc4NWFhNGNiOTYxNzk5YzgzNmNkMWE2YjA3ODg4NjlmOTUyOGJhYTMxM2E0YTZkZDRhMTIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjcyODIxZTJlZjRlODFjMWIyMmIzODczM2M5ZGMyNzg2MDQ3OGE5MDY5MGI4ZTZiMDI2OGQ5ZWE4YTMwMmM2N2IiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImIyZDNmNGQ4OGQ1YmVjM2I0MTY2M2FiYjJiODYxNTM4ZTg2NzliYTBjYTdmYjVkZTMyNWUxMDczYTA3MzYyMjYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjNkNDEzNDBjYzIzOWExNTljZTliNjAyMmU5ZjYzMjI4MzJlMmVhZDc2Y2FlOWU0NzU0ZDIxMGViOGZiNmQ1ZTgifQ"
         }
       ]
+    },
+    {
+      "id": "claim_62dfa82e59fc4351a7b8697db5bcdfd9",
+      "statement": "Authenticated backend endpoints obtain their identity through a two-dependency chain in `src/auth/api.py`: `get_token` reads the `auth_token` cookie first and falls back to the OAuth2 Bearer header (`OAuth2PasswordBearer(tokenUrl=\"token\", auto_error=False)`, which is what makes a missing credential an explicit 401 `Not authenticated`), and `current_user` then yields the `User` produced by `UserApi.get_current_user_from_token`. The cookie-first order means a request carrying both a stale cookie and a fresh Bearer header is authenticated with the cookie's user.",
+      "evidence": [
+        {
+          "resource": "repo://src/auth/api.py#L298-L313",
+          "version": "repo-lines-v1:sha256:2c253d7d9accadc34116b977486fda26a8756f847f981f092bd2efe468ad00b4:eyJzZWxlY3RlZExpbmVDb3VudCI6MTYsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjczYmY0ZmFkODA1Y2M4ZWE4OTdmMDI3ZjMyMzMyMDMwNWI3NTU3MmJlNGY3ODc4MDQ3ZDllODJhMzcyYmZlNWUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjBlZTNiNTQyYTViM2FlMGI3MmQ1ZDU3MmE0NWVjYmEyM2JkNDk5MGMzZmMyYjJhZjc1OWRkNDMxNmYwMjliMzAiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjhjYzRhN2QxY2M3OTZhYmEzZTQ2NzIzMzI3ZjUxN2U5ZjgxMTk4MmQyNTBmMDcwMjk4NmU0YjU3NjRhZDk1ODkiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
+        },
+        {
+          "resource": "repo://src/auth/api.py#L42-L42",
+          "version": "repo-lines-v1:sha256:ec9e245e06f6e83643a6ef70e25f6ee05ee2bee9afca7f58ccaf692f4541c731:eyJzZWxlY3RlZExpbmVDb3VudCI6MSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiZWM5ZTI0NWUwNmY2ZTgzNjQzYTZlZjcwZTI1ZjZlZTA1ZWUyYmVlOWFmY2E3ZjU4Y2NhZjY5MmY0NTQxYzczMSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiZWM5ZTI0NWUwNmY2ZTgzNjQzYTZlZjcwZTI1ZjZlZTA1ZWUyYmVlOWFmY2E3ZjU4Y2NhZjY5MmY0NTQxYzczMSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiNDU2YzczMDliZTE3YjM4MGQyZWRiMTNhNWM1OGNkN2I1ZjkwNWU4ZDkzNTZmMTBiYTY1MjgwMTg4M2RiNDYxMiIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiNzk5Zjk1MTdlNGI1ZWJkYmEzYmU0YzcwZGU1MTllYWUzNjhkOWUzZDY1NzZjYmYyM2ViZGJlZjVlMmIzODlhYiJ9"
+        },
+        {
+          "resource": "repo://src/auth/api.py#L65-L85",
+          "version": "repo-lines-v1:sha256:1fb5de217cbdbb1ccce6947431e94bca157f9a1c945d44df71e8172164c8d2f9:eyJzZWxlY3RlZExpbmVDb3VudCI6MjEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImYwZDUzNTZjMmE5ZjRmNjA0Yjg5OTU2ZDdiNTcwNTExZjk5ODZiZDNkYzI3NGRlMGVkYzA2MzNkMGRkNzI0Y2IiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjMzMDZlOTg1NjgyOWEyMDQwMjg2ZGZkMjcwZTk4MGZhMDFjYTBjNmRiMTUxOWMwYjgyNDgwMjQxMmVlMjVjMTMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImZiZTFiYmRlMGU4YzgyMGJlMDYxNmZkYjIwZjhhNGNhNTFlMGE4ZmQ0Y2MzNmMwYjEwNzgwZjUzNWQ3NTYxMWEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjQ4MTI4MmE1Y2QwZGRkMTk3MzRjZTA1NjllZjE1MDU5MTMzODhiN2RlNDQ1NDUwNTViNGMxZTM1YjA2ZDlmM2UifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_d2ff1cdb4c624433ab4f486dfa207db8",
+      "statement": "The SvelteKit guard is a routing decision only: it populates `event.locals.user = { id: payload.user_id, email: payload.sub }` from the JWT payload with no database lookup, so identity and revocation are resolved exclusively backend-side, where `get_current_user_from_token` re-resolves the email to a user record (401 `Token invalid` when it is gone) and checks the Redis `jti` denylist.",
+      "evidence": [
+        {
+          "resource": "repo://frontend/src/hooks.server.ts#L17-L34",
+          "version": "repo-lines-v1:sha256:7d2aa940099cfe02da82e349e9e61592cafe76b7ed3b47a25cb36560018b8a9b:eyJzZWxlY3RlZExpbmVDb3VudCI6MTgsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImViY2UxMWFjZDFhZmM5OGRhMjliOTVmNzdiMmYxMWJiZDJjZDUzYzZiOGYyMTcyZDViNmFmMzdjMjkwZmNhMGYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjY3Y2RhODJkYTYwNjIzOGUwNWU2MjM5OTU2OWM1ZWUwMzk5MzQxOTY0OGFlNWQ0M2EyYmY4Y2Q2MzQ3ZjgyNjMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImZlZjU5NjViMDM1MjQzZTliNWY1YWUxNWQzNDUyOTkxMzMxYThjOGI5YWJhMmEzYzgxMzYxZjk0ZDkxMDkwN2UiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjZhYmM0NmE2MzViNjVjYjZjOGNjYzA2MTQ4ZmEyNTFmMTVkMjU3YWRkMDE3MzkzMGJiNDYwNTUzNzY2OTE0ZmUifQ"
+        },
+        {
+          "resource": "repo://src/auth/api.py#L65-L85",
+          "version": "repo-lines-v1:sha256:1fb5de217cbdbb1ccce6947431e94bca157f9a1c945d44df71e8172164c8d2f9:eyJzZWxlY3RlZExpbmVDb3VudCI6MjEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImYwZDUzNTZjMmE5ZjRmNjA0Yjg5OTU2ZDdiNTcwNTExZjk5ODZiZDNkYzI3NGRlMGVkYzA2MzNkMGRkNzI0Y2IiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjMzMDZlOTg1NjgyOWEyMDQwMjg2ZGZkMjcwZTk4MGZhMDFjYTBjNmRiMTUxOWMwYjgyNDgwMjQxMmVlMjVjMTMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImZiZTFiYmRlMGU4YzgyMGJlMDYxNmZkYjIwZjhhNGNhNTFlMGE4ZmQ0Y2MzNmMwYjEwNzgwZjUzNWQ3NTYxMWEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjQ4MTI4MmE1Y2QwZGRkMTk3MzRjZTA1NjllZjE1MDU5MTMzODhiN2RlNDQ1NDUwNTViNGMxZTM1YjA2ZDlmM2UifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_7b19bf17ab244f86aa821d7147ed62a0",
+      "statement": "`src/main.py` keeps authorization failures indistinguishable from missing resources with two handlers: `AuthorizationError` (base class of domain exceptions such as `AccountsDoNotBelongToUserError`) returns 404 with `{\"error\": ...}`, and `EntityNotFoundError` also returns 404, matching the `HTTPException(404, ...)` that routers and the ownership helper raise directly.",
+      "evidence": [
+        {
+          "resource": "repo://src/account/exception.py#L24-L24",
+          "version": "repo-lines-v1:sha256:31286cc0865398567ad0257d7f2372b7a015fdc63ac5fb2e9084feb0a3bdff83:eyJzZWxlY3RlZExpbmVDb3VudCI6MSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiMzEyODZjYzA4NjUzOTg1NjdhZDAyNTdkN2YyMzcyYjdhMDE1ZmRjNjNhYzVmYjJlOTA4NGZlYjBhM2JkZmY4MyIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiMzEyODZjYzA4NjUzOTg1NjdhZDAyNTdkN2YyMzcyYjdhMDE1ZmRjNjNhYzVmYjJlOTA4NGZlYjBhM2JkZmY4MyIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiN2M4YTQyODhhMmZiY2I4ZTAwMzA4ZDdlYTYzMTViYTRjZTkzNTQwZWIwOWQwYzBmMWYxNDZlYTQ2OTYxY2YwNSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiNzFhOTQzMDNiYmVhZTM0MzNiZGY4ZmVmMTU5ZGFjODgzYjY4ODljMTNmMzc0Nzg0YmNiNDYxODY1OGRjNTNlMCJ9"
+        },
+        {
+          "resource": "repo://src/auth/api.py#L274-L287",
+          "version": "repo-lines-v1:sha256:25daa0df6386103c79c8adee6ba24f0d544f997f0dfffc9ce65b59d20c2536fe:eyJzZWxlY3RlZExpbmVDb3VudCI6MTQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjZiZjc3YjViMDIwZTQzMWJmMjI2MjlmOWZjN2U0YWQwZDY5ZTBjYTM4MjczYjljNjYzN2M2ODNlYWJhYzM2NWQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjJlZDk2ZDM5NGQ2NTAyYzIyMWY5ZTljZDYwNjE2Mzk0YjdlOTBhOGE3NDA3MjM5ZjdkZWIzOGRkNDdlMDBkZTgiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjU0YmQ0ZDMzNjQyNTY3MWI1ZDFjNzNhMjk0NmQzODI0M2ZmMDRlOTdiMjZkNmVhNDU4ZjA1NjFjZTczNzM0NDYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImY5Mzc5ZTQzMDMwMjNmZjA5Y2JkNzgyMWIyZmZhM2EyOWVmNDUxM2VhYTQ2NmFmNGY0MmVlZTNmNDgwOWYzZWYifQ"
+        },
+        {
+          "resource": "repo://src/main.py#L244-L261",
+          "version": "repo-lines-v1:sha256:747a393263e289c6ad37b985accad9eb56d4228dcb755fb40877c9efcf3f6436:eyJzZWxlY3RlZExpbmVDb3VudCI6MTgsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImQyYmI5MDg3ZjQ2MTI3NmRhYjRjY2M4Mjc3NGY3NjVkZGQzNjgwYjQyMzAyZWQyY2E3Njg3ZjFlNThmODE4MTYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjIwMjU2NDFhNTAyMzYyYjI0Nzk3ODVhOTE0NWUxNDdlM2I3ZWQ2ZmMzYTliOWNiODczMzc4MTBiNzUxNjgxNjgiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjhjYzRhN2QxY2M3OTZhYmEzZTQ2NzIzMzI3ZjUxN2U5ZjgxMTk4MmQyNTBmMDcwMjk4NmU0YjU3NjRhZDk1ODkiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_08b73e4e20984dff816bae0a29714148",
+      "statement": "`is_active` is enforced in only two places — `POST /auth/2fa/login-verify` and passkey authentication, both 401 for an inactive user — while neither `UserApi.login` (which gates on `is_verified`) nor `UserApi.get_current_user_from_token` consults it, so a deactivated account can still complete a single-factor password login and an existing session survives deactivation until token expiry or `jti` revocation.",
+      "evidence": [
+        {
+          "resource": "repo://src/auth/api.py#L161-L194",
+          "version": "repo-lines-v1:sha256:20821432e31d9ea26b69ff8b27ee155240bb64e9cbb79a6499e619b87aeab868:eyJzZWxlY3RlZExpbmVDb3VudCI6MzQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijg1NmUzMTI2NmVhYzVjOWU2Nzk3ODhjMzNkNDdkYzlmY2E1NjIxNGVmZjkzNmYzMTUzZTU4OTMzYTc1ZjMwN2EiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjU5MDlhNTNhNjE4ZDAyOGUxZDMwMDBjMGE3YWJjZWVjYmU1ZmIzN2Y0ZTUxMWVmZTQ2NjQzZmFkNmU2Njg3MmYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjY3YWQ5ODExODkxZTQwZjBlOTU1MTQzMjgyNzI4MGY4Y2MxMjhlN2QxYjdhNjY0MmUzNTFlZjg1OTA0NDFkZTUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjU2MWFlYzU0YTJhNTE2ZThiZGU3YWEyYTA5YzFmOWE5ZTkzN2E0NjgyNTc1MWIwZmE0OTBmN2VhMjNkZDZjNTgifQ"
+        },
+        {
+          "resource": "repo://src/auth/router.py#L141-L143",
+          "version": "repo-lines-v1:sha256:b3e726b77c6727c395ec6198a1a835f5ff17130bc56d633604e219f59b71722d:eyJzZWxlY3RlZExpbmVDb3VudCI6MywiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiYjU0ZWJjMWM3NjgwZmI3ZmQ0MThkYjg3NzUyMDRhYTBlMWIxMjA2YzcyYThjNDlmODg1M2JlODQ1YmQ3NmY0MiIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiMjgzYzk1OGNkNjIxZmM5ZGViZDNlMDZhMTI1YjFkNzY0MjQyMmIzMWQ5ZTJjZDQ2ZTliOGY5YjNjYzJkZGY3ZCIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiNTk3OGViMTMzZDFlZmViYTJjZDQ5ZDVlYTA1YjIzNjA2Y2E3YTIzMDgxOGFhODE1NDdkYTg2YTY5MTAzNjIyYyIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiNDMxZDc2ZjgxOTE0YjhiMWYwNDg1MmMyZDlkODAwOTA4MDYxNjgwM2EyNjhkMGM2Mjg1M2Y3NmMzYjM3ZGFkMyJ9"
+        },
+        {
+          "resource": "repo://src/auth/service.py#L486-L490",
+          "version": "repo-lines-v1:sha256:38128c0813a0dfeec67e1164d83f3423c5414ff02a6b45647ffaa271442cf7f2:eyJzZWxlY3RlZExpbmVDb3VudCI6NSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiZmQyNDk2YWJiMDg1NGI5NjIyZmEzZDFiZmEyYzU4ZGM3ZDczNTk5NjdiMDNhY2ViOTExN2E3ODQ4NGNkNjI1MyIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNjc1YjVmNTc1YzlhZDZkNGU1ZWIzMDI1MGI2YjQ5N2FiYWRlMjE0MGIxOTc4MWRmMDBiYzY2ODU4ZjRjZGY1NSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiMDhkNWIwMTQwMzEyNjhkZDQ4YmM3ODc3MDdjODE0MmE4YTVjNWY0OTBmOGYxYzIwMTU4MWY5ZGJlMTMxYmRmOSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiODQ1NDE1ZmYyMjRjNDc0N2U5YjM4ZTUzOTYwMDlhYWU1N2JjOGZiNjFmMmM3MDdmN2JlMmI0Y2FmNzBjMTQzMCJ9"
+        }
+      ]
+    },
+    {
+      "id": "claim_d15051b96ffd44dcbbf87f9609faef82",
+      "statement": "Tokens minted by the dev command `src/auth/commands/create_test_token.py` (365-day expiry) carry no `jti`, because `AccessTokenData.jti` defaults to the empty string and that command never sets it; `UserApi.revoke_token` and `get_current_user_from_token` both skip the `token:deny:` denylist when `jti` is falsy, so such a token cannot be revoked and lives out its full lifetime.",
+      "evidence": [
+        {
+          "resource": "repo://src/auth/api.py#L225-L239",
+          "version": "repo-lines-v1:sha256:0273b8426531f952944c20582278936b41083595bbb50cafb7d30c929a81cda0:eyJzZWxlY3RlZExpbmVDb3VudCI6MTUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijg5Yzc3ZmEwZjhjMjM1MTlmYmFkNjBkOTQxMTg5MzEwNDY0NDM1MTk0ZWY5YmEzY2UxYWIzNTk4MDZhYzU1NTciLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImQ3ZGZjZGI5ZjRiZjI2ZGJkNzhiNWRkYzQzNjhhNzA5OTU2ZmRhYTQwZDAzMjFiNTE0ZWE2OGI4MDc3ZDkxM2QiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6Ijk5NmUwOWU4ZmUxNWM2MTRhYmI3M2RjZDIzMjcyYmU2Njc5YTE1MjQwMDE2NTA3MDE1NmNiMzM4NzVkMzNlZWYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjkwODRmMzk1M2I1N2RhY2ZiYzM4Nzk5YWY1Njg4YzQ3Y2JkNGUwNGVkMTJiNWM0MjYyZTJkMDU2ZTQ5OGNhZTEifQ"
+        },
+        {
+          "resource": "repo://src/auth/api_types.py#L54-L59",
+          "version": "repo-lines-v1:sha256:7cf086b4e394d8a85a03839b38ec6492518caf86cdba0f2d1463b9ed4744303a:eyJzZWxlY3RlZExpbmVDb3VudCI6NiwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiNjA2NGQwYmRiOWFhNTI1MjAxZTE1Y2E2OGUzMmZkYTNlMDUwZDJlOGIyNmFkNTI2Y2FmMWYyYjg2YzljYTc3MiIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiMTBiYzUyN2VhMjk2OWExNGE1ZGVjODk2ZjUyNjcxM2ZjODllZmNiNWU1MjA2MGNjNWU0ZTUyNDEzNDk4YmJkOCIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiNTNkMGJjODRhNzBiODIxM2MzZDVlNGJjNmZlMWU3OTJmZmMwYjVjNDgzM2Y1MDJlMDZlYzhmZWE1YWFiMzlkZSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjAsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiZTNiMGM0NDI5OGZjMWMxNDlhZmJmNGM4OTk2ZmI5MjQyN2FlNDFlNDY0OWI5MzRjYTQ5NTk5MWI3ODUyYjg1NSJ9"
+        },
+        {
+          "resource": "repo://src/auth/commands/create_test_token.py#L20-L32",
+          "version": "repo-lines-v1:sha256:91296b0448610e5725194555e9b30ccd2d88b4021a818cb04ed41fb5e9a13c43:eyJzZWxlY3RlZExpbmVDb3VudCI6MTMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjgyZjlkN2RlMzc2MzQ4ZmM4MzY2OWMzNzk0ZjU1MzJmNTQxMjBkMTZlNWQ3ZGQ3ZTdhM2M3YjEyZGY4ODJmOGIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjU5MDlhNTNhNjE4ZDAyOGUxZDMwMDBjMGE3YWJjZWVjYmU1ZmIzN2Y0ZTUxMWVmZTQ2NjQzZmFkNmU2Njg3MmYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImIzMWQ3MjRkOGE0ZGZiMzMxODM0YmVkMTdhMTM3NzhjYTA3ODc2ZjQyNTE5MTA4Yjk5ZGUyNTRhNDU2MDgxN2IiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjNkNDEzNDBjYzIzOWExNTljZTliNjAyMmU5ZjYzMjI4MzJlMmVhZDc2Y2FlOWU0NzU0ZDIxMGViOGZiNmQ1ZTgifQ"
+        }
+      ]
     }
   ],
   "verification": {
-    "by": "openwiki/0.5.2",
-    "at": "2026-09-18T20:16:58.058Z"
+    "by": "openwiki/0.7.0",
+    "at": "2026-10-04T13:39:13.522Z"
   }
 }

@@ -3,9 +3,6 @@ type: architecture
 title: Architecture Overview
 description: System-level runtime map of retail-portfolio — the FastAPI process (lifespan migrations, svcs registry, middleware order, error handling), the Huey worker, the SvelteKit SSR frontend, the Go indicator sidecar, PostgreSQL/Redis/mailcrab, route mounting under /api/v1, health probes, the backend layer rules, and the commands that verify a change.
 tags: [architecture, fastapi, huey, sveltekit, postgresql, redis, dependency-injection, request-lifecycle, docker-compose]
-verified:
-  - by: openwiki/0.5.2
-    at: 2026-09-23T13:18:56.288Z
 sources:
   - id: openwiki-source-164e2da859b5277df81c7d94
     resource: repo://.github/workflows/ci.yml
@@ -21,6 +18,8 @@ sources:
     resource: repo://frontend/AGENTS.md
   - id: openwiki-source-0bdf50a0b0b0618dd3a5abe8
     resource: repo://frontend/src/hooks.server.ts
+  - id: openwiki-source-45599bb9a8794a9c90b7e20d
+    resource: repo://frontend/src/lib/api/apiClient.ts
   - id: openwiki-source-23775c3de52f3ab95a13cb8b
     resource: repo://README.md
   - id: openwiki-source-95aa045141f9e53c82a0bc2b
@@ -31,6 +30,8 @@ sources:
     resource: repo://services/indicator-service/README.md
   - id: openwiki-source-4a501a3fad557af156591f05
     resource: repo://src/account/registry.py
+  - id: openwiki-source-30de42522595a37de333f4dd
+    resource: repo://src/account/router.py
   - id: openwiki-source-b911aefb4dbb6f043ed2380e
     resource: repo://src/account/task.py
   - id: openwiki-source-230f617cb6d47154ef463034
@@ -47,10 +48,14 @@ sources:
     resource: repo://src/core/exception.py
   - id: openwiki-source-bb9b5d3400aa107e32ebff27
     resource: repo://src/core/middleware.py
+  - id: openwiki-source-fd173f0cb9d58ea27b5992d2
+    resource: repo://src/integration/router.py
   - id: openwiki-source-11b9d806fcc6dd6e7747ed87
     resource: repo://src/main.py
   - id: openwiki-source-336c8d4ea788e2c5f7cddd73
     resource: repo://src/market/__init__.py
+  - id: openwiki-source-0759916706da37d0d3bef090
+    resource: repo://src/market/exception.py
   - id: openwiki-source-d8383d22d61483b00080a280
     resource: repo://src/market/router.py
   - id: openwiki-source-9fc85bceeb3edfbe3ab56a7c
@@ -69,7 +74,10 @@ sources:
     resource: repo://tests/test_main.py
   - id: openwiki-source-f0abc296482c495e6bdb9e20
     resource: repo://tests/test_request_id.py
-generated: { by: "openwiki/0.5.2", at: "2026-09-23T13:18:56.288Z" }
+generated: { by: "openwiki/0.7.0", at: "2026-10-04T13:39:13.522Z" }
+verified:
+  - by: openwiki/0.7.0
+    at: 2026-10-04T13:39:13.522Z
 ---
 
 # Architecture Overview
@@ -163,6 +171,34 @@ the single place where process-scoped resources are created and torn down:
    database over `database_url` (creating its table), a Redis-backed
    `WebSocketManager` and signal handlers, all stored under `app.state.huey_dashboard`.
 
+```mermaid
+sequenceDiagram
+    participant U as uvicorn worker
+    participant L as lifespan_context
+    participant A as Alembic
+    participant R as svcs Registry
+    participant W as ws_manager
+    participant D as Huey dashboard
+    participant M as redis_manager
+
+    U->>L: enter lifespan
+    L->>A: command.upgrade head in a worker thread
+    A-->>L: schema at head
+    L->>R: register_services with sessionmanager
+    L->>W: init_redis plus Pub Sub listener
+    L->>D: init_worker_dashboard with bind_signals
+    L-->>U: yield svcs_registry
+    Note over L: a failure during yield is logged, not fatal
+    U->>L: shutdown
+    L->>D: close_worker_dashboard
+    L->>W: close
+    L->>M: close
+```
+
+Startup creates migrations, the registry, the WebSocket listener and the dashboard in that
+order, then teardown unwinds them in reverse; only the `test` environment swaps the
+migration step for `BaseModel.metadata.create_all`.
+
 Inside the `async with registry:` block the lifespan yields
 `{"svcs_registry": registry}`; teardown then calls `close_worker_dashboard`,
 `ws_manager.close()` and `redis_manager.close()`. The lifespan body wraps its yield in a
@@ -197,7 +233,7 @@ top-level surface is:
 
 | Path | Owner | Notes |
 |------|-------|-------|
-| `/api/v1/...` | `v1` router aggregating every domain router | e.g. `/api/v1/auth/*`, `/api/v1/accounts/*`, `/api/v1/market/*`, `/api/v1/integration/*`, `/api/v1/external/*` |
+| `/api/v1/...` | `v1` router aggregating every domain router | e.g. `/api/v1/auth/*`, `/api/v1/accounts/*`, `/api/v1/portfolios/*`, `/api/v1/market/*`, `/api/v1/integration/*`, `/api/v1/external/*` |
 | `/api/ws` | `src/ws/router.py` | WebSocket endpoint, not under `/api/v1` |
 | `/api/ping` | `src/main.py` | Simple DB-backed healthcheck |
 | `/health/live` | `src/main.py` | Liveness probe used by the Compose and image healthchecks |
@@ -207,12 +243,36 @@ top-level surface is:
 Older documentation that describes routes as bare `/api` without the `/v1` segment is
 wrong: domain routers themselves are prefix-less relative to that (for example
 `auth_router` is `APIRouter(prefix="/auth")`, `account_router` is `/accounts`,
-`market_router` is `/market`) and get their `/api/v1` prefix only here. The frontend
-`apiClient` hard-codes the same `/api/v1` base.
+`portfolio_router` is `/portfolios`, `market_router` is `/market`) and get their
+`/api/v1` prefix only here. The frontend `apiClient` hard-codes the same `/api/v1`
+base.
+
+One naming inversion is worth internalizing because it makes URL-to-owner lookups
+error-prone: `src/integration/router.py` defines both
+
+```python
+integration_router = APIRouter(prefix="/external")
+institutions_router = APIRouter(prefix="/integration")
+```
+
+so `/api/v1/external/*` is the broker-integration surface while `/api/v1/integration/*`
+serves the institution list. Mounting is the only thing that gives these routers their
+`/api/v1` segment — `src/main.py` includes `account_router`, `portfolio_router`,
+`auth_router`, `institutions_router`, `integration_router` and `market_router` into `v1`
+in that order, so a new domain router must be added both where it is defined and to that
+include list.
+
+Two routers that each own a wide surface are worth knowing by their module:
+`src/account/router.py` defines both `account_router` (`/accounts`) and `portfolio_router`
+(`/portfolios`), and `src/market/router.py` carries `market_router` (`/market`) for the
+market read paths, watchlists with manual ordering, alerts, notes, documents, chart
+snapshots, security valuations (`/securities/valuation/batch` and
+`/securities/{security_id}/valuation`), indicator compute and the AI endpoints.
 
 Other process entrypoints: `src/worker.py` is the Huey consumer module, and
 `src/commands/seed.py` / `src/commands/flush_market_data.py` are standalone CLI commands
-for reference data and market-data maintenance.
+for reference data and market-data maintenance (`src/market/commands/` holds smaller
+EODHD inspection scripts).
 
 ## Request lifecycle
 
@@ -290,14 +350,20 @@ Route handlers receive the `svcs` container as a FastAPI dependency (`DepContain
 resolve collaborators by interface:
 
 ```python
-async def get_accounts(services: DepContainer) -> list[AccountRead]:
-    api = await services.aget(AccountApi)
-    ...
+@portfolio_router.get("/")
+async def portfolios(
+    user: Annotated[User, Depends(current_user)],
+    services: DepContainer,
+) -> list[PortfolioRead]:
+    portfolio_service = await services.aget(PortfolioService)
+    return await portfolio_service.get_portfolios_by_user(user.id)
 ```
 
 They declare Pydantic request/response models, enforce auth through the `current_user`
 dependency, and delegate business logic to services or domain APIs. They never touch
-another domain's repositories.
+another domain's repositories — though, as the layer rules below note, they may resolve
+their own domain's repositories directly (`@account_router.get("/")` does exactly that
+with `AccountRepository`).
 
 ## Health and readiness
 
@@ -349,12 +415,16 @@ must not break, from `src/AGENTS.md`:
 - **Cross-domain calls happen only through the other domain's `api.py` APIs and
   `api_types.py`.** A service must not import another domain's repository or schema.
   A router *may* use its own domain's repositories directly — the market watchlist,
-  alert, note, document and snapshot routes do exactly that — but never a foreign
-  domain's.
+  alert, note, document, snapshot and security-valuation routes do exactly that, and the
+  account router resolves `AccountRepository` directly for `GET /accounts` — but never a
+  foreign domain's.
 - **Routers own HTTP concerns; services do not raise `HTTPException`** (the
   authorization service is the documented exception). Domain errors inherit from
-  `EntityNotFoundError` / `AuthorizationError` in `src/core/exception.py`, or are mapped
-  explicitly in the router.
+  `EntityNotFoundError` / `AuthorizationError` in `src/core/exception.py` and the global
+  handlers turn them into `404`, or they are deliberately *not* such a subclass and the
+  router maps them itself — `WatchlistOrderIdentityError` becomes `422` and
+  `WatchlistDuplicateNameError` becomes `409` for exactly that reason, and the CSV
+  upload routes raise `422` for missing form fields.
 - **Services are registered as factories and resolved from the registry** — never
   instantiated by hand inside a request.
 - **Editing a model requires an Alembic migration** following the

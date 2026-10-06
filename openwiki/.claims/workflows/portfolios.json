@@ -1,0 +1,276 @@
+{
+  "schemaVersion": 1,
+  "pageVersion": "sha256:5b147ea7d03774a2c940758dd47aba630113c5b30cb62bd2a009c62c176e6d47",
+  "claims": [
+    {
+      "id": "claim_fc221626fd6b46c0894141fb25dcdb8a",
+      "statement": "A portfolio is a user-owned named grouping of accounts, stored as `PortfolioModel` (id, user_id, name, timestamps) plus the `PortfolioAccountModel` join table whose composite primary key is `(portfolio_id, account_id)`; it stores no positions, and both FKs cascade `all, delete-orphan` from their parent relationships. The pair ships in `migrations/versions/7e1953e28527_add_portfoliomodel_and_.py` with a `UniqueConstraint('user_id', 'name')` on portfolios, and `deleted_at` exists on the model and migration but is never written because deletion is a hard ORM delete.",
+      "evidence": [
+        {
+          "resource": "repo://migrations/versions/7e1953e28527_add_portfoliomodel_and_.py",
+          "version": "repo-file-v1:sha256:9ceeb91f4415595c5c031e9205dc912d0dd856908a3fb6361973cceffa36ce5d"
+        },
+        {
+          "resource": "repo://src/account/model.py#L90-L142",
+          "version": "repo-lines-v1:sha256:0f82fef7fb540ba28cd5f86e10793af7c0e1c23d152dc84935c75f3068c4ae0e:eyJzZWxlY3RlZExpbmVDb3VudCI6NTMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImY4YWM5Zjg4Y2VhMDY2ZGUwNTc5MTFjOGU3NjEzYWRlYmMyMzIxMzJmZWU3NjA1NjhiNjg1NDUzODI5Y2VkYjgiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjMwYzFmMTg4ZjE0MmVkN2E4MjQ2ODBiMjA3MTcyYzU1MTliYzYxNGE0OGZkYTdjZjE2N2VkYjhkZGY3OTk1NmMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjhjYzRhN2QxY2M3OTZhYmEzZTQ2NzIzMzI3ZjUxN2U5ZjgxMTk4MmQyNTBmMDcwMjk4NmU0YjU3NjRhZDk1ODkiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjJjY2JlY2EzYzczMzVlMTk3OTNiOTQxYzVhMGQ3OGQ4MDdkMDkwYTQzNGY3NjMwNTVmNTg2NjA2ZmQ4Y2Y2YWMifQ"
+        },
+        {
+          "resource": "repo://src/account/repository_sqlalchemy.py#L402-L423",
+          "version": "repo-lines-v1:sha256:e469a2a571a73af100fe6f703d499fd243881eeb6f2185a5376a70141d5343f7:eyJzZWxlY3RlZExpbmVDb3VudCI6MjIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ0ZGE5MzUwMDE5ZGMxZTY2NzQ1MjY0Mzg3MzE2MTk5NzIyNWU5Y2U2MDEwN2FmN2I2NGY4NDBkZGVjZmRhNGYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjU5MDlhNTNhNjE4ZDAyOGUxZDMwMDBjMGE3YWJjZWVjYmU1ZmIzN2Y0ZTUxMWVmZTQ2NjQzZmFkNmU2Njg3MmYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjdiOGQ4MmY0ZWNhYWFlYTgxNmUyZWI4NTA5NjRjNTQyODE1MWYxN2JkOGIwNDIwN2Y4NTI0Y2MwYmRhMTFiNmIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjI5NDAyZWMwMzYwNjUzZjQ1ZDdhMTg5NGEzMGIwMDBhNWZmMDM1OWYwNTc1MzYyYzA1MGExMTc1MzY2MjZkYzcifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_927ba847318c42209b0fc2672be03111",
+      "statement": "`PortfolioRepository` is an abstract interface in `src/account/repository.py` (`get`, `get_by_user`, `create`, `sync_accounts`, `update`, `delete`, all schema-typed) implemented by `SqlAlchemyPortfolioRepository`, whose `get`/`get_by_user` selectinload the `portfolio_accounts → account` chain and project each membership into a full `AccountSchema`, and whose `sync_accounts` is a full replacement (delete all membership rows then insert the new set, deduplicated via `set(...)`) rather than a diff. The interface/implementation pair is registered in `src/account/registry.py` via `sqlalchemy_portfolio_repository_factory`, next to `PortfolioService`.",
+      "evidence": [
+        {
+          "resource": "repo://src/account/registry.py#L46-L64",
+          "version": "repo-lines-v1:sha256:679d12f8316d2e8bf5ce87d4912e99a724097af80930d5ebde1dfba185e0755e:eyJzZWxlY3RlZExpbmVDb3VudCI6MTksImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImJiZWYwYTA2ZGRlZDVjYTMwYTMyYzUwNzVmMDE3YmI2YTM4NDU2Zjc2MGY0MTE2OTBjNTIzM2E2N2EyNmNlM2UiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjNmY2ViMjA3MzljMmU5NDQxMTYyY2QzNjMyYzEzYjg5NTQ2OWExOWFkZjhlYmJkNmNkNzRkNjNkM2FjYzg5OGEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImE5OGIwNjNkOWI0N2U2NTM3OTYyNTU3MmNjZTE5NzY2OWQ1NzY3ZTEyYzE4YmUwNzU2NTJiOGNkOTgxY2U4ZDUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
+        },
+        {
+          "resource": "repo://src/account/repository.py#L105-L132",
+          "version": "repo-lines-v1:sha256:d25196b3b191b133a1d061e1ea4c97e2b7cce10995c03f50125e7c99511aa252:eyJzZWxlY3RlZExpbmVDb3VudCI6MjgsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjVlMjA1YWI3MGFhM2YzNjZiYmQ3M2JmNzU3MDM5YzNmMjViNTk0ZTc4ZWQ5ODlmNzE0ZWQ1NDA0NDRjMDExM2IiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImYwNjJlNThlYTBiMGZkMTk1YmEwNzY2MTNiNjMwZDU5ZTY3YmQ0NzBiYjE5ZTk3YTIwYzkwMjM2NmU1YmEwZTYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjZhMjhmMzA0MGRmYmViNjhjYzk0NjA4NDdiODVkYjU5ZDNlMGFkNzA5Nzk5NzFhNzM0YzQ5NWEyMTBiOWViN2QiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
+        },
+        {
+          "resource": "repo://src/account/repository_sqlalchemy.py#L308-L390",
+          "version": "repo-lines-v1:sha256:34c9440b0ffbfd450d404d8c8e252e0e2b33452ec44ec9fdec7c6c4a3c2165b3:eyJzZWxlY3RlZExpbmVDb3VudCI6ODMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjkzYzg4Y2M1OGEyZmRiNDUxODQ0NDZhY2ViMjlhMDdjYzBmOThmMWRiNzAxMjI2NjY0MWExYmI0ZjJkZTRhMWEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImQ2MWI3ZTI3MTA1ODBjODJiYTgwY2M2ZjA2MmI4YzNiZGMzM2U1NTNlNzM1MDMxMGI4OGFkYzIxN2NjNmE3MTUiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6Ijk4NzhhMjQyMDA1ODY3ZTkzYmU4ZDhjNzY0NmUzZjZhNWY2YzBlYTc2OTM1MDgzZDdhZTQzZDNkNDE3MjNkNjciLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjU3NTNlOGU0Yzg3MGFiNTEyNThiYTkzM2U2NzEyM2M3NzMxZGQ4MzZhMjViNDY4NTVjNGQxMGVjMzM3MTg4ZTYifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_349a677fc090410fa3281c86f5d5dadf",
+      "statement": "`PortfolioService` validates before every write but does not itself compare `user_id`: `create_portfolio` and `sync_portfolio_accounts` call `AccountService.check_accounts_belong_to_user` first, `update_portfolio`/`delete_portfolio`/`sync_portfolio_accounts` call `get_portfolio` first (raising `PortfolioNotFoundError` on an unknown id instead of silently no-oping), and `check_accounts_belong_to_user` is a set-superset test over the caller's own accounts that rejects both foreign and nonexistent account ids with `AccountsDoNotBelongToUserError`.",
+      "evidence": [
+        {
+          "resource": "repo://src/account/exception.py#L24-L45",
+          "version": "repo-lines-v1:sha256:bc0ec3f97e5cbbc181dc74db49899179feed73263b211316dda12f6404164196:eyJzZWxlY3RlZExpbmVDb3VudCI6MjIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjMxMjg2Y2MwODY1Mzk4NTY3YWQwMjU3ZDdmMjM3MmI3YTAxNWZkYzYzYWM1ZmIyZTkwODRmZWIwYTNiZGZmODMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAxYmE0NzE5YzgwYjZmZTkxMWIwOTFhN2MwNTEyNGI2NGVlZWNlOTY0ZTA5YzA1OGVmOGY5ODA1ZGFjYTU0NmIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjdjOGE0Mjg4YTJmYmNiOGUwMDMwOGQ3ZWE2MzE1YmE0Y2U5MzU0MGViMDlkMGMwZjFmMTQ2ZWE0Njk2MWNmMDUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjBiZDExZjNmODhlMDM1NjRjZTA3NzM4YTc2ZDEzYzVmNDFlZTgwZGU4MTVjYjg4OTNiOGE4ZDNkZjIxMDI0MjMifQ"
+        },
+        {
+          "resource": "repo://src/account/service/account.py#L28-L37",
+          "version": "repo-lines-v1:sha256:84f30b68887ae88f53bb9c16ddebdcdc60107f2868d8a99170f208fe1e0fef57:eyJzZWxlY3RlZExpbmVDb3VudCI6MTAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImZkYWE0MTBkYjM2MjM5MTUzMTk3ODZmNjM0Y2M2ODM5ZDYxYjkxM2UyYWY5MGRhZTVhOGQ5YWE4Y2RiNzUyZjQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjU0ZWM3MGI4N2NmM2Q2MDgxYmNiMGU4N2U1YjY1ODAyNjQ0NjdhYmQ2YTgwNmJiMDJlYmEwYjI4OTVkZDY0M2YiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImQ1OWViYzZiNmZlNDM1NGRkZWJjZDNlMDFmOTk0MjNjZmZjY2U4Y2JkZWI4ZGExM2ZlNTViMDFhNDQ0MDU4NGMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjUyY2M4NWMwODdmYjY5Y2FmZDhiZDRjMDlhNjFmYWIwODI0OGI1ODI1YzRlY2U0N2U2NjRhOTRmYTdhNmQ2NGEifQ"
+        },
+        {
+          "resource": "repo://src/account/service/portfolio.py#L31-L91",
+          "version": "repo-lines-v1:sha256:a651b6e65e561dbafe89c265305a74488320a4e568756de622242abe53c383a8:eyJzZWxlY3RlZExpbmVDb3VudCI6NjEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjZiYjA1YTZiZDM5MmZhNzk5N2I1ZjIwYmI4ZmU3MGYyMjIyM2FiNzE2YmI3MTc2NWE1MmIxODE2ODc2YzU1OGYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAxYmE0NzE5YzgwYjZmZTkxMWIwOTFhN2MwNTEyNGI2NGVlZWNlOTY0ZTA5YzA1OGVmOGY5ODA1ZGFjYTU0NmIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImI2OWQzNzllMjAxYzYxYmE4Y2VhNjAzMWQyOWNkYTEyNTEyOTIwMDUwYTJlZmYzYjMyM2MxNTMzYzBiMWUwMTQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjhhNDRjNjVkOWY1NDUzMjQ2Y2M2NTlmZGRmMzJhM2Y1ZjIyMTFlMjEwMmFlMWRiYWIwNWMyMDZmMjRkMWQ5NWUifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_e374c9b3b5fd4de8aede19094e575490",
+      "statement": "`portfolio_router` (prefix `/portfolios`, mounted under `/api/v1`) exposes exactly five handlers — `GET /` (list for the current user), `POST /` (`{ name, accounts }` create), `PUT /{portfolio_id}/accounts` (full membership replacement), `PATCH /{portfolio_id}` (rename), `DELETE /{portfolio_id}` (hard delete returning a bare 204) — with no single-portfolio GET and no endpoint that changes name and membership together.",
+      "evidence": [
+        {
+          "resource": "repo://src/account/router.py#L67-L67",
+          "version": "repo-lines-v1:sha256:3403763960328493c209508ed24d3390c4fa4c9502f157895213227ce2408e30:eyJzZWxlY3RlZExpbmVDb3VudCI6MSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiMzQwMzc2Mzk2MDMyODQ5M2MyMDk1MDhlZDI0ZDMzOTBjNGZhNGM5NTAyZjE1Nzg5NTIxMzIyN2NlMjQwOGUzMCIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiMzQwMzc2Mzk2MDMyODQ5M2MyMDk1MDhlZDI0ZDMzOTBjNGZhNGM5NTAyZjE1Nzg5NTIxMzIyN2NlMjQwOGUzMCIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiYWViZDA2Yjc3MWIyNTY3OTQ4MWVhNjhkN2VjMmM4OGUwZmNjNzNhNGNjMWRhYWUyMzRiNjU1MDU4ZGMwMmY3NCIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiYWZjMWNlZTdlZjBiOTEwNzViMDcyYmUxZmUxZDQwZTI4ZGNiOGI1NDU3NjRmOTUxNTA0ZTQ0Nzg2MzcyNTNjNiJ9"
+        },
+        {
+          "resource": "repo://src/account/router.py#L70-L163",
+          "version": "repo-lines-v1:sha256:19dc56e53812fab64e0b40cc4506073f8e9ca0290a9a93ccf694df83956f9768:eyJzZWxlY3RlZExpbmVDb3VudCI6OTQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjMyZGFhNTM5NDZkODhiNDMzMjA1NjlkYTA0OTYxZDE1OTQ5YTY4OGIwYzdiZDU3YjMxZGE2MWJhMmJiOWJjOTIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImJkNmIzMzVkN2RkNmY5YTJjYjU5ZmJhMjY5MWY3NmEzODk5ZDFlMDY2MjY1YTQ0ODI2MzNkNjYwY2ViMmFiMTMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjIyYzY0ZWE3NWJmMTRkYmVmNzFkZDAyMGRlNjYyMjQ1ZWM0YTJkYzQ0YWUwZDQ4MTQ5MmIzNTI4ZWYzMzBiNTgiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImJlMTNiYWRkOTc3ZjY4N2Y3YjkxNDk0MWRiZjE1OWY4NWJhNjI0NThlMjkzMDVkY2YwZjViN2YzMjk0NmQ5YjMifQ"
+        },
+        {
+          "resource": "repo://src/account/schema.py#L205-L219",
+          "version": "repo-lines-v1:sha256:ac62b937c90821dc20af5bc15cc017cbe160a261663ab4ba6822796d0aed85d3:eyJzZWxlY3RlZExpbmVDb3VudCI6MTUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImFjMjFmMDk0ODU0ZGU2MWVhYTI2YmE0N2Y0OWQzNGRlMjM1MzgxOThiYjQ0ZThiNDZhYjNiNTE2OGIzMTBiNzQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImE5MmE5MjFjODNhMjEyMzc1NmM5ODFiN2Q2ZDdhYWJmMTI5NGRlN2FhMzk2MWNmYTI0NjI5N2ViYWFjODk3ODciLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImU0MzJkZjI0YjMyYTE2MjZmMThiYjc2MjcxZTI0YTZiMDMyZGI1NmZiY2FkZjUxYjA1NDBiMDZjZjY4MDdjZWYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_049cc06154054ddfbf73264e4b859520",
+      "statement": "The three id-addressed portfolio routes each run `AuthorizationApi.check_entity_owned_by_user(user, portfolio)` in the router in addition to the service's own checks; that helper raises `HTTPException(404, \"Entity does not exist\")` for both a missing entity and one owned by another user, so a foreign portfolio is indistinguishable from an absent one and `test_portfolio_{update,delete,accounts_update}_not_owned` assert 404 exactly like their `*_not_found` siblings. `portfolio_accounts_sync` additionally repeats the account-ownership check at the router level before delegating, so no membership `DELETE` is issued until existence, portfolio ownership and account ownership have all passed.",
+      "evidence": [
+        {
+          "resource": "repo://src/account/router.py#L95-L163",
+          "version": "repo-lines-v1:sha256:d51a3eded0d0a0428efee7ec466759393610e6eb84669b24a9ede4ca3474c35a:eyJzZWxlY3RlZExpbmVDb3VudCI6NjksImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjU4MDgwYmFmOGIyNWM2OGI5ZjY4NzM0NGM4ODRmZTBlYTM0MmRiYjEzM2IxZjYzZTc2YWJkNWNkYzRiYTJhYmYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImJkNmIzMzVkN2RkNmY5YTJjYjU5ZmJhMjY5MWY3NmEzODk5ZDFlMDY2MjY1YTQ0ODI2MzNkNjYwY2ViMmFiMTMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImFmYmYwZTliZWYwYjEyM2UzZTA2ZDIyOTg1NDExNmYwY2Q0ODM0M2Y2ODkwMDgyMTdjMTRmN2Y4NDBjMmMzMGQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImJlMTNiYWRkOTc3ZjY4N2Y3YjkxNDk0MWRiZjE1OWY4NWJhNjI0NThlMjkzMDVkY2YwZjViN2YzMjk0NmQ5YjMifQ"
+        },
+        {
+          "resource": "repo://src/auth/api.py#L274-L280",
+          "version": "repo-lines-v1:sha256:6437c188908448b78d4fad57a3e658708ece4af1023d605d927aceb9221070cb:eyJzZWxlY3RlZExpbmVDb3VudCI6NywiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiNmJmNzdiNWIwMjBlNDMxYmYyMjYyOWY5ZmM3ZTRhZDBkNjllMGNhMzgyNzNiOWM2NjM3YzY4M2VhYmFjMzY1ZCIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiZmY1OWE1ZjgzYmEwZDYzMGJlYTg4NGJmNjM5ZDk5N2QwMGM1Mzk4YjJlZDA1MWRlZmEzZTM1MzE3Y2E5ZDMzMyIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiNTRiZDRkMzM2NDI1NjcxYjVkMWM3M2EyOTQ2ZDM4MjQzZmYwNGU5N2IyNmQ2ZWE0NThmMDU2MWNlNzM3MzQ0NiIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiMjZkYWIyYWZlMTU5MmYxNjg3MDNkYThmMjIxYWNiNjA0Mzg4NTk2N2RiNDFmN2I4ZjFkNTBlODAyZjUzNjY3NCJ9"
+        },
+        {
+          "resource": "repo://tests/routers/test_portfolios.py#L160-L221",
+          "version": "repo-lines-v1:sha256:ca2db4bd471513aab6a9f1930099f7186485923dc6dd8885789f8ad569e8abfd:eyJzZWxlY3RlZExpbmVDb3VudCI6NjIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjUwNjU1MGU2NTNjODNkYmM3OTUzNWIxZDgzMmVkMzU1Nzk5ODZmYmQ3NDlhYzIxNmU0ZTExNjM5OTUxY2NlN2YiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImQ0NDMxNThhNDc3OThmMTc1OGZjMzIyZWJjMDQ2Njk4M2ZmNGJhNTVkY2ViMjA5OGI4ZmFlYzY0YzBmZThkOGMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImJlYzJiMTM5NmM4YTFhZDUwZDIxZTQ4MGVmOWIwMTk2ZWVlNjc2NjgxZTY3NTRiYzY0NjRjNzRjYWRiYmE2MTAiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImJlYzJiMTM5NmM4YTFhZDUwZDIxZTQ4MGVmOWIwMTk2ZWVlNjc2NjgxZTY3NTRiYzY0NjRjNzRjYWRiYmE2MTAifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_bb835ff9fd60442499267fecd5499989",
+      "statement": "Deleting a portfolio cascades through `PortfolioModel.portfolio_accounts` (`all, delete-orphan`) and removes its `portfolio_accounts` rows but never touches the accounts or their positions; symmetrically, `SqlAlchemyAccountRepository.delete` explicitly deletes the account's `PortfolioAccountModel` rows (and `PositionModel` rows) before the account row, so no dangling membership survives an account deletion.",
+      "evidence": [
+        {
+          "resource": "repo://src/account/model.py#L112-L117",
+          "version": "repo-lines-v1:sha256:7722602aa1bc7d640358fae63e4fc67776399858f1e30d2c0aa16fa8fd1cfeeb:eyJzZWxlY3RlZExpbmVDb3VudCI6NiwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiNmIyZGJiYWE0YzE5OWJhYTk2MTUwZThhMjMxZWZmNTk1Njg5ZDgyN2FiYmFlOTRhNGVmZjY2YzZhMjUzY2M5MyIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiMzBjMWYxODhmMTQyZWQ3YTgyNDY4MGIyMDcxNzJjNTUxOWJjNjE0YTQ4ZmRhN2NmMTY3ZWRiOGRkZjc5OTU2YyIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiNzQ2OTI3OTQ2OTM1MTYyNGZmYWQ2NWE0YzJkYjIxYWRjZjY0YTFjMjlhMzg2OWY3ZjRhYjA5NjdkZjg4NzZkYyIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiYzllNjQ1ODQ5MzU5YmQwOTkwNGU2MjNkNjFkMjMzN2Q4N2M2MWQzNDMzMzYyMjE4NDAzOWY0OTIyZDNjN2EwYyJ9"
+        },
+        {
+          "resource": "repo://src/account/repository_sqlalchemy.py#L140-L153",
+          "version": "repo-lines-v1:sha256:1dc2e58c89399b02af854e67629a898caf495ac2836f3d0e1ee8ec624a363379:eyJzZWxlY3RlZExpbmVDb3VudCI6MTQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ0ZGE5MzUwMDE5ZGMxZTY2NzQ1MjY0Mzg3MzE2MTk5NzIyNWU5Y2U2MDEwN2FmN2I2NGY4NDBkZGVjZmRhNGYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImM5NDRhMDZiYTQ1NDVkYzQ1YjZjYTQ5ZjM3Y2IyM2JiNjViYWZjZDUyODg3ODQyMDU0ZThkNzM1ZDNiNzhkMzQiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjRjMzQxZjM0MWZlMGFlM2YxMjQ5M2I4Njg5ZGM4NDVlZDNmZGIyZGUzM2RhZWNlN2I0OGMzMDQxMDRhYjMxOGMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImY5NTlhZmMwYTUxMWFkZTMzOGEyZjc0ZTM3ZDg1M2UwY2UxNGM2YWEyZjc1NTUwNzdhOGQ5YjU1Y2VhOWRlNmMifQ"
+        },
+        {
+          "resource": "repo://src/account/repository_sqlalchemy.py#L402-L407",
+          "version": "repo-lines-v1:sha256:748af3394ced361d242633390b3bfc07dfdd74d8df946451913196e8e194245d:eyJzZWxlY3RlZExpbmVDb3VudCI6NiwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiNDRkYTkzNTAwMTlkYzFlNjY3NDUyNjQzODczMTYxOTk3MjI1ZTljZTYwMTA3YWY3YjY0Zjg0MGRkZWNmZGE0ZiIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiMzQ2MTU4OTY5NTk2YWFmYjlmOWJlMDk1MTQwYzBlYTEzMGFkNjkzYmJkZmZkYmZkYjc2MjQ1YmY2NGI2NjIzZSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiN2I4ZDgyZjRlY2FhYWVhODE2ZTJlYjg1MDk2NGM1NDI4MTUxZjE3YmQ4YjA0MjA3Zjg1MjRjYzBiZGExMWI2YiIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiYzRmZWZmNmIzYWU4OTZiYWZjOTdmYjdhMjY5MWRiZTI0YjRiZWFkODAxYzI3NDRlMTEwMDM0OTEyZWU2NDEyYSJ9"
+        }
+      ]
+    },
+    {
+      "id": "claim_133dd6621ace43ad9499fad383accc6c",
+      "statement": "Portfolio request validation and failure semantics: `PortfolioCreate` requires both `name` and `accounts` and `PortfolioUpdateRequest` declares `name: str = Field(..., min_length=1)`, so malformed bodies are 422; unknown portfolio ids are 404; foreign or nonexistent account ids raise `AccountsDoNotBelongToUserError` (an `AuthorizationError`, not a 404); and a duplicate `(user_id, name)` surfaces as a raw database `IntegrityError` because no uniqueness pre-check exists in `PortfolioService`.",
+      "evidence": [
+        {
+          "resource": "repo://src/account/schema.py#L205-L219",
+          "version": "repo-lines-v1:sha256:ac62b937c90821dc20af5bc15cc017cbe160a261663ab4ba6822796d0aed85d3:eyJzZWxlY3RlZExpbmVDb3VudCI6MTUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImFjMjFmMDk0ODU0ZGU2MWVhYTI2YmE0N2Y0OWQzNGRlMjM1MzgxOThiYjQ0ZThiNDZhYjNiNTE2OGIzMTBiNzQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImE5MmE5MjFjODNhMjEyMzc1NmM5ODFiN2Q2ZDdhYWJmMTI5NGRlN2FhMzk2MWNmYTI0NjI5N2ViYWFjODk3ODciLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImU0MzJkZjI0YjMyYTE2MjZmMThiYjc2MjcxZTI0YTZiMDMyZGI1NmZiY2FkZjUxYjA1NDBiMDZjZjY4MDdjZWYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
+        },
+        {
+          "resource": "repo://src/account/service/portfolio.py#L42-L51",
+          "version": "repo-lines-v1:sha256:7b5a1fa34aabc73940be146f5f3281c29561fb5133ee19780f0be6edf3160158:eyJzZWxlY3RlZExpbmVDb3VudCI6MTAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjY3YTIwMDU1M2QyOGE3ZDk3NGY4ZTMxZWI4YWM5NDhjYjUzMmRlYTIzMjE3ZjU5ZWY5ZWM3ZTg3NzBlYThkMzQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImVhYmJmYjY5NGY1ZmY3NDBhNGQwMWMyM2RmYmFhNGNmM2M2ODBhOTVkZmQyMTY2NTU2YmZhNTdiN2I1Y2I5NDAiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImE3ODFlYzQwNWY2NzZlZTZkN2M1MDAyOGZmODA4MzgzZTc3ZjQ5NDNiMjE4OWY1ODNjMTczZWM4YTc4OGE0YzkiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjNlNjFhNjYyMDVlYWMxZTIxMDY5ZjEwNmNlZmZlMDg0OTEyOGVjZmIzMWEzN2ZkODY4MTZjYzUxYjcxNDg0NDcifQ"
+        },
+        {
+          "resource": "repo://tests/routers/test_portfolios.py#L293-L316",
+          "version": "repo-lines-v1:sha256:524966880901c833e2fe2869784948e3a14f2849f80fd572d31fd57409b63bdb:eyJzZWxlY3RlZExpbmVDb3VudCI6MjQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImI3YTgzMWZhNDcyNmZjMjMxNTE0NGY5YTA1NWJmZWMyNWYxYWZkMTI2YWFmZjU3YWZmYmU5NDBlZjVjNmE3MzUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjM4MDc1N2I4MzZiNjEyZWJhZjYzZTBmMzkzNWJiZGFhYmU5YmFjNjQxNDAwNDUwMDk3MTdlODBiY2I3NjIxNzciLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjgyNGRlNzdkNjc1YzZjZTdhM2NlOGUyODIzNzg0ZTgzOWQzZTA4Yjk4NTRmZmVkNTc4NTczNmMzNzllODY3ZGQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjoxLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjAxYmE0NzE5YzgwYjZmZTkxMWIwOTFhN2MwNTEyNGI2NGVlZWNlOTY0ZTA5YzA1OGVmOGY5ODA1ZGFjYTU0NmIifQ"
+        },
+        {
+          "resource": "repo://tests/routers/test_portfolios.py#L69-L84",
+          "version": "repo-lines-v1:sha256:70be6a2484775cd6adb35a2d87c00e780af7ab7480980d3496d17e563c01f1c9:eyJzZWxlY3RlZExpbmVDb3VudCI6MTYsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImI3YTgzMWZhNDcyNmZjMjMxNTE0NGY5YTA1NWJmZWMyNWYxYWZkMTI2YWFmZjU3YWZmYmU5NDBlZjVjNmE3MzUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjM4MDc1N2I4MzZiNjEyZWJhZjYzZTBmMzkzNWJiZGFhYmU5YmFjNjQxNDAwNDUwMDk3MTdlODBiY2I3NjIxNzciLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjBiODhhYjBiZGM3Zjg2MGM2M2MzNWJmMWY4NzgzY2UyMWFhM2ZjZTRiM2M5MWU2OGY0ZmNkMmQ3ZDgzOTlhNDYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImJlYzJiMTM5NmM4YTFhZDUwZDIxZTQ4MGVmOWIwMTk2ZWVlNjc2NjgxZTY3NTRiYzY0NjRjNzRjYWRiYmE2MTAifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_a2a8b05e14fe43dbac07eb10e6c2dc2b",
+      "statement": "`frontend/src/routes/portfolios/+page.server.ts` is the strict awaited SSR shape: it reads `auth_token` from cookies, awaits `getPortfolioClient(fetch).getPortfolios(token)`, and on `ApiError` either deletes the auth cookie and throws `redirect(303, '/auth/login?clear_session=true')` for a 401 or re-throws `error(status, message)`, with any other failure becoming `error(500, 'Internal Server Error')` — all four branches pinned by `page.server.test.ts`.",
+      "evidence": [
+        {
+          "resource": "repo://frontend/src/routes/portfolios/%2Bpage.server.ts",
+          "version": "repo-file-v1:sha256:58b74c82c5b2bed73cc0cc14826d97908a0fde96629ed0b28dc56df5c65c99e6"
+        },
+        {
+          "resource": "repo://frontend/src/routes/portfolios/page.server.test.ts#L50-L117",
+          "version": "repo-lines-v1:sha256:fb17ae6e05f3b898d6fab56c9160ea5e3dc6315b2c535940d63042ca7c43eded:eyJzZWxlY3RlZExpbmVDb3VudCI6NjgsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImI3YmE4ODc4YzFkYjMwMTU5YmIwMTAzZDQ2MjYxMDI0ZGY3NTIzYjU4YTM4NWU5ZmE4ZmM4NGE0NGQwOTIzZWYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImY2ZjViNDBiMTU4NDU3ZDE3ODY0ZjIxNzkwNzg2ZGQ1YTJlY2RiNjRiNjZhNjUxZjc4OGQ0ZTI1Y2QzMzAzZDIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjQ5ZmI2Zjg0M2IxNzczZGJhNjZiNzI4YjdmMmViNzAxYmE0NzZkNjNlYTBmMGJkMmI1YzQ4OGU1MmYzODM1MWYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_bf67d69d4a0c40dba53f02347a13e473",
+      "statement": "The `/portfolios` page performs rename and delete entirely in a local overlay (`localPortfolios` `$state` with `portfolios = $derived(localPortfolios ?? data.portfolios ?? [])`), calling `portfolioClient.updatePortfolio` / `deletePortfolio` and rewriting the overlay, with no SvelteKit `actions` and no `invalidate`; failures only `console.error` and leave the server-provided list in place. `PortfolioListItem` drives both through `EditableTitle` (title `href` `/holdings?portfolio_id={portfolio.id}`) and a `ConfirmationModal` behind an ellipsis dropdown, and `page.svelte.test.ts` asserts the `/holdings?portfolio_id=port-N` hrefs, the rename payload, the delete call plus row removal, and a cancel path that does not call the client.",
+      "evidence": [
+        {
+          "resource": "repo://frontend/src/routes/portfolios/%2Bpage.svelte#L10-L29",
+          "version": "repo-lines-v1:sha256:6342b0f20f00a5a0e169e02d15396ff291ead6fb80411863b9b0f129ff808426:eyJzZWxlY3RlZExpbmVDb3VudCI6MjAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjYzMzEwYzY0ZWUyZTg0YjczM2U4NTAyM2FiNDNjZmJiNDcyYjhmMDZiMjhmNDkyMDRkNjNhMGVkY2M0NDViYzciLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjY3Y2RhODJkYTYwNjIzOGUwNWU2MjM5OTU2OWM1ZWUwMzk5MzQxOTY0OGFlNWQ0M2EyYmY4Y2Q2MzQ3ZjgyNjMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImI2NGRmZTNmOGY2MGNkMzVmN2I0NjkzNTg4MmM5NjcwODE0ZWE4Y2JjNGMwZDZhYzU3ZTAwYjVkZGM5MmZkYTAiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImI4MGEyN2EyYjI1YzUyOTc0YWE2NGY4OGRmZTk4YTMxZmViMzIwODNiNGMzYzdmNTZiZTVkYmEzZjIyMjhlYjYifQ"
+        },
+        {
+          "resource": "repo://frontend/src/routes/portfolios/page.svelte.test.ts#L118-L219",
+          "version": "repo-lines-v1:sha256:b5c07af02491774a415ac793def36cd245927871c2821c35a1b636730f91b094:eyJzZWxlY3RlZExpbmVDb3VudCI6MTAyLCJmaXJzdFNlbGVjdGVkTGluZUhhc2giOiIwNDNjYzMwNmNmNGU5MTg4Zjk0NDZmZmMxOWE4ZjczNDAxNzkyYmJhYzI1OWQ4OGRlZmZmMDc3ZjVlOTc0ODMzIiwibGFzdFNlbGVjdGVkTGluZUhhc2giOiIwYTczNDkyZDg5NDZiMWQwZjlkOWMwNGI3MDRhOTIwZjI0Zjg5ZWY3YzdmNzMxMWE4NTk5ZDEwYzdmNjM1OGQwIiwicHJlY2VkaW5nQ29udGV4dExpbmVDb3VudCI6MywicHJlY2VkaW5nQ29udGV4dEhhc2giOiJiOTNhNWM1YmFiN2QzN2NkMGQxMjgyZDhlYjM0OTE0ODA4YTUyMzFiZDY0N2RlMTI0ZjNhZmQ5MzRmNzU1YmM1IiwiZm9sbG93aW5nQ29udGV4dExpbmVDb3VudCI6MSwiZm9sbG93aW5nQ29udGV4dEhhc2giOiJmNmY1YjQwYjE1ODQ1N2QxNzg2NGYyMTc5MDc4NmRkNWEyZWNkYjY0YjY2YTY1MWY3ODhkNGUyNWNkMzMwM2QyIn0"
+        },
+        {
+          "resource": "repo://frontend/src/routes/portfolios/portfolio-list-item.svelte#L33-L99",
+          "version": "repo-lines-v1:sha256:d1844a07b9db82131c71cd457d384d9a0548727279e6f302c7df9ff1da8d084f:eyJzZWxlY3RlZExpbmVDb3VudCI6NjcsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjRiY2FhZjkyZGEwZTZkYjZiZjEyN2E4MjM2MTBjNGJkMTEwYjdiODYxMzA5ZmQzMWNkMTI3NTg5ZTY0YWM3MzAiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjcwOTg5Nzg0YjkxMDc4MGUyNDM3YzZlN2E5ZTUwODY1MzNhODQ4Y2UxMTUyYzA4MTcxOTJjNzU5M2ZiNjMyNjgiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjU1NTQ4MDkxNjc4MDI2OTA2NjI1YzBmNTAxOWEwMWM5Njg5MTYyNmUwN2VhMzU1NTQ0NzJhZTRhZjFlY2JiOWYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_19136424f02040679c6672a020a78e42",
+      "statement": "Portfolio creation lives in the accounts dashboard, not on the `/portfolios` page: `AccountsListState.handleCreatePortfolioClick()` toggles selection mode and then opens `createPortfolioModal.open(selectedAccounts)` with `string[]` ids, and `create-portfolio-modal.svelte` pre-fills `Portfolio - {YYYY-MM-DD}`, client-side rejects an empty name or empty selection, then posts `portfolioClient.createPortfolio({ name: name.trim(), accounts: modalState.data })`, closing and calling `onCreated` on success while surfacing the error inside the still-open dialog on failure.",
+      "evidence": [
+        {
+          "resource": "repo://frontend/src/lib/components/accounts/accounts-list.svelte.ts#L179-L208",
+          "version": "repo-lines-v1:sha256:9a457e861070e8a97a93f80f1d55ab5b1d05f182ce430f5cd2eb93bb3c2b94dc:eyJzZWxlY3RlZExpbmVDb3VudCI6MzAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAwMWZiYjg1MmM2M2JjYTlkYWIzMTVjZTUzY2RkOTI4YjM1NWUxNWVkMGE3YWNkNmE1OWQ0YTI0NTZkYjJhZTkiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjY3Y2RhODJkYTYwNjIzOGUwNWU2MjM5OTU2OWM1ZWUwMzk5MzQxOTY0OGFlNWQ0M2EyYmY4Y2Q2MzQ3ZjgyNjMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImRkNjlhNTgxNzM2NDU2MmM0Y2U2ZTE5ZTc5MWQ2ODdiMmQxNDUzNDE4OTkzMGZmZGQ0MmE2OTBhMmY3MDFmODgiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjEwMzc3YjY1NjA3YmFiODRlNzQ4NzFmYzYxZTk4MWZkZTdlYzZiMDg4N2Q3NTEyZTZjNDg4MDJjNjdjOGM2ZDAifQ"
+        },
+        {
+          "resource": "repo://frontend/src/lib/components/accounts/create-portfolio-modal.svelte#L20-L62",
+          "version": "repo-lines-v1:sha256:b8393b69f9444b5c9d1037f71309088fb55cbedb2b82a1b5b2ce69edce1239a9:eyJzZWxlY3RlZExpbmVDb3VudCI6NDMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjRmZmYwNjMzNDhhMWUxYTMyNTEzZWFjYzAxNmZjMjVjZmZlZjBiNGM5MGJmMGM4ODhlZDU4NTdmMjEzYTMyZGMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjY3Y2RhODJkYTYwNjIzOGUwNWU2MjM5OTU2OWM1ZWUwMzk5MzQxOTY0OGFlNWQ0M2EyYmY4Y2Q2MzQ3ZjgyNjMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjhmODM1M2Y0ZGE0ODBhNGZkZjhiMGNlZjQ3NTFiZDFlMjA4ZTgyOGJlMWE3NTFkZTBiMDU1NzM0N2U3ZjFkZTkiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjA1NDljMmE1MGU0MmZiNjFiYjJjMDYwZmJjZjA1Yjc4ZGRjZmFiZjRhNmZkODk1ZGZjZjllMjM2NDg1MmYyNzcifQ"
+        },
+        {
+          "resource": "repo://frontend/src/lib/components/accounts/create-portfolio-modal.test.ts#L26-L96",
+          "version": "repo-lines-v1:sha256:0d0f90649996f4f223425887173b7468aa1c391a1f9836d9a17249efb50d0ca9:eyJzZWxlY3RlZExpbmVDb3VudCI6NzEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjJkMTg1M2ZmMzVjYjA0ZTY3YmIyODU5YzVmZDdlMWNiYTRiZDcyMDFmZDBkY2VmM2E4OTg1ZTk0YzUzYWQwZjEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjBhNzM0OTJkODk0NmIxZDBmOWQ5YzA0YjcwNGE5MjBmMjRmODllZjdjN2Y3MzExYTg1OTlkMTBjN2Y2MzU4ZDAiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImM0ZmFjNmZlZDY0OGU4YjJiNDAzYWM2OTk2NDUyMTgyODI1Mjc3NDQ3NWVmYzVlNjcwODhiODNjZDU1NDcxM2IiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjoxLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImY2ZjViNDBiMTU4NDU3ZDE3ODY0ZjIxNzkwNzg2ZGQ1YTJlY2RiNjRiNjZhNjUxZjc4OGQ0ZTI1Y2QzMzAzZDIifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_d348bee337584bc6aca32851647080a0",
+      "statement": "`PortfolioClient` (`frontend/src/lib/api/portfolioClient.ts`) wraps `GET /portfolios/`, `POST /portfolios/`, `PATCH /portfolios/{id}` and `DELETE /portfolios/{id}` and exposes no method for `PUT /portfolios/{id}/accounts`, so account membership can only be set at creation time through the UI even though the backend sync endpoint exists; `Portfolio.accounts` is a full `Account[]` from `frontend/src/lib/types/portfolio.ts`, which is what the holdings filter consumes.",
+      "evidence": [
+        {
+          "resource": "repo://frontend/src/lib/api/portfolioClient.ts#L4-L35",
+          "version": "repo-lines-v1:sha256:8a0ebe2c6e162c4535065e497a01da3fa65f777d6879b659ce4ca9ff3dd3440a:eyJzZWxlY3RlZExpbmVDb3VudCI6MzIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjUwZjUyMGY5NzEzMWE5NDU4M2JmNmU3OWRhYTg2YTMwZDQ3MmNkMmYzOTc1YTkzZGRlOTgyMDEwZGU4MWViOGMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjkxNjljNjMzYmMwNjAxZmM5ZGZiNDY5ZmVlMDlkNDJmNmNjMWNlZGI0MjdkNDE3MjVlMDk0NDlhZGI5YTQ5YzkiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjNjODAyZGJjMzQ3N2U0NGE5NTYyZGFjMjA4YTk5NTY0NDViYTA2ZTQ3NGExZjRiZTNhMTczZjQ4YWQxNDgxZWIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
+        },
+        {
+          "resource": "repo://frontend/src/lib/types/portfolio.ts",
+          "version": "repo-file-v1:sha256:62bc988c81a2ddc880337a7706ba2003e79c4e8bfdd104ce3a967573bbc87044"
+        },
+        {
+          "resource": "repo://src/account/router.py#L95-L121",
+          "version": "repo-lines-v1:sha256:3840025d370b1353c21251749b13e9b15f3a3ffb5bfb7ed2979a18da077497d0:eyJzZWxlY3RlZExpbmVDb3VudCI6MjcsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjU4MDgwYmFmOGIyNWM2OGI5ZjY4NzM0NGM4ODRmZTBlYTM0MmRiYjEzM2IxZjYzZTc2YWJkNWNkYzRiYTJhYmYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjMwYzFmMTg4ZjE0MmVkN2E4MjQ2ODBiMjA3MTcyYzU1MTliYzYxNGE0OGZkYTdjZjE2N2VkYjhkZGY3OTk1NmMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImFmYmYwZTliZWYwYjEyM2UzZTA2ZDIyOTg1NDExNmYwY2Q0ODM0M2Y2ODkwMDgyMTdjMTRmN2Y4NDBjMmMzMGQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjAwZWE1ZGNmNzZiMDg1MDk4MmU5MzQzNWVkN2YyNjY4ZGMyMmU4ZjEyOWNlYTA0NGM5OTUzMjg2NDUxMmZmNDYifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_b6402355c3be46eb9b1bcd05822b14b8",
+      "statement": "The portfolio client module exports both `getPortfolioClient(customFetch)` — the factory SSR uses with SvelteKit's load `fetch` — and `portfolioClient`, a module-level singleton used by browser-side callers, so a test cannot intercept the singleton through a stubbed `fetch` and must mock the whole module; every portfolio UI suite does (`portfolios/page.svelte.test.ts`, `create-portfolio-modal.test.ts`), while the two server loads mock the factory, and `portfolioClient.test.ts` is the only suite exercising the real class against a `vi.fn()` `global.fetch`.",
+      "evidence": [
+        {
+          "resource": "repo://frontend/src/lib/api/portfolioClient.test.ts#L6-L13",
+          "version": "repo-lines-v1:sha256:a4e63f9cf3f063d70b740fdcf3301f90e67b48951b84f62edb491db66329b519:eyJzZWxlY3RlZExpbmVDb3VudCI6OCwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiZGY1NTllNDQzMWUxM2MxNTEzNDY0OTlmOTU1YzM4NTY2OTA4NTY5ZjZiZWYwYzAzOGNhZmVhZGU3OWRiOTM4NiIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiMGE3MzQ5MmQ4OTQ2YjFkMGY5ZDljMDRiNzA0YTkyMGYyNGY4OWVmN2M3ZjczMTFhODU5OWQxMGM3ZjYzNThkMCIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiMDZhY2VhZDg3N2NkMTkxOWUxMzQ2NTNkYWNkZTNlYzkzNWViNWUxMmI5NTZkYmRlZDkzYmFjNGNkODA3NWMzNCIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiMmE2ZTM2YTIyZGY5Zjg0NjEzMzE2NDVlMjM3YjhiZTI2N2M4YzRlOWZhMjVkNzhjMGQ2MzBkZjEzNDkxOWUwMCJ9"
+        },
+        {
+          "resource": "repo://frontend/src/lib/api/portfolioClient.ts#L34-L35",
+          "version": "repo-lines-v1:sha256:f7ffdd75fc6010ffc233c11e93f79630a7ca59819226912311435425259a0b76:eyJzZWxlY3RlZExpbmVDb3VudCI6MiwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiOWFiNTZmZDU0OGYyMTRlODI4MDQ1ZTQ4MzU2NTFiZjZjZWNhYzkyMjIyZDg4MDQ2NjIwOWMxNjkyNTU1MTBjNyIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiOTE2OWM2MzNiYzA2MDFmYzlkZmI0NjlmZWUwOWQ0MmY2Y2MxY2VkYjQyN2Q0MTcyNWUwOTQ0OWFkYjlhNDljOSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiZjI5NjQwNzljM2M1YzgxNTIwZWYzM2EyYjlkMmUxNWExYjg0ZDcyODBkYjg1OTBkY2Q2NTc0N2UzZTAxMmE0MCIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjAsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiZTNiMGM0NDI5OGZjMWMxNDlhZmJmNGM4OTk2ZmI5MjQyN2FlNDFlNDY0OWI5MzRjYTQ5NTk5MWI3ODUyYjg1NSJ9"
+        },
+        {
+          "resource": "repo://frontend/src/lib/components/accounts/create-portfolio-modal.test.ts#L8-L14",
+          "version": "repo-lines-v1:sha256:d8f5d770de4d01d1a5dafd6a0f48149f504fc5bf247f7ac41c339db9564f0b64:eyJzZWxlY3RlZExpbmVDb3VudCI6NywiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiOTk1Mzk0Y2Y4ZWFkMmNlMTg4NDYzYWQyY2NlNDQ5ZTM4MWZhZDA0ZmU3MTk5YmNjNzU1ZWI5YTRlZjhlZDE0MCIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiZjZmNWI0MGIxNTg0NTdkMTc4NjRmMjE3OTA3ODZkZDVhMmVjZGI2NGI2NmE2NTFmNzg4ZDRlMjVjZDMzMDNkMiIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiMTQ0NzNmN2E3YWVlMDc4MWRhMDRkMTFiYTUyMGI1NWJlZDEyYWQ3ZGE4MjNlMWFhN2Q5MTY5MzQ5YzhiNzQ3OSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiMjZkNWEwYzIxNmU4OWIwYTgxNmRiYzk2OTE2NmY4YzBjMzcxMjg5MzA1Nzg1YTY1YjA0MmQ5YTIwZTk4YmYwZiJ9"
+        },
+        {
+          "resource": "repo://frontend/src/routes/portfolios/page.svelte.test.ts#L13-L19",
+          "version": "repo-lines-v1:sha256:6c4fe8a822a2862bf168e56a38ae0fc02c62a89901c0da5b773c64e867322ab7:eyJzZWxlY3RlZExpbmVDb3VudCI6NywiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiODJkNmZiMzg3Y2FhYzI3OTY5YzRhYzhkN2ZhZDQzMGJkZWE1MmNmN2QyOWFkY2JmMjhjYmZhMzgyMDBiMDU3OSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNWI3NDFkMmMwOGU2ZjUxMGI3ZTlhMjY0ZjM3OGY5Y2UwMDQ5YTUwNGUwZTdlZjVkNjdjZDNlYTgxM2Y4NTQ3NCIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiZmViYjdiZmQ2NWY3ZGJiOTU0ODhjMDkxMzYyYTgxNjUxMjRhZTdhZmRiZDZjYTY3MjUwNzM5OTdmMjBkODhiMSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiYzY0NTMzMWE1NGRjMDhjNTUyNDJhNjQ5YjcxYmQxNjA0ZDRkMDBiOGViNjc2OTY1ZWU2NDZjODY2NWYxYjQxZCJ9"
+        }
+      ]
+    },
+    {
+      "id": "claim_92d7364f09f4494b9920c6d0e7fb832e",
+      "statement": "The `/holdings` filter seam resolves a portfolio client-side into account ids: `+page.server.ts` returns `portfolio_id` / `account_id` from `url.searchParams` verbatim alongside the `portfolios` and `accounts` lists fetched in the same `Promise.allSettled` pass without filtering holdings, and the page's first `$effect` looks the portfolio up in `data.portfolios`, maps `portfolio.accounts.map(a => a.id)` and calls `service.filterByPortfolio(data.portfolio_id, accountIds)`, with an unknown id degrading to an empty account list rather than an error. A dropdown selection repeats the resolution and `goto`s `/holdings?portfolio_id={id}` with `replaceState: true, noScroll: true, keepFocus: true`.",
+      "evidence": [
+        {
+          "resource": "repo://frontend/src/routes/holdings/%2Bpage.server.ts#L14-L78",
+          "version": "repo-lines-v1:sha256:c931956f609941416bc480cfd058e9a7c4686c0eceec9e693d569d060c7f7513:eyJzZWxlY3RlZExpbmVDb3VudCI6NjUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjA1ZGMxZDEwNWEwYTBjZjg4ZWE3YThlZDk1NTNkOGY2MTdmN2EyYWM5NzczZDZiNmFhNTFjZDEwZWVjYWRjNTciLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImNjM2EyMDc3NGQ1YzJiYjRjNzkwYzE4ODkwYTljNDk0Y2NiNTEwZmM4ZThjMDllYzc0NTE5YmMxNjRmYzc4NGIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjZmNzQzNjZhMmU1MjdkMTBkYjZlMDliNDE0NGJhNGNkZDA5ZWJhYjkxZDY0Y2FjYmYzYjc3ZGJmYzMxYTE3ZWIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjoxLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImFhMWQxYTYzMzkwMjI5Yzc5ODM0N2U4M2EwNDA1NDQxYzk0MDAwMzUyODRhZDE2OGMxYmY2Y2RmMWQ3MGEzNzAifQ"
+        },
+        {
+          "resource": "repo://frontend/src/routes/holdings/%2Bpage.svelte#L103-L128",
+          "version": "repo-lines-v1:sha256:b2be1fe9d8230cbaea8f3438b277157597b26f1591bce0405a243a2a6bc4f665:eyJzZWxlY3RlZExpbmVDb3VudCI6MjYsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImZhZjUyZDEwNGIzMTAxOGNmNTQzOTNiN2NiMDQ5YzFhOWIxMWZmNzgzN2ExY2NmZWMwOTEzN2EyMjJkMzY4ZDYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjY3Y2RhODJkYTYwNjIzOGUwNWU2MjM5OTU2OWM1ZWUwMzk5MzQxOTY0OGFlNWQ0M2EyYmY4Y2Q2MzQ3ZjgyNjMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImE2YTdlNzdmMWU3OTdhZDIzMmYyNzhhNjE2MDhkNTZhNWM4MWM2MGY5OGYwYjNjMTZjY2FlMjc3NGI2NzVlOWMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImFiN2M5OGVkZDViZTA0NDk0MWYyYmVmZjUzZjBkOWI4OTgxZGQwODBmZGI3OTliMGIxZWZkNThmNTVjYjdkZGQifQ"
+        },
+        {
+          "resource": "repo://frontend/src/routes/holdings/%2Bpage.svelte#L37-L48",
+          "version": "repo-lines-v1:sha256:b0227e3b3b4e579011e7c278914deb5d6f3de6216c5cc09090cfdab707426505:eyJzZWxlY3RlZExpbmVDb3VudCI6MTIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjU3MWFjMzY2ZTJjMDVhYzkwMWRlMGM4MzI3M2U0NmNkY2JiNmNjZDRjNjRiZmVkMDA5NmU1NTNlY2I2YzhlODIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjBhNzM0OTJkODk0NmIxZDBmOWQ5YzA0YjcwNGE5MjBmMjRmODllZjdjN2Y3MzExYTg1OTlkMTBjN2Y2MzU4ZDAiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjE0NjVhNTQzOGZlOGJlMzcxMDFjYTY3OTgwMjA5NGQ4Yjc0ZmUxMmJmNWEzYmFiZDIwNGYzMzlkYTFkMTY1MzkiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjQyODU4Y2EyYmI1NzMwZGNlZDI2NjIzNDE4YjM3N2VjMWM2YWJkN2E0NjYwZGQ5NjhhZTI2ZjFjY2E3MGFlYjAifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_d0baca94ae9542348099e10f23417fac",
+      "statement": "`HoldingsService.filterByPortfolio(portfolioId, accountIds)` stores the `{ type: 'portfolio', portfolioId, accountIds }` variant and the `rows` getter keeps only rows whose `account_id` is in `accountIds`, so a portfolio narrows holdings by an account-id membership test rather than a query parameter on `getUserHoldings`, and the page derives its subtitle and empty message from that filter state.",
+      "evidence": [
+        {
+          "resource": "repo://frontend/src/lib/components/holdings/holdingsService.svelte.ts#L20-L71",
+          "version": "repo-lines-v1:sha256:19686ad62827d83513898c1203dd9c7f62d9f5573a595d65c9e797ee5de95d5b:eyJzZWxlY3RlZExpbmVDb3VudCI6NTIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjRlNDc5NmM2ZTY3N2ZhMDQ3ZmEzNWNlOWVmMDUzMWM1OGQ4YTc5NmEzZmM3OTY5ZDI3OTY1YjcyMWMwYWZlY2UiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjY3Y2RhODJkYTYwNjIzOGUwNWU2MjM5OTU2OWM1ZWUwMzk5MzQxOTY0OGFlNWQ0M2EyYmY4Y2Q2MzQ3ZjgyNjMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImI1NDE4YWY2MjUxOGUyMmZkYzBjMDZjNDNmZjE1YWNhNDI1NjRlMjAyZmNjNDIyYTllNjcyMTNiMDJjY2E0YmIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjFjY2Y1YzhiNjQ0ZDliNDQ1ZThmNDVlZTVjNGIwOWMwMTczYjdlODAzODllYmIyZjQ0MjJlOTllMzIwNGFlN2UifQ"
+        },
+        {
+          "resource": "repo://frontend/src/routes/holdings/%2Bpage.svelte#L63-L101",
+          "version": "repo-lines-v1:sha256:9577f645d301d0e93bd9e06e72bbfcfb87b2abc33318d349ef0b09ec5fe56bd0:eyJzZWxlY3RlZExpbmVDb3VudCI6MzksImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImRiOTE1YWFlYjFhODMwM2U4ODg1OTc1MGY2ZmJiNTNjMGU4ZGE1Mjg3OWZkZjk0YzBkNmQxNWVlYTk3MzgyZTQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImFhMGM4YmQ0ODAzMTUxNDE0ZDI3YTBkNjA2MDE3NzgzMDRmZWVmZjYwM2VmMWUzMWNhMmE0YTQyMDJhODIwYTciLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjFhMDhjYjM1ODczZjk0NTAyMmNlN2VkYjFhNzhmMDU3ZjUxNjAxNDY5YzI4NjNmYTI5ZTg0MTQ3MGFjMjZkN2EiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjI1NThlYWFmMzRkZGIyMTY4MjUzMDMxY2NkYjljODA3NmFiZjVjMjM5NjQ3YjRjZjA4YTQ1NzRkNTk1MzJiYjUifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_6d71f2c956cd45a69a19bd0843dc7405",
+      "statement": "`tests/routers/test_portfolios.py` pins the router contract end to end: empty and populated list reads, create with one and several accounts, 422 for missing `name`/`accounts` and for an empty or missing rename name, membership sync that adds, removes, keeps and empties the set (including `accounts: []`), 404 for unknown and foreign portfolios on sync, rename and delete, rename reflected in the following list, and `DELETE` returning 204 followed by disappearance from the list — backed by the `test_portfolios`, `test_portfolio_with_accounts` and `other_user_portfolio` fixtures in `tests/fixtures/account.py`.",
+      "evidence": [
+        {
+          "resource": "repo://tests/fixtures/account.py#L168-L230",
+          "version": "repo-lines-v1:sha256:e96a486a021f329cdd8a416c1b39deb49d4f5d718c29922ac920721edbb7559e:eyJzZWxlY3RlZExpbmVDb3VudCI6NjMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjIzZjM2NmI5YmQ5YThkMGYzNDBhMmJjMGJlMWUyMmVlYTIwNTY4ZGQ3OGE0NTI4MWI3MjFiMzBmMjJkMDg3ZjAiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQyOTY2MjI0NDI2ZWFjZWJjYTZhYzQyNDdjYzU0YzhiOGY5ODk4ZTIxN2Q0ZTZjMWUwZDkwNmMzMjcyMjcxNmEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImFlZTBlMDE0MzE3OWExYWY2NjAxNTEyZTg5MzY4YzllNTc4YzNlODMwZTYxYzk5MjdlNTI3YjA0ZWNjYjc5MGQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImMxYjNhNTQ2Yjc3NjkwMzA3ZjcxOWJjNDMyNjQwZmJlMjUxZGQ1YThiZDllZThlMjI2OWFjMGJhNDI3M2Y5YjIifQ"
+        },
+        {
+          "resource": "repo://tests/routers/test_portfolios.py#L8-L316",
+          "version": "repo-lines-v1:sha256:d228c381b4ac0a3a782dae317bf678bc6699d2ccdc42ed8813d3821cf5cfb133:eyJzZWxlY3RlZExpbmVDb3VudCI6MzA5LCJmaXJzdFNlbGVjdGVkTGluZUhhc2giOiJiN2E4MzFmYTQ3MjZmYzIzMTUxNDRmOWEwNTViZmVjMjVmMWFmZDEyNmFhZmY1N2FmZmJlOTQwZWY1YzZhNzM1IiwibGFzdFNlbGVjdGVkTGluZUhhc2giOiIzODA3NTdiODM2YjYxMmViYWY2M2UwZjM5MzViYmRhYWJlOWJhYzY0MTQwMDQ1MDA5NzE3ZTgwYmNiNzYyMTc3IiwicHJlY2VkaW5nQ29udGV4dExpbmVDb3VudCI6MywicHJlY2VkaW5nQ29udGV4dEhhc2giOiJkOTdkNTNiYTZjMTMwMTA3ZmE4OWQ5N2NhNDUxODY1NjVlNDBjMzM2MDFjZGVmMzZhNDc5ZGRkOTY1Zjg5MjYwIiwiZm9sbG93aW5nQ29udGV4dExpbmVDb3VudCI6MSwiZm9sbG93aW5nQ29udGV4dEhhc2giOiIwMWJhNDcxOWM4MGI2ZmU5MTFiMDkxYTdjMDUxMjRiNjRlZWVjZTk2NGUwOWMwNThlZjhmOTgwNWRhY2E1NDZiIn0"
+        }
+      ]
+    }
+  ],
+  "verification": {
+    "by": "openwiki/0.7.0",
+    "at": "2026-10-04T13:39:13.522Z"
+  }
+}

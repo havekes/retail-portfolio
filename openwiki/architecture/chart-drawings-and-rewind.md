@@ -3,9 +3,6 @@ type: architecture
 title: Chart Drawings, Plugins & Rewind
 description: The chart drawing system end to end — the per-plugin series-primitive contract and helper stack, the finance-math boundary, ChartDrawingsService as the single owner of drawing state, preference persistence, undo/redo and snapshot saving, and the snapshot-to-rewind pipeline from Postgres to the security page.
 tags: [charting, drawing-tools, series-primitives, chart-plugins, snapshots, rewind, undo-redo, svelte]
-verified:
-  - by: openwiki/0.5.2
-    at: 2026-09-23T13:18:56.288Z
 sources:
   - id: openwiki-source-e483fd3285d99d05c7b265cf
     resource: repo://frontend/AGENTS.md
@@ -115,8 +112,6 @@ sources:
     resource: repo://frontend/src/routes/security/%5Bsecurity_id%5D/page.svelte.test.ts
   - id: openwiki-source-115309495c76af76d0a6a997
     resource: repo://migrations/versions/bea77d72aaf1_add_market_chart_snapshots.py
-  - id: openwiki-source-b1543404abfc927178353273
-    resource: repo://scripts/agent-test
   - id: openwiki-source-cc33fb93093886e62b166a26
     resource: repo://src/market/model.py
   - id: openwiki-source-8ba9c7034638e16be9336256
@@ -129,7 +124,10 @@ sources:
     resource: repo://src/market/schema.py
   - id: openwiki-source-82fce7bf4b134cbc785c3714
     resource: repo://tests/routers/test_chart_snapshots.py
-generated: { by: "openwiki/0.5.2", at: "2026-09-23T13:18:56.288Z" }
+generated: { by: "openwiki/0.7.0", at: "2026-10-04T13:39:13.522Z" }
+verified:
+  - by: openwiki/0.7.0
+    at: 2026-10-04T13:39:13.522Z
 ---
 
 The chart drawing system has three layers that must stay separate: **primitives** (lightweight-charts series primitives that own interaction and canvas rendering), **helpers** (shared plumbing under `plugins/helpers/`), and **pure finance math** (`$lib/utils/finance/`). Above them sits one page-owned orchestrator, `ChartDrawingsService`, which is the only thing that persists drawings, keeps undo/redo history, and saves/loads rewind snapshots. This page documents the contracts inside each layer, the per-plugin directory rules, and the snapshot → rewind data path.
@@ -239,9 +237,11 @@ Plugin layer split: the primitive owns state, a mouse adapter, a pane view and a
 
 ### Elliott Wave
 
-`ElliottWaveState` holds degree (`cycle` | `primary` | `intermediate`), wave type (`impulse` | `corrective`), the `DegreeWaveCount[]` collection, the in-progress wave id, selection (`selectedDegree` + `selectedWaveId`) and hover/drag targets. `addPoint` creates a new wave with a `generateUUID()` id when needed, assigns the next label (`0..5` for impulse, `[0, 'A', 'B', 'C']` for corrective), records `wave3Target` / `wave5Target` as points 3 and 5 are placed, and exits drawing mode once `MAX_IMPULSE_POINTS` (6) or `MAX_CORRECTIVE_POINTS` (4) is reached. `updatePoint` locates the wave by id → selected wave → degree and keeps the targets in sync when point 3 or 5 moves. `clearWave(waveIdOrDegree?)` removes the selected wave, the wave with that id, the latest wave of a degree, or the last wave overall, and `removeWave` clears any hover/drag/selection referencing it. All anchors are normalized to epoch seconds on ingestion via `normalizeDrawingTime`.
+`ElliottWaveState` holds the active degree (any `WaveDegree`; the toolbar offers the three `SUPPORTED_WAVE_DEGREES` — `cycle`, `primary`, `intermediate`), wave type (`impulse` | `corrective`), the `DegreeWaveCount[]` collection, the in-progress wave id, selection (`selectedDegree` + `selectedWaveId`) and hover/drag targets. `addPoint` creates a new wave with a `generateUUID()` id when needed, assigns the next label (`0..5` for impulse, `[0, 'A', 'B', 'C']` for corrective), records `wave3Target` / `wave5Target` as points 3 and 5 are placed, and exits drawing mode once `MAX_IMPULSE_POINTS` (6) or `MAX_CORRECTIVE_POINTS` (4) is reached. `updatePoint` locates the wave by explicit wave id → selected wave → degree (falling back to the last matching wave of that degree) and keeps `wave3Target` / `wave5Target` in sync when point 3 or 5 moves. `clearWave(waveIdOrDegree?)` with no argument removes the selected wave (falling back to the last wave overall); with an argument it removes the wave carrying that id, otherwise the selected wave of that degree, otherwise the latest wave of that degree — clearing the degree selection when nothing of it remains. `removeWave` clears any hover, drag, selection or in-progress reference to the removed wave. All anchors are normalized to epoch seconds on ingestion via `normalizeDrawingTime`.
 
-`elliott-wave/constants.ts` defines the per-degree visual configuration (`CYCLE_STYLE`, `PRIMARY_STYLE`, `INTERMEDIATE_STYLE`, `DEGREE_STYLES`) including the Roman-numeral / circled-number / parenthesised label conventions. The mouse adapter snaps through `adjustPosition`: a candle-wick candidate (only when `snapToWicks` is on) and a Fibonacci-level candidate (only when the nearest active level is within the pixel tolerance, independent of `snapToWicks`), returning the closer one with pixel-space ties going to the wick. Fibonacci levels are *pushed in* from the page (`setFibLevelPrices`) because the elliott plugin may not import the fibonacci plugin.
+Retagging a wave's degree is a page-level flow: the wave-degree modal calls `drawingsService.updateWaveDegree(waveId, degree, chartRef)`, which first asks the chart instance to retag the wave in place (`chartRef.updateWaveDegree`, delegated to `ElliottWavesPrimitive.updateWaveDegree` → `ElliottWaveState.updateWaveDegree`) and then runs `handleWaveDegreeChange` to persist the retagged collection through `handleWaveChange` and adopt the new degree as the active one.
+
+`elliott-wave/constants.ts` defines the per-degree visual configuration (`CYCLE_STYLE`, `PRIMARY_STYLE`, `INTERMEDIATE_STYLE`, plus one style per remaining `WaveDegree` in `DEGREE_STYLES`) including the Roman-numeral / circled-number / parenthesised label conventions. The mouse adapter snaps through `adjustPosition`: a candle-wick candidate (only when `snapToWicks` is on) and a Fibonacci-level candidate (only when the nearest active level is within the pixel tolerance, independent of `snapToWicks`), returning the closer one with pixel-space ties going to the wick. Fibonacci levels are *pushed in* from the page (`setFibLevelPrices`) because the elliott plugin may not import the fibonacci plugin.
 
 ### Fibonacci
 
@@ -348,7 +348,7 @@ Every mutation handler rebuilds the relevant per-security slice with a finance-l
 | `handleDrawingChange(toolKey, items)` (+ `handleMeasureChange`, `handleHorizontalLineChange`, `handleLineChange`) | `drawings` (via `updateSecurityDrawings`) |
 | `handleRemoveDrawing(toolKey, id)` (+ the three `handleRemove*` wrappers) | `drawings` (via `removeSecurityDrawings`) |
 
-All of them call `this._userPreferencesService.patchPreferences({...})` (a partial PATCH to `/accounts/me/preferences`), and most notify the page through `onPreferencesChanged`. Wave changes additionally trigger `onWaveAlertsReconcile` so wave-target price alerts stay in sync.
+All of them call `this._userPreferencesService.patchPreferences({...})` (a partial PATCH to `/accounts/me/preferences`), and most notify the page through `onPreferencesChanged`. Wave changes additionally trigger `onWaveAlertsReconcile` so wave-target price alerts stay in sync. The one exception is an in-flight drag: `handleWaveChange`, `handleFibChange` and `handleDrawingChange` then stash the new slice in `_pendingDrawingPreferences` and return without issuing a request.
 
 `normalizeDrawingsPreferences` runs at the preference-loading seam (`constructor`, `setPreferences`) and normalizes **every** security's drawings to epoch anchors. Without it, the restored date-string anchors would differ from what the primitives derive on feed-in, the chart's `$effect` equality guard would see a difference, and the app would write one extra preference patch per tool on first load.
 
@@ -457,7 +457,7 @@ The router surface (`src/market/router.py`, prefix `/market`, mounted under `/ap
 4. `captureSnapshot(...)`, then compare with the newest stored snapshot via `areSnapshotsEqual` — if equal, show "Chart snapshot already up to date" (`toast.info`) and do not POST. `showSaveFeedback()` flips the toolbar icon to a check mark for 1.5 s.
 5. Otherwise `snapshotsService.createSnapshot(securityId, { drawings, data_window, captured_at })`, append the **server-returned** snapshot, reveal the timeline and show "Chart snapshot saved". Failures log and show an error toast without touching the timeline.
 
-`loadSnapshots()` runs on page load alongside alerts and holdings; it sorts by `Date.parse(captured_at)` ascending (defensively re-establishing the backend's ordering) and sets `isTimelineVisible = true` when the security already has snapshots.
+`loadSnapshots()` runs on page load — inside the same `Promise.all` as `loadAlerts()`, `loadHoldings()` and `loadValuation()`; it sorts by `Date.parse(captured_at)` ascending (defensively re-establishing the backend's ordering) and sets `isTimelineVisible = true` when the security already has snapshots.
 
 ## The rewind timeline
 
@@ -506,15 +506,15 @@ Snapshot → rewind flow: saving persists drawings plus the data window, and scr
 
 ## How the page and chart wire it together
 
-`security-chart.svelte` constructs one primitive per tool and attaches each to the price series: `UserPriceAlerts`, `ElliottWavesPrimitive`, `FibonacciPrimitive`, `MeasurePrimitive`, `HorizontalLinePrimitive` and `FreeFormLinePrimitive`. For every drawing primitive it:
+`security-chart.svelte` constructs one drawing primitive per tool and attaches each to the candlestick series instance: `UserPriceAlerts`, `ElliottWavesPrimitive`, `FibonacciPrimitive`, `MeasurePrimitive`, `HorizontalLinePrimitive` and `FreeFormLinePrimitive`. For every drawing primitive it:
 
-- subscribes `drawingsChanged` → the matching page handler (`onWaveChange`, `onFibChange`, `onMeasureChange`, `onHorizontalLineChange`, `onLineChange`), which the page routes into the service;
+- subscribes the plugin's state-change delegate to the matching page handler — `wavePointsChanged` for the waves primitive (`onWaveChange`), `drawingsChanged` for fibonacci (`onFibChange`) and for the three newer tools (`onMeasureChange`, `onHorizontalLineChange`, `onLineChange`) — which the page routes into the service;
 - subscribes `drawingModeChanged` and restores `handleScroll.pressedMouseMove` once no drawing tool is active;
 - subscribes `selectionChanged` to mirror the selection into the bound `selected*` props;
 - subscribes `dragStarted` / `dragEnded` to `onDrawingDragStart` / `onDrawingDragEnd`, i.e. the service's history coalescing hooks;
 - feeds state back through `$effect` sync blocks that compare current primitive state with the incoming props using the finance-layer equality helpers before calling the setter (the loop-prevention pattern);
-- pushes candle data via `setCandles(...)` (or `setCandles([])` when there is none) so the `TimeProjector` can resolve anchors;
-- is destroyed in the teardown return: every primitive's `destroy()` runs before `chart.remove()`.
+- pushes candle data via `setCandles(...)` (or `setCandles([])` when there is none) so the `TimeProjector` can resolve anchors (the waves and fibonacci primitives override `setCandles` to also push candles into their mouse adapter for wick snapping);
+- is destroyed in the teardown return: every primitive's `destroy()` runs before `chartInstance.remove()`.
 
 Cross-plugin snapping is resolved by the page, not by an import: `fibSnapPrices = getActiveFibLevelPrices(fibonacciTools)` is pushed into the elliott primitive with a content-signature guard (`${length}:${values}`) because the derived array is fresh on every tools change.
 
@@ -534,7 +534,7 @@ Run the frontend suites with `./scripts/agent-test frontend/src/lib/components/c
 
 - **Plugins are peers, not dependencies.** Sharing goes to `plugins/helpers/` or `$lib/utils/finance/` — never to a sibling plugin directory. The Fibonacci → Elliott snap feature is the reference example of doing it correctly (via `getActiveFibLevelPrices` pushed in from the page).
 - **The finance layer must not import plugin helpers.** `drawing-time.ts` deliberately duplicates the epoch conversion; adding a `plugins/helpers/time` import there would invert the dependency direction.
-- **Every subscription is tracked and released.** Primitives register delegates through `_subscribe`/`_subscribeToUpdate` and mouse handlers detach in `detached()`; the chart's teardown destroys primitives before `chart.remove()`. Forgetting either leaks listeners that keep firing after the primitive is gone.
+- **Every subscription is tracked and released.** Primitives register delegates through `_subscribe`/`_subscribeToUpdate` and mouse handlers detach in `detached()`; the chart's teardown destroys primitives before `chartInstance.remove()`. Forgetting either leaks listeners that keep firing after the primitive is gone.
 - **`updateAllViews()` must tolerate detachment** (it is called on viewport changes), which is why the base class passes `null` renderer data when chart/series references are missing.
 - **Canvas geometry is bitmap space.** Draw inside `useBitmapCoordinateSpace` and derive pixel-aligned geometry from `positionsLine`/`positionsBox`; raw media coordinates produce blurry 1 px lines on high-DPI displays.
 - **New tools must reuse `BaseCollectionToolState` when they own a collection.** It already implements anchor normalization, id assignment, selection cleanup, the reactive-loop equality guard and the six delegates; the only per-plugin decisions are `addPoint` and the drag semantics (see horizontal-line's price-only drag).

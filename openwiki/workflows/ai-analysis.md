@@ -1,11 +1,8 @@
 ---
 type: workflow
 title: AI Analysis Flows
-description: How retail-portfolio wires AI analysis — context assembly from security, price and note repositories, the fundamentals/summarize-notes/portfolio-debate endpoints, the asynchronous note-title Huey task, model and key configuration, stub selection, and the timeout and fallback behavior that must be preserved.
+description: How retail-portfolio wires AI analysis — context assembly from the security, price and note repositories, the fundamentals / summarize-notes / portfolio-debate endpoints and their timeout and error mapping, the asynchronous note-title Huey task with its never-fail fallback, model and key configuration, and stub selection in tests.
 tags: [ai, workflow, market, huey, openai, notes]
-verified:
-  - by: openwiki/0.5.2
-    at: 2026-09-18T20:16:58.058Z
 sources:
   - id: openwiki-source-a060da477a3f50343e05eb0d
     resource: repo://frontend/src/lib/api/aiService.ts
@@ -23,8 +20,12 @@ sources:
     resource: repo://src/market/__init__.py
   - id: openwiki-source-8ccbd431016696bd10c55c71
     resource: repo://src/market/ai_service.py
+  - id: openwiki-source-2a7887e5463dd941a6134a40
+    resource: repo://src/market/repository_eodhd.py
   - id: openwiki-source-8ba9c7034638e16be9336256
     resource: repo://src/market/repository_sqlalchemy.py
+  - id: openwiki-source-47b0223ca650e12504aa1417
+    resource: repo://src/market/repository.py
   - id: openwiki-source-d8383d22d61483b00080a280
     resource: repo://src/market/router.py
   - id: openwiki-source-ef56252cb773f63950e8458e
@@ -39,7 +40,10 @@ sources:
     resource: repo://tests/conftest.py
   - id: openwiki-source-382eb74e97d472ad5d0b6234
     resource: repo://tests/routers/test_notes.py
-generated: { by: "openwiki/0.5.2", at: "2026-09-18T20:16:58.058Z" }
+verified:
+  - by: openwiki/0.7.0
+    at: 2026-10-04T13:39:13.522Z
+generated: { by: "openwiki/0.7.0", at: "2026-10-04T13:39:13.522Z" }
 ---
 
 # AI Analysis Flows
@@ -62,9 +66,9 @@ The AI feature set is small and lives almost entirely in one service, `AIService
 Every public analysis method begins with `_gather_context(security_id, user_id)`, which fans out to three repositories before any provider call:
 
 - `SecurityRepository.get_by_id_or_fail(security_id)` — an unknown security raises rather than producing a partial prompt.
-- `PriceRepository.get_latest_price(security)` — the current price, or `None` if the security has no price history.
-- `SecurityNoteRepository.get_by_security_and_user(security_id, user_id, limit=50)` — the user's notes for that security, capped at 50.
-- `PriceRepository.get_prices(security, from_date, to_date)` — the window starts at the 1st of the previous month minus 90 days and ends today, but only the **last 30** rows are kept.
+- `PriceRepository.get_latest_price(security, ...)` — the latest stored close, or `None` if the security has no price history. The concrete implementation is the EODHD-wrapping repository, which also backfills up to seven days through the gateway when the stored row is stale.
+- `SecurityNoteRepository.get_by_security_and_user(security_id, user_id, limit=50)` — the user's **most recent** notes for that security (`order_by created_at desc`), capped at 50.
+- `PriceRepository.get_prices(security, from_date, to_date)` — the window starts at the 1st of the previous month minus 90 days and ends today. The repository contract defaults to `limit=50`, but `_gather_context` passes no `limit`, so it receives at most 50 rows and keeps the **last 30** of them.
 
 The assembled `AIContext` is a `TypedDict` with four keys: `security` (`symbol`, `name`, `exchange`, `currency`), `current_price` (`price`, `date`) or `None`, `notes` (each `{content, created_at}`), and `recent_prices` (each `{date, close}`, already trimmed to 30 entries). Floats are converted from `Decimal`, dates to ISO strings, so the prompt never depends on provider-side serialization.
 
@@ -76,15 +80,19 @@ The assembled `AIContext` is a `TypedDict` with four keys: `security` (`symbol`,
 
 ## The three request/response endpoints
 
-All three are `POST`, require an authenticated user (`Depends(current_user)`), are rate-limited at `5/minute`, and return the same `AIAnalysisResponse` shape (`{content, generated_at}`) where `generated_at` is a fresh `datetime.now(UTC).isoformat()` stamped in the router — not a provider timestamp.
+All three are `POST`, require an authenticated user (`Depends(current_user)`), are decorated `@limiter.limit("5/minute")` and return the same `AIAnalysisResponse` shape (`{content, generated_at}`) where `generated_at` is a fresh `datetime.now(UTC).isoformat()` stamped in the router — not a provider timestamp. Each handler wraps only the service call in `try/except`; resolving `AIService` from the container happens outside it.
 
-| Endpoint | Service method | Notes |
-| --- | --- | --- |
-| `POST /api/v1/market/securities/{security_id}/ai/fundamentals` | `analyze_fundamentals` | No request body. Fixed prompt asking for valuation, competitive position, growth drivers and risk factors. |
-| `POST /api/v1/market/securities/{security_id}/ai/summarize-notes` | `summarize_notes` | No request body. Short-circuits to the literal `"No notes found for this security."` when the user has no notes — **no provider call is made**, so this path never returns 503/504. |
-| `POST /api/v1/market/securities/{security_id}/ai/portfolio-debate` | `analyze_portfolio_fit` | Takes `AIAnalysisRequest` (`portfolio_context: str \| None`). The router substitutes `"No portfolio context provided."` for a missing or empty value before calling the service. |
+| Endpoint | Service method | Request body | Notes |
+| --- | --- | --- | --- |
+| `POST /api/v1/market/securities/{security_id}/ai/fundamentals` | `analyze_fundamentals` | none — the handler takes only `Request`/`Response` for the limiter, `user`, `security_id` and the container, so a body is still ignored | Fixed prompt asking for valuation metrics, competitive position, growth drivers and risk factors. |
+| `POST /api/v1/market/securities/{security_id}/ai/summarize-notes` | `summarize_notes` | none, same shape | Short-circuits to the literal `"No notes found for this security."` when the user has no notes — **no provider call is made**, so this path never returns 503/504. |
+| `POST /api/v1/market/securities/{security_id}/ai/portfolio-debate` | `analyze_portfolio_fit` | the only one that declares `AIAnalysisRequest` (`portfolio_context: str \| None`, defined in `src/market/schema.py`); any other field is ignored by Pydantic's default config | The router substitutes `"No portfolio context provided."` for a missing or empty value before calling the service. |
 
-The frontend client `AIService` (`frontend/src/lib/api/aiService.ts`) mirrors exactly these three methods and posts `{}` as the body for the two bodyless routes. The sidebar group (`frontend/src/lib/components/actions-sidebar/ai/ai-analysis-group.svelte`) exposes them as "Explain Fundamentals", "Summarize Notes" and "Portfolio Debate"; the portfolio action currently sends the placeholder string `'Analyzing in isolation for now.'` as `portfolio_context` rather than real holdings. Results render in `ai-response-dialog.svelte`, which offers retry on failure and "Save as Note" — the latter posts to the notes endpoint and therefore itself re-triggers title generation.
+All three handlers define the same exception mapping — `TimeoutError` → 504, `RuntimeError` → 503 with `str(e)` as `detail`, both raised `from None` (see below).
+
+The frontend client `AIService` (`frontend/src/lib/api/aiService.ts`) mirrors exactly these three methods and posts `{}` as the body for the two bodyless routes. The sidebar group (`frontend/src/lib/components/actions-sidebar/ai/ai-analysis-group.svelte`), mounted by the security detail route, exposes them as "Explain Fundamentals", "Summarize Notes" and "Portfolio Debate"; the portfolio action currently sends the placeholder string `'Analyzing in isolation for now.'` as `portfolio_context` rather than real holdings. Results render in `ai-response-dialog.svelte`, which offers retry on failure and "Save as Note" — the latter posts to the notes endpoint and therefore itself re-triggers title generation.
+
+`aiService.ts` has no colocated `*.test.ts` in this checkout and there is no rendering test for the two sidebar components, so the rule for frontend tests is a convention rather than an enforced one: **mock the `aiService` module** (as with every other API client), never call the endpoint.
 
 ### Request sequence
 
@@ -119,7 +127,7 @@ Caption: one AI analysis request from the sidebar to the provider and back, incl
 - Empty content raises `RuntimeError("AI response content is empty")`; non-string content raises `TypeError("AI response content is not a string")`.
 - DeepSeek-style ` thinking...` blocks are stripped with a DOTALL regex and the result is `.strip()`ed before returning.
 
-The router maps these precisely: `TimeoutError` → **504** `"AI analysis timed out"`, `RuntimeError` → **503** with the exception text as `detail`. A `TypeError` is **not** caught and surfaces as a 500, so any change that makes content non-string is a behavior change, not a cosmetic one. The frontend surfaces the `detail` string through `ApiClient`'s `extractErrorMessage` (`frontend/src/lib/api/apiClient.ts`) and offers a retry button.
+The router maps these precisely: `TimeoutError` → **504** `"AI analysis timed out"`, `RuntimeError` → **503** with `str(e)` as `detail`. Both are raised `from None`, so the HTTP boundary carries no chained traceback. A `TypeError` (non-string content) is **not** caught by either handler and surfaces as a 500, so any change that makes content non-string is a behavior change, not a cosmetic one. The frontend surfaces the `detail` string because `ApiClient.extractErrorMessage` reads `data.detail` first as the `ApiError` message (`frontend/src/lib/api/apiClient.ts`), and the dialog offers a retry button.
 
 ## Model and credential configuration
 
@@ -142,10 +150,12 @@ Title generation is deliberately **not** part of the HTTP request. `market_creat
 The task flow through the worker registry:
 
 1. `generate_note_title_task` is a plain `@huey.task()`. It reads the ambient `request_id` when none was passed, then calls `asyncio.run(_generate_note_title(...))` so the async body can run on a worker thread.
-2. `_generate_note_title` returns immediately if `huey.svcs_registry is None` — the same guard the periodic price tasks use, and the reason tests must patch `src.market.task.huey.svcs_registry` (they patch it with a `MagicMock`).
+2. `_generate_note_title` returns immediately if `huey.svcs_registry is None` — the same guard the periodic price tasks use, and the reason tests must patch `src.market.task.huey.svcs_registry` (they patch it with a `MagicMock`). Note the difference in style: the price tasks raise on a missing registry, this one returns silently.
 3. It rebinds the correlation id with `set_request_id(request_id)` and restores the context var token in a `finally` block, so the log line carries the originating request.
-4. Inside `async with Container(huey.svcs_registry)`, it resolves `SecurityNoteRepository` and `AIService` from the registry, loads the note by id, and returns quietly with a warning if the note no longer exists (deleted between enqueue and execution).
+4. Inside `async with Container(huey.svcs_registry)`, it resolves `SecurityNoteRepository` and `AIService` from the registry, loads the note by id, and returns quietly with the warning `"Note %d not found for title generation"` if the note no longer exists (deleted between enqueue and execution).
 5. On success it calls `ai_service.generate_note_title(note.content)` and writes the result back with `note_repository.update_title(note_id, title)`, whose SQLAlchemy implementation (`SqlAlchemySecurityNoteRepository.update_title`) is a no-op when the row is missing.
+
+Two consequences are worth stating plainly. First, because `generate_note_title` never raises, the task body has no error path that could fail the note write: `market_create_note` and `market_update_note` return the persisted note regardless of what the provider does — including in stub mode, where `StubAIService` has no `generate_note_title` at all and the task raises `AttributeError` **after** the note is already committed (the default Huey behaviour leaves `title` unset; `huey.immediate = True` in tests would propagate it out of the request). Second, deleting a note between enqueue and execution is a supported race: the task logs and returns without touching the database, and `update_title` is itself a guarded no-op on a missing row.
 
 The registry used here is the worker's own, built in `setup_worker_services` (`src/worker.py`) on `@huey.on_startup` with a `NullPool` session manager, and it is the **same** `register_services` conditional that governs the HTTP process. `MemoryHuey` is selected when `settings.environment == "test"`, `RedisHuey` otherwise.
 
@@ -181,11 +191,12 @@ Caption: the asynchronous note-title path, from enqueue in the request to write-
 - The system prompt demands a title of **maximum 50 characters**; `MAX_TITLE_LENGTH = 50` (`src/market/ai_service.py`) is the enforced cap.
 - After the call the result is stripped, a matching pair of surrounding double or single quotes is removed, and the string is finally sliced to `title_str[:MAX_TITLE_LENGTH]` — so an over-long title is truncated, not rejected.
 - Empty content raises `RuntimeError("AI failed to generate a title")` and non-string content raises `TypeError("AI title is not a string")`, but **both are swallowed** by the enclosing `except Exception`, which logs and returns a fallback: `content[:MAX_TITLE_LENGTH - 3] + "..."` for long notes, else the raw content.
-- Consequence: note creation and update can never fail because of the AI provider, and the stored `title` column can contain the note's own text. `SecurityNoteRead.title` is nullable (`src/market/schema.py`).
+- Consequence: note creation and update can never fail because of the AI provider, and the stored `title` column can contain the note's own text. `SecurityNoteRead.title` is nullable (`src/market/schema.py`), and the frontend note type marks it optional, so a title-less note is a normal state rather than an error.
+- The two title helpers (`_raise_no_title` → `RuntimeError`, `_raise_title_type_error` → `TypeError`) exist only to be caught by the same `except Exception` a few lines below; they are documentation of the failure modes, not an exported error contract.
 
 ## Stub mode and testing
 
-Stub selection is a single switch. `register_services` (`src/config/services.py`) branches on `settings.stub_external_api`: when `STUB_EXTERNAL_API` is enabled it calls `register_market_stub_services`, which registers `registry.register_factory(AIService, StubAIService)` instead of `ai_service_factory`. `StubAIService` (`src/stubs/ai.py`) accepts `*args, **kwargs`, so it is a drop-in for the constructor, and implements `analyze_fundamentals`, `summarize_notes` and `analyze_portfolio_fit` returning fixed markdown strings. It has **no** `generate_note_title` method — the stub therefore covers the three HTTP endpoints only, and any code path that resolves `AIService` and calls `generate_note_title` under stub mode will fail with `AttributeError`.
+Stub selection is a single switch at the top of `register_services` (`src/config/services.py`): when `settings.stub_external_api` is true it calls `register_integration_stub_services` and `register_market_stub_services` instead of the live `register_integration_services` / `register_market_services` pair. The stub market registry is where `registry.register_factory(AIService, StubAIService)` sits; the live one registers `ai_service_factory` from `src/market/__init__.py`. `StubAIService` (`src/stubs/ai.py`) accepts `*args, **kwargs`, so it is a drop-in for the constructor, and implements `analyze_fundamentals`, `summarize_notes` and `analyze_portfolio_fit` returning fixed markdown strings. It has **no** `generate_note_title` method — the stub therefore covers the three HTTP endpoints only, and any code path that resolves `AIService` and calls `generate_note_title` under stub mode will fail with `AttributeError`.
 
 The test suite enables this mode globally: `tests/conftest.py` sets `os.environ["STUB_EXTERNAL_API"] = "true"` before importing the app, alongside `ENVIRONMENT="test"`. **AI calls must be stubbed in tests** — the suite never constructs `AsyncOpenAI` and requires neither an API key nor a reachable provider. Two mechanisms do the stubbing:
 
@@ -194,16 +205,19 @@ The test suite enables this mode globally: `tests/conftest.py` sets `os.environ[
 
 ## Invariants to preserve when changing prompts or payloads
 
-- `_gather_context` is the only place that reads repositories for AI purposes; keep the ordering (security → price → notes → price window) so a failure still maps to the same error.
+- `_gather_context` is the only place that reads repositories for AI purposes; keep the ordering (security → latest price → notes → price window) so a failure still maps to the same error, and remember that `PriceRepository` is the EODHD-wrapping implementation, so `get_prices` can synchronously hit the market-data gateway and write the merged rows back to the database.
 - The three analysis methods must keep returning `str` content suitable for `AIAnalysisResponse.content`; the router does no post-processing.
 - The 60 s timeout default and the `temperature`/`max_tokens` values are the documented contract in [External Services](../integrations/external-services.md) — changing them changes the 504 boundary too.
 - `summarize_notes` must keep its no-notes short circuit; removing it turns a cheap 200 into a provider call.
 - `generate_note_title` must keep its total fallback and the 50-character cap, because the task writes the return value straight into the database with no validation.
+- The title task must stay non-fatal: it may log, warn and return, but must never raise back into the note route or into the worker's task cycle.
 - Any new AI method added to `AIService` that is reachable through the container should also be considered for `StubAIService`, or stub mode will surface it as an `AttributeError`.
 
 ## Related pages
 
 - [External Services](../integrations/external-services.md) — provider credentials, endpoint configuration, stub counterparts and the security caveats of the AI boundary.
-- [Market Data and Indicators](./market-data-and-indicators.md) — where the prices and notes the AI context reads from come from.
+- [Security Detail Page & Actions Sidebar](./security-detail-page.md) — the route and sidebar that host the AI group and the note group.
+- [Configuration, Dependency Injection & Cross-Cutting Runtime](../architecture/configuration.md) — `register_services`, the stub switch and the settings model behind the AI keys.
 - [Backend Domains](../architecture/domains.md) — the layered structure `AIService` follows.
 - [Testing](../operations/testing.md) — the suite-wide `STUB_EXTERNAL_API` setup and the mocking conventions used above.
+- [Realtime, Background Jobs & the Worker](./realtime-and-background-jobs.md) — the Huey worker and `svcs` registry the title task runs inside.

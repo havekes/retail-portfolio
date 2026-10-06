@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "pageVersion": "sha256:f3c740388c4abcded7b72c7c460241b73fff62dda7d68db647ffe813c897ecb3",
+  "pageVersion": "sha256:7d1d6faebae5a3ece7e21e6a85e1edd4833951fcfc9410abeb5f9e9e4698095f",
   "claims": [
     {
       "id": "claim_e6d9fdbb216f4c8c8f04159d6c5aa622",
@@ -11,11 +11,11 @@
           "version": "repo-lines-v1:sha256:801c516cdeadf848ae510a329ae010ccb52f7bc4feac88adfec70636bbcef6f4:eyJzZWxlY3RlZExpbmVDb3VudCI6MjksImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjRlOWJiNWFiMmZkZjIxMWJjYWMzODYxMDQ2ZTAwNGU1ZjQwOWIyM2JiNTdmZTkyMmZkMWRjNmM4MWYwZWNmZjkiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjMwYzFmMTg4ZjE0MmVkN2E4MjQ2ODBiMjA3MTcyYzU1MTliYzYxNGE0OGZkYTdjZjE2N2VkYjhkZGY3OTk1NmMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImVmZGYzMzcwMTg0ZjFhZDUwMDMzYTBiMjA4YmEwMTAzZGU0NzlhOTUzNjg0MTBkNGY0MzUyN2Q5NWY1ZjRlZDMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImRjZDFlMDdhMTJkZDVmYjkwN2E4YWY0NzM2NGFjMjI2ODIxY2I5M2RkZjFkMWI0ZjExYjFlYmRiZThhZmQxMzcifQ"
         },
         {
-          "resource": "repo://src/account/csv/parser.py#L143-L177",
+          "resource": "repo://src/account/csv/parser.py#L176-L210",
           "version": "repo-lines-v1:sha256:ec0b63fb066bdb604c931a9777e51a9a07f26eca3a77d6e9659b6fceed73f61d:eyJzZWxlY3RlZExpbmVDb3VudCI6MzUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijc0YTU1MGE2NTM2MzViMTQ3ZGM1YmZhODk1NTJiNDllODYyZjQyODhlNzg0NTJmMzAwMjJhYzQyYzU1MWI4NjgiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAxYmE0NzE5YzgwYjZmZTkxMWIwOTFhN2MwNTEyNGI2NGVlZWNlOTY0ZTA5YzA1OGVmOGY5ODA1ZGFjYTU0NmIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjE4ZTRkMzU2ZDAzYjRkOGJlYTQ2ODlkMGE2M2JiMGQwMDQ2YjgwZGE3N2QxYTZiYjUyN2VlNGE5NjI1ZTY3ZTYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImQzMjRjZjA4NjA1YmI5YWZlYjE5NDNhZTM4MmU1M2IzODMwZGVjNTY0MGQ0YzNkY2VlY2YwZjMzOTlkZjNiMzAifQ"
         },
         {
-          "resource": "repo://src/account/model.py#L163-L202",
+          "resource": "repo://src/account/model.py#L164-L203",
           "version": "repo-lines-v1:sha256:c9962045578c64eafa4bcb1995f7e60dbf6ef541ef3b92cd519d48f33924aeec:eyJzZWxlY3RlZExpbmVDb3VudCI6NDAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjA4ZTk3YzJmYjBmODdmNTA0ZjVkY2MzODIwNjI2YTUxYmIwYTY0Njg2NTc4NzFiMWM5NzdiMTVjYjQ5NDVlNWIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjE0ZTBmNmI1MGU3MGE4NjkyYTc5ZGVkMDdlOTBjMGQ1Njc5ZmMyMzZkMDg2YzBiYjZmMWJhODM3NGQ5ZTMwZWIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjhjYzRhN2QxY2M3OTZhYmEzZTQ2NzIzMzI3ZjUxN2U5ZjgxMTk4MmQyNTBmMDcwMjk4NmU0YjU3NjRhZDk1ODkiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjkwZDNjN2VkZDM5N2E1YzIzNTgzOTdjMGIyOWUxMWRjOTZjMDliM2FlMGM5ODA1Y2Q5MmM3MTEyOTcwOWExNjkifQ"
         }
       ]
@@ -49,11 +49,11 @@
           "version": "repo-lines-v1:sha256:6393a37093f7e9803e2c8dcc11aaf11b4b28aa8e16a5616cfc169aa2e5b688cc:eyJzZWxlY3RlZExpbmVDb3VudCI6MjAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjhjZTcyMDMzZDZlN2JkZDhkZGQxMjk2OWFiMzg2NjMwNjBiNGI0YTRiZGIzM2E5OWUzMTk4ZDliOTBkMTFjNjUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjU5MDlhNTNhNjE4ZDAyOGUxZDMwMDBjMGE3YWJjZWVjYmU1ZmIzN2Y0ZTUxMWVmZTQ2NjQzZmFkNmU2Njg3MmYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjM0OGEyZTE0OTU2ODk5NzY2OTUyZTRlMWE3NTA0YjlkYzIxYjU0NDMyOTQ2NzNkYTQzMjY0YWFmOGZiZmY4NTUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjQ3MjMwNmI5NGZiMDQ2MjBjMjE0ZDkwM2JmNDNmNTE3YjMxNzk3ZDBmYmQwNTNkMTFiMDkwNDMyN2UwYjhmNDQifQ"
         },
         {
-          "resource": "repo://src/account/csv/parser.py#L155-L176",
+          "resource": "repo://src/account/csv/parser.py#L188-L209",
           "version": "repo-lines-v1:sha256:9accaf2711d694db28a3dcd023af69a1cdb9f14f28983dce0f7bcb673811ff83:eyJzZWxlY3RlZExpbmVDb3VudCI6MjIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImVhMzUxMDgwYTZhOTZjMjczMjMzYzA5MGNjZGNiMTE5ZmVkODc4MWJiMDMzMTQwMTdlZTJhNWU5MTYzNjM1NzgiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImE0YWMzZjk2MmNkNGQzZjQxM2Y1OWE1YTdlMjFhMzNiYzkzZTI3MGRmYzk1NmU1YzVhNGUzZDM3MWNiYjQwZjkiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjI3M2MxZWI5MmU3MmEwNmFlOGVkNTJlNTZkMDdjMDY0NmE1NDFmODJlNTA1YzZlN2Q4ODJhZmIyZWNjN2VjNjEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImJhNWNhYjcwNjY4ZmI1ZGM5OTczNGU2MjZiOWYwOTMyMjQ3ZjBhNWU3YzkzYjlkNTAxZjQyYjQwZmM3Yjg0OTgifQ"
         },
         {
-          "resource": "repo://tests/account/csv/test_parser.py#L133-L152",
+          "resource": "repo://tests/account/csv/test_parser.py#L134-L153",
           "version": "repo-lines-v1:sha256:f90f957e15209f42721e621fdc6e1fcd9b80710934c7832c811b5b5c1e2af369:eyJzZWxlY3RlZExpbmVDb3VudCI6MjAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImFiZjdlYmNiNDU5ZGViN2JkYjJkNDhlMWUzYmE4NzE3Y2VjMjBiYzA5MWMyNWU5NDJhMmMyNTJkZGE1M2JiZGIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjZmYzljZDQwN2QxYTg4MzNlZTA4YmMxYzY0ZDdjNTU5NzA1NzlmYTMzODQ4Yzc5YmQ3ZjA4OTBkZDlmZDg3NzQiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjYzMGMxYWY0MTdjZTliOTRhNmE5N2JkNzBmZGExNjA3NGIzZmU1ZGY5M2Q5ODlkZTQ5ZWM4ZDY2OTAyYjg3NzMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjY3ZmJiZjIyMWYzMTFhOTdmOGNlYmMzZjZmZWU2OGQ3N2ZlODQyOTZiNjg2NjBiYmQxZTNmN2NiN2IzZDUyYTgifQ"
         }
       ]
@@ -67,7 +67,7 @@
           "version": "repo-lines-v1:sha256:17ea6e40a0217071449f665e070f0325693a5cb52ffa39ea197d5da8f3b1f871:eyJzZWxlY3RlZExpbmVDb3VudCI6MzcsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjhjY2U4MmIzNjk2N2IwMWU4NzllMzNhZmZmODk5OGFiMWI3ZjViZjE4MmYyYWRlNjI3ZTA0MDViYzQ5Mjg2NTMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjI2Nzk4NTc5ZjcxMTdjYmE2MjlmODQzNzZmNjNhZDJjNzBhNTRlZmUwODk3ZGQzMDc3YmVhNmRhYzFjNjYwNTMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjU3ODU5MjRkNGJiODk5NzJjODFhZDc4NzNhZjdjOTg4YzdkYTNiNjZjMTBjNmM5NTBiNjU1NDljYWQ0MWY4MGQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjE3OWY2YmJmNDAxNzI0YWZmNTEwZTQ2YTk3MGEzZTU5MmU4NzRjNDEyMjhlZDkyNDdlNzMxMzJiNDgzNmVhNjAifQ"
         },
         {
-          "resource": "repo://tests/account/csv/test_parser.py#L166-L198",
+          "resource": "repo://tests/account/csv/test_parser.py#L167-L199",
           "version": "repo-lines-v1:sha256:891bffea96568f8df4023a42d5d8a3f25fb9a20c525ba89f5164b11e1c6641e1:eyJzZWxlY3RlZExpbmVDb3VudCI6MzMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImZmY2E3ZmE3MmJkMDQxZWM4MWYzMmE0YzBlNWRmNWQwNzU2MmIzOTIwNzAxNWFjZjQxNzU1MTExN2E0YTUxZWYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjUxODA0ZjBjNjA2ZWM1NjYyYjdkN2Q3YTAzOTI3NDAxNmYyZWYzNGExZGI4YzdmODM4YjU3ZWFiOTE0ZDU4MTUiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImY3YTg2MjFhZWNmMjgwOThjOTFhMDU2NGZmZmNkMmVmNzk0OWEyNzRlNmYxNTUwYzM1NjkwNDQxNmJmZmIxOGIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImJjZDE2NWRkMjk1YTg3NGI4OGY1NjMxZDBkOWJjYzdjYjkyZGY3YTQ3NDM2YjIxMGQ0NzI2YjZjYmM0NzkzY2QifQ"
         }
       ]
@@ -77,7 +77,7 @@
       "statement": "`_parse_position` treats quantity and book value asymmetrically: an unparseable quantity raises `CsvInvalidQuantityError` (and a missing quantity cell silently parses as `Decimal(\"0\")`), while an unparseable book value is swallowed into `None` so a malformed cost basis degrades to unknown cost instead of failing the import.",
       "evidence": [
         {
-          "resource": "repo://src/account/csv/parser.py#L179-L225",
+          "resource": "repo://src/account/csv/parser.py#L212-L258",
           "version": "repo-lines-v1:sha256:f601e82e8e0c901914c81387a6cbca10031907de3715538fe9c75885351b3dc0:eyJzZWxlY3RlZExpbmVDb3VudCI6NDcsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjdmOTRlMGQ1MTVkOTBhZjQ0NGFmNjU4ZGZhYjgyNDc1ZDlhMjFkYmI0MGQ5NWZiNDEyNTNiNGRmNDNmZjNjYWUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjMwYzFmMTg4ZjE0MmVkN2E4MjQ2ODBiMjA3MTcyYzU1MTliYzYxNGE0OGZkYTdjZjE2N2VkYjhkZGY3OTk1NmMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImE5MGFiN2MwMmQ5ZjQwYTUzYzk5YWRlZmMyNmU2Mjc0ZmQ2NTM4NzYwZDcwOGU5MWViZTliNGE2NzJlZDJkMDAiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjIwOTNmZDVmOWUxMzhjYjlhNDA4ODg4NDcyZTA3NWQ1NWNiOGRjYWUwZjRlNjBlZTQxMzEwZGE4NDljYzhiNjcifQ"
         }
       ]
@@ -87,11 +87,11 @@
       "statement": "`calculate_average_cost` returns `None` for non-positive quantity or missing book value, otherwise quantizes `book_value / quantity` to 4 decimal places with `ROUND_HALF_UP`; that quantize step fixes every CSV-imported `average_cost` and cascades into all downstream cost-basis P&L.",
       "evidence": [
         {
-          "resource": "repo://src/account/csv/parser.py#L134-L140",
+          "resource": "repo://src/account/csv/parser.py#L167-L173",
           "version": "repo-lines-v1:sha256:fba3bcc7a32bfed853ee4dbc04b3ca7fc66a11fba254c278acf2a12cf222c58f:eyJzZWxlY3RlZExpbmVDb3VudCI6NywiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiYWI4M2RlNWFlZGQ3ODUxZTVjNTg3YmJhYTZjZjZjNmVlMTU1YzVhNWQyMmM2ZTFhZDY3MTMxMTczN2ZiMjk0OSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiN2UwYzU1OGRkZTJhNzdmMDBjNjY4ZjNkNDFkOGMzYWJhYzI3NTQ4MDI5ZDViZTg1NDVkNDQ5MWFmMWZiYWFkMSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiODUxMzZjMjExMTM2NDNiZTk5Nzk2MzI5MzEyNjVlYjRmNjg3NTljMDIwYTFjNTRjN2Y1YzZjMzI1ODI2ZjRiOSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiZDA3YWY0Mjk1OTc5MzE1NjI0NDNiZjU0Y2YwZmRiZmU0M2VlYTlhOWJiNGI4YWE4NTA5OTY0NDYyZjFjNzM2OCJ9"
         },
         {
-          "resource": "repo://tests/account/csv/test_parser.py#L201-L221",
+          "resource": "repo://tests/account/csv/test_parser.py#L202-L222",
           "version": "repo-lines-v1:sha256:15fd6ffb5b538ec818816c47c11b44c58fda673e44e517b3b441ab5bdc634f21:eyJzZWxlY3RlZExpbmVDb3VudCI6MjEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjdhNmZjOTFhNzdlZGU5MDkzYmUzYjkxNmE0YmQzODg4MTgxY2ZjOTIxNDYyOGMzMDUwZWZiNmVmMWQwMTE4MzQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjZlNDE4YWRmY2U2OGZkOWM0ZDNkZjQ3NTc3NGIzYWM5MjRhYzVhY2U0MzUwZjczZmQwNmI3MWQwMjQxZGEwZjUiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjE0OGU5ODg2YjExODE5NjdhNmQ1YmZhMjA0ZjcxNmI0ZTZiYTFiZjFmOTUxZGY5YzY2ZWIyN2QzMWUwZDhiNDMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6Ijc2Njc2ZmFlMmNlNjk4ZTMzZWU5MzFmNzZmMTgxNWQ5ZWQzMmQ4NWQzYmNhZjdmNWJmZmNlMTg0MTIzYjJlMTUifQ"
         }
       ]
@@ -105,30 +105,30 @@
           "version": "repo-lines-v1:sha256:0e12e615e6cdef7e395492f8ed010e10e0e7a307ff2dfd6ded116441c4e6c5c8:eyJzZWxlY3RlZExpbmVDb3VudCI6MzIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjdiZWMyNGIwOWU2OGJiNmUyMGMxYWVmNDI4N2VkODIzMzg0ZGFmMzZjZTU1ZTBjOGVmOWU2ZDM1MjM2ZjkyMDQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjU5MDlhNTNhNjE4ZDAyOGUxZDMwMDBjMGE3YWJjZWVjYmU1ZmIzN2Y0ZTUxMWVmZTQ2NjQzZmFkNmU2Njg3MmYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjE2Yzc1ODNiNjk2MzE4MjA3MjIwZDJlNDE0NjNjN2RmZTdlMTA0YjdmZjM2ZTY3Y2I0OWFjNDcyYTAyOTBiZWMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
         },
         {
-          "resource": "repo://src/account/csv/parser.py#L234-L303",
-          "version": "repo-lines-v1:sha256:866560ab0041e121b033f0c072b438a640cab250fd1af529d410ca6b49bed07a:eyJzZWxlY3RlZExpbmVDb3VudCI6NzAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjE3NDcyMjAwZGE3NTdlNzk5Y2JkOWYzYzc1YjUxMTM0MTkwZTg2OTE4YjU1YzRkNDY4MjNiMGI1MjEzMGUyOTEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImJhYWU4YTBjYTc2Zjk4ZjdiN2RjNzk4NDk1MWQ2M2U1N2RiM2M2NDU1NzljYTUxYmFkNmE1MzlkNjE0ZWRiYmUiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImE3M2NlOGVjMDhkMGQxOTJmYzQ0ZGY1YjcxOGFkNGJjYWE0NzJjNzk1N2UxN2VhYjQ0ZTA4Y2EzOWY3ODg1NWUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
+          "resource": "repo://src/account/csv/parser.py#L267-L344",
+          "version": "repo-lines-v1:sha256:6bcee4be3d2f21419d1e0296f335b3f1bcbe1a68866c5ffc2d3803ccae71fa0a:eyJzZWxlY3RlZExpbmVDb3VudCI6NzgsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjE3NDcyMjAwZGE3NTdlNzk5Y2JkOWYzYzc1YjUxMTM0MTkwZTg2OTE4YjU1YzRkNDY4MjNiMGI1MjEzMGUyOTEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImJhYWU4YTBjYTc2Zjk4ZjdiN2RjNzk4NDk1MWQ2M2U1N2RiM2M2NDU1NzljYTUxYmFkNmE1MzlkNjE0ZWRiYmUiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImE3M2NlOGVjMDhkMGQxOTJmYzQ0ZGY1YjcxOGFkNGJjYWE0NzJjNzk1N2UxN2VhYjQ0ZTA4Y2EzOWY3ODg1NWUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
         }
       ]
     },
     {
       "id": "claim_22adba6cf4644ed1841118263f798180",
-      "statement": "Row filtering runs before the quantity parse in `_parse_position`: cash rows (empty symbol, `cash` symbol or security_type, or a `sec-c-` prefix) and option rows (OCC-pattern symbols via `OCC_OPTION_PATTERN`, or `option`/`derivative` security types) are dropped and never become positions or raise quantity errors; options are defended a second time in `sync_account_csv_positions` via `is_option_symbol`.",
+      "statement": "Row filtering runs before the quantity parse in `_parse_position`: cash rows and option rows are dropped before `Decimal(...)` is applied, so a filtered row can never raise `CsvInvalidQuantityError`. `is_cash_row` returns False first for a `security_type` of `exchange_traded_fund`/`etf`/`equity`/`stock`/`mutual_fund`, and otherwise flags a row as cash when the symbol is empty or `cash`/`cad`/`usd`, the security type is `cash`/`currency`, or the symbol starts with `sec-c-`; `is_option_row` flags `option`/`derivative` security types or OCC-pattern symbols. Options are defended a second time in `sync_account_csv_positions` via `is_option_symbol`.",
       "evidence": [
         {
-          "resource": "repo://src/account/csv/parser.py#L104-L131",
-          "version": "repo-lines-v1:sha256:6398de530a36c83fe21b87e37c61c70a2bd0798fe4b6ba09f3a4b93f11dad4ae:eyJzZWxlY3RlZExpbmVDb3VudCI6MjgsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjIyMzM0ZTRiNjQzNGUzYjA1MDNkYTk5YjNmYjU2YjhlMWIxNWY5YzIzY2VlYTFhZmQ5YWMzMDQzZTM4YzIwZWMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImIzZDY5Njg1Y2UwYWNmZWY5N2RmZGU5ZWMyYzRmMzRlZjg3YWNmNzM2NDZmNzgyZDdlOTVmNmQwY2RhODA2MjUiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjMxNjY0YmRhOTczZTliYzE4MjBhY2ZhYTVhOTViNGVlOGE5NzRkYjVjNzhjM2FkNWQ5MWMwMmQxZGJkMWRhNmMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjhlNWMyMGFlM2NmZTc4NWE5M2FlMTRkMThkNmYxNDY1ODk2Y2IyOTJmMjQxNGZmOGU0ZmEzNTA2N2VkN2I4MmIifQ"
+          "resource": "repo://src/account/csv/parser.py#L104-L164",
+          "version": "repo-lines-v1:sha256:82cc5a356ea79d61b77ceb4f94d6c9940ecdbfa1267495295285d1a344f9f3c2:eyJzZWxlY3RlZExpbmVDb3VudCI6NjEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjIyMzM0ZTRiNjQzNGUzYjA1MDNkYTk5YjNmYjU2YjhlMWIxNWY5YzIzY2VlYTFhZmQ5YWMzMDQzZTM4YzIwZWMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImIzZDY5Njg1Y2UwYWNmZWY5N2RmZGU5ZWMyYzRmMzRlZjg3YWNmNzM2NDZmNzgyZDdlOTVmNmQwY2RhODA2MjUiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjMxNjY0YmRhOTczZTliYzE4MjBhY2ZhYTVhOTViNGVlOGE5NzRkYjVjNzhjM2FkNWQ5MWMwMmQxZGJkMWRhNmMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjhlNWMyMGFlM2NmZTc4NWE5M2FlMTRkMThkNmYxNDY1ODk2Y2IyOTJmMjQxNGZmOGU0ZmEzNTA2N2VkN2I4MmIifQ"
         },
         {
-          "resource": "repo://src/account/csv/parser.py#L179-L186",
-          "version": "repo-lines-v1:sha256:4151b706f784bfe6795d567c83c080a88662085d113c657780faf57436dc89db:eyJzZWxlY3RlZExpbmVDb3VudCI6OCwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiN2Y5NGUwZDUxNWQ5MGFmNDQ0YWY2NThkZmFiODI0NzVkOWEyMWRiYjQwZDk1ZmI0MTI1M2I0ZGY0M2ZmM2NhZSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiMDFiYTQ3MTljODBiNmZlOTExYjA5MWE3YzA1MTI0YjY0ZWVlY2U5NjRlMDljMDU4ZWY4Zjk4MDVkYWNhNTQ2YiIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiYTkwYWI3YzAyZDlmNDBhNTNjOTlhZGVmYzI2ZTYyNzRmZDY1Mzg3NjBkNzA4ZTkxZWJlOWI0YTY3MmVkMmQwMCIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiYWJlYjI2NDEyYjE5YjJhMDQ4NWI2YmZlMTcxNjgwYjI5MjBjOGI0Njg0MWY5ZWZiOTQ5ZTBiYTIxOWRhNWZiNCJ9"
+          "resource": "repo://src/account/csv/parser.py#L212-L225",
+          "version": "repo-lines-v1:sha256:afbfd83b02c7f75827225e35056d8f31888c5acc69ec90db733a4ce5d507b01e:eyJzZWxlY3RlZExpbmVDb3VudCI6MTQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjdmOTRlMGQ1MTVkOTBhZjQ0NGFmNjU4ZGZhYjgyNDc1ZDlhMjFkYmI0MGQ5NWZiNDEyNTNiNGRmNDNmZjNjYWUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImVhZjY5OWQ4MjBlOTNjZTg2YTk5MDJhOGRmNTRmYmIwNDc3YjZkMzQ0OGEyZTc3M2U0MzVmZTQyNTVkYTFiMjEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImE5MGFiN2MwMmQ5ZjQwYTUzYzk5YWRlZmMyNmU2Mjc0ZmQ2NTM4NzYwZDcwOGU5MWViZTliNGE2NzJlZDJkMDAiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6Ijg5NmNjZjQ5MTk3ZjVmMTliMGY2Mzc3YTMzMjYyZWFjOTQ0ZmFkZmRkYzQ1MWRmYTZhYjliNThjZWMzZDdkYjQifQ"
         },
         {
-          "resource": "repo://src/account/service/csv_account.py#L248-L258",
-          "version": "repo-lines-v1:sha256:e3ebf58ea508122a2f9fdf79eeace0bab00a005e2b9d41c0b1b3b676955a0698:eyJzZWxlY3RlZExpbmVDb3VudCI6MTEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImIyMDI1YTNlYzM4OGRhNmM5Mjc1ZWQ1MWJlZmNmNmUxYjIxMjdlZGM5YjA5Mzk0NTAyMTVjYzIzNzczNjg5YjIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijk1NzgwNWMzZmU3YWM2MzA3NGY2OWNkYjI1YjlhY2Q3YTg2NzkyZGZlNTQwODE4YWM0Zjg3NjRiNDllN2QxNGEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjEyYjg0ZTBkODQzOTcxN2EwN2NiOGExMTlkYjM4OTEyMDVjN2RkMmMxOTk1ODM0OTkzODNjZmQ2NjNkZWNhMDciLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImU0N2U1NDhjM2FhOTUxZDZiYTM3NzM0YWUwOTFiZDI2NGQ2NjRhYmUxNzAyOWE2MjhkNzQ1OGVjN2FiYWUxYWYifQ"
+          "resource": "repo://src/account/service/csv_account.py#L250-L265",
+          "version": "repo-lines-v1:sha256:dca6a4f255c169e9054ce023ccb987ebfc53afc2f9d13f2eb9f1c3bee2bb21f5:eyJzZWxlY3RlZExpbmVDb3VudCI6MTYsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ2YTMxM2M1ZTM1NWQ0ZDg1NWFlZjE3ZjI5YTYxYTliN2MxODc3ZDA3MDJhODUwZGVmYzBhZTIzYzA2ZTg0MmMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjlkOGE5ZTljMzI1MjgyMGM2NWE4MTY1MjBiOGRiNDkzMjI4MDg0OWVjOGM3ZDJlYjYyNzJhZmRmZWJlMDU5YzMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImI1OTMwY2RkY2Y3Zjk4NjA0YTRjYmE4ZTAxZDNhMWY0NDBhMTFhNjA3ODgzZjg5NGUwNGM4M2JlMWI1Y2YwNTEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6Ijk0MjUzNWFkYWRhNmE1ZDM0NDkxYzg1NmYwMjUyOTllMWJmNGU0ZmM2NWM5MGQ2NjQ5ZGJmNWJkNjFmYTA3NjgifQ"
         },
         {
-          "resource": "repo://tests/account/csv/test_parser.py#L239-L285",
-          "version": "repo-lines-v1:sha256:7d34541c3cc0d2af1b0a374ae3e6096da40f20787401451e1f66af7fb617b877:eyJzZWxlY3RlZExpbmVDb3VudCI6NDcsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjIzNThiNWQ1ZWVjNDdkZjE4MGY2MmNjZjA5NzZlNmQyMDQxODc4ZDcxOTUxZDcxZmRiMDkxNDQzMzQ0ZGM4ZTMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAxYmE0NzE5YzgwYjZmZTkxMWIwOTFhN2MwNTEyNGI2NGVlZWNlOTY0ZTA5YzA1OGVmOGY5ODA1ZGFjYTU0NmIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjlhNzgwMGZkZTc4M2U5NzQ5YWI0MzAxZDI2YTA2ZDk1MGJkODA5NGEwOWM4MmUzZTdhMzkzMzNmOWNjOGU5ZmQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
+          "resource": "repo://tests/account/csv/test_parser.py#L267-L307",
+          "version": "repo-lines-v1:sha256:065269b869533b621508e40aac5a6e5efe1a476ae5e7e7f207e6c75ea49c5bc9:eyJzZWxlY3RlZExpbmVDb3VudCI6NDEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjhhYTIxNWExY2FiNWIyOGE5YmUyZjZlNTU2YjlmZWUzNDcyNTkyYzQ2MWQ2ODU0MjkzNGYxMmY1MjJjNDA5YTQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAxYmE0NzE5YzgwYjZmZTkxMWIwOTFhN2MwNTEyNGI2NGVlZWNlOTY0ZTA5YzA1OGVmOGY5ODA1ZGFjYTU0NmIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjdkYzdlYjg1YTQ0MjYyOTBhNjA0NzNiMGIzZmNlZjAzYmNhYzc5NjU5ZDg3NjNlNDcxMWQ3NjQyMGJkNTEyOTciLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImM1MTc2ODA0YmFlYTI1MTYzZWJmZWE3NjIyNWEzNWJhYzEzZmEwNWQxMWI4MWYyMmEyMGQ3ZWJlMzM1Y2QxOWUifQ"
         }
       ]
     },
@@ -145,7 +145,7 @@
           "version": "repo-lines-v1:sha256:83284c7ee48ac2e1af5fe1f5576342fc53003a03f41419315b2fd00447bef5c3:eyJzZWxlY3RlZExpbmVDb3VudCI6MTYsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImMxNzQ4NGJhODZjN2ExNWI5OWU1YmRjNmIwMDU4MTFkNWM1YWFjZWRkYTg0Njk2NjQ1N2UwOWExODVjNmMwY2MiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjU5MDlhNTNhNjE4ZDAyOGUxZDMwMDBjMGE3YWJjZWVjYmU1ZmIzN2Y0ZTUxMWVmZTQ2NjQzZmFkNmU2Njg3MmYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjRhMmExODU3MTIzZGU3YzZhN2MzZmY4YzVjM2U2MmM0OGQ2NjA4YTlmOThjYzc0MDkyNzkwZGFmYjRkYTE4ZDMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjEyODEyMzE0MzNjMzFmMzJjNjc0ZGQ3M2Y0NzU5N2M3YjkyNjg1MWU0NzI4NDQyNmM3NWQ1NTlmODlhYjA2ODMifQ"
         },
         {
-          "resource": "repo://src/account/router.py#L241-L244",
+          "resource": "repo://src/account/router.py#L265-L268",
           "version": "repo-lines-v1:sha256:a3502fa92e53f4afcc9a010d4e0d06f8ba25da21c8e2558f6929d50578416edd:eyJzZWxlY3RlZExpbmVDb3VudCI6NCwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiN2JiYWUwODk5OTliMGZhMDA3MjUwZjU1NzkzODQxYWY5NjQ4MTQzODZhZmJkYTlhMTQ4NzlhMmZkODM5ZjA1NCIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiOWYzMmEwNWFlOTkzNTEzOTRkOWNjOTM3YmY5ZjgxM2U2ZGJlYmY1OGM1ZTNmOTVmNzJmYTFlZDhmYWRjMDEyOCIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiNTJhMTkwODUwZDIwNjdiZTU5ZDhmMzRhNjVhODc3NzExNzkwOTA5NmVjMGZhNzgyMzMxNWRmZmYzNmU5ZDM1NyIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiNjdjNmY2OGQyMmJkMzhhYzgwNmYwNTliNjIwMDZmMzQ5MWNkYTY4ODBmYjJjYTFkMTJlODIwMzI0OGQ3MTdjNiJ9"
         }
       ]
@@ -177,8 +177,8 @@
       "statement": "`inspect_csv` parses, then when a `user_id` is given it marks `exists = True` and overwrites each discovered account's currency with the stored `Account.currency` for account numbers the user already has at that institution; `exists` drives the modal's `Update holdings` versus `Create account` badge.",
       "evidence": [
         {
-          "resource": "repo://src/account/csv/schema.py#L21-L33",
-          "version": "repo-lines-v1:sha256:f15d5b1f470bc545f79262c66bec13bf3219b78a77a2b57b664d51f89e146b5f:eyJzZWxlY3RlZExpbmVDb3VudCI6MTMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImYzMzJlMDY3OWU1N2M1ODBjNDRhYTk5MmJhYzYzZmQ2ZDIyYzc5YTI3MDEzNDdkODE2OThhMDY2NTc3ZGVhZGUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjdhYjczOGFhYzM1ZmE5MGRkNmY5NjY5ZmIyNmYwYjJhNmM3ZGEwNmZiMmUzNzhkZGJiMmEzZTQxOTg4MTFkMjkiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImFkOGU5NWQzMzMxNzY1OGZkZjhjZWQ3ZTcxYTRiNWQ2NzVhODU4YzhiNjE2YmFjM2Y2YzkzMzkxZDUzZWVmMDEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
+          "resource": "repo://src/account/csv/schema.py#L21-L34",
+          "version": "repo-lines-v1:sha256:ee54681cf0146ab9575b5345f964c6785b5e70c6bd6d3582e7085a00740a8f6e:eyJzZWxlY3RlZExpbmVDb3VudCI6MTQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImYzMzJlMDY3OWU1N2M1ODBjNDRhYTk5MmJhYzYzZmQ2ZDIyYzc5YTI3MDEzNDdkODE2OThhMDY2NTc3ZGVhZGUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjdhYjczOGFhYzM1ZmE5MGRkNmY5NjY5ZmIyNmYwYjJhNmM3ZGEwNmZiMmUzNzhkZGJiMmEzZTQxOTg4MTFkMjkiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImFkOGU5NWQzMzMxNzY1OGZkZjhjZWQ3ZTcxYTRiNWQ2NzVhODU4YzhiNjE2YmFjM2Y2YzkzMzkxZDUzZWVmMDEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
         },
         {
           "resource": "repo://src/account/service/csv_account.py#L76-L104",
@@ -195,12 +195,12 @@
       "statement": "`import_accounts` filters parsed accounts against the requested `account_numbers` and raises `NoMatchingAccountsInCsvError` when the intersection is empty — there is no import-everything mode. `CsvAccountDuplicateError` is mapped to 400 by the router but is never raised on this path: a requested number that already exists is treated as an in-place update returning the same account id.",
       "evidence": [
         {
-          "resource": "repo://src/account/router.py#L294-L339",
+          "resource": "repo://src/account/router.py#L318-L363",
           "version": "repo-lines-v1:sha256:2c4960c0915baca4d8434aac77b0185338bc958739fe2d2f740526e7747d1715:eyJzZWxlY3RlZExpbmVDb3VudCI6NDYsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjRlNzJmZTM0M2E5Y2Y0MzEyMGRhNDJiNTBmMTEwMjMwMjRkODdmMTk0MzE4MTgwMGU1MzgwOGI3MDcwZDQ2OTYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjlmMzJhMDVhZTk5MzUxMzk0ZDljYzkzN2JmOWY4MTNlNmRiZWJmNThjNWUzZjk1ZjcyZmExZWQ4ZmFkYzAxMjgiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImZkZjA5MmFiMzU3NzMyNzgyOTVmODYxYWY0YWYyYzEwZjQwNTVjMDcyMjdmMDk1MDkyYzg5YTE1MzRkMGQ3OTkiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjZlYWJmMWIyNzY1NjAxMTdhZWUxNGJlOTIxZDA3Zjc5OTJmMDk5NThlYWI0YmQxMWY0ZTdjNzI5OGQ1MmFlMWQifQ"
         },
         {
-          "resource": "repo://src/account/service/csv_account.py#L106-L193",
-          "version": "repo-lines-v1:sha256:9e7fb0b5912b1336c4bd6577a965bb2d38522e76c5c49db5e5a33ec323447a98:eyJzZWxlY3RlZExpbmVDb3VudCI6ODgsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjM0MDNiYzcwN2M5ODc2Mjk4MjRkZDI4ZjhmMWYzNTY4YzFiYzY4ODYzYmJjNjg3NTQ4OWE4MDEwODk2ZmJmYmYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImViNWU5Njk1YmYwODdmZmEwZGJhZDg3Mjg1N2ZkNzY5ZmJlZTgxODNhYTU1OTAwZTI4OWFlMThhZjBkNDZmYzgiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImVjNGFiYjkzZTdmMDk2ZjU1MWI5ZTM1Zjc1MzQyYzgzNjdmZmEwMmM4OGMzYTQ3MTI3YTRkZDFiN2RhOTVkMjciLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjFmNDlmNzhjNjQ1ZGM4MTIwZDkxYTgwODlmOGY3Nzk1ZjhjM2FjNjFiZTFkOGM4NDljMWM1OGJiYTRkOGYzNDgifQ"
+          "resource": "repo://src/account/service/csv_account.py#L106-L197",
+          "version": "repo-lines-v1:sha256:1b3dce004ec90a0c71a580fb9be23e823019b4a52ae560768c200d3a12b6c6ab:eyJzZWxlY3RlZExpbmVDb3VudCI6OTIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjM0MDNiYzcwN2M5ODc2Mjk4MjRkZDI4ZjhmMWYzNTY4YzFiYzY4ODYzYmJjNjg3NTQ4OWE4MDEwODk2ZmJmYmYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImViNWU5Njk1YmYwODdmZmEwZGJhZDg3Mjg1N2ZkNzY5ZmJlZTgxODNhYTU1OTAwZTI4OWFlMThhZjBkNDZmYzgiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImVjNGFiYjkzZTdmMDk2ZjU1MWI5ZTM1Zjc1MzQyYzgzNjdmZmEwMmM4OGMzYTQ3MTI3YTRkZDFiN2RhOTVkMjciLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjFmNDlmNzhjNjQ1ZGM4MTIwZDkxYTgwODlmOGY3Nzk1ZjhjM2FjNjFiZTFkOGM4NDljMWM1OGJiYTRkOGYzNDgifQ"
         },
         {
           "resource": "repo://tests/routers/test_csv_account_endpoints.py#L254-L280",
@@ -210,19 +210,19 @@
     },
     {
       "id": "claim_f638317f92cc4248ac237052c829802e",
-      "statement": "Accounts created by CSV import are stamped `api_sync_enabled=False` (with `integration_user_id=None`), which is what makes the broker sync path refuse them and makes the frontend account-row refresh control render `Update from CSV` instead of `Sync positions`.",
+      "statement": "Accounts created by CSV import are stamped `api_sync_enabled=False` (with `integration_user_id=None`), which is what makes `POST /accounts/{account_id}/sync` reject them with 400 `API sync is not enabled for account {id}` and makes the frontend account-row refresh control render `Update from CSV` instead of `Sync positions`.",
       "evidence": [
         {
-          "resource": "repo://frontend/src/lib/components/accounts/accounts-list-item.svelte#L94-L114",
-          "version": "repo-lines-v1:sha256:11a197c210f9ec350000221d6f9a2f7d5219beb6dc1e790cffe9aa0e1952460d:eyJzZWxlY3RlZExpbmVDb3VudCI6MjEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjgzZjcwOTdhYTdiYjY5ODA1MzFjMTE2YjU1YmZkNGNhMGM4YWJmNjczMmFlZjFhNjkzNzNkNzhlMDc5MGRlMGIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjVkM2EwMTQ3MTZjZDU3Y2MwMTliNTMyZTI3YjQyMjQ0OGY0ZmRlMTVjY2ZlNWJlZjJjM2QxYWFjZDE2ZDViN2UiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImY2NTAyNTcyZDY1ZmUxMTY5NTNlZmQxZGYxMTNiMDZiYjBkMzk3YjcwYTIxMjAxYTMyYzZiMTYyNDlmMDYxNGIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImRjY2VkNTZlNzNhZmE4YzlkOTA2MGEyMWEyMmQwYjJhZmM0ZTBhYWNhODUyOGRkMjBkYWExMzUyOWI0MzFjNjMifQ"
+          "resource": "repo://frontend/src/lib/components/accounts/accounts-list-item.svelte#L196-L220",
+          "version": "repo-lines-v1:sha256:412e9b2b89dee2ccdea7334d2aae8a7d8403640757f552ff836ced4fa8eeedcb:eyJzZWxlY3RlZExpbmVDb3VudCI6MjUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjFlZjhhOTNmYWZhY2M1YWM4NTA3MjdkMDU1NDIwM2E2OTU1MTY0MWU4YTIyMzJmOTI4ZmMwZDdkZDc0NmY2ZWEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjY3OWI0Mjk4MDQ3ZjU2M2YwYmI0YjIyN2U4YzMyN2EzZDg1NGMzYWI4YmExMmUxN2VjODY5YTIzMzJiMmEwMDkiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImIzYzAzNTUxNDQ3ZjgwZjhhNzIyNGYzZDc4ZTQ3NzY1YzdjZWNjOWQ5ZDYzNzg0NmZkNDZkYTZkMDViM2QzZGUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImQzNGE0NzgxNmNjNjY1MWFiNjlhOTNhYzk4M2ZjNjVhN2U4MDg2N2FjMWU1NGVlNTc5MTFmMDI0MzU2OWU3YTQifQ"
         },
         {
-          "resource": "repo://src/account/router.py#L509-L513",
-          "version": "repo-lines-v1:sha256:3771a20d5b500bfd32a729d1cd7f00cea39bd03a6c10cfef14f803a205f9542f:eyJzZWxlY3RlZExpbmVDb3VudCI6NSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiNTdkNjU2YzEwNjMxODM0MTU1ODljMTcwNDkzYzZjNzc5OGNkYTRiYzlmZDUxZTdiYmE2MDVhMWMwMWUzNzM5YSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNTkwOWE1M2E2MThkMDI4ZTFkMzAwMGMwYTdhYmNlZWNiZTVmYjM3ZjRlNTExZWZlNDY2NDNmYWQ2ZTY2ODcyZiIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiOGRlZDI4YjI1MDdiM2QxYTc2NmIxYzc5YmNhNjlmNDliZGVhOTI3OTBiYjgxYjIzYWY1ODg1MmMyZmJjMGQ1YSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiMzdmMjQ4Y2VlODA2YmUyNzBlMmZkNTYyOWFiZDRmOWFjZGU0N2UyYjVmYzdjZjRiY2EzNzdjNjQ4YjMxN2JlYiJ9"
+          "resource": "repo://src/account/router.py#L527-L562",
+          "version": "repo-lines-v1:sha256:0b440ee568b0009f373998f0caa05d6bdd22b321033e87becad3275be1d423b8:eyJzZWxlY3RlZExpbmVDb3VudCI6MzYsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjdlNThmZTdiZDRmMmIyYTczNGM0ZDk1ZmY2ZDE5YTk4YjUwMWQ0MzhmMWJlNGNhZjk5ZTEwMTkyYmI0OGJjZTEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjgyN2IzYzZlNmVlYjAyYzA1OTViMTQxZmFkYTZmNmY3NTZlYTg3ODgwMzQxZDQxZmQwY2M2NzMyNzA0NDQwYWUiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjhjYzRhN2QxY2M3OTZhYmEzZTQ2NzIzMzI3ZjUxN2U5ZjgxMTk4MmQyNTBmMDcwMjk4NmU0YjU3NjRhZDk1ODkiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
         },
         {
-          "resource": "repo://src/account/service/csv_account.py#L169-L189",
-          "version": "repo-lines-v1:sha256:8a5c8f7f88fcdde8744a240c18aac577fca33750dc45715049aa611f5117a1a0:eyJzZWxlY3RlZExpbmVDb3VudCI6MjEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImE1N2QyYmZkYWI1ZjI1ZTc5ZTIzZWI0MjlhMjg1N2EwYTcxOTc3NTM3NDA0N2ZiNjViZGM1MDU0ODkzMzQyMDgiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjUxMDM0ODFjNTdkMGYwZGMwZjc2Y2QyY2M4YjM2MDRjNGU4Mjk2ZGE0MTIyYWRkMTllODE3NDVkYzdlMzMxYTYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjczN2ZmYWQ3NDk0MDIxZTc4MWEyOGQ4MGFjYWMyNmIwODkzMmNmNDFkNWUyOTc2NWJjOTNjNjAyZjg0NmM5NmUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjQ5NDVhY2JjYTVmZmNkY2NhMTcwMWFiZjgzMDdkMzAxM2FlYzY3YTExNTI1ZDU2MTEzOTIyODQ5NmUyNGI4OGQifQ"
+          "resource": "repo://src/account/service/csv_account.py#L174-L197",
+          "version": "repo-lines-v1:sha256:fadd53e128596988772cf89e4b5796ba516f05ebeed46297f3a626e3bedcc590:eyJzZWxlY3RlZExpbmVDb3VudCI6MjQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjEyNjlhZWM4YmI4MmUxYzJhNDcxYWZkYzY3MGU0ZDZkMDY4NzMxYWRjMjk3MDU2MWFiNjY5MTRlMzljZTBlMGMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImViNWU5Njk1YmYwODdmZmEwZGJhZDg3Mjg1N2ZkNzY5ZmJlZTgxODNhYTU1OTAwZTI4OWFlMThhZjBkNDZmYzgiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjllOWE0NTVlYjJmZTZjNmU4OWE3YTY0MGU3MmZjYzY2Yzk4YTI5MDdjZjg5MDhkNTIyYzZlM2JkYzk2NmZjNjIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjFmNDlmNzhjNjQ1ZGM4MTIwZDkxYTgwODlmOGY3Nzk1ZjhjM2FjNjFiZTFkOGM4NDljMWM1OGJiYTRkOGYzNDgifQ"
         },
         {
           "resource": "repo://tests/routers/test_csv_account_endpoints.py#L300-L305",
@@ -236,11 +236,11 @@
       "evidence": [
         {
           "resource": "repo://src/account/service/csv_account.py#L140-L160",
-          "version": "repo-lines-v1:sha256:e378a7c969370a54cf582b559ef36ee9c21c750aa1446de97cdf02178c1a569d:eyJzZWxlY3RlZExpbmVDb3VudCI6MjEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImFiYmI2NThiNjY3YWI3MDhmNDM1NzQxYjYxOTNkZWI0OWM2ZjNhYzI5NGJmOTc3NDYyYzk5MTY3NGVjYmJiOTUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImQwMDEwNWUwYTY4NTIxYzNkMzMyNjE1MzkwZTg1OWUzOWNmMjQxMjc0YTdkNzgxZDE5NmEzYWRhMDdiMTBmZDciLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6Ijg1N2U0OWM1N2E5ZDdkNmI0ZGQ1YTVmMGZjOTRkZGUyOWIzNDFlNmNmZDIyMzg4ZDU3MmRiY2JmNTJiYTgwMjUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImE0MzljYTQ3OTZlZGU4M2U1OTM5NDU3YTZhNjEyNjcwZDExM2ZiYmMyYTdlNTMwZDk2MzdjMTAwZWY4YWIyY2YifQ"
+          "version": "repo-lines-v1:sha256:e378a7c969370a54cf582b559ef36ee9c21c750aa1446de97cdf02178c1a569d:eyJzZWxlY3RlZExpbmVDb3VudCI6MjEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImFiYmI2NThiNjY3YWI3MDhmNDM1NzQxYjYxOTNkZWI0OWM2ZjNhYzI5NGJmOTc3NDYyYzk5MTY3NGVjYmJiOTUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImQwMDEwNWUwYTY4NTIxYzNkMzMyNjE1MzkwZTg1OWUzOWNmMjQxMjc0YTdkNzgxZDE5NmEzYWRhMDdiMTBmZDciLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6Ijg1N2U0OWM1N2E5ZDdkNmI0ZGQ1YTVmMGZjOTRkZGUyOWIzNDFlNmNmZDIyMzg4ZDU3MmRiY2JmNTJiYTgwMjUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjJhMjQzYjJmY2EzMGY0ZGUwYjJiYmZlYTg0MmI5OGI2YTVhZDJlNmFhOTQ4ODM3MzIzMzY3YTkwZTUxZTQ3NTEifQ"
         },
         {
-          "resource": "repo://src/account/service/csv_account.py#L169-L184",
-          "version": "repo-lines-v1:sha256:69c573461a07f50509ecac2310e5361364ed4ccf4541c4729c5984de70573fbe:eyJzZWxlY3RlZExpbmVDb3VudCI6MTYsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImE1N2QyYmZkYWI1ZjI1ZTc5ZTIzZWI0MjlhMjg1N2EwYTcxOTc3NTM3NDA0N2ZiNjViZGM1MDU0ODkzMzQyMDgiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImE1NWQxMWYxNGI4NTY4ZGQzMTM5NGRjNWZlZmYxOTc3MGRhNjdlNWY5ZjFhNWE5Y2I4NWUzY2IyZGRkNDIyZDMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjczN2ZmYWQ3NDk0MDIxZTc4MWEyOGQ4MGFjYWMyNmIwODkzMmNmNDFkNWUyOTc2NWJjOTNjNjAyZjg0NmM5NmUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjUwNGQwNGE3ZmMyYTM3MzM5NjAxZDliMGNlNDZiN2U1ZDkwMmM5ODdhYjVlODRhZTYyODc2NTdkZGVkYjNlOTAifQ"
+          "resource": "repo://src/account/service/csv_account.py#L174-L187",
+          "version": "repo-lines-v1:sha256:3d113c89cd5807b98566de47c6e5946c97ab243154709e0bc980a33f5d9dae8f:eyJzZWxlY3RlZExpbmVDb3VudCI6MTQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjEyNjlhZWM4YmI4MmUxYzJhNDcxYWZkYzY3MGU0ZDZkMDY4NzMxYWRjMjk3MDU2MWFiNjY5MTRlMzljZTBlMGMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjUxMDM0ODFjNTdkMGYwZGMwZjc2Y2QyY2M4YjM2MDRjNGU4Mjk2ZGE0MTIyYWRkMTllODE3NDVkYzdlMzMxYTYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjllOWE0NTVlYjJmZTZjNmU4OWE3YTY0MGU3MmZjYzY2Yzk4YTI5MDdjZjg5MDhkNTIyYzZlM2JkYzk2NmZjNjIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjRkOWExNzM5NDJkZGY4MzNlMTBiM2M3ZDg3MjdiNGQ4YWRlOTY1ODlkZDIwYmI2MWRhZjY0ODdkZWYwMmVkODAifQ"
         },
         {
           "resource": "repo://tests/routers/test_csv_account_endpoints.py#L453-L471",
@@ -254,15 +254,15 @@
     },
     {
       "id": "claim_0c2eb9be0dc14569a936ea0223838c45",
-      "statement": "`sync_account_from_csv` is asymmetric with import: it never creates an account, never changes the account currency, and never considers other discovered accounts in the file — it matches only the target account's `external_id` (raising `AccountNotInCsvError` otherwise), validates the account's own institution's CSV enablement, and is the only CSV endpoint that enforces account ownership (404 for another user's account).",
+      "statement": "`sync_account_from_csv` is asymmetric with import: it never creates an account, never changes the account currency, and never considers other discovered accounts in the file — it matches only the target account's `external_id` (raising `AccountNotInCsvError` otherwise), validates the account's own institution's CSV enablement, writes `free_cash` via `update_free_cash`, and is the only CSV endpoint that enforces account ownership (404 for another user's account).",
       "evidence": [
         {
-          "resource": "repo://src/account/router.py#L342-L385",
+          "resource": "repo://src/account/router.py#L366-L409",
           "version": "repo-lines-v1:sha256:bff735012fbae4435acffc1474c78ca74e44d37c1c9483feb4f1d3ad7892da8f:eyJzZWxlY3RlZExpbmVDb3VudCI6NDQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ0YzU5YzhmM2YyM2NhZjYzOTI2ODUxMTM5MTNkYTQzNjVhMzdlMTEwN2I1YjhmMzBjZDliNzM4YjkzNGFjZmQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjlmMzJhMDVhZTk5MzUxMzk0ZDljYzkzN2JmOWY4MTNlNmRiZWJmNThjNWUzZjk1ZjcyZmExZWQ4ZmFkYzAxMjgiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjY2NDA4MmE3YTEzYzE0YjFiN2E1NzMyZDlmMTczMTc3NDFlYmVmNjZjOGZiOTUzNTUwZTZjYWYyZjc0YTM5M2EiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjBlOTkwZjA0MTZmNmVjNDI4NzI5OWY1NmI4NzcwNDE5YzhmNzMxYTIxYzk3YTk3MjU4ODUwM2M4NmFlNWJhNWEifQ"
         },
         {
-          "resource": "repo://src/account/service/csv_account.py#L195-L240",
-          "version": "repo-lines-v1:sha256:c07368b0fe6c0d353d41b42d2e4460612a23e0dba770f7848e1690c83b91f622:eyJzZWxlY3RlZExpbmVDb3VudCI6NDYsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijk0OThjMDc0YjEzOTczNzZjZTc1YjViNmZhYTA4ODdmMGQ4YTNlYzk5YTIzZjI0NDE3YzI0OGM0MDE1ODBkZDIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjY3YzE4Y2I4MmYwMTdlZjU5NDBmOGJjZDNiMzdlZjBhYjNhOGU1N2IzZmZlOTllYWU3M2Q2MWMzODQ0NWI3MTAiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImYxMGYyNzdhMjU4OWRkODM3NTg3MTk0OTU4NjBjMzAzMWRkMDcwNjgxMTM4ODAzNWE1MTZiZDhjODY2NjE4MWUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImI2YTYzNzkzOWMxMzgwZTQyMmZkYjRmZjIyMTk1YWI4ODA1NTBjOTIzYzNlZTU2ZDdhOTIzNTQwZTA4ODlkMGMifQ"
+          "resource": "repo://src/account/service/csv_account.py#L199-L248",
+          "version": "repo-lines-v1:sha256:2579ca5ad2c409bd0061d9f66a39137550127a0ef1788035d0168474b6916114:eyJzZWxlY3RlZExpbmVDb3VudCI6NTAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijk0OThjMDc0YjEzOTczNzZjZTc1YjViNmZhYTA4ODdmMGQ4YTNlYzk5YTIzZjI0NDE3YzI0OGM0MDE1ODBkZDIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjY3YzE4Y2I4MmYwMTdlZjU5NDBmOGJjZDNiMzdlZjBhYjNhOGU1N2IzZmZlOTllYWU3M2Q2MWMzODQ0NWI3MTAiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImYxMGYyNzdhMjU4OWRkODM3NTg3MTk0OTU4NjBjMzAzMWRkMDcwNjgxMTM4ODAzNWE1MTZiZDhjODY2NjE4MWUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImI2YTYzNzkzOWMxMzgwZTQyMmZkYjRmZjIyMTk1YWI4ODA1NTBjOTIzYzNlZTU2ZDdhOTIzNTQwZTA4ODlkMGMifQ"
         },
         {
           "resource": "repo://tests/routers/test_csv_account_endpoints.py#L374-L450",
@@ -279,11 +279,11 @@
           "version": "repo-lines-v1:sha256:7d87f5bd7a991737c8aadee73ef70ec50a91b3b1c84b1a4e1fc2f0fb8dac4da9:eyJzZWxlY3RlZExpbmVDb3VudCI6MTEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjY1ZjU4MGFkYTY4NGRkNjhhZjY3NmNkMjhkNTUxMTlkOWZkMTljYjA4N2MxMzdiODRjYjQ0ZmRhOGY5OTUyZjkiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijc0OTRkMjUwZWUyYjJjZDc4NzZjOWZlNmY4Y2UyOTQwYWE3YjYwY2U3MDU5NTI5ZjA0MmUxNzljMGNlMzY5NDEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6Ijk2YTY4YjI1MzU5Y2QxZmQ1NDM5MTkyM2FlZDUzYTBlNjFhYTM1MmU5OTJkMzNjNjVmODA0YzY1MWNhYzc0MzkiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImM1ZTc4ZTZhMGZhZGU0MjViMzg2ZDM1MDMwZGNmMTg1NDlmMWRhMGM0ZjAyZTQwYWIxMmIwOTE2ZjBlMDQ1NmYifQ"
         },
         {
-          "resource": "repo://src/account/repository_sqlalchemy.py#L260-L271",
+          "resource": "repo://src/account/repository_sqlalchemy.py#L288-L299",
           "version": "repo-lines-v1:sha256:d63195dfdf55fd183784f08af0de0a8cc91447db57e612c06ee66b81ecc1c5ca:eyJzZWxlY3RlZExpbmVDb3VudCI6MTIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ0ZGE5MzUwMDE5ZGMxZTY2NzQ1MjY0Mzg3MzE2MTk5NzIyNWU5Y2U2MDEwN2FmN2I2NGY4NDBkZGVjZmRhNGYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImM5NDRhMDZiYTQ1NDVkYzQ1YjZjYTQ5ZjM3Y2IyM2JiNjViYWZjZDUyODg3ODQyMDU0ZThkNzM1ZDNiNzhkMzQiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjBkNzFmMjc5Y2IxZjdmZTgwNDlkMTU1ZDE1ODY1MDRiMzhmMTk1MjdlZDhlNWYwYjgwNzFiODE5OWI0MTA0NzIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImI0ZDhiZGMyMzBmNTJlMTJkMzhlMDE1NzFiYzlmMjM4MmQ3ZDg0MzIzNzZlZjFiMzU2ZmE1ZWE4N2Y4NzNjOGYifQ"
         },
         {
-          "resource": "repo://src/account/service/csv_account.py#L242-L283",
+          "resource": "repo://src/account/service/csv_account.py#L250-L291",
           "version": "repo-lines-v1:sha256:210e623a9269851d45038e51f1a6530b218485f207561849f69cb8838859bd01:eyJzZWxlY3RlZExpbmVDb3VudCI6NDIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ2YTMxM2M1ZTM1NWQ0ZDg1NWFlZjE3ZjI5YTYxYTliN2MxODc3ZDA3MDJhODUwZGVmYzBhZTIzYzA2ZTg0MmMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijk0ZjBkMjAzMjZhNTEwZWZmMTEyY2U3Mzg1OTJjNWM0YTZhOWI1MTMxNDYyYjY1NzM2MmIwOTlkMzQyMTg0YjIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImI1OTMwY2RkY2Y3Zjk4NjA0YTRjYmE4ZTAxZDNhMWY0NDBhMTFhNjA3ODgzZjg5NGUwNGM4M2JlMWI1Y2YwNTEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjQ3NjMzYzhiN2M0NmFjMTAyOGNlZjEzZjE3ZGUzOTIxNWM3ZmRkYzFmODc3ZGQ2MDQzZGI5MDQzNjdiY2YzZGQifQ"
         },
         {
@@ -315,7 +315,7 @@
           "version": "repo-lines-v1:sha256:d76fc4d445f541db9a45298febda6b8eabef33d1ad911c9a009e0852058838ab:eyJzZWxlY3RlZExpbmVDb3VudCI6MjIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjgyYzM5NWY5NTk1NjU0MzNmNTFlZTA0Zjc1OTU1ZTI2ZWIzYzFmNmQ1YmVhOTE3ZmQ1YTViYThiMmEyYTZkMWUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjY3Y2RhODJkYTYwNjIzOGUwNWU2MjM5OTU2OWM1ZWUwMzk5MzQxOTY0OGFlNWQ0M2EyYmY4Y2Q2MzQ3ZjgyNjMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjExZmRjYWU4NGM0YTkxYzljZGVlYWVjMTg4NDUyYjAyZjA5NGRjYmRkYTlhYzRiYmVjM2ViZGNiODZlYzUzOGYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjA5NWU1YzAxYTNiMThkNDdjOTJlOWY1YjgzMjdmMGNiNWNhMzdmYzI0NjA1ZGYxNDgwYzdkMDgzZjUyZmRiNjgifQ"
         },
         {
-          "resource": "repo://src/account/router.py#L208-L339",
+          "resource": "repo://src/account/router.py#L232-L363",
           "version": "repo-lines-v1:sha256:35e29c62ac12034048c22620577c68c9c21d5a416df3c4576abfee09099e4abd:eyJzZWxlY3RlZExpbmVDb3VudCI6MTMyLCJmaXJzdFNlbGVjdGVkTGluZUhhc2giOiIyNmM4NTkzNThlODYyODk3NjVlYTFhYzZjZmYwYjExNThiNjQzMjdkN2U4OTdlYjdhNDg3OTJiZDFlN2FjMTNjIiwibGFzdFNlbGVjdGVkTGluZUhhc2giOiI5ZjMyYTA1YWU5OTM1MTM5NGQ5Y2M5MzdiZjlmODEzZTZkYmViZjU4YzVlM2Y5NWY3MmZhMWVkOGZhZGMwMTI4IiwicHJlY2VkaW5nQ29udGV4dExpbmVDb3VudCI6MywicHJlY2VkaW5nQ29udGV4dEhhc2giOiI4Y2M0YTdkMWNjNzk2YWJhM2U0NjcyMzMyN2Y1MTdlOWY4MTE5ODJkMjUwZjA3MDI5ODZlNGI1NzY0YWQ5NTg5IiwiZm9sbG93aW5nQ29udGV4dExpbmVDb3VudCI6MywiZm9sbG93aW5nQ29udGV4dEhhc2giOiI2ZWFiZjFiMjc2NTYwMTE3YWVlMTRiZTkyMWQwN2Y3OTkyZjA5OTU4ZWFiNGJkMTFmNGU3YzcyOThkNTJhZTFkIn0"
         },
         {
@@ -329,11 +329,11 @@
       "statement": "None of the three CSV endpoints carries a rate limit — only `POST /accounts/{account_id}/sync` is decorated with `@limiter.limit(\"3/minute\")` in `src/account/router.py`.",
       "evidence": [
         {
-          "resource": "repo://src/account/router.py#L208-L215",
+          "resource": "repo://src/account/router.py#L232-L239",
           "version": "repo-lines-v1:sha256:e4359f08c6f26896be6bbfa8c3e993528d1c27bf0d06b253288c0b4d85229202:eyJzZWxlY3RlZExpbmVDb3VudCI6OCwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiMjZjODU5MzU4ZTg2Mjg5NzY1ZWExYWM2Y2ZmMGIxMTU4YjY0MzI3ZDdlODk3ZWI3YTQ4NzkyYmQxZTdhYzEzYyIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiYWFlZDhjOTUwNjJiZDI0Y2RlMDRmMjMzMWJiM2MxYWRhZmQ0ZjE0MGUyNDJlMzlhYjJmMTJlNGQyMWQyNTBlNiIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiOGNjNGE3ZDFjYzc5NmFiYTNlNDY3MjMzMjdmNTE3ZTlmODExOTgyZDI1MGYwNzAyOTg2ZTRiNTc2NGFkOTU4OSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiY2JiZDZkMWE2YTlkOTdkYzc0MDIzN2Y3NGFjNWM0MDZlYWUxNmU4ZDIwZmYwMjk1ZmI0ZjA2ZTJhNzk4MmRkNSJ9"
         },
         {
-          "resource": "repo://src/account/router.py#L487-L489",
+          "resource": "repo://src/account/router.py#L527-L529",
           "version": "repo-lines-v1:sha256:76463781f73d0903552c61902d57a0d59fbe919a41d9e7b5aca03fba365128a2:eyJzZWxlY3RlZExpbmVDb3VudCI6MywiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiN2U1OGZlN2JkNGYyYjJhNzM0YzRkOTVmZjZkMTlhOThiNTAxZDQzOGYxYmU0Y2FmOTllMTAxOTJiYjQ4YmNlMSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiMmJlODk3ZTE4NjRkZmI2MzczMGZkYmU4OWE2NWNkMmVkNDY0ZmQ4ZjVlY2Q5NWQxNjVkMTgxMzc2Y2UzYWEwYyIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiOGNjNGE3ZDFjYzc5NmFiYTNlNDY3MjMzMjdmNTE3ZTlmODExOTgyZDI1MGYwNzAyOTg2ZTRiNTc2NGFkOTU4OSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiZWQ1OWZmZjU5YzM2Zjc4MGRkYzA2MzE0NjhiNmZkMjA5ZGIwNTAzYjU2OGFlNDJmODBmZWY1OTcwNDdlYzliYyJ9"
         }
       ]
@@ -343,15 +343,15 @@
       "statement": "All three CSV endpoints decode the upload with `content_bytes.decode(\"utf-8-sig\")`, so a UTF-8 BOM never reaches the parser and a read/decode failure produces an HTTP 400 rather than an unhandled 500; the parser additionally strips a leading BOM defensively.",
       "evidence": [
         {
-          "resource": "repo://src/account/csv/parser.py#L234-L241",
+          "resource": "repo://src/account/csv/parser.py#L267-L274",
           "version": "repo-lines-v1:sha256:24a876a8109f39c23e11eaa369a6ba63ad3518e884ae12524f3976cdc8a73a94:eyJzZWxlY3RlZExpbmVDb3VudCI6OCwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiMTc0NzIyMDBkYTc1N2U3OTljYmQ5ZjNjNzViNTExMzQxOTBlODY5MThiNTVjNGQ0NjgyM2IwYjUyMTMwZTI5MSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiMDA0MWY1MjhhYzRhZDM2NzQ0NjZiOTc0ZTVjYjA5MWNjNWQwYzM3YjU2MDk1NTViNGFlZGQ5MWMzNjRlOGNhNiIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiYTczY2U4ZWMwOGQwZDE5MmZjNDRkZjViNzE4YWQ0YmNhYTQ3MmM3OTU3ZTE3ZWFiNDRlMDhjYTM5Zjc4ODU1ZSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiZDY5ODFkNTFhNzhhNDBkZDZmZDlmN2Y1MzdiMDU4NGU5ZDEzZDc0MmFmYmNlYTVhOTUwYjgyOGVjODk3YmI2NSJ9"
         },
         {
-          "resource": "repo://src/account/router.py#L225-L232",
+          "resource": "repo://src/account/router.py#L249-L256",
           "version": "repo-lines-v1:sha256:16815d8d215a185c3bc18b498487596f90546a94294b7c072e33bee71203e5ff:eyJzZWxlY3RlZExpbmVDb3VudCI6OCwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiYWRhNWM2NmUxN2IxNDUzOTc4MzRiOGM4NTRkYzQxOTNlMjEyNTE4MGE4OTk2YTE0YzMxODgzMzI2YjJlZmJjZiIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNjkzOTdlYTFiNjAyZTNlMjA3MmZjMDhlODcxMTJhNGVkNzFjMmU0ZjA4NjVmNDlkODQxOThkMjFkY2MwMTUzOSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiZmRmMDkyYWIzNTc3MzI3ODI5NWY4NjFhZjRhZjJjMTBmNDA1NWMwNzIyN2YwOTUwOTJjODlhMTUzNGQwZDc5OSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiYzllNGFjMWQ3MWI0MjA2OTc0ODU2Nzk5ZThmNTkwMjU2OTAzMDc4ZjJhNTNiNDA0OGVmNzQ0Zjc1NTQ5MjE1NCJ9"
         },
         {
-          "resource": "repo://tests/account/csv/test_parser.py#L224-L236",
+          "resource": "repo://tests/account/csv/test_parser.py#L225-L237",
           "version": "repo-lines-v1:sha256:2241ab139b1c42f637da316bfda6975d1d8677bda49776a4eefc224670fd907c:eyJzZWxlY3RlZExpbmVDb3VudCI6MTMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQyODgwZjlmMjJjYTJjMGEwMGVhMGQ3MWRmMGEwM2E4NTA2ZmEyODU1N2U1OTM3ODk3Yzg2OThhMGY2MmIzODgiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjY3ODJlMzE0YTFjM2U5MTY0M2Q2ZGM0N2E4MzdmNTVhNzQ1ODI3YWUzYzA4ZjNiNGM1MTc2NThlYWNiMjA0NDAiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjM2MmI4M2ZjNDc3OWNjODczMGJlOWQxMzI5NWNmZWE2ZDc4NDA3Y2JiZGM5MTBkYTEzYTFiOTRkMGI3ZGY0OGYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjUyZTRlM2I0ODMzY2ZiZmU1YWUzYmRhMThlNjI3ZjNlNzcyOTU4ZWRjZTgxMmM5MDQ4M2ZhM2Y5YTQyOTYyOTQifQ"
         }
       ]
@@ -379,12 +379,12 @@
       "statement": "Onboarding a new broker CSV export is a data change, not a code change: set `csv_format` to the positional template matching the export header and `csv_import_enabled = True`; parser code only needs touching when the export requires placeholder vocabulary the parser does not consume or a header label no alias covers. The caveat is that templates omitting `{account_number}` or `{account_type}` fail at runtime with the row-level missing errors, and omitting `{quantity}` silently yields zero-quantity positions.",
       "evidence": [
         {
-          "resource": "repo://src/account/csv/parser.py#L247-L291",
-          "version": "repo-lines-v1:sha256:a92c32b3bf90be922a841c822d0d9237a98eab9be6a65f24bf391e094a0e8d58:eyJzZWxlY3RlZExpbmVDb3VudCI6NDUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjU4MmVhOWIwNGQ4OGQwNzFkN2M3Y2ZjNjQ4YjRiY2MxNWQwMjQ1ZDBlZDNhZGQzZjljMGM1ZjcwNmE1YTA2MjYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAxYmE0NzE5YzgwYjZmZTkxMWIwOTFhN2MwNTEyNGI2NGVlZWNlOTY0ZTA5YzA1OGVmOGY5ODA1ZGFjYTU0NmIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImM5YjVjNTFhYjg5ZjcwMzkzZmIzNzU1OGQ0NGMwNjk5NDA3MzQ2Mzc5ODJhZWQ0MTNkZDY3ZmRlYmZlZTkxNmIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6Ijc5MzM0YWZjZDY1ZGNkNDQ4NjYwNGRkZTAxMzc4MjIzODMyYzc1MDJiOTkyNDk3ZGM2ZTExMmY0ZWRiZGMxNTgifQ"
+          "resource": "repo://src/account/csv/parser.py#L261-L330",
+          "version": "repo-lines-v1:sha256:920e2a882cf564e505a7dfdcbbb8d10508f185c4638236b07274f281c45a01c0:eyJzZWxlY3RlZExpbmVDb3VudCI6NzAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImUwMjFiZDAwYWYyN2IwODg0ZThjOTQ4MjJkMmU4ZDMyNmI1NWQzMzhiODg0YjZiMGE1MGRhNWZkOTViODJkZGYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjI5ZTAwOTZkMjRiMzE5ZjRiNDRkZWJkYjAwY2VlYjdjMDgzMmNiZjhlMTliNmFjNzNhNDRiMTUwNTAwNzg0MWEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjhjYzRhN2QxY2M3OTZhYmEzZTQ2NzIzMzI3ZjUxN2U5ZjgxMTk4MmQyNTBmMDcwMjk4NmU0YjU3NjRhZDk1ODkiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImVjMmU1MjhiYTAxNDk3YWIzZGNiYjc3NGE3YmJlODllN2RlMjY5ZDRkNDkzMzViYjYzNjZiMWFhNGY5MTFkZTkifQ"
         },
         {
           "resource": "repo://src/account/model.py#L163-L202",
-          "version": "repo-lines-v1:sha256:c9962045578c64eafa4bcb1995f7e60dbf6ef541ef3b92cd519d48f33924aeec:eyJzZWxlY3RlZExpbmVDb3VudCI6NDAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjA4ZTk3YzJmYjBmODdmNTA0ZjVkY2MzODIwNjI2YTUxYmIwYTY0Njg2NTc4NzFiMWM5NzdiMTVjYjQ5NDVlNWIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjE0ZTBmNmI1MGU3MGE4NjkyYTc5ZGVkMDdlOTBjMGQ1Njc5ZmMyMzZkMDg2YzBiYjZmMWJhODM3NGQ5ZTMwZWIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjhjYzRhN2QxY2M3OTZhYmEzZTQ2NzIzMzI3ZjUxN2U5ZjgxMTk4MmQyNTBmMDcwMjk4NmU0YjU3NjRhZDk1ODkiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjkwZDNjN2VkZDM5N2E1YzIzNTgzOTdjMGIyOWUxMWRjOTZjMDliM2FlMGM5ODA1Y2Q5MmM3MTEyOTcwOWExNjkifQ"
+          "version": "repo-lines-v1:sha256:4abd400b7658567423112c2ca24bafd6f2f5052dc8fed3887f3d4113c984571a:eyJzZWxlY3RlZExpbmVDb3VudCI6NDAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAxYmE0NzE5YzgwYjZmZTkxMWIwOTFhN2MwNTEyNGI2NGVlZWNlOTY0ZTA5YzA1OGVmOGY5ODA1ZGFjYTU0NmIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAxYmE0NzE5YzgwYjZmZTkxMWIwOTFhN2MwNTEyNGI2NGVlZWNlOTY0ZTA5YzA1OGVmOGY5ODA1ZGFjYTU0NmIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImY4ODRmNmZhMDMzNmM5NmM2OTQwOWIxYTllMzhmMjY3MmI5ODc0ZmZhNGZhNjY5YTE0MTBlNWYxZjNhNTU5MzMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjMwNWI2Njk3MTJiOWY3MDAzYjZmZTljMjcyOGNiNzQ2YTRjYmE4YThmMmUxYTMxMWQxY2M4ODQzMzZiN2VkODAifQ"
         },
         {
           "resource": "repo://src/commands/seed.py#L113-L149",
@@ -434,15 +434,19 @@
     },
     {
       "id": "claim_3f7e00d66b6441af8d367793e42754e7",
-      "statement": "`update-account-csv-modal.svelte` is a single-step dialog that sends only the file for one account to `syncAccountCsv(account.id, file)` — no institution or account number travels in the body; it is opened from the account-row refresh control that renders `Update from CSV` when `api_sync_enabled` is false.",
+      "statement": "`update-account-csv-modal.svelte` is a single-step dialog that sends only the file for one account to `syncAccountCsv(account.id, file)` — no institution or account number travels in the body; it is owned by `accounts-list-item.svelte` through a `ModalState`, opened from the account-row refresh control that renders `Update from CSV` when `api_sync_enabled` is false.",
       "evidence": [
         {
           "resource": "repo://frontend/src/lib/api/accountClient.ts#L43-L52",
           "version": "repo-lines-v1:sha256:a8da39eb6c38666104aca9920dc8ce616523f05f3a71ade50d3511dd73feca4b:eyJzZWxlY3RlZExpbmVDb3VudCI6MTAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImIzNTgwYTBiNzNjYWQyYTU0N2RjZTNjMDY2MjI2NGE5NzIwMjRlZmY3YmM2ZGFlZDc0MDBiZWFmOWUyZWU3Y2EiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjY3Y2RhODJkYTYwNjIzOGUwNWU2MjM5OTU2OWM1ZWUwMzk5MzQxOTY0OGFlNWQ0M2EyYmY4Y2Q2MzQ3ZjgyNjMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImUzOThlNmM3NThmMzQwZGU2NDkxNWM4NzViNTE4OTE5OTE2MTlhOTM1ZmE1YmM0Y2Q4YmRjMWNkYWQ0MDZjZjQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImEzZmMwNGM0NGY2OGQxMGM0M2FlNTJiMDM5ZDM1M2JiMDRiMzM4MWZmMmYxZmNjMTdkNTdmOWIzMDAwYjNmMjIifQ"
         },
         {
-          "resource": "repo://frontend/src/lib/components/accounts/accounts-list-item.svelte#L94-L114",
-          "version": "repo-lines-v1:sha256:11a197c210f9ec350000221d6f9a2f7d5219beb6dc1e790cffe9aa0e1952460d:eyJzZWxlY3RlZExpbmVDb3VudCI6MjEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjgzZjcwOTdhYTdiYjY5ODA1MzFjMTE2YjU1YmZkNGNhMGM4YWJmNjczMmFlZjFhNjkzNzNkNzhlMDc5MGRlMGIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjVkM2EwMTQ3MTZjZDU3Y2MwMTliNTMyZTI3YjQyMjQ0OGY0ZmRlMTVjY2ZlNWJlZjJjM2QxYWFjZDE2ZDViN2UiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImY2NTAyNTcyZDY1ZmUxMTY5NTNlZmQxZGYxMTNiMDZiYjBkMzk3YjcwYTIxMjAxYTMyYzZiMTYyNDlmMDYxNGIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImRjY2VkNTZlNzNhZmE4YzlkOTA2MGEyMWEyMmQwYjJhZmM0ZTBhYWNhODUyOGRkMjBkYWExMzUyOWI0MzFjNjMifQ"
+          "resource": "repo://frontend/src/lib/components/accounts/accounts-list-item.svelte#L204-L220",
+          "version": "repo-lines-v1:sha256:2786e29c387fae29288cee84e5c930d026fe3f7f9ac514672dc27f2dc865d894:eyJzZWxlY3RlZExpbmVDb3VudCI6MTcsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjMyMzhjODRmYWYyMzUxNGY3MDJhMGM5MDAzMjNhMTg1NTVkZGMzZTY4OWMyMWI0OTc0MTVkZmQ3ZjQ2YmE4ZTAiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjY3OWI0Mjk4MDQ3ZjU2M2YwYmI0YjIyN2U4YzMyN2EzZDg1NGMzYWI4YmExMmUxN2VjODY5YTIzMzJiMmEwMDkiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImJlNTk1Y2QyZTk3MDFiMGZmMzYyNmM4ZDE1MmIxN2VkYTk5ZDFjYmVmZGZmZjEyMjI2OGExNmQ1YTNhM2MzODQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImQzNGE0NzgxNmNjNjY1MWFiNjlhOTNhYzk4M2ZjNjVhN2U4MDg2N2FjMWU1NGVlNTc5MTFmMDI0MzU2OWU3YTQifQ"
+        },
+        {
+          "resource": "repo://frontend/src/lib/components/accounts/accounts-list-item.svelte#L316-L323",
+          "version": "repo-lines-v1:sha256:07d0ae7ac22ca1b8c81eaf29c9773e9039ce212335a49f73eec970be97a95f1a:eyJzZWxlY3RlZExpbmVDb3VudCI6OCwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiODE5YTc1MmZhNDE4MzY3MThmM2IxYjM1MWNiN2U1OGM3ODQ4MmRkZTQ1MGMyY2JkMTJmMmUzNTE0NmQxMjMxYyIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNzA5ODk3ODRiOTEwNzgwZTI0MzdjNmU3YTllNTA4NjUzM2E4NDhjZTExNTJjMDgxNzE5MmM3NTkzZmI2MzI2OCIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiYTI2YTdhYmVlYjllZjI5MzZmZWI2OGQxNTRhNTUxZDg0OTliY2FiMzVlOTFmMGQyMmVhM2JkYjY3NDI5ODkzYiIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjAsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiZTNiMGM0NDI5OGZjMWMxNDlhZmJmNGM4OTk2ZmI5MjQyN2FlNDFlNDY0OWI5MzRjYTQ5NTk5MWI3ODUyYjg1NSJ9"
         },
         {
           "resource": "repo://frontend/src/lib/components/accounts/update-account-csv-modal.svelte#L100-L123",
@@ -477,7 +481,7 @@
           "version": "repo-lines-v1:sha256:ef3bf2d38158c8211374e6b1201de51e3e8f062d400ee234bb223ffaa5d9e304:eyJzZWxlY3RlZExpbmVDb3VudCI6NiwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiNTI0NmIxNGY3ODc1NzBiMDhlY2UyZGI2MzFlYmU2NmEzZTYyMjMwMzAxNDZkZjZmMDUwZDBjZTlkZGQ1YjczOSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNjc5YjQyOTgwNDdmNTYzZjBiYjRiMjI3ZThjMzI3YTNkODU0YzNhYjhiYTEyZTE3ZWM4NjlhMjMzMmIyYTAwOSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiZmJkNDg2YTM3ZmIxODczNzQzM2JhZDcxZmZlNjQxZDA4MmM5YjgyZWYyMTkyZTlmMDI0MDcwZGIxOTJjNmIzZCIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiOGIxZmVmNmVkN2NhMzUzOWYzNTc5OTM3NmM3YWYxYmYyYWZjZGNiYzM1YzM2ODdkNzU3YzM4ZmY5NGY3ZTVlOSJ9"
         },
         {
-          "resource": "repo://src/account/csv/parser.py#L155-L176",
+          "resource": "repo://src/account/csv/parser.py#L188-L209",
           "version": "repo-lines-v1:sha256:9accaf2711d694db28a3dcd023af69a1cdb9f14f28983dce0f7bcb673811ff83:eyJzZWxlY3RlZExpbmVDb3VudCI6MjIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImVhMzUxMDgwYTZhOTZjMjczMjMzYzA5MGNjZGNiMTE5ZmVkODc4MWJiMDMzMTQwMTdlZTJhNWU5MTYzNjM1NzgiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImE0YWMzZjk2MmNkNGQzZjQxM2Y1OWE1YTdlMjFhMzNiYzkzZTI3MGRmYzk1NmU1YzVhNGUzZDM3MWNiYjQwZjkiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjI3M2MxZWI5MmU3MmEwNmFlOGVkNTJlNTZkMDdjMDY0NmE1NDFmODJlNTA1YzZlN2Q4ODJhZmIyZWNjN2VjNjEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImJhNWNhYjcwNjY4ZmI1ZGM5OTczNGU2MjZiOWYwOTMyMjQ3ZjBhNWU3YzkzYjlkNTAxZjQyYjQwZmM3Yjg0OTgifQ"
         }
       ]
@@ -487,8 +491,8 @@
       "statement": "Focused CSV coverage is layered: `tests/account/csv/test_parser.py` pins the template/alias/filter/rounding contract, `tests/services/test_csv_account_service.py` pins the institution gate and the create/update/sync branches with mocked repositories and `SecurityApi`, `tests/routers/test_csv_inspect.py` and `tests/routers/test_csv_account_endpoints.py` drive the real FastAPI app against Postgres asserting status codes and `PositionModel` rows, and `tests/commands/test_seed.py` pins the seeded template plus seed idempotency.",
       "evidence": [
         {
-          "resource": "repo://tests/account/csv/test_parser.py#L30-L61",
-          "version": "repo-lines-v1:sha256:a262986a73e07df5897267009c451d64260c1c0aa7f015eace48c3ae72792357:eyJzZWxlY3RlZExpbmVDb3VudCI6MzIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjNmYTNmNDE1MDc2ZTA0NzY0ZTIzOTdmOTQwNDVjOTQ1NDczYWU5OGQxOWFhYTc1ZTViNDMxYWJhZmFlMTMyM2YiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAxYmE0NzE5YzgwYjZmZTkxMWIwOTFhN2MwNTEyNGI2NGVlZWNlOTY0ZTA5YzA1OGVmOGY5ODA1ZGFjYTU0NmIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImE5OGIwNjNkOWI0N2U2NTM3OTYyNTU3MmNjZTE5NzY2OWQ1NzY3ZTEyYzE4YmUwNzU2NTJiOGNkOTgxY2U4ZDUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjAyMmQ0MGI4ZjEzZTFiMDY2YTcyYjQ0NzZhYmU2NzUxOTkwYzA4ZDVkOTViNWI1MjJmNzQyMDA1ZjYzMDNhMWMifQ"
+          "resource": "repo://tests/account/csv/test_parser.py#L30-L62",
+          "version": "repo-lines-v1:sha256:278ad35d32839339d05b2a3b6790864213b07a21121cbee71f93e7668652821c:eyJzZWxlY3RlZExpbmVDb3VudCI6MzMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjNmYTNmNDE1MDc2ZTA0NzY0ZTIzOTdmOTQwNDVjOTQ1NDczYWU5OGQxOWFhYTc1ZTViNDMxYWJhZmFlMTMyM2YiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAxYmE0NzE5YzgwYjZmZTkxMWIwOTFhN2MwNTEyNGI2NGVlZWNlOTY0ZTA5YzA1OGVmOGY5ODA1ZGFjYTU0NmIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImE5OGIwNjNkOWI0N2U2NTM3OTYyNTU3MmNjZTE5NzY2OWQ1NzY3ZTEyYzE4YmUwNzU2NTJiOGNkOTgxY2U4ZDUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjAyMmQ0MGI4ZjEzZTFiMDY2YTcyYjQ0NzZhYmU2NzUxOTkwYzA4ZDVkOTViNWI1MjJmNzQyMDA1ZjYzMDNhMWMifQ"
         },
         {
           "resource": "repo://tests/commands/test_seed.py#L14-L83",
@@ -503,10 +507,54 @@
           "version": "repo-lines-v1:sha256:d3a108074481697304b04695eceda34cbb2b817d488647eae02eb3e3617f55ce:eyJzZWxlY3RlZExpbmVDb3VudCI6NTAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ2ZTc4MGI5OWNlZGUzMTU2MWM2MmMzMTNjYWE1YTI4NDVkYjhhYmEzZGE2ZmFhMGNlYjU3NDM3OTM0MWY3MjUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAxYmE0NzE5YzgwYjZmZTkxMWIwOTFhN2MwNTEyNGI2NGVlZWNlOTY0ZTA5YzA1OGVmOGY5ODA1ZGFjYTU0NmIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjZhM2NmNTE5MjM1NGY3MTYxNWFjNTEwMzRiM2U5N2MyMGVkYTk5NjQzZmNhZjViYmU2ZDQxYWQ1OWJkMTIxNjciLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjI4MTk0ZGZlZmMwOTQ4ZTRhNzhhM2FlNzVkY2E4NmY5Njc0ODg1NjFjZmRhYjRkMmQyMWMzOTQ0MWE0MDU5NGYifQ"
         }
       ]
+    },
+    {
+      "id": "claim_f6205d7d015d49b7ad03222176345dee",
+      "statement": "Cash rows are not dropped from the parse: `GenericCsvParser.parse` diverts them through `_parse_cash_amount` (first non-empty of `quantity`, `market_value`, `book_value`, `book_value_cad`, `book_value_market`, with `,` and `$` stripped) into a per-account running total that is rounded to 2 decimals and emitted as `CsvDiscoveredAccount.free_cash`, while still contributing no position.",
+      "evidence": [
+        {
+          "resource": "repo://src/account/csv/parser.py#L127-L146",
+          "version": "repo-lines-v1:sha256:e64c771ba64e671e1a73d4d7cb4213438648a0a68dc6c0f916bf697c7497cb1c:eyJzZWxlY3RlZExpbmVDb3VudCI6MjAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjExMmM3YmU4MjcwNThhZGQ3YjM2N2Y4OWE2MzkxMGNiNDA2NmM4YWIzMGU1YWVlNDYxZjYzM2JjMmEyOTQ4ODciLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjllM2FmOGRiNTgyMjJjODRjYzBkNDAzMWZhMTZiMjA3ZTgyNDAzYmJkYjgxYTVlZmQ2NmJkMGIyZDcwOThhMGYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjhjYzRhN2QxY2M3OTZhYmEzZTQ2NzIzMzI3ZjUxN2U5ZjgxMTk4MmQyNTBmMDcwMjk4NmU0YjU3NjRhZDk1ODkiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjFjNjJjNTcyNjQ1ZTU0YTMyZTFlYTUzMzJhNzE5ZmQ5YTc1YmM3NGNiZTE5NDNkZGEzYWFmN2JlZmI3MmY4NTUifQ"
+        },
+        {
+          "resource": "repo://src/account/csv/parser.py#L320-L341",
+          "version": "repo-lines-v1:sha256:163bd359692f786d7c004b223a7b35446fdea27cb08ee99c3a52546b321d1c76:eyJzZWxlY3RlZExpbmVDb3VudCI6MjIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijg0MzA3NTI2MzlhNDFlN2FhMTZhMGZhZjA2ODcxODEwMTM1MWY2Y2U4Y2VjNzM1OTg2NTgyZTkxNjZhODgzZDEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImVkMjQ0NjgyNjhkZjNhYmNhODhhMjc4YWI3YzBlZWExNTdiZDQ2ZTA3OWRjZjc5ZmYzMzcxODQzOGQ2ODQ3MjkiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImRkYTZmNmRhOTU2ZTQ1YjlmZjdjZGE5NmE1NDY5NTAzNjI4ZmQ5N2VjNDc3MWRhZDQ4ZDdlZDljNzEzZTM3YzEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjMyYjk0NDEyYmU4ODNiNjFkZWVhNWI2NDM0N2IzNDI4ZmE4NzFmYTc0NDhkOTQ0MmU2MTU2ZDM3YWEzNTMyNjkifQ"
+        },
+        {
+          "resource": "repo://src/account/csv/schema.py#L21-L33",
+          "version": "repo-lines-v1:sha256:c00aeae3a59217492a097d015642a1a10e715b1d4d7d57bd78bf3e943cc5cb80:eyJzZWxlY3RlZExpbmVDb3VudCI6MTMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImYzMzJlMDY3OWU1N2M1ODBjNDRhYTk5MmJhYzYzZmQ2ZDIyYzc5YTI3MDEzNDdkODE2OThhMDY2NTc3ZGVhZGUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjRjOGM2YzAwMDM5MTA1NzJjZGMxMDQyYzEyOGMzYjUxNDA0NDBjYmQ2ZjFlYzQ5M2NlM2Y0YTcxMjE1M2Y3NDkiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImFkOGU5NWQzMzMxNzY1OGZkZjhjZWQ3ZTcxYTRiNWQ2NzVhODU4YzhiNjE2YmFjM2Y2YzkzMzkxZDUzZWVmMDEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjoxLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjdhYjczOGFhYzM1ZmE5MGRkNmY5NjY5ZmIyNmYwYjJhNmM3ZGEwNmZiMmUzNzhkZGJiMmEzZTQxOTg4MTFkMjkifQ"
+        },
+        {
+          "resource": "repo://tests/account/csv/test_parser.py#L330-L353",
+          "version": "repo-lines-v1:sha256:ec1859ca2fa2d48746058b61c79e6ba7ffa455ff1b5f564433c773b4fdac2261:eyJzZWxlY3RlZExpbmVDb3VudCI6MjQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImI4ZjU3MzE0Y2Q1MmI5YmMzYmMxN2IwYWIxMDdlN2M1YzQ1YmQ1YzNjYzM1MWNjZDZlYTlhZjc5MWFiOTJkNTMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAxYmE0NzE5YzgwYjZmZTkxMWIwOTFhN2MwNTEyNGI2NGVlZWNlOTY0ZTA5YzA1OGVmOGY5ODA1ZGFjYTU0NmIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjY5MmI1ZWZjOTU2OGY4MDlkZTE3YzhiNWRjOWIxNGZiMmY3N2U2YTY0MTNhMzFhNjFlZWQzNDFmMjYwMmU2YTgiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjoxLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjAxYmE0NzE5YzgwYjZmZTkxMWIwOTFhN2MwNTEyNGI2NGVlZWNlOTY0ZTA5YzA1OGVmOGY5ODA1ZGFjYTU0NmIifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_00ff5200809a4fa38ca26627ba269f8c",
+      "statement": "The service persists the parsed cash balance on all three write branches — an explicit `AccountRepository.update_free_cash` call for an existing account during import and for the csv-sync target, and the `free_cash` field of the `AccountSchema` for a newly created account — so `free_cash` is overwritten from the file on every import or sync rather than accumulated across runs.",
+      "evidence": [
+        {
+          "resource": "repo://src/account/repository_sqlalchemy.py#L166-L171",
+          "version": "repo-lines-v1:sha256:99d95308704059586499fff31cea87ffd1b911af9c8484e07cefd0016eca2684:eyJzZWxlY3RlZExpbmVDb3VudCI6NiwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiNDRkYTkzNTAwMTlkYzFlNjY3NDUyNjQzODczMTYxOTk3MjI1ZTljZTYwMTA3YWY3YjY0Zjg0MGRkZWNmZGE0ZiIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiMzQ2MTU4OTY5NTk2YWFmYjlmOWJlMDk1MTQwYzBlYTEzMGFkNjkzYmJkZmZkYmZkYjc2MjQ1YmY2NGI2NjIzZSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiYjY5NDk1MGVlNTg1ZjIyY2MzZmU1MmViOTUwYTdlMzhlYTVkODgyOTQ1ZmY1MWVkZTA1YzcwZDZhMTFlMDEwZSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiN2NlN2VjNzVkYjYwNTIwYWViNTgyMzEwMjc3NDlmMjI1Nzc3OWEzODk1OWE3ZWM4NjQ2MmFmMWU4ODU4ZmQwMyJ9"
+        },
+        {
+          "resource": "repo://src/account/service/csv_account.py#L154-L195",
+          "version": "repo-lines-v1:sha256:7736c1fe8628944b35bb3e05871afc67d61fe83fc8b7e5f8615e96fc86ecaca6:eyJzZWxlY3RlZExpbmVDb3VudCI6NDIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImI2OGQxNDgxYTVmYTk4NDhiZGQ0NmQyMzkxNWZmZjJmYTE5NzVmMmVlYTgwNjAyYWVlYzRiOTdkMGY3M2EwZDIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjRkMTY3ZDFkZmRhNmY4MzJiZmUyYjQ2YmYwOTFiNTBmNGQ2NDAyYWIwZmExYjk0ODEyNTA2NTQ1ZmJjYjZiMDMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjQyMTg2NWEwMjQ0YmUwZTk4ZjdmZWNmMDI2YWM3NjdmNjBiMTdkMjc1YWVkNzhmM2M2ZjA0YzJhOWEyYmZmZWIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImYxMGYyNzdhMjU4OWRkODM3NTg3MTk0OTU4NjBjMzAzMWRkMDcwNjgxMTM4ODAzNWE1MTZiZDhjODY2NjE4MWUifQ"
+        },
+        {
+          "resource": "repo://src/account/service/csv_account.py#L234-L236",
+          "version": "repo-lines-v1:sha256:7f9bbd0bb453609d750062edf60bffb4667b25b05011c9b61a6d47c382e70dc3:eyJzZWxlY3RlZExpbmVDb3VudCI6MywiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiMjBlMDczZDJjMGFmNDU0Njg5NzFjY2YzZmM1ODhjZWIzOWU5MWNmYjZmMzJkMTQ4OGU2NDMzYjJjYTc2OGI0ZSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNTkwOWE1M2E2MThkMDI4ZTFkMzAwMGMwYTdhYmNlZWNiZTVmYjM3ZjRlNTExZWZlNDY2NDNmYWQ2ZTY2ODcyZiIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiMjc4ZmE4MWIzNWEwZWNiYjg5NWM0ZGJjZDZiZTkzZWE2N2Q1NmUyOTYzOTJmNzMzZmEzMGNiMzVhZjJiYjcyMyIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiOTA5YjBkYmJkZmVhM2UzYWEwNTlmYjM1MDU3Nzg2MGE1NmMwMTA2MmVkODJlYTE3NjBjNDc3YzY2ODEyYTlkOSJ9"
+        },
+        {
+          "resource": "repo://tests/services/test_csv_account_service.py#L607-L742",
+          "version": "repo-lines-v1:sha256:1716bd95a26084096d8eecdec3b9546af905c174c7904690d21f756b1cc202e5:eyJzZWxlY3RlZExpbmVDb3VudCI6MTM2LCJmaXJzdFNlbGVjdGVkTGluZUhhc2giOiJiZDk5NDJkZWI3ZGJhYmMxMTRiMWM0OGQwMmRhNDYzODZlOWFjYTUxNWE1MmZiN2IzYzQxMmRjNjI3OTIxYjA4IiwibGFzdFNlbGVjdGVkTGluZUhhc2giOiJkNTc0OWQyZDRlMmZmNjU5YjM2MDI2NjZhMzQwMTFjZTBmNmEyMGZkMThlNjViM2ZmNjE3NWUwYTQyMmVhYTZhIiwicHJlY2VkaW5nQ29udGV4dExpbmVDb3VudCI6MywicHJlY2VkaW5nQ29udGV4dEhhc2giOiIxNDE1YzkxOTAwOTJkZTNmMmEwOWU0MDg5NDQ1NTI2YzIyNTc2OGIxNzlmMzhiZThiYjVjZDcwODVlMTVmZjljIiwiZm9sbG93aW5nQ29udGV4dExpbmVDb3VudCI6MCwiZm9sbG93aW5nQ29udGV4dEhhc2giOiJlM2IwYzQ0Mjk4ZmMxYzE0OWFmYmY0Yzg5OTZmYjkyNDI3YWU0MWU0NjQ5YjkzNGNhNDk1OTkxYjc4NTJiODU1In0"
+        }
+      ]
     }
   ],
   "verification": {
-    "by": "openwiki/0.5.2",
-    "at": "2026-09-18T20:16:58.058Z"
+    "by": "openwiki/0.7.0",
+    "at": "2026-10-04T13:39:13.522Z"
   }
 }

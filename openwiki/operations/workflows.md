@@ -1,12 +1,19 @@
 ---
 type: "Reference"
 title: "Development, CI & Change Workflows"
-description: "The operational map for retail-portfolio: running the Docker Compose stack from the single root .env, the in-container command list and agent-test harness, git-worktree isolation for parallel agents, Alembic migration rules, the seeding and market-data CLI commands, how the Huey consumer and dashboard are run and mounted, CI, the deployment surface, the OpenSpec propose/apply/archive workflow with its three mirrored tool definitions, and the scheduled OpenWiki refresh with its retrieval-first consumption policy."
-tags: ["operations", "ci", "docker-compose", "agent-workflow", "migrations", "huey", "openspec", "deployment", "worktrees", "openwiki"]
-verified:
-  - by: openwiki/0.6.0
-    at: 2026-09-26T12:38:50.029Z
+description: "The operational map for retail-portfolio: running the Docker Compose stack from the single root .env, the in-container command list and agent-test harness, git-worktree isolation for parallel agents, Alembic migration rules, the seeding and market-data CLI commands, how the Huey consumer and dashboard are run and mounted, CI, the deployment surface, the OpenSpec propose/apply/archive workflow with its three mirrored tool definitions, and the agent-tooling layout that defines how agents work in this repository."
+tags: ["operations", "ci", "docker-compose", "agent-workflow", "migrations", "huey", "openspec", "deployment", "worktrees"]
 sources:
+  - id: openwiki-source-2e6dfbf4fd0e1d49ac19e157
+    resource: repo://.agent/skills/architecture-review/SKILL.md
+  - id: openwiki-source-b138950b59d6ada3889304a0
+    resource: repo://.agent/skills/orchestration/SKILL.md
+  - id: openwiki-source-a5de9b27344629c3dcd0b5d2
+    resource: repo://.agent/skills/quality-check/SKILL.md
+  - id: openwiki-source-20647290f1ed688a765f8983
+    resource: repo://.agent/skills/spec-writing/SKILL.md
+  - id: openwiki-source-bb4ad730070d1da1ccb2c08e
+    resource: repo://.agent/skills/ticket-execution/SKILL.md
   - id: openwiki-source-b6d79691ae8158aab326e9d3
     resource: repo://.agent/workflows/opsx-apply.md
   - id: openwiki-source-55872b73dfc0e1388d16ab8f
@@ -15,6 +22,8 @@ sources:
     resource: repo://.agent/workflows/opsx-explore.md
   - id: openwiki-source-cd6a33fc3b74a9a16cc85155
     resource: repo://.agent/workflows/opsx-propose.md
+  - id: openwiki-source-a948e1c3a086ad05474c2761
+    resource: repo://.claude/commands/opsx/propose.md
   - id: openwiki-source-715dace563ef484b6e8bd1e2
     resource: repo://.dockerignore
   - id: openwiki-source-5f5b95b3d6a215fa02ceb945
@@ -27,22 +36,22 @@ sources:
     resource: repo://.github/workflows/ci.yml
   - id: openwiki-source-6d4b4e707b8d60b6ccfa3425
     resource: repo://.github/workflows/openwiki-update.yml
+  - id: openwiki-source-0da5e3993a1543e39156773c
+    resource: repo://.opencode/agents/orchestrator.md
   - id: openwiki-source-9a893e0578e12c52c0533ec0
     resource: repo://.opencode/command/opsx-propose.md
   - id: openwiki-source-618752d6f11341db792d17ef
     resource: repo://.opencode/opencode.json
-  - id: openwiki-source-f757c25b2bb6e352b56dbffa
-    resource: repo://.opencode/skills/orchestration/SKILL.md
   - id: openwiki-source-8037e2358a2c4f9b2c722a11
     resource: repo://AGENTS.md
-  - id: openwiki-source-a2371d6362e5db4bc834ad03
-    resource: repo://CLAUDE.md
   - id: openwiki-source-11ef2d56dffda152beeb9f84
     resource: repo://docker-compose.prod.yml
   - id: openwiki-source-b79fbbd921df689b4bbdc82f
     resource: repo://docker-compose.yml
   - id: openwiki-source-bb1ebe868e35e9e500714501
     resource: repo://Dockerfile
+  - id: openwiki-source-e483fd3285d99d05c7b265cf
+    resource: repo://frontend/AGENTS.md
   - id: openwiki-source-cc3f1d0259a2efebbe62cecf
     resource: repo://frontend/Dockerfile
   - id: openwiki-source-c59fe4336a371ea1052a01dd
@@ -89,7 +98,10 @@ sources:
     resource: repo://tests/commands/test_seed.py
   - id: openwiki-source-573b283ce7220c507e717dec
     resource: repo://tests/test_migrations_autogenerate.py
-generated: { by: "openwiki/0.6.0", at: "2026-09-26T12:38:50.029Z" }
+generated: { by: "openwiki/0.7.0", at: "2026-10-04T13:39:13.522Z" }
+verified:
+  - by: openwiki/0.7.0
+    at: 2026-10-04T13:39:13.522Z
 ---
 
 # Development, CI & Change Workflows
@@ -104,7 +116,7 @@ semantics of the worker belong to
 
 ## Constraints that hold for every change
 
-These four rules are global; the sections below give the operational detail.
+These five rules are global; the sections below give the operational detail.
 
 - **Docker-only commands.** Every development command runs inside a container
   (`docker compose exec <backend|frontend> <command>`). CI runs the same checks, so the host
@@ -116,6 +128,9 @@ These four rules are global; the sections below give the operational detail.
   the testcontainers PostgreSQL instance is the only allowed infrastructure dependency.
 - **Non-trivial changes go through OpenSpec**, and every OpenSpec stage exists in three tool
   mirrors (`.agent/`, `.opencode/`, `.github/`) that must be updated together.
+- **Never merge to `main` without explicit user permission.** This is stated in `AGENTS.md` and
+  restated by the `orchestration` skill, which requires presenting the PR and waiting for
+  confirmation even when every check passes.
 
 ## Local development: Docker Compose only
 
@@ -203,13 +218,20 @@ worktree directory name), `DOCKER_GID` and all seven published ports (`BACKEND_P
 so re-runs leave no stale entries. Every worktree therefore gets its own Compose project,
 volumes and port set.
 
+The rule is enforced by tooling, not only prose: the orchestration skill instructs the
+orchestrator to run independent tickets in parallel, each inside its own worktree
+(`../retail-portfolio-<ticket-id>`), while sequential work stays in the main checkout;
+`ticket-execution` repeats that after `cd <worktree-path> && docker compose up -d`, every
+command runs *only* inside that worktree — or, if the agent tool supplied its own isolated
+workspace, the script's `.env` logic must still be applied before Compose starts.
+
 ## Testing: the agent harness first
 
 `./scripts/agent-test` is the primary test entrypoint for agents (root `AGENTS.md`); the
 `just` recipes are thin wrappers. It runs on the host and shells through
-`docker compose exec -T <service>` unless it is already inside a container or `--local` is
-passed, sanitizes output (ANSI stripping, vendor-frame removal, blank-line collapsing) and
-hard-caps it at `--max-chars` (default 3000).
+`docker compose exec -T <service>` unless it is already inside a container (detected via
+`/.dockerenv`) or `--local` is passed, sanitizes output (ANSI stripping, vendor-frame
+removal, blank-line collapsing) and hard-caps it at `--max-chars` (default 3000).
 
 ```bash
 just test                       # auto-detect ecosystems from the git diff
@@ -221,6 +243,12 @@ just test-all                   # ./scripts/agent-test --all
 just check                      # ./scripts/agent-test --gate0-only
 just up                         # DOCKER_GID=$(./scripts/docker-gid.sh) docker compose up -d
 ```
+
+The harness only knows two ecosystems, `backend` and `frontend`. The Go service under
+`services/indicator-service` is exercised by its own CI job, and the harness's
+auto-detection ignore list (documentation, tooling and the harness itself) covers
+`openspec/`, `openwiki/`, `.github/`, `.opencode/`, `.agent/`, `.claude/`, `.ai/`,
+`scripts/` and `frontend/node_modules/`.
 
 ```mermaid
 flowchart TD
@@ -254,19 +282,18 @@ Three gates with different intents:
   backend. Paths typed as `backend` / `frontend` select a whole ecosystem instead.
 - **Gate 2 — full regression.** With no targets, ecosystems are auto-detected from the git
   diff (`origin/main...HEAD`, working tree, staged, untracked). `src/`, `tests/`, `migrations/`,
-  `pyproject.toml`, `uv.lock` and `alembic.ini` imply backend; `frontend/` implies frontend;
-  `openspec/`, `openwiki/`, `.github/`, `.opencode/`, `.agent/`, `scripts/` and
-  `frontend/node_modules/` are deliberately ignored; an empty diff means both ecosystems.
-  Output is an **Index** (per-ecosystem counts plus failed identifiers, capped at 30) followed
-  by **Traces** for only the first 1–2 failures; the rest appear as one-line summaries.
+  `pyproject.toml`, `uv.lock` and `alembic.ini` imply backend; `frontend/` implies frontend; an
+  empty diff means both ecosystems. Output is an **Index** (per-ecosystem counts plus failed
+  identifiers, capped at 30) followed by **Traces** for only the first 1–2 failures; the rest
+  appear as one-line summaries. When the output would exceed the cap, at least half of the
+  budget is reserved for the traces so a noisy Index cannot starve the detail.
 
 Flags: `--backend` / `--frontend`, `--all`, `--gate0-only`, `--no-gate0`, `--local`,
 `--json`, `--max-chars N`. Machine-readable reports land in `.cache/agent-test/backend.xml`
-(backend) and `frontend/.cache/agent-test/frontend.json` (frontend), and the exit code is 1
-if anything failed, errored, or the runner itself failed.
-
-**Scope:** the harness covers backend and frontend only. The Go service under
-`services/indicator-service` is exercised by its own CI job.
+(backend JUnit, parsed for counts and failure identifiers) and
+`frontend/.cache/agent-test/frontend.json` (Vitest JSON); any stale report is deleted first
+so "missing report" stays meaningful, and the exit code is 1 if anything failed, errored, or
+the runner itself failed.
 
 ### Raw per-ecosystem commands (fallback)
 
@@ -325,6 +352,9 @@ Both admin commands are run inside the backend container and are idempotent-by-l
   interactive `[y/N]` confirmation, deletes the rows, and then invalidates the matching
   indicator cache (per-security `invalidate_security` or `flush_all`). This is the reset path
   when cached indicator/price history must be rebuilt from EODHD.
+
+Neither is a "seed auth test users" helper beyond the single dev user above: there is no
+separate command module for test credentials in `src/commands/`.
 
 ## Background jobs and the Huey dashboard
 
@@ -430,15 +460,16 @@ Probes (used both by Compose healthchecks and by orchestrators):
   `503 {"status": "degraded", …}` with per-dependency `ok`/`error` values.
 - `GET /api/ping` is the human/app-level check reported in the README and quickstart.
 
-The Go sidecar exposes `GET /health` (used by its compose healthcheck) and `POST /compute`;
-it is internal-network-only with no authentication.
+The Go sidecar exposes `GET /health` (used by its compose healthcheck) and `POST /compute`
+on an internal network with no authentication.
 
 ## Spec-driven change workflow (OpenSpec)
 
 This repository uses OpenSpec in `spec-driven` mode (`openspec/config.yaml` declares
-`schema: spec-driven`). Canonical specs live in `openspec/specs/<capability>/spec.md`
-(11 capabilities today, from `account-holdings-view` through `technical-indicators`);
-active changes live in `openspec/changes/<name>/` and, once archived, move to
+`schema: spec-driven`; the file carries no project `context` or per-artifact `rules`, only the
+commented examples). Canonical specs live in `openspec/specs/<capability>/spec.md`
+(11 capabilities today, from `account-holdings-view` through `technical-indicators`); active
+changes live in `openspec/changes/<name>/` and, once archived, move to
 `openspec/changes/archive/YYYY-MM-DD-<name>/`.
 
 ```mermaid
@@ -454,10 +485,29 @@ flowchart TD
 Caption: the four-stage lifecycle. Each stage is one slash command and one mirrored skill;
 `explore` can feed `propose` but is not a required step.
 
+**What the loop expects of a change.** A change is a directory scaffolded by the CLI, never
+written by hand, that becomes apply-ready when every artifact named in the schema's
+`apply.requires` has `status: "done"`, and archive-ready when its tasks are checked and its
+delta specs have been reconciled against the canonical capabilities. The full sequence:
+
+1. **Propose.** `openspec new change "<name>"` scaffolds `openspec/changes/<name>/` with a
+   `.openspec.yaml`. Artifacts are then created in dependency order — for `spec-driven` that
+   is `proposal.md` (what and why), then `design.md` and the delta specs, then `tasks.md` —
+   driven by `openspec status --change <name> --json` (`applyRequires`, `artifacts`) and
+   `openspec instructions <artifact-id> --change <name> --json` (`template`, `instruction`,
+   `outputPath`, `dependencies`), re-reading status after each artifact.
+2. **Apply.** `openspec instructions apply --change <name> --json` returns `contextFiles`,
+   progress and per-task state. `state: "blocked"` means artifacts are missing (go back to
+   propose); `state: "all_done"` means archive. Otherwise the tasks are implemented one by one
+   with minimal, focused changes and each `- [ ]` flips to `- [x]` as it completes.
+3. **Archive.** The change directory is moved to
+   `openspec/changes/archive/YYYY-MM-DD-<name>` (`mv`, failing if that target already exists),
+   after reconciling delta specs.
+
 ### Mirrored definitions
 
-The same four stages exist in three mirrors — there is **no `.claude/` directory**;
-`CLAUDE.md` is a stub that imports `AGENTS.md`:
+The same four stages exist in three mirrors. `CLAUDE.md` does **not** exist in this checkout,
+so Claude Code is served by the `.claude/` directory directly:
 
 | Stage | Slash command | Skill |
 |-------|---------------|-------|
@@ -468,17 +518,16 @@ The same four stages exist in three mirrors — there is **no `.claude/` directo
 
 `.agent/skills/` and `.opencode/skills/` hold a wider catalogue beyond OpenSpec
 (`architecture-review`, `commit-message`, `feature-definition`, `orchestration`, `pr-review`,
-`quality-check`, `ticket-execution`, `ticket-planning`, `ticket-writing`). `.opencode/opencode.json`
-names the default agent (`orchestrator`) and per-agent models. When adding an OpenSpec stage,
-add all three mirrors — a change to only one silently diverges per tool.
+`quality-check`, `spec-writing`, `ticket-execution`). When adding an OpenSpec stage, add all
+three mirrors — a change to only one silently diverges per tool.
 
 ### Rules the workflows enforce
 
 - Create changes with `openspec new change "<name>"`, never by hand; the scaffold places
   `.openspec.yaml` in `openspec/changes/<name>/`.
 - Build artifacts in dependency order, driven by `openspec status --change <name> --json`
-  (`applyRequires` / `artifacts`) and `openspec instructions <artifact-id> --change <name> --json`.
-  Read completed dependency artifacts before writing a new one.
+  and `openspec instructions <artifact-id> --change <name> --json`. Read completed dependency
+  artifacts before writing a new one.
 - `context` and `rules` from `openspec instructions` are **agent-only constraints** and must
   never be copied into the artifact files.
 - In `apply`: read `contextFiles` first, keep changes minimal, and flip `- [ ]` → `- [x]`
@@ -492,6 +541,74 @@ add all three mirrors — a change to only one silently diverges per tool.
   target already exists.
 - `explore` is a stance, not a workflow: investigation and OpenSpec artifacts are allowed,
   application code is not.
+
+## Agent tooling: how agents work in this repository
+
+Beyond the OpenSpec commands, the repository carries a full agent operating manual. It is
+layered, and each layer has one owner:
+
+```mermaid
+flowchart TD
+    Root["AGENTS.md — communication style, branch/merge protection, project guides, docker-only commands, harness, worktrees, OpenWiki block"] --> BE["src/AGENTS.md — backend workflow, testing rule, DDD layering"]
+    Root --> FE["frontend/AGENTS.md — frontend workflow, testing rule, rune/class layering"]
+    Root --> T1["AGENTS.md without the OpenWiki block"]
+    T1 --> T2[".claude/commands/opsx/ — slash-command mirror for Claude Code"]
+    BE --> SRC["src/ — FastAPI, SQLAlchemy, Alembic"]
+    FE --> FRT["frontend/ — SvelteKit, vitest"]
+```
+
+Caption: the guidance hierarchy — the root file delegates area rules to the two area guides,
+and each leaf tool directory mirrors the OpenSpec commands.
+
+| Location | Contents |
+|----------|----------|
+| `AGENTS.md` | Communication style, the never-merge-to-`main` rule, delegation to `src/AGENTS.md` and `frontend/AGENTS.md`, the Docker-only command rule, the harness and worktree instructions, then the OpenWiki block delimited by `<!-- OPENWIKI:START -->` / `<!-- OPENWIKI:END -->` |
+| `src/AGENTS.md` | Backend workflow (ruff, ty, pytest, alembic), the no-external-services testing rule, and the domain-driven layering contract (models → schemas → repositories → services → APIs) |
+| `frontend/AGENTS.md` | Frontend workflow (npm scripts), the mock-every-API-call rule, and the UI-layer vs. `.svelte.ts` rune-class layering rules |
+| `.agent/` | `agents/` (arch-reviewer, implementer, pr-reviewer, spec-writer), `skills/` (the OpenSpec skills plus the wider catalogue), `workflows/opsx-*.md` |
+| `.claude/` | `agents/` mirror plus `commands/opsx/{propose,explore,apply,archive}.md` |
+| `.opencode/` | `opencode.json`, `agents/` (which adds `orchestrator`), `command/opsx-*.md`, `skills/` |
+| `.github/` | `prompts/opsx-*.prompt.md`, the four `skills/openspec-*/`, and `workflows/` |
+| `.ai/` | `features/` (product specs), `plans/` (working notes and ticket plans such as `424-plan.md`, `ARCH-T01-plan.md`), `reviews/` (`<date>-architecture[-focus].md`, e.g. `2026-08-25-architecture.md`) |
+
+### The feature pipeline
+
+`.agent/skills/orchestration/SKILL.md` is the single source of truth for the ticket
+pipeline, and `.opencode/opencode.json` wires it to models: `default_agent: "orchestrator"`
+with `per-agent` models `arch-reviewer` → `opencode-go/grok-4.6`, `implementer` →
+`opencode-go/deepseek-v4.1-flash`, `orchestrator` → `opencode-go/glm-5.3-flash`,
+`pr-reviewer` → `opencode-go/glm-5.3-flash`, `spec-writer` → `opencode-go/grok-4.6`
+(so `pr-reviewer` and `orchestrator` share a model, and `implementer` is deliberately the
+cheaper one).
+
+Tickets are GitHub issues titled `<ID>: <title>`, labeled `ticket` plus exactly one
+`status:*`, managed through the `gh` CLI:
+
+```mermaid
+stateDiagram-v2
+    [*] --> pending
+    pending --> planned: spec-writer plan
+    planned --> in_progress: implementer spawned
+    in_progress --> in_review: PR opened
+    in_review --> approved: APPROVE
+    in_review --> changes_requested: REQUEST_CHANGES
+    changes_requested --> in_review: implementer respawned
+    in_progress --> pending: plan fundamentally wrong
+    approved --> [*]: explicit user confirmation
+```
+
+Caption: the ticket state machine from the orchestration skill — the orchestrator owns every
+transition and workers never touch labels; the final merge step always stops for the user.
+
+Worker roles map one-to-one onto skills: `spec-writer` (`spec-writing`) turns an idea, a
+`.ai/features/<slug>.md` spec, or an `.ai/reviews/<date>-architecture.md` report into planned
+tickets; `implementer` (`ticket-execution`) executes one ticket on its branch and opens the
+PR; `pr-reviewer` (`pr-review`) reads the ticket and the diff and returns
+APPROVE / REQUEST_CHANGES with severity-graded findings; `arch-reviewer`
+(`architecture-review`) performs an on-demand health check and writes only the report.
+Supporting skills exist outside the pipeline: `feature-definition` shapes a raw idea into
+`.ai/features/<slug>.md` before it is ticketed, `quality-check` drives the fix loop over
+`./scripts/agent-test`, and `commit-message` enforces the 50/72 commit-message rule.
 
 ## Scheduled OpenWiki update
 
@@ -514,8 +631,8 @@ Documentation therefore lands through review, never as a direct commit to `main`
 ### What the OpenWiki block in `AGENTS.md` instructs
 
 The generated `openwiki/` tree is refreshed by this workflow, and the OpenWiki block at the end of
-`AGENTS.md` (delimited by `<!-- OPENWIKI:START -->` / `<!-- OPENWIKI:END -->`, imported wholesale
-by the `CLAUDE.md` stub) declares a **retrieval-first** consumption policy for agents:
+`AGENTS.md` (delimited by `<!-- OPENWIKI:START -->` / `<!-- OPENWIKI:END -->`) declares a
+**retrieval-first** consumption policy for agents:
 
 - **Do not enumerate, preload, or search wikis at task start.** `openwiki/` is just-in-time
   context, not required startup reading. Retrieval applies when the user asks for it, when

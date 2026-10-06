@@ -1,0 +1,284 @@
+{
+  "schemaVersion": 1,
+  "pageVersion": "sha256:02bba7c2a16153dde36490e567a69fe0e1f3b923d41e2a9a863caf031a511cc6",
+  "claims": [
+    {
+      "id": "claim_38dd984daccf45b9b42446121f793ef7",
+      "statement": "A security valuation is a per-user fair-value range: `SecurityValuationModel` maps to `market_security_valuations` with `user_id` (a plain UUID, no FK to `auth_users`), a cascading `security_id` FK to `market_securities.id`, non-null `lower_bound`/`upper_bound` declared as `DECIMAL(16,8)`, and created/updated timestamps, with `UniqueConstraint(\"user_id\", \"security_id\", name=\"valuation_user_security_unique\")` plus the index `ix_market_security_valuations_user_security` over the same pair -- so there is at most one range per (user, security).",
+      "evidence": [
+        {
+          "resource": "repo://src/market/model.py#L241-L267",
+          "version": "repo-lines-v1:sha256:e5e6030ee352985c0fca02a28f99d326f23bb13440b2ca0059a5c99e676adb02:eyJzZWxlY3RlZExpbmVDb3VudCI6MjcsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImE3ZGU3OTRjMDllYWFjYmI2YzYxZjlhOWJmYjQ1ZDEzMGExNmU4YWZiYjk5ZjU4NDU2ZTkzMzlhZTVmZGExMjkiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjMwYzFmMTg4ZjE0MmVkN2E4MjQ2ODBiMjA3MTcyYzU1MTliYzYxNGE0OGZkYTdjZjE2N2VkYjhkZGY3OTk1NmMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjhjYzRhN2QxY2M3OTZhYmEzZTQ2NzIzMzI3ZjUxN2U5ZjgxMTk4MmQyNTBmMDcwMjk4NmU0YjU3NjRhZDk1ODkiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_e7882e1fde574180b8856b85c2913cc2",
+      "statement": "`migrations/versions/3436586a755f_create_security_valuations.py` (down_revision `4c2ed77e7738`) is the Alembic revision that creates `market_security_valuations` with its cascading foreign key, primary key, the `valuation_user_security_unique` unique constraint and the non-unique `ix_market_security_valuations_user_security` index, and its `downgrade()` drops the index and table, demonstrating the repository rule that a model change ships its revision in the same change under the `<hash>_<description>.py` naming convention.",
+      "evidence": [
+        {
+          "resource": "repo://migrations/versions/3436586a755f_create_security_valuations.py#L15-L47",
+          "version": "repo-lines-v1:sha256:5c0db5d265dd175d621e03bc10f7c94c71f06006628de63dddc886a26927fb74:eyJzZWxlY3RlZExpbmVDb3VudCI6MzMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijc5YzM3YzE0OGFhNmViY2Q4NDE0YjE1NzljNWE3YzM1NzdiNThlNTlmZDJlOTBkMTIwNjZlMDMxYjg2ODc0ODEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImU2NjRlOWQzNTA0YmE0N2MzMTY0MGU0ZWVhOGU4ZDBiYzVlNDIzYTdkNTM0Zjg0N2ZmN2RjOGM3YzZhODQwYTQiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjMzYjAzZmI0NDk2YWY0N2JlODQ2ODNmZTVhMzZmMGYzMmMyYjUwOTMxNjhlYzgxMjVhM2ZhYmFlNzAyZjI1MzUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjoxLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjAxYmE0NzE5YzgwYjZmZTkxMWIwOTFhN2MwNTEyNGI2NGVlZWNlOTY0ZTA5YzA1OGVmOGY5ODA1ZGFjYTU0NmIifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_db271849850a480fb76be0dd765075df",
+      "statement": "`SecurityValuationRepository` in `src/market/repository.py` is a router-only ABC with exactly three methods -- `get_by_security_and_user`, `upsert`, `get_batch_by_user_and_securities` -- and its SQLAlchemy implementation filters every statement by `user_id`, so no read or write can cross users.",
+      "evidence": [
+        {
+          "resource": "repo://src/market/repository.py#L316-L336",
+          "version": "repo-lines-v1:sha256:0dff9df1d2982d353e8b70441589312fc848994fbc75a1c946df85224570d9ff:eyJzZWxlY3RlZExpbmVDb3VudCI6MjEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjhjNTMxNGU3MGVmMDg1MDFjZjgzODljYmRjMmM4ODMzOWE5YTE4NmVmODdlZmU3MGQxZGJjOGNmYjBmOGU2ZmIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImYwNjJlNThlYTBiMGZkMTk1YmEwNzY2MTNiNjMwZDU5ZTY3YmQ0NzBiYjE5ZTk3YTIwYzkwMjM2NmU1YmEwZTYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjZhMjhmMzA0MGRmYmViNjhjYzk0NjA4NDdiODVkYjU5ZDNlMGFkNzA5Nzk5NzFhNzM0YzQ5NWEyMTBiOWViN2QiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
+        },
+        {
+          "resource": "repo://src/market/repository_sqlalchemy.py#L1298-L1355",
+          "version": "repo-lines-v1:sha256:8832ce0f091bd47266634c5542644bcc72919f8c44d3bbe8d401d49a6a9aabff:eyJzZWxlY3RlZExpbmVDb3VudCI6NTgsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ0ZGE5MzUwMDE5ZGMxZTY2NzQ1MjY0Mzg3MzE2MTk5NzIyNWU5Y2U2MDEwN2FmN2I2NGY4NDBkZGVjZmRhNGYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjNkM2Y5YTgxZWI0YzEyZTJkNWY3MDFmYWJjMjc2YmJmMzg0NDhhYTFhYzY3OTY4YjJlYzI2OGVmNzUyYWFkNTIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjgwMjBhN2I4Yjg2ZjcxNmFhNTk0OTljYTIyYjc3MTYyMDA3YmZlZDkwNGQ0MTllNjI2OTMwOWRiZTgyODBiNjYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjBjNGFjZTgwZjg4YmE1NjkyMDc1ZDJmOTFiMjk1MGIyZjEzZWJkYTc5Zjk0ZThjNjUwY2U0ZDQ0YWNjZmZmOGYifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_04b1de9b9e5e4536959b9f17f39bfed4",
+      "statement": "`SqlAlchemySecurityValuationRepository.upsert` selects the `(security_id, user_id)` row and either overwrites `lower_bound`/`upper_bound` with `updated_at = datetime.now(UTC)` or inserts a new row with both timestamps, then commits and refreshes -- making the write idempotent (a second upsert returns the same row `id`, as the repository test asserts) without relying on the model's `onupdate`.",
+      "evidence": [
+        {
+          "resource": "repo://src/market/repository_sqlalchemy.py#L1312-L1342",
+          "version": "repo-lines-v1:sha256:b080413b9e4f34dc250b07b54b4340ead7addeaf17c12d5d57756ab555e4a2f4:eyJzZWxlY3RlZExpbmVDb3VudCI6MzEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ0ZGE5MzUwMDE5ZGMxZTY2NzQ1MjY0Mzg3MzE2MTk5NzIyNWU5Y2U2MDEwN2FmN2I2NGY4NDBkZGVjZmRhNGYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjI4OWRiNWJlNWNmODcyNjJiMzVjMjdhNzQzMjk4OGY0NDVkYjQ1NGJkOTRmMTFmOGI3ZDliY2UyZTliOTI0ZGUiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjkwMWQ0ODQwYWJkYzc0NGIwYWQxMWVjZmI4NmVhNWMyMTQxOWZiYjM0NWMwNDVmODVjNzI1NmVkNDFmMDEzZmMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjhlMWMyYmNmOTk0OTIyMjBiYTQ5ZDZjMzk4OWNmYmZmZDM5MTA0ODY0ODFlY2QzMjgyZDMzYzc5ZjU2YzgyN2IifQ"
+        },
+        {
+          "resource": "repo://tests/market/test_security_valuation_repository.py#L92-L116",
+          "version": "repo-lines-v1:sha256:406be70da5a08e5dcf35ff08e526e0586ccf7384b04aebd0f6fa9a249af744e4:eyJzZWxlY3RlZExpbmVDb3VudCI6MjUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjExMDYxMDNhZTE0YjAwZmMwOTdmM2EwNWQyNDA3NjkxNzU4N2EzNTQ3MzUwZTAxMGE4Y2VhNTFjMDE1MzZmNDMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjYwOTNjMTBmOGEyNjAxNmQ0NTNiZjM3NzQxYjlhYjkwZjk3NTgwNzdhYzJjYjBmMDRmMGZkM2JmZTAyN2M4NjYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImJlYzJiMTM5NmM4YTFhZDUwZDIxZTQ4MGVmOWIwMTk2ZWVlNjc2NjgxZTY3NTRiYzY0NjRjNzRjYWRiYmE2MTAiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImJlYzJiMTM5NmM4YTFhZDUwZDIxZTQ4MGVmOWIwMTk2ZWVlNjc2NjgxZTY3NTRiYzY0NjRjNzRjYWRiYmE2MTAifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_b0019280372348bf8490d175f2ab9a61",
+      "statement": "`get_batch_by_user_and_securities` returns `[]` immediately for an empty id list and otherwise issues one `IN` query scoped by `user_id`, so batch reads return only the subset of requested securities that the caller actually has a range for (a second user's row for the same security is excluded, as the repository test asserts).",
+      "evidence": [
+        {
+          "resource": "repo://src/market/repository_sqlalchemy.py#L1344-L1355",
+          "version": "repo-lines-v1:sha256:8db96baced86c25378259014fc61b42952fc25031025b107888acb52653bacaa:eyJzZWxlY3RlZExpbmVDb3VudCI6MTIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ0ZGE5MzUwMDE5ZGMxZTY2NzQ1MjY0Mzg3MzE2MTk5NzIyNWU5Y2U2MDEwN2FmN2I2NGY4NDBkZGVjZmRhNGYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjNkM2Y5YTgxZWI0YzEyZTJkNWY3MDFmYWJjMjc2YmJmMzg0NDhhYTFhYzY3OTY4YjJlYzI2OGVmNzUyYWFkNTIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImM5ZDlhMjY0MzUwMDg3NTNkMGY0Mjc0MDhlN2E2YmY4MGJlMjMzZTI1ZTA4NmI5NGQ5MTczNWFiODBiOGEyMGUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjBjNGFjZTgwZjg4YmE1NjkyMDc1ZDJmOTFiMjk1MGIyZjEzZWJkYTc5Zjk0ZThjNjUwY2U0ZDQ0YWNjZmZmOGYifQ"
+        },
+        {
+          "resource": "repo://tests/market/test_security_valuation_repository.py#L119-L154",
+          "version": "repo-lines-v1:sha256:dacc954b85c0462dffad49563308ef7078a990d7ff7bd34c73a66214f6fede58:eyJzZWxlY3RlZExpbmVDb3VudCI6MzYsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImI3YTgzMWZhNDcyNmZjMjMxNTE0NGY5YTA1NWJmZWMyNWYxYWZkMTI2YWFmZjU3YWZmYmU5NDBlZjVjNmE3MzUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjFhMDI4NThhMTZiOTljMTI3ZTg4ZmM1YzBkNzE3ZDdiZWI3MGY0Zjg0OWJmZDdjZmIxODNkOWY1MzQ0ZDM2YTIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImU2YTAyYWE3NmFhMjkzM2NkMWI0YTJmYTkyN2Q1NzY2NzE5N2JkNThjYTM4MzAwNjI1OTcwNGNkYTdjYjdlZDUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_209f3b2109f346429c169db613223a87",
+      "statement": "The market router exposes exactly four valuation routes, all behind `current_user` and all passing `user.id`: `GET /market/securities/{security_id}/valuation` (which raises `HTTPException(404, detail=\"Valuation not found\")` when the repository returns `None`), `PUT /market/securities/{security_id}/valuation` (delegating straight to `upsert` with no security-existence check), and the two batch routes `GET /market/securities/valuation/batch` (repeated `security_ids` query params, `None` coalesced to `[]`) and `POST /market/securities/valuation/batch` (body `SecurityValuationBatchRequest`), which call the same batch repository method.",
+      "evidence": [
+        {
+          "resource": "repo://src/market/router.py#L1109-L1150",
+          "version": "repo-lines-v1:sha256:a847b5220592929d9bf1e98988bc771364f7c0e52080dd74070108d350e2fdfe:eyJzZWxlY3RlZExpbmVDb3VudCI6NDIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjZjZmFjZTYyODQ2YmRkOGNmM2ZiMmM0MzU2YmYwM2U2NzY0MmIxNDhjMjI0N2QxNjAzMGM1MzA5ZjdiMTZiZWQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijc0ZTdmNzEzMmE2ODY5OTVkMDI5YzJhMjNhY2U1NDNjZDY2Yjc3MDFjNGJiMjE5NDA0NDcwYzhmYzc0MzgxN2YiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImM1MWJmY2Y2NzFkNWEyZmM4YWQxZWU1M2I3NDhjNTJhYjhmYzgyMjllNDhmM2M0Y2I5N2IzNzJjNTBjNTYwNDAiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
+        },
+        {
+          "resource": "repo://tests/routers/test_market.py#L1093-L1151",
+          "version": "repo-lines-v1:sha256:406d2401e08fe63e4867e2693662ced1d7d07732f5329c6321aeed4137362d8d:eyJzZWxlY3RlZExpbmVDb3VudCI6NTksImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImI3YTgzMWZhNDcyNmZjMjMxNTE0NGY5YTA1NWJmZWMyNWYxYWZkMTI2YWFmZjU3YWZmYmU5NDBlZjVjNmE3MzUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImFlMjVjODdhZWVjYjQ3OTc2MTllYTQ2MjJiOTBmNmQ1MGMxZjRlNWI5M2UxYTkxMjlhZjk0YjNkOTM5ZmQ1MGYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImYyOTljYjZmNGRjZmJhNGIwYThmMTM0N2JmOGQ3ZGI3ODdmODdiODI3MzFmYTdmMjNhNTliMjYzOTdkODA5ZmIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjoxLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjAxYmE0NzE5YzgwYjZmZTkxMWIwOTFhN2MwNTEyNGI2NGVlZWNlOTY0ZTA5YzA1OGVmOGY5ODA1ZGFjYTU0NmIifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_556903cdded046b1a139502bb070246b",
+      "statement": "The valuation payload contract is minimal and there is no server-side ordering rule: `SecurityValuationWrite` carries only `lower_bound` and `upper_bound`, `SecurityValuationRead` echoes `id`, `user_id`, `security_id`, both bounds and both timestamps with `from_attributes=True`, and `SecurityValuationBatchRequest` is just `security_ids: list[SecurityId]` -- so `lower_bound <= upper_bound` is enforced only by the frontend modal.",
+      "evidence": [
+        {
+          "resource": "repo://src/market/router.py#L1129-L1150",
+          "version": "repo-lines-v1:sha256:7c9101a1de6fecbbc1e6f2d319cefa45a730ff1b338647cb97a5232c0627f2b3:eyJzZWxlY3RlZExpbmVDb3VudCI6MjIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjI4Y2MxOWFjMmM0MGQxNmExMTRjNTQwNDAwODQxZjgyN2JjZWIyYWY3NWZjYzZjZGUxZTk0MjJiZjkwN2I4MjciLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijc0ZTdmNzEzMmE2ODY5OTVkMDI5YzJhMjNhY2U1NDNjZDY2Yjc3MDFjNGJiMjE5NDA0NDcwYzhmYzc0MzgxN2YiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImYwZTM1YThiMDc0OGU4OWQwMDU2YWU3NTk3MWQzNjkxYTBlNTlmOWZlMzdjYmI2YjY4YjMyNWZlZmRhNjM4OTMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
+        },
+        {
+          "resource": "repo://src/market/schema.py#L343-L361",
+          "version": "repo-lines-v1:sha256:0a746b0d3173a59b884027fbe03f75e4e18ff9ef307a444b46c3435aaac97974:eyJzZWxlY3RlZExpbmVDb3VudCI6MTksImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjZjYWZmOGRjMDA4ZDdmMTlhMmZiZjljM2JlZjVmMWQ1NjBkM2YyMzkzN2UzNWRhNjdhZTg0Nzc4YzU0MDhkNTgiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImVkODE4YTg3OWEzMmYxM2IxY2QyY2Q1MTU3Yjc1ZDkwMTJkMjZiNTE0ODFhZWUyOGJmMmY1NDBjYjdiZGZkM2UiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImY0ZTAyOWU3NmE0ZmVkZDFkOTFjNWNmM2ZlYjE3ZDg5YjhjNWNmZjNmZmY0NGQ3MjYzYjQ5MDkyMzVmZmVmY2IiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_1a3bb36325df453fae9fada7a028309d",
+      "statement": "`SecurityValuationRepository` is wired into dependency injection by `sqlalchemy_security_valuation_repository_factory`, registered against the ABC key in `register_market_services` (`src/market/__init__.py`), which is how the router resolves it with `services.aget(SecurityValuationRepository)`.",
+      "evidence": [
+        {
+          "resource": "repo://src/market/__init__.py#L72-L74",
+          "version": "repo-lines-v1:sha256:aede68e4000c81ad7eebc14a54f777c87b4b214d78eaf4a6d19b485e809b7254:eyJzZWxlY3RlZExpbmVDb3VudCI6MywiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiMjY3YjgyMjNlOTg1OGM0NDExYzIzMzVkYWZiZTllZjVhZGM2ZDFkYWRkMDU3YjhlZGFhMjU1OWFkNjUzNDcwMyIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiMzBjMWYxODhmMTQyZWQ3YTgyNDY4MGIyMDcxNzJjNTUxOWJjNjE0YTQ4ZmRhN2NmMTY3ZWRiOGRkZjc5OTU2YyIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiNDQ5MzkwYjIxYzQzMTllOWY4ZTBjMGY4MmRhYzIzNTE2YWQzZWE4N2YwYzJiODFmZGQ0MWVjOGViNDQ4NjNiMCIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiOTRjN2RhMmIyY2JjMWFlOWJjZTJhZGE2Yjc5MTA4OWNmOTBlZTI3YmM0NjA1NTljMWFlNGIxZDQzMzJmMzBlMCJ9"
+        },
+        {
+          "resource": "repo://src/market/repository_sqlalchemy.py#L1358-L1362",
+          "version": "repo-lines-v1:sha256:5dc57a42091fc63925f226c25b6218d520e2c4d791bcc986666629565f77a712:eyJzZWxlY3RlZExpbmVDb3VudCI6NSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiYzZiOTAxYWNmYjFmYzIzOWIzZTg3Mjg5MWM3YzhjZmJmZGJjZmI3NjYyZDU0MTE1NzZlYzQ5ZWJlZjNkOTEzZiIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNDcwODA2MjZlNDE3NWVkYjI5ZjQwYmQwOTc2NzE4ODg2ZGFmMTU1MDQ1ZGFiOWRkZjllY2U4YTA5MDZiM2EwNyIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiZDE2OTg3NGYyYTdiYzMxNjk4NTgzMjUzM2Y3NWQyNWMxNGRjODc4YjJiMzQ3OTY3YmM4MDIwMTI0NDkyMTFjZSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjEsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiMzBjMWYxODhmMTQyZWQ3YTgyNDY4MGIyMDcxNzJjNTUxOWJjNjE0YTQ4ZmRhN2NmMTY3ZWRiOGRkZjc5OTU2YyJ9"
+        }
+      ]
+    },
+    {
+      "id": "claim_e529a99d925d418895c1674d4ad8e3b0",
+      "statement": "`ValuationClient.getValuation` is the deliberate exception to the shared `ApiClient` rule that any non-`ok` response throws: it returns `Promise<SecurityValuation | null>` and maps a 404 to `null` through two branches -- an error whose `status` is 404, or an `Error` whose `message` includes `'404'` -- while rethrowing every other error; `saveValuation`/`setValuation` issue the `PUT` with exactly `{ lower_bound, upper_bound }` (silently dropping the interface's optional `notes` field, which the backend schema does not accept), and `getBatchValuations` short-circuits an empty id list to `[]` before POSTing `{ security_ids }`.",
+      "evidence": [
+        {
+          "resource": "repo://frontend/src/lib/api/apiClient.ts#L39-L44",
+          "version": "repo-lines-v1:sha256:008d6c2f4614a5323c312e02ef9c1280c3726e2f3dd591829157e64cc91b27cb:eyJzZWxlY3RlZExpbmVDb3VudCI6NiwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiZmI0MTgwNjZjNzIwZDNmOTk4NTBkZDQ1MGY2ODBhZjM2YjRmMTdlNWE4MGYyMDVhZTNlMTJkMzFjNzNlZjFmZCIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNjdjZGE4MmRhNjA2MjM4ZTA1ZTYyMzk5NTY5YzVlZTAzOTkzNDE5NjQ4YWU1ZDQzYTJiZjhjZDYzNDdmODI2MyIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiNDYzNmEwYmJhOTJmMzQ1ZjFkODVjMmNmZmY5NTM1ZTk0OTViNzM1MzNlZThmMGE1OTlkNWUxYjkxYTgwMjk0ZiIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiZjM0ZjlkZTA2ZGM4ZTczMzUyMDJkY2U4MjQ2MjZkZjQ3MTkxNzE2NmRkNTMwMDIwOTc4ZTYxN2I4M2NjZjczYyJ9"
+        },
+        {
+          "resource": "repo://frontend/src/lib/api/valuationClient.test.ts#L33-L70",
+          "version": "repo-lines-v1:sha256:b47139e3563a441d06a3e1a427a887f896e061cdf6f65a1f52b855bb71f43356:eyJzZWxlY3RlZExpbmVDb3VudCI6MzgsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjZkNmQxZDNmZmRlN2Q0MzFjYWMxMjQxMTAwODU3N2VmMjNmZjJkYTYwMmNkNjljYTBlNmVkMmJjOTgzOGY4MjYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjBhNzM0OTJkODk0NmIxZDBmOWQ5YzA0YjcwNGE5MjBmMjRmODllZjdjN2Y3MzExYTg1OTlkMTBjN2Y2MzU4ZDAiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImNhZDJmNWE4MmRmNjA0NjdhNGRmNTYxMDExYTFjZTY4OGE2YzdiYjIyOThhNGI1ZjA2YmY5N2MyNmUwNTY5YmUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjQ0MDE0NWU2N2UzNmM5YmE1ODJlOTY0NzJhZDcxNTBlNTc2ZGUzN2E1OWJlNGEzMjRlYWVjOGRjM2JjOTY1M2MifQ"
+        },
+        {
+          "resource": "repo://frontend/src/lib/api/valuationClient.ts#L21-L82",
+          "version": "repo-lines-v1:sha256:b8bd2c9205846d5cf670bbc3528d0457299f7a4c2f96e0798f4073f7551c7c1a:eyJzZWxlY3RlZExpbmVDb3VudCI6NjIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImJiNzNmMTVlZDk4YWI0NTRlNGNhZTc2MDAyOGI3MDQ3ZTc1ZWNhODUxMjJlNjUzNDVhZTVmNGVkM2EyNzdhY2QiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQxMmNhMzQ1Y2NmNzViZjljMDgwNmJjZTY5NWJlOGRlODA4Yjc5OTg0MjUxYTdhNTRkMjAyY2Y2MTAxZGQ0NTEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjczYWE3YTBjZjA0NGIyM2EwM2I2M2Q5ZDBkMTgzOGE0NjQ5MDFhYjlkOGM5NmNlNDIxMWE4MDljOTliMzM2ZTIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjZmYzA2MTI3MTc4NmQ2YjQ1MTJlYjI3MWRhMTY0NDc2Yzc4YWM1YzRhNTY3MTIwODhkMjk1N2M4YTRkYTQyYzYifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_b52d07b2eb794b72b382d8bffc07c157",
+      "statement": "`FundamentalsGroup` is the editing surface on the security detail page: it fetches the range via `valuationClient.getValuation(securityId)` inside an untracked `$effect` gated on `expanded && securityId`, treats `null` as the \"Fair value range not set.\" empty state (a genuine error instead renders `SidebarError` with a retry), and passes the range into `ValuationModal` whose `onSaved` writes the returned row straight back into the two-way-bound `valuation` (and thus the chart) without a refetch.",
+      "evidence": [
+        {
+          "resource": "repo://frontend/src/lib/components/actions-sidebar/fundamentals/fundamentals-group.svelte#L104-L149",
+          "version": "repo-lines-v1:sha256:f9099127e6f380b167ad664659fdb43079ae1faad9b653151de6dafdcce72002:eyJzZWxlY3RlZExpbmVDb3VudCI6NDYsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjUxZjI3MjdhZjBhYzA0ODcwMjYyYTgyYzI2MmM1MTY3MTdjNDNhZTg1N2M4MGUzOTFkZDUyZDZhYjE5YjVkZDciLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImFhNWFmZmZmN2M4ODJkOGNlMjllNTI4YjVlMWY3NDYwMjdmZDg2NWNjYWE1ZjZkMzEwOWU3MmFhZWYzNTU3ODciLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjZmYjk1YWE2YTcyNDAzODgzNzhlZGZmY2MzNmUzMjc3NDRlYzJkY2YxZDE1OGU2Zjc1ZTNhYzJlNzgzZThiODAiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjoyLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImI3ODljNGQ3OTljOGM2MGNmNzFhZDIyOWZlZDhjZWY1M2E1ZWUyODc1NzhkZDk0N2Y3Yzk3YjJiY2FkNWQ5ZGYifQ"
+        },
+        {
+          "resource": "repo://frontend/src/lib/components/actions-sidebar/fundamentals/fundamentals-group.svelte#L38-L91",
+          "version": "repo-lines-v1:sha256:dffdc0b59c0f8a9f3ac27feb14dd951cfa779e69aada7503227ea62e5cad774c:eyJzZWxlY3RlZExpbmVDb3VudCI6NTQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImE5MzA1MzY1MjQ2ODBiNzk5MGRmYWY1ODMyMGJlMjU5NjhmOTY5MGMyNDQ3MTI5MzJhN2Y2ZjU3MDViODk5MjkiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjcwOTg5Nzg0YjkxMDc4MGUyNDM3YzZlN2E5ZTUwODY1MzNhODQ4Y2UxMTUyYzA4MTcxOTJjNzU5M2ZiNjMyNjgiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjZlOTU1YTA3NjdhZjI3ZjM0YjdkNjU3YTlmNGU2NmUzMzM0MzE2MGU4YzcyN2ZlNmNlNjg2OThjNmU5OTA2OGMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjQxODVhN2U3Y2VkZTE0YTE1YTk2Yjc0MWQ5MjhhMzcwN2ZlMmQ2ZmVjNjc4N2YwY2VhY2I4Zjg0NjczYzg2YWIifQ"
+        },
+        {
+          "resource": "repo://frontend/src/lib/components/actions-sidebar/fundamentals/fundamentals-group.test.ts#L28-L72",
+          "version": "repo-lines-v1:sha256:e47ade55c5eadec018510942b017a61552bf77e99fa74c36cc388ee2894c45db:eyJzZWxlY3RlZExpbmVDb3VudCI6NDUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImQ5NzI2OTBhM2I0YWYzMTQxODY3YTgwOGRiOWZjMjI4OWNkYzk0ZTRkNTdiOGM1MTI1OWY3NmExYTNkNThiM2UiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjBhNzM0OTJkODk0NmIxZDBmOWQ5YzA0YjcwNGE5MjBmMjRmODllZjdjN2Y3MzExYTg1OTlkMTBjN2Y2MzU4ZDAiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImJjNWJhZmM2NWQwNDUzMjYxMjQ5ODcwNWUyZWMwODk1YzdkNWVjOGYyMTI1OTJkZDJmNDUzNWI4ZGI2MDVhNTgiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6Ijg5OGM0Yjc5OGU1YmY2YTJmNmM2ZmNjNTY3MzVjYmYzYzVjYjM0Mjg0NjBiMjE0MzA2YzBhZGE4ZTc5NDk1YWEifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_daf8493d09d346ca8814772f399a4216",
+      "statement": "`ValuationModal` is the only validation point for a range: it rejects a null or non-positive lower/upper bound and a `lowerBound > upperBound` pair with an inline message before calling `valuationClient.setValuation`, and on success invokes `onSaved` and closes the modal, so the client is never called with an inverted range.",
+      "evidence": [
+        {
+          "resource": "repo://frontend/src/lib/components/actions-sidebar/fundamentals/valuation-modal.svelte#L22-L61",
+          "version": "repo-lines-v1:sha256:b21e8bf98a0990bbd889e5c3d7b41be0f4f352dd69d4937586ead6e320bde324:eyJzZWxlY3RlZExpbmVDb3VudCI6NDAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjRmZmYwNjMzNDhhMWUxYTMyNTEzZWFjYzAxNmZjMjVjZmZlZjBiNGM5MGJmMGM4ODhlZDU4NTdmMjEzYTMyZGMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImNjM2EyMDc3NGQ1YzJiYjRjNzkwYzE4ODkwYTljNDk0Y2NiNTEwZmM4ZThjMDllYzc0NTE5YmMxNjRmYzc4NGIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjhmODM1M2Y0ZGE0ODBhNGZkZjhiMGNlZjQ3NTFiZDFlMjA4ZTgyOGJlMWE3NTFkZTBiMDU1NzM0N2U3ZjFkZTkiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjA1NDljMmE1MGU0MmZiNjFiYjJjMDYwZmJjZjA1Yjc4ZGRjZmFiZjRhNmZkODk1ZGZjZjllMjM2NDg1MmYyNzcifQ"
+        },
+        {
+          "resource": "repo://frontend/src/lib/components/actions-sidebar/fundamentals/valuation-modal.test.ts#L46-L104",
+          "version": "repo-lines-v1:sha256:2f904e94f584fd55e6d4748e548d444a2063e94f03518b214cc34677ddae7030:eyJzZWxlY3RlZExpbmVDb3VudCI6NTksImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImE3ZGY2NjgwY2E4YzBlMzAwZDA4MmVkMzYwOWFlMTEzMGY0YjczZWM4NmQzN2RjNjAyNGMwMjkzYTQ5YWZhOTUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjBhNzM0OTJkODk0NmIxZDBmOWQ5YzA0YjcwNGE5MjBmMjRmODllZjdjN2Y3MzExYTg1OTlkMTBjN2Y2MzU4ZDAiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImNiYmY4YWE2ZWM0YzQ4YTQyYWFlNmNjNGVjOWE0OWU5YzFkNjNkN2UzNTRlOGUxZWE0NTczYzM0OGJjY2Q4ODgiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjoxLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImY2ZjViNDBiMTU4NDU3ZDE3ODY0ZjIxNzkwNzg2ZGQ1YTJlY2RiNjRiNjZhNjUxZjc4OGQ0ZTI1Y2QzMzAzZDIifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_17877f0047d84485bfc8d52dfa5bb5cb",
+      "statement": "Whether the band is drawn is a separate preference from whether a range is stored: the security page seeds `showValuationOverlay` from `prefs.show_valuation_band` in `onPreferencesLoaded` and in its init-chain preferences fetch (each guarded by an explicit undefined/null check), the fundamentals group's \"Show on chart\" checkbox persists it with `userPreferencesService.patchPreferences({ show_valuation_band: val })` and only logs a failure, and the page forwards the same flag into the chart as both `showValuation` and `showValuationBand`.",
+      "evidence": [
+        {
+          "resource": "repo://frontend/src/lib/components/actions-sidebar/fundamentals/fundamentals-group.svelte#L75-L83",
+          "version": "repo-lines-v1:sha256:e9da42b4d4de6888c6219be9659b23fbfbc9988e69651c76cc804258721152a2:eyJzZWxlY3RlZExpbmVDb3VudCI6OSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiNjMyMTE4MmU0YWE0ZTc4N2RmYjVmZmYzOGM1NGMzOTY3YTY2MDM4MmJmNzY2YWU5NmUwNDc0ZTZkZjU1Mzk0MyIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiY2MzYTIwNzc0ZDVjMmJiNGM3OTBjMTg4OTBhOWM0OTRjY2I1MTBmYzhlOGMwOWVjNzQ1MTliYzE2NGZjNzg0YiIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiZWEwNDVmYzI2NTJlYTE4Yjg4MjYxNTNiMjQ0MzE2ZDI4Yzk1NTdjYjVmMjM0NzVjOWI4OTg3MmEyNTM5MDU4NiIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiMzA5ZDY1MjBjZTQyZTA4NjFjZTk0NDNkNjJhYmNjYzU0YmQ2OTJlN2E4MTA0YzM2MTc5ZDA1NmVjMjJjZDdiZiJ9"
+        },
+        {
+          "resource": "repo://frontend/src/lib/components/actions-sidebar/fundamentals/fundamentals-group.test.ts#L74-L103",
+          "version": "repo-lines-v1:sha256:d5294b831185f5bc15c738569e772c912c6f7e9cc32d05d537cced3fe0e53314:eyJzZWxlY3RlZExpbmVDb3VudCI6MzAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImMzZGRlNjA2OGNhZGYxMmEzNjJkMGNjZWI3OGQ0N2NhZWYyZWFmOWZlZWEzMGFkMTA3YjYwYjZiMzJmZmFkOGEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjBhNzM0OTJkODk0NmIxZDBmOWQ5YzA0YjcwNGE5MjBmMjRmODllZjdjN2Y3MzExYTg1OTlkMTBjN2Y2MzU4ZDAiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImZiNmI3MDgxZTQ1NGQ4NDM1MGNiYmYzN2FjM2VlNjliODQ4ZjEzMjViOGRhOTM1OWM2MjY5ODg1MDBlNGNlOGYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjoxLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImY2ZjViNDBiMTU4NDU3ZDE3ODY0ZjIxNzkwNzg2ZGQ1YTJlY2RiNjRiNjZhNjUxZjc4OGQ0ZTI1Y2QzMzAzZDIifQ"
+        },
+        {
+          "resource": "repo://frontend/src/routes/security/%5Bsecurity_id%5D/%2Bpage.svelte#L664-L668",
+          "version": "repo-lines-v1:sha256:cf594ac075d0e8627c53e3e20bd6ceafd104bdaef80a90d8fee1e6c2c8840a48:eyJzZWxlY3RlZExpbmVDb3VudCI6NSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiOTAyOTI4ZjJhNGJmYzZmNzcxZGFkOWY3NWI0OWZhYzQwZTEzZTcwMWZiNDRkOWVkOThjNTRkNzVkZDJmNTI0YSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNjRlZmM0OTQxOGQyNmRjZjEyOWIyMmE2YWEyMTEwOGNlZWMzNzY3N2EzMmQwOGU5ZDVmZWUzNWRkYTY2YmI5ZCIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiMjJmMmZmNWZlZWM2MGY1ODdjOGZhZTRlODdmODA5YTY2MWNmZmVkNmI0N2FhZTVmNmQ2YTI2NTNhYTg5NTJlZiIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiZGMxN2M5MGZmMWQxMzZhZWFlZWYwODNiZjJkZDNkZTk4OGU5NzJmNTU3ZmE1ZjQxODUzYjNkMTEyOGYyNGQ3MiJ9"
+        },
+        {
+          "resource": "repo://frontend/src/routes/security/%5Bsecurity_id%5D/%2Bpage.svelte#L738-L746",
+          "version": "repo-lines-v1:sha256:786e231dfbb38a556dc6cf9aeff8c28b005a4d5bd34aa37c5a6ab0a8c5b9f610:eyJzZWxlY3RlZExpbmVDb3VudCI6OSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiYWE2OTJlZWQzOGQ2MTRkN2Q0OTk3Y2M3YTM3YmMyYTgxZGM2MDFjNGVjMjllOWY1ZWY0NWE0M2MzM2FiNzZkMiIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiMjI5NmJlODBiOGYyNThjNGU0MzM2NWZhM2E2MThkZjI3NjFkNDQxZDI5NDAzZGUzMTc4YzVmY2Q1MTBjOTMwMCIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiMGNmYWUwOWM5ZWI1ODI2YzExNTI3Y2M2MTE2NDczNzAwMGFmNDU1ZGE1NTExOGMxOGZlZDIxN2M3ZTZlOTJkZiIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiZTBhYWUwMTAxYmM0Y2FiZDBiZTEyMGIwMWNiZWU2Y2ZmYTg5Zjk1ZmQxMWZlODA5ZTA2MzUxOGEzNzI5MTEyMCJ9"
+        }
+      ]
+    },
+    {
+      "id": "claim_d94d4ed90f7d48b5b58a1da829060a8a",
+      "statement": "Before rendering, the band is gated inside the chart by `isValuationBandVisible = showValuationBand !== undefined ? showValuationBand : showValuation`, so the narrower `showValuationBand` prop wins; the primitive is constructed from the range only when that flag is true and one `$effect` pushes updates through `setRange(visible ? lower_bound : null, visible ? upper_bound : null, visible)`, meaning hiding the band passes `null` bounds rather than detaching the primitive.",
+      "evidence": [
+        {
+          "resource": "repo://frontend/src/lib/components/charts/security-chart.svelte#L231-L233",
+          "version": "repo-lines-v1:sha256:2a2f49c50ddbae91227d4a15c3cf6c59da9d166c7ce4bb7750a6f3024a9a757d:eyJzZWxlY3RlZExpbmVDb3VudCI6MywiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiZjMzMzE4MzQzYTdlNTZhZmFjMmNiOTJjY2JjN2YzMjg1MjZhMWJmYmMzYTM5MThiNjY2NTVmNmYxYjBiZmM0YyIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiYWEwYzhiZDQ4MDMxNTE0MTRkMjdhMGQ2MDYwMTc3ODMwNGZlZWZmNjAzZWYxZTMxY2EyYTRhNDIwMmE4MjBhNyIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiNDBjZGQ2NDdkNTk1MDYzZTM3NzNkMWFhYWFlMzg5ZmI2NWMyNzg0NjY4ZmY3M2JjYjU4MzgxNTU0YzJmMDI2NyIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiMTg0MTlkNWEyOWJjZDc3OTk4YjMwZDIwNzBjNzIxZTNjMjk4NjU5YWQyZDYyMTRkY2M4MTIxYTM3OTMwNmZmNCJ9"
+        },
+        {
+          "resource": "repo://frontend/src/lib/components/charts/security-chart.svelte#L623-L630",
+          "version": "repo-lines-v1:sha256:842b4219a7af39b7227182c05b28bc03a63d0d4ee324da1356df50ae5e2e5ed9:eyJzZWxlY3RlZExpbmVDb3VudCI6OCwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiNGZmZjA2MzM0OGExZTFhMzI1MTNlYWNjMDE2ZmMyNWNmZmVmMGI0YzkwYmYwYzg4OGVkNTg1N2YyMTNhMzJkYyIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiMGE3MzQ5MmQ4OTQ2YjFkMGY5ZDljMDRiNzA0YTkyMGYyNGY4OWVmN2M3ZjczMTFhODU5OWQxMGM3ZjYzNThkMCIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiZmI2YjcwODFlNDU0ZDg0MzUwY2JiZjM3YWMzZWU2OWI4NDhmMTMyNWI4ZGE5MzU5YzYyNjk4ODUwMGU0Y2U4ZiIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiMjEyNmViODc5N2VjY2M2MmE3ZmRlYmU2NTc2YzhhZDNkYzY5NDJjYjZhYTEzMTc2ZTE1OGM1MzdhNDA0MmQzNCJ9"
+        },
+        {
+          "resource": "repo://frontend/src/lib/components/charts/security-chart.svelte#L900-L905",
+          "version": "repo-lines-v1:sha256:e562b9464baffc711fdca47a7cf85a88c076bc340365762ed2a02db57e4feee4:eyJzZWxlY3RlZExpbmVDb3VudCI6NiwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiYTliZmIyMmExNmI5NmFkYjE1ZmZlMTUyMGU1YWQ3NmQ5YjEwMzdjMDFlNWYyOGJiZmZjMGJlYjkxNTk1NTM2MCIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiOTlkOGQ1NjgxNWY1MGFhYzljMGJiNDdmMmEwZmNjMGQ2OTU1M2Q2Y2JkNzRmZWE1M2ExNWM1ZTlmNGM1YjljNCIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiYmZlYjdiODczNGYwZDYyOGM5ODE5M2Q0ZTY3YWNhMmIyYzA4ZjUzZTU0MDFmMzI5ODc0YTBjYzZhMThhZDE5ZSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiYWE0MTIwOWU1YWYzMDM2ZDc1OTkwMGUyNDcwYWI4OGY3MzMyNzYzZjczZmJhMjhkZDljOWIwN2ZjYWViOWNiYiJ9"
+        }
+      ]
+    },
+    {
+      "id": "claim_eea0c8438d4d45d79e90d6e24100deb1",
+      "statement": "`ValuationBandPrimitive` renders the range as a single bottom-z-ordered pane on the main series: `ValuationBandPaneView.zOrder()` returns `'bottom'`, and `ValuationBandRenderer.draw` returns without drawing when `visible` is false, either bound is null, or no series is attached, otherwise converting both prices with `series.priceToCoordinate()` and filling the rectangle between them with a translucent blue plus dashed stroke lines at each bound inside `useBitmapCoordinateSpace`.",
+      "evidence": [
+        {
+          "resource": "repo://frontend/src/lib/components/charts/plugins/valuation-band/valuation-band.test.ts#L61-L110",
+          "version": "repo-lines-v1:sha256:7704af9254202c96e2ee3c4866526e43a03d61a5a087ddf4b5e0cd7f504d5734:eyJzZWxlY3RlZExpbmVDb3VudCI6NTAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjMzMmFmNDhkNDM2NmRkMDNjMTEyNDJmMmE2ZTljMWU1ZjRhZDNmNzU1OTg3MTBkNmY2MjNjNTAxM2JhYTY4NDEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjBhNzM0OTJkODk0NmIxZDBmOWQ5YzA0YjcwNGE5MjBmMjRmODllZjdjN2Y3MzExYTg1OTlkMTBjN2Y2MzU4ZDAiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjI1MTQzN2JmNzQwOWJkMTNkZDQ4OWFiMzkyNzU5Y2I4OWY0NDRjOThlNWJlNjAxMTBjNDE3ZDBkOTE4YTllYjMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjRiMTE1OWJjYTgwMmI1ZjZhYzhjZTk5MDIwOGM3NDcyY2YyOWMyZTVmNWI1NjE4NDEyYzllZjkyMjVjNzJkMzQifQ"
+        },
+        {
+          "resource": "repo://frontend/src/lib/components/charts/plugins/valuation-band/valuation-band.ts#L103-L161",
+          "version": "repo-lines-v1:sha256:c2275e29dfc4a5da15e9d809deb12ae32a476081189afc1b48ef40bf3198d80f:eyJzZWxlY3RlZExpbmVDb3VudCI6NTksImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjJkYjUxYThiZDkzMmE3ODQ1YzlmN2E2N2JlYmQ1OWRkZjBhNzYxMjkxMWJlNTJiYTJhMzUxYjMzMDE3Njk2NTciLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjY3Y2RhODJkYTYwNjIzOGUwNWU2MjM5OTU2OWM1ZWUwMzk5MzQxOTY0OGFlNWQ0M2EyYmY4Y2Q2MzQ3ZjgyNjMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjExZmRjYWU4NGM0YTkxYzljZGVlYWVjMTg4NDUyYjAyZjA5NGRjYmRkYTlhYzRiYmVjM2ViZGNiODZlYzUzOGYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjoxLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjQxMmNhMzQ1Y2NmNzViZjljMDgwNmJjZTY5NWJlOGRlODA4Yjc5OTg0MjUxYTdhNTRkMjAyY2Y2MTAxZGQ0NTEifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_9747e579d2b04cf39abc7dc396204ad8",
+      "statement": "Two non-chart surfaces read ranges in bulk through `MarketService.getValuationsBatch` (the POST batch route) rather than `ValuationClient`: `HoldingsService.load` collects the distinct `security_id`s from loaded rows, coerces the raw `number | string` bounds with `Number(...)` into a `{ [security_id]: SecurityValuation }` map inside a nested try/catch that degrades to `{}` so a valuation failure never fails the holdings load, and the `/watchlists` page fetches the same batch in a cancellable `$effect` for its Valuation column.",
+      "evidence": [
+        {
+          "resource": "repo://frontend/src/lib/api/marketService.ts#L97-L116",
+          "version": "repo-lines-v1:sha256:11d56a3198694ee400463b4980f040dc22d19e70ca39334bfc1e5e1f1749839a:eyJzZWxlY3RlZExpbmVDb3VudCI6MjAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImIyNmI1NTg5NTZhYTEyYTM0MjhkMmRlMTliMzY2ZDU1NWI3OGZjM2NjYzQ2YWIxZTFmZjNhMGQ1NjA1YzYzYmYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQxMmNhMzQ1Y2NmNzViZjljMDgwNmJjZTY5NWJlOGRlODA4Yjc5OTg0MjUxYTdhNTRkMjAyY2Y2MTAxZGQ0NTEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjNiODcxMzE5YzJlODM2ZjUxZDRhMmI3NTlhNzdhYzU1YTZmYjFiY2FiZGIzZmIxZGY1YzcwNjBjYTAzOTYzZDIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImU2MjdiMmU2MjkxNzBiNzFkN2NjZjExNzM5MmM1MTdlMjVhZTVmZDAxODRjNDY5MzkyNzkxMzU3MDQzYmYxYzQifQ"
+        },
+        {
+          "resource": "repo://frontend/src/lib/components/holdings/holdingsService.svelte.ts#L96-L126",
+          "version": "repo-lines-v1:sha256:e60466e120417e29f7ad1fcac7ebc5c85b934fdb720ecfb614f143577bbe4e73:eyJzZWxlY3RlZExpbmVDb3VudCI6MzEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjgzYjFhYzI5NzkyMTdkNDU0NGZmYzc1ZGJiYzFhMDFmODNlMDBkNzAxNDIyMTgzZjNkMTJjY2I2OWY2YTFmN2UiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImI4ODQxZGVkODMwNmE4YTI2Y2RhNWFhZmIxMmMzYjgwZWE1Y2IwYTEyYWE3ZTM1OWJkZjBmZjRlZWE2MzdhN2UiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImJiYmUxOTY0YWJiNjVkNTA5OTA4ZTIyZDQ1MWRkN2U0OTJjMTgyNDM3OWQ3MjA2NmE4MzQ0NjIwYjFmODNkNjkiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImU5Nzg2NjFmOWVlYTVmNGMwNDRhYTU4ODEyMzcwNDNmNDU1NzQwMGM3NzcyN2RmYjJhZDYxODQ3NTQyNDBiNGUifQ"
+        },
+        {
+          "resource": "repo://frontend/src/lib/components/holdings/holdingsService.test.ts#L250-L312",
+          "version": "repo-lines-v1:sha256:56a31af1413b6e9ce45f348aa9ef54b36ef3be8d86ba7a806c3d89ed2bff423c:eyJzZWxlY3RlZExpbmVDb3VudCI6NjMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjBhZmIxNWJkZGI5NTRhZTgyYjVkOTAyNjYwNDE4NTIwNjdiZjg0NzI4MTc2NmM3NDQxNDM4NzQ2MjBkM2JmMzYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjZhMmEzYjc2ZTEyY2UxNTM3OWQwNWYyODY5ZGM0ODMyZGU3NTg5MDUzYjQ5YmZmMjM3ZTQyNWM3MjM3ODAxNTQiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjdhNzhjZjczNDFmMjk4YWVmNmFkYWUxMWQ1NWZiOWI3NzY5MGVjN2NiMWEwNWJjYTMxN2QwYjUzZDk5ZjFiMzEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjoyLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImMzMWExNDMyMDk0YzllODliMzZjZWY3MzE0NThjMDIzNWNkZmE3MjgwNDE0NjU2NDJjZjcyN2E5Y2Q4ZjQyNTQifQ"
+        },
+        {
+          "resource": "repo://frontend/src/routes/watchlists/%2Bpage.svelte#L94-L125",
+          "version": "repo-lines-v1:sha256:3463d73a5f005e10e0130c53aa29661bab32b9396878fff97ab881af1d9605ec:eyJzZWxlY3RlZExpbmVDb3VudCI6MzIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijg4M2IwM2YwN2E0OWVhMGViM2ViZTk0YjFlNjI0Y2Q0NTA5OTk5MmFhN2ZmMjJhMGQ0MmJlNDg2M2JiZTdiYmIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjBhNzM0OTJkODk0NmIxZDBmOWQ5YzA0YjcwNGE5MjBmMjRmODllZjdjN2Y3MzExYTg1OTlkMTBjN2Y2MzU4ZDAiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImZlN2I5Njg4MGMzYTA5OGU4ZjJiNmI5ZGM2YWEyMGU3YmM1NGI5MDgxMGM1NzQzMTIwMTNhMmM2OWM0MDQ0NGUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImFjOWY1NTk2NTA4ZjkzMWZmNGU1NTk1MjQwYmMzNjdhNjNhNWMxOTEzZTZiZjk3YTVmZmFkYTkyZTBiMWJhNjUifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_f072d122ee8749ea9f9017edd5c76ac6",
+      "statement": "Range display falls back to an em dash rather than a fabricated value: `formatValuationRange` in `$lib/utils/finance/valuation.ts` formats both bounds to two decimals with an `en-CA` formatter and an en-dash separator and returns `—` when either bound is missing or non-finite, while `formatValuationRange` in `watchlist-utils.ts` takes the valuation object and also returns `—` when absent or blank; the holdings table additionally sorts the Valuation Range column by the midpoint of the two bounds.",
+      "evidence": [
+        {
+          "resource": "repo://frontend/src/lib/components/holdings/holdings-table.svelte#L278-L283",
+          "version": "repo-lines-v1:sha256:851fab7f7260f21c9f981396784fb406117456de92cf0d4cda70221d2fadb3f2:eyJzZWxlY3RlZExpbmVDb3VudCI6NiwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiZDI1YzczMjFlNDYzMjA0ZjNlODA3MGU1N2U0MzNmZTExODkyYmJkOGVkOWRiYzc1ZGFjOTNjODkxZDMzNzAyYSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNjRlZmM0OTQxOGQyNmRjZjEyOWIyMmE2YWEyMTEwOGNlZWMzNzY3N2EzMmQwOGU5ZDVmZWUzNWRkYTY2YmI5ZCIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiNDAwZTllZDhjM2ZkZDM4ZGIwMWIwMjNiMmUzM2FkZjNlMTI3M2IwN2Q2YTVjZDM1YjIxYjIzZTUxMjg2OWUwYyIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiNGI3MjkwM2RiYjRjODE2ZTViNDY2OWFhZjExMjRiNjI2N2FmMGI4Y2EyNGFkZTYyYzU0ZTk4OGQ4OGQyN2Q4OSJ9"
+        },
+        {
+          "resource": "repo://frontend/src/lib/components/watchlist/watchlist-utils.ts#L241-L262",
+          "version": "repo-lines-v1:sha256:a81af073d892f9582fcb24500d81cfb299b8867d2c9b724223c629e0bb1c462f:eyJzZWxlY3RlZExpbmVDb3VudCI6MjIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImU3YWE5YWUwOGNhNjM0ZTRiMjc4OTE1YjdjNTg2NTNjZmEzMWE2YWNiMzE1OTU5NDEyNDBiNzc2MjcxY2QwZjYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQxMmNhMzQ1Y2NmNzViZjljMDgwNmJjZTY5NWJlOGRlODA4Yjc5OTg0MjUxYTdhNTRkMjAyY2Y2MTAxZGQ0NTEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjJmNzUzMWJhNTEyODY5OTVjZWJlZmVjM2ViODE2ZjdkNGIyNWRmZGYwY2YxOGE3NTJkNzFhOWFiNzY0Y2NjZmQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
+        },
+        {
+          "resource": "repo://frontend/src/lib/utils/finance/valuation.test.ts#L16-L32",
+          "version": "repo-lines-v1:sha256:e684074ac3d9f0bfe0db9bee82cf96fbdad8e82cc4e5f80daf975a96a055d57e:eyJzZWxlY3RlZExpbmVDb3VudCI6MTcsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjhlMGUzMjFjZDQ2MGU4YTQ1M2Q3ZWUwY2M1ZGM4YmU3ZjY2ZTUxZGZiYjZhNWY1N2ZlZjk4OWYxNTNhYzMwYmQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjBhNzM0OTJkODk0NmIxZDBmOWQ5YzA0YjcwNGE5MjBmMjRmODllZjdjN2Y3MzExYTg1OTlkMTBjN2Y2MzU4ZDAiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImNlMDJjNjRlNDAxMTgxMzJiNDg1MDVhNmJlN2ZmYzkzNDRlNDU2ZTRkODA3NTRlMzIzMDAzZTQ4Zjk2NTI1NzMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjoxLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImY2ZjViNDBiMTU4NDU3ZDE3ODY0ZjIxNzkwNzg2ZGQ1YTJlY2RiNjRiNjZhNjUxZjc4OGQ0ZTI1Y2QzMzAzZDIifQ"
+        },
+        {
+          "resource": "repo://frontend/src/lib/utils/finance/valuation.ts#L11-L25",
+          "version": "repo-lines-v1:sha256:b6033bffea183227fb1a7f92ff2350bf0a6fb830459336575885763271533e46:eyJzZWxlY3RlZExpbmVDb3VudCI6MTUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImU3YWE5YWUwOGNhNjM0ZTRiMjc4OTE1YjdjNTg2NTNjZmEzMWE2YWNiMzE1OTU5NDEyNDBiNzc2MjcxY2QwZjYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQxMmNhMzQ1Y2NmNzViZjljMDgwNmJjZTY5NWJlOGRlODA4Yjc5OTg0MjUxYTdhNTRkMjAyY2Y2MTAxZGQ0NTEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6Ijc3YmI0Y2UyNTY5ZjI0ZjdiZTA1NzQyMDIxZWVjNzQ3NDY2YjQ1MGNiZTUwY2ExNjlkYjczZjRlY2FkY2E4YWEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_6ca76a4894bc49c1900fd0f384f22ed6",
+      "statement": "The valuation feature's focused tests sit at four layers: `tests/market/test_security_valuation_repository.py` (not-found returns `None`, upsert create/update preserving the row id, batch isolation between users, empty list returns `[]`) against the ephemeral Postgres session, `tests/routers/test_market.py` for the 404-before-write plus PUT/GET round trip and both batch forms, `frontend/src/lib/api/valuationClient.test.ts` for the 404-to-null mapping and PUT body, and the component/chart suites (`fundamentals-group.test.ts`, `valuation-modal.test.ts`, `valuation-band.test.ts`, `security-chart.test.ts`) which mock the API clients and `lightweight-charts`.",
+      "evidence": [
+        {
+          "resource": "repo://frontend/src/lib/components/actions-sidebar/fundamentals/fundamentals-group.test.ts#L6-L17",
+          "version": "repo-lines-v1:sha256:9761f0a30343407483408e143f404af4586ddac165ea53048e28bb495686effc:eyJzZWxlY3RlZExpbmVDb3VudCI6MTIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjMwMTc4YTZjYjY0NzFjMTY0NTkwMGYwOTNlZmVlOWU0OWEzMzI3NDkxOTA2Y2ExZDM2YmE1ODQ4MjA1ZGY1MGMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjViNzQxZDJjMDhlNmY1MTBiN2U5YTI2NGYzNzhmOWNlMDA0OWE1MDRlMGU3ZWY1ZDY3Y2QzZWE4MTNmODU0NzQiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjE0NTNmZTM1ODgzOWY2NjA3OTE3NGM3ZTkzZDEzOWQ2MzRiNmRhY2U4YzViNjEyNTc4ZDk4MDljOTg3MDdmNTMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjRkNDljMmVkMzU5ZWVjODE5MDJiMmIzNzFhMTc5Yjc2MjYzZmM4NWZmMDZkMmRkOTU4MWRlN2RiM2RmNTc3YzAifQ"
+        },
+        {
+          "resource": "repo://frontend/src/lib/components/charts/security-chart.test.ts#L3340-L3364",
+          "version": "repo-lines-v1:sha256:2c3fe9b6c574c3d086c1e52a02f2b90f1996553e4459f94e5b4369d38953cdd0:eyJzZWxlY3RlZExpbmVDb3VudCI6MjUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImUwZTY1NDYyYWQ1ZTBmNGIwMWY3NjY2ZWQwZTIzZWM5MmYzMzA4NjU0MTkzYmIwMGZkMTAzODIyOWMyZGNhZGMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjZhMmEzYjc2ZTEyY2UxNTM3OWQwNWYyODY5ZGM0ODMyZGU3NTg5MDUzYjQ5YmZmMjM3ZTQyNWM3MjM3ODAxNTQiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImZiNmI3MDgxZTQ1NGQ4NDM1MGNiYmYzN2FjM2VlNjliODQ4ZjEzMjViOGRhOTM1OWM2MjY5ODg1MDBlNGNlOGYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImM3Y2IwZjU4NTRiYjRkY2ExY2ZkMzM4MDg2NGU0OWU4ZTU3N2UwODY5ZTNlYmQ2Nzg1ZTg1MjY0ZjBmZWFlMGYifQ"
+        },
+        {
+          "resource": "repo://tests/market/test_security_valuation_repository.py#L54-L154",
+          "version": "repo-lines-v1:sha256:befcd3826b69e203585c547c4ce3ed47429cb4acee495e82cb05d24bbe99c003:eyJzZWxlY3RlZExpbmVDb3VudCI6MTAxLCJmaXJzdFNlbGVjdGVkTGluZUhhc2giOiJiN2E4MzFmYTQ3MjZmYzIzMTUxNDRmOWEwNTViZmVjMjVmMWFmZDEyNmFhZmY1N2FmZmJlOTQwZWY1YzZhNzM1IiwibGFzdFNlbGVjdGVkTGluZUhhc2giOiIxYTAyODU4YTE2Yjk5YzEyN2U4OGZjNWMwZDcxN2Q3YmViNzBmNGY4NDliZmQ3Y2ZiMTgzZDlmNTM0NGQzNmEyIiwicHJlY2VkaW5nQ29udGV4dExpbmVDb3VudCI6MywicHJlY2VkaW5nQ29udGV4dEhhc2giOiIzMGFjMTIzMjA0OWVkMDcwMmVlYjYzMzRmMTc1YTc5ODM1MzRiYWU1YzQxNjZlYzhmZWE2NWYxMjdmMmRlMTBmIiwiZm9sbG93aW5nQ29udGV4dExpbmVDb3VudCI6MCwiZm9sbG93aW5nQ29udGV4dEhhc2giOiJlM2IwYzQ0Mjk4ZmMxYzE0OWFmYmY0Yzg5OTZmYjkyNDI3YWU0MWU0NjQ5YjkzNGNhNDk1OTkxYjc4NTJiODU1In0"
+        },
+        {
+          "resource": "repo://tests/routers/test_market.py#L1093-L1151",
+          "version": "repo-lines-v1:sha256:406d2401e08fe63e4867e2693662ced1d7d07732f5329c6321aeed4137362d8d:eyJzZWxlY3RlZExpbmVDb3VudCI6NTksImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImI3YTgzMWZhNDcyNmZjMjMxNTE0NGY5YTA1NWJmZWMyNWYxYWZkMTI2YWFmZjU3YWZmYmU5NDBlZjVjNmE3MzUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImFlMjVjODdhZWVjYjQ3OTc2MTllYTQ2MjJiOTBmNmQ1MGMxZjRlNWI5M2UxYTkxMjlhZjk0YjNkOTM5ZmQ1MGYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImYyOTljYjZmNGRjZmJhNGIwYThmMTM0N2JmOGQ3ZGI3ODdmODdiODI3MzFmYTdmMjNhNTliMjYzOTdkODA5ZmIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjoxLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjAxYmE0NzE5YzgwYjZmZTkxMWIwOTFhN2MwNTEyNGI2NGVlZWNlOTY0ZTA5YzA1OGVmOGY5ODA1ZGFjYTU0NmIifQ"
+        }
+      ]
+    }
+  ],
+  "verification": {
+    "by": "openwiki/0.7.0",
+    "at": "2026-10-04T13:39:13.522Z"
+  }
+}

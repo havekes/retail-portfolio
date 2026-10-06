@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "pageVersion": "sha256:eb458fec835b7771ea552681cb52797fd255d6baa67826836cd42e7c90740a7d",
+  "pageVersion": "sha256:aa06ade04f5285816fddddd0b70e06f9a3c403e8a07f0a0fd256ddb7494bd2b8",
   "claims": [
     {
       "id": "claim_9bd0ec86d7b94a8584961b72b1da8ef4",
@@ -69,7 +69,7 @@
       "statement": "All development commands must be executed inside Docker containers via `docker compose exec <backend|frontend> <command>`; the host environment is never the reference and CI runs the same checks.",
       "evidence": [
         {
-          "resource": "repo://AGENTS.md#L15-L17",
+          "resource": "repo://AGENTS.md#L19-L21",
           "version": "repo-lines-v1:sha256:72339c27e276600743b00237fd0c7bbd0458009c005d63ecce5173f7c9f1b5e0:eyJzZWxlY3RlZExpbmVDb3VudCI6MywiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiYjdjNGY1Y2FjNTQ4MTZlZWQxNjRkMzY1NmJlMzc2NGJhOTcwNDBlNDlkM2ZjYzhlNDc3MzM2ZjNlMWIzNzdiYiIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiMzhmYjBlMzU1MjE5ZDE4ZjU5ZTViODNkZmMwMTQ4ZmVlMzIxM2I4YzU5ZDZlNGZlNGM1NWE3Mzk0Mzg1NDc3NiIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiZjkyNDVmMjlkOGZhMTI3ZjlmNmJkMzk2NGRhMjY0ZmY3ODQxZTRjNWIyMzFjNTRkZjUwYjUyOTFhNGEzZTg0YyIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiNjZhNGYwMmEyNDRhYjIxNzQ4ODAwMjRmODMyMTc4OGYzMDcwNzJjNDdlZDA0OWYzMzczMjIzOTUxODQ0YTNhNiJ9"
         },
         {
@@ -87,7 +87,7 @@
       "statement": "`./scripts/agent-test` (shorthand `just test`) is the primary test harness for agents: it runs inside Docker by default, sanitizes output (ANSI stripping, vendor-frame removal) and hard-caps it at --max-chars (default 3000), and enforces Gate 0 (lint + type checker, halting before tests on failure), Gate 1 (a path argument, targeted and fail-fast) and Gate 2 (no path, full suite with an Index/Traces two-tier summary).",
       "evidence": [
         {
-          "resource": "repo://AGENTS.md#L19-L31",
+          "resource": "repo://AGENTS.md#L23-L35",
           "version": "repo-lines-v1:sha256:443d98f020ec63ba19068e67bfc06da637fb9bb9b53a35d542a84fadc423a252:eyJzZWxlY3RlZExpbmVDb3VudCI6MTMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjNjOGZiMTg2OTU0Y2E1MWE2M2ViNDVmM2JiYzZhNzE0NDE2MmNmYjg2NGU0N2U2OGQxN2MyYjBkYTY3ODkxNTAiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijc0NDE5NzE1YWU5MzQ4M2MwOTk3ZTlkMWVkNDNjMWFiYmZiZGJmNTdiNTc4YmRiZjY5MDgzOTk3YTMxYmE0ZjgiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjE2ZjdmYWY4OGI2OTFhNTdkMzc4OGMxMzU5NzJmMzU5ODc0OWNjMTRlNDcxYmJiMWY1OGM4NzMzZWJhNWQ5ZTkiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjNkNTFlOGY1NmE0YjA2ZmNmNDRlMTI5NjQ2N2I3NTJjZDU0NzAyOGJkYmJlYmNjZTVjMTJjZTAxODNhNjk1NjUifQ"
         },
         {
@@ -113,7 +113,7 @@
           "version": "repo-lines-v1:sha256:a5940377f1273989f7e70a2aa6129543bf480fdc28a1aa7d19633a79d3b38bcb:eyJzZWxlY3RlZExpbmVDb3VudCI6MjksImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijk5NDk3ZjZkOTNiNTAyMjk5NDA2ZGI2MjQ3OGFlMGI5OGZkMGFmMTIzMDJiNzk1NGMxZTFkMzdmN2ZkODg3NDUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImQxMjUyYjRhYmQ2Y2RhZjUwYzE4ZTY5ZGI0YmRjNTI1ZGI3NTkyNGRmNmUyYzY0Njc4YTYxMjAyODI5YmEyZWMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjowLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
         },
         {
-          "resource": "repo://scripts/agent-test#L618-L630",
+          "resource": "repo://scripts/agent-test#L620-L632",
           "version": "repo-lines-v1:sha256:ea0abe9b6cd6c74647929bc34c291829d8ec92af845eab3406f966997c6b9723:eyJzZWxlY3RlZExpbmVDb3VudCI6MTMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjZiZTQzOWE0NzUwMzQyN2E0Yzc5ZjliZDNjM2MzZmMxZjkzZmQxZTdiNGM3YTE1MWQ1YWZhZDA0MDJkMWE4ZWEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImJjNGRmN2EzNTVkMzY1MjY1Zjg5NjM5Mjg1Zjk0ODRkM2E5ZGY2YjZlNTI4MzJjMmIwZGY4OGI3YzM3OWY3YmYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjIwYmFlMzQ2NjUyYzYzODFmYTA1ZGRlZmQ1ZWU5NGYxZjlmYTFhODIwN2QxYjJhNTRlMzNkOGY3ODVhMzIzNDUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjY2NTRlNWVkOWE0YTAxYWViNDgyYWNlYzJlOWY3NjZlYjIxZjg2MzRlODU2NTRhZjg2MGM5ZmQ0ZjFhZjM3MTMifQ"
         }
       ]
@@ -133,7 +133,7 @@
       "statement": "Tests must never depend on external services: backend tests must mock every outbound client (Redis, HTTP APIs such as EODHD and broker APIs, SMTP), frontend tests must mock all API calls, and the ephemeral testcontainers PostgreSQL is the only permitted infrastructure dependency.",
       "evidence": [
         {
-          "resource": "repo://AGENTS.md#L13-L13",
+          "resource": "repo://AGENTS.md#L17-L17",
           "version": "repo-lines-v1:sha256:0a32d005589b4167dd0ca5638c3b4537796bd06b1c91a4d50fb95d9e44448e84:eyJzZWxlY3RlZExpbmVDb3VudCI6MSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiMGEzMmQwMDU1ODliNDE2N2RkMGNhNTYzOGMzYjQ1Mzc3OTZiZDA2YjFjOTFhNGQ1MGZiOTVkOWU0NDQ0OGU4NCIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiMGEzMmQwMDU1ODliNDE2N2RkMGNhNTYzOGMzYjQ1Mzc3OTZiZDA2YjFjOTFhNGQ1MGZiOTVkOWU0NDQ0OGU4NCIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiYjk0Zjc4MGJjMDU4NWNmMzgzMTA1NTIzNTFkMTJhM2RhYjAwMjA4ZDUwNWI5YmU3Y2JhZTc2NGVlNDk4NjE0ZiIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiZjFlNjAzYzE0MTlmMTgzMmUxMWU3MjY2NThjYWUzMDNmYzJhMGZlZjcwOGQzNDMxNjZhMzY4N2EwNTQyYjgxNiJ9"
         },
         {
@@ -179,7 +179,7 @@
       "statement": "Parallel agents must isolate work with the git worktree workflow: `scripts/setup-agent-worktree.sh <worktree-path> <branch-name>` creates the worktree and generates a .env with unique ports so each worktree runs its own Compose stack without file or Docker resource conflicts.",
       "evidence": [
         {
-          "resource": "repo://AGENTS.md#L33-L40",
+          "resource": "repo://AGENTS.md#L37-L44",
           "version": "repo-lines-v1:sha256:787bdf6552034a8778e5e2ad1c336007245d946da9527d334409774c4ad2aca1:eyJzZWxlY3RlZExpbmVDb3VudCI6OCwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiNmI2YzkwYWM2NTIxODc5ZDQ2MjkyZjUzYjlkOGI1MDhjMmNjYTEwMWU0N2JlMzg3MzJiNjBjMzI2NWU5NjQwOCIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNmE1NmMzZTliOGZkMmRkYzA5MmExNDA4ZjY5Y2M2ZjI3MWY2MTk3YTk3ZTY5YmFhOGYxY2IxZjdiNGMzMjkzNSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiNTBmMDVmMjg2NzgzNThjNjlkM2M1NjE4YTA3NmUwNmZmNWJmYTBmM2M0MWQwMzk0OWM4NDA1MTk0MTI2OTc3ZiIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiZWIxYmM1YmM0YTIzN2Y1NzhlNmFmNGE0MTVkMDY0N2Y5OTEwYjAzYjM2NGUxZTI3YzFmMWRiYWE3NDNkMDNiYSJ9"
         }
       ]
@@ -203,7 +203,7 @@
           "version": "repo-lines-v1:sha256:a0dc306c1a9de32a34b75968fd92571ddf3f1508bfd5e4058d0a3cffa74217b4:eyJzZWxlY3RlZExpbmVDb3VudCI6NSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiNDFjZmY0YWQzM2JhOTFiMTQ4ZTFiMWI4MjkwYjhmZmYyN2IyMDNmYWJmZWU1ODcwMjgyZGUzNjczODNiMWJlMiIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiZjE2M2IxZDg3OWExNDlhMTgxMDYyMzk4MmVlZGI5ZjE4N2NmYWRkMmMwZGU2MTIwMTdiNTFkYTNkMDZjMTcxNSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiMTQ1MzgzMGYyZWFiNzljMjA2NTVhMjFmMGVjMTJjMDI2MGY0OGRhMTA4NDg2ZGFmOTljMjViYjlkZjU0NDEzNiIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiNzYzNmYzOWQzMDdhOTAxMDU3MjM4MjIwZDc2MmE4OTQ0MTk5MTExZDJkODI3ZjYyZjhlMmZiY2VmNTgyZTc1NSJ9"
         },
         {
-          "resource": "repo://AGENTS.md#L55-L55",
+          "resource": "repo://AGENTS.md#L59-L59",
           "version": "repo-lines-v1:sha256:ab53953bfb72c1262bbae2eaca72cabf1af49927a0bba1157b2d5bdb285c4bd2:eyJzZWxlY3RlZExpbmVDb3VudCI6MSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiYWI1Mzk1M2JmYjcyYzEyNjJiYmFlMmVhY2E3MmNhYmYxYWY0OTkyN2EwYmJhMTE1N2IyZDViZGIyODVjNGJkMiIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiYWI1Mzk1M2JmYjcyYzEyNjJiYmFlMmVhY2E3MmNhYmYxYWY0OTkyN2EwYmJhMTE1N2IyZDViZGIyODVjNGJkMiIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiNjZjYjMwYThmOTQ4MTMxNDkwODJmM2RjYjkxOWRiMTJmMjIwYjMxYTI5NWZiZWU5NTM1MWNmOGYxNGJhZGEyZSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjIsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiMzA4OWRmOTNmOGJhNTdhNGRkYmZkOGYwMTM5NjJjMzk3OGNlNGRiNjgxOTljNGRhNjY2NjQ5YjA5OTZjZWRhOSJ9"
         }
       ]
@@ -282,15 +282,19 @@
     },
     {
       "id": "claim_d55af0c9f7c649a1a005c72dc98903b8",
-      "statement": "AGENTS.md is the root agent guide that delegates backend work (src/, tests/, migrations/) to src/AGENTS.md and frontend work (frontend/) to frontend/AGENTS.md; CLAUDE.md is only a one-line stub that imports AGENTS.md via `@AGENTS.md` and contributes no guidance of its own.",
+      "statement": "AGENTS.md is the root agent guide: it delegates backend work (src/, tests/, migrations/) to src/AGENTS.md and frontend work (frontend/) to frontend/AGENTS.md, and those guides hold the per-area command lists and architecture rules. The repository root contains only AGENTS.md — there is no CLAUDE.md in this checkout.",
       "evidence": [
         {
-          "resource": "repo://AGENTS.md#L6-L11",
-          "version": "repo-lines-v1:sha256:0e95ba924e0f508f288ecb82e06aa0e2d91f2262bcaf3d611b098515c80c062a:eyJzZWxlY3RlZExpbmVDb3VudCI6NiwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiMjA1NTU3NDQyZDAzYjg2OTE0Nzc2NjQxZjYzODA0NWJjZDY1YWVkNmFhYzYyYzE1YTZmMmUxNTk3ODg3YzMwMSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiZjNiNzM1MDNlZGRhMGI0NjE0MTMxM2JiMGVkN2EzZmZmMDQzYjEzNzYyYWRiYmQxOGVmM2ZmMzY1OTJjNmI0NSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiNWM2MWE3MDUzMjE5ZTdjNzgxZGI2NjJhYTY1YjRlYTViOWFjZjcxZDk0MjcyNGQ1NzZiZjAxMjI5YTMyYjBkOCIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiZjkyNDVmMjlkOGZhMTI3ZjlmNmJkMzk2NGRhMjY0ZmY3ODQxZTRjNWIyMzFjNTRkZjUwYjUyOTFhNGEzZTg0YyJ9"
+          "resource": "repo://AGENTS.md#L10-L17",
+          "version": "repo-lines-v1:sha256:e81183bcbaa78cb42842b9db417c1bdb06dc9e76dd2fff40750651139768fc41:eyJzZWxlY3RlZExpbmVDb3VudCI6OCwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiMjA1NTU3NDQyZDAzYjg2OTE0Nzc2NjQxZjYzODA0NWJjZDY1YWVkNmFhYzYyYzE1YTZmMmUxNTk3ODg3YzMwMSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiMGEzMmQwMDU1ODliNDE2N2RkMGNhNTYzOGMzYjQ1Mzc3OTZiZDA2YjFjOTFhNGQ1MGZiOTVkOWU0NDQ0OGU4NCIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiZThlOTIzZDkzMDkxZjMzNTM3Mzg0NTk0NDY5Y2RhYjA4NjMwNDYwZDFlOTQ4YWQ0MjZlNGIwNGFhYTVhOTdkMiIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiZjFlNjAzYzE0MTlmMTgzMmUxMWU3MjY2NThjYWUzMDNmYzJhMGZlZjcwOGQzNDMxNjZhMzY4N2EwNTQyYjgxNiJ9"
         },
         {
-          "resource": "repo://CLAUDE.md#L1-L7",
-          "version": "repo-lines-v1:sha256:cd617c809957b5aeb601ce9856109475f6da8ed78835148d17c3097dd4daa848:eyJzZWxlY3RlZExpbmVDb3VudCI6NywiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiNWYxODBmOWMxMjY5MDNiY2MzMzFhYTk1NDU2ZTQ5NDQ0YTdkNGQwMTFlOGEyYTgzZjVkYzg3MDIzOTE4MTJkMCIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiMDlmNzg3MTQ4OTNhYTc3OTQyY2VhMWM0YTJlMDIzMWRiYjdmYTJhNDFhNzBjODE0NjBhM2M2NzU2MmRhM2FhYSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjAsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiZTNiMGM0NDI5OGZjMWMxNDlhZmJmNGM4OTk2ZmI5MjQyN2FlNDFlNDY0OWI5MzRjYTQ5NTk5MWI3ODUyYjg1NSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjAsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiZTNiMGM0NDI5OGZjMWMxNDlhZmJmNGM4OTk2ZmI5MjQyN2FlNDFlNDY0OWI5MzRjYTQ5NTk5MWI3ODUyYjg1NSJ9"
+          "resource": "repo://frontend/AGENTS.md#L19-L33",
+          "version": "repo-lines-v1:sha256:c984e9050e7a5924850de0f2224ee43c2a1b0d178d8e31c0191c57083bf47391:eyJzZWxlY3RlZExpbmVDb3VudCI6MTUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImY2MTVlODUwMmNkM2RkYWIwNGI2OWJlYWRmYzY0ODg2MmEwYTk1YWM0NjY4Mjc2MjBiMzNkYzMxYjgxMzY2MjkiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImQxYTFjZDg5NzI0OGNkYjkxYTA1YzU3MWQ4ZjViZDc1NjE1NjE5MzY3Y2M4NjMxNmM0NzU0ZjZlMGU2NGNkZGUiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjczNmUwMmRhNmQyZGY5MzVkNmU1N2U4OTI0NGVhMTYyMDkzYzk4N2FlMGIzMjZhZTFiYmVlNTYzZDg3YWZhNjciLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjVlZGFiN2Y5MzY4MjE4NTJkMjIwNjYzZjE1NzAxMjJjYjhiNDQ3MTI4OTM2OWY2OWI3MDYyNDViMTQ4OTMyMzEifQ"
+        },
+        {
+          "resource": "repo://src/AGENTS.md#L23-L38",
+          "version": "repo-lines-v1:sha256:328713e1237ff0bad2eb899441a041ae8d3d563aa39c84b7e9727a33c41046d9:eyJzZWxlY3RlZExpbmVDb3VudCI6MTYsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImY2MTVlODUwMmNkM2RkYWIwNGI2OWJlYWRmYzY0ODg2MmEwYTk1YWM0NjY4Mjc2MjBiMzNkYzMxYjgxMzY2MjkiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImU4YTYwYzkwZjNiNmUxZmMyOTE1MDFhZGNjY2IzYWI2YzcxMDM5MWFhMWM3NTU3NWU1ZTAwODNkNzg1NzQ1NTEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImRhODg3ZjJiMmEzMDZkZGI4NGJmMmE2MDFmM2M3MmIxNTIzYTY2OThhOTYyNzRiMzlkYzNlNWM2NTc0MTM1MTEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjVlZGFiN2Y5MzY4MjE4NTJkMjIwNjYzZjE1NzAxMjJjYjhiNDQ3MTI4OTM2OWY2OWI3MDYyNDViMTQ4OTMyMzEifQ"
         }
       ]
     },
@@ -299,7 +303,7 @@
       "statement": "The OpenWiki block at the end of AGENTS.md declares a retrieval-first consumption policy for the generated openwiki/ tree: do not enumerate, preload or search wikis at task start; retrieve only when the user asks, when unfamiliar architecture or dependency behavior materially affects the task, or when source inspection leaves an important uncertainty — using openwiki_search for just-in-time context and openwiki_read for the relevant complete sections, treating a workspace_required response as a prompt to ask which listed workspace to use and retry with its ID, and using openwiki_list_workspaces or openwiki_list_wikis when workspace membership itself must be discovered.",
       "evidence": [
         {
-          "resource": "repo://AGENTS.md#L46-L50",
+          "resource": "repo://AGENTS.md#L50-L54",
           "version": "repo-lines-v1:sha256:74148b0734d8c89d0a361dea40303663c37ccc5ff6cb434e934a454201a5a9a9:eyJzZWxlY3RlZExpbmVDb3VudCI6NSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiMWRiNDYwNjYwZjRkNTBhMjVhY2E3Nzk2MTAwMmQzOTcwNWM2NDZkYzI2YThiZmE2NmFlNmY2OTA5NTljNjk1MSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiOGUxNGJmZGNmMzdhOWE0MGQ0ZWNjMWIwNWQwNzhmN2M1ZjFmMDNmZWZkYjllMjVlNTAzOTlkZWE2ZTUwYjQxNSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiMWFmYjk2MDZmNWIwZDhmNjM0YjI2MDM3OGQ2ZWNlMjUzYjVjMTQ0N2E5YmYxZDA0OTM0OTQ0MGE4YjVlYmYwOSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiOGM1MGE4NzVkYzkwNzM3NGE3NzBmNjI0ZDgwOWM2NDlhZTU2NWNlZjI1NDA3OTMzMmEwMjRkNGVmNTFjM2Q1NCJ9"
         }
       ]
@@ -320,14 +324,10 @@
     },
     {
       "id": "claim_f2589e621f024933a5074da9108b4671",
-      "statement": "The accounts/holdings read path that the quickstart routes to the Accounts & Holdings Views page spans three frontend surfaces: the accounts dashboard at `/`, the account-scoped holdings page at `/accounts/[id]`, and the cross-account `/holdings` page (linked from the sidebar actions group), whose table columns and stock/company grouping are driven by the persisted `holdings_table` and `holdings_group` preferences that the route's server load normalizes.",
+      "statement": "The accounts/holdings read path that the quickstart routes to the Accounts & Holdings Views page spans three frontend surfaces: the accounts dashboard at `/`, the account-scoped holdings page at `/accounts/[id]` (whose server load awaits getAccountHoldings), and the cross-account `/holdings` page linked from the sidebar actions group, where the server load awaits only cheap preferences/portfolios/accounts keys — including the persisted `holdings_table` and `holdings_group` configs it normalizes — while the holdings rows themselves are fetched after navigation.",
       "evidence": [
         {
-          "resource": "repo://frontend/src/lib/components/holdings/holdings-table.svelte#L27-L35",
-          "version": "repo-lines-v1:sha256:8d4a2ceb87a1fcd2d67c2f4c3e28b66326722db61eb69df630bcbc30b09074f4:eyJzZWxlY3RlZExpbmVDb3VudCI6OSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiNDk0Mzc1NGViM2M2ZmY0YjYxYzZkODkzMzVlMmRkZjAyZGNmYzI4MWQ1ZjMwZDIxYjI5MWEyNWNkN2MxZWM5NSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiY2MzYTIwNzc0ZDVjMmJiNGM3OTBjMTg4OTBhOWM0OTRjY2I1MTBmYzhlOGMwOWVjNzQ1MTliYzE2NGZjNzg0YiIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiZTc3ZDY3ZTc5NjVmMjY2MjdkODJjNTU3YTJlNGMxMjM4ZGFhMTgyNDdlYTllNmM5NDNlYjIwZjIyZmUxYmQyMSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiNTE1MDI0Y2I4NGNiMTY0OWZhYmE0YWU1YzhjMTUzYjNiOTA1MTdjNzRkOGM1NGNjYjE0MDI0MzM0MTA0MzUxZSJ9"
-        },
-        {
-          "resource": "repo://frontend/src/lib/components/layout/app-sidebar-actions.svelte#L38-L50",
+          "resource": "repo://frontend/src/lib/components/layout/app-sidebar-actions.svelte#L52-L64",
           "version": "repo-lines-v1:sha256:0e41ded0b79a44985451cece9826b346eb7a4015ac391ee6c98c2e22f98a2f4f:eyJzZWxlY3RlZExpbmVDb3VudCI6MTMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImQ4NmE2ZWUyMjg2M2VjNzI2YjZmMzFiNjA0YjljMGQ3MmY0YWJhNDYxYzAzMzVlYmI2Yjk5ZTg5MmI5Yjc4NTEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjdlYTAzODc0OGVlMTVjOWI1ZWQ0MTQxMjRhNDE3ZDMwYTNmNGQ0NzQ4MzEyZWUzMzA5ZGM5NWNiZDE2ZDI4NTkiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImI1MzE2YzY0ZDY4YWFkYTZlNjI2MzNlYWM4N2Q1N2Q5MmJjNzg5M2YwNTQ4YmI1M2U3ZTE5YWIyMTkwYmYxOWQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjoyLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImY2NzEwYmRlMzk2ZjcwYWE1NDE5MDYyOTI4OThiNzFhYzNjMzg0OTI2YjEwZWZkMDZhNzk4NWQ1YzRiMmY5NTQifQ"
         },
         {
@@ -339,12 +339,12 @@
           "version": "repo-lines-v1:sha256:c38e2912979d04abc7484073e3994696ec1256bb013f8810219d20004dac92c6:eyJzZWxlY3RlZExpbmVDb3VudCI6MjAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImY0NWU2N2UwNDI5NjcwNjQ2OTJhYWU2YzgwNmIxMGJmMjBhZWNjY2QwOTU1MGU2N2E0ZWI4MzQ5OTQ0ZjE3NDEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImFhMWQxYTYzMzkwMjI5Yzc5ODM0N2U4M2EwNDA1NDQxYzk0MDAwMzUyODRhZDE2OGMxYmY2Y2RmMWQ3MGEzNzAiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjM3ZDVjYTQwMmU2NjgxNTFmMTE2Y2RkN2FiZDhjMWMzYWQ2Mzg1YjcyOWNlZWEwMjViMGJhYWNkYTFiYjE1MDciLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjcwOTg5ODE5MWFjMmRlYzcwOTM0NDhkODE3OTFhNTIwMWE4NTVkYmI2NTJjNWRhN2ZhMDJiMTYzNTgxZGJmMmEifQ"
         },
         {
-          "resource": "repo://frontend/src/routes/holdings/%2Bpage.server.ts#L7-L31",
-          "version": "repo-lines-v1:sha256:02c5178171ef855f96a423b0870bfea49f860967af6d769f70ac161dbd9454a2:eyJzZWxlY3RlZExpbmVDb3VudCI6MjUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjRlM2Q1N2FlMTIwM2IxZmZjNTYxNDRmMDUzYjhlYTJjNjY4NWY4MmZlNDExZDFhNGZiY2YzM2NlZTA2NjBmMjIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImFhMWQxYTYzMzkwMjI5Yzc5ODM0N2U4M2EwNDA1NDQxYzk0MDAwMzUyODRhZDE2OGMxYmY2Y2RmMWQ3MGEzNzAiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjZmNzQzNjZhMmU1MjdkMTBkYjZlMDliNDE0NGJhNGNkZDA5ZWJhYjkxZDY0Y2FjYmYzYjc3ZGJmYzMxYTE3ZWIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
+          "resource": "repo://frontend/src/routes/holdings/%2Bpage.server.ts#L14-L79",
+          "version": "repo-lines-v1:sha256:9407e3867ab745bd99ec49c43331429c6515ecd0b46afe1202a955f0dbe1e883:eyJzZWxlY3RlZExpbmVDb3VudCI6NjYsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjA1ZGMxZDEwNWEwYTBjZjg4ZWE3YThlZDk1NTNkOGY2MTdmN2EyYWM5NzczZDZiNmFhNTFjZDEwZWVjYWRjNTciLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImFhMWQxYTYzMzkwMjI5Yzc5ODM0N2U4M2EwNDA1NDQxYzk0MDAwMzUyODRhZDE2OGMxYmY2Y2RmMWQ3MGEzNzAiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjZmNzQzNjZhMmU1MjdkMTBkYjZlMDliNDE0NGJhNGNkZDA5ZWJhYjkxZDY0Y2FjYmYzYjc3ZGJmYzMxYTE3ZWIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
         },
         {
-          "resource": "repo://frontend/src/routes/holdings/%2Bpage.svelte#L24-L48",
-          "version": "repo-lines-v1:sha256:5bbd580dbd9c0e67e13b426e8020ee65d013ff21b7de86d7f1d3bc3704a1cf2d:eyJzZWxlY3RlZExpbmVDb3VudCI6MjUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijc4YTA4ZTZmNDlkYzBkODRhNGZmNTRlOWVmYmU5ZWRmZjM2YWRkNjk1NjQxMjBjMWE1ODU2MDIwOTM5OGZiNDQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImFhMGM4YmQ0ODAzMTUxNDE0ZDI3YTBkNjA2MDE3NzgzMDRmZWVmZjYwM2VmMWUzMWNhMmE0YTQyMDJhODIwYTciLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6Ijg5OTdmMzcyYzJlMGQyMDgyODFjYWNjMWRkYjk3YTNjOThjZTUwMDFiZjcyMDQzZDE0NTRiMTAxMTQzMGY2OGIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImZkYjJmOGY3YWVlNTg0OWM4MmZkYmY2MmUxOGMxNjFmNWY1ZTBiMjViNTVlYjA5ZmFlYTA4ZGFlMzdhMTU0M2UifQ"
+          "resource": "repo://frontend/src/routes/holdings/%2Bpage.svelte#L30-L48",
+          "version": "repo-lines-v1:sha256:9b605b05cdb0cd10cedbfd08dfd6e07aef22d0f23d5077d8c704ebdfa8243a3c:eyJzZWxlY3RlZExpbmVDb3VudCI6MTksImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijc4YTA4ZTZmNDlkYzBkODRhNGZmNTRlOWVmYmU5ZWRmZjM2YWRkNjk1NjQxMjBjMWE1ODU2MDIwOTM5OGZiNDQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjBhNzM0OTJkODk0NmIxZDBmOWQ5YzA0YjcwNGE5MjBmMjRmODllZjdjN2Y3MzExYTg1OTlkMTBjN2Y2MzU4ZDAiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6Ijg5OTdmMzcyYzJlMGQyMDgyODFjYWNjMWRkYjk3YTNjOThjZTUwMDFiZjcyMDQzZDE0NTRiMTAxMTQzMGY2OGIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjQyODU4Y2EyYmI1NzMwZGNlZDI2NjIzNDE4YjM3N2VjMWM2YWJkN2E0NjYwZGQ5NjhhZTI2ZjFjY2E3MGFlYjAifQ"
         }
       ]
     },
@@ -455,22 +455,18 @@
       "statement": "When the OpenWiki retrieval tools are unavailable, the AGENTS.md OpenWiki block directs agents to read openwiki/quickstart.md and follow its links; it also states that source code and tests are authoritative so a brief's unknowns and review items are verification gaps rather than automatic requirements, and that agents should prefer the narrowest quiet validation that proves the changed behavior while preserving complete failure output.",
       "evidence": [
         {
-          "resource": "repo://AGENTS.md#L51-L53",
+          "resource": "repo://AGENTS.md#L55-L57",
           "version": "repo-lines-v1:sha256:8c50a875dc907374a770f624d809c649ae565cef254079332a024d4ef51c3d54:eyJzZWxlY3RlZExpbmVDb3VudCI6MywiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiMDc1NTNiMGQ1MmViODI0ZWY0MWU3NmJmNDViNTYyZjFjZTQ4M2ExMjYzZjRmZmI0M2IxMWIwOWEwNzI4NThiYSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiYmNiMzA1ZGNiMTRkY2I0MTUzZTFhM2YyNTk0NjVjZWFkYWRjOWIwNDRhNzkzZGE0MjdkMmM0M2QzYTA5ZDQ5MSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiOTAyZDFlNjcyNTU4MTg3NTZjYjYyYmUxNGViZDVjMWI1M2FlYmQxOGZhZTVkNWMyMGVkYWNiYWZiYjdjZTMzZiIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiNjU1MjQ4YjYyZjU1MmY2Y2I2ZjcxMTA5YzgzY2E0OWZlOTU1MmU5NjYyYTBhZmNjZTdjNjY5YTJiYmEwZWMwYSJ9"
         }
       ]
     },
     {
       "id": "claim_a6142243a5a34714b858b80cb37d1b18",
-      "statement": "The OpenWiki block is delimited by `<!-- OPENWIKI:START -->` / `<!-- OPENWIKI:END -->` HTML comment markers in AGENTS.md, and the same markers in CLAUDE.md wrap the `@AGENTS.md` import — so CLAUDE.md pulls in the generated block wholesale and adds no guidance of its own.",
+      "statement": "The OpenWiki block is delimited by `<!-- OPENWIKI:START -->` / `<!-- OPENWIKI:END -->` HTML comment markers at the end of AGENTS.md; it is the single authoritative statement of wiki consumption policy and states that the generated openwiki/ tree is optional just-in-time context rather than required startup reading.",
       "evidence": [
         {
-          "resource": "repo://AGENTS.md#L42-L57",
+          "resource": "repo://AGENTS.md#L46-L61",
           "version": "repo-lines-v1:sha256:8926524de63a1266e7592d9f1256ec367b67e9fa0583f343808e3e51f19d4990:eyJzZWxlY3RlZExpbmVDb3VudCI6MTYsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjVmMTgwZjljMTI2OTAzYmNjMzMxYWE5NTQ1NmU0OTQ0NGE3ZDRkMDExZThhMmE4M2Y1ZGM4NzAyMzkxODEyZDAiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjA5Zjc4NzE0ODkzYWE3Nzk0MmNlYTFjNGEyZTAyMzFkYmI3ZmEyYTQxYTcwYzgxNDYwYTNjNjc1NjJkYTNhYWEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjhhMzYzMTA1MjUzZGY5MDkyODhlNDcwODFkNzRlMzYyMDdkNmQ4OGU4NzU4MWJjZTlkZTk5ZDllYzVhZDJkODkiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
-        },
-        {
-          "resource": "repo://CLAUDE.md#L1-L7",
-          "version": "repo-lines-v1:sha256:cd617c809957b5aeb601ce9856109475f6da8ed78835148d17c3097dd4daa848:eyJzZWxlY3RlZExpbmVDb3VudCI6NywiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiNWYxODBmOWMxMjY5MDNiY2MzMzFhYTk1NDU2ZTQ5NDQ0YTdkNGQwMTFlOGEyYTgzZjVkYzg3MDIzOTE4MTJkMCIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiMDlmNzg3MTQ4OTNhYTc3OTQyY2VhMWM0YTJlMDIzMWRiYjdmYTJhNDFhNzBjODE0NjBhM2M2NzU2MmRhM2FhYSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjAsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiZTNiMGM0NDI5OGZjMWMxNDlhZmJmNGM4OTk2ZmI5MjQyN2FlNDFlNDY0OWI5MzRjYTQ5NTk5MWI3ODUyYjg1NSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjAsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiZTNiMGM0NDI5OGZjMWMxNDlhZmJmNGM4OTk2ZmI5MjQyN2FlNDFlNDY0OWI5MzRjYTQ5NTk5MWI3ODUyYjg1NSJ9"
         }
       ]
     },
@@ -493,7 +489,7 @@
       "statement": "The repository README points contributors at AGENTS.md for agent guidelines and at the wiki quickstart for an architecture overview, and AGENTS.md names that same quickstart as the entry point to fall back on when OpenWiki retrieval tools are unavailable — so the quickstart page is the wiki's documented routing/entry surface.",
       "evidence": [
         {
-          "resource": "repo://AGENTS.md#L51-L51",
+          "resource": "repo://AGENTS.md#L55-L55",
           "version": "repo-lines-v1:sha256:07553b0d52eb824ef41e76bf45b562f1ce483a1263f4ffb43b11b09a072858ba:eyJzZWxlY3RlZExpbmVDb3VudCI6MSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiMDc1NTNiMGQ1MmViODI0ZWY0MWU3NmJmNDViNTYyZjFjZTQ4M2ExMjYzZjRmZmI0M2IxMWIwOWEwNzI4NThiYSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiMDc1NTNiMGQ1MmViODI0ZWY0MWU3NmJmNDViNTYyZjFjZTQ4M2ExMjYzZjRmZmI0M2IxMWIwOWEwNzI4NThiYSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiOTAyZDFlNjcyNTU4MTg3NTZjYjYyYmUxNGViZDVjMWI1M2FlYmQxOGZhZTVkNWMyMGVkYWNiYWZiYjdjZTMzZiIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiNjZjYjMwYThmOTQ4MTMxNDkwODJmM2RjYjkxOWRiMTJmMjIwYjMxYTI5NWZiZWU5NTM1MWNmOGYxNGJhZGEyZSJ9"
         },
         {
@@ -501,10 +497,102 @@
           "version": "repo-lines-v1:sha256:9618c0b8b047be356fb1aea3c0b7510059aeecef0d50b8d2a109ac2bc16bcbdd:eyJzZWxlY3RlZExpbmVDb3VudCI6MSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiOTYxOGMwYjhiMDQ3YmUzNTZmYjFhZWEzYzBiNzUxMDA1OWFlZWNlZjBkNTBiOGQyYTEwOWFjMmJjMTZiY2JkZCIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiOTYxOGMwYjhiMDQ3YmUzNTZmYjFhZWEzYzBiNzUxMDA1OWFlZWNlZjBkNTBiOGQyYTEwOWFjMmJjMTZiY2JkZCIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiY2M5NmIzZmEwNDc4YTY1NTZkMWUxNWY0MDgzMTdjMDFiZmY4MjJmNDA2NzdmOGJkNmI3OGVlNjRjNzgwY2MwMiIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiOGQ0YzRmOWZmZmRmOTQ0OGEwMTY4YTUzNTQ4OTEwYWQxM2I5NzM5ZmY1NjE0NDc1Zjc2ZDU0MmU3YzZiYmExOCJ9"
         }
       ]
+    },
+    {
+      "id": "claim_56e7b05e35a0403cae2ab784d18bfb12",
+      "statement": "Agent tooling is mirrored across three trees at the repository root — `.agent/` (skills such as orchestration, architecture-review and ticket-execution, plus agents and workflows), `.claude/` (agents, commands, skills) and `.opencode/` (agents, commands, skills plus `opencode.json`, which maps the orchestrator/implementer/arch-reviewer/pr-reviewer/spec-writer subagents onto opencode-go models) — while architecture reviews live under `.ai/reviews/`, with per-ticket plans in `.ai/plans/` and feature briefs in `.ai/features/` alongside them.",
+      "evidence": [
+        {
+          "resource": "repo://.agent/skills/orchestration/SKILL.md",
+          "version": "repo-file-v1:sha256:2924a4836948282dfb8e919951b493ff8257cbb00ddf208c2cfe905d517e81bd"
+        },
+        {
+          "resource": "repo://.ai/features/instant-page-navigation.md",
+          "version": "repo-file-v1:sha256:7cbb448eebb5c19859d104004d04d4eec05c79b55ec1fb314fef03af8a303ff5"
+        },
+        {
+          "resource": "repo://.ai/plans/ARCH-T01-plan.md",
+          "version": "repo-file-v1:sha256:0c2e31de59b404a0264c342cc6d2941fd816184d64251bfbed624440fdae9aa5"
+        },
+        {
+          "resource": "repo://.ai/reviews/2026-08-25-architecture.md",
+          "version": "repo-file-v1:sha256:92773d67e72893d192f4c85502773d7865e31cb1f61c74ff864f3405657d6e1d"
+        },
+        {
+          "resource": "repo://.claude/agents/arch-reviewer.md#L1-L10",
+          "version": "repo-lines-v1:sha256:917ec031e46305fc14817660de96af71722d5cb7653488c54aa2113a3b797728:eyJzZWxlY3RlZExpbmVDb3VudCI6MTAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImY1MmQ3MTExMDNkNTBhNDM3ODMwYzZmYmNkMDRmYjRiYWI0OWEwZjgyZjZkMjZkMWM3OTFjNmU4NDg4ZGQwOTAiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAxYmE0NzE5YzgwYjZmZTkxMWIwOTFhN2MwNTEyNGI2NGVlZWNlOTY0ZTA5YzA1OGVmOGY5ODA1ZGFjYTU0NmIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjowLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6Ijg4ZTRiZTdhODU2YzY2NGUxM2M3NGJiYTk1YzUwZDhjZDE5Yzk5OWQzM2RjMTkwOTFmNmVhNmRjMjYxYzYwNTcifQ"
+        },
+        {
+          "resource": "repo://.opencode/opencode.json#L1-L26",
+          "version": "repo-lines-v1:sha256:9e04bdff2d17f633d84eb8cb8c5d2b21e6cce90a7ee93c3f6427beca9eef40e8:eyJzZWxlY3RlZExpbmVDb3VudCI6MjYsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImE2ZmIwOGZkYTFhY2I5NTdiNjExNmJkMzc4MTFhMWZlNDFhMDE2MTFjMDYzMWVkYmY3ODZkNjg4OWEyN2E1NWMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQxMmNhMzQ1Y2NmNzViZjljMDgwNmJjZTY5NWJlOGRlODA4Yjc5OTg0MjUxYTdhNTRkMjAyY2Y2MTAxZGQ0NTEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjowLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_5d0490b1c3a74686895ff3903b0f612e",
+      "statement": "The quickstart's task-routing table assigns each kind of change to the owning area of the repository: system-level work to the FastAPI app assembly and router mounting in `src/main.py`, settings/DI to `src/config/services.py`, SvelteKit HTTP structure to `frontend/src/lib/api/apiClient.ts`, the chart surface to `security-chart.svelte`, drawing tools to the chart plugins and `ChartDrawingsService.svelte.ts`, per-user persistence to `userPreferencesService.ts`, portfolios to `src/account/service/portfolio.py`, fair-value ranges to `src/market/repository_sqlalchemy.py`, the `/security/[security_id]` route composition to its page modules, CSV and market-data flows to `src/commands/seed.py` and `src/market/task.py`, and the realtime/worker surface to `src/ws/manager.py`.",
+      "evidence": [
+        {
+          "resource": "repo://frontend/src/lib/api/apiClient.ts#L14-L24",
+          "version": "repo-lines-v1:sha256:66eb0f0509d6cbe0a35eea5dc6f6207234d3f2311bf4a3a5bfa47bafb59f85d5:eyJzZWxlY3RlZExpbmVDb3VudCI6MTEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjNiZGNhYzU0MTk4Y2JmMmVkNTJlOGJmOGIzNDFkNjM4NjgzMjQ4YTE2MjhhOTI1NDczZmMxMWYyMzNmODQ1ZjQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjY3Y2RhODJkYTYwNjIzOGUwNWU2MjM5OTU2OWM1ZWUwMzk5MzQxOTY0OGFlNWQ0M2EyYmY4Y2Q2MzQ3ZjgyNjMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImYyOTY0MDc5YzNjNWM4MTUyMGVmMzNhMmI5ZDJlMTVhMWI4NGQ3MjgwZGI4NTkwZGNkNjU3NDdlM2UwMTJhNDAiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjA2OTUwYzQwYjdiNTE3YzQ3MDJjODliMTZlNzdjYTZmYWI5YmYxMGQxZjczZDI4YWE1MDQ5NTg5NmIyY2E0YzQifQ"
+        },
+        {
+          "resource": "repo://frontend/src/lib/api/userPreferencesService.ts",
+          "version": "repo-file-v1:sha256:87efcb5fa7b7c9951932cf26b49d320a77214ca6efd9aa124b1299283b4fbc93"
+        },
+        {
+          "resource": "repo://frontend/src/lib/components/charts/plugins/valuation-band/valuation-band.ts",
+          "version": "repo-file-v1:sha256:945e622bb75b50e27cfb290ba25ba5249c3410662c0160181ede6e274cb3eb9f"
+        },
+        {
+          "resource": "repo://frontend/src/lib/components/charts/security-chart.svelte",
+          "version": "repo-file-v1:sha256:0e9250f3b8ab90f1a7fdf7d311d869090b18d81ab64e1175ae9cc8a6d198995f"
+        },
+        {
+          "resource": "repo://frontend/src/lib/services/ChartDrawingsService.svelte.ts",
+          "version": "repo-file-v1:sha256:a09876199761299a801127fd3e3f99e4fffc9ac9bbad9052a9ad7f57f932a498"
+        },
+        {
+          "resource": "repo://frontend/src/routes/security/%5Bsecurity_id%5D/%2Bpage.server.ts",
+          "version": "repo-file-v1:sha256:7080d89f3c00cb2125c938bc82f249b43be40ae725a82d96db7c878f9076f87e"
+        },
+        {
+          "resource": "repo://src/account/service/portfolio.py",
+          "version": "repo-file-v1:sha256:0b353487f8f350c82f7ebbd2ce90989a5e6c1e7b50d444e15ec88661b408aaef"
+        },
+        {
+          "resource": "repo://src/commands/seed.py",
+          "version": "repo-file-v1:sha256:a7177a756c5f4fc0f7727b998765d18b3807d7ea3ea35241c1783f2b8919b555"
+        },
+        {
+          "resource": "repo://src/config/services.py",
+          "version": "repo-file-v1:sha256:499fecc5fab1578e4bf6ece45b777ad146f4ac91383e7c8f8cfd99455fe55774"
+        },
+        {
+          "resource": "repo://src/main.py#L167-L177",
+          "version": "repo-lines-v1:sha256:b66ab3c7c9677095729c27f4c6b1e651b2f0c6fc24ad24ac21753223cf11dc88:eyJzZWxlY3RlZExpbmVDb3VudCI6MTEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ5Y2E0ODI0OTlmYjhiN2JmYWUzZjBlYTk1M2FiMDdmMzA0MjNlYTVlY2I5ZDQyYjhkNGI1NDM5ODU0NGRhZWIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImFkYzdmZmZmZWJkMzA4YWFhYWVkODM3MmIzNTZmNjU3YjY3MWQ1NGI2MGY0OTUyMDg4NjAzZWRlMzBkZjRmMmYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjM0MGNmNDg1NTYyYTlmN2VhMDdmOTNiNTlmZDU5ZWQzNjkxZjQ2MTZhY2E2MWY4MmEwM2UwNDM5NWE1ZmQyZTciLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImVhYjIyNTRjYmVmODRkNzA3MGNmYWE3MzBiODgzNTI5NWRiMTgxYWU0YzU4ZmM1NDgzNmE2MTZhYzk5NTYzZDEifQ"
+        },
+        {
+          "resource": "repo://src/market/repository_sqlalchemy.py",
+          "version": "repo-file-v1:sha256:ba95e3086b33e0234ccf928c60f43ace433b03e6d87f957785e5f861bada5630"
+        },
+        {
+          "resource": "repo://src/market/router.py",
+          "version": "repo-file-v1:sha256:a51fe0a78090c13ea8b3ded98b842f01cfe9228d2d127d3752ce85623b7b29a0"
+        },
+        {
+          "resource": "repo://src/market/task.py",
+          "version": "repo-file-v1:sha256:fb92a7645cfe25eca523a2e23f30d3c68d6e8ffb8ec46c9d189de26d0ca6051b"
+        },
+        {
+          "resource": "repo://src/ws/manager.py",
+          "version": "repo-file-v1:sha256:9e3f4edcb0a22e84fb8f1ed1f6b5aa10867223c485d3174a70290e035d6383eb"
+        }
+      ]
     }
   ],
   "verification": {
-    "by": "openwiki/0.6.0",
-    "at": "2026-09-26T12:38:50.029Z"
+    "by": "openwiki/0.7.0",
+    "at": "2026-10-04T13:39:13.522Z"
   }
 }

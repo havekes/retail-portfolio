@@ -1,29 +1,45 @@
 ---
 type: reference
 title: Quickstart & Task Routing
-description: Entry point to the retail-portfolio wiki — what the repository is, how to run the Docker Compose stack from the single root .env, where each system lives, how agents are expected to consume the generated wiki, and a task-routing table that points backend-domain, config/DI, frontend-shell, chart-surface, chart-drawings-and-rewind, realtime-and-background-jobs, user-preferences, holdings-read-path, broker/CSV/market-data/AI, money, integration, dev-workflow, testing and agent-guidance work at the owning page.
+description: Entry point to the retail-portfolio wiki — what the repository is, how the Docker Compose stack runs from the single root .env, where each system lives, how agents are expected to consume the generated wiki, and a task-routing table that points the work on any backend domain, configuration/DI, frontend shell, chart surface, drawings and rewind, security detail page, portfolios, valuations, preferences, holdings read path, broker/CSV/market-data/AI, money, integrations, dev workflow, testing or agent tooling at the owning page.
 tags: [quickstart, task-routing, onboarding, repository-map, development-workflow, openwiki]
 sources:
+  - id: openwiki-source-b138950b59d6ada3889304a0
+    resource: repo://.agent/skills/orchestration/SKILL.md
+  - id: openwiki-source-5d7c46365889716dadf4cdda
+    resource: repo://.ai/features/instant-page-navigation.md
+  - id: openwiki-source-8ca8620bbb3c40404780dc89
+    resource: repo://.ai/plans/ARCH-T01-plan.md
+  - id: openwiki-source-f3f760255077b0dab1a7b5f1
+    resource: repo://.ai/reviews/2026-08-25-architecture.md
+  - id: openwiki-source-741d60254bffee1f54b62b5c
+    resource: repo://.claude/agents/arch-reviewer.md
   - id: openwiki-source-5f5b95b3d6a215fa02ceb945
     resource: repo://.env.example
   - id: openwiki-source-164e2da859b5277df81c7d94
     resource: repo://.github/workflows/ci.yml
   - id: openwiki-source-6d4b4e707b8d60b6ccfa3425
     resource: repo://.github/workflows/openwiki-update.yml
+  - id: openwiki-source-618752d6f11341db792d17ef
+    resource: repo://.opencode/opencode.json
   - id: openwiki-source-8037e2358a2c4f9b2c722a11
     resource: repo://AGENTS.md
-  - id: openwiki-source-a2371d6362e5db4bc834ad03
-    resource: repo://CLAUDE.md
   - id: openwiki-source-b79fbbd921df689b4bbdc82f
     resource: repo://docker-compose.yml
   - id: openwiki-source-e483fd3285d99d05c7b265cf
     resource: repo://frontend/AGENTS.md
   - id: openwiki-source-45599bb9a8794a9c90b7e20d
     resource: repo://frontend/src/lib/api/apiClient.ts
-  - id: openwiki-source-09dad1559edc73c5b154a081
-    resource: repo://frontend/src/lib/components/holdings/holdings-table.svelte
+  - id: openwiki-source-8a88da80cc6ed6d98b2035f2
+    resource: repo://frontend/src/lib/api/userPreferencesService.ts
+  - id: openwiki-source-0a9a504227d25141ac6e3e3a
+    resource: repo://frontend/src/lib/components/charts/plugins/valuation-band/valuation-band.ts
+  - id: openwiki-source-277415f21fdc20b26619d18d
+    resource: repo://frontend/src/lib/components/charts/security-chart.svelte
   - id: openwiki-source-3f8311916804417f28db7f0d
     resource: repo://frontend/src/lib/components/layout/app-sidebar-actions.svelte
+  - id: openwiki-source-ecd4b1167badc1f9ac4ea606
+    resource: repo://frontend/src/lib/services/ChartDrawingsService.svelte.ts
   - id: openwiki-source-846f5f71a06546739c7f1ccb
     resource: repo://frontend/src/routes/%2Bpage.server.ts
   - id: openwiki-source-b8584948ed4a6fee33406f78
@@ -32,6 +48,8 @@ sources:
     resource: repo://frontend/src/routes/holdings/%2Bpage.server.ts
   - id: openwiki-source-17695a0429275bdf8c6b0e99
     resource: repo://frontend/src/routes/holdings/%2Bpage.svelte
+  - id: openwiki-source-33c886f28072e35f81eadfae
+    resource: repo://frontend/src/routes/security/%5Bsecurity_id%5D/%2Bpage.server.ts
   - id: openwiki-source-378e3cf05ab0d05d335c68d5
     resource: repo://frontend/vite.config.ts
   - id: openwiki-source-c59fe4336a371ea1052a01dd
@@ -46,18 +64,32 @@ sources:
     resource: repo://scripts/docker-gid.sh
   - id: openwiki-source-3871c7364a9411872d29e162
     resource: repo://scripts/opencode-go-session-fetch.mjs
+  - id: openwiki-source-de4e7fa85608340db568fc0c
+    resource: repo://src/account/service/portfolio.py
   - id: openwiki-source-230f617cb6d47154ef463034
     resource: repo://src/AGENTS.md
+  - id: openwiki-source-dfd9a181d2f58b1a466b8c27
+    resource: repo://src/commands/seed.py
+  - id: openwiki-source-e1e5885568a239055161be95
+    resource: repo://src/config/services.py
   - id: openwiki-source-11b9d806fcc6dd6e7747ed87
     resource: repo://src/main.py
+  - id: openwiki-source-8ba9c7034638e16be9336256
+    resource: repo://src/market/repository_sqlalchemy.py
+  - id: openwiki-source-d8383d22d61483b00080a280
+    resource: repo://src/market/router.py
+  - id: openwiki-source-689c3cecf701f8b197038e75
+    resource: repo://src/market/task.py
   - id: openwiki-source-c8a9ed75dfc5d7332062ae40
     resource: repo://src/worker_dashboard/router.py
   - id: openwiki-source-7a8d629077019775a9fec3d3
     resource: repo://src/worker.py
-generated: { by: "openwiki/0.6.0", at: "2026-09-26T12:38:50.029Z" }
+  - id: openwiki-source-9c5ae74acc82cf270945cf3d
+    resource: repo://src/ws/manager.py
+generated: { by: "openwiki/0.7.0", at: "2026-10-04T13:39:13.522Z" }
 verified:
-  - by: openwiki/0.6.0
-    at: 2026-09-26T12:38:50.029Z
+  - by: openwiki/0.7.0
+    at: 2026-10-04T13:39:13.522Z
 ---
 
 # Quickstart & Task Routing
@@ -69,9 +101,10 @@ Huey worker on Redis (`src/worker.py`), a SvelteKit 2 / Svelte 5 SSR frontend
 development is Docker Compose only; the backend, worker, Compose interpolation and the
 frontend dev server all read one root `.env` copied from the tracked `.env.example`.
 
-`AGENTS.md` is the root guide: it delegates backend work to `src/AGENTS.md` and frontend
-work to `frontend/AGENTS.md`. `CLAUDE.md` is a one-line stub that imports `AGENTS.md` via
-`@AGENTS.md` and adds no guidance of its own.
+`AGENTS.md` is the root guide: it delegates backend work (`src/`, `tests/`, `migrations/`)
+to `src/AGENTS.md` and frontend work (`frontend/`) to `frontend/AGENTS.md`. Those three
+files, plus the mirrored agent-tooling trees under `.agent/`, `.claude/` and `.opencode/`,
+are the authoritative statement of how work is done here — this wiki is only context.
 
 ## Run it
 
@@ -129,6 +162,8 @@ CI (`.github/workflows/ci.yml`) runs the same verification in three jobs: backen
 | `src/commands/` | Seeding and market-data flush CLI entrypoints |
 | `openspec/` | Canonical capability specs and active/archived change artifacts |
 | `scripts/` | `agent-test` harness, `setup-agent-worktree.sh`, `docker-gid.sh`, the OpenWiki preload shim (`opencode-go-session-fetch.mjs`) |
+| `.agent/`, `.claude/`, `.opencode/` | Mirrored agent definitions: skills, subagents/workflows, slash commands, and the OpenCode model map |
+| `.ai/` | Architecture reviews (`reviews/`) with `plans/` and `features/` alongside them |
 | `.github/workflows/` | CI (`ci.yml`) and the scheduled OpenWiki refresh (`openwiki-update.yml`) |
 
 ## If you are changing X, read Y
@@ -144,6 +179,9 @@ CI (`.github/workflows/ci.yml`) runs the same verification in three jobs: backen
 | Anything persisted per user: the `/accounts/me/preferences` contract, key ownership, merge/`exclude_none` semantics | [User Preferences](./concepts/user-preferences.md) |
 | Signup/login, the `auth_token` JWT, 2FA/TOTP, passkeys, ownership authorization, the WS ticket | [Authentication & Authorization](./architecture/authentication.md) |
 | The holdings read path: the accounts dashboard, `/accounts/[id]`, cross-account `/holdings`, holdings table columns/grouping/preferences | [Accounts & Holdings Views](./workflows/accounts-and-holdings-views.md) |
+| Portfolios: the `portfolios`/`portfolio_accounts` models, `PortfolioService`, the `/portfolios` CRUD routes, the list page, the `?portfolio_id=` holdings filter | [Portfolios & Holdings Filters](./workflows/portfolios.md) |
+| A fair-value range on a security: the valuations table, the four market routes, `valuationClient`, the fundamentals sidebar group | [Security Valuations (Fair-Value Ranges)](./concepts/security-valuation.md) |
+| The `/security/[security_id]` route itself: the shell-first load, the page data wave, the instant titlebar, and the actions-sidebar groups (notes, documents, alerts, indicators, holdings, AI) | [Security Detail Page & Actions Sidebar](./workflows/security-detail-page.md) |
 | Broker connect, Wealthsimple login/OTP, position import and the Huey sync task | [Broker Connect, Import & Position Sync](./workflows/broker-sync.md) |
 | CSV templates, account discovery, the inspect → import → sync lifecycle | [CSV Account Import & Sync](./workflows/csv-import.md) |
 | Price fetches/backfill, daily & intraday tasks, the downstream recalc/alert cascade, indicator computation | [Market Data, Indicators & the Price Update Cascade](./workflows/market-data-and-indicators.md) |
@@ -153,7 +191,10 @@ CI (`.github/workflows/ci.yml`) runs the same verification in three jobs: backen
 | Money, currency conversion, totals, holdings/P&L math, rounding | [Money & Currency Handling](./concepts/money-and-currency.md) |
 | How to run, ship and change: Compose stack, in-container commands, agent-test harness, worktrees, migrations, CI, OpenSpec, the OpenWiki refresh | [Development, CI & Change Workflows](./operations/workflows.md) |
 | The pytest/Vitest layout, fixtures, mandatory mocking, harness gates, CI matrix | [Testing & Verification](./operations/testing.md) |
-| Agent guidance and this wiki: `AGENTS.md`, `src/AGENTS.md`, `frontend/AGENTS.md`, the `CLAUDE.md` stub, the OpenWiki block and its consumption policy | [Development, CI & Change Workflows](./operations/workflows.md) |
+| Agent guidance and this wiki: `AGENTS.md`, `src/AGENTS.md`, `frontend/AGENTS.md`, the agent-tooling trees, the OpenWiki block and its retrieval policy | [Development, CI & Change Workflows](./operations/workflows.md) |
+
+Every link above resolves to a page in this wiki; `AGENTS.md` names this page as the
+fallback route when the OpenWiki retrieval tools are unavailable.
 
 ## Non-negotiables
 
@@ -199,14 +240,14 @@ direct commit. Do not hand-edit these pages unless explicitly asked: update sour
 docs and let the workflow regenerate them.
 
 The OpenWiki block at the end of `AGENTS.md` (delimited by `<!-- OPENWIKI:START -->` /
-`<!-- OPENWIKI:END -->`, and imported wholesale by the `CLAUDE.md` stub) defines how agents
-are meant to use it. It is the authoritative statement of consumption policy: if it and
-this page disagree, the block wins.
+`<!-- OPENWIKI:END -->`) defines how agents are meant to use it. It is the authoritative
+statement of consumption policy: if it and this page disagree, the block wins.
 
-- **Do not enumerate, preload, or search wikis at task start.** Retrieval applies when the
-  user asks for it, when unfamiliar architecture or dependency behavior materially affects
-  the task, or when source inspection leaves an important uncertainty — and it stops once
-  the question is grounded.
+- **The wiki is optional just-in-time context, not required startup reading.** Do not
+  enumerate, preload, or search wikis at task start. Retrieval applies when the user asks
+  for it, when unfamiliar architecture or dependency behavior materially affects the task,
+  or when source inspection leaves an important uncertainty — and it stops once the
+  question is grounded.
 - **Use the retrieval tools when those conditions apply.** `openwiki_search` supplies
   just-in-time context; `openwiki_read` returns the relevant complete sections. If search
   returns `workspace_required`, ask which listed workspace to use and retry with its ID.
@@ -221,15 +262,15 @@ this page disagree, the block wins.
 
 ```mermaid
 flowchart TD
-    Q["Need context for this task?"] --> A{"Did the user ask, does unfamiliar architecture or dependency behavior materially matter, or did source reading leave an uncertainty?"}
-    A -- no --> S["Stay in the source — do not preload or search the wiki"]
+    Q["Need context for this task?"] --> A{"Did the user ask, or does unfamiliar architecture or dependency behavior materially matter, or did source reading leave an uncertainty?"}
+    A -- no --> S["Stay in the source - do not preload or search the wiki"]
     A -- yes --> T{"OpenWiki retrieval tools available?"}
     T -- no --> F["Read openwiki/quickstart.md and follow its links"]
     T -- yes --> R["openwiki_search for just-in-time context, then openwiki_read for the relevant complete sections"]
     R --> W{"Search returned workspace_required?"}
     W -- yes --> K["Ask which listed workspace to use, then retry with its ID"]
     K --> R
-    W -- no --> G["Stop once the question is grounded — source code and tests remain authoritative"]
+    W -- no --> G["Stop once the question is grounded - source code and tests remain authoritative"]
 ```
 
 How an agent decides whether to consult the generated wiki, and what to do when retrieval needs a workspace.

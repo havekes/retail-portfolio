@@ -1,14 +1,11 @@
 ---
 type: workflow
 title: Realtime, Background Jobs & the Worker
-description: The cross-process asynchronous runtime of retail-portfolio — the Huey worker and its two service registries, periodic and on-demand tasks, the hourly price-update cascade with isolated enqueues and retries, the Redis pub/sub WebSocket fan-out with per-event-loop clients and ticket auth, the Redis account-sync status keys, the frontend consumer that hydrates and polls them, and the worker dashboard at /worker/api.
+description: The cross-process asynchronous runtime of retail-portfolio — the Huey worker and its service registry, periodic and on-demand tasks, the hourly price-update cascade with isolated enqueues and retries, the Redis pub/sub WebSocket fan-out with per-event-loop clients and ticket auth, the Redis account-sync status keys, the frontend consumer that hydrates and polls them, and the worker dashboard mounted on the backend app.
 tags: [huey, background-jobs, worker, periodic-tasks, websockets, redis, pub-sub, task-scheduling, sync-status, svelte]
-verified:
-  - by: openwiki/0.5.2
-    at: 2026-09-23T13:18:56.288Z
 sources:
-  - id: openwiki-source-cd4675c5fd5ca12b56790138
-    resource: repo://.opencode/reviews/2026-08-25-architecture.md
+  - id: openwiki-source-f3f760255077b0dab1a7b5f1
+    resource: repo://.ai/reviews/2026-08-25-architecture.md
   - id: openwiki-source-11ef2d56dffda152beeb9f84
     resource: repo://docker-compose.prod.yml
   - id: openwiki-source-b79fbbd921df689b4bbdc82f
@@ -27,6 +24,8 @@ sources:
     resource: repo://src/auth/router.py
   - id: openwiki-source-02cbef0402c147c4ffdbf79d
     resource: repo://src/config/database.py
+  - id: openwiki-source-e1e5885568a239055161be95
+    resource: repo://src/config/services.py
   - id: openwiki-source-d1e4e10eebd8f4d4314bc43f
     resource: repo://src/config/settings.py
   - id: openwiki-source-70d8c574139672173efc9a77
@@ -83,7 +82,10 @@ sources:
     resource: repo://tests/ws/test_manager.py
   - id: openwiki-source-ce5690229e2d57cc7f25e9a0
     resource: repo://tests/ws/test_router.py
-generated: { by: "openwiki/0.5.2", at: "2026-09-23T13:18:56.288Z" }
+generated: { by: "openwiki/0.7.0", at: "2026-10-04T13:39:13.522Z" }
+verified:
+  - by: openwiki/0.7.0
+    at: 2026-10-04T13:39:13.522Z
 ---
 
 # Realtime, Background Jobs & the Worker
@@ -113,7 +115,7 @@ the async note-title task in [AI Analysis Flows](./ai-analysis.md); settings and
 [Architecture Overview](../architecture/overview.md); the mock-only testing rule in
 [Testing & Verification](../operations/testing.md).
 
-## The worker instance and its two registries
+## The worker instance and its registry
 
 `src/worker.py` is the whole wiring of the consumer. It defines a `HueyWithRegistry` mixin that
 carries an optional `svcs.Registry`, then picks the concrete Huey class by environment:
@@ -142,9 +144,10 @@ builds a second one, with an unpooled session manager, inside `@huey.on_startup(
 `setup_worker_services` (registered with `@huey.on_startup()`) calls `init_logging()`, wires the
 huey-dashboard signals, then constructs a **fresh** `DatabaseSessionManager(settings.database_url,
 {"echo": settings.echo_sql, "poolclass": NullPool})`, registers the full service graph on a new
-`Registry`, and assigns it to `huey.svcs_registry`. `NullPool` is not an optimization — tasks call
-`asyncio.run()` once per invocation, and a pooled async engine reused across those short-lived event
-loops produces "operation in progress" errors. `@huey.on_shutdown()` closes the registry.
+`Registry` via `register_services` (the same function the API uses, so both processes resolve the
+same interfaces), and assigns it to `huey.svcs_registry`. `NullPool` is not an optimization — tasks
+call `asyncio.run()` once per invocation, and a pooled async engine reused across those short-lived
+event loops produces "operation in progress" errors. `@huey.on_shutdown()` closes the registry.
 
 The three task modules are imported at the *bottom* of `src/worker.py`, purely so their decorators
 run against the same `huey` instance; nothing else in the process imports them for their tasks. That
@@ -216,7 +219,7 @@ isolation is the explicit subject of
 `get_active_alerts_for_evaluation()` and one bulk `get_latest_intraday_close_by_security()` map,
 and hands both to the *pure* `AlertEvaluationService.evaluate` (inclusive comparisons; a missing
 price skips the alert). Each triggered alert is enqueued as a separate
-`alert_email_dispatch_task(alert.alert_id, run_ts)` where `run_ts` is the evaluation timestamp
+`alert_email_dispatch_task(alert.alert_id, run_ts)` where `run_ts` is the UTC evaluation timestamp
 threaded forward; an enqueue that raises is logged and skipped, and the loop continues.
 
 **Stage 3 — `alert_email_dispatch_task`.** Declares `retries=3` and delegates to
@@ -357,7 +360,8 @@ short-lived signed ticket first.
 `POST /api/v1/auth/ws-ticket` (`src/auth/router.py`) requires the `auth_token` cookie (else **401**),
 resolves the user through `UserApi.get_current_user_from_token`, and returns
 `URLSafeTimedSerializer(settings.secret_key).dumps(json.dumps({"user_id": ..., "jti": ...}),
-salt="ws-ticket")`.
+salt="ws-ticket")` (see [Authentication & Authorization](../architecture/authentication.md) for the
+ticket-issuing side and the token contract).
 
 `GET /api/ws` (`src/ws/router.py`) then accepts two credential shapes:
 
@@ -384,7 +388,8 @@ else None` — calls `ws_manager.connect(websocket, user_id, subprotocol=subprot
 ## Account-sync status in Redis
 
 `src/integration/sync_status.py` owns exactly one key shape and three operations, all through the
-per-loop `redis_manager.client()` context manager from `src/core/redis.py`:
+per-loop `redis_manager.client()` context manager from `src/core/redis.py` (the same
+per-event-loop-client pattern the WebSocket manager uses, on a separate singleton):
 
 | Function | Redis call |
 |----------|-----------|
@@ -424,12 +429,15 @@ re-poll. `wsConnected` also drives the "Live"/"Disconnected" indicator in the co
 | Event | Effect |
 |-------|--------|
 | `sync_started` | add id to `syncingAccountIds`, clear `syncErrors[id]` |
-| `sync_finished` | remove id, clear the error |
+| `sync_finished` | remove id, clear the error, `await fetchAccounts()` to pick up fresh totals |
 | `sync_failed` | remove id, set `'Failed to sync. Please try again.'` |
 
-`frontend/src/lib/types/websocket.ts` declares only those three values, so an
-`account_totals_updated` payload (the hourly totals broadcast) matches no branch and changes no
-state in this component.
+`frontend/src/lib/types/websocket.ts` declares only those three values, while the backend
+`WsEventType` (`src/ws/api_types.py`) also declares `account_totals_updated`, carried by
+`AccountTotalsUpdatedMessage` and published hourly by `recalculate_all_account_totals_task`. An
+`account_totals_updated` payload therefore matches no branch and changes no state in this component —
+the totals it carries are observed indirectly, through the `fetchAccounts()` that `sync_finished`
+triggers.
 
 **Reconnect.** `onclose` sets `wsConnected = false`, **resets** `syncStatusHydrated` so the next open
 re-hydrates, and re-invokes `initWebSocket()` after a fixed 5000 ms `setTimeout`. `destroy()` closes
@@ -454,18 +462,21 @@ fails:
 `src/worker_dashboard/router.py` builds `worker_dashboard_router = APIRouter(prefix="/worker/api")`
 and mounts huey-dashboard's task router under `/tasks` with `dependencies=[Depends(current_user)]`,
 so `GET /worker/api/tasks/` and `GET /worker/api/tasks/{task_id}` are authenticated API endpoints
-(`tests/routers/test_worker_dashboard.py` asserts **401** without credentials and 200/404 with them).
+(`tests/routers/test_worker_dashboard.py` asserts **401** without credentials and 200/404 with them
+via either the `Authorization: Bearer` header or the `auth_token` cookie).
 
 It also serves the dashboard's live updates WebSocket at `/worker/api/updates` (and
 `/worker/api/updates/`), which reuses the same two credential shapes as `/api/ws`: a signed ticket
 validated by `_check_ticket_not_replayed` imported from `src.ws.router` plus
 `serializer.loads(..., max_age=30, salt="ws-ticket")`, or the `auth_token` cookie /
 `sec-websocket-protocol` token resolved through `UserApi`. Any failure closes with code **1008**;
-success appends the socket to the huey-dashboard `WebSocketManager`.
+success appends the socket to the huey-dashboard `WebSocketManager`. The endpoint installs a request
+id the same way `/api/ws` does. Note that this page's own auth surface is mounted on the **backend**
+app, not on the worker — see below.
 
-> **Historical note.** The archived architecture review (`.opencode/reviews/2026-08-25-architecture.md`)
-> flagged `/worker/api` as unauthenticated — at the time the mounted huey-dashboard router carried
-> only a logging dependency. Verified against current source: the task routes now carry
+> **Historical note.** The archived architecture review (`.ai/reviews/2026-08-25-architecture.md`,
+> finding 3) flagged `/worker/api` as unauthenticated — at the time the mounted huey-dashboard router
+> carried only a logging dependency. Verified against current source: the task routes now carry
 > `Depends(current_user)` and the update socket authenticates via ticket or token, so the finding is
 > remediated. Treat the review entry as history, not as a live gap.
 
@@ -498,8 +509,8 @@ Operationally:
   stop firing, check that flag first.
 - **`/health/ready` pings Redis** through `redis_manager.client()`, so a Redis outage degrades the
   readiness probe as well as the fan-out and sync status.
-- **The dashboard is served by the backend process, not the worker.** The worker only feeds it
-  signals.
+- **The dashboard is served by the backend process, not the worker.** `src/main.py` includes
+  `worker_dashboard_router` on the FastAPI app; the worker only feeds it signals.
 
 ## Testing
 

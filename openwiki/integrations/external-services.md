@@ -1,14 +1,13 @@
 ---
 type: Reference
 title: External Services & Adapters
-description: Catalog of every outbound dependency in retail-portfolio — EODHD market data, Wealthsimple brokerage via ws-api, the OpenAI-compatible AI endpoint, SMTP email, Redis and the Go indicator sidecar — with the adapter, configuration variables, stub counterparts, failure mapping and security caveats that own each boundary.
+description: Catalog of every outbound dependency in retail-portfolio — EODHD market data, Wealthsimple brokerage via ws-api, the OpenAI-compatible AI endpoint, SMTP email, Redis, the Go indicator sidecar and local-disk file storage for uploaded documents — with the adapter, configuration variables, stub counterparts, failure mapping and security caveats that own each boundary.
 tags: [integrations, external-services, adapters, eodhd, wealthsimple, ai, smtp, redis, stubs, configuration, security]
-verified:
-  - by: openwiki/0.5.2
-    at: 2026-09-18T20:16:58.058Z
 sources:
   - id: openwiki-source-5f5b95b3d6a215fa02ceb945
     resource: repo://.env.example
+  - id: openwiki-source-11ef2d56dffda152beeb9f84
+    resource: repo://docker-compose.prod.yml
   - id: openwiki-source-b79fbbd921df689b4bbdc82f
     resource: repo://docker-compose.yml
   - id: openwiki-source-692344b8dd5d47fcc6f9bfe0
@@ -31,6 +30,8 @@ sources:
     resource: repo://src/integration/brokers/exception.py
   - id: openwiki-source-aa78a7160d509484cbcaaf33
     resource: repo://src/integration/brokers/wealthsimple.py
+  - id: openwiki-source-1d65188722b62c70565d1cc3
+    resource: repo://src/integration/registry.py
   - id: openwiki-source-cf06e2dd885c3f0f11447b4f
     resource: repo://src/integration/sync_status.py
   - id: openwiki-source-1bc1a904875e872775adbd74
@@ -47,6 +48,8 @@ sources:
     resource: repo://src/market/eodhd.py
   - id: openwiki-source-b5c9dababd9a2ff2d28150b0
     resource: repo://src/market/gateway.py
+  - id: openwiki-source-cc33fb93093886e62b166a26
+    resource: repo://src/market/model.py
   - id: openwiki-source-2a7887e5463dd941a6134a40
     resource: repo://src/market/repository_eodhd.py
   - id: openwiki-source-d8383d22d61483b00080a280
@@ -77,31 +80,41 @@ sources:
     resource: repo://tests/market/test_indicator_client.py
   - id: openwiki-source-382eb74e97d472ad5d0b6234
     resource: repo://tests/routers/test_notes.py
-generated: { by: "openwiki/0.5.2", at: "2026-09-18T20:16:58.058Z" }
+generated: { by: "openwiki/0.7.0", at: "2026-10-04T13:39:13.522Z" }
+verified:
+  - by: openwiki/0.7.0
+    at: 2026-10-04T13:39:13.522Z
 ---
 
 # External Services & Adapters
 
-This page is the boundary catalogue: every dependency that leaves the process, the
-adapter class that owns it, how the adapter is selected, how it fails, and what an
-agent must not break when touching it. Per-request control flow belongs to
-[Architecture](../architecture/overview.md); the `Settings` model and the `svcs`
+This page is the boundary catalogue: every dependency that leaves the process (or writes
+outside the database), the adapter class that owns it, how the adapter is selected, how it
+fails, and what an agent must not break when touching it. Per-request control flow belongs
+to [Architecture](../architecture/overview.md); the `Settings` model and the `svcs`
 registry are detailed in
 [Configuration, Dependency Injection & Cross-Cutting Runtime](../architecture/configuration.md).
 
 Everything outbound is reached through an abstract interface resolved from the `svcs`
-registry — `MarketGateway`, `BrokerApiGateway`, `AIService`, `PriceRepository`,
+registry — `MarketGateway`, `WealthsimpleApiGateway`, `AIService`, `PriceRepository`,
 `EmailService`, `IndicatorServiceClient` — never through a direct vendor SDK call at a
 call site. That indirection is what makes the stub switch (below) a one-line change.
 The single deliberate exception is `EodhdPriceRepository`, which is both a repository
 (Postgres) and an adapter (`MarketGateway`), showing the "repository_*.py = alternative
 backend" convention described in `src/AGENTS.md`.
 
+Two boundaries in this catalogue are *not* third-party APIs and are therefore **not**
+affected by the stub switch: Redis (external process, but locally hosted) and the Go
+indicator sidecar (local infrastructure). One more — uploaded security documents — is not
+even a service: it is the local filesystem — see
+[Uploaded documents on local disk](#uploaded-documents-on-local-disk).
+
 ## The stub/live switch
 
-`STUB_EXTERNAL_API` is the **only** mechanism that selects stub versus live adapters,
-and it is read through the `settings.stub_external_api` boolean (default `False`).
-`src/config/services.py::register_services` branches on it once:
+`STUB_EXTERNAL_API` is the **only** mechanism that selects stub versus live third-party
+adapters, and it is read through the `settings.stub_external_api` boolean
+(`src/config/settings.py`, L21; default `False`) — `src/config/services.py::register_services`
+(L14–L33) branches on it exactly once:
 
 ```python
 if settings.stub_external_api:
@@ -112,32 +125,43 @@ else:
     register_market_services(registry)
 ```
 
-Both branches register the **same abstract keys** with different factories, so no
-caller changes. The concrete stub classes registered by the stub path are:
+Both branches register the **same abstract keys** with different factories, so no caller
+changes. `register_integration_stub_services` (L36–L62) swaps in the broker stub;
+`register_market_stub_services` (L65–L156) re-registers the whole market domain and
+differs from the live path only in the `AIService` line. The live counterparts are
+`register_integration_services` (`src/integration/registry.py`, L23) and
+`register_market_services` (`src/market/__init__.py`, L60).
 
-| Abstract key | Live factory | Stub class registered |
-|--------------|--------------|-----------------------|
-| `MarketGateway` | `eodhd_gateway_factory` (→ `EodhdGateway`) | `StubEodhdGateway` (via the factory re-check) |
+| Abstract key | Live factory | Stub-mode factory |
+|--------------|--------------|-------------------|
+| `MarketGateway` | `eodhd_gateway_factory` (→ `EodhdGateway`) | same factory — it re-checks the flag |
 | `PriceRepository` | `eodhd_price_repository_factory` | same — it wraps `eodhd_gateway_factory` |
 | `AIService` | `ai_service_factory` (→ `AIService`) | `StubAIService` (`src/stubs/ai.py`) |
 | `WealthsimpleApiGateway` | `wealthsimple_api_wrapper_factory` | `StubWealthsimpleApiGateway` (`src/stubs/wealthsimple.py`) |
+| `IndicatorServiceClient` | `indicator_service_client_factory` | identical registration on both paths |
 
 Two details matter when changing anything here:
 
-- The stub registrations are imported **lazily inside the function bodies** of
-  `register_integration_stub_services` / `register_market_stub_services`. This is
-  deliberate: importing the stub modules eagerly would pull vendor SDKs
-  (`ws_api`, `eodhd`) onto the wrong path. Keep the local imports local.
-- `eodhd_gateway_factory` **re-checks** `settings.stub_external_api` itself and returns
-  `StubEodhdGateway` when the flag is set — even when the *live* registration path runs.
-  So there are two independent checks for the EODHD gateway. They must stay consistent:
-  flipping one without the other silently changes which `MarketGateway` callers receive.
+- The stub registrations import their dependencies **lazily inside the function bodies**
+  of `register_integration_stub_services` / `register_market_stub_services` (every import
+  carries `# noqa: PLC0415`). This is deliberate: importing stub modules eagerly would pull
+  vendor SDKs (`ws_api`, `eodhd`) onto the wrong path. Note the asymmetry — the one
+  module-level import of a stub class in `src/config/services.py` is
+  `from src.stubs.wealthsimple import StubWealthsimpleApiGateway` (L11), needed because the
+  integration stub registration references the class directly; `StubAIService` is imported
+  at L118 inside the market stub function. Keep the local imports local.
+- `eodhd_gateway_factory` (`src/market/eodhd.py`, L218–L223) **re-checks**
+  `settings.stub_external_api` itself and returns `StubEodhdGateway` when the flag is set —
+  even when the *live* registration path runs. So there are two independent checks for the
+  EODHD gateway. They must stay consistent: flipping one without the other silently changes
+  which `MarketGateway` callers receive.
 
-`tests/conftest.py` sets `os.environ["STUB_EXTERNAL_API"] = "true"` **before** importing
-the app, so the whole suite resolves stubs and needs neither EODHD, Wealthsimple, nor AI
-credentials. Note `STUB_EXTERNAL_API` is *not* present in `.env.example`: the dev Compose
-stack therefore runs against the **live** adapters, with `EODHD_API_KEY="demo"`,
-`AI_API_KEY=""` and `AI_API_MODEL=""` as the only provided values.
+`tests/conftest.py` sets `os.environ["STUB_EXTERNAL_API"] = "true"` (and
+`ENVIRONMENT=test`) **before** importing the app, so the whole suite resolves stubs and
+needs neither EODHD, Wealthsimple, nor AI credentials. Note `STUB_EXTERNAL_API` is *not*
+present in `.env.example`: the dev Compose stack therefore runs against the **live**
+adapters, with `EODHD_API_KEY="demo"`, `AI_API_KEY=""` and `AI_API_MODEL=""` as the only
+provided values.
 
 ```mermaid
 flowchart TD
@@ -157,11 +181,15 @@ flowchart TD
     H --> N["RuntimeError becomes HTTP 503 AI service unavailable and TimeoutError becomes 504"]
     L --> O["requests search has a 10s timeout and no retry"]
     K --> P["No network call at all"]
+    C --> Q["IndicatorServiceClient registered identically on both paths"]
+    D --> Q
+    Q --> R["httpx.AsyncClient posts to the Go sidecar compute endpoint"]
 ```
 
 Caption: adapter selection under stub versus live mode, and where each boundary's
 failures surface — broker session errors inside the sync task, AI failures at the
-router, and EODHD failures at the repository or search route.
+router, EODHD failures at the repository or search route, and sidecar failures at the
+indicator client.
 
 ## EODHD market data
 
@@ -315,7 +343,8 @@ Behavior worth knowing before editing `_call_ai_api`:
 
 **Stub — `StubAIService` (`src/stubs/ai.py`)** accepts `*args, **kwargs` and returns three
 fixed markdown strings, one per method. It deliberately exposes all three methods so it is
-a drop-in for `AIService` in the container.
+a drop-in for `AIService` in the container; `register_market_stub_services` binds it with
+`registry.register_factory(AIService, StubAIService)` (`src/config/services.py:155`).
 
 ## SMTP email
 
@@ -374,6 +403,10 @@ Boundaries and keys an agent should not break:
 - **Huey broker** — `RedisHueyWithRegistry("retail-portfolio", url=settings.redis_url)`,
   swapped for `MemoryHueyWithRegistry` when `environment == "test"`.
 
+Redis is *not* part of the `STUB_EXTERNAL_API` switch: the registry passes the same
+`redis_manager`-backed factories on both paths, and the test suite replaces the client
+itself (see below).
+
 ## Indicator sidecar (Go, HTTP)
 
 The FastAPI backend is the only client of the Go indicator service
@@ -401,13 +434,48 @@ is the contract the tests pin down:
 **Security caveat: the sidecar is unauthenticated.** It exposes no auth and no rate
 limiting, and its README states plainly that it is intended for the internal Docker
 network only and must never be exposed publicly. Dev Compose publishes it on
-`${INDICATOR_SERVICE_PORT:-8085}` → container `8080` for convenience; sharing that port
-beyond localhost hands out an unauthenticated compute endpoint.
+`${INDICATOR_SERVICE_PORT:-8085}` → container `8080` for convenience; prod Compose pins
+`8085:8080`. Sharing either port beyond localhost hands out an unauthenticated compute
+endpoint.
 
 Configuration is `INDICATOR_SERVICE_URL` (Compose sets
 `http://indicator-service:8080`; `Settings` defaults to `http://localhost:8080`).
 Note the client is registered identically on **both** registry paths — the stub switch
 does not touch it, because the sidecar is local infrastructure, not a third-party API.
+
+## Uploaded documents on local disk
+
+Security documents have no object storage and no third-party file service: the upload
+route writes bytes straight to the container's filesystem. `POST /securities/{security_id}/documents`
+(`src/market/router.py`, `market_create_document`) reads `settings.upload_path`
+(`UPLOAD_PATH`, default `"data/uploads"`), calls `mkdir(parents=True, exist_ok=True)`,
+and writes the uploaded content to `<upload_path>/<uuid4><original extension>`. Only
+metadata — original filename, `file_path`, byte size and `file_type` — goes to the
+database (`SecurityDocumentModel`); the `file_path` column stores the str of the path the
+process wrote.
+
+Deployment constraints that follow directly from this:
+
+- **The directory is local to the process's filesystem.** No Compose file declares a
+  named volume for it. In dev it happens to land inside the bind-mounted repo root
+  (`./:/app` for both `backend` and `worker`), so both services see the files; in prod
+  (image-based, no bind mount) the files live in the container's writable layer and are
+  lost on recreate or upgrade.
+- **It is not backed up with the database.** Restoring Postgres alone leaves
+  `SecurityDocumentModel` rows pointing at files that no longer exist, and documents
+  written by one replica are invisible to any other.
+- There is **no content-type or size validation** in the route, and no path traversal risk
+  from the original filename because only the sanitized `uuid4` name is used for the
+  stored path — but the caller-supplied `file.content_type`/`filename` are stored verbatim
+  in metadata and served back to the owner.
+- `settings.upload_path` is relative by default, so it resolves against the process's
+  working directory — `/app`, set by `WORKDIR` in the root `Dockerfile` and by
+  `working_dir` in the dev Compose services. Changing it requires a restart and a matching
+  directory on whatever host you deploy to.
+
+Treat this as a deployment constraint to fix, not a design to copy: moving documents to
+object storage means adding an adapter here, a stub in `src/stubs/`, and a factory that
+branches on `settings.stub_external_api` like every other boundary on this page.
 
 ## Configuration reference
 
@@ -418,6 +486,7 @@ does not touch it, because the sidecar is local infrastructure, not a third-part
 | `AI_API_KEY` | `ai_api_key` | `AsyncOpenAI` credentials |
 | `AI_API_MODEL` | `ai_api_model` | analysis calls only (title generation hard-codes a model) |
 | `INDICATOR_SERVICE_URL` | `indicator_service_url` | `indicator_service_client_factory` |
+| `UPLOAD_PATH` | `upload_path` | `market_create_document` document writes |
 | `SMTP_HOST` / `SMTP_PORT` / `SMTP_USE_TLS` / `SMTP_USER` / `SMTP_PASSWORD` / `SMTP_SENDER_EMAIL` | same names | `EmailService.send_email` |
 | `FRONTEND_URL` | `frontend_url` | deeplinks and verification links inside emails |
 | `REDIS_URL` | `redis_url` | `redis_manager`, indicator/search caches, Huey broker, pub/sub |
@@ -466,6 +535,11 @@ The mechanisms already in place, in preference order:
   `src.core.email.aiosmtplib.SMTP` for every send path; `tests/routers/test_notes.py` uses
   `AsyncMock(spec=AIService)` so the AI client is never constructed.
 
+Commands run inside Docker (`docker compose exec backend uv run pytest`, per
+`src/AGENTS.md`). Every stub in `src/stubs/` is fake data — never present a stub value,
+a `.env.example` placeholder (`EODHD_API_KEY="demo"`), or the throwaway dev `SECRET_KEY`
+as a real credential.
+
 ## Extension points
 
 - **New outbound dependency**: define an abstract interface, a live adapter, a stub in
@@ -477,6 +551,9 @@ The mechanisms already in place, in preference order:
   user needs actionable guidance.
 - **New indicator type**: it belongs in the Go sidecar, not in Python — extend the Go
   calculator and its `type` alias table; the backend only forwards specs.
+- **Document storage**: replace the direct filesystem write with an adapter behind a
+  repository/interface so it can be stubbed, versioned, and shared between backend and
+  worker.
 
 ## Related pages
 
@@ -485,3 +562,7 @@ The mechanisms already in place, in preference order:
 - [Authentication](../architecture/authentication.md) — where `SECRET_KEY` comes from and
   how tokens are signed/verified.
 - [Testing](../operations/testing.md) — fixtures and the no-external-services rule.
+- [Market Data & Indicators](../workflows/market-data-and-indicators.md) — how the EODHD
+  and sidecar boundaries are driven end to end.
+- [Broker Sync](../workflows/broker-sync.md) — the Wealthsimple session lifecycle.
+- [AI Analysis](../workflows/ai-analysis.md) — the AI call path from route to provider.

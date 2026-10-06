@@ -2,9 +2,6 @@
 type: "Reference"
 title: "Testing & Verification"
 openwiki_generated: true
-verified:
-  - by: openwiki/0.5.2
-    at: 2026-09-23T13:18:56.288Z
 sources:
   - id: openwiki-source-164e2da859b5277df81c7d94
     resource: repo://.github/workflows/ci.yml
@@ -70,6 +67,8 @@ sources:
     resource: repo://tests/fixtures/redis.py
   - id: openwiki-source-8ff946921bcd1055eadbc5ac
     resource: repo://tests/integration/brokers/test_wealthsimple.py
+  - id: openwiki-source-3fc8ae58de9c48599e06465d
+    resource: repo://tests/market/test_check_and_dispatch_price_alerts.py
   - id: openwiki-source-aac020a8d896b587762e3998
     resource: repo://tests/market/test_indicator_cache.py
   - id: openwiki-source-4a4ca3cbe0b274d6c82e4e15
@@ -80,6 +79,10 @@ sources:
     resource: repo://tests/market/test_search_router.py
   - id: openwiki-source-cbdd5210d3634181abff2019
     resource: repo://tests/market/test_security_search_cache.py
+  - id: openwiki-source-382eb74e97d472ad5d0b6234
+    resource: repo://tests/routers/test_notes.py
+  - id: openwiki-source-33d5d706a9193e5e20aa44ce
+    resource: repo://tests/tasks/test_market.py
   - id: openwiki-source-d59cda026d403e42927334dd
     resource: repo://tests/tasks/test_redis_concurrency.py
   - id: openwiki-source-8b176c94b018259ee14f35b7
@@ -88,7 +91,10 @@ sources:
     resource: repo://tests/test_migrations_autogenerate.py
   - id: openwiki-source-da833519b72f73ce64d59b2b
     resource: repo://tests/ws/test_manager.py
-generated: { by: "openwiki/0.5.2", at: "2026-09-23T13:18:56.288Z" }
+generated: { by: "openwiki/0.7.0", at: "2026-10-04T13:39:13.522Z" }
+verified:
+  - by: openwiki/0.7.0
+    at: 2026-10-04T13:39:13.522Z
 ---
 
 
@@ -181,7 +187,7 @@ Database fixture lifecycle: one session-scoped PostgreSQL (reused via `TEST_DATA
 - `patch.object`es `ConnectionManager.init_redis`, `close`, `send_personal_message` and `send_personal_message_sync` on the **class**, covering every loop-scoped instance, and stashes the real methods as `_orig_*` attributes so `tests/ws/test_manager.py` can still exercise them directly;
 - patches `src.main.init_worker_dashboard` and `src.main.close_worker_dashboard`.
 
-The docstring records why the `src.main` patches matter: `main.py` binds those names at import time, and without patching them the lifespan creates real `AsyncRedis` connections whose `aclose()` times out for roughly four seconds per test.
+The docstring records why the `src.main` patches matter: `main.py` binds those names at import time, and without patching them the lifespan creates real `AsyncRedis` connections whose `aclose()` times out for roughly four seconds per test. `huey.immediate` is set session-wide, so individual task suites only toggle it when they want to assert on the synchronous wrapper boundary itself — see [Driving worker-owned code](#driving-worker-owned-code).
 
 ### Redis fake
 
@@ -199,6 +205,24 @@ The docstring records why the `src.main` patches matter: `main.py` binds those n
 Where the app resolves collaborators through its `svcs` registry instead of a module-level factory, suites override the registry directly: `tests/market/test_search_router.py` registers `AsyncMock`/`MagicMock` replacements for `SecuritySearchCache` and `MarketGateway` on `app.state.svcs_registry`.
 
 SMTP is patched at the transport boundary in `tests/email/test_email_service.py` with `patch("src.core.email.aiosmtplib.SMTP")`; template suites render through `src.core.email.jinja_env` without any transport at all. Broker APIs are exercised through the `src/stubs/wealthsimple.py` stubs in `tests/integration/brokers/test_wealthsimple.py` rather than by network calls.
+
+### Driving worker-owned code
+
+Worker tasks are the one place where the interesting code is an async inner function that a synchronous Huey wrapper schedules with `asyncio.run`. The reference pattern (`tests/tasks/test_market.py`, `tests/tasks/test_alert_email_dispatch_task.py`, `tests/market/test_check_and_dispatch_price_alerts.py`, `tests/routers/test_notes.py`) is to **patch the container rather than the task body**:
+
+```python
+mock_container = AsyncMock()
+mock_container.aget.return_value = mock_market_service
+mock_container.__aenter__.return_value = mock_container
+
+with (
+    patch("src.market.task.huey.svcs_registry", MagicMock()),
+    patch("src.market.task.Container", return_value=mock_container),
+):
+    await _daily_price_update()          # the async inner function, called directly
+```
+
+Patching `src.market.task.Container` replaces the `svcs` container so `container.aget(MarketService)` hands back an `AsyncMock`, and the `__aenter__` wiring lets the task's `async with Container(...)` block work under a mock. The `huey.svcs_registry` patch is only needed when a code path short-circuits on a missing registry. Tests that must exercise the *synchronous* wrapper instead toggle `huey.immediate = True` (and restore it to `False` afterwards) so the task body runs in-process without a broker, then assert that the wrapper scheduled the coroutine — commonly by patching `src.market.task.asyncio.run`. Toggling `huey.immediate` is also what the session-scoped `global_mocks` fixture does for the whole suite; setting it explicitly is only for tests that assert on that boundary.
 
 ### Migration drift test
 
@@ -244,9 +268,9 @@ Suite files are colocated with the code they cover (`src/**/*.test.ts`) — API 
 Which mocking seam a suite uses follows the shape of the code under test:
 
 - **API clients** mock `global.fetch` (`apiClient`, `accountClient`, `authService`, `indicatorsService`, `snapshotsService`, …) and assert the URL/method/payload plus the error mapping.
-- **Service classes that pull their client from a module factory** mock that module and return a hand-built object. `src/lib/components/watchlist/watchlistService.test.ts` mocks `@/api/marketService` as `{ getMarketService: vi.fn() }` and hands back a client whose every method is a `vi.fn()` — `search`, `createOrUpdateSecurity`, `getWatchlists`, `createWatchlist`, `renameWatchlist`, `updateWatchlistSort`, `deleteWatchlist`, `addSecurityToWatchlist`, `removeSecurityFromWatchlist`, `reorderWatchlistSecurities`, `addToWatchlist`, `removeFromWatchlist` — so `WatchlistService` is driven as a plain class with no SvelteKit runtime and no network. `src/lib/components/holdings/holdingsService.test.ts` uses the same shape against `$lib/api/accountService` and covers paging until `offset` reaches `total`, the stale-total guard, and returning the caught `ApiError` so callers can route a 401.
+- **Service classes that pull their client from a module factory** mock that module and return a hand-built object. `src/lib/components/watchlist/watchlistService.test.ts` mocks `@/api/marketService` as `{ getMarketService: vi.fn() }` and hands back a client whose every method is a `vi.fn()` — `search`, `createOrUpdateSecurity`, `getWatchlists`, `createWatchlist`, `renameWatchlist`, `updateWatchlistSort`, `deleteWatchlist`, `addSecurityToWatchlist`, `removeSecurityFromWatchlist`, `reorderWatchlistSecurities`, `addToWatchlist`, `removeFromWatchlist` — so `WatchlistService` is driven as a plain class with no SvelteKit runtime and no network. `src/lib/components/holdings/holdingsService.test.ts` uses the same shape but mocks **two** modules, `$lib/api/accountService` and `$lib/api/marketService`, each as a single-`vi.fn()` factory, then returns a client exposing only the methods `HoldingsService` actually calls (`getUserHoldings`, `getValuationsBatch`). It covers paging until `offset` reaches `total`, the stale-total guard (an empty page stops paging even when the server still reports a bigger `total`), the caught-`ApiError` return so callers can route a 401, batch valuation mapping with numeric bounds and its graceful fallback to empty valuations, and row grouping/filtering (`setGroupBy`, `filterByPortfolio`, `filterByAccount`, `clearFilter`).
 - **Service classes that take their collaborators as constructor arguments need no `vi.mock` at all.** `src/lib/services/ChartDrawingsService.test.ts` constructs the service with stubbed `userPreferencesService.patchPreferences`, `snapshotsService.createSnapshot`/`getSnapshots`, a `toast` double and `vi.fn()` callbacks, then asserts on state and on the exact `patchPreferences` payloads — tool mutual exclusion, Delete/Backspace/Escape handling, undo/redo history, drag coalescing (patches deferred during a drag and committed once on `handleDrawingDragEnd`), and legacy anchor normalization that must not trigger a write-back.
-- **Route tests come in pairs.** `page.server.test.ts` mocks the API service modules and drives `load`/`actions` with a hand-built `Cookies`/`RequestEvent` object; `page.svelte.test.ts` renders the page with `render(Page, { props: { data } })` and asserts the shell-first contract — skeleton rows before the post-navigation load resolves, rows appearing without user action, sequential page loading, per-currency totals, and the 401 path that calls `goto('/auth/login?clear_session=true')`. `src/lib/api/async-data.test.ts` unit-tests that seam (`redirectOn401`) directly, with `$app/navigation` and `$app/paths` mocked.
+- **Route tests come in pairs.** `src/routes/holdings/page.server.test.ts` mocks every API service module the `load` touches (`$lib/api/accountService`, `$lib/api/userPreferencesService`, `$lib/api/portfolioClient`, `$lib/api/accountClient`) plus `$lib/server/auth-cookie`, then drives `load` with a hand-built `Cookies` (a `Map`-backed store holding `auth_token`) and a hand-built `RequestEvent` carrying `url`, `params`, `route.id` and a stub `fetch`. It asserts the returned key set, that holdings are **never** fetched during the server load (`mockGetUserHoldings` not called — the page loads them after navigation), the graceful fallback to `HOLDINGS_TABLE_DEFAULT_CONFIG` with `group_mode: 'none'` and null `elliott_waves` when preferences reject, and the 401 path that deletes the auth cookie and throws a 303 redirect to `/auth/login?clear_session=true`. Its pair `src/routes/holdings/page.svelte.test.ts` renders the page with `render(Page, { props: { data } })` and asserts the shell-first contract — skeleton rows before the post-navigation load resolves, rows appearing without user action, sequential page loading (`getUserHoldings` called with offsets 0 then 50), per-currency totals, group-mode toggling and persistence, and the 401 path that calls `goto('/auth/login?clear_session=true')`. `src/lib/api/async-data.test.ts` unit-tests that seam (`redirectOn401`) directly, with `$app/navigation` and `$app/paths` mocked.
 - **Third-party and browser APIs are mocked too**: `mode-watcher`, `@simplewebauthn/browser`, `qrcode` and `$env/static/private` all appear in `vi.mock` calls, and `vi.hoisted` is used where a mock must exist before the imports are evaluated. `src/hooks.server.test.ts` is the one suite that opts out of jsdom with a `// @vitest-environment node` pragma so it can verify JWT handling with `jose` against a mocked `JWT_SECRET`.
 
 Chart tests split the same way. `src/lib/components/charts/security-chart.test.ts` defines `Path2D` and `ResizeObserver` polyfills, then `vi.mock('lightweight-charts', …)` returning a `createChart` stub with mocked time scale, price scales, series, `attachPrimitive`, range/visible-range subscriptions and crosshair callbacks. The plugin suites next to each primitive (`plugins/measure/measure.test.ts`, `plugins/horizontal-line/`, `plugins/free-form-line/`, `plugins/fibonacci/`, `plugins/elliott-wave/`, `plugins/user-price-alerts/`) instead import only *types* from the library and hand-build `IChartApi`/`ISeriesApi` doubles plus a canvas target that records draw calls, then walk the four layers `frontend/AGENTS.md` requires: state transitions and delegate firing, mouse-adapter hit-testing/snapping/drag lifecycle, renderer geometry and canvas draw calls (`moveTo`, `lineTo`, `arc`, `fill`, `stroke`, `fillText`, `setLineDash` under a 2× bitmap scope), and full primitive lifecycle (`attached`/`detached`/`destroy`, `updateAllViews`, `hitTest` cursor resolution, `TimeProjector` projection of future whitespace). Shared plumbing has its own suites under `plugins/helpers/`, and pure finance math is tested separately under `src/lib/utils/finance/` because plugins are not allowed to own formulas.
@@ -282,13 +306,13 @@ The three-gate pipeline: Gate 0 halts before any test runs, Gate 1 is a single t
 
 - **Gate 0 — pre-flight lint/type.** If it fails, the harness prints sanitized diagnostics and returns 1 **without running any tests**. Backend commands: `uv run ruff check --output-format concise`, `uv run ruff format --check`, `uv run ty check --output-format concise`. Frontend commands: `npx svelte-kit sync`, `npx svelte-check --tsconfig ./tsconfig.json --output machine`, `npx eslint . -f json` (reformatted to `path:line:col: message (rule)`), `npx prettier --check .`.
 - **Gate 1 — targeted iteration.** Passing a path (`./scripts/agent-test tests/routers/test_auth.py`, or `frontend/src/lib/api/apiClient.test.ts`) runs only that target with fail-fast (`pytest -x` / `vitest --bail=1`) and `--no-cov` on the backend, so the assertion detail is what you read.
-- **Gate 2 — full regression.** With no targets, the ecosystems are auto-detected from the git diff (`origin/main...HEAD`, working tree, staged, untracked; `openspec/`, `openwiki/`, `.github/`, `.opencode/`, `.agent/`, `scripts/` and `frontend/node_modules/` are ignored; `src/`/`tests/`/`migrations/`/`pyproject.toml`/`uv.lock`/`alembic.ini` imply backend, `frontend/` implies frontend, and no changes means both). The suite runs without fail-fast and coverage on for the backend, and the output is rendered as an **Index** (per-ecosystem counts plus failed test identifiers, capped at 30) followed by **Traces** for the first 1–2 failures; the rest appear as one-line summaries.
+- **Gate 2 — full regression.** With no targets, the ecosystems are auto-detected from the git diff (`origin/main...HEAD`, working tree, staged, untracked; `openspec/`, `openwiki/`, `.github/`, `.opencode/`, `.agent/`, `.claude/`, `.ai/`, `scripts/` and `frontend/node_modules/` are ignored; `src/`/`tests/`/`migrations/`/`pyproject.toml`/`uv.lock`/`alembic.ini` imply backend, `frontend/` implies frontend, and no changes means both). The suite runs without fail-fast and coverage on for the backend, and the output is rendered as an **Index** (per-ecosystem counts plus failed test identifiers, grouped by file and capped at 30) followed by **Traces** for the first 1–2 failures; the rest appear as one-line summaries.
 
 Both test gates parse machine-readable reports written to `.cache/agent-test/` — JUnit XML (`backend.xml`) for pytest, Vitest's JSON reporter (`frontend.json`) for the frontend — and the process exits 1 if any test failed, errored, or the runner itself failed (including when no report was produced at all).
 
-Flags: `--backend` / `--frontend` (full regression for one ecosystem), `--all`, `--gate0-only` (also exposed as `just check`), `--no-gate0`, `--local`, `--json` (structured output instead of prose), `--max-chars N`. `just` recipes wrap the common cases: `just test` (auto-detect), `just test-backend`, `just test-frontend`, `just test-all`, `just check`.
+Flags: `--backend` / `--frontend` (full regression for one ecosystem), `--all`, `--gate0-only` (also exposed as `just check`), `--no-gate0`, `--local`, `--json` (structured output instead of prose), `--max-chars N`. The bare words `backend` and `frontend` are also accepted as positional targets and mean the same thing as the flags, so `./scripts/agent-test backend` and `./scripts/agent-test --backend` are equivalent — while any other positional is treated as a test path (a target beginning with `frontend/` resolves against the frontend root, everything else against the repo root). `just` recipes wrap the common cases: `just test` (auto-detect), `just test-backend`, `just test-frontend`, `just test-all`, `just check`.
 
-**Scope of the harness:** it covers the backend and frontend only. The Go indicator service under `services/indicator-service` is exercised by its own CI job (`go vet`, `go build`, `go test ./...` over `calculator_test.go`, `handlers_test.go`, `timeframe_test.go`) and is never run by the harness. The backend reaches that sidecar only through stubbed transports: `tests/market/test_indicator_client.py` builds an `IndicatorServiceClient` on top of an `httpx.MockTransport` handler (and patches `httpx.AsyncClient.post` for the client-reuse case), while `tests/market/test_indicator_compute_api.py` patches `IndicatorServiceClient.compute` with an `AsyncMock` — so the compute endpoint's candle aggregation, interval handling and error mapping are asserted without a single HTTP call.
+**Scope of the harness:** it covers the backend and frontend only — the two ecosystems are the only values its `BACKEND`/`FRONTEND` constants and `detect_ecosystems` classifier know about. The Go indicator service under `services/indicator-service` is exercised by its own CI job (`go vet`, `go build`, `go test ./...` over `calculator_test.go`, `handlers_test.go`, `timeframe_test.go`) and is never run by the harness. The backend reaches that sidecar only through stubbed transports: `tests/market/test_indicator_client.py` builds an `IndicatorServiceClient` on top of an `httpx.MockTransport` handler (and patches `httpx.AsyncClient.post` for the client-reuse case), while `tests/market/test_indicator_compute_api.py` patches `IndicatorServiceClient.compute` with an `AsyncMock` — so the compute endpoint's candle aggregation, interval handling and error mapping are asserted without a single HTTP call.
 
 ## CI
 
@@ -336,3 +360,10 @@ npm run test:run
 ```
 
 Prefer the narrowest quiet validation that proves the changed behaviour — `./scripts/agent-test <path>` while iterating, and `./scripts/agent-test` (or `just test`) before finishing. The raw `docker compose exec … pytest` / `vitest` commands remain the fallback for when the harness itself is broken.
+
+## Related pages
+
+- [External Services](../integrations/external-services.md) — the outbound clients (EODHD, brokers, SMTP, Redis, the indicator sidecar) whose test doubles are described above.
+- [Development Workflows](workflows.md) — the Docker-based command surface these tests run inside.
+- [Quickstart](../quickstart.md) — bringing the stack up so the fallback raw commands work.
+- [Accounts and Holdings Views](../workflows/accounts-and-holdings-views.md) — the server-load / client-load split the holdings route tests pin down.

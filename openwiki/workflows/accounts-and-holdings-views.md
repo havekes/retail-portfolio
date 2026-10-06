@@ -3,9 +3,6 @@ type: workflow
 title: Accounts & Holdings Views (read path)
 description: The read path from stored positions to the accounts dashboard, the account-scoped holdings page and the cross-account holdings page — the HoldingRead / UserHoldingRead / AccountHoldingsRead contract, PositionService aggregation and currency conversion, the post-navigation paging loop in HoldingsService, client-side stock grouping with weighted average cost, column/group preference persistence, the per-currency header buckets, and the tests that pin all of it.
 tags: [holdings, accounts, read-path, ssr, pagination, preferences, positions, sveltekit, frontend]
-verified:
-  - by: openwiki/0.5.2
-    at: 2026-09-23T13:18:56.288Z
 sources:
   - id: openwiki-source-2163c40f6e8490dcf5aa468a
     resource: repo://frontend/src/lib/api/accountClient.ts
@@ -45,8 +42,6 @@ sources:
     resource: repo://frontend/src/lib/utils/finance/holdings-group.ts
   - id: openwiki-source-846f5f71a06546739c7f1ccb
     resource: repo://frontend/src/routes/%2Bpage.server.ts
-  - id: openwiki-source-2e4402e7dddbb6b3ddb90928
-    resource: repo://frontend/src/routes/%2Bpage.svelte
   - id: openwiki-source-b8584948ed4a6fee33406f78
     resource: repo://frontend/src/routes/accounts/%5Bid%5D/%2Bpage.server.ts
   - id: openwiki-source-bb30f3f121555e3a328d066d
@@ -77,7 +72,10 @@ sources:
     resource: repo://tests/routers/test_accounts.py
   - id: openwiki-source-352057a2a0d0cce12ede5cdf
     resource: repo://tests/services/test_position_service.py
-generated: { by: "openwiki/0.5.2", at: "2026-09-23T13:18:56.288Z" }
+generated: { by: "openwiki/0.7.0", at: "2026-10-04T13:39:13.522Z" }
+verified:
+  - by: openwiki/0.7.0
+    at: 2026-10-04T13:39:13.522Z
 ---
 
 # Accounts & Holdings Views (read path)
@@ -91,8 +89,8 @@ Neither is re-derived here.
 
 | Surface | Route | Backing endpoint | Where the rows come from |
 | --- | --- | --- | --- |
-| Accounts dashboard | `/` | `GET /accounts/` plus one `GET /accounts/{id}/totals` per rendered account | `frontend/src/routes/+page.server.ts`, awaited in the load |
-| Account-scoped holdings | `/accounts/[id]` | `GET /accounts/{account_id}/holdings` | `frontend/src/routes/accounts/[id]/+page.server.ts`, awaited in the load |
+| Accounts dashboard | `/` | `GET /accounts/` plus one `GET /accounts/{id}/totals` per rendered account | the account list is awaited in the load; each row fetches its own totals client-side |
+| Account-scoped holdings | `/accounts/[id]` | `GET /accounts/{account_id}/holdings` | awaited in the load |
 | Cross-account holdings | `/holdings` | `GET /accounts/holdings` (paged) plus `GET /accounts/me/preferences` | preferences only in the load; rows fetched after navigation by a page-owned `HoldingsService` |
 
 A fourth, narrower read — `GET /accounts/holdings/{security_id}` — is consumed by
@@ -101,9 +99,9 @@ described below because it shares the same service and repository contract.
 
 ## Backend read contract
 
-Three Pydantic shapes carry the holdings responses in `src/account/schema.py`,
-plus a fourth for the per-security read:
-
+The holdings responses are Pydantic shapes in `src/account/schema.py`, serialized to
+the wire by `src/account/serializer.py`, plus a fourth shape for the per-security
+read:
 - **`HoldingRead`** — one position turned into a display row: `quantity`,
   `average_cost`, `total_value`, `profit_loss`, `currency` (the *account*
   currency), `security_currency` (position currency, falling back to security
@@ -114,7 +112,7 @@ plus a fourth for the per-security read:
 - **`AccountHoldingsRead`** — a `PaginatedResponse[HoldingRead]` (`items`, `total`,
   `offset`, `limit`) extended with `account_id`, `account_name`, `total_value`,
   `total_profit_loss`, `total_profit_loss_percent`, `net_deposits` and `currency`.
-- `AccountHoldingRead` is the per-security row (`account_id`, `account_name`,
+- **`AccountHoldingRead`** — the per-security row (`account_id`, `account_name`,
   `quantity`, `average_cost`, `total_value`, `currency`, `account_total_value`,
   `account_percentage`).
 
@@ -225,7 +223,9 @@ in the source.
   `PositionService.get_account_holdings`, returning `AccountHoldingsRead`.
 - `GET /accounts/holdings/{security_id}` → `PositionService.get_holdings_by_security`.
 - `GET /accounts/{account_id}/totals` → `PositionService.get_total_for_account`
-  (the dashboard's per-account badge).
+  (the dashboard's per-account badge). The route also returns `cash_balance` and
+  `name` next to the `Money` pair, because the account update form uses the same
+  response.
 - `GET`/`PUT`/`PATCH /accounts/me/preferences` → `UserApi.get_preferences` /
   `save_preferences` / `patch_preferences`. `PATCH` calls
   `payload.model_dump(exclude_none=True)` and merges at the **top level** via
@@ -237,36 +237,63 @@ and `limit` defaults to `50` with `ge=1, le=100`.
 ## The `/holdings` read path: preference-only SSR, post-navigation paging
 
 `/holdings` is the one holdings surface that does **not** fetch rows in its server
-load. `frontend/src/routes/holdings/+page.server.ts` reads the `auth_token` cookie
-and then issues exactly one request — `getPreferences(token)` — inside a
-`try/catch`, and returns three preference-derived keys:
+load. `frontend/src/routes/holdings/+page.server.ts` reads the `auth_token` cookie,
+the `portfolio_id` / `account_id` query parameters, and issues three requests in
+parallel with `Promise.allSettled`:
 
 ```ts
-export const load: PageServerLoad = async ({ fetch, cookies }) => {
+export const load: PageServerLoad = async ({ fetch, cookies, url }) => {
 	const token = cookies.get('auth_token');
+	const portfolio_id = url.searchParams.get('portfolio_id');
+	const account_id = url.searchParams.get('account_id');
 
-	// Only the cheap, preferences-derived keys are awaited: holdings rows load
-	// asynchronously after navigation so the page shell renders instantly.
 	let holdings_table_config = normalizeHoldingsTableConfig(null);
 	let group_mode = normalizeHoldingsGroupMode(null);
 	let elliott_waves: Record<string, SecurityElliottWaves> | null = null;
+	let portfolios: Portfolio[] = [];
+	let accounts: Account[] = [];
+
 	try {
-		const prefs = await getUserPreferencesService(fetch).getPreferences(token);
-		holdings_table_config = normalizeHoldingsTableConfig(prefs?.holdings_table);
-		group_mode = normalizeHoldingsGroupMode(prefs?.holdings_group);
-		elliott_waves = prefs?.elliott_waves ?? null;
-	} catch {
-		// Preferences are non-fatal: fall back to defaults and still render holdings.
+		const [prefsResult, portfoliosResult, accountsResult] = await Promise.allSettled([
+			getUserPreferencesService(fetch).getPreferences(token),
+			getPortfolioClient(fetch).getPortfolios(token),
+			getAccountClient(fetch).getAccounts(token)
+		]);
+
+		for (const res of [prefsResult, portfoliosResult, accountsResult]) {
+			if (res.status === 'rejected' && res.reason instanceof ApiError && res.reason.status === 401) {
+				deleteAuthCookie(cookies);
+				throw redirect(303, '/auth/login?clear_session=true');
+			}
+		}
+
+		// fulfilled results fill holdings_table_config, group_mode, elliott_waves,
+		// portfolios and accounts; a rejection simply leaves the defaults in place.
+	} catch (err) {
+		// Re-throw the 303 redirect; swallow every other failure as non-fatal.
 	}
 
-	return { holdings_table_config, group_mode, elliott_waves };
+	return { holdings_table_config, group_mode, elliott_waves, portfolios, accounts, portfolio_id, account_id };
 };
 ```
 
-The rows themselves are fetched after navigation by a page-owned `HoldingsService`
-instance created in `+page.svelte`, whose `load()` is triggered from a single
-`$effect` (which never runs during SSR, so the fetch stays browser-only and fires
-once per mount). The server load never calls `getUserHoldings`; a test pins that.
+Load-bearing properties of this load:
+
+1. **Preferences, portfolios and the account list are awaited, holdings rows are
+   not.** The three reads run concurrently; a rejected portfolio or account read
+   degrades to an empty list rather than failing the page, so a preference or
+   filter-metadata outage does not hide holdings.
+2. **A 401 is the one non-fatal exception.** Each settled result is inspected: a
+   rejected result whose reason is an `ApiError` with `status === 401` triggers
+   `deleteAuthCookie(cookies)` and a `throw redirect(303, ...)`. The outer `catch`
+   re-throws exactly that redirect (matching on `status === 303`) and swallows
+   everything else — without the re-throw the redirect would be swallowed too.
+3. **The filter is URL-driven, not client-derived from scratch.** The load reads
+   `portfolio_id` / `account_id` from the query string and returns them, and the
+   page's first `$effect` re-applies the corresponding filter to the service.
+4. **The rows still arrive after navigation.** The server load never calls
+   `getUserHoldings`; a test pins that. The browser-only `$effect` calls
+   `service.load()` once per mount.
 
 ```mermaid
 sequenceDiagram
@@ -274,20 +301,29 @@ sequenceDiagram
     participant Hook as hooks.server.ts
     participant Load as holdings page.server load
     participant Prefs as UserPreferencesService
+    participant PortfolioClient as PortfolioClient
+    participant AccountClient as AccountClient
     participant Shell as holdings page shell
     participant Svc as HoldingsService
     participant API as AccountService
+    participant Market as MarketService
     participant PS as PositionService
     participant Repo as SqlAlchemyPositionRepository
 
-    Browser->>Hook: GET /holdings
+    Browser->>Hook: GET /holdings with optional filter query
     Hook->>Load: resolve with locals.user
-    Load->>Prefs: getPreferences(cookie token) inside try/catch
+    Load->>Prefs: getPreferences(cookie token)
+    Load->>PortfolioClient: getPortfolios(cookie token)
+    Load->>AccountClient: getAccounts(cookie token)
+    Note over Load,AccountClient: all three run under Promise.allSettled
     Prefs-->>Load: holdings_table, holdings_group, elliott_waves
-    Note over Load,Prefs: a failure is non-fatal and yields the normalized defaults
-    Load-->>Shell: holdings_table_config, group_mode, elliott_waves
+    PortfolioClient-->>Load: portfolios for the filter
+    AccountClient-->>Load: accounts for the filter
+    Load->>Load: any 401 means deleteAuthCookie and a 303 to the login page
+    Note over Load,AccountClient: any other rejection leaves that key at its default
+    Load-->>Shell: config, group mode, waves, portfolios, accounts, filter ids
     Shell-->>Browser: SSR shell with skeleton rows
-    Shell->>Svc: load from an effect, browser only
+    Shell->>Svc: apply the URL filter, then load from an effect browser only
     loop while page under MAX_PAGES and offset below total
         Svc->>API: getUserHoldings(offset, 50)
         API->>PS: get_user_holdings(user_id, offset, limit)
@@ -297,17 +333,23 @@ sequenceDiagram
         PS-->>API: UserHoldingRead items plus total
         API-->>Svc: PaginatedResponse
     end
+    Svc->>Market: getValuationsBatch for the collected security ids
+    Market-->>Svc: valuations, or an empty map on failure
     Svc-->>Shell: rows, or errorMessage plus the caught error
     Shell->>Shell: on a non-null error, redirectOn401
     Browser->>Shell: group toggle or column toggle
     Shell->>Prefs: patchPreferences with one top-level key
     Prefs-->>Shell: merged preferences
     Note over Shell,Prefs: a rejected write lands in the holdings-error alert
+    Browser->>Shell: pick a portfolio or account filter
+    Shell->>Shell: filter state plus goto with replaceState
+    Note over Shell: filtered rows are a client-side projection, no refetch
 ```
 
-The three phases of the page's data life: a preference-only SSR load, a
-browser-only sequential paging loop that fills the rows, and single-key preference
-writes on user interaction.
+The phases of the page's data life: a non-fatal SSR load of preferences and filter
+metadata, a browser-only sequential paging loop that fills the rows (followed by one
+batch valuation read), and user interactions that write single preference keys or
+change the client-side filter.
 
 ### The paging loop lives in `HoldingsService.load()`
 
@@ -337,12 +379,18 @@ async load(token?: string | null): Promise<unknown | null> {
 			if (response.items.length === 0) break;
 		}
 
-		this.rows = collected;
+		this.rows = collected; // setter assigns allRows
+
+		// One batched valuation read for every distinct security in the collected rows,
+		// in its own try/catch: a failure empties `valuations` but keeps the rows.
+		const uniqueSecurityIds = Array.from(
+			new SvelteSet(collected.map((h) => h.security_id).filter(Boolean))
+		);
+		// getValuationsBatch(...) → this.valuations; a rejection stores {}
 
 		return null;
 	} catch (error) {
 		this.errorMessage = error instanceof Error ? error.message : String(error);
-
 		return error;
 	} finally {
 		this.isLoading = false;
@@ -364,6 +412,14 @@ async load(token?: string | null): Promise<unknown | null> {
   the skeleton rows.
 - On failure the previously loaded `rows` are kept (the assignment happens only
   after the loop completes), and a later success clears `errorMessage`.
+- After the last page the loop makes **one batched valuation read** —
+  `marketClient.getValuationsBatch(uniqueSecurityIds, token)` — for the distinct
+  `security_id`s collected, storing the result in `valuations`. That call has its own
+  nested `try/catch`: a failure (or no securities at all) sets `valuations` to `{}`
+  and leaves the rows intact, so a valuation outage cannot fail the holdings load.
+- `rows` is a getter over the `allRows` array plus the active `filter`, and its
+  setter writes `allRows`. The paging loop therefore always stores the *complete*
+  cross-account set; filtering never mutates what was fetched.
 
 ### Failure semantics after navigation
 
@@ -405,6 +461,80 @@ cookie is not automatically replayed on the internal server-side fetch. The
 client-side helpers are token-less for the same reason — same-origin browser
 requests carry the cookie themselves.
 
+### Portfolio and account filter seam
+
+`/holdings` also carries a client-only filter that narrows the already-loaded rows
+without touching the network. `HoldingsService` owns it as a single discriminated
+`filter` state plus a `rows` getter:
+
+```ts
+export type HoldingsFilter =
+	| { type: 'all' }
+	| { type: 'portfolio'; portfolioId: string; accountIds: string[] }
+	| { type: 'account'; accountId: string };
+
+allRows = $state<UserHolding[]>([]);
+filter = $state<HoldingsFilter>({ type: 'all' });
+
+get rows(): UserHolding[] {
+	const filter = this.filter;
+	if (filter.type === 'portfolio') {
+		return this.allRows.filter((r) => filter.accountIds.includes(r.account_id));
+	}
+	if (filter.type === 'account') {
+		return this.allRows.filter((r) => r.account_id === filter.accountId);
+	}
+	return this.allRows;
+}
+
+filterByPortfolio(portfolioId: string, accountIds: string[]) { /* sets the portfolio variant */ }
+filterByAccount(accountId: string) { /* sets the account variant */ }
+clearFilter() { /* resets to { type: 'all' } */ }
+```
+
+- The filter is a **membership test over `account_id`**, not a query parameter on
+  `getUserHoldings`. A portfolio filter keeps rows whose `account_id` is in the
+  portfolio's account id list (a portfolio is a grouping of accounts — see
+  [Portfolios](portfolios.md)); an account filter keeps rows for that one account;
+  with no filter, `rows` is `allRows` unchanged. `groupedHoldings` derives from
+  `rows`, so grouping and filtering compose.
+- **The URL is the source of truth, and the load reads it.** `+page.server.ts` pulls
+  `portfolio_id` / `account_id` from the query string and returns them; the page's
+  first `$effect` maps them back onto the service (`filterByPortfolio(id,
+  portfolio.accounts.map(a => a.id))`, `filterByAccount(id)`, or `clearFilter()`), so
+  a shared or reloaded URL restores the view.
+- **A user selection `goto`s with `replaceState: true`** (`noScroll`, `keepFocus`
+  too), not a bare history push: `/holdings?portfolio_id=…`, `/holdings?account_id=…`
+  or `/holdings` to clear. `keepFocus` matters because the selection comes from a
+  dropdown, and `replaceState` keeps the filter out of the history stack.
+- **Every rejection except a 401 degrades to an empty option list.** The three
+  `allSettled` reads are independent, so a portfolios or accounts failure empties
+  only that picker while holdings still render; the filter *metadata* therefore
+  fails like preferences do.
+- The page also derives its subtitle, the "All" filter label and the empty message
+  ("No holdings match the selected filter.") from `service.filter` and the loaded
+  metadata.
+
+```mermaid
+flowchart TD
+    Url["query string portfolio_id or account_id"] --> Load["server load returns the filter ids"]
+    Load --> Effect["page effect applies the filter to the service"]
+    Accounts["data.accounts and data.portfolios from the same load"] --> Effect
+    Effect --> State["HoldingsService filter variant"]
+    State --> Rows{"filter variant"}
+    Rows -->|"portfolio"| ByPortfolio["keep rows whose account_id is in accountIds"]
+    Rows -->|"account"| ByAccount["keep rows for that account only"]
+    Rows -->|"all"| AllRows["rows equals allRows"]
+    ByPortfolio --> Table["holdings-table renders rows"]
+    ByAccount --> Table
+    AllRows --> Table
+    Pick["dropdown selection"] --> GoTo["goto with replaceState"]
+    GoTo --> Url
+```
+
+The diagram shows the filter as a pure client-side projection of the paged rows,
+with the URL both driving and mirroring the selection.
+
 ## Client-side rendering: grouping, sorting, per-currency buckets
 
 `frontend/src/routes/holdings/+page.svelte` constructs its own
@@ -412,16 +542,17 @@ requests carry the cookie themselves.
 initialization, and renders `$lib/components/holdings/holdings-table.svelte` with
 `holdings={service.rows}`, `isLoading={service.isLoading}`, `tableConfig` and
 `elliottWaves={data.elliott_waves}`. Toggling grouping only changes
-`service.groupBy` — a pure client-side derivation over the already-fetched rows, so
-no refetch happens.
+`service.groupBy` and picking a portfolio/account filter only changes `service.filter`
+— both are pure client-side derivations over the already-fetched `allRows`, so no
+refetch happens in either case.
 
 ```mermaid
 flowchart TD
-    Rows["service.rows filled by the post-navigation paging load"] --> Mode{"service.groupBy"}
+    Rows["service.rows: allRows narrowed by the filter"] --> Mode{"service.groupBy"}
     Mode --> Flat["none keeps one row per position in input order"]
     Mode --> Stock["stock or company calls groupHoldings keyed by security_id"]
     Stock --> Sums["sum quantity, total_value, unconverted values and P/L, quantity-weighted average costs, deduped account names"]
-    Rows --> Buckets["currencyTotals computed from the raw rows"]
+    Rows --> Buckets["currencyTotals computed from the raw rows in scope"]
     Buckets --> Render["header renders one bucket per row.currency, never summed across currencies"]
 ```
 
@@ -467,7 +598,7 @@ covered by [Charting, Drawing Tools & Rewind](../architecture/charting.md).
 
 ### Per-currency header totals
 
-`+page.svelte` derives `currencyTotals` from `service.rows` (not from the grouped
+`+page.svelte` derives `currencyTotals` from the filtered rows (not from the grouped
 rows) with a `SvelteMap` keyed by `row.currency`:
 
 - `totalValue += row.total_value`.
@@ -500,25 +631,25 @@ Each row then reads its own totals through `accounts-list-item.svelte`, whose
 → `GET /accounts/{id}/totals` → `PositionService.get_total_for_account(account_id,
 account.currency)`. That method walks the account's positions, prices each one and
 converts into the account currency, returning `AccountTotals` (`cost` and `value`
-as `Money`). The result is cached per account inside the component state and
-invalidated when an in-flight sync completes (`wasSyncing && !isSyncing`); it drives
-the account's value badge, while the account name links to `/accounts/{id}`.
+as `Money`). Both the totals and the lazily-expanded holdings list are cached per
+account inside the component state and invalidated by `invalidateCache` when an
+in-flight sync completes; the totals drive the account's value badge, while the
+account name links to `/accounts/{id}`.
 
-### The account-scoped table
+The account-scoped table:
 
 `frontend/src/routes/accounts/[id]/+page.server.ts` calls
 `getAccountClient(fetch).getAccountHoldings(params.id, token)` (token again from
 `cookies.get('auth_token')`) → `GET /accounts/{id}/holdings` → the router's
 ownership check → `PositionService.get_account_holdings`, and returns the whole
-`AccountHoldingsRead` as `data.holdings`. The page renders its header from that
+`AccountHoldingsRead` as `data.holdings`. The page renders its own header from that
 payload (`total_value`, `net_deposits`, `total_profit_loss`,
-`total_profit_loss_percent`, `currency`) and the body through a different, simpler
-presentational component, `frontend/src/lib/components/accounts/holdings-table.svelte`
-(props: `holdings`, `totalAccountValue`). It has no column configuration or grouping,
-sorts by any `Holding` key, shows native-currency values with the account-currency
-value as a secondary line when the currencies differ, and annotates each row with
-its share of the account total (`total_value / totalAccountValue`). The page renders
-the table only when `data.holdings.items.length > 0`.
+`total_profit_loss_percent`, `currency`), the body from `data.holdings.items`, and
+the account's identity from the sibling account load rather than from the holdings
+response. It sorts by any `Holding` field, shows native-currency values with the
+account-currency value as a secondary line when the currencies differ, and annotates
+each row with its share of the account total (`total_value / totalAccountValue`).
+The page renders the table only when `data.holdings.items.length > 0`.
 
 ## Preferences persistence contract
 
@@ -600,21 +731,21 @@ optimistic UI change stays applied. The group toggle behaves the same way and ca
    Reordering those steps (for example building rows straight from positions)
    changes `currency`, `security_currency` and every `converted_*` field for
    cross-currency accounts.
-4. **The `/holdings` server load returns preferences only.** It must not start
+4. **The `/holdings` server load returns no holdings rows.** It must not start
    awaiting holdings: the shell-first contract (skeletons first, rows after
    navigation) and the post-navigation 401 path both depend on the load returning
-   just `holdings_table_config`, `group_mode` and `elliott_waves`. A test asserts
-   that `getUserHoldings` is never called from `load`.
+   only `holdings_table_config`, `group_mode`, `elliott_waves`, `accounts` and
+   `portfolios`. A test asserts that `getUserHoldings` is never called from `load`.
 5. **The client loops pages with `PAGE_SIZE = 50` and `MAX_PAGES = 100`.**
    `total` may be stale, so the loop must keep both the hard page cap and the empty
    page early exit. Both constants now live only in
    `holdingsService.svelte.ts`; adding a second copy elsewhere re-introduces the
    drift the old SSR loop had.
-6. **A preferences failure is non-fatal.** The SSR read stays inside a nested
-   `try/catch` that falls back to `normalizeHoldingsTableConfig(null)`,
-   `normalizeHoldingsGroupMode(null)` and `elliott_waves = null`. Lifting that catch
-   turns a preference outage into a failed page even though the rows load fine
-   afterwards.
+6. **A preferences or account-list failure is non-fatal.** The SSR read stays inside
+   one `try/catch` that falls back to `normalizeHoldingsTableConfig(null)`,
+   `normalizeHoldingsGroupMode(null)`, `elliott_waves = null`, `accounts = []` and
+   `portfolios = []`. Lifting that catch turns a preference outage into a failed page
+   even though the rows load fine afterwards.
 7. **Header totals bucket by row `currency` and are never summed across
    currencies.** The backend already converted each row into its account currency,
    so cross-bucket arithmetic would be meaningless.
@@ -636,6 +767,13 @@ optimistic UI change stays applied. The group toggle behaves the same way and ca
 10. **The sticky column stays visible.** Hiding `security_symbol` collapses the
     sticky layout: `toggleColumnVisibility` refuses it, the menu disables it, and
     `normalizeHoldingsTableConfig` re-adds it to any stored `visible` list.
+11. **The portfolio/account filter never refetches.** `rows` is a membership test
+    over `account_id` on `allRows` in memory; the only side effect is a `goto` with
+    `replaceState: true` that updates the URL (and, since the load reads the query
+    string, a real navigation would re-run the load — which is exactly why the page
+    uses `replaceState`). Sending the filter to `getUserHoldings` instead would break
+    the collect-all paging contract, because the endpoint paginates positions and has
+    no account or portfolio parameter.
 
 ## Extension points and safe-change notes
 
@@ -684,6 +822,15 @@ mapping there, and dropping the `$effect`/`redirectOn401` path. Do not do half o
 it: a load that returns both rows and a page that still reloads them doubles every
 holdings request.
 
+**Adding a filter dimension.** The filter is a discriminated `HoldingsFilter` union
+in `holdingsService.svelte.ts`, so a new dimension needs: a new variant plus a
+`filterBy*` setter, a clause in the `rows` getter, a query-parameter read in
+`+page.server.ts` (returned in `data`) and a matching branch in the page's
+first `$effect`, an option list in the load's `allSettled` trio, and a
+`goto(..., { replaceState: true })` call in `handleSelectFilter`. Keep every new
+read inside the same `allSettled` so a failure degrades to an empty option list and
+a 401 still redirects.
+
 **Adding a preference key.** Declare it on `UserPreferences`
 (`frontend/src/lib/api/userPreferencesService.ts`), read it inside the existing
 non-fatal `try/catch` in `+page.server.ts` using
@@ -691,7 +838,8 @@ non-fatal `try/catch` in `+page.server.ts` using
 return, and persist it with a single top-level key through `patchPreferences` —
 ideally via a small `load*`/`save*` helper module that takes the injected structural
 service type so SSR keeps no shared instances. Add a `normalize*` function for
-anything a browser could have stored in an older shape.
+anything a browser could have stored in an older shape. The portfolio/account filter
+deliberately is **not** such a key: it lives in the URL instead.
 
 **Operational characteristics to preserve.** Each holdings page request fans out
 into per-position security and latest-price lookups, and `get_account_holdings`
@@ -712,11 +860,11 @@ the network; the router tests run against the Postgres test container.
 
 | Suite | What it pins |
 | --- | --- |
-| `frontend/src/routes/holdings/page.server.test.ts` | The SSR load returns exactly `holdings_table_config`, `group_mode` and `elliott_waves` from one `getPreferences('test-token')` call; it **never** calls `getUserHoldings`; a rejected preferences request still yields `HOLDINGS_TABLE_DEFAULT_CONFIG`, `'none'` and `null` waves. |
-| `frontend/src/routes/holdings/page.svelte.test.ts` | Mocks `$app/paths`, `$app/navigation`, `$lib/api/accountService` and `$lib/api/userPreferencesService`. Pins the shell-first contract (skeletons plus the persisted column config render before the async load resolves), rows appearing with no user action, sequential paging (`getUserHoldings(0, 50, undefined)` then `(50, 50, undefined)` for `total = 51`), per-currency header buckets (CAD `+3.33%` / `+$50.00`, USD `+20.00%` / `+US$20.00`) instead of summing, negative-return pill styling, zero cost basis or missing P/L degrading to no pill / no P/L block, the icon-only display-settings trigger replacing standalone controls, grouping collapsing 3 rows into 2 without calling `getUserHoldings` and un-grouping again, a persisted `group_mode: 'stock'` restoring checked state and grouped rows, toggling persisting `{ holdings_group: 'stock' }`, the empty state message, a failed load showing the `holdings-error` alert while the shell survives, a 401 calling `goto('/auth/login?clear_session=true')`, a failed persistence write showing the alert while the optimistic toggle stays applied, a server-supplied column config rendering (3 headers, custom width, hidden column), hiding a column persisting a `holdings_table` payload without that id and restoring it on a repeat toggle, and `elliott_waves` reaching the EW projection cells. |
+| `frontend/src/routes/holdings/page.server.test.ts` | The SSR load returns `holdings_table_config`, `group_mode`, `elliott_waves`, `portfolios`, `accounts`, `portfolio_id` and `account_id`; it **never** calls `getUserHoldings`; a rejected preferences request still yields `HOLDINGS_TABLE_DEFAULT_CONFIG`, `'none'`, `null` waves, an empty portfolio list and an empty account list; and reading `portfolio_id=p1` out of the URL returns it unchanged. |
+| `frontend/src/routes/holdings/page.svelte.test.ts` | Mocks `$app/paths`, `$app/navigation`, `$lib/api/accountService`, `$lib/api/marketService` and `$lib/api/userPreferencesService`, and covers the shell-first contract (skeletons plus the persisted column config render before the async load resolves), rows appearing with no user action, sequential paging, per-currency header buckets (CAD `+3.33%` / `+$50.00`, USD `+20.00%` / `+US$20.00`) instead of summing, negative-return pill styling, zero cost basis or missing P/L degrading to no pill / no P/L block, the icon-only display-settings trigger, grouping collapsing rows without calling `getUserHoldings` and un-grouping again, a persisted `group_mode` restoring checked state, toggling persisting `{ holdings_group: 'stock' }`, the empty state message, a failed load showing the `holdings-error` alert while the shell survives, a 401 calling `goto('/auth/login?clear_session=true')`, a failed persistence write showing the alert while the optimistic toggle stays applied, a server-supplied column config rendering, hiding a column persisting a `holdings_table` payload without that id and restoring it on a repeat toggle, `elliott_waves` reaching the EW projection cells, and a `portfolio_id` in `data` narrowing the rendered rows to that portfolio's accounts. |
 | `frontend/src/lib/components/holdings/holdingsService.test.ts` | Initial state (`rows` empty, `isLoading` false, `groupBy 'none'`); `isLoading` toggles around one request; three pages are collected with offsets `[0, 50, 100]` and the token forwarded on every call; an empty first page stops paging (stale-total guard); a failure stores the message and keeps previous rows; non-`Error` throws are stringified; a later success clears the error; `load()` resolves `null` on success and returns the caught `ApiError(401)` otherwise; `groupedHoldings` reacts to `setGroupBy('stock' | 'company')` with merged quantity and `account_count`; `getHoldingsService(customFetch)` returns an isolated instance. |
 | `frontend/src/lib/components/holdings/holdings-table.test.ts` | Presentational behaviour of the big table: sorting via header clicks (including inner-button bubbling, numeric columns, null-last, Return, EW columns), resize handles not triggering sorts, one row per holding with `/security/{id}` links, account badges and the blank-account dash, dual-currency native/account display, grouping into one row per stock with combined badges, grouped-row sorting, empty state and custom message, skeleton rows, the `Account` vs `Accounts` header swap, sticky/zebra styling, and config handling (custom widths, hidden columns, empty-state colspan, fallback for an invalid stored config). |
-| `frontend/src/lib/components/holdings/holdings-table-columns.test.ts` | `clampColumnWidth` bounds, rounding and non-finite fallback; the column id/label set (no `profit_loss_percent`, EW columns present); `toggleColumnVisibility` hide/restore, canonical ordering, and identity-stable refusal to hide the sticky column; `normalizeHoldingsTableConfig` defaults for garbage input, width merge plus dropping of unknown/legacy ids, clamping, visible filtering and canonical ordering, sticky force-include, all-visible fallback for an empty list, JSON round-trip, and no aliasing of the defaults. |
+| `frontend/src/lib/components/holdings/holdings-table-columns.test.ts` | `clampColumnWidth` bounds, rounding and non-finite fallback; the column id/label set (no `profit_loss_percent`, EW columns present); `toggleColumnVisibility` hide/restore, canonical ordering, and identity-stable refusal to hide the sticky column; `normalizeHoldingsTableConfig` defaults for garbage input, width merge plus dropping of unknown ids, clamping, visible filtering and canonical ordering, sticky force-include, all-visible fallback for an empty list, JSON round-trip, and no aliasing of the defaults. |
 | `frontend/src/lib/components/holdings/holdings-table-prefs.test.ts` | `loadHoldingsTableConfig` reads and normalizes the stored key, tolerates missing/empty/garbage configs and a rejected request, and never writes on load; `saveHoldingsTableConfig` calls `patchPreferences` exactly once with `{ holdings_table: config }`; a round-trip through the real `UserPreferencesService` against a mocked fetch hits `/accounts/me/preferences` with `GET` then `PATCH` and the exact body. |
 | `frontend/src/lib/components/holdings/holdings-group-prefs.test.ts` | `normalizeHoldingsGroupMode` maps `'stock'`/`'company'` to `'stock'` and everything else to `'none'`; load tolerates missing keys and rejected requests; save patches exactly `{ holdings_group: mode }`; the real-service round-trip asserts the `GET`/`PATCH` endpoint and body. |
 | `frontend/src/lib/api/accountService.test.ts` | `getUserHoldings(offset, limit, token)` builds `/accounts/holdings?offset=…&limit=…`, defaults to `0`/`50`, sends `credentials: 'include'` and forwards the token as a Bearer header — the client contract the paging loop depends on. |
@@ -725,6 +873,7 @@ the network; the router tests run against the Postgres test container.
 | `tests/routers/test_account_unauth.py` | `GET /accounts/holdings` returns 401 without auth, alongside the unauthenticated cases for the preferences `GET`/`PUT`/`PATCH` endpoints and account rename. |
 | `tests/services/test_position_service.py` | `get_user_holdings` groups the repository's positions per account, returns `UserHoldingRead` items stamped with the right `account_id`/`account_name`, preserves quantities and symbol, forwards `(user_id, 0, 50)` to `get_by_user`, and resolves the account only once per account rather than once per position. |
 
-The neighbouring `average-cost.test.ts` and `holdings-metrics.test.ts` cover
-`blendedAverageCost` and the candle/benchmark helpers; neither is used by these three
-routes (they back the security detail page and the holdings modal).
+The neighbouring `average-cost.ts` and `holdings-metrics.ts` helpers (with their
+`*.test.ts` suites) cover `blendedAverageCost` and the candle/benchmark calculations;
+neither is used by these three routes — they back the security detail page and the
+holdings modal.
