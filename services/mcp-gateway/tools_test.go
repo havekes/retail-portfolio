@@ -161,7 +161,7 @@ func TestToolsCallBackendAndReturnData(t *testing.T) {
 			body:     priceHistoryBody,
 			wantPath: "/api/v1/market/data/prices/AAPL",
 			wantQuery: map[string]string{
-				"from": "2026-01-01", "to": "2026-01-31", "exchange": "nasdaq",
+				"from": "2026-01-01", "to": "2026-01-31", "exchange": "NASDAQ",
 			},
 			assert: func(t *testing.T, raw string) {
 				var got struct {
@@ -184,7 +184,7 @@ func TestToolsCallBackendAndReturnData(t *testing.T) {
 			args:      map[string]any{"symbol": "aapl", "exchange": "nasdaq"},
 			body:      fundamentalsBody,
 			wantPath:  "/api/v1/market/data/fundamentals/AAPL",
-			wantQuery: map[string]string{"exchange": "nasdaq"},
+			wantQuery: map[string]string{"exchange": "NASDAQ"},
 			assert: func(t *testing.T, raw string) {
 				var got struct {
 					Profile struct {
@@ -243,14 +243,14 @@ func TestToolsCallBackendAndReturnData(t *testing.T) {
 			body:     incomeStatementBody,
 			wantPath: "/api/v1/market/data/fundamentals/AAPL/statements",
 			wantQuery: map[string]string{
-				"statement": "income", "period": "quarter", "limit": "3", "exchange": "nasdaq",
+				"statement": "income", "period": "quarter", "limit": "3", "exchange": "NASDAQ",
 			},
 			assert: func(t *testing.T, raw string) {
 				var got statementPayload
 				if err := json.Unmarshal([]byte(raw), &got); err != nil {
 					t.Fatalf("decode statement envelope: %v", err)
 				}
-				if got.Statement != "income" || got.Symbol != "aapl" || got.Period != "quarter" || got.Limit != 3 {
+				if got.Statement != "income" || got.Symbol != "aapl" || got.Period != "quarter" || got.Limit != 3 || got.Exchange != "NASDAQ" {
 					t.Errorf("envelope = %+v", got)
 				}
 				if len(got.Items) != 1 || string(got.Items[0]["revenue"]) != `"391035000000"` {
@@ -917,6 +917,35 @@ func TestToolsRejectInvalidInput(t *testing.T) {
 			},
 			want: "q must be between 1 and 100 characters",
 		},
+		{
+			name: "bad exchange on price history",
+			prepare: func() error {
+				_, err := (priceHistoryInput{
+					Symbol:   "AAPL",
+					From:     "2026-01-01",
+					To:       "2026-01-31",
+					Exchange: "XETRA",
+				}).prepare()
+				return err
+			},
+			want: "exchange must be one of: NYSE, NASDAQ, NYSEARCA, AMEX, TSX, LSE",
+		},
+		{
+			name: "bad exchange on fundamentals",
+			prepare: func() error {
+				_, err := (fundamentalsInput{Symbol: "AAPL", Exchange: "XETRA"}).prepare()
+				return err
+			},
+			want: "exchange must be one of: NYSE, NASDAQ, NYSEARCA, AMEX, TSX, LSE",
+		},
+		{
+			name: "bad exchange on statements",
+			prepare: func() error {
+				_, err := (statementInput{Symbol: "AAPL", Exchange: "XETRA"}).prepare()
+				return err
+			},
+			want: "exchange must be one of: NYSE, NASDAQ, NYSEARCA, AMEX, TSX, LSE",
+		},
 	}
 
 	for _, tc := range tests {
@@ -1339,4 +1368,127 @@ func TestTools_ProviderNameCompliance(t *testing.T) {
 	})
 
 	assertNoProviderName(t, "tool execution log", buf.String())
+}
+
+func TestExchangeNormalizationInPrepare(t *testing.T) {
+	t.Run("priceHistoryInput normalizes lowercase", func(t *testing.T) {
+		req, err := (priceHistoryInput{
+			Symbol:   "AAPL",
+			From:     "2026-01-01",
+			To:       "2026-01-31",
+			Exchange: "tsx",
+		}).prepare()
+		if err != nil {
+			t.Fatalf("unexpected error: %v", err)
+		}
+		if req.exchange != "TSX" {
+			t.Errorf("req.exchange = %q, want %q", req.exchange, "TSX")
+		}
+	})
+
+	t.Run("fundamentalsInput normalizes lowercase", func(t *testing.T) {
+		req, err := (fundamentalsInput{Symbol: "AAPL", Exchange: "tsx"}).prepare()
+		if err != nil {
+			t.Fatalf("unexpected error: %v", err)
+		}
+		if req.exchange != "TSX" {
+			t.Errorf("req.exchange = %q, want %q", req.exchange, "TSX")
+		}
+	})
+
+	t.Run("statementInput normalizes lowercase", func(t *testing.T) {
+		req, err := (statementInput{Symbol: "AAPL", Exchange: "tsx"}).prepare()
+		if err != nil {
+			t.Fatalf("unexpected error: %v", err)
+		}
+		if req.exchange != "TSX" {
+			t.Errorf("req.exchange = %q, want %q", req.exchange, "TSX")
+		}
+	})
+}
+
+func TestToolsExchangeValidationAndWireValue(t *testing.T) {
+	toolsWithExchange := []struct {
+		name string
+		args func(exchange string) map[string]any
+	}{
+		{"get_price_history", func(ex string) map[string]any {
+			return map[string]any{"symbol": "AAPL", "from": "2024-01-01", "to": "2024-01-02", "exchange": ex}
+		}},
+		{"get_fundamentals", func(ex string) map[string]any {
+			return map[string]any{"symbol": "AAPL", "exchange": ex}
+		}},
+		{"get_key_metrics", func(ex string) map[string]any {
+			return map[string]any{"symbol": "AAPL", "exchange": ex}
+		}},
+		{"get_financial_ratios", func(ex string) map[string]any {
+			return map[string]any{"symbol": "AAPL", "exchange": ex}
+		}},
+		{"get_company_details", func(ex string) map[string]any {
+			return map[string]any{"symbol": "AAPL", "exchange": ex}
+		}},
+		{"get_income_statement", func(ex string) map[string]any {
+			return map[string]any{"symbol": "AAPL", "exchange": ex}
+		}},
+		{"get_balance_sheet", func(ex string) map[string]any {
+			return map[string]any{"symbol": "AAPL", "exchange": ex}
+		}},
+		{"get_cash_flow_statement", func(ex string) map[string]any {
+			return map[string]any{"symbol": "AAPL", "exchange": ex}
+		}},
+	}
+
+	for _, tt := range toolsWithExchange {
+		t.Run(tt.name+"_rejects_invalid_exchange", func(t *testing.T) {
+			backendCalls := 0
+			backend := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+				backendCalls++
+				w.WriteHeader(http.StatusOK)
+			}))
+			defer backend.Close()
+
+			session := newTestSession(t, backend.URL)
+			res := callTool(t, session, tt.name, tt.args("XETRA"))
+			if !res.IsError {
+				t.Fatalf("expected tool %s to fail with exchange=XETRA", tt.name)
+			}
+			if backendCalls != 0 {
+				t.Errorf("expected 0 backend calls, got %d", backendCalls)
+			}
+			msg := resultText(t, res)
+			for _, code := range supportedExchanges {
+				if !strings.Contains(msg, code) {
+					t.Errorf("expected error message to contain accepted code %q, got: %s", code, msg)
+				}
+			}
+		})
+
+		t.Run(tt.name+"_accepts_lowercase_exchange_and_sends_uppercase", func(t *testing.T) {
+			var recordedExchange string
+			backend := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+				recordedExchange = r.URL.Query().Get("exchange")
+				w.Header().Set("Content-Type", "application/json")
+				switch {
+				case strings.Contains(r.URL.Path, "/prices/"):
+					_, _ = w.Write([]byte(`{"symbol":"AAPL","exchange":"TSX","from_date":"2024-01-01","to_date":"2024-01-02","items":[]}`))
+				case strings.HasSuffix(r.URL.Path, "/statements"):
+					_, _ = w.Write([]byte(`[]`))
+				case strings.Contains(r.URL.Path, "/fundamentals/"):
+					_, _ = w.Write([]byte(`{"profile":{"symbol":"AAPL","company_name":"Apple Inc."}}`))
+				default:
+					_, _ = w.Write([]byte(`{}`))
+				}
+			}))
+			defer backend.Close()
+
+			session := newTestSession(t, backend.URL)
+			res := callTool(t, session, tt.name, tt.args("tsx"))
+			if res.IsError {
+				t.Fatalf("expected tool %s to succeed with exchange=tsx, got error: %s", tt.name, resultText(t, res))
+			}
+			if recordedExchange != "TSX" {
+				t.Errorf("tool %s sent exchange query param %q, want %q", tt.name, recordedExchange, "TSX")
+			}
+		})
+	}
 }
