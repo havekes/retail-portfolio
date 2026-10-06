@@ -6,7 +6,7 @@ MCP gateway in T10/T11). They are deliberately separate from the user-JWT
 
 * authentication is the shared-secret ``require_service_token`` dependency;
 * every route resolves the ``DataPlaneMarketGateway`` svcs key (the composed
-  FMP/Polygon gateway) and serves through the T13
+  market data gateway) and serves through the T13
   :class:`EndpointResponseCache` — the single canonical data-plane cache;
 * error mapping stays here: an unknown symbol becomes a structured 404 and a
   provider outage a generic 502/503 — a provider name never appears in a
@@ -26,8 +26,8 @@ gateway (T10/T11); do not rename them:
 
 ``exchange`` is forwarded to the gateway on every route that accepts it so
 non-US symbols map to the provider's ticker suffix; the fundamentals overview
-returns the FMP-shaped profile plus key metrics and ratios, and the statements
-route returns the full FMP-shaped statement list for the requested
+returns the canonical profile plus key metrics and ratios, and the statements
+route returns the canonical statement list for the requested
 ``statement``/``period``.
 """
 
@@ -240,7 +240,7 @@ async def market_data_options(  # noqa: PLR0913, PLR0917
     strike_min: Annotated[Decimal | None, Query()] = None,
     strike_max: Annotated[Decimal | None, Query()] = None,
 ) -> OptionsChain:
-    """Options chain for an underlying, mirroring the Polygon contract shape."""
+    """Options chain for an underlying."""
     if strike_min is not None and strike_max is not None and strike_min > strike_max:
         raise HTTPException(422, "strike_min must be less than or equal to strike_max")
 
@@ -295,7 +295,7 @@ async def market_data_fundamentals(
 ) -> CompanyFundamentals:
     """Company details plus key metrics and ratios, served through the cache.
 
-    The response keeps the FMP-shaped ``profile``, ``key_metrics`` and
+    The response keeps the canonical ``profile``, ``key_metrics`` and
     ``ratios`` objects field-for-field; ``exchange`` is forwarded so non-US
     symbols map to the provider's ticker suffix.
     """
@@ -360,7 +360,7 @@ async def market_data_statements(  # noqa: PLR0913, PLR0917
     limit: Annotated[int, Query(ge=1, le=20)] = 5,
     exchange: Annotated[str | None, Query()] = None,
 ) -> list[IncomeStatement] | list[BalanceSheet] | list[CashFlowStatement]:
-    """Full FMP-shaped statement list for a symbol, served through the cache.
+    """Statement list for a symbol, served through the cache.
 
     ``statement`` and ``period`` are ``Literal``-typed so an invalid value is a
     FastAPI 422; the selected provider read keeps every line item the provider
@@ -418,7 +418,7 @@ async def market_data_statements(  # noqa: PLR0913, PLR0917
             endpoint="statements",
             params=params,
             fetch=fetch,
-            # The statement lists are plain FMP-shaped dicts on the cache hit; the
+            # The statement lists are plain dicts on the cache hit; the
             # response schema is documented by the route's return annotation.
             model=None,
         )

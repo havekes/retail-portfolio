@@ -610,7 +610,7 @@ func TestToolsRejectMissingRequiredInputAtSDK(t *testing.T) {
 const (
 	incomeStatementFixture = `[{
 		"date": "2024-09-28", "symbol": "AAPL", "reported_currency": "USD", "cik": "0000320193",
-		"filling_date": "2024-11-01", "accepted_date": "2024-11-01T06:01:27.000Z",
+		"filing_date": "2024-11-01", "accepted_date": "2024-11-01T06:01:27.000Z",
 		"fiscal_year": "2024", "period": "FY",
 		"revenue": "391035000000", "cost_of_revenue": "210352000000", "gross_profit": "180683000000",
 		"research_and_development_expenses": "31370000000",

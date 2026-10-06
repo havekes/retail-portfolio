@@ -551,7 +551,7 @@ _INCOME_PAYLOAD: list[dict[str, Any]] = [
         "symbol": "AAPL",
         "reportedCurrency": "USD",
         "cik": "0000320193",
-        "fillingDate": "2024-11-01",
+        "filingDate": "2024-11-01",
         "acceptedDate": "2024-11-01 06:01:36",
         "fiscalYear": "2024",
         "period": "FY",
@@ -576,7 +576,7 @@ _INCOME_PAYLOAD: list[dict[str, Any]] = [
         "symbol": "AAPL",
         "reportedCurrency": "USD",
         "cik": "0000320193",
-        "fillingDate": "2023-11-03",
+        "filingDate": "2023-11-03",
         "acceptedDate": "2023-11-03 06:01:15",
         "fiscalYear": "2023",
         "period": "FY",
@@ -781,7 +781,7 @@ def test_get_income_statement_parses_mocked_payload():
     assert first.symbol == "AAPL"
     assert first.reported_currency == "USD"
     assert first.cik == "0000320193"
-    assert first.filling_date == date(2024, 11, 1)
+    assert first.filing_date == date(2024, 11, 1)
     assert first.accepted_date == datetime(2024, 11, 1, 6, 1, 36)
     assert first.fiscal_year == "2024"
     assert first.period == "FY"
