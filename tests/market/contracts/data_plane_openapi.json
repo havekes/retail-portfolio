@@ -1891,6 +1891,14 @@
             "schema": {
               "anyOf": [
                 {
+                  "enum": [
+                    "NYSE",
+                    "NASDAQ",
+                    "NYSEARCA",
+                    "AMEX",
+                    "TSX",
+                    "LSE"
+                  ],
                   "type": "string"
                 },
                 {
@@ -2003,6 +2011,14 @@
             "schema": {
               "anyOf": [
                 {
+                  "enum": [
+                    "NYSE",
+                    "NASDAQ",
+                    "NYSEARCA",
+                    "AMEX",
+                    "TSX",
+                    "LSE"
+                  ],
                   "type": "string"
                 },
                 {
@@ -2304,6 +2320,14 @@
             "schema": {
               "anyOf": [
                 {
+                  "enum": [
+                    "NYSE",
+                    "NASDAQ",
+                    "NYSEARCA",
+                    "AMEX",
+                    "TSX",
+                    "LSE"
+                  ],
                   "type": "string"
                 },
                 {

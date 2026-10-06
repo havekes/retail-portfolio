@@ -9,6 +9,11 @@ from stockholm.currency import Currency
 type SecurityId = UUID
 type WatchlistId = UUID
 
+# Canonical exchanges accepted by the data plane and mapped to provider suffixes.
+# US primary venues require no suffix; non-US venues (TSX, LSE) map to provider
+# suffixes.
+SupportedExchange = Literal["NYSE", "NASDAQ", "NYSEARCA", "AMEX", "TSX", "LSE"]
+
 
 class Security(BaseModel):
     model_config = ConfigDict(from_attributes=True)

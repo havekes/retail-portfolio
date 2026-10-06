@@ -135,18 +135,13 @@ structs (the SDK infers and validates the input schema). `newMCPServer` (in
 `mcpserver.go`) accepts the `*BackendClient` so the tool handlers can close over
 it. Every tool name, description and result string is provider-agnostic.
 
-| Tool                     | Inputs                                                          | Backend route                                                   | Returns                                  |
-| ------------------------ | --------------------------------------------------------------- | --------------------------------------------------------------- | ---------------------------------------- |
-| `get_price_history`      | `symbol`, `from`, `to`, `exchange?`                             | `GET /api/v1/market/data/prices/{symbol}`                       | Daily OHLC history                       |
-| `get_fundamentals`       | `symbol`, `exchange?`                                           | `GET /api/v1/market/data/fundamentals/{symbol}`                 | Profile + key metrics + ratios aggregate |
-| `get_options_chain`      | `symbol`, `expiry?`, `option_type?`, `strike_min?`, `strike_max?` | `GET /api/v1/market/data/options/{symbol}`                      | Options chain                            |
-| `get_option_expirations` | `symbol`                                                        | `GET /api/v1/market/data/options/{symbol}/expirations`          | Option expiration dates                  |
-| `get_income_statement`   | `symbol`, `period?`, `limit?`, `exchange?`                      | `GET /api/v1/market/data/fundamentals/{symbol}/statements`      | Income statements                        |
-| `get_balance_sheet`        | `symbol`, `period?`, `limit?`, `exchange?`                      | `GET /api/v1/market/data/fundamentals/{symbol}/statements`      | Balance sheets                            |
-| `get_cash_flow_statement`  | `symbol`, `period?`, `limit?`, `exchange?`                      | `GET /api/v1/market/data/fundamentals/{symbol}/statements`      | Cash-flow statements                      |
-| `get_key_metrics`          | `symbol`, `exchange?`                                           | `GET /api/v1/market/data/fundamentals/{symbol}`                 | Key-metrics projection of the aggregate   |
-| `get_financial_ratios`     | `symbol`, `exchange?`                                           | `GET /api/v1/market/data/fundamentals/{symbol}`                 | Ratios projection of the aggregate        |
-| `get_company_details`      | `symbol`, `exchange?`                                           | `GET /api/v1/market/data/fundamentals/{symbol}`                 | Profile projection of the aggregate       |
+| Tool                       | Inputs                                                          | Backend route                                                   | Returns                                           |
+| -------------------------- | --------------------------------------------------------------- | --------------------------------------------------------------- | ------------------------------------------------- |
+| `get_price_history`        | `symbol`, `from`, `to`, `exchange?`                             | `GET /api/v1/market/data/prices/{symbol}`                       | Daily OHLC history                                |
+| `get_fundamentals`         | `symbol`, `sections?`, `exchange?`                              | `GET /api/v1/market/data/fundamentals/{symbol}`                 | Profile + key metrics + ratios aggregate          |
+| `get_options_chain`        | `symbol`, `expiry?`, `option_type?`, `strike_min?`, `strike_max?` | `GET /api/v1/market/data/options/{symbol}`                      | Options chain                                     |
+| `get_option_expirations`   | `symbol`                                                        | `GET /api/v1/market/data/options/{symbol}/expirations`          | Option expiration dates                           |
+| `get_financial_statements` | `symbol`, `statement`, `period?`, `limit?`, `exchange?`         | `GET /api/v1/market/data/fundamentals/{symbol}/statements`      | Financial statements (income, balance, cashflow)  |
 | `search_symbols`           | `q`                                                             | `GET /api/v1/market/data/symbols/search`                        | Symbol lookup results                     |
 
 Inputs are validated or clamped in the handler before any backend call, so most
@@ -156,18 +151,21 @@ actionable error rather than "no data":
 
 - `symbol` is trimmed, required, and at most 32 characters.
 - `get_price_history` requires `from <= to`; both parse as `YYYY-MM-DD`.
+- `get_fundamentals` accepts optional `sections` subset of `profile`, `key_metrics`,
+  `ratios` (default all).
 - `get_options_chain` accepts `option_type` of `call` or `put`, parses `expiry`
   as `YYYY-MM-DD`, and requires `strike_min <= strike_max`.
-- statement tools accept `period` of `annual` (default) or `quarter`; `limit` is
-  clamped to 1–20 with a default of 5.
+- `get_financial_statements` requires `statement` (`income`, `balance`, or
+  `cashflow`), accepts `period` of `annual` (default) or `quarter`, and clamps
+  `limit` to 1–20 with a default of 5.
 - `search_symbols` requires a trimmed query of 1–100 characters.
 
 ### Tool result contract
 
 - Success: a single `mcp.TextContent` holding the JSON-encoded payload.
-  Backend responses are passed through directly as raw JSON: statement tools
-  validate `date`/`symbol` headers and pass statement items through untouched,
-  while projection tools extract the target section verbatim, preserving
+  Backend responses are passed through directly as raw JSON: `get_financial_statements`
+  validates `date`/`symbol` headers and passes statement items through untouched,
+  while `get_fundamentals` filters requested sections verbatim, preserving
   unknown fields and exact numeric representations.
 - **`ErrNoData` is a successful result** whose text is `No market data is
   available for this request.` A 404 may be a cached empty result within the

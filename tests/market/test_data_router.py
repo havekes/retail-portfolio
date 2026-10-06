@@ -752,6 +752,29 @@ async def test_strike_min_above_max_returns_422(client: AsyncClient) -> None:
     assert response.status_code == 422
 
 
+@pytest.mark.anyio
+@pytest.mark.parametrize(
+    "url",
+    [
+        "/api/v1/market/data/prices/AAPL?from=2024-01-01&to=2024-02-01&exchange=XETRA",
+        "/api/v1/market/data/fundamentals/AAPL?exchange=XETRA",
+        "/api/v1/market/data/fundamentals/AAPL/statements?statement=income&exchange=XETRA",
+    ],
+)
+async def test_unsupported_exchange_returns_422_with_accepted_codes(
+    client: AsyncClient, mock_gateway: MagicMock, url: str
+) -> None:
+    response = await client.get(url, headers=_headers())
+
+    assert response.status_code == 422
+    detail_str = str(response.json()["detail"])
+    for code in ("NYSE", "NASDAQ", "NYSEARCA", "AMEX", "TSX", "LSE"):
+        assert code in detail_str
+    mock_gateway.get_prices.assert_not_called()
+    mock_gateway.get_company_profile.assert_not_called()
+    mock_gateway.get_income_statement.assert_not_called()
+
+
 # --------------------------------------------------------------------------- #
 # AC1/AC2: fundamentals overview and statements unified JSON shapes.
 # --------------------------------------------------------------------------- #

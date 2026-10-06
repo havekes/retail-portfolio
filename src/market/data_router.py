@@ -16,13 +16,15 @@ The route paths and query parameter names are a stable contract for the Go MCP
 gateway (T10/T11); do not rename them:
 
 * ``GET /api/v1/market/data/prices/{symbol}`` — ``from``, ``to``, ``exchange``
+  (``SupportedExchange``)
 * ``GET /api/v1/market/data/symbols/search`` — ``q``
 * ``GET /api/v1/market/data/options/{symbol}`` — ``expiry``, ``option_type``,
   ``strike_min``, ``strike_max``
 * ``GET /api/v1/market/data/fundamentals/{symbol}`` — ``exchange``
+  (``SupportedExchange``)
 * ``GET /api/v1/market/data/fundamentals/{symbol}/statements`` — ``statement``
   (``income``/``balance``/``cashflow``), ``period`` (``annual``/``quarter``),
-  ``limit``, ``exchange``
+  ``limit``, ``exchange`` (``SupportedExchange``)
 
 ``exchange`` is forwarded to the gateway on every route that accepts it so
 non-US symbols map to the provider's ticker suffix; the fundamentals overview
@@ -52,6 +54,7 @@ from src.market.api_types import (
     IncomeStatement,
     OptionExpirations,
     OptionsChain,
+    SupportedExchange,
     SymbolLookupResult,
 )
 from src.market.endpoint_cache import EndpointResponseCache
@@ -115,7 +118,7 @@ async def market_data_prices(
     from_: Annotated[date, Query(alias="from")],
     to: Annotated[date, Query()],
     services: DepContainer,
-    exchange: Annotated[str | None, Query()] = None,
+    exchange: Annotated[SupportedExchange | None, Query()] = None,
 ) -> PriceHistoryResponse:
     """Daily price history for a symbol, served through the endpoint cache."""
     if from_ > to:
@@ -338,7 +341,7 @@ async def market_data_fundamentals(
     _svc: Annotated[None, Depends(require_service_token)],
     symbol: str,
     services: DepContainer,
-    exchange: Annotated[str | None, Query()] = None,
+    exchange: Annotated[SupportedExchange | None, Query()] = None,
 ) -> CompanyFundamentals:
     """Company details plus key metrics and ratios, served through the cache.
 
@@ -410,7 +413,7 @@ async def market_data_statements(  # noqa: PLR0913, PLR0917
     services: DepContainer,
     period: Annotated[Literal["annual", "quarter"], Query()] = "annual",
     limit: Annotated[int, Query(ge=1, le=20)] = 5,
-    exchange: Annotated[str | None, Query()] = None,
+    exchange: Annotated[SupportedExchange | None, Query()] = None,
 ) -> list[IncomeStatement] | list[BalanceSheet] | list[CashFlowStatement]:
     """Statement list for a symbol, served through the cache.
 
