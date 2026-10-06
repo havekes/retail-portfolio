@@ -113,6 +113,17 @@ func (c *BackendClient) OptionsChain(
 	return out, nil
 }
 
+// OptionExpirations returns available option expiration dates for an underlying symbol.
+//
+// GET /api/v1/market/data/options/{symbol}/expirations
+func (c *BackendClient) OptionExpirations(ctx context.Context, symbol string) (json.RawMessage, error) {
+	var out json.RawMessage
+	if err := c.group.Get(ctx, "/options/"+url.PathEscape(normalizeSymbol(symbol))+"/expirations", nil, &out); err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // Fundamentals returns the company profile plus key metrics and ratios.
 //
 // GET /api/v1/market/data/fundamentals/{symbol}?exchange=

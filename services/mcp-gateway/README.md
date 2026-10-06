@@ -96,9 +96,10 @@ routes and query parameters without updating the contract snapshot.
 | -------------- | --------------------------------------------------------------- | --------------------------------------------------- | --------------------------------------------------------------------------------- |
 | `Prices`       | `GET /api/v1/market/data/prices/{symbol}`                       | `from`, `to`, `exchange`                            | [`data_plane_openapi.json`](../../tests/market/contracts/data_plane_openapi.json) |
 | `SymbolSearch` | `GET /api/v1/market/data/symbols/search`                        | `q`                                                 | [`data_plane_openapi.json`](../../tests/market/contracts/data_plane_openapi.json) |
-| `OptionsChain` | `GET /api/v1/market/data/options/{symbol}`                      | `expiry`, `option_type`, `strike_min`, `strike_max` | [`data_plane_openapi.json`](../../tests/market/contracts/data_plane_openapi.json) |
-| `Fundamentals` | `GET /api/v1/market/data/fundamentals/{symbol}`                 | `exchange`                                          | [`data_plane_openapi.json`](../../tests/market/contracts/data_plane_openapi.json) |
-| `Statements`   | `GET /api/v1/market/data/fundamentals/{symbol}/statements`      | `statement`, `period`, `limit`, `exchange`          | [`data_plane_openapi.json`](../../tests/market/contracts/data_plane_openapi.json) |
+| `OptionsChain`      | `GET /api/v1/market/data/options/{symbol}`                      | `expiry`, `option_type`, `strike_min`, `strike_max` | [`data_plane_openapi.json`](../../tests/market/contracts/data_plane_openapi.json) |
+| `OptionExpirations` | `GET /api/v1/market/data/options/{symbol}/expirations`          |                                                     | [`data_plane_openapi.json`](../../tests/market/contracts/data_plane_openapi.json) |
+| `Fundamentals`      | `GET /api/v1/market/data/fundamentals/{symbol}`                 | `exchange`                                          | [`data_plane_openapi.json`](../../tests/market/contracts/data_plane_openapi.json) |
+| `Statements`        | `GET /api/v1/market/data/fundamentals/{symbol}/statements`      | `statement`, `period`, `limit`, `exchange`          | [`data_plane_openapi.json`](../../tests/market/contracts/data_plane_openapi.json) |
 
 ### Error taxonomy
 
@@ -134,12 +135,13 @@ structs (the SDK infers and validates the input schema). `newMCPServer` (in
 `mcpserver.go`) accepts the `*BackendClient` so the tool handlers can close over
 it. Every tool name, description and result string is provider-agnostic.
 
-| Tool                       | Inputs                                                          | Backend route                                                   | Returns                                   |
-| -------------------------- | --------------------------------------------------------------- | --------------------------------------------------------------- | ----------------------------------------- |
-| `get_price_history`        | `symbol`, `from`, `to`, `exchange?`                             | `GET /api/v1/market/data/prices/{symbol}`                       | Daily OHLC history                        |
-| `get_fundamentals`         | `symbol`, `exchange?`                                           | `GET /api/v1/market/data/fundamentals/{symbol}`                 | Profile + key metrics + ratios aggregate  |
-| `get_options_chain`        | `symbol`, `expiry?`, `option_type?`, `strike_min?`, `strike_max?` | `GET /api/v1/market/data/options/{symbol}`                      | Options chain                             |
-| `get_income_statement`     | `symbol`, `period?`, `limit?`, `exchange?`                      | `GET /api/v1/market/data/fundamentals/{symbol}/statements`      | Income statements                         |
+| Tool                     | Inputs                                                          | Backend route                                                   | Returns                                  |
+| ------------------------ | --------------------------------------------------------------- | --------------------------------------------------------------- | ---------------------------------------- |
+| `get_price_history`      | `symbol`, `from`, `to`, `exchange?`                             | `GET /api/v1/market/data/prices/{symbol}`                       | Daily OHLC history                       |
+| `get_fundamentals`       | `symbol`, `exchange?`                                           | `GET /api/v1/market/data/fundamentals/{symbol}`                 | Profile + key metrics + ratios aggregate |
+| `get_options_chain`      | `symbol`, `expiry?`, `option_type?`, `strike_min?`, `strike_max?` | `GET /api/v1/market/data/options/{symbol}`                      | Options chain                            |
+| `get_option_expirations` | `symbol`                                                        | `GET /api/v1/market/data/options/{symbol}/expirations`          | Option expiration dates                  |
+| `get_income_statement`   | `symbol`, `period?`, `limit?`, `exchange?`                      | `GET /api/v1/market/data/fundamentals/{symbol}/statements`      | Income statements                        |
 | `get_balance_sheet`        | `symbol`, `period?`, `limit?`, `exchange?`                      | `GET /api/v1/market/data/fundamentals/{symbol}/statements`      | Balance sheets                            |
 | `get_cash_flow_statement`  | `symbol`, `period?`, `limit?`, `exchange?`                      | `GET /api/v1/market/data/fundamentals/{symbol}/statements`      | Cash-flow statements                      |
 | `get_key_metrics`          | `symbol`, `exchange?`                                           | `GET /api/v1/market/data/fundamentals/{symbol}`                 | Key-metrics projection of the aggregate   |

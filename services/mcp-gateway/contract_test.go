@@ -179,6 +179,7 @@ func TestOpenAPIContractArtifactExistsAndValid(t *testing.T) {
 		"/api/v1/market/data/prices/{symbol}",
 		"/api/v1/market/data/symbols/search",
 		"/api/v1/market/data/options/{symbol}",
+		"/api/v1/market/data/options/{symbol}/expirations",
 		"/api/v1/market/data/fundamentals/{symbol}",
 		"/api/v1/market/data/fundamentals/{symbol}/statements",
 	}
@@ -228,6 +229,8 @@ func TestBackendClientOpenAPIParity(t *testing.T) {
 			_, _ = w.Write([]byte(`{"symbol":"AAPL","exchange":"US","from_date":"2024-01-01","to_date":"2024-01-02","items":[]}`))
 		case strings.Contains(r.URL.Path, "/symbols/search"):
 			_, _ = w.Write([]byte(`[]`))
+		case strings.HasSuffix(r.URL.Path, "/expirations"):
+			_, _ = w.Write([]byte(`{"underlying_symbol":"AAPL","expirations":["2025-01-17"],"truncated":false}`))
 		case strings.Contains(r.URL.Path, "/options/"):
 			_, _ = w.Write([]byte(`{"underlying_symbol":"AAPL","as_of":"2024-01-01","contracts":[]}`))
 		case strings.HasSuffix(r.URL.Path, "/statements"):
@@ -269,7 +272,12 @@ func TestBackendClientOpenAPIParity(t *testing.T) {
 		t.Fatalf("OptionsChain without filters failed: %v", err)
 	}
 
-	// 4. Fundamentals (with and without exchange)
+	// 4. OptionExpirations
+	if _, err := client.OptionExpirations(ctx, "AAPL"); err != nil {
+		t.Fatalf("OptionExpirations failed: %v", err)
+	}
+
+	// 5. Fundamentals (with and without exchange)
 	if _, err := client.Fundamentals(ctx, "AAPL", "US"); err != nil {
 		t.Fatalf("Fundamentals with exchange failed: %v", err)
 	}
@@ -277,7 +285,7 @@ func TestBackendClientOpenAPIParity(t *testing.T) {
 		t.Fatalf("Fundamentals without exchange failed: %v", err)
 	}
 
-	// 5. Statements (with all parameters, and with minimal)
+	// 6. Statements (with all parameters, and with minimal)
 	if _, err := client.Statements(ctx, "AAPL", "income", "annual", 5, "US"); err != nil {
 		t.Fatalf("Statements with all parameters failed: %v", err)
 	}
