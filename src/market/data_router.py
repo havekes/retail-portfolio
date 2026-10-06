@@ -35,6 +35,7 @@ from __future__ import annotations
 
 import asyncio
 import logging
+from collections.abc import Awaitable
 from datetime import date
 from decimal import Decimal
 from typing import Annotated, Literal
@@ -286,6 +287,14 @@ async def market_data_options(  # noqa: PLR0913, PLR0917
         raise _map_market_error(normalized_symbol, exc) from exc
 
 
+async def _optional_section[T](call: Awaitable[T]) -> T | None:
+    """Return None when an optional section raises MarketDataNotFoundError."""
+    try:
+        return await call
+    except MarketDataNotFoundError:
+        return None
+
+
 @data_router.get("/fundamentals/{symbol}")
 async def market_data_fundamentals(
     _svc: Annotated[None, Depends(require_service_token)],
@@ -297,7 +306,8 @@ async def market_data_fundamentals(
 
     The response keeps the canonical ``profile``, ``key_metrics`` and
     ``ratios`` objects field-for-field; ``exchange`` is forwarded so non-US
-    symbols map to the provider's ticker suffix.
+    symbols map to the provider's ticker suffix. Key metrics and ratios are
+    nullable when unavailable upstream.
     """
     normalized_symbol = symbol.upper()
     gateway = services.get(DataPlaneMarketGateway)
@@ -313,15 +323,19 @@ async def market_data_fundamentals(
                     normalized_symbol,
                     exchange=exchange,
                 ),
-                asyncio.to_thread(
-                    gateway.get_key_metrics,
-                    normalized_symbol,
-                    exchange=exchange,
+                _optional_section(
+                    asyncio.to_thread(
+                        gateway.get_key_metrics,
+                        normalized_symbol,
+                        exchange=exchange,
+                    )
                 ),
-                asyncio.to_thread(
-                    gateway.get_financial_ratios,
-                    normalized_symbol,
-                    exchange=exchange,
+                _optional_section(
+                    asyncio.to_thread(
+                        gateway.get_financial_ratios,
+                        normalized_symbol,
+                        exchange=exchange,
+                    )
                 ),
             )
         except (

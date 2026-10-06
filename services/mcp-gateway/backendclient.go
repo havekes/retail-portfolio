@@ -290,9 +290,9 @@ type FinancialRatios struct {
 // CompanyFundamentals is the fundamentals overview aggregate
 // (api_types.CompanyFundamentals).
 type CompanyFundamentals struct {
-	Profile    CompanyProfile  `json:"profile"`
-	KeyMetrics KeyMetrics      `json:"key_metrics"`
-	Ratios     FinancialRatios `json:"ratios"`
+	Profile    CompanyProfile   `json:"profile"`
+	KeyMetrics *KeyMetrics      `json:"key_metrics"`
+	Ratios     *FinancialRatios `json:"ratios"`
 }
 
 // Statement literal values accepted by the backend statements route

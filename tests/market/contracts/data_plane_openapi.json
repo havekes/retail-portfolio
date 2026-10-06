@@ -406,22 +406,34 @@
         "type": "object"
       },
       "CompanyFundamentals": {
-        "description": "Company details plus key metrics and ratios overview.\n\nAggregate returned by ``GET /api/v1/market/data/fundamentals/{symbol}``:\nthe canonical ``profile``, ``key_metrics`` and ``ratios`` objects, each\nfield-for-field. Kept required (not optional) so a response always carries\nthe full overview.",
+        "description": "Company details plus key metrics and ratios overview.\n\nAggregate returned by ``GET /api/v1/market/data/fundamentals/{symbol}``:\nthe canonical ``profile``, ``key_metrics`` and ``ratios`` objects, each\nfield-for-field. Profile is required; key metrics and ratios are nullable\nwhen not reported by upstream providers (e.g. ETFs, recent IPOs).",
         "properties": {
           "key_metrics": {
-            "$ref": "#/components/schemas/KeyMetrics"
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/KeyMetrics"
+              },
+              {
+                "type": "null"
+              }
+            ]
           },
           "profile": {
             "$ref": "#/components/schemas/CompanyProfile"
           },
           "ratios": {
-            "$ref": "#/components/schemas/FinancialRatios"
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/FinancialRatios"
+              },
+              {
+                "type": "null"
+              }
+            ]
           }
         },
         "required": [
-          "profile",
-          "key_metrics",
-          "ratios"
+          "profile"
         ],
         "title": "CompanyFundamentals",
         "type": "object"
@@ -1832,7 +1844,7 @@
   "paths": {
     "/api/v1/market/data/fundamentals/{symbol}": {
       "get": {
-        "description": "Company details plus key metrics and ratios, served through the cache.\n\nThe response keeps the canonical ``profile``, ``key_metrics`` and\n``ratios`` objects field-for-field; ``exchange`` is forwarded so non-US\nsymbols map to the provider's ticker suffix.",
+        "description": "Company details plus key metrics and ratios, served through the cache.\n\nThe response keeps the canonical ``profile``, ``key_metrics`` and\n``ratios`` objects field-for-field; ``exchange`` is forwarded so non-US\nsymbols map to the provider's ticker suffix. Key metrics and ratios are\nnullable when unavailable upstream.",
         "operationId": "market_data_fundamentals_api_v1_market_data_fundamentals__symbol__get",
         "parameters": [
           {
