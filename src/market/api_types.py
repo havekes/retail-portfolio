@@ -100,24 +100,13 @@ class SecuritySearchResult(BaseModel):
 # --------------------------------------------------------------------------- #
 # Fundamentals
 #
-# Provider-agnostic public types. Field names and structure mirror the public
-# fundamentals reference responses (profile, income statement, balance sheet,
-# cash-flow statement, key metrics, ratios) so provider mapping is a direct
-# field translation. Field names are snake_case renderings of the reference
-# JSON keys; each class docstring records the endpoint and the source keys it
-# is modelled on. Money-like values use ``Decimal``.
+# Provider-agnostic public types for company profiles, financial statements,
+# key metrics, and financial ratios. Money-like values use ``Decimal``.
 # --------------------------------------------------------------------------- #
 
 
 class CompanyProfile(BaseModel):
-    """Company profile / details.
-
-    Mirrors the ``/profile-v3/`` endpoint (``/profile/`` on the stable API):
-    ``symbol``, ``companyName``, ``marketCap``, ``sector``, ``industry``,
-    ``beta``, ``price``, ``website``, ``description``, ``ceo``,
-    ``fullTimeEmployees``, ``exchangeShortName``, ``exchange``, ``currency``,
-    ``ipoDate``, ``cik``, ``isin``, ``image``, ``isActivelyTrading``.
-    """
+    """Company profile and overview details."""
 
     symbol: str
     company_name: str
@@ -141,24 +130,13 @@ class CompanyProfile(BaseModel):
 
 
 class IncomeStatement(BaseModel):
-    """Income statement for a reporting period.
-
-    Mirrors the ``/income-statement/`` endpoint: ``date``, ``symbol``,
-    ``reportedCurrency``, ``cik``, ``fillingDate``, ``acceptedDate``,
-    ``fiscalYear``, ``period``, ``revenue``, ``costOfRevenue``,
-    ``grossProfit``, ``researchAndDevelopmentExpenses``,
-    ``sellingGeneralAndAdministrativeExpenses``, ``operatingExpenses``,
-    ``operatingIncome``, ``interestExpense``, ``otherIncomeExpense``,
-    ``incomeTaxExpense``, ``netIncome``, ``eps``, ``epsDiluted``,
-    ``weightedAverageSharesOutstanding``,
-    ``weightedAverageSharesOutstandingDiluted``.
-    """
+    """Income statement for a reporting period."""
 
     date: date
     symbol: str
     reported_currency: str | None = None
     cik: str | None = None
-    filling_date: date | None = None
+    filing_date: date | None = None
     accepted_date: datetime | None = None
     fiscal_year: str | None = None
     period: str | None = None
@@ -180,15 +158,7 @@ class IncomeStatement(BaseModel):
 
 
 class BalanceSheet(BaseModel):
-    """Balance sheet for a reporting period.
-
-    Mirrors the ``/balance-sheet-statement/`` endpoint. Header fields
-    (``date``, ``symbol``, ``reportedCurrency``, ``cik``, ``fiscalYear``,
-    ``period``) plus ``totalAssets``, ``currentAssets``, ``totalLiabilities``,
-    ``currentLiabilities``, ``totalDebt``, ``cashAndCashEquivalents``,
-    ``inventory``, ``receivables``, ``payables``, ``goodwill``,
-    ``retainedEarnings``, ``totalEquity``, ``commonStock``, ``netDebt``.
-    """
+    """Balance sheet for a reporting period."""
 
     date: date
     symbol: str
@@ -213,15 +183,7 @@ class BalanceSheet(BaseModel):
 
 
 class CashFlowStatement(BaseModel):
-    """Cash-flow statement for a reporting period.
-
-    Mirrors the ``/cash-flow-statement/`` endpoint. Header fields
-    (``date``, ``symbol``, ``reportedCurrency``, ``cik``, ``fiscalYear``,
-    ``period``) plus ``netIncome``, ``operatingCashFlow``,
-    ``investingCashFlow``, ``financingCashFlow``, ``capitalExpenditure``,
-    ``freeCashFlow``, ``dividendsPaid``, ``stockBasedCompensation``,
-    ``cashChange``.
-    """
+    """Cash-flow statement for a reporting period."""
 
     date: date
     symbol: str
@@ -241,15 +203,7 @@ class CashFlowStatement(BaseModel):
 
 
 class KeyMetrics(BaseModel):
-    """Key metrics / valuation snapshot for a symbol.
-
-    Mirrors the ``/key-metrics/`` endpoint. Header fields (``date``,
-    ``symbol``, ``fiscalYear``, ``period``) plus ``marketCap``,
-    ``enterpriseValue``, ``peRatio``, ``pegRatio``, ``priceToSalesRatio``,
-    ``priceToBookRatio``, ``enterpriseValueOverEBITDA``, ``evToSales``,
-    ``dividendYield``, ``payoutRatio``, ``currentRatio``, ``quickRatio``,
-    ``debtToEquity``, ``workingCapital``.
-    """
+    """Key metrics and valuation snapshot for a symbol."""
 
     symbol: str
     date: date
@@ -272,15 +226,7 @@ class KeyMetrics(BaseModel):
 
 
 class FinancialRatios(BaseModel):
-    """Financial ratios for a symbol / period.
-
-    Mirrors the ``/ratios/`` endpoint (``/ratios/:period=v3/``). Header fields
-    (``date``, ``symbol``, ``fiscalYear``, ``period``) plus
-    ``grossProfitMargin``, ``operatingProfitMargin``, ``netProfitMargin``,
-    ``returnOnAssets``, ``returnOnEquity``, ``returnOnCapitalEmployed``,
-    ``interestCoverage``, ``quickRatio``, ``currentRatio``, ``debtToEquity``,
-    ``priceEarningsRatio``, ``bookValuePerShare``, ``dividendYield``.
-    """
+    """Financial ratios for a symbol and reporting period."""
 
     symbol: str
     date: date
@@ -302,12 +248,12 @@ class FinancialRatios(BaseModel):
 
 
 class CompanyFundamentals(BaseModel):
-    """Company details plus the key metrics and ratios overview.
+    """Company details plus key metrics and ratios overview.
 
-    Aggregate returned by ``GET /api/v1/market/data/fundamentals/{symbol}``
-    (the T10 MCP contract): the T01 FMP-shaped ``profile``, ``key_metrics`` and
-    ``ratios`` objects, each field-for-field. Kept required (not optional) so a
-    response always carries the full overview.
+    Aggregate returned by ``GET /api/v1/market/data/fundamentals/{symbol}``:
+    the canonical ``profile``, ``key_metrics`` and ``ratios`` objects, each
+    field-for-field. Kept required (not optional) so a response always carries
+    the full overview.
     """
 
     profile: CompanyProfile

@@ -505,6 +505,10 @@ class FmpGateway(MarketGateway):
         return self._get_json("stable/profile", {"symbol": ticker})
 
     def _parse_company_profile(self, payload: object, symbol: str) -> CompanyProfile:
+        # Maps FMP stable/profile (or /profile-v3/): symbol, companyName,
+        # marketCap, sector, industry, beta, price, website, description,
+        # ceo, fullTimeEmployees, exchangeShortName, exchange, currency,
+        # ipoDate, cik, isin, image, isActivelyTrading.
         self._raise_for_error_payload(payload, symbol, "")
         row = _first_dict_row(payload)
         if row is None:
@@ -554,6 +558,14 @@ class FmpGateway(MarketGateway):
     def _parse_income_statement(
         self, payload: object, symbol: str
     ) -> list[IncomeStatement]:
+        # Maps FMP stable/income-statement (or /income-statement/): date,
+        # symbol, reportedCurrency, cik, fillingDate/filingDate, acceptedDate,
+        # fiscalYear/calendarYear, period, revenue, costOfRevenue, grossProfit,
+        # researchAndDevelopmentExpenses, sellingGeneralAndAdministrativeExpenses,
+        # operatingExpenses, operatingIncome, interestExpense, otherIncomeExpense/
+        # totalOtherIncomeExpensesNet, incomeTaxExpense, netIncome, eps,
+        # epsDiluted, weightedAverageSharesOutstanding/weightedAverageShsOut,
+        # weightedAverageSharesOutstandingDiluted/weightedAverageShsOutDil.
         self._raise_for_error_payload(payload, symbol, "")
         statements: list[IncomeStatement] = []
         for row in payload if isinstance(payload, list) else []:
@@ -568,7 +580,7 @@ class FmpGateway(MarketGateway):
                     symbol=_to_str(row.get("symbol")) or symbol,
                     reported_currency=_to_str(row.get("reportedCurrency")),
                     cik=_to_str(row.get("cik")),
-                    filling_date=_to_date(_pick(row, "fillingDate", "filingDate")),
+                    filing_date=_to_date(_pick(row, "fillingDate", "filingDate")),
                     accepted_date=_to_datetime(row.get("acceptedDate")),
                     fiscal_year=_to_str(_pick(row, "fiscalYear", "calendarYear")),
                     period=_to_str(row.get("period")),
@@ -637,6 +649,13 @@ class FmpGateway(MarketGateway):
         return self._get_json("stable/balance-sheet-statement", params)
 
     def _parse_balance_sheet(self, payload: object, symbol: str) -> list[BalanceSheet]:
+        # Maps FMP stable/balance-sheet-statement (or /balance-sheet-statement/):
+        # date, symbol, reportedCurrency, cik, fiscalYear/calendarYear, period,
+        # totalAssets, currentAssets/totalCurrentAssets, totalLiabilities,
+        # currentLiabilities/totalCurrentLiabilities, totalDebt,
+        # cashAndCashEquivalents, inventory, receivables/netReceivables,
+        # payables/accountPayables, goodwill, retainedEarnings,
+        # totalEquity/totalStockholdersEquity, commonStock, netDebt.
         self._raise_for_error_payload(payload, symbol, "")
         sheets: list[BalanceSheet] = []
         for row in payload if isinstance(payload, list) else []:
@@ -709,6 +728,15 @@ class FmpGateway(MarketGateway):
     def _parse_cash_flow_statement(
         self, payload: object, symbol: str
     ) -> list[CashFlowStatement]:
+        # Maps FMP stable/cash-flow-statement (or /cash-flow-statement/):
+        # date, symbol, reportedCurrency, cik, fiscalYear/calendarYear, period,
+        # netIncome, operatingCashFlow/netCashProvidedByOperatingActivities,
+        # investingCashFlow/netCashUsedForInvestingActivites/
+        # netCashUsedForInvestingActivities,
+        # financingCashFlow/netCashUsedProvidedByFinancingActivities,
+        # capitalExpenditure, freeCashFlow,
+        # dividendsPaid/netDividendsPaid/commonDividendsPaid,
+        # stockBasedCompensation, cashChange/netChangeInCash.
         self._raise_for_error_payload(payload, symbol, "")
         statements: list[CashFlowStatement] = []
         for row in payload if isinstance(payload, list) else []:
@@ -789,6 +817,13 @@ class FmpGateway(MarketGateway):
         return self._get_json("stable/key-metrics", {"symbol": ticker, "limit": "1"})
 
     def _parse_key_metrics(self, payload: object, symbol: str) -> KeyMetrics:
+        # Maps FMP stable/key-metrics (or /key-metrics/): date, symbol,
+        # fiscalYear/calendarYear, period, marketCap, enterpriseValue,
+        # peRatio/priceToEarningsRatio, pegRatio/priceToEarningsGrowthRatio,
+        # priceToSalesRatio, priceToBookRatio, enterpriseValueOverEBITDA,
+        # evToSales, dividendYield/dividendYieldPercentage,
+        # payoutRatio/dividendPayoutRatio, currentRatio, quickRatio,
+        # debtToEquity/debtEquityRatio/debtToEquityRatio, workingCapital.
         self._raise_for_error_payload(payload, symbol, "")
         row = _first_dict_row(payload)
         row_date = _to_date(row.get("date")) if row is not None else None
@@ -842,6 +877,14 @@ class FmpGateway(MarketGateway):
         )
 
     def _parse_financial_ratios(self, payload: object, symbol: str) -> FinancialRatios:
+        # Maps FMP stable/ratios (or /ratios/): date, symbol,
+        # fiscalYear/calendarYear, period, grossProfitMargin,
+        # operatingProfitMargin, netProfitMargin,
+        # profitability: returnOnAssets, returnOnEquity, returnOnCapitalEmployed,
+        # interestCoverage/interestCoverageRatio, quickRatio, currentRatio,
+        # debtToEquity/debtEquityRatio/debtToEquityRatio,
+        # priceEarningsRatio/priceToEarningsRatio, bookValuePerShare,
+        # dividendYield/dividendYieldPercentage.
         self._raise_for_error_payload(payload, symbol, "")
         row = _first_dict_row(payload)
         row_date = _to_date(row.get("date")) if row is not None else None
