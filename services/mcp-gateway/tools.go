@@ -313,7 +313,7 @@ type priceHistoryInput struct {
 	Symbol   string `json:"symbol" jsonschema:"Ticker symbol of the security."`
 	From     string `json:"from" jsonschema:"Start date (inclusive) in YYYY-MM-DD format."`
 	To       string `json:"to" jsonschema:"End date (inclusive) in YYYY-MM-DD format."`
-	Exchange string `json:"exchange,omitempty" jsonschema:"Optional exchange filter."`
+	Exchange string `json:"exchange,omitempty" jsonschema:"Optional exchange filter (NYSE, NASDAQ, NYSEARCA, AMEX, TSX, LSE)."`
 }
 
 type priceHistoryRequest struct {
@@ -339,13 +339,17 @@ func (in priceHistoryInput) prepare() (priceHistoryRequest, error) {
 	if from.After(to) {
 		return priceHistoryRequest{}, errors.New("from must be on or before to")
 	}
-	return priceHistoryRequest{symbol: symbol, from: from, to: to, exchange: in.Exchange}, nil
+	exchange, err := validateExchange(in.Exchange)
+	if err != nil {
+		return priceHistoryRequest{}, err
+	}
+	return priceHistoryRequest{symbol: symbol, from: from, to: to, exchange: exchange}, nil
 }
 
 type fundamentalsInput struct {
 	Symbol   string   `json:"symbol" jsonschema:"Ticker symbol of the security."`
 	Sections []string `json:"sections,omitempty" jsonschema:"Optional sections to include: 'profile', 'key_metrics', 'ratios' (default all)."`
-	Exchange string   `json:"exchange,omitempty" jsonschema:"Optional exchange filter."`
+	Exchange string   `json:"exchange,omitempty" jsonschema:"Optional exchange filter (NYSE, NASDAQ, NYSEARCA, AMEX, TSX, LSE)."`
 }
 
 type fundamentalsRequest struct {
@@ -359,11 +363,15 @@ func (in fundamentalsInput) prepare() (fundamentalsRequest, error) {
 	if err != nil {
 		return fundamentalsRequest{}, err
 	}
+	exchange, err := validateExchange(in.Exchange)
+	if err != nil {
+		return fundamentalsRequest{}, err
+	}
 	sections, err := validateFundamentalsSections(in.Sections)
 	if err != nil {
 		return fundamentalsRequest{}, err
 	}
-	return fundamentalsRequest{symbol: symbol, sections: sections, exchange: in.Exchange}, nil
+	return fundamentalsRequest{symbol: symbol, sections: sections, exchange: exchange}, nil
 }
 
 type optionsChainInput struct {
@@ -416,7 +424,7 @@ type financialStatementsInput struct {
 	Statement string `json:"statement" jsonschema:"Statement type: 'income', 'balance', or 'cashflow'."`
 	Period    string `json:"period,omitempty" jsonschema:"Optional reporting period: 'annual' (default) or 'quarter'."`
 	Limit     int    `json:"limit,omitempty" jsonschema:"Optional maximum number of periods to return (1-20, default 5)."`
-	Exchange  string `json:"exchange,omitempty" jsonschema:"Optional exchange filter."`
+	Exchange  string `json:"exchange,omitempty" jsonschema:"Optional exchange filter (NYSE, NASDAQ, NYSEARCA, AMEX, TSX, LSE)."`
 }
 
 type financialStatementsRequest struct {
@@ -440,12 +448,16 @@ func (in financialStatementsInput) prepare() (financialStatementsRequest, error)
 	if err != nil {
 		return financialStatementsRequest{}, err
 	}
+	exchange, err := validateExchange(in.Exchange)
+	if err != nil {
+		return financialStatementsRequest{}, err
+	}
 	return financialStatementsRequest{
 		symbol:    symbol,
 		statement: statement,
 		period:    period,
 		limit:     clampLimit(in.Limit),
-		exchange:  in.Exchange,
+		exchange:  exchange,
 	}, nil
 }
 
@@ -551,6 +563,7 @@ func validateSearchQuery(v string) (string, error) {
 	return query, nil
 }
 
+<<<<<<< HEAD
 // validateFundamentalsSections validates that each requested section name is
 // one of 'profile', 'key_metrics', or 'ratios', removes duplicates, and defaults
 // to all three sections when none are specified.
@@ -590,4 +603,24 @@ func validateStatementType(v string) (string, error) {
 	default:
 		return "", errors.New("statement must be 'income', 'balance', or 'cashflow'")
 	}
+}
+
+// supportedExchanges lists the canonical exchange codes accepted by the
+// backend data plane and mapped to provider suffixes.
+var supportedExchanges = []string{"NYSE", "NASDAQ", "NYSEARCA", "AMEX", "TSX", "LSE"}
+
+// validateExchange normalizes an optional exchange filter by trimming and
+// uppercasing it. An empty string passes through as "". If provided, it must
+// match one of the canonical supportedExchanges.
+func validateExchange(v string) (string, error) {
+	clean := strings.ToUpper(strings.TrimSpace(v))
+	if clean == "" {
+		return "", nil
+	}
+	for _, code := range supportedExchanges {
+		if clean == code {
+			return clean, nil
+		}
+	}
+	return "", fmt.Errorf("exchange must be one of: %s", strings.Join(supportedExchanges, ", "))
 }
