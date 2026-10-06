@@ -1,11 +1,12 @@
 import { getBrokerService } from '$lib/components/brokers/brokerService.svelte';
+import { extractTraceparent } from '$lib/api/traceContext';
 import { deleteAuthCookie } from '$lib/server/auth-cookie';
 import { error, redirect } from '@sveltejs/kit';
 import { ApiError } from '$lib/api/apiClient';
 import type { PageServerLoad } from './$types';
 
-export const load: PageServerLoad = async ({ fetch, cookies }) => {
-	const brokerService = getBrokerService(fetch);
+export const load: PageServerLoad = async ({ fetch, cookies, request }) => {
+	const brokerService = getBrokerService(fetch, extractTraceparent(request.headers));
 	const token = cookies.get('auth_token');
 	try {
 		const users = await brokerService.getBrokerUsers(token);

@@ -9,7 +9,12 @@ from fastapi import HTTPException, status
 from svcs import Container
 
 from src.config.settings import settings
-from src.market.gateway import MarketGateway
+from src.market.gateway import (
+    MARKET_DATA_PROVIDER,
+    MarketGateway,
+    freshness_lag_ms,
+    record_fetch,
+)
 from src.market.model import IntradayPriceModel, PriceModel
 from src.market.repository import (
     IntradayPriceRepository,
@@ -182,15 +187,27 @@ class MarketService:
         self, security: SecuritySchema, from_date: date, to_date: date
     ) -> bool:
         try:
-            # Gateway returns a list of HistoricalPrice
-            prices = await asyncio.to_thread(
-                self._gateway.get_prices,
-                security.id,
-                security.symbol,
-                security.exchange,
-                from_date=from_date,
-                to_date=to_date,
-            )
+            with record_fetch(
+                symbol=security.symbol,
+                dataset="eod",
+                provider=MARKET_DATA_PROVIDER,
+                exchange=security.exchange,
+            ) as fetch:
+                # Gateway returns a list of HistoricalPrice
+                prices = await asyncio.to_thread(
+                    self._gateway.get_prices,
+                    security.id,
+                    security.symbol,
+                    security.exchange,
+                    from_date=from_date,
+                    to_date=to_date,
+                )
+                fetch.row_count = len(prices)
+                fetch.freshness_lag_ms = (
+                    freshness_lag_ms(max(price.date for price in prices))
+                    if prices
+                    else None
+                )
         except Exception:
             # Catching general Exception to prevent one failure from stopping jobs
             logger.exception("Failed to update prices for security %s", security.symbol)
@@ -228,15 +245,27 @@ class MarketService:
         self, security: SecuritySchema, from_datetime: datetime, to_datetime: datetime
     ) -> bool:
         try:
-            prices = await asyncio.to_thread(
-                self._gateway.get_intraday_prices,
-                security.id,
-                security.symbol,
-                security.exchange,
-                from_datetime=from_datetime,
-                to_datetime=to_datetime,
-                interval="1h",
-            )
+            with record_fetch(
+                symbol=security.symbol,
+                dataset="intraday",
+                provider=MARKET_DATA_PROVIDER,
+                exchange=security.exchange,
+            ) as fetch:
+                prices = await asyncio.to_thread(
+                    self._gateway.get_intraday_prices,
+                    security.id,
+                    security.symbol,
+                    security.exchange,
+                    from_datetime=from_datetime,
+                    to_datetime=to_datetime,
+                    interval="1h",
+                )
+                fetch.row_count = len(prices)
+                fetch.freshness_lag_ms = (
+                    freshness_lag_ms(max(price.timestamp for price in prices))
+                    if prices
+                    else None
+                )
         except Exception:
             logger.exception(
                 "Failed to update intraday prices for security %s", security.symbol
@@ -297,13 +326,25 @@ class MarketService:
             from_date = date(2000, 1, 3)
             to_date = datetime.now(UTC).date()
 
-            prices = self._gateway.get_prices(
-                security.id,
-                security.symbol,
-                security.exchange,
-                from_date=from_date,
-                to_date=to_date,
-            )
+            with record_fetch(
+                symbol=security.symbol,
+                dataset="eod",
+                provider=MARKET_DATA_PROVIDER,
+                exchange=security.exchange,
+            ) as fetch:
+                prices = self._gateway.get_prices(
+                    security.id,
+                    security.symbol,
+                    security.exchange,
+                    from_date=from_date,
+                    to_date=to_date,
+                )
+                fetch.row_count = len(prices)
+                fetch.freshness_lag_ms = (
+                    freshness_lag_ms(max(price.date for price in prices))
+                    if prices
+                    else None
+                )
 
             if prices:
                 price_schemas = [PriceSchema.from_historical_price(p) for p in prices]

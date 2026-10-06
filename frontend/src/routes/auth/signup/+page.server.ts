@@ -1,5 +1,6 @@
 import { AuthService } from '$lib/api/authService';
 import { ApiError } from '$lib/api/apiClient';
+import { extractTraceparent } from '$lib/api/traceContext';
 import { fail, redirect } from '@sveltejs/kit';
 import type { Actions } from './$types';
 
@@ -25,7 +26,7 @@ export const actions: Actions = {
 			return fail(400, { email, message: 'Passwords do not match' });
 		}
 
-		const authService = new AuthService(fetch);
+		const authService = new AuthService(fetch, extractTraceparent(request.headers));
 
 		try {
 			await authService.signup({ email, password });

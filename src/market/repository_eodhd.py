@@ -6,7 +6,12 @@ from svcs import Container
 
 from src.market.api_types import SecurityId
 from src.market.eodhd import eodhd_gateway_factory
-from src.market.gateway import MarketGateway
+from src.market.gateway import (
+    MARKET_DATA_PROVIDER,
+    MarketGateway,
+    freshness_lag_ms,
+    record_fetch,
+)
 from src.market.repository import PriceRepository
 from src.market.repository_sqlalchemy import sqlalchemy_price_repository_factory
 from src.market.schema import PriceSchema, SecuritySchema
@@ -37,9 +42,21 @@ class EodhdPriceRepository(PriceRepository):
             security, from_date, to_date, offset, limit
         )
 
-        new_prices_eodhd = self._gateway.get_prices(
-            security.id, security.symbol, security.exchange, from_date, to_date
-        )
+        with record_fetch(
+            symbol=security.symbol,
+            dataset="eod",
+            provider=MARKET_DATA_PROVIDER,
+            exchange=security.exchange,
+        ) as fetch:
+            new_prices_eodhd = self._gateway.get_prices(
+                security.id, security.symbol, security.exchange, from_date, to_date
+            )
+            fetch.row_count = len(new_prices_eodhd)
+            fetch.freshness_lag_ms = (
+                freshness_lag_ms(max(price.date for price in new_prices_eodhd))
+                if new_prices_eodhd
+                else None
+            )
         new_prices = [
             PriceSchema.from_historical_price(price) for price in new_prices_eodhd
         ]
@@ -87,9 +104,17 @@ class EodhdPriceRepository(PriceRepository):
         if existing_price is not None:
             return existing_price
 
-        new_price_eodhd = self._gateway.get_price_on_date(
-            security.id, security.symbol, security.exchange, date
-        )
+        with record_fetch(
+            symbol=security.symbol,
+            dataset="eod",
+            provider=MARKET_DATA_PROVIDER,
+            exchange=security.exchange,
+        ) as fetch:
+            new_price_eodhd = self._gateway.get_price_on_date(
+                security.id, security.symbol, security.exchange, date
+            )
+            fetch.row_count = 1 if new_price_eodhd is not None else 0
+            fetch.freshness_lag_ms = freshness_lag_ms(date)
         if new_price_eodhd is None:
             return None
         new_price = PriceSchema.model_validate(new_price_eodhd)

@@ -1,13 +1,17 @@
 import { getPortfolioClient } from '$lib/api/portfolioClient';
+import { extractTraceparent } from '$lib/api/traceContext';
 import { deleteAuthCookie } from '$lib/server/auth-cookie';
 import { error, redirect } from '@sveltejs/kit';
 import { ApiError } from '$lib/api/apiClient';
 import type { PageServerLoad } from './$types';
 
-export const load: PageServerLoad = async ({ fetch, cookies }) => {
+export const load: PageServerLoad = async ({ fetch, cookies, request }) => {
 	const token = cookies.get('auth_token');
 	try {
-		const portfolios = await getPortfolioClient(fetch).getPortfolios(token);
+		const portfolios = await getPortfolioClient(
+			fetch,
+			extractTraceparent(request.headers)
+		).getPortfolios(token);
 		return {
 			portfolios
 		};

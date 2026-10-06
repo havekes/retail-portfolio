@@ -1,10 +1,16 @@
 import json
 import logging
+from typing import Any
 from unittest.mock import AsyncMock, MagicMock
 
 import pytest
+from opentelemetry.sdk.trace.export import SimpleSpanProcessor
+from opentelemetry.sdk.trace.export.in_memory_span_exporter import (
+    InMemorySpanExporter,
+)
 from redis.exceptions import ConnectionError as RedisConnectionError
 
+from src.config.settings import Settings
 from src.core.redis import RedisManager
 from src.market.api_types import SecuritySearchResult
 from src.market.cache import (
@@ -12,6 +18,7 @@ from src.market.cache import (
     SecuritySearchCache,
     security_search_cache_factory,
 )
+from src.observability import bootstrap_observability, reset_observability
 
 EXPECTED_COUNT = 2
 CUSTOM_TTL = 86400
@@ -30,6 +37,46 @@ def mock_redis() -> AsyncMock:
 @pytest.fixture
 def search_cache(mock_redis: AsyncMock) -> SecuritySearchCache:
     return SecuritySearchCache(redis_client=mock_redis)
+
+
+@pytest.fixture(autouse=True)
+def _cleanup_observability():
+    yield
+    reset_observability()
+
+
+@pytest.fixture
+def span_exporter() -> InMemorySpanExporter:
+    exporter = InMemorySpanExporter()
+    bootstrap_observability(
+        service_name="backend",
+        settings=Settings(
+            environment="test",
+            deploy_id="deploy-abc123",
+            service_version="1.2.3",
+        ),
+        span_processor=SimpleSpanProcessor(exporter),
+    )
+    return exporter
+
+
+def _cache_attributes(exporter: InMemorySpanExporter) -> dict[str, Any]:
+    spans = [
+        span
+        for span in exporter.get_finished_spans()
+        if span.name == "market.cache.accessed"
+    ]
+    assert len(spans) == 1, f"expected one cache event, got {len(spans)}"
+    attributes = spans[0].attributes
+    assert attributes is not None
+    return dict(attributes)
+
+
+def _assert_raw_key_absent(exporter: InMemorySpanExporter, raw_key: str) -> None:
+    for span in exporter.get_finished_spans():
+        for name, value in (span.attributes or {}).items():
+            assert raw_key not in str(name)
+            assert raw_key not in str(value)
 
 
 @pytest.fixture
@@ -330,3 +377,127 @@ async def test_security_search_cache_factory() -> None:
     assert isinstance(cache, SecuritySearchCache)
     assert cache._cache_ttl == DEFAULT_SEARCH_CACHE_TTL  # noqa: SLF001
     assert cache._redis_manager is not None  # noqa: SLF001
+
+
+# ============================================================================
+# 7. Wide events: market.cache.accessed
+# ============================================================================
+
+
+@pytest.mark.anyio
+async def test_get_cache_miss_emits_wide_event(
+    search_cache: SecuritySearchCache,
+    mock_redis: AsyncMock,
+    span_exporter: InMemorySpanExporter,
+) -> None:
+    mock_redis.get.return_value = None
+
+    assert await search_cache.get("AAPL") is None
+
+    attributes = _cache_attributes(span_exporter)
+    assert attributes["event.name"] == "market.cache.accessed"
+    assert attributes["cache_kind"] == "security_search"
+    assert attributes["key_class"] == "security_search"
+    assert attributes["outcome"] == "miss"
+    assert attributes["ttl_seconds"] == DEFAULT_SEARCH_CACHE_TTL
+    assert "error_slug" not in attributes
+    _assert_raw_key_absent(span_exporter, "market:search:aapl")
+
+
+@pytest.mark.anyio
+async def test_get_cache_hit_emits_wide_event(
+    search_cache: SecuritySearchCache,
+    mock_redis: AsyncMock,
+    sample_search_results: list[SecuritySearchResult],
+    span_exporter: InMemorySpanExporter,
+) -> None:
+    mock_redis.get.return_value = json.dumps(
+        [r.model_dump(mode="json") for r in sample_search_results]
+    )
+
+    results = await search_cache.get("  AAPL  ")
+
+    assert results is not None
+    assert len(results) == EXPECTED_COUNT
+    attributes = _cache_attributes(span_exporter)
+    assert attributes["cache_kind"] == "security_search"
+    assert attributes["key_class"] == "security_search"
+    assert attributes["outcome"] == "hit"
+    assert attributes["ttl_seconds"] == DEFAULT_SEARCH_CACHE_TTL
+    _assert_raw_key_absent(span_exporter, "market:search:aapl")
+
+
+@pytest.mark.anyio
+async def test_cached_empty_result_emits_negative_outcome(
+    search_cache: SecuritySearchCache,
+    mock_redis: AsyncMock,
+    span_exporter: InMemorySpanExporter,
+) -> None:
+    mock_redis.get.return_value = json.dumps([])
+
+    assert await search_cache.get("AAPL") == []
+
+    attributes = _cache_attributes(span_exporter)
+    assert attributes["outcome"] == "negative"
+    assert attributes["cache_kind"] == "security_search"
+    assert attributes["key_class"] == "security_search"
+    _assert_raw_key_absent(span_exporter, "market:search:aapl")
+
+
+@pytest.mark.anyio
+async def test_redis_error_emits_miss_with_error_slug(
+    search_cache: SecuritySearchCache,
+    mock_redis: AsyncMock,
+    span_exporter: InMemorySpanExporter,
+) -> None:
+    mock_redis.get.side_effect = RedisConnectionError("Connection timed out")
+
+    assert await search_cache.get("AAPL") is None
+
+    attributes = _cache_attributes(span_exporter)
+    assert attributes["outcome"] == "miss"
+    assert attributes["cache_kind"] == "security_search"
+    assert attributes["key_class"] == "security_search"
+    assert attributes["error_slug"] == "cache_error"
+
+
+@pytest.mark.anyio
+async def test_set_emits_write_event_with_default_ttl(
+    search_cache: SecuritySearchCache,
+    mock_redis: AsyncMock,
+    sample_search_results: list[SecuritySearchResult],
+    span_exporter: InMemorySpanExporter,
+) -> None:
+    await search_cache.set("AAPL", sample_search_results)
+
+    attributes = _cache_attributes(span_exporter)
+    assert attributes["cache_kind"] == "security_search"
+    assert attributes["key_class"] == "security_search"
+    assert attributes["outcome"] == "write"
+    assert attributes["ttl_seconds"] == DEFAULT_SEARCH_CACHE_TTL
+    _assert_raw_key_absent(span_exporter, "market:search:aapl")
+
+
+@pytest.mark.anyio
+async def test_set_emits_write_event_with_override_ttl(
+    search_cache: SecuritySearchCache,
+    mock_redis: AsyncMock,
+    sample_search_results: list[SecuritySearchResult],
+    span_exporter: InMemorySpanExporter,
+) -> None:
+    await search_cache.set("AAPL", sample_search_results, ttl=OVERRIDE_TTL)
+
+    attributes = _cache_attributes(span_exporter)
+    assert attributes["outcome"] == "write"
+    assert attributes["ttl_seconds"] == OVERRIDE_TTL
+
+
+@pytest.mark.anyio
+async def test_no_event_when_query_is_empty(
+    search_cache: SecuritySearchCache,
+    mock_redis: AsyncMock,
+    span_exporter: InMemorySpanExporter,
+) -> None:
+    assert await search_cache.get("   ") is None
+
+    assert span_exporter.get_finished_spans() == ()

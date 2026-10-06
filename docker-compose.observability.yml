@@ -1,0 +1,101 @@
+services:
+  clickstack:
+    image: clickhouse/clickstack-all-in-one:2.39.1
+    profiles:
+      - observability
+    restart: unless-stopped
+    ports:
+      - "${CLICKSTACK_UI_PORT:-8080}:8080"
+      - "${OTLP_GRPC_PORT:-4317}:4317"
+      - "${OTLP_HTTP_PORT:-4318}:4318"
+      - "${OTEL_COLLECTOR_METRICS_PORT:-8888}:8888"
+    volumes:
+      - clickstack_mongo_data:/data/db
+      - clickstack_clickhouse_data:/var/lib/clickhouse
+      - clickstack_clickhouse_log:/var/log/clickhouse-server
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:8000/health || exit 1"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+
+  # Tail-sampling gateway sitting between the app SDKs and ClickStack's own OTLP
+  # receiver. See docker/observability/otelcol-sampling.yaml and README
+  # § "Tail Sampling Policy". Pinned deliberately: the contrib image is large and
+  # its config schema moves between releases.
+  otel-sampler:
+    image: otel/opentelemetry-collector-contrib:0.161.0
+    profiles:
+      - observability
+    restart: unless-stopped
+    command: ["--config=/etc/otelcol/otelcol-sampling.yaml"]
+    volumes:
+      - ./docker/observability/otelcol-sampling.yaml:/etc/otelcol/otelcol-sampling.yaml:ro
+    environment:
+      # Team ingestion API key forwarded to ClickStack. Empty until the HyperDX
+      # team is registered (README § 2): the sampler still starts, and inserts
+      # only fail (and retry) once ClickStack rejects the unauthorized batches.
+      HYPERDX_API_KEY: "${HYPERDX_API_KEY:-}"
+      # Percentage of the successful bulk retained by the tail-sampling policy.
+      OTEL_SAMPLER_SUCCESS_PERCENT: "${OTEL_SAMPLER_SUCCESS_PERCENT:-7}"
+    depends_on:
+      - clickstack
+
+  prometheus:
+    image: prom/prometheus:v3.13.4
+    profiles:
+      - observability
+    restart: unless-stopped
+    ports:
+      - "${PROMETHEUS_PORT:-9090}:9090"
+    volumes:
+      - ./docker/observability/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+    depends_on:
+      - clickstack
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q --spider http://localhost:9090/-/healthy || exit 1"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+
+  backend:
+    environment:
+      # The overlay always routes application telemetry through the tail-sampling
+      # gateway. Set OTEL_EXPORTER_OTLP_ENDPOINT in the root .env to bypass it
+      # (for example http://clickstack:4318 for raw, unsampled debugging).
+      OTEL_EXPORTER_OTLP_ENDPOINT: "${OTEL_EXPORTER_OTLP_ENDPOINT:-http://otel-sampler:4318}"
+      OTEL_EXPORTER_OTLP_HEADERS: "${OTEL_EXPORTER_OTLP_HEADERS:-}"
+      OTEL_RESOURCE_ATTRIBUTES: "${OTEL_RESOURCE_ATTRIBUTES:-}"
+      OTEL_SDK_DISABLED: "${OTEL_SDK_DISABLED:-false}"
+      DEPLOY_ID: "${DEPLOY_ID:-dev}"
+
+  worker:
+    environment:
+      OTEL_EXPORTER_OTLP_ENDPOINT: "${OTEL_EXPORTER_OTLP_ENDPOINT:-http://otel-sampler:4318}"
+      OTEL_EXPORTER_OTLP_HEADERS: "${OTEL_EXPORTER_OTLP_HEADERS:-}"
+      OTEL_RESOURCE_ATTRIBUTES: "${OTEL_RESOURCE_ATTRIBUTES:-}"
+      OTEL_SDK_DISABLED: "${OTEL_SDK_DISABLED:-false}"
+      DEPLOY_ID: "${DEPLOY_ID:-dev}"
+
+  frontend:
+    environment:
+      OTEL_EXPORTER_OTLP_ENDPOINT: "${OTEL_EXPORTER_OTLP_ENDPOINT:-http://otel-sampler:4318}"
+      OTEL_EXPORTER_OTLP_HEADERS: "${OTEL_EXPORTER_OTLP_HEADERS:-}"
+      OTEL_RESOURCE_ATTRIBUTES: "${OTEL_RESOURCE_ATTRIBUTES:-}"
+      VITE_DEPLOY_ID: "${DEPLOY_ID:-dev}"
+
+  indicator-service:
+    environment:
+      OTEL_EXPORTER_OTLP_ENDPOINT: "${OTEL_EXPORTER_OTLP_ENDPOINT:-http://otel-sampler:4318}"
+      OTEL_EXPORTER_OTLP_HEADERS: "${OTEL_EXPORTER_OTLP_HEADERS:-}"
+      OTEL_RESOURCE_ATTRIBUTES: "${OTEL_RESOURCE_ATTRIBUTES:-}"
+      OTEL_SDK_DISABLED: "${OTEL_SDK_DISABLED:-false}"
+      DEPLOY_ID: "${DEPLOY_ID:-dev}"
+
+
+volumes:
+  clickstack_mongo_data:
+  clickstack_clickhouse_data:
+  clickstack_clickhouse_log:

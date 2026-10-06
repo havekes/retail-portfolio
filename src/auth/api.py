@@ -242,7 +242,19 @@ class UserApi:
         """Update the user's last login timestamp."""
         await self._user_repository.update_last_login(user_id)
 
-    def _decode_token(self, token: str) -> AccessTokenData:
+    @staticmethod
+    def decode_token(token: str) -> AccessTokenData:
+        """
+        Decode and validate a JWT token without any database access.
+
+        Public counterpart to ``_decode_token`` for boundaries that have no
+        service container (the HTTP middleware), so they can read ``user_id``
+        without the database round-trip of ``get_current_user_from_token``.
+        """
+        return UserApi._decode_token(token)
+
+    @staticmethod
+    def _decode_token(token: str) -> AccessTokenData:
         """Decode and validate a JWT token."""
         try:
             return AccessTokenData.model_validate(

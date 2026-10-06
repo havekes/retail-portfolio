@@ -81,5 +81,8 @@ export class ValuationClient extends ApiClient {
 	}
 }
 
-export const getValuationClient = (customFetch?: typeof fetch) => new ValuationClient(customFetch);
+export const getValuationClient = (
+	customFetch?: typeof fetch,
+	inboundTraceparent?: string | null
+) => new ValuationClient(customFetch, inboundTraceparent);
 export const valuationClient = getValuationClient();

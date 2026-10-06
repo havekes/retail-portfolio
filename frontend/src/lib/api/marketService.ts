@@ -283,5 +283,6 @@ export class MarketService extends ApiClient {
 	}
 }
 
-export const getMarketService = (customFetch?: typeof fetch) => new MarketService(customFetch);
+export const getMarketService = (customFetch?: typeof fetch, inboundTraceparent?: string | null) =>
+	new MarketService(customFetch, inboundTraceparent);
 export const marketService = getMarketService();

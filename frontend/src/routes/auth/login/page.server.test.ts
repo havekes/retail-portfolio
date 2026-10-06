@@ -38,6 +38,7 @@ function createMockRequest(formDataMap: Record<string, string>): Request {
 		formData.append(k, v);
 	}
 	return {
+		headers: new Headers(),
 		formData: vi.fn().mockResolvedValue(formData)
 	} as unknown as Request;
 }

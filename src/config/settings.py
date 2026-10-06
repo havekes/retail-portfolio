@@ -47,6 +47,10 @@ class Settings(BaseSettings):
     redis_url: str = "redis://localhost:6379/0"
     sync_ttl_seconds: int = 300
 
+    # Observability / Metrics
+    worker_metrics_port: int = 8004
+    enable_metrics: bool = True
+
     # 2FA / TOTP
     totp_max_attempts: int = 5
     totp_lockout_seconds: int = 900
@@ -66,11 +70,41 @@ class Settings(BaseSettings):
     smtp_sender_email: str = "noreply@retail-portfolio.local"
     email_verification_token_expiry_hours: int = 24
 
+    # OpenTelemetry Observability
+    otel_sdk_disabled: bool = False
+    otel_exporter_otlp_endpoint: str | None = None
+    otel_exporter_otlp_headers: str | None = None
+    deploy_id: str = "dev"
+    service_version: str = "0.0.0"
+
     @field_validator("smtp_sender_email", mode="before")
     @classmethod
     def validate_smtp_sender_email(cls, v: str | None) -> str:
         if not v or (isinstance(v, str) and not v.strip()):
             return "noreply@retail-portfolio.local"
+        return v
+
+    @field_validator("otel_sdk_disabled", mode="before")
+    @classmethod
+    def validate_otel_sdk_disabled(cls, v: object) -> bool:
+        if v is None or v == "":
+            return False
+        if isinstance(v, str):
+            return v.strip().lower() in ("1", "true", "yes", "on")
+        return bool(v)
+
+    @field_validator("deploy_id", mode="before")
+    @classmethod
+    def validate_deploy_id(cls, v: str | None) -> str:
+        if not v or (isinstance(v, str) and not v.strip()):
+            return "dev"
+        return v
+
+    @field_validator("service_version", mode="before")
+    @classmethod
+    def validate_service_version(cls, v: str | None) -> str:
+        if not v or (isinstance(v, str) and not v.strip()):
+            return "0.0.0"
         return v
 
     @model_validator(mode="after")

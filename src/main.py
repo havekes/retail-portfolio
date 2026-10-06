@@ -25,10 +25,19 @@ from src.config.logging import init_logging
 from src.config.services import register_services
 from src.config.settings import settings
 from src.core.exception import AuthorizationError, EntityNotFoundError
+from src.core.metrics import router as metrics_router
 from src.core.middleware import RequestIdMiddleware
 from src.integration.router import institutions_router, integration_router
 from src.integration.sync_status import redis_manager
 from src.market.router import market_router
+from src.observability import (
+    bootstrap_observability,
+    capture_exception,
+    get_tracer,
+    instrument_auto,
+    shutdown_observability,
+)
+from src.observability.router import observability_router
 from src.worker_dashboard import (
     close_worker_dashboard,
     init_worker_dashboard,
@@ -49,6 +58,11 @@ def run_migrations():
 
 @asynccontextmanager
 async def lifespan_context(app: FastAPI):
+    bootstrap_observability(service_name="backend")
+    tracer = get_tracer("src.main")
+    with tracer.start_as_current_span("backend.startup") as span:
+        span.set_attribute("startup.status", "ok")
+
     # Run migrations (skip in test env — tables created via metadata.create_all)
     if settings.environment != "test":
         await asyncio.to_thread(run_migrations)
@@ -79,6 +93,7 @@ async def lifespan_context(app: FastAPI):
     await close_worker_dashboard(app)
     await ws_manager.close()
     await redis_manager.close()
+    shutdown_observability()
 
 
 logger = logging.getLogger(__name__)
@@ -126,6 +141,8 @@ async def cors_exception_middleware(request: Request, call_next: Any) -> Any:
         else:
             logger.exception("Unhandled exception in middleware safety net:")
 
+        capture_exception(exc, service_name="backend", request=request)
+
         allowed_origins = [
             origin.strip() for origin in settings.cors_allow_origins.split(",")
         ]
@@ -160,6 +177,11 @@ app.add_middleware(
     allow_headers=[origin.strip() for origin in settings.cors_allow_headers.split(",")],
 )
 
+# Instrument after the middleware declarations: the server span has to wrap
+# every middleware (including RequestIdMiddleware, the only access logger) so
+# that DB/Redis/httpx spans raised while handling a request become its children.
+instrument_auto(app)
+
 init_logging()
 logger.info("Starting application")
 logger.info("ENVIRONMENT: %s", settings.environment)
@@ -171,10 +193,12 @@ v1.include_router(auth_router)
 v1.include_router(institutions_router)
 v1.include_router(integration_router)
 v1.include_router(market_router)
+v1.include_router(observability_router)
 
 app.include_router(v1)
 app.include_router(ws_router)
 app.include_router(worker_dashboard_router)
+app.include_router(metrics_router)
 
 
 @app.get("/health/live")
@@ -226,12 +250,15 @@ async def ping(services: DepContainer) -> dict[str, Any]:
 
 
 @app.exception_handler(Exception)
-async def catch_all_exception_handler(_: Request, exc: Exception):
+async def catch_all_exception_handler(request: Request, exc: Exception):
     # Use a safer logging call to avoid potential formatting errors
     if settings.environment == "dev":
         logger.exception("Unhandled exception caught by FastAPI handler:", exc_info=exc)  # noqa: LOG004
     else:
         logger.exception("Unhandled exception caught by FastAPI handler:")  # noqa: LOG004
+
+    capture_exception(exc, service_name="backend", request=request)
+
     return JSONResponse(
         status_code=500,
         content={
