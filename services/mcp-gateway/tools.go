@@ -345,7 +345,7 @@ type priceHistoryInput struct {
 	Symbol   string `json:"symbol" jsonschema:"Ticker symbol of the security."`
 	From     string `json:"from" jsonschema:"Start date (inclusive) in YYYY-MM-DD format."`
 	To       string `json:"to" jsonschema:"End date (inclusive) in YYYY-MM-DD format."`
-	Exchange string `json:"exchange,omitempty" jsonschema:"Optional exchange filter."`
+	Exchange string `json:"exchange,omitempty" jsonschema:"Optional exchange filter (NYSE, NASDAQ, NYSEARCA, AMEX, TSX, LSE)."`
 }
 
 type priceHistoryRequest struct {
@@ -371,12 +371,16 @@ func (in priceHistoryInput) prepare() (priceHistoryRequest, error) {
 	if from.After(to) {
 		return priceHistoryRequest{}, errors.New("from must be on or before to")
 	}
-	return priceHistoryRequest{symbol: symbol, from: from, to: to, exchange: in.Exchange}, nil
+	exchange, err := validateExchange(in.Exchange)
+	if err != nil {
+		return priceHistoryRequest{}, err
+	}
+	return priceHistoryRequest{symbol: symbol, from: from, to: to, exchange: exchange}, nil
 }
 
 type fundamentalsInput struct {
 	Symbol   string `json:"symbol" jsonschema:"Ticker symbol of the security."`
-	Exchange string `json:"exchange,omitempty" jsonschema:"Optional exchange filter."`
+	Exchange string `json:"exchange,omitempty" jsonschema:"Optional exchange filter (NYSE, NASDAQ, NYSEARCA, AMEX, TSX, LSE)."`
 }
 
 type fundamentalsRequest struct {
@@ -389,7 +393,11 @@ func (in fundamentalsInput) prepare() (fundamentalsRequest, error) {
 	if err != nil {
 		return fundamentalsRequest{}, err
 	}
-	return fundamentalsRequest{symbol: symbol, exchange: in.Exchange}, nil
+	exchange, err := validateExchange(in.Exchange)
+	if err != nil {
+		return fundamentalsRequest{}, err
+	}
+	return fundamentalsRequest{symbol: symbol, exchange: exchange}, nil
 }
 
 type optionsChainInput struct {
@@ -441,7 +449,7 @@ type statementInput struct {
 	Symbol   string `json:"symbol" jsonschema:"Ticker symbol of the security."`
 	Period   string `json:"period,omitempty" jsonschema:"Optional reporting period: 'annual' (default) or 'quarter'."`
 	Limit    int    `json:"limit,omitempty" jsonschema:"Optional maximum number of periods to return (1-20, default 5)."`
-	Exchange string `json:"exchange,omitempty" jsonschema:"Optional exchange filter."`
+	Exchange string `json:"exchange,omitempty" jsonschema:"Optional exchange filter (NYSE, NASDAQ, NYSEARCA, AMEX, TSX, LSE)."`
 }
 
 type statementRequest struct {
@@ -460,11 +468,15 @@ func (in statementInput) prepare() (statementRequest, error) {
 	if err != nil {
 		return statementRequest{}, err
 	}
+	exchange, err := validateExchange(in.Exchange)
+	if err != nil {
+		return statementRequest{}, err
+	}
 	return statementRequest{
 		symbol:   symbol,
 		period:   period,
 		limit:    clampLimit(in.Limit),
-		exchange: in.Exchange,
+		exchange: exchange,
 	}, nil
 }
 
@@ -568,4 +580,24 @@ func validateSearchQuery(v string) (string, error) {
 		return "", fmt.Errorf("q must be between %d and %d characters", minQueryLength, maxQueryLength)
 	}
 	return query, nil
+}
+
+// supportedExchanges lists the canonical exchange codes accepted by the
+// backend data plane and mapped to provider suffixes.
+var supportedExchanges = []string{"NYSE", "NASDAQ", "NYSEARCA", "AMEX", "TSX", "LSE"}
+
+// validateExchange normalizes an optional exchange filter by trimming and
+// uppercasing it. An empty string passes through as "". If provided, it must
+// match one of the canonical supportedExchanges.
+func validateExchange(v string) (string, error) {
+	clean := strings.ToUpper(strings.TrimSpace(v))
+	if clean == "" {
+		return "", nil
+	}
+	for _, code := range supportedExchanges {
+		if clean == code {
+			return clean, nil
+		}
+	}
+	return "", fmt.Errorf("exchange must be one of: %s", strings.Join(supportedExchanges, ", "))
 }

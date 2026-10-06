@@ -8,7 +8,7 @@ Everything is offline: outbound HTTP is driven through an injected
 from collections.abc import Callable
 from datetime import UTC, date, datetime
 from decimal import Decimal
-from typing import Any
+from typing import Any, get_args
 from uuid import uuid4
 
 import httpx
@@ -22,6 +22,7 @@ from src.market.api_types import (
     HistoricalPrice,
     IncomeStatement,
     KeyMetrics,
+    SupportedExchange,
     SymbolLookupResult,
 )
 from src.market.exception import (
@@ -29,7 +30,13 @@ from src.market.exception import (
     MarketDataNotFoundError,
     MarketDataProviderError,
 )
-from src.market.fmp import FmpGateway, FmpHttpClient, map_to_fmp_ticker
+from src.market.fmp import (
+    FMP_EXCHANGE_SUFFIXES,
+    FMP_US_EXCHANGES,
+    FmpGateway,
+    FmpHttpClient,
+    map_to_fmp_ticker,
+)
 from src.stubs.fmp import StubFmpGateway
 
 _FMP_PAYLOAD: dict[str, Any] = {
@@ -111,6 +118,15 @@ def test_map_to_fmp_ticker_non_us_exchanges():
 def test_map_to_fmp_ticker_unknown_exchange_passes_through():
     assert map_to_fmp_ticker("AAPL", "US") == "AAPL"
     assert map_to_fmp_ticker("XYZ", "UNKNOWN") == "XYZ"
+
+
+def test_all_supported_exchanges_are_mapped_by_fmp():
+    supported = get_args(SupportedExchange)
+    assert supported, "SupportedExchange must not be empty"
+    for exchange in supported:
+        assert (
+            exchange in FMP_US_EXCHANGES or exchange in FMP_EXCHANGE_SUFFIXES
+        ), f"SupportedExchange {exchange!r} has no FMP mapping"
 
 
 # --------------------------------------------------------------------------- #
