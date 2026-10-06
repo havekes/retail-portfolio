@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "pageVersion": "sha256:9771d0c0e993b82e9cb466ed5c449fbd74ff6d077d980e474ee86900d556a241",
+  "pageVersion": "sha256:a77fb6671d72a6ddeacabc034845a18b61e3741ac31638e707a9f78f02be094d",
   "claims": [
     {
       "id": "claim_228fa2aa0c164d8caa3a5b1c7d543592",
@@ -808,15 +808,23 @@
     },
     {
       "id": "claim_dba46bfdf6aa418aa594a78d18bb4c14",
-      "statement": "UserHolding in lib/types/account.ts is Holding extended with account_id and account_name, mirroring the backend UserHoldingRead returned by the user-wide GET /accounts/holdings; it is the row type of the /holdings table (rows arrive via HoldingsService, typed UserHolding[]), which is what lets that view render an Account/Accounts column and group one stock across accounts.",
+      "statement": "UserHolding in lib/types/account.ts is Holding extended with account_id and account_name, mirroring the backend UserHoldingRead returned by the user-wide GET /accounts/holdings; it is the row type of the /holdings table — the presentational table's holdings prop is typed UserHolding[] and the rows arrive through HoldingsService.allRows, also typed UserHolding[] — which is what lets that view render an Account/Accounts column and group one stock across accounts, since the grouped path feeds the same UserHolding rows through groupHoldings and renders one per-account badge per grouped row.",
       "evidence": [
         {
-          "resource": "repo://frontend/src/lib/components/holdings/holdings-table.svelte#L165-L242",
-          "version": "repo-lines-v1:sha256:f9778a700fc62e53e5e336094f322378aac2d7af5a4dbdc0df757d7007ec9730:eyJzZWxlY3RlZExpbmVDb3VudCI6NzgsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjkzZjJjOWIwZjdjZGMwYmIyNGFkNTQ1ZmIyZGUwNDNiMGUzOTU0ZDk3OTFkY2NjNzNiZTAzODU3NjcyNzlhYzUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjI2YTg4NWQzNzAyYWM0YTIwNGYyMjNkODI2N2NmODNmODI1MDg5MzczMWRkOGZiYWVjMjQyMmRhODkxZWQxMDMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjQ2ZGQ3MjY4MzZlODU5NzA2NzZhNmM4M2JjZGIzODYzY2M0MDAzMGEwNDZlMDhmOGE0MWE1ODQ5YWE1MGMxYjciLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjVjZjU1OTgwMjc0ODFiYjMxNjMyYmMwNjUxZTI1ZTJlMzNhMDQ2YWI1NjQ0NGQ4NzdiOTUxNzdkMGNhYWZjMmIifQ"
+          "resource": "repo://frontend/src/lib/components/holdings/holdings-table.svelte#L163-L255",
+          "version": "repo-lines-v1:sha256:0d120ca46caf9d3e30227b6ae2f0481da8385137cb3d5462b174c66b85eb265d:eyJzZWxlY3RlZExpbmVDb3VudCI6OTMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjRiNGNhOTIxMjljZGI2YjlkOTI4OTUwYmUxZTZmNDZlMDg5NWE3YTA4YTc0YzJjY2U2MDYxNWRjNzAyMjlhMjciLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImFhMGM4YmQ0ODAzMTUxNDE0ZDI3YTBkNjA2MDE3NzgzMDRmZWVmZjYwM2VmMWUzMWNhMmE0YTQyMDJhODIwYTciLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImFiZDM3MzU0YzRlZTlhZDE5Y2UwYWM0YmI3YWEzYzgyNmRjZDhlODVlNzEwNWZlZTliNDE5YjBkYjA0ODUyYWMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjFmYzNlMDRmOTY4ZjMwYmI3NmU3ODdjOGZkMDUyNDUxZDQzNmRkNmYwNDk3NGQyNjczYTJjYjExN2ZhNjM1ZmQifQ"
         },
         {
-          "resource": "repo://frontend/src/lib/components/holdings/holdingsService.svelte.ts#L9-L14",
-          "version": "repo-lines-v1:sha256:b06f0cc286fe5bcf2b35b5f11c49362387cf7f13c70d419975354d2c15392353:eyJzZWxlY3RlZExpbmVDb3VudCI6NiwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiMDczZWVmY2U5ZTIzNTJmYTY0NjJhMzVmNmE1ZTkxNDRiZjA3NWY0ZTRjOWYzNGExMzU1NDlkMThjMjIwNzczNyIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiN2RkYWNiMjA0YjY2M2M5MTliYjg5NmZlMDY5ZmExODk5YWJiZjE1NmJiMzk0ZTAxZDJjZjk3MDM1OGViYTVkMiIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiZTczZjRlNGQ1NjA0MjY5MTNlNTUzYTMyMGMxYzY4MmU5MGY0ZTNiMDM0NjcwZTkwMjFkZWE1ZDVhM2IyNTIzZSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiNjI4NTg0MjgzZjkxYWNkMGJmNTk3YTRkZDgyOTI0OTE2NjUzZmI3MTAxZTZlNzM5Mjk2YjZhYTMzYjg1MDM5MCJ9"
+          "resource": "repo://frontend/src/lib/components/holdings/holdings-table.svelte#L36-L46",
+          "version": "repo-lines-v1:sha256:9de73cd7883f7c447adbbfa4c45c34b80201c7e629f1f232ca197de49d2237ba:eyJzZWxlY3RlZExpbmVDb3VudCI6MTEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ5NDM3NTRlYjNjNmZmNGI2MWM2ZDg5MzM1ZTJkZGYwMmRjZmMyODFkNWYzMGQyMWIyOTFhMjVjZDdjMWVjOTUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImNjM2EyMDc3NGQ1YzJiYjRjNzkwYzE4ODkwYTljNDk0Y2NiNTEwZmM4ZThjMDllYzc0NTE5YmMxNjRmYzc4NGIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImU3N2Q2N2U3OTY1ZjI2NjI3ZDgyYzU1N2EyZTRjMTIzOGRhYTE4MjQ3ZWE5ZTZjOTQzZWIyMGYyMmZlMWJkMjEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjUxNTAyNGNiODRjYjE2NDlmYWJhNGFlNWM4YzE1M2IzYjkwNTE3Yzc0ZDhjNTRjY2IxNDAyNDMzNDEwNDM1MWUifQ"
+        },
+        {
+          "resource": "repo://frontend/src/lib/components/holdings/holdings-table.svelte#L456-L481",
+          "version": "repo-lines-v1:sha256:ead38f67b4b6fbc6a84b3c5ac7f136670c3ba3ae8498ed02b220f3183b3ce444:eyJzZWxlY3RlZExpbmVDb3VudCI6MjYsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImVkMmUwNWExM2E3YTJiNmI2OGNhNzI3MmQ5Y2VjYWVjYWZiOGFiZTZhOWM4ZDY3OWIyMWZmNGQxZWI1YWU1ZjEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjMzM2I2ZjBjODA3NTgwNGNmMDgyOWQzNDQ0YjI1Y2M4ZTc2ZmE2MzY2MjEzYTYxYjA4YzY1ZTk0OTBmMTk0ZDQiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImUzYjc4ODZhOTRmNWYzYmU2M2Y4NTZjMmQ3N2IyNGUzZjU1ODc3YWNiZjgyMjRiODNjZDhiNjRiOTYwNGIxZGQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjcxYmU4MmY2MmI2ZGU0ODJlOGY5MGZmMTk0MTM1ZGM5NDkxMTJmZTE5YjJlOWU3NTU2YWUyN2Y5MmY2Y2IxOTYifQ"
+        },
+        {
+          "resource": "repo://frontend/src/lib/components/holdings/holdingsService.svelte.ts#L26-L46",
+          "version": "repo-lines-v1:sha256:072ad93dee8b3d56467f60ef908589454fdbc1070ea5d52e5014121127d3f2fc:eyJzZWxlY3RlZExpbmVDb3VudCI6MjEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImI5MDJiOWM0ZGQ2NjFlNzJlOGNjMGY0YmE3M2Y1NDc1ODU0YzkyOGM2OTk1NjU3MzlmODc5YzNmYzc5NWZjYzEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjY3Y2RhODJkYTYwNjIzOGUwNWU2MjM5OTU2OWM1ZWUwMzk5MzQxOTY0OGFlNWQ0M2EyYmY4Y2Q2MzQ3ZjgyNjMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjRjMDQzYzAzMWI4OTE1MTNjNWRhMTY3ODFkOTQwMjBlOTA0NjI1MTZiODFkMDYwMzA5MWIxOWM1NWE4ODlmZDQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImZmZjVkYTE4NDRiOThlNTg4YmRkNTU2ZGI3NDEyYjJiZmNjN2Y0YWFlNDZiNzE0OWM4ZDRhMjQ1OGU3NDNkMzgifQ"
         },
         {
           "resource": "repo://frontend/src/lib/types/account.ts#L97-L100",
@@ -883,7 +891,7 @@
           "version": "repo-lines-v1:sha256:4b5436437b483c9844f3b6cd07a95bc068898e2cacf80fb9f84fb6013d0fc4b2:eyJzZWxlY3RlZExpbmVDb3VudCI6MjAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImM3NWI5ZDk5ZTg2NDZjOTRjYWU5MWYzMmQzZjEwMDQ1YmY4MTJiMGUxMTNiMTAzMWVmNDc3NGJhZGFmMmY4ZjIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjZlYzZhZWZlMzg2OTMzZDc5YTJiODgwODBjYTJhNDdkZDMzN2NkZTJmNjdiNjAyNDM4MzRhZTJjYmIyM2M4MzAiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjEzOWM1ODdlYzFhNmU3MWJlZjhlMDQ5ZGZhZjdjNDRlNzVjNGI0YWE3MDA3M2I4ZTgwOTczNGQyM2ViMzFmYzgiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImU1M2JhM2ZiYTQ2MmU1NjY0Njc2ZDM3MThmNzJkOTAyNWRmZDliMDdkMDVjNjlkMmQyYWYyMTc4MDBiOTc0OGMifQ"
         },
         {
-          "resource": "repo://frontend/src/routes/security/%5Bsecurity_id%5D/%2Bpage.svelte#L707-L733",
+          "resource": "repo://frontend/src/routes/security/%5Bsecurity_id%5D/%2Bpage.svelte#L718-L744",
           "version": "repo-lines-v1:sha256:7375479c09f0a430bb40d42028a8587cdd4ec3ac997f805a392fbccfae01d4b7:eyJzZWxlY3RlZExpbmVDb3VudCI6MjcsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImYwNjY4OGFjNGJhOTQ3NTM2NDgwMzk5ODNhYWFjOWM3ZjU5ZjRkOGU1NzA0MjM4ZDQ4ODNlYjgyMjM0NmZhYzAiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjRkYzc2MDIwYmFlNzA1NzdlNjRiMzMwZGNhODNmZGYyNGYzZDc1OTNhMDE1NGQ4YWJlYzZkYzYzZjU4OTdmZDkiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjIyZjJmZjVmZWVjNjBmNTg3YzhmYWU0ZTg3ZjgwOWE2NjFjZmZlZDZiNDdhYWU1ZjZkNmEyNjUzYWE4OTUyZWYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjNkNzZhN2Y1NTRiZGM0ZjcyODRmN2I0ZmVlYmVkMDZlMjc5MWEyNWI3NDlkZWEyYjQzYjhhZWZmYjI3MTExZGQifQ"
         },
         {
@@ -999,7 +1007,7 @@
       "statement": "show_valuation_band and indicator_pane_heights are deliberately outside the $page.data seam: the security page reads them from its own userPreferencesService.getPreferences() call after navigation — through the indicators group's onPreferencesLoaded callback, or through a lazy fetch that only runs while userPreferences is still null in the chart-load chain — applies the band to showValuationOverlay and the pane heights through applySavedPaneHeights (a deferred chartRef.setPaneHeights), and writes them back with patchPreferences, logging failures only. The root layout load never touches either key, so the security route's first render does not wait on a preferences request only that screen needs.",
       "evidence": [
         {
-          "resource": "repo://frontend/src/lib/components/actions-sidebar/fundamentals/fundamentals-group.svelte#L75-L83",
+          "resource": "repo://frontend/src/lib/components/actions-sidebar/fundamentals/fundamentals-group.svelte#L78-L86",
           "version": "repo-lines-v1:sha256:e9da42b4d4de6888c6219be9659b23fbfbc9988e69651c76cc804258721152a2:eyJzZWxlY3RlZExpbmVDb3VudCI6OSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiNjMyMTE4MmU0YWE0ZTc4N2RmYjVmZmYzOGM1NGMzOTY3YTY2MDM4MmJmNzY2YWU5NmUwNDc0ZTZkZjU1Mzk0MyIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiY2MzYTIwNzc0ZDVjMmJiNGM3OTBjMTg4OTBhOWM0OTRjY2I1MTBmYzhlOGMwOWVjNzQ1MTliYzE2NGZjNzg0YiIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiZWEwNDVmYzI2NTJlYTE4Yjg4MjYxNTNiMjQ0MzE2ZDI4Yzk1NTdjYjVmMjM0NzVjOWI4OTg3MmEyNTM5MDU4NiIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiMzA5ZDY1MjBjZTQyZTA4NjFjZTk0NDNkNjJhYmNjYzU0YmQ2OTJlN2E4MTA0YzM2MTc5ZDA1NmVjMjJjZDdiZiJ9"
         },
         {
@@ -1007,15 +1015,15 @@
           "version": "repo-lines-v1:sha256:db2cb111190b330d7142eb1e27c38426aed785a69ace7167e9c8d2a0a7e4367b:eyJzZWxlY3RlZExpbmVDb3VudCI6MjcsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjZiZjY1OTVmZjIxYjZlNDBjOWU4NzQ1OGI3YzIyZTNjZjdhYTU3ZjBiZDQ2NmM4ZTg5NTI5YTc2M2VmNjZkMzIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjY3Y2RhODJkYTYwNjIzOGUwNWU2MjM5OTU2OWM1ZWUwMzk5MzQxOTY0OGFlNWQ0M2EyYmY4Y2Q2MzQ3ZjgyNjMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjczNzA2YTI5ZmRlZTllNmRiNGMyYmUzMWEwZWY5MWI1NzRiY2Q4YjBlZTQ5NThjZGIyM2ViYzg4NWVlYzFmOGIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImFjZjdlZmJlNTRhNjU5YzI3NDNmODMyMTIzZTM5MWQyOWFhODI3ZWQ0MWQwYjVkM2E4YTRjMDkwOWUyYzNlODcifQ"
         },
         {
-          "resource": "repo://frontend/src/routes/security/%5Bsecurity_id%5D/%2Bpage.svelte#L536-L554",
+          "resource": "repo://frontend/src/routes/security/%5Bsecurity_id%5D/%2Bpage.svelte#L547-L565",
           "version": "repo-lines-v1:sha256:8e4bff406d13f683323f1bb2fb2be9c9656ae72112c70b2e5d729dbe1aed3cd0:eyJzZWxlY3RlZExpbmVDb3VudCI6MTksImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjMzNWY4ZjdkYTY0ZWRhNjUzMDY4YWViZDBmMzUxNzJkYzE1NGMzZGQ4MDJlY2U3MzFmMmQ2NWFlN2U2ZTMxYmIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjY3Y2RhODJkYTYwNjIzOGUwNWU2MjM5OTU2OWM1ZWUwMzk5MzQxOTY0OGFlNWQ0M2EyYmY4Y2Q2MzQ3ZjgyNjMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjIyZjJmZjVmZWVjNjBmNTg3YzhmYWU0ZTg3ZjgwOWE2NjFjZmZlZDZiNDdhYWU1ZjZkNmEyNjUzYWE4OTUyZWYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6Ijk1ZTA5MmRjZmUxOGU3OGRmZDlmYjliNjgyNWIxZDU3YTg0YjJmZjQxZGVkMTM1YTZmOWY5ZmIwYmNiM2M5NzkifQ"
         },
         {
-          "resource": "repo://frontend/src/routes/security/%5Bsecurity_id%5D/%2Bpage.svelte#L664-L670",
+          "resource": "repo://frontend/src/routes/security/%5Bsecurity_id%5D/%2Bpage.svelte#L675-L681",
           "version": "repo-lines-v1:sha256:f68bd3e5d34a002bf609f9d5c22a0f066070152f6db35e5f66020e00b08e8b77:eyJzZWxlY3RlZExpbmVDb3VudCI6NywiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiOTAyOTI4ZjJhNGJmYzZmNzcxZGFkOWY3NWI0OWZhYzQwZTEzZTcwMWZiNDRkOWVkOThjNTRkNzVkZDJmNTI0YSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiYTQ5ZjUxNjk2ZDU2MDQ0Yzc5OGNiYzhhMGQ3YTg3ODZmMjYxYzc3MzQ0ZTJlNDA1N2ZmZWI4MWQwMDQ0Yzg5MyIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiMjJmMmZmNWZlZWM2MGY1ODdjOGZhZTRlODdmODA5YTY2MWNmZmVkNmI0N2FhZTVmNmQ2YTI2NTNhYTg5NTJlZiIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiNTY3ZWQ4ZGUzNmZlNGY2OWJlZTFmZDY4MzVhMzdmYWRkNWYyZjE2NDBiY2ZmYzhkYWNiMjgyNDYyYmVjMGE0MCJ9"
         },
         {
-          "resource": "repo://frontend/src/routes/security/%5Bsecurity_id%5D/%2Bpage.svelte#L738-L750",
+          "resource": "repo://frontend/src/routes/security/%5Bsecurity_id%5D/%2Bpage.svelte#L749-L761",
           "version": "repo-lines-v1:sha256:8d87c31f6db2c4fbb591afc52ac443219787bd7f915c2473c2c12976845f1bd4:eyJzZWxlY3RlZExpbmVDb3VudCI6MTMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImFhNjkyZWVkMzhkNjE0ZDdkNDk5N2NjN2EzN2JjMmE4MWRjNjAxYzRlYzI5ZTlmNWVmNDVhNDNjMzNhYjc2ZDIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImRhMTc4MDFhNzdhZjc0ZDAwM2M5ZmVjNmQ1ODU4MjNiYTExNzhkMzQ2ZGY1MTMwNTc1ZDFmMTFhNTliOGQ1OGIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjBjZmFlMDljOWViNTgyNmMxMTUyN2NjNjExNjQ3MzcwMDBhZjQ1NWRhNTUxMThjMThmZWQyMTdjN2U2ZTkyZGYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImNmY2YyMmNiN2ZiMWE5NDU2MjU4YmFlYWNlYjIzNDNhYTFlZTI4NGIxY2E2ODFlNzY2OWYzNWQ0OTg2MjNjNmQifQ"
         }
       ]
@@ -1029,7 +1037,7 @@
           "version": "repo-lines-v1:sha256:b8bd2c9205846d5cf670bbc3528d0457299f7a4c2f96e0798f4073f7551c7c1a:eyJzZWxlY3RlZExpbmVDb3VudCI6NjIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImJiNzNmMTVlZDk4YWI0NTRlNGNhZTc2MDAyOGI3MDQ3ZTc1ZWNhODUxMjJlNjUzNDVhZTVmNGVkM2EyNzdhY2QiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQxMmNhMzQ1Y2NmNzViZjljMDgwNmJjZTY5NWJlOGRlODA4Yjc5OTg0MjUxYTdhNTRkMjAyY2Y2MTAxZGQ0NTEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjczYWE3YTBjZjA0NGIyM2EwM2I2M2Q5ZDBkMTgzOGE0NjQ5MDFhYjlkOGM5NmNlNDIxMWE4MDljOTliMzM2ZTIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjZmYzA2MTI3MTc4NmQ2YjQ1MTJlYjI3MWRhMTY0NDc2Yzc4YWM1YzRhNTY3MTIwODhkMjk1N2M4YTRkYTQyYzYifQ"
         },
         {
-          "resource": "repo://frontend/src/lib/components/actions-sidebar/fundamentals/fundamentals-group.svelte#L46-L66",
+          "resource": "repo://frontend/src/lib/components/actions-sidebar/fundamentals/fundamentals-group.svelte#L49-L69",
           "version": "repo-lines-v1:sha256:da597e7e85f12c8d0c8430fa23cb04c66169fd0badfc1bf70a09276c977ed5ca:eyJzZWxlY3RlZExpbmVDb3VudCI6MjEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImM3YTgxMmJmYzFmYjU4YjBiYmJmZGJiYzdmNjRjZjJjODQwNmFjMTdhNmE5MzU2ZGU5YTk5NGQ0Y2YwYmM2ZmIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjBhNzM0OTJkODk0NmIxZDBmOWQ5YzA0YjcwNGE5MjBmMjRmODllZjdjN2Y3MzExYTg1OTlkMTBjN2Y2MzU4ZDAiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjY4ZGJiYmNmZjFhNzAwNTc2OWM2NmIxMzBiNjMwOTJmODhkMzFlNWQ3ZTkyMjZhYzJiYWE4OWUwMWY3NGQ0NmEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjAxOTMyMjU4MGQ5ZjFmMDE5ZjZiYTE3MmQwMWU5YjMyNDliZDA3ZTA1NTZkNzM0NDFhNmEwNGNiOGQxOTI2YzAifQ"
         },
         {
@@ -1037,7 +1045,7 @@
           "version": "repo-lines-v1:sha256:93de6b1fecee453af854d364ba4ac4652e73ed4734c8a0f5e192c512c1af0fde:eyJzZWxlY3RlZExpbmVDb3VudCI6MjMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImJmNDg5ZDVhZmE4YmRiYWU5NmE0MjA4ZmIyNmJlNTVlNmMwYzFhMjg1NzRhNTVlNmI1M2U3MGIwYzk2NmExMTIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImU2ODA2ZjE1NWM1YWMxYWUyNzIyY2EwNmYyYWM5Y2FkY2I4ODFiOTEyM2NiNjI0YTNjMTA0NzViNDQ0OWRjMmUiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjRmNmU1NWNiNDA4MzRiY2MwMzYwYjdmOWI1NTAwMDI2MGU0NjBlZDlhMmM1N2QzMDMzODgxMzNmNzIyM2NlYzgiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImNhYmYyYzZjNGQ5OGI4ZWYxODA0YTYxMWU3NTI2YzY1YWNjZDVkODkwMjY2ZWVkNjlmMTI3ZDk5ZDFjOGI1NTAifQ"
         },
         {
-          "resource": "repo://frontend/src/routes/security/%5Bsecurity_id%5D/%2Bpage.svelte#L446-L453",
+          "resource": "repo://frontend/src/routes/security/%5Bsecurity_id%5D/%2Bpage.svelte#L457-L464",
           "version": "repo-lines-v1:sha256:ea48e5b6163435ac409cc86218e6a472d824a1c91c93725751246ac9afe3e464:eyJzZWxlY3RlZExpbmVDb3VudCI6OCwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiZDJlYjk5MDJhNWZiNGFmNTlhMjM1Mzc0ZjJkOGIzMDc1MmU3MDhlY2Q5YzU5YmRjOTQzMDA0MDNhM2JlZDdjYSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNjdjZGE4MmRhNjA2MjM4ZTA1ZTYyMzk5NTY5YzVlZTAzOTkzNDE5NjQ4YWU1ZDQzYTJiZjhjZDYzNDdmODI2MyIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiMjJmMmZmNWZlZWM2MGY1ODdjOGZhZTRlODdmODA5YTY2MWNmZmVkNmI0N2FhZTVmNmQ2YTI2NTNhYTg5NTJlZiIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiODUzMTc0OTc0MmFiZTA1OWJmOTYzYjZkOGFmNGQzMmZmN2MyZTc5NjU1ZjkzNDc5NmY4Y2U0Mzg4MGRiOGI3NyJ9"
         }
       ]
@@ -1066,29 +1074,101 @@
     },
     {
       "id": "claim_2a9e7cc263564fa2974c0de349b05c98",
-      "statement": "The security route's right-hand column is its own composition rather than a navigation surface: +page.svelte renders a fixed w-64 border-l column wrapping Sidebar.Content and stacks seven collapsible groups in a fixed order — HoldingsGroup, FundamentalsGroup, IndicatorsGroup, PriceAlertsGroup, NotesGroup, DocumentsGroup and AIAnalysisGroup — each self-contained with its own client calls, loading/error state and a GroupTitle whose action affordance depends on whether data exists. The page owns the cross-group state (valuation, showValuationOverlay, alerts, indicatorConfigs, averageBuyingPrice, userPreferences) and passes it down with bind:, which is what keeps the chart, the valuation band toggle and the indicators group in agreement.",
+      "statement": "The security route's right-hand column is its own composition rather than a navigation surface: +page.svelte renders a fixed w-64 border-l column wrapping Sidebar.Content and stacks seven collapsible groups in a fixed order — HoldingsGroup, FundamentalsGroup, IndicatorsGroup, PriceAlertsGroup, NotesGroup, DocumentsGroup and AIAnalysisGroup — each self-contained with its own client calls and loading/error state. The page owns the cross-group state (valuation, showValuationOverlay, alerts, indicatorConfigs, averageBuyingPrice, userPreferences) but supplies it two ways: bind: for the genuinely two-way values (bind:valuation and bind:showOverlay on FundamentalsGroup, bind:showAveragePrice into indicatorConfigs.avgPrice.enabled on HoldingsGroup) and one-way props plus change callbacks (alerts, indicatorConfigs with onIndicatorToggle / onIndicatorConfigChange / onPreferencesLoaded), which is what keeps the chart, the valuation band toggle and the indicators group in agreement.",
       "evidence": [
         {
-          "resource": "repo://frontend/src/lib/components/actions-sidebar/fundamentals/fundamentals-group.svelte#L30-L66",
-          "version": "repo-lines-v1:sha256:ee696ae6678bbd1e669db3e93a5d4d028597d22d81768488a290100c124e3acf:eyJzZWxlY3RlZExpbmVDb3VudCI6MzcsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImZlNTY3YjExZDdhOTY5YjY4NDQ3ZGMxYjBiY2JkMDk1ZjUzYWE3Y2MxNDM1NGE2MjM4MDI5Njg2ZmM2YTkyZTkiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjBhNzM0OTJkODk0NmIxZDBmOWQ5YzA0YjcwNGE5MjBmMjRmODllZjdjN2Y3MzExYTg1OTlkMTBjN2Y2MzU4ZDAiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImNiYmM0MTNjMGQyODk5ZTg0ZmFlNDJjZWE5OGZmMDVkOTJlMGVmNWY5OTQ0ZmFlYjc0MzM4OWI3YWQ2N2JmMWYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjAxOTMyMjU4MGQ5ZjFmMDE5ZjZiYTE3MmQwMWU5YjMyNDliZDA3ZTA1NTZkNzM0NDFhNmEwNGNiOGQxOTI2YzAifQ"
+          "resource": "repo://frontend/src/lib/components/actions-sidebar/fundamentals/fundamentals-group.svelte#L17-L31",
+          "version": "repo-lines-v1:sha256:a6d0f1dee4c6eb7999af1a473df2b066f30388ead8e0eb18d00532e95baf2249:eyJzZWxlY3RlZExpbmVDb3VudCI6MTUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImMwYThkMjhjZDA3ODI1NTUyMDRiODBkN2YzNDQyZTg0Y2IwMmZjMjI3NDQ2NGQ0OTY1MGNhNWNjNDliMjg3ZTEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImM2OGQ1NTBjYTA1NGFkN2UwNTZhYzc1OTVjNzkzMGVhZWJiOWM4NTU1ZjE2MDJiOWEwZDJmOTc1NWUwZDIxNmYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImY0NGQ0ZmE5MDcyZmU1ZmYwOGY5NmQ1ZDc0ZjAyMjc1MTY3MzFkZGVjNDFmNmZjMWRjZGMyZDZiODVhN2FkN2EiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjA3ZjM5NWJmNTBhZjY5MzI3NzNlMjRkZTgxNzY1NDZhMWQ4MzAzOGM0MGI3NDlmNjlmYmRiMzdmMjAzMjFlMGMifQ"
         },
         {
-          "resource": "repo://frontend/src/lib/components/actions-sidebar/holding-group/holding-group.svelte#L36-L92",
-          "version": "repo-lines-v1:sha256:3c7adc1a245a12088629fc101fc90962d01fff521bd75d0e28c4aa4b5ada84b8:eyJzZWxlY3RlZExpbmVDb3VudCI6NTcsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjhiMmQ2NTYwNzBkZTg4MjZkYjBmYjE0YTViNzM2N2ZjMjQ4NWRkMDBlNmIzNTVjODBiMDZiNTdhZWIxYjE5MjMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjBhNzM0OTJkODk0NmIxZDBmOWQ5YzA0YjcwNGE5MjBmMjRmODllZjdjN2Y3MzExYTg1OTlkMTBjN2Y2MzU4ZDAiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImI4NGIzY2ZiYTIxYTNhNmQ4Y2Y0Y2UxZmM1MWE1M2I5YzhhNmFiNDA0YThkYzYzYjZjNzNiNTYxYjU1MjZlOGYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImVhMTNkYmZhMzY0ZjUxN2FmYjI3Y2NjMjJmZjk2ODlmNGI1ZWM5OTZmMGZiYWQ0Nzg2N2Y3NmM1M2YxMzVmOTQifQ"
+          "resource": "repo://frontend/src/lib/components/actions-sidebar/holding-group/holding-group.svelte#L20-L34",
+          "version": "repo-lines-v1:sha256:eebb65e41d442ce6e4b46a315ea4b764007aa7ac0b204aaa2da4adb2cb24c8ba:eyJzZWxlY3RlZExpbmVDb3VudCI6MTUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImMwYThkMjhjZDA3ODI1NTUyMDRiODBkN2YzNDQyZTg0Y2IwMmZjMjI3NDQ2NGQ0OTY1MGNhNWNjNDliMjg3ZTEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImM2OGQ1NTBjYTA1NGFkN2UwNTZhYzc1OTVjNzkzMGVhZWJiOWM4NTU1ZjE2MDJiOWEwZDJmOTc1NWUwZDIxNmYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjlmMjk0NWU3OTQ3ODE4MDI5ZmNiMzFmODVmMzM4NWJlMTI4MzJlYjEzNjE3MjAxYzZiNWU5ZjliMmRlMmM1YWMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjIyZTgwYmU3YzFkN2M4YjA1MTUyZDY0NzY4YTI1ZDI4YTAyNzAwMjI0Nzk0Y2EwNzAxZmY4MDkxZTlmYmMwOTkifQ"
         },
         {
-          "resource": "repo://frontend/src/lib/components/actions-sidebar/indicator/indicator-group.svelte#L7-L12",
-          "version": "repo-lines-v1:sha256:f382a76aca77cc53e7756caa945e81834b3f2945d8d6494910d82f596c547e9f:eyJzZWxlY3RlZExpbmVDb3VudCI6NiwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiNzcwNzZhNDAwYTVjNzdlMjVkMDdkZDZhNjU3NTc1ZGMzODMyNjQ3OWU1MjZkYzQyZjZlZWFiYTBlZDA0MTRhZCIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNjZiMjhjYzBjMTYxMjUwNzRhOGUwYjNlYTY0ZTUzZjc4NWQxMTI4MDQ1NzlmNjUzMmNjZTAwODE4NWRmNTlmZSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiNzk1ZmZmOTVlYjQwNDUzMzkxMmVlNzYzMDMwMjg5MzVlZDEyZGRkY2MxNzc1MDNkYTAyYTZiYzk4ZTE3MmMzZiIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiYTI0NWU2ODU5ODU0ZDVkNDE2YjM1MGExNGJlMmI1YTE0Zjc2ZmMxMDVkZGYwODNiNGYxNTNlOGMyMGI3OWQyYSJ9"
+          "resource": "repo://frontend/src/routes/security/%5Bsecurity_id%5D/%2Bpage.svelte#L1105-L1136",
+          "version": "repo-lines-v1:sha256:fa683c609aa491af8505afe56a3ef43a821985d79e2ffd677a2c9f116fd70c64:eyJzZWxlY3RlZExpbmVDb3VudCI6MzIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjI5NmEwZGZhZjYxYzk4MjgzZmMxNzY3NjY5MjgzZjc1Y2Q3NDhiZDE4NmNlMjQ5OWQwZWMxNGI0OGQ0MjY1MzYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImE4NTQwOWVhNjA5OWI4YzhmMDYwMmM3OTM0ZjZkNTlkMWM5ZjQ4ODA5OWRhY2JjZTI3MTk5ZTBlNmVjYTU0NDciLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImQ0MmQxOTJkZWUyNTU0ZWE2OTY3YmRjM2MyMmQ2NjM5ZmQzMTA4MmVhMjRiNDI5OGRhMWY1ZTkyMTlkYzJjODQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjY4M2Q3ZTNmYTc5NDEzMjUwNjlkYTE4M2YzNWEyN2ExMGU4MGNjMWMwYzJhYmQyYzVmYjM0MGU2ODQ1YzY1MWQifQ"
         },
         {
-          "resource": "repo://frontend/src/routes/security/%5Bsecurity_id%5D/%2Bpage.svelte#L1094-L1124",
-          "version": "repo-lines-v1:sha256:6a679df43a299c368f58c2e6a233c7fd54b3fe7f38a9860d78c5ae519fc23bd4:eyJzZWxlY3RlZExpbmVDb3VudCI6MzEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjI5NmEwZGZhZjYxYzk4MjgzZmMxNzY3NjY5MjgzZjc1Y2Q3NDhiZDE4NmNlMjQ5OWQwZWMxNGI0OGQ0MjY1MzYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImE4NTQwOWVhNjA5OWI4YzhmMDYwMmM3OTM0ZjZkNTlkMWM5ZjQ4ODA5OWRhY2JjZTI3MTk5ZTBlNmVjYTU0NDciLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImQ0MmQxOTJkZWUyNTU0ZWE2OTY3YmRjM2MyMmQ2NjM5ZmQzMTA4MmVhMjRiNDI5OGRhMWY1ZTkyMTlkYzJjODQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjY4M2Q3ZTNmYTc5NDEzMjUwNjlkYTE4M2YzNWEyN2ExMGU4MGNjMWMwYzJhYmQyYzVmYjM0MGU2ODQ1YzY1MWQifQ"
+          "resource": "repo://frontend/src/routes/security/%5Bsecurity_id%5D/%2Bpage.svelte#L1107-L1116",
+          "version": "repo-lines-v1:sha256:d4372aa4d6ca9cc181a49bf1ff2d451b75cc7319dd7efd6be32f3d8f56c69ae2:eyJzZWxlY3RlZExpbmVDb3VudCI6MTAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImE5ZWFlNTRlYWQ2MWE1MjQ0ODk0ZjI4ZDljZDIyYTBhMzBkOGMxN2U1ZGMwNWVmYjcyYThhMDVmNjRjNzFmMDgiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjliYjQ2Mjk2ODA3ZjFjMDc4ZDY0N2Q2OWM5OWQ4MzY5YjBiNDAxOTZjMWE0NjIyYzBmNzQzNTMxYjQyNzNkMWUiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImQ2OWI5MjI5YWI1OTlmNzg2YTU5OTBhMjY0MTg5MzA2NDA4NjQ1Njg5ZmI4ODcyNTg3OTYxYzBmOGM1ZTc5ZGQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjMwZDNjYjJkNDAyMDZkMGNmZGVkMmM0MTZmODIyYjI5MTNlNDFiMTllOWZkM2VhYjlhMDdjZTUwMjkyYTE0ZGQifQ"
+        },
+        {
+          "resource": "repo://frontend/src/routes/security/%5Bsecurity_id%5D/%2Bpage.svelte#L1117-L1130",
+          "version": "repo-lines-v1:sha256:aae50a04c381b4b1b9517bba71258482a27d71469ec62f352399dddb1dcb7230:eyJzZWxlY3RlZExpbmVDb3VudCI6MTQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijg4ZTdmNzdhYzE5YzhkODU2MTkwMDE0YzljMzk0ODcxODA4N2JiNmIxNTI3YzM1N2M0ODk5MjVmNWQ3NjNjOTAiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjliYjQ2Mjk2ODA3ZjFjMDc4ZDY0N2Q2OWM5OWQ4MzY5YjBiNDAxOTZjMWE0NjIyYzBmNzQzNTMxYjQyNzNkMWUiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjMyMzk1OWNiMmNkNTNiY2IxNTdmZWJiMWU3ZjBiMTE3N2RjNGE1M2NlN2Y2OTNjN2Q5YjgxYmY2OTRmYTIyYjgiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjdmMTRlYjZhNThiZGMxMDNkMzJjZGE5MDA2OTQ5ZWJhNzU4MWJiNWJhM2QxYzNjNmQ2YzhhMWNmZjYyYjMzNDMifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_2e2b2f314e6e4ee89881baf1072f5bdd",
+      "statement": "Every actions-sidebar group header is the shared GroupTitle component: the collapse toggle with its rotating chevron is always rendered, while the optional trailing action button only appears when the group supplies an actionIcon, and each group supplies its own — Fundamentals swaps Pencil for Plus depending on whether a valuation already exists, Holdings uses Maximize2 to open the holdings-breakdown modal, Price alerts / Notes / Documents use Plus to open their create dialog, and Indicators and AI Analysis pass no icon at all.",
+      "evidence": [
+        {
+          "resource": "repo://frontend/src/lib/components/actions-sidebar/ai/ai-analysis-group.svelte#L91-L92",
+          "version": "repo-lines-v1:sha256:e09c7a1fcf71a22ae00faf2514ec66fdb4d63b61eae9115e7e655e3220c17a2b:eyJzZWxlY3RlZExpbmVDb3VudCI6MiwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiNDcxMzM1YWIzZjRkZmUxM2Y5YWRiMWU0MDliZWYxNWQ4YTJlMDc5NjY1N2UyZTM0NmE4ZWI5NmYxODQ1YTc1ZSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiZWM4MGJjZGQ3MmIxODZlMDc2NWJjOTJhZDUzZDk2YzY5ZGMxNTc1NTM4YzQzNDFmMDIyOTc0ZGMwNjUwYWMxYiIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiZmI2MzkxZmU4ZmFmNjc4NWM0MTliYmRkOGZjMmVmMzg3YWQ3Y2YyMDhiYzk1MWY2MjMxNWNhY2ZlODAxY2QwMyIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiMGIzZjZkZDIzMWZkNTY0MGEyZjgxMzVmYTEwMWJjYTE3NDM0ZmUxYWUxOTRiZTBkOGI4MDczNWRkYTI2YmJhNCJ9"
+        },
+        {
+          "resource": "repo://frontend/src/lib/components/actions-sidebar/document/document-group.svelte#L72-L80",
+          "version": "repo-lines-v1:sha256:57ac00097e4fd6123d0c8d8df547bb7b2e7b296942c81f5ea1be90f19b4bcae8:eyJzZWxlY3RlZExpbmVDb3VudCI6OSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiNDcxMzM1YWIzZjRkZmUxM2Y5YWRiMWU0MDliZWYxNWQ4YTJlMDc5NjY1N2UyZTM0NmE4ZWI5NmYxODQ1YTc1ZSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiM2RjN2QwNDA3MjU3NjhjYmFiZjY3YzgzNGYwNzcyMDkwZTEyYTFiN2M5N2NmMDZiMDlhMWU5ZmIwNjQ5NTg4NiIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiMTI2ODg1MzMwZjg5ZDUxMzlhYjBlODUyMWU1Yzg1YTU5MWUyNmFhODFmNDVhNDFhYjQxOWZlNmJkMDVjMzI1ZCIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiMGIzZjZkZDIzMWZkNTY0MGEyZjgxMzVmYTEwMWJjYTE3NDM0ZmUxYWUxOTRiZTBkOGI4MDczNWRkYTI2YmJhNCJ9"
+        },
+        {
+          "resource": "repo://frontend/src/lib/components/actions-sidebar/fundamentals/fundamentals-group.svelte#L98-L106",
+          "version": "repo-lines-v1:sha256:f46da673f882babfe5305e53908b0ff77f81eacc70e58b335c0d80e7a82bcc12:eyJzZWxlY3RlZExpbmVDb3VudCI6OSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiNTQxM2YzMGY2YmMwOWY4MDQxMjIxOTBmZmVkMzEzZTA1M2JmNzk2ZmUyNmMzOWY5NWU0Yzc4NDhjMjQ1OTI0YyIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiM2RjN2QwNDA3MjU3NjhjYmFiZjY3YzgzNGYwNzcyMDkwZTEyYTFiN2M5N2NmMDZiMDlhMWU5ZmIwNjQ5NTg4NiIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiNTJkYTI0MzJkNGI3ODk2MzgxYmI5OTNlNzViYzhkYjdmODBkOWMwZDE0YWY2ZDQ2Y2YzMjQxNGM5OTI0ZjJkNCIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiMGIzZjZkZDIzMWZkNTY0MGEyZjgxMzVmYTEwMWJjYTE3NDM0ZmUxYWUxOTRiZTBkOGI4MDczNWRkYTI2YmJhNCJ9"
+        },
+        {
+          "resource": "repo://frontend/src/lib/components/actions-sidebar/group-title.svelte#L6-L43",
+          "version": "repo-lines-v1:sha256:27d4bc54e6d132a831ac7b5cfe20dc80362338ed81245f7244f6afbf30c29bbf:eyJzZWxlY3RlZExpbmVDb3VudCI6MzgsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImMwYThkMjhjZDA3ODI1NTUyMDRiODBkN2YzNDQyZTg0Y2IwMmZjMjI3NDQ2NGQ0OTY1MGNhNWNjNDliMjg3ZTEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjA2ZmU5OTlhNWM0MzE0ZTdlNjM2ZDhlYWZhYTlkNTBmNmE1MTQ5YmY3NzkzYWEyNDFiNmE5NmJjYmZiZjhjMzUiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjYzZDJmMDBjM2VkNDNlZjcyZTY5NGRiMGVkMWQ2MmQxZTE4YWU2NTU2MDFlNGQ3NTE5YTcyNTkzYzI0YjA5Y2YiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
+        },
+        {
+          "resource": "repo://frontend/src/lib/components/actions-sidebar/holding-group/holding-group.svelte#L133-L142",
+          "version": "repo-lines-v1:sha256:dd69f36583732f60813d3861116123079e4dc9d8f4a93386e1e92028b2909929:eyJzZWxlY3RlZExpbmVDb3VudCI6MTAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ3MTMzNWFiM2Y0ZGZlMTNmOWFkYjFlNDA5YmVmMTVkOGEyZTA3OTY2NTdlMmUzNDZhOGViOTZmMTg0NWE3NWUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjNkYzdkMDQwNzI1NzY4Y2JhYmY2N2M4MzRmMDc3MjA5MGUxMmExYjdjOTdjZjA2YjA5YTFlOWZiMDY0OTU4ODYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImZhYmZmYTg2YWU3YmEzYzQxZTVmMzI5ZjJhYWRlMTY2ZTlkYWE1Y2E3YTVkM2Q3ODNmNWJiMmNkY2QxZDkxZDMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjBiM2Y2ZGQyMzFmZDU2NDBhMmY4MTM1ZmExMDFiY2ExNzQzNGZlMWFlMTk0YmUwZDhiODA3MzVkZGEyNmJiYTQifQ"
+        },
+        {
+          "resource": "repo://frontend/src/lib/components/actions-sidebar/indicator/indicator-group.svelte#L217-L217",
+          "version": "repo-lines-v1:sha256:19f150e03797cc8f90da57f74fbbd94ee21a8ee9e02d0889840eb41ebd68fe0d:eyJzZWxlY3RlZExpbmVDb3VudCI6MSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiMTlmMTUwZTAzNzk3Y2M4ZjkwZGE1N2Y3NGZiYmQ5NGVlMjFhOGVlOWUwMmQwODg5ODQwZWI0MWViZDY4ZmUwZCIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiMTlmMTUwZTAzNzk3Y2M4ZjkwZGE1N2Y3NGZiYmQ5NGVlMjFhOGVlOWUwMmQwODg5ODQwZWI0MWViZDY4ZmUwZCIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiOGM0Njg3MDVhZDNhYWY1ODcyNzlmOTc0OTliN2FlNzI1MjViYzc2MDM1NTYxMDY1YjNiZWU1ZmQwZjkyNzE1OSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiMGIzZjZkZDIzMWZkNTY0MGEyZjgxMzVmYTEwMWJjYTE3NDM0ZmUxYWUxOTRiZTBkOGI4MDczNWRkYTI2YmJhNCJ9"
+        },
+        {
+          "resource": "repo://frontend/src/lib/components/actions-sidebar/note/note-group.svelte#L74-L82",
+          "version": "repo-lines-v1:sha256:779db8d83e4d343ba05bcf76a92cc230a0626af6975a5e29fb47c69d5fba59e6:eyJzZWxlY3RlZExpbmVDb3VudCI6OSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiNDcxMzM1YWIzZjRkZmUxM2Y5YWRiMWU0MDliZWYxNWQ4YTJlMDc5NjY1N2UyZTM0NmE4ZWI5NmYxODQ1YTc1ZSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiM2RjN2QwNDA3MjU3NjhjYmFiZjY3YzgzNGYwNzcyMDkwZTEyYTFiN2M5N2NmMDZiMDlhMWU5ZmIwNjQ5NTg4NiIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiMTI2ODg1MzMwZjg5ZDUxMzlhYjBlODUyMWU1Yzg1YTU5MWUyNmFhODFmNDVhNDFhYjQxOWZlNmJkMDVjMzI1ZCIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiMGIzZjZkZDIzMWZkNTY0MGEyZjgxMzVmYTEwMWJjYTE3NDM0ZmUxYWUxOTRiZTBkOGI4MDczNWRkYTI2YmJhNCJ9"
+        },
+        {
+          "resource": "repo://frontend/src/lib/components/actions-sidebar/price-alert/price-alert-group.svelte#L87-L90",
+          "version": "repo-lines-v1:sha256:90d6b4f6df9e671d57fc9e641dc2a57bc3a919842b3e7f91db3411d296604e90:eyJzZWxlY3RlZExpbmVDb3VudCI6NCwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiNDcxMzM1YWIzZjRkZmUxM2Y5YWRiMWU0MDliZWYxNWQ4YTJlMDc5NjY1N2UyZTM0NmE4ZWI5NmYxODQ1YTc1ZSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiM2RjN2QwNDA3MjU3NjhjYmFiZjY3YzgzNGYwNzcyMDkwZTEyYTFiN2M5N2NmMDZiMDlhMWU5ZmIwNjQ5NTg4NiIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiMmQxMjRlYjg0YzdhMWM5MDJjYWYwMTlkYzk0MWZkOWQwZDNlNmMzM2Q2ZGEzNzkyYzBhOTNjM2FmZjgzMzNmYiIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiMGIzZjZkZDIzMWZkNTY0MGEyZjgxMzVmYTEwMWJjYTE3NDM0ZmUxYWUxOTRiZTBkOGI4MDczNWRkYTI2YmJhNCJ9"
+        }
+      ]
+    },
+    {
+      "id": "claim_3fd58902b3bf4114b3fad4c2000befa0",
+      "statement": "PriceAlertsGroup declares its alerts prop as $bindable with an undefined default, but the security page passes its own page-level alerts array one-way ({alerts}); the group mirrors any supplied array into its local state and only falls back to alertsService.getAlerts when no external array is present, so the single page-owned alert list keeps the sidebar group and the chart's alert primitive in sync.",
+      "evidence": [
+        {
+          "resource": "repo://frontend/src/lib/components/actions-sidebar/price-alert/price-alert-group.svelte#L14-L22",
+          "version": "repo-lines-v1:sha256:9aa8711aacf1aaf096eb0f1487a27aa4688e0e14cd864f77f442d8d49295f7c7:eyJzZWxlY3RlZExpbmVDb3VudCI6OSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiYzBhOGQyOGNkMDc4MjU1NTIwNGI4MGQ3ZjM0NDJlODRjYjAyZmMyMjc0NDY0ZDQ5NjUwY2E1Y2M0OWIyODdlMSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiYzY4ZDU1MGNhMDU0YWQ3ZTA1NmFjNzU5NWM3OTMwZWFlYmI5Yzg1NTVmMTYwMmI5YTBkMmY5NzU1ZTBkMjE2ZiIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiZmY0OGU5MzMyOTkwYTRhZWFhZDAzMjhmMmIwODlkYTgzZjNhZTczNDVlYzg1YWRhMTc0YzY3NjI4MjhiMjk2MSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiMTc3MjJlZjY1NTBhZjY0MjFlNzgzNTQyOTViMzQyOTkxNmVkY2UyMTRmNzkyZjc0NDdjMWE5NGJkMGM1YmEwOSJ9"
+        },
+        {
+          "resource": "repo://frontend/src/lib/components/actions-sidebar/price-alert/price-alert-group.svelte#L69-L75",
+          "version": "repo-lines-v1:sha256:727eace949f590b843d53032f1bbb9a99aa1b461a6b7a372a7099e7832b73b99:eyJzZWxlY3RlZExpbmVDb3VudCI6NywiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiNGZmZjA2MzM0OGExZTFhMzI1MTNlYWNjMDE2ZmMyNWNmZmVmMGI0YzkwYmYwYzg4OGVkNTg1N2YyMTNhMzJkYyIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiMGE3MzQ5MmQ4OTQ2YjFkMGY5ZDljMDRiNzA0YTkyMGYyNGY4OWVmN2M3ZjczMTFhODU5OWQxMGM3ZjYzNThkMCIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiYThjN2ZiNjM5NjI1ZDhlNTYxOGM2Y2JiZmQ3YzVkNTYwYzYwYzBjZWQxNTE1ZGQzMDJhODBlNjkyNzQ2MTUxNCIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiYmZkNTQ1Mjk0ZjNlZGFjZjVlMGQxNGYyZTM1Y2E1ZGI4N2I0ZGRjNjU3ZTQxZWEwNDgyYmI1YTgzNjFhOTIyMSJ9"
+        },
+        {
+          "resource": "repo://frontend/src/routes/security/%5Bsecurity_id%5D/%2Bpage.svelte#L1131-L1131",
+          "version": "repo-lines-v1:sha256:60e83ec60d0dde809466221ade25283b4d8987eae05588f1863080a28d801bd2:eyJzZWxlY3RlZExpbmVDb3VudCI6MSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiNjBlODNlYzYwZDBkZGU4MDk0NjYyMjFhZGUyNTI4M2I0ZDg5ODdlYWUwNTU4OGYxODYzMDgwYTI4ZDgwMWJkMiIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNjBlODNlYzYwZDBkZGU4MDk0NjYyMjFhZGUyNTI4M2I0ZDg5ODdlYWUwNTU4OGYxODYzMDgwYTI4ZDgwMWJkMiIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiOGQ4MDYyYzc4OTFmNWRhMjUwZWExYmZhYTRhZjQwYmVhZjI1NDM0ODEzZjc5MGU5ZDIyZTQzZWI0OGRjZTQ2ZSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiZjYyZDY0MmMzMDc2OGQ1MWI4NjUyYmRmMDJkNzk2YWNkYmE2MmY0OGNhNDBhMDU3MzZkNDA4NjhmNGQ4MWQwNyJ9"
+        },
+        {
+          "resource": "repo://frontend/src/routes/security/%5Bsecurity_id%5D/%2Bpage.svelte#L293-L293",
+          "version": "repo-lines-v1:sha256:4bed57be95423fa739c43305a74f523c79a1f58710e6d7b84c3f381499cedaad:eyJzZWxlY3RlZExpbmVDb3VudCI6MSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiNGJlZDU3YmU5NTQyM2ZhNzM5YzQzMzA1YTc0ZjUyM2M3OWExZjU4NzEwZTZkN2I4NGMzZjM4MTQ5OWNlZGFhZCIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNGJlZDU3YmU5NTQyM2ZhNzM5YzQzMzA1YTc0ZjUyM2M3OWExZjU4NzEwZTZkN2I4NGMzZjM4MTQ5OWNlZGFhZCIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiOTNkMzJjMTM0Nzk3MjEzYTNjMzdhOTRjMjA1ZjllMWNiMjM3OGQ5MWNkZGE4OTA2OTc5MTg1ZTE1MDRmMmM4MiIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiZjA0ODY3YTVlZGQ0YTZiZGUyYThiNTI3Y2MwZDI2NzgwMTI1YWQ5YmQ3YWQ0YjQ0NjE0MGVkMzE4NzU3ZGZmZSJ9"
+        },
+        {
+          "resource": "repo://frontend/src/routes/security/%5Bsecurity_id%5D/%2Bpage.svelte#L437-L445",
+          "version": "repo-lines-v1:sha256:e81ae32ccea3875c8f5cb42b6be95555b7c38527ea8133552793e5b9c626aa9b:eyJzZWxlY3RlZExpbmVDb3VudCI6OSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiOGNmMGMyNzY1Mjc1MTg5OTg4NDk3YWU1ODk4NTBiOGI4MTczNDAxZmY2NTlhZjlkMDdlMWE2ZTM4Y2Q1N2I0OSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNjdjZGE4MmRhNjA2MjM4ZTA1ZTYyMzk5NTY5YzVlZTAzOTkzNDE5NjQ4YWU1ZDQzYTJiZjhjZDYzNDdmODI2MyIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiMjJmMmZmNWZlZWM2MGY1ODdjOGZhZTRlODdmODA5YTY2MWNmZmVkNmI0N2FhZTVmNmQ2YTI2NTNhYTg5NTJlZiIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiNmE5NDRiZmJkMTk3OTE4NjEzN2JjOTc3NTA2NjJmOTlhYWZkYjFlMjU3ODUyNDQ3NTc4OTIxY2UzMGMzOGI3NyJ9"
+        },
+        {
+          "resource": "repo://frontend/src/routes/security/%5Bsecurity_id%5D/%2Bpage.svelte#L995-L997",
+          "version": "repo-lines-v1:sha256:a53dcdd2c5c6b1f5910c8208f1835b631c43fc6d99caab182a76da94c47c8ee5:eyJzZWxlY3RlZExpbmVDb3VudCI6MywiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiNjYwZGUwNDRlZjMzYzYyZGQxZmRmNjZlZTgyYmFkN2YxM2VhYWQ3MTUzYzM3NzQ3ODFiZjRjMDM5MDg2YWM0OCIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiMGRlM2YxZjExZDYxMTc1ZmExMjFkZDlhNjIxYjJiYTdkOWM0M2IyYzQ2Zjc2YmRjOTM1ODQxMTJlZmRjNjg2NSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiNWQ5YzI3NDBhYWIwNGVjYmY0ZTVjNGY5ZDNjZTJlMzRkMjc3ZjM3OGE3MDdiNWNkNTQ0ZGJiNjdhMzk2MWU4MSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiOTQ3MmFkYTZkNzgzMjU1NTQ0ODZmZjM4MzcxMzQzMjViZTZiNTRmZThiMTc5OWRlYzc1ZmM4OWYxYzU1ZDY2ZSJ9"
         }
       ]
     }
   ],
   "verification": {
     "by": "openwiki/0.7.0",
-    "at": "2026-10-04T13:39:13.522Z"
+    "at": "2026-10-06T14:42:34.222Z"
   }
 }

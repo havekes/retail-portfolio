@@ -1,0 +1,470 @@
+{
+  "schemaVersion": 1,
+  "pageVersion": "sha256:430142da589a98a8511dc8e3307c1a12e8b5753cee699738cbba1f30e7b2b9c7",
+  "claims": [
+    {
+      "id": "claim_776f3745ba24415bab3e6e50e14c0b89",
+      "statement": "The watchlist membership association `market_watchlists_securities` is an entity rather than a bare join table: it has a composite primary key over `watchlist_id`/`security_id`, carries `added_at` and an application-managed `position`, and both foreign keys use `ondelete=\"CASCADE\"`, while `market_watchlists` carries the persisted `sort` column and a unique `(user_id, name)` constraint.",
+      "evidence": [
+        {
+          "resource": "repo://src/market/model.py#L127-L157",
+          "version": "repo-lines-v1:sha256:a7ad27f3cb4442460012ec03146c61ef6e4884d65bb92cfcd9a752853ea0dd12:eyJzZWxlY3RlZExpbmVDb3VudCI6MzEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjY4MGY0ODIyYmY1NzIzODkwYTg4MWE0N2M3ODhiOTQ0N2Q0Mzc2YjhkMjdhM2Y1M2M5MTc3MDg4ZTY1ZmNjZjEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjMwYzFmMTg4ZjE0MmVkN2E4MjQ2ODBiMjA3MTcyYzU1MTliYzYxNGE0OGZkYTdjZjE2N2VkYjhkZGY3OTk1NmMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjhjYzRhN2QxY2M3OTZhYmEzZTQ2NzIzMzI3ZjUxN2U5ZjgxMTk4MmQyNTBmMDcwMjk4NmU0YjU3NjRhZDk1ODkiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjdiMTljNzk1MjU4Y2I4Njc4YmI2ODk0ZGU1M2EzMmQ3Yzc0MDA0NGU2MDZmNzZjZTFjYzE5ZjYwZDUyMmFjZWIifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_305af3a8d9b94c608c89fa5249364869",
+      "statement": "The watchlist sort/membership migration `4c2ed77e7738` adds `market_watchlists.sort`, `market_watchlists_securities.added_at` and `position` as nullable columns with server defaults, backfills them deterministically (`row_number() OVER (PARTITION BY watchlist_id ORDER BY security_id)`, `sort` to `custom`), and only then enforces `NOT NULL` — the worked example of the model-change-plus-revision rule.",
+      "evidence": [
+        {
+          "resource": "repo://migrations/versions/4c2ed77e7738_add_watchlist_sort_membership_added_at_.py#L1-L81",
+          "version": "repo-lines-v1:sha256:447070ac26973ff865db2a04e7900bb4ca31b2920f516139d5d077c08760f922:eyJzZWxlY3RlZExpbmVDb3VudCI6ODEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ0ZDllNTkxMGJmNDExOWE4MDk5OWNjZjRkMTExZmEzMDg5YTlkNWNkZDY1ODcyMDM4NWUxZmUxY2RmZDZhY2EiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjU0YWE5NDlkZWQ1Zjg2ZjUyOGNhMWJjZmY5YTAzZDM4ZjkxODk2YTc1NjFjODdkZTNjM2VjZjVjYmIzYjMzZGQiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjowLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjoxLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImFjODdiNDk1YzEwMzk1ZmI3MTA2NWMzNjY5MGM3OGY4OGYzZDBlNDVmYzc4NDU0ZDJlYmNlYTdkMTY5ZTFkMTcifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_637cbd36e13b48e0890c647c0996f829",
+      "statement": "`WatchlistRepository` is an ABC declaring twelve operations that the router resolves with `services.aget(WatchlistRepository)` and calls directly; there is no backend watchlist service, and only `create_default` has no route.",
+      "evidence": [
+        {
+          "resource": "repo://src/market/repository.py#L135-L213",
+          "version": "repo-lines-v1:sha256:6e65b8aa0ee4855ba5f13bba25dd3f5c0704bc06e7f46fd9ad3701b9bd74f692:eyJzZWxlY3RlZExpbmVDb3VudCI6NzksImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjdhZTA1MjBjYTg1MjA1YTQzNzhjY2M3N2M4NmE3YWExNzk4ODIxMjUwZjFjMzVkMmEzZjFhYTBiZDJhYzJjMGUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImYwNjJlNThlYTBiMGZkMTk1YmEwNzY2MTNiNjMwZDU5ZTY3YmQ0NzBiYjE5ZTk3YTIwYzkwMjM2NmU1YmEwZTYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjM4MzA2YjE3YTFjM2I3MjA4Mzc2OWI4OGM1YjAwN2I5NmEzNWEwNDJmNzllYWI1ODUzMDY3Y2JlZGQ0MWFjOTMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImFiMzczMTQzYWRmZDQxNjZiYmRmZTcxZGNlMWI1MmNmMTc1MWNkZTk2MzFmMWIwMTE3ZjEzYzZlY2ZkOGMyMWMifQ"
+        },
+        {
+          "resource": "repo://src/market/router.py#L330-L500",
+          "version": "repo-lines-v1:sha256:aa1e8f4eed415186517a8caf7a0d75fa8e3fa1c6a8db7911e8f2d68c8c58e7ff:eyJzZWxlY3RlZExpbmVDb3VudCI6MTcxLCJmaXJzdFNlbGVjdGVkTGluZUhhc2giOiIzOGRjY2FhNzIzZTU0MTI1MWFiODNlYjE4ZTU3MWY4MDhkZGJiYzFhY2MyODI4ZjlkNDE0Mzg1NjZmNDBjMzIzIiwibGFzdFNlbGVjdGVkTGluZUhhc2giOiIxOTExOTA3ZTZiYzhiZWRhNjZiMGM4ZTRiNGRkMWVmYmFlNTM2MDk2NGUzZDU3ZDhlNzBiOTRhOGYzOGEzZmUxIiwicHJlY2VkaW5nQ29udGV4dExpbmVDb3VudCI6MywicHJlY2VkaW5nQ29udGV4dEhhc2giOiJjMTJkY2YwNmFhYWJlYjUyNTZmODhkMDZmMzk5MTc1YzdkNDRkNGU2ZTA1MTRmODNiZjYyMWRmODlkZWM2NzE0IiwiZm9sbG93aW5nQ29udGV4dExpbmVDb3VudCI6MywiZm9sbG93aW5nQ29udGV4dEhhc2giOiJiMjAxNTQ0ZmY5NTkwMTYxMDA5ZDkyMzk2ZTY4ZWU5NmY2MjVmNjIyYThmM2U5ZmFlZGQzZmFmMjhhZTZjYTNlIn0"
+        }
+      ]
+    },
+    {
+      "id": "claim_9116a189d2554c2dae7094e95da7f713",
+      "statement": "Every watchlist operation is scoped to the owning `user_id` through the single ownership gate `_get_owned`, which raises `WatchlistNotFoundError` for a missing or foreign watchlist so the two cases are deliberately indistinguishable, and the global `EntityNotFoundError` handler in `src/main.py` turns it into a 404 with an `{\"error\": ...}` body.",
+      "evidence": [
+        {
+          "resource": "repo://src/main.py#L244-L251",
+          "version": "repo-lines-v1:sha256:cfaa4ce391e9cec48ad6491a070ba02dfee970ce12f1d8eb9a43dcea50b1a595:eyJzZWxlY3RlZExpbmVDb3VudCI6OCwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiZDJiYjkwODdmNDYxMjc2ZGFiNGNjYzgyNzc0Zjc2NWRkZDM2ODBiNDIzMDJlZDJjYTc2ODdmMWU1OGY4MTgxNiIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiMjAyNTY0MWE1MDIzNjJiMjQ3OTc4NWE5MTQ1ZTE0N2UzYjdlZDZmYzNhOWI5Y2I4NzMzNzgxMGI3NTE2ODE2OCIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiOGNjNGE3ZDFjYzc5NmFiYTNlNDY3MjMzMjdmNTE3ZTlmODExOTgyZDI1MGYwNzAyOTg2ZTRiNTc2NGFkOTU4OSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiZDg3YTcyMGQ0MmYwMDUyMjUwNzVlZWFmMDNjNmE2YjI3NjgwNjc0OWQwMWNkOWY3YWU0ODhlMWYyYzViM2E0MCJ9"
+        },
+        {
+          "resource": "repo://src/market/repository.py#L135-L141",
+          "version": "repo-lines-v1:sha256:712d1aeee412395f98a4a50687517a874acb2b1da7fa62f278d50806c30ce6a6:eyJzZWxlY3RlZExpbmVDb3VudCI6NywiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiN2FlMDUyMGNhODUyMDVhNDM3OGNjYzc3Yzg2YTdhYTE3OTg4MjEyNTBmMWMzNWQyYTNmMWFhMGJkMmFjMmMwZSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiYTZhNzE1MjU3MmVlODRmMTA5MDZjNzRiOWYyYTkyNDM0ZGRhYjBlM2M0MjgxM2IwNGU1OTdlZmNlYzk1MWIyNiIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiMzgzMDZiMTdhMWMzYjcyMDgzNzY5Yjg4YzViMDA3Yjk2YTM1YTA0MmY3OWVhYjU4NTMwNjdjYmVkZDQxYWM5MyIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiZjQxZjJkMzI1YWU2Y2E0ZGQ0NDhlNDNhMzJhYTVjYjhiMTJlYTgyZDdkZWVhOGYwYWIxMDliYWRjN2NmNWYyMCJ9"
+        },
+        {
+          "resource": "repo://src/market/repository_sqlalchemy.py#L657-L671",
+          "version": "repo-lines-v1:sha256:e59dbe7e4bf13f640fcff7d3b02510a2c07ff354afb6ddc042fcc818f61bbf9c:eyJzZWxlY3RlZExpbmVDb3VudCI6MTUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjU3ZTQ4ZmVhYWQ5YzJkZTJlNjMzNjM4NjAzZTE1MWRmMGIxNGQ3NjZlYmM0YTI1NTg5ZWEwMjAyYmViNmEyOTQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImU0NGYxZGQ4Mjg1MDk0OWY4ZDVhNjMxYjQ3MWVhNWMxMjVmZWI5MDQwNGJkMzAzNDJmMjFlNzRmODU0NTY5YTYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjYyMGY5YzRhN2JiYzcyMDIxZDdjNDU2ZDBkMjNjNTE1YmZhOTg1Yjg1OTU4ODZjZmM4OWJiZmY1NTFhZTA1YTYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6Ijk3MWQ3ZDA3MTZiMGE0ZWY0NzgzZTI5NzE3N2VjYzI0YjcwODc4ZWE4NDNhNDY3MzIxZTI5Y2I5YjFlYzgxNWIifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_5d4d875980a841339b2ccf6b7080b967",
+      "statement": "`WatchlistDuplicateNameError` and `WatchlistOrderIdentityError` are deliberately plain `Exception` subclasses rather than `EntityNotFoundError` subclasses, so the global 404 handler cannot claim them; the create/update routes translate the first to HTTP 409 and the reorder route translates the second to HTTP 422.",
+      "evidence": [
+        {
+          "resource": "repo://src/market/exception.py#L15-L48",
+          "version": "repo-lines-v1:sha256:e59a009ea5dd47e8f58330d58a0b5fa6056edc618e52073a1c662845dfc94686:eyJzZWxlY3RlZExpbmVDb3VudCI6MzQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImYwN2E4OWYxZWRmNjNmN2JmZjg2Nzg2ZTljZDNlZjljOWE2OTNhMzc3NTZhMmViZTE1MjI1MmU2OTc4YmNmZWYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjFhNjU0YmRlZjI2YmFkNzYxZjA2MWJlN2FiNzA5YjFlMmIzZWE2YTY3MWMwM2FjZTJmMTI3YjhlZjQyZDk4MzMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjdjOGE0Mjg4YTJmYmNiOGUwMDMwOGQ3ZWE2MzE1YmE0Y2U5MzU0MGViMDlkMGMwZjFmMTQ2ZWE0Njk2MWNmMDUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
+        },
+        {
+          "resource": "repo://src/market/router.py#L352-L355",
+          "version": "repo-lines-v1:sha256:8bb2f18ef9cc481081e985a6e2259e3ff4634ca02ab1129df2c5951ebc398ea3:eyJzZWxlY3RlZExpbmVDb3VudCI6NCwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiYWRhNWM2NmUxN2IxNDUzOTc4MzRiOGM4NTRkYzQxOTNlMjEyNTE4MGE4OTk2YTE0YzMxODgzMzI2YjJlZmJjZiIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNDgyZGZhMWQ5MTE4YmUyMzQzNjUxMGYxNjg1NTYxYzYxYjZiYzVkNGIzZjE0MGM5MTJlMTAzMWVlNTU4Y2Y0MSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiZTE5MTdkYjQzMTFkYjlhNjRiNzVhZGNlMjc0OGU2ZjM3ODNkMjlmNjQ3MWU5MWYxYzMzOWQ5NDk3ZmNiYmMwZiIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiOWUwNzJiNWJkNjMyMThhZWE2ZmQ4M2ViMzczNzY5ZjE0M2I1NjAxZGFjZTBiOWZlMDdmZDgwYzI0ZTQxMjE3YyJ9"
+        },
+        {
+          "resource": "repo://src/market/router.py#L469-L474",
+          "version": "repo-lines-v1:sha256:176695d4bfec363b9b1ce52852f33350ddcd98cd9cb4124acd214eb9f404eb3f:eyJzZWxlY3RlZExpbmVDb3VudCI6NiwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiYWRhNWM2NmUxN2IxNDUzOTc4MzRiOGM4NTRkYzQxOTNlMjEyNTE4MGE4OTk2YTE0YzMxODgzMzI2YjJlZmJjZiIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiM2VkYjYxODRiYTkxNDljOWMyZWYzNDU2MWM5ZGE1YzJiZjAyN2ZiMDc0NDcxZjA0YTFjY2FlMDI3MjNlOGQxMSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiNWRiNGEyZDRkOWM0ZjQwMGJlOTczZmUxY2EyMDA1MmQyZmY3YjQwM2ZiOWNjZDYzZDYyNjljMjc0ZWQyM2E3MyIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiZDY5OTQyMWNjMTUwYzgzZWYwZDM1NWE2NTUxNzRhMjZkNDNkMjkyZTMxOTQyZjlkMWU3ZTJkYjM2MzMwZjZlNCJ9"
+        }
+      ]
+    },
+    {
+      "id": "claim_f5d6f109243c4440934cce36c400f47f",
+      "statement": "An invalid `sort` value never reaches the repository: `WatchlistSortMode` is a `StrEnum` used as the Pydantic field type of `WatchlistUpdate.sort`, so an unknown value is a FastAPI 422 validation error and nothing is stored.",
+      "evidence": [
+        {
+          "resource": "repo://src/market/enum.py#L14-L25",
+          "version": "repo-lines-v1:sha256:aaf6a2e3bcf4d15c3620d630a0e6d443c280ccff733cda8d7c6351fb7053b53f:eyJzZWxlY3RlZExpbmVDb3VudCI6MTIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjMxY2EyZWE0NWUzNTY5ZjFiYzIyOTAyYzQzMzE5YzhlNDY3OWIwYmQxOWQxNTk4YWZjOGM1Mzk2NDdmZjdiY2MiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjU4YjczODlkZWQ1OTRjMTBjY2YxMmIyODhmMzE0YmQ3OTY3ODhmZmRlYzVjZDA3ZmMxZjkzN2Q1Njc4ZGY0OTQiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjE2NjBiNTdkMzZkZjkzNmZmYmRlNmYzZTczZGYyNGNiODM4ZDVmYzAwZjYwNGYyMWRmMGE3MWNmNWIzODg4MzEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
+        },
+        {
+          "resource": "repo://src/market/schema.py#L120-L129",
+          "version": "repo-lines-v1:sha256:c8c89d17f056d160edc04755c153f47b7e024ef6dfcf003103c9dddcbf3fc96b:eyJzZWxlY3RlZExpbmVDb3VudCI6MTAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImU5NWRhMDU5NDdlMmI3MmY2ZWRhNWNhYjA2YTAyYjUwY2QyOTc0MDU1ZjlkZThjOTBmYjEzZjk2YzYyOGY1MTMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjIyMTdmZTYyZDlhYzJkOTRmYjU2YzAwYjNmMTQ0YzY4YzE5NWQ3M2UwMDE1OTZkZDg1ZjhmNjkyNzdmZGViMjkiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImY2YjVmOTFmOWVkMjM4YmE3MGQ2NzFhMjNiNDMwYmU3NDRhYjE3ZDg5M2NjY2Q5YjFkMTE3NmJhNzllMjg0ZmEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjAxZmVkYWU3ZDYzNGJhY2E5YTE0NjFiMjRlZDhjNDdjMmYzNTA1ZmM2MGIyNmQwZDM4YzAwYjU2MTBmNjJlN2MifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_ceedf9479e65421882ab83791f4c34c9",
+      "statement": "`set_security_order` validates that the payload is an exact permutation of the current membership before any write — the length check catches a repeated id because `set` collapses duplicates — so a rejected payload raises `WatchlistOrderIdentityError` with every stored position untouched; a payload equal to the current order is a no-op and `[]` is the valid permutation of an empty watchlist.",
+      "evidence": [
+        {
+          "resource": "repo://src/market/repository_sqlalchemy.py#L736-L779",
+          "version": "repo-lines-v1:sha256:91cc545b1312c289de04d7171ca204ef3f45e54c7797b4b3421002d1890ce246:eyJzZWxlY3RlZExpbmVDb3VudCI6NDQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImVjYjliMTM5NjFiMGRlMThlYzI1YmQxYmEyOGQ3YTdmMjc2ZjBkMDA1MDgzMzc1MDBmZjdhZTA3NGQ1MWYzN2EiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjU5MDlhNTNhNjE4ZDAyOGUxZDMwMDBjMGE3YWJjZWVjYmU1ZmIzN2Y0ZTUxMWVmZTQ2NjQzZmFkNmU2Njg3MmYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjhhZmU0YTdmZWIzYzVlN2ZiOGNjZjcwZmE3NzIzNDkxYWMzOTgwOWRmZjE4YWVmMmFiODE1YzExZjc2MzM0YTAiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjRiNzJkOTk1OTRjMDNiMGFiZmM1NTNmODA3NDRjZjdlNGY4MzAyYzY1NTg3MTZjMTE5NGZlZmI0MzM0NTI1NzcifQ"
+        },
+        {
+          "resource": "repo://src/market/schema.py#L132-L139",
+          "version": "repo-lines-v1:sha256:a3105d51894169c39600b855bcd317442d0a429d99052881fd964a1b37b4744e:eyJzZWxlY3RlZExpbmVDb3VudCI6OCwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiN2JlODFjMmI2NGJhYTFjZWI3YTg2NGQyNTA4NmRiYjZhMDJjNDNjOTgwM2FlNDZlMzVjMzRkYWI4MGViZjZjNiIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiZWQ4MThhODc5YTMyZjEzYjFjZDJjZDUxNTdiNzVkOTAxMmQyNmI1MTQ4MWFlZTI4YmYyZjU0MGNiN2JkZmQzZSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiODQ5MWEwYzJlMWZlOTI5NzlhODA2MTNlOTFhNTk1M2JiNjNhZWE5Y2JmNTEyNDc4YTU1ZGQxNTNkM2NiZjBhMSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiNGRkOWExMzZiY2ZjOGQ3Y2JmNDE2MDY5NjdiMGMxOGZhMjdjNTBiN2ZlNmM2ZjkxNTljZjE4MjllYzRhYWU1OCJ9"
+        }
+      ]
+    },
+    {
+      "id": "claim_caa1f574256949e7b8e37e387f8f345d",
+      "statement": "Membership `position` is application-managed: a non-existing membership is inserted with `max(position) + 1` as a scalar subquery (appending in add order, explicitly not concurrency-safe), `added_at` is stamped with `func.now()`, re-adding an existing membership is idempotent, and the watchlist is reloaded with `populate_existing=True` because the explicit association insert leaves the in-session collection stale.",
+      "evidence": [
+        {
+          "resource": "repo://src/market/repository_sqlalchemy.py#L809-L858",
+          "version": "repo-lines-v1:sha256:f01899a06c4a1daaea07ee29d82d4a1920b4841e146e4880a499d489d470c7eb:eyJzZWxlY3RlZExpbmVDb3VudCI6NTAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ0ZGE5MzUwMDE5ZGMxZTY2NzQ1MjY0Mzg3MzE2MTk5NzIyNWU5Y2U2MDEwN2FmN2I2NGY4NDBkZGVjZmRhNGYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjU5MDlhNTNhNjE4ZDAyOGUxZDMwMDBjMGE3YWJjZWVjYmU1ZmIzN2Y0ZTUxMWVmZTQ2NjQzZmFkNmU2Njg3MmYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjBiZGU4ZmUwMWVmMDRmNzY0NDE5MzcxMTZmMTA4NmQ1YTY4Y2Y1OTBlNTU3ZDQ5YTUwMTg4ZmZjMGY5ZjYzNmIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjdhZGNmYTFlYjRiMjdmZTU5ZWMxNmUzYmI2MmVjOTViZTdlOGE4NjlkYTUxZGEzNzM4NjgwOGJhOTNmODAzNWYifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_4eddb58ffd00427c93fe7b4ac9e50089",
+      "statement": "The default watchlist is the one literally named `\"Default\"` — there is no `is_default` column. The id-less shortcut routes depend on that name lookup: `add_security` creates the list on first add (tolerating a concurrent-create `IntegrityError` by rolling back and re-reading) and `remove_security` raises `WatchlistNotFoundError` with the nil UUID when no `\"Default\"` list exists.",
+      "evidence": [
+        {
+          "resource": "repo://src/market/repository_sqlalchemy.py#L673-L681",
+          "version": "repo-lines-v1:sha256:e068308956ba2559f57e8d5131ac9ab6244a1bbc20d92faab4b4d5ab62e6060f:eyJzZWxlY3RlZExpbmVDb3VudCI6OSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiNGQ3OTIxMWI5MTU0OWNhNDFjOGRlZWRkMWRkMWFkY2U0ZjZmMzYyYjYxMjFlMzRmNzdmY2NmYTFkMWY5NWUzMiIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNGVmMjI3MTkwYTk4NWJlYTc1ZjRiOTAzYmU3MzNkMjYzZTA1YTYzYmU2MDQ2MTgwNmI0NTI0YmFmYzU4MjY3NyIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiYjU2OTU3ZGMzNjJhNzI5ODMyNjRlYWRmOTY4YzE2NzBjZTYwZGFmMjBiMzJlMGE0YjQ5MTNiOGMwZTNmZjg1ZCIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiMDJmZWI3NzFmY2M1M2MwNGY5ZTU2ZWNhYzhhZmIwZjk1MjEzNGI4ZDU2NGRjY2UwZGJiODlkYjFiY2VhYTk3YiJ9"
+        },
+        {
+          "resource": "repo://src/market/repository_sqlalchemy.py#L886-L930",
+          "version": "repo-lines-v1:sha256:1fa4f81c72ef291a80029e9780ee46d31dc25b9a6c6d4b9717b0120e36b2a4d0:eyJzZWxlY3RlZExpbmVDb3VudCI6NDUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ0ZGE5MzUwMDE5ZGMxZTY2NzQ1MjY0Mzg3MzE2MTk5NzIyNWU5Y2U2MDEwN2FmN2I2NGY4NDBkZGVjZmRhNGYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjU5MDlhNTNhNjE4ZDAyOGUxZDMwMDBjMGE3YWJjZWVjYmU1ZmIzN2Y0ZTUxMWVmZTQ2NjQzZmFkNmU2Njg3MmYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6Ijk3NTc5NWVmMmFiOWM1ZmRmN2Q2Mjk2YTJmMDgzOTk0YzljNDA4N2RhMTAzMmY5NmRkZDMwNGQ2MTJmNGEwMGIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImYwYTlkMGNlYTI4YmQzNGUxZTE2NjdkY2JmZDFmM2Q4ZTVkNTEwNDg5MmY3ZDlmNTVkNjZhOTAxZWRlNTkzYWQifQ"
+        },
+        {
+          "resource": "repo://src/market/router.py#L477-L500",
+          "version": "repo-lines-v1:sha256:fc2d4a3685e87b947af7b4f1d3a4108fc08bd84248c4fc5b530fd117bd590e1a:eyJzZWxlY3RlZExpbmVDb3VudCI6MjQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjU4ZjFhNWMxMGY2ZDNlZDFmMjQwM2JiNmNjNTlhMjM5Mzg2N2ZjMDJlZmIxMTJkNjQ2ZGIyMjZjZmZjY2MzM2IiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjE5MTE5MDdlNmJjOGJlZGE2NmIwYzhlNGI0ZGQxZWZiYWU1MzYwOTY0ZTNkNTdkOGU3MGI5NGE4ZjM4YTNmZTEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjIzNTMwZGMxNzgzNjFhZGZkOGJiNzcxODgyZWExYjg2ZGFmODE1ODA5MDFjZWIzNWY3NzA2OWY3MzE5ZjQ5MGEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImIyMDE1NDRmZjk1OTAxNjEwMDlkOTIzOTZlNjhlZTk2ZjYyNWY2MjJhOGYzZTlmYWVkZDNmYWYyOGFlNmNhM2UifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_76423a1d961c4876ba02ea63d498461b",
+      "statement": "`market_update_watchlist` applies `rename` when `payload.name` is set and `update_sort` when `payload.sort` is set (so a combined payload does both), and when neither is set it still proves ownership by re-reading the user's watchlists and raising `WatchlistNotFoundError` for an absent id — an empty `PATCH {}` returns the current watchlist instead of silently succeeding on a foreign id.",
+      "evidence": [
+        {
+          "resource": "repo://src/market/router.py#L358-L390",
+          "version": "repo-lines-v1:sha256:a6ddf87aa2b0c8c10450fe41c7bbb46093b9ac6165fda5d07ee2816118f60296:eyJzZWxlY3RlZExpbmVDb3VudCI6MzMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImU0NTdmYmNkZmZhOGI2MGUxMGU4NmYxOWZkNjE1MzhkNmFkZDk1NjFiMDJkZGUwNjA3OTk4ODNhMWFlMGVkODYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjVhMjkwYjUwYTc2MWZiYWU1ZTMyN2E2MzE3NGFmNThjNzdkOGE4NzNmZDFjN2NiZTExZjQwYTIzNzY4MmU2ZTIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjNmMWI3YjBhMWVmNTY5MjdlNDdiMWE5MmQ2MzZmOGYwNWExNWUwZTQ0MmY2Y2VkNzNmNmNjYWE5YWE2NDFmOTIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjFhMzk0OWY0MzRmYmYwMDNjNzZiZDhhYzk0ZDgyMmQ1YjkwMjg1NzI1MWM0MTZhMDM2MWMyMjFjZDNjMmYyOTgifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_2c215f3e845b4fa08004ca8e729c292d",
+      "statement": "Watchlist reads are price-enriched per response rather than per security: `_fetch_price_metrics` issues one `row_number() OVER (PARTITION BY security_id ORDER BY date DESC, id DESC)` query keeping the latest two closes, and `_enrich_watchlists` unions the security ids of all watchlists so `GET /watchlists` costs exactly one metrics query regardless of list or membership count.",
+      "evidence": [
+        {
+          "resource": "repo://src/market/repository_sqlalchemy.py#L456-L576",
+          "version": "repo-lines-v1:sha256:91f4712d6d059049674f5db76dda50d2d97e96cc6d1e95bc7bb8d134bf3ab3c9:eyJzZWxlY3RlZExpbmVDb3VudCI6MTIxLCJmaXJzdFNlbGVjdGVkTGluZUhhc2giOiI3Yjc5Zjk4MmY3NThhMTVhMWUxNTZmMDFjNGVkNTdhMzMyNjZlYmIyMGM4MzZmMTlkYzg2M2U0OTZkOGFiMDA1IiwibGFzdFNlbGVjdGVkTGluZUhhc2giOiJmMWNjNDAwOWRjZWFjMDg1ODJmYjExOWU0MTNhMzcwNzQ1ZjFlMTJmNDI3OTZiMzhiZWJjNGU4MjJhZjdlYzE0IiwicHJlY2VkaW5nQ29udGV4dExpbmVDb3VudCI6MywicHJlY2VkaW5nQ29udGV4dEhhc2giOiIyZjUyMmJmZThmMGQyNThhMGYzMjllZTAxYzUzYWM2ODI1ZjE1ZWIwNDdjMDdlNWIyNzVkNjkzMWQyNmRiZTZjIiwiZm9sbG93aW5nQ29udGV4dExpbmVDb3VudCI6MywiZm9sbG93aW5nQ29udGV4dEhhc2giOiI5YWQyMzlmNTgyOThlZWQ4YzI0NWU3ZWViYjRkMjViOTA2MDJhYWRjYWUzYzRmMjZmZjE0Njg3OTJhMTE1MmM2In0"
+        }
+      ]
+    },
+    {
+      "id": "claim_6bbe1d23849a4988a2fdbcb8ea6a406b",
+      "statement": "The enrichment metric semantics are: no closes leaves the three fields `None`; exactly one close sets `current_price` and leaves both change fields `None`; two or more closes set `current_price` to the latest close, `daily_price_change` to the difference against the previous close, and `daily_price_change_percent` to that difference over the previous close times 100 — or `None` when the previous close is `0`.",
+      "evidence": [
+        {
+          "resource": "repo://src/market/repository_sqlalchemy.py#L505-L530",
+          "version": "repo-lines-v1:sha256:0f8ac7fb534b06e60aa585a28e82a3bc40e60bfa86b8bdfadad81949e618a7ee:eyJzZWxlY3RlZExpbmVDb3VudCI6MjYsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjcyY2FjOTZhMzM3NTU0YWNiMjg4NDRhOGU5YjhiZmUwZWNhZTlkNWE0MmNmYmIzNmE5NGIyNDRjYWFmNmRiYjMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjczNjEzNmJjYjI3YWYzMjI1NDQxMTY3MDlkZjIyZTM3YjA0NzM1M2JkMjQ3Y2RjMDc1ZmI0ZTYzMzgwMjMzN2MiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImU0OTRiNzUzMmRjNjI0NWQ5YzE1MGNhYzZlYzU2ODQ1NzYzYzQ5N2IxMDQ4ZWYyMTdhMDI4Nzc4NzdjYTU5OGUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjJmMjhiNDM4ZGE4OWFmMjdiM2M4NWNlYjUzYTQ5ODk2ZDRjYTU2NDE3OTg5NzVkYTBjNzYyNTE2Y2Y0Y2ZjNjcifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_577dd3e999f340ec982b503191aebf2b",
+      "statement": "`WatchlistRead` carries `sort` and embeds `WatchlistSecuritySchema` items, which extend `SecuritySchema` with the membership `added_at` (typed `AwareDatetime`, so a naive timestamp fails validation on the way out) and `position`.",
+      "evidence": [
+        {
+          "resource": "repo://src/market/repository_sqlalchemy.py#L578-L641",
+          "version": "repo-lines-v1:sha256:5ba581332aee651b7559705d9be331874d69867f10da1b35df40cb89f5d26360:eyJzZWxlY3RlZExpbmVDb3VudCI6NjQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijg0NGYwYzQ5NmY0OGRiMWFiNTBmZGM1M2U4Zjg0MjIzYmQzN2MyYTViNWQ0ZjU2MGY0OTIzN2FkNDc0YTIxZmMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImJhYWU4YTBjYTc2Zjk4ZjdiN2RjNzk4NDk1MWQ2M2U1N2RiM2M2NDU1NzljYTUxYmFkNmE1MzlkNjE0ZWRiYmUiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjQxYjZjNWZkNjFjYjgzMzllNmFmOTQwN2ZkNzAxNzA2ZTY4YjEyNzk2ZWZmNWIyOWVmYmFmOTkxM2M4Njc4ODgiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjkyZjkxYzBlZTMwMDdkNWVmMjYyZjY5ZTEwMTUzMzc1MWRkOWEyOTdjZjcyMjA0ZmY1NzJjMTkwYzk2ZDAwOWYifQ"
+        },
+        {
+          "resource": "repo://src/market/schema.py#L41-L113",
+          "version": "repo-lines-v1:sha256:a5823dff7aedb2564e94c3e3b93327cb8fe065888d44df5c288bad31d091ce9e:eyJzZWxlY3RlZExpbmVDb3VudCI6NzMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjYxN2JjZWE2ZWRhZDFjODBkNjE1NDUzNGEwZTZiNjM3Y2RmYmU3MGFlMjJlMTRmYTJiZDJmZmY1Y2JiOWNjMTkiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImFjMWM3ZTNhZDcyNDZhOTZkNWM2ZmJiYzUyMDEzZTlmNjViNjJkMjRkNTYyNzlkZmRhZTY3ZTg4NWZkNjg2NzgiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjI4MTE5MjA0ZjIzYzk5MTEwZDFkOThjMTNmYmVjZmEzZTJiYjg3N2U5ZDljYjQ1MGFiNThiODE1N2Y2MzFkOGQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6Ijc2ZmEwOTc1ODMzNWY2YzkzYjFiZDIzM2QyMGYwMWExMDhlNTEwYmNmMzQyMzBiY2Q3YzE4OGY1YTNjODBlNGQifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_1cd694d241864e04b076f432d2be2fab",
+      "statement": "The watchlist ordering split: the stored membership `position` is authoritative for manual order and is what the embedded reads order by (with `added_at` as tiebreaker), the paginated `get_securities` route instead pages by `symbol`, and the persisted `WatchlistSortMode` is a client-applied preference that `update_sort` stores but the repository never orders by.",
+      "evidence": [
+        {
+          "resource": "repo://src/market/repository_sqlalchemy.py#L588-L624",
+          "version": "repo-lines-v1:sha256:d42efecf99c4033c24f0e504f529bfa5bbf4676b619ccc144f4289b49246bfd8:eyJzZWxlY3RlZExpbmVDb3VudCI6MzcsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjA5ZmIxOTZiYjkyNDdiMDhjMTliYzEzZmY4OTBhMTQxYmFmZTcyMjdlMTE1NThhNTMzZmNhYTU0MjQ5YTdjMTQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjcyM2U1YmYzOTU5OWYzZmU5MWZlNTcyNDc1Y2YyZmE1MWFlZDViYmQzNmI4NzZlNjhlNzdhY2ZhNTg2ZDJjZDgiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjFmYzY0MzI4NmJjYWFjNTZlNWQ2OTBlOTAwNTcxMmVlYjU1MDI3MWQwYTU5M2JkYWY3ZDY0NWEwOTVjNWU3ODUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjU2NDBmM2U4OWY4N2JiNmJmNzhiOWFmOWU4MzBkOGJhZTFmOGQ3MDgxMDczNWUzZWE1ZjI3OGNkZTY0ZTUwYjIifQ"
+        },
+        {
+          "resource": "repo://src/market/repository_sqlalchemy.py#L723-L733",
+          "version": "repo-lines-v1:sha256:eb6b6b5779e46a882b3a3f51847fef16911b47064f84e65f007ae5c6d6978a00:eyJzZWxlY3RlZExpbmVDb3VudCI6MTEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ0ZGE5MzUwMDE5ZGMxZTY2NzQ1MjY0Mzg3MzE2MTk5NzIyNWU5Y2U2MDEwN2FmN2I2NGY4NDBkZGVjZmRhNGYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjU5MDlhNTNhNjE4ZDAyOGUxZDMwMDBjMGE3YWJjZWVjYmU1ZmIzN2Y0ZTUxMWVmZTQ2NjQzZmFkNmU2Njg3MmYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjBiZGU4ZmUwMWVmMDRmNzY0NDE5MzcxMTZmMTA4NmQ1YTY4Y2Y1OTBlNTU3ZDQ5YTUwMTg4ZmZjMGY5ZjYzNmIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjNkZTIwMWNkY2JhYjVlNzU3NjExYTc5MDE2MDU5MjExMzhmZDY4MmFkMjYyYTUwZmQ3ZDc0MDQ5ZGVhNmZkNmIifQ"
+        },
+        {
+          "resource": "repo://src/market/repository_sqlalchemy.py#L932-L960",
+          "version": "repo-lines-v1:sha256:2b252bb0a7003ae66a7183b269ea21750d1d56df8828a64262bed45ae29cd5dd:eyJzZWxlY3RlZExpbmVDb3VudCI6MjksImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ0ZGE5MzUwMDE5ZGMxZTY2NzQ1MjY0Mzg3MzE2MTk5NzIyNWU5Y2U2MDEwN2FmN2I2NGY4NDBkZGVjZmRhNGYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjhiZjFjYjA1ODI0YjYwOTA3MGEzOWU5NzJiMjMyOGUyY2MzMzExOGU0OGI5ODk1ZWEwZDhlMWU2OTY5NjM5NGIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjMxY2Y2MWY2MmJhYTY2MWM1N2RjMDI4ZWVhMzdmYzQ4NGVlYWJmN2MxZjU0YTliZGNiNjRiOThkZmM1NTVjYjAiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImZjOTE2MjE3OTA3NzRlMzgxNmI0Zjc5MWUwOTM3ZTQ0MWEyZmUwYjExMmVlYzY4YTU4ZTQyNzNhZDRkMjJlMjYifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_af5101eb27cf40e7be5a3b6dc4b9aa32",
+      "statement": "`WatchlistService` (a Svelte 5 runes class) is the single client-side owner of watchlist state: `+layout.svelte` calls `setWatchlistService()` once and `setContext`s the instance, consumers read it through `getWatchlistService()`, and the module never exports a module-level instance, so SSR cannot bleed one request's watchlists into another's.",
+      "evidence": [
+        {
+          "resource": "repo://frontend/src/lib/components/watchlist/watchlistService.svelte.ts#L254-L267",
+          "version": "repo-lines-v1:sha256:6161c3fafb40f02f4a8fb679dc2040066d6e8ead7f902153a092be6f408d2d46:eyJzZWxlY3RlZExpbmVDb3VudCI6MTQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQzNjhmNzQxYWQ1MzQ3OTE0ZWUxYTA4YTI1OWY4ZjU3MGY4ZjNlMDI2NTliMjVhMGZiMzdiYzQ0NTQ4MmRlZDQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQxMmNhMzQ1Y2NmNzViZjljMDgwNmJjZTY5NWJlOGRlODA4Yjc5OTg0MjUxYTdhNTRkMjAyY2Y2MTAxZGQ0NTEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImYyOTY0MDc5YzNjNWM4MTUyMGVmMzNhMmI5ZDJlMTVhMWI4NGQ3MjgwZGI4NTkwZGNkNjU3NDdlM2UwMTJhNDAiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
+        },
+        {
+          "resource": "repo://frontend/src/routes/%2Blayout.svelte#L21-L23",
+          "version": "repo-lines-v1:sha256:b7b656380831ca223a82628f8590616ef7d29d38f42a745afd15116cb4ba41de:eyJzZWxlY3RlZExpbmVDb3VudCI6MywiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiZDVhNTE5ZDljMDJiYWFjMzQ0M2ZkYTdhZjk5NjlhNjJmOTVhMTlhZWNlOGFjYTY3NDZiYWVkMDJlMmIxMGZiZiIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiYjAzZjVjN2Y2ZjE4ZjQzNWQ1ODNhZmZhNzAxNjYxNzA4YWIyMzY0YmJjZGEyZGZiYmY0MjVhYTA4ZGZlNTljOSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiYWQ3YjhjMDlhNDQzYzlkMzM2NWYwMzY2ZGVmNzdhZTI4MTBiOTkyODc3YjY3MzVlM2MwOTFiMjcxOWZiYWYzMCIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiNjM1YmZlNmYwMDBiZTA2YzA5OWFjY2QzMDRlZDc2YjU0ZWVlMjIyZDU1MTIyOThmY2RjNTY5NTNjZDkyYmZlMCJ9"
+        }
+      ]
+    },
+    {
+      "id": "claim_7fb9875f2f484c19b5f87049a453ac9a",
+      "statement": "The root layout owns the single initial watchlist load in a `$effect` gated on `data.user` (never run during SSR): it awaits `loadWatchlists()`, routes a returned error through `redirectOn401`, and then warms `/portfolios`, `/watchlists`, `/holdings` and the first ten default-watchlist `/security/{id}` targets fire-and-forget, each URL prefetched at most once via a per-instance `SvelteSet` with rejected prefetches swallowed.",
+      "evidence": [
+        {
+          "resource": "repo://frontend/src/routes/%2Blayout.svelte#L33-L82",
+          "version": "repo-lines-v1:sha256:bb9f8c6e5a1623ba9345d46306bde28cfdfd8b109ff8f3585f3dd7aa73b37f09:eyJzZWxlY3RlZExpbmVDb3VudCI6NTAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjNlMTdiM2JlMWVkNzRhNGNhNDc5NmYwOGIzNWVlMzI1NGY2Y2Y4Mzk3M2YxN2ZkNWQzNzU2ODc0MmEwNTg5N2UiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjY3Y2RhODJkYTYwNjIzOGUwNWU2MjM5OTU2OWM1ZWUwMzk5MzQxOTY0OGFlNWQ0M2EyYmY4Y2Q2MzQ3ZjgyNjMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjIyZjJmZjVmZWVjNjBmNTg3YzhmYWU0ZTg3ZjgwOWE2NjFjZmZlZDZiNDdhYWU1ZjZkNmEyNjUzYWE4OTUyZWYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjVhODNlMTUzYzdhYWM0YjZmNDY3ZWRlMzFhZTFjZWUwZTU1OTc4NmQ0NmQ0YTU1Yjg0Y2FkZmY1ZTQzZTViNDYifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_124d0128212344b0a13eef6256611ce9",
+      "statement": "`/watchlists` deliberately does not duplicate the layout's fetch: its `+page.server.ts` returns `{ watchlists: [] }` with no request so the shell paints instantly, and the page only seeds `watchlistService.watchlists` from `data.watchlists` when the service array is still empty — a guard that is inert while the server load stays empty.",
+      "evidence": [
+        {
+          "resource": "repo://frontend/src/routes/watchlists/%2Bpage.server.ts#L1-L10",
+          "version": "repo-lines-v1:sha256:ef0bcd7b85e523824223fa6d51f758cb62f0c4b9d38b45d4b9c7eeb620ec0fd8:eyJzZWxlY3RlZExpbmVDb3VudCI6MTAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImU4NmUzNWI1ZmM1YzM4NjNiNGFiYzI3ZTgwYTM1ODg4ZWE5NjgyNTU3OWQ4M2IxNWViZjU3MmJlOWYxNzNkMjIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImFhMWQxYTYzMzkwMjI5Yzc5ODM0N2U4M2EwNDA1NDQxYzk0MDAwMzUyODRhZDE2OGMxYmY2Y2RmMWQ3MGEzNzAiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjowLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
+        },
+        {
+          "resource": "repo://frontend/src/routes/watchlists/%2Bpage.svelte#L73-L92",
+          "version": "repo-lines-v1:sha256:38ceaf9a4edc5afc7fe8c3a6a87db3bd7da2d0e5780ecd8819410b1d97ebec78:eyJzZWxlY3RlZExpbmVDb3VudCI6MjAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjJhMWY5OWJjMzFlYzQ2MTJmMjQ1ZTQ5NDQwYzE1OGYzOWExOGViNzhiMGI2OWNhM2VmY2UyNTlkODNmYzUzYTQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImFhMGM4YmQ0ODAzMTUxNDE0ZDI3YTBkNjA2MDE3NzgzMDRmZWVmZjYwM2VmMWUzMWNhMmE0YTQyMDJhODIwYTciLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImFmNjgzM2ExYTFlNTI5Y2M2Y2FmNDY5ZDllZWNkMWRjOWI1NzBiMGVkNDZmYThhNGE3NTJjZWMyZmMyNzk1NzYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImNjMmViMzQ0MjJjZjM0YThhYTFmNzNkZDcwMGI0OTk4NWFlYWNkODAxN2I2MmU4ZDU2NTI5ZWM5MWQzMGQ3OGEifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_fc78f70c7f1740aaa1c7680d82d4f945",
+      "statement": "`WatchlistService` write behaviour: every mutator clears `this.error` first; `replaceWatchlist` swaps exactly one element by id so an operation on one list never clobbers another; `reorderSecurities` is the only optimistic write (it rebuilds the target's securities in the caller's id order, rewriting each `position` to its index, before awaiting the PUT, then replaces with the server payload); and `removeSecurityFromWatchlist`, `reorderSecurities` and `toggleSecurity` call `loadWatchlists` to resync *before* recording the error, because the resync clears the shared error at its start.",
+      "evidence": [
+        {
+          "resource": "repo://frontend/src/lib/components/watchlist/watchlistService.svelte.ts#L184-L251",
+          "version": "repo-lines-v1:sha256:ccc55bf50f21f3596c5042d08f85ea1bf04da05a1cbc44dacab957f3f96d7d2a:eyJzZWxlY3RlZExpbmVDb3VudCI6NjgsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImMzOTM2YWUwOTc3NzJhNDNmNzE2MmM1ZGFjMTNkN2U4YTdmZTc5NTEyZDliZTM2YzI4YWUwNjQ5ZDI5YjFkNGMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjY3Y2RhODJkYTYwNjIzOGUwNWU2MjM5OTU2OWM1ZWUwMzk5MzQxOTY0OGFlNWQ0M2EyYmY4Y2Q2MzQ3ZjgyNjMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjIyZjJmZjVmZWVjNjBmNTg3YzhmYWU0ZTg3ZjgwOWE2NjFjZmZlZDZiNDdhYWU1ZjZkNmEyNjUzYWE4OTUyZWYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjY5NDM5MzY0ZTBmODVmYWVjNDdmYWUzMDY2MDE5ZmMxY2FmYmFkODZjMzljZWZlODY2ZmY0ZjNkZmU0MDIzZDMifQ"
+        },
+        {
+          "resource": "repo://frontend/src/lib/components/watchlist/watchlistService.svelte.ts#L24-L32",
+          "version": "repo-lines-v1:sha256:88a8b9e266be5a28e796e718706743916eebbf9005b52029f80a68e5642a52e1:eyJzZWxlY3RlZExpbmVDb3VudCI6OSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiMzJjNGVmZTY4ZDBmYmMyYzMwOTg5ODVjYzdiMTNlOTZlMDJkMjM4ZTY4NDYzZDlhZWJjNGM3NjU3YmVmMGI2MyIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNjdjZGE4MmRhNjA2MjM4ZTA1ZTYyMzk5NTY5YzVlZTAzOTkzNDE5NjQ4YWU1ZDQzYTJiZjhjZDYzNDdmODI2MyIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiY2EwNWMwZjFkZmY0YjE1NjU4YTdlZTk3ZTVlOTk4ZWZjNDJiNGViMWJiNjI1MzU2NGEyYWM5NTNiNmNjOWZjMyIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiMjQwMjA2M2U1MzEwYWZkOTUxN2NhNjczMzE0ZWQzZDIzMTllYmE3Y2JiZWYwYzc5ODM2ZjBlMzRlYjVjZmUyZSJ9"
+        }
+      ]
+    },
+    {
+      "id": "claim_405bcbe82ead409aa08012c048ec276d",
+      "statement": "`setSort` is explicitly not optimistic: the PATCH response already carries both the new `sort` and the backend-ordered securities, so there is nothing to pre-apply locally.",
+      "evidence": [
+        {
+          "resource": "repo://frontend/src/lib/components/watchlist/watchlistService.svelte.ts#L145-L158",
+          "version": "repo-lines-v1:sha256:25b0f44179bffeecf69e694bf4bd1c9d85615f610bf93cd019d15f0bd2a4b818:eyJzZWxlY3RlZExpbmVDb3VudCI6MTQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImVkOWQ4Y2EyYmNhNmJiZDE2YjU5Y2JmNTJiNDM1ZDNlNzY3NjA3MTk4NjQ1Njc0YTdjN2ZiOGMyZTA1NjA2YTMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjY3Y2RhODJkYTYwNjIzOGUwNWU2MjM5OTU2OWM1ZWUwMzk5MzQxOTY0OGFlNWQ0M2EyYmY4Y2Q2MzQ3ZjgyNjMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjIyZjJmZjVmZWVjNjBmNTg3YzhmYWU0ZTg3ZjgwOWE2NjFjZmZlZDZiNDdhYWU1ZjZkNmEyNjUzYWE4OTUyZWYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImE1ZmViM2U3Zjg2YjI1NGZlNzRlNWYwZDkwZDAyOTk5MjMyMDgxMmYwZGFlM2Y5NzhkNTFkOWM0YzQzY2M0YTAifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_3bf607d7821647609c3c74378275cbe6",
+      "statement": "`WatchlistService.addSecurity(watchlistId, result, token)` is the resolve-or-create orchestration: it returns immediately with no network call when the target list already holds the same `symbol` + `exchange` case-insensitively, otherwise reuses the `id` of a matching security found in any loaded watchlist, and only as a last resort calls `createOrUpdateSecurity({ code, exchange, name, currency: 'USD' })` before adding membership and replacing the returned list.",
+      "evidence": [
+        {
+          "resource": "repo://frontend/src/lib/components/watchlist/watchlistService.svelte.ts#L63-L109",
+          "version": "repo-lines-v1:sha256:af7304785fe19bc740d37ffce22bbcf667e35f0de2c329631bff86a738a60c35:eyJzZWxlY3RlZExpbmVDb3VudCI6NDcsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjI2ZGY5MTcwY2FkNThlNmZhMzNmYWQ5YzRjMWUyY2JjNTUzYzJmMDdjMjVlYzNjMTdhOWUwMzVhYmE4MGExODMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjY3Y2RhODJkYTYwNjIzOGUwNWU2MjM5OTU2OWM1ZWUwMzk5MzQxOTY0OGFlNWQ0M2EyYmY4Y2Q2MzQ3ZjgyNjMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjJmYzI2NDAyZDM1NWI3MWJkMWE4ZWJkODJkMGI2YzA1ODY0MzZiYTU1YjU2ZjJkZjE2ZmViNGQyZjhkMWIyZDYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjY2NjY3MGMwNTZjYzJhNTliZWM0NDNjYmNkOGE1MzVjZTczYTBmYTAwYWRkZDQyMTBlNmNmZDRiZGFjMDJhMjIifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_f17f7b123cc445ec8781490be130d017",
+      "statement": "`hasSecurity` and `toggleSecurity` operate on the default watchlist only (`hasSecurity` inspects `defaultWatchlistSecurities`), so the star toggle works without a watchlist id by calling the id-less `removeFromWatchlist`/`addToWatchlist` routes.",
+      "evidence": [
+        {
+          "resource": "repo://frontend/src/lib/components/watchlist/watchlistService.svelte.ts#L233-L251",
+          "version": "repo-lines-v1:sha256:ff81e2825b9fca13ad231083e77c2d66ebc258ab8e79360cdcdee6a8a0fddb1a:eyJzZWxlY3RlZExpbmVDb3VudCI6MTksImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjI0OGJiYWY4MzY2Nzk4Y2MzYzkzODA4M2E0OWVlZWFkYWRjNmM2MjcxNzNhOGNkM2EzZDE0YTFkNmY3ODkzNmUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjY3Y2RhODJkYTYwNjIzOGUwNWU2MjM5OTU2OWM1ZWUwMzk5MzQxOTY0OGFlNWQ0M2EyYmY4Y2Q2MzQ3ZjgyNjMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjIyZjJmZjVmZWVjNjBmNTg3YzhmYWU0ZTg3ZjgwOWE2NjFjZmZlZDZiNDdhYWU1ZjZkNmEyNjUzYWE4OTUyZWYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjY5NDM5MzY0ZTBmODVmYWVjNDdmYWUzMDY2MDE5ZmMxY2FmYmFkODZjMzljZWZlODY2ZmY0ZjNkZmU0MDIzZDMifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_2b6ef402567a44548b592667000041a6",
+      "statement": "The sidebar renders one collapsible group per watchlist, ordered by `sortWatchlistsByOrder(watchlists, watchlistOrder)` where `watchlistOrder` comes from the `initialWatchlistOrder` context or `$page.data.watchlist_order`; the helper sorts the ids present in the order array by index and appends any watchlist missing from it in original relative order, so a newly created list never disappears.",
+      "evidence": [
+        {
+          "resource": "repo://frontend/src/lib/components/layout/app-sidebar-watchlist.svelte#L20-L27",
+          "version": "repo-lines-v1:sha256:5dfabfb373387f7686d9ff0994511c272a2757d6faf9b9d0752cd619c18e1a79:eyJzZWxlY3RlZExpbmVDb3VudCI6OCwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiMDAzYmQyYmRkMDE3YzRhY2ZhNDFmZGViYmMwZGUxNWJkMzcyZWNkOWM5NTgwZDk5Zjc0MDdhYjMzMjk4YjM3ZSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNzc4MTMxYzFhNTY3ZmM4NjlmMzQ3MDkwYzVmYWFlMDgxMDAxMjk3OTQwMjcxMDNiNjY5MjQ3YTI2OGQ3NDNlOCIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiNmVkZDk4MGVkMjUyYmE0N2Q2ZDYzOGVlOTdjMTUzOGUzNGFkNGFmZTg3NGExMzdmNDJmZDFjZDY1ZmQ0MjljNiIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiOTYyYjVlMGNjNzhhNTE0ZDM4ODdjZmFmM2RlOWQzMGRlZjIyNWJlMWM1MjA0NTljNGE5Nzk3MTkxYTYzN2EwNyJ9"
+        },
+        {
+          "resource": "repo://frontend/src/lib/components/watchlist/watchlist-utils.ts#L51-L80",
+          "version": "repo-lines-v1:sha256:0dd2b2d35e7f97cd0e43ead54c602f05d17cc886662cc8b0aeac6f72cf574696:eyJzZWxlY3RlZExpbmVDb3VudCI6MzAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImVhZjIyY2YwNzMyNTkyYzI0NzE0MWNiZTYxZWZhMTEwMTI2MTJmNWEzMTIyYjlhZjliYmFmNTJmNTcyNGQxOTQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQxMmNhMzQ1Y2NmNzViZjljMDgwNmJjZTY5NWJlOGRlODA4Yjc5OTg0MjUxYTdhNTRkMjAyY2Y2MTAxZGQ0NTEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6Ijk1NzlmYzAwZWY0MWY0NDk3ZTQ5YjgyM2Q4ZjQwZGQxNDJmOGFhNzc5OTU1ZmU1ZjFlMGY2OTU1NmVmMDE2MDciLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjliZWEzYWUyMjFkMmU0YjA2YWQ1YmZlY2EwNTQxNzc4ZjUxNmUwMTZhZDBiNWFkYmFiMGI3Njc4ODA1OGVlYzUifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_fcf0e50918ba4834a9d68fc2936e8716",
+      "statement": "Sidebar collapse state lives in a `SvelteSet<string>` seeded from the `initialCollapsedWatchlistIds` context or `$page.data.collapsed_watchlist_ids`, and `toggleCollapsed` persists the whole array with a fire-and-forget `patchPreferences({ collapsed_watchlist_ids })`; the `1`–`9`/`0` ticker hints are passed only for the default watchlist's securities, and a security-less group renders a muted `No securities` row.",
+      "evidence": [
+        {
+          "resource": "repo://frontend/src/lib/components/layout/app-sidebar-watchlist.svelte#L29-L60",
+          "version": "repo-lines-v1:sha256:04a461e858c254403552c52da156530fa88f64f4c7454850b8965d084aa75a6c:eyJzZWxlY3RlZExpbmVDb3VudCI6MzIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijg0YzJkNzAxNjcyZjViZDJmNzg0YzUxNTZlOGE2MjM2ZDA4MjE1MDc5YmIyOGNmZThhYzU2ZDVjODU2YWU2NTQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjY3Y2RhODJkYTYwNjIzOGUwNWU2MjM5OTU2OWM1ZWUwMzk5MzQxOTY0OGFlNWQ0M2EyYmY4Y2Q2MzQ3ZjgyNjMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjM5MmRiNzYwOTVjOGRiYzVmMmU0MjJmOTE3YjhiZTk5MzE5MjIyMjY2NWYwYmQ5NmQ1MjVjZmZmOGVkNDZlODQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImNiMjEzMmQzNDY3ZmRhMTU5ZTJiNmRhN2Y4MTdlY2U0NzRhOTljNDQwMDk3NjgyNDM2NTQ4MzZkNDExMTNlMzUifQ"
+        },
+        {
+          "resource": "repo://frontend/src/lib/components/layout/app-sidebar-watchlist.svelte#L99-L145",
+          "version": "repo-lines-v1:sha256:ca9f851501f5b17fe3e4207976c87977db44d50f27cb524dfe365a72a286b285:eyJzZWxlY3RlZExpbmVDb3VudCI6NDcsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjcwNDQyYTk3NTEyYjQ3ZGYyOTI2MzRhZTUzMjAwN2FjNzM0MzE1NjIzOGRkN2ZmMDdjZmNlZTY2YjMyYTc0MzkiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImZiNjU5MzRjZDIxZGI4NmFiZmRlNDZiMDQ3NmU5MjliODM1ZmVhNTMxNjZkMDgwZmE2N2QzYjU3YmRlYjA4YzAiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjNiN2ZhYzBlNjVlZmFkNzdlNzZjYmNkOWRmMDA1ZmRiOGZjMTViZmVlY2I2NDE5ZWY1ODM3MTM0MzdlZTY1YjEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_6700a68b046745e6a8ed0bbd7eb8f171",
+      "statement": "The layout's document-level `handleKeydown` returns early when a modifier is held or the event target is an `INPUT`, `TEXTAREA`, `SELECT` or `contenteditable` element; it owns `/` (toggle global search), `p`, `w` and `h`, and for a bare digit computes `index = e.key === '0' ? 9 : Number(e.key) - 1`, reads `watchlistService.defaultWatchlistSecurities[index]`, prefetches and `goto`s `/security/{id}`.",
+      "evidence": [
+        {
+          "resource": "repo://frontend/src/routes/%2Blayout.svelte#L84-L139",
+          "version": "repo-lines-v1:sha256:796cc03024a8d193a076d4a765ea5f360cd69b2f70098e6e078923125bd6f164:eyJzZWxlY3RlZExpbmVDb3VudCI6NTYsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImQyNjQxMzUwMDU4ZDlhYjM3MDEyM2MyZjJkNDVhMzQ4ODQwODQ1YWRjZTg3NDRhNjU3ZGZhM2E3MDNkMGVlOWMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImM1MzUzMTVmY2ViMzQ4YTg1NTg0NTQ2ZmNmNGU2MDI1Y2UzYmZiYWY1Yjc4NjM5NjUzNmM3MDY5OGQyNGNmM2IiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjkwYjFkMjVkY2E2NjY0OGM3OTAxYmJjNjU3Y2ZlYmM0OTRlNjA0MzFlZDhjMGZmMzJlOTRhYjUzNmZmMjNlZWIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYWZkNmVlYTgwZjZmNjBhYjMwZWRmYzljOGVlNjdiZDdiODYzNDZlYjkyNTI4YTZlYzM5YTNlYmI2NmIxZTcifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_708078ad50a84258b3cacde09b329fba",
+      "statement": "The `/watchlists` page offers exactly six sort options in order (`Custom`, `Name (alphabetical)`, `Price Change (Gainers)`, `Price Change (Losers)`, `Date added (newest first)`, `Date added (oldest first)`) each with a visual direction used for the active option's chevron, calls `watchlistService.setSort` on select, supports inline rename where Enter commits and a recorded error keeps the editor open, and its `+` button opens the layout's global search pre-targeted via the `openGlobalSearch(watchlist)` context callback.",
+      "evidence": [
+        {
+          "resource": "repo://frontend/src/routes/watchlists/%2Bpage.svelte#L178-L238",
+          "version": "repo-lines-v1:sha256:c7258aa267c6cded4efb224207e7d1857a6019017969e8a60487ad1f333f8db2:eyJzZWxlY3RlZExpbmVDb3VudCI6NjEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImYzM2RlYTIwY2E4ZTVlMjNlNjM0ODlhNWY3M2NlM2NjOTk4NjVhMTQwMTk4ZDhjYjM0OTFjNGRkMDQwMTdkNjYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjY3Y2RhODJkYTYwNjIzOGUwNWU2MjM5OTU2OWM1ZWUwMzk5MzQxOTY0OGFlNWQ0M2EyYmY4Y2Q2MzQ3ZjgyNjMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjdlZjMzNzU0OWIzM2M5ZWI1ZmE3MjBjZTRiYzM5Yzk3M2RhZTUyZTExNmVkYjU3YzU5YWI4NzY5ZjBkMjI0N2YiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImRiYWZlNDUzMDBkMWU4MzExODY2YmYxN2U2NmZjZjJjZDAzMzM1ZTIwMmZkMzk1ZGFlNzkyZWEwZjM0N2FkZWIifQ"
+        },
+        {
+          "resource": "repo://frontend/src/routes/watchlists/%2Bpage.svelte#L53-L65",
+          "version": "repo-lines-v1:sha256:d3af6851844fbef49e2a5193d80c7392ce64d3af57c741b05bad6812776a6226:eyJzZWxlY3RlZExpbmVDb3VudCI6MTMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImVkOWQ4Y2EyYmNhNmJiZDE2YjU5Y2JmNTJiNDM1ZDNlNzY3NjA3MTk4NjQ1Njc0YTdjN2ZiOGMyZTA1NjA2YTMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjBlZTU2NDA2NmIwY2UxMDkyNWQ4NTc5YzA2MzJlMzA2OGUzM2JhOGY4NzA2ZDc2ZjYwZDVlZGNlNmRiOGI0ODQiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImE2MTY0ZmI5MTU2NWVmMWUwY2E2MThiOTg2YzdmODg4MGE3YzhjMzE2ZWM0NTgxOTdmODc4ZDU5YmM4MDgxZmYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjEyNDJlZDhiOWMwOTVjZDA5ZDY3OTUwMWE4NjY5Yjg5NWZiYTgwYjM2MmY2OTA0NWNlYTc3Nzk5OTc0M2QwNmYifQ"
+        },
+        {
+          "resource": "repo://frontend/src/routes/watchlists/%2Bpage.svelte#L592-L599",
+          "version": "repo-lines-v1:sha256:91618d5589ea673abadf0a06e05aa16b3125a0707399c698b171007b0d0a1347:eyJzZWxlY3RlZExpbmVDb3VudCI6OCwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiYTYzZjI2NTllMGZiYTVhODY2NjkyMTgyNjFhZWVlZDZkOTIyNGE1MjYxYmQ5NzIwZGU5MmI4NjlkMWM1OWM4YyIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiZTgwYTIxOTU2YWYzOTI2M2JiNDYxNWQwMjQxMzk5OTFmMWQxMGEwZjBhNmVmNzZhZDI4MmZiYzYyNmEwODRhNiIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiYzdiMTg2M2FlNjA2NDViY2Y2NDE5ZWY3YmFkOTQ3Yzc4ZWZhMTgwNTc2Yjg2YWIyNTkwMDRhODE5YzNiN2E1OCIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiZTJmMDY5ZDZmYjBlOTVjZDFjODllMDA4OWRiNTYyZWNhYTJkNGY4Mjk2N2I2NDdiNTEyNzU3MWEzNzRkODE2MSJ9"
+        }
+      ]
+    },
+    {
+      "id": "claim_b35a3f97e44e4b6a9ca6599b8e1391bf",
+      "statement": "`normalizeWatchlistSort` narrows an unknown, `null` or absent key to `'custom'` against the `WATCHLIST_SORT_KEYS` list, and `sortSecurities` implements each mode over the membership metadata (`custom` by `position`, `name_asc`/`name_desc` by `localeCompare`, `price_change_desc`/`price_change_asc` by `daily_price_change_percent` with `null`s last, `date_added`/`date_added_asc` by comparing `added_at`), falling through to `position` order for anything unrecognised; `name_desc` is unreachable through the persisted contract because it is absent from both the `WatchlistSort` union and `WATCHLIST_SORT_KEYS`.",
+      "evidence": [
+        {
+          "resource": "repo://frontend/src/lib/api/marketService.ts#L62-L72",
+          "version": "repo-lines-v1:sha256:df9a39cb60a6cf298cb862da1772fb12e860581deed79b40f3cca23ea8b4da90:eyJzZWxlY3RlZExpbmVDb3VudCI6MTEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImVhZjIyY2YwNzMyNTkyYzI0NzE0MWNiZTYxZWZhMTEwMTI2MTJmNWEzMTIyYjlhZjliYmFmNTJmNTcyNGQxOTQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImZlYzJjMDVkODU4Y2U4ZjJlOWRhYjYxZGZmN2ViMThlZTMxZjA5YmUyZDUxYzEyZDQ4OGMwMjAzYjIzNjA1ZjYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjJjYTEzZDNkMzY3MDEzZTdlYzkwNmNjYzFjYjYzZGY3MjI5NDgzY2RlZmNkYmFmMDg5NjYxNWJjNDY3MGFiMGMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjQ5NTY4OGU3ZWVkYzM4Yjk2ZGRhN2Y3NmQ3NTcwMzkyZDdjOGRhNjA3MjgyZTBjMjU0Yzc2MGE3NTM0Mzk4ZDYifQ"
+        },
+        {
+          "resource": "repo://frontend/src/lib/components/watchlist/watchlist-utils.ts#L122-L175",
+          "version": "repo-lines-v1:sha256:471ae15b519147524b1630533c930f9c9a29f0a4148be94e29372b84ae05c4a5:eyJzZWxlY3RlZExpbmVDb3VudCI6NTQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImVhZjIyY2YwNzMyNTkyYzI0NzE0MWNiZTYxZWZhMTEwMTI2MTJmNWEzMTIyYjlhZjliYmFmNTJmNTcyNGQxOTQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQxMmNhMzQ1Y2NmNzViZjljMDgwNmJjZTY5NWJlOGRlODA4Yjc5OTg0MjUxYTdhNTRkMjAyY2Y2MTAxZGQ0NTEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjI4MzEyZmMxMTJhOThkYjNjZGMzNGNkNTE2ZjU5NDYwZTBkNDA5MjJkNzNmZTE3OTVjNmFkMzIyNDdhODE5N2QiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6Ijc1MzI2OTFiN2ZiNjkzZDVhNTExNWQ1NmFlYzA0ZTc0ZjlkYTcyZDAwMDUwY2UzZGVlOWE0NWRiMWRiYzljYzUifQ"
+        },
+        {
+          "resource": "repo://frontend/src/lib/components/watchlist/watchlist-utils.ts#L33-L49",
+          "version": "repo-lines-v1:sha256:ad594b2e0079a1b3ab76c4ae5d252fa94aea7aa849f83097a9af03078297c511:eyJzZWxlY3RlZExpbmVDb3VudCI6MTcsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImM4YWFkYTM3NTYzZWJkMDFjYzY1YTJmZDgyNmViZTRiYzkwYzQ2N2E4ODFlMDczMjY3YTkwNjU1MDg0YzY4NjciLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQxMmNhMzQ1Y2NmNzViZjljMDgwNmJjZTY5NWJlOGRlODA4Yjc5OTg0MjUxYTdhNTRkMjAyY2Y2MTAxZGQ0NTEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjIyOTBhYzA3ZDUwM2I2ZDdiMDdjZTQyMzE1MTRhNjBiOWQ5YWVmNzZjMDc3NDFhYmI0OTIzMmMyNmNkN2Y0ZDkiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjY3NTlkYzgwMjdiNjZhM2NiMDE4ZTg2Mjc5ODQ1NzYwNzllYmQ2NDliMjE5YmZmOTM3YjEzMWYyMWJhMWJjYWEifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_e7df338a486c4a128aab0c7f01f6c3e7",
+      "statement": "Watchlist rows render on the shared static `WATCHLIST_ROW_DATA_TRACKS` Tailwind literal so every row has identical column tracks, with the Added cell always rendered (a dash when `added_at` is missing or unparseable) to preserve later track offsets; display formatting comes from `watchlist-utils.ts` (`formatPrice`, `formatPriceChangePercent`, `formatDateAdded` in deterministic `en-US`/UTC, `formatValuationRange`), and the Valuation column is filled by one `getValuationsBatch` call whose rejection is non-fatal and falls back to `—`.",
+      "evidence": [
+        {
+          "resource": "repo://frontend/src/lib/components/watchlist/watchlist-utils.ts#L16-L31",
+          "version": "repo-lines-v1:sha256:dc3539bc31289b1418ffb5420a70e05d1f8818361495cabccccb69d85056b280:eyJzZWxlY3RlZExpbmVDb3VudCI6MTYsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ2NmU1YmE3Mzk0NDlmYmM0ZTRhNGNjM2M5MzlhODg0MDQ5YTIwNDY4NTY0ZWQzNDJiNDZhYjQ2MmVjNzY2MWQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjZjZGM3NmQxMmU1MzA0ZDMwNzllZGI1Zjg5MDAwN2VhMDVmMjI2ZTRkOTNiNjk1Njg0NjBjYWZhZjgwMDc0NGMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImQ3N2Y0OTFhMjU1ODExMDg5YTUwOTViZTg0MGFlMmVkZjJjZjYwZDYwMzUzYzc3YThmOTgyMmRiOGZmZTdiZTUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjNjNzZhMDJhODQ5ZWFjNGM1OThhN2IyOTZiZGM1OTM2MjNhNjNmN2Q3YjY4OGZlOTRiNjNkYjc0MGMxYzM2YTEifQ"
+        },
+        {
+          "resource": "repo://frontend/src/lib/components/watchlist/watchlist-utils.ts#L177-L262",
+          "version": "repo-lines-v1:sha256:5d6d94ec66adc04044cae4d86d099c0c3b95179253138512ada55fa0962adf70:eyJzZWxlY3RlZExpbmVDb3VudCI6ODYsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImVhZjIyY2YwNzMyNTkyYzI0NzE0MWNiZTYxZWZhMTEwMTI2MTJmNWEzMTIyYjlhZjliYmFmNTJmNTcyNGQxOTQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQxMmNhMzQ1Y2NmNzViZjljMDgwNmJjZTY5NWJlOGRlODA4Yjc5OTg0MjUxYTdhNTRkMjAyY2Y2MTAxZGQ0NTEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImYyOTY0MDc5YzNjNWM4MTUyMGVmMzNhMmI5ZDJlMTVhMWI4NGQ3MjgwZGI4NTkwZGNkNjU3NDdlM2UwMTJhNDAiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
+        },
+        {
+          "resource": "repo://frontend/src/routes/watchlists/%2Bpage.svelte#L94-L125",
+          "version": "repo-lines-v1:sha256:3463d73a5f005e10e0130c53aa29661bab32b9396878fff97ab881af1d9605ec:eyJzZWxlY3RlZExpbmVDb3VudCI6MzIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijg4M2IwM2YwN2E0OWVhMGViM2ViZTk0YjFlNjI0Y2Q0NTA5OTk5MmFhN2ZmMjJhMGQ0MmJlNDg2M2JiZTdiYmIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjBhNzM0OTJkODk0NmIxZDBmOWQ5YzA0YjcwNGE5MjBmMjRmODllZjdjN2Y3MzExYTg1OTlkMTBjN2Y2MzU4ZDAiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImZlN2I5Njg4MGMzYTA5OGU4ZjJiNmI5ZGM2YWEyMGU3YmM1NGI5MDgxMGM1NzQzMTIwMTNhMmM2OWM0MDQ0NGUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImFjOWY1NTk2NTA4ZjkzMWZmNGU1NTk1MjQwYmMzNjdhNjNhNWMxOTEzZTZiZjk3YTVmZmFkYTkyZTBiMWJhNjUifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_c254e84d35d14c509393259cc843953f",
+      "statement": "The `/watchlists` page has two independent reorder modes: watchlist-level order (`Reorder`/`Done`) persists to the user preference, not to the watchlists — `moveWatchlist` snapshots `watchlistOrder` and the service array, applies the move optimistically, announces the new position into a polite live region, persists `watchlist_order` via `patchPreferences`, and on rejection restores both snapshots and sets `watchlistService.error` — while security-level order is offered per watchlist only when that list's persisted sort is `custom` and is disabled while watchlist reorder mode is active.",
+      "evidence": [
+        {
+          "resource": "repo://frontend/src/routes/watchlists/%2Bpage.svelte#L304-L335",
+          "version": "repo-lines-v1:sha256:5e0d53856d56f6a72dec94ea10ca60babe4dda60ab529b7458fc7f41e1becce6:eyJzZWxlY3RlZExpbmVDb3VudCI6MzIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImVkOWQ4Y2EyYmNhNmJiZDE2YjU5Y2JmNTJiNDM1ZDNlNzY3NjA3MTk4NjQ1Njc0YTdjN2ZiOGMyZTA1NjA2YTMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjY3Y2RhODJkYTYwNjIzOGUwNWU2MjM5OTU2OWM1ZWUwMzk5MzQxOTY0OGFlNWQ0M2EyYmY4Y2Q2MzQ3ZjgyNjMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjExZmRjYWU4NGM0YTkxYzljZGVlYWVjMTg4NDUyYjAyZjA5NGRjYmRkYTlhYzRiYmVjM2ViZGNiODZlYzUzOGYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImQ4ODY0NzMzMjE1ZWE2NTNjNzI3NjAxOWQ2MGRiYzhkYzFjNWRmMDJhNmQyYjg1MjIwODNlYmI5YTg0OWQwNzEifQ"
+        },
+        {
+          "resource": "repo://frontend/src/routes/watchlists/%2Bpage.svelte#L352-L368",
+          "version": "repo-lines-v1:sha256:580e087a2e95c290e71446bf4a2a0597e02f35de54fa73f9030f9e7175c13fd5:eyJzZWxlY3RlZExpbmVDb3VudCI6MTcsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjJlN2NiMTU4YThhOTkwNmIyNDRhNjUyYzU1YWE5NTkxNGVjN2UzOTVmNjlmNmRlZDRkZTdhYjZjYWMyMWI1MWUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjY3Y2RhODJkYTYwNjIzOGUwNWU2MjM5OTU2OWM1ZWUwMzk5MzQxOTY0OGFlNWQ0M2EyYmY4Y2Q2MzQ3ZjgyNjMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImVmZDY4ZTcwMmI4NTM5YjQ5MmE4MjQ3ODhmNDk2ZTE1YmE3ZDE5OTRmY2Q5MTM5ZTQ1MTc4OWE3OTI3YTk3YzQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjQ2ZDUyMDk2ZDdkYTFjNzNiNTc2MWVkN2YzNTQzODljZTM1YWZiOGI2OTBlODU5MGI5ZWM4OGI1Yzk2YzQxZGMifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_e513a44a7f0c4ec6803d9ac11169483a",
+      "statement": "Keyboard reordering goes through the shared `handleReorderKeydown`, which always `preventDefault`s ArrowUp/ArrowDown so the page does not scroll and is a no-op past either end, and `restoreHandleFocus(handle)` re-focuses the grab handle after `tick()` only when the keyed `{#each}` reconciliation actually dropped focus to `<body>` — never stealing it from a control the user has since moved to.",
+      "evidence": [
+        {
+          "resource": "repo://frontend/src/lib/components/watchlist/watchlist-utils.ts#L97-L120",
+          "version": "repo-lines-v1:sha256:3dcb8cf4485d21c8f30a9b011289ff18ab58f4808da464bd8820bef915fe91bd:eyJzZWxlY3RlZExpbmVDb3VudCI6MjQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImVhZjIyY2YwNzMyNTkyYzI0NzE0MWNiZTYxZWZhMTEwMTI2MTJmNWEzMTIyYjlhZjliYmFmNTJmNTcyNGQxOTQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQxMmNhMzQ1Y2NmNzViZjljMDgwNmJjZTY5NWJlOGRlODA4Yjc5OTg0MjUxYTdhNTRkMjAyY2Y2MTAxZGQ0NTEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjE4MzkwZTdhMzRkNTU4MzMyY2NkNjgyZmQ1M2ZjM2I0NTc5M2NhNzkxYzE3OGIyNWM1ZjllZThmMTlhMTdjNjMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjMzYTg1ZjViMjYzNDdmOTIxYjI3MjcyNTBlNGIyZTkwN2JjMDRlMzk2NDQwMzNlNzI2NWM0YmVjZTZhYzNhY2IifQ"
+        },
+        {
+          "resource": "repo://frontend/src/routes/watchlists/%2Bpage.svelte#L262-L302",
+          "version": "repo-lines-v1:sha256:a0b75bad735f76b4623f40a843b0b1bb937c4fc1cad802bf00daece35959037c:eyJzZWxlY3RlZExpbmVDb3VudCI6NDEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImVkOWQ4Y2EyYmNhNmJiZDE2YjU5Y2JmNTJiNDM1ZDNlNzY3NjA3MTk4NjQ1Njc0YTdjN2ZiOGMyZTA1NjA2YTMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjY3Y2RhODJkYTYwNjIzOGUwNWU2MjM5OTU2OWM1ZWUwMzk5MzQxOTY0OGFlNWQ0M2EyYmY4Y2Q2MzQ3ZjgyNjMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImVmZDY4ZTcwMmI4NTM5YjQ5MmE4MjQ3ODhmNDk2ZTE1YmE3ZDE5OTRmY2Q5MTM5ZTQ1MTc4OWE3OTI3YTk3YzQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjdlNDZkYmE2MDE2NGYyOTIwNjg3ZTRjZmQ5MzU1YWRhZjc0MmFlYmJmZGY3NTI2NTU0MmMzOTI4YTJkNjQxMmUifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_1171c036751447209839a409c7d971a9",
+      "statement": "The global-search dialog searches through a 300 ms `debounce` wrapper over `marketService.search(query)` driven by an `$effect` on `query`, clears results without a request for an empty query, groups the flat results into `Record<security_type, results>` defaulting the key to `'other'` when empty, and sets `shouldFilter={false}` on the command dialog because the server already searched.",
+      "evidence": [
+        {
+          "resource": "repo://frontend/src/lib/components/global-search.svelte#L154-L187",
+          "version": "repo-lines-v1:sha256:d7e8da8600ccf29fe68d3747232ed536c25b5d442997a26e97224dbe922bd767:eyJzZWxlY3RlZExpbmVDb3VudCI6MzQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ5MTE4ZjdmMTQ0N2QxNjgxMmNjNTA1MTkwMjBjNzhkZDQzYjE2YmEwNGU5Y2EwNTVkNTUwODI5YzI4OWYzNTciLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjNkMWY1ZDI2ZmI4NDMzNzhkZTc4MTFiN2E2NjdiMmY1YWJiNGZiZGQzMzZmZTgyNjM5MjkxZTk3OGVjOTM4NmEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjRjY2JkYzNiYjVkYmQxMzgyODk5OWRmNTVlN2MzMmY5MWVkOGQ2MDAwYWNmODkzNGYyYTE1MmZmMmE3MGQ2ZmYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjZjOWI2ODI1ZTUyYWU4MWQyNTdjNTg4ZGNiNWM2OTU5MzEwOTQ4ZjQ1ZDQ3Y2NhZWIyYzhlOGVhNGFmMDE0NDEifQ"
+        },
+        {
+          "resource": "repo://frontend/src/lib/components/global-search.svelte#L96-L151",
+          "version": "repo-lines-v1:sha256:5aec8706641970ef4f3681aeee52225e95cc92b41b923d2b9f41e70e56dd3d8f:eyJzZWxlY3RlZExpbmVDb3VudCI6NTYsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQzZTVhYzgzZDRiOWZlOTNlZTM1ZDkyZjVlMTg5ZDAwMzg5NDMxNGQzYzQ5OTI2ZmE5YTY1YzMzZDc4NmZmYWQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImFhMGM4YmQ0ODAzMTUxNDE0ZDI3YTBkNjA2MDE3NzgzMDRmZWVmZjYwM2VmMWUzMWNhMmE0YTQyMDJhODIwYTciLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjIyZjJmZjVmZWVjNjBmNTg3YzhmYWU0ZTg3ZjgwOWE2NjFjZmZlZDZiNDdhYWU1ZjZkNmEyNjUzYWE4OTUyZWYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImM0NGM1NmFhMGY2ZGUwMTRmYWIzNmM1ODQ5MTU1NjA3YmIyNTNiZjQyMWNhZjJjYzM1MWZhM2I5NWVmMTQ2ODYifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_a24acd9b805a4fc295465b5237dc80a7",
+      "statement": "The search endpoint `GET /market/search` (aliased at `/market/securities/search`) constrains `q` to 1–100 characters, reads `SecuritySearchCache` first and only calls the market gateway on a miss, writing the cache once; the cache key is the normalized (trimmed, lowercased, whitespace-collapsed) query with a default TTL of 30 days (`DEFAULT_SEARCH_CACHE_TTL = 2_592_000`).",
+      "evidence": [
+        {
+          "resource": "repo://src/market/cache.py#L20-L20",
+          "version": "repo-lines-v1:sha256:753d375b4b8ccdaa14ae4994c42283274cbff241455b585d39dda5564bb37ce2:eyJzZWxlY3RlZExpbmVDb3VudCI6MSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiNzUzZDM3NWI0YjhjY2RhYTE0YWU0OTk0YzQyMjgzMjc0Y2JmZjI0MTQ1NWI1ODVkMzlkZGE1NTY0YmIzN2NlMiIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNzUzZDM3NWI0YjhjY2RhYTE0YWU0OTk0YzQyMjgzMjc0Y2JmZjI0MTQ1NWI1ODVkMzlkZGE1NTY0YmIzN2NlMiIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiZTVjMWM0NjJlMmEzOWQ3NDc1OWY1ZTFiMTI2Zjc2ODNhMmI3MzAxMThlMThmNTEyMmIwOGNlZGVlYjY1MGUyMyIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiMzQ2OWUyN2Y1Mjg2ZTFkYWYxOGU4YmUxNzU1ZGY4MDA1MWUzNjNiMmUyNDNmZmY2YTcxMzZkNDUxNjhjNmY0YiJ9"
+        },
+        {
+          "resource": "repo://src/market/cache.py#L268-L289",
+          "version": "repo-lines-v1:sha256:b0dd01f7ba0994f82108f1625a9cd862768e444c88e64699b7f67ad3b93b7f56:eyJzZWxlY3RlZExpbmVDb3VudCI6MjIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjVkOWFjZWE0MWY1NTZmY2EzMDliZmU5ODQ0Yjg3NmRkZDM2MzljNzBlZDZkODQ0N2QxYWZiNTFjMjlmZDM1ZGYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImFkM2M1YzFhNjY1M2Q0ZjY2NDBlZjk1NWU5MWY4MzFiOGUwYjZhZTJkNTVjMzAwYmQxYWI2MmU3YjQwYWUwNDIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjkxN2YwNjUzYWQ5NmYzOWNhODA5M2Q1ZjY4ZTRkMjczOTEyY2YwMmM1NGEwMDJmNzMyMTBhYjdhM2EwYzQ4MWUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjFlOGY2NTc3ZWUxNzA2MTY4MGQ1MWNmN2I3YmM5ODViM2QzYTgxZDk2ZGQyZjcxYmQ2ZjQ2ZTQ1ZTJjMTdmNTIifQ"
+        },
+        {
+          "resource": "repo://src/market/router.py#L118-L144",
+          "version": "repo-lines-v1:sha256:1b80be4763ba1d925a276dce9c46ab00034f29a38844d93cca81695157763386:eyJzZWxlY3RlZExpbmVDb3VudCI6MjcsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjYzNmI3NGM1MGUwNTk1ZDM0N2Y2ZWRjZjZjODlhNmEzMTQzMDdjMGFlZDc1Mzg1MzMwNDYzYjg3NGZhYWY4M2QiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjcwZTRmYjRkNDIzZWMzZTYwYTFkMDNkYjA4OGU1N2U4YjM1MjIxZDkxMzg0OTM2YTg4ZmQ5Mzg5NzllZDlkOTYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImIyOTEzMmNkYmNlM2RlOTk3MjZmNjYxMDI4YWFkOThlYmMxZTJiMTIxNGE3YjNmODc4ZTUzODg1MTRiZTYwNzgiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImVjYzJlYjUxM2I4YTJlZWFkMjliZmExYjhkZGZlNmUzMTBhN2UyMjdjMzZlZTgwYmExYjZjZWIyY2Q4YzE2NWYifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_1ffdcc952d2947e3ac582ccc95e365dc",
+      "statement": "The global-search star is target-aware: `activeTargetWatchlist` re-resolves the bound `targetWatchlist` against the service's current `watchlists` (falling back to the bound object) so the dialog reflects live state after a toggle, the placeholder switches between `Search securities to add to {name}...` and the generic prompt, and `handleWatchlistToggle` removes the existing membership from the target list or resolves-then-adds, falling back to the default-list `toggleSecurity` path when no target is bound.",
+      "evidence": [
+        {
+          "resource": "repo://frontend/src/lib/components/global-search.svelte#L25-L94",
+          "version": "repo-lines-v1:sha256:d7cdafa278e47f91c28ce3b972c6b78f3f6dd5d74f5148acd753cd81cdf53a03:eyJzZWxlY3RlZExpbmVDb3VudCI6NzAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjkxZTYxNmI2YjA4Y2I0MTg2ZTRiYWI0YzY0NzQ0MGMyZTE0MzNiOWNlMTYyMjQ3ZjlkNGYzNzJhMTkyYzkxOGEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjY3Y2RhODJkYTYwNjIzOGUwNWU2MjM5OTU2OWM1ZWUwMzk5MzQxOTY0OGFlNWQ0M2EyYmY4Y2Q2MzQ3ZjgyNjMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjZkNWJjNWNmNTY0MjIyOTYxZTZkMjk2NTYyODUxMGU1ZGI0YzgwZDQwMDZkYzZhYzIxOTIxYmM1ZmFmNTgyZWYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjkxOGY3YmNhYjE5NWZiNWU3YmVlMjE0M2E0NjU4Y2Y2MWFhNTM3OTk3MGVhMzYwOGE0ODFjYzdkMjZmYmUwNWEifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_9ec606f52f804da6a5dde054f8bdd046",
+      "statement": "Selecting a global-search result calls `createOrUpdateSecurity`, closes the dialog and `goto`s `/security/{id}`, and a second `$effect` resets `query`, `searchResults` and `targetWatchlist` whenever the dialog is closed so reopening never shows the previous session's results or target.",
+      "evidence": [
+        {
+          "resource": "repo://frontend/src/lib/components/global-search.svelte#L111-L137",
+          "version": "repo-lines-v1:sha256:72724590070496e50a2ec442b06fd8f927bcfa812c1d6a392039ce8a826db0a8:eyJzZWxlY3RlZExpbmVDb3VudCI6MjcsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImJlYzk4YjkyYmFlYjg3YTY0ZDU0ZjZiNmY1M2VkNTZkODZmNmY1MGU0ZTRkODQwZDRjZTNkZDE3NjRiZDgzZDAiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjBhNzM0OTJkODk0NmIxZDBmOWQ5YzA0YjcwNGE5MjBmMjRmODllZjdjN2Y3MzExYTg1OTlkMTBjN2Y2MzU4ZDAiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjI0NGE5YjdmZDIzMmY3YzVkNTdlOWEyZTJjYmI4MzI2ZDU0MTIyZWVhMDVkNmUyNDYyM2Y0MTk5YzY3ZDEwODMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImIxMWYyMDcyYjY4ODYzMDM3MTdlYzFkYjc5NWE1MmQwZDgxOWQ3MjhiZDczYTYyNjlkOWZjNGY2NTllM2I4MWMifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_fcf7391d94b24974aad4e4d9eb96143c",
+      "statement": "The watchlist router and repository test suites run against an ephemeral testcontainers PostgreSQL (or a `TEST_DATABASE_URL` override) rather than external services, pinning duplicate-name rejection with a usable session after rollback, ownership scoping, cascade deletes, append-order positions with tz-aware `added_at`, the four rejected order payloads leaving positions unchanged, and the price-enrichment matrix; the frontend suites mock the API clients instead.",
+      "evidence": [
+        {
+          "resource": "repo://tests/conftest.py#L89-L106",
+          "version": "repo-lines-v1:sha256:693d2c400295b5871b6f250bb036f51062fc92c2de0f23984234850adb21e394:eyJzZWxlY3RlZExpbmVDb3VudCI6MTgsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjUzMDM2NWQxNGM3ZGFiM2Q2NWIyMGVlYjNhZmU3ZTVkNGUzMGU4Zjc5OGU3OWFkMDZlNTk0MjI4Nzc0YTc0ODYiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImU4YjJkMDE5MTdmZjIwMDBhZmU4ZDliNmVjOWY1Mzc4NmY2NTY4YzcyNTY4MmU1YWEyMmJhODU0NzA2NzU3ODUiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjlhYmE5YmNkZmIzZThjMWRjNzNiMTUwMTJmYTc2YjI2NDFkMWM2NDllNzAzNDA3MGI0NjZjOTQ5YTk2YjBjY2IiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjcyMzc1ZjdjZDVkMWMzYWI1YzFlMjE1N2ViNjFhNjRhMDRlOTZiZDA1YTg1NThkYmY0MWRmZWUxMTE4YjcxMDcifQ"
+        },
+        {
+          "resource": "repo://tests/repositories/test_repository_sqlalchemy.py#L913-L1035",
+          "version": "repo-lines-v1:sha256:c8aa8248451c5a3ded30dfdecc4fafb00c6cdf9f383d602a0a9ab6c5eeb48680:eyJzZWxlY3RlZExpbmVDb3VudCI6MTIzLCJmaXJzdFNlbGVjdGVkTGluZUhhc2giOiIzMjY0MDZkNTIwY2E3YWNiM2UwYWVlNjA0ODQ1NmRiNmUzODg4YmU1Mzk1OTFkYTU3ODllYjhiNDYwYmUwMzI2IiwibGFzdFNlbGVjdGVkTGluZUhhc2giOiJiN2E4MzFmYTQ3MjZmYzIzMTUxNDRmOWEwNTViZmVjMjVmMWFmZDEyNmFhZmY1N2FmZmJlOTQwZWY1YzZhNzM1IiwicHJlY2VkaW5nQ29udGV4dExpbmVDb3VudCI6MywicHJlY2VkaW5nQ29udGV4dEhhc2giOiJiZWMyYjEzOTZjOGExYWQ1MGQyMWU0ODBlZjliMDE5NmVlZTY3NjY4MWU2NzU0YmM2NDY0Yzc0Y2FkYmJhNjEwIiwiZm9sbG93aW5nQ29udGV4dExpbmVDb3VudCI6MywiZm9sbG93aW5nQ29udGV4dEhhc2giOiI3NDE5YzkwZDFjODYxMzJmMWNhNmQ2NTkwOGZmZDliMzE4OTlkMDdjMTNjZDc1N2JiOTA4OTQwZjFmMzBjMTgyIn0"
+        },
+        {
+          "resource": "repo://tests/routers/test_market.py#L14-L110",
+          "version": "repo-lines-v1:sha256:d3fe548aabc62f240b48c30a85c0c0d0c59f13f0a67d1719e2cea450e5c0bbac:eyJzZWxlY3RlZExpbmVDb3VudCI6OTcsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjEyNzVjN2ZjYjk2NjdjM2NkNzAyYmI5MTVhYmRiYjdjMjdhMjA2ZWE2YWViOWRjMmFlYjk0OTM5NDUwNzQ0MjEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjYzNjkzYzZmZDZiNzg1OTk4ODMzODE3ZjVjZjNjNzg2NGZkNjMxZGM1YWZiZWFlZjcyNTZiODJmMWI2NDQxMmEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjVmNmNhM2IwM2M2OGE5ZTM5YzM5OGE1MjM1MzY5ZWM5ZWUwMDc0NTViYTRlMjUwNmIxOTNlMGY1OTE3YWRjMjQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImM0NTg5ODUxZWQwZTY2MWIwYTFiMTMzMTI3ZjdkM2FjODhkZTkyOThlNjUwMWU3Yjc1ZDI1YjQ5YWZlOWUyN2YifQ"
+        }
+      ]
+    }
+  ],
+  "verification": {
+    "by": "openwiki/0.7.0",
+    "at": "2026-10-06T14:42:34.222Z"
+  }
+}

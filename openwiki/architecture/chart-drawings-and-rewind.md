@@ -1,8 +1,8 @@
 ---
 type: architecture
 title: Chart Drawings, Plugins & Rewind
-description: The chart drawing system end to end — the per-plugin series-primitive contract and helper stack, the finance-math boundary, ChartDrawingsService as the single owner of drawing state, preference persistence, undo/redo and snapshot saving, and the snapshot-to-rewind pipeline from Postgres to the security page.
-tags: [charting, drawing-tools, series-primitives, chart-plugins, snapshots, rewind, undo-redo, svelte]
+description: The chart drawing system end to end — the per-plugin series-primitive contract and helper stack, the finance-math boundary, ChartDrawingsService as the single owner of drawing state, preference persistence, undo/redo and snapshot saving, the live-versus-snapshot-scoped effective views, and the snapshot-to-rewind pipeline from Postgres to the security page.
+tags: [charting, drawing-tools, series-primitives, chart-plugins, snapshots, rewind, undo-redo, valuation, svelte]
 sources:
   - id: openwiki-source-e483fd3285d99d05c7b265cf
     resource: repo://frontend/AGENTS.md
@@ -124,20 +124,20 @@ sources:
     resource: repo://src/market/schema.py
   - id: openwiki-source-82fce7bf4b134cbc785c3714
     resource: repo://tests/routers/test_chart_snapshots.py
-generated: { by: "openwiki/0.7.0", at: "2026-10-04T13:39:13.522Z" }
+generated: { by: "openwiki/0.7.0", at: "2026-10-06T14:42:34.222Z" }
 verified:
   - by: openwiki/0.7.0
-    at: 2026-10-04T13:39:13.522Z
+    at: 2026-10-06T14:42:34.222Z
 ---
 
-The chart drawing system has three layers that must stay separate: **primitives** (lightweight-charts series primitives that own interaction and canvas rendering), **helpers** (shared plumbing under `plugins/helpers/`), and **pure finance math** (`$lib/utils/finance/`). Above them sits one page-owned orchestrator, `ChartDrawingsService`, which is the only thing that persists drawings, keeps undo/redo history, and saves/loads rewind snapshots. This page documents the contracts inside each layer, the per-plugin directory rules, and the snapshot → rewind data path.
+The chart drawing system has three layers that must stay separate: **primitives** (lightweight-charts series primitives that own interaction and canvas rendering), **helpers** (shared plumbing under `plugins/helpers/`), and **pure finance math** (`$lib/utils/finance/`). Above them sits one page-owned orchestrator, `ChartDrawingsService`, which is the only thing that persists drawings, keeps undo/redo history, and saves/loads rewind snapshots. The service exposes two parallel families of per-security data — **live** values read from user preferences and snapshot-scoped `effective*` values — and the security page binds only the `effective*` family into the chart, which is what makes rewind a read-only replay of a past snapshot rather than a mutation. This page documents the contracts inside each layer, the per-plugin directory rules, the live-versus-effective distinction, and the snapshot → rewind data path.
 
 | Layer | Location | Owns |
 |---|---|---|
 | Primitives | `frontend/src/lib/components/charts/plugins/<plugin>/` | state, mouse adapters, pane views, canvas renderers |
 | Shared helpers | `frontend/src/lib/components/charts/plugins/helpers/` | delegate, time projection, mouse engine, bitmap geometry, primitive bases, renderer utilities |
 | Finance math | `frontend/src/lib/utils/finance/` | drawing/fib/wave models, formulas, equality, snapshots, history, timeline-free pure helpers |
-| Orchestration | `frontend/src/lib/services/ChartDrawingsService.svelte.ts` | active tool/selection state, preference persistence, undo/redo, snapshot save/dedupe, rewind mode |
+| Orchestration | `frontend/src/lib/services/ChartDrawingsService.svelte.ts` | active tool/selection state, preference persistence, undo/redo, snapshot save/dedupe, rewind mode, and the live-versus-snapshot-scoped effective views |
 | Persistence | `src/market/*` + `frontend/src/lib/api/snapshotsService.ts` | `market_chart_snapshots` table, user-scoped CRUD, HTTP surface |
 | Timeline UI | `rewind-timeline.svelte` + `rewind-timeline.ts` | track geometry, markers, playhead, scrubbing |
 
@@ -313,7 +313,7 @@ All formulas, models, equality rules and snapshot algebra live in `frontend/src/
 | `fibonacci.ts` | fib types, level calculation, `getActiveFibLevelPrices`, per-security updates, normalization + equality |
 | `elliott-wave.ts` | wave types, `getWaveIdentity` / `normalizeWaveIds`, `selectDegreeWave`, `getLatestWaveCount`, `updateSecurityElliottWaves`, equality helpers |
 | `drawing-history.ts` | `SecurityDrawingState`, `areDrawingStatesEqual`, `DrawingHistoryManager` |
-| `rewind.ts` | snapshot model, `generateUUID`, `captureSnapshot`, `findSnapshotAtOrBefore`, `areSnapshotsEqual` |
+| `rewind.ts` | snapshot and valuation wire model, `generateUUID`, `captureSnapshot`, `appendSnapshot`, `getSnapshots`, `findSnapshotAtOrBefore`, `areSnapshotsEqual` |
 | `wave-alerts.ts` | `computeWaveAlertLevels`, `reconcileWaveAlerts` (consumed by the page, not the plugins) |
 
 Key properties of this layer:
@@ -325,17 +325,33 @@ Key properties of this layer:
 
 ## `ChartDrawingsService`: the page-owned orchestrator
 
-`frontend/src/lib/services/ChartDrawingsService.svelte.ts` is a Svelte-runes class that owns all drawing state for one security page and is the **only** writer of drawing preferences and snapshots. The security page constructs one instance per page (SSR "no global instances" rule), registers it with `setChartDrawingsService(...)`, and exposes it to descendants through `getChartDrawingsService()`; `DrawingToolbar` accepts either a `service` prop or falls back to the context instance.
+`frontend/src/lib/services/ChartDrawingsService.svelte.ts` is a Svelte-runes class that owns all drawing state for one security page and is the **only** writer of drawing preferences and snapshots. The security page constructs one instance per page (SSR "no global instances" rule), registers it with `setChartDrawingsService(...)`, and exposes it to descendants through `getChartDrawingsService()`; `DrawingToolbar` accepts either a `service` prop or falls back to the context instance, preferring the service over its own props for every flag it displays.
 
-Constructor dependencies are injectable for tests: `securityId`, `userPreferences`, `displayCandles`, `getChartRef`, the callbacks `onWaveAlertsReconcile` / `onPreferencesChanged` / `onChartSettingsOpen`, plus `userPreferencesService`, `snapshotsService` and `toast` (all defaulting to the real singletons).
+Constructor dependencies are injectable for tests: `securityId`, `userPreferences`, `valuation`, `displayCandles`, `getChartRef`, the callbacks `onWaveAlertsReconcile` / `onPreferencesChanged` / `onChartSettingsOpen`, plus `userPreferencesService`, `snapshotsService` and `toast` (all defaulting to the real singletons).
 
 ### State it owns
 
 - **Active tool**: `activeWaveDegree`, `activeWaveType`, `activeFibTool`, and the five drawing-mode flags (`isDrawingWave`, `isDrawingFib`, `isDrawingMeasure`, `isDrawingHorizontalLine`, `isDrawingLine`). Tool activation is mutually exclusive: `selectWaveDegree`, `toggleFib`, `toggleMeasure`, `toggleHorizontalLine` and `toggleLine` clear the other flags (and, for the newer tools, the other selections).
 - **Selections**: `selectedWaveDegree`, `selectedFibTool`, `selectedMeasureId`, `selectedHorizontalLineId`, `selectedLineId`; each `selectX` clears the other four.
-- **Context**: `securityId`, `userPreferences`, `displayCandles`.
+- **Context**: `securityId`, `userPreferences`, `valuation`, `displayCandles`.
 - **Snapshots and rewind**: `snapshots`, `isTimelineVisible`, `timelinePosition`, `saveFeedback`.
-- **Derived views**: `isRewound` (`timelinePosition !== null`), `securityElliottWaves` / `securityFibonacciTools` / `securityDrawings` (live, per security), `activeSnapshot`, `effectiveElliottWaves` / `effectiveFibonacciTools` / `effectiveSecurityDrawings` (snapshot-backed while rewound), `canUndo` / `canRedo`, and the five `isDrawing*Effective` flags.
+- **History and drag state**: `isDraggingDrawing`, plus the private `_canUndo` / `_canRedo` mirrors.
+- **Derived views**: `isRewound` (`timelinePosition !== null`), `securityElliottWaves` / `securityFibonacciTools` / `securityDrawings` (live, per security), `activeSnapshot`, the snapshot-scoped `effectiveElliottWaves` / `effectiveFibonacciTools` / `effectiveSecurityDrawings` / `effectiveValuation` (`getEffectiveSecurityDrawings()` is the equivalent method form), `canUndo` / `canRedo`, and the five `isDrawing*Effective` flags.
+
+### Live versus effective: the one distinction that matters
+
+Two parallel families exist, and only the `effective*` family may reach the chart:
+
+| Live (preferences) | Snapshot-scoped (`effective*`) |
+|---|---|
+| `securityElliottWaves` | `effectiveElliottWaves` |
+| `securityFibonacciTools` | `effectiveFibonacciTools` |
+| `securityDrawings` (normalized on read) | `effectiveSecurityDrawings` |
+| `valuation` | `effectiveValuation` |
+
+While live (`timelinePosition === null`) each `effective*` getter simply forwards to its live counterpart, so there is exactly one code path for consumers. While rewound they read `activeSnapshot?.drawings?.…`, falling back to the empty value (`{ waves: [] }`, `{}`, `{}`, `null`) when the snapshot carries nothing. This is what makes rewind read-only *and* non-destructive: the mutation handlers are guarded off (below), the live preferences are never overwritten by snapshot content, and the page binds only `effective*` values into the chart and the toolbar, so the primitives replay the past snapshot while the user's own drawings stay untouched underneath.
+
+The page passes `effectiveElliottWaves`, `effectiveFibonacciTools`, `effectiveSecurityDrawings` and `effectiveValuation` into `security-chart.svelte`, and the `isDrawing*Effective` flags into both the chart and `DrawingToolbar`. `securityElliottWaves` is still read live in one place — the wave-alert reconcile — which is correct because that reconcile is disabled while rewound.
 
 ### Preference persistence and the legacy-anchor seam
 
@@ -389,11 +405,11 @@ The page forwards window `keydown` into `handleKeyDown(event, chartRef)`, which 
 
 `isRewound` (`timelinePosition !== null`) is the single switch:
 
-- Every mutation handler early-returns: `recordDrawingStateChange`, `handleUndo`, `handleRedo`, `handleWaveChange`, `handleClearWave`, `handleFibChange`, `handleClearFib`, `handleFibLevelsChange`, `handleFibWidthSave`, `handleDrawingChange`, `handleRemoveDrawing`, `handleSaveSnapshot`, all five `setDrawing*Mode` setters, and the `Delete`/`Backspace`/undo/redo/save branches of `handleKeyDown`.
+- Every mutation handler early-returns: `recordDrawingStateChange`, `handleUndo`, `handleRedo`, `handleWaveChange`, `handleWaveDegreeChange`, `handleClearWave`, `handleFibChange`, `handleClearFib`, `handleFibLevelsChange`, `handleFibWidthSave`, `handleDrawingChange`, `handleRemoveDrawing`, `handleSaveSnapshot`, all five `setDrawing*Mode` setters, and the `Delete`/`Backspace`/undo/redo/save branches of `handleKeyDown`. `handleValuationSave` reaches the same guard indirectly: it assigns the live `valuation` state and then calls `handleSaveSnapshot`, which bails while rewound — so a valuation save while rewound updates the live value but writes no snapshot.
 - `canUndo` and `canRedo` are forced `false`, and every `isDrawing*Effective` getter is forced `false`, so the chart receives drawing modes of `false` and the toolbar shows no active tool.
-- `activeSnapshot` resolves via `findSnapshotAtOrBefore(this.snapshots, this.timelinePosition)`; the `effective*` getters read the snapshot's drawings (`?? { waves: [] }`, `?? {}`) instead of live preferences.
-- Selecting any tool while rewound exits rewind first (`this.timelinePosition = null`) so the user's click is not swallowed.
-- On the page side, rewind also stops history fetching (`hasMoreData={!isRewound && hasMoreData}`), disables the wave-alert reconcile, and recomputes indicators from the sliced candles.
+- `activeSnapshot` resolves via `findSnapshotAtOrBefore(this.snapshots, this.timelinePosition)`; the `effective*` getters read the snapshot's drawings instead of live preferences, falling back to `{ waves: [] }` (`effectiveElliottWaves`), `{}` (`effectiveFibonacciTools`, `effectiveSecurityDrawings`) and `null` (`effectiveValuation`) when the snapshot carries nothing.
+- Selecting or toggling any tool while rewound exits rewind first (`this.timelinePosition = null`) so the user's click is not swallowed.
+- On the page side, rewind also stops history fetching (`hasMoreData={!isRewound && hasMoreData}` and `handleLoadMoreData` returns early), disables the wave-alert reconcile (`scheduleWaveAlertsReconcile` and `reconcileWaveAlertsForSecurity` both bail), and recomputes indicators from the sliced candles.
 
 `handleKeyDown` is also where the page and the service meet for selection state: it prefers the service's selection and falls back to the chart instance getters (`getSelectedWaveId`, `getSelectedWaveDegree`, `getSelectedFibTool`, `getSelectedMeasureId`, `getSelectedHorizontalLineId`, `getSelectedLineId`).
 
@@ -408,7 +424,7 @@ The page forwards window `keydown` into `handleKeyDown(event, chartRef)`, which 
 | `id` | `UUID` PK | server-generated (`uuid4`) |
 | `security_id` | `UUID` FK → `market_securities.id` | `ON DELETE CASCADE` |
 | `user_id` | `UUID` | ownership scope for every query |
-| `drawings` | `JSON` | the `RewindDrawings` payload: elliott waves, fibonacci tools, new-tool drawings |
+| `drawings` | `JSON` | the `RewindDrawings` payload: elliott waves, fibonacci tools, new-tool drawings, and the optional `valuation` bounds |
 | `data_window` | `JSON` | `{ first, last }` displayed candle times |
 | `captured_at` | `DateTime(timezone=True)` | client-supplied or `now(UTC)` |
 | `created_at` | `DateTime(timezone=True)` | server default |
@@ -441,21 +457,24 @@ The router surface (`src/market/router.py`, prefix `/market`, mounted under `/ap
 
 `frontend/src/lib/utils/finance/rewind.ts` defines the wire model and the pure snapshot algebra:
 
-- `RewindSnapshot` = `{ id, captured_at, drawings, data_window, security_id?, user_id?, created_at? }`; `RewindDrawings` = `{ elliott_waves?, fibonacci_tools?, drawings? }`; `RewindDataWindow` = `{ first, last }` holding normalized candle times.
+- `RewindSnapshot` = `{ id, captured_at, drawings, data_window, security_id?, user_id?, created_at? }`; `RewindDrawings` = `{ elliott_waves?, fibonacci_tools?, drawings?, valuation? }` with each slice nullable; `RewindValuation` = `{ lower_bound, upper_bound }`; `RewindDataWindow` = `{ first, last }` holding normalized candle times.
 - `captureSnapshot(drawings, dataWindow, now = new Date())` builds a client-side id (`generateUUID()`) and an ISO-8601 UTC `captured_at`.
 - `getSnapshots(store, securityId)` returns an ascending-by-`captured_at` copy; `appendSnapshot` immutably appends to a per-security map (the service keeps a flat per-security array and spreads instead).
-- `findSnapshotAtOrBefore(snapshots, time)` returns the latest snapshot at or before `time`, `null` when `time` precedes the first snapshot, and the last snapshot when `time` is after it; it is overloaded for a flat array (2-arg) and for a map + security id (3-arg). The service uses the 2-arg array form.
-- `areSnapshotsEqual(a, b)` compares `data_window` plus drawings structurally and **intentionally ignores `id`, `captured_at` and the backend metadata fields** — that is what gives save-dedupe semantics. Normalization treats "no fibonacci tools" and "empty fibonacci tools" as equal.
+- `findSnapshotAtOrBefore(snapshots, time)` returns the latest snapshot at or before `time`, `null` when `time` precedes the first snapshot, and the last snapshot when `time` is after it; it is overloaded for a flat array (2-arg) and for a map + security id (3-arg). The service uses the 2-arg array form. A missing list, an empty list or an invalid `Date` all yield `null`, and the array form sorts a copy first so an unsorted input still resolves correctly.
+- `areSnapshotsEqual(a, b)` compares `data_window` plus drawings structurally and **intentionally ignores `id`, `captured_at` and the backend metadata fields** — that is what gives save-dedupe semantics. The comparison is a conjunction over four sub-comparisons: `data_window` (string-coerced `first`/`last`), `elliott_waves` (via `areSecurityElliottWavesEqual`), `fibonacci_tools` (normalized so "no fibonacci tools" and "empty fibonacci tools" are equal), the new-tool `drawings` (via `areSecurityDrawingsEqual`) and the `valuation` bounds (numeric comparison, with `null`/`undefined` equal to each other). Adding a slice to `RewindDrawings` therefore requires adding its own sub-comparison, or the dedupe guard silently ignores that slice.
 
 ### Saving a snapshot
 
 `handleSaveSnapshot(candles?)` (toolbar "Save snapshot" button, `Cmd/Ctrl+S`, or the service's own call site):
 
 1. Bail out when rewound, without a security id, or without displayed candles.
-2. Build `drawings` from the live `securityElliottWaves` + `securityFibonacciTools` + `securityDrawings`, and skip the save **silently** unless there is at least one wave point, one fib tool, or one new-tool drawing.
-3. Build `data_window` from the first/last displayed candle times (`normalizeCandleTime` renders a `BusinessDay` as `YYYY-MM-DD`).
-4. `captureSnapshot(...)`, then compare with the newest stored snapshot via `areSnapshotsEqual` — if equal, show "Chart snapshot already up to date" (`toast.info`) and do not POST. `showSaveFeedback()` flips the toolbar icon to a check mark for 1.5 s.
-5. Otherwise `snapshotsService.createSnapshot(securityId, { drawings, data_window, captured_at })`, append the **server-returned** snapshot, reveal the timeline and show "Chart snapshot saved". Failures log and show an error toast without touching the timeline.
+2. Build `drawings` from the live `securityElliottWaves` + `securityFibonacciTools` + `securityDrawings`, plus a `valuation: { lower_bound, upper_bound }` block (coerced with `Number`) when a live `valuation` is set.
+3. Skip the save **silently** unless at least one of four gates holds: one wave with at least one point, a retracement or extension fib tool, a non-empty new-tool drawing collection (`isSecurityDrawingsEmpty`), or a valuation whose two bounds are both finite numbers. The valuation gate is why saving a fair-value range alone produces a snapshot.
+4. Build `data_window` from the first/last displayed candle times (`normalizeCandleTime` renders a `BusinessDay` as `YYYY-MM-DD`).
+5. `captureSnapshot(...)`, then compare with the newest stored snapshot via `areSnapshotsEqual` — if equal, show "Chart snapshot already up to date" (`toast.info`) and do not POST. `showSaveFeedback()` flips the toolbar icon to a check mark for 1.5 s.
+6. Otherwise `snapshotsService.createSnapshot(securityId, { drawings, data_window, captured_at })`, append the **server-returned** snapshot, reveal the timeline and show "Chart snapshot saved". Failures log and show an error toast without touching the timeline.
+
+`handleValuationSave(savedValuation)` is the valuation save path: it calls `setValuation(...)` and then `handleSaveSnapshot()`, so saving a range from the fundamentals sidebar writes a snapshot immediately. The page wires this through `handleValuationSaved`, which sets its own `valuation` state, calls `drawingsService.setValuation(saved)` and then awaits `drawingsService.handleSaveSnapshot()`.
 
 `loadSnapshots()` runs on page load — inside the same `Promise.all` as `loadAlerts()`, `loadHoldings()` and `loadValuation()`; it sorts by `Date.parse(captured_at)` ascending (defensively re-establishing the backend's ordering) and sets `isTimelineVisible = true` when the security already has snapshots.
 
@@ -477,32 +496,37 @@ The router surface (`src/market/router.py`, prefix `/market`, mounted under `/ap
 
 The page derives everything from the service's `timelinePosition`:
 
-- `displayCandles` = `sliceCandlesBefore(allDisplayCandles, timelinePosition)` while rewound, otherwise all candles; it is fed back into the service via `setDisplayCandles` and passed to the chart.
-- `timelineNow` is the timestamp of the last **displayed** candle, not wall-clock time, so the "Now" end of the track lines up with the newest bar.
-- An `$effect` watching `timelinePosition` calls `refreshActiveIndicators()`, and `getRewoundCandlesPayload()` builds an `IndicatorCandle[]` from `sliceCandlesBefore(rawCandles, timelinePosition)` so an oscillator shows the values it *would have had* at that instant (caller-supplied candles bypass the indicator cache).
-- `RewindTimeline` is rendered only while `isTimelineVisible`, bound two-way to `drawingsService.timelinePosition`.
+- `displayCandles` = `sliceCandlesBefore(allDisplayCandles, timelinePosition)` while rewound, otherwise all candles; an `$effect` feeds it back into the service via `setDisplayCandles`, and the same derived value is passed to the chart.
+- `timelineNow` is the timestamp of the last candle in `allDisplayCandles`, not wall-clock time, so the "Now" end of the track lines up with the newest bar.
+- An `$effect` reading `timelinePosition` calls `refreshActiveIndicators()` inside `untrack(...)`, and `getRewoundCandlesPayload()` builds an `IndicatorCandle[]` from `sliceCandlesBefore(rawCandles, timelinePosition)` so an oscillator shows the values it *would have had* at that instant (caller-supplied candles bypass the indicator cache). It returns `undefined` when not rewound or without a position, so the live path sends no `candles` at all.
+- `RewindTimeline` is rendered only while `drawingsService.isTimelineVisible`, bound two-way to `drawingsService.timelinePosition` and fed `now={timelineNow}`.
+- Pagination is gated twice: `hasMoreData={!isRewound && hasMoreData}` on the chart and an `if (isRewound) return;` at the top of `handleLoadMoreData`.
+- The chart receives only `effective*` values — `effectiveElliottWaves`, `effectiveFibonacciTools`, `effectiveSecurityDrawings`, `effectiveValuation` and the five `isDrawing*Effective` flags — so rewind swaps the drawings and the valuation band without touching preferences.
+- The wave-alert reconcile is gated on rewind in both `scheduleWaveAlertsReconcile` and `reconcileWaveAlertsForSecurity`, and the reconcile itself reads the live `drawingsService.securityElliottWaves` (correct, because it never runs while rewound).
+- The page also registers an `export function getEffectiveSecurityDrawings()` that forwards to `drawingsService.getEffectiveSecurityDrawings()`, and calls `drawingsService.destroy()` in `onDestroy` to clear the save-feedback timer and the history subscription.
 
 ```mermaid
 flowchart TD
     LOAD["Page load calls loadSnapshots"] --> STORE["Snapshots sorted ascending, timeline revealed when non-empty"]
-    SAVE["Toolbar Save snapshot or Cmd plus S"] --> GUARD{"rewound, no candles or no drawings"}
+    SAVE["Toolbar Save snapshot or Cmd plus S"] --> GUARD{"rewound, no candles or no snapshot content"}
     GUARD -- "yes" --> SKIP["Save skipped"]
     GUARD -- "no" --> CAP["captureSnapshot builds id, captured_at, drawings, data_window"]
     CAP --> DEDUPE{"areSnapshotsEqual with newest stored snapshot"}
     DEDUPE -- "equal" --> INFO["toast already up to date, no POST"]
     DEDUPE -- "different" --> POST["snapshotsService.createSnapshot POST"]
     POST --> APPEND["Append server snapshot and reveal the timeline"]
+    VALS["Valuation saved from the sidebar"] --> CAP
     STORE --> TIMELINE["RewindTimeline renders markers from snapshotTimelineDomain"]
     APPEND --> TIMELINE
     TIMELINE --> SCRUB["User drags the playhead or clicks a marker"]
     SCRUB --> POSITION["position becomes a Date, or null near the right edge"]
     POSITION --> SLICE["displayCandles sliced with sliceCandlesBefore"]
-    SLICE --> DRAWINGS["effective snapshot drawings drive the primitives"]
+    SLICE --> DRAWINGS["effective snapshot drawings and valuation drive the chart"]
     SLICE --> INDICATORS["Indicators recomputed from the sliced candles"]
     POSITION --> RESET["position null restores live candles, live drawings and pagination"]
 ```
 
-Snapshot → rewind flow: saving persists drawings plus the data window, and scrubbing the timeline re-derives candles, drawings and indicators from the snapshot at or before the playhead. A `position` of `null` means live data.
+Snapshot → rewind flow: saving persists drawings plus the data window (a valuation save reuses the same path), and scrubbing the timeline re-derives candles, drawings, valuation and indicators from the snapshot at or before the playhead. A `position` of `null` means live data.
 
 ## How the page and chart wire it together
 
@@ -524,8 +548,8 @@ Tests are colocated per plugin and per helper and follow `frontend/AGENTS.md`:
 
 - **Suites**: `elliott-wave/elliott-wave.test.ts`, `fibonacci/fibonacci.test.ts`, `measure/measure.test.ts`, `horizontal-line/horizontal-line.test.ts`, `free-form-line/free-form-line.test.ts`, `user-price-alerts/user-price-alerts.test.ts`, `plugins/bands-indicator.test.ts`; helpers have their own (`helpers/mouse/chart-mouse-handlers.test.ts`, `helpers/mouse/geometry.test.ts`, `helpers/mouse/snap.test.ts`, `helpers/time/time.test.ts`, `helpers/time/time-projector.test.ts`, `helpers/primitive/drawing-primitive-base.test.ts`, `helpers/primitive/base-collection-state.test.ts`, `helpers/primitive/delegating-pane-view.test.ts`, `helpers/renderer/handle-renderer.test.ts`, `helpers/renderer/label-renderer.test.ts`). The finance layer is covered by `finance/drawings.test.ts`, `finance/drawing-time.test.ts`, `finance/drawing-history.test.ts`, `finance/rewind.test.ts`, `finance/measure.test.ts`, and the fib/wave suites.
 - **Mocking is mandatory — no test may touch a real backend or a real chart.** `lightweight-charts` is replaced with a `vi.mock` factory exposing `createChart`, `CrosshairMode`, the series classes and chainable `timeScale`/`priceScale`/`addSeries`/`attachPrimitive` mocks; canvas targets are faked (`useBitmapCoordinateSpace` invoking the callback with a fake `BitmapCoordinatesRenderingScope`, and a recording 2D context double for `moveTo`/`lineTo`/`arc`/`fill`/`stroke`/`fillText`/`setLineDash`); every API client a subject calls is mocked.
-- **`ChartDrawingsService.test.ts`** injects `UserPreferencesServiceLike`, `SnapshotsServiceLike` and `ToastLike` doubles plus the callbacks, and covers tool mutual exclusion, Delete/Backspace deletion, Escape cancellation, undo/redo orchestration and keyboard shortcuts, drag coalescing (deferred patch, single commit, no patch without moves), legacy-anchor normalization without a write-back, and snapshot save / empty-drawings skip / dedupe / effective-drawings-while-rewound.
-- **Rewind coverage spans three levels**: pure helpers (`finance/rewind.test.ts` for `captureSnapshot`, `generateUUID`, `appendSnapshot`, `getSnapshots`, `findSnapshotAtOrBefore`, `areSnapshotsEqual`, including the `drawings` key round-trip; `rewind-timeline.test.ts` for `snapshotTimelineDomain`, `timeToFraction`, `fractionToTime`, `sliceCandlesBefore`), the component (scrub, markers, "Back to now", empty state) and the page (`Rewind Save Snapshot`, `Rewind Scrub and Drawing Restore`).
+- **`ChartDrawingsService.test.ts`** injects `UserPreferencesServiceLike`, `SnapshotsServiceLike` and `ToastLike` doubles plus the callbacks, and covers tool mutual exclusion, Delete/Backspace deletion, Escape cancellation, undo/redo orchestration and keyboard shortcuts, drag coalescing (deferred patch, single commit, no patch without moves), legacy-anchor normalization without a write-back, snapshot save / empty-drawings skip / dedupe / effective-drawings-while-rewound, the valuation gate (a snapshot saves on valuation alone, `handleValuationSave` patches then saves) and `effectiveValuation` switching between live and snapshot values.
+- **Rewind coverage spans three levels**: pure helpers (`finance/rewind.test.ts` for `captureSnapshot`, `generateUUID`, `appendSnapshot`, `getSnapshots`, `findSnapshotAtOrBefore`, `areSnapshotsEqual`, including the `drawings` key round-trip and the valuation-equality cases; `rewind-timeline.test.ts` for `snapshotTimelineDomain`, `timeToFraction`, `fractionToTime`, `sliceCandlesBefore`), the component (scrub, markers, "Back to now", empty state) and the page (`Rewind Save Snapshot`, `Rewind Scrub and Drawing Restore`, including the test that the chart's `valuation` prop follows the active snapshot and returns to the live valuation on "Back to now").
 - **Backend**: `tests/routers/test_chart_snapshots.py` asserts 201 create, ascending `captured_at` on read, 204 delete, per-user isolation (a non-owner GET returns `[]` and a non-owner DELETE leaves the row intact), 401 for all three routes unauthenticated, and `ON DELETE CASCADE` when the security is removed.
 
 Run the frontend suites with `./scripts/agent-test frontend/src/lib/components/charts/...` (and `./scripts/agent-test frontend/src/lib/services/ChartDrawingsService.test.ts`) while iterating, and `./scripts/agent-test frontend` before finishing.
@@ -540,4 +564,6 @@ Run the frontend suites with `./scripts/agent-test frontend/src/lib/components/c
 - **New tools must reuse `BaseCollectionToolState` when they own a collection.** It already implements anchor normalization, id assignment, selection cleanup, the reactive-loop equality guard and the six delegates; the only per-plugin decisions are `addPoint` and the drag semantics (see horizontal-line's price-only drag).
 - **A new tool must extend `ChartDrawingsService` symmetrically**: a drawing-mode flag, a selection field, a `toggle*`/`select*`/`setDrawing*Mode` triple that mutually excludes the others, a `handle*Change` / `handleRemove*` pair that patches `drawings` with the right `DrawingToolType` key, an `isDrawing*Effective` getter that returns `false` while rewound, an `isRewound` guard on every mutation, and a `Delete`/`Backspace` branch in `handleKeyDown`. It also has to be added to `SecurityDrawings`, `DrawingToolType` and the snapshot gate in `handleSaveSnapshot`, or its drawings will never be saved or replayed.
 - **Snapshot equality ignores identity.** `areSnapshotsEqual` compares drawings + data window only; comparing `id`/`captured_at` would break save-dedupe. The server's ascending `captured_at` ordering and the page's append-only array keep `snapshots[0]` the oldest, which `snapshotTimelineDomain` depends on.
-- **Rewind is read-only.** Any new chart mutation (a new tool, a new preference write, a new fetch) must add its own `isRewound` guard, or it will write live state while the user is looking at a past snapshot.
+- **Rewind is read-only.** Any new chart mutation (a new tool, a new preference write, a new fetch) must add its own `isRewound` guard, or it will write live state while the user is looking at a past snapshot. `handleValuationSave` is the reference case for the weaker variant: it sets live state unguarded and relies on its downstream `handleSaveSnapshot` to refuse the write.
+- **A new `RewindDrawings` slice needs three edits, not one.** Add the field to `RewindDrawings`, add its sub-comparison to `areSnapshotsEqual`, and add it to the `handleSaveSnapshot` content gate — otherwise the slice is either never saved, never replayed, or silently deduped away. The `valuation` slice is the worked example (model field, `areRewindValuationsEqual`, `hasValuation` gate) and `effectiveValuation` is its replay counterpart.
+- **Every snapshot-scoped value gets an `effective*` twin.** The page binds only `effective*` into the chart, so a value that has no effective getter would keep showing live data while the user is rewound. The four pairs today are `effectiveElliottWaves`, `effectiveFibonacciTools`, `effectiveSecurityDrawings` and `effectiveValuation`; the live counterparts (`securityElliottWaves`, `securityFibonacciTools`, `securityDrawings`, `valuation`) are what the persistence handlers write.

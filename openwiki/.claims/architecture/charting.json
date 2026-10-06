@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "pageVersion": "sha256:74c5d1c20f44fb887e6a6c74eac2ade3dfd4991eadb8f59245e967c89c93de0a",
+  "pageVersion": "sha256:11e375088bfcfec8c6903903db766cfd2c844aec51cbe2d8be1122682afa71ef",
   "claims": [
     {
       "id": "claim_5df96f2816c44d53858f0d0400053d41",
@@ -103,7 +103,7 @@
           "version": "repo-lines-v1:sha256:a7496416f0049897bdd3fba541c80d28557b251fe0b812293ad032b3fa6889e1:eyJzZWxlY3RlZExpbmVDb3VudCI6MTUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImE4N2YwMDlhMzRiZTZlYTYwZjM1OGY5ZjQxMDQ2YTdkYWQyNWNlZGNmZDQ3NmYwN2Q5NWE5ZGUxMmFiZTBmMjIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQxMmNhMzQ1Y2NmNzViZjljMDgwNmJjZTY5NWJlOGRlODA4Yjc5OTg0MjUxYTdhNTRkMjAyY2Y2MTAxZGQ0NTEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjZmNDE3MmIyODhjZWExMWEzOWIxZDJlMTcyOTc0NDRhNTQ0MDBlOTRkYmIzYmFlODQxMDI2ZWRiYTc0MTJiNTgiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImE0N2Q0YTA0ZDcxYTEyZjIxYzVjMzgwZDg4MmE4NWQ4NjAzZjMzYmE3NWJkZDVmYWZhY2FkZmMyNDdhYzJlMTIifQ"
         },
         {
-          "resource": "repo://frontend/src/routes/security/%5Bsecurity_id%5D/%2Bpage.svelte#L164-L225",
+          "resource": "repo://frontend/src/routes/security/%5Bsecurity_id%5D/%2Bpage.svelte#L175-L236",
           "version": "repo-lines-v1:sha256:afd856dfa1857011a60f47c7d64965b7a50437cf3bf28cc13bddfb7cd602ebe0:eyJzZWxlY3RlZExpbmVDb3VudCI6NjIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjMxOGI0ODMwYmU2MGZjYjAyNWQ1NDJhZmQ1Mzg2ODA0MzQ3MWUyMDUwOWQ1ODA2NmM1NmE4ZWY1ODE2ZTNjMzciLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjY3Y2RhODJkYTYwNjIzOGUwNWU2MjM5OTU2OWM1ZWUwMzk5MzQxOTY0OGFlNWQ0M2EyYmY4Y2Q2MzQ3ZjgyNjMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImE5NzEzYjg1NzY1NGRmNzQ5YTZjYTAyYTczNGY2MjA2ZTZhNWQ1ZGY5NjEzMmEwZjI1NjljOTY5ZjRmMWM2M2UiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImVjZmIwNmU2Zjg2NDc4OTZlNjU3ZmUzZjJmY2I5YzA2NTg5MDNiMWJhZjE1NGM2Nzk5MTI0ODJmY2U4Zjc5NmQifQ"
         }
       ]
@@ -117,7 +117,7 @@
           "version": "repo-lines-v1:sha256:7080d89f3c00cb2125c938bc82f249b43be40ae725a82d96db7c878f9076f87e:eyJzZWxlY3RlZExpbmVDb3VudCI6MTUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImJlMGYxNWQ5NGYzYzkwNDM3ZDk5ZTczZTRkOGY1ZjFmODM4OGQ5NGUwOWI1ZWZmMjg1ZGI0OGM1OTBlZTRjMTQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImFhMWQxYTYzMzkwMjI5Yzc5ODM0N2U4M2EwNDA1NDQxYzk0MDAwMzUyODRhZDE2OGMxYmY2Y2RmMWQ3MGEzNzAiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjowLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
         },
         {
-          "resource": "repo://frontend/src/routes/security/%5Bsecurity_id%5D/%2Bpage.svelte#L779-L786",
+          "resource": "repo://frontend/src/routes/security/%5Bsecurity_id%5D/%2Bpage.svelte#L790-L797",
           "version": "repo-lines-v1:sha256:519ff824b8cd71e81e9b962c8615a6f71d336dfd45907d973defbebb37f1966b:eyJzZWxlY3RlZExpbmVDb3VudCI6OCwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiZTU4MzkyMDMxZjYyZmI5ODMzZTRiYzY4MDZlMDI3NTAwMzBiYTc5MWE0ZWQ5ZDhjZWU3YmE5YTBjM2ZkNjk3ZiIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiMTBkZjgxYjA0NmY1ODA2NTkzOGQ0OTRlYWUxMmU1N2MwNDAyZGVlNTU2NjBmNjBkMzYwOTQ2MDY4ZWVjMjNjNSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiY2U4ZjgwNGIxYjE2ZTkyYjg0ZWI4ODNjZDYwMDQwMTdiMDY4OTE0ODc3OTMzMTRmNTc2MTMyMWZmNDg5NWQ5OCIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiOGU5MjIzNTZiOTlkMmEzMWFhNWVhYWE2MGI4MDgzZmFlZDI5YzMzNjNkMjFlZmIwOTBhYzUzNzRkYjYyYmNhMCJ9"
         },
         {
@@ -159,11 +159,11 @@
           "version": "repo-lines-v1:sha256:7f4c5b8937734fa8ef6525dccd38696715934f0b6b2df1bff1db3ba843a2c127:eyJzZWxlY3RlZExpbmVDb3VudCI6MjAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjRmZmYwNjMzNDhhMWUxYTMyNTEzZWFjYzAxNmZjMjVjZmZlZjBiNGM5MGJmMGM4ODhlZDU4NTdmMjEzYTMyZGMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjBhNzM0OTJkODk0NmIxZDBmOWQ5YzA0YjcwNGE5MjBmMjRmODllZjdjN2Y3MzExYTg1OTlkMTBjN2Y2MzU4ZDAiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImYxOGEzYzVmZjA4ZGQ3OTYwMDllNjFlNjY1NzU2YzVhNTY3YTkyYTUxZTg2NGQ1MzkxOTE1NzcxNDZjNGRlMWIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjYwODliZWU0NTBmMDMwN2E0MTgyZmRlNzhjYzQ4MTc1ODc0M2RkZDkyZWQwOWM1NDg2ZmRmMjRlNmEzZGE0OGMifQ"
         },
         {
-          "resource": "repo://frontend/src/routes/security/%5Bsecurity_id%5D/%2Bpage.svelte#L284-L315",
+          "resource": "repo://frontend/src/routes/security/%5Bsecurity_id%5D/%2Bpage.svelte#L295-L326",
           "version": "repo-lines-v1:sha256:9e23a8e5ba7b9b453fb7bc12493c482de44e7811411039c1cbe9b7bc9d6561df:eyJzZWxlY3RlZExpbmVDb3VudCI6MzIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjUyNmZlMGUyNGI2ZTYwMTY3OGRmYzUwZjIxOGM0NTdhNTcxZTE1MWUwNmU1Y2I4MTk1OGY2ZWI5MDI3NGI4YzkiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjY3Y2RhODJkYTYwNjIzOGUwNWU2MjM5OTU2OWM1ZWUwMzk5MzQxOTY0OGFlNWQ0M2EyYmY4Y2Q2MzQ3ZjgyNjMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjEyODVlNzJiZDQxODU5MzE3NTY2NTJkYjFhNTM5YjdmZmRmMDcxZTI4YzE1YjU0MDRlMDE4ODlmOTllMDU0NTMiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjMxOTZlYjE3ZWVkZmIxMTcxZDc1ZjJhNmRkOGQ5OGQ0Njc5MzU3M2NjNzhlNDM1YmY2NTI2YmU2ZjQ1NzQ4MTcifQ"
         },
         {
-          "resource": "repo://frontend/src/routes/security/%5Bsecurity_id%5D/%2Bpage.svelte#L332-L409",
+          "resource": "repo://frontend/src/routes/security/%5Bsecurity_id%5D/%2Bpage.svelte#L343-L420",
           "version": "repo-lines-v1:sha256:96ca510bc3a60e9b88fb7c7fc97cf53b5fbcd37274dbd574daf44e5a932f7d1d:eyJzZWxlY3RlZExpbmVDb3VudCI6NzgsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImQzNzk1MmFiYmY3YjVlNWRlMWVkNDEwNjJjODQ5ZWIyZmNlOWViNzA4MmFmZWI0OTRiZTZmMTRiYTI0MDgwMmQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjY3Y2RhODJkYTYwNjIzOGUwNWU2MjM5OTU2OWM1ZWUwMzk5MzQxOTY0OGFlNWQ0M2EyYmY4Y2Q2MzQ3ZjgyNjMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImEwYTg3NTZhOThiOTVlZTU3NWJlZWU0NjAwNDhjN2ZjOTdhNjdhZDRkZDE1NWFjMWE4NTk3ZWM2NWM0ZmEyODAiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6Ijg0ZTYyNDNhYjM0MTNlYTc3YmQ3NDgwODMyYzhjMTJlMDgyYjIzZTNjMDMzYzQyNmQ5YjIzNDBlMTQ3YmQ3OTEifQ"
         }
       ]
@@ -227,15 +227,15 @@
       "statement": "Wave-target alerts are reconciled against the live alert list: handleWaveSettingsChange and the drawings service's wave-change path schedule a reconcile, the page serializes reconciles on a single promise chain because onWaveChange fires once per placed point, the initial reconcile is gated on preferences having loaded so a failed preference fetch cannot mass-delete wave alerts, and any create or delete triggers loadAlerts().",
       "evidence": [
         {
-          "resource": "repo://frontend/src/routes/security/%5Bsecurity_id%5D/%2Bpage.svelte#L458-L498",
+          "resource": "repo://frontend/src/routes/security/%5Bsecurity_id%5D/%2Bpage.svelte#L469-L509",
           "version": "repo-lines-v1:sha256:863171d07b40d7876636b12511f162a015907f0bb0b42c4ec8096b3b82f2d2ab:eyJzZWxlY3RlZExpbmVDb3VudCI6NDEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjhhNzg5MmRlZGFkNDlmNDg1NmM5OTZjMGU2ZGYwNTRmNDA2YjJmOTRkMDg2YjYyZmZlYjc5ZTZjOGRlY2FiNjkiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjY3Y2RhODJkYTYwNjIzOGUwNWU2MjM5OTU2OWM1ZWUwMzk5MzQxOTY0OGFlNWQ0M2EyYmY4Y2Q2MzQ3ZjgyNjMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImM1NDkwMTRmZGNiNTMxNDgzNjZiNmEzMzI1ZjI2NmI3NzgzYWFjZWUwZTU3M2I0YmQzODg0M2FhZGI4N2JkMmEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjhjNzk1ZGQwNDYwN2M5ZDc2NTA5ZThjYTVjZDU5MzFlYmFmYjNhNzViZTQ1ZTI5MzkxNzNiYjg0NjUxMzFmNjkifQ"
         },
         {
-          "resource": "repo://frontend/src/routes/security/%5Bsecurity_id%5D/%2Bpage.svelte#L556-L568",
+          "resource": "repo://frontend/src/routes/security/%5Bsecurity_id%5D/%2Bpage.svelte#L567-L579",
           "version": "repo-lines-v1:sha256:409422407e88610c84f206cbca445f02f5c57d692f292cda358a262c1da2cb23:eyJzZWxlY3RlZExpbmVDb3VudCI6MTMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjZlZDRkODNmMTRiOTRiZWI1MTFjYzZlYzI3MzRlZDg4NzRhYTUyMmNkYWY4NjQ5NmRjNjRhOGIwZjk3ZGU0ZWUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjY3Y2RhODJkYTYwNjIzOGUwNWU2MjM5OTU2OWM1ZWUwMzk5MzQxOTY0OGFlNWQ0M2EyYmY4Y2Q2MzQ3ZjgyNjMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImFiYjBjMDM2OGU1ZDVhNDkxZWQ1OWU0Y2E4ZGJmMjdlZWMxYjkzYjdmNWYyNTczZDQ5YzY4ZWQ5M2MyZGI4ZTkiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImNkZGMzMDVmMzY4YjRkNTY3ZjEzZDI2ODJmOWJhNmM1MjNkYjQzNDUzOWFkYTM3Y2YwNjk5NDFkMGNiMTk0NzMifQ"
         },
         {
-          "resource": "repo://frontend/src/routes/security/%5Bsecurity_id%5D/%2Bpage.svelte#L770-L774",
+          "resource": "repo://frontend/src/routes/security/%5Bsecurity_id%5D/%2Bpage.svelte#L781-L785",
           "version": "repo-lines-v1:sha256:8a9aee71cc223afc18b7655df1b870212d87b6ffb382d10b5201c922682dc397:eyJzZWxlY3RlZExpbmVDb3VudCI6NSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiY2ZiYTA5NzliNjQyOTgxYWRjOTJlZjM4OTA0ZmViMjRjNjc2NDVhYjQ5YTc3ZDdkOTk4MmU0NmQ5NTI2Njg3NyIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiMTBkZjgxYjA0NmY1ODA2NTkzOGQ0OTRlYWUxMmU1N2MwNDAyZGVlNTU2NjBmNjBkMzYwOTQ2MDY4ZWVjMjNjNSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiZDAzOTFmM2UxMzk0YjZmNDkyZGFkMzAzYTBkODhhZWFjZGM0M2RiMjllZjdhZTE5ZWE1MmJiMDJmMGZlNGRlMyIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiZTdiMWY5M2M0MDZjMTA1ZGVhOWI3YWZmNTUwYmEyYmRhNzRlYjAzM2I2MDBkYmM1MTVlZDJiYzU5YzgxYjFkNCJ9"
         }
       ]
@@ -257,7 +257,7 @@
           "version": "repo-lines-v1:sha256:01987a38e7b14fafae1d9382d612b1b6a710ca85f3bbe7a1bc7be07b52f4526a:eyJzZWxlY3RlZExpbmVDb3VudCI6OTgsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjdiYjFlYzQ4YzY1NTYxMDNjNDBkOTVmY2VmNTVjZDBjMjE2NmE3YzViMjIzMjcyOTVhODAyMTY3OGRlNzA4ZTEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImY2ZjViNDBiMTU4NDU3ZDE3ODY0ZjIxNzkwNzg2ZGQ1YTJlY2RiNjRiNjZhNjUxZjc4OGQ0ZTI1Y2QzMzAzZDIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjQ4ODQ0NTIyOWI0YjUxNGVjNjdmMDg5MjBkOTE1MjJlZmRmM2E4ZGM2ZTkyNDEyNDA4ZWM2ZDBiOWQ2NzI1MTIiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjliOGM4ZGUwZjRmNDE0NDlmMmVmNzBjM2M3YjQ0NDk0ODQ2OThmYTUxYmNiMmM4NTcyNzM4MGIzNDExNDExMjEifQ"
         },
         {
-          "resource": "repo://frontend/src/routes/security/%5Bsecurity_id%5D/page.svelte.test.ts#L53-L180",
+          "resource": "repo://frontend/src/routes/security/%5Bsecurity_id%5D/page.svelte.test.ts#L54-L181",
           "version": "repo-lines-v1:sha256:de2071a572115b0b945ec9f8290148c5d0ecf21cdbf8c6ecf2ca272c717962c8:eyJzZWxlY3RlZExpbmVDb3VudCI6MTI4LCJmaXJzdFNlbGVjdGVkTGluZUhhc2giOiI4MTE2ODEzNDEzOTFhODlkMjZmN2JmY2M2ZThjYTAzODNhZDA0MGMxMGE1MjZjZGY2NTRlOTJhNTI2YzAzZDFlIiwibGFzdFNlbGVjdGVkTGluZUhhc2giOiJhMzc4Zjk3YWI3YmZhNTBlNjA0NTNjYmNhNGYxMTYzODExN2VjMWQ5ODMwNzYxMWQzZDUxNWQyNzYyNzQ1NmI4IiwicHJlY2VkaW5nQ29udGV4dExpbmVDb3VudCI6MywicHJlY2VkaW5nQ29udGV4dEhhc2giOiJhYjZkY2Q2ODQwMWIxMTFiYmNjMjU1ZDQ5MDdjMTQ1Yjc1M2ZmOWFkYTdmY2M3NzFjOTZjMTdiMmMwMDlkMmFhIiwiZm9sbG93aW5nQ29udGV4dExpbmVDb3VudCI6MywiZm9sbG93aW5nQ29udGV4dEhhc2giOiI1YWUzOGY2ZDM5NzVhMzRiNzU3NjRlOWZiOTI5MTliYmExMTNkZDU3MmJkYzQ3ZmJhOTVmMWQyYjYxYmVkOTYxIn0"
         }
       ]
@@ -267,7 +267,7 @@
       "statement": "SecurityPageDataService (page-data.svelte.ts) owns the post-navigation data wave: load(securityId) fetches getSecurity and getPrices for a 1d window with getChartDateWindow in parallel, guards against a stale in-flight load clobbering a newer soft navigation with a private loadSeq, never throws (it returns the caught error so the page can route a 401 through redirectOn401), and treats a missing or empty price items array as a successful load whose message lands in error; the page's per-security $effect resets tool state, timeframeError and pagination, awaits that load, and renders an instant titlebar from the default watchlist plus a Loading chart data placeholder until the chart module resolves.",
       "evidence": [
         {
-          "resource": "repo://frontend/src/routes/security/%5Bsecurity_id%5D/%2Bpage.svelte#L711-L794",
+          "resource": "repo://frontend/src/routes/security/%5Bsecurity_id%5D/%2Bpage.svelte#L722-L805",
           "version": "repo-lines-v1:sha256:f0865060b6003bcbb6751c9a683cf5136f57e8a13bd91ec54815717a3165ab96:eyJzZWxlY3RlZExpbmVDb3VudCI6ODQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjRmZmYwNjMzNDhhMWUxYTMyNTEzZWFjYzAxNmZjMjVjZmZlZjBiNGM5MGJmMGM4ODhlZDU4NTdmMjEzYTMyZGMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjBhNzM0OTJkODk0NmIxZDBmOWQ5YzA0YjcwNGE5MjBmMjRmODllZjdjN2Y3MzExYTg1OTlkMTBjN2Y2MzU4ZDAiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImEwOTVjMTYzYmY5OGRiMDc4ZWFkMTQ1NjI5M2Y5NjM4YTFmZDI2OTkxYTEyNGY0Y2E3YTZhZDUxNDczMWQ5ZjAiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjAxMDhkNmM3MTRkNWQ1NWM1ZDk2Y2E2ZTExM2I3MGM4ZTRhYTM3OTk0MTUyYzI2MTk3ZWMzMDJmMjg1N2FkOWUifQ"
         },
         {
@@ -275,7 +275,7 @@
           "version": "repo-lines-v1:sha256:a033dc0e5931dafa89d8a446be8e892d4be7cb7b4824da69ffbb1df6b3b2988d:eyJzZWxlY3RlZExpbmVDb3VudCI6NDAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImViZmRlNjRjNjg1YzAwYmRmYTEwNTg4YjRmMzQ4ODliOTcxZGY0NWZiNGFlZjk3YzY1YTc2NGQ2Yzk1ZjFhMTQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjY3Y2RhODJkYTYwNjIzOGUwNWU2MjM5OTU2OWM1ZWUwMzk5MzQxOTY0OGFlNWQ0M2EyYmY4Y2Q2MzQ3ZjgyNjMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImY0MzIzYzMyMGYzNzI4Mzg2ZTdjOWQ4NmEwYTM1YWRkNDViM2Q2MmZmMjlkODFiZGQwMTJlMjA3NDEyYmFlNzQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjoxLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjQxMmNhMzQ1Y2NmNzViZjljMDgwNmJjZTY5NWJlOGRlODA4Yjc5OTg0MjUxYTdhNTRkMjAyY2Y2MTAxZGQ0NTEifQ"
         },
         {
-          "resource": "repo://frontend/src/routes/security/%5Bsecurity_id%5D/page.svelte.test.ts#L5316-L5348",
+          "resource": "repo://frontend/src/routes/security/%5Bsecurity_id%5D/page.svelte.test.ts#L5410-L5442",
           "version": "repo-lines-v1:sha256:cb62748a229ae7349719358d7e1a44eb2a374bec6f8bb56960cabaefa0084753:eyJzZWxlY3RlZExpbmVDb3VudCI6MzMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjE1OGY4NDAxYzgwMjViNTUzYjJjYmY4NTFhMzc5YjhhMTE1ODVjNDAzZjY4YzBmZjFiODFlY2E3NDNlMzcwYjQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjBmMzkwMTEwYjM1MzQ1YWEzYmM5YTE5ZDcwZjg5M2JkYTI4NDAwNmI0OTNiYjczZjRlMzA3MDMzMjJmMzg3OTkiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjYxNzI1MWNiYzg4NzA1OWI3OWRiOGNhMjA0ZGU3MGQ1ZTIwM2UzMzJmOGE5ZThjMDBmZjU5MThmZjdlYmJiYzYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjdiMmRhMDBlMDk3YzA1ZTIzZmMxYTQ5Y2ViZTEyODIzM2YxMjJlYWU2ZGZjNDliNzRhNzQzOWUyNDczZTFkMDQifQ"
         }
       ]
@@ -333,11 +333,11 @@
           "version": "repo-lines-v1:sha256:7c3bc25ee06f8d5593f02bdc268db95da854eaaf8452a22d50b1fcc5029d7c96:eyJzZWxlY3RlZExpbmVDb3VudCI6MjIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjljZDMyNGJjZjhhYjc1MjI2ODc5ZTE3YzIyZTYyNDQ2MWUxNGZiNjRiMzEwMjQzZmZjNTQ1NjNkYWYxNzgyNDQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQxMmNhMzQ1Y2NmNzViZjljMDgwNmJjZTY5NWJlOGRlODA4Yjc5OTg0MjUxYTdhNTRkMjAyY2Y2MTAxZGQ0NTEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImFhOTc3ODQyYWRjMmUwOTYzODMzM2Q2NDM4NmFmNzRkZTUwZjg2OGQyYzI2NzVhOWRmNzdhYWI2ZGM1ODcyMGQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImQ3ZDE5MDA5MTZhMjkyOTI1MWY0NDg3N2MyZTRiMjgxNTcyYmY2MGFiM2NlNGQ2YWQyMTFiNTFiOTJkMGZjNDIifQ"
         },
         {
-          "resource": "repo://frontend/src/routes/security/%5Bsecurity_id%5D/%2Bpage.svelte#L536-L554",
+          "resource": "repo://frontend/src/routes/security/%5Bsecurity_id%5D/%2Bpage.svelte#L547-L565",
           "version": "repo-lines-v1:sha256:8e4bff406d13f683323f1bb2fb2be9c9656ae72112c70b2e5d729dbe1aed3cd0:eyJzZWxlY3RlZExpbmVDb3VudCI6MTksImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjMzNWY4ZjdkYTY0ZWRhNjUzMDY4YWViZDBmMzUxNzJkYzE1NGMzZGQ4MDJlY2U3MzFmMmQ2NWFlN2U2ZTMxYmIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjY3Y2RhODJkYTYwNjIzOGUwNWU2MjM5OTU2OWM1ZWUwMzk5MzQxOTY0OGFlNWQ0M2EyYmY4Y2Q2MzQ3ZjgyNjMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjIyZjJmZjVmZWVjNjBmNTg3YzhmYWU0ZTg3ZjgwOWE2NjFjZmZlZDZiNDdhYWU1ZjZkNmEyNjUzYWE4OTUyZWYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6Ijk1ZTA5MmRjZmUxOGU3OGRmZDlmYjliNjgyNWIxZDU3YTg0YjJmZjQxZGVkMTM1YTZmOWY5ZmIwYmNiM2M5NzkifQ"
         },
         {
-          "resource": "repo://frontend/src/routes/security/%5Bsecurity_id%5D/page.svelte.test.ts#L3627-L3689",
+          "resource": "repo://frontend/src/routes/security/%5Bsecurity_id%5D/page.svelte.test.ts#L3721-L3783",
           "version": "repo-lines-v1:sha256:23a7d0d509a1bd5cf0df4a47aea935d579dc4949ddef8bd47f801290a44e08ee:eyJzZWxlY3RlZExpbmVDb3VudCI6NjMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImE4NmJlMjZjNmNjNGJkMTE5OWM4YzAxN2JhMWU5ZGM3ZWJiNmU1NjM0ZTFhMWQ1NDU1NzdhMTU3YzUyYTU0NmEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjBhNzM0OTJkODk0NmIxZDBmOWQ5YzA0YjcwNGE5MjBmMjRmODllZjdjN2Y3MzExYTg1OTlkMTBjN2Y2MzU4ZDAiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjgzNDQ5MDgxOWE0NjA2YWU5MWUwMzQwOTY3N2M1ZWEzNDU5YTY0ZmI1MTI5NDdjMTQwY2U4ODAzNmUxNzY0OGEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjM2YjE1NzI0NzQwOWZkY2QxOTc0MmQzN2FlMzBjNDE5Y2FmZTcwMThiNGFkZDZiNjI2NzIyNGFhYmZjMWEzNmQifQ"
         }
       ]
@@ -351,11 +351,11 @@
           "version": "repo-lines-v1:sha256:e583768dbce42d1fd76ab1a8ce155a9f141707f9dd5e6b88482c357defe7e195:eyJzZWxlY3RlZExpbmVDb3VudCI6NTMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjVjYjUzNGVmNDM1NTEzMTY3MGQzYjJmNTQwOWZmNGFlMWMyNTFlN2VhNWIxYzFmMDVlNTA2M2VjMzY5MmE5MTAiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjY3Y2RhODJkYTYwNjIzOGUwNWU2MjM5OTU2OWM1ZWUwMzk5MzQxOTY0OGFlNWQ0M2EyYmY4Y2Q2MzQ3ZjgyNjMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjdhMzk2ZTBlNWQ1MWFhNGE2ZDJmNjhlOWY2ZGZiYjM2M2EwNzQyM2IyZDg0Zjg4YjllZWEwZTBjMWYwOTQzYzgiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjJkYTcwYmQ4YzgwOTdhMzRkNWNlMjhjNTg0OTBhOWRlZjhjYjc1YjZmMWU0MDUwMjU4MzhiNzYwMjRiNzI2M2UifQ"
         },
         {
-          "resource": "repo://frontend/src/routes/security/%5Bsecurity_id%5D/%2Bpage.svelte#L293-L330",
+          "resource": "repo://frontend/src/routes/security/%5Bsecurity_id%5D/%2Bpage.svelte#L304-L341",
           "version": "repo-lines-v1:sha256:b3fa20c7eb486b610ecf65fa4f8b5d961a43ec8e5999cd785d7d123b61603188:eyJzZWxlY3RlZExpbmVDb3VudCI6MzgsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjA1OWIyNjIxOTQ3OWNlNTI0MmU3ODNmZDUwNzM2YTI5ZDYyYzAzNjk0MWE0ODgwYzdlM2VlNGQ3M2IxMDEzOGQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjY3Y2RhODJkYTYwNjIzOGUwNWU2MjM5OTU2OWM1ZWUwMzk5MzQxOTY0OGFlNWQ0M2EyYmY4Y2Q2MzQ3ZjgyNjMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImYzMWQ2MjA4OWE1OTI0NzhhYzk5OWIxYWJlYzg5ZDY1ZTY2NTUyOWUxMzU5ZjU1OWI4NWFjYzJkOGFmN2U1ZjQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImIzYjBkOGFmNWM0NWUyMzZhNjdiNWI1NGUzNDRlY2Q0NzRjOWM5NWY5Y2RiN2I1MDZlY2ZjODQ4MDkzODQ5NzMifQ"
         },
         {
-          "resource": "repo://frontend/src/routes/security/%5Bsecurity_id%5D/%2Bpage.svelte#L630-L638",
+          "resource": "repo://frontend/src/routes/security/%5Bsecurity_id%5D/%2Bpage.svelte#L641-L649",
           "version": "repo-lines-v1:sha256:104b7c4c7d0a9b6196a7e0a643440bf9041cf5c28fbaf4134f1d872a66fcee55:eyJzZWxlY3RlZExpbmVDb3VudCI6OSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiYWRhNjc0MzE0YjNjNWFiYTM3MDM5MzUzODk0M2RhYjE4ZWE3NTlkM2RkYmJlNWU3MjQ0MWIzODhkY2YyYzM1OCIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiMzYwYjg4YTA1ZDViNTM4NDc2MDIyOWJlNjA1NzJmZTYyYjFjMjljZGM1N2VkYjVlNjk1MWRhYTRmZDQ2YzgwMyIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiYTNkZmQ3Y2E3ZDQ5NDU4ZDIyYzlmZWUxMGZiY2M3OGU2NjEwMmNlMGQ4MTY4YzFjZTM4N2QwNTUwZDI0MzEwNCIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiY2I1MTY0MzM0N2I5MDhjZDYzMWIzMWE5NmQ2NjI3MTQ1MzQ0MjczYmIzYTYwMjZiNjAwZTJlMWFlMWViZDI2NSJ9"
         }
       ]
@@ -383,11 +383,11 @@
       "statement": "Indicator responses are guarded against out-of-order arrival on two paths: the bulk refreshActiveIndicators stamps a monotonic sequenceCounter into indicatorSeq for every enabled indicator and accepts each response entry only while that indicator is still enabled and its stored sequence matches, while the single onIndicatorToggle stamps one id and accepts only if the sequence, the enabled flag and the chart ref still agree; disabling an indicator bumps its sequence so an in-flight response cannot resurrect it, and isLoadingIndicators is only cleared by the newest request.",
       "evidence": [
         {
-          "resource": "repo://frontend/src/routes/security/%5Bsecurity_id%5D/%2Bpage.svelte#L332-L409",
+          "resource": "repo://frontend/src/routes/security/%5Bsecurity_id%5D/%2Bpage.svelte#L343-L420",
           "version": "repo-lines-v1:sha256:96ca510bc3a60e9b88fb7c7fc97cf53b5fbcd37274dbd574daf44e5a932f7d1d:eyJzZWxlY3RlZExpbmVDb3VudCI6NzgsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImQzNzk1MmFiYmY3YjVlNWRlMWVkNDEwNjJjODQ5ZWIyZmNlOWViNzA4MmFmZWI0OTRiZTZmMTRiYTI0MDgwMmQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjY3Y2RhODJkYTYwNjIzOGUwNWU2MjM5OTU2OWM1ZWUwMzk5MzQxOTY0OGFlNWQ0M2EyYmY4Y2Q2MzQ3ZjgyNjMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImEwYTg3NTZhOThiOTVlZTU3NWJlZWU0NjAwNDhjN2ZjOTdhNjdhZDRkZDE1NWFjMWE4NTk3ZWM2NWM0ZmEyODAiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6Ijg0ZTYyNDNhYjM0MTNlYTc3YmQ3NDgwODMyYzhjMTJlMDgyYjIzZTNjMDMzYzQyNmQ5YjIzNDBlMTQ3YmQ3OTEifQ"
         },
         {
-          "resource": "repo://frontend/src/routes/security/%5Bsecurity_id%5D/%2Bpage.svelte#L590-L660",
+          "resource": "repo://frontend/src/routes/security/%5Bsecurity_id%5D/%2Bpage.svelte#L601-L671",
           "version": "repo-lines-v1:sha256:2e73bceaacfc5a19a7501711d3e77bd550f037098d1429679756b2d061b8c3a1:eyJzZWxlY3RlZExpbmVDb3VudCI6NzEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjZjZjdhZmQyMDFiZmU2Y2Y3NTQ3N2YwMDgxNjRmMTFmMjEzYmE0MjYzMDdkZjAxYWFmZjlhMTI1MTE4MTA3ZTQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImU2ODA2ZjE1NWM1YWMxYWUyNzIyY2EwNmYyYWM5Y2FkY2I4ODFiOTEyM2NiNjI0YTNjMTA0NzViNDQ0OWRjMmUiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjIyZjJmZjVmZWVjNjBmNTg3YzhmYWU0ZTg3ZjgwOWE2NjFjZmZlZDZiNDdhYWU1ZjZkNmEyNjUzYWE4OTUyZWYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjIyZjJmZjVmZWVjNjBmNTg3YzhmYWU0ZTg3ZjgwOWE2NjFjZmZlZDZiNDdhYWU1ZjZkNmEyNjUzYWE4OTUyZWYifQ"
         }
       ]
@@ -409,11 +409,11 @@
           "version": "repo-lines-v1:sha256:63359466a379c71af5161bf959a9010be0150e32bef16a2a76f705abfa14d668:eyJzZWxlY3RlZExpbmVDb3VudCI6NDQsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImVjNzAwOWZlNWJiYTNjMWMzODY3OWZmZjA1ZWNiOGYwYjlmN2RlMGZhN2IzOWIxYTIxYzJjODhlYWZlODg3MjgiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjY3Y2RhODJkYTYwNjIzOGUwNWU2MjM5OTU2OWM1ZWUwMzk5MzQxOTY0OGFlNWQ0M2EyYmY4Y2Q2MzQ3ZjgyNjMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImYwNGY1MjRjYzZhNjk2NWEwYTAwNjJhZTE3NzE1ZDRhYmI1MGE2MjQ3MDRiZDAyYmFlZWY0OWYyZDg5OTI3M2MiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImU3OGNjYTBhNmMzNWYwYjE2OWVlYWFiYTExYWJlZmQ0N2E5NzkxZGNkODMxZTkwY2M4ZWFkNzY1ZTBjNTEzMTYifQ"
         },
         {
-          "resource": "repo://frontend/src/lib/services/ChartDrawingsService.svelte.ts#L1081-L1086",
+          "resource": "repo://frontend/src/lib/services/ChartDrawingsService.svelte.ts#L1117-L1122",
           "version": "repo-lines-v1:sha256:d2e2c94dd91a9e243361d7febd13db974db28b39a51cb3238414a3ef4d637611:eyJzZWxlY3RlZExpbmVDb3VudCI6NiwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiYjAyNjA0MjQ5NmZkYWYzYmZkY2M1MDJjYmM2MDI4YzkxODYyYjhiNTI5ZTY3ZmJlODJkNWUwYzc0Y2RiMjFlNCIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNjRlZmM0OTQxOGQyNmRjZjEyOWIyMmE2YWEyMTEwOGNlZWMzNzY3N2EzMmQwOGU5ZDVmZWUzNWRkYTY2YmI5ZCIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiZDZmNGEzN2E1MzEyMWZlOTVlZTNmOTQzNDRkYWQyZjc5YWVjNGZhYjJlMjQ1MDc5M2FhNTNhNDA3MDMxZDA1MyIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiMTM2ZWE2MTllOWQ3ZWIwODYzMDgxYzc3ZjUxMzdhNmU0M2ZiN2I1NGE2NDlhYzU0YmEyYjljMWVlMjZiYTRhOCJ9"
         },
         {
-          "resource": "repo://frontend/src/routes/security/%5Bsecurity_id%5D/%2Bpage.svelte#L1037-L1062",
+          "resource": "repo://frontend/src/routes/security/%5Bsecurity_id%5D/%2Bpage.svelte#L1048-L1073",
           "version": "repo-lines-v1:sha256:07b9718f9b0e52a1cfcaeafed281db34d8b723d3b0d43ebe99f30f5e637c8320:eyJzZWxlY3RlZExpbmVDb3VudCI6MjYsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImRjN2NhMThjM2EyNWUzYjA1YTA1Y2UzYzNlZGMxOGY5MTdlOTk4MGVlODA2NDhmY2E3NTUyZWRjNTY2MGEyNTUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImI5NTc4MzQ1OTNiN2Y5MjVmYWUxMzA0YTRjZDNkMGY3ODlmOGJkMWFiNjNhYzE4YmQ5YjdiMWRiNzY2YmU3NGYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjgwYTIwYWY3MDUwMmUwOTAwOGU4ZTZlNGVjNDU5MDJkYTQzMDBkMWViZDRmM2FhMDEwNWQxYmNhZGMxNDM3MDkiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImIyY2Y5YmNmZTE5MGFiODRjMWMzMWZiNGJjMzkwOWEyYmU0NDhjMmU0ZmQzMTFiZjlmN2M2MmY1OWVjN2MxN2MifQ"
         }
       ]
@@ -451,7 +451,7 @@
           "version": "repo-lines-v1:sha256:babdec16882784f1d24e312b8bc0a9957482723d3833d8c40e6c6fe8af52df90:eyJzZWxlY3RlZExpbmVDb3VudCI6OSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiMTgzMTE2MjNlYWZhZmY3YjM3YTk5NjVkNGM3MTAyYjk0YjM1YmM1M2NhZjBhMGQxMmJiYzYzODkxY2Y3ZGUzOCIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNmEyYTNiNzZlMTJjZTE1Mzc5ZDA1ZjI4NjlkYzQ4MzJkZTc1ODkwNTNiNDliZmYyMzdlNDI1YzcyMzc4MDE1NCIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiODdmYzg3OTlkM2E0ZjY0YTc2MzJhOWJhMTNiNzU1NDYyYWRmMDM2Y2JmNWQ5MmQ3ZTgzZmM4MzQ5MDBhMTkxNCIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiZjhlYmI2NmU3ZjVmODhkM2Y4Zjk4MDZmNTRhMWU3YzI2YTY3NGM4OGJlY2Q4ZjAwYzRhM2RiNWJkYzAxNjJkOCJ9"
         },
         {
-          "resource": "repo://frontend/src/routes/security/%5Bsecurity_id%5D/%2Bpage.svelte#L227-L279",
+          "resource": "repo://frontend/src/routes/security/%5Bsecurity_id%5D/%2Bpage.svelte#L238-L290",
           "version": "repo-lines-v1:sha256:db4967a09e8275fa5b5f223d77c1773e7d7daff17b7c107a9c88ca90199d3c53:eyJzZWxlY3RlZExpbmVDb3VudCI6NTMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijg5NzAzMTVlNDA5MzcxZWIxM2JjNTE5YWYyNDRmZjBkYzlmMTM3M2FhZTRmN2RiMDNkNzJiNzcwYTFlOWU0NDciLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjY3Y2RhODJkYTYwNjIzOGUwNWU2MjM5OTU2OWM1ZWUwMzk5MzQxOTY0OGFlNWQ0M2EyYmY4Y2Q2MzQ3ZjgyNjMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjIyZjJmZjVmZWVjNjBmNTg3YzhmYWU0ZTg3ZjgwOWE2NjFjZmZlZDZiNDdhYWU1ZjZkNmEyNjUzYWE4OTUyZWYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImMyZGJkMjQxZGU4MzEwZTAzZDUyYmI5ZTY4ZjI1MjBlNTMwNzRhMzNlZDc3ZGViYjlhZWYwZDlkNjBmNjdlYzkifQ"
         }
       ]
@@ -505,7 +505,7 @@
           "version": "repo-lines-v1:sha256:bd251b95ccea34c40c5935d618a77a4fd546dcca2e074c4f78678b4f7cb91a6c:eyJzZWxlY3RlZExpbmVDb3VudCI6MjAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjIxMjU2ZDI1ZWFlYmEzNjI4OWQ3NGMzNTg1NTA1YmQ1ZGZiY2U2NTRhMzg1NDU0M2JmYTk4ZTk4OWI5YjM3ZTIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjBhNzM0OTJkODk0NmIxZDBmOWQ5YzA0YjcwNGE5MjBmMjRmODllZjdjN2Y3MzExYTg1OTlkMTBjN2Y2MzU4ZDAiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjQ5ZmI2Zjg0M2IxNzczZGJhNjZiNzI4YjdmMmViNzAxYmE0NzZkNjNlYTBmMGJkMmI1YzQ4OGU1MmYzODM1MWYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImE5ZGJhM2E3N2E1NTdjNWYwNmY2YTMyNDQ4NjU3NGFlNWFjM2MxOWVkNmFiYmY5ZmQ5NzYzMmU2YWQ3MDIyOTYifQ"
         },
         {
-          "resource": "repo://frontend/src/routes/security/%5Bsecurity_id%5D/page.svelte.test.ts#L3249-L3601",
+          "resource": "repo://frontend/src/routes/security/%5Bsecurity_id%5D/page.svelte.test.ts#L3343-L3695",
           "version": "repo-lines-v1:sha256:c44d3b7f38f0573e5ed2579feae0dec7f38259b0c3bd14787205e2b178f06b7c:eyJzZWxlY3RlZExpbmVDb3VudCI6MzUzLCJmaXJzdFNlbGVjdGVkTGluZUhhc2giOiIxNWE3MTkxYWYxMDBjMDJiNGUyZGI3ZGNjZmU0NmI5YmI4ZGZmMzRiNWZkNmM1ZTgxMjY5NmMzZjM0YjI3ZGVkIiwibGFzdFNlbGVjdGVkTGluZUhhc2giOiJmNmY1YjQwYjE1ODQ1N2QxNzg2NGYyMTc5MDc4NmRkNWEyZWNkYjY0YjY2YTY1MWY3ODhkNGUyNWNkMzMwM2QyIiwicHJlY2VkaW5nQ29udGV4dExpbmVDb3VudCI6MywicHJlY2VkaW5nQ29udGV4dEhhc2giOiIxMTI0M2ZjZTdmODVjZTcwM2Y2ZDdkNWY4NGU1NTkwNGJmMDc4YWY3MjczMTMwYTQwZmEyOTFiZDg1MDAxMzExIiwiZm9sbG93aW5nQ29udGV4dExpbmVDb3VudCI6MywiZm9sbG93aW5nQ29udGV4dEhhc2giOiI4NGI5NDE4MDc3NTA1ZTg3Yjc4ZjZhZTU4NDAzZjRkYTNkYjZiNTM0YjkwMTU5NmQxMmRiN2EwZWM4NGEwNWM4In0"
         }
       ]
@@ -522,10 +522,14 @@
     },
     {
       "id": "claim_b956d7a8eca143bc9ae6376e84ee5c84",
-      "statement": "The valuation band's data flows from the page: valuation state is filled by loadValuation() (valuationClient.getValuation) inside the init chain's parallel wave and again by the FundamentalsGroup sidebar binding, and the page passes valuation, showValuation and showValuationBand = showValuationOverlay into the chart; showValuationOverlay is seeded from the show_valuation_band preference (in onPreferencesLoaded and in the init chain when preferences are fetched there) and toggled by FundamentalsGroup through patchPreferences; inside the chart isValuationBandVisible prefers showValuationBand over showValuation, one $effect pushes setRange(lower, upper, visible), and the mount constructor is seeded the same way so a null bound or visible false draws nothing.",
+      "statement": "The valuation band's data flows from the page through the drawings service: valuation state is filled by loadValuation() (valuationClient.getValuation) inside the init chain's parallel wave and again by the FundamentalsGroup sidebar binding (expanded by default, fetching the same endpoint in its own $effect); the page mirrors it into ChartDrawingsService with a setValuation $effect and passes valuation={drawingsService.effectiveValuation} plus showValuation and showValuationBand = showValuationOverlay into the chart, so the band draws the live range normally and the active rewind snapshot's range while rewound; showValuationOverlay is seeded from the show_valuation_band preference (in onPreferencesLoaded and in the init chain when preferences are fetched there) and toggled by FundamentalsGroup through patchPreferences; inside the chart isValuationBandVisible prefers showValuationBand over showValuation, one $effect pushes setRange(lower, upper, visible), and the mount constructor is seeded the same way so a null bound or visible false draws nothing.",
       "evidence": [
         {
-          "resource": "repo://frontend/src/lib/components/actions-sidebar/fundamentals/fundamentals-group.svelte#L75-L83",
+          "resource": "repo://frontend/src/lib/components/actions-sidebar/fundamentals/fundamentals-group.svelte#L49-L69",
+          "version": "repo-lines-v1:sha256:da597e7e85f12c8d0c8430fa23cb04c66169fd0badfc1bf70a09276c977ed5ca:eyJzZWxlY3RlZExpbmVDb3VudCI6MjEsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImM3YTgxMmJmYzFmYjU4YjBiYmJmZGJiYzdmNjRjZjJjODQwNmFjMTdhNmE5MzU2ZGU5YTk5NGQ0Y2YwYmM2ZmIiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjBhNzM0OTJkODk0NmIxZDBmOWQ5YzA0YjcwNGE5MjBmMjRmODllZjdjN2Y3MzExYTg1OTlkMTBjN2Y2MzU4ZDAiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjY4ZGJiYmNmZjFhNzAwNTc2OWM2NmIxMzBiNjMwOTJmODhkMzFlNWQ3ZTkyMjZhYzJiYWE4OWUwMWY3NGQ0NmEiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjAxOTMyMjU4MGQ5ZjFmMDE5ZjZiYTE3MmQwMWU5YjMyNDliZDA3ZTA1NTZkNzM0NDFhNmEwNGNiOGQxOTI2YzAifQ"
+        },
+        {
+          "resource": "repo://frontend/src/lib/components/actions-sidebar/fundamentals/fundamentals-group.svelte#L78-L86",
           "version": "repo-lines-v1:sha256:e9da42b4d4de6888c6219be9659b23fbfbc9988e69651c76cc804258721152a2:eyJzZWxlY3RlZExpbmVDb3VudCI6OSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiNjMyMTE4MmU0YWE0ZTc4N2RmYjVmZmYzOGM1NGMzOTY3YTY2MDM4MmJmNzY2YWU5NmUwNDc0ZTZkZjU1Mzk0MyIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiY2MzYTIwNzc0ZDVjMmJiNGM3OTBjMTg4OTBhOWM0OTRjY2I1MTBmYzhlOGMwOWVjNzQ1MTliYzE2NGZjNzg0YiIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiZWEwNDVmYzI2NTJlYTE4Yjg4MjYxNTNiMjQ0MzE2ZDI4Yzk1NTdjYjVmMjM0NzVjOWI4OTg3MmEyNTM5MDU4NiIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiMzA5ZDY1MjBjZTQyZTA4NjFjZTk0NDNkNjJhYmNjYzU0YmQ2OTJlN2E4MTA0YzM2MTc5ZDA1NmVjMjJjZDdiZiJ9"
         },
         {
@@ -545,16 +549,28 @@
           "version": "repo-lines-v1:sha256:246ec98587a0fd6d4a86e4edb41cb71c5763707bca8cb85392769b1128617d18:eyJzZWxlY3RlZExpbmVDb3VudCI6MiwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiYTEzMGFkNzk0MGZhNDk4YTY4MGM3NGU3NWZiZWQwODFhMDc5YjlhZDQ4ZDRiYWE4NmJhMDFlNjJmMDYyMGZmNCIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiYTJiNWEyNDhiZTM0OGI2MDNhZjQ5MmZhNzE0ZDZiYzg2MjAyY2UyZmEzYTdjOTAyMzY1OTMyNTE1Y2YxYWE0YiIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiZDlhNGQwZWY1YzlkMTBmMzI0OGZiMTI5MjhjNTM3YWVhM2Y0MzkyNWUxN2ZjMmFjZTJiOGYyMjUwNzA0MDM5ZiIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiOWQxNGU5MzlkM2JiOTM3ODg0Y2UyNzY4OWYwZGI1MWRhNjQ5MDk0Y2IyMTFjZjEyMmE3YzhkMzY2MzM4ZjAyOCJ9"
         },
         {
-          "resource": "repo://frontend/src/routes/security/%5Bsecurity_id%5D/%2Bpage.svelte#L1106-L1111",
-          "version": "repo-lines-v1:sha256:406a71cabc9cbac7765608665a76f23fabb76469f7feea1785e6c70d5fad9d05:eyJzZWxlY3RlZExpbmVDb3VudCI6NiwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiODhlN2Y3N2FjMTljOGQ4NTYxOTAwMTRjOWMzOTQ4NzE4MDg3YmI2YjE1MjdjMzU3YzQ4OTkyNWY1ZDc2M2M5MCIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiOWJiNDYyOTY4MDdmMWMwNzhkNjQ3ZDY5Yzk5ZDgzNjliMGI0MDE5NmMxYTQ2MjJjMGY3NDM1MzFiNDI3M2QxZSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiMzIzOTU5Y2IyY2Q1M2JjYjE1N2ZlYmIxZTdmMGIxMTc3ZGM0YTUzY2U3ZjY5M2M3ZDliODFiZjY5NGZhMjJiOCIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiNmJkMzM0YzI3NTMwOTg0Zjc5YjUyYmU1ZTQ2ZDE1NzZmNGI5MjdhMWIzOGJiNDRhYmUzMjgwMzNiODU2NTNjZCJ9"
+          "resource": "repo://frontend/src/routes/security/%5Bsecurity_id%5D/%2Bpage.svelte#L1117-L1123",
+          "version": "repo-lines-v1:sha256:e635e3c0239ae6434dd55bac0d29dcf2f16379d7060113640c46aa57de858a89:eyJzZWxlY3RlZExpbmVDb3VudCI6NywiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiODhlN2Y3N2FjMTljOGQ4NTYxOTAwMTRjOWMzOTQ4NzE4MDg3YmI2YjE1MjdjMzU3YzQ4OTkyNWY1ZDc2M2M5MCIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiOWJiNDYyOTY4MDdmMWMwNzhkNjQ3ZDY5Yzk5ZDgzNjliMGI0MDE5NmMxYTQ2MjJjMGY3NDM1MzFiNDI3M2QxZSIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiMzIzOTU5Y2IyY2Q1M2JjYjE1N2ZlYmIxZTdmMGIxMTc3ZGM0YTUzY2U3ZjY5M2M3ZDliODFiZjY5NGZhMjJiOCIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiNmJkMzM0YzI3NTMwOTg0Zjc5YjUyYmU1ZTQ2ZDE1NzZmNGI5MjdhMWIzOGJiNDRhYmUzMjgwMzNiODU2NTNjZCJ9"
         },
         {
-          "resource": "repo://frontend/src/routes/security/%5Bsecurity_id%5D/%2Bpage.svelte#L446-L453",
+          "resource": "repo://frontend/src/routes/security/%5Bsecurity_id%5D/%2Bpage.svelte#L141-L143",
+          "version": "repo-lines-v1:sha256:64712d809b262e65b8242d23c7b3395b8ebaf0729ec081a4b8a7f58d23ccfc75:eyJzZWxlY3RlZExpbmVDb3VudCI6MywiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiNGZmZjA2MzM0OGExZTFhMzI1MTNlYWNjMDE2ZmMyNWNmZmVmMGI0YzkwYmYwYzg4OGVkNTg1N2YyMTNhMzJkYyIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiMGE3MzQ5MmQ4OTQ2YjFkMGY5ZDljMDRiNzA0YTkyMGYyNGY4OWVmN2M3ZjczMTFhODU5OWQxMGM3ZjYzNThkMCIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiZTFmYWViNDU4MGM2OTdjZjdmZjJmYTE4Yzc1YjcyNGJmNzI3ZDU1NjA2MmZmOTM2YmVlOGJkM2IwMjA5MjAyYyIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiMTBjNGE3ZWJiZmY2NTU1Mjc2YmQ1OTAwMDE2MjViMmE2ZWM4N2JmNTg3MGUwY2Q4Nzc2MmI0ZDkxMjQ0MmYzOCJ9"
+        },
+        {
+          "resource": "repo://frontend/src/routes/security/%5Bsecurity_id%5D/%2Bpage.svelte#L457-L464",
           "version": "repo-lines-v1:sha256:ea48e5b6163435ac409cc86218e6a472d824a1c91c93725751246ac9afe3e464:eyJzZWxlY3RlZExpbmVDb3VudCI6OCwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiZDJlYjk5MDJhNWZiNGFmNTlhMjM1Mzc0ZjJkOGIzMDc1MmU3MDhlY2Q5YzU5YmRjOTQzMDA0MDNhM2JlZDdjYSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNjdjZGE4MmRhNjA2MjM4ZTA1ZTYyMzk5NTY5YzVlZTAzOTkzNDE5NjQ4YWU1ZDQzYTJiZjhjZDYzNDdmODI2MyIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiMjJmMmZmNWZlZWM2MGY1ODdjOGZhZTRlODdmODA5YTY2MWNmZmVkNmI0N2FhZTVmNmQ2YTI2NTNhYTg5NTJlZiIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiODUzMTc0OTc0MmFiZTA1OWJmOTYzYjZkOGFmNGQzMmZmN2MyZTc5NjU1ZjkzNDc5NmY4Y2U0Mzg4MGRiOGI3NyJ9"
         },
         {
-          "resource": "repo://frontend/src/routes/security/%5Bsecurity_id%5D/%2Bpage.svelte#L976-L978",
-          "version": "repo-lines-v1:sha256:c0e0f4962875285156d91d19c0fb3cae4b6982ac5fd4b3f61a682d0bd4463b61:eyJzZWxlY3RlZExpbmVDb3VudCI6MywiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiMzQ3ZDZmYjUzYThhMzU4YTdhZTIzMTk2ZmEyMjkxYjRmYzEwNmRhOTI5ODUyYmZmZWUyM2E3YjI0MDRlODVjNSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiZmEyMjA5MjdhNWM2YTJlNmNjM2Q5ZjI1NDBmYzVjMWU5OTYzMTY0ZDgxOTU0OWVjYzkyMjVlY2QzMWE1NzVhYiIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiMjgwYTRiMjhjMjM0ZjkxNTZjYTI2MjA4NmM2Y2M0NGUyNThjZmI1ZTE2MDU4MWNmY2VkMWVmZjUxMmQ4MGJiZCIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiMzAwMmFiZDZmZWRhZTBmNWZmZWE1MDFiZWFkYmIxNDY5NGQ1NmIzNjQ3YWUzMDc5MWM5MmUzNWZkNDY4N2M1OCJ9"
+          "resource": "repo://frontend/src/routes/security/%5Bsecurity_id%5D/%2Bpage.svelte#L675-L680",
+          "version": "repo-lines-v1:sha256:9f8e2f81f94121afa60f9c3e4bd950c8a336813ff5fac9e2ac0fce62be342e85:eyJzZWxlY3RlZExpbmVDb3VudCI6NiwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiOTAyOTI4ZjJhNGJmYzZmNzcxZGFkOWY3NWI0OWZhYzQwZTEzZTcwMWZiNDRkOWVkOThjNTRkNzVkZDJmNTI0YSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiZTMyMjYxYThkMDljMzc2NjdmZmY2NjEzZWFmNDhjYjNjYmEyMzlhNjI5NjYxZjQzODQ5MDQ3OWExNzc1ODViNiIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiMjJmMmZmNWZlZWM2MGY1ODdjOGZhZTRlODdmODA5YTY2MWNmZmVkNmI0N2FhZTVmNmQ2YTI2NTNhYTg5NTJlZiIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiNjk2MmM1YmVmOTUyNmQ3ZDRhYmY2NWZjYTZhMDg1YzkxNTQwY2M1M2M2ODgwMzI0ZTEzZWE0NTFiODBhYTY0YyJ9"
+        },
+        {
+          "resource": "repo://frontend/src/routes/security/%5Bsecurity_id%5D/%2Bpage.svelte#L750-L757",
+          "version": "repo-lines-v1:sha256:af7531531980d3850261af5cb9707a67dd3142476b1dec874393911bfd840c95:eyJzZWxlY3RlZExpbmVDb3VudCI6OCwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiNDc3OWU4ODcyZjk3OTEwMTMwZTI3ODk0YzdkYjM4MDkyNmUwOGYzZjJhNDUyNTQ5ODJlYzllN2JmYjMwYjNjNiIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiMjI5NmJlODBiOGYyNThjNGU0MzM2NWZhM2E2MThkZjI3NjFkNDQxZDI5NDAzZGUzMTc4YzVmY2Q1MTBjOTMwMCIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiYzYzYjIwMmU1OGU5NThkZTM2MDFhMzIwYzdjMWFiMDIzZmY5MWQ4YmNjY2I2NGQxNTliYTk5YmY4NmQ1MTdiNyIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiZTBhYWUwMTAxYmM0Y2FiZDBiZTEyMGIwMWNiZWU2Y2ZmYTg5Zjk1ZmQxMWZlODA5ZTA2MzUxOGEzNzI5MTEyMCJ9"
+        },
+        {
+          "resource": "repo://frontend/src/routes/security/%5Bsecurity_id%5D/%2Bpage.svelte#L986-L989",
+          "version": "repo-lines-v1:sha256:c72866ca0016f0f4f7a0c720ab63ff2a878389dbadeb306a47d975ec35f3af53:eyJzZWxlY3RlZExpbmVDb3VudCI6NCwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiYTNlNGU2MzI2ZjgxM2I2Mjk5NDgxNGI5MTIxNDQ4MjMxZTA1YWZkMThiNTU0NGI0MGI4NzJhNmU0ODAyNzIxNCIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiZmEyMjA5MjdhNWM2YTJlNmNjM2Q5ZjI1NDBmYzVjMWU5OTYzMTY0ZDgxOTU0OWVjYzkyMjVlY2QzMWE1NzVhYiIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiMjUzNDUwMTBhNzUwZGU3YzdkYTZkN2VjMjVmM2Y0NDlhYjMyOGE4NTBlMDY5NjZjMTBmY2ZlNDE4NTQzYWNmYyIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiMzAwMmFiZDZmZWRhZTBmNWZmZWE1MDFiZWFkYmIxNDY5NGQ1NmIzNjQ3YWUzMDc5MWM5MmUzNWZkNDY4N2M1OCJ9"
         }
       ]
     },
@@ -605,7 +621,7 @@
           "version": "repo-lines-v1:sha256:44ae9653c5cfe6b4b636d5abb929297257da7e8bcc123d811cfc3826e38cab42:eyJzZWxlY3RlZExpbmVDb3VudCI6NjMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjlkZjg5NmQ4ZjQ2YTY4MTE3ZTAwZjU0ZTA5ZTNkMDU1M2RkMDY3OTEzZjY0OTI3NjQyMWMzMjRmYTNhNDE5NTciLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAxYmE0NzE5YzgwYjZmZTkxMWIwOTFhN2MwNTEyNGI2NGVlZWNlOTY0ZTA5YzA1OGVmOGY5ODA1ZGFjYTU0NmIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImRjNjBlNTUxODExZTcwZGQ3ODQ3NDA1YzcxZjg0OTQxZmIxOTg0NmVjNGFmNTRhZWE2Njg4YjZiYzIyMWJlODgiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjZiNjYwZmRhODkwYzJlOTEyYmQwMTllYzMxMTE2YmE1NDBhNmVjMzdiOGRjYjE1ZTMzMmI0NDQ5ZDY4MTYxMjYifQ"
         },
         {
-          "resource": "repo://frontend/src/routes/security/%5Bsecurity_id%5D/%2Bpage.svelte#L522-L534",
+          "resource": "repo://frontend/src/routes/security/%5Bsecurity_id%5D/%2Bpage.svelte#L533-L545",
           "version": "repo-lines-v1:sha256:fe7b2d1890e9776e272ed3c1267cf777d9d49d08ed13b53b63cdc0624e4999bc:eyJzZWxlY3RlZExpbmVDb3VudCI6MTMsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjkxNTViNTA2YTA1MWI0ODA4MWUxM2RlNzg2MDNlYzUxMzA4NTI5YzYwNmIzYzgwYTEyMmYyNmY1NmY2YTIzMDMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjY3Y2RhODJkYTYwNjIzOGUwNWU2MjM5OTU2OWM1ZWUwMzk5MzQxOTY0OGFlNWQ0M2EyYmY4Y2Q2MzQ3ZjgyNjMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjIyZjJmZjVmZWVjNjBmNTg3YzhmYWU0ZTg3ZjgwOWE2NjFjZmZlZDZiNDdhYWU1ZjZkNmEyNjUzYWE4OTUyZWYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjM0NGRlNTYxMjQ4NjdjZjc0ZTZkNGU5NzgyYTI5OTg0MTU5NmQ1NTRmZWI1OTAxN2ZjOWRjZGU2ZTVjYWUzNGEifQ"
         }
       ]
@@ -633,11 +649,11 @@
       "statement": "onPreferencesLoaded(prefs) applies persisted state in a fixed order: show_valuation_band into showValuationOverlay, the stored pane heights through applySavedPaneHeights, the preferences object into ChartDrawingsService, the chart style (defaulting to heikin_ashi), the saved timeframe via changeTimeframe(prefs.timeframe, { persist: false }), and finally the saved indicator toggles with each onIndicatorToggle(id, true) deferred by setTimeout(..., 100) so the chart ref is bound; the init chain repeats the preference fetch inline (with the same valuation-overlay and pane-height application) when preferences were not loaded yet.",
       "evidence": [
         {
-          "resource": "repo://frontend/src/routes/security/%5Bsecurity_id%5D/%2Bpage.svelte#L664-L705",
+          "resource": "repo://frontend/src/routes/security/%5Bsecurity_id%5D/%2Bpage.svelte#L675-L716",
           "version": "repo-lines-v1:sha256:2a0e4d6a2df213094d0753703def5347990d41f94b310aabd265b57e1e4397aa:eyJzZWxlY3RlZExpbmVDb3VudCI6NDIsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjkwMjkyOGYyYTRiZmM2Zjc3MWRhZDlmNzViNDlmYWM0MGUxM2U3MDFmYjQ0ZDllZDk4YzU0ZDc1ZGQyZjUyNGEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjY3Y2RhODJkYTYwNjIzOGUwNWU2MjM5OTU2OWM1ZWUwMzk5MzQxOTY0OGFlNWQ0M2EyYmY4Y2Q2MzQ3ZjgyNjMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjIyZjJmZjVmZWVjNjBmNTg3YzhmYWU0ZTg3ZjgwOWE2NjFjZmZlZDZiNDdhYWU1ZjZkNmEyNjUzYWE4OTUyZWYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImJmODY2ODExYTE2MWVjM2YzNGQ2NDZiYzRiZmI2ZjE0Mjg1M2FmYWZkNWYyZWE2M2I3NDRkOWYyZjc5ZDAxZDEifQ"
         },
         {
-          "resource": "repo://frontend/src/routes/security/%5Bsecurity_id%5D/%2Bpage.svelte#L739-L747",
+          "resource": "repo://frontend/src/routes/security/%5Bsecurity_id%5D/%2Bpage.svelte#L750-L758",
           "version": "repo-lines-v1:sha256:cef16d12df13cef4f1b957f558206eea5414ef8d2ef7c52d572bb3e85c256448:eyJzZWxlY3RlZExpbmVDb3VudCI6OSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiNDc3OWU4ODcyZjk3OTEwMTMwZTI3ODk0YzdkYjM4MDkyNmUwOGYzZjJhNDUyNTQ5ODJlYzllN2JmYjMwYjNjNiIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiOTQwMTdjNTk3YTViYWJiMWU4NTA3ZDJiMDkxZjUxMDg5OTFjNWE5ZDU1ZjdmYjY4ZTJhNWE5OTljZDE1ZTQ0ZiIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiYzYzYjIwMmU1OGU5NThkZTM2MDFhMzIwYzdjMWFiMDIzZmY5MWQ4YmNjY2I2NGQxNTliYTk5YmY4NmQ1MTdiNyIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiZGY0M2YwOGZlMjYwMDBmZjllYTI5OWU1MzEzMWFkZmVlYzBiNmZmMWZlMWMxYmQ4ZjNkNGI4OWZkNGEwODE4NSJ9"
         }
       ]
@@ -677,10 +693,50 @@
           "version": "repo-lines-v1:sha256:c0a84c4b6aaf94092ed8e62272dbff06583266765d75ea6f540559e610d8f56d:eyJzZWxlY3RlZExpbmVDb3VudCI6MTgsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjQ1M2M2ZmMyNDZiODA3NDA3ZGI3MWMxNDEzYzBmNDI2MGFiOGJlMGE2NGYwZWQ4ZWEyMzcwODk2OGNjYmI3ODQiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAxYmE0NzE5YzgwYjZmZTkxMWIwOTFhN2MwNTEyNGI2NGVlZWNlOTY0ZTA5YzA1OGVmOGY5ODA1ZGFjYTU0NmIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjI5ZWEzMDc3ZTJhNjhjYmJhMjczNzY1Mzc1ODlmMDA1NzE0MmViZTFkMTMxMjRjZWE2ZTdkMTI4NzYxYWY3ZDgiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjkzOTY2ZjA0NjFlYjQzYjY2NDhmYWQwNDM3ODc2ZGFkOTlmZDdhN2VlZDVhMTZiYTFmYzY4MDJkYzE4ZjExYmUifQ"
         }
       ]
+    },
+    {
+      "id": "claim_6067a0e9a23b4462ab7a0582010dbd8f",
+      "statement": "The chart is fed the rewind-aware series, not the raw one: allDisplayCandles = displayCandlesFor(chartStyle, rawCandles, haCandles) and displayCandles is allDisplayCandles unless the user is rewound, in which case it is sliceCandlesBefore(allDisplayCandles, drawingsService.timelinePosition); the same switch governs the band's range through ChartDrawingsService.effectiveValuation, which returns the live valuation when not rewound and the active snapshot's drawings.valuation otherwise, while handleSaveSnapshot writes the current valuation into the snapshot's drawings.",
+      "evidence": [
+        {
+          "resource": "repo://frontend/src/lib/services/ChartDrawingsService.svelte.ts#L212-L217",
+          "version": "repo-lines-v1:sha256:4141bbef51ed8085b63841fd279b1ad74c6bb384a669b4f0d1655bff8fc31ecd:eyJzZWxlY3RlZExpbmVDb3VudCI6NiwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiZTRmNWIzNmFiOTBiZmMzMDhiM2M4YjhhOGU4MDBkNjdmMWNhMWFiNjRjYWM0NTJkM2I2MmM2MzE1ZTM4YzBkYiIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNjdjZGE4MmRhNjA2MjM4ZTA1ZTYyMzk5NTY5YzVlZTAzOTkzNDE5NjQ4YWU1ZDQzYTJiZjhjZDYzNDdmODI2MyIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiMTAzYTIyNDM0MDNlNzUxMjk5NmU0MzEwNWNkMjllMjhjNWYzMjEzOWQ5YWNiMWIxODU5NTc0NzBhYWFmNWZmYSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiNWYzNTA0NjhiMTNiYmZkMDZkOTg0Y2UxMGJkMTkwNDhlNmZkMWRhNmMwMGY1ZDBmMjM3YjJlMDE3NTlkNzdhNCJ9"
+        },
+        {
+          "resource": "repo://frontend/src/lib/services/ChartDrawingsService.svelte.ts#L983-L1000",
+          "version": "repo-lines-v1:sha256:52eebe410df8306ea058f5cd9547b946109c060a066a2864ccc327945ea8f9a3:eyJzZWxlY3RlZExpbmVDb3VudCI6MTgsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjdjOGE4Yjg4ZTU4OWU5ZDdmMzM3YWFkNjA4ZjY5YzVjNzU2Y2Y0YzY4ZWUyN2ZhNTQ5MTg0ZGY1N2M1NzQ0NTAiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjIxZWIyNGQ5OTYxZjhiNGFhNWUyODIwMDYzNWZhZmQ4NzQxMzI4ZTgxNmNiZTA2OGM5MjU5YTNiNmI5ZTkwZTYiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImE4YzdmYjYzOTYyNWQ4ZTU2MThjNmNiYmZkN2M1ZDU2MGM2MGMwY2VkMTUxNWRkMzAyYTgwZTY5Mjc0NjE1MTQiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjEzZTJkZmEwMWE3MWRhZTAyMzQwNTNhZTk3ZDQ3NDY1OTdkOTc5YzBjOGI0Y2VjZTNjYjhhODliNTQ2ZjljNTEifQ"
+        },
+        {
+          "resource": "repo://frontend/src/routes/security/%5Bsecurity_id%5D/%2Bpage.svelte#L121-L135",
+          "version": "repo-lines-v1:sha256:10c002b543632a414bab130ec2197fd69b82af25212797c44433c862e2cdead5:eyJzZWxlY3RlZExpbmVDb3VudCI6MTUsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjNmNWFmM2ZmODY4ZGQxNmM1OWRhNzg2OGJiZmI5MWQ1YzdhZGJiZjI0ZjlmNmZkN2JjMjdmNjk2ZjYwMjZkNWEiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjBhNzM0OTJkODk0NmIxZDBmOWQ5YzA0YjcwNGE5MjBmMjRmODllZjdjN2Y3MzExYTg1OTlkMTBjN2Y2MzU4ZDAiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImVjYzIyMzU1Y2Q5OTRkNGFhNzA5YmUzM2Q0ZjA4YjQzYThkMDMyMDJmYTk1ZTM0NjU3ZWVlNTJkY2Q5ZTA0NDAiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjRiY2Y1NTI1ZGQ3ODhjM2IwOTg2MTUxNzk1YmVkZTM5ZTExNTg2NGMxZGIxMmQzYzJhYjVkODA0ZDYyY2VjODAifQ"
+        },
+        {
+          "resource": "repo://frontend/src/routes/security/%5Bsecurity_id%5D/page.svelte.test.ts#L3249-L3296",
+          "version": "repo-lines-v1:sha256:0944dcf8fa79f324c0de39cab9692cf4fd248373f482ea61df4f32b78be1a30f:eyJzZWxlY3RlZExpbmVDb3VudCI6NDgsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6Ijc5YmQ1NjZlNTIyZWRlYjk1OTMxOTc1Y2ZmMWM5N2Y0NmFlM2RmNWYyY2E2ODM0MDA4YjI1NDgyZmM4NTZjM2EiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjBhNzM0OTJkODk0NmIxZDBmOWQ5YzA0YjcwNGE5MjBmMjRmODllZjdjN2Y3MzExYTg1OTlkMTBjN2Y2MzU4ZDAiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImZiNmI3MDgxZTQ1NGQ4NDM1MGNiYmYzN2FjM2VlNjliODQ4ZjEzMjViOGRhOTM1OWM2MjY5ODg1MDBlNGNlOGYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjVmYzM3YmNjYTM3Zjg0NTAyM2ViYWIxNzM2MjJkMTMwNzM2ZmRlZDNiNmM4ZmM2Y2I0ZmFjYTZjMWI4ODI1NjAifQ"
+        }
+      ]
+    },
+    {
+      "id": "claim_cc4f4ad8f7114860b01f1b9106c07039",
+      "statement": "The backend half of the indicator pipeline is tested without real dependencies: tests/market/test_indicator_client.py drives IndicatorServiceClient through httpx.MockTransport handlers that assert the POST /compute path and the 504 timeout, 503 connect-error/5xx and 400 pass-through mappings, while tests/market/test_indicator_compute_api.py patches IndicatorServiceClient.compute and IndicatorCache.get/set to cover the 422 date window, the cache hit/miss, the read-write window symmetry and the caller-supplied-candle path.",
+      "evidence": [
+        {
+          "resource": "repo://tests/market/test_indicator_client.py#L15-L104",
+          "version": "repo-lines-v1:sha256:cd00325a438ffbfcde8473db2463e13fac232f1c9ef394e1251cd91bd8276042:eyJzZWxlY3RlZExpbmVDb3VudCI6OTAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImI3YTgzMWZhNDcyNmZjMjMxNTE0NGY5YTA1NWJmZWMyNWYxYWZkMTI2YWFmZjU3YWZmYmU5NDBlZjVjNmE3MzUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImIyZjgzMzQ4NjZmNmY0NzI5MDU5OWFhM2UwOGUxNmI0YTRmNjRjMzMyYmUzZjNjNzAyNDI0ZTIwNWVkOTZhYzMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImE5OGIwNjNkOWI0N2U2NTM3OTYyNTU3MmNjZTE5NzY2OWQ1NzY3ZTEyYzE4YmUwNzU2NTJiOGNkOTgxY2U4ZDUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImJlYzJiMTM5NmM4YTFhZDUwZDIxZTQ4MGVmOWIwMTk2ZWVlNjc2NjgxZTY3NTRiYzY0NjRjNzRjYWRiYmE2MTAifQ"
+        },
+        {
+          "resource": "repo://tests/market/test_indicator_compute_api.py#L116-L165",
+          "version": "repo-lines-v1:sha256:419fea6aa6a8a3f3162cd895c7835e8c5df7416974127771dddceacfaf0d8e2d:eyJzZWxlY3RlZExpbmVDb3VudCI6NTAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImI3YTgzMWZhNDcyNmZjMjMxNTE0NGY5YTA1NWJmZWMyNWYxYWZkMTI2YWFmZjU3YWZmYmU5NDBlZjVjNmE3MzUiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAxYmE0NzE5YzgwYjZmZTkxMWIwOTFhN2MwNTEyNGI2NGVlZWNlOTY0ZTA5YzA1OGVmOGY5ODA1ZGFjYTU0NmIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjY4ZGIxNjRkMDdhMGEwZTRkNWZlZWJkZTJjNzAxYzEzNDM0YWZkNWQ1N2E3ZjJjOTA2YjY3YzY2MDY1MDhiMGUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjVkZTA0MTZkZjNjOWZhNTE5MjQ5NTJmMmRjODhmNWQ0YTk1MDhjNmJlNjgxMTE5MDJkNWZlYTAxYWZlYzVhNWYifQ"
+        },
+        {
+          "resource": "repo://tests/market/test_indicator_compute_api.py#L332-L440",
+          "version": "repo-lines-v1:sha256:838cea7deb742d9aed0821fd8720548a4b0e66229496be54ac4351ed3ee0a65c:eyJzZWxlY3RlZExpbmVDb3VudCI6MTA5LCJmaXJzdFNlbGVjdGVkTGluZUhhc2giOiJiN2E4MzFmYTQ3MjZmYzIzMTUxNDRmOWEwNTViZmVjMjVmMWFmZDEyNmFhZmY1N2FmZmJlOTQwZWY1YzZhNzM1IiwibGFzdFNlbGVjdGVkTGluZUhhc2giOiJkMWY0MWJiYWRiMTc5NjAxYzFhY2RkZTY5Y2U4ZGMwZmZmNGJjNmVlYzFiZjFlYjc0ZGZhMzRmMGJkMmQzNWUwIiwicHJlY2VkaW5nQ29udGV4dExpbmVDb3VudCI6MywicHJlY2VkaW5nQ29udGV4dEhhc2giOiIyODk0OGU2ZTVhYWUwYjNiNTk5NmRhYTgzMjdlNWMyMGY0MTZmOTI4YjQwNzg1OGQwZjM4NTU3OWUzY2I3MzQ1IiwiZm9sbG93aW5nQ29udGV4dExpbmVDb3VudCI6MywiZm9sbG93aW5nQ29udGV4dEhhc2giOiJiZWMyYjEzOTZjOGExYWQ1MGQyMWU0ODBlZjliMDE5NmVlZTY3NjY4MWU2NzU0YmM2NDY0Yzc0Y2FkYmJhNjEwIn0"
+        }
+      ]
     }
   ],
   "verification": {
     "by": "openwiki/0.7.0",
-    "at": "2026-10-04T13:39:13.522Z"
+    "at": "2026-10-06T14:42:34.222Z"
   }
 }

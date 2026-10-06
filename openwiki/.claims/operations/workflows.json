@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "pageVersion": "sha256:6862513ef40bf3e19f0daf97c753ec6b942f9ddaadbe8c8772bf0afb4a889ff8",
+  "pageVersion": "sha256:46c54accaadc5813f498d3d12e3a6773ad44ea5da39269fe9e54bcfbdd3e17ef",
   "claims": [
     {
       "id": "claim_7ecb499131d4460ab8b3effeff51e886",
@@ -374,7 +374,7 @@
     },
     {
       "id": "claim_d13b69321e634834a72820a326a46902",
-      "statement": "The four OpenSpec stages — propose, explore, apply and archive — are mirrored as slash commands and skills across `.agent/` (workflows plus skills), `.opencode/` (command plus skills) and `.github/` (prompts plus skills), with `.claude/commands/opsx/{propose,explore,apply,archive}.md` as the Claude Code command mirror; `CLAUDE.md` does not exist in this checkout, so nothing imports `AGENTS.md` on Claude Code's behalf.",
+      "statement": "The four OpenSpec stages — propose, explore, apply and archive — are each defined once per agent tool, so they exist in four mirrored tool directories: `.agent/` (`workflows/opsx-*.md` plus `skills/openspec-*/`), `.opencode/` (`command/opsx-*.md` plus `skills/openspec-*/`), `.github/` (`prompts/opsx-*.prompt.md` plus `skills/openspec-*/`) and `.claude/` (`commands/opsx/{propose,explore,apply,archive}.md` plus `skills/openspec-*/`); `CLAUDE.md` does not exist in this checkout, so Claude Code is served by the `.claude/` directory directly.",
       "evidence": [
         {
           "resource": "repo://.agent/workflows/opsx-apply.md",
@@ -385,16 +385,16 @@
           "version": "repo-file-v1:sha256:a124c194a3348ee4e8aa41edb03aeb63444946a6aa3d60365fea6b124e733168"
         },
         {
+          "resource": "repo://.claude/skills/openspec-propose/SKILL.md",
+          "version": "repo-file-v1:sha256:a41d8fda28db18ff9afd548fdc4076c89e492460ac3b8ee0fa4cb33b7034a3e0"
+        },
+        {
           "resource": "repo://.github/prompts/opsx-archive.prompt.md",
           "version": "repo-file-v1:sha256:506f234494a161cdde2c1fefb319f53ec63e34755811ead4b39c5677c0c7b455"
         },
         {
           "resource": "repo://.opencode/command/opsx-propose.md",
           "version": "repo-file-v1:sha256:38c79d395a4e3d3e748ca7cbd4229f47a9279d53dcc9d8a87665ceca4322222f"
-        },
-        {
-          "resource": "repo://AGENTS.md#L10-L17",
-          "version": "repo-lines-v1:sha256:e81183bcbaa78cb42842b9db417c1bdb06dc9e76dd2fff40750651139768fc41:eyJzZWxlY3RlZExpbmVDb3VudCI6OCwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiMjA1NTU3NDQyZDAzYjg2OTE0Nzc2NjQxZjYzODA0NWJjZDY1YWVkNmFhYzYyYzE1YTZmMmUxNTk3ODg3YzMwMSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiMGEzMmQwMDU1ODliNDE2N2RkMGNhNTYzOGMzYjQ1Mzc3OTZiZDA2YjFjOTFhNGQ1MGZiOTVkOWU0NDQ0OGU4NCIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiZThlOTIzZDkzMDkxZjMzNTM3Mzg0NTk0NDY5Y2RhYjA4NjMwNDYwZDFlOTQ4YWQ0MjZlNGIwNGFhYTVhOTdkMiIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiZjFlNjAzYzE0MTlmMTgzMmUxMWU3MjY2NThjYWUzMDNmYzJhMGZlZjcwOGQzNDMxNjZhMzY4N2EwNTQyYjgxNiJ9"
         }
       ]
     },
@@ -458,7 +458,7 @@
     },
     {
       "id": "claim_522631345eba46e49ff58c95cbd7b5db",
-      "statement": "The OpenWiki block at the end of `AGENTS.md` (delimited by `<!-- OPENWIKI:START -->` / `<!-- OPENWIKI:END -->` at the end of the file) declares a retrieval-first consumption policy for the generated `openwiki/` tree: agents must not enumerate, preload or search wikis at task start, they use `openwiki_search` for just-in-time context and `openwiki_read` for the relevant complete sections when the user asks or when unfamiliar architecture or dependency behavior materially affects the task, a `workspace_required` response means asking which listed workspace to use and retrying with its ID, `openwiki_list_workspaces`/`openwiki_list_wikis` exist for discovering workspace membership, and when the retrieval tools are unavailable the fallback is reading `openwiki/quickstart.md` and following its links.",
+      "statement": "The OpenWiki block at the end of `AGENTS.md` (delimited by `<!-- OPENWIKI:START -->` / `<!-- OPENWIKI:END -->`) declares a retrieval-first consumption policy for the generated `openwiki/` tree, describing it as an optional just-in-time evidence index rather than required startup reading: agents must not enumerate, preload or search wikis at task start, they use `openwiki_search` for just-in-time context and `openwiki_read` for the relevant complete sections when the user asks or when unfamiliar architecture or dependency behavior materially affects the task, a `workspace_required` response means asking which listed workspace to use and retrying with its ID, `openwiki_list_workspaces`/`openwiki_list_wikis` exist for discovering workspace membership, and when the retrieval tools are unavailable the fallback is reading the `openwiki/quickstart.md` entry point and following its links.",
       "evidence": [
         {
           "resource": "repo://AGENTS.md#L46-L61",
@@ -532,15 +532,15 @@
     },
     {
       "id": "claim_f005a34c98824542992d91d982f6c39d",
-      "statement": "Adding an OpenSpec stage means adding all three tool mirrors (`.agent/`, `.opencode/`, `.github/`) because a change to only one silently diverges per tool; `.agent/skills/` and `.opencode/skills/` additionally hold a wider non-OpenSpec skill catalogue (architecture-review, commit-message, feature-definition, orchestration, pr-review, quality-check, spec-writing, ticket-execution) — there is no ticket-planning or ticket-writing skill — and `.opencode/opencode.json` sets the default agent `orchestrator` plus per-agent models (`orchestrator` and `pr-reviewer` on `opencode-go/glm-5.3-flash`, `implementer` on `opencode-go/deepseek-v4.1-flash`, `arch-reviewer` and `spec-writer` on `opencode-go/grok-4.6`).",
+      "statement": "Adding an OpenSpec stage means adding every tool mirror (`.agent/`, `.claude/`, `.opencode/`, `.github/`) because a change to only one silently diverges per tool; `.agent/skills/`, `.claude/skills/` and `.opencode/skills/` additionally hold the wider non-OpenSpec skill catalogue (architecture-review, commit-message, feature-definition, orchestration, pr-review, quality-check, spec-writing, ticket-execution) — there is no ticket-planning or ticket-writing skill — and `.opencode/opencode.json` sets the default agent `orchestrator` plus per-agent models (`orchestrator` and `pr-reviewer` on `opencode-go/glm-5.3-flash`, `implementer` on `opencode-go/deepseek-v4.1-flash`, `arch-reviewer` and `spec-writer` on `opencode-go/grok-4.6`).",
       "evidence": [
         {
           "resource": "repo://.agent/skills/orchestration/SKILL.md#L20-L29",
           "version": "repo-lines-v1:sha256:7e21937efef062b59559bbf3a49b5feb0bba8c7f040e76961e6a2673a27d6600:eyJzZWxlY3RlZExpbmVDb3VudCI6MTAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjZmYmYzNjhjNTNlNjczOGY1NjhmMThhZGM1YzQ2NDFkMmRiZTIwZmIyZTczYzU3YjY5ZmZlZDg0ODNjNGUwNzMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImNmMjk2ZWQxOTc1ZDY0MDMwZjRhYzgzNDI5ZGM1OTJhYTIxOGYwZjQ1ZTAxNTZlZWFiZDE4ODZlMzQ0ZGVmMmMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjdlNDk4ZTZkNjc1OTE1MTEyMzhhYzQ1ZjI4YTVlYjI3MzFjYzlkZWE2ZTQyNTk0N2M1Y2ZiNDUyZTdhNGY1ZWYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjkxNjU5OTc3YzRhZjgzZTY2YjE4NzA3OWU1NjBmZDZhODk5Y2RhOGFmZGNkZDgwOTdmMzU0NGIxZWM2N2M3N2IifQ"
         },
         {
-          "resource": "repo://.agent/skills/spec-writing/SKILL.md#L1-L6",
-          "version": "repo-lines-v1:sha256:a5ff529b55fb6566c55efad7c398b02dbd7a52aeb5778f4dac34ec2636812363:eyJzZWxlY3RlZExpbmVDb3VudCI6NiwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiZjUyZDcxMTEwM2Q1MGE0Mzc4MzBjNmZiY2QwNGZiNGJhYjQ5YTBmODJmNmQyNmQxYzc5MWM2ZTg0ODhkZDA5MCIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiYjIxODhiZjI2YjUwMWYwMzIyNTAxZDJhNDU0ZTg4OWNlNDRiYjhjYzY3NDkxYTYyMDYzNTUxNjNiMWM1MzViMyIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjAsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiZTNiMGM0NDI5OGZjMWMxNDlhZmJmNGM4OTk2ZmI5MjQyN2FlNDFlNDY0OWI5MzRjYTQ5NTk5MWI3ODUyYjg1NSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiODMzMjk4YmNhZjdjZjFlYjM0ZGQ1OTExMDQzN2E0NDBhZjJlM2IxMjUzNGJjN2JiNTA1ZTZjYjgwY2YxMGZkYyJ9"
+          "resource": "repo://.claude/skills/orchestration/SKILL.md",
+          "version": "repo-file-v1:sha256:2924a4836948282dfb8e919951b493ff8257cbb00ddf208c2cfe905d517e81bd"
         },
         {
           "resource": "repo://.github/skills/openspec-propose/SKILL.md#L1-L10",
@@ -564,7 +564,7 @@
     },
     {
       "id": "claim_23bbb5d42557409a879e95a08300ef86",
-      "statement": "`AGENTS.md` at the repository root is the entrypoint of the agent guidance hierarchy: it sets the communication style, the never-merge-to-`main`-without-explicit-permission rule, delegating backend rules to `src/AGENTS.md` and frontend rules to `frontend/AGENTS.md`, the Docker-only command rule, the harness and worktree instructions, and ends with the OpenWiki block; those two area guides own their own workflow command lists, the no-external-services testing rule and the domain-driven / rune-class layering contracts.",
+      "statement": "`AGENTS.md` at the repository root is the entrypoint of the agent guidance hierarchy: it sets the communication style (sparse, filler-free, ask when unsure instead of inferring), the never-merge-to-`main`-without-explicit-permission rule, delegation of backend rules to `src/AGENTS.md` and frontend rules to `frontend/AGENTS.md`, the Docker-only command rule, the harness and worktree instructions, and ends with the OpenWiki block; the two area guides own their own workflow command lists, the no-external-services testing rule and the domain-driven / rune-class layering contracts.",
       "evidence": [
         {
           "resource": "repo://AGENTS.md#L1-L44",
@@ -600,23 +600,23 @@
     },
     {
       "id": "claim_4c6d680eb42245b08beece3f641c9b85",
-      "statement": "The agent tooling is layered one owner per concern: `.agent/` holds `agents/`, the OpenSpec skills plus the wider catalogue and `workflows/opsx-*.md`; `.claude/` mirrors `agents/` and adds `commands/opsx/`; `.opencode/` adds `agents/orchestrator.md`, `command/opsx-*.md` and `skills/`; `.github/` holds `prompts/opsx-*.prompt.md`, the four `skills/openspec-*/` and `workflows/`; and `.ai/` is the durable output directory — `features/`, `plans/` (ticket plans) and `reviews/` (`<date>-architecture[-focus].md`), which is where architecture reviews are written.",
+      "statement": "The agent tooling is layered one owner per concern: `.agent/` holds `agents/`, the OpenSpec skills plus the wider catalogue and `workflows/opsx-*.md`; `.claude/` mirrors `agents/` and `skills/` and adds `commands/opsx/`; `.opencode/` adds `agents/orchestrator.md`, `command/opsx-*.md` and `skills/`; `.github/` holds `prompts/opsx-*.prompt.md`, the four `skills/openspec-*/` and `workflows/`; and `.ai/` is the durable output directory — `features/`, `plans/` (ticket plans) and `reviews/` (`<date>-architecture[-focus].md`), which is where architecture reviews are written.",
       "evidence": [
         {
           "resource": "repo://.agent/skills/architecture-review/SKILL.md#L29-L29",
           "version": "repo-lines-v1:sha256:6527e21bd4a62a0937dc1a1811c4101545e6b1f845b5966ecf00d1faebcc24e3:eyJzZWxlY3RlZExpbmVDb3VudCI6MSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiNjUyN2UyMWJkNGE2MmEwOTM3ZGMxYTE4MTFjNDEwMTU0NWU2YjFmODQ1YjU5NjZlY2YwMGQxZmFlYmNjMjRlMyIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNjUyN2UyMWJkNGE2MmEwOTM3ZGMxYTE4MTFjNDEwMTU0NWU2YjFmODQ1YjU5NjZlY2YwMGQxZmFlYmNjMjRlMyIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiN2Q0MmRhMWRlYWQ1Yzg4YTQxNTQwMjYxMzc5Y2I2NTYyY2NhNjg1NmViYTE1YjFjOGQ5ZTRmNzY2YjkwZmNkMCIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiMzNmYjZiMDE0MzBjNDdlOGExNzRkZTM2MzlhODI2ZDY3NGI0N2Q3ZGE3MWM4NjE2MjMwNWEwMjNlODlkMTI1NCJ9"
         },
         {
-          "resource": "repo://.agent/skills/orchestration/SKILL.md#L20-L29",
-          "version": "repo-lines-v1:sha256:7e21937efef062b59559bbf3a49b5feb0bba8c7f040e76961e6a2673a27d6600:eyJzZWxlY3RlZExpbmVDb3VudCI6MTAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjZmYmYzNjhjNTNlNjczOGY1NjhmMThhZGM1YzQ2NDFkMmRiZTIwZmIyZTczYzU3YjY5ZmZlZDg0ODNjNGUwNzMiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6ImNmMjk2ZWQxOTc1ZDY0MDMwZjRhYzgzNDI5ZGM1OTJhYTIxOGYwZjQ1ZTAxNTZlZWFiZDE4ODZlMzQ0ZGVmMmMiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjdlNDk4ZTZkNjc1OTE1MTEyMzhhYzQ1ZjI4YTVlYjI3MzFjYzlkZWE2ZTQyNTk0N2M1Y2ZiNDUyZTdhNGY1ZWYiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6IjkxNjU5OTc3YzRhZjgzZTY2YjE4NzA3OWU1NjBmZDZhODk5Y2RhOGFmZGNkZDgwOTdmMzU0NGIxZWM2N2M3N2IifQ"
-        },
-        {
           "resource": "repo://.agent/skills/spec-writing/SKILL.md#L16-L19",
           "version": "repo-lines-v1:sha256:b27ac47140189e8e5f71c319acb9cd4f67a5537ca105a6dc72236e42320a5b0b:eyJzZWxlY3RlZExpbmVDb3VudCI6NCwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiMmNiYzMzYTJmYzNiNTBkYjNiNTEyZTE4MDg4ZGMzYzM0MWFiNGE3N2ZlNjZjYTYyNWRmNmM1NDgzNDFlYzBmMSIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNWJhMTVlZGM1MTZjMjA2NTU4ZWEwZTVhMjc3ZGZhMTc1M2Q0ODNhOThhOTYwZTRiMTg2YzIxOGUxNDJhNTI1YiIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiMWZjZDJiMWNkYjk5OTUwZjA3N2Q5NzM0M2IwZWE3YTFkZDlhZDRkOTE1ZmM1OGI4OWMwYjQ4MGFlZTkwOWM5MCIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiN2M0NjM0Nzg4MmU2MTg0NGQ0OTQ3MWFhYWIxY2QwOWE5YWRlMGIzNDY3YjA3Y2I1NmJjZTNkNGMwY2ZjMjI2ZCJ9"
         },
         {
-          "resource": "repo://.claude/commands/opsx/propose.md#L1-L5",
-          "version": "repo-lines-v1:sha256:9b88c8fbf5eb875bd01197c75c2771f37e8b34b1454d497acba15e7d56487b90:eyJzZWxlY3RlZExpbmVDb3VudCI6NSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiZjUyZDcxMTEwM2Q1MGE0Mzc4MzBjNmZiY2QwNGZiNGJhYjQ5YTBmODJmNmQyNmQxYzc5MWM2ZTg0ODhkZDA5MCIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiMGMwMGYwMmRiOWM4ZjdlYWM4NzdhNWZhZmE0ZDM5YTVkY2EyMzMyNGM3ZmYzOTkzYWM2ZmEyNWI0ZTU2NmY3NiIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjAsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiZTNiMGM0NDI5OGZjMWMxNDlhZmJmNGM4OTk2ZmI5MjQyN2FlNDFlNDY0OWI5MzRjYTQ5NTk5MWI3ODUyYjg1NSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiYzBmN2Q1ZWZkZThiZjdiMjFkMWNmNDUyY2YzZDM2NTZkMDI4N2IzMzU5MjVmNzkyNTJmZmVlZDZiMjFlMWQ4YyJ9"
+          "resource": "repo://.claude/agents/implementer.md#L1-L8",
+          "version": "repo-lines-v1:sha256:76aa80d5a8d887efcd63bdc3ac6a139208cac03b84ec04b2ea4ba6cf39018425:eyJzZWxlY3RlZExpbmVDb3VudCI6OCwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiZjUyZDcxMTEwM2Q1MGE0Mzc4MzBjNmZiY2QwNGZiNGJhYjQ5YTBmODJmNmQyNmQxYzc5MWM2ZTg0ODhkZDA5MCIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiZjUyZDcxMTEwM2Q1MGE0Mzc4MzBjNmZiY2QwNGZiNGJhYjQ5YTBmODJmNmQyNmQxYzc5MWM2ZTg0ODhkZDA5MCIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjAsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiZTNiMGM0NDI5OGZjMWMxNDlhZmJmNGM4OTk2ZmI5MjQyN2FlNDFlNDY0OWI5MzRjYTQ5NTk5MWI3ODUyYjg1NSIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiMzk2YjBhMzIwZWU1YmNjZjdkMGY2Mjc3OTcwNDY3ZDJjMzAyZGEzNzU3MTVlZjA1ODdmYmIxZjI4NDk2YzI4YSJ9"
+        },
+        {
+          "resource": "repo://.claude/skills/orchestration/SKILL.md",
+          "version": "repo-file-v1:sha256:2924a4836948282dfb8e919951b493ff8257cbb00ddf208c2cfe905d517e81bd"
         },
         {
           "resource": "repo://.opencode/opencode.json#L9-L25",
@@ -687,10 +687,24 @@
           "version": "repo-lines-v1:sha256:6e2a09851cb9520e42d09b41d4c88236274da2e2c2336eae16cfdd32f5d2a58b:eyJzZWxlY3RlZExpbmVDb3VudCI6MSwiZmlyc3RTZWxlY3RlZExpbmVIYXNoIjoiNmUyYTA5ODUxY2I5NTIwZTQyZDA5YjQxZDRjODgyMzYyNzRkYTJlMmMyMzM2ZWFlMTZjZmRkMzJmNWQyYTU4YiIsImxhc3RTZWxlY3RlZExpbmVIYXNoIjoiNmUyYTA5ODUxY2I5NTIwZTQyZDA5YjQxZDRjODgyMzYyNzRkYTJlMmMyMzM2ZWFlMTZjZmRkMzJmNWQyYTU4YiIsInByZWNlZGluZ0NvbnRleHRMaW5lQ291bnQiOjMsInByZWNlZGluZ0NvbnRleHRIYXNoIjoiYTFkMGNlNWUxNzhmNGI5ODY1ZmY1ZjM0NDQ0ODBkZDgwY2JjNGZhOGZjMDI2ZmU0ZmMxNTQyNzc3YTAyMzUyMiIsImZvbGxvd2luZ0NvbnRleHRMaW5lQ291bnQiOjMsImZvbGxvd2luZ0NvbnRleHRIYXNoIjoiMGRjNDIxOTQzYWZkNjE2ZGZhMjEwNmExMDczODI2NmYzY2I3ZDYzZmJlM2JlYTU4MWU4NjM3NTdmMWE2NjU1YiJ9"
         }
       ]
+    },
+    {
+      "id": "claim_21f209f3063044108013f61d697a3e3e",
+      "statement": "`frontend/AGENTS.md` defines a four-layer frontend contract: `.svelte` files hold markup, styling and simple view state; `.svelte.ts` files hold rune-based ES6 classes for state and business logic (never destructured primitives, never module-level instances, `$effect` only for side effects); stateless `.ts` API clients own HTTP concerns; and chart drawing tools live in per-plugin directories under `frontend/src/lib/components/charts/plugins/<plugin-name>/` with a fixed module layout, strict no-cross-plugin imports, shared plumbing in `plugins/helpers/` and pure financial math in `$lib/utils/finance/`.",
+      "evidence": [
+        {
+          "resource": "repo://frontend/AGENTS.md#L167-L246",
+          "version": "repo-lines-v1:sha256:bbb19bad1e2e1e2b0214e1e4538cc447a7a76809d1052e1846eef7fee32b1d74:eyJzZWxlY3RlZExpbmVDb3VudCI6ODAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6ImY5YjYxNzFmOGJmNTA2YTMzZWExNjdhMzMyNDlmMTU4MzhmMTU1ZWExMjhhOTAyNzczMGZlYTVmYmVmZTJiZDAiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjA3MzBmNmUyNzE1ZWMwMTE2NTFjMWEzMTRkODNlZjRlMTExZmFlNDM3Njg4OGFjYjk5OWE0ZWI1NTQ3YThjNDEiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6IjNjMjQ3MDU4YzIwYjk2NGRjYTg0Mzk5NGI5YjQ0ZTlmZDAwOGViMmUzYTI5ZmQ2OWY4MzQ5ODY2YjgwZTY5ZTUiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjowLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImUzYjBjNDQyOThmYzFjMTQ5YWZiZjRjODk5NmZiOTI0MjdhZTQxZTQ2NDliOTM0Y2E0OTU5OTFiNzg1MmI4NTUifQ"
+        },
+        {
+          "resource": "repo://frontend/AGENTS.md#L61-L140",
+          "version": "repo-lines-v1:sha256:c1208c05d7c1d9fe44abf58d7b64dfc7f01c6fcfe6c5711b7acdb6a669163a9c:eyJzZWxlY3RlZExpbmVDb3VudCI6ODAsImZpcnN0U2VsZWN0ZWRMaW5lSGFzaCI6IjliMzVlOTJiNmEwNmFlODI2ZmRhYmVkMWRmNzU0Zjk1Y2UwYTk1YWZhZTA3MGVmZTdkZmQ4MTc4Nzg5NzhlZTkiLCJsYXN0U2VsZWN0ZWRMaW5lSGFzaCI6IjAxYmE0NzE5YzgwYjZmZTkxMWIwOTFhN2MwNTEyNGI2NGVlZWNlOTY0ZTA5YzA1OGVmOGY5ODA1ZGFjYTU0NmIiLCJwcmVjZWRpbmdDb250ZXh0TGluZUNvdW50IjozLCJwcmVjZWRpbmdDb250ZXh0SGFzaCI6ImY1NzA0ZDA2MDFmNjhhZjkwMWYzOWMzYTFmZDcxNzNhMGU1OWNiODYzMjFhMjVjZWYxODZjYjJhN2Q1YjdmNzAiLCJmb2xsb3dpbmdDb250ZXh0TGluZUNvdW50IjozLCJmb2xsb3dpbmdDb250ZXh0SGFzaCI6ImRjZTkzODZmNDk4NDg5OTQ1NWVhZDZlMWJkYmNmMzY5NDg5M2UyNTUwMzRlYjUxZmJjZTI0ZWYyZmZiMzRhMTgifQ"
+        }
+      ]
     }
   ],
   "verification": {
     "by": "openwiki/0.7.0",
-    "at": "2026-10-04T13:39:13.522Z"
+    "at": "2026-10-06T14:42:34.222Z"
   }
 }
