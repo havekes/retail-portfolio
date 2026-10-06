@@ -78,6 +78,14 @@ func registerTools(server *mcp.Server, client *BackendClient, cfg Config) {
 			})
 		})
 
+	addTool(server, "get_option_expirations",
+		"Available option expiration dates for an underlying symbol, sorted ascending.",
+		func(ctx context.Context, _ *mcp.CallToolRequest, in optionExpirationsInput) (*mcp.CallToolResult, any, error) {
+			return runTool(ctx, "get_option_expirations", cfg, in, optionExpirationsInput.prepare, func(ctx context.Context, r optionExpirationsRequest) (any, error) {
+				return client.OptionExpirations(ctx, r.symbol)
+			})
+		})
+
 	addTool(server, "get_financial_statements",
 		"Financial statements (income statement, balance sheet, cash flow) for a symbol, optionally filtered by reporting period and limited to the most recent periods.",
 		func(ctx context.Context, _ *mcp.CallToolRequest, in financialStatementsInput) (*mcp.CallToolResult, any, error) {
@@ -417,6 +425,22 @@ func (in optionsChainInput) prepare() (optionsChainRequest, error) {
 		strikeMin:  in.StrikeMin,
 		strikeMax:  in.StrikeMax,
 	}, nil
+}
+
+type optionExpirationsInput struct {
+	Symbol string `json:"symbol" jsonschema:"Ticker symbol of the underlying security."`
+}
+
+type optionExpirationsRequest struct {
+	symbol string
+}
+
+func (in optionExpirationsInput) prepare() (optionExpirationsRequest, error) {
+	symbol, err := requireSymbol(in.Symbol)
+	if err != nil {
+		return optionExpirationsRequest{}, err
+	}
+	return optionExpirationsRequest{symbol: symbol}, nil
 }
 
 type financialStatementsInput struct {

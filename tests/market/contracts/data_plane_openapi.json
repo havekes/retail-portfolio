@@ -1337,6 +1337,34 @@
         "title": "KeyMetrics",
         "type": "object"
       },
+      "OptionExpirations": {
+        "description": "Available option expiration dates for an underlying symbol.",
+        "properties": {
+          "expirations": {
+            "default": [],
+            "items": {
+              "format": "date",
+              "type": "string"
+            },
+            "title": "Expirations",
+            "type": "array"
+          },
+          "truncated": {
+            "default": false,
+            "title": "Truncated",
+            "type": "boolean"
+          },
+          "underlying_symbol": {
+            "title": "Underlying Symbol",
+            "type": "string"
+          }
+        },
+        "required": [
+          "underlying_symbol"
+        ],
+        "title": "OptionExpirations",
+        "type": "object"
+      },
       "OptionsChain": {
         "description": "Options chain for an underlying symbol.\n\nAggregate of the flat snapshot shape: the ``underlying_symbol``, an\noptional ``as_of`` date, and one ``OptionsChainEntry`` per contract.",
         "properties": {
@@ -2193,6 +2221,62 @@
           }
         },
         "summary": "Market Data Options"
+      }
+    },
+    "/api/v1/market/data/options/{symbol}/expirations": {
+      "get": {
+        "description": "Available option expiration dates for an underlying symbol.",
+        "operationId": "market_data_option_expirations_api_v1_market_data_options__symbol__expirations_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "symbol",
+            "required": true,
+            "schema": {
+              "title": "Symbol",
+              "type": "string"
+            }
+          },
+          {
+            "in": "header",
+            "name": "X-Service-Token",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Service-Token"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OptionExpirations"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Market Data Option Expirations"
       }
     },
     "/api/v1/market/data/prices/{symbol}": {

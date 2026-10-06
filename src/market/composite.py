@@ -31,6 +31,7 @@ from src.market.api_types import (
     IncomeStatement,
     IntradayHistoricalPrice,
     KeyMetrics,
+    OptionExpirations,
     OptionsChain,
     SecurityId,
     SecuritySearchResult,
@@ -210,6 +211,10 @@ class CompositeMarketGateway(MarketGateway):
             strike_min=strike_min,
             strike_max=strike_max,
         )
+
+    def get_option_expirations(self, symbol: str) -> OptionExpirations:
+        """Get available option expiration dates for an underlying symbol (Polygon)."""
+        return self._polygon.get_option_expirations(symbol)
 
 
 def composite_market_gateway_factory() -> Generator[MarketGateway]:

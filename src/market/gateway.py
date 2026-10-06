@@ -12,6 +12,7 @@ from src.market.api_types import (
     IncomeStatement,
     IntradayHistoricalPrice,
     KeyMetrics,
+    OptionExpirations,
     OptionsChain,
     SecurityId,
     SecuritySearchResult,
@@ -197,6 +198,11 @@ class MarketGateway(ABC):
         apply them upstream or locally; callers never need provider knowledge.
         """
         _ = symbol, expiration, contract_type, strike_min, strike_max
+        raise MarketDataProviderError(_CAPABILITY_NOT_SUPPORTED)
+
+    def get_option_expirations(self, symbol: str) -> OptionExpirations:
+        """Get available option expiration dates for an underlying symbol."""
+        _ = symbol
         raise MarketDataProviderError(_CAPABILITY_NOT_SUPPORTED)
 
 

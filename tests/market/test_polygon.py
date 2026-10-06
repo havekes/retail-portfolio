@@ -14,7 +14,7 @@ from unittest.mock import patch
 import pytest
 import requests
 
-from src.market.api_types import OptionsChain, OptionsContract
+from src.market.api_types import OptionExpirations, OptionsChain, OptionsContract
 from src.market.exception import (
     MarketDataConfigurationError,
     MarketDataNotFoundError,
@@ -549,3 +549,142 @@ def test_stub_polygon_gateway_serves_deterministic_options():
 
     with pytest.raises(MarketDataNotFoundError):
         gateway.get_options_chain("ZZZZ")
+
+
+# --------------------------------------------------------------------------- #
+# Option expirations capability.
+# --------------------------------------------------------------------------- #
+
+
+def _contracts_page(
+    expirations: list[str],
+    next_url: str | None = None,
+) -> dict[str, object]:
+    results = [
+        {"ticker": f"O:SPY{exp.replace('-', '')[2:]}C00500000", "expiration_date": exp}
+        for exp in expirations
+    ]
+    payload: dict[str, object] = {"status": "OK", "results": results}
+    if next_url is not None:
+        payload["next_url"] = next_url
+    return payload
+
+
+@patch("src.market.polygon.requests.Session")
+def test_get_option_expirations_multi_page_dedup_and_sort(session_cls):
+    next_url = "https://api.polygon.io/v3/reference/options/contracts?cursor=next_page"
+    page1 = _contracts_page(["2025-01-17", "2025-01-17", "2025-02-21"], next_url=next_url)
+    page2 = _contracts_page(["2025-02-21", "2025-03-21"])
+
+    session_cls.return_value.get.side_effect = [
+        FakeResponse(payload=page1),
+        FakeResponse(payload=page2),
+    ]
+
+    gateway = PolygonGateway(api_key="test-key")
+    result = gateway.get_option_expirations("spy")
+
+    assert isinstance(result, OptionExpirations)
+    assert result.underlying_symbol == "SPY"
+    assert result.expirations == [
+        date(2025, 1, 17),
+        date(2025, 2, 21),
+        date(2025, 3, 21),
+    ]
+    assert result.truncated is False
+
+    mock_get = session_cls.return_value.get
+    assert mock_get.call_count == 2
+    first_url = mock_get.call_args_list[0].args[0]
+    assert "/v3/reference/options/contracts" in first_url
+    assert "underlying_ticker=SPY" in first_url
+    assert "expired=false" in first_url
+    assert "sort=expiration_date" in first_url
+    assert "order=asc" in first_url
+    assert "limit=1000" in first_url
+    assert "apiKey=test-key" in first_url
+
+    second_url = mock_get.call_args_list[1].args[0]
+    assert "apiKey=test-key" in second_url
+
+
+@patch("src.market.polygon.requests.Session")
+def test_get_option_expirations_sets_truncated_at_page_cap(session_cls):
+    sticky_url = "https://api.polygon.io/v3/reference/options/contracts?cursor=more"
+    session_cls.return_value.get.side_effect = lambda *args, **kwargs: FakeResponse(
+        payload=_contracts_page(["2025-01-17"], next_url=sticky_url)
+    )
+
+    gateway = PolygonGateway(api_key="test-key")
+    result = gateway.get_option_expirations("SPY")
+
+    assert session_cls.return_value.get.call_count == _MAX_PAGES
+    assert result.underlying_symbol == "SPY"
+    assert result.expirations == [date(2025, 1, 17)]
+    assert result.truncated is True
+
+
+@patch("src.market.polygon.requests.Session")
+def test_get_option_expirations_empty_contracts_raises_not_found(session_cls):
+    session_cls.return_value.get.return_value = FakeResponse(
+        payload={"status": "OK", "results": []}
+    )
+
+    gateway = PolygonGateway(api_key="test-key")
+    with pytest.raises(MarketDataNotFoundError) as exc_info:
+        gateway.get_option_expirations("EMPTY")
+    assert "EMPTY" in str(exc_info.value)
+
+
+@patch("src.market.polygon.requests.Session")
+def test_get_option_expirations_404_raises_not_found(session_cls):
+    session_cls.return_value.get.return_value = FakeResponse(status_code=404)
+
+    gateway = PolygonGateway(api_key="test-key")
+    with pytest.raises(MarketDataNotFoundError):
+        gateway.get_option_expirations("UNKNOWN")
+
+
+@patch("src.market.polygon.requests.Session")
+@pytest.mark.parametrize("status", [401, 403])
+def test_get_option_expirations_unauthorized_raises_configuration_error(session_cls, status):
+    session_cls.return_value.get.return_value = FakeResponse(status_code=status)
+
+    gateway = PolygonGateway(api_key="bad-key")
+    with pytest.raises(MarketDataConfigurationError):
+        gateway.get_option_expirations("SPY")
+
+
+@patch("src.market.polygon.requests.Session")
+def test_get_option_expirations_500_raises_provider_error(session_cls):
+    session_cls.return_value.get.return_value = FakeResponse(status_code=500)
+
+    gateway = PolygonGateway(api_key="key")
+    with pytest.raises(MarketDataProviderError):
+        gateway.get_option_expirations("SPY")
+
+
+@patch("src.market.polygon.requests.Session")
+def test_get_option_expirations_malformed_payload_raises_provider_error(session_cls):
+    session_cls.return_value.get.return_value = FakeResponse(
+        payload={"status": "OK", "results": "not-a-list"}
+    )
+
+    gateway = PolygonGateway(api_key="key")
+    with pytest.raises(MarketDataProviderError):
+        gateway.get_option_expirations("SPY")
+
+
+def test_stub_polygon_gateway_serves_deterministic_expirations():
+    gateway = StubPolygonGateway(api_key="stub")
+
+    expirations = gateway.get_option_expirations("AAPL")
+    assert expirations.underlying_symbol == "AAPL"
+    assert expirations.expirations == [date(2025, 1, 17)]
+    assert expirations.truncated is False
+
+    with pytest.raises(MarketDataNotFoundError):
+        gateway.get_option_expirations("MSFT")
+
+    with pytest.raises(MarketDataNotFoundError):
+        gateway.get_option_expirations("ZZZZ")

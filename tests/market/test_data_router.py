@@ -30,6 +30,7 @@ from src.market.api_types import (
     HistoricalPrice,
     IncomeStatement,
     KeyMetrics,
+    OptionExpirations,
     OptionsChain,
     OptionsChainEntry,
     OptionsContract,
@@ -52,6 +53,7 @@ _PRICES_URL = "/api/v1/market/data/prices/AAPL"
 _PRICES_QUERY = "?from=2026-01-01&to=2026-01-31"
 _SEARCH_URL = "/api/v1/market/data/symbols/search"
 _OPTIONS_URL = "/api/v1/market/data/options/AAPL"
+_OPTIONS_EXPIRATIONS_URL = "/api/v1/market/data/options/AAPL/expirations"
 _FUNDAMENTALS_URL = "/api/v1/market/data/fundamentals/AAPL"
 _STATEMENTS_URL = "/api/v1/market/data/fundamentals/AAPL/statements"
 
@@ -68,6 +70,10 @@ def mock_gateway() -> MagicMock:
     gateway.get_prices.return_value = []
     gateway.lookup_symbol.return_value = []
     gateway.get_options_chain.return_value = OptionsChain(underlying_symbol="AAPL")
+    gateway.get_option_expirations.return_value = OptionExpirations(
+        underlying_symbol="AAPL",
+        expirations=[date(2025, 1, 17)],
+    )
     gateway.get_company_profile.return_value = _company_profile()
     gateway.get_key_metrics.return_value = _key_metrics()
     gateway.get_financial_ratios.return_value = _financial_ratios()
@@ -145,6 +151,14 @@ def _options_chain() -> OptionsChain:
                 ),
             )
         ],
+    )
+
+
+def _option_expirations() -> OptionExpirations:
+    return OptionExpirations(
+        underlying_symbol="SPY",
+        expirations=[date(2025, 1, 17), date(2025, 2, 21)],
+        truncated=False,
     )
 
 
@@ -387,6 +401,42 @@ async def test_repeated_options_is_cached_under_options_class(
     assert len(keys) == 1
 
 
+@pytest.mark.anyio
+async def test_option_expirations_returns_expected_payload(
+    client: AsyncClient, mock_gateway: MagicMock
+) -> None:
+    mock_gateway.get_option_expirations.return_value = _option_expirations()
+
+    response = await client.get(
+        "/api/v1/market/data/options/SPY/expirations",
+        headers=_headers(),
+    )
+
+    assert response.status_code == 200
+    payload = response.json()
+    assert payload["underlying_symbol"] == "SPY"
+    assert payload["expirations"] == ["2025-01-17", "2025-02-21"]
+    assert payload["truncated"] is False
+    mock_gateway.get_option_expirations.assert_called_once_with("SPY")
+
+
+@pytest.mark.anyio
+async def test_repeated_option_expirations_is_cached_under_options_class(
+    client: AsyncClient, mock_gateway: MagicMock, mock_redis_storage: FakeRedis
+) -> None:
+    mock_gateway.get_option_expirations.return_value = _option_expirations()
+    url = "/api/v1/market/data/options/SPY/expirations"
+
+    first = await client.get(url, headers=_headers())
+    second = await client.get(url, headers=_headers())
+
+    assert first.status_code == second.status_code == 200
+    assert first.json() == second.json()
+    mock_gateway.get_option_expirations.assert_called_once_with("SPY")
+    keys = _endpoint_keys(mock_redis_storage, "market:ep:options:expirations:")
+    assert len(keys) == 1
+
+
 # --------------------------------------------------------------------------- #
 # AC4: structured 404 / generic 502-503 with no provider names.
 # --------------------------------------------------------------------------- #
@@ -446,6 +496,24 @@ async def test_unknown_underlying_options_is_negative_cached(
     mock_gateway.get_options_chain.assert_called_once()
 
     keys = _endpoint_keys(mock_redis_storage, "market:ep:options:chain:")
+    assert len(keys) == 1
+
+
+@pytest.mark.anyio
+async def test_unknown_underlying_option_expirations_is_negative_cached(
+    client: AsyncClient, mock_gateway: MagicMock, mock_redis_storage: FakeRedis
+) -> None:
+    mock_gateway.get_option_expirations.side_effect = MarketDataNotFoundError("ZZZZ")
+    url = "/api/v1/market/data/options/ZZZZ/expirations"
+
+    first = await client.get(url, headers=_headers())
+    second = await client.get(url, headers=_headers())
+
+    assert first.status_code == second.status_code == 404
+    assert first.json()["detail"] == second.json()["detail"]
+    mock_gateway.get_option_expirations.assert_called_once_with("ZZZZ")
+
+    keys = _endpoint_keys(mock_redis_storage, "market:ep:options:expirations:")
     assert len(keys) == 1
 
 
@@ -603,6 +671,7 @@ async def test_provider_failure_is_generic(
         f"{_PRICES_URL}{_PRICES_QUERY}",
         f"{_SEARCH_URL}?q=apple",
         _OPTIONS_URL,
+        _OPTIONS_EXPIRATIONS_URL,
         _FUNDAMENTALS_URL,
         f"{_STATEMENTS_URL}?statement=income",
     ],
@@ -616,6 +685,7 @@ async def test_missing_token_returns_401(
     mock_gateway.get_prices.assert_not_called()
     mock_gateway.lookup_symbol.assert_not_called()
     mock_gateway.get_options_chain.assert_not_called()
+    mock_gateway.get_option_expirations.assert_not_called()
     mock_gateway.get_company_profile.assert_not_called()
     mock_gateway.get_key_metrics.assert_not_called()
     mock_gateway.get_financial_ratios.assert_not_called()
