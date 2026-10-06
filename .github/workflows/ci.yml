@@ -97,6 +97,21 @@ jobs:
           cd services/indicator-service
           go vet ./...
 
+      - name: Format
+        run: |
+          cd services/indicator-service
+          unformatted=$(gofmt -l .)
+          if [ -n "$unformatted" ]; then
+            echo "Unformatted files:"
+            echo "$unformatted"
+          fi
+          test -z "$(gofmt -l .)"
+
+      - name: Staticcheck
+        run: |
+          cd services/indicator-service
+          go run honnef.co/go/tools/cmd/staticcheck@v0.8.1 ./...
+
       - name: Build
         run: |
           cd services/indicator-service
@@ -128,6 +143,21 @@ jobs:
         run: |
           cd services/mcp-gateway
           go vet ./...
+
+      - name: Format
+        run: |
+          cd services/mcp-gateway
+          unformatted=$(gofmt -l .)
+          if [ -n "$unformatted" ]; then
+            echo "Unformatted files:"
+            echo "$unformatted"
+          fi
+          test -z "$(gofmt -l .)"
+
+      - name: Staticcheck
+        run: |
+          cd services/mcp-gateway
+          go run honnef.co/go/tools/cmd/staticcheck@v0.8.1 ./...
 
       - name: Build
         run: |

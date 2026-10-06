@@ -27,9 +27,16 @@ test-mcp-gateway:
 [parallel]
 test-all: test-backend test-frontend test-indicator-service test-mcp-gateway
 
+# Go format and static analysis gate for indicator-service and mcp-gateway.
+lint-go:
+    @test -z "$(gofmt -l services/indicator-service services/mcp-gateway)" || (echo "Unformatted Go files:" && gofmt -l services/indicator-service services/mcp-gateway && exit 1)
+    @cd services/indicator-service && go run honnef.co/go/tools/cmd/staticcheck@v0.8.1 ./...
+    @cd services/mcp-gateway && go run honnef.co/go/tools/cmd/staticcheck@v0.8.1 ./...
+
 # Lint + type checks only (Gate 0) for auto-detected ecosystems.
 check:
     @./scripts/agent-test --gate0-only
+    @just lint-go
 
 # Start services with the host's real docker socket gid so in-container tests
 # can reach testcontainers (see docker-compose.yml group_add).

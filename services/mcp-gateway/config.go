@@ -121,4 +121,3 @@ func isDev(env string) bool {
 	}
 	return norm == "dev"
 }
-
