@@ -281,7 +281,7 @@ func TestBackendClientValidationMessage(t *testing.T) {
 func TestBackendClientDecodesRealBackendShapes(t *testing.T) {
 	// Fixtures mirror the exact JSON FastAPI emits for the Pydantic models in
 	// src/market/schema.py and src/market/api_types.py: snake_case keys, dates
-	// as YYYY-MM-DD strings, and Decimal values as JSON strings.
+	// as YYYY-MM-DD strings, and numeric values as JSON strings/numbers.
 	t.Run("prices", func(t *testing.T) {
 		srv, _ := newStubBackend(t, http.StatusOK, `{
 			"symbol": "AAPL",
@@ -339,24 +339,38 @@ func TestBackendClientDecodesRealBackendShapes(t *testing.T) {
 		if err != nil {
 			t.Fatalf("Fundamentals: %v", err)
 		}
-		var fundamentals CompanyFundamentals
+		var fundamentals map[string]json.RawMessage
 		if err := json.Unmarshal(raw, &fundamentals); err != nil {
 			t.Fatalf("unmarshal fundamentals: %v", err)
 		}
-		if fundamentals.Profile.CompanyName != "Apple Inc." {
-			t.Errorf("company_name = %q", fundamentals.Profile.CompanyName)
+		for _, key := range []string{"profile", "key_metrics", "ratios"} {
+			if _, ok := fundamentals[key]; !ok {
+				t.Errorf("missing section %q", key)
+			}
 		}
-		if fundamentals.Profile.MarketCap == nil ||
-			*fundamentals.Profile.MarketCap != Decimal("3400000000000") {
-			t.Errorf("market_cap = %v", fundamentals.Profile.MarketCap)
+		var profile map[string]json.RawMessage
+		if err := json.Unmarshal(fundamentals["profile"], &profile); err != nil {
+			t.Fatalf("unmarshal profile: %v", err)
 		}
-		if fundamentals.KeyMetrics.PERatio == nil ||
-			*fundamentals.KeyMetrics.PERatio != Decimal("36.28") {
-			t.Errorf("pe_ratio = %v", fundamentals.KeyMetrics.PERatio)
+		if string(profile["company_name"]) != `"Apple Inc."` {
+			t.Errorf("company_name = %s", profile["company_name"])
 		}
-		if fundamentals.Ratios.DebtToEquity == nil ||
-			*fundamentals.Ratios.DebtToEquity != Decimal("1.87") {
-			t.Errorf("debt_to_equity = %v", fundamentals.Ratios.DebtToEquity)
+		if string(profile["market_cap"]) != `"3400000000000"` {
+			t.Errorf("market_cap = %s", profile["market_cap"])
+		}
+		var metrics map[string]json.RawMessage
+		if err := json.Unmarshal(fundamentals["key_metrics"], &metrics); err != nil {
+			t.Fatalf("unmarshal key_metrics: %v", err)
+		}
+		if string(metrics["pe_ratio"]) != `"36.28"` {
+			t.Errorf("pe_ratio = %s", metrics["pe_ratio"])
+		}
+		var ratios map[string]json.RawMessage
+		if err := json.Unmarshal(fundamentals["ratios"], &ratios); err != nil {
+			t.Fatalf("unmarshal ratios: %v", err)
+		}
+		if string(ratios["debt_to_equity"]) != `"1.87"` {
+			t.Errorf("debt_to_equity = %s", ratios["debt_to_equity"])
 		}
 	})
 
@@ -427,12 +441,18 @@ func TestBackendClientDecodesRealBackendShapes(t *testing.T) {
 		if err != nil {
 			t.Fatalf("decodeStatementList failed on unknown field: %v", err)
 		}
-		incomeItems, ok := items.([]IncomeStatement)
-		if !ok || len(incomeItems) != 1 {
-			t.Fatalf("unexpected items: %+v", items)
+		if len(items) != 1 {
+			t.Fatalf("unexpected items count: %d", len(items))
 		}
-		if incomeItems[0].Revenue == nil || *incomeItems[0].Revenue != Decimal("391035000000") {
-			t.Errorf("revenue = %v", incomeItems[0].Revenue)
+		var item map[string]json.RawMessage
+		if err := json.Unmarshal(items[0], &item); err != nil {
+			t.Fatalf("unmarshal item: %v", err)
+		}
+		if string(item["revenue"]) != `"391035000000"` {
+			t.Errorf("revenue = %s", item["revenue"])
+		}
+		if string(item["extra_backend_field"]) != `"test"` {
+			t.Errorf("extra_backend_field = %s", item["extra_backend_field"])
 		}
 	})
 }

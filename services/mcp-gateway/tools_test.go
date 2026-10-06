@@ -4,10 +4,9 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"net/http/httptest"
-	"reflect"
-	"sort"
 	"strings"
 	"testing"
 
@@ -137,18 +136,12 @@ var validToolCalls = []toolCall{
 
 // statementPayload is the decoded shape of the statement tools' envelope.
 type statementPayload struct {
-	Statement string `json:"statement"`
-	Symbol    string `json:"symbol"`
-	Period    string `json:"period"`
-	Limit     int    `json:"limit"`
-	Exchange  string `json:"exchange"`
-	Items     []struct {
-		Date              string  `json:"date"`
-		Symbol            string  `json:"symbol"`
-		Revenue           Decimal `json:"revenue"`
-		TotalAssets       Decimal `json:"total_assets"`
-		OperatingCashFlow Decimal `json:"operating_cash_flow"`
-	} `json:"items"`
+	Statement string                       `json:"statement"`
+	Symbol    string                       `json:"symbol"`
+	Period    string                       `json:"period"`
+	Limit     int                          `json:"limit"`
+	Exchange  string                       `json:"exchange"`
+	Items     []map[string]json.RawMessage `json:"items"`
 }
 
 func TestToolsCallBackendAndReturnData(t *testing.T) {
@@ -174,13 +167,13 @@ func TestToolsCallBackendAndReturnData(t *testing.T) {
 				var got struct {
 					Symbol string `json:"symbol"`
 					Items  []struct {
-						Close Decimal `json:"close"`
+						Close string `json:"close"`
 					} `json:"items"`
 				}
 				if err := json.Unmarshal([]byte(raw), &got); err != nil {
 					t.Fatalf("decode PriceHistory: %v", err)
 				}
-				if got.Symbol != "AAPL" || len(got.Items) != 1 || got.Items[0].Close != Decimal("154") {
+				if got.Symbol != "AAPL" || len(got.Items) != 1 || got.Items[0].Close != "154" {
 					t.Errorf("payload = %+v", got)
 				}
 			},
@@ -193,17 +186,27 @@ func TestToolsCallBackendAndReturnData(t *testing.T) {
 			wantPath:  "/api/v1/market/data/fundamentals/AAPL",
 			wantQuery: map[string]string{"exchange": "nasdaq"},
 			assert: func(t *testing.T, raw string) {
-				var got CompanyFundamentals
+				var got struct {
+					Profile struct {
+						CompanyName string `json:"company_name"`
+					} `json:"profile"`
+					KeyMetrics struct {
+						PERatio *string `json:"pe_ratio"`
+					} `json:"key_metrics"`
+					Ratios struct {
+						DebtToEquity *string `json:"debt_to_equity"`
+					} `json:"ratios"`
+				}
 				if err := json.Unmarshal([]byte(raw), &got); err != nil {
 					t.Fatalf("decode CompanyFundamentals: %v", err)
 				}
 				if got.Profile.CompanyName != "Apple Inc." {
 					t.Errorf("company_name = %q", got.Profile.CompanyName)
 				}
-				if got.KeyMetrics.PERatio == nil || *got.KeyMetrics.PERatio != Decimal("36.28") {
+				if got.KeyMetrics.PERatio == nil || *got.KeyMetrics.PERatio != "36.28" {
 					t.Errorf("pe_ratio = %v", got.KeyMetrics.PERatio)
 				}
-				if got.Ratios.DebtToEquity == nil || *got.Ratios.DebtToEquity != Decimal("1.87") {
+				if got.Ratios.DebtToEquity == nil || *got.Ratios.DebtToEquity != "1.87" {
 					t.Errorf("debt_to_equity = %v", got.Ratios.DebtToEquity)
 				}
 			},
@@ -250,7 +253,7 @@ func TestToolsCallBackendAndReturnData(t *testing.T) {
 				if got.Statement != "income" || got.Symbol != "aapl" || got.Period != "quarter" || got.Limit != 3 {
 					t.Errorf("envelope = %+v", got)
 				}
-				if len(got.Items) != 1 || got.Items[0].Revenue != Decimal("391035000000") {
+				if len(got.Items) != 1 || string(got.Items[0]["revenue"]) != `"391035000000"` {
 					t.Errorf("items = %+v", got.Items)
 				}
 			},
@@ -272,7 +275,7 @@ func TestToolsCallBackendAndReturnData(t *testing.T) {
 				if got.Statement != "balance" || got.Period != "annual" || got.Limit != 5 {
 					t.Errorf("envelope = %+v", got)
 				}
-				if len(got.Items) != 1 || got.Items[0].TotalAssets != Decimal("364980000000") {
+				if len(got.Items) != 1 || string(got.Items[0]["total_assets"]) != `"364980000000"` {
 					t.Errorf("items = %+v", got.Items)
 				}
 			},
@@ -294,7 +297,7 @@ func TestToolsCallBackendAndReturnData(t *testing.T) {
 				if got.Statement != "cashflow" || got.Limit != 20 {
 					t.Errorf("envelope = %+v", got)
 				}
-				if len(got.Items) != 1 || got.Items[0].OperatingCashFlow != Decimal("118254000000") {
+				if len(got.Items) != 1 || string(got.Items[0]["operating_cash_flow"]) != `"118254000000"` {
 					t.Errorf("items = %+v", got.Items)
 				}
 			},
@@ -306,11 +309,13 @@ func TestToolsCallBackendAndReturnData(t *testing.T) {
 			body:     fundamentalsBody,
 			wantPath: "/api/v1/market/data/fundamentals/AAPL",
 			assert: func(t *testing.T, raw string) {
-				var got KeyMetrics
+				var got struct {
+					PERatio *string `json:"pe_ratio"`
+				}
 				if err := json.Unmarshal([]byte(raw), &got); err != nil {
 					t.Fatalf("decode KeyMetrics: %v", err)
 				}
-				if got.PERatio == nil || *got.PERatio != Decimal("36.28") {
+				if got.PERatio == nil || *got.PERatio != "36.28" {
 					t.Errorf("pe_ratio = %v", got.PERatio)
 				}
 			},
@@ -322,11 +327,13 @@ func TestToolsCallBackendAndReturnData(t *testing.T) {
 			body:     fundamentalsBody,
 			wantPath: "/api/v1/market/data/fundamentals/AAPL",
 			assert: func(t *testing.T, raw string) {
-				var got FinancialRatios
+				var got struct {
+					DebtToEquity *string `json:"debt_to_equity"`
+				}
 				if err := json.Unmarshal([]byte(raw), &got); err != nil {
 					t.Fatalf("decode FinancialRatios: %v", err)
 				}
-				if got.DebtToEquity == nil || *got.DebtToEquity != Decimal("1.87") {
+				if got.DebtToEquity == nil || *got.DebtToEquity != "1.87" {
 					t.Errorf("debt_to_equity = %v", got.DebtToEquity)
 				}
 			},
@@ -338,7 +345,9 @@ func TestToolsCallBackendAndReturnData(t *testing.T) {
 			body:     fundamentalsBody,
 			wantPath: "/api/v1/market/data/fundamentals/AAPL",
 			assert: func(t *testing.T, raw string) {
-				var got CompanyProfile
+				var got struct {
+					CompanyName string `json:"company_name"`
+				}
 				if err := json.Unmarshal([]byte(raw), &got); err != nil {
 					t.Fatalf("decode CompanyProfile: %v", err)
 				}
@@ -414,6 +423,14 @@ func TestFundamentalsProjectionsWithNullSections(t *testing.T) {
 			"key_metrics": null,
 			"ratios": null
 		}`
+		absentRatiosBody = `{
+			"profile": {"symbol": "AAPL", "company_name": "Apple Inc."},
+			"key_metrics": {"symbol": "AAPL", "date": "2024-09-28", "pe_ratio": "36.28"}
+		}`
+		absentKeyMetricsBody = `{
+			"profile": {"symbol": "AAPL", "company_name": "Apple Inc."},
+			"ratios": {"symbol": "AAPL", "date": "2024-09-28", "debt_to_equity": "1.87"}
+		}`
 	)
 
 	tests := []struct {
@@ -435,7 +452,9 @@ func TestFundamentalsProjectionsWithNullSections(t *testing.T) {
 			tool: "get_company_details",
 			body: nullRatiosBody,
 			assertData: func(t *testing.T, raw string) {
-				var got CompanyProfile
+				var got struct {
+					CompanyName string `json:"company_name"`
+				}
 				if err := json.Unmarshal([]byte(raw), &got); err != nil {
 					t.Fatalf("decode CompanyProfile: %v", err)
 				}
@@ -449,11 +468,13 @@ func TestFundamentalsProjectionsWithNullSections(t *testing.T) {
 			tool: "get_key_metrics",
 			body: nullRatiosBody,
 			assertData: func(t *testing.T, raw string) {
-				var got KeyMetrics
+				var got struct {
+					PERatio *string `json:"pe_ratio"`
+				}
 				if err := json.Unmarshal([]byte(raw), &got); err != nil {
 					t.Fatalf("decode KeyMetrics: %v", err)
 				}
-				if got.PERatio == nil || *got.PERatio != Decimal("36.28") {
+				if got.PERatio == nil || *got.PERatio != "36.28" {
 					t.Errorf("pe_ratio = %v, want 36.28", got.PERatio)
 				}
 			},
@@ -470,7 +491,9 @@ func TestFundamentalsProjectionsWithNullSections(t *testing.T) {
 			tool: "get_company_details",
 			body: nullKeyMetricsBody,
 			assertData: func(t *testing.T, raw string) {
-				var got CompanyProfile
+				var got struct {
+					CompanyName string `json:"company_name"`
+				}
 				if err := json.Unmarshal([]byte(raw), &got); err != nil {
 					t.Fatalf("decode CompanyProfile: %v", err)
 				}
@@ -484,11 +507,13 @@ func TestFundamentalsProjectionsWithNullSections(t *testing.T) {
 			tool: "get_financial_ratios",
 			body: nullKeyMetricsBody,
 			assertData: func(t *testing.T, raw string) {
-				var got FinancialRatios
+				var got struct {
+					DebtToEquity *string `json:"debt_to_equity"`
+				}
 				if err := json.Unmarshal([]byte(raw), &got); err != nil {
 					t.Fatalf("decode FinancialRatios: %v", err)
 				}
-				if got.DebtToEquity == nil || *got.DebtToEquity != Decimal("1.87") {
+				if got.DebtToEquity == nil || *got.DebtToEquity != "1.87" {
 					t.Errorf("debt_to_equity = %v, want 1.87", got.DebtToEquity)
 				}
 			},
@@ -511,7 +536,9 @@ func TestFundamentalsProjectionsWithNullSections(t *testing.T) {
 			tool: "get_company_details",
 			body: nullBothBody,
 			assertData: func(t *testing.T, raw string) {
-				var got CompanyProfile
+				var got struct {
+					CompanyName string `json:"company_name"`
+				}
 				if err := json.Unmarshal([]byte(raw), &got); err != nil {
 					t.Fatalf("decode CompanyProfile: %v", err)
 				}
@@ -519,6 +546,19 @@ func TestFundamentalsProjectionsWithNullSections(t *testing.T) {
 					t.Errorf("company_name = %q, want Apple Inc.", got.CompanyName)
 				}
 			},
+		},
+		// absent sections return no-data
+		{
+			name:       "absent ratios: get_financial_ratios returns no-data",
+			tool:       "get_financial_ratios",
+			body:       absentRatiosBody,
+			wantNoData: true,
+		},
+		{
+			name:       "absent key_metrics: get_key_metrics returns no-data",
+			tool:       "get_key_metrics",
+			body:       absentKeyMetricsBody,
+			wantNoData: true,
 		},
 	}
 
@@ -596,15 +636,189 @@ func TestToolsMapBackendErrors(t *testing.T) {
 func TestStatementToolDecodeFailureIsProviderError(t *testing.T) {
 	// A payload missing required header fields served on the statement path
 	// cannot be decoded: it is surfaced as a generic tool error, never "no data".
-	backend, _ := newStubBackend(t, http.StatusOK, `[{"revenue":"1"}]`)
-	session := newTestSession(t, backend.URL)
-
-	result := callTool(t, session, "get_income_statement", map[string]any{"symbol": "AAPL"})
-	if !result.IsError {
-		t.Fatalf("expected an error result, got %q", resultText(t, result))
+	cases := []struct {
+		name string
+		body string
+	}{
+		{"missing date and symbol", `[{"revenue":"1"}]`},
+		{"null date", `[{"date": null, "symbol": "AAPL"}]`},
+		{"empty date", `[{"date": "", "symbol": "AAPL"}]`},
+		{"whitespace date", `[{"date": "   ", "symbol": "AAPL"}]`},
+		{"missing symbol", `[{"date": "2024-09-28"}]`},
+		{"null symbol", `[{"date": "2024-09-28", "symbol": null}]`},
+		{"empty symbol", `[{"date": "2024-09-28", "symbol": ""}]`},
 	}
-	if got := resultText(t, result); got != "tool call failed" {
-		t.Errorf("result text = %q, want %q", got, "tool call failed")
+
+	statementTools := []string{
+		"get_income_statement",
+		"get_balance_sheet",
+		"get_cash_flow_statement",
+	}
+
+	for _, tc := range cases {
+		for _, tool := range statementTools {
+			t.Run(fmt.Sprintf("%s/%s", tool, tc.name), func(t *testing.T) {
+				backend, _ := newStubBackend(t, http.StatusOK, tc.body)
+				session := newTestSession(t, backend.URL)
+
+				result := callTool(t, session, tool, map[string]any{"symbol": "AAPL"})
+				if !result.IsError {
+					t.Fatalf("expected an error result, got %q", resultText(t, result))
+				}
+				if got := resultText(t, result); got != "tool call failed" {
+					t.Errorf("result text = %q, want %q", got, "tool call failed")
+				}
+			})
+		}
+	}
+}
+
+func TestFundamentalsMissingProfileIsProviderError(t *testing.T) {
+	// A fundamentals payload with missing or null profile yields a provider error.
+	cases := []struct {
+		name string
+		body string
+	}{
+		{
+			name: "profile is null",
+			body: `{"profile": null, "key_metrics": {"symbol":"AAPL"}, "ratios": {"symbol":"AAPL"}}`,
+		},
+		{
+			name: "profile is missing",
+			body: `{"key_metrics": {"symbol":"AAPL"}, "ratios": {"symbol":"AAPL"}}`,
+		},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			backend, _ := newStubBackend(t, http.StatusOK, tc.body)
+			session := newTestSession(t, backend.URL)
+
+			result := callTool(t, session, "get_company_details", map[string]any{"symbol": "AAPL"})
+			if !result.IsError {
+				t.Fatalf("expected an error result, got %q", resultText(t, result))
+			}
+			if got := resultText(t, result); got != ErrProvider.Error() {
+				t.Errorf("result text = %q, want %q", got, ErrProvider.Error())
+			}
+		})
+	}
+}
+
+func TestStatementToolsPreserveExtraFields(t *testing.T) {
+	// A backend statement item carrying an extra field appears unchanged in
+	// items. Numbers (including Decimal strings like "123.4500") pass through byte-for-byte.
+	const body = `[{
+		"date": "2024-09-28",
+		"symbol": "AAPL",
+		"revenue": "391035000000",
+		"new_line_item": "1",
+		"decimal_str": "123.4500",
+		"int_val": 42
+	}]`
+	tests := []struct {
+		name string
+		tool string
+	}{
+		{"get_income_statement", "get_income_statement"},
+		{"get_balance_sheet", "get_balance_sheet"},
+		{"get_cash_flow_statement", "get_cash_flow_statement"},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			backend, _ := newStubBackend(t, http.StatusOK, body)
+			session := newTestSession(t, backend.URL)
+
+			result := callTool(t, session, tt.tool, map[string]any{"symbol": "AAPL"})
+			if result.IsError {
+				t.Fatalf("unexpected error: %s", resultText(t, result))
+			}
+
+			var envelope struct {
+				Statement string                       `json:"statement"`
+				Symbol    string                       `json:"symbol"`
+				Items     []map[string]json.RawMessage `json:"items"`
+			}
+			if err := json.Unmarshal([]byte(resultText(t, result)), &envelope); err != nil {
+				t.Fatalf("decode envelope: %v", err)
+			}
+			if len(envelope.Items) != 1 {
+				t.Fatalf("items len = %d, want 1", len(envelope.Items))
+			}
+			item := envelope.Items[0]
+			if string(item["new_line_item"]) != `"1"` {
+				t.Errorf("new_line_item = %s, want %q", item["new_line_item"], `"1"`)
+			}
+			if string(item["decimal_str"]) != `"123.4500"` {
+				t.Errorf("decimal_str = %s, want %q", item["decimal_str"], `"123.4500"`)
+			}
+			if string(item["int_val"]) != "42" {
+				t.Errorf("int_val = %s, want 42", item["int_val"])
+			}
+			if string(item["date"]) != `"2024-09-28"` || string(item["symbol"]) != `"AAPL"` {
+				t.Errorf("header fields corrupted: date=%s, symbol=%s", item["date"], item["symbol"])
+			}
+		})
+	}
+}
+
+func TestFundamentalsProjectionsPreserveExtraFields(t *testing.T) {
+	// A fundamentals payload with an extra field in profile, key_metrics or
+	// ratios appears unchanged in the projection tool output.
+	const body = `{
+		"profile": {
+			"symbol": "AAPL",
+			"company_name": "Apple Inc.",
+			"extra_profile_field": "custom_profile",
+			"decimal_str": "123.4500"
+		},
+		"key_metrics": {
+			"symbol": "AAPL",
+			"date": "2024-09-28",
+			"extra_metric_field": "custom_metric",
+			"decimal_str": "123.4500"
+		},
+		"ratios": {
+			"symbol": "AAPL",
+			"date": "2024-09-28",
+			"extra_ratio_field": "custom_ratio",
+			"decimal_str": "123.4500"
+		}
+	}`
+
+	tests := []struct {
+		name     string
+		tool     string
+		extraKey string
+		extraVal string
+	}{
+		{"get_company_details", "get_company_details", "extra_profile_field", `"custom_profile"`},
+		{"get_key_metrics", "get_key_metrics", "extra_metric_field", `"custom_metric"`},
+		{"get_financial_ratios", "get_financial_ratios", "extra_ratio_field", `"custom_ratio"`},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			backend, _ := newStubBackend(t, http.StatusOK, body)
+			session := newTestSession(t, backend.URL)
+
+			result := callTool(t, session, tt.tool, map[string]any{"symbol": "AAPL"})
+			if result.IsError {
+				t.Fatalf("unexpected error: %s", resultText(t, result))
+			}
+
+			var section map[string]json.RawMessage
+			if err := json.Unmarshal([]byte(resultText(t, result)), &section); err != nil {
+				t.Fatalf("decode section: %v", err)
+			}
+			if string(section[tt.extraKey]) != tt.extraVal {
+				t.Errorf("%s = %s, want %s", tt.extraKey, section[tt.extraKey], tt.extraVal)
+			}
+			if string(section["decimal_str"]) != `"123.4500"` {
+				t.Errorf("decimal_str = %s, want %q", section["decimal_str"], `"123.4500"`)
+			}
+		})
 	}
 }
 
@@ -792,55 +1006,66 @@ const (
 	}]`
 )
 
-func TestDecodeStatementListFieldSetContract(t *testing.T) {
-	t.Run("fixtures match the struct JSON field sets", func(t *testing.T) {
-		checks := []struct {
+func TestDecodeStatementListPreservesFields(t *testing.T) {
+	t.Run("statement fixtures decode to raw messages", func(t *testing.T) {
+		for _, stmt := range []struct {
+			name    string
 			fixture string
-			typ     reflect.Type
 		}{
-			{incomeStatementFixture, reflect.TypeFor[IncomeStatement]()},
-			{balanceSheetFixture, reflect.TypeFor[BalanceSheet]()},
-			{cashFlowStatementFixture, reflect.TypeFor[CashFlowStatement]()},
-		}
-		for _, check := range checks {
-			got := fixtureKeys(t, check.fixture)
-			want := structJSONFields(check.typ)
-			if !reflect.DeepEqual(got, want) {
-				t.Errorf("%s fixture keys = %v, want %v", check.typ, got, want)
+			{statementIncome, incomeStatementFixture},
+			{statementBalance, balanceSheetFixture},
+			{statementCashflow, cashFlowStatementFixture},
+		} {
+			items, err := decodeStatementList([]byte(stmt.fixture), stmt.name)
+			if err != nil {
+				t.Fatalf("decodeStatementList(%s): %v", stmt.name, err)
+			}
+			if len(items) != 1 {
+				t.Fatalf("decodeStatementList(%s) len = %d, want 1", stmt.name, len(items))
 			}
 		}
 	})
 
-	t.Run("decodes to the statement-specific type", func(t *testing.T) {
-		if _, ok := mustDecodeStatements(t, incomeStatementFixture, statementIncome).([]IncomeStatement); !ok {
-			t.Error("income fixture did not decode to []IncomeStatement")
-		}
-		if _, ok := mustDecodeStatements(t, balanceSheetFixture, statementBalance).([]BalanceSheet); !ok {
-			t.Error("balance fixture did not decode to []BalanceSheet")
-		}
-		if _, ok := mustDecodeStatements(t, cashFlowStatementFixture, statementCashflow).([]CashFlowStatement); !ok {
-			t.Error("cashflow fixture did not decode to []CashFlowStatement")
-		}
-	})
-
-	t.Run("tolerates unknown fields", func(t *testing.T) {
+	t.Run("tolerates and preserves unknown fields", func(t *testing.T) {
 		raw := `[{"date": "2024-09-28", "symbol": "AAPL", "custom_line_item": "100"}]`
 		items, err := decodeStatementList([]byte(raw), statementIncome)
 		if err != nil {
 			t.Fatalf("decodeStatementList failed on unknown field: %v", err)
 		}
-		incomeItems, ok := items.([]IncomeStatement)
-		if !ok || len(incomeItems) != 1 {
-			t.Fatalf("unexpected items: %+v", items)
+		if len(items) != 1 {
+			t.Fatalf("unexpected items count: %d", len(items))
 		}
-		if incomeItems[0].Date != "2024-09-28" || incomeItems[0].Symbol != "AAPL" {
-			t.Errorf("decoded item = %+v", incomeItems[0])
+		var item map[string]json.RawMessage
+		if err := json.Unmarshal(items[0], &item); err != nil {
+			t.Fatalf("unmarshal item: %v", err)
+		}
+		if string(item["date"]) != `"2024-09-28"` || string(item["symbol"]) != `"AAPL"` {
+			t.Errorf("header fields corrupted: %+v", item)
+		}
+		if string(item["custom_line_item"]) != `"100"` {
+			t.Errorf("custom_line_item = %s, want %q", item["custom_line_item"], `"100"`)
 		}
 	})
 
 	t.Run("missing header fields fails", func(t *testing.T) {
-		if _, err := decodeStatementList([]byte(`[{"revenue":"1"}]`), statementIncome); err == nil {
-			t.Error("item missing date/symbol decoded, want error")
+		cases := []struct {
+			name string
+			raw  string
+		}{
+			{"missing headers", `[{"revenue":"1"}]`},
+			{"missing symbol", `[{"date":"2024-09-28"}]`},
+			{"missing date", `[{"symbol":"AAPL"}]`},
+			{"null date", `[{"date":null,"symbol":"AAPL"}]`},
+			{"empty date", `[{"date":"","symbol":"AAPL"}]`},
+			{"null symbol", `[{"date":"2024-09-28","symbol":null}]`},
+			{"empty symbol", `[{"date":"2024-09-28","symbol":""}]`},
+		}
+		for _, tc := range cases {
+			t.Run(tc.name, func(t *testing.T) {
+				if _, err := decodeStatementList([]byte(tc.raw), statementIncome); err == nil {
+					t.Errorf("raw %s decoded, want error", tc.raw)
+				}
+			})
 		}
 	})
 
@@ -849,48 +1074,6 @@ func TestDecodeStatementListFieldSetContract(t *testing.T) {
 			t.Error("unknown statement decoded, want error")
 		}
 	})
-}
-
-func mustDecodeStatements(t *testing.T, raw, statement string) any {
-	t.Helper()
-	items, err := decodeStatementList([]byte(raw), statement)
-	if err != nil {
-		t.Fatalf("decodeStatementList(%s): %v", statement, err)
-	}
-	return items
-}
-
-// fixtureKeys returns the sorted top-level keys of the first element of a JSON
-// array fixture.
-func fixtureKeys(t *testing.T, fixture string) []string {
-	t.Helper()
-	var items []map[string]json.RawMessage
-	if err := json.Unmarshal([]byte(fixture), &items); err != nil {
-		t.Fatalf("fixture is not a JSON array: %v", err)
-	}
-	if len(items) == 0 {
-		t.Fatal("fixture is empty")
-	}
-	keys := make([]string, 0, len(items[0]))
-	for key := range items[0] {
-		keys = append(keys, key)
-	}
-	sort.Strings(keys)
-	return keys
-}
-
-// structJSONFields returns the sorted JSON names declared on a struct type.
-func structJSONFields(typ reflect.Type) []string {
-	fields := make([]string, 0, typ.NumField())
-	for i := 0; i < typ.NumField(); i++ {
-		name := strings.Split(typ.Field(i).Tag.Get("json"), ",")[0]
-		if name == "" || name == "-" {
-			continue
-		}
-		fields = append(fields, name)
-	}
-	sort.Strings(fields)
-	return fields
 }
 
 func newTestSessionWithEnv(t *testing.T, backendURL, env string) *mcp.ClientSession {
