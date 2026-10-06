@@ -37,6 +37,10 @@ const (
 	maxSymbolLength       = 32
 	minQueryLength        = 1
 	maxQueryLength        = 100
+
+	sectionProfile    = "profile"
+	sectionKeyMetrics = "key_metrics"
+	sectionRatios     = "ratios"
 )
 
 // noDataMessage is the successful result text used when the backend reports
@@ -58,7 +62,11 @@ func registerTools(server *mcp.Server, client *BackendClient, cfg Config) {
 		"Analysis-ready fundamentals for a symbol: company profile, key metrics and financial ratios in one payload (metrics and ratios may be null if unavailable).",
 		func(ctx context.Context, _ *mcp.CallToolRequest, in fundamentalsInput) (*mcp.CallToolResult, any, error) {
 			return runTool(ctx, "get_fundamentals", cfg, in, fundamentalsInput.prepare, func(ctx context.Context, r fundamentalsRequest) (any, error) {
-				return client.Fundamentals(ctx, r.symbol, r.exchange)
+				raw, err := client.Fundamentals(ctx, r.symbol, r.exchange)
+				if err != nil {
+					return nil, err
+				}
+				return filterFundamentalsSections(raw, r.sections)
 			})
 		})
 
@@ -70,51 +78,26 @@ func registerTools(server *mcp.Server, client *BackendClient, cfg Config) {
 			})
 		})
 
-	addTool(server, "get_income_statement",
-		"Income statements for a symbol, optionally filtered by reporting period and limited to the most recent periods.",
-		statementHandler(client, "get_income_statement", statementIncome, cfg))
-
-	addTool(server, "get_balance_sheet",
-		"Balance sheets for a symbol, optionally filtered by reporting period and limited to the most recent periods.",
-		statementHandler(client, "get_balance_sheet", statementBalance, cfg))
-
-	addTool(server, "get_cash_flow_statement",
-		"Cash-flow statements for a symbol, optionally filtered by reporting period and limited to the most recent periods.",
-		statementHandler(client, "get_cash_flow_statement", statementCashflow, cfg))
-
-	addTool(server, "get_key_metrics",
-		"Key valuation metrics for a symbol: market cap, multiples, yields and leverage ratios.",
-		func(ctx context.Context, _ *mcp.CallToolRequest, in fundamentalsInput) (*mcp.CallToolResult, any, error) {
-			return runTool(ctx, "get_key_metrics", cfg, in, fundamentalsInput.prepare, func(ctx context.Context, r fundamentalsRequest) (any, error) {
-				raw, err := client.Fundamentals(ctx, r.symbol, r.exchange)
+	addTool(server, "get_financial_statements",
+		"Financial statements (income statement, balance sheet, cash flow) for a symbol, optionally filtered by reporting period and limited to the most recent periods.",
+		func(ctx context.Context, _ *mcp.CallToolRequest, in financialStatementsInput) (*mcp.CallToolResult, any, error) {
+			return runTool(ctx, "get_financial_statements", cfg, in, financialStatementsInput.prepare, func(ctx context.Context, r financialStatementsRequest) (any, error) {
+				raw, err := client.Statements(ctx, r.symbol, r.statement, r.period, r.limit, r.exchange)
 				if err != nil {
 					return nil, err
 				}
-				return fundamentalsSection(raw, "key_metrics", false)
-			})
-		})
-
-	addTool(server, "get_financial_ratios",
-		"Financial ratios for a symbol: margins, returns, liquidity and leverage.",
-		func(ctx context.Context, _ *mcp.CallToolRequest, in fundamentalsInput) (*mcp.CallToolResult, any, error) {
-			return runTool(ctx, "get_financial_ratios", cfg, in, fundamentalsInput.prepare, func(ctx context.Context, r fundamentalsRequest) (any, error) {
-				raw, err := client.Fundamentals(ctx, r.symbol, r.exchange)
+				items, err := decodeStatementList(raw, r.statement)
 				if err != nil {
 					return nil, err
 				}
-				return fundamentalsSection(raw, "ratios", false)
-			})
-		})
-
-	addTool(server, "get_company_details",
-		"Company profile details for a symbol: name, sector, industry, employees and identifiers.",
-		func(ctx context.Context, _ *mcp.CallToolRequest, in fundamentalsInput) (*mcp.CallToolResult, any, error) {
-			return runTool(ctx, "get_company_details", cfg, in, fundamentalsInput.prepare, func(ctx context.Context, r fundamentalsRequest) (any, error) {
-				raw, err := client.Fundamentals(ctx, r.symbol, r.exchange)
-				if err != nil {
-					return nil, err
-				}
-				return fundamentalsSection(raw, "profile", true)
+				return statementEnvelope{
+					Statement: r.statement,
+					Symbol:    r.symbol,
+					Period:    r.period,
+					Limit:     r.limit,
+					Exchange:  r.exchange,
+					Items:     items,
+				}, nil
 			})
 		})
 
@@ -138,47 +121,32 @@ func addTool[In any](
 	mcp.AddTool(server, &mcp.Tool{Name: name, Description: description}, handler)
 }
 
-// fundamentalsSection extracts key from a raw fundamentals payload. When
-// required is true, an absent or null section returns an ErrProvider failure;
-// when false, it returns an ErrNoData failure.
-func fundamentalsSection(raw json.RawMessage, key string, required bool) (json.RawMessage, error) {
+// filterFundamentalsSections filters the raw fundamentals JSON aggregate to
+// only the requested sections. If every requested section is null or absent,
+// it returns ErrNoData.
+func filterFundamentalsSections(raw json.RawMessage, requestedSections []string) (map[string]json.RawMessage, error) {
 	var sections map[string]json.RawMessage
 	if err := json.Unmarshal(raw, &sections); err != nil {
 		return nil, &backendError{class: ErrProvider, detail: err.Error()}
 	}
-	section, ok := sections[key]
-	if !ok || len(section) == 0 || bytes.Equal(bytes.TrimSpace(section), []byte("null")) {
-		if required {
-			return nil, &backendError{class: ErrProvider, detail: fmt.Sprintf("missing required fundamentals section %q", key)}
+
+	out := make(map[string]json.RawMessage, len(requestedSections))
+	allNullOrAbsent := true
+
+	for _, key := range requestedSections {
+		val, ok := sections[key]
+		if !ok || len(val) == 0 || bytes.Equal(bytes.TrimSpace(val), []byte("null")) {
+			out[key] = json.RawMessage("null")
+		} else {
+			out[key] = val
+			allNullOrAbsent = false
 		}
+	}
+
+	if allNullOrAbsent {
 		return nil, &backendError{class: ErrNoData}
 	}
-	return section, nil
-}
-
-// statementHandler builds the handler for one statement tool. statement is
-// fixed by the tool; it is never an input.
-func statementHandler(client *BackendClient, toolName, statement string, cfg Config) mcp.ToolHandlerFor[statementInput, any] {
-	return func(ctx context.Context, _ *mcp.CallToolRequest, in statementInput) (*mcp.CallToolResult, any, error) {
-		return runTool(ctx, toolName, cfg, in, statementInput.prepare, func(ctx context.Context, r statementRequest) (any, error) {
-			raw, err := client.Statements(ctx, r.symbol, statement, r.period, r.limit, r.exchange)
-			if err != nil {
-				return nil, err
-			}
-			items, err := decodeStatementList(raw, statement)
-			if err != nil {
-				return nil, err
-			}
-			return statementEnvelope{
-				Statement: statement,
-				Symbol:    r.symbol,
-				Period:    r.period,
-				Limit:     r.limit,
-				Exchange:  r.exchange,
-				Items:     items,
-			}, nil
-		})
-	}
+	return out, nil
 }
 
 // runTool is the shared handler pipeline: it validates and normalizes the typed
@@ -375,12 +343,14 @@ func (in priceHistoryInput) prepare() (priceHistoryRequest, error) {
 }
 
 type fundamentalsInput struct {
-	Symbol   string `json:"symbol" jsonschema:"Ticker symbol of the security."`
-	Exchange string `json:"exchange,omitempty" jsonschema:"Optional exchange filter."`
+	Symbol   string   `json:"symbol" jsonschema:"Ticker symbol of the security."`
+	Sections []string `json:"sections,omitempty" jsonschema:"Optional sections to include: 'profile', 'key_metrics', 'ratios' (default all)."`
+	Exchange string   `json:"exchange,omitempty" jsonschema:"Optional exchange filter."`
 }
 
 type fundamentalsRequest struct {
 	symbol   string
+	sections []string
 	exchange string
 }
 
@@ -389,7 +359,11 @@ func (in fundamentalsInput) prepare() (fundamentalsRequest, error) {
 	if err != nil {
 		return fundamentalsRequest{}, err
 	}
-	return fundamentalsRequest{symbol: symbol, exchange: in.Exchange}, nil
+	sections, err := validateFundamentalsSections(in.Sections)
+	if err != nil {
+		return fundamentalsRequest{}, err
+	}
+	return fundamentalsRequest{symbol: symbol, sections: sections, exchange: in.Exchange}, nil
 }
 
 type optionsChainInput struct {
@@ -437,34 +411,41 @@ func (in optionsChainInput) prepare() (optionsChainRequest, error) {
 	}, nil
 }
 
-type statementInput struct {
-	Symbol   string `json:"symbol" jsonschema:"Ticker symbol of the security."`
-	Period   string `json:"period,omitempty" jsonschema:"Optional reporting period: 'annual' (default) or 'quarter'."`
-	Limit    int    `json:"limit,omitempty" jsonschema:"Optional maximum number of periods to return (1-20, default 5)."`
-	Exchange string `json:"exchange,omitempty" jsonschema:"Optional exchange filter."`
+type financialStatementsInput struct {
+	Symbol    string `json:"symbol" jsonschema:"Ticker symbol of the security."`
+	Statement string `json:"statement" jsonschema:"Statement type: 'income', 'balance', or 'cashflow'."`
+	Period    string `json:"period,omitempty" jsonschema:"Optional reporting period: 'annual' (default) or 'quarter'."`
+	Limit     int    `json:"limit,omitempty" jsonschema:"Optional maximum number of periods to return (1-20, default 5)."`
+	Exchange  string `json:"exchange,omitempty" jsonschema:"Optional exchange filter."`
 }
 
-type statementRequest struct {
-	symbol   string
-	period   string
-	limit    int
-	exchange string
+type financialStatementsRequest struct {
+	symbol    string
+	statement string
+	period    string
+	limit     int
+	exchange  string
 }
 
-func (in statementInput) prepare() (statementRequest, error) {
+func (in financialStatementsInput) prepare() (financialStatementsRequest, error) {
 	symbol, err := requireSymbol(in.Symbol)
 	if err != nil {
-		return statementRequest{}, err
+		return financialStatementsRequest{}, err
+	}
+	statement, err := validateStatementType(in.Statement)
+	if err != nil {
+		return financialStatementsRequest{}, err
 	}
 	period, err := normalizePeriod(in.Period)
 	if err != nil {
-		return statementRequest{}, err
+		return financialStatementsRequest{}, err
 	}
-	return statementRequest{
-		symbol:   symbol,
-		period:   period,
-		limit:    clampLimit(in.Limit),
-		exchange: in.Exchange,
+	return financialStatementsRequest{
+		symbol:    symbol,
+		statement: statement,
+		period:    period,
+		limit:     clampLimit(in.Limit),
+		exchange:  in.Exchange,
 	}, nil
 }
 
@@ -568,4 +549,45 @@ func validateSearchQuery(v string) (string, error) {
 		return "", fmt.Errorf("q must be between %d and %d characters", minQueryLength, maxQueryLength)
 	}
 	return query, nil
+}
+
+// validateFundamentalsSections validates that each requested section name is
+// one of 'profile', 'key_metrics', or 'ratios', removes duplicates, and defaults
+// to all three sections when none are specified.
+func validateFundamentalsSections(sections []string) ([]string, error) {
+	if len(sections) == 0 {
+		return []string{sectionProfile, sectionKeyMetrics, sectionRatios}, nil
+	}
+	valid := map[string]bool{
+		sectionProfile:    true,
+		sectionKeyMetrics: true,
+		sectionRatios:     true,
+	}
+	seen := make(map[string]bool)
+	var result []string
+	for _, raw := range sections {
+		s := strings.ToLower(strings.TrimSpace(raw))
+		if !valid[s] {
+			return nil, fmt.Errorf("unknown section %q: valid sections are 'profile', 'key_metrics', 'ratios'", raw)
+		}
+		if !seen[s] {
+			seen[s] = true
+			result = append(result, s)
+		}
+	}
+	return result, nil
+}
+
+// validateStatementType validates that statement is one of 'income', 'balance', or 'cashflow'.
+func validateStatementType(v string) (string, error) {
+	switch strings.ToLower(strings.TrimSpace(v)) {
+	case statementIncome:
+		return statementIncome, nil
+	case statementBalance:
+		return statementBalance, nil
+	case statementCashflow:
+		return statementCashflow, nil
+	default:
+		return "", errors.New("statement must be 'income', 'balance', or 'cashflow'")
+	}
 }

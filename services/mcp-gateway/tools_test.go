@@ -19,12 +19,7 @@ var expectedToolNames = []string{
 	"get_price_history",
 	"get_fundamentals",
 	"get_options_chain",
-	"get_income_statement",
-	"get_balance_sheet",
-	"get_cash_flow_statement",
-	"get_key_metrics",
-	"get_financial_ratios",
-	"get_company_details",
+	"get_financial_statements",
 	"search_symbols",
 }
 
@@ -125,12 +120,7 @@ var validToolCalls = []toolCall{
 	{"get_price_history", map[string]any{"symbol": "AAPL", "from": "2026-01-01", "to": "2026-01-31"}},
 	{"get_fundamentals", map[string]any{"symbol": "AAPL"}},
 	{"get_options_chain", map[string]any{"symbol": "AAPL"}},
-	{"get_income_statement", map[string]any{"symbol": "AAPL"}},
-	{"get_balance_sheet", map[string]any{"symbol": "AAPL"}},
-	{"get_cash_flow_statement", map[string]any{"symbol": "AAPL"}},
-	{"get_key_metrics", map[string]any{"symbol": "AAPL"}},
-	{"get_financial_ratios", map[string]any{"symbol": "AAPL"}},
-	{"get_company_details", map[string]any{"symbol": "AAPL"}},
+	{"get_financial_statements", map[string]any{"symbol": "AAPL", "statement": "income"}},
 	{"search_symbols", map[string]any{"q": "apple"}},
 }
 
@@ -237,9 +227,9 @@ func TestToolsCallBackendAndReturnData(t *testing.T) {
 			},
 		},
 		{
-			name:     "get_income_statement",
-			tool:     "get_income_statement",
-			args:     map[string]any{"symbol": "aapl", "period": "quarter", "limit": 3, "exchange": "nasdaq"},
+			name:     "get_financial_statements income",
+			tool:     "get_financial_statements",
+			args:     map[string]any{"symbol": "aapl", "statement": "income", "period": "quarter", "limit": 3, "exchange": "nasdaq"},
 			body:     incomeStatementBody,
 			wantPath: "/api/v1/market/data/fundamentals/AAPL/statements",
 			wantQuery: map[string]string{
@@ -259,9 +249,9 @@ func TestToolsCallBackendAndReturnData(t *testing.T) {
 			},
 		},
 		{
-			name:     "get_balance_sheet defaults",
-			tool:     "get_balance_sheet",
-			args:     map[string]any{"symbol": "aapl"},
+			name:     "get_financial_statements balance defaults",
+			tool:     "get_financial_statements",
+			args:     map[string]any{"symbol": "aapl", "statement": "balance"},
 			body:     balanceSheetBody,
 			wantPath: "/api/v1/market/data/fundamentals/AAPL/statements",
 			wantQuery: map[string]string{
@@ -281,9 +271,9 @@ func TestToolsCallBackendAndReturnData(t *testing.T) {
 			},
 		},
 		{
-			name:     "get_cash_flow_statement clamps limit",
-			tool:     "get_cash_flow_statement",
-			args:     map[string]any{"symbol": "aapl", "limit": 25},
+			name:     "get_financial_statements cashflow clamps limit",
+			tool:     "get_financial_statements",
+			args:     map[string]any{"symbol": "aapl", "statement": "cashflow", "limit": 25},
 			body:     cashFlowStatementBody,
 			wantPath: "/api/v1/market/data/fundamentals/AAPL/statements",
 			wantQuery: map[string]string{
@@ -303,56 +293,21 @@ func TestToolsCallBackendAndReturnData(t *testing.T) {
 			},
 		},
 		{
-			name:     "get_key_metrics projects key_metrics",
-			tool:     "get_key_metrics",
-			args:     map[string]any{"symbol": "aapl"},
+			name:     "get_fundamentals with sections",
+			tool:     "get_fundamentals",
+			args:     map[string]any{"symbol": "aapl", "sections": []string{"ratios"}},
 			body:     fundamentalsBody,
 			wantPath: "/api/v1/market/data/fundamentals/AAPL",
 			assert: func(t *testing.T, raw string) {
-				var got struct {
-					PERatio *string `json:"pe_ratio"`
-				}
+				var got map[string]json.RawMessage
 				if err := json.Unmarshal([]byte(raw), &got); err != nil {
-					t.Fatalf("decode KeyMetrics: %v", err)
+					t.Fatalf("decode fundamentals: %v", err)
 				}
-				if got.PERatio == nil || *got.PERatio != "36.28" {
-					t.Errorf("pe_ratio = %v", got.PERatio)
+				if len(got) != 1 {
+					t.Errorf("got %d keys, want 1: %+v", len(got), got)
 				}
-			},
-		},
-		{
-			name:     "get_financial_ratios projects ratios",
-			tool:     "get_financial_ratios",
-			args:     map[string]any{"symbol": "aapl"},
-			body:     fundamentalsBody,
-			wantPath: "/api/v1/market/data/fundamentals/AAPL",
-			assert: func(t *testing.T, raw string) {
-				var got struct {
-					DebtToEquity *string `json:"debt_to_equity"`
-				}
-				if err := json.Unmarshal([]byte(raw), &got); err != nil {
-					t.Fatalf("decode FinancialRatios: %v", err)
-				}
-				if got.DebtToEquity == nil || *got.DebtToEquity != "1.87" {
-					t.Errorf("debt_to_equity = %v", got.DebtToEquity)
-				}
-			},
-		},
-		{
-			name:     "get_company_details projects profile",
-			tool:     "get_company_details",
-			args:     map[string]any{"symbol": "aapl"},
-			body:     fundamentalsBody,
-			wantPath: "/api/v1/market/data/fundamentals/AAPL",
-			assert: func(t *testing.T, raw string) {
-				var got struct {
-					CompanyName string `json:"company_name"`
-				}
-				if err := json.Unmarshal([]byte(raw), &got); err != nil {
-					t.Fatalf("decode CompanyProfile: %v", err)
-				}
-				if got.CompanyName != "Apple Inc." {
-					t.Errorf("company_name = %q", got.CompanyName)
+				if _, ok := got["ratios"]; !ok {
+					t.Errorf("missing ratios key: %+v", got)
 				}
 			},
 		},
@@ -406,7 +361,7 @@ func TestToolsCallBackendAndReturnData(t *testing.T) {
 	}
 }
 
-func TestFundamentalsProjectionsWithNullSections(t *testing.T) {
+func TestFundamentalsSectionSelectionAndNullHandling(t *testing.T) {
 	const (
 		nullRatiosBody = `{
 			"profile": {"symbol": "AAPL", "company_name": "Apple Inc."},
@@ -427,137 +382,119 @@ func TestFundamentalsProjectionsWithNullSections(t *testing.T) {
 			"profile": {"symbol": "AAPL", "company_name": "Apple Inc."},
 			"key_metrics": {"symbol": "AAPL", "date": "2024-09-28", "pe_ratio": "36.28"}
 		}`
-		absentKeyMetricsBody = `{
-			"profile": {"symbol": "AAPL", "company_name": "Apple Inc."},
-			"ratios": {"symbol": "AAPL", "date": "2024-09-28", "debt_to_equity": "1.87"}
+		allNullBody = `{
+			"profile": null,
+			"key_metrics": null,
+			"ratios": null
 		}`
 	)
 
 	tests := []struct {
 		name       string
-		tool       string
+		args       map[string]any
 		body       string
 		wantNoData bool
 		assertData func(t *testing.T, raw string)
 	}{
-		// null ratios: get_financial_ratios returns no data; get_company_details and get_key_metrics return data
 		{
-			name:       "null ratios: get_financial_ratios returns no-data",
-			tool:       "get_financial_ratios",
+			name:       "null ratios: sections=['ratios'] returns no-data",
+			args:       map[string]any{"symbol": "AAPL", "sections": []string{"ratios"}},
 			body:       nullRatiosBody,
 			wantNoData: true,
 		},
 		{
-			name: "null ratios: get_company_details returns data",
-			tool: "get_company_details",
+			name: "null ratios: sections=['profile', 'ratios'] returns profile and null ratios",
+			args: map[string]any{"symbol": "AAPL", "sections": []string{"profile", "ratios"}},
 			body: nullRatiosBody,
 			assertData: func(t *testing.T, raw string) {
-				var got struct {
-					CompanyName string `json:"company_name"`
-				}
+				var got map[string]json.RawMessage
 				if err := json.Unmarshal([]byte(raw), &got); err != nil {
-					t.Fatalf("decode CompanyProfile: %v", err)
+					t.Fatalf("decode fundamentals: %v", err)
 				}
-				if got.CompanyName != "Apple Inc." {
-					t.Errorf("company_name = %q, want Apple Inc.", got.CompanyName)
+				if len(got) != 2 {
+					t.Errorf("len(got) = %d, want 2: %+v", len(got), got)
+				}
+				if string(got["ratios"]) != "null" {
+					t.Errorf("ratios = %s, want null", got["ratios"])
+				}
+				if _, ok := got["profile"]; !ok {
+					t.Errorf("missing profile key: %+v", got)
+				}
+				if _, ok := got["key_metrics"]; ok {
+					t.Errorf("unexpected key_metrics key: %+v", got)
 				}
 			},
 		},
 		{
-			name: "null ratios: get_key_metrics returns data",
-			tool: "get_key_metrics",
+			name: "null ratios: omitted sections returns all 3 with null ratios",
+			args: map[string]any{"symbol": "AAPL"},
 			body: nullRatiosBody,
 			assertData: func(t *testing.T, raw string) {
-				var got struct {
-					PERatio *string `json:"pe_ratio"`
-				}
+				var got map[string]json.RawMessage
 				if err := json.Unmarshal([]byte(raw), &got); err != nil {
-					t.Fatalf("decode KeyMetrics: %v", err)
+					t.Fatalf("decode fundamentals: %v", err)
 				}
-				if got.PERatio == nil || *got.PERatio != "36.28" {
-					t.Errorf("pe_ratio = %v, want 36.28", got.PERatio)
+				if len(got) != 3 {
+					t.Errorf("len(got) = %d, want 3: %+v", len(got), got)
 				}
-			},
-		},
-		// null key_metrics: get_key_metrics returns no data; get_company_details and get_financial_ratios return data
-		{
-			name:       "null key_metrics: get_key_metrics returns no-data",
-			tool:       "get_key_metrics",
-			body:       nullKeyMetricsBody,
-			wantNoData: true,
-		},
-		{
-			name: "null key_metrics: get_company_details returns data",
-			tool: "get_company_details",
-			body: nullKeyMetricsBody,
-			assertData: func(t *testing.T, raw string) {
-				var got struct {
-					CompanyName string `json:"company_name"`
-				}
-				if err := json.Unmarshal([]byte(raw), &got); err != nil {
-					t.Fatalf("decode CompanyProfile: %v", err)
-				}
-				if got.CompanyName != "Apple Inc." {
-					t.Errorf("company_name = %q, want Apple Inc.", got.CompanyName)
+				if string(got["ratios"]) != "null" {
+					t.Errorf("ratios = %s, want null", got["ratios"])
 				}
 			},
 		},
 		{
-			name: "null key_metrics: get_financial_ratios returns data",
-			tool: "get_financial_ratios",
-			body: nullKeyMetricsBody,
-			assertData: func(t *testing.T, raw string) {
-				var got struct {
-					DebtToEquity *string `json:"debt_to_equity"`
-				}
-				if err := json.Unmarshal([]byte(raw), &got); err != nil {
-					t.Fatalf("decode FinancialRatios: %v", err)
-				}
-				if got.DebtToEquity == nil || *got.DebtToEquity != "1.87" {
-					t.Errorf("debt_to_equity = %v, want 1.87", got.DebtToEquity)
-				}
-			},
-		},
-		// both null: get_company_details still returns data, both projections return no data
-		{
-			name:       "both null: get_financial_ratios returns no-data",
-			tool:       "get_financial_ratios",
-			body:       nullBothBody,
-			wantNoData: true,
-		},
-		{
-			name:       "both null: get_key_metrics returns no-data",
-			tool:       "get_key_metrics",
-			body:       nullBothBody,
-			wantNoData: true,
-		},
-		{
-			name: "both null: get_company_details returns data",
-			tool: "get_company_details",
-			body: nullBothBody,
-			assertData: func(t *testing.T, raw string) {
-				var got struct {
-					CompanyName string `json:"company_name"`
-				}
-				if err := json.Unmarshal([]byte(raw), &got); err != nil {
-					t.Fatalf("decode CompanyProfile: %v", err)
-				}
-				if got.CompanyName != "Apple Inc." {
-					t.Errorf("company_name = %q, want Apple Inc.", got.CompanyName)
-				}
-			},
-		},
-		// absent sections return no-data
-		{
-			name:       "absent ratios: get_financial_ratios returns no-data",
-			tool:       "get_financial_ratios",
+			name:       "absent ratios: sections=['ratios'] returns no-data",
+			args:       map[string]any{"symbol": "AAPL", "sections": []string{"ratios"}},
 			body:       absentRatiosBody,
 			wantNoData: true,
 		},
 		{
-			name:       "absent key_metrics: get_key_metrics returns no-data",
-			tool:       "get_key_metrics",
-			body:       absentKeyMetricsBody,
+			name:       "null key_metrics: sections=['key_metrics'] returns no-data",
+			args:       map[string]any{"symbol": "AAPL", "sections": []string{"key_metrics"}},
+			body:       nullKeyMetricsBody,
+			wantNoData: true,
+		},
+		{
+			name: "null key_metrics: sections=['profile', 'key_metrics'] returns profile and null key_metrics",
+			args: map[string]any{"symbol": "AAPL", "sections": []string{"profile", "key_metrics"}},
+			body: nullKeyMetricsBody,
+			assertData: func(t *testing.T, raw string) {
+				var got map[string]json.RawMessage
+				if err := json.Unmarshal([]byte(raw), &got); err != nil {
+					t.Fatalf("decode fundamentals: %v", err)
+				}
+				if len(got) != 2 {
+					t.Errorf("len(got) = %d, want 2: %+v", len(got), got)
+				}
+				if string(got["key_metrics"]) != "null" {
+					t.Errorf("key_metrics = %s, want null", got["key_metrics"])
+				}
+			},
+		},
+		{
+			name:       "both null: sections=['key_metrics', 'ratios'] returns no-data",
+			args:       map[string]any{"symbol": "AAPL", "sections": []string{"key_metrics", "ratios"}},
+			body:       nullBothBody,
+			wantNoData: true,
+		},
+		{
+			name: "both null: omitted sections returns profile and null for both",
+			args: map[string]any{"symbol": "AAPL"},
+			body: nullBothBody,
+			assertData: func(t *testing.T, raw string) {
+				var got map[string]json.RawMessage
+				if err := json.Unmarshal([]byte(raw), &got); err != nil {
+					t.Fatalf("decode fundamentals: %v", err)
+				}
+				if string(got["key_metrics"]) != "null" || string(got["ratios"]) != "null" {
+					t.Errorf("expected both null: %+v", got)
+				}
+			},
+		},
+		{
+			name:       "all null: omitted sections returns no-data",
+			args:       map[string]any{"symbol": "AAPL"},
+			body:       allNullBody,
 			wantNoData: true,
 		},
 	}
@@ -567,9 +504,9 @@ func TestFundamentalsProjectionsWithNullSections(t *testing.T) {
 			backend, _ := newStubBackend(t, http.StatusOK, tc.body)
 			session := newTestSession(t, backend.URL)
 
-			result := callTool(t, session, tc.tool, map[string]any{"symbol": "AAPL"})
+			result := callTool(t, session, "get_fundamentals", tc.args)
 			if result.IsError {
-				t.Fatalf("callTool(%s) failed: %s", tc.tool, resultText(t, result))
+				t.Fatalf("callTool(get_fundamentals) failed: %s", resultText(t, result))
 			}
 			raw := resultText(t, result)
 			assertNoProviderName(t, "tool result", raw)
@@ -582,6 +519,118 @@ func TestFundamentalsProjectionsWithNullSections(t *testing.T) {
 				tc.assertData(t, raw)
 			}
 		})
+	}
+}
+
+func TestFundamentalsSectionSelectionOnlyRequestedKeys(t *testing.T) {
+	backend, _ := newStubBackend(t, http.StatusOK, fundamentalsBody)
+	session := newTestSession(t, backend.URL)
+
+	cases := []struct {
+		name     string
+		args     map[string]any
+		wantKeys []string
+	}{
+		{
+			name:     "only ratios requested",
+			args:     map[string]any{"symbol": "AAPL", "sections": []string{"ratios"}},
+			wantKeys: []string{"ratios"},
+		},
+		{
+			name:     "only profile requested",
+			args:     map[string]any{"symbol": "AAPL", "sections": []string{"profile"}},
+			wantKeys: []string{"profile"},
+		},
+		{
+			name:     "only key_metrics requested",
+			args:     map[string]any{"symbol": "AAPL", "sections": []string{"key_metrics"}},
+			wantKeys: []string{"key_metrics"},
+		},
+		{
+			name:     "profile and key_metrics requested",
+			args:     map[string]any{"symbol": "AAPL", "sections": []string{"profile", "key_metrics"}},
+			wantKeys: []string{"profile", "key_metrics"},
+		},
+		{
+			name:     "deduped sections",
+			args:     map[string]any{"symbol": "AAPL", "sections": []string{"ratios", "ratios"}},
+			wantKeys: []string{"ratios"},
+		},
+		{
+			name:     "omitted sections returns all three",
+			args:     map[string]any{"symbol": "AAPL"},
+			wantKeys: []string{"profile", "key_metrics", "ratios"},
+		},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			result := callTool(t, session, "get_fundamentals", tc.args)
+			if result.IsError {
+				t.Fatalf("callTool failed: %s", resultText(t, result))
+			}
+			var got map[string]json.RawMessage
+			if err := json.Unmarshal([]byte(resultText(t, result)), &got); err != nil {
+				t.Fatalf("decode: %v", err)
+			}
+			if len(got) != len(tc.wantKeys) {
+				t.Errorf("got %d keys, want %d: %+v", len(got), len(tc.wantKeys), got)
+			}
+			for _, key := range tc.wantKeys {
+				if _, ok := got[key]; !ok {
+					t.Errorf("expected key %q missing from: %+v", key, got)
+				}
+			}
+		})
+	}
+}
+
+func TestRemovedToolsNotRegistered(t *testing.T) {
+	srv := httptest.NewServer(newTestRouter(t))
+	t.Cleanup(srv.Close)
+
+	ctx := context.Background()
+	client := mcp.NewClient(&mcp.Implementation{Name: "test-client", Version: "0.0.1"}, nil)
+	session, err := client.Connect(ctx, &mcp.StreamableClientTransport{
+		Endpoint:             srv.URL + "/mcp",
+		DisableStandaloneSSE: true,
+	}, nil)
+	if err != nil {
+		t.Fatalf("connect: %v", err)
+	}
+	t.Cleanup(func() { _ = session.Close() })
+
+	tools, err := session.ListTools(ctx, nil)
+	if err != nil {
+		t.Fatalf("tools/list: %v", err)
+	}
+
+	registeredNames := make(map[string]bool)
+	for _, tool := range tools.Tools {
+		registeredNames[tool.Name] = true
+	}
+
+	// Must contain get_fundamentals and get_financial_statements
+	if !registeredNames["get_fundamentals"] {
+		t.Errorf("get_fundamentals is not registered")
+	}
+	if !registeredNames["get_financial_statements"] {
+		t.Errorf("get_financial_statements is not registered")
+	}
+
+	// Must NOT contain any of the six removed tools
+	removed := []string{
+		"get_key_metrics",
+		"get_financial_ratios",
+		"get_company_details",
+		"get_income_statement",
+		"get_balance_sheet",
+		"get_cash_flow_statement",
+	}
+	for _, rem := range removed {
+		if registeredNames[rem] {
+			t.Errorf("removed tool %q is still registered", rem)
+		}
 	}
 }
 
@@ -649,19 +698,19 @@ func TestStatementToolDecodeFailureIsProviderError(t *testing.T) {
 		{"empty symbol", `[{"date": "2024-09-28", "symbol": ""}]`},
 	}
 
-	statementTools := []string{
-		"get_income_statement",
-		"get_balance_sheet",
-		"get_cash_flow_statement",
+	statementTypes := []string{
+		"income",
+		"balance",
+		"cashflow",
 	}
 
 	for _, tc := range cases {
-		for _, tool := range statementTools {
-			t.Run(fmt.Sprintf("%s/%s", tool, tc.name), func(t *testing.T) {
+		for _, stmt := range statementTypes {
+			t.Run(fmt.Sprintf("%s/%s", stmt, tc.name), func(t *testing.T) {
 				backend, _ := newStubBackend(t, http.StatusOK, tc.body)
 				session := newTestSession(t, backend.URL)
 
-				result := callTool(t, session, tool, map[string]any{"symbol": "AAPL"})
+				result := callTool(t, session, "get_financial_statements", map[string]any{"symbol": "AAPL", "statement": stmt})
 				if !result.IsError {
 					t.Fatalf("expected an error result, got %q", resultText(t, result))
 				}
@@ -673,39 +722,7 @@ func TestStatementToolDecodeFailureIsProviderError(t *testing.T) {
 	}
 }
 
-func TestFundamentalsMissingProfileIsProviderError(t *testing.T) {
-	// A fundamentals payload with missing or null profile yields a provider error.
-	cases := []struct {
-		name string
-		body string
-	}{
-		{
-			name: "profile is null",
-			body: `{"profile": null, "key_metrics": {"symbol":"AAPL"}, "ratios": {"symbol":"AAPL"}}`,
-		},
-		{
-			name: "profile is missing",
-			body: `{"key_metrics": {"symbol":"AAPL"}, "ratios": {"symbol":"AAPL"}}`,
-		},
-	}
-
-	for _, tc := range cases {
-		t.Run(tc.name, func(t *testing.T) {
-			backend, _ := newStubBackend(t, http.StatusOK, tc.body)
-			session := newTestSession(t, backend.URL)
-
-			result := callTool(t, session, "get_company_details", map[string]any{"symbol": "AAPL"})
-			if !result.IsError {
-				t.Fatalf("expected an error result, got %q", resultText(t, result))
-			}
-			if got := resultText(t, result); got != ErrProvider.Error() {
-				t.Errorf("result text = %q, want %q", got, ErrProvider.Error())
-			}
-		})
-	}
-}
-
-func TestStatementToolsPreserveExtraFields(t *testing.T) {
+func TestFinancialStatementsPreservesExtraFields(t *testing.T) {
 	// A backend statement item carrying an extra field appears unchanged in
 	// items. Numbers (including Decimal strings like "123.4500") pass through byte-for-byte.
 	const body = `[{
@@ -716,21 +733,18 @@ func TestStatementToolsPreserveExtraFields(t *testing.T) {
 		"decimal_str": "123.4500",
 		"int_val": 42
 	}]`
-	tests := []struct {
-		name string
-		tool string
-	}{
-		{"get_income_statement", "get_income_statement"},
-		{"get_balance_sheet", "get_balance_sheet"},
-		{"get_cash_flow_statement", "get_cash_flow_statement"},
+	statementTypes := []string{
+		"income",
+		"balance",
+		"cashflow",
 	}
 
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
+	for _, stmt := range statementTypes {
+		t.Run(stmt, func(t *testing.T) {
 			backend, _ := newStubBackend(t, http.StatusOK, body)
 			session := newTestSession(t, backend.URL)
 
-			result := callTool(t, session, tt.tool, map[string]any{"symbol": "AAPL"})
+			result := callTool(t, session, "get_financial_statements", map[string]any{"symbol": "AAPL", "statement": stmt})
 			if result.IsError {
 				t.Fatalf("unexpected error: %s", resultText(t, result))
 			}
@@ -763,9 +777,9 @@ func TestStatementToolsPreserveExtraFields(t *testing.T) {
 	}
 }
 
-func TestFundamentalsProjectionsPreserveExtraFields(t *testing.T) {
+func TestFundamentalsPreservesExtraFields(t *testing.T) {
 	// A fundamentals payload with an extra field in profile, key_metrics or
-	// ratios appears unchanged in the projection tool output.
+	// ratios appears unchanged in get_fundamentals output.
 	const body = `{
 		"profile": {
 			"symbol": "AAPL",
@@ -789,13 +803,13 @@ func TestFundamentalsProjectionsPreserveExtraFields(t *testing.T) {
 
 	tests := []struct {
 		name     string
-		tool     string
+		section  string
 		extraKey string
 		extraVal string
 	}{
-		{"get_company_details", "get_company_details", "extra_profile_field", `"custom_profile"`},
-		{"get_key_metrics", "get_key_metrics", "extra_metric_field", `"custom_metric"`},
-		{"get_financial_ratios", "get_financial_ratios", "extra_ratio_field", `"custom_ratio"`},
+		{"profile section", "profile", "extra_profile_field", `"custom_profile"`},
+		{"key_metrics section", "key_metrics", "extra_metric_field", `"custom_metric"`},
+		{"ratios section", "ratios", "extra_ratio_field", `"custom_ratio"`},
 	}
 
 	for _, tt := range tests {
@@ -803,14 +817,21 @@ func TestFundamentalsProjectionsPreserveExtraFields(t *testing.T) {
 			backend, _ := newStubBackend(t, http.StatusOK, body)
 			session := newTestSession(t, backend.URL)
 
-			result := callTool(t, session, tt.tool, map[string]any{"symbol": "AAPL"})
+			result := callTool(t, session, "get_fundamentals", map[string]any{
+				"symbol":   "AAPL",
+				"sections": []string{tt.section},
+			})
 			if result.IsError {
 				t.Fatalf("unexpected error: %s", resultText(t, result))
 			}
 
+			var aggregate map[string]json.RawMessage
+			if err := json.Unmarshal([]byte(resultText(t, result)), &aggregate); err != nil {
+				t.Fatalf("decode aggregate: %v", err)
+			}
 			var section map[string]json.RawMessage
-			if err := json.Unmarshal([]byte(resultText(t, result)), &section); err != nil {
-				t.Fatalf("decode section: %v", err)
+			if err := json.Unmarshal(aggregate[tt.section], &section); err != nil {
+				t.Fatalf("decode section %s: %v", tt.section, err)
 			}
 			if string(section[tt.extraKey]) != tt.extraVal {
 				t.Errorf("%s = %s, want %s", tt.extraKey, section[tt.extraKey], tt.extraVal)
@@ -871,10 +892,34 @@ func TestToolsRejectInvalidInput(t *testing.T) {
 		{
 			name: "bad period",
 			prepare: func() error {
-				_, err := (statementInput{Symbol: "AAPL", Period: "monthly"}).prepare()
+				_, err := (financialStatementsInput{Symbol: "AAPL", Statement: "income", Period: "monthly"}).prepare()
 				return err
 			},
 			want: "period must be 'annual' or 'quarter'",
+		},
+		{
+			name: "statement required",
+			prepare: func() error {
+				_, err := (financialStatementsInput{Symbol: "AAPL", Statement: "  "}).prepare()
+				return err
+			},
+			want: "statement must be 'income', 'balance', or 'cashflow'",
+		},
+		{
+			name: "bad statement",
+			prepare: func() error {
+				_, err := (financialStatementsInput{Symbol: "AAPL", Statement: "invalid"}).prepare()
+				return err
+			},
+			want: "statement must be 'income', 'balance', or 'cashflow'",
+		},
+		{
+			name: "unknown fundamentals section",
+			prepare: func() error {
+				_, err := (fundamentalsInput{Symbol: "AAPL", Sections: []string{"profile", "invalid"}}).prepare()
+				return err
+			},
+			want: "unknown section \"invalid\": valid sections are 'profile', 'key_metrics', 'ratios'",
 		},
 		{
 			name: "bad option type",
@@ -935,15 +980,15 @@ func TestToolsRejectInvalidInput(t *testing.T) {
 
 func TestStatementLimitClampAndPeriodDefault(t *testing.T) {
 	for _, tc := range []struct {
-		in   statementInput
+		in   financialStatementsInput
 		want int
 		per  string
 	}{
-		{statementInput{Symbol: "AAPL", Limit: 0}, 5, "annual"},
-		{statementInput{Symbol: "AAPL", Limit: -3}, 5, "annual"},
-		{statementInput{Symbol: "AAPL", Limit: 25}, 20, "annual"},
-		{statementInput{Symbol: "AAPL", Limit: 3}, 3, "annual"},
-		{statementInput{Symbol: "AAPL", Period: "quarter"}, 5, "quarter"},
+		{financialStatementsInput{Symbol: "AAPL", Statement: "income", Limit: 0}, 5, "annual"},
+		{financialStatementsInput{Symbol: "AAPL", Statement: "income", Limit: -3}, 5, "annual"},
+		{financialStatementsInput{Symbol: "AAPL", Statement: "income", Limit: 25}, 20, "annual"},
+		{financialStatementsInput{Symbol: "AAPL", Statement: "income", Limit: 3}, 3, "annual"},
+		{financialStatementsInput{Symbol: "AAPL", Statement: "income", Period: "quarter"}, 5, "quarter"},
 	} {
 		got, err := tc.in.prepare()
 		if err != nil {
@@ -965,6 +1010,67 @@ func TestToolsRejectMissingRequiredInputAtSDK(t *testing.T) {
 	if !result.IsError {
 		t.Fatalf("expected the SDK to reject a missing required argument, got %q", resultText(t, result))
 	}
+
+	// `statement` is non-omitempty on get_financial_statements, so the SDK rejects
+	// the call before the handler runs when omitted.
+	resultStmt := callTool(t, session, "get_financial_statements", map[string]any{"symbol": "AAPL"})
+	if !resultStmt.IsError {
+		t.Fatalf("expected the SDK to reject missing statement argument, got %q", resultText(t, resultStmt))
+	}
+}
+
+func TestToolsRejectBeforeBackendCall(t *testing.T) {
+	backend, captured := newStubBackend(t, http.StatusOK, `{"detail":"should not be reached"}`)
+	session := newTestSession(t, backend.URL)
+
+	t.Run("unknown section rejected before backend call", func(t *testing.T) {
+		captured.path = ""
+		res := callTool(t, session, "get_fundamentals", map[string]any{
+			"symbol":   "AAPL",
+			"sections": []string{"invalid_sec"},
+		})
+		if !res.IsError {
+			t.Fatalf("expected error result, got %q", resultText(t, res))
+		}
+		text := resultText(t, res)
+		if !strings.Contains(text, "profile") || !strings.Contains(text, "key_metrics") || !strings.Contains(text, "ratios") {
+			t.Errorf("expected error listing valid names, got %q", text)
+		}
+		if captured.path != "" {
+			t.Errorf("backend called unexpectedly: %s", captured.path)
+		}
+	})
+
+	t.Run("invalid statement rejected before backend call", func(t *testing.T) {
+		captured.path = ""
+		res := callTool(t, session, "get_financial_statements", map[string]any{
+			"symbol":    "AAPL",
+			"statement": "invalid_stmt",
+		})
+		if !res.IsError {
+			t.Fatalf("expected error result, got %q", resultText(t, res))
+		}
+		text := resultText(t, res)
+		if !strings.Contains(text, "income") || !strings.Contains(text, "balance") || !strings.Contains(text, "cashflow") {
+			t.Errorf("expected error listing valid statements, got %q", text)
+		}
+		if captured.path != "" {
+			t.Errorf("backend called unexpectedly: %s", captured.path)
+		}
+	})
+
+	t.Run("missing statement rejected before backend call", func(t *testing.T) {
+		captured.path = ""
+		res := callTool(t, session, "get_financial_statements", map[string]any{
+			"symbol": "AAPL",
+		})
+		if !res.IsError {
+			t.Fatalf("expected error result, got %q", resultText(t, res))
+		}
+		if captured.path != "" {
+			t.Errorf("backend called unexpectedly: %s", captured.path)
+		}
+	})
 }
 
 // Full statement fixtures: every key equals exactly the corresponding Go
