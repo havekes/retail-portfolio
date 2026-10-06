@@ -8,7 +8,7 @@ import os
 from typing import Any
 
 from src.main import app
-from src.market.openapi import (
+from src.commands.export_data_plane_contract import (
     CONTRACT_PATH,
     dump_data_plane_openapi,
     get_data_plane_openapi,
@@ -45,7 +45,7 @@ def test_data_plane_openapi_artifact_matches_live_fastapi() -> None:
         )
         raise AssertionError(
             "Live FastAPI data-plane contract has drifted from committed artifact.\n"
-            "Run with UPDATE_CONTRACTS=1 (or uv run python -m src.market.openapi) to regenerate if intentional.\n"
+            "Run with UPDATE_CONTRACTS=1 (or uv run python -m src.commands.export_data_plane_contract) to regenerate if intentional.\n"
             f"Diff:\n{diff}"
         )
 
