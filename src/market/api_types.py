@@ -358,3 +358,11 @@ class OptionsChain(BaseModel):
     underlying_symbol: str
     as_of: date | None = None
     contracts: list[OptionsChainEntry] = []
+
+
+class OptionExpirations(BaseModel):
+    """Available option expiration dates for an underlying symbol."""
+
+    underlying_symbol: str
+    expirations: list[date] = []
+    truncated: bool = False

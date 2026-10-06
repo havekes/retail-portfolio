@@ -18,6 +18,7 @@ EXPECTED_ROUTES = {
     "/api/v1/market/data/prices/{symbol}",
     "/api/v1/market/data/symbols/search",
     "/api/v1/market/data/options/{symbol}",
+    "/api/v1/market/data/options/{symbol}/expirations",
     "/api/v1/market/data/fundamentals/{symbol}",
     "/api/v1/market/data/fundamentals/{symbol}/statements",
 }
@@ -50,8 +51,8 @@ def test_data_plane_openapi_artifact_matches_live_fastapi() -> None:
         )
 
 
-def test_data_plane_contract_covers_all_five_routes() -> None:
-    """Contract covers exactly the 5 data-plane routes and no extra endpoints leaked in."""
+def test_data_plane_contract_covers_all_routes() -> None:
+    """Contract covers exactly the expected data-plane routes and no extra endpoints leaked in."""
     schema = get_data_plane_openapi(app)
     paths = schema.get("paths", {})
 
@@ -93,6 +94,11 @@ def test_data_plane_contract_parameters() -> None:
     assert options_params["option_type"]["in"] == "query"
     assert options_params["strike_min"]["in"] == "query"
     assert options_params["strike_max"]["in"] == "query"
+
+    # /options/{symbol}/expirations
+    expirations_params = get_params("/api/v1/market/data/options/{symbol}/expirations")
+    assert expirations_params["symbol"]["in"] == "path"
+    assert expirations_params["symbol"]["required"] is True
 
     # /fundamentals/{symbol}
     fund_params = get_params("/api/v1/market/data/fundamentals/{symbol}")
