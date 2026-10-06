@@ -10,8 +10,6 @@ from fastapi import FastAPI, routing
 from fastapi.openapi.utils import get_openapi
 from rich import print as rprint
 
-from src.main import app as main_app
-
 DATA_PLANE_PREFIX = "/api/v1/market/data"
 CONTRACT_PATH = (
     Path(__file__).resolve().parents[2]
@@ -22,13 +20,11 @@ CONTRACT_PATH = (
 )
 
 
-def get_data_plane_openapi(app: FastAPI | None = None) -> dict[str, Any]:
+def get_data_plane_openapi(app: FastAPI) -> dict[str, Any]:
     """Extract and slice FastAPI OpenAPI contract for data-plane routes."""
-    target_app = app if app is not None else main_app
-
     routes = [
         rc
-        for rc in routing.iter_route_contexts(target_app.routes)
+        for rc in routing.iter_route_contexts(app.routes)
         if getattr(rc, "path_format", getattr(rc, "path", "")).startswith(
             DATA_PLANE_PREFIX
         )
@@ -41,7 +37,7 @@ def get_data_plane_openapi(app: FastAPI | None = None) -> dict[str, Any]:
 
 
 def dump_data_plane_openapi(
-    app: FastAPI | None = None,
+    app: FastAPI,
     output_path: Path | str = CONTRACT_PATH,
 ) -> Path:
     """Generate and write the data-plane OpenAPI contract to disk."""
@@ -54,5 +50,10 @@ def dump_data_plane_openapi(
 
 
 if __name__ == "__main__":
-    out = dump_data_plane_openapi()
+    import os
+
+    os.environ["ENVIRONMENT"] = "test"
+    from src.main import app
+
+    out = dump_data_plane_openapi(app)
     rprint(f"Wrote data-plane OpenAPI contract to {out}")

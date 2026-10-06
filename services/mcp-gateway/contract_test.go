@@ -15,10 +15,10 @@ import (
 )
 
 type openAPIDoc struct {
-	OpenAPI    string                           `json:"openapi"`
-	Info       openAPIInfo                      `json:"info"`
+	OpenAPI    string                                 `json:"openapi"`
+	Info       openAPIInfo                            `json:"info"`
 	Paths      map[string]map[string]openAPIOperation `json:"paths"`
-	Components map[string]any                   `json:"components"`
+	Components map[string]any                         `json:"components"`
 }
 
 type openAPIInfo struct {

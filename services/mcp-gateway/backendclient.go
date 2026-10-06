@@ -45,11 +45,6 @@ func (c *BackendClient) Config() Config {
 	return c.cfg
 }
 
-// isDev reports whether this client is running in a development environment.
-func (c *BackendClient) isDev() bool {
-	return isDev(c.cfg.Environment)
-}
-
 // Prices returns daily OHLC history for symbol.
 //
 // GET /api/v1/market/data/prices/{symbol}?from=&to=&exchange=

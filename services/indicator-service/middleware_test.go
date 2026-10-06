@@ -30,9 +30,11 @@ func TestGenerateRequestID(t *testing.T) {
 }
 
 func TestContextHelpers(t *testing.T) {
+	//lint:ignore SA1012 testing nil context resilience
 	if got := RequestIDFromContext(nil); got != "" {
 		t.Errorf("expected empty string for nil context, got %q", got)
 	}
+	//lint:ignore SA1012 testing nil context resilience
 	if got := LoggerFromContext(nil); got == nil {
 		t.Error("expected non-nil logger for nil context")
 	}
