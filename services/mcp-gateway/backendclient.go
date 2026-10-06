@@ -141,8 +141,8 @@ func (c *BackendClient) Fundamentals(
 //
 // GET /api/v1/market/data/fundamentals/{symbol}/statements?statement=&period=&limit=&exchange=
 //
-// The backend response type depends on statement (income / balance / cashflow),
-// so the body is returned as json.RawMessage for T11 to decode per statement.
+// The backend response is returned as json.RawMessage and validated/decoded by
+// decodeStatementList into a slice of raw JSON items.
 func (c *BackendClient) Statements(
 	ctx context.Context,
 	symbol, statement, period string,
@@ -182,119 +182,6 @@ func formatFloat(v float64) string {
 	return strconv.FormatFloat(v, 'f', -1, 64)
 }
 
-// --------------------------------------------------------------------------- //
-// Data-plane response types
-//
-// These mirror the backend Pydantic models in src/market/schema.py and
-// src/market/api_types.py field-for-field. FastAPI serializes with the declared
-// (snake_case) field names — the models set no aliases — and Pydantic v2 emits
-// ``Decimal`` as a JSON *string* while integers stay JSON numbers. The Decimal
-// type below accepts either so the structs decode the real backend output.
-// Dates are ISO-8601 ``YYYY-MM-DD`` strings.
-// --------------------------------------------------------------------------- //
-
-// Decimal is a decimal value that round-trips as a JSON string (the shape
-// Pydantic v2 emits for “Decimal“) while also accepting a bare JSON number.
-type Decimal string
-
-// UnmarshalJSON accepts a JSON string, number, or null.
-func (d *Decimal) UnmarshalJSON(data []byte) error {
-	trimmed := strings.TrimSpace(string(data))
-	if trimmed == "" || trimmed == "null" {
-		*d = ""
-		return nil
-	}
-	if trimmed[0] == '"' {
-		var s string
-		if err := json.Unmarshal(data, &s); err != nil {
-			return err
-		}
-		*d = Decimal(s)
-		return nil
-	}
-	*d = Decimal(trimmed)
-	return nil
-}
-
-// MarshalJSON emits a JSON string, preserving the backend's representation.
-func (d Decimal) MarshalJSON() ([]byte, error) {
-	return json.Marshal(string(d))
-}
-
-// CompanyProfile is the company-details object (api_types.CompanyProfile).
-type CompanyProfile struct {
-	Symbol            string   `json:"symbol"`
-	CompanyName       string   `json:"company_name"`
-	MarketCap         *Decimal `json:"market_cap,omitempty"`
-	Sector            *string  `json:"sector,omitempty"`
-	Industry          *string  `json:"industry,omitempty"`
-	Beta              *Decimal `json:"beta,omitempty"`
-	Price             *Decimal `json:"price,omitempty"`
-	Website           *string  `json:"website,omitempty"`
-	Description       *string  `json:"description,omitempty"`
-	CEO               *string  `json:"ceo,omitempty"`
-	FullTimeEmployees *int64   `json:"full_time_employees,omitempty"`
-	ExchangeShortName *string  `json:"exchange_short_name,omitempty"`
-	Exchange          *string  `json:"exchange,omitempty"`
-	Currency          *string  `json:"currency,omitempty"`
-	IPODate           *string  `json:"ipo_date,omitempty"`
-	CIK               *string  `json:"cik,omitempty"`
-	ISIN              *string  `json:"isin,omitempty"`
-	Image             *string  `json:"image,omitempty"`
-	IsActivelyTrading *bool    `json:"is_actively_trading,omitempty"`
-}
-
-// KeyMetrics is the valuation-snapshot object (api_types.KeyMetrics).
-type KeyMetrics struct {
-	Symbol                    string   `json:"symbol"`
-	Date                      string   `json:"date"`
-	FiscalYear                *string  `json:"fiscal_year,omitempty"`
-	Period                    *string  `json:"period,omitempty"`
-	MarketCap                 *Decimal `json:"market_cap,omitempty"`
-	EnterpriseValue           *Decimal `json:"enterprise_value,omitempty"`
-	PERatio                   *Decimal `json:"pe_ratio,omitempty"`
-	PEGRatio                  *Decimal `json:"peg_ratio,omitempty"`
-	PriceToSalesRatio         *Decimal `json:"price_to_sales_ratio,omitempty"`
-	PriceToBookRatio          *Decimal `json:"price_to_book_ratio,omitempty"`
-	EnterpriseValueOverEBITDA *Decimal `json:"enterprise_value_over_ebitda,omitempty"`
-	EVToSales                 *Decimal `json:"ev_to_sales,omitempty"`
-	DividendYield             *Decimal `json:"dividend_yield,omitempty"`
-	PayoutRatio               *Decimal `json:"payout_ratio,omitempty"`
-	CurrentRatio              *Decimal `json:"current_ratio,omitempty"`
-	QuickRatio                *Decimal `json:"quick_ratio,omitempty"`
-	DebtToEquity              *Decimal `json:"debt_to_equity,omitempty"`
-	WorkingCapital            *Decimal `json:"working_capital,omitempty"`
-}
-
-// FinancialRatios is the ratios object (api_types.FinancialRatios).
-type FinancialRatios struct {
-	Symbol                  string   `json:"symbol"`
-	Date                    string   `json:"date"`
-	FiscalYear              *string  `json:"fiscal_year,omitempty"`
-	Period                  *string  `json:"period,omitempty"`
-	GrossProfitMargin       *Decimal `json:"gross_profit_margin,omitempty"`
-	OperatingProfitMargin   *Decimal `json:"operating_profit_margin,omitempty"`
-	NetProfitMargin         *Decimal `json:"net_profit_margin,omitempty"`
-	ReturnOnAssets          *Decimal `json:"return_on_assets,omitempty"`
-	ReturnOnEquity          *Decimal `json:"return_on_equity,omitempty"`
-	ReturnOnCapitalEmployed *Decimal `json:"return_on_capital_employed,omitempty"`
-	InterestCoverage        *Decimal `json:"interest_coverage,omitempty"`
-	QuickRatio              *Decimal `json:"quick_ratio,omitempty"`
-	CurrentRatio            *Decimal `json:"current_ratio,omitempty"`
-	DebtToEquity            *Decimal `json:"debt_to_equity,omitempty"`
-	PriceEarningsRatio      *Decimal `json:"price_earnings_ratio,omitempty"`
-	BookValuePerShare       *Decimal `json:"book_value_per_share,omitempty"`
-	DividendYield           *Decimal `json:"dividend_yield,omitempty"`
-}
-
-// CompanyFundamentals is the fundamentals overview aggregate
-// (api_types.CompanyFundamentals).
-type CompanyFundamentals struct {
-	Profile    CompanyProfile   `json:"profile"`
-	KeyMetrics *KeyMetrics      `json:"key_metrics"`
-	Ratios     *FinancialRatios `json:"ratios"`
-}
-
 // Statement literal values accepted by the backend statements route
 // (data_router.market_data_statements). They are the only values ever placed on
 // the wire.
@@ -304,137 +191,45 @@ const (
 	statementCashflow = "cashflow"
 )
 
-// IncomeStatement is one reporting period of the income statement
-// (api_types.IncomeStatement). Header fields date and symbol are required;
-// every line item is optional.
-type IncomeStatement struct {
-	Date                                    string   `json:"date"`
-	Symbol                                  string   `json:"symbol"`
-	ReportedCurrency                        *string  `json:"reported_currency,omitempty"`
-	CIK                                     *string  `json:"cik,omitempty"`
-	FilingDate                              *string  `json:"filing_date,omitempty"`
-	AcceptedDate                            *string  `json:"accepted_date,omitempty"`
-	FiscalYear                              *string  `json:"fiscal_year,omitempty"`
-	Period                                  *string  `json:"period,omitempty"`
-	Revenue                                 *Decimal `json:"revenue,omitempty"`
-	CostOfRevenue                           *Decimal `json:"cost_of_revenue,omitempty"`
-	GrossProfit                             *Decimal `json:"gross_profit,omitempty"`
-	ResearchAndDevelopmentExpenses          *Decimal `json:"research_and_development_expenses,omitempty"`
-	SellingGeneralAndAdministrativeExpenses *Decimal `json:"selling_general_and_administrative_expenses,omitempty"`
-	OperatingExpenses                       *Decimal `json:"operating_expenses,omitempty"`
-	OperatingIncome                         *Decimal `json:"operating_income,omitempty"`
-	InterestExpense                         *Decimal `json:"interest_expense,omitempty"`
-	OtherIncomeExpense                      *Decimal `json:"other_income_expense,omitempty"`
-	IncomeTaxExpense                        *Decimal `json:"income_tax_expense,omitempty"`
-	NetIncome                               *Decimal `json:"net_income,omitempty"`
-	EPS                                     *Decimal `json:"eps,omitempty"`
-	EPSDiluted                              *Decimal `json:"eps_diluted,omitempty"`
-	WeightedAverageSharesOutstanding        *Decimal `json:"weighted_average_shares_outstanding,omitempty"`
-	WeightedAverageSharesOutstandingDiluted *Decimal `json:"weighted_average_shares_outstanding_diluted,omitempty"`
-}
-
-// BalanceSheet is one reporting period of the balance sheet
-// (api_types.BalanceSheet).
-type BalanceSheet struct {
-	Date                   string   `json:"date"`
-	Symbol                 string   `json:"symbol"`
-	ReportedCurrency       *string  `json:"reported_currency,omitempty"`
-	CIK                    *string  `json:"cik,omitempty"`
-	FiscalYear             *string  `json:"fiscal_year,omitempty"`
-	Period                 *string  `json:"period,omitempty"`
-	TotalAssets            *Decimal `json:"total_assets,omitempty"`
-	CurrentAssets          *Decimal `json:"current_assets,omitempty"`
-	TotalLiabilities       *Decimal `json:"total_liabilities,omitempty"`
-	CurrentLiabilities     *Decimal `json:"current_liabilities,omitempty"`
-	TotalDebt              *Decimal `json:"total_debt,omitempty"`
-	CashAndCashEquivalents *Decimal `json:"cash_and_cash_equivalents,omitempty"`
-	Inventory              *Decimal `json:"inventory,omitempty"`
-	Receivables            *Decimal `json:"receivables,omitempty"`
-	Payables               *Decimal `json:"payables,omitempty"`
-	Goodwill               *Decimal `json:"goodwill,omitempty"`
-	RetainedEarnings       *Decimal `json:"retained_earnings,omitempty"`
-	TotalEquity            *Decimal `json:"total_equity,omitempty"`
-	CommonStock            *Decimal `json:"common_stock,omitempty"`
-	NetDebt                *Decimal `json:"net_debt,omitempty"`
-}
-
-// CashFlowStatement is one reporting period of the cash-flow statement
-// (api_types.CashFlowStatement).
-type CashFlowStatement struct {
-	Date                   string   `json:"date"`
-	Symbol                 string   `json:"symbol"`
-	ReportedCurrency       *string  `json:"reported_currency,omitempty"`
-	CIK                    *string  `json:"cik,omitempty"`
-	FiscalYear             *string  `json:"fiscal_year,omitempty"`
-	Period                 *string  `json:"period,omitempty"`
-	NetIncome              *Decimal `json:"net_income,omitempty"`
-	OperatingCashFlow      *Decimal `json:"operating_cash_flow,omitempty"`
-	InvestingCashFlow      *Decimal `json:"investing_cash_flow,omitempty"`
-	FinancingCashFlow      *Decimal `json:"financing_cash_flow,omitempty"`
-	CapitalExpenditure     *Decimal `json:"capital_expenditure,omitempty"`
-	FreeCashFlow           *Decimal `json:"free_cash_flow,omitempty"`
-	DividendsPaid          *Decimal `json:"dividends_paid,omitempty"`
-	StockBasedCompensation *Decimal `json:"stock_based_compensation,omitempty"`
-	CashChange             *Decimal `json:"cash_change,omitempty"`
-}
-
-// decodeStatementList decodes the raw statements body for statement into the
-// matching statement-specific Go type and returns it as any.
+// decodeStatementList decodes the raw statements body for statement into a
+// slice of raw JSON items.
 //
 // The backend statements route returns a bare list whose item type is a union
-// (income / balance / cashflow); the body is therefore fetched as json.RawMessage
-// and decoded here. Unknown fields are ignored so new backend fields do not break
-// decoding, and every item must carry the required date and symbol header fields.
+// (income / balance / cashflow); the body is fetched as json.RawMessage and
+// decoded here. Each item must be a JSON object carrying the required non-empty
+// date and symbol string headers. All line items and unknown fields pass
+// through untouched.
 //
 // A decode failure is a plain error: the tool layer maps it onto the generic
 // provider-failure result, so a cache-hit shape change is never reported as
 // "no data".
-func decodeStatementList(raw json.RawMessage, statement string) (any, error) {
+func decodeStatementList(raw json.RawMessage, statement string) ([]json.RawMessage, error) {
 	switch statement {
-	case statementIncome:
-		var items []IncomeStatement
-		if err := decodeStatementItems(raw, &items); err != nil {
-			return nil, err
-		}
-		for _, item := range items {
-			if item.Date == "" || item.Symbol == "" {
-				return nil, errors.New("statement item is missing the date or symbol field")
-			}
-		}
-		return items, nil
-	case statementBalance:
-		var items []BalanceSheet
-		if err := decodeStatementItems(raw, &items); err != nil {
-			return nil, err
-		}
-		for _, item := range items {
-			if item.Date == "" || item.Symbol == "" {
-				return nil, errors.New("statement item is missing the date or symbol field")
-			}
-		}
-		return items, nil
-	case statementCashflow:
-		var items []CashFlowStatement
-		if err := decodeStatementItems(raw, &items); err != nil {
-			return nil, err
-		}
-		for _, item := range items {
-			if item.Date == "" || item.Symbol == "" {
-				return nil, errors.New("statement item is missing the date or symbol field")
-			}
-		}
-		return items, nil
+	case statementIncome, statementBalance, statementCashflow:
 	default:
 		return nil, fmt.Errorf("unknown statement type %q", statement)
 	}
-}
 
-// decodeStatementItems decodes a statement list, ignoring unknown fields.
-// A JSON null body decodes to an empty list.
-func decodeStatementItems(raw json.RawMessage, out any) error {
-	decoder := json.NewDecoder(strings.NewReader(string(raw)))
-	if err := decoder.Decode(out); err != nil {
-		return fmt.Errorf("decoding statement list: %w", err)
+	var items []json.RawMessage
+	if err := json.Unmarshal(raw, &items); err != nil {
+		return nil, fmt.Errorf("decoding statement list: %w", err)
 	}
-	return nil
+	if items == nil {
+		items = []json.RawMessage{}
+	}
+
+	for _, item := range items {
+		var header struct {
+			Date   *string `json:"date"`
+			Symbol *string `json:"symbol"`
+		}
+		if err := json.Unmarshal(item, &header); err != nil {
+			return nil, fmt.Errorf("decoding statement item header: %w", err)
+		}
+		if header.Date == nil || strings.TrimSpace(*header.Date) == "" ||
+			header.Symbol == nil || strings.TrimSpace(*header.Symbol) == "" {
+			return nil, errors.New("statement item is missing the date or symbol field")
+		}
+	}
+	return items, nil
 }
