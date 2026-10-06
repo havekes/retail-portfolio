@@ -21,8 +21,10 @@
 
 	$effect(() => {
 		if (modalState.isOpen && modalState.data) {
-			lowerBound = modalState.data.valuation?.lower_bound ?? null;
-			upperBound = modalState.data.valuation?.upper_bound ?? null;
+			const rawLower = modalState.data.valuation?.lower_bound;
+			const rawUpper = modalState.data.valuation?.upper_bound;
+			lowerBound = rawLower != null ? Math.round(Number(rawLower) * 100) / 100 : null;
+			upperBound = rawUpper != null ? Math.round(Number(rawUpper) * 100) / 100 : null;
 			error = null;
 		}
 	});
@@ -30,15 +32,18 @@
 	const handleSubmit = async () => {
 		if (!modalState.data?.securityId) return;
 
-		if (lowerBound == null || lowerBound <= 0) {
+		const roundedLower = lowerBound != null ? Math.round(Number(lowerBound) * 100) / 100 : null;
+		const roundedUpper = upperBound != null ? Math.round(Number(upperBound) * 100) / 100 : null;
+
+		if (roundedLower == null || roundedLower <= 0) {
 			error = 'Please enter a valid lower bound (> 0)';
 			return;
 		}
-		if (upperBound == null || upperBound <= 0) {
+		if (roundedUpper == null || roundedUpper <= 0) {
 			error = 'Please enter a valid upper bound (> 0)';
 			return;
 		}
-		if (lowerBound > upperBound) {
+		if (roundedLower > roundedUpper) {
 			error = 'Lower bound cannot be greater than upper bound';
 			return;
 		}
@@ -48,8 +53,8 @@
 
 		try {
 			const res = await valuationClient.setValuation(modalState.data.securityId, {
-				lower_bound: lowerBound,
-				upper_bound: upperBound
+				lower_bound: roundedLower,
+				upper_bound: roundedUpper
 			});
 			onSaved?.(res);
 			modalState.close();
@@ -85,7 +90,7 @@
 						<Input
 							id="lower-bound"
 							type="number"
-							step="any"
+							step="0.01"
 							min="0"
 							placeholder="e.g. 120.00"
 							bind:value={lowerBound}
@@ -96,7 +101,7 @@
 						<Input
 							id="upper-bound"
 							type="number"
-							step="any"
+							step="0.01"
 							min="0"
 							placeholder="e.g. 150.00"
 							bind:value={upperBound}

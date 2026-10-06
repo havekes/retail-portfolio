@@ -761,4 +761,79 @@ describe('rewind finance utilities', () => {
 			expect(areSnapshotsEqual(withoutKey, emptyCollections)).toBe(true);
 		});
 	});
+
+	describe('valuation persistence and equality', () => {
+		const sampleValuation = {
+			lower_bound: 120.5,
+			upper_bound: 155.0
+		};
+
+		it('round-trips the valuation key through captureSnapshot', () => {
+			const snap = captureSnapshot(
+				{ valuation: sampleValuation },
+				sampleDataWindow,
+				new Date('2026-08-27T10:00:00.000Z')
+			);
+
+			expect(snap.drawings.valuation).toEqual(sampleValuation);
+		});
+
+		it('compares two snapshots differing in valuation bounds as unequal', () => {
+			const snapA: RewindSnapshot = {
+				id: 's1',
+				captured_at: '2026-08-27T10:00:00.000Z',
+				drawings: { valuation: sampleValuation },
+				data_window: sampleDataWindow
+			};
+			const snapB: RewindSnapshot = {
+				id: 's2',
+				captured_at: '2026-08-27T11:00:00.000Z',
+				drawings: { valuation: { lower_bound: 120.5, upper_bound: 160.0 } },
+				data_window: sampleDataWindow
+			};
+			const snapWithoutValuation: RewindSnapshot = {
+				id: 's3',
+				captured_at: '2026-08-27T12:00:00.000Z',
+				drawings: {},
+				data_window: sampleDataWindow
+			};
+
+			expect(areSnapshotsEqual(snapA, snapB)).toBe(false);
+			expect(areSnapshotsEqual(snapA, snapWithoutValuation)).toBe(false);
+		});
+
+		it('compares snapshots with identical valuation bounds as equal', () => {
+			const snapA: RewindSnapshot = {
+				id: 's1',
+				captured_at: '2026-08-27T10:00:00.000Z',
+				drawings: { valuation: sampleValuation },
+				data_window: sampleDataWindow
+			};
+			const snapB: RewindSnapshot = {
+				id: 's2',
+				captured_at: '2026-08-27T12:00:00.000Z',
+				drawings: { valuation: { ...sampleValuation } },
+				data_window: sampleDataWindow
+			};
+
+			expect(areSnapshotsEqual(snapA, snapB)).toBe(true);
+		});
+
+		it('treats null and undefined valuation as equal', () => {
+			const snapUndefined: RewindSnapshot = {
+				id: 's1',
+				captured_at: '2026-08-27T10:00:00.000Z',
+				drawings: { valuation: undefined },
+				data_window: sampleDataWindow
+			};
+			const snapNull: RewindSnapshot = {
+				id: 's2',
+				captured_at: '2026-08-27T11:00:00.000Z',
+				drawings: { valuation: null },
+				data_window: sampleDataWindow
+			};
+
+			expect(areSnapshotsEqual(snapUndefined, snapNull)).toBe(true);
+		});
+	});
 });

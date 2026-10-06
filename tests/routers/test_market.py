@@ -1150,3 +1150,39 @@ async def test_batch_valuations_endpoint(auth_client, test_security):
     assert len(post_items) == 1
     assert post_items[0]["security_id"] == str(test_security.id)
 
+
+@pytest.mark.anyio
+async def test_chart_snapshot_with_valuation_in_drawings(auth_client, test_security):
+    """Test creating and retrieving chart snapshot with valuation stored in drawings."""
+    payload = {
+        "drawings": {
+            "lines": [{"x1": 10, "y1": 20, "x2": 30, "y2": 40}],
+            "valuation": {"lower_bound": 45.5, "upper_bound": 80.0},
+        },
+        "data_window": {"from": 100, "to": 200},
+    }
+    create_res = await auth_client.post(
+        f"/api/v1/market/securities/{test_security.id}/snapshots",
+        json=payload,
+    )
+    assert create_res.status_code == 201
+    created_data = create_res.json()
+    assert created_data["drawings"]["valuation"] == {
+        "lower_bound": 45.5,
+        "upper_bound": 80.0,
+    }
+
+    get_res = await auth_client.get(
+        f"/api/v1/market/securities/{test_security.id}/snapshots"
+    )
+    assert get_res.status_code == 200
+    snapshots = get_res.json()
+    assert len(snapshots) >= 1
+    matched = [s for s in snapshots if s["id"] == created_data["id"]]
+    assert len(matched) == 1
+    assert matched[0]["drawings"]["valuation"] == {
+        "lower_bound": 45.5,
+        "upper_bound": 80.0,
+    }
+
+

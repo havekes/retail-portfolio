@@ -22,6 +22,7 @@ from src.market.schema import (
     SecurityNoteRead,
     SecurityNoteWrite,
     SecuritySchema,
+    SecurityValuationHistoryRead,
     SecurityValuationRead,
     SecurityValuationWrite,
     WatchlistRead,
@@ -333,4 +334,10 @@ class SecurityValuationRepository(ABC):
     async def get_batch_by_user_and_securities(
         self, security_ids: list[SecurityId], user_id: UserId
     ) -> list[SecurityValuationRead]:
+        pass
+
+    @abstractmethod
+    async def get_history(
+        self, security_id: SecurityId, user_id: UserId
+    ) -> list[SecurityValuationHistoryRead]:
         pass

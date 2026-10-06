@@ -10,10 +10,16 @@ export interface RewindDataWindow {
 	last: string | number;
 }
 
+export interface RewindValuation {
+	lower_bound: number;
+	upper_bound: number;
+}
+
 export interface RewindDrawings {
 	elliott_waves?: SecurityElliottWaves | null;
 	fibonacci_tools?: SecurityFibonacciTools | null;
 	drawings?: SecurityDrawings | null;
+	valuation?: RewindValuation | null;
 }
 
 export interface RewindSnapshot {
@@ -182,6 +188,18 @@ function areFibonacciToolsEqualNormalized(
 	return areFibonacciToolsEqual(a, b);
 }
 
+function areRewindValuationsEqual(
+	a: RewindValuation | null | undefined,
+	b: RewindValuation | null | undefined
+): boolean {
+	if (!a && !b) return true;
+	if (!a || !b) return false;
+	return (
+		Number(a.lower_bound) === Number(b.lower_bound) &&
+		Number(a.upper_bound) === Number(b.upper_bound)
+	);
+}
+
 /**
  * Compares two RewindSnapshot objects for content equality (structural equality of drawings
  * and data window). Metadata fields `id` and `captured_at` are intentionally ignored for save-dedupe semantics.
@@ -206,6 +224,10 @@ export function areSnapshotsEqual(
 	}
 
 	if (!areSecurityDrawingsEqual(a.drawings?.drawings, b.drawings?.drawings)) {
+		return false;
+	}
+
+	if (!areRewindValuationsEqual(a.drawings?.valuation, b.drawings?.valuation)) {
 		return false;
 	}
 

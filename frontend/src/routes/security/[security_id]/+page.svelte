@@ -106,6 +106,7 @@
 		new ChartDrawingsService({
 			securityId: untrack(() => security?.id),
 			userPreferences: untrack(() => userPreferences),
+			valuation: untrack(() => valuation),
 			getChartRef: () => chartRef,
 			onWaveAlertsReconcile: () => scheduleWaveAlertsReconcile(),
 			onPreferencesChanged: (prefs: UserPreferences) => {
@@ -136,6 +137,16 @@
 	$effect(() => {
 		drawingsService.setSecurity(security?.id ?? null);
 	});
+
+	$effect(() => {
+		drawingsService.setValuation(valuation);
+	});
+
+	const handleValuationSaved = async (saved: SecurityValuationRead) => {
+		valuation = saved;
+		drawingsService.setValuation(saved);
+		await drawingsService.handleSaveSnapshot();
+	};
 
 	/**
 	 * Accessor for the new-tool drawings currently in effect: the active rewind
@@ -973,7 +984,7 @@
 								autoScale={userPreferences?.chart_auto_scale ?? true}
 								logScale={Boolean(userPreferences?.chart_log_scale)}
 								onAutoScaleChange={handleAutoScaleChange}
-								{valuation}
+								valuation={drawingsService.effectiveValuation}
 								showValuation={showValuationOverlay}
 								showValuationBand={showValuationOverlay}
 								onWaveDoubleClick={(degree, waveId) => {
@@ -1108,6 +1119,7 @@
 						currency={security.currency}
 						bind:valuation
 						bind:showOverlay={showValuationOverlay}
+						onSaved={handleValuationSaved}
 					/>
 					<IndicatorsGroup
 						expanded={true}

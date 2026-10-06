@@ -17,6 +17,7 @@
 	import { cn } from '$lib/utils';
 	import type { SecurityValuation } from '$lib/api/marketService';
 	import { formatValuationRange } from '$lib/utils/finance/valuation';
+	import { formatDate } from '$lib/utils/date';
 	import {
 		calculatePercentOfTotal,
 		calculatePercentOfAccount,
@@ -154,6 +155,9 @@
 		ew_cycle_upside: number | null;
 		valuation_lower: number | null;
 		valuation_upper: number | null;
+		valuation_lower_upside: number | null;
+		valuation_upper_upside: number | null;
+		valuation_updated_at: string | null;
 	};
 
 	// Fields shared by a single holding and a grouped holding.
@@ -180,7 +184,7 @@
 
 	/** Per-account share of each holding, keyed by account name (or id). */
 	function accountBadges(rows: UserHolding[]): HoldingAccountBadge[] {
-		const byAccount = new SvelteMap<string, { name: string; account_id?: string; value: number }>();
+		const byAccount = new SvelteMap<string, { name: string; account_id: string; value: number }>();
 		for (const row of rows) {
 			const key = row.account_name || row.account_id;
 			if (!key) continue;
@@ -207,6 +211,11 @@
 		const ew_primary_target = getWaveTargetPrice(getLatestWaveCount(waves, 'primary'), 'wave5');
 		const ew_cycle_target = getWaveTargetPrice(getLatestWaveCount(waves, 'cycle'), 'wave5');
 		const valuation = valuations?.[source.security_id];
+		const valuation_lower = toNumberOrNull(valuation?.lower_bound);
+		const valuation_upper = toNumberOrNull(valuation?.upper_bound);
+		const valuation_lower_upside = calculateUpsidePercentage(valuation_lower, source.latest_price);
+		const valuation_upper_upside = calculateUpsidePercentage(valuation_upper, source.latest_price);
+		const valuation_updated_at = valuation?.updated_at || valuation?.created_at || null;
 
 		return {
 			id: source.id,
@@ -231,8 +240,11 @@
 			ew_primary_upside: calculateUpsidePercentage(ew_primary_target, source.latest_price),
 			ew_cycle_target,
 			ew_cycle_upside: calculateUpsidePercentage(ew_cycle_target, source.latest_price),
-			valuation_lower: toNumberOrNull(valuation?.lower_bound),
-			valuation_upper: toNumberOrNull(valuation?.upper_bound)
+			valuation_lower,
+			valuation_upper,
+			valuation_lower_upside,
+			valuation_upper_upside,
+			valuation_updated_at
 		};
 	}
 
@@ -257,6 +269,24 @@
 			return 'text-rose-600 dark:text-rose-400 bg-rose-500/10 border-rose-500/20';
 		}
 		return 'text-muted-foreground bg-muted/40 border-border/40';
+	}
+
+	function formatUpsidePercent(percent: number): string {
+		const rounded = Math.round(percent);
+		const prefix = rounded > 0 ? '+' : '';
+		return `${prefix}${rounded}%`;
+	}
+
+	function getUpsideClass(percent: number): string {
+		if (percent > 0) return 'text-emerald-600 dark:text-emerald-400';
+		if (percent < 0) return 'text-rose-600 dark:text-rose-400';
+		return 'text-muted-foreground';
+	}
+
+	function getUpsideRangeClass(lower: number, upper: number): string {
+		if (lower > 0 && upper > 0) return 'text-emerald-600 dark:text-emerald-400';
+		if (lower < 0 && upper < 0) return 'text-rose-600 dark:text-rose-400';
+		return '';
 	}
 
 	function valueFor(
@@ -541,9 +571,40 @@
 		{/if}
 		{#if isVisible('valuation_range')}
 			<Table.Cell data-testid="valuation-range-cell" class={cn(CELL, 'text-right')}>
-				<span data-testid="valuation-range" class="text-xs font-medium tabular-nums">
-					{formatValuationRange(row.valuation_lower, row.valuation_upper)}
-				</span>
+				{#if row.valuation_lower !== null && row.valuation_upper !== null}
+					<div class="flex flex-col items-end gap-0.5 leading-tight">
+						<span data-testid="valuation-range" class="text-xs font-medium tabular-nums">
+							{formatValuationRange(row.valuation_lower, row.valuation_upper)}
+						</span>
+						{#if row.valuation_lower_upside !== null && row.valuation_upper_upside !== null}
+							<span
+								data-testid="valuation-upside-range"
+								class={cn(
+									'text-[10px] font-medium tabular-nums',
+									getUpsideRangeClass(row.valuation_lower_upside, row.valuation_upper_upside)
+								)}
+							>
+								<span class={getUpsideClass(row.valuation_lower_upside)}>
+									{formatUpsidePercent(row.valuation_lower_upside)}
+								</span>
+								<span class="text-muted-foreground"> – </span>
+								<span class={getUpsideClass(row.valuation_upper_upside)}>
+									{formatUpsidePercent(row.valuation_upper_upside)}
+								</span>
+							</span>
+						{/if}
+						{#if row.valuation_updated_at}
+							<span
+								data-testid="valuation-updated-at"
+								class="text-[10px] text-muted-foreground tabular-nums"
+							>
+								{formatDate(row.valuation_updated_at)}
+							</span>
+						{/if}
+					</div>
+				{:else}
+					<span data-testid="valuation-range" class="text-xs font-medium tabular-nums"> — </span>
+				{/if}
 			</Table.Cell>
 		{/if}
 	</Table.Row>

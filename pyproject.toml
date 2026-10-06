@@ -185,7 +185,7 @@ cache-dir = "./.cache/ruff"
 # `openwiki/` is machine-generated documentation; ruff formats Python code
 # fences inside Markdown, so generated snippets would otherwise gate CI on
 # every scheduled OpenWiki update.
-exclude = ["migrations", "tests", "modules", "openwiki"]
+exclude = ["migrations", "tests", "modules", "openwiki", ".opencode", ".agent", ".ai"]
 
 [tool.ty.src]
 exclude = ["migrations"]

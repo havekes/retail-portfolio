@@ -693,6 +693,78 @@ describe('ChartDrawingsService', () => {
 			expect(service.effectiveSecurityDrawings.lines).toEqual([snapLine]);
 			expect(service.getEffectiveSecurityDrawings().lines).toEqual([snapLine]);
 		});
+
+		it('saves snapshot with valuation even if drawings are empty', async () => {
+			const service = createService({
+				userPreferences: {},
+				valuation: { lower_bound: 120, upper_bound: 180 }
+			});
+
+			await service.handleSaveSnapshot();
+
+			expect(mockCreateSnapshot).toHaveBeenCalledTimes(1);
+			expect(mockCreateSnapshot).toHaveBeenCalledWith(
+				'sec-1',
+				expect.objectContaining({
+					drawings: expect.objectContaining({
+						valuation: { lower_bound: 120, upper_bound: 180 }
+					})
+				})
+			);
+		});
+
+		it('handleValuationSave updates valuation and triggers snapshot save', async () => {
+			const service = createService({
+				userPreferences: {}
+			});
+
+			await service.handleValuationSave({ lower_bound: 50, upper_bound: 75 });
+
+			expect(service.valuation).toEqual({ lower_bound: 50, upper_bound: 75 });
+			expect(mockCreateSnapshot).toHaveBeenCalledTimes(1);
+			expect(mockCreateSnapshot).toHaveBeenCalledWith(
+				'sec-1',
+				expect.objectContaining({
+					drawings: expect.objectContaining({
+						valuation: { lower_bound: 50, upper_bound: 75 }
+					})
+				})
+			);
+		});
+
+		it('returns active snapshot valuation when rewound and live valuation when not', () => {
+			const liveValuation = { lower_bound: 100, upper_bound: 150 };
+			const snapValuation = { lower_bound: 80, upper_bound: 120 };
+
+			const snapshot: RewindSnapshot = {
+				id: 'snap-val',
+				security_id: 'sec-1',
+				captured_at: '2025-01-02T00:00:00.000Z',
+				drawings: {
+					valuation: snapValuation
+				},
+				data_window: { first: '2025-01-01', last: '2025-01-02' }
+			};
+
+			const service = createService({
+				userPreferences: {},
+				valuation: liveValuation
+			});
+			service.snapshots = [snapshot];
+
+			// Live
+			expect(service.effectiveValuation).toEqual(liveValuation);
+
+			// Rewound
+			service.setTimelinePosition(new Date('2025-01-02T12:00:00.000Z'));
+			expect(service.isRewound).toBe(true);
+			expect(service.effectiveValuation).toEqual(snapValuation);
+
+			// Return to now
+			service.setTimelinePosition(null);
+			expect(service.isRewound).toBe(false);
+			expect(service.effectiveValuation).toEqual(liveValuation);
+		});
 	});
 
 	describe('Wave degree updates', () => {

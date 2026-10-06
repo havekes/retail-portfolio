@@ -101,4 +101,27 @@ describe('FundamentalsGroup Component', () => {
 			show_valuation_band: false
 		});
 	});
+
+	it('renders short date of last update when valuation is present', async () => {
+		const mockValuation: SecurityValuationRead = {
+			id: 1,
+			user_id: 'u-1',
+			security_id: 'sec-1',
+			lower_bound: 100,
+			upper_bound: 150,
+			created_at: '2026-10-05T12:00:00Z',
+			updated_at: '2026-10-05T12:00:00Z'
+		};
+		vi.mocked(valuationClient.getValuation).mockResolvedValue(mockValuation);
+
+		render(FundamentalsGroup, {
+			securityId: 'sec-1',
+			currency: 'USD',
+			expanded: true
+		});
+
+		await waitFor(() => {
+			expect(screen.getByText('Oct 5, 2026')).toBeInTheDocument();
+		});
+	});
 });

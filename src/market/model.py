@@ -265,3 +265,27 @@ class SecurityValuationModel(BaseModel):
             "security_id",
         ),
     )
+
+
+class SecurityValuationHistoryModel(BaseModel):
+    __tablename__ = "market_security_valuation_history"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    user_id: Mapped[UserId] = mapped_column(Uuid)
+    security_id: Mapped[SecurityId] = mapped_column(
+        Uuid, ForeignKey("market_securities.id", ondelete="CASCADE")
+    )
+    lower_bound: Mapped[Decimal] = mapped_column(DECIMAL(16, 8))
+    upper_bound: Mapped[Decimal] = mapped_column(DECIMAL(16, 8))
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), default=func.now()
+    )
+
+    __table_args__ = (
+        Index(
+            "ix_market_security_valuation_history_user_security_created",
+            "user_id",
+            "security_id",
+            "created_at",
+        ),
+    )
