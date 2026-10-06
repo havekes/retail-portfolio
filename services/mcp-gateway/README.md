@@ -163,6 +163,10 @@ actionable error rather than "no data":
 ### Tool result contract
 
 - Success: a single `mcp.TextContent` holding the JSON-encoded payload.
+  Backend responses are passed through directly as raw JSON: statement tools
+  validate `date`/`symbol` headers and pass statement items through untouched,
+  while projection tools extract the target section verbatim, preserving
+  unknown fields and exact numeric representations.
 - **`ErrNoData` is a successful result** whose text is `No market data is
   available for this request.` A 404 may be a cached empty result within the
   cache TTL, so it is never phrased as "invalid symbol".

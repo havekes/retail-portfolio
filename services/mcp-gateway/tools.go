@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
 	"errors"
@@ -89,14 +90,7 @@ func registerTools(server *mcp.Server, client *BackendClient, cfg Config) {
 				if err != nil {
 					return nil, err
 				}
-				fundamentals, err := decodeFundamentals(raw)
-				if err != nil {
-					return nil, err
-				}
-				if fundamentals.KeyMetrics == nil {
-					return nil, &backendError{class: ErrNoData}
-				}
-				return fundamentals.KeyMetrics, nil
+				return fundamentalsSection(raw, "key_metrics", false)
 			})
 		})
 
@@ -108,14 +102,7 @@ func registerTools(server *mcp.Server, client *BackendClient, cfg Config) {
 				if err != nil {
 					return nil, err
 				}
-				fundamentals, err := decodeFundamentals(raw)
-				if err != nil {
-					return nil, err
-				}
-				if fundamentals.Ratios == nil {
-					return nil, &backendError{class: ErrNoData}
-				}
-				return fundamentals.Ratios, nil
+				return fundamentalsSection(raw, "ratios", false)
 			})
 		})
 
@@ -127,11 +114,7 @@ func registerTools(server *mcp.Server, client *BackendClient, cfg Config) {
 				if err != nil {
 					return nil, err
 				}
-				fundamentals, err := decodeFundamentals(raw)
-				if err != nil {
-					return nil, err
-				}
-				return fundamentals.Profile, nil
+				return fundamentalsSection(raw, "profile", true)
 			})
 		})
 
@@ -155,14 +138,22 @@ func addTool[In any](
 	mcp.AddTool(server, &mcp.Tool{Name: name, Description: description}, handler)
 }
 
-// decodeFundamentals unmarshals raw fundamentals JSON into CompanyFundamentals
-// so projection tools can extract their target section.
-func decodeFundamentals(raw json.RawMessage) (CompanyFundamentals, error) {
-	var f CompanyFundamentals
-	if err := json.Unmarshal(raw, &f); err != nil {
-		return CompanyFundamentals{}, err
+// fundamentalsSection extracts key from a raw fundamentals payload. When
+// required is true, an absent or null section returns an ErrProvider failure;
+// when false, it returns an ErrNoData failure.
+func fundamentalsSection(raw json.RawMessage, key string, required bool) (json.RawMessage, error) {
+	var sections map[string]json.RawMessage
+	if err := json.Unmarshal(raw, &sections); err != nil {
+		return nil, &backendError{class: ErrProvider, detail: err.Error()}
 	}
-	return f, nil
+	section, ok := sections[key]
+	if !ok || len(section) == 0 || bytes.Equal(bytes.TrimSpace(section), []byte("null")) {
+		if required {
+			return nil, &backendError{class: ErrProvider, detail: fmt.Sprintf("missing required fundamentals section %q", key)}
+		}
+		return nil, &backendError{class: ErrNoData}
+	}
+	return section, nil
 }
 
 // statementHandler builds the handler for one statement tool. statement is
@@ -479,12 +470,12 @@ func (in statementInput) prepare() (statementRequest, error) {
 
 // statementEnvelope echoes the request scope alongside the decoded items.
 type statementEnvelope struct {
-	Statement string `json:"statement"`
-	Symbol    string `json:"symbol"`
-	Period    string `json:"period"`
-	Limit     int    `json:"limit"`
-	Exchange  string `json:"exchange,omitempty"`
-	Items     any    `json:"items"`
+	Statement string            `json:"statement"`
+	Symbol    string            `json:"symbol"`
+	Period    string            `json:"period"`
+	Limit     int               `json:"limit"`
+	Exchange  string            `json:"exchange,omitempty"`
+	Items     []json.RawMessage `json:"items"`
 }
 
 type searchSymbolsInput struct {
