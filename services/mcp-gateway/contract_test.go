@@ -8,6 +8,7 @@ import (
 	"net/http/httptest"
 	"os"
 	"path/filepath"
+	"slices"
 	"strings"
 	"sync"
 	"testing"
@@ -225,7 +226,7 @@ func TestBackendClientOpenAPIParity(t *testing.T) {
 		w.Header().Set("Content-Type", "application/json")
 		switch {
 		case strings.Contains(r.URL.Path, "/prices/"):
-			_, _ = w.Write([]byte(`{"symbol":"AAPL","exchange":"US","from_date":"2024-01-01","to_date":"2024-01-02","items":[]}`))
+			_, _ = w.Write([]byte(`{"symbol":"AAPL","exchange":"NASDAQ","from_date":"2024-01-01","to_date":"2024-01-02","items":[]}`))
 		case strings.Contains(r.URL.Path, "/symbols/search"):
 			_, _ = w.Write([]byte(`[]`))
 		case strings.Contains(r.URL.Path, "/options/"):
@@ -246,7 +247,7 @@ func TestBackendClientOpenAPIParity(t *testing.T) {
 	// 1. Prices (with and without optional exchange)
 	from := time.Date(2024, 1, 1, 0, 0, 0, 0, time.UTC)
 	to := time.Date(2024, 1, 10, 0, 0, 0, 0, time.UTC)
-	if _, err := client.Prices(ctx, "AAPL", from, to, "US"); err != nil {
+	if _, err := client.Prices(ctx, "AAPL", from, to, "NASDAQ"); err != nil {
 		t.Fatalf("Prices with exchange failed: %v", err)
 	}
 	if _, err := client.Prices(ctx, "AAPL", from, to, ""); err != nil {
@@ -270,7 +271,7 @@ func TestBackendClientOpenAPIParity(t *testing.T) {
 	}
 
 	// 4. Fundamentals (with and without exchange)
-	if _, err := client.Fundamentals(ctx, "AAPL", "US"); err != nil {
+	if _, err := client.Fundamentals(ctx, "AAPL", "NASDAQ"); err != nil {
 		t.Fatalf("Fundamentals with exchange failed: %v", err)
 	}
 	if _, err := client.Fundamentals(ctx, "AAPL", ""); err != nil {
@@ -278,7 +279,7 @@ func TestBackendClientOpenAPIParity(t *testing.T) {
 	}
 
 	// 5. Statements (with all parameters, and with minimal)
-	if _, err := client.Statements(ctx, "AAPL", "income", "annual", 5, "US"); err != nil {
+	if _, err := client.Statements(ctx, "AAPL", "income", "annual", 5, "NASDAQ"); err != nil {
 		t.Fatalf("Statements with all parameters failed: %v", err)
 	}
 	if _, err := client.Statements(ctx, "AAPL", "balance", "", 0, ""); err != nil {
@@ -386,5 +387,62 @@ func TestBackendClientOpenAPINegativeDrift(t *testing.T) {
 				t.Fatalf("expected error containing %q, got: %v", tc.wantErrMsg, err)
 			}
 		})
+	}
+}
+
+func extractEnumFromSchema(schema map[string]any) ([]string, error) {
+	if rawEnum, ok := schema["enum"].([]any); ok {
+		return anyToStringSlice(rawEnum), nil
+	}
+	if anyOf, ok := schema["anyOf"].([]any); ok {
+		for _, variant := range anyOf {
+			if vMap, ok := variant.(map[string]any); ok {
+				if rawEnum, ok := vMap["enum"].([]any); ok {
+					return anyToStringSlice(rawEnum), nil
+				}
+			}
+		}
+	}
+	return nil, fmt.Errorf("no enum found in schema: %+v", schema)
+}
+
+func anyToStringSlice(items []any) []string {
+	out := make([]string, 0, len(items))
+	for _, item := range items {
+		if s, ok := item.(string); ok {
+			out = append(out, s)
+		}
+	}
+	return out
+}
+
+func TestExchangeVocabularyMatchesContract(t *testing.T) {
+	doc := loadOpenAPIContract(t)
+
+	routesChecked := 0
+	for routePath, ops := range doc.Paths {
+		op, ok := ops["get"]
+		if !ok {
+			continue
+		}
+		for _, param := range op.Parameters {
+			if param.Name == "exchange" && param.In == "query" {
+				routesChecked++
+				enumVals, err := extractEnumFromSchema(param.Schema)
+				if err != nil {
+					t.Errorf("route %s: failed to extract exchange enum from OpenAPI schema: %v", routePath, err)
+					continue
+				}
+				if !slices.Equal(enumVals, supportedExchanges) {
+					t.Errorf("route %s: OpenAPI exchange enum %v does not match Go supportedExchanges %v",
+						routePath, enumVals, supportedExchanges)
+				}
+			}
+		}
+	}
+
+	expectedRouteCount := 3
+	if routesChecked != expectedRouteCount {
+		t.Errorf("expected %d routes with exchange parameter, checked %d", expectedRouteCount, routesChecked)
 	}
 }
