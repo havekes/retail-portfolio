@@ -397,6 +397,154 @@ func TestToolsCallBackendAndReturnData(t *testing.T) {
 	}
 }
 
+func TestFundamentalsProjectionsWithNullSections(t *testing.T) {
+	const (
+		nullRatiosBody = `{
+			"profile": {"symbol": "AAPL", "company_name": "Apple Inc."},
+			"key_metrics": {"symbol": "AAPL", "date": "2024-09-28", "pe_ratio": "36.28"},
+			"ratios": null
+		}`
+		nullKeyMetricsBody = `{
+			"profile": {"symbol": "AAPL", "company_name": "Apple Inc."},
+			"key_metrics": null,
+			"ratios": {"symbol": "AAPL", "date": "2024-09-28", "debt_to_equity": "1.87"}
+		}`
+		nullBothBody = `{
+			"profile": {"symbol": "AAPL", "company_name": "Apple Inc."},
+			"key_metrics": null,
+			"ratios": null
+		}`
+	)
+
+	tests := []struct {
+		name       string
+		tool       string
+		body       string
+		wantNoData bool
+		assertData func(t *testing.T, raw string)
+	}{
+		// null ratios: get_financial_ratios returns no data; get_company_details and get_key_metrics return data
+		{
+			name:       "null ratios: get_financial_ratios returns no-data",
+			tool:       "get_financial_ratios",
+			body:       nullRatiosBody,
+			wantNoData: true,
+		},
+		{
+			name: "null ratios: get_company_details returns data",
+			tool: "get_company_details",
+			body: nullRatiosBody,
+			assertData: func(t *testing.T, raw string) {
+				var got CompanyProfile
+				if err := json.Unmarshal([]byte(raw), &got); err != nil {
+					t.Fatalf("decode CompanyProfile: %v", err)
+				}
+				if got.CompanyName != "Apple Inc." {
+					t.Errorf("company_name = %q, want Apple Inc.", got.CompanyName)
+				}
+			},
+		},
+		{
+			name: "null ratios: get_key_metrics returns data",
+			tool: "get_key_metrics",
+			body: nullRatiosBody,
+			assertData: func(t *testing.T, raw string) {
+				var got KeyMetrics
+				if err := json.Unmarshal([]byte(raw), &got); err != nil {
+					t.Fatalf("decode KeyMetrics: %v", err)
+				}
+				if got.PERatio == nil || *got.PERatio != Decimal("36.28") {
+					t.Errorf("pe_ratio = %v, want 36.28", got.PERatio)
+				}
+			},
+		},
+		// null key_metrics: get_key_metrics returns no data; get_company_details and get_financial_ratios return data
+		{
+			name:       "null key_metrics: get_key_metrics returns no-data",
+			tool:       "get_key_metrics",
+			body:       nullKeyMetricsBody,
+			wantNoData: true,
+		},
+		{
+			name: "null key_metrics: get_company_details returns data",
+			tool: "get_company_details",
+			body: nullKeyMetricsBody,
+			assertData: func(t *testing.T, raw string) {
+				var got CompanyProfile
+				if err := json.Unmarshal([]byte(raw), &got); err != nil {
+					t.Fatalf("decode CompanyProfile: %v", err)
+				}
+				if got.CompanyName != "Apple Inc." {
+					t.Errorf("company_name = %q, want Apple Inc.", got.CompanyName)
+				}
+			},
+		},
+		{
+			name: "null key_metrics: get_financial_ratios returns data",
+			tool: "get_financial_ratios",
+			body: nullKeyMetricsBody,
+			assertData: func(t *testing.T, raw string) {
+				var got FinancialRatios
+				if err := json.Unmarshal([]byte(raw), &got); err != nil {
+					t.Fatalf("decode FinancialRatios: %v", err)
+				}
+				if got.DebtToEquity == nil || *got.DebtToEquity != Decimal("1.87") {
+					t.Errorf("debt_to_equity = %v, want 1.87", got.DebtToEquity)
+				}
+			},
+		},
+		// both null: get_company_details still returns data, both projections return no data
+		{
+			name:       "both null: get_financial_ratios returns no-data",
+			tool:       "get_financial_ratios",
+			body:       nullBothBody,
+			wantNoData: true,
+		},
+		{
+			name:       "both null: get_key_metrics returns no-data",
+			tool:       "get_key_metrics",
+			body:       nullBothBody,
+			wantNoData: true,
+		},
+		{
+			name: "both null: get_company_details returns data",
+			tool: "get_company_details",
+			body: nullBothBody,
+			assertData: func(t *testing.T, raw string) {
+				var got CompanyProfile
+				if err := json.Unmarshal([]byte(raw), &got); err != nil {
+					t.Fatalf("decode CompanyProfile: %v", err)
+				}
+				if got.CompanyName != "Apple Inc." {
+					t.Errorf("company_name = %q, want Apple Inc.", got.CompanyName)
+				}
+			},
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			backend, _ := newStubBackend(t, http.StatusOK, tc.body)
+			session := newTestSession(t, backend.URL)
+
+			result := callTool(t, session, tc.tool, map[string]any{"symbol": "AAPL"})
+			if result.IsError {
+				t.Fatalf("callTool(%s) failed: %s", tc.tool, resultText(t, result))
+			}
+			raw := resultText(t, result)
+			assertNoProviderName(t, "tool result", raw)
+
+			if tc.wantNoData {
+				if raw != noDataMessage {
+					t.Errorf("expected noDataMessage %q, got %q", noDataMessage, raw)
+				}
+			} else {
+				tc.assertData(t, raw)
+			}
+		})
+	}
+}
+
 func TestToolsMapBackendErrors(t *testing.T) {
 	cases := []struct {
 		name     string
