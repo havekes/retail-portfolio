@@ -231,19 +231,7 @@
 						{/snippet}
 					</DropdownMenu.Trigger>
 					<DropdownMenu.Content align="end" class="w-56">
-						<DropdownMenu.Label>Filter</DropdownMenu.Label>
-						<DropdownMenu.Item
-							data-testid="filter-all"
-							class="flex items-center justify-between"
-							onSelect={() => handleSelectFilter('all')}
-						>
-							<span>All</span>
-							{#if service.filter.type === 'all'}
-								<Check size={14} />
-							{/if}
-						</DropdownMenu.Item>
 						{#if data.portfolios && data.portfolios.length > 0}
-							<DropdownMenu.Separator />
 							<DropdownMenu.Label>Portfolios</DropdownMenu.Label>
 							{#each data.portfolios as portfolio (portfolio.id)}
 								<DropdownMenu.Item
@@ -257,10 +245,20 @@
 									{/if}
 								</DropdownMenu.Item>
 							{/each}
-						{/if}
-						{#if data.accounts && data.accounts.length > 0}
 							<DropdownMenu.Separator />
-							<DropdownMenu.Label>Accounts</DropdownMenu.Label>
+						{/if}
+						<DropdownMenu.Label>Accounts</DropdownMenu.Label>
+						<DropdownMenu.Item
+							data-testid="filter-all"
+							class="flex items-center justify-between"
+							onSelect={() => handleSelectFilter('all')}
+						>
+							<span>All accounts</span>
+							{#if service.filter.type === 'all'}
+								<Check size={14} />
+							{/if}
+						</DropdownMenu.Item>
+						{#if data.accounts && data.accounts.length > 0}
 							{#each data.accounts as account (account.id)}
 								<DropdownMenu.Item
 									data-testid={`filter-account-${account.id}`}

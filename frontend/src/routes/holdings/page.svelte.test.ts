@@ -615,6 +615,22 @@ describe('Holdings page (+page.svelte)', () => {
 			expect(portfolioOption).toBeInTheDocument();
 			expect(accountOption).toBeInTheDocument();
 			expect(allOption).toBeInTheDocument();
+			expect(allOption).toHaveTextContent('All accounts');
+
+			const portfoliosLabel = screen.getByText('Portfolios');
+			const accountsLabel = screen.getByText('Accounts');
+			expect(portfoliosLabel.compareDocumentPosition(portfolioOption)).toBe(
+				Node.DOCUMENT_POSITION_FOLLOWING
+			);
+			expect(portfolioOption.compareDocumentPosition(accountsLabel)).toBe(
+				Node.DOCUMENT_POSITION_FOLLOWING
+			);
+			expect(accountsLabel.compareDocumentPosition(allOption)).toBe(
+				Node.DOCUMENT_POSITION_FOLLOWING
+			);
+			expect(allOption.compareDocumentPosition(accountOption)).toBe(
+				Node.DOCUMENT_POSITION_FOLLOWING
+			);
 
 			// Select portfolio
 			await fireEvent.click(portfolioOption);

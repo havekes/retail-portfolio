@@ -168,6 +168,23 @@ describe('Watchlists page - rendering and sections', () => {
 		expect(msftLink).toHaveClass('hover:bg-background/60');
 	});
 
+	it('applies hover background matching list items to all header and row action buttons', () => {
+		renderPage([defaultList()]);
+
+		const reorderBtn = screen.getByRole('button', { name: 'Reorder securities in Default' });
+		const sortBtn = screen.getByRole('button', { name: 'Sort securities in Default' });
+		const addBtn = screen.getByRole('button', { name: 'Add security to Default' });
+		const renameBtn = screen.getByRole('button', { name: 'Rename Default' });
+		const deleteBtn = screen.getByRole('button', { name: 'Delete Default' });
+		const removeBtn = screen.getByRole('button', { name: 'Remove AAPL' });
+
+		const actionButtons = [reorderBtn, sortBtn, addBtn, renameBtn, deleteBtn, removeBtn];
+		for (const btn of actionButtons) {
+			expect(btn).toHaveClass('hover:bg-background/60');
+			expect(btn).toHaveClass('dark:hover:bg-background/60');
+		}
+	});
+
 	it('shows the formatted date added as muted secondary text', () => {
 		renderPage([
 			watchlist('wl-dates', 'Dates', [security('sec-1', 'AAPL', 180, 1.2, '2026-01-01T00:00:00Z')])
