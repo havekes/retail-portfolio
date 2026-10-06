@@ -2,13 +2,14 @@
 set -e
 
 if [ -z "$1" ] || [ -z "$2" ]; then
-    echo "Usage: $0 <worktree-path> <branch-name>"
-    echo "Example: $0 ../rp-task-123 feature/task-123"
+    echo "Usage: $0 <worktree-path> <branch-name> [base-branch]"
+    echo "Example: $0 ../rp-task-123 feature/task-123 [origin/main]"
     exit 1
 fi
 
 WORKTREE_PATH="$1"
 BRANCH_NAME="$2"
+BASE_REF="${3:-origin/main}"
 
 MAIN_REPO_PATH=$(cd "$(dirname "$0")/.." && pwd)
 
@@ -17,7 +18,7 @@ echo "Creating git worktree at $WORKTREE_PATH for branch $BRANCH_NAME..."
 if git show-ref --verify --quiet refs/heads/"$BRANCH_NAME"; then
     git worktree add "$WORKTREE_PATH" "$BRANCH_NAME"
 else
-    git worktree add -b "$BRANCH_NAME" "$WORKTREE_PATH" origin/main
+    git worktree add -b "$BRANCH_NAME" "$WORKTREE_PATH" "$BASE_REF"
 fi
 
 cd "$WORKTREE_PATH"
@@ -31,6 +32,7 @@ WORKER_DEBUG=$(python3 -c 'import socket; s=socket.socket(); s.bind(("", 0)); pr
 POSTGRES_PORT=$(python3 -c 'import socket; s=socket.socket(); s.bind(("", 0)); print(s.getsockname()[1]); s.close()')
 MAILCRAB_PORT=$(python3 -c 'import socket; s=socket.socket(); s.bind(("", 0)); print(s.getsockname()[1]); s.close()')
 INDICATOR_SERVICE_PORT=$(python3 -c 'import socket; s=socket.socket(); s.bind(("", 0)); print(s.getsockname()[1]); s.close()')
+MCP_GATEWAY_PORT=$(python3 -c 'import socket; s=socket.socket(); s.bind(("", 0)); print(s.getsockname()[1]); s.close()')
 
 # Generate a safe compose project name based on the path
 PROJECT_NAME=$(basename "$WORKTREE_PATH" | tr -cd 'a-zA-Z0-9_-' | tr 'A-Z' 'a-z')
@@ -66,6 +68,7 @@ set_env WORKER_DEBUG_PORT "$WORKER_DEBUG"
 set_env POSTGRES_PORT "$POSTGRES_PORT"
 set_env MAILCRAB_PORT "$MAILCRAB_PORT"
 set_env INDICATOR_SERVICE_PORT "$INDICATOR_SERVICE_PORT"
+set_env MCP_GATEWAY_PORT "$MCP_GATEWAY_PORT"
 
 echo "Done! Worktree is ready at $WORKTREE_PATH."
 echo "Ports assigned:"
