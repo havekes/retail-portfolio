@@ -34,6 +34,7 @@ from src.config.settings import settings
 from src.market.api_types import (
     HistoricalPrice,
     IntradayHistoricalPrice,
+    OptionExpirations,
     OptionsChain,
     OptionsChainEntry,
     OptionsContract,
@@ -54,7 +55,9 @@ logger = logging.getLogger(__name__)
 DEFAULT_BASE_URL = "https://api.polygon.io"
 DEFAULT_TIMEOUT_SECONDS = 10
 _OPTIONS_SNAPSHOT_PATH = "/v3/snapshot/options"
+_OPTIONS_CONTRACTS_PATH = "/v3/reference/options/contracts"
 _PAGE_LIMIT = 250
+_CONTRACTS_PAGE_LIMIT = 1000
 
 # Defensive upper bound on followed ``next_url`` pages. Polygon's cursor is
 # opaque: a sticky or looping ``next_url`` would otherwise keep the caller in
@@ -231,6 +234,89 @@ class PolygonGateway(MarketGateway):
             as_of=None,
             contracts=entries,
         )
+
+    def get_option_expirations(self, symbol: str) -> OptionExpirations:
+        """Get available option expiration dates for an underlying symbol.
+
+        Fetches active contracts sorted by expiration date ascending from
+        Polygon's contracts reference endpoint. Expiration dates are
+        de-duplicated as pages arrive. When pagination is stopped by the page
+        cap, ``truncated`` is set to ``True``. If no contracts exist for the
+        underlying, raises ``MarketDataNotFoundError``.
+        """
+        underlying = symbol.strip().upper()
+
+        params = {
+            "underlying_ticker": underlying,
+            "expired": "false",
+            "sort": "expiration_date",
+            "order": "asc",
+            "limit": str(_CONTRACTS_PAGE_LIMIT),
+            "apiKey": self._api_key,
+        }
+        url = f"{self._base_url}{_OPTIONS_CONTRACTS_PATH}?{urlencode(params)}"
+
+        expirations: list[date] = []
+        seen_dates: set[date] = set()
+
+        payload = self._request_json(url, underlying)
+        self._collect_expirations(payload, expirations, seen_dates)
+
+        truncated = False
+        pages_fetched = 1
+        next_url = payload.get("next_url") if isinstance(payload, dict) else None
+        while isinstance(next_url, str) and next_url:
+            if pages_fetched >= _MAX_PAGES:
+                logger.warning(
+                    "Options expirations pagination truncated at the %d page cap",
+                    _MAX_PAGES,
+                )
+                truncated = True
+                break
+            page = self._request_json(self._with_api_key(next_url), underlying)
+            self._collect_expirations(page, expirations, seen_dates)
+            pages_fetched += 1
+            next_url = page.get("next_url") if isinstance(page, dict) else None
+
+        if not expirations:
+            raise MarketDataNotFoundError(underlying)
+
+        expirations.sort()
+
+        return OptionExpirations(
+            underlying_symbol=underlying,
+            expirations=expirations,
+            truncated=truncated,
+        )
+
+    def _collect_expirations(
+        self,
+        payload: object,
+        expirations: list[date],
+        seen_dates: set[date],
+    ) -> None:
+        """Collect and de-duplicate expiration dates from a contracts page."""
+        if not isinstance(payload, dict):
+            logger.error("Options contracts payload was not an object")
+            raise MarketDataProviderError(_PROVIDER_ERROR_MESSAGE)
+        results = payload.get("results")
+        if results is None:
+            return
+        if not isinstance(results, list):
+            logger.error("Options contracts payload was not a results list")
+            raise MarketDataProviderError(_PROVIDER_ERROR_MESSAGE)
+
+        for item in results:
+            if not isinstance(item, dict):
+                logger.error("Options contracts entry was not an object")
+                raise MarketDataProviderError(_PROVIDER_ERROR_MESSAGE)
+            raw_expiry = item.get("expiration_date")
+            if raw_expiry is None:
+                continue
+            exp_date = _to_date(raw_expiry)
+            if exp_date not in seen_dates:
+                seen_dates.add(exp_date)
+                expirations.append(exp_date)
 
     def _with_api_key(self, url: str) -> str:
         """Append the API key to a paginated ``next_url`` if absent."""

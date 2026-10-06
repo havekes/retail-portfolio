@@ -14,6 +14,7 @@ from typing import Literal
 from src.market.api_types import (
     HistoricalPrice,
     IntradayHistoricalPrice,
+    OptionExpirations,
     OptionsChain,
     OptionsChainEntry,
     OptionsContract,
@@ -115,6 +116,21 @@ class StubPolygonGateway(MarketGateway):
             underlying_symbol=normalized,
             as_of=STUB_AS_OF_DATE,
             contracts=entries,
+        )
+
+    def get_option_expirations(self, symbol: str) -> OptionExpirations:
+        """Get available option expiration dates for an underlying symbol."""
+        normalized = self._resolve_symbol(symbol)
+        contracts = OPTIONS_CHAINS.get(normalized, [])
+        if not contracts:
+            raise MarketDataNotFoundError(normalized)
+        expirations = sorted(
+            {date.fromisoformat(c["contract"]["expiration_date"]) for c in contracts}
+        )
+        return OptionExpirations(
+            underlying_symbol=normalized,
+            expirations=expirations,
+            truncated=False,
         )
 
     # ------------------------------------------------------------------ #

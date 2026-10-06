@@ -19,6 +19,7 @@ var expectedToolNames = []string{
 	"get_price_history",
 	"get_fundamentals",
 	"get_options_chain",
+	"get_option_expirations",
 	"get_financial_statements",
 	"search_symbols",
 }
@@ -103,6 +104,8 @@ const (
 		}]
 	}`
 
+	optionExpirationsBody = `{"underlying_symbol": "AAPL", "expirations": ["2026-01-16"], "truncated": false}`
+
 	symbolSearchBody = `[{"symbol": "AAPL", "name": "Apple Inc.", "exchange": "NASDAQ"}]`
 
 	incomeStatementBody   = `[{"date": "2024-09-28", "symbol": "AAPL", "revenue": "391035000000"}]`
@@ -120,6 +123,7 @@ var validToolCalls = []toolCall{
 	{"get_price_history", map[string]any{"symbol": "AAPL", "from": "2026-01-01", "to": "2026-01-31"}},
 	{"get_fundamentals", map[string]any{"symbol": "AAPL"}},
 	{"get_options_chain", map[string]any{"symbol": "AAPL"}},
+	{"get_option_expirations", map[string]any{"symbol": "AAPL"}},
 	{"get_financial_statements", map[string]any{"symbol": "AAPL", "statement": "income"}},
 	{"search_symbols", map[string]any{"q": "apple"}},
 }
@@ -222,6 +226,27 @@ func TestToolsCallBackendAndReturnData(t *testing.T) {
 					t.Fatalf("decode OptionsChain: %v", err)
 				}
 				if got.UnderlyingSymbol != "AAPL" || len(got.Contracts) != 1 {
+					t.Errorf("payload = %+v", got)
+				}
+			},
+		},
+		{
+			name:      "get_option_expirations",
+			tool:      "get_option_expirations",
+			args:      map[string]any{"symbol": "aapl"},
+			body:      optionExpirationsBody,
+			wantPath:  "/api/v1/market/data/options/AAPL/expirations",
+			wantQuery: nil,
+			assert: func(t *testing.T, raw string) {
+				var got struct {
+					UnderlyingSymbol string   `json:"underlying_symbol"`
+					Expirations      []string `json:"expirations"`
+					Truncated        bool     `json:"truncated"`
+				}
+				if err := json.Unmarshal([]byte(raw), &got); err != nil {
+					t.Fatalf("decode OptionExpirations: %v", err)
+				}
+				if got.UnderlyingSymbol != "AAPL" || len(got.Expirations) != 1 || got.Expirations[0] != "2026-01-16" || got.Truncated {
 					t.Errorf("payload = %+v", got)
 				}
 			},
