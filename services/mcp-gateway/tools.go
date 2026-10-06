@@ -563,7 +563,6 @@ func validateSearchQuery(v string) (string, error) {
 	return query, nil
 }
 
-<<<<<<< HEAD
 // validateFundamentalsSections validates that each requested section name is
 // one of 'profile', 'key_metrics', or 'ratios', removes duplicates, and defaults
 // to all three sections when none are specified.

@@ -984,9 +984,9 @@ func TestToolsRejectInvalidInput(t *testing.T) {
 			want: "exchange must be one of: NYSE, NASDAQ, NYSEARCA, AMEX, TSX, LSE",
 		},
 		{
-			name: "bad exchange on statements",
+			name: "bad exchange on financial statements",
 			prepare: func() error {
-				_, err := (statementInput{Symbol: "AAPL", Exchange: "XETRA"}).prepare()
+				_, err := (financialStatementsInput{Symbol: "AAPL", Statement: "income", Exchange: "XETRA"}).prepare()
 				return err
 			},
 			want: "exchange must be one of: NYSE, NASDAQ, NYSEARCA, AMEX, TSX, LSE",
@@ -1502,8 +1502,8 @@ func TestExchangeNormalizationInPrepare(t *testing.T) {
 		}
 	})
 
-	t.Run("statementInput normalizes lowercase", func(t *testing.T) {
-		req, err := (statementInput{Symbol: "AAPL", Exchange: "tsx"}).prepare()
+	t.Run("financialStatementsInput normalizes lowercase", func(t *testing.T) {
+		req, err := (financialStatementsInput{Symbol: "AAPL", Statement: "income", Exchange: "tsx"}).prepare()
 		if err != nil {
 			t.Fatalf("unexpected error: %v", err)
 		}
@@ -1524,23 +1524,8 @@ func TestToolsExchangeValidationAndWireValue(t *testing.T) {
 		{"get_fundamentals", func(ex string) map[string]any {
 			return map[string]any{"symbol": "AAPL", "exchange": ex}
 		}},
-		{"get_key_metrics", func(ex string) map[string]any {
-			return map[string]any{"symbol": "AAPL", "exchange": ex}
-		}},
-		{"get_financial_ratios", func(ex string) map[string]any {
-			return map[string]any{"symbol": "AAPL", "exchange": ex}
-		}},
-		{"get_company_details", func(ex string) map[string]any {
-			return map[string]any{"symbol": "AAPL", "exchange": ex}
-		}},
-		{"get_income_statement", func(ex string) map[string]any {
-			return map[string]any{"symbol": "AAPL", "exchange": ex}
-		}},
-		{"get_balance_sheet", func(ex string) map[string]any {
-			return map[string]any{"symbol": "AAPL", "exchange": ex}
-		}},
-		{"get_cash_flow_statement", func(ex string) map[string]any {
-			return map[string]any{"symbol": "AAPL", "exchange": ex}
+		{"get_financial_statements", func(ex string) map[string]any {
+			return map[string]any{"symbol": "AAPL", "statement": "income", "exchange": ex}
 		}},
 	}
 
