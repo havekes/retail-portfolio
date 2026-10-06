@@ -550,6 +550,7 @@
 										<Button
 											size="icon-sm"
 											variant={securityReorderWatchlistId === watchlist.id ? 'secondary' : 'ghost'}
+											class="hover:bg-background/60 dark:hover:bg-background/60"
 											aria-label={`Reorder securities in ${watchlist.name}`}
 											aria-pressed={securityReorderWatchlistId === watchlist.id}
 											onclick={() => toggleSecurityReorder(watchlist)}
@@ -564,6 +565,7 @@
 													{...props}
 													size="icon-sm"
 													variant="ghost"
+													class="hover:bg-background/60 dark:hover:bg-background/60"
 													aria-label={`Sort securities in ${watchlist.name}`}
 												>
 													<ArrowUpDown class="h-4 w-4" />
@@ -592,6 +594,7 @@
 									<Button
 										size="icon-sm"
 										variant="ghost"
+										class="hover:bg-background/60 dark:hover:bg-background/60"
 										aria-label={`Add security to ${watchlist.name}`}
 										onclick={() => openGlobalSearch?.(watchlist)}
 									>
@@ -600,6 +603,7 @@
 									<Button
 										size="icon-sm"
 										variant="ghost"
+										class="hover:bg-background/60 dark:hover:bg-background/60"
 										aria-label={`Rename ${watchlist.name}`}
 										onclick={() => startRename(watchlist)}
 									>
@@ -608,6 +612,7 @@
 									<Button
 										size="icon-sm"
 										variant="ghost"
+										class="hover:bg-background/60 dark:hover:bg-background/60"
 										aria-label={`Delete ${watchlist.name}`}
 										onclick={() => requestDelete(watchlist)}
 									>
@@ -721,6 +726,7 @@
 										<Button
 											size="icon-sm"
 											variant="ghost"
+											class="hover:bg-background/60 dark:hover:bg-background/60"
 											aria-label={`Remove ${security.symbol}`}
 											onclick={() => handleRemoveSecurity(watchlist.id, security.id)}
 										>
