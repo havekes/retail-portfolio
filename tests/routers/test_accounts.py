@@ -5,6 +5,7 @@ from decimal import Decimal
 from uuid import uuid4
 
 import pytest
+from currency_converter import CurrencyConverter
 from sqlalchemy import select
 
 from src.account.model import AccountModel, PortfolioAccountModel, PositionModel
@@ -130,6 +131,36 @@ async def test_account_totals_not_owned(auth_client, other_user_account):
 
 
 @pytest.mark.anyio
+async def test_account_totals_converts_to_requested_currency(
+    auth_client, test_accounts, test_positions
+):
+    """Passing ?currency=USD returns the CAD account totals converted to USD."""
+    account_id = test_accounts[0].id
+
+    response = await auth_client.get(
+        f"/api/v1/accounts/{account_id}/totals", params={"currency": "USD"}
+    )
+
+    assert response.status_code == 200
+    result = response.json()
+    assert result["value"]["value"].endswith(" USD")
+    assert result["cost"]["value"].endswith(" USD")
+    assert result["cash"]["value"].endswith(" USD")
+
+
+@pytest.mark.anyio
+async def test_account_totals_unsupported_currency_returns_422(auth_client, test_accounts):
+    """An unsupported display currency is rejected with 422."""
+    account_id = test_accounts[0].id
+
+    response = await auth_client.get(
+        f"/api/v1/accounts/{account_id}/totals", params={"currency": "XYZ"}
+    )
+
+    assert response.status_code == 422
+
+
+@pytest.mark.anyio
 async def test_account_rename_invalid_body(auth_client, test_accounts):
     """Test account_rename raises 422 for invalid request body."""
     account_id = test_accounts[0].id
@@ -197,6 +228,47 @@ async def test_security_holdings_calculated_values_single_position(
     assert item["total_value"] == 1500.0  # 10 shares * 150.0 USD
     assert item["account_total_value"] > 0
     assert item["account_percentage"] == pytest.approx(100.0)
+
+
+@pytest.mark.anyio
+async def test_security_holdings_converts_display_value(
+    auth_client,
+    test_accounts,
+    test_position_for_first_account,
+    test_security,
+    db_session,
+):
+    """Rows carry a display value converted from the security to the display currency."""
+    today = datetime.now(UTC).date()
+    price = PriceModel(
+        security_id=test_security.id,
+        date=today,
+        open=Decimal("150.00"),
+        high=Decimal("155.00"),
+        low=Decimal("149.00"),
+        close=Decimal("150.00"),
+        adjusted_close=Decimal("150.00"),
+        volume=1000,
+    )
+    db_session.add(price)
+    await db_session.commit()
+
+    security_id = test_position_for_first_account.security_id
+    response = await auth_client.get(f"/api/v1/accounts/holdings/{security_id}")
+
+    assert response.status_code == 200
+    item = response.json()["items"][0]
+    converter = CurrencyConverter()
+    expected_display = round(
+        converter.convert(amount=1500.0, currency="USD", new_currency="CAD"), 2
+    )
+
+    # Native value stays in the security's currency (USD).
+    assert item["total_value"] == 1500.0
+    assert item["currency"] == "USD"
+    # The display value is converted to the user's display currency (default CAD).
+    assert item["display_currency"] == "CAD"
+    assert item["display_total_value"] == pytest.approx(expected_display)
 
 
 @pytest.mark.anyio
