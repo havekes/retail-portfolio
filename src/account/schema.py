@@ -186,6 +186,8 @@ class AccountHoldingsRead(PaginatedResponse[HoldingRead]):
     net_deposits: float | None = None
     free_cash: float = 0.0
     currency: str
+    unpriced_positions: int = 0
+    pricing_incomplete: bool = False
 
 
 class PortfolioAccountSchema(BaseModel):

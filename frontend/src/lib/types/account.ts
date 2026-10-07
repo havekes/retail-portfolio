@@ -26,6 +26,8 @@ export interface AccountTotals {
 	profit_loss: Money;
 	return_percent: number | null;
 	basis: 'net_deposits' | 'cost';
+	unpriced_positions?: number;
+	pricing_incomplete?: boolean;
 }
 
 export enum AccountType {
@@ -115,6 +117,8 @@ export interface AccountHoldings extends PaginatedResponse<Holding> {
 	net_deposits: number | null;
 	free_cash?: number;
 	currency: string;
+	unpriced_positions?: number;
+	pricing_incomplete?: boolean;
 }
 
 export interface CsvPositionRecord {

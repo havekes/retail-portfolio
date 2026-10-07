@@ -13,6 +13,7 @@
 	import UpdateAccountCsvModal from './update-account-csv-modal.svelte';
 	import AccountInlineHoldings from './account-inline-holdings.svelte';
 	import RefreshCw from '@lucide/svelte/icons/refresh-cw';
+	import TriangleAlert from '@lucide/svelte/icons/triangle-alert';
 	import ChevronDown from '@lucide/svelte/icons/chevron-down';
 	import ChevronRight from '@lucide/svelte/icons/chevron-right';
 	import Pencil from '@lucide/svelte/icons/pencil';
@@ -172,6 +173,21 @@
 						{returnPercent}
 						currency={account.currency}
 					/>
+					{#if totals.pricing_incomplete}
+						<Tooltip.Provider>
+							<Tooltip.Root>
+								<Tooltip.Trigger
+									class="rounded-md p-1 text-amber-600 transition-colors hover:bg-background/60 dark:hover:bg-background/60"
+									aria-label="Incomplete pricing"
+								>
+									<TriangleAlert class="h-4 w-4" />
+								</Tooltip.Trigger>
+								<Tooltip.Content>
+									<p>Some positions are missing prices. They are excluded from these totals.</p>
+								</Tooltip.Content>
+							</Tooltip.Root>
+						</Tooltip.Provider>
+					{/if}
 				{:catch}
 					<div class="text-sm">Total: failed to load</div>
 				{/await}
