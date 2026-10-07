@@ -239,6 +239,8 @@ class PositionService:
             profit_loss_basis=totals.basis,
             net_deposits=account.net_deposits,
             free_cash=account.free_cash,
+            broker_value=account.broker_value,
+            broker_value_at=account.broker_value_at,
             currency=str(account.currency),
             unpriced_positions=totals.unpriced_positions,
             pricing_incomplete=totals.pricing_incomplete,

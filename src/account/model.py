@@ -12,6 +12,7 @@ from sqlalchemy import (
     Float,
     ForeignKey,
     Integer,
+    Numeric,
     String,
     Uuid,
     func,
@@ -51,6 +52,10 @@ class AccountModel(BaseModel):
     broker_display_name: Mapped[str | None] = mapped_column(String, nullable=True)
     net_deposits: Mapped[Decimal | None] = mapped_column(Float, nullable=True)
     free_cash: Mapped[float] = mapped_column(Float, default=0.0, server_default="0.0")
+    broker_value: Mapped[Decimal | None] = mapped_column(Numeric(18, 2), nullable=True)
+    broker_value_at: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True), nullable=True
+    )
     is_active: Mapped[bool] = mapped_column(Boolean, default=True)
     api_sync_enabled: Mapped[bool] = mapped_column(Boolean, default=True)
     created_at: Mapped[datetime] = mapped_column(

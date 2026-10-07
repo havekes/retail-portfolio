@@ -897,6 +897,44 @@ async def test_account_repository_delete_cascades(
     assert portfolio_in_db is not None
 
 
+@pytest.mark.anyio
+async def test_account_repository_update_broker_value(
+    db_session: AsyncSession, seed_reference_data: None
+):
+    """Broker value and timestamp are persisted; resetting to None clears both."""
+    account_repo = SqlAlchemyAccountRepository(db_session)
+
+    account_id = uuid.uuid4()
+    db_session.add(
+        AccountModel(
+            id=account_id,
+            external_id=str(uuid.uuid4()),
+            name="Broker Value Account",
+            user_id=uuid.uuid4(),
+            account_type_id=AccountTypeEnum.TFSA.value,
+            institution_id=InstitutionEnum.WEALTHSIMPLE.value,
+            currency="CAD",
+            is_active=True,
+        )
+    )
+    await db_session.commit()
+
+    await account_repo.update_broker_value(account_id, 10000.0)
+
+    account_model = await db_session.get(AccountModel, account_id)
+    assert account_model is not None
+    await db_session.refresh(account_model)
+    assert account_model.broker_value == Decimal("10000.00")
+    assert account_model.broker_value_at is not None
+    assert account_model.broker_value_at.tzinfo is not None
+
+    # CSV-style accounts (no broker value) keep both columns NULL.
+    await account_repo.update_broker_value(account_id, None)
+    await db_session.refresh(account_model)
+    assert account_model.broker_value is None
+    assert account_model.broker_value_at is None
+
+
 def test_watchlist_sort_mode_enum_is_complete():
     """The sort enum exposes exactly the six modes the read contract advertises."""
     assert sorted(mode.value for mode in WatchlistSortMode) == [

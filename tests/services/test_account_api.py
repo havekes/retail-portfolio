@@ -45,6 +45,17 @@ async def test_update_free_cash_delegates_to_repository():
 
 
 @pytest.mark.asyncio
+async def test_update_broker_value_delegates_to_repository():
+    mock_repo = AsyncMock(spec=AccountRepository)
+    api = AccountApi(account_repository=mock_repo)
+    account_id = uuid4()
+
+    await api.update_broker_value(account_id, 10000.0)
+
+    mock_repo.update_broker_value.assert_awaited_once_with(account_id, 10000.0)
+
+
+@pytest.mark.asyncio
 async def test_update_last_sync_at_delegates_to_repository():
     mock_repo = AsyncMock(spec=AccountRepository)
     api = AccountApi(account_repository=mock_repo)
