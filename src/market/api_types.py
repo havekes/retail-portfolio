@@ -361,6 +361,7 @@ class OptionsChain(BaseModel):
     """
 
     underlying_symbol: str
+    currency: str
     as_of: date | None = None
     contracts: list[OptionsChainEntry] = []
     truncated: bool = False
