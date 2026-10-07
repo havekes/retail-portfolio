@@ -14,6 +14,7 @@ from src.market.api_types import (
     KeyMetrics,
     OptionExpirations,
     OptionsChain,
+    Quote,
     SecurityId,
     SecuritySearchResult,
     SymbolLookupResult,
@@ -203,6 +204,16 @@ class MarketGateway(ABC):
     def get_option_expirations(self, symbol: str) -> OptionExpirations:
         """Get available option expiration dates for an underlying symbol."""
         _ = symbol
+        raise MarketDataProviderError(_CAPABILITY_NOT_SUPPORTED)
+
+    def get_quote(
+        self,
+        symbol: str,
+        *,
+        exchange: str | None = None,
+    ) -> Quote:
+        """Get live quote snapshot for a symbol."""
+        _ = symbol, exchange
         raise MarketDataProviderError(_CAPABILITY_NOT_SUPPORTED)
 
 

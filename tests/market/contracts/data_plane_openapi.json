@@ -1773,6 +1773,78 @@
         "title": "PriceHistoryResponse",
         "type": "object"
       },
+      "Quote": {
+        "description": "Live quote snapshot for a symbol.",
+        "properties": {
+          "change": {
+            "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+            "title": "Change",
+            "type": "string"
+          },
+          "change_percent": {
+            "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+            "title": "Change Percent",
+            "type": "string"
+          },
+          "currency": {
+            "title": "Currency",
+            "type": "string"
+          },
+          "day_high": {
+            "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+            "title": "Day High",
+            "type": "string"
+          },
+          "day_low": {
+            "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+            "title": "Day Low",
+            "type": "string"
+          },
+          "open": {
+            "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+            "title": "Open",
+            "type": "string"
+          },
+          "previous_close": {
+            "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+            "title": "Previous Close",
+            "type": "string"
+          },
+          "price": {
+            "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+            "title": "Price",
+            "type": "string"
+          },
+          "symbol": {
+            "title": "Symbol",
+            "type": "string"
+          },
+          "timestamp": {
+            "format": "date-time",
+            "title": "Timestamp",
+            "type": "string"
+          },
+          "volume": {
+            "title": "Volume",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "symbol",
+          "price",
+          "change",
+          "change_percent",
+          "previous_close",
+          "open",
+          "day_high",
+          "day_low",
+          "volume",
+          "timestamp",
+          "currency"
+        ],
+        "title": "Quote",
+        "type": "object"
+      },
       "SymbolLookupResult": {
         "description": "Symbol / company lookup result.\n\nMirrors the reference symbol-search / ``stock-screener`` shape:\n``symbol``, ``name``, ``exchange``, ``exchangeShortName``, ``currency``,\n``type`` (``security_type``), ``country``.",
         "properties": {
@@ -2424,6 +2496,86 @@
           }
         },
         "summary": "Market Data Prices"
+      }
+    },
+    "/api/v1/market/data/quote/{symbol}": {
+      "get": {
+        "description": "Live quote snapshot for a symbol, served through the endpoint cache.",
+        "operationId": "market_data_quote_api_v1_market_data_quote__symbol__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "symbol",
+            "required": true,
+            "schema": {
+              "title": "Symbol",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "exchange",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "enum": [
+                    "NYSE",
+                    "NASDAQ",
+                    "NYSEARCA",
+                    "AMEX",
+                    "TSX",
+                    "LSE"
+                  ],
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Exchange"
+            }
+          },
+          {
+            "in": "header",
+            "name": "X-Service-Token",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Service-Token"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Quote"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Market Data Quote"
       }
     },
     "/api/v1/market/data/symbols/search": {

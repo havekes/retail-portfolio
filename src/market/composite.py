@@ -33,6 +33,7 @@ from src.market.api_types import (
     KeyMetrics,
     OptionExpirations,
     OptionsChain,
+    Quote,
     SecurityId,
     SecuritySearchResult,
     SymbolLookupResult,
@@ -193,6 +194,15 @@ class CompositeMarketGateway(MarketGateway):
     ) -> FinancialRatios:
         """Get financial ratios for a symbol (FMP)."""
         return self._fmp.get_financial_ratios(symbol, period, exchange=exchange)
+
+    def get_quote(
+        self,
+        symbol: str,
+        *,
+        exchange: str | None = None,
+    ) -> Quote:
+        """Get live quote snapshot for a symbol (FMP)."""
+        return self._fmp.get_quote(symbol, exchange=exchange)
 
     def get_options_chain(
         self,

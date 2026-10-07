@@ -90,6 +90,22 @@ class IntradayPrice(BaseModel):
     volume: int
 
 
+class Quote(BaseModel):
+    """Live quote snapshot for a symbol."""
+
+    symbol: str
+    price: Decimal
+    change: Decimal
+    change_percent: Decimal
+    previous_close: Decimal
+    open: Decimal
+    day_high: Decimal
+    day_low: Decimal
+    volume: int
+    timestamp: datetime
+    currency: str
+
+
 class SecuritySearchResult(BaseModel):
     """Public-facing security search result."""
 
