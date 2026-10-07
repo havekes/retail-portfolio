@@ -90,7 +90,7 @@ def test_data_plane_contract_parameters() -> None:
     options_params = get_params("/api/v1/market/data/options/{symbol}")
     assert options_params["symbol"]["in"] == "path"
     assert options_params["expiry"]["in"] == "query"
-    assert options_params["expiry"]["required"] is False
+    assert options_params["expiry"]["required"] is True
     assert options_params["option_type"]["in"] == "query"
     assert options_params["strike_min"]["in"] == "query"
     assert options_params["strike_max"]["in"] == "query"
@@ -134,3 +134,13 @@ def test_data_plane_contract_has_no_provider_names() -> None:
             assert provider not in committed, (
                 f"Provider name {provider!r} found in committed data-plane OpenAPI snapshot"
             )
+
+
+def test_data_plane_contract_options_chain_has_truncated_field() -> None:
+    """OptionsChain schema exposes the truncated boolean flag."""
+    schema = get_data_plane_openapi(app)
+    components = schema.get("components", {}).get("schemas", {})
+    options_chain = components.get("OptionsChain", {})
+    props = options_chain.get("properties", {})
+    assert "truncated" in props
+    assert props["truncated"]["type"] == "boolean"

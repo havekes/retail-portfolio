@@ -307,13 +307,14 @@ async def test_options_returns_polygon_mirrored_fields(
     mock_gateway.get_options_chain.return_value = _options_chain()
 
     response = await client.get(
-        f"{_OPTIONS_URL}?option_type=call&strike_min=100&strike_max=200",
+        f"{_OPTIONS_URL}?expiry=2026-01-16&option_type=call&strike_min=100&strike_max=200",
         headers=_headers(),
     )
 
     assert response.status_code == 200
     body = response.json()
     assert body["underlying_symbol"] == "AAPL"
+    assert body["truncated"] is False
 
     entry = body["contracts"][0]
     contract = entry["contract"]
@@ -333,6 +334,7 @@ async def test_options_returns_polygon_mirrored_fields(
 
     # The provider-agnostic filters reach the gateway unchanged.
     _args, kwargs = mock_gateway.get_options_chain.call_args
+    assert kwargs["expiration"] == date(2026, 1, 16)
     assert kwargs["contract_type"] == "call"
     assert kwargs["strike_min"] == Decimal("100")
     assert kwargs["strike_max"] == Decimal("200")
@@ -392,9 +394,33 @@ async def test_repeated_options_is_cached_under_options_class(
     client: AsyncClient, mock_gateway: MagicMock, mock_redis_storage: FakeRedis
 ) -> None:
     mock_gateway.get_options_chain.return_value = _options_chain()
+    url = f"{_OPTIONS_URL}?expiry=2026-01-16"
 
-    await client.get(_OPTIONS_URL, headers=_headers())
-    await client.get(_OPTIONS_URL, headers=_headers())
+    await client.get(url, headers=_headers())
+    await client.get(url, headers=_headers())
+
+    mock_gateway.get_options_chain.assert_called_once()
+    keys = _endpoint_keys(mock_redis_storage, "market:ep:options:chain:")
+    assert len(keys) == 1
+
+
+@pytest.mark.anyio
+async def test_options_truncated_flag_survives_endpoint_cache_round_trip(
+    client: AsyncClient, mock_gateway: MagicMock, mock_redis_storage: FakeRedis
+) -> None:
+    chain = _options_chain()
+    chain.truncated = True
+    mock_gateway.get_options_chain.return_value = chain
+    url = f"{_OPTIONS_URL}?expiry=2026-01-16"
+
+    first = await client.get(url, headers=_headers())
+    assert first.status_code == 200
+    assert first.json()["truncated"] is True
+
+    # Second call served from endpoint cache
+    second = await client.get(url, headers=_headers())
+    assert second.status_code == 200
+    assert second.json()["truncated"] is True
 
     mock_gateway.get_options_chain.assert_called_once()
     keys = _endpoint_keys(mock_redis_storage, "market:ep:options:chain:")
@@ -485,7 +511,7 @@ async def test_unknown_underlying_options_is_negative_cached(
     client: AsyncClient, mock_gateway: MagicMock, mock_redis_storage: FakeRedis
 ) -> None:
     mock_gateway.get_options_chain.side_effect = MarketDataNotFoundError("ZZZZ")
-    url = "/api/v1/market/data/options/ZZZZ"
+    url = "/api/v1/market/data/options/ZZZZ?expiry=2026-01-16"
 
     first = await client.get(url, headers=_headers())
     second = await client.get(url, headers=_headers())
@@ -737,8 +763,20 @@ async def test_from_after_to_returns_422(client: AsyncClient) -> None:
 
 
 @pytest.mark.anyio
+async def test_options_without_expiry_returns_422(
+    client: AsyncClient, mock_gateway: MagicMock
+) -> None:
+    response = await client.get("/api/v1/market/data/options/SPY", headers=_headers())
+
+    assert response.status_code == 422
+    mock_gateway.get_options_chain.assert_not_called()
+
+
+@pytest.mark.anyio
 async def test_unknown_option_type_returns_422(client: AsyncClient) -> None:
-    response = await client.get(f"{_OPTIONS_URL}?option_type=warrant", headers=_headers())
+    response = await client.get(
+        f"{_OPTIONS_URL}?expiry=2026-01-16&option_type=warrant", headers=_headers()
+    )
 
     assert response.status_code == 422
 
@@ -746,7 +784,7 @@ async def test_unknown_option_type_returns_422(client: AsyncClient) -> None:
 @pytest.mark.anyio
 async def test_strike_min_above_max_returns_422(client: AsyncClient) -> None:
     response = await client.get(
-        f"{_OPTIONS_URL}?strike_min=200&strike_max=100", headers=_headers()
+        f"{_OPTIONS_URL}?expiry=2026-01-16&strike_min=200&strike_max=100", headers=_headers()
     )
 
     assert response.status_code == 422
