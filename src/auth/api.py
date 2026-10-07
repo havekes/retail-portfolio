@@ -222,6 +222,15 @@ class UserApi:
         """Partially update and retrieve the user's stored preferences."""
         return await self._user_repository.patch_preferences(user_id, preferences)
 
+    async def get_display_currency(self, user_id: UserId) -> str:
+        """Return the user's preferred display currency, defaulting to CAD."""
+        preferences = await self._user_repository.get_preferences(user_id)
+        if preferences:
+            value = preferences.get("display_currency")
+            if isinstance(value, str) and value:
+                return value
+        return "CAD"
+
     async def revoke_token(self, token: str) -> None:
         """Revoke a JWT token by adding its jti to the Redis denylist."""
         try:

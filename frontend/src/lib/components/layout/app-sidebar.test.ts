@@ -1,5 +1,6 @@
-import { render, screen, fireEvent } from '@testing-library/svelte';
+import { render, screen, fireEvent, waitFor } from '@testing-library/svelte';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { goto } from '$app/navigation';
 import AppSidebarTestHarness from './app-sidebar.test-harness.svelte';
 import type { WatchlistRead, WatchlistSecuritySchema } from '$lib/api/marketService';
 import { userPreferencesService } from '$lib/api/userPreferencesService';
@@ -632,6 +633,30 @@ describe('AppSidebar Modular Components', () => {
 
 			const rail = document.querySelector('[data-sidebar="rail"]');
 			expect(rail).toBeInTheDocument();
+		});
+
+		it('shows Preferences immediately before Security settings and navigates to it', async () => {
+			render(AppSidebarTestHarness, {
+				props: {
+					open: true,
+					securities: mockSecurities
+				}
+			});
+
+			await fireEvent.click(screen.getByText('test@example.com'));
+
+			await waitFor(() => {
+				expect(screen.getByText('Preferences')).toBeInTheDocument();
+			});
+
+			const preferences = screen.getByText('Preferences');
+			const security = screen.getByText('Security settings');
+			expect(
+				preferences.compareDocumentPosition(security) & Node.DOCUMENT_POSITION_FOLLOWING
+			).toBeTruthy();
+
+			await fireEvent.click(preferences);
+			expect(goto).toHaveBeenCalledWith('/settings/preferences');
 		});
 	});
 });
