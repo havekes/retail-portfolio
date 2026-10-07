@@ -54,7 +54,7 @@ func registerTools(server *mcp.Server, client *BackendClient, cfg Config) {
 		"Daily open/high/low/close price history for a symbol over a date range, with an optional exchange filter.",
 		func(ctx context.Context, _ *mcp.CallToolRequest, in priceHistoryInput) (*mcp.CallToolResult, any, error) {
 			return runTool(ctx, "get_price_history", cfg, in, priceHistoryInput.prepare, func(ctx context.Context, r priceHistoryRequest) (any, error) {
-				return client.Prices(ctx, r.symbol, r.from, r.to, r.exchange)
+				return client.Prices(ctx, r.symbol, r.from, r.to, r.interval, r.exchange)
 			})
 		})
 
@@ -334,15 +334,17 @@ func validationErrorMessage(err error) string {
 
 type priceHistoryInput struct {
 	Symbol   string `json:"symbol" jsonschema:"Ticker symbol of the security."`
-	From     string `json:"from" jsonschema:"Start date (inclusive) in YYYY-MM-DD format."`
-	To       string `json:"to" jsonschema:"End date (inclusive) in YYYY-MM-DD format."`
+	From     string `json:"from,omitempty" jsonschema:"Optional start date (inclusive) in YYYY-MM-DD format."`
+	To       string `json:"to,omitempty" jsonschema:"Optional end date (inclusive) in YYYY-MM-DD format."`
+	Interval string `json:"interval,omitempty" jsonschema:"Optional bar interval: 'day' (default), 'week', or 'month'."`
 	Exchange string `json:"exchange,omitempty" jsonschema:"Optional exchange filter (NYSE, NASDAQ, NYSEARCA, AMEX, TSX, LSE)."`
 }
 
 type priceHistoryRequest struct {
 	symbol   string
-	from     time.Time
-	to       time.Time
+	from     *time.Time
+	to       *time.Time
+	interval string
 	exchange string
 }
 
@@ -351,22 +353,39 @@ func (in priceHistoryInput) prepare() (priceHistoryRequest, error) {
 	if err != nil {
 		return priceHistoryRequest{}, err
 	}
-	from, err := parseToolDate(in.From, "from")
-	if err != nil {
-		return priceHistoryRequest{}, err
+	var fromPtr, toPtr *time.Time
+	if strings.TrimSpace(in.From) != "" {
+		from, err := parseToolDate(in.From, "from")
+		if err != nil {
+			return priceHistoryRequest{}, err
+		}
+		fromPtr = &from
 	}
-	to, err := parseToolDate(in.To, "to")
-	if err != nil {
-		return priceHistoryRequest{}, err
+	if strings.TrimSpace(in.To) != "" {
+		to, err := parseToolDate(in.To, "to")
+		if err != nil {
+			return priceHistoryRequest{}, err
+		}
+		toPtr = &to
 	}
-	if from.After(to) {
+	if fromPtr != nil && toPtr != nil && fromPtr.After(*toPtr) {
 		return priceHistoryRequest{}, errors.New("from must be on or before to")
+	}
+	interval, err := normalizeInterval(in.Interval)
+	if err != nil {
+		return priceHistoryRequest{}, err
 	}
 	exchange, err := validateExchange(in.Exchange)
 	if err != nil {
 		return priceHistoryRequest{}, err
 	}
-	return priceHistoryRequest{symbol: symbol, from: from, to: to, exchange: exchange}, nil
+	return priceHistoryRequest{
+		symbol:   symbol,
+		from:     fromPtr,
+		to:       toPtr,
+		interval: interval,
+		exchange: exchange,
+	}, nil
 }
 
 type fundamentalsInput struct {
@@ -668,6 +687,23 @@ func normalizePeriod(v string) (string, error) {
 		return "quarter", nil
 	default:
 		return "", errors.New("period must be 'annual' or 'quarter'")
+	}
+}
+
+// normalizeInterval validates the optional interval enum. An absent value
+// returns "" (allowing backend default to apply).
+func normalizeInterval(v string) (string, error) {
+	switch strings.ToLower(strings.TrimSpace(v)) {
+	case "":
+		return "", nil
+	case "day":
+		return "day", nil
+	case "week":
+		return "week", nil
+	case "month":
+		return "month", nil
+	default:
+		return "", errors.New("interval must be 'day', 'week', or 'month'")
 	}
 }
 

@@ -116,6 +116,7 @@ class PriceHistoryResponse(BaseModel):
     exchange: str | None = None
     from_date: date
     to_date: date
+    interval: Literal["day", "week", "month"] = "day"
     items: list[PriceBar]
 
 

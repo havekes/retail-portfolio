@@ -47,16 +47,23 @@ func (c *BackendClient) Config() Config {
 
 // Prices returns daily OHLC history for symbol.
 //
-// GET /api/v1/market/data/prices/{symbol}?from=&to=&exchange=
+// GET /api/v1/market/data/prices/{symbol}?from=&to=&interval=&exchange=
 func (c *BackendClient) Prices(
 	ctx context.Context,
 	symbol string,
-	from, to time.Time,
-	exchange string,
+	from, to *time.Time,
+	interval, exchange string,
 ) (json.RawMessage, error) {
 	query := url.Values{}
-	query.Set("from", from.Format("2006-01-02"))
-	query.Set("to", to.Format("2006-01-02"))
+	if from != nil {
+		query.Set("from", from.Format("2006-01-02"))
+	}
+	if to != nil {
+		query.Set("to", to.Format("2006-01-02"))
+	}
+	if interval != "" {
+		query.Set("interval", interval)
+	}
 	if exchange != "" {
 		query.Set("exchange", exchange)
 	}

@@ -101,15 +101,26 @@ func TestBackendClientEndpoints(t *testing.T) {
 			name: "prices",
 			body: `{"symbol":"AAPL","from_date":"2026-01-01","to_date":"2026-01-31","items":[]}`,
 			call: func(ctx context.Context, c *BackendClient) error {
-				_, err := c.Prices(ctx, "aapl", from, to, "nasdaq")
+				_, err := c.Prices(ctx, "aapl", &from, &to, "day", "nasdaq")
 				return err
 			},
 			wantPath: "/api/v1/market/data/prices/AAPL",
 			wantQuery: map[string]string{
 				"from":     "2026-01-01",
 				"to":       "2026-01-31",
+				"interval": "day",
 				"exchange": "nasdaq",
 			},
+		},
+		{
+			name: "prices without dates and interval",
+			body: `{"symbol":"AAPL","from_date":"2025-01-01","to_date":"2026-01-01","items":[]}`,
+			call: func(ctx context.Context, c *BackendClient) error {
+				_, err := c.Prices(ctx, "aapl", nil, nil, "", "")
+				return err
+			},
+			wantPath:  "/api/v1/market/data/prices/AAPL",
+			wantQuery: map[string]string{},
 		},
 		{
 			name: "symbol search",
@@ -305,11 +316,14 @@ func TestBackendClientDecodesRealBackendShapes(t *testing.T) {
 				 "adjusted_close": "153.50"}
 			]
 		}`)
+		from := time.Date(2026, 1, 1, 0, 0, 0, 0, time.UTC)
+		to := time.Date(2026, 1, 31, 0, 0, 0, 0, time.UTC)
 		raw, err := mustClient(t, srv.URL, "test-token").Prices(
 			context.Background(),
 			"aapl",
-			time.Date(2026, 1, 1, 0, 0, 0, 0, time.UTC),
-			time.Date(2026, 1, 31, 0, 0, 0, 0, time.UTC),
+			&from,
+			&to,
+			"",
 			"",
 		)
 		if err != nil {
@@ -572,7 +586,7 @@ func TestBackendClient_Logging(t *testing.T) {
 		ctx := context.Background()
 		from, _ := time.Parse("2006-01-02", "2024-01-01")
 		to, _ := time.Parse("2006-01-02", "2024-01-02")
-		_, err = client.Prices(ctx, "AAPL", from, to, "")
+		_, err = client.Prices(ctx, "AAPL", &from, &to, "", "")
 		if err != nil {
 			t.Fatalf("Prices error: %v", err)
 		}
@@ -693,7 +707,7 @@ func TestBackendClient_ProviderNameCompliance(t *testing.T) {
 
 	from, _ := time.Parse("2006-01-02", "2024-01-01")
 	to, _ := time.Parse("2006-01-02", "2024-01-02")
-	_, _ = client.Prices(context.Background(), "AAPL", from, to, "")
+	_, _ = client.Prices(context.Background(), "AAPL", &from, &to, "", "")
 
 	assertNoProviderName(t, "backend client log", buf.String())
 }
@@ -759,7 +773,7 @@ func TestBackendClient_ConcurrencyCap(t *testing.T) {
 		wg.Add(1)
 		go func() {
 			defer wg.Done()
-			_, err := client.Prices(context.Background(), "AAPL", from, to, "")
+			_, err := client.Prices(context.Background(), "AAPL", &from, &to, "", "")
 			if err != nil {
 				errCh <- err
 			}
@@ -839,7 +853,7 @@ func TestBackendClient_ConcurrencySaturationLogging(t *testing.T) {
 	wg.Add(1)
 	go func() {
 		defer wg.Done()
-		_, _ = client.Prices(context.Background(), "AAPL", from, to, "")
+		_, _ = client.Prices(context.Background(), "AAPL", &from, &to, "", "")
 	}()
 
 	// Wait until request 1 has reached the server handler (holding the semaphore slot).
@@ -853,7 +867,7 @@ func TestBackendClient_ConcurrencySaturationLogging(t *testing.T) {
 	wg.Add(1)
 	go func() {
 		defer wg.Done()
-		_, _ = client.Prices(context.Background(), "AAPL", from, to, "")
+		_, _ = client.Prices(context.Background(), "AAPL", &from, &to, "", "")
 	}()
 
 	// Wait for saturation log to appear.
@@ -930,7 +944,7 @@ func TestBackendClient_ContextCanceledWhileQueued(t *testing.T) {
 
 	// Occupy the only slot
 	go func() {
-		_, _ = client.Prices(context.Background(), "AAPL", from, to, "")
+		_, _ = client.Prices(context.Background(), "AAPL", &from, &to, "", "")
 	}()
 
 	select {
@@ -945,7 +959,7 @@ func TestBackendClient_ContextCanceledWhileQueued(t *testing.T) {
 
 	done := make(chan error, 1)
 	go func() {
-		_, err := client.Prices(canceledCtx, "AAPL", from, to, "")
+		_, err := client.Prices(canceledCtx, "AAPL", &from, &to, "", "")
 		done <- err
 	}()
 
@@ -971,7 +985,7 @@ func TestBackendClient_ContextCanceledWhileQueued(t *testing.T) {
 	ctxToCancel, cancelQueue := context.WithCancel(context.Background())
 	queueDone := make(chan error, 1)
 	go func() {
-		_, err := client.Prices(ctxToCancel, "AAPL", from, to, "")
+		_, err := client.Prices(ctxToCancel, "AAPL", &from, &to, "", "")
 		queueDone <- err
 	}()
 

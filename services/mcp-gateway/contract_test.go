@@ -247,14 +247,17 @@ func TestBackendClientOpenAPIParity(t *testing.T) {
 	client := mustClient(t, stub.URL, "valid-service-token")
 	ctx := context.Background()
 
-	// 1. Prices (with and without optional exchange)
+	// 1. Prices (with and without optional exchange, interval, and dates)
 	from := time.Date(2024, 1, 1, 0, 0, 0, 0, time.UTC)
 	to := time.Date(2024, 1, 10, 0, 0, 0, 0, time.UTC)
-	if _, err := client.Prices(ctx, "AAPL", from, to, "NASDAQ"); err != nil {
+	if _, err := client.Prices(ctx, "AAPL", &from, &to, "day", "NASDAQ"); err != nil {
 		t.Fatalf("Prices with exchange failed: %v", err)
 	}
-	if _, err := client.Prices(ctx, "AAPL", from, to, ""); err != nil {
+	if _, err := client.Prices(ctx, "AAPL", &from, &to, "week", ""); err != nil {
 		t.Fatalf("Prices without exchange failed: %v", err)
+	}
+	if _, err := client.Prices(ctx, "AAPL", nil, nil, "", ""); err != nil {
+		t.Fatalf("Prices without dates failed: %v", err)
 	}
 
 	// 2. SymbolSearch
@@ -326,18 +329,6 @@ func TestBackendClientOpenAPINegativeDrift(t *testing.T) {
 			url:         "/api/v1/market/data/unknown/route",
 			headerToken: "test-token",
 			wantErrMsg:  "does not match any OpenAPI path",
-		},
-		{
-			name:        "missing required query param 'to' on prices",
-			url:         "/api/v1/market/data/prices/AAPL?from=2024-01-01",
-			headerToken: "test-token",
-			wantErrMsg:  "required query parameter \"to\" missing",
-		},
-		{
-			name:        "missing required query param 'from' on prices",
-			url:         "/api/v1/market/data/prices/AAPL?to=2024-01-02",
-			headerToken: "test-token",
-			wantErrMsg:  "required query parameter \"from\" missing",
 		},
 		{
 			name:        "missing required query param 'q' on search",
