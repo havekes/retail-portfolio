@@ -5,7 +5,7 @@ import { groupHoldings } from './holdings-group';
 function makeHolding(
 	overrides: Partial<UserHolding> & Pick<UserHolding, 'id' | 'security_id'>
 ): UserHolding {
-	return {
+	const merged = {
 		security_symbol: 'AAA',
 		security_name: 'Alpha Corp',
 		quantity: 1,
@@ -13,6 +13,7 @@ function makeHolding(
 		total_value: 100,
 		profit_loss: 0,
 		currency: 'CAD',
+		display_currency: 'CAD',
 		security_currency: 'CAD',
 		unconverted_total_value: 100,
 		converted_average_cost: 100,
@@ -22,6 +23,8 @@ function makeHolding(
 		account_name: 'Account One',
 		...overrides
 	};
+	// Default the display value to the native value unless a case overrides it.
+	return { ...merged, display_total_value: overrides.display_total_value ?? merged.total_value };
 }
 
 describe('groupHoldings', () => {
@@ -135,7 +138,7 @@ describe('groupHoldings', () => {
 			expect(groups[1].rows.map((row) => row.id)).toEqual(['h-2']);
 		});
 
-		it('merges the same security even if held across different account currencies into strictly one stock row', () => {
+		it('merges the same security held across different account currencies into strictly one stock row', () => {
 			const rows = [
 				makeHolding({
 					id: 'h-cad',
@@ -143,10 +146,13 @@ describe('groupHoldings', () => {
 					security_symbol: 'AAPL',
 					security_name: 'Apple Inc.',
 					currency: 'CAD',
+					display_currency: 'CAD',
 					security_currency: 'USD',
 					quantity: 10,
 					total_value: 1350,
+					display_total_value: 1350,
 					unconverted_total_value: 1000,
+					profit_loss: 350,
 					account_id: 'acc-cad',
 					account_name: 'CAD TFSA'
 				}),
@@ -156,10 +162,13 @@ describe('groupHoldings', () => {
 					security_symbol: 'AAPL',
 					security_name: 'Apple Inc.',
 					currency: 'USD',
+					display_currency: 'CAD',
 					security_currency: 'USD',
 					quantity: 5,
 					total_value: 675,
+					display_total_value: 900,
 					unconverted_total_value: 500,
+					profit_loss: 125,
 					account_id: 'acc-usd',
 					account_name: 'USD Account'
 				})
@@ -169,13 +178,60 @@ describe('groupHoldings', () => {
 
 			expect(groups).toHaveLength(1);
 			expect(groups[0].key).toBe('sec-aapl');
+			// Mixed currencies: the group is labelled with the display currency and
+			// its total is the sum of display values, never native ones.
 			expect(groups[0].currency).toBe('CAD');
 			expect(groups[0].security_currency).toBe('USD');
 			expect(groups[0].quantity).toBe(15);
-			expect(groups[0].total_value).toBe(2025);
+			expect(groups[0].total_value).toBe(2250);
+			expect(groups[0].display_total_value).toBe(2250);
+			// Per-row P/L is not converted, so no meaningful mixed-currency P/L.
+			expect(groups[0].profit_loss).toBeNull();
 			expect(groups[0].unconverted_total_value).toBe(1500);
 			expect(groups[0].account_names).toEqual(['CAD TFSA', 'USD Account']);
 			expect(groups[0].account_count).toBe(2);
+		});
+
+		it('sums native totals and keeps the currency for a single-currency group', () => {
+			const rows = [
+				makeHolding({
+					id: 'h-usd-1',
+					security_id: 'sec-aapl',
+					security_symbol: 'AAPL',
+					security_name: 'Apple Inc.',
+					currency: 'USD',
+					display_currency: 'CAD',
+					security_currency: 'USD',
+					quantity: 5,
+					total_value: 500,
+					display_total_value: 685,
+					profit_loss: 50,
+					account_id: 'acc-usd-1',
+					account_name: 'USD One'
+				}),
+				makeHolding({
+					id: 'h-usd-2',
+					security_id: 'sec-aapl',
+					security_symbol: 'AAPL',
+					security_name: 'Apple Inc.',
+					currency: 'USD',
+					display_currency: 'CAD',
+					security_currency: 'USD',
+					quantity: 3,
+					total_value: 300,
+					display_total_value: 411,
+					profit_loss: 20,
+					account_id: 'acc-usd-2',
+					account_name: 'USD Two'
+				})
+			];
+
+			const [group] = groupHoldings(rows, 'stock');
+
+			expect(group.currency).toBe('USD');
+			expect(group.total_value).toBe(800);
+			expect(group.display_total_value).toBe(1096);
+			expect(group.profit_loss).toBe(70);
 		});
 
 		it('is null-safe for profit_loss and average_cost edges', () => {

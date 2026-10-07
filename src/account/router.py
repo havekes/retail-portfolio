@@ -520,8 +520,13 @@ async def user_holdings(
 ) -> PaginatedResponse[UserHoldingRead]:
     """Get all holdings across every account owned by the current user."""
     position_service = await services.aget(PositionService)
+    user_api = await services.aget(UserApi)
+    display_currency = await user_api.get_display_currency(user.id)
     holdings, total = await position_service.get_user_holdings(
-        user.id, offset=pagination.offset, limit=pagination.limit
+        user.id,
+        offset=pagination.offset,
+        limit=pagination.limit,
+        display_currency=display_currency,
     )
     return PaginatedResponse(
         items=holdings, total=total, offset=pagination.offset, limit=pagination.limit
