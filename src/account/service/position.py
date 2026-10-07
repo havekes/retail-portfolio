@@ -34,6 +34,7 @@ from src.integration.api import IntegrationAccountApi, IntegrationUserApi
 from src.market.api import MarketPricesApi, SecurityApi
 from src.market.api_types import Security, SecurityId
 from src.market.exception import SecurityNotFoundError
+from src.market.fx import FxRateProvider
 from src.market.schema import PriceSchema
 
 logger = logging.getLogger(__name__)
@@ -423,8 +424,9 @@ class PositionService:
 
 
 async def position_service_factory(container: Container) -> PositionService:
+    fx_provider: FxRateProvider = await container.aget(FxRateProvider)
     return PositionService(
-        fx_rates=CurrencyConverter(),
+        fx_rates=await fx_provider.converter(),
         market_prices=await container.aget(MarketPricesApi),
         position_repository=await container.aget(PositionRepository),
         security_service=await container.aget(SecurityApi),

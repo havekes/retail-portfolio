@@ -46,6 +46,10 @@ class FakeRedis:
         self.data[key] = value
         return True
 
+    async def mset(self, mapping: dict[str, str]) -> bool:
+        self.data.update(mapping)
+        return True
+
     async def getdel(self, key: str) -> str | None:
         return self.data.pop(key, None)
 
@@ -72,7 +76,9 @@ class FakeRedis:
         match: str | None = None,
         count: int | None = None,
     ) -> tuple[int, list[str]]:
-        keys = [key for key in self.data if match is None or fnmatch.fnmatch(key, match)]
+        keys = [
+            key for key in self.data if match is None or fnmatch.fnmatch(key, match)
+        ]
         return 0, keys
 
     async def ping(self) -> bool:
