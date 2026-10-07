@@ -1803,6 +1803,163 @@ func TestTools_ProviderNameCompliance(t *testing.T) {
 	})
 
 	assertNoProviderName(t, "tool execution log", buf.String())
+
+	// Assert no tool names, titles, descriptions, or schema texts mention upstream provider brands.
+	toolsResult, err := session.ListTools(context.Background(), nil)
+	if err != nil {
+		t.Fatalf("ListTools: %v", err)
+	}
+	for _, tool := range toolsResult.Tools {
+		assertNoProviderName(t, "tool name: "+tool.Name, tool.Name)
+		assertNoProviderName(t, "tool description: "+tool.Name, tool.Description)
+		if tool.Annotations != nil {
+			assertNoProviderName(t, "tool title: "+tool.Name, tool.Annotations.Title)
+		}
+		schemaBytes, err := json.Marshal(tool.InputSchema)
+		if err != nil {
+			t.Fatalf("marshal input schema for %s: %v", tool.Name, err)
+		}
+		assertNoProviderName(t, "tool schema: "+tool.Name, string(schemaBytes))
+	}
+}
+
+func TestToolSurfaceContract(t *testing.T) {
+	session := newTestSession(t, "http://backend.invalid")
+	toolsResult, err := session.ListTools(context.Background(), nil)
+	if err != nil {
+		t.Fatalf("ListTools failed: %v", err)
+	}
+
+	expectedTools := []string{
+		"resolve_symbol",
+		"get_quote",
+		"get_price_history",
+		"get_fundamentals",
+		"get_financial_statements",
+		"get_option_expirations",
+		"get_options_chain",
+		"get_technical_indicator",
+	}
+
+	registeredNames := make(map[string]bool, len(expectedTools))
+	for _, name := range expectedTools {
+		registeredNames[name] = true
+	}
+
+	gotTools := make(map[string]*mcp.Tool, len(toolsResult.Tools))
+	for _, tool := range toolsResult.Tools {
+		gotTools[tool.Name] = tool
+	}
+
+	if len(gotTools) != len(expectedTools) {
+		t.Fatalf("got %d tools, want %d", len(gotTools), len(expectedTools))
+	}
+	for _, name := range expectedTools {
+		if _, ok := gotTools[name]; !ok {
+			t.Errorf("expected tool %q not found in ListTools", name)
+		}
+	}
+
+	requiredSections := []string{"Use when:", "Examples:", "Returns:", "See also:"}
+
+	for _, tool := range toolsResult.Tools {
+		t.Run(tool.Name, func(t *testing.T) {
+			if tool.Annotations == nil {
+				t.Fatalf("%s: missing annotations", tool.Name)
+			}
+			if !tool.Annotations.ReadOnlyHint {
+				t.Errorf("%s: readOnlyHint = false, want true", tool.Name)
+			}
+			if tool.Annotations.Title == "" {
+				t.Errorf("%s: annotations.title is empty", tool.Name)
+			}
+
+			desc := tool.Description
+			if desc == "" {
+				t.Fatalf("%s: description is empty", tool.Name)
+			}
+
+			for _, sec := range requiredSections {
+				if !strings.Contains(desc, sec) {
+					t.Errorf("%s: description missing section %q", tool.Name, sec)
+				}
+			}
+
+			// Verify at least two example lines under Examples:
+			examplesIdx := strings.Index(desc, "Examples:")
+			returnsIdx := strings.Index(desc, "Returns:")
+			if examplesIdx != -1 && returnsIdx != -1 && returnsIdx > examplesIdx {
+				examplesBlock := desc[examplesIdx+len("Examples:") : returnsIdx]
+				lines := strings.Split(examplesBlock, "\n")
+				exampleCount := 0
+				for _, line := range lines {
+					trimmed := strings.TrimSpace(line)
+					if strings.HasPrefix(trimmed, "-") && strings.Contains(trimmed, "->") {
+						exampleCount++
+					}
+				}
+				if exampleCount < 2 {
+					t.Errorf("%s: found %d example lines, want at least 2", tool.Name, exampleCount)
+				}
+			} else {
+				t.Errorf("%s: malformed Examples/Returns structure", tool.Name)
+			}
+
+			// Verify See also: targets name only registered tools
+			seeAlsoIdx := strings.Index(desc, "See also:")
+			if seeAlsoIdx != -1 {
+				seeAlsoBlock := desc[seeAlsoIdx+len("See also:"):]
+				tokens := strings.FieldsFunc(seeAlsoBlock, func(r rune) bool {
+					return r == ',' || r == '\n' || r == '\r' || r == ' ' || r == '\t'
+				})
+				var targets []string
+				for _, tok := range tokens {
+					tok = strings.Trim(tok, "`\"'.,")
+					if tok != "" {
+						targets = append(targets, tok)
+					}
+				}
+				if len(targets) == 0 {
+					t.Errorf("%s: See also has no targets", tool.Name)
+				}
+				for _, target := range targets {
+					if !registeredNames[target] {
+						t.Errorf("%s: See also references unregistered tool %q", tool.Name, target)
+					}
+				}
+			}
+		})
+	}
+
+	// resolve_symbol's description says to use it first
+	resolveSymbolDesc := gotTools["resolve_symbol"].Description
+	if !strings.Contains(strings.ToLower(resolveSymbolDesc), "use this first") {
+		t.Errorf("resolve_symbol description should say to use it first, got: %s", resolveSymbolDesc)
+	}
+
+	// get_options_chain's explains truncated and how to narrow (strike range, option type)
+	optionsChainDesc := gotTools["get_options_chain"].Description
+	if !strings.Contains(optionsChainDesc, "truncated") {
+		t.Errorf("get_options_chain description must explain 'truncated'")
+	}
+	if !strings.Contains(optionsChainDesc, "strike") || !strings.Contains(optionsChainDesc, "option_type") {
+		t.Errorf("get_options_chain description must explain how to narrow (strike range, option type)")
+	}
+
+	// get_price_history's states the 2,000-bar cap and suggests intervals
+	priceHistoryDesc := gotTools["get_price_history"].Description
+	if !strings.Contains(priceHistoryDesc, "2,000") && !strings.Contains(priceHistoryDesc, "2000") {
+		t.Errorf("get_price_history description must state 2,000-bar cap")
+	}
+	if !strings.Contains(priceHistoryDesc, "interval") {
+		t.Errorf("get_price_history description must suggest intervals")
+	}
+
+	// get_quote's mentions the timestamp
+	quoteDesc := gotTools["get_quote"].Description
+	if !strings.Contains(quoteDesc, "timestamp") {
+		t.Errorf("get_quote description must mention timestamp")
+	}
 }
 
 func TestExchangeNormalizationInPrepare(t *testing.T) {

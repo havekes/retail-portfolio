@@ -48,116 +48,309 @@ const (
 // is deliberately not phrased as an error or as "invalid symbol".
 const noDataMessage = "No market data is available for this request."
 
+const (
+	descGetPriceHistory = `Historical daily, weekly, or monthly open/high/low/close price bars for a symbol over a date range.
+
+Use when:
+Analyzing historical price trends or charting OHLC bars. Defaults to 1 year of daily bars if dates are omitted. The response is capped at 2,000 bars; for long date ranges, narrow the window or choose a coarser interval ('week' or 'month').
+
+Examples:
+- "Daily price history for Apple in 2024" -> {"symbol": "AAPL", "from": "2024-01-01", "to": "2024-12-31", "interval": "day"}
+- "Weekly bars for Tesla over 5 years" -> {"symbol": "TSLA", "interval": "week"}
+
+Returns:
+Top-level fields:
+- symbol: ticker symbol.
+- currency: listing currency code for all bar prices.
+- from_date, to_date: covered date range in YYYY-MM-DD.
+- interval: bar interval ('day', 'week', or 'month').
+- items: array of OHLCV bar objects (date, open, high, low, close, volume). All price values are decimal strings denominated in currency.
+
+See also:
+get_quote, get_technical_indicator, resolve_symbol`
+
+	descGetQuote = `Live quote snapshot for a ticker symbol, including price, daily change, trading volume, and timestamp.
+
+Use when:
+Checking the latest market price, intraday change, or trading volume for a security.
+
+Examples:
+- "Current price of Microsoft" -> {"symbol": "MSFT"}
+- "Latest quote for Barclays on London exchange" -> {"symbol": "BARC", "exchange": "LSE"}
+
+Returns:
+Top-level fields:
+- symbol: ticker symbol.
+- price: latest price as a decimal string denominated in currency.
+- change: absolute price change as a decimal string.
+- change_percent: percentage change as a decimal string.
+- volume: shares traded.
+- timestamp: Unix epoch timestamp in seconds of the quote.
+- currency: listing currency code (e.g. USD, CAD, GBP) for all monetary fields.
+
+See also:
+resolve_symbol, get_price_history, get_technical_indicator`
+
+	descGetFundamentals = `Company profile, key valuation metrics, and financial ratios for a security in a single payload.
+
+Use when:
+Evaluating business overview, valuation multiples (P/E, EV/EBITDA), or financial ratios (margins, ROE, debt-to-equity). Requests can select any subset of 'profile', 'key_metrics', and 'ratios' (defaults to all three).
+
+Examples:
+- "Company profile and financial ratios for Nvidia" -> {"symbol": "NVDA", "sections": ["profile", "ratios"]}
+- "Key metrics for Shopify on TSX" -> {"symbol": "SHOP", "sections": ["key_metrics"], "exchange": "TSX"}
+
+Returns:
+Object containing requested section objects:
+- profile: company overview, sector, industry, description, and currency.
+- key_metrics: valuation and operational metrics (may be null if unavailable).
+- ratios: profitability and leverage ratios (may be null if unavailable).
+Monetary values are decimal strings in the reporting currency.
+
+See also:
+get_financial_statements, get_quote, resolve_symbol`
+
+	descGetOptionsChain = `Option contracts chain for an underlying security on a specific expiration date, with optional strike and type filters.
+
+Use when:
+Pricing calls and puts, examining implied volatility, open interest, or bid/ask spreads. Use get_option_expirations first to obtain valid expiration dates.
+
+Examples:
+- "Calls for Tesla expiring 2026-01-16 with strikes 200 to 250" -> {"symbol": "TSLA", "expiry": "2026-01-16", "option_type": "call", "strike_min": 200, "strike_max": 250}
+- "Full options chain for Apple on 2026-06-19" -> {"symbol": "AAPL", "expiry": "2026-06-19"}
+
+Returns:
+Top-level fields:
+- symbol: underlying ticker symbol.
+- expiry: contract expiration date in YYYY-MM-DD.
+- underlying_price: current underlying price as a decimal string.
+- currency: listing currency code for underlying and strikes.
+- truncated: boolean indicating whether results reached the 250-contract cap. When truncated is true, narrow the chain by setting strike_min and strike_max or filtering option_type ('call' or 'put').
+- items: array of option contract objects (strike, type, bid, ask, last, volume, open_interest). Strike and premium values are decimal strings denominated in currency.
+
+See also:
+get_option_expirations, get_quote, resolve_symbol`
+
+	descGetOptionExpirations = `List of available option expiration dates for an underlying security, sorted in chronological order.
+
+Use when:
+Discovering valid expiration dates prior to querying get_options_chain, which requires an exact expiry date.
+
+Examples:
+- "Option expiration dates for Apple" -> {"symbol": "AAPL"}
+- "Available expirations for SPY" -> {"symbol": "SPY"}
+
+Returns:
+Top-level fields:
+- symbol: underlying ticker symbol.
+- expirations: array of available expiration date strings in YYYY-MM-DD format, sorted ascending.
+
+See also:
+get_options_chain, get_quote, resolve_symbol`
+
+	descGetFinancialStatements = `Audited financial statements (income statement, balance sheet, or cash flow statement) across reporting periods.
+
+Use when:
+Reviewing line-item financial history, revenue trends, balance sheet health, or cash flows across annual or quarterly periods.
+
+Examples:
+- "Last 3 annual income statements for Alphabet" -> {"symbol": "GOOGL", "statement": "income", "period": "annual", "limit": 3}
+- "Quarterly balance sheets for Microsoft" -> {"symbol": "MSFT", "statement": "balance", "period": "quarter", "limit": 4}
+
+Returns:
+Top-level fields:
+- statement: requested statement type ('income', 'balance', or 'cashflow').
+- symbol: ticker symbol.
+- period: reporting period ('annual' or 'quarter').
+- limit: maximum periods returned (1-20).
+- exchange: exchange code if filtered.
+- items: array of statement period objects. Monetary line items are decimal strings in the reporting currency.
+
+See also:
+get_fundamentals, get_quote, resolve_symbol`
+
+	descResolveSymbol = `USE THIS FIRST to look up or verify the ticker symbol for a company or asset before calling price, fundamentals, or options tools. Resolves search queries to the best matching symbol and alternative candidates.
+
+Use when:
+Looking up an unknown ticker, verifying a company name, or disambiguating symbols across exchanges.
+
+Examples:
+- "Search Apple" -> {"query": "Apple"}
+- "Find Royal Bank on Toronto exchange" -> {"query": "Royal Bank", "exchange": "TSX"}
+
+Returns:
+Top-level fields:
+- best_match: object with symbol, exchange, name, and asset type for the closest match.
+- alternatives: list of up to 10 additional candidate matches.
+
+See also:
+get_quote, get_price_history, get_fundamentals`
+
+	descGetTechnicalIndicator = `Technical indicator series (SMA, EMA, RSI, MACD, Bollinger Bands) computed over daily price history for a symbol.
+
+Use when:
+Generating quantitative signals or momentum studies. Supported indicators: 'sma', 'ema', 'rsi', 'macd', 'bollinger'. Periods accept values between 2 and 400.
+
+Examples:
+- "20-day SMA for Apple in 2024" -> {"symbol": "AAPL", "indicator": "sma", "period": 20, "from": "2024-01-01", "to": "2024-12-31"}
+- "RSI for Microsoft" -> {"symbol": "MSFT", "indicator": "rsi", "period": 14}
+
+Returns:
+Top-level fields:
+- symbol: ticker symbol.
+- indicator: indicator name ('sma', 'ema', 'rsi', 'macd', 'bollinger').
+- currency: listing currency code for price-derived indicators.
+- from_date, to_date: date range covered in YYYY-MM-DD.
+- params: object echoing effective calculation parameters (e.g. period, fast, slow, signal, std_dev).
+- points: array of calculated points with date and value fields. Values are decimal numbers.
+
+See also:
+get_price_history, get_quote, resolve_symbol`
+)
+
+// toolSpec packages metadata for an MCP tool registration.
+type toolSpec struct {
+	Name        string
+	Title       string
+	Description string
+}
+
 // registerTools attaches every market-data tool to server, closing over client.
 func registerTools(server *mcp.Server, client *BackendClient, cfg Config) {
-	addTool(server, "get_price_history",
-		"Daily open/high/low/close price history for a symbol over a date range, with an optional exchange filter.",
-		func(ctx context.Context, _ *mcp.CallToolRequest, in priceHistoryInput) (*mcp.CallToolResult, any, error) {
-			return runTool(ctx, "get_price_history", cfg, in, priceHistoryInput.prepare, func(ctx context.Context, r priceHistoryRequest) (any, error) {
-				return client.Prices(ctx, r.symbol, r.from, r.to, r.interval, r.exchange)
-			})
+	addTool(server, toolSpec{
+		Name:        "get_price_history",
+		Title:       "Get Price History",
+		Description: descGetPriceHistory,
+	}, func(ctx context.Context, _ *mcp.CallToolRequest, in priceHistoryInput) (*mcp.CallToolResult, any, error) {
+		return runTool(ctx, "get_price_history", cfg, in, priceHistoryInput.prepare, func(ctx context.Context, r priceHistoryRequest) (any, error) {
+			return client.Prices(ctx, r.symbol, r.from, r.to, r.interval, r.exchange)
 		})
+	})
 
-	addTool(server, "get_quote",
-		"Live quote snapshot for a symbol.",
-		func(ctx context.Context, _ *mcp.CallToolRequest, in quoteInput) (*mcp.CallToolResult, any, error) {
-			return runTool(ctx, "get_quote", cfg, in, quoteInput.prepare, func(ctx context.Context, r quoteRequest) (any, error) {
-				return client.Quote(ctx, r.symbol, r.exchange)
-			})
+	addTool(server, toolSpec{
+		Name:        "get_quote",
+		Title:       "Get Quote",
+		Description: descGetQuote,
+	}, func(ctx context.Context, _ *mcp.CallToolRequest, in quoteInput) (*mcp.CallToolResult, any, error) {
+		return runTool(ctx, "get_quote", cfg, in, quoteInput.prepare, func(ctx context.Context, r quoteRequest) (any, error) {
+			return client.Quote(ctx, r.symbol, r.exchange)
 		})
+	})
 
-	addTool(server, "get_fundamentals",
-		"Analysis-ready fundamentals for a symbol: company profile, key metrics and financial ratios in one payload (metrics and ratios may be null if unavailable).",
-		func(ctx context.Context, _ *mcp.CallToolRequest, in fundamentalsInput) (*mcp.CallToolResult, any, error) {
-			return runTool(ctx, "get_fundamentals", cfg, in, fundamentalsInput.prepare, func(ctx context.Context, r fundamentalsRequest) (any, error) {
-				raw, err := client.Fundamentals(ctx, r.symbol, r.exchange)
-				if err != nil {
-					return nil, err
-				}
-				return filterFundamentalsSections(raw, r.sections)
-			})
+	addTool(server, toolSpec{
+		Name:        "get_fundamentals",
+		Title:       "Get Fundamentals",
+		Description: descGetFundamentals,
+	}, func(ctx context.Context, _ *mcp.CallToolRequest, in fundamentalsInput) (*mcp.CallToolResult, any, error) {
+		return runTool(ctx, "get_fundamentals", cfg, in, fundamentalsInput.prepare, func(ctx context.Context, r fundamentalsRequest) (any, error) {
+			raw, err := client.Fundamentals(ctx, r.symbol, r.exchange)
+			if err != nil {
+				return nil, err
+			}
+			return filterFundamentalsSections(raw, r.sections)
 		})
+	})
 
-	addTool(server, "get_options_chain",
-		"Options chain for an underlying symbol with optional expiry, contract-type and strike filters.",
-		func(ctx context.Context, _ *mcp.CallToolRequest, in optionsChainInput) (*mcp.CallToolResult, any, error) {
-			return runTool(ctx, "get_options_chain", cfg, in, optionsChainInput.prepare, func(ctx context.Context, r optionsChainRequest) (any, error) {
-				return client.OptionsChain(ctx, r.symbol, r.expiry, r.optionType, r.strikeMin, r.strikeMax)
-			})
+	addTool(server, toolSpec{
+		Name:        "get_options_chain",
+		Title:       "Get Options Chain",
+		Description: descGetOptionsChain,
+	}, func(ctx context.Context, _ *mcp.CallToolRequest, in optionsChainInput) (*mcp.CallToolResult, any, error) {
+		return runTool(ctx, "get_options_chain", cfg, in, optionsChainInput.prepare, func(ctx context.Context, r optionsChainRequest) (any, error) {
+			return client.OptionsChain(ctx, r.symbol, r.expiry, r.optionType, r.strikeMin, r.strikeMax)
 		})
+	})
 
-	addTool(server, "get_option_expirations",
-		"Available option expiration dates for an underlying symbol, sorted ascending.",
-		func(ctx context.Context, _ *mcp.CallToolRequest, in optionExpirationsInput) (*mcp.CallToolResult, any, error) {
-			return runTool(ctx, "get_option_expirations", cfg, in, optionExpirationsInput.prepare, func(ctx context.Context, r optionExpirationsRequest) (any, error) {
-				return client.OptionExpirations(ctx, r.symbol)
-			})
+	addTool(server, toolSpec{
+		Name:        "get_option_expirations",
+		Title:       "Get Option Expirations",
+		Description: descGetOptionExpirations,
+	}, func(ctx context.Context, _ *mcp.CallToolRequest, in optionExpirationsInput) (*mcp.CallToolResult, any, error) {
+		return runTool(ctx, "get_option_expirations", cfg, in, optionExpirationsInput.prepare, func(ctx context.Context, r optionExpirationsRequest) (any, error) {
+			return client.OptionExpirations(ctx, r.symbol)
 		})
+	})
 
-	addTool(server, "get_financial_statements",
-		"Financial statements (income statement, balance sheet, cash flow) for a symbol, optionally filtered by reporting period and limited to the most recent periods.",
-		func(ctx context.Context, _ *mcp.CallToolRequest, in financialStatementsInput) (*mcp.CallToolResult, any, error) {
-			return runTool(ctx, "get_financial_statements", cfg, in, financialStatementsInput.prepare, func(ctx context.Context, r financialStatementsRequest) (any, error) {
-				raw, err := client.Statements(ctx, r.symbol, r.statement, r.period, r.limit, r.exchange)
-				if err != nil {
-					return nil, err
-				}
-				items, err := decodeStatementList(raw, r.statement)
-				if err != nil {
-					return nil, err
-				}
-				return statementEnvelope{
-					Statement: r.statement,
-					Symbol:    r.symbol,
-					Period:    r.period,
-					Limit:     r.limit,
-					Exchange:  r.exchange,
-					Items:     items,
-				}, nil
-			})
+	addTool(server, toolSpec{
+		Name:        "get_financial_statements",
+		Title:       "Get Financial Statements",
+		Description: descGetFinancialStatements,
+	}, func(ctx context.Context, _ *mcp.CallToolRequest, in financialStatementsInput) (*mcp.CallToolResult, any, error) {
+		return runTool(ctx, "get_financial_statements", cfg, in, financialStatementsInput.prepare, func(ctx context.Context, r financialStatementsRequest) (any, error) {
+			raw, err := client.Statements(ctx, r.symbol, r.statement, r.period, r.limit, r.exchange)
+			if err != nil {
+				return nil, err
+			}
+			items, err := decodeStatementList(raw, r.statement)
+			if err != nil {
+				return nil, err
+			}
+			return statementEnvelope{
+				Statement: r.statement,
+				Symbol:    r.symbol,
+				Period:    r.period,
+				Limit:     r.limit,
+				Exchange:  r.exchange,
+				Items:     items,
+			}, nil
 		})
+	})
 
-	addTool(server, "resolve_symbol",
-		"Resolve a company or ticker query to the single best matching symbol, with alternatives.",
-		func(ctx context.Context, _ *mcp.CallToolRequest, in resolveSymbolInput) (*mcp.CallToolResult, any, error) {
-			return runTool(ctx, "resolve_symbol", cfg, in, resolveSymbolInput.prepare, func(ctx context.Context, r resolveSymbolRequest) (any, error) {
-				raw, err := client.SymbolSearch(ctx, r.query)
-				if err != nil {
-					return nil, err
-				}
-				var items []json.RawMessage
-				if err := json.Unmarshal(raw, &items); err != nil {
-					return nil, &backendError{class: ErrProvider, detail: err.Error()}
-				}
-				best, alts, err := rankSymbolMatches(items, r.query, r.exchange)
-				if err != nil {
-					return nil, err
-				}
-				return resolveSymbolResult{
-					BestMatch:    best,
-					Alternatives: alts,
-				}, nil
-			})
+	addTool(server, toolSpec{
+		Name:        "resolve_symbol",
+		Title:       "Resolve Symbol",
+		Description: descResolveSymbol,
+	}, func(ctx context.Context, _ *mcp.CallToolRequest, in resolveSymbolInput) (*mcp.CallToolResult, any, error) {
+		return runTool(ctx, "resolve_symbol", cfg, in, resolveSymbolInput.prepare, func(ctx context.Context, r resolveSymbolRequest) (any, error) {
+			raw, err := client.SymbolSearch(ctx, r.query)
+			if err != nil {
+				return nil, err
+			}
+			var items []json.RawMessage
+			if err := json.Unmarshal(raw, &items); err != nil {
+				return nil, &backendError{class: ErrProvider, detail: err.Error()}
+			}
+			best, alts, err := rankSymbolMatches(items, r.query, r.exchange)
+			if err != nil {
+				return nil, err
+			}
+			return resolveSymbolResult{
+				BestMatch:    best,
+				Alternatives: alts,
+			}, nil
 		})
+	})
 
-	addTool(server, "get_technical_indicator",
-		"Technical indicator series (SMA, EMA, RSI, MACD, Bollinger Bands) computed over daily price history for a symbol.",
-		func(ctx context.Context, _ *mcp.CallToolRequest, in technicalIndicatorInput) (*mcp.CallToolResult, any, error) {
-			return runTool(ctx, "get_technical_indicator", cfg, in, technicalIndicatorInput.prepare, func(ctx context.Context, r technicalIndicatorRequest) (any, error) {
-				return client.TechnicalIndicator(ctx, r.symbol, r.query)
-			})
+	addTool(server, toolSpec{
+		Name:        "get_technical_indicator",
+		Title:       "Get Technical Indicator",
+		Description: descGetTechnicalIndicator,
+	}, func(ctx context.Context, _ *mcp.CallToolRequest, in technicalIndicatorInput) (*mcp.CallToolResult, any, error) {
+		return runTool(ctx, "get_technical_indicator", cfg, in, technicalIndicatorInput.prepare, func(ctx context.Context, r technicalIndicatorRequest) (any, error) {
+			return client.TechnicalIndicator(ctx, r.symbol, r.query)
 		})
+	})
 }
 
 // addTool is a thin wrapper over the SDK generic mcp.AddTool. Out is always any
 // so the SDK never infers an output schema: results are plain JSON served as
-// TextContent by the shared helpers below.
+// TextContent by the shared helpers below. It attaches ReadOnlyHint: true,
+// IdempotentHint: true, and Title annotations to every registered tool.
 func addTool[In any](
 	server *mcp.Server,
-	name, description string,
+	spec toolSpec,
 	handler mcp.ToolHandlerFor[In, any],
 ) {
-	mcp.AddTool(server, &mcp.Tool{Name: name, Description: description}, handler)
+	mcp.AddTool(server, &mcp.Tool{
+		Name:        spec.Name,
+		Title:       spec.Title,
+		Description: spec.Description,
+		Annotations: &mcp.ToolAnnotations{
+			ReadOnlyHint:   true,
+			IdempotentHint: true,
+			Title:          spec.Title,
+		},
+	}, handler)
 }
 
 // filterFundamentalsSections filters the raw fundamentals JSON aggregate to
@@ -539,7 +732,7 @@ func (in fundamentalsInput) prepare() (fundamentalsRequest, error) {
 
 type optionsChainInput struct {
 	Symbol     string   `json:"symbol" jsonschema:"Ticker symbol of the underlying security."`
-	Expiry     string   `json:"expiry" jsonschema:"Expiration date in YYYY-MM-DD format."`
+	Expiry     string   `json:"expiry" jsonschema:"Expiration date in YYYY-MM-DD format (use get_option_expirations to list available dates)."`
 	OptionType string   `json:"option_type,omitempty" jsonschema:"Optional contract type filter: 'call' or 'put'."`
 	StrikeMin  *float64 `json:"strike_min,omitempty" jsonschema:"Optional minimum strike price."`
 	StrikeMax  *float64 `json:"strike_max,omitempty" jsonschema:"Optional maximum strike price."`
