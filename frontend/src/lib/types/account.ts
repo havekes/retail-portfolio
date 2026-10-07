@@ -27,7 +27,8 @@ export enum AccountType {
 	TFSA = 1,
 	RRSP = 2,
 	FHSA = 3,
-	NonRegistered = 4
+	NonRegistered = 4,
+	SpousalRRSP = 5
 }
 
 export const getAccountTypeLabel = (
@@ -42,7 +43,8 @@ export const getAccountTypeLabel = (
 		[AccountType.TFSA]: 'TFSA',
 		[AccountType.RRSP]: 'RRSP',
 		[AccountType.FHSA]: 'FHSA',
-		[AccountType.NonRegistered]: 'Non-Registered'
+		[AccountType.NonRegistered]: 'Non-Registered',
+		[AccountType.SpousalRRSP]: 'Spousal RRSP'
 	};
 	return labels[type];
 };
