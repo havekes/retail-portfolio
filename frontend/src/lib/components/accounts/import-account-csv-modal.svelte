@@ -35,6 +35,8 @@
 	let detectedAccounts = $state<CsvDiscoveredAccount[]>([]);
 	let selectedAccountNumbers = $state<string[]>([]);
 	let accountCurrencies = $state<Record<string, string>>({});
+	let netDepositsInput = $state<Record<string, string>>({});
+	let initialNetDeposits = $state<Record<string, number | null>>({});
 	let isLoading = $state(false);
 	let error = $state<string | null>(null);
 	let isDragging = $state(false);
@@ -62,6 +64,8 @@
 		detectedAccounts = [];
 		selectedAccountNumbers = [];
 		accountCurrencies = {};
+		netDepositsInput = {};
+		initialNetDeposits = {};
 		error = null;
 		isLoading = false;
 		isDragging = false;
@@ -161,8 +165,13 @@
 			detectedAccounts = accounts;
 			selectedAccountNumbers = accounts.map((acc) => acc.account_number);
 			accountCurrencies = {};
+			netDepositsInput = {};
+			initialNetDeposits = {};
 			for (const acc of accounts) {
 				accountCurrencies[acc.account_number] = acc.currency || 'CAD';
+				initialNetDeposits[acc.account_number] = acc.net_deposits ?? null;
+				netDepositsInput[acc.account_number] =
+					acc.net_deposits != null ? String(acc.net_deposits) : '';
 			}
 			step = 2;
 		} catch (err) {
@@ -196,12 +205,42 @@
 		}
 	}
 
+	function isInvalidNetDeposits(raw: string | undefined): boolean {
+		const trimmed = (raw ?? '').trim();
+		if (trimmed === '') return false;
+		return !Number.isFinite(Number(trimmed));
+	}
+
+	let hasInvalidNetDeposits = $derived(
+		selectedAccountNumbers.some((accountNumber) =>
+			isInvalidNetDeposits(netDepositsInput[accountNumber])
+		)
+	);
+
+	function buildNetDepositsPayload(): Record<string, number | null> {
+		const payload: Record<string, number | null> = {};
+		for (const accountNumber of selectedAccountNumbers) {
+			const trimmed = (netDepositsInput[accountNumber] ?? '').trim();
+			if (trimmed === '') {
+				// A prefilled value that was cleared sends `null`; a never-set new
+				// account omits the key so the backend leaves it untouched.
+				if (initialNetDeposits[accountNumber] != null) {
+					payload[accountNumber] = null;
+				}
+				continue;
+			}
+			payload[accountNumber] = Number(trimmed);
+		}
+		return payload;
+	}
+
 	async function handleImport() {
 		if (
 			!selectedInstitutionId ||
 			!selectedFile ||
 			selectedAccountNumbers.length === 0 ||
-			isLoading
+			isLoading ||
+			hasInvalidNetDeposits
 		) {
 			return;
 		}
@@ -214,7 +253,10 @@
 				selectedInstitutionId,
 				selectedFile,
 				selectedAccountNumbers,
-				accountCurrencies
+				{
+					currencies: accountCurrencies,
+					netDeposits: buildNetDepositsPayload()
+				}
 			);
 			closeModal();
 			onSuccess?.();
@@ -359,6 +401,7 @@
 										<Table.Head>Type</Table.Head>
 										<Table.Head>Action</Table.Head>
 										<Table.Head>Currency</Table.Head>
+										<Table.Head>Net deposits</Table.Head>
 										<Table.Head class="text-right">Holdings</Table.Head>
 									</Table.Row>
 								</Table.Header>
@@ -418,6 +461,32 @@
 													{/each}
 												</select>
 											</Table.Cell>
+											<Table.Cell>
+												<Input
+													type="text"
+													inputmode="decimal"
+													class="w-28"
+													placeholder="Optional"
+													bind:value={netDepositsInput[acc.account_number]}
+													disabled={isLoading}
+													aria-label={`Net deposits for ${acc.account_name}`}
+													aria-invalid={isInvalidNetDeposits(netDepositsInput[acc.account_number])}
+													data-testid="account-net-deposits-input"
+												/>
+												{#if acc.exists}
+													<span class="mt-1 block text-[10px] text-muted-foreground">
+														Still correct?
+													</span>
+												{/if}
+												{#if isInvalidNetDeposits(netDepositsInput[acc.account_number])}
+													<span
+														class="mt-1 block text-[10px] text-destructive"
+														data-testid="account-net-deposits-error"
+													>
+														Enter a number
+													</span>
+												{/if}
+											</Table.Cell>
 											<Table.Cell class="text-right">{acc.positions_count}</Table.Cell>
 										</Table.Row>
 									{/each}
@@ -463,7 +532,7 @@
 						<Button onclick={closeModal} variant="outline" disabled={isLoading}>Cancel</Button>
 						<Button
 							onclick={handleImport}
-							disabled={selectedAccountNumbers.length === 0 || isLoading}
+							disabled={selectedAccountNumbers.length === 0 || isLoading || hasInvalidNetDeposits}
 						>
 							{#if isLoading}
 								<Loader2 class="mr-2 h-4 w-4 animate-spin" />
