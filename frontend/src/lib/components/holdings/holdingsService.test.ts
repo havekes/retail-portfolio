@@ -18,7 +18,7 @@ const getUserHoldings = vi.fn();
 const getValuationsBatch = vi.fn();
 
 function makeHolding(id: string, overrides: Partial<UserHolding> = {}): UserHolding {
-	return {
+	const merged = {
 		id,
 		security_id: 'sec-aapl',
 		security_symbol: 'AAPL',
@@ -28,6 +28,7 @@ function makeHolding(id: string, overrides: Partial<UserHolding> = {}): UserHold
 		total_value: 100,
 		profit_loss: 0,
 		currency: 'CAD',
+		display_currency: 'CAD',
 		security_currency: 'CAD',
 		unconverted_total_value: 100,
 		converted_average_cost: 100,
@@ -37,6 +38,7 @@ function makeHolding(id: string, overrides: Partial<UserHolding> = {}): UserHold
 		account_name: 'Account One',
 		...overrides
 	};
+	return { ...merged, display_total_value: overrides.display_total_value ?? merged.total_value };
 }
 
 function makeHoldings(count: number, startIndex = 0, accountId = 'acc-1'): UserHolding[] {

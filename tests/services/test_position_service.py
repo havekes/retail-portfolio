@@ -181,6 +181,57 @@ async def test_get_user_holdings_groups_by_account_and_stamps_context():
 
 
 @pytest.mark.anyio
+async def test_get_user_holdings_converts_to_display_currency():
+    """User-wide holdings carry a converted display value in the display currency."""
+    user_id = uuid4()
+    usd_account = _account(uuid4(), "USD Account")
+    cad_account = _account(uuid4(), "CAD Account")
+    cad_account.currency = Currency("CAD")
+    security = _security(uuid4())
+    positions = [
+        _position(1, usd_account.id, security.id, "1"),
+        _position(2, cad_account.id, security.id, "1"),
+    ]
+    service, _, _ = _build_service(
+        positions,
+        total=2,
+        accounts={usd_account.id: usd_account, cad_account.id: cad_account},
+        security=security,
+    )
+    converter = CurrencyConverter()
+
+    cad_items, _ = await service.get_user_holdings(user_id, display_currency="CAD")
+    by_account = {item.account_id: item for item in cad_items}
+    usd_holding = by_account[usd_account.id]
+    cad_holding = by_account[cad_account.id]
+
+    expected_usd_in_cad = round(
+        converter.convert(amount=100, currency="USD", new_currency="CAD"), 2
+    )
+    # Native value stays in the account currency; the display value converts.
+    assert usd_holding.currency == "USD"
+    assert usd_holding.total_value == 100.0
+    assert usd_holding.display_currency == "CAD"
+    assert usd_holding.display_total_value == pytest.approx(expected_usd_in_cad)
+    # A CAD holding needs no conversion.
+    assert cad_holding.currency == "CAD"
+    assert cad_holding.display_currency == "CAD"
+    assert cad_holding.display_total_value == cad_holding.total_value
+
+    # The user's preference is honoured: the same CAD holding converts to USD.
+    usd_items, _ = await service.get_user_holdings(user_id, display_currency="USD")
+    cad_holding_usd = {item.account_id: item for item in usd_items}[cad_account.id]
+    expected_cad_in_usd = round(
+        converter.convert(
+            amount=cad_holding_usd.total_value, currency="CAD", new_currency="USD"
+        ),
+        2,
+    )
+    assert cad_holding_usd.display_currency == "USD"
+    assert cad_holding_usd.display_total_value == pytest.approx(expected_cad_in_usd)
+
+
+@pytest.mark.anyio
 async def test_get_total_for_account_includes_free_cash():
     """Verify get_total_for_account adds account free_cash to totals.value and totals.cost."""
     account_id = uuid4()

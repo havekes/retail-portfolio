@@ -161,6 +161,8 @@ class HoldingRead(BaseModel):
     total_value: float
     profit_loss: float | None
     currency: str
+    display_total_value: float
+    display_currency: str
     security_currency: str
     unconverted_total_value: float
     converted_average_cost: float | None = None

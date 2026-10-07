@@ -424,6 +424,8 @@ describe('AccountsListItem', () => {
 				total_value: 1750,
 				profit_loss: 250,
 				currency: 'CAD',
+				display_total_value: 1750,
+				display_currency: 'CAD',
 				security_currency: 'USD',
 				unconverted_total_value: 1750,
 				converted_average_cost: 150,

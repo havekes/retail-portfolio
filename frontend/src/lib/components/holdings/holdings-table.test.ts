@@ -59,12 +59,13 @@ function makeRow(
 	overrides: Partial<UserHolding> &
 		Pick<UserHolding, 'id' | 'security_id' | 'security_symbol' | 'security_name'>
 ): UserHolding {
-	return {
+	const merged = {
 		quantity: 1,
 		average_cost: 100,
 		total_value: 100,
 		profit_loss: 0,
 		currency: 'CAD',
+		display_currency: 'CAD',
 		security_currency: 'CAD',
 		unconverted_total_value: 100,
 		converted_average_cost: 100,
@@ -75,6 +76,8 @@ function makeRow(
 		account_name: 'Test Account',
 		...overrides
 	};
+	// Default the display value to the native value unless a case overrides it.
+	return { ...merged, display_total_value: overrides.display_total_value ?? merged.total_value };
 }
 
 const sortRows: UserHolding[] = [
@@ -856,6 +859,44 @@ describe('HoldingsTable', () => {
 
 			const mRow = rowBySymbol('MMM');
 			expect(within(mRow).getByTestId('percent-of-total')).toHaveTextContent('9.8%');
+		});
+
+		it('computes % of Total from display values so currencies are never summed natively', () => {
+			const rows = [
+				makeRow({
+					id: 'h-cad',
+					security_id: 'sec-cad',
+					security_symbol: 'CADX',
+					security_name: 'CAD Corp',
+					currency: 'CAD',
+					display_currency: 'CAD',
+					total_value: 100,
+					display_total_value: 100,
+					account_id: 'acc-cad',
+					account_name: 'CAD Account'
+				}),
+				makeRow({
+					id: 'h-usd',
+					security_id: 'sec-usd',
+					security_symbol: 'USDX',
+					security_name: 'USD Corp',
+					currency: 'USD',
+					display_currency: 'CAD',
+					total_value: 100,
+					display_total_value: 137,
+					account_id: 'acc-usd',
+					account_name: 'USD Account'
+				})
+			];
+			render(HoldingsTable, { props: { holdings: rows } });
+
+			// 100 / 237 = 42.2%, 137 / 237 = 57.8% — not 50/50 from native values.
+			expect(within(rowBySymbol('CADX')).getByTestId('percent-of-total')).toHaveTextContent(
+				'42.2%'
+			);
+			expect(within(rowBySymbol('USDX')).getByTestId('percent-of-total')).toHaveTextContent(
+				'57.8%'
+			);
 		});
 
 		it('sorts holdings table by "% of Total" column ascending and descending', async () => {

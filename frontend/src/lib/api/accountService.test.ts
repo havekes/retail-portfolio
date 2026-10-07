@@ -12,6 +12,8 @@ const makeHolding = (id: string, accountId = 'acc-1'): UserHolding => ({
 	total_value: 2000,
 	profit_loss: 500,
 	currency: 'CAD',
+	display_total_value: 2000,
+	display_currency: 'CAD',
 	security_currency: 'CAD',
 	unconverted_total_value: 2000,
 	converted_average_cost: 150,

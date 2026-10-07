@@ -380,6 +380,8 @@ async def test_user_holdings_success_across_accounts(
             "total_value",
             "profit_loss",
             "currency",
+            "display_total_value",
+            "display_currency",
             "security_currency",
             "unconverted_total_value",
             "converted_average_cost",
