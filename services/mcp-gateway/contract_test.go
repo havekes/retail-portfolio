@@ -178,6 +178,7 @@ func TestOpenAPIContractArtifactExistsAndValid(t *testing.T) {
 
 	expectedRoutes := []string{
 		"/api/v1/market/data/prices/{symbol}",
+		"/api/v1/market/data/quote/{symbol}",
 		"/api/v1/market/data/symbols/search",
 		"/api/v1/market/data/options/{symbol}",
 		"/api/v1/market/data/options/{symbol}/expirations",
@@ -294,6 +295,14 @@ func TestBackendClientOpenAPIParity(t *testing.T) {
 		t.Fatalf("Statements minimal failed: %v", err)
 	}
 
+	// 7. Quote (with and without exchange)
+	if _, err := client.Quote(ctx, "AAPL", "NASDAQ"); err != nil {
+		t.Fatalf("Quote with exchange failed: %v", err)
+	}
+	if _, err := client.Quote(ctx, "AAPL", ""); err != nil {
+		t.Fatalf("Quote without exchange failed: %v", err)
+	}
+
 	// Assert 100% of the OpenAPI contract routes were exercised
 	for route := range doc.Paths {
 		count := exercisedRoutes[route]
@@ -381,6 +390,12 @@ func TestBackendClientOpenAPINegativeDrift(t *testing.T) {
 			headerToken: "test-token",
 			wantErrMsg:  "query parameter \"bogus\" sent to /api/v1/market/data/fundamentals/{symbol} is not defined",
 		},
+		{
+			name:        "unknown query param on quote",
+			url:         "/api/v1/market/data/quote/AAPL?unexpected=val",
+			headerToken: "test-token",
+			wantErrMsg:  "query parameter \"unexpected\" sent to /api/v1/market/data/quote/{symbol} is not defined",
+		},
 	}
 
 	for _, tc := range cases {
@@ -455,7 +470,7 @@ func TestExchangeVocabularyMatchesContract(t *testing.T) {
 		}
 	}
 
-	expectedRouteCount := 3
+	expectedRouteCount := 4
 	if routesChecked != expectedRouteCount {
 		t.Errorf("expected %d routes with exchange parameter, checked %d", expectedRouteCount, routesChecked)
 	}

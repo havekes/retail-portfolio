@@ -112,6 +112,18 @@ func TestBackendClientEndpoints(t *testing.T) {
 			},
 		},
 		{
+			name: "quote",
+			body: `{"symbol":"AAPL","price":"229.87","currency":"USD"}`,
+			call: func(ctx context.Context, c *BackendClient) error {
+				_, err := c.Quote(ctx, "aapl", "nasdaq")
+				return err
+			},
+			wantPath: "/api/v1/market/data/quote/AAPL",
+			wantQuery: map[string]string{
+				"exchange": "nasdaq",
+			},
+		},
+		{
 			name: "symbol search",
 			body: `[{"symbol":"AAPL","name":"Apple"}]`,
 			call: func(ctx context.Context, c *BackendClient) error {

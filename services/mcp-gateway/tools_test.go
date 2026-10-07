@@ -18,6 +18,7 @@ import (
 // registers. Order is irrelevant; tests compare as a set.
 var expectedToolNames = []string{
 	"get_price_history",
+	"get_quote",
 	"get_fundamentals",
 	"get_options_chain",
 	"get_option_expirations",
@@ -88,6 +89,14 @@ const (
 			"low": "149", "close": "154", "volume": 1000000, "adjusted_close": "153.5"}]
 	}`
 
+	quoteBody = `{
+		"symbol": "AAPL", "price": "229.87", "change": "1.21",
+		"change_percent": "0.528", "previous_close": "228.66",
+		"open": "228.50", "day_high": "231.45", "day_low": "228.10",
+		"volume": 48231900, "timestamp": "2026-04-01T14:30:00Z",
+		"currency": "USD"
+	}`
+
 	fundamentalsBody = `{
 		"profile": {"symbol": "AAPL", "company_name": "Apple Inc.",
 			"market_cap": "3400000000000", "sector": "Technology"},
@@ -123,6 +132,7 @@ type toolCall struct {
 
 var validToolCalls = []toolCall{
 	{"get_price_history", map[string]any{"symbol": "AAPL", "from": "2026-01-01", "to": "2026-01-31"}},
+	{"get_quote", map[string]any{"symbol": "AAPL"}},
 	{"get_fundamentals", map[string]any{"symbol": "AAPL"}},
 	{"get_options_chain", map[string]any{"symbol": "AAPL", "expiry": "2026-01-16"}},
 	{"get_option_expirations", map[string]any{"symbol": "AAPL"}},
@@ -176,6 +186,29 @@ func TestToolsCallBackendAndReturnData(t *testing.T) {
 					t.Fatalf("decode PriceHistory: %v", err)
 				}
 				if got.Symbol != "AAPL" || len(got.Items) != 1 || got.Items[0].Close != "154" {
+					t.Errorf("payload = %+v", got)
+				}
+			},
+		},
+		{
+			name:     "get_quote",
+			tool:     "get_quote",
+			args:     map[string]any{"symbol": "aapl", "exchange": "nasdaq"},
+			body:     quoteBody,
+			wantPath: "/api/v1/market/data/quote/AAPL",
+			wantQuery: map[string]string{
+				"exchange": "NASDAQ",
+			},
+			assert: func(t *testing.T, raw string) {
+				var got struct {
+					Symbol   string `json:"symbol"`
+					Price    string `json:"price"`
+					Currency string `json:"currency"`
+				}
+				if err := json.Unmarshal([]byte(raw), &got); err != nil {
+					t.Fatalf("decode Quote: %v", err)
+				}
+				if got.Symbol != "AAPL" || got.Price != "229.87" || got.Currency != "USD" {
 					t.Errorf("payload = %+v", got)
 				}
 			},
@@ -1082,6 +1115,22 @@ func TestToolsRejectInvalidInput(t *testing.T) {
 			name: "bad exchange on financial statements",
 			prepare: func() error {
 				_, err := (financialStatementsInput{Symbol: "AAPL", Statement: "income", Exchange: "XETRA"}).prepare()
+				return err
+			},
+			want: "exchange must be one of: NYSE, NASDAQ, NYSEARCA, AMEX, TSX, LSE",
+		},
+		{
+			name: "symbol required on quote",
+			prepare: func() error {
+				_, err := (quoteInput{Symbol: "   "}).prepare()
+				return err
+			},
+			want: "symbol is required",
+		},
+		{
+			name: "bad exchange on quote",
+			prepare: func() error {
+				_, err := (quoteInput{Symbol: "AAPL", Exchange: "XETRA"}).prepare()
 				return err
 			},
 			want: "exchange must be one of: NYSE, NASDAQ, NYSEARCA, AMEX, TSX, LSE",
