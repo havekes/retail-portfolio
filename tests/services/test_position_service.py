@@ -392,6 +392,40 @@ async def test_get_account_holdings_includes_free_cash():
 
 
 @pytest.mark.anyio
+async def test_get_account_holdings_exposes_broker_value():
+    """The broker-reported value and timestamp are surfaced on the response."""
+    account_id = uuid4()
+    account = _account(account_id, "Broker Account")
+    account.broker_value = 10000.0
+    account.broker_value_at = datetime(2026, 10, 7, tzinfo=UTC)
+
+    security = _security(uuid4())
+    position = _position(1, account_id, security.id, "10")
+    service = _build_account_totals_service(account, [position], security, close="100.0")
+
+    holdings_read = await service.get_account_holdings(account_id, offset=0, limit=50)
+
+    assert holdings_read.broker_value == 10000.0
+    assert holdings_read.broker_value_at == datetime(2026, 10, 7, tzinfo=UTC)
+
+
+@pytest.mark.anyio
+async def test_get_account_holdings_broker_value_null_for_csv_account():
+    """CSV-imported accounts have no broker value, so both fields stay null."""
+    account_id = uuid4()
+    account = _account(account_id, "CSV Account")
+
+    security = _security(uuid4())
+    position = _position(1, account_id, security.id, "10")
+    service = _build_account_totals_service(account, [position], security, close="100.0")
+
+    holdings_read = await service.get_account_holdings(account_id, offset=0, limit=50)
+
+    assert holdings_read.broker_value is None
+    assert holdings_read.broker_value_at is None
+
+
+@pytest.mark.anyio
 async def test_get_account_holdings_currency_mismatch_position_cad_security_usd():
     """Verify get_account_holdings computes without CurrencyMismatchError when position.currency == 'CAD' and security.currency == 'USD'."""
     account_id = uuid4()

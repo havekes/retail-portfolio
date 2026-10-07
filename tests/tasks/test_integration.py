@@ -1,4 +1,5 @@
 import asyncio
+import logging
 from datetime import UTC, datetime
 from decimal import Decimal
 from typing import cast
@@ -6,11 +7,12 @@ from unittest.mock import AsyncMock, MagicMock, patch
 from uuid import uuid4
 
 import pytest
-from stockholm import Currency
+from stockholm import Currency, Money
 
 from src.account.api.account import AccountApi
 from src.account.api.position import PositionApi
-from src.account.api_types import Account
+from src.account.api_types import Account, AccountTotals
+from src.account.service.position import PositionService
 from src.auth.api import UserApi
 from src.config.settings import settings
 from src.core.email import (
@@ -119,6 +121,8 @@ async def test_sync_account_positions_task_success(mock_account, mock_integratio
         net_deposits=Decimal(5000),
         created_at=datetime.now(UTC),
     )
+    mock_position_service = AsyncMock(spec=PositionService)
+    mock_position_service.get_total_for_account.return_value = _account_totals("10000")
     mock_broker.get_accounts.return_value = [mock_broker_account]
 
     mock_container = AsyncMock()
@@ -131,6 +135,8 @@ async def test_sync_account_positions_task_success(mock_account, mock_integratio
             return mock_position_api
         if clazz == AccountApi:
             return mock_account_api
+        if clazz == PositionService:
+            return mock_position_service
         if clazz == broker_class:
             return mock_broker
         return None
@@ -207,6 +213,8 @@ async def test_sync_account_positions_task_persists_zero_net_deposits(
         )
     ]
     mock_broker.get_cash_balances.return_value = {}
+    mock_position_service = AsyncMock(spec=PositionService)
+    mock_position_service.get_total_for_account.return_value = _account_totals("10000")
     mock_broker.get_accounts.return_value = [
         BrokerAccount(
             id=broker_account_id,
@@ -232,6 +240,8 @@ async def test_sync_account_positions_task_persists_zero_net_deposits(
             return mock_position_api
         if clazz == AccountApi:
             return mock_account_api
+        if clazz == PositionService:
+            return mock_position_service
         if clazz == broker_class:
             return mock_broker
         return None
@@ -1122,10 +1132,12 @@ class _SyncTestGateway(BrokerApiGateway):
         self,
         cash_balances: dict[str, Decimal],
         positions: list[BrokerPosition] | None = None,
+        accounts: list[BrokerAccount] | None = None,
     ) -> None:
         super().__init__()
         self._cash_balances = cash_balances
         self._positions = positions or []
+        self._accounts = accounts or []
         self.cash_balance_calls = 0
 
     def login(
@@ -1139,7 +1151,7 @@ class _SyncTestGateway(BrokerApiGateway):
     async def get_accounts(
         self, integration_user: IntegrationUserSchema
     ) -> list[BrokerAccount]:
-        return []
+        return self._accounts
 
     async def get_positions_by_account(
         self,
@@ -1190,6 +1202,7 @@ def _sync_container(
     position_api: AsyncMock,
     account_api: AsyncMock,
     fx_provider: AsyncMock | None = None,
+    position_service: AsyncMock | None = None,
 ) -> AsyncMock:
     container = AsyncMock()
 
@@ -1204,6 +1217,8 @@ def _sync_container(
             return account_api
         if clazz is FxRateProvider:
             return fx_provider
+        if clazz is PositionService:
+            return position_service
         if clazz is broker_class:
             return gateway
         return None
@@ -1211,6 +1226,34 @@ def _sync_container(
     container.aget.side_effect = mock_aget
     container.__aenter__.return_value = container
     return container
+
+
+def _broker_account(
+    broker_account_id: BrokerAccountId, value: str = "10000"
+) -> BrokerAccount:
+    return BrokerAccount(
+        id=broker_account_id,
+        type=AccountTypeEnum.TFSA,
+        institution=InstitutionEnum.WEALTHSIMPLE,
+        currency=Currency.CAD,
+        display_name="Test Account",
+        broker_display_name="Test",
+        value=Decimal(value),
+        net_deposits=Decimal("5000"),
+        created_at=datetime.now(UTC),
+    )
+
+
+def _account_totals(value: str) -> AccountTotals:
+    return AccountTotals(
+        cost=Money(Decimal("9000"), Currency.CAD),
+        value=Money(Decimal(value), Currency.CAD),
+        cash=Money(Decimal("0"), Currency.CAD),
+        net_deposits=None,
+        profit_loss=Money(Decimal("0"), Currency.CAD),
+        return_percent=None,
+        basis="cost",
+    )
 
 
 @pytest.mark.asyncio
@@ -1356,3 +1399,99 @@ async def test_sync_positions_leaves_free_cash_untouched_for_default_gateway(
         )
 
     account_api.update_free_cash.assert_not_awaited()
+
+
+async def _run_broker_value_sync(
+    mock_account,
+    mock_integration_user,
+    *,
+    broker_value: str,
+    computed_value: str,
+) -> tuple[AsyncMock, AsyncMock]:
+    """Run a sync with a broker account value and a stubbed computed total."""
+    broker_account_id = "broker-account-id"
+    gateway = _SyncTestGateway(
+        {}, accounts=[_broker_account(broker_account_id, broker_value)]
+    )
+
+    integration_user_repo = AsyncMock(spec=IntegrationUserRepository)
+    integration_user_repo.get.return_value = mock_integration_user
+    security_api = AsyncMock(spec=SecurityApi)
+    position_api = AsyncMock(spec=PositionApi)
+    account_api = AsyncMock(spec=AccountApi)
+    position_service = AsyncMock(spec=PositionService)
+    position_service.get_total_for_account.return_value = _account_totals(computed_value)
+
+    container = _sync_container(
+        gateway,
+        _SyncTestGateway,
+        integration_user_repo=integration_user_repo,
+        security_api=security_api,
+        position_api=position_api,
+        account_api=account_api,
+        position_service=position_service,
+    )
+
+    with (
+        patch("src.integration.task.huey.svcs_registry", MagicMock()),
+        patch("src.integration.task.Container", return_value=container),
+        patch("src.integration.task.ws_manager", AsyncMock()),
+        patch("src.integration.task.mark_sync_started", AsyncMock()),
+        patch("src.integration.task.mark_sync_finished", AsyncMock()),
+    ):
+        await _sync_account_positions_task(
+            mock_account.user_id, mock_account, broker_account_id, _SyncTestGateway
+        )
+
+    return account_api, position_service
+
+
+@pytest.mark.asyncio
+async def test_sync_positions_persists_broker_value(mock_account, mock_integration_user):
+    """The broker-reported account value is persisted and reconciled on sync."""
+    account_api, position_service = await _run_broker_value_sync(
+        mock_account,
+        mock_integration_user,
+        broker_value="10000",
+        computed_value="10000",
+    )
+
+    account_api.update_broker_value.assert_awaited_once_with(mock_account.id, 10000.0)
+    position_service.get_total_for_account.assert_awaited_once_with(
+        mock_account.id, mock_account.currency
+    )
+
+
+@pytest.mark.asyncio
+async def test_sync_positions_warns_on_broker_value_mismatch(
+    caplog, mock_account, mock_integration_user
+):
+    """A computed value 2% below the broker value logs a reconciliation warning."""
+    with caplog.at_level(logging.WARNING):
+        await _run_broker_value_sync(
+            mock_account,
+            mock_integration_user,
+            broker_value="10000",
+            computed_value="9800",
+        )
+
+    assert "Broker value mismatch" in caplog.text
+    assert str(mock_account.id) in caplog.text
+    assert "10000.0" in caplog.text
+    assert "9800.0" in caplog.text
+
+
+@pytest.mark.asyncio
+async def test_sync_positions_no_warning_within_broker_value_tolerance(
+    caplog, mock_account, mock_integration_user
+):
+    """A computed value 0.5% below the broker value logs no warning."""
+    with caplog.at_level(logging.WARNING):
+        await _run_broker_value_sync(
+            mock_account,
+            mock_integration_user,
+            broker_value="10000",
+            computed_value="9950",
+        )
+
+    assert "Broker value mismatch" not in caplog.text

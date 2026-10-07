@@ -410,7 +410,30 @@ async def test_account_holdings_success(
     assert "total_value" in result
     assert "total_profit_loss" in result
     assert "currency" in result
+    # CSV-style accounts have no broker value.
+    assert result["broker_value"] is None
+    assert result["broker_value_at"] is None
     assert "updated_at" in result["items"][0]
+
+
+@pytest.mark.anyio
+async def test_account_holdings_returns_broker_value(
+    auth_client, test_accounts, db_session
+):
+    """A synced account exposes the persisted broker value on the holdings response."""
+    account_id = test_accounts[0].id
+    account_model = await db_session.get(AccountModel, account_id)
+    assert account_model is not None
+    account_model.broker_value = Decimal("10000.00")
+    account_model.broker_value_at = datetime.now(UTC)
+    await db_session.commit()
+
+    response = await auth_client.get(f"/api/v1/accounts/{account_id}/holdings")
+
+    assert response.status_code == 200
+    result = response.json()
+    assert result["broker_value"] == 10000.0
+    assert result["broker_value_at"] is not None
 
 
 @pytest.mark.anyio
