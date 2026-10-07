@@ -38,6 +38,8 @@ class AccountSchema(BaseModel):
     broker_display_name: str | None = None
     net_deposits: float | None = None
     free_cash: float = 0.0
+    broker_value: float | None = None
+    broker_value_at: datetime | None = None
     is_active: bool = True
     api_sync_enabled: bool = True
     created_at: datetime | None = None
@@ -189,6 +191,8 @@ class AccountHoldingsRead(PaginatedResponse[HoldingRead]):
     profit_loss_basis: ProfitLossBasis
     net_deposits: float | None = None
     free_cash: float = 0.0
+    broker_value: float | None = None
+    broker_value_at: datetime | None = None
     currency: str
     unpriced_positions: int = 0
     pricing_incomplete: bool = False
