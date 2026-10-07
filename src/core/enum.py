@@ -10,3 +10,4 @@ class AccountTypeEnum(IntEnum):
     RRSP = 2
     FHSA = 3
     NON_REGISTERED = 4
+    SPOUSAL_RRSP = 5

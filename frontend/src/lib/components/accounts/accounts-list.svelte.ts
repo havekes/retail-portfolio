@@ -253,10 +253,17 @@ export class AccountsListState {
 		this.syncErrors[id] = 'Sync took too long. Check account status.';
 	}
 
-	renameAccount(id: string, newName: string) {
+	async renameAccount(id: string, newName: string) {
 		const account = this.accounts.find((a) => a.id === id);
-		if (account) {
-			account.name = newName;
+		try {
+			const updated = await accountClient.renameAccount(id, newName);
+			if (account) {
+				account.name = updated?.name ?? newName;
+			}
+			toast.success('Account renamed successfully');
+		} catch (error) {
+			console.error('Failed to rename account', error);
+			throw error;
 		}
 	}
 
