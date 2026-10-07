@@ -118,6 +118,8 @@ export interface AccountHoldings extends PaginatedResponse<Holding> {
 	total_value: number;
 	total_profit_loss: number;
 	total_profit_loss_percent: number | null;
+	/** Which denominator the backend used for `total_profit_loss_percent`. */
+	profit_loss_basis?: 'net_deposits' | 'cost';
 	net_deposits: number | null;
 	free_cash?: number;
 	currency: string;

@@ -4,16 +4,10 @@
 	import { Badge } from '$lib/components/ui/badge/index.js';
 	import EditableTitle from '@/components/forms/editable-title.svelte';
 	import * as Tooltip from '$lib/components/ui/tooltip';
+	import TotalProfitLossButtons from '$lib/components/total-profit-loss-buttons.svelte';
 	import TriangleAlert from '@lucide/svelte/icons/triangle-alert';
 
 	let { data } = $props();
-
-	const formatCurrency = (amount: number, currency: string) => {
-		return new Intl.NumberFormat('en-CA', {
-			style: 'currency',
-			currency: currency
-		}).format(amount);
-	};
 </script>
 
 <svelte:head>
@@ -55,43 +49,14 @@
 		{/snippet}
 
 		{#snippet actions()}
-			<div class="flex items-center gap-6">
-				<div class="flex flex-col items-end">
-					<span class="text-[10px] tracking-tight text-muted-foreground uppercase">Total Value</span
-					>
-					<span class="text-base font-semibold text-foreground tabular-nums">
-						{formatCurrency(data.holdings.total_value, data.holdings.currency)}
-					</span>
-				</div>
-				<div class="flex flex-col items-end">
-					<span class="text-[10px] tracking-tight text-muted-foreground uppercase"
-						>Net Deposits</span
-					>
-					<span class="text-base font-semibold text-foreground/80 tabular-nums">
-						{data.holdings.net_deposits !== null
-							? formatCurrency(data.holdings.net_deposits, data.holdings.currency)
-							: '—'}
-					</span>
-				</div>
-				<div class="flex flex-col items-end">
-					<span class="text-[10px] tracking-tight text-muted-foreground uppercase">Total P/L</span>
-					<span
-						class={`text-base font-semibold tabular-nums ${data.holdings.total_profit_loss >= 0 ? 'text-emerald-600' : 'text-rose-600'}`}
-					>
-						{data.holdings.total_profit_loss >= 0 ? '+' : ''}{formatCurrency(
-							data.holdings.total_profit_loss,
-							data.holdings.currency
-						)}
-						{#if data.holdings.total_profit_loss_percent !== null}
-							<span class="ml-1 text-sm font-medium">
-								({data.holdings.total_profit_loss_percent >= 0
-									? '+'
-									: ''}{data.holdings.total_profit_loss_percent.toFixed(2)}%)
-							</span>
-						{/if}
-					</span>
-				</div>
-			</div>
+			<TotalProfitLossButtons
+				totalValue={data.holdings.total_value}
+				profitLoss={data.holdings.total_profit_loss}
+				returnPercent={data.holdings.total_profit_loss_percent}
+				currency={data.holdings.currency}
+				costBasis={data.holdings.net_deposits}
+				basisLabel={data.holdings.profit_loss_basis === 'cost' ? 'Cost basis' : 'Net deposits'}
+			/>
 		{/snippet}
 	</PageHeader>
 
