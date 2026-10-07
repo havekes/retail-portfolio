@@ -74,6 +74,12 @@ async def _seed_account_types(session):
             "country": "CA",
             "tax_advantaged": False,
         },
+        {
+            "id": AccountTypeEnum.SPOUSAL_RRSP,
+            "name": "Spousal RRSP",
+            "country": "CA",
+            "tax_advantaged": True,
+        },
     ]
 
     account_types = {}

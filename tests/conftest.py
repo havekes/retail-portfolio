@@ -174,6 +174,12 @@ async def seed_reference_data(db_session: AsyncSession) -> None:
             country="CA",
             tax_advantaged=False,
         ),
+        AccountTypeModel(
+            id=AccountTypeEnum.SPOUSAL_RRSP.value,
+            name="Spousal RRSP",
+            country="CA",
+            tax_advantaged=True,
+        ),
     ]
 
     # Add institutions

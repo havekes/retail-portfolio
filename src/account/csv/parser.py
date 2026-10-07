@@ -72,6 +72,12 @@ ACCOUNT_TYPE_MAP: dict[str, AccountTypeEnum] = {
     "rrsp": AccountTypeEnum.RRSP,
     "registered retirement savings plan": AccountTypeEnum.RRSP,
     "self_directed_rrsp": AccountTypeEnum.RRSP,
+    # Spousal RRSP
+    "spousal rrsp": AccountTypeEnum.SPOUSAL_RRSP,
+    "spousal_rrsp": AccountTypeEnum.SPOUSAL_RRSP,
+    "spousal-rrsp": AccountTypeEnum.SPOUSAL_RRSP,
+    "spousal registered retirement savings plan": AccountTypeEnum.SPOUSAL_RRSP,
+    "spousal_registered_retirement_savings_plan": AccountTypeEnum.SPOUSAL_RRSP,
     # FHSA
     "fhsa": AccountTypeEnum.FHSA,
     "first home savings account": AccountTypeEnum.FHSA,
@@ -90,6 +96,7 @@ ACCOUNT_TYPE_DISPLAY_NAMES: dict[AccountTypeEnum, str] = {
     AccountTypeEnum.RRSP: "RRSP",
     AccountTypeEnum.FHSA: "FHSA",
     AccountTypeEnum.NON_REGISTERED: "Non-Registered",
+    AccountTypeEnum.SPOUSAL_RRSP: "Spousal RRSP",
 }
 
 

@@ -161,6 +161,7 @@ every label is recognized.
 |---|---|
 | `tfsa`, `tax-free savings account`, `tax free savings account`, `self_directed_tfsa` | `TFSA` |
 | `rrsp`, `registered retirement savings plan`, `self_directed_rrsp` | `RRSP` |
+| `spousal rrsp`, `spousal_rrsp`, `spousal-rrsp`, `spousal registered retirement savings plan`, `spousal_registered_retirement_savings_plan` | `SPOUSAL_RRSP` |
 | `fhsa`, `first home savings account`, `self_directed_fhsa` | `FHSA` |
 | `non-registered`, `non_registered`, `non registered`, `personal`, `self_directed_non_registered`, `margin` | `NON_REGISTERED` |
 

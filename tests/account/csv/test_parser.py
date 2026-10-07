@@ -131,6 +131,28 @@ def test_parser_valid_multiple_accounts():
     assert rrsp.positions[1].average_cost == Decimal("280.0000")
 
 
+def test_parser_spousal_rrsp_account():
+    """Verify a Spousal RRSP CSV row parses to id 5 and the Spousal RRSP display name."""
+    csv_content = (
+        f"{WS_HEADER}\n"
+        "Spousal RRSP,Spousal RRSP,Personal,W555555555,"
+        "VGRO,TSX,XTSE,Vanguard Growth ETF Portfolio,Equity,100,LONG,"
+        "32.50,CAD,3000.00,CAD,3000.00,CAD,3250.00,CAD,250.00,CAD\n"
+    )
+
+    accounts = GenericCsvParser.parse(csv_content, WEALTHSIMPLE_CSV_FORMAT)
+
+    assert len(accounts) == 1
+    acc = accounts[0]
+    assert acc.account_number == "W555555555"
+    assert acc.account_type_id == AccountTypeEnum.SPOUSAL_RRSP
+    assert acc.account_type_id == 5
+    assert acc.account_type_name == "Spousal RRSP"
+    assert acc.currency == "CAD"
+    assert acc.positions_count == 1
+    assert acc.positions[0].symbol == "VGRO"
+
+
 def test_parser_missing_headers():
     """Verify fewer columns in CSV header raises CsvHeaderValidationError."""
     short_header = "Account Name,Account Type,Account Number,Symbol,Quantity"
@@ -176,6 +198,23 @@ def test_account_type_mapping():
     assert map_account_type("RRSP") == AccountTypeEnum.RRSP
     assert map_account_type("Registered Retirement Savings Plan") == AccountTypeEnum.RRSP
     assert map_account_type("SELF_DIRECTED_RRSP") == AccountTypeEnum.RRSP
+
+    # Spousal RRSP variations (distinct from RRSP)
+    assert map_account_type("Spousal RRSP") == AccountTypeEnum.SPOUSAL_RRSP
+    assert map_account_type("SPOUSAL_RRSP") == AccountTypeEnum.SPOUSAL_RRSP
+    assert map_account_type("spousal rrsp") == AccountTypeEnum.SPOUSAL_RRSP
+    assert map_account_type("spousal_rrsp") == AccountTypeEnum.SPOUSAL_RRSP
+    assert map_account_type("spousal-rrsp") == AccountTypeEnum.SPOUSAL_RRSP
+    assert (
+        map_account_type("Spousal Registered Retirement Savings Plan")
+        == AccountTypeEnum.SPOUSAL_RRSP
+    )
+    assert (
+        map_account_type("SPOUSAL_REGISTERED_RETIREMENT_SAVINGS_PLAN")
+        == AccountTypeEnum.SPOUSAL_RRSP
+    )
+    assert map_account_type("Registered Retirement Savings Plan") == AccountTypeEnum.RRSP
+    assert map_account_type("RRSP") != AccountTypeEnum.SPOUSAL_RRSP
 
     # FHSA variations
     assert map_account_type("FHSA") == AccountTypeEnum.FHSA
