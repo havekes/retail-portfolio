@@ -1,6 +1,7 @@
 """Integration tests for WealthsimpleApiGateway."""
 
 import json
+import logging
 import uuid
 from decimal import Decimal
 from unittest.mock import MagicMock, patch
@@ -320,6 +321,115 @@ async def test_get_positions_by_account_with_debug_options(
         positions = await gateway.get_positions_by_account(dummy_user, "acc-tfsa-001")
         assert len(positions) == 3
         assert dump_file.exists()
+
+
+@pytest.mark.asyncio
+async def test_get_cash_balances_keeps_only_cash_keys(
+    gateway: WealthsimpleApiGateway,
+    dummy_user: IntegrationUserSchema,
+) -> None:
+    """Cash balances are keyed by currency; securities and brackets are handled."""
+    mock_client = MagicMock()
+    mock_client.get_account_balances.return_value = {
+        "sec-c-cad": 500.0,
+        "sec-c-usd": 100.0,
+        "[sec-c-eur]": 10.0,
+        "[sec-s-abc]": 10.0,
+    }
+
+    with patch.object(gateway, "_get_client", return_value=mock_client):
+        cash = await gateway.get_cash_balances(dummy_user, "acc-tfsa-001")
+
+    assert cash == {
+        "CAD": Decimal("500.0"),
+        "USD": Decimal("100.0"),
+        "EUR": Decimal("10.0"),
+    }
+
+
+@pytest.mark.asyncio
+async def test_get_cash_balances_empty_when_no_cash(
+    gateway: WealthsimpleApiGateway,
+    dummy_user: IntegrationUserSchema,
+) -> None:
+    """A balances payload without cash keys yields an empty dict."""
+    mock_client = MagicMock()
+    mock_client.get_account_balances.return_value = {"[sec-s-abc]": 10.0}
+
+    with patch.object(gateway, "_get_client", return_value=mock_client):
+        cash = await gateway.get_cash_balances(dummy_user, "acc-tfsa-001")
+
+    assert cash == {}
+
+
+@pytest.mark.asyncio
+async def test_get_cash_balances_sums_duplicate_currency_keys(
+    gateway: WealthsimpleApiGateway,
+    dummy_user: IntegrationUserSchema,
+) -> None:
+    """Two ids mapping to the same currency are summed, not silently overwritten."""
+    mock_client = MagicMock()
+    mock_client.get_account_balances.return_value = {
+        "sec-c-cad": 100.0,
+        "[sec-c-cad]": 50.0,
+    }
+
+    with patch.object(gateway, "_get_client", return_value=mock_client):
+        cash = await gateway.get_cash_balances(dummy_user, "acc-tfsa-001")
+
+    assert cash == {"CAD": Decimal("150.0")}
+
+
+@pytest.mark.asyncio
+async def test_get_positions_by_account_skips_cash_and_does_not_log(
+    gateway: WealthsimpleApiGateway,
+    dummy_user: IntegrationUserSchema,
+    caplog,
+) -> None:
+    """Every sec-c-* balance is skipped before the market-data lookup."""
+    mock_client = MagicMock()
+    mock_client.get_account_balances.return_value = {
+        "sec-c-cad": 500.0,
+        "sec-c-usd": 100.0,
+        "[sec-tsx-xyr]": 10.0,
+    }
+    mock_client.get_security_market_data.return_value = {
+        "stock": {"symbol": "XYR", "name": "Royal Bank", "primaryExchange": "TSX"}
+    }
+    mock_client.get_identity_positions.return_value = [
+        {"accounts": [{"id": "acc-tfsa-001"}], "averagePrice": {"amount": 120.5}}
+    ]
+
+    with (
+        patch.object(gateway, "_get_client", return_value=mock_client),
+        caplog.at_level(logging.WARNING),
+    ):
+        positions = await gateway.get_positions_by_account(dummy_user, "acc-tfsa-001")
+
+    assert [p.symbol for p in positions] == ["XYR"]
+    looked_up = [
+        call.args[0] for call in mock_client.get_security_market_data.call_args_list
+    ]
+    assert looked_up == ["sec-tsx-xyr"]
+    assert "sec-c-cad" not in caplog.text
+    assert "sec-c-usd" not in caplog.text
+
+
+def test_parse_position_skips_cash_ids(gateway: WealthsimpleApiGateway) -> None:
+    """_parse_position returns None for cash ids, with or without brackets."""
+    mock_client = MagicMock()
+
+    for security_id in ("sec-c-cad", "sec-c-usd", "[sec-c-usd]"):
+        position, raw = gateway._parse_position(
+            ws_client=mock_client,
+            broker_account_id="acc-tfsa-001",
+            security_id=security_id,
+            ws_balance=10.0,
+        )
+        assert position is None
+        assert raw is None
+
+    mock_client.get_security_market_data.assert_not_called()
 
 
 def test_parse_position_malformed_market_data(gateway: WealthsimpleApiGateway) -> None:

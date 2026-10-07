@@ -20,7 +20,11 @@ from src.core.email import (
 )
 from src.core.enum import AccountTypeEnum, InstitutionEnum
 from src.integration.brokers import BrokerApiGateway
-from src.integration.brokers.api_types import BrokerAccount, BrokerPosition
+from src.integration.brokers.api_types import (
+    BrokerAccount,
+    BrokerAccountId,
+    BrokerPosition,
+)
 from src.integration.brokers.exception import (
     ExternalAPIError,
     LoginFailedError,
@@ -40,6 +44,7 @@ from src.integration.task import (
 )
 from src.market.api import SecurityApi
 from src.market.api_types import Security
+from src.market.fx import FxRateProvider
 from src.worker import huey
 
 
@@ -101,6 +106,7 @@ async def test_sync_account_positions_task_success(mock_account, mock_integratio
         currency="USD",
     )
     mock_broker.get_positions_by_account.return_value = [mock_broker_position]
+    mock_broker.get_cash_balances.return_value = {}
 
     mock_broker_account = BrokerAccount(
         id=broker_account_id,
@@ -200,6 +206,7 @@ async def test_sync_account_positions_task_persists_zero_net_deposits(
             currency="USD",
         )
     ]
+    mock_broker.get_cash_balances.return_value = {}
     mock_broker.get_accounts.return_value = [
         BrokerAccount(
             id=broker_account_id,
@@ -370,6 +377,7 @@ async def test_sync_task_marks_sync_status_on_success(mock_account, mock_integra
         currency="USD",
     )
     mock_broker.get_positions_by_account.return_value = [mock_broker_position]
+    mock_broker.get_cash_balances.return_value = {}
 
     mock_container = AsyncMock()
     async def mock_aget(clazz):
@@ -1106,3 +1114,245 @@ async def test_sync_account_positions_task_no_user_email_resilience(
         mock_mark_started.assert_awaited_once_with(user_id, mock_account.id)
         mock_mark_finished.assert_awaited_once_with(user_id, mock_account.id)
 
+
+class _SyncTestGateway(BrokerApiGateway):
+    """Minimal concrete gateway with configurable positions and cash balances."""
+
+    def __init__(
+        self,
+        cash_balances: dict[str, Decimal],
+        positions: list[BrokerPosition] | None = None,
+    ) -> None:
+        super().__init__()
+        self._cash_balances = cash_balances
+        self._positions = positions or []
+        self.cash_balance_calls = 0
+
+    def login(
+        self,
+        username: str,
+        password: str | None = None,
+        otp: str | None = None,
+    ) -> bool:
+        return True
+
+    async def get_accounts(
+        self, integration_user: IntegrationUserSchema
+    ) -> list[BrokerAccount]:
+        return []
+
+    async def get_positions_by_account(
+        self,
+        integration_user: IntegrationUserSchema,
+        broker_account_id: BrokerAccountId,
+    ) -> list[BrokerPosition]:
+        return self._positions
+
+    async def get_cash_balances(
+        self,
+        integration_user: IntegrationUserSchema,
+        broker_account_id: BrokerAccountId,
+    ) -> dict[str, Decimal]:
+        self.cash_balance_calls += 1
+        return self._cash_balances
+
+
+class _NoCashGateway(BrokerApiGateway):
+    """Gateway that cannot report cash (inherits the base no-op)."""
+
+    def login(
+        self,
+        username: str,
+        password: str | None = None,
+        otp: str | None = None,
+    ) -> bool:
+        return True
+
+    async def get_accounts(
+        self, integration_user: IntegrationUserSchema
+    ) -> list[BrokerAccount]:
+        return []
+
+    async def get_positions_by_account(
+        self,
+        integration_user: IntegrationUserSchema,
+        broker_account_id: BrokerAccountId,
+    ) -> list[BrokerPosition]:
+        return []
+
+
+def _sync_container(
+    gateway: BrokerApiGateway,
+    broker_class: type[BrokerApiGateway],
+    *,
+    integration_user_repo: AsyncMock,
+    security_api: AsyncMock,
+    position_api: AsyncMock,
+    account_api: AsyncMock,
+    fx_provider: AsyncMock | None = None,
+) -> AsyncMock:
+    container = AsyncMock()
+
+    async def mock_aget(clazz):
+        if clazz is SecurityApi:
+            return security_api
+        if clazz is IntegrationUserRepository:
+            return integration_user_repo
+        if clazz is PositionApi:
+            return position_api
+        if clazz is AccountApi:
+            return account_api
+        if clazz is FxRateProvider:
+            return fx_provider
+        if clazz is broker_class:
+            return gateway
+        return None
+
+    container.aget.side_effect = mock_aget
+    container.__aenter__.return_value = container
+    return container
+
+
+@pytest.mark.asyncio
+async def test_sync_positions_persists_converted_free_cash(
+    mock_account, mock_integration_user
+):
+    """Cash balances are converted to the account currency, summed and stored."""
+    broker_account_id = "broker-account-id"
+    gateway = _SyncTestGateway(
+        {"CAD": Decimal("500.0"), "USD": Decimal("100.0")},
+        positions=[
+            BrokerPosition(
+                broker_account_id=broker_account_id,
+                name="Apple Inc.",
+                symbol="AAPL",
+                exchange="NASDAQ",
+                quantity=Decimal("10"),
+                average_cost=Decimal("150"),
+                currency="USD",
+            )
+        ],
+    )
+
+    security_api = AsyncMock(spec=SecurityApi)
+    security_api.get_or_create_from_broker.return_value = Security(
+        id=uuid4(),
+        symbol="AAPL",
+        exchange="NASDAQ",
+        name="Apple Inc.",
+        currency=Currency.USD,
+        isin=None,
+        is_active=True,
+        updated_at=datetime.now(UTC),
+    )
+    integration_user_repo = AsyncMock(spec=IntegrationUserRepository)
+    integration_user_repo.get.return_value = mock_integration_user
+    position_api = AsyncMock(spec=PositionApi)
+    account_api = AsyncMock(spec=AccountApi)
+
+    converter = MagicMock()
+    converter.convert.return_value = 123.456
+    fx_provider = AsyncMock(spec=FxRateProvider)
+    fx_provider.converter.return_value = converter
+
+    container = _sync_container(
+        gateway,
+        _SyncTestGateway,
+        integration_user_repo=integration_user_repo,
+        security_api=security_api,
+        position_api=position_api,
+        account_api=account_api,
+        fx_provider=fx_provider,
+    )
+
+    with (
+        patch("src.integration.task.huey.svcs_registry", MagicMock()),
+        patch("src.integration.task.Container", return_value=container),
+        patch("src.integration.task.ws_manager", AsyncMock()),
+        patch("src.integration.task.mark_sync_started", AsyncMock()),
+        patch("src.integration.task.mark_sync_finished", AsyncMock()),
+    ):
+        await _sync_account_positions_task(
+            mock_account.user_id, mock_account, broker_account_id, _SyncTestGateway
+        )
+
+    # 500 CAD + 123.456 (100 USD -> CAD, float as the real converter returns) = 623.456
+    account_api.update_free_cash.assert_awaited_once_with(mock_account.id, 623.46)
+    converter.convert.assert_called_once_with(
+        amount=100.0, currency="USD", new_currency="CAD"
+    )
+    # The security position is still synced alongside the cash.
+    position_api.create.assert_awaited_once()
+    assert len(position_api.create.await_args.args[0]) == 1
+
+
+@pytest.mark.asyncio
+async def test_sync_positions_sets_zero_free_cash_when_no_cash_keys(
+    mock_account, mock_integration_user
+):
+    """A gateway reporting no cash clears free_cash to 0."""
+    gateway = _SyncTestGateway({})
+
+    integration_user_repo = AsyncMock(spec=IntegrationUserRepository)
+    integration_user_repo.get.return_value = mock_integration_user
+    security_api = AsyncMock(spec=SecurityApi)
+    position_api = AsyncMock(spec=PositionApi)
+    account_api = AsyncMock(spec=AccountApi)
+
+    container = _sync_container(
+        gateway,
+        _SyncTestGateway,
+        integration_user_repo=integration_user_repo,
+        security_api=security_api,
+        position_api=position_api,
+        account_api=account_api,
+    )
+
+    with (
+        patch("src.integration.task.huey.svcs_registry", MagicMock()),
+        patch("src.integration.task.Container", return_value=container),
+        patch("src.integration.task.ws_manager", AsyncMock()),
+        patch("src.integration.task.mark_sync_started", AsyncMock()),
+        patch("src.integration.task.mark_sync_finished", AsyncMock()),
+    ):
+        await _sync_account_positions_task(
+            mock_account.user_id, mock_account, "broker-account-id", _SyncTestGateway
+        )
+
+    account_api.update_free_cash.assert_awaited_once_with(mock_account.id, 0.0)
+
+
+@pytest.mark.asyncio
+async def test_sync_positions_leaves_free_cash_untouched_for_default_gateway(
+    mock_account, mock_integration_user
+):
+    """Gateways that don't override get_cash_balances leave free_cash untouched."""
+    gateway = _NoCashGateway()
+
+    integration_user_repo = AsyncMock(spec=IntegrationUserRepository)
+    integration_user_repo.get.return_value = mock_integration_user
+    security_api = AsyncMock(spec=SecurityApi)
+    position_api = AsyncMock(spec=PositionApi)
+    account_api = AsyncMock(spec=AccountApi)
+
+    container = _sync_container(
+        gateway,
+        _NoCashGateway,
+        integration_user_repo=integration_user_repo,
+        security_api=security_api,
+        position_api=position_api,
+        account_api=account_api,
+    )
+
+    with (
+        patch("src.integration.task.huey.svcs_registry", MagicMock()),
+        patch("src.integration.task.Container", return_value=container),
+        patch("src.integration.task.ws_manager", AsyncMock()),
+        patch("src.integration.task.mark_sync_started", AsyncMock()),
+        patch("src.integration.task.mark_sync_finished", AsyncMock()),
+    ):
+        await _sync_account_positions_task(
+            mock_account.user_id, mock_account, "broker-account-id", _NoCashGateway
+        )
+
+    account_api.update_free_cash.assert_not_awaited()

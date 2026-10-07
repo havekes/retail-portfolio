@@ -1,4 +1,5 @@
 from abc import ABC, abstractmethod
+from decimal import Decimal
 
 import keyring
 from keyrings.alt.file import PlaintextKeyring
@@ -42,3 +43,17 @@ class BrokerApiGateway(ABC):
         broker_account_id: BrokerAccountId,
     ) -> list[BrokerPosition]:
         pass
+
+    async def get_cash_balances(
+        self,
+        integration_user: IntegrationUserSchema,  # noqa: ARG002
+        broker_account_id: BrokerAccountId,  # noqa: ARG002
+    ) -> dict[str, Decimal]:
+        """Return cash balances by currency code (currency -> amount).
+
+        Non-abstract: gateways that cannot report cash inherit this no-op and
+        return ``{}``. Callers must treat that as "cash not reported" rather
+        than a zero balance, so they never clear a ``free_cash`` that came from
+        another source (e.g. CSV import).
+        """
+        return {}
