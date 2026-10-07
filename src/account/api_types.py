@@ -1,6 +1,6 @@
 from datetime import datetime
 from decimal import Decimal
-from typing import Any
+from typing import Any, Literal
 from uuid import UUID
 
 from pydantic import BaseModel, ConfigDict, Field
@@ -13,6 +13,8 @@ from src.market.api_types import SecurityId
 type AccountId = UUID
 type PositionId = int
 type PortfolioId = UUID
+
+type ProfitLossBasis = Literal["net_deposits", "cost"]
 
 
 class Account(BaseModel):
@@ -44,6 +46,11 @@ class Position(BaseModel):
 class AccountTotals(BaseModel):
     cost: Money
     value: Money
+    cash: Money
+    net_deposits: Money | None
+    profit_loss: Money
+    return_percent: float | None
+    basis: ProfitLossBasis
 
 
 class AccountRenameRequest(BaseModel):

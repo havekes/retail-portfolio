@@ -161,6 +161,93 @@ async def test_sync_account_positions_task_success(mock_account, mock_integratio
         assert calls[0][0][0]["type"] == "sync_started"
         assert calls[1][0][0]["type"] == "sync_finished"
 
+
+@pytest.mark.asyncio
+async def test_sync_account_positions_task_persists_zero_net_deposits(
+    mock_account, mock_integration_user
+):
+    """A broker account with netDeposits == 0 is persisted as 0.0, not NULL."""
+    user_id = mock_account.user_id
+    broker_account_id = "broker-account-id"
+    broker_class = cast("type[BrokerApiGateway]", MagicMock())
+
+    mock_security_api = AsyncMock(spec=SecurityApi)
+    mock_integration_user_repo = AsyncMock(spec=IntegrationUserRepository)
+    mock_position_api = AsyncMock(spec=PositionApi)
+    mock_account_api = AsyncMock(spec=AccountApi)
+    mock_broker = AsyncMock()
+
+    mock_integration_user_repo.get.return_value = mock_integration_user
+
+    mock_security_api.get_or_create_from_broker.return_value = Security(
+        id=uuid4(),
+        symbol="AAPL",
+        exchange="NASDAQ",
+        name="Apple Inc.",
+        currency=Currency.USD,
+        isin=None,
+        is_active=True,
+        updated_at=datetime.now(UTC),
+    )
+    mock_broker.get_positions_by_account.return_value = [
+        BrokerPosition(
+            broker_account_id=broker_account_id,
+            name="Apple Inc.",
+            symbol="AAPL",
+            exchange="NASDAQ",
+            quantity=Decimal(10),
+            average_cost=Decimal(150),
+            currency="USD",
+        )
+    ]
+    mock_broker.get_accounts.return_value = [
+        BrokerAccount(
+            id=broker_account_id,
+            type=AccountTypeEnum.TFSA,
+            institution=InstitutionEnum.WEALTHSIMPLE,
+            currency=Currency.CAD,
+            display_name="Test Account",
+            broker_display_name="Test",
+            value=Decimal(10000),
+            net_deposits=Decimal(0),
+            created_at=datetime.now(UTC),
+        )
+    ]
+
+    mock_container = AsyncMock()
+
+    async def mock_aget(clazz):
+        if clazz == SecurityApi:
+            return mock_security_api
+        if clazz == IntegrationUserRepository:
+            return mock_integration_user_repo
+        if clazz == PositionApi:
+            return mock_position_api
+        if clazz == AccountApi:
+            return mock_account_api
+        if clazz == broker_class:
+            return mock_broker
+        return None
+
+    mock_container.aget.side_effect = mock_aget
+    mock_container.__aenter__.return_value = mock_container
+
+    with (
+        patch("src.integration.task.huey.svcs_registry", MagicMock()),
+        patch("src.integration.task.Container", return_value=mock_container),
+        patch("src.integration.task.ws_manager", AsyncMock()),
+        patch("src.integration.task.mark_sync_started", AsyncMock()),
+        patch("src.integration.task.mark_sync_finished", AsyncMock()),
+    ):
+        await _sync_account_positions_task(
+            user_id, mock_account, broker_account_id, broker_class
+        )
+
+        mock_account_api.update_net_deposits.assert_awaited_once_with(
+            mock_account.id, 0.0
+        )
+
+
 @pytest.mark.asyncio
 async def test_sync_account_positions_task_raises_if_no_container():
     with patch("src.integration.task.huey.svcs_registry", None):
