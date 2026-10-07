@@ -101,6 +101,13 @@ async def test_account_totals_success(auth_client, test_accounts, test_positions
     assert result["cost"]["value"].endswith(" CAD")
     assert result["value"]["value"].endswith(" CAD")
 
+    # Explicit P/L basis fields are serialized too (ARCH-T18).
+    assert result["cash"]["value"].endswith(" CAD")
+    assert "net_deposits" in result
+    assert result["profit_loss"]["value"].endswith(" CAD")
+    assert "return_percent" in result
+    assert result["basis"] == "cost"
+
 
 @pytest.mark.anyio
 async def test_account_totals_not_found(auth_client):

@@ -7,7 +7,13 @@ from stockholm import Money
 from stockholm.currency import BaseCurrency
 from svcs import Container
 
-from src.account.api_types import Account, AccountId, AccountTotals, PositionId
+from src.account.api_types import (
+    Account,
+    AccountId,
+    AccountTotals,
+    PositionId,
+    ProfitLossBasis,
+)
 from src.account.exception import AccountNotFoundError, ApiSyncDisabledError
 from src.account.repository import (
     AccountRepository,
@@ -169,13 +175,13 @@ class PositionService:
 
         # Calculate totals over all positions
         all_positions, _ = await self._position_repository.get_by_account(account_id)
-        _, total_value, total_profit_loss = await self._calculate_holdings(
+        _, positions_value, positions_profit_loss = await self._calculate_holdings(
             account, all_positions
         )
-
-        if account.free_cash:
-            free_cash_money = Money(account.free_cash, account.currency)
-            total_value += free_cash_money
+        positions_cost = positions_value - positions_profit_loss
+        totals = self._account_performance(
+            account, positions_value, positions_cost, str(account.currency)
+        )
 
         # Fetch paginated positions
         positions, total = await self._position_repository.get_by_account(
@@ -184,16 +190,6 @@ class PositionService:
 
         holdings, _, _ = await self._calculate_holdings(account, positions)
 
-        total_profit_loss_percent = None
-        if account.net_deposits is not None:
-            total_profit_loss = total_value - Money(
-                account.net_deposits, account.currency
-            )
-            if account.net_deposits != 0:
-                total_profit_loss_percent = (
-                    float(total_profit_loss.amount) / float(account.net_deposits)
-                ) * 100
-
         return AccountHoldingsRead(
             items=holdings,
             total=total,
@@ -201,9 +197,10 @@ class PositionService:
             limit=limit,
             account_id=account.id,
             account_name=account.name,
-            total_value=float(total_value.amount),
-            total_profit_loss=float(total_profit_loss.amount),
-            total_profit_loss_percent=total_profit_loss_percent,
+            total_value=float(totals.value.amount),
+            total_profit_loss=float(totals.profit_loss.amount),
+            total_profit_loss_percent=totals.return_percent,
+            profit_loss_basis=totals.basis,
             net_deposits=account.net_deposits,
             free_cash=account.free_cash,
             currency=str(account.currency),
@@ -216,30 +213,75 @@ class PositionService:
         account = await self._account_service.get_account(account_id)
         positions, _ = await self._position_repository.get_by_account(account_id)
 
-        total_cost = Money(0, currency)
-        total_price = Money(0, currency)
+        positions_cost = Money(0, currency)
+        positions_value = Money(0, currency)
 
         for position in positions:
             security = await self._security_service.get_by_id(position.security_id)
             unconverted_cost = self._compute_cost(position, security)
             unconverted_price = await self._compute_price(position, security)
 
-            total_cost = total_cost + self._currency_convert(
+            positions_cost = positions_cost + self._currency_convert(
                 unconverted_cost, str(currency)
             )
-            total_price = total_price + self._currency_convert(
+            positions_value = positions_value + self._currency_convert(
                 unconverted_price, str(currency)
             )
 
-        if account.free_cash:
-            free_cash_money = Money(account.free_cash, account.currency)
-            converted_cash = self._currency_convert(free_cash_money, str(currency))
-            total_cost = total_cost + converted_cash
-            total_price = total_price + converted_cash
+        return self._account_performance(
+            account, positions_value, positions_cost, str(currency)
+        )
+
+    def _account_performance(
+        self,
+        account: AccountSchema,
+        positions_value: Money,
+        positions_cost: Money,
+        currency: str,
+    ) -> AccountTotals:
+        """Compute account totals and P/L against an explicit basis.
+
+        Uses net deposits as the P/L basis when they are known, and falls back
+        to the positions cost basis otherwise. ``cost`` (positions cost + cash)
+        and ``value`` (positions value + cash) keep their previous meaning.
+        """
+        cash = self._currency_convert(
+            Money(account.free_cash, account.currency), currency
+        )
+        value = positions_value + cash
+        cost = positions_cost + cash
+
+        net_deposits: Money | None = None
+        if account.net_deposits is not None:
+            net_deposits = self._currency_convert(
+                Money(account.net_deposits, account.currency), currency
+            )
+
+        if net_deposits is not None:
+            basis: ProfitLossBasis = "net_deposits"
+            profit_loss = value - net_deposits
+            return_percent = (
+                float(profit_loss.amount) / float(net_deposits.amount) * 100
+                if net_deposits != 0
+                else None
+            )
+        else:
+            basis = "cost"
+            profit_loss = positions_value - positions_cost
+            return_percent = (
+                float(profit_loss.amount) / float(positions_cost.amount) * 100
+                if positions_cost != 0
+                else None
+            )
 
         return AccountTotals(
-            cost=total_cost,
-            value=total_price,
+            cost=cost,
+            value=value,
+            cash=cash,
+            net_deposits=net_deposits,
+            profit_loss=profit_loss,
+            return_percent=return_percent,
+            basis=basis,
         )
 
     async def _calculate_holdings(
