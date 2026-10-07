@@ -10,7 +10,7 @@ byte-comparison path end to end.
 from __future__ import annotations
 
 from collections.abc import AsyncIterator
-from datetime import date
+from datetime import UTC, date, datetime
 from decimal import Decimal
 import threading
 from unittest.mock import MagicMock
@@ -36,6 +36,7 @@ from src.market.api_types import (
     OptionsContract,
     OptionsGreeks,
     OptionsQuote,
+    Quote,
     SymbolLookupResult,
 )
 from src.market.endpoint_cache import EndpointResponseCache
@@ -51,6 +52,7 @@ _SERVICE_TOKEN = "test-service-token-value"  # noqa: S105
 
 _PRICES_URL = "/api/v1/market/data/prices/AAPL"
 _PRICES_QUERY = "?from=2026-01-01&to=2026-01-31"
+_QUOTE_URL = "/api/v1/market/data/quote/AAPL"
 _SEARCH_URL = "/api/v1/market/data/symbols/search"
 _OPTIONS_URL = "/api/v1/market/data/options/AAPL"
 _OPTIONS_EXPIRATIONS_URL = "/api/v1/market/data/options/AAPL/expirations"
@@ -68,6 +70,7 @@ def _headers(token: str = _SERVICE_TOKEN) -> dict[str, str]:
 def mock_gateway() -> MagicMock:
     gateway = MagicMock(spec=MarketGateway)
     gateway.get_prices.return_value = []
+    gateway.get_quote.return_value = _quote()
     gateway.lookup_symbol.return_value = []
     gateway.get_options_chain.return_value = OptionsChain(
         underlying_symbol="AAPL", currency=""
@@ -242,6 +245,22 @@ def _cash_flow_statement(symbol: str = "AAPL") -> CashFlowStatement:
     )
 
 
+def _quote(symbol: str = "AAPL") -> Quote:
+    return Quote(
+        symbol=symbol,
+        price=Decimal("229.87"),
+        change=Decimal("1.21"),
+        change_percent=Decimal("0.528"),
+        previous_close=Decimal("228.66"),
+        open=Decimal("228.50"),
+        day_high=Decimal("231.45"),
+        day_low=Decimal("228.10"),
+        volume=48231900,
+        timestamp=datetime(2026, 4, 1, 14, 30, tzinfo=UTC),
+        currency="USD",
+    )
+
+
 def _endpoint_keys(storage: FakeRedis, prefix: str) -> list[str]:
     return [key for key in storage.data if key.startswith(prefix)]
 
@@ -330,6 +349,87 @@ async def test_prices_profile_provider_error_falls_back_and_does_not_fail(
     assert response.status_code == 200
     body = response.json()
     assert body["currency"] == "USD"
+
+
+@pytest.mark.anyio
+async def test_quote_returns_unified_json(
+    client: AsyncClient, mock_gateway: MagicMock
+) -> None:
+    mock_gateway.get_quote.return_value = _quote()
+
+    response = await client.get(_QUOTE_URL, headers=_headers())
+
+    assert response.status_code == 200
+    body = response.json()
+    assert body["symbol"] == "AAPL"
+    assert body["currency"] == "USD"
+    assert Decimal(str(body["price"])) == Decimal("229.87")
+    assert Decimal(str(body["change"])) == Decimal("1.21")
+    assert Decimal(str(body["change_percent"])) == Decimal("0.528")
+    assert Decimal(str(body["previous_close"])) == Decimal("228.66")
+    assert Decimal(str(body["open"])) == Decimal("228.50")
+    assert Decimal(str(body["day_high"])) == Decimal("231.45")
+    assert Decimal(str(body["day_low"])) == Decimal("228.10")
+    assert body["volume"] == 48231900
+    assert "timestamp" in body
+
+
+@pytest.mark.anyio
+async def test_quote_with_exchange_tsx_resolves_cad(
+    client: AsyncClient, mock_gateway: MagicMock
+) -> None:
+    mock_gateway.get_quote.return_value = _quote("SHOP").model_copy(
+        update={"currency": "CAD"}
+    )
+    mock_gateway.get_company_profile.return_value = _company_profile("SHOP").model_copy(
+        update={"currency": "CAD"}
+    )
+
+    response = await client.get(
+        "/api/v1/market/data/quote/SHOP?exchange=TSX",
+        headers=_headers(),
+    )
+
+    assert response.status_code == 200
+    body = response.json()
+    assert body["symbol"] == "SHOP"
+    assert body["currency"] == "CAD"
+
+
+@pytest.mark.anyio
+async def test_quote_missing_profile_uses_fallback_and_does_not_404(
+    client: AsyncClient, mock_gateway: MagicMock
+) -> None:
+    mock_gateway.get_quote.return_value = _quote("SHOP")
+    mock_gateway.get_company_profile.side_effect = MarketDataNotFoundError("SHOP")
+
+    response = await client.get(
+        "/api/v1/market/data/quote/SHOP?exchange=TSX",
+        headers=_headers(),
+    )
+
+    assert response.status_code == 200
+    body = response.json()
+    assert body["currency"] == "CAD"
+
+
+@pytest.mark.anyio
+async def test_quote_profile_provider_error_falls_back_and_does_not_fail(
+    client: AsyncClient, mock_gateway: MagicMock
+) -> None:
+    mock_gateway.get_quote.return_value = _quote("SHOP")
+    mock_gateway.get_company_profile.side_effect = MarketDataProviderError(
+        "FMP down"
+    )
+
+    response = await client.get(
+        "/api/v1/market/data/quote/SHOP?exchange=TSX",
+        headers=_headers(),
+    )
+
+    assert response.status_code == 200
+    body = response.json()
+    assert body["currency"] == "CAD"
 
 
 @pytest.mark.anyio
@@ -446,6 +546,29 @@ async def test_repeated_prices_request_is_a_cache_hit(
         == 1
     )
     mock_gateway.get_company_profile.assert_called_once()
+
+
+@pytest.mark.anyio
+async def test_repeated_quote_request_is_a_cache_hit(
+    client: AsyncClient, mock_gateway: MagicMock, mock_redis_storage: FakeRedis
+) -> None:
+    mock_gateway.get_quote.return_value = _quote()
+
+    first = await client.get(_QUOTE_URL, headers=_headers())
+    second = await client.get(_QUOTE_URL, headers=_headers())
+
+    assert first.status_code == second.status_code == 200
+    assert first.json() == second.json()
+    mock_gateway.get_quote.assert_called_once()
+    mock_gateway.get_company_profile.assert_called_once()
+    assert (
+        len(
+            _endpoint_keys(
+                mock_redis_storage, "market:ep:quotes:quote:"
+            )
+        )
+        == 1
+    )
 
 
 @pytest.mark.anyio
@@ -596,6 +719,28 @@ async def test_unknown_symbol_prices_is_negative_cached(
         assert provider not in detail
 
     keys = _endpoint_keys(mock_redis_storage, "market:ep:prices:history:")
+    assert len(keys) == 1
+
+
+@pytest.mark.anyio
+async def test_unknown_symbol_quote_is_negative_cached(
+    client: AsyncClient, mock_gateway: MagicMock, mock_redis_storage: FakeRedis
+) -> None:
+    mock_gateway.get_quote.side_effect = MarketDataNotFoundError("ZZZZ")
+    url = "/api/v1/market/data/quote/ZZZZ"
+
+    first = await client.get(url, headers=_headers())
+    second = await client.get(url, headers=_headers())
+
+    assert first.status_code == second.status_code == 404
+    assert first.json()["detail"] == second.json()["detail"]
+    mock_gateway.get_quote.assert_called_once()
+
+    detail = first.json()["detail"].lower()
+    for provider in _PROVIDER_NAMES:
+        assert provider not in detail
+
+    keys = _endpoint_keys(mock_redis_storage, "market:ep:quotes:quote:")
     assert len(keys) == 1
 
 
@@ -888,6 +1033,7 @@ async def test_strike_min_above_max_returns_422(client: AsyncClient) -> None:
     "url",
     [
         "/api/v1/market/data/prices/AAPL?from=2024-01-01&to=2024-02-01&exchange=XETRA",
+        "/api/v1/market/data/quote/AAPL?exchange=XETRA",
         "/api/v1/market/data/fundamentals/AAPL?exchange=XETRA",
         "/api/v1/market/data/fundamentals/AAPL/statements?statement=income&exchange=XETRA",
     ],
@@ -902,6 +1048,7 @@ async def test_unsupported_exchange_returns_422_with_accepted_codes(
     for code in ("NYSE", "NASDAQ", "NYSEARCA", "AMEX", "TSX", "LSE"):
         assert code in detail_str
     mock_gateway.get_prices.assert_not_called()
+    mock_gateway.get_quote.assert_not_called()
     mock_gateway.get_company_profile.assert_not_called()
     mock_gateway.get_income_statement.assert_not_called()
 

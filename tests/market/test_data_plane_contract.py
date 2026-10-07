@@ -16,6 +16,7 @@ from src.commands.export_data_plane_contract import (
 
 EXPECTED_ROUTES = {
     "/api/v1/market/data/prices/{symbol}",
+    "/api/v1/market/data/quote/{symbol}",
     "/api/v1/market/data/symbols/search",
     "/api/v1/market/data/options/{symbol}",
     "/api/v1/market/data/options/{symbol}/expirations",
@@ -80,6 +81,13 @@ def test_data_plane_contract_parameters() -> None:
     assert prices_params["to"]["required"] is True
     assert prices_params["exchange"]["in"] == "query"
     assert prices_params["exchange"]["required"] is False
+
+    # /quote/{symbol}
+    quote_params = get_params("/api/v1/market/data/quote/{symbol}")
+    assert quote_params["symbol"]["in"] == "path"
+    assert quote_params["symbol"]["required"] is True
+    assert quote_params["exchange"]["in"] == "query"
+    assert quote_params["exchange"]["required"] is False
 
     # /symbols/search
     search_params = get_params("/api/v1/market/data/symbols/search")
@@ -148,6 +156,10 @@ def test_data_plane_contract_requires_currency_on_price_responses() -> None:
     options_schema = schemas.get("OptionsChain", {})
     assert "currency" in options_schema.get("required", [])
     assert options_schema["properties"]["currency"]["type"] == "string"
+
+    quote_schema = schemas.get("Quote", {})
+    assert "currency" in quote_schema.get("required", [])
+    assert quote_schema["properties"]["currency"]["type"] == "string"
 
 
 def test_data_plane_contract_options_chain_has_truncated_field() -> None:

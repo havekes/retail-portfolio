@@ -47,6 +47,7 @@ _TTL_SETTING_FIELDS: dict[str, str] = {
     "metrics": "endpoint_ttl_metrics_seconds",
     "options": "endpoint_ttl_options_seconds",
     "search": "endpoint_ttl_search_seconds",
+    "quotes": "endpoint_ttl_quotes_seconds",
 }
 
 # Fallback when an endpoint reports a data class without a configured TTL.

@@ -36,6 +36,7 @@ PRICES_TTL = 3_600
 STATEMENTS_TTL = 86_400
 METRICS_TTL = 86_400
 OPTIONS_TTL = 1_800
+QUOTES_TTL = 30
 NEGATIVE_TTL = 300
 OVERRIDE_TTL = 5
 
@@ -272,6 +273,7 @@ def test_default_ttls_are_sane() -> None:
     assert settings.endpoint_ttl_statements_seconds == STATEMENTS_TTL
     assert settings.endpoint_ttl_metrics_seconds == METRICS_TTL
     assert settings.endpoint_ttl_options_seconds == OPTIONS_TTL
+    assert settings.endpoint_ttl_quotes_seconds == QUOTES_TTL
     assert settings.endpoint_ttl_negative_seconds == NEGATIVE_TTL
 
 
@@ -287,12 +289,14 @@ async def test_per_data_class_ttls_are_applied(
     await cache.set("statements", "income", {"symbol": "AAPL"}, {"a": 2})
     await cache.set("metrics", "key", {"symbol": "AAPL"}, {"a": 3})
     await cache.set("options", "chain", {"symbol": "AAPL"}, {"a": 4})
+    await cache.set("quotes", "quote", {"symbol": "AAPL"}, {"a": 5})
 
     assert [ttl for _, ttl in recorded] == [
         PRICES_TTL,
         STATEMENTS_TTL,
         METRICS_TTL,
         OPTIONS_TTL,
+        QUOTES_TTL,
     ]
     assert all(key.startswith("market:ep:") for key, _ in recorded)
 
@@ -307,6 +311,20 @@ async def test_ttl_is_read_from_settings_at_call_time(
     monkeypatch.setattr(settings, "endpoint_ttl_options_seconds", OVERRIDE_TTL)
 
     await cache.set("options", "chain", {"symbol": "AAPL"}, {"a": 1})
+
+    assert [ttl for _, ttl in recorded] == [OVERRIDE_TTL]
+
+
+@pytest.mark.anyio
+async def test_quotes_ttl_is_read_from_settings_at_call_time(
+    cache: EndpointResponseCache,
+    mock_redis_storage: FakeRedis,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    recorded = _install_recording_setex(monkeypatch, mock_redis_storage)
+    monkeypatch.setattr(settings, "endpoint_ttl_quotes_seconds", OVERRIDE_TTL)
+
+    await cache.set("quotes", "quote", {"symbol": "AAPL"}, {"a": 1})
 
     assert [ttl for _, ttl in recorded] == [OVERRIDE_TTL]
 
