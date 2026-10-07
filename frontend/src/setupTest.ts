@@ -37,6 +37,18 @@ if (typeof Element !== 'undefined') {
 	Element.prototype.scrollIntoView = vi.fn();
 }
 
+// jsdom does not implement ResizeObserver. bits-ui's floating layer (used by
+// Tooltip, Popover, etc.) constructs one when content mounts, so tooltip tests
+// would throw `TypeError: ResizeObserver is not a constructor`. A no-op stub is
+// the standard jsdom shim; tests assert on content, not layout.
+if (typeof globalThis.ResizeObserver === 'undefined') {
+	globalThis.ResizeObserver = class {
+		observe() {}
+		unobserve() {}
+		disconnect() {}
+	} as unknown as typeof ResizeObserver;
+}
+
 // Mock window.location
 if (typeof window !== 'undefined') {
 	const url = new URL('http://localhost/');

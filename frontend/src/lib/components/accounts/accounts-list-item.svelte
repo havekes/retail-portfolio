@@ -162,15 +162,16 @@
 				{#await itemState.totals}
 					<Skeleton class="h-8 w-48 rounded-full bg-background p-2" />
 				{:then totals}
-					{@const val = moneyToNumber(totals.value)}
-					{@const cost = moneyToNumber(totals.cost)}
-					{@const profitLoss = val - cost}
-					{@const returnPercent = cost > 0 ? (profitLoss / cost) * 100 : null}
+					{@const profitLoss = moneyToNumber(totals.profit_loss)}
+					{@const returnPercent = totals.return_percent}
+					{@const basisLabel =
+						totals.basis === 'net_deposits' ? 'vs. net deposits' : 'vs. cost basis'}
 					<TotalProfitLossButtons
 						totalValue={totals.value}
 						costBasis={totals.cost}
 						{profitLoss}
 						{returnPercent}
+						{basisLabel}
 						currency={account.currency}
 					/>
 					{#if totals.pricing_incomplete}

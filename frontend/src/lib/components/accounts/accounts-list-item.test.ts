@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent, waitFor } from '@testing-library/svelte';
 import AccountsListItem from './accounts-list-item.svelte';
-import { Institution, AccountType, type Holding } from '@/types/account';
+import { Institution, AccountType, type Holding, type AccountTotals } from '@/types/account';
 
 vi.mock('$app/paths', () => ({
 	resolve: (path: string) => path
@@ -810,6 +810,66 @@ describe('AccountsListItem', () => {
 
 			await screen.findByText('$100.00');
 			expect(screen.queryByLabelText('Incomplete pricing')).not.toBeInTheDocument();
+		});
+	});
+
+	describe('Server account performance (ARCH-T19)', () => {
+		const money = (amount: number) => ({
+			value: `${amount}`,
+			units: amount,
+			nanos: 0,
+			currencyCode: 'CAD'
+		});
+
+		const serverTotals = (overrides: Partial<AccountTotals> = {}): AccountTotals => ({
+			value: money(1150),
+			cost: money(1050),
+			cash: money(0),
+			net_deposits: money(1000),
+			profit_loss: money(150),
+			return_percent: 15,
+			basis: 'net_deposits',
+			...overrides
+		});
+
+		const renderWithTotals = (totals: AccountTotals) => {
+			vi.mocked(accountClient.getAccountTotals).mockResolvedValue(totals);
+			return render(AccountsListItem, { props: { account: mockAccount } });
+		};
+
+		it('renders the server profit_loss and return_percent instead of value - cost', async () => {
+			renderWithTotals(serverTotals());
+
+			expect(await screen.findByText('+$150.00')).toBeInTheDocument();
+			expect(screen.getByText('+15.00%')).toBeInTheDocument();
+			// value - cost would be $100.00 — the browser-side math must be gone.
+			expect(screen.queryByText('+$100.00')).not.toBeInTheDocument();
+		});
+
+		it('shows "vs. net deposits" in the profit/loss tooltip when basis is net_deposits', async () => {
+			renderWithTotals(serverTotals({ basis: 'net_deposits' }));
+
+			const trigger = await screen.findByTestId('profit-loss-btn');
+			await fireEvent.pointerEnter(trigger);
+
+			expect(await screen.findByText('vs. net deposits')).toBeInTheDocument();
+		});
+
+		it('shows "vs. cost basis" in the profit/loss tooltip when basis is cost', async () => {
+			renderWithTotals(serverTotals({ basis: 'cost' }));
+
+			const trigger = await screen.findByTestId('profit-loss-btn');
+			await fireEvent.pointerEnter(trigger);
+
+			expect(await screen.findByText('vs. cost basis')).toBeInTheDocument();
+		});
+
+		it('renders no percent when the server return_percent is null', async () => {
+			renderWithTotals(serverTotals({ return_percent: null }));
+
+			expect(await screen.findByText('+$150.00')).toBeInTheDocument();
+			expect(screen.queryByText(/[+-]?\d+\.\d+%/)).not.toBeInTheDocument();
+			expect(screen.queryByText(/NaN|Infinity/)).not.toBeInTheDocument();
 		});
 	});
 });
