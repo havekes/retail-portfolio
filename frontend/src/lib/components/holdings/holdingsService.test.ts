@@ -4,18 +4,36 @@ vi.mock('$lib/api/accountService', () => ({
 	getAccountService: vi.fn()
 }));
 
+vi.mock('$lib/api/accountClient', () => ({
+	getAccountClient: vi.fn()
+}));
+
 vi.mock('$lib/api/marketService', () => ({
 	getMarketService: vi.fn()
 }));
 
 import { getAccountService, type AccountService } from '$lib/api/accountService';
+import { getAccountClient, type AccountClient } from '$lib/api/accountClient';
 import { getMarketService, type MarketService } from '$lib/api/marketService';
 import { ApiError } from '$lib/api/apiClient';
 import { HoldingsService, getHoldingsService } from './holdingsService.svelte';
-import type { UserHolding } from '$lib/types/account';
+import type { AccountTotals, UserHolding } from '$lib/types/account';
 
 const getUserHoldings = vi.fn();
 const getValuationsBatch = vi.fn();
+const getAccountTotals = vi.fn();
+
+function makeTotals(value: number, profitLoss: number): AccountTotals {
+	return {
+		cost: { value: String(value - profitLoss) },
+		value: { value: String(value) },
+		cash: { value: '0' },
+		net_deposits: null,
+		profit_loss: { value: String(profitLoss) },
+		return_percent: null,
+		basis: 'cost'
+	};
+}
 
 function makeHolding(id: string, overrides: Partial<UserHolding> = {}): UserHolding {
 	const merged = {
@@ -62,6 +80,11 @@ describe('HoldingsService', () => {
 		vi.mocked(getAccountService).mockReturnValue({
 			getUserHoldings
 		} as unknown as AccountService);
+		getAccountTotals.mockReset();
+		getAccountTotals.mockResolvedValue(makeTotals(0, 0));
+		vi.mocked(getAccountClient).mockReturnValue({
+			getAccountTotals
+		} as unknown as AccountClient);
 		vi.mocked(getMarketService).mockReturnValue({
 			getValuationsBatch
 		} as unknown as MarketService);
@@ -311,6 +334,63 @@ describe('HoldingsService', () => {
 
 			expect(getValuationsBatch).not.toHaveBeenCalled();
 			expect(service.valuations).toEqual({});
+		});
+	});
+
+	describe('loadAccountTotals', () => {
+		it('fetches the missing accounts in parallel and caches them by id', async () => {
+			const totals1 = makeTotals(1000, 100);
+			const totals2 = makeTotals(500, 50);
+			getAccountTotals.mockImplementation(async (id: string) =>
+				id === 'acc-1' ? totals1 : totals2
+			);
+
+			await expect(service.loadAccountTotals(['acc-1', 'acc-2'])).resolves.toBeNull();
+
+			expect(getAccountTotals).toHaveBeenCalledTimes(2);
+			expect(getAccountTotals).toHaveBeenCalledWith('acc-1', undefined);
+			expect(service.accountTotals).toEqual({ 'acc-1': totals1, 'acc-2': totals2 });
+		});
+
+		it('deduplicates ids and skips accounts already cached', async () => {
+			await service.loadAccountTotals(['acc-1', 'acc-1']);
+			expect(getAccountTotals).toHaveBeenCalledTimes(1);
+
+			getAccountTotals.mockClear();
+			await service.loadAccountTotals(['acc-1', 'acc-2']);
+
+			expect(getAccountTotals).toHaveBeenCalledTimes(1);
+			expect(getAccountTotals).toHaveBeenCalledWith('acc-2', undefined);
+		});
+
+		it('threads the token through to the account client', async () => {
+			await service.loadAccountTotals(['acc-1'], 'token-abc');
+
+			expect(getAccountTotals).toHaveBeenCalledWith('acc-1', 'token-abc');
+		});
+
+		it('omits a failed account, keeps the successful ones and stores the error message', async () => {
+			const ok = makeTotals(1000, 100);
+			getAccountTotals.mockImplementation(async (id: string) => {
+				if (id === 'acc-2') throw new Error('Totals service unavailable');
+				return ok;
+			});
+
+			const error = await service.loadAccountTotals(['acc-1', 'acc-2']);
+
+			expect(error).toBeInstanceOf(Error);
+			expect(service.accountTotals['acc-1']).toEqual(ok);
+			expect(service.accountTotals['acc-2']).toBeUndefined();
+			expect(service.errorMessage).toBe('Totals service unavailable');
+		});
+
+		it('returns null without touching the error when every requested account is cached', async () => {
+			await service.loadAccountTotals(['acc-1']);
+			getAccountTotals.mockClear();
+
+			await expect(service.loadAccountTotals(['acc-1'])).resolves.toBeNull();
+
+			expect(getAccountTotals).not.toHaveBeenCalled();
 		});
 	});
 });

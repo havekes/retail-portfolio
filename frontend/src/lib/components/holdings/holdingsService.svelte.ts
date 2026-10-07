@@ -1,12 +1,13 @@
 import { getContext, setContext } from 'svelte';
 import { SvelteSet } from 'svelte/reactivity';
+import { getAccountClient, type AccountClient } from '$lib/api/accountClient';
 import { getAccountService, type AccountService } from '$lib/api/accountService';
 import {
 	getMarketService,
 	type MarketService,
 	type SecurityValuation
 } from '$lib/api/marketService';
-import type { UserHolding } from '$lib/types/account';
+import type { AccountTotals, UserHolding } from '$lib/types/account';
 import {
 	groupHoldings,
 	type HoldingsGroup,
@@ -26,6 +27,7 @@ export class HoldingsService {
 	allRows = $state<UserHolding[]>([]);
 	filter = $state<HoldingsFilter>({ type: 'all' });
 	valuations = $state<Record<string, SecurityValuation>>({});
+	accountTotals = $state<Record<string, AccountTotals>>({});
 	isLoading = $state(false);
 	errorMessage = $state<string | null>(null);
 	groupBy = $state<HoldingsGroupMode>('none');
@@ -48,10 +50,12 @@ export class HoldingsService {
 	groupedHoldings = $derived.by<HoldingsGroup[]>(() => groupHoldings(this.rows, this.groupBy));
 	private client: AccountService;
 	private marketClient: MarketService;
+	private accountTotalsClient: AccountClient;
 
 	constructor(customFetch?: typeof fetch) {
 		this.client = getAccountService(customFetch);
 		this.marketClient = getMarketService(customFetch);
+		this.accountTotalsClient = getAccountClient(customFetch);
 	}
 
 	setGroupBy(mode: HoldingsGroupMode) {
@@ -131,6 +135,42 @@ export class HoldingsService {
 		} finally {
 			this.isLoading = false;
 		}
+	}
+
+	/**
+	 * Fetch the server-computed performance totals for each visible account in
+	 * parallel and cache them by id, so filter changes only pay for accounts that
+	 * are not cached yet. A failed request omits that account and stores the
+	 * message in `errorMessage` for the shared in-page banner.
+	 */
+	async loadAccountTotals(accountIds: string[], token?: string | null): Promise<unknown | null> {
+		const uniqueIds = Array.from(new SvelteSet(accountIds));
+		const missing = uniqueIds.filter((id) => this.accountTotals[id] === undefined);
+
+		if (missing.length === 0) return null;
+
+		const results = await Promise.allSettled(
+			missing.map(async (id) => ({
+				id,
+				totals: await this.accountTotalsClient.getAccountTotals(id, token)
+			}))
+		);
+
+		let firstError: unknown = null;
+
+		for (const result of results) {
+			if (result.status === 'fulfilled') {
+				this.accountTotals[result.value.id] = result.value.totals;
+			} else if (firstError === null) {
+				firstError = result.reason;
+			}
+		}
+
+		if (firstError !== null) {
+			this.errorMessage = firstError instanceof Error ? firstError.message : String(firstError);
+		}
+
+		return firstError;
 	}
 }
 
