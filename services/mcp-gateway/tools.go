@@ -131,6 +131,14 @@ func registerTools(server *mcp.Server, client *BackendClient, cfg Config) {
 				}, nil
 			})
 		})
+
+	addTool(server, "get_technical_indicator",
+		"Technical indicator series (SMA, EMA, RSI, MACD, Bollinger Bands) computed over daily price history for a symbol.",
+		func(ctx context.Context, _ *mcp.CallToolRequest, in technicalIndicatorInput) (*mcp.CallToolResult, any, error) {
+			return runTool(ctx, "get_technical_indicator", cfg, in, technicalIndicatorInput.prepare, func(ctx context.Context, r technicalIndicatorRequest) (any, error) {
+				return client.TechnicalIndicator(ctx, r.symbol, r.query)
+			})
+		})
 }
 
 // addTool is a thin wrapper over the SDK generic mcp.AddTool. Out is always any
@@ -385,6 +393,86 @@ func (in priceHistoryInput) prepare() (priceHistoryRequest, error) {
 		to:       toPtr,
 		interval: interval,
 		exchange: exchange,
+	}, nil
+}
+
+type technicalIndicatorInput struct {
+	Symbol    string   `json:"symbol" jsonschema:"Ticker symbol of the security."`
+	Indicator string   `json:"indicator" jsonschema:"Indicator type: 'sma', 'ema', 'rsi', 'macd', or 'bollinger'."`
+	Period    *int     `json:"period,omitempty" jsonschema:"Optional period for SMA, EMA, RSI (default 14), or Bollinger Bands (default 20). Range: 2 to 400."`
+	Fast      *int     `json:"fast,omitempty" jsonschema:"Optional fast period for MACD (default 12). Range: 2 to 400."`
+	Slow      *int     `json:"slow,omitempty" jsonschema:"Optional slow period for MACD (default 26). Range: 2 to 400."`
+	Signal    *int     `json:"signal,omitempty" jsonschema:"Optional signal period for MACD (default 9). Range: 2 to 400."`
+	StdDev    *float64 `json:"std_dev,omitempty" jsonschema:"Optional standard deviation multiplier for Bollinger Bands (default 2.0)."`
+	From      string   `json:"from,omitempty" jsonschema:"Optional start date (inclusive) in YYYY-MM-DD format."`
+	To        string   `json:"to,omitempty" jsonschema:"Optional end date (inclusive) in YYYY-MM-DD format."`
+	Exchange  string   `json:"exchange,omitempty" jsonschema:"Optional exchange filter (NYSE, NASDAQ, NYSEARCA, AMEX, TSX, LSE)."`
+}
+
+type technicalIndicatorRequest struct {
+	symbol string
+	query  indicatorQuery
+}
+
+func (in technicalIndicatorInput) prepare() (technicalIndicatorRequest, error) {
+	symbol, err := requireSymbol(in.Symbol)
+	if err != nil {
+		return technicalIndicatorRequest{}, err
+	}
+	indicator, err := validateIndicator(in.Indicator)
+	if err != nil {
+		return technicalIndicatorRequest{}, err
+	}
+	if err := validatePeriodParam("period", in.Period); err != nil {
+		return technicalIndicatorRequest{}, err
+	}
+	if err := validatePeriodParam("fast", in.Fast); err != nil {
+		return technicalIndicatorRequest{}, err
+	}
+	if err := validatePeriodParam("slow", in.Slow); err != nil {
+		return technicalIndicatorRequest{}, err
+	}
+	if err := validatePeriodParam("signal", in.Signal); err != nil {
+		return technicalIndicatorRequest{}, err
+	}
+	if in.StdDev != nil && *in.StdDev <= 0 {
+		return technicalIndicatorRequest{}, errors.New("std_dev must be greater than 0")
+	}
+	var fromPtr, toPtr *time.Time
+	if strings.TrimSpace(in.From) != "" {
+		from, err := parseToolDate(in.From, "from")
+		if err != nil {
+			return technicalIndicatorRequest{}, err
+		}
+		fromPtr = &from
+	}
+	if strings.TrimSpace(in.To) != "" {
+		to, err := parseToolDate(in.To, "to")
+		if err != nil {
+			return technicalIndicatorRequest{}, err
+		}
+		toPtr = &to
+	}
+	if fromPtr != nil && toPtr != nil && fromPtr.After(*toPtr) {
+		return technicalIndicatorRequest{}, errors.New("from must be on or before to")
+	}
+	exchange, err := validateExchange(in.Exchange)
+	if err != nil {
+		return technicalIndicatorRequest{}, err
+	}
+	return technicalIndicatorRequest{
+		symbol: symbol,
+		query: indicatorQuery{
+			indicator: indicator,
+			period:    in.Period,
+			fast:      in.Fast,
+			slow:      in.Slow,
+			signal:    in.Signal,
+			stdDev:    in.StdDev,
+			from:      fromPtr,
+			to:        toPtr,
+			exchange:  exchange,
+		},
 	}, nil
 }
 
@@ -801,4 +889,30 @@ func validateExchange(v string) (string, error) {
 		}
 	}
 	return "", fmt.Errorf("exchange must be one of: %s", strings.Join(supportedExchanges, ", "))
+}
+
+// validateIndicator validates the indicator enum.
+func validateIndicator(v string) (string, error) {
+	switch strings.ToLower(strings.TrimSpace(v)) {
+	case "sma":
+		return "sma", nil
+	case "ema":
+		return "ema", nil
+	case "rsi":
+		return "rsi", nil
+	case "macd":
+		return "macd", nil
+	case "bollinger":
+		return "bollinger", nil
+	default:
+		return "", errors.New("indicator must be 'sma', 'ema', 'rsi', 'macd', or 'bollinger'")
+	}
+}
+
+// validatePeriodParam checks that an optional period parameter is within [2, 400].
+func validatePeriodParam(name string, p *int) error {
+	if p != nil && (*p < 2 || *p > 400) {
+		return fmt.Errorf("%s must be between 2 and 400", name)
+	}
+	return nil
 }

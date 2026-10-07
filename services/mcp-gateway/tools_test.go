@@ -24,6 +24,7 @@ var expectedToolNames = []string{
 	"get_option_expirations",
 	"get_financial_statements",
 	"resolve_symbol",
+	"get_technical_indicator",
 }
 
 // assertNoProviderName fails if text mentions an upstream provider brand.
@@ -114,6 +115,13 @@ const (
 	incomeStatementBody   = `[{"date": "2024-09-28", "symbol": "AAPL", "revenue": "391035000000"}]`
 	balanceSheetBody      = `[{"date": "2024-09-28", "symbol": "AAPL", "total_assets": "364980000000"}]`
 	cashFlowStatementBody = `[{"date": "2024-09-28", "symbol": "AAPL", "operating_cash_flow": "118254000000"}]`
+
+	technicalIndicatorBody = `{
+		"symbol": "AAPL", "indicator": "rsi", "currency": "USD",
+		"from_date": "2026-01-01", "to_date": "2026-01-31",
+		"params": {"period": 14},
+		"points": [{"time": "2026-01-02", "value": 55.0, "rsi": 55.0}]
+	}`
 )
 
 // toolCall is a valid invocation of one tool.
@@ -129,6 +137,7 @@ var validToolCalls = []toolCall{
 	{"get_option_expirations", map[string]any{"symbol": "AAPL"}},
 	{"get_financial_statements", map[string]any{"symbol": "AAPL", "statement": "income"}},
 	{"resolve_symbol", map[string]any{"query": "apple"}},
+	{"get_technical_indicator", map[string]any{"symbol": "AAPL", "indicator": "rsi"}},
 }
 
 // resolveSymbolPayload is the decoded shape of the resolve_symbol tool result.
@@ -390,6 +399,46 @@ func TestToolsCallBackendAndReturnData(t *testing.T) {
 				}
 				if len(got.Alternatives) != 0 {
 					t.Errorf("alternatives = %+v", got.Alternatives)
+				}
+			},
+		},
+		{
+			name: "get_technical_indicator",
+			tool: "get_technical_indicator",
+			args: map[string]any{
+				"symbol":    "aapl",
+				"indicator": "bollinger",
+				"period":    20,
+				"std_dev":   2.0,
+				"from":      "2026-01-01",
+				"to":        "2026-01-31",
+				"exchange":  "nasdaq",
+			},
+			body:     technicalIndicatorBody,
+			wantPath: "/api/v1/market/data/indicators/AAPL",
+			wantQuery: map[string]string{
+				"indicator": "bollinger",
+				"period":    "20",
+				"std_dev":   "2",
+				"from":      "2026-01-01",
+				"to":        "2026-01-31",
+				"exchange":  "NASDAQ",
+			},
+			assert: func(t *testing.T, raw string) {
+				var got struct {
+					Symbol    string `json:"symbol"`
+					Indicator string `json:"indicator"`
+					Currency  string `json:"currency"`
+					Points    []struct {
+						Time  string  `json:"time"`
+						Value float64 `json:"value"`
+					} `json:"points"`
+				}
+				if err := json.Unmarshal([]byte(raw), &got); err != nil {
+					t.Fatalf("decode TechnicalIndicator: %v", err)
+				}
+				if got.Symbol != "AAPL" || got.Indicator != "rsi" || len(got.Points) != 1 || got.Points[0].Value != 55.0 {
+					t.Errorf("payload = %+v", got)
 				}
 			},
 		},
@@ -1095,6 +1144,108 @@ func TestToolsRejectInvalidInput(t *testing.T) {
 			},
 			want: "exchange must be one of: NYSE, NASDAQ, NYSEARCA, AMEX, TSX, LSE",
 		},
+		{
+			name: "technical indicator symbol required",
+			prepare: func() error {
+				_, err := (technicalIndicatorInput{Symbol: "", Indicator: "rsi"}).prepare()
+				return err
+			},
+			want: "symbol is required",
+		},
+		{
+			name: "technical indicator invalid type",
+			prepare: func() error {
+				_, err := (technicalIndicatorInput{Symbol: "AAPL", Indicator: "invalid"}).prepare()
+				return err
+			},
+			want: "indicator must be 'sma', 'ema', 'rsi', 'macd', or 'bollinger'",
+		},
+		{
+			name: "technical indicator period too small",
+			prepare: func() error {
+				p := 1
+				_, err := (technicalIndicatorInput{Symbol: "AAPL", Indicator: "rsi", Period: &p}).prepare()
+				return err
+			},
+			want: "period must be between 2 and 400",
+		},
+		{
+			name: "technical indicator period too large",
+			prepare: func() error {
+				p := 401
+				_, err := (technicalIndicatorInput{Symbol: "AAPL", Indicator: "rsi", Period: &p}).prepare()
+				return err
+			},
+			want: "period must be between 2 and 400",
+		},
+		{
+			name: "technical indicator fast out of range",
+			prepare: func() error {
+				f := 1
+				_, err := (technicalIndicatorInput{Symbol: "AAPL", Indicator: "macd", Fast: &f}).prepare()
+				return err
+			},
+			want: "fast must be between 2 and 400",
+		},
+		{
+			name: "technical indicator slow out of range",
+			prepare: func() error {
+				s := 401
+				_, err := (technicalIndicatorInput{Symbol: "AAPL", Indicator: "macd", Slow: &s}).prepare()
+				return err
+			},
+			want: "slow must be between 2 and 400",
+		},
+		{
+			name: "technical indicator signal out of range",
+			prepare: func() error {
+				sig := 1
+				_, err := (technicalIndicatorInput{Symbol: "AAPL", Indicator: "macd", Signal: &sig}).prepare()
+				return err
+			},
+			want: "signal must be between 2 and 400",
+		},
+		{
+			name: "technical indicator std_dev non-positive",
+			prepare: func() error {
+				sd := 0.0
+				_, err := (technicalIndicatorInput{Symbol: "AAPL", Indicator: "bollinger", StdDev: &sd}).prepare()
+				return err
+			},
+			want: "std_dev must be greater than 0",
+		},
+		{
+			name: "technical indicator bad from date",
+			prepare: func() error {
+				_, err := (technicalIndicatorInput{Symbol: "AAPL", Indicator: "rsi", From: "not-a-date"}).prepare()
+				return err
+			},
+			want: "from must be a date in YYYY-MM-DD format",
+		},
+		{
+			name: "technical indicator bad to date",
+			prepare: func() error {
+				_, err := (technicalIndicatorInput{Symbol: "AAPL", Indicator: "rsi", To: "2026-13-45"}).prepare()
+				return err
+			},
+			want: "to must be a date in YYYY-MM-DD format",
+		},
+		{
+			name: "technical indicator from after to",
+			prepare: func() error {
+				_, err := (technicalIndicatorInput{Symbol: "AAPL", Indicator: "rsi", From: "2026-02-01", To: "2026-01-01"}).prepare()
+				return err
+			},
+			want: "from must be on or before to",
+		},
+		{
+			name: "bad exchange on technical indicator",
+			prepare: func() error {
+				_, err := (technicalIndicatorInput{Symbol: "AAPL", Indicator: "rsi", Exchange: "XETRA"}).prepare()
+				return err
+			},
+			want: "exchange must be one of: NYSE, NASDAQ, NYSEARCA, AMEX, TSX, LSE",
+		},
 	}
 
 	for _, tc := range tests {
@@ -1650,6 +1801,20 @@ func TestExchangeNormalizationInPrepare(t *testing.T) {
 			t.Errorf("req.exchange = %q, want %q", req.exchange, "TSX")
 		}
 	})
+
+	t.Run("technicalIndicatorInput normalizes lowercase", func(t *testing.T) {
+		req, err := (technicalIndicatorInput{
+			Symbol:    "AAPL",
+			Indicator: "rsi",
+			Exchange:  "tsx",
+		}).prepare()
+		if err != nil {
+			t.Fatalf("unexpected error: %v", err)
+		}
+		if req.query.exchange != "TSX" {
+			t.Errorf("req.query.exchange = %q, want %q", req.query.exchange, "TSX")
+		}
+	})
 }
 
 func TestToolsExchangeValidationAndWireValue(t *testing.T) {
@@ -1665,6 +1830,9 @@ func TestToolsExchangeValidationAndWireValue(t *testing.T) {
 		}},
 		{"get_financial_statements", func(ex string) map[string]any {
 			return map[string]any{"symbol": "AAPL", "statement": "income", "exchange": ex}
+		}},
+		{"get_technical_indicator", func(ex string) map[string]any {
+			return map[string]any{"symbol": "AAPL", "indicator": "rsi", "exchange": ex}
 		}},
 	}
 
@@ -2142,4 +2310,135 @@ func TestGetPriceHistory_Backend422CapErrorForwardedToAgent(t *testing.T) {
 	if !strings.Contains(text, capErrorMessage) {
 		t.Errorf("expected backend 422 message %q forwarded to agent, got %q", capErrorMessage, text)
 	}
+}
+
+func TestGetTechnicalIndicator_ClientSideValidationAndPassThrough(t *testing.T) {
+	var capturedQuery url.Values
+	var capturedPath string
+	backend := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		capturedPath = r.URL.Path
+		capturedQuery = r.URL.Query()
+		w.Header().Set("Content-Type", "application/json")
+		_, _ = w.Write([]byte(`{"symbol":"AAPL","indicator":"bollinger","currency":"USD","from_date":"2026-01-01","to_date":"2026-01-31","params":{"period":20,"std_dev":2},"points":[{"time":"2026-01-02","value":100.0}]}`))
+	}))
+	t.Cleanup(backend.Close)
+
+	session := newTestSession(t, backend.URL)
+
+	t.Run("client-side validation rejects invalid indicator before backend", func(t *testing.T) {
+		res := callTool(t, session, "get_technical_indicator", map[string]any{
+			"symbol":    "AAPL",
+			"indicator": "unknown",
+		})
+		if !res.IsError {
+			t.Fatal("expected client-side validation error for invalid indicator")
+		}
+		if !strings.Contains(resultText(t, res), "indicator must be 'sma', 'ema', 'rsi', 'macd', or 'bollinger'") {
+			t.Errorf("expected validation message, got: %s", resultText(t, res))
+		}
+	})
+
+	t.Run("client-side validation rejects out-of-range period", func(t *testing.T) {
+		res := callTool(t, session, "get_technical_indicator", map[string]any{
+			"symbol":    "AAPL",
+			"indicator": "rsi",
+			"period":    1,
+		})
+		if !res.IsError {
+			t.Fatal("expected client-side validation error for period < 2")
+		}
+		if !strings.Contains(resultText(t, res), "period must be between 2 and 400") {
+			t.Errorf("expected validation message, got: %s", resultText(t, res))
+		}
+	})
+
+	t.Run("client-side validation rejects out-of-range fast", func(t *testing.T) {
+		res := callTool(t, session, "get_technical_indicator", map[string]any{
+			"symbol":    "AAPL",
+			"indicator": "macd",
+			"fast":      1,
+		})
+		if !res.IsError {
+			t.Fatal("expected client-side validation error for fast < 2")
+		}
+		if !strings.Contains(resultText(t, res), "fast must be between 2 and 400") {
+			t.Errorf("expected validation message, got: %s", resultText(t, res))
+		}
+	})
+
+	t.Run("client-side validation rejects out-of-range slow", func(t *testing.T) {
+		res := callTool(t, session, "get_technical_indicator", map[string]any{
+			"symbol":    "AAPL",
+			"indicator": "macd",
+			"slow":      401,
+		})
+		if !res.IsError {
+			t.Fatal("expected client-side validation error for slow > 400")
+		}
+		if !strings.Contains(resultText(t, res), "slow must be between 2 and 400") {
+			t.Errorf("expected validation message, got: %s", resultText(t, res))
+		}
+	})
+
+	t.Run("client-side validation rejects out-of-range signal", func(t *testing.T) {
+		res := callTool(t, session, "get_technical_indicator", map[string]any{
+			"symbol":    "AAPL",
+			"indicator": "macd",
+			"signal":    1,
+		})
+		if !res.IsError {
+			t.Fatal("expected client-side validation error for signal < 2")
+		}
+		if !strings.Contains(resultText(t, res), "signal must be between 2 and 400") {
+			t.Errorf("expected validation message, got: %s", resultText(t, res))
+		}
+	})
+
+	t.Run("client-side validation rejects non-positive std_dev", func(t *testing.T) {
+		res := callTool(t, session, "get_technical_indicator", map[string]any{
+			"symbol":    "AAPL",
+			"indicator": "bollinger",
+			"std_dev":   0,
+		})
+		if !res.IsError {
+			t.Fatal("expected client-side validation error for std_dev <= 0")
+		}
+		if !strings.Contains(resultText(t, res), "std_dev must be greater than 0") {
+			t.Errorf("expected validation message, got: %s", resultText(t, res))
+		}
+	})
+
+	t.Run("sends query and passes json through", func(t *testing.T) {
+		res := callTool(t, session, "get_technical_indicator", map[string]any{
+			"symbol":    "aapl",
+			"indicator": "bollinger",
+			"period":    20,
+			"std_dev":   2.0,
+			"from":      "2026-01-01",
+			"to":        "2026-01-31",
+			"exchange":  "nasdaq",
+		})
+		if res.IsError {
+			t.Fatalf("unexpected error: %s", resultText(t, res))
+		}
+		if capturedPath != "/api/v1/market/data/indicators/AAPL" {
+			t.Errorf("captured path = %q, want /api/v1/market/data/indicators/AAPL", capturedPath)
+		}
+		if capturedQuery.Get("indicator") != "bollinger" {
+			t.Errorf("indicator = %q, want bollinger", capturedQuery.Get("indicator"))
+		}
+		if capturedQuery.Get("period") != "20" {
+			t.Errorf("period = %q, want 20", capturedQuery.Get("period"))
+		}
+		if capturedQuery.Get("std_dev") != "2" {
+			t.Errorf("std_dev = %q, want 2", capturedQuery.Get("std_dev"))
+		}
+		if capturedQuery.Get("exchange") != "NASDAQ" {
+			t.Errorf("exchange = %q, want NASDAQ", capturedQuery.Get("exchange"))
+		}
+		raw := resultText(t, res)
+		if !strings.Contains(raw, `"points"`) || !strings.Contains(raw, `"currency":"USD"`) {
+			t.Errorf("expected passthrough JSON, got: %s", raw)
+		}
+	})
 }

@@ -1,9 +1,9 @@
 from datetime import date, datetime
 from decimal import Decimal
-from typing import Literal, TypedDict
+from typing import Any, Literal, TypedDict
 from uuid import UUID
 
-from pydantic import AwareDatetime, BaseModel, ConfigDict
+from pydantic import AwareDatetime, BaseModel, ConfigDict, Field
 from stockholm.currency import Currency
 
 type SecurityId = UUID
@@ -373,3 +373,23 @@ class OptionExpirations(BaseModel):
     underlying_symbol: str
     expirations: list[date] = []
     truncated: bool = False
+
+
+# --------------------------------------------------------------------------- #
+# Technical Indicators
+# --------------------------------------------------------------------------- #
+
+SupportedIndicator = Literal["sma", "ema", "rsi", "macd", "bollinger"]
+
+
+class IndicatorSeriesResponse(BaseModel):
+    """Technical indicator series calculated by the indicator service."""
+
+    symbol: str
+    indicator: str
+    currency: str
+    exchange: str | None = None
+    params: dict[str, Any]
+    from_date: date
+    to_date: date
+    points: list[dict[str, Any]] = Field(default_factory=list)

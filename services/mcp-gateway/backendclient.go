@@ -180,6 +180,64 @@ func (c *BackendClient) Statements(
 	return out, nil
 }
 
+// indicatorQuery holds query parameters for TechnicalIndicator.
+type indicatorQuery struct {
+	indicator string
+	period    *int
+	fast      *int
+	slow      *int
+	signal    *int
+	stdDev    *float64
+	from      *time.Time
+	to        *time.Time
+	exchange  string
+}
+
+// TechnicalIndicator returns technical indicator series for symbol.
+//
+// GET /api/v1/market/data/indicators/{symbol}?indicator=&period=&fast=&slow=&signal=&std_dev=&from=&to=&exchange=
+func (c *BackendClient) TechnicalIndicator(
+	ctx context.Context,
+	symbol string,
+	params indicatorQuery,
+) (json.RawMessage, error) {
+	query := url.Values{}
+	if params.indicator != "" {
+		query.Set("indicator", params.indicator)
+	}
+	if params.period != nil {
+		query.Set("period", fmt.Sprintf("%d", *params.period))
+	}
+	if params.fast != nil {
+		query.Set("fast", fmt.Sprintf("%d", *params.fast))
+	}
+	if params.slow != nil {
+		query.Set("slow", fmt.Sprintf("%d", *params.slow))
+	}
+	if params.signal != nil {
+		query.Set("signal", fmt.Sprintf("%d", *params.signal))
+	}
+	if params.stdDev != nil {
+		query.Set("std_dev", formatFloat(*params.stdDev))
+	}
+	if params.from != nil {
+		query.Set("from", params.from.Format("2006-01-02"))
+	}
+	if params.to != nil {
+		query.Set("to", params.to.Format("2006-01-02"))
+	}
+	if params.exchange != "" {
+		query.Set("exchange", params.exchange)
+	}
+
+	var out json.RawMessage
+	path := "/indicators/" + url.PathEscape(normalizeSymbol(symbol))
+	if err := c.group.Get(ctx, path, query, &out); err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // normalizeSymbol upper-cases and trims a symbol before it is placed on the
 // wire. T11 passes tool input through verbatim; normalization lives here.
 func normalizeSymbol(symbol string) string {
