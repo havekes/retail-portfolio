@@ -281,6 +281,8 @@ class SqlAlchemyPositionRepository(PositionRepository):
                 average_cost=float(row.average_cost) if row.average_cost else None,
                 total_value=0.0,  # Populated by service layer
                 currency="",  # Populated by service layer
+                display_total_value=0.0,  # Populated by service layer
+                display_currency="",  # Populated by service layer
             )
             for row in result
         ], total or 0

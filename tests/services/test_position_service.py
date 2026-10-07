@@ -12,7 +12,12 @@ from stockholm import Currency, Money
 
 from src.account.api_types import AccountId
 from src.account.repository import PositionRepository
-from src.account.schema import AccountSchema, PositionSchema, UserHoldingRead
+from src.account.schema import (
+    AccountHoldingRead,
+    AccountSchema,
+    PositionSchema,
+    UserHoldingRead,
+)
 from src.account.service.account import AccountService
 from src.account.service.position import PositionService
 from src.core.enum import AccountTypeEnum, InstitutionEnum
@@ -229,6 +234,77 @@ async def test_get_user_holdings_converts_to_display_currency():
     )
     assert cad_holding_usd.display_currency == "USD"
     assert cad_holding_usd.display_total_value == pytest.approx(expected_cad_in_usd)
+
+
+@pytest.mark.anyio
+async def test_get_holdings_by_security_converts_to_display_currency():
+    """Per-security rows expose a native value plus a converted display value."""
+    user_id = uuid4()
+    account = _account(uuid4(), "CAD Account")
+    account.currency = Currency("CAD")
+    security = _security(uuid4())
+    repository_holding = AccountHoldingRead(
+        account_id=account.id,
+        account_name=account.name,
+        quantity=10.0,
+        average_cost=10.0,
+        total_value=0.0,
+        currency="",
+        display_total_value=0.0,
+        display_currency="",
+    )
+
+    position_repository = AsyncMock(spec=PositionRepository)
+    position_repository.get_holdings_by_security = AsyncMock(
+        return_value=([repository_holding], 1)
+    )
+    position_repository.get_by_account = AsyncMock(
+        return_value=([_position(1, account.id, security.id, "10")], 1)
+    )
+
+    account_service = AsyncMock(spec=AccountService)
+    account_service.get_account = AsyncMock(return_value=account)
+
+    security_service = AsyncMock(spec=SecurityApi)
+    security_service.get_by_id = AsyncMock(return_value=security)
+
+    market_prices = AsyncMock(spec=MarketPricesApi)
+    market_prices.get_latest_close = AsyncMock(
+        return_value=Money(Decimal("100.0"), Currency("USD"))
+    )
+    market_prices.get_latest_price = AsyncMock(return_value=_price(security.id))
+
+    service = PositionService(
+        account_service=account_service,
+        fx_rates=CurrencyConverter(),
+        integration_account_api=AsyncMock(),
+        integration_user_api=AsyncMock(),
+        market_prices=market_prices,
+        position_repository=position_repository,
+        security_service=security_service,
+    )
+    converter = CurrencyConverter()
+    expected_display = round(
+        converter.convert(amount=1000.0, currency="USD", new_currency="CAD"), 2
+    )
+
+    items, total = await service.get_holdings_by_security(
+        security.id, user_id, display_currency="CAD"
+    )
+
+    assert total == 1
+    item = items[0]
+    # Native value stays in the security currency.
+    assert item.total_value == 1000.0
+    assert item.currency == "USD"
+    # Display value converts the native value into the display currency.
+    assert item.display_currency == "CAD"
+    assert item.display_total_value == pytest.approx(expected_display)
+
+    # The display currency defaults to the account currency when omitted.
+    default_items, _ = await service.get_holdings_by_security(security.id, user_id)
+    assert default_items[0].display_currency == "CAD"
+    assert default_items[0].display_total_value == pytest.approx(expected_display)
 
 
 @pytest.mark.anyio
