@@ -32,6 +32,9 @@
 		type HoldingsTableColumn,
 		type HoldingsTableConfig
 	} from './holdings-table-columns';
+	import ValuationModal from '$lib/components/actions-sidebar/fundamentals/valuation-modal.svelte';
+	import { ModalState } from '$lib/utils/modal-state.svelte';
+	import type { SecurityValuationRead } from '$lib/api/valuationClient';
 
 	type Props = {
 		holdings: UserHolding[];
@@ -41,6 +44,7 @@
 		tableConfig?: HoldingsTableConfig | null;
 		onConfigChange?: (config: HoldingsTableConfig) => void;
 		onAccountClick?: (accountId: string) => void;
+		onValuationChange?: (securityId: string, valuation: SecurityValuationRead) => void;
 		elliottWaves?: Record<string, SecurityElliottWaves> | null;
 		valuations?: Record<string, SecurityValuation> | null;
 	};
@@ -53,9 +57,33 @@
 		tableConfig = null,
 		onConfigChange,
 		onAccountClick,
+		onValuationChange,
 		elliottWaves = null,
 		valuations = null
 	}: Props = $props();
+
+	const valuationModalState = new ModalState<{
+		securityId: string;
+		valuation?: SecurityValuationRead | null;
+	}>();
+
+	function handleValuationClick(row: HoldingRowView) {
+		const currentVal = valuations?.[row.security_id];
+		valuationModalState.open({
+			securityId: row.security_id,
+			valuation: currentVal
+				? {
+						id: currentVal.id ?? 0,
+						user_id: currentVal.user_id ?? '',
+						security_id: row.security_id,
+						lower_bound: currentVal.lower_bound,
+						upper_bound: currentVal.upper_bound,
+						created_at: currentVal.created_at ?? '',
+						updated_at: currentVal.updated_at ?? ''
+					}
+				: null
+		});
+	}
 
 	// Writable derived: normalizes the consumer's config, but a drag can
 	// override it locally for immediate feedback until the prop changes again.
@@ -294,9 +322,6 @@
 		column: HoldingsTableColumnId
 	): string | number | null | undefined {
 		if (column === 'account_name') {
-			return row.account_names.length > 0 ? row.account_names.join(', ') : null;
-		}
-		if (column === 'percent_of_total') {
 			return row.percent_of_total;
 		}
 		if (column === 'ew_primary_target') {
@@ -353,8 +378,9 @@
 </script>
 
 {#snippet sortHeader(column: HoldingsTableColumn, width: number)}
-	{@const label = column.id === 'account_name' && groupBy ? 'Accounts' : column.label}
+	{@const label = column.label}
 	<Table.Head
+		data-testid={`column-header-${column.id === 'account_name' ? 'allocation' : column.id}`}
 		class={`group/head relative h-10 cursor-pointer border-r border-b border-r-border/40 border-b-border px-4 py-2 transition-colors select-none hover:bg-muted/50 ${column.alignRight ? 'text-right' : ''}`}
 		onclick={() => handleSort(column.id)}
 	>
@@ -455,28 +481,36 @@
 		{/if}
 		{#if isVisible('account_name')}
 			<Table.Cell data-testid="account-cell" class={cn(CELL, 'text-sm')}>
-				{#if row.accounts.length === 0}
-					-
-				{:else}
-					<div class="flex flex-wrap items-center gap-1">
-						{#each row.accounts as account (account.account_id ?? account.name)}
-							{#if onAccountClick && account.account_id}
-								<button
-									type="button"
-									data-testid="account-badge"
-									data-account-id={account.account_id}
-									aria-label={`Filter by ${account.name}`}
-									class="cursor-pointer rounded-full transition-opacity hover:opacity-80 focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none"
-									onclick={() => onAccountClick(account.account_id as string)}
-								>
+				<div class="flex items-center gap-2">
+					<span
+						data-testid="percent-of-total"
+						class="text-xs font-medium text-foreground tabular-nums"
+					>
+						{formatHoldingPercent(row.percent_of_total)}
+					</span>
+					{#if row.accounts.length === 0}
+						<span class="text-xs text-muted-foreground">-</span>
+					{:else}
+						<div class="flex flex-wrap items-center gap-1">
+							{#each row.accounts as account (account.account_id ?? account.name)}
+								{#if onAccountClick && account.account_id}
+									<button
+										type="button"
+										data-testid="account-badge"
+										data-account-id={account.account_id}
+										aria-label={`Filter by ${account.name}`}
+										class="cursor-pointer rounded-full transition-opacity hover:opacity-80 focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none"
+										onclick={() => onAccountClick(account.account_id as string)}
+									>
+										{@render accountBadge(account)}
+									</button>
+								{:else}
 									{@render accountBadge(account)}
-								</button>
-							{:else}
-								{@render accountBadge(account)}
-							{/if}
-						{/each}
-					</div>
-				{/if}
+								{/if}
+							{/each}
+						</div>
+					{/if}
+				</div>
 			</Table.Cell>
 		{/if}
 		{#if isVisible('quantity')}
@@ -487,29 +521,23 @@
 				})}
 			</Table.Cell>
 		{/if}
-		{#if isVisible('average_cost')}
-			<Table.Cell class={cn(CELL, 'text-right')}>
-				<span class="text-xs text-muted-foreground tabular-nums">
-					{row.average_cost !== null && row.average_cost !== undefined
-						? formatCurrency(row.average_cost, row.security_currency)
-						: '-'}
-				</span>
-			</Table.Cell>
-		{/if}
 		{#if isVisible('latest_price')}
 			<Table.Cell class={cn(CELL, 'text-right')}>
-				{#if row.latest_price !== null && row.latest_price !== undefined}
-					<div
-						class="flex flex-col items-end leading-tight"
-						title={row.price_date ? `Snapshot from: ${row.price_date}` : undefined}
-					>
-						<span class="text-xs font-medium tabular-nums">
-							{formatCurrency(row.latest_price, row.security_currency)}
-						</span>
-					</div>
-				{:else}
-					<span class="text-xs text-muted-foreground">-</span>
-				{/if}
+				<div
+					class="flex flex-col items-end leading-tight"
+					title={row.price_date ? `Snapshot from: ${row.price_date}` : undefined}
+				>
+					<span data-testid="latest-price" class="text-xs font-medium tabular-nums">
+						{row.latest_price !== null && row.latest_price !== undefined
+							? formatCurrency(row.latest_price, row.security_currency)
+							: '-'}
+					</span>
+					<span data-testid="average-cost" class="text-[10px] text-muted-foreground tabular-nums">
+						{row.average_cost !== null && row.average_cost !== undefined
+							? formatCurrency(row.average_cost, row.security_currency)
+							: '—'}
+					</span>
+				</div>
 			</Table.Cell>
 		{/if}
 		{#if isVisible('total_value')}
@@ -524,13 +552,6 @@
 						</span>
 					{/if}
 				</div>
-			</Table.Cell>
-		{/if}
-		{#if isVisible('percent_of_total')}
-			<Table.Cell data-testid="percent-of-total-cell" class={cn(CELL, 'text-right')}>
-				<span data-testid="percent-of-total" class="text-xs font-medium tabular-nums">
-					{formatHoldingPercent(row.percent_of_total)}
-				</span>
 			</Table.Cell>
 		{/if}
 		{#if isVisible('profit_loss')}
@@ -571,40 +592,48 @@
 		{/if}
 		{#if isVisible('valuation_range')}
 			<Table.Cell data-testid="valuation-range-cell" class={cn(CELL, 'text-right')}>
-				{#if row.valuation_lower !== null && row.valuation_upper !== null}
-					<div class="flex flex-col items-end gap-0.5 leading-tight">
-						<span data-testid="valuation-range" class="text-xs font-medium tabular-nums">
-							{formatValuationRange(row.valuation_lower, row.valuation_upper)}
-						</span>
-						{#if row.valuation_lower_upside !== null && row.valuation_upper_upside !== null}
-							<span
-								data-testid="valuation-upside-range"
-								class={cn(
-									'text-[10px] font-medium tabular-nums',
-									getUpsideRangeClass(row.valuation_lower_upside, row.valuation_upper_upside)
-								)}
-							>
-								<span class={getUpsideClass(row.valuation_lower_upside)}>
-									{formatUpsidePercent(row.valuation_lower_upside)}
-								</span>
-								<span class="text-muted-foreground"> – </span>
-								<span class={getUpsideClass(row.valuation_upper_upside)}>
-									{formatUpsidePercent(row.valuation_upper_upside)}
-								</span>
+				<button
+					type="button"
+					data-testid="valuation-edit-trigger"
+					aria-label={`Edit valuation for ${row.security_symbol}`}
+					class="ml-auto flex cursor-pointer flex-col items-end rounded-md px-2 py-1 text-right transition-colors hover:bg-background/60"
+					onclick={() => handleValuationClick(row)}
+				>
+					{#if row.valuation_lower !== null && row.valuation_upper !== null}
+						<div class="flex flex-col items-end gap-0.5 leading-tight">
+							<span data-testid="valuation-range" class="text-xs font-medium tabular-nums">
+								{formatValuationRange(row.valuation_lower, row.valuation_upper)}
 							</span>
-						{/if}
-						{#if row.valuation_updated_at}
-							<span
-								data-testid="valuation-updated-at"
-								class="text-[10px] text-muted-foreground tabular-nums"
-							>
-								{formatDate(row.valuation_updated_at)}
-							</span>
-						{/if}
-					</div>
-				{:else}
-					<span data-testid="valuation-range" class="text-xs font-medium tabular-nums"> — </span>
-				{/if}
+							{#if row.valuation_lower_upside !== null && row.valuation_upper_upside !== null}
+								<span
+									data-testid="valuation-upside-range"
+									class={cn(
+										'text-[10px] font-medium tabular-nums',
+										getUpsideRangeClass(row.valuation_lower_upside, row.valuation_upper_upside)
+									)}
+								>
+									<span class={getUpsideClass(row.valuation_lower_upside)}>
+										{formatUpsidePercent(row.valuation_lower_upside)}
+									</span>
+									<span class="text-muted-foreground"> – </span>
+									<span class={getUpsideClass(row.valuation_upper_upside)}>
+										{formatUpsidePercent(row.valuation_upper_upside)}
+									</span>
+								</span>
+							{/if}
+							{#if row.valuation_updated_at}
+								<span
+									data-testid="valuation-updated-at"
+									class="text-[10px] text-muted-foreground tabular-nums"
+								>
+									{formatDate(row.valuation_updated_at)}
+								</span>
+							{/if}
+						</div>
+					{:else}
+						<span data-testid="valuation-range" class="text-xs font-medium tabular-nums"> — </span>
+					{/if}
+				</button>
 			</Table.Cell>
 		{/if}
 	</Table.Row>
@@ -658,3 +687,13 @@
 		</Table.Body>
 	</Table.Root>
 </div>
+
+<ValuationModal
+	modalState={valuationModalState}
+	onSaved={(saved) => {
+		const secId = saved.security_id || valuationModalState.data?.securityId;
+		if (secId) {
+			onValuationChange?.(secId, saved);
+		}
+	}}
+/>
