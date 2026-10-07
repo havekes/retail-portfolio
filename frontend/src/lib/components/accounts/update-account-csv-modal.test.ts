@@ -178,7 +178,9 @@ describe('UpdateAccountCsvModal', () => {
 		const uploadBtn = screen.getByRole('button', { name: 'Upload CSV' });
 		await fireEvent.click(uploadBtn);
 
-		expect(accountClient.syncAccountCsv).toHaveBeenCalledWith('acc-csv-1', file);
+		expect(accountClient.syncAccountCsv).toHaveBeenCalledWith('acc-csv-1', file, {
+			netDeposits: undefined
+		});
 
 		await waitFor(() => {
 			expect(mockOnSuccess).toHaveBeenCalledTimes(1);
@@ -228,5 +230,80 @@ describe('UpdateAccountCsvModal', () => {
 		await fireEvent.click(cancelBtn);
 
 		expect(modalState.isOpen).toBe(false);
+	});
+
+	describe('net deposits', () => {
+		async function renderWithAccount(account: Account): Promise<File> {
+			modalState.open();
+
+			render(UpdateAccountCsvModal, {
+				props: {
+					account,
+					modalState,
+					onSuccess: mockOnSuccess
+				}
+			});
+
+			const file = new File(['symbol,shares\nAAPL,10'], 'portfolio.csv', { type: 'text/csv' });
+			const input = document.querySelector('input[type="file"]') as HTMLInputElement;
+			await fireEvent.change(input, { target: { files: [file] } });
+			return file;
+		}
+
+		it('prefills account.net_deposits and submits it unchanged when untouched', async () => {
+			vi.mocked(accountClient.syncAccountCsv).mockResolvedValue(mockAccount);
+			const file = await renderWithAccount({ ...mockAccount, net_deposits: 1000 });
+
+			const input = screen.getByTestId('account-net-deposits-input') as HTMLInputElement;
+			expect(input).toHaveValue('1000');
+			expect(screen.getByText('Still correct?')).toBeInTheDocument();
+
+			await fireEvent.click(screen.getByRole('button', { name: 'Upload CSV' }));
+
+			expect(accountClient.syncAccountCsv).toHaveBeenCalledWith('acc-csv-1', file, {
+				netDeposits: 1000
+			});
+		});
+
+		it('submits the edited net deposits value', async () => {
+			vi.mocked(accountClient.syncAccountCsv).mockResolvedValue(mockAccount);
+			const file = await renderWithAccount({ ...mockAccount, net_deposits: 1000 });
+
+			await fireEvent.input(screen.getByTestId('account-net-deposits-input'), {
+				target: { value: '1500' }
+			});
+			await fireEvent.click(screen.getByRole('button', { name: 'Upload CSV' }));
+
+			expect(accountClient.syncAccountCsv).toHaveBeenCalledWith('acc-csv-1', file, {
+				netDeposits: 1500
+			});
+		});
+
+		it('shows an empty field for null net deposits and omits the value when left empty', async () => {
+			vi.mocked(accountClient.syncAccountCsv).mockResolvedValue(mockAccount);
+			const file = await renderWithAccount({ ...mockAccount, net_deposits: null });
+
+			const input = screen.getByTestId('account-net-deposits-input') as HTMLInputElement;
+			expect(input).toHaveValue('');
+
+			await fireEvent.click(screen.getByRole('button', { name: 'Upload CSV' }));
+
+			expect(accountClient.syncAccountCsv).toHaveBeenCalledWith('acc-csv-1', file, {
+				netDeposits: undefined
+			});
+		});
+
+		it('allows negative values and blocks non-numeric input with an inline error', async () => {
+			vi.mocked(accountClient.syncAccountCsv).mockResolvedValue(mockAccount);
+			await renderWithAccount({ ...mockAccount, net_deposits: null });
+
+			const input = screen.getByTestId('account-net-deposits-input');
+			await fireEvent.input(input, { target: { value: '-250' } });
+			expect(screen.getByRole('button', { name: 'Upload CSV' })).not.toBeDisabled();
+
+			await fireEvent.input(input, { target: { value: 'oops' } });
+			expect(screen.getByTestId('account-net-deposits-error')).toBeInTheDocument();
+			expect(screen.getByRole('button', { name: 'Upload CSV' })).toBeDisabled();
+		});
 	});
 });

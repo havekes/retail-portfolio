@@ -22,6 +22,7 @@
 	} = $props();
 
 	let selectedFile = $state<File | null>(null);
+	let netDepositsInput = $state<string>('');
 	let isSubmitting = $state(false);
 	let error = $state<string | null>(null);
 	let isDragging = $state(false);
@@ -31,15 +32,26 @@
 	$effect(() => {
 		if (!modalState.isOpen) {
 			resetState();
+		} else {
+			netDepositsInput = account.net_deposits != null ? String(account.net_deposits) : '';
 		}
 	});
 
 	function resetState() {
 		selectedFile = null;
+		netDepositsInput = '';
 		error = null;
 		isSubmitting = false;
 		isDragging = false;
 	}
+
+	function isInvalidNetDeposits(raw: string): boolean {
+		const trimmed = raw.trim();
+		if (trimmed === '') return false;
+		return !Number.isFinite(Number(trimmed));
+	}
+
+	let netDepositsInvalid = $derived(isInvalidNetDeposits(netDepositsInput));
 
 	function formatFileSize(bytes: number): string {
 		if (bytes === 0) return '0 Bytes';
@@ -98,13 +110,16 @@
 	}
 
 	async function handleUpload() {
-		if (!selectedFile || isSubmitting) return;
+		if (!selectedFile || isSubmitting || netDepositsInvalid) return;
 
 		isSubmitting = true;
 		error = null;
 
+		const trimmed = netDepositsInput.trim();
+		const netDeposits = trimmed === '' ? undefined : Number(trimmed);
+
 		try {
-			await accountClient.syncAccountCsv(account.id, selectedFile);
+			await accountClient.syncAccountCsv(account.id, selectedFile, { netDeposits });
 			modalState.close();
 			resetState();
 			onSuccess?.();
@@ -140,6 +155,26 @@
 						<Alert.Description>{error}</Alert.Description>
 					</Alert.Root>
 				{/if}
+
+				<div class="space-y-2">
+					<Label for="csv-net-deposits-input">Net deposits</Label>
+					<Input
+						id="csv-net-deposits-input"
+						type="text"
+						inputmode="decimal"
+						placeholder="Optional"
+						bind:value={netDepositsInput}
+						disabled={isSubmitting}
+						aria-invalid={netDepositsInvalid}
+						data-testid="account-net-deposits-input"
+					/>
+					<span class="block text-xs text-muted-foreground">Still correct?</span>
+					{#if netDepositsInvalid}
+						<span class="block text-xs text-destructive" data-testid="account-net-deposits-error">
+							Enter a number
+						</span>
+					{/if}
+				</div>
 
 				<div class="space-y-2">
 					<Label for="csv-file-input">Select CSV file</Label>
@@ -196,7 +231,10 @@
 				<Button onclick={() => modalState.close()} variant="outline" disabled={isSubmitting}>
 					Cancel
 				</Button>
-				<Button onclick={handleUpload} disabled={!selectedFile || isSubmitting}>
+				<Button
+					onclick={handleUpload}
+					disabled={!selectedFile || isSubmitting || netDepositsInvalid}
+				>
 					{#if isSubmitting}
 						<Loader2 class="mr-2 h-4 w-4 animate-spin" />
 						Uploading...
