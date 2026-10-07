@@ -2,7 +2,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent, waitFor } from '@testing-library/svelte';
 import Page from './+page.svelte';
 import type { Portfolio } from '$lib/types/portfolio';
-import { AccountType, Institution } from '$lib/types/account';
+import { AccountType, Institution, type Account, type AccountTotals } from '$lib/types/account';
 import type { PageData } from './$types';
 import { portfolioClient } from '$lib/api/portfolioClient';
 
@@ -18,9 +18,35 @@ vi.mock('$lib/api/portfolioClient', () => ({
 	getPortfolioClient: vi.fn()
 }));
 
+vi.mock('$lib/api/accountClient', () => ({
+	accountClient: {
+		getAccountTotals: vi.fn()
+	}
+}));
+
+import { accountClient } from '$lib/api/accountClient';
+
+function makeTotals(
+	value: number,
+	profitLoss: number,
+	overrides: Partial<AccountTotals> = {}
+): AccountTotals {
+	return {
+		cost: { value: String(value - profitLoss) },
+		value: { value: String(value) },
+		cash: { value: '0' },
+		net_deposits: null,
+		profit_loss: { value: String(profitLoss) },
+		return_percent: null,
+		basis: 'cost',
+		...overrides
+	};
+}
+
 describe('/portfolios +page.svelte', () => {
 	beforeEach(() => {
 		vi.clearAllMocks();
+		vi.mocked(accountClient.getAccountTotals).mockResolvedValue(makeTotals(0, 0));
 	});
 
 	function getMockPortfolios(): Portfolio[] {
@@ -216,5 +242,61 @@ describe('/portfolios +page.svelte', () => {
 
 		expect(portfolioClient.deletePortfolio).not.toHaveBeenCalled();
 		expect(screen.getByText('Tech Growth')).toBeInTheDocument();
+	});
+
+	it('renders per-currency total value and P/L on a portfolio card from member account totals', async () => {
+		const cadAccount: Account = {
+			id: 'acc-cad',
+			name: 'TFSA',
+			external_id: 'ext-cad',
+			account_type_id: AccountType.TFSA,
+			institution_id: Institution.Questrade,
+			currency: 'CAD',
+			is_active: true,
+			api_sync_enabled: false,
+			created_at: new Date('2025-01-01')
+		};
+		const usdAccount: Account = {
+			...cadAccount,
+			id: 'acc-usd',
+			name: 'US Trading',
+			external_id: 'ext-usd',
+			currency: 'USD'
+		};
+
+		vi.mocked(accountClient.getAccountTotals).mockImplementation(async (id: string) => {
+			if (id === 'acc-cad')
+				return makeTotals(1150, 150, { basis: 'net_deposits', net_deposits: { value: '1000' } });
+			return makeTotals(200, 20, { basis: 'cost' });
+		});
+
+		render(Page, {
+			props: {
+				data: makeData({
+					portfolios: [
+						{
+							id: 'port-mixed',
+							name: 'Mixed Currency',
+							created_at: '2025-06-15T12:00:00Z',
+							accounts: [cadAccount, usdAccount]
+						}
+					]
+				})
+			}
+		});
+
+		// CAD and USD stay separate — never summed into one figure.
+		expect(await screen.findByTestId('portfolio-port-mixed-CAD-total-value')).toHaveTextContent(
+			'$1,150.00'
+		);
+		expect(screen.getByTestId('portfolio-port-mixed-CAD-profit-loss-value')).toHaveTextContent(
+			'+$150.00'
+		);
+		expect(screen.getByTestId('portfolio-port-mixed-USD-total-value')).toHaveTextContent(
+			'US$200.00'
+		);
+		expect(screen.getByTestId('portfolio-port-mixed-USD-profit-loss-value')).toHaveTextContent(
+			'+US$20.00'
+		);
 	});
 });
