@@ -14,9 +14,11 @@ from fastapi import (
     Response,
     UploadFile,
 )
+from stockholm import Currency
 from svcs.fastapi import DepContainer
 
 from src.account.api_types import (
+    SUPPORTED_DISPLAY_CURRENCIES,
     AccountId,
     AccountRenameRequest,
     AccountTotals,
@@ -294,6 +296,39 @@ def _normalize_account_numbers(raw: list[str] | None) -> list[str]:
     return list(dict.fromkeys(result))
 
 
+def _parse_net_deposits(raw: str | None) -> dict[str, float | None] | None:
+    """Parse a strict ``{account_number: number | null}`` net-deposits value.
+
+    Unlike ``currencies``, malformed JSON or non-numeric values raise 422 rather
+    than being silently dropped, because a dropped amount would quietly change
+    the P/L basis.
+    """
+    if raw is None or not raw.strip():
+        return None
+    try:
+        parsed = json.loads(raw)
+    except json.JSONDecodeError as e:
+        raise HTTPException(
+            status_code=422, detail="net_deposits must be a valid JSON object"
+        ) from e
+    if not isinstance(parsed, dict):
+        raise HTTPException(
+            status_code=422, detail="net_deposits must be a valid JSON object"
+        )
+    result: dict[str, float | None] = {}
+    for key, value in parsed.items():
+        if value is None:
+            result[str(key)] = None
+        elif isinstance(value, bool) or not isinstance(value, (int, float)):
+            raise HTTPException(
+                status_code=422,
+                detail=f"net_deposits value for '{key}' must be a number or null",
+            )
+        else:
+            result[str(key)] = float(value)
+    return result
+
+
 @account_router.post("/csv/import")
 async def account_csv_import(  # noqa: PLR0913, PLR0917
     user: Annotated[User, Depends(current_user)],
@@ -307,6 +342,8 @@ async def account_csv_import(  # noqa: PLR0913, PLR0917
     ] = None,
     currencies: Annotated[str | None, Form()] = None,
     currencies_query: Annotated[str | None, Query(alias="currencies")] = None,
+    net_deposits: Annotated[str | None, Form()] = None,
+    net_deposits_query: Annotated[str | None, Query(alias="net_deposits")] = None,
 ) -> list[AccountSchema]:
     """Import selected accounts and positions from an uploaded CSV file."""
     actual_institution_id = (
@@ -332,6 +369,9 @@ async def account_csv_import(  # noqa: PLR0913, PLR0917
         except json.JSONDecodeError, ValueError:
             pass
 
+    raw_net_deposits = net_deposits if net_deposits is not None else net_deposits_query
+    parsed_net_deposits = _parse_net_deposits(raw_net_deposits)
+
     try:
         content_bytes = await file.read()
         content_str = content_bytes.decode("utf-8-sig")
@@ -349,6 +389,7 @@ async def account_csv_import(  # noqa: PLR0913, PLR0917
             account_numbers=normalized_account_numbers,
             csv_content=content_str,
             account_currencies=parsed_currencies,
+            account_net_deposits=parsed_net_deposits,
         )
     except InstitutionNotFoundError as e:
         raise HTTPException(status_code=404, detail=str(e)) from e
@@ -369,6 +410,7 @@ async def account_csv_sync(
     user: Annotated[User, Depends(current_user)],
     file: Annotated[UploadFile, File(...)],
     services: DepContainer,
+    net_deposits: Annotated[float | None, Form()] = None,
 ) -> AccountSchema:
     """Update positions of an existing account from an uploaded CSV file."""
     authorization_api = await services.aget(AuthorizationApi)
@@ -394,6 +436,7 @@ async def account_csv_sync(
         return await csv_account_service.sync_account_from_csv(
             account=account,
             csv_content=content_str,
+            net_deposits=net_deposits,
         )
     except AccountNotFoundError as e:
         raise HTTPException(status_code=404, detail=str(e)) from e
@@ -454,9 +497,13 @@ async def account_totals(
     account_id: AccountId,
     user: Annotated[User, Depends(current_user)],
     services: DepContainer,
+    currency: Annotated[str | None, Query()] = None,
 ) -> AccountTotals:
     """
     Get accounts totals such as cost and price.
+
+    Pass ``currency`` to receive the totals converted to a supported display
+    currency; it defaults to the account's own currency.
     """
     authorization_api = await services.aget(AuthorizationApi)
     account_repository = await services.aget(AccountRepository)
@@ -468,7 +515,18 @@ async def account_totals(
     if account is None:
         raise HTTPException(404)
 
-    return await position_service.get_total_for_account(account_id, account.currency)
+    target_currency = account.currency
+    if currency is not None:
+        normalized = currency.strip().upper()
+        if normalized not in SUPPORTED_DISPLAY_CURRENCIES:
+            supported = ", ".join(SUPPORTED_DISPLAY_CURRENCIES)
+            raise HTTPException(
+                status_code=422,
+                detail=f"currency must be one of: {supported}",
+            )
+        target_currency = Currency(normalized)
+
+    return await position_service.get_total_for_account(account_id, target_currency)
 
 
 @account_router.get("/holdings")
@@ -479,8 +537,13 @@ async def user_holdings(
 ) -> PaginatedResponse[UserHoldingRead]:
     """Get all holdings across every account owned by the current user."""
     position_service = await services.aget(PositionService)
+    user_api = await services.aget(UserApi)
+    display_currency = await user_api.get_display_currency(user.id)
     holdings, total = await position_service.get_user_holdings(
-        user.id, offset=pagination.offset, limit=pagination.limit
+        user.id,
+        offset=pagination.offset,
+        limit=pagination.limit,
+        display_currency=display_currency,
     )
     return PaginatedResponse(
         items=holdings, total=total, offset=pagination.offset, limit=pagination.limit
@@ -496,8 +559,14 @@ async def security_holdings(
 ) -> PaginatedResponse[AccountHoldingRead]:
     """Get all holdings for a specific security across user accounts."""
     position_service = await services.aget(PositionService)
+    user_api = await services.aget(UserApi)
+    display_currency = await user_api.get_display_currency(user.id)
     holdings, total = await position_service.get_holdings_by_security(
-        security_id, user.id, offset=pagination.offset, limit=pagination.limit
+        security_id,
+        user.id,
+        offset=pagination.offset,
+        limit=pagination.limit,
+        display_currency=display_currency,
     )
     return PaginatedResponse(
         items=holdings, total=total, offset=pagination.offset, limit=pagination.limit

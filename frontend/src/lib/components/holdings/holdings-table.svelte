@@ -171,6 +171,7 @@
 		latest_price?: number;
 		price_date?: string;
 		total_value: number;
+		display_total_value: number;
 		unconverted_total_value: number;
 		percent_of_total: number;
 		profit_loss: number | null;
@@ -194,14 +195,18 @@
 		'percent_of_total' | 'account_names' | 'accounts' | `ew_${string}` | `valuation_${string}`
 	>;
 
-	const totalPortfolioValue = $derived(holdings.reduce((sum, h) => sum + (h.total_value ?? 0), 0));
+	// Portfolio and account shares aggregate the display value, so accounts held
+	// in different currencies are never added together in their native units.
+	const totalPortfolioValue = $derived(
+		holdings.reduce((sum, h) => sum + (h.display_total_value ?? 0), 0)
+	);
 
 	const accountTotals = $derived.by(() => {
 		const map = new SvelteMap<string, number>();
 		for (const h of holdings) {
 			const key = h.account_name || h.account_id;
 			if (key) {
-				map.set(key, (map.get(key) ?? 0) + (h.total_value ?? 0));
+				map.set(key, (map.get(key) ?? 0) + (h.display_total_value ?? 0));
 			}
 		}
 		return map;
@@ -218,9 +223,13 @@
 			if (!key) continue;
 			const existing = byAccount.get(key);
 			if (existing) {
-				existing.value += row.total_value ?? 0;
+				existing.value += row.display_total_value ?? 0;
 			} else {
-				byAccount.set(key, { name: key, account_id: row.account_id, value: row.total_value ?? 0 });
+				byAccount.set(key, {
+					name: key,
+					account_id: row.account_id,
+					value: row.display_total_value ?? 0
+				});
 			}
 		}
 		return Array.from(byAccount, ([key, item]) => ({
@@ -258,8 +267,9 @@
 			latest_price: source.latest_price,
 			price_date: source.price_date,
 			total_value: source.total_value,
+			display_total_value: source.display_total_value,
 			unconverted_total_value: source.unconverted_total_value,
-			percent_of_total: calculatePercentOfTotal(source.total_value, totalPortfolioValue),
+			percent_of_total: calculatePercentOfTotal(source.display_total_value, totalPortfolioValue),
 			profit_loss: source.profit_loss,
 			unconverted_profit_loss: source.unconverted_profit_loss,
 			account_names,

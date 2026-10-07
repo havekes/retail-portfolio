@@ -2,13 +2,16 @@ import asyncio
 import logging
 from datetime import UTC, datetime
 
+import httpx
 from huey import crontab
 from svcs import Container
 
 from src.account.task import recalculate_all_account_totals_task
 from src.core.context import get_request_id, request_id_ctx_var, set_request_id
+from src.core.redis import redis_manager
 from src.market.ai_service import AIService
 from src.market.alert_service import AlertEvaluationService
+from src.market.fx import refresh_fx_rates
 from src.market.repository import (
     IntradayPriceRepository,
     PriceAlertRepository,
@@ -84,6 +87,22 @@ async def _daily_price_update() -> None:
             success,
             failure,
         )
+
+
+@huey.periodic_task(crontab(hour="17", minute="30"))
+def daily_fx_refresh() -> None:
+    """Huey periodic task to refresh ECB FX rates daily.
+
+    Scheduled after the ECB publishes its reference rates (~16:00 CET); the
+    crontab is interpreted in UTC.
+    """
+    asyncio.run(_daily_fx_refresh())
+
+
+async def _daily_fx_refresh() -> None:
+    """Download the ECB history and store it in Redis for the FX provider."""
+    async with redis_manager.client() as redis, httpx.AsyncClient() as http_client:
+        await refresh_fx_rates(redis, http_client)
 
 
 @huey.periodic_task(crontab(minute="0"))

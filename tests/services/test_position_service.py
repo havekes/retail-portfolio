@@ -1,5 +1,6 @@
 """Unit tests for the user-wide holdings calculation in PositionService."""
 
+import logging
 from datetime import UTC, date, datetime
 from decimal import Decimal
 from unittest.mock import AsyncMock
@@ -7,16 +8,22 @@ from uuid import uuid4
 
 import pytest
 from currency_converter import CurrencyConverter
-from stockholm import Currency
+from stockholm import Currency, Money
 
 from src.account.api_types import AccountId
 from src.account.repository import PositionRepository
-from src.account.schema import AccountSchema, PositionSchema, UserHoldingRead
+from src.account.schema import (
+    AccountHoldingRead,
+    AccountSchema,
+    PositionSchema,
+    UserHoldingRead,
+)
 from src.account.service.account import AccountService
 from src.account.service.position import PositionService
 from src.core.enum import AccountTypeEnum, InstitutionEnum
 from src.market.api import MarketPricesApi, SecurityApi
 from src.market.api_types import Security
+from src.market.exception import SecurityNotFoundError
 from src.market.schema import PriceSchema
 
 
@@ -57,15 +64,15 @@ def _security(security_id, symbol: str = "AAPL") -> Security:
     )
 
 
-def _price(security_id) -> PriceSchema:
+def _price(security_id, close: str = "100.0") -> PriceSchema:
     return PriceSchema(
         security_id=security_id,
         date=date(2026, 1, 2),
-        open=Decimal("100.0"),
-        high=Decimal("100.0"),
-        low=Decimal("100.0"),
-        close=Decimal("100.0"),
-        adjusted_close=Decimal("100.0"),
+        open=Decimal(close),
+        high=Decimal(close),
+        low=Decimal(close),
+        close=Decimal(close),
+        adjusted_close=Decimal(close),
         volume=1000,
     )
 
@@ -100,6 +107,46 @@ def _build_service(
         security_service=security_service,
     )
     return service, account_service, position_repository
+
+
+def _build_account_totals_service(
+    account: AccountSchema,
+    positions: list[PositionSchema],
+    security: Security,
+    close: str,
+) -> PositionService:
+    """Build a PositionService wired to a single account and market price.
+
+    Both totals paths are stubbed: ``get_total_for_account`` reads
+    ``get_latest_close`` while ``get_account_holdings`` reads
+    ``get_latest_price``.
+    """
+    position_repository = AsyncMock(spec=PositionRepository)
+    position_repository.get_by_account = AsyncMock(
+        return_value=(positions, len(positions))
+    )
+
+    account_service = AsyncMock(spec=AccountService)
+    account_service.get_account = AsyncMock(return_value=account)
+
+    security_service = AsyncMock(spec=SecurityApi)
+    security_service.get_by_id = AsyncMock(return_value=security)
+
+    market_prices = AsyncMock(spec=MarketPricesApi)
+    market_prices.get_latest_close = AsyncMock(
+        return_value=Money(Decimal(close), security.currency)
+    )
+    market_prices.get_latest_price = AsyncMock(return_value=_price(security.id, close))
+
+    return PositionService(
+        account_service=account_service,
+        fx_rates=CurrencyConverter(),
+        integration_account_api=AsyncMock(),
+        integration_user_api=AsyncMock(),
+        market_prices=market_prices,
+        position_repository=position_repository,
+        security_service=security_service,
+    )
 
 
 @pytest.mark.anyio
@@ -139,6 +186,128 @@ async def test_get_user_holdings_groups_by_account_and_stamps_context():
 
 
 @pytest.mark.anyio
+async def test_get_user_holdings_converts_to_display_currency():
+    """User-wide holdings carry a converted display value in the display currency."""
+    user_id = uuid4()
+    usd_account = _account(uuid4(), "USD Account")
+    cad_account = _account(uuid4(), "CAD Account")
+    cad_account.currency = Currency("CAD")
+    security = _security(uuid4())
+    positions = [
+        _position(1, usd_account.id, security.id, "1"),
+        _position(2, cad_account.id, security.id, "1"),
+    ]
+    service, _, _ = _build_service(
+        positions,
+        total=2,
+        accounts={usd_account.id: usd_account, cad_account.id: cad_account},
+        security=security,
+    )
+    converter = CurrencyConverter()
+
+    cad_items, _ = await service.get_user_holdings(user_id, display_currency="CAD")
+    by_account = {item.account_id: item for item in cad_items}
+    usd_holding = by_account[usd_account.id]
+    cad_holding = by_account[cad_account.id]
+
+    expected_usd_in_cad = round(
+        converter.convert(amount=100, currency="USD", new_currency="CAD"), 2
+    )
+    # Native value stays in the account currency; the display value converts.
+    assert usd_holding.currency == "USD"
+    assert usd_holding.total_value == 100.0
+    assert usd_holding.display_currency == "CAD"
+    assert usd_holding.display_total_value == pytest.approx(expected_usd_in_cad)
+    # A CAD holding needs no conversion.
+    assert cad_holding.currency == "CAD"
+    assert cad_holding.display_currency == "CAD"
+    assert cad_holding.display_total_value == cad_holding.total_value
+
+    # The user's preference is honoured: the same CAD holding converts to USD.
+    usd_items, _ = await service.get_user_holdings(user_id, display_currency="USD")
+    cad_holding_usd = {item.account_id: item for item in usd_items}[cad_account.id]
+    expected_cad_in_usd = round(
+        converter.convert(
+            amount=cad_holding_usd.total_value, currency="CAD", new_currency="USD"
+        ),
+        2,
+    )
+    assert cad_holding_usd.display_currency == "USD"
+    assert cad_holding_usd.display_total_value == pytest.approx(expected_cad_in_usd)
+
+
+@pytest.mark.anyio
+async def test_get_holdings_by_security_converts_to_display_currency():
+    """Per-security rows expose a native value plus a converted display value."""
+    user_id = uuid4()
+    account = _account(uuid4(), "CAD Account")
+    account.currency = Currency("CAD")
+    security = _security(uuid4())
+    repository_holding = AccountHoldingRead(
+        account_id=account.id,
+        account_name=account.name,
+        quantity=10.0,
+        average_cost=10.0,
+        total_value=0.0,
+        currency="",
+        display_total_value=0.0,
+        display_currency="",
+    )
+
+    position_repository = AsyncMock(spec=PositionRepository)
+    position_repository.get_holdings_by_security = AsyncMock(
+        return_value=([repository_holding], 1)
+    )
+    position_repository.get_by_account = AsyncMock(
+        return_value=([_position(1, account.id, security.id, "10")], 1)
+    )
+
+    account_service = AsyncMock(spec=AccountService)
+    account_service.get_account = AsyncMock(return_value=account)
+
+    security_service = AsyncMock(spec=SecurityApi)
+    security_service.get_by_id = AsyncMock(return_value=security)
+
+    market_prices = AsyncMock(spec=MarketPricesApi)
+    market_prices.get_latest_close = AsyncMock(
+        return_value=Money(Decimal("100.0"), Currency("USD"))
+    )
+    market_prices.get_latest_price = AsyncMock(return_value=_price(security.id))
+
+    service = PositionService(
+        account_service=account_service,
+        fx_rates=CurrencyConverter(),
+        integration_account_api=AsyncMock(),
+        integration_user_api=AsyncMock(),
+        market_prices=market_prices,
+        position_repository=position_repository,
+        security_service=security_service,
+    )
+    converter = CurrencyConverter()
+    expected_display = round(
+        converter.convert(amount=1000.0, currency="USD", new_currency="CAD"), 2
+    )
+
+    items, total = await service.get_holdings_by_security(
+        security.id, user_id, display_currency="CAD"
+    )
+
+    assert total == 1
+    item = items[0]
+    # Native value stays in the security currency.
+    assert item.total_value == 1000.0
+    assert item.currency == "USD"
+    # Display value converts the native value into the display currency.
+    assert item.display_currency == "CAD"
+    assert item.display_total_value == pytest.approx(expected_display)
+
+    # The display currency defaults to the account currency when omitted.
+    default_items, _ = await service.get_holdings_by_security(security.id, user_id)
+    assert default_items[0].display_currency == "CAD"
+    assert default_items[0].display_total_value == pytest.approx(expected_display)
+
+
+@pytest.mark.anyio
 async def test_get_total_for_account_includes_free_cash():
     """Verify get_total_for_account adds account free_cash to totals.value and totals.cost."""
     account_id = uuid4()
@@ -158,8 +327,7 @@ async def test_get_total_for_account_includes_free_cash():
     security_service.get_by_id = AsyncMock(return_value=security)
 
     market_prices = AsyncMock(spec=MarketPricesApi)
-    from stockholm import Money
-    market_prices.get_latest_close = AsyncMock(return_value=Money(100.0, "USD"))
+    market_prices.get_latest_price = AsyncMock(return_value=_price(security.id))
 
     service = PositionService(
         account_service=account_service,
@@ -224,6 +392,40 @@ async def test_get_account_holdings_includes_free_cash():
 
 
 @pytest.mark.anyio
+async def test_get_account_holdings_exposes_broker_value():
+    """The broker-reported value and timestamp are surfaced on the response."""
+    account_id = uuid4()
+    account = _account(account_id, "Broker Account")
+    account.broker_value = 10000.0
+    account.broker_value_at = datetime(2026, 10, 7, tzinfo=UTC)
+
+    security = _security(uuid4())
+    position = _position(1, account_id, security.id, "10")
+    service = _build_account_totals_service(account, [position], security, close="100.0")
+
+    holdings_read = await service.get_account_holdings(account_id, offset=0, limit=50)
+
+    assert holdings_read.broker_value == 10000.0
+    assert holdings_read.broker_value_at == datetime(2026, 10, 7, tzinfo=UTC)
+
+
+@pytest.mark.anyio
+async def test_get_account_holdings_broker_value_null_for_csv_account():
+    """CSV-imported accounts have no broker value, so both fields stay null."""
+    account_id = uuid4()
+    account = _account(account_id, "CSV Account")
+
+    security = _security(uuid4())
+    position = _position(1, account_id, security.id, "10")
+    service = _build_account_totals_service(account, [position], security, close="100.0")
+
+    holdings_read = await service.get_account_holdings(account_id, offset=0, limit=50)
+
+    assert holdings_read.broker_value is None
+    assert holdings_read.broker_value_at is None
+
+
+@pytest.mark.anyio
 async def test_get_account_holdings_currency_mismatch_position_cad_security_usd():
     """Verify get_account_holdings computes without CurrencyMismatchError when position.currency == 'CAD' and security.currency == 'USD'."""
     account_id = uuid4()
@@ -266,3 +468,272 @@ async def test_get_account_holdings_currency_mismatch_position_cad_security_usd(
     assert holding.security_currency == "CAD"
     assert holding.unconverted_total_value > 0
     assert holding.unconverted_profit_loss is not None
+
+
+@pytest.mark.anyio
+async def test_get_total_for_account_uses_net_deposits_basis():
+    """net_deposits known: P/L is present value minus net deposits."""
+    account = _account(uuid4(), "Net Deposits Account")
+    account.free_cash = 50.0
+    account.net_deposits = 1000.0
+
+    security = _security(uuid4())
+    # 10 shares @ market 110 => positions value 1100; cost 10 * 10 = 100.
+    position = _position(1, account.id, security.id, "10")
+    service = _build_account_totals_service(account, [position], security, "110.0")
+
+    totals = await service.get_total_for_account(account.id, Currency("USD"))
+
+    assert float(totals.value.amount) == 1150.0
+    assert float(totals.cost.amount) == 150.0
+    assert float(totals.cash.amount) == 50.0
+    assert totals.net_deposits is not None
+    assert float(totals.net_deposits.amount) == 1000.0
+    assert float(totals.profit_loss.amount) == 150.0
+    assert totals.return_percent == 15.0
+    assert totals.basis == "net_deposits"
+
+
+@pytest.mark.anyio
+async def test_get_account_holdings_uses_net_deposits_basis():
+    """Holdings totals agree with get_total_for_account's net-deposits basis."""
+    account = _account(uuid4(), "Net Deposits Account")
+    account.free_cash = 50.0
+    account.net_deposits = 1000.0
+
+    security = _security(uuid4())
+    position = _position(1, account.id, security.id, "10")
+    service = _build_account_totals_service(account, [position], security, "110.0")
+
+    holdings = await service.get_account_holdings(account.id)
+
+    assert holdings.total_value == 1150.0
+    assert holdings.total_profit_loss == 150.0
+    assert holdings.total_profit_loss_percent == 15.0
+    assert holdings.profit_loss_basis == "net_deposits"
+
+
+@pytest.mark.anyio
+async def test_get_total_for_account_cost_basis_excludes_cash_from_denominator():
+    """net_deposits unknown: P/L is positions value minus positions cost."""
+    account = _account(uuid4(), "Cost Basis Account")
+    account.free_cash = 500.0
+    account.net_deposits = None
+
+    security = _security(uuid4())
+    position = _position(1, account.id, security.id, "10")
+    position.average_cost = Decimal("100.0")  # positions cost 1000
+
+    service = _build_account_totals_service(account, [position], security, "110.0")
+
+    totals = await service.get_total_for_account(account.id, Currency("USD"))
+
+    assert float(totals.value.amount) == 1600.0
+    assert float(totals.cost.amount) == 1500.0
+    assert float(totals.cash.amount) == 500.0
+    assert totals.net_deposits is None
+    assert float(totals.profit_loss.amount) == 100.0
+    assert totals.return_percent == 10.0
+    assert totals.basis == "cost"
+
+
+@pytest.mark.anyio
+async def test_zero_net_deposits_uses_net_deposits_basis_with_null_return():
+    """A zero net-deposits basis keeps the basis but cannot produce a percent."""
+    account = _account(uuid4(), "Zero Net Deposits Account")
+    account.free_cash = 50.0
+    account.net_deposits = 0.0
+
+    security = _security(uuid4())
+    position = _position(1, account.id, security.id, "10")
+    service = _build_account_totals_service(account, [position], security, "110.0")
+
+    totals = await service.get_total_for_account(account.id, Currency("USD"))
+
+    assert totals.basis == "net_deposits"
+    assert float(totals.profit_loss.amount) == 1150.0
+    assert totals.return_percent is None
+
+    holdings = await service.get_account_holdings(account.id)
+    assert holdings.profit_loss_basis == "net_deposits"
+    assert holdings.total_profit_loss == 1150.0
+    assert holdings.total_profit_loss_percent is None
+
+
+@pytest.mark.anyio
+async def test_total_and_holdings_agree_on_performance():
+    """The two totals paths return the same performance for one account."""
+    account = _account(uuid4(), "Agreement Account")
+    account.free_cash = 50.0
+    account.net_deposits = 1000.0
+
+    security = _security(uuid4())
+    position = _position(1, account.id, security.id, "10")
+    service = _build_account_totals_service(account, [position], security, "110.0")
+
+    totals = await service.get_total_for_account(account.id, Currency("USD"))
+    holdings = await service.get_account_holdings(account.id)
+
+    assert float(totals.value.amount) == holdings.total_value
+    assert float(totals.profit_loss.amount) == holdings.total_profit_loss
+    assert totals.return_percent == holdings.total_profit_loss_percent
+    assert totals.basis == holdings.profit_loss_basis
+
+
+def _build_multi_security_service(
+    account: AccountSchema,
+    positions: list[PositionSchema],
+    securities: dict,
+    prices: dict,
+) -> PositionService:
+    """Wire a PositionService with per-security prices (None means unpriced)."""
+    position_repository = AsyncMock(spec=PositionRepository)
+    position_repository.get_by_account = AsyncMock(
+        return_value=(positions, len(positions))
+    )
+
+    account_service = AsyncMock(spec=AccountService)
+    account_service.get_account = AsyncMock(return_value=account)
+
+    security_service = AsyncMock(spec=SecurityApi)
+    security_service.get_by_id = AsyncMock(
+        side_effect=lambda security_id: securities[security_id]
+    )
+
+    market_prices = AsyncMock(spec=MarketPricesApi)
+    market_prices.get_latest_price = AsyncMock(
+        side_effect=lambda security_id: (
+            _price(security_id, prices[security_id])
+            if prices.get(security_id) is not None
+            else None
+        )
+    )
+
+    return PositionService(
+        account_service=account_service,
+        fx_rates=CurrencyConverter(),
+        integration_account_api=AsyncMock(),
+        integration_user_api=AsyncMock(),
+        market_prices=market_prices,
+        position_repository=position_repository,
+        security_service=security_service,
+    )
+
+
+@pytest.mark.anyio
+async def test_unpriced_position_is_excluded_from_totals_and_counted():
+    """A position with no stored price is reported, not silently valued at zero."""
+    account = _account(uuid4(), "Partially Priced")
+    account.free_cash = 0.0
+    account.net_deposits = None
+
+    priced_security = _security(uuid4(), "AAA")
+    unpriced_security = _security(uuid4(), "BBB")
+
+    priced = _position(1, account.id, priced_security.id, "10")
+    priced.average_cost = Decimal("100.0")  # cost 1000, priced value 1100
+    unpriced = _position(2, account.id, unpriced_security.id, "5")
+    unpriced.average_cost = Decimal("100.0")  # cost 500, no price
+
+    service = _build_multi_security_service(
+        account,
+        [priced, unpriced],
+        {priced_security.id: priced_security, unpriced_security.id: unpriced_security},
+        {priced_security.id: "110.0", unpriced_security.id: None},
+    )
+
+    totals = await service.get_total_for_account(account.id, Currency("USD"))
+
+    # Only the priced position contributes: value 1100, cost 1000, P/L 100.
+    assert float(totals.value.amount) == 1100.0
+    assert float(totals.cost.amount) == 1000.0
+    assert float(totals.profit_loss.amount) == 100.0
+    assert totals.basis == "cost"
+    assert totals.unpriced_positions == 1
+    assert totals.pricing_incomplete is True
+
+    holdings = await service.get_account_holdings(account.id)
+
+    assert holdings.total_value == 1100.0
+    assert holdings.total_profit_loss == 100.0
+    assert holdings.unpriced_positions == 1
+    assert holdings.pricing_incomplete is True
+
+    unpriced_row = next(h for h in holdings.items if h.id == 2)
+    assert unpriced_row.profit_loss is None
+    assert unpriced_row.total_value == 0.0
+
+
+@pytest.mark.anyio
+async def test_missing_security_is_skipped_logged_and_counted(caplog):
+    """SecurityNotFoundError is caught per position instead of failing the request."""
+    account = _account(uuid4(), "Orphaned Position")
+    account.free_cash = 0.0
+    account.net_deposits = None
+
+    security = _security(uuid4())
+    position = _position(1, account.id, security.id, "10")
+
+    position_repository = AsyncMock(spec=PositionRepository)
+    position_repository.get_by_account = AsyncMock(return_value=([position], 1))
+
+    account_service = AsyncMock(spec=AccountService)
+    account_service.get_account = AsyncMock(return_value=account)
+
+    security_service = AsyncMock(spec=SecurityApi)
+    security_service.get_by_id = AsyncMock(
+        side_effect=SecurityNotFoundError(security.id)
+    )
+
+    market_prices = AsyncMock(spec=MarketPricesApi)
+    market_prices.get_latest_price = AsyncMock(return_value=None)
+
+    service = PositionService(
+        account_service=account_service,
+        fx_rates=CurrencyConverter(),
+        integration_account_api=AsyncMock(),
+        integration_user_api=AsyncMock(),
+        market_prices=market_prices,
+        position_repository=position_repository,
+        security_service=security_service,
+    )
+
+    with caplog.at_level(logging.ERROR):
+        totals = await service.get_total_for_account(account.id, Currency("USD"))
+        holdings = await service.get_account_holdings(account.id)
+
+    assert totals.unpriced_positions == 1
+    assert totals.pricing_incomplete is True
+    assert float(totals.value.amount) == 0.0
+    assert holdings.unpriced_positions == 1
+    assert holdings.items == []
+    assert "Security not found for position 1" in caplog.text
+
+
+@pytest.mark.anyio
+async def test_total_and_holdings_agree_on_unpriced_account():
+    """Both totals paths agree when a position is unpriced (shared loop)."""
+    account = _account(uuid4(), "Unpriced Agreement")
+    account.free_cash = 25.0
+    account.net_deposits = 500.0
+
+    priced_security = _security(uuid4(), "AAA")
+    unpriced_security = _security(uuid4(), "BBB")
+    priced = _position(1, account.id, priced_security.id, "10")
+    priced.average_cost = Decimal("100.0")
+    unpriced = _position(2, account.id, unpriced_security.id, "5")
+
+    service = _build_multi_security_service(
+        account,
+        [priced, unpriced],
+        {priced_security.id: priced_security, unpriced_security.id: unpriced_security},
+        {priced_security.id: "110.0", unpriced_security.id: None},
+    )
+
+    totals = await service.get_total_for_account(account.id, Currency("USD"))
+    holdings = await service.get_account_holdings(account.id)
+
+    assert float(totals.value.amount) == holdings.total_value
+    assert float(totals.profit_loss.amount) == holdings.total_profit_loss
+    assert totals.unpriced_positions == holdings.unpriced_positions == 1
+    assert totals.pricing_incomplete is holdings.pricing_incomplete is True

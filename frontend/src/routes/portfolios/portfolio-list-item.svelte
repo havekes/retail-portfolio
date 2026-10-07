@@ -1,9 +1,18 @@
 <script lang="ts">
+	import { browser } from '$app/environment';
 	import type { Portfolio } from '$lib/types/portfolio';
 	import EditableTitle from '$lib/components/forms/editable-title.svelte';
 	import * as DropdownMenu from '$lib/components/ui/dropdown-menu';
 	import ConfirmationModal from '$lib/components/ui/confirmation-modal/confirmation-modal.svelte';
 	import Button from '$lib/components/ui/button/button.svelte';
+	import Skeleton from '$lib/components/ui/skeleton/skeleton.svelte';
+	import TotalProfitLossButtons from '$lib/components/total-profit-loss-buttons.svelte';
+	import { accountClient } from '$lib/api/accountClient';
+	import {
+		aggregateAccountTotals,
+		type AccountTotalsInput,
+		type CurrencyTotalsBucket
+	} from '$lib/utils/finance/account-totals';
 	import EllipsisVertical from '@lucide/svelte/icons/ellipsis-vertical';
 	import Pencil from '@lucide/svelte/icons/pencil';
 	import Trash2 from '@lucide/svelte/icons/trash-2';
@@ -21,6 +30,35 @@
 
 	let isEditingTitle = $state(false);
 	let showDeleteModal = $state(false);
+
+	// Member-account server totals drive the card's value + P/L. A failed request
+	// omits that account (same as the holdings header) instead of failing the row.
+	async function loadTotals(): Promise<CurrencyTotalsBucket[]> {
+		const accounts = portfolio.accounts ?? [];
+		const results = await Promise.allSettled(
+			accounts.map(async (account) => ({
+				accountId: account.id,
+				currency: account.currency,
+				totals: await accountClient.getAccountTotals(account.id)
+			}))
+		);
+
+		const inputs = results
+			.filter(
+				(result): result is PromiseFulfilledResult<AccountTotalsInput> =>
+					result.status === 'fulfilled'
+			)
+			.map((result) => result.value);
+
+		return aggregateAccountTotals(inputs);
+	}
+
+	const totalsPromise = $derived.by(() => {
+		if (!browser) {
+			return new Promise<CurrencyTotalsBucket[]>(() => {});
+		}
+		return loadTotals();
+	});
 </script>
 
 <div
@@ -39,7 +77,22 @@
 					linkClass="rounded-md px-2 py-1 transition-colors hover:bg-background/60 dark:hover:bg-background/60 hover:no-underline font-semibold text-lg"
 				/>
 			</div>
-			<div class="flex items-center gap-2">
+			<div class="flex flex-wrap items-center justify-end gap-2">
+				{#await totalsPromise}
+					<Skeleton class="h-8 w-48 rounded-full bg-background p-2" />
+				{:then totals}
+					{#each totals as total (total.currency)}
+						<TotalProfitLossButtons
+							totalValue={total.totalValue}
+							profitLoss={total.profitLoss}
+							returnPercent={total.returnPercent}
+							currency={total.currency}
+							costBasis={total.basisAmount}
+							basisLabel={total.basisLabel}
+							testIdPrefix={`portfolio-${portfolio.id}-${total.currency}`}
+						/>
+					{/each}
+				{/await}
 				<DropdownMenu.Root>
 					<DropdownMenu.Trigger>
 						{#snippet child({ props })}

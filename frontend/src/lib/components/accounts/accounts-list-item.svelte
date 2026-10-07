@@ -13,6 +13,7 @@
 	import UpdateAccountCsvModal from './update-account-csv-modal.svelte';
 	import AccountInlineHoldings from './account-inline-holdings.svelte';
 	import RefreshCw from '@lucide/svelte/icons/refresh-cw';
+	import TriangleAlert from '@lucide/svelte/icons/triangle-alert';
 	import ChevronDown from '@lucide/svelte/icons/chevron-down';
 	import ChevronRight from '@lucide/svelte/icons/chevron-right';
 	import Pencil from '@lucide/svelte/icons/pencil';
@@ -161,17 +162,33 @@
 				{#await itemState.totals}
 					<Skeleton class="h-8 w-48 rounded-full bg-background p-2" />
 				{:then totals}
-					{@const val = moneyToNumber(totals.value)}
-					{@const cost = moneyToNumber(totals.cost)}
-					{@const profitLoss = val - cost}
-					{@const returnPercent = cost > 0 ? (profitLoss / cost) * 100 : null}
+					{@const profitLoss = moneyToNumber(totals.profit_loss)}
+					{@const returnPercent = totals.return_percent}
+					{@const netDepositsBasis = totals.basis === 'net_deposits'}
+					{@const basisLabel = netDepositsBasis ? 'Net deposits' : 'Cost basis'}
 					<TotalProfitLossButtons
 						totalValue={totals.value}
-						costBasis={totals.cost}
+						costBasis={netDepositsBasis ? totals.net_deposits : totals.cost}
 						{profitLoss}
 						{returnPercent}
+						{basisLabel}
 						currency={account.currency}
 					/>
+					{#if totals.pricing_incomplete}
+						<Tooltip.Provider>
+							<Tooltip.Root>
+								<Tooltip.Trigger
+									class="rounded-md p-1 text-amber-600 transition-colors hover:bg-background/60 dark:hover:bg-background/60"
+									aria-label="Incomplete pricing"
+								>
+									<TriangleAlert class="h-4 w-4" />
+								</Tooltip.Trigger>
+								<Tooltip.Content>
+									<p>Some positions are missing prices. They are excluded from these totals.</p>
+								</Tooltip.Content>
+							</Tooltip.Root>
+						</Tooltip.Provider>
+					{/if}
 				{:catch}
 					<div class="text-sm">Total: failed to load</div>
 				{/await}

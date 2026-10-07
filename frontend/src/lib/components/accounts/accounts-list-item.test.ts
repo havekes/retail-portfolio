@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent, waitFor } from '@testing-library/svelte';
 import AccountsListItem from './accounts-list-item.svelte';
-import { Institution, AccountType, type Holding } from '@/types/account';
+import { Institution, AccountType, type Holding, type AccountTotals } from '@/types/account';
 
 vi.mock('$app/paths', () => ({
 	resolve: (path: string) => path
@@ -47,7 +47,12 @@ describe('AccountsListItem', () => {
 		vi.mocked(userPreferencesService.patchPreferences).mockResolvedValue({});
 		vi.mocked(accountClient.getAccountTotals).mockResolvedValue({
 			value: { value: '100', units: 100, nanos: 0, currencyCode: 'CAD' },
-			cost: { value: '50', units: 50, nanos: 0, currencyCode: 'CAD' }
+			cost: { value: '50', units: 50, nanos: 0, currencyCode: 'CAD' },
+			cash: { value: '0', units: 0, nanos: 0, currencyCode: 'CAD' },
+			net_deposits: null,
+			profit_loss: { value: '50', units: 50, nanos: 0, currencyCode: 'CAD' },
+			return_percent: 100,
+			basis: 'cost'
 		});
 		vi.mocked(accountClient.getAccountHoldings).mockResolvedValue({
 			account_id: 'acc-1',
@@ -419,6 +424,8 @@ describe('AccountsListItem', () => {
 				total_value: 1750,
 				profit_loss: 250,
 				currency: 'CAD',
+				display_total_value: 1750,
+				display_currency: 'CAD',
 				security_currency: 'USD',
 				unconverted_total_value: 1750,
 				converted_average_cost: 150,
@@ -660,7 +667,12 @@ describe('AccountsListItem', () => {
 		it('displays total profit/loss with + prefix and emerald class when positive', async () => {
 			vi.mocked(accountClient.getAccountTotals).mockResolvedValue({
 				value: { value: '100', units: 100, nanos: 0, currencyCode: 'CAD' },
-				cost: { value: '50', units: 50, nanos: 0, currencyCode: 'CAD' }
+				cost: { value: '50', units: 50, nanos: 0, currencyCode: 'CAD' },
+				cash: { value: '0', units: 0, nanos: 0, currencyCode: 'CAD' },
+				net_deposits: null,
+				profit_loss: { value: '50', units: 50, nanos: 0, currencyCode: 'CAD' },
+				return_percent: 100,
+				basis: 'cost'
 			});
 
 			render(AccountsListItem, {
@@ -677,7 +689,12 @@ describe('AccountsListItem', () => {
 		it('displays total profit/loss with - prefix and rose class when negative', async () => {
 			vi.mocked(accountClient.getAccountTotals).mockResolvedValue({
 				value: { value: '25', units: 25, nanos: 0, currencyCode: 'CAD' },
-				cost: { value: '50', units: 50, nanos: 0, currencyCode: 'CAD' }
+				cost: { value: '50', units: 50, nanos: 0, currencyCode: 'CAD' },
+				cash: { value: '0', units: 0, nanos: 0, currencyCode: 'CAD' },
+				net_deposits: null,
+				profit_loss: { value: '-25', units: -25, nanos: 0, currencyCode: 'CAD' },
+				return_percent: -50,
+				basis: 'cost'
 			});
 
 			render(AccountsListItem, {
@@ -694,7 +711,12 @@ describe('AccountsListItem', () => {
 		it('renders split total value and profit/loss buttons using TotalProfitLossButtons', async () => {
 			vi.mocked(accountClient.getAccountTotals).mockResolvedValue({
 				value: { value: '100', units: 100, nanos: 0, currencyCode: 'CAD' },
-				cost: { value: '50', units: 50, nanos: 0, currencyCode: 'CAD' }
+				cost: { value: '50', units: 50, nanos: 0, currencyCode: 'CAD' },
+				cash: { value: '0', units: 0, nanos: 0, currencyCode: 'CAD' },
+				net_deposits: null,
+				profit_loss: { value: '50', units: 50, nanos: 0, currencyCode: 'CAD' },
+				return_percent: 100,
+				basis: 'cost'
 			});
 
 			render(AccountsListItem, {
@@ -743,6 +765,116 @@ describe('AccountsListItem', () => {
 			expect(caretButton).toHaveAttribute('aria-expanded', 'true');
 
 			expect(accountClient.getAccountHoldings).toHaveBeenCalledWith('acc-1');
+		});
+	});
+
+	describe('Incomplete pricing warning (ARCH-T26)', () => {
+		it('shows the warning icon when pricing_incomplete is true', async () => {
+			vi.mocked(accountClient.getAccountTotals).mockResolvedValue({
+				value: { value: '100', units: 100, nanos: 0, currencyCode: 'CAD' },
+				cost: { value: '50', units: 50, nanos: 0, currencyCode: 'CAD' },
+				cash: { value: '0', units: 0, nanos: 0, currencyCode: 'CAD' },
+				net_deposits: null,
+				profit_loss: { value: '50', units: 50, nanos: 0, currencyCode: 'CAD' },
+				return_percent: 100,
+				basis: 'cost',
+				unpriced_positions: 1,
+				pricing_incomplete: true
+			});
+
+			render(AccountsListItem, {
+				props: {
+					account: mockAccount
+				}
+			});
+
+			expect(await screen.findByLabelText('Incomplete pricing')).toBeInTheDocument();
+		});
+
+		it('does not show the warning icon when pricing_incomplete is false', async () => {
+			vi.mocked(accountClient.getAccountTotals).mockResolvedValue({
+				value: { value: '100', units: 100, nanos: 0, currencyCode: 'CAD' },
+				cost: { value: '50', units: 50, nanos: 0, currencyCode: 'CAD' },
+				cash: { value: '0', units: 0, nanos: 0, currencyCode: 'CAD' },
+				net_deposits: null,
+				profit_loss: { value: '50', units: 50, nanos: 0, currencyCode: 'CAD' },
+				return_percent: 100,
+				basis: 'cost',
+				unpriced_positions: 0,
+				pricing_incomplete: false
+			});
+
+			render(AccountsListItem, {
+				props: {
+					account: mockAccount
+				}
+			});
+
+			await screen.findByText('$100.00');
+			expect(screen.queryByLabelText('Incomplete pricing')).not.toBeInTheDocument();
+		});
+	});
+
+	describe('Server account performance (ARCH-T19)', () => {
+		const money = (amount: number) => ({
+			value: `${amount}`,
+			units: amount,
+			nanos: 0,
+			currencyCode: 'CAD'
+		});
+
+		const serverTotals = (overrides: Partial<AccountTotals> = {}): AccountTotals => ({
+			value: money(1150),
+			cost: money(1050),
+			cash: money(0),
+			net_deposits: money(1000),
+			profit_loss: money(150),
+			return_percent: 15,
+			basis: 'net_deposits',
+			...overrides
+		});
+
+		const renderWithTotals = (totals: AccountTotals) => {
+			vi.mocked(accountClient.getAccountTotals).mockResolvedValue(totals);
+			return render(AccountsListItem, { props: { account: mockAccount } });
+		};
+
+		it('renders the server profit_loss and return_percent instead of value - cost', async () => {
+			renderWithTotals(serverTotals());
+
+			expect(await screen.findByText('+$150.00')).toBeInTheDocument();
+			expect(screen.getByText('+15.00%')).toBeInTheDocument();
+			// value - cost would be $100.00 — the browser-side math must be gone.
+			expect(screen.queryByText('+$100.00')).not.toBeInTheDocument();
+		});
+
+		it('shows the net deposits amount (not the cost) in the profit/loss tooltip when basis is net_deposits', async () => {
+			renderWithTotals(serverTotals({ basis: 'net_deposits' }));
+
+			const trigger = await screen.findByTestId('profit-loss-btn');
+			await fireEvent.pointerEnter(trigger);
+
+			expect(await screen.findByText('Net deposits: $1,000.00')).toBeInTheDocument();
+			// The server cost ($1,050.00) must not be advertised as the basis.
+			expect(screen.queryByText('$1,050.00')).not.toBeInTheDocument();
+			expect(screen.queryByText('Total cost: $1,050.00')).not.toBeInTheDocument();
+		});
+
+		it('shows the cost basis amount in the profit/loss tooltip when basis is cost', async () => {
+			renderWithTotals(serverTotals({ basis: 'cost' }));
+
+			const trigger = await screen.findByTestId('profit-loss-btn');
+			await fireEvent.pointerEnter(trigger);
+
+			expect(await screen.findByText('Cost basis: $1,050.00')).toBeInTheDocument();
+		});
+
+		it('renders no percent when the server return_percent is null', async () => {
+			renderWithTotals(serverTotals({ return_percent: null }));
+
+			expect(await screen.findByText('+$150.00')).toBeInTheDocument();
+			expect(screen.queryByText(/[+-]?\d+\.\d+%/)).not.toBeInTheDocument();
+			expect(screen.queryByText(/NaN|Infinity/)).not.toBeInTheDocument();
 		});
 	});
 });

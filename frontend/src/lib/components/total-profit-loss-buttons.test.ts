@@ -1,5 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { render, screen } from '@testing-library/svelte';
+import userEvent from '@testing-library/user-event';
 import TotalProfitLossButtons from './total-profit-loss-buttons.svelte';
 
 describe('TotalProfitLossButtons', () => {
@@ -110,5 +111,79 @@ describe('TotalProfitLossButtons', () => {
 		expect(buttons).toHaveLength(2);
 		expect(screen.getByText('$1,000.00')).toBeInTheDocument();
 		expect(screen.getByText('+$50.00')).toBeInTheDocument();
+	});
+
+	it('treats an explicit null returnPercent as "no percent" instead of deriving one', () => {
+		render(TotalProfitLossButtons, {
+			props: {
+				totalValue: 1000,
+				costBasis: 800,
+				profitLoss: 200,
+				returnPercent: null
+			}
+		});
+
+		expect(screen.getByText('+$200.00')).toBeInTheDocument();
+		expect(screen.queryByText('+25.00%')).not.toBeInTheDocument();
+	});
+
+	it('still derives the return percent when returnPercent is omitted', () => {
+		render(TotalProfitLossButtons, {
+			props: {
+				totalValue: 1000,
+				costBasis: 800,
+				profitLoss: 200
+			}
+		});
+
+		expect(screen.getByText('+25.00%')).toBeInTheDocument();
+	});
+
+	it('shows only the basis label (no amount) in the profit/loss tooltip for a mixed bucket', async () => {
+		const user = userEvent.setup();
+
+		render(TotalProfitLossButtons, {
+			props: {
+				totalValue: 1000,
+				profitLoss: 50,
+				returnPercent: 5.26,
+				basisLabel: 'mixed basis',
+				testIdPrefix: 'account-1'
+			}
+		});
+
+		expect(screen.queryByText('mixed basis')).not.toBeInTheDocument();
+
+		await user.hover(screen.getByTestId('account-1-profit-loss'));
+
+		expect(await screen.findByText('mixed basis')).toBeInTheDocument();
+		// The P/L tooltip must not dump the derived cost or total value.
+		expect(screen.queryByText(/Total cost/)).not.toBeInTheDocument();
+		expect(screen.queryByText(/Total value/)).not.toBeInTheDocument();
+		expect(screen.queryByText(/Profit\/Loss/)).not.toBeInTheDocument();
+	});
+
+	it('shows a single labelled basis amount in the profit/loss tooltip', async () => {
+		const user = userEvent.setup();
+
+		render(TotalProfitLossButtons, {
+			props: {
+				totalValue: 1150,
+				costBasis: 1000,
+				profitLoss: 150,
+				returnPercent: 15,
+				basisLabel: 'Net deposits',
+				testIdPrefix: 'account-1'
+			}
+		});
+
+		await user.hover(screen.getByTestId('account-1-profit-loss'));
+
+		expect(await screen.findByText('Net deposits: $1,000.00')).toBeInTheDocument();
+		// The basis amount is net deposits, never labelled as cost.
+		expect(screen.queryByText('Total cost: $1,000.00')).not.toBeInTheDocument();
+		expect(screen.queryByText(/Total value/)).not.toBeInTheDocument();
+		expect(screen.queryByText(/Profit\/Loss/)).not.toBeInTheDocument();
+		expect(screen.queryByText('vs. net deposits')).not.toBeInTheDocument();
 	});
 });

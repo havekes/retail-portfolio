@@ -6,6 +6,18 @@ import type {
 	CsvDiscoveredAccount
 } from '@/types/account';
 
+export interface SyncAccountCsvOptions {
+	/** Net deposits to set; omit to leave the stored value unchanged. */
+	netDeposits?: number | null;
+}
+
+export interface ImportAccountsCsvOptions {
+	/** Per-account currency overrides keyed by account number. */
+	currencies?: Record<string, string>;
+	/** Net deposits keyed by account number. A `null` value clears it. */
+	netDeposits?: Record<string, number | null>;
+}
+
 export class AccountClient extends ApiClient {
 	async getAccounts(token?: string | null): Promise<Account[]> {
 		return this.get<Account[]>('/accounts/', {}, token);
@@ -20,8 +32,18 @@ export class AccountClient extends ApiClient {
 		);
 	}
 
-	async getAccountTotals(id: string): Promise<AccountTotals> {
-		return this.get<AccountTotals>(`/accounts/${id}/totals`);
+	/**
+	 * Fetch server-computed totals for an account.
+	 *
+	 * `currency` requests the totals converted to a display currency; the token
+	 * is kept as the second argument so existing callers are unaffected.
+	 */
+	async getAccountTotals(
+		id: string,
+		token?: string | null,
+		currency?: string | null
+	): Promise<AccountTotals> {
+		return this.get<AccountTotals>(`/accounts/${id}/totals`, currency ? { currency } : {}, token);
 	}
 
 	async getAccountHoldings(id: string, token?: string | null): Promise<AccountHoldings> {
@@ -40,14 +62,26 @@ export class AccountClient extends ApiClient {
 		return this.get<{ account_ids: string[] }>('/accounts/sync-status');
 	}
 
-	async syncAccountCsv(accountId: string, file: File, token?: string | null): Promise<Account> {
+	async syncAccountCsv(
+		accountId: string,
+		file: File,
+		optionsOrToken?: SyncAccountCsvOptions | string | null,
+		token?: string | null
+	): Promise<Account> {
+		const options =
+			optionsOrToken && typeof optionsOrToken === 'object' ? optionsOrToken : undefined;
+		const actualToken = typeof optionsOrToken === 'string' ? optionsOrToken : token;
+
 		const formData = new FormData();
 		formData.append('file', file);
+		if (options?.netDeposits !== undefined && options.netDeposits !== null) {
+			formData.append('net_deposits', String(options.netDeposits));
+		}
 		return this.postFormData<Account>(
 			`/accounts/${accountId}/csv-sync`,
 			formData,
 			undefined,
-			token
+			actualToken
 		);
 	}
 
@@ -71,12 +105,12 @@ export class AccountClient extends ApiClient {
 		institutionId: string | number,
 		file: File,
 		accountNumbers: string[],
-		currenciesOrToken?: Record<string, string> | string | null,
+		optionsOrToken?: ImportAccountsCsvOptions | string | null,
 		token?: string | null
 	): Promise<Account[]> {
-		const currencies =
-			currenciesOrToken && typeof currenciesOrToken === 'object' ? currenciesOrToken : undefined;
-		const actualToken = typeof currenciesOrToken === 'string' ? currenciesOrToken : token;
+		const options =
+			optionsOrToken && typeof optionsOrToken === 'object' ? optionsOrToken : undefined;
+		const actualToken = typeof optionsOrToken === 'string' ? optionsOrToken : token;
 
 		const formData = new FormData();
 		formData.append('file', file);
@@ -84,8 +118,11 @@ export class AccountClient extends ApiClient {
 		for (const accountNumber of accountNumbers) {
 			formData.append('account_numbers', accountNumber);
 		}
-		if (currencies && Object.keys(currencies).length > 0) {
-			formData.append('currencies', JSON.stringify(currencies));
+		if (options?.currencies && Object.keys(options.currencies).length > 0) {
+			formData.append('currencies', JSON.stringify(options.currencies));
+		}
+		if (options?.netDeposits && Object.keys(options.netDeposits).length > 0) {
+			formData.append('net_deposits', JSON.stringify(options.netDeposits));
 		}
 		return this.postFormData<Account[]>('/accounts/csv/import', formData, undefined, actualToken);
 	}

@@ -5,6 +5,7 @@ from decimal import Decimal
 from uuid import uuid4
 
 import pytest
+from currency_converter import CurrencyConverter
 from sqlalchemy import select
 
 from src.account.model import AccountModel, PortfolioAccountModel, PositionModel
@@ -101,6 +102,13 @@ async def test_account_totals_success(auth_client, test_accounts, test_positions
     assert result["cost"]["value"].endswith(" CAD")
     assert result["value"]["value"].endswith(" CAD")
 
+    # Explicit P/L basis fields are serialized too (ARCH-T18).
+    assert result["cash"]["value"].endswith(" CAD")
+    assert "net_deposits" in result
+    assert result["profit_loss"]["value"].endswith(" CAD")
+    assert "return_percent" in result
+    assert result["basis"] == "cost"
+
 
 @pytest.mark.anyio
 async def test_account_totals_not_found(auth_client):
@@ -120,6 +128,36 @@ async def test_account_totals_not_owned(auth_client, other_user_account):
     response = await auth_client.get(f"/api/v1/accounts/{account_id}/totals")
 
     assert response.status_code == 404
+
+
+@pytest.mark.anyio
+async def test_account_totals_converts_to_requested_currency(
+    auth_client, test_accounts, test_positions
+):
+    """Passing ?currency=USD returns the CAD account totals converted to USD."""
+    account_id = test_accounts[0].id
+
+    response = await auth_client.get(
+        f"/api/v1/accounts/{account_id}/totals", params={"currency": "USD"}
+    )
+
+    assert response.status_code == 200
+    result = response.json()
+    assert result["value"]["value"].endswith(" USD")
+    assert result["cost"]["value"].endswith(" USD")
+    assert result["cash"]["value"].endswith(" USD")
+
+
+@pytest.mark.anyio
+async def test_account_totals_unsupported_currency_returns_422(auth_client, test_accounts):
+    """An unsupported display currency is rejected with 422."""
+    account_id = test_accounts[0].id
+
+    response = await auth_client.get(
+        f"/api/v1/accounts/{account_id}/totals", params={"currency": "XYZ"}
+    )
+
+    assert response.status_code == 422
 
 
 @pytest.mark.anyio
@@ -190,6 +228,47 @@ async def test_security_holdings_calculated_values_single_position(
     assert item["total_value"] == 1500.0  # 10 shares * 150.0 USD
     assert item["account_total_value"] > 0
     assert item["account_percentage"] == pytest.approx(100.0)
+
+
+@pytest.mark.anyio
+async def test_security_holdings_converts_display_value(
+    auth_client,
+    test_accounts,
+    test_position_for_first_account,
+    test_security,
+    db_session,
+):
+    """Rows carry a display value converted from the security to the display currency."""
+    today = datetime.now(UTC).date()
+    price = PriceModel(
+        security_id=test_security.id,
+        date=today,
+        open=Decimal("150.00"),
+        high=Decimal("155.00"),
+        low=Decimal("149.00"),
+        close=Decimal("150.00"),
+        adjusted_close=Decimal("150.00"),
+        volume=1000,
+    )
+    db_session.add(price)
+    await db_session.commit()
+
+    security_id = test_position_for_first_account.security_id
+    response = await auth_client.get(f"/api/v1/accounts/holdings/{security_id}")
+
+    assert response.status_code == 200
+    item = response.json()["items"][0]
+    converter = CurrencyConverter()
+    expected_display = round(
+        converter.convert(amount=1500.0, currency="USD", new_currency="CAD"), 2
+    )
+
+    # Native value stays in the security's currency (USD).
+    assert item["total_value"] == 1500.0
+    assert item["currency"] == "USD"
+    # The display value is converted to the user's display currency (default CAD).
+    assert item["display_currency"] == "CAD"
+    assert item["display_total_value"] == pytest.approx(expected_display)
 
 
 @pytest.mark.anyio
@@ -331,7 +410,30 @@ async def test_account_holdings_success(
     assert "total_value" in result
     assert "total_profit_loss" in result
     assert "currency" in result
+    # CSV-style accounts have no broker value.
+    assert result["broker_value"] is None
+    assert result["broker_value_at"] is None
     assert "updated_at" in result["items"][0]
+
+
+@pytest.mark.anyio
+async def test_account_holdings_returns_broker_value(
+    auth_client, test_accounts, db_session
+):
+    """A synced account exposes the persisted broker value on the holdings response."""
+    account_id = test_accounts[0].id
+    account_model = await db_session.get(AccountModel, account_id)
+    assert account_model is not None
+    account_model.broker_value = Decimal("10000.00")
+    account_model.broker_value_at = datetime.now(UTC)
+    await db_session.commit()
+
+    response = await auth_client.get(f"/api/v1/accounts/{account_id}/holdings")
+
+    assert response.status_code == 200
+    result = response.json()
+    assert result["broker_value"] == 10000.0
+    assert result["broker_value_at"] is not None
 
 
 @pytest.mark.anyio
@@ -373,6 +475,8 @@ async def test_user_holdings_success_across_accounts(
             "total_value",
             "profit_loss",
             "currency",
+            "display_total_value",
+            "display_currency",
             "security_currency",
             "unconverted_total_value",
             "converted_average_cost",
@@ -771,6 +875,60 @@ async def test_preferences_holdings_period_patch(auth_client):
     get_resp = await auth_client.get("/api/v1/accounts/me/preferences")
     assert get_resp.status_code == 200
     assert get_resp.json() == {"timeframe": "1d", "holdings_period": "1Y"}
+
+
+@pytest.mark.anyio
+async def test_preferences_display_currency_put_normalizes(auth_client):
+    """PUT with a lower-cased ISO code stores the upper-cased value."""
+    put_resp = await auth_client.put(
+        "/api/v1/accounts/me/preferences", json={"display_currency": "usd"}
+    )
+    assert put_resp.status_code == 200
+    assert put_resp.json() == {"display_currency": "USD"}
+
+    get_resp = await auth_client.get("/api/v1/accounts/me/preferences")
+    assert get_resp.status_code == 200
+    assert get_resp.json() == {"display_currency": "USD"}
+
+
+@pytest.mark.anyio
+async def test_preferences_display_currency_patch_normalizes(auth_client):
+    """PATCH with a lower-cased ISO code stores the upper-cased value."""
+    patch_resp = await auth_client.patch(
+        "/api/v1/accounts/me/preferences", json={"display_currency": "eur"}
+    )
+    assert patch_resp.status_code == 200
+    assert patch_resp.json() == {"display_currency": "EUR"}
+
+    get_resp = await auth_client.get("/api/v1/accounts/me/preferences")
+    assert get_resp.status_code == 200
+    assert get_resp.json() == {"display_currency": "EUR"}
+
+
+@pytest.mark.anyio
+async def test_preferences_display_currency_put_invalid_rejected(auth_client):
+    """PUT with an unsupported currency returns 422 and stores nothing."""
+    put_resp = await auth_client.put(
+        "/api/v1/accounts/me/preferences", json={"display_currency": "XYZ"}
+    )
+    assert put_resp.status_code == 422
+
+    get_resp = await auth_client.get("/api/v1/accounts/me/preferences")
+    assert get_resp.status_code == 200
+    assert get_resp.json() == {}
+
+
+@pytest.mark.anyio
+async def test_preferences_display_currency_patch_invalid_rejected(auth_client):
+    """PATCH with an unsupported currency returns 422 and stores nothing."""
+    patch_resp = await auth_client.patch(
+        "/api/v1/accounts/me/preferences", json={"display_currency": "xyz"}
+    )
+    assert patch_resp.status_code == 422
+
+    get_resp = await auth_client.get("/api/v1/accounts/me/preferences")
+    assert get_resp.status_code == 200
+    assert get_resp.json() == {}
 
 
 @pytest.mark.anyio

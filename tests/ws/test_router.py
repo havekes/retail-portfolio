@@ -186,6 +186,11 @@ def test_account_totals_updated_message_serialization():
         totals=AccountTotals(
             cost=Money(100, Currency.USD),
             value=Money(150, Currency.USD),
+            cash=Money(25, Currency.USD),
+            net_deposits=Money(120, Currency.USD),
+            profit_loss=Money(30, Currency.USD),
+            return_percent=25.0,
+            basis="net_deposits",
         ),
     )
     dumped = msg.model_dump(mode="json")
@@ -193,6 +198,12 @@ def test_account_totals_updated_message_serialization():
     assert dumped["account_id"] == str(account_id)
     assert "cost" in dumped["totals"]
     assert "value" in dumped["totals"]
+    totals = dumped["totals"]
+    assert totals["cash"]["value"] == "25.00 USD"
+    assert totals["net_deposits"]["value"] == "120.00 USD"
+    assert totals["profit_loss"]["value"] == "30.00 USD"
+    assert totals["return_percent"] == 25.0
+    assert totals["basis"] == "net_deposits"
 
 
 def test_websocket_with_custom_request_id(client, user_id):

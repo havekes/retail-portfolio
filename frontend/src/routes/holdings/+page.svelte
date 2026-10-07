@@ -16,7 +16,11 @@
 	import { saveHoldingsTableConfig } from '$lib/components/holdings/holdings-table-prefs';
 	import { saveHoldingsGroupMode } from '$lib/components/holdings/holdings-group-prefs';
 	import { getUserPreferencesService } from '$lib/api/userPreferencesService';
-	import { SvelteMap } from 'svelte/reactivity';
+	import { untrack } from 'svelte';
+	import {
+		aggregateAccountTotals,
+		type AccountTotalsInput
+	} from '$lib/utils/finance/account-totals';
 	import {
 		HOLDINGS_TABLE_COLUMNS,
 		HOLDINGS_TABLE_STICKY_COLUMN_ID,
@@ -26,6 +30,7 @@
 		type HoldingsTableConfig
 	} from '$lib/components/holdings/holdings-table-columns';
 	import type { HoldingsGroupMode } from '$lib/utils/finance/holdings-group';
+	import type { Account } from '$lib/types/account';
 
 	let { data } = $props();
 
@@ -33,6 +38,21 @@
 	// group mode from the server load: toggling grouping never triggers a refetch.
 	const service = new HoldingsService();
 	service.setGroupBy(data.group_mode);
+
+	// Accounts backing the current filter: "all" covers every account, a portfolio
+	// its members, and an account filter the single selected account. Their server
+	// totals (not the loaded rows) drive the header.
+	const filteredAccounts = $derived.by<Account[]>(() => {
+		const filter = service.filter;
+		if (filter.type === 'portfolio') {
+			const portfolio = data.portfolios?.find((p) => p.id === filter.portfolioId);
+			return portfolio?.accounts ?? [];
+		}
+		if (filter.type === 'account') {
+			return (data.accounts ?? []).filter((a) => a.id === filter.accountId);
+		}
+		return data.accounts ?? [];
+	});
 
 	// Synchronize filter from data.portfolio_id or data.account_id
 	$effect(() => {
@@ -58,6 +78,14 @@
 				await redirectOn401(loadError);
 			}
 		})();
+	});
+
+	// Account performance totals are a second post-navigation wave: they follow the
+	// visible accounts and reload on filter changes. `untrack` keeps the cache writes
+	// inside the service from becoming dependencies of this effect.
+	$effect(() => {
+		const accountIds = filteredAccounts.map((account) => account.id);
+		void untrack(() => service.loadAccountTotals(accountIds));
 	});
 
 	const activePortfolio = $derived(
@@ -122,51 +150,19 @@
 	let persistError = $state<string | null>(null);
 	const errorMessage = $derived(persistError ?? service.errorMessage);
 
-	// Never sum across currencies: the backend converts each row into its account's
-	// currency, so totals are bucketed per currency.
+	// Never sum across currencies: the backend converts each account into its own
+	// currency, so totals are bucketed per currency from the accounts' server totals.
 	const currencyTotals = $derived.by(() => {
-		const buckets = new SvelteMap<
-			string,
-			{
-				currency: string;
-				totalValue: number;
-				profitLoss: number;
-				costBasis: number;
-				hasProfitLoss: boolean;
-			}
-		>();
+		const inputs: AccountTotalsInput[] = [];
 
-		for (const row of service.rows) {
-			let bucket = buckets.get(row.currency);
-			if (!bucket) {
-				bucket = {
-					currency: row.currency,
-					totalValue: 0,
-					profitLoss: 0,
-					costBasis: 0,
-					hasProfitLoss: false
-				};
-				buckets.set(row.currency, bucket);
-			}
-
-			bucket.totalValue += row.total_value;
-			if (row.profit_loss !== null && row.profit_loss !== undefined) {
-				bucket.profitLoss += row.profit_loss;
-				bucket.hasProfitLoss = true;
-			}
-			const rowCostBasis = row.quantity * (row.converted_average_cost ?? row.average_cost ?? 0);
-			if (rowCostBasis > 0) {
-				bucket.costBasis += rowCostBasis;
+		for (const account of filteredAccounts) {
+			const totals = service.accountTotals[account.id];
+			if (totals) {
+				inputs.push({ accountId: account.id, currency: account.currency, totals });
 			}
 		}
 
-		return [...buckets.values()].map((bucket) => ({
-			...bucket,
-			returnPercent:
-				bucket.hasProfitLoss && bucket.costBasis > 0
-					? (bucket.profitLoss / bucket.costBasis) * 100
-					: null
-		}));
+		return aggregateAccountTotals(inputs);
 	});
 
 	function persist(promise: Promise<void>, fallbackMessage: string) {
@@ -303,9 +299,11 @@
 				{#each currencyTotals as total (total.currency)}
 					<TotalProfitLossButtons
 						totalValue={total.totalValue}
-						profitLoss={total.hasProfitLoss ? total.profitLoss : null}
+						profitLoss={total.profitLoss}
 						returnPercent={total.returnPercent}
 						currency={total.currency}
+						costBasis={total.basisAmount}
+						basisLabel={total.basisLabel}
 						testIdPrefix={`currency-${total.currency}`}
 					/>
 				{/each}

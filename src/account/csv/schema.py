@@ -31,4 +31,5 @@ class CsvDiscoveredAccount(BaseModel):
     free_cash: float = 0.0
     positions_count: int
     positions: list[CsvPositionRecord] = Field(default_factory=list)
+    net_deposits: float | None = None
     exists: bool = False

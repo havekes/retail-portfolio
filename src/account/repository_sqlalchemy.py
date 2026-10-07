@@ -1,3 +1,4 @@
+from datetime import UTC, datetime
 from decimal import Decimal
 from typing import override
 
@@ -171,6 +172,20 @@ class SqlAlchemyAccountRepository(AccountRepository):
             await self._session.commit()
 
     @override
+    async def update_broker_value(
+        self, account_id: AccountId, broker_value: float | None
+    ) -> None:
+        account_model = await self._session.get(AccountModel, account_id)
+        if account_model:
+            account_model.broker_value = (
+                Decimal(str(broker_value)) if broker_value is not None else None
+            )
+            account_model.broker_value_at = (
+                datetime.now(UTC) if broker_value is not None else None
+            )
+            await self._session.commit()
+
+    @override
     async def update_currency(
         self, account_id: AccountId, currency: str
     ) -> AccountSchema:
@@ -281,6 +296,8 @@ class SqlAlchemyPositionRepository(PositionRepository):
                 average_cost=float(row.average_cost) if row.average_cost else None,
                 total_value=0.0,  # Populated by service layer
                 currency="",  # Populated by service layer
+                display_total_value=0.0,  # Populated by service layer
+                display_currency="",  # Populated by service layer
             )
             for row in result
         ], total or 0

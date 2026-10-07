@@ -54,6 +54,8 @@ describe('HoldingGroup Component', () => {
 			average_cost: 100,
 			total_value: 1500,
 			currency: 'USD',
+			display_total_value: 1500,
+			display_currency: 'CAD',
 			account_percentage: 25.5
 		},
 		{
@@ -63,6 +65,8 @@ describe('HoldingGroup Component', () => {
 			average_cost: 120,
 			total_value: 3000,
 			currency: 'USD',
+			display_total_value: 3000,
+			display_currency: 'CAD',
 			account_percentage: 45.0
 		}
 	];
@@ -128,12 +132,22 @@ describe('HoldingGroup Component', () => {
 			if (id === 'acc-1') {
 				return {
 					cost: { value: '1000', units: 1000, nanos: 0, currencyCode: 'USD' },
-					value: { value: '5000', units: 5000, nanos: 0, currencyCode: 'USD' }
+					value: { value: '5000', units: 5000, nanos: 0, currencyCode: 'USD' },
+					cash: { value: '0', units: 0, nanos: 0, currencyCode: 'USD' },
+					net_deposits: null,
+					profit_loss: { value: '4000', units: 4000, nanos: 0, currencyCode: 'USD' },
+					return_percent: 400,
+					basis: 'cost'
 				};
 			}
 			return {
 				cost: { value: '2000', units: 2000, nanos: 0, currencyCode: 'USD' },
-				value: { value: '5000', units: 5000, nanos: 0, currencyCode: 'USD' }
+				value: { value: '5000', units: 5000, nanos: 0, currencyCode: 'USD' },
+				cash: { value: '0', units: 0, nanos: 0, currencyCode: 'USD' },
+				net_deposits: null,
+				profit_loss: { value: '3000', units: 3000, nanos: 0, currencyCode: 'USD' },
+				return_percent: 150,
+				basis: 'cost'
 			};
 		});
 	});
@@ -289,6 +303,69 @@ describe('HoldingGroup Component', () => {
 			expect(screen.getByText('Average')).toBeInTheDocument();
 			expect(screen.getByText('% of Portfolio')).toBeInTheDocument();
 			expect(screen.getByText('0.00%')).toBeInTheDocument();
+		});
+
+		it('computes % of portfolio from display-currency values across currencies', async () => {
+			const cadAccount: Account = {
+				...mockAccounts[0],
+				id: 'acc-cad',
+				name: 'CAD Account',
+				currency: 'CAD'
+			};
+			const usdAccount: Account = {
+				...mockAccounts[1],
+				id: 'acc-usd',
+				name: 'USD Account',
+				currency: 'USD'
+			};
+			vi.mocked(accountClient.getAccounts).mockResolvedValue([cadAccount, usdAccount]);
+			vi.mocked(accountService.getHoldings).mockResolvedValue({
+				items: [
+					{
+						account_id: 'acc-usd',
+						account_name: 'USD Account',
+						quantity: 10,
+						average_cost: 100,
+						total_value: 1000,
+						currency: 'USD',
+						// 1000 USD converted server-side into CAD.
+						display_total_value: 1370,
+						display_currency: 'CAD'
+					}
+				],
+				total: 1,
+				offset: 0,
+				limit: 10
+			});
+			// The server returns each account's totals converted to the requested
+			// currency: 10000 CAD and 5000 USD ≈ 6850 CAD.
+			vi.mocked(accountClient.getAccountTotals).mockImplementation(async (id: string) => {
+				const units = id === 'acc-cad' ? 10000 : 6850;
+				const currencyCode = 'CAD';
+				return {
+					cost: { value: String(units), units, nanos: 0, currencyCode },
+					value: { value: String(units), units, nanos: 0, currencyCode },
+					cash: { value: '0', units: 0, nanos: 0, currencyCode },
+					net_deposits: null,
+					profit_loss: { value: '0', units: 0, nanos: 0, currencyCode },
+					return_percent: 0,
+					basis: 'cost'
+				};
+			});
+
+			render(HoldingGroup, {
+				props: {
+					securityId: 'sec-123',
+					security: mockSecurity
+				}
+			});
+
+			// 1370 / (10000 + 6850) = 8.13%, not 1000 / 15000 = 6.67%.
+			await waitFor(() => {
+				expect(screen.getByText('8.13%')).toBeInTheDocument();
+			});
+			expect(accountClient.getAccountTotals).toHaveBeenCalledWith('acc-cad', undefined, 'CAD');
+			expect(accountClient.getAccountTotals).toHaveBeenCalledWith('acc-usd', undefined, 'CAD');
 		});
 	});
 

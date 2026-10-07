@@ -10,6 +10,7 @@ from src.account.api_types import (
     AccountId,
     PortfolioId,
     PositionId,
+    ProfitLossBasis,
 )
 from src.account.csv.schema import (
     CsvDiscoveredAccount,
@@ -37,6 +38,8 @@ class AccountSchema(BaseModel):
     broker_display_name: str | None = None
     net_deposits: float | None = None
     free_cash: float = 0.0
+    broker_value: float | None = None
+    broker_value_at: datetime | None = None
     is_active: bool = True
     api_sync_enabled: bool = True
     created_at: datetime | None = None
@@ -66,7 +69,7 @@ class AccountSchema(BaseModel):
             broker_display_name=broker_account.broker_display_name,
             net_deposits=(
                 float(broker_account.net_deposits)
-                if broker_account.net_deposits
+                if broker_account.net_deposits is not None
                 else None
             ),
         )
@@ -146,6 +149,8 @@ class AccountHoldingRead(BaseModel):
     average_cost: float | None = None
     total_value: float
     currency: str
+    display_total_value: float
+    display_currency: str
     account_total_value: float | None = None
     account_percentage: float | None = None
 
@@ -160,6 +165,8 @@ class HoldingRead(BaseModel):
     total_value: float
     profit_loss: float | None
     currency: str
+    display_total_value: float
+    display_currency: str
     security_currency: str
     unconverted_total_value: float
     converted_average_cost: float | None = None
@@ -181,9 +188,14 @@ class AccountHoldingsRead(PaginatedResponse[HoldingRead]):
     total_value: float
     total_profit_loss: float
     total_profit_loss_percent: float | None = None
+    profit_loss_basis: ProfitLossBasis
     net_deposits: float | None = None
     free_cash: float = 0.0
+    broker_value: float | None = None
+    broker_value_at: datetime | None = None
     currency: str
+    unpriced_positions: int = 0
+    pricing_incomplete: bool = False
 
 
 class PortfolioAccountSchema(BaseModel):

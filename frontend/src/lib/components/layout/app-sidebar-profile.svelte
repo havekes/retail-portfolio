@@ -35,6 +35,9 @@
 					<DropdownMenu.Item onSelect={() => goto(resolve('/brokers'))}>
 						Connected brokers
 					</DropdownMenu.Item>
+					<DropdownMenu.Item onSelect={() => goto(resolve('/settings/preferences'))}>
+						Preferences
+					</DropdownMenu.Item>
 					<DropdownMenu.Item onSelect={() => goto(resolve('/settings/security'))}>
 						Security settings
 					</DropdownMenu.Item>

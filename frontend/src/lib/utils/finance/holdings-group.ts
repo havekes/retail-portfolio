@@ -12,6 +12,8 @@ export type HoldingsGroup = {
 	security_currency: string;
 	quantity: number;
 	total_value: number;
+	/** Native total value converted to the display currency, for cross-currency aggregation. */
+	display_total_value: number;
 	unconverted_total_value: number;
 	profit_loss: number | null;
 	unconverted_profit_loss: number | null;
@@ -46,6 +48,7 @@ export function groupHoldings(rows: UserHolding[], mode: HoldingsGroupMode): Hol
 			security_currency: row.security_currency,
 			quantity: row.quantity,
 			total_value: row.total_value,
+			display_total_value: row.display_total_value ?? row.total_value,
 			unconverted_total_value: row.unconverted_total_value ?? row.total_value,
 			profit_loss: row.profit_loss,
 			unconverted_profit_loss: row.unconverted_profit_loss,
@@ -75,10 +78,11 @@ export function groupHoldings(rows: UserHolding[], mode: HoldingsGroupMode): Hol
 				security_id: row.security_id,
 				security_name: row.security_name,
 				security_symbol: row.security_symbol,
-				currency: 'CAD',
+				currency: row.currency,
 				security_currency: row.security_currency,
 				quantity: 0,
 				total_value: 0,
+				display_total_value: 0,
 				unconverted_total_value: 0,
 				profit_loss: null,
 				unconverted_profit_loss: null,
@@ -100,7 +104,8 @@ export function groupHoldings(rows: UserHolding[], mode: HoldingsGroupMode): Hol
 
 function aggregateGroup(group: HoldingsGroup): HoldingsGroup {
 	let quantity = 0;
-	let totalValue = 0;
+	let nativeTotalValue = 0;
+	let displayTotalValue = 0;
 	let unconvertedTotalValue = 0;
 	let profitLoss: number | null = null;
 	let unconvertedProfitLoss: number | null = null;
@@ -110,11 +115,14 @@ function aggregateGroup(group: HoldingsGroup): HoldingsGroup {
 	let nativeCostQuantity = 0;
 	const accountIds = new Set<string>();
 	const accountNames: string[] = [];
+	const currencies = new Set<string>();
 
 	for (const row of group.rows) {
 		quantity += row.quantity;
-		totalValue += row.total_value;
+		nativeTotalValue += row.total_value;
+		displayTotalValue += row.display_total_value ?? row.total_value;
 		unconvertedTotalValue += row.unconverted_total_value ?? row.total_value;
+		currencies.add(row.currency);
 
 		if (row.profit_loss !== null && row.profit_loss !== undefined) {
 			profitLoss = (profitLoss ?? 0) + row.profit_loss;
@@ -147,17 +155,28 @@ function aggregateGroup(group: HoldingsGroup): HoldingsGroup {
 	}
 
 	const firstRow = group.rows[0];
+	const mixedCurrencies = currencies.size > 1;
+
+	// Native totals can only be summed when every row shares a currency. Across
+	// currencies, fall back to the already-converted display values and label the
+	// group with the display currency. Per-row P/L is never converted, so a
+	// mixed-currency group has no meaningful P/L.
+	const totalValue = mixedCurrencies ? displayTotalValue : nativeTotalValue;
+	const groupProfitLoss = mixedCurrencies ? null : profitLoss;
 
 	return {
 		...group,
 		quantity,
 		total_value: totalValue,
+		display_total_value: displayTotalValue,
 		unconverted_total_value: unconvertedTotalValue,
-		profit_loss: profitLoss,
+		profit_loss: groupProfitLoss,
 		unconverted_profit_loss: unconvertedProfitLoss,
 		average_cost: nativeCostQuantity > 0 ? nativeCostNumerator / nativeCostQuantity : null,
 		converted_average_cost: cadCostQuantity > 0 ? cadCostNumerator / cadCostQuantity : null,
-		currency: 'CAD',
+		currency: mixedCurrencies
+			? (firstRow?.display_currency ?? 'CAD')
+			: (firstRow?.currency ?? group.currency),
 		security_currency: firstRow?.security_currency ?? group.security_currency ?? 'CAD',
 		latest_price: firstRow?.latest_price,
 		price_date: firstRow?.price_date,

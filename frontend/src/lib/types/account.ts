@@ -8,7 +8,7 @@ export interface Account {
 	institution_id: Institution;
 	currency: string;
 	broker_display_name?: string;
-	net_deposits?: number;
+	net_deposits?: number | null;
 	free_cash?: number;
 	is_active: boolean;
 	api_sync_enabled: boolean;
@@ -21,6 +21,13 @@ export type AccountGroupKeys = 'account_type_id' | 'institution_id';
 export interface AccountTotals {
 	cost: Money;
 	value: Money;
+	cash: Money;
+	net_deposits: Money | null;
+	profit_loss: Money;
+	return_percent: number | null;
+	basis: 'net_deposits' | 'cost';
+	unpriced_positions?: number;
+	pricing_incomplete?: boolean;
 }
 
 export enum AccountType {
@@ -79,6 +86,10 @@ export interface Holding {
 	total_value: number;
 	profit_loss: number | null;
 	currency: string;
+	/** Value converted to the user's display currency (see backend `HoldingRead`). */
+	display_total_value: number;
+	/** The user's display-currency preference these display values are in. */
+	display_currency: string;
 	security_currency: string;
 	unconverted_total_value: number;
 	converted_average_cost: number | null;
@@ -107,9 +118,13 @@ export interface AccountHoldings extends PaginatedResponse<Holding> {
 	total_value: number;
 	total_profit_loss: number;
 	total_profit_loss_percent: number | null;
+	/** Which denominator the backend used for `total_profit_loss_percent`. */
+	profit_loss_basis?: 'net_deposits' | 'cost';
 	net_deposits: number | null;
 	free_cash?: number;
 	currency: string;
+	unpriced_positions?: number;
+	pricing_incomplete?: boolean;
 }
 
 export interface CsvPositionRecord {
@@ -129,5 +144,7 @@ export interface CsvDiscoveredAccount {
 	currency: string;
 	positions_count: number;
 	positions?: CsvPositionRecord[];
+	/** Stored net deposits for existing accounts; `null`/absent for new ones. */
+	net_deposits?: number | null;
 	exists?: boolean;
 }
