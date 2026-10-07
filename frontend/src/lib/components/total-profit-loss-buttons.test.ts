@@ -111,4 +111,30 @@ describe('TotalProfitLossButtons', () => {
 		expect(screen.getByText('$1,000.00')).toBeInTheDocument();
 		expect(screen.getByText('+$50.00')).toBeInTheDocument();
 	});
+
+	it('treats an explicit null returnPercent as "no percent" instead of deriving one', () => {
+		render(TotalProfitLossButtons, {
+			props: {
+				totalValue: 1000,
+				costBasis: 800,
+				profitLoss: 200,
+				returnPercent: null
+			}
+		});
+
+		expect(screen.getByText('+$200.00')).toBeInTheDocument();
+		expect(screen.queryByText('+25.00%')).not.toBeInTheDocument();
+	});
+
+	it('still derives the return percent when returnPercent is omitted', () => {
+		render(TotalProfitLossButtons, {
+			props: {
+				totalValue: 1000,
+				costBasis: 800,
+				profitLoss: 200
+			}
+		});
+
+		expect(screen.getByText('+25.00%')).toBeInTheDocument();
+	});
 });
