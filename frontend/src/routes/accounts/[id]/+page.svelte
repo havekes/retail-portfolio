@@ -3,6 +3,8 @@
 	import HoldingsTable from '@/components/accounts/holdings-table.svelte';
 	import { Badge } from '$lib/components/ui/badge/index.js';
 	import EditableTitle from '@/components/forms/editable-title.svelte';
+	import * as Tooltip from '$lib/components/ui/tooltip';
+	import TriangleAlert from '@lucide/svelte/icons/triangle-alert';
 
 	let { data } = $props();
 
@@ -34,6 +36,21 @@
 				>
 					{data.holdings.currency}
 				</Badge>
+				{#if data.holdings.pricing_incomplete}
+					<Tooltip.Provider>
+						<Tooltip.Root>
+							<Tooltip.Trigger
+								class="rounded-md p-1 text-amber-600 transition-colors hover:bg-background/60 dark:hover:bg-background/60"
+								aria-label="Incomplete pricing"
+							>
+								<TriangleAlert class="h-4 w-4" />
+							</Tooltip.Trigger>
+							<Tooltip.Content>
+								<p>Some positions are missing prices. They are excluded from these totals.</p>
+							</Tooltip.Content>
+						</Tooltip.Root>
+					</Tooltip.Provider>
+				{/if}
 			</div>
 		{/snippet}
 
