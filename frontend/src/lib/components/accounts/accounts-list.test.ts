@@ -13,6 +13,7 @@ vi.mock('$lib/api/accountClient', () => ({
 		getSyncStatus: vi.fn().mockResolvedValue({ account_ids: [] }),
 		syncPositions: vi.fn(),
 		deleteAccount: vi.fn(),
+		renameAccount: vi.fn(),
 		getAccountTotals: vi.fn().mockResolvedValue({
 			value: { value: '100', units: 100, nanos: 0, currencyCode: 'CAD' },
 			cost: { value: '50', units: 50, nanos: 0, currencyCode: 'CAD' }
@@ -186,6 +187,59 @@ describe('AccountsListState.deleteAccount', () => {
 	});
 });
 
+describe('AccountsListState.renameAccount', () => {
+	beforeEach(() => {
+		vi.clearAllMocks();
+		class MockWebSocket {
+			onopen: (() => void) | null = null;
+			onmessage: ((e: MessageEvent) => void) | null = null;
+			onclose: (() => void) | null = null;
+			close = vi.fn();
+		}
+		global.WebSocket = MockWebSocket as unknown as typeof WebSocket;
+	});
+
+	const renameAccounts: Account[] = [
+		{
+			id: 'acc-1',
+			name: 'Original Name',
+			external_id: 'ext-1',
+			account_type_id: AccountType.TFSA,
+			institution_id: Institution.Wealthsimple,
+			currency: 'CAD',
+			is_active: true,
+			api_sync_enabled: true,
+			created_at: new Date('2026-01-01')
+		}
+	];
+
+	it('calls renameAccount and updates the local account name on success', async () => {
+		vi.mocked(accountClient.renameAccount).mockResolvedValue({
+			...renameAccounts[0],
+			name: 'New Name'
+		});
+
+		const state = new AccountsListState([...renameAccounts]);
+		await state.renameAccount('acc-1', 'New Name');
+
+		expect(accountClient.renameAccount).toHaveBeenCalledWith('acc-1', 'New Name');
+		expect(state.accounts[0].name).toBe('New Name');
+		expect(toast.success).toHaveBeenCalledWith('Account renamed successfully');
+	});
+
+	it('keeps the original name and rethrows when renameAccount rejects', async () => {
+		vi.mocked(accountClient.renameAccount).mockRejectedValue(new Error('Network error'));
+
+		const state = new AccountsListState([...renameAccounts]);
+
+		await expect(state.renameAccount('acc-1', 'New Name')).rejects.toThrow('Network error');
+
+		expect(accountClient.renameAccount).toHaveBeenCalledWith('acc-1', 'New Name');
+		expect(state.accounts[0].name).toBe('Original Name');
+		expect(toast.success).not.toHaveBeenCalled();
+	});
+});
+
 describe('AccountsList - Account deletion flow', () => {
 	beforeEach(() => {
 		vi.clearAllMocks();
@@ -244,6 +298,65 @@ describe('AccountsList - Account deletion flow', () => {
 		});
 
 		expect(toast.success).toHaveBeenCalledWith('Account deleted successfully');
+	});
+});
+
+describe('AccountsList - Account rename flow', () => {
+	beforeEach(() => {
+		vi.clearAllMocks();
+		class MockWebSocket {
+			onopen: (() => void) | null = null;
+			onmessage: ((e: MessageEvent) => void) | null = null;
+			onclose: (() => void) | null = null;
+			close = vi.fn();
+		}
+		global.WebSocket = MockWebSocket as unknown as typeof WebSocket;
+
+		vi.mocked(accountClient.getAccounts).mockResolvedValue(mockAccounts);
+		vi.mocked(accountClient.getSyncStatus).mockResolvedValue({ account_ids: [] });
+		vi.mocked(brokerClient.getAvailableInstitutions).mockResolvedValue([]);
+	});
+
+	it('renames via overflow menu, calling renameAccount and showing the new name', async () => {
+		vi.mocked(accountClient.renameAccount).mockResolvedValue({
+			...mockAccounts[0],
+			name: 'Renamed TFSA'
+		});
+
+		render(AccountsList, {
+			props: {
+				accounts: mockAccounts
+			}
+		});
+
+		// Wait for the account item to be rendered
+		const accountTitle = await screen.findByText('My TFSA');
+		expect(accountTitle).toBeInTheDocument();
+
+		// Open the overflow menu and choose Rename
+		const actionsBtn = screen.getByRole('button', { name: 'Account actions' });
+		await fireEvent.click(actionsBtn);
+
+		const renameOption = await screen.findByText('Rename');
+		await fireEvent.click(renameOption);
+
+		// Rename modal should appear with the current name prefilled
+		const nameInput = await screen.findByLabelText('Account Name');
+		expect(nameInput).toHaveValue('My TFSA');
+
+		await fireEvent.input(nameInput, { target: { value: 'Renamed TFSA' } });
+		await fireEvent.click(screen.getByRole('button', { name: 'Save' }));
+
+		// Verify API was called with the new name
+		await waitFor(() => {
+			expect(accountClient.renameAccount).toHaveBeenCalledWith('acc-1', 'Renamed TFSA');
+		});
+
+		// List shows the new name without a refetch
+		await waitFor(() => {
+			expect(screen.getByText('Renamed TFSA')).toBeInTheDocument();
+		});
+		expect(screen.queryByText('My TFSA')).not.toBeInTheDocument();
 	});
 });
 

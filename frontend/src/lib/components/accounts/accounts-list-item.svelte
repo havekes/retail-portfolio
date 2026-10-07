@@ -49,7 +49,7 @@
 		isSyncing?: boolean;
 		onSync?: () => void;
 		syncError?: string | null;
-		onRename?: (name: string) => void;
+		onRename?: (name: string) => void | Promise<void>;
 		onAccountUpdated?: () => void;
 		onDelete?: () => void;
 		initialExpanded?: boolean;
