@@ -469,3 +469,288 @@ async def test_csv_import_with_currencies(
     data = response.json()
     assert len(data) == 1
     assert data[0]["currency"] == "USD"
+
+
+async def _get_db_account(db_session: AsyncSession, account_id: str) -> AccountModel:
+    result = await db_session.execute(
+        select(AccountModel).where(AccountModel.id == account_id)
+    )
+    return result.scalar_one()
+
+
+@pytest.mark.anyio
+async def test_csv_import_with_net_deposits_new_account(
+    auth_client, db_session: AsyncSession, seed_reference_data: None
+):
+    """Import stores provided net deposits for a newly created account."""
+    files = {"file": ("ws.csv", VALID_CSV.encode("utf-8"), "text/csv")}
+    response = await auth_client.post(
+        "/api/v1/accounts/csv/import",
+        files=files,
+        data={
+            "institution_id": str(InstitutionEnum.WEALTHSIMPLE.value),
+            "account_numbers": "W123456789",
+            "net_deposits": json.dumps({"W123456789": 1500}),
+        },
+    )
+    assert response.status_code == 200
+    account = response.json()[0]
+    assert account["net_deposits"] == 1500.0
+
+    db_account = await _get_db_account(db_session, account["id"])
+    assert db_account.net_deposits == Decimal("1500")
+
+
+@pytest.mark.anyio
+async def test_csv_import_with_net_deposits_existing_account(
+    auth_client, db_session: AsyncSession, seed_reference_data: None
+):
+    """Import overwrites stored net deposits for an existing account."""
+    files = {"file": ("ws.csv", VALID_CSV.encode("utf-8"), "text/csv")}
+    base_data = {
+        "institution_id": str(InstitutionEnum.WEALTHSIMPLE.value),
+        "account_numbers": "W123456789",
+    }
+    first = await auth_client.post(
+        "/api/v1/accounts/csv/import",
+        files=files,
+        data={**base_data, "net_deposits": json.dumps({"W123456789": 1000})},
+    )
+    assert first.status_code == 200
+    account_id = first.json()[0]["id"]
+
+    second = await auth_client.post(
+        "/api/v1/accounts/csv/import",
+        files=files,
+        data={**base_data, "net_deposits": json.dumps({"W123456789": 2500})},
+    )
+    assert second.status_code == 200
+    assert second.json()[0]["id"] == account_id
+    assert second.json()[0]["net_deposits"] == 2500.0
+
+    db_account = await _get_db_account(db_session, account_id)
+    assert db_account.net_deposits == Decimal("2500")
+
+
+@pytest.mark.anyio
+async def test_csv_import_without_net_deposits_leaves_value_null(
+    auth_client, db_session: AsyncSession, seed_reference_data: None
+):
+    """Import without the field leaves a new account's value NULL."""
+    files = {"file": ("ws.csv", VALID_CSV.encode("utf-8"), "text/csv")}
+    response = await auth_client.post(
+        "/api/v1/accounts/csv/import",
+        files=files,
+        data={
+            "institution_id": str(InstitutionEnum.WEALTHSIMPLE.value),
+            "account_numbers": "W123456789",
+        },
+    )
+    assert response.status_code == 200
+    account = response.json()[0]
+    assert account["net_deposits"] is None
+
+    db_account = await _get_db_account(db_session, account["id"])
+    assert db_account.net_deposits is None
+
+
+@pytest.mark.anyio
+async def test_csv_import_with_null_net_deposits_clears_value(
+    auth_client, db_session: AsyncSession, seed_reference_data: None
+):
+    """Passing null clears the stored net deposits value."""
+    files = {"file": ("ws.csv", VALID_CSV.encode("utf-8"), "text/csv")}
+    base_data = {
+        "institution_id": str(InstitutionEnum.WEALTHSIMPLE.value),
+        "account_numbers": "W123456789",
+    }
+    first = await auth_client.post(
+        "/api/v1/accounts/csv/import",
+        files=files,
+        data={**base_data, "net_deposits": json.dumps({"W123456789": 1000})},
+    )
+    assert first.status_code == 200
+    account_id = first.json()[0]["id"]
+
+    cleared = await auth_client.post(
+        "/api/v1/accounts/csv/import",
+        files=files,
+        data={**base_data, "net_deposits": json.dumps({"W123456789": None})},
+    )
+    assert cleared.status_code == 200
+    assert cleared.json()[0]["net_deposits"] is None
+
+    db_account = await _get_db_account(db_session, account_id)
+    assert db_account.net_deposits is None
+
+
+@pytest.mark.anyio
+async def test_csv_import_malformed_net_deposits_returns_422(
+    auth_client, seed_reference_data: None
+):
+    """Malformed net_deposits JSON returns HTTP 422."""
+    files = {"file": ("ws.csv", VALID_CSV.encode("utf-8"), "text/csv")}
+    response = await auth_client.post(
+        "/api/v1/accounts/csv/import",
+        files=files,
+        data={
+            "institution_id": str(InstitutionEnum.WEALTHSIMPLE.value),
+            "account_numbers": "W123456789",
+            "net_deposits": "{not-valid-json",
+        },
+    )
+    assert response.status_code == 422
+    assert "net_deposits" in response.json()["detail"]
+
+
+@pytest.mark.anyio
+async def test_csv_import_non_numeric_net_deposits_returns_422(
+    auth_client, seed_reference_data: None
+):
+    """Non-numeric net_deposits values return HTTP 422."""
+    files = {"file": ("ws.csv", VALID_CSV.encode("utf-8"), "text/csv")}
+    response = await auth_client.post(
+        "/api/v1/accounts/csv/import",
+        files=files,
+        data={
+            "institution_id": str(InstitutionEnum.WEALTHSIMPLE.value),
+            "account_numbers": "W123456789",
+            "net_deposits": json.dumps({"W123456789": "not-a-number"}),
+        },
+    )
+    assert response.status_code == 422
+    assert "net_deposits" in response.json()["detail"]
+
+
+@pytest.mark.anyio
+async def test_csv_import_non_object_net_deposits_returns_422(
+    auth_client, seed_reference_data: None
+):
+    """net_deposits that is valid JSON but not an object returns HTTP 422."""
+    files = {"file": ("ws.csv", VALID_CSV.encode("utf-8"), "text/csv")}
+    response = await auth_client.post(
+        "/api/v1/accounts/csv/import",
+        files=files,
+        data={
+            "institution_id": str(InstitutionEnum.WEALTHSIMPLE.value),
+            "account_numbers": "W123456789",
+            "net_deposits": json.dumps([1, 2, 3]),
+        },
+    )
+    assert response.status_code == 422
+    assert "net_deposits" in response.json()["detail"]
+
+
+@pytest.mark.anyio
+async def test_csv_inspect_prefills_net_deposits(
+    auth_client, seed_reference_data: None
+):
+    """Inspect returns the stored net deposits for existing accounts only."""
+    files = {"file": ("ws.csv", VALID_CSV.encode("utf-8"), "text/csv")}
+    imported = await auth_client.post(
+        "/api/v1/accounts/csv/import",
+        files=files,
+        data={
+            "institution_id": str(InstitutionEnum.WEALTHSIMPLE.value),
+            "account_numbers": "W123456789",
+            "net_deposits": json.dumps({"W123456789": 1000}),
+        },
+    )
+    assert imported.status_code == 200
+
+    inspect = await auth_client.post(
+        "/api/v1/accounts/csv/inspect",
+        files={"file": ("ws.csv", VALID_CSV.encode("utf-8"), "text/csv")},
+        data={"institution_id": str(InstitutionEnum.WEALTHSIMPLE.value)},
+    )
+    assert inspect.status_code == 200
+    accounts = {acc["account_number"]: acc for acc in inspect.json()}
+    assert accounts["W123456789"]["exists"] is True
+    assert accounts["W123456789"]["net_deposits"] == 1000.0
+    assert accounts["W987654321"]["exists"] is False
+    assert accounts["W987654321"]["net_deposits"] is None
+
+
+@pytest.mark.anyio
+async def test_csv_sync_with_net_deposits(
+    auth_client, db_session: AsyncSession, seed_reference_data: None
+):
+    """csv-sync persists the provided net deposits value."""
+    files = {"file": ("ws.csv", VALID_CSV.encode("utf-8"), "text/csv")}
+    imported = await auth_client.post(
+        "/api/v1/accounts/csv/import",
+        files=files,
+        data={
+            "institution_id": str(InstitutionEnum.WEALTHSIMPLE.value),
+            "account_numbers": "W123456789",
+        },
+    )
+    assert imported.status_code == 200
+    account_id = imported.json()[0]["id"]
+
+    sync = await auth_client.post(
+        f"/api/v1/accounts/{account_id}/csv-sync",
+        files={"file": ("ws.csv", UPDATED_CSV.encode("utf-8"), "text/csv")},
+        data={"net_deposits": "2000"},
+    )
+    assert sync.status_code == 200
+    assert sync.json()["net_deposits"] == 2000.0
+
+    db_account = await _get_db_account(db_session, account_id)
+    assert db_account.net_deposits == Decimal("2000")
+
+
+@pytest.mark.anyio
+async def test_csv_sync_without_net_deposits_leaves_value_unchanged(
+    auth_client, db_session: AsyncSession, seed_reference_data: None
+):
+    """csv-sync without the field leaves the stored net deposits unchanged."""
+    files = {"file": ("ws.csv", VALID_CSV.encode("utf-8"), "text/csv")}
+    imported = await auth_client.post(
+        "/api/v1/accounts/csv/import",
+        files=files,
+        data={
+            "institution_id": str(InstitutionEnum.WEALTHSIMPLE.value),
+            "account_numbers": "W123456789",
+            "net_deposits": json.dumps({"W123456789": 1000}),
+        },
+    )
+    assert imported.status_code == 200
+    account_id = imported.json()[0]["id"]
+
+    sync = await auth_client.post(
+        f"/api/v1/accounts/{account_id}/csv-sync",
+        files={"file": ("ws.csv", UPDATED_CSV.encode("utf-8"), "text/csv")},
+    )
+    assert sync.status_code == 200
+    assert sync.json()["net_deposits"] == 1000.0
+
+    db_account = await _get_db_account(db_session, account_id)
+    assert db_account.net_deposits == Decimal("1000")
+
+
+@pytest.mark.anyio
+async def test_csv_sync_invalid_net_deposits_returns_422(
+    auth_client, test_user, db_session: AsyncSession, seed_reference_data: None
+):
+    """A non-numeric csv-sync net_deposits value returns HTTP 422."""
+    account = AccountModel(
+        id=uuid4(),
+        external_id="W123456789",
+        name="Test Account",
+        user_id=test_user.id,
+        account_type_id=AccountTypeEnum.TFSA.value,
+        institution_id=InstitutionEnum.WEALTHSIMPLE.value,
+        currency="CAD",
+        is_active=True,
+        api_sync_enabled=False,
+    )
+    db_session.add(account)
+    await db_session.commit()
+
+    response = await auth_client.post(
+        f"/api/v1/accounts/{account.id}/csv-sync",
+        files={"file": ("ws.csv", VALID_CSV.encode("utf-8"), "text/csv")},
+        data={"net_deposits": "not-a-number"},
+    )
+    assert response.status_code == 422
