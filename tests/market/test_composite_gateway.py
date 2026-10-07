@@ -172,7 +172,9 @@ class FakePolygonGateway(MarketGateway):
                 },
             )
         )
-        return OptionsChain(underlying_symbol=symbol, as_of=None, contracts=[])
+        return OptionsChain(
+            underlying_symbol=symbol, currency="USD", as_of=None, contracts=[]
+        )
 
     # The composite must never route price/search capabilities to Polygon; if it
     # did, these would fail loudly.

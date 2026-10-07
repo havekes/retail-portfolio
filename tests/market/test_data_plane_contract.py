@@ -128,3 +128,17 @@ def test_data_plane_contract_has_no_provider_names() -> None:
             assert provider not in committed, (
                 f"Provider name {provider!r} found in committed data-plane OpenAPI snapshot"
             )
+
+
+def test_data_plane_contract_requires_currency_on_price_responses() -> None:
+    """Every price-bearing response schema must mark currency required."""
+    schema = get_data_plane_openapi(app)
+    schemas = schema.get("components", {}).get("schemas", {})
+
+    prices_schema = schemas.get("PriceHistoryResponse", {})
+    assert "currency" in prices_schema.get("required", [])
+    assert prices_schema["properties"]["currency"]["type"] == "string"
+
+    options_schema = schemas.get("OptionsChain", {})
+    assert "currency" in options_schema.get("required", [])
+    assert options_schema["properties"]["currency"]["type"] == "string"

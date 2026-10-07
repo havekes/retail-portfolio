@@ -8,6 +8,7 @@ MCP gateway in T10/T11). They are deliberately separate from the user-JWT
 * every route resolves the ``DataPlaneMarketGateway`` svcs key (the composed
   market data gateway) and serves through the T13
   :class:`EndpointResponseCache` — the single canonical data-plane cache;
+* every price-bearing response has a required top-level ``currency``;
 * error mapping stays here: an unknown symbol becomes a structured 404 and a
   provider outage a generic 502/503 — a provider name never appears in a
   response body.
@@ -56,6 +57,7 @@ from src.market.api_types import (
     SupportedExchange,
     SymbolLookupResult,
 )
+from src.market.currency import resolve_listing_currency
 from src.market.endpoint_cache import EndpointResponseCache
 from src.market.exception import (
     MarketDataConfigurationError,
@@ -138,10 +140,12 @@ async def market_data_prices(
     }
 
     async def fetch() -> PriceHistoryResponse:
+        prices_task = _fetch_prices(gateway, normalized_symbol, exchange, from_, to)
+        currency_task = resolve_listing_currency(
+            gateway, cache, normalized_symbol, exchange
+        )
         try:
-            prices = await _fetch_prices(
-                gateway, normalized_symbol, exchange, from_, to
-            )
+            prices, currency = await asyncio.gather(prices_task, currency_task)
         except (
             MarketDataProviderError,
             MarketDataConfigurationError,
@@ -150,6 +154,7 @@ async def market_data_prices(
 
         return PriceHistoryResponse(
             symbol=normalized_symbol,
+            currency=currency,
             exchange=exchange,
             from_date=from_,
             to_date=to,
@@ -261,20 +266,26 @@ async def market_data_options(  # noqa: PLR0913, PLR0917
     }
 
     async def fetch() -> OptionsChain:
+        options_task = asyncio.to_thread(
+            gateway.get_options_chain,
+            normalized_symbol,
+            expiration=expiry,
+            contract_type=option_type,
+            strike_min=strike_min,
+            strike_max=strike_max,
+        )
+        currency_task = resolve_listing_currency(
+            gateway, cache, normalized_symbol, exchange=None
+        )
         try:
-            return await asyncio.to_thread(
-                gateway.get_options_chain,
-                normalized_symbol,
-                expiration=expiry,
-                contract_type=option_type,
-                strike_min=strike_min,
-                strike_max=strike_max,
-            )
+            chain, currency = await asyncio.gather(options_task, currency_task)
         except (
             MarketDataProviderError,
             MarketDataConfigurationError,
         ) as exc:
             raise _map_market_error(normalized_symbol, exc) from exc
+
+        return chain.model_copy(update={"currency": currency})
 
     try:
         return await cache.cached_response(

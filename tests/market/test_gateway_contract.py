@@ -197,10 +197,12 @@ def test_polygon_shaped_options_contract_and_chain_validate():
 
     chain = OptionsChain(
         underlying_symbol="AAPL",
+        currency="USD",
         as_of=date(2024, 12, 2),
         contracts=[OptionsChainEntry(contract=contract, quote=quote)],
     )
     assert chain.underlying_symbol == "AAPL"
+    assert chain.currency == "USD"
     assert len(chain.contracts) == 1
     entry_greeks = chain.contracts[0].quote.greeks
     assert entry_greeks is not None

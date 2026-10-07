@@ -67,7 +67,9 @@ def mock_gateway() -> MagicMock:
     gateway = MagicMock(spec=MarketGateway)
     gateway.get_prices.return_value = []
     gateway.lookup_symbol.return_value = []
-    gateway.get_options_chain.return_value = OptionsChain(underlying_symbol="AAPL")
+    gateway.get_options_chain.return_value = OptionsChain(
+        underlying_symbol="AAPL", currency=""
+    )
     gateway.get_company_profile.return_value = _company_profile()
     gateway.get_key_metrics.return_value = _key_metrics()
     gateway.get_financial_ratios.return_value = _financial_ratios()
@@ -122,6 +124,7 @@ def _historical_price(day: date = date(2026, 1, 2)) -> HistoricalPrice:
 def _options_chain() -> OptionsChain:
     return OptionsChain(
         underlying_symbol="AAPL",
+        currency="",
         as_of=date(2026, 1, 2),
         contracts=[
             OptionsChainEntry(
@@ -245,6 +248,7 @@ async def test_prices_returns_unified_json(
     assert response.status_code == 200
     body = response.json()
     assert body["symbol"] == "AAPL"
+    assert body["currency"] == "USD"
     assert body["exchange"] is None
     assert body["from_date"] == "2026-01-01"
     assert body["to_date"] == "2026-01-31"
@@ -258,6 +262,60 @@ async def test_prices_returns_unified_json(
     # DB-flavoured fields must not leak onto the data plane.
     assert "id" not in bar
     assert "security_id" not in bar
+
+
+@pytest.mark.anyio
+async def test_prices_with_exchange_tsx_resolves_cad(
+    client: AsyncClient, mock_gateway: MagicMock
+) -> None:
+    mock_gateway.get_prices.return_value = [_historical_price()]
+    mock_gateway.get_company_profile.return_value = _company_profile("SHOP").model_copy(
+        update={"currency": "CAD"}
+    )
+
+    response = await client.get(
+        "/api/v1/market/data/prices/SHOP?from=2026-01-01&to=2026-01-31&exchange=TSX",
+        headers=_headers(),
+    )
+
+    assert response.status_code == 200
+    body = response.json()
+    assert body["symbol"] == "SHOP"
+    assert body["exchange"] == "TSX"
+    assert body["currency"] == "CAD"
+
+
+@pytest.mark.anyio
+async def test_prices_missing_profile_uses_fallback_and_does_not_404(
+    client: AsyncClient, mock_gateway: MagicMock
+) -> None:
+    mock_gateway.get_prices.return_value = [_historical_price()]
+    mock_gateway.get_company_profile.side_effect = MarketDataNotFoundError("SHOP")
+
+    response = await client.get(
+        "/api/v1/market/data/prices/SHOP?from=2026-01-01&to=2026-01-31&exchange=TSX",
+        headers=_headers(),
+    )
+
+    assert response.status_code == 200
+    body = response.json()
+    assert body["currency"] == "CAD"
+
+
+@pytest.mark.anyio
+async def test_prices_profile_provider_error_falls_back_and_does_not_fail(
+    client: AsyncClient, mock_gateway: MagicMock
+) -> None:
+    mock_gateway.get_prices.return_value = [_historical_price()]
+    mock_gateway.get_company_profile.side_effect = MarketDataProviderError(
+        "FMP down"
+    )
+
+    response = await client.get(f"{_PRICES_URL}{_PRICES_QUERY}", headers=_headers())
+
+    assert response.status_code == 200
+    body = response.json()
+    assert body["currency"] == "USD"
 
 
 @pytest.mark.anyio
@@ -300,6 +358,7 @@ async def test_options_returns_polygon_mirrored_fields(
     assert response.status_code == 200
     body = response.json()
     assert body["underlying_symbol"] == "AAPL"
+    assert body["currency"] == "USD"
 
     entry = body["contracts"][0]
     contract = entry["contract"]
@@ -322,6 +381,21 @@ async def test_options_returns_polygon_mirrored_fields(
     assert kwargs["contract_type"] == "call"
     assert kwargs["strike_min"] == Decimal("100")
     assert kwargs["strike_max"] == Decimal("200")
+
+
+@pytest.mark.anyio
+async def test_options_missing_profile_uses_fallback_and_does_not_404(
+    client: AsyncClient, mock_gateway: MagicMock
+) -> None:
+    mock_gateway.get_options_chain.return_value = _options_chain()
+    mock_gateway.get_company_profile.side_effect = MarketDataNotFoundError("AAPL")
+
+    response = await client.get(_OPTIONS_URL, headers=_headers())
+
+    assert response.status_code == 200
+    body = response.json()
+    assert body["underlying_symbol"] == "AAPL"
+    assert body["currency"] == "USD"
 
 
 # --------------------------------------------------------------------------- #
@@ -355,6 +429,25 @@ async def test_repeated_prices_request_is_a_cache_hit(
         )
         == 1
     )
+    mock_gateway.get_company_profile.assert_called_once()
+
+
+@pytest.mark.anyio
+async def test_repeated_prices_different_date_range_shares_currency_cache(
+    client: AsyncClient, mock_gateway: MagicMock
+) -> None:
+    mock_gateway.get_prices.return_value = [_historical_price()]
+
+    r1 = await client.get(
+        f"{_PRICES_URL}?from=2026-01-01&to=2026-01-10", headers=_headers()
+    )
+    r2 = await client.get(
+        f"{_PRICES_URL}?from=2026-01-11&to=2026-01-20", headers=_headers()
+    )
+
+    assert r1.status_code == r2.status_code == 200
+    assert mock_gateway.get_prices.call_count == 2
+    mock_gateway.get_company_profile.assert_called_once()
 
 
 @pytest.mark.anyio

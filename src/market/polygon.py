@@ -228,6 +228,7 @@ class PolygonGateway(MarketGateway):
 
         return OptionsChain(
             underlying_symbol=underlying,
+            currency="",
             as_of=None,
             contracts=entries,
         )
