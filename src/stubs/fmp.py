@@ -19,6 +19,7 @@ from src.market.api_types import (
     IncomeStatement,
     IntradayHistoricalPrice,
     KeyMetrics,
+    Quote,
     SecuritySearchResult,
     SymbolLookupResult,
 )
@@ -58,6 +59,14 @@ _KNOWN_SYMBOLS: dict[str, dict[str, str]] = {
         "security_type": "Common Stock",
         "country": "GB",
     },
+    "SHOP": {
+        "name": "Shopify Inc.",
+        "exchange": "Toronto Stock Exchange",
+        "exchange_short_name": "TSX",
+        "currency": "CAD",
+        "security_type": "Common Stock",
+        "country": "CA",
+    },
 }
 
 _BASE_PRICES: dict[str, float] = {
@@ -65,6 +74,7 @@ _BASE_PRICES: dict[str, float] = {
     "MSFT": 380.0,
     "RY": 120.0,
     "VOD": 8.5,
+    "SHOP": 75.0,
 }
 
 _VALID_PERIODS = frozenset({"annual", "quarter"})
@@ -171,6 +181,27 @@ _FUNDAMENTAL_PROFILES: dict[str, dict[str, Any]] = {
         "cik": "0000839923",
         "isin": "GB00BH4HKS39",
         "image": "https://images.example.com/VOD.png",
+        "is_actively_trading": True,
+    },
+    "SHOP": {
+        "symbol": "SHOP",
+        "company_name": "Shopify Inc.",
+        "market_cap": "100000000000",
+        "sector": "Technology",
+        "industry": "Software - Application",
+        "beta": "1.8",
+        "price": "75.00",
+        "website": "https://www.shopify.com",
+        "description": "Shopify Inc. provides a commerce platform.",
+        "ceo": "Tobias Lütke",
+        "full_time_employees": 11600,
+        "exchange_short_name": "TSX",
+        "exchange": "Toronto Stock Exchange",
+        "currency": "CAD",
+        "ipo_date": "2015-05-21",
+        "cik": "0001594607",
+        "isin": "CA82509L1076",
+        "image": "https://images.example.com/SHOP.png",
         "is_actively_trading": True,
     },
 }
@@ -1028,3 +1059,27 @@ class StubFmpGateway(MarketGateway):
         _validate_period(period)
         normalized = self._resolve_symbol(symbol)
         return FinancialRatios(**_FUNDAMENTAL_FINANCIAL_RATIOS[normalized])
+
+    def get_quote(
+        self,
+        symbol: str,
+        *,
+        exchange: str | None = None,
+    ) -> Quote:
+        """Get live quote snapshot for a symbol."""
+        _ = exchange
+        normalized = self._resolve_symbol(symbol)
+        base = _BASE_PRICES.get(normalized, 100.0)
+        return Quote(
+            symbol=normalized,
+            price=Decimal(str(round(base, 2))),
+            change=Decimal("1.25"),
+            change_percent=Decimal("0.75"),
+            previous_close=Decimal(str(round(base - 1.25, 2))),
+            open=Decimal(str(round(base - 0.50, 2))),
+            day_high=Decimal(str(round(base + 2.00, 2))),
+            day_low=Decimal(str(round(base - 1.00, 2))),
+            volume=1_500_000,
+            timestamp=datetime(2026, 4, 1, 14, 30, tzinfo=UTC),
+            currency=_KNOWN_SYMBOLS[normalized]["currency"],
+        )
