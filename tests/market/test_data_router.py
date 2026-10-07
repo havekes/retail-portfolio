@@ -10,7 +10,7 @@ byte-comparison path end to end.
 from __future__ import annotations
 
 from collections.abc import AsyncIterator
-from datetime import UTC, date, datetime
+from datetime import UTC, date, datetime, timedelta
 from decimal import Decimal
 import threading
 from unittest.mock import MagicMock
@@ -349,6 +349,124 @@ async def test_prices_profile_provider_error_falls_back_and_does_not_fail(
     assert response.status_code == 200
     body = response.json()
     assert body["currency"] == "USD"
+
+
+@pytest.mark.anyio
+async def test_prices_without_dates_defaults_to_last_year_ending_today(
+    client: AsyncClient, mock_gateway: MagicMock
+) -> None:
+    today = datetime.now(UTC).date()
+    expected_from = today - timedelta(days=365)
+    mock_gateway.get_prices.return_value = [_historical_price(today)]
+
+    response = await client.get(_PRICES_URL, headers=_headers())
+
+    assert response.status_code == 200
+    body = response.json()
+    assert body["from_date"] == expected_from.isoformat()
+    assert body["to_date"] == today.isoformat()
+    assert body["interval"] == "day"
+
+    args, _ = mock_gateway.get_prices.call_args
+    assert args[2] == expected_from
+    assert args[3] == today
+
+
+@pytest.mark.anyio
+async def test_prices_monthly_interval_aggregates_120_bars(
+    client: AsyncClient, mock_gateway: MagicMock
+) -> None:
+    # 2015-01-01 to 2024-12-31 spans 120 months.
+    # Provide 2 daily prices per month.
+    prices: list[HistoricalPrice] = []
+    for year in range(2015, 2025):
+        for month in range(1, 13):
+            prices.append(_historical_price(date(year, month, 1)))
+            prices.append(_historical_price(date(year, month, 15)))
+
+    mock_gateway.get_prices.return_value = prices
+
+    response = await client.get(
+        f"{_PRICES_URL}?from=2015-01-01&to=2024-12-31&interval=month",
+        headers=_headers(),
+    )
+
+    assert response.status_code == 200
+    body = response.json()
+    assert body["interval"] == "month"
+    assert len(body["items"]) == 120
+    assert body["currency"] == "USD"
+
+
+@pytest.mark.anyio
+async def test_prices_five_year_daily_range_succeeds(
+    client: AsyncClient, mock_gateway: MagicMock
+) -> None:
+    mock_gateway.get_prices.return_value = [_historical_price(date(2020, 1, 2))]
+
+    response = await client.get(
+        f"{_PRICES_URL}?from=2019-10-01&to=2024-09-30&interval=day",
+        headers=_headers(),
+    )
+
+    assert response.status_code == 200
+    body = response.json()
+    assert body["interval"] == "day"
+
+
+@pytest.mark.anyio
+async def test_prices_over_2000_weekdays_daily_returns_422_before_gateway_call(
+    client: AsyncClient, mock_gateway: MagicMock
+) -> None:
+    response = await client.get(
+        f"{_PRICES_URL}?from=2015-01-01&to=2024-12-31&interval=day",
+        headers=_headers(),
+    )
+
+    assert response.status_code == 422
+    mock_gateway.get_prices.assert_not_called()
+    detail = response.json()["detail"].lower()
+    assert "week" in detail or "month" in detail
+    assert "2000" in detail
+
+
+@pytest.mark.anyio
+async def test_prices_currency_preserved_across_all_intervals(
+    client: AsyncClient, mock_gateway: MagicMock
+) -> None:
+    mock_gateway.get_prices.return_value = [_historical_price(date(2026, 1, 2))]
+
+    for interval in ("day", "week", "month"):
+        response = await client.get(
+            f"{_PRICES_URL}?from=2026-01-01&to=2026-01-31&interval={interval}",
+            headers=_headers(),
+        )
+        assert response.status_code == 200
+        body = response.json()
+        assert body["currency"] == "USD"
+        assert body["interval"] == interval
+
+
+@pytest.mark.anyio
+async def test_prices_cache_key_includes_interval(
+    client: AsyncClient, mock_gateway: MagicMock, mock_redis_storage: FakeRedis
+) -> None:
+    mock_gateway.get_prices.return_value = [
+        _historical_price(date(2026, 1, 2)),
+        _historical_price(date(2026, 1, 5)),
+    ]
+    url_day = f"{_PRICES_URL}?from=2026-01-01&to=2026-01-31&interval=day"
+    url_week = f"{_PRICES_URL}?from=2026-01-01&to=2026-01-31&interval=week"
+
+    r_day = await client.get(url_day, headers=_headers())
+    r_week = await client.get(url_week, headers=_headers())
+
+    assert r_day.status_code == 200
+    assert r_week.status_code == 200
+    # Both intervals result in a gateway fetch since cache keys differ
+    assert mock_gateway.get_prices.call_count == 2
+    keys = _endpoint_keys(mock_redis_storage, "market:ep:prices:history:")
+    assert len(keys) == 2
 
 
 @pytest.mark.anyio

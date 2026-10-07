@@ -69,6 +69,11 @@ from src.market.exception import (
     MarketDataProviderError,
 )
 from src.market.gateway import DataPlaneMarketGateway
+from src.market.price_aggregation import (
+    PriceInterval,
+    aggregate_bars,
+    resolve_price_range,
+)
 from src.market.schema import PriceBar, PriceHistoryResponse
 
 logger = logging.getLogger(__name__)
@@ -117,17 +122,17 @@ async def _fetch_prices(
 
 
 @data_router.get("/prices/{symbol}")
-async def market_data_prices(
+async def market_data_prices(  # noqa: PLR0913, PLR0917
     _svc: Annotated[None, Depends(require_service_token)],
     symbol: str,
-    from_: Annotated[date, Query(alias="from")],
-    to: Annotated[date, Query()],
     services: DepContainer,
+    from_: Annotated[date | None, Query(alias="from")] = None,
+    to: Annotated[date | None, Query()] = None,
+    interval: Annotated[PriceInterval, Query()] = "day",
     exchange: Annotated[SupportedExchange | None, Query()] = None,
 ) -> PriceHistoryResponse:
-    """Daily price history for a symbol, served through the endpoint cache."""
-    if from_ > to:
-        raise HTTPException(422, "from must be less than or equal to to")
+    """Price history for a symbol, served through the endpoint cache."""
+    resolved_from, resolved_to = resolve_price_range(from_, to, interval)
 
     normalized_symbol = symbol.upper()
     gateway = services.get(DataPlaneMarketGateway)
@@ -139,12 +144,15 @@ async def market_data_prices(
     params = {
         "symbol": normalized_symbol,
         "exchange": exchange,
-        "from": from_,
-        "to": to,
+        "from": resolved_from,
+        "to": resolved_to,
+        "interval": interval,
     }
 
     async def fetch() -> PriceHistoryResponse:
-        prices_task = _fetch_prices(gateway, normalized_symbol, exchange, from_, to)
+        prices_task = _fetch_prices(
+            gateway, normalized_symbol, exchange, resolved_from, resolved_to
+        )
         currency_task = resolve_listing_currency(
             gateway, cache, normalized_symbol, exchange
         )
@@ -156,24 +164,28 @@ async def market_data_prices(
         ) as exc:
             raise _map_market_error(normalized_symbol, exc) from exc
 
+        bars = [
+            PriceBar(
+                date=price.date,
+                open=price.open,
+                high=price.high,
+                low=price.low,
+                close=price.close,
+                volume=price.volume,
+                adjusted_close=price.adjusted_close,
+            )
+            for price in prices
+        ]
+        aggregated = aggregate_bars(bars, interval)
+
         return PriceHistoryResponse(
             symbol=normalized_symbol,
             currency=currency,
             exchange=exchange,
-            from_date=from_,
-            to_date=to,
-            items=[
-                PriceBar(
-                    date=price.date,
-                    open=price.open,
-                    high=price.high,
-                    low=price.low,
-                    close=price.close,
-                    volume=price.volume,
-                    adjusted_close=price.adjusted_close,
-                )
-                for price in prices
-            ],
+            from_date=resolved_from,
+            to_date=resolved_to,
+            interval=interval,
+            items=aggregated,
         )
 
     try:

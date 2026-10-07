@@ -1736,6 +1736,16 @@
             "title": "From Date",
             "type": "string"
           },
+          "interval": {
+            "default": "day",
+            "enum": [
+              "day",
+              "week",
+              "month"
+            ],
+            "title": "Interval",
+            "type": "string"
+          },
           "items": {
             "items": {
               "$ref": "#/components/schemas/PriceBar"
@@ -2361,7 +2371,7 @@
     },
     "/api/v1/market/data/prices/{symbol}": {
       "get": {
-        "description": "Daily price history for a symbol, served through the endpoint cache.",
+        "description": "Price history for a symbol, served through the endpoint cache.",
         "operationId": "market_data_prices_api_v1_market_data_prices__symbol__get",
         "parameters": [
           {
@@ -2376,20 +2386,49 @@
           {
             "in": "query",
             "name": "from",
-            "required": true,
+            "required": false,
             "schema": {
-              "format": "date",
-              "title": "From",
-              "type": "string"
+              "anyOf": [
+                {
+                  "format": "date",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "From"
             }
           },
           {
             "in": "query",
             "name": "to",
-            "required": true,
+            "required": false,
             "schema": {
-              "format": "date",
-              "title": "To",
+              "anyOf": [
+                {
+                  "format": "date",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "To"
+            }
+          },
+          {
+            "in": "query",
+            "name": "interval",
+            "required": false,
+            "schema": {
+              "default": "day",
+              "enum": [
+                "day",
+                "week",
+                "month"
+              ],
+              "title": "Interval",
               "type": "string"
             }
           },

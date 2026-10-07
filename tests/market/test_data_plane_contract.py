@@ -76,9 +76,11 @@ def test_data_plane_contract_parameters() -> None:
     assert prices_params["symbol"]["in"] == "path"
     assert prices_params["symbol"]["required"] is True
     assert prices_params["from"]["in"] == "query"
-    assert prices_params["from"]["required"] is True
+    assert prices_params["from"]["required"] is False
     assert prices_params["to"]["in"] == "query"
-    assert prices_params["to"]["required"] is True
+    assert prices_params["to"]["required"] is False
+    assert prices_params["interval"]["in"] == "query"
+    assert prices_params["interval"]["required"] is False
     assert prices_params["exchange"]["in"] == "query"
     assert prices_params["exchange"]["required"] is False
 

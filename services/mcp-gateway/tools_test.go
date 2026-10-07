@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"net/http"
 	"net/http/httptest"
+	"net/url"
 	"strings"
 	"testing"
 
@@ -991,6 +992,14 @@ func TestToolsRejectInvalidInput(t *testing.T) {
 			want: "from must be on or before to",
 		},
 		{
+			name: "bad interval",
+			prepare: func() error {
+				_, err := (priceHistoryInput{Symbol: "AAPL", Interval: "hourly"}).prepare()
+				return err
+			},
+			want: "interval must be 'day', 'week', or 'month'",
+		},
+		{
 			name: "bad period",
 			prepare: func() error {
 				_, err := (financialStatementsInput{Symbol: "AAPL", Statement: "income", Period: "monthly"}).prepare()
@@ -1177,9 +1186,9 @@ func TestToolsRejectMissingRequiredInputAtSDK(t *testing.T) {
 	backend, _ := newStubBackend(t, http.StatusOK, priceHistoryBody)
 	session := newTestSession(t, backend.URL)
 
-	// `from`/`to` are non-omitempty, so the SDK rejects the call before the
-	// handler runs.
-	result := callTool(t, session, "get_price_history", map[string]any{"symbol": "AAPL"})
+	// `symbol` is non-omitempty, so the SDK rejects the call before the
+	// handler runs when omitted.
+	result := callTool(t, session, "get_price_history", map[string]any{})
 	if !result.IsError {
 		t.Fatalf("expected the SDK to reject a missing required argument, got %q", resultText(t, result))
 	}
@@ -2087,4 +2096,99 @@ func TestResolveSymbolToolIntegration(t *testing.T) {
 			t.Errorf("alt 1 = %+v", payload.Alternatives[1])
 		}
 	})
+}
+
+func TestGetPriceHistory_OptionalDatesAndInterval(t *testing.T) {
+	var capturedQuery url.Values
+	backend := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		capturedQuery = r.URL.Query()
+		w.Header().Set("Content-Type", "application/json")
+		_, _ = w.Write([]byte(`{"symbol":"AAPL","currency":"USD","from_date":"2023-01-01","to_date":"2024-01-01","interval":"day","items":[]}`))
+	}))
+	t.Cleanup(backend.Close)
+
+	session := newTestSession(t, backend.URL)
+
+	t.Run("without from and to sends neither parameter", func(t *testing.T) {
+		capturedQuery = nil
+		res := callTool(t, session, "get_price_history", map[string]any{
+			"symbol": "AAPL",
+		})
+		if res.IsError {
+			t.Fatalf("unexpected tool error: %v", resultText(t, res))
+		}
+		if capturedQuery == nil {
+			t.Fatal("backend was not called")
+		}
+		if capturedQuery.Has("from") {
+			t.Errorf("expected no 'from' param, got %q", capturedQuery.Get("from"))
+		}
+		if capturedQuery.Has("to") {
+			t.Errorf("expected no 'to' param, got %q", capturedQuery.Get("to"))
+		}
+		if capturedQuery.Has("interval") {
+			t.Errorf("expected no 'interval' param when empty, got %q", capturedQuery.Get("interval"))
+		}
+	})
+
+	t.Run("with interval sends interval parameter", func(t *testing.T) {
+		capturedQuery = nil
+		res := callTool(t, session, "get_price_history", map[string]any{
+			"symbol":   "AAPL",
+			"interval": "week",
+		})
+		if res.IsError {
+			t.Fatalf("unexpected tool error: %v", resultText(t, res))
+		}
+		if capturedQuery.Get("interval") != "week" {
+			t.Errorf("expected interval=week, got %q", capturedQuery.Get("interval"))
+		}
+		if capturedQuery.Has("from") || capturedQuery.Has("to") {
+			t.Errorf("expected neither from nor to, got from=%q to=%q", capturedQuery.Get("from"), capturedQuery.Get("to"))
+		}
+	})
+
+	t.Run("interval validated client-side", func(t *testing.T) {
+		capturedQuery = nil
+		res := callTool(t, session, "get_price_history", map[string]any{
+			"symbol":   "AAPL",
+			"interval": "biweekly",
+		})
+		if !res.IsError {
+			t.Fatal("expected error on invalid interval")
+		}
+		if capturedQuery != nil {
+			t.Fatal("backend should not have been called for invalid interval")
+		}
+		if !strings.Contains(resultText(t, res), "interval must be 'day', 'week', or 'month'") {
+			t.Errorf("expected interval error message, got %q", resultText(t, res))
+		}
+	})
+}
+
+func TestGetPriceHistory_Backend422CapErrorForwardedToAgent(t *testing.T) {
+	const capErrorMessage = "Requested range spans ~2609 bars, exceeding the limit of 2000. Narrow the date range or use a coarser interval ('week' or 'month')."
+	backend := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusUnprocessableEntity)
+		_ = json.NewEncoder(w).Encode(map[string]string{
+			"detail": capErrorMessage,
+		})
+	}))
+	t.Cleanup(backend.Close)
+
+	session := newTestSession(t, backend.URL)
+
+	res := callTool(t, session, "get_price_history", map[string]any{
+		"symbol": "AAPL",
+		"from":   "2015-01-01",
+		"to":     "2024-12-31",
+	})
+	if !res.IsError {
+		t.Fatal("expected tool error on backend 422")
+	}
+	text := resultText(t, res)
+	if !strings.Contains(text, capErrorMessage) {
+		t.Errorf("expected backend 422 message %q forwarded to agent, got %q", capErrorMessage, text)
+	}
 }
