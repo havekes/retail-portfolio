@@ -92,9 +92,20 @@ class PositionService:
         )
 
     async def get_holdings_by_security(
-        self, security_id: SecurityId, user_id: UserId, offset: int = 0, limit: int = 50
+        self,
+        security_id: SecurityId,
+        user_id: UserId,
+        offset: int = 0,
+        limit: int = 50,
+        display_currency: str | None = None,
     ) -> tuple[list[AccountHoldingRead], int]:
-        """Get holdings for a specific security across all user accounts."""
+        """Get holdings for a specific security across all user accounts.
+
+        ``total_value`` stays in the security's currency. ``display_total_value``
+        converts it to ``display_currency`` (defaulting to each account's
+        currency) so callers can aggregate rows without adding different
+        currencies together.
+        """
         holdings, total = await self._position_repository.get_holdings_by_security(
             security_id, user_id, offset, limit
         )
@@ -116,12 +127,17 @@ class PositionService:
             totals = await self.get_total_for_account(h.account_id, account.currency)
             account_total_value = float(totals.value.amount)
 
+            target_currency = display_currency or str(account.currency)
+            holding_money = Money(round(holding_total_value, 2), security.currency)
+            converted_holding_money = self._currency_convert(
+                holding_money, str(account.currency)
+            )
+            display_holding_money = self._currency_convert(
+                holding_money, target_currency
+            )
+
             account_percentage = None
             if account_total_value > 0:
-                holding_money = Money(round(holding_total_value, 2), security.currency)
-                converted_holding_money = self._currency_convert(
-                    holding_money, str(account.currency)
-                )
                 account_percentage = (
                     float(converted_holding_money.amount) / account_total_value
                 ) * 100
@@ -134,6 +150,8 @@ class PositionService:
                     average_cost=h.average_cost,
                     total_value=holding_total_value,
                     currency=str(security.currency),
+                    display_total_value=float(display_holding_money.amount),
+                    display_currency=target_currency,
                     account_total_value=account_total_value,
                     account_percentage=account_percentage,
                 )

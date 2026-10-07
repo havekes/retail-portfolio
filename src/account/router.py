@@ -14,9 +14,11 @@ from fastapi import (
     Response,
     UploadFile,
 )
+from stockholm import Currency
 from svcs.fastapi import DepContainer
 
 from src.account.api_types import (
+    SUPPORTED_DISPLAY_CURRENCIES,
     AccountId,
     AccountRenameRequest,
     AccountTotals,
@@ -495,9 +497,13 @@ async def account_totals(
     account_id: AccountId,
     user: Annotated[User, Depends(current_user)],
     services: DepContainer,
+    currency: Annotated[str | None, Query()] = None,
 ) -> AccountTotals:
     """
     Get accounts totals such as cost and price.
+
+    Pass ``currency`` to receive the totals converted to a supported display
+    currency; it defaults to the account's own currency.
     """
     authorization_api = await services.aget(AuthorizationApi)
     account_repository = await services.aget(AccountRepository)
@@ -509,7 +515,18 @@ async def account_totals(
     if account is None:
         raise HTTPException(404)
 
-    return await position_service.get_total_for_account(account_id, account.currency)
+    target_currency = account.currency
+    if currency is not None:
+        normalized = currency.strip().upper()
+        if normalized not in SUPPORTED_DISPLAY_CURRENCIES:
+            supported = ", ".join(SUPPORTED_DISPLAY_CURRENCIES)
+            raise HTTPException(
+                status_code=422,
+                detail=f"currency must be one of: {supported}",
+            )
+        target_currency = Currency(normalized)
+
+    return await position_service.get_total_for_account(account_id, target_currency)
 
 
 @account_router.get("/holdings")
@@ -542,8 +559,14 @@ async def security_holdings(
 ) -> PaginatedResponse[AccountHoldingRead]:
     """Get all holdings for a specific security across user accounts."""
     position_service = await services.aget(PositionService)
+    user_api = await services.aget(UserApi)
+    display_currency = await user_api.get_display_currency(user.id)
     holdings, total = await position_service.get_holdings_by_security(
-        security_id, user.id, offset=pagination.offset, limit=pagination.limit
+        security_id,
+        user.id,
+        offset=pagination.offset,
+        limit=pagination.limit,
+        display_currency=display_currency,
     )
     return PaginatedResponse(
         items=holdings, total=total, offset=pagination.offset, limit=pagination.limit
